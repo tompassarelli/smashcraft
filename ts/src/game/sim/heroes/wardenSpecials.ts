@@ -3,21 +3,23 @@
 import { f32 } from "wisp/src/sim/f32";
 import { HERO_REFERENCE_HEIGHT, heroRegion, type MoveRegion, type StrikeCapsule } from "../heroMoves";
 import { ROSTER_MANA, frames, type AuthoredSpecial, type FighterSpecials } from "../heroSpecials";
+import { HeroStatusGroup, HeroStatusKind } from "../codes";
+import type { AppliedStatus } from "../heroStatus";
 import { wardenHit } from "./wardenMoves";
 
 const H = HERO_REFERENCE_HEIGHT;
 const KNIFE_RADIUS = 7.0;
 const blade = (x1: number, z1: number, x2: number, z2: number, radius = KNIFE_RADIUS): StrikeCapsule => ({ x1, z1, x2, z2, radius });
 
-// Shadow Strike: one slow reflectable blade. The roster's poison (three
-// 1-damage ticks over 90 frames, no flinch, no stacking) needs a
-// damage-over-time status the specials framework does not yet carry.
+// Shadow Strike: one slow reflectable blade whose body hit poisons for three
+// 1-damage ticks over 90 frames, without flinch; a new hit refreshes it.
+const POISON: AppliedStatus = { kind: HeroStatusKind.poison, frames: 90, group: HeroStatusGroup.sleep, immunityFrames: 0, tick: { every: 30, damage: 1.0 } };
 const SHADOW_STRIKE: AuthoredSpecial = {
   cost: 5,
   endFrame: 37,
   projectiles: [{
     spawnFrame: 16, offsetX: 30.0, offsetZ: 50.0, velocityX: f32(H * f32(0.11)), velocityZ: 0.0,
-    life: 30, radius: f32(H * f32(0.13)), effect: wardenHit(5.0, "POKE", 35), reflectable: true, limit: 1,
+    life: 30, radius: f32(H * f32(0.13)), effect: wardenHit(5.0, "POKE", 35), reflectable: true, limit: 1, status: POISON,
   }],
 };
 
@@ -38,13 +40,13 @@ const PURSUIT_LUNGE_AIR: AuthoredSpecial = {
 };
 
 // Blink: one displacement on f9, aimed in eight directions by the stick held
-// through f8, intangible f8-10, then a vulnerable endpoint through f30 (on the
-// ground as well) and a helpless fall in the air.
+// through f8, intangible f8-10, then held still at its vulnerable endpoint
+// through f30 (on the ground as well) before a helpless fall in the air.
 const blink = (cost: number, distance: number, aimed: boolean, intangible: boolean): AuthoredSpecial => ({
   cost, endFrame: 30, oncePerAirtime: true, helpless: true, aimFrames: aimed ? 8 : undefined,
   motion: [
     { ...frames(9, 9), velocityX: 0.0, velocityZ: distance, aimedSpeed: aimed ? distance : undefined },
-    { ...frames(10, 10), velocityX: 0.0, velocityZ: 0.0 },
+    { ...frames(10, 30), velocityX: 0.0, velocityZ: 0.0 },
   ],
   intangible: intangible ? frames(8, 10) : undefined,
 });

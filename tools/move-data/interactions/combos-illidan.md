@@ -77,7 +77,7 @@ Damage includes the opening. The guaranteed column uses the same chosen move on 
 | forward air | 60 | 8 | 0 | forward air | — | within measured targets |
 | forward air | 90 | 8 | 0 | forward air | — | within measured targets |
 | forward air | 120 | 8 | 0 | forward air | — | within measured targets |
-| back air | 0 | 8 | 0 | back air | 2 | within measured targets |
+| back air | 0 | 8 | 0 | back air | 1 | sampled 0-to-death takes fewer than 2 reads |
 | back air | 30 | 8 | 0 | back air | — | within measured targets |
 | back air | 60 | 8 | 0 | back air | — | within measured targets |
 | back air | 90 | 8 | 0 | back air | — | within measured targets |
@@ -87,7 +87,7 @@ Damage includes the opening. The guaranteed column uses the same chosen move on 
 | up air | 60 | 16 | 1 | up air → forward tilt up | — | within measured targets |
 | up air | 90 | 8 | 0 | up air | — | within measured targets |
 | up air | 120 | 8 | 0 | up air | — | within measured targets |
-| down air | 0 | 9 | 0 | down air | 1 | sampled 0-to-death takes fewer than 2 reads |
+| down air | 0 | 9 | 0 | down air | 2 | within measured targets |
 | down air | 30 | 9 | 0 | down air | — | within measured targets |
 | down air | 60 | 9 | 0 | down air | — | within measured targets |
 | down air | 90 | 9 | 0 | down air | — | within measured targets |
@@ -107,7 +107,7 @@ Damage includes the opening. The guaranteed column uses the same chosen move on 
 | up throw | 60 | 21 | 1 | up throw → down smash | — | within measured targets |
 | up throw | 90 | 21 | 1 | up throw → down smash | — | within measured targets |
 | up throw | 120 | 13 | 1 | up throw → neutral air | — | within measured targets |
-| down throw | 0 | 5 | 0 | down throw | 1 | sampled 0-to-death takes fewer than 2 reads |
+| down throw | 0 | 5 | 0 | down throw | 2 | within measured targets |
 | down throw | 30 | 5 | 0 | down throw | — | within measured targets |
 | down throw | 60 | 5 | 0 | down throw | — | within measured targets |
 | down throw | 90 | 14 | 1 | down throw → dash attack | — | within measured targets |
@@ -115,26 +115,26 @@ Damage includes the opening. The guaranteed column uses the same chosen move on 
 
 ## Stock paths from 0%
 
-jab: jab → forward smash; 1 reads; defender scripts: DI down-right; SDI; stock lost 75 frames after the last hit. Read witnesses: forward smash beats DI down-right; SDI, escaped by DI none; jump.
-forward tilt: forward tilt → forward smash; 1 reads; defender scripts: DI down-right; SDI; stock lost 73 frames after the last hit. Read witnesses: forward smash beats DI down-right; SDI, escaped by DI none; mash.
-up tilt: up tilt → forward smash; 1 reads; defender scripts: DI down-right; SDI; stock lost 77 frames after the last hit. Read witnesses: forward smash beats DI down-right; SDI, escaped by DI none; mash.
-down tilt: down tilt → forward smash; 1 reads; defender scripts: DI down-right; SDI; stock lost 76 frames after the last hit. Read witnesses: forward smash beats DI down-right; SDI, escaped by DI left; jump.
-forward tilt up: forward tilt up → forward smash; 1 reads; defender scripts: DI down-right; SDI; stock lost 73 frames after the last hit. Read witnesses: forward smash beats DI down-right; SDI, escaped by DI none; mash.
-forward tilt down: forward tilt down → forward smash; 1 reads; defender scripts: DI right; SDI; stock lost 76 frames after the last hit. Read witnesses: forward smash beats DI right; SDI, escaped by DI none; jump.
-forward smash: forward smash → forward tilt down; 1 reads; defender scripts: DI right; SDI; stock lost 93 frames after the last hit. Read witnesses: forward tilt down beats DI right; SDI, escaped by DI right; jump.
-up smash: up smash → forward tilt down; 1 reads; defender scripts: DI right; SDI; stock lost 93 frames after the last hit. Read witnesses: forward tilt down beats DI right; SDI, escaped by DI none; jump.
-down smash: down smash → forward tilt down; 1 reads; defender scripts: DI right; SDI; stock lost 93 frames after the last hit. Read witnesses: forward tilt down beats DI right; SDI, escaped by DI none; jump.
-dash attack: dash attack → forward smash; 1 reads; defender scripts: DI down-right; SDI; stock lost 71 frames after the last hit. Read witnesses: forward smash beats DI down-right; SDI, escaped by DI none; jump.
-grab: grab → back throw → forward smash; 1 reads; defender scripts: DI down-left; air dodge → DI left; SDI; stock lost 76 frames after the last hit. Read witnesses: forward smash beats DI left; SDI, escaped by DI none; jump.
-neutral air: neutral air → forward smash → forward smash; 2 reads; defender scripts: DI down-left; air dodge → DI none; SDI; stock lost 80 frames after the last hit. Read witnesses: forward smash beats DI down-left; air dodge, escaped by DI left; jump; forward smash beats DI none; SDI, escaped by DI none; jump.
-forward air: forward air → forward smash; 1 reads; defender scripts: DI down-right; SDI; stock lost 73 frames after the last hit. Read witnesses: forward smash beats DI down-right; SDI, escaped by DI none; jump.
-back air: back air → down smash → forward smash; 2 reads; defender scripts: DI down-left; air dodge → DI none; SDI; stock lost 80 frames after the last hit. Read witnesses: down smash beats DI down-left; air dodge, escaped by DI none; mash; forward smash beats DI none; SDI, escaped by DI none; jump.
-up air: up air → forward smash; 1 reads; defender scripts: DI down-right; SDI; stock lost 77 frames after the last hit. Read witnesses: forward smash beats DI down-right; SDI, escaped by DI left; jump.
-down air: down air → forward smash; 1 reads; defender scripts: DI right; SDI; stock lost 83 frames after the last hit. Read witnesses: forward smash beats DI right; SDI, escaped by DI left; jump.
-forward throw: forward throw → forward smash; 1 reads; defender scripts: DI right; SDI; stock lost 77 frames after the last hit. Read witnesses: forward smash beats DI right; SDI, escaped by DI none; jump.
-back throw: back throw → forward smash; 1 reads; defender scripts: DI left; SDI; stock lost 77 frames after the last hit. Read witnesses: forward smash beats DI left; SDI, escaped by DI none; jump.
+jab: jab → forward tilt down; 1 reads; defender scripts: DI down-right; jump; stock lost 119 frames after the last hit. Read witnesses: forward tilt down beats DI down-right; jump, escaped by DI none; mash.
+forward tilt: forward tilt → forward smash; 1 reads; defender scripts: DI down-right; SDI; stock lost 83 frames after the last hit. Read witnesses: forward smash beats DI down-right; SDI, escaped by DI none; mash.
+up tilt: up tilt → forward smash; 1 reads; defender scripts: DI down-right; jump; stock lost 105 frames after the last hit. Read witnesses: forward smash beats DI down-right; jump, escaped by DI none; mash.
+down tilt: down tilt → forward smash; 1 reads; defender scripts: DI down-right; jump; stock lost 105 frames after the last hit. Read witnesses: forward smash beats DI down-right; jump, escaped by DI left; jump.
+forward tilt up: forward tilt up → forward smash; 1 reads; defender scripts: DI down-right; SDI; stock lost 83 frames after the last hit. Read witnesses: forward smash beats DI down-right; SDI, escaped by DI none; mash.
+forward tilt down: forward tilt down → up smash; 1 reads; defender scripts: DI right; jump; stock lost 76 frames after the last hit. Read witnesses: up smash beats DI right; jump, escaped by DI none; jump.
+forward smash: forward smash → forward throw; 1 reads; defender scripts: DI down-right; hold; stock lost 96 frames after the last hit. Read witnesses: forward throw beats DI down-right; hold, escaped by DI none; jump.
+up smash: up smash → down air; 1 reads; defender scripts: DI down-left; jump; stock lost 103 frames after the last hit. Read witnesses: down air beats DI down-left; jump, escaped by DI none; jump.
+down smash: down smash → down air; 1 reads; defender scripts: DI down-left; jump; stock lost 103 frames after the last hit. Read witnesses: down air beats DI down-left; jump, escaped by DI none; jump.
+dash attack: dash attack → forward smash; 1 reads; defender scripts: DI down-right; SDI; stock lost 80 frames after the last hit. Read witnesses: forward smash beats DI down-right; SDI, escaped by DI none; jump.
+grab: grab → back throw → forward smash; 1 reads; defender scripts: DI down-left; air dodge → DI down-left; SDI; stock lost 78 frames after the last hit. Read witnesses: forward smash beats DI down-left; SDI, escaped by DI none; jump.
+neutral air: neutral air → forward smash → forward tilt down; 2 reads; defender scripts: DI down-left; air dodge → DI right; SDI; stock lost 100 frames after the last hit. Read witnesses: forward smash beats DI down-left; air dodge, escaped by DI left; jump; forward tilt down beats DI right; SDI, escaped by DI left; mash.
+forward air: forward air → forward smash; 1 reads; defender scripts: DI down-right; SDI; stock lost 82 frames after the last hit. Read witnesses: forward smash beats DI down-right; SDI, escaped by DI none; jump.
+back air: back air → forward smash; 1 reads; defender scripts: DI down-right; SDI; stock lost 82 frames after the last hit. Read witnesses: forward smash beats DI down-right; SDI, escaped by DI none; jump.
+up air: up air → forward smash; 1 reads; defender scripts: DI down-right; jump; stock lost 105 frames after the last hit. Read witnesses: forward smash beats DI down-right; jump, escaped by DI left; jump.
+down air: down air → forward smash → forward smash; 2 reads; defender scripts: DI down-left; air dodge → DI left; hold; stock lost 91 frames after the last hit. Read witnesses: forward smash beats DI down-left; air dodge, escaped by DI left; jump; forward smash beats DI left; hold, escaped by DI none; jump.
+forward throw: forward throw → forward smash; 1 reads; defender scripts: DI down-right; SDI; stock lost 78 frames after the last hit. Read witnesses: forward smash beats DI down-right; SDI, escaped by DI none; jump.
+back throw: back throw → forward smash; 1 reads; defender scripts: DI down-left; SDI; stock lost 78 frames after the last hit. Read witnesses: forward smash beats DI down-left; SDI, escaped by DI none; jump.
 up throw: up throw → forward tilt down; 1 reads; defender scripts: DI down-right; jump; stock lost 119 frames after the last hit. Read witnesses: forward tilt down beats DI down-right; jump, escaped by DI left; jump.
-down throw: down throw → forward smash; 1 reads; defender scripts: DI down-right; SDI; stock lost 76 frames after the last hit. Read witnesses: forward smash beats DI down-right; SDI, escaped by DI right; jump.
+down throw: down throw → forward smash → forward throw; 2 reads; defender scripts: DI down-left; air dodge → DI down-left; hold; stock lost 94 frames after the last hit. Read witnesses: forward smash beats DI down-left; air dodge, escaped by DI right; jump; forward throw beats DI down-left; hold, escaped by DI none; jump.
 
 ## Best follow-up for each victim choice
 
@@ -144,7 +144,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 27 | 15 | false | false |
-| DI none; SDI | forward smash | 33 | 15 | false | false |
+| DI none; SDI | forward smash | 31 | 15 | false | false |
 | DI none; tech in place | forward smash | 27 | 15 | false | false |
 | DI none; tech left | forward smash | 27 | 15 | false | false |
 | DI none; tech right | forward smash | 27 | 15 | false | false |
@@ -162,7 +162,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | down smash | 29 | 15 | false | false |
 | DI left; mash | forward smash | 65 | 15 | false | false |
 | DI right; hold | forward smash | 29 | 15 | false | false |
-| DI right; SDI | forward smash | 35 | 15 | false | false |
+| DI right; SDI | forward smash | 33 | 15 | false | false |
 | DI right; tech in place | forward smash | 29 | 15 | false | false |
 | DI right; tech left | forward smash | 29 | 15 | false | false |
 | DI right; tech right | forward smash | 29 | 15 | false | false |
@@ -189,7 +189,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | forward smash | 27 | 15 | false | false |
 | DI down; mash | no follow-up in menu | — | — | — | — |
 | DI up-left; hold | down smash | 29 | 15 | false | false |
-| DI up-left; SDI | down smash | 29 | 15 | false | false |
+| DI up-left; SDI | forward smash | 27 | 15 | false | false |
 | DI up-left; tech in place | down smash | 29 | 15 | false | false |
 | DI up-left; tech left | down smash | 29 | 15 | false | false |
 | DI up-left; tech right | down smash | 29 | 15 | false | false |
@@ -198,7 +198,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | down smash | 29 | 15 | false | false |
 | DI up-left; mash | forward smash | 65 | 15 | false | false |
 | DI up-right; hold | forward smash | 29 | 15 | false | false |
-| DI up-right; SDI | forward smash | 45 | 15 | false | false |
+| DI up-right; SDI | forward smash | 43 | 15 | false | false |
 | DI up-right; tech in place | forward smash | 29 | 15 | false | false |
 | DI up-right; tech left | forward smash | 29 | 15 | false | false |
 | DI up-right; tech right | forward smash | 29 | 15 | false | false |
@@ -207,7 +207,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | forward smash | 29 | 15 | false | false |
 | DI up-right; mash | no follow-up in menu | — | — | — | — |
 | DI down-left; hold | forward smash | 27 | 15 | false | false |
-| DI down-left; SDI | forward smash | 31 | 15 | false | false |
+| DI down-left; SDI | forward smash | 29 | 15 | false | false |
 | DI down-left; tech in place | forward smash | 27 | 15 | false | false |
 | DI down-left; tech left | forward smash | 27 | 15 | false | false |
 | DI down-left; tech right | forward smash | 27 | 15 | false | false |
@@ -216,7 +216,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 27 | 15 | false | false |
 | DI down-left; mash | forward smash | 27 | 15 | false | false |
 | DI down-right; hold | forward smash | 39 | 15 | false | false |
-| DI down-right; SDI | forward smash | 45 | 15 | false | true |
+| DI down-right; SDI | forward smash | 43 | 15 | false | false |
 | DI down-right; tech in place | forward smash | 39 | 15 | false | false |
 | DI down-right; tech left | forward smash | 39 | 15 | false | false |
 | DI down-right; tech right | forward smash | 39 | 15 | false | false |
@@ -233,7 +233,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 31 | 15 | false | false |
-| DI none; SDI | forward smash | 37 | 15 | false | true |
+| DI none; SDI | forward smash | 35 | 15 | false | false |
 | DI none; tech in place | forward smash | 31 | 15 | false | false |
 | DI none; tech left | forward smash | 31 | 15 | false | false |
 | DI none; tech right | forward smash | 31 | 15 | false | false |
@@ -287,7 +287,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward smash | 27 | 15 | false | false |
 | DI up-left; mash | no follow-up in menu | — | — | — | — |
 | DI up-right; hold | forward smash | 33 | 15 | false | false |
-| DI up-right; SDI | forward smash | 37 | 15 | false | true |
+| DI up-right; SDI | forward smash | 37 | 15 | false | false |
 | DI up-right; tech in place | forward smash | 33 | 15 | false | false |
 | DI up-right; tech left | forward smash | 33 | 15 | false | false |
 | DI up-right; tech right | forward smash | 33 | 15 | false | false |
@@ -296,7 +296,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | forward smash | 33 | 15 | false | false |
 | DI up-right; mash | down smash | 79 | 15 | false | false |
 | DI down-left; hold | down smash | 29 | 15 | false | false |
-| DI down-left; SDI | forward smash | 29 | 15 | false | false |
+| DI down-left; SDI | forward smash | 27 | 15 | false | false |
 | DI down-left; tech in place | down smash | 29 | 15 | false | false |
 | DI down-left; tech left | down smash | 29 | 15 | false | false |
 | DI down-left; tech right | down smash | 29 | 15 | false | false |
@@ -322,7 +322,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 35 | 15 | false | true |
-| DI none; SDI | forward smash | 43 | 15 | false | true |
+| DI none; SDI | forward smash | 41 | 15 | false | true |
 | DI none; tech in place | forward smash | 35 | 15 | false | false |
 | DI none; tech left | forward smash | 35 | 15 | false | false |
 | DI none; tech right | forward smash | 35 | 15 | false | false |
@@ -340,7 +340,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | forward smash | 31 | 15 | false | false |
 | DI left; mash | down smash | 77 | 15 | false | false |
 | DI right; hold | forward smash | 39 | 15 | false | true |
-| DI right; SDI | forward smash | 45 | 15 | false | true |
+| DI right; SDI | forward smash | 43 | 15 | false | true |
 | DI right; tech in place | forward smash | 39 | 15 | false | false |
 | DI right; tech left | forward smash | 39 | 15 | false | false |
 | DI right; tech right | forward smash | 39 | 15 | false | false |
@@ -349,7 +349,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI right; air dodge | forward smash | 39 | 15 | false | false |
 | DI right; mash | forward smash | 39 | 15 | false | false |
 | DI up; hold | forward smash | 33 | 15 | false | true |
-| DI up; SDI | forward smash | 35 | 15 | false | false |
+| DI up; SDI | forward smash | 35 | 15 | false | true |
 | DI up; tech in place | forward smash | 33 | 15 | false | false |
 | DI up; tech left | forward smash | 33 | 15 | false | false |
 | DI up; tech right | forward smash | 33 | 15 | false | false |
@@ -376,7 +376,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward smash | 29 | 15 | false | false |
 | DI up-left; mash | dash attack | 27 | 9 | false | false |
 | DI up-right; hold | forward smash | 37 | 15 | false | true |
-| DI up-right; SDI | forward smash | 43 | 15 | false | true |
+| DI up-right; SDI | forward smash | 41 | 15 | false | true |
 | DI up-right; tech in place | forward smash | 37 | 15 | false | false |
 | DI up-right; tech left | forward smash | 37 | 15 | false | false |
 | DI up-right; tech right | forward smash | 37 | 15 | false | false |
@@ -385,7 +385,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | forward smash | 37 | 15 | false | false |
 | DI up-right; mash | down smash | 83 | 15 | false | false |
 | DI down-left; hold | down smash | 29 | 15 | false | false |
-| DI down-left; SDI | forward smash | 27 | 15 | false | true |
+| DI down-left; SDI | forward smash | 27 | 15 | false | false |
 | DI down-left; tech in place | down smash | 29 | 15 | false | false |
 | DI down-left; tech left | down smash | 29 | 15 | false | false |
 | DI down-left; tech right | down smash | 29 | 15 | false | false |
@@ -394,7 +394,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | down smash | 29 | 15 | false | false |
 | DI down-left; mash | no follow-up in menu | — | — | — | — |
 | DI down-right; hold | forward smash | 49 | 15 | false | true |
-| DI down-right; SDI | forward smash | 53 | 15 | false | true |
+| DI down-right; SDI | forward smash | 51 | 15 | false | true |
 | DI down-right; tech in place | forward smash | 49 | 15 | false | true |
 | DI down-right; tech left | forward smash | 49 | 15 | false | true |
 | DI down-right; tech right | forward smash | 49 | 15 | false | true |
@@ -411,7 +411,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 43 | 15 | true | true |
-| DI none; SDI | forward smash | 49 | 15 | true | true |
+| DI none; SDI | forward smash | 47 | 15 | true | true |
 | DI none; tech in place | forward smash | 43 | 15 | false | true |
 | DI none; tech left | forward smash | 79 | 15 | false | false |
 | DI none; tech right | forward smash | 53 | 15 | false | true |
@@ -420,7 +420,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | dash attack | 41 | 9 | true | true |
 | DI none; mash | forward smash | 43 | 15 | true | true |
 | DI left; hold | dash attack | 35 | 9 | true | true |
-| DI left; SDI | forward smash | 27 | 15 | true | false |
+| DI left; SDI | forward smash | 29 | 15 | true | false |
 | DI left; tech in place | down smash | 41 | 15 | false | false |
 | DI left; tech left | forward smash | 79 | 15 | false | true |
 | DI left; tech right | down smash | 95 | 15 | false | false |
@@ -429,7 +429,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | dash attack | 35 | 9 | true | true |
 | DI left; mash | forward smash | 37 | 15 | true | false |
 | DI right; hold | forward smash | 47 | 15 | true | true |
-| DI right; SDI | forward smash | 53 | 15 | true | true |
+| DI right; SDI | forward smash | 51 | 15 | true | true |
 | DI right; tech in place | forward smash | 47 | 15 | false | true |
 | DI right; tech left | forward smash | 75 | 15 | false | false |
 | DI right; tech right | forward smash | 59 | 15 | false | true |
@@ -483,7 +483,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 33 | 15 | true | true |
 | DI down-left; mash | no follow-up in menu | — | — | — | — |
 | DI down-right; hold | forward smash | 43 | 15 | true | true |
-| DI down-right; SDI | forward smash | 47 | 15 | true | true |
+| DI down-right; SDI | forward smash | 45 | 15 | true | true |
 | DI down-right; tech in place | forward smash | 43 | 15 | true | true |
 | DI down-right; tech left | forward smash | 43 | 15 | true | true |
 | DI down-right; tech right | forward smash | 43 | 15 | true | true |
@@ -500,7 +500,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 51 | 15 | true | true |
-| DI none; SDI | forward smash | 57 | 15 | true | true |
+| DI none; SDI | forward smash | 55 | 15 | true | true |
 | DI none; tech in place | forward smash | 51 | 15 | false | true |
 | DI none; tech left | forward smash | 83 | 15 | false | true |
 | DI none; tech right | forward smash | 61 | 15 | false | true |
@@ -509,7 +509,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 51 | 15 | true | true |
 | DI none; mash | no follow-up in menu | — | — | — | — |
 | DI left; hold | forward smash | 45 | 15 | true | true |
-| DI left; SDI | forward smash | 33 | 15 | true | true |
+| DI left; SDI | forward smash | 37 | 15 | true | true |
 | DI left; tech in place | forward smash | 45 | 15 | true | true |
 | DI left; tech left | forward smash | 45 | 15 | true | true |
 | DI left; tech right | forward smash | 45 | 15 | true | true |
@@ -545,7 +545,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | forward smash | 43 | 15 | true | true |
 | DI down; mash | no follow-up in menu | — | — | — | — |
 | DI up-left; hold | dash attack | 37 | 9 | true | true |
-| DI up-left; SDI | dash attack | 28 | 9 | true | true |
+| DI up-left; SDI | dash attack | 31 | 9 | true | true |
 | DI up-left; tech in place | forward tilt | 38 | 8 | true | true |
 | DI up-left; tech left | forward tilt down | 38 | 8 | true | true |
 | DI up-left; tech right | forward tilt down | 38 | 8 | true | true |
@@ -554,7 +554,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward tilt | 38 | 8 | true | true |
 | DI up-left; mash | forward tilt | 38 | 8 | true | true |
 | DI up-right; hold | forward smash | 51 | 15 | true | true |
-| DI up-right; SDI | forward smash | 59 | 15 | true | true |
+| DI up-right; SDI | forward smash | 57 | 15 | true | true |
 | DI up-right; tech in place | forward smash | 51 | 15 | false | true |
 | DI up-right; tech left | neutral air | 60 | 7 | false | true |
 | DI up-right; tech right | forward smash | 63 | 15 | false | true |
@@ -563,7 +563,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | forward smash | 51 | 15 | true | true |
 | DI up-right; mash | dash attack | 49 | 9 | true | false |
 | DI down-left; hold | forward smash | 39 | 15 | true | true |
-| DI down-left; SDI | forward smash | 33 | 15 | true | true |
+| DI down-left; SDI | forward smash | 35 | 15 | true | true |
 | DI down-left; tech in place | forward smash | 39 | 15 | true | true |
 | DI down-left; tech left | forward smash | 39 | 15 | true | true |
 | DI down-left; tech right | forward smash | 39 | 15 | true | true |
@@ -572,7 +572,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 39 | 15 | true | true |
 | DI down-left; mash | no follow-up in menu | — | — | — | — |
 | DI down-right; hold | forward smash | 49 | 15 | true | true |
-| DI down-right; SDI | forward smash | 53 | 15 | true | true |
+| DI down-right; SDI | forward smash | 51 | 15 | true | true |
 | DI down-right; tech in place | forward smash | 49 | 15 | true | true |
 | DI down-right; tech left | forward smash | 49 | 15 | true | true |
 | DI down-right; tech right | forward smash | 49 | 15 | true | true |
@@ -589,7 +589,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 37 | 15 | false | false |
-| DI none; SDI | forward smash | 43 | 15 | false | false |
+| DI none; SDI | forward smash | 41 | 15 | false | false |
 | DI none; tech in place | forward smash | 37 | 15 | false | false |
 | DI none; tech left | forward smash | 37 | 15 | false | false |
 | DI none; tech right | forward smash | 37 | 15 | false | false |
@@ -607,7 +607,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | forward smash | 35 | 15 | false | false |
 | DI left; mash | no follow-up in menu | — | — | — | — |
 | DI right; hold | forward smash | 39 | 15 | false | false |
-| DI right; SDI | forward smash | 45 | 15 | false | false |
+| DI right; SDI | forward smash | 43 | 15 | false | false |
 | DI right; tech in place | forward smash | 39 | 15 | false | false |
 | DI right; tech left | forward smash | 39 | 15 | false | false |
 | DI right; tech right | forward smash | 39 | 15 | false | false |
@@ -678,7 +678,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 43 | 15 | false | false |
-| DI none; SDI | forward smash | 51 | 15 | false | true |
+| DI none; SDI | forward smash | 49 | 15 | false | false |
 | DI none; tech in place | forward smash | 43 | 15 | false | false |
 | DI none; tech left | forward smash | 43 | 15 | false | false |
 | DI none; tech right | forward smash | 43 | 15 | false | false |
@@ -687,7 +687,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 43 | 15 | false | false |
 | DI none; mash | forward smash | 43 | 15 | false | false |
 | DI left; hold | forward smash | 41 | 15 | false | false |
-| DI left; SDI | forward smash | 35 | 15 | false | false |
+| DI left; SDI | forward smash | 37 | 15 | false | false |
 | DI left; tech in place | forward smash | 41 | 15 | false | false |
 | DI left; tech left | forward smash | 41 | 15 | false | false |
 | DI left; tech right | forward smash | 41 | 15 | false | false |
@@ -732,7 +732,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward smash | 41 | 15 | false | false |
 | DI up-left; mash | down smash | 89 | 15 | false | false |
 | DI up-right; hold | forward smash | 45 | 15 | false | false |
-| DI up-right; SDI | forward smash | 51 | 15 | false | true |
+| DI up-right; SDI | forward smash | 49 | 15 | false | true |
 | DI up-right; tech in place | forward smash | 45 | 15 | false | false |
 | DI up-right; tech left | forward smash | 45 | 15 | false | false |
 | DI up-right; tech right | forward smash | 45 | 15 | false | false |
@@ -750,7 +750,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | down smash | 37 | 15 | false | false |
 | DI down-left; mash | up smash | 47 | 15 | false | false |
 | DI down-right; hold | forward smash | 55 | 15 | false | true |
-| DI down-right; SDI | forward smash | 61 | 15 | false | true |
+| DI down-right; SDI | forward smash | 59 | 15 | false | true |
 | DI down-right; tech in place | forward smash | 55 | 15 | false | true |
 | DI down-right; tech left | forward smash | 55 | 15 | false | true |
 | DI down-right; tech right | forward smash | 55 | 15 | false | true |
@@ -767,7 +767,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 55 | 15 | true | true |
-| DI none; SDI | forward smash | 61 | 15 | true | true |
+| DI none; SDI | forward smash | 59 | 15 | true | true |
 | DI none; tech in place | forward smash | 55 | 15 | false | false |
 | DI none; tech left | down smash | 46 | 15 | false | false |
 | DI none; tech right | forward throw | 78 | 7 | false | true |
@@ -776,7 +776,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | dash attack | 51 | 9 | true | true |
 | DI none; mash | no follow-up in menu | — | — | — | — |
 | DI left; hold | forward smash | 53 | 15 | true | true |
-| DI left; SDI | forward smash | 45 | 15 | true | true |
+| DI left; SDI | forward smash | 47 | 15 | true | true |
 | DI left; tech in place | forward smash | 53 | 15 | false | false |
 | DI left; tech left | down smash | 87 | 15 | false | true |
 | DI left; tech right | forward throw | 78 | 7 | false | true |
@@ -785,7 +785,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | forward smash | 53 | 15 | true | false |
 | DI left; mash | no follow-up in menu | — | — | — | — |
 | DI right; hold | forward smash | 55 | 15 | true | true |
-| DI right; SDI | forward smash | 63 | 15 | true | true |
+| DI right; SDI | forward smash | 61 | 15 | true | true |
 | DI right; tech in place | dash attack | 53 | 9 | false | true |
 | DI right; tech left | forward smash | 45 | 15 | false | false |
 | DI right; tech right | forward smash | 67 | 15 | false | true |
@@ -794,7 +794,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI right; air dodge | dash attack | 53 | 9 | true | true |
 | DI right; mash | down air | 74 | 9 | false | false |
 | DI up; hold | forward smash | 53 | 15 | true | true |
-| DI up; SDI | forward smash | 55 | 15 | true | false |
+| DI up; SDI | forward smash | 53 | 15 | true | false |
 | DI up; tech in place | forward smash | 53 | 15 | false | false |
 | DI up; tech left | forward smash | 81 | 15 | false | false |
 | DI up; tech right | dash attack | 61 | 9 | false | true |
@@ -821,7 +821,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward smash | 51 | 15 | true | false |
 | DI up-left; mash | no follow-up in menu | — | — | — | — |
 | DI up-right; hold | forward smash | 55 | 15 | true | true |
-| DI up-right; SDI | forward smash | 63 | 15 | true | true |
+| DI up-right; SDI | forward smash | 61 | 15 | true | true |
 | DI up-right; tech in place | dash attack | 53 | 9 | false | true |
 | DI up-right; tech left | down smash | 49 | 15 | false | false |
 | DI up-right; tech right | dash attack | 65 | 9 | false | true |
@@ -830,7 +830,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | dash attack | 53 | 9 | true | true |
 | DI up-right; mash | no follow-up in menu | — | — | — | — |
 | DI down-left; hold | forward smash | 49 | 15 | true | false |
-| DI down-left; SDI | forward smash | 45 | 15 | true | false |
+| DI down-left; SDI | forward smash | 47 | 15 | true | false |
 | DI down-left; tech in place | forward smash | 49 | 15 | true | false |
 | DI down-left; tech left | forward smash | 49 | 15 | true | false |
 | DI down-left; tech right | forward smash | 49 | 15 | true | false |
@@ -856,7 +856,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 67 | 15 | true | true |
-| DI none; SDI | forward smash | 73 | 15 | true | true |
+| DI none; SDI | forward smash | 71 | 15 | true | true |
 | DI none; tech in place | forward smash | 67 | 15 | false | true |
 | DI none; tech left | forward smash | 57 | 15 | false | true |
 | DI none; tech right | forward smash | 79 | 15 | false | true |
@@ -865,7 +865,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 67 | 15 | true | true |
 | DI none; mash | up air | 98 | 8 | false | true |
 | DI left; hold | forward smash | 65 | 15 | true | true |
-| DI left; SDI | dash attack | 55 | 9 | true | true |
+| DI left; SDI | dash attack | 57 | 9 | true | true |
 | DI left; tech in place | dash attack | 63 | 9 | false | true |
 | DI left; tech left | forward smash | 55 | 15 | false | false |
 | DI left; tech right | forward smash | 77 | 15 | false | true |
@@ -874,7 +874,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | dash attack | 63 | 9 | true | true |
 | DI left; mash | no follow-up in menu | — | — | — | — |
 | DI right; hold | forward smash | 69 | 15 | true | true |
-| DI right; SDI | forward smash | 75 | 15 | true | true |
+| DI right; SDI | forward smash | 73 | 15 | true | true |
 | DI right; tech in place | forward smash | 69 | 15 | false | true |
 | DI right; tech left | forward smash | 57 | 15 | false | true |
 | DI right; tech right | forward smash | 81 | 15 | false | true |
@@ -910,7 +910,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward tilt | 62 | 8 | true | true |
 | DI up-left; mash | back air | 100 | 8 | false | false |
 | DI up-right; hold | forward smash | 69 | 15 | true | true |
-| DI up-right; SDI | forward smash | 77 | 15 | true | true |
+| DI up-right; SDI | forward smash | 75 | 15 | true | true |
 | DI up-right; tech in place | forward smash | 69 | 15 | false | true |
 | DI up-right; tech left | forward smash | 57 | 15 | false | true |
 | DI up-right; tech right | forward smash | 81 | 15 | false | true |
@@ -919,7 +919,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | forward smash | 69 | 15 | true | true |
 | DI up-right; mash | neutral air | 96 | 7 | false | false |
 | DI down-left; hold | forward smash | 59 | 15 | true | true |
-| DI down-left; SDI | forward smash | 53 | 15 | true | true |
+| DI down-left; SDI | forward smash | 55 | 15 | true | true |
 | DI down-left; tech in place | forward smash | 59 | 15 | true | true |
 | DI down-left; tech left | forward smash | 59 | 15 | true | true |
 | DI down-left; tech right | forward smash | 59 | 15 | true | true |
@@ -928,7 +928,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 59 | 15 | true | true |
 | DI down-left; mash | forward air | 78 | 8 | false | true |
 | DI down-right; hold | forward smash | 63 | 15 | true | true |
-| DI down-right; SDI | forward smash | 67 | 15 | true | true |
+| DI down-right; SDI | forward smash | 65 | 15 | true | true |
 | DI down-right; tech in place | forward smash | 63 | 15 | true | true |
 | DI down-right; tech left | forward smash | 63 | 15 | true | true |
 | DI down-right; tech right | forward smash | 63 | 15 | true | true |
@@ -954,7 +954,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 81 | 15 | true | true |
 | DI none; mash | forward smash | 81 | 15 | false | true |
 | DI left; hold | forward smash | 79 | 15 | true | true |
-| DI left; SDI | forward smash | 73 | 15 | true | true |
+| DI left; SDI | forward smash | 75 | 15 | true | true |
 | DI left; tech in place | no follow-up in menu | — | — | — | — |
 | DI left; tech left | forward smash | 71 | 15 | false | true |
 | DI left; tech right | forward smash | 81 | 15 | false | true |
@@ -972,7 +972,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI right; air dodge | down smash | 85 | 15 | false | true |
 | DI right; mash | dash attack | 85 | 9 | false | true |
 | DI up; hold | forward smash | 81 | 15 | true | true |
-| DI up; SDI | down smash | 88 | 15 | false | true |
+| DI up; SDI | down smash | 89 | 15 | false | true |
 | DI up; tech in place | forward smash | 81 | 15 | true | true |
 | DI up; tech left | forward smash | 81 | 15 | true | true |
 | DI up; tech right | forward smash | 81 | 15 | true | true |
@@ -1008,7 +1008,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | forward smash | 83 | 15 | false | true |
 | DI up-right; mash | forward smash | 87 | 15 | false | true |
 | DI down-left; hold | forward smash | 67 | 15 | true | true |
-| DI down-left; SDI | forward smash | 63 | 15 | true | true |
+| DI down-left; SDI | forward smash | 65 | 15 | true | true |
 | DI down-left; tech in place | forward smash | 67 | 15 | true | true |
 | DI down-left; tech left | forward smash | 67 | 15 | true | true |
 | DI down-left; tech right | forward smash | 67 | 15 | true | true |
@@ -1017,7 +1017,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 67 | 15 | true | true |
 | DI down-left; mash | forward smash | 67 | 15 | false | true |
 | DI down-right; hold | forward smash | 71 | 15 | true | true |
-| DI down-right; SDI | forward smash | 77 | 15 | true | true |
+| DI down-right; SDI | forward smash | 75 | 15 | true | true |
 | DI down-right; tech in place | forward smash | 71 | 15 | true | true |
 | DI down-right; tech left | forward smash | 71 | 15 | true | true |
 | DI down-right; tech right | forward smash | 71 | 15 | true | true |
@@ -1034,7 +1034,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | down smash | 37 | 15 | false | false |
-| DI none; SDI | forward smash | 39 | 15 | false | false |
+| DI none; SDI | forward smash | 37 | 15 | false | false |
 | DI none; tech in place | down smash | 37 | 15 | false | false |
 | DI none; tech left | down smash | 37 | 15 | false | false |
 | DI none; tech right | down smash | 37 | 15 | false | false |
@@ -1052,7 +1052,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | down smash | 37 | 15 | false | false |
 | DI left; mash | no follow-up in menu | — | — | — | — |
 | DI right; hold | forward smash | 37 | 15 | false | false |
-| DI right; SDI | forward smash | 43 | 15 | false | false |
+| DI right; SDI | forward smash | 41 | 15 | false | false |
 | DI right; tech in place | forward smash | 37 | 15 | false | false |
 | DI right; tech left | forward smash | 37 | 15 | false | false |
 | DI right; tech right | forward smash | 37 | 15 | false | false |
@@ -1079,7 +1079,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | down smash | 37 | 15 | false | false |
 | DI down; mash | forward smash | 73 | 15 | false | false |
 | DI up-left; hold | down smash | 37 | 15 | false | false |
-| DI up-left; SDI | forward smash | 35 | 15 | false | false |
+| DI up-left; SDI | down smash | 37 | 15 | false | false |
 | DI up-left; tech in place | down smash | 37 | 15 | false | false |
 | DI up-left; tech left | down smash | 37 | 15 | false | false |
 | DI up-left; tech right | down smash | 37 | 15 | false | false |
@@ -1088,7 +1088,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | down smash | 37 | 15 | false | false |
 | DI up-left; mash | no follow-up in menu | — | — | — | — |
 | DI up-right; hold | forward smash | 35 | 15 | false | false |
-| DI up-right; SDI | forward smash | 51 | 15 | false | false |
+| DI up-right; SDI | forward smash | 39 | 15 | false | false |
 | DI up-right; tech in place | forward smash | 35 | 15 | false | false |
 | DI up-right; tech left | forward smash | 35 | 15 | false | false |
 | DI up-right; tech right | forward smash | 35 | 15 | false | false |
@@ -1106,7 +1106,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 37 | 15 | false | false |
 | DI down-left; mash | forward smash | 75 | 15 | false | false |
 | DI down-right; hold | forward smash | 45 | 15 | false | false |
-| DI down-right; SDI | forward smash | 51 | 15 | false | true |
+| DI down-right; SDI | forward smash | 49 | 15 | false | false |
 | DI down-right; tech in place | forward smash | 45 | 15 | false | false |
 | DI down-right; tech left | forward smash | 45 | 15 | false | false |
 | DI down-right; tech right | forward smash | 45 | 15 | false | false |
@@ -1123,7 +1123,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 35 | 15 | false | false |
-| DI none; SDI | forward smash | 41 | 15 | false | true |
+| DI none; SDI | forward smash | 41 | 15 | false | false |
 | DI none; tech in place | forward smash | 35 | 15 | false | false |
 | DI none; tech left | forward smash | 35 | 15 | false | false |
 | DI none; tech right | forward smash | 35 | 15 | false | false |
@@ -1132,7 +1132,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 35 | 15 | false | false |
 | DI none; mash | no follow-up in menu | — | — | — | — |
 | DI left; hold | down smash | 37 | 15 | false | false |
-| DI left; SDI | forward smash | 35 | 15 | false | true |
+| DI left; SDI | down smash | 37 | 15 | false | false |
 | DI left; tech in place | down smash | 37 | 15 | false | false |
 | DI left; tech left | down smash | 37 | 15 | false | false |
 | DI left; tech right | down smash | 37 | 15 | false | false |
@@ -1141,7 +1141,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | down smash | 37 | 15 | false | false |
 | DI left; mash | dash attack | 69 | 9 | false | false |
 | DI right; hold | forward smash | 41 | 15 | false | false |
-| DI right; SDI | forward smash | 47 | 15 | false | true |
+| DI right; SDI | forward smash | 45 | 15 | false | true |
 | DI right; tech in place | forward smash | 41 | 15 | false | false |
 | DI right; tech left | forward smash | 41 | 15 | false | false |
 | DI right; tech right | forward smash | 41 | 15 | false | false |
@@ -1177,7 +1177,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | down smash | 37 | 15 | false | false |
 | DI up-left; mash | down smash | 37 | 15 | false | false |
 | DI up-right; hold | forward smash | 37 | 15 | false | false |
-| DI up-right; SDI | forward smash | 43 | 15 | false | true |
+| DI up-right; SDI | forward smash | 41 | 15 | false | false |
 | DI up-right; tech in place | forward smash | 37 | 15 | false | false |
 | DI up-right; tech left | forward smash | 37 | 15 | false | false |
 | DI up-right; tech right | forward smash | 37 | 15 | false | false |
@@ -1212,7 +1212,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 39 | 15 | true | true |
-| DI none; SDI | forward smash | 45 | 15 | true | true |
+| DI none; SDI | forward smash | 43 | 15 | true | true |
 | DI none; tech in place | forward smash | 39 | 15 | true | false |
 | DI none; tech left | forward smash | 39 | 15 | true | false |
 | DI none; tech right | forward smash | 39 | 15 | true | false |
@@ -1221,7 +1221,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 39 | 15 | true | false |
 | DI none; mash | forward smash | 39 | 15 | true | false |
 | DI left; hold | forward smash | 77 | 15 | true | true |
-| DI left; SDI | forward smash | 35 | 15 | true | true |
+| DI left; SDI | down smash | 37 | 15 | true | true |
 | DI left; tech in place | forward smash | 77 | 15 | true | true |
 | DI left; tech left | forward smash | 77 | 15 | true | true |
 | DI left; tech right | forward smash | 77 | 15 | true | true |
@@ -1230,7 +1230,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | down smash | 37 | 15 | true | false |
 | DI left; mash | down smash | 37 | 15 | true | false |
 | DI right; hold | forward smash | 49 | 15 | true | true |
-| DI right; SDI | forward smash | 55 | 15 | true | true |
+| DI right; SDI | forward smash | 53 | 15 | true | true |
 | DI right; tech in place | forward smash | 49 | 15 | false | false |
 | DI right; tech left | forward smash | 83 | 15 | false | false |
 | DI right; tech right | forward smash | 61 | 15 | false | false |
@@ -1266,7 +1266,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | down smash | 37 | 15 | true | false |
 | DI up-left; mash | down smash | 37 | 15 | true | false |
 | DI up-right; hold | forward smash | 43 | 15 | true | true |
-| DI up-right; SDI | forward smash | 49 | 15 | true | true |
+| DI up-right; SDI | forward smash | 47 | 15 | true | true |
 | DI up-right; tech in place | forward smash | 43 | 15 | true | false |
 | DI up-right; tech left | forward smash | 43 | 15 | true | false |
 | DI up-right; tech right | forward smash | 43 | 15 | true | false |
@@ -1275,7 +1275,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | forward smash | 43 | 15 | true | false |
 | DI up-right; mash | forward smash | 43 | 15 | true | false |
 | DI down-left; hold | down smash | 37 | 15 | true | false |
-| DI down-left; SDI | down smash | 37 | 15 | true | true |
+| DI down-left; SDI | down smash | 37 | 15 | true | false |
 | DI down-left; tech in place | down smash | 37 | 15 | true | false |
 | DI down-left; tech left | down smash | 37 | 15 | true | false |
 | DI down-left; tech right | down smash | 37 | 15 | true | false |
@@ -1284,7 +1284,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | down smash | 37 | 15 | true | false |
 | DI down-left; mash | no follow-up in menu | — | — | — | — |
 | DI down-right; hold | forward smash | 37 | 15 | true | true |
-| DI down-right; SDI | forward smash | 43 | 15 | true | true |
+| DI down-right; SDI | forward smash | 41 | 15 | true | true |
 | DI down-right; tech in place | forward smash | 37 | 15 | true | true |
 | DI down-right; tech left | forward smash | 37 | 15 | true | true |
 | DI down-right; tech right | forward smash | 37 | 15 | true | true |
@@ -1301,7 +1301,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 43 | 15 | true | true |
-| DI none; SDI | forward smash | 51 | 15 | true | true |
+| DI none; SDI | forward smash | 49 | 15 | true | true |
 | DI none; tech in place | forward smash | 43 | 15 | true | true |
 | DI none; tech left | forward smash | 43 | 15 | true | true |
 | DI none; tech right | forward smash | 43 | 15 | true | true |
@@ -1319,7 +1319,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | forward smash | 77 | 15 | true | false |
 | DI left; mash | back air | 36 | 8 | true | false |
 | DI right; hold | forward smash | 61 | 15 | true | true |
-| DI right; SDI | forward smash | 67 | 15 | true | true |
+| DI right; SDI | forward smash | 65 | 15 | true | true |
 | DI right; tech in place | forward smash | 61 | 15 | true | true |
 | DI right; tech left | forward smash | 61 | 15 | true | true |
 | DI right; tech right | forward smash | 61 | 15 | true | true |
@@ -1328,7 +1328,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI right; air dodge | forward smash | 61 | 15 | true | true |
 | DI right; mash | forward smash | 61 | 15 | true | true |
 | DI up; hold | dash attack | 39 | 9 | true | true |
-| DI up; SDI | dash attack | 111 | 9 | false | true |
+| DI up; SDI | dash attack | 109 | 9 | true | true |
 | DI up; tech in place | dash attack | 39 | 9 | true | true |
 | DI up; tech left | forward smash | 41 | 15 | true | false |
 | DI up; tech right | forward smash | 41 | 15 | true | false |
@@ -1346,7 +1346,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | forward smash | 35 | 15 | true | true |
 | DI down; mash | no follow-up in menu | — | — | — | — |
 | DI up-left; hold | forward smash | 75 | 15 | true | false |
-| DI up-left; SDI | forward smash | 77 | 15 | false | false |
+| DI up-left; SDI | forward smash | 77 | 15 | true | false |
 | DI up-left; tech in place | forward smash | 75 | 15 | true | false |
 | DI up-left; tech left | forward smash | 75 | 15 | true | false |
 | DI up-left; tech right | forward smash | 75 | 15 | true | false |
@@ -1364,7 +1364,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | dash attack | 45 | 9 | true | true |
 | DI up-right; mash | forward smash | 49 | 15 | true | true |
 | DI down-left; hold | forward smash | 75 | 15 | true | true |
-| DI down-left; SDI | down smash | 37 | 15 | true | true |
+| DI down-left; SDI | forward smash | 77 | 15 | true | true |
 | DI down-left; tech in place | forward smash | 75 | 15 | true | true |
 | DI down-left; tech left | forward smash | 75 | 15 | true | true |
 | DI down-left; tech right | forward smash | 75 | 15 | true | true |
@@ -1390,7 +1390,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | up smash | 49 | 15 | true | true |
-| DI none; SDI | forward smash | 57 | 15 | true | true |
+| DI none; SDI | forward smash | 56 | 15 | true | true |
 | DI none; tech in place | up smash | 49 | 15 | true | true |
 | DI none; tech left | up smash | 49 | 15 | true | true |
 | DI none; tech right | up smash | 49 | 15 | true | true |
@@ -1399,7 +1399,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | up smash | 49 | 15 | true | true |
 | DI none; mash | up smash | 49 | 15 | true | true |
 | DI left; hold | forward smash | 79 | 15 | false | true |
-| DI left; SDI | forward smash | 113 | 15 | false | true |
+| DI left; SDI | back air | 70 | 8 | false | true |
 | DI left; tech in place | down smash | 87 | 15 | false | true |
 | DI left; tech left | down smash | 100 | 15 | false | true |
 | DI left; tech right | forward tilt up | 108 | 8 | false | true |
@@ -1408,7 +1408,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | back air | 104 | 8 | false | true |
 | DI left; mash | no follow-up in menu | — | — | — | — |
 | DI right; hold | forward smash | 77 | 15 | true | true |
-| DI right; SDI | no follow-up in menu | — | — | — | — |
+| DI right; SDI | forward smash | 81 | 15 | true | true |
 | DI right; tech in place | forward smash | 77 | 15 | false | true |
 | DI right; tech left | forward air | 98 | 8 | false | true |
 | DI right; tech right | no follow-up in menu | — | — | — | — |
@@ -1453,7 +1453,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | forward smash | 57 | 15 | true | true |
 | DI up-right; mash | forward smash | 57 | 15 | true | true |
 | DI down-left; hold | down smash | 37 | 15 | true | true |
-| DI down-left; SDI | down smash | 37 | 15 | true | true |
+| DI down-left; SDI | forward smash | 77 | 15 | true | true |
 | DI down-left; tech in place | down smash | 37 | 15 | true | true |
 | DI down-left; tech left | down smash | 37 | 15 | true | true |
 | DI down-left; tech right | down smash | 37 | 15 | true | true |
@@ -1479,7 +1479,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 35 | 15 | false | false |
-| DI none; SDI | forward smash | 41 | 15 | false | false |
+| DI none; SDI | forward smash | 39 | 15 | false | false |
 | DI none; tech in place | forward smash | 35 | 15 | false | false |
 | DI none; tech left | forward smash | 35 | 15 | false | false |
 | DI none; tech right | forward smash | 35 | 15 | false | false |
@@ -1533,7 +1533,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward smash | 35 | 15 | false | false |
 | DI up-left; mash | no follow-up in menu | — | — | — | — |
 | DI up-right; hold | forward smash | 35 | 15 | false | false |
-| DI up-right; SDI | forward smash | 53 | 15 | false | false |
+| DI up-right; SDI | forward smash | 51 | 15 | false | false |
 | DI up-right; tech in place | forward smash | 35 | 15 | false | false |
 | DI up-right; tech left | forward smash | 35 | 15 | false | false |
 | DI up-right; tech right | forward smash | 35 | 15 | false | false |
@@ -1551,7 +1551,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 35 | 15 | false | false |
 | DI down-left; mash | forward smash | 73 | 15 | false | false |
 | DI down-right; hold | forward smash | 47 | 15 | false | false |
-| DI down-right; SDI | forward smash | 51 | 15 | false | true |
+| DI down-right; SDI | forward smash | 49 | 15 | false | false |
 | DI down-right; tech in place | forward smash | 47 | 15 | false | false |
 | DI down-right; tech left | forward smash | 47 | 15 | false | false |
 | DI down-right; tech right | forward smash | 47 | 15 | false | false |
@@ -1568,7 +1568,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 37 | 15 | false | false |
-| DI none; SDI | forward smash | 43 | 15 | false | true |
+| DI none; SDI | forward smash | 41 | 15 | false | false |
 | DI none; tech in place | forward smash | 37 | 15 | false | false |
 | DI none; tech left | forward smash | 37 | 15 | false | false |
 | DI none; tech right | forward smash | 37 | 15 | false | false |
@@ -1586,7 +1586,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | forward smash | 35 | 15 | false | false |
 | DI left; mash | down smash | 81 | 15 | false | false |
 | DI right; hold | forward smash | 39 | 15 | false | false |
-| DI right; SDI | forward smash | 45 | 15 | false | true |
+| DI right; SDI | forward smash | 43 | 15 | false | false |
 | DI right; tech in place | forward smash | 39 | 15 | false | false |
 | DI right; tech left | forward smash | 39 | 15 | false | false |
 | DI right; tech right | forward smash | 39 | 15 | false | false |
@@ -1622,7 +1622,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward smash | 35 | 15 | false | false |
 | DI up-left; mash | down smash | 81 | 15 | false | false |
 | DI up-right; hold | forward smash | 39 | 15 | false | false |
-| DI up-right; SDI | forward smash | 43 | 15 | false | true |
+| DI up-right; SDI | forward smash | 43 | 15 | false | false |
 | DI up-right; tech in place | forward smash | 39 | 15 | false | false |
 | DI up-right; tech left | forward smash | 39 | 15 | false | false |
 | DI up-right; tech right | forward smash | 39 | 15 | false | false |
@@ -1640,7 +1640,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | down smash | 37 | 15 | false | false |
 | DI down-left; mash | dash attack | 67 | 9 | false | false |
 | DI down-right; hold | forward throw | 62 | 7 | false | true |
-| DI down-right; SDI | forward smash | 55 | 15 | false | true |
+| DI down-right; SDI | forward smash | 53 | 15 | false | true |
 | DI down-right; tech in place | forward throw | 62 | 7 | false | true |
 | DI down-right; tech left | forward throw | 62 | 7 | false | true |
 | DI down-right; tech right | forward throw | 62 | 7 | false | true |
@@ -1675,7 +1675,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | forward smash | 39 | 15 | false | false |
 | DI left; mash | down smash | 87 | 15 | false | false |
 | DI right; hold | forward smash | 43 | 15 | false | true |
-| DI right; SDI | forward smash | 49 | 15 | false | true |
+| DI right; SDI | forward smash | 47 | 15 | false | true |
 | DI right; tech in place | forward smash | 43 | 15 | false | false |
 | DI right; tech left | forward smash | 43 | 15 | false | false |
 | DI right; tech right | forward smash | 43 | 15 | false | false |
@@ -1702,7 +1702,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | forward smash | 41 | 15 | false | false |
 | DI down; mash | up smash | 47 | 15 | false | true |
 | DI up-left; hold | forward smash | 39 | 15 | false | false |
-| DI up-left; SDI | forward smash | 35 | 15 | false | false |
+| DI up-left; SDI | forward smash | 37 | 15 | false | false |
 | DI up-left; tech in place | forward smash | 39 | 15 | false | false |
 | DI up-left; tech left | forward smash | 39 | 15 | false | false |
 | DI up-left; tech right | forward smash | 39 | 15 | false | false |
@@ -1711,7 +1711,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward smash | 39 | 15 | false | false |
 | DI up-left; mash | down smash | 85 | 15 | false | false |
 | DI up-right; hold | forward smash | 43 | 15 | false | true |
-| DI up-right; SDI | forward smash | 49 | 15 | false | true |
+| DI up-right; SDI | forward smash | 47 | 15 | false | true |
 | DI up-right; tech in place | forward smash | 43 | 15 | false | false |
 | DI up-right; tech left | forward smash | 43 | 15 | false | false |
 | DI up-right; tech right | forward smash | 43 | 15 | false | false |
@@ -1720,7 +1720,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | forward smash | 43 | 15 | false | false |
 | DI up-right; mash | down smash | 89 | 15 | false | false |
 | DI down-left; hold | down smash | 37 | 15 | false | false |
-| DI down-left; SDI | forward smash | 35 | 15 | false | true |
+| DI down-left; SDI | down smash | 37 | 15 | false | false |
 | DI down-left; tech in place | down smash | 37 | 15 | false | false |
 | DI down-left; tech left | down smash | 37 | 15 | false | false |
 | DI down-left; tech right | down smash | 37 | 15 | false | false |
@@ -1729,7 +1729,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | down smash | 37 | 15 | false | false |
 | DI down-left; mash | down smash | 89 | 15 | false | false |
 | DI down-right; hold | forward smash | 53 | 15 | false | true |
-| DI down-right; SDI | forward smash | 59 | 15 | false | true |
+| DI down-right; SDI | forward smash | 57 | 15 | false | true |
 | DI down-right; tech in place | forward smash | 53 | 15 | false | true |
 | DI down-right; tech left | forward smash | 53 | 15 | false | true |
 | DI down-right; tech right | forward smash | 53 | 15 | false | true |
@@ -1755,7 +1755,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | dash attack | 45 | 9 | true | true |
 | DI none; mash | no follow-up in menu | — | — | — | — |
 | DI left; hold | dash attack | 43 | 9 | true | true |
-| DI left; SDI | forward smash | 39 | 15 | true | false |
+| DI left; SDI | forward smash | 41 | 15 | true | false |
 | DI left; tech in place | dash attack | 43 | 9 | false | true |
 | DI left; tech left | forward smash | 73 | 15 | false | true |
 | DI left; tech right | forward smash | 57 | 15 | false | false |
@@ -1764,7 +1764,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | dash attack | 43 | 9 | true | true |
 | DI left; mash | no follow-up in menu | — | — | — | — |
 | DI right; hold | forward smash | 49 | 15 | true | true |
-| DI right; SDI | forward smash | 55 | 15 | true | true |
+| DI right; SDI | forward smash | 53 | 15 | true | true |
 | DI right; tech in place | forward smash | 49 | 15 | false | true |
 | DI right; tech left | forward smash | 115 | 15 | false | true |
 | DI right; tech right | forward smash | 61 | 15 | false | true |
@@ -1800,7 +1800,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward smash | 45 | 15 | true | false |
 | DI up-left; mash | dash attack | 41 | 9 | true | false |
 | DI up-right; hold | forward smash | 49 | 15 | true | true |
-| DI up-right; SDI | forward smash | 55 | 15 | true | true |
+| DI up-right; SDI | forward smash | 53 | 15 | true | true |
 | DI up-right; tech in place | forward smash | 49 | 15 | false | true |
 | DI up-right; tech left | forward smash | 77 | 15 | false | false |
 | DI up-right; tech right | forward smash | 61 | 15 | false | true |
@@ -1809,7 +1809,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | dash attack | 45 | 9 | true | true |
 | DI up-right; mash | no follow-up in menu | — | — | — | — |
 | DI down-left; hold | forward smash | 43 | 15 | true | true |
-| DI down-left; SDI | forward smash | 39 | 15 | true | false |
+| DI down-left; SDI | forward smash | 41 | 15 | true | false |
 | DI down-left; tech in place | forward smash | 43 | 15 | true | true |
 | DI down-left; tech left | forward smash | 43 | 15 | true | true |
 | DI down-left; tech right | forward smash | 43 | 15 | true | true |
@@ -1818,7 +1818,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 43 | 15 | true | true |
 | DI down-left; mash | no follow-up in menu | — | — | — | — |
 | DI down-right; hold | forward smash | 47 | 15 | true | true |
-| DI down-right; SDI | forward smash | 53 | 15 | true | true |
+| DI down-right; SDI | forward smash | 51 | 15 | true | true |
 | DI down-right; tech in place | forward smash | 47 | 15 | true | true |
 | DI down-right; tech left | forward smash | 47 | 15 | true | true |
 | DI down-right; tech right | forward smash | 47 | 15 | true | true |
@@ -1835,7 +1835,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 55 | 15 | true | true |
-| DI none; SDI | forward smash | 61 | 15 | true | true |
+| DI none; SDI | forward smash | 59 | 15 | true | true |
 | DI none; tech in place | forward smash | 55 | 15 | false | true |
 | DI none; tech left | down smash | 47 | 15 | false | true |
 | DI none; tech right | forward smash | 65 | 15 | false | true |
@@ -1844,7 +1844,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 55 | 15 | true | true |
 | DI none; mash | no follow-up in menu | — | — | — | — |
 | DI left; hold | forward smash | 53 | 15 | true | true |
-| DI left; SDI | forward smash | 45 | 15 | true | true |
+| DI left; SDI | forward smash | 47 | 15 | true | true |
 | DI left; tech in place | forward smash | 53 | 15 | false | true |
 | DI left; tech left | down smash | 87 | 15 | false | true |
 | DI left; tech right | forward smash | 63 | 15 | false | true |
@@ -1853,7 +1853,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | forward smash | 53 | 15 | true | true |
 | DI left; mash | no follow-up in menu | — | — | — | — |
 | DI right; hold | forward smash | 57 | 15 | true | true |
-| DI right; SDI | forward smash | 63 | 15 | true | true |
+| DI right; SDI | forward smash | 61 | 15 | true | true |
 | DI right; tech in place | forward smash | 57 | 15 | false | true |
 | DI right; tech left | forward smash | 46 | 15 | false | true |
 | DI right; tech right | forward smash | 67 | 15 | false | true |
@@ -1862,7 +1862,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI right; air dodge | forward smash | 57 | 15 | true | true |
 | DI right; mash | forward air | 72 | 8 | false | true |
 | DI up; hold | forward smash | 53 | 15 | true | true |
-| DI up; SDI | forward smash | 55 | 15 | true | true |
+| DI up; SDI | forward smash | 53 | 15 | true | true |
 | DI up; tech in place | forward smash | 53 | 15 | false | true |
 | DI up; tech left | back throw | 96 | 7 | false | true |
 | DI up; tech right | forward smash | 63 | 15 | false | true |
@@ -1889,7 +1889,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward throw | 64 | 7 | true | true |
 | DI up-left; mash | no follow-up in menu | — | — | — | — |
 | DI up-right; hold | forward smash | 57 | 15 | true | true |
-| DI up-right; SDI | forward smash | 63 | 15 | true | true |
+| DI up-right; SDI | forward smash | 61 | 15 | true | true |
 | DI up-right; tech in place | forward smash | 57 | 15 | false | true |
 | DI up-right; tech left | down smash | 91 | 15 | false | false |
 | DI up-right; tech right | forward smash | 67 | 15 | false | true |
@@ -1907,7 +1907,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 49 | 15 | true | true |
 | DI down-left; mash | no follow-up in menu | — | — | — | — |
 | DI down-right; hold | forward smash | 53 | 15 | true | true |
-| DI down-right; SDI | forward smash | 59 | 15 | true | true |
+| DI down-right; SDI | forward smash | 57 | 15 | true | true |
 | DI down-right; tech in place | forward smash | 53 | 15 | true | true |
 | DI down-right; tech left | forward smash | 53 | 15 | true | true |
 | DI down-right; tech right | forward smash | 53 | 15 | true | true |
@@ -1924,7 +1924,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 37 | 15 | false | false |
-| DI none; SDI | forward smash | 43 | 15 | false | false |
+| DI none; SDI | forward smash | 41 | 15 | false | false |
 | DI none; tech in place | forward smash | 37 | 15 | false | false |
 | DI none; tech left | forward smash | 37 | 15 | false | false |
 | DI none; tech right | forward smash | 37 | 15 | false | false |
@@ -1942,7 +1942,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | forward smash | 35 | 15 | false | false |
 | DI left; mash | no follow-up in menu | — | — | — | — |
 | DI right; hold | forward smash | 39 | 15 | false | false |
-| DI right; SDI | forward smash | 45 | 15 | false | false |
+| DI right; SDI | forward smash | 43 | 15 | false | false |
 | DI right; tech in place | forward smash | 39 | 15 | false | false |
 | DI right; tech left | forward smash | 39 | 15 | false | false |
 | DI right; tech right | forward smash | 39 | 15 | false | false |
@@ -2013,7 +2013,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 45 | 15 | false | false |
-| DI none; SDI | forward smash | 51 | 15 | false | true |
+| DI none; SDI | forward smash | 49 | 15 | false | true |
 | DI none; tech in place | forward smash | 45 | 15 | false | false |
 | DI none; tech left | forward smash | 45 | 15 | false | false |
 | DI none; tech right | forward smash | 45 | 15 | false | false |
@@ -2022,7 +2022,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 45 | 15 | false | false |
 | DI none; mash | forward smash | 45 | 15 | false | false |
 | DI left; hold | forward smash | 41 | 15 | false | false |
-| DI left; SDI | forward smash | 35 | 15 | false | false |
+| DI left; SDI | forward smash | 37 | 15 | false | false |
 | DI left; tech in place | forward smash | 41 | 15 | false | false |
 | DI left; tech left | forward smash | 41 | 15 | false | false |
 | DI left; tech right | forward smash | 41 | 15 | false | false |
@@ -2031,7 +2031,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | forward smash | 41 | 15 | false | false |
 | DI left; mash | down smash | 89 | 15 | false | false |
 | DI right; hold | forward smash | 47 | 15 | false | false |
-| DI right; SDI | forward smash | 53 | 15 | false | true |
+| DI right; SDI | forward smash | 51 | 15 | false | true |
 | DI right; tech in place | forward smash | 47 | 15 | false | false |
 | DI right; tech left | forward smash | 47 | 15 | false | false |
 | DI right; tech right | forward smash | 47 | 15 | false | false |
@@ -2040,7 +2040,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI right; air dodge | forward smash | 47 | 15 | false | false |
 | DI right; mash | down air | 76 | 9 | false | false |
 | DI up; hold | forward smash | 43 | 15 | false | false |
-| DI up; SDI | forward smash | 45 | 15 | false | false |
+| DI up; SDI | forward smash | 43 | 15 | false | false |
 | DI up; tech in place | forward smash | 43 | 15 | false | false |
 | DI up; tech left | forward smash | 43 | 15 | false | false |
 | DI up; tech right | forward smash | 43 | 15 | false | false |
@@ -2058,7 +2058,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | forward smash | 43 | 15 | false | false |
 | DI down; mash | forward smash | 50 | 15 | false | false |
 | DI up-left; hold | forward smash | 41 | 15 | false | false |
-| DI up-left; SDI | forward smash | 37 | 15 | false | false |
+| DI up-left; SDI | forward smash | 39 | 15 | false | false |
 | DI up-left; tech in place | forward smash | 41 | 15 | false | false |
 | DI up-left; tech left | forward smash | 41 | 15 | false | false |
 | DI up-left; tech right | forward smash | 41 | 15 | false | false |
@@ -2085,7 +2085,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | down smash | 37 | 15 | false | false |
 | DI down-left; mash | up smash | 47 | 15 | false | false |
 | DI down-right; hold | forward smash | 57 | 15 | false | true |
-| DI down-right; SDI | forward smash | 61 | 15 | false | true |
+| DI down-right; SDI | forward smash | 59 | 15 | false | true |
 | DI down-right; tech in place | forward smash | 57 | 15 | false | true |
 | DI down-right; tech left | forward smash | 57 | 15 | false | true |
 | DI down-right; tech right | forward smash | 57 | 15 | false | true |
@@ -2102,7 +2102,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 55 | 15 | true | true |
-| DI none; SDI | forward smash | 61 | 15 | true | true |
+| DI none; SDI | forward smash | 59 | 15 | true | true |
 | DI none; tech in place | forward smash | 55 | 15 | false | false |
 | DI none; tech left | down smash | 89 | 15 | false | false |
 | DI none; tech right | forward throw | 80 | 7 | false | true |
@@ -2129,7 +2129,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI right; air dodge | dash attack | 55 | 9 | true | true |
 | DI right; mash | down air | 76 | 9 | false | false |
 | DI up; hold | forward smash | 53 | 15 | true | true |
-| DI up; SDI | forward smash | 55 | 15 | true | false |
+| DI up; SDI | forward smash | 53 | 15 | true | false |
 | DI up; tech in place | forward smash | 53 | 15 | false | false |
 | DI up; tech left | forward smash | 81 | 15 | false | false |
 | DI up; tech right | dash attack | 61 | 9 | false | true |
@@ -2156,7 +2156,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward smash | 51 | 15 | true | false |
 | DI up-left; mash | dash attack | 47 | 9 | true | false |
 | DI up-right; hold | forward smash | 57 | 15 | true | true |
-| DI up-right; SDI | forward smash | 63 | 15 | true | true |
+| DI up-right; SDI | forward smash | 61 | 15 | true | true |
 | DI up-right; tech in place | dash attack | 53 | 9 | false | true |
 | DI up-right; tech left | down smash | 91 | 15 | false | false |
 | DI up-right; tech right | dash attack | 65 | 9 | false | true |
@@ -2165,7 +2165,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | dash attack | 53 | 9 | true | true |
 | DI up-right; mash | no follow-up in menu | — | — | — | — |
 | DI down-left; hold | forward smash | 49 | 15 | true | false |
-| DI down-left; SDI | forward smash | 43 | 15 | true | false |
+| DI down-left; SDI | forward smash | 45 | 15 | true | false |
 | DI down-left; tech in place | forward smash | 49 | 15 | true | false |
 | DI down-left; tech left | forward smash | 49 | 15 | true | false |
 | DI down-left; tech right | forward smash | 49 | 15 | true | false |
@@ -2174,7 +2174,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 49 | 15 | true | false |
 | DI down-left; mash | no follow-up in menu | — | — | — | — |
 | DI down-right; hold | forward smash | 55 | 15 | true | true |
-| DI down-right; SDI | forward smash | 59 | 15 | true | true |
+| DI down-right; SDI | forward smash | 57 | 15 | true | true |
 | DI down-right; tech in place | forward smash | 55 | 15 | true | true |
 | DI down-right; tech left | forward smash | 55 | 15 | true | true |
 | DI down-right; tech right | forward smash | 55 | 15 | true | true |
@@ -2191,7 +2191,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 69 | 15 | true | true |
-| DI none; SDI | forward smash | 77 | 15 | true | true |
+| DI none; SDI | forward smash | 75 | 15 | true | true |
 | DI none; tech in place | forward smash | 69 | 15 | false | true |
 | DI none; tech left | forward smash | 59 | 15 | false | true |
 | DI none; tech right | forward smash | 81 | 15 | false | true |
@@ -2200,7 +2200,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 69 | 15 | true | true |
 | DI none; mash | forward air | 98 | 8 | false | false |
 | DI left; hold | forward smash | 67 | 15 | true | true |
-| DI left; SDI | dash attack | 57 | 9 | true | true |
+| DI left; SDI | dash attack | 59 | 9 | true | true |
 | DI left; tech in place | dash attack | 63 | 9 | false | true |
 | DI left; tech left | forward smash | 55 | 15 | false | false |
 | DI left; tech right | forward smash | 77 | 15 | false | true |
@@ -2209,7 +2209,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | dash attack | 63 | 9 | true | true |
 | DI left; mash | forward air | 98 | 8 | false | true |
 | DI right; hold | forward smash | 71 | 15 | true | true |
-| DI right; SDI | forward smash | 79 | 15 | true | true |
+| DI right; SDI | forward smash | 77 | 15 | true | true |
 | DI right; tech in place | forward smash | 73 | 15 | false | true |
 | DI right; tech left | forward smash | 61 | 15 | false | true |
 | DI right; tech right | forward smash | 81 | 15 | false | true |
@@ -2218,7 +2218,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI right; air dodge | forward smash | 71 | 15 | true | true |
 | DI right; mash | no follow-up in menu | — | — | — | — |
 | DI up; hold | forward smash | 65 | 15 | true | true |
-| DI up; SDI | forward smash | 69 | 15 | true | true |
+| DI up; SDI | forward smash | 67 | 15 | true | true |
 | DI up; tech in place | dash attack | 63 | 9 | true | true |
 | DI up; tech left | dash attack | 63 | 9 | true | true |
 | DI up; tech right | forward smash | 65 | 15 | true | true |
@@ -2263,7 +2263,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 57 | 15 | true | true |
 | DI down-left; mash | down air | 76 | 9 | false | false |
 | DI down-right; hold | forward smash | 63 | 15 | true | true |
-| DI down-right; SDI | forward smash | 69 | 15 | true | true |
+| DI down-right; SDI | forward smash | 67 | 15 | true | true |
 | DI down-right; tech in place | forward smash | 63 | 15 | true | true |
 | DI down-right; tech left | forward smash | 63 | 15 | true | true |
 | DI down-right; tech right | forward smash | 63 | 15 | true | true |
@@ -2289,7 +2289,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 83 | 15 | false | true |
 | DI none; mash | no follow-up in menu | — | — | — | — |
 | DI left; hold | down smash | 87 | 15 | false | true |
-| DI left; SDI | forward smash | 77 | 15 | true | true |
+| DI left; SDI | forward smash | 79 | 15 | true | true |
 | DI left; tech in place | down smash | 87 | 15 | false | true |
 | DI left; tech left | forward smash | 73 | 15 | false | true |
 | DI left; tech right | forward smash | 81 | 15 | false | true |
@@ -2307,7 +2307,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI right; air dodge | forward tilt down | 82 | 8 | false | true |
 | DI right; mash | no follow-up in menu | — | — | — | — |
 | DI up; hold | no follow-up in menu | — | — | — | — |
-| DI up; SDI | down smash | 88 | 15 | false | true |
+| DI up; SDI | down smash | 89 | 15 | false | true |
 | DI up; tech in place | no follow-up in menu | — | — | — | — |
 | DI up; tech left | no follow-up in menu | — | — | — | — |
 | DI up; tech right | no follow-up in menu | — | — | — | — |
@@ -2343,7 +2343,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | dash attack | 79 | 9 | false | true |
 | DI up-right; mash | no follow-up in menu | — | — | — | — |
 | DI down-left; hold | forward smash | 67 | 15 | true | true |
-| DI down-left; SDI | forward smash | 61 | 15 | true | true |
+| DI down-left; SDI | forward smash | 63 | 15 | true | true |
 | DI down-left; tech in place | forward smash | 67 | 15 | true | true |
 | DI down-left; tech left | forward smash | 67 | 15 | true | true |
 | DI down-left; tech right | forward smash | 67 | 15 | true | true |
@@ -2387,7 +2387,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | down smash | 37 | 15 | false | false |
 | DI left; mash | no follow-up in menu | — | — | — | — |
 | DI right; hold | forward smash | 49 | 15 | false | false |
-| DI right; SDI | forward smash | 55 | 15 | false | true |
+| DI right; SDI | forward smash | 53 | 15 | false | false |
 | DI right; tech in place | forward smash | 49 | 15 | false | false |
 | DI right; tech left | forward smash | 49 | 15 | false | false |
 | DI right; tech right | forward smash | 49 | 15 | false | false |
@@ -2423,7 +2423,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward smash | 35 | 15 | false | false |
 | DI up-left; mash | no follow-up in menu | — | — | — | — |
 | DI up-right; hold | forward smash | 47 | 15 | false | false |
-| DI up-right; SDI | forward smash | 53 | 15 | false | false |
+| DI up-right; SDI | forward smash | 51 | 15 | false | false |
 | DI up-right; tech in place | forward smash | 47 | 15 | false | false |
 | DI up-right; tech left | forward smash | 47 | 15 | false | false |
 | DI up-right; tech right | forward smash | 47 | 15 | false | false |
@@ -2441,7 +2441,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 35 | 15 | false | false |
 | DI down-left; mash | no follow-up in menu | — | — | — | — |
 | DI down-right; hold | forward smash | 47 | 15 | false | false |
-| DI down-right; SDI | forward smash | 53 | 15 | false | true |
+| DI down-right; SDI | forward smash | 51 | 15 | false | false |
 | DI down-right; tech in place | forward smash | 47 | 15 | false | false |
 | DI down-right; tech left | forward smash | 47 | 15 | false | false |
 | DI down-right; tech right | forward smash | 47 | 15 | false | false |
@@ -2458,7 +2458,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 41 | 15 | false | false |
-| DI none; SDI | forward smash | 47 | 15 | false | true |
+| DI none; SDI | forward smash | 45 | 15 | false | false |
 | DI none; tech in place | forward smash | 41 | 15 | false | false |
 | DI none; tech left | forward smash | 41 | 15 | false | false |
 | DI none; tech right | forward smash | 41 | 15 | false | false |
@@ -2467,7 +2467,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 41 | 15 | false | false |
 | DI none; mash | no follow-up in menu | — | — | — | — |
 | DI left; hold | down smash | 41 | 15 | false | false |
-| DI left; SDI | forward smash | 85 | 15 | false | true |
+| DI left; SDI | down smash | 37 | 15 | false | false |
 | DI left; tech in place | down smash | 41 | 15 | false | false |
 | DI left; tech left | down smash | 41 | 15 | false | false |
 | DI left; tech right | down smash | 41 | 15 | false | false |
@@ -2476,7 +2476,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | down smash | 41 | 15 | false | false |
 | DI left; mash | dash attack | 79 | 9 | false | false |
 | DI right; hold | forward smash | 53 | 15 | false | true |
-| DI right; SDI | forward smash | 61 | 15 | false | true |
+| DI right; SDI | forward smash | 59 | 15 | false | true |
 | DI right; tech in place | forward smash | 53 | 15 | false | true |
 | DI right; tech left | forward throw | 66 | 7 | false | true |
 | DI right; tech right | forward throw | 66 | 7 | false | true |
@@ -2503,7 +2503,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | forward smash | 41 | 15 | false | false |
 | DI down; mash | no follow-up in menu | — | — | — | — |
 | DI up-left; hold | down smash | 41 | 15 | false | false |
-| DI up-left; SDI | down smash | 37 | 15 | false | false |
+| DI up-left; SDI | down smash | 39 | 15 | false | false |
 | DI up-left; tech in place | down smash | 41 | 15 | false | false |
 | DI up-left; tech left | down smash | 41 | 15 | false | false |
 | DI up-left; tech right | down smash | 41 | 15 | false | false |
@@ -2512,7 +2512,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | down smash | 41 | 15 | false | false |
 | DI up-left; mash | dash attack | 79 | 9 | false | false |
 | DI up-right; hold | forward smash | 53 | 15 | false | true |
-| DI up-right; SDI | forward smash | 59 | 15 | false | true |
+| DI up-right; SDI | forward smash | 57 | 15 | false | true |
 | DI up-right; tech in place | forward smash | 53 | 15 | false | true |
 | DI up-right; tech left | forward smash | 53 | 15 | false | true |
 | DI up-right; tech right | forward smash | 53 | 15 | false | true |
@@ -2521,7 +2521,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | forward smash | 53 | 15 | false | false |
 | DI up-right; mash | forward smash | 53 | 15 | false | false |
 | DI down-left; hold | down smash | 41 | 15 | false | false |
-| DI down-left; SDI | down smash | 37 | 15 | false | false |
+| DI down-left; SDI | down smash | 39 | 15 | false | false |
 | DI down-left; tech in place | down smash | 41 | 15 | false | false |
 | DI down-left; tech left | down smash | 41 | 15 | false | false |
 | DI down-left; tech right | down smash | 41 | 15 | false | false |
@@ -2530,7 +2530,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | down smash | 41 | 15 | false | false |
 | DI down-left; mash | dash attack | 79 | 9 | false | false |
 | DI down-right; hold | forward smash | 53 | 15 | false | true |
-| DI down-right; SDI | forward smash | 59 | 15 | false | true |
+| DI down-right; SDI | forward smash | 57 | 15 | false | true |
 | DI down-right; tech in place | forward smash | 53 | 15 | false | true |
 | DI down-right; tech left | forward smash | 53 | 15 | false | true |
 | DI down-right; tech right | forward smash | 53 | 15 | false | true |
@@ -2547,7 +2547,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 53 | 15 | true | true |
-| DI none; SDI | forward smash | 61 | 15 | true | true |
+| DI none; SDI | forward smash | 59 | 15 | true | true |
 | DI none; tech in place | forward smash | 53 | 15 | false | false |
 | DI none; tech left | down smash | 47 | 15 | false | false |
 | DI none; tech right | forward throw | 78 | 7 | false | true |
@@ -2556,7 +2556,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | dash attack | 51 | 9 | true | true |
 | DI none; mash | no follow-up in menu | — | — | — | — |
 | DI left; hold | forward smash | 51 | 15 | true | true |
-| DI left; SDI | forward smash | 45 | 15 | true | true |
+| DI left; SDI | forward smash | 47 | 15 | true | true |
 | DI left; tech in place | forward smash | 51 | 15 | false | false |
 | DI left; tech left | down smash | 85 | 15 | false | true |
 | DI left; tech right | forward smash | 63 | 15 | false | false |
@@ -2565,7 +2565,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | forward smash | 51 | 15 | true | false |
 | DI left; mash | no follow-up in menu | — | — | — | — |
 | DI right; hold | forward smash | 55 | 15 | true | true |
-| DI right; SDI | forward smash | 63 | 15 | true | true |
+| DI right; SDI | forward smash | 61 | 15 | true | true |
 | DI right; tech in place | dash attack | 53 | 9 | false | true |
 | DI right; tech left | forward smash | 46 | 15 | false | false |
 | DI right; tech right | forward smash | 67 | 15 | false | true |
@@ -2645,7 +2645,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 67 | 15 | true | true |
 | DI none; mash | forward air | 98 | 8 | false | true |
 | DI left; hold | forward smash | 65 | 15 | true | true |
-| DI left; SDI | dash attack | 55 | 9 | true | true |
+| DI left; SDI | dash attack | 57 | 9 | true | true |
 | DI left; tech in place | dash attack | 63 | 9 | false | true |
 | DI left; tech left | forward smash | 53 | 15 | false | false |
 | DI left; tech right | forward smash | 77 | 15 | false | true |
@@ -2654,7 +2654,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | dash attack | 63 | 9 | true | true |
 | DI left; mash | neutral air | 96 | 7 | false | true |
 | DI right; hold | forward smash | 69 | 15 | true | true |
-| DI right; SDI | forward smash | 75 | 15 | true | true |
+| DI right; SDI | forward smash | 73 | 15 | true | true |
 | DI right; tech in place | forward smash | 69 | 15 | false | true |
 | DI right; tech left | forward smash | 57 | 15 | false | true |
 | DI right; tech right | forward smash | 81 | 15 | false | true |
@@ -2663,7 +2663,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI right; air dodge | forward smash | 69 | 15 | true | true |
 | DI right; mash | up air | 98 | 8 | false | true |
 | DI up; hold | forward smash | 63 | 15 | true | true |
-| DI up; SDI | forward smash | 67 | 15 | true | true |
+| DI up; SDI | forward smash | 65 | 15 | true | true |
 | DI up; tech in place | dash attack | 61 | 9 | false | true |
 | DI up; tech left | down smash | 99 | 15 | false | false |
 | DI up; tech right | forward smash | 75 | 15 | false | true |
@@ -2699,7 +2699,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | forward smash | 69 | 15 | true | true |
 | DI up-right; mash | forward air | 98 | 8 | false | false |
 | DI down-left; hold | forward smash | 57 | 15 | true | true |
-| DI down-left; SDI | forward smash | 53 | 15 | true | true |
+| DI down-left; SDI | forward smash | 55 | 15 | true | true |
 | DI down-left; tech in place | forward smash | 57 | 15 | true | true |
 | DI down-left; tech left | forward smash | 57 | 15 | true | true |
 | DI down-left; tech right | forward smash | 57 | 15 | true | true |
@@ -2708,7 +2708,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 57 | 15 | true | true |
 | DI down-left; mash | forward air | 76 | 8 | false | true |
 | DI down-right; hold | forward smash | 63 | 15 | true | true |
-| DI down-right; SDI | forward smash | 67 | 15 | true | true |
+| DI down-right; SDI | forward smash | 65 | 15 | true | true |
 | DI down-right; tech in place | forward smash | 63 | 15 | true | true |
 | DI down-right; tech left | forward smash | 63 | 15 | true | true |
 | DI down-right; tech right | forward smash | 63 | 15 | true | true |
@@ -2734,7 +2734,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 81 | 15 | true | true |
 | DI none; mash | forward smash | 81 | 15 | false | true |
 | DI left; hold | forward smash | 81 | 15 | true | true |
-| DI left; SDI | forward smash | 73 | 15 | true | true |
+| DI left; SDI | forward smash | 75 | 15 | true | true |
 | DI left; tech in place | forward smash | 81 | 15 | false | true |
 | DI left; tech left | forward smash | 71 | 15 | false | true |
 | DI left; tech right | forward smash | 81 | 15 | false | true |
@@ -2788,7 +2788,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | forward smash | 83 | 15 | false | true |
 | DI up-right; mash | forward smash | 87 | 15 | false | true |
 | DI down-left; hold | forward smash | 67 | 15 | true | true |
-| DI down-left; SDI | forward smash | 61 | 15 | true | true |
+| DI down-left; SDI | forward smash | 63 | 15 | true | true |
 | DI down-left; tech in place | forward smash | 67 | 15 | true | true |
 | DI down-left; tech left | forward smash | 67 | 15 | true | true |
 | DI down-left; tech right | forward smash | 67 | 15 | true | true |
@@ -2797,7 +2797,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 67 | 15 | true | true |
 | DI down-left; mash | forward smash | 67 | 15 | false | true |
 | DI down-right; hold | forward smash | 71 | 15 | true | true |
-| DI down-right; SDI | forward smash | 77 | 15 | true | true |
+| DI down-right; SDI | forward smash | 75 | 15 | true | true |
 | DI down-right; tech in place | forward smash | 71 | 15 | true | true |
 | DI down-right; tech left | forward smash | 71 | 15 | true | true |
 | DI down-right; tech right | forward smash | 71 | 15 | true | true |
@@ -2814,7 +2814,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 51 | 15 | false | false |
-| DI none; SDI | forward smash | 65 | 15 | false | false |
+| DI none; SDI | forward smash | 57 | 15 | false | false |
 | DI none; tech in place | forward smash | 51 | 15 | false | false |
 | DI none; tech left | forward smash | 51 | 15 | false | false |
 | DI none; tech right | forward smash | 51 | 15 | false | false |
@@ -2823,7 +2823,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 51 | 15 | false | false |
 | DI none; mash | dash attack | 83 | 9 | false | false |
 | DI left; hold | forward smash | 49 | 15 | false | false |
-| DI left; SDI | down smash | 47 | 15 | false | false |
+| DI left; SDI | forward smash | 45 | 15 | false | false |
 | DI left; tech in place | forward smash | 49 | 15 | false | false |
 | DI left; tech left | forward smash | 49 | 15 | false | false |
 | DI left; tech right | forward smash | 49 | 15 | false | false |
@@ -2832,7 +2832,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | forward smash | 49 | 15 | false | false |
 | DI left; mash | forward smash | 49 | 15 | false | false |
 | DI right; hold | forward smash | 55 | 15 | false | false |
-| DI right; SDI | forward smash | 67 | 15 | false | true |
+| DI right; SDI | forward smash | 59 | 15 | false | false |
 | DI right; tech in place | forward smash | 55 | 15 | false | false |
 | DI right; tech left | forward smash | 55 | 15 | false | false |
 | DI right; tech right | forward smash | 55 | 15 | false | false |
@@ -2841,7 +2841,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI right; air dodge | forward smash | 55 | 15 | false | false |
 | DI right; mash | down air | 86 | 9 | false | false |
 | DI up; hold | forward smash | 51 | 15 | false | false |
-| DI up; SDI | forward smash | 53 | 15 | false | false |
+| DI up; SDI | forward smash | 51 | 15 | false | false |
 | DI up; tech in place | forward smash | 51 | 15 | false | false |
 | DI up; tech left | forward smash | 51 | 15 | false | false |
 | DI up; tech right | forward smash | 51 | 15 | false | false |
@@ -2859,7 +2859,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | forward smash | 49 | 15 | false | false |
 | DI down; mash | no follow-up in menu | — | — | — | — |
 | DI up-left; hold | forward smash | 47 | 15 | false | false |
-| DI up-left; SDI | down smash | 47 | 15 | false | false |
+| DI up-left; SDI | forward smash | 45 | 15 | false | false |
 | DI up-left; tech in place | forward smash | 47 | 15 | false | false |
 | DI up-left; tech left | forward smash | 47 | 15 | false | false |
 | DI up-left; tech right | forward smash | 47 | 15 | false | false |
@@ -2868,7 +2868,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward smash | 47 | 15 | false | false |
 | DI up-left; mash | down smash | 93 | 15 | false | false |
 | DI up-right; hold | forward smash | 53 | 15 | false | false |
-| DI up-right; SDI | forward throw | 78 | 7 | false | true |
+| DI up-right; SDI | forward smash | 57 | 15 | false | false |
 | DI up-right; tech in place | forward smash | 53 | 15 | false | false |
 | DI up-right; tech left | forward smash | 53 | 15 | false | false |
 | DI up-right; tech right | forward smash | 53 | 15 | false | false |
@@ -2877,7 +2877,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | forward smash | 53 | 15 | false | false |
 | DI up-right; mash | forward smash | 53 | 15 | false | false |
 | DI down-left; hold | down smash | 47 | 15 | false | false |
-| DI down-left; SDI | forward smash | 51 | 15 | false | false |
+| DI down-left; SDI | forward smash | 45 | 15 | false | false |
 | DI down-left; tech in place | down smash | 47 | 15 | false | false |
 | DI down-left; tech left | down smash | 47 | 15 | false | false |
 | DI down-left; tech right | down smash | 47 | 15 | false | false |
@@ -2886,7 +2886,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | down smash | 47 | 15 | false | false |
 | DI down-left; mash | no follow-up in menu | — | — | — | — |
 | DI down-right; hold | forward throw | 78 | 7 | false | true |
-| DI down-right; SDI | forward smash | 73 | 15 | false | true |
+| DI down-right; SDI | dash attack | 65 | 9 | false | true |
 | DI down-right; tech in place | forward throw | 78 | 7 | false | true |
 | DI down-right; tech left | forward throw | 78 | 7 | false | true |
 | DI down-right; tech right | forward throw | 78 | 7 | false | true |
@@ -2903,7 +2903,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 69 | 15 | true | true |
-| DI none; SDI | forward smash | 81 | 15 | true | true |
+| DI none; SDI | forward smash | 73 | 15 | true | true |
 | DI none; tech in place | forward smash | 69 | 15 | false | false |
 | DI none; tech left | down smash | 61 | 15 | false | true |
 | DI none; tech right | forward smash | 81 | 15 | false | true |
@@ -2912,7 +2912,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 69 | 15 | true | false |
 | DI none; mash | no follow-up in menu | — | — | — | — |
 | DI left; hold | forward smash | 63 | 15 | true | true |
-| DI left; SDI | forward smash | 51 | 15 | true | false |
+| DI left; SDI | forward smash | 59 | 15 | true | false |
 | DI left; tech in place | forward smash | 63 | 15 | true | false |
 | DI left; tech left | forward smash | 63 | 15 | true | false |
 | DI left; tech right | forward smash | 63 | 15 | true | false |
@@ -2921,7 +2921,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | forward smash | 63 | 15 | true | false |
 | DI left; mash | no follow-up in menu | — | — | — | — |
 | DI right; hold | forward smash | 73 | 15 | true | true |
-| DI right; SDI | forward smash | 87 | 15 | true | true |
+| DI right; SDI | forward smash | 79 | 15 | true | true |
 | DI right; tech in place | forward smash | 73 | 15 | false | true |
 | DI right; tech left | forward smash | 63 | 15 | false | true |
 | DI right; tech right | forward smash | 85 | 15 | false | true |
@@ -2930,7 +2930,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI right; air dodge | dash attack | 71 | 9 | true | true |
 | DI right; mash | no follow-up in menu | — | — | — | — |
 | DI up; hold | forward smash | 65 | 15 | true | true |
-| DI up; SDI | forward smash | 69 | 15 | true | true |
+| DI up; SDI | forward smash | 67 | 15 | true | true |
 | DI up; tech in place | forward smash | 65 | 15 | true | false |
 | DI up; tech left | forward smash | 65 | 15 | true | false |
 | DI up; tech right | forward smash | 65 | 15 | true | false |
@@ -2948,7 +2948,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | forward smash | 63 | 15 | true | false |
 | DI down; mash | down air | 80 | 9 | false | false |
 | DI up-left; hold | forward smash | 59 | 15 | true | false |
-| DI up-left; SDI | forward smash | 51 | 15 | true | false |
+| DI up-left; SDI | forward smash | 57 | 15 | true | false |
 | DI up-left; tech in place | forward smash | 59 | 15 | true | false |
 | DI up-left; tech left | forward smash | 59 | 15 | true | false |
 | DI up-left; tech right | forward smash | 59 | 15 | true | false |
@@ -2957,7 +2957,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward smash | 59 | 15 | true | false |
 | DI up-left; mash | forward smash | 59 | 15 | true | false |
 | DI up-right; hold | forward smash | 71 | 15 | true | true |
-| DI up-right; SDI | forward smash | 83 | 15 | true | true |
+| DI up-right; SDI | forward smash | 75 | 15 | true | true |
 | DI up-right; tech in place | forward tilt down | 70 | 8 | false | true |
 | DI up-right; tech left | down smash | 62 | 15 | false | true |
 | DI up-right; tech right | forward smash | 83 | 15 | false | true |
@@ -2966,7 +2966,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | dash attack | 67 | 9 | true | true |
 | DI up-right; mash | forward air | 92 | 8 | false | false |
 | DI down-left; hold | forward smash | 57 | 15 | true | false |
-| DI down-left; SDI | forward smash | 47 | 15 | true | false |
+| DI down-left; SDI | forward smash | 53 | 15 | true | false |
 | DI down-left; tech in place | forward smash | 57 | 15 | true | false |
 | DI down-left; tech left | forward smash | 57 | 15 | true | false |
 | DI down-left; tech right | forward smash | 57 | 15 | true | false |
@@ -2975,7 +2975,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 57 | 15 | true | false |
 | DI down-left; mash | no follow-up in menu | — | — | — | — |
 | DI down-right; hold | forward smash | 67 | 15 | true | true |
-| DI down-right; SDI | forward smash | 77 | 15 | true | true |
+| DI down-right; SDI | forward smash | 71 | 15 | true | true |
 | DI down-right; tech in place | forward smash | 67 | 15 | true | true |
 | DI down-right; tech left | forward smash | 67 | 15 | true | true |
 | DI down-right; tech right | forward smash | 67 | 15 | true | true |
@@ -3001,7 +3001,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward tilt down | 92 | 8 | false | true |
 | DI none; mash | no follow-up in menu | — | — | — | — |
 | DI left; hold | dash attack | 89 | 9 | true | true |
-| DI left; SDI | dash attack | 75 | 9 | true | true |
+| DI left; SDI | dash attack | 83 | 9 | true | true |
 | DI left; tech in place | dash attack | 89 | 9 | false | true |
 | DI left; tech left | forward smash | 119 | 15 | false | false |
 | DI left; tech right | dash attack | 89 | 9 | false | true |
@@ -3019,7 +3019,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI right; air dodge | no follow-up in menu | — | — | — | — |
 | DI right; mash | no follow-up in menu | — | — | — | — |
 | DI up; hold | no follow-up in menu | — | — | — | — |
-| DI up; SDI | no follow-up in menu | — | — | — | — |
+| DI up; SDI | down smash | 98 | 15 | false | false |
 | DI up; tech in place | no follow-up in menu | — | — | — | — |
 | DI up; tech left | forward air | 114 | 8 | false | true |
 | DI up; tech right | forward tilt | 91 | 8 | false | true |
@@ -3037,7 +3037,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | forward smash | 75 | 15 | true | true |
 | DI down; mash | forward smash | 75 | 15 | false | true |
 | DI up-left; hold | dash attack | 79 | 9 | true | true |
-| DI up-left; SDI | dash attack | 67 | 9 | false | true |
+| DI up-left; SDI | dash attack | 75 | 9 | false | true |
 | DI up-left; tech in place | forward air | 114 | 8 | false | true |
 | DI up-left; tech left | dash attack | 113 | 9 | false | false |
 | DI up-left; tech right | no follow-up in menu | — | — | — | — |
@@ -3055,7 +3055,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | no follow-up in menu | — | — | — | — |
 | DI up-right; mash | no follow-up in menu | — | — | — | — |
 | DI down-left; hold | forward smash | 69 | 15 | true | true |
-| DI down-left; SDI | forward smash | 59 | 15 | true | false |
+| DI down-left; SDI | forward smash | 65 | 15 | true | true |
 | DI down-left; tech in place | forward smash | 69 | 15 | true | true |
 | DI down-left; tech left | forward smash | 69 | 15 | true | true |
 | DI down-left; tech right | forward smash | 69 | 15 | true | true |
@@ -3064,7 +3064,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 69 | 15 | true | true |
 | DI down-left; mash | forward smash | 69 | 15 | false | true |
 | DI down-right; hold | forward smash | 81 | 15 | true | true |
-| DI down-right; SDI | forward smash | 91 | 15 | true | true |
+| DI down-right; SDI | forward smash | 85 | 15 | true | true |
 | DI down-right; tech in place | forward smash | 81 | 15 | true | true |
 | DI down-right; tech left | forward smash | 81 | 15 | true | true |
 | DI down-right; tech right | forward smash | 81 | 15 | true | true |
@@ -3144,7 +3144,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | no follow-up in menu | — | — | — | — |
 | DI up-right; mash | no follow-up in menu | — | — | — | — |
 | DI down-left; hold | forward smash | 81 | 15 | true | true |
-| DI down-left; SDI | forward smash | 71 | 15 | true | true |
+| DI down-left; SDI | forward smash | 77 | 15 | true | true |
 | DI down-left; tech in place | forward smash | 81 | 15 | true | true |
 | DI down-left; tech left | forward smash | 81 | 15 | true | true |
 | DI down-left; tech right | forward smash | 81 | 15 | true | true |
@@ -3233,7 +3233,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | no follow-up in menu | — | — | — | — |
 | DI up-right; mash | no follow-up in menu | — | — | — | — |
 | DI down-left; hold | no follow-up in menu | — | — | — | — |
-| DI down-left; SDI | forward smash | 83 | 15 | true | true |
+| DI down-left; SDI | forward smash | 89 | 15 | true | true |
 | DI down-left; tech in place | no follow-up in menu | — | — | — | — |
 | DI down-left; tech left | no follow-up in menu | — | — | — | — |
 | DI down-left; tech right | no follow-up in menu | — | — | — | — |
@@ -3259,7 +3259,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 55 | 15 | false | false |
-| DI none; SDI | forward smash | 69 | 15 | false | false |
+| DI none; SDI | forward smash | 61 | 15 | false | false |
 | DI none; tech in place | forward smash | 55 | 15 | false | false |
 | DI none; tech left | forward smash | 55 | 15 | false | false |
 | DI none; tech right | forward smash | 55 | 15 | false | false |
@@ -3268,7 +3268,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 55 | 15 | false | false |
 | DI none; mash | dash attack | 87 | 9 | false | false |
 | DI left; hold | forward smash | 53 | 15 | false | false |
-| DI left; SDI | down smash | 51 | 15 | false | false |
+| DI left; SDI | forward smash | 49 | 15 | false | false |
 | DI left; tech in place | forward smash | 53 | 15 | false | false |
 | DI left; tech left | forward smash | 53 | 15 | false | false |
 | DI left; tech right | forward smash | 53 | 15 | false | false |
@@ -3277,7 +3277,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | forward smash | 53 | 15 | false | false |
 | DI left; mash | forward smash | 53 | 15 | false | false |
 | DI right; hold | forward smash | 59 | 15 | false | false |
-| DI right; SDI | forward smash | 71 | 15 | false | true |
+| DI right; SDI | forward smash | 63 | 15 | false | false |
 | DI right; tech in place | forward smash | 59 | 15 | false | false |
 | DI right; tech left | forward smash | 59 | 15 | false | false |
 | DI right; tech right | forward smash | 59 | 15 | false | false |
@@ -3286,7 +3286,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI right; air dodge | forward smash | 59 | 15 | false | false |
 | DI right; mash | up smash | 61 | 15 | false | false |
 | DI up; hold | forward smash | 55 | 15 | false | false |
-| DI up; SDI | forward smash | 57 | 15 | false | false |
+| DI up; SDI | forward smash | 55 | 15 | false | false |
 | DI up; tech in place | forward smash | 55 | 15 | false | false |
 | DI up; tech left | forward smash | 55 | 15 | false | false |
 | DI up; tech right | forward smash | 55 | 15 | false | false |
@@ -3304,7 +3304,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | forward smash | 53 | 15 | false | false |
 | DI down; mash | no follow-up in menu | — | — | — | — |
 | DI up-left; hold | forward smash | 51 | 15 | false | false |
-| DI up-left; SDI | down smash | 51 | 15 | false | false |
+| DI up-left; SDI | forward smash | 49 | 15 | false | false |
 | DI up-left; tech in place | forward smash | 51 | 15 | false | false |
 | DI up-left; tech left | forward smash | 51 | 15 | false | false |
 | DI up-left; tech right | forward smash | 51 | 15 | false | false |
@@ -3313,7 +3313,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward smash | 51 | 15 | false | false |
 | DI up-left; mash | down smash | 97 | 15 | false | false |
 | DI up-right; hold | forward smash | 57 | 15 | false | false |
-| DI up-right; SDI | forward throw | 82 | 7 | false | true |
+| DI up-right; SDI | forward smash | 61 | 15 | false | false |
 | DI up-right; tech in place | forward smash | 57 | 15 | false | false |
 | DI up-right; tech left | forward smash | 57 | 15 | false | false |
 | DI up-right; tech right | forward smash | 57 | 15 | false | false |
@@ -3322,7 +3322,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | forward smash | 57 | 15 | false | false |
 | DI up-right; mash | forward smash | 57 | 15 | false | false |
 | DI down-left; hold | down smash | 51 | 15 | false | false |
-| DI down-left; SDI | forward smash | 55 | 15 | false | false |
+| DI down-left; SDI | forward smash | 49 | 15 | false | false |
 | DI down-left; tech in place | down smash | 51 | 15 | false | false |
 | DI down-left; tech left | down smash | 51 | 15 | false | false |
 | DI down-left; tech right | down smash | 51 | 15 | false | false |
@@ -3331,7 +3331,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | down smash | 51 | 15 | false | false |
 | DI down-left; mash | no follow-up in menu | — | — | — | — |
 | DI down-right; hold | forward throw | 82 | 7 | false | true |
-| DI down-right; SDI | forward smash | 77 | 15 | false | true |
+| DI down-right; SDI | dash attack | 69 | 9 | false | true |
 | DI down-right; tech in place | forward throw | 82 | 7 | false | true |
 | DI down-right; tech left | forward throw | 82 | 7 | false | true |
 | DI down-right; tech right | forward throw | 82 | 7 | false | true |
@@ -3348,7 +3348,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 73 | 15 | true | true |
-| DI none; SDI | forward smash | 85 | 15 | true | true |
+| DI none; SDI | forward smash | 77 | 15 | true | true |
 | DI none; tech in place | forward smash | 73 | 15 | false | false |
 | DI none; tech left | forward smash | 61 | 15 | false | true |
 | DI none; tech right | forward smash | 85 | 15 | false | true |
@@ -3357,7 +3357,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 73 | 15 | true | false |
 | DI none; mash | down air | 94 | 9 | false | false |
 | DI left; hold | forward smash | 67 | 15 | true | true |
-| DI left; SDI | forward smash | 55 | 15 | true | false |
+| DI left; SDI | forward smash | 63 | 15 | true | false |
 | DI left; tech in place | forward smash | 67 | 15 | true | false |
 | DI left; tech left | forward smash | 67 | 15 | true | false |
 | DI left; tech right | forward smash | 67 | 15 | true | false |
@@ -3366,7 +3366,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | forward smash | 67 | 15 | true | false |
 | DI left; mash | no follow-up in menu | — | — | — | — |
 | DI right; hold | forward smash | 77 | 15 | true | true |
-| DI right; SDI | forward smash | 91 | 15 | true | true |
+| DI right; SDI | forward smash | 83 | 15 | true | true |
 | DI right; tech in place | forward smash | 77 | 15 | false | true |
 | DI right; tech left | forward smash | 67 | 15 | false | true |
 | DI right; tech right | forward smash | 89 | 15 | false | true |
@@ -3375,7 +3375,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI right; air dodge | dash attack | 75 | 9 | true | true |
 | DI right; mash | no follow-up in menu | — | — | — | — |
 | DI up; hold | forward smash | 69 | 15 | true | true |
-| DI up; SDI | forward smash | 73 | 15 | true | true |
+| DI up; SDI | forward smash | 71 | 15 | true | true |
 | DI up; tech in place | forward smash | 69 | 15 | true | false |
 | DI up; tech left | forward smash | 69 | 15 | true | false |
 | DI up; tech right | forward smash | 69 | 15 | true | false |
@@ -3393,7 +3393,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | forward smash | 67 | 15 | true | false |
 | DI down; mash | forward smash | 67 | 15 | false | false |
 | DI up-left; hold | forward smash | 63 | 15 | true | false |
-| DI up-left; SDI | forward smash | 57 | 15 | true | false |
+| DI up-left; SDI | forward smash | 61 | 15 | true | false |
 | DI up-left; tech in place | forward smash | 63 | 15 | true | false |
 | DI up-left; tech left | forward smash | 63 | 15 | true | false |
 | DI up-left; tech right | forward smash | 63 | 15 | true | false |
@@ -3402,7 +3402,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward smash | 63 | 15 | true | false |
 | DI up-left; mash | dash attack | 61 | 9 | true | false |
 | DI up-right; hold | forward smash | 75 | 15 | true | true |
-| DI up-right; SDI | forward smash | 87 | 15 | true | true |
+| DI up-right; SDI | forward smash | 79 | 15 | true | true |
 | DI up-right; tech in place | forward tilt down | 74 | 8 | false | true |
 | DI up-right; tech left | forward smash | 63 | 15 | false | true |
 | DI up-right; tech right | forward smash | 87 | 15 | false | true |
@@ -3411,7 +3411,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | dash attack | 71 | 9 | true | true |
 | DI up-right; mash | forward air | 96 | 8 | false | false |
 | DI down-left; hold | forward smash | 61 | 15 | true | false |
-| DI down-left; SDI | forward smash | 51 | 15 | true | false |
+| DI down-left; SDI | forward smash | 57 | 15 | true | false |
 | DI down-left; tech in place | forward smash | 61 | 15 | true | false |
 | DI down-left; tech left | forward smash | 61 | 15 | true | false |
 | DI down-left; tech right | forward smash | 61 | 15 | true | false |
@@ -3420,7 +3420,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 61 | 15 | true | false |
 | DI down-left; mash | down air | 90 | 9 | false | false |
 | DI down-right; hold | forward smash | 71 | 15 | true | true |
-| DI down-right; SDI | forward smash | 81 | 15 | true | true |
+| DI down-right; SDI | forward smash | 75 | 15 | true | true |
 | DI down-right; tech in place | forward smash | 71 | 15 | true | true |
 | DI down-right; tech left | forward smash | 71 | 15 | true | true |
 | DI down-right; tech right | forward smash | 71 | 15 | true | true |
@@ -3446,7 +3446,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | no follow-up in menu | — | — | — | — |
 | DI none; mash | no follow-up in menu | — | — | — | — |
 | DI left; hold | dash attack | 93 | 9 | true | true |
-| DI left; SDI | dash attack | 79 | 9 | true | true |
+| DI left; SDI | dash attack | 87 | 9 | true | true |
 | DI left; tech in place | dash attack | 93 | 9 | false | true |
 | DI left; tech left | down air | 114 | 9 | false | false |
 | DI left; tech right | dash attack | 93 | 9 | false | true |
@@ -3464,7 +3464,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI right; air dodge | no follow-up in menu | — | — | — | — |
 | DI right; mash | no follow-up in menu | — | — | — | — |
 | DI up; hold | down smash | 103 | 15 | false | false |
-| DI up; SDI | no follow-up in menu | — | — | — | — |
+| DI up; SDI | forward tilt | 98 | 8 | false | true |
 | DI up; tech in place | down smash | 103 | 15 | false | false |
 | DI up; tech left | forward air | 118 | 8 | false | true |
 | DI up; tech right | dash attack | 93 | 9 | false | true |
@@ -3482,7 +3482,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | forward smash | 79 | 15 | true | true |
 | DI down; mash | forward smash | 79 | 15 | false | true |
 | DI up-left; hold | dash attack | 83 | 9 | true | true |
-| DI up-left; SDI | dash attack | 73 | 9 | false | true |
+| DI up-left; SDI | dash attack | 81 | 9 | false | true |
 | DI up-left; tech in place | dash attack | 84 | 9 | false | true |
 | DI up-left; tech left | dash attack | 117 | 9 | false | false |
 | DI up-left; tech right | down smash | 98 | 15 | false | false |
@@ -3500,7 +3500,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | no follow-up in menu | — | — | — | — |
 | DI up-right; mash | no follow-up in menu | — | — | — | — |
 | DI down-left; hold | forward smash | 73 | 15 | true | true |
-| DI down-left; SDI | forward smash | 63 | 15 | true | false |
+| DI down-left; SDI | forward smash | 69 | 15 | true | true |
 | DI down-left; tech in place | forward smash | 73 | 15 | true | true |
 | DI down-left; tech left | forward smash | 73 | 15 | true | true |
 | DI down-left; tech right | forward smash | 73 | 15 | true | true |
@@ -3509,7 +3509,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 73 | 15 | true | true |
 | DI down-left; mash | forward smash | 73 | 15 | false | true |
 | DI down-right; hold | forward smash | 85 | 15 | true | true |
-| DI down-right; SDI | forward smash | 95 | 15 | true | true |
+| DI down-right; SDI | forward smash | 89 | 15 | true | true |
 | DI down-right; tech in place | forward smash | 85 | 15 | true | true |
 | DI down-right; tech left | forward smash | 85 | 15 | true | true |
 | DI down-right; tech right | forward smash | 85 | 15 | true | true |
@@ -3589,7 +3589,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | no follow-up in menu | — | — | — | — |
 | DI up-right; mash | no follow-up in menu | — | — | — | — |
 | DI down-left; hold | forward smash | 85 | 15 | true | true |
-| DI down-left; SDI | forward smash | 75 | 15 | true | true |
+| DI down-left; SDI | forward smash | 81 | 15 | true | true |
 | DI down-left; tech in place | forward smash | 85 | 15 | true | true |
 | DI down-left; tech left | forward smash | 85 | 15 | true | true |
 | DI down-left; tech right | forward smash | 85 | 15 | true | true |
@@ -3678,7 +3678,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | no follow-up in menu | — | — | — | — |
 | DI up-right; mash | no follow-up in menu | — | — | — | — |
 | DI down-left; hold | no follow-up in menu | — | — | — | — |
-| DI down-left; SDI | forward smash | 87 | 15 | true | true |
+| DI down-left; SDI | forward smash | 93 | 15 | true | true |
 | DI down-left; tech in place | no follow-up in menu | — | — | — | — |
 | DI down-left; tech left | no follow-up in menu | — | — | — | — |
 | DI down-left; tech right | no follow-up in menu | — | — | — | — |
@@ -3704,7 +3704,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 55 | 15 | false | false |
-| DI none; SDI | forward smash | 69 | 15 | false | false |
+| DI none; SDI | forward smash | 61 | 15 | false | false |
 | DI none; tech in place | forward smash | 55 | 15 | false | false |
 | DI none; tech left | forward smash | 55 | 15 | false | false |
 | DI none; tech right | forward smash | 55 | 15 | false | false |
@@ -3713,7 +3713,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 55 | 15 | false | false |
 | DI none; mash | dash attack | 87 | 9 | false | false |
 | DI left; hold | forward smash | 53 | 15 | false | false |
-| DI left; SDI | down smash | 51 | 15 | false | false |
+| DI left; SDI | forward smash | 49 | 15 | false | false |
 | DI left; tech in place | forward smash | 53 | 15 | false | false |
 | DI left; tech left | forward smash | 53 | 15 | false | false |
 | DI left; tech right | forward smash | 53 | 15 | false | false |
@@ -3722,7 +3722,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | forward smash | 53 | 15 | false | false |
 | DI left; mash | forward smash | 53 | 15 | false | false |
 | DI right; hold | forward smash | 59 | 15 | false | false |
-| DI right; SDI | forward smash | 71 | 15 | false | true |
+| DI right; SDI | forward smash | 63 | 15 | false | false |
 | DI right; tech in place | forward smash | 59 | 15 | false | false |
 | DI right; tech left | forward smash | 59 | 15 | false | false |
 | DI right; tech right | forward smash | 59 | 15 | false | false |
@@ -3731,7 +3731,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI right; air dodge | forward smash | 59 | 15 | false | false |
 | DI right; mash | up smash | 61 | 15 | false | false |
 | DI up; hold | forward smash | 55 | 15 | false | false |
-| DI up; SDI | forward smash | 57 | 15 | false | false |
+| DI up; SDI | forward smash | 55 | 15 | false | false |
 | DI up; tech in place | forward smash | 55 | 15 | false | false |
 | DI up; tech left | forward smash | 55 | 15 | false | false |
 | DI up; tech right | forward smash | 55 | 15 | false | false |
@@ -3749,7 +3749,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | forward smash | 53 | 15 | false | false |
 | DI down; mash | no follow-up in menu | — | — | — | — |
 | DI up-left; hold | forward smash | 51 | 15 | false | false |
-| DI up-left; SDI | down smash | 51 | 15 | false | false |
+| DI up-left; SDI | forward smash | 49 | 15 | false | false |
 | DI up-left; tech in place | forward smash | 51 | 15 | false | false |
 | DI up-left; tech left | forward smash | 51 | 15 | false | false |
 | DI up-left; tech right | forward smash | 51 | 15 | false | false |
@@ -3758,7 +3758,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward smash | 51 | 15 | false | false |
 | DI up-left; mash | down smash | 97 | 15 | false | false |
 | DI up-right; hold | forward smash | 57 | 15 | false | false |
-| DI up-right; SDI | forward throw | 82 | 7 | false | true |
+| DI up-right; SDI | forward smash | 61 | 15 | false | false |
 | DI up-right; tech in place | forward smash | 57 | 15 | false | false |
 | DI up-right; tech left | forward smash | 57 | 15 | false | false |
 | DI up-right; tech right | forward smash | 57 | 15 | false | false |
@@ -3767,7 +3767,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | forward smash | 57 | 15 | false | false |
 | DI up-right; mash | forward smash | 57 | 15 | false | false |
 | DI down-left; hold | down smash | 51 | 15 | false | false |
-| DI down-left; SDI | forward smash | 55 | 15 | false | false |
+| DI down-left; SDI | forward smash | 49 | 15 | false | false |
 | DI down-left; tech in place | down smash | 51 | 15 | false | false |
 | DI down-left; tech left | down smash | 51 | 15 | false | false |
 | DI down-left; tech right | down smash | 51 | 15 | false | false |
@@ -3776,7 +3776,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | down smash | 51 | 15 | false | false |
 | DI down-left; mash | no follow-up in menu | — | — | — | — |
 | DI down-right; hold | forward throw | 82 | 7 | false | true |
-| DI down-right; SDI | forward smash | 77 | 15 | false | true |
+| DI down-right; SDI | dash attack | 69 | 9 | false | true |
 | DI down-right; tech in place | forward throw | 82 | 7 | false | true |
 | DI down-right; tech left | forward throw | 82 | 7 | false | true |
 | DI down-right; tech right | forward throw | 82 | 7 | false | true |
@@ -3793,7 +3793,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 73 | 15 | true | true |
-| DI none; SDI | forward smash | 85 | 15 | true | true |
+| DI none; SDI | forward smash | 77 | 15 | true | true |
 | DI none; tech in place | forward smash | 73 | 15 | false | false |
 | DI none; tech left | forward smash | 61 | 15 | false | true |
 | DI none; tech right | forward smash | 85 | 15 | false | true |
@@ -3802,7 +3802,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 73 | 15 | true | false |
 | DI none; mash | down air | 94 | 9 | false | false |
 | DI left; hold | forward smash | 67 | 15 | true | true |
-| DI left; SDI | forward smash | 55 | 15 | true | false |
+| DI left; SDI | forward smash | 63 | 15 | true | false |
 | DI left; tech in place | forward smash | 67 | 15 | true | false |
 | DI left; tech left | forward smash | 67 | 15 | true | false |
 | DI left; tech right | forward smash | 67 | 15 | true | false |
@@ -3811,7 +3811,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | forward smash | 67 | 15 | true | false |
 | DI left; mash | no follow-up in menu | — | — | — | — |
 | DI right; hold | forward smash | 77 | 15 | true | true |
-| DI right; SDI | forward smash | 91 | 15 | true | true |
+| DI right; SDI | forward smash | 83 | 15 | true | true |
 | DI right; tech in place | forward smash | 77 | 15 | false | true |
 | DI right; tech left | forward smash | 67 | 15 | false | true |
 | DI right; tech right | forward smash | 89 | 15 | false | true |
@@ -3820,7 +3820,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI right; air dodge | dash attack | 75 | 9 | true | true |
 | DI right; mash | no follow-up in menu | — | — | — | — |
 | DI up; hold | forward smash | 69 | 15 | true | true |
-| DI up; SDI | forward smash | 73 | 15 | true | true |
+| DI up; SDI | forward smash | 71 | 15 | true | true |
 | DI up; tech in place | forward smash | 69 | 15 | true | false |
 | DI up; tech left | forward smash | 69 | 15 | true | false |
 | DI up; tech right | forward smash | 69 | 15 | true | false |
@@ -3838,7 +3838,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | forward smash | 67 | 15 | true | false |
 | DI down; mash | forward smash | 67 | 15 | false | false |
 | DI up-left; hold | forward smash | 63 | 15 | true | false |
-| DI up-left; SDI | forward smash | 57 | 15 | true | false |
+| DI up-left; SDI | forward smash | 61 | 15 | true | false |
 | DI up-left; tech in place | forward smash | 63 | 15 | true | false |
 | DI up-left; tech left | forward smash | 63 | 15 | true | false |
 | DI up-left; tech right | forward smash | 63 | 15 | true | false |
@@ -3847,7 +3847,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward smash | 63 | 15 | true | false |
 | DI up-left; mash | dash attack | 61 | 9 | true | false |
 | DI up-right; hold | forward smash | 75 | 15 | true | true |
-| DI up-right; SDI | forward smash | 87 | 15 | true | true |
+| DI up-right; SDI | forward smash | 79 | 15 | true | true |
 | DI up-right; tech in place | forward tilt down | 74 | 8 | false | true |
 | DI up-right; tech left | forward smash | 63 | 15 | false | true |
 | DI up-right; tech right | forward smash | 87 | 15 | false | true |
@@ -3856,7 +3856,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | dash attack | 71 | 9 | true | true |
 | DI up-right; mash | forward air | 96 | 8 | false | false |
 | DI down-left; hold | forward smash | 61 | 15 | true | false |
-| DI down-left; SDI | forward smash | 51 | 15 | true | false |
+| DI down-left; SDI | forward smash | 57 | 15 | true | false |
 | DI down-left; tech in place | forward smash | 61 | 15 | true | false |
 | DI down-left; tech left | forward smash | 61 | 15 | true | false |
 | DI down-left; tech right | forward smash | 61 | 15 | true | false |
@@ -3865,7 +3865,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 61 | 15 | true | false |
 | DI down-left; mash | down air | 90 | 9 | false | false |
 | DI down-right; hold | forward smash | 71 | 15 | true | true |
-| DI down-right; SDI | forward smash | 81 | 15 | true | true |
+| DI down-right; SDI | forward smash | 75 | 15 | true | true |
 | DI down-right; tech in place | forward smash | 71 | 15 | true | true |
 | DI down-right; tech left | forward smash | 71 | 15 | true | true |
 | DI down-right; tech right | forward smash | 71 | 15 | true | true |
@@ -3891,7 +3891,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | no follow-up in menu | — | — | — | — |
 | DI none; mash | no follow-up in menu | — | — | — | — |
 | DI left; hold | dash attack | 93 | 9 | true | true |
-| DI left; SDI | dash attack | 79 | 9 | true | true |
+| DI left; SDI | dash attack | 87 | 9 | true | true |
 | DI left; tech in place | dash attack | 93 | 9 | false | true |
 | DI left; tech left | down air | 114 | 9 | false | false |
 | DI left; tech right | dash attack | 93 | 9 | false | true |
@@ -3909,7 +3909,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI right; air dodge | no follow-up in menu | — | — | — | — |
 | DI right; mash | no follow-up in menu | — | — | — | — |
 | DI up; hold | down smash | 103 | 15 | false | false |
-| DI up; SDI | no follow-up in menu | — | — | — | — |
+| DI up; SDI | forward tilt | 98 | 8 | false | true |
 | DI up; tech in place | down smash | 103 | 15 | false | false |
 | DI up; tech left | forward air | 118 | 8 | false | true |
 | DI up; tech right | dash attack | 93 | 9 | false | true |
@@ -3927,7 +3927,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | forward smash | 79 | 15 | true | true |
 | DI down; mash | forward smash | 79 | 15 | false | true |
 | DI up-left; hold | dash attack | 83 | 9 | true | true |
-| DI up-left; SDI | dash attack | 73 | 9 | false | true |
+| DI up-left; SDI | dash attack | 81 | 9 | false | true |
 | DI up-left; tech in place | dash attack | 84 | 9 | false | true |
 | DI up-left; tech left | dash attack | 117 | 9 | false | false |
 | DI up-left; tech right | down smash | 98 | 15 | false | false |
@@ -3945,7 +3945,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | no follow-up in menu | — | — | — | — |
 | DI up-right; mash | no follow-up in menu | — | — | — | — |
 | DI down-left; hold | forward smash | 73 | 15 | true | true |
-| DI down-left; SDI | forward smash | 63 | 15 | true | false |
+| DI down-left; SDI | forward smash | 69 | 15 | true | true |
 | DI down-left; tech in place | forward smash | 73 | 15 | true | true |
 | DI down-left; tech left | forward smash | 73 | 15 | true | true |
 | DI down-left; tech right | forward smash | 73 | 15 | true | true |
@@ -3954,7 +3954,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 73 | 15 | true | true |
 | DI down-left; mash | forward smash | 73 | 15 | false | true |
 | DI down-right; hold | forward smash | 85 | 15 | true | true |
-| DI down-right; SDI | forward smash | 95 | 15 | true | true |
+| DI down-right; SDI | forward smash | 89 | 15 | true | true |
 | DI down-right; tech in place | forward smash | 85 | 15 | true | true |
 | DI down-right; tech left | forward smash | 85 | 15 | true | true |
 | DI down-right; tech right | forward smash | 85 | 15 | true | true |
@@ -4034,7 +4034,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | no follow-up in menu | — | — | — | — |
 | DI up-right; mash | no follow-up in menu | — | — | — | — |
 | DI down-left; hold | forward smash | 85 | 15 | true | true |
-| DI down-left; SDI | forward smash | 75 | 15 | true | true |
+| DI down-left; SDI | forward smash | 81 | 15 | true | true |
 | DI down-left; tech in place | forward smash | 85 | 15 | true | true |
 | DI down-left; tech left | forward smash | 85 | 15 | true | true |
 | DI down-left; tech right | forward smash | 85 | 15 | true | true |
@@ -4123,7 +4123,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | no follow-up in menu | — | — | — | — |
 | DI up-right; mash | no follow-up in menu | — | — | — | — |
 | DI down-left; hold | no follow-up in menu | — | — | — | — |
-| DI down-left; SDI | forward smash | 87 | 15 | true | true |
+| DI down-left; SDI | forward smash | 93 | 15 | true | true |
 | DI down-left; tech in place | no follow-up in menu | — | — | — | — |
 | DI down-left; tech left | no follow-up in menu | — | — | — | — |
 | DI down-left; tech right | no follow-up in menu | — | — | — | — |
@@ -4149,7 +4149,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | down smash | 43 | 15 | false | false |
-| DI none; SDI | forward smash | 41 | 15 | false | false |
+| DI none; SDI | down smash | 43 | 15 | false | false |
 | DI none; tech in place | down smash | 43 | 15 | false | false |
 | DI none; tech left | down smash | 43 | 15 | false | false |
 | DI none; tech right | down smash | 43 | 15 | false | false |
@@ -4158,7 +4158,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | down smash | 43 | 15 | false | false |
 | DI none; mash | forward smash | 81 | 15 | false | false |
 | DI left; hold | down smash | 43 | 15 | false | false |
-| DI left; SDI | forward smash | 47 | 15 | false | false |
+| DI left; SDI | forward smash | 43 | 15 | false | false |
 | DI left; tech in place | down smash | 43 | 15 | false | false |
 | DI left; tech left | down smash | 43 | 15 | false | false |
 | DI left; tech right | down smash | 43 | 15 | false | false |
@@ -4167,7 +4167,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | down smash | 43 | 15 | false | false |
 | DI left; mash | down smash | 43 | 15 | false | false |
 | DI right; hold | down smash | 43 | 15 | false | false |
-| DI right; SDI | forward smash | 43 | 15 | false | false |
+| DI right; SDI | down smash | 43 | 15 | false | false |
 | DI right; tech in place | down smash | 43 | 15 | false | false |
 | DI right; tech left | down smash | 43 | 15 | false | false |
 | DI right; tech right | down smash | 43 | 15 | false | false |
@@ -4194,7 +4194,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | down smash | 43 | 15 | false | false |
 | DI down; mash | down smash | 43 | 15 | false | false |
 | DI up-left; hold | down smash | 43 | 15 | false | false |
-| DI up-left; SDI | forward smash | 43 | 15 | false | false |
+| DI up-left; SDI | forward smash | 41 | 15 | false | false |
 | DI up-left; tech in place | down smash | 43 | 15 | false | false |
 | DI up-left; tech left | down smash | 43 | 15 | false | false |
 | DI up-left; tech right | down smash | 43 | 15 | false | false |
@@ -4203,7 +4203,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | down smash | 43 | 15 | false | false |
 | DI up-left; mash | down smash | 43 | 15 | false | false |
 | DI up-right; hold | down smash | 43 | 15 | false | false |
-| DI up-right; SDI | forward smash | 41 | 15 | false | false |
+| DI up-right; SDI | down smash | 43 | 15 | false | false |
 | DI up-right; tech in place | down smash | 43 | 15 | false | false |
 | DI up-right; tech left | down smash | 43 | 15 | false | false |
 | DI up-right; tech right | down smash | 43 | 15 | false | false |
@@ -4212,7 +4212,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | down smash | 43 | 15 | false | false |
 | DI up-right; mash | forward smash | 83 | 15 | false | false |
 | DI down-left; hold | forward smash | 51 | 15 | false | false |
-| DI down-left; SDI | forward smash | 57 | 15 | false | false |
+| DI down-left; SDI | forward smash | 53 | 15 | false | false |
 | DI down-left; tech in place | forward smash | 51 | 15 | false | false |
 | DI down-left; tech left | forward smash | 51 | 15 | false | false |
 | DI down-left; tech right | forward smash | 51 | 15 | false | false |
@@ -4221,7 +4221,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 51 | 15 | false | false |
 | DI down-left; mash | forward smash | 51 | 15 | false | false |
 | DI down-right; hold | forward smash | 43 | 15 | false | false |
-| DI down-right; SDI | forward smash | 51 | 15 | false | true |
+| DI down-right; SDI | forward smash | 47 | 15 | false | true |
 | DI down-right; tech in place | forward smash | 43 | 15 | false | false |
 | DI down-right; tech left | forward smash | 43 | 15 | false | false |
 | DI down-right; tech right | forward smash | 43 | 15 | false | false |
@@ -4238,7 +4238,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 41 | 15 | false | false |
-| DI none; SDI | forward smash | 49 | 15 | false | true |
+| DI none; SDI | forward smash | 45 | 15 | false | true |
 | DI none; tech in place | forward smash | 41 | 15 | false | false |
 | DI none; tech left | forward smash | 41 | 15 | false | false |
 | DI none; tech right | forward smash | 41 | 15 | false | false |
@@ -4247,7 +4247,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 41 | 15 | false | false |
 | DI none; mash | no follow-up in menu | — | — | — | — |
 | DI left; hold | down smash | 43 | 15 | false | false |
-| DI left; SDI | forward smash | 41 | 15 | false | false |
+| DI left; SDI | down smash | 43 | 15 | false | false |
 | DI left; tech in place | down smash | 43 | 15 | false | false |
 | DI left; tech left | down smash | 43 | 15 | false | false |
 | DI left; tech right | down smash | 43 | 15 | false | false |
@@ -4256,7 +4256,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | down smash | 43 | 15 | false | false |
 | DI left; mash | forward smash | 79 | 15 | false | false |
 | DI right; hold | forward smash | 41 | 15 | false | true |
-| DI right; SDI | forward smash | 51 | 15 | false | true |
+| DI right; SDI | forward smash | 47 | 15 | false | true |
 | DI right; tech in place | forward smash | 41 | 15 | false | true |
 | DI right; tech left | forward smash | 41 | 15 | false | false |
 | DI right; tech right | forward smash | 41 | 15 | false | false |
@@ -4292,7 +4292,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | down smash | 43 | 15 | false | false |
 | DI up-left; mash | no follow-up in menu | — | — | — | — |
 | DI up-right; hold | forward smash | 41 | 15 | false | false |
-| DI up-right; SDI | forward smash | 51 | 15 | false | true |
+| DI up-right; SDI | forward smash | 47 | 15 | false | true |
 | DI up-right; tech in place | forward smash | 41 | 15 | false | false |
 | DI up-right; tech left | forward smash | 41 | 15 | false | false |
 | DI up-right; tech right | forward smash | 41 | 15 | false | false |
@@ -4301,7 +4301,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | forward smash | 41 | 15 | false | false |
 | DI up-right; mash | down smash | 89 | 15 | false | false |
 | DI down-left; hold | forward smash | 43 | 15 | false | false |
-| DI down-left; SDI | forward smash | 49 | 15 | false | false |
+| DI down-left; SDI | forward smash | 47 | 15 | false | false |
 | DI down-left; tech in place | forward smash | 43 | 15 | false | false |
 | DI down-left; tech left | forward smash | 43 | 15 | false | false |
 | DI down-left; tech right | forward smash | 43 | 15 | false | false |
@@ -4310,7 +4310,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 43 | 15 | false | false |
 | DI down-left; mash | forward smash | 43 | 15 | false | false |
 | DI down-right; hold | forward smash | 51 | 15 | false | true |
-| DI down-right; SDI | forward smash | 59 | 15 | false | true |
+| DI down-right; SDI | forward smash | 55 | 15 | false | true |
 | DI down-right; tech in place | forward smash | 51 | 15 | false | true |
 | DI down-right; tech left | forward smash | 51 | 15 | false | true |
 | DI down-right; tech right | forward smash | 51 | 15 | false | true |
@@ -4327,7 +4327,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 53 | 15 | true | true |
-| DI none; SDI | forward smash | 63 | 15 | true | true |
+| DI none; SDI | forward smash | 57 | 15 | true | true |
 | DI none; tech in place | dash attack | 49 | 9 | false | true |
 | DI none; tech left | down smash | 87 | 15 | false | false |
 | DI none; tech right | dash attack | 61 | 9 | false | true |
@@ -4336,7 +4336,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | dash attack | 49 | 9 | true | true |
 | DI none; mash | no follow-up in menu | — | — | — | — |
 | DI left; hold | forward smash | 51 | 15 | true | true |
-| DI left; SDI | forward smash | 41 | 15 | true | true |
+| DI left; SDI | forward smash | 45 | 15 | true | true |
 | DI left; tech in place | forward smash | 51 | 15 | false | false |
 | DI left; tech left | forward smash | 79 | 15 | false | true |
 | DI left; tech right | forward tilt up | 60 | 8 | false | true |
@@ -4345,7 +4345,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | dash attack | 47 | 9 | true | true |
 | DI left; mash | no follow-up in menu | — | — | — | — |
 | DI right; hold | forward smash | 55 | 15 | true | true |
-| DI right; SDI | forward smash | 63 | 15 | true | true |
+| DI right; SDI | forward smash | 59 | 15 | true | true |
 | DI right; tech in place | dash attack | 51 | 9 | false | true |
 | DI right; tech left | down smash | 87 | 15 | false | false |
 | DI right; tech right | forward smash | 65 | 15 | false | true |
@@ -4354,7 +4354,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI right; air dodge | dash attack | 51 | 9 | true | true |
 | DI right; mash | no follow-up in menu | — | — | — | — |
 | DI up; hold | forward smash | 49 | 15 | true | false |
-| DI up; SDI | dash attack | 49 | 9 | true | true |
+| DI up; SDI | forward smash | 51 | 15 | true | false |
 | DI up; tech in place | forward smash | 49 | 15 | false | false |
 | DI up; tech left | forward smash | 79 | 15 | false | false |
 | DI up; tech right | dash attack | 59 | 9 | false | true |
@@ -4372,7 +4372,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | forward smash | 49 | 15 | true | true |
 | DI down; mash | no follow-up in menu | — | — | — | — |
 | DI up-left; hold | forward smash | 47 | 15 | true | false |
-| DI up-left; SDI | forward smash | 41 | 15 | true | false |
+| DI up-left; SDI | forward smash | 45 | 15 | true | false |
 | DI up-left; tech in place | forward smash | 47 | 15 | false | false |
 | DI up-left; tech left | forward smash | 81 | 15 | false | false |
 | DI up-left; tech right | dash attack | 57 | 9 | false | true |
@@ -4381,7 +4381,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward smash | 47 | 15 | true | false |
 | DI up-left; mash | dash attack | 45 | 9 | true | false |
 | DI up-right; hold | forward smash | 55 | 15 | true | true |
-| DI up-right; SDI | forward smash | 63 | 15 | true | true |
+| DI up-right; SDI | forward smash | 59 | 15 | true | true |
 | DI up-right; tech in place | dash attack | 51 | 9 | false | true |
 | DI up-right; tech left | down smash | 89 | 15 | false | false |
 | DI up-right; tech right | dash attack | 63 | 9 | false | true |
@@ -4390,16 +4390,16 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | dash attack | 51 | 9 | true | true |
 | DI up-right; mash | no follow-up in menu | — | — | — | — |
 | DI down-left; hold | forward smash | 45 | 15 | true | false |
-| DI down-left; SDI | forward smash | 41 | 15 | true | false |
+| DI down-left; SDI | forward smash | 43 | 15 | true | false |
 | DI down-left; tech in place | forward smash | 45 | 15 | true | false |
 | DI down-left; tech left | forward smash | 45 | 15 | true | false |
 | DI down-left; tech right | forward smash | 45 | 15 | true | false |
 | DI down-left; missed tech | forward smash | 45 | 15 | true | false |
 | DI down-left; jump | dash attack | 111 | 9 | false | false |
 | DI down-left; air dodge | forward smash | 45 | 15 | true | true |
-| DI down-left; mash | no follow-up in menu | — | — | — | — |
+| DI down-left; mash | forward air | 78 | 8 | false | false |
 | DI down-right; hold | forward smash | 51 | 15 | true | true |
-| DI down-right; SDI | forward smash | 57 | 15 | true | true |
+| DI down-right; SDI | forward smash | 53 | 15 | true | true |
 | DI down-right; tech in place | forward smash | 51 | 15 | true | true |
 | DI down-right; tech left | forward smash | 51 | 15 | true | true |
 | DI down-right; tech right | forward smash | 51 | 15 | true | true |
@@ -4416,7 +4416,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 67 | 15 | true | true |
-| DI none; SDI | down smash | 81 | 15 | false | true |
+| DI none; SDI | forward smash | 73 | 15 | true | true |
 | DI none; tech in place | forward smash | 69 | 15 | false | true |
 | DI none; tech left | forward smash | 57 | 15 | false | true |
 | DI none; tech right | forward smash | 75 | 15 | false | true |
@@ -4425,7 +4425,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 67 | 15 | true | true |
 | DI none; mash | up air | 108 | 8 | false | true |
 | DI left; hold | forward smash | 65 | 15 | true | true |
-| DI left; SDI | dash attack | 53 | 9 | true | true |
+| DI left; SDI | dash attack | 57 | 9 | true | true |
 | DI left; tech in place | forward smash | 67 | 15 | false | true |
 | DI left; tech left | forward tilt up | 54 | 8 | false | true |
 | DI left; tech right | forward smash | 75 | 15 | false | true |
@@ -4434,7 +4434,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | dash attack | 63 | 9 | true | true |
 | DI left; mash | forward air | 86 | 8 | false | false |
 | DI right; hold | forward smash | 69 | 15 | true | true |
-| DI right; SDI | down smash | 81 | 15 | false | true |
+| DI right; SDI | forward smash | 73 | 15 | true | true |
 | DI right; tech in place | forward smash | 71 | 15 | false | true |
 | DI right; tech left | forward smash | 59 | 15 | false | true |
 | DI right; tech right | forward smash | 75 | 15 | false | true |
@@ -4443,7 +4443,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI right; air dodge | forward smash | 69 | 15 | true | true |
 | DI right; mash | up air | 108 | 8 | false | true |
 | DI up; hold | forward smash | 65 | 15 | true | true |
-| DI up; SDI | forward smash | 69 | 15 | true | true |
+| DI up; SDI | forward smash | 67 | 15 | true | true |
 | DI up; tech in place | forward smash | 65 | 15 | true | true |
 | DI up; tech left | forward smash | 65 | 15 | true | true |
 | DI up; tech right | forward smash | 65 | 15 | true | true |
@@ -4461,7 +4461,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | forward smash | 59 | 15 | true | true |
 | DI down; mash | forward air | 74 | 8 | false | true |
 | DI up-left; hold | dash attack | 61 | 9 | true | true |
-| DI up-left; SDI | dash attack | 57 | 9 | true | true |
+| DI up-left; SDI | dash attack | 59 | 9 | true | true |
 | DI up-left; tech in place | dash attack | 61 | 9 | true | true |
 | DI up-left; tech left | dash attack | 61 | 9 | true | true |
 | DI up-left; tech right | dash attack | 61 | 9 | true | true |
@@ -4470,7 +4470,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward tilt | 62 | 8 | true | true |
 | DI up-left; mash | no follow-up in menu | — | — | — | — |
 | DI up-right; hold | forward smash | 69 | 15 | true | true |
-| DI up-right; SDI | down smash | 81 | 15 | false | true |
+| DI up-right; SDI | forward smash | 75 | 15 | true | true |
 | DI up-right; tech in place | forward smash | 69 | 15 | false | true |
 | DI up-right; tech left | forward smash | 59 | 15 | false | true |
 | DI up-right; tech right | forward smash | 75 | 15 | false | true |
@@ -4479,7 +4479,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | forward smash | 69 | 15 | true | true |
 | DI up-right; mash | up air | 108 | 8 | false | true |
 | DI down-left; hold | forward smash | 55 | 15 | true | true |
-| DI down-left; SDI | forward smash | 49 | 15 | true | true |
+| DI down-left; SDI | forward smash | 53 | 15 | true | true |
 | DI down-left; tech in place | forward smash | 55 | 15 | true | true |
 | DI down-left; tech left | forward smash | 55 | 15 | true | true |
 | DI down-left; tech right | forward smash | 55 | 15 | true | true |
@@ -4488,7 +4488,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 55 | 15 | true | true |
 | DI down-left; mash | forward air | 74 | 8 | false | true |
 | DI down-right; hold | forward smash | 61 | 15 | true | true |
-| DI down-right; SDI | forward smash | 67 | 15 | true | true |
+| DI down-right; SDI | forward smash | 63 | 15 | true | true |
 | DI down-right; tech in place | forward smash | 61 | 15 | true | true |
 | DI down-right; tech left | forward smash | 61 | 15 | true | true |
 | DI down-right; tech right | forward smash | 61 | 15 | true | true |
@@ -4514,7 +4514,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 77 | 15 | false | true |
 | DI none; mash | no follow-up in menu | — | — | — | — |
 | DI left; hold | no follow-up in menu | — | — | — | — |
-| DI left; SDI | forward smash | 73 | 15 | true | true |
+| DI left; SDI | down air | 112 | 9 | false | true |
 | DI left; tech in place | no follow-up in menu | — | — | — | — |
 | DI left; tech left | forward smash | 75 | 15 | false | true |
 | DI left; tech right | forward smash | 75 | 15 | false | true |
@@ -4550,7 +4550,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | forward smash | 69 | 15 | true | true |
 | DI down; mash | forward smash | 69 | 15 | false | true |
 | DI up-left; hold | no follow-up in menu | — | — | — | — |
-| DI up-left; SDI | down air | 112 | 9 | false | true |
+| DI up-left; SDI | no follow-up in menu | — | — | — | — |
 | DI up-left; tech in place | no follow-up in menu | — | — | — | — |
 | DI up-left; tech left | no follow-up in menu | — | — | — | — |
 | DI up-left; tech right | no follow-up in menu | — | — | — | — |
@@ -4568,7 +4568,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | forward smash | 77 | 15 | false | true |
 | DI up-right; mash | no follow-up in menu | — | — | — | — |
 | DI down-left; hold | forward smash | 65 | 15 | true | true |
-| DI down-left; SDI | forward smash | 59 | 15 | true | true |
+| DI down-left; SDI | forward smash | 61 | 15 | true | true |
 | DI down-left; tech in place | forward smash | 65 | 15 | true | true |
 | DI down-left; tech left | forward smash | 65 | 15 | true | true |
 | DI down-left; tech right | forward smash | 65 | 15 | true | true |
@@ -4577,7 +4577,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 65 | 15 | true | true |
 | DI down-left; mash | forward smash | 65 | 15 | false | true |
 | DI down-right; hold | forward smash | 71 | 15 | true | true |
-| DI down-right; SDI | no follow-up in menu | — | — | — | — |
+| DI down-right; SDI | forward smash | 75 | 15 | true | true |
 | DI down-right; tech in place | forward smash | 71 | 15 | true | true |
 | DI down-right; tech left | forward smash | 71 | 15 | true | true |
 | DI down-right; tech right | forward smash | 71 | 15 | true | true |
@@ -5048,7 +5048,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 21 | 15 | false | false |
 | DI none; mash | forward smash | 21 | 15 | false | false |
 | DI left; hold | down smash | 23 | 15 | false | false |
-| DI left; SDI | down smash | 23 | 15 | false | false |
+| DI left; SDI | forward smash | 21 | 15 | false | false |
 | DI left; tech in place | down smash | 23 | 15 | false | false |
 | DI left; tech left | down smash | 23 | 15 | false | false |
 | DI left; tech right | down smash | 23 | 15 | false | false |
@@ -5093,7 +5093,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | down smash | 23 | 15 | false | false |
 | DI up-left; mash | down smash | 23 | 15 | false | false |
 | DI up-right; hold | forward smash | 21 | 15 | false | false |
-| DI up-right; SDI | forward smash | 27 | 15 | false | false |
+| DI up-right; SDI | forward smash | 25 | 15 | false | false |
 | DI up-right; tech in place | forward smash | 21 | 15 | false | false |
 | DI up-right; tech left | forward smash | 21 | 15 | false | false |
 | DI up-right; tech right | forward smash | 21 | 15 | false | false |
@@ -5102,7 +5102,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | forward smash | 21 | 15 | false | false |
 | DI up-right; mash | forward smash | 21 | 15 | true | false |
 | DI down-left; hold | forward smash | 21 | 15 | false | false |
-| DI down-left; SDI | down smash | 23 | 15 | false | false |
+| DI down-left; SDI | forward smash | 21 | 15 | false | false |
 | DI down-left; tech in place | forward smash | 21 | 15 | false | false |
 | DI down-left; tech left | forward smash | 21 | 15 | false | false |
 | DI down-left; tech right | forward smash | 21 | 15 | false | false |
@@ -5111,7 +5111,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 21 | 15 | false | false |
 | DI down-left; mash | forward smash | 21 | 15 | false | false |
 | DI down-right; hold | forward smash | 23 | 15 | false | false |
-| DI down-right; SDI | forward smash | 27 | 15 | false | false |
+| DI down-right; SDI | forward smash | 37 | 15 | false | false |
 | DI down-right; tech in place | forward smash | 23 | 15 | false | false |
 | DI down-right; tech left | forward smash | 23 | 15 | false | false |
 | DI down-right; tech right | forward smash | 23 | 15 | false | false |
@@ -5128,7 +5128,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 23 | 15 | false | false |
-| DI none; SDI | forward smash | 33 | 15 | false | true |
+| DI none; SDI | forward smash | 31 | 15 | false | false |
 | DI none; tech in place | forward smash | 23 | 15 | false | false |
 | DI none; tech left | forward smash | 23 | 15 | false | false |
 | DI none; tech right | forward smash | 23 | 15 | false | false |
@@ -5137,7 +5137,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 23 | 15 | false | false |
 | DI none; mash | forward smash | 23 | 15 | false | false |
 | DI left; hold | forward smash | 21 | 15 | true | false |
-| DI left; SDI | forward smash | 21 | 15 | true | false |
+| DI left; SDI | down smash | 23 | 15 | true | false |
 | DI left; tech in place | forward smash | 21 | 15 | true | false |
 | DI left; tech left | forward smash | 21 | 15 | true | false |
 | DI left; tech right | forward smash | 21 | 15 | true | false |
@@ -5146,7 +5146,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | forward smash | 21 | 15 | true | false |
 | DI left; mash | forward smash | 21 | 15 | true | false |
 | DI right; hold | forward smash | 27 | 15 | false | false |
-| DI right; SDI | forward smash | 35 | 15 | false | true |
+| DI right; SDI | forward smash | 33 | 15 | false | true |
 | DI right; tech in place | forward smash | 27 | 15 | false | false |
 | DI right; tech left | forward smash | 27 | 15 | false | false |
 | DI right; tech right | forward smash | 27 | 15 | false | false |
@@ -5182,7 +5182,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward smash | 21 | 15 | true | false |
 | DI up-left; mash | forward smash | 21 | 15 | true | false |
 | DI up-right; hold | forward smash | 25 | 15 | false | false |
-| DI up-right; SDI | forward smash | 33 | 15 | false | true |
+| DI up-right; SDI | forward smash | 31 | 15 | false | false |
 | DI up-right; tech in place | forward smash | 25 | 15 | false | false |
 | DI up-right; tech left | forward smash | 25 | 15 | false | false |
 | DI up-right; tech right | forward smash | 25 | 15 | false | false |
@@ -5200,7 +5200,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 21 | 15 | true | false |
 | DI down-left; mash | forward smash | 21 | 15 | true | false |
 | DI down-right; hold | forward smash | 29 | 15 | false | false |
-| DI down-right; SDI | forward smash | 33 | 15 | false | true |
+| DI down-right; SDI | forward smash | 41 | 15 | false | true |
 | DI down-right; tech in place | forward smash | 29 | 15 | false | false |
 | DI down-right; tech left | forward smash | 29 | 15 | false | false |
 | DI down-right; tech right | forward smash | 29 | 15 | false | false |
@@ -5217,7 +5217,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 29 | 15 | false | true |
-| DI none; SDI | forward smash | 39 | 15 | false | true |
+| DI none; SDI | forward smash | 37 | 15 | false | true |
 | DI none; tech in place | forward smash | 29 | 15 | false | false |
 | DI none; tech left | forward smash | 29 | 15 | false | false |
 | DI none; tech right | forward smash | 29 | 15 | false | false |
@@ -5226,7 +5226,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 29 | 15 | false | false |
 | DI none; mash | forward smash | 29 | 15 | false | false |
 | DI left; hold | forward smash | 23 | 15 | true | true |
-| DI left; SDI | forward smash | 21 | 15 | true | false |
+| DI left; SDI | forward smash | 21 | 15 | true | true |
 | DI left; tech in place | forward smash | 23 | 15 | true | false |
 | DI left; tech left | forward smash | 23 | 15 | true | false |
 | DI left; tech right | forward smash | 23 | 15 | true | false |
@@ -5235,7 +5235,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | forward smash | 23 | 15 | true | false |
 | DI left; mash | forward smash | 23 | 15 | true | false |
 | DI right; hold | forward smash | 35 | 15 | false | true |
-| DI right; SDI | forward smash | 43 | 15 | false | true |
+| DI right; SDI | forward smash | 41 | 15 | false | true |
 | DI right; tech in place | forward smash | 35 | 15 | false | false |
 | DI right; tech left | forward smash | 35 | 15 | false | false |
 | DI right; tech right | forward smash | 35 | 15 | false | false |
@@ -5262,7 +5262,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | forward smash | 33 | 15 | false | true |
 | DI down; mash | down air | 62 | 9 | false | false |
 | DI up-left; hold | forward smash | 21 | 15 | true | false |
-| DI up-left; SDI | down smash | 67 | 15 | false | true |
+| DI up-left; SDI | forward smash | 23 | 15 | true | false |
 | DI up-left; tech in place | forward smash | 21 | 15 | true | false |
 | DI up-left; tech left | forward smash | 21 | 15 | true | false |
 | DI up-left; tech right | forward smash | 21 | 15 | true | false |
@@ -5271,7 +5271,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward smash | 21 | 15 | true | false |
 | DI up-left; mash | forward smash | 21 | 15 | true | false |
 | DI up-right; hold | forward smash | 33 | 15 | false | true |
-| DI up-right; SDI | forward smash | 39 | 15 | false | true |
+| DI up-right; SDI | forward smash | 37 | 15 | false | true |
 | DI up-right; tech in place | forward smash | 33 | 15 | false | false |
 | DI up-right; tech left | forward smash | 33 | 15 | false | false |
 | DI up-right; tech right | forward smash | 33 | 15 | false | false |
@@ -5280,7 +5280,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | forward smash | 33 | 15 | false | false |
 | DI up-right; mash | up smash | 35 | 15 | false | true |
 | DI down-left; hold | forward smash | 27 | 15 | false | false |
-| DI down-left; SDI | forward smash | 21 | 15 | true | false |
+| DI down-left; SDI | down smash | 23 | 15 | false | false |
 | DI down-left; tech in place | forward smash | 27 | 15 | false | false |
 | DI down-left; tech left | forward smash | 27 | 15 | false | false |
 | DI down-left; tech right | forward smash | 27 | 15 | false | false |
@@ -5289,7 +5289,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 27 | 15 | false | false |
 | DI down-left; mash | forward smash | 27 | 15 | false | false |
 | DI down-right; hold | forward smash | 37 | 15 | false | true |
-| DI down-right; SDI | forward smash | 41 | 15 | false | true |
+| DI down-right; SDI | forward smash | 47 | 15 | false | true |
 | DI down-right; tech in place | forward smash | 37 | 15 | false | true |
 | DI down-right; tech left | forward smash | 37 | 15 | false | true |
 | DI down-right; tech right | forward smash | 37 | 15 | false | true |
@@ -5306,7 +5306,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 41 | 15 | true | true |
-| DI none; SDI | forward smash | 49 | 15 | true | true |
+| DI none; SDI | forward smash | 47 | 15 | true | true |
 | DI none; tech in place | forward smash | 41 | 15 | true | true |
 | DI none; tech left | forward smash | 41 | 15 | true | true |
 | DI none; tech right | forward smash | 41 | 15 | true | true |
@@ -5324,7 +5324,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | dash attack | 25 | 9 | true | true |
 | DI left; mash | forward air | 54 | 8 | true | true |
 | DI right; hold | forward smash | 47 | 15 | true | true |
-| DI right; SDI | forward smash | 53 | 15 | true | true |
+| DI right; SDI | forward smash | 51 | 15 | true | true |
 | DI right; tech in place | forward smash | 47 | 15 | false | true |
 | DI right; tech left | forward smash | 77 | 15 | false | false |
 | DI right; tech right | forward smash | 59 | 15 | false | true |
@@ -5333,7 +5333,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI right; air dodge | forward smash | 47 | 15 | true | true |
 | DI right; mash | forward smash | 47 | 15 | true | true |
 | DI up; hold | dash attack | 29 | 9 | true | true |
-| DI up; SDI | dash attack | 63 | 9 | true | true |
+| DI up; SDI | dash attack | 29 | 9 | true | true |
 | DI up; tech in place | dash attack | 29 | 9 | true | true |
 | DI up; tech left | forward smash | 33 | 15 | true | false |
 | DI up; tech right | forward smash | 33 | 15 | true | false |
@@ -5378,7 +5378,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 39 | 15 | true | true |
 | DI down-left; mash | dash attack | 35 | 9 | true | true |
 | DI down-right; hold | forward smash | 49 | 15 | true | true |
-| DI down-right; SDI | forward smash | 51 | 15 | true | true |
+| DI down-right; SDI | forward smash | 43 | 15 | true | true |
 | DI down-right; tech in place | forward smash | 49 | 15 | false | true |
 | DI down-right; tech left | forward air | 54 | 8 | false | true |
 | DI down-right; tech right | forward smash | 61 | 15 | false | true |
@@ -5395,7 +5395,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 53 | 15 | true | true |
-| DI none; SDI | forward smash | 61 | 15 | true | true |
+| DI none; SDI | forward smash | 59 | 15 | true | true |
 | DI none; tech in place | forward smash | 53 | 15 | true | true |
 | DI none; tech left | forward smash | 53 | 15 | true | true |
 | DI none; tech right | forward smash | 53 | 15 | true | true |
@@ -5413,7 +5413,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | forward smash | 41 | 15 | true | true |
 | DI left; mash | forward smash | 41 | 15 | true | true |
 | DI right; hold | forward smash | 59 | 15 | true | true |
-| DI right; SDI | forward smash | 67 | 15 | true | true |
+| DI right; SDI | forward smash | 65 | 15 | true | true |
 | DI right; tech in place | forward smash | 59 | 15 | true | true |
 | DI right; tech left | forward smash | 59 | 15 | true | true |
 | DI right; tech right | forward smash | 59 | 15 | true | true |
@@ -5440,7 +5440,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | forward smash | 57 | 15 | true | true |
 | DI down; mash | forward air | 88 | 8 | false | true |
 | DI up-left; hold | forward smash | 69 | 15 | true | true |
-| DI up-left; SDI | up smash | 23 | 15 | true | true |
+| DI up-left; SDI | dash attack | 59 | 9 | true | true |
 | DI up-left; tech in place | forward smash | 69 | 15 | true | true |
 | DI up-left; tech left | forward smash | 69 | 15 | true | true |
 | DI up-left; tech right | forward smash | 69 | 15 | true | true |
@@ -5449,7 +5449,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | up smash | 31 | 15 | true | false |
 | DI up-left; mash | forward smash | 69 | 15 | true | true |
 | DI up-right; hold | forward smash | 55 | 15 | true | true |
-| DI up-right; SDI | forward smash | 63 | 15 | true | true |
+| DI up-right; SDI | forward smash | 61 | 15 | true | true |
 | DI up-right; tech in place | forward smash | 55 | 15 | true | true |
 | DI up-right; tech left | forward smash | 55 | 15 | true | true |
 | DI up-right; tech right | forward smash | 55 | 15 | true | true |
@@ -5458,7 +5458,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | forward smash | 55 | 15 | true | true |
 | DI up-right; mash | forward smash | 55 | 15 | true | true |
 | DI down-left; hold | forward smash | 51 | 15 | true | true |
-| DI down-left; SDI | forward smash | 43 | 15 | true | true |
+| DI down-left; SDI | forward smash | 29 | 15 | true | true |
 | DI down-left; tech in place | forward smash | 51 | 15 | true | true |
 | DI down-left; tech left | forward smash | 51 | 15 | true | true |
 | DI down-left; tech right | forward smash | 51 | 15 | true | true |
@@ -5467,7 +5467,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 51 | 15 | true | true |
 | DI down-left; mash | forward smash | 51 | 15 | true | true |
 | DI down-right; hold | forward smash | 61 | 15 | true | true |
-| DI down-right; SDI | forward smash | 65 | 15 | true | true |
+| DI down-right; SDI | forward smash | 51 | 15 | true | true |
 | DI down-right; tech in place | forward smash | 61 | 15 | false | true |
 | DI down-right; tech left | dash attack | 115 | 9 | false | true |
 | DI down-right; tech right | forward smash | 67 | 15 | false | true |
@@ -5484,7 +5484,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 23 | 15 | false | false |
-| DI none; SDI | forward smash | 31 | 15 | false | false |
+| DI none; SDI | forward smash | 29 | 15 | false | false |
 | DI none; tech in place | forward smash | 23 | 15 | false | false |
 | DI none; tech left | forward smash | 23 | 15 | false | false |
 | DI none; tech right | forward smash | 23 | 15 | false | false |
@@ -5502,7 +5502,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | forward smash | 21 | 15 | false | false |
 | DI left; mash | forward smash | 21 | 15 | false | false |
 | DI right; hold | forward smash | 25 | 15 | false | false |
-| DI right; SDI | forward smash | 33 | 15 | false | false |
+| DI right; SDI | forward smash | 31 | 15 | false | false |
 | DI right; tech in place | forward smash | 25 | 15 | false | false |
 | DI right; tech left | forward smash | 25 | 15 | false | false |
 | DI right; tech right | forward smash | 25 | 15 | false | false |
@@ -5511,7 +5511,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI right; air dodge | forward smash | 25 | 15 | false | false |
 | DI right; mash | down smash | 71 | 15 | false | false |
 | DI up; hold | forward smash | 21 | 15 | false | false |
-| DI up; SDI | forward smash | 21 | 15 | false | false |
+| DI up; SDI | forward smash | 21 | 15 | true | false |
 | DI up; tech in place | forward smash | 21 | 15 | false | false |
 | DI up; tech left | forward smash | 21 | 15 | false | false |
 | DI up; tech right | forward smash | 21 | 15 | false | false |
@@ -5520,7 +5520,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up; air dodge | forward smash | 21 | 15 | false | false |
 | DI up; mash | forward smash | 21 | 15 | false | false |
 | DI down; hold | forward smash | 23 | 15 | false | false |
-| DI down; SDI | forward smash | 23 | 15 | false | false |
+| DI down; SDI | forward smash | 21 | 15 | false | false |
 | DI down; tech in place | forward smash | 23 | 15 | false | false |
 | DI down; tech left | forward smash | 23 | 15 | false | false |
 | DI down; tech right | forward smash | 23 | 15 | false | false |
@@ -5529,7 +5529,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | forward smash | 23 | 15 | false | false |
 | DI down; mash | no follow-up in menu | — | — | — | — |
 | DI up-left; hold | forward smash | 21 | 15 | false | false |
-| DI up-left; SDI | down smash | 23 | 15 | true | false |
+| DI up-left; SDI | down smash | 23 | 15 | false | false |
 | DI up-left; tech in place | forward smash | 21 | 15 | false | false |
 | DI up-left; tech left | forward smash | 21 | 15 | false | false |
 | DI up-left; tech right | forward smash | 21 | 15 | false | false |
@@ -5573,7 +5573,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 31 | 15 | false | false |
-| DI none; SDI | forward smash | 39 | 15 | false | true |
+| DI none; SDI | forward smash | 37 | 15 | false | true |
 | DI none; tech in place | forward smash | 31 | 15 | false | false |
 | DI none; tech left | forward smash | 31 | 15 | false | false |
 | DI none; tech right | forward smash | 31 | 15 | false | false |
@@ -5591,7 +5591,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | forward smash | 27 | 15 | false | false |
 | DI left; mash | up smash | 29 | 15 | false | false |
 | DI right; hold | forward smash | 33 | 15 | false | false |
-| DI right; SDI | forward smash | 41 | 15 | false | true |
+| DI right; SDI | forward smash | 39 | 15 | false | true |
 | DI right; tech in place | forward smash | 33 | 15 | false | false |
 | DI right; tech left | forward smash | 33 | 15 | false | false |
 | DI right; tech right | forward smash | 33 | 15 | false | false |
@@ -5609,7 +5609,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up; air dodge | forward smash | 29 | 15 | false | false |
 | DI up; mash | up smash | 31 | 15 | false | false |
 | DI down; hold | forward smash | 31 | 15 | false | false |
-| DI down; SDI | forward smash | 31 | 15 | false | false |
+| DI down; SDI | forward smash | 29 | 15 | false | false |
 | DI down; tech in place | forward smash | 31 | 15 | false | false |
 | DI down; tech left | forward smash | 31 | 15 | false | false |
 | DI down; tech right | forward smash | 31 | 15 | false | false |
@@ -5627,7 +5627,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward smash | 27 | 15 | false | false |
 | DI up-left; mash | dash attack | 23 | 9 | false | false |
 | DI up-right; hold | forward smash | 33 | 15 | false | false |
-| DI up-right; SDI | forward smash | 39 | 15 | false | true |
+| DI up-right; SDI | forward smash | 37 | 15 | false | true |
 | DI up-right; tech in place | forward smash | 33 | 15 | false | false |
 | DI up-right; tech left | forward smash | 33 | 15 | false | false |
 | DI up-right; tech right | forward smash | 33 | 15 | false | false |
@@ -5662,7 +5662,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 43 | 15 | true | true |
-| DI none; SDI | forward smash | 51 | 15 | true | true |
+| DI none; SDI | forward smash | 49 | 15 | true | true |
 | DI none; tech in place | dash attack | 41 | 9 | false | true |
 | DI none; tech left | down smash | 79 | 15 | false | false |
 | DI none; tech right | dash attack | 53 | 9 | false | true |
@@ -5671,7 +5671,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | dash attack | 41 | 9 | true | true |
 | DI none; mash | dash attack | 41 | 9 | true | true |
 | DI left; hold | forward smash | 41 | 15 | true | true |
-| DI left; SDI | down smash | 23 | 15 | true | true |
+| DI left; SDI | forward smash | 31 | 15 | true | true |
 | DI left; tech in place | forward smash | 41 | 15 | false | false |
 | DI left; tech left | forward smash | 71 | 15 | false | true |
 | DI left; tech right | forward throw | 66 | 7 | false | true |
@@ -5689,7 +5689,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI right; air dodge | dash attack | 43 | 9 | true | true |
 | DI right; mash | no follow-up in menu | — | — | — | — |
 | DI up; hold | forward smash | 39 | 15 | true | true |
-| DI up; SDI | dash attack | 39 | 9 | true | true |
+| DI up; SDI | forward smash | 41 | 15 | true | false |
 | DI up; tech in place | down smash | 42 | 15 | false | false |
 | DI up; tech left | forward smash | 75 | 15 | false | false |
 | DI up; tech right | forward air | 84 | 8 | false | true |
@@ -5698,7 +5698,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up; air dodge | forward smash | 39 | 15 | true | false |
 | DI up; mash | forward smash | 39 | 15 | true | false |
 | DI down; hold | forward smash | 43 | 15 | true | true |
-| DI down; SDI | forward smash | 43 | 15 | true | true |
+| DI down; SDI | forward smash | 39 | 15 | true | true |
 | DI down; tech in place | forward smash | 43 | 15 | false | true |
 | DI down; tech left | forward smash | 109 | 15 | false | true |
 | DI down; tech right | forward smash | 55 | 15 | false | true |
@@ -5707,7 +5707,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | forward smash | 43 | 15 | true | true |
 | DI down; mash | no follow-up in menu | — | — | — | — |
 | DI up-left; hold | forward smash | 39 | 15 | true | false |
-| DI up-left; SDI | forward smash | 27 | 15 | true | false |
+| DI up-left; SDI | forward smash | 31 | 15 | true | false |
 | DI up-left; tech in place | down smash | 41 | 15 | false | false |
 | DI up-left; tech left | forward smash | 77 | 15 | false | false |
 | DI up-left; tech right | down smash | 55 | 15 | false | false |
@@ -5716,7 +5716,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward smash | 39 | 15 | true | false |
 | DI up-left; mash | forward smash | 39 | 15 | true | false |
 | DI up-right; hold | forward smash | 45 | 15 | true | true |
-| DI up-right; SDI | forward smash | 51 | 15 | true | true |
+| DI up-right; SDI | forward smash | 49 | 15 | true | true |
 | DI up-right; tech in place | dash attack | 43 | 9 | false | true |
 | DI up-right; tech left | forward smash | 75 | 15 | false | false |
 | DI up-right; tech right | dash attack | 55 | 9 | false | true |
@@ -5725,7 +5725,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | dash attack | 43 | 9 | true | true |
 | DI up-right; mash | dash attack | 43 | 9 | true | true |
 | DI down-left; hold | forward smash | 41 | 15 | true | true |
-| DI down-left; SDI | forward smash | 29 | 15 | true | false |
+| DI down-left; SDI | forward smash | 31 | 15 | true | false |
 | DI down-left; tech in place | forward smash | 41 | 15 | false | true |
 | DI down-left; tech left | down smash | 77 | 15 | false | false |
 | DI down-left; tech right | forward smash | 53 | 15 | false | true |
@@ -5751,7 +5751,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 59 | 15 | true | true |
-| DI none; SDI | forward smash | 65 | 15 | true | true |
+| DI none; SDI | forward smash | 63 | 15 | true | true |
 | DI none; tech in place | forward smash | 59 | 15 | false | true |
 | DI none; tech left | down smash | 89 | 15 | false | true |
 | DI none; tech right | forward smash | 67 | 15 | false | true |
@@ -5769,7 +5769,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | dash attack | 55 | 9 | true | true |
 | DI left; mash | down air | 88 | 9 | false | false |
 | DI right; hold | forward smash | 61 | 15 | true | true |
-| DI right; SDI | forward smash | 67 | 15 | true | true |
+| DI right; SDI | forward smash | 65 | 15 | true | true |
 | DI right; tech in place | forward smash | 61 | 15 | false | true |
 | DI right; tech left | down smash | 51 | 15 | false | true |
 | DI right; tech right | forward smash | 67 | 15 | false | true |
@@ -5787,7 +5787,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up; air dodge | forward tilt | 54 | 8 | true | true |
 | DI up; mash | no follow-up in menu | — | — | — | — |
 | DI down; hold | forward smash | 55 | 15 | true | true |
-| DI down; SDI | forward smash | 55 | 15 | true | true |
+| DI down; SDI | forward smash | 49 | 15 | true | true |
 | DI down; tech in place | forward smash | 57 | 15 | false | true |
 | DI down; tech left | forward smash | 43 | 15 | false | true |
 | DI down; tech right | forward smash | 67 | 15 | false | true |
@@ -5805,7 +5805,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward tilt | 52 | 8 | true | true |
 | DI up-left; mash | no follow-up in menu | — | — | — | — |
 | DI up-right; hold | forward smash | 59 | 15 | true | true |
-| DI up-right; SDI | forward smash | 67 | 15 | true | true |
+| DI up-right; SDI | forward smash | 65 | 15 | true | true |
 | DI up-right; tech in place | forward smash | 59 | 15 | false | true |
 | DI up-right; tech left | dash attack | 115 | 9 | false | true |
 | DI up-right; tech right | forward smash | 67 | 15 | false | true |
@@ -5814,7 +5814,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | forward smash | 59 | 15 | true | true |
 | DI up-right; mash | down air | 96 | 9 | false | false |
 | DI down-left; hold | forward smash | 57 | 15 | true | true |
-| DI down-left; SDI | forward smash | 41 | 15 | true | true |
+| DI down-left; SDI | forward smash | 43 | 15 | true | true |
 | DI down-left; tech in place | forward smash | 57 | 15 | false | true |
 | DI down-left; tech left | down smash | 87 | 15 | false | true |
 | DI down-left; tech right | forward smash | 67 | 15 | false | true |
@@ -5823,7 +5823,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 57 | 15 | true | true |
 | DI down-left; mash | forward air | 86 | 8 | false | true |
 | DI down-right; hold | forward smash | 57 | 15 | true | true |
-| DI down-right; SDI | forward smash | 55 | 15 | true | true |
+| DI down-right; SDI | forward smash | 53 | 15 | true | true |
 | DI down-right; tech in place | forward smash | 59 | 15 | false | true |
 | DI down-right; tech left | forward smash | 45 | 15 | false | true |
 | DI down-right; tech right | forward smash | 67 | 15 | false | true |
@@ -5849,7 +5849,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 69 | 15 | false | true |
 | DI none; mash | no follow-up in menu | — | — | — | — |
 | DI left; hold | no follow-up in menu | — | — | — | — |
-| DI left; SDI | forward smash | 67 | 15 | true | true |
+| DI left; SDI | down air | 116 | 9 | false | true |
 | DI left; tech in place | no follow-up in menu | — | — | — | — |
 | DI left; tech left | forward smash | 63 | 15 | false | true |
 | DI left; tech right | forward smash | 67 | 15 | false | true |
@@ -5876,7 +5876,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up; air dodge | no follow-up in menu | — | — | — | — |
 | DI up; mash | no follow-up in menu | — | — | — | — |
 | DI down; hold | forward smash | 67 | 15 | true | true |
-| DI down; SDI | forward smash | 67 | 15 | true | true |
+| DI down; SDI | forward smash | 59 | 15 | true | true |
 | DI down; tech in place | no follow-up in menu | — | — | — | — |
 | DI down; tech left | forward smash | 65 | 15 | false | true |
 | DI down; tech right | down air | 116 | 9 | false | true |
@@ -5903,7 +5903,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | forward smash | 67 | 15 | false | true |
 | DI up-right; mash | no follow-up in menu | — | — | — | — |
 | DI down-left; hold | no follow-up in menu | — | — | — | — |
-| DI down-left; SDI | forward smash | 51 | 15 | true | true |
+| DI down-left; SDI | forward smash | 53 | 15 | true | true |
 | DI down-left; tech in place | no follow-up in menu | — | — | — | — |
 | DI down-left; tech left | forward smash | 65 | 15 | false | true |
 | DI down-left; tech right | dash attack | 67 | 9 | false | true |
@@ -5912,7 +5912,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 69 | 15 | false | true |
 | DI down-left; mash | no follow-up in menu | — | — | — | — |
 | DI down-right; hold | no follow-up in menu | — | — | — | — |
-| DI down-right; SDI | forward smash | 65 | 15 | true | true |
+| DI down-right; SDI | forward smash | 63 | 15 | true | true |
 | DI down-right; tech in place | no follow-up in menu | — | — | — | — |
 | DI down-right; tech left | forward smash | 67 | 15 | false | true |
 | DI down-right; tech right | down air | 116 | 9 | false | true |
@@ -5929,7 +5929,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 27 | 15 | false | false |
-| DI none; SDI | forward smash | 35 | 15 | false | false |
+| DI none; SDI | forward smash | 33 | 15 | false | false |
 | DI none; tech in place | forward smash | 27 | 15 | false | false |
 | DI none; tech left | forward smash | 27 | 15 | false | false |
 | DI none; tech right | forward smash | 27 | 15 | false | false |
@@ -5947,7 +5947,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | forward smash | 25 | 15 | false | false |
 | DI left; mash | no follow-up in menu | — | — | — | — |
 | DI right; hold | forward smash | 29 | 15 | false | false |
-| DI right; SDI | forward smash | 37 | 15 | false | false |
+| DI right; SDI | forward smash | 35 | 15 | false | false |
 | DI right; tech in place | forward smash | 29 | 15 | false | false |
 | DI right; tech left | forward smash | 29 | 15 | false | false |
 | DI right; tech right | forward smash | 29 | 15 | false | false |
@@ -5974,7 +5974,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | forward smash | 27 | 15 | false | false |
 | DI down; mash | no follow-up in menu | — | — | — | — |
 | DI up-left; hold | forward smash | 25 | 15 | false | false |
-| DI up-left; SDI | down smash | 27 | 15 | false | false |
+| DI up-left; SDI | forward smash | 25 | 15 | false | false |
 | DI up-left; tech in place | forward smash | 25 | 15 | false | false |
 | DI up-left; tech left | forward smash | 25 | 15 | false | false |
 | DI up-left; tech right | forward smash | 25 | 15 | false | false |
@@ -5983,7 +5983,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward smash | 25 | 15 | false | false |
 | DI up-left; mash | forward smash | 25 | 15 | false | false |
 | DI up-right; hold | forward smash | 29 | 15 | false | false |
-| DI up-right; SDI | forward smash | 35 | 15 | false | false |
+| DI up-right; SDI | forward smash | 33 | 15 | false | false |
 | DI up-right; tech in place | forward smash | 29 | 15 | false | false |
 | DI up-right; tech left | forward smash | 29 | 15 | false | false |
 | DI up-right; tech right | forward smash | 29 | 15 | false | false |
@@ -5992,7 +5992,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | forward smash | 29 | 15 | false | false |
 | DI up-right; mash | no follow-up in menu | — | — | — | — |
 | DI down-left; hold | forward smash | 27 | 15 | false | false |
-| DI down-left; SDI | down smash | 27 | 15 | false | false |
+| DI down-left; SDI | forward smash | 25 | 15 | false | false |
 | DI down-left; tech in place | forward smash | 27 | 15 | false | false |
 | DI down-left; tech left | forward smash | 27 | 15 | false | false |
 | DI down-left; tech right | forward smash | 27 | 15 | false | false |
@@ -6001,7 +6001,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 27 | 15 | false | false |
 | DI down-left; mash | no follow-up in menu | — | — | — | — |
 | DI down-right; hold | forward smash | 29 | 15 | false | false |
-| DI down-right; SDI | forward smash | 33 | 15 | false | false |
+| DI down-right; SDI | forward smash | 43 | 15 | false | true |
 | DI down-right; tech in place | forward smash | 29 | 15 | false | false |
 | DI down-right; tech left | forward smash | 29 | 15 | false | false |
 | DI down-right; tech right | forward smash | 29 | 15 | false | false |
@@ -6018,7 +6018,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 37 | 15 | false | false |
-| DI none; SDI | forward smash | 43 | 15 | false | true |
+| DI none; SDI | forward smash | 41 | 15 | false | true |
 | DI none; tech in place | forward smash | 37 | 15 | false | false |
 | DI none; tech left | forward smash | 37 | 15 | false | false |
 | DI none; tech right | forward smash | 37 | 15 | false | false |
@@ -6027,7 +6027,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 37 | 15 | false | false |
 | DI none; mash | forward smash | 37 | 15 | false | false |
 | DI left; hold | forward smash | 33 | 15 | false | false |
-| DI left; SDI | forward smash | 25 | 15 | false | false |
+| DI left; SDI | forward smash | 27 | 15 | false | false |
 | DI left; tech in place | forward smash | 33 | 15 | false | false |
 | DI left; tech left | forward smash | 33 | 15 | false | false |
 | DI left; tech right | forward smash | 33 | 15 | false | false |
@@ -6036,7 +6036,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | forward smash | 33 | 15 | false | false |
 | DI left; mash | down air | 102 | 9 | false | false |
 | DI right; hold | forward smash | 37 | 15 | false | false |
-| DI right; SDI | forward smash | 45 | 15 | false | true |
+| DI right; SDI | forward smash | 43 | 15 | false | true |
 | DI right; tech in place | forward smash | 37 | 15 | false | false |
 | DI right; tech left | forward smash | 37 | 15 | false | false |
 | DI right; tech right | forward smash | 37 | 15 | false | false |
@@ -6063,7 +6063,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | forward smash | 37 | 15 | false | false |
 | DI down; mash | down smash | 83 | 15 | false | false |
 | DI up-left; hold | forward smash | 33 | 15 | false | false |
-| DI up-left; SDI | forward smash | 25 | 15 | true | false |
+| DI up-left; SDI | forward smash | 27 | 15 | false | false |
 | DI up-left; tech in place | forward smash | 33 | 15 | false | false |
 | DI up-left; tech left | forward smash | 33 | 15 | false | false |
 | DI up-left; tech right | forward smash | 33 | 15 | false | false |
@@ -6072,7 +6072,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward smash | 33 | 15 | false | false |
 | DI up-left; mash | down smash | 79 | 15 | false | false |
 | DI up-right; hold | forward smash | 37 | 15 | false | false |
-| DI up-right; SDI | forward smash | 43 | 15 | false | true |
+| DI up-right; SDI | forward smash | 41 | 15 | false | true |
 | DI up-right; tech in place | forward smash | 37 | 15 | false | false |
 | DI up-right; tech left | forward smash | 37 | 15 | false | false |
 | DI up-right; tech right | forward smash | 37 | 15 | false | false |
@@ -6081,7 +6081,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | forward smash | 37 | 15 | false | false |
 | DI up-right; mash | down smash | 83 | 15 | false | false |
 | DI down-left; hold | forward smash | 35 | 15 | false | false |
-| DI down-left; SDI | forward smash | 27 | 15 | false | false |
+| DI down-left; SDI | down smash | 27 | 15 | false | false |
 | DI down-left; tech in place | forward smash | 35 | 15 | false | false |
 | DI down-left; tech left | forward smash | 35 | 15 | false | false |
 | DI down-left; tech right | forward smash | 35 | 15 | false | false |
@@ -6090,7 +6090,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 35 | 15 | false | false |
 | DI down-left; mash | forward smash | 35 | 15 | false | false |
 | DI down-right; hold | forward smash | 37 | 15 | false | false |
-| DI down-right; SDI | forward smash | 41 | 15 | false | true |
+| DI down-right; SDI | forward smash | 49 | 15 | false | true |
 | DI down-right; tech in place | forward smash | 37 | 15 | false | false |
 | DI down-right; tech left | forward smash | 37 | 15 | false | false |
 | DI down-right; tech right | forward smash | 37 | 15 | false | false |
@@ -6107,7 +6107,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 49 | 15 | true | true |
-| DI none; SDI | forward smash | 55 | 15 | true | true |
+| DI none; SDI | forward smash | 53 | 15 | true | true |
 | DI none; tech in place | dash attack | 45 | 9 | false | true |
 | DI none; tech left | down smash | 83 | 15 | false | false |
 | DI none; tech right | dash attack | 55 | 9 | false | true |
@@ -6116,7 +6116,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | dash attack | 45 | 9 | true | true |
 | DI none; mash | no follow-up in menu | — | — | — | — |
 | DI left; hold | forward smash | 47 | 15 | true | true |
-| DI left; SDI | forward smash | 37 | 15 | true | true |
+| DI left; SDI | forward smash | 41 | 15 | true | true |
 | DI left; tech in place | forward smash | 47 | 15 | false | false |
 | DI left; tech left | forward smash | 75 | 15 | false | true |
 | DI left; tech right | forward tilt up | 56 | 8 | false | true |
@@ -6125,7 +6125,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | dash attack | 43 | 9 | true | true |
 | DI left; mash | dash attack | 43 | 9 | true | false |
 | DI right; hold | forward smash | 51 | 15 | true | true |
-| DI right; SDI | forward smash | 57 | 15 | true | true |
+| DI right; SDI | forward smash | 55 | 15 | true | true |
 | DI right; tech in place | dash attack | 47 | 9 | false | true |
 | DI right; tech left | down smash | 85 | 15 | false | false |
 | DI right; tech right | forward smash | 61 | 15 | false | true |
@@ -6134,7 +6134,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI right; air dodge | dash attack | 47 | 9 | true | true |
 | DI right; mash | no follow-up in menu | — | — | — | — |
 | DI up; hold | forward smash | 45 | 15 | true | true |
-| DI up; SDI | dash attack | 43 | 9 | true | true |
+| DI up; SDI | forward smash | 47 | 15 | true | false |
 | DI up; tech in place | forward smash | 45 | 15 | false | false |
 | DI up; tech left | forward smash | 79 | 15 | false | false |
 | DI up; tech right | forward tilt | 57 | 8 | false | true |
@@ -6152,7 +6152,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | forward smash | 47 | 15 | true | true |
 | DI down; mash | no follow-up in menu | — | — | — | — |
 | DI up-left; hold | forward smash | 43 | 15 | true | false |
-| DI up-left; SDI | forward smash | 39 | 15 | true | false |
+| DI up-left; SDI | forward smash | 41 | 15 | true | false |
 | DI up-left; tech in place | forward smash | 43 | 15 | false | false |
 | DI up-left; tech left | forward smash | 77 | 15 | false | false |
 | DI up-left; tech right | forward air | 88 | 8 | false | true |
@@ -6161,7 +6161,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward smash | 43 | 15 | true | false |
 | DI up-left; mash | forward smash | 43 | 15 | true | false |
 | DI up-right; hold | forward smash | 49 | 15 | true | true |
-| DI up-right; SDI | forward smash | 55 | 15 | true | true |
+| DI up-right; SDI | forward smash | 53 | 15 | true | true |
 | DI up-right; tech in place | dash attack | 45 | 9 | false | true |
 | DI up-right; tech left | forward smash | 77 | 15 | false | false |
 | DI up-right; tech right | dash attack | 57 | 9 | false | true |
@@ -6170,7 +6170,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | dash attack | 45 | 9 | true | true |
 | DI up-right; mash | no follow-up in menu | — | — | — | — |
 | DI down-left; hold | forward smash | 47 | 15 | true | true |
-| DI down-left; SDI | forward smash | 39 | 15 | true | false |
+| DI down-left; SDI | forward smash | 37 | 15 | true | false |
 | DI down-left; tech in place | forward smash | 47 | 15 | false | true |
 | DI down-left; tech left | down smash | 81 | 15 | false | false |
 | DI down-left; tech right | forward smash | 59 | 15 | false | true |
@@ -6179,7 +6179,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 47 | 15 | true | true |
 | DI down-left; mash | no follow-up in menu | — | — | — | — |
 | DI down-right; hold | forward smash | 49 | 15 | true | true |
-| DI down-right; SDI | forward smash | 51 | 15 | true | true |
+| DI down-right; SDI | forward smash | 49 | 15 | true | true |
 | DI down-right; tech in place | forward smash | 49 | 15 | false | true |
 | DI down-right; tech left | forward smash | 115 | 15 | false | true |
 | DI down-right; tech right | forward smash | 61 | 15 | false | true |
@@ -6196,7 +6196,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 63 | 15 | true | true |
-| DI none; SDI | forward smash | 69 | 15 | true | true |
+| DI none; SDI | forward smash | 67 | 15 | true | true |
 | DI none; tech in place | forward smash | 63 | 15 | false | true |
 | DI none; tech left | down smash | 53 | 15 | false | true |
 | DI none; tech right | forward smash | 71 | 15 | false | true |
@@ -6214,7 +6214,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | dash attack | 57 | 9 | true | true |
 | DI left; mash | down air | 94 | 9 | false | false |
 | DI right; hold | forward smash | 65 | 15 | true | true |
-| DI right; SDI | forward smash | 71 | 15 | true | true |
+| DI right; SDI | forward smash | 69 | 15 | true | true |
 | DI right; tech in place | forward smash | 65 | 15 | false | true |
 | DI right; tech left | forward smash | 53 | 15 | false | true |
 | DI right; tech right | forward smash | 71 | 15 | false | true |
@@ -6223,7 +6223,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI right; air dodge | forward smash | 65 | 15 | true | true |
 | DI right; mash | forward air | 100 | 8 | false | true |
 | DI up; hold | forward smash | 59 | 15 | true | true |
-| DI up; SDI | forward smash | 63 | 15 | true | true |
+| DI up; SDI | forward smash | 61 | 15 | true | true |
 | DI up; tech in place | forward smash | 59 | 15 | true | true |
 | DI up; tech left | forward smash | 59 | 15 | true | true |
 | DI up; tech right | forward smash | 59 | 15 | true | true |
@@ -6250,7 +6250,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward tilt | 58 | 8 | true | true |
 | DI up-left; mash | down air | 90 | 9 | false | false |
 | DI up-right; hold | forward smash | 65 | 15 | true | true |
-| DI up-right; SDI | forward smash | 71 | 15 | true | true |
+| DI up-right; SDI | forward smash | 69 | 15 | true | true |
 | DI up-right; tech in place | forward smash | 65 | 15 | false | true |
 | DI up-right; tech left | down smash | 55 | 15 | false | true |
 | DI up-right; tech right | forward smash | 71 | 15 | false | true |
@@ -6259,7 +6259,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | forward smash | 65 | 15 | true | true |
 | DI up-right; mash | down air | 100 | 9 | false | false |
 | DI down-left; hold | forward smash | 61 | 15 | true | true |
-| DI down-left; SDI | forward smash | 55 | 15 | true | true |
+| DI down-left; SDI | forward smash | 47 | 15 | true | true |
 | DI down-left; tech in place | forward smash | 61 | 15 | false | true |
 | DI down-left; tech left | forward smash | 50 | 15 | false | true |
 | DI down-left; tech right | forward smash | 71 | 15 | false | true |
@@ -6268,7 +6268,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 61 | 15 | true | true |
 | DI down-left; mash | forward air | 92 | 8 | false | true |
 | DI down-right; hold | forward smash | 63 | 15 | true | true |
-| DI down-right; SDI | forward smash | 63 | 15 | true | true |
+| DI down-right; SDI | forward smash | 57 | 15 | true | true |
 | DI down-right; tech in place | forward smash | 65 | 15 | false | true |
 | DI down-right; tech left | forward smash | 53 | 15 | false | true |
 | DI down-right; tech right | forward smash | 71 | 15 | false | true |
@@ -6294,7 +6294,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 73 | 15 | false | true |
 | DI none; mash | no follow-up in menu | — | — | — | — |
 | DI left; hold | no follow-up in menu | — | — | — | — |
-| DI left; SDI | forward smash | 71 | 15 | true | true |
+| DI left; SDI | down air | 120 | 9 | false | true |
 | DI left; tech in place | no follow-up in menu | — | — | — | — |
 | DI left; tech left | forward smash | 69 | 15 | false | true |
 | DI left; tech right | forward smash | 71 | 15 | false | true |
@@ -6348,7 +6348,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | forward smash | 73 | 15 | false | true |
 | DI up-right; mash | no follow-up in menu | — | — | — | — |
 | DI down-left; hold | no follow-up in menu | — | — | — | — |
-| DI down-left; SDI | forward smash | 69 | 15 | true | true |
+| DI down-left; SDI | forward smash | 57 | 15 | true | true |
 | DI down-left; tech in place | no follow-up in menu | — | — | — | — |
 | DI down-left; tech left | forward smash | 69 | 15 | false | true |
 | DI down-left; tech right | down air | 120 | 9 | false | true |
@@ -6357,7 +6357,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 73 | 15 | false | true |
 | DI down-left; mash | no follow-up in menu | — | — | — | — |
 | DI down-right; hold | no follow-up in menu | — | — | — | — |
-| DI down-right; SDI | no follow-up in menu | — | — | — | — |
+| DI down-right; SDI | forward smash | 67 | 15 | true | true |
 | DI down-right; tech in place | no follow-up in menu | — | — | — | — |
 | DI down-right; tech left | down air | 120 | 9 | false | true |
 | DI down-right; tech right | down air | 120 | 9 | false | true |
@@ -6374,7 +6374,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 21 | 15 | true | false |
-| DI none; SDI | forward smash | 25 | 15 | false | false |
+| DI none; SDI | forward smash | 23 | 15 | false | false |
 | DI none; tech in place | forward smash | 21 | 15 | true | false |
 | DI none; tech left | forward smash | 21 | 15 | true | false |
 | DI none; tech right | forward smash | 21 | 15 | true | false |
@@ -6392,7 +6392,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | down smash | 23 | 15 | false | false |
 | DI left; mash | down smash | 23 | 15 | true | false |
 | DI right; hold | forward smash | 21 | 15 | false | false |
-| DI right; SDI | forward smash | 29 | 15 | false | false |
+| DI right; SDI | forward smash | 27 | 15 | false | false |
 | DI right; tech in place | forward smash | 21 | 15 | false | false |
 | DI right; tech left | forward smash | 21 | 15 | false | false |
 | DI right; tech right | forward smash | 21 | 15 | false | false |
@@ -6419,7 +6419,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | down smash | 23 | 15 | false | false |
 | DI down; mash | down smash | 23 | 15 | false | false |
 | DI up-left; hold | down smash | 23 | 15 | false | false |
-| DI up-left; SDI | down smash | 23 | 15 | false | false |
+| DI up-left; SDI | down smash | 23 | 15 | true | false |
 | DI up-left; tech in place | down smash | 23 | 15 | false | false |
 | DI up-left; tech left | down smash | 23 | 15 | false | false |
 | DI up-left; tech right | down smash | 23 | 15 | false | false |
@@ -6428,7 +6428,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | down smash | 23 | 15 | false | false |
 | DI up-left; mash | down smash | 23 | 15 | false | false |
 | DI up-right; hold | forward smash | 21 | 15 | true | false |
-| DI up-right; SDI | forward smash | 25 | 15 | false | false |
+| DI up-right; SDI | forward smash | 25 | 15 | true | false |
 | DI up-right; tech in place | forward smash | 21 | 15 | true | false |
 | DI up-right; tech left | forward smash | 21 | 15 | true | false |
 | DI up-right; tech right | forward smash | 21 | 15 | true | false |
@@ -6437,7 +6437,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | forward smash | 21 | 15 | true | false |
 | DI up-right; mash | forward smash | 21 | 15 | true | false |
 | DI down-left; hold | down smash | 23 | 15 | false | false |
-| DI down-left; SDI | forward smash | 25 | 15 | false | false |
+| DI down-left; SDI | forward smash | 23 | 15 | false | false |
 | DI down-left; tech in place | down smash | 23 | 15 | false | false |
 | DI down-left; tech left | down smash | 23 | 15 | false | false |
 | DI down-left; tech right | down smash | 23 | 15 | false | false |
@@ -6446,7 +6446,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | down smash | 23 | 15 | false | false |
 | DI down-left; mash | down smash | 23 | 15 | false | false |
 | DI down-right; hold | forward smash | 21 | 15 | false | false |
-| DI down-right; SDI | forward smash | 35 | 15 | false | true |
+| DI down-right; SDI | forward smash | 35 | 15 | false | false |
 | DI down-right; tech in place | forward smash | 21 | 15 | false | false |
 | DI down-right; tech left | forward smash | 21 | 15 | false | false |
 | DI down-right; tech right | forward smash | 21 | 15 | false | false |
@@ -6463,7 +6463,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 21 | 15 | true | false |
-| DI none; SDI | forward smash | 27 | 15 | true | true |
+| DI none; SDI | forward smash | 25 | 15 | true | false |
 | DI none; tech in place | forward smash | 21 | 15 | true | false |
 | DI none; tech left | forward smash | 21 | 15 | true | false |
 | DI none; tech right | forward smash | 21 | 15 | true | false |
@@ -6472,7 +6472,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 21 | 15 | true | false |
 | DI none; mash | forward smash | 21 | 15 | true | false |
 | DI left; hold | down smash | 23 | 15 | true | false |
-| DI left; SDI | forward smash | 21 | 15 | true | true |
+| DI left; SDI | down smash | 23 | 15 | true | false |
 | DI left; tech in place | down smash | 23 | 15 | true | false |
 | DI left; tech left | down smash | 23 | 15 | true | false |
 | DI left; tech right | down smash | 23 | 15 | true | false |
@@ -6481,7 +6481,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | down smash | 23 | 15 | true | false |
 | DI left; mash | down smash | 23 | 15 | true | false |
 | DI right; hold | forward smash | 25 | 15 | true | false |
-| DI right; SDI | forward smash | 33 | 15 | false | true |
+| DI right; SDI | forward smash | 31 | 15 | false | true |
 | DI right; tech in place | forward smash | 25 | 15 | true | false |
 | DI right; tech left | forward smash | 25 | 15 | true | false |
 | DI right; tech right | forward smash | 25 | 15 | true | false |
@@ -6499,7 +6499,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up; air dodge | forward smash | 21 | 15 | true | false |
 | DI up; mash | forward smash | 21 | 15 | true | false |
 | DI down; hold | forward smash | 21 | 15 | true | false |
-| DI down; SDI | forward smash | 21 | 15 | true | false |
+| DI down; SDI | down smash | 23 | 15 | false | false |
 | DI down; tech in place | forward smash | 21 | 15 | true | false |
 | DI down; tech left | forward smash | 21 | 15 | true | false |
 | DI down; tech right | forward smash | 21 | 15 | true | false |
@@ -6508,7 +6508,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | forward smash | 21 | 15 | true | false |
 | DI down; mash | forward smash | 21 | 15 | true | false |
 | DI up-left; hold | down smash | 23 | 15 | true | false |
-| DI up-left; SDI | down smash | 25 | 15 | true | false |
+| DI up-left; SDI | down smash | 23 | 15 | true | false |
 | DI up-left; tech in place | down smash | 23 | 15 | true | false |
 | DI up-left; tech left | down smash | 23 | 15 | true | false |
 | DI up-left; tech right | down smash | 23 | 15 | true | false |
@@ -6517,7 +6517,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | down smash | 23 | 15 | true | false |
 | DI up-left; mash | down smash | 23 | 15 | true | false |
 | DI up-right; hold | forward smash | 21 | 15 | true | false |
-| DI up-right; SDI | forward smash | 27 | 15 | true | true |
+| DI up-right; SDI | forward smash | 25 | 15 | true | false |
 | DI up-right; tech in place | forward smash | 21 | 15 | true | false |
 | DI up-right; tech left | forward smash | 21 | 15 | true | false |
 | DI up-right; tech right | forward smash | 21 | 15 | true | false |
@@ -6526,7 +6526,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | forward smash | 21 | 15 | true | false |
 | DI up-right; mash | forward smash | 21 | 15 | true | false |
 | DI down-left; hold | down smash | 23 | 15 | true | false |
-| DI down-left; SDI | forward smash | 25 | 15 | false | false |
+| DI down-left; SDI | forward smash | 21 | 15 | false | false |
 | DI down-left; tech in place | down smash | 23 | 15 | true | false |
 | DI down-left; tech left | down smash | 23 | 15 | true | false |
 | DI down-left; tech right | down smash | 23 | 15 | true | false |
@@ -6552,7 +6552,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 23 | 15 | true | true |
-| DI none; SDI | forward smash | 29 | 15 | true | true |
+| DI none; SDI | forward smash | 27 | 15 | true | true |
 | DI none; tech in place | down smash | 67 | 15 | true | true |
 | DI none; tech left | forward smash | 23 | 15 | true | false |
 | DI none; tech right | forward smash | 23 | 15 | true | false |
@@ -6570,7 +6570,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | forward smash | 65 | 15 | true | false |
 | DI left; mash | dash attack | 57 | 9 | true | false |
 | DI right; hold | forward smash | 31 | 15 | true | true |
-| DI right; SDI | forward smash | 41 | 15 | true | true |
+| DI right; SDI | forward smash | 39 | 15 | true | true |
 | DI right; tech in place | forward smash | 31 | 15 | true | false |
 | DI right; tech left | forward smash | 31 | 15 | true | false |
 | DI right; tech right | forward smash | 31 | 15 | true | false |
@@ -6579,7 +6579,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI right; air dodge | forward smash | 31 | 15 | true | false |
 | DI right; mash | forward smash | 31 | 15 | true | true |
 | DI up; hold | forward smash | 101 | 15 | true | true |
-| DI up; SDI | down smash | 67 | 15 | true | false |
+| DI up; SDI | up smash | 23 | 15 | true | false |
 | DI up; tech in place | up smash | 23 | 15 | true | false |
 | DI up; tech left | up smash | 23 | 15 | true | false |
 | DI up; tech right | up smash | 23 | 15 | true | false |
@@ -6588,7 +6588,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up; air dodge | up smash | 23 | 15 | true | false |
 | DI up; mash | up smash | 23 | 15 | true | false |
 | DI down; hold | forward smash | 21 | 15 | true | true |
-| DI down; SDI | forward smash | 21 | 15 | true | true |
+| DI down; SDI | down smash | 23 | 15 | true | false |
 | DI down; tech in place | forward smash | 21 | 15 | true | false |
 | DI down; tech left | forward smash | 21 | 15 | true | false |
 | DI down; tech right | forward smash | 21 | 15 | true | false |
@@ -6597,7 +6597,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | forward smash | 21 | 15 | true | false |
 | DI down; mash | forward smash | 21 | 15 | true | false |
 | DI up-left; hold | forward smash | 61 | 15 | true | true |
-| DI up-left; SDI | forward smash | 61 | 15 | true | false |
+| DI up-left; SDI | forward smash | 63 | 15 | true | false |
 | DI up-left; tech in place | forward smash | 61 | 15 | true | false |
 | DI up-left; tech left | forward smash | 61 | 15 | true | false |
 | DI up-left; tech right | forward smash | 61 | 15 | true | false |
@@ -6606,7 +6606,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward smash | 61 | 15 | true | false |
 | DI up-left; mash | dash attack | 55 | 9 | true | false |
 | DI up-right; hold | forward smash | 24 | 15 | true | true |
-| DI up-right; SDI | down smash | 33 | 15 | true | true |
+| DI up-right; SDI | forward smash | 29 | 15 | true | true |
 | DI up-right; tech in place | forward smash | 24 | 15 | true | false |
 | DI up-right; tech left | forward smash | 24 | 15 | true | false |
 | DI up-right; tech right | forward smash | 24 | 15 | true | false |
@@ -6615,7 +6615,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | forward smash | 24 | 15 | true | false |
 | DI up-right; mash | forward smash | 24 | 15 | true | false |
 | DI down-left; hold | up smash | 23 | 15 | true | true |
-| DI down-left; SDI | down smash | 23 | 15 | true | true |
+| DI down-left; SDI | down smash | 23 | 15 | true | false |
 | DI down-left; tech in place | up smash | 23 | 15 | true | false |
 | DI down-left; tech left | up smash | 23 | 15 | true | false |
 | DI down-left; tech right | up smash | 23 | 15 | true | false |
@@ -6641,7 +6641,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | down smash | 67 | 15 | true | true |
-| DI none; SDI | up smash | 33 | 15 | true | true |
+| DI none; SDI | up smash | 31 | 15 | true | true |
 | DI none; tech in place | down smash | 67 | 15 | true | true |
 | DI none; tech left | down smash | 67 | 15 | true | true |
 | DI none; tech right | up smash | 23 | 15 | true | true |
@@ -6650,7 +6650,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | dash attack | 53 | 9 | true | true |
 | DI none; mash | down smash | 67 | 15 | true | true |
 | DI left; hold | forward smash | 67 | 15 | true | true |
-| DI left; SDI | forward smash | 99 | 15 | true | true |
+| DI left; SDI | forward smash | 97 | 15 | true | true |
 | DI left; tech in place | back air | 28 | 8 | true | true |
 | DI left; tech left | down smash | 85 | 15 | false | true |
 | DI left; tech right | forward smash | 107 | 15 | false | false |
@@ -6659,7 +6659,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | forward smash | 67 | 15 | true | false |
 | DI left; mash | forward smash | 67 | 15 | true | true |
 | DI right; hold | forward smash | 41 | 15 | true | true |
-| DI right; SDI | forward smash | 53 | 15 | true | true |
+| DI right; SDI | forward smash | 49 | 15 | true | true |
 | DI right; tech in place | forward smash | 41 | 15 | true | true |
 | DI right; tech left | forward smash | 41 | 15 | true | true |
 | DI right; tech right | forward smash | 41 | 15 | true | true |
@@ -6677,7 +6677,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up; air dodge | up smash | 23 | 15 | true | false |
 | DI up; mash | up smash | 23 | 15 | true | false |
 | DI down; hold | up smash | 23 | 15 | true | true |
-| DI down; SDI | up smash | 23 | 15 | true | true |
+| DI down; SDI | forward smash | 21 | 15 | true | true |
 | DI down; tech in place | up smash | 23 | 15 | true | true |
 | DI down; tech left | up smash | 23 | 15 | true | true |
 | DI down; tech right | up smash | 23 | 15 | true | true |
@@ -6686,7 +6686,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | up smash | 23 | 15 | true | true |
 | DI down; mash | up smash | 23 | 15 | true | true |
 | DI up-left; hold | forward smash | 61 | 15 | true | false |
-| DI up-left; SDI | back air | 56 | 8 | false | true |
+| DI up-left; SDI | forward smash | 63 | 15 | false | false |
 | DI up-left; tech in place | down smash | 70 | 15 | false | false |
 | DI up-left; tech left | dash attack | 89 | 9 | false | false |
 | DI up-left; tech right | forward smash | 107 | 15 | false | false |
@@ -6695,7 +6695,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward smash | 61 | 15 | true | false |
 | DI up-left; mash | forward smash | 61 | 15 | true | false |
 | DI up-right; hold | up smash | 27 | 15 | true | true |
-| DI up-right; SDI | up smash | 35 | 15 | true | true |
+| DI up-right; SDI | up smash | 33 | 15 | true | true |
 | DI up-right; tech in place | forward smash | 63 | 15 | true | true |
 | DI up-right; tech left | forward smash | 63 | 15 | true | true |
 | DI up-right; tech right | up smash | 27 | 15 | true | true |
@@ -6713,7 +6713,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | down smash | 67 | 15 | true | false |
 | DI down-left; mash | down smash | 67 | 15 | true | false |
 | DI down-right; hold | forward smash | 33 | 15 | true | true |
-| DI down-right; SDI | forward smash | 31 | 15 | true | true |
+| DI down-right; SDI | forward smash | 29 | 15 | true | true |
 | DI down-right; tech in place | forward smash | 33 | 15 | true | true |
 | DI down-right; tech left | forward smash | 33 | 15 | true | true |
 | DI down-right; tech right | forward smash | 33 | 15 | true | true |
@@ -6730,7 +6730,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 63 | 15 | false | true |
-| DI none; SDI | forward smash | 71 | 15 | false | true |
+| DI none; SDI | forward smash | 69 | 15 | false | true |
 | DI none; tech in place | down smash | 115 | 15 | false | true |
 | DI none; tech left | forward smash | 111 | 15 | false | true |
 | DI none; tech right | forward smash | 103 | 15 | false | true |
@@ -6739,7 +6739,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 63 | 15 | false | true |
 | DI none; mash | up tilt | 53 | 8 | true | false |
 | DI left; hold | forward smash | 69 | 15 | false | true |
-| DI left; SDI | forward smash | 101 | 15 | false | true |
+| DI left; SDI | forward smash | 99 | 15 | false | true |
 | DI left; tech in place | dash attack | 95 | 9 | false | true |
 | DI left; tech left | down smash | 91 | 15 | false | true |
 | DI left; tech right | forward smash | 119 | 15 | false | true |
@@ -6748,7 +6748,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | forward tilt up | 58 | 8 | true | true |
 | DI left; mash | forward tilt up | 58 | 8 | true | false |
 | DI right; hold | forward smash | 57 | 15 | true | true |
-| DI right; SDI | forward smash | 67 | 15 | false | true |
+| DI right; SDI | forward smash | 65 | 15 | true | true |
 | DI right; tech in place | forward smash | 57 | 15 | true | true |
 | DI right; tech left | forward smash | 57 | 15 | true | true |
 | DI right; tech right | forward smash | 57 | 15 | true | true |
@@ -6766,7 +6766,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up; air dodge | forward throw | 72 | 7 | true | true |
 | DI up; mash | up air | 26 | 8 | true | false |
 | DI down; hold | forward smash | 63 | 15 | false | true |
-| DI down; SDI | forward smash | 63 | 15 | false | true |
+| DI down; SDI | forward smash | 21 | 15 | true | true |
 | DI down; tech in place | forward smash | 63 | 15 | false | true |
 | DI down; tech left | forward smash | 63 | 15 | false | true |
 | DI down; tech right | forward smash | 63 | 15 | false | true |
@@ -6784,7 +6784,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | down smash | 113 | 15 | false | false |
 | DI up-left; mash | up air | 24 | 8 | true | false |
 | DI up-right; hold | forward smash | 73 | 15 | false | true |
-| DI up-right; SDI | forward smash | 79 | 15 | false | true |
+| DI up-right; SDI | forward smash | 77 | 15 | false | true |
 | DI up-right; tech in place | forward tilt | 62 | 8 | false | true |
 | DI up-right; tech left | forward air | 60 | 8 | true | true |
 | DI up-right; tech right | forward smash | 111 | 15 | false | true |
@@ -6793,7 +6793,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | forward air | 60 | 8 | true | true |
 | DI up-right; mash | forward air | 60 | 8 | true | false |
 | DI down-left; hold | down smash | 67 | 15 | false | true |
-| DI down-left; SDI | down smash | 23 | 15 | true | true |
+| DI down-left; SDI | forward smash | 63 | 15 | true | true |
 | DI down-left; tech in place | forward smash | 99 | 15 | false | true |
 | DI down-left; tech left | forward smash | 113 | 15 | false | true |
 | DI down-left; tech right | down smash | 111 | 15 | false | true |
@@ -6802,7 +6802,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 99 | 15 | false | true |
 | DI down-left; mash | up air | 24 | 8 | true | false |
 | DI down-right; hold | up smash | 47 | 15 | true | true |
-| DI down-right; SDI | forward smash | 35 | 15 | true | true |
+| DI down-right; SDI | forward smash | 33 | 15 | true | true |
 | DI down-right; tech in place | up smash | 47 | 15 | true | true |
 | DI down-right; tech left | up smash | 47 | 15 | true | true |
 | DI down-right; tech right | up smash | 47 | 15 | true | true |
@@ -6828,7 +6828,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 35 | 15 | false | false |
 | DI none; mash | forward smash | 73 | 15 | false | false |
 | DI left; hold | forward smash | 45 | 15 | false | false |
-| DI left; SDI | forward smash | 57 | 15 | false | false |
+| DI left; SDI | forward smash | 51 | 15 | false | false |
 | DI left; tech in place | forward smash | 45 | 15 | false | false |
 | DI left; tech left | forward smash | 45 | 15 | false | false |
 | DI left; tech right | forward smash | 45 | 15 | false | false |
@@ -6837,7 +6837,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | forward smash | 45 | 15 | false | false |
 | DI left; mash | down smash | 81 | 15 | false | false |
 | DI right; hold | forward smash | 35 | 15 | false | false |
-| DI right; SDI | forward smash | 35 | 15 | false | true |
+| DI right; SDI | forward smash | 35 | 15 | false | false |
 | DI right; tech in place | forward smash | 35 | 15 | false | false |
 | DI right; tech left | forward smash | 35 | 15 | false | false |
 | DI right; tech right | forward smash | 35 | 15 | false | false |
@@ -6864,7 +6864,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | forward smash | 35 | 15 | false | false |
 | DI down; mash | forward smash | 73 | 15 | false | false |
 | DI up-left; hold | forward smash | 45 | 15 | false | false |
-| DI up-left; SDI | forward smash | 53 | 15 | false | false |
+| DI up-left; SDI | forward smash | 49 | 15 | false | false |
 | DI up-left; tech in place | forward smash | 45 | 15 | false | false |
 | DI up-left; tech left | forward smash | 45 | 15 | false | false |
 | DI up-left; tech right | forward smash | 45 | 15 | false | false |
@@ -6882,7 +6882,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | forward smash | 85 | 15 | false | false |
 | DI up-right; mash | forward smash | 73 | 15 | false | false |
 | DI down-left; hold | forward smash | 45 | 15 | false | false |
-| DI down-left; SDI | forward smash | 53 | 15 | false | false |
+| DI down-left; SDI | forward smash | 49 | 15 | false | false |
 | DI down-left; tech in place | forward smash | 45 | 15 | false | false |
 | DI down-left; tech left | forward smash | 45 | 15 | false | false |
 | DI down-left; tech right | forward smash | 45 | 15 | false | false |
@@ -6891,7 +6891,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 45 | 15 | false | false |
 | DI down-left; mash | down smash | 81 | 15 | false | false |
 | DI down-right; hold | forward smash | 85 | 15 | false | false |
-| DI down-right; SDI | forward smash | 35 | 15 | false | true |
+| DI down-right; SDI | forward smash | 35 | 15 | false | false |
 | DI down-right; tech in place | forward smash | 85 | 15 | false | false |
 | DI down-right; tech left | forward smash | 85 | 15 | false | false |
 | DI down-right; tech right | forward smash | 85 | 15 | false | false |
@@ -6908,7 +6908,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 35 | 15 | false | false |
-| DI none; SDI | forward smash | 75 | 15 | false | true |
+| DI none; SDI | down smash | 37 | 15 | false | false |
 | DI none; tech in place | forward smash | 35 | 15 | false | false |
 | DI none; tech left | forward smash | 35 | 15 | false | false |
 | DI none; tech right | forward smash | 35 | 15 | false | false |
@@ -6917,7 +6917,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 35 | 15 | false | false |
 | DI none; mash | forward smash | 35 | 15 | true | false |
 | DI left; hold | forward smash | 35 | 15 | false | false |
-| DI left; SDI | forward smash | 55 | 15 | false | true |
+| DI left; SDI | down smash | 41 | 15 | false | true |
 | DI left; tech in place | forward smash | 35 | 15 | false | false |
 | DI left; tech left | forward smash | 35 | 15 | false | false |
 | DI left; tech right | forward smash | 35 | 15 | false | false |
@@ -6926,7 +6926,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | forward smash | 35 | 15 | false | false |
 | DI left; mash | forward smash | 35 | 15 | true | false |
 | DI right; hold | forward smash | 85 | 15 | false | true |
-| DI right; SDI | forward smash | 89 | 15 | false | true |
+| DI right; SDI | forward smash | 85 | 15 | false | true |
 | DI right; tech in place | forward smash | 85 | 15 | false | true |
 | DI right; tech left | down smash | 37 | 15 | false | false |
 | DI right; tech right | down smash | 37 | 15 | false | false |
@@ -6953,7 +6953,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | forward smash | 35 | 15 | false | false |
 | DI down; mash | forward smash | 35 | 15 | true | false |
 | DI up-left; hold | forward smash | 35 | 15 | false | false |
-| DI up-left; SDI | forward smash | 45 | 15 | false | true |
+| DI up-left; SDI | forward smash | 37 | 15 | false | false |
 | DI up-left; tech in place | forward smash | 35 | 15 | false | false |
 | DI up-left; tech left | forward smash | 35 | 15 | false | false |
 | DI up-left; tech right | forward smash | 35 | 15 | false | false |
@@ -6962,7 +6962,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward smash | 35 | 15 | false | false |
 | DI up-left; mash | forward smash | 35 | 15 | true | false |
 | DI up-right; hold | down smash | 37 | 15 | false | false |
-| DI up-right; SDI | forward smash | 87 | 15 | false | true |
+| DI up-right; SDI | forward smash | 85 | 15 | false | true |
 | DI up-right; tech in place | down smash | 37 | 15 | false | false |
 | DI up-right; tech left | down smash | 37 | 15 | false | false |
 | DI up-right; tech right | down smash | 37 | 15 | false | false |
@@ -6971,7 +6971,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | down smash | 37 | 15 | false | false |
 | DI up-right; mash | down smash | 37 | 15 | false | false |
 | DI down-left; hold | forward smash | 35 | 15 | false | false |
-| DI down-left; SDI | forward smash | 45 | 15 | false | false |
+| DI down-left; SDI | forward smash | 37 | 15 | false | false |
 | DI down-left; tech in place | forward smash | 35 | 15 | false | false |
 | DI down-left; tech left | forward smash | 35 | 15 | false | false |
 | DI down-left; tech right | forward smash | 35 | 15 | false | false |
@@ -6980,7 +6980,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 35 | 15 | false | false |
 | DI down-left; mash | forward smash | 35 | 15 | true | false |
 | DI down-right; hold | down smash | 37 | 15 | false | false |
-| DI down-right; SDI | forward smash | 87 | 15 | false | true |
+| DI down-right; SDI | down smash | 37 | 15 | false | false |
 | DI down-right; tech in place | down smash | 37 | 15 | false | false |
 | DI down-right; tech left | down smash | 37 | 15 | false | false |
 | DI down-right; tech right | down smash | 37 | 15 | false | false |
@@ -6997,7 +6997,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | down smash | 37 | 15 | true | true |
-| DI none; SDI | down smash | 37 | 15 | true | true |
+| DI none; SDI | forward smash | 77 | 15 | true | true |
 | DI none; tech in place | forward smash | 75 | 15 | false | false |
 | DI none; tech left | down smash | 81 | 15 | false | false |
 | DI none; tech right | forward smash | 87 | 15 | false | false |
@@ -7006,7 +7006,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | down smash | 37 | 15 | true | false |
 | DI none; mash | down smash | 37 | 15 | true | false |
 | DI left; hold | forward smash | 37 | 15 | true | true |
-| DI left; SDI | forward smash | 47 | 15 | true | true |
+| DI left; SDI | forward smash | 43 | 15 | true | true |
 | DI left; tech in place | down smash | 83 | 15 | false | false |
 | DI left; tech left | down smash | 91 | 15 | false | false |
 | DI left; tech right | forward smash | 79 | 15 | false | false |
@@ -7015,7 +7015,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | forward smash | 37 | 15 | true | false |
 | DI left; mash | forward smash | 37 | 15 | true | false |
 | DI right; hold | down smash | 37 | 15 | true | true |
-| DI right; SDI | forward smash | 37 | 15 | true | true |
+| DI right; SDI | down smash | 37 | 15 | true | true |
 | DI right; tech in place | forward smash | 75 | 15 | false | false |
 | DI right; tech left | forward smash | 87 | 15 | false | false |
 | DI right; tech right | down smash | 81 | 15 | false | false |
@@ -7042,7 +7042,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | down smash | 37 | 15 | true | false |
 | DI down; mash | no follow-up in menu | — | — | — | — |
 | DI up-left; hold | forward smash | 35 | 15 | true | true |
-| DI up-left; SDI | forward smash | 43 | 15 | true | true |
+| DI up-left; SDI | forward smash | 39 | 15 | true | true |
 | DI up-left; tech in place | down smash | 81 | 15 | false | false |
 | DI up-left; tech left | forward smash | 73 | 15 | false | false |
 | DI up-left; tech right | forward smash | 81 | 15 | false | false |
@@ -7051,7 +7051,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward smash | 35 | 15 | true | false |
 | DI up-left; mash | forward smash | 35 | 15 | true | false |
 | DI up-right; hold | down smash | 37 | 15 | true | true |
-| DI up-right; SDI | down smash | 37 | 15 | true | true |
+| DI up-right; SDI | forward smash | 77 | 15 | true | true |
 | DI up-right; tech in place | forward smash | 77 | 15 | false | false |
 | DI up-right; tech left | forward smash | 87 | 15 | false | false |
 | DI up-right; tech right | down smash | 81 | 15 | false | false |
@@ -7060,7 +7060,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | down smash | 37 | 15 | true | false |
 | DI up-right; mash | down smash | 37 | 15 | true | false |
 | DI down-left; hold | forward smash | 35 | 15 | true | false |
-| DI down-left; SDI | forward smash | 41 | 15 | true | true |
+| DI down-left; SDI | forward smash | 39 | 15 | true | false |
 | DI down-left; tech in place | forward smash | 35 | 15 | true | false |
 | DI down-left; tech left | forward smash | 35 | 15 | true | false |
 | DI down-left; tech right | forward smash | 35 | 15 | true | false |
@@ -7069,7 +7069,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 35 | 15 | true | false |
 | DI down-left; mash | no follow-up in menu | — | — | — | — |
 | DI down-right; hold | down smash | 37 | 15 | true | false |
-| DI down-right; SDI | forward smash | 77 | 15 | true | true |
+| DI down-right; SDI | forward smash | 75 | 15 | true | true |
 | DI down-right; tech in place | down smash | 37 | 15 | true | false |
 | DI down-right; tech left | down smash | 37 | 15 | true | false |
 | DI down-right; tech right | down smash | 37 | 15 | true | false |
@@ -7086,7 +7086,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 35 | 15 | true | false |
-| DI none; SDI | down smash | 37 | 15 | true | true |
+| DI none; SDI | forward smash | 79 | 15 | true | true |
 | DI none; tech in place | forward smash | 35 | 15 | true | false |
 | DI none; tech left | forward smash | 35 | 15 | true | false |
 | DI none; tech right | forward smash | 35 | 15 | true | true |
@@ -7095,7 +7095,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 35 | 15 | true | false |
 | DI none; mash | forward smash | 35 | 15 | true | false |
 | DI left; hold | forward smash | 39 | 15 | true | true |
-| DI left; SDI | forward smash | 49 | 15 | true | true |
+| DI left; SDI | forward smash | 43 | 15 | true | true |
 | DI left; tech in place | forward smash | 39 | 15 | true | true |
 | DI left; tech left | forward smash | 39 | 15 | true | true |
 | DI left; tech right | forward smash | 39 | 15 | true | true |
@@ -7104,7 +7104,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | forward smash | 39 | 15 | true | false |
 | DI left; mash | forward smash | 39 | 15 | true | true |
 | DI right; hold | forward smash | 35 | 15 | true | true |
-| DI right; SDI | forward smash | 43 | 15 | true | true |
+| DI right; SDI | forward smash | 37 | 15 | true | true |
 | DI right; tech in place | forward smash | 35 | 15 | true | true |
 | DI right; tech left | forward smash | 35 | 15 | true | true |
 | DI right; tech right | forward smash | 35 | 15 | true | true |
@@ -7113,7 +7113,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI right; air dodge | forward smash | 35 | 15 | true | true |
 | DI right; mash | forward smash | 35 | 15 | true | true |
 | DI up; hold | down smash | 37 | 15 | true | false |
-| DI up; SDI | forward smash | 79 | 15 | true | false |
+| DI up; SDI | down smash | 37 | 15 | true | false |
 | DI up; tech in place | down smash | 37 | 15 | true | false |
 | DI up; tech left | down smash | 37 | 15 | true | false |
 | DI up; tech right | down smash | 37 | 15 | true | false |
@@ -7131,7 +7131,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | forward smash | 73 | 15 | true | true |
 | DI down; mash | no follow-up in menu | — | — | — | — |
 | DI up-left; hold | forward smash | 35 | 15 | true | false |
-| DI up-left; SDI | forward smash | 43 | 15 | true | true |
+| DI up-left; SDI | dash attack | 35 | 9 | true | true |
 | DI up-left; tech in place | forward smash | 35 | 15 | true | false |
 | DI up-left; tech left | forward smash | 35 | 15 | true | false |
 | DI up-left; tech right | forward smash | 35 | 15 | true | false |
@@ -7140,7 +7140,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward smash | 35 | 15 | true | false |
 | DI up-left; mash | forward smash | 35 | 15 | true | false |
 | DI up-right; hold | forward smash | 35 | 15 | true | true |
-| DI up-right; SDI | forward smash | 35 | 15 | true | true |
+| DI up-right; SDI | down smash | 37 | 15 | true | true |
 | DI up-right; tech in place | forward smash | 35 | 15 | true | true |
 | DI up-right; tech left | forward smash | 35 | 15 | true | true |
 | DI up-right; tech right | forward smash | 35 | 15 | true | true |
@@ -7149,7 +7149,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | dash attack | 33 | 9 | true | true |
 | DI up-right; mash | forward smash | 35 | 15 | true | true |
 | DI down-left; hold | forward smash | 35 | 15 | true | true |
-| DI down-left; SDI | forward smash | 41 | 15 | true | true |
+| DI down-left; SDI | forward smash | 37 | 15 | true | true |
 | DI down-left; tech in place | forward smash | 35 | 15 | true | true |
 | DI down-left; tech left | forward smash | 35 | 15 | true | true |
 | DI down-left; tech right | forward smash | 35 | 15 | true | true |
@@ -7158,7 +7158,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 35 | 15 | true | true |
 | DI down-left; mash | no follow-up in menu | — | — | — | — |
 | DI down-right; hold | forward smash | 77 | 15 | true | true |
-| DI down-right; SDI | down smash | 37 | 15 | true | true |
+| DI down-right; SDI | forward smash | 75 | 15 | true | true |
 | DI down-right; tech in place | forward smash | 77 | 15 | true | true |
 | DI down-right; tech left | forward smash | 77 | 15 | true | true |
 | DI down-right; tech right | forward smash | 77 | 15 | true | true |
@@ -7175,7 +7175,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 73 | 15 | true | true |
-| DI none; SDI | up smash | 37 | 15 | true | true |
+| DI none; SDI | forward smash | 73 | 15 | true | true |
 | DI none; tech in place | forward smash | 73 | 15 | true | true |
 | DI none; tech left | forward smash | 73 | 15 | true | true |
 | DI none; tech right | forward smash | 73 | 15 | true | true |
@@ -7184,7 +7184,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 73 | 15 | true | true |
 | DI none; mash | back throw | 88 | 7 | true | true |
 | DI left; hold | forward smash | 39 | 15 | true | true |
-| DI left; SDI | forward smash | 51 | 15 | true | true |
+| DI left; SDI | forward smash | 45 | 15 | true | true |
 | DI left; tech in place | forward smash | 39 | 15 | true | true |
 | DI left; tech left | forward smash | 39 | 15 | true | true |
 | DI left; tech right | forward smash | 39 | 15 | true | true |
@@ -7193,7 +7193,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | forward smash | 39 | 15 | true | true |
 | DI left; mash | forward smash | 39 | 15 | true | true |
 | DI right; hold | forward smash | 39 | 15 | true | true |
-| DI right; SDI | forward smash | 53 | 15 | true | true |
+| DI right; SDI | forward smash | 45 | 15 | true | true |
 | DI right; tech in place | forward smash | 39 | 15 | true | true |
 | DI right; tech left | forward smash | 39 | 15 | true | true |
 | DI right; tech right | forward smash | 39 | 15 | true | true |
@@ -7220,7 +7220,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | down smash | 37 | 15 | true | true |
 | DI down; mash | no follow-up in menu | — | — | — | — |
 | DI up-left; hold | up smash | 37 | 15 | true | true |
-| DI up-left; SDI | up smash | 45 | 15 | true | true |
+| DI up-left; SDI | up smash | 41 | 15 | true | true |
 | DI up-left; tech in place | up smash | 37 | 15 | true | true |
 | DI up-left; tech left | up smash | 37 | 15 | true | true |
 | DI up-left; tech right | up smash | 37 | 15 | true | true |
@@ -7238,7 +7238,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | up smash | 37 | 15 | true | true |
 | DI up-right; mash | up smash | 37 | 15 | true | true |
 | DI down-left; hold | forward smash | 35 | 15 | true | true |
-| DI down-left; SDI | forward smash | 41 | 15 | true | true |
+| DI down-left; SDI | forward smash | 37 | 15 | true | true |
 | DI down-left; tech in place | forward smash | 35 | 15 | true | true |
 | DI down-left; tech left | forward smash | 35 | 15 | true | true |
 | DI down-left; tech right | forward smash | 35 | 15 | true | true |
@@ -7247,7 +7247,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 35 | 15 | true | true |
 | DI down-left; mash | no follow-up in menu | — | — | — | — |
 | DI down-right; hold | forward smash | 77 | 15 | true | true |
-| DI down-right; SDI | down smash | 37 | 15 | true | true |
+| DI down-right; SDI | forward smash | 77 | 15 | true | true |
 | DI down-right; tech in place | forward smash | 77 | 15 | true | true |
 | DI down-right; tech left | forward smash | 77 | 15 | true | true |
 | DI down-right; tech right | forward smash | 77 | 15 | true | true |
@@ -7282,7 +7282,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | down smash | 35 | 15 | false | false |
 | DI left; mash | no follow-up in menu | — | — | — | — |
 | DI right; hold | forward smash | 45 | 15 | false | false |
-| DI right; SDI | forward smash | 45 | 15 | false | true |
+| DI right; SDI | forward smash | 45 | 15 | false | false |
 | DI right; tech in place | forward smash | 45 | 15 | false | false |
 | DI right; tech left | forward smash | 45 | 15 | false | false |
 | DI right; tech right | forward smash | 45 | 15 | false | false |
@@ -7353,7 +7353,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | forward smash | 41 | 15 | false | false |
-| DI none; SDI | forward smash | 41 | 15 | false | true |
+| DI none; SDI | forward smash | 41 | 15 | false | false |
 | DI none; tech in place | forward smash | 41 | 15 | false | false |
 | DI none; tech left | forward smash | 41 | 15 | false | false |
 | DI none; tech right | forward smash | 41 | 15 | false | false |
@@ -7505,7 +7505,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | dash attack | 47 | 9 | true | true |
 | DI up-right; mash | no follow-up in menu | — | — | — | — |
 | DI down-left; hold | forward smash | 49 | 15 | true | true |
-| DI down-left; SDI | forward smash | 49 | 15 | true | false |
+| DI down-left; SDI | forward smash | 49 | 15 | true | true |
 | DI down-left; tech in place | forward smash | 49 | 15 | false | true |
 | DI down-left; tech left | down smash | 83 | 15 | false | false |
 | DI down-left; tech right | forward smash | 61 | 15 | false | true |
@@ -7718,7 +7718,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 35 | 15 | false | false |
 | DI none; mash | forward smash | 35 | 15 | false | false |
 | DI left; hold | forward smash | 45 | 15 | false | false |
-| DI left; SDI | forward smash | 45 | 15 | false | true |
+| DI left; SDI | forward smash | 45 | 15 | false | false |
 | DI left; tech in place | forward smash | 45 | 15 | false | false |
 | DI left; tech left | forward smash | 45 | 15 | false | false |
 | DI left; tech right | forward smash | 45 | 15 | false | false |
@@ -7959,7 +7959,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | forward smash | 51 | 15 | true | true |
 | DI down-left; mash | down air | 70 | 9 | false | false |
 | DI down-right; hold | forward smash | 49 | 15 | true | true |
-| DI down-right; SDI | forward smash | 49 | 15 | true | false |
+| DI down-right; SDI | forward smash | 49 | 15 | true | true |
 | DI down-right; tech in place | forward smash | 49 | 15 | false | true |
 | DI down-right; tech left | forward smash | 61 | 15 | false | true |
 | DI down-right; tech right | down smash | 83 | 15 | false | false |
@@ -8252,7 +8252,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 27 | 15 | true | false |
 | DI none; mash | forward smash | 27 | 15 | true | false |
 | DI left; hold | down smash | 29 | 15 | true | false |
-| DI left; SDI | forward smash | 79 | 15 | false | true |
+| DI left; SDI | down smash | 29 | 15 | true | false |
 | DI left; tech in place | down smash | 29 | 15 | true | false |
 | DI left; tech left | down smash | 29 | 15 | true | false |
 | DI left; tech right | down smash | 29 | 15 | true | false |
@@ -8288,7 +8288,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | forward smash | 27 | 15 | true | false |
 | DI down; mash | forward smash | 27 | 15 | true | false |
 | DI up-left; hold | down smash | 29 | 15 | true | false |
-| DI up-left; SDI | forward smash | 77 | 15 | false | true |
+| DI up-left; SDI | down smash | 29 | 15 | true | false |
 | DI up-left; tech in place | down smash | 29 | 15 | true | false |
 | DI up-left; tech left | down smash | 29 | 15 | true | false |
 | DI up-left; tech right | down smash | 29 | 15 | true | false |
@@ -8297,7 +8297,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | down smash | 29 | 15 | true | false |
 | DI up-left; mash | down smash | 29 | 15 | true | false |
 | DI up-right; hold | forward throw | 82 | 7 | false | true |
-| DI up-right; SDI | forward smash | 29 | 15 | true | true |
+| DI up-right; SDI | forward throw | 82 | 7 | false | true |
 | DI up-right; tech in place | forward throw | 82 | 7 | false | true |
 | DI up-right; tech left | forward throw | 82 | 7 | false | true |
 | DI up-right; tech right | forward throw | 82 | 7 | false | true |
@@ -8395,7 +8395,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-right; air dodge | forward smash | 31 | 15 | true | false |
 | DI up-right; mash | forward smash | 31 | 15 | true | false |
 | DI down-left; hold | forward smash | 27 | 15 | true | true |
-| DI down-left; SDI | forward smash | 27 | 15 | true | true |
+| DI down-left; SDI | forward smash | 27 | 15 | true | false |
 | DI down-left; tech in place | forward smash | 27 | 15 | true | false |
 | DI down-left; tech left | forward smash | 27 | 15 | true | false |
 | DI down-left; tech right | forward smash | 27 | 15 | true | false |
@@ -8421,7 +8421,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | Victim | Best follow-up | Contact frame | Damage | True link | Stock lost |
 | --- | --- | --- | --- | --- | --- |
 | DI none; hold | dash attack | 27 | 9 | true | true |
-| DI none; SDI | forward smash | 29 | 15 | true | true |
+| DI none; SDI | dash attack | 27 | 9 | true | true |
 | DI none; tech in place | dash attack | 27 | 9 | true | true |
 | DI none; tech left | forward smash | 29 | 15 | true | false |
 | DI none; tech right | forward smash | 29 | 15 | true | false |
@@ -8466,7 +8466,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down; air dodge | dash attack | 27 | 9 | true | true |
 | DI down; mash | forward smash | 29 | 15 | true | true |
 | DI up-left; hold | down smash | 31 | 15 | true | false |
-| DI up-left; SDI | dash attack | 59 | 9 | true | true |
+| DI up-left; SDI | down smash | 31 | 15 | true | false |
 | DI up-left; tech in place | down smash | 31 | 15 | true | false |
 | DI up-left; tech left | down smash | 31 | 15 | true | false |
 | DI up-left; tech right | down smash | 31 | 15 | true | false |
@@ -8671,7 +8671,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI down-left; air dodge | down smash | 33 | 15 | false | false |
 | DI down-left; mash | forward smash | 31 | 15 | false | false |
 | DI down-right; hold | forward smash | 41 | 15 | false | false |
-| DI down-right; SDI | forward smash | 41 | 15 | false | true |
+| DI down-right; SDI | forward smash | 41 | 15 | false | false |
 | DI down-right; tech in place | forward smash | 41 | 15 | false | false |
 | DI down-right; tech left | forward smash | 41 | 15 | false | false |
 | DI down-right; tech right | forward smash | 41 | 15 | false | false |
@@ -8706,7 +8706,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI left; air dodge | forward smash | 29 | 15 | true | false |
 | DI left; mash | forward smash | 29 | 15 | true | false |
 | DI right; hold | forward smash | 39 | 15 | true | false |
-| DI right; SDI | forward smash | 39 | 15 | true | true |
+| DI right; SDI | forward smash | 39 | 15 | true | false |
 | DI right; tech in place | forward smash | 39 | 15 | false | false |
 | DI right; tech left | forward smash | 77 | 15 | false | false |
 | DI right; tech right | forward smash | 51 | 15 | false | false |
@@ -8742,7 +8742,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI up-left; air dodge | forward smash | 29 | 15 | true | false |
 | DI up-left; mash | forward smash | 29 | 15 | true | false |
 | DI up-right; hold | forward smash | 35 | 15 | true | false |
-| DI up-right; SDI | forward smash | 35 | 15 | true | true |
+| DI up-right; SDI | forward smash | 35 | 15 | true | false |
 | DI up-right; tech in place | down smash | 39 | 15 | false | false |
 | DI up-right; tech left | forward smash | 77 | 15 | false | false |
 | DI up-right; tech right | down smash | 93 | 15 | false | false |
@@ -8804,7 +8804,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI right; air dodge | forward smash | 43 | 15 | true | false |
 | DI right; mash | forward smash | 43 | 15 | true | false |
 | DI up; hold | forward smash | 35 | 15 | true | true |
-| DI up; SDI | forward smash | 35 | 15 | true | false |
+| DI up; SDI | forward smash | 35 | 15 | true | true |
 | DI up; tech in place | forward smash | 35 | 15 | true | false |
 | DI up; tech left | forward smash | 35 | 15 | true | false |
 | DI up; tech right | forward smash | 35 | 15 | true | false |
@@ -8964,7 +8964,7 @@ down throw: down throw → forward smash; 1 reads; defender scripts: DI down-rig
 | DI none; air dodge | forward smash | 43 | 15 | true | true |
 | DI none; mash | forward smash | 43 | 15 | true | true |
 | DI left; hold | forward smash | 30 | 15 | true | true |
-| DI left; SDI | down smash | 75 | 15 | true | true |
+| DI left; SDI | forward smash | 30 | 15 | true | true |
 | DI left; tech in place | forward smash | 30 | 15 | true | true |
 | DI left; tech left | forward smash | 30 | 15 | true | true |
 | DI left; tech right | forward smash | 30 | 15 | true | true |

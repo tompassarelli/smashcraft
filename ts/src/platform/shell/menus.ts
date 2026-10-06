@@ -10,6 +10,7 @@ import {
 } from "../../game/match/rules";
 import { prepareQuickMatch } from "../../game/shell/devSettings";
 import type { Scenario } from "../../game/shell/build";
+import type { Character } from "../../game/sim/codes";
 import { preparePlaytest } from "../../game/shell/playtest";
 import { nextStage } from "../../game/menu/stageCatalog";
 import { nextSelectableCharacter } from "../../game/sim/heroes/registry";
@@ -82,8 +83,8 @@ export function openSettingsScreen(s: ShellState, slot: ParticipantSlot): void {
 }
 
 /** `-dev quick`: every human's default fighter on the default stage, past both menus. */
-export function startQuickMatch(s: ShellState, stage = 0, scenario: Scenario = s.build.scenario): void {
-  if (prepareQuickMatch(s.game, stage)) {
+export function startQuickMatch(s: ShellState, stage = 0, scenario: Scenario = s.build.scenario, character?: Character): void {
+  if (prepareQuickMatch(s.game, stage, character)) {
     for (const panel of views(s).settings) panel.close();
     startMatch(s, scenario);
   }

@@ -2,8 +2,8 @@
 // come from the packaged asset metadata; each hero registers its own in its
 // presentation (sim/heroes/<hero>Hero.ts). Tables only: pose selection lives in
 // fighterPose.
-import { AttackStyle, Character, GrabAction, LedgeState, SpecialAction } from "../sim/codes";
-import { type HeroClip, type HeroClipTable, type HeroPose, STOCK_FALLBACK_CLIP } from "../sim/heroes/hero";
+import { AttackStyle, Character, GrabAction, LedgeState, PlatformMove, SpecialAction } from "../sim/codes";
+import { type HeroClip, type HeroClipTable, type HeroFollowUpPose, type HeroPose, STOCK_FALLBACK_CLIP } from "../sim/heroes/hero";
 import { heroDefinition } from "../sim/heroes/registry";
 import * as dh from "./demonHunterAssetInfo";
 import * as assets from "./fighterAssetInfo";
@@ -168,6 +168,19 @@ export function clipFor(character: number, pose: HeroPose): HeroClip {
   return characterClips(character)[pose] ?? heroDefinition(character)?.presentation.fallback ?? STOCK_FALLBACK_CLIP;
 }
 
+/**
+ * A platform move plays the ledge clip every fighter's table maps: ascent the
+ * ledge climb, descent the ledge hang it lowers from, and both wraps the
+ * ledge roll around the edge.
+ */
+export function platformClip(character: number, move: PlatformMove): HeroClip {
+  switch (move) {
+    case PlatformMove.ascent: return clipFor(character, "ledgeClimb");
+    case PlatformMove.descent: return clipFor(character, "ledgeHang");
+    default: return clipFor(character, "ledgeRoll");
+  }
+}
+
 export function ledgePose(state: LedgeState): HeroPose {
   switch (state) {
     case LedgeState.climb: return "ledgeClimb";
@@ -287,10 +300,18 @@ const byGrounding = (clips: GroundingClips, grounded: boolean): HeroClip => grou
 
 /**
  * A special's clip. A hero's four specials play its table's grounded or aerial
- * pose. Any other action without its own clip plays the rifleman's blaster,
+ * pose. A follow-up plays its own follow-up pose when the table maps one. Any other action without its own clip plays the rifleman's blaster,
  * aerial when it has an aerial shot's duration.
  */
-export function specialClip(character: number, action: SpecialAction, grounded: boolean, aerialShot: boolean): HeroClip {
+const FOLLOW_UP_POSES: readonly (readonly [grounded: HeroFollowUpPose, air: HeroFollowUpPose])[] = [
+  ["neutralSpecialFollowUp", "neutralSpecialFollowUpAir"], ["sideSpecialFollowUp", "sideSpecialFollowUpAir"],
+  ["upSpecialFollowUp", "upSpecialFollowUpAir"], ["downSpecialFollowUp", "downSpecialFollowUpAir"],
+];
+
+export function specialClip(character: number, action: SpecialAction, grounded: boolean, aerialShot: boolean, followUp = false): HeroClip {
+  const poses = followUp ? FOLLOW_UP_POSES[action - SpecialAction.heroNeutral] : undefined;
+  const own = poses === undefined ? undefined : characterClips(character)[grounded ? poses[0] : poses[1]];
+  if (own !== undefined) return own;
   switch (action) {
     case SpecialAction.heroNeutral: return clipFor(character, grounded ? "neutralSpecial" : "neutralSpecialAir");
     case SpecialAction.heroSide: return clipFor(character, grounded ? "sideSpecial" : "sideSpecialAir");

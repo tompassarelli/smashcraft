@@ -106,7 +106,8 @@ const ARM_RADIUS = 9.0;
 const arm = (x1: number, z1: number, x2: number, z2: number): readonly HurtPart[] => [TORSO, hurtPart(x1, z1, x2, z2, ARM_RADIUS)];
 const SHOULDER_X = 6.0;
 const SHOULDER_Z = 90.0;
-const reach = (handX: number, handZ: number) => arm(SHOULDER_X, SHOULDER_Z, handX, handZ);
+/** The torso with the sword arm reaching to a hand position. */
+export const reach = (handX: number, handZ: number) => arm(SHOULDER_X, SHOULDER_Z, handX, handZ);
 
 const BODY: FighterHurtboxes = {
   stand: [TORSO],

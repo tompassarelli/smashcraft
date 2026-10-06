@@ -1,6 +1,6 @@
 // Conditions over a fighter's state that every system tests: what the fighter
 // is doing, whether it can be hit, and whether it may start an action.
-import { AttackPhase, AttackStyle, DASH_GRAB_REQUEST, DownState, GrabAction, LedgeState, ShieldBreak, SurfaceContact } from "./codes";
+import { AttackPhase, AttackStyle, DASH_GRAB_REQUEST, DownState, GrabAction, LedgeState, PlatformMove, ShieldBreak, SurfaceContact } from "./codes";
 import type { Fighter } from "./fighter";
 import { attackStartupFrames, characterAttackActiveFrames } from "./moves";
 
@@ -91,7 +91,7 @@ function canStartAttack(attacker: Fighter): boolean {
   const { grab, shield } = attacker;
   if (grab.target !== undefined || grab.action !== GrabAction.none) return false;
   if (attacker.status.frozenFrames > 0) return false;
-  if (attacker.ledge.state !== LedgeState.none || attacker.cannon.held !== undefined) return false;
+  if (attacker.ledge.state !== LedgeState.none || attacker.cannon.held !== undefined || attacker.platform.move !== PlatformMove.none) return false;
   const shieldDropAllowsAttack = shield.releaseLag <= 0 || (attacker.motion.grounded && !shield.raised && shield.perfectActionFrames > 0);
   return !attacker.status.out && !attacker.special.fall && attacker.special.lockFrames <= 0 && shield.breakState === ShieldBreak.none
     && (attacker.down.state === DownState.none || isTumbling(attacker)) && grab.grabbedFrames <= 0

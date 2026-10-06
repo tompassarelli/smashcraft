@@ -2,7 +2,8 @@
 // determines whether the elapsed interval advances, freezes or restarts.
 import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
-import { AttackPhase, AttackStyle, Character, DownState, GrabAction, LedgeState, ShieldBreak, SpecialAction } from "../sim/codes";
+import { AttackPhase, AttackStyle, Character, DownState, GrabAction, LedgeState, PlatformMove, ShieldBreak, SpecialAction } from "../sim/codes";
+import { FOLLOW_UP_FORM } from "../sim/heroSpecials";
 import { GROUND_ROLL_FRAMES, SPOT_DODGE_FRAMES, attackPhase, inGrabContext, isForwardGroundRoll, isGroundDodging } from "../sim/conditions";
 import { DOWN_BOUND_FRAMES, DOWN_DAMAGE_FRAMES, DOWN_ROLL_FRAMES, DOWN_STAND_FRAMES, TECH_IN_PLACE_FRAMES, TECH_ROLL_FRAMES } from "../sim/down";
 import type { Fighter } from "../sim/fighter";
@@ -171,7 +172,7 @@ export function advanceFighterPose(
 function advanceJumpClip(pose: FighterPose, f: Readonly<Fighter>, phase: AttackPhase, wasOut: boolean, jumped: boolean): void {
   const busy = f.motion.grounded || f.launch.hitstun > 0 || f.dodge.airDodging || phase !== AttackPhase.none
     || f.special.action !== SpecialAction.none || f.down.state !== DownState.none
-    || f.shield.breakState !== ShieldBreak.none || f.ledge.state !== LedgeState.none;
+    || f.shield.breakState !== ShieldBreak.none || f.ledge.state !== LedgeState.none || f.platform.move !== PlatformMove.none;
   if (busy) pose.jumpAnimationRemaining = 0;
   else if (jumped && !wasOut) {
     pose.doubleJumpAnimation = f.jump.isDouble;
@@ -200,6 +201,12 @@ function selectClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly<Ros
     playIndex(pose, `ledge${f.ledge.state}${catching ? ":catch" : ""}`, index);
     if (catching) return clipRate(dh.DEMON_HUNTER_LEDGE_CATCH_SECONDS, LEDGE_CATCH_FRAMES);
     return illidan && f.ledge.state === LedgeState.hang ? 0.0 : rate;
+  }
+  if (f.platform.move !== PlatformMove.none) {
+    // The whole clip plays over the move, which lasts the jump squat.
+    const platformClip = clips.platformClip(character, f.platform.move);
+    playIndex(pose, `platform${f.platform.move}`, platformClip.index);
+    return clipRate(platformClip.seconds, f.platform.duration);
   }
   if (f.shield.breakState !== ShieldBreak.none) {
     const key = `shieldbreak${f.shield.breakState}`;
@@ -245,7 +252,8 @@ function selectClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly<Ros
     return rate;
   }
   if (f.special.action !== SpecialAction.none && f.launch.hitstun === 0) {
-    playIndex(pose, `special${f.special.action}`, fighterSpecialClip(f).index);
+    // A follow-up replaces the action's remaining frames, so its clip starts over.
+    playIndex(pose, `special${f.special.action}${f.special.form >= FOLLOW_UP_FORM ? "+" : ""}`, fighterSpecialClip(f).index);
     return rate;
   }
   const stateRate = illidan ? selectIllidanAction(pose, f) : selectTableAction(pose, f, table);
@@ -494,7 +502,7 @@ function groundDodgeClip(f: Readonly<Fighter>): HeroClip {
 
 function fighterSpecialClip(f: Readonly<Fighter>): HeroClip {
   const aerialShot = f.special.duration === attackDurationFramesForGrounding(AttackStyle.shot, false);
-  return clips.specialClip(f.character, f.special.action, f.motion.grounded, aerialShot);
+  return clips.specialClip(f.character, f.special.action, f.motion.grounded, aerialShot, f.special.form >= FOLLOW_UP_FORM);
 }
 
 function damageClipPose(reaction: DamagePose): HeroPose {
