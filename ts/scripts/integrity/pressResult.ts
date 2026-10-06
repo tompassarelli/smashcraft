@@ -100,6 +100,8 @@ const summary = {
     gated_clear_of_stops: distribution(measured(gated.filter((start) => start.stall === "none" && (start.afterStall === undefined || start.afterStall > RECOVERY_FRAMES)))),
   },
   gated_local_start: { n: gatedDelays.length, max: gatedMax, missing_first_prediction: gatedMissing },
+  // Gated presses whose first prediction did not start the action: callbacks from capture until the confirmed frame did.
+  gated_shown_only_when_confirmed: distribution(gated.flatMap((start) => (start.confirmedAfter === undefined ? [] : [start.confirmedAfter]))),
   worst_gated_presses: [...gated].sort((a, b) => (b.delay ?? Infinity) - (a.delay ?? Infinity)).slice(0, 20),
   gate,
   passed: Object.values(gate).every(Boolean),

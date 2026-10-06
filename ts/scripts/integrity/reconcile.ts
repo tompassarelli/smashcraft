@@ -89,7 +89,8 @@ export type StallSide = "none" | "opponent" | "own";
 /**
  * One legal press's local start: callbacks from the presser's client
  * capturing it to that client first predicting it. `delay` is undefined when
- * the client recorded no capture or first prediction for it.
+ * the client recorded no capture for it, or its first prediction did not
+ * start the action.
  */
 export interface LocalStart {
   readonly epoch: number;
@@ -99,6 +100,8 @@ export interface LocalStart {
   readonly stall: StallSide;
   /** Frames since the latest earlier stop of either player's process ended, when one had. */
   readonly afterStall: number | undefined;
+  /** When the first prediction did not start the action: callbacks from capture to the confirmed frame that did. */
+  readonly confirmedAfter: number | undefined;
 }
 
 export interface IntegrityResult {
@@ -473,7 +476,7 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
         if (stage === "capture" && values[1] === slot) captures.set(at(values, 2, what), serial);
         if (stage === "action" && values[1] === slot) predicted.set(at(values, 2, what), [serial, at(values, 5, what)]);
       }
-      for (const { stage, values } of local) {
+      for (const { serial, stage, values } of local) {
         if (stage !== "legal" || values[1] !== slot) continue;
         if (values.length !== 6) throw new MalformedEvidence(`${what}: ${values.length} fields`);
         const frame = at(values, 2, what), pressed = at(values, 3, what), legal = at(values, 4, what), started = at(values, 5, what);
@@ -486,14 +489,16 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
         const stall = stallSide(frame);
         if (capture === undefined || prediction === undefined || (prediction[1] & legal) !== legal) {
           missingLocal += popcount(legal);
-          for (let i = popcount(legal); i > 0; i--) localStarts.push({ epoch, slot, frame, delay: undefined, stall, afterStall: afterStall(frame) });
+          // A first prediction that did not start the action shows it only once the confirmed frame replays it.
+          const confirmedAfter = capture === undefined ? undefined : serial - capture;
+          for (let i = popcount(legal); i > 0; i--) localStarts.push({ epoch, slot, frame, delay: undefined, confirmedAfter, stall, afterStall: afterStall(frame) });
           continue;
         }
         // The callback that FIRST executed prediction is compared to the
         // admission callback. A later rollback replay never creates this row.
         for (let i = popcount(legal); i > 0; i--) {
           localDelays.push(prediction[0] - capture);
-          localStarts.push({ epoch, slot, frame, delay: prediction[0] - capture, stall, afterStall: afterStall(frame) });
+          localStarts.push({ epoch, slot, frame, delay: prediction[0] - capture, confirmedAfter: undefined, stall, afterStall: afterStall(frame) });
         }
       }
     }
