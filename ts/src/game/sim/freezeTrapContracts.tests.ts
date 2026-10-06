@@ -229,7 +229,7 @@ test("each fresh press or new stick direction takes eight frames off a freeze, n
   let frame = 5;
   while (target.status.frozenFrames > 0) {
     frame++;
-    step({ grabMashPressed: true, direction: frame % 2 === 0 ? 1 : -1 });
+    step({ grabMashPressed: true, direction: floorMod(frame, 2) === 0 ? 1 : -1 });
   }
   assertEquals(frame, FREEZE_MINIMUM_FRAMES);
   assertGreaterThan(target.status.freezeImmunityFrames, 0);
