@@ -92,7 +92,7 @@ test("an air dodge protects only frames four through twenty-nine", () => {
       attacker.attack.style = AttackStyle.jab;
       attacker.attack.frame = attackStartupFrames(AttackStyle.jab);
       resolveAttacks(testWorld(attacker, fighter));
-      assertEquals(fighter.status.damage, frame >= 4 && frame <= 29 ? 0.0 : 12.0);
+      assertEquals(fighter.status.damage, frame >= 4 && frame <= 29 ? 0.0 : 5.0);
     }
   }
 });
@@ -107,7 +107,7 @@ test("a hit during dodge startup interrupts the dodge's movement", () => {
   attacker.attack.style = AttackStyle.jab;
   attacker.attack.frame = attackStartupFrames(AttackStyle.jab);
   resolveAttacks(testWorld(attacker, fighter));
-  assertEquals(fighter.status.damage, 12.0);
+  assertEquals(fighter.status.damage, 5.0);
   assertFalse(fighter.dodge.airDodging);
   assertEquals(fighter.dodge.airMotionFrames, 0);
   assertGreaterThan(fighter.launch.hitstun, 0);
@@ -129,7 +129,7 @@ test("landing ends dodge protection without removing respawn protection", () => 
   attacker.attack.style = AttackStyle.jab;
   attacker.attack.frame = attackStartupFrames(AttackStyle.jab);
   resolveAttacks(testWorld(attacker, fighter));
-  assertEquals(fighter.status.damage, 12.0);
+  assertEquals(fighter.status.damage, 5.0);
   const respawned = createFighter(Character.archer, 100.0, -1);
   respawned.status.invincible = 20;
   const otherAttacker = createFighter(Character.rifleman, 0.0, 1);

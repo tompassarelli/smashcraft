@@ -30,11 +30,11 @@ test("multipleAttackersKeepIndependentVictimHitWindows", () => {
     world.fighters[slot]!.attack.frame = attackStartupFrames(AttackStyle.jab);
   }
   resolveAttacks(world);
-  assertEquals(world.fighters[3]!.status.damage, 24.0);
+  assertEquals(world.fighters[3]!.status.damage, 10.0);
   world.fighters[0]!.launch.hitlag = 0;
   world.fighters[2]!.launch.hitlag = 0;
   resolveAttacks(world);
-  assertEquals(world.fighters[3]!.status.damage, 24.0);
+  assertEquals(world.fighters[3]!.status.damage, 10.0);
 });
 
 test("oneMeleeSwingCanContactAllThreeOpponents", () => {
@@ -44,7 +44,7 @@ test("oneMeleeSwingCanContactAllThreeOpponents", () => {
   beginFighterAttack(world, 0, AttackStyle.jab, false);
   world.fighters[0]!.attack.frame = attackStartupFrames(AttackStyle.jab);
   resolveAttacks(world);
-  for (let slot = 1; slot <= 3; slot++) assertEquals(world.fighters[slot]!.status.damage, 12.0);
+  for (let slot = 1; slot <= 3; slot++) assertEquals(world.fighters[slot]!.status.damage, 5.0);
 });
 
 test("competingGrabsChooseOneVictimAndThirdPartyHitBreaksLinks", () => {
