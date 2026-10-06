@@ -55,6 +55,11 @@ test("the kept gap follows the plan and the avoided situations", () => {
   // Jumping in, a fighter that avoids close range stops at the near end; shooting keeps the far end.
   assertEquals(keptGap(SPACER, f, target, 0, 0, 0, botChoice), 120.0);
   assertEquals(keptGap(SPACER, f, target, 0, 1, 0, botChoice), 200.0);
+  // A raised shield on the ground draws a plan in to grab, unless it avoids close range.
+  target.shield.raised = true;
+  assertEquals(keptGap(SPACER, f, target, 0, 1, 0, botChoice), 200.0);
+  assertEquals(keptGap({ ...SPACER, avoid: [] }, f, target, 0, 1, 0, botChoice), 0.0);
+  target.shield.raised = false;
   // It keeps its side of the target and stays clear of the edge.
   assertEquals(gameplanGoal(SPACER, f, target, 0, 150.0), 150.0);
   target.motion.x = 2000.0;

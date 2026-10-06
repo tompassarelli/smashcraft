@@ -236,6 +236,8 @@ Standing grab 8/2/25, reach 0.50H. Pummel: helmet headbutt.
 - Mountain King's hurt volumes add the arm, leg or boots behind each normal from late startup through early recovery; hammer and axe stay outside them.
 - The stock model has thirteen usable sequences and no jump, hit, dodge, ledge or grab clips: hits play the opening of Death, jumps and techs the opening of Stand - 3, ledge and grab holds a held Stand Ready.
 
+**Gameplan** (smashcraft:ts/src/game/sim/heroes/mountainKingGameplan.ts, #105): he keeps 0.6-1.0H, at Axe Hook's tip, spacing with Axe Hook and Boot and Axe and covering his slow approach with Storm Bolt from 1.5H out; he shoots or runs in with grab, Boot and Axe and Dwarf Charge, never jumps in, and meets an attack with his shield or a spot dodge. Boot and Axe, Hammer Lift and the down throw start his strings; Mountain Breaker, Twin Lift, Backhand Axe and the back throw finish. His limited air drift is the weakness he plays around: he fights on the ground and keeps his spot 160 units inside the edge, so a launch leaves the shortest way back, and returns to the ledge with his jump before Thunder Leap.
+
 ## Warden
 
 **Identity:** light, mobile precision fighter using crescent blades and a punishable blink. Her escape options cost space and commitment; they cannot erase a bad attack. Fan of Knives gives close coverage rather than full-screen zoning.
@@ -488,6 +490,8 @@ grab, pummel and side special reuse "Attack - 1", so the drawn hammer swings
 while the gauntlet strikes. Down smash's back half and Rearward Boot have no
 matching clip ("Attack - 2" and "Stand Hit" play). utherClips.ts lists the
 sequence table and every pose's clip.
+
+**Gameplan** (smashcraft:ts/src/game/sim/heroes/utherGameplan.ts, #105): he holds 0.9-1.3H, at Hammer Sweep's tip, spacing with Hammer Sweep and Low Judgment and making the target come to him with Holy Bolt from 1.7H out; he shoots, or walks in only for Hammer Sweep or a grab. He answers an attack with Divine Guard as often as with his shield and spot dodge together. Low Judgment, Guiding Light and the up throw start his strings; Final Judgment, Holy Hammer and Beacon Strike finish. His weak chase is the weakness he plays around: he never follows a target overhead, keeps off the edge and returns to the ledge with his jump before Ascension.
 
 ## Dreadlord
 

@@ -4,6 +4,7 @@ import { Character } from "../codes";
 import type { HeroDefinition } from "./hero";
 import { UTHER_CLIPS, UTHER_FALLBACK_CLIP } from "./utherClips";
 import { UTHER_MOVES } from "./utherMoves";
+import { UTHER_GAMEPLAN } from "./utherGameplan";
 import { UTHER_SPECIALS } from "./utherSpecials";
 
 export const UTHER_HERO: HeroDefinition = {
@@ -14,6 +15,7 @@ export const UTHER_HERO: HeroDefinition = {
   complete: true,
   moves: UTHER_MOVES,
   specials: UTHER_SPECIALS,
+  gameplan: UTHER_GAMEPLAN,
   presentation: {
     model: "units\\human\\HeroPaladin\\HeroPaladin.mdl",
     scale: 1.0,
