@@ -6,7 +6,8 @@
   },
   "include": [
     "node_modules/wisp/src/natives/warcraft.d.ts",
-    "scripts/wisp/perfLua.ts"
+    "scripts/wisp/perfLua.ts",
+    "scripts/wisp/botMatch.ts"
   ],
   "exclude": [],
   "tstl": {

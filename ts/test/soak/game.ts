@@ -459,6 +459,7 @@ export default defineSoakGame({
         helpers.service(clients);
       },
       ...view,
+      typed: (slot) => helpers.typed.get(slot) ?? 0,
       observe: (client) => {
         const seen = view.observe(client);
         record?.(client, seen.over);

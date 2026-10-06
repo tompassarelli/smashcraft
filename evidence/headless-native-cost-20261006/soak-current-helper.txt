@@ -1,0 +1,4 @@
+  cost after frame 315: 2 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p0's frame 37, 115.5 ms then 115.2 ms
+  cost after frame 256: 8 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p0's frame 112, 99.5 ms then 99.6 ms
+12 matches, 5,951 frames (1.7 game minutes) in 3.0 s with 2 workers (2 started): 34x real time, 15.0 s CPU
+costliest client frame 19.6 ms; 2 findings (cost) in 2 matches, repro files in /tmp/claude-1000/-home-tom-code-smashcraft/025c4a93-ad00-4198-9ec6-9ef9a1cccd8e/scratchpad/hf/soak-normal
