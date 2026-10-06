@@ -556,8 +556,11 @@ From smashcraft:ts/:
   smashcraft:ts/ files nothing imports or names, and smashcraft:tools/ files no
   live document or source names, and exits 1 if any remain. Map bundle entries'
   exports count as used; references from smashcraft:evidence/ do not. About 10 s.
-- `bun scripts/cpuField.ts [--variants N] [--stocks N] [--minutes N]
-  [--json FILE] [--fighters a,b]`: the computer against the field (#105).
+- `bun scripts/cpuField.ts [--variants N | --per-pair N] [--stocks N]
+  [--minutes N] [--json FILE] [--fighters a,b]`: the computer against the
+  field (#105). `--per-pair N` plays spawn variants until every pair has at
+  least N matches (#105 box 3 uses 100); the matchup matrix shows each
+  win rate with its match count and counts the matchups inside 45-55%.
   Every ordered pair of different selectable fighters, both computers, on
   every soak stage, played in process through frame capture and execution
   (3 stocks, 4-minute clock by default). The computer is deterministic, so
