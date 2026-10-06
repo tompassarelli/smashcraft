@@ -4,6 +4,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { idiv, imod } from "wisp/src/sim/intMath";
 import { Character } from "../sim/codes";
 import { MENU_FONT, createBackdrop, createText, gameUi, placeTopLeft } from "./frames";
+import { manaLabel, manaReadout } from "./manaReadout";
 
 const STOCK_ICONS = 9;
 
@@ -52,6 +53,10 @@ export class FighterHud {
   private readonly damage: framehandle;
   private readonly name: framehandle;
   private readonly slotLabel: framehandle;
+  /** Above the plate: mana, or a moment's notice that a special lacked it. */
+  private readonly mana: framehandle;
+  private readonly manaState = manaReadout();
+  private shownMana: string | undefined;
   private readonly stocks: readonly framehandle[];
   /** The frames that show and hide with the plate; stock icons also follow the stock count. */
   private readonly body: readonly framehandle[];
@@ -84,6 +89,10 @@ export class FighterHud {
     BlzFrameSetFont(this.slotLabel, MENU_FONT, f32(0.008), 1);
     BlzFrameSetText(this.slotLabel, `P${I2S(slot + 1)}`);
     BlzFrameSetEnable(this.slotLabel, false);
+    this.mana = createText(`FighterHUDMana${suffix}`, parent, context + 5 + STOCK_ICONS);
+    BlzFrameSetFont(this.mana, MENU_FONT, f32(0.009), 1);
+    BlzFrameSetTextAlignment(this.mana, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER);
+    BlzFrameSetEnable(this.mana, false);
     const stocks: framehandle[] = [];
     for (let index = 0; index < STOCK_ICONS; index++) {
       const icon = createBackdrop(`FighterHUDStock${suffix}_${I2S(index)}`, parent, context + 5 + index);
@@ -92,7 +101,7 @@ export class FighterHud {
       stocks.push(icon);
     }
     this.stocks = stocks;
-    this.body = [this.plate, this.portrait, this.damage, this.name, this.slotLabel];
+    this.body = [this.plate, this.portrait, this.damage, this.name, this.slotLabel, this.mana];
     this.layout(slot, count);
     this.update(false, Character.archer, 0.0, 0);
   }
@@ -116,10 +125,18 @@ export class FighterHud {
     placeTopLeft(this.name, x + width * f32(0.37), f32(0.052));
     BlzFrameSetSize(this.name, width * f32(0.6), f32(0.016));
     placeTopLeft(this.slotLabel, x + f32(0.004), f32(0.05));
+    placeTopLeft(this.mana, x, f32(0.155));
+    BlzFrameSetSize(this.mana, width, f32(0.014));
     this.stocks.forEach((icon, index) => placeTopLeft(icon, x + width * f32(0.38) + index * f32(0.013), f32(0.029)));
   }
 
-  update(visible: boolean, character: Character, damage: number, stocks: number): void {
+  /** `mana` is undefined for a fighter without it; `manaDenials` counts specials it could not afford. */
+  update(visible: boolean, character: Character, damage: number, stocks: number, mana?: number, manaDenials = 0): void {
+    const shownMana = manaLabel(this.manaState, mana, manaDenials);
+    if (this.shownMana !== shownMana) {
+      this.shownMana = shownMana;
+      BlzFrameSetText(this.mana, shownMana);
+    }
     if (this.shownVisible !== visible) {
       this.shownVisible = visible;
       for (const frame of this.body) BlzFrameSetVisible(frame, visible);
