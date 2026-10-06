@@ -16,7 +16,6 @@ const Event = Schema.Struct({
   pressed_monotonic_ns: Schema.optional(Schema.Number),
   publications: Schema.optional(Schema.Array(Publication)),
 });
-export type BotEvent = typeof Event.Type;
 const Settings = Schema.Struct({ clients: Schema.Array(Schema.Struct({ name: Schema.String, pid: Schema.Number })) });
 const Edge = Schema.Struct({
   phase: Schema.String,
