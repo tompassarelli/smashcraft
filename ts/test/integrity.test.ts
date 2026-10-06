@@ -307,12 +307,13 @@ test("xpad pads press X for special, Y for jump, and stick-up only as up", () =>
 
  test("bot sessions enable automatic rematch and wait for the second game without selection or a Start press", async () => {
   const bot = recordingRig(gameFiles, "3 Stock 7:00 Automatic rematch: Off Player 2 wins!");
-  await Effect.runPromise(journey(bot.rig, { ...R8, build: "typescript-integrity", workload: "bot" }).run);
+  await Effect.runPromise(journey(bot.rig, { ...R8, build: "typescript-integrity", workload: "bot", botPerf: true }).run);
   expect(bot.trace).toContain("type a -dev rematch 20");
   expect(bot.trace).toContain("ui b click 656 690");
   expect(bot.trace.some(line => line.includes("menu-match-2-start") || line.includes("menu-match-2-stage"))).toBe(false);
   const firstEnd = bot.trace.indexOf("event end");
   const secondStart = bot.trace.indexOf("event start", bot.trace.indexOf("event start") + 1);
+  expect(bot.trace.indexOf("type a -dev perf")).toBeGreaterThan(secondStart);
   expect(bot.trace.slice(firstEnd, secondStart).some(line => line.includes("menu-results-confirm") || line.includes("menu-character"))).toBe(false);
   expect(bot.events.filter(event => event.event === "start" || event.event === "end").map(event => [event.event, event.epoch])).toEqual([["start", 1], ["end", 1], ["start", 2], ["end", 2]]);
 });

@@ -38,6 +38,13 @@ SmashWiki records complaints about Quickplay failing to honor preferred rules,
 which supports showing the actual shared rules here. These sources do not
 establish a community consensus on automatic restarts.
 
+For a quick reset during practice, SmashWiki describes the Smash series'
+**Reset** control: it sends fighters to their original spawn points and restores
+damage. In Ultimate it also restores stage state, removes items and restarts
+the music; random events repeat. That is a practice reset, distinct from
+finishing and repeating a competitive match. Source: [Training Mode,
+Reset](https://www.ssbwiki.com/Training_Mode#Training_options).
+
 ## Smashcraft's choice
 
 Use **Automatic rematch**, not “Friendlies” or “Salty Runback”: it names what

@@ -33,7 +33,7 @@ The session has a match and a rematch:
 - On a development or integrity build, each match exports its response
   pages after its trace, so its presses can be reconciled like #26's.
 - `--bot-four` leaves the rematch undisturbed and types `-dev perf` into
-  client A during its countdown, so the frame-cost overlay shows a four-fighter match
+  client A just after its automatic start, so the frame-cost overlay shows a four-fighter match
   (development and integrity builds only).
 - `--bot-perf` does the same with the three fighters of `--bot`, so a
   session measures both the matches `bun wisp perf bot` and `perf bot-four`

@@ -609,12 +609,6 @@ export function journey(rig: RigShape, options: JourneyOptions) {
         yield* devCommand(epoch, `-dev rb ${window}`, ` rb=${window} `);
       }
 
-      if (bot && (options.botFour === true || options.botPerf === true) && !odd) {
-        // The frame meter registers its toggle at the first match start; its overlay shows on A for the rematch.
-        yield* rig.key(0, "Return");
-        yield* rig.type(0, PERF_TOGGLE);
-        yield* rig.key(0, "Return");
-      }
       const traceAfterNs = yield* rig.realtimeNs;
       // Ctrl+G only enables the diagnostic trace; the pads choose, start and rematch.
       if (!playable && diagnosticBuild) yield* rig.key(0, "ctrl+g");
@@ -623,6 +617,12 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       yield* rig.until(`epoch ${epoch}: game-controlled start absent`, Effect.forEach(SLOTS, (client) => rig.file(client, start(client))).pipe(Effect.map((files) => files.every(complete))));
       const started = yield* boundaries(start);
       yield* rig.record({ event: "start", epoch, publications: started, observed_monotonic_ns: yield* rig.monotonicNs });
+      if (bot && (options.botFour === true || options.botPerf === true) && !odd) {
+        // The frame meter registers its toggle at the first match start; its overlay shows on A for the rematch.
+        yield* rig.key(0, "Return");
+        yield* rig.type(0, PERF_TOGGLE);
+        yield* rig.key(0, "Return");
+      }
       const deadline = Math.max(...started.map((publication) => publication.publication_monotonic_estimate_ns)) + 300_000_000;
       yield* rig.sleep(Math.max(0, (deadline - (yield* rig.monotonicNs)) / 1_000_000));
       yield* rig.sleep(700);
