@@ -119,7 +119,7 @@ test("bothArcherArrowKindsPreserveReactionMovementAndActionState", () => {
     target.down.frame = 3;
     target.status.frozenFrames = 20;
     updateProjectiles(testWorld(owner, target));
-    assertEquals(target.status.damage, kind === ProjectileKind.arrow ? 7.0 : 4.0);
+    assertEquals(target.status.damage, kind === ProjectileKind.arrow ? 7.0 : 3.0);
     assertEquals(target.motion.grounded, false);
     assertEquals(target.motion.vx, 3.0);
     assertEquals(target.motion.vz, -4.0);

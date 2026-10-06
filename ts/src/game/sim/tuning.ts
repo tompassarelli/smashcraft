@@ -131,7 +131,7 @@ type OriginalFighter = "archer" | "rifleman" | "demonHunter";
 /** Defaults for the original roster, never a reference-character selector. */
 export const AUTHORED_PHYSICS: { readonly [name in OriginalFighter]: FighterPhysics } = {
   archer: {
-    weight: 75.0,
+    weight: 68.0,
     gravity: melee(0.23000000417232513),
     terminalSpeed: melee(2.799999952316284),
     fastFallSpeed: melee(3.4000000953674316),
@@ -217,8 +217,11 @@ export function authoredPhysics(character: Character): FighterPhysics {
   }
 }
 
+/** The reference body's weight, 1.00 in the roster's table; Archer herself is lighter (#105). */
+const REFERENCE_WEIGHT = 75.0;
+
 /**
- * An expansion hero's physics: Archer's, with the roster's weight, run and
+ * An expansion hero's physics: Archer's, with the roster's weight (of REFERENCE_WEIGHT), run and
  * air-speed multipliers. Jumps and gravity stay the reference's.
  */
 function heroPhysics(character: Character): FighterPhysics {
@@ -227,7 +230,7 @@ function heroPhysics(character: Character): FighterPhysics {
   if (body === undefined) return reference;
   return {
     ...reference,
-    weight: f32(reference.weight * body.weight),
+    weight: f32(REFERENCE_WEIGHT * body.weight),
     dashSpeed: f32(reference.dashSpeed * body.run),
     runSpeed: f32(reference.runSpeed * body.run),
     walkSpeed: f32(reference.walkSpeed * body.run),

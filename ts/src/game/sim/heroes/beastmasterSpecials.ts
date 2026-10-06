@@ -30,15 +30,15 @@ const throwingAxe = (air: boolean): AuthoredSpecial => ({
 
 /**
  * The bear: follows 0.8H behind him at 0.035H a frame on its own deck, lunges
- * 1.2H only on his order (12 frames of warning, a 4-frame bite, 30 of
+ * 1.2H only on his order (10 frames of warning, a 4-frame bite, 30 of
  * recovery), is stunned 18 frames by a hit mid-lunge, and leaves after 120
  * frames more than 6H from him.
  */
 export const BEAR: SpecialCompanion = {
   followSpeed: h(f32(0.035)), followBehind: h(f32(0.8)), returnSpeed: h(f32(0.06)),
-  lungeStartup: 12, lungeActive: 4, lungeRecovery: 30, lungeTravel: h(f32(1.2)),
+  lungeStartup: 10, lungeActive: 4, lungeRecovery: 30, lungeTravel: h(f32(1.2)),
   bite: capsule(15.0, 30.0, f32(h(f32(0.45)) - 20.0), 40.0, 20.0),
-  biteEffect: hit(14.0, "EDGE", 40, 1.0, HitElement.normal),
+  biteEffect: hit(16.0, "EDGE", 40, 1.0, HitElement.normal),
   stunFrames: 18, leash: h(6.0), leashFrames: 120,
 };
 

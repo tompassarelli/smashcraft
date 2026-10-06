@@ -242,7 +242,7 @@ commitment).
 
 Black Temple's Eye Blast is a beam swept along the floor. Startup 6 and
 total 36 as before; active 3 → 10. **The charge decides:** released with
-under 20 frames of charge it is the glaive swing it was (12%, reach 195, on
+under 20 frames of charge it is the glaive swing it was (10% after #105 pass 3, was 12%; reach 195, on
 active frames 1–3). Held 20 frames or more (his eyes glow fel green while
 charging, the read), the beam sweeps out along the floor: active frames
 1–10, reaching 195 on frame 1 and 50 further each frame to 645 on frame 10,
@@ -286,7 +286,7 @@ Tom (7 Oct): forward air multi-hits. Startup 5 and total 31 as before;
 active 2 → 6. Active frames 1–2: the **link**, both glaives crossing out to
 175: 3%, a fixed small knockback pulling slightly in and up (105°, base 30,
 growth 10), drain 1. Frames 5–6: the **launcher**, the cross opening to 150:
-5% at 40° (base 18, growth 85), drain 4. 8% in all (was 6). The link's
+4% at 40° (base 18, growth 85), drain 4. 7% in all (was 6; 8% before #105 pass 3). The link's
 knockback barely grows, so both hits connect at 0, 50 and 100%.
 
 Counterplay: the launcher reaches 25 less than the link, so a fighter caught

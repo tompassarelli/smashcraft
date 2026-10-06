@@ -55,7 +55,7 @@ const near = (actual: number, expected: number, tolerance: number) => assertTrue
 
 test("Uther's specials spend their listed mana once and end on their listed frames", () => {
   for (const [input, action, cost, end] of [
-    [neutral, SpecialAction.heroNeutral, 10, 66],
+    [neutral, SpecialAction.heroNeutral, 10, 56],
     [side, SpecialAction.heroSide, 20, 47],
     [up, SpecialAction.heroUp, 15, 29],
     [down, SpecialAction.heroDown, 25, 36],

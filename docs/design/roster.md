@@ -149,7 +149,7 @@ The individual hero sections below specify all attacks. Their counterplay descri
 | Input | Proposed move and behavior | Timing and cost |
 | --- | --- | --- |
 | Neutral B | **Wind Cutter:** short traveling blade wave. 6 damage, POKE at 35 degrees; speed 0.14H/frame, life 24 frames, radius 0.16H. Reflectable; only one owned wave at a time. | Spawn f18, action ends f40; 0 mana |
-| Side B | **Wind Walk** (#124, smashcraft:docs/design/kit-review-1.md): a 7-frame fade, then a 2.2H walk that passes bodies and stops at a raised shield. In f10–31 an attack press is **Backstab**, a slash for 10 damage at 40 degrees, EDGE, toward the held stick (back turns him: the cross-up); a special press steps out; nothing recovers. No invisibility or invulnerability. In air once per airtime, then helpless. | Walk f8–31, end f44; Backstab active f6–8 of its press, end f38; step out ends 8 frames after its press; 18 mana |
+| Side B | **Wind Walk** (#124, smashcraft:docs/design/kit-review-1.md): a 7-frame fade, then a 2.2H walk that passes bodies and stops at a raised shield. In f10–31 an attack press is **Backstab**, a slash for 12 damage at 40 degrees, EDGE, toward the held stick (back turns him: the cross-up); a special press steps out; nothing recovers. No invisibility or invulnerability. In air once per airtime, then helpless. | Walk f8–31, end f44; Backstab active f6–8 of its press, end f30; step out ends 8 frames after its press; 18 mana |
 | Up B | **Rising Blade:** upward sword leap, 2.0H maximum ascent and 0.5H lateral travel; one hit for 9 damage at 80 degrees, LAUNCH. No intangibility. Mana-free version travels 1.4H with no attack. | Starts f7, hit f7–12, movement through f25, then helpless; 15 mana |
 | Down B | **Mirror Image** (#124): after a visible tell, an image stays where he stood (one hit of any kind shatters it; 150 frames) and he steps 1.0H back (down with a side turns him to that side first). Down special while the image stands **swaps**: he takes the image's place facing its way and slashes for 10 damage at 40 degrees, EDGE. The image never attacks; no intangibility. | Image and step f8, end f24, 15 mana; swap f6, slash f8–10, end f30, free |
 
@@ -450,7 +450,7 @@ the tables:
 
 | Input | Proposed move and behavior | Timing and cost |
 | --- | --- | --- |
-| Neutral B | **Holy Light** (#131, [kit review 2](kit-review-2.md#uther-131)): aimed straight or 30 degrees up by holding up on entry; speed 0.11H/frame out for 26 frames, then back toward Uther's chest at the same speed; life 80, radius 0.17H, one active. Outbound 5 damage, POKE at 40 degrees; returning 5 damage, POKE toward Uther. Reaching Uther untouched restores 3 percent, at most 9 a stock. A reflected orb flies straight. | Spawn f20, end f66; 10 mana |
+| Neutral B | **Holy Light** (#131, [kit review 2](kit-review-2.md#uther-131)): aimed straight or 30 degrees up by holding up on entry; speed 0.11H/frame out for 26 frames, then back toward Uther's chest at the same speed; life 80, radius 0.17H, one active. Outbound 5 damage, POKE at 40 degrees; returning 5 damage, POKE toward Uther. Reaching Uther untouched restores 3 percent, at most 9 a stock. A reflected orb flies straight. | Spawn f20, end f56; 10 mana |
 | Side B | **Crusader Rush:** advance 0.9H with a hammer check, 11 damage at 45 degrees, LAUNCH. Armor against one hit of at most 5 damage only on f12–15; grabs ignore it. Air version has no armor, no rise, and ends helpless. | Active/movement f12–17, R30; 20 mana |
 | Up B | **Ascension:** rising hammer leap, 1.9H rise and 0.45H horizontal drift; one 8-damage hit, LAUNCH at 80 degrees. Free version 1.3H without hitbox. | Hit f10–15, travel through f29, then helpless; 15 mana |
 | Down B | **Divine Shield** (#131): ground-only timed stance, intangible f6–9, vulnerable otherwise, no automatic counter. A damaging melee or projectile hit overlapping it on those frames raises Divine Shield: 45 frames in which strikes and projectiles pass through Uther; starting an attack, special or grab ends it. Grabs beat both the guard and the shield. No healing. | End f36; 25 mana. Air version fails without spending |
@@ -584,7 +584,7 @@ Standing grab 7/3/26, reach 0.65H. Pummel: claw squeeze. No automatic lifesteal.
 | Input | Proposed move and behavior | Timing and cost |
 | --- | --- | --- |
 | Neutral B | **Spirit Glaive** (#133, [kit review 2](kit-review-2.md#shadow-hunter-133)): a returning glaive, speed 0.12H/frame out for 22 frames, then back toward Shadow Hunter at the same speed; life 70, radius 0.15H, one active, reflectable (a reflected glaive flies straight). Outbound 6 damage, POKE at 35 degrees; returning 5 damage, POKE toward him. Caught, it ends. | Spawn f18, end f40; 0 mana |
-| Side B | **Serpent Ward:** ground-only placement 0.65H ahead; one ward, 20 durability, 240-frame life. It fires straight in its placement-facing direction at age 45, 85, 125, 165 and 205, never auto-aiming. Shots: 6 damage, POKE at 35 degrees, speed 0.10H/frame, life 36, radius 0.12H, reflectable. Recasting with a ward active recalls it after the same vulnerable animation, costs 0, and grants no refund. | Ward appears f26, action ends f52; initial cast 20 mana |
+| Side B | **Serpent Ward:** ground-only placement 0.65H ahead; one ward, 26 durability, 240-frame life. It fires straight in its placement-facing direction at age 45, 85, 125, 165 and 205, never auto-aiming. Shots: 6 damage, POKE at 35 degrees, speed 0.10H/frame, life 36, radius 0.12H, reflectable. Recasting with a ward active recalls it after the same vulnerable animation, costs 0, and grants no refund. | Ward appears f26, action ends f52; initial cast 20 mana |
 | Up B | **Loa Vault:** a spirit-assisted arc 2.0H high and 0.6H lateral, no hitbox or intangibility. Free version 1.4H and 0.3H lateral. | Movement f8–30, then helpless; 15 mana |
 | Down B | **Hex** (#133): short visible orb, speed 0.07H/frame, life 26, radius 0.18H. 2 damage, POKE at 40 degrees. For 50 frames the target cannot attack, grab or start neutral, side or down specials, but keeps movement, jump, shield, dodges, DI and up special (recovery). It mashes out with the grab and freeze rule, never before frame 20. No hurtbox change. 240-frame hex immunity after it ends. Reflectable; one active. | Spawn f24, end f53; 25 mana |
 
@@ -858,7 +858,7 @@ Standing grab 9/2/27, reach 0.65H, short tail coil. No dragging or moving hold. 
 | Input | Proposed move and behavior | Timing and cost |
 | --- | --- | --- |
 | Neutral B | **Throwing Axe:** straight thrown axe, 9 damage, POKE at 40 degrees, speed 0.11H/frame, life 28, radius 0.17H, one active and reflectable. No boomerang return. | Spawn f20, end f39; 0 mana |
-| Side B | **Bear Command:** without a bear, ground-only summon at 0.6H ahead, 30 durability and 600-frame life. With a bear, issue a lunge in owner-facing direction: travel 1.2H, bite for 14 damage, EDGE at 40 degrees. Owner commits to command animation; commands fail while bear is attacking or stunned. Bear cannot attack during owner hitstun and does not auto-counter a combo. | Summon f30, end f56, cost 25. Command end f24, cost 8; bear startup 12, active 4, recovery 30 |
+| Side B | **Bear Command:** without a bear, ground-only summon at 0.6H ahead, 30 durability and 600-frame life. With a bear, issue a lunge in owner-facing direction: travel 1.2H, bite for 16 damage, EDGE at 40 degrees. Owner commits to command animation; commands fail while bear is attacking or stunned. Bear cannot attack during owner hitstun and does not auto-counter a combo. | Summon f30, end f56, cost 25. Command end f24, cost 8; bear startup 10, active 4, recovery 30 |
 | Up B | **Hawk Lift:** a cosmetic hawk lifts Beastmaster 2.0H with 0.5H drift. No independent hawk AI or attack. Free version 1.4H. | Lift f10–32, then helpless; 15 mana |
 | Down B | **Bear Recall or Quilbeast Dart:** with a bear, recalls it along the ground toward the owner at 0.06H/frame, cancelling only its idle/follow state; no teleport, attack, invulnerability, or durability reset. Without a bear, throw one short quill at speed 0.14H/frame, life 20, radius 0.10H; 4 damage, POKE at 35 degrees, reflectable. | Recall action 20 frames, 0 mana. Dart spawn f18, end f40, 3 mana |
 
@@ -889,7 +889,7 @@ use provisional coefficients. Deliberate differences:
 
 - The bear is his placed object with a `companion` record. Side special
   summons it (25 mana, ground only). While it stands, side special is Bear
-  Command (8 mana): the bear lunges the way he faces after 12 frames of
+  Command (8 mana): the bear lunges the way he faces after 10 frames of
   warning, with a 4-frame bite. Down special is Bear Recall (free), and the
   Quillbeast Dart only when no bear stands. A lunge order refuses, spending
   nothing, while the bear is lunging or stunned.
@@ -1023,7 +1023,7 @@ tilt is the exception), so physics and specials carry their identities.
 ### Archer
 
 **Identity:** a hit-and-run archer: the fastest run (13.20) and jump start
-(3 frames) on the lightest body (weight 75). Arrows and the homing arrow add damage
+(3 frames) on the lightest body (weight 68; the roster table's 1.00 is 75). Arrows and the homing arrow add damage
 from range without hitstun or interruption. Her spaced fade-back forward air
 is safe on shield. One hippogryph serves both remaining specials
 ([Archer's hippogryph specials](archer-specials.md)): her down special calls
@@ -1072,8 +1072,8 @@ avoids close range.
 
 **Identity:** the original fighter with the highest air speed and the
 longest glaives (forward and back air reach 175 units, forward smash 195).
-He reaches farther and deals less: forward and back air 6 damage, forward
-smash 12, both at 85 knockback growth, and his smashes start from 20 base
+He reaches farther and deals less: the twin-glaive forward air 3 + 4, back air 6, forward
+smash 10, all at 85 knockback growth, and his smashes start from 20 base
 knockback like everyone's ordinary hits. Every hit he lands drains the
 target's mana, more for big hits and combo enders, and his side special is
 Fel Rush ([Illidan](illidan.md), #147). **Weakness:** his light hits make
@@ -1193,6 +1193,26 @@ Pit Lord's rate barely moves with his own recovery: Annihilating Cleave
 armor, each left him at 70% in row probes. The computer answers threats
 but never times an attack into an opponent's recovery, so a slow swing
 costs nothing against it; his CPU rate measures that gap as much as his kit.
+
+Pass 3, after the computer learned to punish whiffs (#157, measured on its
+first version 5de334c9, 100 a pair). Whiff punishing reshuffled the field:
+Illidan's long glaives punish from range, and Blademaster and Beastmaster
+lost the most (whiff punish → after pass 3):
+
+| Fighter | Lever (identity) | Whiff punish | After pass 3 |
+| --- | --- | --- | --- |
+| Illidan | reaches farther, deals less: twin-glaive launcher 5→4, forward smash 12→10 | 67%, 1% | 57%, 1% |
+| Blademaster | whiff punisher, now punished himself: Backstab back to 12 damage, end f30 | 38%, 5% | 46%, 4% |
+| Beastmaster | bear coordination: lunge startup 12→10, bite 14→16 | 38%, 6% | 44%, 5% |
+| Uther | Holy Light end f66→f56 (whiff punish makes the long end costly on its own) | 41%, 4% | 50%, 3% |
+| Shadow Hunter | Serpent Ward durability 20→26 | 41%, 1% | 42%, 1% |
+| Archer | her weight is her weakness: 75→68 (heroes keep the 75 reference); homing arrow 4→3 | 73%, 1% | 69%, 1% (her row alone, 40 a pair) |
+
+Matchups: whiff punish alone 9 of 66 inside 45-55%, 31 intervals
+overlapping, median 16.5 points; after pass 3 (before the Archer change)
+11, 27, 17.0. Field rates moved toward even (mean distance from 50%
+9.8 → 7.1 points) while the matchup median stayed put: at level 9 the
+computers turn a small edge in one matchup into a lopsided result.
 
 ## Implementation details for the overnight agent
 

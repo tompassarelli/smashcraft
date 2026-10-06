@@ -67,13 +67,13 @@ const hex = (air: boolean): AuthoredSpecial => ({
 });
 
 /**
- * Serpent Ward: 20 durability, 240 frames, a straight never-aimed shot at ages
+ * Serpent Ward: 26 durability, 240 frames, a straight never-aimed shot at ages
  * 45, 85, 125, 165 and 205 along the placement facing. Its upright body is the totem's
  * drawn size, struck by any opponent's normal, hero special or projectile.
  */
 const SERPENT_WARD: SpecialPlacement = {
   frame: 26, offsetX: h(f32(0.65)), radius: h(f32(0.18)), height: h(f32(0.6)),
-  durability: 20.0, life: 240, fireAges: [45, 85, 125, 165, 205],
+  durability: 26.0, life: 240, fireAges: [45, 85, 125, 165, 205],
   shot: {
     model: "Abilities\\Weapons\\SerpentWardMissile\\SerpentWardMissile.mdx",
     spawnFrame: 0, offsetX: h(f32(0.15)), offsetZ: h(f32(0.4)),

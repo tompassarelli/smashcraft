@@ -131,11 +131,11 @@ function forwardAir(percent: number, gap: number, sdi: boolean): number {
 }
 
 test("Twin-glaive forward air: the link and the launcher both connect at 0, 50 and 100 percent", () => {
-  for (const percent of [0.0, 50.0, 100.0]) assertEquals(forwardAir(percent, 100.0, false), 8.0);
+  for (const percent of [0.0, 50.0, 100.0]) assertEquals(forwardAir(percent, 100.0, false), 7.0);
 });
 
 test("Twin-glaive forward air counterplay: SDI away from the link escapes the launcher", () => {
-  assertEquals(forwardAir(0.0, 150.0, false), 8.0);
+  assertEquals(forwardAir(0.0, 150.0, false), 7.0);
   assertEquals(forwardAir(0.0, 150.0, true), 3.0);
 });
 
