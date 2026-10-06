@@ -385,5 +385,4 @@ One line each, neutral; the options are those the sources above describe.
 - Tech chases: tech rolls long and distinct enough to chase on reaction (Melee), or short enough to need reads (Ultimate)?
 - Launchers: does every fighter need a launcher into a follow-up situation (tech chase, juggle, ledge), or is that per fighter?
 - Recovery: a minimum number of distinct recovery routes per fighter (high/low, ledge/stage, timing), or none?
-- Physical spread: the roster's weight and fall-speed ranges (Melee spans weight 55–117, fall speed 1.3–3.1)?
 - Interaction graph: which properties to require per situation (no sink, a minimum option count, payoff ratios), measured by #67?
