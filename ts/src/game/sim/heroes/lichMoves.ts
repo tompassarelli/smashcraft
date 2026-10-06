@@ -2,7 +2,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction, HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion, type AuthoredThrow, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
 import type { HitEffect } from "../hitRegions";
-import { type FighterHurtboxes, type HurtPart, hurtPart } from "../hurtboxes";
+import { type FighterHurtboxes, type HurtPart, type HurtPose, hurtPart, hurtPose } from "../hurtboxes";
 
 // Original geometry for smashcraft:docs/design/roster.md; the frost volumes
 // stay attached to the caster and never become traveling projectiles.
@@ -98,6 +98,10 @@ const TORSO = hurtPart(0.0, 4.0, 0.0, BODY_TOP, BODY_RADIUS);
 const ARM_RADIUS = 9.0;
 const arm = (handX: number, handZ: number, shoulderX = 8.0) => hurtPart(shoulderX, SHOULDER, handX, handZ, ARM_RADIUS);
 const reach = (first: number, last: number, ...limbs: readonly HurtPart[]) => [heroHurtPose(first, last, [TORSO, ...limbs])];
+
+/** A special's casting arm over special frames (entry frame 1). */
+export const lichCastBody = (first: number, last: number, handX: number, handZ: number): readonly HurtPose[] =>
+  [hurtPose(first, last, [TORSO, arm(handX, handZ)])];
 
 export const LICH_BODY: FighterHurtboxes = {
   stand: [TORSO],

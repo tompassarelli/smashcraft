@@ -8,6 +8,7 @@ import { beginDamageContacts, finishDamageContacts } from "../contacts";
 import { type Fighter, createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { advanceHeroStatus, regenerateMana } from "../heroSpecialRules";
+import { fighterHurtParts } from "../hurtboxes";
 import { updateProjectiles } from "../projectiles";
 import { type Controls, type Roster, createRoster } from "../roster";
 import { advanceSpecials, startFighterSpecial } from "../specials";
@@ -184,3 +185,18 @@ test("an unbroken Frost Armor shell expires 180 frames after it forms", () => {
   assertEquals(lich.status.armorFrames, 0);
 });
 
+
+test("Frost Shard and Frost Nova casts extend Lich's hittable casting arm only while casting", () => {
+  const { world, lich } = lichPair(1200.0);
+  frame(world, neutral);
+  for (let f = 2; f <= 15; f++) frame(world);
+  assertEquals(fighterHurtParts(lich).length, 1);
+  frame(world);
+  assertEquals(fighterHurtParts(lich).length, 2);
+  for (let f = 17; f <= 27; f++) frame(world);
+  assertEquals(fighterHurtParts(lich).length, 1);
+  for (let f = 28; f <= 45; f++) frame(world);
+  frame(world, sideForward);
+  for (let f = 2; f <= 5; f++) frame(world);
+  assertEquals(fighterHurtParts(lich).length, 2);
+});
