@@ -1783,6 +1783,23 @@ The command queue's actual frame window determines whether an attack is current;
 expired and future commands do not suppress movement. This is our digital-input
 priority rule. Analog shield dropping and stick-threshold fidelity remain open.
 
+## Pass-through platforms
+
+Stage 1's two raised decks are pass-through platforms, as in Melee: a fighter
+rises through them from below and lands on top only while descending onto
+them, and Down drops through them. They have no walls or underside, so they
+never stop upward motion, bump a fighter's head, rebound a launch or allow a
+wall or ceiling tech. In Melee a platform is a floor line flagged
+`LINE_FLAG_PLATFORM` (melee:src/melee/mp/forward.h, revision 0296f009f):
+`mpCheckFloor` (melee:src/melee/mp/mplib.c) hits a level floor line only while
+the ECB bottom descends, `mpCheckCeiling` scans ceiling-kind lines only, and
+`mpJointUpdateDynamics` disables a platform line that is not floor-kind;
+`mpColl_80044628_Floor` (melee:src/melee/mp/mpcoll.c) skips the platform being
+dropped through. On the playable stages the only solid face is the main deck's
+underside (z -54, x within ±528). Wall and ceiling contact tests use
+`SOLID_DECK_TEST_STAGE` (smashcraft:ts/src/game/sim/stage.ts), stage 1's layout
+with solid raised decks, which no match can select.
+
 ## Shield presentation boundary
 
 The guard shell and HUD percentage read shieldEnergy/SHIELD_MAX; they do not

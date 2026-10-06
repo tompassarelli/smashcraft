@@ -1,5 +1,6 @@
 // Floor, wall and ceiling contacts share the surface-recovery fixture and
 // executor; the same-frame transitions are checked together.
+import { max } from "../../runtime/numbers";
 import { TECH_WINDOW_FRAMES, TECH_REPEAT_MINIMUM_AGE_FRAMES } from "../physics/techInput";
 // Solid stage surfaces, tumble rebounds, wall and ceiling techs, and the
 // decoded common recovery values.
@@ -13,14 +14,18 @@ import { type Fighter, WALL_TECH_JUMP_INPUT_WINDOW_FRAMES, createFighter } from 
 import { beginAirDodge, beginJump } from "./jumpsAndDodges";
 import { MAX_GROUNDED_KNOCKBACK_ON_LANDING } from "./knockback";
 import {
+  SOLID_DECK_TEST_STAGE,
   solidSurfaceCoordinate,
   solidSurfaceCount,
   solidSurfaceKind,
   solidSurfaceMaximum,
   solidSurfaceMinimum,
   solidSurfaceNormalZ,
+  surfaceCount,
   surfaceLeft,
+  surfacePass,
   surfaceRight,
+  surfaceZ,
 } from "./stage";
 import {
   SURFACE_REFLECT_ATTENUATION,
@@ -41,7 +46,7 @@ const MELEE_CAPTAIN_FALCON_SURFACE_RECOVERY_PHYSICS: SurfaceRecoveryPhysics = {
   canWallJump: true,
 };
 
-/** A tumbling fighter against the left wall (x -420) of stage 1's left raised deck, or below its underside. */
+/** A tumbling fighter against the left wall (x -420) of the solid-deck test stage's left raised deck, or below its underside. */
 function surfaceTumbler(atCeiling: boolean): Fighter {
   const fighter = createFighter(Character.archer, atCeiling ? -265.0 : -425.0, 1);
   fighter.motion.grounded = false;
@@ -64,22 +69,98 @@ function techingTumbler(atCeiling: boolean, launch: number): Fighter {
 const wallJumpVerticalAfterGravity = (fighter: Fighter) =>
   f32(roundToFloat32(f32(roundToFloat32(f32(fighter.tuning.surface.wallJumpVerticalSpeed / 6)) - roundToFloat32(f32(fighter.tuning.physics.gravity / 6)))) * 6);
 
-test("authored playable deck surfaces match the packaged model bounds", () => {
-  assertEquals(solidSurfaceCount(0), 1);
-  assertEquals(solidSurfaceCount(1), 7);
-  assertEquals(solidSurfaceCount(2), 0);
-  assertEquals(solidSurfaceKind(0, 0), SurfaceContact.ceiling);
-  assertEquals(solidSurfaceCoordinate(0, 0), -54.0);
-  assertEquals(solidSurfaceMinimum(0, 0), -528.0);
-  assertEquals(solidSurfaceMaximum(0, 0), 528.0);
-  assertEquals(solidSurfaceKind(1, 0), SurfaceContact.ceiling);
-  assertEquals(solidSurfaceCoordinate(1, 1), -420.0);
-  assertNear(solidSurfaceMinimum(1, 1), 149.3000030517578, 0.0010000000474974513);
-  assertEquals(solidSurfaceMaximum(1, 1), 170.0);
-  assertNear(solidSurfaceCoordinate(1, 3), 145.6999969482422, 0.0010000000474974513);
-  assertNear(solidSurfaceMinimum(1, 3), -401.3999938964844, 0.0010000000474974513);
-  assertNear(solidSurfaceMaximum(1, 3), -128.60000610351562, 0.0010000000474974513);
-  assertEquals(solidSurfaceNormalZ(1, 3), -1.0);
+// Melee's pass-through platforms are floor lines flagged LINE_FLAG_PLATFORM
+// (melee:src/melee/mp/forward.h). At revision 0296f009f, mpCheckFloor hits a
+// level floor line only while the ECB bottom descends (`ay >= by`),
+// mpCheckCeiling tests ceiling-kind lines only, and mpJointUpdateDynamics
+// disables a platform line that is not floor-kind (melee:src/melee/mp/mplib.c).
+test("the playable stages' only solid face is the main deck's underside", () => {
+  for (const stage of [0, 1]) {
+    assertEquals(solidSurfaceCount(stage), 1);
+    assertEquals(solidSurfaceKind(stage, 0), SurfaceContact.ceiling);
+    assertEquals(solidSurfaceCoordinate(stage, 0), -54.0);
+    assertEquals(solidSurfaceMinimum(stage, 0), -528.0);
+    assertEquals(solidSurfaceMaximum(stage, 0), 528.0);
+    assertEquals(solidSurfaceNormalZ(stage, 0), -1.0);
+  }
+});
+
+const PLAYABLE_FIGHTERS = [Character.archer, Character.rifleman, Character.demonHunter] as const;
+
+/**
+ * Jumps from the main deck beneath the deck's centre. A short hop tops out far
+ * below the raised decks, so it adds its aerial jump on its first falling frame.
+ */
+function jumpBeneathDeck(character: Character, stage: number, deck: number, shortHop: boolean): { fighter: Fighter; apex: number } {
+  const fighter = createFighter(character, f32(f32(surfaceLeft(stage, deck) + surfaceRight(stage, deck)) / 2), 1);
+  const input = controls({ jumpPressed: true, jumpHeld: !shortHop });
+  let apex = fighter.motion.z;
+  let aerialJumped = !shortHop;
+  for (let frame = 1; frame <= 150; frame++) {
+    advanceSolo(fighter, stage, input, 0.0);
+    input.jumpPressed = false;
+    if (!aerialJumped && !fighter.motion.grounded && fighter.motion.vz <= 0) {
+      input.jumpPressed = true;
+      aerialJumped = true;
+    }
+    apex = max(apex, fighter.motion.z);
+  }
+  return { fighter, apex };
+}
+
+test("full and short hops rise through every pass deck and land on top", () => {
+  for (const character of PLAYABLE_FIGHTERS) {
+    for (let deck = 1; deck < surfaceCount(1); deck++) {
+      assertTrue(surfacePass(1, deck));
+      for (const shortHop of [false, true]) {
+        const { fighter, apex } = jumpBeneathDeck(character, 1, deck, shortHop);
+        assertEquals(fighter.surfaceRecovery.contactSerial, 0);
+        assertGreaterThan(apex, surfaceZ(1, deck));
+        assertTrue(fighter.motion.grounded);
+        assertEquals(fighter.motion.surface, deck);
+        assertEquals(fighter.motion.z, surfaceZ(1, deck));
+      }
+    }
+  }
+});
+
+test("a jump under a solid surface still bumps its head", () => {
+  for (const character of PLAYABLE_FIGHTERS) {
+    const { fighter, apex } = jumpBeneathDeck(character, SOLID_DECK_TEST_STAGE, 1, false);
+    assertEquals(fighter.surfaceRecovery.contactSerial, 1);
+    assertEquals(fighter.surfaceRecovery.contactKind, SurfaceContact.ceiling);
+    assertEquals(apex, solidSurfaceCoordinate(SOLID_DECK_TEST_STAGE, 3));
+    assertEquals(fighter.motion.surface, 0);
+
+    // The main deck's underside on the shipped stage, from an aerial jump below it.
+    const below = createFighter(character, 0.0, 1);
+    below.motion.grounded = false;
+    below.motion.z = -150.0;
+    below.jump.remaining = 1;
+    const input = controls({ jumpPressed: true, jumpHeld: true });
+    for (let frame = 1; frame <= 30 && below.surfaceRecovery.contactSerial === 0; frame++) {
+      advanceSolo(below, 1, input, 0.0);
+      input.jumpPressed = false;
+    }
+    assertEquals(below.surfaceRecovery.contactKind, SurfaceContact.ceiling);
+    assertEquals(below.motion.z, solidSurfaceCoordinate(1, 0));
+    assertTrue(below.motion.vz <= 0);
+  }
+});
+
+test("a launch passes through a pass deck's sides", () => {
+  for (const side of [-1, 1]) {
+    const edgeX = side < 0 ? surfaceLeft(1, 1) : surfaceRight(1, 1);
+    const fighter = createFighter(Character.archer, f32(edgeX + side * 5), -side);
+    fighter.motion.grounded = false;
+    fighter.motion.z = 160.0;
+    fighter.launch.hitstun = 8;
+    fighter.down.state = DownState.tumble;
+    fighter.launch.knockbackX = f32(-side * 12.0);
+    advanceSolo(fighter, 1, controls(), 0.0);
+    assertEquals(fighter.surfaceRecovery.contactSerial, 0);
+    assertLessThan(fighter.motion.x * side, edgeX * side);
+  }
 });
 
 test("the playable main deck's edges remain open for runoffs", () => {
@@ -103,7 +184,7 @@ test("a surface rebound requires a tumbling launch", () => {
       fighter.launch.knockbackZ = atCeiling ? 12.0 : 0.0;
       fighter.launch.hitstun = recovering > 0 ? 8 : 0;
       fighter.down.state = recovering === 2 ? DownState.tumble : DownState.none;
-      advanceSolo(fighter, 1, controls(), 0.0);
+      advanceSolo(fighter, SOLID_DECK_TEST_STAGE, controls(), 0.0);
       assertEquals(fighter.surfaceRecovery.contactSerial, 1);
       const normalLaunch = atCeiling ? fighter.launch.knockbackZ : fighter.launch.knockbackX;
       if (recovering === 2) {
@@ -124,7 +205,7 @@ test("weak airborne damage can't wall or ceiling tech", () => {
     fighter.launch.knockbackZ = atCeiling ? 12.0 : 0.0;
     fighter.launch.damageLevel = 2;
     seedTechWindow(fighter, 3);
-    advanceSolo(fighter, 1, controls(), 0.0);
+    advanceSolo(fighter, SOLID_DECK_TEST_STAGE, controls(), 0.0);
     assertEquals(fighter.surfaceRecovery.contactSerial, 1);
     assertEquals(fighter.surfaceRecovery.state, SurfaceContact.none);
     assertEquals(fighter.launch.hitstun, 7);
@@ -136,7 +217,7 @@ test("the retail surface threshold reflects the combined velocity at the playabl
   const fighter = surfaceTumbler(false);
   fighter.motion.vx = -2.0;
   fighter.launch.knockbackX = 12.0;
-  advanceSolo(fighter, 1, controls(), 0.0);
+  advanceSolo(fighter, SOLID_DECK_TEST_STAGE, controls(), 0.0);
   assertEquals(fighter.motion.x, -420.0);
   assertEquals(fighter.surfaceRecovery.contactSerial, 1);
   assertEquals(fighter.surfaceRecovery.contactKind, SurfaceContact.wall);
@@ -153,7 +234,7 @@ test("the retail surface threshold reflects the combined velocity at the playabl
 test("a retail surface rebound uses a strict one-unit knockback gate", () => {
   const fighter = surfaceTumbler(false);
   fighter.launch.knockbackX = f32(SURFACE_REFLECT_SPEED_THRESHOLD + 0.3050000071525574);
-  advanceSolo(fighter, 1, controls(), 0.0);
+  advanceSolo(fighter, SOLID_DECK_TEST_STAGE, controls(), 0.0);
   assertEquals(fighter.motion.x, -420.0);
   assertEquals(fighter.surfaceRecovery.contactSerial, 1);
   assertNear(fighter.launch.knockbackX, 0.0, 0.00009999999747378752);
@@ -162,7 +243,7 @@ test("a retail surface rebound uses a strict one-unit knockback gate", () => {
 test("a retail ceiling rebound reports the surface normal", () => {
   const fighter = surfaceTumbler(true);
   fighter.launch.knockbackZ = 12.0;
-  advanceSolo(fighter, 1, controls(), 0.0);
+  advanceSolo(fighter, SOLID_DECK_TEST_STAGE, controls(), 0.0);
   assertNear(fighter.motion.z, 145.6999969482422, 0.0010000000474974513);
   assertEquals(fighter.surfaceRecovery.contactKind, SurfaceContact.ceiling);
   assertEquals(fighter.surfaceRecovery.contactX, -265.0);
@@ -212,7 +293,7 @@ test("a retail wall tech uses the separate original fighter surface profile", ()
   fighter.shield.pushbackX = 2.0;
   fighter.shield.recoilX = 1.5;
   fighter.shield.recoilZ = 1.0;
-  advanceSolo(fighter, 1, input, 0.0);
+  advanceSolo(fighter, SOLID_DECK_TEST_STAGE, input, 0.0);
   assertEquals(fighter.surfaceRecovery.state, SurfaceContact.techWall);
   assertEquals(fighter.surfaceRecovery.contactKind, SurfaceContact.techWall);
   assertEquals(fighter.launch.hitstun, 0);
@@ -230,7 +311,7 @@ test("a retail wall tech uses the separate original fighter surface profile", ()
     beginAirDodge(fighter, 1, 0);
     assertEquals(fighter.jump.remaining, jumpsBefore);
     assertFalse(fighter.dodge.airDodging);
-    advanceSolo(fighter, 1, input, 0.0);
+    advanceSolo(fighter, SOLID_DECK_TEST_STAGE, input, 0.0);
   }
   assertTrue(canAttack(fighter));
   assertNear(fighter.motion.vx, -2.880000114440918, 0.0010000000474974513);
@@ -245,18 +326,18 @@ test("a retail wall tech uses friction until an aerial action interrupts it", ()
   const fighter = techingTumbler(false, 8.0);
   const input = controls();
   fighter.tuning.surface = MELEE_CAPTAIN_FALCON_SURFACE_RECOVERY_PHYSICS;
-  advanceSolo(fighter, 1, input, 0.0);
-  for (let tick = 1; tick <= WALL_TECH_STARTUP_FRAMES; tick++) advanceSolo(fighter, 1, input, 0.0);
+  advanceSolo(fighter, SOLID_DECK_TEST_STAGE, input, 0.0);
+  for (let tick = 1; tick <= WALL_TECH_STARTUP_FRAMES; tick++) advanceSolo(fighter, SOLID_DECK_TEST_STAGE, input, 0.0);
   const velocityBefore = fighter.motion.vx;
   input.direction = 1;
-  advanceSolo(fighter, 1, input, 0.0);
+  advanceSolo(fighter, SOLID_DECK_TEST_STAGE, input, 0.0);
   assertNear(fighter.motion.vx, velocityBefore + fighter.tuning.physics.airFriction, 0.00009999999747378752);
   assertEquals(fighter.surfaceRecovery.state, SurfaceContact.techWall);
   beginJump(fighter, 1);
   assertEquals(fighter.surfaceRecovery.state, SurfaceContact.none);
   const jumpVelocity = fighter.motion.vx;
   input.direction = -1;
-  advanceSolo(fighter, 1, input, 0.0);
+  advanceSolo(fighter, SOLID_DECK_TEST_STAGE, input, 0.0);
   assertLessThan(fighter.motion.vx, jumpVelocity - fighter.tuning.physics.airFriction);
 });
 
@@ -264,20 +345,20 @@ test("a retail wall tech completes after its paused startup and selected animati
   for (const jumpRig of [0, 1]) {
     const fighter = techingTumbler(false, 8.0);
     const input = controls({ verticalDirection: jumpRig });
-    advanceSolo(fighter, 1, input, 0.0);
+    advanceSolo(fighter, SOLID_DECK_TEST_STAGE, input, 0.0);
     assertEquals(fighter.surfaceRecovery.state, SurfaceContact.techWall);
-    for (let tick = 1; tick <= WALL_TECH_STARTUP_FRAMES; tick++) advanceSolo(fighter, 1, input, 0.0);
+    for (let tick = 1; tick <= WALL_TECH_STARTUP_FRAMES; tick++) advanceSolo(fighter, SOLID_DECK_TEST_STAGE, input, 0.0);
     // Keep the animation-boundary case airborne, independent of landing.
     withPhysics(fighter, { gravity: 0.0 });
     fighter.motion.vz = 0.0;
     input.verticalDirection = 0;
     const animationEnd = jumpRig === 0 ? 26 : 40;
     for (let frame = 1; frame <= animationEnd - 1; frame++) {
-      advanceSolo(fighter, 1, input, 0.0);
+      advanceSolo(fighter, SOLID_DECK_TEST_STAGE, input, 0.0);
       assertEquals(fighter.surfaceRecovery.state, SurfaceContact.techWall);
       assertEquals(fighter.surfaceRecovery.frame, WALL_TECH_STARTUP_FRAMES + frame);
     }
-    advanceSolo(fighter, 1, input, 0.0);
+    advanceSolo(fighter, SOLID_DECK_TEST_STAGE, input, 0.0);
     assertEquals(fighter.surfaceRecovery.state, SurfaceContact.none);
   }
 });
@@ -288,20 +369,20 @@ test("a retail wall tech jump latches buffered input without an ordinary trait o
   fighter.tuning.surface = { ...MELEE_CAPTAIN_FALCON_SURFACE_RECOVERY_PHYSICS, canWallJump: false };
   fighter.jump.remaining = 0;
   const input = controls();
-  advanceSolo(fighter, 1, input, 0.0);
+  advanceSolo(fighter, SOLID_DECK_TEST_STAGE, input, 0.0);
   assertEquals(fighter.surfaceRecovery.state, SurfaceContact.techWall);
   assertLessThan(fighter.surfaceRecovery.contactApproachSpeed, fighter.tuning.surface.wallJumpMinimumApproach);
   input.jumpPressed = true;
   input.direction = 1;
-  advanceSolo(fighter, 1, input, 0.0);
+  advanceSolo(fighter, SOLID_DECK_TEST_STAGE, input, 0.0);
   input.jumpPressed = false;
   input.direction = 0;
   assertEquals(fighter.surfaceRecovery.frame, 1);
   assertTrue(fighter.surfaceRecovery.wallJumpQueued);
-  for (let tick = 2; tick <= WALL_TECH_STARTUP_FRAMES - 1; tick++) advanceSolo(fighter, 1, input, 0.0);
+  for (let tick = 2; tick <= WALL_TECH_STARTUP_FRAMES - 1; tick++) advanceSolo(fighter, SOLID_DECK_TEST_STAGE, input, 0.0);
   assertFalse(fighter.surfaceRecovery.velocityApplied);
   assertTrue(fighter.motion.vx === 0 && fighter.motion.vz === 0);
-  advanceSolo(fighter, 1, input, 0.0);
+  advanceSolo(fighter, SOLID_DECK_TEST_STAGE, input, 0.0);
   assertEquals(fighter.surfaceRecovery.frame, WALL_TECH_STARTUP_FRAMES);
   assertTrue(fighter.surfaceRecovery.velocityApplied);
   assertEquals(fighter.motion.vx, f32(-fighter.tuning.surface.wallJumpHorizontalSpeed + fighter.tuning.physics.airFriction));
@@ -317,12 +398,12 @@ test("a retail wall tech selects a jump from a recent input age at contact", () 
   fighter.jump.remaining = 0;
   fighter.jump.inputAge = WALL_TECH_JUMP_INPUT_WINDOW_FRAMES - 2;
   const input = controls();
-  advanceSolo(fighter, 1, input, 0.0);
+  advanceSolo(fighter, SOLID_DECK_TEST_STAGE, input, 0.0);
   assertEquals(fighter.surfaceRecovery.state, SurfaceContact.techWall);
   assertTrue(fighter.surfaceRecovery.wallJumpQueued);
-  for (let tick = 1; tick <= WALL_TECH_STARTUP_FRAMES - 1; tick++) advanceSolo(fighter, 1, input, 0.0);
+  for (let tick = 1; tick <= WALL_TECH_STARTUP_FRAMES - 1; tick++) advanceSolo(fighter, SOLID_DECK_TEST_STAGE, input, 0.0);
   assertFalse(fighter.surfaceRecovery.velocityApplied);
-  advanceSolo(fighter, 1, input, 0.0);
+  advanceSolo(fighter, SOLID_DECK_TEST_STAGE, input, 0.0);
   assertTrue(fighter.surfaceRecovery.velocityApplied);
   assertEquals(fighter.motion.vx, f32(-fighter.tuning.surface.wallJumpHorizontalSpeed + fighter.tuning.physics.airFriction));
   assertEquals(fighter.motion.vz, wallJumpVerticalAfterGravity(fighter));
@@ -333,7 +414,7 @@ test("a retail wall tech selects a jump from up on the stick at contact", () => 
   const fighter = techingTumbler(false, 8.0);
   fighter.tuning.surface = MELEE_CAPTAIN_FALCON_SURFACE_RECOVERY_PHYSICS;
   fighter.jump.inputAge = WALL_TECH_JUMP_INPUT_WINDOW_FRAMES;
-  advanceSolo(fighter, 1, controls({ verticalDirection: 1 }), 0.0);
+  advanceSolo(fighter, SOLID_DECK_TEST_STAGE, controls({ verticalDirection: 1 }), 0.0);
   assertEquals(fighter.surfaceRecovery.state, SurfaceContact.techWall);
   assertTrue(fighter.surfaceRecovery.wallJumpQueued);
 });
@@ -343,10 +424,10 @@ test("a retail wall tech's jump input age expires at the twenty-frame boundary",
   fighter.tuning.surface = MELEE_CAPTAIN_FALCON_SURFACE_RECOVERY_PHYSICS;
   fighter.jump.inputAge = WALL_TECH_JUMP_INPUT_WINDOW_FRAMES - 1;
   const input = controls();
-  advanceSolo(fighter, 1, input, 0.0);
+  advanceSolo(fighter, SOLID_DECK_TEST_STAGE, input, 0.0);
   assertEquals(fighter.surfaceRecovery.state, SurfaceContact.techWall);
   assertFalse(fighter.surfaceRecovery.wallJumpQueued);
-  for (let tick = 1; tick <= WALL_TECH_STARTUP_FRAMES; tick++) advanceSolo(fighter, 1, input, 0.0);
+  for (let tick = 1; tick <= WALL_TECH_STARTUP_FRAMES; tick++) advanceSolo(fighter, SOLID_DECK_TEST_STAGE, input, 0.0);
   assertEquals(fighter.jump.serial, 0);
   assertNear(fighter.motion.vx, -2.880000114440918, 0.0010000000474974513);
 });
@@ -384,14 +465,14 @@ test("a retail ceiling tech transitions through the production advance", () => {
   const fighter = techingTumbler(true, 8.0);
   fighter.tuning.surface = MELEE_CAPTAIN_FALCON_SURFACE_RECOVERY_PHYSICS;
   const input = controls({ direction: 1 });
-  advanceSolo(fighter, 1, input, 0.0);
+  advanceSolo(fighter, SOLID_DECK_TEST_STAGE, input, 0.0);
   assertEquals(fighter.surfaceRecovery.state, SurfaceContact.techCeiling);
   assertEquals(fighter.surfaceRecovery.contactKind, SurfaceContact.techCeiling);
   assertEquals(fighter.launch.hitstun, 0);
   assertEquals(fighter.down.state, DownState.none);
   assertEquals(fighter.surfaceRecovery.frame, 0);
   const contactZ = fighter.motion.z;
-  advanceSolo(fighter, 1, input, 0.0);
+  advanceSolo(fighter, SOLID_DECK_TEST_STAGE, input, 0.0);
   assertEquals(fighter.surfaceRecovery.frame, 1);
   assertLessThan(fighter.motion.z, contactZ);
 });
@@ -403,26 +484,26 @@ test("a retail ceiling tech protects until its one-shot actor impulse", () => {
     fighter.tuning.tech = { ...fighter.tuning.tech, ceilingImpulseFrame: impulseFrame };
     withPhysics(fighter, { airAcceleration: 0.0, airFriction: 0.0 });
     const input = controls();
-    advanceSolo(fighter, 1, input, 0.0);
+    advanceSolo(fighter, SOLID_DECK_TEST_STAGE, input, 0.0);
     assertEquals(fighter.surfaceRecovery.state, SurfaceContact.techCeiling);
     assertTrue(isIntangible(fighter));
     for (let frame = 1; frame <= impulseFrame - 1; frame++) {
-      advanceSolo(fighter, 1, input, 0.0);
+      advanceSolo(fighter, SOLID_DECK_TEST_STAGE, input, 0.0);
       assertEquals(fighter.motion.vx, 0.0);
       assertFalse(fighter.surfaceRecovery.velocityApplied);
       assertTrue(isIntangible(fighter));
     }
     fighter.launch.hitlag = 2;
-    advanceSolo(fighter, 1, input, 0.0);
+    advanceSolo(fighter, SOLID_DECK_TEST_STAGE, input, 0.0);
     assertEquals(fighter.surfaceRecovery.frame, impulseFrame - 1);
     assertTrue(isIntangible(fighter));
     input.direction = -1;
-    advanceSolo(fighter, 1, input, 0.0);
+    advanceSolo(fighter, SOLID_DECK_TEST_STAGE, input, 0.0);
     assertEquals(fighter.motion.vx, -12.0);
     assertTrue(fighter.surfaceRecovery.velocityApplied);
     assertFalse(isIntangible(fighter));
     input.direction = 0;
-    advanceSolo(fighter, 1, input, 0.0);
+    advanceSolo(fighter, SOLID_DECK_TEST_STAGE, input, 0.0);
     assertEquals(fighter.motion.vx, -12.0);
   }
 });
@@ -430,7 +511,7 @@ test("a retail ceiling tech protects until its one-shot actor impulse", () => {
 test("a retail ceiling tech locks actions until its animation completes", () => {
   const fighter = techingTumbler(true, 8.0);
   const input = controls();
-  advanceSolo(fighter, 1, input, 0.0);
+  advanceSolo(fighter, SOLID_DECK_TEST_STAGE, input, 0.0);
   assertEquals(fighter.surfaceRecovery.state, SurfaceContact.techCeiling);
   // Keep this action-boundary case airborne; landing is a separate exit.
   withPhysics(fighter, { gravity: 0.0 });
@@ -442,11 +523,11 @@ test("a retail ceiling tech locks actions until its animation completes", () => 
     beginAirDodge(fighter, 0, -1);
     assertEquals(fighter.jump.remaining, jumps);
     assertFalse(fighter.dodge.airDodging);
-    advanceSolo(fighter, 1, input, 0.0);
+    advanceSolo(fighter, SOLID_DECK_TEST_STAGE, input, 0.0);
     assertEquals(fighter.surfaceRecovery.state, SurfaceContact.techCeiling);
     assertEquals(fighter.surfaceRecovery.frame, frame);
   }
-  advanceSolo(fighter, 1, input, 0.0);
+  advanceSolo(fighter, SOLID_DECK_TEST_STAGE, input, 0.0);
   assertEquals(fighter.surfaceRecovery.state, SurfaceContact.none);
   assertTrue(canAttack(fighter));
   beginAirDodge(fighter, 0, -1);
@@ -465,16 +546,16 @@ test("shared recovery values match the decoded common table", () => {
   assertEquals(SURFACE_TECH_WALL_COLLISION_GRACE_FRAMES, 14);
 });
 
-test("raised deck walls reject incoming launches from both exterior sides", () => {
+test("solid raised deck walls reject incoming launches from both exterior sides", () => {
   for (const side of [-1, 1]) {
-    const wallX = side < 0 ? surfaceLeft(1, 1) : surfaceRight(1, 1);
+    const wallX = side < 0 ? surfaceLeft(SOLID_DECK_TEST_STAGE, 1) : surfaceRight(SOLID_DECK_TEST_STAGE, 1);
     const fighter = createFighter(Character.archer, f32(wallX + side * 5), -side);
     fighter.motion.grounded = false;
     fighter.motion.z = 160.0;
     fighter.launch.hitstun = 8;
     fighter.down.state = DownState.tumble;
     fighter.launch.knockbackX = f32(-side * 12.0);
-    advanceSolo(fighter, 1, controls(), 0.0);
+    advanceSolo(fighter, SOLID_DECK_TEST_STAGE, controls(), 0.0);
     assertEquals(fighter.motion.x, wallX);
     assertEquals(fighter.surfaceRecovery.contactNormalX, f32(side * 1.0));
     assertGreaterThan(fighter.launch.knockbackX * side, 0.0);
