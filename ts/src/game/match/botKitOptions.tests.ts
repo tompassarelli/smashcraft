@@ -13,7 +13,7 @@ import { isHeroSpecialAction } from "../sim/heroSpecialRules";
 import { FOLLOW_UP_FORM, FollowUpInput, SpecialForm } from "../sim/heroSpecials";
 import { RIFLEMAN_BLASTER_AIR_FRAMES, RIFLEMAN_BLASTER_GROUND_FRAMES } from "../sim/moves";
 import { copyControls, createRoster, fighterAt, isActive, neutralControls } from "../sim/roster";
-import { DEMONHUNTER_GLIDE_FORM, DEMONHUNTER_IMMOLATE_DURATION, RIFLEMAN_RECOVERY_STARTUP_FRAMES, RIFLEMAN_SECOND_SHOT_FORM } from "../sim/specials";
+import { CHAOS_STRIKE_AIR_FORM, CHAOS_STRIKE_FORM, VENGEFUL_RETREAT_FORM, DEMONHUNTER_GLIDE_FORM, DEMONHUNTER_IMMOLATE_DURATION, RIFLEMAN_RECOVERY_STARTUP_FRAMES, RIFLEMAN_SECOND_SHOT_FORM } from "../sim/specials";
 import { produceComputerInput } from "./botPlay";
 import { cpuSkill } from "./cpuLevel";
 import { createFrameControls } from "./controls";
@@ -81,6 +81,12 @@ function observe(f: Readonly<Fighter>, watch: Watch, down: boolean, grabMash: bo
       break;
     case SpecialAction.riflemanBear:
       if (started) count(counts, "bear");
+      break;
+    case SpecialAction.demonHunterFelRush:
+      if (started) count(counts, "felRush");
+      if (changedForm && special.form === VENGEFUL_RETREAT_FORM) count(counts, "vengefulRetreat");
+      if (changedForm && (special.form === CHAOS_STRIKE_FORM || special.form === CHAOS_STRIKE_AIR_FORM)) count(counts, f.facing !== watch.entryFacing ? "chaosCrossUp" : "chaosStrike");
+      if (started) watch.entryFacing = f.facing;
       break;
     case SpecialAction.demonHunterWingAscent:
       if (special.form === DEMONHUNTER_GLIDE_FORM && watch.form !== special.form) count(counts, "glide");
@@ -208,12 +214,16 @@ test("computer Shadow Hunter throws Spirit Glaive, hexes, presses a hexed target
   usesEvery(Character.shadowHunter, ["special0", "special3", "hexedHit", "hexMash"]);
 });
 
+test("computer Pit Lord spits Fel Spit, charges with Ruin Charge and howls Howl of Terror", () => {
+  usesEvery(Character.pitLord, ["special0", "special1", "special3"]);
+});
+
 test("computer Rifleman flies level and diagonal recoil routes with a second shot, short-hops and grounds the blaster, calls the bear", () => {
   usesEvery(Character.rifleman, ["levelRoute", "diagonalRoute", "secondShot", "airBlaster", "groundBlaster", "bear"]);
 });
 
-test("computer Illidan jump-cancels Immolate, glides out of Wing Ascent and runs behind Mana Burn", () => {
-  usesEvery(Character.demonHunter, ["immolateJump", "glide", "behindOrb"]);
+test("computer Illidan jump-cancels Immolate, glides out of Wing Ascent, runs behind Mana Burn and Fel Rushes into Chaos Strike or Vengeful Retreat", () => {
+  usesEvery(Character.demonHunter, ["immolateJump", "glide", "behindOrb", "felRush", "chaosStrike|chaosCrossUp", "vengefulRetreat"]);
 });
 
 test("computer Archer shoots the homing arrow, rides the low line, leaps off and dives from the perch", () => {

@@ -19,8 +19,9 @@ import { isHeroSpecialAction, runningHeroSpecial, specialCooldownReady } from ".
 import { heroStatusBlocksActions } from "../sim/heroStatus";
 import { type AuthoredSpecial, type SpecialFollowUp, type SpecialProjectile, FOLLOW_UP_FORM, FollowUpInput, SpecialSlot, specialKit } from "../sim/heroSpecials";
 import type { Controls } from "../sim/roster";
+import { originalSpecialCost } from "../sim/mana";
 import {
-  ARCHER_RIDE_LEAP_FIRST, DEMONHUNTER_GLIDE_FIRST, DEMONHUNTER_GLIDE_FORM, DEMONHUNTER_IMMOLATE_ACTIVE, DEMONHUNTER_IMMOLATE_STARTUP, DEMONHUNTER_WING_DURATION,
+  ARCHER_RIDE_LEAP_FIRST, FEL_RUSH_BRANCH_FIRST, FEL_RUSH_BRANCH_LAST, FEL_RUSH_SPEED, FEL_RUSH_FIRST, FEL_RUSH_LAST, DEMONHUNTER_GLIDE_FIRST, DEMONHUNTER_GLIDE_FORM, DEMONHUNTER_IMMOLATE_ACTIVE, DEMONHUNTER_IMMOLATE_STARTUP, DEMONHUNTER_WING_DURATION,
   RIFLEMAN_RECOVERY_STARTUP_FRAMES, RIFLEMAN_SECOND_SHOT_FIRST, RIFLEMAN_SECOND_SHOT_FORM, RIFLEMAN_SECOND_SHOT_LAST,
 } from "../sim/specials";
 import { mainDeckLeft, mainDeckRight, mainDeckZ } from "../sim/stage";
@@ -60,6 +61,14 @@ const LEVEL_ABOVE = 40.0;
 const GLIDE_GAP = 180.0;
 /** The glide's wing slash reaches about this far ahead. */
 const SLASH_REACH = 90.0;
+/** Fel Rush is started at a target this far ahead; Chaos Strike reaches about CHAOS_REACH. */
+const RUSH_NEAR = 80.0;
+const RUSH_FAR = 230.0;
+const CHAOS_REACH = 110.0;
+
+/** Whether an original fighter can pay for a special now (sim/mana.ts): an unpaid press is refused. */
+const affords = (f: Readonly<Fighter>, action: SpecialAction): boolean => originalSpecialCost(action) <= f.mana.points && specialCooldownReady(f, action);
+
 /** The perched hippogryph's dive strikes a target this close to its path (sim/summons.ts). */
 const DIVE_REACH_X = 60.0;
 const DIVE_REACH_Z = 100.0;
@@ -283,7 +292,7 @@ export function pressKitOption(f: Readonly<Fighter>, target: Readonly<Fighter>, 
     case Character.archer: {
       // The perched hippogryph dives at her: a target on its path is struck.
       const bird = f.hippogryph;
-      if (!free || bird.kind !== HippogryphKind.perch || !specialCooldownReady(f, SpecialAction.archerDisengage)) return false;
+      if (!free || bird.kind !== HippogryphKind.perch || !affords(f, SpecialAction.archerDisengage)) return false;
       const span = f32(motion.x - bird.x);
       const along = f32(target.motion.x - bird.x);
       if (span === 0.0 || along * span < 0 || Math.abs(along) > f32(Math.abs(span) + DIVE_REACH_X)) return false;
@@ -293,7 +302,7 @@ export function pressKitOption(f: Readonly<Fighter>, target: Readonly<Fighter>, 
       return true;
     }
     case Character.rifleman: {
-      if (!free || !ready || toward !== f.facing || gap < SHOT_NEAR || gap > SHOT_FAR || !specialCooldownReady(f, SpecialAction.riflemanBlaster)) return false;
+      if (!free || !ready || toward !== f.facing || gap < SHOT_NEAR || gap > SHOT_FAR || !affords(f, SpecialAction.riflemanBlaster)) return false;
       const rise = f32(motion.z - target.motion.z);
       if (!takes(skill, floorDiv(frame, 40), f.character * 7 + 14) || botChoice(floorDiv(frame, 40), f.character * 7 + 15, 2) !== 0) return false;
       if (motion.grounded) {
@@ -310,8 +319,16 @@ export function pressKitOption(f: Readonly<Fighter>, target: Readonly<Fighter>, 
     case Character.demonHunter: {
       // Behind the slow orb: the orb's stun or the shield it draws, then Illidan is there.
       const orb = orbTowardTarget(f, target);
-      if (orb === undefined || !free || !motion.grounded || !takes(skill, orb.serial, f.character * 7 + 16)) return false;
-      steerOnGround(f, stage, f32(orb.x - f32(orb.direction * ORB_FOLLOW_GAP)), input);
+      if (orb !== undefined && free && motion.grounded && takes(skill, orb.serial, f.character * 7 + 16)) {
+        steerOnGround(f, stage, f32(orb.x - f32(orb.direction * ORB_FOLLOW_GAP)), input);
+        return true;
+      }
+      // Fel Rush through a level target close ahead, ending on the deck.
+      const rush = f32(FEL_RUSH_SPEED * (FEL_RUSH_LAST - FEL_RUSH_FIRST + 1));
+      if (!free || !ready || !motion.grounded || toward !== f.facing || gap < RUSH_NEAR || gap > RUSH_FAR || Math.abs(f32(target.motion.z - motion.z)) > 60.0
+        || !safeAt(stage, f32(motion.x + f32(f.facing * rush)), 0.0) || !affords(f, SpecialAction.demonHunterFelRush)
+        || !takes(skill, floorDiv(frame, 30), f.character * 7 + 20) || botChoice(floorDiv(frame, 30), f.character * 7 + 21, 2) !== 0) return false;
+      pressSlot(input, SpecialSlot.side, toward);
       return true;
     }
   }
@@ -354,6 +371,19 @@ export function steerRunningSpecial(f: Readonly<Fighter>, target: Readonly<Fight
       input.specialZ = level ? -1 : 1;
       input.direction = home;
       input.verticalDirection = input.specialZ;
+      return true;
+    }
+    case SpecialAction.demonHunterFelRush: {
+      // After the pass: Chaos Strike at a target in reach either side (behind is the cross-up), Vengeful Retreat off a shield or an answer.
+      if (special.form !== 0 || next < FEL_RUSH_BRANCH_FIRST || next > FEL_RUSH_BRANCH_LAST || target === undefined) return false;
+      const dx = f32(target.motion.x - motion.x);
+      if ((target.shield.raised || target.attack.style !== undefined) && Math.abs(dx) <= RUSH_FAR) {
+        input.specialPressed = true;
+        return true;
+      }
+      if (Math.abs(dx) > CHAOS_REACH || Math.abs(f32(target.motion.z - motion.z)) > 70.0) return false;
+      input.attackPressed = true;
+      input.direction = dx < 0 ? -1 : 1;
       return true;
     }
     case SpecialAction.demonHunterImmolate:
