@@ -18,6 +18,7 @@ import { steerInAir, steerOnGround } from "./botFooting";
 import { botChance, botChoice, chooseAttack, smashChargeGoal, useMatchSeed } from "./botMoves";
 import { type CpuSkill, cpuSkill } from "./cpuLevel";
 import { chooseDefense } from "./botDefense";
+import { choosePunish } from "./botPunish";
 import { chooseRecoveryInput } from "./botRecovery";
 import { pressHeroFollowUp } from "./botHeroKit";
 import { dashIn, kitChargeGoal, pressKitOption, steerHeroBranches, steerRunningSpecial } from "./botKitOptions";
@@ -191,6 +192,11 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: { botAttackD
   if (isSmashAttack(fighter.attack.style) && fighter.attack.smashChargeAllowed) input.attackHeld = fighter.attack.smashChargeFrames < kitChargeGoal(fighter, target, skill, smashChargeGoal(fighter));
   if (target === undefined) return;
   if (chooseDefense(fighter, target, stage, input, skill)) return;
+  // An opponent that can't act yet is punished before any pause or idle stretch.
+  if (choosePunish(fighter, target, stage, game.matchFrame, frame, skill, input, commands)) {
+    runtime.botAttackDelays[slot] = f32(f32(skill.attackPause + botChoice(frame, fighter.attack.serial, skill.attackSpread)) * TICK);
+    return;
+  }
   // An idle stretch stands where it is: no approach, no attack.
   if (botChance(floorDiv(frame, IDLE_FRAMES), slot * 17 + fighter.character, skill.idle, 100)) return;
   if (pressKitOption(fighter, target, stage, skill, frame, delay <= 0, input, commands)) {

@@ -91,6 +91,7 @@ test("levels run 1 to 9, harder at every step, and a level is set only for a com
     assertTrue(harder.misplay <= easier.misplay && harder.idle <= easier.idle);
     assertTrue(harder.diTenths >= easier.diTenths && harder.grabMashFrames <= easier.grabMashFrames);
     assertTrue(harder.kitTenths >= easier.kitTenths);
+    assertTrue(harder.punishTenths > easier.punishTenths && harder.punishMisjudge < easier.punishMisjudge);
     assertTrue(harder.techMiss * easier.techOutOf <= easier.techMiss * harder.techOutOf);
   }
   const game = createMatchState();

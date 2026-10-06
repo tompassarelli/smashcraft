@@ -144,6 +144,13 @@ export function moveReaches(character: Character, style: AttackStyle, target: Re
     && localZ >= f32(f32(minZ - hurt.z2) - hurt.radius) && localZ <= f32(f32(maxZ - hurt.z1) + hurt.radius);
 }
 
+
+/** How far ahead `style` from the attacker strikes a target's position on its first active frame. */
+export function moveReachAhead(character: Character, style: AttackStyle, target: Readonly<Fighter>, moves?: FighterMoves): number {
+  const maxX = at(strikeBounds, strikeIndex(character, style, moves) + 1);
+  return style === AttackStyle.grab && moves?.normals[AttackStyle.grab] === undefined ? maxX : f32(maxX + hurtCapsule(target.character).radius);
+}
+
 /** The target's offset from the attacker after `frames` more frames of both moving as they did last frame. */
 const aheadX = (f: Readonly<Fighter>, target: Readonly<Fighter>, frames: number) =>
   f32(f32(target.motion.x - f.motion.x) + f32(f32(target.motion.deltaX - f.motion.deltaX) * frames));

@@ -43,9 +43,8 @@ one with frame-1 reactions feels like input reading
   moving monotonically toward full strength (the table below); no level
   changes how the computer moves its fighter or which plans its gameplan
   offers, only how quickly, how often and how well it uses them.
-- **Level 9 is the computer at full strength**, exactly the gameplan
-  computer that #105 tuned (with seed 0 it plays move for move as before
-  levels existed). It answers a strike as soon as the strike is coming,
+- **Level 9 is the computer at full strength**: the gameplan computer that
+  #105 tuned, plus the whiff punish below. It answers a strike as soon as the strike is coming,
   which is Ultimate's level-9 feel at Smashcraft's 12-frame lookahead; its
   fighter's gameplan is what makes it a solid player rather than a reader.
 - **Level 1 is a punching bag**: it stands still more than half the time,
@@ -62,17 +61,17 @@ one with frame-1 reactions feels like input reading
 
 ## The table
 
-| Level | Reaction (frames) | Threats answered | Attack pause (frames) | Misplays | Idle | Gameplan weights | DI | Tech | Mash every (grab / freeze) | Ledge and get-up mixups | Shield grabs | Kit options |
-| ---: | ---: | ---: | --- | ---: | ---: | --- | ---: | ---: | --- | --- | --- | ---: |
-| 1 | 30 | 0% | 60 + 0-59 | 45% | 55% | no | 0% | 0% | 14 / 16 | no | no | 0% |
-| 2 | 25 | 10% | 46 + 0-49 | 35% | 40% | no | 10% | 10% | 12 / 14 | no | no | 0% |
-| 3 | 20 | 20% | 36 + 0-41 | 26% | 28% | no | 30% | 20% | 10 / 12 | no | no | 0% |
-| 4 | 16 | 30% | 28 + 0-33 | 18% | 18% | yes | 40% | 30% | 8 / 10 | yes | no | 30% |
-| 5 | 13 | 40% | 21 + 0-27 | 12% | 10% | yes | 50% | 40% | 6 / 9 | yes | yes | 40% |
-| 6 | 10 | 50% | 15 + 0-23 | 7% | 5% | yes | 60% | 50% | 5 / 8 | yes | yes | 50% |
-| 7 | 7 | 50% | 11 + 0-20 | 4% | 2% | yes | 80% | 60% | 4 / 7 | yes | yes | 70% |
-| 8 | 4 | 60% | 8 + 0-18 | 2% | 0% | yes | 90% | 62.5% | 3 / 6 | yes | yes | 80% |
-| 9 | 0 | 70% | 6 + 0-17 | 0% | 0% | yes | 100% | 66.7% | 2 / 6 | yes | yes | 100% |
+| Level | Reaction (frames) | Threats answered | Attack pause (frames) | Misplays | Idle | Gameplan weights | DI | Tech | Mash every (grab / freeze) | Ledge and get-up mixups | Shield grabs | Kit options | Punishes | Window misjudged (frames) |
+| ---: | ---: | ---: | --- | ---: | ---: | --- | ---: | ---: | --- | --- | --- | ---: | ---: | ---: |
+| 1 | 30 | 0% | 60 + 0-59 | 45% | 55% | no | 0% | 0% | 14 / 16 | no | no | 0% | 10% | 12 |
+| 2 | 25 | 10% | 46 + 0-49 | 35% | 40% | no | 10% | 10% | 12 / 14 | no | no | 0% | 20% | 10 |
+| 3 | 20 | 20% | 36 + 0-41 | 26% | 28% | no | 30% | 20% | 10 / 12 | no | no | 0% | 30% | 8 |
+| 4 | 16 | 30% | 28 + 0-33 | 18% | 18% | yes | 40% | 30% | 8 / 10 | yes | no | 30% | 40% | 6 |
+| 5 | 13 | 40% | 21 + 0-27 | 12% | 10% | yes | 50% | 40% | 6 / 9 | yes | yes | 40% | 50% | 5 |
+| 6 | 10 | 50% | 15 + 0-23 | 7% | 5% | yes | 60% | 50% | 5 / 8 | yes | yes | 50% | 60% | 4 |
+| 7 | 7 | 50% | 11 + 0-20 | 4% | 2% | yes | 80% | 60% | 4 / 7 | yes | yes | 70% | 70% | 3 |
+| 8 | 4 | 60% | 8 + 0-18 | 2% | 0% | yes | 90% | 62.5% | 3 / 6 | yes | yes | 80% | 90% | 1 |
+| 9 | 0 | 70% | 6 + 0-17 | 0% | 0% | yes | 100% | 66.7% | 2 / 6 | yes | yes | 100% | 100% | 0 |
 
 - *Reaction*: frames an attacker's move must have run (a shot must have
   flown, Immolation burned) before the computer answers it at all.
@@ -92,6 +91,31 @@ one with frame-1 reactions feels like input reading
   dash attack, a charged Eye Blast, an anti-air jump into an aerial, the
   move that cashes a ready passive, and shielding (or dodging Cleave)
   against an opponent’s ready passive. Ordinary specials are unaffected.
+- *Punishes*: of the punish windows it sees (below), the share it answers.
+- *Window misjudged*: frames it overestimates a window by, so it may throw
+  a move that comes out after the opponent can act again.
+
+## Whiff punish
+
+Without it, the computer answered threats but never attacked into an
+opponent's end lag, so slow, committal fighters (Pit Lord) got away with
+whiffs and overperformed in #105's matrix. smashcraft:ts/src/game/match/botPunish.ts
+reads the window straight from the opponent's counters, the frames until it
+can act: a ground move past its active frames (`attack.cooldown`), a missed
+grab, a hero special past its last strike with nothing still to come (no
+shot, partner, guard, armor or branch), landing lag, a dropped shield's
+release lag and a dodge after its intangibility. A hit, a grab, a knockdown,
+the ledge or the air is not a window. The computer then takes its fastest
+ground move whose first active frame lands inside the window and whose
+strike reaches where the opponent will be (the bot's cached first-active-
+frame reach), or runs in when a dash attack or grab would arrive in time; a
+running punish ends in the dash attack or a grab, and a shield lets go only
+for a grab. It runs after defense and before the attack pause and idle
+stretches, so a level's pause doesn't eat the window; the level gates it
+with its reaction (frames of the window that must pass first, where the
+window's start is known), the punish share and the misjudgment, each drawn
+on the window's key under the match seed. Scripted checks:
+smashcraft:ts/src/game/match/botPunishContracts.tests.ts.
 
 ## Determinism and the match seed
 

@@ -229,7 +229,8 @@ test("computer Rifleman flies level and diagonal recoil routes with a second sho
 });
 
 test("computer Illidan jump-cancels Immolate, glides out of Wing Ascent, runs behind Mana Burn and Fel Rushes into Chaos Strike or Vengeful Retreat", () => {
-  usesEvery(Character.demonHunter, ["immolateJump", "glide", "behindOrb", "felRush", "chaosStrike|chaosCrossUp", "vengefulRetreat"]);
+  // Whiff punishes (botPunish.ts) take most close windows with a normal, so Immolate starts rarely: 16 matches.
+  usesEvery(Character.demonHunter, ["immolateJump", "glide", "behindOrb", "felRush", "chaosStrike|chaosCrossUp", "vengefulRetreat"], Character.demonHunter, 2 * MATCHES);
 });
 
 test("computer Archer shoots the homing arrow, rides the low line, leaps off and dives from the perch", () => {
