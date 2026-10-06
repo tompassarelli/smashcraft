@@ -314,16 +314,18 @@ function moveHorizontally(f: Fighter, stage: number, matchFrame: number, dashEnt
  */
 function landingDeck(f: Fighter, stage: number, matchFrame: number, oldX: number, oldZ: number, carried: number | undefined): number | undefined {
   const { motion } = f;
-  const rise = totalVelocityZ(f);
+  // Most frames cross no deck's height, so the rise is only found for one that is crossed.
+  let rise: number | undefined;
   let landing: number | undefined;
   let landingZ = 0.0;
   for (let i = 0; i < surfaceCount(stage); i++) {
     const platformZ = surfaceZ(stage, i, matchFrame);
     const follows = i !== carried && surfaceMoves(stage, i);
-    const fromX = follows ? f32(oldX + surfaceShiftX(stage, i, matchFrame)) : oldX;
     const fromZ = follows ? f32(oldZ + surfaceShiftZ(stage, i, matchFrame)) : oldZ;
-    if ((follows ? f32(rise - surfaceShiftZ(stage, i, matchFrame)) : rise) > 0) continue;
     if (!(fromZ >= platformZ && motion.z <= platformZ)) continue;
+    if (rise === undefined) rise = totalVelocityZ(f);
+    if ((follows ? f32(rise - surfaceShiftZ(stage, i, matchFrame)) : rise) > 0) continue;
+    const fromX = follows ? f32(oldX + surfaceShiftX(stage, i, matchFrame)) : oldX;
     const fraction = fromZ === motion.z ? 1.0 : f32(f32(fromZ - platformZ) / f32(fromZ - motion.z));
     const crossingX = f32(fromX + f32(f32(motion.x - fromX) * fraction));
     const left = surfaceLeft(stage, i, matchFrame);
