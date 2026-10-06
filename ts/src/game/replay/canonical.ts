@@ -9,7 +9,7 @@ import { at } from "wisp/src/runtime/lookup";
 import { floorMod } from "wisp/src/sim/intMath";
 import { AttackStyle, GrabAction, SPECIAL_ACTION_CAPACITY } from "../sim/codes";
 import type { FighterMoves } from "../sim/heroMoves";
-import type { AuthoredSpecial, FighterSpecials, SpecialProjectile } from "../sim/heroSpecials";
+import type { AuthoredSpecial, FighterSpecials, SpecialPlacement, SpecialProjectile } from "../sim/heroSpecials";
 import type { HitEffect } from "../sim/hitRegions";
 import { type HurtPart, HurtState } from "../sim/hurtboxes";
 import { PROJECTILE_CAPACITY, type Fighter } from "../sim/fighter";
@@ -195,6 +195,15 @@ function specialProjectileCanonical(spec: Readonly<SpecialProjectile>, prefix: s
   return result;
 }
 
+/** An authored placed object, field by field. */
+function specialPlacementCanonical(spec: Readonly<SpecialPlacement>, prefix: string): string {
+  let result = canonicalInt(`${prefix}.frame`, spec.frame) + canonicalRealField(`${prefix}.offsetX`, spec.offsetX)
+    + canonicalRealField(`${prefix}.radius`, spec.radius) + canonicalRealField(`${prefix}.height`, spec.height)
+    + canonicalRealField(`${prefix}.durability`, spec.durability) + canonicalInt(`${prefix}.life`, spec.life);
+  for (let index = 0; index < spec.fireAges.length; index++) result += canonicalInt(`${prefix}.fireAge[${index}]`, at(spec.fireAges, index));
+  return result + specialProjectileCanonical(spec.shot, `${prefix}.shot`);
+}
+
 function hitEffectCanonical(hit: Readonly<HitEffect>, prefix: string): string {
   return canonicalRealField(`${prefix}.damage`, hit.damage) + canonicalRealField(`${prefix}.growth`, hit.growth)
     + canonicalRealField(`${prefix}.base`, hit.base) + canonicalRealField(`${prefix}.launchX`, hit.launchX)
@@ -210,8 +219,8 @@ export function fighterSpecialsCanonical(specials: Readonly<FighterSpecials> | u
   const kits = [specials.neutral, specials.side, specials.up, specials.down];
   for (let slot = 0; slot < kits.length; slot++) {
     const kit = at(kits, slot);
-    const forms = [kit.ground, kit.air, kit.free];
-    for (let form = 0; form < 3; form++) {
+    const forms = [kit.ground, kit.air, kit.free, kit.recall];
+    for (let form = 0; form < 4; form++) {
       const move = forms[form];
       if (move === undefined) continue;
       const name = `${prefix}.kit[${slot}].form[${form}]`;
@@ -236,6 +245,8 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
   int("armor.first", move.armor?.first ?? -1);
   int("armor.last", move.armor?.last ?? -1);
   real("armor.maxDamage", move.armor?.maxDamage ?? 0.0);
+  if (move.placement !== undefined) result += specialPlacementCanonical(move.placement, `${name}.placement`);
+  if (move.recall === true) int("recall", 1);
   const motion = move.motion ?? [];
   for (let index = 0; index < motion.length; index++) {
     const segment = at(motion, index);
@@ -614,6 +625,17 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
     int("specialAirtimeUses", sp.airtimeUses);
     int("armorFrames", st.armorFrames);
     real("armorMaxDamage", st.armorMaxDamage);
+    const { placed } = fighter;
+    int("placedLife", placed.life);
+    int("placedAge", placed.age);
+    real("placedX", placed.x);
+    real("placedZ", placed.z);
+    int("placedDirection", placed.direction);
+    real("placedDurability", placed.durability);
+    int("placedSerial", placed.serial);
+    for (let i = 0; i < PARTICIPANT_CAPACITY; i++) int(`placedStruck[${i}]`, placed.struck[i] ?? -1);
+    int("placedSpecialStruck", placed.specialStruck);
+    if (placed.spec !== undefined) emit(specialPlacementCanonical(placed.spec, `${prefix}.placedSpec`));
   }
   for (let i = 0; i < PROJECTILE_CAPACITY; i++) {
     const spec = at(fighter.projectiles, i).spec;

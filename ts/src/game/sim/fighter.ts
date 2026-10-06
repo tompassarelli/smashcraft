@@ -22,7 +22,7 @@ import {
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type FighterTuning, authoredTuning } from "./tuning";
 import { HitElement } from "./hitRegions";
-import type { SpecialProjectile } from "./heroSpecials";
+import type { SpecialPlacement, SpecialProjectile } from "./heroSpecials";
 
 export const PROJECTILE_CAPACITY = 16;
 export const SHIELD_MAX = 60.0;
@@ -388,6 +388,26 @@ interface Mana {
   progress: number;
 }
 
+/** A hero's one placed object (sim/placedObjects.ts); `life` 0 when none stands. */
+export interface PlacedObject {
+  life: number;
+  /** Frames since placement. */
+  age: number;
+  x: number;
+  z: number;
+  /** The facing it fires along. */
+  direction: number;
+  durability: number;
+  /** Counts placements, so presentation never replays one. */
+  serial: number;
+  /** Its authored record; immutable and shared like tuning. */
+  spec: SpecialPlacement | undefined;
+  /** The attack serial each participant last struck it with. */
+  readonly struck: (number | undefined)[];
+  /** One bit per participant whose running special has struck it. */
+  specialStruck: number;
+}
+
 export interface Fighter {
   character: Character;
   tuning: FighterTuning;
@@ -415,6 +435,7 @@ export interface Fighter {
   readonly cannon: StageCannon;
   readonly status: Status;
   readonly mana: Mana;
+  readonly placed: PlacedObject;
 }
 
 const repeat = <T>(count: number, make: () => T): T[] => Array.from({ length: count }, () => make());
@@ -603,5 +624,6 @@ export function createFighter(character: Character, startX: number, facing: numb
     cannon: { held: undefined, firing: undefined, cooldown: 0 },
     status: { offscreenFrames: 0, damage: 0.0, stocks: STARTING_STOCKS, respawn: 0, out: false, invincible: 0, frozenFrames: 0, freezeImmunityFrames: 0, armorFrames: 0, armorMaxDamage: 0.0 },
     mana: { points: tuning.specials?.mana.max ?? 0, sinceSpend: tuning.specials?.mana.regenDelayFrames ?? 0, progress: 0 },
+    placed: { life: 0, age: 0, x: 0.0, z: 0.0, direction: 1, durability: 0.0, serial: 0, spec: undefined, struck: repeat<number | undefined>(PARTICIPANT_CAPACITY, () => undefined), specialStruck: 0 },
   };
 }

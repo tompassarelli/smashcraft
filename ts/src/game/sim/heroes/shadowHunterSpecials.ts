@@ -1,11 +1,10 @@
 // Shadow Hunter's four specials as authored data (smashcraft:docs/design/roster.md,
 // "Shadow Hunter", B specials). Frames follow the brief: the entry tick is
 // frame 1 and "end fN" is the last frame of the action. Distances are in the
-// hero reference height H; motion velocities are provisional until a vault
-// test measures the listed 2.0H/0.6H (free 1.4H/0.3H) displacement.
+// hero reference height H.
 import { f32 } from "wisp/src/sim/f32";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
-import { type AuthoredSpecial, type FighterSpecials, type SpecialProjectile, ROSTER_MANA, frames } from "../heroSpecials";
+import { type AuthoredSpecial, type FighterSpecials, type SpecialPlacement, type SpecialProjectile, ROSTER_MANA, frames } from "../heroSpecials";
 import { HitElement } from "../codes";
 import { hit } from "./shadowHunterMoves";
 
@@ -29,14 +28,14 @@ const spiritGlaive = (air: boolean): AuthoredSpecial => ({
 });
 
 /**
- * Loa Vault: f8-30 travel, then helpless. 23 frames of set velocity reach the
- * listed rise and drift in empty space if gravity does not act inside the
- * window; the framework's motion rule decides, and a vault test calibrates.
+ * Loa Vault: f8-30 travel, then helpless. Velocities are per frame in H,
+ * calibrated in shadowHunterSpecials.tests.ts so that, with gravity acting
+ * between the set frames and the ballistic rise after the window, the peak
+ * reaches the listed 2.0H rise and 0.6H drift (free form 1.4H and 0.3H).
  */
-const VAULT_FRAMES = 23;
-const loaVault = (cost: number, rise: number, drift: number): AuthoredSpecial => ({
+const loaVault = (cost: number, riseVelocity: number, driftVelocity: number): AuthoredSpecial => ({
   cost, endFrame: 30,
-  motion: [{ ...frames(8, 30), velocityX: f32(h(drift) / VAULT_FRAMES), velocityZ: f32(h(rise) / VAULT_FRAMES) }],
+  motion: [{ ...frames(8, 30), velocityX: h(driftVelocity), velocityZ: h(riseVelocity) }],
   oncePerAirtime: true, helpless: true,
 });
 
@@ -53,60 +52,32 @@ const hex = (air: boolean): AuthoredSpecial => ({
 });
 
 /**
- * Serpent Ward's cast: ground-only, 20 mana, ward appears f26, action ends f52.
- * Recasting while the ward stands is a recall with the same animation, free.
- * The ward itself is SERPENT_WARD below.
+ * Serpent Ward: 12 durability, 240 frames, a straight never-aimed shot at ages
+ * 45, 105 and 165 along the placement facing. Its upright body is the totem's
+ * drawn size, struck by any opponent's normal, hero special or projectile.
  */
-const serpentWardCast = (cost: number): AuthoredSpecial => ({ cost, endFrame: 52, groundOnly: true });
-
-export const SHADOW_HUNTER_SPECIALS: FighterSpecials = {
-  mana: ROSTER_MANA,
-  neutral: { ground: spiritGlaive(false), air: spiritGlaive(true) },
-  side: { ground: serpentWardCast(20) },
-  up: { ground: loaVault(15, 2.0, 0.6), free: loaVault(0, 1.4, 0.3) },
-  down: { ground: hex(false), air: hex(true) },
-};
-
-// Kit rules the special schema does not express yet; roster-infra owns the
-// mechanisms, these are Shadow Hunter's values for them.
-
-/** A placed, destructible owned object that fires on a fixed schedule. */
-export interface WardSpec {
-  /** Cast frame the ward appears on, offset facing-relative from the caster's feet. */
-  readonly placeFrame: number;
-  readonly offsetX: number;
-  /** Hurt volume: any normal attack or projectile damages it; shields cannot cover it. */
-  readonly radius: number;
-  readonly height: number;
-  readonly durability: number;
-  readonly life: number;
-  /** Ward ages that fire one shot straight along its placement facing; never aims. */
-  readonly fireAges: readonly number[];
-  readonly shot: SpecialProjectile;
-  /** Owned at once. A recast with one standing recalls it at recallCost instead of placing. */
-  readonly limit: number;
-  readonly recallCost: number;
-}
-
-export const SERPENT_WARD: WardSpec = {
-  placeFrame: 26, offsetX: h(0.65), radius: h(0.18), height: h(0.6),
-  durability: 12, life: 240, fireAges: [45, 105, 165],
+const SERPENT_WARD: SpecialPlacement = {
+  frame: 26, offsetX: h(0.65), radius: h(0.18), height: h(0.6),
+  durability: 12.0, life: 240, fireAges: [45, 105, 165],
   shot: {
     spawnFrame: 0, offsetX: h(0.15), offsetZ: h(0.4),
     velocityX: h(0.10), velocityZ: 0.0, life: 24, radius: h(0.12),
     effect: hit(4.0, "POKE", 35, 1.0, HitElement.normal), reflectable: true, limit: 3,
   },
-  limit: 1, recallCost: 0,
 };
 
-/** A status a projectile applies on a body hit (never on shield). */
-export interface StatusSpec {
-  readonly frames: number;
-  /** Frames after expiry before the same group can apply again. */
-  readonly immunityFrames: number;
-  /** Specials the target cannot start; up special stays available as recovery. */
-  readonly blocksSpecials: boolean;
-}
+/**
+ * The ward's cast: ground-only, 20 mana, the ward appears f26, the action ends
+ * f52. Recasting while it stands plays the same vulnerable cast for free and
+ * removes the ward when it completes; nothing is refunded.
+ */
+const SERPENT_WARD_CAST: AuthoredSpecial = { cost: 20, endFrame: 52, groundOnly: true, placement: SERPENT_WARD };
+const SERPENT_WARD_RECALL: AuthoredSpecial = { cost: 0, endFrame: 52, groundOnly: true, recall: true };
 
-/** Hex: 45 frames without neutral, side or down specials; 180 frames of hex/silence immunity after. */
-export const HEX: StatusSpec = { frames: 45, immunityFrames: 180, blocksSpecials: true };
+export const SHADOW_HUNTER_SPECIALS: FighterSpecials = {
+  mana: ROSTER_MANA,
+  neutral: { ground: spiritGlaive(false), air: spiritGlaive(true) },
+  side: { ground: SERPENT_WARD_CAST, recall: SERPENT_WARD_RECALL },
+  up: { ground: loaVault(15, 0.1014, 0.0283), free: loaVault(0, 0.0741, 0.0146) },
+  down: { ground: hex(false), air: hex(true) },
+};

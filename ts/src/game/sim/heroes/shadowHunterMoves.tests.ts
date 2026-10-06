@@ -239,12 +239,13 @@ test("Shadow Hunter's Heel Hook arm is exposed behind him while the glaive tip s
       f.attack.frame = frame;
       return strikeHurtContact(probe(f32(x * facing), z), f) === HurtContact.hit;
     };
-    // Behind at 70 units: outside the standing body, inside the hooking arm from two
-    // frames before its first active frame (zero-based 7) through two after its last.
-    assertTrue(!touches(undefined, 0, -70.0, 41.0));
-    assertTrue(!touches(AttackStyle.backAir, 3, -70.0, 41.0));
-    for (let frame = 5; frame <= 11; frame++) assertTrue(touches(AttackStyle.backAir, frame, -70.0, 41.0));
-    assertTrue(!touches(AttackStyle.backAir, 12, -70.0, 41.0));
+    // The hook ramps out: half extended (45 behind) from zero-based frame 4, fully
+    // (70 behind) over its active frames 7-9 and two after, half again to frame 14.
+    assertTrue(!touches(undefined, 0, -45.0, 41.0));
+    assertTrue(!touches(AttackStyle.backAir, 3, -45.0, 41.0));
+    for (let frame = 4; frame <= 14; frame++) assertTrue(touches(AttackStyle.backAir, frame, -45.0, 41.0));
+    for (let frame = 4; frame <= 14; frame++) assertEquals(touches(AttackStyle.backAir, frame, -70.0, 41.0), frame >= 7 && frame <= 11);
+    assertTrue(!touches(AttackStyle.backAir, 15, -45.0, 41.0));
     // Forward tilt's blade reaches 145; the arm ends near 67, so the blade's outer half is disjoint.
     assertTrue(touches(AttackStyle.forwardTilt, 8, 60.0, 56.0));
     assertTrue(!touches(AttackStyle.forwardTilt, 8, 110.0, 56.0));

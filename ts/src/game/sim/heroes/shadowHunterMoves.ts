@@ -65,6 +65,7 @@ const limb = (x1: number, z1: number, x2: number, z2: number, radius = LIMB_RADI
 const reaching = (first: number, active: number, parts: readonly HurtPart[]) => [heroHurtPose(first - 2, first + active + 1, parts)];
 const FORWARD_ARM = limb(10.0, 62.0, 58.0, 55.0);
 const RAISED_ARMS = limb(0.0, 95.0, 5.0, 140.0);
+const HALF_HOOK = limb(-12.0, 40.0, -45.0, 41.0, 11.0);
 
 const SHADOW_HUNTER_BODY: FighterHurtboxes = {
   stand: [BODY],
@@ -83,7 +84,12 @@ const SHADOW_HUNTER_BODY: FighterHurtboxes = {
       heroHurtPose(10, 13, limb(-10.0, 60.0, -50.0, 55.0)),
     ],
     [AttackStyle.forwardAir]: reaching(10, 3, FORWARD_ARM),
-    [AttackStyle.backAir]: reaching(8, 3, limb(-12.0, 40.0, -f32(M - 24.0), 42.0, 11.0)),
+    // The hook ramps out and back through a half-extended arm: no body change moves an extent past 60.
+    [AttackStyle.backAir]: [
+      heroHurtPose(5, 7, HALF_HOOK),
+      heroHurtPose(8, 12, limb(-12.0, 40.0, -f32(M - 24.0), 42.0, 11.0)),
+      heroHurtPose(13, 15, HALF_HOOK),
+    ],
     [AttackStyle.upAir]: reaching(7, 3, RAISED_ARMS),
     [AttackStyle.downAir]: reaching(14, 4, limb(2.0, 30.0, 2.0, -20.0)),
     [AttackStyle.grab]: reaching(8, 2, limb(10.0, 45.0, f32(S - 10.0), 42.0)),

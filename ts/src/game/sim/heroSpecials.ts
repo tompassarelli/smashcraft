@@ -11,7 +11,7 @@ export const SpecialSlot = { neutral: 0, side: 1, up: 2, down: 3 } as const;
 export type SpecialSlot = (typeof SpecialSlot)[keyof typeof SpecialSlot];
 
 /** Which authored form of a special is running; captured on entry. */
-export const SpecialForm = { ground: 0, air: 1, free: 2 } as const;
+export const SpecialForm = { ground: 0, air: 1, free: 2, recall: 3 } as const;
 export type SpecialForm = (typeof SpecialForm)[keyof typeof SpecialForm];
 
 /** Brief frames, inclusive. */
@@ -67,6 +67,26 @@ export interface SpecialArmor extends FrameWindow {
   readonly maxDamage: number;
 }
 
+/**
+ * An owned object the special places on the ground (Serpent Ward): an upright
+ * capsule `offsetX` ahead of the caster's feet, facing the caster's way.
+ * Opponents' attacks and projectiles spend its durability (sim/placedObjects.ts);
+ * it ends at zero durability, after `life` frames, on recall or on its owner's
+ * stock loss. At each age in `fireAges` it emits `shot` straight along its
+ * facing, never aimed, unless its owner is held or in hitstun.
+ */
+export interface SpecialPlacement {
+  /** The action frame the object appears on. */
+  readonly frame: number;
+  readonly offsetX: number;
+  readonly radius: number;
+  readonly height: number;
+  readonly durability: number;
+  readonly life: number;
+  readonly fireAges: readonly number[];
+  readonly shot: SpecialProjectile;
+}
+
 export interface AuthoredSpecial {
   /** Mana spent once, on entry. */
   readonly cost: number;
@@ -91,6 +111,10 @@ export interface AuthoredSpecial {
    * frames); frames no pose covers use the standing body. Weapons stay out.
    */
   readonly hurt?: readonly HurtPose[] | undefined;
+  /** Places the fighter's one owned object. */
+  readonly placement?: SpecialPlacement | undefined;
+  /** Completing the action removes the fighter's placed object. */
+  readonly recall?: boolean | undefined;
 }
 
 /** One special input: its grounded form, its airborne form and its zero-mana form. */
@@ -103,6 +127,8 @@ export interface SpecialKit {
    * special has one (the roster's weaker zero-mana recovery); it costs nothing.
    */
   readonly free?: AuthoredSpecial | undefined;
+  /** Chosen instead of every other form while the fighter's placed object stands. */
+  readonly recall?: AuthoredSpecial | undefined;
 }
 
 export interface ManaProfile {
@@ -131,6 +157,7 @@ export function specialKit(specials: Readonly<FighterSpecials>, slot: number): S
 /** The form a running special uses. */
 export function specialForm(kit: Readonly<SpecialKit>, form: number): AuthoredSpecial {
   if (form === SpecialForm.free) return kit.free ?? kit.ground;
+  if (form === SpecialForm.recall) return kit.recall ?? kit.ground;
   return form === SpecialForm.air ? kit.air ?? kit.ground : kit.ground;
 }
 

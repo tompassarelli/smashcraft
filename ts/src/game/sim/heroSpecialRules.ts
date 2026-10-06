@@ -9,7 +9,7 @@ import { at } from "wisp/src/runtime/lookup";
 import { ProjectileKind, SpecialAction } from "./codes";
 import { canAttack, inGrabContext, isIntangible } from "./conditions";
 import type { Fighter } from "./fighter";
-import { type FighterSpecials, type AuthoredSpecial, type SpecialProjectile, SpecialForm, SpecialSlot, specialForm, specialKit } from "./heroSpecials";
+import { type FighterSpecials, type AuthoredSpecial, type SpecialPlacement, type SpecialProjectile, SpecialForm, SpecialSlot, specialForm, specialKit } from "./heroSpecials";
 import { type HitRegion, NO_HIT_REGION } from "./hitRegions";
 import { type Controls, type Roster, fighterAt } from "./roster";
 import { travelBeforeBodies } from "./travelStop";
@@ -69,7 +69,8 @@ export function chooseHeroSpecial(f: Readonly<Fighter>, specials: Readonly<Fight
   const slot = requestedSlot(input);
   const kit = specialKit(specials, slot);
   const airborne = !f.motion.grounded;
-  let form: SpecialForm = airborne && kit.air !== undefined ? SpecialForm.air : SpecialForm.ground;
+  const recalls = kit.recall !== undefined && f.placed.life > 0;
+  let form: SpecialForm = recalls ? SpecialForm.recall : airborne && kit.air !== undefined ? SpecialForm.air : SpecialForm.ground;
   let move = specialForm(kit, form);
   if (move.groundOnly === true && airborne) return undefined;
   if (move.cost > f.mana.points) {
@@ -165,19 +166,24 @@ function applyWindows(f: Fighter, move: Readonly<AuthoredSpecial>, frame: number
 }
 
 function spawnHeroProjectile(owner: Fighter, spec: Readonly<SpecialProjectile>, serial: number): void {
+  const up = owner.special.aimZ > 0 && spec.upVelocityX !== undefined;
+  spawnHeroProjectileAt(owner, spec, owner.motion.x, owner.motion.z, owner.facing, up, serial);
+}
+
+/** Emits an owned hero projectile from an origin along a facing (a caster or its placed object). */
+export function spawnHeroProjectileAt(owner: Fighter, spec: Readonly<SpecialProjectile>, x: number, z: number, facing: number, up: boolean, serial: number): void {
   for (const projectile of owner.projectiles) {
     if (projectile.life > 0) continue;
-    const up = owner.special.aimZ > 0 && spec.upVelocityX !== undefined;
     const velocityX = up ? spec.upVelocityX ?? spec.velocityX : spec.velocityX;
     const velocityZ = up ? spec.upVelocityZ ?? spec.velocityZ : spec.velocityZ;
     projectile.kind = ProjectileKind.hero;
     projectile.spec = spec;
     projectile.visualFamily = owner.character;
-    projectile.direction = owner.facing < 0 ? -1 : 1;
-    projectile.velocityX = f32(owner.facing * velocityX);
+    projectile.direction = facing < 0 ? -1 : 1;
+    projectile.velocityX = f32(facing * velocityX);
     projectile.velocityZ = velocityZ;
-    projectile.x = f32(owner.motion.x + f32(owner.facing * spec.offsetX));
-    projectile.z = f32(owner.motion.z + spec.offsetZ);
+    projectile.x = f32(x + f32(facing * spec.offsetX));
+    projectile.z = f32(z + spec.offsetZ);
     projectile.serial = serial;
     projectile.damageMultiplier = 1.0;
     projectile.newlyReflected = false;
@@ -206,6 +212,21 @@ function applyMotion(f: Fighter, move: Readonly<AuthoredSpecial>, frame: number)
   }
 }
 
+/** Stands the fighter's placed object ahead of its feet, facing its way, with a clean strike record. */
+function placeObject(f: Fighter, spec: Readonly<SpecialPlacement>): void {
+  const { placed } = f;
+  placed.life = spec.life;
+  placed.age = 0;
+  placed.x = f32(f.motion.x + f32(f.facing * spec.offsetX));
+  placed.z = f.motion.z;
+  placed.direction = f.facing < 0 ? -1 : 1;
+  placed.durability = spec.durability;
+  placed.serial++;
+  placed.spec = spec;
+  for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) placed.struck[slot] = undefined;
+  placed.specialStruck = 0;
+}
+
 /** Ends the action; a helpless form that ends airborne leaves a helpless fall. */
 function endHeroSpecial(f: Fighter, move: Readonly<AuthoredSpecial>): void {
   if (move.helpless === true && !f.motion.grounded) {
@@ -223,8 +244,12 @@ export function advanceHeroSpecial(f: Fighter): void {
   const frame = f.special.frame;
   applyMotion(f, move, frame);
   for (const spec of move.projectiles ?? []) if (spec.spawnFrame === frame) spawnHeroProjectile(f, spec, f.attack.serial + 1);
+  if (move.placement?.frame === frame) placeObject(f, move.placement);
   applyWindows(f, move, frame);
-  if (frame >= move.endFrame) endHeroSpecial(f, move);
+  if (frame >= move.endFrame) {
+    if (move.recall === true) f.placed.life = 0;
+    endHeroSpecial(f, move);
+  }
 }
 
 /** Landing ends a form that sets a landing lag; true when it did. */

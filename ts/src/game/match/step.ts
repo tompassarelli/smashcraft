@@ -10,6 +10,7 @@ import { resolveLedges } from "../sim/ledge";
 import { carryOnMovingDecks } from "../sim/movingDecks";
 import { observedActions, resetObservedActions } from "../sim/observations";
 import { updateProjectiles } from "../sim/projectiles";
+import { advancePlacedObjects } from "../sim/placedObjects";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
 import { regenerateShield } from "../sim/shield";
 import { advanceSpecials, startFighterSpecial } from "../sim/specials";
@@ -113,6 +114,7 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
   resolveAttacks(world);
   advanceSpecials(world, stage, matchFrame);
   updateProjectiles(world, stage, matchFrame);
+  advancePlacedObjects(world);
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) continue;
     const f = fighterAt(world, slot);
