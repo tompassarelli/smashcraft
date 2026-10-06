@@ -25,14 +25,22 @@ export interface SmashcraftMapProfile {
 const PRESENTATION = join(inputs, "native-acceptance-20261006/Smashcraft diagnostic native presentation.w3x");
 
 const heroes = HERO_ROSTER.filter(({ complete }) => complete);
+const rankedStages = STAGE_CATALOG.filter(({ id }) => id !== 0);
+const stageProfile = (name: string) => `stage-${name.toLowerCase().replace(/[^a-z]+/g, "-")}`;
 const heroProfile = (name: string) => `hero-${name.toLowerCase().replace(/\s+/g, "-")}`;
 
 export const MAP_PROFILES: Readonly<Record<string, SmashcraftMapProfile>> = {
   presentation: { describe: "development map rebuilt from this checkout, `-dev quick` (Archer and Rifleman idle on the default stage)", path: PRESENTATION, rebuild: "main", quick: "-dev quick" },
   // smashcraft:docs/player-view.md: CURRENT_BUILD's scenario set to underside, built as a development map.
   underside: { describe: "development map built with scenario underside (smashcraft:docs/player-view.md), `-dev quick`", path: join(inputs, "stage-model-20261006/Smashcraft diagnostic underside.w3x"), quick: "-dev quick" },
-  stages: { describe: "development map rebuilt from this checkout, `-dev quick`, then a quick match on each stage in turn", path: PRESENTATION, rebuild: "main", quick: "-dev quick" },
   training: { describe: "development map rebuilt from this checkout, `-dev quick training` (a computer partner shielding at 40%, hit areas on)", path: PRESENTATION, rebuild: "main", quick: QUICK_TRAINING_COMMAND },
+  // A quick match starts only from fighter selection, so each stage is its own session.
+  ...Object.fromEntries(rankedStages.map(({ id, name }) => [stageProfile(name), {
+    describe: `development map rebuilt from this checkout, a quick match on ${name}`,
+    path: PRESENTATION,
+    rebuild: "main",
+    quick: `-dev quick stage ${id}`,
+  }])),
   ...Object.fromEntries(heroes.map(({ name }) => [heroProfile(name), {
     describe: `development map rebuilt from this checkout, every human plays ${name}`,
     path: PRESENTATION,
@@ -71,13 +79,13 @@ const EXPECTATIONS: Readonly<Record<number, string>> = {
 };
 
 /** smashcraft#109's native look (and #115's decks, #110's camera): each stage's quick match, one whole frame per client once its scene has had 5 s to draw. */
-const stageChecks: NativeCheck[] = STAGE_CATALOG.filter(({ id }) => id !== 0).map(({ id, name }): NativeCheck => ({
-  id: `109-stage-${name.toLowerCase().replace(/[^a-z]+/g, "-")}`,
+const stageChecks: NativeCheck[] = rankedStages.map(({ name }): NativeCheck => ({
+  id: `109-${stageProfile(name)}`,
   closes: "smashcraft#109 box 5",
-  map: "stages",
-  setup: [{ chat: `-dev quick stage ${id}` }, { receipt: "^SMASHCRAFT DEV v=1 ", seconds: 6 }, { waitMs: 5000 }],
+  map: stageProfile(name),
+  setup: [{ waitMs: 5000 }],
   capture: [{ kind: "frames", name: "match", client: "a" }, { kind: "frames", name: "match", client: "b" }],
-  pass: [DEV_RECEIPT, NO_IMPORT_FAILURES, NO_ERRORS],
+  pass: [NO_IMPORT_FAILURES, NO_ERRORS],
   look: `${name}: sky, fog and scenery behind the fighting volume, no mirror-twin scenery or creatures, a themed main deck distinct from the fog, both fighters and the HUD drawn`,
 }));
 
