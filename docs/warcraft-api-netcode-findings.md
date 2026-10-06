@@ -398,6 +398,17 @@ the rows its helpers journaled for it, and the confirmed checksums are equal.
 Over seeds 7, 11, 13 and 17 and three stall times the recovery took
 0.70–0.85 s; with 4 frames a callback, up to 1.07 s.
 
+A player on the keyboard fallback (#46) has no helper: the map polls their
+keys once a callback, so their clock counts callbacks and loses the stalled
+time with the game, while another player's helper journals on. The
+confirmed match then waits on the keyboard's rows and the helper player's
+input stays as late as the stall was, for the rest of the match. The
+keyboard's clock therefore follows the furthest frame another player has
+already sent (`ShadowInputSchedule.othersThrough`), its rows admitted under
+the same `CATCH_UP_FRAMES` cap. In `bun wisp soak --policy absent --matches
+20`, 3 matches stayed behind their input for good without it and none with
+it (6 October 2026).
+
 The helpers' frames are never moved: re-anchoring a stalled player's clock
 would put rows on frames other than the ones #26's integrity check expects
 from the input's own timestamps, and needs a map-to-helper protocol. Catching
