@@ -27,8 +27,8 @@ const SLASH = 191;
 const code = (character: string) => character.charCodeAt(0);
 
 // Menu and developer controls stay available whatever the bindings: Escape,
-// Y (start/pause), F1, F5, F6 and F7.
-const RESERVED_KEYS: readonly number[] = [27, 89, 112, 116, 117, 118];
+// Y (start/pause), F1, F5, F6, F7 and F8 (save a moment).
+const RESERVED_KEYS: readonly number[] = [27, 89, 112, 116, 117, 118, 119];
 
 export function slotIndex(action: Action, slot: KeySlot): number {
   return action * 2 + slot;

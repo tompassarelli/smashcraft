@@ -4,8 +4,9 @@
 import { hasPendingAttack, clearAttackBuffer } from "../../game/input/attackBuffer";
 import { adaptInput } from "../../game/input/adapter";
 import { commitEdges } from "../../game/input/keyboardCapture";
-import { PARTICIPANT_SLOTS, type ParticipantSlot } from "../../game/input/participants";
-import { captureFrame, copyExecutedInput, executeMatchFrame } from "../../game/match/frameInput";
+import { PARTICIPANT_SLOTS, type ParticipantSlot, participantActive } from "../../game/input/participants";
+import { captureFrame, copyExecutedInput, executeMatchFrame, hasNetworkRows } from "../../game/match/frameInput";
+import { beginMomentFrame, momentFrameRan, recordMomentRow } from "../../game/replay/moment";
 import { Phase, computerActive, humanFighterActive } from "../../game/match/rules";
 import { resultMessage, aerialName, fighterLabel } from "../../game/shell/messages";
 import { produceScenarioComputerInput } from "../../game/shell/scenarios";
@@ -69,7 +70,14 @@ export function applyFrame(s: ShellState): void {
   const { world, runtime } = s;
   for (const slot of PARTICIPANT_SLOTS) if (isActive(world, slot)) observe(s.participants[slot].before, fighterAt(world, slot));
   const frame = s.frameInput.frame;
-  if (frame === undefined || !executeMatchFrame(s.frameInput, s.game, world, s.controls, runtime, frame)) return;
+  if (frame === undefined) return;
+  const { recorder } = s.moment;
+  beginMomentFrame(recorder, frame, world, s.game, s.controls, runtime);
+  if (!executeMatchFrame(s.frameInput, s.game, world, s.controls, runtime, frame)) return;
+  if (hasNetworkRows(s.frameInput)) {
+    for (const slot of PARTICIPANT_SLOTS) if (participantActive(s.frameInput.networkMask, slot)) recordMomentRow(recorder, frame, slot, s.frameInput.network[slot]);
+  }
+  momentFrameRan(recorder, frame);
   const rollback = activeRollback(s);
   const ui = views(s);
   for (const slot of PARTICIPANT_SLOTS) {
@@ -96,6 +104,7 @@ export function callbackMatchTick(s: ShellState): void {
     if (!humanFighterActive(s.game, slot) || !isActive(s.world, slot)) continue;
     const participant = s.participants[slot];
     const commands = s.produced.commands[slot];
+    recordMomentRow(s.moment.recorder, frame, slot, participant.capture.row);
     adaptInput(participant.capture.row, fighterAt(s.world, slot), frame, s.produced.inputs[slot], commands);
     commitEdges(participant.capture);
     if (hasPendingAttack(commands, frame)) participant.lastNormalStyle = commands.pending?.style;

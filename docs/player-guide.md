@@ -22,8 +22,13 @@ chat.
 
 F1 opens Controls before a match. Choose QWERTY or Custom, click either key
 slot to rebind it, then Save. Saved controls load automatically on the next map
-start. Y is reserved for Start/Pause; F6 and F7 remain reserved for Warcraft
-shortcuts. Ctrl+T starts a developer input trace.
+start. Y is reserved for Start/Pause and F8 for saving a moment; F6 and F7
+remain reserved for Warcraft shortcuts. Ctrl+T starts a developer input trace.
+
+Saw something wrong? Press F8, or hold View on a controller for a second: the
+last ten seconds of the match are saved for a bug report on your computer, in
+Warcraft III's CustomMapData folder as smashcraft-repro-*.txt, and "Moment
+saved" appears. The match goes on undisturbed.
 
 The Custom preset uses W/R to move, I/9 to jump, Space to aim up, E to
 fast-fall or drop through platforms, Q/8 to shield or air-dodge, O to grab, N

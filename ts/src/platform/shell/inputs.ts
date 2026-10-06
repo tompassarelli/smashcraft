@@ -5,6 +5,7 @@ import { resetKeys } from "../../game/input/keyboardCapture";
 import { keyFor } from "../../game/input/keyBindings";
 import { PARTICIPANT_SLOTS, type ParticipantSlot, isParticipantSlot, participantActive } from "../../game/input/participants";
 import { clearKeys } from "../../game/input/playerKeys";
+import { keepMomentEnd } from "../../game/replay/moment";
 import { humanFighterActive, humanPresent } from "../../game/match/rules";
 import { type ShellState, localSlot } from "./state";
 import { settingsOpen } from "./ui";
@@ -33,6 +34,7 @@ export function clearParticipantInputs(s: ShellState, slot: ParticipantSlot): vo
   clearKeys(participant.keys);
   resetKeys(participant.capture, 0);
   clearAttackBuffer(s.produced.commands[slot]);
+  keepMomentEnd(s.moment.recorder, s.world, s.game, s.controls, s.runtime);
   clearAttackBuffer(s.controls.commands[slot]);
 }
 

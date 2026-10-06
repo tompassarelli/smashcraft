@@ -11,7 +11,7 @@ import { ARENA_CAMERA, FLOOR_HEIGHT, arenaFraming } from "../../game/presentatio
 import { DamagePose, damagePose } from "../../game/presentation/damagePose";
 import type { FighterPose } from "../../game/presentation/fighterPose";
 import { type MapBuild, journalIngress } from "../../game/shell/build";
-import { type StartControl, fighterLabel, matchHelp, waitingMessage } from "../../game/shell/messages";
+import { MOMENT_SAVED_MESSAGE, type StartControl, fighterLabel, matchHelp, waitingMessage } from "../../game/shell/messages";
 import { isIntangible } from "../../game/sim/conditions";
 import { type Roster, fighterAt, isActive } from "../../game/sim/roster";
 import { surfaceCount, surfaceLeft, surfacePass, surfaceRight, surfaceZ } from "../../game/sim/stage";
@@ -222,7 +222,8 @@ export function renderUi(s: ShellState): void {
     BlzFrameSetText(help, matchHelp(game, s.session.paused, startControl(s), localFighter, game.phase === Phase.match));
     const waiting = game.phase === Phase.match ? activeRollback(s)?.waitingFor ?? 0 : 0;
     BlzFrameSetText(notice, waiting !== 0 ? waitingMessage(waiting)
-      : localFighter?.attack.smashCharging === true ? "Charging smash: release Attack to strike." : s.status.seconds > 0 ? s.status.text : "");
+      : localFighter?.attack.smashCharging === true ? "Charging smash: release Attack to strike."
+      : s.moment.notice > 0 ? MOMENT_SAVED_MESSAGE : s.status.seconds > 0 ? s.status.text : "");
   }
   ui.stage.update(game);
   if (developer === undefined || local === undefined || localFighter === undefined) return;

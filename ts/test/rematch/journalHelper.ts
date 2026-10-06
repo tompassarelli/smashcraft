@@ -9,6 +9,7 @@ import { Action, bit } from "../../src/game/input/actions";
 import { type InputRow, inputRow } from "../../src/game/input/inputRow";
 import { encodePacket, inputPacket } from "../../src/game/input/wire";
 import { TEXT_WINDOW, textEnvelope } from "../../src/game/netcode/journal/text";
+import { momentRequest } from "../../src/game/replay/moment";
 import { quiescentFile } from "../../src/game/shell/journalFiles";
 import { journalControlFile, journalLifecycleFile, journalReadyFile } from "../../src/runtime/gameFiles";
 
@@ -87,6 +88,12 @@ export class JournalHelpers {
       this.helpers.set(slot, helper);
     }
     return helper;
+  }
+
+  /** Slot's helper types a request to save a moment, as the companion does when View is held for a second. */
+  requestMoment(slot: number): void {
+    const helper = this.helper(slot);
+    helper.queue.push(momentRequest(helper.epoch));
   }
 
   /** One frame of every helper, after the clients ran it. */
