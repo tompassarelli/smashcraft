@@ -19,7 +19,7 @@ for chip in P1 P2 CPU; do
     sed -e "s/CHIP_COLOR/$color/g" -e "s/CHIP_LABEL/$label/g" "$source_dir/SelectionChip.svg" > "$output_dir/SelectionChip$chip.svg"
     magick -background none "$output_dir/SelectionChip$chip.svg" -depth 8 "TGA:$output_dir/SelectionChip$chip.tga"
 done
-for name in SelectionBackdrop SelectionTileFrame SelectionAction StageBackdrop StageChip SelectionSkyDeck SelectionThreeBridges; do
+for name in SelectionBackdrop SelectionTileFrame SelectionAction StageBackdrop StageChip SelectionSkyDeck SelectionThreeBridges SelectionFrozenThrone; do
     magick -background none "$source_dir/$name.svg" -depth 8 "TGA:$output_dir/$name.tga"
 done
 for card in Red Blue Gray; do

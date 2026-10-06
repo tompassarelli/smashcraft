@@ -19,7 +19,7 @@ export default defineSoak({
   scene: SMASHCRAFT_SCENE,
   roster: {
     fighters: ["archer", "rifleman", "illidan"],
-    stages: ["sky-deck", "three-bridges"],
+    stages: ["sky-deck", "three-bridges", "frozen-throne"],
     policies: [["fuzz", "cpu"], ["fuzz", "fuzz"], ["cpu", "cpu"], ["cpu", "fuzz"], ["fuzz", "absent"], ["absent", "fuzz"]],
   },
   controller: SOAK_CONTROLLER,

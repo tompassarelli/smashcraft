@@ -72,6 +72,9 @@ export function applyDevCommand(settings: DevSettings, message: string): string 
 /** Starts a match with no menu navigation, for the fresh-match loop. */
 export const QUICK_MATCH_COMMAND = "-dev quick";
 
+/** A winter arena match for the native presentation capture. */
+export const FROZEN_THRONE_QUICK_COMMAND = "-dev quick frozen-throne";
+
 /** Desynchronizes the game on purpose, to check that the host names what diverged. */
 export const DESYNC_COMMAND = "-dev desync";
 
@@ -80,7 +83,7 @@ export const DESYNC_COMMAND = "-dev desync";
  * a one-stock match on the default stage, from either menu. False, with no match
  * started, when the menus could not start one.
  */
-export function prepareQuickMatch(game: MatchState): boolean {
+export function prepareQuickMatch(game: MatchState, stage = 0): boolean {
   const first = firstHumanSlot(game);
   if (first === undefined || (game.phase !== Phase.characterMenu && game.phase !== Phase.stageMenu)) return false;
   returnToCharacters(game, first);
@@ -90,6 +93,6 @@ export function prepareQuickMatch(game: MatchState): boolean {
   }
   setStocks(game, first, 1);
   if (!requestStageSelect(game, first)) return false;
-  selectStage(game, first, createMatchState().stageChoice);
+  selectStage(game, first, stage);
   return requestStart(game, first);
 }

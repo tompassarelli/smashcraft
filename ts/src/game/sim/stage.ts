@@ -8,7 +8,10 @@ import { melee } from "./tuning";
 import { squareRoot } from "./warcraftMath";
 
 /** Stage 1's layout with solid raised decks; collision tests only, never selectable. */
-export const SOLID_DECK_TEST_STAGE = 2;
+export const SOLID_DECK_TEST_STAGE = 5;
+
+/** The selectable winter arena, with Battlefield's three-platform arrangement. */
+export const FROZEN_THRONE_STAGE = 2;
 
 function hasRaisedDecks(stage: number): boolean {
   return stage === 1 || stage === SOLID_DECK_TEST_STAGE;
@@ -16,11 +19,12 @@ function hasRaisedDecks(stage: number): boolean {
 
 /** Walkable decks. */
 export function surfaceCount(stage: number): number {
-  return stage === 0 ? 1 : hasRaisedDecks(stage) ? 3 : 0;
+  return stage === 0 ? 1 : stage === FROZEN_THRONE_STAGE ? 4 : hasRaisedDecks(stage) ? 3 : 0;
 }
 
 export function surfaceLeft(stage: number, index: number): number {
   if (index === 0) return -600.0;
+  if (stage === FROZEN_THRONE_STAGE) return index === 1 ? -505.0 : index === 2 ? 175.0 : -165.0;
   if (hasRaisedDecks(stage) && index === 1) return -420.0;
   if (hasRaisedDecks(stage) && index === 2) return 110.0;
   return 0.0;
@@ -28,18 +32,20 @@ export function surfaceLeft(stage: number, index: number): number {
 
 export function surfaceRight(stage: number, index: number): number {
   if (index === 0) return 600.0;
+  if (stage === FROZEN_THRONE_STAGE) return index === 1 ? -175.0 : index === 2 ? 505.0 : 165.0;
   if (hasRaisedDecks(stage) && index === 1) return -110.0;
   if (hasRaisedDecks(stage) && index === 2) return 420.0;
   return 0.0;
 }
 
 export function surfaceZ(stage: number, index: number): number {
+  if (stage === FROZEN_THRONE_STAGE && index > 0) return melee(index === 3 ? 54.400001525878906 : 27.200000762939453);
   return hasRaisedDecks(stage) && index > 0 ? 170.0 : 0.0;
 }
 
 /** Raised decks can be dropped through and landed on from below. */
 export function surfacePass(stage: number, index: number): boolean {
-  return stage === 1 && index > 0;
+  return (stage === 1 || stage === FROZEN_THRONE_STAGE) && index > 0;
 }
 
 /**

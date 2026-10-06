@@ -182,7 +182,7 @@ export function recallCharacter(game: MatchState, actor: number, chip: number): 
 }
 
 export function selectStage(game: MatchState, slot: number, choice: number): void {
-  if (game.phase === Phase.stageMenu && humanActive(game, slot) && choice >= 0 && choice <= 1) game.stageChoice = choice;
+  if (game.phase === Phase.stageMenu && humanActive(game, slot) && choice >= 0 && choice <= 2) game.stageChoice = choice;
 }
 
 export function requestStageSelect(game: MatchState, slot: number): boolean {

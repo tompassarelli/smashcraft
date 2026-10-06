@@ -19,6 +19,7 @@ import { localParticipantSlot, traceParticipant } from "./diagnostics";
 import { placeFighterBody, renderDizzy } from "./fighterBody";
 import { type ShellState, type StatusFrames, activeRollback, localSlot, playsOnKeyboard } from "./state";
 import { pauseEffects, views } from "./ui";
+import { drawStageScenery } from "./stageScenery";
 
 /** Text that waits for the players stays this long. */
 export const LASTING = 3600.0;
@@ -64,6 +65,7 @@ function clearStageDecks(s: ShellState): void {
 /** One deck model per surface of the chosen stage: the main deck's own, drawn from its collision, and a slab for each raised deck. */
 export function drawStage(s: ShellState): void {
   clearStageDecks(s);
+  drawStageScenery(s);
   const { origin } = s;
   const stage = s.game.stageChoice;
   for (let index = 0; index < surfaceCount(stage); index++) {

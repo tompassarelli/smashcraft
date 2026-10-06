@@ -214,6 +214,7 @@ export interface ShellState {
   readonly status: StatusLine;
   readonly frames: StatusFrames;
   readonly stageDecks: effect[];
+  stageScenery: effect[] | undefined;
   /** Menus, HUD and renderers; retained and rebound on hot reload. */
   ui: UiObjects | undefined;
   readonly sounds: ModelSoundCursor;
@@ -306,7 +307,7 @@ export function createShellState(build: MapBuild, setup: ShellSetup): ShellState
     produced: createFrameControls(), runtime: createPacingAndPresentation(), session: createMatchControls(),
     frameInput: createMatchFrameInput(),
     participants: [participant(0, persistence), participant(1, persistence), participant(2, persistence), participant(3, persistence)],
-    status: { text: "", seconds: 0.0 }, frames: setup.frames, stageDecks: [], ui: undefined,
+    status: { text: "", seconds: 0.0 }, frames: setup.frames, stageDecks: [], stageScenery: undefined, ui: undefined,
     sounds: createModelSoundCursor(ORIGINAL_MODEL_SOUNDS),
     dev: { rollback: isShadow(input) ? input.rollback : 6, delay: isShadow(input) ? input.delay : 3, batch: DEFAULT_BATCH, rematchSeconds: REMATCH_COUNTDOWN_SECONDS }, devReceipts: 0,
     trace: inputTrace(build.responseProbe ? 2048 : 256),
