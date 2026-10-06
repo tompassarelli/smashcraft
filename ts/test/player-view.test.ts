@@ -32,6 +32,7 @@ import { WORLD_UNITS_PER_MELEE_UNIT } from "../src/game/sim/tuning";
 import { install as installDevelopment, start as startDevelopment } from "../src/platform/devMain";
 import { PERF_COMMAND } from "../src/platform/frameMeter";
 import { startMatch } from "../src/platform/shell/matchStart";
+import { startQuickMatch } from "../src/platform/shell/menus";
 import { shell } from "../src/platform/shell/state";
 import { drawStage, lockArenaCamera, renderPersistentPresentation } from "../src/platform/shell/view";
 import { installHeadless, readNativeDeclarations } from "wisp/scripts/wisp/headless";
@@ -312,21 +313,48 @@ test("development build: -dev perf shows the typing player what the match's fram
   expect(overlay(guest)).toEqual([]);
 });
 
-test("camera matches show a bubble on every offscreen frame and lose the stock outside the view at all supported aspects", () => {
-  for (const aspect of [16 / 9, 16 / 10, 3 / 2]) {
+test("every selectable stage keeps its camera inside the blast zones, shows every offscreen bubble and loses stocks outside the view at all supported aspects", () => {
+  for (const stage of [0, 1, 2]) for (const aspect of [16 / 9, 16 / 10, 3 / 2]) {
     const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
     clients.start();
     clients.frames(30);
     const client = clients.clients[0];
     if (client === undefined) throw new Error("missing client");
     aspects.set(client, aspect);
-    client.run(() => setParticipants(shell().game, 1, 2));
-    clients.chat(0, "-dev camera");
+    client.run(() => {
+      const s = shell();
+      setParticipants(s.game, 1, 2);
+      startQuickMatch(s, stage, "camera");
+    });
     const check = new CameraFindings();
     const problems: string[] = [];
     for (let frame = 0; frame < 360; frame++) {
       clients.frames(1);
-      client.run(() => problems.push(...check.observe(client).map(({ text }) => text)));
+      client.run(() => {
+        problems.push(...check.observe(client).map(({ text }) => text));
+        const s = shell();
+        const camera = cameras.get(client);
+        if (camera === undefined) throw new Error("missing set camera");
+        const bounds = stageBounds(stage);
+        // Intersect rays from the actual camera fields with the fighters' plane.
+        const field = (name: string) => camera.fields.get(name) ?? Number.NaN;
+        const pitch = (field("CAMERA_FIELD_ANGLE_OF_ATTACK") - 360) * Math.PI / 180;
+        const tangent = Math.tan(field("CAMERA_FIELD_FIELD_OF_VIEW") * Math.PI / 360) / aspect;
+        const distance = field("CAMERA_FIELD_TARGET_DISTANCE");
+        const targetZ = field("CAMERA_FIELD_ZOFFSET") - FLOOR_HEIGHT;
+        for (const row of [0, HUD_TOP_ROW, 1]) {
+          const vertical = (1 - 2 * row) * tangent;
+          const dz = vertical * distance / (Math.cos(pitch) - vertical * Math.sin(pitch));
+          const z = targetZ + dz;
+          const halfWidth = (distance + dz * Math.sin(pitch)) * tangent * aspect;
+          const x = camera.x - s.origin.x;
+          expect(x - halfWidth).toBeGreaterThanOrEqual(bounds.camera.left - 0.01);
+          expect(x + halfWidth).toBeLessThanOrEqual(bounds.camera.right + 0.01);
+          expect(z).toBeLessThanOrEqual(bounds.camera.top + 0.01);
+          expect(z).toBeGreaterThan(bounds.blast.bottom + 19.99);
+          if (row <= HUD_TOP_ROW) expect(z).toBeGreaterThanOrEqual(bounds.camera.bottom - 0.01);
+        }
+      });
     }
     expect(problems).toEqual([]);
     expect(check.offscreenFrames).toBeGreaterThanOrEqual(180);
