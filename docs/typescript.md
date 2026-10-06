@@ -213,6 +213,22 @@ wc3-journal helper built with `--text-out`, into headless clients in real
 time, with the same detectors. It needs /dev/uinput, as `bun wisp parity
 headless` does.
 
+The development and integrity builds measure what each frame costs
+(smashcraft:ts/src/platform/frameMeter.ts, [Wisp frame cost](https://github.com/tompassarelli/wisp/blob/main/docs/frame-cost.md)):
+Lua time, native calls and the confirmed frames each 60 Hz callback caught up.
+`-dev perf` shows the player who types it the medians and maxima of the last
+120 frames. After each hot reload every client writes the 120 frames before
+and after it to `smashcraft-perf-p<slot>.txt`, and `bun wisp hot --watch` and
+`bun wisp dev --data` print the change and flag a rise over 20%. The playable
+entry never imports the meter. `LUA=<32-bit lua> bun wisp perf [--out FILE]`
+plays the headless quick match in 32-bit Lua and prints each client's Lua
+instructions, Lua time and native calls per frame; `bun wisp perf compare A B`
+fails when B's instructions or calls per frame exceed A's by more than 5%.
+On 2f29ab3 with Wisp 1fe6d71 the quick match's first client ran a median
+47,800 Lua instructions and 138 native calls a frame; the meter adds 2.0% to
+its mean instructions a frame, and the playable bundle is the same bytes as
+before the meter (smashcraft:ts/build/playable.lua SHA256 082a11b3).
+
 `bun wisp parity headless --helper BIN --out DIR` runs issue #26's capture
 without Warcraft (smashcraft:ts/scripts/integrity/headless.ts): the
 integrity build's TypeScript in two headless clients at 60 frames a second of

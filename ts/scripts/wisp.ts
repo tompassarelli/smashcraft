@@ -26,6 +26,7 @@ const COMMANDS: Record<string, { readonly usage: string; readonly load: () => Pr
   play: { usage: "play   (Tom's desktop: Battle.net, Play, a hosted game against a computer, the controller helper)", load: async () => (await import("./wisp/commands/play")).play },
   tune: { usage: "tune --data DIR [--data DIR ...] [--port N] [--profile main|integrity|playable|physics-probe|frame-cost|stack-trace]", load: async () => (await import("./wisp/commands/tune")).tune },
   repro: { usage: "repro FILE [--test NAME]", load: async () => (await import("./wisp/commands/repro")).repro },
+  perf: { usage: "perf [--out FILE] | perf compare A B [--threshold SHARE]   (LUA=<32-bit lua>)", load: async () => (await import("./wisp/commands/perf")).perf },
 };
 
 const [name, ...args] = process.argv.slice(2);
