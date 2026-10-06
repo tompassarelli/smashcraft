@@ -20,7 +20,7 @@ const CARRION_SWARM: AuthoredSpecial = {
   projectiles: [{
     model: "Abilities\\Spells\\Undead\\CarrionSwarm\\CarrionSwarmMissile.mdx",
     spawnFrame: 20, offsetX: 40.0, offsetZ: 60.0, velocityX: h(f32(0.09)), velocityZ: 0.0, life: 32, radius: h(f32(0.25)),
-    effect: dreadlordHit(7.0, "POKE", 40), reflectable: true, limit: 1,
+    effect: dreadlordHit(7.0, "POKE", 40, 1.0, HitElement.dark), reflectable: true, limit: 1,
   }],
 };
 
@@ -34,7 +34,7 @@ const SLEEP_ORB: AuthoredSpecial = {
   projectiles: [{
     model: "Abilities\\Weapons\\VoidWalkerMissile\\VoidWalkerMissile.mdx",
     spawnFrame: 26, offsetX: 40.0, offsetZ: 60.0, velocityX: h(f32(0.06)), velocityZ: 0.0, life: 50, radius: h(f32(0.18)),
-    effect: { damage: 2.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false, element: HitElement.normal },
+    effect: { damage: 2.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false, element: HitElement.dark },
     reflectable: true, limit: 1,
     status: { kind: HeroStatusKind.sleep, frames: 70, airFrames: 24, group: HeroStatusGroup.sleep, immunityFrames: 240 },
   }],

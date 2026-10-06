@@ -1,5 +1,5 @@
 import { f32 } from "wisp/src/sim/f32";
-import { AttackStyle, Character, GrabAction } from "../codes";
+import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
 import { hurtCapsule } from "../../physics/contactGeometry";
 import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion, type FighterMoves, type StrikeCapsule } from "../heroMoves";
 import type { HitEffect } from "../hitRegions";
@@ -42,10 +42,10 @@ const DIRECTIONS = {
 } as const;
 
 /** Uther's provisional launch for a roster row: damage, tuning class and facing-relative angle. */
-export function hit(damage: number, launchClass: LaunchClass, angle: keyof typeof DIRECTIONS, backwards = false): Readonly<HitEffect> {
+export function hit(damage: number, launchClass: LaunchClass, angle: keyof typeof DIRECTIONS, backwards = false, element: HitElement = HitElement.normal): Readonly<HitEffect> {
   const direction = DIRECTIONS[angle];
   const strength = CLASS_HYPOTHESES[launchClass];
-  return { damage, growth: strength.growth, base: strength.base, launchX: backwards ? -direction.x : direction.x, launchZ: direction.z, electric: false };
+  return { damage, growth: strength.growth, base: strength.base, launchX: backwards ? -direction.x : direction.x, launchZ: direction.z, electric: false, element };
 }
 
 export const capsule = (x1: number, z1: number, x2: number, z2: number, radius: number): StrikeCapsule => ({ x1, z1, x2, z2, radius });

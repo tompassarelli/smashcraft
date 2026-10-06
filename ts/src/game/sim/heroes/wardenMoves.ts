@@ -39,10 +39,10 @@ const ANGLES = {
   270: { x: 0.0, z: -1.0 },
 } as const;
 
-export function wardenHit(damage: number, kind: keyof typeof CLASS, angle: keyof typeof ANGLES, facing = 1.0): Readonly<HitEffect> {
+export function wardenHit(damage: number, kind: keyof typeof CLASS, angle: keyof typeof ANGLES, facing = 1.0, element: HitElement = HitElement.slash): Readonly<HitEffect> {
   const strength = CLASS[kind];
   const direction = ANGLES[angle];
-  return { damage, growth: strength.growth, base: strength.base, launchX: f32(direction.x * facing), launchZ: direction.z, electric: false, element: HitElement.slash };
+  return { damage, growth: strength.growth, base: strength.base, launchX: f32(direction.x * facing), launchZ: direction.z, electric: false, element };
 }
 
 const blade = (x1: number, z1: number, x2: number, z2: number, radius = BLADE_RADIUS): StrikeCapsule => ({ x1, z1, x2, z2, radius });

@@ -21,6 +21,7 @@ import type { Fighter } from "../sim/fighter";
 import { DEMONHUNTER_IMMOLATE_ACTIVE, DEMONHUNTER_IMMOLATE_STARTUP, DEMONHUNTER_MANA_BURN_STARTUP } from "../sim/specials";
 import { type ParkedFlags, STOCK_MODELS, type WorldOrigin, facingYaw, parkOnce } from "./effects";
 import { characterModelScale } from "../presentation/modelScale";
+import { IMMOLATE_SOUNDS } from "../presentation/elementLooks";
 import { SummonPresentation } from "./summonPresentation";
 import { bindPrototype } from "../../platform/rebind";
 
@@ -38,6 +39,8 @@ interface SpecialSlot {
   previousSpecialFrame: number;
   previousHippogryphLife: number;
   previousHippogryphKind: HippogryphKind;
+  /** Immolation's fire loop while it burns; made on first use, so a reloaded slot gains one. */
+  immolationLoop?: sound | undefined;
 }
 
 /** The hippogryph flies while swooping or carrying, stands on its perch and attacks while diving or flying on. */
@@ -98,6 +101,7 @@ export class SpecialEffects {
       slot.previousSpecial = SpecialAction.none;
       slot.previousSpecialFrame = 0;
       slot.previousHippogryphLife = 0;
+      if (slot.immolationLoop !== undefined) StopSound(slot.immolationLoop, false, false);
       slot.previousHippogryphKind = HippogryphKind.none;
     });
   }
@@ -135,6 +139,29 @@ export class SpecialEffects {
     else this.park(manaHand, index, MANA_HAND);
   }
 
+  /** Immolation's cast, loop and decay sounds, from confirmed frames only, so a rollback never replays one. */
+  private presentImmolationSound(fighter: Readonly<Fighter>, slot: SpecialSlot, lit: boolean, out: boolean): void {
+    const x = this.origin.x + fighter.motion.x;
+    const z = this.origin.z + fighter.motion.z;
+    const play = (label: string): void => {
+      const cue = CreateSoundFromLabel(label, false, true, true, 10000, 10000);
+      SetSoundPosition(cue, x, this.origin.y, z);
+      StartSound(cue);
+      KillSoundWhenDone(cue);
+    };
+    if (lit) {
+      play(IMMOLATE_SOUNDS.start);
+      const loop = (slot.immolationLoop ??= CreateSoundFromLabel(IMMOLATE_SOUNDS.loop, true, true, true, 10000, 10000));
+      SetSoundPosition(loop, x, this.origin.y, z);
+      StartSound(loop);
+    } else if (out) {
+      if (slot.immolationLoop !== undefined) StopSound(slot.immolationLoop, false, true);
+      play(IMMOLATE_SOUNDS.end);
+    } else if (slot.immolationLoop !== undefined && fighter.special.action === SpecialAction.demonHunterImmolate) {
+      SetSoundPosition(slot.immolationLoop, x, this.origin.y, z);
+    }
+  }
+
   private presentConfirmedParticles(fighter: Readonly<Fighter>, slot: SpecialSlot, index: number): void {
     const { action, frame } = fighter.special;
     const entered = action !== slot.previousSpecial || frame < slot.previousSpecialFrame;
@@ -142,12 +169,16 @@ export class SpecialEffects {
     if (fighter.character === Character.demonHunter && !fighter.status.out) {
       if (entered && action === SpecialAction.demonHunterImmolate) BlzSetSpecialEffectTime(felFlames, 0.0);
       else if (entered && action === SpecialAction.demonHunterManaBurn) BlzSetSpecialEffectTime(manaHand, 0.0);
-      const burning = action === SpecialAction.demonHunterImmolate && frame >= DEMONHUNTER_IMMOLATE_STARTUP && frame < DEMONHUNTER_IMMOLATE_STARTUP + DEMONHUNTER_IMMOLATE_ACTIVE;
-      if (burning) this.show(felFlames, index, FEL_FLAMES, fighter, 0.0, 25.0, f32(1.15));
+      // The fel fire burns through the whole action and flares over its strike frames.
+      const immolating = action === SpecialAction.demonHunterImmolate;
+      const striking = immolating && frame >= DEMONHUNTER_IMMOLATE_STARTUP && frame < DEMONHUNTER_IMMOLATE_STARTUP + DEMONHUNTER_IMMOLATE_ACTIVE;
+      this.presentImmolationSound(fighter, slot, entered && immolating, slot.previousSpecial === SpecialAction.demonHunterImmolate && !immolating);
+      if (immolating) this.show(felFlames, index, FEL_FLAMES, fighter, 0.0, 25.0, striking ? f32(2.0) : f32(1.35));
       else this.park(felFlames, index, FEL_FLAMES);
       if (action === SpecialAction.demonHunterManaBurn && frame <= DEMONHUNTER_MANA_BURN_STARTUP) this.show(manaHand, index, MANA_HAND, fighter, fighter.facing * 45.0, 90.0, 0.75);
       else this.showStun(fighter, index, manaHand);
     } else {
+      this.presentImmolationSound(fighter, slot, false, slot.previousSpecial === SpecialAction.demonHunterImmolate);
       this.park(felFlames, index, FEL_FLAMES);
       if (fighter.status.out) this.park(manaHand, index, MANA_HAND);
       else this.showStun(fighter, index, manaHand);

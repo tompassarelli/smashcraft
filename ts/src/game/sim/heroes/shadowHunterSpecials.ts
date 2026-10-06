@@ -57,7 +57,7 @@ const HEX_ORB: SpecialProjectile = {
   model: "Abilities\\Weapons\\WitchDoctorMissile\\WitchDoctorMissile.mdx",
   spawnFrame: 24, offsetX: h(f32(0.3)), offsetZ: CAST_HEIGHT,
   velocityX: h(f32(0.07)), velocityZ: 0.0, life: 26, radius: h(f32(0.18)),
-  effect: hit(2.0, "POKE", 40, 1.0, HitElement.normal), reflectable: true, limit: 1, status: HEX,
+  effect: hit(2.0, "POKE", 40, 1.0, HitElement.arcane), reflectable: true, limit: 1, status: HEX,
 };
 
 const hex = (air: boolean): AuthoredSpecial => ({
@@ -77,7 +77,7 @@ const SERPENT_WARD: SpecialPlacement = {
     model: "Abilities\\Weapons\\SerpentWardMissile\\SerpentWardMissile.mdx",
     spawnFrame: 0, offsetX: h(f32(0.15)), offsetZ: h(f32(0.4)),
     velocityX: h(f32(0.10)), velocityZ: 0.0, life: 24, radius: h(f32(0.12)),
-    effect: hit(4.0, "POKE", 35, 1.0, HitElement.normal), reflectable: true, limit: 3,
+    effect: hit(4.0, "POKE", 35, 1.0, HitElement.poison), reflectable: true, limit: 3,
   },
 };
 

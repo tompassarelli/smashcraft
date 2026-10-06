@@ -38,10 +38,10 @@ const DIRECTION = {
   270: { x: 0.0, z: -1.0 },
 } as const;
 
-export function dreadlordHit(damage: number, kind: keyof typeof CLASS, angle: keyof typeof DIRECTION, facing = 1.0): Readonly<HitEffect> {
+export function dreadlordHit(damage: number, kind: keyof typeof CLASS, angle: keyof typeof DIRECTION, facing = 1.0, element: HitElement = HitElement.slash): Readonly<HitEffect> {
   const tuning = CLASS[kind];
   const direction = DIRECTION[angle];
-  return { damage, growth: tuning.growth, base: tuning.base, launchX: f32(direction.x * facing), launchZ: direction.z, electric: false, element: HitElement.slash };
+  return { damage, growth: tuning.growth, base: tuning.base, launchX: f32(direction.x * facing), launchZ: direction.z, electric: false, element };
 }
 
 function capsule(x1: number, z1: number, x2: number, z2: number, radius = CLAW_RADIUS): StrikeCapsule {

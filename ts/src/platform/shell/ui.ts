@@ -6,6 +6,7 @@ import { FighterPoolPresentation } from "../../game/render/fighterPool";
 import { AgencyMarker } from "../../game/render/agencyMarker";
 import { FighterAgencyForecast } from "../../game/presentation/fighterAgency";
 import { FrostEffects } from "../../game/render/frostEffects";
+import { ElementEffects } from "../../game/render/elementEffects";
 import { PlacedObjectEffects } from "../../game/render/placedObjectEffects";
 import { MatchPresentation } from "../../game/render/matchPresentation";
 import { modelSoundPresentation } from "../../game/render/modelSoundPresentation";
@@ -55,6 +56,8 @@ export interface UiObjects {
   sounds: ModelSoundSink;
   /** Announcer cues, music, selection voices and the results screen; created on reload by a bundle that predates it. */
   match: MatchPresentation;
+  /** Each victim's hit element; created on reload by a bundle that predates it. */
+  elements: ElementEffects;
 }
 
 /** What the panels ask the game to do; menus.ts implements them over the shell. */
@@ -95,6 +98,7 @@ export function createUi(s: ShellState, actions: PanelActions): UiObjects {
     fighters: [undefined, undefined, undefined, undefined],
     sounds: modelSoundPresentation(s.origin),
     match: new MatchPresentation(s.origin),
+    elements: new ElementEffects(s.origin),
   };
   s.ui = ui;
   return ui;
@@ -162,6 +166,9 @@ export function recreateUi(s: ShellState, actions: PanelActions): void {
   const retained: { readonly match?: MatchPresentation } = ui;
   if (retained.match === undefined) ui.match = new MatchPresentation(s.origin);
   else bindPrototype(ui.match, MatchPresentation.prototype);
+  const retainedElements: { readonly elements?: ElementEffects } = ui;
+  if (retainedElements.elements === undefined) ui.elements = new ElementEffects(s.origin);
+  else bindPrototype(ui.elements, ElementEffects.prototype);
   for (const slot of PARTICIPANT_SLOTS) {
     const renderers = ui.fighters[slot];
     if (renderers === undefined) continue;
@@ -183,6 +190,7 @@ export function clearMatchEffects(s: ShellState): void {
   const ui = views(s);
   ui.frost.clear();
   ui.placed.clear();
+  ui.elements.clear();
   ui.special.clear();
   for (const slot of PARTICIPANT_SLOTS) ui.fighters[slot]?.projectiles.clear();
 }
@@ -191,5 +199,6 @@ export function pauseEffects(s: ShellState, paused: boolean): void {
   const ui = views(s);
   ui.combat.setPaused(paused);
   ui.special.setPaused(paused);
+  ui.elements.setPaused(paused);
   for (const slot of PARTICIPANT_SLOTS) ui.fighters[slot]?.projectiles.setPaused(paused);
 }

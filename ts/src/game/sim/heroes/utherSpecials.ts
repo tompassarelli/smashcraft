@@ -3,6 +3,7 @@
 // window sets velocity exactly (no gravity or drag), so each travel is its
 // distance over its frames.
 import { f32 } from "wisp/src/sim/f32";
+import { HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT, heroRegion } from "../heroMoves";
 import { type AuthoredSpecial, type FighterSpecials, ROSTER_MANA, frames } from "../heroSpecials";
 import { hurtPose } from "../hurtboxes";
@@ -33,9 +34,9 @@ const holyLight = (landingLag: number | undefined): AuthoredSpecial => ({
     upVelocityZ: BOLT_UP_Z,
     life: 80,
     radius: heights(f32(0.17)),
-    effect: hit(7.0, "POKE", 40),
+    effect: hit(7.0, "POKE", 40, false, HitElement.holy),
     returns: { age: 26, speed: BOLT_SPEED },
-    returnEffect: hit(5.0, "POKE", 40),
+    returnEffect: hit(5.0, "POKE", 40, false, HitElement.holy),
     catchHeal: { heal: 3.0, capPerStock: 9.0 },
     reflectable: true,
     limit: 1,
@@ -48,7 +49,7 @@ const holyLight = (landingLag: number | undefined): AuthoredSpecial => ({
 // Only the grounded form carries armor; the airborne form holds its height,
 // cannot repeat in one airtime and ends helpless.
 const RUSH_SPEED = perFrame(heights(f32(0.9)), 12, 17);
-const RUSH = hit(11.0, "LAUNCH", 45);
+const RUSH = hit(11.0, "LAUNCH", 45, false, HitElement.holy);
 const rushRegions = [heroRegion(12, 17, capsule(20.0, 52.0, f32(MEDIUM - 14.0), 40.0, 14.0), RUSH)];
 const CRUSADER_RUSH: AuthoredSpecial = {
   cost: 20,
@@ -77,7 +78,7 @@ const ASCENT_LAST = 29;
 const ascension = (cost: number, rise: number, struck: boolean): AuthoredSpecial => ({
   cost,
   endFrame: ASCENT_LAST,
-  regions: struck ? [heroRegion(10, 15, capsule(10.0, 70.0, 24.0, f32(MEDIUM + 20.0), 16.0), hit(8.0, "LAUNCH", 80))] : undefined,
+  regions: struck ? [heroRegion(10, 15, capsule(10.0, 70.0, 24.0, f32(MEDIUM + 20.0), 16.0), hit(8.0, "LAUNCH", 80, false, HitElement.holy))] : undefined,
   motion: [
     { ...frames(ASCENT_FIRST, ASCENT_LAST - 1), velocityX: perFrame(heights(f32(0.45)), ASCENT_FIRST, ASCENT_LAST - 1), velocityZ: perFrame(heights(rise), ASCENT_FIRST, ASCENT_LAST - 1) },
     { ...frames(ASCENT_LAST, ASCENT_LAST), velocityX: 0.0, velocityZ: 0.0 },

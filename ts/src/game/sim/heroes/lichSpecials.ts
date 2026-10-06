@@ -6,6 +6,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { HERO_REFERENCE_HEIGHT, heroRegion } from "../heroMoves";
 import { type AuthoredSpecial, type FighterSpecials, type SpecialProjectile, ROSTER_MANA, frames } from "../heroSpecials";
 import { CHILL } from "../chill";
+import { HitElement } from "../codes";
 import { hit, lichCastBody } from "./lichMoves";
 
 const h = (fraction: number): number => f32(HERO_REFERENCE_HEIGHT * fraction);
@@ -54,7 +55,7 @@ const frostNovaBurst = (landingLag: number | undefined): AuthoredSpecial => ({
 const decayStrike = (activeFrom: number, life: number, damage: number, kind: "POKE" | "LAUNCH", angle: 70 | 80): SpecialProjectile => ({
   model: "Abilities\\Spells\\Undead\\DeathAndDecay\\DeathAndDecayTarget.mdx",
   spawnFrame: 8, offsetX: h(f32(1.5)), backOffsetX: h(f32(0.9)), offsetZ: CHEST, velocityX: 0.0, velocityZ: 0.0,
-  life, activeFrom, radius: h(f32(0.75)), effect: hit(damage, kind, angle),
+  life, activeFrom, radius: h(f32(0.75)), effect: hit(damage, kind, angle, false, HitElement.dark),
   reflectable: false, limit: 1, cancelOnInterrupt: true, needsLineOfSight: true,
 });
 const DEATH_AND_DECAY: AuthoredSpecial = {

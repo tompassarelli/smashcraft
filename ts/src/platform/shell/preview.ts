@@ -28,6 +28,7 @@ function removeFighters(s: ShellState): void {
   ui.frost.clear();
   ui.placed.clear();
   ui.special.clear();
+  ui.elements.clear();
   ui.combat.clear();
 }
 

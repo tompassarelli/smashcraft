@@ -3,7 +3,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { HERO_REFERENCE_HEIGHT, heroRegion, type MoveRegion, type StrikeCapsule } from "../heroMoves";
 import { ROSTER_MANA, Relocation, frames, type AuthoredSpecial, type FighterSpecials } from "../heroSpecials";
-import { HeroStatusGroup, HeroStatusKind } from "../codes";
+import { HeroStatusGroup, HeroStatusKind, HitElement } from "../codes";
 import type { AppliedStatus } from "../heroStatus";
 import { wardenHit } from "./wardenMoves";
 
@@ -22,7 +22,7 @@ const SHADOW_STRIKE: AuthoredSpecial = {
   projectiles: [{
     model: "Abilities\\Spells\\NightElf\\ShadowStrike\\ShadowStrikeMissile.mdx",
     spawnFrame: 16, offsetX: 30.0, offsetZ: 50.0, velocityX: f32(H * f32(0.11)), velocityZ: 0.0,
-    life: 30, radius: f32(H * f32(0.13)), effect: wardenHit(5.0, "POKE", 35), reflectable: true, limit: 1, status: POISON,
+    life: 30, radius: f32(H * f32(0.13)), effect: wardenHit(5.0, "POKE", 35, 1.0, HitElement.poison), reflectable: true, limit: 1, status: POISON,
   }],
 };
 

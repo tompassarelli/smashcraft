@@ -25,6 +25,7 @@ import { ARENA_CAMERA, FLOOR_HEIGHT, arenaFraming } from "../../src/game/present
 import { SUMMON_BEAR, summonClip, summonClipCount } from "../../src/game/presentation/summonClipInfo";
 import { CANNON_MODEL } from "../../src/game/presentation/stageHazards";
 import { allProjectileModels } from "../../src/game/presentation/projectileArt";
+import { ELEMENTS, elementLook } from "../../src/game/presentation/elementLooks";
 import { Character } from "../../src/game/sim/codes";
 import { HERO_ROSTER } from "../../src/game/sim/heroes/registry";
 import { STAGE_CATALOG } from "../../src/game/menu/stageCatalog";
@@ -104,6 +105,8 @@ export const SMASHCRAFT_SCENE: SceneExpectations & { readonly settledFrame: numb
     {
       name: "projectile", lifetime: seconds(4), models: [...allProjectileModels()],
     },
+    // A hit's element on its victim through hitlag and hitstun, a few seconds at most (presentation/elementLooks.ts).
+    { name: "hit element", lifetime: seconds(5), models: ELEMENTS.flatMap((element) => elementLook(element).victim ?? []) },
     // Stock game models (render/effects.ts STOCK_MODELS, shell/fighterBody.ts); the host can't load those modules' natives.
     { name: "hippogryph", lifetime: seconds(3), models: ["Units\\NightElf\\HippoGryph\\HippoGryph.mdx"] },
     { name: "Illidan's flames", lifetime: seconds(3), models: ["Abilities\\Spells\\NightElf\\Immolation\\ImmolationTarget.mdx", "Abilities\\Spells\\NightElf\\ManaBurn\\ManaBurnTarget.mdx"] },

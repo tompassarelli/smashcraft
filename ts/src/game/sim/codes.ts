@@ -142,8 +142,13 @@ export const DASH_GRAB_REQUEST = 11;
 export const ContactKind = { launch: 0, flinch: 1, damageOnly: 2, pummel: 3, throw: 4 } as const;
 export type ContactKind = (typeof ContactKind)[keyof typeof ContactKind];
 
-/** A contact's element: presentation of hit and shield effects. Hero kits import it here, apart from hit regions' runtime graph. */
-export const HitElement = { normal: 0, fire: 1, electric: 2, slash: 3, ice: 5 } as const;
+/**
+ * A contact's element: presentation of hit and shield effects, never of its
+ * outcome (hitlag follows HitEffect.electric). Melee's numbers for its elements
+ * (docs/design/melee/hit-effects.md, dark 13); Warcraft's own schools from 20.
+ * Hero kits import it here, apart from hit regions' runtime graph.
+ */
+export const HitElement = { normal: 0, fire: 1, electric: 2, slash: 3, ice: 5, dark: 13, holy: 20, poison: 21, arcane: 22 } as const;
 export type HitElement = (typeof HitElement)[keyof typeof HitElement];
 
 /** Hero statuses (sim/heroStatus.ts) a body hit applies. Append only: the code is in replay text. */
