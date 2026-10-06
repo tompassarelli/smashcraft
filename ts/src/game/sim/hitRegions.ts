@@ -3,7 +3,7 @@
 // Window zero means no authored contact; increasing positive windows
 // explicitly permit a later hit of the same target.
 import { f32 } from "wisp/src/sim/f32";
-import { AttackStyle, Character } from "./codes";
+import { AttackStyle, Character, HitElement } from "./codes";
 import type { FighterMoves, StrikeCapsule } from "./heroMoves";
 import { DIAGONAL_UNIT, ORDINARY_HIT_BASE_KNOCKBACK, ORDINARY_HIT_GROWTH_PERCENT } from "./knockback";
 import {
@@ -17,9 +17,9 @@ import {
   smashDamageMultiplier,
 } from "./moves";
 
+export { HitElement };
+
 /** What a contact does: damage, launch growth and base, launch direction (facing-relative) and effect. */
-export const HitElement = { normal: 0, fire: 1, electric: 2, slash: 3, ice: 5 } as const;
-export type HitElement = (typeof HitElement)[keyof typeof HitElement];
 
 export interface HitEffect {
   damage: number;

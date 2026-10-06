@@ -2,10 +2,12 @@
 // authored capsules chosen from its state and attack frame; the drawn model
 // never decides contact. smashcraft:docs/hurtboxes.md describes the authoring.
 import { at } from "wisp/src/runtime/lookup";
+import { f32 } from "wisp/src/sim/f32";
 import { type Capsule, capsulesIntersect, emptyCapsule, hurtCapsule, placeCapsule } from "../physics/contactGeometry";
 import { AttackStyle, Character } from "./codes";
 import { fighterPoseFacing } from "./conditions";
 import type { Fighter } from "./fighter";
+import { attackStartupFrames, characterAttackActiveFrames } from "./moves";
 
 /** How a body part takes a strike: a hit, a strike spent without effect, or nothing at all. */
 export const HurtState = { normal: 0, invincible: 1, intangible: 2 } as const;
@@ -58,10 +60,50 @@ const standingBody = (character: Character): readonly HurtPart[] => [hurtCapsule
 // Provisional authored volumes for the shipped fighters, fitted to their drawn
 // poses with `bun wisp view hurtboxes`. Weapons stay outside the body: only
 // limbs and torso extend.
+// Heights scale with each character's standing capsule; the per-fighter
+// intangible and invincible parts are provisional design choices
+// (smashcraft:docs/hurtboxes.md, "Shipped fighters").
+function shippedHurtboxes(character: Character): FighterHurtboxes {
+  const body = hurtCapsule(character);
+  const top = body.z2;
+  const r = body.radius;
+  const h = (fraction: number) => f32(top * fraction);
+  const startup = (style: AttackStyle) => attackStartupFrames(style);
+  const lastActive = (style: AttackStyle) => startup(style) + characterAttackActiveFrames(character, style) - 1;
+  /** The extended pose spans the last two startup frames to three recovery frames. */
+  const reaching = (style: AttackStyle, parts: readonly HurtPart[], before: readonly HurtPart[] = []) => [
+    ...(before.length > 0 ? [hurtPose(0, startup(style) - 3, before)] : []),
+    hurtPose(startup(style) - 2, lastActive(style) + 3, parts),
+  ];
+  const torso = (lean: number, low = 4.0, high = top, radius = r) => hurtPart(0.0, low, lean, high, radius);
+  const archer = character === Character.archer;
+  const rifleman = character === Character.rifleman;
+  return {
+    stand: [body],
+    attacks: {
+      // An arm reaching toward the strike.
+      [AttackStyle.jab]: reaching(AttackStyle.jab, [torso(4.0), hurtPart(8.0, h(f32(0.68)), 40.0, h(f32(0.6)), 9.0)]),
+      // Ducked low: the torso drops and the front leg sweeps forward.
+      [AttackStyle.downTilt]: reaching(AttackStyle.downTilt, [torso(8.0, 4.0, h(f32(0.62)), r), hurtPart(10.0, 10.0, 52.0, 6.0, 10.0)]),
+      // Wound back through startup, then the torso and striking arm commit forward.
+      [AttackStyle.forwardSmash]: reaching(AttackStyle.forwardSmash,
+        [torso(14.0), hurtPart(10.0, h(f32(0.62)), 48.0, h(f32(0.55)), 10.0, character === Character.demonHunter ? HurtState.intangible : HurtState.normal)],
+        [torso(-12.0)]),
+      // Tucked, with the front leg kicked out.
+      [AttackStyle.forwardAir]: reaching(AttackStyle.forwardAir, [torso(0.0, h(f32(0.22)), h(f32(0.9))), hurtPart(10.0, h(f32(0.42)), 46.0, h(f32(0.32)), 10.0)]),
+      // Legs driven down below the feet: intangible for the archer, invincible for the rifleman.
+      [AttackStyle.downAir]: reaching(AttackStyle.downAir, [
+        torso(0.0, h(f32(0.35))),
+        hurtPart(0.0, h(f32(0.35)), 4.0, -18.0, 12.0, archer ? HurtState.intangible : rifleman ? HurtState.invincible : HurtState.normal),
+      ]),
+    },
+  };
+}
+
 const CHARACTER_HURTBOXES: readonly FighterHurtboxes[] = [
-  { stand: standingBody(Character.archer), attacks: {} },
-  { stand: standingBody(Character.rifleman), attacks: {} },
-  { stand: standingBody(Character.demonHunter), attacks: {} },
+  shippedHurtboxes(Character.archer),
+  shippedHurtboxes(Character.rifleman),
+  shippedHurtboxes(Character.demonHunter),
 ];
 
 /** The authored body set a fighter uses: its hero kit's, or its character's. */

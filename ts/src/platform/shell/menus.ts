@@ -12,7 +12,7 @@ import { prepareQuickMatch } from "../../game/shell/devSettings";
 import type { Scenario } from "../../game/shell/build";
 import { preparePlaytest } from "../../game/shell/playtest";
 import { nextStage } from "../../game/menu/stageCatalog";
-import { floorMod } from "wisp/src/sim/intMath";
+import { nextSelectableCharacter } from "../../game/sim/heroes/registry";
 import { traceSelectionState } from "./diagnostics";
 import { clearParticipantInputs, controlsAvailable, currentHumanMask } from "./inputs";
 import { startMatch } from "./matchStart";
@@ -26,7 +26,7 @@ import { announce, setStatus } from "./view";
 export function choose(s: ShellState, slot: ParticipantSlot, direction: -1 | 1): void {
   if (!controlsAvailable(s, slot)) return;
   if (s.game.phase === Phase.characterMenu) {
-    selectCharacter(s.game, slot, floorMod((characterFor(s.game, slot) ?? 0) + direction, 3));
+    selectCharacter(s.game, slot, nextSelectableCharacter(characterFor(s.game, slot), direction));
     makePreview(s);
   } else if (s.game.phase === Phase.stageMenu) selectStage(s.game, slot, nextStage(s.game.stageChoice, direction));
 }
