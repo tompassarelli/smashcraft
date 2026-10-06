@@ -234,7 +234,7 @@ export function attackRecoveryFrames(character: Character, style: AttackStyle, g
 }
 
 /** Frames every grab holds when the victim doesn't mash, at any percent (#101). */
-export const GRAB_HOLD_FRAMES = 90;
+export const GRAB_HOLD_FRAMES = 120;
 /** However fast the victim mashes, a hold lasts this long, so a prompt throw always starts. */
 export const GRAB_HOLD_MINIMUM_FRAMES = 30;
 /** Frames each mash input (a press, or a new stick direction) takes off the hold. */
