@@ -229,3 +229,21 @@ test("Shadow Strike is reflected by a powershield back at Warden, owned by the r
   assertEquals(target.status.damage, 0.0);
   assertFalse(warden.projectiles.some(p => p.life > 0));
 });
+
+test("a point-blank Shadow Strike on a held shield leaves the defender free well before Warden acts", () => {
+  const { world, target } = pair(0.0, 90.0);
+  const guard = controls({ shield: true });
+  let blockedAt = 0;
+  let stun = 0;
+  for (let f = 1; f <= 37 && blockedAt === 0; f++) {
+    frame(world, f === 1 ? neutralB : controls(), guard);
+    if (target.shield.stun > 0) {
+      blockedAt = f;
+      stun = target.shield.stun;
+    }
+  }
+  assertEquals(target.status.damage, 0.0);
+  assertGreaterThan(blockedAt, 0);
+  // Warden acts on frame 38; an out-of-shield grab needs about ten frames.
+  assertLessThan(blockedAt + stun + 10, 38);
+});
