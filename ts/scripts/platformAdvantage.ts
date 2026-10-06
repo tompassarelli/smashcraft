@@ -23,9 +23,9 @@ const UP_AIR: Held = [Action.moveUp, Action.attack];
 const DOWN_AIR: Held = [Action.moveDown, Action.attack];
 const NEUTRAL_AIR: Held = [Action.attack];
 
-/** The below fighter's options: a full or short hop, then an up or neutral air pressed on frame `at`. */
+/** The below fighter's options: an up smash or up tilt from the ground, or a full or short hop, then an up or neutral air pressed on frame `at`. */
 function belowPlans(): Plan[] {
-  const plans: Plan[] = [];
+  const plans: Plan[] = [(n) => (n === 1 ? [Action.smashUp] : []), (n) => (n === 1 ? [Action.walk, Action.moveUp, Action.attack] : [])];
   for (const full of [true, false]) {
     for (const aerial of [UP_AIR, NEUTRAL_AIR]) {
       for (let at = 2; at <= LATEST_AERIAL; at++) {

@@ -632,7 +632,7 @@ function upAirIntoDeck(character: Character): string {
   const deckZ = surfaceZ(1, 1, 0);
   let pressed = false;
   for (let n = 1; n <= 60; n++) {
-    const press = !pressed && !f.motion.grounded;
+    const press: boolean = !pressed && !f.motion.grounded;
     pressed ||= press;
     frame(s, press ? [Action.jump, Action.moveUp, Action.attack] : [Action.jump]);
     if (f.motion.z + bodyTop(character) * WORLD_UNITS_PER_MELEE_UNIT < deckZ) continue;
