@@ -14,6 +14,7 @@ import { DESYNC_COMMAND, quickMatchHero, quickMatchStage, applyDevCommand } from
 import { fighterName } from "../../game/sim/heroes/registry";
 import { keepMomentEnd } from "../../game/replay/moment";
 import { devReceiptFile } from "../../game/shell/journalFiles";
+import { applySetupCommand } from "../../game/shell/sessionSetup";
 import { pausedMessage } from "../../game/shell/messages";
 import { captureBinding } from "../../game/ui/bindingSettings";
 import { writeLines } from "wisp/src/platform/fileio";
@@ -206,6 +207,8 @@ export function onDevCommand(s: ShellState): void {
   let receipt: string | undefined;
   const quickStage = quickMatchStage(message);
   const quickHero = quickMatchHero(message);
+  // Session setup (sessionSetup.ts) changes the menus only for its own spellings.
+  const setup = applySetupCommand(s.game, GetPlayerId(GetTriggerPlayer()), message);
   if (message === "-dev camera") {
     receipt = "dev: camera match";
     startQuickMatch(s, 0, "camera");
@@ -234,10 +237,13 @@ export function onDevCommand(s: ShellState): void {
     receipt = `dev: desync from player ${slot + 1}'s client`;
     // One more handle on one client: Warcraft's handle counter and tempest checksum diverge.
     if (slot === GetPlayerId(GetLocalPlayer())) CreateTimer();
+  } else if (setup !== undefined) {
+    receipt = setup;
+    makePreview(s);
   } else receipt = startAgencyFixture(s, message) ?? startBodyFit(s, message) ?? applyDevCommand(s.dev, message);
   if (receipt === undefined) return;
   s.devReceipts++;
   DisplayTextToPlayer(GetLocalPlayer(), 0.0, 0.0, receipt);
-  const file = devReceiptFile(journalIdentity(s, s.rollback?.epoch ?? 0), s.devReceipts, s.dev);
+  const file = devReceiptFile(journalIdentity(s, s.rollback?.epoch ?? 0), s.devReceipts, s.dev, s.game);
   writeLines(file.name, file.lines);
 }

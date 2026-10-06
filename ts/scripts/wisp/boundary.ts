@@ -26,7 +26,12 @@ export const MeleeReady = preloadRecord(
 
 /** smashcraft-dev-BUILD-pN.txt: confirmation a client handled a developer chat command. */
 export const DevCommandReceipt = preloadRecord(
-  { head: ["SMASHCRAFT DEV v=1 build={build} receipt={receipt} epoch={epoch} rb={rollback} delay={delay} batch={batch} rematchSeconds={rematchSeconds} "] },
+  {
+    head: [
+      "SMASHCRAFT DEV v=1 build={build} receipt={receipt} epoch={epoch} rb={rollback} delay={delay} batch={batch} rematchSeconds={rematchSeconds} ",
+      "SETUP phase={phase} human-fighters={humanFighters} computers={computers} characters={characters} stocks={stocks} minutes={minutes} automatic-rematch={automaticRematch} stage={stage} ",
+    ],
+  },
   Schema.Struct({
     build: Schema.NonEmptyString,
     receipt: Count.check(Schema.isGreaterThanOrEqualTo(1)),
@@ -35,7 +40,22 @@ export const DevCommandReceipt = preloadRecord(
     delay: Count,
     batch: Count.check(Schema.isGreaterThanOrEqualTo(1)).check(Schema.isLessThanOrEqualTo(MAX_BATCH)),
     rematchSeconds: Count.check(Schema.isGreaterThanOrEqualTo(1)),
+    phase: Count,
+    humanFighters: Count,
+    computers: Count,
+    /** Each slot's fighter, comma-separated. */
+    characters: Schema.String.check(Schema.isPattern(/^\d+,\d+,\d+,\d+$/)),
+    stocks: Count,
+    minutes: Count,
+    automaticRematch: Count,
+    stage: Count,
   }),
+);
+
+/** smashcraft-stage-BUILD-pN.txt: the stage a client drew at a match start. */
+export const StageReceipt = preloadRecord(
+  { head: ["SMASHCRAFT STAGE v=1 build={build} epoch={epoch} stage={stage} decks={decks} "] },
+  Schema.Struct({ build: Schema.NonEmptyString, epoch: Count, stage: Count, decks: Count.check(Schema.isGreaterThanOrEqualTo(1)) }),
 );
 
 /** wc3-melee-input-start.txt: the developer input trace started. */
@@ -148,6 +168,7 @@ export function writtenGameFileKind(name: string): GameFileKind<unknown> | undef
   if (name === files.PHYSICS_REPORT_FILE) return PhysicsReport;
   if (/^smashcraft-object-data-p\d+\.txt$/.test(name)) return ObjectDataReceipt;
   if (/^smashcraft-dev-.*-p\d+\.txt$/.test(name)) return DevCommandReceipt;
+  if (/^smashcraft-stage-.*-p\d+\.txt$/.test(name)) return StageReceipt;
   if (/^smashcraft-journal-(?:control|start|end)-.*\.txt$/.test(name)) return JournalControl;
   if (/^smashcraft-journal-menu-.*\.txt$/.test(name)) return JournalMenu;
   if (/^smashcraft-journal-ready-.*\.txt$/.test(name)) return JournalReady;

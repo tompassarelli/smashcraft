@@ -6,7 +6,7 @@ import { resetMatchFrameInput } from "../../game/match/frameInput";
 import { clearPresentationHistory } from "../../game/match/pacingAndPresentation";
 import { initializeMatchFighters } from "../../game/match/step";
 import { beginModelSoundEpoch, confirmModelSounds } from "../../game/render/modelSounds";
-import { readyFile } from "../../game/shell/journalFiles";
+import { readyFile, stageDrawnFile } from "../../game/shell/journalFiles";
 import { initializeScenario } from "../../game/shell/scenarios";
 import { type Scenario, usesPool } from "../../game/shell/build";
 import { fighterAt, isActive } from "../../game/sim/roster";
@@ -48,6 +48,11 @@ export function startMatch(s: ShellState, scenario: Scenario = s.build.scenario)
       });
       writeLines(file.name, file.lines);
     }
+  }
+  if (s.build.devConsole) {
+    // Captures take the player's view only after every client has drawn this match's stage.
+    const drawn = stageDrawnFile(journalIdentity(s, rollback?.epoch ?? 0), s.drawnStage, s.stageDecks.length);
+    writeLines(drawn.name, drawn.lines);
   }
   const pooled = usesPool(s.build) && rollback?.active === true;
   if (pooled && rollback !== undefined) beginModelSoundEpoch(s.sounds, rollback.epoch);

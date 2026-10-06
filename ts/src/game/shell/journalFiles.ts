@@ -1,8 +1,9 @@
 // Preload files the map writes for the companion helper and the integrity
 // harness, which parse them: their names and lines are a protocol.
 import type { DevSettings } from "./devSettings";
+import type { MatchState } from "../match/rules";
 import type { JournalIngress } from "./build";
-import { devCommandReceiptFile, journalControlFile, journalLifecycleFile, journalReadyFile, journalMenuFile, journalTransportReadyFile, journalFailureFile } from "../../runtime/gameFiles";
+import { devCommandReceiptFile, journalControlFile, journalLifecycleFile, journalReadyFile, journalMenuFile, journalTransportReadyFile, journalFailureFile, stageReceiptFile } from "../../runtime/gameFiles";
 
 interface PreloadFile {
   readonly name: string;
@@ -114,10 +115,23 @@ export function failureFile({ build, epoch, slot }: JournalIdentity, reason: str
   };
 }
 
-/** Confirms a dev command on this client, so automation knows every client holds it. */
-export function devReceiptFile({ build, epoch, slot }: JournalIdentity, receipt: number, { rollback, delay, batch, rematchSeconds }: Readonly<DevSettings>): PreloadFile {
+/**
+ * Confirms a dev command on this client, so automation knows every client
+ * holds it: `receipt` counts the game's commands, and the SETUP line is the
+ * fighter-selection state the session setup commands (sessionSetup.ts) set.
+ */
+export function devReceiptFile({ build, epoch, slot }: JournalIdentity, receipt: number, { rollback, delay, batch, rematchSeconds }: Readonly<DevSettings>, game: Readonly<MatchState>): PreloadFile {
+  const [a, b, c, d] = game.characterChoices;
   return {
     name: devCommandReceiptFile(build, slot),
-    lines: [`SMASHCRAFT DEV v=1 build=${build} receipt=${receipt} epoch=${epoch} rb=${rollback} delay=${delay} batch=${batch} rematchSeconds=${rematchSeconds} `],
+    lines: [
+      `SMASHCRAFT DEV v=1 build=${build} receipt=${receipt} epoch=${epoch} rb=${rollback} delay=${delay} batch=${batch} rematchSeconds=${rematchSeconds} `,
+      `SETUP phase=${game.phase} human-fighters=${game.humanFighterMask} computers=${game.computerMask} characters=${a},${b},${c},${d} stocks=${game.stockCount} minutes=${game.timeLimitMinutes} automatic-rematch=${game.automaticRematch ? 1 : 0} stage=${game.stageChoice} `,
+    ],
   };
+}
+
+/** The stage this client drew at a match start: its catalog id and deck count. */
+export function stageDrawnFile({ build, epoch, slot }: JournalIdentity, stage: number, decks: number): PreloadFile {
+  return { name: stageReceiptFile(build, slot), lines: [`SMASHCRAFT STAGE v=1 build=${build} epoch=${epoch} stage=${stage} decks=${decks} `] };
 }
