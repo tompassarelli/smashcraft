@@ -140,8 +140,8 @@ test("backFromStagesPreservesChoicesAndAllowsUnready", () => {
   setHumanCount(game, 2);
   selectCharacter(game, 0, 0);
   selectCharacter(game, 1, 1);
-  requestStageSelect(game, 0);
   setStocks(game, 1, 5);
+  requestStageSelect(game, 0);
   selectStage(game, 1, 1);
   returnToCharacters(game, 1);
   assertEquals(game.phase, Phase.characterMenu);
@@ -166,7 +166,7 @@ test("absentAndInvalidParticipantsCannotChooseOrStart", () => {
   assertTrue(requestStageSelect(game, 0));
   selectStage(game, 1, 1);
   selectStage(game, -1, 1);
-  selectStage(game, 0, 2);
+  selectStage(game, 0, 3);
   assertEquals(game.stageChoice, 0);
   returnToCharacters(game, 1);
   assertEquals(game.phase, Phase.stageMenu);
@@ -179,15 +179,16 @@ test("absentAndInvalidParticipantsCannotChooseOrStart", () => {
   assertTrue(requestStart(game, 0));
 
 });
-test("settingsStayBoundedAndOnlyChangeInStageSelect", () => {
+test("settingsStayBoundedAndOnlyChangeAtFighterSelection", () => {
   const game = testSoloMatch();
+  game.phase = Phase.stageMenu;
   setStocks(game, 0, 9);
   setTimeLimit(game, 0, 10);
   assertEquals(game.stockCount, 3);
   assertEquals(game.timeLimitMinutes, 7);
+  game.phase = Phase.characterMenu;
   selectCharacter(game, 0, 0);
   selectCpuCharacter(game, 0, (cpuSlot(game) ?? -1), 1);
-  requestStageSelect(game, 0);
   setStocks(game, 0, 1);
   setStocks(game, 0, 0);
   assertEquals(game.stockCount, 1);
@@ -200,6 +201,7 @@ test("settingsStayBoundedAndOnlyChangeInStageSelect", () => {
   setTimeLimit(game, 0, 10);
   setTimeLimit(game, 0, 11);
   assertEquals(game.timeLimitMinutes, 10);
+  requestStageSelect(game, 0);
   requestStart(game, 0);
   assertEquals(game.remainingFrames, 36000);
   setStocks(game, 0, 1);
@@ -252,7 +254,9 @@ test("menuAndUnlimitedMatchesDoNotRunClock", () => {
   advanceClock(game, testStanding(0, 0.0, 0, 0.0));
   assertEquals(game.remainingFrames, 25200);
   assertEquals(game.phase, Phase.stageMenu);
+  returnToCharacters(game, 0);
   setTimeLimit(game, 0, 0);
+  requestStageSelect(game, 0);
   requestStart(game, 0);
   for (let tick = 1; tick <= 120; tick++) {
     advanceClock(game, testStanding(1, 90.0, 1, 20.0));
@@ -267,8 +271,8 @@ test("timeoutComparesStocksThenDamageAndExactTieDraws", () => {
     const game = testSoloMatch();
     selectCharacter(game, 0, 0);
     selectCpuCharacter(game, 0, (cpuSlot(game) ?? -1), 0);
-    requestStageSelect(game, 0);
     setTimeLimit(game, 0, 1);
+    requestStageSelect(game, 0);
     requestStart(game, 0);
     for (let tick = 1; tick <= 3599; tick++) {
       advanceClock(game, testStanding(3, 100.0, 2, 0.0));
@@ -364,9 +368,9 @@ test("everyHumanMustChooseAndConfirmForThreeAndFourPlayerMatches", () => {
     }
     assertFalse(requestStageSelect(game, count - 1));
     selectCharacter(game, count - 1, 2);
-    assertTrue(requestStageSelect(game, count - 1));
     setStocks(game, count - 1, 5);
     setTimeLimit(game, count - 1, 2);
+    assertTrue(requestStageSelect(game, count - 1));
     assertTrue(requestStart(game, count - 1));
     assertEquals(game.remainingFrames, 7200);
     game.phase = Phase.result;

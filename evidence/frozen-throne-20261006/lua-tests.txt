@@ -1,0 +1,11 @@
+{"decision":"RESERVED","reason":"RUN","class":"heavy","requestedCpus":6,"requestedMemoryMiB":8192,"leasedCpuCeilings":16,"aggregateCpuLimit":18,"leasedMemoryMiB":26624,"cpuSomeAvg10":0.56,"memoryFullAvg10":0,"memoryAvailableMiB":72421,"reclaimed":0,"lease":"0d92e8bc-1061-49d7-b16c-5875aa4343ea","expiresAt":1791278314152}
+718 of 718 passed
+error 1 in stackDemo.command
+Error: stack demo failure: -dev stack-demo
+src/platform/stackDemo.ts:12: in failInnermost
+src/platform/stackDemo.ts:16: in runMiddle
+src/platform/stackDemo.ts:20: in runOuter
+src/platform/stackDemo.ts:24: in stackDemoCommand
+test/stack/entry.ts:49: in report
+stack frames passed: 5 TypeScript frames, the first 4 checked against src/platform/stackDemo.ts
+{"decision":"RELEASED","lease":"0d92e8bc-1061-49d7-b16c-5875aa4343ea"}

@@ -947,7 +947,7 @@ test("contact-batch special trades survive melee, and summons use total damage",
   first.hippogryph.velocityX = 20.0;
   beginDamageContacts();
   resolveAttacks(world);
-  advanceSpecials(world, 0);
+  advanceSpecials(world, 0, 0);
   finishDamageContacts(world);
   assertEquals(first.status.damage, 7.0);
   assertEquals(second.status.damage, 19.0);

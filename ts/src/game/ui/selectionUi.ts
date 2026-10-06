@@ -1,6 +1,9 @@
+import { RULE_BUTTONS, RULE_HEIGHT, type RuleBox } from "./ruleButtons";
 // The character panel of one participant. Every client builds all four panels;
 // only the owner's client shows its own and reads its pointer, and a placed or
-// recalled chip crosses a player sync event before the game sees it.
+// recalled chip crosses a player sync event before the game sees it. Beside the
+// roster each panel shows the match rules, which any player changes with a
+// synchronized click.
 import { f32 } from "wisp/src/sim/f32";
 import { bindPrototype } from "../../platform/rebind";
 import { PARTICIPANT_CAPACITY, PARTICIPANT_SLOTS } from "../input/participants";
@@ -33,6 +36,7 @@ import {
   selectionDrag,
   updateSelectionDrag,
 } from "../menu/selectionDrag";
+import { automaticRematchSetting, endlessSetting, stockSetting, timeSetting } from "../shell/messages";
 import { Character } from "../sim/codes";
 import { ButtonClicks, MENU_FONT, type MenuControls, bindSyncHandler, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, placeTopLeft } from "./frames";
 
@@ -44,9 +48,14 @@ export interface SelectionActions {
   recallChoice(actorId: number, chipSlot: number): void;
   openSettings(participantId: number): void;
   start(participantId: number): void;
+  changeStocks(participantId: number, direction: -1 | 1): void;
+  changeTime(participantId: number, direction: -1 | 1): void;
+  toggleEndless(participantId: number): void;
+  toggleAutomaticRematch(participantId: number): void;
 }
 
-type SelectionButton = { kind: "mode"; slot: number } | { kind: "start" } | { kind: "settings" };
+type RuleButton = { kind: "stocks"; direction: -1 | 1 } | { kind: "time"; direction: -1 | 1 } | { kind: "endless" } | { kind: "automaticRematch" };
+type SelectionButton = { kind: "mode"; slot: number } | { kind: "start" } | { kind: "settings" } | RuleButton;
 
 /** One participant slot's card along the bottom of the panel. */
 interface CardFrames {
@@ -113,6 +122,14 @@ export class SelectionPanel {
   /** The match the panel last showed; synchronized events check choices against it. */
   private game: Readonly<MatchState> | undefined;
   private settingsOpen = false;
+  private readonly stockValue: framehandle;
+  private readonly timeValue: framehandle;
+  private readonly endlessToggle: framehandle;
+  private readonly rematchToggle: framehandle;
+  /** The stock and time buttons, which endless play leaves unused. */
+  private readonly steps: readonly framehandle[];
+  /** The rules the panel last showed. */
+  private shownRules: string | undefined;
 
   constructor(
     private actions: SelectionActions,
@@ -155,6 +172,28 @@ export class SelectionPanel {
     const settingsLabel = label(root, `MeleeSettingsLabel${suffix}`, f32(0.518), f32(0.039), f32(0.219), f32(0.028), f32(0.011));
     BlzFrameSetText(settingsLabel, "CONTROLS  [F1]");
     this.clicks.add(hotspot(root, f32(0.51), f32(0.043), f32(0.235), f32(0.037)), { kind: "settings" });
+    const caption = label(root, `MeleeRulesCaption${suffix}`, f32(0.03), f32(0.452), f32(0.22), f32(0.02), f32(0.011));
+    BlzFrameSetText(caption, "MATCH RULES");
+    const ruleButton = (box: RuleBox, target: RuleButton, text: string) => {
+      const frame = BlzCreateFrame("ScriptDialogButton", root, 0, 0);
+      placeTopLeft(frame, box.x, box.y);
+      BlzFrameSetSize(frame, box.width, box.height);
+      BlzFrameSetText(frame, text);
+      return this.clicks.add(frame, target);
+    };
+    const { fewerStocks, moreStocks, lessTime, moreTime, endless, automaticRematch } = RULE_BUTTONS;
+    this.steps = [
+      ruleButton(fewerStocks, { kind: "stocks", direction: -1 }, "−"),
+      ruleButton(moreStocks, { kind: "stocks", direction: 1 }, "+"),
+      ruleButton(lessTime, { kind: "time", direction: -1 }, "−"),
+      ruleButton(moreTime, { kind: "time", direction: 1 }, "+"),
+    ];
+    const valueX = fewerStocks.x + fewerStocks.width;
+    const valueWidth = moreStocks.x - valueX;
+    this.stockValue = label(root, `MeleeRulesStocks${suffix}`, valueX, fewerStocks.y, valueWidth, RULE_HEIGHT, f32(0.011));
+    this.timeValue = label(root, `MeleeRulesTime${suffix}`, valueX, lessTime.y, valueWidth, RULE_HEIGHT, f32(0.011));
+    this.endlessToggle = ruleButton(endless, { kind: "endless" }, "");
+    this.rematchToggle = ruleButton(automaticRematch, { kind: "automaticRematch" }, "");
     const owner = [participantId];
     this.syncTriggers = [
       createSyncTrigger(`ui.selection.${suffix}.drop`, "fighter-drop", owner, (_, data) => this.acceptDrop(data)),
@@ -186,7 +225,11 @@ export class SelectionPanel {
     if (clicker !== Player(this.participantId)) return;
     if (button.kind === "mode") this.actions.cycleMode(this.participantId, button.slot);
     else if (button.kind === "start") this.actions.start(this.participantId);
-    else this.actions.openSettings(this.participantId);
+    else if (button.kind === "settings") this.actions.openSettings(this.participantId);
+    else if (button.kind === "stocks") this.actions.changeStocks(this.participantId, button.direction);
+    else if (button.kind === "time") this.actions.changeTime(this.participantId, button.direction);
+    else if (button.kind === "endless") this.actions.toggleEndless(this.participantId);
+    else this.actions.toggleAutomaticRematch(this.participantId);
   }
 
   /** The game the panel may take choices for now, or undefined while it isn't choosing. */
@@ -300,6 +343,19 @@ export class SelectionPanel {
       );
     }
     BlzFrameSetText(this.confirm, this.confirmText(game));
+    this.showRules(game);
+  }
+
+  private showRules(game: Readonly<MatchState>): void {
+    const { stockCount, timeLimitMinutes, endless, automaticRematch } = game;
+    const rules = `${I2S(stockCount)} ${I2S(timeLimitMinutes)} ${endless ? "1" : "0"} ${automaticRematch ? "1" : "0"}`;
+    if (rules === this.shownRules) return;
+    this.shownRules = rules;
+    BlzFrameSetText(this.stockValue, stockSetting(stockCount));
+    BlzFrameSetText(this.timeValue, timeSetting(timeLimitMinutes));
+    BlzFrameSetText(this.endlessToggle, endlessSetting(endless));
+    BlzFrameSetText(this.rematchToggle, automaticRematchSetting(automaticRematch));
+    for (const step of this.steps) BlzFrameSetEnable(step, !endless);
   }
 
   private confirmText(game: Readonly<MatchState>): string {

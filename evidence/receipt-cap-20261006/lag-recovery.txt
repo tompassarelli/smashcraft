@@ -1,0 +1,9 @@
+bun test v1.3.13 (bf2e2cec)
+
+test/lag-recovery.test.ts:
+(pass) after a 2 s stall of one or both games, each client catches up within a second, a bounded number of frames a callback [1227.02ms]
+
+ 1 pass
+ 0 fail
+ 19 expect() calls
+Ran 1 test across 1 file. [1426.00ms]

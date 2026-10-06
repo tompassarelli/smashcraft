@@ -11,7 +11,7 @@ import { AttackStyle, Character, DownState } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 import { TOP_KO_MINIMUM_UPWARD_KNOCKBACK } from "../sim/knockback";
 import { type Controls, type Roster, copyControls, fighterAt, isActive, neutralControls } from "../sim/roster";
-import { MAIN_DECK_UNDERSIDE_Z, surfaceLeft, surfaceRight } from "../sim/stage";
+import { MAIN_DECK_UNDERSIDE_Z, mainDeckLeft, mainDeckRight } from "../sim/stage";
 import type { Scenario } from "./build";
 
 /** A 90-unit gap puts an ordinary Archer jab in range with or without Parry Step. */
@@ -33,7 +33,7 @@ export function queueParryScenarioJab(playerInput: Readonly<Controls>, computer:
 
 /** Both fighters airborne past one edge, rising, close enough for a downward Immolate. */
 export function initializeSpikeScenario(first: Fighter, second: Fighter, stage: number, side: 1 | -1): void {
-  const edge = side > 0 ? surfaceRight(stage, 0) : surfaceLeft(stage, 0);
+  const edge = side > 0 ? mainDeckRight(stage) : mainDeckLeft(stage);
   first.motion.x = f32(edge + side * 60);
   second.motion.x = f32(first.motion.x + side * 30);
   first.facing = side;
@@ -109,7 +109,7 @@ export function initializeScenario(scenario: Scenario, game: Readonly<MatchState
       second.motion.x = 350.0;
       return;
     case "ledge":
-      first.motion.x = f32(surfaceLeft(game.stageChoice, 0) - 16);
+      first.motion.x = f32(mainDeckLeft(game.stageChoice) - 16);
       first.motion.z = 15.0;
       first.motion.grounded = false;
       first.motion.surface = undefined;

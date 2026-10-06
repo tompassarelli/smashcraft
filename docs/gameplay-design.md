@@ -28,6 +28,42 @@ Owner decisions, 6 Oct 2026 (#62):
   be legible (#68).
 - **SDI without teleport jank** (#70).
 - **Non-interactive execution is dubious** (6 Oct, #54; see "L-cancelling" below).
+- **Short true combos, devastating combos through reads** (6 Oct, #83; see
+  "Combo structure" below).
+
+## Combo structure
+
+Owner decision, 6 Oct 2026 (#83): devastating combos should be the norm
+against a player who is being outplayed, but they are earned through reads,
+not granted by one hit.
+
+- True combos are short: a hit guarantees about one or two follow-ups at most.
+- Every extension beyond that is a read: a DI guess, a tech or escape guess,
+  a coin flip the defender influences.
+- A player who wins 2–3 reads in a row can take a stock from 0. Explosive
+  moments come from chained reads, not from everyone landing two hits.
+- One hit never guarantees a stock (see also "No false agency", #68).
+
+Terms for measuring it. An **opening** is a hit or grab that lands. A
+**guaranteed follow-up** lands whatever the victim does: every DI direction
+including none, SDI, tech in place, left, right or missed, jump, air dodge and
+mash. A **read** is a follow-up that lands against some of those choices but
+not all, when the victim makes one it beats. A **string** is an opening and the
+follow-ups that land after it.
+
+Proposed targets, for the owner to accept or change; they are proposals, not
+decisions. Accepted targets become interaction-graph checks
+([interaction graph](design/interaction-graph.md)).
+
+| Target | Proposed | Breaks it |
+|---|---|---|
+| Guaranteed follow-ups after an opening | at most 2, at every percent | a string of 4 or more hits that no victim choice escapes |
+| Guaranteed damage from one opening, by the victim's percent when it lands | at most 30% at 0–99%; from 100%, a guaranteed string may end in a KO | more damage than that before the victim has a choice that escapes |
+| Reads for 0-to-death | about 2–3: from 0%, no opening takes the stock with fewer than 2 reads, and each fighter has openings that take it with 3 | a stock taken from 0% with 0 or 1 reads; or a fighter with no 0-to-death path even with 3 reads |
+
+The damage cap is chosen to fit the reads target: an opening and 2–3 reads,
+each followed by guaranteed follow-ups worth up to about 30%, bring a victim
+from 0% to roughly 90–120% before the last hit.
 
 ## Direction, not yet a rule
 
@@ -174,12 +210,13 @@ The 540-match `--policy cpu` soak checks this behaviour: departures,
 self-destructs, time-outs and the moves that landed
 (smashcraft:ts/scripts/soakOutcomes.ts summarizes them).
 
-## Open questions for the owner
+## Execution and reaction windows (#69)
 
-Proposed lower and upper bounds for each execution and reaction window type.
-They are proposals, not decisions; the evidence for each is in
-[execution windows](design/execution-windows.md). Accepted bounds move up into
-this document as decisions and become oracle or interaction-graph checks.
+Adopted 6 Oct 2026 under the owner's instruction to carry out the proposed
+recommendations. These are delegated design choices, not quotations from the
+owner. Evidence and its limitations are in
+[execution windows](design/execution-windows.md). Bounds are design constraints,
+not claims that these timings guarantee human reaction on every setup.
 
 | Window type | Lower | Upper | Today |
 |---|---|---|---|
@@ -195,7 +232,28 @@ this document as decisions and become oracle or interaction-graph checks.
 | Ledge regrab lock | 30 | 60 | 30 |
 | Any required precision input with no aid | 3 | n/a | L-cancel removed |
 
+The reaction figures are authoring targets: at least 15 frames from the first
+visible cue for one response, about 25 for four choices. The latter is a chosen
+budget, not a measured Hick coefficient or a hard maximum on readable cues.
+Required links and unaided precision inputs need at least 3 accepted frames;
+there is no mandatory one-frame input in ordinary play. Optional optimizations
+may be tighter. A powershield is such an optional reward, not required defence.
+Longer delays need a stated gameplay reason rather than automatic rejection.
+The 20-frame tech-lockout floor and 60-frame regrab ceiling are chosen bounds,
+not empirical limits.
+
+The oracle checks the shipped tech, lockout, attack buffer, jump squat and
+short-hop release, parry, powershield and ledge windows against these ranges.
+Interaction timing checks apply the reaction, required-link and precision
+rules to authored situations. No current move is designated a required link
+or guaranteed reaction option; the graph's existence of a punish is not a
+claim that a human can react to it.
+
+## Open questions for the owner
+
 Mechanic-level questions drawn from other games (parry, air dodge, rage, short-hop input, ledge rules and others) are listed at the end of [modern platform fighters](design/modern-platform-fighters.md). Questions raised by fighting-game and platform-fighter design language (hurtbox extension, disjoints, counter hits, shield geometry, whiff penalties, DI strength, launchers and others) are listed at the end of [fighting games](design/fighting-games.md) and [platform fighters](design/platform-fighters.md).
+
+Stage questions (the flat stage, moving platforms, hazards, blast zones and the stage list) are at the end of [stages](design/stages.md#open-design-questions-for-the-owner).
 
 Questions drawn from Melee itself are at the end of the
 [Melee case study](design/melee/README.md#open-design-questions-for-the-owner).
@@ -234,3 +292,58 @@ track each clip's exact planted foot; should top KOs become Warcraft explosions?
 The adopted defaults above answer these with a steady camera, bounded sparks,
 a shared footstep rhythm and retained top-KO bodies. Revisit only after an
 observed readability problem; no separate approval is outstanding for them.
+
+## Legible locked states (#68)
+
+No false agency asks that a fighter who can't get out knows it. The agency
+analysis (smashcraft:docs/typescript.md, "Victim agency") sorts every frame
+a fighter is under the other's control into three states.
+
+- **Locked, nothing matters**: no input changes anything. Measured on 6
+  October: a grab thrown at once (5 to 51 frames from the grab until the
+  thrown fighter can act, longest for an up throw at 150%), the forced stand
+  after a jab reset (15 frames), hitstun after a launch until the 20 frames
+  before a tumble landing (up to about 100 frames after a smash attack at
+  100%), and the Rifleman's freeze (299 frames).
+- **Locked, only DI matters**: only the stick changes what happens: SDI
+  pulses during hitlag, and DI on hitlag's last frame or on the frame a throw
+  lets go. These are short: 1 frame in a throw, up to 9 in a smash attack's
+  hitlag.
+- **You can act**: a button changes what happens. That includes a press the
+  buffer keeps for up to 6 frames and a tech press up to 20 frames before the
+  landing, so the analysis says "can act" before the fighter visibly moves.
+
+Prior art, described: traditional fighting games' combo counters count a hit
+only while the opponent is still in hitstun, so the counter tells both
+players whether the defender could have acted; Street Fighter 6's training
+mode frame meter shows each frame of both characters as a coloured pip
+(startup, active, recovery, hitstun, blockstun) ([EventHubs](https://www.eventhubs.com/news/2022/sep/16/sf6-training-visual-frame-data));
+Super Smash Bros. Ultimate marks some states on the fighter itself: a
+flashing red overlay and an orange halo while stunned after a shield break,
+and in Training Mode a blue glow while intangible and green while invincible;
+from Brawl on, a stunned fighter plays a recovery animation as its stun ends
+([SmashWiki, stun](https://www.ssbwiki.com/Stun); [SmashWiki, Training Mode](https://www.ssbwiki.com/Training_Mode)).
+
+Adopted 6 Oct 2026 under the owner's blanket authorization to carry out the
+recommendations; these are delegated choices, not quoted owner answers:
+
+- Mark the two locked states; "you can act" is the unmarked default.
+- Use distinct fighter tints or outlines for "nothing matters" and "only DI".
+  Both players see the same distinction. Choose the final colours during the
+  visual implementation so they remain readable on every fighter.
+- Remove the locked signal on the first frame an input can change the outcome,
+  including a buffered button or a tech press before movement resumes.
+- Show DI-only frames accurately, including the one-frame throw release;
+  do not stretch the signal across frames where DI no longer changes anything.
+- Compute the live signal with a cheap rule over current fighter state
+  (hitlag, hitstun, grab, freeze, forced stand, buffer and tech eligibility).
+  Validate it against the existing replay-based agency analysis before shipping.
+
+Implementing and observing these signals is a separate follow-up to #68's
+completed detector and design proposal. The analysis is the validation oracle,
+not a thirty-input replay workload to run for every fighter during a match.
+
+Two measured patterns already run against the principle and are filed for
+a decision: the Rifleman's trap can freeze a fighter again as each freeze
+ends (#84), and an up throw can be regrabbed before its victim can act
+(#85).

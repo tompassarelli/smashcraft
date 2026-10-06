@@ -33,6 +33,24 @@ smashcraft:typescript-toolchain.lock pins Bun 1.3.13, TypeScript compiler API
 tsgo 0.48.0. smashcraft:ts/wisp.lock pins the consumed Wisp archive;
 each dated observation below identifies the Wisp/source revision it ran.
 
+## Menu control
+
+In `~/.local/state/smashcraft/clients.json`, a client may set
+`"menuReportPort": 47123`. That port must match the port used by
+`bun wisp menus install RETAIL_DIR --port 47123` for its Wine prefix.
+Use a distinct port for each installed page. A client without a configured
+port, or whose page does not report within 3 seconds, uses ordinary menu
+controls. Installing the page and enabling Allow Local Files requires the
+account owner's agreement; see Wisp's `docs/driving-warcraft.md` in the pinned
+package for setup and undo.
+
+`bun wisp fresh MAP.w3x --no-quick` uses each client's page for hosting,
+joining, starting and leaving a lobby. Leaving a running match still uses the
+game menu. `bun wisp play` reads the port of the client whose Documents folder
+matches its declared Wine prefix; its menu route uses the same host and start
+operations. A reported page's lobby failure stops the run. It does not fall
+back to creating another lobby with clicks.
+
 ## Comparison
 
 “Demonstrated equivalent” means the named operation was exercised in the

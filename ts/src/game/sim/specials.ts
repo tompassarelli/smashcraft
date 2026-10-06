@@ -142,10 +142,10 @@ function startArcherSpecial(owner: Fighter, action: SpecialAction, moveX: number
   return true;
 }
 
-function startRiflemanSpecial(owner: Fighter, stage: number, action: SpecialAction, moveX: number): boolean {
+function startRiflemanSpecial(owner: Fighter, stage: number, matchFrame: number, action: SpecialAction, moveX: number): boolean {
   const { motion, bear, special } = owner;
   if (action === SpecialAction.riflemanTrap) {
-    if (!startFreezeTrap(owner, stage)) return false;
+    if (!startFreezeTrap(owner, stage, matchFrame)) return false;
     startSpecialAction(owner, action, TRAP_SET_FRAMES, moveX);
     special.cooldowns[action] = 90;
     return true;
@@ -161,7 +161,7 @@ function startRiflemanSpecial(owner: Fighter, stage: number, action: SpecialActi
     startSpecialAction(owner, action, BEAR_SUMMON_FRAMES, moveX);
     bear.life = RIFLEMAN_BEAR_LIFETIME;
     bear.x = f32(motion.x + f32(moveX * 45));
-    bear.z = motion.grounded && motion.surface !== undefined ? surfaceZ(stage, motion.surface) : motion.z;
+    bear.z = motion.grounded && motion.surface !== undefined ? surfaceZ(stage, motion.surface, matchFrame) : motion.z;
     bear.velocityX = f32(moveX * 14.0);
     owner.facing = moveX;
     bear.velocityZ = motion.grounded ? 0.0 : motion.vz;
@@ -204,7 +204,7 @@ function startDemonHunterSpecial(owner: Fighter, action: SpecialAction, moveX: n
 }
 
 /** Starts the special the input asks for if it may; a neutral aerial special turns to the last air steering. */
-export function startFighterSpecial(owner: Fighter, stage: number, input: Readonly<Controls>): boolean {
+export function startFighterSpecial(owner: Fighter, stage: number, matchFrame: number, input: Readonly<Controls>): boolean {
   if (!input.specialPressed) return false;
   const requested = requestedSpecial(owner, input);
   if (!specialCanStart(owner, requested)) return false;
@@ -216,7 +216,7 @@ export function startFighterSpecial(owner: Fighter, stage: number, input: Readon
     case Character.archer:
       return startArcherSpecial(owner, requested, moveX);
     case Character.rifleman:
-      return startRiflemanSpecial(owner, stage, requested, moveX);
+      return startRiflemanSpecial(owner, stage, matchFrame, requested, moveX);
     case Character.demonHunter:
       return startDemonHunterSpecial(owner, requested, moveX);
   }
@@ -319,7 +319,7 @@ const specialScratch = {
 };
 
 /** Advances every special timeline, applies Immolation contacts selected against one state, then summons. */
-export function advanceSpecials(world: Roster, stage: number): void {
+export function advanceSpecials(world: Roster, stage: number, matchFrame: number): void {
   const ownsBatch = openDamageContacts();
   const { contacts, facings } = specialScratch;
   for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
@@ -348,7 +348,7 @@ export function advanceSpecials(world: Roster, stage: number): void {
   }
   for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
     if (!isActive(world, slot)) continue;
-    advanceBear(world, slot, stage);
+    advanceBear(world, slot, stage, matchFrame);
     advanceHippogryph(world, slot);
   }
   if (ownsBatch) finishDamageContacts(world);

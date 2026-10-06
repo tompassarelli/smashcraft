@@ -1,0 +1,9 @@
+{"decision":"RESERVED","reason":"RUN","class":"heavy","requestedCpus":6,"requestedMemoryMiB":8192,"leasedCpuCeilings":26,"aggregateCpuLimit":18,"leasedMemoryMiB":38912,"cpuSomeAvg10":10.36,"memoryFullAvg10":0,"memoryAvailableMiB":70853,"reclaimed":0,"lease":"161dab40-92c3-44a2-a336-858ab4ad063a","expiresAt":1791278409669}
+$ bun scripts/wisp.ts soak
+smashcraft soak: 200 matches in 4 workers, at most 10 min, seed 1; repro files in /home/tom/.local/state/smashcraft/soak/2026-10-06T09-10-04
+  76.868 s  200 matches (76.844 s)
+200 matches, 197,133 frames (55.9 game minutes) in 76.8 s with 4 workers (4 started): 44x real time, 396.9 s CPU
+recovery typing stalls: none (budget 12.8 ms)
+costliest client frame 30.1 ms; no findings
+  76.872 s  soak (76.872 s)
+{"decision":"RELEASED","lease":"161dab40-92c3-44a2-a336-858ab4ad063a"}

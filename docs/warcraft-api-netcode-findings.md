@@ -424,10 +424,12 @@ loaded host put the helpers behind, and the late local starts and prediction
 stalls followed. The pre-#48 map took at most two rows a callback, so the
 helper typed at most about six records at once.
 
-So the helper types at most 256 characters past the record the map's receipt
+So the helper types at most 160 characters past the record the map's receipt
 says arrived, and while a record waits untyped, the next row packets join it
 with `|` (at most `RECORD_PACKETS`, 16): a backlog costs 5–8 characters a
-frame instead of 19 (smashcraft:companion/README.md). The map admits a joined
+frame instead of 19 (smashcraft:companion/README.md). Dirty text receipts
+are written every two map ticks, at most 30 per client per second, so the
+smaller typing window drains within the recovery budget. The map admits a joined
 record's rows within the same per-callback budget, over as many callbacks as
 it takes. smashcraft:ts/test/lag-recovery.test.ts charges each frame's typed
 text as Warcraft's stop, 0.00003 frames per character squared, with the
@@ -485,6 +487,24 @@ collector freed memory is no slower than the others. Measured interleaved
 with the build before on the same busy host, four fighters' confirming
 callbacks fell 41% at p95 and catching up 42%.
 
+Exact f32 arithmetic (#59) made every frame about a quarter costlier, and
+the worst four-fighter callbacks ran 21–31 frames: a message's 6 confirmed
+frames, a correction 15–24 frames deep replayed whole, and up to 6
+predicted. Every frame costs about the same, so each kind is now bounded
+(smashcraft:ts/src/game/shell/playback.ts): a correction replays at most 6
+frames a callback in the history's own state while the speculative match
+keeps running local rows, and replaces it once the replay reaches the
+present; a message's frames confirm 3 a callback, and only a backlog of
+more than two messages, as after a stall, 6. Prediction keeps its 6: #60's
+gate needs every admitted local row predicted within a callback, which a
+smaller share failed while catching up. In steady four-fighter play a
+callback ran at most 14 frames instead of 31 (11 but when two messages
+land together), and only catching up after a stall, with a correction
+pending, 18. A deep correction shows up to four callbacks late (until
+catching up ends, after a stall), and a message's confirmed events and HUD
+a callback or two late; local presses still start within a callback, and
+a 2 s stall still recovers in 21 callbacks headless.
+
 Throughput limits catching up too. Holds cost no bytes, but a message carries
 only 8 frames whose every field changes: with such input on every frame, 10
 messages a second carry 80 frames a second, and a 2 s backlog of it takes
@@ -513,7 +533,10 @@ rows, all of them start in the callback that captures them.
 A remote player's rows R frames behind still stop prediction, as they must:
 rollback can't correct further back. When prediction stops at that window,
 the map marks it held until it has run every local row again
-(`Rollback.predictionHeld`). The response probe writes a `held` row for each
+(`Rollback.predictionHeld`). Admission also marks it held when the newly
+assigned frame is more than R frames beyond the remote rows already received;
+a new row can cross that boundary before the callback runs prediction.
+The response probe writes a `held` row for each
 press captured meanwhile, and the reconcilers report those presses apart from
 #60's gate (smashcraft:ts/scripts/integrity/reconcile.ts, pressResult.ts).
 In that session such a press of A's, made while B's game was stopped,

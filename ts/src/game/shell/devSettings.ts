@@ -1,9 +1,9 @@
 // Developer chat commands ("-dev rb 12", "-dev delay 2", "-dev batch 6",
-// "-dev show", "-dev quick") arrive as synchronized player-chat events. A
-// match reads the settings once at its start, so a command typed during a
-// match applies from the next match on every client; "-dev quick" starts one
-// at once. The receipts are read by the integrity harness, so their spellings
-// are a protocol.
+// "-dev rematch 20", "-dev show", "-dev quick") arrive as synchronized
+// player-chat events. A match reads the settings once at its start, so a
+// command typed during a match applies from the next match on every client;
+// "-dev quick" starts one at once. The receipts are read by the integrity
+// harness, so their spellings are a protocol.
 import { type FixedDelay, isFixedDelay } from "../netcode/fixedSchedule";
 import { parseDecimal } from "../netcode/journal/decimal";
 import { MAX_BATCH } from "../netcode/journal/transport";
@@ -19,7 +19,15 @@ export interface DevSettings {
   delay: FixedDelay;
   /** Callbacks per synchronized input message, 1 to MAX_BATCH. */
   batch: number;
+  /**
+   * Seconds a result shows before the automatic rematch. Captures that
+   * export a match's evidence at its result need longer than players do.
+   */
+  rematchSeconds: number;
 }
+
+/** The longest automatic-rematch countdown a developer command sets, in seconds. */
+const MAX_REMATCH_SECONDS = 60;
 
 function describeDevSettings({ rollback, delay, batch }: Readonly<DevSettings>): string {
   return `dev: next match rb=${rollback} delay=${delay} batch=${batch}`;
@@ -52,11 +60,20 @@ export function applyDevCommand(settings: DevSettings, message: string): string 
     settings.batch = value;
     return describeDevSettings(settings);
   }
+  if (message.startsWith("-dev rematch ")) {
+    const value = commandInteger(message.substring(13));
+    if (value === undefined || value < 1 || value > MAX_REMATCH_SECONDS) return `dev: rematch must be 1-${MAX_REMATCH_SECONDS}`;
+    settings.rematchSeconds = value;
+    return `dev: automatic rematch after ${value} s`;
+  }
   return undefined;
 }
 
 /** Starts a match with no menu navigation, for the fresh-match loop. */
 export const QUICK_MATCH_COMMAND = "-dev quick";
+
+/** A winter arena match for the native presentation capture. */
+export const FROZEN_THRONE_QUICK_COMMAND = "-dev quick frozen-throne";
 
 /** Desynchronizes the game on purpose, to check that the host names what diverged. */
 export const DESYNC_COMMAND = "-dev desync";
@@ -66,7 +83,7 @@ export const DESYNC_COMMAND = "-dev desync";
  * a one-stock match on the default stage, from either menu. False, with no match
  * started, when the menus could not start one.
  */
-export function prepareQuickMatch(game: MatchState): boolean {
+export function prepareQuickMatch(game: MatchState, stage = 0): boolean {
   const first = firstHumanSlot(game);
   if (first === undefined || (game.phase !== Phase.characterMenu && game.phase !== Phase.stageMenu)) return false;
   returnToCharacters(game, first);
@@ -74,8 +91,8 @@ export function prepareQuickMatch(game: MatchState): boolean {
   for (const slot of PARTICIPANT_SLOTS) {
     if (humanFighterActive(game, slot) && humanPresent(game, slot)) selectCharacter(game, slot, defaults[slot]);
   }
-  if (!requestStageSelect(game, first)) return false;
-  selectStage(game, first, createMatchState().stageChoice);
   setStocks(game, first, 1);
+  if (!requestStageSelect(game, first)) return false;
+  selectStage(game, first, stage);
   return requestStart(game, first);
 }

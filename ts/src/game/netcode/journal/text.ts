@@ -18,7 +18,7 @@ export const TEXT_WINDOW = 16;
  * TYPED_AHEAD_BYTES): Warcraft takes typed text at a cost that grows with how
  * much it takes at once.
  */
-export const TYPED_AHEAD_CHARACTERS = 256;
+export const TYPED_AHEAD_CHARACTERS = 160;
 
 const CHECKSUM_ALPHABET = `${ALPHABET}|`;
 const PAYLOAD_START = 29;

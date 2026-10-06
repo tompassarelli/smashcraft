@@ -6,8 +6,8 @@ import { adaptInput } from "../../game/input/adapter";
 import { commitEdges } from "../../game/input/keyboardCapture";
 import { PARTICIPANT_SLOTS, type ParticipantSlot, participantActive } from "../../game/input/participants";
 import { captureFrame, copyExecutedInput, executeMatchFrame, hasNetworkRows } from "../../game/match/frameInput";
-import { beginMomentFrame, momentFrameRan, recordMomentRow } from "../../game/replay/moment";
-import { Phase, computerActive, humanFighterActive } from "../../game/match/rules";
+import { beginMomentFrame, keepMomentEnd, momentFrameRan, recordMomentRow } from "../../game/replay/moment";
+import { Phase, beginRematchCountdown, computerActive, humanFighterActive } from "../../game/match/rules";
 import { resultMessage, aerialName, fighterLabel } from "../../game/shell/messages";
 import { produceScenarioComputerInput } from "../../game/shell/scenarios";
 import { DownState } from "../../game/sim/codes";
@@ -103,6 +103,9 @@ export function applyFrame(s: ShellState): void {
   }
   if (s.game.phase !== Phase.result) return;
   clearMatchEffects(s);
+  // The countdown changes the match between frames: the moment keeps it as its last frame left it.
+  keepMomentEnd(recorder, world, s.game, s.controls, runtime);
+  beginRematchCountdown(s.game, s.dev.rematchSeconds);
   setStatus(s, resultMessage(s.game), LASTING);
 }
 

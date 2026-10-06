@@ -16,9 +16,17 @@ import { isIntangible } from "../src/game/sim/conditions";
 import { beginDamageContacts, collectDamageContact, finishDamageContacts } from "../src/game/sim/contacts";
 import { type Fighter, createFighter } from "../src/game/sim/fighter";
 import { uncancelledLandingLag } from "../src/game/sim/moves";
-import { SOLID_DECK_TEST_STAGE, surfaceRight, surfaceZ } from "../src/game/sim/stage";
+import { CANNON_TEST_STAGE, WIND_TEST_STAGE, DRIFTING_DECK_STAGE, MAIN_DECK_BODY_SURFACES, SOLID_DECK_TEST_STAGE, solidSurfaceAt, mainDeckRight, mainDeckZ, surfaceZ } from "../src/game/sim/stage";
+import { CANNON_Z, cannonX } from "../src/game/sim/stageHazards";
+import { bodyTop } from "../src/game/sim/surfaces";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "../src/game/sim/tuning";
 import { type Scene, airborne, fighter, frame, framesUntil, scene, solo, tumbling } from "./frameScene";
+import { ATTACK_BUFFER_FRAMES } from "../src/game/input/attackBuffer";
+import { TECH_WINDOW_FRAMES, TECH_REPEAT_MINIMUM_AGE_FRAMES } from "../src/game/physics/techInput";
+import { SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES } from "../src/game/sim/fighter";
+import { DEMONHUNTER_PARRY_START, DEMONHUNTER_PARRY_END } from "../src/game/sim/hits";
+import { LEDGE_INTANGIBLE_FRAMES } from "../src/game/sim/ledge";
+import { LEDGE_REGRAB_FRAMES } from "../src/game/sim/transitions";
 
 const melee = (world: number): number => world / WORLD_UNITS_PER_MELEE_UNIT;
 
@@ -600,7 +608,7 @@ function fullHopUnderDeck(character: Character): string {
 function downOnDeck(character: Character): string {
   const s = solo(1, character, UNDER_DECK_X);
   const f = fighter(s);
-  f.motion.z = surfaceZ(1, 1);
+  f.motion.z = surfaceZ(1, 1, 0);
   f.motion.surface = 1;
   for (let n = 1; n <= 90; n++) frame(s, [Action.moveDown]);
   return standing(f);
@@ -621,6 +629,48 @@ const PLATFORM_LINES = "platforms are floor lines flagged LINE_FLAG_PLATFORM: mp
 const PLATFORM_PASS = "Pass needs stick y <= -PlCo +0x464 (0.66) reached under PlCo +0x468 = 6 frames ago on a platform: melee:src/melee/ft/kinds/ftCommon/ftCo_Pass.c:26 ftCo_80099F1C; mpColl skips that platform";
 
 const PLATFORMS: readonly Scenario[] = [
+  { area: "hazard", name: "Whispy's first gust moves a standing fighter", cite: "GrOp.dat yakumono_param +0x10 = 0.2; groldpupupu.c wind after blow frame 45; fighter.c Fighter_procUpdate windOffset", run: (c) => {
+    const s = solo(WIND_TEST_STAGE, c, 240.0);
+    s.game.matchFrame = 645;
+    const before = fighter(s).motion.x;
+    frame(s, []);
+    return { expected: 0.20000000298023224, actual: f32((fighter(s).motion.x - before) / WORLD_UNITS_PER_MELEE_UNIT), tolerance: 0.00001 };
+  } },
+  { area: "hazard", name: "Kongo barrel holds an untouched fighter for eight seconds", cite: "GrOk.dat rframe_barrel_shoot_a = 479 truncated and counted through zero; groldkongo.c stageGObj1_GObjProc", run: (c) => {
+    const s = solo(CANNON_TEST_STAGE, c, cannonX(1));
+    airborne(fighter(s), cannonX(1), CANNON_Z + 40.0);
+    frame(s, []);
+    let held = 0;
+    while (fighter(s).cannon.firing === undefined && held < 500) { frame(s, []); held++; }
+    return { expected: 480, actual: held };
+  } },
+  { area: "hazard", name: "Kongo barrel fires ten further frames after Attack with base knockback 180", cite: "groldkongo.c hit_timer > 0xA; GrOk.dat rradd_barrel_attack = 180; ftCo_8009EC70", run: (c) => {
+    const s = solo(CANNON_TEST_STAGE, c, cannonX(1));
+    airborne(fighter(s), cannonX(1), CANNON_Z + 40.0);
+    frame(s, []);
+    frame(s, [Action.attack]);
+    let further = 0;
+    while (fighter(s).cannon.held !== undefined && further < 20) { frame(s, []); further++; }
+    return { expected: 5.400000095367432, actual: further === 10 ? f32(fighter(s).launch.diLaunchSpeed / WORLD_UNITS_PER_MELEE_UNIT) : -1, tolerance: 0.00001 };
+  } },
+  { area: "platform", name: "grounded fighter rides a moving floor in hitlag", cite: "Fighter_procUpdate adds mpGetSpeed's floor-line displacement while grounded, before its hitlag return (melee:src/melee/ft/fighter.c)", run: (c) => {
+    const s = solo(DRIFTING_DECK_STAGE, c, 0.0);
+    const f = fighter(s);
+    f.motion.surface = 1;
+    f.motion.z = surfaceZ(DRIFTING_DECK_STAGE, 1, 0);
+    f.launch.hitlag = 10;
+    frame(s, []);
+    return { expected: "2.5", actual: String(f.motion.x) };
+  } },
+  { area: "platform", name: "fresh down on a moving platform", cite: PLATFORM_PASS, run: (c) => {
+    const s = solo(DRIFTING_DECK_STAGE, c, 0.0);
+    const f = fighter(s);
+    f.motion.surface = 1;
+    f.motion.z = surfaceZ(DRIFTING_DECK_STAGE, 1, 0);
+    frame(s, []);
+    for (let n = 1; n <= 90; n++) frame(s, [Action.moveDown]);
+    return { expected: "main deck", actual: standing(f) };
+  } },
   { area: "platform", name: "full hop from under a raised deck", cite: PLATFORM_LINES, run: (c) => ({ expected: "raised deck", actual: fullHopUnderDeck(c) }) },
   { area: "platform", name: "down pressed on a raised deck", cite: PLATFORM_PASS, run: (c) => ({ expected: "main deck", actual: downOnDeck(c) }) },
   { area: "platform", name: "falling onto a raised deck holding down: landing", cite: `${PLATFORM_LINES}; airborne collision has no stick test (melee:src/melee/ft/ft_081B.c)`, run: (c) => ({ expected: "raised deck", actual: landHoldingDown(c, 0) }) },
@@ -644,7 +694,7 @@ const REFERENCE_RIGHT_SIDE: readonly (readonly [number, number])[] = [
 const REFERENCE_UNDERSIDE_Y = -55.38819885253906;
 const STAGE_COLLISION = "Final Destination's coll_data (GrNLa.dat, GALE01 rev 2): rightWall lines 9, 10, 7, 8, 6, ceiling lines 5, 4; each side kept as far from its ledge, the underside spanning the wider deck";
 
-const RIGHT_LEDGE = surfaceRight(0, 0);
+const RIGHT_LEDGE = mainDeckRight(0);
 
 /** The reference side's x, from its ledge vertex, `depth` Melee units below the ledge. */
 function referenceSideX(depth: number): number | undefined {
@@ -688,14 +738,41 @@ function sideCheck(character: Character, depth: number): Check {
 }
 
 /** How far under the floor a tumbler launched up beneath the deck's middle meets its underside (Melee units). */
-function undersideDepth(character: Character): number | undefined {
-  const s = solo(0, character);
+/**
+ * Each fighter's Melee ECB top in the air, Melee units: the highest of its
+ * six ECB bones (ftData x44) in its model's bind pose (PlFxNr.dat, PlFcNr.dat,
+ * PlCaNr.dat) times its model_scaling (+0x8C), with no pad, as falls and
+ * jumps load it (melee:src/melee/mp/mpcoll.c mpColl_LoadECB_JObj): Fox 11.625
+ * x 0.96, Falco 12.5 x 1.1, Captain Falcon (Illidan) 19.3585 x 0.97.
+ */
+function referenceEcbTop(character: Character): number {
+  if (character === Character.archer) return 11.15999984741211;
+  if (character === Character.rifleman) return 13.75;
+  return 18.777746200561523;
+}
+
+interface CeilingMeeting {
+  /** Where the fighter met the ceiling, and how far below it the fighter then stood (Melee units). */
+  readonly contactZ: number;
+  readonly below: number;
+}
+
+/** A tumbler launched up from `gap` world units under `ceiling` (its top that far below it) until it meets it. */
+function meetCeiling(stage: number, character: Character, x: number, ceiling: number, gap: number): CeilingMeeting | undefined {
+  const s = solo(stage, character, x);
   const f = fighter(s);
-  tumbling(f, 0.0, (REFERENCE_UNDERSIDE_Y - 5.0) * WORLD_UNITS_PER_MELEE_UNIT);
+  tumbling(f, x, ceiling - bodyTop(character) * WORLD_UNITS_PER_MELEE_UNIT - gap);
   f.launch.knockbackZ = 18.0;
   const contact = framesUntil(s, () => f.surfaceRecovery.contactSerial > 0, 10);
-  return contact === undefined ? undefined : melee(-f.surfaceRecovery.contactZ);
+  return contact === undefined ? undefined : { contactZ: melee(f.surfaceRecovery.contactZ), below: melee(f.surfaceRecovery.contactZ - f.motion.z) };
 }
+
+/** Beneath the main deck's middle, its top 3 under the underside: the bottom blast zone leaves Fox and Falco that much room. */
+const meetUnderside = (character: Character) => meetCeiling(0, character, 0.0, REFERENCE_UNDERSIDE_Y * WORLD_UNITS_PER_MELEE_UNIT, 3.0);
+
+/** The solid-deck test stage's left raised deck's underside, which stands high enough above the floor for every fighter's top. */
+const RAISED_UNDERSIDE_Z = solidSurfaceAt(SOLID_DECK_TEST_STAGE, MAIN_DECK_BODY_SURFACES + 2).startZ;
+const meetRaisedUnderside = (character: Character) => meetCeiling(SOLID_DECK_TEST_STAGE, character, -265.0, RAISED_UNDERSIDE_Z, 10.0);
 
 interface SurfaceRun {
   readonly contact: number | undefined;
@@ -708,13 +785,14 @@ interface SurfaceRun {
  * its underside. Tech ages count hitlag frames in both games.
  */
 function surfaceRun(character: Character, wall: boolean, press: boolean, frozen: number): SurfaceRun {
-  const s = solo(0, character);
+  const s = solo(wall ? 0 : SOLID_DECK_TEST_STAGE, character, wall ? 0.0 : -265.0);
   const f = fighter(s);
-  const underside = REFERENCE_UNDERSIDE_Y * WORLD_UNITS_PER_MELEE_UNIT;
-  tumbling(f, wall ? RIGHT_LEDGE + 200.0 : 0.0, wall ? 400.0 : underside - 50.0);
+  // Under the raised deck, the fighter's top starts 30 under its underside.
+  const below = RAISED_UNDERSIDE_Z - bodyTop(character) * WORLD_UNITS_PER_MELEE_UNIT - 30.0;
+  tumbling(f, wall ? RIGHT_LEDGE + 200.0 : 0.0, 400.0);
   for (let n = 1; n <= 60; n++) {
     if (n === 3) {
-      tumbling(f, wall ? RIGHT_LEDGE + 30.0 : 0.0, wall ? -30.0 : underside - 30.0);
+      tumbling(f, wall ? RIGHT_LEDGE + 30.0 : -265.0, wall ? -30.0 : below);
       f.launch.knockbackX = wall ? -18.0 : 0.0;
       f.launch.knockbackZ = wall ? 0.0 : 18.0;
       f.launch.hitlag = frozen > 0 ? frozen + 1 : 0;
@@ -858,10 +936,12 @@ function meleeAirDrift(character: Character, velocity: number, airMax: number): 
 function ceilingTechSpeed(character: Character, leftOn: number): number | undefined {
   const s = solo(SOLID_DECK_TEST_STAGE, character, -265.0);
   const f = fighter(s);
-  tumbling(f, -265.0, 100.0);
+  tumbling(f, -265.0, RAISED_UNDERSIDE_Z - bodyTop(character) * WORLD_UNITS_PER_MELEE_UNIT - 10.0);
   f.launch.knockbackZ = 18.0;
   if (framesUntil(s, () => f.surfaceRecovery.contactSerial > 0, 10, (n) => (n === 1 ? [Action.leftTrigger] : [])) === undefined) return undefined;
   if (f.surfaceRecovery.state !== SurfaceContact.techCeiling) return undefined;
+  // Held airborne: the floor below the raised deck is nearer than the fall to the impulse frame.
+  f.tuning = { ...f.tuning, physics: { ...f.tuning.physics, gravity: 0.0 } };
   for (let n = 1; n <= leftOn; n++) frame(s, n === leftOn ? [Action.moveLeft] : []);
   return f.motion.grounded ? undefined : melee(f.motion.vx);
 }
@@ -877,7 +957,9 @@ function ceilingImpulseFrame(character: Character): number | string {
   return "no impulse";
 }
 
-const CEILING_IMPULSE = "ftCo_DatAttrs +0x10C passiveceil_vel_x 0.7 (Fox, Falco), 2.0 (Captain Falcon) from the retail DATs times the stick at the animation's throw-flag event, frame 14 (Fox, Falco) or 11 (Captain Falcon) (retail-ceiling-tech-events.json): melee:src/melee/ft/kinds/ftCommon/ftCo_PassiveCeil.c ftCo_PassiveCeil_Anim, then a frame of air drift (ft_081B.c ft_80084DB0); under the solid-deck test stage's raised deck";
+const CEILING_IMPULSE = "ftCo_DatAttrs +0x10C passiveceil_vel_x 0.7 (Fox, Falco), 2.0 (Captain Falcon) from the retail DATs times the stick at the animation's throw-flag event, frame 14 (Fox, Falco) or 11 (Captain Falcon) (retail-ceiling-tech-events.json): melee:src/melee/ft/kinds/ftCommon/ftCo_PassiveCeil.c ftCo_PassiveCeil_Anim, then a frame of air drift (ft_081B.c ft_80084DB0); under the solid-deck test stage's raised deck, gravity held at zero after the contact since its floor is nearer than the fall to the impulse frame";
+
+const ECB_TOP = "ceilings meet the fighter's airborne ECB top, the highest of its six ftData x44 ECB bones in the model's bind pose times model_scaling +0x8C: Fox 11.16, Falco 13.75, Captain Falcon 18.78 (melee:src/melee/mp/mpcoll.c mpColl_LoadECB_JObj; PlFxNr/PlFcNr/PlCaNr.dat)";
 
 const SURFACE_GATE = "wall and ceiling techs use the floor's gate 0x800986B0 (PlCo +0x250 = 20, +0x01C = 40): melee:src/melee/ft/kinds/ftCommon/ftCo_PassiveWall.c ftCo_800C1D38, ftCo_PassiveCeil.c";
 const WALL_FLANK = "the ECB's side meets a wall, and mpColl_LoadECB_JObj keeps an airborne ECB at least 2 units a side (melee:src/melee/mp/mpcoll.c); airborne collision moves only the position (melee:src/melee/ft/ft_081B.c ft_800835B0)";
@@ -895,7 +977,24 @@ const SURFACES: readonly Scenario[] = [
   },
   {
     area: "wall/ceiling", name: "main deck underside: a rise beneath its middle meets it this far under the floor", cite: STAGE_COLLISION,
-    run: (c) => ({ expected: -REFERENCE_UNDERSIDE_Y, actual: undersideDepth(c) ?? "no contact", tolerance: 0.001 }),
+    run: (c) => {
+      const meeting = meetUnderside(c);
+      return { expected: -REFERENCE_UNDERSIDE_Y, actual: meeting === undefined ? "no contact" : -meeting.contactZ, tolerance: 0.001 };
+    },
+  },
+  {
+    area: "wall/ceiling", name: "main deck underside: a rise beneath its middle stops the fighter this far under it (its ECB top)", cite: ECB_TOP,
+    run: (c) => {
+      const meeting = meetUnderside(c);
+      return { expected: referenceEcbTop(c), actual: meeting === undefined ? "no contact" : meeting.below, tolerance: 0.001 };
+    },
+  },
+  {
+    area: "wall/ceiling", name: "raised deck underside (solid-deck test stage): a rise stops the fighter this far under it (its ECB top)", cite: ECB_TOP,
+    run: (c) => {
+      const meeting = meetRaisedUnderside(c);
+      return { expected: referenceEcbTop(c), actual: meeting === undefined ? "no contact" : meeting.below, tolerance: 0.001 };
+    },
   },
   { area: "wall/ceiling", name: "wall tech off the main deck's side 19 frames before contact", cite: SURFACE_GATE, run: (c) => ({ expected: "tech", actual: surfaceTech(c, true, 19) }) },
   { area: "wall/ceiling", name: "wall tech off the main deck's side 20 frames before contact", cite: SURFACE_GATE, run: (c) => ({ expected: "no tech", actual: surfaceTech(c, true, 20) }) },
@@ -931,8 +1030,8 @@ const SURFACES: readonly Scenario[] = [
     area: "wall/ceiling", name: "wall jump: drifting in from 1 unit out, slower than the minimum approach speed, a flick away", cite: WALL_JUMP,
     run: (c) => ({ expected: "no wall jump", actual: wallJumpLeave(c, WORLD_UNITS_PER_MELEE_UNIT, 0.0) === undefined ? "no wall jump" : "wall jump" }),
   },
-  { area: "wall/ceiling", name: "ceiling tech off the main deck's underside 19 frames before contact", cite: SURFACE_GATE, run: (c) => ({ expected: "tech", actual: surfaceTech(c, false, 19) }) },
-  { area: "wall/ceiling", name: "ceiling tech off the main deck's underside 20 frames before contact", cite: SURFACE_GATE, run: (c) => ({ expected: "no tech", actual: surfaceTech(c, false, 20) }) },
+  { area: "wall/ceiling", name: "ceiling tech off a raised deck's underside (solid-deck test stage) 19 frames before contact", cite: SURFACE_GATE, run: (c) => ({ expected: "tech", actual: surfaceTech(c, false, 19) }) },
+  { area: "wall/ceiling", name: "ceiling tech off a raised deck's underside (solid-deck test stage) 20 frames before contact", cite: SURFACE_GATE, run: (c) => ({ expected: "no tech", actual: surfaceTech(c, false, 20) }) },
   {
     area: "wall/ceiling", name: "ceiling tech: frame after contact of its sideways impulse", cite: CEILING_IMPULSE,
     run: (c) => ({ expected: referenceCeiling(c).frame, actual: ceilingImpulseFrame(c) }),
@@ -1056,13 +1155,13 @@ function ledgeBox(character: Character): { reach: number; highest: number } {
 function catchesLedge(character: Character, outside: number, below: number): boolean {
   const s = solo(0, character);
   const f = fighter(s);
-  airborne(f, surfaceRight(0, 0) + outside, surfaceZ(0, 0) - below);
+  airborne(f, mainDeckRight(0) + outside, mainDeckZ(0) - below);
   f.facing = -1;
   f.jump.remaining = 1;
   for (let n = 1; n <= 120; n++) {
     frame(s, []);
     if (f.ledge.state !== LedgeState.none) return true;
-    if (surfaceZ(0, 0) - f.motion.z > below + 250.0) break;
+    if (mainDeckZ(0) - f.motion.z > below + 250.0) break;
   }
   return false;
 }
@@ -1071,13 +1170,13 @@ function catchesLedge(character: Character, outside: number, below: number): boo
 function catchAgainstWall(character: Character): string {
   const s = solo(0, character);
   const f = fighter(s);
-  airborne(f, surfaceRight(0, 0) + (LEDGE_BODY_HALF_WIDTH + 2.0) * WORLD_UNITS_PER_MELEE_UNIT, surfaceZ(0, 0) - 20.0);
+  airborne(f, mainDeckRight(0) + (LEDGE_BODY_HALF_WIDTH + 2.0) * WORLD_UNITS_PER_MELEE_UNIT, mainDeckZ(0) - 20.0);
   f.facing = -1;
   f.jump.remaining = 1;
   for (let n = 1; n <= 120; n++) {
     frame(s, [Action.moveLeft]);
     if (f.ledge.state !== LedgeState.none) return f.surfaceRecovery.contactSerial > 0 ? "caught against the wall" : "caught clear of the wall";
-    if (surfaceZ(0, 0) - f.motion.z > 400.0) break;
+    if (mainDeckZ(0) - f.motion.z > 400.0) break;
   }
   return "fell";
 }
@@ -1085,12 +1184,12 @@ function catchAgainstWall(character: Character): string {
 /** A fighter hanging on the ledge past its intangible frames, grabbed from 70 units inside it: "caught", or "not caught" with the grab started. */
 function grabOnLedgeHanger(character: Character): string {
   const s = scene(0, [
-    { character, x: surfaceRight(0, 0) - 70.0, facing: 1 },
-    { character, x: surfaceRight(0, 0) + 30.0, facing: -1 },
+    { character, x: mainDeckRight(0) - 70.0, facing: 1 },
+    { character, x: mainDeckRight(0) + 30.0, facing: -1 },
   ]);
   const grabber = fighter(s, 0);
   const hanger = fighter(s, 1);
-  airborne(hanger, surfaceRight(0, 0) + 30.0, surfaceZ(0, 0));
+  airborne(hanger, mainDeckRight(0) + 30.0, mainDeckZ(0));
   hanger.jump.remaining = 1;
   if (framesUntil(s, () => hanger.ledge.state === LedgeState.hang, 60) === undefined) return "never hung";
   if (framesUntil(s, () => !isIntangible(hanger), 60) === undefined) return "still intangible";
@@ -1117,8 +1216,28 @@ const LEDGES: readonly Scenario[] = [
 
 // ------------------------------------------------------------------ table
 
+const windowBound = (name: string, lower: number, upper: number, actual: (character: Character) => number): Scenario => ({
+  area: "execution bounds", name: `${name}: ${lower}..${upper} frames`,
+  cite: "smashcraft:docs/gameplay-design.md, Execution and reaction windows (#69), adopted 6 Oct 2026",
+  run: (character) => {
+    const frames = actual(character);
+    return { expected: `within ${lower}..${upper}`, actual: frames >= lower && frames <= upper ? `within ${lower}..${upper}` : `${frames} frames` };
+  },
+});
+
+const EXECUTION_BOUNDS: readonly Scenario[] = [
+  windowBound("tech", 11, 20, () => TECH_WINDOW_FRAMES),
+  windowBound("tech lockout", 20, 40, () => TECH_REPEAT_MINIMUM_AGE_FRAMES),
+  windowBound("human attack buffer", 4, 10, () => ATTACK_BUFFER_FRAMES),
+  windowBound("jump squat / short-hop release", 3, 5, jumpSquatFrames),
+  windowBound("parry", 6, 10, () => DEMONHUNTER_PARRY_END - DEMONHUNTER_PARRY_START + 1),
+  windowBound("optional powershield", 2, 4, () => SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES),
+  windowBound("ledge intangibility", 30, 37, () => LEDGE_INTANGIBLE_FRAMES),
+  windowBound("ledge regrab lock", 30, 60, () => LEDGE_REGRAB_FRAMES),
+];
+
 const SCENARIOS: readonly Scenario[] = [
-  ...JUMPS, ...GROUND, ...FAST_FALL, ...LANDING, ...TECHS, ...GETUPS, ...KNOCKBACK, ...PLATFORMS, ...SURFACES, ...SHIELD_AND_DODGES, ...LEDGES,
+  ...JUMPS, ...GROUND, ...FAST_FALL, ...LANDING, ...TECHS, ...GETUPS, ...KNOCKBACK, ...PLATFORMS, ...SURFACES, ...SHIELD_AND_DODGES, ...LEDGES, ...EXECUTION_BOUNDS,
 ];
 
 const rowKey = (row: Pick<OracleRow, "area" | "scenario" | "fighter">): string => `${row.area} | ${row.scenario} | ${row.fighter}`;
@@ -1131,7 +1250,11 @@ export function runOracle(): OracleRow[] {
  * Rows that may mismatch until their owning issue lands, keyed by rowKey, each
  * with that issue; CI fails on any other mismatch and on a listed row that passes.
  */
-const KNOWN_MISMATCHES: ReadonlyMap<string, string> = new Map<string, string>();
+const KNOWN_MISMATCHES: ReadonlyMap<string, string> = new Map<string, string>([
+  // With Illidan's top under the underside his position is below the bottom blast zone, which #80 lowers to Final Destination's.
+  ["wall/ceiling | main deck underside: a rise beneath its middle meets it this far under the floor | Illidan", "#80"],
+  ["wall/ceiling | main deck underside: a rise beneath its middle stops the fighter this far under it (its ECB top) | Illidan", "#80"],
+]);
 
 /** Mismatches that aren't known, known mismatches and departures that now match Melee, and known rows the table no longer has. */
 export function oracleProblems(rows: readonly OracleRow[]): string[] {

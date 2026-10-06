@@ -324,6 +324,9 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   int("ledgeSerial", ledge.serial);
   int("ledgeIntangible", ledge.intangible);
   int("ledgeRegrab", ledge.regrab);
+  int("cannonHeld", fighter.cannon.held ?? -1);
+  int("cannonFiring", fighter.cannon.firing ?? -1);
+  int("cannonCooldown", fighter.cannon.cooldown);
 
   real("physics.walkAccelerationMultiplier", t.physics.walkAccelerationMultiplier);
   real("physics.walkAccelerationBase", t.physics.walkAccelerationBase);
@@ -409,7 +412,11 @@ function writeState(emit: Emit, state: Readonly<ReplayState>): void {
   }
   int("match.stockCount", match.stockCount);
   int("match.timeLimitMinutes", match.timeLimitMinutes);
+  bool("match.endless", match.endless);
+  bool("match.automaticRematch", match.automaticRematch);
+  int("match.rematchCountdown", match.rematchCountdown);
   int("match.remainingFrames", match.remainingFrames);
+  int("match.matchFrame", match.matchFrame);
   bool("match.timedOut", match.timedOut);
   bool("match.practice", match.practice);
   int("runtime.simulationFrame", runtime.simulationFrame);

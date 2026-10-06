@@ -26,7 +26,7 @@ import {
 } from "./journalPause";
 import { KEY_DOWN, KEY_UP, Key, registerKey, removeKeyEvents, syncKeyEvents } from "./keyEvents";
 import { onDevCommand, onDeveloperRestart, onDeveloperTrace, onKeyDown, onKeyUp, onProbeExport, onProbeStart } from "./keys";
-import { panelActions } from "./menus";
+import { panelActions, serviceAutomaticRematch } from "./menus";
 import { PLAYER_FILE_RECEIVED, bindingFiles, playerFileReceived, playerFilesOwnerLeft, startPlayerFiles } from "./playerFiles";
 import { PLAYTEST, PLAYTEST_PREFIX, playtestRequested, readPlaytestRequest, servicePlaytestRequest } from "./playtest";
 import { makePreview } from "./preview";
@@ -109,6 +109,7 @@ function gameTick(s: ShellState): void {
     editbox.updatePauseHint(s.session.paused, barrier.request !== undefined, pausing(barrier));
   }
   servicePlaytestRequest(s);
+  if (s.game.phase === Phase.result) serviceAutomaticRematch(s);
   publishMenu(s);
   const local = localParticipantSlot(s);
   if (s.probe !== undefined && local !== undefined) {
@@ -238,7 +239,6 @@ function initialize(): void {
   CameraSetSmoothingFactor(0.0);
   SetTimeOfDay(12.0);
   SetTimeOfDayScale(0.0);
-  SetSkyModel("Environment\\Sky\\LordaeronSummerSky\\LordaeronSummerSky.mdl");
   startPlayerFiles();
   makePreview(s);
   lockArenaCamera(s);

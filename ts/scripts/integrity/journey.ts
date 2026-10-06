@@ -5,6 +5,7 @@
 // slot change, and the rematch. Everything it does to the clients goes through
 // the Rig service, so a recording Rig can replay the journey without Warcraft.
 import { Context, Effect } from "effect";
+import { RULE_BUTTONS } from "../../src/game/ui/ruleButtons";
 import type { Region } from "wisp/scripts/warcraft/desktop";
 import { IntegrityFailure } from "./evidence";
 import { ABS_RX, ABS_RY, ABS_X, ABS_Y, ABS_Z, BTN_A, BTN_SELECT, BTN_START, BTN_X, BTN_Y, EV_ABS, EV_KEY, type SourceEdge } from "./linuxInput";
@@ -185,13 +186,6 @@ const PAD49_PAST_DOWN = 21954;
 /** The frame meter's overlay toggle (smashcraft:ts/src/platform/frameMeter.ts). */
 const PERF_TOGGLE = "-dev perf";
 /**
- * The stage screen's preview name, stageUi.ts's frame at (0.045, 0.19) sized
- * 0.37 by 0.036, on the same 2560x1440 client frame as RESULT_NOTICE.
- */
-const STAGE_PREVIEW_NAME: Region = { x: 428, y: 984, width: 888, height: 86 };
-const SECOND_STAGE = /Three\s*Bridges/i;
-
-/**
  * Stocks in each match of #26's integrity workload. Its pads dash both ways
  * through the whole workload, and on 0.0.48 Player 2 drifted off the stage on
  * its one stock 19–21 s in, ending the match before its scheduled pause.
@@ -357,24 +351,6 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       yield* at(20000);
     });
 
-  /**
-   * A bot session's rematch plays the other stage, so one session shows both
-   * (#57): slot 0's stick flips the stage screen's choice, read back from its
-   * preview name. A flip that never shows is logged and the rematch plays on.
-   */
-  const secondStage = (epoch: number) =>
-    Effect.gen(function*() {
-      // The helper sends menu keys only after it has seen the stage screen with the pad at rest.
-      yield* rig.sleep(400);
-      yield* send(0, { type: EV_ABS, code: ABS_X, value: 32767 }, `menu-match-${epoch}-stage`);
-      yield* rig.sleep(150);
-      yield* send(0, { type: EV_ABS, code: ABS_X, value: 0 }, `menu-match-${epoch}-stage`);
-      yield* rig.until("rematch stage not shown", rig.readText(0, STAGE_PREVIEW_NAME).pipe(Effect.map((text) => SECOND_STAGE.test(text))), 10).pipe(
-        Effect.andThen(rig.progress(`Epoch ${epoch}: Three Bridges chosen`)),
-        Effect.catch((failure) => rig.progress(`Epoch ${epoch}: stage flip not observed: ${failure.message}`)),
-      );
-    });
-
   const botMatch = (epoch: number, startNs: number) =>
     Effect.gen(function*() {
       if (options.pad49 === true && epoch === firstEpoch) yield* pad49(epoch, startNs);
@@ -464,14 +440,20 @@ export function journey(rig: RigShape, options: JourneyOptions) {
     yield* rig.until("slots C/D were not restored to EMPTY", menusShow(TWO_HUMANS));
   });
 
-  /** Stock count on B's stage screen, one click at a time: 1380 lowers it, 1675 raises it. */
+  /** Rule button centers in Warcraft's centered 4:3 area on a 2560x1440 desktop. */
+  const clickRule = Effect.fnUntraced(function*(name: keyof typeof RULE_BUTTONS) {
+    const box = RULE_BUTTONS[name];
+    yield* rig.click(1, 250, 900);
+    yield* rig.click(1, Math.round(320 + 2400 * (box.x + box.width / 2)), Math.round(1440 - 2400 * (box.y - box.height / 2)));
+  });
+
+  /** Stock count on B's fighter selection screen, one click at a time. */
   const stockCount = (target: number) => Effect.gen(function*() {
     const text = yield* rig.waitText(1, /[1-9] Stock/i);
     const shown = /([1-9])\s+Stock/i.exec(text)?.[1];
     if (shown === undefined) return yield* failed("read stocks", text);
     for (let count = Number(shown); count !== target;) {
-      yield* rig.click(1, 250, 900);
-      yield* rig.click(1, count > target ? 1380 : 1675, 155);
+      yield* clickRule(count > target ? "fewerStocks" : "moreStocks");
       count += count > target ? -1 : 1;
       yield* rig.waitText(1, stocks(count));
     }
@@ -485,8 +467,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
     let minutes = shown === undefined ? 0 : Number(shown);
     if (minutes > 10) return yield* failed("read match time", text);
     while (minutes !== 1) {
-      yield* rig.click(1, 250, 900);
-      yield* rig.click(1, minutes === 0 ? 2110 : 1807, 155);
+      yield* clickRule(minutes === 0 ? "moreTime" : "lessTime");
       minutes += minutes === 0 ? 1 : -1;
       yield* rig.waitText(1, new RegExp(`${minutes}:00`));
     }
@@ -620,28 +601,28 @@ export function journey(rig: RigShape, options: JourneyOptions) {
   const match = (epoch: number) =>
     Effect.gen(function*() {
       const odd = epoch % 2 === 1;
-      if (matchOnly || playable) yield* reduceStocks;
+
       const commanded = sweep[(epoch - firstEpoch) / 2];
       if (odd && commanded !== undefined) {
         const [window, batch] = commanded;
         yield* devCommand(epoch, `-dev batch ${batch}`, ` batch=${batch} `);
         yield* devCommand(epoch, `-dev rb ${window}`, ` rb=${window} `);
       }
-      if (bot && !odd) yield* secondStage(epoch);
+
+      const traceAfterNs = yield* rig.realtimeNs;
+      // Ctrl+G only enables the diagnostic trace; the pads choose, start and rematch.
+      if (!playable && diagnosticBuild) yield* rig.key(0, "ctrl+g");
+      if (!bot || epoch === firstEpoch) yield* menuButton(0, BTN_START, `menu-match-${epoch}-start`);
+      const start = (client: Slot) => controlName("start", epoch, client);
+      yield* rig.until(`epoch ${epoch}: game-controlled start absent`, Effect.forEach(SLOTS, (client) => rig.file(client, start(client))).pipe(Effect.map((files) => files.every(complete))));
+      const started = yield* boundaries(start);
+      yield* rig.record({ event: "start", epoch, publications: started, observed_monotonic_ns: yield* rig.monotonicNs });
       if (bot && (options.botFour === true || options.botPerf === true) && !odd) {
         // The frame meter registers its toggle at the first match start; its overlay shows on A for the rematch.
         yield* rig.key(0, "Return");
         yield* rig.type(0, PERF_TOGGLE);
         yield* rig.key(0, "Return");
       }
-      const traceAfterNs = yield* rig.realtimeNs;
-      // Ctrl+G only enables the diagnostic trace; the pads choose, start and rematch.
-      if (!playable && diagnosticBuild) yield* rig.key(0, "ctrl+g");
-      yield* menuButton(0, BTN_START, `menu-match-${epoch}-start`);
-      const start = (client: Slot) => controlName("start", epoch, client);
-      yield* rig.until(`epoch ${epoch}: game-controlled start absent`, Effect.forEach(SLOTS, (client) => rig.file(client, start(client))).pipe(Effect.map((files) => files.every(complete))));
-      const started = yield* boundaries(start);
-      yield* rig.record({ event: "start", epoch, publications: started, observed_monotonic_ns: yield* rig.monotonicNs });
       const deadline = Math.max(...started.map((publication) => publication.publication_monotonic_estimate_ns)) + 300_000_000;
       yield* rig.sleep(Math.max(0, (deadline - (yield* rig.monotonicNs)) / 1_000_000));
       yield* rig.sleep(700);
@@ -665,6 +646,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       for (const slot of walkers) yield* send(slot, { type: EV_ABS, code: ABS_X, value: 0 }, stockLoss);
       const quiescent = new RegExp(`match_quiescent epoch=${epoch}(?:\\s|$)`);
       yield* rig.until(`epoch ${epoch}: helpers did not quiesce`, Effect.forEach(SLOTS, rig.helperLog).pipe(Effect.map((logs) => logs.every((log) => quiescent.test(log)))));
+      if (bot && epoch === lastEpoch) yield* rig.key(0, "Escape");
       yield* rig.record({ event: "end", epoch, publications: yield* boundaries(end), observed_monotonic_ns: yield* rig.monotonicNs });
       // At the result every stay in view is complete; the screen no longer shows the arena.
       if (!playable && diagnosticBuild) yield* playerView(epoch, "result", { frame: false, scene: true });
@@ -702,12 +684,13 @@ export function journey(rig: RigShape, options: JourneyOptions) {
         }
       }
       yield* rig.healthy;
-      if (epoch !== lastEpoch) {
+      if (epoch !== lastEpoch && !bot) {
         // A results-screen tap must not become a new-match action.
         yield* menuPhase("RESULT");
         yield* tap(0, "results-only");
         yield* menuButton(1, BTN_START, "menu-results-confirm");
         if (!playable && !bot) yield* (epoch + 1) % 2 === 0 ? slotChange(epoch + 1) : slotRestore;
+        if (matchOnly || playable) yield* reduceStocks;
         yield* controllerSelect;
       }
       yield* rig.progress(`Epoch ${epoch}: ${bot ? "bot combat, stalls, moment and results" : matchOnly ? "four-fighter combat and results" : playable ? "one-stock combat, stock loss and results" : "game start, tap, stock loss and results"} observed`);
@@ -716,11 +699,18 @@ export function journey(rig: RigShape, options: JourneyOptions) {
   const run = Effect.gen(function*() {
     if (fourFighters) yield* fourFighterSetup;
     if (bot) yield* botSetup;
-    yield* controllerSelect;
+    if (matchOnly || playable || bot) yield* characterScreen;
     if (matchOnly || bot) yield* oneMinute;
+    if (matchOnly || playable || bot) yield* reduceStocks;
+    if (bot) {
+      yield* clickRule("automaticRematch");
+      yield* both(client => rig.waitText(client, /Automatic rematch: On/i));
+      if (diagnosticBuild) yield* devCommand(firstEpoch, "-dev rematch 20", " rematchSeconds=20 ");
+    }
     // #26's named integrity workload plays INTEGRITY_STOCKS in every match: its stalls, pause and
     // complete edge sample must finish before ordinary stock loss can end the match.
     if (!matchOnly && !playable && !fourFighters && !bot) yield* stockCount(INTEGRITY_STOCKS);
+    yield* controllerSelect;
     for (const epoch of epochs) yield* match(epoch);
     yield* menuPhase("RESULT");
     yield* tap(0, "results-only");

@@ -12,7 +12,8 @@ import {
 import { clearPresentationHistory, createPacingAndPresentation } from "../match/pacingAndPresentation";
 import { initializeMatchFighters, matchSpawnX } from "../match/step";
 import { createFighter } from "../sim/fighter";
-import { copyControls, createRoster, isActive, neutralControls } from "../sim/roster";
+import { copyControls, createRoster, fighterAt, isActive, neutralControls } from "../sim/roster";
+import { setWorldMotionValue } from "../sim/motion";
 import type { FighterPose } from "../presentation/fighterPose";
 import { canonicalReal, canonicalState } from "./canonical";
 import { ReplayCorrections, ReplayHistory } from "./history";
@@ -125,6 +126,20 @@ function perform(session: TapeSession, operation: TapeOperation): { result: stri
   const { live, history, produced, epoch } = session;
   const game = live.match;
   switch (operation.kind) {
+    case "test-air": {
+      if (!isActive(live.world, operation.slot)) return { refused: "test-air needs an active fighter" };
+      const { motion } = fighterAt(live.world, operation.slot);
+      motion.x = operation.x;
+      motion.z = operation.z;
+      motion.grounded = false;
+      motion.surface = undefined;
+      setWorldMotionValue(motion.meleeX, motion.x);
+      setWorldMotionValue(motion.meleeZ, motion.z);
+      return { result: "-" };
+    }
+    case "test-stage":
+      game.stageChoice = operation.stage;
+      return { result: "-" };
     case "input":
       applyControls(produced.inputs[operation.slot], operation.controls);
       for (const attack of operation.attacks) queueAttack(produced.commands[operation.slot], attack);

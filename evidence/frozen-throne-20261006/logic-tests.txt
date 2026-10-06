@@ -1,0 +1,944 @@
+{"decision":"RESERVED","reason":"RUN","class":"heavy","requestedCpus":6,"requestedMemoryMiB":8192,"leasedCpuCeilings":22,"aggregateCpuLimit":18,"leasedMemoryMiB":34816,"cpuSomeAvg10":2.86,"memoryFullAvg10":0,"memoryAvailableMiB":71990,"reclaimed":0,"lease":"c968b6a3-6a80-4e75-8e91-a24a41f27c0a","expiresAt":1791278303053}
+$ bun scripts/test.ts
+bun test v1.3.13 (bf2e2cec)
+bun test v1.3.13 (bf2e2cec)bun test v1.3.13 (bf2e2cec)
+
+bun test v1.3.13 (bf2e2cec)
+bun test v1.3.13 (bf2e2cec)
+bun test v1.3.13 (bf2e2cec)
+
+test/game.test.ts:
+
+test/lag-recovery.test.ts:
+
+test/player-text.test.ts:
+
+test/desync-guard-integrity.test.ts:
+
+test/local-start.test.ts:
+
+scripts/agency.tests.ts:
+(pass) a standing fighter can act on every frame [113.00ms]
+(pass) game/input/adapter > a neutral row clears reused frame scratch without repeating an attack [2.00ms]
+(pass) game/input/adapter > digital taps become movement without confusing C-stick down [1.00ms]
+(pass) game/input/adapter > analog axes remain usable without keyboard action bits
+(pass) game/input/adapter > attack and jump share the exact frame and C-stick priority wins
+(pass) game/input/adapter > shield attack becomes grab and trigger presses retain dodge and tech intent
+(pass) game/input/adapter > special releases preserve press direction and leave neutral turnaround to simulation [1.00ms]
+(pass) game/input/adapter > grab, throw, mash, tech and ledge intents use fresh edges
+(pass) game/input/adapter > walking selects tilts and same-frame opposing smashes cancel facing
+(pass) game/input/attackBuffer > same-frame smashes in opposing directions stay neutral in every order
+(pass) game/input/attackBuffer > a C-stick smash beats a smash that may charge in either order
+(pass) game/input/attackBuffer > a same-frame C-stick smash beats a jab or a tilt in either order [1.00ms]
+(pass) game/input/attackBuffer > charge permission travels with one command and expires with it
+(pass) game/input/attackBuffer > a press is taken once, on its frame
+(pass) game/input/attackBuffer > without grace frames an attack is not stored through recovery
+(pass) game/input/attackBuffer > grace frames hold an attack through recovery until they run out
+(pass) game/input/attackBuffer > Replay2 command fields retain a consumed request and reset on expiry or clear
+(pass) game/input/attackBuffer > angled tilts reach their frame and yield to C-stick smashes
+(pass) game/input/combat > airborne normals choose direction relative to facing
+(pass) game/input/combat > grounded dodges require shield and fresh direction
+(pass) game/input/combat > contradictory roll edges cancel and down chooses spot dodge
+(pass) game/input/combat > neutral attack is jab and direction chooses tilt or smash [1.00ms]
+(pass) game/input/combat > walking diagonals angle forward tilt and leave smash selection unchanged
+(pass) game/input/directionalInput > a press released before the frame keeps its pulse but not its hold
+(pass) game/input/directionalInput > a held direction pulses once and components keep only their sign
+(pass) game/input/directionalInput > the newest component entry wins and releasing to a cardinal does not pulse
+(pass) game/input/directionalInput > opposing keys cancel the held axis without erasing an earlier pulse
+(pass) game/input/directionalInput > clearing resets hold and pulse while an expired pulse keeps the hold
+(pass) game/input/directionalInputSdi > pulseOutsideVictimHitlagExpiresBeforeFutureHit [6.00ms]
+(pass) game/input/input > action bits are the I4 wire positions
+(pass) game/input/input > rows reject what a controller cannot send [1.00ms]
+(pass) game/input/input > omitted throw taps follow presses, explicit ones win
+(pass) game/input/input > prediction continues holds, stick and triggers but never repeats edges or press data [1.00ms]
+(pass) game/input/input > packets have exact, versioned spellings [2.00ms]
+(pass) game/input/input > packets carry every field at its extremes
+(pass) game/input/input > packets roundtrip every analog value and direction combination [33.00ms]
+(pass) game/input/input > decoding rejects truncation, trailing text, unknown characters and bad headers [1.00ms]
+(pass) game/input/input > decoding rejects zero, out-of-range and pressless groups
+(pass) game/input/input > packets bound epochs, frames and row counts [1.00ms]
+(pass) game/input/keyBindings > presets put movement on QWER, actions on N and UIOP, and the owner's number row in custom
+(pass) game/input/keyBindings > rebinding refuses reserved and already bound keys [1.00ms]
+(pass) game/input/keyBindings > K2 saves move grab to O and walk to P unless the player bound those keys [2.00ms]
+(pass) game/input/keyBindings > saves roundtrip, malformed saves are refused and a saved Y binding is dropped
+(pass) game/input/keyBindings > K1 saves gain walk on P without losing rebindings [1.00ms]
+(pass) game/input/keyBindings > K2 saves on the old S F D movement block move to QWER, keeping custom keys
+(pass) game/input/keyboardCapture > a tap between samples keeps both edges until a schedule takes the row [2.00ms]
+(pass) game/input/keyboardCapture > a tap while the schedule waits goes to the next target and never rewrites an assigned row [1.00ms]
+(pass) game/input/keyboardCapture > opposite directions cancel and C-stick actions never move the stick
+(pass) game/input/keyboardCapture > rejected masks and a refused capture leave a pending tap untouched [1.00ms]
+(pass) game/input/keyboardCapture > focus loss releases held keys, and resuming from held keys invents no press or pulse [1.00ms]
+(pass) game/input/keyboardCapture > the first Special keeps its direction and the latest shield press sets the dodge, across releases
+(pass) game/input/keyboardCapture > smash DI keeps the latest entered direction, and the latest up or down press sets the ledge direction
+(pass) game/input/keyboardCapture > repeated throw-direction taps keep their signed sum
+(pass) game/input/playerKeys > each player's keys and bindings hold actions independently, and repeats are ignored [1.00ms]
+(pass) game/input/playerKeys > an action bound to two keys stays held until both are up
+(pass) game/input/playerKeys > clearing drops held keys and the pending pulse without touching another player [1.00ms]
+(pass) a hit's hitlag leaves the victim only the stick, its hitstun nothing, and then it can act [376.00ms]
+(pass) mashing out of a hold the attacker keeps is acting [139.00ms]
+(pass) game/match/botPlayContracts > computerChasesToTheEdgeWithoutLeavingTheStage [390.00ms]
+(pass) game/match/botPlayContracts > computerGetsUpUnderJabResets [49.00ms]
+(pass) the playable build shows players no developer text through selection, a match and its results [667.01ms]
+(pass) a failing handler in the playable build shows players no error text, and each client still writes its error report [62.00ms]
+(pass) game/match/botPlayContracts > computerMatchesRepeatFromTheSameStart [203.00ms]
+(pass) game/match/botRecoveryContracts > computerRecoversFromBothSidesWithAndWithoutJump [66.00ms]
+(pass) game/match/botRecoveryContracts > computerPreservesJumpDuringAscentAndClimbsLedge
+(pass) game/match/combatInputContracts > bothFightersCanGrabNormallyAndFromShieldWithAttackOrGrabKey [2.00ms]
+(pass) game/match/controls > yConfirmsSelectionStageAndRematch
+(pass) game/match/controls > yPausesAndResumesOnlyOnFreshPress [1.00ms]
+(pass) game/match/controls > deferredJournalPauseChangesOnlyWhenTheAcknowledgmentCommits
+(pass) game/match/controls > pauseIsSharedAndSimultaneousPlayerPressDoesNotUndoIt
+(pass) game/match/controls > yInSettingsDoesNotConfirmOrPause
+(pass) game/match/controls > overlappingMenuPressesCannotConfirmTwoPhasesAtOnce
+(pass) game/match/controls > allFourSlotsShareOnePauseLatch
+(pass) game/match/controls > overlappingResultPressesConfirmEachPlayersRematch
+(pass) game/match/frameInput > a row captures a frame once, for a valid participant mask, until it is reset
+(pass) game/match/frameInput > a captured row is detached from the controls that produced it [3.00ms]
+(pass) game/match/frameInput > rows differ by analog shield strength and match when recaptured alike
+(pass) game/match/frameInput > a copied row executes as its source [5.00ms]
+(pass) development and integrity builds still show the developer line, with every term the playable build denies, and a failing handler's error text [169.00ms]
+(pass) game/match/frameInput > network rows are copied, compared and replaced for their senders only [2.00ms]
+
+test/player-view.test.ts:
+(pass) game/match/frameInput > a network row adapts again from the world it replays into [4.00ms]
+(pass) game/match/frameInput > execution refuses a row for another frame, a skipped frame or another roster [1.00ms]
+(pass) game/match/knockdownInputContracts > a trigger press before a tumble landing techs through the journal path at low, medium and high percent [29.00ms]
+(pass) game/match/knockdownInputContracts > an attack pressed during the bound starts the get-up attack as Melee's bound ends [42.00ms]
+(pass) game/match/knockdownInputContracts > a stick held sideways rolls forward or back, and held up stands, as Melee's bound ends [39.00ms]
+(pass) game/match/knockdownInputContracts > the down wait takes Special, takes a trigger press, and stands by itself after Melee's 220 frames [47.00ms]
+(pass) game/match/knockdownInputContracts > a C-stick up flick during the wait starts the get-up attack and a sideways flick rolls that way [48.00ms]
+(pass) game/match/knockdownInputContracts > a C-stick flick as Melee's bound ends gets up, and one held through the wait does nothing [9.00ms]
+(pass) game/match/ledgeCatchContracts > a fighter falling beside the ledge within its catch box snaps to it as its feet pass the box's top [3.00ms]
+(pass) game/match/ledgeCatchContracts > a double jump from below the ledge rises through the box, then snaps on the way down [7.00ms]
+(pass) game/match/ledgeCatchContracts > the same recoveries just beyond the catch box's reach fall past the ledge [11.00ms]
+(pass) game/match/ledgeCatchContracts > a fall that starts just below the catch box falls past the ledge [21.00ms]
+(pass) game/match/ledgeCatchContracts > a ledge jump rises past the main deck's side wall and lands on the stage [11.00ms]
+(pass) Frozen Throne: a selectable match draws four platforms and the winter background without scene problems [210.00ms]
+(pass) game/match/ledgeGrabContracts > a standing grab from the stage cannot catch a fighter hanging on the ledge after its intangible frames [27.00ms]
+(pass) game/match/matchStepContracts > heldShieldOrderDepletionPrecedesEveryGuardExit [1.00ms]
+(pass) game/match/matchStepContracts > heldShieldOrderEntryDoesNotDrainUntilNextAnimationTick [1.00ms]
+(pass) game/match/matchStepContracts > heldShieldOrderHitlagAndShieldstunResumeBeforeActionInputs [1.00ms]
+(pass) game/match/matchStepContracts > shieldBreakBoundaryDrainRequiresStrictlyNegativeHealth
+(pass) game/match/matchStepContracts > shieldBreakBoundaryDamageAtZeroStillGuardsThenRestoresThirty [1.00ms]
+(pass) game/match/matchStepContracts > shieldRegenMatchContinuesDuringStoppedActions [1.00ms]
+(pass) game/match/matchStepContracts > shieldRegenMatchUsesGuardStateAfterGrabInput
+(pass) game/match/matchStepContracts > shieldRegenMatchFollowsDizzyRestoreExactlyOnce
+(pass) game/match/matchStepContracts > shieldRegenMatchSeesGuardClearedByCapture [1.00ms]
+(pass) game/match/matchStepContracts > practiceMatchMovesJumpsAttacksAndRespawnsWithoutOpponent [14.00ms]
+(pass) game/match/matchStepContracts > humanDirectAttacksReachBothSlotsOnTheNextStep [1.00ms]
+(pass) game/match/matchStepContracts > activeShieldConsumesGrabButRejectsOrdinaryAttackCommand [1.00ms]
+(pass) game/match/matchStepContracts > downOnlyDropsWhenAttackQueueIsEmptyExpiredOrFuture
+(pass) game/match/matchStepContracts > downwardNormalsTakePriorityOverDroppingThroughUpperPlatforms [1.00ms]
+(pass) game/match/matchStepContracts > heldNormalSmashChargesAndReleasesButDirectCommandStaysImmediate [1.00ms]
+(pass) game/match/matchStepContracts > airborneBackAttackKeepsFacingWhileDriftingBackwards
+(pass) game/match/matchStepContracts > jumpSquatBuffersBackAirUntilFirstAirborneFrame [2.00ms]
+(pass) game/match/matchStepContracts > attackSelectionUsesGroundingAfterTheMovementStep [1.00ms]
+(pass) game/match/matchStepContracts > shieldPressAppliesBeforeSameFrameAttack
+(pass) game/match/matchStepContracts > bothFinalStocksResolveAfterTheSameStep
+(pass) game/match/matchStepContracts > ledgeSharedMatchStepCatchesBothSlotsThenAcceptsFreshOptions [1.00ms]
+(pass) game/match/matchStepContracts > configuredStocksAndLastTickKnockoutPrecedeTimeout
+(pass) game/match/matchStepContracts > sharedStepClockRunsOnlyDuringMatch [1.00ms]
+(pass) game/match/matchStepContracts > dashGrabUsesTestActorTimingAndWindowIsReplayable
+(pass) game/match/matchStepContracts > ordinaryDashAttackStaysAnAttackWhileGrabIntentStartsDashGrab
+(pass) game/match/matchStepContracts > lateDashGrabGuardEntryOpensCatchDashAndEarlyEntryDoesNot [1.00ms]
+(pass) game/match/matchStepContracts > dashGrabWhiffEndsAfterFortySubsequentTicks [1.00ms]
+(pass) game/match/matchStepContracts > dashGrabSecondActiveTickCapturesButFollowingTickDoesNot [30.00ms]
+(pass) game/match/rules > selectionMatchResultAndRematch [1.00ms]
+(pass) game/match/rules > bothPlayersMustSelectBeforeEitherCanOpenStages
+(pass) game/match/rules > humanAndCpuCanIndependentlyChooseMirrorMatchups
+(pass) game/match/rules > onlySoloHostCanChooseCpuAndNeverOverridesHumanTwo
+(pass) game/match/rules > soloPracticeNeedsOnlyPlayerChipAndCpuPlacementChoosesFight
+(pass) game/match/rules > soloCpuPlacementIsClearedWhenSecondHumanJoins
+(pass) game/match/rules > backFromStagesPreservesChoicesAndAllowsUnready
+(pass) game/match/rules > absentAndInvalidParticipantsCannotChooseOrStart [1.00ms]
+(pass) game/match/rules > settingsStayBoundedAndOnlyChangeAtFighterSelection
+(pass) game/match/rules > secondPlayerLeavingLetsSelectedHostOpenStages
+(pass) game/match/rules > bothPlayersConfirmRematchAndKeepPlacedFighters
+(pass) game/match/rules > menuAndUnlimitedMatchesDoNotRunClock [1.00ms]
+(pass) the soak's detector flags a loop the victim can't act out of, and passes one it can [763.01ms]
+
+scripts/interactions.tests.ts:
+(pass) winter meshes and drifting snow stay behind fighters, and fog starts beyond the fight in every declared camera [103.00ms]
+(pass) development build: a match's scene report shows the stage and declares every effect the match creates [39.00ms]
+(pass) the two shipped defects fail the scene check from the match's first report [3.00ms]
+(pass) desync guard: the journal integrity build makes the same native calls on every client [1371.02ms]
+
+test/desync-guard.test.ts:
+(pass) game/match/rules > timeoutComparesStocksThenDamageAndExactTieDraws [157.00ms]
+(pass) game/match/rules > simultaneousFinalStocksAreADraw
+(pass) game/match/rules > playerForfeitEndsSelectionAndDeclaresOtherPlayerWinner [1.00ms]
+(pass) game/match/rules > illidanMirrorMatchRetainsSelectionsAfterNewMatch
+(pass) game/match/rules > secondHumanCanSelectIllidan
+(pass) game/match/rules > everyHumanMustChooseAndConfirmForThreeAndFourPlayerMatches
+(pass) game/match/rules > sparseSlotsOwnTheirChoicesAndMembershipIsFixedDuringMatch [1.00ms]
+(pass) game/match/rules > sparseSoloHumanOwnsOneSeparateCpuAndSnapshotsKeepAllMenuSlots
+(pass) game/match/rules > departureEndsEpochWithoutCpuTakeoverOrWaitingForMissingVotes
+(pass) game/match/rules > lastEligibleFighterWinsByForfeit
+(pass) game/match/rules > lobbyParticipantsPreserveEveryHumanComputerAndEmptySlot
+(pass) game/match/rules > slotModeCyclesPreserveConnectedOwnersAndTheirOriginalIndices [1.00ms]
+(pass) game/match/rules > slotModeUnconnectedHumansAndEmptyMatchesCannotStart
+(pass) game/match/simulationStepContracts > blasterTravelsBeforeItDealsDamage [1.00ms]
+(pass) game/match/simulationStepContracts > beingHitDuringAttackStartupCancelsBeforeItsActiveFrame
+(pass) game/match/simulationStepContracts > aHitAddsDamageHitlagAndDamageScaledKnockback [1.00ms]
+(pass) game/match/simulationStepContracts > shieldGrabStartsDirectlyFromActiveGuardAndCanCatchShieldingTarget
+(pass) game/match/simulationStepContracts > shieldstunKeepsTheFighterShieldingAndBlocksActions [1.00ms]
+(pass) game/match/simulationStepContracts > attacksCommitRecoveryOnWhiffAndBlockDuringLandingLag
+(pass) game/match/simulationStepContracts > simultaneousEligibleAttacksTradeInEitherOrder [2.00ms]
+(pass) game/match/simulationStepContracts > aWhiffDoesNotFreezeTheShooterWhileTheOpponentsShotFreezesItsVictim [1.00ms]
+(pass) game/match/simulationStepContracts > successfulGrabHasPriorityOverSimultaneousStrikeInEitherOrder
+(pass) game/match/simulationStepContracts > grabBreaksShieldButHasShortReachAndTimedRelease [30.00ms]
+(pass) game/match/wallTechInputContracts > a launch into the main deck's side bounces off it without a press [6.00ms]
+(pass) game/match/wallTechInputContracts > a trigger pressed after the hit's hitlag wall techs off the main deck's side [13.00ms]
+(pass) game/match/wallTechInputContracts > up on the stick at a wall tech launches each fighter with its reference's wall jump [6.00ms]
+(pass) game/match/wallTechInputContracts > a flick away from the main deck's side wall jumps each fighter off it with its reference's wall jump [3.00ms]
+(pass) game/match/wallTechInputContracts > a fighter without Melee's wall jump trait doesn't wall jump
+(pass) game/match/wallTechInputContracts > a launch into a raised deck's underside meets it with the fighter's ECB top and rebounds from there [3.00ms]
+(pass) game/match/wallTechInputContracts > a ceiling tech starts at the ECB top's contact and moves each fighter sideways by its reference's impulse on its event frame [8.00ms]
+(pass) game/menu/selectionDrag > screen pixels map to a centered 4:3 frame [1.00ms]
+(pass) game/menu/selectionDrag > hovering shows the held chip but does not place it until asked
+(pass) game/menu/selectionDrag > a click on a tile places the held chip, which stays held for a recall
+(pass) game/menu/selectionDrag > a placed chip can be dragged to another tile [1.00ms]
+(pass) game/menu/selectionDrag > a computer can choose the same fighter as a human
+(pass) game/menu/selectionDrag > only a placed opponent chip can be picked up
+(pass) game/menu/selectionDrag > closing the panel clears the hover and the held chip
+(pass) game/menu/selectionDrag > cards answer only for selectable slots, and not at the slot-mode labels above them
+(pass) game/menu/selectionDrag > unplaced human and computer chips drag from their cards onto the roster
+(pass) game/menu/selectionDrag > either chip can choose the Illidan tile and leave it again
+(pass) game/menu/selectionDrag > the third and fourth cards and chips keep their own slots [1.00ms]
+(pass) game/menu/stageSelection > the stage grid holds only the playable stages
+(pass) game/menu/stageSelection > the shared stage chip drops onto real tiles only
+(pass) game/menu/stageSelection > a click on a stage needs the press and the release on the same tile
+(pass) game/netcode/fixedSchedule > every supported delay seeds neutral frames, and each frame completes explicitly in order [1.00ms]
+(pass) game/netcode/fixedSchedule > a capture opportunity assigns its target once, and local capture never opens the common gate [2.00ms]
+(pass) game/netcode/fixedSchedule > a read fills every slot or none, overwrites its targets, and checks the epoch
+(pass) game/netcode/fixedSchedule > the future bound moves on completion, not on receipt or read [1.00ms]
+(pass) game/netcode/fixedSchedule > a new epoch clears pending and prepared rows
+(pass) game/netcode/fixedSchedule > capture targets stop at the last frame instead of wrapping
+(pass) game/netcode/fixedSchedule > delivery order, duplicates, waits and ring wrap never change the rows a frame runs [17.00ms]
+(pass) game/netcode/fixedSchedule > four participants keep every row across ring reuse [38.00ms]
+(pass) game/netcode/fixedSchedule > sparse membership reads only active slots, and invalid membership keeps the epoch [1.00ms]
+(pass) game/netcode/inputBatch > a batch carries two consecutive captures with their own edges, and no more
+(pass) game/netcode/inputBatch > every captured row reaches the ledger verbatim through pause and window-wait singletons [2.00ms]
+(pass) game/netcode/journal/editbox > draining keeps an incomplete record and acknowledges receipt and use in the helper's spelling [1.00ms]
+(pass) game/netcode/journal/editbox > a short text limit, a full box or a vanished payload stops the session
+(pass) game/netcode/journal/keyboard > ASCII chunks carry I4 and control text exactly, least significant bit first
+(pass) game/netcode/journal/keyboard > the neutral carrier is no chunk, and a chunk holds at most seven bytes [1.00ms]
+(pass) game/netcode/journal/keyboard > non-printable bytes are refused
+(pass) game/netcode/journal/keyboard > a message's chunks are acknowledged as taken, and its final chunk once the message is used
+(pass) game/netcode/journal/lifecycle > a match starts and ends only when every human crosses, and a rematch ignores the last epoch
+(pass) game/netcode/journal/lifecycle > a shared pause takes effect at the highest prepared frontier
+(pass) game/netcode/journal/source > a packet is admitted at its original frame, and the cursor moves only when it is sent
+(pass) game/netcode/journal/source > packets from another epoch, out of sequence or malformed are invalid [1.00ms]
+(pass) game/netcode/journal/source > pause control waits for the exact sequenced acknowledgment
+(pass) game/netcode/journal/source > a two-row packet waits until both rows are admissible and advances by two
+(pass) game/netcode/journal/source > a deferred packet stays buffered, without another read, until it is admitted
+(pass) game/netcode/journal/source > a record joining consecutive packets is admitted whole at their frames; a gap, another epoch or too many packets is invalid [1.00ms]
+(pass) game/netcode/journal/source > a joined record admitted in parts is read again from its first row not yet sent
+(pass) game/netcode/journal/text > the golden envelope is received once and acknowledged only when consumed
+(pass) game/netcode/journal/text > an interrupted envelope is skipped, and a damaged or contradicting one is never accepted [1.00ms]
+(pass) game/netcode/journal/text > a focus gap replays without retagging frames or applying a record twice [1.00ms]
+(pass) game/netcode/journal/text > repeated records drain while consumption is blocked, within the receive window
+(pass) game/netcode/journal/text > records after a missing first or middle record wait in the window until it arrives [1.00ms]
+(pass) game/netcode/journal/text > a stream skips records from other epochs
+(pass) game/netcode/journal/transport > an I5 message spells only changed frames and restores every frame once, in order
+(pass) game/netcode/journal/transport > malformed, non-canonical or old pair messages are refused, and keyboard rollback's lone I4 packet is accepted [1.00ms]
+(pass) game/netcode/journal/transport > one message per batch drains a backlog of the largest rows within the size limit [1.00ms]
+(pass) a dust slot reused while shown is a new stay each use; a standing spark and a collapsed missile still fail [253.00ms]
+(pass) game/netcode/journal/transport > two clients under dense input send at most 10 messages a second and confirm every edge once on its own frame [26.00ms]
+(pass) game/netcode/journal/vocabulary > a published packet reads back whole; a missing file means not yet, a bad one is invalid [1.00ms]
+(pass) game/netcode/journal/vocabulary > the probe corpus spells exactly the recorded fixture packets, and each is the journal's next packet [12.00ms]
+(pass) game/netcode/ledger > K advances only across complete rows, and consumption follows it in order
+(pass) game/netcode/ledger > accepted rows never change: duplicates are accepted again, different rows conflict [1.00ms]
+(pass) game/netcode/ledger > a packet whose second row conflicts commits neither row
+(pass) game/netcode/ledger > the future bound moves with consumption, and a packet straddling it is refused whole
+(pass) game/netcode/ledger > epochs seed neutral delay rows, only increase, and refuse observers and stale packets [1.00ms]
+(pass) game/netcode/ledger > rows stay until explicitly discarded, and the ring is reused only after discard
+(pass) game/netcode/ledger > a malformed second record commits nothing [1.00ms]
+(pass) game/netcode/ledger > epoch and frame limits never wrap signed counters
+(pass) game/netcode/ledger > four participants wait for slot three, and each sender's two-frame packets stay atomic
+(pass) game/netcode/ledger > sparse membership is fixed per epoch and refuses inactive senders
+(pass) game/netcode/shadowSchedule > a missing local frame waits for its own input; a later row never stands in [1.00ms]
+(pass) game/netcode/shadowSchedule > the largest delay captures the first frame after the seed before anything is confirmed
+(pass) game/netcode/shadowSchedule > tagged captures keep their original frames while speculation stalls
+(pass) game/netcode/shadowSchedule > a tagged duplicate is accepted, a changed one conflicts, and neither moves a cursor
+(pass) game/netcode/shadowSchedule > tagged captures outside the epoch, the frame range or the future limit occupy nothing [1.00ms]
+(pass) game/netcode/shadowSchedule > tagged retention and ring reuse follow confirmed consumption [1.00ms]
+(pass) game/netcode/shadowSchedule > delays of zero and one keep seed assignment, confirmation and epoch boundaries
+(pass) game/netcode/shadowSchedule > pending local samples never move the common frontier [1.00ms]
+(pass) game/netcode/shadowSchedule > a late remote row is predicted with its holds kept and its edges dropped
+(pass) game/netcode/shadowSchedule > a twelve-frame window stops 12 frames past the remote's rows, keeps captures immutable and holds for the epoch
+(pass) game/netcode/shadowSchedule > a twenty-four-frame window stops and resumes without reassigning local input
+(pass) game/netcode/shadowSchedule > every local slot predicts each remote from that remote's own causal history [1.00ms]
+(pass) game/netcode/shadowSchedule > sparse membership with local slot three invents no inactive or missing accepted rows [1.00ms]
+(pass) game/netcode/shadowSchedule > the confirmed match waits for exactly the players whose row after the common frontier has not arrived
+(pass) game/netcode/shadowSchedule > a keyboard's clock follows the furthest frame another player has sent, never its own rows
+(pass) game/physics/techInput > tech input ages through hitlag and repeats a press made while frozen [1.00ms]
+(pass) game/physics/techInput > the repeat lockout compares the previous press's age on the frame before
+(pass) game/physics/techInput > the tech window includes age 19 and excludes age 20
+(pass) game/presentation/damagePose > grounded contact freezes its reaction before the airborne launch
+(pass) game/presentation/damagePose > weak air hits and shield hits use distinct reactions
+(pass) game/presentation/damagePose > a repeated hit restarts the reaction even with shorter hitstun
+(pass) game/presentation/fighterPose > replaying rows from a restored frame reproduces each pose's selection and clock [50.00ms]
+(pass) game/presentation/fighterPose > hitlag freezes the reaction clip and a repeated hit restarts it [1.00ms]
+(pass) game/presentation/fighterPose > a double jump restarts the jump clip and a landing keeps its entry rate
+(pass) game/presentation/fighterPose > a snapshot's pose escapes from its own copy of the previous holder
+(pass) game/presentation/fighterPose > an attack restart and a smash release keep their authored clips
+(pass) game/presentation/illidanMotion > Illidan's locomotion follows dash, brake, crouch and fast fall [1.00ms]
+(pass) game/presentation/illidanMotion > Illidan's transitions do not advance during hitlag
+(pass) game/presentation/illidanMotion > Illidan's escape is distinct from a throw, and an input interrupts his respawn [1.00ms]
+(pass) game/presentation/impactEvents > impact cues tell a tech, a missed tech and an ordinary landing apart
+(pass) game/presentation/impactEvents > a hit flash does not repeat through hitlag or on a KO
+(pass) game/presentation/impactEvents > contact cues tell ordinary, electric and blocked hits apart
+(pass) development build: -dev perf shows the typing player what the match's frames cost [100.00ms]
+(pass) game/presentation/impactEvents > the hit cue follows the strongest contact, not the last contact or the damage [1.00ms]
+(pass) game/presentation/impactEvents > a damage-only contact still raises one hit cue without hitstun
+(pass) game/presentation/impactEvents > a presented impact frame cannot play twice
+(pass) game/presentation/impactEvents > a solid surface contact publishes its position and inward normal once
+(pass) game/presentation/impactEvents > dodge dust appears on entry and keeps the roll direction
+(pass) game/presentation/impactEvents > a shield reaction restarts only on a new contact [1.00ms]
+(pass) game/presentation/impactEvents > a grab cue needs an accepted capture and a throw cue the release contact
+(pass) game/presentation/impactEvents > a grab escape and an interrupted throw raise no release cue
+(pass) game/presentation/impactEvents > charge cues follow the charge's entry and full charge, not hitlag [1.00ms]
+(pass) game/presentation/impactEvents > ledge cues follow an accepted catch and its options, at the actual lip [1.00ms]
+(pass) game/presentation/impactState > impact projection reads only, shows each impact for its lifetime, and clearing empties the pool [2.00ms]
+(pass) game/presentation/impactState > a snapshot restores the impact pool and its ring pointers [3.00ms]
+(pass) game/presentation/impactState > a correction removes a predicted impact and restores the accepted one's age [4.00ms]
+(pass) game/presentation/impactState > sparse and four-player matches emit the same impacts whether projected each frame or not [2.00ms]
+(pass) game/presentation/impactState > pool reuse wraps each ring, and a result, a reset or a menu frame empties it [1.00ms]
+(pass) game/presentation/impactState > replaying from a snapshot restores accepted grab and throw cues, and projection consumes none [2.00ms]
+(pass) game/presentation/impactState > a corrected charge removes its cue [3.00ms]
+(pass) game/presentation/impactState > top KO cinematics have distinct flight, sparkle and drop [1.00ms]
+(pass) game/presentation/impactState > replaying a confirmed top KO restores one body and the same stocks [1.00ms]
+(pass) game/presentation/projectilePose > projection hides expired, out and non-playing projectiles [1.00ms]
+(pass) game/presentation/projectilePose > a sparse restore replaces a speculative projectile and freeze state
+(pass) game/presentation/shieldPose > the shield follows its energy and hides on release, KO and outside play
+(pass) a fighter within 100 of the main deck's underside shows above the HUD with the underside, wherever the others are [23.00ms]
+(pass) game/presentation/shieldPose > a corrected shield projects the restored state of a sparse participant
+(pass) game/presentation/specialEffectState > static special windows follow the selected fighter and stay on its body [1.00ms]
+(pass) game/presentation/specialEffectState > the parry flash ages by executed frames, restores from a snapshot and projects read-only [6.00ms]
+(pass) game/presentation/specialEffectState > a late correction removes or restores a parry flash at its completed age [7.00ms]
+(pass) game/presentation/specialEffectState > sparse and four-player parry flashes match whether projected or not, and reset [2.00ms]
+(pass) game/presentation/summonState > a bear spawns walking, swipes on a hit, then queues its walk at the original clip timing [1.00ms]
+(pass) game/presentation/summonState > a bear's clip restores backward from a snapshot and projects read-only [4.00ms]
+(pass) game/presentation/summonState > a late correction removes or restores a bear's spawn and swipe [6.00ms]
+(pass) Archer's unspaced down air on shield is punishable out of shield [163.00ms]
+(pass) game/presentation/summonState > sparse and four-slot bears match whether projected or not, and end with their match [32.00ms]
+(pass) game/render/modelSounds > sound crossings keep start, end and loop boundary
+(pass) game/render/modelSounds > sound original loop crossings have no dropping cap [2.00ms]
+(pass) game/render/modelSounds > sound confirmed selection start and intentional repeat [1.00ms]
+(pass) game/render/modelSounds > sound interrupted previous interval and frozen rate
+(pass) game/render/modelSounds > sound sparse four slots and catch-up match sequential [1.00ms]
+(pass) game/render/modelSounds > sound out selection plays once and a hidden loop does not continue
+(pass) desync guard: both clients make the same native calls through a match and a hot reload [373.00ms]
+(pass) the underside scenario holds a fighter under the main deck, shown above the HUD with the underside, through fresh's frame 30 [72.00ms]
+(pass) game/render/modelSounds > sound from speculative and corrected numerical rollback never dispatches; confirmation does once [11.00ms]
+(pass) game/render/modelSounds > sound hidden unchanged selection stops but a new out clip keeps delayed cues
+(pass) game/replay/canonical > canonical real fields retain Wurst's exact binary representation
+(pass) game/replay/canonical > canonical fragments and checksums match Wurst's ASCII tape form
+(pass) game/replay/canonical > canonical integers print as Wurst's I2S whichever Lua number type holds them
+(pass) game/replay/canonical > a played state's checksum folds exactly its canonical text, in which every value is an integer or exact real [7.00ms]
+(pass) game/replay/fighterState > fighter replay copies carry every mutable field into detached records [2.00ms]
+(pass) game/replay/fighterState > fighter replay copies drop references to fighters the source roster doesn't seat
+(pass) game/replay/fighterState > fighter replay copies carry every special hit target, absent ones included, into a fresh fighter [1.00ms]
+(pass) -dev desync creates one more handle on the typing player's client and nothing else differs [28.00ms]
+(pass) game/replay/fighterState > every mutable fighter field participates in replay equality [16.00ms]
+(pass) the playable build ignores -dev desync [64.00ms]
+
+test/input-stall.test.ts:
+(pass) in the underside scenario's match, a fighter rising into the main deck's underside meets it with its ECB top and none of it inside the deck [94.00ms]
+
+test/selection-load.test.ts:
+(pass) Archer's spaced fade-back forward air on shield is safe [168.00ms]
+(pass) game/replay/fixedPlayback > accepted input rows drive gameplay identical to direct execution at delays 2, 3 and 5 [163.00ms]
+(pass) playable: selection creates no effect and reads no file; match start creates each fighter's clip pool once [84.00ms]
+
+test/stack-trace.test.ts:
+(pass) game/replay/history > the history ring wraps by epoch and refuses invalid ranges without touching live state [8.00ms]
+(pass) game/replay/history > the history refuses skipped frames and a frame counter that would wrap [1.00ms]
+(pass) a changed number shows as a changed row against the written graph [106.00ms]
+
+scripts/meleeCaseStudy.tests.ts:
+(pass) the stack-trace profile's demo command fails on every client through the dispatch boundary [31.00ms]
+(pass) game/replay/history > a recorded tape matches an independent run through repeated rollback [104.00ms]
+(pass) game/replay/history > corrected predictions refresh snapshots across the ring wrap and a second rollback [18.00ms]
+(pass) game/replay/history > the correction window and identical confirmations govern speculation [3.00ms]
+(pass) game/replay/history > correction preflight rejects a whole batch without changing history or live state [6.00ms]
+(pass) game/replay/history > a correction batch copies its rows, bounds its storage and refuses conflicts [1.00ms]
+(pass) the development and playable entries have no demo command [160.00ms]
+
+test/visual-lifecycle.test.ts:
+(pass) game/replay/moment > moment: a rollback match's last ten seconds replay from their snapshot to the match's checksum [117.00ms]
+(pass) the Melee case study's numbers are the ones its script computes from the reference data [7.00ms]
+
+scripts/meleeOracle.tests.ts:
+(pass) combat effects: rollback, pause/resume and rematch neither replay nor retain effects [74.00ms]
+(pass) game/replay/moment > moment: a callback match against a computer replays from frame 0 to the match's checksum [68.00ms]
+(pass) game/replay/shadowPlayback > an admitted shield reaches the fighter within the catch-up budget and pause frontier [14.00ms]
+(pass) quick match: a shot's missile and the idle missile pools stay out of the arena camera's view [38.00ms]
+(pass) game/replay/shadowPlayback > a late held input re-predicts the tail and an accepted release stops it [19.00ms]
+(pass) game/replay/shadowPlayback > a late jump correction re-adapts a later attack against the air state [7.00ms]
+(pass) game/replay/shadowPlayback > a matching late prediction confirms without replaying [4.00ms]
+(pass) game/replay/shadowPlayback > twelve late rows replay at full depth and rebuild every snapshot [40.00ms]
+(pass) game/replay/shadowPlayback > twenty-four late rows re-predict and rebuild every snapshot [20.00ms]
+(pass) game/replay/shadowPlayback > lobby computers replay from corrected humans without network senders [13.00ms]
+(pass) pooled fighters: every clip but the presented one waits collapsed beneath the floor [110.00ms]
+
+ 18 pass
+ 0 fail
+ 2230 expect() calls
+Ran 18 tests across 5 files. [2.63s]
+(pass) game/replay/shadowPlayback > computer and empty slot owners still confirm and replay without phantom senders [102.00ms]
+(pass) game/replay/state > rollback retains original launch and recoil across world rounding [8.00ms]
+(pass) game/replay/state > a practice match's mode is replay state that restores and differs [1.00ms]
+(pass) game/replay/state > a rematch can reuse the first frame's row once it is reset
+(pass) game/replay/state > capture and restore include combat references, projectiles and queued input [2.00ms]
+(pass) game/replay/state > restore and replay reproduce movement and the match clock [3.00ms]
+(pass) game/replay/state > restoring into other fighters keeps the contact registry by slot [1.00ms]
+(pass) game/replay/state > recorded rows replay an attack against a shield from independently restored fighters [2.00ms]
+(pass) game/replay/state > exact differences keep small reals and compare attackers by slot [1.00ms]
+(pass) game/replay/state > ground actions, their clock and the actor's ground rules are replay state
+(pass) game/replay/state > dash grab rules and the catch window are replay state [1.00ms]
+(pass) game/replay/state > every physics parameter survives capture and restore and participates in equality
+(pass) game/replay/state > fast fall changes every slot's checksum and survives rollback [41.00ms]
+(pass) game/shell/devSettings > dev commands set the next match's window, delay and batch
+(pass) game/shell/devSettings > dev commands reject values the schedule cannot start
+(pass) game/shell/devSettings > a dev command sets the automatic rematch's countdown within a minute
+(pass) game/shell/devSettings > a quick match readies every present human's default fighter and starts with one stock on the default stage
+(pass) game/shell/journalFiles > helper-facing journal files keep the names and lines the helper parses
+(pass) game/shell/pauseBarrier > a shared pause completes only when every human acknowledged each round in sequence [1.00ms]
+(pass) game/shell/pauseBarrier > players that acknowledge different pause frames stop the journal
+(pass) game/shell/playtest > a playtest request line names its computers' slots and nothing else parses [1.00ms]
+(pass) game/shell/playtest > a playtest adds a computer as Player 3 to one human and starts on the default stage with the menus' stocks
+(pass) game/shell/playtest > a playtest replaces a slot left waiting for a human and refuses a slot a human holds or any phase but fighter selection
+(pass) game/shell/rollbackPlayback > shell rollback replaces a predicted remote row and reports executed local frames [6.00ms]
+(pass) game/shell/rollbackPlayback > shell rollback refuses stale epochs without mutating the active history [1.00ms]
+(pass) game/shell/scenarios > a same-frame jab is parried at frame four and neutral special takes the contact [2.00ms]
+(pass) game/shell/scenarios > an offstage Immolate launches downward through the ordinary match step [3.00ms]
+(pass) game/sim/actionLocks > releasing a shield waits for the minimum hold, then applies release lag
+(pass) game/sim/actionLocks > a shield grab requires an unstunned, grounded, active shield and keeps other attacks locked [1.00ms]
+(pass) game/sim/actionLocks > full and short jumps use distinct launch speeds
+(pass) game/sim/actionLocks > an air dodge protects only frames four through twenty-nine [5.00ms]
+(pass) game/sim/actionLocks > a hit during dodge startup interrupts the dodge's movement [1.00ms]
+(pass) game/sim/actionLocks > landing ends dodge protection without removing respawn protection
+(pass) game/sim/actionLocks > complete jump trajectories match the reference heights [6.00ms]
+(pass) game/sim/actionLocks > another press during jump squat doesn't restart it or spend an air jump [1.00ms]
+(pass) game/sim/actionLocks > releasing, then re-pressing during squat keeps a short hop
+(pass) game/sim/actionLocks > attack recovery blocks a jump through the advance
+(pass) game/sim/actionLocks > attack recovery blocks an air dodge through the advance
+(pass) game/sim/actionLocks > attack recovery blocks a shield through the advance
+(pass) game/sim/actionLocks > attack commitment blocks ground steering but keeps air drift
+(pass) game/sim/actionLocks > the final recovery frame allows actions on the same simulation tick
+(pass) game/sim/actionLocks > a jump out of shield clears the shield throughout squat [1.00ms]
+(pass) game/sim/actionLocks > a jump cancels shield release into an ordinary squat [4.00ms]
+(pass) game/sim/actionLocks > a shield-release jump still respects stun and action recovery
+(pass) game/sim/actionLocks > a shield jump into a directional dodge lands with a sliding recovery [1.00ms]
+(pass) game/sim/analogShield > observed retail shield drain
+(pass) game/sim/analogShield > observed retail shield stun
+(pass) game/sim/analogShield > observed retail shield size
+(pass) game/sim/analogShield > observed retail shield damage
+(pass) game/sim/analogShield > observed retail shield pushback
+(pass) game/sim/analogShield > observed retail shield pressure [1.00ms]
+(pass) game/sim/analogShield > a light shield enters, drains, changes pressure and keeps its minimum hold
+(pass) game/sim/analogShield > a light shield contact uses its strength and freezes it through stun
+(pass) game/sim/demonHunterContracts > demonHunterGroundInputsCanHitStandingOpponents [1.00ms]
+(pass) game/sim/demonHunterContracts > demonHunterSharesGrabGetupAndLedgeContactRules
+(pass) game/sim/demonHunterContracts > simultaneousImmolatesTradeInEitherSlotOrder [1.00ms]
+(pass) game/sim/demonHunterContracts > immolateGroundShineMirrorsAndHitsOneTargetOnce
+(pass) game/sim/demonHunterContracts > immolateAirSpecialSpikesAndUsesSingleContact
+(pass) game/sim/demonHunterContracts > manaBurnCreatesFlinchingProjectileWithoutAManaResource
+(pass) game/sim/demonHunterContracts > parryStepPunishesContactInItsWindowButDoesNotReflectShots
+(pass) game/sim/demonHunterContracts > wingAscentConsumesJumpsAndEndsInHelplessFallAfterInterruptionRules [1.00ms]
+(pass) game/sim/demonHunterContracts > demonHunterTapDuringDashUsesItsOwnDashAttackAction
+(pass) game/sim/demonHunterContracts > demonHunterNormalActionsHaveContactInBothFacingsAndGroundAirSets [1.00ms]
+(pass) game/sim/demonHunterContracts > hitInterruptsIllidanSpecialAndStockResetClearsSpecialState
+(pass) game/sim/directionalInfluence > smash DI pulses shift only on new axis components
+(pass) game/sim/directionalInfluence > a direction held before the hit creates no SDI pulse, and an attacker's freeze doesn't move it [1.00ms]
+(pass) game/sim/directionalInfluence > ASDI uses the C-stick while DI still uses the left stick on the release frame
+(pass) game/sim/directionalInfluence > one frame of hitlag allows ASDI but can't produce SDI
+(pass) game/sim/directionalInfluence > an ASDI shift into the blast zone costs exactly one stock
+(pass) game/sim/directionalInfluence > a forbidden down SDI doesn't land, but ASDI down sweeps onto a platform and cancels non-tumble hitstun
+(pass) game/sim/directionalInfluence > an ASDI down landing uses the existing tumble tech window
+(pass) game/sim/directionalInfluence > knockback decays by vector magnitude and continues after hitstun [1.00ms]
+(pass) game/sim/directionalInfluence > a downward launch exceeds the terminal fall cap, and fast fall uses self descent
+(pass) game/sim/directionalInfluence > hitlag freezes the launch vector, then release resumes self velocity and decay [1.00ms]
+(pass) game/sim/directionalInfluence > landing and floor techs preserve horizontal knockback while respawning clears both components
+(pass) game/sim/directionalInfluence > DI reads only the last hitlag frame and preserves launch speed
+(pass) game/sim/directionalInfluence > a DI's traced operands repeat its angle exactly
+(pass) game/sim/directionalInfluence > DI normalizes diagonal input and ignores parallel input [1.00ms]
+(pass) game/sim/directionalInfluence > the DI opportunity clears on respawn, stock loss and hits without knockback
+(pass) game/sim/directionalInfluence > a held shield drains by the frame-rate amount
+(pass) game/sim/directionalInfluence > the ordinary hit formula uses independent per-hit parameters
+(pass) game/sim/directionalInfluence > an ordinary hit separates fractional percent from integer attack power
+(pass) game/sim/directionalInfluence > ordinary hitlag and hitstun round at frame boundaries
+(pass) game/sim/dodgesAndStocks > an air dodge changes velocity, and landing restores jumps
+(pass) game/sim/dodgesAndStocks > an air dodge replaces prior movement and launch momentum [1.00ms]
+(pass) game/sim/dodgesAndStocks > a horizontal air dodge defaults to a shallow wavedash on both sides
+(pass) game/sim/dodgesAndStocks > diagonal down doesn't trigger a fast fall, but straight down does
+(pass) game/sim/dodgesAndStocks > a diagonal air dodge displaces both axes with the same decayed vector
+(pass) game/sim/dodgesAndStocks > a fast air dodge uses the swept platform crossing [1.00ms]
+(pass) game/sim/dodgesAndStocks > an air dodge landing slides and restores actions after ten ticks
+(pass) game/sim/dodgesAndStocks > a delayed jump air dodge lands during its motion and slides [1.00ms]
+(pass) game/sim/dodgesAndStocks > an air dodge landing uses ground friction even while the air timer remains
+(pass) game/sim/dodgesAndStocks > a spot dodge starts at frame one, stays in place and uses provisional intangibility
+(pass) game/sim/dodgesAndStocks > a roll has bounded, locked motion and turns before its recovery ends [1.00ms]
+(pass) game/sim/dodgesAndStocks > a backward roll keeps facing, and a roll can't leave its platform
+(pass) game/sim/dodgesAndStocks > a ground dodge rejects hitlag, shieldstun, landing lag and unshielded presses
+(pass) game/sim/dodgesAndStocks > a spot dodge doesn't drop through a pass-through platform
+(pass) game/sim/dodgesAndStocks > a jump takes priority over a starting ground dodge
+(pass) game/sim/dodgesAndStocks > respawning and getting hit clear the ground dodge state
+(pass) game/sim/dodgesAndStocks > crossing a platform from below doesn't land
+(pass) game/sim/dodgesAndStocks > a blast zone removes exactly one stock [1.00ms]
+(pass) game/sim/dodgesAndStocks > the top blast zone requires launch knockback rather than jump speed [1.00ms]
+(pass) game/sim/dodgesAndStocks > the top blast zone boundary doesn't consume a stock until crossed
+(pass) game/sim/dodgesAndStocks > the side blast zone boundaries require a strict crossing
+(pass) game/sim/dodgesAndStocks > the bottom blast zone boundary requires a strict crossing
+(pass) game/sim/fighter > fighters own their state and share only immutable tuning
+(pass) game/sim/fighter > rosters resolve fighters by participant slot
+(pass) game/sim/fourPlayerContracts > multipleAttackersKeepIndependentVictimHitWindows
+(pass) game/sim/fourPlayerContracts > oneMeleeSwingCanContactAllThreeOpponents
+(pass) game/sim/fourPlayerContracts > competingGrabsChooseOneVictimAndThirdPartyHitBreaksLinks
+(pass) game/sim/fourPlayerContracts > projectileMovesOnceAndHitsNearestOpponent
+(pass) game/sim/fourPlayerContracts > summonAndSpecialClocksAdvanceOnceWithFourOpponents
+(pass) game/sim/fourPlayerContracts > fourFightersArbitrateBothLedgesByDistance
+(pass) game/sim/fourPlayerContracts > freezeTrapChoosesNearestEligibleFighterOnce
+(pass) game/sim/fourPlayerContracts > immolateContactsEachOpponentOnlyOnce
+(pass) game/sim/fourPlayerContracts > summonHitMemorySurvivesStartingAnUnrelatedSpecial [1.00ms]
+(pass) game/sim/freezeTrapContracts > shieldConsumesTrapWithoutFreezingAndHitBreaksIce
+(pass) game/sim/freezeTrapContracts > trapConsumesOnContactButNotOwnerOrInvulnerableTarget
+(pass) game/sim/freezeTrapContracts > freezeExpiresAfterThreeHundredFramesIncludingHitlag
+(pass) game/sim/freezeTrapContracts > koRespawnAndResetClearTrapAndFrozenState [1.00ms]
+(pass) game/sim/grabs > only flinching projectiles release either end of a grab
+(pass) game/sim/grabs > a respawn releases reciprocal grab links [1.00ms]
+(pass) game/sim/grabs > a freeze trap releases reciprocal grab links
+(pass) game/sim/grabs > simultaneous grabs give neither slot ownership
+(pass) game/sim/grabs > grab mash uses one button and one remembered stick contribution
+(pass) game/sim/grabs > stock loss clears a capture and post-throw recovery immediately
+(pass) game/sim/groundMovement > an initial dash's entry transitions toward the actor's run speed [1.00ms]
+(pass) game/sim/groundMovement > the retail dash-to-run command uses the actor's encoded enable frame
+(pass) game/sim/groundMovement > a turn-run waits for the retail facing command boundary [1.00ms]
+(pass) game/sim/groundMovement > a run-brake turn input closes at the actor's frame-fifteen command
+(pass) game/sim/groundMovement > a turn-run entered past its command pauses before its facing flip
+(pass) game/sim/groundMovement > a run-brake's forward input doesn't skip to a run
+(pass) game/sim/groundMovement > a turn-run uses the retail velocity threshold in world units
+(pass) game/sim/groundMovement > a turn-run completes to wait unless forward is held
+(pass) game/sim/groundMovement > a retail run-brake ends at its clip or its maximum frame count [1.00ms]
+(pass) game/sim/groundMovement > an initial dash reversal restarts the window, including across neutral
+(pass) game/sim/groundMovement > a run turn uses the character's dash acceleration before changing facing [1.00ms]
+(pass) game/sim/groundMovement > an initial dash's expiration prevents a late instant reversal
+(pass) game/sim/groundMovement > under-target ground velocity uses the actor's acceleration and run cap
+(pass) game/sim/groundMovement > a neutral stop after an initial dash allows a fresh dash [1.00ms]
+(pass) game/sim/groundMovement > hitlag freezes an initial dash, then a reversal resumes
+(pass) game/sim/groundMovement > an initial dash clears on a jump, shield, attack and respawn
+(pass) game/sim/groundMovement > the shot's recovery uses its grounding at attack start
+(pass) game/sim/groundMovement > one press consumes one jump
+(pass) game/sim/groundMovement > hitlag freezes position until it expires [1.00ms]
+(pass) game/sim/hitTiming > recorded grounded damage resumes on hitlag expiry
+(pass) game/sim/hitTiming > hitlag release allows a jump when hitstun expires on that frame
+(pass) game/sim/hitTiming > hitstun expiry allows a jump on the same tick as an attack
+(pass) game/sim/hitTiming > hitlag and shieldstun respect Melee integer boundaries
+(pass) game/sim/hitTiming > a shield contact freezes both bodies before shieldstun counts down
+(pass) game/sim/hitTiming > a detached projectile impact does not freeze its shooter
+(pass) game/sim/knockdown > tumble blocks actions until hitstun ends [1.00ms]
+(pass) game/sim/knockdown > tumble can be air dodged after hitstun but not during it
+(pass) game/sim/knockdown > a tumble landing runs bound and wait, then fresh recovery choices
+(pass) game/sim/knockdown > a held recovery starts at the bound's end without another press
+(pass) game/sim/knockdown > a recovery attack on the bound transition isn't discarded
+(pass) game/sim/knockdown > a get-up attack pressed during the bound starts as it ends, ahead of a held roll [1.00ms]
+(pass) game/sim/knockdown > a held roll at the bound's end beats an attack pressed on that frame
+(pass) game/sim/knockdown > get-up rolls and stands follow Melee's stick tilt and angle
+(pass) game/sim/knockdown > a floor tech rolls only past Melee's sideways tilt
+(pass) game/sim/knockdown > tumble ends only on a fresh sideways flick past Melee's threshold
+(pass) game/sim/knockdown > a jab reset compares the damage summed over the frame's contacts [1.00ms]
+(pass) game/sim/knockdown > hitlag still pauses a held knockdown recovery
+(pass) game/sim/knockdown > a down wait autostands, and the get-up attack has its own hitbox
+(pass) game/sim/knockdown > a clean low-percent get-up attack gives the attacker time before the wake-up attack, for both characters and sides [4.00ms]
+(pass) game/sim/knockdown > a clean get-up attack recovers before a successful tech, for both characters and sides [6.00ms]
+(pass) game/sim/knockdown > a get-up attack on a shield doesn't grant the clean hit's frame advantage [1.00ms]
+(pass) game/sim/knockdown > a get-up attack whiff applies no hitlag or hitstun
+(pass) game/sim/knockdown > a down wait is vulnerable, but early get-up recovery is intangible [14.00ms]
+(pass) game/sim/ledge > each fighter catches with its reference fighter's NTSC 1.02 ledge snap data
+(pass) game/sim/ledge > the catch box's edges are strict for every fighter and side [2.00ms]
+(pass) game/sim/ledge > the catch box sweeps the frame's movement, and only a downward movement catches
+(pass) game/sim/ledge > falling, helpless and tumbling fighters catch; aerials, specials, air dodges and hitstun don't [1.00ms]
+(pass) game/sim/ledge > a ledge catch on either side restores one air jump for every fighter
+(pass) game/sim/ledge > ledge eligibility rejects locks, wrong facing and positions outside the region [1.00ms]
+(pass) game/sim/ledge > only a full down passes ledges; a slight downward tilt still catches
+(pass) game/sim/ledge > upper platform ledges can't be caught
+(pass) game/sim/ledge > ledge contention uses distance, not argument order, and the owner hogs
+(pass) game/sim/ledge > tied ledge candidates catch neither, and opposite edges are independent
+(pass) game/sim/ledge > ledge options honor priority, locks and exact recovery durations [2.00ms]
+(pass) game/sim/ledge > ledge hang protection expires, and hitlag freezes the ledge phase
+(pass) game/sim/ledge > a ledge attack has startup, an active window that hits once, and recovery [1.00ms]
+(pass) game/sim/ledge > ledge hits and grabs interrupt, and a respawn clears ledge ownership
+(pass) game/sim/ledge > the ledge release regrab cooldown expires after thirty unfrozen ticks [1.00ms]
+(pass) game/sim/ledge > ledge protection blocks strikes until it expires, and a grab never catches the hang [1.00ms]
+(pass) game/sim/meleeContact > a melee capsule blocks and damages a shield only when it reaches the circle
+(pass) game/sim/meleeContact > a drained shield leaves a real melee poke at the exposed body edge
+(pass) game/sim/meleeContact > melee can reach a shield before the body, and facing mirrors its volume
+(pass) game/sim/meleeContact > melee trades queue both contacts before either hit resolves
+(pass) game/sim/normals > the projectile pool expires misses at their range [1.00ms]
+(pass) game/sim/normals > projectiles cross the arena and disappear on contact [1.00ms]
+(pass) game/sim/normals > both fighters' basic projectiles cause hitstun [1.00ms]
+(pass) game/sim/normals > a projectile passes through an intangible target without being consumed
+(pass) game/sim/normals > tilts are lighter and recover sooner than smashes [1.00ms]
+(pass) game/sim/normals > angled forward tilts share the flat forward tilt's timing, damage and recovery
+(pass) game/sim/normals > aerial normals have distinct phases and landing lag
+(pass) game/sim/normals > aerial lingering windows match the reference frame boundaries [1.00ms]
+(pass) game/sim/normals > the aerial lingering clock starts at zero and unlocks on the reference frame [1.00ms]
+(pass) game/sim/normals > an aerial's lingering transition retains its single hit through freeze and re-entry
+(pass) game/sim/normals > ground normals and grab can't start in the air, but the shot can [1.00ms]
+(pass) game/sim/normals > aerial normals use directional shapes and launch directions
+(pass) game/sim/normals > landing cancels an aerial's active window and applies move-specific lag
+(pass) game/sim/normals > a C-stick down air preserves normal aerial momentum for both fighters [2.00ms]
+(pass) game/sim/normals > the archer's down air has one strong-to-weak window, and the rifleman's is unchanged
+(pass) game/sim/normals > the rifleman's down tilt hits harder than the archer's on the same frames [1.00ms]
+(pass) game/sim/normals > common ground dodge frame data applies to both characters [1.00ms]
+(pass) game/sim/normals > air drift changes velocity without turning the fighter
+(pass) game/sim/normals > angled forward tilts cover their vertical offset and preserve the facing range [2.00ms]
+(pass) game/sim/normals > the walking modifier uses the character's walk speed and releases to a dash
+(pass) game/sim/physics > retail combat stacking starts on the tenth moving frame and freezes in hitlag [1.00ms]
+(pass) game/sim/physics > retail combat stacking merges each axis once after strongest contact selection
+(pass) game/sim/physics > retail combat ground tangent uses the new contact, then traction rather than air decay
+(pass) game/sim/physics > retail combat damage levels use all three unrounded scaled thresholds
+(pass) game/sim/physics > retail combat ground bounce uses a ten-degree threshold and four-fifths vertical speed [1.00ms]
+(pass) game/sim/physics > a recorded NTSC Falco neutral fall matches ten independent positions
+(pass) game/sim/physics > the recorded Falco fall detects a perturbed velocity at the first frame
+(pass) game/sim/physics > canonical motion preserves all ten recorded fall positions exactly
+(pass) game/sim/physics > canonical motion imports world edits and clears on respawn
+(pass) game/sim/physics > recorded Falco dash overspeed braking matches both original fighter hosts [1.00ms]
+(pass) game/sim/physics > the recorded Falco dash detects a perturbed overspeed at its first frame
+(pass) game/sim/physics > recorded Falco dash entry uses the walk self velocity for entry displacement
+(pass) game/sim/physics > retail walk uses character acceleration and the common taper
+(pass) game/sim/physics > retail run tapers below target and brakes overspeed by character friction
+(pass) game/sim/physics > a retail run turn preserves facing until ground velocity crosses
+(pass) game/sim/physics > a recorded NTSC Falco jump has five grounded frames, then a raw takeoff
+(pass) game/sim/physics > the recorded Falco jump detects a delayed input on its original frame
+(pass) game/sim/physics > grounded knockback matches the recorded first released displacement
+(pass) game/sim/physics > grounded knockback traction clamps both directions without reversing [1.00ms]
+(pass) game/sim/physics > recorded NTSC grounded damage matches freeze release, traction and actionability
+(pass) game/sim/physics > recorded grounded damage detects a perturbed knockback on the first frame
+(pass) game/sim/physics > fast fall persists after release and aerial startup but clears on landing and jump
+(pass) game/sim/physics > fast fall requires descending self velocity, and an air dodge clears it [1.00ms]
+(pass) game/sim/physics > the combat ground contact threshold keeps low downward hits on the floor
+(pass) game/sim/physics > combat DI uses the actual launch magnitude for authored non-unit directions
+(pass) game/sim/physics > combat shield damage uses integer power before the shieldstun calculation [1.00ms]
+(pass) game/sim/physics > retail shield damage scales the accumulated contacts once
+(pass) game/sim/physics > retail shieldstun retains its fused rounding boundary
+(pass) game/sim/physics > a recorded NTSC digital shield contact matches paired pushback and grounded recoil [1.00ms]
+(pass) game/sim/physics > detached and airborne contacts don't invent attacker ground recoil
+(pass) game/sim/physics > a later clean hit replaces the remaining shield recoil
+(pass) game/sim/physics > the recorded shield contact detects a perturbed recoil on its first release frame
+(pass) game/sim/physics > airborne shield recoil decays as a separate vector without changing self velocity [1.00ms]
+(pass) game/sim/physics > an airborne shield contact initializes stacked, weight-scaled relative recoil
+(pass) game/sim/physics > shield recoil transitions from an air vector to a ground tangent and back
+(pass) game/sim/physics > a combat shield break uses the character's launch attribute after the contact freeze
+(pass) game/sim/physics > a contact batch collects all damage before choosing a launch, in either traversal
+(pass) game/sim/physics > a contact-batch shield break blocks every collected contact
+(pass) game/sim/physics > contact-batch special trades survive melee, and summons use total damage
+(pass) game/sim/physics > a contact batch's throws and pummels include detached damage
+(pass) game/sim/physics > a contact-batch throw release leaves the ground before trap contact [1.00ms]
+(pass) game/sim/physics > backward rolls and spot dodges keep their orientation [2.00ms]
+(pass) game/sim/physics > knockback caps before motion modifiers, and fixed power ignores percent
+(pass) game/sim/physics > crouch and charge are sampled before a hit interrupts the action [1.00ms]
+(pass) game/sim/physics > air drift preserves opposed overspeed and brakes in the same direction
+(pass) game/sim/physics > a ground jump uses its takeoff input, and an air jump replaces horizontal momentum
+(pass) game/sim/physics > sampled roll paths clamp at both stage edges without discarding reversals [5.00ms]
+(pass) game/sim/physics > a ground jump's entry preserves its launch, then applies gravity and drift
+(pass) game/sim/physics > an aerial jump's entry applies gravity immediately [1.00ms]
+(pass) game/sim/physics > releasing jump on the takeoff frame keeps a full jump, and hitlag doesn't latch a release
+(pass) game/sim/physics > an electric contact preserves the attacker's and victim's pause boundaries [1.00ms]
+(pass) game/sim/physics > an electric contact on a shield uses the ordinary freeze before shieldstun [1.00ms]
+(pass) game/sim/physics > an electric contact batch uses the strongest launch's effect and the largest damage
+(pass) game/sim/physics > an electric contact batch with tied launches keeps the first effect
+(pass) game/sim/physics > the same character uses its assigned gravity and jump parameters [1.00ms]
+(pass) game/sim/physics > the same character uses its assigned weight for an actual damage contact
+(pass) game/sim/physics > a stock respawn retains the assigned physics
+(pass) game/sim/physics > a retail aerial fast fall requires down at most three frames before descent
+(pass) game/sim/physics > a retail aerial fast-fall input ages during hitlag through its expiry frame
+(pass) game/sim/physics > the retail aerial fast-fall diagonal restriction doesn't refresh a held down [1.00ms]
+(pass) game/sim/physics > a retail aerial dodge uses the extracted force and decay for every digital direction
+(pass) game/sim/physics > a retail aerial dodge resumes gravity and drift on tick thirty [2.00ms]
+(pass) game/sim/physics > a retail aerial dodge's switch boundary freezes in hitlag
+(pass) game/sim/physics > a forward roll turns on frame 20 while keeping its entry pose and travel [1.00ms]
+(pass) game/sim/physics > crouching clears on attacks, jumps and shields [1.00ms]
+(pass) game/sim/physics > sampled rolls move through their actual entry, a freeze and recovery [4.00ms]
+(pass) game/sim/physics > grounded knockback retains the recorded binary32 velocity exactly [1.00ms]
+(pass) game/sim/physicsPrecisionMotion > #9 RECORDED_FALL_TEN_FRAMES_BINARY32_EXACT_PASS
+(pass) game/sim/physicsPrecisionMotion > #9 AIR_DECREMENT_BINARY32_EXACT_PASS [1.00ms]
+(pass) game/sim/physicsPrecisionMotion > #9 AIR_CUTOFF_BINARY32_EXACT_PASS [2.00ms]
+(pass) game/sim/physicsPrecisionMotion > #9 GROUND_MOTION_BINARY32_EXACT_PASS [1.00ms]
+(pass) game/sim/physicsPrecisionScalar > #9 SIGNED_ZERO_SCALARS_EXACT_PASS
+(pass) game/sim/physicsPrecisionScalar > #9 HITSTUN_BOUNDARIES_EXACT_PASS [1.00ms]
+(pass) game/sim/physicsPrecisionScalar > #9 LAUNCH_MAGNITUDE_BINARY32_EXACT_PASS [1.00ms]
+(pass) game/sim/physicsPrecisionScalar > #9 HITLAG_SCALARS_EXACT_PASS
+helper cut: waiting shown 44/20 frames after the cut, cleared 10/2 frames after input returned; confirmed 50 -> 220
+(pass) a helper that stops mid-match shows every client who the match waits for within a second, and the match resumes when it types again [811.01ms]
+(pass) game/sim/physicsPrecisionScalar > #9 ANALOG_SHIELD_BINARY32_EXACT_PASS [3.00ms]
+(pass) game/sim/physicsPrecisionScalar > #9 DIRECTIONAL_INFLUENCE_BINARY32_EXACT_PASS [1.00ms]
+
+ 5 pass
+ 0 fail
+ 62 expect() calls
+Ran 5 tests across 3 files. [2.94s]
+(pass) after a 2 s stall of one or both games, each client catches up within a second, a bounded number of frames a callback [2728.03ms]
+(pass) the Melee oracle's mismatches with the decompilation are exactly the known ones [2.00ms]
+(pass) game/sim/physicsPrecisionScalar > #9 CAPSULE_SHIELD_CLASSIFICATION_PASS [6.00ms]
+(pass) game/sim/physicsPrecisionState > #9 GROUNDED_BINARY32_EXACT_PASS [1.00ms]
+(pass) game/sim/physicsPrecisionState > #9 SHIELD_REGEN_BINARY32_EXACT_PASS
+(pass) game/sim/physicsPrecisionState > #9 SHIELD_DAMAGE_BINARY32_EXACT_PASS
+(pass) game/sim/physicsPrecisionState > #9 SHIELD_STUN_BINARY32_EXACT_PASS
+(pass) game/sim/physicsPrecisionState > #9 SHIELD_CONTACT_SUM_BINARY32_EXACT_PASS
+(pass) game/sim/powershield > projectile shield coverage separates exposed-body and shield-only contacts
+(pass) game/sim/powershield > a full trigger within the observed window starts and expires the reflect state [1.00ms]
+(pass) game/sim/powershield > pressure to a full press honors the two-frame input window
+(pass) game/sim/powershield > the reflector uses the authored circle and transfers a scaled projectile
+(pass) game/sim/powershield > perfect-shield pushback matches the original contact observations
+(pass) game/sim/powershield > a perfect melee contact preserves shield health and ordinary contact resumes after expiry
+(pass) game/sim/powershield > a perfect contact allows an attack during the drop and holding guard consumes the window [1.00ms]
+(pass) game/sim/powershield > original stationary capsule shield boundaries
+(pass) game/sim/powershield > original swept capsule shield boundaries
+(pass) game/sim/powershield > original scaled capsule shield boundaries
+(pass) game/sim/powershield > original asymmetric capsule rounding and radius conversion [1.00ms]
+(pass) game/sim/powershield > an original scaled shield keeps its local radius separate from the joint scale
+(pass) game/sim/powershield > an original scaled shield's translation rounds matrix products before adding the translation
+(pass) game/sim/recovery > recorded floor recovery skids match a tech and a missed tech on both original hosts
+(pass) game/sim/recovery > the recorded floor recovery detects a wrong knockback on its first frame
+(pass) every oracle departure names a row of gameplay-design.md's deviations table [4.00ms]
+(pass) game/sim/recovery > a floor recovery's entry preserves residual horizontal knockback
+
+scripts/moveComparisons.tests.ts:
+(pass) game/sim/recovery > down bound and get-up actions use their own frame counts [1.00ms]
+(pass) game/sim/recovery > low damage during either grounded down pose starts down damage, in both facings
+(pass) game/sim/recovery > hitlag freezes down damage, then hitstun returns it to a timed down wait
+(pass) game/sim/recovery > seven damage interrupts a down recovery and doesn't jab reset [1.00ms]
+(pass) game/sim/recovery > down damage's completion checks get-up input without waiting another tick
+(pass) game/sim/recovery > down damage ends in a stand when its hitstun expires during the animation
+(pass) game/sim/recovery > a prone wait's expiry starts a stand before get-up input
+(pass) game/sim/recovery > recovery protection matches the extracted event times
+(pass) game/sim/recovery > a grounded rifleman blaster hit keeps the grounding and the impact hitlag
+(pass) game/sim/recovery > a floor recovery skid leaves the platform without keeping the grounded pose [1.00ms]
+(pass) game/sim/shieldBreak > the retail rig's shield break uses its own animation completion clocks [1.00ms]
+(pass) game/sim/shieldBreak > a shield break's dizzy expiry allows a jump on its completion tick [1.00ms]
+(pass) game/sim/shieldBreak > shield-break hitlag keeps regeneration and blast-zone checks active
+(pass) game/sim/shieldBreak > a drain and a projectile break the shield with the same pop and serial
+(pass) game/sim/shieldBreak > the forced shield-break sequence rejects actions and techs for both characters [3.00ms]
+(pass) move comparison category rule detects the isolated recovery mutation [5.00ms]
+(pass) game/sim/shieldBreak > dizzy length follows percent, and fresh mash edges shorten its exact tick count [2.00ms]
+(pass) game/sim/shieldBreak > shield-break hitlag freezes its motion, phase and mash
+(pass) game/sim/shieldBreak > flinching damage and grabs interrupt every shield-break phase [1.00ms]
+(pass) game/sim/shieldBreak > both fighters' basic projectiles interrupt a shield break [1.00ms]
+(pass) game/sim/shieldBreak > stock loss and respawning clear a shield-break recovery
+(pass) game/sim/simulation > shielding during jump squat uses the later direction for a first-frame wavedash
+(pass) game/sim/simulation > hitting a jump squat cancels its buffered air dodge [1.00ms]
+(pass) game/sim/simulation > leaving the floor without jumping leaves exactly one air jump
+(pass) game/sim/simulation > dropping through a platform leaves exactly one air jump
+(pass) game/sim/simulation > hit regions prioritize the tip and mirror its full hit effect
+(pass) game/sim/simulation > hit regions distinguish inner and outer, early and late parameters [1.00ms]
+(pass) game/sim/simulation > hit regions respect the active clock and inclusive geometry boundaries
+(pass) game/sim/simulation > an ordinary hit-region window survives freezes, region changes and re-entry
+(pass) game/sim/simulation > hit regions record ordinary contacts per target
+(pass) game/sim/simulation > the up aerial explicitly rehits only on its finishing window [1.00ms]
+(pass) game/sim/simulation > a finisher can connect when the opening window misses
+(pass) game/sim/simulation > hit regions snapshot different effects before either trade cancels its attack
+(pass) game/sim/simulation > a shield consumes the selected hit-region window and hitlag
+(pass) game/sim/simulation > an empty landing recovers once, after four ticks
+(pass) game/sim/simulation > a jump accepts the same landing recovery boundary as attacks [1.00ms]
+(pass) move comparison requires contact before normal action recovery [15.00ms]
+
+scripts/moveData.tests.ts:
+(pass) game/sim/simulation > a short hop rises less than a full hop, and each jump starts once [9.00ms]
+(pass) game/sim/simulation > every fighter's aerials land with the short lag, pressed shield or not [2.00ms]
+(pass) game/sim/simulation > air dodge and empty landings keep their own landing lag
+(pass) game/sim/simulation > smash charge pauses the pre-active clock, and release enters the hit frame
+(pass) game/sim/simulation > smash charge caps at sixty ticks and scales to Melee's damage multiplier [1.00ms]
+(pass) game/sim/simulation > a direct smash doesn't charge, and charge freezes only the fighter's control clock
+(pass) game/sim/simulation > smash charge stops when the fighter leaves the ground and clears on interruption or stock loss
+(pass) game/sim/simulation > a simultaneous charged smash trade snapshots both charge amounts [1.00ms]
+(pass) game/sim/simulation > jump events follow the takeoff and an accepted air jump [1.00ms]
+(pass) game/sim/simulation > a blocked jump doesn't produce a takeoff event
+(pass) game/sim/simulation > every ground action exposes startup, active and recovery frames [2.00ms]
+(pass) game/sim/simulation > recovery frames can't deal damage
+(pass) game/sim/specialContracts > bearRunsWithoutSwipingUntilATargetEntersItsPath
+(pass) game/sim/specialContracts > summonedEntitiesSurviveActionInterruptionButNotStockReset
+(pass) game/sim/specialContracts > arrowTravelDirectionDoesNotFollowTheShootersLaterFacing
+(pass) move export reads jab contact through production resolution for all fighters
+(pass) game/sim/specialContracts > bothArcherArrowKindsPreserveReactionMovementAndActionState
+(pass) game/sim/specialContracts > arrowsDamageShieldWithoutAddingShieldstunOrHitlag [1.00ms]
+(pass) move export observes the short aerial landing lag through the production step [1.00ms]
+
+scripts/moveReference.tests.ts:
+(pass) game/sim/surfaces > each shipped stage's main deck has Final Destination's side walls and underside below its ledges
+
+test/missing-input.test.ts:
+(pass) reference joins preserve action-family and clock boundaries
+(pass) reference tradeoff projection rejects unsupported dominance [1.00ms]
+
+test/clip-nodes.test.ts:
+(pass) a clip whose light and event nodes were removed numbers its helpers, attachments and collision shapes off their places
+(pass) renumbering puts every node at its place with the same parent, pivot and skin [1.00ms]
+
+test/fourFighters.test.ts:
+(pass) game/sim/surfaces > full and short hops rise through every pass deck and land on top [11.00ms]
+(pass) game/sim/surfaces > a jump under a solid surface still bumps its head [4.00ms]
+(pass) game/sim/surfaces > a launch passes through a pass deck's sides
+(pass) game/sim/surfaces > a runoff leaves the main deck and its flank slides off the ledge's corner
+(pass) game/sim/surfaces > a surface rebound requires a tumbling launch [1.00ms]
+(pass) game/sim/surfaces > weak airborne damage can't wall or ceiling tech
+(pass) game/sim/surfaces > the retail surface threshold reflects the combined velocity at the playable wall and reports the contact
+(pass) game/sim/surfaces > a retail surface rebound uses a strict one-unit knockback gate
+(pass) game/sim/surfaces > a retail ceiling rebound reports the surface normal
+(pass) game/sim/surfaces > a retail get-up's completion allows input on its animation end tick [1.00ms]
+(pass) game/sim/surfaces > a retail wall tech uses the separate original fighter surface profile
+(pass) game/sim/surfaces > a retail wall tech uses friction until an aerial action interrupts it
+(pass) game/sim/surfaces > a retail wall tech completes after its paused startup and selected animation [1.00ms]
+(pass) game/sim/surfaces > a retail wall tech jump latches buffered input without an ordinary trait or speed gate
+(pass) game/sim/surfaces > a retail wall tech selects a jump from a recent input age at contact
+(pass) game/sim/surfaces > a retail wall tech selects a jump from up on the stick at contact
+(pass) game/sim/surfaces > a retail wall tech's jump input age expires at the twenty-frame boundary
+(pass) game/sim/surfaces > each earlier wall jump since landing lowers a wall jump's rise, and landing resets the count [2.00ms]
+(pass) game/sim/surfaces > a retail landing caps ground knockback at the decoded common value
+(pass) game/sim/surfaces > a retail ASDI landing uses the same ground knockback cap
+(pass) game/sim/surfaces > a retail ceiling tech transitions through the production advance
+(pass) game/sim/surfaces > a retail ceiling tech protects until its one-shot actor impulse [1.00ms]
+(pass) game/sim/surfaces > a retail ceiling tech locks actions until its animation completes
+(pass) game/sim/surfaces > shared recovery values match the decoded common table
+(pass) game/sim/surfaces > solid raised deck walls reject incoming launches from both exterior sides
+(pass) game/sim/tech > the tech window includes the press and the twentieth contact but not the twenty-first [2.00ms]
+(pass) game/sim/tech > the tech repeat boundary uses the original prior press age [1.00ms]
+(pass) game/sim/tech > a grounded shield edge counts, but only a tumble contact can tech
+(pass) game/sim/tech > Illidan's tech contact retains his original travel and protection frames [1.00ms]
+(pass) game/sim/tech > a tech roll clamps at both ends of the current platform
+(pass) #17 closes from four-fighter results without #26 timing or edge samples [2.00ms]
+(pass) game/sim/tech > original tech-input hitlag aging and accumulation reach the production state
+(pass) #17 rejects mismatched results and a combat checksum used as a result [1.00ms]
+(pass) game/sim/tech > a tech's vulnerable recovery can be interrupted by melee or the rifleman's shot [1.00ms]
+(pass) #17 rejects missing native roster, completion or rematch slot change
+(pass) game/sim/tech > tech state and input timers clear on respawn and stock loss
+
+test/game-boundary.test.ts:
+(pass) game/sim/tech > a grabbed fighter still tracks digital tech presses and their lockout
+(pass) game file inventory decodes native records and returns a typed filename and field for malformed fixtures [20.00ms]
+(pass) response pages reject malformed numeric data rows at their line field
+
+test/integrity.test.ts:
+(pass) game/sim/tumbleLandings > each fighter's moves tumble, tech and knock down by Melee's rule at low, medium and high percent [144.00ms]
+(pass) platform/shell/playerFileQueue > head owner departure resolves all their loads and resumes surviving files without stale chunks [1.00ms]
+(pass) platform/shell/playerFileQueue > non-head and repeated departures never resend an active player's file
+(pass) platform/shell/playerFileQueue > departure callbacks cannot requeue departed owners or duplicate a new head's send
+(pass) platform/shell/playerFileQueue > successful load callbacks can enqueue a new head without sending it twice [1.00ms]
+(pass) sim/meleeScalarMath > atan2, cos and sin reproduce the recorded retail values exactly
+(pass) sim/meleeScalarMath > cos and sin are exact across the pi boundary DI angles reach
+
+ 718 pass
+ 0 fail
+Ran 718 tests across 1 file. [3.15s]
+(pass) #60: every local press starts in the presser's next prediction unless a remote holds prediction back [3116.04ms]
+no helper: match running from confirmed frame 13/13 at 150 frames, +54/54 in the next 60; player 2 moved 255.719970703125 right; paused at 82
+(pass) a human without a controller helper plays on the keyboard: the match runs, their fighter stands still until a key moves it, and Y pauses [367.00ms]
+(pass) the r8 capture reconciles to #26's measured table [257.00ms]
+
+test/source-shapes.test.ts:
+
+test/match-settings.test.ts:
+(pass) the r7 capture reconciles to its retained failing summary [144.00ms]
+(pass) each match's integrity workload sends, waits, stalls and pauses as the Python driver did [22.00ms]
+(pass) the integrity workload raises one stock to three before its first match and changes it no more [21.00ms]
+(pass) the journey sends r8's pad edges in r8's order, then returns to fighter selection [13.00ms]
+(pass) an input-integrity capture records a failed player view and does everything else a passing one does [21.00ms]
+(pass) #17 and playable journeys still stop at a failed player view [5.00ms]
+(pass) rules agree on both clients and the visible countdown restarts the same match on its last frame [222.00ms]
+(pass) the result reports player-view failures without gating them [131.00ms]
+(pass) sweep and four-fighter journeys command and record what the reconciler expects [22.00ms]
+(pass) #17's normal timed journey reaches both results without integrity stalls or forced stock loss [3.00ms]
+(pass) a playable journey plays one-stock matches that end when Player 1, then Player 2, walks off [2.00ms]
+(pass) capture arguments select the matches the Python driver numbered [1.00ms]
+(pass) virtual pads are declared and fed exactly as the Python driver did [1.00ms]
+(pass) kernel observations are logged in r8's format [1.00ms]
+(pass) xpad pads press X for special, Y for jump, and stick-up only as up
+(pass) bot sessions enable automatic rematch and wait for the second game without selection or a Start press [7.00ms]
+
+test/map-build.test.ts:
+(pass) the installed TypeScript toolchain matches typescript-toolchain.lock [4.00ms]
+(pass) a TypeScript-only map starts the TypeScript entry with its own config, before and after a rebuild [1.00ms]
+(pass) every imported model the map script names is a distinct content-addressed path [1.00ms]
+(pass) a build refuses import lists that lack a model the script names
+(pass) every model sound cue names a stock label and keys a pooled clip [1.00ms]
+(pass) the FileIO ability retains the recorded war3map.w3a bytes [1.00ms]
+
+test/object-data.test.ts:
+(pass) the fighter archive encodes the shared runtime declaration [5.00ms]
+
+test/play.test.ts:
+(pass) before Warcraft starts, the request for a computer as Player 3 replaces an earlier run's go-ahead and receipt [12.00ms]
+(pass) a run that stops removes the request, the go-ahead and the receipt [2.00ms]
+(pass) fighter selection is a CHARACTER menu file written after the launch; an older file doesn't count [67.00ms]
+(pass) the go-ahead starts the match, and the request and go-ahead are removed for the next session [12.00ms]
+(pass) the helper gets the found Xbox controller, the game's data folder, pid and windows [6.00ms]
+
+test/playable.test.ts:
+(pass) a playable match and rematch pass when both clients agree on winner and confirmed result checksum [2.00ms]
+(pass) a playable capture fails on any disagreement, missing result or in-game error [2.00ms]
+(pass) end receipts name the winner; a result screen may be unreadable but never name another player [1.00ms]
+(pass) 0.0.45's recorded match and rematch pass: B's rematch screen read "Player | wins!" names Player 1 [14.00ms]
+(pass) the recorded 0.0.45 capture fails when its clients disagree on the winner or the result checksum [14.00ms]
+
+test/playtest.test.ts:
+(pass) a playtest request adds a computer as Player 3 and starts the match on every client once the go-ahead appears [91.00ms]
+(pass) a session without a request reads no file at fighter selection and starts nothing [33.00ms]
+
+test/rematch-load.test.ts:
+(pass) either player's press cancels the automatic rematch [937.01ms]
+(pass) a match and its three-fighter rematch show each pooled fighter whole where he stands, read only correctable rollback rows, touch no parked effect and keep nothing between them [356.00ms]
+
+test/soak-replay.test.ts:
+source shape audit: {"files":276,"converterTodoMarkers":0,"accessors":0,"defaultExports":0,"namespaceOnlyClasses":0,"positionalRecordSetters":0}
+(pass) map source follows the TypeScript shapes required by #35 [880.01ms]
+type escape audit: {"files":265,"any":0,"nonNull":0,"assertions":0,"suppressions":0}
+(pass) production TypeScript has no type escapes (#35, #38) [259.00ms]
+
+ 4 pass
+ 0 fail
+ 41 expect() calls
+Ran 4 tests across 3 files. [4.85s]
+(pass) a stick inside its dead zone replays: through the helpers as pad edges the game never sees, through the stand-in as a row [280.00ms]
+
+test/stage-model.test.ts:
+(pass) the map ships the main deck model drawn from the collision [2.00ms]
+(pass) the main deck model's outline is the main deck's collision lines on every shipped stage [3.00ms]
+(pass) every face of the main deck faces out along its normal, so Warcraft draws it from outside [1.00ms]
+(pass) the shipped main deck model draws over the whole collision outline, read from the model file
+
+test/tape-process.test.ts:
+(pass) Lua replay cancellation reaps two active children and never starts the queued tape [28.00ms]
+(pass) Lua replay keeps partial records and stderr from a nonzero child in tape order [18.00ms]
+
+test/wisp.test.ts:
+(pass) each game-written file kind decodes its native Preload fixture [1.00ms]
+(pass) malformed fixtures report their file and typed field [4.00ms]
+(pass) hot reload publishes payloads before manifests and waits for each fake client acknowledgement [17.00ms]
+-dev quick acknowledged by 2 client(s)
+(pass) fresh-match flow drives two fake clients and waits on the Effect clock for both ready files (fromGame=false, password prompt=false) [17.00ms]
+-dev quick acknowledged by 2 client(s)
+(pass) fresh-match flow drives two fake clients and waits on the Effect clock for both ready files (fromGame=true, password prompt=true) [8.00ms]
+
+ 71 pass
+ 0 fail
+ 849 expect() calls
+Ran 71 tests across 21 files. [5.01s]
+(pass) endless survives repeated knockouts past the selected time limit [1314.02ms]
+
+test/repro.test.ts:
+(pass) K in the development build's match saves its last ten seconds on that player's client, which replay to its checksum [500.01ms]
+(pass) in the playable build's rollback match, a controller helper's request and K each save the moment on their own client [309.00ms]
+
+test/tune.test.ts:
+(pass) every tunable names a literal its kind can hold [116.00ms]
+(pass) under rollback the speculative match and every history snapshot take tuned values too, so a correction can't undo them [431.00ms]
+(pass) tuned gravity reaches both clients' fighters on the frame they install it and changes the match alike in both [2172.02ms]
+
+ 9 pass
+ 0 fail
+ 1167 expect() calls
+Ran 9 tests across 4 files. [9.87s]
+full logic suite: 37 files in 6 processes, 9913 ms
+{"decision":"RELEASED","lease":"c968b6a3-6a80-4e75-8e91-a24a41f27c0a"}

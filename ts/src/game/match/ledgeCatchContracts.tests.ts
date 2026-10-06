@@ -13,7 +13,7 @@ import { type TestMatch, executeNext, testMatch } from "./testMatch";
 const ROSTER = [Character.archer, Character.rifleman, Character.demonHunter] as const;
 
 function ledgeEdge(side: number): number {
-  return side < 0 ? surfaceLeft(0, 0) : surfaceRight(0, 0);
+  return side < 0 ? surfaceLeft(0, 0, 0) : surfaceRight(0, 0, 0);
 }
 
 /** Slot 0 airborne `outside` beyond the `side` ledge and `below` it, facing the stage, with one air jump. */
@@ -22,7 +22,7 @@ function besideLedge(match: TestMatch, side: number, outside: number, below: num
   fighter.motion.grounded = false;
   fighter.motion.surface = undefined;
   fighter.motion.x = f32(ledgeEdge(side) + f32(side * outside));
-  fighter.motion.z = f32(surfaceZ(0, 0) - below);
+  fighter.motion.z = f32(surfaceZ(0, 0, 0) - below);
   fighter.motion.vx = 0.0;
   fighter.motion.vz = 0.0;
   fighter.facing = -side;
@@ -31,7 +31,7 @@ function besideLedge(match: TestMatch, side: number, outside: number, below: num
 }
 
 function depth(fighter: Fighter): number {
-  return f32(surfaceZ(0, 0) - fighter.motion.z);
+  return f32(surfaceZ(0, 0, 0) - fighter.motion.z);
 }
 
 interface Recovery {
@@ -65,7 +65,7 @@ function assertSnapped(fighter: Fighter, side: number): void {
   assertEquals(fighter.ledge.side, side);
   assertEquals(fighter.facing, -side);
   assertEquals(fighter.motion.x, f32(ledgeEdge(side) + f32(side * LEDGE_HANG_OUTSET)));
-  assertEquals(fighter.motion.z, f32(surfaceZ(0, 0) - LEDGE_HANG_DEPTH));
+  assertEquals(fighter.motion.z, f32(surfaceZ(0, 0, 0) - LEDGE_HANG_DEPTH));
 }
 
 test("a fighter falling beside the ledge within its catch box snaps to it as its feet pass the box's top", () => {

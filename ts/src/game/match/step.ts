@@ -7,12 +7,14 @@ import { canStartAttackStyle, inGrabContext } from "../sim/conditions";
 import { beginDamageContacts, finishDamageContacts } from "../sim/contacts";
 import { advanceGrabs, captureGrabPauses, resolveGrabs } from "../sim/grabs";
 import { resolveLedges } from "../sim/ledge";
+import { carryOnMovingDecks } from "../sim/movingDecks";
 import { observedActions, resetObservedActions } from "../sim/observations";
 import { updateProjectiles } from "../sim/projectiles";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
 import { regenerateShield } from "../sim/shield";
 import { advanceSpecials, startFighterSpecial } from "../sim/specials";
 import { advanceFighterMotion } from "../sim/step";
+import { advanceStageCannon } from "../sim/stageHazards";
 import { advanceFreezeTraps } from "../sim/summons";
 import type { FrameControls } from "./controls";
 import { type MatchState, Phase, advanceClock, humanFighterActive, resolveStocks } from "./rules";
@@ -51,6 +53,9 @@ function requestedStyle(style: number | undefined): AttackStyle | undefined {
 
 export function stepMatch(game: MatchState, world: Roster, controls: FrameControls, frame: number): void {
   if (game.phase !== Phase.match) return;
+  game.matchFrame++;
+  const { stageChoice: stage, matchFrame } = game;
+  carryOnMovingDecks(world, stage, matchFrame);
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) continue;
     const f = fighterAt(world, slot);
@@ -62,14 +67,15 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
     if (wasGrabbed[slot]) clearAttackBuffer(controls.commands[slot]);
     controls.inputs[slot].attackRequested = hasPendingAttack(controls.commands[slot], frame) && f.status.frozenFrames === 0;
   }
-  resolveLedges(world, game.stageChoice, controls.inputs);
+  resolveLedges(world, stage, controls.inputs);
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) continue;
     resetObservedActions();
-    advanceFighterMotion(world, slot, game.stageChoice, controls.inputs[slot], matchSpawnX(slot));
+    advanceFighterMotion(world, slot, stage, matchFrame, controls.inputs[slot], matchSpawnX(slot));
     observedFrameLegalActions[slot] = observedActions.legal;
     observedFrameStartedActions[slot] = observedActions.started;
   }
+  advanceStageCannon(world, stage, matchFrame, controls.inputs);
   captureGrabPauses(world);
   resolveGrabs(world);
   beginDamageContacts();
@@ -77,7 +83,7 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot) || wasGrabbed[slot]) continue;
     resetObservedActions();
-    const started = startFighterSpecial(fighterAt(world, slot), game.stageChoice, controls.inputs[slot]);
+    const started = startFighterSpecial(fighterAt(world, slot), stage, matchFrame, controls.inputs[slot]);
     observedFrameLegalActions[slot] |= observedActions.legal;
     if (started) observedFrameStartedActions[slot] |= 64;
   }
@@ -101,7 +107,7 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
     if (hadDashGrabWindow[slot] && f.ground.dashGrabWindow > 0 && !f.attack.dashGrab) f.ground.dashGrabWindow = Math.max(0, f.ground.dashGrabWindow - 1);
   }
   resolveAttacks(world);
-  advanceSpecials(world, game.stageChoice);
+  advanceSpecials(world, stage, matchFrame);
   updateProjectiles(world);
   for (const slot of PARTICIPANT_SLOTS) if (isActive(world, slot)) regenerateShield(fighterAt(world, slot));
   finishDamageContacts(world);
@@ -110,7 +116,7 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
     if (!isActive(world, slot)) continue;
     const f = fighterAt(world, slot);
     if (inGrabContext(f)) clearAttackBuffer(controls.commands[slot]);
-    if (game.practice && f.status.out && !beforeOut[slot]) {
+    if ((game.practice || game.endless) && f.status.out && !beforeOut[slot]) {
       f.status.stocks = game.stockCount;
       f.status.respawn = 60;
     }

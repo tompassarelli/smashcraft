@@ -23,6 +23,18 @@ soon as it is in view, so a new model needs a kind before it ships.
 
 ## Hidden effects a player still sees
 
+The winter arena's sky, fog and backdrop are declared in
+smashcraft:ts/src/game/presentation/stageScenery.ts and drawn by
+smashcraft:ts/src/platform/shell/stageScenery.ts. They never enter match or
+replay state. Frozen Throne uses classic Lordaeron Winter sky and Icecrown
+doodads referenced by their game paths. Its drifting snow is an authored
+model from smashcraft:tools/stage/package.ts using the stock snowflake texture:
+terrain weather falls below the elevated arena. Each mesh and particle reach
+stays behind the fighting volume; fog starts beyond it. The player-view test
+checks those bounds in every declared camera and a winter match's scene.
+Run `bun wisp headless frozen-throne` from smashcraft:ts/ for the two-client
+journey; a developer build accepts `-dev quick frozen-throne` for native capture.
+
 The scene check also applies Wisp's render visibility (wisp:docs/player-view.md):
 it fails on a named model that is empty, unknown or draws nothing, on a
 collapsed effect in view whose model keeps emitting particles, on a parked

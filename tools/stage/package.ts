@@ -86,3 +86,34 @@ export const STAGE_MAIN_DECK_MODEL = ${JSON.stringify(`war3mapImported\\${mainNa
 await Bun.write(join(output, "imports.txt"), `${modelName}\n${mainName}\n${textureName}\n`);
 console.log(`Stage deck: ${count} geosets; MDX roundtrip bounds x=[-50,50], z=[-54,0]; ${modelName}`);
 console.log(`Main deck: ${mainFaces.length} faces, ${drawn.length / 3} vertices from the collision outline; ${mainName}`);
+
+// Authored snow uses the game's texture; no game model or texture is imported.
+const snowExtent = 'MinimumExtent { -1600, -200, -1500 }, MaximumExtent { 1600, 200, 2800 }, BoundsRadius 3500,';
+const snowMdl = `Version { FormatVersion 800, }
+Model "Smashcraft drifting snow" { BlendTime 0, ${snowExtent} }
+Sequences 1 { Anim "Stand" { Interval { 0, 1000 }, ${snowExtent} } }
+Textures 1 { Bitmap { Image "Textures\\snowflake2.blp", } }
+${[700, 1700, 2700].map((height, index) => `ParticleEmitter2 "Snow${index}" {
+  ObjectId ${index}, Unshaded, SortPrimsFarZ,
+  static Speed 60, static Variation 0.25, static Latitude 15,
+  static Gravity 15, static EmissionRate 70,
+  static Width 2800, static Length 60,
+  LifeSpan 12, Blend, Rows 1, Columns 1, Head,
+  TailLength 0, Time 0.5,
+  SegmentColor { Color { 1, 1, 1 }, Color { 1, 1, 1 }, Color { 1, 1, 1 }, }
+  Alpha { 0, 130, 0 }, ParticleScaling { 3, 5, 3 },
+  LifeSpanUVAnim { 0, 0, 1 }, DecayUVAnim { 0, 0, 1 },
+  TailUVAnim { 0, 0, 1 }, TailDecayUVAnim { 0, 0, 1 },
+  TextureID 0, ReplaceableId 0, PriorityPlane 0,
+  Rotation 1 { DontInterp, 0: { 1, 0, 0, 0 }, }
+}`).join('\n')}
+PivotPoints 3 { { 0, 0, 700 }, { 0, 0, 1700 }, { 0, 0, 2700 }, }
+`;
+const snowBytes = new Uint8Array(generateMDX(parseMDL(snowMdl)));
+const snowName = `StageSnow-${hash(snowBytes)}.mdx`;
+await Bun.write(join(output, snowName), snowBytes);
+await Bun.write(join(output, "StageSnow.mdl"), snowMdl);
+const infoPath = join(import.meta.dir, "../../ts/src/game/assets/stageAssetInfo.ts");
+await Bun.write(infoPath, `${await Bun.file(infoPath).text()}/** Drifting snow behind the fighting plane, using the stock snowflake texture. */\nexport const STAGE_SNOW_MODEL = ${JSON.stringify(`war3mapImported\\${snowName}`)};\n`);
+await Bun.write(join(output, "imports.txt"), `${modelName}\n${mainName}\n${textureName}\n${snowName}\n`);
+console.log(`Stage snow: three emitters, stock snowflake texture; ${snowName}`);

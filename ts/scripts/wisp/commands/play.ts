@@ -10,6 +10,7 @@ import { join } from "node:path";
 import { Clock, Effect, Option, Schema } from "effect";
 import { linePreloadFile } from "wisp/scripts/wisp/boundary";
 import { makePlay } from "wisp/scripts/wisp/commands/play";
+import { documentsFolder } from "wisp/scripts/warcraft/battleNet";
 import { GameFiles, dataDirectory, readGameFile } from "wisp/scripts/wisp/gameFiles";
 import { type PlayDeclaration, type PlayGame, PlayProblem } from "wisp/scripts/wisp/play";
 import { playtestRequest } from "../../../src/game/shell/playtest";
@@ -26,6 +27,8 @@ interface Playtest {
   readonly computerSlot: number;
   /** Where the controller's stable device links are. */
   readonly inputDevices: string;
+  /** This prefix's installed Wisp page report port; absent uses ordinary menu controls. */
+  readonly menuReportPort?: number;
 }
 
 const inputs = join(homedir(), ".local/share/smashcraft-build-inputs");
@@ -63,7 +66,7 @@ const until = <A, R>(seconds: number, observe: Effect.Effect<A | undefined, Play
   }
 });
 
-export function playtest({ build, map, helper, computerSlot, inputDevices }: Playtest): PlayDeclaration<GameFiles> {
+export function playtest({ build, map, helper, computerSlot, inputDevices, menuReportPort }: Playtest): PlayDeclaration<GameFiles> {
   const name = journalMenuFile(build, 0);
   /** The host's menu file; one being written reads as absent. */
   const menu = (game: PlayGame) => readGameFile(join(dataDirectory(game.documents), name), JournalMenu).pipe(
@@ -82,6 +85,7 @@ export function playtest({ build, map, helper, computerSlot, inputDevices }: Pla
     shortcut: { appId: 3775098022, name: "Warcraft III (Battle.net)" },
     map,
     gameName: "Smashcraft",
+    ...(menuReportPort === undefined ? {} : { menuReportPort }),
     debugDirectory: join(homedir(), ".local/state/smashcraft/play-debug"),
     // The request, read once at map start; no go-ahead or receipt from an earlier run.
     prepare: (documents) => Effect.gen(function*() {
@@ -134,16 +138,23 @@ export function playtest({ build, map, helper, computerSlot, inputDevices }: Pla
   };
 }
 
-const ClientTools = Schema.Struct({ tools: Schema.Struct({ grim: Schema.String, xdotool: Schema.String, wlrctl: Schema.String, tesseract: Schema.String }) });
+const ClientSettings = Schema.Struct({
+  tools: Schema.Struct({ grim: Schema.String, xdotool: Schema.String, wlrctl: Schema.String, tesseract: Schema.String }),
+  clients: Schema.Array(Schema.Struct({ documents: Schema.String, menuReportPort: Schema.optional(Schema.Int) })),
+});
 
 /** The tool paths the clients file records; the commands on PATH without one. */
-function clientTools() {
+function clientSettings(): { readonly tools: Partial<typeof ClientSettings.Type["tools"]>; readonly menuReportPort?: number } {
   try {
-    const decoded = Schema.decodeUnknownOption(ClientTools)(JSON.parse(readFileSync(clientState, "utf8")));
-    return Option.isSome(decoded) ? decoded.value.tools : {};
+    const decoded = Schema.decodeUnknownOption(ClientSettings)(JSON.parse(readFileSync(clientState, "utf8")));
+    if (Option.isNone(decoded)) return { tools: {} };
+    const prefix = playtest(PLAYTEST).prefix;
+    const menuReportPort = decoded.value.clients.find((client) => client.documents === documentsFolder(prefix))?.menuReportPort;
+    return { tools: decoded.value.tools, ...(menuReportPort === undefined ? {} : { menuReportPort }) };
   } catch {
-    return {};
+    return { tools: {} };
   }
 }
 
-export const play = makePlay(playtest(PLAYTEST), gameFilesLayer, clientTools());
+const settings = clientSettings();
+export const play = makePlay(playtest({ ...PLAYTEST, ...(settings.menuReportPort === undefined ? {} : { menuReportPort: settings.menuReportPort }) }), gameFilesLayer, settings.tools);

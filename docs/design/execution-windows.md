@@ -111,12 +111,13 @@ developer statements on buffer lengths. Add them with their source when found.
 | Shield release lag; minimum shield hold | 15; 8 | [physics.md](../physics.md) |
 | L-cancel; wavedash input timing | none; not a defined window | [gameplay design decisions](../gameplay-design.md) |
 
-## Proposed bounds
+## Bounds adopted for Smashcraft
 
-These are proposals for Tom to accept or change, not decisions. Nothing in the
-game changes until he decides. Each is a lower and upper bound for a window
-type; a window inside its bounds is justified by the evidence, outside needs a
-stated reason. Frame figures at 60 fps.
+The recommendations below were adopted 6 Oct 2026 through the owner's blanket
+authorization to carry out the proposed work. The authoritative decisions and
+check scope are in [gameplay design decisions](../gameplay-design.md#execution-and-reaction-windows-69).
+These are chosen design bounds; the evidence does not establish that every
+value inside a range is equally usable. Frame figures at 60 fps.
 
 | Window type | Lower | Upper | Evidence | Today |
 |---|---|---|---|---|
@@ -132,7 +133,8 @@ stated reason. Frame figures at 60 fps.
 | Ledge regrab lock | 30 | 60 | Melee 30; Ultimate limits grabs to 6 per airtime instead; the upper bound is a guess | 30 |
 | Any required precision input (no aid available) | 3 frames | n/a | The tap-precision figures above: a 1-frame requirement is narrower than even expert variability | L-cancel removed |
 
-Rules the bounds imply, to test if Tom accepts them: no window of exactly one
-frame is required for ordinary play; a reaction-based option never opens
-shorter than its reaction bound; anything the player must see first is at least
-15 frames after the cue.
+Required ordinary-play inputs have at least 3 accepted frames. Reaction-based
+options have at least 15 frames after the first visible cue, with a larger
+budget for choices. Optional precision rewards can be tighter. The four-choice
+25-frame target is a design budget: the empirical Hick coefficient remains
+unretrieved.

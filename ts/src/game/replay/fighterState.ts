@@ -278,6 +278,11 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   ledge.serial = sourceLedge.serial;
   ledge.intangible = sourceLedge.intangible;
   ledge.regrab = sourceLedge.regrab;
+  const cannon = target.cannon;
+  const sourceCannon = source.cannon;
+  cannon.held = sourceCannon.held;
+  cannon.firing = sourceCannon.firing;
+  cannon.cooldown = sourceCannon.cooldown;
   const status = target.status;
   const sourceStatus = source.status;
   status.damage = sourceStatus.damage;
