@@ -12,7 +12,7 @@ const COMMANDS: Record<string, { readonly usage: string; readonly load: () => Pr
   build: { usage: "build --base BASE.w3m --container MAP.w3x --assets DIR --summon DIR --name NAME --out OUT.w3x [--packager PATH] [--profile main|integrity|playable|physics-probe|frame-cost|stack-trace]", load: async () => (await import("./wisp/commands/map")).build },
   rebuild: { usage: "rebuild MAP.w3x [--profile main|integrity|playable|physics-probe|frame-cost|stack-trace]", load: async () => (await import("./wisp/commands/map")).rebuild },
   fresh: { usage: "fresh MAP.w3x [--rebuild] [--from-game] [--no-quick] [--profile main|integrity|playable|physics-probe|frame-cost|stack-trace]", load: async () => (await import("./wisp/commands/fresh")).fresh },
-  tapes: { usage: "tapes   (LUA=<32-bit lua>)", load: async () => (await import("./wisp/commands/tapes")).tapes },
+  tapes: { usage: "tapes   (LUA=<stock 32-bit lua>; TOWARD_ZERO_LUA=<32-bit lua rounding + - * toward zero>, else built with nix)", load: async () => (await import("./wisp/commands/tapes")).tapes },
   oracle: { usage: "oracle", load: async () => (await import("./wisp/commands/oracle")).oracle },
   parity: { usage: "parity numeric [RESULT_FILE ...] | capture OPTIONS... | result CAPTURE_DIR | headless --helper BINARY --out DIR", load: async () => (await import("./wisp/commands/parity")).parity },
   integrity: { usage: "integrity capture OPTIONS... | result CAPTURE_DIR | headless --helper BINARY --out DIR", load: async () => (await import("./wisp/commands/parity")).integrity },

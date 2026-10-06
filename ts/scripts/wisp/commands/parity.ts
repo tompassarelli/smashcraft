@@ -4,6 +4,8 @@
 // part of Wisp's traced Effect program.
 import { Effect } from "effect";
 import { runNumericParity } from "../../numericParity";
+import { luaRuntimes } from "../luaRuntimes";
+import { tsDirectory } from "../project";
 import { captureMatches, parseCaptureArguments } from "../../integrity/capture";
 import { IntegrityFailure, reconcileCapture } from "../../integrity/evidence";
 import { captureHeadless, parseHeadlessArguments } from "../../integrity/headless";
@@ -21,16 +23,23 @@ const reconciled = (directory: string) =>
 
 export const parity: Command = ([mode, ...args]) => {
   switch (mode) {
-    case "numeric":
-      return Effect.tryPromise({
-        try: () => runNumericParity(args),
-        catch: (cause) => new IntegrityFailure({ operation: "run numeric parity", path: "TypeScriptToLua/Lua", cause: describeCause(cause) }),
-      }).pipe(
+    case "numeric": {
+      // Supplied native results need no Lua; otherwise the corpus runs in a stock and a toward-zero Lua32.
+      const luas: Effect.Effect<readonly (readonly [string, string])[], string> = args.length > 0
+        ? Effect.succeed([])
+        : luaRuntimes(tsDirectory).pipe(Effect.map(({ nearest, towardZero }) => [["stock Lua32", nearest], ["toward-zero Lua32", towardZero]]));
+      return luas.pipe(
+        Effect.mapError((cause) => new IntegrityFailure({ operation: "find the 32-bit Luas", path: "LUA, TOWARD_ZERO_LUA", cause })),
+        Effect.flatMap((runtimes) => Effect.tryPromise({
+          try: () => runNumericParity(args, runtimes),
+          catch: (cause) => new IntegrityFailure({ operation: "run numeric parity", path: "TypeScriptToLua/Lua", cause: describeCause(cause) }),
+        })),
         Effect.flatMap((passed) => passed
           ? Effect.void
           : Effect.fail(new IntegrityFailure({ operation: "run numeric parity", path: "TypeScriptToLua/Lua", cause: "the numeric corpus was empty or had mismatches" }))),
         step("numeric Lua parity"),
       );
+    }
     case "capture":
       return Effect.try({
         try: () => parseCaptureArguments(args),
