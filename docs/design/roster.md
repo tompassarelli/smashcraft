@@ -58,7 +58,7 @@ Smash timings describe an uncharged move. Hold charging immediately before its f
 
 ### Knockback and hitstun
 
-Use the project’s existing knockback, hitlag, hitstun, DI, shieldstun, and staling formulas. Do not replace core physics to make this document’s estimates match. Each attack names a tuning class: LINK for a short follow-up opportunity, POKE for separation without a strong launch, LAUNCH for an aerial chase, EDGE for a low outward launch, KILL for a finisher, or SPIKE for an airborne downward launch.
+Use the project’s existing knockback, hitlag, hitstun, DI, shieldstun, and staling formulas. Do not replace core physics to make this document’s estimates match. Each attack names a tuning class: LINK for a short follow-up opportunity, POKE for separation without a strong launch, LAUNCH for an aerial chase, EDGE for a low outward launch, KILL for a finisher, or SPIKE for an airborne downward launch. Throws add two (#107): JUGGLE for an up throw's guaranteed short juggle and CHASE for a down throw's tech chase, tuned per kit until `bun wisp interactions` reports the role in smashcraft:tools/move-data/interactions/throws.md.
 
 Calibrate classes in an empty test stage against a reference weight at 60 percent, no DI and no walls. Indicative displacement along the launch direction after 30 ticks: LINK 0.6–1.2H; POKE 1.2–2.0H; LAUNCH 2.0–3.0H; EDGE 2.5–3.5H; KILL 3.5–5.0H; SPIKE downward 2.5–3.5H before gravity. These are test bands, not a second knockback formula. Publish the actual coefficients and measured outcomes once calibrated. Adjust hitstun separately through the established formula rather than assuming distance proves a true combo. LINK never guarantees a follow-up without testing DI, percentage, weight, and move timing.
 
@@ -76,7 +76,7 @@ Offensive specials may be interrupted by being hit normally. No generic B-to-B o
 
 The grab line for each fighter gives standing F/A/R and reach. Dash grab uses standing startup +3 frames and recovery +8 frames; active duration and reach are unchanged unless implemented geometry requires movement. A successful grab latches one target at a defined anchor and ends grab hitboxes. Grabs beat shield, but never intangible opponents. Mutual grabs on the same frame break both grabs with symmetric separation and 12 frames of recovery.
 
-Use the existing escape system if one exists. Otherwise use a deterministic 45-frame base hold plus min(30, floor(victim percent / 5)) frames, reduced by validated new input edges at most once every three frames. Each accepted edge removes two hold frames. Throw input starts immediately and locks out pummel. Each kit authors its pummel's look (no launch; no mana gain or healing); its 3 percent damage, hold length, mashing and the pummel's timing and single use are shared (smashcraft:docs/gameplay-design.md, "Grab holds and pummels", #101). Throws list damage, release frame counted from throw entry, thrower recovery after release, launch angle, and knockback class. Targets are held until release and then enter normal hitstun. Do not add a second guaranteed hit via throw animation contact.
+Use the existing escape system if one exists. Otherwise use a deterministic 45-frame base hold plus min(30, floor(victim percent / 5)) frames, reduced by validated new input edges at most once every three frames. Each accepted edge removes two hold frames. Throw input starts immediately and locks out pummel. Each kit authors its pummel's look (no launch; no mana gain or healing); its 3 percent damage, hold length, mashing and the pummel's timing and single use are shared (smashcraft:docs/gameplay-design.md, "Grab holds and pummels", #101). Throws list damage, release frame counted from throw entry, thrower recovery after release, launch angle, and knockback class. Every up throw is a JUGGLE and every down throw a CHASE; forward and back throws follow the kit's identity (smashcraft:docs/gameplay-design.md, "Throw roles"). The tables of kits not yet built keep their first-pass rows until the kit is measured. Targets are held until release and then enter normal hitstun. Do not add a second guaranteed hit via throw animation contact.
 
 Use #85's adopted regrab rule: a fighter cannot be grabbed while its remaining hitstun comes from a throw, including remaining hitstun after a gentle landing. This restriction ends with that throw hitstun or a replacing hit, and does not block ordinary attacks. Do not add a fixed post-throw protection timer. Throws cannot be cancelled or redirected after entry. Thrower movement is limited to the scripted anchor motion; no walk-off carrying. In multiplayer, an external hit breaks the hold before release and clears both actors consistently. Resolve same-frame external hits, throw releases, and grabs with stable rules; do not let player-slot iteration decide.
 
@@ -161,8 +161,8 @@ Standing grab 7/2/22, reach 0.55H, one-handed collar catch. Pummel: pommel strik
 | --- | --- | --- | --- | --- |
 | Forward | Shoulder shove with blade hilt | 7 | f12, R18 | 35, EDGE |
 | Back | Pivot and kick behind | 8 | f15, R22 | 40, EDGE |
-| Up | Hilt lifts target overhead | 6 | f13, R17 | 85, LAUNCH |
-| Down | Knee check and low toss | 5 | f16, R20 | 65, LINK |
+| Up | Hilt lifts target overhead | 6 | f13, R10 | 85, JUGGLE |
+| Down | Knee check and low toss | 5 | f16, R20 | 65, CHASE |
 
 **Ultimate — Bladestorm:** f24 startup, 120-frame active spin on f24–143 with ground speed capped at half normal run speed, reach L, six possible 3-damage LINK hits at 70 degrees per target at least 18 frames apart, then a single 10-damage KILL finisher at 45 degrees on f144–146; R40. No invulnerability or armor, no grab, and no ledge travel off solid ground. One activation ID tracks all hit limits. Avoid literal uninterruptible Warcraft Bladestorm.
 
@@ -218,8 +218,8 @@ Standing grab 8/2/25, reach 0.50H. Pummel: helmet headbutt.
 | --- | --- | --- | --- | --- |
 | Forward | Hammer-hilt shove | 9 | f14, R22 | 35, EDGE |
 | Back | Over-the-shoulder heave | 10 | f18, R27 | 40, KILL |
-| Up | Hammer-assisted toss | 8 | f16, R23 | 90, LAUNCH |
-| Down | Ground slam with rebound | 7 | f20, R26 | 75, LINK |
+| Up | Hammer-assisted toss | 8 | f16, R13 | 90, JUGGLE |
+| Down | Ground slam with rebound | 7 | f20, R26 | 75, CHASE |
 
 **Ultimate — Avatar:** f30 vulnerable transformation, R12, then 480 frames at weight multiplier 1.15 and damage multiplier 1.10. No permanent armor, immunity, heal, size change, or knockback cleanse. Existing knockback at activation is not retroactively recomputed. Visual stone overlay must preserve silhouette.
 
@@ -275,8 +275,8 @@ Standing grab 6/2/22, reach 0.48H. Pummel: elbow to the ribs.
 | --- | --- | --- | --- | --- |
 | Forward | Knee and shove | 6 | f10, R18 | 35, EDGE |
 | Back | Vault behind and kick | 7 | f14, R21 | 40, EDGE |
-| Up | Blade-hilt launch | 5 | f11, R16 | 85, LAUNCH |
-| Down | Trip and upward kick | 4 | f14, R20 | 70, LINK |
+| Up | Blade-hilt launch | 5 | f11, R9 | 85, JUGGLE |
+| Down | Trip and upward kick | 4 | f14, R20 | 70, CHASE |
 
 **Ultimate — Spirit of Vengeance:** f24 startup and R18; for 360 frames, every completed normal creates one delayed spectral copy of that attack 12 frames later at its recorded world position. Copies deal 35 percent damage, POKE knockback, no statuses, and cannot spawn more copies. Maximum one queued copy and one active copy. Copy the recorded active hitbox timeline and facing of the normal, starting at its first active frame; it lasts that normal’s active duration and never follows the owner afterward. The opponent sees the ghost windup. No duplicated grabs, specials, or projectiles. If queuing would exceed the cap, the new copy is skipped deterministically.
 
@@ -378,8 +378,8 @@ Standing grab 10/2/28, reach 0.70H. Visible spectral hand, no tether recovery or
 | --- | --- | --- | --- | --- |
 | Forward | Ice-palm discharge | 7 | f14, R23 | 35, EDGE |
 | Back | Rotate target in spectral hand | 8 | f18, R26 | 40, EDGE |
-| Up | Raise on an ice pillar | 7 | f17, R25 | 90, LAUNCH |
-| Down | Drop and burst beneath target | 6 | f19, R26 | 75, LINK |
+| Up | Raise on an ice pillar | 7 | f17, R13 | 90, JUGGLE |
+| Down | Drop and burst beneath target | 6 | f19, R26 | 75, CHASE |
 
 **Ultimate — Death and Decay:** ground-only, f36 telegraph to a marked 2.0H-radius region centered 1.0H ahead; channel for up to 180 frames. Six 3-damage ticks per target at least 30 frames apart, no flinch, then a 12-damage LAUNCH burst at 80 degrees if the channel completes. Hitting or grabbing Lich ends the field without finisher. R35 after release. No percentage-health damage or unavoidable map-wide effect.
 
@@ -452,8 +452,8 @@ Standing grab 8/2/25, reach 0.55H. Pummel: hammer-hilt tap.
 | --- | --- | --- | --- | --- |
 | Forward | Palm of judgment | 8 | f14, R23 | 40, EDGE |
 | Back | Shoulder turn and toss | 9 | f18, R26 | 40, EDGE |
-| Up | Lift with a shaft of light | 7 | f16, R22 | 90, LAUNCH |
-| Down | Kneeling hammer slam beside target | 6 | f20, R26 | 70, LINK |
+| Up | Lift with a shaft of light | 7 | f16, R9 | 90, JUGGLE |
+| Down | Kneeling hammer slam beside target | 6 | f20, R26 | 70, CHASE |
 
 **Ultimate — Guardian of the Light:** f30 vulnerable activation, R15, then 360 frames of +10 percent damage and three visible protective charges. A charge absorbs one hit reaction up to 6 damage while still taking damage; at most one charge consumed per 30 frames. Grabs and larger hits bypass the protection. No resurrection, extra stocks, unlimited heal, or prolonged invulnerability.
 
@@ -528,8 +528,8 @@ Standing grab 7/3/26, reach 0.65H. Pummel: claw squeeze. No automatic lifesteal.
 | --- | --- | --- | --- | --- |
 | Forward | Wing-assisted shove | 8 | f12, R20 | 35, EDGE |
 | Back | Spin and fling | 10 | f18, R25 | 40, KILL |
-| Up | Toss into bat cloud | 7 | f15, R21 | 85, LAUNCH |
-| Down | Claw pin then kick free | 6 | f19, R25 | 65, LINK |
+| Up | Toss into bat cloud | 7 | f15, R11 | 85, JUGGLE |
+| Down | Claw pin then kick free | 6 | f19, R25 | 65, CHASE |
 
 **Ultimate — Infernal:** f30 cast places a clearly visible marker 1.2H ahead. An infernal lands at f60 for 14 damage, LAUNCH at 75 degrees, radius 0.8H, then stays as a stationary hazard for 180 frames. It performs exactly two telegraphed swipes at spawn+60 and spawn+120, each 10 damage, EDGE at 40 degrees, reach 0.8H, with 20 durability. No autonomous chasing, invulnerable summon, or instant full-stage hit. Dreadlord’s casting action ends f75.
 
@@ -582,8 +582,8 @@ Standing grab 8/2/24, reach 0.55H. Pummel: mask headbutt.
 | --- | --- | --- | --- | --- |
 | Forward | Glaive-shaft push toward setup | 7 | f12, R20 | 35, EDGE |
 | Back | Hip turn and spirit shove | 8 | f16, R24 | 40, EDGE |
-| Up | Loa-assisted toss | 6 | f14, R20 | 85, LAUNCH |
-| Down | Sweep and short bounce | 5 | f17, R23 | 70, LINK |
+| Up | Loa-assisted toss | 6 | f14, R8 | 85, JUGGLE |
+| Down | Sweep and short bounce | 5 | f17, R23 | 70, CHASE |
 
 **Ultimate — Big Bad Voodoo:** f30 ground cast and R15 create a visible 1.0H-radius ward zone lasting 300 frames, with a 20-durability totem. Owner and allies inside take 20 percent less damage; no reduction to hitstun, knockback, grab vulnerability, or shield damage. The ward never grants invulnerability and can be destroyed. In singles it protects its owner only. Count damage reduction before percent accumulation but keep knockback based on the unreduced attack damage for stable expectations.
 

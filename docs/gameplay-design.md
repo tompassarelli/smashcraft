@@ -153,6 +153,50 @@ This removes direct throw-to-regrab chains while retaining true throw-to-attack
 combos and attack-to-grab reads. It does not grant a timed immunity after control
 returns or forbid grabs during ordinary attack hitstun.
 
+## Throw roles
+
+Owner direction, 6 Oct 2026 (#107): grabs and throws are launchers with a
+deliberate trade-off, and shields cannot trivially escape them.
+
+- **Up throw: a guaranteed short juggle.** Every fighter's up throw leaves
+  its victim out of tumble through mid percent (its JUGGLE class) and the
+  thrower recovers 8 to 13 frames after the release, so one or two
+  follow-ups land whatever the victim does at 0, 30 and 60%. Past that the
+  victim tumbles and can tech, so the follow-up becomes a read: the up throw
+  is the safer, smaller reward.
+- **Down throw: a tech chase.** Every down throw tumbles its victim from 0%
+  (its CHASE class, knockback above 80) and lands it 14 to 35 frames after
+  the release, inside the throw's hitstun, so the victim must tech in place,
+  tech roll either way or miss the tech. No down throw guarantees a
+  follow-up at 0-60%; each tech option has a follow-up that lands when the
+  thrower reads it. It is the harder throw with the higher ceiling.
+- **Forward and back throws** follow each fighter's identity (spacing, edge
+  position, Mountain King's and the Dreadlord's KILL back throws); #107
+  leaves them unchanged.
+
+Measured by `bun wisp interactions` for every selectable fighter in
+smashcraft:tools/move-data/interactions/throws.md
+(smashcraft:ts/scripts/throwRoles.ts).
+
+**Grabs against jump out of shield.** A grab catches a fighter within the
+first 7 frames after a ground jump leaves the deck as if its feet were still
+at the grabber's height (EARLY_ASCENT_GRAB_FRAMES in
+smashcraft:ts/src/game/sim/moves.ts). Seven is the slowest standing grab's
+first active frame (the Lich, frame 10) less the fastest jump squat (3), so a
+grab started on the frame a shielding opponent jumps catches it for every
+pair of fighters (smashcraft:ts/src/game/match/jumpOutOfShieldGrabContracts.tests.ts).
+In Melee the standing catch boxes are live on timeline frames 6 to 8
+(smashcraft:docs/smash-melee-reference/retail-grab-events.json, ftCo_Catch)
+and jump squat runs 3 to 8 frames (ftCo_KneeBend,
+[movement](design/melee/movement.md#jumps)), so a jump from a 3-frame squat
+is already 4 frames into its ascent when a same-frame grab's box appears.
+Ultimate gives every fighter a 3-frame jump squat and adds about 4 frames to
+a grab out of shield, against 3 for a jump
+([EventHubs](https://www.eventhubs.com/news/2018/dec/19/trouble-punishing-shielded-moves-super-smash-bros-ultimate-out-shield-mechanics-work-very-differently-and-require-change-habits));
+Rivals 2 is not sourced. The window covers grabs only: a grab pressed 6 or
+more frames after the jump misses every fighter, and no attack gets the
+window, so jumping out of shield still escapes slower attacks.
+
 ## Platforms
 
 Owner decisions, 6 Oct 2026 (#103), implemented in
