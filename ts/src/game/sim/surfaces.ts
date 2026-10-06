@@ -7,7 +7,7 @@ import { WALL_TECH_STARTUP_FRAMES, inGrabContext, isTumbling } from "./condition
 import { type Fighter, WALL_JUMP_FLICK_FRAMES, WALL_TECH_JUMP_INPUT_WINDOW_FRAMES } from "./fighter";
 import { setWorldMotionValue, totalVelocityX, totalVelocityZ } from "./motion";
 import type { Controls } from "./roster";
-import { MAIN_DECK_BODY_SURFACES, type SolidSurface, solidSurfaceAt, solidSurfaceCount, surfaceZ } from "./stage";
+import { MAIN_DECK_BODY_SURFACES, type SolidSurface, mainDeckZ, solidSurfaceAt, solidSurfaceCount } from "./stage";
 import { stickX } from "./stick";
 import { clearDownState } from "./transitions";
 import { melee } from "./tuning";
@@ -293,7 +293,7 @@ function mainDeckSideX(stage: number, side: number, z: number): number | undefin
  */
 export function leaveMainDeckBody(f: Fighter, stage: number): number {
   const { motion } = f;
-  if (solidSurfaceCount(stage) === 0 || motion.z >= surfaceZ(stage, 0)) return 0;
+  if (solidSurfaceCount(stage) === 0 || motion.z >= mainDeckZ(stage)) return 0;
   const right = mainDeckSideX(stage, 1, motion.z);
   const left = mainDeckSideX(stage, -1, motion.z);
   if (right === undefined || left === undefined || motion.x <= left || motion.x >= right) return 0;

@@ -9,7 +9,7 @@ import { AIR_DODGE_ANIMATION_FRAMES } from "./jumpsAndDodges";
 import { LEDGE_ATTACK_FRAMES } from "./moves";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type Controls, type Roster, controlsAt, fighterAt, isActive } from "./roster";
-import { surfaceLeft, surfaceRight, surfaceZ } from "./stage";
+import { mainDeckLeft, mainDeckRight, mainDeckZ } from "./stage";
 import { BODY_HALF_WIDTH } from "./surfaces";
 import { checkBlastZone } from "./stocks";
 import { beginAttack, cancelAttack, clearDownState, clearLedge, clearTech, leaveLedge } from "./transitions";
@@ -82,7 +82,7 @@ export function ledgeCatchBox(character: Character): LedgeCatchBox {
 }
 
 function ledgeX(stage: number, side: number): number {
-  return side < 0 ? surfaceLeft(stage, 0) : surfaceRight(stage, 0);
+  return side < 0 ? mainDeckLeft(stage) : mainDeckRight(stage);
 }
 
 /**
@@ -113,14 +113,14 @@ function ledgeCandidate(f: Fighter, stage: number, input: Readonly<Controls>): n
   const outside = f32(f32(motion.x - edge) * side);
   const outsideBefore = f32(f32(f32(motion.x - motion.deltaX) - edge) * side);
   if (outside <= 0 || min(outside, outsideBefore) >= box.reach) return 0;
-  const below = f32(surfaceZ(stage, 0) - motion.z);
+  const below = f32(mainDeckZ(stage) - motion.z);
   const belowBefore = f32(below + motion.deltaZ);
   return below > box.lowest && belowBefore < box.highest ? side : 0;
 }
 
 function ledgeDistance(f: Fighter, stage: number, side: number): number {
   const dx = f32(f.motion.x - ledgeX(stage, side));
-  const dz = f32(f.motion.z - surfaceZ(stage, 0));
+  const dz = f32(f.motion.z - mainDeckZ(stage));
   return f32(f32(dx * dx) + f32(dz * dz));
 }
 
@@ -136,7 +136,7 @@ function catchLedge(f: Fighter, stage: number, side: number): void {
   ledge.serial++;
   ledge.intangible = LEDGE_INTANGIBLE_FRAMES;
   motion.x = f32(ledgeX(stage, side) + f32(side * LEDGE_HANG_OUTSET));
-  motion.z = f32(surfaceZ(stage, 0) - LEDGE_HANG_DEPTH);
+  motion.z = f32(mainDeckZ(stage) - LEDGE_HANG_DEPTH);
   f.facing = -side;
   motion.grounded = false;
   motion.surface = undefined;
@@ -234,7 +234,7 @@ export function advanceLedge(world: Roster, slot: number, stage: number, input: 
   const inset = ledge.state === LedgeState.roll ? 140.0 : ledge.state === LedgeState.attack ? 64.0 : LEDGE_CLIMB_INSET;
   const remaining = f32(1 - progress);
   motion.x = f32(ledgeX(stage, ledge.side) + f32(ledge.side * f32(f32(LEDGE_HANG_OUTSET * remaining) - f32(inset * progress))));
-  motion.z = f32(surfaceZ(stage, 0) - f32(LEDGE_HANG_DEPTH * remaining));
+  motion.z = f32(mainDeckZ(stage) - f32(LEDGE_HANG_DEPTH * remaining));
   motion.grounded = ledge.frame >= LEDGE_MOUNT_FRAMES;
   motion.surface = motion.grounded ? 0 : undefined;
   if (ledge.state === LedgeState.attack) {

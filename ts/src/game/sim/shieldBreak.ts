@@ -50,7 +50,7 @@ export function beginShieldBreak(world: Roster, slot: number): void {
 }
 
 /** One frame of a shield break; true while it continues or the fighter is out, which ends the fighter's frame. */
-export function advanceShieldBreak(world: Roster, slot: number, stage: number, input: Readonly<Controls>): boolean {
+export function advanceShieldBreak(world: Roster, slot: number, stage: number, matchFrame: number, input: Readonly<Controls>): boolean {
   checkBlastZone(world, slot);
   const f = fighterAt(world, slot);
   const { motion, shield } = f;
@@ -61,9 +61,9 @@ export function advanceShieldBreak(world: Roster, slot: number, stage: number, i
     const oldZ = motion.z;
     applyMeleeGravity(f);
     moveMeleeVerticalVelocity(f);
-    const landing = landingAlongShift(f, stage, motion.x, oldZ, motion.x, motion.z);
+    const landing = landingAlongShift(f, stage, matchFrame, motion.x, oldZ, motion.x, motion.z, true);
     if (landing !== undefined) {
-      motion.z = surfaceZ(stage, landing);
+      motion.z = surfaceZ(stage, landing, matchFrame);
       setWorldMotionValue(motion.meleeZ, motion.z);
       motion.surface = landing;
       motion.grounded = true;

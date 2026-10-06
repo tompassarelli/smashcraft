@@ -25,6 +25,8 @@ export interface MatchState {
   stockCount: number;
   timeLimitMinutes: number;
   remainingFrames: number;
+  /** Frames this match has run; moving decks follow their paths by it. */
+  matchFrame: number;
   timedOut: boolean;
   practice: boolean;
 }
@@ -35,7 +37,7 @@ export function createMatchState(): MatchState {
     characterReadiness: [false, false, false, false], rematchReadiness: [false, false, false, false],
     departedMask: 0, interrupted: false, humanMask: 1, humanFighterMask: 1, humanCount: 1, computerMask: 0,
     stageChoice: 0, winner: undefined, stockCount: 3, timeLimitMinutes: 7,
-    remainingFrames: 7 * 60 * MATCH_TICKS_PER_SECOND, timedOut: false, practice: false,
+    remainingFrames: 7 * 60 * MATCH_TICKS_PER_SECOND, matchFrame: 0, timedOut: false, practice: false,
   };
 }
 
@@ -125,6 +127,7 @@ export function copyMatchState(target: MatchState, source: Readonly<MatchState>)
   target.stockCount = source.stockCount;
   target.timeLimitMinutes = source.timeLimitMinutes;
   target.remainingFrames = source.remainingFrames;
+  target.matchFrame = source.matchFrame;
   target.timedOut = source.timedOut;
   target.practice = source.practice;
   for (const slot of PARTICIPANT_SLOTS) {
@@ -204,6 +207,7 @@ export function requestStart(game: MatchState, slot: number): boolean {
   game.timedOut = false;
   game.practice = practiceSelected(game);
   game.remainingFrames = game.practice ? 0 : game.timeLimitMinutes * 60 * MATCH_TICKS_PER_SECOND;
+  game.matchFrame = 0;
   game.phase = Phase.match;
   return true;
 }

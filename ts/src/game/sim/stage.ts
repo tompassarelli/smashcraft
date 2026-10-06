@@ -1,7 +1,9 @@
 // Stage geometry. Stage 0 is one flat deck; stage 1 adds two raised
-// pass-through decks. Deck 0 is always the main deck.
+// pass-through decks; stages 3 and 4 add pass-through decks that move along
+// authored paths. Deck 0 is always the main deck, which never moves.
 import { at } from "wisp/src/runtime/lookup";
 import { f32 } from "wisp/src/sim/f32";
+import { floorMod } from "wisp/src/sim/intMath";
 import { min } from "../../runtime/numbers";
 import { SurfaceContact } from "./codes";
 import { melee } from "./tuning";
@@ -9,37 +11,216 @@ import { squareRoot } from "./warcraftMath";
 
 /** Stage 1's layout with solid raised decks; collision tests only, never selectable. */
 export const SOLID_DECK_TEST_STAGE = 2;
+/** One pass-through deck drifting back and forth above the main deck, as on Ultimate's Smashville; the stage menu doesn't offer it. */
+export const DRIFTING_DECK_STAGE = 3;
+/** Two pass-through decks on their own timed patterns, as on Ultimate's Town and City; the stage menu doesn't offer it. */
+export const PATTERNED_DECKS_STAGE = 4;
 
-function hasRaisedDecks(stage: number): boolean {
-  return stage === 1 || stage === SOLID_DECK_TEST_STAGE;
+const MAIN_DECK_LEFT = -600.0;
+const MAIN_DECK_RIGHT = 600.0;
+const MAIN_DECK_Z = 0.0;
+
+/** The main deck's left ledge, which every stage has. */
+export function mainDeckLeft(_stage: number): number {
+  return MAIN_DECK_LEFT;
+}
+
+/** The main deck's right ledge. */
+export function mainDeckRight(_stage: number): number {
+  return MAIN_DECK_RIGHT;
+}
+
+/** The main deck's walking height. */
+export function mainDeckZ(_stage: number): number {
+  return MAIN_DECK_Z;
+}
+
+/** One leg of a deck's path: over `frames` frames its center travels in a straight line to (x, z). */
+interface PathLeg {
+  readonly frames: number;
+  readonly x: number;
+  readonly z: number;
+}
+
+/** A leg as the path runs it: from where the leg before ended, `step` a frame. */
+interface RunLeg {
+  readonly frames: number;
+  readonly fromX: number;
+  readonly fromZ: number;
+  readonly stepX: number;
+  readonly stepZ: number;
+}
+
+/** Where a moving deck is on one match frame, and how far it moved from the frame before. */
+interface DeckPose {
+  frame: number | undefined;
+  left: number;
+  right: number;
+  z: number;
+  shiftX: number;
+  shiftZ: number;
+}
+
+/**
+ * A deck that never moves, or one whose center follows a closed path: it
+ * starts at its first leg's start, runs every leg, the last ending where the
+ * first began, and repeats. Match frame 0 is `phase` frames into the path.
+ */
+type Deck =
+  | { readonly kind: "fixed"; readonly left: number; readonly right: number; readonly z: number; readonly pass: boolean }
+  | { readonly kind: "moving"; readonly halfWidth: number; readonly phase: number; readonly period: number; readonly legs: readonly RunLeg[]; readonly pose: DeckPose };
+
+function fixed(left: number, right: number, z: number, pass: boolean): Deck {
+  return { kind: "fixed", left, right, z, pass };
+}
+
+/** A pass-through deck `halfWidth` to each side of a center that starts at (x, z) and follows `legs`. */
+function moving(halfWidth: number, x: number, z: number, phase: number, legs: readonly PathLeg[]): Deck {
+  const run: RunLeg[] = [];
+  let fromX = x;
+  let fromZ = z;
+  let period = 0;
+  for (const leg of legs) {
+    run.push({ frames: leg.frames, fromX, fromZ, stepX: f32(f32(leg.x - fromX) / leg.frames), stepZ: f32(f32(leg.z - fromZ) / leg.frames) });
+    fromX = leg.x;
+    fromZ = leg.z;
+    period += leg.frames;
+  }
+  const pose: DeckPose = { frame: undefined, left: 0.0, right: 0.0, z: 0.0, shiftX: 0.0, shiftZ: 0.0 };
+  return { kind: "moving", halfWidth, phase, period, legs: run, pose };
+}
+
+const MAIN_DECK = fixed(MAIN_DECK_LEFT, MAIN_DECK_RIGHT, MAIN_DECK_Z, false);
+const RAISED_DECKS = [MAIN_DECK, fixed(-420.0, -110.0, 170.0, true), fixed(110.0, 420.0, 170.0, true)];
+const SOLID_RAISED_DECKS = [MAIN_DECK, fixed(-420.0, -110.0, 170.0, false), fixed(110.0, 420.0, 170.0, false)];
+
+/**
+ * Smashville's deck runs from one side to the other and pauses there. This
+ * one is 360 wide at 180 up, travels 600 at 2.5 a frame, and waits a second
+ * at each end: ten seconds a round trip, starting from the middle.
+ */
+const DRIFTING_DECK = moving(180.0, -300.0, 180.0, 180, [
+  { frames: 60, x: -300.0, z: 180.0 },
+  { frames: 240, x: 300.0, z: 180.0 },
+  { frames: 60, x: 300.0, z: 180.0 },
+  { frames: 240, x: -300.0, z: 180.0 },
+]);
+
+/** A lift on the left that rises from 120 to 300 at 1.5 a frame and pauses at the bottom and the top: seven seconds a cycle. */
+const LIFT_DECK = moving(130.0, -330.0, 120.0, 0, [
+  { frames: 90, x: -330.0, z: 120.0 },
+  { frames: 120, x: -330.0, z: 300.0 },
+  { frames: 90, x: -330.0, z: 300.0 },
+  { frames: 120, x: -330.0, z: 120.0 },
+]);
+
+/**
+ * A deck on the right looping a rectangle at 1.5 a frame, out along the
+ * bottom, up, back along the top and down, pausing half a second at two
+ * corners: 500 frames a lap. Its span never meets the lift's.
+ */
+const LOOP_DECK = moving(120.0, 210.0, 150.0, 0, [
+  { frames: 140, x: 420.0, z: 150.0 },
+  { frames: 30, x: 420.0, z: 150.0 },
+  { frames: 80, x: 420.0, z: 270.0 },
+  { frames: 140, x: 210.0, z: 270.0 },
+  { frames: 30, x: 210.0, z: 270.0 },
+  { frames: 80, x: 210.0, z: 150.0 },
+]);
+
+const NO_DECKS: readonly Deck[] = [];
+const STAGE_DECKS: readonly (readonly Deck[])[] = [
+  [MAIN_DECK],
+  RAISED_DECKS,
+  SOLID_RAISED_DECKS,
+  [MAIN_DECK, DRIFTING_DECK],
+  [MAIN_DECK, LIFT_DECK, LOOP_DECK],
+];
+
+function decks(stage: number): readonly Deck[] {
+  return stage >= 0 && stage < STAGE_DECKS.length ? at(STAGE_DECKS, stage) : NO_DECKS;
 }
 
 /** Walkable decks. */
 export function surfaceCount(stage: number): number {
-  return stage === 0 ? 1 : hasRaisedDecks(stage) ? 3 : 0;
+  return decks(stage).length;
 }
 
-export function surfaceLeft(stage: number, index: number): number {
-  if (index === 0) return -600.0;
-  if (hasRaisedDecks(stage) && index === 1) return -420.0;
-  if (hasRaisedDecks(stage) && index === 2) return 110.0;
-  return 0.0;
+// Preallocated: every frame asks for each moving deck's center.
+const center = { x: 0.0, z: 0.0 };
+
+function placeCenter(deck: Extract<Deck, { kind: "moving" }>, frame: number): void {
+  let t = floorMod(frame + deck.phase, deck.period);
+  for (const leg of deck.legs) {
+    if (t < leg.frames) {
+      center.x = leg.stepX === 0 ? leg.fromX : f32(leg.fromX + f32(leg.stepX * t));
+      center.z = leg.stepZ === 0 ? leg.fromZ : f32(leg.fromZ + f32(leg.stepZ * t));
+      return;
+    }
+    t -= leg.frames;
+  }
 }
 
-export function surfaceRight(stage: number, index: number): number {
-  if (index === 0) return 600.0;
-  if (hasRaisedDecks(stage) && index === 1) return -110.0;
-  if (hasRaisedDecks(stage) && index === 2) return 420.0;
-  return 0.0;
+/**
+ * A moving deck's pose on `frame`. Every fighter asks for it on every frame,
+ * and the confirmed match, prediction and replays again, so the last frame
+ * asked is kept: a pure function's cache, which never changes a result.
+ */
+function poseAt(deck: Extract<Deck, { kind: "moving" }>, frame: number): Readonly<DeckPose> {
+  const { pose } = deck;
+  if (pose.frame === frame) return pose;
+  placeCenter(deck, frame - 1);
+  const previousX = center.x;
+  const previousZ = center.z;
+  placeCenter(deck, frame);
+  pose.frame = frame;
+  pose.left = f32(center.x - deck.halfWidth);
+  pose.right = f32(center.x + deck.halfWidth);
+  pose.z = center.z;
+  pose.shiftX = f32(center.x - previousX);
+  pose.shiftZ = f32(center.z - previousZ);
+  return pose;
 }
 
-export function surfaceZ(stage: number, index: number): number {
-  return hasRaisedDecks(stage) && index > 0 ? 170.0 : 0.0;
+/** Deck `index`'s left end on match frame `frame`. */
+export function surfaceLeft(stage: number, index: number, frame: number): number {
+  const deck = at(decks(stage), index);
+  return deck.kind === "fixed" ? deck.left : poseAt(deck, frame).left;
 }
 
-/** Raised decks can be dropped through and landed on from below. */
+/** Deck `index`'s right end on match frame `frame`. */
+export function surfaceRight(stage: number, index: number, frame: number): number {
+  const deck = at(decks(stage), index);
+  return deck.kind === "fixed" ? deck.right : poseAt(deck, frame).right;
+}
+
+/** Deck `index`'s walking height on match frame `frame`. */
+export function surfaceZ(stage: number, index: number, frame: number): number {
+  const deck = at(decks(stage), index);
+  return deck.kind === "fixed" ? deck.z : poseAt(deck, frame).z;
+}
+
+/** Whether deck `index` ever moves. */
+export function surfaceMoves(stage: number, index: number): boolean {
+  return at(decks(stage), index).kind === "moving";
+}
+
+/** How far deck `index` moved sideways from the frame before `frame`. */
+export function surfaceShiftX(stage: number, index: number, frame: number): number {
+  const deck = at(decks(stage), index);
+  return deck.kind === "fixed" ? 0.0 : poseAt(deck, frame).shiftX;
+}
+
+/** How far deck `index` rose from the frame before `frame`; negative when it sank. */
+export function surfaceShiftZ(stage: number, index: number, frame: number): number {
+  const deck = at(decks(stage), index);
+  return deck.kind === "fixed" ? 0.0 : poseAt(deck, frame).shiftZ;
+}
+
+/** Raised and moving decks can be dropped through and landed on from below; stage 2's raised decks are solid. */
 export function surfacePass(stage: number, index: number): boolean {
-  return stage === 1 && index > 0;
+  const deck = at(decks(stage), index);
+  return deck.kind === "moving" || deck.pass;
 }
 
 /**
@@ -88,20 +269,20 @@ const REFERENCE_RIGHT_SIDE: readonly ReferencePoint[] = [
 const REFERENCE_UNDERSIDE_START = 5;
 
 /** A reference point on the main deck's `side`, as far from this deck's ledge as from Melee's. */
-function mainDeckX(side: number, point: ReferencePoint): number {
-  const ledge = side < 0 ? surfaceLeft(0, 0) : surfaceRight(0, 0);
+function referenceX(side: number, point: ReferencePoint): number {
+  const ledge = side < 0 ? MAIN_DECK_LEFT : MAIN_DECK_RIGHT;
   return f32(ledge + f32(side * melee(f32(point.x - at(REFERENCE_RIGHT_SIDE, 0).x))));
 }
 
-function mainDeckZ(point: ReferencePoint): number {
-  return f32(surfaceZ(0, 0) + melee(point.z));
+function referenceZ(point: ReferencePoint): number {
+  return f32(MAIN_DECK_Z + melee(point.z));
 }
 
 function referenceLine(side: number, from: number, to: number): SolidSurface {
   const start = at(REFERENCE_RIGHT_SIDE, from);
   const end = at(REFERENCE_RIGHT_SIDE, to);
   const kind = min(from, to) < REFERENCE_UNDERSIDE_START ? SurfaceContact.wall : SurfaceContact.ceiling;
-  return solidSurface(kind, mainDeckX(side, start), mainDeckZ(start), mainDeckX(side, end), mainDeckZ(end));
+  return solidSurface(kind, referenceX(side, start), referenceZ(start), referenceX(side, end), referenceZ(end));
 }
 
 /**
@@ -114,7 +295,7 @@ function mainDeckBody(): SolidSurface[] {
   const bottom = at(REFERENCE_RIGHT_SIDE, last);
   const surfaces: SolidSurface[] = [];
   for (let i = 0; i < last; i++) surfaces.push(referenceLine(1, i, i + 1));
-  surfaces.push(solidSurface(SurfaceContact.ceiling, mainDeckX(1, bottom), mainDeckZ(bottom), mainDeckX(-1, bottom), mainDeckZ(bottom)));
+  surfaces.push(solidSurface(SurfaceContact.ceiling, referenceX(1, bottom), referenceZ(bottom), referenceX(-1, bottom), referenceZ(bottom)));
   for (let i = last; i > 0; i--) surfaces.push(referenceLine(-1, i, i - 1));
   return surfaces;
 }
@@ -122,7 +303,7 @@ function mainDeckBody(): SolidSurface[] {
 const MAIN_DECK_BODY = mainDeckBody();
 
 /** The height of the main deck's level underside, the lowest of its lines. */
-export const MAIN_DECK_UNDERSIDE_Z = mainDeckZ(at(REFERENCE_RIGHT_SIDE, REFERENCE_RIGHT_SIDE.length - 1));
+export const MAIN_DECK_UNDERSIDE_Z = referenceZ(at(REFERENCE_RIGHT_SIDE, REFERENCE_RIGHT_SIDE.length - 1));
 
 /** The main deck's walls and underside lead every stage's solid surfaces. */
 export const MAIN_DECK_BODY_SURFACES = MAIN_DECK_BODY.length;
@@ -134,12 +315,11 @@ export const MAIN_DECK_BODY_SURFACES = MAIN_DECK_BODY.length;
 // which collide from above while descending and are never walls or ceilings.
 const RAISED_DECK_DEPTH_SCALE = 0.44999998807907104;
 
-function raisedDeckSurfaces(stage: number): SolidSurface[] {
+function raisedDeckSurfaces(raised: readonly Deck[]): SolidSurface[] {
   const surfaces: SolidSurface[] = [];
-  for (let deck = 1; deck < surfaceCount(stage); deck++) {
-    const left = surfaceLeft(stage, deck);
-    const right = surfaceRight(stage, deck);
-    const top = surfaceZ(stage, deck);
+  for (const deck of raised) {
+    if (deck.kind !== "fixed" || deck === MAIN_DECK) continue;
+    const { left, right, z: top } = deck;
     const wallBottom = f32(top - f32(46 * RAISED_DECK_DEPTH_SCALE));
     const underside = f32(top - f32(54 * RAISED_DECK_DEPTH_SCALE));
     const center = f32(f32(left + right) / 2);
@@ -151,7 +331,7 @@ function raisedDeckSurfaces(stage: number): SolidSurface[] {
   return surfaces;
 }
 
-const SOLID_DECK_TEST_SURFACES = [...MAIN_DECK_BODY, ...raisedDeckSurfaces(SOLID_DECK_TEST_STAGE)];
+const SOLID_DECK_TEST_SURFACES = [...MAIN_DECK_BODY, ...raisedDeckSurfaces(SOLID_RAISED_DECKS)];
 
 function solidSurfaces(stage: number): readonly SolidSurface[] {
   if (stage === SOLID_DECK_TEST_STAGE) return SOLID_DECK_TEST_SURFACES;

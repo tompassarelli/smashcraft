@@ -16,7 +16,7 @@ import { isIntangible } from "../src/game/sim/conditions";
 import { beginDamageContacts, collectDamageContact, finishDamageContacts } from "../src/game/sim/contacts";
 import { type Fighter, createFighter } from "../src/game/sim/fighter";
 import { uncancelledLandingLag } from "../src/game/sim/moves";
-import { SOLID_DECK_TEST_STAGE, surfaceRight, surfaceZ } from "../src/game/sim/stage";
+import { SOLID_DECK_TEST_STAGE, mainDeckRight, mainDeckZ, surfaceZ } from "../src/game/sim/stage";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "../src/game/sim/tuning";
 import { type Scene, airborne, fighter, frame, framesUntil, scene, solo, tumbling } from "./frameScene";
 
@@ -600,7 +600,7 @@ function fullHopUnderDeck(character: Character): string {
 function downOnDeck(character: Character): string {
   const s = solo(1, character, UNDER_DECK_X);
   const f = fighter(s);
-  f.motion.z = surfaceZ(1, 1);
+  f.motion.z = surfaceZ(1, 1, 0);
   f.motion.surface = 1;
   for (let n = 1; n <= 90; n++) frame(s, [Action.moveDown]);
   return standing(f);
@@ -644,7 +644,7 @@ const REFERENCE_RIGHT_SIDE: readonly (readonly [number, number])[] = [
 const REFERENCE_UNDERSIDE_Y = -55.38819885253906;
 const STAGE_COLLISION = "Final Destination's coll_data (GrNLa.dat, GALE01 rev 2): rightWall lines 9, 10, 7, 8, 6, ceiling lines 5, 4; each side kept as far from its ledge, the underside spanning the wider deck";
 
-const RIGHT_LEDGE = surfaceRight(0, 0);
+const RIGHT_LEDGE = mainDeckRight(0);
 
 /** The reference side's x, from its ledge vertex, `depth` Melee units below the ledge. */
 function referenceSideX(depth: number): number | undefined {
@@ -1056,13 +1056,13 @@ function ledgeBox(character: Character): { reach: number; highest: number } {
 function catchesLedge(character: Character, outside: number, below: number): boolean {
   const s = solo(0, character);
   const f = fighter(s);
-  airborne(f, surfaceRight(0, 0) + outside, surfaceZ(0, 0) - below);
+  airborne(f, mainDeckRight(0) + outside, mainDeckZ(0) - below);
   f.facing = -1;
   f.jump.remaining = 1;
   for (let n = 1; n <= 120; n++) {
     frame(s, []);
     if (f.ledge.state !== LedgeState.none) return true;
-    if (surfaceZ(0, 0) - f.motion.z > below + 250.0) break;
+    if (mainDeckZ(0) - f.motion.z > below + 250.0) break;
   }
   return false;
 }
@@ -1071,13 +1071,13 @@ function catchesLedge(character: Character, outside: number, below: number): boo
 function catchAgainstWall(character: Character): string {
   const s = solo(0, character);
   const f = fighter(s);
-  airborne(f, surfaceRight(0, 0) + (LEDGE_BODY_HALF_WIDTH + 2.0) * WORLD_UNITS_PER_MELEE_UNIT, surfaceZ(0, 0) - 20.0);
+  airborne(f, mainDeckRight(0) + (LEDGE_BODY_HALF_WIDTH + 2.0) * WORLD_UNITS_PER_MELEE_UNIT, mainDeckZ(0) - 20.0);
   f.facing = -1;
   f.jump.remaining = 1;
   for (let n = 1; n <= 120; n++) {
     frame(s, [Action.moveLeft]);
     if (f.ledge.state !== LedgeState.none) return f.surfaceRecovery.contactSerial > 0 ? "caught against the wall" : "caught clear of the wall";
-    if (surfaceZ(0, 0) - f.motion.z > 400.0) break;
+    if (mainDeckZ(0) - f.motion.z > 400.0) break;
   }
   return "fell";
 }

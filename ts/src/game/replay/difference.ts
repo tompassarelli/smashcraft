@@ -313,6 +313,7 @@ export function firstStateDifference(expected: Readonly<ReplayState>, actual: Re
   if (e.stockCount !== a.stockCount) return "match.stockCount";
   if (e.timeLimitMinutes !== a.timeLimitMinutes) return "match.timeLimitMinutes";
   if (e.remainingFrames !== a.remainingFrames) return "match.remainingFrames";
+  if (e.matchFrame !== a.matchFrame) return "match.matchFrame";
   if (e.timedOut !== a.timedOut) return "match.timedOut";
   if (expected.runtime.simulationFrame !== actual.runtime.simulationFrame) return "runtime.simulationFrame";
   for (const slot of PARTICIPANT_SLOTS) {

@@ -102,7 +102,7 @@ test("summonAndSpecialClocksAdvanceOnceWithFourOpponents", () => {
   owner.hippogryph.kind = HippogryphKind.mount;
   owner.special.action = SpecialAction.riflemanBear;
   owner.special.duration = 18;
-  advanceSpecials(world, 0);
+  advanceSpecials(world, 0, 0);
   assertEquals(owner.bear.life, 29);
   assertEquals(owner.bear.x, 14.0);
   assertEquals(owner.bear.swipeCooldown, 9);
@@ -157,10 +157,10 @@ test("immolateContactsEachOpponentOnlyOnce", () => {
   owner.special.frame = 3;
   owner.special.duration = 27;
   for (let slot = 1; slot <= 3; slot++) world.fighters[slot]!.motion.x = 50.0 + slot * 10;
-  advanceSpecials(world, 0);
+  advanceSpecials(world, 0, 0);
   for (let slot = 1; slot <= 3; slot++) assertEquals(world.fighters[slot]!.status.damage, 7.0);
   owner.launch.hitlag = 0;
-  advanceSpecials(world, 0);
+  advanceSpecials(world, 0, 0);
   for (let slot = 1; slot <= 3; slot++) assertEquals(world.fighters[slot]!.status.damage, 7.0);
 });
 
@@ -173,9 +173,9 @@ test("summonHitMemorySurvivesStartingAnUnrelatedSpecial", () => {
   owner.hippogryph.x = 0.0;
   owner.hippogryph.velocityX = 0.0;
   world.fighters[3]!.motion.x = 30.0;
-  advanceSpecials(world, 0);
+  advanceSpecials(world, 0, 0);
   assertEquals(world.fighters[3]!.status.damage, 8.0);
-  assertTrue(startFighterSpecial(owner, 0, controls({ specialPressed: true })));
-  advanceSpecials(world, 0);
+  assertTrue(startFighterSpecial(owner, 0, 0, controls({ specialPressed: true })));
+  advanceSpecials(world, 0, 0);
   assertEquals(world.fighters[3]!.status.damage, 8.0);
 });

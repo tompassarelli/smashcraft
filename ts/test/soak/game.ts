@@ -19,7 +19,7 @@ import { PLAYABLE_BUILD } from "../../src/game/shell/currentBuild";
 import { AttackStyle, Character, DownState, GrabAction, HippogryphKind, ProjectileKind, SpecialAction } from "../../src/game/sim/codes";
 import type { Fighter } from "../../src/game/sim/fighter";
 import { fighterAt, isActive } from "../../src/game/sim/roster";
-import { surfaceLeft, surfaceRight } from "../../src/game/sim/stage";
+import { mainDeckLeft, mainDeckRight } from "../../src/game/sim/stage";
 import { install as installGame, startBuild } from "../../src/platform/main";
 import { installSceneReport, startMatchSceneReport } from "../../src/platform/sceneReport";
 import { confirmedChecksum } from "../../src/platform/shell/diagnostics";
@@ -343,8 +343,8 @@ function outcomeRecorder(match: SoakMatch, file: string): (client: HeadlessClien
     const { game, world } = shell();
     if (game.phase !== Phase.match && game.phase !== Phase.result) return;
     const frame = game.timeLimitMinutes * 60 * MATCH_TICKS_PER_SECOND - game.remainingFrames;
-    const left = surfaceLeft(game.stageChoice, 0);
-    const right = surfaceRight(game.stageChoice, 0);
+    const left = mainDeckLeft(game.stageChoice);
+    const right = mainDeckRight(game.stageChoice);
     const active = PARTICIPANT_SLOTS.filter((slot) => isActive(world, slot));
     for (const slot of active) if (!players.has(slot)) players.set(slot, firstSight(fighterAt(world, slot), frame));
     const seenOf = (slot: number): Seen => {
