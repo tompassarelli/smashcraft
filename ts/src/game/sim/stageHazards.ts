@@ -74,8 +74,8 @@ export function windRight(stage: number, direction: -1 | 1): number {
   return direction > 0 ? f32(mainDeckRight(stage) - WIND_OUTER_INSET_RIGHT) : f32(stageCenter(stage) + WIND_INNER_EDGE_LEFT);
 }
 
-export const windBottom = (stage: number): number => f32(mainDeckZ(stage) + WIND_BOTTOM);
-export const windTop = (stage: number): number => f32(mainDeckZ(stage) + WIND_TOP);
+const windBottom = (stage: number): number => f32(mainDeckZ(stage) + WIND_BOTTOM);
+const windTop = (stage: number): number => f32(mainDeckZ(stage) + WIND_TOP);
 
 export const hasWind = (stage: number): boolean => stage === WIND_TEST_STAGE;
 
@@ -90,16 +90,16 @@ export function windPush(stage: number, frame: number, x: number, z: number): nu
 // ---------------------------------------------------------------- cannon
 
 /** The cannon swings beneath the main deck between these x, at a constant speed. */
-export const CANNON_SWING_HALF_WIDTH = 760.0;
+const CANNON_SWING_HALF_WIDTH = 760.0;
 const CANNON_SWING_SPEED = 5.0;
 /** Frames from one end of the swing to the other. */
-export const CANNON_SWING_FRAMES = 304;
+const CANNON_SWING_FRAMES = 304;
 /** Its height: 30 above the bottom blast zone, its catch reaching up past the deck's underside. */
 export const CANNON_Z = -390.0;
 /** At each end the cannon leans this far (15 degrees) from upright, toward the stage. */
 const CANNON_LEAN = 0.2617993950843811;
 /** GrOk.dat rframe_barrel_in: a fighter whose position comes this close to the cannon's center is caught. */
-export const CANNON_CATCH_RADIUS = melee(15.0);
+const CANNON_CATCH_RADIUS = melee(15.0);
 /** GrOk.dat rframe_barrel_shoot_a 479, truncated to a whole frame and counted down through zero: the cannon fires by itself after this long. */
 export const CANNON_HOLD_FRAMES = 480;
 /** The shot leaves this many frames after it begins, its animation the warning (groldkongo.c stageGObj1_GObjProc, hit_timer > 0xA). */
