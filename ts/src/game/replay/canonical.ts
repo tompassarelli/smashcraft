@@ -211,11 +211,18 @@ function specialProjectileCanonical(spec: Readonly<SpecialProjectile>, prefix: s
 
 /** An authored placed object, field by field. */
 function specialPlacementCanonical(spec: Readonly<SpecialPlacement>, prefix: string): string {
-  let result = canonicalInt(`${prefix}.frame`, spec.frame) + canonicalRealField(`${prefix}.offsetX`, spec.offsetX)
-    + canonicalRealField(`${prefix}.radius`, spec.radius) + canonicalRealField(`${prefix}.height`, spec.height)
-    + canonicalRealField(`${prefix}.durability`, spec.durability) + canonicalInt(`${prefix}.life`, spec.life);
-  for (let index = 0; index < spec.fireAges.length; index++) result += canonicalInt(`${prefix}.fireAge[${index}]`, at(spec.fireAges, index));
-  return result + specialProjectileCanonical(spec.shot, `${prefix}.shot`);
+  const result: string[] = [];
+  const int = (name: string, value: number) => { result.push(canonicalInt(`${prefix}.${name}`, value)); };
+  const real = (name: string, value: number) => { result.push(canonicalRealField(`${prefix}.${name}`, value)); };
+  int("frame", spec.frame);
+  real("offsetX", spec.offsetX);
+  real("radius", spec.radius);
+  real("height", spec.height);
+  real("durability", spec.durability);
+  int("life", spec.life);
+  for (let index = 0; index < spec.fireAges.length; index++) int(`fireAge[${index}]`, at(spec.fireAges, index));
+  result.push(specialProjectileCanonical(spec.shot, `${prefix}.shot`));
+  return result.join("");
 }
 
 function hitEffectCanonical(hit: Readonly<HitEffect>, prefix: string): string {
@@ -261,7 +268,7 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
   int("armor.last", move.armor?.last ?? -1);
   real("armor.maxDamage", move.armor?.maxDamage ?? 0.0);
   int("armor.shell", move.armor?.shell === true ? 1 : 0);
-  if (move.placement !== undefined) result += specialPlacementCanonical(move.placement, `${name}.placement`);
+  if (move.placement !== undefined) result.push(specialPlacementCanonical(move.placement, `${name}.placement`));
   if (move.recall === true) int("recall", 1);
   if (move.guard !== undefined) {
     int("guard.first", move.guard.first);
@@ -387,6 +394,8 @@ type Emit = (fragment: string) => void;
 // millions of Lua instructions (perf bot-blademaster).
 const MOVES_DIGESTS = new Map<Readonly<FighterMoves>, string>();
 const SPECIALS_DIGESTS = new Map<Readonly<FighterSpecials>, string>();
+const PLACEMENT_DIGESTS = new Map<Readonly<SpecialPlacement>, string>();
+const placedSpecCanonical = (spec: Readonly<SpecialPlacement>): string => specialPlacementCanonical(spec, "placedSpec");
 let kitDigestBuilds = 0;
 
 /** Kit texts folded so far; a match frame after prepareKitDigests adds none. */
@@ -727,7 +736,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
     int("placedSerial", placed.serial);
     for (let i = 0; i < PARTICIPANT_CAPACITY; i++) int(`placedStruck[${i}]`, placed.struck[i] ?? -1);
     int("placedSpecialStruck", placed.specialStruck);
-    if (placed.spec !== undefined) emit(specialPlacementCanonical(placed.spec, `${prefix}.placedSpec`));
+    emit(kitDigestField(`${prefix}.placedSpec`, placed.spec, PLACEMENT_DIGESTS, placedSpecCanonical));
     int("specialGuarded", sp.guarded ? 1 : 0);
     real("guardHealed", st.guardHealed);
   }
@@ -818,5 +827,12 @@ export function prepareKitDigests(): void {
   for (const hero of HERO_ROSTER) {
     kitDigestField("moves", hero.moves, MOVES_DIGESTS, fighterMovesCanonical);
     kitDigestField("specials", hero.specials, SPECIALS_DIGESTS, fighterSpecialsCanonical);
+    const specials = hero.specials;
+    if (specials === undefined) continue;
+    for (const kit of [specials.neutral, specials.side, specials.up, specials.down]) {
+      for (const form of [kit.ground, kit.air, kit.free, kit.ground.followUp?.special, kit.air?.followUp?.special]) {
+        kitDigestField("placedSpec", form?.placement, PLACEMENT_DIGESTS, placedSpecCanonical);
+      }
+    }
   }
 }

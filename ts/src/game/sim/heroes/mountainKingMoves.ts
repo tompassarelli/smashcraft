@@ -195,7 +195,7 @@ export const MOUNTAIN_KING_MOVES: FighterMoves = {
     ]),
   },
   throws: {
-    [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: { damage: 1.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } },
+    [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: { damage: 3.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } },
     [GrabAction.throwForward]: { contactFrame: 14, totalFrames: 36, effect: hit(9.0, "EDGE", 35) },
     [GrabAction.throwBack]: { contactFrame: 18, totalFrames: 45, effect: hit(10.0, "KILL", 40, true) },
     [GrabAction.throwUp]: { contactFrame: 16, totalFrames: 39, effect: hit(8.0, "LAUNCH", 90) },

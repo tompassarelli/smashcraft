@@ -4,13 +4,13 @@ import { f32 } from "wisp/src/sim/f32";
 import { ContactKind, GrabAction } from "./codes";
 import { finishDamageContacts, openDamageContacts, queueDamageContact } from "./contacts";
 import { copyHitEffect, emptyHitEffect } from "./hitRegions";
-import { GRAB_HOLD_DISTANCE, GRAB_HOLD_MINIMUM_FRAMES, GRAB_MASH_FRAMES, grabActionDuration, grabContactFrame, pummelLimit } from "./moves";
+import { GRAB_HOLD_DISTANCE, GRAB_HOLD_MINIMUM_FRAMES, GRAB_MASH_FRAMES, PUMMEL_DAMAGE, grabActionDuration, grabContactFrame, pummelLimit } from "./moves";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import type { Fighter } from "./fighter";
 import { type Controls, type Roster, controlsAt, fighterAt, isActive } from "./roster";
 import { beginGrabAction, clearGrabLinks } from "./transitions";
 
-const PUMMEL_HIT = { damage: 3.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } as const;
+const PUMMEL_HIT = { damage: PUMMEL_DAMAGE, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } as const;
 // Preallocated: a throw's effect depends on its direction; contacts copy it.
 const throwHit = emptyHitEffect();
 

@@ -248,3 +248,18 @@ test("the computer sets a ward when its shot would reach a grounded target, and 
   assertGreaterThan(owner.placed.life, 0);
   assertEquals(heroSpecialUse(owner, target, 0, SpecialSlot.side), HeroSpecialUse.none);
 });
+
+test("Loa Vault turns to a stick held sideways on entry, so its drift heads back toward the stage", () => {
+  for (const facing of [1, -1]) {
+    const { world, owner } = pair(1200.0, facing);
+    owner.motion.grounded = false;
+    owner.motion.surface = undefined;
+    owner.motion.z = 600.0;
+    const startX = owner.motion.x;
+    frame(world, controls({ specialPressed: true, specialZ: 1, specialX: -facing }));
+    assertEquals(owner.special.action, SpecialAction.heroUp);
+    assertEquals(owner.facing, -facing);
+    for (let f = 2; f <= 30; f++) frame(world);
+    assertTrue(near(f32(f32(startX - owner.motion.x) * facing) / HERO_REFERENCE_HEIGHT, f32(0.6)));
+  }
+});

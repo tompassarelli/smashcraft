@@ -553,7 +553,7 @@ Rows are the defender's options, columns the attacker's, each from the first fra
 | jump forward air | W 22 | W 22 | W 22 | W 22 | -4 | W 22 |
 | jump back air | W 20 | W 20 | W 20 | W 20 | W 20 | W 20 |
 | jump up air | W 22 | W 22 | W 22 | W 22 | -4 | W 22 |
-| jump down air | W 24 | W 24 | W 24 | -18 (shield) | -6 | +3 |
+| jump down air | W 24 | W 24 | W 24 | -24 (shield) | -6 | +3 |
 | spot dodge | -13 | +8 | L 27 grab | -12 | +9 | +18 |
 | roll in | -22 | -1 | +14 | -21 | 0 | +9 |
 | roll away | -22 | -1 | +14 | -21 | 0 | +9 |
@@ -669,6 +669,83 @@ flowchart LR
   o_jump_down_air -->|"unspaced, fade-back<br/>spaced, fade-back<br/>unspaced, fade-forward<br/>spaced, fade-forward"| a_down_air
 ```
 
+## Aerial on a powershield (parry)
+
+The same approaches as on a held shield, but the defending Rifleman stands unshielded and presses its shield the frame before the aerial meets it, so the hit is parried: no shieldstun, and the shield drops with no release lag into any grounded option. Frame 0 is the parried contact. Its options are every ground attack as well as the out-of-shield ones. Advantage reads as above; "held" is the same approach's advantage on a held shield. Punish start frames are when the defender's option can start and still land before the attacker can act.
+
+| Aerial | Spacing | Drift | Start | Parried | Attacker acts | Defender acts | Advantage | Held | Punished by (start frames) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| neutral air | unspaced | advancing | 48 | yes | 10 | 5 | -5 | 0 | safe |
+| neutral air | spaced | advancing | 210 | yes | 10 | 5 | -5 | 0 | safe |
+| neutral air | unspaced | fade-back | 48 | yes | 28 | 5 | -23 | -18 | shield grab 5..10; jump neutral air 5..7; jump forward air 5..17 |
+| neutral air | spaced | fade-back | 210 | yes | 9 | 4 | -5 | -1 | safe |
+| neutral air | unspaced | fade-forward | 48 | yes | 28 | 5 | -23 | -18 | shield grab 5..18; jump neutral air 5..19; jump forward air 5..17; jump back air 5..19; jump up air 5..17; jump down air 5..15 |
+| neutral air | spaced | fade-forward | 210 | yes | 9 | 4 | -5 | -1 | safe |
+| forward air | unspaced | advancing | 72 | yes | 13 | 5 | -8 | -3 | safe |
+| forward air | spaced | advancing | 282 | yes | 12 | 5 | -7 | -2 | safe |
+| forward air | unspaced | fade-back | 72 | yes | 14 | 5 | -9 | -4 | jump neutral air 5; jump back air 5 |
+| forward air | spaced | fade-back | 282 | yes | 12 | 5 | -7 | -2 | safe |
+| forward air | unspaced | fade-forward | 72 | yes | 14 | 5 | -9 | -4 | jump neutral air 5; jump back air 5 |
+| forward air | spaced | fade-forward | 282 | yes | 12 | 5 | -7 | -2 | safe |
+| back air | unspaced | advancing | 48 | yes | 31 | 5 | -26 | -21 | jump neutral air 5..22; jump forward air 5; jump back air 5..22; jump up air 5..10; jump down air 5..10 |
+| back air | spaced | advancing | 270 | yes | 13 | 5 | -8 | -3 | shield grab 6..7 |
+| back air | unspaced | fade-back | 48 | yes | 31 | 5 | -26 | -21 | jump neutral air 5..22; jump forward air 5..20; jump back air 5..22; jump up air 5..20; jump down air 5..18 |
+| back air | spaced | fade-back | 270 | yes | 13 | 4 | -9 | -4 | safe |
+| back air | unspaced | fade-forward | 48 | yes | 31 | 5 | -26 | -21 | jump neutral air 5..12; jump back air 5..22; jump up air 5..7 |
+| back air | spaced | fade-forward | 270 | yes | 13 | 4 | -9 | -4 | safe |
+| up air | unspaced | advancing | 54 | yes | 11 | 4 | -7 | -4 | safe |
+| up air | spaced | advancing | 174 | yes | 11 | 4 | -7 | -4 | shield grab 4..5 |
+| up air | unspaced | fade-back | 54 | yes | 17 | 15 | -2 | -2 | safe |
+| up air | spaced | fade-back | 174 | yes | 11 | 4 | -7 | -4 | shield grab 4..5 |
+| up air | unspaced | fade-forward | 54 | yes | 17 | 15 | -2 | -2 | safe |
+| up air | spaced | fade-forward | 174 | yes | 11 | 4 | -7 | -4 | shield grab 4..5 |
+| down air | unspaced | advancing | 48 | yes | 22 | 6 | -16 | -10 | jump neutral air 6..13; jump forward air 7..11; jump back air 6..13; jump up air 6..11; jump down air 6..9 |
+| down air | spaced | advancing | 114 | yes | 21 | 6 | -15 | -9 | shield grab 6..15; jump neutral air 6..12; jump forward air 6..10; jump back air 6..12; jump up air 6..10; jump down air 6..8 |
+| down air | unspaced | fade-back | 48 | yes | 30 | 6 | -24 | -18 | shield grab 6..24; jump neutral air 6..21; jump forward air 6..19; jump back air 6..18; jump up air 6..19; jump down air 6..17 |
+| down air | spaced | fade-back | 114 | yes | 25 | 6 | -19 | -13 | shield grab 6..19; jump neutral air 6..16; jump forward air 6..14; jump back air 6..7; jump up air 6..9; jump down air 6..12 |
+| down air | unspaced | fade-forward | 48 | yes | 30 | 6 | -24 | -18 | shield grab 6..12; jump neutral air 6..21; jump forward air 6..19; jump back air 6..21; jump up air 6..19; jump down air 6..17 |
+| down air | spaced | fade-forward | 114 | yes | 25 | 6 | -19 | -13 | shield grab 6..19; jump neutral air 6..16; jump forward air 6..14; jump back air 6..16; jump up air 6..14; jump down air 6..12 |
+
+### Graph
+
+Each arrow runs from an option out of the parry to an aerial it punishes, labelled with the spacings and drifts it punishes it at.
+
+```mermaid
+flowchart LR
+  a_neutral_air["neutral air<br/>-23 to -5 parried"]
+  a_forward_air["forward air<br/>-9 to -7 parried"]
+  a_back_air["back air<br/>-26 to -8 parried"]
+  a_up_air["up air<br/>-7 to -2 parried"]
+  a_down_air["down air<br/>-24 to -15 parried"]
+  o_shield_grab["shield grab"]
+  o_jump_neutral_air["jump neutral air"]
+  o_jump_forward_air["jump forward air"]
+  o_jump_back_air["jump back air"]
+  o_jump_up_air["jump up air"]
+  o_jump_down_air["jump down air"]
+  o_shield_grab -->|"unspaced, fade-back<br/>unspaced, fade-forward"| a_neutral_air
+  o_shield_grab -->|"spaced, advancing"| a_back_air
+  o_shield_grab -->|"spaced, advancing<br/>spaced, fade-back<br/>spaced, fade-forward"| a_up_air
+  o_shield_grab -->|"spaced, advancing<br/>unspaced, fade-back<br/>spaced, fade-back<br/>unspaced, fade-forward<br/>spaced, fade-forward"| a_down_air
+  o_jump_neutral_air -->|"unspaced, fade-back<br/>unspaced, fade-forward"| a_neutral_air
+  o_jump_neutral_air -->|"unspaced, fade-back<br/>unspaced, fade-forward"| a_forward_air
+  o_jump_neutral_air -->|"unspaced, advancing<br/>unspaced, fade-back<br/>unspaced, fade-forward"| a_back_air
+  o_jump_neutral_air -->|"unspaced, advancing<br/>spaced, advancing<br/>unspaced, fade-back<br/>spaced, fade-back<br/>unspaced, fade-forward<br/>spaced, fade-forward"| a_down_air
+  o_jump_forward_air -->|"unspaced, fade-back<br/>unspaced, fade-forward"| a_neutral_air
+  o_jump_forward_air -->|"unspaced, advancing<br/>unspaced, fade-back"| a_back_air
+  o_jump_forward_air -->|"unspaced, advancing<br/>spaced, advancing<br/>unspaced, fade-back<br/>spaced, fade-back<br/>unspaced, fade-forward<br/>spaced, fade-forward"| a_down_air
+  o_jump_back_air -->|"unspaced, fade-forward"| a_neutral_air
+  o_jump_back_air -->|"unspaced, fade-back<br/>unspaced, fade-forward"| a_forward_air
+  o_jump_back_air -->|"unspaced, advancing<br/>unspaced, fade-back<br/>unspaced, fade-forward"| a_back_air
+  o_jump_back_air -->|"unspaced, advancing<br/>spaced, advancing<br/>unspaced, fade-back<br/>spaced, fade-back<br/>unspaced, fade-forward<br/>spaced, fade-forward"| a_down_air
+  o_jump_up_air -->|"unspaced, fade-forward"| a_neutral_air
+  o_jump_up_air -->|"unspaced, advancing<br/>unspaced, fade-back<br/>unspaced, fade-forward"| a_back_air
+  o_jump_up_air -->|"unspaced, advancing<br/>spaced, advancing<br/>unspaced, fade-back<br/>spaced, fade-back<br/>unspaced, fade-forward<br/>spaced, fade-forward"| a_down_air
+  o_jump_down_air -->|"unspaced, fade-forward"| a_neutral_air
+  o_jump_down_air -->|"unspaced, advancing<br/>unspaced, fade-back"| a_back_air
+  o_jump_down_air -->|"unspaced, advancing<br/>spaced, advancing<br/>unspaced, fade-back<br/>spaced, fade-back<br/>unspaced, fade-forward<br/>spaced, fade-forward"| a_down_air
+```
+
 ## Neutral: both fighters act on frame 1
 
 Two standing Riflemans face each other, each option starting on frame 1. Cells read as in the follow-up tables above, from the row fighter's side. Punish start frames are when the opponent's option can start and still land before the fighter can act again.
@@ -700,7 +777,7 @@ Two standing Riflemans face each other, each option starting on frame 1. Cells r
 | forward smash | 45 | jab 1..2; forward tilt 1; down tilt 1, 16; down smash 16; grab 1..2 |
 | up smash | 50 | jab 1..4; forward tilt 1..3; up tilt 1..2, 32..43; down tilt 1..3, 17, 32..44; forward smash 1..2; down smash 17; grab 1..4 |
 | down smash | 50 | jab 1..4; forward tilt 1..3; up tilt 1..2, 32..43; down tilt 1..3, 17, 32..44; forward smash 1..2; down smash 17; grab 1..4 |
-| grab | 93 | jab 1 |
+| grab | - | safe |
 | shield | 2 | - |
 | spot dodge | 23 | jab 11..18; forward tilt 10..17; up tilt 9..16; down tilt 10..17; forward smash 8..16; up smash 6..14; down smash 6..14; grab 10..17 |
 | roll in | 32 | forward tilt 14..16; forward smash 12..15 |
