@@ -10,7 +10,7 @@ permissions:
 jobs:
   development-loop:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
@@ -28,6 +28,7 @@ jobs:
       # raw float + - * round toward zero (wisp:docs/headless.md#raw-float-rounding):
       # both must equal Bun, so no raw float operation leaks past the exact helpers.
       - name: Build stock and toward-zero 32-bit Luas
+        if: ${{ !cancelled() }}
         working-directory: ts
         run: |
           mkdir -p build/lua-stock build/toward-zero-lua
@@ -42,3 +43,13 @@ jobs:
         env:
           LUA: ${{ github.workspace }}/ts/build/lua-stock/lua-5.3.6/src/lua
           TOWARD_ZERO_LUA: ${{ github.workspace }}/ts/build/toward-zero-lua/lua-5.3.6/src/lua
+      # Frame-cost landing gate (#48): the playable build's four-fighter bot match,
+      # each frame's cost predicted from counts (not time), may not rise beyond 5%
+      # over the committed baseline. After an intended rise or a cut, rewrite the
+      # baseline with `bun wisp perf playable-bot-four --out test/fixtures/perf/playable-bot-four.perf`.
+      # It runs even when an earlier check fails, so a red logic suite cannot hide a cost rise.
+      - if: ${{ !cancelled() }}
+        run: bun wisp perf playable-bot-four --out build/playable-bot-four.perf && bun wisp perf compare test/fixtures/perf/playable-bot-four.perf build/playable-bot-four.perf
+        working-directory: ts
+        env:
+          LUA: ${{ github.workspace }}/ts/build/lua-stock/lua-5.3.6/src/lua

@@ -316,7 +316,9 @@ quick-match is the development build's headless quick match; bot and
 bot-four are the native bot session's match with the integrity build:
 both players' helpers journal the session's pad beats, computer Illidan (and
 Archer), Battle.net's measured sync latency, counted from the match's first
-frame (smashcraft:ts/scripts/wisp/botMatch.ts). `bun wisp perf compare A B`
+frame (smashcraft:ts/scripts/wisp/botMatch.ts). playable-bot-four plays bot-four with the playable build, which has no
+input trace, scene report or frame meter; CI holds it to
+smashcraft:ts/test/fixtures/perf/playable-bot-four.perf (#48). `bun wisp perf compare A B`
 fails when B's instructions, calls, allocation, predicted cost or worst
 typing stall rise beyond 5%; `bun wisp headless --cost` adds the quick
 match's prediction to a headless run. The model was fitted to 0.0.49's

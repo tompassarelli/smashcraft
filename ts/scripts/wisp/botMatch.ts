@@ -86,8 +86,9 @@ function gameOf(client: HeadlessClient): Game {
  * `frames` frames or until it ends. Returns the problems: a desync and each
  * error report.
  */
-export function playBotMatch(clients: Lockstep, match: BotMatch, frames: number, measure: PerfMeasure): { problems: number; lines: string[] } {
-  const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);
+/** Plays the match in the integrity build, or in the build `buildId` names, such as the playable one. */
+export function playBotMatch(clients: Lockstep, match: BotMatch, frames: number, measure: PerfMeasure, buildId: string = INTEGRITY_BUILD.id): { problems: number; lines: string[] } {
+  const helpers = new JournalHelpers(buildId, true);
   helpers.rows = (_slot, frame) => botBeatRow(frame);
   const host = clients.client(0);
   const frame = () => {

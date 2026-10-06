@@ -3,7 +3,7 @@
 // cost predicted: quick-match, the development build's quick match; bot and
 // bot-four, the native bot session's match with the integrity build
 // (scripts/wisp/botMatch.ts); bot-NAME, that match against one computer of
-// any selectable fighter (bot-uther). `bun wisp perf compare A B` holds run B to run A
+// any selectable fighter (bot-uther); playable-bot-four, bot-four with the playable build. `bun wisp perf compare A B` holds run B to run A
 // (wisp:docs/frame-cost.md#headless).
 import { join } from "node:path";
 import { type PerfProject, makePerf } from "wisp/scripts/wisp/commands/perf";
@@ -13,13 +13,14 @@ import { SELECTABLE_CHARACTERS, fighterSlug } from "../../../src/game/sim/heroes
 const main = buildProject("main");
 const integrity = buildProject("integrity");
 const integrityMap = { config: integrity.configPath, bundle: integrity.bundlePath };
+const playable = buildProject("playable");
 
 /** The perf program and the maps its runs measure; `wisp headless --cost` plays its quick-match too. */
 export const SMASHCRAFT_PERF: PerfProject = {
   map: { config: main.configPath, bundle: main.bundlePath },
   program: { config: join(tsDirectory, "tsconfig.perf.json"), bundle: join(tsDirectory, "build/perf.lua") },
   defaultRun: "quick-match",
-  runs: { bot: integrityMap, "bot-four": integrityMap, ...Object.fromEntries(SELECTABLE_CHARACTERS.map((character) => [`bot-${fighterSlug(character)}`, integrityMap])) },
+  runs: { bot: integrityMap, "bot-four": integrityMap, "playable-bot-four": { config: playable.configPath, bundle: playable.bundlePath }, ...Object.fromEntries(SELECTABLE_CHARACTERS.map((character) => [`bot-${fighterSlug(character)}`, integrityMap])) },
 };
 
 export const perf = makePerf(SMASHCRAFT_PERF);
