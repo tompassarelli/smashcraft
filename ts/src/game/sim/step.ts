@@ -63,7 +63,7 @@ import { applyAutomaticSmashDirectionalInfluence, applySmashDirectionalInfluence
 import { surfaceCount, surfaceLeft, surfacePass, surfaceRight, surfaceZ } from "./stage";
 import { stickX } from "./stick";
 import { checkBlastZone, respawnFighter } from "./stocks";
-import { advanceSurfaceRecovery, resolveSolidSurfaceContacts } from "./surfaces";
+import { advanceSurfaceRecovery, leaveMainDeckBody, resolveSolidSurfaceContacts } from "./surfaces";
 import { forwardRollTurnFrame, rollTravel } from "../physics/rollTravel";
 import { advanceTechInput, techContactWindow } from "../physics/techInput";
 import { clearDownState, clearOwnedFreezeTrap } from "./transitions";
@@ -482,6 +482,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   if (landing !== undefined) {
     finishLanding(f, stage, input, landing, false);
   } else {
+    leaveMainDeckBody(f, stage);
     if (motion.grounded) jump.remaining = min(jump.remaining, 1);
     motion.grounded = false;
     motion.surface = undefined;

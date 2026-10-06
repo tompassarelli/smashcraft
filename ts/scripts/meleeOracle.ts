@@ -23,7 +23,7 @@ import { beginDamageContacts, collectDamageContact, finishDamageContacts } from 
 import { type Fighter, createFighter } from "../src/game/sim/fighter";
 import { uncancelledLandingLag } from "../src/game/sim/moves";
 import { type Roster, createRoster, fighterAt } from "../src/game/sim/roster";
-import { SOLID_DECK_TEST_STAGE, surfaceRight, surfaceZ } from "../src/game/sim/stage";
+import { surfaceRight, surfaceZ } from "../src/game/sim/stage";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "../src/game/sim/tuning";
 
 // ------------------------------------------------------------------ harness
@@ -567,6 +567,7 @@ function getupFrames(character: Character, option: DownState, choose: readonly A
 }
 
 const GETUP_ORDER = "DownBound ends into get-up attack (A/B pressed within PlCo +0x24C = 60 frames), then held stick roll (|x| >= PlCo +0x248 0.2), else DownWait: melee:src/melee/ft/kinds/ftCommon/ftCo_DownBound.c ftCo_DownBound_Anim, ftCo_Down.c";
+const C_STICK_GETUP = "DownWait IASA: ftCo_800984D4 attacks on a C-stick up crossing PlCo +0x7F4 = 0.6625 (ftCo_800DF644), ftCo_Down_CheckInput rolls on a C-stick sideways crossing +0x248 = 0.2 within +0x020 of horizontal (ftCo_800DF678): melee:src/melee/ft/kinds/ftCommon/ftCo_DownAttack.c, ftCo_Down.c, melee:src/melee/ft/ft_0DF1.c";
 const DOWN_ANIMATIONS = "Fox/Falco animation frames (retail-action-lengths.json)";
 
 const GETUPS: readonly Scenario[] = [
@@ -604,6 +605,16 @@ const GETUPS: readonly Scenario[] = [
     area: "getup", name: "get-up attack frames",
     cite: `${DOWN_ANIMATIONS} DownAttackU 50, entered with ftAnim_8006EBA4: ftCo_DownAttack.c:47`,
     run: (c) => forReference(c, () => ({ expected: 49, actual: getupFrames(c, DownState.attack, [Action.attack]) })),
+  },
+  {
+    area: "getup", name: "C-stick up flick in the down wait: get-up attack",
+    cite: C_STICK_GETUP,
+    run: (c) => ({ expected: "get-up attack", actual: downStateName(stateAfter(knockdown(c, 120, (after) => (after === 40 ? [Action.smashUp] : [])), DownState.wait)) }),
+  },
+  {
+    area: "getup", name: "C-stick right flick in the down wait: roll",
+    cite: C_STICK_GETUP,
+    run: (c) => ({ expected: "roll", actual: downStateName(stateAfter(knockdown(c, 120, (after) => (after === 40 ? [Action.smashRight] : [])), DownState.wait)) }),
   },
 ];
 
@@ -644,7 +655,36 @@ function launchCheck(character: Character, offset: number): Check {
 
 const KNOCKBACK_RULE = "knockback: melee:src/melee/ft/ftcoll.c with PlCo +0x0F4..+0x120 (fighter's own weight); hitstun (int)(K x +0x154 0.4), tumble when K x 0.4 >= +0x160 32: melee:src/melee/ft/kinds/ftCommon/ftCo_Damage.c:285";
 
+/** The test hit landed `count` times in a row by the same attacker on a target put back to 0% each time; each hit's damage, knockback and hitstun. */
+function repeatedHits(character: Character, count: number): string[] {
+  const s = scene(0, [{ character, x: 0.0, facing: 1 }, { character: Character.rifleman, x: -60.0, facing: 1 }]);
+  const target = fighter(s, 0);
+  const hits: string[] = [];
+  for (let n = 0; n < count; n++) {
+    target.status.damage = 0.0;
+    target.launch.hitstun = 0;
+    target.launch.hitlag = 0;
+    target.down.state = DownState.none;
+    beginDamageContacts();
+    collectDamageContact(s.world, 1, 0, TEST_HIT, 1, ContactKind.launch, false, undefined, false);
+    finishDamageContacts(s.world);
+    hits.push(`${target.status.damage} damage, knockback ${target.launch.knockbackX}, ${target.launch.hitstun} hitstun`);
+  }
+  return hits;
+}
+
+const STALE_MOVES = "ft_80089118 scales damage by 1 - the staling table entries (Fighter_804D6548, PlCo data) for each of the last 9 queued instances of the same move id, queued by plStale_UpdateStaleMovesFromFighter (melee:src/melee/pl/plstale.c) and applied by ft_80089228 (melee:src/melee/ft/ft_0881.c:337)";
+
 const KNOCKBACK: readonly Scenario[] = [
+  {
+    area: "knockback", name: "the same move landing 5 times in a row: hit 5 damage against hit 1",
+    cite: STALE_MOVES,
+    departure: "Stale moves and freshness bonuses omitted (owner decision 2026-10-04, reaffirmed 2026-10-06; smashcraft:docs/gameplay-design.md)",
+    run: (c) => {
+      const hits = repeatedHits(c, 5);
+      return { expected: "hit 5 deals less than hit 1", actual: hits.every((hit) => hit === hits[0]) ? `all 5 hits: ${hits[0]}` : `varies: ${hits.join("; ")}` };
+    },
+  },
   { area: "knockback", name: "10-damage hit (growth 100, base 21) 1% below the tumble threshold", cite: KNOCKBACK_RULE, run: (c) => launchCheck(c, -1) },
   { area: "knockback", name: "10-damage hit (growth 100, base 21) at the tumble threshold", cite: KNOCKBACK_RULE, run: (c) => launchCheck(c, 0) },
 ];
@@ -695,7 +735,75 @@ const PLATFORMS: readonly Scenario[] = [
   { area: "platform", name: "still holding down 30 frames after that landing", cite: PLATFORM_PASS, run: (c) => ({ expected: "raised deck", actual: landHoldingDown(c, 30) }) },
 ];
 
-// ------------------------------------------------------------------ wall and ceiling techs
+// ------------------------------------------------------------------ the main deck's walls and underside
+
+/**
+ * Final Destination's right side below its ledge vertex, in Melee units: the
+ * owner's GALE01 revision 2 GrNLa.dat (SHA-1 fa607d7bb7dd4072d2d3968e1e31fd458bc397f8,
+ * grGroundParam scale 1), coll_data rightWall lines 9, 10, 7, 8, 6 and
+ * ceiling line 5 (melee:src/melee/mp/types.h MapCollData, MapLine).
+ */
+const REFERENCE_LEDGE_X = 85.5656967163086;
+const REFERENCE_RIGHT_SIDE: readonly (readonly [number, number])[] = [
+  [85.5656967163086, 0.0], [85.5656967163086, -10.5], [65.79930114746094, -20.453800201416016], [65.83740234375, -31.34429931640625],
+  [61.419498443603516, -47.36629867553711], [53.77360153198242, -54.258399963378906], [47.45600128173828, -55.38819885253906],
+];
+/** Its level underside, ceiling line 4, from -47.456 to 47.456. */
+const REFERENCE_UNDERSIDE_Y = -55.38819885253906;
+const STAGE_COLLISION = "Final Destination's coll_data (GrNLa.dat, GALE01 rev 2): rightWall lines 9, 10, 7, 8, 6, ceiling lines 5, 4; each side kept as far from its ledge, the underside spanning the wider deck";
+
+const RIGHT_LEDGE = surfaceRight(0, 0);
+
+/** The reference side's x, from its ledge vertex, `depth` Melee units below the ledge. */
+function referenceSideX(depth: number): number | undefined {
+  for (let i = 0; i + 1 < REFERENCE_RIGHT_SIDE.length; i++) {
+    const [x0, y0] = REFERENCE_RIGHT_SIDE[i] ?? [0, 0];
+    const [x1, y1] = REFERENCE_RIGHT_SIDE[i + 1] ?? [0, 0];
+    if (-depth > y0 || -depth < y1) continue;
+    return (y0 === y1 ? x0 : x0 + ((x1 - x0) * (-depth - y0)) / (y1 - y0)) - REFERENCE_LEDGE_X;
+  }
+  return undefined;
+}
+
+interface WallMeeting {
+  /** Where the fighter's flank met the side, from the ledge vertex and below it (Melee units). */
+  readonly x: number;
+  readonly depth: number;
+  /** Where the fighter stopped, from the ledge vertex. */
+  readonly stop: number;
+}
+
+/** A tumbler launched left into the main deck's right side about `depth` Melee units below its ledge. */
+function meetSide(character: Character, depth: number): WallMeeting | undefined {
+  const s = solo(0, character);
+  const f = fighter(s);
+  const flank = (referenceSideX(depth) ?? 0.0) + LEDGE_BODY_HALF_WIDTH;
+  tumbling(f, RIGHT_LEDGE + (flank + 2.0) * WORLD_UNITS_PER_MELEE_UNIT, -depth * WORLD_UNITS_PER_MELEE_UNIT);
+  f.launch.knockbackX = -18.0;
+  for (let n = 1; n <= 10; n++) {
+    frame(s, []);
+    const { contactSerial, contactX, contactZ } = f.surfaceRecovery;
+    if (contactSerial > 0) return { x: melee(contactX - RIGHT_LEDGE), depth: melee(-contactZ), stop: melee(f.motion.x - RIGHT_LEDGE) };
+  }
+  return undefined;
+}
+
+/** Where the side met the fighter beside the reference side at the depth it met it. */
+function sideCheck(character: Character, depth: number): Check {
+  const meeting = meetSide(character, depth);
+  if (meeting === undefined) return { expected: "wall", actual: "no contact" };
+  return { expected: referenceSideX(meeting.depth) ?? Number.NaN, actual: meeting.x, tolerance: 0.001 };
+}
+
+/** How far under the floor a tumbler launched up beneath the deck's middle meets its underside (Melee units). */
+function undersideDepth(character: Character): number | undefined {
+  const s = solo(0, character);
+  const f = fighter(s);
+  tumbling(f, 0.0, (REFERENCE_UNDERSIDE_Y - 5.0) * WORLD_UNITS_PER_MELEE_UNIT);
+  f.launch.knockbackZ = 18.0;
+  const contact = framesUntil(s, () => f.surfaceRecovery.contactSerial > 0, 10);
+  return contact === undefined ? undefined : melee(-f.surfaceRecovery.contactZ);
+}
 
 interface SurfaceRun {
   readonly contact: number | undefined;
@@ -704,18 +812,18 @@ interface SurfaceRun {
 
 /**
  * A tumbler presses tech on frame 2, is then held `frozen` frames in hitlag
- * and flies into the solid test deck's left wall, or up into the main deck's
- * underside. Tech ages count hitlag frames in both games.
+ * and flies left into the main deck's right side below the ledge, or up into
+ * its underside. Tech ages count hitlag frames in both games.
  */
 function surfaceRun(character: Character, wall: boolean, press: boolean, frozen: number): SurfaceRun {
-  const stage = wall ? SOLID_DECK_TEST_STAGE : 0;
-  const s = solo(stage, character, wall ? -480.0 : 0.0);
+  const s = solo(0, character);
   const f = fighter(s);
-  tumbling(f, wall ? -480.0 : 0.0, wall ? 400.0 : -100.0);
+  const underside = REFERENCE_UNDERSIDE_Y * WORLD_UNITS_PER_MELEE_UNIT;
+  tumbling(f, wall ? RIGHT_LEDGE + 200.0 : 0.0, wall ? 400.0 : underside - 50.0);
   for (let n = 1; n <= 60; n++) {
     if (n === 3) {
-      tumbling(f, wall ? -450.0 : 0.0, wall ? 160.0 : -84.0);
-      f.launch.knockbackX = wall ? 18.0 : 0.0;
+      tumbling(f, wall ? RIGHT_LEDGE + 30.0 : 0.0, wall ? -30.0 : underside - 30.0);
+      f.launch.knockbackX = wall ? -18.0 : 0.0;
       f.launch.knockbackZ = wall ? 0.0 : 18.0;
       f.launch.hitlag = frozen > 0 ? frozen + 1 : 0;
     }
@@ -738,12 +846,27 @@ function surfaceTech(character: Character, wall: boolean, early: number): string
 }
 
 const SURFACE_GATE = "wall and ceiling techs use the floor's gate 0x800986B0 (PlCo +0x250 = 20, +0x01C = 40): melee:src/melee/ft/kinds/ftCommon/ftCo_PassiveWall.c ftCo_800C1D38, ftCo_PassiveCeil.c";
+const WALL_FLANK = "the ECB's side meets a wall, and mpColl_LoadECB_JObj keeps an airborne ECB at least 2 units a side (melee:src/melee/mp/mpcoll.c); airborne collision moves only the position (melee:src/melee/ft/ft_081B.c ft_800835B0)";
 
 const SURFACES: readonly Scenario[] = [
-  { area: "wall/ceiling", name: "wall tech 19 frames before contact", cite: SURFACE_GATE, run: (c) => ({ expected: "tech", actual: surfaceTech(c, true, 19) }) },
-  { area: "wall/ceiling", name: "wall tech 20 frames before contact", cite: SURFACE_GATE, run: (c) => ({ expected: "no tech", actual: surfaceTech(c, true, 20) }) },
-  { area: "wall/ceiling", name: "ceiling tech 19 frames before contact", cite: SURFACE_GATE, run: (c) => ({ expected: "tech", actual: surfaceTech(c, false, 19) }) },
-  { area: "wall/ceiling", name: "ceiling tech 20 frames before contact", cite: SURFACE_GATE, run: (c) => ({ expected: "no tech", actual: surfaceTech(c, false, 20) }) },
+  { area: "wall/ceiling", name: "main deck side: where a launch about 5 below the ledge meets it (from the ledge)", cite: STAGE_COLLISION, run: (c) => sideCheck(c, 5.0) },
+  { area: "wall/ceiling", name: "main deck side: where a launch about 15 below the ledge meets it (from the ledge)", cite: STAGE_COLLISION, run: (c) => sideCheck(c, 15.0) },
+  { area: "wall/ceiling", name: "main deck side: where a launch about 40 below the ledge meets it (from the ledge)", cite: STAGE_COLLISION, run: (c) => sideCheck(c, 40.0) },
+  {
+    area: "wall/ceiling", name: "main deck side: a fighter stopped against its top, outside the wall", cite: WALL_FLANK,
+    run: (c) => {
+      const meeting = meetSide(c, 5.0);
+      return meeting === undefined ? { expected: "wall", actual: "no contact" } : { expected: LEDGE_BODY_HALF_WIDTH, actual: meeting.stop - meeting.x, tolerance: 0.001 };
+    },
+  },
+  {
+    area: "wall/ceiling", name: "main deck underside: a rise beneath its middle meets it this far under the floor", cite: STAGE_COLLISION,
+    run: (c) => ({ expected: -REFERENCE_UNDERSIDE_Y, actual: undersideDepth(c) ?? "no contact", tolerance: 0.001 }),
+  },
+  { area: "wall/ceiling", name: "wall tech off the main deck's side 19 frames before contact", cite: SURFACE_GATE, run: (c) => ({ expected: "tech", actual: surfaceTech(c, true, 19) }) },
+  { area: "wall/ceiling", name: "wall tech off the main deck's side 20 frames before contact", cite: SURFACE_GATE, run: (c) => ({ expected: "no tech", actual: surfaceTech(c, true, 20) }) },
+  { area: "wall/ceiling", name: "ceiling tech off the main deck's underside 19 frames before contact", cite: SURFACE_GATE, run: (c) => ({ expected: "tech", actual: surfaceTech(c, false, 19) }) },
+  { area: "wall/ceiling", name: "ceiling tech off the main deck's underside 20 frames before contact", cite: SURFACE_GATE, run: (c) => ({ expected: "no tech", actual: surfaceTech(c, false, 20) }) },
 ];
 
 // ------------------------------------------------------------------ shield and dodges
@@ -865,6 +988,21 @@ function catchesLedge(character: Character, outside: number, below: number): boo
   return false;
 }
 
+/** Drifts toward the stage from 2 units outside the right wall's flank and 20 below the ledge, holding left, until a catch or well past it. */
+function catchAgainstWall(character: Character): string {
+  const s = solo(0, character);
+  const f = fighter(s);
+  airborne(f, surfaceRight(0, 0) + (LEDGE_BODY_HALF_WIDTH + 2.0) * WORLD_UNITS_PER_MELEE_UNIT, surfaceZ(0, 0) - 20.0);
+  f.facing = -1;
+  f.jump.remaining = 1;
+  for (let n = 1; n <= 120; n++) {
+    frame(s, [Action.moveLeft]);
+    if (f.ledge.state !== LedgeState.none) return f.surfaceRecovery.contactSerial > 0 ? "caught against the wall" : "caught clear of the wall";
+    if (surfaceZ(0, 0) - f.motion.z > 400.0) break;
+  }
+  return "fell";
+}
+
 const LEDGE_BOX = "ledge snap ftData x44 +0x10/+0x14/+0x18: Fox/Falco 11/13/9, Captain Falcon 9/17/11 (Illidan), reach adds the 2-unit minimum ECB half-width; melee:src/melee/ft/ftcliffcommon.c, melee:src/melee/mp/mpcoll.c mpColl_80044164 (#47)";
 
 const LEDGES: readonly Scenario[] = [
@@ -873,6 +1011,7 @@ const LEDGES: readonly Scenario[] = [
   { area: "ledge", name: "fall from ledge height, reach + 1 out (79; Illidan 67)", cite: LEDGE_BOX, run: (c) => ({ expected: false, actual: catchesLedge(c, ledgeBox(c).reach + 1.0, 0.0) }) },
   { area: "ledge", name: "fall from 1 unit inside the box top (104; Illidan 134 below)", cite: LEDGE_BOX, run: (c) => ({ expected: true, actual: catchesLedge(c, 30.0, ledgeBox(c).highest - 1.0) }) },
   { area: "ledge", name: "fall from 1 unit above the box top (106; Illidan 136 below)", cite: LEDGE_BOX, run: (c) => ({ expected: false, actual: catchesLedge(c, 30.0, ledgeBox(c).highest + 1.0) }) },
+  { area: "ledge", name: "drifting in below the ledge, a fall along the main deck's side wall", cite: `${LEDGE_BOX}; ${WALL_FLANK}`, run: (c) => ({ expected: "caught against the wall", actual: catchAgainstWall(c) }) },
 ];
 
 // ------------------------------------------------------------------ table

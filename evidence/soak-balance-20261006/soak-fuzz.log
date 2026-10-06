@@ -1,0 +1,548 @@
+$ bun scripts/wisp.ts soak --policy fuzz --matches "1800" --seed "3" --minutes "25" --out "SCRATCH/run-fuzz"
+smashcraft soak: 1,800 matches in 4 workers, at most 25 min, seed 3; repro files in SCRATCH/run-fuzz
+match 57: archer vs rifleman on three-bridges, fuzz/absent, seed 1391437165
+  catch-up after frame 1122: the game stayed behind its input for 3.0 s: 121 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-57.json
+match 61: rifleman vs archer on three-bridges, fuzz/absent, seed 1408082756
+  catch-up after frame 419: the game stayed behind its input for 3.0 s: 105 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-61.json
+match 74: archer vs rifleman on sky-deck, absent/fuzz, seed 802398708
+  catch-up after frame 1454: the game stayed behind its input for 3.0 s: 151 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-74.json
+match 86: illidan vs rifleman on sky-deck, absent/fuzz, seed 979642918
+  catch-up after frame 337: the game stayed behind its input for 3.0 s: 105 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-86.json
+match 88: illidan vs illidan on sky-deck, absent/fuzz, seed 1296249800
+  catch-up after frame 963: the game stayed behind its input for 3.0 s: 93 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-88.json
+match 89: illidan vs illidan on three-bridges, absent/fuzz, seed 43073161
+  catch-up after frame 3505: the game stayed behind its input for 3.0 s: 79 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-89.json
+match 150: rifleman vs archer on sky-deck, fuzz/absent, seed 1386792811
+  catch-up after frame 1547: the game stayed behind its input for 3.0 s: 131 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-150.json
+match 151: rifleman vs archer on three-bridges, fuzz/absent, seed 515535497
+  catch-up after frame 656: the game stayed behind its input for 3.0 s: 101 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-151.json
+match 157: illidan vs archer on three-bridges, fuzz/absent, seed 1705648381
+  catch-up after frame 396: the game stayed behind its input for 3.0 s: 75 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-157.json
+match 160: illidan vs illidan on sky-deck, fuzz/absent, seed 1438353807
+  catch-up after frame 414: the game stayed behind its input for 3.0 s: 71 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-160.json
+match 159: illidan vs rifleman on three-bridges, fuzz/absent, seed 459680541
+  catch-up after frame 517: the game stayed behind its input for 3.0 s: 105 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-159.json
+match 167: archer vs illidan on three-bridges, absent/fuzz, seed 438624188
+  catch-up after frame 1385: the game stayed behind its input for 3.0 s: 65 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-167.json
+match 165: archer vs rifleman on three-bridges, absent/fuzz, seed 2008434191
+  catch-up after frame 2501: the game stayed behind its input for 3.0 s: 72 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-165.json
+match 170: rifleman vs rifleman on sky-deck, absent/fuzz, seed 448903262
+  catch-up after frame 3051: the game stayed behind its input for 3.0 s: 101 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-170.json
+match 175: illidan vs archer on three-bridges, absent/fuzz, seed 183884358
+  catch-up after frame 400: the game stayed behind its input for 3.0 s: 115 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-175.json
+match 234: archer vs archer on sky-deck, fuzz/absent, seed 1361611107
+  catch-up after frame 2000: the game stayed behind its input for 3.0 s: 75 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-234.json
+match 240: rifleman vs archer on sky-deck, fuzz/absent, seed 435717181
+  catch-up after frame 1445: the game stayed behind its input for 3.0 s: 119 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-240.json
+match 245: rifleman vs illidan on three-bridges, fuzz/absent, seed 1707347358
+  catch-up after frame 414: the game stayed behind its input for 3.0 s: 89 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-245.json
+match 243: rifleman vs rifleman on three-bridges, fuzz/absent, seed 2095752699
+  catch-up after frame 532: the game stayed behind its input for 3.0 s: 97 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-243.json
+match 249: illidan vs rifleman on three-bridges, fuzz/absent, seed 595980820
+  catch-up after frame 1199: the game stayed behind its input for 3.0 s: 116 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-249.json
+match 252: archer vs archer on sky-deck, absent/fuzz, seed 1774274674
+  catch-up after frame 1719: the game stayed behind its input for 3.0 s: 103 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-252.json
+match 256: archer vs illidan on sky-deck, absent/fuzz, seed 2077706709
+  catch-up after frame 1402: the game stayed behind its input for 3.0 s: 101 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-256.json
+match 257: archer vs illidan on three-bridges, absent/fuzz, seed 1199267945
+  catch-up after frame 854: the game stayed behind its input for 3.0 s: 89 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-257.json
+match 262: rifleman vs illidan on sky-deck, absent/fuzz, seed 1185511230
+  catch-up after frame 390: the game stayed behind its input for 3.0 s: 71 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-262.json
+match 267: illidan vs rifleman on three-bridges, absent/fuzz, seed 1776885392
+  catch-up after frame 563: the game stayed behind its input for 3.0 s: 114 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-267.json
+match 260: rifleman vs rifleman on sky-deck, absent/fuzz, seed 428242029
+  catch-up after frame 3436: the game stayed behind its input for 3.0 s: 85 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-260.json
+match 328: archer vs illidan on sky-deck, fuzz/absent, seed 1351276579
+  catch-up after frame 501: the game stayed behind its input for 3.0 s: 99 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-328.json
+match 333: rifleman vs rifleman on three-bridges, fuzz/absent, seed 1247576496
+  catch-up after frame 1907: the game stayed behind its input for 3.0 s: 169 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-333.json
+match 338: illidan vs rifleman on sky-deck, fuzz/absent, seed 2032342382
+  catch-up after frame 751: the game stayed behind its input for 3.0 s: 77 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-338.json
+match 335: rifleman vs illidan on three-bridges, fuzz/absent, seed 2037384676
+  catch-up after frame 3046: the game stayed behind its input for 3.0 s: 123 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-335.json
+match 344: archer vs rifleman on sky-deck, absent/fuzz, seed 1534089292
+  catch-up after frame 665: the game stayed behind its input for 3.0 s: 93 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-344.json
+match 341: illidan vs illidan on three-bridges, fuzz/absent, seed 671532710
+  catch-up after frame 1666: the game stayed behind its input for 3.0 s: 123 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-341.json
+match 349: rifleman vs archer on three-bridges, absent/fuzz, seed 1120599353
+  catch-up after frame 597: the game stayed behind its input for 3.0 s: 89 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-349.json
+match 348: rifleman vs archer on sky-deck, absent/fuzz, seed 1691504140
+  catch-up after frame 771: the game stayed behind its input for 3.0 s: 69 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-348.json
+match 346: archer vs illidan on sky-deck, absent/fuzz, seed 1510883105
+  catch-up after frame 1696: the game stayed behind its input for 3.0 s: 71 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-346.json
+match 350: rifleman vs rifleman on sky-deck, absent/fuzz, seed 1633268027
+  catch-up after frame 2227: the game stayed behind its input for 3.0 s: 75 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-350.json
+match 352: rifleman vs illidan on sky-deck, absent/fuzz, seed 952543778
+  catch-up after frame 1027: the game stayed behind its input for 3.0 s: 77 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-352.json
+match 423: rifleman vs rifleman on three-bridges, fuzz/absent, seed 1111881365
+  catch-up after frame 1361: the game stayed behind its input for 3.0 s: 83 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-423.json
+match 422: rifleman vs rifleman on sky-deck, fuzz/absent, seed 620987521
+  catch-up after frame 3312: the game stayed behind its input for 3.0 s: 89 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-422.json
+match 425: rifleman vs illidan on three-bridges, fuzz/absent, seed 1337785045
+  catch-up after frame 431: the game stayed behind its input for 3.0 s: 107 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-425.json
+match 424: rifleman vs illidan on sky-deck, fuzz/absent, seed 1714064091
+  catch-up after frame 1717: the game stayed behind its input for 3.0 s: 119 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-424.json
+match 427: illidan vs archer on three-bridges, fuzz/absent, seed 1726322444
+  catch-up after frame 3392: the game stayed behind its input for 3.0 s: 104 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-427.json
+match 436: archer vs illidan on sky-deck, absent/fuzz, seed 177884146
+  catch-up after frame 699: the game stayed behind its input for 3.0 s: 65 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-436.json
+match 439: rifleman vs archer on three-bridges, absent/fuzz, seed 1378177538
+  catch-up after frame 811: the game stayed behind its input for 3.0 s: 103 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-439.json
+match 440: rifleman vs rifleman on sky-deck, absent/fuzz, seed 1259520032
+  catch-up after frame 2047: the game stayed behind its input for 3.0 s: 117 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-440.json
+match 437: archer vs illidan on three-bridges, absent/fuzz, seed 1005990860
+  catch-up after frame 1413: the game stayed behind its input for 3.0 s: 151 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-437.json
+match 444: illidan vs archer on sky-deck, absent/fuzz, seed 501323576
+  catch-up after frame 1529: the game stayed behind its input for 3.0 s: 169 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-444.json
+match 442: rifleman vs illidan on sky-deck, absent/fuzz, seed 142259177
+  catch-up after frame 2060: the game stayed behind its input for 3.0 s: 93 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-442.json
+match 443: rifleman vs illidan on three-bridges, absent/fuzz, seed 1487513508
+  catch-up after frame 1852: the game stayed behind its input for 3.0 s: 101 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-443.json
+match 448: illidan vs illidan on sky-deck, absent/fuzz, seed 1772356721
+  catch-up after frame 727: the game stayed behind its input for 3.0 s: 149 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-448.json
+match 512: rifleman vs rifleman on sky-deck, fuzz/absent, seed 238161227
+  catch-up after frame 1520: the game stayed behind its input for 3.0 s: 100 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-512.json
+match 522: archer vs archer on sky-deck, absent/fuzz, seed 1602002098
+  catch-up after frame 666: the game stayed behind its input for 3.0 s: 71 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-522.json
+match 517: illidan vs archer on three-bridges, fuzz/absent, seed 1423164808
+  catch-up after frame 1742: the game stayed behind its input for 3.0 s: 67 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-517.json
+match 525: archer vs rifleman on three-bridges, absent/fuzz, seed 765082483
+  catch-up after frame 335: the game stayed behind its input for 3.0 s: 83 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-525.json
+match 526: archer vs illidan on sky-deck, absent/fuzz, seed 1020259434
+  catch-up after frame 1924: the game stayed behind its input for 3.0 s: 151 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-526.json
+match 528: rifleman vs archer on sky-deck, absent/fuzz, seed 933659370
+  catch-up after frame 1162: the game stayed behind its input for 3.0 s: 161 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-528.json
+match 530: rifleman vs rifleman on sky-deck, absent/fuzz, seed 1926005506
+  catch-up after frame 786: the game stayed behind its input for 3.0 s: 121 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-530.json
+match 532: rifleman vs illidan on sky-deck, absent/fuzz, seed 513298409
+  catch-up after frame 460: the game stayed behind its input for 3.0 s: 77 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-532.json
+match 536: illidan vs rifleman on sky-deck, absent/fuzz, seed 2081365630
+  catch-up after frame 1040: the game stayed behind its input for 3.0 s: 132 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-536.json
+match 598: archer vs illidan on sky-deck, fuzz/absent, seed 1050352862
+  catch-up after frame 358: the game stayed behind its input for 3.0 s: 89 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-598.json
+match 596: archer vs rifleman on sky-deck, fuzz/absent, seed 976965821
+  catch-up after frame 1183: the game stayed behind its input for 3.0 s: 185 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-596.json
+match 614: archer vs rifleman on sky-deck, absent/fuzz, seed 654148850
+  catch-up after frame 1676: the game stayed behind its input for 3.0 s: 71 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-614.json
+match 616: archer vs illidan on sky-deck, absent/fuzz, seed 1760713834
+  catch-up after frame 1530: the game stayed behind its input for 3.0 s: 105 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-616.json
+match 620: rifleman vs rifleman on sky-deck, absent/fuzz, seed 208077688
+  catch-up after frame 426: the game stayed behind its input for 3.0 s: 79 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-620.json
+match 623: rifleman vs illidan on three-bridges, absent/fuzz, seed 1690552395
+  catch-up after frame 994: the game stayed behind its input for 3.0 s: 71 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-623.json
+match 629: illidan vs illidan on three-bridges, absent/fuzz, seed 145694579
+  catch-up after frame 560: the game stayed behind its input for 3.0 s: 125 frames of input not yet played
+  catch-up after frame 1680: catch-up spiral: input not yet played grew for 3 s to 363 frames
+  repro: SCRATCH/run-fuzz/match-629.json
+match 687: archer vs rifleman on three-bridges, fuzz/absent, seed 1383382356
+  catch-up after frame 683: the game stayed behind its input for 3.0 s: 125 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-687.json
+match 689: archer vs illidan on three-bridges, fuzz/absent, seed 1787927981
+  catch-up after frame 1022: the game stayed behind its input for 3.0 s: 191 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-689.json
+match 691: rifleman vs archer on three-bridges, fuzz/absent, seed 250400849
+  catch-up after frame 1543: the game stayed behind its input for 3.0 s: 115 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-691.json
+match 695: rifleman vs illidan on three-bridges, fuzz/absent, seed 1626998473
+  catch-up after frame 1093: the game stayed behind its input for 3.0 s: 119 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-695.json
+match 701: illidan vs illidan on three-bridges, fuzz/absent, seed 225490116
+  catch-up after frame 538: the game stayed behind its input for 3.0 s: 89 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-701.json
+match 702: archer vs archer on sky-deck, absent/fuzz, seed 1186266440
+  catch-up after frame 2537: the game stayed behind its input for 3.0 s: 162 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-702.json
+match 707: archer vs illidan on three-bridges, absent/fuzz, seed 1402545532
+  catch-up after frame 764: the game stayed behind its input for 3.0 s: 84 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-707.json
+match 709: rifleman vs archer on three-bridges, absent/fuzz, seed 1334052401
+  catch-up after frame 2996: the game stayed behind its input for 3.0 s: 117 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-709.json
+match 712: rifleman vs illidan on sky-deck, absent/fuzz, seed 2085865044
+  catch-up after frame 1743: the game stayed behind its input for 3.0 s: 103 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-712.json
+match 797: archer vs illidan on three-bridges, absent/fuzz, seed 1111266833
+  catch-up after frame 329: the game stayed behind its input for 3.0 s: 73 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-797.json
+match 794: archer vs rifleman on sky-deck, absent/fuzz, seed 450702884
+  catch-up after frame 1727: the game stayed behind its input for 3.0 s: 126 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-794.json
+match 796: archer vs illidan on sky-deck, absent/fuzz, seed 134332506
+  catch-up after frame 424: the game stayed behind its input for 3.0 s: 129 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-796.json
+match 873: rifleman vs rifleman on three-bridges, fuzz/absent, seed 396632488
+  catch-up after frame 609: the game stayed behind its input for 3.0 s: 77 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-873.json
+match 871: rifleman vs archer on three-bridges, fuzz/absent, seed 867431515
+  catch-up after frame 506: the game stayed behind its input for 3.0 s: 95 frames of input not yet played
+  scene after frame 2035 (p0): would see a freeze trap stayed in view for 31.32 s; it should be gone within 31.00 s (model war3mapImported/FrostTrap-6f1ac9fa41c6ef19546e36e3e217cda960b2e3f0f05d7c3a446c1955768f6d22.mdx: 1879 frames without a break, lifetime 1860; now 1 of 4 in view, 1 drawn)
+  repro: SCRATCH/run-fuzz/match-871.json
+match 877: illidan vs archer on three-bridges, fuzz/absent, seed 333364503
+  catch-up after frame 409: the game stayed behind its input for 3.0 s: 69 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-877.json
+match 872: rifleman vs rifleman on sky-deck, fuzz/absent, seed 150511359
+  catch-up after frame 1850: the game stayed behind its input for 3.0 s: 119 frames of input not yet played
+  catch-up after frame 2940: catch-up spiral: input not yet played grew for 3 s to 215 frames
+  repro: SCRATCH/run-fuzz/match-872.json
+match 875: rifleman vs illidan on three-bridges, fuzz/absent, seed 1856532215
+  catch-up after frame 2215: the game stayed behind its input for 3.0 s: 107 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-875.json
+match 879: illidan vs rifleman on three-bridges, fuzz/absent, seed 316950782
+  catch-up after frame 334: the game stayed behind its input for 3.0 s: 75 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-879.json
+match 881: illidan vs illidan on three-bridges, fuzz/absent, seed 539885561
+  catch-up after frame 1463: the game stayed behind its input for 3.0 s: 129 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-881.json
+match 880: illidan vs illidan on sky-deck, fuzz/absent, seed 857696694
+  catch-up after frame 2263: the game stayed behind its input for 3.0 s: 78 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-880.json
+match 885: archer vs rifleman on three-bridges, absent/fuzz, seed 1111809419
+  catch-up after frame 931: the game stayed behind its input for 3.0 s: 85 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-885.json
+match 886: archer vs illidan on sky-deck, absent/fuzz, seed 388642372
+  catch-up after frame 2888: the game stayed behind its input for 3.0 s: 71 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-886.json
+match 887: archer vs illidan on three-bridges, absent/fuzz, seed 1886282267
+  catch-up after frame 2888: the game stayed behind its input for 3.0 s: 169 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-887.json
+match 890: rifleman vs rifleman on sky-deck, absent/fuzz, seed 1341093077
+  catch-up after frame 1120: the game stayed behind its input for 3.0 s: 69 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-890.json
+match 898: illidan vs illidan on sky-deck, absent/fuzz, seed 2115825314
+  catch-up after frame 2592: the game stayed behind its input for 3.0 s: 101 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-898.json
+match 956: archer vs rifleman on sky-deck, fuzz/absent, seed 365243063
+  catch-up after frame 721: the game stayed behind its input for 3.0 s: 107 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-956.json
+match 955: archer vs archer on three-bridges, fuzz/absent, seed 107090352
+  catch-up after frame 1439: the game stayed behind its input for 3.0 s: 79 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-955.json
+match 957: archer vs rifleman on three-bridges, fuzz/absent, seed 1954635850
+  catch-up after frame 820: the game stayed behind its input for 3.0 s: 89 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-957.json
+match 958: archer vs illidan on sky-deck, fuzz/absent, seed 385600758
+  catch-up after frame 684: the game stayed behind its input for 3.0 s: 113 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-958.json
+match 970: illidan vs illidan on sky-deck, fuzz/absent, seed 287410599
+  catch-up after frame 692: the game stayed behind its input for 3.0 s: 63 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-970.json
+match 976: archer vs illidan on sky-deck, absent/fuzz, seed 2028838167
+  catch-up after frame 1940: the game stayed behind its input for 3.0 s: 67 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-976.json
+match 974: archer vs rifleman on sky-deck, absent/fuzz, seed 471089006
+  catch-up after frame 2276: the game stayed behind its input for 3.0 s: 85 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-974.json
+match 977: archer vs illidan on three-bridges, absent/fuzz, seed 202921469
+  catch-up after frame 676: the game stayed behind its input for 3.0 s: 77 frames of input not yet played
+  catch-up after frame 1140: catch-up spiral: input not yet played grew for 3 s to 163 frames
+  repro: SCRATCH/run-fuzz/match-977.json
+match 989: illidan vs illidan on three-bridges, absent/fuzz, seed 1001774974
+  catch-up after frame 550: the game stayed behind its input for 3.0 s: 89 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-989.json
+match 1045: archer vs archer on three-bridges, fuzz/absent, seed 602224491
+  catch-up after frame 777: the game stayed behind its input for 3.0 s: 93 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1045.json
+match 1047: archer vs rifleman on three-bridges, fuzz/absent, seed 867412773
+  catch-up after frame 421: the game stayed behind its input for 3.0 s: 117 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1047.json
+match 1051: rifleman vs archer on three-bridges, fuzz/absent, seed 614094931
+  catch-up after frame 1320: the game stayed behind its input for 3.0 s: 67 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1051.json
+match 1056: illidan vs archer on sky-deck, fuzz/absent, seed 25862741
+  catch-up after frame 400: the game stayed behind its input for 3.0 s: 199 frames of input not yet played
+  catch-up after frame 420: catch-up spiral: input not yet played grew for 3 s to 201 frames
+  repro: SCRATCH/run-fuzz/match-1056.json
+match 1062: archer vs archer on sky-deck, absent/fuzz, seed 942940744
+  catch-up after frame 1462: the game stayed behind its input for 3.0 s: 99 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1062.json
+match 1076: illidan vs rifleman on sky-deck, absent/fuzz, seed 705150702
+  catch-up after frame 2230: the game stayed behind its input for 3.0 s: 87 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1076.json
+match 1139: archer vs illidan on three-bridges, fuzz/absent, seed 1142798691
+  catch-up after frame 887: the game stayed behind its input for 3.0 s: 79 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1139.json
+match 1143: rifleman vs rifleman on three-bridges, fuzz/absent, seed 692552767
+  catch-up after frame 892: the game stayed behind its input for 3.0 s: 71 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1143.json
+match 1148: illidan vs rifleman on sky-deck, fuzz/absent, seed 1572891294
+  catch-up after frame 920: the game stayed behind its input for 3.0 s: 75 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1148.json
+match 1150: illidan vs illidan on sky-deck, fuzz/absent, seed 2072945130
+  catch-up after frame 795: the game stayed behind its input for 3.0 s: 89 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1150.json
+match 1153: archer vs archer on three-bridges, absent/fuzz, seed 1300415942
+  catch-up after frame 1921: the game stayed behind its input for 3.0 s: 111 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1153.json
+match 1159: rifleman vs archer on three-bridges, absent/fuzz, seed 681134245
+  catch-up after frame 2180: the game stayed behind its input for 3.0 s: 135 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1159.json
+match 1169: illidan vs illidan on three-bridges, absent/fuzz, seed 688252171
+  catch-up after frame 908: the game stayed behind its input for 3.0 s: 129 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1169.json
+match 1192: archer vs illidan on sky-deck, fuzz/fuzz, seed 41920194
+  catch-up after frame 362: the game stayed behind its input for 3.0 s: 98 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1192.json
+match 1229: archer vs illidan on three-bridges, fuzz/absent, seed 2077211764
+  catch-up after frame 394: the game stayed behind its input for 3.0 s: 81 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1229.json
+match 1230: rifleman vs archer on sky-deck, fuzz/absent, seed 930097967
+  catch-up after frame 1070: the game stayed behind its input for 3.0 s: 85 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1230.json
+match 1238: illidan vs rifleman on sky-deck, fuzz/absent, seed 1506454911
+  catch-up after frame 1807: the game stayed behind its input for 3.0 s: 187 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1238.json
+match 1251: rifleman vs rifleman on three-bridges, absent/fuzz, seed 199420563
+  catch-up after frame 925: the game stayed behind its input for 3.0 s: 117 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1251.json
+match 1254: illidan vs archer on sky-deck, absent/fuzz, seed 244633293
+  catch-up after frame 2827: the game stayed behind its input for 3.0 s: 161 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1254.json
+match 1320: rifleman vs archer on sky-deck, fuzz/absent, seed 1250822590
+  catch-up after frame 1020: the game stayed behind its input for 3.0 s: 99 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1320.json
+match 1318: archer vs illidan on sky-deck, fuzz/absent, seed 662410164
+  catch-up after frame 1516: the game stayed behind its input for 3.0 s: 65 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1318.json
+match 1321: rifleman vs archer on three-bridges, fuzz/absent, seed 1954506485
+  catch-up after frame 664: the game stayed behind its input for 3.0 s: 112 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1321.json
+match 1323: rifleman vs rifleman on three-bridges, fuzz/absent, seed 614997059
+  catch-up after frame 1265: the game stayed behind its input for 3.0 s: 108 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1323.json
+match 1328: illidan vs rifleman on sky-deck, fuzz/absent, seed 2047732296
+  catch-up after frame 769: the game stayed behind its input for 3.0 s: 117 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1328.json
+match 1331: illidan vs illidan on three-bridges, fuzz/absent, seed 412784559
+  catch-up after frame 328: the game stayed behind its input for 3.0 s: 117 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1331.json
+match 1333: archer vs archer on three-bridges, absent/fuzz, seed 43775792
+  catch-up after frame 725: the game stayed behind its input for 3.0 s: 107 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1333.json
+match 1329: illidan vs rifleman on three-bridges, fuzz/absent, seed 1708356100
+  catch-up after frame 357: the game stayed behind its input for 3.0 s: 123 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1329.json
+match 1338: rifleman vs archer on sky-deck, absent/fuzz, seed 1019266003
+  catch-up after frame 389: the game stayed behind its input for 3.0 s: 95 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1338.json
+match 1347: illidan vs rifleman on three-bridges, absent/fuzz, seed 907496621
+  catch-up after frame 1282: the game stayed behind its input for 3.0 s: 111 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1347.json
+match 1408: archer vs illidan on sky-deck, fuzz/absent, seed 1210685370
+  catch-up after frame 1291: the game stayed behind its input for 3.0 s: 81 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1408.json
+match 1406: archer vs rifleman on sky-deck, fuzz/absent, seed 923469021
+  catch-up after frame 1313: the game stayed behind its input for 3.0 s: 77 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1406.json
+match 1413: rifleman vs rifleman on three-bridges, fuzz/absent, seed 392144041
+  catch-up after frame 1745: the game stayed behind its input for 3.0 s: 121 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1413.json
+match 1417: illidan vs archer on three-bridges, fuzz/absent, seed 415495414
+  catch-up after frame 2070: the game stayed behind its input for 3.0 s: 145 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1417.json
+match 1418: illidan vs rifleman on sky-deck, fuzz/absent, seed 1029349861
+  catch-up after frame 3591: the game stayed behind its input for 3.0 s: 70 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1418.json
+match 1429: rifleman vs archer on three-bridges, absent/fuzz, seed 572686783
+  catch-up after frame 1131: the game stayed behind its input for 3.0 s: 139 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1429.json
+match 1433: rifleman vs illidan on three-bridges, absent/fuzz, seed 2050368300
+  catch-up after frame 649: the game stayed behind its input for 3.0 s: 111 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1433.json
+match 1432: rifleman vs illidan on sky-deck, absent/fuzz, seed 2121500602
+  catch-up after frame 906: the game stayed behind its input for 3.0 s: 96 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1432.json
+match 1505: rifleman vs illidan on three-bridges, fuzz/absent, seed 224209815
+  catch-up after frame 2413: the game stayed behind its input for 3.0 s: 65 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1505.json
+match 1508: illidan vs rifleman on sky-deck, fuzz/absent, seed 833194158
+  catch-up after frame 546: the game stayed behind its input for 3.0 s: 75 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1508.json
+match 1518: rifleman vs archer on sky-deck, absent/fuzz, seed 31032841
+  catch-up after frame 918: the game stayed behind its input for 3.0 s: 116 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1518.json
+match 1522: rifleman vs illidan on sky-deck, absent/fuzz, seed 2137357907
+  catch-up after frame 1744: the game stayed behind its input for 3.0 s: 124 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1522.json
+match 1527: illidan vs rifleman on three-bridges, absent/fuzz, seed 494649056
+  catch-up after frame 1421: the game stayed behind its input for 3.0 s: 121 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1527.json
+match 1526: illidan vs rifleman on sky-deck, absent/fuzz, seed 58556548
+  catch-up after frame 1254: the game stayed behind its input for 3.0 s: 95 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1526.json
+match 1584: archer vs archer on sky-deck, fuzz/absent, seed 695267032
+  catch-up after frame 2146: the game stayed behind its input for 3.0 s: 155 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1584.json
+match 1589: archer vs illidan on three-bridges, fuzz/absent, seed 34018176
+  catch-up after frame 2151: the game stayed behind its input for 3.0 s: 197 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1589.json
+match 1594: rifleman vs illidan on sky-deck, fuzz/absent, seed 922995927
+  catch-up after frame 874: the game stayed behind its input for 3.0 s: 99 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1594.json
+match 1595: rifleman vs illidan on three-bridges, fuzz/absent, seed 93167908
+  catch-up after frame 1161: the game stayed behind its input for 3.0 s: 101 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1595.json
+match 1593: rifleman vs rifleman on three-bridges, fuzz/absent, seed 745461229
+  catch-up after frame 1888: the game stayed behind its input for 3.0 s: 111 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1593.json
+match 1600: illidan vs illidan on sky-deck, fuzz/absent, seed 1694737899
+  catch-up after frame 660: the game stayed behind its input for 3.0 s: 73 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1600.json
+match 1606: archer vs illidan on sky-deck, absent/fuzz, seed 787229102
+  catch-up after frame 1800: catch-up spiral: input not yet played grew for 3 s to 161 frames
+  catch-up after frame 1872: the game stayed behind its input for 3.0 s: 155 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1606.json
+match 1607: archer vs illidan on three-bridges, absent/fuzz, seed 612848977
+  catch-up after frame 642: the game stayed behind its input for 3.0 s: 121 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1607.json
+match 1610: rifleman vs rifleman on sky-deck, absent/fuzz, seed 2115409406
+  catch-up after frame 386: the game stayed behind its input for 3.0 s: 65 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1610.json
+match 1608: rifleman vs archer on sky-deck, absent/fuzz, seed 1245731342
+  catch-up after frame 602: the game stayed behind its input for 3.0 s: 111 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1608.json
+match 1612: rifleman vs illidan on sky-deck, absent/fuzz, seed 1574860390
+  catch-up after frame 712: the game stayed behind its input for 3.0 s: 123 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1612.json
+match 1613: rifleman vs illidan on three-bridges, absent/fuzz, seed 1312265537
+  catch-up after frame 407: the game stayed behind its input for 3.0 s: 125 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1613.json
+match 1611: rifleman vs rifleman on three-bridges, absent/fuzz, seed 80022176
+  catch-up after frame 1414: the game stayed behind its input for 3.0 s: 121 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1611.json
+match 1614: illidan vs archer on sky-deck, absent/fuzz, seed 44600968
+  catch-up after frame 1260: the game stayed behind its input for 3.0 s: 103 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1614.json
+match 1615: illidan vs archer on three-bridges, absent/fuzz, seed 1154712034
+  catch-up after frame 643: the game stayed behind its input for 3.0 s: 79 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1615.json
+match 1618: illidan vs illidan on sky-deck, absent/fuzz, seed 80046894
+  catch-up after frame 775: the game stayed behind its input for 3.0 s: 179 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1618.json
+match 1678: archer vs illidan on sky-deck, fuzz/absent, seed 646497168
+  catch-up after frame 688: the game stayed behind its input for 3.0 s: 127 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1678.json
+match 1680: rifleman vs archer on sky-deck, fuzz/absent, seed 1201236053
+  catch-up after frame 1024: the game stayed behind its input for 3.0 s: 123 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1680.json
+match 1683: rifleman vs rifleman on three-bridges, fuzz/absent, seed 156254748
+  catch-up after frame 3170: the game stayed behind its input for 3.0 s: 114 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1683.json
+match 1682: rifleman vs rifleman on sky-deck, fuzz/absent, seed 1258526261
+  catch-up after frame 582: the game stayed behind its input for 3.0 s: 115 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1682.json
+match 1691: illidan vs illidan on three-bridges, fuzz/absent, seed 854732840
+  catch-up after frame 2797: the game stayed behind its input for 3.0 s: 101 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1691.json
+match 1690: illidan vs illidan on sky-deck, fuzz/absent, seed 1355880629
+  catch-up after frame 803: the game stayed behind its input for 3.0 s: 212 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1690.json
+match 1696: archer vs illidan on sky-deck, absent/fuzz, seed 297687118
+  catch-up after frame 843: the game stayed behind its input for 3.0 s: 109 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1696.json
+match 1697: archer vs illidan on three-bridges, absent/fuzz, seed 841790901
+  catch-up after frame 1492: the game stayed behind its input for 3.0 s: 73 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1697.json
+match 1694: archer vs rifleman on sky-deck, absent/fuzz, seed 395900700
+  catch-up after frame 995: the game stayed behind its input for 3.0 s: 69 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1694.json
+match 1699: rifleman vs archer on three-bridges, absent/fuzz, seed 2101814367
+  catch-up after frame 1156: the game stayed behind its input for 3.0 s: 133 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1699.json
+match 1702: rifleman vs illidan on sky-deck, absent/fuzz, seed 1050182547
+  catch-up after frame 2440: the game stayed behind its input for 3.0 s: 107 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1702.json
+match 1701: rifleman vs rifleman on three-bridges, absent/fuzz, seed 581925717
+  catch-up after frame 3635: the game stayed behind its input for 3.0 s: 139 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1701.json
+match 1772: rifleman vs rifleman on sky-deck, fuzz/absent, seed 11835739
+  catch-up after frame 474: the game stayed behind its input for 3.0 s: 129 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1772.json
+match 1764: archer vs archer on sky-deck, fuzz/absent, seed 391834086
+  catch-up after frame 1207: the game stayed behind its input for 3.0 s: 155 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1764.json
+match 1778: illidan vs rifleman on sky-deck, fuzz/absent, seed 1353569391
+  catch-up after frame 571: the game stayed behind its input for 3.0 s: 87 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1778.json
+match 1782: archer vs archer on sky-deck, absent/fuzz, seed 686229816
+  catch-up after frame 550: the game stayed behind its input for 3.0 s: 101 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1782.json
+match 1792: rifleman vs illidan on sky-deck, absent/fuzz, seed 1732254532
+  catch-up after frame 998: the game stayed behind its input for 3.0 s: 81 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1792.json
+match 1790: rifleman vs rifleman on sky-deck, absent/fuzz, seed 2130068446
+  catch-up after frame 2981: the game stayed behind its input for 3.0 s: 80 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1790.json
+match 1799: illidan vs illidan on three-bridges, absent/fuzz, seed 611053017
+  catch-up after frame 1291: the game stayed behind its input for 3.0 s: 73 frames of input not yet played
+  repro: SCRATCH/run-fuzz/match-1799.json
+ 375.705 s  1,800 matches (375.688 s)
+1,800 matches, 1,899,590 frames (541.5 game minutes) in 375.7 s with 4 workers (4 started): 86x real time, 1838.6 s CPU
+costliest client frame 22.9 ms; 184 findings (catch-up, scene) in 178 matches, repro files in SCRATCH/run-fuzz
+ 375.710 s  soak failed (375.710 s)
+184 findings in 178 matches
+error: script "wisp" exited with code 1

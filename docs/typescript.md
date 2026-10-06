@@ -206,6 +206,19 @@ capacity scope; it is not part of `bun run test`. `--fighter`, `--stage`
 and `--policy` narrow a run. The 200-match run took 46 s with four workers
 and 245 s of CPU on 6 October 2026.
 
+With `SOAK_OUTCOMES=FILE` set, every match also appends its result to FILE
+as one JSON line: the winner, whether time ran out, and for each player the
+damage and hits taken and each stock lost (match frame, percent, frames since
+the last hit taken). `bun scripts/soakOutcomes.ts FILE...` summarizes them
+per fighter pair and policy pair: wins with a 95% Wilson interval, time-outs,
+stock time, the percent stocks were lost at (a loss more than 3 s after the
+last hit counts as a self-destruct) and damage per landed hit. The computer
+has no randomness and only chases, jumps, recovers and jabs (neutral air when
+airborne; smashcraft:ts/src/game/match/step.ts), so its matches against
+itself repeat exactly whatever the seed, and the summary counts identical
+results of one setup without a fuzzed player once. Its numbers describe that
+jab, movement, weight and recovery, not a whole moveset.
+
 `bun wisp soak --helper BIN [--matches N] [--seconds S]` plays matches through
 the real input path instead (smashcraft:ts/test/soak/helper.ts): each player
 a uinput pad the fuzzer drives about once a second, read by a persistent
