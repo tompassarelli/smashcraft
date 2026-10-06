@@ -1034,10 +1034,10 @@ kind of defensive special beside the counters:
 
 | | Universal powershield | Counter specials | Guard specials |
 |---|---|---|---|
-| Who | Every fighter, through the shared shield | Fighters whose kit authors one: Illidan's parry (Parry Step) | Fighters whose kit authors one: Uther's Divine Guard (#96) |
+| Who | Every fighter, through the shared shield | Fighters whose kit authors one: Illidan's parry (Parry Step) | Fighters whose kit authors one: Uther's Divine Shield (#96, #131) |
 | Input | The ordinary shield press, timed | A special move | A special move |
 | Commitment | None beyond the shield: a press that parries nothing is an ordinary shield | Startup, a counter window and recovery; a whiff is punishable | Startup, a guard window and recovery; a whiff is punishable, and grabs beat it |
-| Reward | No shieldstun or release lag and next-frame action with the defender's own grounded option, which can still be the wrong choice | An automatic strike authored by the move: Parry Step cancels the attack and launches the attacker | A non-strike reward and no automatic strike: Divine Guard is intangible through its window and heals 3% once on a successful guard, capped per stock |
+| Reward | No shieldstun or release lag and next-frame action with the defender's own grounded option, which can still be the wrong choice | An automatic strike authored by the move: Parry Step cancels the attack and launches the attacker | A non-strike reward and no automatic strike: Divine Shield is intangible through its window, and a successful guard leaves him intangible to strikes and projectiles (not grabs) for 45 frames or until he attacks |
 | Against strings | One press per hit; the red parry rejoins a string | The move's own window | The move's own window |
 
 The powershield never strikes back on its own: the punish is the defender's

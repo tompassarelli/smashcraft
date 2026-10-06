@@ -12,29 +12,35 @@ const H = HERO_REFERENCE_HEIGHT;
 const heights = (multiple: number): number => f32(H * f32(multiple));
 const perFrame = (distance: number, first: number, last: number): number => f32(distance / (last - first + 1));
 
-// Holy Bolt: 0.12H a frame, 30 frames, 0.17H radius; holding up aims it 30 degrees up.
-const BOLT_SPEED = heights(f32(0.12));
+// Holy Light (#131, docs/design/kit-review-2.md): 0.11H a frame out for 26
+// frames, then back toward Uther at the same speed, 80 frames in all, 0.17H
+// radius; holding up aims it 30 degrees up. Outbound 7%, returning 5% toward
+// Uther; reaching him untouched restores 3%, at most 9 a stock.
+const BOLT_SPEED = heights(f32(0.11));
 const BOLT_UP_X = f32(BOLT_SPEED * f32(0.8660254037844387));
 const BOLT_UP_Z = f32(BOLT_SPEED * f32(0.5));
-const holyBolt = (landingLag: number | undefined): AuthoredSpecial => ({
-  cost: 5,
-  endFrame: 47,
+const holyLight = (landingLag: number | undefined): AuthoredSpecial => ({
+  cost: 10,
+  endFrame: 44,
   projectiles: [{
-    spawnFrame: 22,
+    spawnFrame: 20,
     offsetX: 30.0,
     offsetZ: 62.0,
     velocityX: BOLT_SPEED,
     velocityZ: 0.0,
     upVelocityX: BOLT_UP_X,
     upVelocityZ: BOLT_UP_Z,
-    life: 30,
+    life: 80,
     radius: heights(f32(0.17)),
     effect: hit(7.0, "POKE", 40),
+    returns: { age: 26, speed: BOLT_SPEED },
+    returnEffect: hit(5.0, "POKE", 40),
+    catchHeal: { heal: 3.0, capPerStock: 9.0 },
     reflectable: true,
     limit: 1,
   }],
   landingLag,
-  hurt: [hurtPose(18, 28, utherReach(40.0, 70.0))],
+  hurt: [hurtPose(16, 26, utherReach(40.0, 70.0))],
 });
 
 // Crusader Rush: 0.9H over f12-17 with the hammer leading, stopping on f18.
@@ -80,22 +86,23 @@ const ascension = (cost: number, rise: number, struck: boolean): AuthoredSpecial
   helpless: true,
 });
 
-// Divine Guard: grounded stance, intangible f6-9 and vulnerable otherwise, so
-// grabs and late hits beat it. A damaging strike or projectile overlapping
-// the body on f6-9 restores 3 damage percent, at most 8 a stock. The airborne
-// press fails without spending.
-const DIVINE_GUARD: AuthoredSpecial = {
+// Divine Shield (#131): grounded stance, intangible f6-9 and vulnerable
+// otherwise, so grabs and late hits beat it. A damaging strike or projectile
+// overlapping the body on f6-9 raises Divine Shield for 45 frames: strikes and
+// projectiles pass through him until he attacks, uses a special or grabs, and
+// grabs still catch him. The airborne press fails without spending.
+const DIVINE_SHIELD: AuthoredSpecial = {
   cost: 25,
   endFrame: 36,
   intangible: frames(6, 9),
-  guard: { ...frames(6, 9), heal: 3.0, healCapPerStock: 8.0 },
+  guard: { ...frames(6, 9), heal: 0.0, healCapPerStock: 0.0, shieldFrames: 45 },
   groundOnly: true,
 };
 
 export const UTHER_SPECIALS: FighterSpecials = {
   mana: ROSTER_MANA,
-  neutral: { ground: holyBolt(undefined), air: holyBolt(20) },
+  neutral: { ground: holyLight(undefined), air: holyLight(20) },
   side: { ground: CRUSADER_RUSH, air: CRUSADER_RUSH_AIR },
   up: { ground: ascension(15, f32(1.9), true), free: ascension(0, f32(1.3), false) },
-  down: { ground: DIVINE_GUARD },
+  down: { ground: DIVINE_SHIELD },
 };

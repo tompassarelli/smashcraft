@@ -103,8 +103,10 @@ function selectHitRegion(world: Roster, attackerSlot: number, targetSlot: number
   const attacker = fighterAt(world, attackerSlot);
   const target = fighterAt(world, targetSlot);
   copyHitRegion(out, NO_HIT_REGION);
-  if (attacker.status.out || attacker.launch.hitlag > 0 || target.status.out || isIntangible(target)) return false;
   const { attack } = attacker;
+  // Divine Shield stops strikes, not grabs.
+  const grabsDivine = attack.style === AttackStyle.grab && target.status.divineFrames > 0;
+  if (attacker.status.out || attacker.launch.hitlag > 0 || target.status.out || (isIntangible(target) && !grabsDivine)) return false;
   if (attack.style === AttackStyle.grab && !canBeGrabbed(target)) return false;
   // Only grabs read the target's offset, so ordinary hits skip its exact arithmetic.
   if (attack.dashGrab) {

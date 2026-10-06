@@ -31,7 +31,7 @@ function caughtTarget(world: Roster, slot: number, owner: Readonly<Fighter>): nu
   for (let target = 0; target < PARTICIPANT_CAPACITY; target++) {
     if (target === slot || !isActive(world, target)) continue;
     const victim = fighterAt(world, target);
-    if (victim.status.out || isIntangible(victim) || !canBeGrabbed(victim) || inGrabContext(victim)) continue;
+    if (victim.status.out || (isIntangible(victim) && victim.status.divineFrames <= 0) || !canBeGrabbed(victim) || inGrabContext(victim)) continue;
     if (!grabTouchesBody(strike, victim)) continue;
     const distance = Math.abs(f32(victim.motion.x - owner.motion.x));
     if (best === undefined || distance < bestDistance) {

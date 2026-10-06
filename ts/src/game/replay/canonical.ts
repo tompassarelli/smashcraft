@@ -195,6 +195,11 @@ function specialProjectileCanonical(spec: Readonly<SpecialProjectile>, prefix: s
   int("reflectable", spec.reflectable ? 1 : 0);
   int("limit", spec.limit);
   int("cancelOnInterrupt", spec.cancelOnInterrupt === true ? 1 : 0);
+  if (spec.returnEffect !== undefined) result.push(hitEffectCanonical(spec.returnEffect, `${prefix}.returnEffect`));
+  if (spec.catchHeal !== undefined) {
+    real("catchHeal.heal", spec.catchHeal.heal);
+    real("catchHeal.capPerStock", spec.catchHeal.capPerStock);
+  }
   if (spec.status !== undefined) {
     int("status.kind", spec.status.kind);
     int("status.frames", spec.status.frames);
@@ -299,6 +304,7 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
     int("guard.last", move.guard.last);
     real("guard.heal", move.guard.heal);
     real("guard.healCapPerStock", move.guard.healCapPerStock);
+    if (move.guard.shieldFrames !== undefined) int("guard.shieldFrames", move.guard.shieldFrames);
   }
   const motion = move.motion ?? [];
   for (let index = 0; index < motion.length; index++) {
@@ -777,6 +783,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
     emit(kitDigestField(`${prefix}.placedSpec`, placed.spec, PLACEMENT_DIGESTS, placedSpecCanonical));
     int("specialGuarded", sp.guarded ? 1 : 0);
     real("guardHealed", st.guardHealed);
+    if (st.divineFrames !== 0) int("divineFrames", st.divineFrames);
   }
   // Any fighter can carry a hero status; it is written only while one or its immunity is live.
   if (st.condition !== 0 || st.conditionImmunity.some(frames => frames !== 0)) {

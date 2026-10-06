@@ -122,7 +122,7 @@ function heroUsage(game: ReturnType<typeof computerMatch>, slot: number, frames:
   return { specials, grabs, computer };
 }
 
-test("computer Uther shoots Holy Bolt at a level target in range and never presses what its mana can't pay", () => {
+test("computer Uther shoots Holy Light at a level target in range and never presses what its mana can't pay", () => {
   const game = computerMatch([Character.archer, Character.uther], [-200.0, 200.0], 0, 2);
   const { specials } = heroUsage(game, 1, 900);
   assertGreaterThan(specials[0] ?? 0, 0);
@@ -139,8 +139,8 @@ test("computer Uther shoots Holy Bolt at a level target in range and never press
   assertEquals(uther.visuals.manaDenied, 0);
 });
 
-test("computer Uther raises Divine Guard against a strike timed into its guard window, and grabs a shield", () => {
-  // An Archer forward smash about to land on Uther in 6 frames, its 7th: inside Divine Guard's f6-9.
+test("computer Uther raises Divine Shield against a strike timed into its guard window, and grabs a shield", () => {
+  // An Archer forward smash about to land on Uther in 6 frames, its 7th: inside Divine Shield's f6-9.
   let guards = 0;
   for (let serial = 0; serial < 30; serial++) {
     const world = createRoster(3, [createFighter(Character.archer, -60.0, 1), createFighter(Character.uther, 30.0, -1)]);

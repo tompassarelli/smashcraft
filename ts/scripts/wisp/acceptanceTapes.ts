@@ -322,7 +322,7 @@ const DREADLORD: MatchScript = {
   predictions: [[150, 162], [384, 396]],
 };
 
-/** Uther's four specials (three rushes drain his mana to the free Ascension), Divine Guard against the Archer's jab, and his hammer normals and throw, replayed across each. */
+/** Uther's four specials (three rushes drain his mana to the free Ascension), Divine Shield against the Archer's jab, and his hammer normals and throw, replayed across each. */
 const UTHER: MatchScript = {
   characters: [Character.uther, Character.archer], stage: 0, stocks: 3, minutes: 0, frames: 540,
   holds: [[

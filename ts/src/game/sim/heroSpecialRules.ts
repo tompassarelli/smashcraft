@@ -14,6 +14,7 @@ import { type FighterSpecials, type AuthoredSpecial, type SpecialFollowUp, type 
 import { type HitRegion, NO_HIT_REGION, authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "./hitRegions";
 import { type Controls, type Roster, fighterAt, isActive } from "./roster";
 import { travelBeforeBodies } from "./travelStop";
+import { endDivineShield } from "./transitions";
 import { capsuleCircleIntersects, shieldSizeMultiplier } from "./shield";
 import { attackCapsule, emptyCapsule, placeCapsule } from "../physics/contactGeometry";
 import { HurtContact, strikeHurtContact } from "./hurtboxes";
@@ -179,6 +180,7 @@ export function enterHeroSpecial(f: Fighter, chosen: Readonly<HeroSpecialChoice>
   if (specials === undefined) throw new Error("hero special without a kit");
   const move = specialForm(specialKit(specials, chosen.slot), chosen.form);
   const { special, mana } = f;
+  endDivineShield(f);
   special.form = chosen.form;
   special.grabFrame = 0;
   const aimX = input.specialX !== 0 ? input.specialX : input.direction;
@@ -475,6 +477,10 @@ function guardSucceeds(f: Fighter, guard: Readonly<SpecialGuard>): void {
   const heal = min(min(guard.heal, max(0.0, f32(guard.healCapPerStock - status.guardHealed))), max(0.0, status.damage));
   status.damage = f32(status.damage - heal);
   status.guardHealed = f32(status.guardHealed + heal);
+  if (guard.shieldFrames !== undefined) {
+    status.invincible = max(status.invincible, guard.shieldFrames);
+    status.divineFrames = guard.shieldFrames;
+  }
 }
 
 /**
@@ -500,6 +506,7 @@ export function resolveHeroGuards(world: Roster): void {
 /** One frame of a fighter's hero armor, hitlag included. */
 export function advanceHeroStatus(f: Fighter): void {
   if (f.status.armorFrames > 0) f.status.armorFrames--;
+  if (f.status.divineFrames > 0) f.status.divineFrames--;
   advanceHeroConditions(f);
 }
 

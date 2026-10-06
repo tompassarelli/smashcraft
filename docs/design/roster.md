@@ -451,10 +451,10 @@ the tables:
 
 | Input | Proposed move and behavior | Timing and cost |
 | --- | --- | --- |
-| Neutral B | **Holy Bolt:** aimed straight or 30 degrees up by holding up on entry; 7 damage, POKE at 40 degrees. Speed 0.12H/frame, life 30, radius 0.17H, one active, reflectable. Deals the same damage to every race. | Spawn f22, end f47; 5 mana |
+| Neutral B | **Holy Light** (#131, [kit review 2](kit-review-2.md#uther-131)): aimed straight or 30 degrees up by holding up on entry; speed 0.11H/frame out for 26 frames, then back toward Uther's chest at the same speed; life 80, radius 0.17H, one active. Outbound 7 damage, POKE at 40 degrees; returning 5 damage, POKE toward Uther. Reaching Uther untouched restores 3 percent, at most 9 a stock. A reflected orb flies straight. | Spawn f20, end f44; 10 mana |
 | Side B | **Crusader Rush:** advance 0.9H with a hammer check, 11 damage at 45 degrees, LAUNCH. Armor against one hit of at most 5 damage only on f12–15; grabs ignore it. Air version has no armor, no rise, and ends helpless. | Active/movement f12–17, R30; 20 mana |
 | Up B | **Ascension:** rising hammer leap, 1.9H rise and 0.45H horizontal drift; one 8-damage hit, LAUNCH at 80 degrees. Free version 1.3H without hitbox. | Hit f10–15, travel through f29, then helpless; 15 mana |
-| Down B | **Divine Guard:** ground-only timed stance, intangible f6–9, vulnerable otherwise, no automatic counter. If the guard overlaps a would-be damaging melee/projectile hit during those frames, record a successful guard and restore 3 damage percent once, with an 8-percent total healing cap per stock. Does not heal shield or mana; grabs beat it. | End f36; 25 mana. Air version fails without spending |
+| Down B | **Divine Shield** (#131): ground-only timed stance, intangible f6–9, vulnerable otherwise, no automatic counter. A damaging melee or projectile hit overlapping it on those frames raises Divine Shield: 45 frames in which strikes and projectiles pass through Uther; starting an attack, special or grab ends it. Grabs beat both the guard and the shield. No healing. | End f36; 25 mana. Air version fails without spending |
 
 ### Grab and throws
 
@@ -469,7 +469,7 @@ Standing grab 8/2/25, reach 0.55H. Pummel: hammer-hilt tap.
 
 **Ultimate — Guardian of the Light:** f30 vulnerable activation, R15, then 360 frames of +10 percent damage and three visible protective charges. A charge absorbs one hit reaction up to 6 damage while still taking damage; at most one charge consumed per 30 frames. Grabs and larger hits bypass the protection. No resurrection, extra stocks, unlimited heal, or prolonged invulnerability.
 
-**Required counterplay test:** Uther can be grabbed or baited during Divine Guard and punished afterward. Optimal healing cannot outpace plausible damage indefinitely because the stock cap is absolute.
+**Required counterplay test:** Uther can be grabbed or baited during Divine Shield and punished afterward. Optimal healing cannot outpace plausible damage indefinitely because the stock cap is absolute.
 
 ### Uther as built
 
@@ -485,13 +485,14 @@ use provisional coefficients. Deliberate differences:
 - Grab contact sits at hand height (about 24-56 above the feet), not at the
   shins.
 - Crusader Rush in the air holds its height during the rush (no rise, no
-  fall) and lands with 20 frames of lag; Holy Bolt cast in the air does too.
+  fall) and lands with 20 frames of lag; Holy Light cast in the air does too.
 - Ascension travels on f8-28 and stops on f29, so its helpless fall starts
   at the 1.9H (free form 1.3H) apex; both forms drift 0.45H.
-- Divine Guard's success is the special's `guard` window (docs/heroes.md): an
-  opponent's damaging strike or projectile overlapping Uther on f6-9 restores
-  3 percent once per guard, at most 8 a stock. Its intangibility still lets
-  the strike pass, so a strike active past f9 can hit him afterwards.
+- Divine Shield's success is the special's `guard` window: an opponent's
+  damaging strike or projectile overlapping Uther on f6-9 raises the shield
+  (`status.divineFrames`, sim/transitions.ts `endDivineShield`). The
+  strike that triggered it passes through him. Holy Light's heal and the cap
+  share `status.guardHealed`.
 
 Presentation uses the stock classic Paladin model, which has thirteen
 sequences and no punch, kick, jump, roll, ledge or grab clip. Hammer Sweep's
@@ -501,7 +502,7 @@ while the gauntlet strikes. Down smash's back half and Rearward Boot have no
 matching clip ("Attack - 2" and "Stand Hit" play). utherClips.ts lists the
 sequence table and every pose's clip.
 
-**Gameplan** (smashcraft:ts/src/game/sim/heroes/utherGameplan.ts, #105): he holds 0.9-1.3H, at Hammer Sweep's tip, spacing with Hammer Sweep and Low Judgment and making the target come to him with Holy Bolt from 1.7H out; he shoots, or walks in only for Hammer Sweep or a grab. He answers an attack with Divine Guard as often as with his shield and spot dodge together. Low Judgment, Guiding Light and the up throw start his strings; Final Judgment, Holy Hammer and Beacon Strike finish. His weak chase is the weakness he plays around: he never follows a target overhead, keeps off the edge and returns to the ledge with his jump before Ascension.
+**Gameplan** (smashcraft:ts/src/game/sim/heroes/utherGameplan.ts, #105): he holds 0.9-1.3H, at Hammer Sweep's tip, spacing with Hammer Sweep and Low Judgment and making the target come to him with Holy Light from 1.7H out; he shoots, or walks in only for Hammer Sweep or a grab. He answers an attack with Divine Shield as often as with his shield and spot dodge together. Low Judgment, Guiding Light and the up throw start his strings; Final Judgment, Holy Hammer and Beacon Strike finish. His weak chase is the weakness he plays around: he never follows a target overhead, keeps off the edge and returns to the ledge with his jump before Ascension.
 
 ## Dreadlord
 

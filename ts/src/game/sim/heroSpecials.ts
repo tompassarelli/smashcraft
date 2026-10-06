@@ -111,6 +111,10 @@ export interface SpecialProjectile {
   readonly status?: AppliedStatus | undefined;
   /** Removed when the owner's special is interrupted before it becomes active (Frost Nova's marker). */
   readonly cancelOnInterrupt?: boolean | undefined;
+  /** A returning projectile's hit on its way back (`returns`); its outbound `effect` when absent. */
+  readonly returnEffect?: Readonly<HitEffect> | undefined;
+  /** Damage percent a returning projectile restores when it reaches its owner, within the per-stock heal cap. */
+  readonly catchHeal?: { readonly heal: number; readonly capPerStock: number } | undefined;
   /**
    * The offset used when the special was pressed toward the fighter's back;
    * the fighter then keeps its facing instead of turning (Frost Nova's near placement).
@@ -168,6 +172,8 @@ export interface SpecialPlacement {
 export interface SpecialGuard extends FrameWindow {
   readonly heal: number;
   readonly healCapPerStock: number;
+  /** A success raises Divine Shield for this many frames (sim/transitions.ts `endDivineShield`). */
+  readonly shieldFrames?: number | undefined;
 }
 
 export interface AuthoredSpecial {

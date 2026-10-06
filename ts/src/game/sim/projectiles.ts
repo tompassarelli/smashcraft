@@ -9,7 +9,8 @@ import type { AppliedStatus } from "./heroStatus";
 import { isIntangible } from "./conditions";
 import { collectDamageContact, finishDamageContacts, openDamageContacts } from "./contacts";
 import { type Fighter, PROJECTILE_CAPACITY, type Projectile } from "./fighter";
-import { HitElement, copyHitEffect, emptyHitEffect } from "./hitRegions";
+import { type HitEffect, HitElement, copyHitEffect, emptyHitEffect } from "./hitRegions";
+import type { SpecialProjectile } from "./heroSpecials";
 import { hurtCapsule } from "../physics/contactGeometry";
 import { demonHunterParryIsActive, resolveDemonHunterParry } from "./hits";
 import { RIFLEMAN_BLASTER_GROUND_DAMAGE_MULTIPLIER, attackDamage } from "./moves";
@@ -111,10 +112,24 @@ export const MANA_BURN_STUN: Readonly<AppliedStatus> = {
 // Preallocated: collected contacts copy it, so one record serves every hit.
 const projectileHit = emptyHitEffect();
 
+/**
+ * Whether a returning hero projectile is on its way back to its owner. A
+ * reflected one (its damage multiplied down) belongs to the reflector and flies straight on.
+ */
+export function heroProjectileReturning(projectile: Readonly<Projectile>): boolean {
+  const spec = projectile.spec;
+  return spec?.returns !== undefined && projectile.damageMultiplier === 1.0 && spec.life - projectile.life >= spec.returns.age;
+}
+
+/** The hit a hero projectile deals now: its return hit once it has turned back. */
+function heroProjectileEffect(projectile: Readonly<Projectile>, spec: Readonly<SpecialProjectile>): Readonly<HitEffect> {
+  return heroProjectileReturning(projectile) ? spec.returnEffect ?? spec.effect : spec.effect;
+}
+
 /** The damage a projectile deals a body, before shield or reflection changes. */
 export function projectileDamage(projectile: Readonly<Projectile>): number {
   const { kind, spec } = projectile;
-  const damage = kind === ProjectileKind.hero && spec !== undefined ? spec.effect.damage
+  const damage = kind === ProjectileKind.hero && spec !== undefined ? heroProjectileEffect(projectile, spec).damage
     : kind === ProjectileKind.blaster ? attackDamage(AttackStyle.shot)
       : kind === ProjectileKind.homingArrow ? 6.0 : kind === ProjectileKind.recoil || kind === ProjectileKind.manaBurn ? 5.0 : 7.0;
   return roundToFloat32(f32(damage * projectile.damageMultiplier));
@@ -128,7 +143,7 @@ function applyProjectileHit(world: Roster, ownerSlot: number, targetSlot: number
   }
   const { spec } = projectile;
   if (projectile.kind === ProjectileKind.hero && spec !== undefined) {
-    copyHitEffect(projectileHit, spec.effect);
+    copyHitEffect(projectileHit, heroProjectileEffect(projectile, spec));
     projectileHit.damage = projectileDamage(projectile);
     collectDamageContact(world, ownerSlot, targetSlot, projectileHit, projectile.direction, ContactKind.launch, false, undefined, shieldContact, spec.status);
     return;
@@ -274,14 +289,25 @@ function flyProjectile(world: Roster, ownerSlot: number, projectile: Projectile,
   return nearest;
 }
 
+/** Restores the owner's damage by a caught projectile's heal, within the per-stock heal cap. */
+function catchHeal(owner: Fighter, spec: Readonly<SpecialProjectile> | undefined): void {
+  const heal = spec?.catchHeal;
+  if (heal === undefined) return;
+  const { status } = owner;
+  const restored = min(min(heal.heal, max(0.0, f32(heal.capPerStock - status.guardHealed))), max(0.0, status.damage));
+  status.damage = f32(status.damage - restored);
+  status.guardHealed = f32(status.guardHealed + restored);
+}
+
 /**
  * Heads a returning projectile at its owner's body: level speed toward it,
  * climbing or sinking at most that speed. False when it arrives, which ends it.
  */
-function returnToOwner(owner: Readonly<Fighter>, projectile: Projectile, speed: number): boolean {
+function returnToOwner(owner: Fighter, projectile: Projectile, speed: number): boolean {
   const dx = f32(owner.motion.x - projectile.x);
   const dz = f32(f32(owner.motion.z + TARGET_CENTER_HEIGHT) - projectile.z);
   if (owner.status.out || (Math.abs(dx) <= speed && Math.abs(dz) <= speed)) {
+    if (!owner.status.out) catchHeal(owner, projectile.spec);
     projectile.life = 0;
     return false;
   }

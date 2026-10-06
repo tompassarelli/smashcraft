@@ -313,6 +313,7 @@ export function beginDownDamage(f: Fighter, hitstunFrames: number): void {
 
 /** Starts an attack; DASH_GRAB_REQUEST starts a grab with the actor's dash-grab timing. */
 export function beginAttack(attacker: Fighter, style: AttackStyle, mayCharge: boolean): void {
+  endDivineShield(attacker);
   const isDashGrab = style === DASH_GRAB_REQUEST;
   const resolvedStyle = isDashGrab ? AttackStyle.grab : style;
   const { shield, attack } = attacker;
@@ -341,4 +342,11 @@ export function beginAttack(attacker: Fighter, style: AttackStyle, mayCharge: bo
   attack.smashChargeAllowed = isSmashAttack(resolvedStyle) && mayCharge;
   attack.cooldown = attack.duration;
   if (attacker.tuning.moves?.normals[resolvedStyle]?.startupTravelX !== undefined) attacker.motion.vx = 0.0;
+}
+
+/** Starting an attack, a special or a grab drops Divine Shield and the intangibility it gave. */
+export function endDivineShield(f: Fighter): void {
+  if (f.status.divineFrames <= 0) return;
+  f.status.divineFrames = 0;
+  f.status.invincible = 0;
 }

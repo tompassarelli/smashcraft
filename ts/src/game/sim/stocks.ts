@@ -92,6 +92,7 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   refillMana(f);
   f.status.armorFrames = 0;
   f.status.armorChills = false;
+  f.status.divineFrames = 0;
   clearHeroStatus(f);
   motion.lastAerialTapDirection = 0;
   hits.lastAttacker = undefined;
