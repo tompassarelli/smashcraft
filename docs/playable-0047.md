@@ -35,7 +35,7 @@ a different device or USB identity needs a fresh helper.
 | --- | --- |
 | Fighter selection | Stick: choose; A: select; X: recall; Start: continue |
 | Stage selection | Stick: choose; X: back; A or Start: begin |
-| Fight | Stick: move; A: attack; X: special; B/Y or stick-up: jump; RB: grab; LB: walk; either trigger: shield |
+| Fight | Stick: move/aim; A: attack; X: special; B/Y: jump; RB: grab; LB: walk; either trigger: shield |
 | Pause/results | Start: pause/resume; A or Start at results: rematch |
 
 The stage screen's stock and time settings use the mouse.

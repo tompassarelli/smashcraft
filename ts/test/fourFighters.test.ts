@@ -10,7 +10,7 @@ const exported = (epoch: number, checksum = "123:456", phase = 3): ClientExport 
 });
 const capture = (): CaptureEvidence => ({
   metadata: {
-    scope: "two native clients, four fighters", build: "test", helperSha256: "test", inputIntegrity: false, fourFighters: true, sweep: [], epochs: [3, 4],
+    scope: "two native clients, four fighters", build: "test", helperSha256: "test", inputIntegrity: false, padLayout: "xpad", fourFighters: true, sweep: [], epochs: [3, 4],
     events: [
       { event: "four-fighter-setup", epoch: 3, changes: [[7, 0], [3, 4], [11, 4], [3, 12]].map(([humanFighters = 0, computers = 0]) => ({ humanFighters, computers })) },
       boundary("start", 3), boundary("end", 3),

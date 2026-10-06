@@ -6,10 +6,12 @@ export const EV_KEY = 1;
 export const EV_ABS = 3;
 const SYN_REPORT = 0;
 
-export const BTN_SOUTH = 0x130;
-export const BTN_EAST = 0x131;
-export const BTN_NORTH = 0x133;
-export const BTN_WEST = 0x134;
+// Face buttons as the kernel's xpad driver reports an Xbox pad: by label,
+// so X (the left button) is 0x133 and Y (the top button) is 0x134.
+export const BTN_A = 0x130;
+export const BTN_B = 0x131;
+export const BTN_X = 0x133;
+export const BTN_Y = 0x134;
 export const BTN_TL = 0x136;
 export const BTN_TR = 0x137;
 export const BTN_START = 0x13b;
@@ -47,8 +49,8 @@ export const CLOCK_MONOTONIC = 1;
 export const INPUT_EVENT_BYTES = 24;
 const ABS_CNT = 0x40;
 const PAD_NAME = "Smashcraft Event Retention Virtual Gamepad";
-/** Buttons of an integrity pad: A, B, Y, X, LB, RB and Start. */
-export const PAD_BUTTONS = [BTN_SOUTH, BTN_EAST, BTN_NORTH, BTN_WEST, BTN_TL, BTN_TR, BTN_START] as const;
+/** Buttons of an integrity pad: A, B, X, Y, LB, RB and Start. */
+export const PAD_BUTTONS = [BTN_A, BTN_B, BTN_X, BTN_Y, BTN_TL, BTN_TR, BTN_START] as const;
 const PAD_AXES = [ABS_X, ABS_Y, ABS_Z, ABS_RX, ABS_RY, ABS_RZ] as const;
 
 /** The ioctl requests and arguments that declare a pad's capabilities, in order. */

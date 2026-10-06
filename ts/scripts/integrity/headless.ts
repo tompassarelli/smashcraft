@@ -268,6 +268,7 @@ export const captureHeadless = (options: HeadlessCaptureOptions) =>
           },
         },
         input_integrity: true,
+        pad_layout: "xpad",
         four_fighters: false,
         playable: false,
         sweep: null,

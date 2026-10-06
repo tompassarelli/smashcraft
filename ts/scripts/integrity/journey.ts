@@ -7,9 +7,9 @@
 import { Context, Effect } from "effect";
 import type { Region } from "wisp/scripts/warcraft/desktop";
 import { IntegrityFailure } from "./evidence";
-import { ABS_X, BTN_SOUTH, BTN_START, EV_ABS, EV_KEY, type SourceEdge } from "./linuxInput";
+import { ABS_X, BTN_A, BTN_START, EV_ABS, EV_KEY, type SourceEdge } from "./linuxInput";
 import { SLOTS, type Slot } from "./reconcile";
-import { PULSE_HOLD_MILLIS, STALL_MILLIS, type Pulse, type Send, type StallTarget, integritySchedule, pulseSends } from "./schedule";
+import { type PadLayout, PULSE_HOLD_MILLIS, STALL_MILLIS, type Pulse, type Send, type StallTarget, integritySchedule, pulseSends } from "./schedule";
 import { INPUT_TRACE_FILE, devCommandReceiptFile, journalControlFile, journalLifecycleFile, journalMenuFile, responsePageFile } from "../../src/runtime/gameFiles";
 
 /** A game file's text and modification time. */
@@ -118,6 +118,8 @@ export interface JourneyOptions {
    * complete input workload.
    */
   readonly workload?: "match" | "playable";
+  /** How the helper reads the pads; `xpad` unless replaying a capture before #49. */
+  readonly padLayout?: PadLayout;
 }
 
 const CONTROLS = /CONTROLS/i;
@@ -161,9 +163,9 @@ export function journey(rig: RigShape, options: JourneyOptions) {
   const button = (code: number, value: number): SourceEdge => ({ type: EV_KEY, code, value });
   const tap = (slot: Slot, phase: string) =>
     Effect.gen(function*() {
-      yield* send(slot, button(BTN_SOUTH, 1), phase);
+      yield* send(slot, button(BTN_A, 1), phase);
       yield* rig.sleep(PULSE_HOLD_MILLIS);
-      yield* send(slot, button(BTN_SOUTH, 0), phase);
+      yield* send(slot, button(BTN_A, 0), phase);
     });
   const menuButton = (slot: Slot, code: number, phase: string) =>
     Effect.gen(function*() {
@@ -203,7 +205,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
   /** Both pads pick their highlighted fighter; A's Start picks the stage. */
   const controllerSelect = Effect.gen(function*() {
     yield* characterScreen;
-    for (const slot of SLOTS) yield* menuButton(slot, BTN_SOUTH, "menu-character-select");
+    for (const slot of SLOTS) yield* menuButton(slot, BTN_A, "menu-character-select");
     yield* menuButton(0, BTN_START, "menu-character-confirm");
     yield* menuPhase("STAGE");
   });
@@ -384,7 +386,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
 
   /** The match's integrity workload, from its schedule. */
   const integrity = (epoch: number) =>
-    Effect.forEach(integritySchedule(epoch), (step) => {
+    Effect.forEach(integritySchedule(epoch, options.padLayout ?? "xpad"), (step) => {
       switch (step.kind) {
         case "sleep":
           return rig.sleep(step.millis);

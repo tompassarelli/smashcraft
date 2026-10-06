@@ -106,6 +106,8 @@ const CaptureFile = Schema.Struct({
   settings: Schema.Struct({ build: Schema.String }),
   helper_sha256: Schema.String,
   input_integrity: Schema.optionalKey(Schema.Boolean),
+  // Captures before #49 have none; their helper read the pads as compass-tap-jump.
+  pad_layout: Schema.optionalKey(Schema.Literals(["xpad", "compass-tap-jump"])),
   four_fighters: Schema.optionalKey(Schema.Boolean),
   sweep: Schema.optionalKey(Schema.NullOr(Schema.Array(Schema.Tuple([Schema.Int, Schema.Int])))),
   epochs: Schema.optionalKey(Schema.Array(Schema.Int)),
@@ -158,6 +160,7 @@ export const readMetadata = (root: string) =>
       build: file.settings.build,
       helperSha256: file.helper_sha256,
       inputIntegrity: file.input_integrity ?? false,
+      padLayout: file.pad_layout ?? "compass-tap-jump",
       fourFighters: file.four_fighters ?? false,
       sweep: file.sweep ?? [],
       epochs: file.epochs,
