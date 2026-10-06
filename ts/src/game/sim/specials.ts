@@ -22,6 +22,7 @@ import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { spawnArcherArrow, spawnBlasterShot, spawnHomingArrow, spawnProjectileMotion } from "./projectiles";
 import { type Controls, type Roster, fighterAt, isActive } from "./roster";
 import { surfaceZ } from "./stage";
+import { advanceCompanion } from "./companions";
 import { HIPPOGRYPH_DIVE_ARRIVAL, HIPPOGRYPH_DIVE_OVERSHOOT, RIFLEMAN_BEAR_LIFETIME, advanceBear, advanceHippogryph, recordSpecialHit, specialAlreadyHit, startFreezeTrap } from "./summons";
 import { at } from "wisp/src/runtime/lookup";
 import { travelBeforeBodies } from "./travelStop";
@@ -825,6 +826,7 @@ export function advanceSpecials(world: Roster, stage: number, matchFrame: number
   for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
     if (!isActive(world, slot)) continue;
     advanceBear(world, slot, stage, matchFrame);
+    advanceCompanion(world, slot, stage, matchFrame);
     advanceHippogryph(world, slot);
   }
   if (ownsBatch) finishDamageContacts(world);

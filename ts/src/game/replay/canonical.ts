@@ -248,6 +248,25 @@ function specialPlacementCanonical(spec: Readonly<SpecialPlacement>, prefix: str
   int("life", spec.life);
   for (let index = 0; index < spec.fireAges.length; index++) int(`fireAge[${index}]`, at(spec.fireAges, index));
   if (spec.shot !== undefined) result.push(specialProjectileCanonical(spec.shot, `${prefix}.shot`));
+  const partner = spec.companion;
+  if (partner !== undefined) {
+    real("companion.followSpeed", partner.followSpeed);
+    real("companion.followBehind", partner.followBehind);
+    real("companion.returnSpeed", partner.returnSpeed);
+    int("companion.lungeStartup", partner.lungeStartup);
+    int("companion.lungeActive", partner.lungeActive);
+    int("companion.lungeRecovery", partner.lungeRecovery);
+    real("companion.lungeTravel", partner.lungeTravel);
+    real("companion.bite.x1", partner.bite.x1);
+    real("companion.bite.z1", partner.bite.z1);
+    real("companion.bite.x2", partner.bite.x2);
+    real("companion.bite.z2", partner.bite.z2);
+    real("companion.bite.radius", partner.bite.radius);
+    result.push(hitEffectCanonical(partner.biteEffect, `${prefix}.companion.biteEffect`));
+    int("companion.stunFrames", partner.stunFrames);
+    real("companion.leash", partner.leash);
+    int("companion.leashFrames", partner.leashFrames);
+  }
   return result.join("");
 }
 
@@ -307,6 +326,10 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
   }
   if (move.placement !== undefined) result.push(specialPlacementCanonical(move.placement, `${name}.placement`));
   if (move.recall === true) int("recall", 1);
+  if (move.command !== undefined) {
+    int("command.frame", move.command.frame);
+    int("command.order", move.command.order);
+  }
   if (move.recallsProjectiles === true) int("recallsProjectiles", 1);
   if (move.strikeStatus !== undefined) {
     int("strikeStatus.kind", move.strikeStatus.kind);
@@ -797,6 +820,14 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
     int("placedSerial", placed.serial);
     for (let i = 0; i < PARTICIPANT_CAPACITY; i++) int(`placedStruck[${i}]`, placed.struck[i] ?? -1);
     int("placedSpecialStruck", placed.specialStruck);
+    // A partner's walk, lunge and leash; written only for one (Beastmaster's bear).
+    if (placed.spec?.companion !== undefined) {
+      int("placedMode", placed.mode);
+      int("placedModeFrame", placed.modeFrame);
+      int("placedApart", placed.apart);
+      int("placedBitten", placed.bitten);
+      int("placedSurface", placed.surface ?? -1);
+    }
     emit(kitDigestField(`${prefix}.placedSpec`, placed.spec, PLACEMENT_DIGESTS, placedSpecCanonical));
     int("specialGuarded", sp.guarded ? 1 : 0);
     real("guardHealed", st.guardHealed);

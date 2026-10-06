@@ -391,6 +391,19 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\PitLordOriginalClip15-b99fca294f9fbfc3f1a3deb1607dac03dd9b414f723f1107a16ca82441a00005.mdx", startSeconds: f32(343.333), endSeconds: 345.0, looping: false },
     { modelPath: "war3mapImported\\PitLordOriginalClip16-2be4142fc6f61899056c1891a9d34482fa0828398b74fa79cf6c61d0a290ffe0.mdx", startSeconds: f32(346.667), endSeconds: f32(348.167), looping: false },
   ],
+  // Beastmaster
+  [
+    { modelPath: "war3mapImported\\BeastmasterOriginalClip0-e1de178e8157df90be3004bc768917ac2952d105b49753fdaaa7a1bfa8a7e368.mdx", startSeconds: f32(0.667), endSeconds: f32(1.667), looping: true },
+    { modelPath: "war3mapImported\\BeastmasterOriginalClip1-28529185822de503529f4caec1cc407bdd6168f2a2e769941387fb70ad2b0969.mdx", startSeconds: f32(1.833), endSeconds: f32(4.833), looping: true },
+    { modelPath: "war3mapImported\\BeastmasterOriginalClip2-ed7b306c4d060bdb84e034457a5d52e895f39e32f64dbd6f044f042bb224e185.mdx", startSeconds: f32(6.667), endSeconds: f32(9.667), looping: true },
+    { modelPath: "war3mapImported\\BeastmasterOriginalClip3-b7ea91426f1c164c35d70d58ab6a2a295a36687a39f7d92064834560f6408c15.mdx", startSeconds: f32(10.167), endSeconds: f32(11.833), looping: false },
+    { modelPath: "war3mapImported\\BeastmasterOriginalClip4-795b23a9f8b33e944c0e98c7f706303e6296e166fddfb1091424524c3a5984cd.mdx", startSeconds: f32(13.333), endSeconds: f32(14.3), looping: false },
+    { modelPath: "war3mapImported\\BeastmasterOriginalClip5-2f0da7ca4080444629782626b640d8f0a04d755d89b66aa95ef39b42e62bd234.mdx", startSeconds: f32(16.667), endSeconds: f32(17.633), looping: false },
+    { modelPath: "war3mapImported\\BeastmasterOriginalClip6-ec938d8051082958ce0ccbbe0063c2e1507ad02284e8977fd061ae682d93043a.mdx", startSeconds: f32(18.333), endSeconds: f32(19.3), looping: false },
+    { modelPath: "war3mapImported\\BeastmasterOriginalClip7-c29b71ef9f8dcde786e0d8b6ba56da2285b7441a67b0d50d4e084e84a29e42d6.mdx", startSeconds: 24.0, endSeconds: f32(27.667), looping: false },
+    { modelPath: "war3mapImported\\BeastmasterOriginalClip8-f59962dede92743fa78d83a25d5a53b72e1c908b7bac1bbba416b4685d904d64.mdx", startSeconds: 30.0, endSeconds: 32.0, looping: false },
+    { modelPath: "war3mapImported\\BeastmasterOriginalClip9-6f2707063db4c1a4ed012317e2ca7738f1d9a24c8c189807ebcb76a023da4536.mdx", startSeconds: f32(33.333), endSeconds: f32(34.333), looping: true },
+  ],
 ];
 
 /** Each character's lowercase original sequence names; a name without its numeric variant selects the first variant. */
@@ -782,6 +795,20 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["attack - 2", 15],
     ["attack - 3", 16],
     ["attack slam", 5],
+  ]),
+  // Beastmaster
+  new Map<string, number>([
+    ["walk", 0],
+    ["stand - 1", 1],
+    ["stand - 2", 2],
+    ["spell slam", 3],
+    ["attack", 4],
+    ["spell", 5],
+    ["attack -2", 6],
+    ["death", 7],
+    ["dissipate", 8],
+    ["stand ready", 9],
+    ["stand", 1],
   ]),
 ];
 

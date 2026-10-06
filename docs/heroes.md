@@ -7,7 +7,7 @@ data record; the simulation, replay, selection and object data read it.
 ## Registering a hero
 
 - `ts/src/game/sim/codes.ts` reserves the Character codes: Blademaster 3,
-  Mountain King 4, Warden 5, Lich 6, Uther 7, Dreadlord 8, Shadow Hunter 9, Pit Lord 10.
+  Mountain King 4, Warden 5, Lich 6, Uther 7, Dreadlord 8, Shadow Hunter 9, Pit Lord 10, Beastmaster 11.
   Hero specials run under `SpecialAction.heroNeutral`..`heroDown` (13-16) and
   hero projectiles under `ProjectileKind.hero` (5).
 - `ts/src/game/sim/heroes/<hero>Hero.ts` is one hero's `HeroDefinition`
@@ -121,6 +121,16 @@ acts again on N+1. It may author:
   emits its `shot` straight along its facing unless its owner is held, in
   hitstun or out, and under the three-projectile cap. It ends at zero
   durability, after `life` frames, or on its owner's stock loss;
+- `companion` on a placement makes the object a partner (`sim/companions.ts`,
+  Beastmaster's bear). It walks to `followBehind` behind its owner on the deck
+  it was set down on, never jumps or falls and stops at that deck's ends. It
+  lunges `lungeTravel` with its `bite` only on an order, is stunned
+  `stunFrames` by a hit mid-lunge, and leaves after `leashFrames` farther
+  than `leash` from its owner. Its lunge is cancelled while its owner is in
+  hitstun or a grab. Its mode, frames, leash count, bitten targets and deck
+  are fighter state. An `AuthoredSpecial`'s `command` orders the partner on
+  its `frame`: a lunge, refused before spending while the partner is lunging
+  or stunned, or a walk back at `returnSpeed`;
 - `recall` on an `AuthoredSpecial` removes the placed object when the action
   completes, and a kit's `recall` form replaces every other form while the
   object stands (Serpent Ward's free recast).

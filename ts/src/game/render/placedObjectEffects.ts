@@ -5,6 +5,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { idiv } from "wisp/src/sim/intMath";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import type { Fighter } from "../sim/fighter";
+import { CompanionMode } from "../sim/heroSpecials";
 import { heroDefinition } from "../sim/heroes/registry";
 import { type ParkedFlags, type WorldOrigin, parkOnce } from "./effects";
 
@@ -16,6 +17,9 @@ const DEFAULT_LOOK = { path: PLACED_OBJECT_MODEL, height: MODEL_HEIGHT, alpha: 2
 export class PlacedObjectEffects {
   private readonly models: effect[];
   private readonly paths: string[];
+  /** A partner's playing animation (0 stand, 1 walk, 2 attack) and its last x, by slot. */
+  private readonly anims: number[] = [];
+  private readonly lastX: number[] = [];
   private parked: ParkedFlags | undefined;
 
   constructor(private readonly origin: WorldOrigin) {
@@ -62,11 +66,22 @@ export class PlacedObjectEffects {
     const { x, y, z } = this.origin;
     BlzSetSpecialEffectPosition(model, x + placed.x, y, z + placed.z);
     BlzSetSpecialEffectYaw(model, placed.direction > 0 ? 0.0 : f32(3.14159274));
+    if (spec.companion !== undefined) this.animate(model, slot, placed.mode, placed.x);
     BlzSetSpecialEffectScale(model, f32(spec.height / look.height));
     // A damaged object fades toward half its opacity as its durability runs out.
     const left = f32(Math.max(0.0, placed.durability) / spec.durability);
     const half = idiv(look.alpha, 2);
     BlzSetSpecialEffectAlpha(model, half + Math.floor(f32((look.alpha - half) * left)));
+  }
+
+  /** A partner walks while it moves, bites while it lunges and otherwise stands; changed only when its state does. */
+  private animate(model: effect, slot: number, mode: number, x: number): void {
+    const moved = this.lastX[slot] !== undefined && this.lastX[slot] !== x;
+    this.lastX[slot] = x;
+    const anim = mode === CompanionMode.lunge ? 2 : moved ? 1 : 0;
+    if (this.anims[slot] === anim) return;
+    this.anims[slot] = anim;
+    BlzPlaySpecialEffect(model, anim === 2 ? ANIM_TYPE_ATTACK : anim === 1 ? ANIM_TYPE_WALK : ANIM_TYPE_STAND);
   }
 
   destroy(): void {

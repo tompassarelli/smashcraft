@@ -475,6 +475,15 @@ interface PlacedObject {
   readonly struck: (number | undefined)[];
   /** One bit per participant whose running special has struck it. */
   specialStruck: number;
+  /** A partner's state (CompanionMode) and frames in it; 0 for other objects. */
+  mode: number;
+  modeFrame: number;
+  /** Frames in a row past its leash. */
+  apart: number;
+  /** One bit per participant its current lunge has bitten. */
+  bitten: number;
+  /** The deck a partner walks on. */
+  surface: number | undefined;
 }
 
 export interface Fighter {
@@ -703,6 +712,6 @@ export function createFighter(character: Character, startX: number, facing: numb
     cannon: { held: undefined, firing: undefined, cooldown: 0 },
     status: { offscreenFrames: 0, damage: 0.0, stocks: STARTING_STOCKS, respawn: 0, out: false, invincible: 0, frozenFrames: 0, freezeImmunityFrames: 0, armorFrames: 0, armorMaxDamage: 0.0, armorChills: false, condition: 0, conditionFrames: 0, conditionGroup: 0, conditionImmunityFrames: 0, conditionImmunity: [0, 0, 0, 0], guardHealed: 0.0, divineFrames: 0, poisonFrames: 0, poisonEvery: 0, poisonDamage: 0.0 },
     mana: { points: ROSTER_MANA.max, progress: 0 },
-    placed: { life: 0, age: 0, x: 0.0, z: 0.0, direction: 1, durability: 0.0, serial: 0, spec: undefined, struck: repeat<number | undefined>(PARTICIPANT_CAPACITY, () => undefined), specialStruck: 0 },
+    placed: { life: 0, age: 0, x: 0.0, z: 0.0, direction: 1, durability: 0.0, serial: 0, spec: undefined, struck: repeat<number | undefined>(PARTICIPANT_CAPACITY, () => undefined), specialStruck: 0, mode: 0, modeFrame: 0, apart: 0, bitten: 0, surface: undefined },
   };
 }

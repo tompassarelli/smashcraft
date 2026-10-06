@@ -306,6 +306,26 @@ const SHADOW_HUNTER: MatchScript = {
 };
 
 /**
+ * Beastmaster summons his bear, commands a lunge as the Archer closes, calls
+ * it back, throws an axe, rises on Hawk Lift, then axe normals, a grab and a
+ * throw, a down air and a second command, with the bear followed throughout.
+ */
+const BEASTMASTER: MatchScript = {
+  characters: [Character.beastmaster, Character.archer], stage: 0, stocks: 3, minutes: 0, frames: 640,
+  holds: [[
+    [20, 4, TOWARD], [21, 2, SPECIAL], [100, 4, TOWARD], [101, 2, SPECIAL], [180, 4, DOWN], [181, 2, SPECIAL],
+    [240, 2, SPECIAL], [290, 2, ATTACK], [320, 8, DOWN], [322, 2, ATTACK], [360, 3, JUMP], [372, 4, UP], [373, 2, SPECIAL],
+    [460, 2, GRAB], [464, 4, TOWARD], [520, 3, JUMP], [526, 2, C_DOWN], [580, 4, TOWARD], [581, 2, SPECIAL],
+  ], [
+    [130, 2, ATTACK], [150, 12, SHIELD_LEFT], [200, 2, ATTACK], [270, 2, ATTACK], [300, 2, ATTACK], [420, 2, ATTACK],
+    [490, 10, SHIELD_RIGHT], [600, 2, ATTACK],
+  ]],
+  approaches: [[[280, 60], [450, 45], [515, 50]], [[80, 90], [190, 60], [260, 60], [410, 60], [590, 60]]],
+  rollbacks: [[24, 60], [96, 140], [176, 210], [244, 300], [374, 420], [462, 500], [528, 560], [582, 630]],
+  predictions: [[100, 112], [580, 592]],
+};
+
+/**
  * Pit Lord's Fel Spit arcs at the Archer, Ruin Charge runs in on its armor,
  * Howl of Terror roars and the terrified Archer jabs back, Abyssal Leap
  * rises, then the cleaver normals, a grab and a back throw, and a down air.
@@ -403,6 +423,7 @@ export function generateTapes(): Map<string, string> {
     ["mountain-king", recordTape("Mountain King's specials, free Thunder Leap, normals and a throw against the Archer, with replays.", [MOUNTAIN_KING])],
     ["shadow-hunter", recordTape("Shadow Hunter's glaive, ward, Hex, recall, vault and normals against the Archer, with replays.", [SHADOW_HUNTER])],
     ["pit-lord", recordTape("Pit Lord's arcing spit, armored charge, Terror, leap, cleaver normals and a throw against the Archer, with replays.", [PIT_LORD])],
+    ["beastmaster", recordTape("Beastmaster's bear summoned, commanded, recalled and followed, his axe, Hawk Lift, normals and a throw against the Archer, with replays.", [BEASTMASTER])],
     ["warden", recordTape("Warden's specials with poison and an aimed Blink, normals and a throw against the Archer, with replays.", [WARDEN])],
     ["uther", recordTape("Uther's specials, guard, free recovery and normals against the Archer, with replays.", [UTHER])],
     ["moving-platforms", recordTape("Moving decks, jumping, dropping through, predictions and rollback over complete path cycles.", [{

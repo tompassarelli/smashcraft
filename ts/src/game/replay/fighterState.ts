@@ -374,4 +374,9 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   placed.spec = sourcePlaced.spec;
   for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) placed.struck[slot] = sourcePlaced.struck[slot];
   placed.specialStruck = sourcePlaced.specialStruck;
+  placed.mode = sourcePlaced.mode;
+  placed.modeFrame = sourcePlaced.modeFrame;
+  placed.apart = sourcePlaced.apart;
+  placed.bitten = sourcePlaced.bitten;
+  placed.surface = sourcePlaced.surface;
 }

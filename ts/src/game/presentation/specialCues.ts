@@ -64,7 +64,7 @@ export interface MoveCues {
 const cue = (model: string, anchor: CueAnchor, scale: number): Cue => ({ model, anchor, scale });
 const drawn = (model: string, anchor: CueAnchor): Cue => ({ model, anchor, scale: 1.0, drawn: true });
 
-// Each hero's cast flash, its colour: orc fury, storm, shadow, frost, holy light, vampiric, voodoo, fel.
+// Each hero's cast flash, its colour: orc fury, storm, shadow, frost, holy light, vampiric, voodoo, fel, wild.
 const BLOODLUST = cue("Abilities\\Spells\\Orc\\Bloodlust\\BloodlustSpecial.mdx", "hand", f32(0.8));
 const STORM = cue("Abilities\\Weapons\\Bolt\\BoltImpact.mdx", "hand", 1.0);
 const SHADOW = cue("Abilities\\Spells\\Undead\\Cripple\\CrippleTarget.mdx", "hand", f32(0.7));
@@ -73,6 +73,7 @@ const HOLY = cue("Abilities\\Spells\\Human\\Heal\\HealTarget.mdx", "hand", f32(0
 const VAMPIRIC = cue("Abilities\\Spells\\Undead\\UnholyFrenzy\\UnholyFrenzyTarget.mdx", "hand", f32(0.8));
 const VOODOO = cue("Abilities\\Spells\\Orc\\TrollBerserk\\TrollBeserkerTarget.mdx", "hand", f32(0.7));
 const FEL = cue("Abilities\\Spells\\Undead\\DeathCoil\\DeathCoilSpecialArt.mdx", "hand", f32(0.7));
+const BEAST = cue("Abilities\\Spells\\Orc\\Bloodlust\\BloodlustTarget.mdx", "hand", f32(0.6));
 
 /** Every hero's four specials; every form of a special (air, free, follow-up, recall, marked) shows its special's cues. */
 export const HERO_CUES: { readonly [character: number]: { readonly [slot in SpecialSlot]: MoveCues } } = {
@@ -123,6 +124,12 @@ export const HERO_CUES: { readonly [character: number]: { readonly [slot in Spec
     side: { spell: "Ruin Charge", startup: FEL, active: cue("Abilities\\Spells\\Other\\BreathOfFire\\BreathOfFireDamage.mdx", "ahead", f32(0.8)) },
     up: { spell: "Abyssal Leap", startup: FEL, active: cue("Abilities\\Spells\\Human\\FlameStrike\\FlameStrikeEmbers.mdx", "feet", f32(0.6)) },
     down: { spell: "Howl of Terror", startup: FEL, active: cue("Abilities\\Spells\\Other\\HowlOfTerror\\HowlCaster.mdx", "body", f32(0.8)) },
+  },
+  [Character.beastmaster]: {
+    neutral: { spell: "Throwing Axe", startup: BEAST, active: cue("Abilities\\Weapons\\Axe\\AxeMissile.mdx", "hand", 1.0) },
+    side: { spell: "Summon Bear", startup: BEAST, active: cue("Abilities\\Spells\\NightElf\\Rejuvenation\\RejuvenationTarget.mdx", "ahead", f32(0.8)) },
+    up: { spell: "Hawk Lift", startup: BEAST, active: cue("Abilities\\Spells\\Other\\Tornado\\TornadoSpinner.mdx", "feet", f32(0.4)) },
+    down: { spell: "Quillbeast Dart", startup: BEAST, active: cue("Abilities\\Spells\\Orc\\Ensnare\\EnsnareMissile.mdx", "hand", f32(0.6)) },
   },
 };
 
@@ -193,6 +200,10 @@ export const HERO_BRANCH_CUES: { readonly [character: number]: { readonly [slot 
   },
   [Character.shadowHunter]: {
     side: { recall: branch("Ward recall", VOODOO, cue("Abilities\\Spells\\Orc\\AncestralSpirit\\AncestralSpiritCaster.mdx", "ahead", 0.5)) },
+  },
+  [Character.beastmaster]: {
+    side: { recall: branch("Bear Command", BEAST, cue("Abilities\\Spells\\Other\\Stampede\\StampedeMissile.mdx", "ahead", f32(0.6))) },
+    down: { recall: branch("Bear Recall", BEAST, cue("Abilities\\Spells\\Orc\\CommandAura\\CommandAuraTarget.mdx", "body", f32(0.8))) },
   },
 };
 

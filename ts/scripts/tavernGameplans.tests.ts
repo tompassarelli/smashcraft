@@ -6,7 +6,7 @@ import { expect, test } from "bun:test";
 import { Character } from "../src/game/sim/codes";
 import { gameplanKeyMovesCheck } from "./cpuField";
 
-for (const [name, character] of [["Pit Lord", Character.pitLord]] as const) {
+for (const [name, character] of [["Pit Lord", Character.pitLord], ["Beastmaster", Character.beastmaster]] as const) {
   test(`${name}'s computer uses his gameplan's key moves most`, () => {
     const check = gameplanKeyMovesCheck(character);
     expect(check.missingNames).toEqual([]);

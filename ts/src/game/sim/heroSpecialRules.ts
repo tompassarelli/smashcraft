@@ -10,7 +10,7 @@ import { advanceHeroConditions } from "./heroStatus";
 import { AttackStyle, ProjectileKind, SpecialAction } from "./codes";
 import { canAttack, inGrabContext, isIntangible } from "./conditions";
 import type { Fighter } from "./fighter";
-import { type FighterSpecials, type AuthoredSpecial, type SpecialFollowUp, type SpecialGuard, type SpecialKit, type SpecialPlacement, type SpecialProjectile, FOLLOW_UP_FORM, FollowUpInput, Relocation, SpecialForm, SpecialSlot, specialForm, specialKit } from "./heroSpecials";
+import { type FighterSpecials, type AuthoredSpecial, CompanionMode, CompanionOrder, type SpecialFollowUp, type SpecialGuard, type SpecialKit, type SpecialPlacement, type SpecialProjectile, FOLLOW_UP_FORM, FollowUpInput, Relocation, SpecialForm, SpecialSlot, specialForm, specialKit } from "./heroSpecials";
 import { type HitRegion, NO_HIT_REGION, authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "./hitRegions";
 import { type Controls, type Roster, fighterAt, isActive } from "./roster";
 import { travelBeforeBodies } from "./travelStop";
@@ -123,6 +123,7 @@ export function chooseHeroSpecial(f: Readonly<Fighter>, specials: Readonly<Fight
     move = kit.free;
   }
   if (move.oncePerAirtime === true && airborne && (f.special.airtimeUses & (1 << slot)) !== 0) return undefined;
+  if (move.command?.order === CompanionOrder.lunge && !companionReady(f)) return undefined;
   if (!projectilesFit(f, move)) return undefined;
   choice.slot = slot;
   choice.form = form;
@@ -276,6 +277,28 @@ function applyMotion(f: Fighter, move: Readonly<AuthoredSpecial>, frame: number,
   }
 }
 
+/** Whether the fighter's partner can take a lunge order: standing, and neither lunging nor stunned. */
+export function companionReady(f: Readonly<Fighter>): boolean {
+  const { placed } = f;
+  return placed.life > 0 && placed.spec?.companion !== undefined && (placed.mode === CompanionMode.follow || placed.mode === CompanionMode.returning);
+}
+
+/** Gives the fighter's partner an order: a lunge the way its owner faces, or a walk back to its owner. */
+function orderCompanion(f: Fighter, order: CompanionOrder): void {
+  const { placed } = f;
+  if (placed.life <= 0 || placed.spec?.companion === undefined) return;
+  if (order === CompanionOrder.lunge) {
+    if (!companionReady(f)) return;
+    placed.mode = CompanionMode.lunge;
+    placed.direction = f.facing < 0 ? -1 : 1;
+    placed.bitten = 0;
+    placed.modeFrame = 0;
+  } else if (placed.mode !== CompanionMode.stunned) {
+    placed.mode = CompanionMode.returning;
+    placed.modeFrame = 0;
+  }
+}
+
 /** Stands the fighter's placed object ahead of its feet, facing its way, with a clean strike record. */
 function placeObject(f: Fighter, spec: Readonly<SpecialPlacement>): void {
   const { placed } = f;
@@ -289,6 +312,11 @@ function placeObject(f: Fighter, spec: Readonly<SpecialPlacement>): void {
   placed.spec = spec;
   for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) placed.struck[slot] = undefined;
   placed.specialStruck = 0;
+  placed.mode = CompanionMode.follow;
+  placed.modeFrame = 0;
+  placed.apart = 0;
+  placed.bitten = 0;
+  placed.surface = f.motion.surface;
 }
 
 /**
@@ -332,6 +360,7 @@ export function advanceHeroSpecial(f: Fighter, stage = 0, input?: Readonly<Contr
   applyMotion(f, move, frame, input);
   for (const spec of move.projectiles ?? []) if (spec.spawnFrame === frame) spawnHeroProjectile(f, spec, f.attack.serial + 1, stage);
   if (move.placement?.frame === frame) placeObject(f, move.placement);
+  if (move.command?.frame === frame) orderCompanion(f, move.command.order);
   if (move.burst?.frame === frame) burstProjectiles(f, move.burst.from, move.burst.into);
   if (move.ritual?.frame === frame) {
     f.status.armorFrames = 0;

@@ -6,6 +6,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, ProjectileKind } from "./codes";
 import { inGrabContext } from "./conditions";
+import { staggerCompanion } from "./companions";
 import type { Fighter } from "./fighter";
 import { HERO_PROJECTILE_CAP, runningHeroSpecial, spawnHeroProjectileAt } from "./heroSpecialRules";
 import type { SpecialPlacement } from "./heroSpecials";
@@ -105,6 +106,7 @@ export function advancePlacedObjects(world: Roster): void {
       if (source.status.out) continue;
       const damage = f32(f32(normalStrike(owner, sourceSlot, source) + specialStrike(owner, sourceSlot, source)) + projectileStrikes(source));
       placed.durability = f32(placed.durability - damage);
+      if (damage > 0.0) staggerCompanion(owner);
     }
     placed.age++;
     placed.life--;

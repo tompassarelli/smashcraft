@@ -175,7 +175,43 @@ export interface SpecialPlacement {
   readonly life: number;
   readonly fireAges: readonly number[];
   readonly shot?: SpecialProjectile | undefined;
+  /** Makes the object a partner that follows its owner and attacks on command (Beastmaster's bear; sim/companions.ts). */
+  readonly companion?: SpecialCompanion | undefined;
 }
+
+/**
+ * A partner's rules: it walks on the deck it was placed on, never jumps,
+ * stops at the deck's ends, never blocks bodies, and attacks only when its
+ * owner orders it. Speeds and distances are per frame and in world units.
+ */
+export interface SpecialCompanion {
+  /** Following: it walks toward a point `followBehind` behind its owner at this speed. */
+  readonly followSpeed: number;
+  readonly followBehind: number;
+  /** Returning on its owner's order: faster, until it is back within `followBehind`. */
+  readonly returnSpeed: number;
+  /** The lunge: frames before the bite, bite frames (travelling `lungeTravel` in all) and recovery. */
+  readonly lungeStartup: number;
+  readonly lungeActive: number;
+  readonly lungeRecovery: number;
+  readonly lungeTravel: number;
+  /** The bite, facing-relative from its feet; each opponent once per lunge. */
+  readonly bite: StrikeCapsule;
+  readonly biteEffect: HitEffect;
+  /** A hit during a lunge cancels it and stuns it this long. */
+  readonly stunFrames: number;
+  /** Farther than `leash` from its owner for `leashFrames` frames, it leaves. */
+  readonly leash: number;
+  readonly leashFrames: number;
+}
+
+/** What an owner's special orders its partner to do. */
+export const CompanionOrder = { lunge: 1, return: 2 } as const;
+export type CompanionOrder = (typeof CompanionOrder)[keyof typeof CompanionOrder];
+
+/** A partner's state (PlacedObject.mode). */
+export const CompanionMode = { follow: 0, lunge: 1, stunned: 2, returning: 3 } as const;
+export type CompanionMode = (typeof CompanionMode)[keyof typeof CompanionMode];
 
 /**
  * A guard: when an opponent's damaging strike or projectile overlaps the
@@ -228,6 +264,8 @@ export interface AuthoredSpecial {
   readonly placement?: SpecialPlacement | undefined;
   /** Completing the action removes the fighter's placed object. */
   readonly recall?: boolean | undefined;
+  /** On `frame`, orders the fighter's partner; a lunge order refuses to start while the partner is lunging or stunned. */
+  readonly command?: { readonly frame: number; readonly order: CompanionOrder } | undefined;
   /** Entering it turns the fighter's returning projectiles back toward it at once. */
   readonly recallsProjectiles?: boolean | undefined;
   readonly commandGrab?: CommandGrab | undefined;

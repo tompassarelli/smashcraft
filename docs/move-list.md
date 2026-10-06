@@ -124,3 +124,13 @@ matches until the match rules turn them on.
 | Up special | Abyssal Leap | A slow arcing leap with a hoof strike, then a helpless fall. |
 | Down special | Howl of Terror | A roar around him; anyone it hits deals less damage for three seconds. |
 | Passive | Cleaving Attack | His cleaver strikes every opponent in its path, and the blade itself can't be hit. |
+
+## Beastmaster
+
+| Input | Name | What it does |
+| --- | --- | --- |
+| Neutral special | Throwing Axe | A straight thrown axe that costs nothing. |
+| Side special | Summon Bear (Bear Command) | Call a bear to his side; press again to send it lunging ahead. |
+| Up special | Hawk Lift | A hawk lifts him high, then a helpless fall. |
+| Down special | Quillbeast Dart (Bear Recall) | A short quill; with a bear out, call the bear back to him instead. |
+| Passive | Pack Bond | His bear walks at his heel and bites only on his command; it never blocks for him. |

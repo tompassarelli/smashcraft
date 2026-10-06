@@ -879,6 +879,42 @@ Standing grab 8/2/25, reach 0.60H. Pummel: axe-hilt strike. Bear attacks are sup
 
 **Required counterplay test:** opponents can separate Beastmaster from bear and punish the command animation. No bear-plus-throw sequence bypasses regrab protection or produces a guaranteed infinite. Solo Beastmaster must remain playable while the bear is absent.
 
+### Beastmaster as built
+
+Source: smashcraft:ts/src/game/sim/heroes/beastmasterMoves.ts (normals, grabs,
+throws, body), beastmasterSpecials.ts, beastmasterHero.ts and the partner
+rules in smashcraft:ts/src/game/sim/companions.ts (#122). Every row above is
+implemented with its listed timing, damage, angle and reach. Launch classes
+use provisional coefficients. Deliberate differences:
+
+- The bear is his placed object with a `companion` record. Side special
+  summons it (25 mana, ground only). While it stands, side special is Bear
+  Command (8 mana): the bear lunges the way he faces after 16 frames of
+  warning, with a 4-frame bite. Down special is Bear Recall (free), and the
+  Quillbeast Dart only when no bear stands. A lunge order refuses, spending
+  nothing, while the bear is lunging or stunned.
+- The bear follows to 0.8H behind him on the deck it was set down on, and
+  stops at that deck's ends instead of falling. With no fall, it never
+  crosses a blast zone. It also leaves after 120 frames more than 6H from him
+  (or while he is out).
+- A lunge is cancelled while he is in hitstun, held, holding or throwing.
+  Any opponent's hit on the bear mid-lunge spends durability and stuns it for
+  18 frames. The bear never blocks a body or a strike meant for him.
+- The up throw is a JUGGLE and the down throw a CHASE (#107).
+- Hawk Lift's free form drifts 0.35H; the brief gives only its 1.4H rise.
+
+Presentation uses the stock classic BeastMaster model (Rexxar), scale 0.85,
+and the classic GrizzlyBear model for the bear. The bear walks while it moves,
+bites while it lunges and fades as its durability runs down. The model has
+ten sequences and no hit, jump or kick clip, so flinches play "Stand Ready".
+His voice is the game's Beastmaster set (OgreBeastMaster).
+
+**Gameplan** (smashcraft:ts/src/game/sim/heroes/beastmasterGameplan.ts, #105):
+he sets the bear down from range, then walks in behind it with Broad Axe and
+Low Chop and sends it lunging. The free Throwing Axe makes the target act.
+He keeps out of close brawls and off the edge, where being split from the
+bear costs him most.
+
 ## Dark Ranger
 
 **Identity:** a deliberate archer-necromancer built around one marked target and one fragile skeleton. Preserve Archer’s faster direct arrow identity: Dark Ranger gets slower shots, curse pressure, and setup. No permanent possession of another fighter.

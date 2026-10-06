@@ -45,4 +45,6 @@ export const VERIFIED_STOCK_SOUNDS: Readonly<Record<string, string>> = {
   "Units\\Orc\\HeroShadowHunter\\ShadowHunterWarcry1.flac": "war3.w3mod:_locales\\enus.w3mod:units\\orc\\heroshadowhunter\\shadowhunterwarcry1.ogg",
   "Units\\Demon\\HeroPitLord\\HPitLordReady1.flac": "war3.w3mod:_locales\\enus.w3mod:units\\demon\\heropitlord\\hpitlordready1.ogg",
   "Units\\Demon\\HeroPitLord\\HPitLordWarcry1.flac": "war3.w3mod:_locales\\enus.w3mod:units\\demon\\heropitlord\\hpitlordwarcry1.ogg",
+  "Units\\Creeps\\BeastMaster\\OgreBeastMasterReady1.flac": "war3.w3mod:_locales\\enus.w3mod:units\\creeps\\beastmaster\\ogrebeastmasterready1.ogg",
+  "Units\\Creeps\\BeastMaster\\OgreBeastMasterWarcry1.flac": "war3.w3mod:_locales\\enus.w3mod:units\\creeps\\beastmaster\\ogrebeastmasterwarcry1.ogg",
 };

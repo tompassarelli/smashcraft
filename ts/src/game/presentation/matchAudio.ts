@@ -65,6 +65,8 @@ const RACES: readonly Race[] = [
   Race.nightElf, Race.human, Race.nightElf, Race.orc, Race.human, Race.nightElf, Race.undead, Race.human, Race.undead, Race.orc,
   // Pit Lord: the game lists him as undead.
   Race.undead,
+  // Beastmaster: the orcish Rexxar.
+  Race.orc,
 ];
 
 export const characterRace = (character: Character): Race => at(RACES, character);
@@ -91,6 +93,7 @@ const VOICES: readonly (readonly [string, string])[] = [
   ["Units\\Undead\\HeroDreadLord\\", "HeroDreadLord"],
   ["Units\\Orc\\HeroShadowHunter\\", "ShadowHunter"],
   ["Units\\Demon\\HeroPitLord\\", "HPitLord"],
+  ["Units\\Creeps\\BeastMaster\\", "OgreBeastMaster"],
 ];
 
 function voice(character: Character, line: string): string {

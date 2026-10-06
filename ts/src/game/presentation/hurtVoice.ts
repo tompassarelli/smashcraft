@@ -26,6 +26,7 @@ const CRIES: { readonly [character: number]: CryClips | undefined } = {
   [Character.shadowHunter]: { cry: 4, standIn: 9 },
   // Pit Lord has neither Stand Hit nor Stand Ready: Stand - 2 stands in.
   [Character.pitLord]: { cry: 8, standIn: 4 },
+  [Character.beastmaster]: { cry: 7, standIn: 9 },
 };
 
 /** Frames before the same fighter may cry again: about two seconds. */

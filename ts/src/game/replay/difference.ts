@@ -230,6 +230,11 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("placedSpec", e.placed.spec === a.placed.spec, true);
   for (let i = 0; i < PARTICIPANT_CAPACITY; i++) add(`placedStruck[${i}]`, e.placed.struck[i], a.placed.struck[i]);
   add("placedSpecialStruck", e.placed.specialStruck, a.placed.specialStruck);
+  add("placedMode", e.placed.mode, a.placed.mode);
+  add("placedModeFrame", e.placed.modeFrame, a.placed.modeFrame);
+  add("placedApart", e.placed.apart, a.placed.apart);
+  add("placedBitten", e.placed.bitten, a.placed.bitten);
+  add("placedSurface", e.placed.surface ?? -1, a.placed.surface ?? -1);
   add("freezeTrapCooldown", e.freezeTrap.cooldown, a.freezeTrap.cooldown);
   add("out", e.status.out, a.status.out);
   add("respawn", e.status.respawn, a.status.respawn);
