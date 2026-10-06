@@ -478,6 +478,27 @@ interface AerialRow {
   readonly oosPunishes: readonly { readonly option: string; readonly acts: number | undefined; readonly punishes: readonly Window[] }[];
 }
 
+interface ParryRow {
+  readonly kind: "aerial-on-powershield";
+  readonly fighter: string;
+  readonly aerial: string;
+  readonly spacing: "unspaced" | "spaced";
+  readonly drift: string;
+  readonly distance: number;
+  readonly press: number;
+  /** The shield press, frames from the contact: -1 is the frame before. */
+  readonly raise: number;
+  /** The timed press parried the aerial rather than blocking it. */
+  readonly parried: boolean;
+  readonly attackerActs: number | undefined;
+  readonly defenderActs: number | undefined;
+  /** defenderActs - attackerActs: negative means the defender acts first. */
+  readonly advantage: number | undefined;
+  readonly defender: readonly OptionStart[];
+  /** The defender's options out of the parry that land before the attacker can act. */
+  readonly punishes: readonly Window[];
+}
+
 interface ReachRow {
   readonly kind: "aerial-reach";
   readonly fighter: string;
@@ -513,7 +534,7 @@ interface StateRow {
   readonly punishes: readonly Window[];
 }
 
-export type Row = AerialRow | ReachRow | NeutralRow | StateRow;
+export type Row = AerialRow | ParryRow | ReachRow | NeutralRow | StateRow;
 
 const relative = (frame: number | undefined, zero: number): number | undefined => (frame === undefined ? undefined : frame - zero);
 const window = (punisher: string, starts: readonly number[], zero: number): Window => ({ punisher, starts: starts.map((s) => s - zero) });
@@ -767,6 +788,10 @@ function aerialRows(entry: FighterEntry): Row[] {
         ...(nearest === undefined ? [] : [aerialRow(entry, aerial, drift, "unspaced", pressFor(drift, nearest), true)]),
         ...(farthest === undefined || farthest === nearest ? [] : [aerialRow(entry, aerial, drift, "spaced", pressFor(drift, farthest), true)]),
       ]),
+      ...DRIFTS.flatMap((drift) => [
+        ...(nearest === undefined ? [] : [parryRow(entry, aerial, drift, "unspaced", pressFor(drift, nearest))]),
+        ...(farthest === undefined || farthest === nearest ? [] : [parryRow(entry, aerial, drift, "spaced", pressFor(drift, farthest))]),
+      ]),
     ];
   });
 }
@@ -784,6 +809,53 @@ export function aerialOnShield(fighter: string, aerial: string, drift: string, d
   if (entry === undefined || move === undefined || path === undefined) throw new Error(`no aerial ${aerial} for ${fighter} with drift ${drift}`);
   const reach = searchApproaches(entry.character, [move], [distance]).get(move)?.[0];
   return reach === undefined ? undefined : aerialRow(entry, move, path, spacing, pressFor(path, reach), false);
+}
+
+// ------------------------------------------------------------------ aerial on a powershield
+
+/** A parry's options: every ground attack as well as the out-of-shield ones, since a parry drops the shield without release lag. */
+const OUT_OF_PARRY: readonly Option[] = [SHIELD_GRAB, ...GROUND_ATTACKS.filter((option) => option !== GRAB), ...AERIALS.map(oosAerial), SPOT_DODGE, ROLL_IN, ROLL_AWAY];
+
+/** Stands without a shield, then raises it on `raise` and holds it: a full press, so the hit on the next frame is parried. */
+const parryOn = (raise: number): Policy => (n) => (n >= raise ? [Action.rightTrigger] : []);
+
+/**
+ * The same approach as the held-shield row, with the defender pressing its
+ * shield the frame before the aerial meets it. Frame 0 is the parried contact;
+ * `parried` is false when the timed press blocked instead.
+ */
+function parryRow(entry: FighterEntry, aerial: Aerial, drift: Drift, spacing: ParryRow["spacing"], found: Found): ParryRow {
+  const held = approachSituation(entry.character, drift, found.distance, facingFor(aerial), { aerial, press: found.press });
+  const raise = found.contact.frame - 1;
+  const line = new Timeline({ ...held, policies: [held.policies[0], parryOn(raise)] }, found.contact.frame + SHIELD_HORIZON + 2);
+  let zero = found.contact.frame;
+  let parried = false;
+  line.play(NONE, line.last, (n, _a, b) => {
+    if (b.visuals.shieldReflect + b.visuals.shield + b.visuals.hit === 0) return false;
+    zero = n;
+    parried = b.visuals.shieldReflect > 0;
+    return true;
+  }, true);
+  const end = Math.min(line.last, zero + SHIELD_HORIZON);
+  const defenderStarts = OUT_OF_PARRY.map((option) => line.earliest(NONE, 1, option, zero + 1, zero + 45));
+  const attackerStarts = AFTER_AERIAL.slice(1).map((option) => line.earliest(NONE, 0, option, zero + 1, zero + 60));
+  const firstOf = (starts: readonly (number | undefined)[]): number | undefined => {
+    const defined = starts.filter((start): start is number => start !== undefined);
+    return defined.length === 0 ? undefined : Math.min(...defined);
+  };
+  const attackerActs = firstOf(attackerStarts);
+  const defenderActs = firstOf(defenderStarts);
+  const punishes = attackerActs === undefined ? [] : OUT_OF_PARRY.flatMap((option, index) => {
+    const start = defenderStarts[index];
+    return start === undefined ? [] : [window(option.name, line.punishStarts(1, option, start, Math.min(attackerActs, end)), zero)];
+  });
+  return released(line, {
+    kind: "aerial-on-powershield", fighter: entry.name, aerial: aerial.name, spacing, drift: drift.name, distance: found.distance, press: found.press,
+    raise: raise - zero, parried, attackerActs: relative(attackerActs, zero), defenderActs: relative(defenderActs, zero),
+    advantage: attackerActs === undefined || defenderActs === undefined ? undefined : defenderActs - attackerActs,
+    defender: OUT_OF_PARRY.map((option, index) => ({ option: option.name, start: relative(defenderStarts[index], zero), acts: undefined })),
+    punishes: landed(punishes),
+  });
 }
 
 // ------------------------------------------------------------------ neutral: both fighters act on frame 1
@@ -1093,6 +1165,41 @@ function aerialSection(entry: FighterEntry, rows: readonly Row[]): string[] {
   return [...lines, ...mermaid(nodes, edges), ""];
 }
 
+function parrySection(entry: FighterEntry, rows: readonly Row[]): string[] {
+  const parries = rows.filter(isRow("aerial-on-powershield"));
+  const blocks = rows.filter(isRow("aerial-on-shield"));
+  const variant = (row: ParryRow): string => `${row.spacing}, ${row.drift}`;
+  const heldAdvantage = (row: ParryRow): number | undefined =>
+    blocks.find((block) => block.aerial === row.aerial && block.spacing === row.spacing && block.drift === row.drift)?.advantage;
+  const lines = [
+    "## Aerial on a powershield (parry)", "",
+    `The same approaches as on a held shield, but the defending ${entry.name} stands unshielded and presses its shield the frame before the aerial meets it, so the hit is parried: no shieldstun, and the shield drops with no release lag into any grounded option. Frame 0 is the parried contact. Its options are every ground attack as well as the out-of-shield ones. Advantage reads as above; "held" is the same approach's advantage on a held shield. Punish start frames are when the defender's option can start and still land before the attacker can act.`, "",
+    ...table(["Aerial", "Spacing", "Drift", "Start", "Parried", "Attacker acts", "Defender acts", "Advantage", "Held", "Punished by (start frames)"],
+      parries.map((row) => [row.aerial, row.spacing, row.drift, String(row.distance), row.parried ? "yes" : "no, blocked", show(row.attackerActs), show(row.defenderActs),
+        signed(row.advantage), signed(heldAdvantage(row)), windowsText(row.punishes, "safe")])),
+    "", "### Graph", "",
+    "Each arrow runs from an option out of the parry to an aerial it punishes, labelled with the spacings and drifts it punishes it at.", "",
+  ];
+  const nodes = new Map<string, string>();
+  const edges: Edge[] = [];
+  for (const aerial of AERIALS) {
+    const own = parries.filter((row) => row.aerial === aerial.name);
+    const advantages = own.flatMap((row) => (row.advantage === undefined ? [] : [row.advantage]));
+    const [least = 0, most = 0] = [Math.min(...advantages), Math.max(...advantages)];
+    const range = advantages.length === 0 ? "never meets a shield" : least === most ? `${signed(least)} parried` : `${signed(least)} to ${signed(most)} parried`;
+    nodes.set(`a ${aerial.name}`, `${aerial.name}<br/>${range}`);
+  }
+  for (const option of OUT_OF_PARRY) {
+    for (const aerial of AERIALS) {
+      const punished = parries.filter((row) => row.aerial === aerial.name && row.punishes.some((entry) => entry.punisher === option.name));
+      if (punished.length === 0) continue;
+      nodes.set(`o ${option.name}`, option.name);
+      edges.push({ from: `o ${option.name}`, to: `a ${aerial.name}`, label: punished.map((row) => variant(row)).join("<br/>") });
+    }
+  }
+  return [...lines, ...mermaid(nodes, edges), ""];
+}
+
 function neutralSection(entry: FighterEntry, rows: readonly Row[]): string[] {
   return [
     "## Neutral: both fighters act on frame 1", "",
@@ -1156,6 +1263,7 @@ export function fighterPage(entry: FighterEntry, rows: readonly Row[]): string {
       + "The model, its conditions and how to read it: [the interaction graph](../../../docs/design/interaction-graph.md). "
       + `${entry.name} against ${entry.name} on the flat stage; frames are match frames, 60 a second; distances are world units.`, "",
     ...aerialSection(entry, rows),
+    ...parrySection(entry, rows),
     ...neutralSection(entry, rows),
     ...stateSection("landing", rows),
     ...stateSection("ledge", rows),
@@ -1181,6 +1289,12 @@ export function moveProfile(rows: readonly Row[], move: string): string[] {
         if (row.aerial === move) lines.push(`on shield, ${row.spacing} ${row.drift} from ${row.distance}: advantage ${signed(row.advantage)}, punished by ${windowsText(row.punishes, "nothing")}`);
         asPunisher("out of shield", variant, row.punishes);
         for (const entry of row.oosPunishes) asPunisher(`after ${variant}`, entry.option, entry.punishes);
+        break;
+      }
+      case "aerial-on-powershield": {
+        const variant = `${row.aerial} ${row.spacing} ${row.drift}`;
+        if (row.aerial === move) lines.push(`on a powershield, ${row.spacing} ${row.drift} from ${row.distance}: advantage ${signed(row.advantage)}, punished by ${windowsText(row.punishes, "nothing")}`);
+        asPunisher("out of a parry", variant, row.punishes);
         break;
       }
       case "neutral":

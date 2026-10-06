@@ -113,6 +113,7 @@ Archers' hurt capsules touch; Rifleman's and Illidan's, slightly wider, overlap 
 | Situation | Setup | Frame 0 | Options |
 |---|---|---|---|
 | Aerial on shield | The attacker stands a start distance (48 to 300, every 6) from a defender holding a digital shield, short hops and approaches until the aerial meets the shield. Aerials other than neutral air come out on the C-stick, so the stick stays free to drift; back air is thrown facing away | The aerial meets the shield | Defender: hold shield, shield grab, jump out of shield into each aerial (a short hop drifting toward the attacker), spot dodge, roll in, roll away. Attacker after landing: wait, jab, grab, shield, spot dodge, roll away |
+| Aerial on a powershield | The same approaches, each drift and spacing, with the defender standing unshielded and pressing a digital shield the frame before the aerial meets it, so the hit is parried | The parried contact | Defender: shield grab, jab, the tilts, the smashes, jump out of shield into each aerial, spot dodge, roll in, roll away, each from the first frame it starts. Attacker after landing: as on a held shield |
 | Neutral | Two standing fighters 60 and 120 apart | Both choose on frame 1 | Wait, jab, the tilts, the smashes, grab, shield, spot dodge, roll in, roll away, against the same set |
 | Landing | A fighter at a short hop's apex height, 60 in front of a standing opponent | Touchdown | Empty landing, fast fall, drift away, each aerial pressed at once, air dodge down |
 | Ledge | The fighter catches the right ledge from ledge height 30 outside it; the opponent stands 70 inside, facing it | The ledge option's start | Hang, climb, roll, ledge attack, jump, drop, on the first frame after the catch and once the 30 intangible frames are over |
@@ -134,15 +135,15 @@ from the farthest; the page lists every distance that reaches it.
 
 These are absent from the model, not claims about the game:
 
-- The five original situations above omit percent, DI, SDI and ASDI. The
+- The original situations above omit percent, DI, SDI and ASDI. The
   combo reports exercise their separately declared percent and victim-choice
   menu; bounded true links are also in [move comparisons](../move-comparisons.md).
 - Reaction time. Windows count frames from frame 0 and include presses a
   player could only make on a read; execution limits are in
   [execution windows](execution-windows.md).
 - Specials, projectiles, dash attacks, dash and run approaches, fast-falled or
-  double-jump aerials, platforms, analog shields, powershields and shield
-  drops.
+  double-jump aerials, platforms, analog shields, red parries, powershields
+  other than the parried aerial, and shield drops.
 - Other matchups than the mirror, and the situation an exchange leads to: a
   cell in the original situations ends at its first hit or grab, or when both
   fighters can act again. Combo trees continue from the full replay state of

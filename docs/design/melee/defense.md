@@ -26,8 +26,10 @@ more pushback (`ftCo_80092F2C` interpolates both by trigger pressure;
 smashcraft:docs/melee-analog-shield.md has the observed values). A full press
 within <!-- v:shield.powershield -->2<!-- /v --> frames of the trigger first moving
 starts a powershield, which reflects projectiles and, against attacks, keeps
-the shield's health and lets the defender act sooner
-(smashcraft:docs/melee-powershield.md).
+the shield's health and pushes the defender back harder. Shieldstun is
+unchanged (`ftCo_80092F2C`); the reward is a 4-frame counter (`ftCo_80094138`,
+common `+0x2B8`) that lets an attack or grab cut the shield drop short
+(`ftCo_GuardOff_IASA`) (smashcraft:docs/melee-powershield.md).
 
 From a held shield the fighter can grab, jump, roll, spot-dodge or drop through
 a platform it stands on (`ftCo_Guard_IASA`; the platform drop is

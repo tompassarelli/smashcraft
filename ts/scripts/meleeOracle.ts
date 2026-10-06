@@ -24,6 +24,7 @@ import { type Scene, airborne, fighter, frame, frameRows, framesUntil, scene, so
 import { ATTACK_BUFFER_FRAMES } from "../src/game/input/attackBuffer";
 import { TECH_WINDOW_FRAMES, TECH_REPEAT_MINIMUM_AGE_FRAMES } from "../src/game/physics/techInput";
 import { SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES } from "../src/game/sim/fighter";
+import { SHIELD_RED_PARRY_FRAMES, digitalShieldstunFrames } from "../src/game/sim/shield";
 import { DEMONHUNTER_PARRY_START, DEMONHUNTER_PARRY_END } from "../src/game/sim/hits";
 import { LEDGE_INTANGIBLE_FRAMES } from "../src/game/sim/ledge";
 import { LEDGE_REGRAB_FRAMES } from "../src/game/sim/transitions";
@@ -1144,6 +1145,59 @@ const SHIELD_AND_DODGES: readonly Scenario[] = [
   },
 ];
 
+// ------------------------------------------------------------------ powershield
+
+/** The test hit on a fighter holding an ordinary shield; `perfect` gives it a live powershield window first. */
+function shieldedHit(character: Character, perfect: boolean): { readonly s: Scene; readonly f: Fighter } {
+  const s = solo(0, character);
+  const f = fighter(s);
+  for (let n = 1; n <= 10; n++) frame(s, [Action.rightTrigger]);
+  if (perfect) f.shield.perfectFrames = 1;
+  beginDamageContacts();
+  collectDamageContact(s.world, 1, 0, TEST_HIT, 1, ContactKind.launch, false, undefined, true);
+  finishDamageContacts(s.world);
+  return { s, f };
+}
+
+/** Whether a parried fighter that lets go of its shield after the freeze is free to move, or only to attack as in Melee. */
+function dropAfterParry(character: Character): string {
+  const { s, f } = shieldedHit(character, true);
+  while (f.launch.hitlag > 1) frame(s, [Action.rightTrigger]);
+  frame(s, []);
+  return f.shield.raised ? "still shielding" : f.shield.releaseLag === 0 ? "no release lag" : "GuardOff, attacks only";
+}
+
+/** Whether a fresh full press during shieldstun opens a parry window for the next hit. */
+function pressInShieldstun(character: Character): string {
+  const { s, f } = shieldedHit(character, false);
+  while (f.launch.hitlag > 0) frame(s, [Action.rightTrigger]);
+  frame(s, []);
+  frame(s, [Action.rightTrigger]);
+  return f.shield.stun > 0 && f.shield.perfectFrames > 0 ? "parries the next hit" : "ignored";
+}
+
+const PARRY_DEPARTURE = "Powershield: a parry with no shieldstun or release lag and a red parry in shieldstun (owner direction 2026-10-06, #102)";
+const POWERSHIELD: readonly Scenario[] = [
+  {
+    area: "powershield", name: "shieldstun of a parried 10-damage hit",
+    cite: "GuardSetOff runs at the ordinary rate whether or not the perfect flag is set: melee:src/melee/ft/kinds/ftCommon/ftCo_Guard.c ftCo_80092F2C",
+    run: (c) => ({ expected: digitalShieldstunFrames(TEST_HIT.damage), actual: shieldedHit(c, true).f.shield.stun }),
+    departure: PARRY_DEPARTURE,
+  },
+  {
+    area: "powershield", name: "dropping the shield after a parry",
+    cite: "GuardOff still plays; the +0x2B8 counter (4) only admits attacks and grabs during it: ftCo_Guard.c ftCo_GuardOff_IASA, ftCo_80094138",
+    run: (c) => ({ expected: "GuardOff, attacks only", actual: dropAfterParry(c) }),
+    departure: PARRY_DEPARTURE,
+  },
+  {
+    area: "powershield", name: "a fresh shield press during shieldstun",
+    cite: "GuardSetOff accepts no input: ftCo_Guard.c ftCo_GuardSetOff_IASA is empty",
+    run: (c) => ({ expected: "ignored", actual: pressInShieldstun(c) }),
+    departure: PARRY_DEPARTURE,
+  },
+];
+
 // ------------------------------------------------------------------ ledges
 
 function ledgeBox(character: Character): { reach: number; highest: number } {
@@ -1278,12 +1332,13 @@ const EXECUTION_BOUNDS: readonly Scenario[] = [
   windowBound("jump squat / short-hop release", 3, 5, jumpSquatFrames),
   windowBound("parry", 6, 10, () => DEMONHUNTER_PARRY_END - DEMONHUNTER_PARRY_START + 1),
   windowBound("optional powershield", 2, 4, () => SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES),
+  windowBound("optional red parry", 2, 4, () => SHIELD_RED_PARRY_FRAMES),
   windowBound("ledge intangibility", 30, 37, () => LEDGE_INTANGIBLE_FRAMES),
   windowBound("ledge regrab lock", 30, 60, () => LEDGE_REGRAB_FRAMES),
 ];
 
 const SCENARIOS: readonly Scenario[] = [
-  ...JUMPS, ...GROUND, ...FAST_FALL, ...LANDING, ...TECHS, ...GETUPS, ...KNOCKBACK, ...PLATFORMS, ...SURFACES, ...SHIELD_AND_DODGES, ...LEDGES, ...SMASH_DI, ...EXECUTION_BOUNDS,
+  ...JUMPS, ...GROUND, ...FAST_FALL, ...LANDING, ...TECHS, ...GETUPS, ...KNOCKBACK, ...PLATFORMS, ...SURFACES, ...SHIELD_AND_DODGES, ...POWERSHIELD, ...LEDGES, ...SMASH_DI, ...EXECUTION_BOUNDS,
   ...[59, 60, 120].map((frames): Scenario => ({
     area: "offscreen", name: `magnifier damage after ${frames} consecutive frames`,
     cite: "Fighter_procAnim, PlCo +0x7AC=60, +0x7B0=150, +0x7B4=1; ftLib_UpdateScreenVisibility; canonical 16:9 match view (#80)",

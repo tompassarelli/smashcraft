@@ -25,8 +25,8 @@ Smashcraft retains a separate four-sample melee powershield timer alongside
 the two-sample projectile reflector. During that melee window, blocked contacts
 preserve shield health and use the unmodified defender pushback speed before
 the existing cap; ordinary contacts apply the common `+0x2BC` multiplier
-0.6000000238418579. Shieldstun, hitlag and attacker recoil retain the ordinary
-contact path. Success emits one shield-success flash through the impact journal.
+0.6000000238418579. Hitlag and attacker recoil retain the ordinary contact
+path; a perfect contact has no shieldstun (a #102 departure, below). Success emits one shield-success flash through the impact journal.
 The timer is copied, compared and reset with the other replayed fighter state.
 Twelve original scalar contact observations cover ordinary/perfect flags,
 strengths 0.4 and 1, and powers 3, 10 and 30. A full-strength power-10 contact
@@ -227,14 +227,17 @@ a requested original attack succeeds or establish full callback ordering.
 See `smashcraft:docs/smash-melee-reference/retail-powershield-actions.json` and
 `smashcraft:tools/physics-probe/observe-powershield-actions.mjs`.
 
-Production preserves this counter through hitlag and shieldstun, consumes it
-while guard remains held, and retains it when dropping shield. A successful
-perfect contact also clears the minimum-hold restriction, matching the observed
-post-contact setup's zero minimum-guard timer. During shield drop, a positive
-counter allows attack checks without clearing movement recovery. Beginning an
-attack clears the guard clocks and drop recovery. Replay copies and compares
-the new counter. Complete original input/attack trajectories and native
-action-timing verification remain open.
+Production keeps the counter's 4 frames, its consumption while guard remains
+held and the cleared minimum hold, but departs from Melee's reward (#102,
+smashcraft:docs/gameplay-design.md, "Powershield and parry"): a perfect
+contact causes no shieldstun, dropping the shield while the counter is positive
+has no release lag at all rather than admitting only attacks, and an option
+pressed during the contact's hitlag is buffered into its first actionable
+frame. A perfect contact or a reflection also spends both windows, and a fresh
+press during shieldstun opens a 2-frame red parry window that Melee lacks
+(`ftCo_GuardSetOff_IASA` is empty). Beginning an attack clears the guard
+clocks and drop recovery. Replay copies and compares the counter, the red
+parry try and the buffered option.
 The action-window integration passes seven focused powershield tests and
 554/554 assembled simulation checks. Evidence:
 `smashcraft:build/powershield-actions-focused.log` and
