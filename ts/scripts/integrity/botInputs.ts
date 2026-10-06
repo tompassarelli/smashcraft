@@ -1,8 +1,8 @@
 // `bun scripts/integrity/botInputs.ts CAPTURE_DIR`: a bot session's pad presses
 // against the rows each helper typed for its client, per match and slot: the
 // presses the script sent (A attack, Y jump, X special, left-trigger shield,
-// full-tilt dashes), the rows whose pressed bits carry them, buttons still held in the match's last row,
-// and the helper's input delay at its edit-box receipts outside the 3 s after
+// full-tilt dashes, C-stick flicks), the rows whose pressed bits carry them,
+// buttons still held in the match's last row, and the helper's input delay at its edit-box receipts outside the 3 s after
 // each stall (frames journaled beyond the last frame its client consumed).
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -10,7 +10,7 @@ import { Action, bit } from "../../src/game/input/actions";
 import type { InputRow } from "../../src/game/input/inputRow";
 import { decodePacket } from "../../src/game/input/wire";
 import { readEdges, readEvents } from "./botFiles";
-import { ABS_X, ABS_Z, BTN_A, BTN_X, BTN_Y, EV_ABS, EV_KEY } from "./linuxInput";
+import { ABS_RX, ABS_RY, ABS_X, ABS_Z, BTN_A, BTN_X, BTN_Y, EV_ABS, EV_KEY } from "./linuxInput";
 
 const [directory] = process.argv.slice(2);
 if (directory === undefined) throw new Error("usage: bun scripts/integrity/botInputs.ts CAPTURE_DIR");
@@ -20,8 +20,12 @@ const BUTTONS = [
   [EV_KEY, BTN_Y, 1, "jump", bit(Action.jump)],
   [EV_KEY, BTN_X, 1, "special", bit(Action.special)],
   [EV_ABS, ABS_Z, 1, "shield", bit(Action.leftTrigger)],
-  [EV_ABS, ABS_X, 1, "dash-right", bit(Action.moveRight) | bit(Action.smashRight)],
-  [EV_ABS, ABS_X, -1, "dash-left", bit(Action.moveLeft) | bit(Action.smashLeft)],
+  [EV_ABS, ABS_X, 1, "dash-right", bit(Action.moveRight)],
+  [EV_ABS, ABS_X, -1, "dash-left", bit(Action.moveLeft)],
+  [EV_ABS, ABS_RX, 1, "c-right", bit(Action.smashRight)],
+  [EV_ABS, ABS_RX, -1, "c-left", bit(Action.smashLeft)],
+  [EV_ABS, ABS_RY, -1, "c-up", bit(Action.smashUp)],
+  [EV_ABS, ABS_RY, 1, "c-down", bit(Action.smashDown)],
 ] as const;
 const HELD_BUTTONS = bit(Action.attack) | bit(Action.jump) | bit(Action.special) | bit(Action.grab) | bit(Action.leftTrigger) | bit(Action.rightTrigger);
 
