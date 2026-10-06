@@ -54,6 +54,8 @@ const RECOIL = sequence("Death", f32(0.45));
 
 /** Every table pose; the stock model has no hit, jump, roll or ledge sequences, so those reuse the nearest readable one. */
 export const BLADEMASTER_CLIPS: { readonly [pose in HeroPose]: HeroClip } = {
+  idle: COMBAT_STANCE,
+  walk: sequence("Walk"),
   jab: sequence("Attack 2", aligned(THRUST, 4, 2, 13)),
   grab: sequence("Attack 2", aligned(THRUST, 7, 2, 22)),
   forwardTilt: sequence("Attack", aligned(CUT, 8, 3, 19)),
