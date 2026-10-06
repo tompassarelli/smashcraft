@@ -72,6 +72,8 @@ and remainder, the entry form and aim, airtime uses, armor and each hero
 projectile's record are fighter state: rollback copies them, replay
 difference compares them, and the canonical replay text includes them for
 fighters with a hero kit. The original fighters keep their cooldowns and no
-mana. There is no ultimate action, so ultimates stay off.
+mana. In a match each hero's HUD plate shows "Mana N" above it, and "Not
+enough mana" for about three quarters of a second after each refused press
+(`ui/manaReadout.ts`). There is no ultimate action, so ultimates stay off.
 
 The shared contracts are in `ts/src/game/sim/heroSpecials.tests.ts`.
