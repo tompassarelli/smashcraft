@@ -2,8 +2,8 @@
 // and motion functions (smashcraft:docs/design/roster.md, Warden B specials).
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
-import { resolveAttacks } from "../attacks";
-import { Character, ProjectileKind, SpecialAction } from "../codes";
+import { beginFighterAttack, resolveAttacks } from "../attacks";
+import { AttackStyle, Character, ProjectileKind, SpecialAction } from "../codes";
 import { isIntangible } from "../conditions";
 import { beginDamageContacts, finishDamageContacts } from "../contacts";
 import { type Fighter, createFighter } from "../fighter";
@@ -247,4 +247,34 @@ test("a point-blank Shadow Strike on a held shield leaves the defender free well
   assertGreaterThan(blockedAt, 0);
   // Warden acts on frame 38; an out-of-shield grab needs about ten frames.
   assertLessThan(blockedAt + stun + 10, 38);
+});
+
+test("Fan of Knives on a held shield leaves the defender a punish before Warden acts", () => {
+  for (const side of [-1, 1]) {
+    const { world, target } = pair(0.0, f32(70.0 * side));
+    const guard = controls({ shield: true });
+    let blockedAt = 0;
+    let stun = 0;
+    for (let f = 1; f <= 38 && blockedAt === 0; f++) {
+      frame(world, f === 1 ? downB : controls(), guard);
+      if (target.shield.stun > 0) {
+        blockedAt = f;
+        stun = target.shield.stun;
+      }
+    }
+    assertEquals(target.status.damage, 0.0);
+    assertGreaterThan(blockedAt, 0);
+    // Warden acts on frame 39; an out-of-shield grab needs about ten frames.
+    assertLessThan(blockedAt + stun + 10, 39);
+  }
+});
+
+test("Blink cannot start from an attack's recovery", () => {
+  const { world, warden } = pair(0.0, 1500.0);
+  beginFighterAttack(world, 0, AttackStyle.forwardTilt, false);
+  for (let f = 1; f < warden.attack.duration; f++) {
+    frame(world, upB);
+    assertEquals(warden.special.action, SpecialAction.none);
+    assertEquals(warden.mana.points, 100);
+  }
 });

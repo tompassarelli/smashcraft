@@ -168,6 +168,11 @@ export function chooseRecoveryInput(fighter: Readonly<Fighter>, stage: number, m
   // Aiming for the ledge it keeps just outside the edge; otherwise it heads for the deck.
   if (ledge) input.direction = outside < LEDGE_LINE_NEAR ? side : outside > LEDGE_LINE_FAR ? -side : 0;
   else input.direction = x < (side < 0 ? f32(left + 60) : f32(right - 60)) ? 1 : -1;
+  // An up special that aims during its startup (Warden's Blink) goes up and toward the stage.
+  if (fighter.special.action === SpecialAction.heroUp) {
+    input.direction = -side;
+    input.verticalDirection = 1;
+  }
   if (fighter.launch.hitstun > 0 || fighter.launch.hitlag > 0 || fighter.special.action !== SpecialAction.none) return true;
   // Close outside the ledge and above where it catches, it falls onto the ledge.
   if (ledge && outside <= LEDGE_LINE_REACH && z >= f32(floor - LEDGE_MISSED)) return true;
