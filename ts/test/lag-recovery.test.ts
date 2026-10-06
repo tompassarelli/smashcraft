@@ -15,7 +15,7 @@
 // its input stayed 15-25 frames late for 5 s.
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless, readNativeDeclarations } from "wisp/scripts/wisp/headless";
-import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/scripts/wisp/syncChannel";
+import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/src/headless/syncChannel";
 import type { HeadlessClient } from "wisp/src/headless/client";
 import { type InputRow, sameInput } from "../src/game/input/inputRow";
 import type { ParticipantInputs } from "../src/game/input/participants";
