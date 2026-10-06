@@ -7,7 +7,7 @@ import { reportedModel, sceneFile } from "wisp/src/runtime/scene";
 import { type SceneReport, readSceneLines, sceneProblems } from "wisp/scripts/wisp/scene";
 import { SMASHCRAFT_SCENE } from "../scripts/wisp/playerView";
 import { IMPACT_DUST_MODEL, IMPACT_HIT_MODEL } from "../src/game/assets/impactAssetInfo";
-import { STAGE_DECK_MODEL } from "../src/game/assets/stageAssetInfo";
+import { STAGE_MAIN_DECK_MODEL } from "../src/game/assets/stageAssetInfo";
 import { Action, bit } from "../src/game/input/actions";
 import { requestStageSelect, requestStart, selectCharacter, setParticipants } from "../src/game/match/rules";
 import { FLOOR_HEIGHT } from "../src/game/presentation/arenaCamera";
@@ -60,7 +60,7 @@ test("development build: a match's scene report shows the stage and declares eve
   const declared = new Set(SMASHCRAFT_SCENE.kinds.flatMap(({ models }) => models.map((model) => model.replaceAll("\\", "/"))));
   expect(report.models.filter(({ model }) => !declared.has(model)).map(({ model }) => model)).toEqual([]);
   expect(report.effects).toBeGreaterThan(200);
-  expect(report.models.find(({ model }) => model.includes("StageDeck"))).toMatchObject({ live: 1, inView: 1, drawn: 1 });
+  expect(report.models.find(({ model }) => model === reportedModel(STAGE_MAIN_DECK_MODEL))).toMatchObject({ live: 1, inView: 1, drawn: 1 });
   expect(client.errors).toEqual([]);
 });
 
@@ -70,7 +70,7 @@ test("the two shipped defects fail the scene check from the match's first report
     if ("problem" in report) throw new Error(report.problem);
     return report;
   };
-  const deck = `model 1 1 1 0 0 0 0 ${reportedModel(STAGE_DECK_MODEL)}`;
+  const deck = `model 1 1 1 0 0 0 0 ${reportedModel(STAGE_MAIN_DECK_MODEL)}`;
   // Match-start lines of the development build with 05266a3's parking reverted (evidence/render-visibility-20261006):
   // the rifleman's collapsed GyroCopterMissile pool waits at the floor and keeps smoking.
   expect(sceneProblems(read(["scene 1 frame 0 effects 267", deck, "model 16 16 0 0 0 0 0 Abilities/Weapons/GyroCopter/GyroCopterMissile.mdx"]), SMASHCRAFT_SCENE)).toEqual([{

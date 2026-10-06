@@ -478,15 +478,18 @@ build packages into a copy of a fully packaged private map, the asset
 container. This is a mitigation: the build replaces the container's script,
 object data, description and header, and fails unless every other base-map file
 and every declared import equals its source. Imports the build does not declare
-are carried along unverified.
+are carried along unverified. A newly declared import goes into a copy of the
+container with the packager, from the repository root:
+`build/tools/map-pack replace CONTAINER.w3x FILE 'war3mapImported\NAME'`.
 
 Repository-authored models are generated: each generator writes the models,
 their textures and an import list under smashcraft:build/, and the models'
 content-addressed import paths to a checked-in module under
 smashcraft:ts/src/game/, which the map compiles. Regenerate instead of editing
 those modules. smashcraft:ts/scripts/wisp/mapInputs.ts lists each family
-(`GENERATED_MODELS`) with its import list and generator; the stage deck comes
-from smashcraft:tools/stage/package.ts. The build fails unless each family's
+(`GENERATED_MODELS`) with its import list and generator; the stage decks come
+from smashcraft:tools/stage/package.ts, which draws the main deck from its
+collision lines. The build fails unless each family's
 import list under `--assets` holds every model its module names, and unless the
 summon evidence lists the clips smashcraft:ts/src/game/presentation/summonClipInfo.ts
 names; the archive check then verifies the map carries them. `rebuild` and
