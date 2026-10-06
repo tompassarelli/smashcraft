@@ -13,7 +13,8 @@ permissions:
 
 concurrency:
   group: client-${{ github.ref }}
-  cancel-in-progress: true
+  # Main moves fast; finish every main run so each landing gets a result.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 env:
   CARGO_TERM_COLOR: always
