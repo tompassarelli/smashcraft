@@ -32,7 +32,7 @@ function referenceWall(character: Character): { readonly pushOff: number; readon
 function assertLeavesWall(fighter: Fighter, speedX: number, speedZ: number): void {
   const gravity = f32(fighter.tuning.physics.gravity / WORLD_UNITS_PER_MELEE_UNIT);
   assertEquals(fighter.motion.vx, f32(melee(speedX) - fighter.tuning.physics.airFriction));
-  assertNear(f32(fighter.motion.vz / WORLD_UNITS_PER_MELEE_UNIT), f32(speedZ - gravity), 0.0001);
+  assertNear(f32(fighter.motion.vz / WORLD_UNITS_PER_MELEE_UNIT), f32(speedZ - gravity), 0.00009999999747378752);
   assertGreaterThan(fighter.motion.deltaX, 0.0);
 }
 

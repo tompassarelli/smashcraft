@@ -505,7 +505,7 @@ test("each earlier wall jump since landing lowers a wall jump's rise, and landin
     // Fox's +0x108 = 3.3 times powf(PlCo +0x778 = 0.975, earlier), less a frame of gravity (ftCo_PassiveWall_Anim).
     const scale = earlier === 0 ? 1.0 : f32(0.9750000238418579 * 0.9750000238418579);
     const gravity = f32(fighter.tuning.physics.gravity / WORLD_UNITS_PER_MELEE_UNIT);
-    assertNear(f32(fighter.motion.vz / WORLD_UNITS_PER_MELEE_UNIT), f32(f32(3.299999952316284 * scale) - gravity), 0.0001);
+    assertNear(f32(fighter.motion.vz / WORLD_UNITS_PER_MELEE_UNIT), f32(f32(3.299999952316284 * scale) - gravity), 0.00009999999747378752);
     for (let tick = 1; tick <= 200 && !fighter.motion.grounded; tick++) advanceSolo(fighter, SOLID_DECK_TEST_STAGE, controls(), 0.0);
     assertTrue(fighter.motion.grounded);
     assertEquals(fighter.surfaceRecovery.wallJumpsUsed, 0);
