@@ -13,6 +13,7 @@ import {
   GroundAction,
   HippogryphKind,
   LedgeState,
+  PlatformMove,
   ProjectileKind,
   SPECIAL_ACTION_CAPACITY,
   ShieldBreak,
@@ -66,8 +67,6 @@ interface Motion {
   fastFallDownHeld: boolean;
   /** Input frames since down was pressed, Melee's one stick timer for fast-falls and platform drops; ages past the longer window are equivalent. */
   fastFallInputAge: number;
-  /** Frames left falling through pass-through platforms. */
-  dropTime: number;
   /** The side of Melee's horizontal smash deadzone the stick was past on the previous input frame: -1, 0 or 1. */
   previousStickSide: number;
   /** Input frames since the stick crossed that deadzone to its current side (Melee's stick-x timer); ages past the wall-jump flick window are equivalent. */
@@ -356,6 +355,39 @@ interface Grab {
   target: number | undefined;
 }
 
+/**
+ * A move through a pass-through platform (platformMoves.ts). Positions are
+ * kept from the platform's left end and top, so a moving platform carries the
+ * fighter; the inputs are latched over the move.
+ */
+interface PlatformTransit {
+  move: PlatformMove;
+  frame: number;
+  duration: number;
+  deck: number | undefined;
+  fromX: number;
+  toX: number;
+  fromZ: number;
+  toZ: number;
+  /** The vertical velocity an ascent carries out. */
+  rise: number;
+  /** Down or shield held or pressed during an ascent: it ends standing or shielding on the platform. */
+  stand: boolean;
+  shield: boolean;
+  /** Half-circle progress toward each side while airborne, 0 to 3 steps, and frames since its first step. */
+  wrapLeft: number;
+  wrapLeftAge: number;
+  wrapRight: number;
+  wrapRightAge: number;
+  /** An air dodge or special pressed during a descent, taken on its first free frame. */
+  dodgeQueued: boolean;
+  dodgeX: number;
+  dodgeZ: number;
+  specialQueued: boolean;
+  specialX: number;
+  specialZ: number;
+}
+
 interface Ledge {
   state: LedgeState;
   side: number;
@@ -432,6 +464,7 @@ export interface Fighter {
   readonly surfaceRecovery: SurfaceRecovery;
   readonly grab: Grab;
   readonly ledge: Ledge;
+  readonly platform: PlatformTransit;
   readonly cannon: StageCannon;
   readonly status: Status;
   readonly mana: Mana;
@@ -479,7 +512,6 @@ export function createFighter(character: Character, startX: number, facing: numb
       fastFalling: false,
       fastFallDownHeld: false,
       fastFallInputAge: PLATFORM_DROP_INPUT_WINDOW,
-      dropTime: 0,
       previousStickSide: 0,
       stickSideAge: WALL_JUMP_FLICK_FRAMES,
       lastAerialTapDirection: 0,
@@ -622,6 +654,10 @@ export function createFighter(character: Character, startX: number, facing: numb
     },
     grab: { pummels: 0, grabbedFrames: 0, heldFrames: 0, queuedThrow: GrabAction.none, action: GrabAction.none, frame: 0, serial: 0, mashX: 0, mashZ: 0, owner: undefined, target: undefined },
     ledge: { state: LedgeState.none, side: 0, frame: 0, serial: 0, intangible: 0, regrab: 0 },
+    platform: {
+      move: PlatformMove.none, frame: 0, duration: 0, deck: undefined, fromX: 0.0, toX: 0.0, fromZ: 0.0, toZ: 0.0, rise: 0.0,
+      stand: false, shield: false, wrapLeft: 0, wrapLeftAge: 0, wrapRight: 0, wrapRightAge: 0, dodgeQueued: false, dodgeX: 0, dodgeZ: 0, specialQueued: false, specialX: 0, specialZ: 0,
+    },
     cannon: { held: undefined, firing: undefined, cooldown: 0 },
     status: { offscreenFrames: 0, damage: 0.0, stocks: STARTING_STOCKS, respawn: 0, out: false, invincible: 0, frozenFrames: 0, freezeImmunityFrames: 0, armorFrames: 0, armorMaxDamage: 0.0, condition: 0, conditionFrames: 0, conditionGroup: 0, conditionImmunityFrames: 0, conditionImmunity: [0, 0], guardHealed: 0.0 },
     mana: { points: tuning.specials?.mana.max ?? 0, sinceSpend: tuning.specials?.mana.regenDelayFrames ?? 0, progress: 0 },
