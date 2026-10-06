@@ -13,6 +13,7 @@ import type { PacingAndPresentation } from "./pacingAndPresentation";
 import { type MatchState, Phase, computerActive } from "./rules";
 import { produceComputerInput } from "./botPlay";
 import { stepMatch } from "./step";
+import { latchPresses, releasePresses } from "./training";
 
 /** Detached source rows. Every execution adapts again from the world being replayed. */
 export interface MatchFrameInput {
@@ -145,6 +146,21 @@ export function executeMatchFrame(row: MatchFrameInput, game: MatchState, world:
     beforeAttack[slot] = f.attack.serial;
     beforeDamage[slot] = f.status.damage;
     beforeShield[slot] = f.shield.energy;
+  }
+  if (game.phase === Phase.match && game.training) {
+    // Slow motion: the match runs on the last of every `speed` input frames, with the presses made on the ones it skips.
+    const trainer = game.trainer;
+    const skip = trainer.speedPhase + 1 < trainer.speed;
+    trainer.speedPhase = skip ? trainer.speedPhase + 1 : 0;
+    for (const slot of PARTICIPANT_SLOTS) {
+      if (!isActive(world, slot)) continue;
+      if (skip) latchPresses(trainer.latches[slot], row.scratch.inputs[slot]);
+      else releasePresses(trainer.latches[slot], row.scratch.inputs[slot]);
+    }
+    if (skip) {
+      runtime.simulationFrame = frame;
+      return true;
+    }
   }
   advanceImpacts(runtime.impacts);
   stepMatch(game, world, row.scratch, frame);

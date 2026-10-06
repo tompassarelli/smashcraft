@@ -1,5 +1,6 @@
 // Training's synchronized state (#120): partner settings and the readout.
 // Rollback copies it, the replay difference compares it and the checksum folds it while training is on.
+import { PARTICIPANT_SLOTS, type Slots } from "../input/participants";
 
 /** What the partner does when it can act. Codes are in the checksum. */
 export const PartnerBehaviour = { stand: 0, shield: 1, crouch: 2, jump: 3, attack: 4, fight: 5 } as const;
@@ -19,7 +20,42 @@ export const PARTNER_DAMAGE_MAX = 300;
 export const Advantage = { none: 0, hit: 1, shield: 2 } as const;
 export type Advantage = (typeof Advantage)[keyof typeof Advantage];
 
+/** Speeds: the match advances one frame in every SPEEDS[i] input frames. */
+export const TRAINING_SPEEDS: readonly number[] = [1, 2, 4];
+
+/**
+ * Presses made on input frames slow motion skips, kept for the next frame the
+ * match runs: a bit per press (training.ts PRESS_FIELDS) and the values those
+ * presses carry.
+ */
+export interface LatchedPresses {
+  mask: number;
+  specialX: number;
+  specialZ: number;
+  dodgeX: number;
+  dodgeZ: number;
+  groundDodgeDirection: number;
+  getupDirection: number;
+  sdiX: number;
+  sdiZ: number;
+  cStickSideFlick: number;
+  ledgeVerticalPressed: number;
+}
+
+export const LATCH_FIELDS = [
+  "mask", "specialX", "specialZ", "dodgeX", "dodgeZ", "groundDodgeDirection", "getupDirection", "sdiX", "sdiZ", "cStickSideFlick", "ledgeVerticalPressed",
+] as const;
+
+export function emptyLatchedPresses(): LatchedPresses {
+  return { mask: 0, specialX: 0, specialZ: 0, dodgeX: 0, dodgeZ: 0, groundDodgeDirection: 0, getupDirection: 0, sdiX: 0, sdiZ: 0, cStickSideFlick: 0, ledgeVerticalPressed: 0 };
+}
+
 export interface TrainingState {
+  /** Input frames per match frame: 1, 2 or 4. */
+  speed: number;
+  /** Input frames since the match last ran, below speed. */
+  speedPhase: number;
+  readonly latches: Slots<LatchedPresses>;
   /** PartnerBehaviour, PartnerEscape and PartnerTech codes. */
   behaviour: number;
   escape: number;
@@ -53,6 +89,7 @@ export interface TrainingState {
 
 export function createTrainingState(): TrainingState {
   return {
+    speed: 1, speedPhase: 0, latches: [emptyLatchedPresses(), emptyLatchedPresses(), emptyLatchedPresses(), emptyLatchedPresses()],
     behaviour: PartnerBehaviour.stand, escape: PartnerEscape.none, tech: PartnerTech.none, damage: 0, showHitAreas: false,
     moveStyle: -1, moveSlot: -1, moveStartup: 0, moveActive: 0, moveTotal: 0,
     measureFrames: -1, measureAttacker: -1, measureDefender: -1, measureKind: Advantage.none, attackerReady: -1, defenderReady: -1,
@@ -61,12 +98,15 @@ export function createTrainingState(): TrainingState {
 }
 
 const INT_FIELDS = [
-  "behaviour", "escape", "tech", "damage", "moveStyle", "moveSlot", "moveStartup", "moveActive", "moveTotal",
+  "speed", "speedPhase", "behaviour", "escape", "tech", "damage", "moveStyle", "moveSlot", "moveStartup", "moveActive", "moveTotal",
   "measureFrames", "measureAttacker", "measureDefender", "measureKind", "attackerReady", "defenderReady",
   "advantage", "advantageKind", "comboDefender", "comboHits",
 ] as const;
 
 export function copyTrainingState(target: TrainingState, source: Readonly<TrainingState>): void {
+  target.speed = source.speed;
+  target.speedPhase = source.speedPhase;
+  for (const slot of PARTICIPANT_SLOTS) for (const key of LATCH_FIELDS) target.latches[slot][key] = source.latches[slot][key];
   target.behaviour = source.behaviour;
   target.escape = source.escape;
   target.tech = source.tech;
@@ -97,6 +137,7 @@ export function writeTrainingState(state: Readonly<TrainingState>, int: (name: s
   bool("match.trainer.showHitAreas", state.showHitAreas);
   bool("match.trainer.comboOpen", state.comboOpen);
   real("match.trainer.comboDamage", state.comboDamage);
+  for (const slot of PARTICIPANT_SLOTS) for (const key of LATCH_FIELDS) int(`match.trainer.latch${slot}.${key}`, state.latches[slot][key]);
 }
 
 export function firstTrainingDifference(expected: Readonly<TrainingState>, actual: Readonly<TrainingState>): string | undefined {
@@ -104,11 +145,14 @@ export function firstTrainingDifference(expected: Readonly<TrainingState>, actua
   if (expected.showHitAreas !== actual.showHitAreas) return "match.trainer.showHitAreas";
   if (expected.comboOpen !== actual.comboOpen) return "match.trainer.comboOpen";
   if (expected.comboDamage !== actual.comboDamage) return "match.trainer.comboDamage";
+  for (const slot of PARTICIPANT_SLOTS) for (const key of LATCH_FIELDS) if (expected.latches[slot][key] !== actual.latches[slot][key]) return `match.trainer.latch${slot}.${key}`;
   return undefined;
 }
 
-/** Clears the readout for a new match; the partner settings stay. */
+/** Clears the readout, slow motion's phase and kept presses for a new match; the settings stay. */
 export function clearTrainingReadout(state: TrainingState): void {
+  state.speedPhase = 0;
+  for (const slot of PARTICIPANT_SLOTS) for (const key of LATCH_FIELDS) state.latches[slot][key] = 0;
   state.moveStyle = -1;
   state.moveSlot = -1;
   state.moveStartup = 0;

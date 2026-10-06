@@ -66,6 +66,7 @@ export const partnerEscapeSetting = (code: number) => `Drift: ${ESCAPE_NAMES[cod
 export const partnerTechSetting = (code: number) => `Tech: ${TECH_NAMES[code] ?? ""}`;
 export const partnerDamageSetting = (damage: number) => `Partner damage: ${damage}%`;
 export const hitAreasSetting = (shown: boolean) => `Hit areas: ${shown ? "On" : "Off"}`;
+export const trainingSpeedSetting = (speed: number) => `Speed: ${speed === 4 ? "Quarter" : speed === 2 ? "Half" : "Full"}`;
 
 /** The rules the next match plays by, as the stage screen shows them. */
 export function rulesSummary(game: Readonly<MatchState>): string {

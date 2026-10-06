@@ -20,7 +20,7 @@ import {
   setHitAreas, setParticipants, setPartnerDamage, setTraining, stepPartnerBehaviour, stepPartnerEscape, stepPartnerTech, timedMatch,
 } from "./rules";
 import { matchSpawnX } from "./step";
-import { canAct } from "./training";
+import { canAct, latchPresses, releasePresses } from "./training";
 import { Advantage, PartnerBehaviour, PartnerEscape, PartnerTech } from "./trainingState";
 import { HitAreaKind, collectHitAreas, createHitAreaList } from "../presentation/hitAreas";
 import { attackCapsule, emptyCapsule, placeCapsule } from "../physics/contactGeometry";
@@ -319,4 +319,41 @@ test("readoutText", () => {
   state.comboHits = 3;
   state.comboDamage = f32(27.5);
   assertEquals(trainingReadout(state), "Forward smash: hits on frame 12 · 3 active · 40 total\n-8 on shield\nCombo: 3 hits · 27%");
+});
+
+test("slowMotionRunsOneFrameInTwoOrFourAndKeepsPresses", () => {
+  for (const speed of [1, 2, 4]) {
+    const match = trainingMatch(PartnerBehaviour.stand, 200.0);
+    match.game.trainer.speed = speed;
+    for (let i = 0; i < 40; i++) match.step();
+    assertEquals(match.game.matchFrame, 40 / speed);
+    // A jump pressed on an input frame the match skips still jumps.
+    assertTrue(match.player.motion.grounded);
+    let left = false;
+    match.step(input => { input.jumpPressed = true; input.jumpHeld = true; });
+    for (let i = 0; i < 12 * speed; i++) {
+      match.step(input => { input.jumpHeld = true; });
+      left = left || !match.player.motion.grounded;
+    }
+    assertTrue(left);
+  }
+});
+
+test("slowMotionLatchesEveryPressOnce", () => {
+  const latch = createMatchState().trainer.latches[0];
+  const pressed = neutralControls();
+  pressed.specialPressed = true;
+  pressed.specialX = -1;
+  pressed.cStickSideFlick = 1;
+  latchPresses(latch, pressed);
+  latchPresses(latch, neutralControls());
+  const next = neutralControls();
+  releasePresses(latch, next);
+  assertTrue(next.specialPressed);
+  assertEquals(next.specialX, -1);
+  assertEquals(next.cStickSideFlick, 1);
+  assertEquals(latch.mask, 0);
+  const after = neutralControls();
+  releasePresses(latch, after);
+  assertFalse(after.specialPressed);
 });

@@ -7,6 +7,7 @@
 //   -dev stage ID                 a stage catalog id, at fighter or stage selection
 //   -dev training on|off, -dev hit-areas on|off
 //   -dev partner BEHAVIOUR DRIFT TECH DAMAGE   training's partner, by the names below
+//   -dev speed 1|2|4              training's input frames per match frame
 // Each applies the menus' own rule for the player who typed it, so a command
 // can do only what that player's clicks could. The developer receipt's SETUP
 // line (journalFiles.ts) reports the resulting state; automation confirms a
@@ -16,7 +17,7 @@ import { parseDecimal } from "../netcode/journal/decimal";
 import { PARTICIPANT_SLOTS, isParticipantMask, isParticipantSlot } from "../input/participants";
 import {
   type MatchState, Phase, computerActive, cycleSlotMode, humanActive, humanFighterActive, selectCharacter, selectCpuCharacter, setAutomaticRematch,
-  setHitAreas, setPartnerDamage, setStocks, setTimeLimit, setTraining,
+  setHitAreas, setPartnerDamage, setStocks, setTimeLimit, setTraining, stepTrainingSpeed,
 } from "../match/rules";
 import { selectableStage } from "../menu/stageCatalog";
 import type { Character } from "../sim/codes";
@@ -31,6 +32,7 @@ export const STAGE_COMMAND = "-dev stage ";
 export const TRAINING_COMMAND = "-dev training ";
 export const HIT_AREAS_COMMAND = "-dev hit-areas ";
 export const PARTNER_COMMAND = "-dev partner ";
+export const SPEED_COMMAND = "-dev speed ";
 /** Partner option names, in their code order (match/trainingState.ts). */
 export const PARTNER_BEHAVIOUR_NAMES = ["stand", "shield", "crouch", "jump", "attack", "fight"];
 export const PARTNER_DRIFT_NAMES = ["none", "toward", "away", "random"];
@@ -113,6 +115,11 @@ export function applySetupCommand(game: MatchState, actor: number, message: stri
   };
   if (message.startsWith(TRAINING_COMMAND)) return toggle(TRAINING_COMMAND, on => setTraining(game, actor, on), () => game.training, "training");
   if (message.startsWith(HIT_AREAS_COMMAND)) return toggle(HIT_AREAS_COMMAND, on => setHitAreas(game, actor, on), () => game.trainer.showHitAreas, "hit-areas");
+  if (message.startsWith(SPEED_COMMAND)) {
+    const speed = integer(message.substring(SPEED_COMMAND.length));
+    for (let step = 0; step < 3 && speed !== undefined && game.trainer.speed !== speed; step++) stepTrainingSpeed(game, actor, 1);
+    return speed !== undefined && game.trainer.speed === speed ? `dev: speed ${speed}` : refused("speed");
+  }
   if (message.startsWith(PARTNER_COMMAND)) {
     const [behaviourName, driftName, techName, damageText, extra] = message.substring(PARTNER_COMMAND.length).split(" ");
     const behaviour = PARTNER_BEHAVIOUR_NAMES.indexOf(behaviourName ?? "");

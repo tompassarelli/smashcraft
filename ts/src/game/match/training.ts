@@ -15,7 +15,7 @@ import { type Controls, type Roster, createRoster, fighterAt, isActive, neutralC
 import { advanceFighterMotion } from "../sim/step";
 import { respawnFighter } from "../sim/stocks";
 import { botChoice } from "./botMoves";
-import { Advantage, PartnerBehaviour, PartnerEscape, PartnerTech, type TrainingState, clearTrainingReadout } from "./trainingState";
+import { Advantage, LATCH_FIELDS, type LatchedPresses, PartnerBehaviour, PartnerEscape, PartnerTech, type TrainingState, clearTrainingReadout } from "./trainingState";
 
 /** A measurement that waits longer than this for both fighters is dropped. */
 const MEASURE_LIMIT = 600;
@@ -202,4 +202,45 @@ export function trainingPartnerInput(state: Readonly<TrainingState>, world: Rost
     default:
       return true;
   }
+}
+
+/** Presses slow motion keeps across the input frames it skips, by their bit in LatchedPresses.mask. */
+const PRESS_FIELDS = [
+  "specialPressed", "shieldPressed", "jumpPressed", "airDodgePressed", "techPressed", "mashPressed", "attackPressed", "grabMashPressed",
+  "groundDodgePressed", "getupAttackPressed", "getupStandPressed", "getupDirectionPressed", "cStickUpFlick", "sdiPulse", "resetPressed",
+] as const;
+
+/** Copies the values a press carries, between controls and kept presses. */
+function carry(field: (typeof PRESS_FIELDS)[number], to: LatchedPresses | Controls, from: Readonly<LatchedPresses | Controls>): void {
+  if (field === "specialPressed") { to.specialX = from.specialX; to.specialZ = from.specialZ; }
+  else if (field === "airDodgePressed") { to.dodgeX = from.dodgeX; to.dodgeZ = from.dodgeZ; }
+  else if (field === "groundDodgePressed") to.groundDodgeDirection = from.groundDodgeDirection;
+  else if (field === "getupDirectionPressed") to.getupDirection = from.getupDirection;
+  else if (field === "sdiPulse") { to.sdiX = from.sdiX; to.sdiZ = from.sdiZ; }
+}
+
+/** Keeps a skipped input frame's first presses. */
+export function latchPresses(latch: LatchedPresses, input: Readonly<Controls>): void {
+  for (let index = 0; index < PRESS_FIELDS.length; index++) {
+    const field = PRESS_FIELDS[index];
+    const bit = 1 << index;
+    if (field === undefined || !input[field] || (latch.mask & bit) !== 0) continue;
+    latch.mask |= bit;
+    carry(field, latch, input);
+  }
+  if (latch.cStickSideFlick === 0) latch.cStickSideFlick = input.cStickSideFlick;
+  if (latch.ledgeVerticalPressed === 0) latch.ledgeVerticalPressed = input.ledgeVerticalPressed;
+}
+
+/** Adds the kept presses to the frame the match runs, then forgets them. */
+export function releasePresses(latch: LatchedPresses, input: Controls): void {
+  for (let index = 0; index < PRESS_FIELDS.length; index++) {
+    const field = PRESS_FIELDS[index];
+    if (field === undefined || (latch.mask & (1 << index)) === 0 || input[field]) continue;
+    input[field] = true;
+    carry(field, input, latch);
+  }
+  if (input.cStickSideFlick === 0) input.cStickSideFlick = latch.cStickSideFlick;
+  if (input.ledgeVerticalPressed === 0) input.ledgeVerticalPressed = latch.ledgeVerticalPressed;
+  for (const key of LATCH_FIELDS) latch[key] = 0;
 }

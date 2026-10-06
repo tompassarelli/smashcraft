@@ -21,7 +21,8 @@ next match. It starts off.
 Training (top of the rules) turns the match into practice against computer
 partners: no clock and no lost stocks. Choose what the partner does (Stand,
 Shield, Crouch, Jump, Attack or Fight), which way it drifts when hit, how it
-techs, its damage, and whether hit areas show (your body green, attacks red).
+techs, its damage, whether hit areas show (bodies green, attacks red) and the
+speed (Full, Half or Quarter).
 The top-left readout gives your last attack's frames, how many frames ahead
 (+) or behind (-) you were after it hit or was shielded, and the combo. Hold
 both shields and press Attack to put everyone back at the start.

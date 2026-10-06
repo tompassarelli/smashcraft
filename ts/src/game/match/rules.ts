@@ -5,7 +5,7 @@ import { type MatchCamera, createMatchCamera, copyMatchCamera } from "../sim/mat
 import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots, isParticipantMask, isParticipantSlot, participantActive } from "../input/participants";
 import { Character } from "../sim/codes";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
-import { PARTNER_BEHAVIOURS, PARTNER_DAMAGE_MAX, PARTNER_DAMAGE_STEP, PARTNER_ESCAPES, PARTNER_TECHS, type TrainingState, clearTrainingReadout, copyTrainingState, createTrainingState } from "./trainingState";
+import { PARTNER_BEHAVIOURS, PARTNER_DAMAGE_MAX, PARTNER_DAMAGE_STEP, PARTNER_ESCAPES, PARTNER_TECHS, TRAINING_SPEEDS, type TrainingState, clearTrainingReadout, copyTrainingState, createTrainingState } from "./trainingState";
 
 /** Phase numbers are part of the canonical replay checksum. */
 export const Phase = { characterMenu: 0, stageMenu: 1, match: 2, result: 3 } as const;
@@ -247,6 +247,13 @@ export function stepPartnerTech(game: MatchState, slot: number, direction: numbe
 
 export function setPartnerDamage(game: MatchState, slot: number, damage: number): void {
   if (settingRules(game, slot) && damage >= 0 && damage <= PARTNER_DAMAGE_MAX && floorMod(damage, PARTNER_DAMAGE_STEP) === 0) game.trainer.damage = damage;
+}
+
+/** Steps training's speed through full, half and quarter. */
+export function stepTrainingSpeed(game: MatchState, slot: number, direction: number): void {
+  if (!settingRules(game, slot)) return;
+  const index = TRAINING_SPEEDS.indexOf(game.trainer.speed);
+  game.trainer.speed = TRAINING_SPEEDS[cycle(index < 0 ? 0 : index, TRAINING_SPEEDS.length, direction)] ?? 1;
 }
 
 export function setHitAreas(game: MatchState, slot: number, shown: boolean): void {

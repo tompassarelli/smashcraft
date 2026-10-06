@@ -6,7 +6,7 @@ import { type ParticipantSlot, isParticipantSlot } from "../../game/input/partic
 import {
   Phase, canChooseComputer, cancelRematchCountdown, characterFor, confirmRematch, cycleSlotMode, humanActive, recallCharacter,
   requestStageSelect, requestStart, setAutomaticRematch, setEndless, setHitAreas, setPartnerDamage, setTraining, stepPartnerBehaviour,
-  stepPartnerEscape, stepPartnerTech, tickRematchCountdown,
+  stepPartnerEscape, stepPartnerTech, stepTrainingSpeed, tickRematchCountdown,
   returnToCharacters, selectCharacter, selectCpuCharacter, selectStage, setStocks, setTimeLimit, updateConnectedHumans,
 } from "../../game/match/rules";
 import { PARTNER_DAMAGE_STEP } from "../../game/match/trainingState";
@@ -157,6 +157,9 @@ export function panelActions(): PanelActions {
       }),
       toggleHitAreas: participant => withSlot(participant, (s, slot) => {
         if (controlsAvailable(s, slot)) setHitAreas(s.game, slot, !s.game.trainer.showHitAreas);
+      }),
+      stepSpeed: participant => withSlot(participant, (s, slot) => {
+        if (controlsAvailable(s, slot)) stepTrainingSpeed(s.game, slot, 1);
       }),
     },
     stage: {

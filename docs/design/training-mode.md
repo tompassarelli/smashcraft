@@ -55,7 +55,10 @@ Sources: [TrainingMode Community Edition](https://github.com/AlexanderHarrison/T
    blue), as lightning outlines on the fighters' plane. It reads the same authored
    volumes the hits use (smashcraft:docs/hurtboxes.md), so what it draws is
    what hits.
-7. **Choosing.** Training is the top rule button. While it is on, the
+7. **Speed.** Full, Half or Quarter: the match runs on the last of every one,
+   two or four input frames. Presses made on the frames it skips are kept
+   (as rolled-back training state) and arrive on the next frame it runs.
+8. **Choosing.** Training is the top rule button. While it is on, the
    partner's choices take the place of Stocks, Time, Endless and Automatic
    rematch, which training does not use.
 
@@ -65,9 +68,7 @@ Sources: [TrainingMode Community Edition](https://github.com/AlexanderHarrison/T
   rollback-confirmed; a paused frame advance would need every client's
   controller helper to agree on each step (the pause barrier,
   smashcraft:ts/src/game/shell/pauseBarrier.ts) and savestates would need a
-  second snapshot channel.
-- **Slow motion.** Presses made on frames the match skips would have to be
-  kept as rolled-back state; the next addition if players ask for it.
+  second snapshot channel. Quarter speed covers most of the use.
 - **Changing partner settings mid-match.** Settings are chosen at fighter
   selection; leaving from the pause returns there in two presses. Changing
   synchronized match state while the rollback history holds earlier
@@ -93,5 +94,5 @@ frame. Hit areas are presentation
 with the fighter's renderers at match start and posed from the predicted
 world, like the other effects; it never feeds the simulation. Setup commands
 for native sessions: `-dev training on`, `-dev hit-areas on`,
-`-dev partner BEHAVIOUR DRIFT TECH DAMAGE`
+`-dev partner BEHAVIOUR DRIFT TECH DAMAGE`, `-dev speed 1|2|4`
 (smashcraft:ts/src/game/shell/sessionSetup.ts).
