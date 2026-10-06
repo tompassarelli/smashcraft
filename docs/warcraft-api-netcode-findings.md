@@ -1,6 +1,6 @@
 # Warcraft API and netcode findings
 
-Reusable Warcraft API and netcode findings from Smashcraft trials, each with the build it was observed on. Status and open decisions live in roadmap [#16](https://github.com/tompassarelli/smashcraft/issues/16); raw trial records live in smashcraft:evidence/. General Warcraft guidance is in the warcraft3-development-distilled skill and its api-gotchas reference.
+Reusable Warcraft API and netcode findings from Smashcraft trials, each with the build it was observed on. Status and open decisions live in roadmap [#16](https://github.com/tompassarelli/smashcraft/issues/16); raw trial records live in smashcraft:evidence/. General Warcraft guidance is in the warcraft3-development skill and its api-gotchas reference.
 
 ## Earlier rejected ingress paths — 4 October
 
