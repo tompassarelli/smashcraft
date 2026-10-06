@@ -30,6 +30,11 @@ Owner decisions, 6 Oct 2026 (#62):
 - **Non-interactive execution is dubious** (6 Oct, #54; see "L-cancelling" below).
 - **Short true combos, devastating combos through reads** (6 Oct, #83; see
   "Combo structure" below).
+- **Positions are used, not camped** (6 Oct, #103). Platforms are used quickly
+  and situationally: to extend a combo or escape a pressure string. A fighter
+  sitting on a platform is slightly disadvantaged against one below it;
+  advantage comes from leaving a position well (running off and fast falling),
+  not from height or from the fastest jump. See "Platforms" below.
 
 ## Bounded SDI
 
@@ -142,6 +147,53 @@ This removes direct throw-to-regrab chains while retaining true throw-to-attack
 combos and attack-to-grab reads. It does not grant a timed immunity after control
 returns or forbid grabs during ordinary attack hitstun.
 
+## Platforms
+
+Owner decisions, 6 Oct 2026 (#103), implemented in
+smashcraft:ts/src/game/sim/platformMoves.ts. Platforms are physical things
+fighters contest, not lines they phase through: in real life you climb onto a
+platform and climb off it. They replace #51's instant pass-through and the
+"Platform shield drop" default, following the principle that positions are
+used, not camped.
+
+- **Platform ascent.** When a rising fighter's body meets a pass-through
+  platform from below, the fighter ascends it and its current attack or special
+  ends, recovery included: rising into a platform after a hit is a lag cancel.
+  A helpless fighter stays helpless. The ascent lasts the fighter's jump squat
+  (Archer 3, Rifleman 5, Illidan 4, each hero its own), the honest proxy for
+  its agility, and carries its feet from where they met the platform to its top.
+  - Rising through is the default: the fighter keeps its momentum, with gravity,
+    and leaves the top still rising if it has rise left. Holding jump, or up
+    past the stick-up jump threshold (0.6625), sustains the rise with no
+    gravity. An up air into a platform cancels into the ascent; a fresh rising
+    up air or another aerial can follow it.
+  - Down held or pressed during the ascent ends it standing on the platform,
+    with no landing lag; still holding down crouches.
+  - Shield held or pressed ends it standing on the platform, shielding.
+- **Platform descent.** A fresh down on a platform (analog at Melee's
+  drop-through speed, or a digital down) lowers the fighter through it over its
+  jump squat, until its body is below the platform. The tilt modifier keeps a
+  digital down for crouching and down tilts. An aerial, air dodge or special
+  pressed during the descent comes out on its first free frame below.
+- **Platform wraps.** A half-circle (away from a side, down, then toward it,
+  starting within the fighter's jump squat) at airborne contact with a platform
+  swings the fighter around its edge toward that side, up to about one body
+  width (8 Melee units) and never past the platform's end, facing reversed:
+  a cross-up fake-out. During an ascent it wraps over onto the platform,
+  standing; on the frame a falling fighter would land, it wraps under the
+  platform, still airborne. The wrap lasts the jump squat and is legal only
+  toward a side where the platform continues past the fighter. Holding down
+  while drifting is not a half-circle, and a fighter standing on a platform
+  cannot wrap: down there is a plain descent.
+- **No platform shield drop.** Down while shielding does not fall through a
+  platform; leaving one goes through a descent.
+- Fighters are fully vulnerable, hittable and grabbable, through ascent,
+  descent and wraps. With no shield drop and a jump-squat descent, a fighter on
+  a platform is slightly behind one below it, as the principle intends.
+- Presentation: ascent plays the fighter's ledge-climb clip, descent its
+  ledge-hang clip and both wraps its ledge-roll clip, each stretched over the
+  move (smashcraft:ts/src/game/presentation/fighterClips.ts).
+
 ## Grab holds and pummels
 
 Owner direction, 6 Oct 2026 (#101): grabs are legible and never a chore. Melee's
@@ -200,6 +252,9 @@ checks that every oracle departure names a row here.
 | Horizontal air dodge | The dodge goes where the stick points | – | A horizontal-only digital air dodge angles 18° below horizontal, mirrored, by default and with no toggle | Owner-selected control (30 Sep); the shallow angle keeps horizontal momentum into the landing | – |
 | Fast fall | A fresh stick down, diagonals included | – | Down with neutral horizontal input only; down-left and down-right keep drifting | Owner-selected control, 30 Sep | – |
 | Dodge timing | Per fighter | – | One shared profile: spot dodge 22 frames, intangible 2–15; rolls 31, intangible 4–19; air dodge 49, intangible 4–29, landing 10 | Owner's common frame-data profile | – |
+| Platform ascent | A rising fighter passes up through a platform with no change to its action (mpCheckFloor meets a platform only while descending) | Ultimate passes through the same way ([SmashWiki](https://www.ssbwiki.com/Soft_platform)); Rivals 2 not sourced | An ascent over the jump squat cancels the attack; jump or up sustains the rise, down stands, shield shields, a half-circle wraps over ([Platforms](#platforms)) | Platforms are contested physically; positions are used, not camped | #103 |
+| Platform descent | A fresh down falls through at once | Ultimate drops through at once ([SmashWiki](https://www.ssbwiki.com/Soft_platform)); Rivals 2 not sourced | A vulnerable descent over the jump squat; a half-circle onto a platform from above wraps under it ([Platforms](#platforms)) | Leaving a platform is a commitment, so sitting on one is slightly disadvantaged | #103 |
+| Platform shield drop | Down while shielding drops through a platform | Removed in Ultimate ([SmashWiki](https://www.ssbwiki.com/Shield_drop)); Project+ keeps it | Removed: down while shielding stays on the platform | Owner (6 Oct): no safe retaliation from a platform; leaving one goes through a descent | #103 |
 
 ## Controls
 
@@ -530,7 +585,7 @@ The descriptive basis is [fighting-game language](design/fighting-games.md),
 | Ground moves on shield | Close committed moves should have reachable punishment; spaced pokes may be safe. In the same shield-contact context, greater shield damage costs later attacker recovery or an earlier defender response. | Adopts smashcraft:docs/move-comparisons.md's measured category rule without changing its gate; it is not a global damage-to-lag formula. |
 | Aerials on shield | Preserve late-contact, immediate-landing and fade-back safety; close advancing aerials can be punished. | The existing graph distinguishes close down air from spaced forward air. Do not make all aerials uniformly safe or unsafe. |
 | Shield release and out-of-shield actions | Retain 15-frame normal release lag and the 8-frame minimum shield hold. Direct shield grab and jump bypass release lag when otherwise legal; jump into aerials, rolls and spot dodges remain available. Add no instant grounded up-smash cancel. | Keeps the actual authored defence choices and their current timing; shieldstun and other action locks still apply. |
-| Platform shield drop | Keep the current fresh-Down platform drop when ordinary movement is legal. Add no dedicated analog-threshold shield-drop technique; shielded fighters use their existing jump, dodge or release choices. | Retains supported input behaviour instead of adding a precision stick-threshold requirement. |
+| Platform shield drop | Removed (owner, 6 Oct, #103): down while shielding stays on the platform. Leaving a platform goes through a [platform descent](#platforms); shielded fighters use their jump, dodge or release choices. | Superseded: no safe retaliation from a platform, so a fighter on one is slightly behind one below. |
 | Cross-ups | Coverage follows each move's authored front/back regions and legal facing change. No automatic tracking or universal behind-the-fighter hit extension. | A cross-up changes which responses reach; the answer comes from the move, not hidden target tracking. |
 | Powershield and dedicated parry | Keep raise-timed powershield and its projectile reflection, with the accepted 2-frame window. Keep Illidan's authored parry; add no universal parry button or release-timed replacement. | Retains two existing defensive identities without adding another shared input. |
 
@@ -541,6 +596,7 @@ The descriptive basis is [fighting-game language](design/fighting-games.md),
 | Air dodge | Keep the current directional, helpless air dodge and shared frame profile. Do not add an airtime recharge; its existing action lock prevents repeated free dodges. | Preserves wavedash movement and the recovery commitment already authored. |
 | Wavedash and waveland | Keep air-dodge momentum through landing and the 10-frame dodge landing lag, including the owner-selected shallow digital angle. | An interactive movement option, unlike the removed L-cancel chore. |
 | Offstage air-dodge buffering | Do not add a general held-input air-dodge buffer. Retain fresh dodge presses and the deliberate dodge press queued during jump squat; a fresh offstage press still works when legal. | Avoid accidental automatic dodges while preserving explicit player commands. |
+| Platforms | Ascent, descent and wraps last the fighter's jump squat and leave it vulnerable; no shield drop ([Platforms](#platforms)). | Positions are used, not camped (owner, 6 Oct, #103). |
 | Short hop and jump squat | Keep release-during-squat short hops, without a jump+attack macro or a new mandatory binding. Jump squat remains per fighter within #69's 3–5 frames: Archer 3, Rifleman 5, Illidan 4. | Preserves current controls and physical differences inside the accepted execution bounds. |
 | Input buffer and priority | Keep the 6-frame human attack grace. Same-frame attack requests prefer grab, unchargeable C-stick smash, chargeable smash, tilt, then the established style ordering; conflicting equal requests leave facing neutral. Existing action locks and fresh-input rules remain authoritative. | Deterministic input intent without a new universal hold buffer or callback-order priority. |
 | Wall movement | Keep existing wall tech and authored wall-jump eligibility. No wall climbing or free refresh of jumps, recovery specials or ledge protection. | Movement should respect the visible stage walls without granting an unlimited recovery loop. |

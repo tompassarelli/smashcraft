@@ -46,7 +46,6 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   motion.fastFalling = sourceMotion.fastFalling;
   motion.fastFallDownHeld = sourceMotion.fastFallDownHeld;
   motion.fastFallInputAge = sourceMotion.fastFallInputAge;
-  motion.dropTime = sourceMotion.dropTime;
   motion.previousStickSide = sourceMotion.previousStickSide;
   motion.stickSideAge = sourceMotion.stickSideAge;
   motion.lastAerialTapDirection = sourceMotion.lastAerialTapDirection;
@@ -188,6 +187,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   special.aimX = sourceSpecial.aimX;
   special.aimZ = sourceSpecial.aimZ;
   special.airtimeUses = sourceSpecial.airtimeUses;
+  special.grabFrame = sourceSpecial.grabFrame;
   special.guarded = sourceSpecial.guarded;
 
   for (let i = 0; i < target.projectiles.length; i++) {
@@ -300,6 +300,29 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   ledge.serial = sourceLedge.serial;
   ledge.intangible = sourceLedge.intangible;
   ledge.regrab = sourceLedge.regrab;
+  const platform = target.platform;
+  const sourcePlatform = source.platform;
+  platform.move = sourcePlatform.move;
+  platform.frame = sourcePlatform.frame;
+  platform.duration = sourcePlatform.duration;
+  platform.deck = sourcePlatform.deck;
+  platform.fromX = sourcePlatform.fromX;
+  platform.toX = sourcePlatform.toX;
+  platform.fromZ = sourcePlatform.fromZ;
+  platform.toZ = sourcePlatform.toZ;
+  platform.rise = sourcePlatform.rise;
+  platform.stand = sourcePlatform.stand;
+  platform.shield = sourcePlatform.shield;
+  platform.wrapLeft = sourcePlatform.wrapLeft;
+  platform.wrapLeftAge = sourcePlatform.wrapLeftAge;
+  platform.wrapRight = sourcePlatform.wrapRight;
+  platform.wrapRightAge = sourcePlatform.wrapRightAge;
+  platform.dodgeQueued = sourcePlatform.dodgeQueued;
+  platform.dodgeX = sourcePlatform.dodgeX;
+  platform.dodgeZ = sourcePlatform.dodgeZ;
+  platform.specialQueued = sourcePlatform.specialQueued;
+  platform.specialX = sourcePlatform.specialX;
+  platform.specialZ = sourcePlatform.specialZ;
   const cannon = target.cannon;
   const sourceCannon = source.cannon;
   cannon.held = sourceCannon.held;

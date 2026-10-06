@@ -20,7 +20,7 @@ does not change Smashcraft's Bun workflow. Preserve upstream licenses and
 notices. The exact source identity is in smashcraft:repos/effect.json.
 
 Wisp spans Bun tools and synchronized TSTL/Lua game code. Read
-smashcraft:docs/typescript.md and `warcraft-typescript-development-distilled`
+smashcraft:docs/typescript.md and `warcraft-modding-distilled`
 before changing that boundary. Establish compiler and runtime compatibility
 before moving Effect APIs into map code; host success alone is insufficient.
 Preserve deterministic frame ordering, numeric parity, replay snapshots and

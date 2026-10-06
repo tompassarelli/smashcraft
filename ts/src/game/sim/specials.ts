@@ -10,6 +10,7 @@ import type { Fighter } from "./fighter";
 import { attackDurationFramesForGrounding } from "./moves";
 import { HitElement, type HitEffect, type HitRegion, NO_HIT_REGION } from "./hitRegions";
 import { heroSpecialMove } from "./heroSpecials";
+import { advanceHeroCommandGrab } from "./heroCommandGrab";
 import { applyAttackHit } from "./hits";
 import { meleeHitIntersectsShield } from "./attacks";
 import { observeActionDecision } from "./observations";
@@ -369,6 +370,7 @@ export function advanceSpecials(world: Roster, stage: number, matchFrame: number
     if (!isActive(world, slot)) continue;
     advanceSpecialAction(fighterAt(world, slot), stage, inputs?.[slot]);
     stopHeroMotionAtBodies(world, slot);
+    advanceHeroCommandGrab(world, slot);
   }
   for (let ownerSlot = 0; ownerSlot < PARTICIPANT_CAPACITY; ownerSlot++) {
     if (!isActive(world, ownerSlot)) continue;

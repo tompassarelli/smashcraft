@@ -289,7 +289,7 @@ function outcome(state: Readonly<ReplayState>, out: number[]): number[] {
     const { motion, launch, attack, special, grab, down, dodge, shield, jump, ledge, status, ground } = f;
     out.push(
       f.facing, motion.x, motion.z, motion.vx, motion.vz, flag(motion.grounded), motion.surface ?? -1, flag(motion.crouching), flag(motion.fastFalling),
-      motion.dropTime, ground.action, ground.dashFrame, launch.knockbackX, launch.knockbackZ, launch.groundKnockbackX, launch.hitstun, launch.hitlag,
+      f.platform.move, f.platform.frame, ground.action, ground.dashFrame, launch.knockbackX, launch.knockbackZ, launch.groundKnockbackX, launch.hitstun, launch.hitlag,
       attack.style ?? -1, attack.frame, attack.serial, attack.cooldown, flag(attack.smashCharging), special.action, special.frame, flag(special.fall),
       grab.action, grab.frame, grab.owner ?? -1, grab.target ?? -1, down.state, down.frame, down.direction, flag(dodge.airDodging), dodge.airFrame,
       dodge.groundFrame, dodge.groundDirection, flag(shield.raised), shield.energy, shield.stun, shield.breakState, jump.remaining, jump.squat, jump.serial,

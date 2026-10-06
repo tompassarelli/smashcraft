@@ -14,6 +14,8 @@ installed dependency or add a local framework copy.
 Before adding tooling or diagnostics, consult Wisp's feature index at
 smashcraft:ts/node_modules/wisp/docs/index.md (source: wisp:docs/index.md).
 It includes opt-in features such as TypeScript call stacks and their costs.
+A new `bun wisp` command isn't done until the list below names it;
+smashcraft:ts/test/command-list.test.ts enforces that.
 
 ## Issues define the scope — finish them
 
@@ -62,7 +64,7 @@ not to Smashcraft's package manager, language or build commands.
 
 smashcraft:ts/ is the TypeScript side, built on Wisp: the framework and
 development loop for Warcraft maps in TypeScript. Read
-warcraft-typescript-development-distilled before changing TypeScript
+warcraft-modding before changing TypeScript
 or code in a running game, and smashcraft:docs/typescript.md before writing map
 code. From smashcraft:ts/:
 - Logic: `bun run test`, plus `LUA=<32-bit lua> bun scripts/lua-tests.ts` for the
@@ -85,6 +87,17 @@ code. From smashcraft:ts/:
   `--rebuild` replaces the map script first.
 - Client driver: `bun wisp client look|read|click|keys CLIENT ...` reads and
   drives a client. Session values live in ~/.local/state/smashcraft/clients.json.
+- Menus: `bun wisp menus host|join|start|leave` drives lobbies through Wisp's
+  menu page instead of clicks (`install RETAIL_DIR --port N` once per prefix,
+  with the account owner's agreement; smashcraft:docs/wisp.md, "Menu control").
+- Playtest: `bun wisp play` goes from Tom's desktop to a match against a
+  computer with the controller helper (smashcraft:docs/playable-0047.md).
+- Live tuning: `bun wisp tune --data A --data B` serves a panel that changes
+  the values smashcraft:ts/scripts/wisp/tunables.ts declares in the running
+  match and writes kept ones back (smashcraft:docs/typescript.md).
+- Player view: `bun wisp view scene DATA_DIR...` and `bun wisp view frame
+  FRAME.ppm...` report what a player would see wrong; `view models` rewrites
+  the model facts they read (smashcraft:docs/player-view.md).
 - Repro: `bun wisp repro FILE [--test NAME]` replays a moment a player saved
   with K (or View held on a controller) in simulated clients, to the checksum
   the game recorded; `--test NAME` writes a test that replays it.
@@ -115,6 +128,11 @@ code. From smashcraft:ts/:
   `bun wisp parity result DIR` reconciles its output. `bun wisp parity
   headless --helper BIN --out DIR` runs the same capture through the real
   helper (built with `--text-out`) into headless clients, then reconciles it.
+  `bun wisp integrity capture|result|headless` is the same as `parity`'s.
+- Native journeys: `bun wisp four-fighters capture|result` runs and reconciles
+  #17's four-fighter match (smashcraft:docs/native-four-fighters.md);
+  `bun wisp playable capture|result` a playable candidate's one-stock match
+  and rematch (smashcraft:docs/playable-0047.md).
 - Melee oracle: `bun wisp oracle` plays Melee situations for every fighter
   and prints each outcome beside the value cited from the decompilation; the
   test suite fails on any mismatch it doesn't list as known
@@ -153,7 +171,7 @@ may use more stocks or a longer timer only when its required sample needs it;
 record that reason beside the test (for example, #26's all-binding edge sample).
 Keep ordinary combat completion intact; do not force a win to shorten a test.
 
-Read warcraft3-development-distilled and its off-monitor dependency before
+Read warcraft3-development and its off-monitor dependency before
 controlling the game. Default automation off-monitor; use the primary display
 for a requested hands-on trial. Preserve authenticated clients across map
 iterations. Never direct-launch Warcraft as assumed authentication recovery.

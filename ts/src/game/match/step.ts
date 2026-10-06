@@ -16,6 +16,7 @@ import { advanceSpecials, startFighterSpecial } from "../sim/specials";
 import { advanceHeroStatus, regenerateMana } from "../sim/heroSpecialRules";
 import { advanceFighterMotion } from "../sim/step";
 import { maskHeroStatusControls } from "../sim/heroStatus";
+import { platformSpecialInput } from "../sim/platformMoves";
 import { advanceStageCannon } from "../sim/stageHazards";
 import { advanceFreezeTraps } from "../sim/summons";
 import { advanceMatchCamera } from "../sim/matchCamera";
@@ -89,7 +90,8 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot) || wasGrabbed[slot]) continue;
     resetObservedActions();
-    const started = startFighterSpecial(fighterAt(world, slot), stage, matchFrame, controls.inputs[slot]);
+    const special = fighterAt(world, slot);
+    const started = startFighterSpecial(special, stage, matchFrame, platformSpecialInput(special, controls.inputs[slot]));
     observedFrameLegalActions[slot] |= observedActions.legal;
     if (started) observedFrameStartedActions[slot] |= 64;
   }
