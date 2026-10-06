@@ -48,10 +48,21 @@ function projectileMeets(spec: Readonly<SpecialProjectile>, target: Readonly<Fig
   return z >= f32(f32(localZ + body.z1) - reach) && z <= f32(f32(localZ + body.z2) + reach);
 }
 
-/** Whether the special's strike paths, carried by its own travel, reach a target localX ahead and localZ above. */
+/** Whether a strike box [minX, maxX] x [minZ, maxZ], carried by travelX/Z, reaches a target localX ahead and localZ above. */
+function boxMeets(target: Readonly<Fighter>, localX: number, localZ: number, travelX: number, travelZ: number, boxMinX: number, boxMaxX: number, boxMinZ: number, boxMaxZ: number): boolean {
+  const body = hurtCapsule(target.character);
+  const minX = f32(f32(boxMinX + Math.min(0.0, travelX)) - body.radius);
+  const maxX = f32(f32(boxMaxX + Math.max(0.0, travelX)) + body.radius);
+  const minZ = f32(f32(f32(boxMinZ + Math.min(0.0, travelZ)) - body.z2) - body.radius);
+  const maxZ = f32(f32(f32(boxMaxZ + Math.max(0.0, travelZ)) - body.z1) + body.radius);
+  return localX >= minX && localX <= maxX && localZ >= minZ && localZ <= maxZ;
+}
+
+/** Whether the special's strike paths or command grab, carried by its own travel, reach a target localX ahead and localZ above. */
 function strikeMeets(move: Readonly<AuthoredSpecial>, target: Readonly<Fighter>, localX: number, localZ: number): boolean {
   const regions = move.regions ?? [];
-  if (regions.length === 0) return false;
+  const grab = move.commandGrab?.strike;
+  if (regions.length === 0 && grab === undefined) return false;
   let travelX = 0.0;
   let travelZ = 0.0;
   for (const segment of move.motion ?? []) {
@@ -59,16 +70,14 @@ function strikeMeets(move: Readonly<AuthoredSpecial>, target: Readonly<Fighter>,
     travelX = f32(travelX + f32(segment.velocityX * frames));
     travelZ = f32(travelZ + f32(segment.velocityZ * frames));
   }
-  const body = hurtCapsule(target.character);
   for (const region of regions) {
     const hit = region.hit;
-    const minX = f32(f32(hit.minX + Math.min(0.0, travelX)) - body.radius);
-    const maxX = f32(f32(hit.maxX + Math.max(0.0, travelX)) + body.radius);
-    const minZ = f32(f32(f32(hit.minZ + Math.min(0.0, travelZ)) - body.z2) - body.radius);
-    const maxZ = f32(f32(f32(hit.maxZ + Math.max(0.0, travelZ)) - body.z1) + body.radius);
-    if (localX >= minX && localX <= maxX && localZ >= minZ && localZ <= maxZ) return true;
+    if (boxMeets(target, localX, localZ, travelX, travelZ, hit.minX, hit.maxX, hit.minZ, hit.maxZ)) return true;
   }
-  return false;
+  if (grab === undefined) return false;
+  return boxMeets(target, localX, localZ, travelX, travelZ,
+    f32(Math.min(grab.x1, grab.x2) - grab.radius), f32(Math.max(grab.x1, grab.x2) + grab.radius),
+    f32(Math.min(grab.z1, grab.z2) - grab.radius), f32(Math.max(grab.z1, grab.z2) + grab.radius));
 }
 
 /** A special that only protects: no strike or projectile, but a guard, armor or intangible window. */

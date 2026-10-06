@@ -3,6 +3,7 @@
 import { Character } from "../codes";
 import { DREADLORD_CLIP_TABLE, DREADLORD_FALLBACK_CLIP, DREADLORD_MODEL_FILE } from "../../presentation/heroes/dreadlordClips";
 import type { HeroDefinition } from "./hero";
+import { DREADLORD_GAMEPLAN } from "./dreadlordGameplan";
 import { DREADLORD_MOVES } from "./dreadlordMoves";
 import { DREADLORD_SPECIALS } from "./dreadlordSpecials";
 
@@ -14,6 +15,7 @@ export const DREADLORD_HERO: HeroDefinition = {
   complete: true,
   moves: DREADLORD_MOVES,
   specials: DREADLORD_SPECIALS,
+  gameplan: DREADLORD_GAMEPLAN,
   presentation: {
     model: DREADLORD_MODEL_FILE,
     scale: 1.0,

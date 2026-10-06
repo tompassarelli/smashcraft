@@ -283,7 +283,7 @@ export function gameplanKeyMovesCheck(character: Character, { top = 6, key, opti
     merged.set(move, { move, name: moveName(move), count: (known?.count ?? 0) + use.count, share: (known?.share ?? 0) + use.share });
   }
   const usage = [...merged.values()].sort((x, y) => y.count - x.count || x.move - y.move);
-  const declared = [...new Set((key ?? plan.spacing.map((spaced) => spaced.move)).map(countedAs))];
+  const declared = [...new Set((key ?? plan.spacing.map((spaced) => spaced.move)).map((move) => namedAs(countedAs(move))))];
   const result = keyMovesAmongMostUsed(usage, declared, top);
   return { ...result, missingNames: result.missing.map(moveName), usage };
 }

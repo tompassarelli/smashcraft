@@ -3,6 +3,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { Character } from "../codes";
 import type { HeroClip, HeroDefinition } from "./hero";
+import { SHADOW_HUNTER_GAMEPLAN } from "./shadowHunterGameplan";
 import { SHADOW_HUNTER_MOVES } from "./shadowHunterMoves";
 import { SHADOW_HUNTER_SPECIALS } from "./shadowHunterSpecials";
 
@@ -44,6 +45,7 @@ export const SHADOW_HUNTER_HERO: HeroDefinition = {
   complete: true,
   moves: SHADOW_HUNTER_MOVES,
   specials: SHADOW_HUNTER_SPECIALS,
+  gameplan: SHADOW_HUNTER_GAMEPLAN,
   presentation: {
     model: "units\\orc\\HeroShadowHunter\\HeroShadowHunter.mdl",
     // Stand Ready is 138 units tall at scale 1, against the roster's 1.08H (143).
