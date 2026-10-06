@@ -133,10 +133,10 @@ const stickPart = new Map(INPUT_CLASSES.filter(({ changes }) => changes === "bot
 }));
 
 /** What the victim's input can do on a frame. */
-export type Agency = "none" | "di" | "act";
+type Agency = "none" | "di" | "act";
 
 /** A situation to analyse: the match after the frame before the first analysed one. */
-export interface Situation {
+interface Situation {
   readonly start: Readonly<ReplayState>;
   readonly victim: number;
   /** Frames to analyse, from the one after the start. */
@@ -163,7 +163,7 @@ export interface Situation {
   readonly row: (slot: number, frame: number, state: Readonly<ReplayState>) => Readonly<InputRow>;
 }
 
-export interface FrameAgency {
+interface FrameAgency {
   readonly frame: number;
   readonly agency: Agency;
   /** The classes that change what happens. */
@@ -171,7 +171,7 @@ export interface FrameAgency {
 }
 
 /** Consecutive frames on which the victim can't act: input changes nothing, or only the stick does. */
-export interface Stretch {
+interface Stretch {
   readonly from: number;
   readonly to: number;
   readonly length: number;

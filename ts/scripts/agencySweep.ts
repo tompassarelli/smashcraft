@@ -33,7 +33,7 @@ export const FIGHTERS = [
 type Entry = (typeof FIGHTERS)[number];
 const nameOf = (character: number) => FIGHTERS.find((entry) => entry.character === character)?.name ?? "fighter";
 
-export const PERCENTS = Array.from({ length: 16 }, (_, index) => index * 10);
+const PERCENTS = Array.from({ length: 16 }, (_, index) => index * 10);
 
 /**
  * Stretches longer than this are reported: about a visual reaction (250-333
@@ -74,7 +74,7 @@ const WALK = bit(Action.walk);
 const SPECIAL = bit(Action.special);
 const GRAB = bit(Action.grab);
 
-export const STARTERS: readonly Starter[] = [
+const STARTERS: readonly Starter[] = [
   { name: "jab", buttons: ATTACK, aim: "neutral" },
   { name: "forward tilt", buttons: ATTACK | WALK, aim: "toward" },
   { name: "up tilt", buttons: ATTACK | WALK, aim: "up" },
@@ -148,7 +148,7 @@ export function standingMatch(attacker: Character, victim: Character, percent: n
 }
 
 /** A fighter lying on the deck after a missed tech, `gap` in front of the attacker. */
-export function lyingMatch(attacker: Character, victim: Character, percent: number, gap: number): ReplayState {
+function lyingMatch(attacker: Character, victim: Character, percent: number, gap: number): ReplayState {
   const state = standingMatch(attacker, victim, percent, gap);
   const lying = fighterAt(state.world, VICTIM);
   // Tumbling just above the deck with no tech pressed: it lands, bounces and lies there.
@@ -223,7 +223,7 @@ function stretchAfter(caughtState: Readonly<ReplayState>, attacker: (state: Read
 const DI = [["up", 0, 1], ["up-right", 1, 1], ["right", 1, 0], ["down-right", 1, -1], ["down", 0, -1], ["down-left", -1, -1], ["left", -1, 0], ["up-left", -1, 1]] as const;
 
 /** A stretch: its length, the frames where only the stick mattered, its loop, and where it ended. */
-export interface StretchResult {
+interface StretchResult {
   readonly length: number;
   readonly diFrames: number;
   readonly letters: string;
@@ -285,7 +285,7 @@ const REACHES = [25, 40, 60, 80, 110, 150];
 const rank = ({ loop, length }: StretchResult) => (loop === undefined ? 0 : 1_000_000 - loop.escapeFrames * 1000) + length;
 
 /** One starter: its stretch with no follow-up, then each repeating plan whose second catch could come before the victim acts. */
-export function sweepStarter(start: Readonly<ReplayState>, attacker: string, victim: string, starter: Starter, percent: number): StarterResult | undefined {
+function sweepStarter(start: Readonly<ReplayState>, attacker: string, victim: string, starter: Starter, percent: number): StarterResult | undefined {
   const firstFrame = start.runtime.simulationFrame + 1;
   const once: Plan = { starter, first: firstFrame, repeat: undefined, approach: false };
   const opened = play(start, once, 120);
