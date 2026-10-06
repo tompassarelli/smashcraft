@@ -1,0 +1,13 @@
+{"decision":"RESERVED","reason":"RUN","class":"moderate","requestedCpus":2,"requestedMemoryMiB":2048,"leasedCpuCeilings":16,"aggregateCpuLimit":18,"leasedMemoryMiB":26624,"cpuSomeAvg10":1.38,"memoryFullAvg10":0,"memoryAvailableMiB":72364,"reclaimed":0,"lease":"4585cc2e-ad2a-4d3a-b744-843c2322eaaf","expiresAt":1791278202799}
+$ bun scripts/wisp.ts soak --repro "/home/tom/.local/share/smashcraft-build-inputs/northrend-stage-20261006/soak-46-flat-comparison.json"
+   0.083 s  load map (0.062 s)
+   3.318 s  match 46: archer vs rifleman on sky-deck, absent/fuzz, seed 307785542 (3.234 s)
+match 46: archer vs rifleman on sky-deck, absent/fuzz, seed 307785542
+  catch-up after frame 1221: the game stayed behind its input for 3.0 s: 104 frames of input not yet played
+  catch-up after frame 1260: the game fell 1.8 s behind real time and kept falling for 3 s (worst client frame 17.4 ms measured)
+  3706 frames; native call checksums -1508284684 -1508284684, recorded 991067602 991067602
+  recovery typing stalls: 35 client frames over 1/60 s, worst 32.8 ms, p95 32.3 ms; budget 32.8 ms, none over it
+   3.334 s  soak failed (3.334 s)
+2 findings replaying /home/tom/.local/share/smashcraft-build-inputs/northrend-stage-20261006/soak-46-flat-comparison.json
+error: script "wisp" exited with code 1
+{"decision":"RELEASED","lease":"4585cc2e-ad2a-4d3a-b744-843c2322eaaf"}

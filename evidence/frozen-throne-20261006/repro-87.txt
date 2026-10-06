@@ -1,0 +1,12 @@
+{"decision":"RESERVED","reason":"RUN","class":"moderate","requestedCpus":2,"requestedMemoryMiB":2048,"leasedCpuCeilings":16,"aggregateCpuLimit":18,"leasedMemoryMiB":26624,"cpuSomeAvg10":2.48,"memoryFullAvg10":0,"memoryAvailableMiB":72503,"reclaimed":0,"lease":"08b43795-84b5-4dc7-adbd-453594c01a5d","expiresAt":1791278164828}
+$ bun scripts/wisp.ts soak --repro "/home/tom/.local/state/smashcraft/soak/frozen-throne-20261006/match-87.json"
+   0.064 s  load map (0.054 s)
+   1.058 s  match 87: illidan vs archer on frozen-throne, cpu/fuzz, seed 376693919 (0.993 s)
+match 87: illidan vs archer on frozen-throne, cpu/fuzz, seed 376693919
+  catch-up after frame 240: the game fell 1.9 s behind real time and kept falling for 3 s (worst client frame 16.9 ms measured)
+  251 frames; native call checksums 71412023 71412023, recorded 1816124607 1816124607
+  recovery typing stalls: 9 client frames over 1/60 s, worst 28.6 ms, p95 28.6 ms; budget 32.8 ms, none over it
+   1.073 s  soak failed (1.073 s)
+1 finding replaying /home/tom/.local/state/smashcraft/soak/frozen-throne-20261006/match-87.json
+error: script "wisp" exited with code 1
+{"decision":"RELEASED","lease":"08b43795-84b5-4dc7-adbd-453594c01a5d"}

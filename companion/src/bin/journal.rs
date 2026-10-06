@@ -178,7 +178,7 @@ mod linux {
     // how much it takes at once: in 0.0.48's native bot session, 16 records
     // typed after a 2 s stop held the client about 180 ms, and input stayed
     // late for 5 s. Type at most this much past what a receipt says arrived.
-    const TYPED_AHEAD_BYTES: usize = 256;
+    const TYPED_AHEAD_BYTES: usize = 160;
 
     #[derive(Default)]
     struct TextWindow {
@@ -2695,12 +2695,23 @@ mod linux {
         }
         assert_eq!(sender.queued.records.len(), 4);
         assert_eq!(sender.queued.records[1].split('|').count(), RECORD_PACKETS);
-        assert_eq!(sender.queued.records[3], packet(5 + 2 * 2 * (RECORD_PACKETS as u32 - 1) + 2));
+        let expected: Vec<_> = (3..5 + 2 * 2 * RECORD_PACKETS as u32)
+            .step_by(2)
+            .map(packet)
+            .collect();
+        let retained: Vec<_> = sender.queued.records.iter().skip(1)
+            .flat_map(|record| record.split('|').map(str::to_owned))
+            .collect();
+        assert_eq!(retained, expected);
+        assert!(sender.queued.records.iter().all(|record|
+            ENVELOPE_BYTES + record.len() <= TYPED_AHEAD_BYTES));
         // A control acknowledgment is never joined, and nothing joins it.
         sender.enqueue("ACK1|1|PREPARE|200".into()).unwrap();
         sender.enqueue(packet(200)).unwrap();
         assert_eq!(sender.queued.records.len(), 6);
-        // Record 1 was typed; records 2 and 3 are 16 packets each, more than TYPED_AHEAD_BYTES together.
+        // Record 1 plus the next joined record exceed the cap; receipt credit is required.
+        assert!(sender.text_window.next(&sender.queued, 3, now).unwrap().is_none());
+        sender.text_window.receipt(&mut sender.queued, 1, 0, 1).unwrap();
         let (second, _) = sender.text_window.next(&sender.queued, 3, now).unwrap().unwrap();
         sender.text_window.sent(second, now);
         assert!(ENVELOPE_BYTES + sender.queued.records[1].len() <= TYPED_AHEAD_BYTES);

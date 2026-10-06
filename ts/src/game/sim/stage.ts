@@ -10,7 +10,9 @@ import { melee } from "./tuning";
 import { squareRoot } from "./warcraftMath";
 
 /** Stage 1's layout with solid raised decks; collision tests only, never selectable. */
-export const SOLID_DECK_TEST_STAGE = 2;
+export const SOLID_DECK_TEST_STAGE = 5;
+/** The selectable winter arena, with Battlefield's three-platform arrangement. */
+export const FROZEN_THRONE_STAGE = 2;
 /** One pass-through deck drifting back and forth above the main deck, as on Ultimate's Smashville; the stage menu doesn't offer it. */
 export const DRIFTING_DECK_STAGE = 3;
 /** Two pass-through decks on their own timed patterns, as on Ultimate's Town and City; the stage menu doesn't offer it. */
@@ -97,6 +99,11 @@ function moving(halfWidth: number, x: number, z: number, phase: number, legs: re
 
 const MAIN_DECK = fixed(MAIN_DECK_LEFT, MAIN_DECK_RIGHT, MAIN_DECK_Z, false);
 const RAISED_DECKS = [MAIN_DECK, fixed(-420.0, -110.0, 170.0, true), fixed(110.0, 420.0, 170.0, true)];
+const FROZEN_THRONE_DECKS = [MAIN_DECK,
+  fixed(-505.0, -175.0, melee(27.200000762939453), true),
+  fixed(175.0, 505.0, melee(27.200000762939453), true),
+  fixed(-165.0, 165.0, melee(54.400001525878906), true),
+];
 const SOLID_RAISED_DECKS = [MAIN_DECK, fixed(-420.0, -110.0, 170.0, false), fixed(110.0, 420.0, 170.0, false)];
 
 /**
@@ -149,9 +156,10 @@ const CARRIED_DECK = moving(110.0, -420.0, 120.0, 0, [
 const STAGE_DECKS: readonly (readonly Deck[])[] = [
   [MAIN_DECK],
   RAISED_DECKS,
-  SOLID_RAISED_DECKS,
+  FROZEN_THRONE_DECKS,
   [MAIN_DECK, DRIFTING_DECK],
   [MAIN_DECK, LIFT_DECK, LOOP_DECK],
+  SOLID_RAISED_DECKS,
 ];
 
 function decks(stage: number): readonly Deck[] {

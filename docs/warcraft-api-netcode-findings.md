@@ -424,10 +424,12 @@ loaded host put the helpers behind, and the late local starts and prediction
 stalls followed. The pre-#48 map took at most two rows a callback, so the
 helper typed at most about six records at once.
 
-So the helper types at most 256 characters past the record the map's receipt
+So the helper types at most 160 characters past the record the map's receipt
 says arrived, and while a record waits untyped, the next row packets join it
 with `|` (at most `RECORD_PACKETS`, 16): a backlog costs 5–8 characters a
-frame instead of 19 (smashcraft:companion/README.md). The map admits a joined
+frame instead of 19 (smashcraft:companion/README.md). Dirty text receipts
+are written every two map ticks, at most 30 per client per second, so the
+smaller typing window drains within the recovery budget. The map admits a joined
 record's rows within the same per-callback budget, over as many callbacks as
 it takes. smashcraft:ts/test/lag-recovery.test.ts charges each frame's typed
 text as Warcraft's stop, 0.00003 frames per character squared, with the
@@ -531,7 +533,10 @@ rows, all of them start in the callback that captures them.
 A remote player's rows R frames behind still stop prediction, as they must:
 rollback can't correct further back. When prediction stops at that window,
 the map marks it held until it has run every local row again
-(`Rollback.predictionHeld`). The response probe writes a `held` row for each
+(`Rollback.predictionHeld`). Admission also marks it held when the newly
+assigned frame is more than R frames beyond the remote rows already received;
+a new row can cross that boundary before the callback runs prediction.
+The response probe writes a `held` row for each
 press captured meanwhile, and the reconcilers report those presses apart from
 #60's gate (smashcraft:ts/scripts/integrity/reconcile.ts, pressResult.ts).
 In that session such a press of A's, made while B's game was stopped,

@@ -259,6 +259,8 @@ export function serviceJournalInput(s: ShellState, rollback: Rollback, journal: 
       const row = packet.rows[index];
       if (row === undefined) return;
       const frame = packet.firstFrame + index;
+      // A newly arrived row can cross the remote window before this callback's prediction runs.
+      if (frame - schedule.remoteThrough(slot) > schedule.rollbackFrames()) rollback.predictionHeld = true;
       const captured = schedule.captureLocalAt(rollback.epoch, frame, row);
       if (captured === Capture.tooFarAhead || captured === Capture.pendingFull) return;
       if (captured !== Capture.captured && captured !== Capture.alreadyCaptured) {

@@ -5,7 +5,7 @@
 // The first client hosts; the others join by game name. The map signals
 // character selection by writing its ready file into each client's
 // CustomMapData.
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import { Clock, Console, Effect, Layer } from "effect";
 import { QUICK_MATCH_COMMAND } from "../../../src/game/shell/devSettings";
 import { devCommandReceiptFile, MELEE_READY_FILE } from "../../../src/runtime/gameFiles";
@@ -16,6 +16,7 @@ import { type Command, UsageFailure } from "wisp/scripts/wisp/command";
 import { GameFiles, dataDirectory, prepareHotFolders, readGameFile } from "wisp/scripts/wisp/gameFiles";
 import { checkPlayerView } from "wisp/scripts/wisp/playerView";
 import { step } from "wisp/scripts/wisp/timings";
+import { hostLobby, joinLobby, leaveLobby, reportedMenus, startLobby } from "wisp/scripts/wisp/menus";
 import { rebuildMap } from "../mapInputs";
 
 // Regions of the 2560x1440 frame where each screen's identifying label appears.
@@ -69,11 +70,13 @@ export const fresh: Command = (args) => Effect.gen(function*() {
 });
 
 /** The game in every client, at character selection. */
-export const freshMatch = (map: string, fromGame = false) => Effect.gen(function*() {
+export const freshMatch = (map: string, fromGame = false) => Effect.scoped(Effect.gen(function*() {
   const clients = yield* Clients;
   const files = yield* GameFiles;
   const [first, ...others] = clients.all;
   const game = `scdev ${(yield* Clock.currentTimeMillis).toString(36)}`;
+  const connections = yield* Effect.forEach(clients.all, (client) => reportedMenus(client.menuReportPort), { concurrency: clients.all.length });
+  const menus = new Map(clients.all.map((client, index) => [client.name, connections[index]]));
 
   const read = (client: Client, region: typeof RESULTS, ink: "light" | "gold", pattern: RegExp) =>
     clients.read(client, region, ink).pipe(Effect.map((text) => pattern.test(text)));
@@ -82,6 +85,11 @@ export const freshMatch = (map: string, fromGame = false) => Effect.gen(function
   /** From a running game, its score screen, a lobby, Create Game or Custom Games, to Custom Games. */
   const leave = (client: Client) => Effect.gen(function*() {
     if (!fromGame && (yield* read(client, CUSTOM_GAMES, "light", /CREATE/i))) return;
+    const socket = menus.get(client.name);
+    if (!fromGame && socket !== undefined && (yield* read(client, LOBBY, "light", LOBBY_READY))) {
+      yield* leaveLobby(socket);
+      return;
+    }
     // Results, a lobby and Create Game all leave through the same Back button.
     if (fromGame || (!(yield* read(client, RESULTS, "gold", /RESULTS/i)) && !(yield* read(client, LOBBY, "light", LOBBY_READY)) && !(yield* read(client, CREATE_TITLE, "light", /REATE\s*GAME/i)))) {
       yield* clients.batch(client, [
@@ -109,6 +117,11 @@ export const freshMatch = (map: string, fromGame = false) => Effect.gen(function
   }).pipe(step("map installed"));
 
   const host = (client: Client) => Effect.gen(function*() {
+    const socket = menus.get(client.name);
+    if (socket !== undefined) {
+      yield* hostLobby(socket, { folder: "00-Smashcraft", file: basename(map), gameName: game, password: "" });
+      return;
+    }
     yield* click(client, CREATE_GAME);
     yield* waitForText(client, "create game", /REATE\s*GAME/i, CREATE_TITLE, "light", 10);
     yield* click(client, FIRST_MAP);
@@ -122,13 +135,18 @@ export const freshMatch = (map: string, fromGame = false) => Effect.gen(function
     yield* waitForText(client, "lobby", LOBBY_READY, LOBBY, "light", 20);
   }).pipe(step(`${client.name} hosting "${game}"`));
 
-  const prepareJoin = (client: Client) => clients.batch(client, [
+  const prepareJoin = (client: Client) => menus.get(client.name) !== undefined ? Effect.void : clients.batch(client, [
     { kind: "click", ...JOIN_NAME },
     { kind: "keys", keys: ["ctrl+a"] },
     { kind: "text", text: game },
   ]).pipe(step(`${client.name} join name prepared`));
 
   const joinByName = (client: Client) => Effect.gen(function*() {
+    const socket = menus.get(client.name);
+    if (socket !== undefined) {
+      yield* joinLobby(socket, game, "");
+      return;
+    }
     yield* click(client, JOIN);
     const lobbyOrPrompt = Effect.gen(function*() {
       if (yield* read(client, LOBBY, "light", LOBBY_READY)) return true;
@@ -159,9 +177,11 @@ export const freshMatch = (map: string, fromGame = false) => Effect.gen(function
   yield* Effect.forEach(others, joinByName, { discard: true });
   yield* waitForText(first, "all players", new RegExp(`PLAYERS\\s*:?\\s*${clients.all.length}\\s*/\\s*4`, "i"), LOBBY, "light", 60).pipe(step("everyone in the lobby"));
   const start = yield* Clock.currentTimeMillis;
-  yield* click(first, START);
+  const hostMenus = menus.get(first.name);
+  if (hostMenus === undefined) yield* click(first, START);
+  else yield* startLobby(hostMenus);
   return yield* Effect.forEach(clients.all, (client) => readyAfter(client, start), { concurrency: "unbounded" }).pipe(step("every client at character selection"));
-});
+}));
 
 /** Sends `-dev quick` from the host client and waits until every player's new receipt arrives. */
 export const sendQuickMatchCommand = Effect.gen(function*() {
