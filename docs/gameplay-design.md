@@ -876,7 +876,8 @@ drill worked through, is in
   but concede frames; late, committed hits risk more and reward more.
 
 **The aggression tilt.** Start from Melee's numbers and tilt slightly toward
-the attacker, in Rivals 2's direction rather than Ultimate's:
+the attacker, in Rivals 2's direction rather than Ultimate's. Implemented in
+smashcraft:ts/src/game/sim/shield.ts (`AERIAL_SHIELD_STUN_MULTIPLIER`):
 
 | Full-shield shieldstun, frames | 4 damage | 8 | 12 | 18 |
 |---|---:|---:|---:|---:|
@@ -907,7 +908,9 @@ the attacker, in Rivals 2's direction rather than Ultimate's:
   the full reward.
 
 The [interaction graph](design/interaction-graph.md) measures the spread for
-each fighter.
+each fighter (aerial on shield rows: advancing, early advancing, fade-back and
+fade-forward, unspaced and spaced). smashcraft:ts/scripts/interactions.tests.ts
+pins one safe and one punishable aerial per fighter.
 
 ## Powershield and parry
 

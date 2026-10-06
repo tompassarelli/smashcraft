@@ -98,7 +98,7 @@ function emitMoves(): void {
           angleDegrees: angle, electric: effect.electric, envelope: [hit.minX, hit.maxX, hit.minZ, hit.maxZ], hitCapsule: capsule(style, character, frame, charge, region),
           derived: { knockback, hitstun: ordinaryHitstunFrames(knockback), attackerHitlag: ordinaryHitlagFrames(effect.damage),
             victimHitlag: victimHitlagFrames(effect.damage, effect.electric, false), digitalShieldDamage: digitalShieldDamage(effect.damage),
-            digitalShieldstun: digitalShieldstunFrames(effect.damage), digitalShieldPushback: digitalShieldPushback(effect.damage), digitalShieldRecoil: digitalShieldRecoil(effect.damage) } }));
+            digitalShieldstun: digitalShieldstunFrames(effect.damage, isAerialAttack(style)), digitalShieldPushback: digitalShieldPushback(effect.damage), digitalShieldRecoil: digitalShieldRecoil(effect.damage) } }));
       }
     }
     const startup = attackStartupFrames(style);
