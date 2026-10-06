@@ -56,7 +56,7 @@ const ARCHER_HOMING_WINDUP_FRAMES = 12;
 // ending in helpless fall, or a leap off that leaves her actionable.
 export const ARCHER_RIDE_HOVER_FRAMES = 5;
 export const ARCHER_RIDE_FRAMES = 40;
-const ARCHER_RIDE_LEAP_FIRST = 12;
+export const ARCHER_RIDE_LEAP_FIRST = 12;
 const ARCHER_RIDE_HOVER_RISE = 2.0;
 export const ARCHER_RIDE_RISE = 12.0;
 export const ARCHER_RIDE_LOW_RISE = 4.0;
@@ -76,20 +76,20 @@ const ARCHER_SWOOP_SPEED = 28.0;
 const ARCHER_DIVE_FRAMES = 16;
 export const ARCHER_DIVE_LAUNCH_FRAME = 6;
 const ARCHER_CALL_FORM = 0;
-const ARCHER_DIVE_FORM = 1;
+export const ARCHER_DIVE_FORM = 1;
 // Rifleman's recoil shot (up special, #127, smashcraft:docs/design/kit-review-1.md):
 // the stick held through frame 4 picks where he flies: up (neutral, up or
 // down), diagonally up (a side, with or without up) or level (down and a
 // side); the shot fires the opposite way. One second shot on a special press
 // in frames 12-24 picks a new route the same way.
-const RIFLEMAN_RECOVERY_STARTUP_FRAMES = 4;
+export const RIFLEMAN_RECOVERY_STARTUP_FRAMES = 4;
 export const RIFLEMAN_RECOVERY_PROTECTION_END = 10;
 const RIFLEMAN_RECOIL_SPEED = 30.0;
 const RIFLEMAN_RECOIL_SHOT_SPEED = 28.0;
 export const RIFLEMAN_SECOND_SHOT_FIRST = 12;
 export const RIFLEMAN_SECOND_SHOT_LAST = 24;
 const RIFLEMAN_SECOND_SHOT_SPEED = 22.0;
-const RIFLEMAN_SECOND_SHOT_FORM = 1;
+export const RIFLEMAN_SECOND_SHOT_FORM = 1;
 /** Diagonal aims keep the authored speed. */
 const AIM_DIAGONAL = 0.7071067690849304;
 const ARCHER_HOMING_FRAMES = 34;

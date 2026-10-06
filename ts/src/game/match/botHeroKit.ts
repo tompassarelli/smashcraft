@@ -24,7 +24,7 @@ const press = neutralControls();
 const refusal = { manaShort: false };
 
 /** The form a press of `slot` would start now, or undefined when the rules refuse it. */
-function startableForm(f: Readonly<Fighter>, specials: Readonly<FighterSpecials>, slot: SpecialSlot): AuthoredSpecial | undefined {
+export function startableForm(f: Readonly<Fighter>, specials: Readonly<FighterSpecials>, slot: SpecialSlot): AuthoredSpecial | undefined {
   press.specialPressed = true;
   press.specialX = slot === SpecialSlot.side ? f.facing : 0;
   press.specialZ = slot === SpecialSlot.up ? 1 : slot === SpecialSlot.down ? -1 : 0;
@@ -63,7 +63,7 @@ function boxMeets(target: Readonly<Fighter>, localX: number, localZ: number, tra
  * travel (after `carriedX`/`carriedZ` already travelled), or a strike
  * branch taken anywhere along it, reach a target localX ahead and localZ above.
  */
-function strikeMeets(move: Readonly<AuthoredSpecial>, target: Readonly<Fighter>, localX: number, localZ: number, carriedX = 0.0, carriedZ = 0.0): boolean {
+export function strikeMeets(move: Readonly<AuthoredSpecial>, target: Readonly<Fighter>, localX: number, localZ: number, carriedX = 0.0, carriedZ = 0.0): boolean {
   const regions = move.regions ?? [];
   const grab = move.commandGrab?.strike;
   let travelX = carriedX;
@@ -91,6 +91,12 @@ const isStance = (move: Readonly<AuthoredSpecial>): boolean =>
   (move.regions ?? []).length === 0 && (move.projectiles ?? []).length === 0
   && (move.guard !== undefined || move.armor !== undefined || move.intangible !== undefined);
 
+/** A form that moves the fighter somewhere else (onto its image, behind a mark): botKitOptions.ts weighs it from there. */
+const relocates = (move: Readonly<AuthoredSpecial>): boolean => {
+  for (const segment of move.motion ?? []) if (segment.relocate !== undefined) return true;
+  return false;
+};
+
 /** Whether the special's travel ends over the deck; a helpless form needs room to land back on it. */
 function travelStaysOnDeck(f: Readonly<Fighter>, move: Readonly<AuthoredSpecial>, stage: number): boolean {
   let travelX = 0.0;
@@ -113,7 +119,7 @@ export function heroSpecialUse(f: Readonly<Fighter>, target: Readonly<Fighter>, 
   const localX = f32(dx * f.facing);
   const localZ = f32(target.motion.z - f.motion.z);
   // Stances answer a threat (heroStanceSlot, from botDefense.ts).
-  if (isStance(move)) return HeroSpecialUse.none;
+  if (isStance(move) || relocates(move)) return HeroSpecialUse.none;
   if (!travelStaysOnDeck(f, move, stage)) return HeroSpecialUse.none;
   if (strikeMeets(move, target, localX, localZ)) return HeroSpecialUse.close;
   for (const spec of move.projectiles ?? []) if (projectileMeets(spec, target, localX, localZ)) return HeroSpecialUse.ranged;
@@ -157,9 +163,10 @@ export function upSpecialStartable(f: Readonly<Fighter>, cooldownReady: boolean)
  * While a hero special runs, presses the attack or special branch (Wind
  * Walk's Backstab, a charge's release) whose strike reaches the target from
  * where the fighter stands now, turning toward it when the branch reads the
- * stick; true when it pressed.
+ * stick; a branch that ends helpless (Hammerfall) only over the deck. True
+ * when it pressed.
  */
-export function pressHeroFollowUp(f: Readonly<Fighter>, target: Readonly<Fighter>, input: Controls): boolean {
+export function pressHeroFollowUp(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, input: Controls): boolean {
   if (!isHeroSpecialAction(f.special.action) || f.special.form >= FOLLOW_UP_FORM || f.launch.hitstun > 0) return false;
   const next = f.special.frame + 1;
   const dx = f32(target.motion.x - f.motion.x);
@@ -167,6 +174,7 @@ export function pressHeroFollowUp(f: Readonly<Fighter>, target: Readonly<Fighter
   for (const branch of runningHeroSpecial(f)?.followUps ?? []) {
     const kind = branch.input ?? FollowUpInput.special;
     if (kind === FollowUpInput.shield || next < branch.window.first || next > branch.window.last) continue;
+    if (branch.special.helpless === true && !safeAt(stage, f.motion.x, 0.0)) continue;
     const facing = branch.facesStick === true && dx !== 0.0 ? (dx < 0 ? -1 : 1) : f.facing;
     if (!strikeMeets(branch.special, target, f32(dx * facing), localZ)) continue;
     if (kind === FollowUpInput.attack) input.attackPressed = true;

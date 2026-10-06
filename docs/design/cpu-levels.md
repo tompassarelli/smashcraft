@@ -62,17 +62,17 @@ one with frame-1 reactions feels like input reading
 
 ## The table
 
-| Level | Reaction (frames) | Threats answered | Attack pause (frames) | Misplays | Idle | Gameplan weights | DI | Tech | Mash every (grab / freeze) | Ledge and get-up mixups | Shield grabs |
-| ---: | ---: | ---: | --- | ---: | ---: | --- | ---: | ---: | --- | --- | --- |
-| 1 | 30 | 0% | 60 + 0-59 | 45% | 55% | no | 0% | 0% | 14 / 16 | no | no |
-| 2 | 25 | 10% | 46 + 0-49 | 35% | 40% | no | 10% | 10% | 12 / 14 | no | no |
-| 3 | 20 | 20% | 36 + 0-41 | 26% | 28% | no | 30% | 20% | 10 / 12 | no | no |
-| 4 | 16 | 30% | 28 + 0-33 | 18% | 18% | yes | 40% | 30% | 8 / 10 | yes | no |
-| 5 | 13 | 40% | 21 + 0-27 | 12% | 10% | yes | 50% | 40% | 6 / 9 | yes | yes |
-| 6 | 10 | 50% | 15 + 0-23 | 7% | 5% | yes | 60% | 50% | 5 / 8 | yes | yes |
-| 7 | 7 | 50% | 11 + 0-20 | 4% | 2% | yes | 80% | 60% | 4 / 7 | yes | yes |
-| 8 | 4 | 60% | 8 + 0-18 | 2% | 0% | yes | 90% | 62.5% | 3 / 6 | yes | yes |
-| 9 | 0 | 70% | 6 + 0-17 | 0% | 0% | yes | 100% | 66.7% | 2 / 6 | yes | yes |
+| Level | Reaction (frames) | Threats answered | Attack pause (frames) | Misplays | Idle | Gameplan weights | DI | Tech | Mash every (grab / freeze) | Ledge and get-up mixups | Shield grabs | Kit options |
+| ---: | ---: | ---: | --- | ---: | ---: | --- | ---: | ---: | --- | --- | --- | ---: |
+| 1 | 30 | 0% | 60 + 0-59 | 45% | 55% | no | 0% | 0% | 14 / 16 | no | no | 0% |
+| 2 | 25 | 10% | 46 + 0-49 | 35% | 40% | no | 10% | 10% | 12 / 14 | no | no | 0% |
+| 3 | 20 | 20% | 36 + 0-41 | 26% | 28% | no | 30% | 20% | 10 / 12 | no | no | 0% |
+| 4 | 16 | 30% | 28 + 0-33 | 18% | 18% | yes | 40% | 30% | 8 / 10 | yes | no | 30% |
+| 5 | 13 | 40% | 21 + 0-27 | 12% | 10% | yes | 50% | 40% | 6 / 9 | yes | yes | 40% |
+| 6 | 10 | 50% | 15 + 0-23 | 7% | 5% | yes | 60% | 50% | 5 / 8 | yes | yes | 50% |
+| 7 | 7 | 50% | 11 + 0-20 | 4% | 2% | yes | 80% | 60% | 4 / 7 | yes | yes | 70% |
+| 8 | 4 | 60% | 8 + 0-18 | 2% | 0% | yes | 90% | 62.5% | 3 / 6 | yes | yes | 80% |
+| 9 | 0 | 70% | 6 + 0-17 | 0% | 0% | yes | 100% | 66.7% | 2 / 6 | yes | yes | 100% |
 
 - *Reaction*: frames an attacker's move must have run (a shot must have
   flown, Immolation burned) before the computer answers it at all.
@@ -83,6 +83,12 @@ one with frame-1 reactions feels like input reading
   any normal, in reach or not.
 - *Idle*: half-second stretches it stands where it is (it still defends,
   recovers and gets up).
+- *Kit options*: when a fighter's advanced kit option suits the moment
+  (a Wind Walk cross-up or feint, a Mirror Image swap, a full or baited
+  Thunder Clap, a Storm Bolt recall, Shadow Pursuit, a Frost Nova burst, a
+  second recoil shot, a glide, a leap off the hippogryph), the share of
+  those moments it takes it (smashcraft:ts/src/game/match/botKitOptions.ts).
+  Ordinary specials are unaffected.
 
 ## Determinism and the match seed
 

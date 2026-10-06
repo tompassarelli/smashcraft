@@ -19,6 +19,7 @@ import { type CpuSkill, cpuSkill } from "./cpuLevel";
 import { chooseDefense } from "./botDefense";
 import { chooseRecoveryInput } from "./botRecovery";
 import { pressHeroFollowUp } from "./botHeroKit";
+import { pressKitOption, steerHeroBranches, steerRunningSpecial } from "./botKitOptions";
 import { MATCH_TICKS_PER_SECOND, type MatchState } from "./rules";
 import { trainingPartnerInput } from "./training";
 
@@ -181,13 +182,18 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: { botAttackD
     input.mashPressed = floorMod(frame, skill.grabMashFrames) === 0;
     return;
   }
-  if (target !== undefined && pressHeroFollowUp(fighter, target, input)) return;
-  if (chooseRecoveryInput(fighter, stage, game.matchFrame, input, target, skill)) return;
+  if (target !== undefined && (steerHeroBranches(fighter, target, skill, input) || pressHeroFollowUp(fighter, target, stage, input))) return;
+  const recovering = chooseRecoveryInput(fighter, stage, game.matchFrame, input, target, skill);
+  if (steerRunningSpecial(fighter, target, stage, skill, input) || recovering) return;
   if (isSmashAttack(fighter.attack.style) && fighter.attack.smashChargeAllowed) input.attackHeld = fighter.attack.smashChargeFrames < smashChargeGoal(fighter);
   if (target === undefined) return;
   if (chooseDefense(fighter, target, stage, input, skill)) return;
   // An idle stretch stands where it is: no approach, no attack.
   if (botChance(floorDiv(frame, IDLE_FRAMES), slot * 17 + fighter.character, skill.idle, 100)) return;
+  if (pressKitOption(fighter, target, stage, skill, frame, delay <= 0, input)) {
+    if (input.specialPressed || input.jumpPressed) runtime.botAttackDelays[slot] = f32(f32(skill.attackPause + botChoice(frame, fighter.attack.serial, skill.attackSpread)) * TICK);
+    return;
+  }
   if (gameplan === undefined) {
     const plan = planFor(fighter, slot, frame);
     if (delay <= 0 && chooseAttack(fighter, target, stage, game.matchFrame, frame, plan === Plan.range, input, commands, slot, SPACE_PLAN, skill)) {

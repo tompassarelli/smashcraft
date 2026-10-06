@@ -42,26 +42,28 @@ export interface CpuSkill {
   readonly mixesUp: boolean;
   /** Whether it grabs a shielding target. */
   readonly grabsShields: boolean;
+  /** Moments, in tenths, it takes a kit's advanced option when one suits (botKitOptions.ts): a cross-up, a feint, a recall, a burst, a full charge. */
+  readonly kitTenths: number;
 }
 
 const skill = (level: number, reactionFrames: number, defendTenths: number, attackPause: number, attackSpread: number, misplay: number, idle: number,
-  diTenths: number, techMiss: number, techOutOf: number, grabMashFrames: number, freezeMashFrames: number): CpuSkill => ({
+  diTenths: number, techMiss: number, techOutOf: number, grabMashFrames: number, freezeMashFrames: number, kitTenths: number): CpuSkill => ({
   level, reactionFrames, defendTenths, attackPause, attackSpread, misplay, idle, gameplanWeights: level >= 4, diTenths, techMiss, techOutOf,
-  grabMashFrames, freezeMashFrames, mixesUp: level >= 4, grabsShields: level >= 5,
+  grabMashFrames, freezeMashFrames, mixesUp: level >= 4, grabsShields: level >= 5, kitTenths,
 });
 
 /** By level, 1 first. Level 9 is exactly the computer before levels existed. */
 export const CPU_SKILLS: readonly CpuSkill[] = [
-  //    level react defend pause spread misplay idle  DI  tech miss/of  mash freeze
-  skill(1, 30, 0, 60, 60, 45, 55, 0, 1, 1, 14, 16),
-  skill(2, 25, 1, 46, 50, 35, 40, 1, 9, 10, 12, 14),
-  skill(3, 20, 2, 36, 42, 26, 28, 3, 4, 5, 10, 12),
-  skill(4, 16, 3, 28, 34, 18, 18, 4, 7, 10, 8, 10),
-  skill(5, 13, 4, 21, 28, 12, 10, 5, 3, 5, 6, 9),
-  skill(6, 10, 5, 15, 24, 7, 5, 6, 1, 2, 5, 8),
-  skill(7, 7, 5, 11, 21, 4, 2, 8, 2, 5, 4, 7),
-  skill(8, 4, 6, 8, 19, 2, 0, 9, 3, 8, 3, 6),
-  skill(9, 0, 7, 6, 18, 0, 0, 10, 1, 3, 2, 6),
+  //    level react defend pause spread misplay idle  DI  tech miss/of  mash freeze kit
+  skill(1, 30, 0, 60, 60, 45, 55, 0, 1, 1, 14, 16, 0),
+  skill(2, 25, 1, 46, 50, 35, 40, 1, 9, 10, 12, 14, 0),
+  skill(3, 20, 2, 36, 42, 26, 28, 3, 4, 5, 10, 12, 0),
+  skill(4, 16, 3, 28, 34, 18, 18, 4, 7, 10, 8, 10, 3),
+  skill(5, 13, 4, 21, 28, 12, 10, 5, 3, 5, 6, 9, 4),
+  skill(6, 10, 5, 15, 24, 7, 5, 6, 1, 2, 5, 8, 5),
+  skill(7, 7, 5, 11, 21, 4, 2, 8, 2, 5, 4, 7, 7),
+  skill(8, 4, 6, 8, 19, 2, 0, 9, 3, 8, 3, 6, 8),
+  skill(9, 0, 7, 6, 18, 0, 0, 10, 1, 3, 2, 6, 10),
 ];
 
 export const isCpuLevel = (level: number): boolean => level === Math.floor(level) && level >= CPU_LEVEL_MIN && level <= CPU_LEVEL_MAX;
