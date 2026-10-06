@@ -1,7 +1,7 @@
 // Losing a stock past the blast zone, and respawning.
 import { max } from "../../runtime/numbers";
 import { SurfaceContact } from "./codes";
-import { FAST_FALL_INPUT_WINDOW, SHIELD_MAX, SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES, WALL_TECH_JUMP_INPUT_WINDOW_FRAMES } from "./fighter";
+import { PLATFORM_DROP_INPUT_WINDOW, SHIELD_MAX, SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES, WALL_TECH_JUMP_INPUT_WINDOW_FRAMES } from "./fighter";
 import { clearDash } from "./groundMovement";
 import { TOP_KO_MINIMUM_UPWARD_KNOCKBACK } from "./knockback";
 import { clearMotionValue, setWorldMotionValue } from "./motion";
@@ -74,7 +74,7 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   const { motion, jump, launch, shield, attack, hits, special, dodge, landing, status, surfaceRecovery: recovery } = f;
   motion.fastFalling = false;
   motion.fastFallDownHeld = false;
-  motion.fastFallInputAge = FAST_FALL_INPUT_WINDOW;
+  motion.fastFallInputAge = PLATFORM_DROP_INPUT_WINDOW;
   motion.previousStickSide = 0;
   jump.inputAge = WALL_TECH_JUMP_INPUT_WINDOW_FRAMES;
   motion.crouching = false;

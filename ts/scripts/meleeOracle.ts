@@ -930,15 +930,7 @@ export function runOracle(): OracleRow[] {
  * Rows that may mismatch until their owning issue lands, keyed by rowKey, each
  * with that issue; CI fails on any other mismatch and on a listed row that passes.
  */
-const knownFor = (area: string, scenario: string, reason: string): [string, string][] =>
-  FIGHTERS.map(({ name }) => [rowKey({ area, scenario, fighter: name }), reason]);
-
-const KNOWN_MISMATCHES: ReadonlyMap<string, string> = new Map([
-  ...knownFor("landing", "L 7 frames before landing, 3 of them in own hitlag, cancels",
-    "the L-cancel window pauses during hitlag instead of aging (lCancelWindow, smashcraft:ts/src/game/sim/step.ts)"),
-  ...knownFor("platform", "still holding down 30 frames after that landing",
-    "held Down drops through a platform without a fresh press (platform drop, smashcraft:ts/src/game/sim/step.ts)"),
-]);
+const KNOWN_MISMATCHES: ReadonlyMap<string, string> = new Map<string, string>();
 
 /** Mismatches that aren't known, known mismatches that now pass, and known rows the table no longer has. */
 export function oracleProblems(rows: readonly OracleRow[]): string[] {

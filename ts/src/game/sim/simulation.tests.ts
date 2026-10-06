@@ -422,7 +422,9 @@ test("an L-cancel halves aerial recovery and preserves the action lockout", () =
   }
 });
 
-test("an L-cancel press during hitlag survives the freeze but not seven later ticks", () => {
+// Melee ages the L/R press counter (x67F) on every input frame, frozen or not
+// (melee:src/melee/ft/fighter.c Fighter_procInput); the landing compares it with PlCo +0x0E4 = 7.
+test("an L-cancel press during hitlag ages through the freeze", () => {
   for (const age of [6, 7]) {
     const fighter = lCancelTestFighter(AttackStyle.upAir);
     const input = controls({ lCancelPressed: true });
@@ -431,9 +433,9 @@ test("an L-cancel press during hitlag survives the freeze but not seven later ti
     input.lCancelPressed = false;
     for (let tick = 2; tick <= 3; tick++) {
       advanceSolo(fighter, 0, input, 0.0);
-      assertEquals(fighter.landing.lCancelWindow, 7);
+      assertEquals(fighter.landing.lCancelWindow, 8 - tick);
     }
-    for (let tick = 1; tick <= age - 1; tick++) advanceSolo(fighter, 0, input, 0.0);
+    for (let tick = 4; tick <= age; tick++) advanceSolo(fighter, 0, input, 0.0);
     landLCancelTest(fighter, input);
     assertEquals(fighter.landing.lag, age === 6 ? 7 : 15);
   }

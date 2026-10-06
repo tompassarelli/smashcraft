@@ -1750,10 +1750,13 @@ L-cancel itself is independent of the tech lockout. No source text or outside
 implementation is incorporated.
 
 Our frame convention gives seven contact opportunities including the press
-tick: contact through +6 ticks succeeds, +7 expires. Inputs during hitlag
-remain valid through the sixth subsequent unfrozen tick. The existing window
-also freezes during hitlag; this pre-hitlag-input case and the exact input-phase
-offset have not been independently measured against Melee. Each fresh Shield
+tick: contact through +6 ticks succeeds, +7 expires. The window ages on every
+frame, hitlag included: Melee's landing compares the frames since the L/R
+press (fighter x67F, counted by melee:src/melee/ft/fighter.c Fighter_procInput
+on frozen frames too) with PlCo +0x0E4 = 7, and halves the lag by
+PlCo +0x0E8 = 2 (melee:src/melee/ft/kinds/ftCommon/ftCo_LandingAir.c). A press
+just before an aerial connects can therefore expire in the attacker's own
+hitlag. Each fresh Shield
 or Grab press renews the opportunity; holding does not. Any landing consumes it,
 and stock loss/reset clears it. Only an unfinished aerial normal receives the
 reduction: neutral/forward/back/up/down recovery becomes 5/7/8/7/9 ticks under
@@ -1796,7 +1799,11 @@ frame. The six-frame window is a Smashcraft control choice, not Melee parity.
 A current queued attack takes priority over voluntary platform dropping during
 the movement step. Action recovery also blocks the drop, so holding Down cannot
 drop through during down-smash startup/charge or down-tilt recovery. With no
-current attack or action lock, Down still drops through passable platforms.
+current attack or action lock, a fresh Down drops through passable platforms:
+like Melee's Pass check (melee:src/melee/ft/kinds/ftCommon/ftCo_Pass.c, stick
+down past PlCo +0x464 = 0.66 entered under PlCo +0x468 = 6 frames ago), the
+press must be under six input frames old. The fast-fall input age is that one
+stick timer, so landing on a deck with Down still held stays on it.
 The command queue's actual frame window determines whether an attack is current;
 expired and future commands do not suppress movement. This is our digital-input
 priority rule. Analog shield dropping and stick-threshold fidelity remain open.
