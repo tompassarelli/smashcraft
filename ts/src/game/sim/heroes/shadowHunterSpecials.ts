@@ -32,12 +32,13 @@ const spiritGlaive = (air: boolean): AuthoredSpecial => ({
  * Loa Vault: f8-30 travel, then helpless. Velocities are per frame in H,
  * calibrated in shadowHunterSpecials.tests.ts: the window sets velocity
  * exactly, and with the ballistic rise after it the peak reaches the listed
- * 2.0H rise and 0.6H drift (free form 1.4H and 0.3H).
+ * 2.0H rise and 0.6H drift (free form 1.4H and 0.3H). A stick held sideways
+ * on entry turns him that way first, so the drift goes where he steers.
  */
 const loaVault = (cost: number, riseVelocity: number, driftVelocity: number): AuthoredSpecial => ({
   cost, endFrame: 30,
   motion: [{ ...frames(8, 30), velocityX: h(driftVelocity), velocityZ: h(riseVelocity) }],
-  oncePerAirtime: true, helpless: true,
+  oncePerAirtime: true, helpless: true, facesStick: true,
 });
 
 /**

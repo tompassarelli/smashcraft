@@ -243,9 +243,9 @@ Rows are the defender's options, columns the attacker's, each from the first fra
 | --- | --- | --- | --- | --- | --- | --- |
 | hold shield | +4 | +12 (shield) | +40 | +5 | +26 | +35 |
 | shield grab | -32 | -11 | +4 | -31 | -10 | -1 |
-| jump neutral air | W 16 | W 16 | W 16 | -14 (shield) | W 29 | W 16 |
+| jump neutral air | W 16 | W 16 | W 16 | -19 (shield) | W 29 | W 16 |
 | jump forward air | W 18 | W 18 | W 18 | W 18 | -3 | +6 |
-| jump back air | W 16 | W 16 | W 16 | -17 (shield) | W 29 | W 16 |
+| jump back air | W 16 | W 16 | W 16 | -22 (shield) | W 29 | W 16 |
 | jump up air | W 18 | T 18 | W 18 | W 18 | -3 | +6 |
 | jump down air | W 20 | W 20 | W 20 | -14 (shield) | W 29 | +4 |
 | spot dodge | -18 | +3 | +18 | -17 | +4 | +13 |
@@ -279,9 +279,9 @@ Rows are the defender's options, columns the attacker's, each from the first fra
 | --- | --- | --- | --- | --- | --- | --- |
 | hold shield | +4 | +25 | +40 | +5 | +26 | +35 |
 | shield grab | -32 | -11 | +4 | -31 | -10 | -1 |
-| jump neutral air | W 16 | W 16 | W 16 | -14 (shield) | W 29 | W 16 |
+| jump neutral air | W 16 | W 16 | W 16 | -19 (shield) | W 29 | W 16 |
 | jump forward air | -25 | -4 | +11 | -24 | -3 | +6 |
-| jump back air | W 16 | W 16 | W 16 | -17 (shield) | W 29 | W 16 |
+| jump back air | W 16 | W 16 | W 16 | -22 (shield) | W 29 | W 16 |
 | jump up air | W 18 | W 18 | W 18 | W 18 | -3 | +6 |
 | jump down air | W 20 | W 20 | W 20 | -14 (shield) | W 29 | +4 |
 | spot dodge | -18 | +3 | +18 | -17 | +4 | +13 |
@@ -423,9 +423,9 @@ Rows are the defender's options, columns the attacker's, each from the first fra
 | --- | --- | --- | --- | --- | --- | --- |
 | hold shield | +4 | +25 | +40 | +5 | +26 | +35 |
 | shield grab | -32 | -11 | +4 | -31 | -10 | -1 |
-| jump neutral air | W 13 | W 13 | W 13 | -14 (shield) | W 26 | W 13 |
+| jump neutral air | W 13 | W 13 | W 13 | -19 (shield) | W 26 | W 13 |
 | jump forward air | -25 | -4 | +11 | -24 | -3 | +6 |
-| jump back air | W 13 | W 13 | W 13 | -17 (shield) | W 26 | W 13 |
+| jump back air | W 13 | W 13 | W 13 | -22 (shield) | W 26 | W 13 |
 | jump up air | -25 | -4 | +11 | -24 | -3 | +6 |
 | jump down air | W 17 | W 17 | W 17 | W 17 | W 26 | +4 |
 | spot dodge | -18 | +3 | +18 | -17 | +4 | +13 |
@@ -441,7 +441,7 @@ Rows are the defender's options, columns the attacker's, each from the first fra
 | --- | --- | --- | --- | --- | --- | --- |
 | hold shield | +4 | +12 (shield) | L 16 grab | +5 | +26 | +35 |
 | shield grab | W 12 grab | W 12 grab | W 12 grab | W 12 grab | -10 | W 12 grab |
-| jump neutral air | W 13 | W 13 | W 13 | -14 (shield) | W 26 | W 13 |
+| jump neutral air | W 13 | W 13 | W 13 | -19 (shield) | W 26 | W 13 |
 | jump forward air | W 15 | T 15 | W 15 | W 15 | -3 | +6 |
 | jump back air | W 18 | L 15 | L 16 grab | W 18 | W 26 | +5 |
 | jump up air | W 15 | T 15 | W 15 | W 15 | -3 | +6 |
@@ -459,9 +459,9 @@ Rows are the defender's options, columns the attacker's, each from the first fra
 | --- | --- | --- | --- | --- | --- | --- |
 | hold shield | +3 (shield) | +12 (shield) | +39 (shield) | +4 (shield) | +25 (shield) | +34 (shield) |
 | shield grab | -33 (shield) | L 22 | +3 | -32 | -11 | -2 |
-| jump neutral air | W 21 (shield) | W 21 | W 21 | -14 (shield) | W 33 | +7 |
+| jump neutral air | W 21 (shield) | W 21 | W 21 | -19 (shield) | W 33 | +7 |
 | jump forward air | W 23 (shield) | W 23 | W 23 | W 23 | -4 | +5 |
-| jump back air | W 21 (shield) | W 21 | W 21 | -17 (shield) | W 33 | +4 |
+| jump back air | W 21 (shield) | W 21 | W 21 | -22 (shield) | W 33 | +4 |
 | jump up air | W 23 (shield) | L 22 | W 23 | W 23 | -4 | +5 |
 | jump down air | W 25 (shield) | L 22 | W 25 | -14 (shield) | W 33 | +3 |
 | spot dodge | -19 (shield) | +2 | +17 | -18 | +3 | +12 |
@@ -495,9 +495,9 @@ Rows are the defender's options, columns the attacker's, each from the first fra
 | --- | --- | --- | --- | --- | --- | --- |
 | hold shield | +3 (shield) | +24 (shield) | +39 (shield) | +4 (shield) | +25 (shield) | +34 (shield) |
 | shield grab | -33 (shield) | -12 | +3 | -32 | -11 | -2 |
-| jump neutral air | W 21 (shield) | W 21 | W 21 | -14 (shield) | W 33 | +7 |
+| jump neutral air | W 21 (shield) | W 21 | W 21 | -19 (shield) | W 33 | +7 |
 | jump forward air | -26 (shield) | -5 | +10 | -25 | -4 | +5 |
-| jump back air | W 21 (shield) | W 21 | W 21 | -17 (shield) | W 33 | +4 |
+| jump back air | W 21 (shield) | W 21 | W 21 | -22 (shield) | W 33 | +4 |
 | jump up air | W 23 (shield) | W 23 | W 23 | W 23 | -4 | +5 |
 | jump down air | W 25 (shield) | W 25 | W 25 | -14 (shield) | W 33 | +3 |
 | spot dodge | -19 (shield) | +2 | +17 | -18 | +3 | +12 |
@@ -535,7 +535,7 @@ Rows are the defender's options, columns the attacker's, each from the first fra
 | jump forward air | -21 | L 25 | +15 | -20 | +1 | +10 |
 | jump back air | W 18 | W 18 | W 18 | W 18 | W 18 | W 18 |
 | jump up air | W 20 | W 20 | W 20 | W 20 | W 20 | W 20 |
-| jump down air | W 22 | W 22 | W 22 | -14 (shield) | -1 | W 22 |
+| jump down air | W 22 | W 22 | W 22 | -20 (shield) | -1 | W 22 |
 | spot dodge | -14 | +7 | +22 | -13 | +8 | +17 |
 | roll in | -23 | -2 | +13 | -22 | -1 | +8 |
 | roll away | -23 | -2 | +13 | -22 | -1 | +8 |
@@ -553,7 +553,7 @@ Rows are the defender's options, columns the attacker's, each from the first fra
 | jump forward air | W 20 | W 20 | W 20 | W 20 | W 20 | W 20 |
 | jump back air | W 18 | W 18 | W 18 | W 18 | W 18 | W 18 |
 | jump up air | W 20 | W 20 | W 20 | W 20 | W 20 | W 20 |
-| jump down air | W 22 | W 22 | W 22 | -14 (shield) | 0 | W 22 |
+| jump down air | W 22 | W 22 | W 22 | -20 (shield) | 0 | W 22 |
 | spot dodge | -13 | +8 | L 27 grab | -12 | +9 | +18 |
 | roll in | -22 | -1 | +14 | -21 | 0 | +9 |
 | roll away | -22 | -1 | +14 | -21 | 0 | +9 |
@@ -669,6 +669,87 @@ flowchart LR
   o_jump_down_air -->|"unspaced, fade-back<br/>spaced, fade-back<br/>unspaced, fade-forward<br/>spaced, fade-forward"| a_down_air
 ```
 
+## Aerial on a powershield (parry)
+
+The same approaches as on a held shield, but the defending Archer stands unshielded and presses its shield the frame before the aerial meets it, so the hit is parried: no shieldstun, and the shield drops with no release lag into any grounded option. Frame 0 is the parried contact. Its options are every ground attack as well as the out-of-shield ones. Advantage reads as above; "held" is the same approach's advantage on a held shield. Punish start frames are when the defender's option can start and still land before the attacker can act.
+
+| Aerial | Spacing | Drift | Start | Parried | Attacker acts | Defender acts | Advantage | Held | Punished by (start frames) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| neutral air | unspaced | advancing | 48 | yes | 10 | 5 | -5 | 0 | safe |
+| neutral air | spaced | advancing | 186 | yes | 10 | 5 | -5 | 0 | safe |
+| neutral air | unspaced | fade-back | 48 | yes | 24 | 5 | -19 | -14 | shield grab 5..10; jump neutral air 5..9; jump forward air 5..15; jump up air 5 |
+| neutral air | spaced | fade-back | 186 | yes | 9 | 4 | -5 | -1 | safe |
+| neutral air | unspaced | fade-forward | 48 | yes | 24 | 5 | -19 | -14 | shield grab 5..18; jump neutral air 5..17; jump forward air 5..15; jump back air 5..17; jump up air 5..15; jump down air 5..13 |
+| neutral air | spaced | fade-forward | 186 | yes | 9 | 4 | -5 | -1 | safe |
+| forward air | unspaced | advancing | 54 | yes | 12 | 5 | -7 | -2 | jump neutral air 5; jump back air 5 |
+| forward air | spaced | advancing | 264 | yes | 12 | 5 | -7 | -2 | safe |
+| forward air | unspaced | fade-back | 54 | yes | 14 | 5 | -9 | -4 | jump neutral air 5..7; jump forward air 5; jump back air 5..7; jump up air 5 |
+| forward air | spaced | fade-back | 264 | yes | 12 | 5 | -7 | -2 | safe |
+| forward air | unspaced | fade-forward | 54 | yes | 14 | 5 | -9 | -4 | jump neutral air 5..7; jump back air 5..7; jump up air 5 |
+| forward air | spaced | fade-forward | 264 | yes | 12 | 5 | -7 | -2 | safe |
+| back air | unspaced | advancing | 48 | yes | 27 | 5 | -22 | -17 | jump neutral air 5..20; jump forward air 5..7; jump back air 5..20; jump up air 5..10; jump down air 5..14 |
+| back air | spaced | advancing | 252 | yes | 13 | 5 | -8 | -3 | shield grab 6..7 |
+| back air | unspaced | fade-back | 48 | yes | 27 | 5 | -22 | -17 | jump neutral air 5..20; jump forward air 5..18; jump back air 5..20; jump up air 5..18; jump down air 5..16 |
+| back air | spaced | fade-back | 252 | yes | 12 | 4 | -8 | -4 | safe |
+| back air | unspaced | fade-forward | 48 | yes | 27 | 5 | -22 | -17 | jump neutral air 5..14; jump forward air 5..6; jump back air 5..20; jump up air 5..9; jump down air 5..9 |
+| back air | spaced | fade-forward | 252 | yes | 12 | 4 | -8 | -4 | safe |
+| up air | unspaced | advancing | 48 | yes | 11 | 4 | -7 | -4 | jump neutral air 4; jump back air 4 |
+| up air | spaced | advancing | 156 | yes | 11 | 4 | -7 | -4 | shield grab 4..5; jump neutral air 4 |
+| up air | unspaced | fade-back | 48 | yes | 18 | 15 | -3 | -3 | safe |
+| up air | spaced | fade-back | 156 | yes | 12 | 5 | -7 | -2 | shield grab 5..6; jump neutral air 5 |
+| up air | unspaced | fade-forward | 48 | yes | 18 | 15 | -3 | -3 | safe |
+| up air | spaced | fade-forward | 156 | yes | 12 | 5 | -7 | -2 | shield grab 5..6; jump neutral air 5 |
+| down air | unspaced | advancing | 48 | yes | 20 | 6 | -14 | -8 | jump neutral air 6..13; jump forward air 6..11; jump back air 6..13; jump up air 6..11; jump down air 6..9 |
+| down air | spaced | advancing | 96 | yes | 21 | 6 | -15 | -9 | shield grab 6..15; jump neutral air 6..14; jump forward air 6..12; jump back air 6..14; jump up air 6..12; jump down air 6..10 |
+| down air | unspaced | fade-back | 48 | yes | 26 | 6 | -20 | -14 | shield grab 6..20; jump neutral air 6..19; jump forward air 6..17; jump back air 6..15; jump up air 6..17; jump down air 6..15 |
+| down air | spaced | fade-back | 96 | yes | 23 | 6 | -17 | -11 | shield grab 6..17; jump neutral air 6..16; jump forward air 6..14; jump back air 6..8; jump up air 6..10; jump down air 6..12 |
+| down air | unspaced | fade-forward | 48 | yes | 26 | 6 | -20 | -14 | shield grab 6..12; jump neutral air 6..19; jump forward air 6..17; jump back air 6..19; jump up air 6..17; jump down air 6..15 |
+| down air | spaced | fade-forward | 96 | yes | 23 | 6 | -17 | -11 | shield grab 6..17; jump neutral air 6..16; jump forward air 6..14; jump back air 6..16; jump up air 6..14; jump down air 6..12 |
+
+### Graph
+
+Each arrow runs from an option out of the parry to an aerial it punishes, labelled with the spacings and drifts it punishes it at.
+
+```mermaid
+flowchart LR
+  a_neutral_air["neutral air<br/>-19 to -5 parried"]
+  a_forward_air["forward air<br/>-9 to -7 parried"]
+  a_back_air["back air<br/>-22 to -8 parried"]
+  a_up_air["up air<br/>-7 to -3 parried"]
+  a_down_air["down air<br/>-20 to -14 parried"]
+  o_shield_grab["shield grab"]
+  o_jump_neutral_air["jump neutral air"]
+  o_jump_forward_air["jump forward air"]
+  o_jump_back_air["jump back air"]
+  o_jump_up_air["jump up air"]
+  o_jump_down_air["jump down air"]
+  o_shield_grab -->|"unspaced, fade-back<br/>unspaced, fade-forward"| a_neutral_air
+  o_shield_grab -->|"spaced, advancing"| a_back_air
+  o_shield_grab -->|"spaced, advancing<br/>spaced, fade-back<br/>spaced, fade-forward"| a_up_air
+  o_shield_grab -->|"spaced, advancing<br/>unspaced, fade-back<br/>spaced, fade-back<br/>unspaced, fade-forward<br/>spaced, fade-forward"| a_down_air
+  o_jump_neutral_air -->|"unspaced, fade-back<br/>unspaced, fade-forward"| a_neutral_air
+  o_jump_neutral_air -->|"unspaced, advancing<br/>unspaced, fade-back<br/>unspaced, fade-forward"| a_forward_air
+  o_jump_neutral_air -->|"unspaced, advancing<br/>unspaced, fade-back<br/>unspaced, fade-forward"| a_back_air
+  o_jump_neutral_air -->|"unspaced, advancing<br/>spaced, advancing<br/>spaced, fade-back<br/>spaced, fade-forward"| a_up_air
+  o_jump_neutral_air -->|"unspaced, advancing<br/>spaced, advancing<br/>unspaced, fade-back<br/>spaced, fade-back<br/>unspaced, fade-forward<br/>spaced, fade-forward"| a_down_air
+  o_jump_forward_air -->|"unspaced, fade-back<br/>unspaced, fade-forward"| a_neutral_air
+  o_jump_forward_air -->|"unspaced, fade-back"| a_forward_air
+  o_jump_forward_air -->|"unspaced, advancing<br/>unspaced, fade-back<br/>unspaced, fade-forward"| a_back_air
+  o_jump_forward_air -->|"unspaced, advancing<br/>spaced, advancing<br/>unspaced, fade-back<br/>spaced, fade-back<br/>unspaced, fade-forward<br/>spaced, fade-forward"| a_down_air
+  o_jump_back_air -->|"unspaced, fade-forward"| a_neutral_air
+  o_jump_back_air -->|"unspaced, advancing<br/>unspaced, fade-back<br/>unspaced, fade-forward"| a_forward_air
+  o_jump_back_air -->|"unspaced, advancing<br/>unspaced, fade-back<br/>unspaced, fade-forward"| a_back_air
+  o_jump_back_air -->|"unspaced, advancing"| a_up_air
+  o_jump_back_air -->|"unspaced, advancing<br/>spaced, advancing<br/>unspaced, fade-back<br/>spaced, fade-back<br/>unspaced, fade-forward<br/>spaced, fade-forward"| a_down_air
+  o_jump_up_air -->|"unspaced, fade-back<br/>unspaced, fade-forward"| a_neutral_air
+  o_jump_up_air -->|"unspaced, fade-back<br/>unspaced, fade-forward"| a_forward_air
+  o_jump_up_air -->|"unspaced, advancing<br/>unspaced, fade-back<br/>unspaced, fade-forward"| a_back_air
+  o_jump_up_air -->|"unspaced, advancing<br/>spaced, advancing<br/>unspaced, fade-back<br/>spaced, fade-back<br/>unspaced, fade-forward<br/>spaced, fade-forward"| a_down_air
+  o_jump_down_air -->|"unspaced, fade-forward"| a_neutral_air
+  o_jump_down_air -->|"unspaced, advancing<br/>unspaced, fade-back<br/>unspaced, fade-forward"| a_back_air
+  o_jump_down_air -->|"unspaced, advancing<br/>spaced, advancing<br/>unspaced, fade-back<br/>spaced, fade-back<br/>unspaced, fade-forward<br/>spaced, fade-forward"| a_down_air
+```
+
 ## Neutral: both fighters act on frame 1
 
 Two standing Archers face each other, each option starting on frame 1. Cells read as in the follow-up tables above, from the row fighter's side. Punish start frames are when the opponent's option can start and still land before the fighter can act again.
@@ -700,7 +781,7 @@ Two standing Archers face each other, each option starting on frame 1. Cells rea
 | forward smash | 45 | jab 1..2; forward tilt 1; down tilt 1, 16, 29; down smash 16; grab 1..2 |
 | up smash | 50 | jab 1..4; forward tilt 1..3; up tilt 1..2, 29..43; down tilt 1..3, 17, 29..44; forward smash 1..2; down smash 17; grab 1..4 |
 | down smash | 50 | jab 1..4; forward tilt 1..3; up tilt 1..2, 29..43; down tilt 1..3, 17, 29..44; forward smash 1..2; down smash 17; grab 1..4 |
-| grab | 93 | jab 1 |
+| grab | - | safe |
 | shield | 2 | - |
 | spot dodge | 23 | jab 11..18; forward tilt 10..17; up tilt 9..16; down tilt 10..17; forward smash 8..16; up smash 6..14; down smash 6..14; grab 10..17 |
 | roll in | 32 | forward tilt 14..26; forward smash 12..25 |

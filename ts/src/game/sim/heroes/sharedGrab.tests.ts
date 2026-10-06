@@ -3,12 +3,12 @@ import { f32 } from "wisp/src/sim/f32";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
 import { AttackStyle, Character, GrabAction } from "../codes";
 import { createFighter } from "../fighter";
-import { PUMMEL_CONTACT_FRAME, PUMMEL_TOTAL_FRAMES, attackStartupFrames, grabContactFrame } from "../moves";
+import { PUMMEL_CONTACT_FRAME, PUMMEL_DAMAGE, PUMMEL_TOTAL_FRAMES, attackStartupFrames, grabContactFrame } from "../moves";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
 import { BLADEMASTER_MOVES } from "./blademasterMoves";
 import { HERO_ROSTER } from "./registry";
 
-test("expansion grabs deal their authored pummel once, then a buffered throw", () => {
+test("expansion grabs deal the shared 3% pummel once, then a buffered throw", () => {
   for (const hero of HERO_ROSTER) {
     const { moves } = hero;
     const owner = createFighter(Character.archer, 0.0, 1);
@@ -25,6 +25,7 @@ test("expansion grabs deal their authored pummel once, then a buffered throw", (
     if (pummel === undefined) continue;
     assertEquals(pummel.growth, 0.0);
     assertEquals(pummel.base, 0.0);
+    assertEquals(pummel.damage, PUMMEL_DAMAGE);
     for (let frame = 1; frame <= PUMMEL_CONTACT_FRAME; frame++) testGrabFrame(world, [controls({ attackPressed: true }), controls()], false);
     assertEquals(target.status.damage, f32(100.0 + pummel.damage));
     assertEquals(owner.grab.pummels, 1);

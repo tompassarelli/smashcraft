@@ -183,7 +183,7 @@ export const BLADEMASTER_MOVES: FighterMoves = {
     ], hit(0.0, "POKE", 35))),
   },
   throws: {
-    [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: { damage: 1.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } },
+    [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: { damage: 3.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } },
     [GrabAction.throwForward]: authoredThrow(12, 18, 7.0, "EDGE", 35),
     [GrabAction.throwBack]: authoredThrow(15, 22, 8.0, "EDGE", 40, -1.0),
     [GrabAction.throwUp]: authoredThrow(13, 17, 6.0, "LAUNCH", 85),

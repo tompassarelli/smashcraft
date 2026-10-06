@@ -221,7 +221,7 @@ export const WARDEN_MOVES: FighterMoves = {
   normals: NORMALS,
   hurtboxes: wardenHurtboxes(),
   throws: {
-    [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: { damage: 1.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } },
+    [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: { damage: 3.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } },
     [GrabAction.throwForward]: throwMove(10, 18, 6.0, "EDGE", 35),
     [GrabAction.throwBack]: throwMove(14, 21, 7.0, "EDGE", 40, -1.0),
     [GrabAction.throwUp]: throwMove(11, 16, 5.0, "LAUNCH", 85),

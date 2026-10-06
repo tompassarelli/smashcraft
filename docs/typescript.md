@@ -556,6 +556,17 @@ From smashcraft:ts/:
   smashcraft:ts/ files nothing imports or names, and smashcraft:tools/ files no
   live document or source names, and exits 1 if any remain. Map bundle entries'
   exports count as used; references from smashcraft:evidence/ do not. About 10 s.
+- `bun scripts/cpuField.ts [--variants N] [--stocks N] [--minutes N]
+  [--json FILE] [--fighters a,b]`: the computer against the field (#105).
+  Every ordered pair of different selectable fighters, both computers, on
+  every soak stage, played in process through frame capture and execution
+  (3 stocks, 4-minute clock by default). The computer is deterministic, so
+  each setup is one sample; each variant shifts both spawn points sideways.
+  Per fighter it prints win rate over decisive matches against the field and
+  each opponent, the share of stocks lost with no hit taken in the previous
+  3 s, damage per hit landed and its most-started moves. About 0.15 s a
+  match, 900 matches a variant. `fighterMoveUsage` gives a per-fighter test
+  the same move ranking.
 
 ## Build the map
 
