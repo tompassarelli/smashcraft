@@ -7,6 +7,7 @@ import {
   returnToCharacters, selectCharacter, selectCpuCharacter, selectStage, setStocks, setTimeLimit, updateConnectedHumans,
 } from "../../game/match/rules";
 import { prepareQuickMatch } from "../../game/shell/devSettings";
+import { preparePlaytest } from "../../game/shell/playtest";
 import { floorMod } from "wisp/src/sim/intMath";
 import { traceSelectionState } from "./diagnostics";
 import { clearParticipantInputs, controlsAvailable, currentHumanMask } from "./inputs";
@@ -66,6 +67,14 @@ export function startQuickMatch(s: ShellState): void {
     for (const panel of views(s).settings) panel.close();
     startMatch(s);
   }
+}
+
+/** A playtest request: computers in the slots of `computers`, then the match, past both menus. */
+export function startPlaytest(s: ShellState, computers: number): boolean {
+  if (!preparePlaytest(s.game, computers)) return false;
+  for (const panel of views(s).settings) panel.close();
+  startMatch(s);
+  return true;
 }
 
 /** Panel events carry a participant number; anything but a slot is ignored. */

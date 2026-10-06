@@ -18,3 +18,7 @@ export const frameCostFile = (source: string, slot: number, language: "typescrip
 export const frameCostClockFile = (slot: number) => `smashcraft-frame-cost-clock-p${slot}.txt`;
 export const PHYSICS_REPORT_FILE = "smashcraft-native-physics-precision.txt";
 export const objectDataReceiptFile = (slot: number) => `smashcraft-object-data-p${slot}.txt`;
+/** A playtest request the host leaves for the map, its go-ahead, and each client's receipt (smashcraft:ts/src/platform/shell/playtest.ts). */
+export const PLAYTEST_REQUEST_FILE = "smashcraft-play.txt";
+export const PLAYTEST_GO_FILE = "smashcraft-play-go.txt";
+export const playtestReceiptFile = (slot: number) => `smashcraft-play-p${slot}.txt`;

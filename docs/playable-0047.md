@@ -13,23 +13,35 @@ Windows and macOS use a different helper; see the section for them below.
 On Tom's desktop, from smashcraft:ts/:
 
 ```sh
-bun wisp play
+bun wisp play [--keep-launch-options]
 ```
 
-It checks that nothing else runs in the Warcraft prefix, reuses or starts the
-signed-in Battle.net launcher through the Steam shortcut "Warcraft III
-(Battle.net)", presses Play, hosts "Smashcraft" with this map from
-Maps/00-Smashcraft (copied there from playable-0047 when missing), adds a
-computer as Player 3, starts the helper
-(`wc3-journal-0.0.47-fix1`) for the first Xbox controller and leaves Warcraft
-III fullscreen. Each step prints a line; a problem stops it with what to do
-(wisp:docs/play.md). The helper keeps running
-after the command ends, with its output in
-~/.local/state/smashcraft/play-helper.log; stop it with `kill PID` (the pid
-the command printed) after leaving the map. Each run saves a picture before
-and after every click, and its click log, in a folder under
-~/.local/state/smashcraft/play-debug/. smashcraft:ts/scripts/wisp/commands/play.ts
-declares the candidate, its helper and the computer's slot.
+It checks that nothing else runs in the Warcraft prefix, sets Warcraft III's
+launch options in Battle.net to `-loadfile` the declared map from
+Maps/00-Smashcraft (copied there from its build when missing), reuses or
+starts the signed-in launcher through the Steam shortcut "Warcraft III
+(Battle.net)", presses Play, starts the helper (`wc3-journal-0.0.47-fix1`)
+for the first Xbox controller at fighter selection, and has the map add a
+computer as Player 3 and start the match; then it leaves Warcraft III
+fullscreen. Each step prints a line; a problem stops it with what to do
+(wisp:docs/play.md). After Play nothing is clicked unless Warcraft III shows
+its main menu instead of the map. Battle.net's own Play stops loading the map
+afterwards; `--keep-launch-options` keeps it loading the map, so the next run
+reuses the running launcher.
+
+The map takes the request through two files in CustomMapData: play leaves
+`smashcraft-play.txt` (`PLAY v=1 computers=4`) before Warcraft starts, and
+the first human's client reads it once at map start; only then does it look
+for `smashcraft-play-go.txt`, which play writes once the helper runs. Each
+client then adds the computers and starts the match on the default stage
+and writes `smashcraft-play-pN.txt` (`… started` or `… refused`). Maps built
+before this ignore the request. The helper keeps running after the command
+ends, with its output in ~/.local/state/smashcraft/play-helper.log; stop it
+with `kill PID` (the pid the command printed) after leaving the map. Each run
+saves a picture before and after every click, and its click log, in a
+folder under ~/.local/state/smashcraft/play-debug/.
+smashcraft:ts/scripts/wisp/commands/play.ts declares the map, its helper and
+the computer's slot.
 
 Put the map in each player's Warcraft III `Maps/00-Smashcraft` folder. Join the
 same custom game and start it. At fighter selection, start one helper for each
