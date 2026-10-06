@@ -1,3 +1,4 @@
+import { stageBounds } from "./stageBounds";
 import { assertEquals, assertGreaterThan, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { AttackStyle, Character } from "./codes";
 import { canStartAttackStyle } from "./conditions";
@@ -78,7 +79,7 @@ test("koRespawnAndResetClearTrapAndFrozenState", () => {
   rifleman.freezeTrap.arming = 12;
   rifleman.freezeTrap.serial = 3;
   rifleman.status.frozenFrames = 120;
-  rifleman.motion.x = f32(920.001);
+  rifleman.motion.x = f32(stageBounds(0).blast.right + 0.0009765625);
   advanceSolo(rifleman, 0, controls(), -240.0);
   assertTrue(rifleman.status.out);
   assertEquals(rifleman.status.stocks, 1);

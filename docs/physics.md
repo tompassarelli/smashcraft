@@ -2010,6 +2010,40 @@ neither runs nor resets. Versus matches enable it (`gmvs.c` sets the player
 flag unless the mode's xD_b2 is set; training, home-run contest, all-star and
 some events clear it).
 
+Smashcraft stores one **16:9 match view** and each fighter's magnifier timer
+in deterministic snapshots. Its subject extents, eye-distance easing and
+interest rates use the reference values above. The camera remains a side
+view: Warcraft keeps the yaw at 90° and the downward pitch at 10°; the field
+of view eases its half-angle tangent between the cited 30° and 38° endpoints
+by 10% each frame. This is the projection used by
+smashcraft:ts/src/game/sim/matchCamera.ts, not Melee's rotating 3D camera.
+Local rendering reads that view, adapts it to the monitor's aspect, and never
+writes the resulting local view into gameplay. A fighter outside the
+canonical current view, including one that briefly outruns it inside the
+stage camera limits, counts toward the 60-frame damage rule. Practice disables
+that rule. At 150% the counter is retained, even on returning to view.
+
+The current flat deck and two-bridge layout use Final Destination's bounds;
+Frozen Throne's Battlefield layout uses GrNBa.dat's points, with each side's
+distance from its ±68.4 Melee ledges preserved. In world units its camera is
+x ±1389.6, z -354..1020, and its blast region x ±1869.6, z -816..1500.
+smashcraft:ts/src/game/sim/stageBounds.ts owns these conversions.
+
+The unobscured fighting view stops at the camera limits. The part behind
+the HUD may extend below the bottom camera limit, but the whole raw frame
+stops at least 20 world units above the bottom blast plane. Corner clamping
+runs after easing and after local aspect adaptation. Recovery within 100
+world units of the main deck underside keeps the fighter and nearby underside
+above the HUD; a distant high fighter may then use a bubble. Bubbles project
+the fighter's camera point against the actual local view and place its portrait
+and directional chevron along the ray from the screen centre, using Melee's
+magnifier inset and staying above the HUD. They receive no input focus.
+
+In a development build, `-dev camera` starts a one-stock match with the first
+fighter frozen outside the camera limits for three seconds, then its retained
+launch moves it across the side blast plane. It exercises the portrait, arrow,
+offscreen damage and an off-camera KO without changing combat completion.
+
 ## Wall and ceiling techs and wall jumps
 
 A wall tech holds the fighter on the wall for five frames (PlCo +0x760), then

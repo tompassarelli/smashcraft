@@ -6,8 +6,9 @@ import { STAGE_DECK_MODEL, STAGE_MAIN_DECK_MODEL } from "../../game/assets/stage
 import { f32 } from "wisp/src/sim/f32";
 import { PARTICIPANT_SLOTS, type ParticipantSlot } from "../../game/input/participants";
 import type { PacingAndPresentation } from "../../game/match/pacingAndPresentation";
-import { Phase, remainingSeconds } from "../../game/match/rules";
-import { ARENA_CAMERA, FLOOR_HEIGHT, arenaFraming } from "../../game/presentation/arenaCamera";
+import { type MatchState, Phase, remainingSeconds } from "../../game/match/rules";
+import { ARENA_CAMERA, FLOOR_HEIGHT, cameraFieldOfView, cameraPoint, localCamera } from "../../game/presentation/arenaCamera";
+import { advanceMatchCamera } from "../../game/sim/matchCamera";
 import { DamagePose, damagePose } from "../../game/presentation/damagePose";
 import type { FighterPose } from "../../game/presentation/fighterPose";
 import { type MapBuild, journalIngress } from "../../game/shell/build";
@@ -127,6 +128,7 @@ export function pauseMatchPresentation(s: ShellState, paused: boolean): void {
 }
 
 interface PresentedMatch {
+  readonly game: MatchState;
   readonly world: Roster;
   readonly runtime: PacingAndPresentation;
   readonly playing: boolean;
@@ -138,9 +140,9 @@ function presentedMatch(s: ShellState): PresentedMatch {
   const confirmedPlaying = s.game.phase === Phase.match;
   if (s.build.presentation === "pool-predicted" && rollback !== undefined && confirmedPlaying) {
     const { speculative } = rollback;
-    return { world: speculative.world, runtime: speculative.runtime, playing: speculative.game.phase === Phase.match };
+    return { game: speculative.game, world: speculative.world, runtime: speculative.runtime, playing: speculative.game.phase === Phase.match };
   }
-  return { world: s.world, runtime: s.runtime, playing: confirmedPlaying };
+  return { game: s.game, world: s.world, runtime: s.runtime, playing: confirmedPlaying };
 }
 
 /** Runs once per callback, after confirmed catch-up and any replay. */
@@ -167,24 +169,14 @@ export function renderPersistentPresentation(s: ShellState): void {
 
 /** Frames the live fighters of the presented match from the side. */
 export function lockArenaCamera(s: ShellState): void {
-  const { world } = presentedMatch(s);
-  let left = 0.0;
-  let right = 0.0;
-  let bottom = 0.0;
-  let top = 0.0;
-  let live = 0;
-  for (const slot of PARTICIPANT_SLOTS) {
-    if (!isActive(s.world, slot) || s.participants[slot].body === undefined || !isActive(world, slot)) continue;
-    const { motion, status } = fighterAt(world, slot);
-    if (status.out) continue;
-    left = live === 0 ? motion.x : Math.min(left, motion.x);
-    right = live === 0 ? motion.x : Math.max(right, motion.x);
-    bottom = live === 0 ? motion.z : Math.min(bottom, motion.z);
-    top = live === 0 ? motion.z : Math.max(top, motion.z);
-    live++;
-  }
+  const { world, game } = presentedMatch(s);
+  // Menus have no simulation camera yet; this temporary view never enters replay state.
+  if (!game.camera.initialized) advanceMatchCamera(s.camera, world, game.stageChoice);
+  const height = BlzGetLocalClientHeight();
+  const aspect = height > 0 ? I2R(BlzGetLocalClientWidth()) / I2R(height) : 16.0 / 9.0;
+  localCamera(s.camera, game.camera.initialized ? game.camera : s.camera, game.stageChoice, aspect);
   const { x: centerX, y: centerY } = s.origin;
-  const framing = arenaFraming(left, right, bottom, top);
+  const framing = s.camera;
   const targetX = centerX + framing.x;
   SetCameraBounds(targetX, centerY, targetX, centerY, targetX, centerY, targetX, centerY);
   SetCameraField(CAMERA_FIELD_ROTATION, ARENA_CAMERA.rotation, 0.0);
@@ -192,9 +184,15 @@ export function lockArenaCamera(s: ShellState): void {
   SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, framing.distance, 0.0);
   SetCameraField(CAMERA_FIELD_ZOFFSET, FLOOR_HEIGHT + framing.z, 0.0);
   SetCameraField(CAMERA_FIELD_ROLL, 0.0, 0.0);
-  SetCameraField(CAMERA_FIELD_FIELD_OF_VIEW, ARENA_CAMERA.fieldOfView, 0.0);
+  SetCameraField(CAMERA_FIELD_FIELD_OF_VIEW, cameraFieldOfView(framing, aspect), 0.0);
   SetCameraField(CAMERA_FIELD_FARZ, ARENA_CAMERA.farZ, 0.0);
   SetCameraPosition(targetX, centerY);
+  for (const slot of PARTICIPANT_SLOTS) {
+    const fighter = isActive(world, slot) ? fighterAt(world, slot) : undefined;
+    const point = cameraPoint(framing, aspect, fighter?.motion.x ?? 0.0, (fighter?.motion.z ?? 0.0) + 60.0);
+    const outside = point.column < 0.0 || point.column > 1.0 || point.row < 0.0 || point.row > 1.0;
+    views(s).bubbles[slot].update(game.phase === Phase.match && fighter !== undefined && !fighter.status.out && outside, fighter?.character ?? 0, point.column, point.row, aspect);
+  }
 }
 
 /** HUD, panels, help, notice and the developer line, for the local player. */

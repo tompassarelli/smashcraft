@@ -12,11 +12,14 @@ import { Action, bit } from "../src/game/input/actions";
 import { requestStageSelect, requestStart, selectCharacter, setParticipants } from "../src/game/match/rules";
 import { FLOOR_HEIGHT } from "../src/game/presentation/arenaCamera";
 import { STOCK_MODELS } from "../src/game/render/effects";
-import { IMPACT_DUST, IMPACTS_PER_KIND, impactLifetime } from "../src/game/presentation/impactState";
+import { IMPACT_DUST, IMPACTS_PER_KIND, advanceImpacts, createImpactState, emitImpacts, impactLifetime } from "../src/game/presentation/impactState";
+import { CombatEffects } from "../src/game/render/combatEffects";
+import { createImpactEvents } from "../src/game/presentation/impactEvents";
 import { Character, DownState, SurfaceContact } from "../src/game/sim/codes";
 import { fighterAt } from "../src/game/sim/roster";
 import { MAIN_DECK_BODY_SURFACES, MAIN_DECK_UNDERSIDE_Z, solidSurfaceAt } from "../src/game/sim/stage";
-import { BLAST_ZONE_BOTTOM, BLAST_ZONE_SIDE, BLAST_ZONE_TOP } from "../src/game/sim/stocks";
+import { stageBounds } from "../src/game/sim/stageBounds";
+import { advanceMatchCamera } from "../src/game/sim/matchCamera";
 import { QUICK_MATCH_COMMAND } from "../src/game/shell/devSettings";
 import { initializeScenario } from "../src/game/shell/scenarios";
 import { BODY_HALF_WIDTH, bodyTop } from "../src/game/sim/surfaces";
@@ -30,6 +33,7 @@ import { installHeadless, readNativeDeclarations } from "wisp/scripts/wisp/headl
 import type { HeadlessClient } from "wisp/src/headless/client";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
 import { MAIN_DECK_HALF_DEPTH } from "../scripts/stageDeck";
+import { CameraFindings } from "./cameraFindings";
 
 // Nothing here compares clients' native calls, so none are logged: the dense-dust match runs 240 frames.
 const declarations = readNativeDeclarations();
@@ -41,10 +45,12 @@ interface SetCamera {
   y: number;
 }
 const cameras = new Map<HeadlessClient, SetCamera>();
+const aspects = new Map<HeadlessClient, number>();
 const recordCamera = (client: HeadlessClient) => {
   const camera: SetCamera = { fields: new Map(), x: 0, y: 0 };
   cameras.set(client, camera);
   return {
+    BlzGetLocalClientWidth: () => (aspects.get(client) ?? 16 / 9) * 1080,
     SetCameraField: (field: string, value: number) => void camera.fields.set(field, value),
     SetCameraPosition: (x: number, y: number) => {
       camera.x = x;
@@ -126,6 +132,7 @@ test("a dust slot reused while shown is a new stay each use; a standing spark an
   if (client === undefined) throw new Error("missing client");
   // A hit spark left standing at the stage center, moved in view but never parked: the defect the check is for.
   let lingering: effect | undefined;
+  let dustPool: CombatEffects | undefined;
   client.run(() => {
     const s = shell();
     setParticipants(s.game, 1, 6);
@@ -135,10 +142,16 @@ test("a dust slot reused while shown is a new stay each use; a standing spark an
     startMatch(s);
     s.game.timeLimitMinutes = 0;
     lingering = AddSpecialEffect(IMPACT_HIT_MODEL, s.origin.x, s.origin.y);
+    dustPool = new CombatEffects(s.origin);
   });
   // Per frame, how long each dust slot has been in view and how often its slot was reused meanwhile.
   const stays = new Map<number, { frames: number; reuses: number; age: number | undefined }>();
   let longestReused = 0;
+  const dust = createImpactEvents();
+  const impacts = createImpactState();
+  dust.launchTrail = true;
+  // Keep the reproduced pool reuse independent of changing combat outcomes:
+  // one trail per frame for 208 frames, then allow its final stays to expire.
   for (let frame = 0; frame < 240; frame++) {
     client.run(() => {
       const { origin, participants } = shell();
@@ -152,17 +165,21 @@ test("a dust slot reused while shown is a new stay each use; a standing spark an
     clients.frames(1);
     client.run(() => {
       const s = shell();
-      const pool = (s.ui?.combat as unknown as { impacts: readonly effect[] }).impacts;
+      if (dustPool === undefined) throw new Error("missing dust pool");
+      if (frame < 208) emitImpacts(impacts, dust, frame);
+      dustPool.present(impacts, impacts, true);
+      const pool = (dustPool as unknown as { impacts: readonly effect[] }).impacts;
       for (let use = 0; use < IMPACTS_PER_KIND; use++) {
         const slot = IMPACT_DUST * IMPACTS_PER_KIND + use;
         const handle = pool[slot];
         const shown = handle !== undefined && BlzGetLocalSpecialEffectZ(handle) > s.origin.z - FLOOR_HEIGHT + 1.0;
-        const age = s.runtime.impacts.ages[slot];
+        const age = impacts.ages[slot];
         const stay = stays.get(slot) ?? { frames: 0, reuses: 0, age: undefined };
         const reuses = stay.reuses + (shown && stay.age !== undefined && age !== undefined && age < stay.age ? 1 : 0);
         stays.set(slot, shown ? { frames: stay.frames + 1, reuses, age } : { frames: 0, reuses: 0, age: undefined });
         if (shown && reuses > 0) longestReused = Math.max(longestReused, stay.frames + 1);
       }
+      advanceImpacts(impacts);
     });
   }
   client.run(() => {
@@ -197,6 +214,29 @@ test("development build: -dev perf shows the typing player what the match's fram
   // Bun has no Lua clock and counts no natives; the frames are the shell's since its first tick, the match advancing one a frame.
   expect(overlay(host)).toEqual(["frame cost, last 89 frames, median / p95 / max\nLua: no clock\nnatives: 0 / 0 / 0\ncatch-up frames: 1 / 1 / 1"]);
   expect(overlay(guest)).toEqual([]);
+});
+
+test("camera matches show a bubble on every offscreen frame and lose the stock outside the view at all supported aspects", () => {
+  for (const aspect of [16 / 9, 16 / 10, 3 / 2]) {
+    const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
+    clients.start();
+    clients.frames(30);
+    const client = clients.clients[0];
+    if (client === undefined) throw new Error("missing client");
+    aspects.set(client, aspect);
+    client.run(() => setParticipants(shell().game, 1, 2));
+    clients.chat(0, "-dev camera");
+    const check = new CameraFindings();
+    const problems: string[] = [];
+    for (let frame = 0; frame < 360; frame++) {
+      clients.frames(1);
+      client.run(() => problems.push(...check.observe(client).map(({ text }) => text)));
+    }
+    expect(problems).toEqual([]);
+    expect(check.offscreenFrames).toBeGreaterThanOrEqual(180);
+    expect(check.stockLosses).toBeGreaterThanOrEqual(1);
+    expect(client.errors).toEqual([]);
+  }
 });
 
 /** The match HUD's panels reach 0.139 up the 0.6-high screen (src/game/ui/matchHud.ts). */
@@ -248,11 +288,11 @@ test("a fighter within 100 of the main deck's underside shows above the HUD with
     return [wall.startX + ((wall.endX - wall.startX) * (z - wall.startZ)) / (wall.endZ - wall.startZ) + 12 * side, 0, z];
   };
   const fighters: Point[] = [
-    ...[underside.endX, 0, underside.startX].flatMap((x) => [MAIN_DECK_UNDERSIDE_Z - 1, BLAST_ZONE_BOTTOM + 1].map((z): Point => [x, 0, z])),
+    ...[underside.endX, 0, underside.startX].flatMap((x) => [MAIN_DECK_UNDERSIDE_Z - 1, MAIN_DECK_UNDERSIDE_Z - near].map((z): Point => [x, 0, z])),
     ...[-1, 1].flatMap((side) => [MAIN_DECK_UNDERSIDE_Z + near / 2, MAIN_DECK_UNDERSIDE_Z + near].map((z) => beside(side, z))),
   ];
   // The other fighter: KO'd, on the main deck, on a raised deck, high, at the top blast zone, far to a side.
-  const others: (Point | undefined)[] = [undefined, [300, 0, 0], [-265, 0, 170], [0, 0, 465], [0, 0, BLAST_ZONE_TOP - 1], [-(BLAST_ZONE_SIDE - 20), 0, 0]];
+  const others: (Point | undefined)[] = [undefined, [300, 0, 0], [-265, 0, 170], [0, 0, 465], [0, 0, stageBounds(0).blast.top - 1], [-(stageBounds(0).blast.right - 20), 0, 0]];
   const misses: string[] = [];
   let origin = { x: 0, y: 0 };
   client.run(() => {
@@ -269,11 +309,13 @@ test("a fighter within 100 of the main deck's underside shows above the HUD with
       const high = fighterAt(s.world, 1);
       high.status.out = other === undefined;
       [high.motion.x, high.motion.z] = [other?.[0] ?? 0, other?.[2] ?? 0];
+      s.game.camera.initialized = false;
+      advanceMatchCamera(s.game.camera, s.world, s.game.stageChoice);
       lockArenaCamera(s);
       const seen = [undersideNear(fighter), fighter].map((point) => framePoint(camera, origin, point));
       const outside = seen.filter(({ column, row }) => column < 0 || column > 1 || row < 0 || row > HUD_TOP_ROW);
       const otherSeen = other === undefined ? undefined : framePoint(camera, origin, other);
-      if (outside.length > 0 || (otherSeen !== undefined && (otherSeen.row < 0 || otherSeen.row > 1))) {
+      if (outside.length > 0) {
         misses.push(`fighter at (${fighter[0].toFixed(0)}, ${fighter[2].toFixed(0)}) with the other at ${other === undefined ? "none" : `(${other[0]}, ${other[2]})`}: underside and fighter at ${seen.map(({ column, row }) => `(${column.toFixed(2)}, ${row.toFixed(2)})`).join(" and ")}${otherSeen === undefined ? "" : `, other ${otherSeen.row.toFixed(2)}`}`);
       }
     }

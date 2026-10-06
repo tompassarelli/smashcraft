@@ -1,3 +1,4 @@
+import { stageBounds } from "./stageBounds";
 // These cases share the same hitlag-to-launch timeline: pulses, automatic
 // smash DI and continuous DI must be checked at their common frame boundaries.
 // Smash DI, automatic smash DI, directional influence and launch decay.
@@ -372,7 +373,7 @@ test("the DI opportunity clears on respawn, stock loss and hits without knockbac
   assertEquals(fighter.launch.diSerial, 0);
   assertEquals(fighter.launch.diAngleDegrees, 0.0);
   fighter.launch.diPending = true;
-  fighter.motion.x = 920.0009765625;
+  fighter.motion.x = (stageBounds(0).blast.right + 0.0009765625);
   advanceSolo(fighter, 0, controls({ shield: true }), 0.0);
   assertFalse(fighter.launch.diPending);
   assertEquals(fighter.launch.diLaunchSpeed, 0.0);

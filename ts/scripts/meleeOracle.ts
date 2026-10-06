@@ -1169,6 +1169,18 @@ const LEDGES: readonly Scenario[] = [
 
 const SCENARIOS: readonly Scenario[] = [
   ...JUMPS, ...GROUND, ...FAST_FALL, ...LANDING, ...TECHS, ...GETUPS, ...KNOCKBACK, ...PLATFORMS, ...SURFACES, ...SHIELD_AND_DODGES, ...LEDGES,
+  ...[59, 60, 120].map((frames): Scenario => ({
+    area: "offscreen", name: `magnifier damage after ${frames} consecutive frames`,
+    cite: "Fighter_procAnim, PlCo +0x7AC=60, +0x7B0=150, +0x7B4=1; ftLib_UpdateScreenVisibility; canonical 16:9 match view (#80)",
+    run: (character) => {
+      const s = solo(0, character);
+      const f = fighter(s);
+      airborne(f, 1300.0, 300.0);
+      f.status.frozenFrames = 1000;
+      for (let n = 0; n < frames; n++) frame(s);
+      return { expected: Math.floor(frames / 60), actual: f.status.damage };
+    },
+  })),
 ];
 
 const rowKey = (row: Pick<OracleRow, "area" | "scenario" | "fighter">): string => `${row.area} | ${row.scenario} | ${row.fighter}`;
@@ -1182,9 +1194,6 @@ export function runOracle(): OracleRow[] {
  * with that issue; CI fails on any other mismatch and on a listed row that passes.
  */
 const KNOWN_MISMATCHES: ReadonlyMap<string, string> = new Map<string, string>([
-  // With Illidan's top under the underside his position is below the bottom blast zone, which #80 lowers to Final Destination's.
-  ["wall/ceiling | main deck underside: a rise beneath its middle meets it this far under the floor | Illidan", "#80"],
-  ["wall/ceiling | main deck underside: a rise beneath its middle stops the fighter this far under it (its ECB top) | Illidan", "#80"],
 ]);
 
 /** Mismatches that aren't known, known mismatches and departures that now match Melee, and known rows the table no longer has. */

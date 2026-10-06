@@ -1,3 +1,4 @@
+import { stageBounds } from "./stageBounds";
 import { TECH_WINDOW_FRAMES, TECH_PRESS_AGE_LIMIT } from "../physics/techInput";
 // Floor techs: the NTSC tech input window, repeat lockout, travel and protection.
 import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
@@ -217,7 +218,7 @@ test("tech state and input timers clear on respawn and stock loss", () => {
   fighter.launch.hitstun = 50;
   landTechTest(fighter, 0, 0, input);
   assertEquals(fighter.down.state, DownState.tech);
-  fighter.motion.x = 921.0;
+  fighter.motion.x = (stageBounds(0).blast.right + 1.0);
   input.techPressed = false;
   advanceSolo(fighter, 0, input, 0.0);
   assertTrue(fighter.status.out);

@@ -35,7 +35,7 @@ import {
   WALL_JUMP_STICK_X,
   bodyTop,
 } from "./surfaces";
-import { BLAST_ZONE_BOTTOM } from "./stocks";
+import { stageBounds } from "./stageBounds";
 import { advanceSolo, controls, seedTechWindow, withPhysics } from "./testWorld";
 import { type SurfaceRecoveryPhysics, WORLD_UNITS_PER_MELEE_UNIT, melee } from "./tuning";
 
@@ -197,7 +197,7 @@ test("a jump under a solid surface still bumps its head", () => {
     // top doesn't fit between it and the bottom blast zone, which #80 lowers to Final Destination's.
     const underside = solidSurfaceAt(1, FLAT_UNDERSIDE).startZ;
     const start = f32(f32(underside - top) - 2.0);
-    if (start <= BLAST_ZONE_BOTTOM) continue;
+    if (start <= stageBounds(0).blast.bottom) continue;
     const below = createFighter(character, 0.0, 1);
     below.motion.grounded = false;
     below.motion.z = start;

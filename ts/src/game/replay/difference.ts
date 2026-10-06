@@ -177,6 +177,7 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("freezeTrapSurface", e.freezeTrap.surface, a.freezeTrap.surface);
   add("freezeTrapSerial", e.freezeTrap.serial, a.freezeTrap.serial);
   add("frozenFrames", e.status.frozenFrames, a.status.frozenFrames);
+  add("offscreenFrames", e.status.offscreenFrames, a.status.offscreenFrames);
   add("freezeTrapCooldown", e.freezeTrap.cooldown, a.freezeTrap.cooldown);
   add("out", e.status.out, a.status.out);
   add("respawn", e.status.respawn, a.status.respawn);
@@ -296,6 +297,8 @@ export function firstStateDifference(expected: Readonly<ReplayState>, actual: Re
   const e = expected.match;
   const a = actual.match;
   if (e.phase !== a.phase) return "match.phase";
+  for (const key of ["initialized", "x", "z", "distance", "tangent", "left", "right", "bottom", "top"] as const) if (e.camera[key] !== a.camera[key]) return `match.camera.${key}`;
+  for (const slot of PARTICIPANT_SLOTS) for (const key of ["left", "right", "bottom", "top"] as const) if (e.camera.boxes[slot][key] !== a.camera.boxes[slot][key]) return `match.camera.box${slot}.${key}`;
   if (e.stageChoice !== a.stageChoice) return "match.stageChoice";
   if (e.winner !== a.winner) return "match.winner";
   if (e.departedMask !== a.departedMask) return "match.departedMask";

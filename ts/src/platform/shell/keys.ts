@@ -195,7 +195,10 @@ export function onProbeExport(s: ShellState): void {
 export function onDevCommand(s: ShellState): void {
   const message = GetEventPlayerChatString();
   let receipt: string | undefined;
-  if (message === QUICK_MATCH_COMMAND) {
+  if (message === "-dev camera") {
+    receipt = "dev: camera match";
+    startQuickMatch(s, "camera");
+  } else if (message === QUICK_MATCH_COMMAND) {
     receipt = "dev: quick match";
     startQuickMatch(s);
   } else if (message === "-dev frame-cost-clock") {

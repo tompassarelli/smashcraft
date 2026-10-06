@@ -201,7 +201,7 @@ function startLedgeOption(f: Fighter, state: LedgeState): void {
 
 /** One frame on the ledge: hang options, then the mount onto the stage. */
 export function advanceLedge(world: Roster, slot: number, stage: number, input: Readonly<Controls>): void {
-  checkBlastZone(world, slot);
+  checkBlastZone(world, slot, stage);
   const f = fighterAt(world, slot);
   const { motion, ledge } = f;
   if (f.status.out || f.launch.hitlag > 0) return;

@@ -14,6 +14,8 @@ import { regenerateShield } from "../sim/shield";
 import { advanceSpecials, startFighterSpecial } from "../sim/specials";
 import { advanceFighterMotion } from "../sim/step";
 import { advanceFreezeTraps } from "../sim/summons";
+import { advanceMatchCamera } from "../sim/matchCamera";
+import { advanceOffscreenDamage } from "../sim/offscreenDamage";
 import type { FrameControls } from "./controls";
 import { type MatchState, Phase, advanceClock, humanFighterActive, resolveStocks } from "./rules";
 
@@ -26,6 +28,7 @@ const wasGrabbed: Slots<boolean> = [false, false, false, false];
 const beforeOut: Slots<boolean> = [false, false, false, false];
 
 export function initializeMatchFighters(game: Readonly<MatchState>, world: Roster): void {
+  game.camera.initialized = false;
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) continue;
     const absent = game.practice && !humanFighterActive(game, slot);
@@ -116,5 +119,7 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
     }
   }
   resolveStocks(game, world);
+  advanceMatchCamera(game.camera, world, game.stageChoice);
+  advanceOffscreenDamage(world, game.camera, game.practice);
   advanceClock(game, world);
 }

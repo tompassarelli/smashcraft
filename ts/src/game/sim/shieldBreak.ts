@@ -51,7 +51,7 @@ export function beginShieldBreak(world: Roster, slot: number): void {
 
 /** One frame of a shield break; true while it continues or the fighter is out, which ends the fighter's frame. */
 export function advanceShieldBreak(world: Roster, slot: number, stage: number, input: Readonly<Controls>): boolean {
-  checkBlastZone(world, slot);
+  checkBlastZone(world, slot, stage);
   const f = fighterAt(world, slot);
   const { motion, shield } = f;
   if (f.status.out || f.launch.hitlag > 0) return consumesFrame(f);
@@ -87,6 +87,6 @@ export function advanceShieldBreak(world: Roster, slot: number, stage: number, i
     shield.breakRemaining = max(0.0, f32(f32(shield.breakRemaining - SHIELD_BREAK_FRAME_DECAY) - mash));
     if (shield.breakRemaining <= 0) clearShieldBreak(f);
   }
-  checkBlastZone(world, slot);
+  checkBlastZone(world, slot, stage);
   return consumesFrame(f);
 }

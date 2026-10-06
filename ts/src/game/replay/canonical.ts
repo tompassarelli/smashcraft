@@ -267,6 +267,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   int("freezeTrapSurface", fighter.freezeTrap.surface ?? -1);
   int("freezeTrapSerial", fighter.freezeTrap.serial);
   int("frozenFrames", st.frozenFrames);
+  int("offscreenFrames", st.offscreenFrames);
   int("freezeTrapCooldown", fighter.freezeTrap.cooldown);
   bool("out", st.out);
   int("respawn", st.respawn);
@@ -389,6 +390,9 @@ function writeState(emit: Emit, state: Readonly<ReplayState>): void {
     bool(`commands[${slot}].consumedMayCharge`, command.consumedMayCharge);
   }
   int("match.phase", match.phase);
+  bool("match.camera.initialized", match.camera.initialized);
+  for (const key of ["x", "z", "distance", "tangent", "left", "right", "bottom", "top"] as const) emit(canonicalRealField(`match.camera.${key}`, match.camera[key]));
+  for (const slot of PARTICIPANT_SLOTS) for (const key of ["left", "right", "bottom", "top"] as const) emit(canonicalRealField(`match.camera.box${slot}.${key}`, match.camera.boxes[slot][key]));
   int("match.stageChoice", match.stageChoice);
   int("match.winner", match.winner ?? -1);
   int("match.humanCount", match.humanCount);

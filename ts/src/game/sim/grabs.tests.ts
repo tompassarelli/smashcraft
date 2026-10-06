@@ -1,3 +1,4 @@
+import { stageBounds } from "./stageBounds";
 // Grab links: what releases them, mash-out and stock loss.
 import { assertEquals, assertGreaterThan, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
@@ -141,7 +142,7 @@ test("stock loss clears a capture and post-throw recovery immediately", () => {
       assertEquals(owner.grab.target, undefined);
       assertEquals(owner.grab.action, GrabAction.throwUp);
     }
-    owner.motion.x = 921.0;
+    owner.motion.x = (stageBounds(0).blast.right + 1.0);
     advanceFighter(world, 0, 0, input, -240.0);
     assertEquals(owner.status.out, true);
     assertEquals(owner.grab.action, GrabAction.none);

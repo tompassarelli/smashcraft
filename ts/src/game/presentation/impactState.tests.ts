@@ -1,3 +1,4 @@
+import { stageBounds } from "../sim/stageBounds";
 import { assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { PARTICIPANT_SLOTS, type ParticipantSlot } from "../input/participants";
@@ -318,7 +319,7 @@ test("top KO cinematics have distinct flight, sparkle and drop", () => {
 test("replaying a confirmed top KO restores one body and the same stocks", () => {
   const match = testMatch(3, Character.archer);
   const fighter = fighterAt(match.world, 0);
-  fighter.motion.z = 761.0;
+  fighter.motion.z = (stageBounds(0).blast.top + 1.0);
   fighter.motion.grounded = false;
   fighter.launch.knockbackZ = f32(TOP_KO_MINIMUM_UPWARD_KNOCKBACK + 10.0);
   fighter.down.state = DownState.tumble;
