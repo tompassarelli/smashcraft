@@ -185,7 +185,7 @@ export const LICH_MOVES: FighterMoves = {
     ]),
   },
   throws: {
-    [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: { damage: 1.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false, element: HitElement.ice } },
+    [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: { damage: 3.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false, element: HitElement.ice } },
     [GrabAction.throwForward]: throwMove(14, 23, 7.0, "EDGE", 35),
     [GrabAction.throwBack]: throwMove(18, 26, 8.0, "EDGE", 40, true),
     [GrabAction.throwUp]: throwMove(17, 25, 7.0, "LAUNCH", 90),

@@ -207,7 +207,7 @@ export const UTHER_MOVES: FighterMoves = {
     ]),
   },
   throws: {
-    [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: { damage: 1.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } },
+    [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: { damage: 3.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } },
     [GrabAction.throwForward]: { contactFrame: 14, totalFrames: 37, effect: hit(8.0, "EDGE", 40) },
     [GrabAction.throwBack]: { contactFrame: 18, totalFrames: 44, effect: hit(9.0, "EDGE", 40, true) },
     [GrabAction.throwUp]: { contactFrame: 16, totalFrames: 38, effect: hit(7.0, "LAUNCH", 90) },

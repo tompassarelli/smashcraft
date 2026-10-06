@@ -224,8 +224,9 @@ smashcraft:ts/src/game/sim/moves.ts:
   frames off (Ultimate's stick value), but no hold ends before frame 30.
 - **Only the throw is guaranteed.** A throw input on any of the first 29 held
   frames starts the throw whatever the victim mashes.
-- **One pummel, and it is a read.** Every fighter's pummel connects 48 frames
-  after its input and lasts 56; a kit authors only its effect. Pressed on the
+- **One pummel, and it is a read.** Every fighter's pummel deals 3% (owner
+  decision, 6 Oct 2026) and connects 48 frames
+  after its input and lasts 56; a kit authors only its look. Pressed on the
   first held frame, it lands on frame 48. A victim pressing 8 times a second
   from the catch escapes on frame 42; 7 a second escapes on frame 43; 6 a
   second escapes on frame 50 and takes it. A victim who doesn't mash takes it.
@@ -591,7 +592,7 @@ The descriptive basis is [fighting-game language](design/fighting-games.md),
 | Same-frame strikes and clanking | Resolve valid fighter strikes symmetrically as trades from the same pre-contact state. Add no universal 9%-difference clank rule; any move-specific clash or projectile interaction must be explicit. | Preserve the established simultaneous-contact model instead of adding an unseen priority system. |
 | Grab versus strike; mutual grabs | Preserve the existing grab-over-strike contact priority. Mutual grabs break symmetrically, with the roster's 12-frame recovery. Throw-hitstun regrabs remain forbidden by #85. | Make the interaction deterministic and retain the adopted throw counterplay. |
 | Throw defence | Existing mash escape; no new timed throw-tech input. Once an immediate throw has started, only the release-frame DI choice remains, as the locked-state signal explains. | The expansion contract preserves the existing escape system and true throw-to-strike follow-ups. |
-| Grab hold and pummel | Every hold lasts 90 frames at any percent; each mash input takes 8 off, never below 30. One pummel per grab, connecting 48 frames after its input; then a throw (bufferable) or a neutral release. Both players see the escape meter above the held fighter ([grab holds](#grab-holds-and-pummels)). | Owner direction (#101): the throw is the guarantee, the pummel a visible read, and no grab is a chore. |
+| Grab hold and pummel | Every hold lasts 90 frames at any percent; each mash input takes 8 off, never below 30. One 3% pummel per grab, connecting 48 frames after its input; then a throw (bufferable) or a neutral release. Both players see the escape meter above the held fighter ([grab holds](#grab-holds-and-pummels)). | Owner direction (#101): the throw is the guarantee, the pummel a visible read, and no grab is a chore. |
 | Option selects | Keep combinations that retain commitment and an opponent answer. Repair a specific option select when it removes both branches' counterplay for free; no blanket ban on emergent input combinations. | Judge the actual interaction, not the mere existence of a multi-purpose input. |
 | Mixup branch reward | Each intended branch must offer a meaningful different result or punish. Use its measured reward/risk and break-even probability; no universal damage floor for the weaker branch. | A position, escape or stock threat can matter without an invented damage-equivalent score. |
 | Balance changes and archetypes | State each fighter's purpose and exploitable weakness, then adjust the evidenced interaction with buffs or nerfs as needed. No buff-first rule or universal "no 7–3" numerical promise. | Preserves the adopted roster identities and the current bounded evaluation model. |
