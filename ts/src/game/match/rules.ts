@@ -41,6 +41,8 @@ export interface MatchState {
   remainingFrames: number;
   /** Every computer choice draws under it, so each match plays differently; the next match after a result takes the next seed. */
   matchSeed: number;
+  /** Frames at the start that hold every fighter for "3, 2, 1, GO!"; 0 in practice, training and test matches. */
+  startHold: number;
   /** Frames this match has run; moving decks follow their paths by it. */
   matchFrame: number;
   timedOut: boolean;
@@ -57,7 +59,7 @@ export function createMatchState(): MatchState {
     characterReadiness: [false, false, false, false], rematchReadiness: [false, false, false, false],
     departedMask: 0, interrupted: false, humanMask: 1, humanFighterMask: 1, humanCount: 1, computerMask: 0,
     stageChoice: 2, winner: undefined, stockCount: 3, timeLimitMinutes: 7, endless: false, automaticRematch: false, rematchCountdown: 0,
-    remainingFrames: 7 * 60 * MATCH_TICKS_PER_SECOND, matchFrame: 0, timedOut: false, practice: false,
+    remainingFrames: 7 * 60 * MATCH_TICKS_PER_SECOND, startHold: 0, matchFrame: 0, timedOut: false, practice: false,
     training: false, trainer: createTrainingState(),
   };
 }
@@ -153,6 +155,7 @@ export function copyMatchState(target: MatchState, source: Readonly<MatchState>)
   target.rematchCountdown = source.rematchCountdown;
   target.remainingFrames = source.remainingFrames;
   target.matchSeed = source.matchSeed;
+  target.startHold = source.startHold;
   target.matchFrame = source.matchFrame;
   target.timedOut = source.timedOut;
   target.practice = source.practice;
@@ -284,6 +287,12 @@ export const keepsStocks = (game: Readonly<MatchState>): boolean => game.practic
 
 export const remainingSeconds = (game: Readonly<MatchState>): number => floorDiv(game.remainingFrames + MATCH_TICKS_PER_SECOND - 1, MATCH_TICKS_PER_SECOND);
 
+/** Brawl and Ultimate count "3, 2, 1, GO!" over about three seconds; Melee holds 84 frames for "Ready... GO!" (docs/design/match-flow.md). */
+export const START_HOLD_FRAMES = 3 * MATCH_TICKS_PER_SECOND;
+
+/** Whether this match frame still holds the fighters for the countdown: GO! is frame startHold + 1. */
+export const holdingStart = (game: Readonly<MatchState>): boolean => game.phase === Phase.match && game.startHold > 0 && game.matchFrame <= game.startHold;
+
 function beginMatch(game: MatchState): void {
   game.winner = undefined;
   game.interrupted = false;
@@ -295,6 +304,7 @@ function beginMatch(game: MatchState): void {
   game.remainingFrames = timedMatch(game) ? game.timeLimitMinutes * 60 * MATCH_TICKS_PER_SECOND : 0;
   // A match has run since the boot: this one plays the next seed.
   if (game.matchFrame > 0) game.matchSeed = nextMatchSeed(game.matchSeed);
+  game.startHold = game.practice || game.training ? 0 : START_HOLD_FRAMES;
   game.matchFrame = 0;
   game.phase = Phase.match;
 }
@@ -389,7 +399,7 @@ export function resolveStocks(game: MatchState, world: Roster): void {
 }
 
 export function advanceClock(game: MatchState, world: Roster): void {
-  if (game.phase !== Phase.match || !timedMatch(game)) return;
+  if (game.phase !== Phase.match || !timedMatch(game) || holdingStart(game)) return;
   game.remainingFrames--;
   if (game.remainingFrames > 0) return;
   game.remainingFrames = 0;

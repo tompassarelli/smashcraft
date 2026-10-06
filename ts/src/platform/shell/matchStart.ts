@@ -25,7 +25,8 @@ export function startMatch(s: ShellState, scenario: Scenario = s.build.scenario)
   // Revoke the helper's menu before the match takes text focus.
   publishMenu(s);
   const wasPaused = s.session.paused;
-  setStatus(s, "GO!", 1.0);
+  // A held start calls its own countdown (presentation/matchCues.ts); practice and training start at once.
+  setStatus(s, s.game.startHold === 0 ? "GO!" : "", s.game.startHold === 0 ? 1.0 : 0.0);
   const ui = views(s);
   for (const slot of PARTICIPANT_SLOTS) if (ui.settings[slot].isOpen()) ui.settings[slot].close();
   clearAllInputs(s);

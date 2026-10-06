@@ -849,6 +849,8 @@ function writeState(emit: Emit, state: Readonly<ReplayState>): void {
   int("match.remainingFrames", match.remainingFrames);
   int("match.matchSeed", match.matchSeed);
   int("match.matchFrame", match.matchFrame);
+  // Only matches with a countdown carry it, so test and practice matches keep their checksums.
+  if (match.startHold !== 0) int("match.startHold", match.startHold);
   bool("match.timedOut", match.timedOut);
   bool("match.practice", match.practice);
   // Only training matches carry training state, so every other match keeps its checksum.

@@ -2,7 +2,7 @@
 import { Advantage, type TrainingState } from "../match/trainingState";
 import { PARTICIPANT_SLOTS, participantActive } from "../input/participants";
 import { floorDiv } from "wisp/src/sim/intMath";
-import { MATCH_TICKS_PER_SECOND, type MatchState, humanFighterActive, humanPresent, practiceSelected } from "../match/rules";
+import { MATCH_TICKS_PER_SECOND, type MatchState, humanFighterActive, humanPresent, keepsStocks, practiceSelected } from "../match/rules";
 import { AttackStyle, DownState, LedgeState } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 
@@ -16,7 +16,7 @@ export function fighterLabel(game: Readonly<MatchState>, slot: number): string {
 /** A knockout as the match announces it, calling out a fighter down to its last stock. */
 export function stockLossMessage(game: Readonly<MatchState>, slot: number, stocks: number): string {
   const label = fighterLabel(game, slot);
-  if (game.endless || game.practice) return `${label} was knocked out!`;
+  if (keepsStocks(game)) return `${label} was knocked out!`;
   return stocks === 1 ? `${label} is on their last stock!` : `${label} lost a stock!`;
 }
 

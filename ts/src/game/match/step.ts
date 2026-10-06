@@ -12,7 +12,7 @@ import { carryOnMovingDecks } from "../sim/movingDecks";
 import { observedActions, resetObservedActions } from "../sim/observations";
 import { updateProjectiles } from "../sim/projectiles";
 import { advancePlacedObjects } from "../sim/placedObjects";
-import { type Roster, fighterAt, isActive } from "../sim/roster";
+import { type Roster, copyControls, fighterAt, isActive, neutralControls } from "../sim/roster";
 import { regenerateShield } from "../sim/shield";
 import { advanceSpecials, startFighterSpecial } from "../sim/specials";
 import { advanceHeroStatus, regenerateMana } from "../sim/heroSpecialRules";
@@ -24,7 +24,7 @@ import { advanceFreezeTraps } from "../sim/summons";
 import { advanceMatchCamera } from "../sim/matchCamera";
 import { advanceOffscreenDamage } from "../sim/offscreenDamage";
 import type { FrameControls } from "./controls";
-import { type MatchState, Phase, advanceClock, humanFighterActive, keepsStocks, resolveStocks } from "./rules";
+import { type MatchState, Phase, advanceClock, holdingStart, humanFighterActive, keepsStocks, resolveStocks } from "./rules";
 import { advanceTrainingReadout, captureTrainingBefore, resetTrainingPositions } from "./training";
 
 export const observedFrameLegalActions: Slots<number> = [0, 0, 0, 0];
@@ -34,6 +34,7 @@ export const observedFrameStartedActions: Slots<number> = [0, 0, 0, 0];
 const hadDashGrabWindow: Slots<boolean> = [false, false, false, false];
 const wasGrabbed: Slots<boolean> = [false, false, false, false];
 const beforeOut: Slots<boolean> = [false, false, false, false];
+const HELD = neutralControls();
 
 export function initializeMatchFighters(game: Readonly<MatchState>, world: Roster): void {
   game.camera.initialized = false;
@@ -65,6 +66,13 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
   if (game.phase !== Phase.match) return;
   game.matchFrame++;
   const { stageChoice: stage, matchFrame } = game;
+  // Through the countdown every fighter stands still; a press made during it is dropped, so GO! needs a fresh one.
+  if (holdingStart(game)) {
+    for (const slot of PARTICIPANT_SLOTS) {
+      copyControls(controls.inputs[slot], HELD);
+      clearAttackBuffer(controls.commands[slot]);
+    }
+  }
   if (game.training) {
     // Both shields held with attack pressed, by any player: everyone back to the start.
     if (PARTICIPANT_SLOTS.some(slot => isActive(world, slot) && humanFighterActive(game, slot) && controls.inputs[slot].resetPressed)) {

@@ -2,7 +2,8 @@
 // screen shows. Both read confirmed state only: replayed and predicted frames
 // never reach them, and nothing here feeds the simulation.
 import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots, isParticipantSlot } from "../input/participants";
-import { type MatchState, Phase } from "../match/rules";
+import { MATCH_TICKS_PER_SECOND, type MatchState, Phase, keepsStocks } from "../match/rules";
+import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
 import { fighterName } from "../sim/heroes/registry";
 import { fighterLabel } from "../shell/messages";
@@ -40,12 +41,31 @@ export function clearMatchTally(tally: MatchTally): void {
 }
 
 /**
- * The cues of one confirmed frame, in play order: knockouts first, then the
- * end of the match. Counts each knockout in `tally`; the last fighter to land
+ * The countdown's call on this match frame: "3", "2" and "1" a second apart
+ * through the held start, then "GO!" on the first frame fighters act.
+ */
+export function countdownCue(game: Readonly<MatchState>): MatchCue | undefined {
+  const { startHold, matchFrame } = game;
+  if (game.phase !== Phase.match || startHold === 0) return undefined;
+  if (matchFrame === startHold + 1) return MatchCue.go;
+  if (matchFrame < 1 || matchFrame > startHold || floorMod(matchFrame - 1, MATCH_TICKS_PER_SECOND) !== 0) return undefined;
+  switch (floorDiv(startHold - matchFrame + 1 + MATCH_TICKS_PER_SECOND - 1, MATCH_TICKS_PER_SECOND)) {
+    case 3: return MatchCue.three;
+    case 2: return MatchCue.two;
+    case 1: return MatchCue.one;
+    default: return undefined;
+  }
+}
+
+/**
+ * The cues of one confirmed frame, in play order: the countdown, knockouts,
+ * then the end of the match. Counts each knockout in `tally`; the last fighter to land
  * a hit takes the KO.
  */
 export function confirmedFrameCues(before: Readonly<CueObservation>, game: Readonly<MatchState>, world: Readonly<Roster>, tally: MatchTally, cues: MatchCue[]): void {
   cues.length = 0;
+  const countdown = countdownCue(game);
+  if (countdown !== undefined) cues.push(countdown);
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot) || before.out[slot]) continue;
     const fighter = fighterAt(world, slot);
@@ -54,7 +74,7 @@ export function confirmedFrameCues(before: Readonly<CueObservation>, game: Reado
     const attacker = fighter.hits.lastAttacker;
     if (attacker !== undefined && attacker !== slot && isParticipantSlot(attacker)) tally.kos[attacker]++;
     cues.push(MatchCue.stockLost);
-    if (!game.practice && !game.endless && fighter.status.stocks === 1) cues.push(MatchCue.lastStock);
+    if (!keepsStocks(game) && fighter.status.stocks === 1) cues.push(MatchCue.lastStock);
   }
   if (before.phase === Phase.match && game.phase === Phase.result && !game.interrupted) cues.push(game.timedOut ? MatchCue.time : MatchCue.game);
 }
