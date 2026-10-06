@@ -33,6 +33,27 @@ test("releasing a shield waits for the minimum hold, then applies release lag", 
   assertEquals(fighter.shield.releaseLag, SHIELD_RELEASE_LAG_FRAMES - 1);
 });
 
+test("every fighter's dropped shield blocks attacks for Ultimate's 11 frames, then frees them", () => {
+  assertEquals(SHIELD_RELEASE_LAG_FRAMES, 11);
+  for (const character of Object.values(Character)) {
+    const fighter = createFighter(character, 0.0, 1);
+    const input = controls({ shield: true });
+    for (let i = 0; i < SHIELD_MIN_HOLD_FRAMES; i++) advanceSolo(fighter, 0, input, -240.0);
+    input.shield = false;
+    advanceSolo(fighter, 0, input, -240.0);
+    assertFalse(fighter.shield.raised);
+    assertEquals(fighter.shield.releaseLag, 11);
+    for (let frame = 1; frame < 11; frame++) {
+      assertFalse(canAttack(fighter));
+      advanceSolo(fighter, 0, input, -240.0);
+    }
+    assertEquals(fighter.shield.releaseLag, 1);
+    advanceSolo(fighter, 0, input, -240.0);
+    assertEquals(fighter.shield.releaseLag, 0);
+    assertTrue(canAttack(fighter));
+  }
+});
+
 test("a shield grab requires an unstunned, grounded, active shield and keeps other attacks locked", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
   fighter.shield.raised = true;

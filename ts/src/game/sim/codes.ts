@@ -55,6 +55,10 @@ export type GrabAction = (typeof GrabAction)[keyof typeof GrabAction];
 export const LedgeState = { none: 0, hang: 1, climb: 2, roll: 3, attack: 4 } as const;
 export type LedgeState = (typeof LedgeState)[keyof typeof LedgeState];
 
+/** Passing through a pass-through platform (platformMoves.ts): up through it, down through it, or around its edge onto or under it. */
+export const PlatformMove = { none: 0, ascent: 1, descent: 2, wrapOver: 3, wrapUnder: 4 } as const;
+export type PlatformMove = (typeof PlatformMove)[keyof typeof PlatformMove];
+
 /**
  * Character specials. Demon Hunter actions have their own IDs so renderer
  * bindings cannot silently map them to another fighter's clips.
@@ -139,7 +143,7 @@ export const HitElement = { normal: 0, fire: 1, electric: 2, slash: 3, ice: 5 } 
 export type HitElement = (typeof HitElement)[keyof typeof HitElement];
 
 /** Hero statuses (sim/heroStatus.ts) a body hit applies. Append only: the code is in replay text. */
-export const HeroStatusKind = { none: 0, sleep: 1 } as const;
+export const HeroStatusKind = { none: 0, sleep: 1, poison: 2 } as const;
 export type HeroStatusKind = (typeof HeroStatusKind)[keyof typeof HeroStatusKind];
 
 /**

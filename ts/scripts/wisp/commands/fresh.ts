@@ -190,8 +190,8 @@ export const freshMatch = (map: string, fromGame = false) => Effect.scoped(Effec
   return yield* Effect.forEach(clients.all, (client) => readyAfter(client, start), { concurrency: "unbounded" }).pipe(step("every client at character selection"));
 }));
 
-/** Sends `-dev quick` from the host client and waits until every player's new receipt arrives. */
-export const sendQuickMatchCommand = Effect.gen(function*() {
+/** Sends a developer chat command, such as `-dev quick`, from the host client and waits until every player's new receipt arrives. */
+export const sendDevCommand = (command: string) => Effect.gen(function*() {
   const clients = yield* Clients;
   const files = yield* GameFiles;
   const [host] = clients.all;
@@ -200,7 +200,7 @@ export const sendQuickMatchCommand = Effect.gen(function*() {
     return readGameFile(path, MeleeReady);
   });
   const build = mapReady[0]?.value.build;
-  if (host === undefined || build === undefined) return yield* new UsageFailure({ problem: "fresh quick match needs a ready game on every client" });
+  if (host === undefined || build === undefined) return yield* new UsageFailure({ problem: `${command} needs a ready game on every client` });
 
   const receipts = clients.all.map((client, slot) => ({ client, path: join(dataDirectory(client.documents), devCommandReceiptFile(build, slot)), slot }));
   yield* Effect.forEach(receipts, ({ path }) => files.read(path).pipe(
@@ -209,9 +209,9 @@ export const sendQuickMatchCommand = Effect.gen(function*() {
 
   yield* clients.batch(host, [
     { kind: "keys", keys: ["Return"] },
-    { kind: "text", text: QUICK_MATCH_COMMAND },
+    { kind: "text", text: command },
     { kind: "keys", keys: ["Return"] },
-  ]).pipe(step("send -dev quick"));
+  ]).pipe(step(`send ${command}`));
 
   const waitReceipt = ({ client, path, slot }: typeof receipts[number]) => Effect.gen(function*() {
     let problem: MalformedGameFile | undefined;
@@ -222,12 +222,14 @@ export const sendQuickMatchCommand = Effect.gen(function*() {
         return undefined;
       })),
     );
-    const receipt = yield* waitFor(client, `-dev quick receipt for slot ${slot}`, 4, observe).pipe(
+    const receipt = yield* waitFor(client, `${command} receipt for slot ${slot}`, 4, observe).pipe(
       Effect.catchTag("DesktopFailure", (timeout): Effect.Effect<never, DesktopFailure | MalformedGameFile> =>
         problem === undefined ? Effect.fail(timeout) : Effect.fail(problem)),
     );
     return receipt;
   });
   const received = yield* Effect.forEach(receipts, (receipt) => waitReceipt(receipt).pipe(step(`${receipt.client.name} quick-match receipt`)), { concurrency: "unbounded" });
-  yield* Console.log(`-dev quick acknowledged by ${received.length} client(s)`);
+  yield* Console.log(`${command} acknowledged by ${received.length} client(s)`);
 });
+
+export const sendQuickMatchCommand = sendDevCommand(QUICK_MATCH_COMMAND);

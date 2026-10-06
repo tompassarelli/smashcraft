@@ -2,7 +2,7 @@
 // determines whether the elapsed interval advances, freezes or restarts.
 import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
-import { AttackPhase, AttackStyle, Character, DownState, GrabAction, LedgeState, ShieldBreak, SpecialAction } from "../sim/codes";
+import { AttackPhase, AttackStyle, Character, DownState, GrabAction, LedgeState, PlatformMove, ShieldBreak, SpecialAction } from "../sim/codes";
 import { FOLLOW_UP_FORM } from "../sim/heroSpecials";
 import { GROUND_ROLL_FRAMES, SPOT_DODGE_FRAMES, attackPhase, inGrabContext, isForwardGroundRoll, isGroundDodging } from "../sim/conditions";
 import { DOWN_BOUND_FRAMES, DOWN_DAMAGE_FRAMES, DOWN_ROLL_FRAMES, DOWN_STAND_FRAMES, TECH_IN_PLACE_FRAMES, TECH_ROLL_FRAMES } from "../sim/down";
@@ -172,7 +172,7 @@ export function advanceFighterPose(
 function advanceJumpClip(pose: FighterPose, f: Readonly<Fighter>, phase: AttackPhase, wasOut: boolean, jumped: boolean): void {
   const busy = f.motion.grounded || f.launch.hitstun > 0 || f.dodge.airDodging || phase !== AttackPhase.none
     || f.special.action !== SpecialAction.none || f.down.state !== DownState.none
-    || f.shield.breakState !== ShieldBreak.none || f.ledge.state !== LedgeState.none;
+    || f.shield.breakState !== ShieldBreak.none || f.ledge.state !== LedgeState.none || f.platform.move !== PlatformMove.none;
   if (busy) pose.jumpAnimationRemaining = 0;
   else if (jumped && !wasOut) {
     pose.doubleJumpAnimation = f.jump.isDouble;
@@ -201,6 +201,12 @@ function selectClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly<Ros
     playIndex(pose, `ledge${f.ledge.state}${catching ? ":catch" : ""}`, index);
     if (catching) return clipRate(dh.DEMON_HUNTER_LEDGE_CATCH_SECONDS, LEDGE_CATCH_FRAMES);
     return illidan && f.ledge.state === LedgeState.hang ? 0.0 : rate;
+  }
+  if (f.platform.move !== PlatformMove.none) {
+    // The whole clip plays over the move, which lasts the jump squat.
+    const platformClip = clips.platformClip(character, f.platform.move);
+    playIndex(pose, `platform${f.platform.move}`, platformClip.index);
+    return clipRate(platformClip.seconds, f.platform.duration);
   }
   if (f.shield.breakState !== ShieldBreak.none) {
     const key = `shieldbreak${f.shield.breakState}`;

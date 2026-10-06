@@ -20,6 +20,7 @@ const SMASHCRAFT_DEV: DevProject = {
     reads: {
       "test/source-shapes.test.ts": ["src/**/*.ts", "scripts/**/*.ts"],
       "test/wisp.test.ts": ["test/fixtures/wisp/**"],
+      "test/command-list.test.ts": ["scripts/wisp.ts", "../AGENTS.md"],
       "test/menu-fresh.test.ts": ["test/fixtures/wisp/**"],
       // Dated evidence records, never edited.
       "test/integrity.test.ts": ["../evidence/**"],

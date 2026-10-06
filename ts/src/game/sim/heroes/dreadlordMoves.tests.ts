@@ -1,10 +1,11 @@
 import { assertEquals, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
-import { AttackPhase, AttackStyle, Character, DASH_GRAB_REQUEST, GrabAction } from "../codes";
+import { AttackPhase, AttackStyle, Character, DASH_GRAB_REQUEST, GrabAction, HitElement } from "../codes";
 import { attackPhase } from "../conditions";
 import { createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
+import type { HurtPart } from "../hurtboxes";
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hitRegions";
 import { attackLandingLag, attackRecoveryFrames, attackStartupFrames, grabActionDuration, grabContactFrame, isAerialAttack, smashDamageMultiplier } from "../moves";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
@@ -208,4 +209,95 @@ test("Dreadlord throws hold until the adopted release and launch once in both fa
       assertEquals(target.status.damage, damage);
     }
   }
+});
+
+/** Damage a Rifleman jab tip deals to a Dreadlord body posed at `style`/`frame`, with its limb pointing toward the jab. */
+function jabIntoDreadlord(style: AttackStyle | undefined, frame: number, gap: number, behind = false): number {
+  const attacker = createFighter(Character.rifleman, 0.0, 1);
+  const target = createFighter(Character.archer, gap, behind ? 1 : -1);
+  target.tuning.moves = DREADLORD_MOVES;
+  const world = testWorld(attacker, target);
+  beginFighterAttack(world, 0, AttackStyle.jab, false);
+  attacker.attack.frame = attackStartupFrames(AttackStyle.jab, attacker.tuning.moves);
+  target.attack.style = style;
+  target.attack.frame = frame;
+  resolveAttacks(world);
+  return target.status.damage;
+}
+
+test("Dreadlord's claws and wings are attached body: every strike is his limb on its active frames", () => {
+  for (const [style, first, active] of NORMAL_TIMINGS) {
+    const move = DREADLORD_MOVES.normals[style];
+    const hurt = DREADLORD_MOVES.hurtboxes?.attacks[style];
+    assertTrue(move !== undefined && hurt !== undefined);
+    if (move === undefined || hurt === undefined) continue;
+    // Zero-based active frames first-1 .. first+active-2 sit inside one held, fully drawn-out pose.
+    const peak = hurt.find(pose => pose.firstFrame <= first - 1 && pose.lastFrame >= first + active - 2);
+    assertTrue(peak !== undefined);
+    if (peak === undefined) continue;
+    for (const region of move.regions) {
+      const strike = region.hit.strike;
+      if (strike === undefined) continue;
+      const limb = peak.parts.find(part => part.x1 === strike.x1 && part.z1 === strike.z1 && part.x2 === strike.x2 && part.z2 === strike.z2);
+      assertTrue(limb !== undefined);
+      if (limb !== undefined) assertEquals(limb.radius, f32(strike.radius - 2.0));
+    }
+    // Held at least three frames, in order, and no body change moves an extent more than 60 units.
+    const stand = DREADLORD_MOVES.hurtboxes?.stand ?? [];
+    let previous = stand;
+    let previousLast = -1;
+    for (const pose of hurt) {
+      assertGreaterThan(pose.lastFrame - pose.firstFrame + 1, 2);
+      assertGreaterThan(pose.firstFrame, previousLast);
+      if (pose.firstFrame > previousLast + 1 && previousLast >= 0) {
+        assertLessThan(largestExtentStep(previous, stand), f32(60.0001));
+        previous = stand;
+      }
+      assertLessThan(largestExtentStep(previous, pose.parts), f32(60.0001));
+      previous = pose.parts;
+      previousLast = pose.lastFrame;
+    }
+    assertLessThan(largestExtentStep(previous, stand), f32(60.0001));
+    assertLessThan(previousLast, move.totalFrames);
+  }
+});
+
+function largestExtentStep(a: readonly HurtPart[], b: readonly HurtPart[]): number {
+  const bounds = (parts: readonly HurtPart[]) => [
+    Math.max(...parts.map(p => Math.max(p.x1, p.x2) + p.radius)), Math.min(...parts.map(p => Math.min(p.x1, p.x2) - p.radius)),
+    Math.max(...parts.map(p => Math.max(p.z1, p.z2) + p.radius)), Math.min(...parts.map(p => Math.min(p.z1, p.z2) - p.radius)),
+  ];
+  const x = bounds(a);
+  const y = bounds(b);
+  return Math.max(...x.map((value, index) => Math.abs(value - (y[index] ?? 0.0))));
+}
+
+test("Dreadlord's extended arm and wing can be hit where his standing body cannot", () => {
+  // Rifleman's jab reaches past the standing body at this gap but not to it.
+  const gap = 150.0;
+  assertEquals(jabIntoDreadlord(undefined, 0, gap), 0.0);
+  assertGreaterThan(jabIntoDreadlord(AttackStyle.forwardTilt, 8, gap), 0.0);
+  assertGreaterThan(jabIntoDreadlord(AttackStyle.forwardAir, 9, gap), 0.0);
+  // Well after recovery begins the arm is folded back.
+  assertEquals(jabIntoDreadlord(AttackStyle.forwardTilt, 20, gap), 0.0);
+  // Back air exposes the wing behind him.
+  assertGreaterThan(jabIntoDreadlord(AttackStyle.backAir, 8, gap, true), 0.0);
+});
+
+test("an original fighter's throw after Dreadlord's shows its own hit element, not his claws'", () => {
+  const throwOnce = (moves: typeof DREADLORD_MOVES | undefined) => {
+    const { owner, target, world } = attackPair(AttackStyle.grab, 6, 50.0);
+    owner.tuning.moves = moves;
+    resolveAttacks(world);
+    if (moves === undefined) {
+      owner.grab.target = 1;
+      target.grab.owner = 0;
+      target.grab.grabbedFrames = 200;
+    }
+    const input = controls({ grabThrowX: 1 });
+    for (let tick = 0; tick < 40 && target.grab.owner !== undefined; tick++) testGrabFrame(world, [input, controls()], false);
+    return target.visuals.hitElement;
+  };
+  assertEquals(throwOnce(DREADLORD_MOVES), HitElement.slash);
+  assertEquals(throwOnce(undefined), HitElement.normal);
 });

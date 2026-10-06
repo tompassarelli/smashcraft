@@ -38,6 +38,8 @@ function releaseThrow(world: Roster, ownerSlot: number, targetSlot: number, targ
   throwHit.base = down ? 55.0 : 45.0;
   throwHit.launchX = up ? 0.17364799976348877 : down ? 0.3420200049877167 : 0.8660249710083008;
   throwHit.launchZ = up ? 0.9848080277442932 : down ? 0.9396929740905762 : 0.5;
+  throwHit.element = undefined;
+  throwHit.electric = false;
   const authored = owner.tuning.moves?.throws[action];
   if (authored !== undefined) copyHitEffect(throwHit, authored.effect);
   const direction = authored !== undefined ? owner.facing : action === GrabAction.throwBack ? -owner.facing : owner.facing;

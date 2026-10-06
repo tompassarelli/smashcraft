@@ -18,7 +18,7 @@ import {
 } from "./conditions";
 import { AIR_DODGE_LANDING_LAG } from "./down";
 import { type Fighter, createFighter } from "./fighter";
-import { beginAirDodge } from "./jumpsAndDodges";
+import { AIR_DODGE_ANIMATION_FRAMES, beginAirDodge } from "./jumpsAndDodges";
 import { TOP_KO_MINIMUM_UPWARD_KNOCKBACK } from "./knockback";
 import { attackStartupFrames } from "./moves";
 import { surfaceRight, surfaceZ } from "./stage";
@@ -51,6 +51,93 @@ test("an air dodge changes velocity, and landing restores jumps", () => {
   input.direction = 1;
   advanceSolo(fighter, 0, input, -240.0);
   assertEquals(fighter.landing.lag, 9);
+});
+
+const ALL_FIGHTERS = Object.values(Character);
+
+/** A fighter of `character` high above the stage that air dodges down-right this frame. */
+function airDodgedFighter(character: Character): Fighter {
+  const fighter = createFighter(character, 0.0, 1);
+  fighter.motion.grounded = false;
+  fighter.motion.z = 3000.0;
+  fighter.jump.remaining = 1;
+  advanceSolo(fighter, 0, controls({ airDodgePressed: true, dodgeX: 1, dodgeZ: -1 }), -240.0);
+  assertTrue(fighter.dodge.airDodging);
+  assertTrue(fighter.dodge.airUsed);
+  return fighter;
+}
+
+test("every fighter's air dodge ends actionable, spends no jump and allows one per airtime", () => {
+  for (const character of ALL_FIGHTERS) {
+    const fighter = airDodgedFighter(character);
+    assertEquals(fighter.jump.remaining, 1);
+    const idle = controls();
+    for (let frame = 2; frame < AIR_DODGE_ANIMATION_FRAMES; frame++) {
+      advanceSolo(fighter, 0, idle, -240.0);
+      assertTrue(fighter.dodge.airDodging);
+      assertFalse(canAttack(fighter));
+    }
+    advanceSolo(fighter, 0, idle, -240.0);
+    assertFalse(fighter.motion.grounded);
+    assertFalse(fighter.dodge.airDodging);
+    assertTrue(canAttack(fighter));
+    // A second dodge in the same airtime is refused; the remaining jump still works.
+    advanceSolo(fighter, 0, controls({ airDodgePressed: true, dodgeX: -1 }), -240.0);
+    assertFalse(fighter.dodge.airDodging);
+    advanceSolo(fighter, 0, controls({ jumpPressed: true }), -240.0);
+    assertEquals(fighter.jump.remaining, 0);
+    assertTrue(fighter.dodge.airUsed);
+  }
+});
+
+test("landing after the dodge ends uses ordinary landing and refreshes the air dodge for every fighter", () => {
+  for (const character of ALL_FIGHTERS) {
+    const fighter = airDodgedFighter(character);
+    fighter.motion.z = 400.0;
+    const idle = controls();
+    let ticks = 0;
+    while (!fighter.motion.grounded && ticks < 400) {
+      advanceSolo(fighter, 0, idle, -240.0);
+      ticks++;
+    }
+    assertTrue(fighter.motion.grounded);
+    assertFalse(fighter.dodge.airUsed);
+    assertLessThan(fighter.landing.lag, AIR_DODGE_LANDING_LAG);
+  }
+});
+
+test("a waveland during the dodge keeps its special landing and refreshes the dodge for every fighter", () => {
+  for (const character of ALL_FIGHTERS) {
+    const fighter = createFighter(character, 0.0, 1);
+    fighter.motion.grounded = false;
+    fighter.motion.z = 6.0;
+    advanceSolo(fighter, 0, controls({ airDodgePressed: true, dodgeX: 1 }), -240.0);
+    let ticks = 0;
+    while (!fighter.motion.grounded && ticks < 20) {
+      advanceSolo(fighter, 0, controls(), -240.0);
+      ticks++;
+    }
+    assertTrue(fighter.motion.grounded);
+    assertGreaterThan(fighter.motion.vx, 0.0);
+    assertEquals(fighter.landing.lag, AIR_DODGE_LANDING_LAG - ticks + 1);
+    assertFalse(fighter.dodge.airUsed);
+  }
+});
+
+test("a hit refreshes a spent air dodge for every fighter", () => {
+  for (const character of ALL_FIGHTERS) {
+    const fighter = airDodgedFighter(character);
+    for (let frame = 2; frame <= AIR_DODGE_ANIMATION_FRAMES; frame++) advanceSolo(fighter, 0, controls(), -240.0);
+    fighter.status.invincible = 0;
+    const attacker = createFighter(Character.archer, fighter.motion.x - 40.0, 1);
+    attacker.motion.grounded = false;
+    attacker.motion.z = fighter.motion.z;
+    attacker.attack.style = AttackStyle.neutralAir;
+    attacker.attack.frame = attackStartupFrames(AttackStyle.neutralAir);
+    resolveAttacks(testWorld(attacker, fighter));
+    assertGreaterThan(fighter.launch.hitstun, 0);
+    assertFalse(fighter.dodge.airUsed);
+  }
 });
 
 test("an air dodge replaces prior movement and launch momentum", () => {

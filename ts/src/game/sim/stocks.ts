@@ -14,6 +14,7 @@ import {
   clearGrabLinks,
   clearLedge,
   clearOwnedFreezeTrap,
+  clearPlatformMove,
   clearSpecialOnStock,
   clearSurfaceRecovery,
   clearTech,
@@ -192,11 +193,12 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   status.out = false;
   motion.grounded = false;
   jump.remaining = 2;
-  motion.dropTime = 0;
+  clearPlatformMove(f);
   dodge.airMotionFrames = 0;
   landing.lag = 0;
   dodge.airDodging = false;
   dodge.airFrame = 0;
+  dodge.airUsed = false;
   dodge.groundFrame = 0;
   dodge.groundDirection = 0;
   dodge.groundEntryFacing = 0;
