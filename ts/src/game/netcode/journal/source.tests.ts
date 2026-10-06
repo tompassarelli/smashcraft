@@ -2,7 +2,7 @@ import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "wisp
 import { Action, bit } from "../../input/actions";
 import { type InputRow, type RowFields, inputRow, sameInput } from "../../input/inputRow";
 import { type InputPacket, encodePacket, inputPacket } from "../../input/wire";
-import { type JournalRead, JournalInputSource } from "./source";
+import { type JournalRead, JournalInputSource, RECORD_PACKETS } from "./source";
 
 const row = (fields: RowFields = {}) => assertDefined(inputRow(fields), "row");
 const wire = (epoch: number, firstFrame: number, ...rows: InputRow[]) => encodePacket(assertDefined(inputPacket(epoch, firstFrame, rows), "packet"));
@@ -96,4 +96,38 @@ test("a deferred packet stays buffered, without another read, until it is admitt
   assertEquals(source.bufferedPacket(), undefined);
   assertEquals(source.expectedFrame(), 3);
   assertEquals(source.read(wire(96, 3, PRESS, RELEASE), 3).kind, "wait");
+});
+
+test("a record joining consecutive packets is admitted whole at their frames; a gap, another epoch or too many packets is invalid", () => {
+  const source = open("candidate", 96, 0, 0);
+  const joined = [wire(96, 1, PRESS, RELEASE), wire(96, 3, NEUTRAL, NEUTRAL), wire(96, 5, PRESS)].join("|");
+  assertEquals(source.read(joined, 4).kind, "wait");
+  const packet = ready(source.read(joined, 5));
+  assertEquals(packet.firstFrame, 1);
+  assertEquals(packet.rows.length, 5);
+  assertTrue(sameInput(packet.rows[0]!, PRESS) && sameInput(packet.rows[1]!, RELEASE) && sameInput(packet.rows[4]!, PRESS));
+  assertTrue(source.sent());
+  assertEquals(source.expectedFrame(), 6);
+  assertEquals(source.read([wire(96, 6, NEUTRAL), wire(96, 8, NEUTRAL)].join("|"), 64).kind, "invalid");
+  assertEquals(source.read([wire(96, 6, NEUTRAL), wire(97, 7, NEUTRAL)].join("|"), 64).kind, "invalid");
+  const many = Array.from({ length: RECORD_PACKETS + 1 }, (_, index) => wire(96, 6 + index, NEUTRAL)).join("|");
+  assertEquals(source.read(many, 64).kind, "invalid");
+  assertEquals(source.read(Array.from({ length: RECORD_PACKETS }, (_, index) => wire(96, 6 + index, NEUTRAL)).join("|"), 64).kind, "ready");
+});
+
+test("a joined record admitted in parts is read again from its first row not yet sent", () => {
+  const source = open("candidate", 97, 0, 0);
+  const joined = [wire(97, 1, PRESS, RELEASE), wire(97, 3, NEUTRAL, PRESS), wire(97, 5, RELEASE)].join("|");
+  assertEquals(ready(source.read(joined, 64)).rows.length, 5);
+  assertFalse(source.sent(6));
+  assertTrue(source.sent(3));
+  assertEquals(source.expectedFrame(), 4);
+  assertEquals(source.bufferedPacket(), joined);
+  const rest = ready(source.read(joined, 64));
+  assertEquals(rest.firstFrame, 4);
+  assertEquals(rest.rows.length, 2);
+  assertTrue(sameInput(rest.rows[0]!, PRESS) && sameInput(rest.rows[1]!, RELEASE));
+  assertTrue(source.sent());
+  assertEquals(source.bufferedPacket(), undefined);
+  assertEquals(ready(source.read(wire(97, 6, NEUTRAL), 64)).firstFrame, 6);
 });
