@@ -12,10 +12,13 @@ export interface HeroClip {
 }
 
 /**
- * Every pose that selects a clip by table (presentation/fighterClips.ts).
- * Poses a hero leaves unmapped play its `fallback` clip.
+ * Every pose that selects a clip by table (presentation/fighterClips.ts); the
+ * original fighters fill the same table. Poses a hero leaves unmapped play its
+ * `fallback` clip. `idle` and `walk` play by index where a table maps them,
+ * and as the model's named stand and walk otherwise.
  */
 export type HeroPose =
+  | "idle" | "walk"
   | "jab" | "grab" | "forwardTilt" | "upTilt" | "downTilt" | "forwardTiltUp" | "forwardTiltDown"
   | "forwardSmash" | "upSmash" | "downSmash" | "dashAttack"
   | "neutralAir" | "forwardAir" | "backAir" | "upAir" | "downAir" | "getUpAttack"
@@ -29,6 +32,9 @@ export type HeroPose =
   | "neutralSpecial" | "sideSpecial" | "upSpecial" | "downSpecial"
   | "neutralSpecialAir" | "sideSpecialAir" | "upSpecialAir" | "downSpecialAir";
 
+/** Pose to clip: a hero's presentation, or an original fighter's packaged clips. */
+export type HeroClipTable = { readonly [pose in HeroPose]?: HeroClip | undefined };
+
 export interface HeroPresentation {
   /** The Warcraft model; stock paths need no import. */
   readonly model: string;
@@ -40,7 +46,12 @@ export interface HeroPresentation {
   readonly portrait: string;
   /** The model a projectile of this hero shows. */
   readonly projectileModel: string;
-  readonly clips: { readonly [pose in HeroPose]?: HeroClip | undefined };
+  /**
+   * The fighter's unit plays each clip by sequence index, which selects that
+   * exact sequence where an animation name picks at random among same-named
+   * variants ("Attack - 1", "Attack - 2").
+   */
+  readonly clips: HeroClipTable;
   readonly fallback: HeroClip;
 }
 
