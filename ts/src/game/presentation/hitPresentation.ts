@@ -4,19 +4,21 @@ import type { Fighter } from "../sim/fighter";
 import { HitElement } from "../sim/hitRegions";
 import { type ImpactEvents, ImpactLanding, JumpCue } from "./impactEvents";
 import { IMPACT_FIRE_HIT, IMPACT_SLASH_HIT, IMPACT_ICE_HIT, IMPACT_ELECTRIC_SHIELD, IMPACT_PUMMEL } from "./impactState";
-import { IMPACT_DUST_MODEL, IMPACT_ROLL_MODEL } from "../assets/impactAssetInfo";
+import { IMPACT_DUST_MODEL, IMPACT_ROLL_MODEL, IMPACT_TECH_MODEL, IMPACT_JUMP_MODEL } from "../assets/impactAssetInfo";
 
 /** Movement uses small authored geometry so pooled dust respects scale and fading. */
 export function impactModel(kind: number): string {
   switch (kind) {
     case 0: case IMPACT_PUMMEL: return "Abilities\\Spells\\Other\\Stampede\\StampedeMissileDeath.mdx";
-    case 1: case 13: case 14: case 16: return "Abilities\\Spells\\Human\\DispelMagic\\DispelMagicTarget.mdx";
+    case 1: return IMPACT_TECH_MODEL;
+    case 13: case 14: case 16: return "Abilities\\Spells\\Human\\DispelMagic\\DispelMagicTarget.mdx";
     case 2: return "Abilities\\Spells\\Orc\\WarStomp\\WarStompCaster.mdx";
     case 3: return IMPACT_DUST_MODEL;
     case 4: return IMPACT_ROLL_MODEL;
     case 5: case IMPACT_ELECTRIC_SHIELD: return "Abilities\\Weapons\\Bolt\\BoltImpact.mdx";
     case 6: case 10: case 12: return "Abilities\\Spells\\Human\\Defend\\DefendCaster.mdx";
-    case 7: case 11: case 15: return "Abilities\\Spells\\NightElf\\Blink\\BlinkTarget.mdx";
+    case 7: return IMPACT_JUMP_MODEL;
+    case 11: case 15: return "Abilities\\Spells\\NightElf\\Blink\\BlinkTarget.mdx";
     case 8: return "Abilities\\Spells\\Human\\Thunderclap\\ThunderClapCaster.mdx";
     case 9: return "Abilities\\Spells\\Human\\Resurrect\\ResurrectTarget.mdx";
     case IMPACT_FIRE_HIT: return "Abilities\\Spells\\Other\\Incinerate\\FireLordDeathExplode.mdx";
@@ -28,7 +30,7 @@ export function impactModel(kind: number): string {
 
 /** These stock impacts name their only visible sequence Stand, rather than Birth. */
 export function impactAnimation(kind: number): string {
-  return kind === 2 || kind === 3 || kind === 4 || kind === 5 || kind === 8 || kind === 9 || kind === IMPACT_ELECTRIC_SHIELD ? "Stand" : "Birth";
+  return kind === 1 || kind === 2 || kind === 3 || kind === 4 || kind === 5 || kind === 7 || kind === 8 || kind === 9 || kind === IMPACT_ELECTRIC_SHIELD ? "Stand" : "Birth";
 }
 
 type ImpactSoundSink = (label: string, x: number, z: number, volume: number, pitch: number) => void;

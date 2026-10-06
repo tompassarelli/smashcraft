@@ -217,11 +217,12 @@ function spawn(state: ImpactState, kind: number, x: number, z: number, direction
   return slot;
 }
 
-/** A flash at a wall or ceiling contact, drifting along its inward normal. */
+/** A tech stays anchored to contact; other cues drift along the inward normal. */
 function surfaceFlash(state: ImpactState, kind: number, events: Readonly<ImpactEvents>): void {
-  const slot = spawn(state, kind, events.contactX, events.contactZ, toInt(events.normalX), f32(0.8));
+  const anchored = kind === IMPACT_TECH;
+  const slot = spawn(state, kind, events.contactX, events.contactZ, anchored ? 0 : toInt(events.normalX), f32(0.8));
   state.pitch[slot] = events.normalX === 0.0 ? 0.0 : HALF_PI;
-  state.driftZ[slot] = events.normalZ;
+  state.driftZ[slot] = anchored ? 0.0 : events.normalZ;
 }
 
 /** Emits one fighter's cues for an executed frame; `frame` paces running dust and picks a top KO's cinematic. */
@@ -259,6 +260,8 @@ export function emitImpacts(state: ImpactState, events: Readonly<ImpactEvents>, 
   if (events.jump === JumpCue.ground) {
     spawn(state, IMPACT_DUST, f32(events.jumpOriginX - 12.0), f32(events.jumpOriginZ + 2.0), -1, f32(0.7));
     spawn(state, IMPACT_DUST, f32(events.jumpOriginX + 12.0), f32(events.jumpOriginZ + 2.0), 1, f32(0.7));
+  } else if (events.jump === JumpCue.wall) {
+    surfaceFlash(state, IMPACT_AIR_JUMP, events);
   } else if (events.jump === JumpCue.double || events.jump === JumpCue.air) {
     spawn(state, IMPACT_AIR_JUMP, events.jumpOriginX, f32(events.jumpOriginZ - 5.0), 0, 1.0);
   }
