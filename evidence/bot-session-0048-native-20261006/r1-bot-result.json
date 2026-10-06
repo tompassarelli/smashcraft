@@ -1,0 +1,153 @@
+{
+  "game_pids": [
+    {
+      "client": "a",
+      "pid": 485368
+    },
+    {
+      "client": "b",
+      "pid": 485376
+    }
+  ],
+  "input_delay": "frames a helper journaled by its clock beyond the last frame its client admitted, at each edit-box receipt",
+  "trials": [
+    {
+      "epoch": 2,
+      "trial": 1,
+      "pid": 485376,
+      "stopped_ms": 2001,
+      "clients": [
+        {
+          "slot": 0,
+          "receipts_before": 40,
+          "baseline_lag_frames": 4,
+          "peak_lag_frames": 38,
+          "recovery_ms": 15,
+          "settled_ms": 2952,
+          "max_lag_in_next_second": 38
+        },
+        {
+          "slot": 1,
+          "receipts_before": 40,
+          "baseline_lag_frames": 4,
+          "peak_lag_frames": 129,
+          "recovery_ms": 5507,
+          "settled_ms": 5507,
+          "max_lag_in_next_second": 3
+        }
+      ],
+      "passed": false
+    },
+    {
+      "epoch": 2,
+      "trial": 2,
+      "pid": 485376,
+      "stopped_ms": 1999,
+      "clients": [
+        {
+          "slot": 0,
+          "receipts_before": 40,
+          "baseline_lag_frames": 5,
+          "peak_lag_frames": 45,
+          "recovery_ms": 21,
+          "settled_ms": 3088,
+          "max_lag_in_next_second": 43
+        },
+        {
+          "slot": 1,
+          "receipts_before": 41,
+          "baseline_lag_frames": 30,
+          "peak_lag_frames": 136,
+          "recovery_ms": 1027,
+          "settled_ms": 1027,
+          "max_lag_in_next_second": 25
+        }
+      ],
+      "passed": false
+    },
+    {
+      "epoch": 2,
+      "trial": 3,
+      "pid": 485376,
+      "stopped_ms": 1999,
+      "clients": [
+        {
+          "slot": 0,
+          "receipts_before": 40,
+          "baseline_lag_frames": 15,
+          "peak_lag_frames": 40,
+          "recovery_ms": 49,
+          "settled_ms": 2861,
+          "max_lag_in_next_second": 40
+        },
+        {
+          "slot": 1,
+          "receipts_before": 43,
+          "baseline_lag_frames": 29,
+          "peak_lag_frames": 123,
+          "recovery_ms": 450,
+          "settled_ms": 1875,
+          "max_lag_in_next_second": 38
+        }
+      ],
+      "passed": false
+    }
+  ],
+  "trials_passed": "0/3",
+  "matches": [
+    {
+      "epoch": 1,
+      "ends": [
+        {
+          "frame": 2095,
+          "winner": "P3"
+        },
+        {
+          "frame": 2095,
+          "winner": "P3"
+        }
+      ],
+      "confirmed_frames_compared": 1,
+      "confirmed_frames_differing": [],
+      "last_common_confirmed": {
+        "frame": 2083,
+        "state": "858060:110347"
+      }
+    },
+    {
+      "epoch": 2,
+      "ends": [
+        {
+          "frame": 2973,
+          "winner": "P3"
+        },
+        {
+          "frame": 2971,
+          "winner": "P3"
+        }
+      ],
+      "confirmed_frames_compared": 1,
+      "confirmed_frames_differing": [],
+      "last_common_confirmed": {
+        "frame": 2964,
+        "state": "934688:135826"
+      }
+    }
+  ],
+  "moments": [
+    "~/.local/share/smashcraft-build-inputs/playable-0048/r1-bot/moments/smashcraft-repro-p0-f1862-1.txt",
+    "~/.local/share/smashcraft-build-inputs/playable-0048/r1-bot/moments/smashcraft-repro-p0-f1854-2.txt",
+    "~/.local/share/smashcraft-build-inputs/playable-0048/r1-bot/moments/smashcraft-repro-p1-f1862-1.txt",
+    "~/.local/share/smashcraft-build-inputs/playable-0048/r1-bot/moments/smashcraft-repro-p1-f1858-2.txt"
+  ],
+  "moment_requests": [
+    {
+      "epoch": 1,
+      "after_start_ms": 30168
+    },
+    {
+      "epoch": 2,
+      "after_start_ms": 78860
+    }
+  ]
+}
