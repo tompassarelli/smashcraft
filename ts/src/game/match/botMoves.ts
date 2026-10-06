@@ -242,7 +242,8 @@ function addCloseSpecials(f: Readonly<Fighter>, target: Readonly<Fighter>, stage
       const region = immolationRegion(motion.grounded);
       const localX = f32(aheadX(f, target, 4) * f.facing);
       const localZ = aheadZ(f, target, 4);
-      if (localX >= region.minX && localX <= region.maxX && localZ >= region.minZ && localZ <= region.maxZ && specialReady(f, DOWN_SPECIAL)) options[added++] = DOWN_SPECIAL;
+      // In the air down special is Flame Crash, a plunge: only over the deck.
+      if (localX >= region.minX && localX <= region.maxX && localZ >= region.minZ && localZ <= region.maxZ && (motion.grounded || safeAt(stage, motion.x, 0.0)) && specialReady(f, DOWN_SPECIAL)) options[added++] = DOWN_SPECIAL;
       break;
     }
   }
