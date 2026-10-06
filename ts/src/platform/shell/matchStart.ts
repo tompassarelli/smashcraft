@@ -8,7 +8,7 @@ import { initializeMatchFighters } from "../../game/match/step";
 import { beginModelSoundEpoch, confirmModelSounds } from "../../game/render/modelSounds";
 import { readyFile } from "../../game/shell/journalFiles";
 import { initializeScenario } from "../../game/shell/scenarios";
-import { usesPool } from "../../game/shell/build";
+import { type Scenario, usesPool } from "../../game/shell/build";
 import { fighterAt, isActive } from "../../game/sim/roster";
 import { writeLines } from "wisp/src/platform/fileio";
 import { clearAllInputs } from "./inputs";
@@ -20,7 +20,7 @@ import type { ShellState } from "./state";
 import { beginFighterRenderers, views } from "./ui";
 import { LASTING, drawStage, pauseMatchPresentation, renderPersistentPresentation, setStatus } from "./view";
 
-export function startMatch(s: ShellState): void {
+export function startMatch(s: ShellState, scenario: Scenario = s.build.scenario): void {
   // Revoke the helper's menu before the match takes text focus.
   publishMenu(s);
   const wasPaused = s.session.paused;
@@ -37,7 +37,7 @@ export function startMatch(s: ShellState): void {
   initializeMatchFighters(s.game, s.world);
   drawStage(s);
   if (wasPaused) pauseMatchPresentation(s, false);
-  initializeScenario(s.build.scenario, s.game, s.world);
+  initializeScenario(scenario, s.game, s.world);
   const { rollback } = s;
   if (rollback !== undefined) {
     rollback.active = beginRollbackEpoch(s, rollback);

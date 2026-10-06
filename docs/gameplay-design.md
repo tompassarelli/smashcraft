@@ -288,6 +288,35 @@ recovery or an earlier defender response
 (smashcraft:docs/move-comparisons.md). Whether it is a design rule for
 Smashcraft's moves is open.
 
+## Hit presentation
+
+Recommended defaults adopted under Tom's 6 Oct 2026 instruction to do all
+recommended work (#82), rather than recorded as independently chosen by Tom:
+
+- Warcraft's stock spell and impact art carries Melee's event vocabulary;
+  the descriptive mapping is in smashcraft:docs/design/melee/hit-effects.md.
+  Demon Hunter melee contacts use Cleave, Immolation uses fire and
+  Mana Burn uses lightning; those element choices change presentation only.
+- Strength has three sizes (0.75, 1.0, 1.25), at knockback 80 and 180.
+  The upper threshold follows Melee's strong normal spark; 80 and the sizes
+  are authored readability defaults. No random extra spark obscures strength.
+- Hitlag lightly colours the victim by element and vibrates its body by
+  2 world units, 3 for electric; the camera stays steady. Freeze retains blue.
+  These are bounded Warcraft approximations, not Melee's colour programs.
+- Walk steps are quiet at a 16-frame cadence; run steps are louder at 8;
+  dash has one louder start cue. Combat and landing cues take priority in
+  players' attention. This is an authored rhythm, not imported footstep audio.
+- Pummels are short, quiet and higher-pitched; throw releases use a separate
+  Blink sound. Preserve the existing star/screen KO body treatment, with
+  Warcraft impact sounds and the fighters' original death cues.
+
+Style questions raised by the mapping: should whole-screen shake replace the
+small body vibration; should every contact have a louder flash; should footsteps
+track each clip's exact planted foot; should top KOs become Warcraft explosions?
+The adopted defaults above answer these with a steady camera, bounded sparks,
+a shared footstep rhythm and retained top-KO bodies. Revisit only after an
+observed readability problem; no separate approval is outstanding for them.
+
 ## Legible locked states (#68)
 
 No false agency asks that a fighter who can't get out knows it. The agency

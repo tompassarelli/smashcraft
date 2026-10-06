@@ -2,7 +2,7 @@
 import { STAGE_SNOW_MODEL } from "../assets/stageAssetInfo";
 import { FROZEN_THRONE_STAGE } from "../sim/stage";
 
-export interface SceneryPiece {
+interface SceneryPiece {
   readonly model: string;
   readonly x: number;
   readonly y: number;
@@ -10,7 +10,7 @@ export interface SceneryPiece {
   readonly scale: number;
 }
 
-export interface StageScenery {
+interface StageScenery {
   readonly sky: string;
   readonly pieces: readonly SceneryPiece[];
   readonly fog?: { readonly start: number; readonly end: number; readonly red: number; readonly green: number; readonly blue: number };
