@@ -72,6 +72,11 @@ function recordHitRegion(attackerSlot: number, attacker: Fighter, target: Fighte
   }
 }
 
+/** How far ahead of the attacker, along its facing, the target stands. */
+function facingOffsetX(attacker: Readonly<Fighter>, target: Readonly<Fighter>): number {
+  return f32(f32(target.motion.x - attacker.motion.x) * attacker.facing);
+}
+
 /** Writes the region of the attacker's current attack that reaches the target into out, or NO_HIT_REGION's values. */
 function selectHitRegion(world: Roster, attackerSlot: number, targetSlot: number, out: HitRegion): void {
   const attacker = fighterAt(world, attackerSlot);
@@ -79,13 +84,13 @@ function selectHitRegion(world: Roster, attackerSlot: number, targetSlot: number
   copyHitRegion(out, NO_HIT_REGION);
   if (attacker.status.out || attacker.launch.hitlag > 0 || target.status.out || isIntangible(target)) return;
   const { attack } = attacker;
-  const localX = f32(f32(target.motion.x - attacker.motion.x) * attacker.facing);
-  const localZ = f32(target.motion.z - attacker.motion.z);
+  // Only grabs read the target's offset, so ordinary hits skip its exact arithmetic.
   if (attack.dashGrab) {
     const { startupFrames, activeFrames } = attacker.tuning.dashGrab;
-    if (attack.frame >= startupFrames && attack.frame < startupFrames + activeFrames
-      && localX >= 0 && localX <= GRAB_REACH && localZ >= -130 && localZ <= 130) {
-      copyHitRegion(out, DASH_GRAB_REGION);
+    if (attack.frame >= startupFrames && attack.frame < startupFrames + activeFrames) {
+      const localX = facingOffsetX(attacker, target);
+      const localZ = f32(target.motion.z - attacker.motion.z);
+      if (localX >= 0 && localX <= GRAB_REACH && localZ >= -130 && localZ <= 130) copyHitRegion(out, DASH_GRAB_REGION);
     }
     return;
   }
@@ -93,6 +98,8 @@ function selectHitRegion(world: Roster, attackerSlot: number, targetSlot: number
     authoredHitRegion(out, attacker.character, attack.style, attack.frame, attack.smashChargeFrames, 0);
     const { hits } = target;
     const alreadyHit = hits.lastAttacker === attackerSlot && hits.lastAttackSerial === attack.serial && hits.lastWindow >= out.window;
+    const localX = facingOffsetX(attacker, target);
+    const localZ = f32(target.motion.z - attacker.motion.z);
     const inside = localX >= out.minX && localX <= out.maxX && localZ >= out.minZ && localZ <= out.maxZ;
     if (out.window <= 0 || alreadyHit || !inside) copyHitRegion(out, NO_HIT_REGION);
     return;

@@ -20,7 +20,7 @@ import { JournalInputSource } from "../../game/netcode/journal/source";
 import { decodeTransport } from "../../game/netcode/journal/transport";
 import { captureReplaySnapshot, restoreReplaySnapshot } from "../../game/replay/snapshot";
 import { resetPauseBarrier, agreedFrame } from "../../game/shell/pauseBarrier";
-import { CATCH_UP_FRAMES, speculativeBudget } from "../../game/shell/playback";
+import { REPAIR_FRAMES, confirmedBudget, speculativeBudget } from "../../game/shell/playback";
 import { applyFrame } from "./frame";
 import { pollLocalKeys } from "./inputs";
 import { INPUT_PREFIX, failJournal, flushTransport, receiveLifecycle, serviceJournalInput } from "./journal";
@@ -242,7 +242,8 @@ export function rollbackTick(s: ShellState, rollback: Rollback): void {
   }
   const stopAt = journal === undefined ? undefined : agreedFrame(journal.barrier);
   let steps = 0;
-  while (s.game.phase === Phase.match && schedule.mayAdvanceConfirmed() && steps < CATCH_UP_FRAMES && (stopAt === undefined || schedule.nextConfirmedFrame() < stopAt)) {
+  const confirmSteps = confirmedBudget(schedule.confirmedFrame() - schedule.nextConfirmedFrame() + 1);
+  while (s.game.phase === Phase.match && schedule.mayAdvanceConfirmed() && steps < confirmSteps && (stopAt === undefined || schedule.nextConfirmedFrame() < stopAt)) {
     if (!stepConfirmed(s, rollback)) {
       setStatus(s, "The match could not advance. Restart the match.", LASTING);
       return;
@@ -268,8 +269,14 @@ export function rollbackTick(s: ShellState, rollback: Rollback): void {
     }
     probeIntegrity(probe, `rollback ${epoch} ${depth}`);
   }
+  const repaired = rollback.playback.repair(epoch, speculative, REPAIR_FRAMES);
+  if (repaired === "rejected") {
+    setStatus(s, "The match could not catch up. Restart the match.", LASTING);
+    return;
+  }
   // Replay stays numerical: persistent visuals show only the completed state;
-  // event effects, audio, results and HUD stay confirmed.
+  // event effects, audio, results and HUD stay confirmed. A deep correction
+  // replays over several callbacks while local rows keep running.
   if (s.game.phase === Phase.match) {
     const before = schedule.speculativeFrame();
     const advanced = rollback.playback.catchUp(schedule, epoch, slot, speculative, speculativeBudget(journal !== undefined), stopAt, observeSpeculativeFrame);
