@@ -522,7 +522,7 @@ stay inside 32-bit integers, so Bun and Warcraft's Lua compute it alike.
   would come to rest, braking at traction or air acceleration, with the
   deck's edges less 40 units, and turns back when that point would pass them.
   A ground attack starts only if the slide it leaves ends on the deck it
-  stands on, and specials that move it (Disengage, Parry Step) only with room
+  stands on, and specials that move it (Archer's hippogryph hop, Parry Step) only with room
   to land.
 - It attacks with whatever reaches: each move's strike at its first active
   frame, from the authored hit regions and contact capsules, against the

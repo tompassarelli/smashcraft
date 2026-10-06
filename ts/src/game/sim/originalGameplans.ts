@@ -7,10 +7,10 @@ import { type FighterGameplan, GameplanSpecial, GameplanThrow } from "./gameplan
 import { ILLIDAN_GAMEPLAN } from "./illidanGameplan";
 
 /**
- * Archer: the fastest run and jump start on the lightest body. His speed is
- * his edge: he runs in for grabs and tilts and jumps in with forward air more
- * than he shoots; arrows and Multishot chip from range without stopping
- * anyone, and Disengage resets the gap. He stays off the edge, where his
+ * Archer: the fastest run and jump start on the lightest body. Her speed is
+ * her edge: she runs in for grabs and tilts and jumps in with forward air more
+ * than she shoots; arrows and Multishot chip from range without stopping
+ * anyone, and her hippogryph resets the gap. She stays off the edge, where her
  * weight loses stocks early.
  */
 const ARCHER: FighterGameplan = {

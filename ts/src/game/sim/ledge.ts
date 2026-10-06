@@ -11,7 +11,7 @@ import { type Controls, type Roster, controlsAt, fighterAt, isActive } from "./r
 import { mainDeckLeft, mainDeckRight, mainDeckZ } from "./stage";
 import { BODY_HALF_WIDTH } from "./surfaces";
 import { checkBlastZone } from "./stocks";
-import { beginAttack, cancelAttack, clearDownState, clearLedge, clearPlatformMove, clearTech, leaveLedge } from "./transitions";
+import { beginAttack, cancelAttack, clearDownState, clearLedge, clearPlatformMove, clearTech, leaveLedge, refreshOriginalAirtime } from "./transitions";
 import { melee } from "./tuning";
 
 export const LEDGE_CLIMB_FRAMES = 25;
@@ -166,6 +166,7 @@ function catchLedge(f: Fighter, stage: number, side: number): void {
   f.dodge.airFrame = 0;
   f.dodge.airMotionFrames = 0;
   f.dodge.airUsed = false;
+  refreshOriginalAirtime(f);
   f.jump.remaining = 1;
   clearPlatformMove(f);
   clearTech(f);

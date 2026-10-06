@@ -942,20 +942,28 @@ tilt is the exception), so physics and specials carry their identities.
 
 **Identity:** a hit-and-run archer: the fastest run (13.20) and jump start
 (3 frames) on the lightest body (weight 75). Arrows and Multishot add damage
-from range without hitstun or interruption. His spaced fade-back forward air
-is safe on shield. Disengage hops him back and sends the hippogryph through
-the gap. **Weakness:** his weight loses stocks early, and his arrows can't
-stop an approach.
+from range without hitstun or interruption. Her spaced fade-back forward air
+is safe on shield. One hippogryph serves both remaining specials
+([Archer's hippogryph specials](archer-specials.md)): her down special calls
+it swooping through the gap to a perch (with a side, she hops back from it,
+the old Disengage), and her next down special dives it from the perch at
+her, through anyone between; her up special is a steerable ride with a high
+or low line, ending helpless or leaping off to act, which leaves the
+hippogryph flying on as a strike. **Weakness:** her weight loses stocks
+early, her arrows can't stop an approach, and hitting her scares the
+hippogryph off its perch.
 
-**Gameplan:** keeps 180–460 units away. His spacing tools are forward air at
-110–240, the arrow at 200–700 and Multishot at 160–520. His speed is his
-edge: he runs in with grab, down tilt or up tilt or jumps in with forward or
-neutral air (weight 2 each) more than he shoots (weight 1). He answers threats by
+**Gameplan:** keeps 180–460 units away. Her spacing tools are forward air at
+110–240, the arrow at 200–700 and Multishot at 160–520. Her speed is her
+edge: she runs in with grab, down tilt or up tilt or jumps in with forward or
+neutral air (weight 2 each) more than she shoots (weight 1). She answers threats by
 retreating or jumping, and sometimes by shield or spot dodge. Up tilt leads
 into up air or up smash, down tilt into forward air or up tilt, and up throw
-into up air. He kills with forward smash from 90%, up smash from 100% and back
-air from 110%. He returns to the ledge or the deck and keeps the hippogryph
-until his jump is gone. He avoids the edge.
+into up air. She kills with forward smash from 90%, up smash from 100% and back
+air from 110%. She returns to the ledge or the deck and keeps the hippogryph
+ride until her jump is gone. She avoids the edge. The perch and dive are her
+stage control: a dive line through the gap she keeps, or through a recovery
+path while she holds the ledge.
 
 ### Rifleman
 

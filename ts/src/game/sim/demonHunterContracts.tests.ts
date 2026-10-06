@@ -164,7 +164,7 @@ test("wingAscentConsumesJumpsAndEndsInHelplessFallAfterInterruptionRules", () =>
     fighter.jump.remaining = 1;
     assertTrue(startFighterSpecial(fighter, 0, 0, controls({ specialPressed: true, verticalDirection: 1, specialZ: 1 })));
     assertEquals(fighter.jump.remaining, 0);
-    for (let frame = 1; frame <= 38; frame++) {
+    for (let frame = 1; frame <= 40; frame++) {
       fighter.attack.cooldown = Math.max(0, fighter.attack.cooldown - 1);
       fighter.special.lockFrames = Math.max(0, fighter.special.lockFrames - 1);
       advanceSpecials(testWorld(fighter, target), 0, 0);
