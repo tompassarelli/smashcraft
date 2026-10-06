@@ -740,6 +740,13 @@ lose to a hurtbox the player could not see. The mechanisms behind Ultimate's
 [hurtbox legibility](design/hurtbox-legibility.md). Authoring is described in
 smashcraft:docs/hurtboxes.md.
 
+Two owner principles (6 Oct 2026) frame the rules: **attacking limbs can be
+hit**, so counter-hitting an extended arm, leg or wing is always possible,
+and **weapons are disjoint**: a held weapon (Blademaster's sword, Mountain
+King's and Uther's hammers, Archer's bow, Rifleman's gun) is never part of the
+hurtbox, so striking the weapon does nothing while the hand and arm holding it
+can be hit. Counter-hit the limb, not the sword.
+
 1. **One body outside attacks.** Standing, idle, walking, dashing, running,
    jumping, falling and shielding all use the standing body; only crouch,
    attacks and specials author others. No idle pose, animation timing or
@@ -753,21 +760,40 @@ smashcraft:docs/hurtboxes.md.
    returning to standing) moves the body's front, back, top or bottom extent by
    at most 60 world units (10 Melee units, about one standing body width plus
    a quarter). A longer reach ramps through intermediate poses.
-5. **Protection where the strike is.** An intangible or invincible part
-   touches one of the same move's hit regions: protection belongs to the
-   striking limb, never to a hidden torso or head.
-6. **Touching is hitting.** Any overlap of a strike and a normal part,
+5. **Attacking limbs can be hit** (owner decision, 6 Oct 2026): counter-hitting
+   an extended limb is an important mechanic, and an unhittable limb breaks
+   it. No attack or special pose authors an intangible or invincible part.
+   Intangibility and invincibility belong only to explicit defensive states,
+   whole-body and shown: dodges, ledge, techs, respawn, and a special's own
+   intangible or armor window or a counter.
+6. **Weapons are disjoint** (owner decision, 6 Oct 2026): no hurt part
+   follows a weapon past the hand. Every part stays within a fully extended
+   limb's reach of the fighter: horizontally within 0.7 of its standing
+   height of its feet, vertically from a quarter of that height below its
+   feet to 0.3 of it above its head. A wing or tail that reaches farther is a
+   named departure.
+7. **Touching is hitting.** Any overlap of a strike and a normal part,
    tangency included, is a hit: no glancing-blow or phantom band. A strike's
    tested volume is its authored capsule on that frame, never a chord swept
    from the previous frame.
-7. **Judged on the shown frame.** A contact is resolved against the pose both
+8. **Judged on the shown frame.** A contact is resolved against the pose both
    fighters show on the contact frame, from the same pre-contact state for
    both; no zoom or slowdown replays the hit in a different pose.
 
-Rules 1–6 are checked on every fighter's authored bodies, the original three
+Rules 1–7 are checked on every fighter's authored bodies, the original three
 and each registered hero, by smashcraft:ts/src/game/sim/hurtboxLegibility.tests.ts. A fighter that needs
 to break a rule lists a named departure there and in this section, with its
-reason. Current departures: none.
+reason. Current departures:
+
+- **Mountain King's down air (Double Boot), rule 6.** The boots are the
+  strike, so the leg volume follows the whole downward strike, about 70 units
+  below his feet, past a limb's reach. It is body, not weapon, and can be hit.
+- **Uther's back air (boot kick), rule 6.** The extended leg is the strike,
+  about 0.78 of his height behind him, and stays hittable to its full length.
+- **Dreadlord's wings and claws, rule 6** (down smash, forward smash, forward
+  air, back air, down air). The roster keeps hurtboxes on attached body parts;
+  the wings reach about 0.83 of his height sideways and the claws about half
+  below his feet, all hittable.
 
 ## Powershield and parry
 
@@ -870,7 +896,19 @@ projectile properties are described in [projectiles](design/projectiles.md).
    grab, jump out of shield into any aerial, both rolls, spot dodge and the
    raise-timed powershield; no fighter trades one of them away.
 
-The headless checks measure every fighter's projectiles, the original three
-and each registered hero's, against rules 1–5; rule 6 is checked from the
-interaction graph's out-of-shield options. Any departure is named here with
-its reason.
+smashcraft:ts/scripts/projectileRules.tests.ts measures every fighter's
+projectiles, the original three and each registered hero's, through the
+interaction graph's projectile situations (each special that makes a
+projectile, fired at a mirror defender 60, 240 and 480 apart): the
+powershield presses that reflect it (at least 2), the out-of-shield punishes
+from point blank, the most out at once with the special pressed every other
+frame, its flight, and the answers of a standing defender. Rule 6 is checked
+from a held shield: each out-of-shield option must start. Named departures:
+
+- **Archer's arrow (neutral special), rules 2 and 3.** Arrows deal damage
+  without hitstun or shieldstun (see "Archer's arrows" above), so they hold no
+  shield and lock no fighter; the 3-frame shot is safe point blank and keeps
+  up to 10 arrows in flight. A powershield reflects each, and a jump, dodge or
+  roll avoids it from range.
+- **Archer's Multishot (side special), rule 3.** Each volley is three arrows,
+  and a second volley overlaps the first: 6 out at once.

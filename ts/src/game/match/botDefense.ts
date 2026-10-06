@@ -1,6 +1,7 @@
 // The computer's defense: it sees an attack, a special or a projectile about
 // to reach its fighter and, by a choice fixed for that attack, shields, spot
-// dodges, rolls away, parries with Illidan's Parry Step, or takes it.
+// dodges, rolls away, parries with Illidan's Parry Step, raises a hero's
+// guard or stance (botHeroKit.ts), or takes it.
 import { at } from "wisp/src/runtime/lookup";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, SpecialAction } from "../sim/codes";
@@ -9,7 +10,9 @@ import type { Fighter } from "../sim/fighter";
 import { attackStartupFrames, characterAttackActiveFrames } from "../sim/moves";
 import type { Controls } from "../sim/roster";
 import { DEMONHUNTER_IMMOLATE_ACTIVE, DEMONHUNTER_IMMOLATE_STARTUP } from "../sim/specials";
+import { SpecialSlot } from "../sim/heroSpecials";
 import { safeAt } from "./botFooting";
+import { heroStanceSlot } from "./botHeroKit";
 import { botChoice, moveReaches } from "./botMoves";
 
 /** A shield this weak is let go rather than broken. */
@@ -26,7 +29,7 @@ const PARRY_ROOM = 100.0;
 /** A shield's pushback can carry the defender about this far. */
 const PUSHBACK_ROOM = 60.0;
 
-const Response = { none: 0, shield: 1, spotDodge: 2, roll: 3, parry: 4 } as const;
+const Response = { none: 0, shield: 1, spotDodge: 2, roll: 3, parry: 4, stance: 5 } as const;
 type Response = (typeof Response)[keyof typeof Response];
 
 /** Frames until the target's current strike reaches f, or undefined when it won't. */
@@ -86,6 +89,8 @@ function respond(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number)
   if (choice >= 7) return Response.none;
   const parries = threat.arrival >= PARRY_FIRST && threat.arrival <= PARRY_LAST && safeAt(stage, f32(f.motion.x - f32(away * PARRY_ROOM)), 0.0);
   if (f.character === Character.demonHunter && choice >= 4 && parries) return Response.parry;
+  // A hero's guard or stance, when its window meets the threat, takes the choices a parry would.
+  if (choice >= 4 && threat.arrival >= 0 && heroStanceSlot(f, Math.floor(threat.arrival)) !== undefined) return Response.stance;
   if (choice === 5) return cornered ? Response.spotDodge : Response.roll;
   if (choice === 4 || cornered) return Response.spotDodge;
   return Response.shield;
@@ -113,6 +118,14 @@ export function chooseDefense(f: Readonly<Fighter>, target: Readonly<Fighter>, s
       input.specialPressed = true;
       input.specialX = -away;
       return true;
+    case Response.stance: {
+      const slot = heroStanceSlot(f, Math.floor(threat.arrival));
+      input.specialPressed = true;
+      input.specialX = slot === SpecialSlot.side ? f.facing : 0;
+      input.specialZ = slot === SpecialSlot.down ? -1 : 0;
+      input.verticalDirection = input.specialZ;
+      return true;
+    }
     case Response.roll:
       input.shield = true;
       input.groundDodgePressed = true;

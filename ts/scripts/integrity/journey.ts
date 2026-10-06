@@ -495,13 +495,14 @@ export function journey(rig: RigShape, options: JourneyOptions) {
   const devCommand = (epoch: number, command: string, expected: string) =>
     Effect.gen(function*() {
       const name = (client: Slot) => devCommandReceiptFile(build, client);
-      const before = (yield* Effect.forEach(SLOTS, (client) => rig.file(client, name(client)))).map((file) => file?.text ?? "");
+      // A new game rewrites the same receipt text, so a fresh publication is a newer file, not different text.
+      const before = (yield* Effect.forEach(SLOTS, (client) => rig.file(client, name(client)))).map((file) => file?.mtimeNs ?? -1n);
       // The map hides Warcraft's chat box; both clients' receipts confirm the command.
       yield* rig.key(0, "Return");
       yield* rig.type(0, command);
       yield* rig.key(0, "Return");
       yield* rig.until(`dev command not confirmed: ${command}`, Effect.forEach(SLOTS, (client) => rig.file(client, name(client))).pipe(
-        Effect.map((files) => files.every((file, client) => complete(file) && file.text !== before[client] && file.text.includes(expected))),
+        Effect.map((files) => files.every((file, client) => complete(file) && file.mtimeNs > (before[client] ?? -1n) && file.text.includes(expected))),
       ));
       yield* rig.record({ event: "dev-config", epoch, command, publications: yield* boundaries(name) });
     });

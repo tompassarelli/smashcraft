@@ -102,7 +102,7 @@ Rows are the defender's options, columns the attacker's, each from the first fra
 | jump neutral air | W 16 | W 16 | W 16 | -14 (shield) | W 25 | +4 |
 | jump forward air | -29 | -8 | +7 | -28 | -7 | +2 |
 | jump back air | W 16 | W 16 | W 16 | -17 (shield) | W 25 | +1 |
-| jump up air | W 18 | W 18 | W 18 | W 18 | -7 | +2 |
+| jump up air | W 18 | W 19 | W 18 | W 18 | -7 | +2 |
 | jump down air | W 20 | W 20 | W 20 | -14 (shield) | W 25 | 0 |
 | spot dodge | -22 | -1 | +14 | -21 | 0 | +9 |
 | roll in | -31 | -10 | +5 | -30 | -9 | 0 |
@@ -244,10 +244,10 @@ Rows are the defender's options, columns the attacker's, each from the first fra
 | hold shield | +4 | +12 (shield) | +40 | +5 | +26 | +35 |
 | shield grab | -32 | -11 | +4 | -31 | -10 | -1 |
 | jump neutral air | W 16 | W 16 | W 16 | -14 (shield) | W 29 | W 16 |
-| jump forward air | W 18 | T 18 | W 18 | W 18 | -3 | +6 |
+| jump forward air | W 18 | W 18 | W 18 | W 18 | -3 | +6 |
 | jump back air | W 16 | W 16 | W 16 | -17 (shield) | W 29 | W 16 |
 | jump up air | W 18 | T 18 | W 18 | W 18 | -3 | +6 |
-| jump down air | W 20 | L 18 | W 20 | -14 (shield) | W 29 | +4 |
+| jump down air | W 20 | W 20 | W 20 | -14 (shield) | W 29 | +4 |
 | spot dodge | -18 | +3 | +18 | -17 | +4 | +13 |
 | roll in | -27 | -6 | +9 | -26 | -5 | +4 |
 | roll away | -27 | -6 | +9 | -26 | -5 | +4 |
@@ -460,7 +460,7 @@ Rows are the defender's options, columns the attacker's, each from the first fra
 | hold shield | +3 (shield) | +12 (shield) | +39 (shield) | +4 (shield) | +25 (shield) | +34 (shield) |
 | shield grab | -33 (shield) | L 22 | +3 | -32 | -11 | -2 |
 | jump neutral air | W 21 (shield) | W 21 | W 21 | -14 (shield) | W 33 | +7 |
-| jump forward air | W 23 (shield) | L 22 | W 23 | W 23 | -4 | +5 |
+| jump forward air | W 23 (shield) | W 23 | W 23 | W 23 | -4 | +5 |
 | jump back air | W 21 (shield) | W 21 | W 21 | -17 (shield) | W 33 | +4 |
 | jump up air | W 23 (shield) | L 22 | W 23 | W 23 | -4 | +5 |
 | jump down air | W 25 (shield) | L 22 | W 25 | -14 (shield) | W 33 | +3 |
@@ -532,7 +532,7 @@ Rows are the defender's options, columns the attacker's, each from the first fra
 | hold shield | +8 | +29 | +44 | +9 | +30 | +39 |
 | shield grab | -28 | -7 | +8 | -27 | -6 | +3 |
 | jump neutral air | W 18 | W 18 | W 18 | W 18 | W 18 | W 18 |
-| jump forward air | -21 | L 24 | +15 | -20 | +1 | +10 |
+| jump forward air | -21 | L 25 | +15 | -20 | +1 | +10 |
 | jump back air | W 18 | W 18 | W 18 | W 18 | W 18 | W 18 |
 | jump up air | W 20 | W 20 | W 20 | W 20 | W 20 | W 20 |
 | jump down air | W 22 | W 22 | W 22 | -14 (shield) | -1 | W 22 |
@@ -786,11 +786,11 @@ flowchart LR
 |  | wait | jab | forward tilt | up tilt | down tilt | forward smash | up smash | down smash | grab | shield | spot dodge | roll in | roll away |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | wait | 0 | +20 | L 6 | L 7 | L 6 | L 7 | L 9 | L 9 | +35 | 0 | +21 | +30 | +30 |
-| jab | -20 | 0 | L 6 | L 7 | L 6 | L 7 | L 9 | L 9 | +15 | -20 | +1 | +10 | +10 |
+| jab | -20 | T 5 | L 6 | L 7 | L 6 | W 5 | L 9 | L 9 | +15 | -20 | +1 | +10 | +10 |
 | forward tilt | W 6 | W 6 | T 6 | W 6 | T 6 | W 6 | W 6 | W 6 | W 6 | -16 (shield) | -6 | +3 | +3 |
 | up tilt | W 7 | W 7 | L 6 | T 7 | L 6 | T 7 | W 7 | W 7 | W 7 | -17 (shield) | -7 | +2 | +2 |
 | down tilt | W 6 | W 6 | T 6 | W 6 | T 6 | W 6 | W 6 | W 6 | W 6 | -17 (shield) | -6 | +3 | +3 |
-| forward smash | W 7 | W 7 | L 6 | T 7 | L 6 | T 7 | W 7 | W 7 | W 7 | -19 (shield) | -14 | -5 | -5 |
+| forward smash | W 7 | L 5 | L 6 | T 7 | L 6 | T 7 | W 7 | W 7 | W 7 | -19 (shield) | -14 | -5 | -5 |
 | up smash | W 9 | W 9 | L 6 | L 7 | L 6 | L 7 | T 9 | T 9 | W 9 | -24 (shield) | -20 | -11 | -11 |
 | down smash | W 9 | W 9 | L 6 | L 7 | L 6 | L 7 | T 9 | T 9 | W 9 | -24 (shield) | -20 | -11 | -11 |
 | grab | -35 | -15 | L 6 | L 7 | L 6 | L 7 | L 9 | L 9 | 0 | -35 | -14 | -5 | -5 |
@@ -801,11 +801,11 @@ flowchart LR
 
 | Option | Acts again | Punished by (start frames) |
 | --- | --- | --- |
-| jab | 22 | forward tilt 1..16; up tilt 1..15; down tilt 1..16; forward smash 1..15; up smash 1..13; down smash 1..13 |
+| jab | 22 | jab 5; forward tilt 1..16; up tilt 1..15; down tilt 1..16; forward smash 3..15; up smash 1..13; down smash 1..13 |
 | forward tilt | 34 | down tilt 12 |
 | up tilt | 34 | forward tilt 1; down tilt 1, 12 |
 | down tilt | 33 | down tilt 11 |
-| forward smash | 45 | forward tilt 1; down tilt 1, 16 |
+| forward smash | 45 | jab 1..2; forward tilt 1; down tilt 1, 16 |
 | up smash | 50 | forward tilt 1..3; up tilt 1..2; down tilt 1..3, 17; forward smash 1..2 |
 | down smash | 50 | forward tilt 1..3; up tilt 1..2; down tilt 1..3, 17; forward smash 1..2 |
 | grab | 37 | forward tilt 1..31; up tilt 1..30; down tilt 1..31; forward smash 1..30; up smash 1..28; down smash 1..28 |
@@ -831,6 +831,7 @@ flowchart LR
   spot_dodge["spot dodge"]
   roll_in["roll in"]
   roll_away["roll away"]
+  jab -->|"hits 5"| forward_smash
   forward_tilt -->|"hits 6"| wait
   forward_tilt -->|"hits 6"| jab
   forward_tilt -->|"hits 6"| up_tilt
@@ -851,7 +852,6 @@ flowchart LR
   down_tilt -->|"hits 6"| down_smash
   down_tilt -->|"hits 6"| grab
   forward_smash -->|"hits 7"| wait
-  forward_smash -->|"hits 7"| jab
   forward_smash -->|"hits 7"| up_smash
   forward_smash -->|"hits 7"| down_smash
   forward_smash -->|"hits 7"| grab
@@ -899,7 +899,7 @@ Frame 0 is the touchdown. Punish start frames, also from the touchdown, are when
 | drift away | 4 | none | -40.8 | - | jab -4..-1; forward tilt -5..-2; up tilt -6..-3; down tilt -5..-2; forward smash -6..-3; up smash -8..-5; down smash -8..-5; grab -5..-2 |
 | neutral air landing | 5 | none | 0 | -10 | down tilt -5; down smash -5 |
 | forward air landing | 7 | none | 0 | -8 | down tilt -3; down smash -3 |
-| back air landing | 8 | none | 0 | - | jab -4..3; forward tilt -5..2; up tilt -6..1; down tilt -5..2; forward smash -6..1; up smash -8..-1; down smash -8..-1; grab -5..2 |
+| back air landing | 8 | none | 0 | - | jab -4..3; forward tilt -5..2; up tilt -6..1; down tilt -5..2; forward smash -4..1; up smash -8..-1; down smash -8..-1; grab -5..2 |
 | up air landing | 7 | none | 0 | -11 | down tilt -1 |
 | down air landing | 9 | none | 0 | - | jab -4..4; forward tilt -5..3; up tilt -6..2; down tilt -5..3; forward smash -6..2; up smash -8..0; down smash -8..0; grab -5..3 |
 | air dodge down | 10 | none | 0 | - | jab -4..5; forward tilt -4..4; up tilt -4..3; down tilt -4..4; forward smash -4..3; up smash -4..1; down smash -4..1; grab -4..4 |
@@ -953,7 +953,7 @@ flowchart LR
   p_forward_tilt -->|"-5..2"| t_back_air_landing
   p_up_tilt -->|"-6..1"| t_back_air_landing
   p_down_tilt -->|"-5..2"| t_back_air_landing
-  p_forward_smash -->|"-6..1"| t_back_air_landing
+  p_forward_smash -->|"-4..1"| t_back_air_landing
   p_up_smash -->|"-8..-1"| t_back_air_landing
   p_down_smash -->|"-8..-1"| t_back_air_landing
   p_grab -->|"-5..2"| t_back_air_landing
@@ -1160,4 +1160,17 @@ flowchart LR
   p_down_smash -->|"-6..17"| t_missed_tech_get_up_attack
   p_grab -->|"-5..20"| t_missed_tech_get_up_attack
 ```
+
+## Projectiles
+
+Each special that makes a projectile is fired on frame 10 at a mirror Archer the listed distance away. Frame 0 is the frame the projectile meets a shield held from frame 1. Flight and most out are measured firing away from everyone, the most out with the special pressed every other frame. Punish start frames are out-of-shield options that land before the shooter can act. Powershield and answer frames are presses, from frame 0, of a standing defender that leave it unhit.
+
+| Source | Distance | Flight | Most out | Arrives | Hits a standing defender | Advantage | Punished by (start frames) | Powershield | Answers (press frames) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| neutral special | 60 | 74 | 10 | 1 | yes | -2 | safe | -1..0 | spot dodge -1 |
+| neutral special | 240 | 74 | 10 | 6 | yes | 0 | safe | -3..0 | jump -6; spot dodge -6..-1; roll in -6..-3; roll away -6..-3 |
+| neutral special | 480 | 74 | 10 | 12 | yes | - | pokes the shield | -3..0 | jump -12..-6; spot dodge -12..-1; roll in -12..-3; roll away -12..-3 |
+| side special | 60 | 64 | 6 | - | no | - | - | - | - |
+| side special | 240 | 64 | 6 | 13 | yes | -21 | jump neutral air 1..6; jump forward air 1..12 | -3..0 | jump -13..-7; spot dodge -13..-1; roll in -13..-3; roll away -13..-3 |
+| side special | 480 | 64 | 6 | 20 | yes | -14 | safe | -3..0 | jump -20..-13, -6; spot dodge -14..-1; roll in -20..-3; roll away -14..-3 |
 

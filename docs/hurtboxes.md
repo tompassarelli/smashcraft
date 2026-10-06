@@ -36,18 +36,22 @@ without `hurtboxes` keeps its character's standing capsule in every state.
 The shipped fighters' bodies live in the same file's `CHARACTER_HURTBOXES`.
 
 Rules for authored bodies (the measurable ones, held poses of at least 3
-frames, steps of at most 60 units, connected parts and protection on the
-striking limb, are in smashcraft:docs/gameplay-design.md, "Legible
+frames, steps of at most 60 units, connected parts, no intangible or
+invincible parts in attack poses and no part past a limb's reach, are in smashcraft:docs/gameplay-design.md, "Legible
 hurtboxes", and smashcraft:ts/src/game/sim/hurtboxLegibility.tests.ts checks
 them on every fighter and registered hero):
 
-- Weapons stay outside the body: only limbs and torso extend, so a weapon's
-  reach past the arm is the move's disjoint.
+- Weapons are disjoint (owner decision, 6 Oct 2026): a held weapon is never
+  part of the body, so striking it does nothing, while the hand and arm
+  holding it can be hit. Only limbs and torso extend, within a fully extended
+  limb's reach (0.7 of the standing height from the feet horizontally), so a
+  weapon's reach past the arm is the move's disjoint.
 - An extended limb reaches toward the strike on the frames the drawn limb
   does, typically from late startup through early recovery, so a whiffed move
   is punishable at its hand or foot.
-- Mark intangible or invincible parts deliberately and name the trade-off in
-  the move's brief; they change which trades the move wins.
+- Attacking limbs can be hit (owner decision, 6 Oct 2026): attack and
+  special poses use normal parts only. `HurtState.intangible` and
+  `invincible` remain for explicit defensive states.
 
 ## Contact
 
@@ -86,16 +90,15 @@ tilt, forward smash, forward air and down air. Each extended pose spans the
 last two startup frames through three recovery frames; heights scale with the
 fighter's standing capsule.
 
-| Move | Pose | Special parts |
-| --- | --- | --- |
-| Jab | arm reaching about 49 units forward | |
-| Down tilt | torso ducked to 62% height, front leg swept forward | |
-| Forward smash | torso wound back through startup, then torso and arm forward | Illidan's arm intangible |
-| Forward air | torso tucked, front leg kicked out | |
-| Down air | legs driven below the feet | Archer's legs intangible, Rifleman's invincible |
+| Move | Pose |
+| --- | --- |
+| Jab | arm reaching about 49 units forward |
+| Down tilt | torso ducked to 62% height, front leg swept forward |
+| Forward smash | torso wound back through startup, then torso and arm forward |
+| Forward air | torso tucked, front leg kicked out |
+| Down air | legs driven below the feet |
 
-The special parts are provisional design choices: the Archer's down air beats
-an anti-air aimed at its legs, the Rifleman's spends one, and Illidan's
-forward smash cannot be stuffed at the arm. Captures of build 0.0.49's models
+Every part is hittable: an anti-air that reaches only the down-air legs, or a
+strike that reaches only Illidan's forward-smash arm, counter-hits it. Captures of build 0.0.49's models
 cover 49-98% of the drawn body on active frames, the rest being held weapons
 and loose cloth outside the volumes.

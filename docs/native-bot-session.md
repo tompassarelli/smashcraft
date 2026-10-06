@@ -7,6 +7,14 @@ capture (smashcraft:ts/scripts/integrity/journey.ts). Use it for checks
 that need Warcraft itself: stall recovery, saved moments, controller rows
 and what each player sees with computer opponents.
 
+Before a session, and whenever a client misbehaves, run `bun wisp watch
+--once` instead of reading the clients' screens: it prints each client's
+state (signed in, menu screen, lobby, loading, in match, results,
+disconnected, crashed), its map's load errors and the ladder scan, from
+events (wisp:docs/watch.md). `bun wisp client wait CLIENT STATE...` waits
+for one. A capture and `bun wisp fresh` stop at once when a client crashes or
+loses Battle.net, with the evidence the watch saw.
+
 ## The session
 
 The session has a match and a rematch:
@@ -44,6 +52,20 @@ The session has a match and a rematch:
 - `--pad49` opens the first match with #49's script on slot 0, and that
   match has no stalls. The script: resting and drifted sticks, X, Y, down at
   0.650 and 0.670 of full tilt, and a held right.
+
+## Healthy clients first
+
+`bun wisp fresh` and `bun wisp parity capture` run `bun wisp doctor` before
+they start and once after a failure (wisp:docs/doctor.md). It recovers a
+client that dropped from Battle.net, crashed with its error dialog up, sits
+at the empty Options/Exit Game login shell, a stale lobby, a score screen or
+a stuck loading screen, or shares its prefix with a second runtime: it ends
+the game (or the prefix), starts Battle.net on the client's own desktop when
+needed and presses Play in the signed-in launcher. Don't restart or
+hand-drive a client for these; run `bun wisp doctor` (or `bun wisp doctor b`)
+and read its lines. It stops with one line when Tom must sign in. A capture
+that failed isn't repeated: doctor heals its clients, and the next capture
+starts healthy.
 
 Before the first `bun wisp fresh` after a client starts, open Custom Games
 → Create Game and the 00-Smashcraft folder once: fresh clicks the folder's

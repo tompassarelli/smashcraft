@@ -285,6 +285,8 @@ export function installShell(): void {
   if (s?.ui !== undefined) recreateUi(s, panelActions());
   // A match from a bundle without the moment record keeps running with a new one.
   if (s !== undefined && s.moment === undefined) s.moment = momentSaves();
+  // A shell from a bundle that didn't record its drawn stage draws the chosen one.
+  if (s !== undefined && s.drawnStage === undefined) drawStage(s);
 }
 
 /** Starts the shell once, when the map starts. */

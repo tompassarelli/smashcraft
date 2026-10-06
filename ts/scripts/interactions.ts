@@ -534,7 +534,7 @@ interface StateRow {
   readonly punishes: readonly Window[];
 }
 
-export type Row = AerialRow | ParryRow | ReachRow | NeutralRow | StateRow;
+export type Row = AerialRow | ParryRow | ReachRow | NeutralRow | StateRow | ProjectileRow;
 
 const relative = (frame: number | undefined, zero: number): number | undefined => (frame === undefined ? undefined : frame - zero);
 const window = (punisher: string, starts: readonly number[], zero: number): Window => ({ punisher, starts: starts.map((s) => s - zero) });
@@ -1049,6 +1049,172 @@ function techRows(entry: FighterEntry): StateRow[] {
 
 // ------------------------------------------------------------------ rows for a fighter
 
+// ------------------------------------------------------------------ projectiles (#98)
+
+/**
+ * The special inputs a fighter fires projectiles from. Rows for a source are
+ * played from these spacings: point blank, mid range and long range.
+ */
+const SPECIAL_INPUTS = [
+  { name: "neutral special", held: (): Held => [Action.special] },
+  { name: "side special", held: (self: Fighter): Held => [self.facing > 0 ? Action.moveRight : Action.moveLeft, Action.special] },
+  { name: "up special", held: (): Held => [Action.moveUp, Action.special] },
+  { name: "down special", held: (): Held => [Action.moveDown, Action.special] },
+] as const;
+type SpecialInput = (typeof SPECIAL_INPUTS)[number];
+export const PROJECTILE_SPACINGS = [60, 240, 480] as const;
+/** The shooter fires on this frame, so a shield held from frame 1 has left its powershield frames. */
+const FIRE = 10;
+const PROJECTILE_HORIZON = 150;
+/** Full hop: jump held through jump squat. */
+const FULL_JUMP: Option = { name: "jump", kind: "jump", input: (i) => (i < 8 ? [Action.jump] : []) };
+const PROJECTILE_ANSWERS: readonly Option[] = [FULL_JUMP, SPOT_DODGE, ROLL_IN, ROLL_AWAY];
+const OOS_PUNISHERS: readonly Option[] = [SHIELD_GRAB, ...AERIALS.map(oosAerial)];
+
+interface ProjectileRow {
+  readonly kind: "projectile";
+  readonly fighter: string;
+  /** Source and spacing: "neutral special at 60". */
+  readonly variant: string;
+  readonly source: string;
+  readonly distance: number;
+  /** Frames the projectile lives, flying clear of everyone. */
+  readonly flight: number;
+  readonly traveling: boolean;
+  /** The most of the fighter's projectiles out at once with this source pressed as often as it starts. */
+  readonly mostOut: number;
+  /** Frames from the press to the projectile meeting a shield held from frame 1; undefined when it never reaches one. */
+  readonly arrives: number | undefined;
+  /** It passed the shrinking shield and hit the body behind it. */
+  readonly pokes: boolean;
+  /** Whether a standing defender that does nothing is hit. */
+  readonly hitsIdle: boolean;
+  /** From the shield contact (frame 0). */
+  readonly shooterActs: number | undefined;
+  readonly defenderActs: number | undefined;
+  readonly advantage: number | undefined;
+  /** Out-of-shield options that land before the shooter can act, by start frame from the contact. */
+  readonly punishes: readonly Window[];
+  /** Shield presses, from the contact frame, that reflect it. */
+  readonly powershield: readonly number[];
+  /** Options other than a shield that leave a standing defender unhit, by press frame from the contact frame. */
+  readonly answers: readonly { readonly option: string; readonly starts: readonly number[] }[];
+}
+
+const shooterPolicy = (input: SpecialInput, fire: number, every = 0): Policy => (n, self) =>
+  (n === fire || (every > 0 && n > fire && (n - fire) % every === 0) ? input.held(self) : []);
+
+const liveProjectiles = (f: Fighter): number => f.projectiles.filter((projectile) => projectile.life > 0).length;
+
+/** Fired away from everyone: how long the first projectile lives, whether it moves, and the most out while the input repeats. */
+function projectileFlight(character: Character, input: SpecialInput): { readonly flight: number; readonly traveling: boolean; readonly mostOut: number } | undefined {
+  const away = (every: number): Timeline => new Timeline({
+    placements: [{ character, x: 0.0, facing: 1 }, { character, x: -400.0, facing: 1 }],
+    policies: [shooterPolicy(input, 1, every), idle],
+  }, 1);
+  const once = away(0);
+  let born: number | undefined;
+  let died: number | undefined;
+  let traveling = false;
+  once.play(NONE, PROJECTILE_HORIZON, (n, a) => {
+    const live = liveProjectiles(a);
+    if (born === undefined && live > 0) {
+      born = n;
+      traveling = a.projectiles.some((projectile) => projectile.life > 0 && (projectile.velocityX !== 0 || projectile.velocityZ !== 0));
+    }
+    if (born !== undefined && live === 0) died = n;
+    return died !== undefined;
+  });
+  once.release();
+  if (born === undefined) return undefined;
+  const spam = away(2);
+  let mostOut = 0;
+  spam.play(NONE, 300, (_n, a) => {
+    mostOut = Math.max(mostOut, liveProjectiles(a));
+    return false;
+  });
+  spam.release();
+  return { flight: (died ?? PROJECTILE_HORIZON + 1) - born, traveling, mostOut };
+}
+
+/** One source fired from `distance` at a mirror defender. */
+function projectileRow(character: Character, name: string, input: SpecialInput, distance: number, flight: { readonly flight: number; readonly traveling: boolean; readonly mostOut: number }): ProjectileRow {
+  const placements: Situation["placements"] = [{ character, x: -distance / 2, facing: 1 }, { character, x: distance / 2, facing: -1 }];
+  const last = FIRE + PROJECTILE_HORIZON;
+  const shielded = new Timeline({ placements, policies: [shooterPolicy(input, FIRE), () => [Action.rightTrigger]] }, last);
+  let contact: number | undefined;
+  let pokes = false;
+  shielded.play(NONE, last, (n, _a, b) => {
+    if (n > FIRE && b.visuals.shield + b.visuals.shieldReflect > 0) contact = n;
+    if (n > FIRE && contact === undefined && b.status.damage > 0) {
+      contact = n;
+      pokes = true;
+    }
+    return contact !== undefined;
+  }, true);
+  const base = { kind: "projectile", fighter: name, variant: `${input.name} at ${distance}`, source: input.name, distance, ...flight } as const;
+  const standing = new Timeline({ placements, policies: [shooterPolicy(input, FIRE), idle] }, last);
+  /** Whether the standing defender is hit; once the projectile has met someone, a run ends when the shooter has none left. */
+  const hit = (plans: Plans, after = last): boolean => {
+    let hurt = false;
+    standing.play(plans, last, (n, a, b) => {
+      hurt = b.status.damage > 0;
+      return hurt || (n > after && liveProjectiles(a) === 0);
+    }, true);
+    return hurt;
+  };
+  const hitsIdle = hit(NONE);
+  if (contact === undefined) {
+    shielded.release();
+    standing.release();
+    return { ...base, arrives: undefined, pokes, hitsIdle, shooterActs: undefined, defenderActs: undefined, advantage: undefined, punishes: [], powershield: [], answers: [] };
+  }
+  const zero = contact;
+  const shooterActs = pokes ? undefined : shielded.actionable(NONE, 0, zero, last);
+  const defenderActs = pokes ? undefined : shielded.actionable(NONE, 1, zero, last);
+  const punishes = shooterActs === undefined ? [] : OOS_PUNISHERS.flatMap((option) => {
+    const start = shielded.earliest(NONE, 1, option, zero, Math.min(last, zero + 45));
+    return start === undefined ? [] : [window(option.name, shielded.punishStarts(1, option, start, shooterActs), zero)];
+  });
+  const presses = Array.from({ length: zero - FIRE + 1 }, (_, index) => FIRE + index);
+  const powershield = presses.filter((start) => {
+    let reflected = false;
+    standing.play(sideOf(1, [{ option: SHIELD, start }]), last, (n, a, b) => {
+      reflected = b.visuals.shieldReflect > 0;
+      return reflected || b.status.damage > 0 || (n > zero && liveProjectiles(a) === 0);
+    }, true);
+    return reflected;
+  }).map((start) => start - zero);
+  const answers = PROJECTILE_ANSWERS.map((option) => ({
+    option: option.name,
+    starts: presses.filter((start) => !hit(sideOf(1, [{ option, start }]), zero)).map((start) => start - zero),
+  }));
+  shielded.release();
+  standing.release();
+  return {
+    ...base, arrives: zero - FIRE, pokes, hitsIdle, shooterActs: relative(shooterActs, zero), defenderActs: relative(defenderActs, zero),
+    advantage: shooterActs === undefined || defenderActs === undefined ? undefined : defenderActs - shooterActs,
+    punishes: landed(punishes), powershield, answers,
+  };
+}
+
+/** Each out-of-shield option and the first frame a press starts it from a shield held since frame 1; undefined when it never does. */
+export function outOfShieldStarts(character: Character): { readonly option: string; readonly start: number | undefined }[] {
+  const line = new Timeline({
+    placements: [{ character, x: 0.0, facing: 1 }, { character, x: 400.0, facing: -1 }],
+    policies: [() => [Action.rightTrigger], idle],
+  }, 60);
+  return released(line, OUT_OF_SHIELD.slice(1).map((option) => ({ option: option.name, start: line.earliest(NONE, 0, option, 12, 60) })));
+}
+
+/** Every projectile source of a fighter, fired at a mirror defender from each spacing. */
+export function projectileRows(character: Character, name: string): ProjectileRow[] {
+  return SPECIAL_INPUTS.flatMap((input) => {
+    const flight = projectileFlight(character, input);
+    return flight === undefined ? [] : PROJECTILE_SPACINGS.map((distance) => projectileRow(character, name, input, distance, flight));
+  });
+}
+
 export function fighterNamed(name: string): FighterEntry | undefined {
   return FIGHTERS.find((entry) => entry.name.toLowerCase() === name.toLowerCase() || entry.slug === name.toLowerCase());
 }
@@ -1061,6 +1227,7 @@ export function interactionRows(entry: FighterEntry): Row[] {
     ...landingRows(entry),
     ...ledgeRows(entry),
     ...techRows(entry),
+    ...projectileRows(entry.character, entry.name),
   ];
 }
 
@@ -1226,6 +1393,22 @@ function neutralSection(entry: FighterEntry, rows: readonly Row[]): string[] {
   ];
 }
 
+function projectileSection(entry: FighterEntry, rows: readonly Row[]): string[] {
+  const own = rows.filter(isRow("projectile"));
+  if (own.length === 0) return [];
+  return [
+    "## Projectiles", "",
+    `Each special that makes a projectile is fired on frame ${FIRE} at a mirror ${entry.name} the listed distance away. Frame 0 is the frame the projectile meets a shield held from frame 1. `
+      + "Flight and most out are measured firing away from everyone, the most out with the special pressed every other frame. "
+      + "Punish start frames are out-of-shield options that land before the shooter can act. Powershield and answer frames are presses, from frame 0, of a standing defender that leave it unhit.", "",
+    ...table(["Source", "Distance", "Flight", "Most out", "Arrives", "Hits a standing defender", "Advantage", "Punished by (start frames)", "Powershield", "Answers (press frames)"], own.map((row) => [
+      row.source, String(row.distance), `${row.flight}${row.traveling ? "" : " (stays)"}`, String(row.mostOut), show(row.arrives), row.hitsIdle ? "yes" : "no", signed(row.advantage),
+      row.arrives === undefined ? "-" : row.pokes ? "pokes the shield" : windowsText(row.punishes, "safe"), row.arrives === undefined ? "-" : spans(row.powershield) || "never",
+      row.arrives === undefined ? "-" : row.answers.filter((answer) => answer.starts.length > 0).map((answer) => `${answer.option} ${spans(answer.starts)}`).join("; ") || "none",
+    ])), "",
+  ];
+}
+
 const STATE_TITLES: Readonly<Record<StateRow["kind"], { readonly title: string; readonly zero: string }>> = {
   landing: { title: "Landing", zero: "Frame 0 is the touchdown. Punish start frames, also from the touchdown, are when the opponent's option can start and land during the landing, before the lander can act" },
   ledge: { title: "Ledge", zero: "Frame 0 is the ledge option's start. Punish start frames are when the opponent's option can start and land before the option's user can act" },
@@ -1268,6 +1451,7 @@ export function fighterPage(entry: FighterEntry, rows: readonly Row[]): string {
     ...stateSection("landing", rows),
     ...stateSection("ledge", rows),
     ...stateSection("tech", rows),
+    ...projectileSection(entry, rows),
   ].join("\n");
 }
 
@@ -1297,6 +1481,9 @@ export function moveProfile(rows: readonly Row[], move: string): string[] {
         asPunisher("out of a parry", variant, row.punishes);
         break;
       }
+      case "projectile":
+        if (row.source === move) lines.push(`projectile from ${row.distance}: arrives ${show(row.arrives)}, advantage ${signed(row.advantage)}, punished by ${windowsText(row.punishes, "nothing")}, powershield ${spans(row.powershield) || "never"}`);
+        break;
       case "neutral":
         for (const cell of row.cells) if (cell.row === move) lines.push(`neutral at ${row.distance}, against ${cell.column}: ${cellText(cell)}`);
         for (const entry of row.punishes) {

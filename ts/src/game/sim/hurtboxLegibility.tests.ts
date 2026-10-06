@@ -2,14 +2,14 @@
 // hurtboxes", #97) checked on every fighter's authored bodies: the original
 // three and each registered hero, normals and specials. A fighter that breaks
 // a rule on purpose lists a named departure below and in that section.
+import { f32 } from "wisp/src/sim/f32";
 import { assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
-import { type Capsule, capsulesIntersect, placeCapsule } from "../physics/contactGeometry";
+import { capsulesIntersect, placeCapsule } from "../physics/contactGeometry";
 import { AttackStyle, Character } from "./codes";
 import { createFighter } from "./fighter";
 import { HERO_ROSTER } from "./heroes/registry";
-import type { FighterMoves, MoveRegion } from "./heroMoves";
+import type { FighterMoves } from "./heroMoves";
 import { type AuthoredSpecial, specialKit } from "./heroSpecials";
-import { type HitRegion, authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "./hitRegions";
 import { type FighterHurtboxes, type HurtPart, type HurtPose, HurtContact, HurtState, fighterHurtParts, fighterHurtboxes, strikeHurtContact } from "./hurtboxes";
 import { attackDurationFramesForGrounding } from "./moves";
 
@@ -17,14 +17,27 @@ import { attackDurationFramesForGrounding } from "./moves";
 const MIN_POSE_FRAMES = 3;
 /** Rule 4: world units one change may move the body's front, back, top or bottom. */
 const MAX_BODY_STEP = 60.0;
+/** Rule 6: a fully extended limb's reach, as fractions of the standing height: sideways from the feet, below the feet and above the head. */
+const LIMB_REACH = f32(0.7);
+const BELOW_FEET = 0.25;
+const ABOVE_HEAD = f32(0.3);
+
+/** Dreadlord's wings and claws are body (the roster keeps hurtboxes on attached body parts) and reach past an arm. */
+const wings = (moves: readonly string[]): { [key: string]: string } => {
+  const out: { [key: string]: string } = {};
+  for (const move of moves) out[`Dreadlord ${move} rule 6`] = "wing or claw: attached body, hittable to its full reach";
+  return out;
+};
 
 /**
  * Named departures, "fighter move rule N" to its reason; each must also be
  * named in gameplay-design.md. A listed departure that no longer occurs fails.
  */
-const DEPARTURES: { readonly [key: string]: string | undefined } = {};
-
-interface Region { readonly strike?: Readonly<Capsule> | undefined; readonly minX: number; readonly maxX: number; readonly minZ: number; readonly maxZ: number }
+const DEPARTURES: { readonly [key: string]: string | undefined } = {
+  "Mountain King downAir rule 6": "Double Boot strikes with the boots themselves, so the leg volume follows the whole downward strike past a limb's reach",
+  "Uther backAir rule 6": "a boot kick: the extended leg is the strike and stays hittable to its full length",
+  ...wings(["downSmash", "forwardSmash", "forwardAir", "backAir", "downAir"]),
+};
 
 /** One move's authored bodies, in its own frame numbering, with the frames it lasts. */
 interface MoveBodies {
@@ -32,7 +45,6 @@ interface MoveBodies {
   readonly poses: readonly HurtPose[];
   readonly firstFrame: number;
   readonly lastFrame: number;
-  readonly regions: readonly Region[];
 }
 
 interface FighterBodies {
@@ -41,36 +53,14 @@ interface FighterBodies {
   readonly moves: readonly MoveBodies[];
 }
 
-const STYLE_NAMES: { [style: number]: string } = {};
-for (const key in AttackStyle) STYLE_NAMES[AttackStyle[key as keyof typeof AttackStyle]] = key;
-
-function originalRegions(character: Character, style: AttackStyle, total: number): Region[] {
-  const regions: Region[] = [];
-  const count = authoredHitRegionCount(style);
-  for (let frame = 0; frame < total; frame++) {
-    for (let index = 0; index < count; index++) {
-      const region: HitRegion = authoredHitRegion(emptyHitRegion(), character, style, frame, 0, index);
-      if (region.window > 0) regions.push(region);
-    }
-  }
-  return regions;
-}
-
-const heroRegions = (regions: readonly MoveRegion[] | undefined): Region[] => {
-  const out: Region[] = [];
-  for (const region of regions ?? []) out.push(region.hit);
-  return out;
-};
-
-function attackBodies(set: Readonly<FighterHurtboxes>, character: Character, moves: FighterMoves | undefined): MoveBodies[] {
+function attackBodies(set: Readonly<FighterHurtboxes>, moves: FighterMoves | undefined): MoveBodies[] {
   const out: MoveBodies[] = [];
   for (const key in AttackStyle) {
     const style = AttackStyle[key as keyof typeof AttackStyle];
     const poses = set.attacks[style];
     if (poses === undefined || poses.length === 0) continue;
     const total = Math.max(attackDurationFramesForGrounding(style, true, moves), attackDurationFramesForGrounding(style, false, moves));
-    const regions = moves === undefined ? originalRegions(character, style, total) : heroRegions(moves.normals[style]?.regions);
-    out.push({ name: key, poses, firstFrame: 0, lastFrame: total - 1, regions });
+    out.push({ name: key, poses, firstFrame: 0, lastFrame: total - 1 });
   }
   return out;
 }
@@ -79,7 +69,7 @@ const SLOT_NAMES = ["neutral special", "side special", "up special", "down speci
 
 function specialBodies(special: AuthoredSpecial | undefined, name: string, out: MoveBodies[]): void {
   if (special?.hurt === undefined || special.hurt.length === 0) return;
-  out.push({ name, poses: special.hurt, firstFrame: 1, lastFrame: special.endFrame, regions: heroRegions(special.regions) });
+  out.push({ name, poses: special.hurt, firstFrame: 1, lastFrame: special.endFrame });
 }
 
 function everyFighter(): FighterBodies[] {
@@ -87,11 +77,11 @@ function everyFighter(): FighterBodies[] {
   const originals: readonly [Character, string][] = [[Character.archer, "Archer"], [Character.rifleman, "Rifleman"], [Character.demonHunter, "Illidan"]];
   for (const [character, name] of originals) {
     const set = fighterHurtboxes(createFighter(character, 0.0, 1));
-    fighters.push({ name, set, moves: attackBodies(set, character, undefined) });
+    fighters.push({ name, set, moves: attackBodies(set, undefined) });
   }
   for (const hero of HERO_ROSTER) {
     const set = fighterHurtboxes(createFighter(hero.character, 0.0, 1));
-    const moves = attackBodies(set, hero.character, hero.moves);
+    const moves = attackBodies(set, hero.moves);
     if (hero.specials !== undefined) {
       for (let slot = 0; slot < SLOT_NAMES.length; slot++) {
         const kit = specialKit(hero.specials, slot);
@@ -148,54 +138,6 @@ function connected(parts: readonly HurtPart[]): boolean {
   return true;
 }
 
-/** Distance from point to an axis-aligned box. */
-function pointBox(x: number, z: number, r: Region): number {
-  const dx = Math.max(r.minX - x, 0.0, x - r.maxX);
-  const dz = Math.max(r.minZ - z, 0.0, z - r.maxZ);
-  return Math.sqrt(dx * dx + dz * dz);
-}
-
-function pointSegment(x: number, z: number, p: HurtPart): number {
-  const vx = p.x2 - p.x1;
-  const vz = p.z2 - p.z1;
-  const length = vx * vx + vz * vz;
-  const t = length === 0.0 ? 0.0 : Math.max(0.0, Math.min(1.0, ((x - p.x1) * vx + (z - p.z1) * vz) / length));
-  const dx = p.x1 + t * vx - x;
-  const dz = p.z1 + t * vz - z;
-  return Math.sqrt(dx * dx + dz * dz);
-}
-
-/** Whether the segment crosses the box (Liang–Barsky clip). */
-function segmentCrossesBox(p: HurtPart, r: Region): boolean {
-  let low = 0.0;
-  let high = 1.0;
-  const checks: readonly [number, number][] = [
-    [-(p.x2 - p.x1), p.x1 - r.minX], [p.x2 - p.x1, r.maxX - p.x1],
-    [-(p.z2 - p.z1), p.z1 - r.minZ], [p.z2 - p.z1, r.maxZ - p.z1],
-  ];
-  for (const [direction, room] of checks) {
-    if (direction === 0.0) {
-      if (room < 0.0) return false;
-    } else if (direction < 0.0) {
-      low = Math.max(low, room / direction);
-    } else {
-      high = Math.min(high, room / direction);
-    }
-  }
-  return low <= high;
-}
-
-/** Rule 5: a protected part touches the region's strike capsule, or its envelope when it has none. */
-function touchesRegion(part: HurtPart, region: Region): boolean {
-  if (region.strike !== undefined) return capsulesIntersect(part, region.strike);
-  if (segmentCrossesBox(part, region)) return true;
-  let distance = Math.min(pointBox(part.x1, part.z1, region), pointBox(part.x2, part.z2, region));
-  for (const [x, z] of [[region.minX, region.minZ], [region.minX, region.maxZ], [region.maxX, region.minZ], [region.maxX, region.maxZ]] as const) {
-    distance = Math.min(distance, pointSegment(x, z, part));
-  }
-  return distance <= part.radius;
-}
-
 /** Every rule a fighter's authored bodies break, as "fighter move rule N: detail". */
 function violations(fighter: FighterBodies): string[] {
   const found: string[] = [];
@@ -203,6 +145,16 @@ function violations(fighter: FighterBodies): string[] {
     found.push(`${fighter.name} ${move} rule ${rule}: ${detail}`);
   };
   const { stand, crouch } = fighter.set;
+  const standing = extent(stand);
+  const height = standing.top - standing.bottom;
+  const beyondReach = (parts: readonly HurtPart[]): string | undefined => {
+    const e = extent(parts);
+    const side = Math.max(e.front, -e.back);
+    if (side > LIMB_REACH * height) return `reaches ${side} sideways, past ${LIMB_REACH * height}`;
+    if (e.bottom < standing.bottom - BELOW_FEET * height) return `reaches ${e.bottom} below, past ${standing.bottom - BELOW_FEET * height}`;
+    if (e.top > standing.top + ABOVE_HEAD * height) return `reaches ${e.top} above, past ${standing.top + ABOVE_HEAD * height}`;
+    return undefined;
+  };
   if (!connected(stand)) add("stand", 2, "a part is not connected");
   if (crouch !== undefined) {
     if (!connected(crouch)) add("crouch", 2, "a part is not connected");
@@ -216,6 +168,8 @@ function violations(fighter: FighterBodies): string[] {
     for (const pose of sorted) {
       const label = `frames ${pose.firstFrame}-${pose.lastFrame}`;
       if (!connected(pose.parts)) add(move.name, 2, `${label}: a part is not connected`);
+      const reach = beyondReach(pose.parts);
+      if (reach !== undefined) add(move.name, 6, `${label}: ${reach}`);
       if (pose.lastFrame - pose.firstFrame + 1 < MIN_POSE_FRAMES) add(move.name, 3, `${label}: shorter than ${MIN_POSE_FRAMES} frames`);
       if (pose.firstFrame <= previousLast) add(move.name, 3, `${label}: overlaps the previous pose`);
       if (pose.firstFrame < move.firstFrame || pose.lastFrame > move.lastFrame) add(move.name, 3, `${label}: outside the move's frames ${move.firstFrame}-${move.lastFrame}`);
@@ -227,10 +181,7 @@ function violations(fighter: FighterBodies): string[] {
       const into = step(body, pose.parts);
       if (into > MAX_BODY_STEP) add(move.name, 4, `${label}: step ${into}`);
       for (const part of pose.parts) {
-        if ((part.state ?? HurtState.normal) === HurtState.normal) continue;
-        let touches = false;
-        for (const region of move.regions) if (touchesRegion(part, region)) touches = true;
-        if (!touches) add(move.name, 5, `${label}: a protected part touches none of the move's hit regions`);
+        if ((part.state ?? HurtState.normal) !== HurtState.normal) add(move.name, 5, `${label}: an intangible or invincible part`);
       }
       body = pose.parts;
       previousLast = Math.max(previousLast, pose.lastFrame);
@@ -266,23 +217,24 @@ test("the original fighters' sampled moves are checked", () => {
 test("the checker catches each rule it enforces", () => {
   const torso: HurtPart = { x1: 0.0, z1: 4.0, x2: 0.0, z2: 88.0, radius: 24.0 };
   const pose = (first: number, last: number, parts: readonly HurtPart[]): HurtPose => ({ firstFrame: first, lastFrame: last, parts });
-  const rules = (poses: readonly HurtPose[], regions: readonly Region[] = []): string => violations({
+  const rules = (poses: readonly HurtPose[]): string => violations({
     name: "Probe",
     set: { stand: [torso], attacks: {} },
-    moves: [{ name: "jab", poses, firstFrame: 0, lastFrame: 20, regions }],
+    moves: [{ name: "jab", poses, firstFrame: 0, lastFrame: 20 }],
   }).map((v) => v.substring(v.indexOf("rule"), v.indexOf(":"))).join(",");
   const floating: HurtPart = { x1: 80.0, z1: 60.0, x2: 100.0, z2: 60.0, radius: 5.0 };
   const arm = (reach: number, state?: HurtState): HurtPart => ({ x1: 10.0, z1: 60.0, x2: reach, z2: 60.0, radius: 9.0, state });
   assertEquals(rules([pose(2, 8, [torso, arm(50.0)])]), "");
-  assertEquals(rules([pose(2, 8, [torso, floating])]), "rule 2,rule 4,rule 4");
+  assertEquals(rules([pose(2, 8, [torso, floating])]), "rule 2,rule 6,rule 4,rule 4");
   assertEquals(rules([pose(2, 3, [torso, arm(50.0)])]), "rule 3");
   assertEquals(rules([pose(2, 8, [torso, arm(50.0)]), pose(6, 12, [torso])]), "rule 3");
   assertEquals(rules([pose(15, 22, [torso])]), "rule 3");
-  assertEquals(rules([pose(2, 8, [torso, arm(110.0)])]), "rule 4,rule 4");
-  assertEquals(rules([pose(2, 5, [torso, arm(50.0)]), pose(6, 9, [torso, arm(100.0)]), pose(10, 13, [torso, arm(50.0)])]), "");
-  const strikeRegion: Region = { minX: 40.0, maxX: 70.0, minZ: 50.0, maxZ: 70.0 };
-  assertEquals(rules([pose(2, 8, [torso, arm(50.0, HurtState.intangible)])], [strikeRegion]), "");
-  assertEquals(rules([pose(2, 8, [{ ...torso, state: HurtState.invincible }, arm(50.0)])], [strikeRegion]), "rule 5");
+  assertEquals(rules([pose(2, 8, [{ ...torso, z2: 20.0 }])]), "rule 4,rule 4");
+  assertEquals(rules([pose(2, 5, [torso, arm(30.0)]), pose(6, 9, [torso, arm(55.0)])]), "");
+  assertEquals(rules([pose(2, 8, [torso, arm(88.0)])]), "rule 6,rule 4,rule 4");
+  assertEquals(rules([pose(2, 8, [torso, { x1: 0.0, z1: 80.0, x2: 0.0, z2: 160.0, radius: 9.0 }])]), "rule 6");
+  assertEquals(rules([pose(2, 8, [torso, arm(50.0, HurtState.intangible)])]), "rule 5");
+  assertEquals(rules([pose(2, 8, [{ ...torso, state: HurtState.invincible }, arm(50.0)])]), "rule 5");
 });
 
 test("rule 1: outside attacks and specials only crouch changes the body, and selection is a function of state", () => {

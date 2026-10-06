@@ -118,6 +118,7 @@ Archers' hurt capsules touch; Rifleman's and Illidan's, slightly wider, overlap 
 | Landing | A fighter at a short hop's apex height, 60 in front of a standing opponent | Touchdown | Empty landing, fast fall, drift away, each aerial pressed at once, air dodge down |
 | Ledge | The fighter catches the right ledge from ledge height 30 outside it; the opponent stands 70 inside, facing it | The ledge option's start | Hang, climb, roll, ledge attack, jump, drop, on the first frame after the catch and once the 30 intangible frames are over |
 | Tech | A tumbling fighter falls from 30 onto the stage, 70 from the opponent | Touchdown | Tech in place, tech roll in or away; or no tech, then lie, stand, get-up roll in or away, or get-up attack, each as early as the down states take it |
+| Projectile | The fighter fires each special that makes a projectile on frame 10 at a mirror defender 60, 240 and 480 apart. Flight and the most out at once are measured firing away from everyone, the special pressed every other frame | The projectile meets a shield held from frame 1 (or pokes past it into the body) | Defender holding shield: shield grab and jump out of shield into each aerial, as punishes before the shooter can act. Standing defender: a shield press (powershield), a full jump, spot dodge, roll in or away, each pressed on any frame from the shot to the arrival |
 
 Aerials on shield use the terms of
 [platform-fighter design language](platform-fighters.md#aerials-on-shield-spaced-advancing-fade-back-fade-forward):
@@ -141,9 +142,9 @@ These are absent from the model, not claims about the game:
 - Reaction time. Windows count frames from frame 0 and include presses a
   player could only make on a read; execution limits are in
   [execution windows](execution-windows.md).
-- Specials, projectiles, dash attacks, dash and run approaches, fast-falled or
+- Specials other than projectiles, dash attacks, dash and run approaches, fast-falled or
   double-jump aerials, platforms, analog shields, red parries, powershields
-  other than the parried aerial, and shield drops.
+  other than the parried aerial and the projectile timings, and shield drops.
 - Other matchups than the mirror, and the situation an exchange leads to: a
   cell in the original situations ends at its first hit or grab, or when both
   fighters can act again. Combo trees continue from the full replay state of
