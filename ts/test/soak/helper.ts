@@ -13,7 +13,7 @@ import { installHeadless } from "wisp/scripts/wisp/headless";
 import { RealtimeClients, type TypedInput, customMapData, typedFile } from "wisp/scripts/wisp/headlessInput";
 import {
   FUZZ_POLICY, SOAK_LIMITS, type SoakController, type SoakEdge, type SoakMatch, SoakMonitor, type SoakResult, cpuMillis, describeMatch, fuzzedInputs,
-  planSoak, soakRepro,
+  helperRecorder, planSoak, soakRepro,
 } from "wisp/scripts/wisp/soak";
 import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/scripts/wisp/syncChannel";
 import { at } from "wisp/src/runtime/lookup";
@@ -83,11 +83,14 @@ const playMatch = (runtime: ReturnType<typeof installHeadless>, match: SoakMatch
     const out = join(options.out, `match-${match.index}`);
     const data = SLOTS.map((slot) => join(out, `client-${slot}`, "CustomMapData"));
     yield* tryIntegrity("create match directory", out, () => mkdirSync(out, { recursive: true }));
+    let monitor: SoakMonitor | undefined;
+    // What the helpers type and write, by the frame it reaches the clients: what a replay plays.
+    const recorder = helperRecorder(() => (monitor === undefined ? 0 : monitor.frame + 1));
     const typed = new Map<number, TypedInput>();
     const pads: Pad[] = [];
     for (const slot of SLOTS) {
       const textPath = join(out, `typed-${slot}.txt`);
-      typed.set(slot, yield* Effect.acquireRelease(tryIntegrity("open typed text", textPath, () => typedFile(textPath)), (input) => Effect.sync(input.close)));
+      typed.set(slot, recorder.input(slot, yield* Effect.acquireRelease(tryIntegrity("open typed text", textPath, () => typedFile(textPath)), (input) => Effect.sync(input.close))));
       const pad = yield* openPad(PAD_BUTTONS);
       pads.push(pad);
       yield* startHelper([
@@ -96,25 +99,26 @@ const playMatch = (runtime: ReturnType<typeof installHeadless>, match: SoakMatch
     }
     const writes = yield* padThread;
     const clients = runtime.clients(SOAK_ENTRY, SLOTS, {
-      files: (slot) => customMapData(at(data, slot)),
+      files: (slot) => recorder.files(slot, customMapData(at(data, slot))),
       delivery: syncDelivery(MEASURED_BATTLE_NET, match.seed),
       keepCalls: 64,
       cost: cpuMillis,
     });
-    const monitor = new SoakMonitor(clients, { input: () => undefined, ...matchView(() => undefined) }, SOAK_LIMITS, SMASHCRAFT_SCENE, PREDICTED_HEADLESS.filePrefix);
+    const watching = new SoakMonitor(clients, { input: () => undefined, ...matchView(() => undefined) }, SOAK_LIMITS, SMASHCRAFT_SCENE, PREDICTED_HEADLESS.filePrefix);
     let began = 0;
     const noQuiet: ReadonlySet<number> = new Set();
-    const realtime = new RealtimeClients(clients, typed, undefined, () => monitor.afterFrame(performance.now() - began, noQuiet));
+    const realtime = new RealtimeClients(clients, typed, undefined, () => watching.afterFrame(performance.now() - began, noQuiet));
     yield* tryIntegrity("start headless clients", out, () => realtime.start());
     // Menus take the clients' own frames; the helpers follow them through the files the map writes.
     yield* tryIntegrity("begin the match", out, () => beginMatch(clients, match, () => clients.frames(1)));
+    monitor = watching;
     began = performance.now();
     const source = fuzzedInputs(match, PAD, HELPER_FUZZ);
     const deadline = began + options.seconds * 1000;
     let injected = 0;
-    while (!monitor.done && monitor.frame < match.frames && performance.now() < deadline) {
+    while (!watching.done && watching.frame < match.frames && performance.now() < deadline) {
       const wait = yield* tryIntegrity("run headless clients", out, () => realtime.advance());
-      for (; injected < monitor.frame; injected++) {
+      for (; injected < watching.frame; injected++) {
         const step = source.frame(injected + 1);
         for (const [slot, edges] of step.edges) for (const edge of edges) yield* writes.write(at(pads, slot), sourceEdge(edge));
         if (step.hitchMs > 0) {
@@ -126,13 +130,13 @@ const playMatch = (runtime: ReturnType<typeof installHeadless>, match: SoakMatch
       }
       yield* Effect.sleep(Math.max(0, wait));
     }
-    const findings = monitor.finish();
+    const findings = watching.finish();
     const result: SoakResult = {
-      match, frames: monitor.frame, wallMs: performance.now() - began, costMs: monitor.costMs, worstFrameMs: monitor.worstFrameMs, over: monitor.over, findings,
-      inputs: source.recorded(), checksums: clients.clients.map((client) => client.checksum()),
+      match: { ...match, typed: true }, frames: watching.frame, wallMs: performance.now() - began, costMs: watching.costMs, worstFrameMs: watching.worstFrameMs,
+      over: watching.over, findings, inputs: recorder.recorded(source.recorded()), checksums: clients.clients.map((client) => client.checksum()),
     };
-    // Kept as the evidence of what the pads did; a replay goes through the helpers again.
-    yield* tryIntegrity("write repro", out, () => writeFileSync(join(out, "match.json"), `${JSON.stringify(soakRepro(`${project.name} through wc3-journal`, result))}\n`));
+    // The pads' edges stay as evidence; `bun wisp soak --repro` plays what the helpers typed, without them.
+    yield* tryIntegrity("write repro", out, () => writeFileSync(join(out, "match.json"), `${JSON.stringify(soakRepro(project.name, result))}\n`));
     return result;
   }));
 

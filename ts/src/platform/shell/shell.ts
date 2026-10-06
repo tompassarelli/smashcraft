@@ -180,7 +180,7 @@ function createTriggers(s: ShellState): void {
   TriggerAddAction(startDown, trampoline(KEY_DOWN));
   TriggerAddAction(startUp, trampoline(KEY_UP));
   const moment = CreateTrigger();
-  registerKey(s, moment, Key.f8, true);
+  registerKey(s, moment, Key.k, true);
   TriggerAddAction(moment, trampoline(SAVE_MOMENT));
   syncKeyEvents(s);
   const { rollback } = s;
