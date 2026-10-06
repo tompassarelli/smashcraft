@@ -60,6 +60,11 @@ export function heroStatusFrames(status: Readonly<AppliedStatus>, percent: numbe
   return min(status.frames + steps * scaling.frames, scaling.max);
 }
 
+/** Whether the fighter's status is mashed out of (Sleep), as a freeze is. */
+export function heroStatusMashes(f: Readonly<Fighter>): boolean {
+  return rules(f)?.mashMinimum !== undefined;
+}
+
 /** Whether the fighter's status stops every action: no input changes anything while it lasts. */
 export function heroStatusBlocksActions(f: Readonly<Fighter>): boolean {
   return rules(f)?.blocksActions === true;

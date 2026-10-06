@@ -7,6 +7,7 @@ import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { type AttackBuffer, clearAttackBuffer } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots } from "../input/participants";
 import { DownState, GrabAction, ShieldBreak } from "../sim/codes";
+import { heroStatusMashes } from "../sim/heroStatus";
 import type { Fighter } from "../sim/fighter";
 import { isSmashAttack } from "../sim/moves";
 import { type Controls, type Roster, copyControls, fighterAt, isActive, neutralControls } from "../sim/roster";
@@ -164,8 +165,8 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: { botAttackD
     if (fighter.launch.diPending && botChance(fighter.visuals.hit, fighter.character * 3 + 2, skill.diTenths, 10)) input.direction = fighter.motion.x < 0 ? 1 : -1;
     return;
   }
-  if (fighter.status.frozenFrames > 0) {
-    // A human-paced mash, 10 presses a second, so a trap still rewards Rifleman.
+  if (fighter.status.frozenFrames > 0 || heroStatusMashes(fighter)) {
+    // A human-paced mash, 10 presses a second, so a trap or a Sleep still rewards its user.
     input.grabMashPressed = floorMod(frame, skill.freezeMashFrames) === 0;
     return;
   }

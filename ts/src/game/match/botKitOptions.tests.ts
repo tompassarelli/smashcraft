@@ -6,7 +6,7 @@
 import { assertEquals, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { clearAttackBuffer } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS } from "../input/participants";
-import { Character, HippogryphKind, SpecialAction } from "../sim/codes";
+import { Character, HeroStatusKind, HippogryphKind, SpecialAction } from "../sim/codes";
 import { createFighter, type Fighter } from "../sim/fighter";
 import { isHeroSpecialAction } from "../sim/heroSpecialRules";
 import { FOLLOW_UP_FORM, FollowUpInput, SpecialForm } from "../sim/heroSpecials";
@@ -32,6 +32,7 @@ interface Watch {
   entryFacing: number;
   bird: number;
   divine: number;
+  asleep: boolean;
 }
 
 type Counts = Record<string, number>;
@@ -106,6 +107,10 @@ function observe(f: Readonly<Fighter>, watch: Watch, down: boolean, grabMash: bo
   if (watch.divine > 1 && f.status.divineFrames === 0 && (f.attack.style !== undefined || f.special.action !== SpecialAction.none || f.grab.target !== undefined)) count(counts, "divineAttack");
   if (grabMash && f.grab.owner !== undefined) count(counts, "grabMash");
   if (grabMash && f.status.frozenFrames > 0) count(counts, "freezeMash");
+  const asleep = f.status.condition === HeroStatusKind.sleep;
+  if (grabMash && asleep) count(counts, "sleepMash");
+  if (watch.asleep && f.launch.hitlag > 0) count(counts, "sleptHit");
+  watch.asleep = asleep;
   watch.action = special.action;
   watch.form = special.form;
   watch.frame = special.frame;
@@ -128,7 +133,7 @@ function mirrorMatch(character: Character, seed: number, damage: number, counts:
   const watches: Watch[] = [];
   for (const slot of [0, 1]) {
     fighterAt(world, slot).status.damage = damage;
-    watches.push({ action: 0, form: 0, frame: 0, entryFacing: 1, bird: 0, divine: 0 });
+    watches.push({ action: 0, form: 0, frame: 0, entryFacing: 1, bird: 0, divine: 0, asleep: false });
   }
   for (let step = 0; step < FRAMES; step++) {
     const frame = runtime.simulationFrame + 1;
@@ -140,7 +145,7 @@ function mirrorMatch(character: Character, seed: number, damage: number, counts:
     }
     assertTrue(captureFrame(row, frame, world.mask, produced, runtime));
     assertTrue(executeMatchFrame(row, match, world, controls, runtime, frame));
-    for (const slot of [0, 1]) {
+    for (const slot of [0, 1] as const) {
       const input = produced.inputs[slot];
       const watch = watches[slot];
       if (watch !== undefined) observe(fighterAt(world, slot), watch, input.down, input.grabMashPressed, counts);
@@ -185,6 +190,10 @@ test("computer Lich bursts Frost Nova, places Death and Decay, arms Frost Armor 
 
 test("computer Uther shoots Holy Light and attacks out of Divine Shield", () => {
   usesEvery(Character.uther, ["special0", "divineAttack"]);
+});
+
+test("computer Dreadlord feints Vampiric Pounce, sleeps a target, mashes out of Sleep and hits a sleeper", () => {
+  usesEvery(Character.dreadlord, ["followUp1.0", "special3", "sleepMash", "sleptHit"]);
 });
 
 test("computer Rifleman flies level and diagonal recoil routes with a second shot, short-hops and grounds the blaster, calls the bear", () => {

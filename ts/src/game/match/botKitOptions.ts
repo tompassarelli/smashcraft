@@ -16,6 +16,7 @@ import { Character, HippogryphKind, ProjectileKind, SpecialAction } from "../sim
 import { canAttack } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
 import { isHeroSpecialAction, runningHeroSpecial, specialCooldownReady } from "../sim/heroSpecialRules";
+import { heroStatusBlocksActions } from "../sim/heroStatus";
 import { type AuthoredSpecial, type SpecialFollowUp, type SpecialProjectile, FOLLOW_UP_FORM, FollowUpInput, SpecialSlot, specialKit } from "../sim/heroSpecials";
 import type { Controls } from "../sim/roster";
 import {
@@ -124,6 +125,15 @@ export function steerHeroBranches(f: Readonly<Fighter>, target: Readonly<Fighter
     if (next >= stepOut.window.first && (Math.abs(ahead) <= FEINT_GAP || next >= stepOut.window.last - 4)) input.specialPressed = true;
     return true;
   }
+  if (stepOut !== undefined && backstab === undefined) {
+    // A lone quiet branch (Vampiric Pounce's hop back): taken when the target answers the approach, or as a planned feint.
+    if (next < stepOut.window.first || next > stepOut.window.last) return false;
+    const answered = target.attack.style !== undefined || !target.motion.grounded || target.shield.raised;
+    const planned = botChoice(seed, f.character * 7 + 19, 3) === 0 && next >= stepOut.window.last - 2;
+    if (!answered && !planned) return false;
+    input.specialPressed = true;
+    return true;
+  }
   const hold = branchBy(followUps, FollowUpInput.shield, false);
   const fullest = fullestBranch(followUps);
   if (hold === undefined || fullest === undefined || next < hold.window.first || next > hold.window.last) return false;
@@ -205,7 +215,9 @@ function pressHeroOption(f: Readonly<Fighter>, target: Readonly<Fighter>, stage:
   const toward = towardOf(f, target.motion.x);
   const level = Math.abs(f32(target.motion.z - f.motion.z)) <= 60.0;
   // Divine Shield lasts until his next attack: he walks in under it and the attack comes from close.
-  if (f.status.divineFrames > 0 && f.motion.grounded && gap > 50.0 && takes(skill, floorDiv(frame, 45), f.character * 7 + 18)) {
+  // So he does on a target asleep, stunned or frozen.
+  const open = f.status.divineFrames > 0 || heroStatusBlocksActions(target) || target.status.frozenFrames > 0;
+  if (open && f.motion.grounded && gap > 50.0 && takes(skill, floorDiv(frame, 45), f.character * 7 + 18)) {
     steerOnGround(f, stage, target.motion.x, input);
     return true;
   }
