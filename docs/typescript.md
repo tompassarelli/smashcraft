@@ -382,6 +382,14 @@ the map imports none. Hidden pooled clips wait collapsed on the ground beneath
 the floor, like every hidden effect, because alpha does not stop a model's
 particle emitters.
 
+A clip drops its fighter's light and effect nodes, and Warcraft does not read
+a node's ObjectId as written: Illidan's standalone light, written alone as
+ObjectId 155 beside his 276-entry pivot table, lit from the wrong place and
+lit exactly once numbered 0 (2 October). So the export numbers every clip's
+remaining nodes by their place in the file's node order, with parents, skin
+matrices and pivots following (smashcraft:ts/scripts/clipNodes.ts), and fails
+on a clip that does not.
+
 The build first checks the running Bun and the declared and installed packages
 against smashcraft:typescript-toolchain.lock.
 
