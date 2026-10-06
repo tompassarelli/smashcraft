@@ -218,6 +218,16 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("specialGuarded", e.special.guarded, a.special.guarded);
   add("guardHealed", e.status.guardHealed, a.status.guardHealed);
   for (let i = 0; i < PROJECTILE_CAPACITY; i++) add(`projectileSpec[${i}]`, at(e.projectiles, i).spec === at(a.projectiles, i).spec, true);
+  add("placedLife", e.placed.life, a.placed.life);
+  add("placedAge", e.placed.age, a.placed.age);
+  add("placedX", e.placed.x, a.placed.x);
+  add("placedZ", e.placed.z, a.placed.z);
+  add("placedDirection", e.placed.direction, a.placed.direction);
+  add("placedDurability", e.placed.durability, a.placed.durability);
+  add("placedSerial", e.placed.serial, a.placed.serial);
+  add("placedSpec", e.placed.spec === a.placed.spec, true);
+  for (let i = 0; i < PARTICIPANT_CAPACITY; i++) add(`placedStruck[${i}]`, e.placed.struck[i], a.placed.struck[i]);
+  add("placedSpecialStruck", e.placed.specialStruck, a.placed.specialStruck);
   add("freezeTrapCooldown", e.freezeTrap.cooldown, a.freezeTrap.cooldown);
   add("out", e.status.out, a.status.out);
   add("respawn", e.status.respawn, a.status.respawn);
@@ -227,6 +237,9 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("shieldReflectFrames", e.shield.reflectFrames, a.shield.reflectFrames);
   add("shieldPerfectFrames", e.shield.perfectFrames, a.shield.perfectFrames);
   add("shieldPerfectActionFrames", e.shield.perfectActionFrames, a.shield.perfectActionFrames);
+  add("shieldRedParryTried", e.shield.redParryTried, a.shield.redParryTried);
+  add("shieldParryBuffer", e.shield.parryBuffer, a.shield.parryBuffer);
+  add("shieldParryBufferDirection", e.shield.parryBufferDirection, a.shield.parryBufferDirection);
   record("shieldGeometry", expectedTuning.shield, actualTuning.shield, SHIELD_GEOMETRY_KEYS);
   add("shieldStrength", e.shield.strength, a.shield.strength);
   add("shieldEnergy", e.shield.energy, a.shield.energy);

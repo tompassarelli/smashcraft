@@ -10,6 +10,7 @@ import { installHotReload, startHotReload } from "wisp/src/platform/hotReload";
 import { installShell, startShell } from "./shell/shell";
 import { installObjectData } from "./shell/objectData";
 import { installTuning } from "./shell/tuning";
+import { prepareKitDigests } from "../game/replay/canonical";
 
 /** Each reload's install() configures the runtime again, so it names the build's error text too. */
 export function install(this: void, build: MapBuild = CURRENT_BUILD): void {
@@ -18,6 +19,8 @@ export function install(this: void, build: MapBuild = CURRENT_BUILD): void {
   installShell();
   installObjectData();
   installTuning();
+  // Hero kit digests are folded here, at load, so no match frame pays for them.
+  prepareKitDigests();
   installHotReload();
 }
 

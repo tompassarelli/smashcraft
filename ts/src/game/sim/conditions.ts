@@ -92,10 +92,9 @@ function canStartAttack(attacker: Fighter): boolean {
   if (grab.target !== undefined || grab.action !== GrabAction.none) return false;
   if (attacker.status.frozenFrames > 0) return false;
   if (attacker.ledge.state !== LedgeState.none || attacker.cannon.held !== undefined || attacker.platform.move !== PlatformMove.none) return false;
-  const shieldDropAllowsAttack = shield.releaseLag <= 0 || (attacker.motion.grounded && !shield.raised && shield.perfectActionFrames > 0);
   return !attacker.status.out && !attacker.special.fall && attacker.special.lockFrames <= 0 && shield.breakState === ShieldBreak.none
     && (attacker.down.state === DownState.none || isTumbling(attacker)) && grab.grabbedFrames <= 0
-    && attacker.launch.hitlag <= 0 && attacker.launch.hitstun <= 0 && shield.stun <= 0 && shieldDropAllowsAttack
+    && attacker.launch.hitlag <= 0 && attacker.launch.hitstun <= 0 && shield.stun <= 0 && shield.releaseLag <= 0
     && attacker.landing.lag <= 0 && !attacker.dodge.airDodging && !isGroundDodging(attacker) && attacker.jump.squat <= 0
     && attacker.attack.cooldown <= 0;
 }

@@ -6,6 +6,7 @@ import { FighterPoolPresentation } from "../../game/render/fighterPool";
 import { AgencyMarker } from "../../game/render/agencyMarker";
 import { FighterAgencyForecast } from "../../game/presentation/fighterAgency";
 import { FrostEffects } from "../../game/render/frostEffects";
+import { PlacedObjectEffects } from "../../game/render/placedObjectEffects";
 import { modelSoundPresentation } from "../../game/render/modelSoundPresentation";
 import type { ModelSoundSink } from "../../game/render/modelSounds";
 import { ProjectilePresentation } from "../../game/render/projectilePresentation";
@@ -42,6 +43,7 @@ export interface UiObjects {
   readonly stage: StagePanel;
   readonly combat: CombatEffects;
   readonly frost: FrostEffects;
+  readonly placed: PlacedObjectEffects;
   readonly special: SpecialEffects;
   readonly fighters: Slots<FighterRenderers | undefined>;
   sounds: ModelSoundSink;
@@ -79,6 +81,7 @@ export function createUi(s: ShellState, actions: PanelActions): UiObjects {
     settings: each(slot => new SettingsPanel(s.participants[slot].bindings, actions.settings, slot)),
     combat: new CombatEffects(s.origin),
     frost: new FrostEffects(s.origin),
+    placed: new PlacedObjectEffects(s.origin),
     special: new SpecialEffects(s.origin),
     fighters: [undefined, undefined, undefined, undefined],
     sounds: modelSoundPresentation(s.origin),
@@ -137,6 +140,7 @@ export function recreateUi(s: ShellState, actions: PanelActions): void {
   ui.stage.bindActions(actions.stage);
   bindPrototype(ui.combat, CombatEffects.prototype);
   bindPrototype(ui.frost, FrostEffects.prototype);
+  bindPrototype(ui.placed, PlacedObjectEffects.prototype);
   bindPrototype(ui.special, SpecialEffects.prototype);
   ui.special.bindNestedCode();
   ui.sounds = modelSoundPresentation(s.origin);
@@ -159,6 +163,7 @@ export function settingsOpen(s: Readonly<ShellState>, slot: ParticipantSlot): bo
 export function clearMatchEffects(s: ShellState): void {
   const ui = views(s);
   ui.frost.clear();
+  ui.placed.clear();
   ui.special.clear();
   for (const slot of PARTICIPANT_SLOTS) ui.fighters[slot]?.projectiles.clear();
 }

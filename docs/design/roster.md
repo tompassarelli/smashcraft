@@ -76,7 +76,7 @@ Offensive specials may be interrupted by being hit normally. No generic B-to-B o
 
 The grab line for each fighter gives standing F/A/R and reach. Dash grab uses standing startup +3 frames and recovery +8 frames; active duration and reach are unchanged unless implemented geometry requires movement. A successful grab latches one target at a defined anchor and ends grab hitboxes. Grabs beat shield, but never intangible opponents. Mutual grabs on the same frame break both grabs with symmetric separation and 12 frames of recovery.
 
-Use the existing escape system if one exists. Otherwise use a deterministic 45-frame base hold plus min(30, floor(victim percent / 5)) frames, reduced by validated new input edges at most once every three frames. Each accepted edge removes two hold frames. Throw input starts immediately and locks out pummel. Each kit authors its pummel's effect (1 percent, no launch; no mana gain or healing); hold length, mashing and the pummel's timing and single use are shared (smashcraft:docs/gameplay-design.md, "Grab holds and pummels", #101). Throws list damage, release frame counted from throw entry, thrower recovery after release, launch angle, and knockback class. Targets are held until release and then enter normal hitstun. Do not add a second guaranteed hit via throw animation contact.
+Use the existing escape system if one exists. Otherwise use a deterministic 45-frame base hold plus min(30, floor(victim percent / 5)) frames, reduced by validated new input edges at most once every three frames. Each accepted edge removes two hold frames. Throw input starts immediately and locks out pummel. Each kit authors its pummel's look (no launch; no mana gain or healing); its 3 percent damage, hold length, mashing and the pummel's timing and single use are shared (smashcraft:docs/gameplay-design.md, "Grab holds and pummels", #101). Throws list damage, release frame counted from throw entry, thrower recovery after release, launch angle, and knockback class. Targets are held until release and then enter normal hitstun. Do not add a second guaranteed hit via throw animation contact.
 
 Use #85's adopted regrab rule: a fighter cannot be grabbed while its remaining hitstun comes from a throw, including remaining hitstun after a gentle landing. This restriction ends with that throw hitstun or a replacing hit, and does not block ordinary attacks. Do not add a fixed post-throw protection timer. Throws cannot be cancelled or redirected after entry. Thrower movement is limited to the scripted anchor motion; no walk-off carrying. In multiplayer, an external hit breaks the hold before release and clears both actors consistently. Resolve same-frame external hits, throw releases, and grabs with stable rules; do not let player-slot iteration decide.
 
@@ -589,6 +589,8 @@ Standing grab 8/2/24, reach 0.55H. Pummel: mask headbutt.
 
 **Required counterplay test:** a ward can be cleared with one or two intentional attacks; ward fire plus Hex cannot permanently remove recovery or lock shield. Throws into a ward are setups to measure, not assumed true combos.
 
+**Implemented kit notes.** Source: smashcraft:ts/src/game/sim/heroes/shadowHunterMoves.ts (normals, grab, throws), shadowHunterSpecials.ts (specials, ward and Hex values) and shadowHunterHero.ts (registration and clip map). The model is the classic `units\orc\HeroShadowHunter\HeroShadowHunter.mdl` at scale 1.0 (Stand Ready is 138 units tall against 1.08H). It has fourteen sequences and one attack clip, so moves share clips by motion: glaive cuts play Attack, overhead moves Spell, the low lunge and the overhand release Spell Throw, Twin Totems and Serpent Ward the hopping Stand Channel, jumps and Loa Vault the leap in Stand Victory, knockdown Death, and a KO the rising spirit of Dissipate. The model has no kick, so Heel Hook plays the rear arm-and-glaive sweep of Stand -2; its hit volume keeps the listed M reach and the swinging arm carries an exposed hurt volume, preserving the move's no-disjoint trade-off. No move is omitted.
+
 ## Pit Lord
 
 **Identity:** the largest heavy, with a huge cleaver and wide body attacks. Long reach is offset by startup, recovery, and a large target. His size must not require native pathing changes or give him passive armor.
@@ -622,7 +624,7 @@ Standing grab 8/2/24, reach 0.55H. Pummel: mask headbutt.
 
 ### Grab and throws
 
-Standing grab 11/3/31, reach 0.80H. Pummel: horn jab, shared 1 damage despite huge size.
+Standing grab 11/3/31, reach 0.80H. Pummel: horn jab, shared 3 damage despite huge size.
 
 | Throw | Animation and release | Damage | Release and recovery | Launch |
 | --- | --- | --- | --- | --- |
@@ -714,7 +716,7 @@ Standing grab 10/2/29, reach 0.80H, telescoping clamp. No tether to ledges. Pumm
 
 ### Grab and throws
 
-Standing grab 9/3/29, reach 0.70H. Pummel: ogre squeeze, standard 1 damage.
+Standing grab 9/3/29, reach 0.70H. Pummel: ogre squeeze, standard 3 damage.
 
 | Throw | Animation and release | Damage | Release and recovery | Launch |
 | --- | --- | --- | --- | --- |

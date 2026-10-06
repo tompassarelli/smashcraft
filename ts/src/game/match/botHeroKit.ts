@@ -102,6 +102,9 @@ export function heroSpecialUse(f: Readonly<Fighter>, target: Readonly<Fighter>, 
   if (!travelStaysOnDeck(f, move, stage)) return HeroSpecialUse.none;
   if (strikeMeets(move, target, localX, localZ)) return HeroSpecialUse.close;
   for (const spec of move.projectiles ?? []) if (projectileMeets(spec, target, localX, localZ)) return HeroSpecialUse.ranged;
+  // A placed object fires from where it stands: set one when its shot would reach the target there.
+  const placement = move.placement;
+  if (placement !== undefined && target.motion.grounded && projectileMeets(placement.shot, target, f32(localX - placement.offsetX), localZ)) return HeroSpecialUse.ranged;
   return HeroSpecialUse.none;
 }
 

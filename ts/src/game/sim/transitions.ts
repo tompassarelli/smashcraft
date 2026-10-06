@@ -9,7 +9,7 @@ import { type Fighter, SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES } from "./fighter"
 import { clearDash } from "./groundMovement";
 import { DOWN_ATTACK_FRAMES, attackDurationFramesForGrounding, isSmashAttack } from "./moves";
 import type { Roster } from "./roster";
-import { clearShieldBreak } from "./shield";
+import { clearPowershield, clearShieldBreak } from "./shield";
 
 export const LEDGE_REGRAB_FRAMES = 30;
 // A response at the 15-frame reaction floor completes the longest jump squat
@@ -62,17 +62,11 @@ export function leaveLedge(f: Fighter): void {
   f.ledge.regrab = LEDGE_REGRAB_FRAMES;
 }
 
-function clearShieldTimers(f: Fighter): void {
-  f.shield.reflectFrames = 0;
-  f.shield.perfectFrames = 0;
-  f.shield.perfectActionFrames = 0;
-}
-
 /** Drops a raised shield and its powershield timers. */
 function lowerShield(f: Fighter): void {
   f.shield.raised = false;
   f.shield.heldFrames = 0;
-  clearShieldTimers(f);
+  clearPowershield(f);
 }
 
 export function cancelAttack(f: Fighter): void {
@@ -117,6 +111,7 @@ export function clearSpecialOnStock(f: Fighter): void {
   special.fall = false;
   special.hit = false;
   bear.life = 0;
+  f.placed.life = 0;
   bear.swipeCooldown = 0;
   hippogryph.life = 0;
   hippogryph.kind = HippogryphKind.none;
@@ -198,7 +193,7 @@ export function interruptJumpOrDodge(f: Fighter): void {
   clearShieldBreak(f);
   shield.triggerWasActive = false;
   shield.triggerAge = SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES;
-  clearShieldTimers(f);
+  clearPowershield(f);
   jump.squat = 0;
   jump.dodgeQueued = false;
   jump.dodgeX = 0;
@@ -312,9 +307,7 @@ export function beginAttack(attacker: Fighter, style: AttackStyle, mayCharge: bo
   const resolvedStyle = isDashGrab ? AttackStyle.grab : style;
   const { shield, attack } = attacker;
   shield.releaseLag = 0;
-  shield.perfectActionFrames = 0;
-  shield.reflectFrames = 0;
-  shield.perfectFrames = 0;
+  clearPowershield(attacker);
   attacker.surfaceRecovery.state = SurfaceContact.none;
   attacker.surfaceRecovery.frame = 0;
   attacker.motion.crouching = false;

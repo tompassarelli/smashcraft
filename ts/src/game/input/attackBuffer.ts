@@ -140,3 +140,15 @@ export function takeAttack(buffer: AttackBuffer, frame: number, allowed: boolean
   buffer.consumedMayCharge = command.mayCharge;
   return command;
 }
+
+/**
+ * Keeps a queued attack due while a freeze holds it, as a parried hit's does:
+ * its grace counts from the frame now, so it starts on the first actionable frame.
+ */
+export function holdAttack(buffer: AttackBuffer, frame: number): void {
+  const command = buffer.pending;
+  if (command === undefined || command.frame >= frame || frame - command.frame > buffer.graceFrames) return;
+  const held: AttackCommand = { ...command, frame };
+  buffer.pending = held;
+  buffer.previousRequest = held;
+}

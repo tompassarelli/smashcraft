@@ -285,6 +285,22 @@ const MOUNTAIN_KING: MatchScript = {
   predictions: [[150, 162], [400, 412]],
 };
 
+/** Shadow Hunter's glaive, a ward that fires and is struck, Hex, the ward's recall, Loa Vault and his normals, replayed across each. */
+const SHADOW_HUNTER: MatchScript = {
+  characters: [Character.shadowHunter, Character.archer], stage: 0, stocks: 3, minutes: 0, frames: 540,
+  holds: [[
+    [20, 2, SPECIAL], [70, 4, TOWARD], [71, 2, SPECIAL], [140, 4, DOWN], [141, 2, SPECIAL], [210, 2, ATTACK],
+    [230, 8, DOWN], [232, 2, ATTACK], [260, 4, TOWARD], [261, 2, SPECIAL], [330, 3, JUMP], [342, 4, UP],
+    [343, 2, SPECIAL], [430, 2, GRAB], [434, 4, TOWARD], [480, 3, JUMP], [486, 2, C_DOWN], [515, 2, C_RIGHT],
+  ], [
+    [130, 2, ATTACK], [150, 2, ATTACK], [190, 12, SHIELD_LEFT], [250, 2, ATTACK], [300, 2, ATTACK], [400, 2, ATTACK],
+    [460, 10, SHIELD_RIGHT],
+  ]],
+  approaches: [[[400, 45]], [[100, 90], [240, 60], [380, 45]]],
+  rollbacks: [[24, 50], [96, 130], [150, 175], [262, 320], [344, 372], [500, 540]],
+  predictions: [[140, 152], [430, 442]],
+};
+
 /**
  * Dreadlord's Carrion Swarm hits, a Sleep Orb meets a shield and a second one
  * sleeps the Archer, Night Pounce catches and bites, a second whiffs, the free
@@ -361,6 +377,7 @@ export function generateTapes(): Map<string, string> {
     ["lich", recordTape("Lich's specials, free recovery and normals against the Archer, with replays.", [LICH])],
     ["dreadlord", recordTape("Dreadlord's specials, sleep, a command grab, free Bat Ascension, normals and a throw against the Archer, with replays.", [DREADLORD])],
     ["mountain-king", recordTape("Mountain King's specials, free Thunder Leap, normals and a throw against the Archer, with replays.", [MOUNTAIN_KING])],
+    ["shadow-hunter", recordTape("Shadow Hunter's glaive, ward, Hex, recall, vault and normals against the Archer, with replays.", [SHADOW_HUNTER])],
     ["warden", recordTape("Warden's specials with poison and an aimed Blink, normals and a throw against the Archer, with replays.", [WARDEN])],
     ["uther", recordTape("Uther's specials, guard, free recovery and normals against the Archer, with replays.", [UTHER])],
     ["moving-platforms", recordTape("Moving decks, jumping, dropping through, predictions and rollback over complete path cycles.", [{

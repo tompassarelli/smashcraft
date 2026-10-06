@@ -2,8 +2,9 @@ import { assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
 import { AttackStyle } from "../sim/codes";
 import { BLADEMASTER_MOVES } from "../sim/heroes/blademasterMoves";
 import { MOUNTAIN_KING_MOVES } from "../sim/heroes/mountainKingMoves";
+import { HERO_ROSTER } from "../sim/heroes/registry";
 import { fighterAt } from "../sim/roster";
-import { stateChecksum } from "./canonical";
+import { kitDigestBuildCount, prepareKitDigests, stateChecksum } from "./canonical";
 import { firstStateDifference } from "./difference";
 import { copyReplayState, createReplaySnapshot } from "./snapshot";
 
@@ -42,4 +43,19 @@ test("rollback restores authored hero moves and diagnoses changed timing geometr
   assertEquals(stateChecksum(live), original);
   copyReplayState(live, saved);
   assertEquals(stateChecksum(live), authored);
+});
+
+test("map load folds every hero kit, so a match checksum with heroes builds no kit text", () => {
+  prepareKitDigests();
+  const prepared = kitDigestBuildCount();
+  const live = createReplaySnapshot();
+  for (const [slot, hero] of HERO_ROSTER.slice(0, 2).entries()) {
+    const f = fighterAt(live.world, slot);
+    f.tuning.moves = hero.moves;
+    f.tuning.specials = hero.specials;
+  }
+  stateChecksum(live);
+  assertEquals(kitDigestBuildCount(), prepared);
+  prepareKitDigests();
+  assertEquals(kitDigestBuildCount(), prepared);
 });

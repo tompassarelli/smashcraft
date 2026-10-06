@@ -9,13 +9,14 @@ import { at } from "wisp/src/runtime/lookup";
 import { floorMod } from "wisp/src/sim/intMath";
 import { AttackStyle, GrabAction, SPECIAL_ACTION_CAPACITY } from "../sim/codes";
 import type { FighterMoves } from "../sim/heroMoves";
-import type { AuthoredSpecial, FighterSpecials, SpecialProjectile } from "../sim/heroSpecials";
+import type { AuthoredSpecial, FighterSpecials, SpecialPlacement, SpecialProjectile } from "../sim/heroSpecials";
 import type { HitEffect } from "../sim/hitRegions";
 import { type HurtPart, HurtState } from "../sim/hurtboxes";
 import { HERO_STATUS_GROUPS } from "../sim/codes";
 import { PROJECTILE_CAPACITY, type Fighter } from "../sim/fighter";
 import { fighterAt, isActive } from "../sim/roster";
 import type { ReplayState } from "./snapshot";
+import { HERO_ROSTER } from "../sim/heroes/registry";
 
 const REPLAY_CHECKSUM_MODULUS = 1_000_003;
 
@@ -82,9 +83,9 @@ export function canonicalRealField(name: string, value: number): string {
 /** Authored move values travel with tuning; absent profiles leave retained tapes unchanged. */
 export function fighterMovesCanonical(moves: FighterMoves | undefined, prefix = "moves"): string {
   if (moves === undefined) return "";
-  let result = canonicalInt(`${prefix}.dashAttack`, moves.dashAttack);
-  const int = (name: string, value: number) => { result += canonicalInt(`${prefix}.${name}`, value); };
-  const real = (name: string, value: number) => { result += canonicalRealField(`${prefix}.${name}`, value); };
+  const result: string[] = [canonicalInt(`${prefix}.dashAttack`, moves.dashAttack)];
+  const int = (name: string, value: number) => { result.push(canonicalInt(`${prefix}.${name}`, value)); };
+  const real = (name: string, value: number) => { result.push(canonicalRealField(`${prefix}.${name}`, value)); };
   const effect = (name: string, hit: Readonly<HitEffect>) => {
     real(`${name}.damage`, hit.damage);
     real(`${name}.growth`, hit.growth);
@@ -141,7 +142,7 @@ export function fighterMovesCanonical(moves: FighterMoves | undefined, prefix = 
     effect(name, move.effect);
   }
   const { hurtboxes } = moves;
-  if (hurtboxes === undefined) return result;
+  if (hurtboxes === undefined) return result.join("");
   const parts = (name: string, list: readonly HurtPart[]) => {
     int(`${name}.parts`, list.length);
     for (let index = 0; index < list.length; index++) {
@@ -170,15 +171,15 @@ export function fighterMovesCanonical(moves: FighterMoves | undefined, prefix = 
       parts(`${name}.pose[${index}]`, pose.parts);
     }
   }
-  return result;
+  return result.join("");
 }
 
 /** Wurst's slotOf: -1 for no fighter, -2 for a fighter the roster doesn't seat. */
 /** An authored hero projectile, field by field. */
 function specialProjectileCanonical(spec: Readonly<SpecialProjectile>, prefix: string): string {
-  let result = "";
-  const int = (name: string, value: number) => { result += canonicalInt(`${prefix}.${name}`, value); };
-  const real = (name: string, value: number) => { result += canonicalRealField(`${prefix}.${name}`, value); };
+  const result: string[] = [];
+  const int = (name: string, value: number) => { result.push(canonicalInt(`${prefix}.${name}`, value)); };
+  const real = (name: string, value: number) => { result.push(canonicalRealField(`${prefix}.${name}`, value)); };
   int("spawnFrame", spec.spawnFrame);
   real("offsetX", spec.offsetX);
   real("offsetZ", spec.offsetZ);
@@ -189,7 +190,7 @@ function specialProjectileCanonical(spec: Readonly<SpecialProjectile>, prefix: s
   int("life", spec.life);
   real("radius", spec.radius);
   int("activeFrom", spec.activeFrom ?? 0);
-  result += hitEffectCanonical(spec.effect, `${prefix}.effect`);
+  result.push(hitEffectCanonical(spec.effect, `${prefix}.effect`));
   int("reflectable", spec.reflectable ? 1 : 0);
   int("limit", spec.limit);
   int("cancelOnInterrupt", spec.cancelOnInterrupt === true ? 1 : 0);
@@ -205,7 +206,23 @@ function specialProjectileCanonical(spec: Readonly<SpecialProjectile>, prefix: s
   }
   real("backOffsetX", spec.backOffsetX ?? -1.0);
   int("needsLineOfSight", spec.needsLineOfSight === true ? 1 : 0);
-  return result;
+  return result.join("");
+}
+
+/** An authored placed object, field by field. */
+function specialPlacementCanonical(spec: Readonly<SpecialPlacement>, prefix: string): string {
+  const result: string[] = [];
+  const int = (name: string, value: number) => { result.push(canonicalInt(`${prefix}.${name}`, value)); };
+  const real = (name: string, value: number) => { result.push(canonicalRealField(`${prefix}.${name}`, value)); };
+  int("frame", spec.frame);
+  real("offsetX", spec.offsetX);
+  real("radius", spec.radius);
+  real("height", spec.height);
+  real("durability", spec.durability);
+  int("life", spec.life);
+  for (let index = 0; index < spec.fireAges.length; index++) int(`fireAge[${index}]`, at(spec.fireAges, index));
+  result.push(specialProjectileCanonical(spec.shot, `${prefix}.shot`));
+  return result.join("");
 }
 
 function hitEffectCanonical(hit: Readonly<HitEffect>, prefix: string): string {
@@ -218,26 +235,26 @@ function hitEffectCanonical(hit: Readonly<HitEffect>, prefix: string): string {
 /** A hero's authored specials; empty for fighters without them. */
 export function fighterSpecialsCanonical(specials: Readonly<FighterSpecials> | undefined, prefix = "specials"): string {
   if (specials === undefined) return "";
-  let result = canonicalInt(`${prefix}.mana.max`, specials.mana.max) + canonicalInt(`${prefix}.mana.delay`, specials.mana.regenDelayFrames)
-    + canonicalInt(`${prefix}.mana.framesPerPoint`, specials.mana.framesPerPoint);
+  const result: string[] = [canonicalInt(`${prefix}.mana.max`, specials.mana.max) + canonicalInt(`${prefix}.mana.delay`, specials.mana.regenDelayFrames)
+    + canonicalInt(`${prefix}.mana.framesPerPoint`, specials.mana.framesPerPoint)];
   const kits = [specials.neutral, specials.side, specials.up, specials.down];
   for (let slot = 0; slot < kits.length; slot++) {
     const kit = at(kits, slot);
-    const forms = [kit.ground, kit.air, kit.free];
-    for (let form = 0; form < 3; form++) {
+    const forms = [kit.ground, kit.air, kit.free, kit.recall];
+    for (let form = 0; form < 4; form++) {
       const move = forms[form];
       if (move === undefined) continue;
       const name = `${prefix}.kit[${slot}].form[${form}]`;
-      result += specialMoveCanonical(move, name);
+      result.push(specialMoveCanonical(move, name));
     }
   }
-  return result;
+  return result.join("");
 }
 
 function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): string {
-  let result = "";
-  const int = (field: string, value: number) => { result += canonicalInt(`${name}.${field}`, value); };
-  const real = (field: string, value: number) => { result += canonicalRealField(`${name}.${field}`, value); };
+  const result: string[] = [];
+  const int = (field: string, value: number) => { result.push(canonicalInt(`${name}.${field}`, value)); };
+  const real = (field: string, value: number) => { result.push(canonicalRealField(`${name}.${field}`, value)); };
   int("cost", move.cost);
   int("end", move.endFrame);
   int("groundOnly", move.groundOnly === true ? 1 : 0);
@@ -251,6 +268,8 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
   int("armor.last", move.armor?.last ?? -1);
   real("armor.maxDamage", move.armor?.maxDamage ?? 0.0);
   int("armor.shell", move.armor?.shell === true ? 1 : 0);
+  if (move.placement !== undefined) result.push(specialPlacementCanonical(move.placement, `${name}.placement`));
+  if (move.recall === true) int("recall", 1);
   if (move.guard !== undefined) {
     int("guard.first", move.guard.first);
     int("guard.last", move.guard.last);
@@ -280,7 +299,7 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
     real("commandGrab.strike.radius", grab.strike.radius);
     int("commandGrab.hold", grab.holdFrames);
     int("commandGrab.recovery", grab.recovery);
-    result += hitEffectCanonical(grab.effect, `${name}.commandGrab.effect`);
+    result.push(hitEffectCanonical(grab.effect, `${name}.commandGrab.effect`));
   }
   const poses = move.hurt ?? [];
   for (let index = 0; index < poses.length; index++) {
@@ -299,7 +318,7 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
     }
   }
   const projectiles = move.projectiles ?? [];
-  for (let index = 0; index < projectiles.length; index++) result += specialProjectileCanonical(at(projectiles, index), `${name}.projectile[${index}]`);
+  for (let index = 0; index < projectiles.length; index++) result.push(specialProjectileCanonical(at(projectiles, index), `${name}.projectile[${index}]`));
   const regions = move.regions ?? [];
   for (let index = 0; index < regions.length; index++) {
     const region = at(regions, index);
@@ -318,15 +337,15 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
       real(`${part}.strike.z2`, strike.z2);
       real(`${part}.strike.radius`, strike.radius);
     }
-    result += hitEffectCanonical(region.hit.effect, `${name}.${part}.hit`);
-    if (region.hit.groundedEffect !== undefined) result += hitEffectCanonical(region.hit.groundedEffect, `${name}.${part}.groundedHit`);
+    result.push(hitEffectCanonical(region.hit.effect, `${name}.${part}.hit`));
+    if (region.hit.groundedEffect !== undefined) result.push(hitEffectCanonical(region.hit.groundedEffect, `${name}.${part}.groundedHit`));
   }
   if (move.followUp !== undefined) {
     int("followUp.first", move.followUp.window.first);
     int("followUp.last", move.followUp.window.last);
-    result += specialMoveCanonical(move.followUp.special, `${name}.followUp`);
+    result.push(specialMoveCanonical(move.followUp.special, `${name}.followUp`));
   }
-  return result;
+  return result.join("");
 }
 
 export function canonicalSlot(slot: number | undefined, participantMask: number): number {
@@ -369,6 +388,32 @@ export function canonicalChecksum(text: string): string {
 /** Receives canonical fragments in tape order. */
 type Emit = (fragment: string) => void;
 
+// A kit is immutable, so its canonical text is folded once per kit object and
+// a state writes that digest. Map load folds every registered kit
+// (prepareKitDigests), so no match frame builds kit text: one kit's text is
+// millions of Lua instructions (perf bot-blademaster).
+const MOVES_DIGESTS = new Map<Readonly<FighterMoves>, string>();
+const SPECIALS_DIGESTS = new Map<Readonly<FighterSpecials>, string>();
+const PLACEMENT_DIGESTS = new Map<Readonly<SpecialPlacement>, string>();
+const placedSpecCanonical = (spec: Readonly<SpecialPlacement>): string => specialPlacementCanonical(spec, "placedSpec");
+let kitDigestBuilds = 0;
+
+/** Kit texts folded so far; a match frame after prepareKitDigests adds none. */
+export function kitDigestBuildCount(): number {
+  return kitDigestBuilds;
+}
+
+function kitDigestField<K>(name: string, kit: K | undefined, digests: Map<K, string>, text: (kit: K) => string): string {
+  if (kit === undefined) return "";
+  let digest = digests.get(kit);
+  if (digest === undefined) {
+    kitDigestBuilds++;
+    digest = canonicalChecksum(text(kit));
+    digests.set(kit, digest);
+  }
+  return `|${name}.digest=${digest}`;
+}
+
 function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, participantMask: number): void {
   const int = (name: string, value: number) => emit(canonicalInt(`${prefix}.${name}`, value));
   const bool = (name: string, value: boolean) => emit(canonicalBoolean(`${prefix}.${name}`, value));
@@ -410,7 +455,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   bool("groundTurnRunFacingCommandLatched", g.turnRunFacingCommandLatched);
   bool("groundTurnRunPausePending", g.turnRunPausePending);
   int("character", fighter.character);
-  emit(fighterMovesCanonical(t.moves, `${prefix}.moves`));
+  emit(kitDigestField(`${prefix}.moves`, t.moves, MOVES_DIGESTS, fighterMovesCanonical));
 
   real("physics.weight", t.physics.weight);
   real("physics.gravity", t.physics.gravity);
@@ -668,7 +713,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   bool("surfacePhysics.canWallJump", t.surface.canWallJump);
   // Hero state is written only where a hero kit or hero projectile exists, so
   // the original fighters' canonical text is unchanged.
-  emit(fighterSpecialsCanonical(t.specials, `${prefix}.specials`));
+  emit(kitDigestField(`${prefix}.specials`, t.specials, SPECIALS_DIGESTS, fighterSpecialsCanonical));
   if (t.specials !== undefined) {
     int("manaPoints", fighter.mana.points);
     int("manaSinceSpend", fighter.mana.sinceSpend);
@@ -681,6 +726,17 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
     if (sp.grabFrame !== 0) int("specialGrabFrame", sp.grabFrame);
     int("armorFrames", st.armorFrames);
     real("armorMaxDamage", st.armorMaxDamage);
+    const { placed } = fighter;
+    int("placedLife", placed.life);
+    int("placedAge", placed.age);
+    real("placedX", placed.x);
+    real("placedZ", placed.z);
+    int("placedDirection", placed.direction);
+    real("placedDurability", placed.durability);
+    int("placedSerial", placed.serial);
+    for (let i = 0; i < PARTICIPANT_CAPACITY; i++) int(`placedStruck[${i}]`, placed.struck[i] ?? -1);
+    int("placedSpecialStruck", placed.specialStruck);
+    emit(kitDigestField(`${prefix}.placedSpec`, placed.spec, PLACEMENT_DIGESTS, placedSpecCanonical));
     int("specialGuarded", sp.guarded ? 1 : 0);
     real("guardHealed", st.guardHealed);
   }
@@ -764,4 +820,19 @@ export function stateChecksum(state: Readonly<ReplayState>): string {
   const lanes: ChecksumLanes = { valid: true, first: 0, second: 0 };
   writeState(fragment => foldChecksum(lanes, fragment), state);
   return checksumText(lanes);
+}
+
+/** Folds every registered hero kit's digest; map load calls it before any match frame. */
+export function prepareKitDigests(): void {
+  for (const hero of HERO_ROSTER) {
+    kitDigestField("moves", hero.moves, MOVES_DIGESTS, fighterMovesCanonical);
+    kitDigestField("specials", hero.specials, SPECIALS_DIGESTS, fighterSpecialsCanonical);
+    const specials = hero.specials;
+    if (specials === undefined) continue;
+    for (const kit of [specials.neutral, specials.side, specials.up, specials.down]) {
+      for (const form of [kit.ground, kit.air, kit.free, kit.ground.followUp?.special, kit.air?.followUp?.special]) {
+        kitDigestField("placedSpec", form?.placement, PLACEMENT_DIGESTS, placedSpecCanonical);
+      }
+    }
+  }
 }

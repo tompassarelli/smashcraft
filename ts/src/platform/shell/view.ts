@@ -2,7 +2,7 @@
 // and the camera. Everything here is presentation; with predicted
 // presentation, persistent visuals follow the speculative match and event
 // effects, audio, results and HUD follow the confirmed one.
-import { STAGE_DECK_MODEL, STAGE_MAIN_DECK_MODEL } from "../../game/assets/stageAssetInfo";
+import { deckModel } from "../../game/presentation/stagePreload";
 import { f32 } from "wisp/src/sim/f32";
 import { at } from "wisp/src/runtime/lookup";
 import { PARTICIPANT_SLOTS, type ParticipantSlot } from "../../game/input/participants";
@@ -84,7 +84,7 @@ export function drawStage(s: ShellState): void {
     const right = surfaceRight(stage, index, s.game.matchFrame);
     const pass = surfacePass(stage, index);
     const x = origin.x + (left + right) / 2;
-    const deck = AddSpecialEffect(index === 0 && !hasCannon(stage) ? STAGE_MAIN_DECK_MODEL : STAGE_DECK_MODEL, x, origin.y);
+    const deck = AddSpecialEffect(deckModel(stage, index), x, origin.y);
     BlzSetSpecialEffectPosition(deck, x, origin.y, origin.z + surfaceZ(stage, index, s.game.matchFrame));
     // The slab's walking plane spans [-50, 50] at z = 0; the body stays below it.
     if (index > 0 || hasCannon(stage)) BlzSetSpecialEffectMatrixScale(deck, (right - left) / 100, pass ? f32(0.65) : 1.0, pass || hasCannon(stage) ? f32(0.45) : 1.0);
@@ -204,6 +204,8 @@ export function renderPersistentPresentation(s: ShellState): void {
     ui.special.presentSummons(runtime.summons, live, slot);
     if (live !== undefined) ui.frost.present(live, slot);
     else ui.frost.hideSlot(slot);
+    if (live !== undefined) ui.placed.present(live, slot);
+    else ui.placed.hideSlot(slot);
     renderers?.shield.present(fighter, playing);
     renderers?.projectiles.present(fighter, playing, s.session.paused);
   }

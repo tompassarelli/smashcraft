@@ -4,7 +4,7 @@
 import { readFileSync } from "node:fs";
 import { homedir, userInfo } from "node:os";
 import { join } from "node:path";
-import { Effect } from "effect";
+import { Effect, Schema } from "effect";
 import { type DoctorDeclaration, clientsDoctor } from "wisp/scripts/wisp/commands/doctor";
 import { DoctorStop, withDoctor } from "wisp/scripts/wisp/doctor";
 import { ClientWatch } from "wisp/scripts/wisp/watch";
@@ -21,9 +21,11 @@ const CLIENTS: Readonly<Record<string, { readonly compatData: string; readonly a
   b: { compatData: join(homedir(), ".local/share/wc3-melee/client-b"), appId: 3516115572, gameId: "16213922543717842945" },
 };
 
-interface ClientsFile {
-  readonly clients: readonly { readonly name: string; readonly run: string }[];
-}
+/** The clients file's fields doctor and accept read: each client's name and private desktop run folder. */
+const ClientsFile = Schema.Struct({ clients: Schema.Array(Schema.Struct({ name: Schema.String, run: Schema.String })) });
+
+/** The clients file, decoded; throws when it is missing or malformed. */
+export const readClientsFile = () => Schema.decodeUnknownSync(ClientsFile)(JSON.parse(readFileSync(clientState, "utf8")));
 
 /**
  * Battle.net Launcher.exe in the client's prefix on its private desktop: the
@@ -46,7 +48,7 @@ const launcherCommand = (name: string, run: string, client: { readonly compatDat
 
 /** The doctor declaration for the clients file as it stands now (its desktops' displays are read from their run folders). */
 export const smashcraftDoctor = (): DoctorDeclaration => {
-  const file = JSON.parse(readFileSync(clientState, "utf8")) as ClientsFile;
+  const file = readClientsFile();
   const start: Record<string, DoctorDeclaration["start"][string]> = {};
   for (const { name, run } of file.clients) {
     const client = CLIENTS[name];

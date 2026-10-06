@@ -126,6 +126,9 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   shield.reflectFrames = sourceShield.reflectFrames;
   shield.perfectFrames = sourceShield.perfectFrames;
   shield.perfectActionFrames = sourceShield.perfectActionFrames;
+  shield.redParryTried = sourceShield.redParryTried;
+  shield.parryBuffer = sourceShield.parryBuffer;
+  shield.parryBufferDirection = sourceShield.parryBufferDirection;
   shield.breakState = sourceShield.breakState;
   shield.breakFrame = sourceShield.breakFrame;
   shield.breakSerial = sourceShield.breakSerial;
@@ -356,4 +359,17 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   mana.points = sourceMana.points;
   mana.sinceSpend = sourceMana.sinceSpend;
   mana.progress = sourceMana.progress;
+
+  const placed = target.placed;
+  const sourcePlaced = source.placed;
+  placed.life = sourcePlaced.life;
+  placed.age = sourcePlaced.age;
+  placed.x = sourcePlaced.x;
+  placed.z = sourcePlaced.z;
+  placed.direction = sourcePlaced.direction;
+  placed.durability = sourcePlaced.durability;
+  placed.serial = sourcePlaced.serial;
+  placed.spec = sourcePlaced.spec;
+  for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) placed.struck[slot] = sourcePlaced.struck[slot];
+  placed.specialStruck = sourcePlaced.specialStruck;
 }

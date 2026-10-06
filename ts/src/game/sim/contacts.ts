@@ -22,9 +22,8 @@ import { type Controls, type Roster, fighterAt, isActive } from "./roster";
 import {
   SHIELD_BREAK_RESTORED_ENERGY,
   SHIELD_HIT_WEIGHT_MULTIPLIER,
-  SHIELD_MIN_HOLD_FRAMES,
-  SHIELD_PERFECT_POST_CONTACT_FRAMES,
   digitalShieldRecoil,
+  grantParry,
   shieldContactDamage,
   shieldContactPushback,
   shieldstunFrames,
@@ -176,7 +175,7 @@ function resolveDamageContacts(world: Roster, slot: number): void {
     if (contact.direct) source.launch.hitlag = max(source.launch.hitlag, ordinaryHitlagFrames(damage));
     if (contact.blocked) {
       if (contact.kind === ContactKind.damageOnly) continue;
-      shield.stun = max(shield.stun, shieldstunFrames(damage, shield.strength));
+      if (!perfectShield) shield.stun = max(shield.stun, shieldstunFrames(damage, shield.strength));
       launch.hitlag = max(launch.hitlag, ordinaryHitlagFrames(damage));
       const pushback = shieldContactPushback(damage, shield.strength, perfectShield);
       shieldPushback = max(shieldPushback, pushback);
@@ -223,10 +222,12 @@ function resolveDamageContacts(world: Roster, slot: number): void {
     target.visuals.shieldElectric = shieldElectric;
     if (perfectShield) {
       target.visuals.shieldReflect++;
-      shield.perfectActionFrames = SHIELD_PERFECT_POST_CONTACT_FRAMES;
-      shield.heldFrames = SHIELD_MIN_HOLD_FRAMES;
+      grantParry(target);
     } else {
+      // An ordinary block ends any parry reward, so a string pays out only when every hit is parried.
       target.visuals.shield++;
+      shield.perfectActionFrames = 0;
+      shield.redParryTried = false;
     }
   }
   if (shieldDamage > 0) shield.energy = subtractFloat32(shield.energy, shieldContactDamage(shieldDamage, shield.strength));

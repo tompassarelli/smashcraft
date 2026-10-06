@@ -236,7 +236,7 @@ export const DREADLORD_MOVES: FighterMoves = {
   normals: NORMALS,
   hurtboxes: attachedBodies(),
   throws: {
-    [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: { damage: 1.0, ...NO_LAUNCH } },
+    [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: { damage: 3.0, ...NO_LAUNCH } },
     [GrabAction.throwForward]: { contactFrame: 12, totalFrames: 32, effect: dreadlordHit(8.0, "EDGE", 35) },
     [GrabAction.throwBack]: { contactFrame: 18, totalFrames: 43, effect: dreadlordHit(10.0, "KILL", 40, -1.0) },
     [GrabAction.throwUp]: { contactFrame: 15, totalFrames: 36, effect: dreadlordHit(7.0, "LAUNCH", 85) },

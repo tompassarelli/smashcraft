@@ -9,7 +9,7 @@ import { AttackStyle, Character, ContactKind, GrabAction, ProjectileKind } from 
 import { queueDamageContact } from "./contacts";
 import { type Fighter, createFighter } from "./fighter";
 import { resolveGrabs } from "./grabs";
-import { GRAB_HOLD_FRAMES, GRAB_HOLD_MINIMUM_FRAMES, GRAB_MASH_FRAMES, PUMMEL_CONTACT_FRAME, PUMMEL_TOTAL_FRAMES, attackStartupFrames, grabContactFrame } from "./moves";
+import { GRAB_HOLD_FRAMES, GRAB_HOLD_MINIMUM_FRAMES, GRAB_MASH_FRAMES, PUMMEL_CONTACT_FRAME, PUMMEL_DAMAGE, PUMMEL_TOTAL_FRAMES, attackStartupFrames, grabContactFrame } from "./moves";
 import { updateProjectiles } from "./projectiles";
 import type { Controls, Roster } from "./roster";
 import { advanceFighter } from "./step";
@@ -203,7 +203,8 @@ test("a victim mashing 8 times a second escapes the pummel; one caught off guard
     for (const percent of [0.0, 150.0]) {
       for (const mash of ["none", "human", "fastest"] as const) {
         const { world, owner, target } = heldBy(character, percent);
-        const pummel = owner.tuning.moves?.throws[GrabAction.pummel]?.effect.damage ?? 3.0;
+        const pummel = owner.tuning.moves?.throws[GrabAction.pummel]?.effect.damage ?? PUMMEL_DAMAGE;
+        assertEquals(pummel, PUMMEL_DAMAGE, `${character} pummels for the shared damage`);
         // The grabber pummels on the first held frame and keeps pressing attack.
         const frame = holdUntilFree(world, target, mash, () => controls({ attackPressed: true }));
         const label = `${character} at ${percent}% with ${mash} mashing`;

@@ -23,7 +23,7 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), second: Re
   beginDamageContacts();
   for (let slot = 0; slot < 2; slot++) startFighterSpecial(world.fighters[slot]!, 0, 0, inputs[slot] ?? controls());
   resolveAttacks(world);
-  advanceSpecials(world, 0, 0);
+  advanceSpecials(world, 0, 0, [first, second]);
   updateProjectiles(world);
   finishDamageContacts(world);
   for (let slot = 0; slot < 2; slot++) {
@@ -52,7 +52,7 @@ function risingBlade(mana: number, gap = 60.0): { rise: number; drift: number; m
   const spent = owner.mana.points;
   let drift = 0.0;
   for (let f = 2; f <= 80; f++) {
-    frame(world);
+    frame(world, controls({ direction: f >= 7 && f <= 25 ? 1 : 0 }));
     top = Math.max(top, owner.motion.z);
     if (f === 26) drift = owner.motion.x;
   }
