@@ -115,8 +115,9 @@ selection backdrop is deck-coloured. At tolerance 40 the match frames'
 longest deck-coloured run was 5.9% of the width, apart from the transient
 frame's one full-width dark row; adding slate at tolerance 32 lets sky and
 clouds reach 24.7%. A frame with the stage drawn has not been measured yet;
-the deck's front face spans an estimated 35% to 63% of the width over 2% to
-7% of the height at match start.
+the main deck's front face, drawn down to its underside 332 units below the
+floor, spans an estimated 35% to 63% of the width over 14% to 28% of the
+height at match start.
 
 ## Lifetimes
 
