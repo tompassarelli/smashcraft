@@ -1,10 +1,13 @@
-// Measures, for every hero normal, the moment its clip strikes: the clip time
-// where the drawn silhouette reaches farthest toward the move's first hit
-// region, skinned from the classic stock model the clients draw. Written as
+// Measures, for every hero normal and special, the moment its clip strikes:
+// the clip time where the drawn silhouette reaches farthest toward the move's
+// first hit region (a special's first shot or placement when it has no
+// region), skinned from the classic stock model the clients draw. Written as
 // src/game/presentation/heroStrikeMomentInfo.ts, which pose selection uses to
 // land each swing on the move's first active frame (#144).
 import { parseMDX } from "war3-model";
 import { attackPose, clipFor, ownAttackClip } from "../../src/game/presentation/fighterClips";
+import { SPECIAL_KEY } from "../../src/game/presentation/heroStrikeMomentKeys";
+import { SPECIAL_SLOTS } from "../../src/game/presentation/projectileArt";
 import { AttackStyle } from "../../src/game/sim/codes";
 import { HERO_ROSTER } from "../../src/game/sim/heroes/registry";
 import { DrawnModel } from "./hurtboxView";
@@ -18,6 +21,7 @@ const FARTHER = 0.5;
 
 export interface StrikeMoment {
   readonly character: number;
+  /** An attack style, or SPECIAL_KEY plus a special slot. */
   readonly style: number;
   /** The clip index measured; a table change makes the moment stale. */
   readonly clip: number;
@@ -27,7 +31,32 @@ export interface StrikeMoment {
   readonly end: number;
 }
 
-/** Every hero normal with a hit region and a mapped clip, measured on `modelBytes(hero.presentation.model)`. */
+interface Sequence {
+  readonly Interval: ArrayLike<number>;
+}
+
+/** The clip moment that reaches farthest from the chest toward (x, z). */
+function measure(drawn: DrawnModel, character: number, style: number, clip: number, sequence: Sequence, x: number, z: number): StrikeMoment {
+  const towardZ = z - CHEST;
+  const length = Math.hypot(x, towardZ) || 1;
+  const end = ((sequence.Interval[1] ?? 0) - (sequence.Interval[0] ?? 0)) / 1000;
+  let best = -Infinity;
+  let moment = 0;
+  for (let time = 0; time <= end; time += STEP) {
+    const triangles = drawn.triangles(clip, time, 1);
+    let reach = -Infinity;
+    for (let i = 0; i < triangles.length; i += 2) {
+      reach = Math.max(reach, ((triangles[i] ?? 0) * x + ((triangles[i + 1] ?? 0) - CHEST) * towardZ) / length);
+    }
+    if (reach > best + FARTHER) {
+      best = reach;
+      moment = time;
+    }
+  }
+  return { character, style, clip, seconds: Math.round(moment * 1000) / 1000, end: Math.round(end * 1000) / 1000 };
+}
+
+/** Every hero normal with a hit region and every special that strikes, shoots or places, measured on `modelBytes(hero.presentation.model)`. */
 export async function measureStrikeMoments(modelBytes: (model: string) => Promise<ArrayBuffer>): Promise<StrikeMoment[]> {
   const moments: StrikeMoment[] = [];
   for (const hero of HERO_ROSTER) {
@@ -43,25 +72,22 @@ export async function measureStrikeMoments(modelBytes: (model: string) => Promis
       const sequence = clip === undefined ? undefined : sequences[clip.index];
       if (clip === undefined || sequence === undefined) continue;
       const { minX, maxX, minZ, maxZ } = region.hit;
-      const towardX = (minX + maxX) / 2;
-      const towardZ = (minZ + maxZ) / 2 - CHEST;
-      const length = Math.hypot(towardX, towardZ) || 1;
-      const end = ((sequence.Interval[1] ?? 0) - (sequence.Interval[0] ?? 0)) / 1000;
-      let best = -Infinity;
-      let moment = 0;
-      for (let time = 0; time <= end; time += STEP) {
-        const triangles = drawn.triangles(clip.index, time, 1);
-        let reach = -Infinity;
-        for (let i = 0; i < triangles.length; i += 2) {
-          reach = Math.max(reach, ((triangles[i] ?? 0) * towardX + ((triangles[i + 1] ?? 0) - CHEST) * towardZ) / length);
-        }
-        if (reach > best + FARTHER) {
-          best = reach;
-          moment = time;
-        }
-      }
-      moments.push({ character: hero.character, style, clip: clip.index, seconds: Math.round(moment * 1000) / 1000, end: Math.round(end * 1000) / 1000 });
+      moments.push(measure(drawn, hero.character, style, clip.index, sequence, (minX + maxX) / 2, (minZ + maxZ) / 2));
     }
+    const specials = hero.specials;
+    if (specials === undefined) continue;
+    SPECIAL_SLOTS.forEach((slot, index) => {
+      const move = specials[slot].ground;
+      const clip = clipFor(hero.character, `${slot}Special`);
+      const sequence = sequences[clip.index];
+      const region = move.regions?.[0]?.hit;
+      const shot = move.projectiles?.[0];
+      const toward = region !== undefined ? { x: (region.minX + region.maxX) / 2, z: (region.minZ + region.maxZ) / 2 }
+        : shot !== undefined ? { x: shot.offsetX, z: shot.offsetZ }
+        : move.placement !== undefined ? { x: move.placement.offsetX, z: CHEST } : undefined;
+      if (sequence === undefined || toward === undefined) return;
+      moments.push(measure(drawn, hero.character, SPECIAL_KEY + index, clip.index, sequence, toward.x, toward.z));
+    });
   }
   return moments;
 }
@@ -71,7 +97,10 @@ export function strikeMomentSource(moments: readonly StrikeMoment[]): string {
     "// Generated by `bun wisp view strikes` from the classic stock hero models; regenerate instead of editing.",
     'import { f32 } from "wisp/src/sim/f32";',
     "",
-    "/** Per hero and attack style: the clip measured, the clip seconds where it reaches farthest toward its strike and the sequence's length. */",
+    "/**",
+    " * Per hero and attack style (or SPECIAL_KEY plus a special slot): the clip measured, the clip",
+    " * seconds where it reaches farthest toward its strike and the sequence's length.",
+    " */",
     "export const HERO_STRIKE_MOMENTS: { readonly [character: number]: { readonly [style: number]: { readonly clip: number; readonly seconds: number; readonly end: number } | undefined } | undefined } = {",
     ...[...new Set(moments.map(({ character }) => character))].map((character) => {
       const rows = moments.filter((moment) => moment.character === character).map(({ style, clip, seconds, end }) => `${style}: { clip: ${clip}, seconds: f32(${seconds.toFixed(3)}), end: f32(${end.toFixed(3)}) }`);

@@ -16,6 +16,12 @@ export interface NamedMove {
 export interface HeroClip {
   readonly index: number;
   readonly seconds: number;
+  /**
+   * Its seconds were authored to put a hand-picked strike on the move's
+   * chosen frame (groundNormals.ts strikeClip); pose selection then plays it
+   * evenly instead of aligning the measured strike (presentation/heroStrikeMomentInfo.ts).
+   */
+  readonly aligned?: boolean | undefined;
 }
 
 /**

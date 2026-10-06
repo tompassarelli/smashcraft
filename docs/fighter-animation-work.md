@@ -1100,10 +1100,10 @@ three-startup/16-active/37-total timing. Rifleman's Back Air is unchanged.
 Hero normals play classic stock sequences whose strike rarely sits where the
 move's hitbox does. `bun wisp view strikes --extractor CASC_EXTRACT --storage
 WARCRAFT_DIR` (from smashcraft:ts/) skins each hero's stock model and
-records, per normal, the clip second where the silhouette reaches farthest
+records, per normal and per special that strikes, shoots or places, the clip second where the silhouette reaches farthest
 toward the move's first hit region, into
 smashcraft:ts/src/game/presentation/heroStrikeMomentInfo.ts. Pose selection
-(`strikeAlignedRate` in presentation/fighterPose.ts) then plays the wind-up
+(`strikeAlignedRate` in presentation/fighterPose.ts; specials through `specialRate`, their active window read from the kit) then plays the wind-up
 over the startup so that moment lands on the first active frame (at most 4x;
 a pooled clip starts past a wind-up longer than that), catches up over the
 active frames if it must, and plays the follow-through over recovery. A
