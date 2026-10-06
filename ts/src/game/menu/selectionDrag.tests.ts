@@ -2,19 +2,24 @@ import { assertEquals, assertNear, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { floorMod } from "wisp/src/sim/intMath";
 import { pointerX, pointerY } from "./pointer";
+import { cellRect, rosterGrid, tileAt } from "./selectionGrid";
 import {
   type Placement, type Roster, type RosterChip, type SelectionDrag, cardSlot, cardX, chipX, chipY, clearSelectionDrag, placeHovered,
-  rosterTile, selectionDrag, updateSelectionDrag,
+  selectionDrag, updateSelectionDrag,
 } from "./selectionDrag";
 
 /** UI frame units from thousandths, the same binary32 value in both runtimes. */
 const at = (thousandths: number) => f32(thousandths / 1000);
 
 const UNPLACED: RosterChip = { choice: 0, placed: false };
+const GRID = rosterGrid(3);
+/** The center of a tile on the three-fighter grid. */
+const tx = (tile: number) => (cellRect(GRID, tile).left + cellRect(GRID, tile).right) / 2;
+const ty = (cellRect(GRID, 0).top + cellRect(GRID, 0).bottom) / 2;
 
 /** The local player in slot 0 and an opponent in slot 1 whose chip they may or may not move. */
 function board(own: RosterChip, opponent: RosterChip, opponentSelectable: boolean): Roster {
-  return { selectable: opponentSelectable ? 3 : 1, chips: [own, opponent, UNPLACED, UNPLACED] };
+  return { grid: GRID, selectable: opponentSelectable ? 3 : 1, chips: [own, opponent, UNPLACED, UNPLACED] };
 }
 
 function press(drag: SelectionDrag, roster: Roster, x: number, y: number): void {
@@ -38,11 +43,11 @@ test("screen pixels map to a centered 4:3 frame", () => {
 test("hovering shows the held chip but does not place it until asked", () => {
   const drag = selectionDrag();
   const roster = board({ choice: 0, placed: false }, { choice: 1, placed: false }, false);
-  release(drag, roster, at(300), at(370));
+  release(drag, roster, tx(0), ty);
   assertEquals(drag.hover, 0);
   assertEquals(placeHovered(drag), undefined);
   drag.held = 0;
-  release(drag, roster, at(300), at(370));
+  release(drag, roster, tx(0), ty);
   assertPlacement(placeHovered(drag), 0, 0);
 });
 
@@ -50,8 +55,8 @@ test("a click on a tile places the held chip, which stays held for a recall", ()
   const drag = selectionDrag();
   const roster = board({ choice: 0, placed: false }, { choice: 1, placed: false }, false);
   drag.held = 0;
-  press(drag, roster, at(300), at(370));
-  assertPlacement(release(drag, roster, at(300), at(370)), 0, 0);
+  press(drag, roster, tx(0), ty);
+  assertPlacement(release(drag, roster, tx(0), ty), 0, 0);
   assertEquals(drag.held, 0);
 });
 
@@ -59,17 +64,17 @@ test("a placed chip can be dragged to another tile", () => {
   const drag = selectionDrag();
   const roster = board({ choice: 0, placed: true }, { choice: 1, placed: false }, false);
   drag.held = 0;
-  press(drag, roster, at(300), at(370));
-  press(drag, roster, at(480), at(370));
-  assertPlacement(release(drag, roster, at(480), at(370)), 0, 1);
+  press(drag, roster, tx(0), ty);
+  press(drag, roster, tx(1), ty);
+  assertPlacement(release(drag, roster, tx(1), ty), 0, 1);
 });
 
 test("a computer can choose the same fighter as a human", () => {
   const drag = selectionDrag();
   const roster = board({ choice: 0, placed: false }, { choice: 1, placed: false }, true);
   drag.held = 1;
-  press(drag, roster, at(300), at(370));
-  assertPlacement(release(drag, roster, at(300), at(370)), 1, 0);
+  press(drag, roster, tx(0), ty);
+  assertPlacement(release(drag, roster, tx(0), ty), 1, 0);
 });
 
 test("only a placed opponent chip can be picked up", () => {
@@ -77,13 +82,13 @@ test("only a placed opponent chip can be picked up", () => {
   const roster = board({ choice: 0, placed: false }, { choice: 1, placed: false }, true);
   press(drag, roster, at(523), at(346));
   assertEquals(drag.dragging, undefined);
-  assertEquals(release(drag, roster, at(490), at(370)), undefined);
+  assertEquals(release(drag, roster, tx(1), ty), undefined);
 });
 
 test("closing the panel clears the hover and the held chip", () => {
   const drag = selectionDrag();
   drag.held = 0;
-  release(drag, board(UNPLACED, UNPLACED, false), at(300), at(370));
+  release(drag, board(UNPLACED, UNPLACED, false), tx(0), ty);
   clearSelectionDrag(drag);
   assertEquals(drag.hover, undefined);
   assertEquals(placeHovered(drag), undefined);
@@ -109,24 +114,24 @@ test("unplaced human and computer chips drag from their cards onto the roster", 
     drag.held = 0;
     press(drag, roster, at(135 + slot * 175), at(180));
     assertEquals(drag.dragging, slot);
-    assertPlacement(release(drag, roster, at(480), at(370)), slot, 1);
+    assertPlacement(release(drag, roster, tx(1), ty), slot, 1);
   }
 });
 
 test("either chip can choose the Illidan tile and leave it again", () => {
-  assertEquals(rosterTile(at(660), at(370)), 2);
-  assertEquals(rosterTile(at(740), at(370)), undefined);
-  assertEquals(rosterTile(at(660), at(280)), undefined);
+  assertEquals(tileAt(GRID, tx(2), ty), 2);
+  assertEquals(tileAt(GRID, at(740), ty), undefined);
+  assertEquals(tileAt(GRID, tx(2), at(280)), undefined);
   for (let slot = 0; slot < 2; slot++) {
     const drag = selectionDrag();
     const unplaced = board({ choice: 0, placed: false }, { choice: 1, placed: false }, true);
     drag.held = slot;
-    press(drag, unplaced, at(660), at(370));
-    assertPlacement(release(drag, unplaced, at(660), at(370)), slot, 2);
+    press(drag, unplaced, tx(2), ty);
+    assertPlacement(release(drag, unplaced, tx(2), ty), slot, 2);
     const placed = board({ choice: 2, placed: true }, { choice: 2, placed: true }, true);
-    press(drag, placed, chipX(slot, 2) + at(20), at(346));
+    press(drag, placed, chipX(GRID, slot, 2) + at(20), chipY(GRID, slot, 2) - at(20));
     assertEquals(drag.dragging, slot);
-    assertPlacement(release(drag, placed, at(300), at(370)), slot, 0);
+    assertPlacement(release(drag, placed, tx(0), ty), slot, 0);
   }
 });
 
@@ -140,11 +145,11 @@ test("the third and fourth cards and chips keep their own slots", () => {
   drag.held = 3;
   drag.hover = 2;
   assertPlacement(placeHovered(drag), 3, 2);
-  const roster: Roster = { selectable: 15, chips: [0, 1, 2, 3].map((slot) => ({ choice: floorMod(slot, 3), placed: true })) };
+  const roster: Roster = { grid: GRID, selectable: 15, chips: [0, 1, 2, 3].map((slot) => ({ choice: floorMod(slot, 3), placed: true })) };
   for (let slot = 1; slot < 4; slot++) {
-    press(drag, roster, chipX(slot, floorMod(slot, 3)) + at(20), chipY(slot) - at(20));
+    press(drag, roster, chipX(GRID, slot, floorMod(slot, 3)) + at(20), chipY(GRID, slot, floorMod(slot, 3)) - at(20));
     assertEquals(drag.dragging, slot);
-    assertPlacement(release(drag, roster, at(660), at(400)), slot, 2);
+    assertPlacement(release(drag, roster, tx(2), at(400)), slot, 2);
   }
   assertEquals(drag.held, 3);
 });

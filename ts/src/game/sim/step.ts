@@ -38,6 +38,7 @@ import {
   WALL_TECH_JUMP_INPUT_WINDOW_FRAMES,
 } from "./fighter";
 import { DASH_GUARD_EARLY_FRAMES, advanceGroundMovement, clearDash } from "./groundMovement";
+import { heroMotionHolds } from "./heroSpecialRules";
 import { AIR_DODGE_ANIMATION_FRAMES, AIR_DODGE_DECAY, beginAirDodge, beginGroundDodge, beginJump, canBeginGroundDodge } from "./jumpsAndDodges";
 import { ageKnockback, applyDirectionalInfluence, decayKnockback } from "./knockback";
 import { advanceLedge } from "./ledge";
@@ -54,9 +55,8 @@ import {
   totalVelocityZ,
 } from "./motion";
 import { observeActionDecision, observeActionStart } from "./observations";
-import { type Controls, type Roster, fighterAt, isActive } from "./roster";
-import { PARTICIPANT_CAPACITY } from "../input/participants";
-import { hurtCapsule } from "../physics/contactGeometry";
+import { type Controls, type Roster, fighterAt } from "./roster";
+import { travelBeforeBodies } from "./travelStop";
 import {
   SHIELD_MIN_HOLD_FRAMES,
   SHIELD_PERFECT_ACTIVE_FRAMES,
@@ -67,7 +67,6 @@ import {
   regenerateShield,
   shieldDrain,
   shieldDrainShouldResume,
-  shieldSizeMultiplier,
 } from "./shield";
 import { advanceShieldBreak, beginShieldBreak } from "./shieldBreak";
 import { applyAutomaticSmashDirectionalInfluence, applySmashDirectionalInfluence, discardPendingSmashDirectionalInfluence, renewSmashDirectionalInfluenceString } from "./smashDirectionalInfluence";
@@ -99,23 +98,7 @@ function attackStartupTravel(world: Roster, slot: number): number {
   const f = fighterAt(world, slot);
   const move = f.attack.style === undefined ? undefined : f.tuning.moves?.normals[f.attack.style];
   if (move?.startupTravelX === undefined || !f.motion.grounded || f.attack.frame <= 0 || f.attack.frame > move.startupFrames) return 0.0;
-  let distance = f32(move.startupTravelX / move.startupFrames);
-  const ownRadius = hurtCapsule(f.character).radius;
-  for (let targetSlot = 0; targetSlot < PARTICIPANT_CAPACITY; targetSlot++) {
-    if (targetSlot === slot || !isActive(world, targetSlot)) continue;
-    const target = fighterAt(world, targetSlot);
-    if ((!target.shield.raised && !move.startupStopsAtBody) || target.status.out) continue;
-    const geometry = target.tuning.shield;
-    const body = hurtCapsule(target.character);
-    const radius = target.shield.raised
-      ? f32(geometry.radius * shieldSizeMultiplier(target.shield.energy, target.shield.strength)) : body.radius;
-    const centerX = target.shield.raised ? f32(target.motion.x + f32(target.facing * geometry.centerX)) : target.motion.x;
-    const centerZ = target.shield.raised ? f32(target.motion.z + geometry.centerZ) : f32(target.motion.z + f32(f32(body.z1 + body.z2) * 0.5));
-    if (Math.abs(f32(centerZ - f32(f.motion.z + f.tuning.shield.centerZ))) > f32(radius + ownRadius)) continue;
-    const ahead = f32(f32(centerX - f.motion.x) * f.facing);
-    if (ahead <= 0.0) continue;
-    distance = min(distance, max(0.0, f32(ahead - f32(radius + ownRadius))));
-  }
+  const distance = travelBeforeBodies(world, slot, f32(move.startupTravelX / move.startupFrames), move.startupStopsAtBody === true);
   return f32(distance * f.facing);
 }
 
@@ -478,7 +461,8 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
     motion.vx = max(-physics.airSpeed, min(physics.airSpeed, motion.vx));
   }
   let dashEntryDisplacementAdjustment = 0.0;
-  const canSteer = down.state === DownState.none && launch.hitstun <= 0 && (!dodge.airDodging || !dodgeActive) && !isGroundDodging(f)
+  const authoredMotion = heroMotionHolds(f);
+  const canSteer = !authoredMotion && down.state === DownState.none && launch.hitstun <= 0 && (!dodge.airDodging || !dodgeActive) && !isGroundDodging(f)
     && shield.releaseLag <= 0 && f.landing.lag <= 0 && shield.stun <= 0 && jump.squat <= 0 && !smashChargePaused
     && (!motion.grounded || attack.cooldown <= 0) && f.surfaceRecovery.state !== SurfaceContact.techWall;
   motion.crouching = input.down && input.direction === 0 && motion.grounded && canSteer && !wantsShield
@@ -510,7 +494,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
     }
   } else if (isGroundDodging(f)) {
     motion.vx = 0.0;
-  } else if (!groundTakeoff && (!canSteer || direction === 0) && launch.hitstun <= 0 && (!dodgeActive || motion.grounded)) {
+  } else if (!groundTakeoff && !authoredMotion && (!canSteer || direction === 0) && launch.hitstun <= 0 && (!dodgeActive || motion.grounded)) {
     const drag = motion.grounded ? physics.traction : physics.airFriction;
     motion.vx = motion.vx > 0 ? max(0.0, f32(motion.vx - drag)) : min(0.0, f32(motion.vx + drag));
   }
@@ -535,7 +519,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   if (isGroundDodging(f) || (motion.grounded && jump.squat > 0)) {
     motion.vz = 0.0;
     motion.z = surfaceZ(stage, motion.surface ?? 0, matchFrame);
-  } else if ((!dodgeActive || motion.grounded) && !groundTakeoff) {
+  } else if ((!dodgeActive || motion.grounded) && !groundTakeoff && !authoredMotion) {
     if (!motion.grounded && !motion.fastFalling && downHeld && motion.fastFallInputAge < FAST_FALL_INPUT_WINDOW && input.direction === 0
       && down.state === DownState.none && launch.hitstun <= 0 && motion.vz < 0) {
       motion.fastFalling = true;

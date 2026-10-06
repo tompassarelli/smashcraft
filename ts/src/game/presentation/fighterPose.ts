@@ -1,4 +1,4 @@
-// Clip selection and its completed-frame clock stay together: the chosen clip
+// HeroClip selection and its completed-frame clock stay together: the chosen clip
 // determines whether the elapsed interval advances, freezes or restarts.
 import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
@@ -15,6 +15,7 @@ import { SHIELD_RELEASE_LAG_FRAMES } from "../sim/shield";
 import { INITIAL_DASH_FRAMES, SHIELD_BREAK_LAND_FRAMES, SHIELD_BREAK_STAND_FRAMES, authoredPhysics } from "../sim/tuning";
 import { DamagePose, damagePose } from "./damagePose";
 import * as dh from "./demonHunterAssetInfo";
+import type { HeroClip, HeroClipTable, HeroPose } from "../sim/heroes/hero";
 import * as clips from "./fighterClips";
 import {
   ESCAPE_FRAMES, IllidanLocomotion, LEDGE_CATCH_FRAMES, RESPAWN_FRAMES, TRANSITION_FRAMES, type IllidanMotion,
@@ -148,8 +149,9 @@ export function advanceFighterPose(
     pose.motion.respawnRemaining = 0;
   }
   if (fighter.status.out) {
-    if (fighter.character === Character.demonHunter && !wasOut) {
-      selectFighterClipIndex(pose, dh.DEMON_HUNTER_KO_INDEX);
+    const ko = fighter.character === Character.demonHunter ? dh.DEMON_HUNTER_KO_INDEX : clips.characterClips(fighter.character).ko?.index;
+    if (ko !== undefined && !wasOut) {
+      selectFighterClipIndex(pose, ko);
       pose.rate = 1.0;
       pose.animation = "ko";
     }
@@ -190,10 +192,11 @@ function selectClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly<Ros
   const rate = actionRate(pose, f, phase, reaction);
   const { character } = f;
   const illidan = character === Character.demonHunter;
+  const table = clips.characterClips(character);
   if (inGrabContext(f)) return selectGrabClip(pose, f, world);
   if (f.ledge.state !== LedgeState.none) {
     const catching = illidan && f.ledge.state === LedgeState.hang && pose.motion.ledgeCatchRemaining > 0;
-    const index = catching ? dh.DEMON_HUNTER_LEDGE_CATCH_INDEX : clips.ledgeClips(f.ledge.state)[character].index;
+    const index = catching ? dh.DEMON_HUNTER_LEDGE_CATCH_INDEX : clips.clipFor(character, clips.ledgePose(f.ledge.state)).index;
     playIndex(pose, `ledge${f.ledge.state}${catching ? ":catch" : ""}`, index);
     if (catching) return clipRate(dh.DEMON_HUNTER_LEDGE_CATCH_SECONDS, LEDGE_CATCH_FRAMES);
     return illidan && f.ledge.state === LedgeState.hang ? 0.0 : rate;
@@ -201,9 +204,10 @@ function selectClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly<Ros
   if (f.shield.breakState !== ShieldBreak.none) {
     const key = `shieldbreak${f.shield.breakState}`;
     if (pose.animation !== key) {
-      if (f.shield.breakState === ShieldBreak.land) selectFighterClipIndex(pose, clips.KNOCKDOWN[character].index);
-      else if (f.shield.breakState === ShieldBreak.stand) selectFighterClipIndex(pose, clips.GET_UP[character].index);
+      if (f.shield.breakState === ShieldBreak.land) selectFighterClipIndex(pose, clips.clipFor(character, "knockdown").index);
+      else if (f.shield.breakState === ShieldBreak.stand) selectFighterClipIndex(pose, clips.clipFor(character, "getUp").index);
       else if (illidan) selectFighterClipIndex(pose, dh.DEMON_HUNTER_SHIELD_BREAK_INDEX);
+      else if (table.dizzy !== undefined) selectFighterClipIndex(pose, table.dizzy.index);
       else selectFighterClipName(pose, "stand hit");
       pose.animation = key;
     }
@@ -227,13 +231,13 @@ function selectClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly<Ros
     const key = `damage${reaction}`;
     // Every new contact restarts the reaction.
     if (hit || pose.animation !== key) {
-      selectFighterClipIndex(pose, damageClips(reaction)[character].index);
+      selectFighterClipIndex(pose, clips.clipFor(character, damageClipPose(reaction)).index);
       pose.animation = key;
     }
     return rate;
   }
   if (f.special.fall) {
-    playIndex(pose, "specialfall", clips.FALL_SPECIAL[character].index);
+    playIndex(pose, "specialfall", clips.clipFor(character, "fallSpecial").index);
     return rate;
   }
   if (isGroundDodging(f)) {
@@ -244,12 +248,10 @@ function selectClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly<Ros
     playIndex(pose, `special${f.special.action}`, fighterSpecialClip(f).index);
     return rate;
   }
-  if (illidan) {
-    const illidanRate = selectIllidanAction(pose, f);
-    if (illidanRate !== undefined) return illidanRate;
-  }
+  const stateRate = illidan ? selectIllidanAction(pose, f) : selectTableAction(pose, f, table);
+  if (stateRate !== undefined) return stateRate;
   if (pose.jumpAnimationRemaining > 0) {
-    playIndex(pose, "jump", (pose.doubleJumpAnimation ? clips.DOUBLE_JUMP : clips.JUMP)[character].index);
+    playIndex(pose, "jump", clips.clipFor(character, pose.doubleJumpAnimation ? "doubleJump" : "jump").index);
     return rate;
   }
   if (phase !== AttackPhase.none || f.launch.hitstun !== 0 || f.launch.hitlag !== 0) {
@@ -261,8 +263,16 @@ function selectClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly<Ros
     playIndex(pose, `motion${motion}`, locomotionClipIndex(motion));
     return locomotionRate(f, motion);
   }
+  const moving = tableLocomotion(table, pose.motion.motion);
+  if (moving !== undefined) {
+    playIndex(pose, `motion${pose.motion.motion}`, moving.index);
+    return pose.motion.motion === IllidanLocomotion.run ? locomotionRate(f, pose.motion.motion) : tableLocomotionRate(moving, pose.motion.motion);
+  }
   const walking = f.motion.grounded && Math.abs(totalVelocityX(f)) > f32(0.1);
-  playName(pose, walking ? "walk" : "stand", walking ? "walk" : "stand");
+  // A table that maps locomotion plays it by index; the originals play named clips.
+  const locomotion = table[walking ? "walk" : "idle"];
+  if (locomotion === undefined) playName(pose, walking ? "walk" : "stand", walking ? "walk" : "stand");
+  else playIndex(pose, walking ? "walk" : "stand", locomotion.index);
   return walking ? min(f32(1.4), max(f32(0.2), f32(Math.abs(f.motion.vx) / f.tuning.physics.runSpeed))) : rate;
 }
 
@@ -282,8 +292,60 @@ function selectGrabClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly
   }
   if (illidanEscape) return clipRate(dh.DEMON_HUNTER_GRAB_ESCAPE_SECONDS, grabActionDuration(action, f.tuning.moves));
   // Both sides play at the holder clip's rate.
-  const actionClips = clips.grabActionClips(action);
-  return actionClips === undefined ? 0.0 : clipRate(actionClips.holder[f.character].seconds, grabActionDuration(action, f.tuning.moves));
+  const poses = clips.grabActionPoses(action);
+  return poses === undefined ? 0.0 : clipRate(clips.clipFor(f.character, poses.holder).seconds, grabActionDuration(action, f.tuning.moves));
+}
+
+/**
+ * The states only Illidan has code of his own for, played from any table that
+ * maps them: air dodges, landings, shielding and smash charges. The original
+ * tables map none of these.
+ */
+function selectTableAction(pose: FighterPose, f: Readonly<Fighter>, table: Readonly<HeroClipTable>): number | undefined {
+  const { dodge, motion, landing, shield, attack } = f;
+  if (dodge.airDodging && table.airDodge !== undefined) {
+    playIndex(pose, "air-dodge", table.airDodge.index);
+    return clipRate(table.airDodge.seconds, AIR_DODGE_ANIMATION_FRAMES);
+  }
+  if (motion.grounded && landing.lag > 0 && table.landing !== undefined) {
+    if (pose.animation !== "landing") {
+      selectFighterClipIndex(pose, table.landing.index);
+      pose.landingAnimationRate = clipRate(table.landing.seconds, landing.lag);
+      pose.animation = "landing";
+    }
+    return pose.landingAnimationRate;
+  }
+  if ((shield.raised || shield.releaseLag > 0) && table.shield !== undefined) {
+    playIndex(pose, "shield", table.shield.index);
+    return 1.0;
+  }
+  const { style } = attack;
+  if (attack.smashCharging && table.smashCharge !== undefined) {
+    playIndex(pose, "smash-charge", table.smashCharge.index);
+    return 0.0;
+  }
+  // A released charge replays the smash's own clip over the rest of the attack.
+  const release = clips.ownAttackClip(f.character, style);
+  if (style !== undefined && release !== undefined && (pose.animation === "smash-charge" || pose.animation === "smash-release")) {
+    if (pose.animation === "smash-charge") {
+      selectFighterClipIndex(pose, release.index);
+      pose.animation = "smash-release";
+    }
+    return clipRate(release.seconds, attack.duration - attackStartupFrames(style, f.tuning.moves));
+  }
+  return undefined;
+}
+
+/** A table's locomotion clip for Illidan's locomotion states; undefined where it maps none. */
+function tableLocomotion(table: Readonly<HeroClipTable>, motion: IllidanLocomotion): HeroClip | undefined {
+  switch (motion) {
+    case IllidanLocomotion.dash: return table.dash;
+    case IllidanLocomotion.run: return table.run;
+    case IllidanLocomotion.crouch: return table.crouch;
+    case IllidanLocomotion.fall:
+    case IllidanLocomotion.fastFall: return table.fall;
+    default: return undefined;
+  }
 }
 
 /** Illidan's own clips for dodges, landings, shielding, smash charges, respawns and ledge jumps. */
@@ -343,36 +405,34 @@ function selectIllidanAction(pose: FighterPose, f: Readonly<Fighter>): number | 
 /** An attack's start selects its clip; Illidan's smash charge may later replace it. */
 function selectAttackClip(pose: FighterPose, f: Readonly<Fighter>): void {
   const { style } = f.attack;
-  if (f.character === Character.demonHunter) {
-    pose.animation = "";
-    const own = clips.illidanAttackClip(style);
-    if (own !== undefined) {
-      selectFighterClipIndex(pose, own.index);
-      return;
-    }
+  if (f.character === Character.demonHunter) pose.animation = "";
+  const own = clips.ownAttackClip(f.character, style);
+  if (own !== undefined) {
+    selectFighterClipIndex(pose, own.index);
+    return;
   }
-  const shared = clips.attackClips(style);
+  const shared = clips.attackPose(style);
   if (shared === undefined) selectFighterClipName(pose, "attack");
-  else selectFighterClipIndex(pose, shared[f.character].index);
+  else selectFighterClipIndex(pose, clips.clipFor(f.character, shared).index);
 }
 
 /** The rate that fits the current action's clip to the action's frames; 1 without one. */
 function actionRate(pose: Readonly<FighterPose>, f: Readonly<Fighter>, phase: AttackPhase, reaction: DamagePose): number {
   const { character } = f;
-  if (f.ledge.state === LedgeState.climb) return clipRate(clips.LEDGE_CLIMB[character].seconds, LEDGE_CLIMB_FRAMES);
-  if (f.ledge.state === LedgeState.roll) return clipRate(clips.LEDGE_ROLL[character].seconds, LEDGE_ROLL_FRAMES);
-  if (f.ledge.state === LedgeState.attack) return clipRate(clips.LEDGE_ATTACK[character].seconds, LEDGE_ATTACK_FRAMES);
-  if (f.shield.breakState === ShieldBreak.land) return clipRate(clips.KNOCKDOWN[character].seconds, SHIELD_BREAK_LAND_FRAMES);
-  if (f.shield.breakState === ShieldBreak.stand) return clipRate(clips.GET_UP[character].seconds, SHIELD_BREAK_STAND_FRAMES);
+  if (f.ledge.state === LedgeState.climb) return clipRate(clips.clipFor(character, "ledgeClimb").seconds, LEDGE_CLIMB_FRAMES);
+  if (f.ledge.state === LedgeState.roll) return clipRate(clips.clipFor(character, "ledgeRoll").seconds, LEDGE_ROLL_FRAMES);
+  if (f.ledge.state === LedgeState.attack) return clipRate(clips.clipFor(character, "ledgeAttack").seconds, LEDGE_ATTACK_FRAMES);
+  if (f.shield.breakState === ShieldBreak.land) return clipRate(clips.clipFor(character, "knockdown").seconds, SHIELD_BREAK_LAND_FRAMES);
+  if (f.shield.breakState === ShieldBreak.stand) return clipRate(clips.clipFor(character, "getUp").seconds, SHIELD_BREAK_STAND_FRAMES);
   if (posesDown(f)) return downRate(f);
-  if (reaction !== DamagePose.none) return clipRate(damageClips(reaction)[character].seconds, REACTION_CLIP_FRAMES);
+  if (reaction !== DamagePose.none) return clipRate(clips.clipFor(character, damageClipPose(reaction)).seconds, REACTION_CLIP_FRAMES);
   if (f.special.fall) return 0.0;
   if (isGroundDodging(f)) return clipRate(groundDodgeClip(f).seconds, f.dodge.groundDirection === 0 ? SPOT_DODGE_FRAMES : GROUND_ROLL_FRAMES);
   if (f.special.action !== SpecialAction.none && f.launch.hitstun === 0) return clipRate(fighterSpecialClip(f).seconds, f.special.duration);
   if (pose.jumpAnimationRemaining > 0) {
     return pose.doubleJumpAnimation
-      ? clipRate(clips.DOUBLE_JUMP[character].seconds, DOUBLE_JUMP_CLIP_FRAMES)
-      : clipRate(clips.JUMP[character].seconds, JUMP_CLIP_FRAMES);
+      ? clipRate(clips.clipFor(character, "doubleJump").seconds, DOUBLE_JUMP_CLIP_FRAMES)
+      : clipRate(clips.clipFor(character, "jump").seconds, JUMP_CLIP_FRAMES);
   }
   return attackRate(f, phase);
 }
@@ -380,14 +440,12 @@ function actionRate(pose: Readonly<FighterPose>, f: Readonly<Fighter>, phase: At
 function attackRate(f: Readonly<Fighter>, phase: AttackPhase): number {
   if (phase === AttackPhase.none) return 1.0;
   const { style, duration } = f.attack;
-  if (f.character === Character.demonHunter) {
-    const own = clips.illidanAttackClip(style);
-    if (own !== undefined) return clipRate(own.seconds, duration);
-  }
+  const own = clips.ownAttackClip(f.character, style);
+  if (own !== undefined) return clipRate(own.seconds, duration);
   // A ledge attack's clip spans the ledge option, not the attack's duration.
-  if (style === AttackStyle.ledgeAttack) return clipRate(clips.GET_UP_ATTACK[f.character].seconds, LEDGE_ATTACK_FRAMES);
-  const shared = clips.attackClips(style);
-  return shared === undefined ? 1.0 : clipRate(shared[f.character].seconds, duration);
+  if (style === AttackStyle.ledgeAttack) return clipRate(clips.clipFor(f.character, "getUpAttack").seconds, LEDGE_ATTACK_FRAMES);
+  const shared = clips.attackPose(style);
+  return shared === undefined ? 1.0 : clipRate(clips.clipFor(f.character, shared).seconds, duration);
 }
 
 function downClipIndex(f: Readonly<Fighter>): number {
@@ -399,12 +457,12 @@ function downClipIndex(f: Readonly<Fighter>): number {
     if (state === DownState.roll) return forward ? dh.DEMON_HUNTER_GET_UP_ROLL_FORWARD_INDEX : dh.DEMON_HUNTER_GET_UP_ROLL_BACK_INDEX;
   }
   switch (state) {
-    case DownState.damage: return clips.DOWN_DAMAGE[f.character].index;
+    case DownState.damage: return clips.clipFor(f.character, "downDamage").index;
     case DownState.bound:
-    case DownState.wait: return clips.KNOCKDOWN[f.character].index;
+    case DownState.wait: return clips.clipFor(f.character, "knockdown").index;
     case DownState.stand:
-    case DownState.tech: return clips.GET_UP[f.character].index;
-    default: return (forward ? clips.ROLL_FORWARD : clips.ROLL_BACKWARD)[f.character].index;
+    case DownState.tech: return clips.clipFor(f.character, "getUp").index;
+    default: return clips.clipFor(f.character, forward ? "rollForward" : "rollBackward").index;
   }
 }
 
@@ -417,41 +475,41 @@ function downRate(f: Readonly<Fighter>): number {
     if (state === DownState.roll) return clipRate(forward ? dh.DEMON_HUNTER_GET_UP_ROLL_FORWARD_SECONDS : dh.DEMON_HUNTER_GET_UP_ROLL_BACK_SECONDS, DOWN_ROLL_FRAMES);
   }
   switch (state) {
-    case DownState.damage: return clipRate(clips.DOWN_DAMAGE[f.character].seconds, DOWN_DAMAGE_FRAMES);
+    case DownState.damage: return clipRate(clips.clipFor(f.character, "downDamage").seconds, DOWN_DAMAGE_FRAMES);
     case DownState.wait: return 0.0;
-    case DownState.bound: return clipRate(clips.KNOCKDOWN[f.character].seconds, DOWN_BOUND_FRAMES);
-    case DownState.stand: return clipRate(clips.GET_UP[f.character].seconds, DOWN_STAND_FRAMES);
-    case DownState.tech: return clipRate(clips.GET_UP[f.character].seconds, TECH_IN_PLACE_FRAMES);
+    case DownState.bound: return clipRate(clips.clipFor(f.character, "knockdown").seconds, DOWN_BOUND_FRAMES);
+    case DownState.stand: return clipRate(clips.clipFor(f.character, "getUp").seconds, DOWN_STAND_FRAMES);
+    case DownState.tech: return clipRate(clips.clipFor(f.character, "getUp").seconds, TECH_IN_PLACE_FRAMES);
     default: {
-      const roll = (forward ? clips.ROLL_FORWARD : clips.ROLL_BACKWARD)[f.character];
+      const roll = clips.clipFor(f.character, forward ? "rollForward" : "rollBackward");
       return clipRate(roll.seconds, state === DownState.techRoll ? TECH_ROLL_FRAMES : DOWN_ROLL_FRAMES);
     }
   }
 }
 
-function groundDodgeClip(f: Readonly<Fighter>): clips.Clip {
-  if (f.dodge.groundDirection === 0) return clips.SPOT_DODGE[f.character];
-  return (isForwardGroundRoll(f) ? clips.ROLL_FORWARD : clips.ROLL_BACKWARD)[f.character];
+function groundDodgeClip(f: Readonly<Fighter>): HeroClip {
+  if (f.dodge.groundDirection === 0) return clips.clipFor(f.character, "spotDodge");
+  return clips.clipFor(f.character, isForwardGroundRoll(f) ? "rollForward" : "rollBackward");
 }
 
-function fighterSpecialClip(f: Readonly<Fighter>): clips.Clip {
+function fighterSpecialClip(f: Readonly<Fighter>): HeroClip {
   const aerialShot = f.special.duration === attackDurationFramesForGrounding(AttackStyle.shot, false);
-  return clips.specialClip(f.special.action, f.motion.grounded, aerialShot);
+  return clips.specialClip(f.character, f.special.action, f.motion.grounded, aerialShot);
 }
 
-function damageClips(reaction: DamagePose): clips.CharacterClips {
+function damageClipPose(reaction: DamagePose): HeroPose {
   switch (reaction) {
-    case DamagePose.ground: return clips.DAMAGE_GROUND;
-    case DamagePose.tumble: return clips.DAMAGE_TUMBLE;
-    case DamagePose.shield: return clips.DAMAGE_SHIELD;
-    default: return clips.DAMAGE_AIR;
+    case DamagePose.ground: return "damageGround";
+    case DamagePose.tumble: return "damageTumble";
+    case DamagePose.shield: return "damageShield";
+    default: return "damageAir";
   }
 }
 
 function grabClipIndex(character: Character, action: GrabAction, victim: boolean): number {
-  const actionClips = clips.grabActionClips(action);
-  if (actionClips !== undefined) return (victim ? actionClips.victim : actionClips.holder)[character].index;
-  return (victim ? clips.GRABBED : clips.GRAB_HOLD)[character].index;
+  const poses = clips.grabActionPoses(action);
+  if (poses !== undefined) return clips.clipFor(character, victim ? poses.victim : poses.holder).index;
+  return clips.clipFor(character, victim ? "grabbed" : "grabHold").index;
 }
 
 function locomotionClipIndex(motion: IllidanLocomotion): number {
@@ -466,6 +524,13 @@ function locomotionClipIndex(motion: IllidanLocomotion): number {
     case IllidanLocomotion.fall: return dh.DEMON_HUNTER_FALL_INDEX;
     default: return dh.DEMON_HUNTER_COMBAT_IDLE_INDEX;
   }
+}
+
+/** A table's dash and crouch play over Illidan's frames for them; its fall holds. */
+function tableLocomotionRate(clip: HeroClip, motion: IllidanLocomotion): number {
+  if (motion === IllidanLocomotion.dash) return clipRate(clip.seconds, INITIAL_DASH_FRAMES);
+  if (motion === IllidanLocomotion.crouch) return clipRate(clip.seconds, CROUCH_CLIP_FRAMES);
+  return 0.0;
 }
 
 /** Walking and running follow ground speed, never slower than a fifth of the clip. */

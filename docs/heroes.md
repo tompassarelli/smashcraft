@@ -41,12 +41,24 @@ acts again on N+1. It may author:
   once per action. Strike paths are disjoint by construction: a weapon never
   extends the body. Limbs that must be hittable belong in the hero's hurt
   volumes;
-- `motion`: velocity set on each frame of a window, facing-relative, with an
-  optional `aimedSpeed` that follows the stick held on entry;
+- `motion`: velocity set on each frame of a window, facing-relative. The
+  next frame moves by exactly that velocity, without steering, drag, gravity
+  or the fall-speed cap; stage collision still stops it, so a long one-frame
+  displacement (Warden's Blink) ends at the deck body or lands on the deck.
+  `aimedSpeed` replaces the direction with one of eight aimed directions;
+  `aimedTilt` turns a horizontal heading to a fixed angle for an up or down
+  aim (Pursuit Lunge's 20 degrees);
+- `aimFrames`: through this frame a held stick re-chooses the aim, so an up
+  special can still be aimed sideways or down; without it the aim is the
+  stick on entry;
 - `projectiles`: spawn frame, offset, velocity (and an up-held velocity),
   life, radius, `activeFrom`, effect, `reflectable`, `limit` and
   `cancelOnInterrupt`; a cast that would exceed a limit or the three-projectile
-  cap fails before spending;
+  cap fails before spending; in a match a hero projectile ends on a wall, an
+  underside or a solid deck's top, and passes through pass decks;
+- `hurt`: body poses over the special's frames (`hurtPose`, 1-based), which
+  `sim/hurtboxes.ts` uses instead of the standing body while they cover the
+  current special frame;
 - `intangible` and `armor` windows (armor takes one hit's reaction up to its
   damage; the damage applies and throws ignore it);
 - `groundOnly`, `oncePerAirtime`, `helpless` and `landingLag`.
@@ -68,6 +80,8 @@ and remainder, the entry form and aim, airtime uses, armor and each hero
 projectile's record are fighter state: rollback copies them, replay
 difference compares them, and the canonical replay text includes them for
 fighters with a hero kit. The original fighters keep their cooldowns and no
-mana. There is no ultimate action, so ultimates stay off.
+mana. In a match each hero's HUD plate shows "Mana N" above it, and "Not
+enough mana" for about three quarters of a second after each refused press
+(`ui/manaReadout.ts`). There is no ultimate action, so ultimates stay off.
 
 The shared contracts are in `ts/src/game/sim/heroSpecials.tests.ts`.
