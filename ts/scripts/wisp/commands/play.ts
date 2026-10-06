@@ -4,7 +4,7 @@
 // start and starts the match on the go-ahead
 // (src/platform/shell/playtest.ts). The map, its helper and the computer's
 // slot are declared here and change with each candidate.
-import { readFileSync, readdirSync, realpathSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { Clock, Effect, Option, Schema } from "effect";
@@ -18,6 +18,7 @@ import { JournalMenu, PLAYTEST_GO_FILE, PLAYTEST_REQUEST_FILE, journalMenuFile, 
 import { clientState, gameFilesLayer } from "../project";
 import { smashcraftWatch } from "../doctor";
 import { currentPlaytest } from "../currentPlaytest";
+import { awaitService, ensureService } from "../controllerService";
 import { installLatest } from "../mapLibrary";
 import type { Command } from "wisp/scripts/wisp/command";
 import { PLAYABLE_BUILD } from "../../../src/game/shell/currentBuild";
@@ -27,14 +28,12 @@ interface Playtest {
   /** The map build's ID: its journal files and the helper's --build. */
   readonly build: string;
   readonly map: PlayDeclaration["map"];
-  /** The Linux helper for the build. */
+  /** The Linux helper for the build; the always-on controller service runs it. */
   readonly helper: string;
   /** The computer's slot from 0; Tom's own is 0. */
   readonly computerSlot: number;
   /** The computer's level, 1-9: 9 plays its fighter's gameplan at full strength. */
   readonly computerLevel: number;
-  /** Where the controller's stable device links are. */
-  readonly inputDevices: string;
   /** The report port of the Wisp page installed on Tom's prefix; absent uses ordinary menu controls. */
   readonly menuReportPort?: number;
 }
@@ -47,7 +46,6 @@ export const PLAYTEST: Omit<Playtest, "map" | "helper"> = {
   build: PLAYABLE_BUILD.id,
   computerSlot: 2,
   computerLevel: 9,
-  inputDevices: "/dev/input/by-id",
   // Tom's install is not a test client, so the clients file doesn't list it.
   menuReportPort: 47124,
 };
@@ -69,7 +67,7 @@ const until = <A, R>(seconds: number, observe: Effect.Effect<A | undefined, Play
   }
 });
 
-export function playtest({ build, map, helper, computerSlot, computerLevel, inputDevices, menuReportPort }: Playtest): PlayDeclaration<GameFiles> {
+export function playtest({ build, map, helper, computerSlot, computerLevel, menuReportPort }: Playtest): PlayDeclaration<GameFiles> {
   const name = journalMenuFile(build, 0);
   /** The host's menu file; one being written reads as absent. */
   const menu = (game: PlayGame) => readGameFile(join(dataDirectory(game.documents), name), JournalMenu).pipe(
@@ -117,27 +115,8 @@ export function playtest({ build, map, helper, computerSlot, computerLevel, inpu
       if (!answer.includes(`${request} started`)) return yield* new PlayProblem({ problem: `Smashcraft refused the playtest request "${request}": fighter selection had moved on or a human holds Player ${computerSlot + 1}` });
       return `level ${computerLevel} computer as Player ${computerSlot + 1}, match started`;
     }),
-    helper: {
-      binary: helper,
-      ready: /waiting_for_match/,
-      log: join(homedir(), ".local/state/smashcraft/play-helper.log"),
-      args: (game) => Effect.gen(function*() {
-        const pads = yield* Effect.sync(() => {
-          try {
-            return readdirSync(inputDevices).filter((entry) => /Microsoft.*event-joystick$/.test(entry)).sort();
-          } catch {
-            return [];
-          }
-        });
-        const [pad] = pads;
-        if (pad === undefined) return yield* new PlayProblem({ problem: `no Xbox controller in ${inputDevices}; plug it in and run play again` });
-        const device = yield* Effect.try({ try: () => realpathSync(join(inputDevices, pad)), catch: () => new PlayProblem({ problem: `the controller link ${pad} is broken; reconnect it and run play again` }) });
-        return [
-          "--follow-matches", "--build", build, "--slot", "0", "--device", device, "--out", dataDirectory(game.documents),
-          "--editbox-display", game.display, "--x11-window", game.xWindow.id, "--pid", String(game.pid), "--niri-window", String(game.window),
-        ];
-      }),
-    },
+    // The always-on controller service finds this game, its session and the pad by itself.
+    helper: { service: (game) => ensureService(helper).pipe(Effect.flatMap((runs) => awaitService(game.pid, build, runs))) },
   };
 }
 

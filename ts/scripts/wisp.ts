@@ -29,6 +29,7 @@ const COMMANDS: Record<string, { readonly usage: string; readonly load: () => Pr
   soak: { usage: "soak [--matches N] [--seed N] [--workers N<=4] [--minutes N<=30] [--fighter NAME]... [--stage NAME]... [--policy NAME]... [--out DIR] | --repro FILE | --helper BINARY [--matches N<=20] [--seconds S<=90] [--seed N] [--out DIR]", load: async () => (await import("./wisp/commands/soak")).soak },
   dev: { usage: "dev [--data DIR --data DIR]", load: async () => (await import("./wisp/commands/dev")).dev },
   play: { usage: "play   (Tom's desktop: Battle.net, Play, the map hosted after Warcraft's ladder scan, the controller helper, a match against a computer)", load: async () => (await import("./wisp/commands/play")).play },
+  controller: { usage: "controller   (Tom's Xbox controller for any Smashcraft session on his desktop: points the always-on controller service at main's helper, or runs it here)", load: async () => (await import("./wisp/commands/controller")).controller },
   tune: { usage: "tune --data DIR [--data DIR ...] [--port N] [--profile main|integrity|playable|physics-probe|frame-cost|stack-trace]", load: async () => (await import("./wisp/commands/tune")).tune },
   repro: { usage: "repro FILE [--test NAME]", load: async () => (await import("./wisp/commands/repro")).repro },
   accept: { usage: "accept [--only ID...] [--dry-run] [--out DIR]   (the declared native checks, batched: scripts/wisp/acceptChecks.ts)", load: async () => (await import("./wisp/commands/accept")).accept },

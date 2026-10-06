@@ -109,6 +109,13 @@ code. From smashcraft:ts/:
   (smashcraft:docs/play.md). Experiments use `fresh`, captures or `accept`,
   with maps under Maps/00-Smashcraft/tests; play preserves two prior versions
   beside the latest correctly titled build and archives the rest under older/.
+  Play starts no helper: it waits for the always-on controller service.
+- Controller: `bun wisp controller` points the always-on controller service
+  (`wc3-journal --service`, the login unit smashcraft-controller.service) at
+  main's helper and restarts it, or runs the service in the foreground when
+  the unit isn't installed. The service finds Warcraft III on :0, the pad and
+  any Smashcraft session by itself, so a map opened from Custom Games plays
+  on the controller (smashcraft:companion/README.md, "Always-on controller service").
 - Live tuning: `bun wisp tune --data A --data B` serves a panel that changes
   the values smashcraft:ts/scripts/wisp/tunables.ts declares in the running
   match and writes kept ones back (smashcraft:docs/typescript.md).

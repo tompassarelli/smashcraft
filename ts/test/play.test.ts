@@ -1,10 +1,8 @@
 // Smashcraft's `bun wisp play` declaration against fake game files: the
 // request left before Warcraft starts, fighter selection from the host's menu
-// file, the go-ahead and the map's receipt, and the helper's arguments for
-// the found controller. The map's side is test/playtest.test.ts.
-import { afterAll, expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+// file, the go-ahead and the map's receipt, and the controller service
+// (test/controller-service.test.ts). The map's side is test/playtest.test.ts.
+import { expect, test } from "bun:test";
 import { join } from "node:path";
 import { Clock, Effect, Exit, Fiber, Layer } from "effect";
 import { TestClock } from "effect/testing";
@@ -20,8 +18,6 @@ const MENU = join(DATA, "smashcraft-journal-menu-playable-0047-s0.txt");
 const REQUEST = join(DATA, "smashcraft-play.txt");
 const GO = join(DATA, "smashcraft-play-go.txt");
 const RECEIPT = join(DATA, "smashcraft-play-p0.txt");
-const scratch = mkdtempSync(join(tmpdir(), "smashcraft-play-"));
-afterAll(() => rmSync(scratch, { recursive: true, force: true }));
 
 const preload = (...lines: string[]) =>
   `function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n${lines.map((line) => `\tcall Preload( "${line}" )\n`).join("")}\tcall PreloadEnd( 0.0 )\n\nendfunction\n`;
@@ -111,18 +107,6 @@ test("the go-ahead starts the match, and the request and go-ahead are removed fo
   expect(failureText(await simulate(declared.match(game), deaf.files))).toContain("Smashcraft didn't take the playtest request within 15 s");
 });
 
-test("the helper gets the found Xbox controller, the game's data folder, pid and windows", async () => {
-  const devices = join(scratch, "by-id");
-  mkdirSync(devices);
-  writeFileSync(join(scratch, "event7"), "");
-  symlinkSync(join(scratch, "event7"), join(devices, "usb-Microsoft_Controller_3039363431313739383233353335-event-joystick"));
-  symlinkSync(join(scratch, "event7"), join(devices, "usb-Logitech_USB_Receiver-event-mouse"));
-  const declared = playtest({ ...PLAYTEST, inputDevices: devices });
-  const args = await simulate(declared.helper.args(game), customMapData().files);
-  expect(Exit.isSuccess(args) && args.value).toEqual([
-    "--follow-matches", "--build", "playable-0047", "--slot", "0", "--device", join(scratch, "event7"), "--out", DATA,
-    "--editbox-display", ":0", "--x11-window", "169869313", "--pid", "2852", "--niri-window", "762",
-  ]);
-  const none = playtest({ ...PLAYTEST, inputDevices: join(scratch, "missing") });
-  expect(failureText(await simulate(none.helper.args(game), customMapData().files))).toContain(`no Xbox controller in ${join(scratch, "missing")}; plug it in and run play again`);
+test("play starts no helper of its own: the always-on controller service serves the game", () => {
+  expect("service" in playtest(PLAYTEST).helper).toBe(true);
 });
