@@ -1,6 +1,7 @@
 import { at } from "wisp/src/runtime/lookup";
 import { PARTICIPANT_CAPACITY, participantActive } from "../input/participants";
 import type { Fighter } from "../sim/fighter";
+import { HERO_STATUS_GROUPS } from "../sim/codes";
 
 const retained = (activeMask: number, slot: number | undefined) => (slot !== undefined && participantActive(activeMask, slot) ? slot : undefined);
 
@@ -315,6 +316,11 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   status.freezeImmunityFrames = sourceStatus.freezeImmunityFrames;
   status.armorFrames = sourceStatus.armorFrames;
   status.armorMaxDamage = sourceStatus.armorMaxDamage;
+  status.condition = sourceStatus.condition;
+  status.conditionFrames = sourceStatus.conditionFrames;
+  status.conditionGroup = sourceStatus.conditionGroup;
+  status.conditionImmunityFrames = sourceStatus.conditionImmunityFrames;
+  for (let i = 0; i < HERO_STATUS_GROUPS; i++) status.conditionImmunity[i] = sourceStatus.conditionImmunity[i] ?? 0;
 
   const mana = target.mana;
   const sourceMana = source.mana;

@@ -59,7 +59,9 @@ acts again on N+1. It may author:
   `needsLineOfSight` (not placed through solid stage surfaces); a cast that
   would exceed a limit or the three-projectile cap fails before spending; in a
   match a hero projectile ends on a wall, an underside or a solid deck's top,
-  and passes through pass decks;
+  and passes through pass decks; an optional
+  `status` (`sim/heroStatus.ts`) applies when it reaches a body, never
+  through a shield;
 - `hurt`: body poses over the special's frames (`hurtPose`, 1-based), which
   `sim/hurtboxes.ts` uses instead of the standing body while they cover the
   current special frame;
@@ -82,6 +84,18 @@ acts again on N+1. It may author:
 - `recall` on an `AuthoredSpecial` removes the placed object when the action
   completes, and a kit's `recall` form replaces every other form while the
   object stands (Serpent Ward's free recast).
+
+## Statuses
+
+`sim/heroStatus.ts`: one status per fighter, its kind and immunity group in
+`sim/codes.ts` (`HeroStatusKind`, `HeroStatusGroup`). A kind's rules say
+whether it discards every input (motion and gravity continue and the current
+action ends), refuses neutral, side and down specials, or ends on the next
+damaging hit; the hit that applies a status resolves first, so it never ends
+its own status. A status ending by time or hit grants its group's immunity, so
+no source chains it. Reapplying refreshes the duration. Status, frames, group
+and per-group immunity are rollback state, written to the canonical record
+only while live; a new stock clears them.
 
 `sim/heroSpecialRules.ts` executes them: `chooseHeroSpecial` selects the
 form, `enterHeroSpecial` spends and records the entry, `advanceHeroSpecial`

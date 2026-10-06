@@ -6,6 +6,7 @@
 import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { at } from "wisp/src/runtime/lookup";
+import { advanceHeroConditions } from "./heroStatus";
 import { ProjectileKind, SpecialAction } from "./codes";
 import { canAttack, inGrabContext, isIntangible } from "./conditions";
 import type { Fighter } from "./fighter";
@@ -365,6 +366,7 @@ export function heroSpecialContact(owner: Readonly<Fighter>, target: Readonly<Fi
 /** One frame of a fighter's hero armor, hitlag included. */
 export function advanceHeroStatus(f: Fighter): void {
   if (f.status.armorFrames > 0) f.status.armorFrames--;
+  advanceHeroConditions(f);
 }
 
 /** Whether a special action is off cooldown; hero actions have none and spend mana when they start. */
