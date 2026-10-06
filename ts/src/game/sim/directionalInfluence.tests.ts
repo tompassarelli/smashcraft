@@ -372,7 +372,7 @@ test("the DI opportunity clears on respawn, stock loss and hits without knockbac
   shot.z = 45.0;
   updateProjectiles(testWorld(shooter, shotTarget));
   assertEquals(shotTarget.status.damage, 3.0);
-  assertEquals(shotTarget.launch.hitstun, 11);
+  assertEquals(shotTarget.launch.hitstun, 9);
   assertFalse(shotTarget.launch.diPending);
   assertEquals(shotTarget.launch.diLaunchSpeed, 0.0);
   assertEquals(shotTarget.launch.diSerial, 0);

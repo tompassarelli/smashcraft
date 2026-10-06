@@ -11,7 +11,7 @@ import { type Fighter, PROJECTILE_CAPACITY, type Projectile } from "./fighter";
 import { HitElement, copyHitEffect, emptyHitEffect } from "./hitRegions";
 import { hurtCapsule } from "../physics/contactGeometry";
 import { demonHunterParryIsActive, resolveDemonHunterParry } from "./hits";
-import { attackDamage } from "./moves";
+import { RIFLEMAN_BLASTER_GROUND_DAMAGE_MULTIPLIER, attackDamage } from "./moves";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type Roster, fighterAt, isActive } from "./roster";
 import { SHIELD_PROJECTILE_DAMAGE_MULTIPLIER, SHIELD_PROJECTILE_SPEED_MULTIPLIER, grantParry, shieldCircleIntersects } from "./shield";
@@ -21,6 +21,7 @@ import { solidSurfaceAt, solidSurfaceCount, surfaceCount, surfaceLeft, surfacePa
 export const BLASTER_PROJECTILE_SPEED = 36.0;
 export const BLASTER_PROJECTILE_LIFETIME = 60;
 const BLASTER_PROJECTILE_HEIGHT = 75.0;
+const BLASTER_AIR_SHOT_HEIGHT = 30.0;
 const BLASTER_PROJECTILE_HALF_HEIGHT = 36.0;
 const BLASTER_PROJECTILE_RADIUS = 24.0;
 const BLASTER_PROJECTILE_SPAWN_OFFSET = 35.0;
@@ -48,8 +49,9 @@ export function projectileActive(f: Fighter, index: number): boolean {
   return index >= 0 && index < PROJECTILE_CAPACITY && at(f.projectiles, index).life > 0;
 }
 
-/** Launches from the owner's hand in the first free slot; a full owner fires nothing. */
-export function spawnProjectileMotion(owner: Fighter, kind: ProjectileKind, velocityX: number, velocityZ: number, lifetime: number, serial: number): void {
+/** Launches from the owner's hand in the first free slot, `height` above its feet; a full owner fires nothing. */
+export function spawnProjectileMotion(owner: Fighter, kind: ProjectileKind, velocityX: number, velocityZ: number, lifetime: number, serial: number,
+  damageMultiplier = 1.0, height = BLASTER_PROJECTILE_HEIGHT): void {
   for (const projectile of owner.projectiles) {
     if (projectile.life > 0) continue;
     const direction = velocityX < 0 ? -1 : 1;
@@ -59,13 +61,23 @@ export function spawnProjectileMotion(owner: Fighter, kind: ProjectileKind, velo
     projectile.velocityX = velocityX;
     projectile.velocityZ = velocityZ;
     projectile.serial = serial;
-    projectile.damageMultiplier = 1.0;
+    projectile.damageMultiplier = damageMultiplier;
     projectile.newlyReflected = false;
     projectile.x = f32(owner.motion.x + f32(direction * BLASTER_PROJECTILE_SPAWN_OFFSET));
-    projectile.z = f32(owner.motion.z + BLASTER_PROJECTILE_HEIGHT);
+    projectile.z = f32(owner.motion.z + height);
     projectile.life = lifetime;
     return;
   }
+}
+
+/**
+ * Rifleman's blaster shot. A grounded shot leaves from the shoulder and hits
+ * harder; an aerial one leaves from the hip, so a short-hop shot meets a
+ * standing body and a full shield (#117).
+ */
+export function spawnBlasterShot(owner: Fighter, serial: number, grounded: boolean): void {
+  spawnProjectileMotion(owner, ProjectileKind.blaster, f32(owner.facing * BLASTER_PROJECTILE_SPEED), 0.0, BLASTER_PROJECTILE_LIFETIME, serial,
+    grounded ? RIFLEMAN_BLASTER_GROUND_DAMAGE_MULTIPLIER : 1.0, grounded ? BLASTER_PROJECTILE_HEIGHT : BLASTER_AIR_SHOT_HEIGHT);
 }
 
 /** The Rifleman's attack shot. */
@@ -228,8 +240,16 @@ function flyProjectile(world: Roster, ownerSlot: number, projectile: Projectile,
     const centerZ = f32(at(targets.z, targetSlot) + TARGET_CENTER_HEIGHT);
     const crossed = f32(f32(targetX - oldX) * direction) >= 0 && f32(f32(targetX - projectile.x) * direction) <= 0;
     const near = Math.abs(f32(targetX - projectile.x)) <= BLASTER_PROJECTILE_RADIUS;
-    const height = centerZ >= lowZ && centerZ <= highZ;
-    const shieldContact = target.shield.raised && shieldCircleIntersects(target, oldX, oldZ, projectile.x, projectile.z, 1.0);
+    // The blaster meets the whole hurt capsule, so a short-hop shot reaches a standing body, and a shield at the shot's radius.
+    const blaster = projectile.kind === ProjectileKind.blaster;
+    const body = hurtCapsule(target.character);
+    const targetZ = at(targets.z, targetSlot);
+    const reach = f32(BLASTER_PROJECTILE_RADIUS + body.radius);
+    const height = blaster
+      ? f32(max(oldZ, projectile.z) + reach) >= f32(targetZ + body.z1) && f32(min(oldZ, projectile.z) - reach) <= f32(targetZ + body.z2)
+      : centerZ >= lowZ && centerZ <= highZ;
+    const shieldContact = target.shield.raised
+      && shieldCircleIntersects(target, oldX, oldZ, projectile.x, projectile.z, 1.0, blaster ? BLASTER_PROJECTILE_RADIUS : 0.0);
     const reflector = shieldContact && at(targets.reflecting, targetSlot);
     const candidate = Math.abs(f32(targetX - oldX));
     if ((shieldContact || ((crossed || near) && height)) && (nearest === undefined || candidate < distance)) {

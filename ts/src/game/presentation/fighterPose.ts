@@ -10,7 +10,7 @@ import type { Fighter } from "../sim/fighter";
 import { AIR_DODGE_ANIMATION_FRAMES } from "../sim/jumpsAndDodges";
 import { LEDGE_CLIMB_FRAMES, LEDGE_ROLL_FRAMES } from "../sim/ledge";
 import { totalVelocityX } from "../sim/motion";
-import { LEDGE_ATTACK_FRAMES, attackDurationFramesForGrounding, attackStartupFrames, grabActionDuration } from "../sim/moves";
+import { LEDGE_ATTACK_FRAMES, RIFLEMAN_BLASTER_AIR_FRAMES, attackStartupFrames, grabActionDuration } from "../sim/moves";
 import { type Controls, type Roster, fighterAt } from "../sim/roster";
 import { SHIELD_RELEASE_LAG_FRAMES } from "../sim/shield";
 import { INITIAL_DASH_FRAMES, SHIELD_BREAK_LAND_FRAMES, SHIELD_BREAK_STAND_FRAMES, authoredPhysics } from "../sim/tuning";
@@ -501,7 +501,7 @@ function groundDodgeClip(f: Readonly<Fighter>): HeroClip {
 }
 
 function fighterSpecialClip(f: Readonly<Fighter>): HeroClip {
-  const aerialShot = f.special.duration === attackDurationFramesForGrounding(AttackStyle.shot, false);
+  const aerialShot = f.special.duration === RIFLEMAN_BLASTER_AIR_FRAMES;
   return clips.specialClip(f.character, f.special.action, f.motion.grounded, aerialShot, f.special.form >= FOLLOW_UP_FORM);
 }
 

@@ -7,7 +7,10 @@ import { AttackStyle, Character, HippogryphKind, ProjectileKind, SPECIAL_ACTION_
 import { canAttack, isIntangible } from "./conditions";
 import { finishDamageContacts, openDamageContacts } from "./contacts";
 import type { Fighter } from "./fighter";
-import { attackDurationFramesForGrounding } from "./moves";
+import {
+  RIFLEMAN_BLASTER_AIR_FRAMES, RIFLEMAN_BLASTER_AIR_SHOT_FRAME, RIFLEMAN_BLASTER_GROUND_FRAMES,
+  RIFLEMAN_BLASTER_GROUND_SHOT_FRAME,
+} from "./moves";
 import { HitElement, type HitEffect, type HitRegion, NO_HIT_REGION } from "./hitRegions";
 import { heroSpecialMove } from "./heroSpecials";
 import { advanceHeroCommandGrab } from "./heroCommandGrab";
@@ -15,7 +18,7 @@ import { applyAttackHit } from "./hits";
 import { meleeHitIntersectsShield } from "./attacks";
 import { observeActionDecision } from "./observations";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
-import { BLASTER_PROJECTILE_LIFETIME, BLASTER_PROJECTILE_SPEED, spawnArcherArrow, spawnHomingArrow, spawnProjectileMotion } from "./projectiles";
+import { spawnArcherArrow, spawnBlasterShot, spawnHomingArrow, spawnProjectileMotion } from "./projectiles";
 import { type Controls, type Roster, fighterAt, isActive } from "./roster";
 import { surfaceZ } from "./stage";
 import { HIPPOGRYPH_DIVE_ARRIVAL, HIPPOGRYPH_DIVE_OVERSHOOT, RIFLEMAN_BEAR_LIFETIME, advanceBear, advanceHippogryph, recordSpecialHit, specialAlreadyHit, startFreezeTrap } from "./summons";
@@ -212,7 +215,7 @@ function startRiflemanSpecial(owner: Fighter, stage: number, matchFrame: number,
     special.cooldowns[action] = 90;
     return true;
   }
-  startSpecialAction(owner, action, attackDurationFramesForGrounding(AttackStyle.shot, motion.grounded), moveX);
+  startSpecialAction(owner, action, motion.grounded ? RIFLEMAN_BLASTER_GROUND_FRAMES : RIFLEMAN_BLASTER_AIR_FRAMES, moveX);
   special.cooldowns[action] = 8;
   return true;
 }
@@ -384,8 +387,9 @@ function advanceSpecialAction(owner: Fighter, stage: number, matchFrame: number,
   }
   const shotSerial = owner.attack.serial + 1;
   if (special.action === SpecialAction.archerArrow && special.frame === 2) spawnArcherArrow(owner, owner.facing, shotSerial);
-  if (special.action === SpecialAction.riflemanBlaster && special.frame === 2) {
-    spawnProjectileMotion(owner, ProjectileKind.blaster, f32(owner.facing * BLASTER_PROJECTILE_SPEED), 0.0, BLASTER_PROJECTILE_LIFETIME, shotSerial);
+  if (special.action === SpecialAction.riflemanBlaster) {
+    const grounded = special.duration === RIFLEMAN_BLASTER_GROUND_FRAMES;
+    if (special.frame === (grounded ? RIFLEMAN_BLASTER_GROUND_SHOT_FRAME : RIFLEMAN_BLASTER_AIR_SHOT_FRAME)) spawnBlasterShot(owner, shotSerial, grounded);
   }
   if (special.action === SpecialAction.riflemanBear && special.frame === RIFLEMAN_BEAR_CAST_FRAMES) summonBear(owner, stage, matchFrame);
   if (special.action === SpecialAction.demonHunterManaBurn && special.frame === DEMONHUNTER_MANA_BURN_STARTUP) {

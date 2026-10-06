@@ -18,6 +18,20 @@ export const DOWN_ATTACK_DAMAGE = 7.0;
 export const DOWN_ATTACK_BASE_KNOCKBACK = 75.0;
 const ARCHER_DOWN_ACTIVE_FRAMES = 20;
 /**
+ * Rifleman's blaster (neutral special), after Melee Falco's laser and a little
+ * less oppressive. Shot frames count special frames from the press (frame 1).
+ * A grounded shot leaves sooner and hits harder but holds him longer; an
+ * aerial shot leaves later, and landing ends it with its landing lag, before
+ * the shot if it has not left. Values and their ramifications are in #117.
+ */
+export const RIFLEMAN_BLASTER_GROUND_SHOT_FRAME = 9;
+export const RIFLEMAN_BLASTER_GROUND_FRAMES = 38;
+export const RIFLEMAN_BLASTER_AIR_SHOT_FRAME = 14;
+export const RIFLEMAN_BLASTER_AIR_FRAMES = 40;
+export const RIFLEMAN_BLASTER_LANDING_LAG = 8;
+/** A grounded shot deals 4 to an aerial shot's 3; f32(4/3) * 3 rounds to exactly 4. */
+export const RIFLEMAN_BLASTER_GROUND_DAMAGE_MULTIPLIER = 1.3333333730697632;
+/**
  * Each aerial's authored landing lag before Melee's L-cancel would halve it
  * (PlCo +0x0E8 = 2, melee:src/melee/ft/kinds/ftCommon/ftCo_LandingAir.c).
  * Smashcraft omits L-cancelling: every aerial lands with the halved lag

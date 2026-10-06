@@ -72,6 +72,11 @@ function emptyContact(): DamageContact {
 // reused across frames; the pool only grows past its largest batch so far.
 const batch: { contacts: DamageContact[]; count: number; collecting: boolean } = { contacts: [], count: 0, collecting: false };
 
+/** A flinch without knockback (the blaster's) stuns 3 frames per point of damage: 9 for an aerial shot, 12 for a grounded one (#117). */
+export function flinchHitstunFrames(damage: number): number {
+  return toInt(multiplyFloat32(3.0, roundToFloat32(damage)));
+}
+
 export function beginDamageContacts(): void {
   batch.count = 0;
   batch.collecting = true;
@@ -268,7 +273,7 @@ function resolveDamageContacts(world: Roster, slot: number): void {
   if (!jabReset) clearDownState(target);
   cancelAttack(target);
   cancelSpecialState(target);
-  launch.hitstun = winner !== undefined ? ordinaryHitstunFrames(strongest) : max(launch.hitstun, 11);
+  launch.hitstun = winner !== undefined ? ordinaryHitstunFrames(strongest) : max(launch.hitstun, flinchHitstunFrames(chosen.effect.damage));
   launch.throwHitstun = chosen.kind === ContactKind.throw && launch.hitstun > 0;
   if (jabReset) {
     beginDownDamage(target, launch.hitstun);

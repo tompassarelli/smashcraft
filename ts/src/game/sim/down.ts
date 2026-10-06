@@ -2,12 +2,12 @@
 import { max, min } from "../../runtime/numbers";
 import { roundToFloat32 } from "wisp/src/sim/binary32";
 import { f32 } from "wisp/src/sim/f32";
-import { Character, DamageLanding, DownState } from "./codes";
+import { Character, DamageLanding, DownState, SpecialAction } from "./codes";
 import { isFloorTeching, isTumbling } from "./conditions";
 import { type Fighter } from "./fighter";
 import { clearDash } from "./groundMovement";
 import { MAX_GROUNDED_KNOCKBACK_ON_LANDING, airborneDamageLandingReaction, decayKnockback } from "./knockback";
-import { attackLandingLag, isAerialAttack } from "./moves";
+import { RIFLEMAN_BLASTER_AIR_FRAMES, RIFLEMAN_BLASTER_LANDING_LAG, attackLandingLag, isAerialAttack } from "./moves";
 import { clearMotionValue, setWorldMotionValue, totalVelocityX } from "./motion";
 import type { Controls } from "./roster";
 import { surfaceCount, surfaceLeft, surfaceRight, surfaceZ } from "./stage";
@@ -64,6 +64,17 @@ function damageLandingReaction(f: Fighter): DamageLanding {
   return airborneDamageLandingReaction(roundToFloat32(squareRoot(squaredSpeed)));
 }
 
+/** Landing ends an aerial blaster shot, before the shot if it has not left, with the blaster's landing lag. */
+function landRiflemanBlaster(f: Fighter): void {
+  const { special } = f;
+  if (special.action !== SpecialAction.riflemanBlaster || special.duration !== RIFLEMAN_BLASTER_AIR_FRAMES) return;
+  special.action = SpecialAction.none;
+  special.frame = 0;
+  special.lockFrames = 0;
+  f.attack.cooldown = 0;
+  f.landing.lag = max(f.landing.lag, RIFLEMAN_BLASTER_LANDING_LAG);
+}
+
 /** Lands on a deck: landing lag, floor techs and knockdowns. ASDI landings end hitstun without lag. */
 export function finishLanding(f: Fighter, stage: number, matchFrame: number, input: Readonly<Controls>, landing: number, fromAsdi: boolean): void {
   const { motion, launch, landing: landingState, dodge } = f;
@@ -96,6 +107,7 @@ export function finishLanding(f: Fighter, stage: number, matchFrame: number, inp
     launch.knockbackX = launch.groundKnockbackX;
   }
   if (!wasGrounded) landHeroSpecial(f);
+  if (!wasGrounded) landRiflemanBlaster(f);
   f.special.fall = false;
   if (!isHeroSpecialAction(f.special.action)) f.special.airtimeUses = 0;
   motion.lastAerialTapDirection = 0;

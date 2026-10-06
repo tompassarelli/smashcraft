@@ -285,7 +285,7 @@ test("both fighters' basic projectiles interrupt a shield break", () => {
     updateProjectiles(testWorld(shooter, fighter));
     assertEquals(fighter.status.damage, 3.0);
     assertEquals(fighter.shield.breakState, ShieldBreak.none);
-    assertEquals(fighter.launch.hitstun, 11);
+    assertEquals(fighter.launch.hitstun, 9);
     assertNear(fighter.shield.energy, f32(30.07), f32(0.0001));
   }
 });

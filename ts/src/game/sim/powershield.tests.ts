@@ -38,7 +38,7 @@ test("projectile shield coverage separates exposed-body and shield-only contacts
     defender.tuning.shield = { centerX: 0.0, centerZ: 45.0, radius: scenario === 0 ? 60.0 : 200.0 };
     const projectile = shooter.projectiles[0]!;
     projectile.x = scenario === 0 ? -20.0 : -80.0;
-    projectile.z = scenario === 0 ? 80.0 : 45.0;
+    projectile.z = scenario === 0 ? 110.0 : 45.0;
     projectile.velocityX = scenario === 0 ? 40.0 : 30.0;
     projectile.direction = 1;
     projectile.kind = ProjectileKind.blaster;
@@ -292,7 +292,7 @@ test("each projectile in a stream needs its own parry", () => {
   defender.shield.reflectFrames = SHIELD_REFLECTOR_ACTIVE_FRAMES;
   defender.shield.perfectFrames = SHIELD_PERFECT_ACTIVE_FRAMES;
   aimShot(shooter, defender, 0, 50.0);
-  aimShot(shooter, defender, 1, 110.0);
+  aimShot(shooter, defender, 1, 140.0);
   contactBatch(world, () => updateProjectiles(world));
   assertEquals(defender.visuals.shieldReflect, 1);
   assertTrue(projectileActive(defender, 0));

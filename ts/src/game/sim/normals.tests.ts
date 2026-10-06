@@ -72,7 +72,7 @@ test("both fighters' basic projectiles cause hitstun", () => {
     updateProjectiles(world);
     updateProjectiles(world);
     assertEquals(target.status.damage, 3.0);
-    assertEquals(target.launch.hitstun, 11);
+    assertEquals(target.launch.hitstun, 9);
   }
 });
 
