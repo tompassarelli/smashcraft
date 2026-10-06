@@ -13,7 +13,7 @@ data record; the simulation, replay, selection and object data read it.
 - `ts/src/game/sim/heroes/<hero>Hero.ts` is one hero's `HeroDefinition`
   (`sim/heroes/hero.ts`): product name, purpose, weakness, `moves`
   (`FighterMoves`, `sim/heroMoves.ts`), `specials` (`FighterSpecials`,
-  `sim/heroSpecials.ts`), presentation (Warcraft model, base unit, object
+  `sim/heroSpecials.ts`), presentation (Warcraft model, object
   code, portrait, projectile model, per-pose clips with a fallback) and
   `complete`.
 - `ts/src/game/sim/heroes/heroBodies.ts` holds the roster's weight, run,
@@ -47,21 +47,61 @@ acts again on N+1. It may author:
   displacement (Warden's Blink) ends at the deck body or lands on the deck.
   `aimedSpeed` replaces the direction with one of eight aimed directions;
   `aimedTilt` turns a horizontal heading to a fixed angle for an up or down
-  aim (Pursuit Lunge's 20 degrees);
+  aim (Pursuit Lunge's 20 degrees); `driftSpeed` adds the live stick's x at
+  that many units per frame (Spectral Ascent's steering); `stopsAtBody`
+  clamps forward travel to end just short of a raised shield or another
+  fighter's body (Wind Walk Strike);
 - `aimFrames`: through this frame a held stick re-chooses the aim, so an up
   special can still be aimed sideways or down; without it the aim is the
   stick on entry;
 - `projectiles`: spawn frame, offset, velocity (and an up-held velocity),
-  life, radius, `activeFrom`, effect, `reflectable`, `limit` and
-  `cancelOnInterrupt`; a cast that would exceed a limit or the three-projectile
-  cap fails before spending; in a match a hero projectile ends on a wall, an
-  underside or a solid deck's top, and passes through pass decks;
+  life, radius, `activeFrom` (the spawn frame is age one), effect,
+  `reflectable`, `limit`, `cancelOnInterrupt`, `backOffsetX` (used when
+  the special is pressed toward the back, which then keeps the facing) and
+  `needsLineOfSight` (not placed through solid stage surfaces); a cast that
+  would exceed a limit or the three-projectile cap fails before spending; in a
+  match a hero projectile ends on a wall, an underside or a solid deck's top,
+  and passes through pass decks; an optional
+  `status` (`sim/heroStatus.ts`) applies when it reaches a body, never
+  through a shield;
 - `hurt`: body poses over the special's frames (`hurtPose`, 1-based), which
   `sim/hurtboxes.ts` uses instead of the standing body while they cover the
   current special frame;
 - `intangible` and `armor` windows (armor takes one hit's reaction up to its
-  damage; the damage applies and throws ignore it);
+  damage; the damage applies and throws ignore it). A `shell` armor is
+  armed once on its first frame, lasts through its last even after the
+  action ends, is spent by one hit, and blocks starting the special again
+  while any armor remains;
+- `commandGrab`: a window whose strike latches the nearest grabbable body
+  through the shared grab link (shields do not stop it, an external hit breaks
+  it, #85's throw-hitstun rule refuses it), releases it `holdFrames` later
+  with its effect as a throw, and ends the action `recovery` frames after
+  that instead of at the whiff `endFrame` (`sim/heroCommandGrab.ts`);
+- `followUp`: `{ window, special }`. A new special press inside the window
+  replaces the rest of the action with `special`, whose frame 1 is the press
+  tick; it spends its own cost, clears the hit registry and cannot itself be
+  followed up. The running form records it (base form + `FOLLOW_UP_FORM`), so
+  rollback restores it, and it plays the `<slot>SpecialFollowUp` pose when the
+  hero's clip table maps one (Mirror Feint's slash);
+- a `guard` window with `heal` and `healCapPerStock`: when an opponent's
+  damaging strike, hero special strike or projectile overlaps the fighter's
+  body during it, the action records one success and restores `heal` damage
+  percent, never more than `healCapPerStock` in a stock (`resolveHeroGuards`,
+  run before specials advance). It protects nothing itself; pair it with
+  `intangible`. The success and the stock's healing are fighter state;
 - `groundOnly`, `oncePerAirtime`, `helpless` and `landingLag`.
+
+## Statuses
+
+`sim/heroStatus.ts`: one status per fighter, its kind and immunity group in
+`sim/codes.ts` (`HeroStatusKind`, `HeroStatusGroup`). A kind's rules say
+whether it discards every input (motion and gravity continue and the current
+action ends), refuses neutral, side and down specials, or ends on the next
+damaging hit; the hit that applies a status resolves first, so it never ends
+its own status. A status ending by time or hit grants its group's immunity, so
+no source chains it. Reapplying refreshes the duration. Status, frames, group
+and per-group immunity are rollback state, written to the canonical record
+only while live; a new stock clears them.
 
 `sim/heroSpecialRules.ts` executes them: `chooseHeroSpecial` selects the
 form, `enterHeroSpecial` spends and records the entry, `advanceHeroSpecial`
@@ -85,3 +125,26 @@ enough mana" for about three quarters of a second after each refused press
 (`ui/manaReadout.ts`). There is no ultimate action, so ultimates stay off.
 
 The shared contracts are in `ts/src/game/sim/heroSpecials.tests.ts`.
+
+## Presentation
+
+- A hero draws with its fighter unit, made from its own object (base `earc`,
+  like the original fighters, so no hero icon or experience bar shows) with
+  the hero's stock model. The unit plays each clip by sequence index
+  (`SetUnitAnimationByIndex`): an animation name picks at random among
+  same-named variants, and this game build has no by-index special-effect
+  native, so the original fighters' effect pool is not used for heroes.
+- `presentation.clips` is a `HeroClipTable` (`sim/heroes/hero.ts`): pose to
+  `{ index, seconds }`. Pose selection (`presentation/fighterPose.ts`) fits
+  `seconds` to the action's frames. The original fighters fill the same table
+  from their packaged clips (`presentation/fighterClips.ts`). A pose the table
+  leaves out plays `fallback`, except the `HeroStatePose` states (dash, run,
+  crouch, fall, landing, shield, air dodge, smash charge, KO, dizzy), which
+  keep the original fighters' pose for that state.
+- The drawn body keeps clear of stage faces with Archer's body envelope
+  stretched by the hero's width and height (`presentation/fighterPlacement.ts`).
+- Star KOs fly the hero's own model off; there is one KO body per star-KO
+  impact and selectable fighter (`render/combatEffects.ts`).
+- The scene report counts a shown hero unit as drawn under its model
+  (`platform/sceneReport.ts` passes Wisp's `unitModel`), and the player view
+  declares every hero model, with model facts read from the classic models.

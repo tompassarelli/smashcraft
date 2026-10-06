@@ -6,7 +6,7 @@ import { type Fighter, createFighter } from "../sim/fighter";
 import { resolveAttacks } from "../sim/attacks";
 import { resolveGrabs } from "../sim/grabs";
 import { resolveLedges } from "../sim/ledge";
-import { SMASH_MAX_CHARGE_FRAMES, attackStartupFrames, grabContactFrame } from "../sim/moves";
+import { GRAB_HOLD_MINIMUM_FRAMES, SMASH_MAX_CHARGE_FRAMES, attackStartupFrames, grabContactFrame } from "../sim/moves";
 import { neutralControls } from "../sim/roster";
 import { surfaceLeft, surfaceZ } from "../sim/stage";
 import { respawnFighter } from "../sim/stocks";
@@ -236,7 +236,10 @@ test("a grab escape and an interrupted throw raise no release cue", () => {
     if (interrupted === 1) {
       ownerInput.grabThrowZ = 1;
       testGrabFrame(world, controls, false);
-    } else target.grab.grabbedFrames = 1;
+    } else {
+      target.grab.grabbedFrames = 1;
+      target.grab.heldFrames = GRAB_HOLD_MINIMUM_FRAMES;
+    }
     journal(events, target, () => {
       if (interrupted === 1) respawnFighter(world, 0, 0.0);
       else testGrabFrame(world, controls, false);

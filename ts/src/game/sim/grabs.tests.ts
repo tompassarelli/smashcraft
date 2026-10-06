@@ -1,15 +1,17 @@
 import { stageBounds } from "./stageBounds";
 // Grab links: what releases them, mash-out and stock loss.
-import { assertEquals, assertGreaterThan, test } from "wisp/src/runtime/testing";
+import { assertEquals, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
-import { resolveAttacks } from "./attacks";
+import { floorDiv, floorMod } from "wisp/src/sim/intMath";
+import { beginFighterAttack, resolveAttacks } from "./attacks";
+import { HERO_ROSTER } from "./heroes/registry";
 import { AttackStyle, Character, ContactKind, GrabAction, ProjectileKind } from "./codes";
 import { queueDamageContact } from "./contacts";
 import { type Fighter, createFighter } from "./fighter";
 import { resolveGrabs } from "./grabs";
-import { GRAB_HOLD_FRAMES, attackStartupFrames, grabContactFrame } from "./moves";
+import { GRAB_HOLD_FRAMES, GRAB_HOLD_MINIMUM_FRAMES, GRAB_MASH_FRAMES, PUMMEL_CONTACT_FRAME, PUMMEL_TOTAL_FRAMES, attackStartupFrames, grabContactFrame } from "./moves";
 import { updateProjectiles } from "./projectiles";
-import type { Roster } from "./roster";
+import type { Controls, Roster } from "./roster";
 import { advanceFighter } from "./step";
 import { respawnFighter } from "./stocks";
 import { advanceFreezeTraps } from "./summons";
@@ -112,24 +114,144 @@ test("grab mash uses one button and one remembered stick contribution", () => {
   const world = testWorld(owner, target);
   target.status.damage = 50.0;
   catchTarget(world, owner, target);
-  assertEquals(target.grab.grabbedFrames, 156);
+  assertEquals(target.grab.grabbedFrames, GRAB_HOLD_FRAMES);
   const held = controls();
   const mash = controls({ grabMashPressed: true, direction: 1, verticalDirection: 1 });
   testGrabFrame(world, [held, mash], false);
-  assertEquals(target.grab.grabbedFrames, 143);
+  assertEquals(target.grab.grabbedFrames, GRAB_HOLD_FRAMES - 1 - 2 * GRAB_MASH_FRAMES);
   mash.grabMashPressed = false;
   mash.direction = 0;
   mash.verticalDirection = 0;
   testGrabFrame(world, [held, mash], false);
-  assertEquals(target.grab.grabbedFrames, 142);
+  assertEquals(target.grab.grabbedFrames, GRAB_HOLD_FRAMES - 2 - 2 * GRAB_MASH_FRAMES);
   mash.direction = 1;
   mash.verticalDirection = 1;
   testGrabFrame(world, [held, mash], false);
-  assertEquals(target.grab.grabbedFrames, 141);
+  assertEquals(target.grab.grabbedFrames, GRAB_HOLD_FRAMES - 3 - 2 * GRAB_MASH_FRAMES);
   mash.direction = -1;
   mash.verticalDirection = -1;
   testGrabFrame(world, [held, mash], false);
-  assertEquals(target.grab.grabbedFrames, 134);
+  assertEquals(target.grab.grabbedFrames, GRAB_HOLD_FRAMES - 4 - 3 * GRAB_MASH_FRAMES);
+});
+
+// ------------------------------------------------------------------ legible holds (#101)
+
+const GRABBERS = [Character.archer, Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map((hero) => hero.character)];
+
+type Mash = "none" | "human" | "fastest";
+
+/**
+ * The victim's input on held frame `frame` (one-based): "human" presses the
+ * button 8 times a second from the catch; "fastest" presses every other frame
+ * and flips the stick every frame.
+ */
+function mashInput(mash: Mash, frame: number): Controls {
+  if (mash === "none") return controls();
+  if (mash === "human") return controls({ grabMashPressed: floorDiv(frame * 8, 60) !== floorDiv((frame - 1) * 8, 60) || frame === 1 });
+  return controls({ grabMashPressed: floorMod(frame, 2) === 1, direction: floorMod(frame, 2) === 1 ? 1 : -1 });
+}
+
+/** `character` grabs a Rifleman at `percent`: the real catch, through the grabber's own grab timing. */
+function heldBy(character: Character, percent: number): { world: Roster; owner: Fighter; target: Fighter } {
+  const owner = createFighter(character, 0.0, 1);
+  const target = createFighter(Character.rifleman, 50.0, -1);
+  target.status.damage = percent;
+  const world = testWorld(owner, target);
+  owner.motion.surface = 0;
+  target.motion.surface = 0;
+  beginFighterAttack(world, 0, AttackStyle.grab, false);
+  owner.attack.frame = attackStartupFrames(AttackStyle.grab, owner.tuning.moves);
+  resolveAttacks(world);
+  resolveGrabs(world);
+  assertEquals(owner.grab.target, 1, `${character} catches`);
+  assertEquals(target.grab.grabbedFrames, GRAB_HOLD_FRAMES);
+  return { world, owner, target };
+}
+
+/** Runs held frames until the victim is free; the frame it went free on, or undefined. */
+function holdUntilFree(world: Roster, target: Fighter, mash: Mash, owner: (frame: number) => Controls, frames = GRAB_HOLD_FRAMES + 30): number | undefined {
+  for (let frame = 1; frame <= frames; frame++) {
+    testGrabFrame(world, [owner(frame), mashInput(mash, frame)], false);
+    if (target.grab.owner === undefined) return frame;
+  }
+  return undefined;
+}
+
+test("every grab holds the same time at any percent, and mashing shortens it within its bounds", () => {
+  const freedOn: string[] = [];
+  for (const character of GRABBERS) {
+    for (const percent of [0.0, 150.0]) {
+      for (const mash of ["none", "human", "fastest"] as const) {
+        const { world, owner, target } = heldBy(character, percent);
+        const frame = holdUntilFree(world, target, mash, () => controls());
+        const label = `${character} at ${percent}% with ${mash} mashing`;
+        assertEquals(frame, mash === "none" ? GRAB_HOLD_FRAMES : mash === "fastest" ? GRAB_HOLD_MINIMUM_FRAMES : HUMAN_MASH_ESCAPE, label);
+        assertEquals(owner.grab.action, GrabAction.escape, label);
+        assertEquals(target.status.damage, percent, label);
+        freedOn.push(`${frame}`);
+      }
+    }
+  }
+  assertEquals(freedOn.length, GRABBERS.length * 6);
+});
+
+const HUMAN_MASH_ESCAPE = 42;
+
+test("a victim mashing 8 times a second escapes the pummel; one caught off guard takes it", () => {
+  assertTrue(HUMAN_MASH_ESCAPE < PUMMEL_CONTACT_FRAME);
+  for (const character of GRABBERS) {
+    for (const percent of [0.0, 150.0]) {
+      for (const mash of ["none", "human", "fastest"] as const) {
+        const { world, owner, target } = heldBy(character, percent);
+        const pummel = owner.tuning.moves?.throws[GrabAction.pummel]?.effect.damage ?? 3.0;
+        // The grabber pummels on the first held frame and keeps pressing attack.
+        const frame = holdUntilFree(world, target, mash, () => controls({ attackPressed: true }));
+        const label = `${character} at ${percent}% with ${mash} mashing`;
+        assertEquals(owner.grab.pummels, 1, label);
+        if (mash === "none") {
+          assertEquals(target.status.damage, f32(percent + pummel), label);
+          // No throw input: the pummel's end lets the victim go.
+          assertEquals(frame, PUMMEL_TOTAL_FRAMES + 1, label);
+        } else {
+          assertEquals(target.status.damage, percent, label);
+          assertEquals(frame !== undefined && frame < PUMMEL_CONTACT_FRAME, true, label);
+        }
+        assertEquals(owner.grab.action, GrabAction.escape, label);
+        assertEquals(target.launch.throwHitstun, false, label);
+      }
+    }
+  }
+});
+
+test("a throw pressed during the pummel starts when it ends; a prompt throw always starts", () => {
+  for (const character of GRABBERS) {
+    const buffered = heldBy(character, 150.0);
+    for (let frame = 1; frame <= PUMMEL_TOTAL_FRAMES; frame++) {
+      testGrabFrame(buffered.world, [controls({ attackPressed: frame === 1, grabThrowX: frame === 20 ? 1 : 0 }), controls()], false);
+      assertEquals(buffered.owner.grab.action, GrabAction.pummel, `${character} pummel frame ${frame}`);
+    }
+    testGrabFrame(buffered.world, [controls(), controls()], false);
+    assertEquals(buffered.owner.grab.action, GrabAction.throwForward, `${character} buffered throw`);
+    // A second pummel is refused: with no throw it is the hold's end.
+    const refused = heldBy(character, 0.0);
+    for (let frame = 1; frame <= PUMMEL_TOTAL_FRAMES + 1; frame++) testGrabFrame(refused.world, [controls({ attackPressed: true }), controls()], false);
+    assertEquals(refused.target.grab.owner, undefined, `${character} one pummel`);
+    // Against the fastest mashing, a throw input on the last frame before the
+    // shortest hold ends still throws.
+    for (const percent of [0.0, 150.0]) {
+      const { world, owner, target } = heldBy(character, percent);
+      const throwFrame = GRAB_HOLD_MINIMUM_FRAMES - 1;
+      for (let frame = 1; frame <= throwFrame; frame++) {
+        testGrabFrame(world, [controls({ grabThrowZ: frame === throwFrame ? 1 : 0 }), mashInput("fastest", frame)], false);
+      }
+      assertEquals(owner.grab.action, GrabAction.throwUp, `${character} at ${percent}% prompt throw`);
+      for (let frame = 2; frame <= grabContactFrame(GrabAction.throwUp, owner.tuning.moves); frame++) {
+        testGrabFrame(world, [controls(), mashInput("fastest", throwFrame + frame)], false);
+      }
+      assertEquals(target.grab.owner, undefined);
+      assertEquals(target.launch.throwHitstun, true, `${character} at ${percent}% thrown`);
+    }
+  }
 });
 
 test("stock loss clears a capture and post-throw recovery immediately", () => {

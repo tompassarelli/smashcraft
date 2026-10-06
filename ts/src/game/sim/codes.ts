@@ -133,3 +133,16 @@ export type ContactKind = (typeof ContactKind)[keyof typeof ContactKind];
 /** A contact's element: presentation of hit and shield effects. Hero kits import it here, apart from hit regions' runtime graph. */
 export const HitElement = { normal: 0, fire: 1, electric: 2, slash: 3, ice: 5 } as const;
 export type HitElement = (typeof HitElement)[keyof typeof HitElement];
+
+/** Hero statuses (sim/heroStatus.ts) a body hit applies. Append only: the code is in replay text. */
+export const HeroStatusKind = { none: 0, sleep: 1 } as const;
+export type HeroStatusKind = (typeof HeroStatusKind)[keyof typeof HeroStatusKind];
+
+/**
+ * Hero status immunity groups: a status ending in a group makes its fighter
+ * immune to every status of that group for the authored frames. Hex and
+ * silence are meant to share one group.
+ */
+export const HeroStatusGroup = { sleep: 0, silence: 1 } as const;
+export type HeroStatusGroup = (typeof HeroStatusGroup)[keyof typeof HeroStatusGroup];
+export const HERO_STATUS_GROUPS = 2;

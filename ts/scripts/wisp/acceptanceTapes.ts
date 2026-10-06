@@ -252,6 +252,76 @@ const COMPUTER: MatchScript = {
   rollbacks: [...every(120, 840, 120, 8), [837, 900]],
 };
 
+/** Lich's four specials, its free recovery and its frost normals near the Archer, replayed across each. */
+const LICH: MatchScript = {
+  characters: [Character.lich, Character.archer], stage: 0, stocks: 3, minutes: 0, frames: 480,
+  holds: [[
+    [20, 2, SPECIAL], [80, 4, TOWARD], [81, 2, SPECIAL], [150, 4, AWAY], [151, 2, SPECIAL], [220, 4, DOWN],
+    [221, 2, SPECIAL], [280, 3, JUMP], [292, 4, UP], [293, 2, SPECIAL], [360, 2, ATTACK], [380, 8, DOWN],
+    [382, 2, ATTACK], [400, 2, GRAB], [404, 4, TOWARD], [430, 2, C_RIGHT], [450, 3, JUMP], [456, 2, C_DOWN],
+  ], [
+    [40, 2, ATTACK], [100, 12, SHIELD_LEFT], [170, 2, ATTACK], [240, 2, ATTACK], [250, 2, ATTACK], [330, 2, GRAB],
+    [370, 10, SHIELD_RIGHT], [420, 2, ATTACK],
+  ]],
+  approaches: [[[340, 45]], [[1, 60], [130, 60], [200, 45], [310, 45], [410, 45]]],
+  rollbacks: [[24, 50], [84, 112], [228, 260], [296, 330], [452, 480]],
+  predictions: [[150, 162], [380, 392]],
+};
+
+/** Mountain King spends his mana through all four specials into the free Thunder Leap, then his normals and a throw. */
+const MOUNTAIN_KING: MatchScript = {
+  characters: [Character.mountainKing, Character.archer], stage: 0, stocks: 3, minutes: 0, frames: 600,
+  holds: [[
+    [20, 2, SPECIAL], [80, 4, DOWN], [81, 2, SPECIAL], [150, 4, TOWARD], [151, 2, SPECIAL], [210, 4, DOWN],
+    [211, 2, SPECIAL], [275, 4, TOWARD], [276, 2, SPECIAL], [335, 2, SPECIAL], [395, 3, JUMP], [407, 4, UP],
+    [408, 2, SPECIAL], [480, 2, ATTACK], [500, 8, DOWN], [502, 2, ATTACK], [530, 2, GRAB], [534, 4, TOWARD],
+    [570, 3, JUMP], [576, 2, C_DOWN],
+  ], [
+    [40, 2, ATTACK], [100, 12, SHIELD_LEFT], [170, 2, ATTACK], [240, 2, ATTACK], [300, 10, SHIELD_RIGHT],
+    [360, 2, GRAB], [450, 2, ATTACK],
+  ]],
+  approaches: [[[460, 45]], [[1, 60], [130, 60], [200, 45], [320, 45], [430, 45]]],
+  rollbacks: [[24, 50], [84, 112], [154, 190], [279, 320], [410, 440], [532, 570]],
+  predictions: [[150, 162], [400, 412]],
+};
+
+/**
+ * Dreadlord's Carrion Swarm hits, a Sleep Orb meets a shield and a second one
+ * sleeps the Archer, Night Pounce catches and bites, a second whiffs, the free
+ * Bat Ascension rises on the 5 mana left, then normals and a grab and throw.
+ */
+const DREADLORD: MatchScript = {
+  characters: [Character.dreadlord, Character.archer], stage: 0, stocks: 3, minutes: 0, frames: 640,
+  holds: [[
+    [20, 2, SPECIAL], [80, 4, DOWN], [81, 2, SPECIAL], [150, 4, TOWARD], [151, 2, SPECIAL], [235, 4, DOWN],
+    [236, 2, SPECIAL], [300, 4, TOWARD], [301, 2, SPECIAL], [370, 3, JUMP], [381, 4, UP], [382, 2, SPECIAL],
+    [386, 20, TOWARD], [480, 2, ATTACK], [500, 8, DOWN], [502, 2, ATTACK], [530, 2, GRAB], [534, 4, AWAY],
+    [590, 3, JUMP], [596, 2, C_DOWN],
+  ], [
+    [40, 2, ATTACK], [100, 12, SHIELD_LEFT], [170, 2, ATTACK], [305, 16, SHIELD_RIGHT],
+    [420, 2, GRAB], [450, 2, ATTACK],
+  ]],
+  approaches: [[[460, 45]], [[1, 60], [130, 60], [200, 45], [280, 45], [430, 45]]],
+  rollbacks: [[24, 50], [84, 112], [154, 200], [240, 290], [304, 345], [384, 420], [532, 580]],
+  predictions: [[150, 162], [384, 396]],
+};
+
+/** Uther's four specials (three rushes drain his mana to the free Ascension), Divine Guard against the Archer's jab, and his hammer normals and throw, replayed across each. */
+const UTHER: MatchScript = {
+  characters: [Character.uther, Character.archer], stage: 0, stocks: 3, minutes: 0, frames: 540,
+  holds: [[
+    [20, 2, SPECIAL], [80, 4, TOWARD], [81, 2, SPECIAL], [140, 4, DOWN], [141, 2, SPECIAL], [200, 4, TOWARD],
+    [201, 2, SPECIAL], [260, 4, AWAY], [261, 2, SPECIAL], [320, 3, JUMP], [332, 4, UP], [333, 2, SPECIAL],
+    [420, 2, ATTACK], [440, 8, DOWN], [442, 2, ATTACK], [460, 2, GRAB], [464, 4, TOWARD], [500, 2, C_RIGHT],
+  ], [
+    [40, 2, ATTACK], [90, 12, SHIELD_LEFT], [144, 2, ATTACK], [210, 2, ATTACK], [270, 2, ATTACK], [380, 2, GRAB],
+    [480, 10, SHIELD_RIGHT], [505, 2, ATTACK],
+  ]],
+  approaches: [[[400, 45]], [[1, 60], [120, 50], [190, 45], [360, 45], [470, 45]]],
+  rollbacks: [[24, 50], [84, 112], [140, 170], [330, 370], [500, 540]],
+  predictions: [[140, 152], [440, 452]],
+};
+
 /** Records the acceptance tapes by name, and checks they press every bound source. */
 export function generateTapes(): Map<string, string> {
   const pressed = [new Set<string>(), new Set<string>()];
@@ -259,7 +329,23 @@ export function generateTapes(): Map<string, string> {
     ["actions", recordTape("Every bound source pressed by both players, with short replays.", [ACTIONS], pressed)],
     ["rollback", recordTape("Combat replayed from one frame up to the whole retained history.", [ROLLBACK])],
     ["rematch", recordTape("A one-stock match ends, both players confirm the rematch, a new match runs.", [FIRST_MATCH, SECOND_MATCH])],
+    ["blademaster", recordTape("Blademaster's specials, follow-up, smashes, aerials and throws against Archer, with replays and corrected predictions.", [{
+      characters: [Character.blademaster, Character.archer], stage: 0, stocks: 3, minutes: 0, frames: 480,
+      holds: [[
+        [20, 2, SPECIAL], [70, 2, DOWN, SPECIAL], [82, 2, SPECIAL], [130, 2, TOWARD, SPECIAL], [190, 2, GRAB], [198, 2, UP],
+        [240, 3, JUMP], [246, 2, UP, SPECIAL], [300, 2, C_RIGHT], [330, 2, GRAB], [338, 2, DOWN], [370, 3, JUMP], [374, 2, ATTACK],
+        [410, 2, C_LEFT], [440, 2, UP, SPECIAL],
+      ], [
+        [40, 14, SHIELD_RIGHT], [100, 2, ATTACK], [150, 2, GRAB], [210, 2, SPECIAL], [260, 16, SHIELD_LEFT], [320, 2, ATTACK], [400, 2, SPECIAL],
+      ]],
+      approaches: [[[1, 60], [60, 70], [120, 140], [180, 45], [290, 60], [325, 45], [360, 60], [430, 60]], [[1, 80], [90, 50], [140, 45]]],
+      rollbacks: [...every(30, 470, 40, 8), [76, 100], [244, 290]], predictions: [[70, 86], [126, 140], [436, 450]],
+    }])],
     ["computer", recordTape("A player against the computer on the raised decks, with replays.", [COMPUTER])],
+    ["lich", recordTape("Lich's specials, free recovery and normals against the Archer, with replays.", [LICH])],
+    ["dreadlord", recordTape("Dreadlord's specials, sleep, a command grab, free Bat Ascension, normals and a throw against the Archer, with replays.", [DREADLORD])],
+    ["mountain-king", recordTape("Mountain King's specials, free Thunder Leap, normals and a throw against the Archer, with replays.", [MOUNTAIN_KING])],
+    ["uther", recordTape("Uther's specials, guard, free recovery and normals against the Archer, with replays.", [UTHER])],
     ["moving-platforms", recordTape("Moving decks, jumping, dropping through, predictions and rollback over complete path cycles.", [{
       characters: [Character.archer, Character.rifleman], stage: 3, stocks: 3, minutes: 0, frames: 620,
       holds: [[[1, 20, RIGHT, WALK], [30, 10, JUMP], [180, 3, DOWN], [240, 10, JUMP], [400, 10, JUMP]], [[1, 10, JUMP], [140, 3, DOWN], [300, 10, JUMP]]],

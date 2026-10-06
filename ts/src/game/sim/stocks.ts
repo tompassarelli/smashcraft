@@ -1,6 +1,6 @@
 // Losing a stock past the blast zone, and respawning.
 import { max } from "../../runtime/numbers";
-import { SurfaceContact } from "./codes";
+import { GrabAction, SurfaceContact } from "./codes";
 import { PLATFORM_DROP_INPUT_WINDOW, SHIELD_MAX, SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES, WALL_JUMP_FLICK_FRAMES, WALL_TECH_JUMP_INPUT_WINDOW_FRAMES } from "./fighter";
 import { clearDash } from "./groundMovement";
 import { TOP_KO_MINIMUM_UPWARD_KNOCKBACK } from "./knockback";
@@ -21,6 +21,7 @@ import {
 
 import { stageBounds } from "./stageBounds";
 import { refillMana } from "./heroSpecialRules";
+import { clearHeroStatus } from "./heroStatus";
 const RESPAWN_FRAMES = 60;
 const RESPAWN_HEIGHT = 280.0;
 const RESPAWN_INVINCIBLE_FRAMES = 90;
@@ -89,6 +90,7 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   f.visuals.parry = 0;
   refillMana(f);
   f.status.armorFrames = 0;
+  clearHeroStatus(f);
   motion.lastAerialTapDirection = 0;
   hits.lastAttacker = undefined;
   hits.lastAttackSerial = undefined;
@@ -204,7 +206,9 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   f.grab.grabbedFrames = 0;
   shield.heldFrames = 0;
   f.grab.serial = 0;
-  f.grab.pummels = undefined;
+  f.grab.pummels = 0;
+  f.grab.heldFrames = 0;
+  f.grab.queuedThrow = GrabAction.none;
   shield.releaseLag = 0;
   status.invincible = RESPAWN_INVINCIBLE_FRAMES;
 }

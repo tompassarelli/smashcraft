@@ -8,7 +8,7 @@ import { attackPhase, canAttack, isIntangible } from "./conditions";
 import { type Fighter, createFighter } from "./fighter";
 import { AIR_DODGE_ANIMATION_FRAMES } from "./jumpsAndDodges";
 import { LEDGE_CLIMB_FRAMES, LEDGE_INTANGIBLE_FRAMES, LEDGE_ROLL_FRAMES, ledgeCatchBox, ledgeSnap, resolveLedges } from "./ledge";
-import { LEDGE_ATTACK_FRAMES, attackStartupFrames, grabHoldFrames } from "./moves";
+import { LEDGE_ATTACK_FRAMES, attackStartupFrames, GRAB_HOLD_FRAMES } from "./moves";
 import type { Controls } from "./roster";
 import { surfaceLeft, surfaceRight, surfaceZ } from "./stage";
 import { BODY_HALF_WIDTH } from "./surfaces";
@@ -399,7 +399,7 @@ test("ledge hits and grabs interrupt, and a respawn clears ledge ownership", () 
         assertEquals(fighter.ledge.intangible, 0);
         assertEquals(fighter.ledge.regrab, LEDGE_REGRAB_FRAMES);
         if (mode === 0) assertGreaterThan(fighter.launch.hitstun, 0);
-        else assertEquals(fighter.grab.grabbedFrames, grabHoldFrames(fighter.status.damage));
+        else assertEquals(fighter.grab.grabbedFrames, GRAB_HOLD_FRAMES);
       } else {
         fighter.motion.z = (stageBounds(0).blast.bottom - 1.0);
         advanceSolo(fighter, 0, input, 0.0);

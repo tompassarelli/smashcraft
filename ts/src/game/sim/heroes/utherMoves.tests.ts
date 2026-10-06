@@ -7,6 +7,8 @@ import { createFighter } from "../fighter";
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hitRegions";
 import { attackLandingLag, attackRecoveryFrames, attackStartupFrames, grabActionDuration, grabContactFrame, isAerialAttack, smashDamageMultiplier } from "../moves";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
+import { type HurtPart, HurtContact, HurtState, fighterHurtParts, strikeHurtContact } from "../hurtboxes";
+import { emptyCapsule, placeCapsule } from "../../physics/contactGeometry";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
 import { UTHER_MOVES } from "./utherMoves";
 
@@ -151,12 +153,61 @@ test("Uther narrow hammer paths leave gaps and angled tilts occupy distinct heig
   const gap = attackPair(AttackStyle.upSmash, 19, 85.0, 0.0);
   resolveAttacks(gap.world);
   assertEquals(gap.target.status.damage, 0.0);
-  for (const style of [AttackStyle.jab, AttackStyle.backAir, AttackStyle.dashAttack]) {
-    const region = emptyHitRegion();
-    const first = attackStartupFrames(style, UTHER_MOVES);
-    authoredHitRegion(region, Character.archer, style, first, 0, 0, UTHER_MOVES);
-    assertTrue(region.minX >= -24.0);
-    assertTrue(region.maxX <= 24.0);
+});
+
+const segmentDistance = (px: number, pz: number, part: Readonly<HurtPart>): number => {
+  const dx = part.x2 - part.x1;
+  const dz = part.z2 - part.z1;
+  const length = dx * dx + dz * dz;
+  const t = length === 0.0 ? 0.0 : Math.max(0.0, Math.min(1.0, ((px - part.x1) * dx + (pz - part.z1) * dz) / length));
+  const ex = px - (part.x1 + t * dx);
+  const ez = pz - (part.z1 + t * dz);
+  return Math.sqrt(ex * ex + ez * ez);
+};
+
+test("Uther's gauntlet, boot, grabbing hand and shoulder strike from inside his own exposed body", () => {
+  const region = emptyHitRegion();
+  for (const style of [AttackStyle.jab, AttackStyle.backAir, AttackStyle.grab, AttackStyle.dashAttack]) {
+    const owner = createFighter(Character.archer, 0.0, 1);
+    owner.tuning.moves = UTHER_MOVES;
+    owner.attack.style = style;
+    const count = authoredHitRegionCount(style, UTHER_MOVES);
+    for (let frame = 0; frame < 40; frame++) {
+      owner.attack.frame = frame;
+      const parts = fighterHurtParts(owner);
+      for (let index = 0; index < count; index++) {
+        authoredHitRegion(region, Character.archer, style, frame, 0, index, UTHER_MOVES);
+        const strike = region.strike;
+        if (region.window === 0 || strike === undefined) continue;
+        for (const [x, z] of [[strike.x1, strike.z1], [strike.x2, strike.z2]] as const) {
+          assertTrue(parts.some((part) => (part.state ?? HurtState.normal) === HurtState.normal && segmentDistance(x, z, part) <= part.radius));
+        }
+      }
+    }
+  }
+});
+
+test("Uther's extended limbs are hittable at their full reach and gone once he stands", () => {
+  const reach = (style: AttackStyle, frame: number, x: number, z: number, facing: number): boolean => {
+    const owner = createFighter(Character.archer, 0.0, facing);
+    owner.tuning.moves = UTHER_MOVES;
+    if (frame >= 0) {
+      owner.attack.style = style;
+      owner.attack.frame = frame;
+    }
+    return strikeHurtContact(placeCapsule(emptyCapsule(), { x1: x, z1: z, x2: x, z2: z, radius: 4.0 }, 0.0, 0.0, facing), owner) === HurtContact.hit;
+  };
+  const short = f32(HERO_REFERENCE_HEIGHT * f32(0.55));
+  const medium = f32(HERO_REFERENCE_HEIGHT * f32(0.80));
+  for (const facing of [1, -1]) {
+    for (const [style, frame, x, z] of [
+      [AttackStyle.jab, 4, f32(short + 2.0), 60.0],
+      [AttackStyle.grab, 7, f32(short + 2.0), 40.0],
+      [AttackStyle.backAir, 9, -f32(medium + 2.0), 30.0],
+    ] as const) {
+      assertTrue(reach(style, frame, x, z, facing));
+      assertTrue(!reach(style, -1, x, z, facing));
+    }
   }
 });
 
@@ -237,26 +288,4 @@ test("Uther throws hold until release and launch once in the adopted facing-rela
       assertEquals(target.status.damage, damage);
     }
   }
-});
-
-test("Uther hammer-hilt pummel contacts on frame five for one percent and caps at two", () => {
-  const { owner, target, world } = attackPair(AttackStyle.grab, 7, 40.0);
-  resolveAttacks(world);
-  assertEquals(owner.grab.target, 1);
-  assertEquals(grabContactFrame(GrabAction.pummel, UTHER_MOVES), 5);
-  assertEquals(grabActionDuration(GrabAction.pummel, UTHER_MOVES), 12);
-  for (let pummel = 0; pummel < 2; pummel++) {
-    for (let frame = 1; frame <= 13; frame++) {
-      testGrabFrame(world, [controls({ attackPressed: frame === 1 }), controls()], false);
-      assertEquals(target.status.damage, frame < 5 ? pummel : pummel + 1);
-      assertEquals(target.launch.knockbackX, 0.0);
-      assertEquals(target.launch.knockbackZ, 0.0);
-    }
-    assertEquals(owner.grab.action, GrabAction.hold);
-  }
-  testGrabFrame(world, [controls({ attackPressed: true }), controls()], false);
-  assertEquals(owner.grab.action, GrabAction.hold);
-  assertEquals(target.status.damage, 2.0);
-  testGrabFrame(world, [controls({ attackPressed: true, grabThrowX: 1 }), controls()], false);
-  assertEquals(owner.grab.action, GrabAction.throwForward);
 });

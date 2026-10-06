@@ -3,7 +3,7 @@
 // presentation (sim/heroes/<hero>Hero.ts). Tables only: pose selection lives in
 // fighterPose.
 import { AttackStyle, Character, GrabAction, LedgeState, SpecialAction } from "../sim/codes";
-import { type HeroClip, type HeroClipTable, type HeroPose, STOCK_FALLBACK_CLIP } from "../sim/heroes/hero";
+import { type HeroClip, type HeroClipTable, type HeroFollowUpPose, type HeroPose, STOCK_FALLBACK_CLIP } from "../sim/heroes/hero";
 import { heroDefinition } from "../sim/heroes/registry";
 import * as dh from "./demonHunterAssetInfo";
 import * as assets from "./fighterAssetInfo";
@@ -287,10 +287,18 @@ const byGrounding = (clips: GroundingClips, grounded: boolean): HeroClip => grou
 
 /**
  * A special's clip. A hero's four specials play its table's grounded or aerial
- * pose. Any other action without its own clip plays the rifleman's blaster,
+ * pose. A follow-up plays its own follow-up pose when the table maps one. Any other action without its own clip plays the rifleman's blaster,
  * aerial when it has an aerial shot's duration.
  */
-export function specialClip(character: number, action: SpecialAction, grounded: boolean, aerialShot: boolean): HeroClip {
+const FOLLOW_UP_POSES: readonly (readonly [grounded: HeroFollowUpPose, air: HeroFollowUpPose])[] = [
+  ["neutralSpecialFollowUp", "neutralSpecialFollowUpAir"], ["sideSpecialFollowUp", "sideSpecialFollowUpAir"],
+  ["upSpecialFollowUp", "upSpecialFollowUpAir"], ["downSpecialFollowUp", "downSpecialFollowUpAir"],
+];
+
+export function specialClip(character: number, action: SpecialAction, grounded: boolean, aerialShot: boolean, followUp = false): HeroClip {
+  const poses = followUp ? FOLLOW_UP_POSES[action - SpecialAction.heroNeutral] : undefined;
+  const own = poses === undefined ? undefined : characterClips(character)[grounded ? poses[0] : poses[1]];
+  if (own !== undefined) return own;
   switch (action) {
     case SpecialAction.heroNeutral: return clipFor(character, grounded ? "neutralSpecial" : "neutralSpecialAir");
     case SpecialAction.heroSide: return clipFor(character, grounded ? "sideSpecial" : "sideSpecialAir");

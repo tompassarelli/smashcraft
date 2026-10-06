@@ -28,7 +28,7 @@ For this NixOS workstation, the observed build environment is:
 ```sh
 nix-shell -p bun stdenv.cc cmake pkg-config libxkbcommon udev
 export PATH="$HOME/.rustup/toolchains/1.96.1-x86_64-unknown-linux-gnu/bin:$PATH"
-bun ~/.codex/skills/machine-capacity-distilled/scripts/machine-capacity.mjs run \
+bun ~/.codex/skills/machine-capacity/scripts/machine-capacity.mjs run \
   --class moderate --owner codex:controller-build --timeout-seconds 900 -- \
   cargo build --locked --jobs 2
 ```
@@ -223,9 +223,11 @@ binary (`wc3-journal`) remains Linux-only; on Windows and macOS the map receives
 the controller as ordinary keyboard keys with its standard QWERTY bindings.
 
 `cargo test --locked --features e2e --test e2e -- --nocapture` runs the real
-helper in a Windows or macOS desktop session against an SDL virtual gamepad
-(`--virtual-pad`, driven by stdin) and two `wc3-standin` windows, one copied to
-the Warcraft III executable name. It checks the requested layout, both
+helper in a Windows or macOS desktop session against a scripted pad (on Windows
+a ViGEmBus virtual DualShock 4, so ViGEmBus must be installed; on macOS the
+helper's `--virtual-pad`) and two `wc3-standin` windows, one copied to the
+Warcraft III executable name. It checks every mapped action, that the game
+window's whole key sequence is exactly the expected one, both
 ordered jump-button overlaps and the trigger overlap, that no key reaches either
 window while the other one is focused, that focus loss and disconnect release
 held keys in the operating system's key state, and that a control held through
