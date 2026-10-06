@@ -30,6 +30,7 @@ import { panelActions, serviceAutomaticRematch } from "./menus";
 import { PLAYER_FILE_RECEIVED, bindingFiles, playerFileReceived, playerFilesOwnerLeft, startPlayerFiles } from "./playerFiles";
 import { PLAYTEST, PLAYTEST_PREFIX, playtestRequested, readPlaytestRequest, servicePlaytestRequest } from "./playtest";
 import { makePreview } from "./preview";
+import { preloadStageAssets } from "./stageScenery";
 import { PROBE_EXPORT, exportProbePage, probeBegin, probePresent } from "./responseProbe";
 import { receiveInput, rollbackTick } from "./rollback";
 import { SAVE_MOMENT, momentKey, serviceMomentRequest, serviceMomentSave } from "./moment";
@@ -235,6 +236,7 @@ function initialize(): void {
   setParticipants(s.game, currentHumanMask(0), currentComputerMask());
   chooseScenarioCharacters(build.scenario, s.game);
   createUi(s, panelActions());
+  preloadStageAssets(s);
   drawStage(s);
   CameraSetSmoothingFactor(0.0);
   SetTimeOfDay(12.0);
