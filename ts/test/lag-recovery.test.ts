@@ -103,6 +103,7 @@ const TYPING_FRAMES_PER_CHARACTER_SQUARED = WARCRAFT_COST.typingUsPerCharacterSq
 /** Callbacks a frame Warcraft runs to catch its clock up: native receipts came every 10 ms, 6 callbacks apart. */
 const CATCH_UP_CALLBACKS = 10;
 
+// About 1.5 s alone; at load 23-29 a host took headless match tests past Bun's 5 s default.
 test("after a 2 s stall of one or both games, each client catches up within a second, a bounded number of frames a callback", () => {
   const clients = headless.clients({ start: () => startBuild(PLAYABLE_BUILD), install }, [0, 1], { delivery: syncDelivery(MEASURED_BATTLE_NET, 7) });
   const host = clients.clients[0] as HeadlessClient;
@@ -240,4 +241,4 @@ test("after a 2 s stall of one or both games, each client catches up within a se
   expect(applied.wrong).toEqual([]);
   expect(applied.rows).toBe(4 * cursors(host).confirmed);
   for (const client of clients.clients) expect(client.errors).toEqual([]);
-});
+}, 30_000);
