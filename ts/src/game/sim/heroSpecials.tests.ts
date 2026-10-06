@@ -7,6 +7,8 @@ import { Character, ProjectileKind, SpecialAction } from "./codes";
 import { beginDamageContacts, finishDamageContacts } from "./contacts";
 import { type Fighter, createFighter } from "./fighter";
 import { heroRegion } from "./heroMoves";
+import { HurtContact, fighterHurtParts, hurtPart, hurtPose, strikeHurtContact } from "./hurtboxes";
+import { emptyCapsule, hurtCapsule, placeCapsule } from "../physics/contactGeometry";
 import { advanceHeroStatus, regenerateMana } from "./heroSpecialRules";
 import { type AuthoredSpecial, type FighterSpecials, ROSTER_MANA, frames } from "./heroSpecials";
 import { HERO_ROSTER, SELECTABLE_CHARACTERS, isSelectableCharacter, nextSelectableCharacter, selectableCharactersOf } from "./heroes/registry";
@@ -239,4 +241,23 @@ test("a complete hero ships its four specials with a free up special", () => {
     assertTrue(specials !== undefined);
     assertTrue(specials?.up.free !== undefined && specials.up.free.cost === 0);
   }
+});
+
+test("a hero special's hurt poses replace the body on their frames only", () => {
+  const { world, owner, target } = pair(600.0);
+  const reach = hurtPart(0.0, 40.0, 140.0, 40.0, 12.0);
+  const posed: AuthoredSpecial = { ...SIDE, hurt: [hurtPose(5, 8, [hurtCapsule(Character.blademaster), reach])] };
+  owner.tuning = { ...owner.tuning, specials: { ...KIT, side: { ground: posed } } };
+  frame(world, side);
+  for (let f = 2; f <= 4; f++) frame(world);
+  assertEquals(fighterHurtParts(owner).length, 1);
+  frame(world);
+  assertEquals(owner.special.frame, 5);
+  assertEquals(fighterHurtParts(owner).length, 2);
+  const strike = placeCapsule(emptyCapsule(), { x1: 0.0, z1: 40.0, x2: 0.0, z2: 40.0, radius: 5.0 }, f32(owner.motion.x + 130.0), owner.motion.z, 1);
+  assertEquals(strikeHurtContact(strike, owner), HurtContact.hit);
+  for (let f = 6; f <= 9; f++) frame(world);
+  assertEquals(fighterHurtParts(owner).length, 1);
+  assertEquals(strikeHurtContact(strike, owner), HurtContact.none);
+  void target;
 });
