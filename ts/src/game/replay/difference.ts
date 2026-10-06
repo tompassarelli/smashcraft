@@ -178,6 +178,7 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("freezeTrapSurface", e.freezeTrap.surface, a.freezeTrap.surface);
   add("freezeTrapSerial", e.freezeTrap.serial, a.freezeTrap.serial);
   add("frozenFrames", e.status.frozenFrames, a.status.frozenFrames);
+  add("freezeImmunityFrames", e.status.freezeImmunityFrames, a.status.freezeImmunityFrames);
   add("freezeTrapCooldown", e.freezeTrap.cooldown, a.freezeTrap.cooldown);
   add("out", e.status.out, a.status.out);
   add("respawn", e.status.respawn, a.status.respawn);

@@ -295,7 +295,7 @@ function outcome(state: Readonly<ReplayState>, out: number[]): number[] {
       grab.action, grab.frame, grab.owner ?? -1, grab.target ?? -1, down.state, down.frame, down.direction, flag(dodge.airDodging), dodge.airFrame,
       dodge.groundFrame, dodge.groundDirection, flag(shield.raised), shield.energy, shield.stun, shield.breakState, jump.remaining, jump.squat, jump.serial,
       ledge.state, ledge.frame, f.landing.lag, f.surfaceRecovery.state, status.damage, status.stocks, flag(status.out), status.respawn, status.invincible,
-      status.frozenFrames, f.bear.life, f.bear.x, f.bear.z, f.hippogryph.life, f.hippogryph.x, f.hippogryph.z, f.freezeTrap.life, f.freezeTrap.x,
+      status.frozenFrames, status.freezeImmunityFrames, f.bear.life, f.bear.x, f.bear.z, f.hippogryph.life, f.hippogryph.x, f.hippogryph.z, f.freezeTrap.life, f.freezeTrap.x,
     );
     for (const projectile of f.projectiles) if (projectile.life > 0) out.push(projectile.life, projectile.x, projectile.z);
   }
@@ -331,7 +331,7 @@ export function situationKey(state: Readonly<ReplayState>, victim: number): stri
       attack.style ?? -1, attack.frame, attack.cooldown, special.action, special.frame, grab.action, grab.frame,
       grab.owner === undefined ? -1 : grab.owner === victim ? 0 : 1, grab.target === undefined ? -1 : grab.target === victim ? 0 : 1,
       down.state, down.frame, down.waitRemaining, dodge.airDodging ? dodge.airFrame : -1, dodge.groundFrame, shield.raised ? 1 : 0, shield.stun,
-      shield.breakState, jump.remaining, jump.squat, ledge.state, ledge.frame, f.landing.lag, status.frozenFrames, status.invincible, status.out ? 1 : 0,
+      shield.breakState, jump.remaining, jump.squat, ledge.state, ledge.frame, f.landing.lag, status.frozenFrames, status.freezeImmunityFrames, status.invincible, status.out ? 1 : 0,
       // Clocks that run on while a fighter is held or waits: a hold that ran down is no loop. A hold is counted
       // from its start, since its length grows with damage, which is left out.
       grab.grabbedFrames > 0 ? grabHoldFrames(status.damage) - grab.grabbedFrames : -1,
