@@ -1,6 +1,7 @@
 // The computer's attacks: the moves of its fighter that reach the opponent
 // where both will be on the move's first active frame, and the specials that
 // suit the distance, one chosen deterministically among them.
+import { specialCooldownReady } from "../sim/heroSpecialRules";
 import { at } from "wisp/src/runtime/lookup";
 import { f32 } from "wisp/src/sim/f32";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
@@ -119,11 +120,14 @@ const aheadZ = (f: Readonly<Fighter>, target: Readonly<Fighter>, frames: number)
 
 function specialReady(f: Readonly<Fighter>, option: number): boolean {
   const { special } = f;
-  return at(special.cooldowns, specialAction(f.character, option)) <= 0 && special.lockFrames <= 0 && special.action === SpecialAction.none && canAttack(f);
+  return specialCooldownReady(f, specialAction(f.character, option)) && special.lockFrames <= 0 && special.action === SpecialAction.none && canAttack(f);
 }
 
 function specialAction(character: Character, option: number): SpecialAction {
   switch (character) {
+    default:
+      return option === UP_SPECIAL ? SpecialAction.heroUp : option === DOWN_SPECIAL ? SpecialAction.heroDown
+        : option === SIDE_SPECIAL ? SpecialAction.heroSide : SpecialAction.heroNeutral;
     case Character.archer:
       return option === UP_SPECIAL ? SpecialAction.archerRecovery : option === DOWN_SPECIAL ? SpecialAction.archerDisengage
         : option === SIDE_SPECIAL ? SpecialAction.archerMultishot : SpecialAction.archerArrow;

@@ -74,3 +74,24 @@ fighter and move and prints, per frame, how much of the drawn body the volumes
 cover and how much of the volumes the body fills. Held weapons are part of the
 drawn silhouette and deliberately outside the volumes, so coverage below 100%
 is expected.
+
+## Shipped fighters
+
+Archer, Rifleman and Illidan author poses for the sampled moves: jab, down
+tilt, forward smash, forward air and down air. Each extended pose spans the
+last two startup frames through three recovery frames; heights scale with the
+fighter's standing capsule.
+
+| Move | Pose | Special parts |
+| --- | --- | --- |
+| Jab | arm reaching about 49 units forward | |
+| Down tilt | torso ducked to 62% height, front leg swept forward | |
+| Forward smash | torso wound back through startup, then torso and arm forward | Illidan's arm intangible |
+| Forward air | torso tucked, front leg kicked out | |
+| Down air | legs driven below the feet | Archer's legs intangible, Rifleman's invincible |
+
+The special parts are provisional design choices: the Archer's down air beats
+an anti-air aimed at its legs, the Rifleman's spends one, and Illidan's
+forward smash cannot be stuffed at the arm. Captures of build 0.0.49's models
+cover 49-98% of the drawn body on active frames, the rest being held weapons
+and loose cloth outside the volumes.

@@ -4,6 +4,7 @@
 // a new one.
 import { f32 } from "wisp/src/sim/f32";
 import { at } from "wisp/src/runtime/lookup";
+import { heroBody } from "../sim/heroes/heroBodies";
 
 /** A segment swept by a radius. */
 export interface Capsule {
@@ -212,11 +213,26 @@ export function attackCapsule(target: Capsule, style: number | undefined, reach:
 }
 
 // Coarse, pose-independent hurt capsules for the current actor presentation
-// scale; they claim no Melee hurtbox or animation parity.
-const HURT_CAPSULES: readonly Readonly<Capsule>[] = [
+// scale; they claim no Melee hurtbox or animation parity. Expansion heroes
+// scale Archer's capsule by the roster's width and height multipliers.
+const ORIGINAL_HURT_CAPSULES: readonly Readonly<Capsule>[] = [
   { x1: 0.0, z1: 4.0, x2: 0.0, z2: 88.0, radius: 24.0 },
   { x1: 0.0, z1: 4.0, x2: 0.0, z2: 96.0, radius: 26.0 },
   { x1: 0.0, z1: 4.0, x2: 0.0, z2: 102.0, radius: 25.0 },
+];
+
+function scaledHurtCapsule(character: number): Readonly<Capsule> | undefined {
+  const scale = heroBody(character);
+  if (scale === undefined) return undefined;
+  const reference = at(ORIGINAL_HURT_CAPSULES, 0);
+  const radius = f32(reference.radius * scale.width);
+  const height = f32(f32(f32(reference.z2 - reference.z1) + f32(2.0 * reference.radius)) * scale.height);
+  return { x1: 0.0, z1: reference.z1, x2: 0.0, z2: f32(reference.z1 + f32(height - f32(2.0 * radius))), radius };
+}
+
+const HURT_CAPSULES: readonly Readonly<Capsule>[] = [
+  ...ORIGINAL_HURT_CAPSULES,
+  ...[3, 4, 5, 6, 7, 8, 9].map(character => scaledHurtCapsule(character) ?? at(ORIGINAL_HURT_CAPSULES, 0)),
 ];
 
 /** A character's facing-relative hurt capsule; characters past the table share its last entry. */

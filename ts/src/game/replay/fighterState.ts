@@ -23,6 +23,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   tuning.tech = sourceTuning.tech;
   tuning.shieldBreak = sourceTuning.shieldBreak;
   tuning.moves = sourceTuning.moves;
+  tuning.specials = sourceTuning.specials;
 
   const motion = target.motion;
   const sourceMotion = source.motion;
@@ -169,6 +170,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   visuals.shield = sourceVisuals.shield;
   visuals.shieldReflect = sourceVisuals.shieldReflect;
   visuals.parry = sourceVisuals.parry;
+  visuals.manaDenied = sourceVisuals.manaDenied;
 
   const special = target.special;
   const sourceSpecial = source.special;
@@ -181,6 +183,10 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   special.direction = sourceSpecial.direction;
   special.hit = sourceSpecial.hit;
   for (let i = 0; i < PARTICIPANT_CAPACITY; i++) special.hitTargets[i] = retained(activeMask, sourceSpecial.hitTargets[i]);
+  special.form = sourceSpecial.form;
+  special.aimX = sourceSpecial.aimX;
+  special.aimZ = sourceSpecial.aimZ;
+  special.airtimeUses = sourceSpecial.airtimeUses;
 
   for (let i = 0; i < target.projectiles.length; i++) {
     const to = at(target.projectiles, i);
@@ -196,6 +202,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
     to.serial = from.serial;
     to.damageMultiplier = from.damageMultiplier;
     to.newlyReflected = from.newlyReflected;
+    to.spec = from.spec;
   }
 
   const bear = target.bear;
@@ -304,4 +311,12 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   status.invincible = sourceStatus.invincible;
   status.frozenFrames = sourceStatus.frozenFrames;
   status.freezeImmunityFrames = sourceStatus.freezeImmunityFrames;
+  status.armorFrames = sourceStatus.armorFrames;
+  status.armorMaxDamage = sourceStatus.armorMaxDamage;
+
+  const mana = target.mana;
+  const sourceMana = source.mana;
+  mana.points = sourceMana.points;
+  mana.sinceSpend = sourceMana.sinceSpend;
+  mana.progress = sourceMana.progress;
 }
