@@ -13,6 +13,7 @@ import { updateProjectiles } from "../sim/projectiles";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
 import { regenerateShield } from "../sim/shield";
 import { advanceSpecials, startFighterSpecial } from "../sim/specials";
+import { advanceHeroStatus, regenerateMana } from "../sim/heroSpecialRules";
 import { advanceFighterMotion } from "../sim/step";
 import { advanceStageCannon } from "../sim/stageHazards";
 import { advanceFreezeTraps } from "../sim/summons";
@@ -112,7 +113,13 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
   resolveAttacks(world);
   advanceSpecials(world, stage, matchFrame);
   updateProjectiles(world);
-  for (const slot of PARTICIPANT_SLOTS) if (isActive(world, slot)) regenerateShield(fighterAt(world, slot));
+  for (const slot of PARTICIPANT_SLOTS) {
+    if (!isActive(world, slot)) continue;
+    const f = fighterAt(world, slot);
+    regenerateShield(f);
+    regenerateMana(f);
+    advanceHeroStatus(f);
+  }
   finishDamageContacts(world);
   resolveGrabs(world);
   for (const slot of PARTICIPANT_SLOTS) {

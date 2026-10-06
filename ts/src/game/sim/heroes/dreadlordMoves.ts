@@ -1,7 +1,7 @@
 import { f32 } from "wisp/src/sim/f32";
-import { AttackStyle, GrabAction } from "../codes";
+import { AttackStyle, GrabAction, HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT, heroMove, heroRegion, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
-import { HitElement, type HitEffect } from "../hitRegions";
+import type { HitEffect } from "../hitRegions";
 
 // smashcraft:docs/design/roster.md supplies timing, damage and outer reach.
 // These original limb paths require matching exposed hurt volumes in poses.

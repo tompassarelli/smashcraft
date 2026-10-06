@@ -92,6 +92,13 @@ export function cancelAttack(f: Fighter): void {
 /** Ends the special action; spawned cover and bears outlive it, a mount does not. */
 export function cancelSpecialState(f: Fighter): void {
   const { special, hippogryph } = f;
+  // A hero marker that has not become active ends with its interrupted cast.
+  if (special.action >= SpecialAction.heroNeutral) {
+    for (const projectile of f.projectiles) {
+      const spec = projectile.spec;
+      if (projectile.life > 0 && spec?.cancelOnInterrupt === true && spec.life - projectile.life < (spec.activeFrom ?? 0)) projectile.life = 0;
+    }
+  }
   special.fall = false;
   special.action = SpecialAction.none;
   special.frame = 0;
@@ -137,7 +144,12 @@ export function clearSpecialOnStock(f: Fighter): void {
     projectile.serial = 0;
     projectile.damageMultiplier = 1.0;
     projectile.newlyReflected = false;
+    projectile.spec = undefined;
   }
+  special.form = 0;
+  special.aimX = 0;
+  special.aimZ = 0;
+  special.airtimeUses = 0;
 }
 
 export function clearOwnedFreezeTrap(f: Fighter): void {

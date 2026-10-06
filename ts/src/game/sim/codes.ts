@@ -1,7 +1,11 @@
 // Numeric state codes. Replay snapshots serialize these values into their
 // checksums, so each number is canonical and must equal the Wurst constant.
 
-export const Character = { archer: 0, rifleman: 1, demonHunter: 2 } as const;
+/** Codes 3-9 are the roster expansion (smashcraft:docs/design/roster.md), defined in sim/heroes/registry.ts. */
+export const Character = {
+  archer: 0, rifleman: 1, demonHunter: 2,
+  blademaster: 3, mountainKing: 4, warden: 5, lich: 6, uther: 7, dreadlord: 8, shadowHunter: 9,
+} as const;
 export type Character = (typeof Character)[keyof typeof Character];
 
 /** Dash, run and their turn and brake animations. */
@@ -65,13 +69,19 @@ export const SpecialAction = {
   demonHunterParryStep: 10,
   demonHunterWingAscent: 11,
   demonHunterImmolate: 12,
+  /** Expansion heroes run their authored kit (sim/heroSpecials.ts) under these four actions. */
+  heroNeutral: 13,
+  heroSide: 14,
+  heroUp: 15,
+  heroDown: 16,
 } as const;
 export type SpecialAction = (typeof SpecialAction)[keyof typeof SpecialAction];
 
-/** One cooldown per special action, indexed by its code. */
+/** One cooldown per original special action, indexed by its code; hero actions spend mana instead. */
 export const SPECIAL_ACTION_CAPACITY = 13;
 
-export const ProjectileKind = { blaster: 0, arrow: 1, fanArrow: 2, recoil: 3, manaBurn: 4 } as const;
+/** A hero projectile carries its authored record in Projectile.spec. */
+export const ProjectileKind = { blaster: 0, arrow: 1, fanArrow: 2, recoil: 3, manaBurn: 4, hero: 5 } as const;
 export type ProjectileKind = (typeof ProjectileKind)[keyof typeof ProjectileKind];
 
 /** Spawned cover strikes once; a mount carries its archer and ends with the action. */
@@ -119,3 +129,7 @@ export const DASH_GRAB_REQUEST = 11;
 /** How a queued damage contact affects its target. */
 export const ContactKind = { launch: 0, flinch: 1, damageOnly: 2, pummel: 3, throw: 4 } as const;
 export type ContactKind = (typeof ContactKind)[keyof typeof ContactKind];
+
+/** A contact's element: presentation of hit and shield effects. Hero kits import it here, apart from hit regions' runtime graph. */
+export const HitElement = { normal: 0, fire: 1, electric: 2, slash: 3, ice: 5 } as const;
+export type HitElement = (typeof HitElement)[keyof typeof HitElement];
