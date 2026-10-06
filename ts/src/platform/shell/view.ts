@@ -17,7 +17,7 @@ import type { FighterPose } from "../../game/presentation/fighterPose";
 import { CANNON_MODEL, PLATFORM_CUE_FRAMES, framesUntilPlatformMoves, stageWarning } from "../../game/presentation/stageHazards";
 import { escapeMeterView, readEscapeMeter } from "../../game/presentation/escapeMeter";
 import { type MapBuild, journalIngress } from "../../game/shell/build";
-import { MOMENT_SAVED_MESSAGE, type StartControl, fighterLabel, matchHelp, resultNotice, waitingMessage } from "../../game/shell/messages";
+import { MOMENT_SAVED_MESSAGE, type StartControl, matchHelp, resultNotice, stockLossMessage, waitingMessage } from "../../game/shell/messages";
 import { isIntangible } from "../../game/sim/conditions";
 import { type Roster, fighterAt, isActive } from "../../game/sim/roster";
 import { surfaceCount, surfaceLeft, surfaceMoves, surfacePass, surfaceRight, surfaceZ } from "../../game/sim/stage";
@@ -108,7 +108,7 @@ export function renderFighter(s: ShellState, slot: ParticipantSlot, pose: Readon
   if (wasOut && !fighter.status.out) ShowUnit(body.unit, true);
   else if (!wasOut && fighter.status.out) {
     ShowUnit(body.unit, false);
-    if (fighter.status.stocks > 0) announce(s, `${fighterLabel(s.game, slot)} ${s.game.endless ? "was knocked out" : "lost a stock"}!`);
+    if (fighter.status.stocks > 0) announce(s, stockLossMessage(s.game, slot, fighter.status.stocks));
   }
   const { pooled } = participant;
   if (pooled) ShowUnit(body.unit, false);
@@ -199,7 +199,7 @@ export function renderPersistentPresentation(s: ShellState): void {
     const fighter = isActive(world, slot) ? fighterAt(world, slot) : undefined;
     const renderers = ui.fighters[slot];
     if (renderers?.pool !== undefined) {
-      if (fighter !== undefined) renderers.pool.present(fighter, runtime.poses[slot], stage);
+      if (fighter !== undefined && ui.match.posing !== slot) renderers.pool.present(fighter, runtime.poses[slot], stage);
       else renderers.pool.hide();
     }
     const live = playing ? fighter : undefined;

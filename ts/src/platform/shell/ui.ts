@@ -7,6 +7,7 @@ import { AgencyMarker } from "../../game/render/agencyMarker";
 import { FighterAgencyForecast } from "../../game/presentation/fighterAgency";
 import { FrostEffects } from "../../game/render/frostEffects";
 import { PlacedObjectEffects } from "../../game/render/placedObjectEffects";
+import { MatchPresentation } from "../../game/render/matchPresentation";
 import { modelSoundPresentation } from "../../game/render/modelSoundPresentation";
 import type { ModelSoundSink } from "../../game/render/modelSounds";
 import { ProjectilePresentation } from "../../game/render/projectilePresentation";
@@ -52,6 +53,8 @@ export interface UiObjects {
   readonly special: SpecialEffects;
   readonly fighters: Slots<FighterRenderers | undefined>;
   sounds: ModelSoundSink;
+  /** Announcer cues, music, selection voices and the results screen; created on reload by a bundle that predates it. */
+  match: MatchPresentation;
 }
 
 /** What the panels ask the game to do; menus.ts implements them over the shell. */
@@ -91,6 +94,7 @@ export function createUi(s: ShellState, actions: PanelActions): UiObjects {
     special: new SpecialEffects(s.origin),
     fighters: [undefined, undefined, undefined, undefined],
     sounds: modelSoundPresentation(s.origin),
+    match: new MatchPresentation(s.origin),
   };
   s.ui = ui;
   return ui;
@@ -154,6 +158,9 @@ export function recreateUi(s: ShellState, actions: PanelActions): void {
   bindPrototype(ui.special, SpecialEffects.prototype);
   ui.special.bindNestedCode();
   ui.sounds = modelSoundPresentation(s.origin);
+  // A bundle from before the match presentation left none to rebind.
+  if ((ui as Partial<UiObjects>).match === undefined) ui.match = new MatchPresentation(s.origin);
+  else bindPrototype(ui.match, MatchPresentation.prototype);
   for (const slot of PARTICIPANT_SLOTS) {
     const renderers = ui.fighters[slot];
     if (renderers === undefined) continue;

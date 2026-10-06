@@ -35,7 +35,7 @@ const STAR_KO_FIRST = IMPACT_STAR_KO * IMPACTS_PER_KIND;
 const STAR_KO_DEPTH = 1400.0;
 
 
-function fighterModel(character: number): string {
+export function fighterModel(character: number): string {
   const hero = heroDefinition(character);
   if (hero !== undefined) return hero.presentation.model;
   return character === Character.archer ? ARCHER_MODEL_FILE : character === Character.rifleman ? RIFLEMAN_MODEL_FILE : DEMON_HUNTER_MODEL_FILE;

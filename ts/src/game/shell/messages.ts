@@ -13,6 +13,13 @@ export function fighterLabel(game: Readonly<MatchState>, slot: number): string {
   return humanFighterActive(game, slot) ? `Player ${slot + 1}` : "Computer";
 }
 
+/** A knockout as the match announces it, calling out a fighter down to its last stock. */
+export function stockLossMessage(game: Readonly<MatchState>, slot: number, stocks: number): string {
+  const label = fighterLabel(game, slot);
+  if (game.endless || game.practice) return `${label} was knocked out!`;
+  return stocks === 1 ? `${label} is on their last stock!` : `${label} lost a stock!`;
+}
+
 const AERIAL_NAMES: Partial<Readonly<Record<AttackStyle, string>>> = {
   [AttackStyle.neutralAir]: "Neutral air!",
   [AttackStyle.forwardAir]: "Forward air!",

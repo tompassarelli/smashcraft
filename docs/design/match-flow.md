@@ -66,3 +66,60 @@ match still finishes and shows its result. Automatic rematch stays off until
 chosen, avoiding an unexpected second game. Slippi and Rivals use end-of-match
 button shortcuts; neither source above describes an unattended automatic
 session. Saved presets, ranking and matchmaking are separate concerns.
+
+## Opening, ending and results
+
+The Smash series frames every match the same way. Melee holds the fighters
+through "Ready... GO!": a replay's first frame is -123 and its first playable
+frame is -39 (Slippi's frame convention, also in
+`melee-unlocked:port/app/launcher_replay_stats.inl`). Brawl, Ultimate and Rivals
+of Aether II count "3, 2, 1, GO!" over about three seconds. The final KO is
+called "GAME!" (or "TIME!" when the clock ends it), the action holds on that
+moment, and then a results screen shows the winner in its victory pose with
+its series' victory fanfare, beside every fighter's KOs, falls and damage.
+Each stage plays music from its own franchise.
+
+Smashcraft follows that shape with Warcraft III's built-in assets
+([#123](https://github.com/tompassarelli/smashcraft/issues/123); the held start is
+[#129](https://github.com/tompassarelli/smashcraft/issues/129)):
+
+- **Calls.** "3", "2" and "1" tick with the Battle.net countdown tick, "GO!"
+  plays the Battle.net game-found sting, and "GAME!"/"TIME!" tolls the
+  Alliance bell. A stock loss plays the Battle.net death sting, and the move to a
+  last stock adds the interface warning. The status line carries the words.
+- **Results.** "GAME!" holds for 90 frames (1.5 s). Then a panel lists each
+  fighter's stocks, damage, KOs and falls, with the winner first. The winner
+  stands where it finished, facing the camera in its model's Stand Victory
+  (Stand Channel or Stand Ready where the model has none). It shouts its battle
+  cry over a crowd cheer and its race's victory theme. A KO goes to the last
+  fighter whose hit landed.
+- **Selection.** Hovering a fighter or a stage ticks. Confirming a fighter
+  clicks and plays that hero's trained-unit line ("Ready" in its sound set),
+  the closest Warcraft has to Smash's announced pick. Fighter and stage
+  selection play the Frozen Throne menu theme.
+- **Hurt cries.** Melee gives a damage voice only to knockback past its
+  damage-fly threshold and to KOs (`melee:src/melee/ft/kinds/ftCommon/ftCo_Damage.c`).
+  Smashcraft's hero models carry their death cry in the Death sequence, so a
+  weak hit shows a silent stand-in, and one fighter cries at most every 120
+  frames (smashcraft:ts/src/game/presentation/hurtVoice.ts).
+
+Stage themes are matched to setting and race:
+
+| Stage | Track | Why |
+| --- | --- | --- |
+| Frozen Throne | Lich King's theme | Icecrown's master |
+| Nordrassil | Night Elf 1 | the World Tree's people |
+| Gryphon Aerie | Human (Frozen Throne) 1 | Aerie Peak's dwarves and the Alliance |
+| Durotar Skies | Orc 1 | the orcs' homeland |
+| Naxxramas | Undead 3 | the Scourge citadel |
+| Hellfire Citadel | Illidan's theme | Illidan's Outland fortress |
+| Blackrock | Orc (Frozen Throne) 1 | the Blackrock clan's mountain |
+| Ahn'Qiraj | Naga theme | an alien, ancient people beneath the sands |
+| Sky Deck (test) | Human 1 | neutral practice ground |
+
+All of these are presentation, so they read confirmed frames and never feed the
+simulation. Every path is a script path into the installed game:
+`bun tools/presentation/stock-sounds.ts --extract CASC_EXTRACT` checks each
+against the game's storage through CascLib and records it in
+smashcraft:ts/src/game/assets/stockSoundInfo.ts, and a test holds the
+presentation to that table. No audio is copied.

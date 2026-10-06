@@ -6,6 +6,7 @@ import { resetMatchFrameInput } from "../../game/match/frameInput";
 import { clearPresentationHistory } from "../../game/match/pacingAndPresentation";
 import { initializeMatchFighters } from "../../game/match/step";
 import { beginModelSoundEpoch, confirmModelSounds } from "../../game/render/modelSounds";
+import { stageMusic } from "../../game/presentation/matchAudio";
 import { readyFile, stageDrawnFile } from "../../game/shell/journalFiles";
 import { initializeScenario } from "../../game/shell/scenarios";
 import { type Scenario, usesPool } from "../../game/shell/build";
@@ -70,6 +71,7 @@ export function startMatch(s: ShellState, scenario: Scenario = s.build.scenario)
     }
     confirmModelSounds(s.sounds, rollback.epoch, 0, slot, fighter, s.runtime.poses[slot], ui.sounds);
   }
+  ui.match.beginMatch(stageMusic(s.game.stageChoice), s.game, s.world);
   renderPersistentPresentation(s);
   syncKeyEvents(s);
 }

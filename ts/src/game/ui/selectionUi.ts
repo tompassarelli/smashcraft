@@ -314,6 +314,11 @@ export class SelectionPanel {
     else if (canChooseComputer(game, this.participantId, slot)) BlzSendSyncData("cpu-fighter-drop", `${I2S(slot)}${I2S(tile)}`);
   }
 
+  /** The roster tile under this client's pointer, for the hover sound. */
+  hoveredTile(): number | undefined {
+    return this.drag.hover;
+  }
+
   /** The attack key: places the held chip on the hovered tile. */
   placeHovered(): void {
     if (!this.ownsLocalClient()) return;

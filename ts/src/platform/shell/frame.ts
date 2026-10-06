@@ -22,6 +22,9 @@ import { confirmModelSounds } from "../../game/render/modelSounds";
 import { type FrameObservation, type ShellState, activeRollback } from "./state";
 import { clearMatchEffects, views } from "./ui";
 import { traceInput } from "./trace";
+import { MatchCue } from "../../game/presentation/matchAudio";
+import { resultsView } from "../../game/presentation/matchCues";
+import { RESULTS_DELAY_FRAMES } from "../../game/render/matchPresentation";
 import { LASTING, announce, renderFighter, setStatus } from "./view";
 
 function observe(before: FrameObservation, fighter: Readonly<Fighter>): void {
@@ -81,6 +84,7 @@ export function applyFrame(s: ShellState): void {
   if (frame === undefined) return;
   const { recorder } = s.moment;
   beginMomentFrame(recorder, frame, world, s.game, s.controls, runtime);
+  views(s).match.observe(s.game, world);
   if (!executeMatchFrame(s.frameInput, s.game, world, s.controls, runtime, frame)) return;
   if (hasNetworkRows(s.frameInput)) {
     for (const slot of PARTICIPANT_SLOTS) if (participantActive(s.frameInput.networkMask, slot)) recordMomentRow(recorder, frame, slot, s.frameInput.network[slot]);
@@ -101,11 +105,14 @@ export function applyFrame(s: ShellState): void {
     renderFighter(s, slot, runtime.poses[slot], participant.before.out);
     ui.special.presentConfirmedAnimated(runtime.simulationFrame, fighter, slot);
   }
+  const cues = ui.match.presentConfirmed(s.game, world);
   if (s.game.phase !== Phase.result) return;
   clearMatchEffects(s);
   // The countdown changes the match between frames: the moment keeps it as its last frame left it.
   keepMomentEnd(recorder, world, s.game, s.controls, runtime);
   beginRematchCountdown(s.game, s.dev.rematchSeconds);
+  const call = cues.find(cue => cue === MatchCue.game || cue === MatchCue.time);
+  ui.match.beginResults(resultsView(s.game, world, ui.match.tally), call === undefined ? 0 : RESULTS_DELAY_FRAMES);
   setStatus(s, resultMessage(s.game), LASTING);
 }
 
