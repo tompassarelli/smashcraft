@@ -18,7 +18,7 @@ export const STAGE_CATALOG: readonly StageInfo[] = [
   { id: 3, name: "Durotar Skies", texture: "war3mapImported\\SelectionDurotar.tga", description: "Fight over Durotar's rocky spires.\nOne platform drifts from side to side." },
   { id: 4, name: "Naxxramas", texture: "war3mapImported\\SelectionNaxxramas.tga", description: "The Scourge citadel looms overhead.\nTwo platforms patrol their own routes." },
   { id: 14, name: "Hellfire Citadel", texture: "war3mapImported\\SelectionHellfire.tga", description: "Two steady platforms before the demon gate.\nHold your ground against the Legion." },
-  { id: 12, name: "Blackrock", texture: "war3mapImported\\SelectionBlackrock.tga", description: "Three platforms above the molten depths.\nA swinging cannon offers a way back." },
+  { id: 12, name: "Blackrock", texture: "war3mapImported\\SelectionBlackrock.tga", description: "One forge platform above the molten depths.\nA swinging cannon offers a way back." },
   { id: 13, name: "Ahn'Qiraj", texture: "war3mapImported\\SelectionAhnQiraj.tga", description: "An open arena among ancient Qiraji ruins.\nA rising platform breaks the silence." },
   { id: 0, name: "Sky Deck (test)", texture: "war3mapImported\\SelectionSkyDeck.tga", description: "One open platform for practice and testing.\nRoom to fight, nowhere to hide." },
 ];

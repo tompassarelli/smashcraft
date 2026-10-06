@@ -1,7 +1,11 @@
 import { assertEquals, test } from "wisp/src/runtime/testing";
 import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { SurfaceContact } from "./codes";
-import { CANNON_TEST_STAGE, MAIN_DECK_BODY_SURFACES, mainDeckLeft, mainDeckRight, mainDeckUndersideZ, mainDeckZ, solidSurfaceAt, solidSurfaceCount } from "./stage";
+import { CANNON_TEST_STAGE, MAIN_DECK_BODY_SURFACES, mainDeckLeft, mainDeckRight, mainDeckUndersideZ, mainDeckZ, solidSurfaceAt, solidSurfaceCount, surfaceCount, surfaceLeft, surfaceMoves, surfaceRight, surfaceZ } from "./stage";
+import { type Character } from "./codes";
+import { createFighter } from "./fighter";
+import { SELECTABLE_CHARACTERS } from "./heroes/registry";
+import { advanceSolo, controls } from "./testWorld";
 
 // smashcraft:docs/design/stages.md, "Main-deck topology".
 /** The ranked stages whose main deck has walls and an underside; Blackrock's is a floor, as Kongo Jungle's. */
@@ -55,5 +59,53 @@ test("each main deck is mirror-symmetric, hangs from two ledges and stays under 
     }
     const bottom = lines.find((line) => line.startZ === line.endZ && line.kind === SurfaceContact.ceiling);
     assertEquals(bottom?.startZ, mainDeckUndersideZ(id), `${name}: level underside`);
+  }
+});
+
+// smashcraft:docs/design/stages.md, "Layout archetypes".
+/** A stage's platforms by span and height; a moving one at two moments of its path. */
+const platformLayout = (stage: number): string => {
+  const parts: string[] = [];
+  const at = (index: number, frame: number) => `${surfaceLeft(stage, index, frame)}..${surfaceRight(stage, index, frame)}@${surfaceZ(stage, index, frame)}`;
+  for (let index = 1; index < surfaceCount(stage); index++) {
+    parts.push(surfaceMoves(stage, index) ? `moving ${at(index, 0)} then ${at(index, 150)}` : at(index, 0));
+  }
+  return parts.join(" ");
+};
+
+test("each ranked stage has its own platform layout", () => {
+  const seen: string[] = [platformLayout(0)];
+  for (const { id, name } of STAGE_CATALOG.filter(stage => stage.id !== 0)) {
+    const layout = platformLayout(id);
+    assertEquals(seen.includes(layout), false, `${name} repeats another stage's platforms: ${layout}`);
+    seen.push(layout);
+  }
+});
+
+/** The highest a fighter's feet reach from the floor: a full hop, then its double jump at the top. */
+function doubleJumpApex(character: Character): number {
+  const fighter = createFighter(character, 0.0, 1);
+  let apex = 0.0;
+  let doubled = false;
+  for (let frame = 0; frame < 160; frame++) {
+    let input = controls(frame < 20 ? { jumpPressed: frame === 0, jumpHeld: true } : {});
+    if (!doubled && frame > 3 && !fighter.motion.grounded && fighter.motion.vz <= 0) {
+      input = controls({ jumpPressed: true, jumpHeld: true });
+      doubled = true;
+    }
+    advanceSolo(fighter, 0, input, 0.0);
+    apex = Math.max(apex, fighter.motion.z);
+  }
+  return apex;
+}
+
+test("every fighter reaches every ranked stage's static platforms with a jump and a double jump", () => {
+  let lowest = Number.POSITIVE_INFINITY;
+  for (const character of SELECTABLE_CHARACTERS) lowest = Math.min(lowest, doubleJumpApex(character));
+  for (const { id, name } of STAGE_CATALOG) {
+    for (let index = 1; index < surfaceCount(id); index++) {
+      if (surfaceMoves(id, index)) continue;
+      assertEquals(surfaceZ(id, index, 0) < lowest, true, `${name} platform ${index} at ${surfaceZ(id, index, 0)} is beyond ${lowest}`);
+    }
   }
 });

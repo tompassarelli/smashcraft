@@ -115,6 +115,11 @@ const GRYPHON_DECKS = [MAIN_DECK,
   fixed(291.0, 480.0, melee(23.5), true),
   fixed(-94.5, 94.5, melee(42.0), true),
 ];
+/**
+ * Blackrock's forge: one static platform over the centre, after Ultimate's
+ * Hollow Bastion (Smashville's static twin): 25 up and 0.3 of the stage wide.
+ */
+const BLACKROCK_DECKS = [MAIN_DECK, fixed(-180.0, 180.0, melee(25.0), true)];
 const HELLFIRE_DECKS = [MAIN_DECK, fixed(-450.0, -270.0, melee(25.0), true), fixed(270.0, 450.0, melee(25.0), true)];
 const SOLID_RAISED_DECKS = [MAIN_DECK, fixed(-420.0, -110.0, 170.0, false), fixed(110.0, 420.0, 170.0, false)];
 
@@ -176,7 +181,7 @@ const STAGE_DECKS: readonly (readonly Deck[])[] = [
 
 function stageDecks(stage: number): readonly Deck[] {
   if (stage === WIND_TEST_STAGE) return NORDRASSIL_DECKS;
-  if (stage === CANNON_TEST_STAGE) return FROZEN_THRONE_DECKS;
+  if (stage === CANNON_TEST_STAGE) return BLACKROCK_DECKS;
   if (stage === HELLFIRE_STAGE) return HELLFIRE_DECKS;
   if (stage === CARRIED_TEST_STAGE) return CARRIED_DECKS;
   if (stage === TIMED_TEST_STAGE) return TIMED_DECKS;

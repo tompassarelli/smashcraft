@@ -541,6 +541,60 @@ the interaction graph) measure Final Destination's walls on stage 0. Each
 stage's drawn main deck is generated from its own outline by
 smashcraft:tools/stage/package.ts.
 
+## Layout archetypes
+
+Platforms decide how a stage plays, more than its art (#154). From the
+layouts and player accounts above:
+
+- **Low platforms** (Yoshi's Story's 23.5, Pokémon Stadium's 25) are
+  reached in one hop, so they extend combos and let a juggled fighter land
+  quickly; they also give camping fighters a nearby ledge to retreat to.
+- **High platforms** (Dream Land's 30 and 51.4) take a double jump to the top;
+  juggles run longer under them and floaty fighters live longer beneath a
+  high ceiling.
+- **Three platforms** (Battlefield) give the most landing options, so
+  juggles break more often than on two or none; Battlefield is the default
+  neutral because it is "large enough for movement tech but not large enough
+  to encourage stalling"
+  ([SmashWiki](https://www.ssbwiki.com/Battlefield_(SSBU))).
+- **No platforms** (Final Destination) favour chain grabs, projectiles and
+  juggles: nothing to land on, nowhere to camp above.
+- **One platform**: Smashville moves it, so its value changes with time;
+  Hollow Bastion holds one still and is the hazards-off Smashville with
+  Final Destination's blast zones, a starter on some lists
+  ([SmashWiki](https://www.ssbwiki.com/Hollow_Bastion)).
+- **Timed platforms** (Town and City's alternating sets, Randall) make
+  stage position a matter of timing: a fighter reads where relief will be.
+
+### Smashcraft's layouts
+
+Each ranked stage takes a different archetype; the main deck is 1,200 wide on
+every stage (Main-deck topology, above). Heights are above the main deck in
+world units, then in full hops and in a full hop plus double jump of the
+reference fighter (Archer, and every hero: 188 and 429; Rifleman 309 and 559,
+Illidan 245 and 517). Ledge to blast zone: Frozen Throne 1,270 sideways, 1,500
+up, 816 down; every other stage 963, 1,128 and 840 (Final Destination's,
+smashcraft:ts/src/game/sim/stageBounds.ts).
+
+| Stage | Archetype | Platforms (width at height; hops; share of jump and double jump) |
+| --- | --- | --- |
+| Frozen Throne | Battlefield | two 330 at 163 (0.87; 0.38), one 330 at 326 (1.74; 0.76) |
+| Nordrassil | Dream Land, high | two 180 at 180 (0.96; 0.42), one 228 at 309 (1.64; 0.72) |
+| Gryphon Aerie | Yoshi's Story, low, with Randall | two 189 at 141 (0.75; 0.33), one 189 at 252 (1.34; 0.59), and a carried 220 looping from 120 to 300 |
+| Durotar Skies | Smashville | one 360 drifting side to side at 180 (0.96) |
+| Naxxramas | Town and City | a 260 lift from 120 to 300 on the left, a 240 looping 150 to 270 on the right |
+| Hellfire Citadel | Pokémon Stadium | two 180 at 150 (0.80; 0.35) |
+| Blackrock | Hollow Bastion | one 360 at 150 (0.80; 0.35), static, over the swinging cannon |
+| Ahn'Qiraj | Final Destination with a timed lift | the 260 lift from 120 to 300 only |
+| Sky Deck (test) | Final Destination | none |
+
+Blackrock was a second Battlefield; it now holds one static forge platform,
+so no two ranked stages share a layout.
+smashcraft:ts/src/game/sim/stageTopology.tests.ts checks that and that
+every fighter reaches every static platform with a jump and a double jump;
+smashcraft:ts/src/game/match/stageRecoveryContracts.tests.ts checks
+recovery to every stage.
+
 ## Smashcraft decisions
 
 The questions this research raised about the flat arena, platform motion,
