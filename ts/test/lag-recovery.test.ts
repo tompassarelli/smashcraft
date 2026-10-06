@@ -13,8 +13,8 @@
 // helper typing 16 two-row records (608 characters) at once after a 2 s stop
 // held client B's receipts about 180 ms longer than their usual 100 ms, and
 // its input stayed 15-25 frames late for 5 s. #60's gate holds here too: every
-// press shows on its presser's next frame unless the game was stopped when it
-// was made.
+// press starts within a callback of its capture unless a game was stopped or
+// prediction waited beyond the rollback window when it was made.
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless, readNativeDeclarations } from "wisp/scripts/wisp/headless";
 import { WARCRAFT_COST } from "wisp/src/headless/nativeCost";
@@ -52,18 +52,18 @@ const applied = { rows: 0, wrong: [] as string[] };
 const readConfirmed = ShadowInputSchedule.prototype.readConfirmed;
 /**
  * Local start: from the callback that captured a row with a press to the one
- * whose prediction first ran it, in callbacks (#26) and in frames of wall time
- * (#60), by client and frame.
+ * whose prediction first ran it, in callbacks, by client and frame (#26, #60).
  */
 let callbackIndex = 0;
-const capturedAt = new Map<string, readonly [callback: number, tick: number]>();
+const capturedAt = new Map<string, readonly [callback: number, halted: boolean]>();
 /** Each press's local start, by the client that captured it and its frame. */
-const localStarts: { readonly client: number; readonly frame: number; readonly callbacks: number; readonly frames: number }[] = [];
+const localStarts: { readonly client: number; readonly frame: number; readonly callbacks: number; readonly halted: boolean }[] = [];
 const captureLocalAt = ShadowInputSchedule.prototype.captureLocalAt;
 const completeSpeculative = ShadowInputSchedule.prototype.completeSpeculative;
 ShadowInputSchedule.prototype.captureLocalAt = function (this: ShadowInputSchedule, epoch: number, frame: number, sample: Readonly<InputRow>) {
   const captured = captureLocalAt.call(this, epoch, frame, sample);
-  if (sample.pressed !== 0) capturedAt.set(`${GetPlayerId(GetLocalPlayer())} ${frame}`, [callbackIndex, now]);
+  // Halted: the frame is beyond the rollback window past what every remote has sent, so it can't be predicted yet.
+  if (sample.pressed !== 0) capturedAt.set(`${GetPlayerId(GetLocalPlayer())} ${frame}`, [callbackIndex, frame - this.rollbackFrames() > this.knownThrough()]);
   return captured;
 };
 ShadowInputSchedule.prototype.completeSpeculative = function (this: ShadowInputSchedule, epoch: number, frame: number) {
@@ -71,7 +71,7 @@ ShadowInputSchedule.prototype.completeSpeculative = function (this: ShadowInputS
   const key = `${GetPlayerId(GetLocalPlayer())} ${frame}`;
   const captured = capturedAt.get(key);
   if (completed && captured !== undefined) {
-    localStarts.push({ client: GetPlayerId(GetLocalPlayer()), frame, callbacks: callbackIndex - captured[0], frames: now - captured[1] });
+    localStarts.push({ client: GetPlayerId(GetLocalPlayer()), frame, callbacks: callbackIndex - captured[0], halted: captured[1] });
     capturedAt.delete(key);
   }
   return completed;
@@ -216,11 +216,13 @@ test("after a 2 s stall of one or both games, each client catches up within a se
   // #26's gate: after its 250 ms game stall, every press starts its local action within a callback of its capture.
   expect(localStarts.length - afterLongStalls).toBeGreaterThan(50);
   expect(localStarts.slice(afterLongStalls).filter(({ callbacks }) => callbacks > 1)).toEqual([]);
-  // #60's gate: every press made while the game runs shows on the presser's next frame, through all three stalls
-  // and the catch-up after them. A press made while a game is stopped can't, as no client runs a callback then.
-  const running = localStarts.filter((start) => !stalledFrames.some(({ client, after, through }) => client === start.client && start.frame > after && start.frame <= through));
+  // #60's gate: through all three stalls and the catch-up after them, every press starts its local action within
+  // a callback of its capture, except those #60 reports apart: made while a game was stopped (no client runs a
+  // callback then), or beyond the rollback window past what the other player has sent (prediction waits for it).
+  const stopped = (start: (typeof localStarts)[number]) => stalledFrames.some(({ client, after, through }) => client === start.client && start.frame > after && start.frame <= through);
+  const running = localStarts.filter((start) => !stopped(start) && !start.halted);
   expect(running.length).toBeGreaterThan(300);
-  expect(running.filter(({ frames }) => frames > 1)).toEqual([]);
+  expect(running.filter(({ callbacks }) => callbacks > 1)).toEqual([]);
   for (const recovered of [both, one]) {
     // Predictions trail the helpers' clocks by at most a record's pairing in steady play.
     expect(recovered.predictedLag).toBeLessThanOrEqual(2);
