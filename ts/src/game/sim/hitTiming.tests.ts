@@ -82,15 +82,15 @@ test("a shield contact freezes both bodies before shieldstun counts down", () =>
   testBeginAttacks(world, AttackStyle.jab, undefined);
   attacker.attack.frame = attackStartupFrames(AttackStyle.jab);
   resolveAttacks(world);
-  assertEquals(attacker.launch.hitlag, 7);
-  assertEquals(target.launch.hitlag, 7);
-  assertEquals(target.shield.stun, 7);
-  for (let tick = 1; tick <= 6; tick++) {
+  assertEquals(attacker.launch.hitlag, 4);
+  assertEquals(target.launch.hitlag, 4);
+  assertEquals(target.shield.stun, 4);
+  for (let tick = 1; tick <= 3; tick++) {
     advanceFighter(world, 1, 0, input, 240.0);
-    assertEquals(target.shield.stun, 7);
+    assertEquals(target.shield.stun, 4);
   }
   advanceFighter(world, 1, 0, input, 240.0);
-  assertEquals(target.shield.stun, 6);
+  assertEquals(target.shield.stun, 3);
 });
 
 test("a detached projectile impact does not freeze its shooter", () => {

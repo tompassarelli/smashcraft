@@ -1809,8 +1809,9 @@ outcome beside the value cited from the decompilation and the retail reference
 corpus, with the constant and source path for each scenario, then the counts
 per area. The scenarios are in smashcraft:ts/scripts/meleeOracle.ts: jump squat
 and hop heights, dash/run/walk speeds, fast-fall, landing lag, floor techs,
-get-up options and timings, the tumble threshold, pass-through platforms, wall
-and ceiling techs, shield release and dodges, and ledge catches.
+get-up options and timings, the tumble threshold, pass-through platforms, the
+main deck's walls and underside (where launches meet them and the techs off
+them), shield release and dodges, and ledge catches, one from against the wall.
 smashcraft:ts/scripts/meleeOracle.tests.ts runs the table in the test suite and
 fails on any mismatch not listed in its `KNOWN_MISMATCHES`, and on a listed row
 that now passes. A deliberate difference from Melee is reported as a departure
@@ -1838,10 +1839,72 @@ wall or ceiling tech. In Melee a platform is a floor line flagged
 the ECB bottom descends, `mpCheckCeiling` scans ceiling-kind lines only, and
 `mpJointUpdateDynamics` disables a platform line that is not floor-kind;
 `mpColl_80044628_Floor` (melee:src/melee/mp/mpcoll.c) skips the platform being
-dropped through. On the playable stages the only solid face is the main deck's
-underside (z -54, x within ±528). Wall and ceiling contact tests use
-`SOLID_DECK_TEST_STAGE` (smashcraft:ts/src/game/sim/stage.ts), stage 1's layout
-with solid raised decks, which no match can select.
+dropped through. The main deck's walls and underside are below.
+
+## Main deck walls and underside
+
+Every stage's main deck has Final Destination's side walls and underside.
+Final Destination is the reference because stage 0 is its layout, one flat
+deck, and stage 1 keeps the same main deck. The lines come from its
+`coll_data` (melee:src/melee/mp/types.h `MapCollData`, `MapLine`; loaded by
+`mpLibLoad` in melee:src/melee/mp/mplib.c) in the owner's GALE01 revision 2
+GrNLa.dat (611125 bytes, SHA-1 fa607d7bb7dd4072d2d3968e1e31fd458bc397f8),
+whose `grGroundParam` scale (`Ground_801C0498`) is 1. The private reader is
+~/.local/share/smashcraft-melee-reference/stage-collision-facts.ts; only the
+numbers below are kept.
+
+Below its floor (ledge vertices at x ±85.5657, y 0) each side is five
+wall lines and a short sloped underside, in Melee units:
+
+| Line | Kind | From | To |
+| --- | --- | --- | --- |
+| 9 | right wall | (85.5657, 0) | (85.5657, -10.5) |
+| 10 | right wall | (85.5657, -10.5) | (65.7993, -20.4538) |
+| 7 | right wall | (65.7993, -20.4538) | (65.8374, -31.3443) |
+| 8 | right wall | (65.8374, -31.3443) | (61.4195, -47.3663) |
+| 6 | right wall | (61.4195, -47.3663) | (53.7736, -54.2584) |
+| 5 | ceiling | (53.7736, -54.2584) | (47.4560, -55.3882) |
+| 4 | ceiling | (47.4560, -55.3882) | (-47.4560, -55.3882) |
+
+Lines 3, 15, 14, 12, 13 and 11 mirror lines 5, 6, 8, 7, 10 and 9 on the left.
+The face kinds are Melee's: line 10 slopes in under the ledge but is a wall,
+so a launch into it can wall tech. smashcraft:ts/src/game/sim/stage.ts keeps
+each side's lines as far from its own ledge as they are from Final
+Destination's, at six world units per Melee unit. Smashcraft's deck is 200 Melee units wide to Final
+Destination's 171.13, so the level underside spans the wider deck between the
+sides: in world units the walls drop straight from each ledge (x ±600) to z -63,
+slope in to x ±481.4 at z -122.7, and meet the underside at z -332.33,
+which spans x ±371.3. The drawn deck model (smashcraft:tools/stage/package.ts)
+is still the 54-unit slab and does not show the body below it.
+
+A fighter meets a wall with its flank: Melee's ECB side touches the wall, and
+`mpColl_LoadECB_JObj` (melee:src/melee/mp/mpcoll.c) keeps an airborne ECB at
+least 2 units a side. Smashcraft fighters use that 2-unit half-width
+(`BODY_HALF_WIDTH`, smashcraft:ts/src/game/sim/surfaces.ts), so a fighter
+stopped against the wall below a ledge stands 12 world units outside it, and
+its ledge catch box (which adds the same half-width) still holds the ledge.
+Undersides stop the feet. A wall moves the fighter but not its own velocity,
+as Melee's airborne collision only moves the position (`ft_800835B0`,
+melee:src/melee/ft/ft_081B.c): launch velocity into the wall stops, or a
+tumbling launch rebounds at 0.8, and a fighter that rises past the wall's top
+carries on over the stage. An underside stops a rise. A fighter that slips past
+a ledge's corner within its half-width of the wall, as when running off the
+ledge, is moved out sideways to its flank, as Melee's ECB slides off the
+corner. A wall tech pushes off along the facing it turns to, away from even a
+sloped wall (`ftCo_PassiveWall_Anim`).
+
+Ledge actions don't collide with the body; Melee's cliff actions run their own
+collision (`ftCo_CliffClimb_Coll`). Climbs, rolls and ledge attacks pass through
+it onto the floor. A ledge jump starts beside the wall below the ledge, slides
+up its face and carries its inward speed onto the stage. Wall and ceiling
+contact tests on raised decks use `SOLID_DECK_TEST_STAGE`
+(smashcraft:ts/src/game/sim/stage.ts), stage 1's layout with solid raised
+decks, which no match can select.
+smashcraft:ts/src/game/sim/surfaces.tests.ts checks the geometry against the
+table, smashcraft:ts/src/game/match/wallTechInputContracts.tests.ts launches
+each fighter into the side through helper journal rows and techs off it, and
+the oracle's wall/ceiling and ledge rows check where launches meet the side and
+underside, the techs off them and a catch from against the wall.
 
 ## Shield presentation boundary
 
@@ -2015,7 +2078,8 @@ melee:src/melee/ft/ft_081B.c. Only facts and values are used.
   snap y minus and plus half the height above its feet. Both ranges sweep the
   frame's start and end positions, so a fast fall can't pass through. Melee's
   half-width is the animated airborne collision box, never under 2 units
-  (`mpColl_LoadECB_JObj`); Smashcraft fighters collide as points and use 2.
+  (`mpColl_LoadECB_JObj`); Smashcraft fighters use 2, the flank they also meet
+  walls with (see "Main deck walls and underside").
 
 | Fighter | Reference data | Snap x / y / height (Melee units) | Reach (world) | Ledge above feet (world) |
 | --- | --- | --- | --- | --- |
