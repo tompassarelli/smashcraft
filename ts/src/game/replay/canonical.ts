@@ -248,7 +248,6 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
     real(`motion[${index}].velocityZ`, segment.velocityZ);
     real(`motion[${index}].aimedSpeed`, segment.aimedSpeed ?? 0.0);
     real(`motion[${index}].driftSpeed`, segment.driftSpeed ?? 0.0);
-    int(`motion[${index}].offsetsGravity`, segment.offsetsGravity === true ? 1 : 0);
   }
   const poses = move.hurt ?? [];
   for (let index = 0; index < poses.length; index++) {

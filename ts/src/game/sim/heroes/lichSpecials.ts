@@ -47,7 +47,7 @@ function ascent(cost: number, height: number): AuthoredSpecial {
   return {
     cost,
     endFrame: 34,
-    motion: [{ ...frames(10, 34), velocityX: 0.0, velocityZ: f32(h(height) / ASCENT_FRAMES), driftSpeed: f32(h(f32(0.4)) / ASCENT_FRAMES), offsetsGravity: true }],
+    motion: [{ ...frames(10, 34), velocityX: 0.0, velocityZ: f32(h(height) / ASCENT_FRAMES), driftSpeed: f32(h(f32(0.4)) / ASCENT_FRAMES) }],
     oncePerAirtime: true,
     helpless: true,
   };
