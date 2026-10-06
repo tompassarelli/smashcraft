@@ -50,3 +50,10 @@ smashcraft:docs/playable-0041.md. Install one current map in Warcraft's flat
 - [Netcode design](docs/netcode-proposal.md)
 - [Gameplay design decisions](docs/gameplay-design.md)
 - [Documentation index](docs/README.md) · [Trial evidence records](evidence/README.md)
+
+## License
+
+Smashcraft is released under the [MIT License](LICENSE). The vendored Effect
+source under repos/effect/ keeps its own MIT license. Warcraft III, Super Smash
+Bros. Melee and their assets belong to their owners and are not part of this
+repository; reference values cite their sources.
