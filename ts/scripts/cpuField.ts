@@ -79,6 +79,13 @@ interface SideRecord {
   readonly moves: Record<number, number>;
   hitsLanded: number;
   damageDealt: number;
+  /** Mana paid for specials and their branches (sim/mana.ts). */
+  manaSpent: number;
+  specialsStarted: number;
+  /** Special presses refused for want of mana. */
+  specialsRefused: number;
+  /** Stocks lost plus the one still standing at the end. */
+  stocksPlayed: number;
   readonly stockLosses: { readonly frame: number; readonly sinceHit: number | undefined; readonly selfDestruct: boolean }[];
 }
 
@@ -115,6 +122,9 @@ export interface FieldOptions {
 interface Watch {
   serial: number;
   special: number;
+  specialForm: number;
+  mana: number;
+  denied: number;
   specialFrame: number;
   hits: number;
   damage: number;
@@ -125,7 +135,7 @@ interface Watch {
 }
 
 const watchOf = (f: Readonly<Fighter>): Watch => ({
-  serial: f.attack.serial, special: f.special.action, specialFrame: f.special.frame, hits: f.visuals.hit, damage: f.status.damage, out: f.status.out, lastHit: undefined, lastSafe: undefined,
+  serial: f.attack.serial, special: f.special.action, specialFrame: f.special.frame, specialForm: f.special.form, mana: f.mana.points, denied: f.visuals.manaDenied, hits: f.visuals.hit, damage: f.status.damage, out: f.status.out, lastHit: undefined, lastSafe: undefined,
 });
 
 const NEUTRAL = neutralControls();
@@ -157,7 +167,7 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
   const runtime = createPacingAndPresentation();
   const row = createMatchFrameInput();
   initializeMatchFighters(match, world);
-  const side = (character: Character): SideRecord => ({ fighter: fighterSlug(character), moves: {}, hitsLanded: 0, damageDealt: 0, stockLosses: [] });
+  const side = (character: Character): SideRecord => ({ fighter: fighterSlug(character), moves: {}, hitsLanded: 0, damageDealt: 0, manaSpent: 0, specialsStarted: 0, specialsRefused: 0, stocksPlayed: 0, stockLosses: [] });
   const sides: [SideRecord, SideRecord] = [side(a), side(b)];
   const watches = [watchOf(fighterAt(world, 0)), watchOf(fighterAt(world, 1))] as const;
   const limit = (match.timeLimitMinutes * 60 + 5) * MATCH_TICKS_PER_SECOND;
@@ -178,7 +188,14 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
       const other = sides[1 - slot];
       if (f.attack.serial !== seen.serial && f.attack.style !== undefined) own.moves[f.attack.style] = (own.moves[f.attack.style] ?? 0) + 1;
       const special = specialMove(f.special.action);
-      if (special !== undefined && (f.special.action !== seen.special || f.special.frame < seen.specialFrame)) own.moves[special] = (own.moves[special] ?? 0) + 1;
+      const startedSpecial = special !== undefined && (f.special.action !== seen.special || f.special.frame < seen.specialFrame);
+      if (startedSpecial) {
+        own.moves[special] = (own.moves[special] ?? 0) + 1;
+        own.specialsStarted++;
+      }
+      const branched = special !== undefined && f.special.action === seen.special && f.special.form !== seen.specialForm;
+      if ((startedSpecial || branched) && f.mana.points < seen.mana) own.manaSpent += seen.mana - f.mana.points;
+      own.specialsRefused += f.visuals.manaDenied - seen.denied;
       if (f.visuals.hit !== seen.hits && other !== undefined) {
         other.hitsLanded++;
         seen.lastHit = frame;
@@ -194,11 +211,15 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
       seen.serial = f.attack.serial;
       seen.special = f.special.action;
       seen.specialFrame = f.special.frame;
+      seen.specialForm = f.special.form;
+      seen.mana = f.mana.points;
+      seen.denied = f.visuals.manaDenied;
       seen.hits = f.visuals.hit;
       seen.damage = f.status.damage;
       seen.out = f.status.out;
     }
   }
+  for (const slot of [0, 1] as const) sides[slot].stocksPlayed = sides[slot].stockLosses.length + (fighterAt(world, slot).status.stocks > 0 ? 1 : 0);
   return {
     stage: stageName, variant, seed, levels, fighters: [sides[0].fighter, sides[1].fighter],
     winner: match.winner === 0 || match.winner === 1 ? match.winner : null, timedOut: match.timedOut, frames: frame, sides,
@@ -264,6 +285,10 @@ interface FighterSummary {
   readonly noHitLosses: number;
   readonly noHitShare: number;
   readonly damagePerHit: number;
+  /** Mana paid for specials per stock played. */
+  readonly manaPerStock: number;
+  /** Special presses refused for want of mana, over special presses (started plus refused). */
+  readonly refusedShare: number;
   readonly moves: readonly MoveUse[];
 }
 
@@ -345,6 +370,7 @@ function summarizeField(records: readonly MatchRecord[]): FighterSummary[] {
   names.sort((x, y) => order.indexOf(x) - order.indexOf(y));
   return names.map((fighter) => {
     let matches = 0, wins = 0, losses = 0, ties = 0, timeOuts = 0, hits = 0, damage = 0, stockLosses = 0, noHit = 0, selfDestructs = 0;
+    let manaSpent = 0, stocksPlayed = 0, specialsStarted = 0, specialsRefused = 0;
     const versus = new Map<string, { wins: number; decisive: number; matches: number }>();
     for (const record of records) {
       const slot = record.fighters.indexOf(fighter);
@@ -366,6 +392,10 @@ function summarizeField(records: readonly MatchRecord[]): FighterSummary[] {
         } else losses++;
       }
       hits += side.hitsLanded;
+      manaSpent += side.manaSpent;
+      stocksPlayed += side.stocksPlayed;
+      specialsStarted += side.specialsStarted;
+      specialsRefused += side.specialsRefused;
       damage += side.damageDealt;
       for (const loss of side.stockLosses) {
         stockLosses++;
@@ -382,6 +412,8 @@ function summarizeField(records: readonly MatchRecord[]): FighterSummary[] {
     return {
       fighter, matches, wins, losses, ties, timeOuts, winRate: wins + losses === 0 ? Number.NaN : wins / (wins + losses), against, played,
       stockLosses, selfDestructs, selfDestructShare: stockLosses === 0 ? 0 : selfDestructs / stockLosses, noHitLosses: noHit, noHitShare: stockLosses === 0 ? 0 : noHit / stockLosses, damagePerHit: hits === 0 ? Number.NaN : damage / hits,
+      manaPerStock: stocksPlayed === 0 ? Number.NaN : manaSpent / stocksPlayed,
+      refusedShare: specialsStarted + specialsRefused === 0 ? 0 : specialsRefused / (specialsStarted + specialsRefused),
       moves: moveUsage(records, fighter),
     };
   });
@@ -391,12 +423,12 @@ const percent = (value: number) => (Number.isNaN(value) ? "-" : `${(100 * value)
 
 function fieldTable(summaries: readonly FighterSummary[]): string {
   const lines = [
-    "| Fighter | Matches | Wins | Losses | Ties | Time-outs | Win rate vs field | Stock losses | Self-destructs (share) | Lost over 3 s after a hit (share) | Damage per hit | Top moves (share of moves started) |",
-    "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | ---: | --- |",
+    "| Fighter | Matches | Wins | Losses | Ties | Time-outs | Win rate vs field | Stock losses | Self-destructs (share) | Lost over 3 s after a hit (share) | Damage per hit | Mana spent per stock | Specials refused for mana (share of presses) | Top moves (share of moves started) |",
+    "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | ---: | ---: | ---: | --- |",
   ];
   for (const s of summaries) {
     const top = s.moves.slice(0, 6).map((use) => `${use.name} ${percent(use.share)}`).join(", ");
-    lines.push(`| ${s.fighter} | ${s.matches} | ${s.wins} | ${s.losses} | ${s.ties} | ${s.timeOuts} | ${percent(s.winRate)} | ${s.stockLosses} | ${s.selfDestructs} (${percent(s.selfDestructShare)}) | ${s.noHitLosses} (${percent(s.noHitShare)}) | ${s.damagePerHit.toFixed(2)} | ${top} |`);
+    lines.push(`| ${s.fighter} | ${s.matches} | ${s.wins} | ${s.losses} | ${s.ties} | ${s.timeOuts} | ${percent(s.winRate)} | ${s.stockLosses} | ${s.selfDestructs} (${percent(s.selfDestructShare)}) | ${s.noHitLosses} (${percent(s.noHitShare)}) | ${s.damagePerHit.toFixed(2)} | ${s.manaPerStock.toFixed(0)} | ${s.refusedShare === 0 ? "0%" : `${(100 * s.refusedShare).toFixed(1)}%`} | ${top} |`);
   }
   const names = summaries.map((s) => s.fighter);
   lines.push("", `| Row's win rate vs (matches) | ${names.join(" | ")} |`, `| --- |${names.map(() => " ---: |").join("")}`);

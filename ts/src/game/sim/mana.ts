@@ -116,3 +116,8 @@ export function contactEarnsMana(source: Readonly<Fighter>, kind: ContactKind, d
   if (kind === ContactKind.pummel || source.special.action !== SpecialAction.none) return false;
   return kind === ContactKind.throw || (direct && source.attack.style !== undefined);
 }
+
+/** Whether an original fighter can pay for the special action now; hero actions check their kit's form instead. */
+export function originalSpecialAffordable(f: Readonly<Fighter>, action: number): boolean {
+  return originalSpecialCost(action) <= f.mana.points;
+}
