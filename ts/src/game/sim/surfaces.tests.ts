@@ -167,14 +167,16 @@ function jumpBeneathDeck(character: Character, stage: number, deck: number, shor
   return { fighter, apex };
 }
 
-test("full and short hops rise through every pass deck and land on top", () => {
+test("full and short hops ascend every pass deck and land on top", () => {
   for (const character of PLAYABLE_FIGHTERS) {
     for (let deck = 1; deck < surfaceCount(1); deck++) {
       assertTrue(surfacePass(1, deck));
       for (const shortHop of [false, true]) {
         const { fighter, apex } = jumpBeneathDeck(character, 1, deck, shortHop);
         assertEquals(fighter.surfaceRecovery.contactSerial, 0);
-        assertGreaterThan(apex, surfaceZ(1, deck, 0));
+        // A short hop's aerial jump may spend its rise in the ascent and land as it ends (#103).
+        if (shortHop) assertTrue(apex >= surfaceZ(1, deck, 0));
+        else assertGreaterThan(apex, surfaceZ(1, deck, 0));
         assertTrue(fighter.motion.grounded);
         assertEquals(fighter.motion.surface, deck);
         assertEquals(fighter.motion.z, surfaceZ(1, deck, 0));

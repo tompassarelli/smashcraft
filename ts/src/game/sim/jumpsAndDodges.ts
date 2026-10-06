@@ -1,7 +1,7 @@
 // Starting jumps, air dodges and ground dodges.
 import { max } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
-import { Character, DownState, LedgeState, ShieldBreak, SurfaceContact } from "./codes";
+import { Character, DownState, LedgeState, PlatformMove, ShieldBreak, SurfaceContact } from "./codes";
 import { inGrabContext, inSurfaceTechStartup, isGroundDodging, isTumbling } from "./conditions";
 import type { Fighter } from "./fighter";
 import { clearDash } from "./groundMovement";
@@ -28,7 +28,8 @@ const sign = (value: number) => (value === 0 ? 0 : value > 0 ? 1 : -1);
 function lockedOut(f: Fighter): boolean {
   return inSurfaceTechStartup(f) || inGrabContext(f) || f.ledge.state !== LedgeState.none || f.status.out || f.special.fall
     || f.shield.breakState !== ShieldBreak.none || (f.down.state !== DownState.none && !isTumbling(f))
-    || f.launch.hitlag > 0 || f.launch.hitstun > 0 || f.shield.stun > 0 || f.landing.lag > 0 || f.attack.cooldown > 0;
+    || f.launch.hitlag > 0 || f.launch.hitstun > 0 || f.shield.stun > 0 || f.landing.lag > 0 || f.attack.cooldown > 0
+    || f.platform.move !== PlatformMove.none;
 }
 
 /** Starts jump squat on the ground or a double jump in the air. */

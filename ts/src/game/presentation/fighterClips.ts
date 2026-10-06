@@ -2,7 +2,7 @@
 // come from the packaged asset metadata; each hero registers its own in its
 // presentation (sim/heroes/<hero>Hero.ts). Tables only: pose selection lives in
 // fighterPose.
-import { AttackStyle, Character, GrabAction, LedgeState, SpecialAction } from "../sim/codes";
+import { AttackStyle, Character, GrabAction, LedgeState, PlatformMove, SpecialAction } from "../sim/codes";
 import { type HeroClip, type HeroClipTable, type HeroPose, STOCK_FALLBACK_CLIP } from "../sim/heroes/hero";
 import { heroDefinition } from "../sim/heroes/registry";
 import * as dh from "./demonHunterAssetInfo";
@@ -166,6 +166,19 @@ export function characterClips(character: number): HeroClipTable {
 /** The character's clip for a pose, or the hero's fallback when its table leaves the pose out. */
 export function clipFor(character: number, pose: HeroPose): HeroClip {
   return characterClips(character)[pose] ?? heroDefinition(character)?.presentation.fallback ?? STOCK_FALLBACK_CLIP;
+}
+
+/**
+ * A platform move plays the ledge clip every fighter's table maps: ascent the
+ * ledge climb, descent the ledge hang it lowers from, and both wraps the
+ * ledge roll around the edge.
+ */
+export function platformClip(character: number, move: PlatformMove): HeroClip {
+  switch (move) {
+    case PlatformMove.ascent: return clipFor(character, "ledgeClimb");
+    case PlatformMove.descent: return clipFor(character, "ledgeHang");
+    default: return clipFor(character, "ledgeRoll");
+  }
 }
 
 export function ledgePose(state: LedgeState): HeroPose {

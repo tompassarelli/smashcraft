@@ -5,7 +5,7 @@
 import { max, min } from "../../runtime/numbers";
 import { divideFloat32, roundToFloat32, subtractFloat32 } from "wisp/src/sim/binary32";
 import { f32 } from "wisp/src/sim/f32";
-import { Character, DownState, GroundAction, LedgeState, ShieldBreak, SpecialAction, SurfaceContact } from "./codes";
+import { Character, DownState, GroundAction, LedgeState, PlatformMove, ShieldBreak, SpecialAction, SurfaceContact } from "./codes";
 import {
   SPOT_DODGE_FRAMES,
   GROUND_ROLL_FRAMES,
@@ -54,6 +54,7 @@ import {
   totalVelocityZ,
 } from "./motion";
 import { observeActionDecision, observeActionStart } from "./observations";
+import { advancePlatformMove, beginPlatformAscent, beginPlatformDescent, beginPlatformWrapUnder, trackWrapMotion } from "./platformMoves";
 import { type Controls, type Roster, fighterAt } from "./roster";
 import { travelBeforeBodies } from "./travelStop";
 import {
@@ -85,7 +86,6 @@ const FAST_FALL_DOWN_THRESHOLD = 0.6625000238418579;
 const STICK_SMASH_DEADZONE_X = 0.25;
 /** Melee common +0x210/+0x214: tumble ends on a flick at least this far sideways, on the frame it crosses the deadzone. */
 const TUMBLE_EXIT_STICK_X = 0.800000011920929;
-const PLATFORM_DROP_FRAMES = 12;
 /** Dash-to-guard after the early window opens a dash-grab window this long. */
 const LATE_DASH_GUARD_GRAB_WINDOW = 3;
 /** Action bits in decision observations. */
@@ -305,7 +305,7 @@ function landingDeck(f: Fighter, stage: number, matchFrame: number, oldX: number
     const fromX = follows ? f32(oldX + surfaceShiftX(stage, i, matchFrame)) : oldX;
     const fromZ = follows ? f32(oldZ + surfaceShiftZ(stage, i, matchFrame)) : oldZ;
     if ((follows ? f32(rise - surfaceShiftZ(stage, i, matchFrame)) : rise) > 0) continue;
-    if (!(fromZ >= platformZ && motion.z <= platformZ && !(surfacePass(stage, i) && motion.dropTime > 0))) continue;
+    if (!(fromZ >= platformZ && motion.z <= platformZ)) continue;
     const fraction = fromZ === motion.z ? 1.0 : f32(f32(fromZ - platformZ) / f32(fromZ - motion.z));
     const crossingX = f32(fromX + f32(f32(motion.x - fromX) * fraction));
     const left = surfaceLeft(stage, i, matchFrame);
@@ -345,6 +345,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   const stickSide = horizontalStick >= STICK_SMASH_DEADZONE_X ? 1 : horizontalStick <= -STICK_SMASH_DEADZONE_X ? -1 : 0;
   const tumbleExitFlick = stickSide !== 0 && stickSide !== motion.previousStickSide && Math.abs(horizontalStick) >= TUMBLE_EXIT_STICK_X;
   motion.stickSideAge = stickSide === 0 ? WALL_JUMP_FLICK_FRAMES : stickSide === motion.previousStickSide ? min(WALL_JUMP_FLICK_FRAMES, motion.stickSideAge + 1) : 0;
+  trackWrapMotion(f, stickSide, stickSide !== motion.previousStickSide, input.down);
   motion.previousStickSide = stickSide;
   // Expiry resumes this frame, including input gates and state countdowns.
   const hitlagBefore = launch.hitlag;
@@ -432,6 +433,16 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   advanceGroundDodge(f, groundDodgeStarted);
   checkBlastZone(world, slot, stage);
   if (status.out) return;
+  if (f.platform.move !== PlatformMove.none) {
+    const transitOldX = motion.x;
+    const transitOldZ = motion.z;
+    status.invincible = max(0, status.invincible - 1);
+    advancePlatformMove(f, stage, matchFrame, input);
+    motion.deltaX = f32(motion.x - transitOldX);
+    motion.deltaZ = f32(motion.z - transitOldZ);
+    checkBlastZone(world, slot, stage);
+    return;
+  }
   const downOldX = motion.x;
   const downOldZ = motion.z;
   if (advanceDownState(f, stage, matchFrame, input)) {
@@ -445,7 +456,6 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   shield.stun = max(0, shield.stun - 1);
   status.invincible = max(0, status.invincible - 1);
   if (dodge.airDodging) dodge.airFrame = min(AIR_DODGE_ANIMATION_FRAMES, dodge.airFrame + 1);
-  motion.dropTime = max(0, motion.dropTime - 1);
   const dodgeActive = dodge.airMotionFrames > 0;
   dodge.airMotionFrames = max(0, dodge.airMotionFrames - 1);
   shield.releaseLag = max(0, shield.releaseLag - 1);
@@ -492,13 +502,13 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
     const drag = motion.grounded ? physics.traction : physics.airFriction;
     motion.vx = motion.vx > 0 ? max(0.0, f32(motion.vx - drag)) : min(0.0, f32(motion.vx + drag));
   }
-  // Melee drops only on a fresh press (ftCo_Pass.c), so landing on a deck with down held stays on it.
-  if (input.down && motion.fastFallInputAge < PLATFORM_DROP_INPUT_WINDOW && !input.attackRequested && down.state === DownState.none
+  // A fresh down, as Melee's drop needs (ftCo_Pass.c), descends; landing on a deck with down held stays on it, and the
+  // tilt modifier keeps a digital down for crouching and down tilts.
+  if (input.down && !input.walking && motion.fastFallInputAge < PLATFORM_DROP_INPUT_WINDOW && !input.attackRequested && down.state === DownState.none
     && motion.grounded && motion.surface !== undefined && surfacePass(stage, motion.surface) && canAttack(f)) {
-    motion.dropTime = PLATFORM_DROP_FRAMES;
-    jump.remaining = min(jump.remaining, 1);
-    motion.grounded = false;
-    motion.vz = -2.0;
+    beginPlatformDescent(f, stage, matchFrame);
+    checkBlastZone(world, slot, stage);
+    return;
   }
   const oldX = motion.x;
   const oldZ = motion.z;
@@ -529,10 +539,13 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   if (!isGroundDodging(f)) moveMeleeX(f, windPush(stage, matchFrame, motion.x, motion.z));
   const frameDeltaX = f32(motion.x - oldX);
   let wallSide = resolveSolidSurfaceContacts(f, stage, oldX, oldZ, input);
-  const landing = landingDeck(f, stage, matchFrame, oldX, oldZ, carried);
-  if (landing !== undefined) {
+  // Rising into a platform ascends it; a half-circle onto one wraps under it instead of landing.
+  const ascending = beginPlatformAscent(f, stage, matchFrame, oldZ);
+  const landing = ascending ? undefined : landingDeck(f, stage, matchFrame, oldX, oldZ, carried);
+  const wrapping = landing !== undefined && beginPlatformWrapUnder(f, stage, matchFrame, landing);
+  if (landing !== undefined && !wrapping) {
     finishLanding(f, stage, matchFrame, input, landing, false);
-  } else {
+  } else if (!ascending && !wrapping) {
     // Moving into a wall that leans out puts the fighter inside the body
     // rather than across a face; moved back out, it is against that wall as
     // Melee's collision reports it. One leaving a ledge's corner is not.

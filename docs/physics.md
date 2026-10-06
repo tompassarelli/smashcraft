@@ -1820,7 +1820,7 @@ adopted in smashcraft:docs/gameplay-design.md, "Execution and reaction windows".
 A current queued attack takes priority over voluntary platform dropping during
 the movement step. Action recovery also blocks the drop, so holding Down cannot
 drop through during down-smash startup/charge or down-tilt recovery. With no
-current attack or action lock, a fresh Down drops through passable platforms:
+current attack or action lock, a fresh Down starts a platform descent:
 like Melee's Pass check (melee:src/melee/ft/kinds/ftCommon/ftCo_Pass.c, stick
 down past PlCo +0x464 = 0.66 entered under PlCo +0x468 = 6 frames ago), the
 press must be under six input frames old. The fast-fall input age is that one
@@ -1872,6 +1872,14 @@ the ECB bottom descends, `mpCheckCeiling` scans ceiling-kind lines only, and
 `mpJointUpdateDynamics` disables a platform line that is not floor-kind;
 `mpColl_80044628_Floor` (melee:src/melee/mp/mpcoll.c) skips the platform being
 dropped through. The main deck's walls and underside are below.
+
+Smashcraft departs from Melee's instant pass-through (#103): a body rising into
+a platform plays a platform ascent, a fresh Down on one a platform descent, and
+a half-circle at airborne contact a wrap around its edge, each lasting the
+fighter's jump squat (smashcraft:docs/gameplay-design.md, "Platforms";
+smashcraft:ts/src/game/sim/platformMoves.ts). The walking modifier keeps a
+digital Down on a platform for crouching and down tilts. Landing from above and
+the platforms' lack of walls and underside are unchanged.
 
 ## Main deck walls and underside
 

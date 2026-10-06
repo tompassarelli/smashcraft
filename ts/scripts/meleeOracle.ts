@@ -11,7 +11,7 @@
 // owner's GALE01 revision 2 PlCo.dat (SHA-1 c904de0c4c5eb3ef65211a75d8bd70ca5b0f9f41);
 // the retail files stay private, only the cited numbers appear here.
 import { Action } from "../src/game/input/actions";
-import { AttackStyle, Character, ContactKind, DownState, LedgeState, SurfaceContact } from "../src/game/sim/codes";
+import { AttackStyle, Character, ContactKind, DownState, LedgeState, PlatformMove, SurfaceContact } from "../src/game/sim/codes";
 import { isIntangible } from "../src/game/sim/conditions";
 import { beginDamageContacts, collectDamageContact, finishDamageContacts } from "../src/game/sim/contacts";
 import { type Fighter, createFighter } from "../src/game/sim/fighter";
@@ -625,6 +625,35 @@ function landHoldingDown(character: Character, after: number): string {
   return standing(f);
 }
 
+/** A full hop under the raised deck with an up air on its first airborne frame: the aerial once the body has met the deck. */
+function upAirIntoDeck(character: Character): string {
+  const s = solo(1, character, UNDER_DECK_X);
+  const f = fighter(s);
+  const deckZ = surfaceZ(1, 1, 0);
+  let pressed = false;
+  for (let n = 1; n <= 60; n++) {
+    const press = !pressed && !f.motion.grounded;
+    pressed ||= press;
+    frame(s, press ? [Action.jump, Action.moveUp, Action.attack] : [Action.jump]);
+    if (f.motion.z + bodyTop(character) * WORLD_UNITS_PER_MELEE_UNIT < deckZ) continue;
+    if (f.attack.style === AttackStyle.upAir) return "up air continues";
+    return f.platform.move === PlatformMove.ascent ? "cancelled into an ascent" : "other";
+  }
+  return "never met the deck";
+}
+
+/** A fresh down on the raised deck: whether the fighter falls through at once or descends. */
+function downThroughDeck(character: Character): string {
+  const s = solo(1, character, UNDER_DECK_X);
+  const f = fighter(s);
+  f.motion.z = surfaceZ(1, 1, 0);
+  f.motion.surface = 1;
+  frame(s, []);
+  frame(s, [Action.moveDown]);
+  if (f.platform.move !== PlatformMove.descent) return f.motion.grounded ? "stays" : "falls through at once";
+  return `descends over ${String(f.platform.duration)} frames`;
+}
+
 const PLATFORM_LINES = "platforms are floor lines flagged LINE_FLAG_PLATFORM: mpCheckFloor hits them only while descending, mpCheckCeiling ignores them (melee:src/melee/mp/mplib.c, forward.h)";
 const PLATFORM_PASS = "Pass needs stick y <= -PlCo +0x464 (0.66) reached under PlCo +0x468 = 6 frames ago on a platform: melee:src/melee/ft/kinds/ftCommon/ftCo_Pass.c:26 ftCo_80099F1C; mpColl skips that platform";
 
@@ -673,6 +702,16 @@ const PLATFORMS: readonly Scenario[] = [
   } },
   { area: "platform", name: "full hop from under a raised deck", cite: PLATFORM_LINES, run: (c) => ({ expected: "raised deck", actual: fullHopUnderDeck(c) }) },
   { area: "platform", name: "down pressed on a raised deck", cite: PLATFORM_PASS, run: (c) => ({ expected: "main deck", actual: downOnDeck(c) }) },
+  {
+    area: "platform", name: "up air rising into a raised deck", cite: `${PLATFORM_LINES}; a fighter's action is unchanged by passing a platform`,
+    departure: "Platform ascent: the body meeting a platform from below cancels the attack into an ascent over the jump squat (owner decision 2026-10-06, #103)",
+    run: (c) => ({ expected: "up air continues", actual: upAirIntoDeck(c) }),
+  },
+  {
+    area: "platform", name: "fresh down on a raised deck: how the fighter leaves it", cite: `${PLATFORM_PASS}; ftCo_Pass enters a fall at once`,
+    departure: "Platform descent: a vulnerable descent over the jump squat (owner decision 2026-10-06, #103)",
+    run: (c) => ({ expected: "falls through at once", actual: downThroughDeck(c) }),
+  },
   { area: "platform", name: "falling onto a raised deck holding down: landing", cite: `${PLATFORM_LINES}; airborne collision has no stick test (melee:src/melee/ft/ft_081B.c)`, run: (c) => ({ expected: "raised deck", actual: landHoldingDown(c, 0) }) },
   { area: "platform", name: "still holding down 30 frames after that landing", cite: PLATFORM_PASS, run: (c) => ({ expected: "raised deck", actual: landHoldingDown(c, 30) }) },
 ];

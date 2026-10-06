@@ -4,7 +4,7 @@ import { stageBounds } from "../sim/stageBounds";
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { createFighter } from "../sim/fighter";
-import { AttackPhase, AttackStyle, Character, DownState, GrabAction, GroundAction, LedgeState, ProjectileKind, ShieldBreak, SurfaceContact } from "../sim/codes";
+import { AttackPhase, AttackStyle, Character, DownState, GrabAction, GroundAction, LedgeState, PlatformMove, ProjectileKind, ShieldBreak, SurfaceContact } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 import { beginFighterAttack } from "../sim/attacks";
 import { attackPhase } from "../sim/conditions";
@@ -499,7 +499,8 @@ test("downOnlyDropsWhenAttackQueueIsEmptyExpiredOrFuture", () => {
     }
     stepMatch(game, testRoster(first, second), testFrameControls(firstInput, secondInput, firstCommands, secondCommands), 1);
     assertFalse(first.motion.grounded);
-    assertLessThan(first.motion.z, 170.0);
+    // The drop is a platform descent, which lowers the fighter over its jump squat (#103).
+    assertEquals(first.platform.move, PlatformMove.descent);
     assertEquals(first.attack.style, undefined);
     assertFalse(firstInput.attackRequested);
   }
