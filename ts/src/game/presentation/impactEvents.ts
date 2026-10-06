@@ -3,6 +3,7 @@ import { imod } from "wisp/src/sim/intMath";
 import { type Character, DownState, LedgeState, ShieldBreak, SurfaceContact } from "../sim/codes";
 import { isFloorTeching, isGroundDodging, isTumbling } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
+import { HitElement } from "../sim/hitRegions";
 import { LEDGE_HANG_DEPTH, LEDGE_HANG_OUTSET } from "../sim/ledge";
 import { SMASH_MAX_CHARGE_FRAMES } from "../sim/moves";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "../sim/tuning";
@@ -32,6 +33,7 @@ export interface ImpactEvents {
   previousGroundDodge: number;
   previousSurfaceContactSerial: number;
   previousHitVisualSerial: number;
+  previousFrozenFrames: number;
   previousShieldVisualSerial: number;
   previousShieldReflectVisualSerial: number;
   previouslyGrounded: boolean;
@@ -61,6 +63,11 @@ export interface ImpactEvents {
   ledgeZ: number;
   hit: boolean;
   electric: boolean;
+  element: HitElement;
+  strength: number;
+  pummel: boolean;
+  shieldElectric: boolean;
+  footstep: "none" | "walk" | "run" | "dash";
   shieldHit: boolean;
   shieldReflect: boolean;
   shieldBreak: boolean;
@@ -96,7 +103,7 @@ export interface ImpactEvents {
 export function createImpactEvents(): ImpactEvents {
   return {
     previousDown: DownState.none, previouslyOut: false, previousGroundDodge: 0,
-    previousSurfaceContactSerial: 0, previousHitVisualSerial: 0, previousShieldVisualSerial: 0,
+    previousSurfaceContactSerial: 0, previousHitVisualSerial: 0, previousFrozenFrames: 0, previousShieldVisualSerial: 0,
     previousShieldReflectVisualSerial: 0, previouslyGrounded: true, previousJumpSerial: 0,
     previouslyAirDodging: false, previousShieldBreak: ShieldBreak.none, previousDashFrame: 0,
     previousX: 0.0, previousZ: 0.0, previousVelocityX: 0.0, previousDownFrame: 0,
@@ -104,6 +111,7 @@ export function createImpactEvents(): ImpactEvents {
     previousChargeFrames: 0, previousLedgeSerial: 0, previousLedgeState: LedgeState.none,
     previousLedgeSide: 0, grab: false, throwRelease: false, charge: false, ready: false,
     ledgeCatch: false, ledgeRecovery: false, ledgeX: 0.0, ledgeZ: 0.0, hit: false, electric: false,
+    element: HitElement.normal, strength: 0, pummel: false, shieldElectric: false, footstep: "none",
     shieldHit: false, shieldReflect: false, shieldBreak: false, ordinaryLanding: false,
     movementDust: false, runningDust: false, launchTrail: false, dodgeTrail: false, airDodge: false,
     respawn: false, jump: JumpCue.none, jumpOriginX: 0.0, jumpOriginZ: 0.0, character: 0, facing: 1,
@@ -120,6 +128,7 @@ export function captureImpactEventsBefore(events: ImpactEvents, fighter: Readonl
   events.previousGroundDodge = fighter.dodge.groundFrame;
   events.previousSurfaceContactSerial = fighter.surfaceRecovery.contactSerial;
   events.previousHitVisualSerial = fighter.visuals.hit;
+  events.previousFrozenFrames = fighter.status.frozenFrames;
   events.previousShieldVisualSerial = fighter.visuals.shield;
   events.previousShieldReflectVisualSerial = fighter.visuals.shieldReflect;
   events.previouslyGrounded = fighter.motion.grounded;
@@ -146,6 +155,8 @@ export function captureImpactEventsBefore(events: ImpactEvents, fighter: Readonl
   events.ledgeRecovery = false;
   events.hit = false;
   events.electric = false;
+  events.pummel = false;
+  events.footstep = "none";
   events.shieldHit = false;
   events.shieldReflect = false;
   events.shieldBreak = false;
@@ -206,6 +217,17 @@ export function finishImpactEventsAfter(events: ImpactEvents, fighter: Readonly<
   }
   events.hit = present && visuals.hit !== events.previousHitVisualSerial;
   events.electric = events.hit && visuals.hitElectric;
+  events.element = visuals.hitElement;
+  events.strength = visuals.hitStrength;
+  events.pummel = events.hit && visuals.hitPummel;
+  if (present && events.previousFrozenFrames === 0 && status.frozenFrames > 0) {
+    events.hit = true;
+    events.element = HitElement.ice;
+    events.electric = false;
+    events.pummel = false;
+    events.strength = 0;
+  }
+  events.shieldElectric = visuals.shieldElectric;
   events.shieldHit = present && visuals.shield !== events.previousShieldVisualSerial;
   events.shieldReflect = present && visuals.shieldReflect !== events.previousShieldReflectVisualSerial;
   events.shieldBreak = present && events.previousShieldBreak === ShieldBreak.none && shield.breakState !== ShieldBreak.none;
@@ -223,6 +245,11 @@ export function finishImpactEventsAfter(events: ImpactEvents, fighter: Readonly<
       const slowed = Math.abs(events.previousVelocityX) > f32(Math.abs(motion.vx) + f32(0.1));
       events.movementDust = (ground.dashFrame === 1 && events.previousDashFrame !== 1) || (moved && (reversed || slowed));
       events.runningDust = moved && Math.abs(motion.vx) > fighter.tuning.physics.walkSpeed;
+      if (ground.dashFrame === 1 && events.previousDashFrame !== 1) events.footstep = "dash";
+      else if (moved && attack.style === undefined && fighter.grab.target === undefined) {
+        const cadence = events.runningDust ? 8 : 16;
+        if (imod(ground.actionFrame, cadence) === 1) events.footstep = events.runningDust ? "run" : "walk";
+      }
     }
     const groundDodgeStep = dodge.groundFrame > events.previousGroundDodge && imod(dodge.groundFrame, 4) === 0;
     const downRollStep = (down.state === DownState.roll || down.state === DownState.techRoll)

@@ -15,6 +15,8 @@ leaves out is decided only in [gameplay design decisions](../../gameplay-design.
 - [Techniques and jank](techniques.md): emergent techniques and the engine
   mechanics that cause them, including wobbling, chain grabs and SDI teleports.
 - [Why](why.md): what the designer and the community have said about the game's shape.
+- [Hit and movement events](hit-effects.md): the effect and sound each hit, element,
+  strength, footstep and landing plays, read from the decompilation.
 
 ## Where the numbers come from
 
