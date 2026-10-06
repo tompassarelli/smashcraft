@@ -1,7 +1,7 @@
 import { f32 } from "wisp/src/sim/f32";
-import { AttackStyle, GrabAction } from "../codes";
+import { AttackStyle, GrabAction, HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT, heroMove, heroRegion, type FighterMoves, type StrikeCapsule } from "../heroMoves";
-import { HitElement, type HitEffect } from "../hitRegions";
+import type { HitEffect } from "../hitRegions";
 
 // smashcraft:docs/design/roster.md adopts these timings and damages. Geometry
 // is original and provisional until the matching weapon/body poses are seen.

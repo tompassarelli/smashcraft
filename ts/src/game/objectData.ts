@@ -3,6 +3,7 @@ import { CHUNKS_PER_FILE, FILE_IO_ABILITY } from "wisp/src/runtime/gameFiles";
 import { ARCHER_MODEL_FILE, RIFLEMAN_MODEL_FILE } from "./presentation/fighterAssetInfo";
 import { DEMON_HUNTER_MODEL_FILE } from "./presentation/demonHunterAssetInfo";
 import { Character } from "./sim/codes";
+import { SELECTABLE_CHARACTERS, heroDefinition } from "./sim/heroes/registry";
 
 export interface FighterObject {
   readonly base: string;
@@ -28,14 +29,29 @@ const fighterFields = {
   attackCooldown: 1.5,
 } as const;
 
+/** A hero's object, from its registered presentation. */
+function heroObject(character: Character): FighterObject {
+  const hero = heroDefinition(character);
+  if (hero === undefined) throw new Error(`hero ${character} is not registered`);
+  const { presentation } = hero;
+  return { ...fighterFields, base: presentation.baseUnit, id: presentation.objectId, name: hero.name, model: presentation.model, scale: presentation.scale };
+}
+
 export const FIGHTER_OBJECTS: Readonly<Record<Character, FighterObject>> = {
   [Character.archer]: { ...fighterFields, base: "earc", id: 0x6d666172, name: "Archer", model: ARCHER_MODEL_FILE },
   [Character.rifleman]: { ...fighterFields, base: "hrif", id: 0x6d667266, name: "Rifleman", model: RIFLEMAN_MODEL_FILE },
   [Character.demonHunter]: { ...fighterFields, base: "earc", id: 0x6d666468, name: "Illidan", model: DEMON_HUNTER_MODEL_FILE },
+  [Character.blademaster]: heroObject(Character.blademaster),
+  [Character.mountainKing]: heroObject(Character.mountainKing),
+  [Character.warden]: heroObject(Character.warden),
+  [Character.lich]: heroObject(Character.lich),
+  [Character.uther]: heroObject(Character.uther),
+  [Character.dreadlord]: heroObject(Character.dreadlord),
+  [Character.shadowHunter]: heroObject(Character.shadowHunter),
 };
 
-/** Explicit order for archive emission and synchronized native application. */
-export const FIGHTER_OBJECT_ORDER = [Character.archer, Character.rifleman, Character.demonHunter] as const;
+/** Explicit order for archive emission and synchronized native application: the selectable fighters. */
+export const FIGHTER_OBJECT_ORDER: readonly Character[] = SELECTABLE_CHARACTERS;
 
 /** FileIO's channel ability uses one tooltip per file chunk. */
 export const FILE_IO_OBJECT = {
