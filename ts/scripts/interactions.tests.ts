@@ -11,17 +11,17 @@ test("Archer's unspaced down air on shield is punishable out of shield", () => {
 });
 
 test("Archer's spaced fade-back forward air on shield is safe", () => {
-  const row = aerialOnShield("Archer", "forward air", "fade-back", 246, "spaced");
-  expect(row).toMatchObject({ press: 17, attackFrame: 5, shieldstun: 5, attackerActs: 12, defenderActs: 10, advantage: -2 });
+  const row = aerialOnShield("Archer", "forward air", "fade-back", 264, "spaced");
+  expect(row).toMatchObject({ press: 16, attackFrame: 6, shieldstun: 5, attackerActs: 12, defenderActs: 10, advantage: -2 });
   expect(row?.punishes).toEqual([]);
-  // 246 is the farthest swept start that reaches the shield, which makes it the spaced row.
-  expect(aerialOnShield("Archer", "forward air", "fade-back", 252, "spaced")).toBeUndefined();
+  // 264 is the farthest swept start that reaches the shield, which makes it the spaced row.
+  expect(aerialOnShield("Archer", "forward air", "fade-back", 270, "spaced")).toBeUndefined();
 });
 
 test("a changed number shows as a changed row against the written graph", () => {
-  const row = aerialOnShield("Archer", "up air", "in place", 48, "unspaced");
+  const row = aerialOnShield("Archer", "up air", "advancing", 48, "unspaced");
   if (row === undefined) throw new Error("Archer's up air no longer meets the shield from 48");
   const written: Record<string, unknown>[] = [{ ...row }];
   expect(rowChanges(written, [row])).toEqual([]);
-  expect(rowChanges(written, [{ ...row, advantage: -5 }])).toEqual(["changed aerial-on-shield | Archer | up air | unspaced | in place: advantage -4 -> -5"]);
+  expect(rowChanges(written, [{ ...row, advantage: -5 }])).toEqual(["changed aerial-on-shield | Archer | up air | unspaced | advancing: advantage -4 -> -5"]);
 });

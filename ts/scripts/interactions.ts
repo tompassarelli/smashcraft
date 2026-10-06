@@ -459,8 +459,7 @@ interface ReachRow {
   readonly kind: "aerial-reach";
   readonly fighter: string;
   readonly aerial: string;
-  readonly drift: string;
-  /** Start distances from which the aerial meets the shield, as ranges. */
+  /** Start distances from which the aerial, approaching, meets the shield, as spans of the swept step. */
   readonly distances: string;
 }
 
@@ -507,32 +506,41 @@ function cellOf(row: string, column: string, played: Played, zero: number, lead:
 
 // ------------------------------------------------------------------ aerial on shield
 
-/** Stick during the hop's rise (and its jump squat) and fall: 1 toward the shield, -1 away, 0 none. */
+/**
+ * The attacker approaches until its aerial meets the shield; then each drift
+ * holds its own stick, and picks its press in the hop, after the terms in
+ * smashcraft:docs/design/platform-fighters.md: an advancing aerial hits as low
+ * as it can and lands in front, a fade hits as early as it can and drifts the
+ * rest of the fall away from the shield (fade-back) or on through it
+ * (fade-forward).
+ */
 const DRIFTS = [
-  { name: "in place", rising: 0, falling: 0 },
-  { name: "advancing", rising: 1, falling: 1 },
-  { name: "fade-back", rising: 1, falling: -1 },
-  { name: "fade-forward", rising: 0, falling: 1 },
+  { name: "advancing", after: 0, press: "latest" },
+  { name: "fade-back", after: -1, press: "earliest" },
+  { name: "fade-forward", after: 1, press: "earliest" },
 ] as const;
 type Drift = (typeof DRIFTS)[number];
 
 /** The shielding defender stands here, facing left; the attacker starts `distance` to its left. */
 const DEFENDER_X = 150.0;
-/** Start distances swept for each aerial: from standing body to body (hurt capsule radius 24 each) outward. */
+/** Start distances swept for each aerial, outward from 48, where two Archers' hurt capsules (radius 24) touch. */
 const APPROACH_STEP = 6;
 const APPROACH_DISTANCES = Array.from({ length: 43 }, (_, index) => 48 + APPROACH_STEP * index);
 /** Frames after the contact that the options, cells and punishes are played. */
 const SHIELD_HORIZON = 70;
 
-function driftStick(drift: Drift, self: Fighter, other: Fighter): Held {
-  const direction = self.motion.grounded || self.motion.vz > 0 ? drift.rising : drift.falling;
-  return direction === 0 ? [] : [direction > 0 ? towardOf(self, other) : awayOf(self, other)];
+const shieldMet = (defender: Fighter): boolean => defender.visuals.shield + defender.visuals.shieldReflect > 0;
+
+/** The attacker starts left of the shield, so its approach and a fade-forward hold right and a fade-back left, wherever it ends up. */
+function driftStick(drift: Drift, defender: Fighter): Held {
+  const direction = shieldMet(defender) ? drift.after : 1;
+  return direction === 0 ? [] : [direction > 0 ? Action.moveRight : Action.moveLeft];
 }
 
-/** A short hop from standing that drifts by `drift` until it lands. */
+/** A short hop from standing, released in jump squat, drifting by `drift` until it lands. */
 const hop = (drift: Drift): Policy => (n, self, other) => {
-  if (n === 1) return [Action.jump, ...driftStick(drift, self, other)];
-  return self.motion.grounded && self.jump.squat === 0 ? [] : driftStick(drift, self, other);
+  if (n === 1) return [Action.jump, ...driftStick(drift, other)];
+  return self.motion.grounded && self.jump.squat === 0 ? [] : driftStick(drift, other);
 };
 
 /** The aerial pressed during the hop, which keeps drifting. */
@@ -571,7 +579,7 @@ function shieldContact(line: Timeline, aerial: Aerial, press: number): ShieldCon
       if (a.attack.style !== aerial.style || a.attack.frame !== 0) return true;
       serial = a.attack.serial;
     }
-    if (b.visuals.shield + b.visuals.shieldReflect > 0) {
+    if (shieldMet(b)) {
       if (a.attack.serial === serial) contact = { frame: n, attackFrame: a.attack.frame, separation: b.motion.x - a.motion.x, shieldstun: b.shield.stun };
       return true;
     }
@@ -580,9 +588,9 @@ function shieldContact(line: Timeline, aerial: Aerial, press: number): ShieldCon
   return contact;
 }
 
-/** The frames a short hop with this drift leaves the ground and lands back on it. */
-function hopFrames(character: Character, drift: Drift): { readonly takeoff: number; readonly landing: number; readonly apex: number } {
-  const line = new Timeline(approachSituation(character, drift, 400.0, 1), 1);
+/** The frames a short hop leaves the ground and lands back on it, and its height. */
+function hopFrames(character: Character): { readonly takeoff: number; readonly landing: number; readonly apex: number } {
+  const line = new Timeline(approachSituation(character, DRIFTS[0], 400.0, 1), 1);
   let takeoff = 0;
   let landing = 0;
   let apex = 0.0;
@@ -601,23 +609,37 @@ interface Found {
   readonly contact: ShieldContact;
 }
 
-/** For each aerial and start distance, the latest press that meets the shield: the timing that leaves the least landing lag. */
-function searchApproaches(character: Character, drift: Drift, aerials: readonly Aerial[], distances: readonly number[] = APPROACH_DISTANCES): ReadonlyMap<Aerial, readonly Found[]> {
-  const { takeoff, landing } = hopFrames(character, drift);
-  const found = new Map<Aerial, Found[]>(aerials.map((aerial) => [aerial, []]));
+/** From one start distance, the latest and the earliest press in the hop that meet the shield. */
+interface Reach {
+  readonly latest: Found;
+  readonly earliest: Found;
+}
+
+/** For each aerial, the start distances that reach the shield. Every drift approaches until contact, so one search serves them all. */
+function searchApproaches(character: Character, aerials: readonly Aerial[], distances: readonly number[] = APPROACH_DISTANCES): ReadonlyMap<Aerial, readonly Reach[]> {
+  const { takeoff, landing } = hopFrames(character);
+  const found = new Map<Aerial, Reach[]>(aerials.map((aerial) => [aerial, []]));
   for (const distance of distances) {
     const lines = new Map<number, Timeline>();
     for (const aerial of aerials) {
       const facing = facingFor(aerial);
-      const line = lines.get(facing) ?? new Timeline(approachSituation(character, drift, distance, facing), landing);
+      const line = lines.get(facing) ?? new Timeline(approachSituation(character, DRIFTS[0], distance, facing), landing);
       lines.set(facing, line);
-      for (let press = landing - 1 - attackStartupFrames(aerial.style); press >= takeoff; press--) {
+      const meets = (press: number): Found | undefined => {
         const contact = shieldContact(line, aerial, press);
-        if (contact !== undefined) {
-          found.get(aerial)?.push({ distance, press, contact });
-          break;
-        }
+        return contact === undefined ? undefined : { distance, press, contact };
+      };
+      let latest: Found | undefined;
+      for (let press = landing - 1 - attackStartupFrames(aerial.style); press >= takeoff && latest === undefined; press--) latest = meets(press);
+      if (latest === undefined) continue;
+      let earliest = latest;
+      for (let press = takeoff; press < latest.press; press++) {
+        const met = meets(press);
+        if (met === undefined) continue;
+        earliest = met;
+        break;
       }
+      found.get(aerial)?.push({ latest, earliest });
     }
     for (const line of lines.values()) line.release();
   }
@@ -706,21 +728,24 @@ function spans(values: readonly number[], step = 1): string {
   return parts.join(", ");
 }
 
-/**
- * The aerials on a shield for one drift: the start distances each reaches it
- * from, and the rows for the nearest (unspaced) and farthest (spaced).
- */
-function shieldPressure(entry: FighterEntry, drift: Drift): ReadonlyMap<Aerial, Row[]> {
-  const found = searchApproaches(entry.character, drift, AERIALS);
-  return new Map(AERIALS.map((aerial) => {
-    const hits = found.get(aerial) ?? [];
-    const rows: Row[] = [{ kind: "aerial-reach", fighter: entry.name, aerial: aerial.name, drift: drift.name, distances: spans(hits.map((hit) => hit.distance), APPROACH_STEP) }];
-    const nearest = hits[0];
-    const farthest = hits[hits.length - 1];
-    if (nearest !== undefined) rows.push(aerialRow(entry, aerial, drift, "unspaced", nearest, true));
-    if (farthest !== undefined && farthest !== nearest) rows.push(aerialRow(entry, aerial, drift, "spaced", farthest, true));
-    return [aerial, rows];
-  }));
+/** The press a drift uses from one reach: the lowest hit for advancing, the earliest for a fade. */
+const pressFor = (drift: Drift, reach: Reach): Found => (drift.press === "latest" ? reach.latest : reach.earliest);
+
+/** Each aerial on a shield: the start distances it reaches it from, and each drift's rows for the nearest (unspaced) and farthest (spaced). */
+function aerialRows(entry: FighterEntry): Row[] {
+  const found = searchApproaches(entry.character, AERIALS);
+  return AERIALS.flatMap((aerial) => {
+    const reaches = found.get(aerial) ?? [];
+    const nearest = reaches[0];
+    const farthest = reaches[reaches.length - 1];
+    return [
+      { kind: "aerial-reach", fighter: entry.name, aerial: aerial.name, distances: spans(reaches.map((reach) => reach.latest.distance), APPROACH_STEP) },
+      ...DRIFTS.flatMap((drift) => [
+        ...(nearest === undefined ? [] : [aerialRow(entry, aerial, drift, "unspaced", pressFor(drift, nearest), true)]),
+        ...(farthest === undefined || farthest === nearest ? [] : [aerialRow(entry, aerial, drift, "spaced", pressFor(drift, farthest), true)]),
+      ]),
+    ];
+  });
 }
 
 /**
@@ -734,13 +759,8 @@ export function aerialOnShield(fighter: string, aerial: string, drift: string, d
   const move = AERIALS.find((candidate) => candidate.name === aerial);
   const path = DRIFTS.find((candidate) => candidate.name === drift);
   if (entry === undefined || move === undefined || path === undefined) throw new Error(`no aerial ${aerial} for ${fighter} with drift ${drift}`);
-  const found = searchApproaches(entry.character, path, [move], [distance]).get(move)?.[0];
-  return found === undefined ? undefined : aerialRow(entry, move, path, spacing, found, false);
-}
-
-function aerialRows(entry: FighterEntry): Row[] {
-  const byDrift = DRIFTS.map((drift) => shieldPressure(entry, drift));
-  return AERIALS.flatMap((aerial) => byDrift.flatMap((rows) => rows.get(aerial) ?? []));
+  const reach = searchApproaches(entry.character, [move], [distance]).get(move)?.[0];
+  return reach === undefined ? undefined : aerialRow(entry, move, path, spacing, pressFor(path, reach), false);
 }
 
 // ------------------------------------------------------------------ neutral: both fighters act on frame 1
@@ -840,7 +860,7 @@ const LANDING_GAP = 60.0;
 const OPPONENT_X = 150.0;
 
 function landingRows(entry: FighterEntry): StateRow[] {
-  const { apex } = hopFrames(entry.character, DRIFTS[0]);
+  const { apex } = hopFrames(entry.character);
   const horizon = 90;
   const line = new Timeline({
     placements: [{ character: entry.character, x: OPPONENT_X - LANDING_GAP, facing: 1 }, { character: entry.character, x: OPPONENT_X, facing: -1 }],
@@ -1007,10 +1027,10 @@ function aerialSection(entry: FighterEntry, rows: readonly Row[]): string[] {
   const variant = (row: AerialRow): string => `${row.spacing}, ${row.drift}`;
   const lines = [
     "## Aerial on shield", "",
-    `${entry.name} short hops at a shielding ${entry.name} and presses the aerial as late in the hop as still meets the shield. Frame 0 is the frame it meets the shield; the other frames count from it. Advantage is the defender's first action minus the attacker's: negative means the defender acts first. Punish start frames are when the defender's option can start and still land before the attacker can act.`, "",
+    `${entry.name} short hops at a shielding ${entry.name} from a standing start, approaching until the aerial meets the shield. Advancing presses the aerial as late in the hop as still meets the shield and holds no stick after; fade-back and fade-forward press it as early as meets the shield, then hold away or on through for the rest of the fall. Unspaced starts from the nearest distance that reaches the shield, spaced from the farthest. Frame 0 is the frame the aerial meets the shield; the other frames count from it. Advantage is the defender's first action minus the attacker's: negative means the defender acts first. Punish start frames are when the defender's option can start and still land before the attacker can act.`, "",
     "### Start distances that reach the shield", "",
-    ...table(["Aerial", ...DRIFTS.map((drift) => drift.name)], AERIALS.map((aerial) =>
-      [aerial.name, ...DRIFTS.map((drift) => reach.find((row) => row.aerial === aerial.name && row.drift === drift.name)?.distances || "none")])),
+    ...table(["Aerial", "Start distances"], AERIALS.map((aerial) =>
+      [aerial.name, reach.find((row) => row.aerial === aerial.name)?.distances || "none"])),
     "", "### Frame advantage and punishes", "",
     ...table(["Aerial", "Spacing", "Drift", "Start", "Hit at", "Separation", "Shieldstun", "Attacker acts", "Defender acts", "Advantage", "Punished by (start frames)"],
       pressure.map((row) => [row.aerial, row.spacing, row.drift, String(row.distance), `${row.press} + ${row.attackFrame}`, String(row.separation), String(row.shieldstun),
@@ -1131,7 +1151,7 @@ export function moveProfile(rows: readonly Row[], move: string): string[] {
   for (const row of rows) {
     switch (row.kind) {
       case "aerial-reach":
-        if (row.aerial === move) lines.push(`on shield, ${row.drift}: reaches it from ${row.distances || "nowhere"}`);
+        if (row.aerial === move) lines.push(`on shield: reaches it from ${row.distances || "nowhere"}`);
         break;
       case "aerial-on-shield": {
         const variant = `${row.aerial} ${row.spacing} ${row.drift}`;
