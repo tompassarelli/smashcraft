@@ -36,7 +36,8 @@ const s = DREADLORD_SEQUENCES;
 
 /** Each pose's sequence; the presentation fits it to the action's frames. */
 export const DREADLORD_CLIP_TABLE: HeroClipTable = {
-  idle: s.standReady, walk: s.walk,
+  idle: s.standReady, walk: s.walk, dash: s.walk, run: s.walk, crouch: s.spellSlam, fall: s.standReady,
+  landing: s.standReady, shield: s.standReady, airDodge: s.wingStretch, smashCharge: s.standReady, ko: s.death, dizzy: s.stand,
   jump: s.wingStretch, doubleJump: s.wingStretch, fallSpecial: s.standReady,
   spotDodge: s.standReady, rollForward: s.walk, rollBackward: s.walk,
   damageGround: s.standReady, damageAir: s.standReady, damageTumble: s.death, damageShield: s.standReady,
