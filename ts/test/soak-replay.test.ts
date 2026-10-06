@@ -21,18 +21,21 @@ const quiet: SoakInputs = { edges: [], silences: [], hitches: [], slow: [] };
 test("offscreen indicators follow the presented result while confirmation is still finishing the match", () => {
   const repro = readSoakRepro(JSON.stringify(phaseRepro));
   let sawResultAhead = false;
+  const cameraFindings: string[] = [];
   const observed: SoakGame = { ...game, begin: (clients, match) => {
     const driver = game.begin(clients, match);
     return { ...driver, findings: (client) => {
       const s = shell();
       const presented = s.rollback?.active ? s.rollback.speculative.game : s.game;
       if (s.game.phase === Phase.match && presented.phase === Phase.result) sawResultAhead = true;
-      return driver.findings?.(client) ?? [];
+      const findings = driver.findings?.(client) ?? [];
+      cameraFindings.push(...findings.filter(({ detector }) => detector === "offscreen-bubble" || detector === "visible-ko").map(({ text }) => text));
+      return findings;
     } };
   } };
-  const result = playSoakMatch(runtime, observed, project, repro.match, repro.inputs);
+  playSoakMatch(runtime, observed, project, repro.match, repro.inputs);
   expect(sawResultAhead).toBe(true);
-  expect(result.findings).toEqual([]);
+  expect(cameraFindings).toEqual([]);
 }, 30_000);
 
 test("a stick inside its dead zone replays: through the helpers as pad edges the game never sees, through the stand-in as a row", () => {
