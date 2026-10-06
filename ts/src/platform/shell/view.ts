@@ -215,6 +215,7 @@ export function renderPersistentPresentation(s: ShellState): void {
     else ui.placed.hideSlot(slot);
     renderers?.shield.present(fighter, playing);
     renderers?.projectiles.present(fighter, playing, s.session.paused);
+    renderers?.hitAreas?.present(live);
   }
 }
 
@@ -271,6 +272,7 @@ export function renderUi(s: ShellState): void {
     ui.settings[slot].update();
   }
   ui.clock.update(showMatch && timedMatch(game), remainingSeconds(game));
+  ui.training.update(showMatch && game.training && game.phase === Phase.match, game.trainer);
   const { help, notice, developer } = s.frames;
   BlzFrameSetVisible(help, showMatch);
   BlzFrameSetVisible(notice, showMatch);

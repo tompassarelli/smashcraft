@@ -49,6 +49,8 @@ const PREDICTED_PRESENTATION: LocalNatives = {
     "BlzSetSpecialEffectColorByPlayer", "BlzSetSpecialEffectMatrixScale", "BlzSetSpecialEffectPitch", "BlzSetSpecialEffectPosition",
     "BlzSetSpecialEffectRoll", "BlzSetSpecialEffectScale", "BlzSetSpecialEffectTime", "BlzSetSpecialEffectTimeScale", "BlzSetSpecialEffectYaw",
   ].map((name) => [name, "poses an existing effect from this client's prediction"])),
+  MoveLightningEx: "places training's existing hit-area outlines from this client's prediction",
+  SetLightningColor: "shows or hides training's existing hit-area outlines from this client's prediction",
 };
 
 /** Smashcraft's local natives with predicted presentation, whose confirmed state and handle lifetimes still match on every client. */

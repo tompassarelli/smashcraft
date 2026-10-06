@@ -38,10 +38,11 @@ Sources: [TrainingMode Community Edition](https://github.com/AlexanderHarrison/T
    partner could not act between them; the counter shows hits and damage and
    keeps the last combo on screen until the next one starts. It replaces
    SF6's "block after first hit" and Ultimate's red counter with one rule.
-3. **Training partner.** Behaviour: Stand, Shield, Crouch, Jump, Attack (its
-   jab, again and again) or Fight (the normal computer). Escape: None, In
-   (toward the attacker), Out (away), or Random. Tech: None, In place,
-   Toward, Away or Random. Random draws from the match frame, so every
+3. **Training partner.** Partner: Stand, Shield, Crouch, Jump, Attack (its
+   jab, again and again) or Fight (the normal computer). Drift, the stick it
+   holds as a hit launches it: None, Toward you, Away or Random. Tech: None,
+   In place, Toward you, Away or Random. "Drift" names directional influence
+   in product words; "Escape" already names the key that leaves a match. Random draws from the match frame, so every
    client and every replay draws the same.
 4. **Damage.** The partner starts and restarts at a chosen damage, 0% to
    300% in steps of 10.
@@ -50,12 +51,13 @@ Sources: [TrainingMode Community Edition](https://github.com/AlexanderHarrison/T
    L+R+A does. The reset is read from the players' inputs inside the
    simulation, so it rolls back and replays like any other input.
 6. **Hit areas.** An option draws every active attack's hit areas and every
-   fighter's body, red and green after Rivals. It reads the same authored
+   fighter's body, red and green after Rivals (parts that cannot be hit in
+   blue), as lightning outlines on the fighters' plane. It reads the same authored
    volumes the hits use (smashcraft:docs/hurtboxes.md), so what it draws is
    what hits.
-7. **Speed.** Full, half or quarter speed: the match advances one frame in
-   every one, two or four. Presses made on frames the match skips are kept
-   for the next frame it runs.
+7. **Choosing.** Training is the top rule button. While it is on, the
+   partner's choices take the place of Stocks, Time, Endless and Automatic
+   rematch, which training does not use.
 
 ## Not kept
 
@@ -63,7 +65,9 @@ Sources: [TrainingMode Community Edition](https://github.com/AlexanderHarrison/T
   rollback-confirmed; a paused frame advance would need every client's
   controller helper to agree on each step (the pause barrier,
   smashcraft:ts/src/game/shell/pauseBarrier.ts) and savestates would need a
-  second snapshot channel. Quarter speed covers most of the use.
+  second snapshot channel.
+- **Slow motion.** Presses made on frames the match skips would have to be
+  kept as rolled-back state; the next addition if players ask for it.
 - **Changing partner settings mid-match.** Settings are chosen at fighter
   selection; leaving from the pause returns there in two presses. Changing
   synchronized match state while the rollback history holds earlier
@@ -74,13 +78,20 @@ Sources: [TrainingMode Community Edition](https://github.com/AlexanderHarrison/T
 ## How it works
 
 Training is `MatchState.training` plus a `TrainingState` record
-(smashcraft:ts/src/game/match/training.ts) holding the partner settings and
+(smashcraft:ts/src/game/match/trainingState.ts) holding the partner settings and
 the readout. Both are synchronized simulation state: they are copied with the
 match, compared by the replay difference and written to the checksum (only
 when training is on, so other matches keep their checksums). The partner's
 inputs replace the computer's inputs in `produceComputerInput`, so tapes,
 network rows and replays all use the same partner. The readout is measured in
-`stepMatch` from fighter state only (damage, shield stun, `canAttack` /
-`canShieldGrab`), so a rollback replays it exactly. Hit areas are
-presentation: the shell draws them from the confirmed world and they never
-feed the simulation.
+`stepMatch` from fighter state only (the hit and shield-hit serials, damage,
+`canAttack` / `canShieldGrab`), so a rollback replays it exactly. The reset is
+`Controls.resetPressed`, adapted from the input row (both trigger actions or
+analog triggers held as attack is pressed), and runs at the start of the
+frame. Hit areas are presentation
+(smashcraft:ts/src/game/presentation/hitAreas.ts): the lightning is created
+with the fighter's renderers at match start and posed from the predicted
+world, like the other effects; it never feeds the simulation. Setup commands
+for native sessions: `-dev training on`, `-dev hit-areas on`,
+`-dev partner BEHAVIOUR DRIFT TECH DAMAGE`
+(smashcraft:ts/src/game/shell/sessionSetup.ts).

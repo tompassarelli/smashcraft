@@ -25,4 +25,18 @@ export const RULE_BUTTONS = {
   moreTime: stepBox(f32(0.22), f32(0.394)),
   endless: toggleBox(f32(0.36)),
   automaticRematch: toggleBox(f32(0.326)),
+  /** Training and, while it is on, the partner's choices in place of the rules it has no use for. */
+  training: toggleBox(f32(0.53)),
+  lessBehaviour: stepBox(f32(0.03), f32(0.496)),
+  moreBehaviour: stepBox(f32(0.22), f32(0.496)),
+  lessEscape: stepBox(f32(0.03), f32(0.462)),
+  moreEscape: stepBox(f32(0.22), f32(0.462)),
+  lessTech: stepBox(f32(0.03), f32(0.428)),
+  moreTech: stepBox(f32(0.22), f32(0.428)),
+  lessDamage: stepBox(f32(0.03), f32(0.394)),
+  moreDamage: stepBox(f32(0.22), f32(0.394)),
+  hitAreas: toggleBox(f32(0.36)),
 } as const;
+
+/** The partner choices training steps through. */
+export type TrainingSetting = "behaviour" | "escape" | "tech" | "damage";

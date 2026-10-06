@@ -15,6 +15,7 @@ import { type HurtPart, HurtState } from "../sim/hurtboxes";
 import { HERO_STATUS_GROUPS } from "../sim/codes";
 import { PROJECTILE_CAPACITY, type Fighter } from "../sim/fighter";
 import { fighterAt, isActive } from "../sim/roster";
+import { writeTrainingState } from "../match/trainingState";
 import type { ReplayState } from "./snapshot";
 import { HERO_ROSTER } from "../sim/heroes/registry";
 
@@ -821,6 +822,11 @@ function writeState(emit: Emit, state: Readonly<ReplayState>): void {
   int("match.matchFrame", match.matchFrame);
   bool("match.timedOut", match.timedOut);
   bool("match.practice", match.practice);
+  // Only training matches carry training state, so every other match keeps its checksum.
+  if (match.training) {
+    bool("match.training", true);
+    writeTrainingState(match.trainer, int, bool, (name, value) => emit(canonicalRealField(name, value)));
+  }
   int("runtime.simulationFrame", runtime.simulationFrame);
   for (const slot of PARTICIPANT_SLOTS) emit(canonicalRealField(`runtime.botAttackDelays[${slot}]`, runtime.botAttackDelays[slot]));
 }

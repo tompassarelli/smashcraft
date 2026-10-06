@@ -1,10 +1,11 @@
 import { isSelectableCharacter } from "../sim/heroes/registry";
 import { selectableStage } from "../menu/stageCatalog";
-import { floorDiv } from "wisp/src/sim/intMath";
+import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { type MatchCamera, createMatchCamera, copyMatchCamera } from "../sim/matchCamera";
 import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots, isParticipantMask, isParticipantSlot, participantActive } from "../input/participants";
 import { Character } from "../sim/codes";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
+import { PARTNER_BEHAVIOURS, PARTNER_DAMAGE_MAX, PARTNER_DAMAGE_STEP, PARTNER_ESCAPES, PARTNER_TECHS, type TrainingState, clearTrainingReadout, copyTrainingState, createTrainingState } from "./trainingState";
 
 /** Phase numbers are part of the canonical replay checksum. */
 export const Phase = { characterMenu: 0, stageMenu: 1, match: 2, result: 3 } as const;
@@ -39,6 +40,9 @@ export interface MatchState {
   matchFrame: number;
   timedOut: boolean;
   practice: boolean;
+  /** Training (#120): no clock or lost stocks, computers play the partner set in trainer. */
+  training: boolean;
+  readonly trainer: TrainingState;
 }
 
 export function createMatchState(): MatchState {
@@ -49,6 +53,7 @@ export function createMatchState(): MatchState {
     departedMask: 0, interrupted: false, humanMask: 1, humanFighterMask: 1, humanCount: 1, computerMask: 0,
     stageChoice: 2, winner: undefined, stockCount: 3, timeLimitMinutes: 7, endless: false, automaticRematch: false, rematchCountdown: 0,
     remainingFrames: 7 * 60 * MATCH_TICKS_PER_SECOND, matchFrame: 0, timedOut: false, practice: false,
+    training: false, trainer: createTrainingState(),
   };
 }
 
@@ -145,6 +150,8 @@ export function copyMatchState(target: MatchState, source: Readonly<MatchState>)
   target.matchFrame = source.matchFrame;
   target.timedOut = source.timedOut;
   target.practice = source.practice;
+  target.training = source.training;
+  copyTrainingState(target.trainer, source.trainer);
   for (const slot of PARTICIPANT_SLOTS) {
     target.characterChoices[slot] = source.characterChoices[slot];
     target.characterReadiness[slot] = source.characterReadiness[slot];
@@ -219,12 +226,42 @@ export function setEndless(game: MatchState, slot: number, endless: boolean): vo
   if (settingRules(game, slot)) game.endless = endless;
 }
 
+export function setTraining(game: MatchState, slot: number, training: boolean): void {
+  if (settingRules(game, slot)) game.training = training;
+}
+
+const cycle = (value: number, count: number, direction: number): number => floorMod(value + direction, count);
+
+/** Training's partner choices step through their options in either direction. */
+export function stepPartnerBehaviour(game: MatchState, slot: number, direction: number): void {
+  if (settingRules(game, slot)) game.trainer.behaviour = cycle(game.trainer.behaviour, PARTNER_BEHAVIOURS, direction);
+}
+
+export function stepPartnerEscape(game: MatchState, slot: number, direction: number): void {
+  if (settingRules(game, slot)) game.trainer.escape = cycle(game.trainer.escape, PARTNER_ESCAPES, direction);
+}
+
+export function stepPartnerTech(game: MatchState, slot: number, direction: number): void {
+  if (settingRules(game, slot)) game.trainer.tech = cycle(game.trainer.tech, PARTNER_TECHS, direction);
+}
+
+export function setPartnerDamage(game: MatchState, slot: number, damage: number): void {
+  if (settingRules(game, slot) && damage >= 0 && damage <= PARTNER_DAMAGE_MAX && floorMod(damage, PARTNER_DAMAGE_STEP) === 0) game.trainer.damage = damage;
+}
+
+export function setHitAreas(game: MatchState, slot: number, shown: boolean): void {
+  if (settingRules(game, slot)) game.trainer.showHitAreas = shown;
+}
+
 export function setAutomaticRematch(game: MatchState, slot: number, automatic: boolean): void {
   if (settingRules(game, slot)) game.automaticRematch = automatic;
 }
 
-/** Whether the match clock runs: practice and endless matches have none. */
-export const timedMatch = (game: Readonly<MatchState>): boolean => !game.practice && !game.endless && game.timeLimitMinutes > 0;
+/** Whether the match clock runs: practice, endless and training matches have none. */
+export const timedMatch = (game: Readonly<MatchState>): boolean => !game.practice && !game.endless && !game.training && game.timeLimitMinutes > 0;
+
+/** Knockouts cost no stock: practice, endless and training. */
+export const keepsStocks = (game: Readonly<MatchState>): boolean => game.practice || game.endless || game.training;
 
 export const remainingSeconds = (game: Readonly<MatchState>): number => floorDiv(game.remainingFrames + MATCH_TICKS_PER_SECOND - 1, MATCH_TICKS_PER_SECOND);
 
@@ -234,7 +271,8 @@ function beginMatch(game: MatchState): void {
   game.departedMask = 0;
   game.timedOut = false;
   game.rematchCountdown = 0;
-  game.practice = practiceSelected(game);
+  game.practice = !game.training && practiceSelected(game);
+  clearTrainingReadout(game.trainer);
   game.remainingFrames = timedMatch(game) ? game.timeLimitMinutes * 60 * MATCH_TICKS_PER_SECOND : 0;
   game.matchFrame = 0;
   game.phase = Phase.match;
@@ -251,7 +289,7 @@ export function requestStart(game: MatchState, slot: number): boolean {
  * ends an endless match. Both return to fighter selection.
  */
 export function leaveMatch(game: MatchState, slot: number): boolean {
-  if (game.phase !== Phase.match || !(game.practice ? slot === firstHumanSlot(game) : game.endless && humanPresent(game, slot))) return false;
+  if (game.phase !== Phase.match || !(game.practice ? slot === firstHumanSlot(game) : (game.endless || game.training) && humanPresent(game, slot))) return false;
   game.phase = Phase.characterMenu;
   game.practice = false;
   return true;
@@ -326,7 +364,7 @@ function resolveRemaining(game: MatchState, world: Roster): void {
 }
 
 export function resolveStocks(game: MatchState, world: Roster): void {
-  if (game.phase === Phase.match && !game.practice && !game.endless) resolveRemaining(game, world);
+  if (game.phase === Phase.match && !keepsStocks(game)) resolveRemaining(game, world);
 }
 
 export function advanceClock(game: MatchState, world: Roster): void {

@@ -18,6 +18,7 @@ import { botChoice, chooseAttack, smashChargeGoal } from "./botMoves";
 import { chooseDefense } from "./botDefense";
 import { chooseRecoveryInput } from "./botRecovery";
 import { MATCH_TICKS_PER_SECOND, type MatchState } from "./rules";
+import { trainingPartnerInput } from "./training";
 
 const COMPUTER_NEUTRAL = neutralControls();
 const TICK = f32(1.0 / MATCH_TICKS_PER_SECOND);
@@ -137,6 +138,7 @@ export function produceComputerInput(game: Readonly<MatchState>, world: Roster, 
   copyControls(input, COMPUTER_NEUTRAL);
   clearAttackBuffer(commands);
   if (fighter.status.out) return;
+  if (game.training && trainingPartnerInput(game.trainer, world, slot, game.stageChoice, game.matchFrame, frame, input, commands)) return;
   const delay = f32(runtime.botAttackDelays[slot] - TICK);
   runtime.botAttackDelays[slot] = delay;
   const stage = game.stageChoice;

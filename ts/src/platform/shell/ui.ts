@@ -16,6 +16,8 @@ import type { Character } from "../../game/sim/codes";
 import { isActive } from "../../game/sim/roster";
 import type { MenuControls } from "../../game/ui/frames";
 import { FighterHud, MatchClock } from "../../game/ui/matchHud";
+import { TrainingReadout } from "../../game/ui/trainingReadout";
+import { HitAreaPresentation } from "../../game/render/hitAreaPresentation";
 import { EscapeMeter } from "../../game/ui/escapeMeter";
 import { OffscreenBubble } from "../../game/ui/offscreenBubble";
 import { type SelectionActions, SelectionPanel } from "../../game/ui/selectionUi";
@@ -31,10 +33,13 @@ interface FighterRenderers {
   readonly projectiles: ProjectilePresentation;
   readonly pool: FighterPoolPresentation | undefined;
   readonly agency: AgencyMarker;
+  /** Training's hit areas, when that match shows them. */
+  readonly hitAreas: HitAreaPresentation | undefined;
 }
 
 export interface UiObjects {
   readonly clock: MatchClock;
+  readonly training: TrainingReadout;
   readonly huds: Slots<FighterHud>;
   readonly bubbles: Slots<OffscreenBubble>;
   readonly escapeMeters: Slots<EscapeMeter>;
@@ -73,6 +78,7 @@ export function createUi(s: ShellState, actions: PanelActions): UiObjects {
   const controls = menuControls(s);
   const ui: UiObjects = {
     clock: new MatchClock(),
+    training: new TrainingReadout(),
     huds: each(slot => new FighterHud(slot, 4)),
     bubbles: each(slot => new OffscreenBubble(slot)),
     escapeMeters: each(slot => new EscapeMeter(slot)),
@@ -95,6 +101,7 @@ function endFighterRenderers(renderers: FighterRenderers | undefined): void {
   renderers?.projectiles.destroy();
   renderers?.pool?.destroy();
   renderers?.agency.destroy();
+  renderers?.hitAreas?.destroy();
 }
 
 /**
@@ -105,7 +112,9 @@ export function beginFighterRenderers(s: ShellState, slot: ParticipantSlot, char
   const ui = views(s);
   endFighterRenderers(ui.fighters[slot]);
   const pool = pooled ? new FighterPoolPresentation(character, slot, s.origin) : undefined;
-  ui.fighters[slot] = { character, shield: new ShieldPresentation(slot, s.origin), projectiles: new ProjectilePresentation(character, s.origin), pool, agency: new AgencyMarker(s.origin) };
+  ui.fighters[slot] = { character, shield: new ShieldPresentation(slot, s.origin), projectiles: new ProjectilePresentation(character, s.origin), pool, agency: new AgencyMarker(s.origin),
+    hitAreas: s.game.training && s.game.trainer.showHitAreas ? new HitAreaPresentation(s.origin) : undefined,
+  };
   return pool?.admitted() === true;
 }
 
@@ -127,6 +136,7 @@ export function recreateUi(s: ShellState, actions: PanelActions): void {
   const ui = s.ui;
   if (ui === undefined) return;
   bindPrototype(ui.clock, MatchClock.prototype);
+  bindPrototype(ui.training, TrainingReadout.prototype);
   for (const slot of PARTICIPANT_SLOTS) {
     bindPrototype(ui.huds[slot], FighterHud.prototype);
     bindPrototype(ui.bubbles[slot], OffscreenBubble.prototype);
@@ -152,6 +162,7 @@ export function recreateUi(s: ShellState, actions: PanelActions): void {
     if (renderers.pool !== undefined) bindPrototype(renderers.pool, FighterPoolPresentation.prototype);
     bindPrototype(renderers.agency, AgencyMarker.prototype);
     bindPrototype(renderers.agency.forecast, FighterAgencyForecast.prototype);
+    if (renderers.hitAreas !== undefined) bindPrototype(renderers.hitAreas, HitAreaPresentation.prototype);
   }
 }
 

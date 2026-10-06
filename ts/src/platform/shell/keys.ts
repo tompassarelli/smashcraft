@@ -117,7 +117,7 @@ function participantKeyDown(s: ShellState, slot: ParticipantSlot): void {
     return;
   }
   // Leaving practice or an endless match ends it between frames: the moment keeps it as its last frame left it.
-  if (key === Key.escape && s.session.paused && (game.practice || game.endless)) keepMomentEnd(s.moment.recorder, s.world, game, s.controls, s.runtime);
+  if (key === Key.escape && s.session.paused && (game.practice || game.endless || game.training)) keepMomentEnd(s.moment.recorder, s.world, game, s.controls, s.runtime);
   if (key === Key.escape && s.session.paused && leaveMatch(game, slot)) {
     s.session.paused = false;
     setStatus(s, "", 0.0);

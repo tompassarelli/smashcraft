@@ -123,12 +123,24 @@ export function canStartAttackStyle(attacker: Fighter, style: AttackStyle | unde
   return canAttack(attacker) || (style === AttackStyle.grab && canShieldGrab(attacker));
 }
 
-export function attackPhase(f: Fighter): AttackPhase {
-  const { style, frame, dashGrab } = f.attack;
-  if (style === undefined) return AttackPhase.none;
+/** The started attack's frames before its first active frame; attack frame zero is the start tick. */
+export function attackStartup(f: Readonly<Fighter>, style: AttackStyle): number {
+  if (!f.attack.dashGrab) return attackStartupFrames(style, f.tuning.moves);
   const authoredGrab = f.tuning.moves?.normals[AttackStyle.grab];
-  const startup = dashGrab ? authoredGrab === undefined ? f.tuning.dashGrab.startupFrames : authoredGrab.startupFrames + 3 : attackStartupFrames(style, f.tuning.moves);
-  const active = dashGrab ? authoredGrab === undefined ? f.tuning.dashGrab.activeFrames : authoredGrab.activeFrames : characterAttackActiveFrames(f.character, style, f.tuning.moves);
+  return authoredGrab === undefined ? f.tuning.dashGrab.startupFrames : authoredGrab.startupFrames + 3;
+}
+
+/** The started attack's active frames. */
+export function attackActive(f: Readonly<Fighter>, style: AttackStyle): number {
+  if (!f.attack.dashGrab) return characterAttackActiveFrames(f.character, style, f.tuning.moves);
+  const authoredGrab = f.tuning.moves?.normals[AttackStyle.grab];
+  return authoredGrab === undefined ? f.tuning.dashGrab.activeFrames : authoredGrab.activeFrames;
+}
+
+export function attackPhase(f: Fighter): AttackPhase {
+  const { style, frame } = f.attack;
+  if (style === undefined) return AttackPhase.none;
+  const startup = attackStartup(f, style);
   if (frame < startup) return AttackPhase.startup;
-  return frame < startup + active ? AttackPhase.active : AttackPhase.recovery;
+  return frame < startup + attackActive(f, style) ? AttackPhase.active : AttackPhase.recovery;
 }

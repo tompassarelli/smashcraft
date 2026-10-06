@@ -1,6 +1,7 @@
 import { clearAttackBuffer, hasPendingAttack, holdAttack, takeAttack } from "../input/attackBuffer";
 import { attackStyleForGrounding } from "../input/combat";
-import { PARTICIPANT_SLOTS, type Slots } from "../input/participants";
+import { f32 } from "wisp/src/sim/f32";
+import { PARTICIPANT_SLOTS, type Slots, participantActive } from "../input/participants";
 import { beginFighterAttack, resolveAttacks } from "../sim/attacks";
 import { AttackStyle, DASH_GRAB_REQUEST } from "../sim/codes";
 import { canStartAttackStyle, inGrabContext } from "../sim/conditions";
@@ -23,7 +24,8 @@ import { advanceFreezeTraps } from "../sim/summons";
 import { advanceMatchCamera } from "../sim/matchCamera";
 import { advanceOffscreenDamage } from "../sim/offscreenDamage";
 import type { FrameControls } from "./controls";
-import { type MatchState, Phase, advanceClock, humanFighterActive, resolveStocks } from "./rules";
+import { type MatchState, Phase, advanceClock, humanFighterActive, keepsStocks, resolveStocks } from "./rules";
+import { advanceTrainingReadout, captureTrainingBefore, resetTrainingPositions } from "./training";
 
 export const observedFrameLegalActions: Slots<number> = [0, 0, 0, 0];
 export const observedFrameStartedActions: Slots<number> = [0, 0, 0, 0];
@@ -41,6 +43,7 @@ export function initializeMatchFighters(game: Readonly<MatchState>, world: Roste
     const fighter = fighterAt(world, slot);
     fighter.status.stocks = absent ? 0 : game.stockCount;
     fighter.status.out = absent;
+    if (game.training && participantActive(game.computerMask, slot)) fighter.status.damage = f32(game.trainer.damage);
   }
 }
 
@@ -62,6 +65,14 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
   if (game.phase !== Phase.match) return;
   game.matchFrame++;
   const { stageChoice: stage, matchFrame } = game;
+  if (game.training) {
+    // Both shields held with attack pressed, by any player: everyone back to the start.
+    if (PARTICIPANT_SLOTS.some(slot => isActive(world, slot) && humanFighterActive(game, slot) && controls.inputs[slot].resetPressed)) {
+      resetTrainingPositions(game.trainer, world, game.computerMask, matchSpawnX);
+      for (const slot of PARTICIPANT_SLOTS) clearAttackBuffer(controls.commands[slot]);
+    }
+    captureTrainingBefore(world);
+  }
   carryOnMovingDecks(world, stage, matchFrame);
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) continue;
@@ -134,13 +145,14 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
     if (!isActive(world, slot)) continue;
     const f = fighterAt(world, slot);
     if (inGrabContext(f)) clearAttackBuffer(controls.commands[slot]);
-    if ((game.practice || game.endless) && f.status.out && !beforeOut[slot]) {
+    if (keepsStocks(game) && f.status.out && !beforeOut[slot]) {
       f.status.stocks = game.stockCount;
       f.status.respawn = 60;
     }
   }
   resolveStocks(game, world);
   advanceMatchCamera(game.camera, world, game.stageChoice);
-  advanceOffscreenDamage(world, game.camera, game.practice);
+  advanceOffscreenDamage(world, game.camera, game.practice || game.training);
+  if (game.training) advanceTrainingReadout(game.trainer, world, game.humanFighterMask, game.computerMask);
   advanceClock(game, world);
 }

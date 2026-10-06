@@ -5,9 +5,11 @@
 import { type ParticipantSlot, isParticipantSlot } from "../../game/input/participants";
 import {
   Phase, canChooseComputer, cancelRematchCountdown, characterFor, confirmRematch, cycleSlotMode, humanActive, recallCharacter,
-  requestStageSelect, requestStart, setAutomaticRematch, setEndless, tickRematchCountdown,
+  requestStageSelect, requestStart, setAutomaticRematch, setEndless, setHitAreas, setPartnerDamage, setTraining, stepPartnerBehaviour,
+  stepPartnerEscape, stepPartnerTech, tickRematchCountdown,
   returnToCharacters, selectCharacter, selectCpuCharacter, selectStage, setStocks, setTimeLimit, updateConnectedHumans,
 } from "../../game/match/rules";
+import { PARTNER_DAMAGE_STEP } from "../../game/match/trainingState";
 import { prepareQuickMatch } from "../../game/shell/devSettings";
 import type { Scenario } from "../../game/shell/build";
 import type { Character } from "../../game/sim/codes";
@@ -142,6 +144,19 @@ export function panelActions(): PanelActions {
       }),
       toggleAutomaticRematch: participant => withSlot(participant, (s, slot) => {
         if (controlsAvailable(s, slot)) setAutomaticRematch(s.game, slot, !s.game.automaticRematch);
+      }),
+      toggleTraining: participant => withSlot(participant, (s, slot) => {
+        if (controlsAvailable(s, slot)) setTraining(s.game, slot, !s.game.training);
+      }),
+      stepTraining: (participant, setting, direction) => withSlot(participant, (s, slot) => {
+        if (!controlsAvailable(s, slot)) return;
+        if (setting === "behaviour") stepPartnerBehaviour(s.game, slot, direction);
+        else if (setting === "escape") stepPartnerEscape(s.game, slot, direction);
+        else if (setting === "tech") stepPartnerTech(s.game, slot, direction);
+        else setPartnerDamage(s.game, slot, s.game.trainer.damage + direction * PARTNER_DAMAGE_STEP);
+      }),
+      toggleHitAreas: participant => withSlot(participant, (s, slot) => {
+        if (controlsAvailable(s, slot)) setHitAreas(s.game, slot, !s.game.trainer.showHitAreas);
       }),
     },
     stage: {

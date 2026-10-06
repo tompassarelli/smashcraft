@@ -18,6 +18,14 @@ the same fighters, stage and rules, with a visible five-second countdown
 after the result. A player can stop it with a menu control, then choose the
 next match. It starts off.
 
+Training (top of the rules) turns the match into practice against computer
+partners: no clock and no lost stocks. Choose what the partner does (Stand,
+Shield, Crouch, Jump, Attack or Fight), which way it drifts when hit, how it
+techs, its damage, and whether hit areas show (your body green, attacks red).
+The top-left readout gives your last attack's frames, how many frames ahead
+(+) or behind (-) you were after it hit or was shielded, and the combo. Hold
+both shields and press Attack to put everyone back at the start.
+
 An orange halo means your fighter is locked and no current input can help.
 A green halo means moving the stick can change the hit or throw, while buttons
 cannot. The halo disappears as soon as a button can matter, including an attack

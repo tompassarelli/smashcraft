@@ -14,6 +14,7 @@ import { HERO_STATUS_GROUPS } from "../sim/codes";
 import type { DashGrabRules, FighterPhysics, GroundMovementRules, ShieldGeometry, SurfaceRecoveryPhysics } from "../sim/tuning";
 import { at } from "wisp/src/runtime/lookup";
 import { canonicalSlot, fighterMovesCanonical, fighterSpecialsCanonical } from "./canonical";
+import { firstTrainingDifference } from "../match/trainingState";
 import type { ReplayState } from "./snapshot";
 
 type Value = number | boolean | undefined;
@@ -395,6 +396,9 @@ export function firstStateDifference(expected: Readonly<ReplayState>, actual: Re
   }
   if (e.humanCount !== a.humanCount) return "match.humanCount";
   if (e.practice !== a.practice) return "match.practice";
+  if (e.training !== a.training) return "match.training";
+  const training = firstTrainingDifference(e.trainer, a.trainer);
+  if (training !== undefined) return training;
   if (e.stockCount !== a.stockCount) return "match.stockCount";
   if (e.timeLimitMinutes !== a.timeLimitMinutes) return "match.timeLimitMinutes";
   if (e.endless !== a.endless) return "match.endless";

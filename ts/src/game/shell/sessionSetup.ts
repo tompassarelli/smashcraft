@@ -5,6 +5,8 @@
 //   -dev fighter P NAME           player P's fighter (a computer's, or the typist's own)
 //   -dev stocks N, -dev time MINUTES, -dev auto-rematch on|off
 //   -dev stage ID                 a stage catalog id, at fighter or stage selection
+//   -dev training on|off, -dev hit-areas on|off
+//   -dev partner BEHAVIOUR DRIFT TECH DAMAGE   training's partner, by the names below
 // Each applies the menus' own rule for the player who typed it, so a command
 // can do only what that player's clicks could. The developer receipt's SETUP
 // line (journalFiles.ts) reports the resulting state; automation confirms a
@@ -14,7 +16,7 @@ import { parseDecimal } from "../netcode/journal/decimal";
 import { PARTICIPANT_SLOTS, isParticipantMask, isParticipantSlot } from "../input/participants";
 import {
   type MatchState, Phase, computerActive, cycleSlotMode, humanActive, humanFighterActive, selectCharacter, selectCpuCharacter, setAutomaticRematch,
-  setStocks, setTimeLimit,
+  setHitAreas, setPartnerDamage, setStocks, setTimeLimit, setTraining,
 } from "../match/rules";
 import { selectableStage } from "../menu/stageCatalog";
 import type { Character } from "../sim/codes";
@@ -26,6 +28,13 @@ export const STOCKS_COMMAND = "-dev stocks ";
 export const TIME_COMMAND = "-dev time ";
 export const AUTO_REMATCH_COMMAND = "-dev auto-rematch ";
 export const STAGE_COMMAND = "-dev stage ";
+export const TRAINING_COMMAND = "-dev training ";
+export const HIT_AREAS_COMMAND = "-dev hit-areas ";
+export const PARTNER_COMMAND = "-dev partner ";
+/** Partner option names, in their code order (match/trainingState.ts). */
+export const PARTNER_BEHAVIOUR_NAMES = ["stand", "shield", "crouch", "jump", "attack", "fight"];
+export const PARTNER_DRIFT_NAMES = ["none", "toward", "away", "random"];
+export const PARTNER_TECH_NAMES = ["none", "place", "toward", "away", "random"];
 
 /** Digits exactly as I2S would print them. */
 function integer(text: string): number | undefined {
@@ -95,6 +104,28 @@ export function applySetupCommand(game: MatchState, actor: number, message: stri
     if (value !== "on" && value !== "off") return refused("automatic rematch");
     setAutomaticRematch(game, actor, value === "on");
     return game.automaticRematch === (value === "on") ? `dev: automatic rematch ${value}` : refused("automatic rematch");
+  }
+  const toggle = (prefix: string, apply: (on: boolean) => void, read: () => boolean, what: string): string | undefined => {
+    const value = message.substring(prefix.length);
+    if (value !== "on" && value !== "off") return refused(what);
+    apply(value === "on");
+    return read() === (value === "on") ? `dev: ${what} ${value}` : refused(what);
+  };
+  if (message.startsWith(TRAINING_COMMAND)) return toggle(TRAINING_COMMAND, on => setTraining(game, actor, on), () => game.training, "training");
+  if (message.startsWith(HIT_AREAS_COMMAND)) return toggle(HIT_AREAS_COMMAND, on => setHitAreas(game, actor, on), () => game.trainer.showHitAreas, "hit-areas");
+  if (message.startsWith(PARTNER_COMMAND)) {
+    const [behaviourName, driftName, techName, damageText, extra] = message.substring(PARTNER_COMMAND.length).split(" ");
+    const behaviour = PARTNER_BEHAVIOUR_NAMES.indexOf(behaviourName ?? "");
+    const drift = PARTNER_DRIFT_NAMES.indexOf(driftName ?? "");
+    const tech = PARTNER_TECH_NAMES.indexOf(techName ?? "");
+    const damage = integer(damageText ?? "");
+    if (behaviour < 0 || drift < 0 || tech < 0 || damage === undefined || extra !== undefined || game.phase !== Phase.characterMenu || !humanActive(game, actor)) return refused("partner");
+    setPartnerDamage(game, actor, damage);
+    if (game.trainer.damage !== damage) return refused("partner");
+    game.trainer.behaviour = behaviour;
+    game.trainer.escape = drift;
+    game.trainer.tech = tech;
+    return `dev: partner ${behaviourName} ${driftName} ${techName} ${damage}`;
   }
   if (message.startsWith(STAGE_COMMAND)) {
     const stage = integer(message.substring(STAGE_COMMAND.length));

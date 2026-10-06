@@ -31,7 +31,7 @@ const FLAG_FIELDS: Readonly<Record<FlagField, true>> = {
   shieldPressed: true, shieldTriggerActive: true, jumpPressed: true, airDodgePressed: true, techPressed: true,
   mashPressed: true, attackPressed: true, grabMashPressed: true, groundDodgePressed: true,
   getupAttackPressed: true, getupStandPressed: true, getupDirectionPressed: true, cStickUpFlick: true, jumpHeld: true, walking: true,
-  attackHeld: true,
+  attackHeld: true, resetPressed: true,
 };
 
 /** Reals are binary32 values in every runtime; the rest are integers. */
