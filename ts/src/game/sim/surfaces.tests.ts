@@ -33,7 +33,9 @@ import {
   WALL_JUMP_INPUT_WINDOW_FRAMES,
   WALL_JUMP_REPEAT_RISE_SCALE,
   WALL_JUMP_STICK_X,
+  bodyTop,
 } from "./surfaces";
+import { BLAST_ZONE_BOTTOM } from "./stocks";
 import { advanceSolo, controls, seedTechWindow, withPhysics } from "./testWorld";
 import { type SurfaceRecoveryPhysics, WORLD_UNITS_PER_MELEE_UNIT, melee } from "./tuning";
 
@@ -50,11 +52,18 @@ const MELEE_CAPTAIN_FALCON_SURFACE_RECOVERY_PHYSICS: SurfaceRecoveryPhysics = {
 /** Where a fighter meets the solid-deck test stage's left raised deck's left wall (x -420): its flank touches the wall. */
 const RAISED_WALL_CONTACT_X = f32(surfaceLeft(SOLID_DECK_TEST_STAGE, 1) - melee(BODY_HALF_WIDTH));
 
+/** That deck's underside, which a fighter meets with its ECB top. */
+const RAISED_UNDERSIDE_Z = solidSurfaceAt(SOLID_DECK_TEST_STAGE, MAIN_DECK_BODY_SURFACES + 2).startZ;
+/** Where an Archer stands when its top meets it: Fox's ECB top below it. */
+const RAISED_UNDERSIDE_CONTACT_Z = f32(RAISED_UNDERSIDE_Z - melee(bodyTop(Character.archer)));
+/** An Archer whose top is 5.7 below that underside. */
+const CEILING_TUMBLER_Z = f32(RAISED_UNDERSIDE_CONTACT_Z - 5.699999809265137);
+
 /** A tumbling fighter 5 units short of that wall, or below that deck's underside. */
 function surfaceTumbler(atCeiling: boolean): Fighter {
   const fighter = createFighter(Character.archer, atCeiling ? -265.0 : f32(RAISED_WALL_CONTACT_X - 5.0), 1);
   fighter.motion.grounded = false;
-  fighter.motion.z = atCeiling ? 140.0 : 160.0;
+  fighter.motion.z = atCeiling ? CEILING_TUMBLER_Z : 160.0;
   fighter.launch.hitstun = 8;
   fighter.down.state = DownState.tumble;
   return fighter;
@@ -179,13 +188,19 @@ test("a jump under a solid surface still bumps its head", () => {
     const { fighter, apex } = jumpBeneathDeck(character, SOLID_DECK_TEST_STAGE, 1, false);
     assertEquals(fighter.surfaceRecovery.contactSerial, 1);
     assertEquals(fighter.surfaceRecovery.contactKind, SurfaceContact.ceiling);
-    assertEquals(apex, solidSurfaceAt(SOLID_DECK_TEST_STAGE, MAIN_DECK_BODY_SURFACES + 2).startZ);
+    // Its ECB top meets the underside.
+    const top = melee(bodyTop(character));
+    assertEquals(apex, f32(RAISED_UNDERSIDE_Z - top));
     assertEquals(fighter.motion.surface, 0);
 
-    // The main deck's underside on the shipped stage, from an aerial jump below it.
+    // The main deck's underside on the shipped stage, from an aerial jump 2 below it. Illidan's
+    // top doesn't fit between it and the bottom blast zone, which #80 lowers to Final Destination's.
+    const underside = solidSurfaceAt(1, FLAT_UNDERSIDE).startZ;
+    const start = f32(f32(underside - top) - 2.0);
+    if (start <= BLAST_ZONE_BOTTOM) continue;
     const below = createFighter(character, 0.0, 1);
     below.motion.grounded = false;
-    below.motion.z = -380.0;
+    below.motion.z = start;
     below.jump.remaining = 1;
     const input = controls({ jumpPressed: true, jumpHeld: true });
     for (let frame = 1; frame <= 30 && below.surfaceRecovery.contactSerial === 0; frame++) {
@@ -193,7 +208,8 @@ test("a jump under a solid surface still bumps its head", () => {
       input.jumpPressed = false;
     }
     assertEquals(below.surfaceRecovery.contactKind, SurfaceContact.ceiling);
-    assertEquals(below.motion.z, solidSurfaceAt(1, FLAT_UNDERSIDE).startZ);
+    assertEquals(below.motion.z, f32(underside - top));
+    assertEquals(below.surfaceRecovery.contactZ, underside);
     assertTrue(below.motion.vz <= 0);
   }
 });
@@ -235,7 +251,7 @@ test("a surface rebound requires a tumbling launch", () => {
   for (const atCeiling of [false, true]) {
     for (let recovering = 0; recovering <= 2; recovering++) {
       const fighter = surfaceTumbler(atCeiling);
-      fighter.motion.z = atCeiling ? 140.0 : 160.0;
+      fighter.motion.z = atCeiling ? CEILING_TUMBLER_Z : 160.0;
       fighter.launch.knockbackX = atCeiling ? 0.0 : 12.0;
       fighter.launch.knockbackZ = atCeiling ? 12.0 : 0.0;
       fighter.launch.hitstun = recovering > 0 ? 8 : 0;
@@ -300,7 +316,8 @@ test("a retail ceiling rebound reports the surface normal", () => {
   const fighter = surfaceTumbler(true);
   fighter.launch.knockbackZ = 12.0;
   advanceSolo(fighter, SOLID_DECK_TEST_STAGE, controls(), 0.0);
-  assertNear(fighter.motion.z, 145.6999969482422, 0.0010000000474974513);
+  // The fighter stops with its ECB top on the underside; the contact is on the underside.
+  assertNear(fighter.motion.z, RAISED_UNDERSIDE_CONTACT_Z, 0.0010000000474974513);
   assertEquals(fighter.surfaceRecovery.contactKind, SurfaceContact.ceiling);
   assertEquals(fighter.surfaceRecovery.contactX, -265.0);
   assertNear(fighter.surfaceRecovery.contactZ, 145.6999969482422, 0.0010000000474974513);
@@ -562,7 +579,8 @@ test("a retail ceiling tech protects until its one-shot actor impulse", () => {
     const fighter = techingTumbler(true, 8.0);
     fighter.tuning.surface = MELEE_CAPTAIN_FALCON_SURFACE_RECOVERY_PHYSICS;
     fighter.tuning.tech = { ...fighter.tuning.tech, ceilingImpulseFrame: impulseFrame };
-    withPhysics(fighter, { airAcceleration: 0.0, airFriction: 0.0 });
+    // Held airborne: the floor is nearer below the raised deck than the impulse frame's fall.
+    withPhysics(fighter, { airAcceleration: 0.0, airFriction: 0.0, gravity: 0.0 });
     const input = controls();
     advanceSolo(fighter, SOLID_DECK_TEST_STAGE, input, 0.0);
     assertEquals(fighter.surfaceRecovery.state, SurfaceContact.techCeiling);

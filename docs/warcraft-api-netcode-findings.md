@@ -485,10 +485,58 @@ collector freed memory is no slower than the others. Measured interleaved
 with the build before on the same busy host, four fighters' confirming
 callbacks fell 41% at p95 and catching up 42%.
 
+Exact f32 arithmetic (#59) made every frame about a quarter costlier, and
+the worst four-fighter callbacks ran 21–31 frames: a message's 6 confirmed
+frames, a correction 15–24 frames deep replayed whole, and up to 6
+predicted. Every frame costs about the same, so each kind is now bounded
+(smashcraft:ts/src/game/shell/playback.ts): a correction replays at most 6
+frames a callback in the history's own state while the speculative match
+keeps running local rows, and replaces it once the replay reaches the
+present; a message's frames confirm 3 a callback, and only a backlog of
+more than two messages, as after a stall, 6. Prediction keeps its 6: #60's
+gate needs every admitted local row predicted within a callback, which a
+smaller share failed while catching up. In steady four-fighter play a
+callback ran at most 14 frames instead of 31 (11 but when two messages
+land together), and only catching up after a stall, with a correction
+pending, 18. A deep correction shows up to four callbacks late (until
+catching up ends, after a stall), and a message's confirmed events and HUD
+a callback or two late; local presses still start within a callback, and
+a 2 s stall still recovers in 21 callbacks headless.
+
 Throughput limits catching up too. Holds cost no bytes, but a message carries
 only 8 frames whose every field changes: with such input on every frame, 10
 messages a second carry 80 frames a second, and a 2 s backlog of it takes
 about 6 s to drain.
+
+## Where prediction waits
+
+Prediction runs at most R frames (24) past the last frame through which every
+remote player's rows have arrived (`ShadowInputSchedule.remoteThrough`). It
+used to count from K, which also waits for the player's own rows to come back
+through Battle.net, though a row is final once the map captures it. In
+0.0.49's native bot session
+(smashcraft:evidence/bot-session-0049-native-20261006/), client B's own echo
+took 120 ms at p50 and 409 ms at p95, against 294 ms at p95 for A.
+Prediction then stopped 24 frames past B's own echo while A's rows had
+arrived further: of the presses more than a second from any stop, two of B's
+started their prediction 4 and 16 callbacks after capture.
+
+smashcraft:ts/test/local-start.test.ts plays that session's four-fighter
+match headlessly, with B's messages 100 ms slower and B stopped for 2 s three
+times. Bounded by K, a press in steady play started 4 callbacks late, and
+the presses B's helper journaled while B was stopped started 48–125
+callbacks after capture, waiting for B's own echo. Bounded by the remote
+rows, all of them start in the callback that captures them.
+
+A remote player's rows R frames behind still stop prediction, as they must:
+rollback can't correct further back. When prediction stops at that window,
+the map marks it held until it has run every local row again
+(`Rollback.predictionHeld`). The response probe writes a `held` row for each
+press captured meanwhile, and the reconcilers report those presses apart from
+#60's gate (smashcraft:ts/scripts/integrity/reconcile.ts, pressResult.ts).
+In that session such a press of A's, made while B's game was stopped,
+started 66 callbacks after capture, and #26's re-run had one at 5 that
+waited for A's rows.
 
 ## Native 0.0.29 short transport comparison
 

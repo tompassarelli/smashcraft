@@ -1,0 +1,96 @@
+  typing after frame 375 (p0): p0's frame 375 stops 183.0 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 375 (p1): p1's frame 375 stops 122.0 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 90 (p0): p0's frame 90 stops 155.1 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 90 (p1): p1's frame 90 stops 122.0 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 370 (p0): p0's frame 370 stops 211.3 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 371 (p1): p1's frame 371 stops 59.5 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 139 (p0): p0's frame 139 stops 219.8 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 220 (p1): p1's frame 220 stops 462.7 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 275 (p0): p0's frame 275 stops 237.4 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 275 (p1): p1's frame 275 stops 311.3 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 124 (p0): p0's frame 124 stops 215.2 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 125 (p1): p1's frame 125 stops 45.9 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 501 (p0): p0's frame 501 stops 194.7 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 511 (p1): p1's frame 511 stops 401.4 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 336 (p1): p1's frame 336 stops 359.6 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 355 (p0): p0's frame 355 stops 229.8 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 221 (p1): p1's frame 221 stops 369.8 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 222 (p0): p0's frame 222 stops 247.8 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 327 (p1): p1's frame 327 stops 192.2 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 328 (p0): p0's frame 328 stops 51.5 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  catch-up after frame 1611: the game stayed behind its input for 3.0 s: 134 frames of input not yet played
+  catch-up after frame 1620: the game fell 12.1 s behind real time and kept falling for 3 s (worst client frame 4.0 ms measured)
+  typing after frame 339 (p1): p1's frame 339 stops 352.0 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 367 (p0): p0's frame 367 stops 184.8 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 46 (p1): p1's frame 46 stops 307.3 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 47 (p0): p0's frame 47 stops 58.5 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 102 (p1): p1's frame 102 stops 44.1 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 380 (p1): p1's frame 380 stops 137.8 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 777 (p0): p0's frame 777 stops 162.4 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 215 (p1): p1's frame 215 stops 426.9 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 216 (p0): p0's frame 216 stops 122.0 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 426 (p0): p0's frame 426 stops 122.0 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 426 (p1): p1's frame 426 stops 155.1 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 376 (p1): p1's frame 376 stops 228.5 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 377 (p0): p0's frame 377 stops 35.4 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 641 (p0): p0's frame 641 stops 336.2 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 778 (p0): p0's frame 778 stops 332.9 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  catch-up after frame 900: the game fell 5.2 s behind real time and kept falling for 3 s (worst client frame 1.4 ms measured)
+  typing after frame 379 (p0): p0's frame 379 stops 251.3 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 660 (p0): p0's frame 660 stops 329.7 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 636 (p0): p0's frame 636 stops 264.3 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 1011 (p0): p0's frame 1011 stops 243.6 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 1723 (p0): p0's frame 1723 stops 396.9 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 221 (p1): p1's frame 221 stops 389.0 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 2845 (p0): p0's frame 2845 stops 229.8 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 287 (p1): p1's frame 287 stops 205.4 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 397 (p1): p1's frame 397 stops 197.8 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 487 (p1): p1's frame 487 stops 227.1 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  catch-up after frame 1020: the game fell 5.9 s behind real time and kept falling for 3 s (worst client frame 11.0 ms measured)
+  typing after frame 885 (p1): p1's frame 885 stops 285.0 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 223 (p1): p1's frame 223 stops 419.5 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 188 (p1): p1's frame 188 stops 182.4 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 782 (p1): p1's frame 782 stops 206.7 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 752 (p1): p1's frame 752 stops 426.0 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 775 (p0): p0's frame 775 stops 246.4 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 775 (p1): p1's frame 775 stops 162.4 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 1109 (p1): p1's frame 1109 stops 253.5 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 145 (p0): p0's frame 145 stops 346.1 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 145 (p1): p1's frame 145 stops 184.8 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 57 (p0): p0's frame 57 stops 262.1 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 57 (p1): p1's frame 57 stops 141.5 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 910 (p1): p1's frame 910 stops 153.5 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 357 (p0): p0's frame 357 stops 290.3 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 357 (p1): p1's frame 357 stops 247.1 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 359 (p0): p0's frame 359 stops 295.7 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 360 (p1): p1's frame 360 stops 78.8 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 941 (p1): p1's frame 941 stops 298.0 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 942 (p0): p0's frame 942 stops 107.2 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 546 (p0): p0's frame 546 stops 197.8 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 546 (p1): p1's frame 546 stops 237.4 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 428 (p1): p1's frame 428 stops 308.1 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 429 (p0): p0's frame 429 stops 137.8 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 278 (p0): p0's frame 278 stops 269.4 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 279 (p1): p1's frame 279 stops 101.3 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 716 (p0): p0's frame 716 stops 242.2 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 716 (p1): p1's frame 716 stops 385.4 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 96 (p0): p0's frame 96 stops 122.0 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 96 (p1): p1's frame 96 stops 285.8 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 326 (p1): p1's frame 326 stops 267.2 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 327 (p0): p0's frame 327 stops 46.2 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 584 (p0): p0's frame 584 stops 303.4 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 510 (p0): p0's frame 510 stops 263.5 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 244 (p0): p0's frame 244 stops 356.2 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 543 (p0): p0's frame 543 stops 308.1 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 320 (p0): p0's frame 320 stops 254.9 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 3439 (p0): p0's frame 3439 stops 297.2 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 1319 (p0): p0's frame 1319 stops 165.9 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 461 (p0): p0's frame 461 stops 342.8 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 770 (p0): p0's frame 770 stops 332.9 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  catch-up after frame 900: the game fell 4.3 s behind real time and kept falling for 3 s (worst client frame 11.4 ms measured)
+  typing after frame 292 (p0): p0's frame 292 stops 269.4 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 428 (p1): p1's frame 428 stops 285.8 ms taking typed text, more than the 32.8 ms its input helper may type at once
+  typing after frame 253 (p0): p0's frame 253 stops 316.8 ms taking typed text, more than the 32.8 ms its input helper may type at once
+200 matches, 179,983 frames (53.9 game minutes) in 55.6 s with 4 workers (4 started): 58x real time, 295.7 s CPU
+costliest client frame 31.3 ms; 93 findings (typing, catch-up) in 60 matches, repro files in /tmp/claude-1000/-home-tom-code-smashcraft/025c4a93-ad00-4198-9ec6-9ef9a1cccd8e/scratchpad/hf/soak200burst
+93 findings in 60 matches
