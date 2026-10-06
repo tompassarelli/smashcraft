@@ -7,6 +7,7 @@ import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hitRegions";
 import { attackDurationFramesForGrounding, attackLandingLag, attackStartupFrames, characterAttackActiveFrames, grabActionDuration, grabContactFrame, isAerialAttack, smashDamageMultiplier } from "../moves";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
+import { HurtContact, strikeHurtContact } from "../hurtboxes";
 import { SHADOW_HUNTER_MOVES } from "./shadowHunterMoves";
 
 // Adopted F/A/R/L values from smashcraft:docs/design/roster.md.
@@ -224,5 +225,28 @@ test("Shadow Hunter throws hold through their adopted release and launch once in
       testGrabFrame(world, [input, controls()], false);
       assertEquals(target.status.damage, damage);
     }
+  }
+});
+
+test("Shadow Hunter's Heel Hook arm is exposed behind him while the glaive tip stays disjoint", () => {
+  // A small probe placed in world space, as a strike from an opponent would be.
+  const probe = (x: number, z: number) => ({ x1: x, z1: z, x2: x, z2: z, radius: 4.0 });
+  for (const facing of [-1, 1]) {
+    const f = createFighter(Character.archer, 0.0, facing);
+    f.tuning.moves = SHADOW_HUNTER_MOVES;
+    const touches = (style: AttackStyle | undefined, frame: number, x: number, z: number) => {
+      f.attack.style = style;
+      f.attack.frame = frame;
+      return strikeHurtContact(probe(f32(x * facing), z), f) === HurtContact.hit;
+    };
+    // Behind at 70 units: outside the standing body, inside the hooking arm from two
+    // frames before its first active frame (zero-based 7) through two after its last.
+    assertTrue(!touches(undefined, 0, -70.0, 41.0));
+    assertTrue(!touches(AttackStyle.backAir, 3, -70.0, 41.0));
+    for (let frame = 5; frame <= 11; frame++) assertTrue(touches(AttackStyle.backAir, frame, -70.0, 41.0));
+    assertTrue(!touches(AttackStyle.backAir, 12, -70.0, 41.0));
+    // Forward tilt's blade reaches 145; the arm ends near 67, so the blade's outer half is disjoint.
+    assertTrue(touches(AttackStyle.forwardTilt, 8, 60.0, 56.0));
+    assertTrue(!touches(AttackStyle.forwardTilt, 8, 110.0, 56.0));
   }
 });

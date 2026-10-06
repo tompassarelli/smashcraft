@@ -1,7 +1,8 @@
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction } from "../codes";
-import { HERO_REFERENCE_HEIGHT, heroMove, heroRegion, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
+import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
 import { HitElement, type HitEffect } from "../hitRegions";
+import { type FighterHurtboxes, type HurtPart, hurtPart } from "../hurtboxes";
 
 // smashcraft:docs/design/roster.md supplies F/A/R/L, damage and outer reach.
 // These narrow paths are original, provisional weapon and limb geometry.
@@ -50,11 +51,51 @@ function chop(first: number, heights: readonly number[], reach: number, effect: 
   return path(first, heights.map(z => capsule(20.0, 45.0, f32(reach - BLADE_RADIUS), z)), effect);
 }
 
+// Body: the reference capsule scaled by the roster's 0.92 width and 1.08
+// height. Limbs reach toward each strike from late startup through early
+// recovery, fitted to the classic model's skinned clips (hands reach about
+// 80 units forward in Attack and above 170 in Spell); the glaive past the
+// hand is the move's disjoint. Heel Hook's arm stays exposed along its path.
+const BODY_RADIUS = f32(24.0 * f32(0.92));
+const BODY_TOP = f32(f32(4.0 + f32(HERO_REFERENCE_HEIGHT * f32(1.08))) - f32(2.0 * BODY_RADIUS));
+const BODY = hurtPart(0.0, 4.0, 0.0, BODY_TOP, BODY_RADIUS);
+const LIMB_RADIUS = 9.0;
+const limb = (x1: number, z1: number, x2: number, z2: number, radius = LIMB_RADIUS): readonly HurtPart[] => [BODY, hurtPart(x1, z1, x2, z2, radius)];
+/** The limb pose from two frames before the first active frame through two after the last. */
+const reaching = (first: number, active: number, parts: readonly HurtPart[]) => [heroHurtPose(first - 2, first + active + 1, parts)];
+const FORWARD_ARM = limb(10.0, 62.0, 58.0, 55.0);
+const RAISED_ARMS = limb(0.0, 95.0, 5.0, 140.0);
+
+const SHADOW_HUNTER_BODY: FighterHurtboxes = {
+  stand: [BODY],
+  attacks: {
+    [AttackStyle.jab]: reaching(5, 2, limb(10.0, 58.0, 45.0, 52.0)),
+    [AttackStyle.forwardTilt]: reaching(9, 3, FORWARD_ARM),
+    [AttackStyle.forwardTiltUp]: reaching(9, 3, limb(10.0, 66.0, 55.0, 80.0)),
+    [AttackStyle.forwardTiltDown]: reaching(9, 3, limb(10.0, 55.0, 55.0, 35.0)),
+    [AttackStyle.upTilt]: reaching(8, 4, RAISED_ARMS),
+    [AttackStyle.downTilt]: reaching(7, 3, limb(10.0, 30.0, 50.0, 15.0)),
+    [AttackStyle.dashAttack]: reaching(10, 4, FORWARD_ARM),
+    [AttackStyle.forwardSmash]: reaching(19, 3, limb(10.0, 80.0, 70.0, 90.0)),
+    [AttackStyle.upSmash]: reaching(17, 4, RAISED_ARMS),
+    [AttackStyle.neutralAir]: [
+      heroHurtPose(5, 9, limb(10.0, 60.0, 50.0, 55.0)),
+      heroHurtPose(10, 13, limb(-10.0, 60.0, -50.0, 55.0)),
+    ],
+    [AttackStyle.forwardAir]: reaching(10, 3, FORWARD_ARM),
+    [AttackStyle.backAir]: reaching(8, 3, limb(-12.0, 40.0, -f32(M - 24.0), 42.0, 11.0)),
+    [AttackStyle.upAir]: reaching(7, 3, RAISED_ARMS),
+    [AttackStyle.downAir]: reaching(14, 4, limb(2.0, 30.0, 2.0, -20.0)),
+    [AttackStyle.grab]: reaching(8, 2, limb(10.0, 45.0, f32(S - 10.0), 42.0)),
+  },
+};
+
 export const SHADOW_HUNTER_MOVES: FighterMoves = {
   dashAttack: AttackStyle.dashAttack,
   smashMaxChargeFrames: 45,
   smashMaxDamageMultiplier: 1.25,
   maxPummels: 2,
+  hurtboxes: SHADOW_HUNTER_BODY,
   normals: {
     [AttackStyle.jab]: heroMove(5, 2, 14, 0, path(5, [
       capsule(16.0, 42.0, f32(S - 9.0), 42.0, 9.0),
@@ -105,7 +146,7 @@ export const SHADOW_HUNTER_MOVES: FighterMoves = {
       ], hit(8.0, "POKE", 50, -1.0)),
     ]),
     [AttackStyle.forwardAir]: heroMove(10, 3, 25, 15, chop(10, [65.0, 45.0, 25.0], L, hit(11.0, "EDGE", 40))),
-    // Heel Hook is an attached limb; its path requires matching hurt coverage.
+    // Heel Hook is an attached limb, so SHADOW_HUNTER_BODY exposes it along this path.
     [AttackStyle.backAir]: heroMove(8, 3, 23, 13, path(8, [
       capsule(-12.0, 24.0, -f32(M - 12.0), 30.0, 12.0),
       capsule(-12.0, 28.0, -f32(M - 12.0), 42.0, 12.0),
