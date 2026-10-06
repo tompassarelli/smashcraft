@@ -261,3 +261,14 @@ test("a hero special's hurt poses replace the body on their frames only", () => 
   assertEquals(strikeHurtContact(strike, owner), HurtContact.none);
   void target;
 });
+
+test("a broad hero projectile meets a raised shield before the body behind it", () => {
+  const broad: FighterSpecials = { ...KIT, neutral: { ground: { ...NEUTRAL, projectiles: [{ ...NEUTRAL.projectiles![0]!, radius: 24.0 }] } } };
+  const { world, owner, target } = pair(400.0);
+  owner.tuning = { ...owner.tuning, specials: broad };
+  const guard = controls({ shield: true });
+  frame(world, neutral, guard);
+  for (let f = 2; f <= 40 && target.shield.stun === 0 && target.status.damage === 0.0; f++) frame(world, controls(), guard);
+  assertEquals(target.status.damage, 0.0);
+  assertGreaterThan(target.shield.stun, 0);
+});
