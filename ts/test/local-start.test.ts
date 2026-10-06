@@ -8,7 +8,7 @@
 // was stopped, are left out, as #60 leaves them out.
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless, readNativeDeclarations } from "wisp/scripts/wisp/headless";
-import { type SyncLatency, syncDelivery } from "wisp/scripts/wisp/syncChannel";
+import { type SyncLatency, syncDelivery } from "wisp/src/headless/syncChannel";
 import type { HeadlessClient, SyncMessage } from "wisp/src/headless/client";
 import { type InputRow, type RowFields, inputRow, sameInput } from "../src/game/input/inputRow";
 import type { ParticipantInputs } from "../src/game/input/participants";
