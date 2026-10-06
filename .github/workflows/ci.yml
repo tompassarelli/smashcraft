@@ -43,6 +43,12 @@ jobs:
         env:
           LUA: ${{ github.workspace }}/ts/build/lua-stock/lua-5.3.6/src/lua
           TOWARD_ZERO_LUA: ${{ github.workspace }}/ts/build/toward-zero-lua/lua-5.3.6/src/lua
+      # The game's tests in Warcraft's number model (32-bit Lua), which the Bun suite cannot catch.
+      - if: ${{ !cancelled() }}
+        run: bun scripts/lua-tests.ts
+        working-directory: ts
+        env:
+          LUA: ${{ github.workspace }}/ts/build/lua-stock/lua-5.3.6/src/lua
       # Frame-cost landing gate (#48): the playable build's four-fighter bot match,
       # each frame's cost predicted from counts (not time), may not rise beyond 5%
       # over the committed baseline. After an intended rise or a cut, rewrite the
