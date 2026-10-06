@@ -13,13 +13,13 @@ const H = HERO_REFERENCE_HEIGHT;
 const heights = (amount: number) => f32(H * f32(amount));
 
 // Storm Bolt: one straight, reflectable hammer; normal hitstun, no stun status.
-const BOLT_SPEED = heights(0.12);
-const BOLT_RADIUS = heights(0.18);
+const BOLT_SPEED = heights(f32(0.12));
+const BOLT_RADIUS = heights(f32(0.18));
 const STORM_BOLT = hit(7.0, "LAUNCH", 65);
 
 // Storm Rush: 1.2H of shoulder travel over its six active frames, then a dead stop.
 const RUSH_FRAMES = 6;
-const RUSH_SPEED = f32(heights(1.2) / RUSH_FRAMES);
+const RUSH_SPEED = f32(heights(f32(1.2)) / RUSH_FRAMES);
 const STORM_RUSH = hit(12.0, "EDGE", 35);
 const RUSH: readonly SpecialMotion[] = [{ ...frames(13, 18), velocityX: RUSH_SPEED, velocityZ: 0.0, stopsAtBody: true }, { ...frames(19, 19), velocityX: 0.0, velocityZ: 0.0 }];
 const RUSH_BODY = capsule(0.0, 14.0, 12.0, 60.0, 26.0);
@@ -32,15 +32,15 @@ const RUSH_HURT = [hurtPose(13, 18, [hurtCapsule(Character.mountainKing), hurtPa
 const leap = (rise: number, drift: number): SpecialMotion[] => {
   const segment = (first: number, last: number, share: number): SpecialMotion =>
     ({ ...frames(first, last), velocityX: f32(f32(drift * share) / (last - first + 1)), velocityZ: f32(f32(rise * share) / (last - first + 1)) });
-  return [segment(9, 14, 0.5), segment(15, 24, 0.46), segment(25, 28, 0.04)];
+  return [segment(9, 14, 0.5), segment(15, 24, f32(0.46)), segment(25, 28, f32(0.04))];
 };
-const FULL_LEAP = leap(heights(1.8), heights(0.7));
-const FREE_LEAP = leap(heights(1.3), heights(0.5));
+const FULL_LEAP = leap(heights(f32(1.8)), heights(f32(0.7)));
+const FREE_LEAP = leap(heights(f32(1.3)), heights(0.5));
 const THUNDER_LEAP = hit(8.0, "LAUNCH", 80);
 const LEAP_HAMMER = capsule(10.0, 60.0, 30.0, f32(MEDIUM + 20.0), 16.0);
 
 // Thunder Clap: a ground-level ring of 0.85H on both sides; a jump clears it.
-const CLAP_REACH = heights(0.85);
+const CLAP_REACH = heights(f32(0.85));
 const CLAP_FRONT = hit(10.0, "LAUNCH", 70);
 const CLAP_BACK = hit(10.0, "LAUNCH", 70, true);
 // Air form: the hammer swings under the body, 0.55H reach, no shockwave.

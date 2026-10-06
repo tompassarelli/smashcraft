@@ -258,7 +258,7 @@ test("Mountain King's limbs follow his swings while hammer and axe stay disjoint
     assertEquals(stand.length, 1);
     const body = stand[0];
     assertTrue(body !== undefined);
-    if (body !== undefined) assertNear(f32(f32(body.z2 - body.z1) + f32(2.0 * body.radius)), f32(HERO_REFERENCE_HEIGHT * f32(0.85)), 0.001);
+    if (body !== undefined) assertNear(f32(f32(body.z2 - body.z1) + f32(2.0 * body.radius)), f32(HERO_REFERENCE_HEIGHT * f32(0.85)), f32(0.001));
     const foot = { x1: f32((SHORT - 8.0) * facing), z1: 10.0, x2: f32((SHORT - 8.0) * facing), z2: 10.0, radius: 2.0 };
     assertEquals(strikeHurtContact(foot, mk), HurtContact.none);
     mk.attack.style = AttackStyle.downTilt;

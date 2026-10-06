@@ -90,7 +90,7 @@ test("Storm Bolt flies 0.12H a frame from frame 20, one at a time, and hits once
     if (bolt === undefined) return;
     const start = bolt.x;
     frame(world);
-    assertNear(f32((bolt.x - start) * facing), f32(H * f32(0.12)), 0.001);
+    assertNear(f32((bolt.x - start) * facing), f32(H * f32(0.12)), f32(0.001));
     for (let f = 0; f < 40 && owner.special.action !== SpecialAction.none; f++) frame(world);
     const before = owner.mana.points;
     if (bolt.life > 0) {
@@ -129,7 +129,7 @@ test("a shielded Storm Bolt at full travel leaves the defender free before Mount
 test("Thunder Clap covers both sides at ground level, launches away and a jump clears it", () => {
   for (const facing of [1, -1]) {
     for (const behind of [false, true]) {
-      const { world, target } = pair(f32(H * 0.85), behind ? -facing : facing);
+      const { world, target } = pair(f32(H * f32(0.85)), behind ? -facing : facing);
       const owner = world.fighters[0]!;
       owner.facing = facing;
       frame(world, down);
@@ -137,7 +137,7 @@ test("Thunder Clap covers both sides at ground level, launches away and a jump c
       assertEquals(target.status.damage, 10.0);
       assertGreaterThan(f32(f32(target.motion.x - owner.motion.x) * target.launch.knockbackX), 0.0);
     }
-    const jumped = pair(f32(H * 0.6), facing);
+    const jumped = pair(f32(H * f32(0.6)), facing);
     jumped.target.motion.grounded = false;
     jumped.target.motion.z = 60.0;
     jumped.target.motion.vz = 0.0;
@@ -152,7 +152,7 @@ test("Thunder Clap covers both sides at ground level, launches away and a jump c
 });
 
 test("Storm Rush carries 1.2H, hits for 12 and its air form ends helpless", () => {
-  const { world, owner, target } = pair(f32(H * 1.4));
+  const { world, owner, target } = pair(f32(H * f32(1.4)));
   const startX = owner.motion.x;
   frame(world, side);
   for (let f = 2; f <= 18; f++) frame(world);
@@ -160,8 +160,8 @@ test("Storm Rush carries 1.2H, hits for 12 and its air form ends helpless", () =
   const empty = pair(1200.0);
   const from = empty.owner.motion.x;
   for (let f = 1; f <= 46; f++) frame(empty.world, f === 1 ? side : controls());
-  assertGreaterThan(f32(empty.owner.motion.x - from), f32(H * 1.1));
-  assertLessThan(f32(empty.owner.motion.x - from), f32(H * 1.3));
+  assertGreaterThan(f32(empty.owner.motion.x - from), f32(H * f32(1.1)));
+  assertLessThan(f32(empty.owner.motion.x - from), f32(H * f32(1.3)));
   assertGreaterThan(owner.motion.x, startX);
   const air = pair(1200.0);
   air.owner.motion.grounded = false;
@@ -195,10 +195,10 @@ test("Thunder Leap peaks at about 1.8H and strikes; below 15 mana the free leap 
   };
   const full = rise(100, false);
   const free = rise(10, false);
-  assertGreaterThan(full.height, f32(H * 1.7));
-  assertLessThan(full.height, f32(H * 1.85));
-  assertGreaterThan(free.height, f32(H * 1.2));
-  assertLessThan(free.height, f32(H * 1.35));
+  assertGreaterThan(full.height, f32(H * f32(1.7)));
+  assertLessThan(full.height, f32(H * f32(1.85)));
+  assertGreaterThan(free.height, f32(H * f32(1.2)));
+  assertLessThan(free.height, f32(H * f32(1.35)));
   assertLessThan(free.height, full.height);
   assertTrue(full.owner.special.fall);
   assertTrue(free.owner.special.fall);
