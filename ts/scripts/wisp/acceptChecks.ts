@@ -68,9 +68,11 @@ const EXPECTATIONS: Readonly<Record<number, string>> = {
 };
 
 /** smashcraft#82's re-capture: each case 3 s after the last, frames from its receipt to +0.5 s, its model and sound named on screen. */
-const effectChecks: NativeCheck[] = [12, 13, 14, 15, 24, 2, 7, 5, 6, 4, 9, 11, 25].map((index) => {
-  const { model, sound } = HIT_PRESENTATION_CASES[index]!;
-  return {
+const effectChecks: NativeCheck[] = [12, 13, 14, 15, 24, 2, 7, 5, 6, 4, 9, 11, 25].flatMap((index): NativeCheck[] => {
+  const scenario = HIT_PRESENTATION_CASES[index];
+  if (scenario === undefined) return [];
+  const { model, sound } = scenario;
+  return [{
     id: `82-effects-${index}`,
     closes: "smashcraft#82 box 2",
     map: "presentation",
@@ -82,7 +84,7 @@ const effectChecks: NativeCheck[] = [12, 13, 14, 15, 24, 2, 7, 5, 6, 4, 9, 11, 2
     // The label is written by the call that starts the sound: the right label is the sound's evidence.
     pass: [DEV_RECEIPT, NO_ERRORS, { kind: "reading", name: "label", pattern: `${model} ${sound}`, orLook: true }],
     look: EXPECTATIONS[index] ?? "the case's effect at stage centre",
-  };
+  }];
 });
 
 export const SMASHCRAFT_ACCEPT: AcceptSuite = {

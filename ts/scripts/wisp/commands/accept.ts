@@ -2,7 +2,6 @@
 // check Smashcraft declares (smashcraft:ts/scripts/wisp/acceptChecks.ts), run
 // on clients A and B in as few fresh matches as their maps allow.
 // Evidence goes to ~/.local/state/smashcraft/accept/RUN/ (wisp:docs/accept.md).
-import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { Effect, Layer } from "effect";
@@ -17,13 +16,13 @@ import { rebuildMap } from "../mapInputs";
 import { clientState, gameFilesLayer } from "../project";
 import { freshMatch, sendDevCommand } from "./fresh";
 import { profileOptions } from "./map";
-import { onHealthyClients, smashcraftWatch } from "../doctor";
+import { onHealthyClients, readClientsFile, smashcraftWatch } from "../doctor";
 
 /** Client names from the clients file, for the plan; reading it touches no client. */
 const clientNames = (): [string, ...string[]] => {
   try {
-    const names = (JSON.parse(readFileSync(clientState, "utf8")) as { clients?: { name?: unknown }[] }).clients?.flatMap(({ name }) => (typeof name === "string" ? [name] : [])) ?? [];
-    return names.length > 0 ? [names[0]!, ...names.slice(1)] : ["a", "b"];
+    const [first, ...rest] = readClientsFile().clients.map(({ name }) => name);
+    return first === undefined ? ["a", "b"] : [first, ...rest];
   } catch {
     return ["a", "b"];
   }
