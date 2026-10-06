@@ -60,6 +60,7 @@ interface KoPose {
 /**
  * A pool of impacts by slot, as parallel arrays. Ages count executed frames
  * from emission; undefined marks a free slot, keeping each array dense in Lua.
+ * A free slot holds the empty pool's values, so a copy skips slots free in both.
  * Projection reads the pool without advancing time or consuming events.
  */
 export interface ImpactState {
@@ -110,24 +111,36 @@ function at<T>(values: readonly T[], index: number): T {
   return value;
 }
 
-/**
- * Every snapshot save and every replayed frame copies the whole pool, so
- * each array is copied in its own loop without a call per element.
- */
-function copyPool<T>(target: T[], source: readonly T[], count: number, fallback: T): void {
-  for (let i = 0; i < count; i++) target[i] = source[i] ?? fallback;
+/** Frees a slot and restores the empty pool's values. */
+function freeSlot(state: ImpactState, i: number): void {
+  state.ages[i] = undefined;
+  state.character[i] = 0;
+  state.originX[i] = 0.0;
+  state.originZ[i] = 0.0;
+  state.drift[i] = 0;
+  state.driftZ[i] = 0.0;
+  state.pitch[i] = 0.0;
+  state.strength[i] = 0.0;
 }
 
+/** Every snapshot save and every replayed frame copies the pool: its live slots, and those it frees. */
 export function copyImpactStateInto(target: ImpactState, source: Readonly<ImpactState>): void {
-  for (let i = 0; i < IMPACT_COUNT; i++) target.ages[i] = source.ages[i];
-  copyPool(target.character, source.character, IMPACT_COUNT, 0);
-  copyPool(target.originX, source.originX, IMPACT_COUNT, 0.0);
-  copyPool(target.originZ, source.originZ, IMPACT_COUNT, 0.0);
-  copyPool(target.drift, source.drift, IMPACT_COUNT, 0);
-  copyPool(target.driftZ, source.driftZ, IMPACT_COUNT, 0.0);
-  copyPool(target.pitch, source.pitch, IMPACT_COUNT, 0.0);
-  copyPool(target.strength, source.strength, IMPACT_COUNT, 0.0);
-  copyPool(target.nextSlot, source.nextSlot, IMPACT_KIND_COUNT, 0);
+  for (let i = 0; i < IMPACT_COUNT; i++) {
+    const age = source.ages[i];
+    if (age === undefined) {
+      if (target.ages[i] !== undefined) freeSlot(target, i);
+      continue;
+    }
+    target.ages[i] = age;
+    target.character[i] = source.character[i] ?? 0;
+    target.originX[i] = source.originX[i] ?? 0.0;
+    target.originZ[i] = source.originZ[i] ?? 0.0;
+    target.drift[i] = source.drift[i] ?? 0;
+    target.driftZ[i] = source.driftZ[i] ?? 0.0;
+    target.pitch[i] = source.pitch[i] ?? 0.0;
+    target.strength[i] = source.strength[i] ?? 0.0;
+  }
+  for (let kind = 0; kind < IMPACT_KIND_COUNT; kind++) target.nextSlot[kind] = source.nextSlot[kind] ?? 0;
 }
 
 export function firstImpactDifference(expected: Readonly<ImpactState>, actual: Readonly<ImpactState>): string | undefined {
@@ -149,16 +162,7 @@ export function firstImpactDifference(expected: Readonly<ImpactState>, actual: R
 }
 
 export function clearImpactState(state: ImpactState): void {
-  for (let i = 0; i < IMPACT_COUNT; i++) {
-    state.character[i] = 0;
-    state.ages[i] = undefined;
-    state.originX[i] = 0.0;
-    state.originZ[i] = 0.0;
-    state.drift[i] = 0;
-    state.driftZ[i] = 0.0;
-    state.pitch[i] = 0.0;
-    state.strength[i] = 0.0;
-  }
+  for (let i = 0; i < IMPACT_COUNT; i++) freeSlot(state, i);
   for (let kind = 0; kind < IMPACT_KIND_COUNT; kind++) state.nextSlot[kind] = 0;
 }
 
@@ -182,7 +186,8 @@ export function advanceImpacts(state: ImpactState): void {
   for (let i = 0; i < IMPACT_COUNT; i++) {
     const age = state.ages[i];
     if (age === undefined) continue;
-    state.ages[i] = age + 1 >= impactLifetime(idiv(i, IMPACTS_PER_KIND)) ? undefined : age + 1;
+    if (age + 1 >= impactLifetime(idiv(i, IMPACTS_PER_KIND))) freeSlot(state, i);
+    else state.ages[i] = age + 1;
   }
 }
 
