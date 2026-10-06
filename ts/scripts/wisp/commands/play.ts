@@ -90,6 +90,11 @@ export function playtest({ build, map, helper, computerSlot, inputDevices }: Pla
       for (const path of [go, receipt]) if ((yield* gameFiles.read(path)) !== undefined) yield* gameFiles.remove(path);
       yield* gameFiles.write(requestFile, linePreloadFile(request));
     }).pipe(Effect.mapError(problem)),
+    // A request left behind would have the map's next session look for a go-ahead twice a second at fighter selection.
+    cleanup: (documents) => Effect.gen(function*() {
+      const gameFiles = yield* GameFiles;
+      for (const path of Object.values(files(documents))) if ((yield* gameFiles.read(path)) !== undefined) yield* gameFiles.remove(path);
+    }).pipe(Effect.mapError(problem)),
     started: (game, since) => until(LOAD_SECONDS, menu(game).pipe(Effect.map((file) => (file !== undefined && file.modified > since && file.value.phase === "CHARACTER" ? true : undefined))),
       `Smashcraft didn't reach fighter selection within ${LOAD_SECONDS} s (no new ${name})`),
     // The go-ahead: the map sends the request to every client and starts the match; its receipt says how it went.
