@@ -4,7 +4,7 @@
 // fighter and stage selection, an instrumented match, the results screen, a
 // slot change, and the rematch. Everything it does to the clients goes through
 // the Rig service, so a recording Rig can replay the journey without Warcraft.
-import { Context, Effect } from "effect";
+import { Context, Effect, Fiber } from "effect";
 import { RULE_BUTTONS } from "../../src/game/ui/ruleButtons";
 import { stageTileLeft, stageTileTop } from "../../src/game/menu/stageSelection";
 import type { Region } from "wisp/scripts/warcraft/desktop";
@@ -68,6 +68,8 @@ export type JourneyRecord =
   | { readonly event: "bot-moment"; readonly epoch: number; readonly pressed_monotonic_ns: number; readonly released_monotonic_ns: number }
   | { readonly event: "dev-config"; readonly epoch: number; readonly command: string; readonly publications: readonly PublicationRecord[] }
   | { readonly event: "results"; readonly epoch: number; readonly texts: readonly string[]; readonly notices?: readonly string[] }
+  /** Client A's frame-cost overlay as read from its screen (botResult.ts reduces the readings). */
+  | { readonly event: "perf-overlay"; readonly epoch: number; readonly observed_monotonic_ns: number; readonly text: string }
   /** What an input-integrity capture's player-view check found; `failure` is undefined when it passed. */
   | { readonly event: "player-view"; readonly epoch: number; readonly at: PlayerViewMoment; readonly failure: string | undefined };
 
@@ -189,6 +191,13 @@ const PAD49_BELOW_DOWN = 21299;
 const PAD49_PAST_DOWN = 21954;
 /** The frame meter's overlay toggle (smashcraft:ts/src/platform/frameMeter.ts). */
 const PERF_TOGGLE = "-dev perf";
+/**
+ * The overlay's text frame (wisp:src/platform/frameMeter.ts): top left
+ * (0.58, 0.56), 0.21 by 0.08, in the 2560x1440 client's centered 4:3 area.
+ */
+const PERF_OVERLAY: Region = { x: 1700, y: 90, width: 530, height: 210 };
+/** The overlay summarizes the last 120 frames; one reading every 2 s reads each window once. */
+const PERF_READ_MILLIS = 2000;
 /**
  * Stocks in each match of #26's integrity workload. Its pads dash both ways
  * through the whole workload, and on 0.0.48 Player 2 drifted off the stage on
@@ -637,7 +646,18 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       yield* rig.sleep(700);
       // The playable build starts no scene recorder.
       yield* playerView(epoch, "start", { frame: true, scene: !playable && diagnosticBuild });
-      if (bot) yield* botMatch(epoch, deadline - 300_000_000);
+      if (bot) {
+        // The rematch that shows the overlay is read throughout, beside its beats.
+        const overlay = bot && (options.botFour === true || options.botPerf === true) && !odd
+          ? yield* Effect.forkChild(Effect.forever(Effect.gen(function*() {
+            const text = yield* rig.readText(0, PERF_OVERLAY).pipe(Effect.catch((failure) => Effect.succeed(`unread: ${failure.message}`)));
+            yield* rig.record({ event: "perf-overlay", epoch, observed_monotonic_ns: yield* rig.monotonicNs, text });
+            yield* rig.sleep(PERF_READ_MILLIS);
+          })), { startImmediately: true })
+          : undefined;
+        yield* botMatch(epoch, deadline - 300_000_000);
+        if (overlay !== undefined) yield* Fiber.interrupt(overlay);
+      }
       else if (matchOnly || playable) {
         for (let attack = 0; attack < 4; attack++) {
           for (const slot of SLOTS) yield* tap(slot, `match-${epoch}-combat`);
@@ -706,6 +726,10 @@ export function journey(rig: RigShape, options: JourneyOptions) {
     });
 
   const run = Effect.gen(function*() {
+    // A lobby's computer players arrive as CPU tags in slots C/D; every
+    // workload's setup and slot changes start from two humans.
+    yield* rig.until("live controller menu phase CHARACTER absent", menusShow("phase=CHARACTER"));
+    yield* restoreTwoHumans;
     if (fourFighters) yield* fourFighterSetup;
     if (bot) yield* botSetup;
     if (matchOnly || playable || bot) yield* characterScreen;
@@ -731,6 +755,27 @@ export function journey(rig: RigShape, options: JourneyOptions) {
 
   return { integrity, run };
 }
+
+/**
+ * The game's next match number, read from both clients' menu receipts (the
+ * last match begun, 0 in a new game). Captures start at an odd match, the
+ * first of a match and its rematch.
+ */
+export const nextMatchEpoch = (build: string) =>
+  Effect.gen(function*() {
+    const rig = yield* Rig;
+    const receipts = Effect.forEach(SLOTS, (client) => rig.file(client, journalMenuFile(build, client))).pipe(Effect.map((files) => files.map((file) => {
+      if (file === undefined || file.mtimeNs < rig.startedNs || !file.text.trimEnd().endsWith("endfunction")) return undefined;
+      const epoch = / epoch=(\d+) /.exec(file.text)?.[1];
+      return epoch === undefined ? undefined : Number(epoch);
+    })));
+    yield* rig.until("menu receipts naming the game's last match absent", receipts.pipe(Effect.map((last) => last.every((epoch) => epoch !== undefined))));
+    const [a, b] = yield* receipts;
+    if (a === undefined || a !== b) return yield* new IntegrityFailure({ operation: "read the next match", path: build, cause: `menu receipts name last matches ${a} and ${b}` });
+    if ((a + 1) % 2 === 0) return yield* new IntegrityFailure({ operation: "read the next match", path: build, cause: `the game's next match is ${a + 1}, a rematch; start the capture in a new game (bun wisp fresh MAP --no-quick)` });
+    yield* rig.progress(`Menu receipts: last match ${a}; the capture starts at match ${a + 1}`);
+    return a + 1;
+  });
 
 /** The whole capture journey against the provided Rig. */
 export const runJourney = (options: JourneyOptions) =>
