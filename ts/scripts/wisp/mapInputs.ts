@@ -186,7 +186,12 @@ export const importedAssets = (assets: string, summon: string) => Effect.gen(fun
   const clipEvidencePath = join(clipDirectory, "original-clips-evidence.json");
   const clipEvidence = yield* readJson(OriginalClipEvidence, clipEvidencePath);
   const clipFiles = clipEvidence.records.flatMap((record) => [...record.clips.map(({ filename }) => filename), ...(record.light === null ? [] : [record.light.filename])]);
-  yield* requireListed(clipEvidencePath, clipFiles, ORIGINAL_CLIP_MODELS, "export them with tools/animations/export-original-clips.ts");
+  // A changed fighter clip (a re-authored original, a new hero) needs a new pool in the private inputs too.
+  yield* requireListed(clipEvidencePath, clipFiles, ORIGINAL_CLIP_MODELS,
+    `this assets folder's clip pool predates the checkout's clips. From the repository root, export one into a copy NEW of ${assets} ` +
+    "whose animation-assets and illidan-animation hold the packaged models fighterAssetInfo.ts and demonHunterAssetInfo.ts name: " +
+    `bun tools/animations/export-original-clips.ts --assets NEW --out NEW/original-clips-static-lights --keep-unchanged; ` +
+    "then point play-inputs.json's assets at NEW (smashcraft:docs/fighter-animation-work.md, \"Refresh play's clip pools\")");
   const soundProblem = soundTableProblem(MODEL_SOUND_TABLE);
   if (soundProblem !== undefined) {
     return yield* new MapBuildFailure({ operation: "check model sounds", path: "ts/src/game/assets/modelSoundInfo.ts", cause: `${soundProblem}; export them with tools/animations/export-model-sounds.ts` });

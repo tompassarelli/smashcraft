@@ -1141,3 +1141,24 @@ ledge catch clips that smashcraft:tools/animations/demonhunter.py lacks.
 re-export changed no other sequence. `bun wisp view reach --assets DIR`
 (smashcraft:docs/hurtboxes.md) measures each swing; the test requires at least
 30 units toward the strike, peaking within two frames of the active window.
+
+## Refresh play's clip pools
+
+The playable build imports one clip model per sequence from its private
+`--assets` (`original-clips-static-lights/`), and
+smashcraft:ts/src/game/assets/fighterOriginalClipInfo.ts names each by hash.
+Any change to a fighter's clips (a re-authored original, a new or remapped
+hero) needs a matching pool in play's inputs before `bun wisp play` builds
+main again; the build's "check script models" failure names the command.
+With the change:
+
+1. Make a new dated folder from play's current assets (`assets` in
+   ~/.local/share/smashcraft-build-inputs/play-inputs.json, read fresh),
+   symlinking every entry you don't change.
+2. Put the newly packaged ArcherFighter/RiflemanFighter.mdx and
+   DemonHunterFighter.mdx in its `animation-assets/` and
+   `illidan-animation/`, and a real copy of `original-clips-static-lights/`.
+3. From the repository root, `bun tools/animations/export-original-clips.ts
+   --assets NEW --out NEW/original-clips-static-lights --keep-unchanged`.
+4. Build from the change (`bun wisp build --profile playable ... --assets NEW`),
+   back up play-inputs.json and change only its `assets` entry.
