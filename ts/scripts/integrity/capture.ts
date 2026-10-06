@@ -5,11 +5,12 @@ import { closeSync, mkdirSync, openSync, readFileSync, writeFileSync } from "nod
 import { dirname, join } from "node:path";
 import { parseArgs } from "node:util";
 import type { Subprocess } from "bun";
-import { Effect, Exit, Option } from "effect";
+import { Context, Effect, Exit, Layer, Option } from "effect";
 import { at } from "wisp/src/runtime/lookup";
 import { DEFAULT_BATCH } from "../../src/game/netcode/journal/transport";
 import { clientState } from "../wisp/project";
 import { type Client, type DesktopFailure, focus, loadClients, windowPid } from "wisp/scripts/warcraft/desktop";
+import { ClientWatch, describeView } from "wisp/scripts/wisp/watch";
 import { IntegrityFailure, tryIntegrity, tryIntegrityPromise } from "./evidence";
 import { type JourneyOptions, type JourneyRecord, Rig, nextMatchEpoch, runJourney } from "./journey";
 import { type Observer, type Pad, observeDevice, openPad, realtimeNs } from "./linux";
@@ -140,6 +141,26 @@ export const startHelper = (command: readonly string[], env: Record<string, stri
     );
   });
 
+/**
+ * Watches both clients from their events (wisp:docs/watch.md) for the
+ * capture's length: a crash or a lost Battle.net fails the capture at the
+ * rig's next check, instead of when its wait runs out.
+ */
+const watchClients = (clients: readonly Client[]) => Effect.gen(function*() {
+  const watch = Context.get(yield* Layer.build(ClientWatch.layer({ filePrefix: "smashcraft" })), ClientWatch);
+  let lost: IntegrityFailure | undefined;
+  yield* Effect.forkScoped(Effect.forever(Effect.gen(function*() {
+    for (const client of clients) {
+      const view = yield* watch.view(client).pipe(Effect.option);
+      if (Option.isSome(view) && (view.value.state.kind === "crashed" || view.value.state.kind === "disconnected")) {
+        lost ??= new IntegrityFailure({ operation: `watch ${client.name}`, path: client.documents, cause: describeView(view.value) });
+      }
+    }
+    yield* Effect.sleep("500 millis");
+  })));
+  return () => lost;
+});
+
 export const captureMatches = (options: CaptureOptions) =>
   Effect.gen(function*() {
     const { build, out } = options;
@@ -177,6 +198,7 @@ export const captureMatches = (options: CaptureOptions) =>
       }
       const producerPath = join(out, "producer.jsonl");
       const producerLog = yield* Effect.acquireRelease(tryIntegrity("open producer log", producerPath, () => openSync(producerPath, "w")), (fd) => Effect.sync(() => closeSync(fd)));
+      const gameFailure = yield* watchClients(clients);
       const rig = liveRig({
         clients,
         clientsFile: options.clients ?? clientState,
@@ -190,6 +212,7 @@ export const captureMatches = (options: CaptureOptions) =>
         helpers: [at(helpers, 0), at(helpers, 1)],
         producerLog,
         events,
+        gameFailure,
       });
       const epochs = options.epochs ?? captureEpochs(options.sweep.length, yield* nextMatchEpoch(build).pipe(Effect.provideService(Rig, rig)));
       yield* runJourney({ ...options, epochs }).pipe(Effect.provideService(Rig, rig));

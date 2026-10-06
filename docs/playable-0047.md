@@ -13,22 +13,21 @@ Windows and macOS use a different helper; see the section for them below.
 On Tom's desktop, from smashcraft:ts/:
 
 ```sh
-bun wisp play [--keep-launch-options]
+bun wisp play
 ```
 
-It checks that nothing else runs in the Warcraft prefix, sets Warcraft III's
-launch options in Battle.net to `-loadfile` the declared map from
-Maps/00-Smashcraft (copied there from its build when missing), reuses or
-starts the signed-in launcher through the Steam shortcut "Warcraft III
-(Battle.net)", presses Play, starts the helper (`wc3-journal-0.0.47-fix1`)
-for the first Xbox controller at fighter selection, and has the map add a
-computer as Player 3 and start the match; then it leaves Warcraft III
-fullscreen. Each step prints a line; a problem stops it with what to do
-(wisp:docs/play.md). After Play nothing is clicked unless Warcraft III shows
-its main menu instead of the map; the loaded map waits on "Press any key to
-continue", which play answers with space. Battle.net's own Play stops loading the map
-afterwards; `--keep-launch-options` keeps it loading the map, so the next run
-reuses the running launcher.
+It checks that nothing else runs in the Warcraft prefix, reuses or starts
+the signed-in launcher through the Steam shortcut "Warcraft III
+(Battle.net)", presses Play, waits until Warcraft III has signed in and read
+its ladder maps, hosts the declared map from Maps/00-Smashcraft (copied there
+from its build when missing) through the menu page or the menus, starts the
+helper (`wc3-journal-0.0.47-fix1`) for the first Xbox controller at fighter
+selection, and has the map add a computer as Player 3 and start the match;
+then it leaves Warcraft III fullscreen. Each step prints a line; a problem
+stops it with what to do (wisp:docs/play.md). A map loaded before that scan
+ends loses its imported models (smashcraft#73), so play never loads it at
+startup, and it stops when Warcraft III's log shows any of the map's
+imported models failing.
 
 The map takes the request through two files in CustomMapData: play leaves
 `smashcraft-play.txt` (`PLAY v=1 computers=4`) before Warcraft starts, and

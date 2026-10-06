@@ -7,6 +7,14 @@ capture (smashcraft:ts/scripts/integrity/journey.ts). Use it for checks
 that need Warcraft itself: stall recovery, saved moments, controller rows
 and what each player sees with computer opponents.
 
+Before a session, and whenever a client misbehaves, run `bun wisp watch
+--once` instead of reading the clients' screens: it prints each client's
+state (signed in, menu screen, lobby, loading, in match, results,
+disconnected, crashed), its map's load errors and the ladder scan, from
+events (wisp:docs/watch.md). `bun wisp client wait CLIENT STATE...` waits
+for one. A capture and `bun wisp fresh` stop at once when a client crashes or
+loses Battle.net, with the evidence the watch saw.
+
 ## The session
 
 The session has a match and a rematch:
@@ -113,6 +121,23 @@ clock beyond the last frame its client consumed. It is read at the helper's
 edit-box receipts, about every 200 ms. One moment replays alone with
 `bun wisp repro FILE`. A playable build writes no input trace, so only
 integrity and development builds give confirmed states.
+
+## Declared checks: `bun wisp accept`
+
+Native boxes that a chat command, a capture and a rule can answer (#82's
+effect cases, #57's underside, #73's map load, each complete hero's match for
+#96) are declared in smashcraft:ts/scripts/wisp/acceptChecks.ts and run in
+one batch:
+
+```sh
+bun wisp accept --dry-run          # the plan: sessions, steps, captures, rules
+bun wisp accept [--only 82-*]      # evidence in ~/.local/state/smashcraft/accept/RUN/
+```
+
+Each check prints PASS, FAIL or NEEDS-LOOK with its folder; a needs-look
+check names what to look for in its cropped frames (wisp:docs/accept.md).
+The underside profile needs its map built first, as smashcraft:docs/player-view.md
+describes. The bot captures below stay hand-run.
 
 ## One session for the native gates
 

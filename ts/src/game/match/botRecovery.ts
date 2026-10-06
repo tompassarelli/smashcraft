@@ -1,7 +1,7 @@
 // The computer's way back: off the stage it steers home, or to just outside a
 // free ledge it then falls onto, and spends its jump and up special; on the
 // ledge it takes a ledge option; knocked down it techs or gets up.
-import { specialCooldownReady } from "../sim/heroSpecialRules";
+import { runningHeroSpecial, specialCooldownReady } from "../sim/heroSpecialRules";
 import { at } from "wisp/src/runtime/lookup";
 import { f32 } from "wisp/src/sim/f32";
 import { toInt } from "../../runtime/numbers";
@@ -140,6 +140,55 @@ function aimsForLedge(f: Readonly<Fighter>, side: number, target: Readonly<Fight
   return f.facing === -side && !taken && spare && botChoice(f.visuals.hit + toInt(f.status.damage), f.character * 7 + 3, 2) === 0;
 }
 
+/** An aimed up special's target: this far inside the near edge and above the deck. */
+const AIM_INSIDE = 40.0;
+const AIM_ABOVE = 30.0;
+const AIM_SAMPLES = 8;
+/** Added to a direction whose travel passes under the deck, where a helpless fall cannot return. */
+const AIM_UNDER_DECK = 1000000.0;
+const DIAGONAL = 0.7071067690849304;
+
+/**
+ * An up special that aims during its startup (Warden's Blink) holds the one
+ * of its eight directions whose travel ends nearest a spot just inside the
+ * near edge, avoiding any travel that passes beneath the deck.
+ */
+function aimUpSpecial(f: Readonly<Fighter>, stage: number, side: number, input: Controls): void {
+  if (f.special.action !== SpecialAction.heroUp) return;
+  const move = runningHeroSpecial(f);
+  if (move?.aimFrames === undefined || f.special.frame >= move.aimFrames) return;
+  let reach = 0.0;
+  for (const segment of move.motion ?? []) if (segment.aimedSpeed !== undefined && segment.aimedSpeed > reach) reach = segment.aimedSpeed;
+  if (reach <= 0.0) return;
+  const left = mainDeckLeft(stage);
+  const right = mainDeckRight(stage);
+  const floor = mainDeckZ(stage);
+  const targetX = f32(f32(side < 0 ? left : right) - f32(side * AIM_INSIDE));
+  const targetZ = f32(floor + AIM_ABOVE);
+  const { x, z } = f.motion;
+  let best = -1.0;
+  for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) {
+    if (dx === 0 && dz === 0) continue;
+    const step = dx !== 0 && dz !== 0 ? f32(reach * DIAGONAL) : reach;
+    const endX = f32(x + f32(dx * step));
+    const endZ = f32(z + f32(dz * step));
+    let score = f32(f32(f32(endX - targetX) * f32(endX - targetX)) + f32(f32(endZ - targetZ) * f32(endZ - targetZ)));
+    for (let sample = 1; sample <= AIM_SAMPLES; sample++) {
+      const sx = f32(x + f32(f32(dx * step) * f32(sample / AIM_SAMPLES)));
+      const sz = f32(z + f32(f32(dz * step) * f32(sample / AIM_SAMPLES)));
+      if (sx > left && sx < right && sz < floor) {
+        score = f32(score + AIM_UNDER_DECK);
+        break;
+      }
+    }
+    if (best < 0.0 || score < best) {
+      best = score;
+      input.direction = dx;
+      input.verticalDirection = dz;
+    }
+  }
+}
+
 /**
  * Produces ordinary frame inputs: recovery never moves a fighter directly.
  * True when getting back to the stage, or onto its feet, took the frame.
@@ -168,6 +217,7 @@ export function chooseRecoveryInput(fighter: Readonly<Fighter>, stage: number, m
   // Aiming for the ledge it keeps just outside the edge; otherwise it heads for the deck.
   if (ledge) input.direction = outside < LEDGE_LINE_NEAR ? side : outside > LEDGE_LINE_FAR ? -side : 0;
   else input.direction = x < (side < 0 ? f32(left + 60) : f32(right - 60)) ? 1 : -1;
+  aimUpSpecial(fighter, stage, side, input);
   if (fighter.launch.hitstun > 0 || fighter.launch.hitlag > 0 || fighter.special.action !== SpecialAction.none) return true;
   // Close outside the ledge and above where it catches, it falls onto the ledge.
   if (ledge && outside <= LEDGE_LINE_REACH && z >= f32(floor - LEDGE_MISSED)) return true;

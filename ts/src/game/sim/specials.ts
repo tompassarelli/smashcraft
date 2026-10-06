@@ -10,6 +10,7 @@ import type { Fighter } from "./fighter";
 import { attackDurationFramesForGrounding } from "./moves";
 import { HitElement, type HitEffect, type HitRegion, NO_HIT_REGION } from "./hitRegions";
 import { heroSpecialMove } from "./heroSpecials";
+import { advanceHeroCommandGrab } from "./heroCommandGrab";
 import { applyAttackHit } from "./hits";
 import { meleeHitIntersectsShield } from "./attacks";
 import { observeActionDecision } from "./observations";
@@ -230,7 +231,7 @@ function startHeroFighterSpecial(owner: Fighter, input: Readonly<Controls>): boo
   const move = heroSpecialMove(specials, chosen);
   // A placement with a near form keeps the facing when pressed backward.
   const keepsFacing = (move.projectiles ?? []).some(spec => spec.backOffsetX !== undefined) && input.specialX * owner.facing < 0;
-  if (input.specialX !== 0 && input.specialZ === 0 && !keepsFacing) owner.facing = input.specialX < 0 ? -1 : 1;
+  if (input.specialX !== 0 && (input.specialZ === 0 || move.facesStick === true) && !keepsFacing) owner.facing = input.specialX < 0 ? -1 : 1;
   const action = SpecialAction.heroNeutral + chosen.slot;
   startSpecialAction(owner, heroAction(action), move.endFrame, specialDirection(input, owner.facing));
   enterHeroSpecial(owner, chosen, input);
@@ -369,6 +370,7 @@ export function advanceSpecials(world: Roster, stage: number, matchFrame: number
     if (!isActive(world, slot)) continue;
     advanceSpecialAction(fighterAt(world, slot), stage, inputs?.[slot]);
     stopHeroMotionAtBodies(world, slot);
+    advanceHeroCommandGrab(world, slot);
   }
   for (let ownerSlot = 0; ownerSlot < PARTICIPANT_CAPACITY; ownerSlot++) {
     if (!isActive(world, ownerSlot)) continue;

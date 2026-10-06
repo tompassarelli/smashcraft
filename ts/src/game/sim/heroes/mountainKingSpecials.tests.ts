@@ -262,3 +262,18 @@ test("a point-blank Storm Bolt on a held shield leaves the defender free well be
   // Mountain King acts on frame 49; an out-of-shield grab needs about ten frames.
   assertLessThan(blockedAt + stun + 10, 49);
 });
+
+test("Thunder Leap turns to a stick held sideways on entry, so it drifts back toward the stage", () => {
+  for (const facing of [1, -1]) {
+    const { world, owner } = pair(1200.0, facing);
+    owner.motion.grounded = false;
+    owner.motion.surface = undefined;
+    owner.motion.z = 600.0;
+    const startX = owner.motion.x;
+    frame(world, controls({ specialPressed: true, specialZ: 1, specialX: -facing }));
+    assertEquals(owner.special.action, SpecialAction.heroUp);
+    assertEquals(owner.facing, -facing);
+    for (let f = 2; f <= 28; f++) frame(world);
+    assertGreaterThan(f32(f32(startX - owner.motion.x) * facing), f32(H * f32(0.6)));
+  }
+});
