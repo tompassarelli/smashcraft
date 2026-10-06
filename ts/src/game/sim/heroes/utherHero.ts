@@ -15,7 +15,6 @@ export const UTHER_HERO: HeroDefinition = {
   presentation: {
     model: "units\\human\\HeroPaladin\\HeroPaladin.mdl",
     scale: 1.0,
-    baseUnit: "Hpal",
     objectId: 0x6d667574,
     portrait: "ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp",
     projectileModel: "Abilities\\Weapons\\SpiritOfVengeanceMissile\\SpiritOfVengeanceMissile.mdl",

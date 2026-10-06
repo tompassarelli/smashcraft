@@ -7,7 +7,9 @@ import { createFighter } from "../fighter";
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hitRegions";
 import { attackLandingLag, attackRecoveryFrames, attackStartupFrames, grabActionDuration, grabContactFrame, isAerialAttack, smashDamageMultiplier } from "../moves";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
-import { MOUNTAIN_KING_MOVES } from "./mountainKingMoves";
+import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
+import { HurtContact, fighterHurtParts, strikeHurtContact } from "../hurtboxes";
+import { MOUNTAIN_KING_MOVES, SHORT } from "./mountainKingMoves";
 
 // Use an existing actor with the authored profile: these contracts exercise
 // production attacks/throws without depending on the selection/presentation seam.
@@ -244,6 +246,36 @@ test("Mountain King throws release once on their roster frame with facing-relati
       }
       testGrabFrame(world, [input, controls()], false);
       assertEquals(target.status.damage, damage);
+    }
+  }
+});
+
+test("Mountain King's limbs follow his swings while hammer and axe stay disjoint", () => {
+  for (const facing of [1, -1]) {
+    const mk = createFighter(Character.archer, 0.0, facing);
+    mk.tuning.moves = MOUNTAIN_KING_MOVES;
+    const stand = fighterHurtParts(mk);
+    assertEquals(stand.length, 1);
+    const body = stand[0];
+    assertTrue(body !== undefined);
+    if (body !== undefined) assertNear(f32(f32(body.z2 - body.z1) + f32(2.0 * body.radius)), f32(HERO_REFERENCE_HEIGHT * f32(0.85)), f32(0.001));
+    const foot = { x1: f32((SHORT - 8.0) * facing), z1: 10.0, x2: f32((SHORT - 8.0) * facing), z2: 10.0, radius: 2.0 };
+    assertEquals(strikeHurtContact(foot, mk), HurtContact.none);
+    mk.attack.style = AttackStyle.downTilt;
+    for (const [frame, exposed] of [[3, false], [4, true], [9, true], [12, true], [13, false]] as const) {
+      mk.attack.frame = frame;
+      assertEquals(strikeHurtContact(foot, mk), exposed ? HurtContact.hit : HurtContact.none);
+    }
+    mk.attack.style = AttackStyle.forwardSmash;
+    const out = emptyHitRegion();
+    for (let frame = 19; frame <= 21; frame++) {
+      mk.attack.frame = frame;
+      for (let index = 0; index < 3; index++) {
+        authoredHitRegion(out, Character.archer, AttackStyle.forwardSmash, frame, 0, index, MOUNTAIN_KING_MOVES);
+        if (out.window === 0 || out.strike === undefined) continue;
+        const head = { x1: f32(out.strike.x1 * facing), z1: out.strike.z1, x2: f32(out.strike.x2 * facing), z2: out.strike.z2, radius: out.strike.radius };
+        assertEquals(strikeHurtContact(head, mk), HurtContact.none);
+      }
     }
   }
 });

@@ -4,6 +4,7 @@
 // windows are inclusive, and "end fN" means the fighter acts again on N+1.
 import type { MoveRegion } from "./heroMoves";
 import type { HitEffect } from "./hitRegions";
+import type { AppliedStatus } from "./heroStatus";
 import type { HurtPose } from "./hurtboxes";
 
 /** The four special inputs, in SpecialAction.heroNeutral order. */
@@ -70,6 +71,8 @@ export interface SpecialProjectile {
   readonly reflectable: boolean;
   /** Owned at once; a cast beyond it fails before spending mana. */
   readonly limit: number;
+  /** Applied by a body hit, never through a shield (sim/heroStatus.ts). */
+  readonly status?: AppliedStatus | undefined;
   /** Removed when the owner's special is interrupted before it becomes active (Frost Nova's marker). */
   readonly cancelOnInterrupt?: boolean | undefined;
   /**

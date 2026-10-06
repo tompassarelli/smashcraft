@@ -19,6 +19,7 @@ import { MATCH_TICKS_PER_SECOND, Phase } from "../../src/game/match/rules";
 import { PLAYABLE_BUILD } from "../../src/game/shell/currentBuild";
 import { AttackStyle, Character, DownState, GrabAction, HippogryphKind, ProjectileKind, SpecialAction } from "../../src/game/sim/codes";
 import type { Fighter } from "../../src/game/sim/fighter";
+import { fighterName, heroDefinition } from "../../src/game/sim/heroes/registry";
 import { fighterAt, isActive } from "../../src/game/sim/roster";
 import { mainDeckLeft, mainDeckRight } from "../../src/game/sim/stage";
 import { install as installGame, startBuild } from "../../src/platform/main";
@@ -46,9 +47,12 @@ const ACTIONS: readonly Action[] = SOAK_BUTTONS.map((name) => Action[name]);
 /** A flick from inside the dead zone to past this is a smash. */
 const SMASH_REACH = 101;
 
-/** Each pooled fighter's clip models, which follow it all match. */
-const clipModels = (character: Character) =>
-  Array.from({ length: originalClipCount(character) }, (_, index) => originalClip(character, index)?.modelPath ?? "").filter((path) => path !== "");
+/** Each pooled fighter's clip models, which follow it all match; a hero draws with its unit's model. */
+const clipModels = (character: Character) => {
+  const hero = heroDefinition(character);
+  if (hero !== undefined) return [hero.presentation.model];
+  return Array.from({ length: originalClipCount(character) }, (_, index) => originalClip(character, index)?.modelPath ?? "").filter((path) => path !== "");
+};
 
 const sign = (value: number) => (value > STICK_DEAD_ZONE ? 1 : value < -STICK_DEAD_ZONE ? -1 : 0);
 
@@ -223,7 +227,7 @@ export function matchView(journaled: (slot: number) => number | undefined): Pick
         const out = (world: typeof s.world | undefined) => world !== undefined && isActive(world, slot) && fighterAt(world, slot).status.out;
         if (fighterAt(s.world, slot).status.stocks <= 0 || out(s.world) || out(predicted)) return [];
         const character = s.game.characterChoices[slot];
-        return [{ name: `${NAMES[character] ?? "fighter"} (Player ${slot + 1})`, models: clipModels(character) }];
+        return [{ name: `${NAMES[character] ?? fighterName(character)} (Player ${slot + 1})`, models: clipModels(character) }];
       });
     },
   };

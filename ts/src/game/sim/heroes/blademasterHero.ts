@@ -17,7 +17,6 @@ export const BLADEMASTER_HERO: HeroDefinition = {
   presentation: {
     model: "units\\orc\\HeroBladeMaster\\HeroBladeMaster.mdl",
     scale: 1.0,
-    baseUnit: "Obla",
     objectId: 0x6d66626d,
     portrait: "ReplaceableTextures\\CommandButtons\\BTNHeroBlademaster.blp",
     projectileModel: "Abilities\\Weapons\\SpiritOfVengeanceMissile\\SpiritOfVengeanceMissile.mdl",

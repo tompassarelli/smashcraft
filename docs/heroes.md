@@ -13,7 +13,7 @@ data record; the simulation, replay, selection and object data read it.
 - `ts/src/game/sim/heroes/<hero>Hero.ts` is one hero's `HeroDefinition`
   (`sim/heroes/hero.ts`): product name, purpose, weakness, `moves`
   (`FighterMoves`, `sim/heroMoves.ts`), `specials` (`FighterSpecials`,
-  `sim/heroSpecials.ts`), presentation (Warcraft model, base unit, object
+  `sim/heroSpecials.ts`), presentation (Warcraft model, object
   code, portrait, projectile model, per-pose clips with a fallback) and
   `complete`.
 - `ts/src/game/sim/heroes/heroBodies.ts` holds the roster's weight, run,
@@ -61,7 +61,9 @@ acts again on N+1. It may author:
   `needsLineOfSight` (not placed through solid stage surfaces); a cast that
   would exceed a limit or the three-projectile cap fails before spending; in a
   match a hero projectile ends on a wall, an underside or a solid deck's top,
-  and passes through pass decks;
+  and passes through pass decks; an optional
+  `status` (`sim/heroStatus.ts`) applies when it reaches a body, never
+  through a shield;
 - `hurt`: body poses over the special's frames (`hurtPose`, 1-based), which
   `sim/hurtboxes.ts` uses instead of the standing body while they cover the
   current special frame;
@@ -77,6 +79,18 @@ acts again on N+1. It may author:
   rollback restores it, and it plays the `<slot>SpecialFollowUp` pose when the
   hero's clip table maps one (Mirror Feint's slash);
 - `groundOnly`, `oncePerAirtime`, `helpless` and `landingLag`.
+
+## Statuses
+
+`sim/heroStatus.ts`: one status per fighter, its kind and immunity group in
+`sim/codes.ts` (`HeroStatusKind`, `HeroStatusGroup`). A kind's rules say
+whether it discards every input (motion and gravity continue and the current
+action ends), refuses neutral, side and down specials, or ends on the next
+damaging hit; the hit that applies a status resolves first, so it never ends
+its own status. A status ending by time or hit grants its group's immunity, so
+no source chains it. Reapplying refreshes the duration. Status, frames, group
+and per-group immunity are rollback state, written to the canonical record
+only while live; a new stock clears them.
 
 `sim/heroSpecialRules.ts` executes them: `chooseHeroSpecial` selects the
 form, `enterHeroSpecial` spends and records the entry, `advanceHeroSpecial`
@@ -100,3 +114,26 @@ enough mana" for about three quarters of a second after each refused press
 (`ui/manaReadout.ts`). There is no ultimate action, so ultimates stay off.
 
 The shared contracts are in `ts/src/game/sim/heroSpecials.tests.ts`.
+
+## Presentation
+
+- A hero draws with its fighter unit, made from its own object (base `earc`,
+  like the original fighters, so no hero icon or experience bar shows) with
+  the hero's stock model. The unit plays each clip by sequence index
+  (`SetUnitAnimationByIndex`): an animation name picks at random among
+  same-named variants, and this game build has no by-index special-effect
+  native, so the original fighters' effect pool is not used for heroes.
+- `presentation.clips` is a `HeroClipTable` (`sim/heroes/hero.ts`): pose to
+  `{ index, seconds }`. Pose selection (`presentation/fighterPose.ts`) fits
+  `seconds` to the action's frames. The original fighters fill the same table
+  from their packaged clips (`presentation/fighterClips.ts`). A pose the table
+  leaves out plays `fallback`, except the `HeroStatePose` states (dash, run,
+  crouch, fall, landing, shield, air dodge, smash charge, KO, dizzy), which
+  keep the original fighters' pose for that state.
+- The drawn body keeps clear of stage faces with Archer's body envelope
+  stretched by the hero's width and height (`presentation/fighterPlacement.ts`).
+- Star KOs fly the hero's own model off; there is one KO body per star-KO
+  impact and selectable fighter (`render/combatEffects.ts`).
+- The scene report counts a shown hero unit as drawn under its model
+  (`platform/sceneReport.ts` passes Wisp's `unitModel`), and the player view
+  declares every hero model, with model facts read from the classic models.

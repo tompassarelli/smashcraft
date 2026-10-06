@@ -225,6 +225,17 @@ Standing grab 8/2/25, reach 0.50H. Pummel: helmet headbutt.
 
 **Required counterplay test:** blocked Storm Bolt must not guarantee a grab from its full travel distance; Thunder Clap cannot cover both a retreat and a jump without a read.
 
+**Implemented kit** (smashcraft:ts/src/game/sim/heroes/mountainKingMoves.ts, mountainKingSpecials.ts, presentation/heroes/mountainKingClips.ts). Every row above is implemented; nothing is omitted. Deliberate additions and choices where the table is silent:
+
+- Forward tilt also has up- and down-angled paths with the same timing and damage.
+- Hammer Drop's head and Double Boot launch grounded targets at 55 degrees (the shared grounded spike rule).
+- Air Thunder Clap reuses the ground form's 10 damage and 70-degree LAUNCH on its 0.55H under-hammer path.
+- Thunder Clap is a ground-level ring 30 units tall, so a jump clears it while it still covers both sides.
+- Thunder Leap puts half its exact rise into the f9-14 hit window and eases over f15-28 so it peaks at the listed height; the free form peaks at 1.3H with 0.5H drift.
+- Storm Rush stops at a raised shield or a body (shared `stopsAtBody`) and stops dead after its 1.2H dash; its lowered shoulder carries a hurt volume while it strikes.
+- Mountain King's hurt volumes add the arm, leg or boots behind each normal from late startup through early recovery; hammer and axe stay outside them.
+- The stock model has thirteen usable sequences and no jump, hit, dodge, ledge or grab clips: hits play the opening of Death, jumps and techs the opening of Stand - 3, ledge and grab holds a held Stand Ready.
+
 ## Warden
 
 **Identity:** light, mobile precision fighter using crescent blades and a punishable blink. Her escape options cost space and commitment; they cannot erase a bad attack. Fan of Knives gives close coverage rather than full-screen zoning.

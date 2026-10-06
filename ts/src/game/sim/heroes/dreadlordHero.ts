@@ -15,7 +15,6 @@ export const DREADLORD_HERO: HeroDefinition = {
   presentation: {
     model: "units\\undead\\HeroDreadLord\\HeroDreadLord.mdl",
     scale: 1.0,
-    baseUnit: "Udre",
     objectId: 0x6d66646c,
     portrait: "ReplaceableTextures\\CommandButtons\\BTNHeroDreadLord.blp",
     projectileModel: "Abilities\\Weapons\\SpiritOfVengeanceMissile\\SpiritOfVengeanceMissile.mdl",

@@ -4,7 +4,7 @@
 import { afterAll, expect, test } from "bun:test";
 import { trampoline } from "wisp/src/platform/dispatch";
 import { reportedModel, sceneFile } from "wisp/src/runtime/scene";
-import { type SceneReport, readSceneLines, sceneProblems } from "wisp/scripts/wisp/scene";
+import { type SceneReport, bodyProblems, readSceneLines, sceneProblems } from "wisp/scripts/wisp/scene";
 import { SMASHCRAFT_SCENE } from "../scripts/wisp/playerView";
 import { IMPACT_HIT_MODEL } from "../src/game/assets/impactAssetInfo";
 import { impactModel } from "../src/game/presentation/hitPresentation";
@@ -25,6 +25,7 @@ import { CombatEffects } from "../src/game/render/combatEffects";
 import { createImpactEvents } from "../src/game/presentation/impactEvents";
 import { Character, DownState, SurfaceContact } from "../src/game/sim/codes";
 import { fighterAt } from "../src/game/sim/roster";
+import { WARDEN_HERO } from "../src/game/sim/heroes/wardenHero";
 import { CANNON_TEST_STAGE, CARRIED_TEST_STAGE, TIMED_TEST_STAGE, WIND_TEST_STAGE, DRIFTING_DECK_STAGE, PATTERNED_DECKS_STAGE, MAIN_DECK_BODY_SURFACES, MAIN_DECK_UNDERSIDE_Z, solidSurfaceAt, surfaceCount, surfaceLeft, surfaceRight, surfaceZ } from "../src/game/sim/stage";
 import { stageBounds } from "../src/game/sim/stageBounds";
 import { advanceMatchCamera } from "../src/game/sim/matchCamera";
@@ -156,6 +157,32 @@ test("development build: a match's scene report shows the stage and declares eve
   expect(report.models.filter(({ model }) => !declared.has(model)).map(({ model }) => model)).toEqual([]);
   expect(report.effects).toBeGreaterThan(200);
   expect(report.models.find(({ model }) => model === reportedModel(STAGE_MAIN_DECK_MODEL))).toMatchObject({ live: 1, inView: 1, drawn: 1 });
+  expect(client.errors).toEqual([]);
+});
+
+test("a hero drawn with its fighter unit counts as drawn in the scene report", () => {
+  const clients = headless.clients({ start: startDevelopment, install: installDevelopment });
+  clients.start();
+  clients.frames(30);
+  const client = clients.clients[0];
+  if (client === undefined) throw new Error("missing host client");
+  const warden = WARDEN_HERO.presentation.model;
+  client.run(() => {
+    const s = shell();
+    selectCharacter(s.game, 0, Character.rifleman);
+    selectCharacter(s.game, 1, Character.rifleman);
+    // Selection admits only complete heroes; the match draws any registered one.
+    s.game.characterChoices[1] = Character.warden;
+    expect(requestStageSelect(s.game, 0)).toBe(true);
+    expect(requestStart(s.game, 0)).toBe(true);
+    startMatch(s);
+  });
+  clients.frames(60);
+  client.run(() => trampoline("scene.report")());
+  const report = sceneReport(client);
+  expect(report.models.find(({ model }) => model.toLowerCase() === reportedModel(warden).toLowerCase())).toMatchObject({ live: 1, inView: 1, drawn: 1 });
+  expect(bodyProblems(report, [{ name: "Warden (Player 2)", models: [warden] }], MODEL_FACTS)).toEqual([]);
+  expect(sceneProblems(report, SMASHCRAFT_SCENE)).toEqual([]);
   expect(client.errors).toEqual([]);
 });
 
