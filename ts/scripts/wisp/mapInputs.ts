@@ -45,7 +45,7 @@ export const decodeBuildOptions = (args: readonly string[]) => {
 const SELECTION_TEXTURES = [
   "ArcherName", "RiflemanName", "DemonHunterName", "DemonHunterPortrait", "DemonHunterTile", "SelectionBackdrop",
   "SelectionTileFrame", "SelectionCardRed", "SelectionCardBlue", "SelectionCardYellow", "SelectionCardGreen",
-  "SelectionCardGray", "SelectionAction", "StageBackdrop", "StageChip", "SelectionSkyDeck", "SelectionThreeBridges", "SelectionFrozenThrone",
+  "SelectionCardGray", "SelectionAction", "StageBackdrop", "StageChip", "SelectionSkyDeck", "SelectionThreeBridges", "SelectionFrozenThrone", "SelectionNordrassil", "SelectionGryphon", "SelectionDurotar", "SelectionNaxxramas", "SelectionHellfire", "SelectionBlackrock", "SelectionAhnQiraj",
   "SelectionChipP1", "SelectionChipP2", "SelectionChipP3", "SelectionChipP4", "SelectionChipCPU", "ArcherPortrait",
   "RiflemanPortrait", "ArcherTile", "RiflemanTile", "MatchHUD0", "MatchHUD1", "MatchHUD2", "MatchHUD3",
 ] as const;

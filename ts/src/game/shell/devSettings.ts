@@ -12,6 +12,7 @@ import {
   type MatchState, Phase, createMatchState, firstHumanSlot, humanFighterActive, humanPresent, requestStageSelect, requestStart, returnToCharacters,
   selectCharacter, selectStage, setStocks,
 } from "../match/rules";
+import { selectableStage } from "../menu/stageCatalog";
 import { REPLAY_MAX_CORRECTION_FRAMES } from "../replay/limits";
 
 export interface DevSettings {
@@ -74,6 +75,15 @@ export const QUICK_MATCH_COMMAND = "-dev quick";
 
 /** A winter arena match for the native presentation capture. */
 export const FROZEN_THRONE_QUICK_COMMAND = "-dev quick frozen-throne";
+
+/** Native scenery acceptance can start each named stage from the menus. */
+export function quickMatchStage(message: string): number | undefined {
+  if (message === QUICK_MATCH_COMMAND) return 0;
+  if (message === FROZEN_THRONE_QUICK_COMMAND) return 2;
+  if (!message.startsWith("-dev quick stage ")) return undefined;
+  const stage = commandInteger(message.substring(17));
+  return stage !== undefined && selectableStage(stage) ? stage : undefined;
+}
 
 /** Desynchronizes the game on purpose, to check that the host names what diverged. */
 export const DESYNC_COMMAND = "-dev desync";

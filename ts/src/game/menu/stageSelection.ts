@@ -3,7 +3,10 @@
 // cursor; only a finished choice crosses the sync event.
 
 /** The playable stages' tiles, left to right. */
-export type StageTile = 0 | 1 | 2;
+import { STAGE_CATALOG, stageTileIndex, type StageTile } from "./stageCatalog";
+import { f32 } from "wisp/src/sim/f32";
+import { floorDiv, floorMod } from "wisp/src/sim/intMath";
+export type { StageTile } from "./stageCatalog";
 
 /** What the button did when it went down. */
 type StageGesture =
@@ -22,21 +25,26 @@ interface StageDrag {
 const CARRY: StageGesture = { kind: "carry" };
 
 export function stageTileLeft(choice: number): number {
-  return choice === 0 ? 0.45399999618530273 : choice === 1 ? 0.5559999942779541 : 0.6579999923706055;
+  return f32(0.45399999618530273 + f32(floorMod(stageTileIndex(choice), 3) * 0.10199999809265137));
+}
+
+export function stageTileTop(choice: number): number {
+  return f32(0.4399999976158142 - f32(floorDiv(stageTileIndex(choice), 3) * 0.10300000011920929));
 }
 
 export function stageTileAt(x: number, y: number): StageTile | undefined {
-  if (y < 0.2980000078678131 || y > 0.41600000858306885) return undefined;
-  if (x >= 0.45399999618530273 && x <= 0.5479999780654907) return 0;
-  if (x >= 0.5559999942779541 && x <= 0.6499999761581421) return 1;
-  if (x >= 0.6579999923706055 && x <= 0.7519999742507935) return 2;
+  for (const stage of STAGE_CATALOG) {
+    const left = stageTileLeft(stage.id);
+    const top = stageTileTop(stage.id);
+    if (x >= left && x <= f32(left + 0.09399999678134918) && y <= top && y >= f32(top - 0.07800000160932541)) return stage.id;
+  }
   return undefined;
 }
 
 /** The chip is centered on the chosen tile; a press within 0.02 of its center picks it up. */
 function onStageChip(choice: number, x: number, y: number): boolean {
   const dx = x - (stageTileLeft(choice) + 0.04699999839067459);
-  const dy = y - 0.3569999933242798;
+  const dy = y - f32(stageTileTop(choice) - 0.039000000804662704);
   return dx * dx + dy * dy <= 0.00039999998989515007;
 }
 

@@ -1,0 +1,67 @@
+bun test v1.3.13 (bf2e2cec)
+
+test/game.test.ts:
+(pass) game/match/offscreenInputContracts > magnifier damage is 1% per 60 consecutive offscreen frames, stops at 150%, and training disables it [86.00ms]
+(pass) game/match/offscreenInputContracts > a fighter that outruns the current camera counts magnifier frames inside the stage camera limits [7.00ms]
+(pass) game/match/offscreenInputContracts > restoring a snapshot reproduces the camera and the magnifier damage frame [11.00ms]
+(pass) game/match/simulationStepContracts > aWhiffDoesNotFreezeTheShooterWhileTheOpponentsShotFreezesItsVictim [4.00ms]
+(pass) game/netcode/journal/transport > malformed, non-canonical or old pair messages are refused, and keyboard rollback's lone I4 packet is accepted
+(pass) game/physics/techInput > tech input ages through hitlag and repeats a press made while frozen
+(pass) game/presentation/damagePose > grounded contact freezes its reaction before the airborne launch
+(pass) game/presentation/fighterPlacement > each fighter's visible envelope clears the main underside and every side face at its unchanged ECB contact, both facings [39.00ms]
+(pass) game/presentation/fighterPlacement > body fitting preserves grounded and deliberately attached ledge poses
+(pass) game/presentation/fighterPose > hitlag freezes the reaction clip and a repeated hit restarts it [1.00ms]
+(pass) game/presentation/fighterPose > a snapshot's pose escapes from its own copy of the previous holder [1.00ms]
+(pass) game/presentation/hitPresentation > contact element and pummel survive snapshots and produce one distinct sound [6.00ms]
+(pass) game/presentation/hitPresentation > electric shield contact keeps its element through a snapshot
+(pass) game/presentation/impactState > a snapshot restores the impact pool and its ring pointers [19.00ms]
+(pass) game/presentation/impactState > replaying from a snapshot restores accepted grab and throw cues, and projection consumes none [11.00ms]
+(pass) game/presentation/projectilePose > a sparse restore replaces a speculative projectile and freeze state [2.00ms]
+(pass) game/presentation/specialEffectState > the parry flash ages by executed frames, restores from a snapshot and projects read-only [22.00ms]
+(pass) game/presentation/summonState > a bear's clip restores backward from a snapshot and projects read-only [15.00ms]
+(pass) game/render/modelSounds > sound interrupted previous interval and frozen rate [2.00ms]
+(pass) game/replay/canonical > canonical real fields retain Wurst's exact binary representation
+(pass) game/replay/canonical > canonical fragments and checksums match Wurst's ASCII tape form [1.00ms]
+(pass) game/replay/canonical > canonical integers print as Wurst's I2S whichever Lua number type holds them
+(pass) game/replay/canonical > a played state's checksum folds exactly its canonical text, in which every value is an integer or exact real [20.00ms]
+(pass) game/replay/history > corrected predictions refresh snapshots across the ring wrap and a second rollback [59.00ms]
+(pass) game/replay/moment > moment: a rollback match's last ten seconds replay from their snapshot to the match's checksum [271.00ms]
+(pass) game/replay/shadowPlayback > twelve late rows replay at full depth and rebuild every snapshot [71.00ms]
+(pass) game/replay/shadowPlayback > twenty-four late rows re-predict and rebuild every snapshot [61.00ms]
+(pass) game/sim/analogShield > a light shield contact uses its strength and freezes it through stun [2.00ms]
+(pass) game/sim/directionalInfluence > a direction held before the hit creates no SDI pulse, and an attacker's freeze doesn't move it
+(pass) game/sim/directionalInfluence > hitlag freezes the launch vector, then release resumes self velocity and decay
+(pass) game/sim/fourPlayerContracts > freezeTrapChoosesNearestEligibleFighterOnce [1.00ms]
+(pass) game/sim/freezeTrapContracts > a jump chosen fifteen frames after thaw leaves before a waiting trap can refreeze any fighter [63.00ms]
+(pass) game/sim/freezeTrapContracts > a thawed fighter who stays on a waiting trap can be caught again only after the escape interval [3.00ms]
+(pass) game/sim/freezeTrapContracts > shieldConsumesTrapWithoutFreezingAndHitBreaksIce [1.00ms]
+(pass) game/sim/freezeTrapContracts > trapConsumesOnContactButNotOwnerOrInvulnerableTarget [1.00ms]
+(pass) game/sim/freezeTrapContracts > freezeExpiresAfterThreeHundredFramesIncludingHitlag [5.00ms]
+(pass) game/sim/freezeTrapContracts > koRespawnAndResetClearTrapAndFrozenState [4.00ms]
+(pass) game/sim/grabs > a freeze trap releases reciprocal grab links [2.00ms]
+(pass) game/sim/groundMovement > hitlag freezes an initial dash, then a reversal resumes [2.00ms]
+(pass) game/sim/groundMovement > hitlag freezes position until it expires
+(pass) game/sim/hitTiming > a shield contact freezes both bodies before shieldstun counts down [3.00ms]
+(pass) game/sim/hitTiming > a detached projectile impact does not freeze its shooter [3.00ms]
+(pass) game/sim/ledge > ledge hang protection expires, and hitlag freezes the ledge phase [3.00ms]
+(pass) game/sim/ledge > the ledge release regrab cooldown expires after thirty unfrozen ticks [2.00ms]
+(pass) game/sim/normals > an aerial's lingering transition retains its single hit through freeze and re-entry [3.00ms]
+(pass) game/sim/physics > retail combat stacking starts on the tenth moving frame and freezes in hitlag [1.00ms]
+(pass) game/sim/physics > canonical motion preserves all ten recorded fall positions exactly [2.00ms]
+(pass) game/sim/physics > canonical motion imports world edits and clears on respawn [1.00ms]
+(pass) game/sim/physics > recorded NTSC grounded damage matches freeze release, traction and actionability [2.00ms]
+(pass) game/sim/physics > a combat shield break uses the character's launch attribute after the contact freeze [5.00ms]
+(pass) game/sim/physics > an electric contact on a shield uses the ordinary freeze before shieldstun [2.00ms]
+(pass) game/sim/physics > a retail aerial dodge's switch boundary freezes in hitlag [1.00ms]
+(pass) game/sim/physics > sampled rolls move through their actual entry, a freeze and recovery [16.00ms]
+(pass) game/sim/recovery > hitlag freezes down damage, then hitstun returns it to a timed down wait [2.00ms]
+(pass) game/sim/shieldBreak > shield-break hitlag freezes its motion, phase and mash [3.00ms]
+(pass) game/sim/simulation > an ordinary hit-region window survives freezes, region changes and re-entry [3.00ms]
+(pass) game/sim/simulation > hit regions snapshot different effects before either trade cancels its attack [1.00ms]
+(pass) game/sim/simulation > a direct smash doesn't charge, and charge freezes only the fighter's control clock [3.00ms]
+(pass) game/sim/simulation > a simultaneous charged smash trade snapshots both charge amounts [1.00ms]
+
+ 59 pass
+ 681 filtered out
+ 0 fail
+Ran 59 tests across 1 file. [1427.00ms]

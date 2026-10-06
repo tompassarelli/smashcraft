@@ -10,7 +10,7 @@ import { type ParticipantSlot, isParticipantSlot } from "../../game/input/partic
 import { heldActions, keyDown, pressKey, releaseKey } from "../../game/input/playerKeys";
 import { startKeyDown, startKeyUp } from "../../game/match/controls";
 import { Phase, cancelRematchCountdown, characterFor, firstHumanSlot, humanActive, leaveMatch, recallCharacter, selectCharacter } from "../../game/match/rules";
-import { DESYNC_COMMAND, FROZEN_THRONE_QUICK_COMMAND, QUICK_MATCH_COMMAND, applyDevCommand } from "../../game/shell/devSettings";
+import { DESYNC_COMMAND, quickMatchStage, applyDevCommand } from "../../game/shell/devSettings";
 import { keepMomentEnd } from "../../game/replay/moment";
 import { devReceiptFile } from "../../game/shell/journalFiles";
 import { pausedMessage } from "../../game/shell/messages";
@@ -202,9 +202,13 @@ export function onProbeExport(s: ShellState): void {
 export function onDevCommand(s: ShellState): void {
   const message = GetEventPlayerChatString();
   let receipt: string | undefined;
-  if (message === QUICK_MATCH_COMMAND || message === FROZEN_THRONE_QUICK_COMMAND) {
+  const quickStage = quickMatchStage(message);
+  if (message === "-dev camera") {
+    receipt = "dev: camera match";
+    startQuickMatch(s, 0, "camera");
+  } else if (quickStage !== undefined) {
     receipt = "dev: quick match";
-    startQuickMatch(s, message === FROZEN_THRONE_QUICK_COMMAND ? 2 : 0);
+    startQuickMatch(s, quickStage);
   } else if (message.startsWith("-dev effects ")) {
     const index = S2I(message.slice(13));
     const scenario = HIT_PRESENTATION_CASES[index];

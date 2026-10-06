@@ -6,38 +6,38 @@ import { clearStageDrag, stageDrag, stageTileAt, updateStageDrag } from "./stage
 const at = (thousandths: number) => f32(thousandths / 1000);
 
 test("the stage grid holds only the playable stages", () => {
-  assertEquals(stageTileAt(at(480), at(350)), 0);
-  assertEquals(stageTileAt(at(600), at(350)), 1);
-  assertEquals(stageTileAt(at(700), at(350)), 2);
-  assertEquals(stageTileAt(at(653), at(350)), undefined);
-  assertEquals(stageTileAt(at(480), at(270)), undefined);
-  assertEquals(stageTileAt(at(360), at(350)), undefined);
+  assertEquals(stageTileAt(at(480), at(401)), 2);
+  assertEquals(stageTileAt(at(600), at(401)), 10);
+  assertEquals(stageTileAt(at(700), at(401)), 11);
+  assertEquals(stageTileAt(at(653), at(401)), undefined);
+  assertEquals(stageTileAt(at(480), at(140)), undefined);
+  assertEquals(stageTileAt(at(360), at(401)), undefined);
 });
 
 test("the shared stage chip drops onto real tiles only", () => {
   const drag = stageDrag();
-  assertEquals(updateStageDrag(drag, true, at(501), at(357), 0), undefined);
+  assertEquals(updateStageDrag(drag, true, at(501), at(401), 2), undefined);
   assertEquals(drag.gesture?.kind, "carry");
-  assertEquals(updateStageDrag(drag, true, at(603), at(357), 0), undefined);
-  assertEquals(updateStageDrag(drag, false, at(603), at(357), 0), 1);
+  assertEquals(updateStageDrag(drag, true, at(603), at(401), 2), undefined);
+  assertEquals(updateStageDrag(drag, false, at(603), at(401), 2), 10);
   assertEquals(drag.gesture, undefined);
-  updateStageDrag(drag, true, at(603), at(357), 1);
-  assertEquals(updateStageDrag(drag, false, at(653), at(350), 1), undefined);
-  updateStageDrag(drag, true, at(603), at(357), 1);
+  updateStageDrag(drag, true, at(603), at(401), 10);
+  assertEquals(updateStageDrag(drag, false, at(653), at(401), 10), undefined);
+  updateStageDrag(drag, true, at(603), at(401), 10);
   clearStageDrag(drag);
   assertEquals(drag.gesture, undefined);
-  assertEquals(updateStageDrag(drag, false, at(501), at(357), 1), undefined);
+  assertEquals(updateStageDrag(drag, false, at(501), at(401), 10), undefined);
 });
 
 test("a click on a stage needs the press and the release on the same tile", () => {
   const drag = stageDrag();
-  assertEquals(updateStageDrag(drag, true, at(638), at(390), 0), undefined);
+  assertEquals(updateStageDrag(drag, true, at(638), at(420), 2), undefined);
   assertEquals(drag.gesture?.kind, "click");
-  assertEquals(updateStageDrag(drag, false, at(638), at(390), 0), 1);
-  assertEquals(updateStageDrag(drag, false, at(638), at(390), 0), undefined);
-  updateStageDrag(drag, true, at(638), at(390), 0);
-  assertEquals(updateStageDrag(drag, false, at(480), at(390), 0), undefined);
-  updateStageDrag(drag, true, at(638), at(390), 0);
+  assertEquals(updateStageDrag(drag, false, at(638), at(420), 2), 10);
+  assertEquals(updateStageDrag(drag, false, at(638), at(420), 2), undefined);
+  updateStageDrag(drag, true, at(638), at(420), 2);
+  assertEquals(updateStageDrag(drag, false, at(480), at(420), 2), undefined);
+  updateStageDrag(drag, true, at(638), at(420), 2);
   clearStageDrag(drag);
-  assertEquals(updateStageDrag(drag, false, at(638), at(390), 0), undefined);
+  assertEquals(updateStageDrag(drag, false, at(638), at(420), 2), undefined);
 });

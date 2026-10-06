@@ -31,6 +31,64 @@ Owner decisions, 6 Oct 2026 (#62):
 - **Short true combos, devastating combos through reads** (6 Oct, #83; see
   "Combo structure" below).
 
+## Bounded SDI
+
+Reversible default selected under the owner's authorization, 6 Oct 2026 (#70).
+The selected rule is a design; gameplay still uses the existing SDI until
+the infrastructure gate in #61 closes and #70's implementation passes its checks.
+
+SDI should change where a hit leaves the defender, with a useful escape choice
+in multi-hits, without rewarding ever more inputs with unbounded travel. Count
+travel distance, including reversals, rather than distance from the hit's origin.
+All distances below are Melee units; one is six world units.
+
+- **Per hit:** at most 12 units total, comprising at most 9 SDI and 3 ASDI.
+- **Per uninterrupted string:** at most 24 units total across SDI and ASDI.
+  A new contact renews the hit allowance, never the string allowance. A string
+  ends after one complete tick in which the defender can act, or on stock loss,
+  respawn or match reset. Hitlag, hitstun, grabs and scripted holds keep it open;
+  a gap between multi-hits while the defender is still held does not renew it.
+- **Smoothing:** each fresh pulse requests up to the existing 6-unit travel,
+  spent in ordered steps of at most 3 units per tick while hitlag remains.
+  Reserve up to 3 units of the remaining string allowance for that hit's ASDI
+  before admitting SDI requests. Pending requests reserve the remaining hit and
+  string allowance, so extra flicks cannot build an unbounded queue. ASDI uses
+  the release tick's whole 3-unit step; do not drain queued SDI on that tick.
+  Discard unfinished SDI on release or a replacement hit, and release its
+  unused reservation. Never continue it into hitstun or ordinary movement.
+- **Contacts:** charge each requested step's length before collision clipping;
+  walls cannot refill the allowance. Use the existing swept surface contacts,
+  grounded non-lifting restriction and blast-zone checks for every step. ASDI
+  still prefers the C-stick, can land, and uses the existing non-tumble/tech
+  landing rules. Continuous DI still reads the left stick on release and keeps
+  its launch-angle rule. Attacker hitlag never admits victim SDI.
+
+The shared string cap also limits ASDI: after 24 units have been spent, a later
+hit supplies no positional SDI or ASDI until control returns. This is a deliberate
+departure from Melee; reserving ASDI on each eligible hit keeps the held-direction
+choice useful before that cap. An ordinary stationary-held direction generates
+no repeat pulses. No extra delay is added before the first smoothed step.
+
+At these defaults, a two-frame freeze permits 3 SDI plus 3 ASDI units; a
+four-frame or longer freeze can spend the full 12. Two fully spent hits exhaust
+the 24-unit string budget. These are consequences of the proposed rule, not
+measurements of an implemented change. The numerical defaults are ordinary
+tuning values and can be revised together without altering the rule.
+
+The implementation must carry spent allowances and pending travel through
+snapshots, replay and rollback. Its focused acceptance cases are single-hit
+and three-hit travel bounds (including alternating and diagonal directions),
+the 3-unit per-tick limit, reservation expiry, a real actionable reset versus
+held multi-hit gaps, and the existing ASDI contact/DI cases. Add oracle fixtures
+that name the SDI deviation; the existing oracle does not exercise this rule.
+Native feel remains a later playtest of the implemented candidate.
+
+The factual baseline is [Melee's defense](design/melee/defense.md#influence-on-knockback)
+and [SDI teleports](design/melee/techniques.md#sdi-teleports). The current
+production simulation's bounded measurements at build 89abaf3c are retained in
+smashcraft:evidence/sdi-design-20261006.json; #70 owns their report and the
+implementation dependency.
+
 ## Combo structure
 
 Owner decision, 6 Oct 2026 (#83): devastating combos should be the norm
@@ -102,7 +160,7 @@ checks that every oracle departure names a row here.
 | Stale moves and freshness bonuses | Repeats among the last 9 connected moves deal less damage and knockback | Ultimate keeps the 9-move queue, adds a freshness bonus, counts shield hits and weakens the knockback effect ([SmashWiki](https://www.ssbwiki.com/Stale-move_negation)) | None: a repeat deals the same damage and knockback | An over-engineered attempt at move diversity; diversity comes by construction, from move design | decisions 4 and 6 Oct |
 | Tap-jump | Stick up jumps, always | Optional from Brawl onward ("Stick Jump" in Ultimate; [SmashWiki](https://www.ssbwiki.com/Tap_jump)) | Removed: stick-up and Space are just "up"; jump is its own button | Jump is its own button (owner, 6 Oct) | #49 |
 | Stick deadzone | Each stick axis reads zero within 0.28 of centre, after a radial clamp | not covered here | Melee's deadzone applies to every controller; the value and its decompilation citation are in smashcraft:companion/README.md | A resting or drifting stick reads neutral | #49 |
-| SDI | Each fresh stick movement during hitlag moves the fighter 6 units, as often as every frame ([case study](design/melee/defense.md#influence-on-knockback)) | Weakened in later games ([SmashWiki](https://www.ssbwiki.com/Smash_directional_influence)) | Pending: SDI that keeps its purpose without teleport jank | SDI should let the victim influence where multi-hits and strong hits leave them, without too much SDI teleporting a fighter | #70 |
+| SDI | Each fresh stick movement during hitlag moves the fighter 6 units, as often as every frame ([case study](design/melee/defense.md#influence-on-knockback)) | Weakened in later games ([SmashWiki](https://www.ssbwiki.com/Smash_directional_influence)) | Selected design, awaiting implementation after #61: SDI + ASDI travel capped at 12 units per hit and 24 per uninterrupted string, in steps of at most 3 per tick ([bounded SDI](#bounded-sdi)) | Keep displacement choices useful while bounding visible jumps and repeated-hit travel | #70 |
 | Horizontal air dodge | The dodge goes where the stick points | – | A horizontal-only digital air dodge angles 18° below horizontal, mirrored, by default and with no toggle | Owner-selected control (30 Sep); the shallow angle keeps horizontal momentum into the landing | – |
 | Fast fall | A fresh stick down, diagonals included | – | Down with neutral horizontal input only; down-left and down-right keep drifting | Owner-selected control, 30 Sep | – |
 | Dodge timing | Per fighter | – | One shared profile: spot dodge 22 frames, intangible 2–15; rolls 31, intangible 4–19; air dodge 49, intangible 4–29, landing 10 | Owner's common frame-data profile | – |
@@ -142,6 +200,101 @@ checks that every oracle departure names a row here.
   add damage without hitstun, hitlag, knockback or interruption; shields still
   take their damage. smashcraft:docs/physics.md, "Archer arrows: damage without
   interruption", has the rule.
+
+## Character trade-offs and move evaluation
+
+Evaluation model selected under the owner's authorization, 6 Oct 2026 (#62).
+Use the current Archer, Rifleman and Illidan, with jab, down tilt, forward smash,
+forward air and down air as the first sample. The numerical baseline is
+smashcraft:tools/move-data/gameplay-model.json, derived from the published
+move exports, contextual comparisons, interaction graph and retained bot data;
+it is an analysis artifact, never gameplay tuning input.
+
+### Numerical identities
+
+These are authored values at d1971253, rounded for display. Run and air speed
+are world units per frame. Reach below is the hit capsule's forward extent
+relative to its fighter, before adding the opponent's hurt capsule; it is not
+an effective range or a guaranteed connection. All three have a 4-frame,
+5-damage jab, with 21 unpaused frames total. Down tilt starts on frame 5 and
+lasts 28 frames; forward smash starts on 6 and lasts 36.
+
+| Fighter | Weight | Run / air speed | Jump squat | Down tilt damage / reach | Forward smash damage / reach | Down air active frames |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Archer | 75 | 13.20 / 4.98 | 3 | 8 / 145 | 18 / 121 | 20 |
+| Rifleman | 80 | 9.00 / 4.98 | 5 | 10 / 145 | 18 / 121 | 3 |
+| Illidan | 80 | 11.10 / 5.28 | 4 | 7 / 115 | 15 / 171 | 3 |
+
+Archer pays for the fastest run and jump start with the lowest weight.
+Rifleman's down tilt pays more damage at Archer's timing and reach, while his
+run is slower and jump start later. Illidan's forward smash reaches farther
+but deals less, and his down tilt gives up both damage and reach; his air speed
+is highest. These are the strengths and costs to preserve or deliberately
+replace when authoring the fighters' original volumes and animations.
+
+### Model and provisional targets
+
+Evaluate a move in a named situation: fighter and opponent, stage, spacing,
+percent, grounded/airborne state, timing, and DI/defensive policy. The definitions
+of frame advantage, reachable punishment and weighted choices come from
+[fighting-game design](design/fighting-games.md#frame-advantage-safety-and-punishes)
+and the [interaction graph](design/platform-fighters.md#the-interaction-graph).
+
+- **Option count N:** group inputs by their ordered outcome against every
+  tested response (winner, hit/grab/none, blocked). Count distinct groups;
+  keep timing and damage alongside them. The neutral mirror fixtures offer
+  13 inputs each, but N is 8 at distance 60 for all three, and 6/6/7 at 120
+  for Archer/Rifleman/Illidan. This is a coarse sampled distinction, not a
+  count of all strategic choices. Provisional target: at least three distinct
+  patterns in each ordinary neutral sample, with each attacking choice denied
+  by a reachable block, evasion or counter in that named situation.
+- **Punish window P:** retain the exact set of start frames that land before
+  the target can act, and its longest contiguous interval. Do not turn holes
+  into a continuous window or infer a punish from negative advantage alone.
+  Close advancing down air is -8/-10/-8 in the three mirror fixtures; jump
+  neutral air and jump back air each punish from frames 12 and 13. Spaced
+  fade-back forward air is -2 for all three and has no tested reachable punish.
+  Of the 30 aerial/shield variants per fighter, 19/19/20 have no tested punish.
+  Preserve the spacing-dependent safe/unsafe distinction rather than making
+  every aerial uniformly safe or unsafe.
+- **Reward and risk:** use direct damage R on a successful named hit and
+  damage C from a specified reachable punish, then report R/C and the binary
+  break-even success probability C/(R+C). Keep stock loss, follow-up situation
+  and escape choices separate; do not convert them into invented damage points.
+  If no tested punish reaches, C and the ratio are unknown, not zero/infinity.
+  Provisional target: extra reward pays in an observed cost (commitment,
+  exposure, fewer safe spacings or a stronger punish), not merely a slower
+  number whose consequence no opponent can exploit.
+
+In the grounded first-active, spacing-60, 0% contact fixture against Rifleman,
+Illidan's forward smash deals 15 and is -6 at the normal-action gate after
+shield release. An approaching Rifleman jab starts at 32 and hits at 36 before
+Illidan acts at 37: a 5-damage cost, R/C = 3, break-even 25% for precisely that
+binary branch. Archer and Rifleman deal 18 and are -4; no tested jab reaches
+before recovery, so their ratios remain unknown. These comparisons are not
+the mirror fixture's earliest out-of-shield gate or a full payoff matrix.
+
+### Predictions and the role of bots
+
+The existing fixtures make three falsifiable predictions for this sample:
+Archer's long-active down air remains punishable at close advancing spacing
+while his spaced fade-back forward air is safe against the tested responses;
+Rifleman's stronger down tilt produces 18 hitstun frames against weight 100
+versus Archer's 17 at the same timing and reach; Illidan's longer-reaching
+forward smash still permits the specified shield-release jab punish. Evaluate
+any proposed change against these named rows with the existing move and
+interaction commands, then retain its before/after effect on N, P and R/C.
+
+The retained post-down-tilt 540-match bot run supplies historical context:
+CPU-versus-fuzz wins were 118/120, 120/120 and 116/120, and damage per landed
+hit 8.86, 7.03 and 8.32 for Archer, Rifleman and Illidan. Repeated deterministic
+CPU setups are not independent samples. The Rifleman change moved 118 to 120
+wins, while two unrelated fuzz matches also changed; that run did not resolve
+a balance effect. Its policy, stages and revision are named in
+smashcraft:evidence/rifleman-down-tilt-20261006/README.md. Later gameplay changes
+mean these are historical observations, not present balance, human win odds,
+or a complete formula for fun. A playable change and its relevant bot/geometry
+measurement remain the acceptance work in #62 after #61.
 
 ## Stale moves and freshness bonuses
 

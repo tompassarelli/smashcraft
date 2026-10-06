@@ -46,7 +46,7 @@ function applyHitlagShift(
     if (fromAsdi) launch.asdiSerial++;
     else launch.sdiSerial++;
   }
-  checkBlastZone(world, slot);
+  checkBlastZone(world, slot, stage);
 }
 
 /** One smash-DI pulse during hitlag. */

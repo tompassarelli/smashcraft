@@ -13,15 +13,16 @@ import { squareRoot } from "./warcraftMath";
 export const SOLID_DECK_TEST_STAGE = 5;
 /** The selectable winter arena, with Battlefield's three-platform arrangement. */
 export const FROZEN_THRONE_STAGE = 2;
-/** One pass-through deck drifting back and forth above the main deck, as on Ultimate's Smashville; the stage menu doesn't offer it. */
+/** One pass-through deck drifting back and forth above the main deck, as on Ultimate's Smashville; Durotar Skies offers it. */
 export const DRIFTING_DECK_STAGE = 3;
-/** Two pass-through decks on their own timed patterns, as on Ultimate's Town and City; the stage menu doesn't offer it. */
+/** Two pass-through decks on their own timed patterns, as on Ultimate's Town and City; Naxxramas offers it. */
 export const PATTERNED_DECKS_STAGE = 4;
-/** Hidden hazard test stages, never offered on the stage menu. */
+/** Stage identities retained from their deterministic hazard fixtures. */
 export const WIND_TEST_STAGE = 10;
 export const CARRIED_TEST_STAGE = 11;
 export const CANNON_TEST_STAGE = 12;
 export const TIMED_TEST_STAGE = 13;
+export const HELLFIRE_STAGE = 14;
 
 const MAIN_DECK_LEFT = -600.0;
 const MAIN_DECK_RIGHT = 600.0;
@@ -104,6 +105,17 @@ const FROZEN_THRONE_DECKS = [MAIN_DECK,
   fixed(175.0, 505.0, melee(27.200000762939453), true),
   fixed(-165.0, 165.0, melee(54.400001525878906), true),
 ];
+const NORDRASSIL_DECKS = [MAIN_DECK,
+  fixed(-490.0, -310.0, melee(30.0), true),
+  fixed(310.0, 490.0, melee(30.0), true),
+  fixed(-114.0, 114.0, melee(51.5), true),
+];
+const GRYPHON_DECKS = [MAIN_DECK,
+  fixed(-480.0, -291.0, melee(23.5), true),
+  fixed(291.0, 480.0, melee(23.5), true),
+  fixed(-94.5, 94.5, melee(42.0), true),
+];
+const HELLFIRE_DECKS = [MAIN_DECK, fixed(-450.0, -270.0, melee(25.0), true), fixed(270.0, 450.0, melee(25.0), true)];
 const SOLID_RAISED_DECKS = [MAIN_DECK, fixed(-420.0, -110.0, 170.0, false), fixed(110.0, 420.0, 170.0, false)];
 
 /**
@@ -163,12 +175,14 @@ const STAGE_DECKS: readonly (readonly Deck[])[] = [
 ];
 
 function decks(stage: number): readonly Deck[] {
-  if (stage === WIND_TEST_STAGE || stage === CANNON_TEST_STAGE) return RAISED_DECKS;
+  if (stage === WIND_TEST_STAGE) return NORDRASSIL_DECKS;
+  if (stage === CANNON_TEST_STAGE) return FROZEN_THRONE_DECKS;
+  if (stage === HELLFIRE_STAGE) return HELLFIRE_DECKS;
   if (stage === CARRIED_TEST_STAGE) return CARRIED_DECKS;
   if (stage === TIMED_TEST_STAGE) return TIMED_DECKS;
   return stage >= 0 && stage < STAGE_DECKS.length ? at(STAGE_DECKS, stage) : NO_DECKS;
 }
-const CARRIED_DECKS = [MAIN_DECK, CARRIED_DECK];
+const CARRIED_DECKS = [MAIN_DECK, CARRIED_DECK, at(GRYPHON_DECKS, 1), at(GRYPHON_DECKS, 2), at(GRYPHON_DECKS, 3)];
 const TIMED_DECKS = [MAIN_DECK, LIFT_DECK];
 
 /** Walkable decks. */
