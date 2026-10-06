@@ -230,7 +230,7 @@ function startHeroFighterSpecial(owner: Fighter, input: Readonly<Controls>): boo
   const move = heroSpecialMove(specials, chosen);
   // A placement with a near form keeps the facing when pressed backward.
   const keepsFacing = (move.projectiles ?? []).some(spec => spec.backOffsetX !== undefined) && input.specialX * owner.facing < 0;
-  if (input.specialX !== 0 && input.specialZ === 0 && !keepsFacing) owner.facing = input.specialX < 0 ? -1 : 1;
+  if (input.specialX !== 0 && (input.specialZ === 0 || move.facesStick === true) && !keepsFacing) owner.facing = input.specialX < 0 ? -1 : 1;
   const action = SpecialAction.heroNeutral + chosen.slot;
   startSpecialAction(owner, heroAction(action), move.endFrame, specialDirection(input, owner.facing));
   enterHeroSpecial(owner, chosen, input);

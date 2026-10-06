@@ -240,6 +240,7 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
   int("oncePerAirtime", move.oncePerAirtime === true ? 1 : 0);
   int("helpless", move.helpless === true ? 1 : 0);
   int("landingLag", move.landingLag ?? -1);
+  if (move.facesStick === true) int("facesStick", 1);
   int("intangible.first", move.intangible?.first ?? -1);
   int("intangible.last", move.intangible?.last ?? -1);
   int("armor.first", move.armor?.first ?? -1);
