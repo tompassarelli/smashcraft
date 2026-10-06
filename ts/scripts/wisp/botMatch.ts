@@ -17,7 +17,7 @@ import { Character } from "../../src/game/sim/codes";
 import { Key } from "../../src/platform/shell/keyEvents";
 import { JournalHelpers } from "../../test/rematch/journalHelper";
 
-export interface BotMatch {
+interface BotMatch {
   /** Computer fighters by slot; slots 0 and 1 are the two players. */
   readonly computers: readonly (readonly [slot: number, character: Character])[];
 }
@@ -42,7 +42,7 @@ const LEFT = bit(Action.moveLeft) | bit(Action.smashLeft);
  * full-tilt dashes right and left, each followed by 400 ms of rest
  * (smashcraft:ts/scripts/integrity/journey.ts, BOT_BEATS).
  */
-export function botBeatRow(frame: number): InputRow {
+function botBeatRow(frame: number): InputRow {
   let at = floorMod(frame - 1, CYCLE);
   let row: InputRow | undefined;
   const held = (bits: number, frames: number, axisX: number, triggerLeft: number) =>
@@ -69,10 +69,13 @@ interface Game {
   readonly characterReadiness: boolean[];
 }
 
+/** The shell global a client's bundle keeps, as far as the match setup reads it. */
+const hasGame = (shell: unknown): shell is { readonly game: Game } => typeof shell === "object" && shell !== null && "game" in shell;
+
 /** A client's match state, read from its own globals: in Lua each client runs the bundle in its own environment. */
 function gameOf(client: HeadlessClient): Game {
-  const shell = (client.natives as Record<string, unknown>).__smashcraftShell as { readonly game: Game } | undefined;
-  if (shell === undefined) throw new Error(`p${client.slot} has no shell`);
+  const shell = client.natives.__smashcraftShell;
+  if (!hasGame(shell)) throw new Error(`p${client.slot} has no shell`);
   return shell.game;
 }
 
