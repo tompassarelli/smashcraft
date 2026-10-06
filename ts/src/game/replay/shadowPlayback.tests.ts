@@ -155,7 +155,8 @@ test("a late held input re-predicts the tail and an accepted release stops it", 
     assertEquals(schedule.knownThrough(), 1);
     assertEquals(playback.reconcile(schedule, epoch, localPlayer, world.live, history), 3);
     assertFalse(remoteFighter.shield.raised);
-    assertTrue(history.isSpeculative(epoch, 3));
+    // Frame 3 has the remote's row and the local one as captured: nothing left to predict.
+    assertFalse(history.isSpeculative(epoch, 3));
     assertTrue(sameInput(networkRow(history, epoch, 3, remote), release));
     for (let frame = 4; frame <= 10; frame++) {
       assertTrue(history.isSpeculative(epoch, frame));
@@ -255,7 +256,7 @@ test("twelve late rows replay at full depth and rebuild every snapshot", () => {
     assertEquals(schedule.captureLocal(epoch, NEUTRAL), Capture.captured);
     assertTrue(playback.advanceSpeculative(schedule, epoch, 0, speculative.live, speculativeHistory));
   }
-  assertFalse(schedule.mayAdvanceSpeculative());
+  assertFalse(schedule.mayAdvanceSpeculative(0));
   assertEquals(speculative.live.runtime.simulationFrame, 15);
   for (let frame = 4; frame <= 15; frame++) {
     deliver(schedule, 0, epoch, frame, NEUTRAL);
@@ -274,7 +275,7 @@ test("twelve late rows replay at full depth and rebuild every snapshot", () => {
     sameTapes(confirmed, speculative);
   }
   assertEquals(playback.reconcile(schedule, epoch, 0, speculative.live, speculativeHistory), "unchanged");
-  assertTrue(schedule.mayAdvanceSpeculative());
+  assertTrue(schedule.mayAdvanceSpeculative(0));
 });
 
 test("twenty-four late rows re-predict and rebuild every snapshot", () => {
@@ -294,7 +295,7 @@ test("twenty-four late rows re-predict and rebuild every snapshot", () => {
     assertEquals(schedule.captureLocal(epoch, NEUTRAL), Capture.captured);
     assertTrue(playback.advanceSpeculative(schedule, epoch, 0, live, history));
   }
-  assertFalse(schedule.mayAdvanceSpeculative());
+  assertFalse(schedule.mayAdvanceSpeculative(0));
   assertFalse(playback.advanceSpeculative(schedule, epoch, 0, live, history));
   assertEquals(live.runtime.simulationFrame, 24);
   deliver(schedule, 0, epoch, 1, NEUTRAL);

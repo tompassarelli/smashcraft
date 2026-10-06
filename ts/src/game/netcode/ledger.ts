@@ -36,6 +36,8 @@ const NEUTRAL: Readonly<InputRow> = emptyInput();
  */
 export class InputLedger {
   private readonly senders = Array.from({ length: PARTICIPANT_CAPACITY }, () => new FrameRing(LEDGER_CAPACITY));
+  /** Per sender, the last frame through which its rows are all present. */
+  private readonly through = Array.from({ length: PARTICIPANT_CAPACITY }, () => 0);
   private participants = 0;
   private current: number | undefined;
   private retainedFrom = 1;
@@ -64,6 +66,7 @@ export class InputLedger {
       }
       this.known = frame;
     }
+    this.through.fill(this.known);
     return true;
   }
 
@@ -82,6 +85,11 @@ export class InputLedger {
   /** K: every participant's row is present through this frame. */
   knownThrough(): number {
     return this.known;
+  }
+
+  /** The last frame through which every row of `sender` is present. */
+  acceptedThrough(sender: number): number {
+    return at(this.through, sender);
   }
 
   consumedThrough(): number {
@@ -135,7 +143,11 @@ export class InputLedger {
       const receipt = this.check(sender, firstFrame + i, at(rows, i));
       if (receipt !== "accepted") return receipt;
     }
-    rows.forEach((row, i) => at(this.senders, sender).store(firstFrame + i, row));
+    const ring = at(this.senders, sender);
+    rows.forEach((row, i) => ring.store(firstFrame + i, row));
+    let through = at(this.through, sender);
+    while (through < INPUT_LAST_FRAME && ring.row(through + 1) !== undefined) through++;
+    this.through[sender] = through;
     while (this.known < INPUT_LAST_FRAME && this.allPresent(epoch, this.known + 1)) this.known++;
     return "accepted";
   }

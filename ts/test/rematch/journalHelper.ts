@@ -1,16 +1,18 @@
 // The companion helper as headless clients need it: per client, the journal
 // text it types into the integrity build's edit box while the box is shown
 // (readiness, I4 rows of one frame, or of two as the companion's are, pause
-// acknowledgments, the end marker) and its quiescence file. Like the real
-// helper it types at most TEXT_WINDOW records past what the map's receipt has
-// consumed, and with pairs, as the companion does, at most
-// TYPED_AHEAD_CHARACTERS past what it received, joining packets that wait.
+// acknowledgments, the end marker) and its quiescence file. It types as
+// wc3-journal does: at most TEXT_WINDOW records past what the map's receipt has
+// consumed, and with pairs at most TYPED_AHEAD_CHARACTERS past what it
+// received, joining waiting packets into records within that bound. It
+// journals and types frame by frame of its own clock, also while the game
+// stands still, so what it typed then reaches the box at once.
 import type { Lockstep } from "wisp/src/headless/lockstep";
 import { Action, bit } from "../../src/game/input/actions";
 import { type InputRow, inputRow } from "../../src/game/input/inputRow";
 import { encodePacket, inputPacket } from "../../src/game/input/wire";
 import { RECORD_PACKETS } from "../../src/game/netcode/journal/source";
-import { TEXT_WINDOW, textEnvelope } from "../../src/game/netcode/journal/text";
+import { TEXT_WINDOW, TYPED_AHEAD_CHARACTERS, textEnvelope } from "../../src/game/netcode/journal/text";
 import { momentRequest } from "../../src/game/replay/moment";
 import { quiescentFile } from "../../src/game/shell/journalFiles";
 import { journalControlFile, journalLifecycleFile, journalReadyFile } from "../../src/runtime/gameFiles";
@@ -70,8 +72,6 @@ export function rowFor(slot: number, frame: number, workload: Workload): InputRo
   return row;
 }
 
-/** Characters the companion types past what its client's receipt says the edit box received. */
-const TYPED_AHEAD_CHARACTERS = 256;
 
 interface Helper {
   epoch: number;
@@ -182,6 +182,33 @@ export class JournalHelpers {
         helper.limit = undefined;
         helper.started = now - helper.journaled;
       }
+      // The map's edit box, which has the keyboard while it is shown, and its receipt, which can't change before the next frame.
+      const box = client.frames.named("JournalControllerInput", 969);
+      const typing = box !== undefined && client.frames.shown(box) && !this.silent.has(client.slot);
+      const receipt = client.files.get(`smashcraft-journal-text-ack-${this.build}-e${epoch}-p${client.slot}.txt`)?.join("") ?? "";
+      const consumed = Number(wordAfter(receipt, " consumed=") === "" ? "0" : wordAfter(receipt, " consumed="));
+      const received = Number(wordAfter(receipt, " received=") === "" ? "0" : wordAfter(receipt, " received="));
+      while ((helper.typed[0]?.[0] ?? Infinity) <= received) helper.typed.shift();
+      let ahead = helper.typed.reduce((sum, [, characters]) => sum + characters, 0);
+      const before = box?.text.length ?? 0;
+      /** Types every queued record the window allows, as the companion does whenever it may. */
+      const type = () => {
+        if (!typing || box === undefined) return;
+        for (let payload = helper.queue.shift(); payload !== undefined; payload = helper.queue.shift()) {
+          const envelope = textEnvelope(epoch, helper.sequence + 1, payload) ?? "";
+          if (helper.sequence >= consumed + TEXT_WINDOW || (this.pairs && !this.bursts && ahead > 0 && ahead + envelope.length > TYPED_AHEAD_CHARACTERS)) {
+            helper.queue.unshift(payload);
+            break;
+          }
+          helper.sequence++;
+          helper.typed.push([helper.sequence, envelope.length]);
+          ahead += envelope.length;
+          box.text += envelope;
+        }
+      };
+      type();
+      // Frame by frame of the helper's clock, as the companion journals and types between the game's frames,
+      // also while the game stands still: then what it typed waits in the box, and later packets join.
       const due = helper.limit ?? Math.floor(now - helper.started) + 1;
       while (helper.state === "journaling" && helper.journaled < due) {
         const first = helper.journaled + 1;
@@ -190,36 +217,21 @@ export class JournalHelpers {
         if (this.pairs && first < due) rows.push(this.rows(client.slot, first + 1));
         const packet = inputPacket(epoch, first, rows);
         if (packet === undefined) throw new Error("no packet");
-        // As the companion does, a packet joins the untyped record before it.
+        // As the companion does, a packet joins the untyped record before it, while the record stays a typing
+        // the window allows at once.
         const last = helper.queue.length - 1;
         const untyped = helper.queue[last];
-        if (this.pairs && !this.bursts && untyped?.startsWith("I4") === true && untyped.split("|").length < RECORD_PACKETS) helper.queue[last] = `${untyped}|${encodePacket(packet)}`;
+        const joined = `${untyped ?? ""}|${encodePacket(packet)}`;
+        if (this.pairs && !this.bursts && untyped?.startsWith("I4") === true && untyped.split("|").length < RECORD_PACKETS
+          && (textEnvelope(epoch, helper.sequence + 1, joined) ?? "").length <= TYPED_AHEAD_CHARACTERS) helper.queue[last] = joined;
         else helper.queue.push(encodePacket(packet));
         helper.journaled += rows.length;
+        type();
       }
       if (committed !== undefined) acknowledge("PAUSE", committed);
       if (request !== "") helper.control++;
-      // The map's edit box, which has the keyboard while it is shown.
-      const box = client.frames.named("JournalControllerInput", 969);
-      if (box === undefined || !client.frames.shown(box) || this.silent.has(client.slot)) continue;
-      const receipt = client.files.get(`smashcraft-journal-text-ack-${this.build}-e${epoch}-p${client.slot}.txt`)?.join("") ?? "";
-      const consumed = Number(wordAfter(receipt, " consumed=") === "" ? "0" : wordAfter(receipt, " consumed="));
-      const received = Number(wordAfter(receipt, " received=") === "" ? "0" : wordAfter(receipt, " received="));
-      while ((helper.typed[0]?.[0] ?? Infinity) <= received) helper.typed.shift();
-      let ahead = helper.typed.reduce((sum, [, characters]) => sum + characters, 0);
-      const before = box.text.length;
-      for (let payload = helper.queue.shift(); payload !== undefined; payload = helper.queue.shift()) {
-        const envelope = textEnvelope(epoch, helper.sequence + 1, payload) ?? "";
-        if (helper.sequence >= consumed + TEXT_WINDOW || (this.pairs && !this.bursts && ahead > 0 && ahead + envelope.length > TYPED_AHEAD_CHARACTERS)) {
-          helper.queue.unshift(payload);
-          break;
-        }
-        helper.sequence++;
-        helper.typed.push([helper.sequence, envelope.length]);
-        ahead += envelope.length;
-        box.text += envelope;
-      }
-      this.typed.set(client.slot, box.text.length - before);
+      type();
+      if (box !== undefined) this.typed.set(client.slot, box.text.length - before);
     }
   }
 }

@@ -61,9 +61,74 @@ function segmentsIntersect(a: Readonly<Capsule>, b: Readonly<Capsule>): boolean 
     || (cdB === 0 && between(b.x1, b.x2, a.x2) && between(b.z1, b.z2, a.z2));
 }
 
+// Every hit region tests its strike against every target on every frame,
+// replays included, and the exact test below is some ninety exact binary32
+// operations (about 1 µs each in Lua). The same formulas in raw arithmetic
+// (binary64 on the host, Warcraft's own rounding in Lua) stay within a few
+// ulps of them: an orientation within 13 binary32 rounding units of its
+// products' magnitudes, a squared distance within 400 of the squared
+// coordinate magnitude. Beyond allowances 10 to 300 times wider, the raw
+// values make the exact test's decision; nearer, the exact test makes it.
+const ROUGH_ALLOWANCE = 0.000244140625;
+/** Coordinates beyond this take the exact test. */
+const ROUGH_LIMIT = 1048576.0;
+
+const magnitude = (value: number) => (value < 0 ? -value : value);
+
+/** The sign orientation() takes, or 0 when the raw value is too near zero to tell. */
+function roughOrientation(ax: number, az: number, bx: number, bz: number, cx: number, cz: number): number {
+  // * 1.0 keeps Lua integers, which wrap, out of the products.
+  const p = (bx - ax) * 1.0 * (cz - az);
+  const q = (bz - az) * 1.0 * (cx - ax);
+  const allowance = (magnitude(p) + magnitude(q)) * ROUGH_ALLOWANCE;
+  const difference = p - q;
+  return difference > allowance ? 1 : difference < -allowance ? -1 : 0;
+}
+
+/** pointSegmentDistanceSquared in raw arithmetic. */
+function roughDistanceSquared(px: number, pz: number, segment: Readonly<Capsule>): number {
+  const { x1, z1, x2, z2 } = segment;
+  const dx = (x2 - x1) * 1.0;
+  const dz = (z2 - z1) * 1.0;
+  const lengthSquared = dx * dx + dz * dz;
+  const offsetX = (px - x1) * 1.0;
+  const offsetZ = (pz - z1) * 1.0;
+  if (lengthSquared <= 1.0000000116860974e-7) return offsetX * offsetX + offsetZ * offsetZ;
+  const projection = Math.max(0.0, Math.min(1.0, (offsetX * dx + offsetZ * dz) / lengthSquared));
+  const closestX = px - (x1 + projection * dx);
+  const closestZ = pz - (z1 + projection * dz);
+  return closestX * closestX + closestZ * closestZ;
+}
+
+/** The larger of a capsule pair's coordinate magnitudes. */
+function coordinateScale(a: Readonly<Capsule>, b: Readonly<Capsule>): number {
+  return Math.max(
+    Math.max(Math.max(magnitude(a.x1), magnitude(a.z1)), Math.max(magnitude(a.x2), magnitude(a.z2))),
+    Math.max(Math.max(magnitude(b.x1), magnitude(b.z1)), Math.max(magnitude(b.x2), magnitude(b.z2))),
+  );
+}
+
 export function capsulesIntersect(a: Readonly<Capsule>, b: Readonly<Capsule>): boolean {
   const radius = f32(a.radius + b.radius);
-  if (segmentsIntersect(a, b)) return true;
+  const scale = coordinateScale(a, b);
+  // NaN fails this comparison too, and takes the exact test.
+  if (scale < ROUGH_LIMIT) {
+    const abC = roughOrientation(a.x1, a.z1, a.x2, a.z2, b.x1, b.z1);
+    const abD = roughOrientation(a.x1, a.z1, a.x2, a.z2, b.x2, b.z2);
+    const cdA = roughOrientation(b.x1, b.z1, b.x2, b.z2, a.x1, a.z1);
+    const cdB = roughOrientation(b.x1, b.z1, b.x2, b.z2, a.x2, a.z2);
+    // Nonzero signs: no orientation is exactly zero, so only the straddle decides.
+    const crossing = abC !== 0 && abD !== 0 && cdA !== 0 && cdB !== 0 ? abC !== abD && cdA !== cdB : segmentsIntersect(a, b);
+    if (crossing) return true;
+    const limit = f32(radius * radius);
+    const nearest = Math.min(
+      Math.min(roughDistanceSquared(a.x1, a.z1, b), roughDistanceSquared(a.x2, a.z2, b)),
+      Math.min(roughDistanceSquared(b.x1, b.z1, a), roughDistanceSquared(b.x2, b.z2, a)),
+    );
+    const allowance = (scale + 16.0) * (scale + 16.0) * ROUGH_ALLOWANCE;
+    if (nearest > limit + allowance) return false;
+    if (nearest < limit - allowance) return true;
+  } else if (segmentsIntersect(a, b)) return true;
   // Apart, two segments are closest at an endpoint of one projected onto the other.
   const distanceSquared = Math.min(
     Math.min(pointSegmentDistanceSquared(a.x1, a.z1, b), pointSegmentDistanceSquared(a.x2, a.z2, b)),

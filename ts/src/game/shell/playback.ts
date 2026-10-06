@@ -8,7 +8,7 @@ import type { MatchState } from "../match/rules";
 import type { ShadowInputSchedule } from "../netcode/shadowSchedule";
 import type { Roster } from "../sim/roster";
 
-/** The speculative world after a reconciliation: unchanged, replayed from a frame, or refused. */
+/** Accepted rows against what the speculative world ran: unchanged, changed from a frame, or refused. */
 type Reconciliation = "unchanged" | "rejected" | { readonly replayedFrom: number };
 
 /** Called after each speculative frame runs and before the schedule completes it, with the local row it used. */
@@ -25,8 +25,17 @@ export interface SpeculativeMatch {
 export interface RollbackPlayback {
   /** Starts an epoch whose history can correct `window` frames. */
   beginEpoch(epoch: number, window: number): boolean;
-  /** Replays the speculative match from the first retained frame whose accepted rows differ from those it ran. */
+  /**
+   * Takes every accepted row that differs from what the speculative match ran,
+   * from the first retained frame; repair() replays the changed frames.
+   */
   reconcile(schedule: ShadowInputSchedule, epoch: number, localPlayer: number, match: SpeculativeMatch): Reconciliation;
+  /**
+   * Replays at most `budget` changed frames apart from the speculative match,
+   * which keeps running local rows; when the replay reaches its present, the
+   * corrected state replaces it. Returns the frames it replayed.
+   */
+  repair(epoch: number, match: SpeculativeMatch, budget: number): number | "rejected";
   /**
    * Runs already-assigned speculative frames, at most `budget`, stopping
    * before `stopBefore` when given. False when a frame could not run.
@@ -46,6 +55,22 @@ export interface RollbackPlayback {
  * after a stall").
  */
 export const CATCH_UP_FRAMES = 6;
+
+/**
+ * Frames of a pending correction one callback replays. Replayed whole, a
+ * correction 24 frames deep took one Lua32 callback 23 ms, with a message's
+ * 6 confirmed frames and up to 6 predicted ones beside it
+ * (smashcraft:docs/warcraft-api-netcode-findings.md, "What a callback costs").
+ * A deep correction now shows a few callbacks later.
+ */
+export const REPAIR_FRAMES = 6;
+
+/**
+ * Confirmed frames one callback runs: a message's frames 3 a callback, so its
+ * confirmed events and HUD show a callback or two later; a backlog of more
+ * than two messages, as after a stall, at the catch-up budget.
+ */
+export const confirmedBudget = (confirmable: number): number => (confirmable > 2 * CATCH_UP_FRAMES ? CATCH_UP_FRAMES : 3);
 
 /**
  * Speculative frames one callback may run. Keyboard sampling owns one new

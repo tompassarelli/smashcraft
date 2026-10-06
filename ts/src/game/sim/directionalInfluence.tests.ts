@@ -7,9 +7,9 @@ import { f32 } from "wisp/src/sim/f32";
 import { resolveAttacks } from "./attacks";
 import { AttackStyle, Character, DownState } from "./codes";
 import { createFighter } from "./fighter";
-import { ordinaryHitKnockback, ordinaryHitlagFrames, ordinaryHitstunFrames } from "./knockback";
+import { applyDirectionalInfluence, directionalInfluenceVector, influenceOperands, ordinaryHitKnockback, ordinaryHitlagFrames, ordinaryHitstunFrames } from "./knockback";
 import { attackStartupFrames, grabHoldFrames } from "./moves";
-import { totalVelocityX, totalVelocityZ } from "./motion";
+import { setMeleeKnockback, totalVelocityX, totalVelocityZ } from "./motion";
 import { updateProjectiles } from "./projectiles";
 import { ASDI_DISTANCE, SDI_DISTANCE } from "./smashDirectionalInfluence";
 import { respawnFighter } from "./stocks";
@@ -312,6 +312,24 @@ test("DI reads only the last hitlag frame and preserves launch speed", () => {
   assertNear(length(fighter.launch.knockbackX, fighter.launch.knockbackZ), 9.694000244140625, 0.0010000000474974513);
   advanceSolo(fighter, 0, input, -240.0);
   assertEquals(fighter.launch.diSerial, 1);
+});
+
+test("a DI's traced operands repeat its angle exactly", () => {
+  // Fighter 0's DI at frame 375 of the 0.0.49 four-fighter moment f774, whose angle Warcraft made one ulp smaller (#59).
+  const fighter = createFighter(Character.archer, 0.0, 1);
+  fighter.motion.grounded = false;
+  setMeleeKnockback(fighter, -1.664950966835022, 1.9261585474014282);
+  fighter.launch.diPending = true;
+  applyDirectionalInfluence(fighter, controls({ direction: -1, diStickValid: true, diStickX: -1.0, diStickZ: 0.0 }));
+  const operands = influenceOperands(fighter);
+  if (operands === undefined) throw new Error("no DI operands");
+  assertEquals([operands.x, operands.z, operands.stickX, operands.stickZ].join(" "), [-1.664950966835022, 1.9261585474014282, -1.0, 0.0].join(" "));
+  assertEquals(operands.degrees, 10.302380561828613);
+  assertEquals(operands.angleRadians, 0.17981046438217163);
+  assertEquals(fighter.launch.diAngleDegrees, 10.302380561828613);
+  const repeated = directionalInfluenceVector(operands.x, operands.z, operands.stickX, operands.stickZ);
+  assertEquals(repeated.angleRadians, operands.angleRadians);
+  assertEquals(f32(repeated.angleRadians * 57.295780181884766), fighter.launch.diAngleDegrees);
 });
 
 test("DI normalizes diagonal input and ignores parallel input", () => {

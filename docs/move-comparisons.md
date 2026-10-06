@@ -120,6 +120,19 @@ recorded in smashcraft:docs/move-reference-join.md. No Melee character is equate
 with an original Warcraft fighter. Native parity, balance tuning and playable
 before/after acceptance remain in issue #12.
 
+## Evaluating a move against the interaction graph
+
+These comparisons sample one contact state; the
+[interaction graph](design/interaction-graph.md) plays whole situations
+(aerials on shield at each spacing and drift, out-of-shield options, neutral,
+landing, ledge, tech) for every fighter. After changing or adding a move, run
+`bun wisp interactions --move FIGHTER:MOVE` from smashcraft:ts/ for every place
+the move now appears and what changed in its fighter's graph, then
+`bun wisp interactions` to write the new graph.
+smashcraft:tools/move-data/compare.sh `--check` runs `bun wisp interactions
+--check` after its own comparison, so a changed move fails the check until the
+graph's changes are looked at and written.
+
 ## Jab change, 6 October 2026 (#12)
 
 Issue #12's first balance change, proposed from bot soak data

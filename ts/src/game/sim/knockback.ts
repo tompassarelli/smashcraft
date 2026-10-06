@@ -10,7 +10,7 @@ import type { Fighter } from "./fighter";
 import { AIR_KNOCKBACK_DECAY, AIR_KNOCKBACK_SQUARED_CUTOFF, decayedAirMotion, retainedOriginal, roundMeleeWorldValue, setMeleeKnockback } from "./motion";
 import type { Controls } from "./roster";
 import { melee } from "./tuning";
-import { atan2, squareRoot } from "./warcraftMath";
+import { squareRoot } from "./warcraftMath";
 
 const KNOCKBACK_LAUNCH_SCALE = melee(0.029999999329447746);
 const HITSTUN_FRAMES_PER_KNOCKBACK = 0.4000000059604645;
@@ -126,7 +126,7 @@ export function installDamageLaunch(target: Fighter, knockback: number, directio
     launchZ = 0.0;
   } else if (wasGrounded && launch.damageLevel === 3 && directionZ < 0) {
     // The floor normal is vertical on the current flat stage surfaces.
-    if (atan2(-directionZ, Math.abs(directionX)) > GROUND_LAUNCH_BOUNCE_ANGLE) launchZ = -f32(launchZ * GROUND_LAUNCH_REBOUND);
+    if (meleeAtan2(-directionZ, Math.abs(directionX)) > GROUND_LAUNCH_BOUNCE_ANGLE) launchZ = -f32(launchZ * GROUND_LAUNCH_REBOUND);
   }
   launch.groundKnockbackX = motion.grounded ? launchX : 0.0;
   if (launch.knockbackAge !== undefined && launch.knockbackAge >= KNOCKBACK_STACKING_FRAMES) {
@@ -170,11 +170,26 @@ export function decayKnockback(f: Fighter): void {
 interface DirectionalInfluence {
   velocityX: number;
   velocityZ: number;
+  degrees: number;
   angleRadians: number;
 }
 
 // Preallocated: rollback replays apply DI when replayed hitlag ends.
-const influence: DirectionalInfluence = { velocityX: 0.0, velocityZ: 0.0, angleRadians: 0.0 };
+const influence: DirectionalInfluence = { velocityX: 0.0, velocityZ: 0.0, degrees: 0.0, angleRadians: 0.0 };
+
+/** The operands of a fighter's last DI, for the integrity trace to compare native DI with its replay operation by operation (#59). */
+interface InfluenceOperands {
+  x: number;
+  z: number;
+  stickX: number;
+  stickZ: number;
+  degrees: number;
+  angleRadians: number;
+}
+
+const lastInfluence = new WeakMap<Fighter, InfluenceOperands>();
+
+export const influenceOperands = (fighter: Fighter): Readonly<InfluenceOperands> | undefined => lastInfluence.get(fighter);
 
 /**
  * A launch rotated by DI. Launch components are in Melee units; stick
@@ -192,6 +207,7 @@ export function directionalInfluenceVector(x: number, z: number, stickX: number,
   if (square < 0.000009999999747378752 || (inputX === 0 && inputZ === 0)) {
     influence.velocityX = horizontal;
     influence.velocityZ = vertical;
+    influence.degrees = 0.0;
     influence.angleRadians = 0.0;
     return influence;
   }
@@ -202,6 +218,7 @@ export function directionalInfluenceVector(x: number, z: number, stickX: number,
   const angle = fusedMultiplyAddFloat32(degrees, 0.01745329238474369, meleeAtan2(vertical, horizontal));
   influence.velocityX = multiplyFloat32(speed, meleeCos(angle));
   influence.velocityZ = multiplyFloat32(speed, meleeSin(angle));
+  influence.degrees = degrees;
   influence.angleRadians = multiplyFloat32(degrees, 0.01745329238474369);
   return influence;
 }
@@ -220,15 +237,23 @@ export function applyDirectionalInfluence(target: Fighter, input: Readonly<Contr
   const inputScale = dx !== 0 && dz !== 0 ? DIAGONAL_UNIT : 1.0;
   const inputX = input.diStickValid ? input.diStickX : f32(dx * inputScale);
   const inputZ = input.diStickValid ? input.diStickZ : f32(dz * inputScale);
-  const result = directionalInfluenceVector(
-    retainedOriginal(launch.meleeKnockbackX, launch.knockbackX),
-    retainedOriginal(launch.meleeKnockbackZ, launch.knockbackZ),
-    inputX,
-    inputZ,
-  );
+  const x = retainedOriginal(launch.meleeKnockbackX, launch.knockbackX);
+  const z = retainedOriginal(launch.meleeKnockbackZ, launch.knockbackZ);
+  const result = directionalInfluenceVector(x, z, inputX, inputZ);
   setMeleeKnockback(target, result.velocityX, result.velocityZ);
   if (result.angleRadians !== 0) {
     launch.diAngleDegrees = f32(result.angleRadians * RADIANS_TO_DEGREES);
     launch.diSerial++;
+    let operands = lastInfluence.get(target);
+    if (operands === undefined) {
+      operands = { x: 0.0, z: 0.0, stickX: 0.0, stickZ: 0.0, degrees: 0.0, angleRadians: 0.0 };
+      lastInfluence.set(target, operands);
+    }
+    operands.x = x;
+    operands.z = z;
+    operands.stickX = inputX;
+    operands.stickZ = inputZ;
+    operands.degrees = result.degrees;
+    operands.angleRadians = result.angleRadians;
   }
 }

@@ -82,6 +82,20 @@ test("fighter replay copies drop references to fighters the source roster doesn'
   assertEquals(target.special.hitTargets[0], undefined);
 });
 
+test("fighter replay copies carry every special hit target, absent ones included, into a fresh fighter", () => {
+  // The walk above sees absent targets only in Bun: in Lua a table of nils has no keys.
+  const source = createFighter(Character.archer, 0.0, 1);
+  const target = createFighter(Character.archer, 0.0, 1);
+  source.special.hitTargets[0] = 2;
+  source.special.hitTargets[2] = 3;
+  copyFighterState(target, source, 15);
+  assertEquals([0, 1, 2, 3].map(i => target.special.hitTargets[i] ?? -1).join(","), "2,-1,3,-1");
+  source.special.hitTargets[0] = undefined;
+  source.special.hitTargets[2] = undefined;
+  copyFighterState(target, source, 15);
+  assertEquals([0, 1, 2, 3].map(i => target.special.hitTargets[i] ?? -1).join(","), "-1,-1,-1,-1");
+});
+
 test("every mutable fighter field participates in replay equality", () => {
   const expected = createFighter(Character.archer, 0.0, 1);
   const actual = createFighter(Character.archer, 0.0, 1);

@@ -41,6 +41,8 @@ export class ShadowInputPlayback {
   private readonly correctionRow = createMatchFrameInput();
   private readonly corrections = new ReplayCorrections();
   private current: number | undefined;
+  // The schedule's accepted packets at the last reconciliation: no row can differ until it changes.
+  private reconciledPackets: number | undefined;
 
   constructor(private readonly observer?: SpeculativeFrameObserver) {}
 
@@ -51,6 +53,7 @@ export class ShadowInputPlayback {
   beginEpoch(epoch: number): boolean {
     if (!this.corrections.beginEpoch(epoch)) return false;
     this.current = epoch;
+    this.reconciledPackets = undefined;
     return true;
   }
 
@@ -102,11 +105,28 @@ export class ShadowInputPlayback {
    * Rebuilds the speculative rows in frame order from accepted input and
    * replays from the earliest change. Accepted and local rows keep their
    * edges; a remote row still missing continues the slot's previous row
-   * without them, and replay adapts it against the rebuilt state.
+   * without them, and replay adapts it against the rebuilt state. A frame
+   * whose remote rows have all arrived is final: the local row is the one
+   * the player captured and sent.
    */
   reconcile(schedule: ShadowInputSchedule, epoch: number, localPlayer: number, live: ReplayState, history: ReplayHistory): CorrectionResult {
+    return this.reconcileRows(schedule, epoch, localPlayer, live, history, true);
+  }
+
+  /**
+   * As reconcile, but replays nothing: changed rows wait for history.repair(),
+   * which spreads a deep correction over several callbacks while live state
+   * keeps running the present. Returns the earliest changed frame.
+   */
+  amend(schedule: ShadowInputSchedule, epoch: number, localPlayer: number, live: ReplayState, history: ReplayHistory): CorrectionResult {
+    return this.reconcileRows(schedule, epoch, localPlayer, live, history, false);
+  }
+
+  private reconcileRows(schedule: ShadowInputSchedule, epoch: number, localPlayer: number, live: ReplayState, history: ReplayHistory, replay: boolean): CorrectionResult {
     const { match, world } = live;
     if (schedule.participantMask() !== match.humanMask || epoch !== this.current || schedule.epoch() !== epoch || !humanActive(match, localPlayer)) return "rejected";
+    const packets = schedule.acceptedPackets();
+    if (packets === this.reconciledPackets) return "unchanged";
     const { actual, correctionRow, corrections } = this;
     corrections.clear();
     // Frames before the first correctable one are authoritative and never
@@ -130,15 +150,19 @@ export class ShadowInputPlayback {
           copyInput(actual[slot], accepted);
           continue;
         }
+        if (slot === localPlayer) {
+          copyNetworkRow(correctionRow, slot, actual[slot]);
+          continue;
+        }
         allAccepted = false;
-        if (slot === localPlayer) copyNetworkRow(correctionRow, slot, actual[slot]);
-        else predictInto(actual[slot], actual[slot]);
+        predictInto(actual[slot], actual[slot]);
       }
       replaceNetworkRows(correctionRow, actual);
       if (!(allAccepted ? corrections.add(correctionRow) : corrections.addSpeculative(correctionRow))) return "rejected";
     }
-    const result = history.correct(epoch, corrections, live);
+    const result = replay ? history.correct(epoch, corrections, live) : history.amend(epoch, corrections, live);
     if (result === "rejected") return result;
+    this.reconciledPackets = packets;
     if (history.copyInputRow(epoch, lastFrame, correctionRow) && hasNetworkRows(correctionRow)) {
       for (const slot of PARTICIPANT_SLOTS) {
         if (!humanActive(match, slot)) continue;

@@ -119,6 +119,11 @@ code. From smashcraft:ts/:
   and prints each outcome beside the value cited from the decompilation; the
   test suite fails on any mismatch it doesn't list as known
   (smashcraft:docs/physics.md, "Melee behaviour oracle").
+- Interaction graph: `bun wisp interactions` plays every fighter's
+  situations (aerials on shield, neutral, landing, ledge, tech) and writes
+  smashcraft:tools/move-data/interactions/; `--check` lists what a change
+  moved and `--move FIGHTER:MOVE` evaluates one move against the graph
+  (smashcraft:docs/design/interaction-graph.md).
 - Physics diagnostic: `bun wisp build --profile physics-probe ...` selects
   the production numerical fixtures. Rebuild it with
   `bun wisp rebuild MAP.w3x --profile physics-probe`; see

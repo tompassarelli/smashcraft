@@ -4,12 +4,11 @@
 // renderer objects keep the code they were created with, so a reload
 // recreates them (ui.ts).
 import type { Action } from "../../game/input/actions";
-import { ATTACK_BUFFER_FRAMES, attackBuffer } from "../../game/input/attackBuffer";
 import { type KeyboardCapture, keyboardCapture } from "../../game/input/keyboardCapture";
 import { PARTICIPANT_SLOTS, type ParticipantInputs, type ParticipantSlot, type Slots, participantActive, participantInputs } from "../../game/input/participants";
 import { type PlayerKeys, playerKeys } from "../../game/input/playerKeys";
 import type { InputPacket } from "../../game/input/wire";
-import { type FrameControls, type MatchControls, createFrameControls, createMatchControls } from "../../game/match/controls";
+import { type FrameControls, type MatchControls, createBufferedFrameControls, createFrameControls, createMatchControls } from "../../game/match/controls";
 import { type MatchFrameInput, createMatchFrameInput } from "../../game/match/frameInput";
 import { type PacingAndPresentation, createPacingAndPresentation } from "../../game/match/pacingAndPresentation";
 import { type MatchState, createMatchState } from "../../game/match/rules";
@@ -60,6 +59,7 @@ export interface FrameObservation {
   ledge: LedgeState;
   special: SpecialAction;
   grab: GrabAction;
+  di: number;
 }
 
 interface Participant {
@@ -158,6 +158,12 @@ export interface Rollback {
   stalled: number;
   /** Humans every client names while the match waits for their input; 0 while it runs. */
   waitingFor: number;
+  /**
+   * Since prediction last stopped at a remote row R frames behind it, it hasn't
+   * yet run every local row: the response probe reports presses captured then
+   * apart (#60).
+   */
+  predictionHeld: boolean;
 }
 
 export interface StatusFrames {
@@ -240,7 +246,7 @@ export function shell(): ShellState {
 }
 
 function observation(): FrameObservation {
-  return { out: false, holding: false, actionable: false, attack: 0, jump: 0, down: 0, shieldBreak: 0, breakState: 0, ledge: 0, special: 0, grab: 0 };
+  return { out: false, holding: false, actionable: false, attack: 0, jump: 0, down: 0, shieldBreak: 0, breakState: 0, ledge: 0, special: 0, grab: 0, di: 0 };
 }
 
 function participant(slot: ParticipantSlot, persistence: BindingPersistence): Participant {
@@ -248,13 +254,6 @@ function participant(slot: ParticipantSlot, persistence: BindingPersistence): Pa
     slot, body: undefined, pooled: false, keys: playerKeys(), capture: keyboardCapture(), bindings: createBindingSettings(slot, persistence),
     appliedBindingRevision: undefined, lastInputAction: undefined, lastNormalStyle: undefined, before: observation(),
   };
-}
-
-/** Match controls whose attack buffers keep a press for the buffered frames. */
-function bufferedControls(): FrameControls {
-  const controls = createFrameControls();
-  for (const slot of PARTICIPANT_SLOTS) controls.commands[slot] = attackBuffer(ATTACK_BUFFER_FRAMES);
-  return controls;
 }
 
 /** Four fighters in stable slots, which each epoch's seed overwrites before any frame runs. */
@@ -276,7 +275,7 @@ function rollback(mode: ShadowInputMode, playback: RollbackPlayback, editbox: Ed
   return {
     mode, active: false, epoch: 0, delay: mode.delay, window: mode.rollback, batch: DEFAULT_BATCH,
     schedule: new ShadowInputSchedule(), playback,
-    speculative: { world: speculativeRoster(), game: createMatchState(), controls: bufferedControls(), runtime: createPacingAndPresentation() },
+    speculative: { world: speculativeRoster(), game: createMatchState(), controls: createBufferedFrameControls(), runtime: createPacingAndPresentation() },
     seed: createReplaySnapshot(), accepted: participantInputs(), sendFailed: false,
     keyboard: mode.kind === "keyboard"
       ? {
@@ -285,7 +284,7 @@ function rollback(mode: ShadowInputMode, playback: RollbackPlayback, editbox: Ed
       }
       : undefined,
     journal: mode.kind === "journal" ? journal(mode.ingress, editbox) : undefined,
-    stalled: 0, waitingFor: 0,
+    stalled: 0, waitingFor: 0, predictionHeld: false,
   };
 }
 
@@ -303,7 +302,7 @@ export function createShellState(build: MapBuild, setup: ShellSetup): ShellState
   const { input } = build;
   const { persistence } = setup;
   const state: ShellState = {
-    build, origin: setup.origin, game: createMatchState(), world: createRoster(0), controls: bufferedControls(),
+    build, origin: setup.origin, game: createMatchState(), world: createRoster(0), controls: createBufferedFrameControls(),
     produced: createFrameControls(), runtime: createPacingAndPresentation(), session: createMatchControls(),
     frameInput: createMatchFrameInput(),
     participants: [participant(0, persistence), participant(1, persistence), participant(2, persistence), participant(3, persistence)],

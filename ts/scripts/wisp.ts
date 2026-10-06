@@ -15,6 +15,7 @@ const COMMANDS: Record<string, { readonly usage: string; readonly load: () => Pr
   tapes: { usage: "tapes   (LUA=<stock 32-bit lua>; TOWARD_ZERO_LUA=<32-bit lua rounding + - * toward zero>, else built with nix)", load: async () => (await import("./wisp/commands/tapes")).tapes },
   oracle: { usage: "oracle", load: async () => (await import("./wisp/commands/oracle")).oracle },
   agency: { usage: "agency [--attacker Archer|Rifleman|Illidan]... [--out FILE]", load: async () => (await import("./wisp/commands/agency")).agency },
+  interactions: { usage: "interactions [--check | --move FIGHTER:MOVE]", load: async () => (await import("./wisp/commands/interactions")).interactions },
   parity: { usage: "parity numeric [RESULT_FILE ...] | capture OPTIONS... | result CAPTURE_DIR | headless --helper BINARY --out DIR", load: async () => (await import("./wisp/commands/parity")).parity },
   integrity: { usage: "integrity capture OPTIONS... | result CAPTURE_DIR | headless --helper BINARY --out DIR", load: async () => (await import("./wisp/commands/parity")).integrity },
   "four-fighters": { usage: "four-fighters capture OPTIONS... | result CAPTURE_DIR", load: async () => (await import("./wisp/commands/fourFighters")).fourFighters },

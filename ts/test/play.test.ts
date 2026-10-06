@@ -71,6 +71,16 @@ test("before Warcraft starts, the request for a computer as Player 3 replaces an
   expect(data.stored.get(REQUEST)?.text).toContain(`'$wsl', "PLAY v=1 computers=4", 0)`);
 });
 
+test("a run that stops removes the request, the go-ahead and the receipt", async () => {
+  const declared = playtest(PLAYTEST);
+  const data = customMapData();
+  for (const path of [REQUEST, GO, RECEIPT]) data.stored.set(path, { text: preload("x"), modified: 1 });
+  data.stored.set(MENU, { text: menuFile("CHARACTER"), modified: 1 });
+  expect(Exit.isSuccess(await simulate(declared.cleanup(DOCUMENTS), data.files))).toBe(true);
+  expect(data.removed.sort()).toEqual([GO, RECEIPT, REQUEST].sort());
+  expect(data.stored.has(MENU)).toBe(true);
+});
+
 test("fighter selection is a CHARACTER menu file written after the launch; an older file doesn't count", async () => {
   const declared = playtest(PLAYTEST);
   const fresh = customMapData();

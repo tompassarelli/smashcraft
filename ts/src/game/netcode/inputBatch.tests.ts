@@ -45,7 +45,7 @@ test("every captured row reaches the ledger verbatim through pause and window-wa
     assertTrue(schedule.resolveSpeculative(73, 0, inputs) !== undefined);
     assertTrue(schedule.completeSpeculative(73, frame));
   }
-  assertFalse(schedule.mayAdvanceSpeculative());
+  assertFalse(schedule.mayAdvanceSpeculative(0));
   assertEquals(schedule.captureLocal(73, NEUTRAL), Capture.captured);
   // Repeated polling at a blocked target cannot rewrite the capture.
   assertEquals(schedule.captureLocal(73, NEUTRAL), Capture.alreadyCaptured);
@@ -61,7 +61,7 @@ test("every captured row reaches the ledger verbatim through pause and window-wa
     }
   }
   assertEquals(schedule.knownThrough(), 13);
-  assertTrue(schedule.mayAdvanceSpeculative());
+  assertTrue(schedule.mayAdvanceSpeculative(0));
   while (schedule.mayAdvanceConfirmed()) {
     const frame = schedule.nextConfirmedFrame();
     assertTrue(schedule.readConfirmed(73, inputs));
