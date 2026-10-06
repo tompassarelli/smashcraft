@@ -211,7 +211,8 @@ interface VisualSerials {
   shieldElectric: boolean;
   shield: number;
   shieldReflect: number;
-  parry: number;
+  /** Hits that drained this fighter's mana (Illidan's kit), for the drain flash. */
+  manaDrained: number;
   /** Hero specials refused for want of mana, once per press. */
   manaDenied: number;
 }
@@ -648,7 +649,7 @@ export function createFighter(character: Character, startX: number, facing: numb
       lastAttackSerial: undefined,
       lastWindow: 0,
     },
-    visuals: { grab: 0, throw: 0, hit: 0, hitElectric: false, hitElement: HitElement.normal, hitStrength: 0, hitPummel: false, shieldElectric: false, shield: 0, shieldReflect: 0, parry: 0, manaDenied: 0 },
+    visuals: { grab: 0, throw: 0, hit: 0, hitElectric: false, hitElement: HitElement.normal, hitStrength: 0, hitPummel: false, shieldElectric: false, shield: 0, shieldReflect: 0, manaDrained: 0, manaDenied: 0 },
     special: {
       action: SpecialAction.none,
       frame: 0,

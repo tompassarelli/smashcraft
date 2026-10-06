@@ -997,13 +997,15 @@ avoids close range.
 longest glaives (forward and back air reach 175 units, forward smash 195).
 He reaches farther and deals less: forward and back air 6 damage, forward
 smash 12, both at 85 knockback growth, and his smashes start from 20 base
-knockback like everyone's ordinary hits. **Weakness:** his light hits make
+knockback like everyone's ordinary hits. Every hit he lands drains the
+target's mana, more for big hits and combo enders, and his side special is
+Fel Rush ([Illidan](illidan.md), #147). **Weakness:** his light hits make
 him land more of them to take a stock.
 
 **Gameplan** (smashcraft:ts/src/game/sim/illidanGameplan.ts): he fights in
 the air at his glaives' length, forward air in and back air drifting out,
-threatens forward smash's reach on the ground, and answers a committed
-strike with Parry Step.
+threatens forward smash's reach on the ground, and whittles the
+opponent's mana before a Mana Burn stun.
 
 #### Mana Burn (neutral special)
 

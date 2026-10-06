@@ -6,7 +6,6 @@
 import { f32 } from "wisp/src/sim/f32";
 import { Character, SpecialAction } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
-import { DEMONHUNTER_PARRY_END, DEMONHUNTER_PARRY_START } from "../sim/hits";
 import { RIFLEMAN_BLASTER_AIR_SHOT_FRAME, RIFLEMAN_BLASTER_GROUND_SHOT_FRAME } from "../sim/moves";
 import type { AuthoredSpecial, FrameWindow } from "../sim/heroSpecials";
 import { runningHeroSpecial } from "../sim/heroSpecialRules";
@@ -19,6 +18,8 @@ import {
   DEMONHUNTER_IMMOLATE_STARTUP,
   DEMONHUNTER_MANA_BURN_STARTUP,
   DEMONHUNTER_WING_STARTUP,
+  FEL_RUSH_FIRST,
+  FEL_RUSH_LAST,
   RIFLEMAN_BEAR_CAST_FRAMES,
   RIFLEMAN_RECOVERY_STARTUP_FRAMES,
 } from "../sim/specials";
@@ -124,7 +125,7 @@ export const ORIGINAL_CUES: { readonly [action: number]: MoveCues } = {
   [SpecialAction.riflemanRecovery]: { spell: "Recoil Shot", startup: cue("Abilities\\Spells\\Human\\FlakCannons\\FlakTarget.mdx", "feet", f32(0.8)), active: cue("Abilities\\Spells\\Other\\Incinerate\\FireLordDeathExplode.mdx", "feet", f32(0.4)) },
   [SpecialAction.riflemanTrap]: { spell: "Frost Trap", startup: cue("Abilities\\Spells\\Human\\Slow\\SlowCaster.mdx", "body", f32(0.6)), active: cue("Abilities\\Spells\\Human\\Blizzard\\BlizzardTarget.mdx", "feet", f32(0.4)) },
   [SpecialAction.demonHunterManaBurn]: { spell: "Mana Burn", startup: drawn(MANA_BURN_HAND, "hand"), active: cue("Abilities\\Spells\\Human\\Feedback\\SpellBreakerAttack.mdx", "hand", 1.0) },
-  [SpecialAction.demonHunterParryStep]: { spell: "Evasion", startup: cue("Abilities\\Spells\\Undead\\DeathCoil\\DeathCoilSpecialArt.mdx", "body", 0.5), active: drawn(IMPACT_TECH_MODEL, "hand") },
+  [SpecialAction.demonHunterFelRush]: { spell: "Fel Rush", startup: cue("Abilities\\Spells\\Undead\\DeathCoil\\DeathCoilSpecialArt.mdx", "body", 0.5), active: drawn(IMPACT_TECH_MODEL, "hand") },
   [SpecialAction.demonHunterWingAscent]: { spell: "Metamorphosis wings", startup: cue("Abilities\\Spells\\NightElf\\Immolation\\ImmolationDamage.mdx", "feet", 1.0), active: cue("Abilities\\Spells\\Other\\Silence\\SilenceAreaBirth.mdx", "feet", f32(0.3)) },
   [SpecialAction.demonHunterImmolate]: { spell: "Immolation", startup: drawn(FEL_FLAMES, "body"), active: drawn(FEL_FLAMES, "body") },
 };
@@ -179,7 +180,7 @@ function originalActiveFrame(action: number, grounded: boolean): number {
     case SpecialAction.riflemanRecovery: return RIFLEMAN_RECOVERY_STARTUP_FRAMES;
     case SpecialAction.riflemanTrap: return 2;
     case SpecialAction.demonHunterManaBurn: return DEMONHUNTER_MANA_BURN_STARTUP;
-    case SpecialAction.demonHunterParryStep: return DEMONHUNTER_PARRY_START;
+    case SpecialAction.demonHunterFelRush: return FEL_RUSH_FIRST;
     case SpecialAction.demonHunterWingAscent: return DEMONHUNTER_WING_STARTUP;
     case SpecialAction.demonHunterImmolate: return DEMONHUNTER_IMMOLATE_STARTUP;
     default: return 1;
@@ -189,7 +190,7 @@ function originalActiveFrame(action: number, grounded: boolean): number {
 /** An original special's windows; its active frames last through its window or ACTIVE_CUE_FRAMES. */
 export function originalCueWindows(action: number, grounded: boolean): CueWindows {
   const first = originalActiveFrame(action, grounded);
-  const authoredLast = action === SpecialAction.demonHunterParryStep ? DEMONHUNTER_PARRY_END
+  const authoredLast = action === SpecialAction.demonHunterFelRush ? FEL_RUSH_LAST
     : action === SpecialAction.demonHunterImmolate ? DEMONHUNTER_IMMOLATE_STARTUP + DEMONHUNTER_IMMOLATE_ACTIVE - 1 : first;
   return { startup: { first: 1, last: Math.max(1, first - 1) }, active: { first, last: Math.max(authoredLast, first + ACTIVE_CUE_FRAMES - 1) } };
 }
@@ -226,7 +227,7 @@ export function specialCueState(fighter: Readonly<Fighter>): CueState {
 const ORIGINAL_ACTIONS: { readonly [character: number]: readonly SpecialAction[] } = {
   [Character.archer]: [SpecialAction.archerArrow, SpecialAction.archerHomingArrow, SpecialAction.archerDisengage, SpecialAction.archerRecovery],
   [Character.rifleman]: [SpecialAction.riflemanBlaster, SpecialAction.riflemanBear, SpecialAction.riflemanRecovery, SpecialAction.riflemanTrap],
-  [Character.demonHunter]: [SpecialAction.demonHunterManaBurn, SpecialAction.demonHunterParryStep, SpecialAction.demonHunterWingAscent, SpecialAction.demonHunterImmolate],
+  [Character.demonHunter]: [SpecialAction.demonHunterManaBurn, SpecialAction.demonHunterFelRush, SpecialAction.demonHunterWingAscent, SpecialAction.demonHunterImmolate],
 };
 
 /** Every special's cues for one fighter, in input order. */

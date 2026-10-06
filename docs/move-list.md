@@ -32,7 +32,7 @@ matches until the match rules turn them on.
 | Input | Name | What it does |
 | --- | --- | --- |
 | Neutral special | Mana Burn | A slow orb that burns mana and stuns; the emptier it leaves the target, the longer the stun. |
-| Side special | Parry Step | A side step that stops an attack caught early in it and leaves the attacker stunned. |
+| Side special | Fel Rush (Vengeful Retreat, Chaos Strike, Aerial Chaos Strike) | Dash through anyone in your path; press special to flip back out, or attack to slash. |
 | Up special | Wing Ascent (Glide, Wing Slash) | Rise on his wings; jump near the top to glide, attack in the glide to slash. |
 | Down special | Immolate | A burst of flame around him that a jump can cancel. |
 | Passive | none | Every hit he lands drains the target's mana; bigger hits drain more. |

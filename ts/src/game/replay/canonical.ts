@@ -592,7 +592,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   for (let i = 0; i < PROJECTILE_CAPACITY; i++) real(`projectileVelocityX[${i}]`, at(fighter.projectiles, i).velocityX);
   for (let i = 0; i < PROJECTILE_CAPACITY; i++) real(`projectileVelocityZ[${i}]`, at(fighter.projectiles, i).velocityZ);
   for (let i = 0; i < PROJECTILE_CAPACITY; i++) int(`projectileSerial[${i}]`, at(fighter.projectiles, i).serial);
-  int("parrySerial", v.parry);
+  int("manaDrainedSerial", v.manaDrained);
   int("specialAction", sp.action);
   int("specialFrame", sp.frame);
   int("specialDuration", sp.duration);

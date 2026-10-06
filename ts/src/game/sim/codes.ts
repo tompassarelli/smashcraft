@@ -74,7 +74,7 @@ export const SpecialAction = {
   riflemanBlaster: 7,
   riflemanTrap: 8,
   demonHunterManaBurn: 9,
-  demonHunterParryStep: 10,
+  demonHunterFelRush: 10,
   demonHunterWingAscent: 11,
   demonHunterImmolate: 12,
   /** Expansion heroes run their authored kit (sim/heroSpecials.ts) under these four actions. */

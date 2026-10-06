@@ -316,7 +316,6 @@ interface Seen {
   blocks: number;
   grabs: number;
   throws: number;
-  parries: number;
   frozen: boolean;
   bearHits: number;
   specialHit: boolean;
@@ -341,7 +340,7 @@ function firstSight(f: Readonly<Fighter>, frame: number): Seen {
   return {
     baseHits: f.visuals.hit, hits: f.visuals.hit, lastHit: undefined, damage: f.status.damage, damageTaken: 0, out: false, losses: [], frame,
     registry: f.hits.lastAttackSerial, blocks: f.visuals.shield + f.visuals.shieldReflect, grabs: f.visuals.grab, throws: f.visuals.throw,
-    parries: f.visuals.parry, frozen: f.status.frozenFrames > 0, bearHits: f.bear.hitSerial, specialHit: f.special.hit, special: f.special.action,
+    frozen: f.status.frozenFrames > 0, bearHits: f.bear.hitSerial, specialHit: f.special.hit, special: f.special.action,
     projectiles: f.projectiles.map((projectile) => projectile.life), groundDodging: false, airDodging: false, offStage: false,
     downDamage: false, landed: {}, departures: [], blocked: 0, dodges: 0, resets: 0,
   };
@@ -378,6 +377,7 @@ function creditStrike(victim: Readonly<Fighter>, victimSeen: Seen, attackerSlot:
   if (attacker.special.hit && !attackerSeen.specialHit && isHeroSpecialAction(attacker.special.action)) {
     return land(attackerSeen, HERO_SPECIAL_NAMES[attacker.special.action - SpecialAction.heroNeutral]);
   }
+  if (attacker.special.hit && !attackerSeen.specialHit && attacker.special.action === SpecialAction.demonHunterFelRush) return land(attackerSeen, "side-special");
   if (attacker.special.hit && !attackerSeen.specialHit && (disengage || attacker.special.action === SpecialAction.demonHunterImmolate)) land(attackerSeen, "down-special");
 }
 
@@ -423,7 +423,6 @@ function outcomeRecorder(match: SoakMatch, file: string): (client: HeadlessClien
       const f = fighterAt(world, slot);
       const { visuals, status, motion } = f;
       const seen = seenOf(slot);
-      if (visuals.parry > seen.parries) land(seen, "side-special");
       if (f.special.action !== seen.special) land(seen, STRIKELESS_SPECIALS[f.special.action]);
       if (visuals.shield + visuals.shieldReflect !== seen.blocks) seen.blocked++;
       if ((f.dodge.groundFrame > 0 && !seen.groundDodging) || (f.dodge.airDodging && !seen.airDodging)) seen.dodges++;
@@ -449,7 +448,6 @@ function outcomeRecorder(match: SoakMatch, file: string): (client: HeadlessClien
       seen.blocks = visuals.shield + visuals.shieldReflect;
       seen.grabs = visuals.grab;
       seen.throws = visuals.throw;
-      seen.parries = visuals.parry;
       seen.frozen = status.frozenFrames > 0;
       seen.bearHits = f.bear.hitSerial;
       seen.specialHit = f.special.hit;

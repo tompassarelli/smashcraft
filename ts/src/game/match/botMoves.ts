@@ -163,7 +163,7 @@ function specialAction(character: Character, option: number): SpecialAction {
         : option === SIDE_SPECIAL ? SpecialAction.riflemanBear : SpecialAction.riflemanBlaster;
     case Character.demonHunter:
       return option === UP_SPECIAL ? SpecialAction.demonHunterWingAscent : option === DOWN_SPECIAL ? SpecialAction.demonHunterImmolate
-        : option === SIDE_SPECIAL ? SpecialAction.demonHunterParryStep : SpecialAction.demonHunterManaBurn;
+        : option === SIDE_SPECIAL ? SpecialAction.demonHunterFelRush : SpecialAction.demonHunterManaBurn;
   }
 }
 

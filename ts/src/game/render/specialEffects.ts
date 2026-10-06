@@ -1,5 +1,5 @@
 // Special-move effects per participant slot: the bear summon, hippogryph,
-// Illidan's aura, wing trail, parry flash, immolation flames and mana-burn
+// Illidan's aura, wing trail, the drain flash, immolation flames and mana-burn
 // hand. Handles are created with the match; numerical state owns every
 // contact. Animated particles restart only from confirmed frames.
 import { IMPACT_DUST_MODEL, IMPACT_ROLL_MODEL, IMPACT_TECH_MODEL } from "../assets/impactAssetInfo";
@@ -7,7 +7,7 @@ import { PARTICIPANT_SLOTS } from "../input/participants";
 import { type ImpactPresentationCursor, consumeImpactFrame, createImpactPresentationCursor, resetImpactPresentationCursor } from "../presentation/impactEvents";
 import {
   STATIC_AURA,
-  STATIC_PARRY_FLASH,
+  STATIC_DRAIN_FLASH,
   STATIC_WING_TRAIL,
   type SpecialEffectState,
   type StaticSpecialPose,
@@ -32,7 +32,7 @@ interface SpecialSlot {
   readonly felFlames: effect;
   readonly manaHand: effect;
   readonly wingTrail: effect;
-  readonly parryFlash: effect;
+  readonly drainFlash: effect;
   /** Event identity is (match, completed frame, fighter, action); the cursor rejects replayed frames before any restart. */
   readonly cursor: ImpactPresentationCursor;
   previousSpecial: SpecialAction;
@@ -54,7 +54,7 @@ const AURA = 1;
 const FEL_FLAMES = 2;
 const MANA_HAND = 3;
 const WING_TRAIL = 4;
-const PARRY_FLASH = 5;
+const DRAIN_FLASH = 5;
 const SLOT_EFFECTS = 6;
 
 export class SpecialEffects {
@@ -74,13 +74,13 @@ export class SpecialEffects {
       const felFlames = AddSpecialEffect(STOCK_MODELS.immolationTarget, x, y);
       const manaHand = AddSpecialEffect(STOCK_MODELS.manaBurnTarget, x, y);
       const wingTrail = AddSpecialEffect(IMPACT_DUST_MODEL, x, y);
-      const parryFlash = AddSpecialEffect(IMPACT_TECH_MODEL, x, y);
+      const drainFlash = AddSpecialEffect(IMPACT_TECH_MODEL, x, y);
       BlzSetSpecialEffectTimeScale(aura, 0.0);
       BlzSetSpecialEffectTimeScale(wingTrail, 0.0);
-      BlzSetSpecialEffectTimeScale(parryFlash, 0.0);
+      BlzSetSpecialEffectTimeScale(drainFlash, 0.0);
       BlzSetSpecialEffectAnimationBlendTime(hippogryph, 0.0);
       return {
-        bear, hippogryph, aura, felFlames, manaHand, wingTrail, parryFlash, cursor,
+        bear, hippogryph, aura, felFlames, manaHand, wingTrail, drainFlash, cursor,
         previousSpecial: SpecialAction.none, previousSpecialFrame: 0, previousHippogryphLife: 0, previousHippogryphKind: HippogryphKind.none,
       };
     });
@@ -97,7 +97,7 @@ export class SpecialEffects {
       resetImpactPresentationCursor(slot.cursor);
       slot.bear.hide();
       // In flag order.
-      [slot.hippogryph, slot.aura, slot.felFlames, slot.manaHand, slot.wingTrail, slot.parryFlash].forEach((model, effect) => this.park(model, index, effect));
+      [slot.hippogryph, slot.aura, slot.felFlames, slot.manaHand, slot.wingTrail, slot.drainFlash].forEach((model, effect) => this.park(model, index, effect));
       slot.previousSpecial = SpecialAction.none;
       slot.previousSpecialFrame = 0;
       slot.previousHippogryphLife = 0;
@@ -206,12 +206,12 @@ export class SpecialEffects {
     if (fighter === undefined) {
       this.park(effects.aura, slot, AURA);
       this.park(effects.wingTrail, slot, WING_TRAIL);
-      this.park(effects.parryFlash, slot, PARRY_FLASH);
+      this.park(effects.drainFlash, slot, DRAIN_FLASH);
       return;
     }
     this.applyStatic(effects.aura, slot, AURA, projectSpecialEffect(state, fighter, slot, STATIC_AURA));
     this.applyStatic(effects.wingTrail, slot, WING_TRAIL, projectSpecialEffect(state, fighter, slot, STATIC_WING_TRAIL));
-    this.applyStatic(effects.parryFlash, slot, PARRY_FLASH, projectSpecialEffect(state, fighter, slot, STATIC_PARRY_FLASH));
+    this.applyStatic(effects.drainFlash, slot, DRAIN_FLASH, projectSpecialEffect(state, fighter, slot, STATIC_DRAIN_FLASH));
   }
 
   presentSummons(state: Readonly<SummonState>, fighter: Readonly<Fighter> | undefined, slot: number): void {
@@ -242,7 +242,7 @@ export class SpecialEffects {
   destroy(): void {
     for (const slot of this.slots) {
       slot.bear.destroy();
-      for (const model of [slot.hippogryph, slot.aura, slot.felFlames, slot.manaHand, slot.wingTrail, slot.parryFlash]) DestroyEffect(model);
+      for (const model of [slot.hippogryph, slot.aura, slot.felFlames, slot.manaHand, slot.wingTrail, slot.drainFlash]) DestroyEffect(model);
     }
   }
 }

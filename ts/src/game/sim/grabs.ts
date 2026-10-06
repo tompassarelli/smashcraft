@@ -1,9 +1,9 @@
 // Holding a grabbed fighter: mash-out escapes, pummels and throws.
 import { min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
-import { ContactKind, GrabAction } from "./codes";
+import { Character, ContactKind, GrabAction } from "./codes";
 import { finishDamageContacts, openDamageContacts, queueDamageContact } from "./contacts";
-import { copyHitEffect, emptyHitEffect } from "./hitRegions";
+import { DEMON_HUNTER_THROW_DRAIN, copyHitEffect, emptyHitEffect } from "./hitRegions";
 import { advanceMash, clearMash } from "./mash";
 import { GRAB_HOLD_DISTANCE, GRAB_HOLD_MINIMUM_FRAMES, PUMMEL_DAMAGE, grabActionDuration, grabContactFrame, pummelLimit } from "./moves";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
@@ -41,6 +41,7 @@ function releaseThrow(world: Roster, ownerSlot: number, targetSlot: number, targ
   throwHit.launchZ = up ? 0.9848080277442932 : down ? 0.9396929740905762 : 0.5;
   throwHit.element = undefined;
   throwHit.electric = false;
+  throwHit.manaDrain = owner.character === Character.demonHunter ? DEMON_HUNTER_THROW_DRAIN : undefined;
   const authored = owner.tuning.moves?.throws[action];
   if (authored !== undefined) copyHitEffect(throwHit, authored.effect);
   const direction = authored !== undefined ? owner.facing : action === GrabAction.throwBack ? -owner.facing : owner.facing;

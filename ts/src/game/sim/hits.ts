@@ -1,5 +1,4 @@
-// Applying a selected hit: Demon Hunter parries, grab catches, and damage
-// contacts for everything else.
+// Applying a selected hit: grab catches, and damage contacts for everything else.
 import { max } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, ContactKind, GrabAction, SpecialAction } from "./codes";
@@ -12,38 +11,6 @@ import type { HitEffect } from "./hitRegions";
 import { GRAB_HOLD_FRAMES } from "./moves";
 import { type Roster, fighterAt } from "./roster";
 import { beginGrabAction, cancelAttack, cancelSpecialState, clearDownState, clearGrabLinks, interruptJumpOrDodge } from "./transitions";
-
-export const DEMONHUNTER_PARRY_START = 4;
-export const DEMONHUNTER_PARRY_END = 9;
-
-export function demonHunterParryIsActive(fighter: Fighter): boolean {
-  const { special } = fighter;
-  return fighter.character === Character.demonHunter && special.action === SpecialAction.demonHunterParryStep
-    && special.frame >= DEMONHUNTER_PARRY_START && special.frame <= DEMONHUNTER_PARRY_END;
-}
-
-/**
- * Original parry choice: a strike during the parry's frames 4-9 cancels the
- * attacker and gives 10 hitstun and 4 hitlag. Projectiles are not reflected.
- */
-export function resolveDemonHunterParry(defender: Fighter, attacker: Fighter, awayDirection: number): void {
-  if (!demonHunterParryIsActive(defender)) return;
-  cancelAttack(attacker);
-  cancelSpecialState(attacker);
-  const { launch, motion } = attacker;
-  launch.hitstun = max(launch.hitstun, 10);
-  launch.throwHitstun = false;
-  launch.hitlag = max(launch.hitlag, 4);
-  motion.grounded = false;
-  motion.vx = 0.0;
-  motion.vz = 0.0;
-  launch.knockbackX = f32(awayDirection * 9.0);
-  launch.knockbackZ = 4.0;
-  defender.visuals.parry++;
-  defender.special.action = SpecialAction.none;
-  defender.special.frame = 0;
-  defender.special.lockFrames = 0;
-}
 
 function stopMotion(f: Fighter): void {
   f.motion.vx = 0.0;
@@ -84,16 +51,12 @@ function catchTarget(world: Roster, attackerSlot: number, targetSlot: number): v
   stopMotion(target);
 }
 
-/** Applies a selected strike: a parry turns it back, an eligible grab catches. */
+/** Applies a selected strike: an eligible grab catches. */
 export function applyAttackHit(
   world: Roster, attackerSlot: number, targetSlot: number, style: AttackStyle, facing: number,
   effect: Readonly<HitEffect>, directContact: boolean, shieldContact: boolean, status?: Readonly<AppliedStatus>,
 ): void {
   const target = fighterAt(world, targetSlot);
-  if (demonHunterParryIsActive(target)) {
-    resolveDemonHunterParry(target, fighterAt(world, attackerSlot), -facing);
-    return;
-  }
   if (style === AttackStyle.grab) {
     if (canBeGrabbed(target)) catchTarget(world, attackerSlot, targetSlot);
     return;

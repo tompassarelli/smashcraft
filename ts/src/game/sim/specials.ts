@@ -24,6 +24,7 @@ import { type Controls, type Roster, fighterAt, isActive } from "./roster";
 import { surfaceZ } from "./stage";
 import { HIPPOGRYPH_DIVE_ARRIVAL, HIPPOGRYPH_DIVE_OVERSHOOT, RIFLEMAN_BEAR_LIFETIME, advanceBear, advanceHippogryph, recordSpecialHit, specialAlreadyHit, startFreezeTrap } from "./summons";
 import { at } from "wisp/src/runtime/lookup";
+import { travelBeforeBodies } from "./travelStop";
 import { advanceHeroSpecial, chooseHeroSpecial, enterHeroSpecial, followUpHeroSpecial, heroSpecialContact, heroStrikeMeetsShield, isHeroSpecialAction, relocateHeroSpecial, runningHeroSpecial, resolveHeroGuards, steerHeroSpecial, stopHeroMotionAtBodies } from "./heroSpecialRules";
 
 // Mana Burn (#116): a slow orb Illidan can run behind, one at a time; its stun is in projectiles.ts.
@@ -33,7 +34,35 @@ export const DEMONHUNTER_MANA_BURN_SPEED = 12.0;
 export const DEMONHUNTER_MANA_BURN_LIFETIME = 90;
 // At the shield's centre: a held shield always meets the slow orb, and a short hop clears it.
 export const DEMONHUNTER_MANA_BURN_HEIGHT = 45.0;
-const DEMONHUNTER_PARRY_DURATION = 22;
+// Fel Rush (side special, #147, smashcraft:docs/design/illidan.md): a fel tell
+// on frames 1-5, a straight rush on 6-15 that passes bodies and stops at a
+// raised shield, recovery to 29. A press in frames 10-24 branches: special is
+// Vengeful Retreat (a backflip away), attack is Chaos Strike (a slash toward
+// the held stick). Level in the air, once per airtime, never helpless.
+export const FEL_RUSH_TELL_LAST = 5;
+export const FEL_RUSH_FIRST = 6;
+export const FEL_RUSH_LAST = 15;
+export const FEL_RUSH_FRAMES = 29;
+export const FEL_RUSH_SPEED = 20.0;
+export const FEL_RUSH_BRANCH_FIRST = 10;
+export const FEL_RUSH_BRANCH_LAST = 24;
+export const FEL_RUSH_COOLDOWN = 40;
+/** Fel Rush's bit in airtimeUses (the ride's is 1). */
+const FEL_RUSH_AIRTIME = 2;
+const FEL_RUSH_AIR_CARRY = 5.0;
+export const VENGEFUL_RETREAT_FORM = 1;
+export const CHAOS_STRIKE_FORM = 2;
+export const CHAOS_STRIKE_AIR_FORM = 3;
+/** Vengeful Retreat moves on its frames 1-10 and ends on 16: he acts on 17. */
+export const VENGEFUL_RETREAT_FRAMES = 16;
+export const VENGEFUL_RETREAT_MOVE_LAST = 10;
+export const VENGEFUL_RETREAT_SPEED = 16.0;
+const VENGEFUL_RETREAT_RISE = 16.0;
+const VENGEFUL_RETREAT_FALL = 1.2000000476837158;
+export const CHAOS_STRIKE_FIRST = 5;
+export const CHAOS_STRIKE_LAST = 8;
+export const CHAOS_STRIKE_FRAMES = 30;
+const CHAOS_STRIKE_LANDING_LAG = 12;
 export const DEMONHUNTER_WING_STARTUP = 3;
 export const DEMONHUNTER_WING_DURATION = 28;
 // The glide out of Wing Ascent (#128): a jump in frames 16-28 spreads the
@@ -149,7 +178,7 @@ function requestedSpecial(owner: Fighter, input: Readonly<Controls>): SpecialAct
       return down ? SpecialAction.riflemanTrap : up ? SpecialAction.riflemanRecovery : side ? SpecialAction.riflemanBear : SpecialAction.riflemanBlaster;
     case Character.demonHunter:
       return up ? SpecialAction.demonHunterWingAscent : down ? SpecialAction.demonHunterImmolate
-        : side ? SpecialAction.demonHunterParryStep : SpecialAction.demonHunterManaBurn;
+        : side ? SpecialAction.demonHunterFelRush : SpecialAction.demonHunterManaBurn;
   }
 }
 
@@ -298,6 +327,10 @@ export function demonHunterJumpOrGlideCancel(owner: Fighter, input: Readonly<Con
     owner.attack.cooldown = 0;
     return;
   }
+  if (input.attackPressed && special.action === SpecialAction.demonHunterFelRush) {
+    felRushBranch(owner, input, true);
+    return;
+  }
   if (special.action !== SpecialAction.demonHunterWingAscent) return;
   if (input.jumpPressed && special.form === 0 && special.frame >= DEMONHUNTER_GLIDE_FIRST - 1 && special.frame < DEMONHUNTER_WING_DURATION) {
     startGlidePhase(owner, DEMONHUNTER_GLIDE_FORM, DEMONHUNTER_GLIDE_FRAMES);
@@ -316,9 +349,90 @@ function startGlidePhase(owner: Fighter, form: number, frames: number): void {
   owner.attack.cooldown = max(owner.attack.cooldown, frames);
 }
 
-/** Whether Illidan's glide (or its slash) sets his velocity this frame. */
+/** Whether Illidan's glide (or its slash), Fel Rush's tell and rush, or Vengeful Retreat's vault sets his velocity this frame. */
 export function demonHunterGliding(f: Readonly<Fighter>): boolean {
-  return f.special.action === SpecialAction.demonHunterWingAscent && f.special.form !== 0;
+  const { special } = f;
+  if (special.action === SpecialAction.demonHunterFelRush) {
+    return special.form === 0 ? special.frame < FEL_RUSH_LAST : special.form === VENGEFUL_RETREAT_FORM && special.frame < VENGEFUL_RETREAT_MOVE_LAST;
+  }
+  return special.action === SpecialAction.demonHunterWingAscent && special.form !== 0;
+}
+
+/**
+ * A fresh press in Fel Rush's frames 10-24 replaces the rest of it: special
+ * vaults back (Vengeful Retreat), attack slashes toward the held stick (Chaos
+ * Strike). The press tick is the branch's frame 1. True when it branched.
+ */
+function felRushBranch(owner: Fighter, input: Readonly<Controls>, attack: boolean): boolean {
+  const { special, motion } = owner;
+  const next = special.frame + 1;
+  if (special.form !== 0 || next < FEL_RUSH_BRANCH_FIRST || next > FEL_RUSH_BRANCH_LAST || owner.launch.hitlag > 0 || owner.launch.hitstun > 0) return false;
+  for (let entry = 0; entry < PARTICIPANT_CAPACITY; entry++) special.hitTargets[entry] = undefined;
+  special.hit = false;
+  // The branch replaces the rush's lock with its own.
+  owner.attack.cooldown = 0;
+  if (attack) {
+    if (input.direction !== 0) owner.facing = input.direction < 0 ? -1 : 1;
+    startGlidePhase(owner, motion.grounded ? CHAOS_STRIKE_FORM : CHAOS_STRIKE_AIR_FORM, CHAOS_STRIKE_FRAMES);
+    motion.vx = motion.grounded ? 0.0 : f32(owner.facing * FEL_RUSH_AIR_CARRY);
+    return true;
+  }
+  startGlidePhase(owner, VENGEFUL_RETREAT_FORM, VENGEFUL_RETREAT_FRAMES);
+  motion.grounded = false;
+  motion.surface = undefined;
+  motion.vx = f32(-owner.facing * VENGEFUL_RETREAT_SPEED);
+  motion.vz = VENGEFUL_RETREAT_RISE;
+  observeActionDecision(SPECIAL_ACTION_BIT);
+  return true;
+}
+
+/**
+ * One Fel Rush frame, setting the velocity the next frame moves by: still
+ * through the tell, the rush (level in the air), then a stop; Vengeful
+ * Retreat's vault arcs back; an aerial Chaos Strike ends on landing.
+ */
+function advanceFelRush(owner: Fighter): void {
+  const { special, motion } = owner;
+  const frame = special.frame;
+  if (special.form === 0) {
+    const rushing = frame >= FEL_RUSH_FIRST - 1 && frame < FEL_RUSH_LAST;
+    if (frame < FEL_RUSH_LAST) {
+      motion.vx = rushing ? f32(owner.facing * FEL_RUSH_SPEED) : 0.0;
+      if (!motion.grounded) motion.vz = 0.0;
+    } else if (frame === FEL_RUSH_LAST) {
+      motion.vx = motion.grounded ? 0.0 : f32(owner.facing * FEL_RUSH_AIR_CARRY);
+    }
+    return;
+  }
+  if (special.form === VENGEFUL_RETREAT_FORM) {
+    if (motion.grounded && frame > 1) {
+      endSpecialAction(owner, false);
+      return;
+    }
+    if (frame < VENGEFUL_RETREAT_MOVE_LAST) {
+      motion.vx = f32(-owner.facing * VENGEFUL_RETREAT_SPEED);
+      motion.vz = f32(VENGEFUL_RETREAT_RISE - f32(frame * VENGEFUL_RETREAT_FALL));
+    } else if (frame === VENGEFUL_RETREAT_MOVE_LAST) {
+      motion.vx = f32(-owner.facing * FEL_RUSH_AIR_CARRY);
+    }
+    return;
+  }
+  if (special.form === CHAOS_STRIKE_AIR_FORM && motion.grounded) {
+    special.action = SpecialAction.none;
+    special.frame = 0;
+    special.lockFrames = 0;
+    owner.attack.cooldown = 0;
+    owner.landing.lag = max(owner.landing.lag, CHAOS_STRIKE_LANDING_LAG);
+  }
+}
+
+/** Fel Rush's rush ends just short of a raised shield ahead; it passes bodies. */
+function stopFelRushAtShields(world: Roster, slot: number): void {
+  const f = fighterAt(world, slot);
+  if (f.character !== Character.demonHunter || f.special.action !== SpecialAction.demonHunterFelRush || f.special.form !== 0) return;
+  const forward = f32(f.motion.vx * f.facing);
+  if (forward <= 0.0) return;
+  f.motion.vx = f32(f.facing * travelBeforeBodies(world, slot, forward, false));
 }
 
 /** One glide frame: forward along the facing, pitched by the held stick. */
@@ -374,10 +488,16 @@ function startDemonHunterSpecial(owner: Fighter, action: SpecialAction, moveX: n
     special.hit = false;
     return true;
   }
-  if (action === SpecialAction.demonHunterParryStep) {
-    startSpecialAction(owner, action, DEMONHUNTER_PARRY_DURATION, moveX);
-    special.cooldowns[action] = 45;
-    motion.vx = f32(moveX * 9.0);
+  if (action === SpecialAction.demonHunterFelRush) {
+    if (!motion.grounded && (special.airtimeUses & FEL_RUSH_AIRTIME) !== 0) return false;
+    // The stick picks the side; he faces it for the tell.
+    owner.facing = moveX < 0 ? -1 : 1;
+    startSpecialAction(owner, action, FEL_RUSH_FRAMES, moveX);
+    special.cooldowns[action] = FEL_RUSH_COOLDOWN;
+    special.hit = false;
+    if (!motion.grounded) special.airtimeUses |= FEL_RUSH_AIRTIME;
+    motion.vx = 0.0;
+    if (!motion.grounded) motion.vz = 0.0;
     return true;
   }
   if (manaBurnInFlight(owner)) return false;
@@ -422,6 +542,7 @@ export function startFighterSpecial(owner: Fighter, stage: number, matchFrame: n
   if (!input.specialPressed) return false;
   if (owner.tuning.specials !== undefined) return startHeroFighterSpecial(owner, input, world);
   if (owner.character === Character.rifleman && owner.special.action === SpecialAction.riflemanRecovery) return secondRecoilShot(owner, input);
+  if (owner.character === Character.demonHunter && owner.special.action === SpecialAction.demonHunterFelRush) return felRushBranch(owner, input, false);
   const requested = requestedSpecial(owner, input);
   if (!specialCanStart(owner, requested)) return false;
   const cost = originalSpecialCost(requested);
@@ -553,6 +674,7 @@ function advanceSpecialAction(owner: Fighter, stage: number, matchFrame: number,
     }
   }
   if (special.action === SpecialAction.demonHunterWingAscent && special.form !== 0) glide(owner, input);
+  if (special.action === SpecialAction.demonHunterFelRush) advanceFelRush(owner);
   if (special.action === SpecialAction.demonHunterWingAscent && special.form === 0 && special.frame === DEMONHUNTER_WING_STARTUP) {
     motion.vz = 30.0;
     motion.vx = f32(special.direction * 5.0);
@@ -576,7 +698,10 @@ function advanceSpecialAction(owner: Fighter, stage: number, matchFrame: number,
   if (special.action === SpecialAction.riflemanTrap && special.frame >= TRAP_SET_FRAMES) endSpecialAction(owner, false);
   if (special.action === SpecialAction.riflemanBlaster && special.frame >= special.duration) endSpecialAction(owner, false);
   if (special.action === SpecialAction.demonHunterManaBurn && special.frame >= special.duration) endSpecialAction(owner, false);
-  if (special.action === SpecialAction.demonHunterParryStep && special.frame >= special.duration) endSpecialAction(owner, false);
+  if (special.action === SpecialAction.demonHunterFelRush && special.frame >= special.duration) {
+    endSpecialAction(owner, false);
+    special.lockFrames = 0;
+  }
   if (special.action === SpecialAction.demonHunterWingAscent && special.frame >= special.duration) endSpecialAction(owner, true);
   if (special.action === SpecialAction.demonHunterImmolate && special.frame >= special.duration) endSpecialAction(owner, false);
   if (special.action === SpecialAction.archerArrow && special.frame >= ARCHER_ARROW_FRAMES) endSpecialAction(owner, false);
@@ -584,12 +709,12 @@ function advanceSpecialAction(owner: Fighter, stage: number, matchFrame: number,
 
 const IMMOLATE_GROUND: Readonly<HitRegion> = {
   minX: 0.0, maxX: 140.0, minZ: -80.0, maxZ: 100.0,
-  effect: { damage: 7.0, growth: 105.0, base: 21.0, launchX: 1.0, launchZ: 0.0, electric: false, element: HitElement.fire },
+  effect: { damage: 7.0, growth: 105.0, base: 21.0, launchX: 1.0, launchZ: 0.0, electric: false, element: HitElement.fire, manaDrain: 6 },
   window: 1,
 };
 const IMMOLATE_AIR: Readonly<HitRegion> = {
   minX: -70.0, maxX: 70.0, minZ: -170.0, maxZ: 30.0,
-  effect: { damage: 9.0, growth: 110.0, base: 26.0, launchX: 0.11999999731779099, launchZ: -0.9929999709129333, electric: false, element: HitElement.fire },
+  effect: { damage: 9.0, growth: 110.0, base: 26.0, launchX: 0.11999999731779099, launchZ: -0.9929999709129333, electric: false, element: HitElement.fire, manaDrain: 6 },
   window: 1,
 };
 
@@ -599,7 +724,7 @@ export const immolationRegion = (grounded: boolean): Readonly<HitRegion> => (gro
 /** Immolation strikes each target inside its grounded or aerial region once during its active frames. */
 const GLIDE_SLASH: Readonly<HitRegion> = {
   minX: 0.0, maxX: 120.0, minZ: -20.0, maxZ: 110.0,
-  effect: { damage: 8.0, growth: 100.0, base: 24.0, launchX: 0.7071067690849304, launchZ: 0.7071067690849304, electric: false },
+  effect: { damage: 8.0, growth: 100.0, base: 24.0, launchX: 0.7071067690849304, launchZ: 0.7071067690849304, electric: false, manaDrain: 5 },
   window: 1,
 };
 
@@ -613,8 +738,36 @@ function glideSlashContact(owner: Fighter, targetSlot: number, target: Fighter):
   return localX >= GLIDE_SLASH.minX && localX <= GLIDE_SLASH.maxX && localZ >= GLIDE_SLASH.minZ && localZ <= GLIDE_SLASH.maxZ ? GLIDE_SLASH : NO_HIT_REGION;
 }
 
+// Fel Rush's pass strikes each body it crosses once with a pop-up; Chaos Strike slashes in front.
+const FEL_RUSH_PASS: Readonly<HitRegion> = {
+  minX: -40.0, maxX: 60.0, minZ: -20.0, maxZ: 140.0,
+  effect: { damage: 6.0, growth: 40.0, base: 45.0, launchX: 0.1736481785774231, launchZ: 0.9848077297210693, electric: false, element: HitElement.fire, manaDrain: 4 },
+  window: 1,
+};
+const CHAOS_STRIKE: Readonly<HitRegion> = {
+  minX: 0.0, maxX: 150.0, minZ: -40.0, maxZ: 140.0,
+  effect: { damage: 10.0, growth: 95.0, base: 30.0, launchX: 0.7660444378852844, launchZ: 0.6427876353263855, electric: false, element: HitElement.fire, manaDrain: 10 },
+  window: 1,
+};
+
+/** The Fel Rush region that strikes this frame: the pass on rush frames 6-15, Chaos Strike on its frames 5-8. */
+export function felRushRegion(form: number, frame: number): Readonly<HitRegion> {
+  if (form === 0) return frame >= FEL_RUSH_FIRST && frame <= FEL_RUSH_LAST ? FEL_RUSH_PASS : NO_HIT_REGION;
+  if (form === CHAOS_STRIKE_FORM || form === CHAOS_STRIKE_AIR_FORM) return frame >= CHAOS_STRIKE_FIRST && frame <= CHAOS_STRIKE_LAST ? CHAOS_STRIKE : NO_HIT_REGION;
+  return NO_HIT_REGION;
+}
+
+function felRushContact(owner: Fighter, targetSlot: number, target: Fighter): Readonly<HitRegion> {
+  const region = felRushRegion(owner.special.form, owner.special.frame);
+  if (region.window <= 0 || specialAlreadyHit(owner, targetSlot) || target.status.out || isIntangible(target)) return NO_HIT_REGION;
+  const localX = f32(f32(target.motion.x - owner.motion.x) * owner.facing);
+  const localZ = f32(target.motion.z - owner.motion.z);
+  return localX >= region.minX && localX <= region.maxX && localZ >= region.minZ && localZ <= region.maxZ ? region : NO_HIT_REGION;
+}
+
 function demonHunterSpecialContact(owner: Fighter, targetSlot: number, target: Fighter): Readonly<HitRegion> {
   const { special } = owner;
+  if (owner.character === Character.demonHunter && special.action === SpecialAction.demonHunterFelRush) return felRushContact(owner, targetSlot, target);
   if (owner.character === Character.demonHunter && special.action === SpecialAction.demonHunterWingAscent && special.form === DEMONHUNTER_GLIDE_SLASH_FORM) return glideSlashContact(owner, targetSlot, target);
   if (owner.character !== Character.demonHunter || special.action !== SpecialAction.demonHunterImmolate) return NO_HIT_REGION;
   if (specialAlreadyHit(owner, targetSlot) || special.frame < DEMONHUNTER_IMMOLATE_STARTUP) return NO_HIT_REGION;
@@ -641,6 +794,7 @@ export function advanceSpecials(world: Roster, stage: number, matchFrame: number
     if (!isActive(world, slot)) continue;
     advanceSpecialAction(fighterAt(world, slot), stage, matchFrame, inputs?.[slot]);
     relocateHeroSpecial(world, slot);
+    stopFelRushAtShields(world, slot);
     stopHeroMotionAtBodies(world, slot);
     advanceHeroCommandGrab(world, slot);
   }

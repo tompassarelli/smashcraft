@@ -454,7 +454,7 @@ NTSC 1.02 reference identifies main DOL SHA1
 `c904de0c4c5eb3ef65211a75d8bd70ca5b0f9f41`; common +0x7D4, +0x3E8 and
 +0x3EC are now confirmed from that table. Published character dumps still lack
 disc-revision metadata, and other missing values are not filled by guesses.
-Illidan keeps his original tuning and custom parry; the digital dodge and
+Illidan keeps his original tuning; the digital dodge and
 fast-fall controls and the absence of stale moves are owner decisions in
 smashcraft:docs/gameplay-design.md.
 
@@ -2554,7 +2554,7 @@ hit effects for each action; no Archer or Rifleman region is used.
 | Special ID | Action and provisional timing | Contact/effect |
 | --- | --- | --- |
 | 9 | Mana Burn: 16-tick startup, 30-tick recovery; one orb out at a time | Fires a slow orb at 12 world units/tick for 90 ticks at shield-centre height; 5 damage, a flinch and a stun that scales with percent ([roster](design/roster.md#mana-burn-neutral-special)). No mana resource is modeled or drained. |
-| 10 | Parry Step: 22 ticks; 9-unit directional evasion; 45-tick cooldown | Incoming strike during action ticks 4–9 is canceled; attacker receives 10 hitstun and 4 hitlag with a small knockback. Does not reflect projectiles. |
+| 10 | Fel Rush (#147): tell ticks 1–5, rush 20 units/tick on 6–15, acts on 30; 40-tick cooldown; once per airtime, level in the air | Strikes each body it passes once (6 damage, pop-up at 80 degrees) and stops short of a raised shield. A press in ticks 10–24 branches: special is Vengeful Retreat (a vault back, acting on its tick 17), attack is Chaos Strike (10 damage at 40 degrees on its ticks 5–8, acting on 31) ([Illidan](design/illidan.md#side-special-fel-rush)). |
 | 11 | Wing Ascent: 3-tick startup within 28 total ticks; 90-tick cooldown | Quick upward launch, consumes remaining jumps, grants four ticks of protection at launch, and enters helpless fall if still airborne at completion. A post-ascent glide is not implemented. |
 | 12 | Immolate: 4-tick startup, 4-tick active window, 27 total ticks; 24-tick cooldown | One contact per action. Grounded: forward region to 140 units, 7 damage and horizontal launch. Airborne: region around/below the fighter, 9 damage and downward spike launch. |
 

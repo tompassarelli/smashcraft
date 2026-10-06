@@ -165,7 +165,7 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   for (const [label, key] of PROJECTILE_FIELDS) {
     for (let i = 0; i < PROJECTILE_CAPACITY; i++) add(`${label}[${i}]`, at(e.projectiles, i)[key], at(a.projectiles, i)[key]);
   }
-  add("parrySerial", e.visuals.parry, a.visuals.parry);
+  add("manaDrainedSerial", e.visuals.manaDrained, a.visuals.manaDrained);
   add("specialAction", e.special.action, a.special.action);
   add("specialFrame", e.special.frame, a.special.frame);
   add("specialDuration", e.special.duration, a.special.duration);

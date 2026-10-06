@@ -114,13 +114,15 @@ Finish readable kicks with cape clearance and canonical blue portraits with
 the gun fully visible. Repair material/import causes rather than recoloring
 around an unresolved asset defect.
 
-Demon Hunter: neutral-special Mana Burn; side-special evasion/parry;
+Demon Hunter: neutral-special Mana Burn; side-special Fel Rush with
+Vengeful Retreat and Chaos Strike branches, and mana drained by every hit he
+lands (#147, smashcraft:docs/design/illidan.md);
 up-special visible animated wings and quick rising recovery, with a jump in
 its frames 16-28 starting a glide pitched by the stick and a wing slash out of
 it; down-special Immolate with shine-like horizontal ground knockback and
 downward air spike, jump-cancellable from its first active frame (#128,
-smashcraft:docs/design/kit-review-1.md). Do not infer mana-drain,
-reflection, exact parry rules or final tuning from move names alone. Deliver
+smashcraft:docs/design/kit-review-1.md). Do not infer reflection or final
+tuning from move names alone. Deliver
 his full normals, aerials, grabs/throws, shared actions, effects, portraits,
 selection and replay coverage, not just his specials or model.
 

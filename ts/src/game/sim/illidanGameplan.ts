@@ -2,9 +2,9 @@
 // identities"): the original fighter with the highest air speed and the
 // longest glaives. He fights in the air at his glaives' length, forward air
 // in and back air while drifting out, threatens forward smash's long reach on
-// the ground and answers a committed strike with Parry Step. His hits deal
+// the ground and answers a committed strike by jumping or shielding. His hits deal
 // less than the others' (forward smash 12, forward and back air 6, down tilt 7), so he wins by landing
-// more of them, not by trading up close.
+// more of them, not by trading up close; each drains the target's mana (#147).
 import { AttackStyle } from "./codes";
 import { type FighterGameplan, GameplanThrow } from "./gameplan";
 
@@ -20,7 +20,7 @@ export const ILLIDAN_GAMEPLAN: FighterGameplan = {
     { via: "jump", moves: [AttackStyle.forwardAir, AttackStyle.backAir, AttackStyle.neutralAir], weight: 3 },
     { via: "run", moves: [AttackStyle.dashAttack, AttackStyle.forwardSmash, AttackStyle.grab], weight: 1 },
   ],
-  defense: ["stance", "stance", "jump", "shield", "spotDodge"],
+  defense: ["jump", "jump", "shield", "shield", "spotDodge"],
   combos: [
     { starter: AttackStyle.upTilt, followUps: [AttackStyle.upAir, AttackStyle.forwardAir] },
     { starter: AttackStyle.downTilt, followUps: [AttackStyle.forwardAir, AttackStyle.neutralAir, AttackStyle.dashAttack] },

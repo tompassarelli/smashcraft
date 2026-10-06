@@ -86,7 +86,7 @@ Under 9 of 18 is dull; those are redesigned.
 
 | Move | D | M | R | RR | C | W | Total | Verdict |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Parry Step (side B) | 1 | 1 | 3 | 2 | 2 | 2 | 11 | A real counter; keep. |
+| Parry Step (side B) | 1 | 1 | 3 | 2 | 2 | 2 | 11 | A real counter; keep. Superseded after Tom's playtest: illegible in play, replaced by Fel Rush ([Illidan](illidan.md), #147). |
 | Wing Ascent (up B) | 0 | 0 | 0 | 1 | 1 | 2 | 4 | **Redesign.** A fixed 30-a-frame rise; the owner's tentative glide fits here. |
 | Immolate (down B) | 0 | 1 | 2 | 2 | 2 | 2 | 9 | **Redesign.** Tom asked for "shine-like"; a shine that cannot be jump-cancelled is the dull half of the shine. |
 

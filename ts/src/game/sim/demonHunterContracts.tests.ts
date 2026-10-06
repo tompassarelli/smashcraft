@@ -1,7 +1,6 @@
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { AttackStyle, Character, HeroStatusGroup, HeroStatusKind, LedgeState, ProjectileKind, SpecialAction } from "./codes";
 import { DEMONHUNTER_IMMOLATE_STARTUP, DEMONHUNTER_MANA_BURN_STARTUP, DEMONHUNTER_WING_DURATION, startFighterSpecial, advanceSpecials } from "./specials";
-import { DEMONHUNTER_PARRY_START } from "./hits";
 import { type Fighter, type Projectile, createFighter } from "./fighter";
 import { beginFighterAttack, resolveAttacks } from "./attacks";
 import { MANA_BURN_STUN, projectileCount, updateProjectiles } from "./projectiles";
@@ -129,34 +128,6 @@ test("manaBurnCreatesFlinchingProjectileWithoutAManaResource", () => {
   assertEquals(target.status.damage, 5.0);
   assertGreaterThan(target.launch.hitstun, 0);
   assertGreaterThan(target.launch.hitlag, 0);
-});
-
-test("parryStepPunishesContactInItsWindowButDoesNotReflectShots", () => {
-  const attacker = createFighter(Character.archer, 0.0, 1);
-  const illidan = createFighter(Character.demonHunter, 90.0, -1);
-  const world = testWorld(illidan, attacker);
-  assertTrue(startFighterSpecial(illidan, 0, 0, controls({ specialPressed: true, direction: -1, specialX: -1 })));
-  for (let tick = 1; tick <= DEMONHUNTER_PARRY_START; tick++) advanceSpecials(world, 0, 0);
-  beginFighterAttack(world, 1, AttackStyle.jab, false);
-  attacker.attack.frame = attackStartupFrames(AttackStyle.jab);
-  resolveAttacks(world);
-  assertEquals(attacker.launch.hitstun, 10);
-  assertEquals(attacker.launch.hitlag, 4);
-  assertEquals(attacker.attack.style, undefined);
-  assertEquals(illidan.status.damage, 0.0);
-
-  const shooter = createFighter(Character.archer, 0.0, 1);
-  const parrier = createFighter(Character.demonHunter, 160.0, -1);
-  const shotWorld = testWorld(parrier, shooter);
-  assertTrue(startFighterSpecial(shooter, 0, 0, controls({ specialPressed: true })));
-  assertTrue(startFighterSpecial(parrier, 0, 0, controls({ specialPressed: true, direction: -1, specialX: -1 })));
-  for (let tick = 1; tick <= DEMONHUNTER_PARRY_START; tick++) {
-    advanceSpecials(shotWorld, 0, 0);
-    updateProjectiles(shotWorld);
-  }
-  assertEquals(projectileCount(shooter), 0);
-  assertEquals(projectileCount(parrier), 0);
-  assertEquals(parrier.status.damage, 0.0);
 });
 
 test("wingAscentConsumesJumpsAndEndsInHelplessFallAfterInterruptionRules", () => {

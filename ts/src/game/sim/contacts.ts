@@ -149,6 +149,13 @@ function applyAirborneShieldRecoil(source: Fighter, target: Fighter, contact: Re
   source.shield.recoilZ = addFloat32(source.shield.recoilZ, multiplyFloat32(shieldRecoilAxis(contact.sourceDeltaZ, contact.targetDeltaZ), weightRatio));
 }
 
+/** A hit that reaches the body drains its authored mana (Illidan's kit); mana floors at 0. */
+function drainMana(target: Fighter, drain: number | undefined): void {
+  if (drain === undefined || drain <= 0 || target.mana.points <= 0) return;
+  target.mana.points = max(0, target.mana.points - drain);
+  target.visuals.manaDrained++;
+}
+
 function contactAt(index: number): DamageContact {
   return at(batch.contacts, index);
 }
@@ -202,6 +209,7 @@ function resolveDamageContacts(world: Roster, slot: number): void {
     }
     if (contact.kind === ContactKind.throw) target.visuals.throw++;
     visualContact ??= index;
+    drainMana(target, contact.effect.manaDrain);
     if (damage > 0 && contact.kind !== ContactKind.pummel) {
       thawFighter(target);
       damageEndsHeroStatus(target);

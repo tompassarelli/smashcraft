@@ -88,7 +88,7 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   jump.dodgeZ = 0;
   clearGrabLinks(world, slot);
   clearSpecialOnStock(f);
-  f.visuals.parry = 0;
+  f.visuals.manaDrained = 0;
   refillMana(f);
   f.status.armorFrames = 0;
   f.status.armorChills = false;

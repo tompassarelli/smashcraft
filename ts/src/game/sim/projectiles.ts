@@ -12,7 +12,6 @@ import { type Fighter, PROJECTILE_CAPACITY, type Projectile } from "./fighter";
 import { type HitEffect, HitElement, copyHitEffect, emptyHitEffect } from "./hitRegions";
 import type { SpecialProjectile } from "./heroSpecials";
 import { hurtCapsule } from "../physics/contactGeometry";
-import { demonHunterParryIsActive, resolveDemonHunterParry } from "./hits";
 import { RIFLEMAN_BLASTER_GROUND_DAMAGE_MULTIPLIER, attackDamage } from "./moves";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type Roster, fighterAt, isActive } from "./roster";
@@ -139,10 +138,6 @@ export function projectileDamage(projectile: Readonly<Projectile>): number {
 
 function applyProjectileHit(world: Roster, ownerSlot: number, targetSlot: number, projectile: Readonly<Projectile>, shieldContact: boolean): void {
   const target = fighterAt(world, targetSlot);
-  if (demonHunterParryIsActive(target)) {
-    resolveDemonHunterParry(target, fighterAt(world, ownerSlot), -projectile.direction);
-    return;
-  }
   const { spec } = projectile;
   if (projectile.kind === ProjectileKind.hero && spec !== undefined) {
     copyHitEffect(projectileHit, heroProjectileEffect(projectile, spec));

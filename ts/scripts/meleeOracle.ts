@@ -25,7 +25,6 @@ import { ATTACK_BUFFER_FRAMES } from "../src/game/input/attackBuffer";
 import { TECH_WINDOW_FRAMES, TECH_REPEAT_MINIMUM_AGE_FRAMES } from "../src/game/physics/techInput";
 import { SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES } from "../src/game/sim/fighter";
 import { SHIELD_RED_PARRY_FRAMES, digitalShieldstunFrames } from "../src/game/sim/shield";
-import { DEMONHUNTER_PARRY_START, DEMONHUNTER_PARRY_END } from "../src/game/sim/hits";
 import { LEDGE_INTANGIBLE_FRAMES } from "../src/game/sim/ledge";
 import { LEDGE_REGRAB_FRAMES } from "../src/game/sim/transitions";
 
@@ -1452,7 +1451,6 @@ const EXECUTION_BOUNDS: readonly Scenario[] = [
   windowBound("tech lockout", 20, 40, () => TECH_REPEAT_MINIMUM_AGE_FRAMES),
   windowBound("human attack buffer", 4, 10, () => ATTACK_BUFFER_FRAMES),
   windowBound("jump squat / short-hop release", 3, 5, jumpSquatFrames),
-  windowBound("parry", 6, 10, () => DEMONHUNTER_PARRY_END - DEMONHUNTER_PARRY_START + 1),
   windowBound("optional powershield", 2, 4, () => SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES),
   windowBound("optional red parry", 2, 4, () => SHIELD_RED_PARRY_FRAMES),
   windowBound("ledge intangibility", 30, 37, () => LEDGE_INTANGIBLE_FRAMES),

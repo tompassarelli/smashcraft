@@ -17,23 +17,6 @@ import { BODY_HALF_WIDTH, bodyTop } from "../sim/surfaces";
 import { melee } from "../sim/tuning";
 import type { Scenario } from "./build";
 
-/** A 90-unit gap puts an ordinary Archer jab in range with or without Parry Step. */
-export function initializeParryScenario(first: Fighter, second: Fighter): void {
-  first.motion.x = -45.0;
-  second.motion.x = 45.0;
-  first.facing = 1;
-  second.facing = -1;
-}
-
-/**
- * The computer jabs on the frame the player presses Special, with no timing
- * offset: jab frame zero and the special start in the same row. Neutral
- * Special is the unprotected control through the same input path.
- */
-export function queueParryScenarioJab(playerInput: Readonly<Controls>, computer: Readonly<Fighter>, requests: AttackBuffer, frame: number): void {
-  if (playerInput.specialPressed && !computer.status.out) queueAttack(requests, { style: AttackStyle.jab, facing: -1, frame, mayCharge: false });
-}
-
 /** Both fighters airborne past one edge, rising, close enough for a downward Immolate. */
 export function initializeSpikeScenario(first: Fighter, second: Fighter, stage: number, side: 1 | -1): void {
   const edge = side > 0 ? mainDeckRight(stage) : mainDeckLeft(stage);
@@ -50,16 +33,16 @@ export function initializeSpikeScenario(first: Fighter, second: Fighter, stage: 
   }
 }
 
-/** Parry and spike scenarios fight as fixed characters: Demon Hunter against Archer, or two Demon Hunters. */
+/** The spike scenario fights as two Demon Hunters. */
 export function chooseScenarioCharacters(scenario: Scenario, game: MatchState): void {
-  if (scenario !== "parry" && scenario !== "spike") return;
+  if (scenario !== "spike") return;
   const first = firstHumanSlot(game);
   for (const slot of PARTICIPANT_SLOTS) {
-    if (humanActive(game, slot)) selectCharacter(game, slot, scenario === "spike" || slot === first ? Character.demonHunter : Character.archer);
+    if (humanActive(game, slot)) selectCharacter(game, slot, Character.demonHunter);
   }
   const computer = cpuSlot(game);
   if (game.humanCount === 1 && first !== undefined && computer !== undefined) {
-    selectCpuCharacter(game, first, computer, scenario === "spike" ? Character.demonHunter : Character.archer);
+    selectCpuCharacter(game, first, computer, Character.demonHunter);
   }
 }
 
@@ -100,9 +83,6 @@ export function initializeScenario(scenario: Scenario, game: Readonly<MatchState
           fighter.launch.diLaunchSpeed = 8.0;
         }
       }
-      return;
-    case "parry":
-      initializeParryScenario(first, second);
       return;
     case "spike":
       initializeSpikeScenario(first, second, game.stageChoice, 1);
@@ -186,13 +166,13 @@ export function initializeScenario(scenario: Scenario, game: Readonly<MatchState
   }
 }
 
-/** Staged scenarios keep the computer passive, except the parry scenario's answering jab. */
+/** Staged scenarios keep the computer passive. */
 const COMPUTER_PLAYS: Readonly<Record<Scenario, boolean>> = {
   "agency-none": false,
   "agency-di": false,
   "agency-act": false,
   "agency-thaw": false,
-  normal: true, ko: true, knockdown: false, tech: false, "shield-break": false, ledge: false, parry: false, spike: false, underside: false, camera: false,
+  normal: true, ko: true, knockdown: false, tech: false, "shield-break": false, ledge: false, spike: false, underside: false, camera: false,
   "body-ceiling": false, "body-wall": false,
 };
 
@@ -214,6 +194,4 @@ export function produceScenarioComputerInput(
   clearAttackBuffer(commands);
   const fighter = fighterAt(world, slot);
   if (COMPUTER_PLAYS[scenario] && !fighter.status.out) produceComputerInput(game, world, runtime, slot, frame, input, commands);
-  const target = firstHumanSlot(game);
-  if (scenario === "parry" && target !== undefined) queueParryScenarioJab(produced.inputs[target], fighter, commands, frame);
 }

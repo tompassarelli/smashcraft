@@ -173,7 +173,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   visuals.shieldElectric = sourceVisuals.shieldElectric;
   visuals.shield = sourceVisuals.shield;
   visuals.shieldReflect = sourceVisuals.shieldReflect;
-  visuals.parry = sourceVisuals.parry;
+  visuals.manaDrained = sourceVisuals.manaDrained;
   visuals.manaDenied = sourceVisuals.manaDenied;
 
   const special = target.special;

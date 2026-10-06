@@ -3,7 +3,10 @@
 // hero's (SpecialKit.name, HeroDefinition.passive and ultimate).
 import { SpecialAction } from "./codes";
 import type { NamedMove } from "./heroes/hero";
-import { ARCHER_DIVE_FORM, DEMONHUNTER_GLIDE_FORM, DEMONHUNTER_GLIDE_SLASH_FORM, RIFLEMAN_SECOND_SHOT_FORM } from "./specials";
+import {
+  ARCHER_DIVE_FORM, CHAOS_STRIKE_AIR_FORM, CHAOS_STRIKE_FORM, DEMONHUNTER_GLIDE_FORM, DEMONHUNTER_GLIDE_SLASH_FORM, RIFLEMAN_SECOND_SHOT_FORM,
+  VENGEFUL_RETREAT_FORM,
+} from "./specials";
 
 export interface OriginalSpecial extends NamedMove {
   readonly action: SpecialAction;
@@ -51,7 +54,10 @@ export const ORIGINAL_KITS: readonly OriginalKit[] = [
   {
     specials: [
       { action: SpecialAction.demonHunterManaBurn, name: "Mana Burn", description: "A slow orb that burns mana and stuns; the emptier it leaves the target, the longer the stun." },
-      { action: SpecialAction.demonHunterParryStep, name: "Parry Step", description: "A side step that stops an attack caught early in it and leaves the attacker stunned." },
+      {
+        action: SpecialAction.demonHunterFelRush, name: "Fel Rush", description: "Dash through anyone in your path; press special to flip back out, or attack to slash.",
+        forms: [{ form: VENGEFUL_RETREAT_FORM, name: "Vengeful Retreat" }, { form: CHAOS_STRIKE_FORM, name: "Chaos Strike" }, { form: CHAOS_STRIKE_AIR_FORM, name: "Aerial Chaos Strike" }],
+      },
       {
         action: SpecialAction.demonHunterWingAscent, name: "Wing Ascent", description: "Rise on his wings; jump near the top to glide, attack in the glide to slash.",
         forms: [{ form: DEMONHUNTER_GLIDE_FORM, name: "Glide" }, { form: DEMONHUNTER_GLIDE_SLASH_FORM, name: "Wing Slash" }],

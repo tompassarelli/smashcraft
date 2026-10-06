@@ -657,7 +657,7 @@ not claims that these timings guarantee human reaction on every setup.
 | Input buffer | 4 | 10 | 6 |
 | Offensive link or follow-up | 3 | none beyond the move's own timing | no required links |
 | Jump squat; short-hop release window | 3 | 5 | 3 and 5 |
-| Parry active window | 6 | 10 | 6 |
+| Parry active window (counter specials) | 6 | 10 | none: no fighter authors a counter |
 | Powershield input window | 2 | 4 | 2 |
 | Red parry (re-press in shieldstun) | 2 | 4 | 2 |
 | Ledge intangibility | 30 | 37 | 30 |
@@ -724,7 +724,7 @@ The descriptive basis is [fighting-game language](design/fighting-games.md),
 | Shield release and out-of-shield actions | Owner decision (6 Oct, #100): 11-frame release lag, Ultimate's value, with the 8-frame minimum shield hold. Direct shield grab and jump bypass release lag when otherwise legal; jump into aerials, rolls and spot dodges remain available. Add no instant grounded up-smash cancel. | Melee's 15 frames make dropping shield almost never worth it; dropping shield should be a real alternative to jumping into an aerial or rolling out of shield. Tune later if it is still never used. Shieldstun and other action locks still apply. |
 | Platform shield drop | Removed (owner, 6 Oct, #103): down while shielding stays on the platform. Leaving a platform goes through a [platform descent](#platforms); shielded fighters use their jump, dodge or release choices. | Superseded: no safe retaliation from a platform, so a fighter on one is slightly behind one below. |
 | Cross-ups | Coverage follows each move's authored front/back regions and legal facing change. No automatic tracking or universal behind-the-fighter hit extension. | A cross-up changes which responses reach; the answer comes from the move, not hidden target tracking. |
-| Powershield and dedicated parry | The raise-timed powershield, with the accepted 2-frame input window and its projectile reflection, is a true parry: no shieldstun and no release lag, any grounded option on the first frame after the hit's freeze ([Powershield and parry](#powershield-and-parry), #102). Ground only. Counters stay per-fighter specials such as Illidan's parry; add no universal parry button or release-timed replacement. | One shared, learnable timing whose reward is the defender's own punish, kept apart from the committal counters a kit can author. |
+| Powershield and dedicated parry | The raise-timed powershield, with the accepted 2-frame input window and its projectile reflection, is a true parry: no shieldstun and no release lag, any grounded option on the first frame after the hit's freeze ([Powershield and parry](#powershield-and-parry), #102). Ground only. Counters stay per-fighter specials; add no universal parry button or release-timed replacement. | One shared, learnable timing whose reward is the defender's own punish, kept apart from the committal counters a kit can author. |
 
 ### Movement, recovery and resources
 
@@ -1034,10 +1034,10 @@ kind of defensive special beside the counters:
 
 | | Universal powershield | Counter specials | Guard specials |
 |---|---|---|---|
-| Who | Every fighter, through the shared shield | Fighters whose kit authors one: Illidan's parry (Parry Step) | Fighters whose kit authors one: Uther's Divine Shield (#96, #131) |
+| Who | Every fighter, through the shared shield | Fighters whose kit authors one (none since Illidan's Parry Step became Fel Rush, #147) | Fighters whose kit authors one: Uther's Divine Shield (#96, #131) |
 | Input | The ordinary shield press, timed | A special move | A special move |
 | Commitment | None beyond the shield: a press that parries nothing is an ordinary shield | Startup, a counter window and recovery; a whiff is punishable | Startup, a guard window and recovery; a whiff is punishable, and grabs beat it |
-| Reward | No shieldstun or release lag and next-frame action with the defender's own grounded option, which can still be the wrong choice | An automatic strike authored by the move: Parry Step cancels the attack and launches the attacker | A non-strike reward and no automatic strike: Divine Shield is intangible through its window, and a successful guard leaves him intangible to strikes and projectiles (not grabs) for 45 frames or until he attacks |
+| Reward | No shieldstun or release lag and next-frame action with the defender's own grounded option, which can still be the wrong choice | An automatic strike authored by the move, such as cancelling the attack and launching the attacker | A non-strike reward and no automatic strike: Divine Shield is intangible through its window, and a successful guard leaves him intangible to strikes and projectiles (not grabs) for 45 frames or until he attacks |
 | Against strings | One press per hit; the red parry rejoins a string | The move's own window | The move's own window |
 
 The powershield never strikes back on its own: the punish is the defender's
