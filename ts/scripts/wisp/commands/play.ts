@@ -50,6 +50,16 @@ export const PLAYTEST: Omit<Playtest, "map" | "helper"> = {
   menuReportPort: 47124,
 };
 
+/**
+ * Tom's display settings for his 2880x1920 screen (his 6 Oct file). Play writes
+ * them in before each launch: on 7 Oct his prefix held a test desktop's
+ * windowed 1920x1080 settings.
+ */
+const TOM_DISPLAY = {
+  windowmode: "1", windowwidth: "2876", windowheight: "1916", windowx: "2", windowy: "2",
+  reswidth: "1920", resheight: "1280", refreshrate: "120",
+} as const;
+
 /** Seconds the map has to reach fighter selection, and to take the go-ahead. */
 const LOAD_SECONDS = 120;
 const MATCH_SECONDS = 15;
@@ -87,6 +97,7 @@ export function playtest({ build, map, helper, computerSlot, computerLevel, menu
     map,
     gameName: "Smashcraft",
     ...(menuReportPort === undefined ? {} : { menuReportPort }),
+    displaySettings: TOM_DISPLAY,
     debugDirectory: join(homedir(), ".local/state/smashcraft/play-debug"),
     // The request, read once at map start; no go-ahead or receipt from an earlier run.
     prepare: (documents) => Effect.gen(function*() {
