@@ -44,7 +44,7 @@ export interface FighterPhysics {
   readonly groundSpeedCap: number;
 }
 
-/** Wall and ceiling tech motion; kept apart so the retail rig can supply it without retuning playables. */
+/** Wall and ceiling tech motion and wall jumps, from each fighter's Melee reference. */
 export interface SurfaceRecoveryPhysics {
   readonly passiveWallSpeed: number;
   readonly wallJumpHorizontalSpeed: number;
@@ -204,14 +204,52 @@ export function authoredPhysics(character: Character): FighterPhysics {
   }
 }
 
-const NO_SURFACE_RECOVERY_PHYSICS: SurfaceRecoveryPhysics = {
-  passiveWallSpeed: 0.0,
-  wallJumpHorizontalSpeed: 0.0,
-  wallJumpVerticalSpeed: 0.0,
-  passiveCeilingSpeed: 0.0,
-  wallJumpMinimumApproach: 0.0,
-  canWallJump: false,
+/**
+ * Wall-tech push-off and wall jumps from each fighter's Melee reference:
+ * ftCo_DatAttrs +0x100 passivewall_vel_x, +0x104/+0x108 wall jump launch and
+ * +0x148 wall_jump_min_approach_speed in the owner's GALE01 revision 2
+ * PlFx.dat (Archer = Fox), PlFc.dat (Rifleman = Falco) and PlCa.dat
+ * (Illidan = Captain Falcon), all of whom wall jump (can_walljump in
+ * ftFx_Init_OnLoad, ftFc_Init_OnLoad, ftCa_Init_OnLoad). Ceiling techs keep
+ * no sideways impulse.
+ */
+const AUTHORED_SURFACE_RECOVERY: { readonly [name in keyof typeof Character]: SurfaceRecoveryPhysics } = {
+  archer: {
+    passiveWallSpeed: melee(0.5),
+    wallJumpHorizontalSpeed: melee(1.399999976158142),
+    wallJumpVerticalSpeed: melee(3.299999952316284),
+    passiveCeilingSpeed: 0.0,
+    wallJumpMinimumApproach: melee(0.5),
+    canWallJump: true,
+  },
+  rifleman: {
+    passiveWallSpeed: melee(0.5),
+    wallJumpHorizontalSpeed: melee(1.2999999523162842),
+    wallJumpVerticalSpeed: melee(3.5999999046325684),
+    passiveCeilingSpeed: 0.0,
+    wallJumpMinimumApproach: melee(0.5),
+    canWallJump: true,
+  },
+  demonHunter: {
+    passiveWallSpeed: melee(0.5),
+    wallJumpHorizontalSpeed: melee(1.399999976158142),
+    wallJumpVerticalSpeed: melee(3.0999999046325684),
+    passiveCeilingSpeed: 0.0,
+    wallJumpMinimumApproach: melee(0.5),
+    canWallJump: true,
+  },
 };
+
+function authoredSurfaceRecovery(character: Character): SurfaceRecoveryPhysics {
+  switch (character) {
+    case Character.archer:
+      return AUTHORED_SURFACE_RECOVERY.archer;
+    case Character.rifleman:
+      return AUTHORED_SURFACE_RECOVERY.rifleman;
+    case Character.demonHunter:
+      return AUTHORED_SURFACE_RECOVERY.demonHunter;
+  }
+}
 
 // The original roster keeps authored movement timing. NTSC reference fixtures
 // inject their own actor-owned command timeline; the encoded event is not a
@@ -281,7 +319,7 @@ export function applyAuthoredTuning(world: Roster): void {
 export function authoredTuning(character: Character): FighterTuning {
   return {
     physics: authoredPhysics(character),
-    surface: NO_SURFACE_RECOVERY_PHYSICS,
+    surface: authoredSurfaceRecovery(character),
     ground: AUTHORED_GROUND_MOVEMENT_RULES,
     dashGrab: AUTHORED_DASH_GRAB_RULES,
     shield: AUTHORED_SHIELD_GEOMETRY,

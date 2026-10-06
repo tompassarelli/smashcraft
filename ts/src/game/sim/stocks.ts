@@ -1,7 +1,7 @@
 // Losing a stock past the blast zone, and respawning.
 import { max } from "../../runtime/numbers";
 import { SurfaceContact } from "./codes";
-import { PLATFORM_DROP_INPUT_WINDOW, SHIELD_MAX, SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES, WALL_TECH_JUMP_INPUT_WINDOW_FRAMES } from "./fighter";
+import { PLATFORM_DROP_INPUT_WINDOW, SHIELD_MAX, SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES, WALL_JUMP_FLICK_FRAMES, WALL_TECH_JUMP_INPUT_WINDOW_FRAMES } from "./fighter";
 import { clearDash } from "./groundMovement";
 import { TOP_KO_MINIMUM_UPWARD_KNOCKBACK } from "./knockback";
 import { clearMotionValue, setWorldMotionValue } from "./motion";
@@ -75,6 +75,7 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   motion.fastFallDownHeld = false;
   motion.fastFallInputAge = PLATFORM_DROP_INPUT_WINDOW;
   motion.previousStickSide = 0;
+  motion.stickSideAge = WALL_JUMP_FLICK_FRAMES;
   jump.inputAge = WALL_TECH_JUMP_INPUT_WINDOW_FRAMES;
   motion.crouching = false;
   f.ground.dashGrabWindow = 0;
@@ -116,6 +117,9 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   recovery.contactZ = 0.0;
   recovery.contactNormalX = 0.0;
   recovery.contactNormalZ = 0.0;
+  recovery.wallJumpAge = undefined;
+  recovery.wallJumpSide = 0;
+  recovery.wallJumpsUsed = 0;
   clearTech(f);
   jump.serial = 0;
   jump.isDouble = false;

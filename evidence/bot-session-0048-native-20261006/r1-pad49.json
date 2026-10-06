@@ -1,0 +1,94 @@
+{
+  "epoch": 1,
+  "rows_typed": 2096,
+  "records_emitted": 1050,
+  "records_consumed_by_map": 1049,
+  "steps": [
+    {
+      "phase": "rest",
+      "frames": "183-269",
+      "checked": 87,
+      "mismatches": 0,
+      "detail": ""
+    },
+    {
+      "phase": "drift-a",
+      "frames": "273-359",
+      "checked": 87,
+      "mismatches": 0,
+      "detail": ""
+    },
+    {
+      "phase": "drift-b",
+      "frames": "363-449",
+      "checked": 87,
+      "mismatches": 0,
+      "detail": ""
+    },
+    {
+      "phase": "rest-b",
+      "frames": "453-509",
+      "checked": 57,
+      "mismatches": 0,
+      "detail": ""
+    },
+    {
+      "phase": "x",
+      "frames": "511-520",
+      "checked": 10,
+      "mismatches": 0,
+      "detail": "pressed 1, other action 0"
+    },
+    {
+      "phase": "y",
+      "frames": "571-580",
+      "checked": 10,
+      "mismatches": 0,
+      "detail": "pressed 1, other action 0"
+    },
+    {
+      "phase": "down-below",
+      "frames": "633-719",
+      "checked": 87,
+      "mismatches": 0,
+      "detail": ""
+    },
+    {
+      "phase": "rest-c",
+      "frames": "723-779",
+      "checked": 57,
+      "mismatches": 0,
+      "detail": ""
+    },
+    {
+      "phase": "down-past",
+      "frames": "783-869",
+      "checked": 87,
+      "mismatches": 0,
+      "detail": ""
+    },
+    {
+      "phase": "rest-d",
+      "frames": "873-929",
+      "checked": 57,
+      "mismatches": 0,
+      "detail": ""
+    },
+    {
+      "phase": "right-hold",
+      "frames": "933-1139",
+      "checked": 207,
+      "mismatches": 0,
+      "detail": ""
+    },
+    {
+      "phase": "rest-e",
+      "frames": "1143-1199",
+      "checked": 57,
+      "mismatches": 0,
+      "detail": ""
+    }
+  ],
+  "mismatches": 0,
+  "focus": []
+}
