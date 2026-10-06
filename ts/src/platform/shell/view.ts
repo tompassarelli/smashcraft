@@ -217,6 +217,7 @@ export function renderPersistentPresentation(s: ShellState): void {
     else ui.placed.hideSlot(slot);
     renderers?.shield.present(fighter, playing);
     renderers?.projectiles.present(fighter, playing, s.session.paused);
+    renderers?.cues?.present(fighter, playing, s.session.paused);
     renderers?.hitAreas?.present(live);
   }
 }

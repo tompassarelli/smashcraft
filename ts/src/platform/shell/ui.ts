@@ -7,6 +7,7 @@ import { AgencyMarker } from "../../game/render/agencyMarker";
 import { FighterAgencyForecast } from "../../game/presentation/fighterAgency";
 import { FrostEffects } from "../../game/render/frostEffects";
 import { ElementEffects } from "../../game/render/elementEffects";
+import { SpecialCueEffects } from "../../game/render/specialCueEffects";
 import { PlacedObjectEffects } from "../../game/render/placedObjectEffects";
 import { MatchPresentation } from "../../game/render/matchPresentation";
 import { modelSoundPresentation } from "../../game/render/modelSoundPresentation";
@@ -33,6 +34,8 @@ interface FighterRenderers {
   readonly character: Character;
   readonly shield: ShieldPresentation;
   readonly projectiles: ProjectilePresentation;
+  /** Each special's startup and active spell; absent in renderers a bundle before it made. */
+  readonly cues?: SpecialCueEffects | undefined;
   readonly pool: FighterPoolPresentation | undefined;
   readonly agency: AgencyMarker;
   /** Training's hit areas, when that match shows them. */
@@ -107,6 +110,7 @@ export function createUi(s: ShellState, actions: PanelActions): UiObjects {
 function endFighterRenderers(renderers: FighterRenderers | undefined): void {
   renderers?.shield.destroy();
   renderers?.projectiles.destroy();
+  renderers?.cues?.destroy();
   renderers?.pool?.destroy();
   renderers?.agency.destroy();
   renderers?.hitAreas?.destroy();
@@ -120,7 +124,7 @@ export function beginFighterRenderers(s: ShellState, slot: ParticipantSlot, char
   const ui = views(s);
   endFighterRenderers(ui.fighters[slot]);
   const pool = pooled ? new FighterPoolPresentation(character, slot, s.origin) : undefined;
-  ui.fighters[slot] = { character, shield: new ShieldPresentation(slot, s.origin), projectiles: new ProjectilePresentation(character, s.origin), pool, agency: new AgencyMarker(s.origin),
+  ui.fighters[slot] = { character, shield: new ShieldPresentation(slot, s.origin), projectiles: new ProjectilePresentation(character, s.origin), cues: new SpecialCueEffects(character, s.origin), pool, agency: new AgencyMarker(s.origin),
     hitAreas: s.game.training && s.game.trainer.showHitAreas ? new HitAreaPresentation(s.origin) : undefined,
   };
   return pool?.admitted() === true;
@@ -174,6 +178,7 @@ export function recreateUi(s: ShellState, actions: PanelActions): void {
     if (renderers === undefined) continue;
     bindPrototype(renderers.shield, ShieldPresentation.prototype);
     bindPrototype(renderers.projectiles, ProjectilePresentation.prototype);
+    if (renderers.cues !== undefined) bindPrototype(renderers.cues, SpecialCueEffects.prototype);
     if (renderers.pool !== undefined) bindPrototype(renderers.pool, FighterPoolPresentation.prototype);
     bindPrototype(renderers.agency, AgencyMarker.prototype);
     bindPrototype(renderers.agency.forecast, FighterAgencyForecast.prototype);
@@ -193,6 +198,7 @@ export function clearMatchEffects(s: ShellState): void {
   ui.elements.clear();
   ui.special.clear();
   for (const slot of PARTICIPANT_SLOTS) ui.fighters[slot]?.projectiles.clear();
+  for (const slot of PARTICIPANT_SLOTS) ui.fighters[slot]?.cues?.clear();
 }
 
 export function pauseEffects(s: ShellState, paused: boolean): void {
@@ -201,4 +207,5 @@ export function pauseEffects(s: ShellState, paused: boolean): void {
   ui.special.setPaused(paused);
   ui.elements.setPaused(paused);
   for (const slot of PARTICIPANT_SLOTS) ui.fighters[slot]?.projectiles.setPaused(paused);
+  for (const slot of PARTICIPANT_SLOTS) ui.fighters[slot]?.cues?.setPaused(paused);
 }

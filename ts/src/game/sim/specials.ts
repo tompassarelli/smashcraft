@@ -51,7 +51,7 @@ const GLIDE_DIVE = { speed: 11.0, sink: 4.0 };
 export const DEMONHUNTER_IMMOLATE_STARTUP = 4;
 export const DEMONHUNTER_IMMOLATE_ACTIVE = 4;
 export const DEMONHUNTER_IMMOLATE_DURATION = 27;
-const ARCHER_HOMING_WINDUP_FRAMES = 12;
+export const ARCHER_HOMING_WINDUP_FRAMES = 12;
 // Archer's hippogryph ride (up special): a hover, then a steerable ride
 // ending in helpless fall, or a leap off that leaves her actionable.
 export const ARCHER_RIDE_HOVER_FRAMES = 5;
