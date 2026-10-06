@@ -37,8 +37,19 @@ export interface RollbackPlayback {
 }
 
 /**
+ * Journal rows one callback admits, a helper's or the keyboard's, and frames
+ * each of the confirmed and speculative cursors runs in one callback: the
+ * per-callback catch-up budget. A stall leaves the helper's clock ahead by the
+ * stalled time, and catching up
+ * needs more frames per callback than real time adds while the rows' echo is
+ * on its way (smashcraft:docs/warcraft-api-netcode-findings.md, "Catching up
+ * after a stall").
+ */
+export const CATCH_UP_FRAMES = 6;
+
+/**
  * Speculative frames one callback may run. Keyboard sampling owns one new
  * frame, and running farther would skip capture targets; journals already
  * hold their original frames.
  */
-export const speculativeBudget = (journal: boolean): number => (journal ? 6 : 1);
+export const speculativeBudget = (journal: boolean): number => (journal ? CATCH_UP_FRAMES : 1);

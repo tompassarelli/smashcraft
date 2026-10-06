@@ -8,8 +8,13 @@ import { FrameRing } from "./frameRing";
 import { at } from "wisp/src/runtime/lookup";
 
 export const LEDGER_CAPACITY = 256;
-/** How far past the last consumed frame a row may arrive. */
-export const FUTURE_LIMIT = 64;
+/**
+ * How far past the last consumed frame a row may arrive, and so how many
+ * frames a sender may admit before it confirms them. Catching up after a stall
+ * keeps about 18 callbacks of rows between admission and confirmation: the
+ * wait for the next message and the echo.
+ */
+export const FUTURE_LIMIT = 128;
 
 /** What became of a synchronized packet. Only "accepted" changes the ledger. */
 export type Receipt =

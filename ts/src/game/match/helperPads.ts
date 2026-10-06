@@ -23,6 +23,7 @@ export interface Pad {
   readonly x?: number;
   readonly y?: number;
   readonly cx?: number;
+  readonly cy?: number;
   readonly attack?: boolean;
   readonly special?: boolean;
   readonly trigger?: boolean;
@@ -46,6 +47,7 @@ function heldActions(pad: Pad): number {
   if (up > STICK_DIGITAL) held |= bit(Action.moveUp) | bit(Action.jump);
   if (raw(pad.cx) > C_STICK_DIGITAL) held |= bit(Action.smashRight);
   if (raw(pad.cx) < -C_STICK_DIGITAL) held |= bit(Action.smashLeft);
+  if (raw(pad.cy) > C_STICK_DIGITAL) held |= bit(Action.smashUp);
   if (pad.trigger === true && RAW > TRIGGER_DIGITAL) held |= bit(Action.leftTrigger);
   return held;
 }

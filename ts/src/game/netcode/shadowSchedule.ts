@@ -86,6 +86,18 @@ export class ShadowInputSchedule {
     return slots;
   }
 
+  /** From `frame`, the last frame through which some active slot other than `localPlayer` has rows accepted. */
+  othersThrough(localPlayer: number, frame: number): number {
+    const epoch = this.current;
+    let through = frame;
+    if (epoch === undefined) return through;
+    for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
+      if (slot === localPlayer || !this.isActive(slot)) continue;
+      while (through < INPUT_LAST_FRAME && this.schedule.accepted(epoch, slot, through + 1) !== undefined) through++;
+    }
+    return through;
+  }
+
   firstAcceptedFrame(): number {
     return this.schedule.firstRetained();
   }

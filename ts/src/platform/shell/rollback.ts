@@ -20,7 +20,7 @@ import { JournalInputSource } from "../../game/netcode/journal/source";
 import { decodeTransport } from "../../game/netcode/journal/transport";
 import { captureReplaySnapshot, restoreReplaySnapshot } from "../../game/replay/snapshot";
 import { resetPauseBarrier, agreedFrame } from "../../game/shell/pauseBarrier";
-import { speculativeBudget } from "../../game/shell/playback";
+import { CATCH_UP_FRAMES, speculativeBudget } from "../../game/shell/playback";
 import { applyFrame } from "./frame";
 import { pollLocalKeys } from "./inputs";
 import { INPUT_PREFIX, failJournal, flushTransport, receiveLifecycle, serviceJournalInput } from "./journal";
@@ -29,8 +29,6 @@ import { type KeyboardRollback, type Rollback, type ShellState, localSlot, shell
 import { recordBatchWait, recordEcho, recordSend, resetEchoRing, traceSeconds } from "./trace";
 import { LASTING, setStatus } from "./view";
 
-/** Confirmed frames one callback may catch up. */
-const CONFIRMED_CATCHUP_LIMIT = 6;
 /** Callbacks without a new predicted frame before every client names the players a running match waits for. */
 const STALL_NOTICE_CALLBACKS = 20;
 /** At the start every helper's readiness crosses the network first; the 0.0.47 capture's clients started 0.43 s after Start. */
@@ -243,7 +241,7 @@ export function rollbackTick(s: ShellState, rollback: Rollback): void {
   }
   const stopAt = journal === undefined ? undefined : agreedFrame(journal.barrier);
   let steps = 0;
-  while (s.game.phase === Phase.match && schedule.mayAdvanceConfirmed() && steps < CONFIRMED_CATCHUP_LIMIT && (stopAt === undefined || schedule.nextConfirmedFrame() < stopAt)) {
+  while (s.game.phase === Phase.match && schedule.mayAdvanceConfirmed() && steps < CATCH_UP_FRAMES && (stopAt === undefined || schedule.nextConfirmedFrame() < stopAt)) {
     if (!stepConfirmed(s, rollback)) {
       setStatus(s, "The match could not advance. Restart the match.", LASTING);
       return;
