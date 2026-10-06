@@ -205,10 +205,10 @@ Standing grab 7/2/22, reach 0.55H, one-handed collar catch. Pummel: pommel strik
 
 | Input | Proposed move and behavior | Timing and cost |
 | --- | --- | --- |
-| Neutral B | **Storm Bolt:** straight hammer projectile; 7 damage, LAUNCH at 65 degrees, speed 0.12H/frame, life 35, radius 0.18H. Reflectable. Uses normal hitstun rather than an extra stun status; one bolt active. | Spawn f20, end f48; 8 mana |
+| Neutral B | **Storm Bolt** (#125, smashcraft:docs/design/kit-review-1.md): thrown hammer; 5 damage, LAUNCH at 65 degrees, speed 0.12H/frame for 45 frames, then back to his body at 0.14H/frame (life 90), launching toward him on the way back. Neutral special while it flies calls it back at once. Reflectable (a reflected hammer flies on and never returns); one bolt active. | Spawn f20, end f48; 8 mana; recall 10 frames, free |
 | Side B | **Storm Rush:** shoulder dash 1.2H; 12 damage, EDGE at 35 degrees. No armor, no command grab, stops at shield. Air version has no upward lift and ends helpless. | f13–18 active/moving, R28; 18 mana |
-| Up B | **Thunder Leap:** arcing 1.8H rise and up to 0.7H horizontal travel; hammer attack during ascent for 8 damage, LAUNCH at 80 degrees. Free version reaches 1.3H, no attack. | Rise/hit f9–14, movement through f28, then helpless; 15 mana |
-| Down B | **Thunder Clap:** grounded circle radius 0.85H, 10 damage, LAUNCH at 70 degrees. Air version swings hammer underneath with 0.55H reach, no large shockwave and no landing burst. | f18–21 active, R32; 20 mana |
+| Up B | **Thunder Leap:** arcing 1.8H rise and up to 0.7H horizontal travel; hammer attack during ascent for 8 damage, LAUNCH at 80 degrees. Free version reaches 1.3H, no attack. **Hammerfall** (#125): special in f16–28 of the full leap hangs 3 frames, then plunges straight down at 0.16H/frame: 12 damage SPIKE against airborne targets, 10 at 55 degrees against grounded ones; landing lag 24, helpless if it ends airborne. | Rise/hit f9–14, movement through f28, then helpless; 15 mana; Hammerfall free |
+| Down B | **Thunder Clap, charged** (#125): he raises the hammer f1–9 and holds the charge f10–49. Special in f10–29: Clap, ground ring of 0.85H both sides, 9 damage LAUNCH 70 degrees; special in f30–49 or running out (slam f53): Thunder Clap, the ring at 12 plus a reflectable ground wave each way (0.10H/frame, 24 frames, active from its 6th, 7 damage LAUNCH 75 degrees); shield in f10–49 drops the charge. No armor. Air version swings hammer underneath with 0.55H reach, no charge, no shockwave. | Slam active f4–7 after the release, end 28 (Clap) or 32 (Thunder Clap) frames after it; run-out ends f81; 20 mana |
 
 ### Grab and throws
 
@@ -223,14 +223,14 @@ Standing grab 8/2/25, reach 0.50H. Pummel: helmet headbutt.
 
 **Ultimate — Avatar:** f30 vulnerable transformation, R12, then 480 frames at weight multiplier 1.15 and damage multiplier 1.10. No permanent armor, immunity, heal, size change, or knockback cleanse. Existing knockback at activation is not retroactively recomputed. Visual stone overlay must preserve silhouette.
 
-**Required counterplay test:** blocked Storm Bolt must not guarantee a grab from its full travel distance; Thunder Clap cannot cover both a retreat and a jump without a read.
+**Required counterplay test:** blocked Storm Bolt must not guarantee a grab from its full travel distance; Thunder Clap cannot cover both a retreat and a jump without a read (a jump clears ring and waves; the shield cancel is the bait).
 
 **Implemented kit** (smashcraft:ts/src/game/sim/heroes/mountainKingMoves.ts, mountainKingSpecials.ts, presentation/heroes/mountainKingClips.ts). Every row above is implemented; nothing is omitted. Deliberate additions and choices where the table is silent:
 
 - Forward tilt also has up- and down-angled paths with the same timing and damage.
 - Hammer Drop's head and Double Boot launch grounded targets at 55 degrees (the shared grounded spike rule).
-- Air Thunder Clap reuses the ground form's 10 damage and 70-degree LAUNCH on its 0.55H under-hammer path.
-- Thunder Clap is a ground-level ring 30 units tall, so a jump clears it while it still covers both sides.
+- Air Thunder Clap reuses 10 damage and 70-degree LAUNCH on its 0.55H under-hammer path.
+- Thunder Clap is a ground-level ring 30 units tall, so a jump clears it while it still covers both sides; its release and shield cancel are follow-up branches (`followUps`), and the waves start just past the ring.
 - Thunder Leap puts half its exact rise into the f9-14 hit window and eases over f15-28 so it peaks at the listed height; the free form peaks at 1.3H with 0.5H drift.
 - Storm Rush stops at a raised shield or a body (shared `stopsAtBody`) and stops dead after its 1.2H dash; its lowered shoulder carries a hurt volume while it strikes.
 - Mountain King's hurt volumes add the arm, leg or boots behind each normal from late startup through early recovery; hammer and axe stay outside them.

@@ -263,12 +263,31 @@ function flyProjectile(world: Roster, ownerSlot: number, projectile: Projectile,
 }
 
 /**
+ * Heads a returning projectile at its owner's body: level speed toward it,
+ * climbing or sinking at most that speed. False when it arrives, which ends it.
+ */
+function returnToOwner(owner: Readonly<Fighter>, projectile: Projectile, speed: number): boolean {
+  const dx = f32(owner.motion.x - projectile.x);
+  const dz = f32(f32(owner.motion.z + TARGET_CENTER_HEIGHT) - projectile.z);
+  if (owner.status.out || (Math.abs(dx) <= speed && Math.abs(dz) <= speed)) {
+    projectile.life = 0;
+    return false;
+  }
+  projectile.velocityX = dx < 0 ? -speed : speed;
+  projectile.velocityZ = min(speed, max(-speed, dz));
+  projectile.direction = dx < 0 ? -1 : 1;
+  return true;
+}
+
+/**
  * Flies a hero projectile, swept from its old position against each target's
  * standing body widened by its radius. It reaches nothing before its age
  * reaches `activeFrom`; a non-reflectable one meets a reflector as a shield.
  */
 function flyHeroProjectile(world: Roster, ownerSlot: number, projectile: Projectile, hit: { reflector: boolean; shield: boolean }): number | undefined {
   const spec = projectile.spec;
+  // A reflected one (its damage multiplied down) belongs to the reflector and flies straight on.
+  if (spec?.returns !== undefined && projectile.damageMultiplier === 1.0 && spec.life - projectile.life >= spec.returns.age && !returnToOwner(fighterAt(world, ownerSlot), projectile, spec.returns.speed)) return undefined;
   const oldX = projectile.x;
   const oldZ = projectile.z;
   projectile.x = f32(oldX + projectile.velocityX);

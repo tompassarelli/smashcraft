@@ -44,6 +44,15 @@ function ownedCount(f: Readonly<Fighter>, spec: Readonly<SpecialProjectile> | un
   return count;
 }
 
+/** Turns every outbound returning projectile of the fighter back toward it now. */
+function recallProjectiles(f: Fighter): void {
+  for (const projectile of f.projectiles) {
+    const returns = projectile.spec?.returns;
+    if (projectile.life <= 0 || projectile.kind !== ProjectileKind.hero || returns === undefined || projectile.spec === undefined || projectile.damageMultiplier !== 1.0) continue;
+    projectile.life = min(projectile.life, projectile.spec.life - returns.age);
+  }
+}
+
 /** Whether the move's projectiles fit under their own limits and the fighter's cap. */
 function projectilesFit(f: Readonly<Fighter>, move: Readonly<AuthoredSpecial>): boolean {
   const projectiles = move.projectiles ?? [];
@@ -168,6 +177,7 @@ export function enterHeroSpecial(f: Fighter, chosen: Readonly<HeroSpecialChoice>
     mana.progress = 0;
   }
   if (move.oncePerAirtime === true) special.airtimeUses |= 1 << chosen.slot;
+  if (move.recallsProjectiles === true) recallProjectiles(f);
   applyWindows(f, move, 0);
   return move;
 }
@@ -239,7 +249,8 @@ export function spawnHeroProjectileAt(owner: Fighter, spec: Readonly<SpecialProj
     projectile.kind = ProjectileKind.hero;
     projectile.spec = spec;
     projectile.visualFamily = owner.character;
-    projectile.direction = facing < 0 ? -1 : 1;
+    // A projectile sent backward strikes the way it flies.
+    projectile.direction = f32(facing * velocityX) < 0 ? -1 : f32(facing * velocityX) > 0 ? 1 : facing < 0 ? -1 : 1;
     projectile.velocityX = f32(facing * velocityX);
     projectile.velocityZ = velocityZ;
     projectile.x = x;

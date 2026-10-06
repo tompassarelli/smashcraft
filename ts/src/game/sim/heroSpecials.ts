@@ -116,6 +116,12 @@ export interface SpecialProjectile {
   readonly backOffsetX?: number | undefined;
   /** Not placed when solid stage geometry lies between the owner's offsetZ height and the spawn point. */
   readonly needsLineOfSight?: boolean | undefined;
+  /**
+   * From this age it flies back to its owner's body at `speed` a frame and
+   * ends when it gets there (Storm Bolt's hammer); a hit on the way back
+   * launches toward the owner. A recall form calls it back early.
+   */
+  readonly returns?: { readonly age: number; readonly speed: number } | undefined;
 }
 
 export interface SpecialArmor extends FrameWindow {
@@ -195,6 +201,8 @@ export interface AuthoredSpecial {
   readonly placement?: SpecialPlacement | undefined;
   /** Completing the action removes the fighter's placed object. */
   readonly recall?: boolean | undefined;
+  /** Entering it turns the fighter's returning projectiles back toward it at once. */
+  readonly recallsProjectiles?: boolean | undefined;
   readonly commandGrab?: CommandGrab | undefined;
   /**
    * Branches after the press: the first whose `window` (brief frames) holds

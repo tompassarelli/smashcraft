@@ -1,9 +1,9 @@
 import { f32 } from "wisp/src/sim/f32";
 import { hurtCapsule } from "../../physics/contactGeometry";
 import { Character } from "../codes";
-import { HERO_REFERENCE_HEIGHT, heroRegion } from "../heroMoves";
+import { HERO_REFERENCE_HEIGHT, type MoveRegion, heroRegion } from "../heroMoves";
 import { hurtPart, hurtPose } from "../hurtboxes";
-import { type FighterSpecials, type SpecialMotion, ROSTER_MANA, frames } from "../heroSpecials";
+import { type AuthoredSpecial, type FighterSpecials, type SpecialMotion, type SpecialProjectile, FollowUpInput, ROSTER_MANA, frames } from "../heroSpecials";
 import { MEDIUM, SHORT, capsule, hit } from "./mountainKingMoves";
 
 // smashcraft:docs/design/roster.md "Mountain King": costs, frames, damage,
@@ -12,8 +12,13 @@ import { MEDIUM, SHORT, capsule, hit } from "./mountainKingMoves";
 const H = HERO_REFERENCE_HEIGHT;
 const heights = (amount: number) => f32(H * f32(amount));
 
-// Storm Bolt: one straight, reflectable hammer; normal hitstun, no stun status.
+// Storm Bolt (#125, smashcraft:docs/design/kit-review-1.md): the hammer flies
+// out for 45 frames, then back to his body at 0.14H a frame, launching toward
+// him on the way back; neutral special while it flies calls it back at once.
 const BOLT_SPEED = heights(f32(0.12));
+const BOLT_RETURN = { age: 45, speed: heights(f32(0.14)) };
+/** Calling the hammer back: a 10-frame gesture, free. */
+const BOLT_RECALL: AuthoredSpecial = { cost: 0, endFrame: 10, recallsProjectiles: true, landingLag: 10 };
 const BOLT_RADIUS = heights(f32(0.18));
 const STORM_BOLT = hit(5.0, "LAUNCH", 65);
 
@@ -39,10 +44,54 @@ const FREE_LEAP = leap(heights(f32(1.3)), heights(0.5));
 const THUNDER_LEAP = hit(8.0, "LAUNCH", 80);
 const LEAP_HAMMER = capsule(10.0, 60.0, 30.0, f32(MEDIUM + 20.0), 16.0);
 
-// Thunder Clap: a ground-level ring of 0.85H on both sides; a jump clears it.
+// Hammerfall (#125): a special press in the leap's f16-28 hangs 3 frames, then
+// plunges straight down hammer first at 0.16H a frame: a spike against
+// airborne targets, 55 degrees against grounded ones. Landing ends it with 24
+// frames of lag; ending airborne leaves him helpless.
+const PLUNGE = heights(f32(0.16));
+const HAMMERFALL: AuthoredSpecial = {
+  cost: 0,
+  endFrame: 70,
+  motion: [{ ...frames(1, 3), velocityX: 0.0, velocityZ: 0.0 }, { ...frames(4, 70), velocityX: 0.0, velocityZ: -PLUNGE }],
+  regions: [heroRegion(4, 70, capsule(4.0, 10.0, 4.0, -24.0, 20.0), hit(12.0, "SPIKE", 270), hit(10.0, "LAUNCH", 55))],
+  landingLag: 24,
+  helpless: true,
+};
+
+// Thunder Clap (#125), charged like Donkey Kong's Giant Punch: he raises the
+// hammer over f1-9 and holds the charge f10-49. A special press in f10-29
+// slams the small Clap; in f30-49, or by running out to f50, the full Thunder
+// Clap, whose ring sends a ground wave each way; a shield press in f10-49
+// drops the charge. No armor: a hit stops it. A ground-level ring of 0.85H on
+// both sides; a jump clears ring and waves.
 const CLAP_REACH = heights(f32(0.85));
-const CLAP_FRONT = hit(10.0, "LAUNCH", 70);
-const CLAP_BACK = hit(10.0, "LAUNCH", 70, true);
+const ring = (first: number, damage: number): readonly MoveRegion[] => [
+  heroRegion(first, first + 3, capsule(0.0, 14.0, f32(CLAP_REACH - 16.0), 14.0, 16.0), hit(damage, "LAUNCH", 70)),
+  heroRegion(first, first + 3, capsule(0.0, 14.0, -f32(CLAP_REACH - 16.0), 14.0, 16.0), hit(damage, "LAUNCH", 70, true)),
+];
+const WAVE_SPEED = heights(f32(0.10));
+const wave = (spawnFrame: number, sign: number): SpecialProjectile => ({
+  spawnFrame, offsetX: f32(sign * CLAP_REACH), offsetZ: 14.0, velocityX: f32(sign * WAVE_SPEED), velocityZ: 0.0, activeFrom: 6,
+  life: 24, radius: 16.0, effect: hit(7.0, "LAUNCH", 75), reflectable: true, limit: 1,
+});
+const WAVES = (spawnFrame: number) => [wave(spawnFrame, 1), wave(spawnFrame, -1)];
+/** The small Clap: slam on f4-7 of its press, 9%; ends f28. */
+const CLAP: AuthoredSpecial = { cost: 0, endFrame: 28, regions: ring(4, 9.0) };
+/** The full Thunder Clap: slam on f4-7 of its press, 12% and both waves; ends f32. */
+const THUNDER_CLAP: AuthoredSpecial = { cost: 0, endFrame: 32, regions: ring(4, 12.0), projectiles: WAVES(4) };
+/** Dropping the charge: the action ends, so a held shield rises next frame. */
+const HOLD: AuthoredSpecial = { cost: 0, endFrame: 1 };
+const CHARGED_CLAP: AuthoredSpecial = {
+  cost: 20,
+  endFrame: 81,
+  regions: ring(53, 12.0),
+  projectiles: WAVES(53),
+  followUps: [
+    { window: frames(10, 29), special: CLAP },
+    { window: frames(30, 49), special: THUNDER_CLAP },
+    { window: frames(10, 49), input: FollowUpInput.shield, special: HOLD },
+  ],
+};
 // Air form: the hammer swings under the body, 0.55H reach, no shockwave.
 const AIR_CLAP = hit(10.0, "LAUNCH", 70);
 
@@ -54,10 +103,12 @@ export const MOUNTAIN_KING_SPECIALS: FighterSpecials = {
       endFrame: 48,
       projectiles: [{
         spawnFrame: 20, offsetX: 32.0, offsetZ: 56.0, velocityX: BOLT_SPEED, velocityZ: 0.0,
-        life: 35, radius: BOLT_RADIUS, effect: STORM_BOLT, reflectable: true, limit: 1,
+        life: 90, radius: BOLT_RADIUS, effect: STORM_BOLT, reflectable: true, limit: 1, returns: BOLT_RETURN,
       }],
       landingLag: 20,
     },
+    recall: BOLT_RECALL,
+    recallWhile: "projectile",
   },
   side: {
     ground: {
@@ -86,6 +137,7 @@ export const MOUNTAIN_KING_SPECIALS: FighterSpecials = {
       facesStick: true,
       oncePerAirtime: true,
       helpless: true,
+      followUps: [{ window: frames(16, 28), special: HAMMERFALL }],
     },
     free: {
       cost: 0,
@@ -97,14 +149,7 @@ export const MOUNTAIN_KING_SPECIALS: FighterSpecials = {
     },
   },
   down: {
-    ground: {
-      cost: 20,
-      endFrame: 53,
-      regions: [
-        heroRegion(18, 21, capsule(0.0, 14.0, f32(CLAP_REACH - 16.0), 14.0, 16.0), CLAP_FRONT),
-        heroRegion(18, 21, capsule(0.0, 14.0, -f32(CLAP_REACH - 16.0), 14.0, 16.0), CLAP_BACK),
-      ],
-    },
+    ground: CHARGED_CLAP,
     air: {
       cost: 20,
       endFrame: 53,

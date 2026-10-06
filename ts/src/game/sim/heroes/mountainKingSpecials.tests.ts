@@ -67,7 +67,7 @@ function actionLength(world: Roster, owner: Fighter, press: Readonly<Controls>):
 
 test("Mountain King's specials spend their roster costs once and end on their roster frames", () => {
   assertTrue(MOUNTAIN_KING_HERO.specials !== undefined);
-  for (const [press, cost, end] of [[neutral, 8, 48], [side, 18, 46], [down, 20, 53]] as const) {
+  for (const [press, cost, end] of [[neutral, 8, 48], [side, 18, 46], [down, 20, 81]] as const) {
     const { world, owner } = pair(1200.0);
     assertEquals(actionLength(world, owner, press), end);
     assertEquals(owner.mana.points, 100 - cost);
@@ -107,7 +107,8 @@ test("Storm Bolt flies 0.12H a frame from frame 20, one at a time, and hits once
 });
 
 test("a shielded Storm Bolt at full travel leaves the defender free before Mountain King can run in to grab", () => {
-  const travel = f32(f32(H * f32(0.12)) * 34);
+  // Its outbound flight: 45 frames from frame 20, then it turns back.
+  const travel = f32(f32(H * f32(0.12)) * 44);
   const { world, owner, target } = pair(f32(travel + 32.0));
   target.shield.raised = true;
   let blockedAt = 0;
@@ -126,29 +127,157 @@ test("a shielded Storm Bolt at full travel leaves the defender free before Mount
   assertLessThan(blockedAt + stun, 49 + runFrames);
 });
 
-test("Thunder Clap covers both sides at ground level, launches away and a jump clears it", () => {
+const run = (world: Roster, frames: number, first: Readonly<Controls> = controls(), second: Readonly<Controls> = controls()) => {
+  for (let f = 0; f < frames; f++) frame(world, first, second);
+};
+const neutralRelease = controls({ specialPressed: true });
+const guard = controls({ shield: true, shieldPressed: true, shieldTriggerActive: true });
+
+/** A Thunder Clap pressed, then released on `release` (undefined: runs out), against a target `gap` away. */
+function clap(gap: number, release: number | undefined, facing = 1, ownerFacing = facing): { world: Roster; owner: Fighter; target: Fighter } {
+  const match = pair(gap, facing);
+  match.owner.facing = ownerFacing;
+  frame(match.world, down);
+  for (let f = 2; f <= 90; f++) frame(match.world, f === release ? neutralRelease : controls());
+  return match;
+}
+
+test("Thunder Clap charges: a release in f10-29 is the 9% Clap, f30-49 the 12% Thunder Clap, and running out slams on f53", () => {
   for (const facing of [1, -1]) {
     for (const behind of [false, true]) {
-      const { world, target } = pair(f32(H * f32(0.85)), behind ? -facing : facing);
-      const owner = world.fighters[0]!;
-      owner.facing = facing;
-      frame(world, down);
-      for (let f = 2; f <= 21; f++) frame(world);
-      assertEquals(target.status.damage, 10.0);
-      assertGreaterThan(f32(f32(target.motion.x - owner.motion.x) * target.launch.knockbackX), 0.0);
+      const near = f32(H * f32(0.85));
+      const early = clap(near, 15, behind ? -facing : facing, facing);
+      assertEquals(early.target.status.damage, 9.0);
+      assertGreaterThan(Math.abs(f32(early.target.motion.x - early.owner.motion.x)), near);
+      assertEquals(clap(near, 35, behind ? -facing : facing, facing).target.status.damage, 12.0);
     }
-    const jumped = pair(f32(H * f32(0.6)), facing);
+  }
+  const { world, owner, target } = pair(f32(H * f32(0.85)));
+  frame(world, down);
+  run(world, 51);
+  assertEquals(target.status.damage, 0.0);
+  run(world, 4);
+  assertEquals(target.status.damage, 12.0);
+  assertEquals(owner.mana.points, 80);
+});
+
+test("Thunder Clap's ground waves reach about 2.4H past the ring on both sides; the small Clap sends none", () => {
+  for (const behind of [false, true]) {
+    const far = f32(H * f32(2.6));
+    assertEquals(clap(far, 35, behind ? -1 : 1).target.status.damage, 7.0);
+    assertEquals(clap(far, 15, behind ? -1 : 1).target.status.damage, 0.0);
+    assertEquals(clap(f32(H * f32(4.0)), 35).target.status.damage, 0.0);
+  }
+});
+
+test("Thunder Clap counterplay: a jump clears ring and waves, a hit during the charge stops it, and shield drops the charge", () => {
+  for (const gap of [f32(H * f32(0.6)), f32(H * f32(2.0))]) {
+    const jumped = pair(gap);
     jumped.target.motion.grounded = false;
-    jumped.target.motion.z = 60.0;
-    jumped.target.motion.vz = 0.0;
     frame(jumped.world, down);
-    for (let f = 2; f <= 21; f++) {
+    for (let f = 2; f <= 80; f++) {
       jumped.target.motion.z = 60.0;
       jumped.target.motion.vz = 0.0;
-      frame(jumped.world);
+      frame(jumped.world, f === 35 ? neutralRelease : controls());
     }
     assertEquals(jumped.target.status.damage, 0.0);
   }
+  const hit = pair(f32(H * f32(0.85)));
+  frame(hit.world, down);
+  run(hit.world, 19);
+  hit.owner.launch.hitstun = 20;
+  hit.owner.special.action = SpecialAction.none;
+  run(hit.world, 60);
+  assertEquals(hit.target.status.damage, 0.0);
+  const held = pair(1200.0);
+  frame(held.world, down);
+  run(held.world, 14);
+  frame(held.world, guard);
+  assertEquals(held.owner.special.action, SpecialAction.none);
+  run(held.world, 2, controls({ shield: true, shieldTriggerActive: true }));
+  assertTrue(held.owner.shield.raised);
+  assertEquals(held.owner.mana.points, 80);
+});
+
+test("Storm Bolt turns back after 45 frames and flies to Mountain King, who can throw again once it arrives", () => {
+  const { world, owner } = pair(1200.0);
+  frame(world, neutral);
+  run(world, 19);
+  const bolt = owner.projectiles.find(p => p.life > 0 && p.kind === ProjectileKind.hero);
+  assertTrue(bolt !== undefined);
+  if (bolt === undefined) return;
+  run(world, 44);
+  const farthest = bolt.x;
+  assertGreaterThan(farthest, f32(owner.motion.x + f32(f32(H * f32(0.12)) * 43)));
+  run(world, 2);
+  assertLessThan(bolt.x, farthest);
+  for (let f = 0; f < 60 && bolt.life > 0; f++) frame(world);
+  assertEquals(bolt.life, 0);
+  frame(world, neutral);
+  assertEquals(owner.special.action, SpecialAction.heroNeutral);
+});
+
+test("Storm Bolt recall: neutral special while it flies calls it back at once, and the return hit launches toward Mountain King", () => {
+  const { world, owner, target } = pair(f32(H * f32(1.2)));
+  target.motion.x = f32(owner.motion.x + f32(H * f32(2.4)));
+  frame(world, neutral);
+  run(world, 19);
+  const bolt = owner.projectiles.find(p => p.life > 0 && p.kind === ProjectileKind.hero);
+  if (bolt === undefined) throw new Error("no bolt");
+  // Let it pass the target's spot, standing the target clear of the outbound path.
+  const keepClear = () => { target.motion.z = 300.0; target.motion.vz = 0.0; target.motion.grounded = false; };
+  for (let f = 0; f < 29; f++) { keepClear(); frame(world); }
+  assertGreaterThan(bolt.x, target.motion.x);
+  assertEquals(owner.special.action, SpecialAction.none);
+  frame(world, neutral);
+  assertEquals(owner.mana.points, 92);
+  target.motion.z = 0.0;
+  target.motion.grounded = true;
+  target.motion.vz = 0.0;
+  run(world, 1);
+  assertLessThan(bolt.velocityX, 0.0);
+  for (let f = 0; f < 30 && target.status.damage === 0.0; f++) frame(world);
+  assertEquals(target.status.damage, 5.0);
+  assertLessThan(target.launch.knockbackX, 0.0);
+});
+
+test("Hammerfall: special in the leap's f16-28 plunges straight down, spikes an airborne target, launches a grounded one and lands with 24 frames of lag", () => {
+  const plunge = (targetAirborne: boolean, beside: boolean) => {
+    const { world, owner, target } = pair(beside ? f32(H * f32(1.5)) : 1200.0);
+    frame(world, up);
+    run(world, 19);
+    assertEquals(owner.special.action, SpecialAction.heroUp);
+    target.motion.x = beside ? f32(owner.motion.x + f32(H * f32(1.5))) : owner.motion.x;
+    if (targetAirborne) {
+      target.motion.grounded = false;
+      target.motion.z = f32(owner.motion.z - 120.0);
+    }
+    frame(world, neutralRelease);
+    const x = owner.motion.x;
+    let landed = 0;
+    let launchZ = 0.0;
+    for (let f = 2; f <= 80 && landed === 0; f++) {
+      if (launchZ === 0.0 && target.launch.knockbackZ !== 0.0) launchZ = target.launch.knockbackZ;
+      if (targetAirborne && target.status.damage === 0.0) {
+        target.motion.z = f32(owner.motion.z - 120.0) > 60.0 ? f32(owner.motion.z - 120.0) : 60.0;
+        target.motion.vz = 0.0;
+      }
+      frame(world);
+      if (owner.motion.grounded) landed = f;
+    }
+    assertGreaterThan(landed, 0);
+    assertEquals(owner.motion.x, x);
+    if (launchZ === 0.0) launchZ = target.launch.knockbackZ;
+    return { owner, target, world, launchZ };
+  };
+  const spiked = plunge(true, false);
+  assertEquals(spiked.target.status.damage, 12.0);
+  assertLessThan(spiked.launchZ, 0.0);
+  const grounded = plunge(false, false);
+  assertEquals(grounded.target.status.damage, 10.0);
+  assertGreaterThan(grounded.launchZ, 0.0);
+  assertTrue(grounded.owner.landing.lag >= 23);
+  assertEquals(plunge(false, true).target.status.damage, 0.0);
 });
 
 test("Storm Rush carries 1.2H, hits for 12 and its air form ends helpless", () => {

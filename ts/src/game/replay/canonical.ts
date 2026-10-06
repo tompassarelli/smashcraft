@@ -207,6 +207,10 @@ function specialProjectileCanonical(spec: Readonly<SpecialProjectile>, prefix: s
   }
   real("backOffsetX", spec.backOffsetX ?? -1.0);
   int("needsLineOfSight", spec.needsLineOfSight === true ? 1 : 0);
+  if (spec.returns !== undefined) {
+    int("returns.age", spec.returns.age);
+    real("returns.speed", spec.returns.speed);
+  }
   return result.join("");
 }
 
@@ -281,6 +285,7 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
   }
   if (move.placement !== undefined) result.push(specialPlacementCanonical(move.placement, `${name}.placement`));
   if (move.recall === true) int("recall", 1);
+  if (move.recallsProjectiles === true) int("recallsProjectiles", 1);
   if (move.guard !== undefined) {
     int("guard.first", move.guard.first);
     int("guard.last", move.guard.last);

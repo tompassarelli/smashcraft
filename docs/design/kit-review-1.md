@@ -185,11 +185,11 @@ tell meets a shield and an up air out of it.
 
 ### Neutral B: Storm Bolt, returning (picked)
 
-8 mana. Thrown on frame 20 as now (0.12H a frame). After 30 frames it turns
+8 mana. Thrown on frame 20 as now (0.12H a frame). After 45 frames it turns
 and flies back toward his body at 0.14H a frame until he catches it or 90
 frames pass. Pressing neutral special while it flies **calls it back** at
-once (a 10-frame gesture). Outbound 5% LAUNCH 65°; on the way back 4% that
-launches toward Mountain King, a short LINK pull. One bolt; it ends on any
+once (a 10-frame gesture). 5% LAUNCH 65° both ways: on the way back it
+launches toward Mountain King. One bolt; it ends on any
 hit, shield or reflection.
 
 Counterplay: the return flies the line between the hammer and Mountain King,
