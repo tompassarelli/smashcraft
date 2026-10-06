@@ -128,8 +128,10 @@ export interface JourneyOptions {
    * complete input workload.
    */
   readonly workload?: "match" | "playable" | "bot";
-  /** A bot session with a second computer, an Archer in slot D: four fighters. */
+  /** A bot session with a second computer, an Archer in slot D: four fighters, the frame-cost overlay shown in an undisturbed rematch. */
   readonly botFour?: boolean;
+  /** A bot session whose rematch, three fighters, is undisturbed and shows the frame-cost overlay, as --bot-four's does. */
+  readonly botPerf?: boolean;
   /** A bot session whose first match starts with #49's pad script on slot 0. */
   readonly pad49?: boolean;
   /** How the helper reads the pads; `xpad` unless replaying a capture before #49. */
@@ -365,7 +367,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
           return !(yield* ended);
         });
       // A four-fighter session measures its rematch's frame cost undisturbed, and #49's script plays alone: no stalls there.
-      const stallTimes = (options.botFour === true && epoch % 2 === 0) || (options.pad49 === true && epoch === firstEpoch) ? [] : BOT_STALLS;
+      const stallTimes = ((options.botFour === true || options.botPerf === true) && epoch % 2 === 0) || (options.pad49 === true && epoch === firstEpoch) ? [] : BOT_STALLS;
       for (const [index, offset] of stallTimes.entries()) {
         if (!(yield* playUntil(offset))) return;
         const stopped = yield* rig.stop({ kind: "game", slot: 1 });
@@ -586,7 +588,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
         yield* devCommand(epoch, `-dev batch ${batch}`, ` batch=${batch} `);
         yield* devCommand(epoch, `-dev rb ${window}`, ` rb=${window} `);
       }
-      if (bot && options.botFour === true && !odd) {
+      if (bot && (options.botFour === true || options.botPerf === true) && !odd) {
         // The frame meter registers its toggle at the first match start; its overlay shows on A for the rematch.
         yield* rig.key(0, "Return");
         yield* rig.type(0, PERF_TOGGLE);
