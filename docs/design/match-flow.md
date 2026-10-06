@@ -136,7 +136,12 @@ match, and so its countdown, begins on the callback where the last present
 player's report arrives, or after `STAGE_LOAD_TIMEOUT_FRAMES` (ten seconds), so
 a stuck client can't hold the others. Every step runs from a synchronized event,
 so all clients start together (smashcraft:ts/src/game/shell/stageLoad.ts).
-The settle time is provisional until a native timing of the slowest stage,
-Gryphon Aerie, measures it. An automatic rematch keeps its drawn stage and
+The slowest stage, Gryphon Aerie, measured natively on Smashcraft 0.0.72
+(Warcraft 3.0.0.24268, 2880x1920, one human and a computer, two samples):
+the loading screen is up 0.05 s after the press, the match starts at
+0.91-0.93 s (30 settle frames plus the sync round trip), and every deck and
+scenery piece is visible on the first unobscured frame, with nothing popping
+in afterwards. Thirty settle frames is therefore enough, and the ten-second
+timeout is about ten times the observed load. An automatic rematch keeps its drawn stage and
 starts at once, and `-dev quick` skips both the loading screen and the
 countdown.
