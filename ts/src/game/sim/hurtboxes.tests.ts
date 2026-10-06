@@ -62,11 +62,11 @@ test("intangible parts pass a strike and invincible parts spend it without damag
     target.attack.style = AttackStyle.jab;
     target.attack.frame = frame;
     resolveAttacks(world);
-    return `${target.status.damage} ${attacker.attack.hit}`;
+    return `${target.status.damage > 0.0 ? "hit" : "unhurt"} ${attacker.attack.hit ? "spent" : "free"}`;
   };
-  assertTrue(!outcome(1).startsWith("0 "));
-  assertEquals(outcome(4), "0 false");
-  assertEquals(outcome(7), "0 true");
+  assertEquals(outcome(1), "hit spent");
+  assertEquals(outcome(4), "unhurt free");
+  assertEquals(outcome(7), "unhurt spent");
 });
 
 test("a kit's hurt volumes are part of its rollback record", () => {
