@@ -35,6 +35,8 @@ Stock paths use the beam and depth limits written in each generated report.
 A read requires a sampled victim choice that escapes the committed move;
 when every choice is hit after gaining freedom, the extension is unclassified
 and is excluded from the reported stock paths.
+Stock loss is observed against those defender scripts; there is no separate
+search for a directed ledge or special recovery.
 
 From smashcraft:ts/:
 
