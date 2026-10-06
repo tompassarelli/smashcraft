@@ -69,6 +69,7 @@ import {
 import { advanceShieldBreak, beginShieldBreak } from "./shieldBreak";
 import { applyAutomaticSmashDirectionalInfluence, applySmashDirectionalInfluence } from "./smashDirectionalInfluence";
 import { surfaceCount, surfaceLeft, surfaceMoves, surfacePass, surfaceRight, surfaceShiftX, surfaceShiftZ, surfaceZ } from "./stage";
+import { inStageCannon, windPush } from "./stageHazards";
 import { stickX } from "./stick";
 import { checkBlastZone, respawnFighter } from "./stocks";
 import { advanceSurfaceRecovery, advanceWallJump, leaveMainDeckBody, resolveSolidSurfaceContacts } from "./surfaces";
@@ -315,6 +316,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   motion.deltaX = 0.0;
   motion.deltaZ = 0.0;
   if (advanceOut(world, slot, respawnX)) return;
+  if (inStageCannon(f)) return;
   // The deck this fighter stands on carried it before the frame began (carryOnMovingDecks).
   const carried = motion.grounded ? motion.surface : undefined;
   jump.inputAge =input.jumpPressed ? 0 : min(WALL_TECH_JUMP_INPUT_WINDOW_FRAMES, jump.inputAge + 1);
@@ -505,6 +507,8 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   moveMeleeVerticalVelocity(f);
   moveMeleeZ(f, divideFloat32(launch.knockbackZ, WORLD_UNITS_PER_MELEE_UNIT));
   moveMeleeZ(f, divideFloat32(shield.recoilZ, WORLD_UNITS_PER_MELEE_UNIT));
+  // Melee adds the wind to the position after the frame's velocities, before collision (fighter.c Fighter_procUpdate, windOffset).
+  if (!isGroundDodging(f)) moveMeleeX(f, windPush(stage, matchFrame, motion.x, motion.z));
   const frameDeltaX = f32(motion.x - oldX);
   let wallSide = resolveSolidSurfaceContacts(f, stage, oldX, oldZ, input);
   const landing = landingDeck(f, stage, matchFrame, oldX, oldZ, carried);

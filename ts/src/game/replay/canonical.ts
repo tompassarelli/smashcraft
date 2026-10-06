@@ -325,6 +325,9 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   int("ledgeSerial", ledge.serial);
   int("ledgeIntangible", ledge.intangible);
   int("ledgeRegrab", ledge.regrab);
+  int("cannonHeld", fighter.cannon.held ?? -1);
+  int("cannonFiring", fighter.cannon.firing ?? -1);
+  int("cannonCooldown", fighter.cannon.cooldown);
 
   real("physics.walkAccelerationMultiplier", t.physics.walkAccelerationMultiplier);
   real("physics.walkAccelerationBase", t.physics.walkAccelerationBase);

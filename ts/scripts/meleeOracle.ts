@@ -16,10 +16,17 @@ import { isIntangible } from "../src/game/sim/conditions";
 import { beginDamageContacts, collectDamageContact, finishDamageContacts } from "../src/game/sim/contacts";
 import { type Fighter, createFighter } from "../src/game/sim/fighter";
 import { uncancelledLandingLag } from "../src/game/sim/moves";
-import { DRIFTING_DECK_STAGE, MAIN_DECK_BODY_SURFACES, SOLID_DECK_TEST_STAGE, solidSurfaceAt, mainDeckRight, mainDeckZ, surfaceZ } from "../src/game/sim/stage";
+import { CANNON_TEST_STAGE, WIND_TEST_STAGE, DRIFTING_DECK_STAGE, MAIN_DECK_BODY_SURFACES, SOLID_DECK_TEST_STAGE, solidSurfaceAt, mainDeckRight, mainDeckZ, surfaceZ } from "../src/game/sim/stage";
+import { CANNON_Z, cannonX } from "../src/game/sim/stageHazards";
 import { bodyTop } from "../src/game/sim/surfaces";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "../src/game/sim/tuning";
 import { type Scene, airborne, fighter, frame, framesUntil, scene, solo, tumbling } from "./frameScene";
+import { ATTACK_BUFFER_FRAMES } from "../src/game/input/attackBuffer";
+import { TECH_WINDOW_FRAMES, TECH_REPEAT_MINIMUM_AGE_FRAMES } from "../src/game/physics/techInput";
+import { SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES } from "../src/game/sim/fighter";
+import { DEMONHUNTER_PARRY_START, DEMONHUNTER_PARRY_END } from "../src/game/sim/hits";
+import { LEDGE_INTANGIBLE_FRAMES } from "../src/game/sim/ledge";
+import { LEDGE_REGRAB_FRAMES } from "../src/game/sim/transitions";
 
 const melee = (world: number): number => world / WORLD_UNITS_PER_MELEE_UNIT;
 
@@ -622,6 +629,30 @@ const PLATFORM_LINES = "platforms are floor lines flagged LINE_FLAG_PLATFORM: mp
 const PLATFORM_PASS = "Pass needs stick y <= -PlCo +0x464 (0.66) reached under PlCo +0x468 = 6 frames ago on a platform: melee:src/melee/ft/kinds/ftCommon/ftCo_Pass.c:26 ftCo_80099F1C; mpColl skips that platform";
 
 const PLATFORMS: readonly Scenario[] = [
+  { area: "hazard", name: "Whispy's first gust moves a standing fighter", cite: "GrOp.dat yakumono_param +0x10 = 0.2; groldpupupu.c wind after blow frame 45; fighter.c Fighter_procUpdate windOffset", run: (c) => {
+    const s = solo(WIND_TEST_STAGE, c, 240.0);
+    s.game.matchFrame = 645;
+    const before = fighter(s).motion.x;
+    frame(s, []);
+    return { expected: 0.20000000298023224, actual: f32((fighter(s).motion.x - before) / WORLD_UNITS_PER_MELEE_UNIT), tolerance: 0.00001 };
+  } },
+  { area: "hazard", name: "Kongo barrel holds an untouched fighter for eight seconds", cite: "GrOk.dat rframe_barrel_shoot_a = 479 truncated and counted through zero; groldkongo.c stageGObj1_GObjProc", run: (c) => {
+    const s = solo(CANNON_TEST_STAGE, c, cannonX(1));
+    airborne(fighter(s), cannonX(1), CANNON_Z + 40.0);
+    frame(s, []);
+    let held = 0;
+    while (fighter(s).cannon.firing === undefined && held < 500) { frame(s, []); held++; }
+    return { expected: 480, actual: held };
+  } },
+  { area: "hazard", name: "Kongo barrel fires ten further frames after Attack with base knockback 180", cite: "groldkongo.c hit_timer > 0xA; GrOk.dat rradd_barrel_attack = 180; ftCo_8009EC70", run: (c) => {
+    const s = solo(CANNON_TEST_STAGE, c, cannonX(1));
+    airborne(fighter(s), cannonX(1), CANNON_Z + 40.0);
+    frame(s, []);
+    frame(s, [Action.attack]);
+    let further = 0;
+    while (fighter(s).cannon.held !== undefined && further < 20) { frame(s, []); further++; }
+    return { expected: 5.400000095367432, actual: further === 10 ? f32(fighter(s).launch.diLaunchSpeed / WORLD_UNITS_PER_MELEE_UNIT) : -1, tolerance: 0.00001 };
+  } },
   { area: "platform", name: "grounded fighter rides a moving floor in hitlag", cite: "Fighter_procUpdate adds mpGetSpeed's floor-line displacement while grounded, before its hitlag return (melee:src/melee/ft/fighter.c)", run: (c) => {
     const s = solo(DRIFTING_DECK_STAGE, c, 0.0);
     const f = fighter(s);
@@ -1185,8 +1216,28 @@ const LEDGES: readonly Scenario[] = [
 
 // ------------------------------------------------------------------ table
 
+const windowBound = (name: string, lower: number, upper: number, actual: (character: Character) => number): Scenario => ({
+  area: "execution bounds", name: `${name}: ${lower}..${upper} frames`,
+  cite: "smashcraft:docs/gameplay-design.md, Execution and reaction windows (#69), adopted 6 Oct 2026",
+  run: (character) => {
+    const frames = actual(character);
+    return { expected: `within ${lower}..${upper}`, actual: frames >= lower && frames <= upper ? `within ${lower}..${upper}` : `${frames} frames` };
+  },
+});
+
+const EXECUTION_BOUNDS: readonly Scenario[] = [
+  windowBound("tech", 11, 20, () => TECH_WINDOW_FRAMES),
+  windowBound("tech lockout", 20, 40, () => TECH_REPEAT_MINIMUM_AGE_FRAMES),
+  windowBound("human attack buffer", 4, 10, () => ATTACK_BUFFER_FRAMES),
+  windowBound("jump squat / short-hop release", 3, 5, jumpSquatFrames),
+  windowBound("parry", 6, 10, () => DEMONHUNTER_PARRY_END - DEMONHUNTER_PARRY_START + 1),
+  windowBound("optional powershield", 2, 4, () => SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES),
+  windowBound("ledge intangibility", 30, 37, () => LEDGE_INTANGIBLE_FRAMES),
+  windowBound("ledge regrab lock", 30, 60, () => LEDGE_REGRAB_FRAMES),
+];
+
 const SCENARIOS: readonly Scenario[] = [
-  ...JUMPS, ...GROUND, ...FAST_FALL, ...LANDING, ...TECHS, ...GETUPS, ...KNOCKBACK, ...PLATFORMS, ...SURFACES, ...SHIELD_AND_DODGES, ...LEDGES,
+  ...JUMPS, ...GROUND, ...FAST_FALL, ...LANDING, ...TECHS, ...GETUPS, ...KNOCKBACK, ...PLATFORMS, ...SURFACES, ...SHIELD_AND_DODGES, ...LEDGES, ...EXECUTION_BOUNDS,
   ...[59, 60, 120].map((frames): Scenario => ({
     area: "offscreen", name: `magnifier damage after ${frames} consecutive frames`,
     cite: "Fighter_procAnim, PlCo +0x7AC=60, +0x7B0=150, +0x7B4=1; ftLib_UpdateScreenVisibility; canonical 16:9 match view (#80)",

@@ -34,7 +34,7 @@ import { CameraFindings } from "../cameraFindings";
 
 const CHARACTERS: Readonly<Record<string, Character>> = { archer: Character.archer, rifleman: Character.rifleman, illidan: Character.demonHunter };
 const NAMES: Readonly<Record<number, string>> = { [Character.archer]: "Archer", [Character.rifleman]: "Rifleman", [Character.demonHunter]: "Illidan" };
-const STAGES: Readonly<Record<string, number>> = { "sky-deck": 0, "three-bridges": 1, "frozen-throne": 2, "drifting-deck": 3, "patterned-decks": 4 };
+const STAGES: Readonly<Record<string, number>> = { "sky-deck": 0, "three-bridges": 1, "frozen-throne": 2, "drifting-deck": 3, "patterned-decks": 4, "wind": 10, "carried": 11, "cannon": 12, "timed-lift": 13 };
 const FRAME_MS = 1000 / 60;
 /** A one-stock match with a one-minute clock: each ends by a KO or by time. */
 const STOCKS = 1;

@@ -268,6 +268,9 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("ledgeSerial", e.ledge.serial, a.ledge.serial);
   add("ledgeIntangible", e.ledge.intangible, a.ledge.intangible);
   add("ledgeRegrab", e.ledge.regrab, a.ledge.regrab);
+  add("cannonHeld", e.cannon.held ?? -1, a.cannon.held ?? -1);
+  add("cannonFiring", e.cannon.firing ?? -1, a.cannon.firing ?? -1);
+  add("cannonCooldown", e.cannon.cooldown, a.cannon.cooldown);
   return found;
 }
 

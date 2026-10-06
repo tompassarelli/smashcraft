@@ -14,6 +14,7 @@ import { type Roster, fighterAt, isActive } from "../sim/roster";
 import { regenerateShield } from "../sim/shield";
 import { advanceSpecials, startFighterSpecial } from "../sim/specials";
 import { advanceFighterMotion } from "../sim/step";
+import { advanceStageCannon } from "../sim/stageHazards";
 import { advanceFreezeTraps } from "../sim/summons";
 import { advanceMatchCamera } from "../sim/matchCamera";
 import { advanceOffscreenDamage } from "../sim/offscreenDamage";
@@ -77,6 +78,7 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
     observedFrameLegalActions[slot] = observedActions.legal;
     observedFrameStartedActions[slot] = observedActions.started;
   }
+  advanceStageCannon(world, stage, matchFrame, controls.inputs);
   captureGrabPauses(world);
   resolveGrabs(world);
   beginDamageContacts();

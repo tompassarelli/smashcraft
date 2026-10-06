@@ -100,6 +100,9 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   clearLedge(f);
   f.ledge.serial = 0;
   f.ledge.regrab = 0;
+  f.cannon.held = undefined;
+  f.cannon.firing = undefined;
+  f.cannon.cooldown = 0;
   clearShieldBreak(f);
   shield.breakSerial = 0;
   clearOwnedFreezeTrap(f);

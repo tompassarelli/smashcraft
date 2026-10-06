@@ -17,6 +17,11 @@ export const FROZEN_THRONE_STAGE = 2;
 export const DRIFTING_DECK_STAGE = 3;
 /** Two pass-through decks on their own timed patterns, as on Ultimate's Town and City; the stage menu doesn't offer it. */
 export const PATTERNED_DECKS_STAGE = 4;
+/** Hidden hazard test stages, never offered on the stage menu. */
+export const WIND_TEST_STAGE = 10;
+export const CARRIED_TEST_STAGE = 11;
+export const CANNON_TEST_STAGE = 12;
+export const TIMED_TEST_STAGE = 13;
 
 const MAIN_DECK_LEFT = -600.0;
 const MAIN_DECK_RIGHT = 600.0;
@@ -136,6 +141,18 @@ const LOOP_DECK = moving(120.0, 210.0, 150.0, 0, [
 ]);
 
 const NO_DECKS: readonly Deck[] = [];
+// The carried platform waits before traversing each side of its loop; the
+// timed lift waits at its extremes so the warning precedes every departure.
+const CARRIED_DECK = moving(110.0, -420.0, 120.0, 0, [
+  { frames: 60, x: -420.0, z: 120.0 },
+  { frames: 280, x: 420.0, z: 120.0 },
+  { frames: 60, x: 420.0, z: 120.0 },
+  { frames: 60, x: 420.0, z: 300.0 },
+  { frames: 60, x: 420.0, z: 300.0 },
+  { frames: 280, x: -420.0, z: 300.0 },
+  { frames: 60, x: -420.0, z: 300.0 },
+  { frames: 60, x: -420.0, z: 120.0 },
+]);
 const STAGE_DECKS: readonly (readonly Deck[])[] = [
   [MAIN_DECK],
   RAISED_DECKS,
@@ -146,8 +163,13 @@ const STAGE_DECKS: readonly (readonly Deck[])[] = [
 ];
 
 function decks(stage: number): readonly Deck[] {
+  if (stage === WIND_TEST_STAGE || stage === CANNON_TEST_STAGE) return RAISED_DECKS;
+  if (stage === CARRIED_TEST_STAGE) return CARRIED_DECKS;
+  if (stage === TIMED_TEST_STAGE) return TIMED_DECKS;
   return stage >= 0 && stage < STAGE_DECKS.length ? at(STAGE_DECKS, stage) : NO_DECKS;
 }
+const CARRIED_DECKS = [MAIN_DECK, CARRIED_DECK];
+const TIMED_DECKS = [MAIN_DECK, LIFT_DECK];
 
 /** Walkable decks. */
 export function surfaceCount(stage: number): number {
@@ -211,6 +233,18 @@ export function surfaceZ(stage: number, index: number, frame: number): number {
 /** Whether deck `index` ever moves. */
 export function surfaceMoves(stage: number, index: number): boolean {
   return at(decks(stage), index).kind === "moving";
+}
+
+/** Frames left in a moving deck's authored wait; absent while it moves. */
+export function surfaceWaitFrames(stage: number, index: number, frame: number): number | undefined {
+  const deck = at(decks(stage), index);
+  if (deck.kind === "fixed") return undefined;
+  let t = floorMod(frame + deck.phase, deck.period);
+  for (const leg of deck.legs) {
+    if (t < leg.frames) return leg.stepX === 0 && leg.stepZ === 0 ? leg.frames - t : undefined;
+    t -= leg.frames;
+  }
+  return undefined;
 }
 
 /** How far deck `index` moved sideways from the frame before `frame`. */
@@ -342,6 +376,8 @@ function raisedDeckSurfaces(raised: readonly Deck[]): SolidSurface[] {
 const SOLID_DECK_TEST_SURFACES = [...MAIN_DECK_BODY, ...raisedDeckSurfaces(SOLID_RAISED_DECKS)];
 
 function solidSurfaces(stage: number): readonly SolidSurface[] {
+  // Kongo Jungle 64 has a floor-only main deck (GrOk.dat coll_data).
+  if (stage === CANNON_TEST_STAGE) return [];
   if (stage === SOLID_DECK_TEST_STAGE) return SOLID_DECK_TEST_SURFACES;
   return surfaceCount(stage) > 0 ? MAIN_DECK_BODY : [];
 }
