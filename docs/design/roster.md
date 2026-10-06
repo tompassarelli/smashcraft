@@ -236,6 +236,8 @@ Standing grab 8/2/25, reach 0.50H. Pummel: helmet headbutt.
 - Mountain King's hurt volumes add the arm, leg or boots behind each normal from late startup through early recovery; hammer and axe stay outside them.
 - The stock model has thirteen usable sequences and no jump, hit, dodge, ledge or grab clips: hits play the opening of Death, jumps and techs the opening of Stand - 3, ledge and grab holds a held Stand Ready.
 
+**Balance** (#105, all-pairs computer field, 3 stocks): Storm Bolt 7 → 5 damage, so it covers his slow approach instead of winning neutral from range: field win rate 71% (b2ed6109, 100/pair) → 66% (20/pair), self-destructs 1%.
+
 **Gameplan** (smashcraft:ts/src/game/sim/heroes/mountainKingGameplan.ts, #105): he keeps 0.6-1.0H, at Axe Hook's tip, spacing with Axe Hook and Boot and Axe and covering his slow approach with Storm Bolt from 1.5H out; he shoots or runs in with grab, Boot and Axe and Dwarf Charge, never jumps in, and meets an attack with his shield or a spot dodge. Boot and Axe, Hammer Lift and the down throw start his strings; Mountain Breaker, Twin Lift, Backhand Axe and the back throw finish. His limited air drift is the weakness he plays around: he fights on the ground and keeps his spot 160 units inside the edge, so a launch leaves the shortest way back, and returns to the ledge with his jump before Thunder Leap.
 
 ## Warden
@@ -946,20 +948,22 @@ the gap. **Weakness:** his weight loses stocks early, and his arrows can't
 stop an approach.
 
 **Gameplan:** keeps 180–460 units away. His spacing tools are forward air at
-110–240, the arrow at 200–700 and Multishot at 160–520. He shoots (weight 2)
-or jumps in with forward or neutral air (weight 1). He answers threats by
+110–240, the arrow at 200–700 and Multishot at 160–520. His speed is his
+edge: he runs in with grab, down tilt or up tilt or jumps in with forward or
+neutral air (weight 2 each) more than he shoots (weight 1). He answers threats by
 retreating or jumping, and sometimes by shield or spot dodge. Up tilt leads
 into up air or up smash, down tilt into forward air or up tilt, and up throw
 into up air. He kills with forward smash from 90%, up smash from 100% and back
 air from 110%. He returns to the ledge or the deck and keeps the hippogryph
-until his jump is gone. He avoids close range and the edge.
+until his jump is gone. He avoids the edge.
 
 ### Rifleman
 
 **Identity:** a gunner who holds ground. He is slow on the ground (run 9.00)
 and late off it (5-frame jump squat), but floaty, heavier than Archer (80) and
 harder-hitting: his down tilt deals 10. The blaster shoots with hitstun from
-range. The bear walks ahead as cover. The freezing trap guards the gap in
+range, but each shot holds him 32 frames on the ground and 20 in the air,
+so his wall costs a commitment his slow body can't cover. The bear walks ahead as cover. The freezing trap guards the gap in
 front of him and sets up a smash. **Weakness:** he can't chase, and in close
 his slow start loses scrambles.
 
@@ -974,6 +978,20 @@ with forward smash from 80%, up smash from 95% and the recoil shot from
 100%. He returns to the ledge and spends his jump before the recoil. He
 avoids close range.
 
+### Illidan
+
+**Identity:** the original fighter with the highest air speed and the
+longest glaives (forward and back air reach 175 units, forward smash 195).
+He reaches farther and deals less: forward and back air 6 damage, forward
+smash 12, both at 85 knockback growth, and his smashes start from 20 base
+knockback like everyone's ordinary hits. **Weakness:** his light hits make
+him land more of them to take a stock.
+
+**Gameplan** (smashcraft:ts/src/game/sim/illidanGameplan.ts): he fights in
+the air at his glaives' length, forward air in and back air drifting out,
+threatens forward smash's reach on the ground, and answers a committed
+strike with Parry Step.
+
 ### Balance record
 
 Measured with `bun scripts/cpuField.ts` (both fighters computers, every
@@ -986,6 +1004,16 @@ lost with no hit taken in the previous 3 s.
 | --- | --- | --- |
 | Before gameplans (9e57c43a) | 82% / 21% | 88% / 31% |
 | Gameplans declared | 54% / 26% | 82% / 27% |
+
+From #105's balance pass the field is every pair of the ten fighters, both
+computers, every soak stage, 3 stocks: before at 100 matches a pair, tuning
+steps at 20 a pair (spawn variant 0). A self-destruct is a stock lost with no
+hit taken since the fighter last stood on a deck or held the ledge.
+
+| Change (build) | Archer | Rifleman | Illidan |
+| --- | --- | --- | --- |
+| Before the pass (b2ed6109, 100/pair) | 27%, self-destructs 1% | 85%, 0% | 82%, 1% |
+| Archer runs in on his speed; blaster 32/20 frames (was 24/15); Illidan's glaives deal less (forward/back air 8→6, forward smash 15→12, growth 100→85, smash base 28→20); Storm Bolt 7→5 | 51%, 1% | 74%, 0% | 58%, 0% |
 
 ## Implementation details for the overnight agent
 

@@ -211,7 +211,7 @@ export function attackDurationFramesForGrounding(style: AttackStyle, grounded: b
     case AttackStyle.getupAttack:
       return DOWN_ATTACK_FRAMES;
     case AttackStyle.shot:
-      return grounded ? 24 : 15;
+      return grounded ? 32 : 20;
     case AttackStyle.upSmash:
     case AttackStyle.downSmash:
       return 42;

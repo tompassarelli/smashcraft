@@ -206,8 +206,8 @@ test("simultaneousEligibleAttacksTradeInEitherOrder", () => {
   for (let frame = 1; frame <= attackStartupFrames(1) + 1; frame++) {
     stepMatch(gameA, testRoster(leftA, rightA), frameControls(leftInputA, rightInputA, leftCommandsA, rightCommandsA), frame);
   }
-  assertEquals(leftA.attack.cooldown, 22);
-  assertEquals(rightA.attack.cooldown, 22);
+  assertEquals(leftA.attack.cooldown, 30);
+  assertEquals(rightA.attack.cooldown, 30);
   for (let frame = attackStartupFrames(1) + 2; frame <= 40; frame++) {
     stepMatch(gameA, testRoster(leftA, rightA), frameControls(leftInputA, rightInputA, leftCommandsA, rightCommandsA), frame);
   }
