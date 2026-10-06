@@ -22,6 +22,7 @@ Dated trial records live in [evidence](../evidence/README.md).
 - [Hurtbox legibility](design/hurtbox-legibility.md): why Ultimate players report losing with correct spacing (hurtbox shapes per animation, interpolation, hit-pose shifts, glancing blows, randomness) and Melee's comparable cases, with sources.
 - [Projectiles](design/projectiles.md): Ultimate's projectile properties players blame, Melee's powershield and laser answers, other platform fighters, and Smashcraft's current projectiles.
 - [Archer's hippogryph specials](design/archer-specials.md): how great platform-fighter specials create decisions, and Archer's steerable ride with a leap-off and her perch-and-dive, with frame data and counterplay.
+- [Kit review 1](design/kit-review-1.md): Blademaster, Mountain King, Warden, Rifleman's recovery and Illidan scored for decisions, mixups, reads and counterplay, with redesigned specials, frame data and counterplay.
 - [Interaction graph](design/interaction-graph.md): for each situation, Smashcraft's options, what beats what by how many frames, and the punish windows, computed per fighter from its move data.
 - [Match flow](design/match-flow.md): match rules, endless play and automatic rematch, with Slippi and other platform-fighter prior art.
 - [Delivery goal](delivery-goal.md): what the finished game contains.
