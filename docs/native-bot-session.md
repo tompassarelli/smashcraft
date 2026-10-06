@@ -7,6 +7,14 @@ capture (smashcraft:ts/scripts/integrity/journey.ts). Use it for checks
 that need Warcraft itself: stall recovery, saved moments, controller rows
 and what each player sees with computer opponents.
 
+Before a session, and whenever a client misbehaves, run `bun wisp watch
+--once` instead of reading the clients' screens: it prints each client's
+state (signed in, menu screen, lobby, loading, in match, results,
+disconnected, crashed), its map's load errors and the ladder scan, from
+events (wisp:docs/watch.md). `bun wisp client wait CLIENT STATE...` waits
+for one. A capture and `bun wisp fresh` stop at once when a client crashes or
+loses Battle.net, with the evidence the watch saw.
+
 ## The session
 
 The session has a match and a rematch:
