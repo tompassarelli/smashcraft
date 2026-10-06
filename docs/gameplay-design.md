@@ -135,6 +135,8 @@ hitstun came from a throw. Standing, dash and shield grabs share this rule.
 When that hitstun ends, grabs can catch again. A follow-up strike can still hit
 during throw hitstun; if it replaces the throw's hitstun, ordinary grab
 eligibility returns. Damage-only arrows do not replace the throw's hitstun.
+A gentle landing keeps the throw's remaining hitstun instead of ending it
+early while the victim is still recovering from the landing.
 
 This removes direct throw-to-regrab chains while retaining true throw-to-attack
 combos and attack-to-grab reads. It does not grant a timed immunity after control

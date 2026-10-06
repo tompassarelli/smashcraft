@@ -1,0 +1,97 @@
+{"decision":"RESERVED","reason":"RUN","class":"moderate","requestedCpus":2,"requestedMemoryMiB":2048,"leasedCpuCeilings":16,"aggregateCpuLimit":18,"leasedMemoryMiB":31232,"cpuSomeAvg10":0.91,"memoryFullAvg10":0,"memoryAvailableMiB":73077,"reclaimed":0,"lease":"4bfb38b3-bbc8-40ed-b9e3-65e252ab3bcd","expiresAt":1791281875738}
+$ bun scripts/wisp.ts agency --attacker Archer --out "../evidence/throw-regrabs-20261006/archer.jsonl"
+ 328.623 s  starters of Archer (328.620 s)
+ 387.427 s  move comparisons' bounded true links (58.803 s)
+348 starters caught their victim; stretches over 20 frames without a frame to act on:
+  Archer up tilt on Archer: longest 62 frames at 150% (DI only on 5); by percent 0:8 50:3 100:9 150:62
+  Archer down tilt on Archer: longest 62 frames at 150% (DI only on 5); by percent 0:8 50:3 100:9 150:62
+  Archer forward smash on Archer: longest 98 frames at 100% (DI only on 9); by percent 0:15 50:27 100:98 150:86
+  Archer up smash on Archer: longest 102 frames at 100% (DI only on 8); by percent 0:13 50:17 100:102 150:89
+  Archer down smash on Archer: longest 102 frames at 100% (DI only on 8); by percent 0:13 50:17 100:102 150:89
+  Archer down special on Archer: longest 121 frames at 150% (DI only on 5); by percent 0:8 50:3 100:10 150:121
+  Archer back throw on Archer: longest 21 frames at 20% (DI only on 1); by percent 0:20 10:20 20:21 30:21 40:5 50:6 60:6 70:7 80:7 90:8 100:9 110:9 120:10 130:11 140:12 150:13
+  Archer up throw on Archer: longest 51 frames at 150% (DI only on 1); by percent 0:29 10:31 20:32 30:34 40:35 50:20 60:22 70:25 80:27 90:30 100:33 110:36 120:40 130:43 140:47 150:51
+  Archer down throw on Archer: longest 44 frames at 150% (DI only on 1); by percent 0:27 10:28 20:29 30:13 40:15 50:16 60:18 70:20 80:23 90:25 100:28 110:30 120:33 130:37 140:40 150:44
+  Archer up tilt on Rifleman: longest 61 frames at 150% (DI only on 5); by percent 0:10 50:3 100:11 150:61
+  Archer down tilt on Rifleman: longest 61 frames at 150% (DI only on 5); by percent 0:10 50:3 100:11 150:61
+  Archer forward smash on Rifleman: longest 99 frames at 100% (DI only on 9); by percent 0:18 50:25 100:99 150:87
+  Archer up smash on Rifleman: longest 104 frames at 100% (DI only on 8); by percent 0:16 50:17 100:104 150:89
+  Archer down smash on Rifleman: longest 104 frames at 100% (DI only on 8); by percent 0:16 50:17 100:104 150:89
+  Archer down special on Rifleman: longest 62 frames at 150% (DI only on 5); by percent 0:10 50:3 100:12 150:62
+  Archer back throw on Rifleman: longest 24 frames at 30% (DI only on 1); by percent 0:22 10:23 20:23 30:24 40:8 50:9 60:9 70:10 80:11 90:12 100:12 110:13 120:14 130:15 140:15 150:16
+  Archer up throw on Rifleman: longest 47 frames at 150% (DI only on 1); by percent 0:32 10:33 20:34 30:36 40:37 50:22 60:23 70:25 80:27 90:30 100:32 110:35 120:37 130:40 140:43 150:47
+  Archer down throw on Rifleman: longest 41 frames at 150% (DI only on 1); by percent 0:30 10:31 20:33 30:17 40:18 50:19 60:21 70:22 80:24 90:26 100:28 110:30 120:33 130:35 140:38 150:41
+  Archer up tilt on Illidan: longest 61 frames at 150% (DI only on 5); by percent 0:9 50:3 100:10 150:61
+  Archer down tilt on Illidan: longest 61 frames at 150% (DI only on 5); by percent 0:9 50:3 100:10 150:61
+  Archer forward smash on Illidan: longest 99 frames at 100% (DI only on 9); by percent 0:17 50:24 100:99 150:87
+  Archer up smash on Illidan: longest 104 frames at 100% (DI only on 8); by percent 0:15 50:16 100:104 150:89
+  Archer down smash on Illidan: longest 104 frames at 100% (DI only on 8); by percent 0:15 50:16 100:104 150:89
+  Archer down special on Illidan: longest 62 frames at 150% (DI only on 5); by percent 0:9 50:3 100:10 150:62
+  Archer back throw on Illidan: longest 23 frames at 30% (DI only on 1); by percent 0:21 10:22 20:22 30:23 40:7 50:7 60:8 70:9 80:9 90:10 100:11 110:11 120:12 130:13 140:14 150:15
+  Archer up throw on Illidan: longest 47 frames at 150% (DI only on 1); by percent 0:31 10:32 20:33 30:34 40:36 50:21 60:23 70:25 80:27 90:29 100:32 110:34 120:37 130:40 140:43 150:47
+  Archer down throw on Illidan: longest 40 frames at 150% (DI only on 1); by percent 0:29 10:30 20:31 30:15 40:16 50:18 60:19 70:21 80:23 90:25 100:27 110:29 120:32 130:35 140:37 150:40
+loops a repeating follow-up made (52):
+  Archer up throw on Archer from 0%: up throw again within 80 units; a 39-frame cycle, 0% to 6%, 10 frames to act on
+  Archer up throw on Archer from 10%: up throw again within 80 units; a 39-frame cycle, 10% to 16%, 8 frames to act on
+  Archer down throw on Archer from 10%: down throw again approaching, within 110 units; a 45-frame cycle, 10% to 15%, 17 frames to act on
+  Archer up throw on Archer from 20%: up throw again within 110 units; a 39-frame cycle, 20% to 26%, 7 frames to act on
+  Archer down throw on Archer from 20%: down throw again approaching, within 110 units; a 45-frame cycle, 20% to 25%, 16 frames to act on
+  Archer up throw on Archer from 30%: up throw again within 110 units; a 40-frame cycle, 36% to 42%, no frame to act on (DI only on 1); held DI, fewest frames to act on any plan leaves: up 0, up-right 10, right none loops, down-right 11, down 0, down-left 0, left 0, up-left 0
+  Archer up throw on Archer from 40%: up throw again approaching, within 80 units; a 83-frame cycle, 40% to 52%, 20 frames to act on
+  Archer up throw on Archer from 50%: up throw again approaching, within 80 units; a 41-frame cycle, 50% to 56%, 20 frames to act on
+  Archer up throw on Archer from 60%: up throw again approaching, within 80 units; a 43-frame cycle, 60% to 66%, 20 frames to act on
+  Archer down throw on Archer from 70%: down throw again approaching, within 150 units; a 45-frame cycle, 70% to 75%, 20 frames to act on
+  Archer down throw on Archer from 80%: down throw again approaching, within 150 units; a 47-frame cycle, 80% to 85%, 20 frames to act on
+  Archer down throw on Archer from 90%: down throw again approaching, within 110 units; a 51-frame cycle, 90% to 95%, 20 frames to act on
+  Archer down throw on Archer from 100%: down throw again approaching, within 110 units; a 51-frame cycle, 100% to 105%, 20 frames to act on
+  Archer down throw on Archer from 110%: down throw again approaching, within 80 units; a 55-frame cycle, 110% to 115%, 20 frames to act on
+  Archer down throw on Archer from 120%: down throw again approaching, within 80 units; a 57-frame cycle, 120% to 125%, 20 frames to act on
+  Archer down throw on Archer from 130%: down throw again approaching, within 60 units; a 59-frame cycle, 130% to 135%, 20 frames to act on
+  Archer up throw on Rifleman from 0%: up throw again within 80 units; a 39-frame cycle, 0% to 6%, 7 frames to act on
+  Archer down throw on Rifleman from 0%: down throw again approaching, within 110 units; a 45-frame cycle, 0% to 5%, 15 frames to act on
+  Archer down throw on Rifleman from 10%: down throw again approaching, within 110 units; a 45-frame cycle, 10% to 15%, 14 frames to act on
+  Archer up throw on Rifleman from 20%: up throw again within 110 units; a 40-frame cycle, 26% to 32%, no frame to act on (DI only on 1); held DI, fewest frames to act on any plan leaves: up 0, up-right 9, right 10, down-right 8, down 0, down-left 0, left 0, up-left 0
+  Archer down throw on Rifleman from 20%: down throw again approaching, within 110 units; a 47-frame cycle, 20% to 25%, 14 frames to act on
+  Archer up throw on Rifleman from 30%: up throw again approaching, within 80 units; a 84-frame cycle, 36% to 48%, no frame to act on (DI only on 2); held DI, fewest frames to act on any plan leaves: up 0, up-right 8, right 11, down-right 8, down 0, down-left 0, left 0, up-left 0
+  Archer up throw on Rifleman from 40%: up throw again approaching, within 80 units; a 83-frame cycle, 40% to 52%, 20 frames to act on
+  Archer up throw on Rifleman from 60%: up throw again approaching, within 80 units; a 43-frame cycle, 60% to 66%, 20 frames to act on
+  Archer down throw on Rifleman from 70%: down throw again approaching, within 150 units; a 45-frame cycle, 70% to 75%, 20 frames to act on
+  Archer down throw on Rifleman from 80%: down throw again approaching, within 150 units; a 47-frame cycle, 80% to 85%, 20 frames to act on
+  Archer down throw on Rifleman from 90%: down throw again approaching, within 110 units; a 51-frame cycle, 90% to 95%, 20 frames to act on
+  Archer down throw on Rifleman from 100%: down throw again approaching, within 110 units; a 51-frame cycle, 100% to 105%, 20 frames to act on
+  Archer down throw on Rifleman from 110%: down throw again approaching, within 80 units; a 55-frame cycle, 110% to 115%, 20 frames to act on
+  Archer down throw on Rifleman from 120%: down throw again approaching, within 80 units; a 57-frame cycle, 120% to 125%, 20 frames to act on
+  Archer down throw on Rifleman from 130%: down throw again approaching, within 80 units; a 57-frame cycle, 130% to 135%, 20 frames to act on
+  Archer down throw on Rifleman from 140%: down throw again approaching, within 60 units; a 59-frame cycle, 140% to 145%, 20 frames to act on
+  Archer down throw on Rifleman from 150%: down throw again approaching, within 60 units; a 61-frame cycle, 150% to 155%, 20 frames to act on
+  Archer up throw on Illidan from 0%: up throw again within 80 units; a 39-frame cycle, 0% to 6%, 8 frames to act on
+  Archer down throw on Illidan from 0%: down throw again approaching, within 110 units; a 45-frame cycle, 0% to 5%, 16 frames to act on
+  Archer up throw on Illidan from 10%: up throw again within 80 units; a 39-frame cycle, 10% to 16%, 7 frames to act on
+  Archer down throw on Illidan from 10%: down throw again approaching, within 110 units; a 45-frame cycle, 10% to 15%, 15 frames to act on
+  Archer up throw on Illidan from 20%: up throw again within 110 units; a 40-frame cycle, 26% to 32%, no frame to act on (DI only on 1); held DI, fewest frames to act on any plan leaves: up 0, up-right 10, right 11, down-right 9, down 0, down-left 0, left 0, up-left 0
+  Archer down throw on Illidan from 20%: down throw again approaching, within 110 units; a 47-frame cycle, 20% to 25%, 16 frames to act on
+  Archer up throw on Illidan from 30%: up throw again within 110 units; a 40-frame cycle, 36% to 42%, no frame to act on (DI only on 1); held DI, fewest frames to act on any plan leaves: up 0, up-right 9, right 12, down-right 10, down 0, down-left 0, left 0, up-left 0
+  Archer up throw on Illidan from 40%: up throw again approaching, within 80 units; a 83-frame cycle, 40% to 52%, 20 frames to act on
+  Archer up throw on Illidan from 50%: up throw again approaching, within 80 units; a 41-frame cycle, 50% to 56%, 20 frames to act on
+  Archer up throw on Illidan from 60%: up throw again approaching, within 80 units; a 43-frame cycle, 60% to 66%, 20 frames to act on
+  Archer down throw on Illidan from 70%: down throw again approaching, within 150 units; a 45-frame cycle, 70% to 75%, 20 frames to act on
+  Archer down throw on Illidan from 80%: down throw again approaching, within 150 units; a 47-frame cycle, 80% to 85%, 20 frames to act on
+  Archer down throw on Illidan from 90%: down throw again approaching, within 110 units; a 51-frame cycle, 90% to 95%, 20 frames to act on
+  Archer down throw on Illidan from 100%: down throw again approaching, within 110 units; a 51-frame cycle, 100% to 105%, 20 frames to act on
+  Archer down throw on Illidan from 110%: down throw again approaching, within 80 units; a 55-frame cycle, 110% to 115%, 20 frames to act on
+  Archer down throw on Illidan from 120%: down throw again approaching, within 80 units; a 57-frame cycle, 120% to 125%, 20 frames to act on
+  Archer down throw on Illidan from 130%: down throw again approaching, within 80 units; a 57-frame cycle, 130% to 135%, 20 frames to act on
+  Archer down throw on Illidan from 140%: down throw again approaching, within 60 units; a 59-frame cycle, 140% to 145%, 20 frames to act on
+  Archer down throw on Illidan from 150%: down throw again approaching, within 60 units; a 61-frame cycle, 150% to 155%, 20 frames to act on
+the move comparisons' bounded true links through the frame executor (8):
+  Archer late neutral air into jab on Rifleman at 60%, 60 apart, delay 2 approaching: contact at 19 (comparison 19); stretch 34 frames, DI only on 8; holds against 3 of 8 held DI directions (up, left, up-left)
+  Archer late neutral air into jab on Rifleman at 60%, 60 apart, delay 3 approaching: contact at 19 (comparison 19); stretch 34 frames, DI only on 8; holds against 3 of 8 held DI directions (up, left, up-left)
+  Archer late neutral air into jab on Rifleman at 60%, 60 apart, delay 4 approaching: contact at 20 (comparison 20); stretch 35 frames, DI only on 8; holds against 4 of 8 held DI directions (up, up-right, left, up-left)
+  Archer late neutral air into jab on Rifleman at 60%, 60 apart, delay 5 approaching: contact at 21 (comparison 21); stretch 36 frames, DI only on 8; holds against 4 of 8 held DI directions (up, up-right, left, up-left)
+  Archer late neutral air into forward tilt on Rifleman at 60%, 60 apart, delay 1 approaching: contact at 18 (comparison 18); stretch 25 frames, DI only on 10; holds against 4 of 8 held DI directions (up, up-right, left, up-left)
+  Archer late neutral air into forward tilt on Rifleman at 60%, 60 apart, delay 2 approaching: contact at 19 (comparison 19); stretch 26 frames, DI only on 10; holds against 4 of 8 held DI directions (up, up-right, left, up-left)
+  Archer late neutral air into forward tilt on Rifleman at 60%, 60 apart, delay 3 approaching: contact at 20 (comparison 20); stretch 27 frames, DI only on 10; holds against 4 of 8 held DI directions (up, up-right, left, up-left)
+  Archer late neutral air into forward tilt on Rifleman at 60%, 60 apart, delay 4 approaching: contact at 21 (comparison 21); stretch 28 frames, DI only on 10; holds against 4 of 8 held DI directions (up, up-right, left, up-left)
+5 loops leave the victim 3 frames or fewer to act on when it holds no direction; 0 of them do so against every held DI direction:
+ 387.441 s  agency (387.441 s)
+{"decision":"RELEASED","lease":"4bfb38b3-bbc8-40ed-b9e3-65e252ab3bcd"}
