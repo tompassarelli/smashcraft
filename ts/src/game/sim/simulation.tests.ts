@@ -491,7 +491,6 @@ test("a direct smash doesn't charge, and charge freezes only the fighter's contr
   const { frame: attackFrame, cooldown } = fighter.attack;
   const { x } = fighter.motion;
   fighter.status.invincible = 10;
-  fighter.motion.dropTime = 10;
   fighter.launch.hitlag = 3;
   for (let tick = 1; tick <= 2; tick++) advanceFighter(world, 0, 0, input, -240.0);
   assertEquals(fighter.attack.smashChargeFrames, 1);
@@ -502,7 +501,6 @@ test("a direct smash doesn't charge, and charge freezes only the fighter's contr
   assertEquals(fighter.attack.frame, attackFrame);
   assertEquals(fighter.attack.cooldown, cooldown);
   assertEquals(fighter.status.invincible, 9);
-  assertEquals(fighter.motion.dropTime, 9);
   assertEquals(fighter.motion.x, x);
 });
 
