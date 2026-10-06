@@ -7,7 +7,9 @@ import { attackBufferCanonicalState } from "../input/attackBuffer";
 import { PARTICIPANT_CAPACITY, PARTICIPANT_SLOTS, participantActive } from "../input/participants";
 import { at } from "wisp/src/runtime/lookup";
 import { floorMod } from "wisp/src/sim/intMath";
-import { SPECIAL_ACTION_CAPACITY } from "../sim/codes";
+import { AttackStyle, GrabAction, SPECIAL_ACTION_CAPACITY } from "../sim/codes";
+import type { FighterMoves } from "../sim/heroMoves";
+import type { HitEffect } from "../sim/hitRegions";
 import { PROJECTILE_CAPACITY, type Fighter } from "../sim/fighter";
 import { fighterAt, isActive } from "../sim/roster";
 import type { ReplayState } from "./snapshot";
@@ -72,6 +74,69 @@ export function canonicalBoolean(name: string, value: boolean): string {
 
 export function canonicalRealField(name: string, value: number): string {
   return `|${name}=${canonicalReal(value)}`;
+}
+
+/** Authored move values travel with tuning; absent profiles leave retained tapes unchanged. */
+export function fighterMovesCanonical(moves: FighterMoves | undefined, prefix = "moves"): string {
+  if (moves === undefined) return "";
+  let result = canonicalInt(`${prefix}.dashAttack`, moves.dashAttack);
+  const int = (name: string, value: number) => { result += canonicalInt(`${prefix}.${name}`, value); };
+  const real = (name: string, value: number) => { result += canonicalRealField(`${prefix}.${name}`, value); };
+  const effect = (name: string, hit: Readonly<HitEffect>) => {
+    real(`${name}.damage`, hit.damage);
+    real(`${name}.growth`, hit.growth);
+    real(`${name}.base`, hit.base);
+    real(`${name}.launchX`, hit.launchX);
+    real(`${name}.launchZ`, hit.launchZ);
+    int(`${name}.electric`, hit.electric ? 1 : 0);
+    int(`${name}.element`, hit.element ?? 0);
+  };
+  int("chargeFrames", moves.smashMaxChargeFrames);
+  int("maxPummels", moves.maxPummels ?? -1);
+  real("chargeMultiplier", moves.smashMaxDamageMultiplier);
+  for (let style = 0; style <= AttackStyle.dashAttack; style++) {
+    const move = moves.normals[style];
+    if (move === undefined) continue;
+    const name = `normal[${style}]`;
+    int(`${name}.startup`, move.startupFrames);
+    int(`${name}.active`, move.activeFrames);
+    int(`${name}.total`, move.totalFrames);
+    int(`${name}.landingLag`, move.landingLag);
+    real(`${name}.travel`, move.startupTravelX ?? 0.0);
+    int(`${name}.regions`, move.regions.length);
+    for (let index = 0; index < move.regions.length; index++) {
+      const region = at(move.regions, index);
+      const part = `${name}.region[${index}]`;
+      int(`${part}.first`, region.firstFrame);
+      int(`${part}.last`, region.lastFrame);
+      int(`${part}.window`, region.hit.window);
+      real(`${part}.minX`, region.hit.minX);
+      real(`${part}.maxX`, region.hit.maxX);
+      real(`${part}.minZ`, region.hit.minZ);
+      real(`${part}.maxZ`, region.hit.maxZ);
+      effect(`${part}.hit`, region.hit.effect);
+      const { strike, groundedEffect } = region.hit;
+      int(`${part}.strike`, strike === undefined ? 0 : 1);
+      if (strike !== undefined) {
+        real(`${part}.strike.x1`, strike.x1);
+        real(`${part}.strike.z1`, strike.z1);
+        real(`${part}.strike.x2`, strike.x2);
+        real(`${part}.strike.z2`, strike.z2);
+        real(`${part}.strike.radius`, strike.radius);
+      }
+      int(`${part}.groundedHit`, groundedEffect === undefined ? 0 : 1);
+      if (groundedEffect !== undefined) effect(`${part}.groundedHit`, groundedEffect);
+    }
+  }
+  for (let action = GrabAction.pummel; action <= GrabAction.throwDown; action++) {
+    const move = moves.throws[action];
+    if (move === undefined) continue;
+    const name = `throw[${action}]`;
+    int(`${name}.contact`, move.contactFrame);
+    int(`${name}.total`, move.totalFrames);
+    effect(name, move.effect);
+  }
+  return result;
 }
 
 /** Wurst's slotOf: -1 for no fighter, -2 for a fighter the roster doesn't seat. */
@@ -156,6 +221,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   bool("groundTurnRunFacingCommandLatched", g.turnRunFacingCommandLatched);
   bool("groundTurnRunPausePending", g.turnRunPausePending);
   int("character", fighter.character);
+  emit(fighterMovesCanonical(t.moves, `${prefix}.moves`));
 
   real("physics.weight", t.physics.weight);
   real("physics.gravity", t.physics.gravity);
@@ -316,6 +382,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   int("grabbedFrames", gr.grabbedFrames);
   int("grabAction", gr.action);
   int("grabFrame", gr.frame);
+  if (gr.pummels !== undefined) int("grabPummels", gr.pummels);
   int("grabSerial", gr.serial);
   int("grabMashX", gr.mashX);
   int("grabMashZ", gr.mashZ);

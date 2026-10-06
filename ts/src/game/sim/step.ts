@@ -54,7 +54,9 @@ import {
   totalVelocityZ,
 } from "./motion";
 import { observeActionDecision, observeActionStart } from "./observations";
-import { type Controls, type Roster, fighterAt } from "./roster";
+import { type Controls, type Roster, fighterAt, isActive } from "./roster";
+import { PARTICIPANT_CAPACITY } from "../input/participants";
+import { hurtCapsule } from "../physics/contactGeometry";
 import {
   SHIELD_MIN_HOLD_FRAMES,
   SHIELD_PERFECT_ACTIVE_FRAMES,
@@ -65,6 +67,7 @@ import {
   regenerateShield,
   shieldDrain,
   shieldDrainShouldResume,
+  shieldSizeMultiplier,
 } from "./shield";
 import { advanceShieldBreak, beginShieldBreak } from "./shieldBreak";
 import { applyAutomaticSmashDirectionalInfluence, applySmashDirectionalInfluence } from "./smashDirectionalInfluence";
@@ -90,6 +93,29 @@ const LATE_DASH_GUARD_GRAB_WINDOW = 3;
 /** Action bits in decision observations. */
 const GUARD_BITS = 768;
 const STEERING_BITS = 16399;
+
+/** Scripted startup travel is clamped before the body reaches a raised shield. */
+function attackStartupTravel(world: Roster, slot: number): number {
+  const f = fighterAt(world, slot);
+  const move = f.attack.style === undefined ? undefined : f.tuning.moves?.normals[f.attack.style];
+  if (move?.startupTravelX === undefined || !f.motion.grounded || f.attack.frame <= 0 || f.attack.frame > move.startupFrames) return 0.0;
+  let distance = f32(move.startupTravelX / move.startupFrames);
+  const ownRadius = hurtCapsule(f.character).radius;
+  for (let targetSlot = 0; targetSlot < PARTICIPANT_CAPACITY; targetSlot++) {
+    if (targetSlot === slot || !isActive(world, targetSlot)) continue;
+    const target = fighterAt(world, targetSlot);
+    if (!target.shield.raised || target.status.out) continue;
+    const geometry = target.tuning.shield;
+    const radius = f32(geometry.radius * shieldSizeMultiplier(target.shield.energy, target.shield.strength));
+    const centerX = f32(target.motion.x + f32(target.facing * geometry.centerX));
+    const centerZ = f32(target.motion.z + geometry.centerZ);
+    if (Math.abs(f32(centerZ - f32(f.motion.z + f.tuning.shield.centerZ))) > f32(radius + ownRadius)) continue;
+    const ahead = f32(f32(centerX - f.motion.x) * f.facing);
+    if (ahead <= 0.0) continue;
+    distance = min(distance, max(0.0, f32(ahead - f32(radius + ownRadius))));
+  }
+  return f32(distance * f.facing);
+}
 
 /** Advances one fighter's frame and regenerates its shield; `matchFrame` places moving decks, and a stage at rest needs none. */
 export function advanceFighter(world: Roster, slot: number, stage: number, input: Readonly<Controls>, respawnX: number, matchFrame = 0): void {
@@ -138,7 +164,7 @@ function advanceActionClocks(f: Fighter, input: Readonly<Controls>): boolean {
   const { attack, special } = f;
   let smashChargePaused = false;
   if (attack.smashCharging) {
-    if (f.motion.grounded && input.attackHeld && attack.smashChargeFrames < SMASH_MAX_CHARGE_FRAMES) {
+    if (f.motion.grounded && input.attackHeld && attack.smashChargeFrames < (f.tuning.moves?.smashMaxChargeFrames ?? SMASH_MAX_CHARGE_FRAMES)) {
       attack.smashChargeFrames++;
       smashChargePaused = true;
     } else {
@@ -146,7 +172,7 @@ function advanceActionClocks(f: Fighter, input: Readonly<Controls>): boolean {
       attack.smashChargeAllowed = false;
     }
   } else if (f.motion.grounded && attack.style !== undefined && attack.smashChargeAllowed && isSmashAttack(attack.style)
-    && input.attackHeld && attack.frame >= attackStartupFrames(attack.style) - 1) {
+    && input.attackHeld && attack.frame >= attackStartupFrames(attack.style, f.tuning.moves) - 1) {
     attack.smashCharging = true;
     attack.smashChargeFrames = 1;
     smashChargePaused = true;
@@ -488,6 +514,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   }
   const oldX = motion.x;
   const oldZ = motion.z;
+  dashEntryDisplacementAdjustment = f32(dashEntryDisplacementAdjustment + attackStartupTravel(world, slot));
   decayKnockback(f);
   decayShieldMotion(f);
   if (dodgeActive && !motion.grounded) {

@@ -122,8 +122,9 @@ export function canStartAttackStyle(attacker: Fighter, style: AttackStyle | unde
 export function attackPhase(f: Fighter): AttackPhase {
   const { style, frame, dashGrab } = f.attack;
   if (style === undefined) return AttackPhase.none;
-  const startup = dashGrab ? f.tuning.dashGrab.startupFrames : attackStartupFrames(style);
-  const active = dashGrab ? f.tuning.dashGrab.activeFrames : characterAttackActiveFrames(f.character, style);
+  const authoredGrab = f.tuning.moves?.normals[AttackStyle.grab];
+  const startup = dashGrab ? authoredGrab === undefined ? f.tuning.dashGrab.startupFrames : authoredGrab.startupFrames + 3 : attackStartupFrames(style, f.tuning.moves);
+  const active = dashGrab ? authoredGrab === undefined ? f.tuning.dashGrab.activeFrames : authoredGrab.activeFrames : characterAttackActiveFrames(f.character, style, f.tuning.moves);
   if (frame < startup) return AttackPhase.startup;
   return frame < startup + active ? AttackPhase.active : AttackPhase.recovery;
 }

@@ -59,6 +59,7 @@ function catchTarget(world: Roster, attackerSlot: number, targetSlot: number): v
   clearGrabLinks(world, attackerSlot);
   clearGrabLinks(world, targetSlot);
   attacker.grab.target = targetSlot;
+  attacker.grab.pummels = attacker.tuning.moves?.maxPummels === undefined ? undefined : 0;
   target.grab.owner = attackerSlot;
   target.visuals.grab++;
   cancelAttack(attacker);

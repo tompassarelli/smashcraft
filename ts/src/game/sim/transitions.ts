@@ -283,11 +283,15 @@ export function beginAttack(attacker: Fighter, style: AttackStyle, mayCharge: bo
   attack.style = resolvedStyle;
   attack.dashGrab = isDashGrab;
   attack.frame = 0;
-  attack.duration = isDashGrab ? attacker.tuning.dashGrab.totalFrames : attackDurationFramesForGrounding(resolvedStyle, attacker.motion.grounded);
+  const authoredGrab = attacker.tuning.moves?.normals[AttackStyle.grab];
+  attack.duration = isDashGrab
+    ? authoredGrab === undefined ? attacker.tuning.dashGrab.totalFrames : authoredGrab.totalFrames + 11
+    : attackDurationFramesForGrounding(resolvedStyle, attacker.motion.grounded, attacker.tuning.moves);
   attack.serial++;
   attack.hit = false;
   attack.smashCharging = false;
   attack.smashChargeFrames = 0;
   attack.smashChargeAllowed = isSmashAttack(resolvedStyle) && mayCharge;
   attack.cooldown = attack.duration;
+  if (attacker.tuning.moves?.normals[resolvedStyle]?.startupTravelX !== undefined) attacker.motion.vx = 0.0;
 }

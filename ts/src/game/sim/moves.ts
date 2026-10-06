@@ -4,6 +4,7 @@ import { max, min, toInt } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { idiv } from "wisp/src/sim/intMath";
 import { AttackStyle, Character, GrabAction } from "./codes";
+import type { FighterMoves } from "./heroMoves";
 
 export const SMASH_MAX_CHARGE_FRAMES = 60;
 export const SMASH_MAX_DAMAGE_MULTIPLIER = 1.3671000003814697;
@@ -53,13 +54,15 @@ export function uncancelledLandingLag(style: AttackStyle | undefined): number {
 }
 
 /** The landing lag an aerial lands with, always Melee's L-cancelled lag: half, at least one; zero for other actions. */
-export function attackLandingLag(style: AttackStyle | undefined): number {
+export function attackLandingLag(style: AttackStyle | undefined, moves?: FighterMoves): number {
+  if (style !== undefined && moves?.normals[style] !== undefined) return moves.normals[style].landingLag;
   const lag = uncancelledLandingLag(style);
   return lag > 0 ? max(1, idiv(lag, 2)) : 0;
 }
 
 export function attackDamage(style: AttackStyle): number {
   switch (style) {
+    case AttackStyle.dashAttack:
     case AttackStyle.demonHunterDashAttack:
     case AttackStyle.downAir:
       return 9.0;
@@ -93,9 +96,11 @@ export function attackDamage(style: AttackStyle): number {
 }
 
 /** Damage scale of a smash charged for chargeFrames, linear up to SMASH_MAX_CHARGE_FRAMES. */
-export function smashDamageMultiplier(chargeFrames: number): number {
-  const charge = max(0, min(SMASH_MAX_CHARGE_FRAMES, chargeFrames));
-  return f32(1.0 + f32(f32(f32(SMASH_MAX_DAMAGE_MULTIPLIER - 1.0) * charge) / SMASH_MAX_CHARGE_FRAMES));
+export function smashDamageMultiplier(chargeFrames: number, moves?: FighterMoves): number {
+  const frames = moves?.smashMaxChargeFrames ?? SMASH_MAX_CHARGE_FRAMES;
+  const multiplier = moves?.smashMaxDamageMultiplier ?? SMASH_MAX_DAMAGE_MULTIPLIER;
+  const charge = max(0, min(frames, chargeFrames));
+  return f32(1.0 + f32(f32(f32(multiplier - 1.0) * charge) / frames));
 }
 
 export function attackReach(style: AttackStyle): number {
@@ -115,11 +120,14 @@ export function attackReach(style: AttackStyle): number {
 }
 
 /** Frames before the first active frame; attackFrame zero is the start tick (reference frame one). */
-export function attackStartupFrames(style: AttackStyle): number {
+export function attackStartupFrames(style: AttackStyle, moves?: FighterMoves): number {
+  const authored = moves?.normals[style];
+  if (authored !== undefined) return authored.startupFrames;
   switch (style) {
     case AttackStyle.ledgeAttack:
       return 16;
     case AttackStyle.demonHunterDashAttack:
+    case AttackStyle.dashAttack:
     case AttackStyle.jab:
       return 4;
     case AttackStyle.neutralAir:
@@ -170,7 +178,9 @@ export function attackActiveFrames(style: AttackStyle): number {
   }
 }
 
-export function characterAttackActiveFrames(character: Character, style: AttackStyle): number {
+export function characterAttackActiveFrames(character: Character, style: AttackStyle, moves?: FighterMoves): number {
+  const authored = moves?.normals[style];
+  if (authored !== undefined) return authored.activeFrames;
   return character === Character.archer && style === AttackStyle.downAir ? ARCHER_DOWN_ACTIVE_FRAMES : attackActiveFrames(style);
 }
 
@@ -179,11 +189,14 @@ export function attackDurationFrames(style: AttackStyle): number {
 }
 
 /** Total frames; only the shot is shorter in the air. */
-export function attackDurationFramesForGrounding(style: AttackStyle, grounded: boolean): number {
+export function attackDurationFramesForGrounding(style: AttackStyle, grounded: boolean, moves?: FighterMoves): number {
+  const authored = moves?.normals[style];
+  if (authored !== undefined) return authored.totalFrames;
   switch (style) {
     case AttackStyle.ledgeAttack:
       return LEDGE_ATTACK_FRAMES;
     case AttackStyle.demonHunterDashAttack:
+    case AttackStyle.dashAttack:
       return 32;
     case AttackStyle.neutralAir:
       return 41;
@@ -216,8 +229,8 @@ export function attackDurationFramesForGrounding(style: AttackStyle, grounded: b
   }
 }
 
-export function attackRecoveryFrames(character: Character, style: AttackStyle, grounded: boolean): number {
-  return attackDurationFramesForGrounding(style, grounded) - attackStartupFrames(style) - characterAttackActiveFrames(character, style);
+export function attackRecoveryFrames(character: Character, style: AttackStyle, grounded: boolean, moves?: FighterMoves): number {
+  return attackDurationFramesForGrounding(style, grounded, moves) - attackStartupFrames(style, moves) - characterAttackActiveFrames(character, style, moves);
 }
 
 export const GRAB_HOLD_FRAMES = 76;
@@ -229,7 +242,9 @@ export function grabHoldFrames(damage: number): number {
 }
 
 /** The one-based action frame, counting entry, on which a pummel or throw connects. */
-export function grabContactFrame(action: GrabAction): number {
+export function grabContactFrame(action: GrabAction, moves?: FighterMoves): number {
+  const authored = moves?.throws[action];
+  if (authored !== undefined) return authored.contactFrame;
   switch (action) {
     case GrabAction.pummel:
       return 5;
@@ -242,7 +257,9 @@ export function grabContactFrame(action: GrabAction): number {
   }
 }
 
-export function grabActionDuration(action: GrabAction): number {
+export function grabActionDuration(action: GrabAction, moves?: FighterMoves): number {
+  const authored = moves?.throws[action];
+  if (authored !== undefined) return authored.totalFrames;
   switch (action) {
     case GrabAction.pummel:
       return 24;

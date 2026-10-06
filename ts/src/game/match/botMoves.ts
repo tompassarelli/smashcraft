@@ -11,6 +11,7 @@ import { canAttack } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../sim/hitRegions";
 import { attackStartupFrames } from "../sim/moves";
+import type { FighterMoves } from "../sim/heroMoves";
 import type { Controls } from "../sim/roster";
 import { immolationRegion } from "../sim/specials";
 import { safeAt, slideStaysOnDeck } from "./botFooting";
@@ -58,18 +59,18 @@ const scratchCapsule = emptyCapsule();
 const options: number[] = [];
 
 /** The first active frame's strike of a move, facing right: where its [minX, maxX, minZ, maxZ] start in strikeBounds. */
-function strikeIndex(character: Character, style: AttackStyle): number {
+function strikeIndex(character: Character, style: AttackStyle, moves?: FighterMoves): number {
   const slot = character * STYLE_SLOTS + style;
   const index = slot * 4;
-  if (strikeFilled[slot] === true) return index;
-  const startup = attackStartupFrames(style);
+  if (moves === undefined && strikeFilled[slot] === true) return index;
+  const startup = attackStartupFrames(style, moves);
   let found = false;
   let minX = 1.0;
   let maxX = 0.0;
   let minZ = 0.0;
   let maxZ = 0.0;
-  for (let part = 0; part < authoredHitRegionCount(style); part++) {
-    const region = authoredHitRegion(scratchRegion, character, style, startup, 0, part);
+  for (let part = 0; part < authoredHitRegionCount(style, moves); part++) {
+    const region = authoredHitRegion(scratchRegion, character, style, startup, 0, part, moves);
     if (region.window <= 0) continue;
     let low = region.minX;
     let high = region.maxX;
@@ -93,13 +94,13 @@ function strikeIndex(character: Character, style: AttackStyle): number {
   strikeBounds[index + 1] = maxX;
   strikeBounds[index + 2] = minZ;
   strikeBounds[index + 3] = maxZ;
-  strikeFilled[slot] = true;
+  strikeFilled[slot] = moves === undefined;
   return index;
 }
 
 /** Whether `style` from the attacker strikes a target whose position is localX ahead and localZ above it. */
-export function moveReaches(character: Character, style: AttackStyle, target: Readonly<Fighter>, localX: number, localZ: number): boolean {
-  const index = strikeIndex(character, style);
+export function moveReaches(character: Character, style: AttackStyle, target: Readonly<Fighter>, localX: number, localZ: number, moves?: FighterMoves): boolean {
+  const index = strikeIndex(character, style, moves);
   const minX = at(strikeBounds, index);
   const maxX = at(strikeBounds, index + 1);
   const minZ = at(strikeBounds, index + 2);
@@ -242,22 +243,22 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
   let count = 0;
   if (canAttack(f) || f.shield.raised) {
     if (f.motion.grounded) {
-      const dashing = f.character === Character.demonHunter && f.ground.dashFrame > 0;
+      const dashing = f.ground.dashFrame > 0 && (f.character === Character.demonHunter || f.tuning.moves !== undefined);
       for (const move of GROUND_MOVES) {
         // A shield lets go only for a grab; a shielding target invites one.
         if (f.shield.raised && move !== AttackStyle.grab) continue;
-        const style = dashing && move === AttackStyle.jab ? AttackStyle.demonHunterDashAttack : move;
-        const frames = attackStartupFrames(style);
+        const style = dashing && move === AttackStyle.jab ? f.tuning.moves?.dashAttack ?? AttackStyle.demonHunterDashAttack : move;
+        const frames = attackStartupFrames(style, f.tuning.moves);
         const x = aheadX(f, target, frames);
-        if (!moveReaches(f.character, style, target, Math.abs(x), aheadZ(f, target, frames))) continue;
+        if (!moveReaches(f.character, style, target, Math.abs(x), aheadZ(f, target, frames), f.tuning.moves)) continue;
         options[count++] = move;
         // A grab counts twice: one of ten moves in reach would rarely be it.
         if (move === AttackStyle.grab) options[count++] = move;
       }
     } else {
       for (const aerial of AERIALS) {
-        const frames = attackStartupFrames(aerial);
-        if (moveReaches(f.character, aerial, target, f32(aheadX(f, target, frames) * f.facing), aheadZ(f, target, frames))) options[count++] = aerial;
+        const frames = attackStartupFrames(aerial, f.tuning.moves);
+        if (moveReaches(f.character, aerial, target, f32(aheadX(f, target, frames) * f.facing), aheadZ(f, target, frames), f.tuning.moves)) options[count++] = aerial;
       }
     }
   }

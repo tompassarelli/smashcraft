@@ -16,6 +16,7 @@ interface Capsule {
 
 /** An authored hit region's reach, relative to a fighter facing right. */
 interface Reach {
+  readonly strike?: Readonly<Capsule> | undefined;
   readonly minX: number;
   readonly maxX: number;
   readonly minZ: number;
@@ -154,6 +155,15 @@ export function placeCapsule(target: Capsule, local: Readonly<Capsule>, originX:
  * make a jab a vertical strike.
  */
 export function attackCapsule(target: Capsule, style: number | undefined, reach: Reach): Capsule {
+  const authored = reach.strike;
+  if (authored !== undefined) {
+    target.x1 = authored.x1;
+    target.z1 = authored.z1;
+    target.x2 = authored.x2;
+    target.z2 = authored.z2;
+    target.radius = authored.radius;
+    return target;
+  }
   const { minX, maxX, minZ, maxZ } = reach;
   if (style === 0) { // jab
     target.x1 = 0.0;

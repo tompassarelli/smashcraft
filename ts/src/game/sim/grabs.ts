@@ -3,7 +3,7 @@ import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { ContactKind, GrabAction } from "./codes";
 import { finishDamageContacts, openDamageContacts, queueDamageContact } from "./contacts";
-import { emptyHitEffect } from "./hitRegions";
+import { copyHitEffect, emptyHitEffect } from "./hitRegions";
 import { GRAB_HOLD_DISTANCE, grabActionDuration, grabContactFrame } from "./moves";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type Controls, type Roster, controlsAt, fighterAt, isActive } from "./roster";
@@ -36,7 +36,9 @@ function releaseThrow(world: Roster, ownerSlot: number, targetSlot: number, targ
   throwHit.base = down ? 55.0 : 45.0;
   throwHit.launchX = up ? 0.17364799976348877 : down ? 0.3420200049877167 : 0.8660249710083008;
   throwHit.launchZ = up ? 0.9848080277442932 : down ? 0.9396929740905762 : 0.5;
-  const direction = action === GrabAction.throwBack ? -owner.facing : owner.facing;
+  const authored = owner.tuning.moves?.throws[action];
+  if (authored !== undefined) copyHitEffect(throwHit, authored.effect);
+  const direction = authored !== undefined ? owner.facing : action === GrabAction.throwBack ? -owner.facing : owner.facing;
   queueDamageContact(world, ownerSlot, targetSlot, throwHit, direction, ContactKind.throw, false, targetInput);
   // Release changes ground-contact eligibility before later trap/catch checks.
   target.motion.grounded = false;
@@ -64,7 +66,7 @@ function resolveHeldTarget(world: Roster, ownerSlot: number): void {
   held.z = owner.motion.z;
   const { action, frame } = owner.grab;
   if (action >= GrabAction.throwForward && action <= GrabAction.throwDown) {
-    const progress = min(1.0, f32(f32(frame * 1.0) / grabContactFrame(action)));
+    const progress = min(1.0, f32(f32(frame * 1.0) / grabContactFrame(action, owner.tuning.moves)));
     const swing = f32(f32(2 * progress) - 1);
     const arc = f32(1 - f32(swing * swing));
     if (action === GrabAction.throwBack) {
@@ -106,19 +108,26 @@ function advanceGrab(world: Roster, ownerSlot: number, ownerInput: Readonly<Cont
     }
   }
   if (grab.action === GrabAction.hold) {
-    if (ownerInput.attackPressed) beginGrabAction(owner, GrabAction.pummel);
+    const pummelLimit = owner.tuning.moves?.maxPummels;
+    const throwRequested = ownerInput.grabThrowZ !== 0 || ownerInput.grabThrowX !== 0;
+    const mayPummel = pummelLimit === undefined || ((grab.pummels ?? 0) < pummelLimit && !throwRequested);
+    if (ownerInput.attackPressed && mayPummel) beginGrabAction(owner, GrabAction.pummel);
     else if (ownerInput.grabThrowZ !== 0) beginGrabAction(owner, ownerInput.grabThrowZ > 0 ? GrabAction.throwUp : GrabAction.throwDown);
     else if (ownerInput.grabThrowX !== 0) beginGrabAction(owner, ownerInput.grabThrowX === owner.facing ? GrabAction.throwForward : GrabAction.throwBack);
-  } else if (grab.frame >= grabActionDuration(grab.action)) {
+  } else if (grab.frame >= grabActionDuration(grab.action, owner.tuning.moves)) {
     grab.action = targetSlot === undefined ? GrabAction.none : GrabAction.hold;
     grab.frame = 0;
   } else {
     grab.frame++;
   }
-  if (targetSlot !== undefined && grab.action >= GrabAction.pummel && grab.action <= GrabAction.throwDown && grab.frame === grabContactFrame(grab.action)) {
+  if (targetSlot !== undefined && grab.action >= GrabAction.pummel && grab.action <= GrabAction.throwDown && grab.frame === grabContactFrame(grab.action, owner.tuning.moves)) {
     resolveHeldTarget(world, ownerSlot);
     // A hold broken just now still delivers its contact, as a throw.
-    if (grab.action === GrabAction.pummel) queueDamageContact(world, ownerSlot, targetSlot, PUMMEL_HIT, owner.facing, ContactKind.pummel, true, undefined);
+    if (grab.action === GrabAction.pummel) {
+      const hit = owner.tuning.moves?.throws[GrabAction.pummel]?.effect ?? PUMMEL_HIT;
+      if (owner.tuning.moves?.maxPummels !== undefined) grab.pummels = (grab.pummels ?? 0) + 1;
+      queueDamageContact(world, ownerSlot, targetSlot, hit, owner.facing, ContactKind.pummel, true, undefined);
+    }
     else releaseThrow(world, ownerSlot, targetSlot, targetInput);
   }
 }

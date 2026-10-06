@@ -110,6 +110,7 @@ export const AttackStyle = {
   downAir: 16,
   ledgeAttack: 17,
   demonHunterDashAttack: 18,
+  dashAttack: 19,
 } as const;
 export type AttackStyle = (typeof AttackStyle)[keyof typeof AttackStyle];
 

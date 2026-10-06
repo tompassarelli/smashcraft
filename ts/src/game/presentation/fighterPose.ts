@@ -280,10 +280,10 @@ function selectGrabClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly
     else selectFighterClipIndex(pose, grabClipIndex(f.character, action, victim));
     pose.animation = key;
   }
-  if (illidanEscape) return clipRate(dh.DEMON_HUNTER_GRAB_ESCAPE_SECONDS, grabActionDuration(action));
+  if (illidanEscape) return clipRate(dh.DEMON_HUNTER_GRAB_ESCAPE_SECONDS, grabActionDuration(action, f.tuning.moves));
   // Both sides play at the holder clip's rate.
   const actionClips = clips.grabActionClips(action);
-  return actionClips === undefined ? 0.0 : clipRate(actionClips.holder[f.character].seconds, grabActionDuration(action));
+  return actionClips === undefined ? 0.0 : clipRate(actionClips.holder[f.character].seconds, grabActionDuration(action, f.tuning.moves));
 }
 
 /** Illidan's own clips for dodges, landings, shielding, smash charges, respawns and ledge jumps. */
@@ -327,7 +327,7 @@ function selectIllidanAction(pose: FighterPose, f: Readonly<Fighter>): number | 
       selectFighterClipIndex(pose, release.index);
       pose.animation = "smash-release";
     }
-    return clipRate(release.seconds, attack.duration - attackStartupFrames(style));
+    return clipRate(release.seconds, attack.duration - attackStartupFrames(style, f.tuning.moves));
   }
   if (pose.motion.respawnRemaining > 0) {
     playIndex(pose, "respawn", dh.DEMON_HUNTER_RESPAWN_INDEX);

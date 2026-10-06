@@ -33,14 +33,14 @@ type Response = (typeof Response)[keyof typeof Response];
 function strikeComing(f: Readonly<Fighter>, target: Readonly<Fighter>): number | undefined {
   const style = target.attack.style;
   if (style === undefined || style === AttackStyle.shot || style === AttackStyle.grab) return undefined;
-  const startup = attackStartupFrames(style);
+  const startup = attackStartupFrames(style, target.tuning.moves);
   const { frame } = target.attack;
-  if (frame >= startup + characterAttackActiveFrames(target.character, style)) return undefined;
+  if (frame >= startup + characterAttackActiveFrames(target.character, style, target.tuning.moves)) return undefined;
   const frames = Math.max(0, startup - frame);
   if (frames > STRIKE_LOOKAHEAD) return undefined;
   const x = f32(f32(f.motion.x - target.motion.x) + f32(f32(f.motion.deltaX - target.motion.deltaX) * frames));
   const z = f32(f32(f.motion.z - target.motion.z) + f32(f32(f.motion.deltaZ - target.motion.deltaZ) * frames));
-  return moveReaches(target.character, style, f, f32(x * target.facing), z) ? frames : undefined;
+  return moveReaches(target.character, style, f, f32(x * target.facing), z, target.tuning.moves) ? frames : undefined;
 }
 
 // Preallocated: the threat each frame's defense weighs, with the frames until it arrives (-1 when unknown).

@@ -22,6 +22,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   tuning.shield = sourceTuning.shield;
   tuning.tech = sourceTuning.tech;
   tuning.shieldBreak = sourceTuning.shieldBreak;
+  tuning.moves = sourceTuning.moves;
 
   const motion = target.motion;
   const sourceMotion = source.motion;
@@ -267,6 +268,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   grab.action = sourceGrab.action;
   grab.frame = sourceGrab.frame;
   grab.serial = sourceGrab.serial;
+  grab.pummels = sourceGrab.pummels;
   grab.mashX = sourceGrab.mashX;
   grab.mashZ = sourceGrab.mashZ;
   grab.owner = retained(activeMask, sourceGrab.owner);

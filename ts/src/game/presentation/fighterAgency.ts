@@ -33,7 +33,7 @@ export class FighterAgencyForecast {
         return owner.launch.hitlag > 0 || f.launch.hitlag > 0 ? "none" : "act";
       }
       const releasing = owner.launch.hitlag <= 0 && f.launch.hitlag <= 0
-        && owner.grab.frame + 1 === grabContactFrame(owner.grab.action);
+        && owner.grab.frame + 1 === grabContactFrame(owner.grab.action, owner.tuning.moves);
       return releasing ? "di" : "none";
     }
     if (f.status.frozenFrames === 0 && f.launch.hitlag === 0

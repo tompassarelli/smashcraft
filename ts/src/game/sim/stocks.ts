@@ -192,6 +192,7 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   f.grab.grabbedFrames = 0;
   shield.heldFrames = 0;
   f.grab.serial = 0;
+  f.grab.pummels = undefined;
   shield.releaseLag = 0;
   status.invincible = RESPAWN_INVINCIBLE_FRAMES;
 }

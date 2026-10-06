@@ -12,7 +12,7 @@ import { PROJECTILE_CAPACITY, type Fighter, type MeleeMotionValue, type Projecti
 import { fighterAt, isActive } from "../sim/roster";
 import type { DashGrabRules, FighterPhysics, GroundMovementRules, ShieldGeometry, SurfaceRecoveryPhysics } from "../sim/tuning";
 import { at } from "wisp/src/runtime/lookup";
-import { canonicalSlot } from "./canonical";
+import { canonicalSlot, fighterMovesCanonical } from "./canonical";
 import type { ReplayState } from "./snapshot";
 
 type Value = number | boolean | undefined;
@@ -67,6 +67,7 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   const a = actual;
   const expectedTuning = e.tuning;
   const actualTuning = a.tuning;
+  if (expectedTuning.moves !== actualTuning.moves && fighterMovesCanonical(expectedTuning.moves) !== fighterMovesCanonical(actualTuning.moves)) found = "moves";
   add("character", e.character, a.character);
   record("physics", expectedTuning.physics, actualTuning.physics, PHYSICS_KEYS);
   record("surfacePhysics", expectedTuning.surface, actualTuning.surface, SURFACE_PHYSICS_KEYS);
@@ -263,6 +264,7 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("grabbedFrames", e.grab.grabbedFrames, a.grab.grabbedFrames);
   add("grabAction", e.grab.action, a.grab.action);
   add("grabFrame", e.grab.frame, a.grab.frame);
+  add("grabPummels", e.grab.pummels, a.grab.pummels);
   add("grabSerial", e.grab.serial, a.grab.serial);
   add("grabMashX", e.grab.mashX, a.grab.mashX);
   add("grabMashZ", e.grab.mashZ, a.grab.mashZ);

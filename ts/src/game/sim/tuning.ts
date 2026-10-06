@@ -6,6 +6,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character } from "./codes";
 import { attackDurationFramesForGrounding, attackStartupFrames } from "./moves";
 import type { Roster } from "./roster";
+import type { FighterMoves } from "./heroMoves";
 
 export const WORLD_UNITS_PER_MELEE_UNIT = 6.0;
 
@@ -92,6 +93,7 @@ interface ShieldBreakTiming {
 
 /** Every tuning record a fighter carries; each is replaced whole, never edited in place. */
 export interface FighterTuning {
+  moves?: FighterMoves | undefined;
   physics: FighterPhysics;
   surface: SurfaceRecoveryPhysics;
   ground: GroundMovementRules;

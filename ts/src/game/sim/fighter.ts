@@ -312,6 +312,7 @@ interface SurfaceRecovery {
 }
 
 interface Grab {
+  pummels?: number | undefined;
   /** Frames left before a held fighter breaks free. */
   grabbedFrames: number;
   action: GrabAction;

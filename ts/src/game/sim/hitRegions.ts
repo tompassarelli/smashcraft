@@ -4,6 +4,7 @@
 // explicitly permit a later hit of the same target.
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character } from "./codes";
+import type { FighterMoves, StrikeCapsule } from "./heroMoves";
 import { DIAGONAL_UNIT, ORDINARY_HIT_BASE_KNOCKBACK, ORDINARY_HIT_GROWTH_PERCENT } from "./knockback";
 import {
   DOWN_ATTACK_BASE_KNOCKBACK,
@@ -32,6 +33,8 @@ export interface HitEffect {
 }
 
 export interface HitRegion {
+  strike?: StrikeCapsule | undefined;
+  groundedEffect?: Readonly<HitEffect> | undefined;
   minX: number;
   maxX: number;
   minZ: number;
@@ -59,6 +62,8 @@ export function copyHitEffect(target: HitEffect, source: Readonly<HitEffect>): v
 }
 
 export function copyHitRegion(target: HitRegion, source: Readonly<HitRegion>): void {
+  target.strike = source.strike;
+  target.groundedEffect = source.groundedEffect;
   target.minX = source.minX;
   target.maxX = source.maxX;
   target.minZ = source.minZ;
@@ -147,7 +152,9 @@ const DOWN_AIR = downAir(-95.0, 95.0, attackDamage(AttackStyle.downAir));
 // over the shared down tilt's 8.
 const RIFLEMAN_DOWN_TILT = ordinary(0.0, attackReach(AttackStyle.downTilt), -130.0, 130.0, 10.0);
 
-export function authoredHitRegionCount(style: AttackStyle | undefined): number {
+export function authoredHitRegionCount(style: AttackStyle | undefined, moves?: FighterMoves): number {
+  const authored = style === undefined ? undefined : moves?.normals[style];
+  if (authored !== undefined) return authored.regions.length;
   return style === AttackStyle.forwardTilt ? 2 : 1;
 }
 
@@ -190,7 +197,14 @@ function activeRegion(character: Character, style: AttackStyle, frame: number, i
  * it; NO_HIT_REGION's values outside the active frames. Smash damage scales
  * with charge.
  */
-export function authoredHitRegion(out: HitRegion, character: Character, style: AttackStyle | undefined, frame: number, chargeFrames: number, index: number): HitRegion {
+export function authoredHitRegion(out: HitRegion, character: Character, style: AttackStyle | undefined, frame: number, chargeFrames: number, index: number, moves?: FighterMoves): HitRegion {
+  const authored = style === undefined ? undefined : moves?.normals[style];
+  if (authored !== undefined) {
+    const region = authored.regions[index];
+    copyHitRegion(out, region !== undefined && frame >= region.firstFrame && frame <= region.lastFrame ? region.hit : NO_HIT_REGION);
+    if (isSmashAttack(style)) out.effect.damage = f32(out.effect.damage * smashDamageMultiplier(chargeFrames, moves));
+    return out;
+  }
   if (style === undefined || style === AttackStyle.shot) {
     copyHitRegion(out, NO_HIT_REGION);
     return out;

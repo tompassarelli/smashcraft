@@ -6,7 +6,7 @@ import { AttackPhase, AttackStyle, Character, DASH_GRAB_REQUEST } from "./codes"
 import { attackPhase, canBeGrabbed, canStartAttackStyle, inGrabContext, isIntangible } from "./conditions";
 import { finishDamageContacts, openDamageContacts } from "./contacts";
 import type { Fighter } from "./fighter";
-import { type HitRegion, NO_HIT_REGION, authoredHitRegion, authoredHitRegionCount, copyHitRegion, emptyHitRegion } from "./hitRegions";
+import { type HitRegion, NO_HIT_REGION, authoredHitRegion, authoredHitRegionCount, copyHitEffect, copyHitRegion, emptyHitRegion } from "./hitRegions";
 import { applyAttackHit } from "./hits";
 import { hangsOnLedge } from "./ledge";
 import { attackReach, isAerialAttack } from "./moves";
@@ -87,6 +87,15 @@ function selectHitRegion(world: Roster, attackerSlot: number, targetSlot: number
   if (attack.style === AttackStyle.grab && !canBeGrabbed(target)) return;
   // Only grabs read the target's offset, so ordinary hits skip its exact arithmetic.
   if (attack.dashGrab) {
+    const moves = attacker.tuning.moves;
+    if (moves?.normals[AttackStyle.grab] !== undefined) {
+      authoredHitRegion(out, attacker.character, AttackStyle.grab, attack.frame - 3, 0, 0, moves);
+      placeStrikeCapsule(attacker, out);
+      placeCapsule(targetCapsule, hurtCapsule(target.character), target.motion.x, target.motion.z, 1);
+      const localX = facingOffsetX(attacker, target);
+      if (out.window <= 0 || localX < 0 || localX > out.maxX || !capsulesIntersect(strikeCapsule, targetCapsule)) copyHitRegion(out, NO_HIT_REGION);
+      return;
+    }
     const { startupFrames, activeFrames } = attacker.tuning.dashGrab;
     if (attack.frame >= startupFrames && attack.frame < startupFrames + activeFrames) {
       const localX = facingOffsetX(attacker, target);
@@ -96,21 +105,31 @@ function selectHitRegion(world: Roster, attackerSlot: number, targetSlot: number
     return;
   }
   if (attack.style === AttackStyle.grab) {
-    authoredHitRegion(out, attacker.character, attack.style, attack.frame, attack.smashChargeFrames, 0);
+    authoredHitRegion(out, attacker.character, attack.style, attack.frame, attack.smashChargeFrames, 0, attacker.tuning.moves);
     const { hits } = target;
     const alreadyHit = hits.lastAttacker === attackerSlot && hits.lastAttackSerial === attack.serial && hits.lastWindow >= out.window;
+    if (attacker.tuning.moves?.normals[AttackStyle.grab] !== undefined) {
+      placeStrikeCapsule(attacker, out);
+      placeCapsule(targetCapsule, hurtCapsule(target.character), target.motion.x, target.motion.z, 1);
+      const localX = facingOffsetX(attacker, target);
+      if (out.window <= 0 || alreadyHit || localX < 0 || localX > out.maxX || !capsulesIntersect(strikeCapsule, targetCapsule)) copyHitRegion(out, NO_HIT_REGION);
+      return;
+    }
     const localX = facingOffsetX(attacker, target);
     const localZ = f32(target.motion.z - attacker.motion.z);
     const inside = localX >= out.minX && localX <= out.maxX && localZ >= out.minZ && localZ <= out.maxZ;
     if (out.window <= 0 || alreadyHit || !inside) copyHitRegion(out, NO_HIT_REGION);
     return;
   }
-  for (let index = 0; index < authoredHitRegionCount(attack.style); index++) {
-    authoredHitRegion(out, attacker.character, attack.style, attack.frame, attack.smashChargeFrames, index);
+  for (let index = 0; index < authoredHitRegionCount(attack.style, attacker.tuning.moves); index++) {
+    authoredHitRegion(out, attacker.character, attack.style, attack.frame, attack.smashChargeFrames, index, attacker.tuning.moves);
     if (out.window <= 0 || alreadyHitRegion(attackerSlot, attacker, target, out.window)) continue;
     placeStrikeCapsule(attacker, out);
     placeCapsule(targetCapsule, hurtCapsule(target.character), target.motion.x, target.motion.z, 1);
-    if (capsulesIntersect(strikeCapsule, targetCapsule) || meleeHitIntersectsShield(attacker, target, out)) return;
+    if (capsulesIntersect(strikeCapsule, targetCapsule) || meleeHitIntersectsShield(attacker, target, out)) {
+      if (target.motion.grounded && out.groundedEffect !== undefined) copyHitEffect(out.effect, out.groundedEffect);
+      return;
+    }
   }
   copyHitRegion(out, NO_HIT_REGION);
 }
@@ -120,10 +139,12 @@ export function beginFighterAttack(world: Roster, slot: number, style: AttackSty
   if (style === undefined) return;
   const fighter = fighterAt(world, slot);
   const { grounded } = fighter.motion;
-  const action = fighter.character === Character.demonHunter && style === AttackStyle.jab && grounded && fighter.ground.dashFrame > 0
+  const action = fighter.tuning.moves !== undefined && style === AttackStyle.jab && grounded && fighter.ground.dashFrame > 0
+    ? fighter.tuning.moves.dashAttack
+    : fighter.character === Character.demonHunter && style === AttackStyle.jab && grounded && fighter.ground.dashFrame > 0
     ? AttackStyle.demonHunterDashAttack
     : style;
-  const groundAttack = (action <= DASH_GRAB_REQUEST && action !== AttackStyle.shot) || action === AttackStyle.demonHunterDashAttack;
+  const groundAttack = (action <= DASH_GRAB_REQUEST && action !== AttackStyle.shot) || action === AttackStyle.demonHunterDashAttack || action === AttackStyle.dashAttack;
   const aerial = isAerialAttack(action);
   if (((groundAttack && grounded) || action === AttackStyle.shot || (aerial && !grounded)) && canStartAttackStyle(fighter, action)) {
     beginAttack(fighter, action, mayCharge);

@@ -79,7 +79,7 @@ export function finishLanding(f: Fighter, stage: number, matchFrame: number, inp
     dodge.airFrame = 0;
   }
   if (isAerialAttack(f.attack.style)) {
-    landingState.lag = max(landingState.lag, attackLandingLag(f.attack.style));
+    landingState.lag = max(landingState.lag, attackLandingLag(f.attack.style, f.tuning.moves));
     cancelAttack(f);
   }
   motion.grounded = true;
