@@ -105,7 +105,7 @@ function canCatchLedge(f: Fighter): boolean {
  */
 function ledgeCandidate(f: Fighter, stage: number, input: Readonly<Controls>): number {
   const { motion } = f;
-  if (!canCatchLedge(f) || motion.grounded || f.ledge.regrab > 0 || input.down || input.verticalDirection < 0 || motion.deltaZ >= 0) {
+  if (!canCatchLedge(f) || motion.grounded || f.ledge.regrab > 0 || input.down || motion.deltaZ >= 0) {
     return 0;
   }
   const side = -f.facing;
