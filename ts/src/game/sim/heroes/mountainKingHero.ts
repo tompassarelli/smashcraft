@@ -11,7 +11,7 @@ export const MOUNTAIN_KING_HERO: HeroDefinition = {
   name: "Mountain King",
   purpose: "Compact heavy with hammer and axe",
   weakness: "Slow approach and limited air drift",
-  complete: false,
+  complete: true,
   moves: MOUNTAIN_KING_MOVES,
   specials: MOUNTAIN_KING_SPECIALS,
   presentation: {
