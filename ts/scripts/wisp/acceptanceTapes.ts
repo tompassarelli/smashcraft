@@ -268,6 +268,23 @@ const LICH: MatchScript = {
   predictions: [[150, 162], [380, 392]],
 };
 
+/** Mountain King spends his mana through all four specials into the free Thunder Leap, then his normals and a throw. */
+const MOUNTAIN_KING: MatchScript = {
+  characters: [Character.mountainKing, Character.archer], stage: 0, stocks: 3, minutes: 0, frames: 600,
+  holds: [[
+    [20, 2, SPECIAL], [80, 4, DOWN], [81, 2, SPECIAL], [150, 4, TOWARD], [151, 2, SPECIAL], [210, 4, DOWN],
+    [211, 2, SPECIAL], [275, 4, TOWARD], [276, 2, SPECIAL], [335, 2, SPECIAL], [395, 3, JUMP], [407, 4, UP],
+    [408, 2, SPECIAL], [480, 2, ATTACK], [500, 8, DOWN], [502, 2, ATTACK], [530, 2, GRAB], [534, 4, TOWARD],
+    [570, 3, JUMP], [576, 2, C_DOWN],
+  ], [
+    [40, 2, ATTACK], [100, 12, SHIELD_LEFT], [170, 2, ATTACK], [240, 2, ATTACK], [300, 10, SHIELD_RIGHT],
+    [360, 2, GRAB], [450, 2, ATTACK],
+  ]],
+  approaches: [[[460, 45]], [[1, 60], [130, 60], [200, 45], [320, 45], [430, 45]]],
+  rollbacks: [[24, 50], [84, 112], [154, 190], [279, 320], [410, 440], [532, 570]],
+  predictions: [[150, 162], [400, 412]],
+};
+
 /** Records the acceptance tapes by name, and checks they press every bound source. */
 export function generateTapes(): Map<string, string> {
   const pressed = [new Set<string>(), new Set<string>()];
@@ -277,6 +294,7 @@ export function generateTapes(): Map<string, string> {
     ["rematch", recordTape("A one-stock match ends, both players confirm the rematch, a new match runs.", [FIRST_MATCH, SECOND_MATCH])],
     ["computer", recordTape("A player against the computer on the raised decks, with replays.", [COMPUTER])],
     ["lich", recordTape("Lich's specials, free recovery and normals against the Archer, with replays.", [LICH])],
+    ["mountain-king", recordTape("Mountain King's specials, free Thunder Leap, normals and a throw against the Archer, with replays.", [MOUNTAIN_KING])],
     ["moving-platforms", recordTape("Moving decks, jumping, dropping through, predictions and rollback over complete path cycles.", [{
       characters: [Character.archer, Character.rifleman], stage: 3, stocks: 3, minutes: 0, frames: 620,
       holds: [[[1, 20, RIGHT, WALK], [30, 10, JUMP], [180, 3, DOWN], [240, 10, JUMP], [400, 10, JUMP]], [[1, 10, JUMP], [140, 3, DOWN], [300, 10, JUMP]]],
