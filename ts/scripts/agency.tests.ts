@@ -28,15 +28,19 @@ test("a standing fighter can act on every frame", () => {
   expect(report.frames[0]?.classes).toContain("jump");
 });
 
-test("a thrown fighter can't act until its throw has launched it; only the stick matters as the throw lets go", () => {
-  const start = standingMatch(Character.archer, Character.rifleman, 0, 40);
-  const attacker = attackerPlan("up throw", start.runtime.simulationFrame + 1);
-  const held = grabbed(start, attacker);
-  const report = analyzeAgency({ start: held, victim: VICTIM, frames: 60, horizon: 30, untilFree: 1, row: (slot, frame, state) => (slot === ATTACKER ? attacker(state, frame) : emptyInput()) });
-  const letters = agencyLetters(report.frames);
-  // The hold and the throw: nothing matters but DI on the frame the throw lets go, then the victim can act again.
-  expect(letters).toMatch(/^\.+d\.+A$/);
-  expect(report.frames.find(({ agency }) => agency === "di")?.classes).toContain("DI left");
+test("a hit's hitlag leaves the victim only the stick, its hitstun nothing, and then it can act", () => {
+  const start = standingMatch(Character.demonHunter, Character.rifleman, 0, 40);
+  const jab = attackerPlan("jab", start.runtime.simulationFrame + 1);
+  const state = snapshotOf(start);
+  for (let index = 0; index < 20 && fighterAt(state.world, VICTIM).visuals.hit === 0; index++) {
+    const frame = state.runtime.simulationFrame + 1;
+    runFrame(state, (slot) => (slot === ATTACKER ? jab(state, frame) : emptyInput()));
+  }
+  const report = analyzeAgency({ start: state, victim: VICTIM, frames: 30, horizon: 30, untilFree: 1, row: (slot, frame, at) => (slot === ATTACKER ? jab(at, frame) : emptyInput()) });
+  expect(agencyLetters(report.frames)).toMatch(/^d+\.+A$/);
+  // SDI moves it during hitlag; on hitlag's last frame DI turns its launch too.
+  expect(report.frames[0]?.classes).toContain("SDI up");
+  expect(report.frames.filter(({ agency }) => agency === "di").at(-1)?.classes).toContain("DI up");
 });
 
 test("mashing out of a hold the attacker keeps is acting", () => {
@@ -68,11 +72,13 @@ test("the soak's detector flags a loop the victim can't act out of, and passes o
     }
     return { found, cycles: lockWatch.cycles };
   };
-  // Without the buttons that act, nothing but the stick could change it.
+  // With only the stick to move, nothing could get the victim out; with the buttons too, it can act on frames between throw and regrab.
   const stickOnly = watch(INPUT_CLASSES.filter(({ changes }) => changes === "stick"));
   expect(stickOnly.found.length).toBe(1);
   expect(stickOnly.found[0]).toMatch(/^p1 \(Rifleman\) was caught by p0 \(Archer\) in a \d+-frame loop.*only the stick changed anything/);
-  const every = watch(INPUT_CLASSES);
+  // The cycle is the throw and the regrab, not a moment the fighters stood still.
+  expect(Number(/in a (\d+)-frame loop/.exec(stickOnly.found[0] ?? "")?.[1])).toBeGreaterThan(30);
+  const every = watch(INPUT_CLASSES.filter(({ changes }) => changes !== "both"));
   expect(every.cycles).toBe(1);
   expect(every.found).toEqual([]);
 });

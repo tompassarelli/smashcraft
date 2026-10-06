@@ -19,6 +19,7 @@ import { computerActive } from "../src/game/match/rules";
 import { type ReplayState, copyReplayState, createReplaySnapshot } from "../src/game/replay/snapshot";
 import { TECH_REPEAT_MINIMUM_AGE_FRAMES } from "../src/game/physics/techInput";
 import { DownState, ShieldBreak } from "../src/game/sim/codes";
+import { grabHoldFrames } from "../src/game/sim/moves";
 import type { Fighter } from "../src/game/sim/fighter";
 import { fighterAt, isActive } from "../src/game/sim/roster";
 
@@ -331,8 +332,10 @@ export function situationKey(state: Readonly<ReplayState>, victim: number): stri
       grab.owner === undefined ? -1 : grab.owner === victim ? 0 : 1, grab.target === undefined ? -1 : grab.target === victim ? 0 : 1,
       down.state, down.frame, down.waitRemaining, dodge.airDodging ? dodge.airFrame : -1, dodge.groundFrame, shield.raised ? 1 : 0, shield.stun,
       shield.breakState, jump.remaining, jump.squat, ledge.state, ledge.frame, f.landing.lag, status.frozenFrames, status.invincible, status.out ? 1 : 0,
-      // Clocks that run on while a fighter is held or waits: a hold timer that ran down is no loop.
-      grab.grabbedFrames, status.respawn, rounded(shield.energy, 1), f.freezeTrap.life, f.freezeTrap.arming, f.freezeTrap.cooldown, f.bear.life, f.hippogryph.life,
+      // Clocks that run on while a fighter is held or waits: a hold that ran down is no loop. A hold is counted
+      // from its start, since its length grows with damage, which is left out.
+      grab.grabbedFrames > 0 ? grabHoldFrames(status.damage) - grab.grabbedFrames : -1,
+      status.respawn, rounded(shield.energy, 1), f.freezeTrap.life, f.freezeTrap.arming, f.freezeTrap.cooldown, f.bear.life, f.hippogryph.life,
       special.cooldowns.join(" "), f.projectiles.map(({ life }) => life).join(" "),
     );
   }
@@ -485,7 +488,8 @@ class LoopSearch {
       if (this.free > ESCAPE_FRAMES) this.seen.clear();
     }
     if (fighterAt(state.world, this.victim).status.out) this.over = true;
-    if (this.over) return undefined;
+    // Only a situation the victim is under control in can close a loop that holds it: one it is free in is idling.
+    if (this.over || !underControl(fighterAt(state.world, this.victim))) return undefined;
     const key = situationKey(state, this.victim);
     const earlier = this.seen.get(key);
     if (earlier === undefined) {

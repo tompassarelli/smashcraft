@@ -118,7 +118,8 @@ export class LockWatch {
       if (current.cycle !== undefined && state.runtime.simulationFrame - current.cycle.end.runtime.simulationFrame >= AFTER_CYCLE) {
         found.push(...this.replayCycle(current, victim, rows));
       }
-      if (current.found || current.cycle !== undefined || current.states.length >= LONGEST_STRETCH) continue;
+      // Only a situation the fighter is under control in can close a loop that holds it: one it is free in is idling.
+      if (!held || current.found || current.cycle !== undefined || current.states.length >= LONGEST_STRETCH) continue;
       const copy = this.pool.pop() ?? createReplaySnapshot();
       copyReplayState(copy, state);
       current.states.push(copy);
