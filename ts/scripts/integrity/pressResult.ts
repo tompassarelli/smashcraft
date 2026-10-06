@@ -27,6 +27,8 @@ const ACTIONS: Readonly<Record<string, readonly string[]>> = {
   move: ["move-left", "move-right", "move-down", "move-up"],
 };
 const SIDES: readonly StallSide[] = ["none", "opponent", "own"];
+/** #48's recovery bound: a second at 60 frames a second. */
+const RECOVERY_FRAMES = 60;
 
 const measured = (starts: readonly LocalStart[]) => starts.flatMap((start) => (start.delay === undefined ? [] : [start.delay]));
 const bySide = (starts: readonly LocalStart[]) =>
@@ -82,6 +84,7 @@ const summary = {
     legal_presses: result.legalActionEdges,
     local_start: bySide(result.localStarts),
     checksums_equal: result.gates.checksums,
+    mismatched_edges: result.mismatchedEdges,
     reconciler_failures: result.failures,
   })),
   presses,
@@ -89,11 +92,17 @@ const summary = {
   lost,
   extra,
   on_frame: { correct, total, percent: total > 0 ? (100 * correct) / total : undefined },
-  local_start_callbacks: { all: distribution(measured(all)), by_stall: bySide(all) },
+  local_start_callbacks: {
+    all: distribution(measured(all)),
+    by_stall: bySide(all),
+    // Diagnosis of the gated presses: those in the second after a stop ended, while the clients catch up, and the rest.
+    gated_within_1s_after_stop: distribution(measured(gated.filter((start) => start.afterStall !== undefined && start.afterStall <= RECOVERY_FRAMES))),
+    gated_clear_of_stops: distribution(measured(gated.filter((start) => start.stall === "none" && (start.afterStall === undefined || start.afterStall > RECOVERY_FRAMES)))),
+  },
   gated_local_start: { n: gatedDelays.length, max: gatedMax, missing_first_prediction: gatedMissing },
   worst_gated_presses: [...gated].sort((a, b) => (b.delay ?? Infinity) - (a.delay ?? Infinity)).slice(0, 20),
   gate,
   passed: Object.values(gate).every(Boolean),
 };
 writeFileSync(out, `${JSON.stringify(summary, undefined, 2)}\n`);
-console.log(JSON.stringify({ presses, missing_actions: missingActions, lost, extra, on_frame: summary.on_frame, gated_local_start: summary.gated_local_start, by_stall: summary.local_start_callbacks.by_stall, gate, passed: summary.passed }, undefined, 2));
+console.log(JSON.stringify({ presses, missing_actions: missingActions, lost, extra, on_frame: summary.on_frame, gated_local_start: summary.gated_local_start, local_start_callbacks: summary.local_start_callbacks, gate, passed: summary.passed }, undefined, 2));

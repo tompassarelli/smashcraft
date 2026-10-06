@@ -97,6 +97,8 @@ export interface LocalStart {
   readonly frame: number;
   readonly delay: number | undefined;
   readonly stall: StallSide;
+  /** Frames since the latest earlier stop of either player's process ended, when one had. */
+  readonly afterStall: number | undefined;
 }
 
 export interface IntegrityResult {
@@ -107,6 +109,8 @@ export interface IntegrityResult {
   readonly helperSha256: string;
   readonly injected: readonly [number, number];
   readonly lost: number;
+  /** Each lost or extra edge, for diagnosis: "epoch E slot S client C: lost|extra FRAME:BIT:PRESSED". */
+  readonly mismatchedEdges: readonly string[];
   readonly duplicated: number;
   readonly reordered: number;
   readonly stuck: number;
@@ -225,9 +229,13 @@ class EdgeCounts {
   }
   /** Total count by which this multiset exceeds `other`. */
   excess(other: EdgeCounts): number {
-    let total = 0;
-    for (const [key, count] of this.counts) total += Math.max(0, count - other.get(key));
-    return total;
+    return this.excessKeys(other).length;
+  }
+  /** Each key by which this multiset exceeds `other`, once per extra count. */
+  excessKeys(other: EdgeCounts): string[] {
+    const keys: string[] = [];
+    for (const [key, count] of this.counts) for (let extra = count - other.get(key); extra > 0; extra--) keys.push(key);
+    return keys;
   }
 }
 
@@ -287,6 +295,8 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
   let lost = 0, duplicated = 0, reordered = 0, stuck = 0, correct = 0, total = 0;
   const localDelays: number[] = [], opponentLateness: number[] = [], rollbackDepths: number[] = [], stallLengths: number[] = [];
   const localStarts: LocalStart[] = [];
+  /** Lost and extra edges as "epoch E slot S client C: lost|extra FRAME:BIT:PRESSED". */
+  const mismatchedEdges: string[] = [];
   let missingLocal = 0, illegalPresses = 0, legalPresses = 0;
   const native = new Map<string, NativeRow[]>();
   const rollbackLimits = new Set<number>();
@@ -362,6 +372,7 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
       const firstSegment = segments[0];
       if (firstSegment === undefined) throw new MalformedEvidence(`epoch ${epoch} slot ${slot}: start segment absent`);
       const finalNs = end.publications[slot].estimateNs;
+      const finalFrame = endpoints.get(clientKey(epoch, slot))?.[0] ?? Number.MAX_SAFE_INTEGER;
       const expected = new EdgeCounts();
       const expectedHeld = new Map<number, number>();
       const sourceStates = new Map<string, number>();
@@ -381,6 +392,10 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
       const stallSide = (frame: number): StallSide =>
         stopped.some((window) => window.side === "own" && frame >= window.from && frame <= window.to) ? "own"
         : stopped.some((window) => frame >= window.from && frame <= window.to) ? "opponent" : "none";
+      const afterStall = (frame: number) => {
+        const ended = stopped.filter((window) => window.to < frame).map((window) => frame - window.to);
+        return ended.length === 0 ? undefined : Math.min(...ended);
+      };
       for (const edge of producer) {
         if (edge.source !== `slot-${slot}` || !(edge.phase.startsWith(`match-${epoch}-`) || edge.phase.startsWith(`bot-${epoch}-`))) continue;
         if (edge.type === 1 && edge.code === START_BUTTON) continue;
@@ -389,6 +404,8 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
         if (before >= finalNs || before < firstSegment[0]) continue;
         const frame = frameAt(before);
         require(frame === frameAt(after), `epoch ${epoch} slot ${slot}: injection crossed frame boundary at ${before}`);
+        // A bot's pads play until the end receipt appears, after the match's last simulated frame.
+        if (frame > finalFrame) continue;
         let old = 0;
         for (const mask of sourceStates.values()) old |= mask;
         const source = `${edge.type}:${edge.code}`;
@@ -428,6 +445,8 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
           const expectedMask = expectedHeld.get(frame);
           if (expectedMask !== undefined && held !== expectedMask) stuck++;
         }
+        for (const key of expected.excessKeys(observed)) mismatchedEdges.push(`epoch ${epoch} slot ${slot} client ${client}: lost ${key}`);
+        for (const key of observed.excessKeys(expected)) mismatchedEdges.push(`epoch ${epoch} slot ${slot} client ${client}: extra ${key}`);
         lost += expected.excess(observed);
         duplicated += observed.excess(expected);
         for (let i = 1; i < frames.length; i++) if (at(frames, i, what) <= at(frames, i - 1, what)) reordered++;
@@ -467,14 +486,14 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
         const stall = stallSide(frame);
         if (capture === undefined || prediction === undefined || (prediction[1] & legal) !== legal) {
           missingLocal += popcount(legal);
-          for (let i = popcount(legal); i > 0; i--) localStarts.push({ epoch, slot, frame, delay: undefined, stall });
+          for (let i = popcount(legal); i > 0; i--) localStarts.push({ epoch, slot, frame, delay: undefined, stall, afterStall: afterStall(frame) });
           continue;
         }
         // The callback that FIRST executed prediction is compared to the
         // admission callback. A later rollback replay never creates this row.
         for (let i = popcount(legal); i > 0; i--) {
           localDelays.push(prediction[0] - capture);
-          localStarts.push({ epoch, slot, frame, delay: prediction[0] - capture, stall });
+          localStarts.push({ epoch, slot, frame, delay: prediction[0] - capture, stall, afterStall: afterStall(frame) });
         }
       }
     }
@@ -531,6 +550,7 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
     expectedFrame: { correct, total, percent: total > 0 ? (100 * correct) / total : undefined },
     localStart: distribution(localDelays),
     localStarts,
+    mismatchedEdges,
     presses,
     pressedBindings: [[...coverage[0]].sort(), [...coverage[1]].sort()],
     legalActionEdges: legalPresses,

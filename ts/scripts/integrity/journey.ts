@@ -155,7 +155,8 @@ const PLAYABLE_TRACE_TICKS = 300;
 /** A bot session's match timeline, in ms after its start boundary (#48's 2 s stalls; the helper saves a moment for View held 1 s). */
 const BOT_STALLS = [6000, 14000, 22000] as const;
 const BOT_STALL_MILLIS = 2000;
-const BOT_MOMENT = 30000;
+/** Two moments a match, so a short bot session still saves at least five (#59). */
+const BOT_MOMENTS = [12000, 30000] as const;
 const BOT_MOMENT_HOLD_MILLIS = 1300;
 const BOT_PLAY_MILLIS = 58000;
 const BOT_BEAT_MILLIS = 400;
@@ -302,8 +303,8 @@ export function journey(rig: RigShape, options: JourneyOptions) {
   /**
    * A bot session's match, timed from its start boundary: both pads attack,
    * jump and use specials, client B's game stops for 2 s at each BOT_STALLS
-   * time, and both pads hold View at BOT_MOMENT so each helper asks its client
-   * to save a moment. Stops early when the match ends.
+   * time, and both pads hold View at each BOT_MOMENTS time so each helper
+   * asks its client to save a moment. Stops early when the match ends.
    */
   /**
    * #49's pad script on slot 0 (pad49Result.ts checks the rows): resting and
@@ -398,28 +399,34 @@ export function journey(rig: RigShape, options: JourneyOptions) {
         });
       // A four-fighter session measures its rematch's frame cost undisturbed, and #49's script plays alone: no stalls there.
       const stallTimes = (options.botFour === true && epoch % 2 === 0) || (options.pad49 === true && epoch === firstEpoch) ? [] : BOT_STALLS;
-      for (const [index, offset] of stallTimes.entries()) {
-        if (!(yield* playUntil(offset))) return;
+      const timeline = [
+        ...stallTimes.map((at, index) => ({ at, kind: "stall" as const, trial: index + 1 })),
+        ...BOT_MOMENTS.map((at) => ({ at, kind: "moment" as const, trial: 0 })),
+      ].sort((a, b) => a.at - b.at);
+      for (const { at, kind, trial } of timeline) {
+        if (!(yield* playUntil(at))) return;
+        if (kind === "moment") {
+          const pressedNs = yield* rig.monotonicNs;
+          for (const slot of SLOTS) yield* send(slot, button(BTN_SELECT, 1), `bot-${epoch}-moment`);
+          yield* rig.sleep(BOT_MOMENT_HOLD_MILLIS);
+          for (const slot of SLOTS) yield* send(slot, button(BTN_SELECT, 0), `bot-${epoch}-moment`);
+          yield* rig.record({ event: "bot-moment", epoch, pressed_monotonic_ns: pressedNs, released_monotonic_ns: yield* rig.monotonicNs });
+          yield* rig.progress(`Epoch ${epoch}: both pads held View for a moment`);
+          continue;
+        }
         const stopped = yield* rig.stop({ kind: "game", slot: 1 });
         const stoppedNs = yield* rig.monotonicNs;
-        yield* rig.progress(`Epoch ${epoch}: trial ${index + 1}: stopped client B's game, pid ${stopped.pid}`);
+        yield* rig.progress(`Epoch ${epoch}: trial ${trial}: stopped client B's game, pid ${stopped.pid}`);
         yield* Effect.gen(function*() {
           yield* rig.sleep(Math.max(0, (stoppedNs + BOT_STALL_MILLIS * 1_000_000 - (yield* rig.monotonicNs)) / 1_000_000));
         }).pipe(
           Effect.ensuring(Effect.gen(function*() {
             const continuedNs = yield* rig.monotonicNs;
             yield* rig.resume(stopped);
-            yield* rig.record({ event: "bot-stall", epoch, trial: index + 1, slot: 1, pid: stopped.pid, stopped_monotonic_ns: stoppedNs, continued_monotonic_ns: continuedNs });
+            yield* rig.record({ event: "bot-stall", epoch, trial, slot: 1, pid: stopped.pid, stopped_monotonic_ns: stoppedNs, continued_monotonic_ns: continuedNs });
           })),
         );
       }
-      if (!(yield* playUntil(BOT_MOMENT))) return;
-      const pressedNs = yield* rig.monotonicNs;
-      for (const slot of SLOTS) yield* send(slot, button(BTN_SELECT, 1), `bot-${epoch}-moment`);
-      yield* rig.sleep(BOT_MOMENT_HOLD_MILLIS);
-      for (const slot of SLOTS) yield* send(slot, button(BTN_SELECT, 0), `bot-${epoch}-moment`);
-      yield* rig.record({ event: "bot-moment", epoch, pressed_monotonic_ns: pressedNs, released_monotonic_ns: yield* rig.monotonicNs });
-      yield* rig.progress(`Epoch ${epoch}: both pads held View for a moment`);
       yield* playUntil(BOT_PLAY_MILLIS);
     });
 
