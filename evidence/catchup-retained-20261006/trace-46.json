@@ -1,0 +1,316 @@
+{
+  "revision": "89abaf3c",
+  "summary": [
+    {
+      "from": 1,
+      "through": 740,
+      "count": 614,
+      "predictedLagMin": 0,
+      "predictedLagMax": 0,
+      "confirmedLagMax": 22
+    },
+    {
+      "from": 1041,
+      "through": 1100,
+      "count": 60,
+      "predictedLagMin": 126,
+      "predictedLagMax": 376,
+      "confirmedLagMax": 396
+    },
+    {
+      "from": 1101,
+      "through": 1260,
+      "count": 160,
+      "predictedLagMin": 0,
+      "predictedLagMax": 120,
+      "confirmedLagMax": 198
+    },
+    {
+      "from": 1261,
+      "through": 1400,
+      "count": 140,
+      "predictedLagMin": 0,
+      "predictedLagMax": 4,
+      "confirmedLagMax": 28
+    }
+  ],
+  "findings": [
+    {
+      "kind": "scene",
+      "frame": 265,
+      "text": "would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 2 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)",
+      "slot": 1
+    },
+    {
+      "kind": "scene",
+      "frame": 415,
+      "text": "would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)",
+      "slot": 0
+    },
+    {
+      "kind": "scene",
+      "frame": 415,
+      "text": "would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)",
+      "slot": 1
+    },
+    {
+      "kind": "scene",
+      "frame": 505,
+      "text": "would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 1 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)",
+      "slot": 0
+    },
+    {
+      "kind": "catch-up",
+      "frame": 1260,
+      "text": "the game fell 1.8 s behind real time and kept falling for 3 s (worst client frame 40.3 ms measured)"
+    }
+  ],
+  "frames": 1859,
+  "wallMs": 32770.04811700094,
+  "checksums": [
+    "-1536588905",
+    "-1536588905"
+  ],
+  "samples": [
+    {
+      "callback": 740,
+      "wallMs": 12316.666666666577,
+      "slot": 1,
+      "confirmed": 600,
+      "confirmedLag": 12,
+      "predicted": 612,
+      "predictedLag": 0,
+      "over": false
+    },
+    {
+      "callback": 1041,
+      "wallMs": 18663.33333333331,
+      "slot": 1,
+      "confirmed": 612,
+      "confirmedLag": 382,
+      "predicted": 618,
+      "predictedLag": 376,
+      "over": false
+    },
+    {
+      "callback": 1045,
+      "wallMs": 18743.390664333314,
+      "slot": 1,
+      "confirmed": 612,
+      "confirmedLag": 386,
+      "predicted": 642,
+      "predictedLag": 356,
+      "over": false
+    },
+    {
+      "callback": 1050,
+      "wallMs": 18842.232306999984,
+      "slot": 1,
+      "confirmed": 618,
+      "confirmedLag": 386,
+      "predicted": 666,
+      "predictedLag": 338,
+      "over": false
+    },
+    {
+      "callback": 1060,
+      "wallMs": 19031.98139533333,
+      "slot": 1,
+      "confirmed": 624,
+      "confirmedLag": 392,
+      "predicted": 712,
+      "predictedLag": 304,
+      "over": false
+    },
+    {
+      "callback": 1080,
+      "wallMs": 19406.152943666682,
+      "slot": 1,
+      "confirmed": 744,
+      "confirmedLag": 294,
+      "predicted": 830,
+      "predictedLag": 208,
+      "over": false
+    },
+    {
+      "callback": 1100,
+      "wallMs": 19799.010535333367,
+      "slot": 1,
+      "confirmed": 861,
+      "confirmedLag": 201,
+      "predicted": 936,
+      "predictedLag": 126,
+      "over": false
+    },
+    {
+      "callback": 1101,
+      "wallMs": 19815.677202000035,
+      "slot": 1,
+      "confirmed": 864,
+      "confirmedLag": 198,
+      "predicted": 942,
+      "predictedLag": 120,
+      "over": false
+    },
+    {
+      "callback": 1110,
+      "wallMs": 19977.35344733338,
+      "slot": 1,
+      "confirmed": 888,
+      "confirmedLag": 184,
+      "predicted": 976,
+      "predictedLag": 96,
+      "over": false
+    },
+    {
+      "callback": 1120,
+      "wallMs": 20166.66073566672,
+      "slot": 1,
+      "confirmed": 917,
+      "confirmedLag": 167,
+      "predicted": 1008,
+      "predictedLag": 76,
+      "over": false
+    },
+    {
+      "callback": 1130,
+      "wallMs": 20356.922062000063,
+      "slot": 1,
+      "confirmed": 947,
+      "confirmedLag": 149,
+      "predicted": 1020,
+      "predictedLag": 76,
+      "over": false
+    },
+    {
+      "callback": 1140,
+      "wallMs": 20538.599517000075,
+      "slot": 1,
+      "confirmed": 982,
+      "confirmedLag": 124,
+      "predicted": 1032,
+      "predictedLag": 74,
+      "over": false
+    },
+    {
+      "callback": 1150,
+      "wallMs": 20733.35880433342,
+      "slot": 1,
+      "confirmed": 1011,
+      "confirmedLag": 107,
+      "predicted": 1044,
+      "predictedLag": 74,
+      "over": false
+    },
+    {
+      "callback": 1160,
+      "wallMs": 20920.629710666763,
+      "slot": 1,
+      "confirmed": 1035,
+      "confirmedLag": 95,
+      "predicted": 1062,
+      "predictedLag": 68,
+      "over": false
+    },
+    {
+      "callback": 1170,
+      "wallMs": 21101.492950666776,
+      "slot": 1,
+      "confirmed": 1054,
+      "confirmedLag": 86,
+      "predicted": 1078,
+      "predictedLag": 62,
+      "over": false
+    },
+    {
+      "callback": 1180,
+      "wallMs": 21297.27303600012,
+      "slot": 1,
+      "confirmed": 1078,
+      "confirmedLag": 74,
+      "predicted": 1102,
+      "predictedLag": 50,
+      "over": false
+    },
+    {
+      "callback": 1190,
+      "wallMs": 21489.939378333464,
+      "slot": 1,
+      "confirmed": 1108,
+      "confirmedLag": 56,
+      "predicted": 1132,
+      "predictedLag": 32,
+      "over": false
+    },
+    {
+      "callback": 1200,
+      "wallMs": 21673.530632333477,
+      "slot": 1,
+      "confirmed": 1144,
+      "confirmedLag": 30,
+      "predicted": 1168,
+      "predictedLag": 6,
+      "over": false
+    },
+    {
+      "callback": 1201,
+      "wallMs": 21690.197299000145,
+      "slot": 1,
+      "confirmed": 1150,
+      "confirmedLag": 26,
+      "predicted": 1174,
+      "predictedLag": 2,
+      "over": false
+    },
+    {
+      "callback": 1202,
+      "wallMs": 21715.850508000145,
+      "slot": 1,
+      "confirmed": 1153,
+      "confirmedLag": 23,
+      "predicted": 1176,
+      "predictedLag": 0,
+      "over": false
+    },
+    {
+      "callback": 1203,
+      "wallMs": 21732.517174666813,
+      "slot": 1,
+      "confirmed": 1156,
+      "confirmedLag": 22,
+      "predicted": 1178,
+      "predictedLag": 0,
+      "over": false
+    },
+    {
+      "callback": 1221,
+      "wallMs": 22072.17537366683,
+      "slot": 1,
+      "confirmed": 1178,
+      "confirmedLag": 20,
+      "predicted": 1198,
+      "predictedLag": 0,
+      "over": false
+    },
+    {
+      "callback": 1260,
+      "wallMs": 22770.04811700021,
+      "slot": 1,
+      "confirmed": 1224,
+      "confirmedLag": 16,
+      "predicted": 1240,
+      "predictedLag": 0,
+      "over": false
+    },
+    {
+      "callback": 1798,
+      "wallMs": 31736.71478366753,
+      "slot": 1,
+      "confirmed": 1765,
+      "confirmedLag": 13,
+      "predicted": 1778,
+      "predictedLag": 0,
+      "over": false
+    }
+  ]
+}
