@@ -23,11 +23,11 @@ test("the original fighters' tables play their packaged clips", () => {
   assertEquals(clipFor(Character.rifleman, "ledgeAttack").index, assets.RIFLEMAN_GET_UP_ATTACK_INDEX);
   assertEquals(clipFor(Character.demonHunter, "ledgeRoll").index, dh.DEMON_HUNTER_LEDGE_ROLL_INDEX);
   assertEquals(clipFor(Character.demonHunter, attackPose(AttackStyle.ledgeAttack) ?? "idle").index, dh.DEMON_HUNTER_GET_UP_ATTACK_INDEX);
-  // Only Illidan has smash and dash attack clips; the others play their named attack clip.
+  // Only Illidan has smash clips; Rifleman's dash attack plays his bayonet thrust.
   assertEquals(ownAttackClip(Character.demonHunter, AttackStyle.upSmash)?.index, dh.DEMON_HUNTER_UP_SMASH_INDEX);
   assertEquals(ownAttackClip(Character.demonHunter, AttackStyle.demonHunterDashAttack)?.index, dh.DEMON_HUNTER_DASH_ATTACK_INDEX);
   assertEquals(ownAttackClip(Character.archer, AttackStyle.forwardSmash), undefined);
-  assertEquals(ownAttackClip(Character.rifleman, AttackStyle.dashAttack), undefined);
+  assertEquals(ownAttackClip(Character.rifleman, AttackStyle.dashAttack)?.index, assets.RIFLEMAN_FORWARD_TILT_INDEX);
   // Rifleman summons the bear with his model's stock cast (#111).
   assertEquals(specialClip(Character.rifleman, SpecialAction.riflemanBear, true, false).index, assets.RIFLEMAN_SPELL_INDEX);
   // Originals keep their named stand and walk clips.

@@ -257,7 +257,7 @@ test("flinching damage and grabs interrupt every shield-break phase", () => {
       const fighter = shieldBreakTestFighter(Character.archer, 0.0);
       dizzyShieldBreakTest(fighter, controls());
       fighter.shield.breakState = state;
-      const attacker = createFighter(Character.rifleman, -50.0, 1);
+      const attacker = createFighter(Character.archer, -50.0, 1);
       const world = testWorld(attacker, fighter);
       testBeginAttacks(world, attack, undefined);
       attacker.attack.frame = attackStartupFrames(attack);

@@ -123,7 +123,7 @@ test("a hit during dodge startup interrupts the dodge's movement", () => {
   fighter.motion.z = 300.0;
   fighter.motion.grounded = false;
   beginAirDodge(fighter, 1, 0);
-  const attacker = createFighter(Character.rifleman, 0.0, 1);
+  const attacker = createFighter(Character.archer, 0.0, 1);
   attacker.motion.z = 300.0;
   attacker.attack.style = AttackStyle.jab;
   attacker.attack.frame = attackStartupFrames(AttackStyle.jab);
@@ -145,7 +145,7 @@ test("landing ends dodge protection without removing respawn protection", () => 
   fighter.motion.vz = -5.0;
   advanceSolo(fighter, 0, input, -240.0);
   assertTrue(fighter.motion.grounded);
-  const attacker = createFighter(Character.rifleman, 0.0, 1);
+  const attacker = createFighter(Character.archer, 0.0, 1);
   attacker.motion.z = fighter.motion.z;
   attacker.attack.style = AttackStyle.jab;
   attacker.attack.frame = attackStartupFrames(AttackStyle.jab);

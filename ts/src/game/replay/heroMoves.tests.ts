@@ -13,6 +13,7 @@ test("rollback restores authored hero moves and diagnoses changed timing geometr
   const saved = createReplaySnapshot();
   const f = fighterAt(live.world, 0);
   const original = stateChecksum(live);
+  const own = f.tuning.moves;
   f.tuning.moves = BLADEMASTER_MOVES;
   const authored = stateChecksum(live);
   assertTrue(authored !== original);
@@ -39,7 +40,7 @@ test("rollback restores authored hero moves and diagnoses changed timing geometr
     assertEquals(firstStateDifference(saved, live), "fighter[0].moves");
   }
   copyReplayState(live, saved);
-  f.tuning.moves = undefined;
+  f.tuning.moves = own;
   assertEquals(stateChecksum(live), original);
   copyReplayState(live, saved);
   assertEquals(stateChecksum(live), authored);

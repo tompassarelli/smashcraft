@@ -149,7 +149,7 @@ test("every shipped fighter's forward-smash arm is hit", () => {
 });
 
 test("a strike that reaches only an extended down-air leg counter-hits it, and a restored snapshot selects the same body", () => {
-  const attacker = createFighter(Character.rifleman, 0.0, 1);
+  const attacker = createFighter(Character.archer, 0.0, 1);
   const target = createFighter(Character.archer, 0.0, -1);
   attacker.motion.z = 0.0;
   target.motion.grounded = false;
@@ -166,7 +166,7 @@ test("a strike that reaches only an extended down-air leg counter-hits it, and a
   fresh.motion.z = 75.0;
   fresh.attack.style = AttackStyle.downAir;
   fresh.attack.frame = attackStartupFrames(AttackStyle.downAir);
-  const second = createFighter(Character.rifleman, 0.0, 1);
+  const second = createFighter(Character.archer, 0.0, 1);
   const legsWorld = testWorld(second, fresh);
   testBeginAttacks(legsWorld, AttackStyle.jab, undefined);
   second.attack.frame = attackStartupFrames(AttackStyle.jab);

@@ -856,7 +856,8 @@ test("ordinaryDashAttackStaysAnAttackWhileGrabIntentStartsDashGrab", () => {
   queueAttack(firstCommands, { style: 0, facing: 0, frame: 1, mayCharge: false });
   queueAttack(secondCommands, { style: 5, facing: 0, frame: 1, mayCharge: false });
   stepMatch(game, testRoster(first, second), testFrameControls(firstInput, secondInput, firstCommands, secondCommands), 1);
-  assertEquals(first.attack.style, 0);
+  // Rifleman's dashing jab is his dash attack (smashcraft:docs/design/tilts.md).
+  assertEquals(first.attack.style, AttackStyle.dashAttack);
   assertFalse(first.attack.dashGrab);
   assertEquals(first.tuning.dashGrab.startupFrames, attackStartupFrames(5));
   assertEquals(first.tuning.dashGrab.totalFrames, attackDurationFramesForGrounding(5, true));

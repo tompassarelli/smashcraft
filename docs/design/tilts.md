@@ -125,7 +125,7 @@ input is never wasted or surprising.
 | Pull-in | Drags the victim toward the attacker and onto the ground. Sets up the grab. | Dreadlord |
 | Edge poke | Reaches below the stage's lip. Hits a ledge-hanging or recovering fighter. | Shadow Hunter |
 | Slow space control | Creeping low frost at long range. Late, but long. | Lich |
-| Diagonal pop-up | Sends the victim up and forward into the forward air. | Archer |
+| Shared poke | The original table's even 45-degree poke. | Archer |
 | Vertical pop-up | Sends the victim straight up at low percent. A combo starter. | Rifleman |
 
 ## Per fighter
@@ -231,18 +231,21 @@ ledge-hanging fighter's body is.
 | Up tilt | 7/5/19 | 7 | 0.80H, above | 80, 95/20 | | Glaive twirl overhead |
 | Down tilt | 7/2/16 | 5 | 1.15H, tip to −0.25H | 30, 70/22 | | Captain Falcon down tilt (an edge tool) |
 
-### Archer: the kicking runner
+### Archer: the original tables
 
-Archer kicks. Her forward tilt is a straight front kick and angles. Her down
-tilt pops the victim up and forward into her forward air. Her forward air
-outreaches her tilts, because spacing from the air is her plan.
+Archer keeps the shared tables' jab and tilts (smashcraft:ts/src/game/sim/moves.ts,
+smashcraft:ts/src/game/sim/hitRegions.ts). They are her own now: no other
+fighter uses those timings, and the engine's shared-mechanics tests use them as
+their reference attack. Her forward tilt has an early tip (10 on its first
+active frame, 8 after) and angles. Her forward air outreaches her tilts,
+because spacing from the air is her plan. Her one new move is the sliding kick.
 
 | Normal | F/A/R | Damage | Reach | Launch | Angled | Inspired by |
 | --- | --- | --- | --- | --- | --- | --- |
-| Jab | 3/2/15 | 3 | 0.65H | 45, 55/22 | | Sheik jab |
-| Forward tilt | 6/2/18 | 7 | 0.95H | 40, 75/20 | up 60, down 20 | Fox forward tilt (angled kick) |
-| Up tilt | 5/4/17 | 6 | 0.75H arc | 85, 55/34 | | Fox up tilt (kick over the head) |
-| Down tilt | 5/2/16 | 6 | 0.85H, below 0.15H | 65, 45/40 | | Sheik down tilt (pop-up into aerials) |
+| Jab | 5/2/15 | 5 | 1.10H | 45, 100/20 | | Original table |
+| Forward tilt | 6/2/21 | 10 tip early, 8 late, 5–7 inner | 1.10H | 37, 110/24 tip | up 55, down 20 | Fox forward tilt (angled kick) |
+| Up tilt | 7/2/21 | 8 | 1.10H | 45, 100/20 | | Original table |
+| Down tilt | 6/2/21 | 8 | 1.10H | 45, 100/20 | | Original table |
 
 ### Rifleman: the rifle butt
 
@@ -253,7 +256,7 @@ over the old shared down tilt (10 damage) and pops straight up at low percent.
 | Normal | F/A/R | Damage | Reach | Launch | Angled | Inspired by |
 | --- | --- | --- | --- | --- | --- | --- |
 | Jab | 4/3/16 | 4 | 0.80H | 20, 70/24 | | Falco jab (pushes) |
-| Forward tilt | 7/3/21 | 10 | 1.05H | 30, 90/22 | up 50, down 15 | Falco forward tilt (angled) |
+| Forward tilt | 7/3/21 | 10 | 1.25H | 30, 90/22 | up 50, down 15 | Falco forward tilt (angled) |
 | Up tilt | 6/3/22 | 8 | 0.85H, above | 90, 80/26 | | Falco up tilt |
 | Down tilt | 7/3/22 | 10 | 0.90H, below 0.15H | 80, 45/50 | | Falco down tilt (vertical pop-up) |
 

@@ -8,6 +8,7 @@ import { AttackStyle, Character, SpecialAction } from "./codes";
 import { specialForm, specialKit } from "./heroSpecials";
 import { fighterPoseFacing } from "./conditions";
 import type { Fighter } from "./fighter";
+import type { FighterMoves } from "./heroMoves";
 import { attackStartupFrames, characterAttackActiveFrames } from "./moves";
 
 /** How a body part takes a strike: a hit, a strike spent without effect, or nothing at all. */
@@ -64,13 +65,14 @@ const standingBody = (character: Character): readonly HurtPart[] => [hurtCapsule
 // Heights scale with each character's standing capsule; the per-fighter
 // intangible and invincible parts are provisional design choices
 // (smashcraft:docs/hurtboxes.md, "Shipped fighters").
-function shippedHurtboxes(character: Character): FighterHurtboxes {
+/** `moves` gives a kit's own timing to the poses it times (smashcraft:docs/design/tilts.md). */
+export function shippedHurtboxes(character: Character, moves?: FighterMoves): FighterHurtboxes {
   const body = hurtCapsule(character);
   const top = body.z2;
   const r = body.radius;
   const h = (fraction: number) => f32(top * fraction);
-  const startup = (style: AttackStyle) => attackStartupFrames(style);
-  const lastActive = (style: AttackStyle) => startup(style) + characterAttackActiveFrames(character, style) - 1;
+  const startup = (style: AttackStyle) => attackStartupFrames(style, moves);
+  const lastActive = (style: AttackStyle) => startup(style) + characterAttackActiveFrames(character, style, moves) - 1;
   /** The extended pose spans the last two startup frames to three recovery frames. */
   const reaching = (style: AttackStyle, parts: readonly HurtPart[], before: readonly HurtPart[] = []) => [
     ...(before.length > 0 ? [hurtPose(0, startup(style) - 3, before)] : []),

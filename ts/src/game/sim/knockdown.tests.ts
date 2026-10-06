@@ -8,7 +8,7 @@ import { DOWN_RECOVERY_INTANGIBLE_FRAMES, attackPhase, canAttack, isIntangible, 
 import { DOWN_BOUND_FRAMES, DOWN_WAIT_FRAMES } from "./down";
 import { type Fighter, createFighter } from "./fighter";
 import { DIAGONAL_UNIT, ORDINARY_HIT_CONTEXT_SCALE, ORDINARY_HIT_GROWTH_PERCENT, ordinaryHitKnockback, ordinaryHitstunFrames } from "./knockback";
-import { DOWN_ATTACK_ACTIVE_FRAMES, DOWN_ATTACK_BASE_KNOCKBACK, DOWN_ATTACK_DAMAGE, DOWN_ATTACK_FRAMES, DOWN_ATTACK_STARTUP_FRAMES } from "./moves";
+import { DOWN_ATTACK_ACTIVE_FRAMES, DOWN_ATTACK_BASE_KNOCKBACK, DOWN_ATTACK_DAMAGE, DOWN_ATTACK_FRAMES, DOWN_ATTACK_STARTUP_FRAMES, attackStartupFrames } from "./moves";
 import { totalVelocityZ } from "./motion";
 import type { Controls, Roster } from "./roster";
 import { advanceFighter } from "./step";
@@ -306,7 +306,7 @@ test("a clean low-percent get-up attack gives the attacker time before the wake-
       assertGreaterThan(attackerActiveFrame, attackerReadyFrame);
       assertGreaterThan(victimWakeupActiveFrame, attackerActiveFrame);
       assertEquals(attackerReadyFrame, 37);
-      assertEquals(attackerActiveFrame, 41);
+      assertEquals(attackerActiveFrame, attackerReadyFrame + attackStartupFrames(AttackStyle.jab, attacker.tuning.moves));
       assertEquals(victimWakeupActiveFrame, character === Character.archer ? 67 : 63);
     }
   }

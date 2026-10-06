@@ -13,8 +13,9 @@ test("move export reads jab contact through production resolution for all fighte
     const defender = createFighter(Character.rifleman, 60, -1);
     const world = createRoster(3, [attacker, defender]);
     beginFighterAttack(world, 0, AttackStyle.jab, false);
-    attacker.attack.frame = attackStartupFrames(AttackStyle.jab);
-    const expected = authoredHitRegion(emptyHitRegion(), character, AttackStyle.jab, attacker.attack.frame, 0, 0);
+    const moves = attacker.tuning.moves;
+    attacker.attack.frame = attackStartupFrames(AttackStyle.jab, moves);
+    const expected = authoredHitRegion(emptyHitRegion(), character, AttackStyle.jab, attacker.attack.frame, 0, 0, moves);
     resolveAttacks(world);
     expect(defender.status.damage).toBe(expected.effect.damage);
   }

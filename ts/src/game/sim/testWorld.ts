@@ -7,10 +7,10 @@ import { beginDamageContacts, finishDamageContacts } from "./contacts";
 import type { Fighter } from "./fighter";
 import { advanceGrabs } from "./grabs";
 import type { HitEffect } from "./hitRegions";
-import { attackActiveFrames, attackDurationFramesForGrounding, attackStartupFrames } from "./moves";
+import { attackDurationFramesForGrounding, attackStartupFrames, characterAttackActiveFrames } from "./moves";
 import { updateProjectiles } from "./projectiles";
 import type { FighterPhysics } from "./tuning";
-import { type Controls, type Roster, createRoster, neutralControls } from "./roster";
+import { type Controls, type Roster, createRoster, fighterAt, neutralControls } from "./roster";
 import { advanceFighter } from "./step";
 
 /** Two fighters in slots 0 and 1 of a two-participant roster. */
@@ -67,7 +67,7 @@ export function testBeginAttacks(world: Roster, firstStyle: AttackStyle | undefi
 export function resolveStartedAttack(world: Roster, style: AttackStyle): void {
   const input = controls();
   testBeginAttacks(world, style, undefined);
-  for (let frame = 1; frame <= attackStartupFrames(style); frame++) {
+  for (let frame = 1; frame <= attackStartupFrames(style, fighterAt(world, 0).tuning.moves); frame++) {
     advanceFighter(world, 0, 0, input, -240.0);
     resolveAttacks(world);
     updateProjectiles(world);
@@ -77,8 +77,9 @@ export function resolveStartedAttack(world: Roster, style: AttackStyle): void {
 /** Puts a fighter in an attack's recovery with the given cooldown left. */
 export function setRecovery(fighter: Fighter, cooldown: number): void {
   fighter.attack.style = AttackStyle.jab;
-  fighter.attack.frame = attackStartupFrames(AttackStyle.jab) + attackActiveFrames(AttackStyle.jab);
-  fighter.attack.duration = attackDurationFramesForGrounding(AttackStyle.jab, fighter.motion.grounded);
+  const moves = fighter.tuning.moves;
+  fighter.attack.frame = attackStartupFrames(AttackStyle.jab, moves) + characterAttackActiveFrames(fighter.character, AttackStyle.jab, moves);
+  fighter.attack.duration = attackDurationFramesForGrounding(AttackStyle.jab, fighter.motion.grounded, moves);
   fighter.attack.hit = true;
   fighter.attack.cooldown = cooldown;
 }

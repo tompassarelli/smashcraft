@@ -270,6 +270,39 @@ export const SHADOW_HUNTER_GROUND: GroundKit = {
   },
 };
 
+// Archer keeps the original tables' jab and tilts (moves.ts, hitRegions.ts): a
+// frame-5 jab and a forward tilt with an early tip, already unlike every kit.
+// Her own move is the sliding kick that pops the victim up into her up air.
+const ARCHER = HitElement.normal;
+export const ARCHER_GROUND: GroundKit = {
+  normals: {
+    [AttackStyle.dashAttack]: heroMove(6, 4, 20, 0, [held(6, 9, [14.0, 14.0, 90.0, 10.0], 10.0, groundHit(8.0, 70, 55.0, 38.0, ARCHER))], 99.0, true),
+  },
+  reaches: {},
+};
+
+// Rifleman: the rifle as a club and a bayonet. A thrust that angles, an
+// overhead swing, a low sweep that pops the victim straight up (Falco's 1.3
+// ratio over the old shared down tilt), and a lunge.
+const RIFLE = HitElement.normal;
+const bayonet = (ends: readonly (readonly [number, number, number])[], angle: Angle) =>
+  swing(7, ends.map(([z1, x, z]): Segment => [18.0, z1, x, z]), 10.0, groundHit(10.0, angle, 90.0, 22.0, RIFLE));
+export const RIFLEMAN_GROUND: GroundKit = {
+  normals: {
+    [AttackStyle.jab]: heroMove(4, 3, 16, 0, swing(4, [[18.0, 50.0, 95.0, 52.0], [18.0, 50.0, 95.0, 50.0], [18.0, 50.0, 90.0, 48.0]], 10.0, groundHit(4.0, 20, 70.0, 24.0, RIFLE))),
+    [AttackStyle.forwardTilt]: heroMove(7, 3, 21, 0, bayonet([[52.0, 155.0, 54.0], [52.0, 155.0, 52.0], [50.0, 145.0, 50.0]], 30)),
+    [AttackStyle.forwardTiltUp]: heroMove(7, 3, 21, 0, bayonet([[58.0, 125.0, 110.0], [60.0, 135.0, 104.0], [58.0, 125.0, 98.0]], 50)),
+    [AttackStyle.forwardTiltDown]: heroMove(7, 3, 21, 0, bayonet([[40.0, 140.0, 12.0], [38.0, 150.0, 4.0], [36.0, 140.0, 0.0]], 15)),
+    [AttackStyle.upTilt]: heroMove(6, 3, 22, 0, swing(6, [[24.0, 60.0, 80.0, 100.0], [10.0, 70.0, 20.0, 125.0], [-10.0, 66.0, -50.0, 105.0]], 12.0,
+      groundHit(8.0, 90, 80.0, 26.0, RIFLE))),
+    [AttackStyle.downTilt]: heroMove(7, 3, 22, 0, swing(7, [[14.0, 10.0, 108.0, 10.0], [14.0, 8.0, 108.0, 6.0], [14.0, 6.0, 100.0, 2.0]], 10.0,
+      groundHit(10.0, 80, 45.0, 50.0, RIFLE))),
+    [AttackStyle.dashAttack]: heroMove(9, 3, 25, 0, swing(9, [[18.0, 50.0, 140.0, 52.0], [18.0, 50.0, 140.0, 50.0], [18.0, 48.0, 130.0, 48.0]], 10.0,
+      groundHit(11.0, 40, 95.0, 22.0, RIFLE)), 66.0, true),
+  },
+  reaches: {},
+};
+
 /**
  * A stock sequence retimed so its strike moment (seconds into the sequence,
  * measured where the drawn weapon or limb reaches farthest) plays on `frame`

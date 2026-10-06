@@ -163,7 +163,11 @@ const ordinary = (minX: number, maxX: number, minZ: number, maxZ: number, damage
 /** Reach envelope of the actions without a region of their own; smash damage is before charge. */
 function reachRegion(style: AttackStyle): Readonly<HitRegion> {
   const verticalOffset = style === AttackStyle.forwardTiltUp ? 65.0 : style === AttackStyle.forwardTiltDown ? -65.0 : 0.0;
-  return ordinary(0.0, attackReach(style), f32(verticalOffset - 130), f32(verticalOffset + 130), attackDamage(style));
+  const [minZ, maxZ] = [f32(verticalOffset - 130), f32(verticalOffset + 130)];
+  // An angled forward tilt launches along its angle (smashcraft:docs/design/tilts.md): 55 degrees up, 20 down.
+  if (style === AttackStyle.forwardTiltUp) return region(0.0, attackReach(style), minZ, maxZ, attackDamage(style), ORDINARY_HIT_GROWTH_PERCENT, ORDINARY_HIT_BASE_KNOCKBACK, 0.5735764503479004, 0.8191520571708679);
+  if (style === AttackStyle.forwardTiltDown) return region(0.0, attackReach(style), minZ, maxZ, attackDamage(style), ORDINARY_HIT_GROWTH_PERCENT, ORDINARY_HIT_BASE_KNOCKBACK, 0.9396926164627075, 0.3420201539993286);
+  return ordinary(0.0, attackReach(style), minZ, maxZ, attackDamage(style));
 }
 
 const REACH_REGIONS: { readonly [style: number]: Readonly<HitRegion> } = {
@@ -200,10 +204,6 @@ const downAir = (minX: number, maxX: number, damage: number) =>
 const ARCHER_DOWN_AIR_DIVE = downAir(-55.0, 55.0, attackDamage(AttackStyle.downAir));
 const ARCHER_DOWN_AIR_LATE = downAir(-55.0, 55.0, 6.0);
 const DOWN_AIR = downAir(-95.0, 95.0, attackDamage(AttackStyle.downAir));
-// Melee's Falco down tilt hits 1.3 times Fox's on the same frames (13% and
-// 10%, smashcraft:references/melee-frame-data/); Rifleman's keeps that ratio
-// over the shared down tilt's 8.
-const RIFLEMAN_DOWN_TILT = ordinary(0.0, attackReach(AttackStyle.downTilt), -130.0, 130.0, 10.0);
 
 export function authoredHitRegionCount(style: AttackStyle | undefined, moves?: FighterMoves): number {
   const authored = style === undefined ? undefined : moves?.normals[style];
@@ -238,8 +238,6 @@ function activeRegion(character: Character, style: AttackStyle, frame: number, i
     case AttackStyle.downAir:
       if (character === Character.archer) return frame < startup + 3 ? ARCHER_DOWN_AIR_DIVE : ARCHER_DOWN_AIR_LATE;
       return DOWN_AIR;
-    case AttackStyle.downTilt:
-      return character === Character.rifleman ? RIFLEMAN_DOWN_TILT : REACH_REGIONS[style] ?? NO_HIT_REGION;
     default:
       return REACH_REGIONS[style] ?? NO_HIT_REGION;
   }

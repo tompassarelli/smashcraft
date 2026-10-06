@@ -18,6 +18,7 @@ import { fighterAt, isActive } from "../sim/roster";
 import { writeTrainingState } from "../match/trainingState";
 import type { ReplayState } from "./snapshot";
 import { HERO_ROSTER } from "../sim/heroes/registry";
+import { ARCHER_MOVES, RIFLEMAN_MOVES } from "../sim/originalMoves";
 
 const REPLAY_CHECKSUM_MODULUS = 1_000_003;
 
@@ -957,6 +958,7 @@ export function foldStateChecksum(fold: StateChecksumFold, characters: number): 
 
 /** Folds every registered hero kit's digest; map load calls it before any match frame. */
 export function prepareKitDigests(): void {
+  for (const moves of [ARCHER_MOVES, RIFLEMAN_MOVES]) kitDigestField("moves", moves, MOVES_DIGESTS, fighterMovesCanonical);
   for (const hero of HERO_ROSTER) {
     kitDigestField("moves", hero.moves, MOVES_DIGESTS, fighterMovesCanonical);
     kitDigestField("specials", hero.specials, SPECIALS_DIGESTS, fighterSpecialsCanonical);

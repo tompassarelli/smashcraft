@@ -266,7 +266,7 @@ test("a finisher can connect when the opening window misses", () => {
 test("hit regions snapshot different effects before either trade cancels its attack", () => {
   for (const reverse of [false, true]) {
     const first = createFighter(Character.archer, 0.0, 1);
-    const second = createFighter(Character.rifleman, 100.0, -1);
+    const second = createFighter(Character.archer, 100.0, -1);
     testBeginAttacks(testWorld(first, second), AttackStyle.forwardTilt, AttackStyle.forwardTilt);
     first.attack.frame = 5;
     second.attack.frame = 6;

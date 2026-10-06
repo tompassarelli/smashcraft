@@ -344,8 +344,9 @@ test("an initial dash clears on a jump, shield, attack and respawn", () => {
       advanceFighter(world, 0, 0, input, 0.0);
       assertTrue(fighter.shield.raised);
     } else if (interruption === 2) {
+      // A dashing jab is the dash attack.
       testBeginAttacks(world, AttackStyle.jab, undefined);
-      assertEquals(fighter.attack.style, AttackStyle.jab);
+      assertEquals(fighter.attack.style, AttackStyle.dashAttack);
     } else {
       fighter.motion.x = f32(stageBounds(0).blast.right + 10.0);
       advanceFighter(world, 0, 0, input, 0.0);

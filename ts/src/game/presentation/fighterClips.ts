@@ -2,13 +2,23 @@
 // come from the packaged asset metadata; each hero registers its own in its
 // presentation (sim/heroes/<hero>Hero.ts). Tables only: pose selection lives in
 // fighterPose.
+import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GrabAction, LedgeState, PlatformMove, SpecialAction } from "../sim/codes";
 import { type HeroClip, type HeroClipTable, type HeroFollowUpPose, type HeroPose, STOCK_FALLBACK_CLIP } from "../sim/heroes/hero";
 import { heroDefinition } from "../sim/heroes/registry";
+import { ARCHER_GROUND, RIFLEMAN_GROUND, type GroundKit, strikeClip } from "../sim/heroes/groundNormals";
 import * as dh from "./demonHunterAssetInfo";
 import * as assets from "./fighterAssetInfo";
 
 const clip = (index: number, seconds: number): HeroClip => ({ index, seconds });
+
+/**
+ * An original clip authored with its strike on the shared timing's first active
+ * frame (`startup` of `total`), retimed to land on the kit's own
+ * (smashcraft:docs/design/tilts.md).
+ */
+const retimed = (index: number, seconds: number, startup: number, total: number, kit: GroundKit, style: AttackStyle): HeroClip =>
+  strikeClip({ index }, f32(f32(seconds * startup) / total), kit, style);
 
 // Ledge options: Illidan has his own roll and attack; the others reuse their
 // roll and get-up attack. Only Illidan maps smashes and a dash attack.
@@ -20,6 +30,8 @@ const ARCHER_CLIPS: HeroClipTable = {
   downTilt: clip(assets.ARCHER_DOWN_TILT_INDEX, assets.ARCHER_DOWN_TILT_SECONDS),
   forwardTiltUp: clip(assets.ARCHER_FORWARD_TILT_UP_INDEX, assets.ARCHER_FORWARD_TILT_UP_SECONDS),
   forwardTiltDown: clip(assets.ARCHER_FORWARD_TILT_DOWN_INDEX, assets.ARCHER_FORWARD_TILT_DOWN_SECONDS),
+  // The sliding kick plays the low sweep kick.
+  dashAttack: retimed(assets.ARCHER_DOWN_TILT_INDEX, assets.ARCHER_DOWN_TILT_SECONDS, 5, 28, ARCHER_GROUND, AttackStyle.dashAttack),
   neutralAir: clip(assets.ARCHER_AERIAL_NEUTRAL_INDEX, assets.ARCHER_AERIAL_NEUTRAL_SECONDS),
   forwardAir: clip(assets.ARCHER_AERIAL_FORWARD_INDEX, assets.ARCHER_AERIAL_FORWARD_SECONDS),
   backAir: clip(assets.ARCHER_AERIAL_BACK_INDEX, assets.ARCHER_AERIAL_BACK_SECONDS),
@@ -61,13 +73,15 @@ const ARCHER_CLIPS: HeroClipTable = {
 };
 
 const RIFLEMAN_CLIPS: HeroClipTable = {
-  jab: clip(assets.RIFLEMAN_JAB_INDEX, assets.RIFLEMAN_JAB_SECONDS),
+  jab: retimed(assets.RIFLEMAN_JAB_INDEX, assets.RIFLEMAN_JAB_SECONDS, 4, 21, RIFLEMAN_GROUND, AttackStyle.jab),
   grab: clip(assets.RIFLEMAN_GRAB_INDEX, assets.RIFLEMAN_GRAB_SECONDS),
-  forwardTilt: clip(assets.RIFLEMAN_FORWARD_TILT_INDEX, assets.RIFLEMAN_FORWARD_TILT_SECONDS),
-  upTilt: clip(assets.RIFLEMAN_UP_TILT_INDEX, assets.RIFLEMAN_UP_TILT_SECONDS),
-  downTilt: clip(assets.RIFLEMAN_DOWN_TILT_INDEX, assets.RIFLEMAN_DOWN_TILT_SECONDS),
-  forwardTiltUp: clip(assets.RIFLEMAN_FORWARD_TILT_UP_INDEX, assets.RIFLEMAN_FORWARD_TILT_UP_SECONDS),
-  forwardTiltDown: clip(assets.RIFLEMAN_FORWARD_TILT_DOWN_INDEX, assets.RIFLEMAN_FORWARD_TILT_DOWN_SECONDS),
+  forwardTilt: retimed(assets.RIFLEMAN_FORWARD_TILT_INDEX, assets.RIFLEMAN_FORWARD_TILT_SECONDS, 5, 28, RIFLEMAN_GROUND, AttackStyle.forwardTilt),
+  upTilt: retimed(assets.RIFLEMAN_UP_TILT_INDEX, assets.RIFLEMAN_UP_TILT_SECONDS, 6, 29, RIFLEMAN_GROUND, AttackStyle.upTilt),
+  downTilt: retimed(assets.RIFLEMAN_DOWN_TILT_INDEX, assets.RIFLEMAN_DOWN_TILT_SECONDS, 5, 28, RIFLEMAN_GROUND, AttackStyle.downTilt),
+  forwardTiltUp: retimed(assets.RIFLEMAN_FORWARD_TILT_UP_INDEX, assets.RIFLEMAN_FORWARD_TILT_UP_SECONDS, 5, 28, RIFLEMAN_GROUND, AttackStyle.forwardTiltUp),
+  forwardTiltDown: retimed(assets.RIFLEMAN_FORWARD_TILT_DOWN_INDEX, assets.RIFLEMAN_FORWARD_TILT_DOWN_SECONDS, 5, 28, RIFLEMAN_GROUND, AttackStyle.forwardTiltDown),
+  // The lunge plays the bayonet thrust.
+  dashAttack: retimed(assets.RIFLEMAN_FORWARD_TILT_INDEX, assets.RIFLEMAN_FORWARD_TILT_SECONDS, 5, 28, RIFLEMAN_GROUND, AttackStyle.dashAttack),
   neutralAir: clip(assets.RIFLEMAN_AERIAL_NEUTRAL_INDEX, assets.RIFLEMAN_AERIAL_NEUTRAL_SECONDS),
   forwardAir: clip(assets.RIFLEMAN_AERIAL_FORWARD_INDEX, assets.RIFLEMAN_AERIAL_FORWARD_SECONDS),
   backAir: clip(assets.RIFLEMAN_AERIAL_BACK_INDEX, assets.RIFLEMAN_AERIAL_BACK_SECONDS),

@@ -22,7 +22,7 @@ import { stepMatch } from "./step";
 
 /** Fighters whose ground normals tilts.md designs; Illidan's belong to his own kit. */
 const DESIGNED: readonly Character[] = [
-  Character.blademaster, Character.mountainKing, Character.warden, Character.lich, Character.uther, Character.dreadlord, Character.shadowHunter,
+  Character.archer, Character.rifleman, Character.blademaster, Character.mountainKing, Character.warden, Character.lich, Character.uther, Character.dreadlord, Character.shadowHunter,
 ];
 const GROUND = [AttackStyle.jab, AttackStyle.forwardTilt, AttackStyle.upTilt, AttackStyle.downTilt, AttackStyle.dashAttack] as const;
 /** Forward airs that outreach the forward tilt on purpose (tilts.md, "Reach versus aerials"). */
@@ -128,19 +128,18 @@ test("a diagonal tilt angles a straight strike and plays a vertical swing's plai
       return attacker(d).attack.style;
     };
     assertEquals(started(up), AttackStyle.forwardTiltUp);
-    const plain = moves?.normals[AttackStyle.forwardTilt];
-    const raised = moves?.normals[AttackStyle.forwardTiltUp];
-    const lowered = moves?.normals[AttackStyle.forwardTiltDown];
-    assertTrue(plain !== undefined && raised !== undefined && lowered !== undefined);
-    if (plain === undefined || raised === undefined || lowered === undefined) continue;
+    const timing = (style: AttackStyle) => ({ startupFrames: attackStartupFrames(style, moves), totalFrames: attackDurationFramesForGrounding(style, true, moves) });
     if (UNANGLED.includes(character)) {
-      assertEquals(raised === plain && lowered === plain, true, `${fighterName(character)} angles a vertical swing`);
+      const plainMove = moves?.normals[AttackStyle.forwardTilt];
+      assertEquals(moves?.normals[AttackStyle.forwardTiltUp] === plainMove && moves?.normals[AttackStyle.forwardTiltDown] === plainMove, true, `${fighterName(character)} angles a vertical swing`);
       continue;
     }
+    // Archer's angles come from the original tables, the others from their kits.
+    const [plain, raised, lowered] = [timing(AttackStyle.forwardTilt), timing(AttackStyle.forwardTiltUp), timing(AttackStyle.forwardTiltDown)];
     // Same timing and damage; the volume moves and the launch follows it.
     const at = (style: AttackStyle) => {
       const out = emptyHitRegion();
-      authoredHitRegion(out, character, style, plain.startupFrames + 1, 0, 1, moves);
+      authoredHitRegion(out, character, style, plain.startupFrames, 0, 0, moves);
       return out;
     };
     for (const angled of [raised, lowered]) {
@@ -293,4 +292,33 @@ test("dash attacks: Warden's is the fastest, Shadow Hunter's hits three times, D
   hitFrames(cross, 30);
   assertGreaterThan(target(cross).status.damage, 0.0);
   assertGreaterThan(attacker(cross).motion.x, target(cross).motion.x);
+});
+
+test("Rifleman's down tilt pops the victim straight up at 0% without a tumble, and tumbles it at high percent", () => {
+  for (const [percent, tumbles] of [[0.0, false], [140.0, true]] as const) {
+    const d = duel(Character.rifleman, 80.0, percent);
+    press(d, AttackStyle.downTilt);
+    let tumbled = false;
+    let rose = false;
+    for (let i = 0; i < 30; i++) {
+      step(d);
+      tumbled ||= target(d).down.state === DownState.tumble;
+      rose ||= target(d).motion.z > 10.0;
+    }
+    assertTrue(rose);
+    assertEquals(tumbled, tumbles, `at ${percent}%`);
+  }
+});
+
+test("Archer's and Rifleman's dashing jab is a dash attack: her sliding kick pops up, his lunge reaches farther", () => {
+  const kick = duel(Character.archer, 160.0);
+  press(kick, AttackStyle.dashAttack);
+  let rose = false;
+  for (let i = 0; i < 20; i++) {
+    step(kick);
+    rose ||= target(kick).motion.z > 10.0;
+  }
+  assertGreaterThan(target(kick).status.damage, 0.0);
+  assertTrue(rose);
+  assertGreaterThan(forwardReach(Character.rifleman, AttackStyle.dashAttack), forwardReach(Character.archer, AttackStyle.dashAttack));
 });

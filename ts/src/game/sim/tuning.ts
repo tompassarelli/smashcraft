@@ -10,6 +10,7 @@ import type { FighterMoves } from "./heroMoves";
 import type { FighterSpecials } from "./heroSpecials";
 import { heroBody } from "./heroes/heroBodies";
 import { heroDefinition } from "./heroes/registry";
+import { originalFighterMoves } from "./originalMoves";
 
 export const WORLD_UNITS_PER_MELEE_UNIT = 6.0;
 
@@ -364,7 +365,7 @@ function heroShieldGeometry(character: Character): ShieldGeometry {
 export function authoredTuning(character: Character): FighterTuning {
   const hero = heroDefinition(character);
   return {
-    moves: hero?.moves,
+    moves: hero?.moves ?? originalFighterMoves(character),
     specials: hero?.specials,
     physics: authoredPhysics(character),
     surface: authoredSurfaceRecovery(character),

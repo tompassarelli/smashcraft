@@ -7,6 +7,7 @@ import { AttackStyle, Character } from "../src/game/sim/codes";
 import { type Fighter, createFighter } from "../src/game/sim/fighter";
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../src/game/sim/hitRegions";
 import { attackCapsule, emptyCapsule, hurtCapsule } from "../src/game/physics/contactGeometry";
+import { authoredTuning } from "../src/game/sim/tuning";
 import { attackLandingLag, attackStartupFrames, attackDurationFramesForGrounding, characterAttackActiveFrames,
   isAerialAttack, isSmashAttack, SMASH_MAX_CHARGE_FRAMES, smashDamageMultiplier } from "../src/game/sim/moves";
 import { ordinaryHitKnockback, ordinaryHitstunFrames, ordinaryHitlagFrames, victimHitlagFrames } from "../src/game/sim/knockback";
@@ -54,7 +55,7 @@ function firstDifference(expected: string, actual: string): string | undefined {
   return visit(left, right, "$");
 }
 const capsule = (style: AttackStyle, character: Character, frame: number, charge: number, regionIndex: number) => {
-  const hit = authoredHitRegion(emptyHitRegion(), character, style, frame, charge, regionIndex);
+  const hit = authoredHitRegion(emptyHitRegion(), character, style, frame, charge, regionIndex, authoredTuning(character).moves);
   return attackCapsule(emptyCapsule(), style, hit);
 };
 export function observeLandingLag(character: Character, style: AttackStyle): number {
@@ -75,20 +76,22 @@ function emitMoves(): void {
     rows.push(json({ kind: "context", schema: 1, roster: ["Archer", "Rifleman", "Demon Hunter"], units: "simulation world units; frames are zero-based attack ticks, excluding charge/hitlag pauses", derivedContext: { preHitPercent: 0, victimWeight: 100, contextScale: 1, shieldStrength: 1, crouching: false, di: "none; launch vector is authored before DI", simultaneousContacts: false }, motionContext: { stage: 0, x: 0, groundStartZ: 0, aerialStartZ: 700, initialVelocity: [0, 0], facing: 1, input: "neutral", contacts: false, chargeFrames: 0 }, conditions: { selection: "lowest contacting region index wins; body capsule intersection or shield intersection", rehit: "one hit per attacker/attack serial/window; a higher window permits another hit", smashCharge: "grounded held attack pauses before first active frame; endpoints exported", start: "beginFighterAttack enforces grounding and canStartAttackStyle; motion fixture starts idle", landing: "aerial landing cancels attack; no autocancel window represented" }, unknown: ["reference corpus mapping", "reachable punishments", "DI/contact/spacing dependent matchup outcomes", "animation-specific hurtboxes", "autocancel windows"], maxChargeFrames: SMASH_MAX_CHARGE_FRAMES }));
   for (const character of charList) for (const style of styleList) {
     if (!names[style]) continue;
+    // Each fighter's own kit, where it has one (Archer's dash attack, Rifleman's ground normals).
+    const moves = authoredTuning(character).moves;
     const charges = isSmashAttack(style) ? [0, SMASH_MAX_CHARGE_FRAMES] : [0];
     for (const charge of charges) {
-      const startup = attackStartupFrames(style);
-      const active = characterAttackActiveFrames(character, style);
-      const total = attackDurationFramesForGrounding(style, !isAerialAttack(style));
+      const startup = attackStartupFrames(style, moves);
+      const active = characterAttackActiveFrames(character, style, moves);
+      const total = attackDurationFramesForGrounding(style, !isAerialAttack(style), moves);
       const recovery = total - startup - active;
-      const multiplier = isSmashAttack(style) ? smashDamageMultiplier(charge) : 1;
+      const multiplier = isSmashAttack(style) ? smashDamageMultiplier(charge, moves) : 1;
       const hurt = hurtCapsule(character);
       const move = { kind: "move", character, move: names[style], style, chargeFrames: charge, startup, active, recovery, totalUnpaused: total,
-        landingLag: attackLandingLag(style), observedLandingLag: observeLandingLag(character, style),
+        landingLag: attackLandingLag(style, moves), observedLandingLag: observeLandingLag(character, style),
         chargeDamageMultiplier: multiplier, hurtCapsule: hurt, autocancelWindows: null, animationHurtboxes: null };
       rows.push(json(move));
-      for (let frame = 0; frame < total; frame++) for (let region = 0; region < authoredHitRegionCount(style); region++) {
-        const hit = authoredHitRegion(emptyHitRegion(), character, style, frame, charge, region);
+      for (let frame = 0; frame < total; frame++) for (let region = 0; region < authoredHitRegionCount(style, moves); region++) {
+        const hit = authoredHitRegion(emptyHitRegion(), character, style, frame, charge, region, moves);
         if (hit.window <= 0) continue;
         const effect = hit.effect;
         const knockback = ordinaryHitKnockback(0, effect.damage, 100, effect.growth, effect.base, 1);
@@ -101,9 +104,9 @@ function emitMoves(): void {
             digitalShieldstun: digitalShieldstunFrames(effect.damage, isAerialAttack(style)), digitalShieldPushback: digitalShieldPushback(effect.damage), digitalShieldRecoil: digitalShieldRecoil(effect.damage) } }));
       }
     }
-    const startup = attackStartupFrames(style);
-    const active = characterAttackActiveFrames(character, style);
-    const total = attackDurationFramesForGrounding(style, !isAerialAttack(style));
+    const startup = attackStartupFrames(style, moves);
+    const active = characterAttackActiveFrames(character, style, moves);
+    const total = attackDurationFramesForGrounding(style, !isAerialAttack(style), moves);
     const fighter = createFighter(character, 0, 1);
     const world = createRoster(1, [fighter]);
     fighter.motion.grounded = !isAerialAttack(style);
