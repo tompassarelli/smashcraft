@@ -113,8 +113,8 @@ export function advancePlacedObjects(world: Roster): void {
     let scheduled = false;
     for (const age of spec.fireAges) if (age === placed.age) scheduled = true;
     const fires = scheduled && !inGrabContext(owner) && owner.launch.hitstun <= 0 && !owner.status.out;
-    if (fires && ownedProjectiles(owner) < HERO_PROJECTILE_CAP) {
-      const { shot } = spec;
+    const { shot } = spec;
+    if (fires && shot !== undefined && ownedProjectiles(owner) < HERO_PROJECTILE_CAP) {
       const x = f32(placed.x + f32(placed.direction * shot.offsetX));
       spawnHeroProjectileAt(owner, shot, x, f32(placed.z + shot.offsetZ), placed.direction, false, owner.attack.serial + 1);
     }

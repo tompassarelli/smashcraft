@@ -3,7 +3,8 @@
 import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackPhase, AttackStyle, Character, DownState, GrabAction, LedgeState, PlatformMove, ShieldBreak, SpecialAction } from "../sim/codes";
-import { FOLLOW_UP_FORM } from "../sim/heroSpecials";
+import { FOLLOW_UP_FORM, SpecialForm } from "../sim/heroSpecials";
+
 import { GROUND_ROLL_FRAMES, SPOT_DODGE_FRAMES, attackPhase, inGrabContext, isForwardGroundRoll, isGroundDodging } from "../sim/conditions";
 import { DOWN_BOUND_FRAMES, DOWN_DAMAGE_FRAMES, DOWN_ROLL_FRAMES, DOWN_STAND_FRAMES, TECH_IN_PLACE_FRAMES, TECH_ROLL_FRAMES } from "../sim/down";
 import type { Fighter } from "../sim/fighter";
@@ -22,6 +23,9 @@ import {
   ESCAPE_FRAMES, IllidanLocomotion, LEDGE_CATCH_FRAMES, RESPAWN_FRAMES, TRANSITION_FRAMES, type IllidanMotion,
   advanceIllidanMotion, clearIllidanMotion, copyIllidanMotion, createIllidanMotion, firstIllidanMotionDifference,
 } from "./illidanMotion";
+
+/** A follow-up or a recall plays the special's follow-up pose where the table maps one. */
+const playsFollowUpPose = (f: Readonly<Fighter>): boolean => f.special.form >= FOLLOW_UP_FORM || f.special.form === SpecialForm.recall;
 
 export const FRAME_SECONDS = f32(0.016666667);
 const REACTION_CLIP_FRAMES = 24;
@@ -253,7 +257,7 @@ function selectClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly<Ros
   }
   if (f.special.action !== SpecialAction.none && f.launch.hitstun === 0) {
     // A follow-up replaces the action's remaining frames, so its clip starts over.
-    playIndex(pose, `special${f.special.action}${f.special.form >= FOLLOW_UP_FORM ? "+" : ""}`, fighterSpecialClip(f).index);
+    playIndex(pose, `special${f.special.action}${playsFollowUpPose(f) ? "+" : ""}`, fighterSpecialClip(f).index);
     return rate;
   }
   const stateRate = illidan ? selectIllidanAction(pose, f) : selectTableAction(pose, f, table);
@@ -502,7 +506,7 @@ function groundDodgeClip(f: Readonly<Fighter>): HeroClip {
 
 function fighterSpecialClip(f: Readonly<Fighter>): HeroClip {
   const aerialShot = f.special.duration === RIFLEMAN_BLASTER_AIR_FRAMES;
-  return clips.specialClip(f.character, f.special.action, f.motion.grounded, aerialShot, f.special.form >= FOLLOW_UP_FORM);
+  return clips.specialClip(f.character, f.special.action, f.motion.grounded, aerialShot, playsFollowUpPose(f));
 }
 
 function damageClipPose(reaction: DamagePose): HeroPose {

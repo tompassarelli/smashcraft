@@ -339,7 +339,7 @@ test("hero projectiles end on walls, undersides and solid deck tops, and pass th
 
 test("a second press inside a follow-up window starts the follow-up once; presses outside it change nothing", () => {
   const slash: AuthoredSpecial = { cost: 0, endFrame: 37, regions: [heroRegion(10, 12, { x1: 10.0, z1: 50.0, x2: 110.0, z2: 50.0, radius: 12.0 }, hit(10.0))] };
-  const feint: AuthoredSpecial = { cost: 15, endFrame: 24, followUp: { window: frames(8, 19), special: slash } };
+  const feint: AuthoredSpecial = { cost: 15, endFrame: 24, followUps: [{ window: frames(8, 19), special: slash }] };
   const run = (pressAt: number) => {
     const owner = hero(0.0, 1);
     owner.tuning = { ...owner.tuning, specials: { ...KIT, down: { ground: feint } } };

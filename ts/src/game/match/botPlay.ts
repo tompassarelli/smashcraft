@@ -17,6 +17,7 @@ import { steerInAir, steerOnGround } from "./botFooting";
 import { botChoice, chooseAttack, smashChargeGoal } from "./botMoves";
 import { chooseDefense } from "./botDefense";
 import { chooseRecoveryInput } from "./botRecovery";
+import { pressHeroFollowUp } from "./botHeroKit";
 import { MATCH_TICKS_PER_SECOND, type MatchState } from "./rules";
 import { trainingPartnerInput } from "./training";
 
@@ -167,6 +168,7 @@ export function produceComputerInput(game: Readonly<MatchState>, world: Roster, 
     input.mashPressed = floorMod(frame, 2) === 0;
     return;
   }
+  if (target !== undefined && pressHeroFollowUp(fighter, target, input)) return;
   if (chooseRecoveryInput(fighter, stage, game.matchFrame, input, target)) return;
   if (isSmashAttack(fighter.attack.style) && fighter.attack.smashChargeAllowed) input.attackHeld = fighter.attack.smashChargeFrames < smashChargeGoal(fighter);
   if (target === undefined) return;

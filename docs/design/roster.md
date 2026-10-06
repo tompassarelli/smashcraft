@@ -149,9 +149,9 @@ The individual hero sections below specify all attacks. Their counterplay descri
 | Input | Proposed move and behavior | Timing and cost |
 | --- | --- | --- |
 | Neutral B | **Wind Cutter:** short traveling blade wave. 6 damage, POKE at 35 degrees; speed 0.14H/frame, life 24 frames, radius 0.16H. Reflectable; only one owned wave at a time. | Spawn f18, action ends f40; 0 mana |
-| Side B | **Wind Walk Strike:** visibly translucent 1.4H dash, then a slash for 11 damage at 40 degrees, EDGE. No invisibility, invulnerability, or crossing through shields. Vulnerable during approach. In air gives horizontal travel once, then helpless. | Dash f10–19, slash f20–22, 26 recovery; 18 mana |
+| Side B | **Wind Walk** (#124, smashcraft:docs/design/kit-review-1.md): a 7-frame fade, then a 2.2H walk that passes bodies and stops at a raised shield. In f10–31 an attack press is **Backstab**, a slash for 12 damage at 40 degrees, EDGE, toward the held stick (back turns him: the cross-up); a special press steps out; nothing recovers. No invisibility or invulnerability. In air once per airtime, then helpless. | Walk f8–31, end f44; Backstab active f6–8 of its press, end f28; step out ends 8 frames after its press; 18 mana |
 | Up B | **Rising Blade:** upward sword leap, 2.0H maximum ascent and 0.5H lateral travel; one hit for 9 damage at 80 degrees, LAUNCH. No intangibility. Mana-free version travels 1.4H with no attack. | Starts f7, hit f7–12, movement through f25, then helpless; 15 mana |
-| Down B | **Mirror Feint:** after a visible tell, move 0.5H backward and leave one cosmetic afterimage for 24 frames. A second B press within 12 frames of departure requests a real forward slash, not an autonomous clone attack: 10 damage, L reach, 40 degrees, EDGE. A missed read is punishable; no intangibility. | Departure f8, base action ends f24; follow-up first active 9 frames after second press, active 3, recovery 25; 15 mana |
+| Down B | **Mirror Image** (#124): after a visible tell, an image stays where he stood (one hit of any kind shatters it; 150 frames) and he steps 1.0H back (down with a side turns him to that side first). Down special while the image stands **swaps**: he takes the image's place facing its way and slashes for 10 damage at 40 degrees, EDGE. The image never attacks; no intangibility. | Image and step f8, end f24, 15 mana; swap f6, slash f8–10, end f30, free |
 
 ### Grab and throws
 
@@ -166,16 +166,16 @@ Standing grab 7/2/22, reach 0.55H, one-handed collar catch. Pummel: pommel strik
 
 **Ultimate — Bladestorm:** f24 startup, 120-frame active spin on f24–143 with ground speed capped at half normal run speed, reach L, six possible 3-damage LINK hits at 70 degrees per target at least 18 frames apart, then a single 10-damage KILL finisher at 45 degrees on f144–146; R40. No invulnerability or armor, no grab, and no ledge travel off solid ground. One activation ID tracks all hit limits. Avoid literal uninterruptible Warcraft Bladestorm.
 
-**Required counterplay test:** forward smash whiff must give a fast fighter at its outer edge a plausible approach punish; Mirror Feint cannot reset its own recovery or create a true 50/50 without prior advantage.
+**Required counterplay test:** forward smash whiff must give a fast fighter at its outer edge a plausible approach punish; Mirror Image cannot reset its own recovery or create a true 50/50 without prior advantage.
 
 **As implemented** (smashcraft:ts/src/game/sim/heroes/blademasterMoves.ts, blademasterSpecials.ts, blademasterClips.ts). Every row above is authored; these are the departures:
 
 - Forward tilt also has up- and down-angled forms with the row's timing and damage; only the blade path changes.
 - Down air's tip spikes airborne targets only; it sends grounded targets at 55 degrees, as the shared notation directs.
 - Dash grab uses the shared rule (startup +3, recovery +8) on the standing grab's volumes.
-- Wind Cutter, Mirror Feint and Wind Walk Strike keep their grounded timing in the air; Wind Cutter and Mirror Feint end on landing with 20 frames of lag, and the airborne Wind Walk Strike is once per airtime and ends helpless.
+- Wind Cutter, Mirror Image and Wind Walk keep their grounded timing in the air; Wind Cutter and Mirror Image end on landing with 20 frames of lag, and the airborne Wind Walk is once per airtime and ends helpless, Backstab and step out included.
 - Rising Blade climbs evenly over f7-24 and stops at its peak on f25 (2.0H up, 0.5H forward), so the helpless fall starts from rest; its free form climbs 1.4H and drifts 0.35H (the row's distance ratio) with no hit.
-- Wind Walk Strike's dash stops before a raised shield or a body (`stopsAtBody`) and halts on the slash frame. Mirror Feint's back step stops at 0.5H; its slash replaces the rest of the feint on a second special press in f8-19 (`followUp`) and spends nothing more.
+- Wind Walk's walk stops before a raised shield but passes bodies (`stopsAtShield`); Backstab and step out are its attack and special branches (`followUps`). Mirror Image's image is a placed object drawn as his see-through model; the swap is its recall form (`relocate`).
 - Presentation uses the stock Blademaster model. It has fourteen sequences and no hit, jump, roll or ledge animations: thrusts play Attack 2, cuts Attack, rising strikes Stand - 4, and spinning moves, rolls and the double jump the Bladestorm spin; hit reactions play the start of Death. Attack Slam is unused because its leap moves the body about 130 units away from the hurtbox.
 - Bladestorm is not implemented; ultimates stay off in competitive play.
 

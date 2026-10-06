@@ -2,6 +2,7 @@
 // FighterMoves, executed by heroSpecialRules.ts. Frame numbers follow the
 // roster brief (smashcraft:docs/design/roster.md): the entry tick is frame 1,
 // windows are inclusive, and "end fN" means the fighter acts again on N+1.
+import { idiv, imod } from "wisp/src/sim/intMath";
 import type { MoveRegion, StrikeCapsule } from "./heroMoves";
 import type { HitEffect } from "./hitRegions";
 import type { AppliedStatus } from "./heroStatus";
@@ -14,8 +15,19 @@ export type SpecialSlot = (typeof SpecialSlot)[keyof typeof SpecialSlot];
 /** Which authored form of a special is running; captured on entry. */
 export const SpecialForm = { ground: 0, air: 1, free: 2, recall: 3 } as const;
 export type SpecialForm = (typeof SpecialForm)[keyof typeof SpecialForm];
-/** A running follow-up records its base form plus this offset, past every base form. */
+/**
+ * A running follow-up records its base form plus this offset times one more
+ * than its index in `followUps`, past every base form.
+ */
 export const FOLLOW_UP_FORM = 4;
+
+/** The fresh press that takes a follow-up branch. */
+export const FollowUpInput = { special: 0, attack: 1, shield: 2 } as const;
+export type FollowUpInput = (typeof FollowUpInput)[keyof typeof FollowUpInput];
+
+/** A one-frame move of the fighter on a motion window's first frame, instead of a velocity. */
+export const Relocation = { placed: 1, behindMark: 2 } as const;
+export type Relocation = (typeof Relocation)[keyof typeof Relocation];
 
 /** Brief frames, inclusive. */
 export interface FrameWindow {
@@ -48,6 +60,13 @@ export interface SpecialMotion extends FrameWindow {
    * instead of carrying into or through it (the roster's dash specials).
    */
   readonly stopsAtBody?: boolean | undefined;
+  /** Forward travel passes bodies but ends just short of a raised shield. */
+  readonly stopsAtShield?: boolean | undefined;
+  /**
+   * On the window's first frame the fighter moves at once: onto its placed
+   * object (which is spent), or just behind its marked target.
+   */
+  readonly relocate?: Relocation | undefined;
 }
 
 /**
@@ -129,7 +148,7 @@ export interface SpecialPlacement {
   readonly durability: number;
   readonly life: number;
   readonly fireAges: readonly number[];
-  readonly shot: SpecialProjectile;
+  readonly shot?: SpecialProjectile | undefined;
 }
 
 /**
@@ -178,11 +197,12 @@ export interface AuthoredSpecial {
   readonly recall?: boolean | undefined;
   readonly commandGrab?: CommandGrab | undefined;
   /**
-   * A second special press inside `window` (brief frames) replaces the rest of
-   * this action with `special`, whose frame 1 is the press tick. It spends
-   * `special.cost` and is captured once; it cannot itself be followed up.
+   * Branches after the press: the first whose `window` (brief frames) holds
+   * the next frame and whose input was freshly pressed replaces the rest of
+   * this action with its `special`, whose frame 1 is the press tick. It
+   * spends `special.cost` and is captured once; it cannot itself branch.
    */
-  readonly followUp?: SpecialFollowUp | undefined;
+  readonly followUps?: readonly SpecialFollowUp[] | undefined;
   /**
    * On action frame `frame`, each of the fighter's live `from` projectiles
    * stops where it is and becomes `into`, its age starting again (Lich's
@@ -196,6 +216,10 @@ export interface AuthoredSpecial {
 export interface SpecialFollowUp {
   readonly window: FrameWindow;
   readonly special: AuthoredSpecial;
+  /** The press that takes it; a special press when absent. */
+  readonly input?: FollowUpInput | undefined;
+  /** A stick held left or right at the press turns the fighter that way first. */
+  readonly facesStick?: boolean | undefined;
 }
 
 /** One special input: its grounded form, its airborne form and its zero-mana form. */
@@ -244,8 +268,8 @@ export function specialKit(specials: Readonly<FighterSpecials>, slot: number): S
 /** The form a running special uses. */
 export function specialForm(kit: Readonly<SpecialKit>, form: number): AuthoredSpecial {
   if (form >= FOLLOW_UP_FORM) {
-    const base = specialForm(kit, form - FOLLOW_UP_FORM);
-    return base.followUp?.special ?? base;
+    const base = specialForm(kit, imod(form, FOLLOW_UP_FORM));
+    return base.followUps?.[idiv(form, FOLLOW_UP_FORM) - 1]?.special ?? base;
   }
   if (form === SpecialForm.free) return kit.free ?? kit.ground;
   if (form === SpecialForm.recall) return kit.recall ?? kit.ground;

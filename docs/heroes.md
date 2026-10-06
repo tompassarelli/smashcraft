@@ -50,7 +50,9 @@ acts again on N+1. It may author:
   aim (Pursuit Lunge's 20 degrees); `driftSpeed` adds the live stick's x at
   that many units per frame (Spectral Ascent's steering); `stopsAtBody`
   clamps forward travel to end just short of a raised shield or another
-  fighter's body (Wind Walk Strike);
+  fighter's body (Storm Rush), and `stopsAtShield` only at a raised shield,
+  passing bodies (Wind Walk); `relocate` moves the fighter at once on the
+  window's first frame, onto its placed object (Mirror Image's swap);
 - `aimFrames`: through this frame a held stick re-chooses the aim, so an up
   special can still be aimed sideways or down; without it the aim is the
   stick on entry;
@@ -77,12 +79,17 @@ acts again on N+1. It may author:
   it, #85's throw-hitstun rule refuses it), releases it `holdFrames` later
   with its effect as a throw, and ends the action `recovery` frames after
   that instead of at the whiff `endFrame` (`sim/heroCommandGrab.ts`);
-- `followUp`: `{ window, special }`. A new special press inside the window
-  replaces the rest of the action with `special`, whose frame 1 is the press
-  tick; it spends its own cost, clears the hit registry and cannot itself be
-  followed up. The running form records it (base form + `FOLLOW_UP_FORM`), so
-  rollback restores it, and it plays the `<slot>SpecialFollowUp` pose when the
-  hero's clip table maps one (Mirror Feint's slash);
+- `followUps`: branches `{ window, special, input, facesStick }`. The first
+  whose window holds the next frame and whose input (special by default,
+  attack or shield) was freshly pressed replaces the rest of the action with
+  `special`, whose frame 1 is the press tick; `facesStick` turns the fighter
+  to the held stick first. It spends its own cost, clears the hit registry and
+  cannot itself branch. The running form records it (base form +
+  `FOLLOW_UP_FORM` times one more than its index), so rollback restores it,
+  and it plays the `<slot>SpecialFollowUp` pose when the hero's clip table
+  maps one (Wind Walk's Backstab); a recall form plays it too (Mirror Image's
+  swap). The computer presses an attack or special branch whose strike
+  reaches its target (match/botHeroKit.ts `pressHeroFollowUp`);
 - a `guard` window with `heal` and `healCapPerStock`: when an opponent's
   damaging strike, hero special strike or projectile overlaps the fighter's
   body during it, the action records one success and restores `heal` damage

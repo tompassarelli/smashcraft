@@ -62,6 +62,8 @@ export interface HeroPresentation {
   readonly portrait: string;
   /** The model a projectile of this hero shows. */
   readonly projectileModel: string;
+  /** The model its placed object shows, and that model's standing height; Serpent Ward when absent. */
+  readonly placedModel?: { readonly path: string; readonly height: number; readonly alpha: number } | undefined;
   /**
    * The fighter's unit plays each clip by sequence index, which selects that
    * exact sequence where an animation name picks at random among same-named

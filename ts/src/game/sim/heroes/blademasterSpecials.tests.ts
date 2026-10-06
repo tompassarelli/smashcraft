@@ -2,13 +2,14 @@
 // production special, contact and projectile steps.
 import { assertEquals, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
-import { resolveAttacks } from "../attacks";
-import { Character, ProjectileKind, SpecialAction } from "../codes";
+import { beginFighterAttack, resolveAttacks } from "../attacks";
+import { AttackStyle, Character, ProjectileKind, SpecialAction } from "../codes";
 import { beginDamageContacts, finishDamageContacts } from "../contacts";
 import { type Fighter, createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { advanceHeroStatus, regenerateMana } from "../heroSpecialRules";
 import { HurtContact, strikeHurtContact } from "../hurtboxes";
+import { advancePlacedObjects } from "../placedObjects";
 import { updateProjectiles } from "../projectiles";
 import { type Controls, type Roster, createRoster } from "../roster";
 import { advanceSpecials, startFighterSpecial } from "../specials";
@@ -25,6 +26,7 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), second: Re
   resolveAttacks(world);
   advanceSpecials(world, 0, 0, [first, second]);
   updateProjectiles(world);
+  advancePlacedObjects(world);
   finishDamageContacts(world);
   for (let slot = 0; slot < 2; slot++) {
     regenerateMana(world.fighters[slot]!);
@@ -84,49 +86,139 @@ test("Wind Cutter sends one reflectable wave at frame 18 and refuses a second wh
   assertEquals(owner.mana.points, 100);
 });
 
-test("Wind Walk Strike costs 18, stops short of a raised shield and slashes an exposed target", () => {
+const attack = (direction = 0) => controls({ attackPressed: true, attackRequested: true, direction });
+const run = (world: Roster, frames: number, first: Readonly<Controls> = controls(), second: Readonly<Controls> = controls()) => {
+  for (let f = 0; f < frames; f++) frame(world, first, second);
+};
+const ahead = (owner: Fighter, target: Fighter, facing: number) => f32(f32(target.motion.x - owner.motion.x) * facing);
+
+test("Wind Walk costs 18, walks 2.2H through a body without striking and recovers through frame 44", () => {
   for (const facing of [-1, 1]) {
     const { world, owner, target } = match(150.0, facing);
-    const guard = controls({ shield: true, shieldTriggerActive: true });
-    frame(world, press(facing, 0), guard);
+    frame(world, press(facing, 0));
     assertEquals(owner.mana.points, 82);
-    for (let f = 2; f <= 22; f++) frame(world, controls(), guard);
-    assertTrue(target.shield.raised);
-    assertGreaterThan(f32(f32(target.motion.x - owner.motion.x) * facing), 48.0);
+    run(world, 31);
+    assertTrue(Math.abs(f32(f32(owner.motion.x * facing) - f32(f32(2.2) * H))) <= 2.0);
+    assertLessThan(ahead(owner, target, facing), 0.0);
     assertEquals(target.status.damage, 0.0);
-    const open = match(300.0, facing);
-    frame(open.world, press(facing, 0));
-    for (let f = 2; f <= 30; f++) frame(open.world);
-    assertEquals(open.target.status.damage, 11.0);
-    assertGreaterThan(f32(f32(open.target.motion.x - open.owner.motion.x) * facing), 0.0);
+    assertEquals(owner.special.action, SpecialAction.heroSide);
+    run(world, 12);
+    assertEquals(owner.special.action, SpecialAction.none);
   }
 });
 
-test("Mirror Feint steps back 0.5H; a second press inside its window requests the real slash", () => {
-  const { world, owner, target } = match(60.0);
-  frame(world, press(0, -1));
-  assertEquals(owner.mana.points, 85);
-  for (let f = 2; f <= 11; f++) frame(world);
-  frame(world, press(0, -1));
-  for (let f = 2; f <= 4; f++) frame(world);
-  assertTrue(Math.abs(owner.motion.x + f32(0.5 * H)) <= f32(f32(0.02) * H));
-  for (let f = 5; f <= 12; f++) frame(world);
-  assertEquals(target.status.damage, 10.0);
-  assertEquals(owner.mana.points, 85);
-  const missed = match(140.0);
-  frame(missed.world, press(0, -1));
-  for (let f = 2; f <= 24; f++) frame(missed.world);
-  assertEquals(missed.owner.special.action, SpecialAction.none);
-  assertEquals(missed.target.status.damage, 0.0);
+test("Wind Walk stops short of a raised shield, and the Backstab is blocked by it", () => {
+  const { world, owner, target } = match(150.0);
+  const guard = controls({ shield: true, shieldTriggerActive: true });
+  frame(world, press(1, 0), guard);
+  run(world, 15, controls(), guard);
+  assertTrue(target.shield.raised);
+  assertGreaterThan(ahead(owner, target, 1), 40.0);
+  frame(world, attack(), guard);
+  run(world, 10, controls(), guard);
+  assertEquals(target.status.damage, 0.0);
 });
 
-test("Wind Walk Strike exposes the sword arm around its slash while the blade stays disjoint", () => {
+test("Backstab: an attack press in the walk slashes in front, or behind with the stick held back", () => {
+  for (const facing of [-1, 1]) {
+    const front = match(180.0, facing);
+    frame(front.world, press(facing, 0));
+    run(front.world, 11);
+    frame(front.world, attack())
+    run(front.world, 9);
+    assertEquals(front.target.status.damage, 12.0);
+    run(front.world, 20);
+    assertGreaterThan(f32(front.target.motion.x * facing), 180.0);
+    const behind = match(60.0, facing);
+    frame(behind.world, press(facing, 0));
+    run(behind.world, 15);
+    assertLessThan(ahead(behind.owner, behind.target, facing), 0.0);
+    frame(behind.world, attack(-facing));
+    assertEquals(behind.owner.facing, -facing);
+    run(behind.world, 9);
+    assertEquals(behind.target.status.damage, 12.0);
+    run(behind.world, 20);
+    assertLessThan(f32(behind.target.motion.x * facing), 60.0);
+  }
+});
+
+test("Step out: a special press in the walk stops it and ends the action 8 frames later", () => {
+  const { world, owner, target } = match(900.0);
+  frame(world, press(1, 0));
+  run(world, 11);
+  const x = owner.motion.x;
+  frame(world, press(0, 0));
+  run(world, 7);
+  assertEquals(owner.special.action, SpecialAction.none);
+  assertTrue(Math.abs(f32(owner.motion.x - x)) <= f32(f32(0.1) * H));
+  assertEquals(owner.mana.points, 82);
+  assertEquals(target.status.damage, 0.0);
+  run(world, 1);
+  assertEquals(owner.attack.cooldown, 0);
+});
+
+test("Wind Walk in the air is once per airtime and ends helpless", () => {
+  const { world, owner } = match(900.0);
+  owner.motion.grounded = false;
+  owner.motion.surface = undefined;
+  owner.motion.z = 400.0;
+  frame(world, press(1, 0));
+  run(world, 43);
+  assertEquals(owner.special.action, SpecialAction.none);
+  assertTrue(owner.special.fall);
+  owner.special.fall = false;
+  frame(world, press(1, 0));
+  assertEquals(owner.special.action, SpecialAction.none);
+});
+
+test("Mirror Image leaves an image and steps 1.0H away; down special again swaps onto it and slashes", () => {
+  for (const facing of [-1, 1]) {
+    const { world, owner, target } = match(70.0, facing);
+    frame(world, press(0, -1));
+    assertEquals(owner.mana.points, 85);
+    run(world, 23);
+    assertEquals(owner.special.action, SpecialAction.none);
+    assertTrue(owner.placed.life > 0);
+    assertEquals(owner.placed.x, 0.0);
+    assertTrue(Math.abs(f32(f32(owner.motion.x * facing) + f32(1.0 * H))) <= 2.0);
+    frame(world, press(0, -1));
+    assertEquals(owner.mana.points, 85);
+    run(world, 5);
+    assertEquals(owner.motion.x, 0.0);
+    assertEquals(owner.placed.life, 0);
+    run(world, 5);
+    assertEquals(target.status.damage, 10.0);
+  }
+});
+
+test("Mirror Image counterplay: a hit shatters the image, so the next press is a new image; a shield blocks the swap slash", () => {
+  const { world, owner } = match(40.0);
+  frame(world, press(0, -1));
+  run(world, 23);
+  assertTrue(owner.placed.life > 0);
+  beginFighterAttack(world, 1, AttackStyle.jab, false);
+  run(world, 20);
+  assertEquals(owner.placed.life, 0);
+  frame(world, press(0, -1));
+  assertEquals(owner.mana.points, 70);
+  const guarded = match(70.0);
+  const guard = controls({ shield: true, shieldTriggerActive: true });
+  frame(guarded.world, press(0, -1));
+  run(guarded.world, 23);
+  frame(guarded.world, press(0, -1), guard);
+  run(guarded.world, 12, controls(), guard);
+  assertEquals(guarded.target.status.damage, 0.0);
+});
+
+test("Backstab exposes the sword arm around its slash while the blade stays disjoint", () => {
   const { world, owner } = match(900.0);
   frame(world, press(1, 0));
   const probe = (x: number, z: number) => strikeHurtContact({ x1: f32(owner.motion.x + x), z1: z, x2: f32(owner.motion.x + x), z2: z, radius: 4.0 }, owner);
-  for (let f = 2; f <= 17; f++) frame(world);
+  run(world, 11);
+  frame(world, attack());
+  run(world, 2);
   assertEquals(probe(46.0, 56.0), HurtContact.none);
-  frame(world);
+  run(world, 1);
   assertEquals(probe(46.0, 56.0), HurtContact.hit);
   assertEquals(probe(110.0, 50.0), HurtContact.none);
 });

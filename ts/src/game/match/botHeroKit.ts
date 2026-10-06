@@ -9,8 +9,8 @@ import { f32 } from "wisp/src/sim/f32";
 import { hurtCapsule } from "../physics/contactGeometry";
 import { canAttack } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
-import { chooseHeroSpecial } from "../sim/heroSpecialRules";
-import { type AuthoredSpecial, type FighterSpecials, type SpecialProjectile, SpecialSlot, specialForm, specialKit } from "../sim/heroSpecials";
+import { chooseHeroSpecial, isHeroSpecialAction, runningHeroSpecial } from "../sim/heroSpecialRules";
+import { type AuthoredSpecial, type FighterSpecials, type SpecialProjectile, FOLLOW_UP_FORM, FollowUpInput, SpecialSlot, specialForm, specialKit } from "../sim/heroSpecials";
 import { type Controls, neutralControls } from "../sim/roster";
 import { safeAt } from "./botFooting";
 
@@ -58,17 +58,23 @@ function boxMeets(target: Readonly<Fighter>, localX: number, localZ: number, tra
   return localX >= minX && localX <= maxX && localZ >= minZ && localZ <= maxZ;
 }
 
-/** Whether the special's strike paths or command grab, carried by its own travel, reach a target localX ahead and localZ above. */
-function strikeMeets(move: Readonly<AuthoredSpecial>, target: Readonly<Fighter>, localX: number, localZ: number): boolean {
+/**
+ * Whether the special's strike paths or command grab, carried by its own
+ * travel (after `carriedX`/`carriedZ` already travelled), or a strike
+ * branch taken anywhere along it, reach a target localX ahead and localZ above.
+ */
+function strikeMeets(move: Readonly<AuthoredSpecial>, target: Readonly<Fighter>, localX: number, localZ: number, carriedX = 0.0, carriedZ = 0.0): boolean {
   const regions = move.regions ?? [];
   const grab = move.commandGrab?.strike;
-  if (regions.length === 0 && grab === undefined) return false;
-  let travelX = 0.0;
-  let travelZ = 0.0;
+  let travelX = carriedX;
+  let travelZ = carriedZ;
   for (const segment of move.motion ?? []) {
     const frames = segment.last - segment.first + 1;
     travelX = f32(travelX + f32(segment.velocityX * frames));
     travelZ = f32(travelZ + f32(segment.velocityZ * frames));
+  }
+  for (const branch of move.followUps ?? []) {
+    if (branch.input !== FollowUpInput.shield && strikeMeets(branch.special, target, localX, localZ, travelX, travelZ)) return true;
   }
   for (const region of regions) {
     const hit = region.hit;
@@ -113,7 +119,7 @@ export function heroSpecialUse(f: Readonly<Fighter>, target: Readonly<Fighter>, 
   for (const spec of move.projectiles ?? []) if (projectileMeets(spec, target, localX, localZ)) return HeroSpecialUse.ranged;
   // A placed object fires from where it stands: set one when its shot would reach the target there.
   const placement = move.placement;
-  if (placement !== undefined && target.motion.grounded && projectileMeets(placement.shot, target, f32(localX - placement.offsetX), localZ)) return HeroSpecialUse.ranged;
+  if (placement?.shot !== undefined && target.motion.grounded && projectileMeets(placement.shot, target, f32(localX - placement.offsetX), localZ)) return HeroSpecialUse.ranged;
   return HeroSpecialUse.none;
 }
 
@@ -145,4 +151,28 @@ export function heroStanceSlot(f: Readonly<Fighter>, arrival: number): SpecialSl
 export function upSpecialStartable(f: Readonly<Fighter>, cooldownReady: boolean): boolean {
   const specials = f.tuning.specials;
   return specials === undefined ? cooldownReady : startableForm(f, specials, SpecialSlot.up) !== undefined;
+}
+
+/**
+ * While a hero special runs, presses the attack or special branch (Wind
+ * Walk's Backstab, a charge's release) whose strike reaches the target from
+ * where the fighter stands now, turning toward it when the branch reads the
+ * stick; true when it pressed.
+ */
+export function pressHeroFollowUp(f: Readonly<Fighter>, target: Readonly<Fighter>, input: Controls): boolean {
+  if (!isHeroSpecialAction(f.special.action) || f.special.form >= FOLLOW_UP_FORM || f.launch.hitstun > 0) return false;
+  const next = f.special.frame + 1;
+  const dx = f32(target.motion.x - f.motion.x);
+  const localZ = f32(target.motion.z - f.motion.z);
+  for (const branch of runningHeroSpecial(f)?.followUps ?? []) {
+    const kind = branch.input ?? FollowUpInput.special;
+    if (kind === FollowUpInput.shield || next < branch.window.first || next > branch.window.last) continue;
+    const facing = branch.facesStick === true && dx !== 0.0 ? (dx < 0 ? -1 : 1) : f.facing;
+    if (!strikeMeets(branch.special, target, f32(dx * facing), localZ)) continue;
+    if (kind === FollowUpInput.attack) input.attackPressed = true;
+    else input.specialPressed = true;
+    if (branch.facesStick === true) input.direction = facing;
+    return true;
+  }
+  return false;
 }

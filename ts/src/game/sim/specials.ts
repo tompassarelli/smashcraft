@@ -23,7 +23,7 @@ import { type Controls, type Roster, fighterAt, isActive } from "./roster";
 import { surfaceZ } from "./stage";
 import { HIPPOGRYPH_DIVE_ARRIVAL, HIPPOGRYPH_DIVE_OVERSHOOT, RIFLEMAN_BEAR_LIFETIME, advanceBear, advanceHippogryph, recordSpecialHit, specialAlreadyHit, startFreezeTrap } from "./summons";
 import { at } from "wisp/src/runtime/lookup";
-import { advanceHeroSpecial, chooseHeroSpecial, enterHeroSpecial, followUpHeroSpecial, heroSpecialContact, heroStrikeMeetsShield, isHeroSpecialAction, resolveHeroGuards, steerHeroSpecial, stopHeroMotionAtBodies } from "./heroSpecialRules";
+import { advanceHeroSpecial, chooseHeroSpecial, enterHeroSpecial, followUpHeroSpecial, heroSpecialContact, heroStrikeMeetsShield, isHeroSpecialAction, relocateHeroSpecial, resolveHeroGuards, steerHeroSpecial, stopHeroMotionAtBodies } from "./heroSpecialRules";
 
 export const DEMONHUNTER_MANA_BURN_STARTUP = 8;
 const DEMONHUNTER_MANA_BURN_RECOVERY = 25;
@@ -271,7 +271,6 @@ const heroRefusal = { manaShort: false };
 function startHeroFighterSpecial(owner: Fighter, input: Readonly<Controls>): boolean {
   const specials = owner.tuning.specials;
   const { special } = owner;
-  if (isHeroSpecialAction(special.action)) return followUpHeroSpecial(owner, input);
   if (specials === undefined || special.lockFrames > 0 || special.action !== SpecialAction.none || !canAttack(owner)) return false;
   const chosen = chooseHeroSpecial(owner, specials, input, heroRefusal);
   if (chosen === undefined) {
@@ -294,6 +293,7 @@ function startHeroFighterSpecial(owner: Fighter, input: Readonly<Controls>): boo
 /** Starts the special the input asks for if it may; a neutral aerial special turns to the last air steering. */
 export function startFighterSpecial(owner: Fighter, stage: number, matchFrame: number, input: Readonly<Controls>): boolean {
   steerHeroSpecial(owner, input);
+  if (owner.tuning.specials !== undefined && isHeroSpecialAction(owner.special.action)) return followUpHeroSpecial(owner, input);
   if (!input.specialPressed) return false;
   if (owner.tuning.specials !== undefined) return startHeroFighterSpecial(owner, input);
   const requested = requestedSpecial(owner, input);
@@ -479,6 +479,7 @@ export function advanceSpecials(world: Roster, stage: number, matchFrame: number
   for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
     if (!isActive(world, slot)) continue;
     advanceSpecialAction(fighterAt(world, slot), stage, matchFrame, inputs?.[slot]);
+    relocateHeroSpecial(world, slot);
     stopHeroMotionAtBodies(world, slot);
     advanceHeroCommandGrab(world, slot);
   }

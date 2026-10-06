@@ -10,7 +10,7 @@ import { advanceHeroConditions } from "./heroStatus";
 import { AttackStyle, ProjectileKind, SpecialAction } from "./codes";
 import { canAttack, inGrabContext, isIntangible } from "./conditions";
 import type { Fighter } from "./fighter";
-import { type FighterSpecials, type AuthoredSpecial, type SpecialGuard, type SpecialKit, type SpecialPlacement, type SpecialProjectile, FOLLOW_UP_FORM, SpecialForm, SpecialSlot, specialForm, specialKit } from "./heroSpecials";
+import { type FighterSpecials, type AuthoredSpecial, type SpecialFollowUp, type SpecialGuard, type SpecialKit, type SpecialPlacement, type SpecialProjectile, FOLLOW_UP_FORM, FollowUpInput, Relocation, SpecialForm, SpecialSlot, specialForm, specialKit } from "./heroSpecials";
 import { type HitRegion, NO_HIT_REGION, authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "./hitRegions";
 import { type Controls, type Roster, fighterAt, isActive } from "./roster";
 import { travelBeforeBodies } from "./travelStop";
@@ -490,33 +490,71 @@ export function stopHeroMotionAtBodies(world: Roster, slot: number): void {
   if (move?.motion === undefined) return;
   const frame = f.special.frame;
   for (const segment of move.motion) {
-    if (segment.stopsAtBody !== true || frame < segment.first || frame > segment.last) continue;
+    if ((segment.stopsAtBody !== true && segment.stopsAtShield !== true) || frame < segment.first || frame > segment.last) continue;
     const forward = f32(f.motion.vx * f.facing);
     if (forward <= 0.0) return;
-    f.motion.vx = f32(f.facing * travelBeforeBodies(world, slot, forward, true));
+    f.motion.vx = f32(f.facing * travelBeforeBodies(world, slot, forward, segment.stopsAtBody === true));
     return;
   }
 }
 
 /**
- * A second special press inside the running form's follow-up window replaces
- * the rest of the action with the follow-up; true when it did. The press tick
- * is the follow-up's frame 1, as an entry is.
+ * On the first frame of a relocating motion window, moves the fighter at
+ * once: onto its placed object, which is spent, facing the object's way.
+ * It then falls from rest, so a spot on the deck lands it at once.
+ */
+export function relocateHeroSpecial(world: Roster, slot: number): void {
+  const f = fighterAt(world, slot);
+  const move = runningHeroSpecial(f);
+  if (move?.motion === undefined) return;
+  for (const segment of move.motion) {
+    if (segment.relocate === undefined || f.special.frame !== segment.first) continue;
+    if (segment.relocate === Relocation.placed) {
+      const { placed } = f;
+      if (placed.life <= 0) return;
+      f.motion.x = placed.x;
+      f.motion.z = placed.z;
+      f.facing = placed.direction;
+      placed.life = 0;
+    }
+    f.motion.vx = 0.0;
+    f.motion.vz = 0.0;
+    f.motion.grounded = false;
+    f.motion.surface = undefined;
+    return;
+  }
+}
+
+function followUpPressed(followUp: Readonly<SpecialFollowUp>, input: Readonly<Controls>): boolean {
+  const kind = followUp.input ?? FollowUpInput.special;
+  return kind === FollowUpInput.attack ? input.attackPressed : kind === FollowUpInput.shield ? input.shieldPressed : input.specialPressed;
+}
+
+/**
+ * A fresh press that takes one of the running form's branches inside its
+ * window replaces the rest of the action with that follow-up; true when it
+ * did. The press tick is the follow-up's frame 1, as an entry is.
  */
 export function followUpHeroSpecial(f: Fighter, input: Readonly<Controls>): boolean {
   const { special, mana } = f;
-  const followUp = runningHeroSpecial(f)?.followUp;
-  if (followUp === undefined || special.form >= FOLLOW_UP_FORM || f.launch.hitlag > 0 || f.launch.hitstun > 0) return false;
-  if (!inWindow(followUp.window, special.frame + 1)) return false;
+  const followUps = runningHeroSpecial(f)?.followUps;
+  if (followUps === undefined || special.form >= FOLLOW_UP_FORM || f.launch.hitlag > 0 || f.launch.hitstun > 0) return false;
+  let index = 0;
+  while (index < followUps.length && !(inWindow(at(followUps, index).window, special.frame + 1) && followUpPressed(at(followUps, index), input))) index++;
+  if (index >= followUps.length) return false;
+  const followUp = at(followUps, index);
   const next = followUp.special;
   if (next.cost > mana.points) {
     f.visuals.manaDenied++;
     return false;
   }
-  special.form += FOLLOW_UP_FORM;
+  if (followUp.facesStick === true && input.direction !== 0) f.facing = input.direction < 0 ? -1 : 1;
+  special.form += FOLLOW_UP_FORM * (index + 1);
   special.frame = 0;
   special.duration = next.endFrame;
   special.lockFrames = next.endFrame;
+  // The entry held attacks for the whole base form; a shorter branch frees them at its own end.
+  f.attack.cooldown = next.endFrame;
   for (let entry = 0; entry < PARTICIPANT_CAPACITY; entry++) special.hitTargets[entry] = undefined;
   special.hit = false;
   if (next.cost > 0) {

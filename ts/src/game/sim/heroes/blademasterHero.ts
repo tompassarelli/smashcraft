@@ -22,6 +22,8 @@ export const BLADEMASTER_HERO: HeroDefinition = {
     objectId: 0x6d66626d,
     portrait: "ReplaceableTextures\\CommandButtons\\BTNHeroBlademaster.blp",
     projectileModel: "Abilities\\Weapons\\SpiritOfVengeanceMissile\\SpiritOfVengeanceMissile.mdl",
+    // Mirror Image: his own model, see-through, standing where he left it.
+    placedModel: { path: "units\\orc\\HeroBladeMaster\\HeroBladeMaster.mdl", height: 140.0, alpha: 120 },
     clips: BLADEMASTER_CLIPS,
     fallback: BLADEMASTER_FALLBACK_CLIP,
   },

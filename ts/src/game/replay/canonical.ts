@@ -222,7 +222,7 @@ function specialPlacementCanonical(spec: Readonly<SpecialPlacement>, prefix: str
   real("durability", spec.durability);
   int("life", spec.life);
   for (let index = 0; index < spec.fireAges.length; index++) int(`fireAge[${index}]`, at(spec.fireAges, index));
-  result.push(specialProjectileCanonical(spec.shot, `${prefix}.shot`));
+  if (spec.shot !== undefined) result.push(specialProjectileCanonical(spec.shot, `${prefix}.shot`));
   return result.join("");
 }
 
@@ -297,6 +297,8 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
     real(`motion[${index}].aimedSpeed`, segment.aimedSpeed ?? 0.0);
     if (segment.stopsAtBody === true) int(`motion[${index}].stopsAtBody`, 1);
     real(`motion[${index}].driftSpeed`, segment.driftSpeed ?? 0.0);
+    if (segment.stopsAtShield === true) int(`motion[${index}].stopsAtShield`, 1);
+    if (segment.relocate !== undefined) int(`motion[${index}].relocate`, segment.relocate);
     if (segment.stopsAtBody === true) int(`motion[${index}].stopsAtBody`, 1);
   }
   const grab = move.commandGrab;
@@ -351,10 +353,14 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
     result.push(hitEffectCanonical(region.hit.effect, `${name}.${part}.hit`));
     if (region.hit.groundedEffect !== undefined) result.push(hitEffectCanonical(region.hit.groundedEffect, `${name}.${part}.groundedHit`));
   }
-  if (move.followUp !== undefined) {
-    int("followUp.first", move.followUp.window.first);
-    int("followUp.last", move.followUp.window.last);
-    result.push(specialMoveCanonical(move.followUp.special, `${name}.followUp`));
+  const followUps = move.followUps ?? [];
+  for (let index = 0; index < followUps.length; index++) {
+    const followUp = at(followUps, index);
+    int(`followUp[${index}].first`, followUp.window.first);
+    int(`followUp[${index}].last`, followUp.window.last);
+    int(`followUp[${index}].input`, followUp.input ?? 0);
+    int(`followUp[${index}].facesStick`, followUp.facesStick === true ? 1 : 0);
+    result.push(specialMoveCanonical(followUp.special, `${name}.followUp[${index}]`));
   }
   return result.join("");
 }
@@ -873,7 +879,7 @@ export function prepareKitDigests(): void {
     const specials = hero.specials;
     if (specials === undefined) continue;
     for (const kit of [specials.neutral, specials.side, specials.up, specials.down]) {
-      for (const form of [kit.ground, kit.air, kit.free, kit.ground.followUp?.special, kit.air?.followUp?.special]) {
+      for (const form of [kit.ground, kit.air, kit.free, kit.recall, ...(kit.ground.followUps ?? []).map(branch => branch.special), ...(kit.air?.followUps ?? []).map(branch => branch.special)]) {
         kitDigestField("placedSpec", form?.placement, PLACEMENT_DIGESTS, placedSpecCanonical);
       }
     }

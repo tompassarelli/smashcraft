@@ -1,8 +1,8 @@
 // Blademaster's gameplan (#105; smashcraft:docs/design/roster.md, "Blademaster"):
 // grounded sword spacing and whiff punishment. He stands just outside the
 // opponent's reach at his blade's outer edge, where forward tilt and forward
-// smash land their tip sweetspots, and runs in with a dash attack or Wind Walk
-// Strike to punish a miss. Forward air is his jump-in, not his neutral.
+// smash land their tip sweetspots, and runs in with a dash attack or a Wind Walk
+// Backstab to punish a miss. Forward air is his jump-in, not his neutral.
 // His weakness is an exposed recovery and weak ranged pressure, so he keeps
 // the fight on the deck and away from its edges, and never camps at range.
 import { AttackStyle } from "../codes";
@@ -18,7 +18,7 @@ export const BLADEMASTER_GAMEPLAN: FighterGameplan = {
     { move: GameplanSpecial.side, near: 180.0, far: 260.0 },
   ],
   approach: [
-    // Whiff punishment: a dash attack or Wind Walk Strike into the gap a missed move leaves.
+    // Whiff punishment: a dash attack or a Wind Walk Backstab into the gap a missed move leaves.
     { via: "run", moves: [AttackStyle.dashAttack, AttackStyle.forwardTilt, AttackStyle.downTilt, GameplanSpecial.side], weight: 3 },
     { via: "jump", moves: [AttackStyle.forwardAir, AttackStyle.backAir], weight: 1 },
   ],

@@ -53,7 +53,7 @@ const COMBAT_STANCE = sequence("Stand Ready");
 const RECOIL = sequence("Death", f32(0.45));
 
 /** Every table pose; the stock model has no hit, jump, roll or ledge sequences, so those reuse the nearest readable one. */
-export const BLADEMASTER_CLIPS: { readonly [pose in Exclude<HeroPose, Exclude<HeroFollowUpPose, "downSpecialFollowUp" | "downSpecialFollowUpAir">>]: HeroClip } = {
+export const BLADEMASTER_CLIPS: { readonly [pose in Exclude<HeroPose, Exclude<HeroFollowUpPose, "sideSpecialFollowUp" | "sideSpecialFollowUpAir" | "downSpecialFollowUp" | "downSpecialFollowUpAir">>]: HeroClip } = {
   idle: COMBAT_STANCE,
   walk: sequence("Walk"),
   dash: sequence("Walk"),
@@ -119,17 +119,19 @@ export const BLADEMASTER_CLIPS: { readonly [pose in Exclude<HeroPose, Exclude<He
   // Wind Cutter's wave leaves on the cut (spawn f18, end f40).
   neutralSpecial: sequence("Attack", aligned(CUT, 18, 1, 22)),
   neutralSpecialAir: sequence("Attack", aligned(CUT, 18, 1, 22)),
-  // Wind Walk Strike: the thrust's wind-up covers the dash, the thrust lands on the slash (f20).
-  sideSpecial: sequence("Attack 2", aligned(THRUST, 20, 3, 26)),
-  sideSpecialAir: sequence("Attack 2", aligned(THRUST, 20, 3, 26)),
+  // Wind Walk walks; its Backstab (and the step out, a feinted cut) cuts.
+  sideSpecial: sequence("Walk"),
+  sideSpecialAir: sequence("Walk"),
+  sideSpecialFollowUp: sequence("Attack", aligned(CUT, 6, 3, 20)),
+  sideSpecialFollowUpAir: sequence("Attack", aligned(CUT, 6, 3, 20)),
   upSpecial: sequence("Attack Walk Stand Spin", f32(2.0 * SPIN_TURN)),
   upSpecialAir: sequence("Attack Walk Stand Spin", f32(2.0 * SPIN_TURN)),
-  // Mirror Feint's tell: the blade lifts before the back step (f8).
+  // Mirror Image's tell: the blade lifts before the step away (f8).
   downSpecial: sequence("Stand - 4", f32(0.6)),
   downSpecialAir: sequence("Stand - 4", f32(0.6)),
-  // Mirror Feint's real slash: the thrust lands on its first active frame (f10).
-  downSpecialFollowUp: sequence("Attack 2", aligned(THRUST, 10, 3, 25)),
-  downSpecialFollowUpAir: sequence("Attack 2", aligned(THRUST, 10, 3, 25)),
+  // The image swap's slash: the thrust lands on its first active frame (f8).
+  downSpecialFollowUp: sequence("Attack 2", aligned(THRUST, 8, 3, 20)),
+  downSpecialFollowUpAir: sequence("Attack 2", aligned(THRUST, 8, 3, 20)),
 };
 
 /** The idle a fighter without a mapped pose shows. */
