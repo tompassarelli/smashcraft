@@ -62,7 +62,7 @@ not to Smashcraft's package manager, language or build commands.
 
 smashcraft:ts/ is the TypeScript side, built on Wisp: the framework and
 development loop for Warcraft maps in TypeScript. Read
-warcraft-modding-distilled before changing TypeScript
+warcraft-modding before changing TypeScript
 or code in a running game, and smashcraft:docs/typescript.md before writing map
 code. From smashcraft:ts/:
 - Logic: `bun run test`, plus `LUA=<32-bit lua> bun scripts/lua-tests.ts` for the
@@ -153,7 +153,7 @@ may use more stocks or a longer timer only when its required sample needs it;
 record that reason beside the test (for example, #26's all-binding edge sample).
 Keep ordinary combat completion intact; do not force a win to shorten a test.
 
-Read warcraft3-development-distilled and its off-monitor dependency before
+Read warcraft3-development and its off-monitor dependency before
 controlling the game. Default automation off-monitor; use the primary display
 for a requested hands-on trial. Preserve authenticated clients across map
 iterations. Never direct-launch Warcraft as assumed authentication recovery.

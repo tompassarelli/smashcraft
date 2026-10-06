@@ -2,7 +2,11 @@ import { HitElement } from "../sim/hitRegions";
 import { SurfaceContact } from "../sim/codes";
 import { ImpactLanding, JumpCue } from "../presentation/impactEvents";
 
-/** Native mapping inspection: each case names an observable effect and sound. */
+/**
+ * Native mapping inspection: each case names an observable effect and sound.
+ * Contact, ledge and jump cues carry their own position: the event default is
+ * the floor origin, which buries them.
+ */
 export const HIT_PRESENTATION_CASES = [
       { cue: { hit: true }, sound: "StampedeHit", model: "StampedeMissileDeath" },
       { cue: { hit: true, strength: 2 }, sound: "StampedeHit", model: "StampedeMissileDeath" },
@@ -16,10 +20,10 @@ export const HIT_PRESENTATION_CASES = [
       { cue: { shieldBreak: true }, sound: "ThunderClap", model: "DefendCaster" },
       { cue: { landing: ImpactLanding.missedTech }, sound: "Warstomp", model: "WarStompCaster" },
       { cue: { landing: ImpactLanding.tech }, sound: "DispelMagic", model: "DispelMagicTarget" },
-      { cue: { surface: SurfaceContact.techWall }, sound: "DispelMagic", model: "DispelMagicTarget" },
-      { cue: { surface: SurfaceContact.techCeiling }, sound: "DispelMagic", model: "DispelMagicTarget" },
-      { cue: { ledgeCatch: true }, sound: "BlinkTarget", model: "DispelMagicTarget" },
-      { cue: { ledgeRecovery: true }, sound: "BlinkTarget", model: "BlinkTarget" },
+      { cue: { surface: SurfaceContact.techWall, contactX: 0.0, contactZ: 50.0, normalX: 1.0 }, sound: "DispelMagic", model: "DispelMagicTarget" },
+      { cue: { surface: SurfaceContact.techCeiling, contactX: 0.0, contactZ: 50.0, normalZ: -1.0 }, sound: "DispelMagic", model: "DispelMagicTarget" },
+      { cue: { ledgeCatch: true, ledgeX: 0.0, ledgeZ: 50.0 }, sound: "BlinkTarget", model: "DispelMagicTarget" },
+      { cue: { ledgeRecovery: true, ledgeX: 0.0, ledgeZ: 50.0 }, sound: "BlinkTarget", model: "BlinkTarget" },
       { cue: { grab: true }, sound: "EntanglingRoots", model: "DefendCaster" },
       { cue: { hit: true, pummel: true }, sound: "Defend", model: "StampedeMissileDeath" },
       { cue: { throwRelease: true, hit: true }, sound: "BlinkTarget", model: "BlinkTarget" },
@@ -28,6 +32,6 @@ export const HIT_PRESENTATION_CASES = [
       { cue: { footstep: "run" as const, runningDust: true }, sound: "DeepFootstep2", model: "ImpaleTargetDust" },
       { cue: { footstep: "dash" as const, movementDust: true }, sound: "DeepFootstep2", model: "ImpaleTargetDust" },
       { cue: { jump: JumpCue.ground }, sound: "BlinkTarget", model: "ImpaleTargetDust" },
-      { cue: { jump: JumpCue.double }, sound: "BlinkTarget", model: "BlinkTarget" },
+      { cue: { jump: JumpCue.double, jumpOriginX: 0.0, jumpOriginZ: 55.0 }, sound: "BlinkTarget", model: "BlinkTarget" },
       { cue: { ordinaryLanding: true }, sound: "DeepFootstep", model: "ImpaleTargetDust" },
 ] as const;
