@@ -22,6 +22,9 @@ function parseLuaNumber(text: string): number {
   return Number(text);
 }
 
+/** Results per corpus case (src/parity/corpus.ts). */
+const RESULTS = 11;
+
 function sameValue(a: number, b: number): boolean {
   return Object.is(a, b) || (a !== a && b !== b);
 }
@@ -47,11 +50,11 @@ export async function runNumericParity(supplied: readonly string[] = []): Promis
   for (const line of output.split("\n")) {
     const fields = line.trim().split(/\s+/);
     if (!/^\d+$/.test(fields[0] ?? "")) continue;
-    if (fields.length !== 9) continue;
+    if (fields.length !== RESULTS + 1) continue;
     const index = Number(fields[0]);
     const expected = evaluateCase(index);
     cases++;
-    for (let field = 0; field < 8; field++) {
+    for (let field = 0; field < RESULTS; field++) {
       const actual = parseLuaNumber(at(fields, field + 1));
       if (!sameValue(actual, at(expected, field))) {
         mismatches++;
@@ -60,7 +63,7 @@ export async function runNumericParity(supplied: readonly string[] = []): Promis
       }
     }
   }
-  console.log(`mismatches by result (+ - * / fma atan2 cos sin): ${JSON.stringify(perField)}`);
-  console.log(`${cases} cases, ${cases * 8} results, ${mismatches} mismatches`);
+  console.log(`mismatches by result (+ - * / fma atan2 cos sin, then f32 + - *): ${JSON.stringify(perField)}`);
+  console.log(`${cases} cases, ${cases * RESULTS} results, ${mismatches} mismatches`);
   return cases > 0 && mismatches === 0;
 }
