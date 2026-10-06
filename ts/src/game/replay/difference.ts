@@ -115,10 +115,15 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("throwVisualSerial", e.visuals.throw, a.visuals.throw);
   add("hitVisualSerial", e.visuals.hit, a.visuals.hit);
   add("hitVisualElectric", e.visuals.hitElectric, a.visuals.hitElectric);
+  add("hitVisualElement", e.visuals.hitElement, a.visuals.hitElement);
+  add("hitVisualStrength", e.visuals.hitStrength, a.visuals.hitStrength);
+  add("hitVisualPummel", e.visuals.hitPummel, a.visuals.hitPummel);
+  add("shieldVisualElectric", e.visuals.shieldElectric, a.visuals.shieldElectric);
   add("shieldVisualSerial", e.visuals.shield, a.visuals.shield);
   add("shieldReflectVisualSerial", e.visuals.shieldReflect, a.visuals.shieldReflect);
   add("stocks", e.status.stocks, a.status.stocks);
   add("hitstun", e.launch.hitstun, a.launch.hitstun);
+  add("throwHitstun", e.launch.throwHitstun, a.launch.throwHitstun);
   add("hitlag", e.launch.hitlag, a.launch.hitlag);
   add("diPending", e.launch.diPending, a.launch.diPending);
   add("diLaunchSpeed", e.launch.diLaunchSpeed, a.launch.diLaunchSpeed);
@@ -177,6 +182,7 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("freezeTrapSurface", e.freezeTrap.surface, a.freezeTrap.surface);
   add("freezeTrapSerial", e.freezeTrap.serial, a.freezeTrap.serial);
   add("frozenFrames", e.status.frozenFrames, a.status.frozenFrames);
+  add("freezeImmunityFrames", e.status.freezeImmunityFrames, a.status.freezeImmunityFrames);
   add("freezeTrapCooldown", e.freezeTrap.cooldown, a.freezeTrap.cooldown);
   add("out", e.status.out, a.status.out);
   add("respawn", e.status.respawn, a.status.respawn);

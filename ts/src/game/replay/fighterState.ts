@@ -84,6 +84,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   launch.knockbackAge = sourceLaunch.knockbackAge;
   launch.damageLevel = sourceLaunch.damageLevel;
   launch.hitstun = sourceLaunch.hitstun;
+  launch.throwHitstun = sourceLaunch.throwHitstun;
   launch.hitlag = sourceLaunch.hitlag;
   launch.diPending = sourceLaunch.diPending;
   launch.diLaunchSpeed = sourceLaunch.diLaunchSpeed;
@@ -152,6 +153,10 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   visuals.throw = sourceVisuals.throw;
   visuals.hit = sourceVisuals.hit;
   visuals.hitElectric = sourceVisuals.hitElectric;
+  visuals.hitElement = sourceVisuals.hitElement;
+  visuals.hitStrength = sourceVisuals.hitStrength;
+  visuals.hitPummel = sourceVisuals.hitPummel;
+  visuals.shieldElectric = sourceVisuals.shieldElectric;
   visuals.shield = sourceVisuals.shield;
   visuals.shieldReflect = sourceVisuals.shieldReflect;
   visuals.parry = sourceVisuals.parry;
@@ -287,4 +292,5 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   status.out = sourceStatus.out;
   status.invincible = sourceStatus.invincible;
   status.frozenFrames = sourceStatus.frozenFrames;
+  status.freezeImmunityFrames = sourceStatus.freezeImmunityFrames;
 }

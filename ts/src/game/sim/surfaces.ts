@@ -194,6 +194,7 @@ function resolveSolidSurfaceContact(f: Fighter, stage: number, index: number, ol
     eventKind = kind === SurfaceContact.wall ? SurfaceContact.techWall : SurfaceContact.techCeiling;
     f.tech.window = 0;
     launch.hitstun = 0;
+    launch.throwHitstun = false;
     if (eventKind === SurfaceContact.techWall) {
       beginWallRecovery(f, nx > 0 ? 1 : -1, wallTechJumpInputIsRecent(f, input), 0);
     } else {

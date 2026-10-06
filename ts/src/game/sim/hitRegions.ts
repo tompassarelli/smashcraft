@@ -17,6 +17,9 @@ import {
 } from "./moves";
 
 /** What a contact does: damage, launch growth and base, launch direction (facing-relative) and effect. */
+export const HitElement = { normal: 0, fire: 1, electric: 2, slash: 3, ice: 5 } as const;
+export type HitElement = (typeof HitElement)[keyof typeof HitElement];
+
 export interface HitEffect {
   damage: number;
   growth: number;
@@ -24,6 +27,8 @@ export interface HitEffect {
   launchX: number;
   launchZ: number;
   electric: boolean;
+  /** Presentation element; electric retains its existing hitlag rule. */
+  element?: HitElement | undefined;
 }
 
 export interface HitRegion {
@@ -50,6 +55,7 @@ export function copyHitEffect(target: HitEffect, source: Readonly<HitEffect>): v
   target.launchX = source.launchX;
   target.launchZ = source.launchZ;
   target.electric = source.electric;
+  target.element = source.element;
 }
 
 export function copyHitRegion(target: HitRegion, source: Readonly<HitRegion>): void {
@@ -195,6 +201,7 @@ export function authoredHitRegion(out: HitRegion, character: Character, style: A
     return out;
   }
   copyHitRegion(out, activeRegion(character, style, frame, index));
+  if (character === Character.demonHunter && style !== AttackStyle.grab) out.effect.element = HitElement.slash;
   if (isSmashAttack(style)) out.effect.damage = f32(out.effect.damage * smashDamageMultiplier(chargeFrames));
   return out;
 }

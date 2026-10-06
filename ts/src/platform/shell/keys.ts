@@ -1,3 +1,6 @@
+import { HIT_PRESENTATION_CASES } from "../../game/shell/hitPresentationCases";
+import { createImpactEvents } from "../../game/presentation/impactEvents";
+import { emitImpacts } from "../../game/presentation/impactState";
 // Synchronized key and chat events: menu keys, Start, settings capture,
 // callback-match input, developer chords and dev console commands.
 import { Action } from "../../game/input/actions";
@@ -19,6 +22,7 @@ import { clearAllInputs } from "./inputs";
 import { journalEpoch, journalIdentity } from "./journal";
 import { chatBusy, requestPause } from "./journalPause";
 import { Key } from "./keyEvents";
+import { startBodyFit } from "./bodyFit";
 import { back, choose, confirm, openSettingsScreen, startQuickMatch } from "./menus";
 import { makePreview } from "./preview";
 import { exportProbe, probeIntegrity, probeRecording, startProbe } from "./responseProbe";
@@ -201,6 +205,17 @@ export function onDevCommand(s: ShellState): void {
   if (message === QUICK_MATCH_COMMAND || message === FROZEN_THRONE_QUICK_COMMAND) {
     receipt = "dev: quick match";
     startQuickMatch(s, message === FROZEN_THRONE_QUICK_COMMAND ? 2 : 0);
+  } else if (message.startsWith("-dev effects ")) {
+    const index = S2I(message.slice(13));
+    const scenario = HIT_PRESENTATION_CASES[index];
+    if (scenario === undefined || s.game.phase !== Phase.match) return;
+    const events = { ...createImpactEvents(), ...scenario.cue };
+    events.x = 0.0;
+    const ui = views(s);
+    emitImpacts(s.runtime.impacts, events, 8);
+    ui.combat.presentConfirmed(s.devReceipts + 1, 4, events);
+    ui.combat.present(s.runtime.impacts, s.runtime.impacts, true);
+    receipt = `dev: effects ${index} ${scenario.model} ${scenario.sound}`;
   } else if (message === "-dev frame-cost-clock") {
     receipt = "dev: frame cost clock probe";
     probeFrameCostClock();
@@ -209,7 +224,7 @@ export function onDevCommand(s: ShellState): void {
     receipt = `dev: desync from player ${slot + 1}'s client`;
     // One more handle on one client: Warcraft's handle counter and tempest checksum diverge.
     if (slot === GetPlayerId(GetLocalPlayer())) CreateTimer();
-  } else receipt = applyDevCommand(s.dev, message);
+  } else receipt = startBodyFit(s, message) ?? applyDevCommand(s.dev, message);
   if (receipt === undefined) return;
   s.devReceipts++;
   DisplayTextToPlayer(GetLocalPlayer(), 0.0, 0.0, receipt);

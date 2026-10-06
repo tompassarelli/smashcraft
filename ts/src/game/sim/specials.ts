@@ -8,7 +8,7 @@ import { canAttack, isIntangible } from "./conditions";
 import { finishDamageContacts, openDamageContacts } from "./contacts";
 import type { Fighter } from "./fighter";
 import { attackDurationFramesForGrounding } from "./moves";
-import { type HitRegion, NO_HIT_REGION } from "./hitRegions";
+import { HitElement, type HitRegion, NO_HIT_REGION } from "./hitRegions";
 import { applyAttackHit } from "./hits";
 import { meleeHitIntersectsShield } from "./attacks";
 import { observeActionDecision } from "./observations";
@@ -287,12 +287,12 @@ function advanceSpecialAction(owner: Fighter): void {
 
 const IMMOLATE_GROUND: Readonly<HitRegion> = {
   minX: 0.0, maxX: 140.0, minZ: -80.0, maxZ: 100.0,
-  effect: { damage: 7.0, growth: 105.0, base: 21.0, launchX: 1.0, launchZ: 0.0, electric: false },
+  effect: { damage: 7.0, growth: 105.0, base: 21.0, launchX: 1.0, launchZ: 0.0, electric: false, element: HitElement.fire },
   window: 1,
 };
 const IMMOLATE_AIR: Readonly<HitRegion> = {
   minX: -70.0, maxX: 70.0, minZ: -170.0, maxZ: 30.0,
-  effect: { damage: 9.0, growth: 110.0, base: 26.0, launchX: 0.11999999731779099, launchZ: -0.9929999709129333, electric: false },
+  effect: { damage: 9.0, growth: 110.0, base: 26.0, launchX: 0.11999999731779099, launchZ: -0.9929999709129333, electric: false, element: HitElement.fire },
   window: 1,
 };
 

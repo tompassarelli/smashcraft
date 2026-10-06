@@ -75,7 +75,7 @@ import { checkBlastZone, respawnFighter } from "./stocks";
 import { advanceSurfaceRecovery, advanceWallJump, leaveMainDeckBody, resolveSolidSurfaceContacts } from "./surfaces";
 import { forwardRollTurnFrame, rollTravel } from "../physics/rollTravel";
 import { advanceTechInput, techContactWindow } from "../physics/techInput";
-import { clearDownState, clearOwnedFreezeTrap } from "./transitions";
+import { clearDownState, clearOwnedFreezeTrap, thawFighter } from "./transitions";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
 import { at } from "wisp/src/runtime/lookup";
 
@@ -112,7 +112,9 @@ function advanceFreeze(f: Fighter): boolean {
   const { status } = f;
   const trap = f.freezeTrap;
   const wasFrozen = status.frozenFrames > 0;
-  if (status.frozenFrames > 0) status.frozenFrames--;
+  if (status.freezeImmunityFrames > 0) status.freezeImmunityFrames--;
+  if (status.frozenFrames === 1) thawFighter(f);
+  else if (status.frozenFrames > 1) status.frozenFrames--;
   if (trap.cooldown > 0) trap.cooldown--;
   if (trap.life > 0) {
     trap.life--;
@@ -389,6 +391,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
     return;
   }
   if (launch.hitlag <= 0) launch.hitstun = max(0, launch.hitstun - 1);
+  if (launch.hitstun === 0) launch.throwHitstun = false;
   const squatBeforeInput = jump.squat;
   if (input.jumpPressed && !wallJumped) beginJump(f, input.direction);
   if (jump.squat > 0 && launch.hitlag === 0 && (f.character === Character.demonHunter || squatBeforeInput !== 1)) jump.held = jump.held && input.jumpHeld;

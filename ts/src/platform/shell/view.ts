@@ -9,6 +9,7 @@ import { PARTICIPANT_SLOTS, type ParticipantSlot } from "../../game/input/partic
 import type { PacingAndPresentation } from "../../game/match/pacingAndPresentation";
 import { type MatchState, Phase, remainingSeconds, timedMatch } from "../../game/match/rules";
 import { ARENA_CAMERA, FLOOR_HEIGHT, arenaFraming } from "../../game/presentation/arenaCamera";
+import { hitlagTint } from "../../game/presentation/hitPresentation";
 import { DamagePose, damagePose } from "../../game/presentation/damagePose";
 import type { FighterPose } from "../../game/presentation/fighterPose";
 import { CANNON_MODEL, PLATFORM_CUE_FRAMES, framesUntilPlatformMoves, stageWarning } from "../../game/presentation/stageHazards";
@@ -121,9 +122,12 @@ export function renderFighter(s: ShellState, slot: ParticipantSlot, pose: Readon
   }
   if (!pooled) SetUnitTimeScale(body.unit, pose.rate);
   if (fighter.status.out) return;
-  placeFighterBody(body, fighter, s.origin);
+  placeFighterBody(body, fighter, s.origin, s.game.stageChoice);
   if (fighter.status.frozenFrames > 0) SetUnitVertexColor(body.unit, 155, 210, 255, 255);
-  else {
+  else if (hitlagTint(fighter) !== undefined) {
+    const tint = hitlagTint(fighter);
+    if (tint !== undefined) SetUnitVertexColor(body.unit, tint.red, tint.green, tint.blue, 255);
+  } else {
     const shielded = fighter.shield.raised;
     SetUnitVertexColor(body.unit, shielded ? 100 : 255, shielded ? 160 : 255, 255, isIntangible(fighter) ? 140 : 255);
   }
@@ -183,7 +187,7 @@ export function renderPersistentPresentation(s: ShellState): void {
     const fighter = isActive(world, slot) ? fighterAt(world, slot) : undefined;
     const renderers = ui.fighters[slot];
     if (renderers?.pool !== undefined) {
-      if (fighter !== undefined) renderers.pool.present(fighter, runtime.poses[slot]);
+      if (fighter !== undefined) renderers.pool.present(fighter, runtime.poses[slot], stage);
       else renderers.pool.hide();
     }
     const live = playing ? fighter : undefined;

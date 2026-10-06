@@ -7,7 +7,7 @@ import { ContactKind, DownState } from "./codes";
 import { isDownDamageState } from "./conditions";
 import { DOWN_DAMAGE_RESET_THRESHOLD } from "./down";
 import type { Fighter } from "./fighter";
-import { type HitEffect, copyHitEffect, emptyHitEffect } from "./hitRegions";
+import { HitElement, type HitEffect, copyHitEffect, emptyHitEffect } from "./hitRegions";
 import {
   applyDirectionalInfluence,
   contactKnockback,
@@ -30,7 +30,7 @@ import {
   shieldstunFrames,
 } from "./shield";
 import { beginShieldBreak } from "./shieldBreak";
-import { beginDownDamage, cancelAttack, cancelSpecialState, clearDownState, clearGrabLinks, interruptJumpOrDodge } from "./transitions";
+import { beginDownDamage, cancelAttack, cancelSpecialState, clearDownState, clearGrabLinks, interruptJumpOrDodge, thawFighter } from "./transitions";
 import { at } from "wisp/src/runtime/lookup";
 
 /** One contact, with the source's and target's state sampled when it was collected. */
@@ -145,6 +145,7 @@ function resolveDamageContacts(world: Roster, slot: number): void {
   let hurtContact: number | undefined;
   let visualContact: number | undefined;
   let blockedContact = false;
+  let shieldElectric = false;
   let hitlagDamage = 0.0;
   let shieldPushback = 0.0;
   let shieldDirection = 1;
@@ -154,6 +155,7 @@ function resolveDamageContacts(world: Roster, slot: number): void {
     if (contact.target !== slot) continue;
     if (contact.blocked) {
       blockedContact = true;
+      shieldElectric ||= contact.effect.electric || contact.effect.element === HitElement.electric;
       if (!perfectShield) shieldDamage = addFloat32(shieldDamage, contact.effect.damage);
     } else {
       totalDamage = addFloat32(totalDamage, roundToFloat32(contact.effect.damage));
@@ -181,7 +183,7 @@ function resolveDamageContacts(world: Roster, slot: number): void {
     }
     if (contact.kind === ContactKind.throw) target.visuals.throw++;
     visualContact ??= index;
-    if (damage > 0 && contact.kind !== ContactKind.pummel) status.frozenFrames = 0;
+    if (damage > 0 && contact.kind !== ContactKind.pummel) thawFighter(target);
     if (contact.kind !== ContactKind.damageOnly && contact.kind !== ContactKind.throw) {
       hitlagDamage = max(hitlagDamage, damage);
       hurtContact ??= index;
@@ -201,11 +203,15 @@ function resolveDamageContacts(world: Roster, slot: number): void {
     const effectContact = contactAt(winner ?? flinch ?? hurtContact ?? visualContact);
     target.visuals.hit++;
     target.visuals.hitElectric = effectContact.effect.electric;
+    target.visuals.hitElement = effectContact.effect.element ?? (effectContact.effect.electric ? HitElement.electric : HitElement.normal);
+    target.visuals.hitStrength = strongest >= 180.0 ? 2 : strongest >= 80.0 ? 1 : 0;
+    target.visuals.hitPummel = effectContact.kind === ContactKind.pummel;
     // The strongest launch supplies the effect; the largest damage supplies hitlag power.
     if (hurtContact !== undefined) launch.hitlag = max(launch.hitlag, victimHitlagFrames(hitlagDamage, effectContact.effect.electric, effectContact.crouching));
   }
   status.damage = addFloat32(roundToFloat32(status.damage), totalDamage);
   if (blockedContact) {
+    target.visuals.shieldElectric = shieldElectric;
     if (perfectShield) {
       target.visuals.shieldReflect++;
       shield.perfectActionFrames = SHIELD_PERFECT_POST_CONTACT_FRAMES;
@@ -243,6 +249,7 @@ function resolveDamageContacts(world: Roster, slot: number): void {
   cancelAttack(target);
   cancelSpecialState(target);
   launch.hitstun = winner !== undefined ? ordinaryHitstunFrames(strongest) : max(launch.hitstun, 11);
+  launch.throwHitstun = chosen.kind === ContactKind.throw && launch.hitstun > 0;
   if (jabReset) {
     beginDownDamage(target, launch.hitstun);
     return;

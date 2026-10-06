@@ -44,6 +44,7 @@ export function checkBlastZone(world: Roster, slot: number): void {
   clearSpecialOnStock(f);
   clearOwnedFreezeTrap(f);
   status.frozenFrames = 0;
+  status.freezeImmunityFrames = 0;
   launch.diPending = false;
   launch.diLaunchSpeed = 0.0;
   motion.vx = 0.0;
@@ -109,6 +110,7 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   clearOwnedFreezeTrap(f);
   f.freezeTrap.serial = 0;
   status.frozenFrames = 0;
+  status.freezeImmunityFrames = 0;
   f.freezeTrap.cooldown = 0;
   clearDownState(f);
   clearSurfaceRecovery(f);
@@ -151,6 +153,7 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   launch.knockbackAge = undefined;
   launch.damageLevel = 0;
   launch.hitstun = 0;
+  launch.throwHitstun = false;
   launch.hitlag = 0;
   launch.diPending = false;
   launch.diLaunchSpeed = 0.0;
