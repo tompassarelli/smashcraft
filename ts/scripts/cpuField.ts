@@ -133,7 +133,8 @@ function playCpuMatch(a: Character, b: Character, stageName: string, variant: nu
   const runtime = createPacingAndPresentation();
   const row = createMatchFrameInput();
   initializeMatchFighters(match, world);
-  const sides = [a, b].map((character) => ({ fighter: fighterSlug(character), moves: {}, hitsLanded: 0, damageDealt: 0, stockLosses: [] })) as unknown as [SideRecord, SideRecord];
+  const side = (character: Character): SideRecord => ({ fighter: fighterSlug(character), moves: {}, hitsLanded: 0, damageDealt: 0, stockLosses: [] });
+  const sides: [SideRecord, SideRecord] = [side(a), side(b)];
   const watches = [watchOf(fighterAt(world, 0)), watchOf(fighterAt(world, 1))] as const;
   const limit = (match.timeLimitMinutes * 60 + 5) * MATCH_TICKS_PER_SECOND;
   let frame = 0;

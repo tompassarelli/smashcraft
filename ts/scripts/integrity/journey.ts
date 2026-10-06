@@ -6,7 +6,7 @@
 // the Rig service, so a recording Rig can replay the journey without Warcraft.
 import { Context, Effect, Fiber } from "effect";
 import { RULE_BUTTONS } from "../../src/game/ui/ruleButtons";
-import { stageTileLeft, stageTileTop } from "../../src/game/menu/stageSelection";
+import { STAGE_CATALOG } from "../../src/game/menu/stageCatalog";
 import type { Region } from "wisp/scripts/warcraft/desktop";
 import { IntegrityFailure } from "./evidence";
 import { ABS_RX, ABS_RY, ABS_X, ABS_Y, ABS_Z, BTN_A, BTN_SELECT, BTN_START, BTN_X, BTN_Y, EV_ABS, EV_KEY, type SourceEdge } from "./linuxInput";
@@ -145,6 +145,9 @@ export interface JourneyOptions {
 const CONTROLS = /CONTROLS/i;
 /** The selection help row: whole-screen word OCR drops its small Controls label. */
 const SELECTION_HELP: Region = { x: 350, y: 1000, width: 1850, height: 400 };
+/** Stage selection names the chosen stage in its preview panel. */
+const STAGE_NAME: Region = { x: 420, y: 965, width: 900, height: 110 };
+const SKY_DECK = /Sky Deck/i;
 const REMATCH_SETTING: Region = { x: 390, y: 655, width: 555, height: 90 };
 const RESULTS = /wins|rematch/i;
 /**
@@ -278,9 +281,16 @@ export function journey(rig: RigShape, options: JourneyOptions) {
     yield* menuButton(0, BTN_START, "menu-character-confirm");
     yield* menuPhase("STAGE");
     if (bot) {
-      // The calibrated bot workload uses Sky Deck, independent of the catalog's first stage.
-      yield* rig.click(0, Math.round(320 + 2400 * (stageTileLeft(0) + 0.047)), Math.round(1440 - 2400 * (stageTileTop(0) - 0.039)));
-      yield* rig.waitText(0, /Sky Deck/i, { x: 420, y: 965, width: 900, height: 110 });
+      // The calibrated bot workload uses Sky Deck, independent of the catalog's first stage. The stage
+      // panel polls the mouse button once a frame, so a desktop click can fall between frames; A's
+      // stick steps through the catalog instead.
+      for (let step = 0; step < STAGE_CATALOG.length && !SKY_DECK.test(yield* rig.readText(0, STAGE_NAME)); step++) {
+        yield* send(0, { type: EV_ABS, code: ABS_X, value: -32768 }, "menu-stage-left");
+        yield* rig.sleep(120);
+        yield* send(0, { type: EV_ABS, code: ABS_X, value: 0 }, "menu-stage-left");
+        yield* rig.sleep(200);
+      }
+      yield* rig.waitText(0, SKY_DECK, STAGE_NAME);
     }
   });
 
