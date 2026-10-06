@@ -8,6 +8,7 @@ import type { AcceptSuite, NativeCheck, Rule } from "wisp/scripts/wisp/accept";
 import { QUICK_HERO_COMMAND, QUICK_TRAINING_COMMAND } from "../../src/game/shell/devSettings";
 import { HIT_PRESENTATION_CASES } from "../../src/game/shell/hitPresentationCases";
 import { HERO_ROSTER } from "../../src/game/sim/heroes/registry";
+import { STAGE_CATALOG } from "../../src/game/menu/stageCatalog";
 
 const inputs = join(homedir(), ".local/share/smashcraft-build-inputs");
 
@@ -30,6 +31,7 @@ export const MAP_PROFILES: Readonly<Record<string, SmashcraftMapProfile>> = {
   presentation: { describe: "development map rebuilt from this checkout, `-dev quick` (Archer and Rifleman idle on the default stage)", path: PRESENTATION, rebuild: "main", quick: "-dev quick" },
   // smashcraft:docs/player-view.md: CURRENT_BUILD's scenario set to underside, built as a development map.
   underside: { describe: "development map built with scenario underside (smashcraft:docs/player-view.md), `-dev quick`", path: join(inputs, "stage-model-20261006/Smashcraft diagnostic underside.w3x"), quick: "-dev quick" },
+  stages: { describe: "development map rebuilt from this checkout, `-dev quick`, then a quick match on each stage in turn", path: PRESENTATION, rebuild: "main", quick: "-dev quick" },
   training: { describe: "development map rebuilt from this checkout, `-dev quick training` (a computer partner shielding at 40%, hit areas on)", path: PRESENTATION, rebuild: "main", quick: QUICK_TRAINING_COMMAND },
   ...Object.fromEntries(heroes.map(({ name }) => [heroProfile(name), {
     describe: `development map rebuilt from this checkout, every human plays ${name}`,
@@ -68,6 +70,17 @@ const EXPECTATIONS: Readonly<Record<number, string>> = {
   25: "two floor dust puffs (ordinary landing)",
 };
 
+/** smashcraft#109's native look (and #115's decks, #110's camera): each stage's quick match, one whole frame per client once its scene has had 5 s to draw. */
+const stageChecks: NativeCheck[] = STAGE_CATALOG.filter(({ id }) => id !== 0).map(({ id, name }): NativeCheck => ({
+  id: `109-stage-${name.toLowerCase().replace(/[^a-z]+/g, "-")}`,
+  closes: "smashcraft#109 box 5",
+  map: "stages",
+  setup: [{ chat: `-dev quick stage ${id}` }, { receipt: "^SMASHCRAFT DEV v=1 ", seconds: 6 }, { waitMs: 5000 }],
+  capture: [{ kind: "frames", name: "match", client: "a" }, { kind: "frames", name: "match", client: "b" }],
+  pass: [DEV_RECEIPT, NO_IMPORT_FAILURES, NO_ERRORS],
+  look: `${name}: sky, fog and scenery behind the fighting volume, no mirror-twin scenery or creatures, a themed main deck distinct from the fog, both fighters and the HUD drawn`,
+}));
+
 /** smashcraft#82's re-capture: each case 3 s after the last, frames from its receipt to +0.5 s, its model and sound named on screen. */
 const effectChecks: NativeCheck[] = [12, 13, 14, 15, 24, 2, 7, 5, 6, 4, 9, 11, 25].flatMap((index): NativeCheck[] => {
   const scenario = HIT_PRESENTATION_CASES[index];
@@ -102,6 +115,7 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
       look: "deck and fighters drawn on each client; run with client A's private desktop at 2880x1920 for the 3:2 box",
     },
     ...effectChecks,
+    ...stageChecks,
     {
       id: "57-underside",
       closes: "smashcraft#57 box 2",
