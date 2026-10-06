@@ -22,7 +22,8 @@ import { createPacingAndPresentation } from "./pacingAndPresentation";
 import { Phase, createMatchState } from "./rules";
 
 const NEUTRAL = neutralControls();
-const SEEDS = [11, 23, 37, 41];
+/** Each fighter plays this many seeded matches, the first half at 0%, the rest at 110%. */
+const MATCHES = 8;
 const FRAMES = 1800;
 
 /** Where each fighter's special stood last frame, and the facing its current action started with. */
@@ -124,9 +125,9 @@ function observe(f: Readonly<Fighter>, watch: Watch, down: boolean, grabMash: bo
   watch.divine = f.status.divineFrames;
 }
 
-/** A level-9 mirror match of `character` under `seed`, counting both computers' options; the second half of the seeds start at 110%. */
-function mirrorMatch(character: Character, seed: number, damage: number, counts: Counts): void {
-  const world = createRoster(3, [createFighter(character, -240.0, 1), createFighter(character, 240.0, -1)]);
+/** A level-9 match of `character` against `opponent` under `seed`, both at `damage`, counting the options of each computer playing `character`. */
+function computerMatch(character: Character, opponent: Character, seed: number, damage: number, counts: Counts): void {
+  const world = createRoster(3, [createFighter(character, -240.0, 1), createFighter(opponent, 240.0, -1)]);
   const match = createMatchState();
   match.phase = Phase.match;
   match.stageChoice = 0;
@@ -154,21 +155,21 @@ function mirrorMatch(character: Character, seed: number, damage: number, counts:
     for (const slot of [0, 1] as const) {
       const input = produced.inputs[slot];
       const watch = watches[slot];
-      if (watch !== undefined) observe(fighterAt(world, slot), watch, input.down, input.grabMashPressed, counts);
+      if (watch !== undefined) observe(fighterAt(world, slot), watch, input.down, input.grabMashPressed, slot === 0 || opponent === character ? counts : {});
     }
   }
 }
 
 /** Every option named appears at least once over the seeds, and the first seed replays its counts. */
-function usesEvery(character: Character, options: readonly string[]): void {
+function usesEvery(character: Character, options: readonly string[], opponent: Character = character, matches = MATCHES): void {
   const counts: Counts = {};
-  SEEDS.forEach((seed, index) => mirrorMatch(character, seed, index < SEEDS.length / 2 ? 0.0 : 110.0, counts));
+  for (let index = 0; index < matches; index++) computerMatch(character, opponent, 11 + index * 12, index < floorDiv(matches, 2) ? 0.0 : 110.0, counts);
   // "a|b": either option counts.
   for (const option of options) assertGreaterThan(option.split("|").reduce((sum, name) => sum + (counts[name] ?? 0), 0), 0);
   const first: Counts = {};
   const again: Counts = {};
-  mirrorMatch(character, SEEDS[0] ?? 0, 0.0, first);
-  mirrorMatch(character, SEEDS[0] ?? 0, 0.0, again);
+  computerMatch(character, opponent, 11, 0.0, first);
+  computerMatch(character, opponent, 11, 0.0, again);
   for (const option of Object.keys(first)) assertEquals(again[option], first[option], option);
   for (const option of Object.keys(again)) assertEquals(again[option], first[option], option);
 }
@@ -195,7 +196,8 @@ test("computer Lich bursts Frost Nova, places Death and Decay, arms Frost Armor 
 });
 
 test("computer Uther shoots Holy Light and attacks out of Divine Shield", () => {
-  usesEvery(Character.uther, ["special0", "divineAttack"]);
+  // Divine Shield succeeds only against a strike timed into its window: twice the matches.
+  usesEvery(Character.uther, ["special0", "divineAttack"], Character.uther, 2 * MATCHES);
 });
 
 test("computer Dreadlord feints Vampiric Pounce, sleeps a target, mashes out of Sleep and hits a sleeper", () => {

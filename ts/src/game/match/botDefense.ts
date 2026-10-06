@@ -12,7 +12,7 @@ import type { Controls } from "../sim/roster";
 import { DEMONHUNTER_IMMOLATE_ACTIVE, DEMONHUNTER_IMMOLATE_STARTUP } from "../sim/specials";
 import { SpecialSlot } from "../sim/heroSpecials";
 import { safeAt } from "./botFooting";
-import { heroStanceSlot } from "./botHeroKit";
+import { heroStanceLater, heroStanceSlot } from "./botHeroKit";
 import { botChoice, moveReaches } from "./botMoves";
 import { defenseOption, gameplanOf } from "./botGameplan";
 import type { DefenseOption } from "../sim/gameplan";
@@ -27,7 +27,7 @@ const SHOT_SIGHT = 260.0;
 /** A shield's pushback can carry the defender about this far. */
 const PUSHBACK_ROOM = 60.0;
 
-const Response = { none: 0, shield: 1, spotDodge: 2, roll: 3, stance: 5, jump: 6, retreat: 7 } as const;
+const Response = { none: 0, shield: 1, spotDodge: 2, roll: 3, stance: 5, jump: 6, retreat: 7, wait: 8 } as const;
 type Response = (typeof Response)[keyof typeof Response];
 
 /** Frames until the target's current strike reaches f, or undefined when it won't. */
@@ -86,6 +86,8 @@ function plannedResponse(f: Readonly<Fighter>, planned: DefenseOption, cornered:
   switch (planned) {
     case "stance":
       if (threat.arrival >= 0 && heroStanceSlot(f, Math.floor(threat.arrival)) !== undefined) return Response.stance;
+      // Too early for the stance's window: it holds still for the read rather than shielding.
+      if (threat.arrival >= 0 && heroStanceLater(f, Math.floor(threat.arrival))) return Response.wait;
       return cornered ? Response.spotDodge : Response.shield;
     case "shield":
     case "roll":
@@ -159,6 +161,8 @@ export function chooseDefense(f: Readonly<Fighter>, target: Readonly<Fighter>, s
       return true;
     case Response.retreat:
       input.direction = away;
+      return true;
+    case Response.wait:
       return true;
   }
 }

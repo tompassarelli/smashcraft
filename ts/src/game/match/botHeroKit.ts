@@ -97,6 +97,17 @@ const relocates = (move: Readonly<AuthoredSpecial>): boolean => {
   return false;
 };
 
+const STANCE_SLOTS = [SpecialSlot.down, SpecialSlot.side, SpecialSlot.neutral] as const;
+
+/** The mana a kit with a guard stance (Divine Shield) keeps for it when spending on another special: its grounded cost. */
+function guardReserve(specials: Readonly<FighterSpecials>, move: Readonly<AuthoredSpecial>): number {
+  for (const slot of STANCE_SLOTS) {
+    const guard = specialKit(specials, slot).ground;
+    if (guard !== move && guard.guard !== undefined && isStance(guard)) return guard.cost;
+  }
+  return 0;
+}
+
 /** Whether the special's travel ends over the deck; a helpless form needs room to land back on it. */
 function travelStaysOnDeck(f: Readonly<Fighter>, move: Readonly<AuthoredSpecial>, stage: number): boolean {
   let travelX = 0.0;
@@ -118,8 +129,8 @@ export function heroSpecialUse(f: Readonly<Fighter>, target: Readonly<Fighter>, 
   const dx = f32(target.motion.x - f.motion.x);
   const localX = f32(dx * f.facing);
   const localZ = f32(target.motion.z - f.motion.z);
-  // Stances answer a threat (heroStanceSlot, from botDefense.ts).
-  if (isStance(move) || relocates(move)) return HeroSpecialUse.none;
+  // Stances answer a threat (heroStanceSlot, from botDefense.ts), and a guard's cost is kept for one.
+  if (isStance(move) || relocates(move) || f32(f.mana.points - move.cost) < guardReserve(specials, move)) return HeroSpecialUse.none;
   if (!travelStaysOnDeck(f, move, stage)) return HeroSpecialUse.none;
   if (strikeMeets(move, target, localX, localZ)) return HeroSpecialUse.close;
   for (const spec of move.projectiles ?? []) if (projectileMeets(spec, target, localX, localZ)) return HeroSpecialUse.ranged;
@@ -128,8 +139,6 @@ export function heroSpecialUse(f: Readonly<Fighter>, target: Readonly<Fighter>, 
   if (placement?.shot !== undefined && target.motion.grounded && projectileMeets(placement.shot, target, f32(localX - placement.offsetX), localZ)) return HeroSpecialUse.ranged;
   return HeroSpecialUse.none;
 }
-
-const STANCE_SLOTS = [SpecialSlot.down, SpecialSlot.side, SpecialSlot.neutral] as const;
 
 /**
  * A grounded hero's special whose protective window (guard, armor or
@@ -147,6 +156,19 @@ export function heroStanceSlot(f: Readonly<Fighter>, arrival: number): SpecialSl
     if (window !== undefined && frame >= window.first && frame <= window.last) return slot;
   }
   return undefined;
+}
+
+/** Whether a grounded hero's stance window would meet a threat arriving in `arrival` frames if pressed later: it waits for the read. */
+export function heroStanceLater(f: Readonly<Fighter>, arrival: number): boolean {
+  const specials = f.tuning.specials;
+  if (specials === undefined || arrival < 0 || !canAttack(f)) return false;
+  for (const slot of STANCE_SLOTS) {
+    const move = startableForm(f, specials, slot);
+    if (move === undefined || !isStance(move)) continue;
+    const window = move.guard ?? move.intangible ?? move.armor;
+    if (window !== undefined && arrival + 1 < window.first) return true;
+  }
+  return false;
 }
 
 /**
