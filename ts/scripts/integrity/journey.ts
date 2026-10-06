@@ -7,7 +7,7 @@
 import { Context, Effect } from "effect";
 import type { Region } from "wisp/scripts/warcraft/desktop";
 import { IntegrityFailure } from "./evidence";
-import { ABS_X, ABS_Y, BTN_A, BTN_SELECT, BTN_START, BTN_X, BTN_Y, EV_ABS, EV_KEY, type SourceEdge } from "./linuxInput";
+import { ABS_X, ABS_Y, ABS_Z, BTN_A, BTN_SELECT, BTN_START, BTN_X, BTN_Y, EV_ABS, EV_KEY, type SourceEdge } from "./linuxInput";
 import { SLOTS, type Slot } from "./reconcile";
 import { type PadLayout, PULSE_HOLD_MILLIS, STALL_MILLIS, type Pulse, type Send, type StallTarget, integritySchedule, pulseSends } from "./schedule";
 import { INPUT_TRACE_FILE, devCommandReceiptFile, journalControlFile, journalLifecycleFile, journalMenuFile, responsePageFile } from "../../src/runtime/gameFiles";
@@ -159,6 +159,15 @@ const BOT_MOMENT = 30000;
 const BOT_MOMENT_HOLD_MILLIS = 1300;
 const BOT_PLAY_MILLIS = 58000;
 const BOT_BEAT_MILLIS = 400;
+/** A bot beat: a 5 ms button tap, or a stick or trigger held then released. */
+const BOT_BEATS = [
+  { kind: "tap", code: BTN_A },
+  { kind: "tap", code: BTN_Y },
+  { kind: "tap", code: BTN_X },
+  { kind: "hold", code: ABS_Z, value: 32767, holdMillis: 200 },
+  { kind: "hold", code: ABS_X, value: 32767, holdMillis: 300 },
+  { kind: "hold", code: ABS_X, value: -32768, holdMillis: 300 },
+] as const;
 /** Stick down (+Y) just below and just past Melee's 0.6625 of full scale (#49). */
 const PAD49_BELOW_DOWN = 21299;
 const PAD49_PAST_DOWN = 21954;
@@ -330,12 +339,14 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       if (options.pad49 === true && epoch === firstEpoch) yield* pad49(epoch, startNs);
       const ended = Effect.forEach(SLOTS, (client) => rig.file(client, controlName("end", epoch, client))).pipe(Effect.map((files) => files.some(complete)));
       let beat = 0;
+      /** One beat on both pads, in a cycle of 5 ms taps (A, Y, X), a held shield and dashes right and left. */
       const beatOnce = Effect.gen(function*() {
-        const code = beat % 4 === 3 ? BTN_X : beat % 3 === 2 ? BTN_Y : BTN_A;
-        for (const slot of SLOTS) yield* send(slot, button(code, 1), `bot-${epoch}-beat`);
-        yield* rig.sleep(PULSE_HOLD_MILLIS);
-        for (const slot of SLOTS) yield* send(slot, button(code, 0), `bot-${epoch}-beat`);
+        const step = BOT_BEATS[beat % BOT_BEATS.length] ?? BOT_BEATS[0];
         beat++;
+        const phase = `bot-${epoch}-beat`;
+        for (const slot of SLOTS) yield* send(slot, step.kind === "tap" ? button(step.code, 1) : { type: EV_ABS, code: step.code, value: step.value }, phase);
+        yield* rig.sleep(step.kind === "tap" ? PULSE_HOLD_MILLIS : step.holdMillis);
+        for (const slot of SLOTS) yield* send(slot, step.kind === "tap" ? button(step.code, 0) : { type: EV_ABS, code: step.code, value: 0 }, phase);
         yield* rig.sleep(BOT_BEAT_MILLIS);
       });
       /** Plays beats until `offsetMs` after the start; false once the match has ended. */

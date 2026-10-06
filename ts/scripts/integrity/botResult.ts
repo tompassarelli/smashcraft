@@ -6,8 +6,7 @@
 // which the delay stays within the most it was in the 4 s before the stall
 // for a second (recovery_ms: the first receipt back within it). Confirmed checksums
 // come from both clients' input traces; moments saved during the capture are
-// copied from the given CustomMapData folders into CAPTURE_DIR/moments. Stalls
-// that stallClient.ts made beside a capture are read from the given JSON files.
+// copied from the given CustomMapData folders into CAPTURE_DIR/moments.
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -31,16 +30,13 @@ type CaptureEvent =
 const BASELINE_NS = 4e9;
 const RECOVERY_LIMIT_MS = 1000;
 
-const [directory, ...extra] = process.argv.slice(2);
-if (directory === undefined) throw new Error("usage: bun scripts/integrity/botResult.ts CAPTURE_DIR [CUSTOM_MAP_DATA | STALLS.json ...]");
-// Stalls stallClient.ts made beside another capture, and folders to collect moments from.
-const stallFiles = extra.filter((path) => path.endsWith(".json"));
-const dataFolders = extra.filter((path) => !path.endsWith(".json"));
+const [directory, ...dataFolders] = process.argv.slice(2);
+if (directory === undefined) throw new Error("usage: bun scripts/integrity/botResult.ts CAPTURE_DIR [CUSTOM_MAP_DATA ...]");
 // A failed capture keeps only events.json.
 const capture = existsSync(join(directory, "capture.json"))
   ? JSON.parse(readFileSync(join(directory, "capture.json"), "utf8")) as { readonly settings: { readonly clients: readonly { readonly name: string; readonly pid: number }[] }; readonly events: readonly CaptureEvent[] }
   : { settings: { clients: [] }, events: JSON.parse(readFileSync(join(directory, "events.json"), "utf8")) as readonly CaptureEvent[] };
-const events: readonly CaptureEvent[] = [...capture.events, ...stallFiles.flatMap((path) => JSON.parse(readFileSync(path, "utf8")) as CaptureEvent[])];
+const events = capture.events;
 
 /** Each epoch's receipts on one helper: time and input delay in frames. */
 function receipts(slot: number): Map<number, Receipt[]> {
