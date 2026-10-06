@@ -40,13 +40,13 @@ const PURSUIT_LUNGE_AIR: AuthoredSpecial = {
 };
 
 // Blink: one displacement on f9, aimed in eight directions by the stick held
-// through f8, intangible f8-10, then a vulnerable endpoint through f30 (on the
-// ground as well) and a helpless fall in the air.
+// through f8, intangible f8-10, then held still at its vulnerable endpoint
+// through f30 (on the ground as well) before a helpless fall in the air.
 const blink = (cost: number, distance: number, aimed: boolean, intangible: boolean): AuthoredSpecial => ({
   cost, endFrame: 30, oncePerAirtime: true, helpless: true, aimFrames: aimed ? 8 : undefined,
   motion: [
     { ...frames(9, 9), velocityX: 0.0, velocityZ: distance, aimedSpeed: aimed ? distance : undefined },
-    { ...frames(10, 10), velocityX: 0.0, velocityZ: 0.0 },
+    { ...frames(10, 30), velocityX: 0.0, velocityZ: 0.0 },
   ],
   intangible: intangible ? frames(8, 10) : undefined,
 });
