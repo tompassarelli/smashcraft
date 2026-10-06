@@ -150,7 +150,7 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
       pass: [NO_IMPORT_FAILURES, NO_ERRORS],
       look: "after the neutral special, the top-left readout's first line names it (for example 'Swift Arrow: 34 total'), not 'Attack' or 'Special'",
     },
-    // #153 box 5, in one Uther mirror in this order (smashcraft:docs/design/mana.md, "The bar"). Keys: W R E move, U special, O grab.
+    // #153 box 5, in one Uther mirror in this order, each starting where the last left the fighters (smashcraft:docs/design/mana.md, "The bar"). Keys: W R E move, U special, O grab.
     {
       id: "153-mana-full",
       closes: "smashcraft#153 box 5 (full bars)",
@@ -171,24 +171,24 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
       look: "player 1's bars about half full (over the head and on the plate), lower than player 2's; a rush that hit shows player 2's bar a little up",
     },
     {
-      id: "153-mana-refused",
-      closes: "smashcraft#153 box 5 (refused special)",
-      map: heroProfile("Uther"),
-      // Rushes until one can't be paid: the refused press flashes both of player 1's bars red.
-      setup: [{ keys: ["r+u"] }, { waitMs: 900 }, { keys: ["r+u"] }, { waitMs: 900 }, { keys: ["r+u"] }, { waitMs: 300 }, { keys: ["r+u"] }],
-      capture: [{ kind: "frames", name: "refused", client: "a", count: 8, everyMs: 100 }],
-      pass: [NO_IMPORT_FAILURES, NO_ERRORS],
-      look: "player 1's bars near empty and, in some frames, blinking red; no rush starts on the refused press",
-    },
-    {
       id: "153-mana-escape",
       closes: "smashcraft#153 box 5 (stacked with the escape meter)",
       map: heroProfile("Uther"),
-      // Player 1 walks into player 2 and grabs.
-      setup: [{ keys: ["r", "r", "r", "r"] }, { waitMs: 300 }, { keys: ["o"] }, { waitMs: 200 }],
-      capture: [{ kind: "frames", name: "held", client: "a", count: 4, everyMs: 150 }, { kind: "frames", name: "held", client: "b", count: 4, everyMs: 150 }],
+      // After the rushes player 1 stands at player 2, so a grab press catches.
+      setup: [{ keys: ["o"] }, { waitMs: 150 }],
+      capture: [{ kind: "frames", name: "held", client: "a", count: 4, everyMs: 120 }, { kind: "frames", name: "held", client: "b", count: 4, everyMs: 120 }],
       pass: [NO_IMPORT_FAILURES, NO_ERRORS],
       look: "over the held fighter, the yellow escape meter with its blue mana bar just above it, not overlapping; the holder's mana bar alone over its head",
+    },
+    {
+      id: "153-mana-refused",
+      closes: "smashcraft#153 box 5 (refused special)",
+      map: heroProfile("Uther"),
+      // Once the hold ends, rushes until one can't be paid: the refused press flashes both of player 1's bars red.
+      setup: [{ waitMs: 1500 }, { keys: ["r+u"] }, { waitMs: 900 }, { keys: ["r+u"] }, { waitMs: 900 }, { keys: ["r+u"] }, { waitMs: 300 }, { keys: ["r+u"] }],
+      capture: [{ kind: "frames", name: "refused", client: "a", count: 8, everyMs: 100 }],
+      pass: [NO_IMPORT_FAILURES, NO_ERRORS],
+      look: "player 1's bars near empty and, in some frames, blinking red; no rush starts on the refused press",
     },
     ...heroes.map(({ name }): NativeCheck => ({
       id: `96-hero-${heroProfile(name).slice(5)}`,
