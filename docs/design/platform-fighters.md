@@ -5,8 +5,7 @@ their relatives) extend or twist the language of
 [traditional fighting games](fighting-games.md), and the reasons designers and
 analysts give. It is descriptive and sourced and states no preference.
 
-- Melee's own numbers, patterns and jank: the Melee case study
-  ([#65](https://github.com/tompassarelli/smashcraft/issues/65)).
+- Melee's own numbers, patterns and jank: the [Melee case study](melee/README.md).
 - Mechanics later platform fighters added or changed (perfect shield on
   release, air-dodge limits, rage, ledge trumping, parry buttons, wall jumps):
   [modern platform fighters](modern-platform-fighters.md).
@@ -219,8 +218,8 @@ time, and the reach and side of the defender's OoS options.
   ([SmashWiki SDI](https://www.ssbwiki.com/Smash_directional_influence)); Rivals
   hitboxes carry drift-DI and SDI multipliers
   ([Rivals hitbox grid](https://rivalsofaether.com/hitbox-grid-indexes/)).
-  Melee's SDI extremes are part of the case study
-  ([#65](https://github.com/tompassarelli/smashcraft/issues/65)); Smashcraft's
+  Melee's SDI extremes are part of the
+  [case study](melee/techniques.md#sdi-teleports); Smashcraft's
   bounded design is [#70](https://github.com/tompassarelli/smashcraft/issues/70).
 
 ## Tech chases

@@ -8,8 +8,7 @@ preference.
 
 - How platform fighters extend or twist this language:
   [platform-fighter design language](platform-fighters.md).
-- Melee's own numbers and patterns: the Melee case study
-  ([#65](https://github.com/tompassarelli/smashcraft/issues/65)).
+- Melee's own numbers and patterns: the [Melee case study](melee/README.md).
 - Mechanics later platform fighters added:
   [modern platform fighters](modern-platform-fighters.md).
 - Human reaction and execution limits:
