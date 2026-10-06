@@ -7,8 +7,8 @@
 // match seed, so each seed of a setup is another sample; a variant also
 // shifts both spawn points sideways. Both computers play at --levels (9,9 by
 // default). Mirrors are left out of the field.
-// Usage (from ts/): bun scripts/cpuField.ts [--variants N | --per-pair N] [--seeds N] [--levels A,B] [--stocks N] [--minutes N] [--json FILE] [--fighters a,b,...] [--pairs a:b,c:d]
-import { writeFileSync } from "node:fs";
+// Usage (from ts/): bun scripts/cpuField.ts [--variants N | --per-pair N] [--seeds N] [--levels A,B] [--stocks N] [--minutes N] [--json FILE] [--fighters a,b,...] [--pairs a:b,c:d] [--merge a.json,b.json]
+import { readFileSync, writeFileSync } from "node:fs";
 import { f32 } from "wisp/src/sim/f32";
 import { parseArgs } from "node:util";
 import { clearAttackBuffer } from "../src/game/input/attackBuffer";
@@ -41,6 +41,8 @@ const NO_HIT_FRAMES = 3 * MATCH_TICKS_PER_SECOND;
 /** Every matchup's win rate, both directions, belongs in this band (#105 box 3). */
 const MATCHUP_LOW = 0.45;
 const MATCHUP_HIGH = 0.55;
+/** The gate's measured claim (#105): a matchup passes when its 95% interval overlaps the band; the field passes when the median distance from 50% is at most this. */
+const MEDIAN_DEVIATION_LIMIT = 0.05;
 /** Specials as gameplans and the computer's options number them: neutral, side, up, down. */
 export const SPECIAL_MOVE = GameplanSpecial;
 /** Spawn shifts, in order, for each variant of a setup. */
@@ -277,6 +279,8 @@ interface FighterSummary {
   readonly against: Readonly<Record<string, number>>;
   /** Matches played against each opponent. */
   readonly played: Readonly<Record<string, number>>;
+  /** Decisive matches against each opponent. */
+  readonly decisive: Readonly<Record<string, number>>;
   readonly stockLosses: number;
   /** Stock losses with no hit taken since the fighter last stood on a deck or held the ledge. */
   readonly selfDestructs: number;
@@ -364,6 +368,48 @@ export function gameplanKeyMovesCheck(character: Character, { top = 8, key, opti
   return { ...result, missingNames: result.missing.map(moveName), usage };
 }
 
+export interface MatchupGate {
+  readonly matchups: number;
+  /** Matchups whose win rate lies inside 45-55%. */
+  readonly inside: number;
+  /** Matchups whose 95% interval (normal approximation over decisive matches) overlaps 45-55%. */
+  readonly overlapping: number;
+  /** Median over matchups of the distance between the row's win rate and 50%. */
+  readonly medianDeviation: number;
+  readonly smallestPlayed: number;
+  /** Matchups whose interval misses the band, as "row-column rate". */
+  readonly missing: readonly string[];
+  /** Whether every interval overlaps the band and the median distance is at most 5 points. */
+  readonly passes: boolean;
+}
+
+/** #105 box 3's measured claim over each unordered pair once, from the earlier fighter's row. */
+export function matchupGate(summaries: readonly Pick<FighterSummary, "fighter" | "against" | "played" | "decisive">[]): MatchupGate {
+  const names = summaries.map((s) => s.fighter);
+  const deviations: number[] = [];
+  const missing: string[] = [];
+  let inside = 0, overlapping = 0, smallestPlayed = Number.POSITIVE_INFINITY;
+  summaries.forEach((s, row) => {
+    for (const name of names.slice(row + 1)) {
+      const rate = s.against[name] ?? Number.NaN;
+      const n = s.decisive[name] ?? 0;
+      smallestPlayed = Math.min(smallestPlayed, s.played[name] ?? 0);
+      if (rate >= MATCHUP_LOW && rate <= MATCHUP_HIGH) inside++;
+      const half = n === 0 ? 0 : 1.96 * Math.sqrt((rate * (1 - rate)) / n);
+      if (rate - half <= MATCHUP_HIGH && rate + half >= MATCHUP_LOW) overlapping++;
+      else missing.push(`${s.fighter}-${name} ${percent(rate)}`);
+      deviations.push(Number.isNaN(rate) ? 0.5 : Math.abs(rate - 0.5));
+    }
+  });
+  deviations.sort((x, y) => x - y);
+  const middle = deviations.length >> 1;
+  const medianDeviation = deviations.length === 0 ? 0 : deviations.length % 2 === 1 ? deviations[middle] ?? 0 : ((deviations[middle - 1] ?? 0) + (deviations[middle] ?? 0)) / 2;
+  return {
+    matchups: deviations.length, inside, overlapping, medianDeviation, smallestPlayed, missing,
+    passes: deviations.length > 0 && overlapping === deviations.length && medianDeviation <= MEDIAN_DEVIATION_LIMIT,
+  };
+}
+
 function summarizeField(records: readonly MatchRecord[]): FighterSummary[] {
   const names = [...new Set(records.flatMap((record) => record.fighters))];
   const order = soak.roster.fighters;
@@ -405,12 +451,14 @@ function summarizeField(records: readonly MatchRecord[]): FighterSummary[] {
     }
     const against: Record<string, number> = {};
     const played: Record<string, number> = {};
+    const decisive: Record<string, number> = {};
     for (const [opponent, pair] of versus) {
       against[opponent] = pair.decisive === 0 ? Number.NaN : pair.wins / pair.decisive;
       played[opponent] = pair.matches;
+      decisive[opponent] = pair.decisive;
     }
     return {
-      fighter, matches, wins, losses, ties, timeOuts, winRate: wins + losses === 0 ? Number.NaN : wins / (wins + losses), against, played,
+      fighter, matches, wins, losses, ties, timeOuts, winRate: wins + losses === 0 ? Number.NaN : wins / (wins + losses), against, played, decisive,
       stockLosses, selfDestructs, selfDestructShare: stockLosses === 0 ? 0 : selfDestructs / stockLosses, noHitLosses: noHit, noHitShare: stockLosses === 0 ? 0 : noHit / stockLosses, damagePerHit: hits === 0 ? Number.NaN : damage / hits,
       manaPerStock: stocksPlayed === 0 ? Number.NaN : manaSpent / stocksPlayed,
       refusedShare: specialsStarted + specialsRefused === 0 ? 0 : specialsRefused / (specialsStarted + specialsRefused),
@@ -434,26 +482,19 @@ function fieldTable(summaries: readonly FighterSummary[]): string {
   lines.push("", `| Row's win rate vs (matches) | ${names.join(" | ")} |`, `| --- |${names.map(() => " ---: |").join("")}`);
   const cell = (s: FighterSummary, name: string) => (name === s.fighter ? "-" : `${percent(s.against[name] ?? Number.NaN)} (${s.played[name] ?? 0})`);
   for (const s of summaries) lines.push(`| ${s.fighter} | ${names.map((name) => cell(s, name)).join(" | ")} |`);
-  // #105 box 3: every matchup inside the band, both directions.
-  const outside: string[] = [];
-  let inside = 0;
-  let smallest = Number.POSITIVE_INFINITY;
-  summaries.forEach((s, row) => {
-    for (const name of names.slice(row + 1)) {
-      const rate = s.against[name] ?? Number.NaN;
-      smallest = Math.min(smallest, s.played[name] ?? 0);
-      if (rate >= MATCHUP_LOW && rate <= MATCHUP_HIGH) inside++;
-      else outside.push(`${s.fighter}-${name} ${percent(rate)}`);
-    }
-  });
-  lines.push("", `Matchups inside ${percent(MATCHUP_LOW)}-${percent(MATCHUP_HIGH)}: ${inside} of ${inside + outside.length}, at least ${smallest} matches each.${outside.length === 0 ? "" : ` Outside: ${outside.join(", ")}.`}`);
+  // #105 box 3: every matchup's 95% interval overlaps the band, and the median matchup is within 5 points of even.
+  const gate = matchupGate(summaries);
+  lines.push(
+    "",
+    `Matchups inside ${percent(MATCHUP_LOW)}-${percent(MATCHUP_HIGH)}: ${gate.inside} of ${gate.matchups}, at least ${gate.smallestPlayed} matches each. 95% interval overlapping the band: ${gate.overlapping} of ${gate.matchups}. Median distance from 50%: ${(100 * gate.medianDeviation).toFixed(1)} points. Gate (every interval overlaps, median at most ${(100 * MEDIAN_DEVIATION_LIMIT).toFixed(0)} points): ${gate.passes ? "passes" : "fails"}.${gate.missing.length === 0 ? "" : ` Intervals missing the band: ${gate.missing.join(", ")}.`}`,
+  );
   return lines.join("\n");
 }
 
 if (import.meta.main) {
   const { values } = parseArgs({
     args: process.argv.slice(2),
-    options: { variants: { type: "string" }, "per-pair": { type: "string" }, seeds: { type: "string" }, levels: { type: "string" }, stocks: { type: "string" }, minutes: { type: "string" }, json: { type: "string" }, fighters: { type: "string" }, pairs: { type: "string" } },
+    options: { variants: { type: "string" }, "per-pair": { type: "string" }, seeds: { type: "string" }, levels: { type: "string" }, stocks: { type: "string" }, minutes: { type: "string" }, json: { type: "string" }, merge: { type: "string" }, fighters: { type: "string" }, pairs: { type: "string" } },
     strict: true,
   });
   const fighterNamed = (slug: string) => {
@@ -478,7 +519,9 @@ if (import.meta.main) {
   };
   const started = performance.now();
   let reported = 0;
-  const records = playCpuField(options, (done, total) => {
+  // --merge a.json,b.json: summarize the records of earlier --json runs (shards of one field) instead of playing.
+  const merged = values.merge?.split(",").flatMap((file) => (JSON.parse(readFileSync(file, "utf8")) as { records: MatchRecord[] }).records);
+  const records = merged ?? playCpuField(options, (done, total) => {
     const now = performance.now();
     if (now - reported > 10000 || done === total) {
       reported = now;
@@ -486,6 +529,7 @@ if (import.meta.main) {
     }
   });
   const summaries = summarizeField(records);
+  if (merged !== undefined) console.log(`Merged from ${values.merge}; the line below describes this command's options, not the shards'.`);
   console.log(`${records.length} computer matches (${options.stocks} stocks, ${options.minutes}-minute clock, ${options.perPair === undefined ? `${options.variants} spawn variant(s) of ${options.seeds} seed(s) per ordered pair and stage` : `spawn variants and ${options.seeds} seed(s) each until each pair has ${options.perPair} matches`}, computer levels ${(options.levels ?? [CPU_LEVEL_MAX, CPU_LEVEL_MAX]).join(" and ")}), ${((performance.now() - started) / 1000).toFixed(0)} s; win rate over decisive matches; a self-destruct is a stock lost with no hit taken since the fighter last stood on a deck or held the ledge; the fall-time column counts stocks lost over ${NO_HIT_FRAMES / MATCH_TICKS_PER_SECOND} s after the last hit.`);
   console.log("");
   console.log(fieldTable(summaries));

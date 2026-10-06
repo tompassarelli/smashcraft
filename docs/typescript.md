@@ -562,11 +562,15 @@ From smashcraft:ts/:
   exports count as used; references from smashcraft:evidence/ do not. About 10 s.
 - `bun scripts/cpuField.ts [--variants N | --per-pair N] [--seeds N]
   [--levels A,B] [--stocks N] [--minutes N] [--json FILE] [--fighters a,b]
-  [--pairs a:b,c:d]`: the computer against the field (#105); `--pairs`
-  plays only the listed pairs, both orders. `--per-pair N` plays spawn
-  variants and seeds until every pair has at least N matches (#105 box 3
-  uses 100); the matchup matrix shows each win rate with its match count
-  and counts the matchups inside 45-55%.
+  [--pairs a:b,c:d] [--merge a.json,b.json]`: the computer against the
+  field (#105); `--pairs` plays only the listed pairs, both orders.
+  `--per-pair N` plays spawn variants and seeds until every pair has at
+  least N matches; the matchup matrix shows each win rate with its match
+  count. #105 box 3's gate: every matchup's 95% interval overlaps 45-55%
+  and the median distance from 50% is at most 5 points, measured at 400 a
+  pair (tune at 100); the table prints both, plus the count inside 45-55%.
+  `--merge` summarizes earlier `--json` runs instead of playing, so a
+  field can run as `--pairs` shards.
   Every ordered pair of different selectable fighters, both computers, on
   every soak stage, played in process through frame capture and execution
   (3 stocks, 4-minute clock by default), both computers at `--levels`
