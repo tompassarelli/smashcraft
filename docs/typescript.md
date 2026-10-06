@@ -158,8 +158,10 @@ missing (missing-input) or stops (input-stall).
 
 A player who sees something wrong saves the moment
 ([Wisp repros](https://github.com/tompassarelli/wisp/blob/main/docs/repro.md)):
-F8 in every build, or View held for a second on a controller, which the
-companion helper types into the journal's edit box as `JM1` and the epoch. Every
+K in every build, or View held for a second on a controller, which the
+companion helper types into the journal's edit box as `JM1` and the epoch. K is
+registered as Y is; F8, registered the same way, never reached the map's handler
+in the development build or 0.0.48 (6 October 2026), while View did. Every
 client keeps the last ten to twelve seconds of its confirmed match
 (smashcraft:ts/src/game/replay/moment.ts): a snapshot every 120 frames, six in
 all, and each human's input row for every frame since the oldest. The asking
@@ -224,7 +226,9 @@ the real input path instead (smashcraft:ts/test/soak/helper.ts): each player
 a uinput pad the fuzzer drives about once a second, read by a persistent
 wc3-journal helper built with `--text-out`, into headless clients in real
 time, with the same detectors. It needs /dev/uinput, as `bun wisp parity
-headless` does.
+headless` does. Its repro files keep what each helper typed and wrote, by
+frame, so `bun wisp soak --repro FILE` replays them without the helpers or
+pads; the pads' edges stay in the file as evidence.
 
 The development and integrity builds measure what each frame costs
 (smashcraft:ts/src/platform/frameMeter.ts, [Wisp frame cost](https://github.com/tompassarelli/wisp/blob/main/docs/frame-cost.md)):

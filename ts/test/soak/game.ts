@@ -270,6 +270,11 @@ function outcomeRecorder(match: SoakMatch, file: string): (client: HeadlessClien
 export default defineSoakGame({
   entry: SOAK_ENTRY,
   begin: (clients, match) => {
+    if (match.typed === true) {
+      // Played through the real helpers (test/soak/helper.ts): the soak types what they typed, so no stand-in types.
+      beginMatch(clients, match, () => clients.frames(1));
+      return { input: () => undefined, ...matchView(() => undefined) };
+    }
     const helpers = new JournalHelpers(PLAYABLE_BUILD.id, true);
     const controllers = new Map<number, ControllerRows>();
     match.policies.forEach((policy, slot) => {
