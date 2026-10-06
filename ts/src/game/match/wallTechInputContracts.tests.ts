@@ -14,6 +14,11 @@ import { bodyTop } from "../sim/surfaces";
 import { WORLD_UNITS_PER_MELEE_UNIT, melee } from "../sim/tuning";
 import { type Pad, type PadMatch, padMatch, playPads } from "./helperPads";
 import { testMatch } from "./testMatch";
+import { SELECTABLE_CHARACTERS, fighterName } from "../sim/heroes/registry";
+import { AttackStyle } from "../sim/codes";
+import { resolveAttacks } from "../sim/attacks";
+import { attackStartupFrames } from "../sim/moves";
+import { SURFACE_TECH_WALL_COLLISION_GRACE_FRAMES } from "../sim/surfaces";
 
 /**
  * Each fighter's Melee reference, in Melee units a frame: ftCo_DatAttrs
@@ -94,7 +99,8 @@ function launch(run: Run, victimPadAt: (frame: number) => Pad, strike: Pad = STR
   throw new Error("the victim never met a solid surface");
 }
 
-const VICTIMS = [Character.archer, Character.rifleman, Character.demonHunter] as const;
+/** Every selectable fighter; heroes take Archer's reference (Fox) wall values (sim/tuning.ts). */
+const VICTIMS = SELECTABLE_CHARACTERS;
 const NEUTRAL = (): Pad => ({});
 
 function assertMetSide(victim: Fighter): void {
@@ -292,5 +298,66 @@ test("a ceiling tech starts at the ECB top's contact and moves each fighter side
     const impulse = melee(reference.ceiling);
     const expected = -(impulse > airSpeed ? max(airSpeed, f32(impulse - airFriction)) : min(airSpeed, f32(impulse + airAcceleration)));
     assertEquals(victim.motion.vx, expected);
+  }
+});
+
+/**
+ * Puts the Archer in slot 0 over the victim with a fresh, active neutral air and
+ * resolves it: true when it struck the victim's body.
+ */
+function strikeOverlapping(run: Run): boolean {
+  const attacker = assertDefined(run.match.world.fighters[0], "attacker");
+  const { victim } = run;
+  const damage = victim.status.damage;
+  attacker.motion.x = victim.motion.x;
+  attacker.motion.z = victim.motion.z;
+  attacker.motion.grounded = false;
+  attacker.launch.hitlag = 0;
+  attacker.attack.style = AttackStyle.neutralAir;
+  attacker.attack.frame = attackStartupFrames(AttackStyle.neutralAir);
+  attacker.attack.duration = attacker.attack.frame + 10;
+  attacker.attack.serial++;
+  attacker.attack.hit = false;
+  resolveAttacks(run.match.world);
+  return victim.status.damage > damage;
+}
+
+/**
+ * From the frame the victim enters the wall recovery, counts the frames an
+ * overlapping strike passes through before one first connects.
+ */
+function passThroughFrames(run: Run): number {
+  const { victim } = run;
+  assertEquals(victim.surfaceRecovery.state, SurfaceContact.techWall);
+  for (let frames = 0; frames < 40; frames++) {
+    if (strikeOverlapping(run)) return frames;
+    assertTrue(isIntangible(victim));
+    playPads(run, {}, {});
+  }
+  throw new Error("the victim was never struck");
+}
+
+// Melee enters the wall tech, the wall tech's jump and the plain wall jump through
+// ftCo_800C1E64 (melee:src/melee/ft/kinds/ftCommon/ftCo_PassiveWall.c, called
+// from ftCo_800C1D38 and melee:src/melee/ft/ftwalljump.c ftWallJump_8008169C),
+// which ends with ftColl_8007B760(gobj, PlCo +0x764 = 14): each is intangible
+// for 14 frames from wall contact, the frame it enters included.
+test("a wall tech, its jump and a plain wall jump are each intangible for Melee's 14 frames, then hittable", () => {
+  assertEquals(SURFACE_TECH_WALL_COLLISION_GRACE_FRAMES, 14);
+  for (const character of VICTIMS) {
+    const name = fighterName(character);
+    const missed = launch(startRun(character, 120.0), NEUTRAL);
+    const tech = startRun(character, 120.0);
+    launch(tech, (frame) => ({ trigger: frame === missed.free }));
+    assertFalse(tech.victim.surfaceRecovery.wallJumpQueued);
+    assertEquals(passThroughFrames(tech), 14, `${name} wall tech`);
+    const techJump = startRun(character, 120.0);
+    launch(techJump, (frame) => ({ trigger: frame === missed.free, y: frame === missed.contact ? 1.0 : 0.0 }));
+    assertTrue(techJump.victim.surfaceRecovery.wallJumpQueued);
+    assertEquals(passThroughFrames(techJump), 14, `${name} wall tech jump`);
+    const wallJump = startDrift(character);
+    flickOffSide(wallJump);
+    assertTrue(wallJump.victim.surfaceRecovery.wallJumpQueued);
+    assertEquals(passThroughFrames(wallJump), 14, `${name} wall jump`);
   }
 });
