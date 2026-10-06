@@ -34,6 +34,7 @@ interface Watch {
   bird: number;
   divine: number;
   asleep: boolean;
+  hexed: boolean;
 }
 
 type Counts = Record<string, number>;
@@ -112,6 +113,10 @@ function observe(f: Readonly<Fighter>, watch: Watch, down: boolean, grabMash: bo
   if (grabMash && asleep) count(counts, "sleepMash");
   if (watch.asleep && f.launch.hitlag > 0) count(counts, "sleptHit");
   watch.asleep = asleep;
+  const hexed = f.status.condition === HeroStatusKind.hex;
+  if (grabMash && hexed) count(counts, "hexMash");
+  if (watch.hexed && f.launch.hitlag > 0) count(counts, "hexedHit");
+  watch.hexed = hexed;
   watch.action = special.action;
   watch.form = special.form;
   watch.frame = special.frame;
@@ -134,7 +139,7 @@ function mirrorMatch(character: Character, seed: number, damage: number, counts:
   const watches: Watch[] = [];
   for (const slot of [0, 1]) {
     fighterAt(world, slot).status.damage = damage;
-    watches.push({ action: 0, form: 0, frame: 0, entryFacing: 1, bird: 0, divine: 0, asleep: false });
+    watches.push({ action: 0, form: 0, frame: 0, entryFacing: 1, bird: 0, divine: 0, asleep: false, hexed: false });
   }
   for (let step = 0; step < FRAMES; step++) {
     const frame = runtime.simulationFrame + 1;
@@ -195,6 +200,10 @@ test("computer Uther shoots Holy Light and attacks out of Divine Shield", () => 
 
 test("computer Dreadlord feints Vampiric Pounce, sleeps a target, mashes out of Sleep and hits a sleeper", () => {
   usesEvery(Character.dreadlord, ["followUp1.0", "special3", "sleepMash", "sleptHit"]);
+});
+
+test("computer Shadow Hunter throws Spirit Glaive, hexes, presses a hexed target and mashes out of a Hex", () => {
+  usesEvery(Character.shadowHunter, ["special0", "special3", "hexedHit", "hexMash"]);
 });
 
 test("computer Rifleman flies level and diagonal recoil routes with a second shot, short-hops and grounds the blaster, calls the bear", () => {

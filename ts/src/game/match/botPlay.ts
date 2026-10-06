@@ -7,7 +7,7 @@ import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { type AttackBuffer, clearAttackBuffer } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots } from "../input/participants";
 import { DownState, GrabAction, ShieldBreak } from "../sim/codes";
-import { heroStatusMashes } from "../sim/heroStatus";
+import { heroStatusBlocksActions, heroStatusMashes } from "../sim/heroStatus";
 import type { Fighter } from "../sim/fighter";
 import { isSmashAttack } from "../sim/moves";
 import { type Controls, type Roster, copyControls, fighterAt, isActive, neutralControls } from "../sim/roster";
@@ -166,9 +166,10 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: { botAttackD
     return;
   }
   if (fighter.status.frozenFrames > 0 || heroStatusMashes(fighter)) {
-    // A human-paced mash, 10 presses a second, so a trap or a Sleep still rewards its user.
+    // A human-paced mash, 10 presses a second, so a trap, a Sleep or a Hex still rewards its user.
     input.grabMashPressed = floorMod(frame, skill.freezeMashFrames) === 0;
-    return;
+    // A Hex leaves movement, shields and jumps: the computer keeps playing between presses.
+    if (fighter.status.frozenFrames > 0 || heroStatusBlocksActions(fighter)) return;
   }
   if (fighter.grab.owner !== undefined) {
     input.grabMashPressed = floorMod(frame, skill.grabMashFrames) === 0;

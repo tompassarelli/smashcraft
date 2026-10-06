@@ -12,7 +12,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { floorDiv } from "wisp/src/sim/intMath";
 import { toInt } from "../../runtime/numbers";
 import { hurtCapsule } from "../physics/contactGeometry";
-import { Character, HippogryphKind, ProjectileKind, SpecialAction } from "../sim/codes";
+import { Character, HeroStatusKind, HippogryphKind, ProjectileKind, SpecialAction } from "../sim/codes";
 import { canAttack } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
 import { isHeroSpecialAction, runningHeroSpecial, specialCooldownReady } from "../sim/heroSpecialRules";
@@ -215,8 +215,8 @@ function pressHeroOption(f: Readonly<Fighter>, target: Readonly<Fighter>, stage:
   const toward = towardOf(f, target.motion.x);
   const level = Math.abs(f32(target.motion.z - f.motion.z)) <= 60.0;
   // Divine Shield lasts until his next attack: he walks in under it and the attack comes from close.
-  // So he does on a target asleep, stunned or frozen.
-  const open = f.status.divineFrames > 0 || heroStatusBlocksActions(target) || target.status.frozenFrames > 0;
+  // So does any hero on a target asleep, stunned, frozen or hexed.
+  const open = f.status.divineFrames > 0 || heroStatusBlocksActions(target) || target.status.frozenFrames > 0 || target.status.condition === HeroStatusKind.hex;
   if (open && f.motion.grounded && gap > 50.0 && takes(skill, floorDiv(frame, 45), f.character * 7 + 18)) {
     steerOnGround(f, stage, target.motion.x, input);
     return true;
