@@ -5,6 +5,7 @@
 // neutral rows while the player's fighter is a computer ("cpu"), or nothing,
 // as when no helper runs ("absent"). Loaded only by the soak's worker
 // processes, so the host type check never reads map code.
+import { appendFileSync } from "node:fs";
 import { type SoakDriver, type SoakEdge, type SoakMatch, defineSoakGame } from "wisp/scripts/wisp/soak";
 import type { HeadlessClient } from "wisp/src/headless/client";
 import type { Lockstep } from "wisp/src/headless/lockstep";
@@ -13,7 +14,7 @@ import { Action, bit } from "../../src/game/input/actions";
 import { type InputRow, emptyInput, inputRow } from "../../src/game/input/inputRow";
 import { PARTICIPANT_SLOTS } from "../../src/game/input/participants";
 import type { StageTile } from "../../src/game/menu/stageSelection";
-import { Phase } from "../../src/game/match/rules";
+import { MATCH_TICKS_PER_SECOND, Phase } from "../../src/game/match/rules";
 import { PLAYABLE_BUILD } from "../../src/game/shell/currentBuild";
 import { Character } from "../../src/game/sim/codes";
 import { fighterAt, isActive } from "../../src/game/sim/roster";
@@ -220,6 +221,52 @@ export function matchView(journaled: (slot: number) => number | undefined): Pick
   };
 }
 
+interface StockLoss {
+  /** Match frames from the start. */
+  readonly frame: number;
+  readonly percent: number;
+  /** Frames since the fighter last took a hit, as observed after each frame; undefined when it never did. */
+  readonly sinceHit: number | undefined;
+}
+
+/**
+ * Appends the match's result to `file` as one JSON line, once the result
+ * shows: the winner and, per player, the damage and hits taken and each
+ * stock lost. It reads the host's confirmed state after every frame; frames
+ * count from the match's start. scripts/soakOutcomes.ts summarizes the file.
+ */
+function outcomeRecorder(match: SoakMatch, file: string): (client: HeadlessClient, over: boolean) => void {
+  const players = new Map<number, { baseHits: number; hits: number; lastHit: number | undefined; damage: number; damageTaken: number; out: boolean; losses: StockLoss[] }>();
+  let written = false;
+  return (client, over) => {
+    if (client.slot !== 0 || written) return;
+    const { game, world } = shell();
+    if (game.phase !== Phase.match && game.phase !== Phase.result) return;
+    const frame = game.timeLimitMinutes * 60 * MATCH_TICKS_PER_SECOND - game.remainingFrames;
+    for (const slot of PARTICIPANT_SLOTS) {
+      if (!isActive(world, slot)) continue;
+      const { visuals, status } = fighterAt(world, slot);
+      const seen = players.get(slot) ?? { baseHits: visuals.hit, hits: visuals.hit, lastHit: undefined, damage: status.damage, damageTaken: 0, out: false, losses: [] };
+      if (visuals.hit !== seen.hits) seen.lastHit = frame;
+      seen.hits = visuals.hit;
+      // A respawn resets the percent; only rises are damage taken.
+      seen.damageTaken += Math.max(0, status.damage - seen.damage);
+      seen.damage = status.damage;
+      if (status.out && !seen.out) seen.losses.push({ frame, percent: status.damage, sinceHit: seen.lastHit === undefined ? undefined : frame - seen.lastHit });
+      seen.out = status.out;
+      players.set(slot, seen);
+    }
+    if (!over) return;
+    written = true;
+    const outcome = {
+      index: match.index, seed: match.seed, stage: match.stage, fighters: match.fighters, policies: match.policies,
+      winner: game.winner ?? null, timedOut: game.timedOut, interrupted: game.interrupted, frames: frame,
+      players: [...players].map(([slot, seen]) => ({ slot, damageTaken: seen.damageTaken, hitsTaken: seen.hits - seen.baseHits, stockLosses: seen.losses })),
+    };
+    appendFileSync(file, `${JSON.stringify(outcome)}\n`);
+  };
+}
+
 export default defineSoakGame({
   entry: SOAK_ENTRY,
   begin: (clients, match) => {
@@ -240,6 +287,10 @@ export default defineSoakGame({
     let clock = began;
     helpers.clock = () => clock;
     let silent: ReadonlySet<number> = new Set();
+    // A quiet helper's rows wait in it, so only a typing helper's count as sent.
+    const view = matchView((slot) => (helpers.silent.has(slot) ? undefined : helpers.journaled(slot)));
+    const outcomes = process.env.SOAK_OUTCOMES;
+    const record = outcomes === undefined || outcomes === "" ? undefined : outcomeRecorder(match, outcomes);
     return {
       input: (step) => {
         clock = began + step.wallMs / FRAME_MS;
@@ -250,8 +301,12 @@ export default defineSoakGame({
         silent = new Set(step.silent);
         helpers.service(clients);
       },
-      // A quiet helper's rows wait in it, so only a typing helper's count as sent.
-      ...matchView((slot) => (helpers.silent.has(slot) ? undefined : helpers.journaled(slot))),
+      ...view,
+      observe: (client) => {
+        const seen = view.observe(client);
+        record?.(client, seen.over);
+        return seen;
+      },
     };
   },
 });
