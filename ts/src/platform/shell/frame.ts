@@ -12,6 +12,8 @@ import { resultMessage, aerialName, fighterLabel } from "../../game/shell/messag
 import { produceScenarioComputerInput } from "../../game/shell/scenarios";
 import { DownState } from "../../game/sim/codes";
 import { canAttack } from "../../game/sim/conditions";
+import { influenceOperands } from "../../game/sim/knockback";
+import { canonicalReal } from "../../game/replay/canonical";
 import type { Fighter } from "../../game/sim/fighter";
 import { isAerialAttack } from "../../game/sim/moves";
 import { fighterAt, isActive } from "../../game/sim/roster";
@@ -34,6 +36,7 @@ function observe(before: FrameObservation, fighter: Readonly<Fighter>): void {
   before.ledge = fighter.ledge.state;
   before.special = fighter.special.action;
   before.grab = fighter.grab.action;
+  before.di = fighter.launch.diSerial;
 }
 
 const bit = (value: boolean) => (value ? "1" : "0");
@@ -52,6 +55,13 @@ function reportChanges(s: ShellState, slot: ParticipantSlot, before: Readonly<Fr
   if (before.breakState !== f.shield.breakState) traceParticipant(s, slot, `shield-break ${f.shield.breakState} z ${R2S(f.motion.z)} remaining ${R2S(f.shield.breakRemaining)}`);
   if (before.ledge !== f.ledge.state) traceParticipant(s, slot, `ledge ${f.ledge.state} x ${R2S(f.motion.x)} z ${R2S(f.motion.z)}`);
   if (before.jump !== f.jump.serial) traceParticipant(s, slot, `applied jump ${f.jump.serial} double ${bit(f.jump.isDouble)} z ${R2S(f.motion.z)}`);
+  const influence = s.trace.active && before.di !== f.launch.diSerial ? influenceOperands(f) : undefined;
+  if (influence !== undefined) {
+    // Exact x, z, stick x, stick z, degrees, radians and angle, so a replay can repeat the DI operation by operation.
+    const { x, z, stickX, stickZ, degrees, angleRadians } = influence;
+    const exact = [x, z, stickX, stickZ, degrees, angleRadians, f.launch.diAngleDegrees].map(value => canonicalReal(value)).join(" ");
+    traceParticipant(s, slot, `di ${f.launch.diSerial} ${exact}`);
+  }
   if (before.down !== f.down.state) {
     if (f.down.state === DownState.tech) announce(s, "Tech!");
     else if (f.down.state === DownState.techRoll) announce(s, "Tech roll!");
