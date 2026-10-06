@@ -24,6 +24,7 @@ const PANEL_TEXTURE = "UI\\Widgets\\ToolTips\\Human\\human-tooltip-background.bl
 export const RESULTS_DELAY_FRAMES = 90;
 /** How long a countdown call stays up. */
 const CALL_FRAMES = 50;
+const CALL_SCALE = 3.0;
 /** Facing the arena camera, which looks along +y. */
 const FACING_CAMERA = f32(-1.5707963705062866);
 
@@ -63,7 +64,8 @@ export class MatchPresentation {
     const parent = gameUi();
     this.panel = createBackdrop("MatchResultsPanel", parent, 0);
     BlzFrameSetTexture(this.panel, PANEL_TEXTURE, 0, true);
-    BlzFrameSetAbsPoint(this.panel, FRAMEPOINT_TOP, f32(0.4), f32(0.43));
+    // Beside the arena's centre, so the winner's pose stays in view (native, #123).
+    BlzFrameSetAbsPoint(this.panel, FRAMEPOINT_TOPRIGHT, f32(0.79), f32(0.52));
     BlzFrameSetSize(this.panel, f32(0.36), f32(0.05) + PARTICIPANT_CAPACITY * f32(0.04));
     BlzFrameSetEnable(this.panel, false);
     this.title = createText("MatchResultsTitle", this.panel, 0);
@@ -84,8 +86,10 @@ export class MatchPresentation {
     BlzFrameSetVisible(this.panel, false);
     this.call = createText("MatchCall", parent, 0);
     BlzFrameSetAbsPoint(this.call, FRAMEPOINT_CENTER, f32(0.4), f32(0.36));
-    BlzFrameSetSize(this.call, f32(0.4), f32(0.08));
-    BlzFrameSetFont(this.call, MENU_FONT, f32(0.045), 0);
+    // Natively a 0.045 font drew no larger than the 0.016 results title, so the call is scaled up instead (#123).
+    BlzFrameSetSize(this.call, f32(0.14), f32(0.03));
+    BlzFrameSetFont(this.call, MENU_FONT, f32(0.016), 0);
+    BlzFrameSetScale(this.call, CALL_SCALE);
     BlzFrameSetTextAlignment(this.call, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER);
     BlzFrameSetEnable(this.call, false);
     BlzFrameSetVisible(this.call, false);
