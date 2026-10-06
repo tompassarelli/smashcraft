@@ -8,7 +8,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { type AttackBuffer, queueAttack } from "../input/attackBuffer";
 import { attackCapsule, emptyCapsule, hurtCapsule } from "../physics/contactGeometry";
-import { AttackStyle, Character, SpecialAction } from "../sim/codes";
+import { AttackStyle, Character, PassiveKind, SpecialAction } from "../sim/codes";
 import { canAttack } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../sim/hitRegions";
@@ -19,7 +19,8 @@ import { immolationRegion } from "../sim/specials";
 import { safeAt, slideStaysOnDeck } from "./botFooting";
 import { HeroSpecialUse, heroSpecialUse } from "./botHeroKit";
 import { SpecialSlot } from "../sim/heroSpecials";
-import { SPACE_PLAN, gameplanOf, moveWeight, spacedAt, toGameplanMove } from "./botGameplan";
+import { SPACE_PLAN, gameplanOf, moveWeight, passiveLandingMove, spacedAt, toGameplanMove } from "./botGameplan";
+import { passivePips, passiveSpec } from "../sim/passives";
 import type { FighterGameplan, GameplanMove } from "../sim/gameplan";
 import { type CpuSkill, FULL_SKILL } from "./cpuLevel";
 
@@ -79,6 +80,8 @@ const STYLE_SLOTS = 20;
 // Preallocated: strike bounds filled the first time a move is asked about, four per character and style.
 const strikeBounds: number[] = [];
 const strikeFilled: boolean[] = [];
+// The kit each slot's bounds were filled from: a kit's moves are shared and immutable, so the same object gives the same bounds.
+const strikeMoves: (FighterMoves | undefined)[] = [];
 const scratchRegion = emptyHitRegion();
 const scratchCapsule = emptyCapsule();
 // Preallocated: the options a decision weighs.
@@ -90,7 +93,7 @@ const weights: number[] = [];
 function strikeIndex(character: Character, style: AttackStyle, moves?: FighterMoves): number {
   const slot = character * STYLE_SLOTS + style;
   const index = slot * 4;
-  if (moves === undefined && strikeFilled[slot] === true) return index;
+  if (strikeFilled[slot] === true && strikeMoves[slot] === moves) return index;
   const startup = attackStartupFrames(style, moves);
   let found = false;
   let minX = 1.0;
@@ -122,7 +125,8 @@ function strikeIndex(character: Character, style: AttackStyle, moves?: FighterMo
   strikeBounds[index + 1] = maxX;
   strikeBounds[index + 2] = minZ;
   strikeBounds[index + 3] = maxZ;
-  strikeFilled[slot] = moves === undefined;
+  strikeFilled[slot] = true;
+  strikeMoves[slot] = moves;
   return index;
 }
 
@@ -287,11 +291,18 @@ function gameplanMoveOf(f: Readonly<Fighter>, option: number): GameplanMove {
   return toGameplanMove(option);
 }
 
-/** One of the first `count` options, each as likely as its gameplan weight. */
-function weightedOption(gameplan: Readonly<FighterGameplan>, planIndex: number, f: Readonly<Fighter>, slot: number, target: Readonly<Fighter>, count: number, frame: number): number {
+/** A ready passive's landing move weighs this many times its gameplan weight. */
+const PASSIVE_WEIGHT = 4;
+
+/**
+ * One of the first `count` options, each as likely as its gameplan weight;
+ * with `cashing` set, the move that cashes the ready passive weighs more.
+ */
+function weightedOption(gameplan: Readonly<FighterGameplan>, planIndex: number, f: Readonly<Fighter>, slot: number, target: Readonly<Fighter>, count: number, frame: number, cashing: PassiveKind): number {
   let total = 0;
   for (let index = 0; index < count; index++) {
-    const weight = moveWeight(gameplan, planIndex, f, slot, target, gameplanMoveOf(f, at(options, index)));
+    const move = gameplanMoveOf(f, at(options, index));
+    const weight = moveWeight(gameplan, planIndex, f, slot, target, move) * (passiveLandingMove(gameplan, cashing, move) ? PASSIVE_WEIGHT : 1);
     weights[index] = weight;
     total += weight;
   }
@@ -315,9 +326,10 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
   // A ground attack stops the steering: its slide must end on the deck.
   if (f.motion.grounded && !slideStaysOnDeck(f, stage, matchFrame)) return false;
   let count = 0;
+  const dashing = f.ground.dashFrame > 0 && (f.character === Character.demonHunter || f.tuning.moves !== undefined);
+  let dashReaches = false;
   if (canAttack(f) || f.shield.raised) {
     if (f.motion.grounded) {
-      const dashing = f.ground.dashFrame > 0 && (f.character === Character.demonHunter || f.tuning.moves !== undefined);
       for (const move of GROUND_MOVES) {
         // A shield lets go only for a grab; a shielding target invites one.
         if (f.shield.raised && move !== AttackStyle.grab) continue;
@@ -327,6 +339,7 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
         // A gameplan's spacing tool is thrown at its spacing, in reach or not.
         const spaced = gameplan !== undefined && spacedAt(gameplan, dashing && move === AttackStyle.jab ? AttackStyle.dashAttack : move, gap);
         if (!spaced && !moveReaches(f.character, style, target, Math.abs(x), aheadZ(f, target, frames), f.tuning.moves)) continue;
+        if (dashing && move === AttackStyle.jab) dashReaches = true;
         options[count++] = move;
         // A grab counts twice: one of ten moves in reach would rarely be it.
         if (move === AttackStyle.grab) options[count++] = move;
@@ -351,9 +364,14 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
   if (canAttack(f)) count = addShots(f, target, stage, count);
   if (count === 0 || (close === 0 && !ranged)) return false;
   const grabbing = skill.grabsShields && target.shield.raised && f.motion.grounded && strikes > 0 && at(options, strikes - 1) === AttackStyle.grab;
+  // Running in, the dash attack when it reaches; a ready passive's landing move, never into a shield, which spends it.
+  const kit = botChance(frame, f.attack.serial * 13 + f.character + 3, skill.kitTenths, 10);
+  const cashing = kit && !target.shield.raised && passivePips(f).ready ? passiveSpec(f.character).kind : PassiveKind.none;
+  const dashIn = kit && dashing && f.motion.grounded && !target.shield.raised && dashReaches && cashing === PassiveKind.none && botChoice(frame, f.attack.serial * 5 + f.character, 2) === 0;
   const option = grabbing ? AttackStyle.grab
+    : dashIn ? AttackStyle.jab
     : gameplan === undefined || !skill.gameplanWeights ? at(options, botChoice(frame, f.attack.serial * 7 + f.character, count))
-    : weightedOption(gameplan, planIndex, f, slot, target, count, frame);
+    : weightedOption(gameplan, planIndex, f, slot, target, count, frame, cashing);
   perform(f, target, option, frame, input, commands);
   return true;
 }

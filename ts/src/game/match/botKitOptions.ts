@@ -12,9 +12,12 @@ import { f32 } from "wisp/src/sim/f32";
 import { floorDiv } from "wisp/src/sim/intMath";
 import { toInt } from "../../runtime/numbers";
 import { hurtCapsule } from "../physics/contactGeometry";
-import { Character, HeroStatusKind, HippogryphKind, ProjectileKind, SpecialAction } from "../sim/codes";
+import { AttackStyle, Character, DownState, HeroStatusKind, PassiveKind, HippogryphKind, ProjectileKind, SpecialAction } from "../sim/codes";
 import { canAttack } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
+import { type AttackBuffer, queueAttack } from "../input/attackBuffer";
+import { EYE_BLAST_CHARGE_FRAMES, attackStartupFrames, characterAttackActiveFrames } from "../sim/moves";
+import { passivePips, passiveSpec } from "../sim/passives";
 import { companionReady, isHeroSpecialAction, runningHeroSpecial, specialCooldownReady } from "../sim/heroSpecialRules";
 import { heroStatusBlocksActions } from "../sim/heroStatus";
 import { type AuthoredSpecial, type SpecialFollowUp, type SpecialProjectile, CompanionOrder, FOLLOW_UP_FORM, FollowUpInput, SpecialSlot, specialKit } from "../sim/heroSpecials";
@@ -43,7 +46,7 @@ const ARMOR_GAP = 240.0;
 const ARMOR_SPARE = 15;
 /** A partner's bite reaches about this far past its lunge; it is called back past this share of its leash. */
 const PARTNER_BITE_REACH = 60.0;
-const PARTNER_STRAY = f32(0.3);
+const PARTNER_STRAY = f32(0.2);
 /** Dark Ritual is cashed for mana below this, the target this far away, or before the shell runs out. */
 const RITUAL_MANA = 25;
 const RITUAL_GAP = 200.0;
@@ -68,6 +71,15 @@ const SLASH_REACH = 90.0;
 const RUSH_NEAR = 80.0;
 const RUSH_FAR = 230.0;
 const CHAOS_REACH = 110.0;
+
+/** Eye Blast's beam reaches a target this far ahead (sim/hitRegions.ts): past the uncharged swing, inside the beam's end. */
+const EYE_BLAST_NEAR = 240.0;
+const EYE_BLAST_FAR = 600.0;
+/** An anti-air jump meets a target this close and at most this high. */
+const ANTI_AIR_GAP = 140.0;
+const ANTI_AIR_RISE = 160.0;
+/** A dash-in starts at a target this far ahead. */
+const DASH_IN_FAR = 300.0;
 
 /** Whether an original fighter can pay for a special now (sim/mana.ts): an unpaid press is refused. */
 const affords = (f: Readonly<Fighter>, action: SpecialAction): boolean => originalSpecialCost(action) <= f.mana.points && specialCooldownReady(f, action);
@@ -249,6 +261,14 @@ function pressHeroOption(f: Readonly<Fighter>, target: Readonly<Fighter>, stage:
     steerOnGround(f, stage, target.motion.x, input);
     return true;
   }
+  // Under a target dropping in close, a jump meets it with an aerial (a ring like Frost Halo traps it).
+  if (ready && f.motion.grounded && !target.motion.grounded && target.motion.vz < 0 && gap <= ANTI_AIR_GAP && f32(target.motion.z - f.motion.z) >= 30.0
+    && f32(target.motion.z - f.motion.z) <= ANTI_AIR_RISE && f.jump.squat <= 0 && botChoice(floorDiv(frame, 20), f.character * 7 + 28, 3) === 0
+    && takes(skill, floorDiv(frame, 20), f.character * 7 + 29)) {
+    input.jumpPressed = true;
+    input.jumpHeld = true;
+    return true;
+  }
   for (const slot of HERO_SLOTS) {
     const kit = specialKit(specials, slot);
     // A marked opponent in reach: Shadow Pursuit appears behind it, on the deck.
@@ -299,7 +319,7 @@ function orbTowardTarget(f: Readonly<Fighter>, target: Readonly<Fighter>) {
  * while the attack pause lasts, which only the placed and offensive options
  * wait for. True when that took the frame.
  */
-export function pressKitOption(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, skill: CpuSkill, frame: number, ready: boolean, input: Controls): boolean {
+export function pressKitOption(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, skill: CpuSkill, frame: number, ready: boolean, input: Controls, commands: AttackBuffer): boolean {
   if (skill.kitTenths <= 0 || f.launch.hitstun > 0) return false;
   if (f.tuning.specials !== undefined) return pressHeroOption(f, target, stage, skill, frame, ready, input);
   const { motion } = f;
@@ -321,9 +341,11 @@ export function pressKitOption(f: Readonly<Fighter>, target: Readonly<Fighter>, 
       return true;
     }
     case Character.rifleman: {
-      if (!free || !ready || toward !== f.facing || gap < SHOT_NEAR || gap > SHOT_FAR || !affords(f, SpecialAction.riflemanBlaster)) return false;
+      // Long Rifles ready (passives.ts): the next shot flies half again as far, so it shoots from further and whenever a shot suits.
+      const rifles = passivePips(f).ready;
+      if (!free || !ready || toward !== f.facing || gap < SHOT_NEAR || gap > (rifles ? f32(SHOT_FAR * 1.5) : SHOT_FAR) || !affords(f, SpecialAction.riflemanBlaster)) return false;
       const rise = f32(motion.z - target.motion.z);
-      if (!takes(skill, floorDiv(frame, 40), f.character * 7 + 14) || botChoice(floorDiv(frame, 40), f.character * 7 + 15, 2) !== 0) return false;
+      if (!takes(skill, floorDiv(frame, 40), f.character * 7 + 14) || (!rifles && botChoice(floorDiv(frame, 40), f.character * 7 + 15, 2) !== 0)) return false;
       if (motion.grounded) {
         // The short hop: a jump let go at once.
         if (Math.abs(rise) > 30.0 || f.jump.squat > 0) return false;
@@ -340,6 +362,13 @@ export function pressKitOption(f: Readonly<Fighter>, target: Readonly<Fighter>, 
       const orb = orbTowardTarget(f, target);
       if (orb !== undefined && free && motion.grounded && takes(skill, orb.serial, f.character * 7 + 16)) {
         steerOnGround(f, stage, f32(orb.x - f32(orb.direction * ORB_FOLLOW_GAP)), input);
+        return true;
+      }
+      // Eye Blast: a forward smash charged into its floor beam at a grounded target out of the swing's reach.
+      if (free && ready && motion.grounded && target.motion.grounded && toward === f.facing && gap >= EYE_BLAST_NEAR && gap <= EYE_BLAST_FAR
+        && Math.abs(f32(target.motion.z - motion.z)) <= 40.0 && takes(skill, floorDiv(frame, 30), f.character * 7 + 24) && botChoice(floorDiv(frame, 30), f.character * 7 + 25, 3) === 0) {
+        queueAttack(commands, { style: AttackStyle.forwardSmash, facing: toward < 0 ? -1 : 1, frame, mayCharge: true });
+        input.attackHeld = true;
         return true;
       }
       // Fel Rush through a level target close ahead, ending on the deck.
@@ -452,4 +481,40 @@ export function steerRunningSpecial(f: Readonly<Fighter>, target: Readonly<Fight
     }
   }
   return false;
+}
+
+/**
+ * The frames a computer charges its smash: `goal`, or for Illidan's forward
+ * smash at a target past the swing's reach, at least Eye Blast's charge.
+ */
+export function kitChargeGoal(f: Readonly<Fighter>, target: Readonly<Fighter> | undefined, skill: CpuSkill, goal: number): number {
+  if (f.character !== Character.demonHunter || f.attack.style !== AttackStyle.forwardSmash || target === undefined || skill.kitTenths <= 0) return goal;
+  return Math.abs(f32(target.motion.x - f.motion.x)) >= EYE_BLAST_NEAR ? Math.max(goal, EYE_BLAST_CHARGE_FRAMES) : goal;
+}
+
+/** Whether the target can't answer a dash-in: landing, ending a move, or down. */
+function punishable(target: Readonly<Fighter>): boolean {
+  const style = target.attack.style;
+  if (target.landing.lag > 0 || target.down.state !== DownState.none) return true;
+  return style !== undefined && target.attack.frame > attackStartupFrames(style, target.tuning.moves) + characterAttackActiveFrames(target.character, style, target.tuning.moves);
+}
+
+/**
+ * Runs in instead of walking up, so the next attack is the dash attack: at a
+ * target whose move or landing can be punished, or for a fighter that may
+ * fight close, at any level target now and then. Called after the ground
+ * steering (botPlay.ts), which it only turns into a run toward the target.
+ */
+export function dashIn(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, skill: CpuSkill, frame: number, closes: boolean, input: Controls): void {
+  if (skill.kitTenths <= 0 || !f.motion.grounded || (f.tuning.moves?.dashAttack === undefined && f.character !== Character.demonHunter)) return;
+  // A ready shot passive (Trueshot, Long Rifles) is cashed from range, not by running in.
+  const kind = passiveSpec(f.character).kind;
+  if ((kind === PassiveKind.trueshot || kind === PassiveKind.longRifles) && passivePips(f).ready) return;
+  const dx = f32(target.motion.x - f.motion.x);
+  if (Math.abs(dx) > DASH_IN_FAR || Math.abs(f32(target.motion.z - f.motion.z)) > 40.0 || target.shield.raised || !safeAt(stage, target.motion.x, 0.0)) return;
+  const stretch = floorDiv(frame, 40);
+  if (!punishable(target) && !(closes && botChoice(stretch, f.character * 7 + 26, 8) === 0)) return;
+  if (!takes(skill, stretch, f.character * 7 + 27)) return;
+  input.walking = false;
+  input.direction = dx < 0 ? -1 : 1;
 }

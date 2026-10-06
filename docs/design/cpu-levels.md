@@ -88,7 +88,10 @@ one with frame-1 reactions feels like input reading
   Thunder Clap, a Storm Bolt recall, Shadow Pursuit, a Frost Nova burst, a
   second recoil shot, a glide, a leap off the hippogryph), the share of
   those moments it takes it (smashcraft:ts/src/game/match/botKitOptions.ts).
-  Ordinary specials are unaffected.
+  The same share gates the play around the newest moves: running in for a
+  dash attack, a charged Eye Blast, an anti-air jump into an aerial, the
+  move that cashes a ready passive, and shielding (or dodging Cleave)
+  against an opponent’s ready passive. Ordinary specials are unaffected.
 
 ## Determinism and the match seed
 

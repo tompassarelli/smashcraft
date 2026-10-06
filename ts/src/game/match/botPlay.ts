@@ -13,14 +13,14 @@ import { isSmashAttack } from "../sim/moves";
 import { type Controls, type Roster, copyControls, fighterAt, isActive, neutralControls } from "../sim/roster";
 import { surfacePass } from "../sim/stage";
 import { type FighterGameplan, GameplanThrow } from "../sim/gameplan";
-import { SPACE_PLAN, gameplanGoal, gameplanOf, gameplanPlan, gameplanThrow, jumpsIn, keptGap, plansRanged, spacingAerialAt } from "./botGameplan";
+import { SPACE_PLAN, avoids, gameplanGoal, gameplanOf, gameplanPlan, gameplanThrow, jumpsIn, keptGap, plansRanged, spacingAerialAt } from "./botGameplan";
 import { steerInAir, steerOnGround } from "./botFooting";
 import { botChance, botChoice, chooseAttack, smashChargeGoal, useMatchSeed } from "./botMoves";
 import { type CpuSkill, cpuSkill } from "./cpuLevel";
 import { chooseDefense } from "./botDefense";
 import { chooseRecoveryInput } from "./botRecovery";
 import { pressHeroFollowUp } from "./botHeroKit";
-import { pressKitOption, steerHeroBranches, steerRunningSpecial } from "./botKitOptions";
+import { dashIn, kitChargeGoal, pressKitOption, steerHeroBranches, steerRunningSpecial } from "./botKitOptions";
 import { MATCH_TICKS_PER_SECOND, type MatchState } from "./rules";
 import { trainingPartnerInput } from "./training";
 
@@ -106,7 +106,7 @@ function approach(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number
 }
 
 /** Under a gameplan: keeps the plan's gap on the stage, short-hops into a spacing aerial, jumps in when the plan does. */
-function approachByGameplan(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, gameplan: FighterGameplan, slot: number, planIndex: number, frame: number, input: Controls): void {
+function approachByGameplan(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, gameplan: FighterGameplan, slot: number, planIndex: number, frame: number, input: Controls, skill: CpuSkill): void {
   const { motion } = f;
   const dx = f32(target.motion.x - motion.x);
   const dz = f32(target.motion.z - motion.z);
@@ -120,6 +120,7 @@ function approachByGameplan(f: Readonly<Fighter>, target: Readonly<Fighter>, sta
     return;
   }
   steerOnGround(f, stage, goal, input);
+  dashIn(f, target, stage, skill, frame, !avoids(gameplan, "close"), input);
   if (f.jump.squat > 0) {
     input.jumpHeld = dz > ABOVE;
     return;
@@ -187,13 +188,13 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: { botAttackD
   if (target !== undefined && (steerHeroBranches(fighter, target, skill, input) || pressHeroFollowUp(fighter, target, stage, input))) return;
   const recovering = chooseRecoveryInput(fighter, stage, game.matchFrame, input, target, skill);
   if (steerRunningSpecial(fighter, target, stage, skill, input) || recovering) return;
-  if (isSmashAttack(fighter.attack.style) && fighter.attack.smashChargeAllowed) input.attackHeld = fighter.attack.smashChargeFrames < smashChargeGoal(fighter);
+  if (isSmashAttack(fighter.attack.style) && fighter.attack.smashChargeAllowed) input.attackHeld = fighter.attack.smashChargeFrames < kitChargeGoal(fighter, target, skill, smashChargeGoal(fighter));
   if (target === undefined) return;
   if (chooseDefense(fighter, target, stage, input, skill)) return;
   // An idle stretch stands where it is: no approach, no attack.
   if (botChance(floorDiv(frame, IDLE_FRAMES), slot * 17 + fighter.character, skill.idle, 100)) return;
-  if (pressKitOption(fighter, target, stage, skill, frame, delay <= 0, input)) {
-    if (input.specialPressed || input.jumpPressed) runtime.botAttackDelays[slot] = f32(f32(skill.attackPause + botChoice(frame, fighter.attack.serial, skill.attackSpread)) * TICK);
+  if (pressKitOption(fighter, target, stage, skill, frame, delay <= 0, input, commands)) {
+    if (input.specialPressed || input.jumpPressed || input.attackHeld) runtime.botAttackDelays[slot] = f32(f32(skill.attackPause + botChoice(frame, fighter.attack.serial, skill.attackSpread)) * TICK);
     return;
   }
   if (gameplan === undefined) {
@@ -212,5 +213,5 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: { botAttackD
     if (!fighter.motion.grounded) steerInAir(fighter, stage, gameplanGoal(gameplan, fighter, target, stage, 0.0), input);
     return;
   }
-  approachByGameplan(fighter, target, stage, gameplan, slot, planIndex, frame, input);
+  approachByGameplan(fighter, target, stage, gameplan, slot, planIndex, frame, input, skill);
 }
