@@ -73,19 +73,27 @@ function padRow(target: InputRow, held: number, previous: number): void {
     target.specialZ = sign(target.axisZ);
   }
   target.ledgeVertical = has(pressed, Action.moveUp) ? 1 : has(pressed, Action.moveDown) ? -1 : 0;
+  target.throwX = sign(axis(pressed, Action.moveLeft, Action.moveRight));
+  target.throwZ = sign(axis(pressed, Action.moveDown, Action.moveUp));
 }
 
-/** Runs one frame with each slot holding its listed actions. */
-export function frame(s: Scene, ...held: (readonly Action[])[]): void {
+/** Runs controller rows, optionally adding the pulses and taps a pad reports beside held buttons. */
+export function frameRows(s: Scene, held: readonly (readonly Action[])[], amend?: (row: InputRow, slot: number) => void): void {
   s.source.forEach((row, slot) => {
     if (slot >= s.previous.length) return;
     const mask = maskOf(held[slot] ?? []);
     padRow(row, mask, s.previous[slot] ?? 0);
+    amend?.(row, slot);
     s.previous[slot] = mask;
   });
   const next = s.runtime.simulationFrame + 1;
   if (!captureNetworkFrame(s.row, next, s.source, s.world, s.world.mask)) throw new Error(`frame ${next} not captured`);
   if (!executeMatchFrame(s.row, s.game, s.world, s.controls, s.runtime, next)) throw new Error(`frame ${next} not executed`);
+}
+
+/** Runs one frame with each slot holding its listed actions. */
+export function frame(s: Scene, ...held: (readonly Action[])[]): void {
+  frameRows(s, held);
 }
 
 /** Frames run until `done`, or undefined after `limit` frames; the frame that satisfied it counts. */

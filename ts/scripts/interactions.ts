@@ -6,6 +6,7 @@
 // uses. smashcraft:docs/design/interaction-graph.md defines the model.
 import { Schema } from "effect";
 import { Action } from "../src/game/input/actions";
+import type { InputRow } from "../src/game/input/inputRow";
 import { AttackPhase, AttackStyle, Character, DownState, LedgeState } from "../src/game/sim/codes";
 import { attackPhase, canAttack, canShieldGrab, isIntangible } from "../src/game/sim/conditions";
 import type { Fighter } from "../src/game/sim/fighter";
@@ -14,29 +15,34 @@ import { attackStartupFrames } from "../src/game/sim/moves";
 import { surfaceRight, surfaceZ } from "../src/game/sim/stage";
 import { resetMatchFrameInput } from "../src/game/match/frameInput";
 import { type ReplayState, captureReplaySnapshot, createReplaySnapshot, restoreReplaySnapshot } from "../src/game/replay/snapshot";
-import { type Placement, type Scene, airborne, fighter, frame, scene, tumbling } from "./frameScene";
+import { type Placement, type Scene, airborne, fighter, frameRows, scene, tumbling } from "./frameScene";
 
 // ------------------------------------------------------------------ playing a situation
 
-type Held = readonly Action[];
-type Side = 0 | 1;
+export type Held = readonly Action[];
+export type Side = 0 | 1;
 /** A side's inputs on frame n (from 1), seeing both fighters as frame n - 1 left them. */
-type Policy = (n: number, self: Fighter, other: Fighter) => Held;
+export type Policy = (n: number, self: Fighter, other: Fighter) => Held;
 
 const idle: Policy = () => [];
 
-interface Situation {
+export interface Situation {
   readonly placements: readonly [Placement, Placement];
   /** Places the fighters before frame 1. */
   readonly prepare?: (first: Fighter, second: Fighter) => void;
   /** Each side's inputs while none of its options runs. */
   readonly policies: readonly [Policy, Policy];
+  /** A continuation begins in the full state left by the previous contact. */
+  readonly initial?: ReplayState;
+  readonly previous?: readonly number[];
+  /** SDI pulses and throw taps are independent of held buttons. */
+  readonly amend?: (n: number, self: Fighter, other: Fighter, row: InputRow, side: Side) => void;
 }
 
 /** What starting an option changes, so a search can tell whether a press started it on its own frame. */
 type StartKind = "attack" | "act" | "jump" | "dodge" | "shield" | "ledge" | "none";
 
-interface Option {
+export interface Option {
   readonly name: string;
   readonly kind: StartKind;
   /** The attack the press starts, when it starts one directly. */
@@ -45,14 +51,14 @@ interface Option {
   readonly input: (i: number, self: Fighter, other: Fighter, base: Held) => Held;
 }
 
-interface Choice {
+export interface Choice {
   readonly option: Option;
   readonly start: number;
 }
 
 /** A side's options; each, from its start, decides the inputs, given those of the options started before it. */
-type Plan = readonly Choice[];
-type Plans = readonly [Plan, Plan];
+export type Plan = readonly Choice[];
+export type Plans = readonly [Plan, Plan];
 
 const NONE: Plans = [[], []];
 
@@ -134,13 +140,15 @@ const spareStates: ReplayState[] = [];
 /** Free to start an attack, or a shield grab: the options it ran can no longer land. */
 const settled = (f: Fighter): boolean => canAttack(f) || canShieldGrab(f);
 
-class Timeline {
+export class Timeline {
   private readonly live: Scene;
   private readonly states: ReplayState[] = [];
   private readonly held: number[][] = [];
 
   constructor(private readonly sit: Situation, readonly last: number) {
     this.live = scene(0, sit.placements);
+    if (sit.initial !== undefined) restoreReplaySnapshot(sit.initial, this.live.world, this.live.game, this.live.controls, this.live.runtime);
+    if (sit.previous !== undefined) this.live.previous.splice(0, this.live.previous.length, ...sit.previous);
     const [a, b] = this.fighters();
     sit.prepare?.(a, b);
     for (let n = 1; n <= last; n++) {
@@ -148,8 +156,22 @@ class Timeline {
       captureReplaySnapshot(snapshot, this.live.world, this.live.game, this.live.controls, this.live.runtime);
       this.states[n] = snapshot;
       this.held[n] = [...this.live.previous];
-      frame(this.live, sit.policies[0](n, a, b), sit.policies[1](n, b, a));
+      this.step(n, sit.policies[0](n, a, b), sit.policies[1](n, b, a));
     }
+  }
+
+  private step(n: number, first: Held, second: Held): void {
+    const [a, b] = this.fighters();
+    frameRows(this.live, [first, second], (row, slot) => {
+      if (slot === 0 || slot === 1) this.sit.amend?.(n, slot === 0 ? a : b, slot === 0 ? b : a, row, slot);
+    });
+  }
+
+  /** Copies the current branch after its last executed frame. */
+  capture(): { readonly state: ReplayState; readonly previous: readonly number[] } {
+    const state = createReplaySnapshot();
+    captureReplaySnapshot(state, this.live.world, this.live.game, this.live.controls, this.live.runtime);
+    return { state, previous: [...this.live.previous] };
   }
 
   /** Returns the kept states for later timelines; this one can't be played again. */
@@ -193,7 +215,7 @@ class Timeline {
     const shieldContacts: { frame: number; by: Side }[] = [];
     let before = [counters(a), counters(b)] as const;
     for (let n = from; n <= last; n++) {
-      frame(this.live, policies[0](n, a, b), policies[1](n, b, a));
+      this.step(n, policies[0](n, a, b), policies[1](n, b, a));
       const after = [counters(a), counters(b)] as const;
       const contacts: Contact[] = [];
       for (const side of [0, 1] as const) {
@@ -398,7 +420,7 @@ export const FIGHTERS = [
   { character: Character.rifleman, name: "Rifleman", slug: "rifleman" },
   { character: Character.demonHunter, name: "Illidan", slug: "illidan" },
 ] as const;
-type FighterEntry = (typeof FIGHTERS)[number];
+export type FighterEntry = (typeof FIGHTERS)[number];
 
 /** One option pair played from each option's earliest start. */
 interface Cell {
