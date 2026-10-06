@@ -75,9 +75,8 @@ C-stick left; H is down; J is up; M is right. C-stick down-air preserves
 normal aerial momentum. QWERTY uses 7 for right trigger and 8 for the
 alternate jump key.
 
-Specials use U with a direction: neutral fires an arrow or bullet, horizontal
-uses a homing arrow or bear, up uses a hippogryph or recoil recovery, and down
-uses Archer's hippogryph or Rifleman's freezing trap. Archer steers her
+Specials use U with a direction; every fighter's specials, passive and
+ultimate are listed by name in the [move list](move-list.md). Archer steers her
 hippogryph ride with the stick (down for a low line) and can jump off it to
 act again. Her first down special sends the hippogryph swooping to a perch;
 the next makes it dive at her, through anyone in the way. Archer's neutral arrow

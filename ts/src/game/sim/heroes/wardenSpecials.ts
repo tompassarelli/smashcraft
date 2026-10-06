@@ -32,7 +32,7 @@ const LUNGE_TRAVEL_FRAMES = 10;
 const LUNGE_SPEED = f32(H / f32(LUNGE_TRAVEL_FRAMES));
 const lungeRegions = (): readonly MoveRegion[] => [heroRegion(11, 14, blade(16.0, 48.0, f32(f32(H * f32(0.80)) - KNIFE_RADIUS), 44.0), wardenHit(10.0, "EDGE", 35))];
 const PURSUIT_LUNGE: AuthoredSpecial = {
-  cost: 15, endFrame: 40, regions: lungeRegions(),
+  name: "Pursuit Lunge", cost: 15, endFrame: 40, regions: lungeRegions(),
   motion: [{ ...frames(5, 14), velocityX: LUNGE_SPEED, velocityZ: 0.0 }, { ...frames(15, 15), velocityX: 0.0, velocityZ: 0.0 }],
 };
 // Shadow Pursuit (#126): against a marked opponent within 2.5H, a 14-frame tell
@@ -87,8 +87,8 @@ const fanRegions = (): readonly MoveRegion[] => {
 const FAN_OF_KNIVES: AuthoredSpecial = { cost: 18, endFrame: 38, regions: fanRegions(), strikeStatus: POISON };
 
 export const WARDEN_SPECIALS: FighterSpecials = {
-  neutral: { ground: SHADOW_STRIKE },
-  side: { ground: PURSUIT_LUNGE, air: PURSUIT_LUNGE_AIR, marked: { special: SHADOW_PURSUIT, range: PURSUIT_REACH } },
-  up: { ground: BLINK, free: BLINK_FREE },
-  down: { ground: FAN_OF_KNIVES },
+  neutral: { name: "Shadow Strike", description: "A slow dagger that marks and poisons its target.", ground: SHADOW_STRIKE },
+  side: { name: "Shadow Pursuit", description: "Appear behind a marked opponent and slash; with no mark nearby, a dashing Pursuit Lunge.", ground: PURSUIT_LUNGE, air: PURSUIT_LUNGE_AIR, marked: { special: SHADOW_PURSUIT, range: PURSUIT_REACH } },
+  up: { name: "Blink", description: "Teleport in any of eight directions; the landing spot is open to a punish.", ground: BLINK, free: BLINK_FREE },
+  down: { name: "Fan of Knives", description: "A ring of knives that marks everyone it hits.", ground: FAN_OF_KNIVES },
 };

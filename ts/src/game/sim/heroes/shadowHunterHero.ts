@@ -45,6 +45,8 @@ export const SHADOW_HUNTER_HERO: HeroDefinition = {
   complete: true,
   moves: SHADOW_HUNTER_MOVES,
   specials: SHADOW_HUNTER_SPECIALS,
+  passive: { name: "Voodoo Crossfire", description: "Glaive and ward hits charge his next melee hit with extra damage." },
+  ultimate: { name: "Big Bad Voodoo", description: "A ward zone that makes him take less damage while he stands in it." },
   gameplan: SHADOW_HUNTER_GAMEPLAN,
   presentation: {
     model: "units\\orc\\HeroShadowHunter\\HeroShadowHunter.mdl",

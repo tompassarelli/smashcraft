@@ -50,6 +50,7 @@ const LEAP_HAMMER = capsule(10.0, 60.0, 30.0, f32(MEDIUM + 20.0), 16.0);
 // frames of lag; ending airborne leaves him helpless.
 const PLUNGE = heights(f32(0.16));
 const HAMMERFALL: AuthoredSpecial = {
+  name: "Hammerfall",
   cost: 0,
   endFrame: 70,
   motion: [{ ...frames(1, 3), velocityX: 0.0, velocityZ: 0.0 }, { ...frames(4, 70), velocityX: 0.0, velocityZ: -PLUNGE }],
@@ -77,7 +78,7 @@ const wave = (spawnFrame: number, sign: number): SpecialProjectile => ({
 });
 const WAVES = (spawnFrame: number) => [wave(spawnFrame, 1), wave(spawnFrame, -1)];
 /** The small Clap: slam on f4-7 of its press, 9%; ends f28. */
-const CLAP: AuthoredSpecial = { cost: 0, endFrame: 28, regions: ring(4, 9.0) };
+const CLAP: AuthoredSpecial = { name: "Small Clap", cost: 0, endFrame: 28, regions: ring(4, 9.0) };
 /** The full Thunder Clap: slam on f4-7 of its press, 12% and both waves; ends f32. */
 const THUNDER_CLAP: AuthoredSpecial = { cost: 0, endFrame: 32, regions: ring(4, 12.0), projectiles: WAVES(4) };
 /** Dropping the charge: the action ends, so a held shield rises next frame. */
@@ -98,6 +99,8 @@ const AIR_CLAP = hit(10.0, "LAUNCH", 70, false, HitElement.electric);
 
 export const MOUNTAIN_KING_SPECIALS: FighterSpecials = {
   neutral: {
+    name: "Storm Bolt",
+    description: "A hammer that flies out and back, hitting toward him on the return; press again to call it back.",
     ground: {
       cost: 8,
       endFrame: 48,
@@ -112,6 +115,8 @@ export const MOUNTAIN_KING_SPECIALS: FighterSpecials = {
     recallWhile: "projectile",
   },
   side: {
+    name: "Storm Rush",
+    description: "A shoulder charge that stops dead at a body or shield.",
     ground: {
       cost: 18,
       endFrame: 46,
@@ -130,6 +135,8 @@ export const MOUNTAIN_KING_SPECIALS: FighterSpecials = {
     },
   },
   up: {
+    name: "Thunder Leap",
+    description: "A rising hammer leap; press special at the top to plunge down as Hammerfall.",
     ground: {
       cost: 15,
       endFrame: 28,
@@ -150,6 +157,8 @@ export const MOUNTAIN_KING_SPECIALS: FighterSpecials = {
     },
   },
   down: {
+    name: "Thunder Clap",
+    description: "Raise the hammer and slam: early for a small clap, late for a ring with shockwaves. Shield drops the charge.",
     ground: CHARGED_CLAP,
     air: {
       cost: 20,

@@ -16,6 +16,8 @@ export const WARDEN_HERO: HeroDefinition = {
   complete: true,
   moves: WARDEN_MOVES,
   specials: WARDEN_SPECIALS,
+  passive: { name: "Shadow Step", description: "Landing an aerial in the air gives back one air jump, once per jump." },
+  ultimate: { name: "Spirit of Vengeance", description: "For a while, each of her normals repeats as a ghostly copy a moment later." },
   gameplan: WARDEN_GAMEPLAN,
   presentation: {
     model: WARDEN_MODEL_FILE,

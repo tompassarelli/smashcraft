@@ -102,8 +102,8 @@ const DIVINE_SHIELD: AuthoredSpecial = {
 };
 
 export const UTHER_SPECIALS: FighterSpecials = {
-  neutral: { ground: holyLight(undefined), air: holyLight(20) },
-  side: { ground: CRUSADER_RUSH, air: CRUSADER_RUSH_AIR },
-  up: { ground: ascension(15, f32(1.9), true), free: ascension(0, f32(1.3), false) },
-  down: { ground: DIVINE_SHIELD },
+  neutral: { name: "Holy Light", description: "An orb of light that flies out and back; it heals Uther if it returns untouched.", ground: holyLight(undefined), air: holyLight(20) },
+  side: { name: "Crusader Rush", description: "An armored hammer charge on the ground; in the air it ends helpless.", ground: CRUSADER_RUSH, air: CRUSADER_RUSH_AIR },
+  up: { name: "Ascension", description: "A rising hammer strike, then a helpless fall.", ground: ascension(15, f32(1.9), true), free: ascension(0, f32(1.3), false) },
+  down: { name: "Divine Shield", description: "A guard: read an attack and become untouchable until you act. Grabs still catch him.", ground: DIVINE_SHIELD },
 };

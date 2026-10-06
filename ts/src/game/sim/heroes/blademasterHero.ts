@@ -15,6 +15,8 @@ export const BLADEMASTER_HERO: HeroDefinition = {
   complete: true,
   moves: BLADEMASTER_MOVES,
   specials: BLADEMASTER_SPECIALS,
+  passive: { name: "Critical Strike", description: "Every fourth sword hit in a row strikes harder; his blade glows when it is ready." },
+  ultimate: { name: "Bladestorm", description: "A long spinning flurry of cuts that ends in one strong finishing hit." },
   gameplan: BLADEMASTER_GAMEPLAN,
   presentation: {
     model: "units\\orc\\HeroBladeMaster\\HeroBladeMaster.mdl",

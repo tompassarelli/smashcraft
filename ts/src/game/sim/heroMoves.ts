@@ -25,6 +25,11 @@ export interface MoveRegion {
 }
 
 export interface AuthoredMove {
+  /**
+   * Docs only: what the normal draws on ("Shear, from the Black Temple
+   * encounter"). Normals have no official name; players see the input.
+   */
+  readonly inspiredBy?: string | undefined;
   readonly startupFrames: number;
   readonly activeFrames: number;
   readonly totalFrames: number;
@@ -37,6 +42,8 @@ export interface AuthoredMove {
 }
 
 export interface AuthoredThrow {
+  /** Docs only, as AuthoredMove.inspiredBy. */
+  readonly inspiredBy?: string | undefined;
   /** Grab timelines, unlike attacks, count entry as frame one. */
   readonly contactFrame: number;
   readonly totalFrames: number;

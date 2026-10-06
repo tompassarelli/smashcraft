@@ -189,6 +189,11 @@ export interface SpecialGuard extends FrameWindow {
 }
 
 export interface AuthoredSpecial {
+  /**
+   * The official name of a form the design names on its own (Backstab,
+   * Hammerfall, Dark Ritual); a form without one goes by its kit's `name`.
+   */
+  readonly name?: string | undefined;
   /** Mana spent once, on entry. */
   readonly cost: number;
   /** The last frame of the action. */
@@ -254,6 +259,10 @@ export interface SpecialFollowUp {
 
 /** One special input: its grounded form, its airborne form and its zero-mana form. */
 export interface SpecialKit {
+  /** The special's official name; smashcraft:docs/move-list.md and the Moves page read it here. */
+  readonly name: string;
+  /** One line for players: what it does and its catch. */
+  readonly description: string;
   readonly ground: AuthoredSpecial;
   /** The airborne form; the grounded form when absent. */
   readonly air?: AuthoredSpecial | undefined;

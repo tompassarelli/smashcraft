@@ -15,6 +15,8 @@ export const UTHER_HERO: HeroDefinition = {
   complete: true,
   moves: UTHER_MOVES,
   specials: UTHER_SPECIALS,
+  passive: { name: "Devotion Aura", description: "After he blocks three hits with his shield, the next launch he takes is weaker." },
+  ultimate: { name: "Guardian of the Light", description: "He hits harder and carries three charges that each soften one light hit." },
   gameplan: UTHER_GAMEPLAN,
   presentation: {
     model: "units\\human\\HeroPaladin\\HeroPaladin.mdl",

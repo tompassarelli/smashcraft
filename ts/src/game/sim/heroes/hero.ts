@@ -6,6 +6,12 @@ import type { FighterGameplan } from "../gameplan";
 import type { FighterMoves } from "../heroMoves";
 import type { FighterSpecials } from "../heroSpecials";
 
+/** A passive's or ultimate's official name and one line for players. */
+export interface NamedMove {
+  readonly name: string;
+  readonly description: string;
+}
+
 /** A model sequence: its index in the model and its authored length. */
 export interface HeroClip {
   readonly index: number;
@@ -84,6 +90,10 @@ export interface HeroDefinition {
   readonly complete: boolean;
   readonly moves: FighterMoves;
   readonly specials?: FighterSpecials | undefined;
+  /** Its passive's official name and one line for players (smashcraft:docs/design/passives.md). */
+  readonly passive: NamedMove;
+  /** Its designed ultimate; shown only while ultimates are on in the match rules. */
+  readonly ultimate?: NamedMove | undefined;
   readonly presentation: HeroPresentation;
   /** How its computer plays (sim/gameplan.ts); without one it plays the general computer. */
   readonly gameplan?: FighterGameplan | undefined;

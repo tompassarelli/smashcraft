@@ -15,6 +15,8 @@ export const DREADLORD_HERO: HeroDefinition = {
   complete: true,
   moves: DREADLORD_MOVES,
   specials: DREADLORD_SPECIALS,
+  passive: { name: "Vampiric Aura", description: "Every third melee hit or throw in a short time heals him a little." },
+  ultimate: { name: "Infernal", description: "An Infernal crashes down where he marks and swipes twice before it fades." },
   gameplan: DREADLORD_GAMEPLAN,
   presentation: {
     model: DREADLORD_MODEL_FILE,

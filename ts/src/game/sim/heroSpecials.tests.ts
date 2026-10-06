@@ -37,7 +37,12 @@ const UP: AuthoredSpecial = { cost: 15, endFrame: 25, helpless: true, oncePerAir
 const UP_FREE: AuthoredSpecial = { ...UP, cost: 0, motion: [{ ...frames(5, 20), velocityX: 0.0, velocityZ: 8.0 }] };
 const DOWN: AuthoredSpecial = { cost: 25, endFrame: 30, groundOnly: true, intangible: frames(5, 8), armor: { ...frames(10, 20), maxDamage: 6.0 } };
 
-const KIT: FighterSpecials = { neutral: { ground: NEUTRAL }, side: { ground: SIDE }, up: { ground: UP, free: UP_FREE }, down: { ground: DOWN } };
+const KIT: FighterSpecials = {
+  neutral: { name: "Test Bolt", description: "", ground: NEUTRAL },
+  side: { name: "Test Dash", description: "", ground: SIDE },
+  up: { name: "Test Rise", description: "", ground: UP, free: UP_FREE },
+  down: { name: "Test Guard", description: "", ground: DOWN },
+};
 
 function hero(x: number, facing: number): Fighter {
   const f = createFighter(Character.blademaster, x, facing);
@@ -248,7 +253,7 @@ test("a stopsAtBody dash special ends short of an exposed body and a raised shie
   for (const facing of [-1, 1]) {
     for (const [stops, shielded] of [[true, false], [true, true], [false, false]] as const) {
       const owner = hero(0.0, facing);
-      owner.tuning = { ...owner.tuning, specials: { ...KIT, side: { ground: dash(stops) } } };
+      owner.tuning = { ...owner.tuning, specials: { ...KIT, side: { ...KIT.side, ground: dash(stops) } } };
       const target = createFighter(Character.archer, f32(200.0 * facing), -facing);
       const world = createRoster(3, [owner, target]);
       for (let i = 0; i < 3; i++) frame(world);
@@ -273,7 +278,7 @@ test("a hero special's hurt poses replace the body on their frames only", () => 
   const { world, owner, target } = pair(600.0);
   const reach = hurtPart(0.0, 40.0, 140.0, 40.0, 12.0);
   const posed: AuthoredSpecial = { ...SIDE, hurt: [hurtPose(5, 8, [hurtCapsule(Character.blademaster), reach])] };
-  owner.tuning = { ...owner.tuning, specials: { ...KIT, side: { ground: posed } } };
+  owner.tuning = { ...owner.tuning, specials: { ...KIT, side: { ...KIT.side, ground: posed } } };
   frame(world, side);
   for (let f = 2; f <= 4; f++) frame(world);
   assertEquals(fighterHurtParts(owner).length, 1);
@@ -289,7 +294,7 @@ test("a hero special's hurt poses replace the body on their frames only", () => 
 });
 
 test("a broad hero projectile meets a raised shield before the body behind it", () => {
-  const broad: FighterSpecials = { ...KIT, neutral: { ground: { ...NEUTRAL, projectiles: [{ ...NEUTRAL.projectiles![0]!, radius: 24.0 }] } } };
+  const broad: FighterSpecials = { ...KIT, neutral: { ...KIT.neutral, ground: { ...NEUTRAL, projectiles: [{ ...NEUTRAL.projectiles![0]!, radius: 24.0 }] } } };
   const { world, owner, target } = pair(400.0);
   owner.tuning = { ...owner.tuning, specials: broad };
   const guard = controls({ shield: true });
@@ -341,7 +346,7 @@ test("a second press inside a follow-up window starts the follow-up once; presse
   const feint: AuthoredSpecial = { cost: 15, endFrame: 24, followUps: [{ window: frames(8, 19), special: slash }] };
   const run = (pressAt: number) => {
     const owner = hero(0.0, 1);
-    owner.tuning = { ...owner.tuning, specials: { ...KIT, down: { ground: feint } } };
+    owner.tuning = { ...owner.tuning, specials: { ...KIT, down: { ...KIT.down, ground: feint } } };
     const target = createFighter(Character.archer, 100.0, -1);
     const world = createRoster(3, [owner, target]);
     for (let i = 0; i < 3; i++) frame(world);

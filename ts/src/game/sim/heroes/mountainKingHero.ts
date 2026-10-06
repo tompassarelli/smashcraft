@@ -15,6 +15,8 @@ export const MOUNTAIN_KING_HERO: HeroDefinition = {
   complete: true,
   moves: MOUNTAIN_KING_MOVES,
   specials: MOUNTAIN_KING_SPECIALS,
+  passive: { name: "Bash", description: "Every third hit in a quick string stuns a little longer." },
+  ultimate: { name: "Avatar", description: "He turns to stone for a while: heavier and harder-hitting." },
   gameplan: MOUNTAIN_KING_GAMEPLAN,
   presentation: {
     model: "units\\human\\HeroMountainKing\\HeroMountainKing.mdl",

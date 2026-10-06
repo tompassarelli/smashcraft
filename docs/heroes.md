@@ -11,7 +11,8 @@ data record; the simulation, replay, selection and object data read it.
   Hero specials run under `SpecialAction.heroNeutral`..`heroDown` (13-16) and
   hero projectiles under `ProjectileKind.hero` (5).
 - `ts/src/game/sim/heroes/<hero>Hero.ts` is one hero's `HeroDefinition`
-  (`sim/heroes/hero.ts`): product name, purpose, weakness, `moves`
+  (`sim/heroes/hero.ts`): product name, purpose, weakness, `passive` and
+  optional `ultimate` (official name and one line each), `moves`
   (`FighterMoves`, `sim/heroMoves.ts`), `specials` (`FighterSpecials`,
   `sim/heroSpecials.ts`), presentation (Warcraft model, object
   code, portrait, projectile model, per-pose clips with a fallback) and
@@ -30,8 +31,14 @@ data record; the simulation, replay, selection and object data read it.
 ## Specials
 
 `FighterSpecials` has a `SpecialKit` per input (neutral, side, up, down).
-A kit has a `ground` form, an optional `air` form and an optional `free`
-form. Each `AuthoredSpecial` uses the roster's frame numbering: the entry
+A kit has its official `name` and a one-line `description`, a `ground`
+form, an optional `air` form and an optional `free` form; a form the design
+names on its own (Backstab, Hammerfall) carries its own `name`. Names are
+written only there (and in `sim/originalKits.ts` for the original three);
+`sim/moveNames.ts` reads them for [the move list](move-list.md), which
+`bun scripts/moveList.ts` regenerates, the Moves page and training's readout.
+Normals have no official name; an optional `inspiredBy` on a move is a
+docs-only design reference. Each `AuthoredSpecial` uses the roster's frame numbering: the entry
 tick is frame 1, windows are inclusive and `endFrame` N means the fighter
 acts again on N+1. It may author:
 

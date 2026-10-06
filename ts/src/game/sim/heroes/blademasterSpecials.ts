@@ -45,9 +45,9 @@ const walkMotion = [{ ...frames(8, 31), velocityX: WALK_SPEED, velocityZ: 0.0, s
 const WALK_BRANCHES = frames(10, 31);
 
 /** Backstab: active f6-8 from its press, 12% EDGE at 40 degrees, ends f28. */
-const backstab: AuthoredSpecial = { cost: 0, endFrame: 28, hurt: [hurtPose(4, 12, LOW_CUT_ARM)], motion: [{ ...frames(1, 1), ...STOP }], regions: cut(6, [52.0, 45.0, 38.0], L, hit(12.0, "EDGE", 40)) };
+const backstab: AuthoredSpecial = { name: "Backstab", cost: 0, endFrame: 28, hurt: [hurtPose(4, 12, LOW_CUT_ARM)], motion: [{ ...frames(1, 1), ...STOP }], regions: cut(6, [52.0, 45.0, 38.0], L, hit(12.0, "EDGE", 40)) };
 /** Step out: the walk stops and the action ends 8 frames later. */
-const stepOut: AuthoredSpecial = { cost: 0, endFrame: 8, motion: [{ ...frames(1, 1), ...STOP }] };
+const stepOut: AuthoredSpecial = { name: "Step Out", cost: 0, endFrame: 8, motion: [{ ...frames(1, 1), ...STOP }] };
 
 const windWalk = (air: boolean): AuthoredSpecial => {
   const finish = (special: AuthoredSpecial): AuthoredSpecial => (air ? { ...special, helpless: true } : special);
@@ -122,6 +122,7 @@ const mirrorImage: AuthoredSpecial = {
  * degrees); ends f30. Free; the image is spent.
  */
 const imageSwap: AuthoredSpecial = {
+  name: "Image Swap",
   cost: 0,
   endFrame: 30,
   hurt: [hurtPose(6, 14, LOW_CUT_ARM)],
@@ -132,9 +133,9 @@ const imageSwap: AuthoredSpecial = {
 const inAir = (special: AuthoredSpecial): AuthoredSpecial => ({ ...special, landingLag: AIR_LANDING_LAG });
 
 export const BLADEMASTER_SPECIALS: FighterSpecials = {
-  neutral: { ground: windCutter, air: inAir(windCutter) },
-  side: { ground: windWalk(false), air: windWalk(true) },
-  up: { ground: risingBlade, free: risingBladeFree },
-  down: { ground: mirrorImage, air: inAir(mirrorImage), recall: imageSwap },
+  neutral: { name: "Wind Cutter", description: "A short blade wave that costs no mana.", ground: windCutter, air: inAir(windCutter) },
+  side: { name: "Wind Walk", description: "Fade and walk through bodies; attack to Backstab on either side, special to step out.", ground: windWalk(false), air: windWalk(true) },
+  up: { name: "Rising Blade", description: "A rising slash that drifts with the stick, then a helpless fall.", ground: risingBlade, free: risingBladeFree },
+  down: { name: "Mirror Image", description: "Step back and leave an image; press again to swap to it with a slash. One hit breaks it.", ground: mirrorImage, air: inAir(mirrorImage), recall: imageSwap },
 };
 
