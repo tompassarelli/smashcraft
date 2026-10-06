@@ -1,6 +1,6 @@
 // Keep these action transitions together: buffered inputs, contact windows
 // and landing can resolve on the same production frame.
-// Fighter rules: jumps, landings, L-cancels, smash charge, hit regions and
+// Fighter rules: jumps, landings, smash charge, hit regions and
 // attack phases.
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { max } from "../../runtime/numbers";
@@ -364,108 +364,59 @@ test("a short hop rises less than a full hop, and each jump starts once", () => 
   }
 });
 
-function lCancelTestFighter(style: AttackStyle): Fighter {
-  const fighter = createFighter(Character.archer, 0.0, 1);
+function aerialLandingFighter(character: Character, style: AttackStyle): Fighter {
+  const fighter = createFighter(character, 0.0, 1);
   fighter.motion.grounded = false;
   fighter.motion.z = 300.0;
   testBeginAttacks(testWorld(fighter, createFighter(Character.rifleman, 500.0, -1)), style, undefined);
   return fighter;
 }
 
-function landLCancelTest(fighter: Fighter, input: Readonly<Controls>): void {
+function land(fighter: Fighter, input: Readonly<Controls>): void {
   fighter.motion.z = 1.0;
   fighter.motion.vz = -2.0;
   advanceSolo(fighter, 0, input, 0.0);
 }
 
-test("an L-cancel has seven contact opportunities and an expired press doesn't count", () => {
-  for (let age = 0; age <= 7; age++) {
-    const fighter = lCancelTestFighter(AttackStyle.upAir);
-    const input = controls({ lCancelPressed: true, shield: true });
-    if (age > 0) {
-      advanceSolo(fighter, 0, input, 0.0);
-      input.lCancelPressed = false;
-      for (let tick = 1; tick <= age - 1; tick++) advanceSolo(fighter, 0, input, 0.0);
+// Smashcraft omits L-cancelling (smashcraft:docs/gameplay-design.md): every
+// aerial lands with the lag Melee's L-cancel gives, half its authored landing
+// lag (PlCo +0x0E8 = 2), and no button changes it.
+const SHORT_AERIAL_LANDING_LAG = [
+  [AttackStyle.neutralAir, 5], [AttackStyle.forwardAir, 7], [AttackStyle.backAir, 8], [AttackStyle.upAir, 7], [AttackStyle.downAir, 9],
+] as const;
+
+test("every fighter's aerials land with the short lag, pressed shield or not", () => {
+  for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
+    for (const [style, lag] of SHORT_AERIAL_LANDING_LAG) {
+      for (const pressed of [false, true]) {
+        const fighter = aerialLandingFighter(character, style);
+        fighter.attack.frame = attackStartupFrames(style);
+        land(fighter, controls(pressed ? { shieldPressed: true, airDodgePressed: true, techPressed: true } : {}));
+        assertEquals(fighter.landing.lag, lag);
+        assertEquals(fighter.attack.style, undefined);
+        assertFalse(fighter.dodge.airDodging);
+        const idle = controls();
+        for (let tick = 1; tick <= lag - 1; tick++) {
+          advanceSolo(fighter, 0, idle, 0.0);
+          assertFalse(canAttack(fighter));
+        }
+        advanceSolo(fighter, 0, idle, 0.0);
+        assertTrue(canAttack(fighter));
+      }
     }
-    landLCancelTest(fighter, input);
-    assertEquals(fighter.landing.lag, age < 7 ? 7 : 15);
-    assertEquals(fighter.landing.lCancelSerial, age < 7 ? 1 : 0);
-    assertEquals(fighter.landing.lCancelWindow, 0);
   }
 });
 
-test("an L-cancel halves aerial recovery and preserves the action lockout", () => {
-  for (const style of [AttackStyle.neutralAir, AttackStyle.forwardAir, AttackStyle.backAir, AttackStyle.upAir, AttackStyle.downAir]) {
-    const fighter = lCancelTestFighter(style);
-    fighter.attack.frame = attackStartupFrames(style);
-    const input = controls({ lCancelPressed: true, airDodgePressed: true, techPressed: true });
-    fighter.tech.pressAge = 19;
-    landLCancelTest(fighter, input);
-    const expected = style === AttackStyle.neutralAir ? 5 : style === AttackStyle.forwardAir ? 7
-      : style === AttackStyle.backAir ? 8 : style === AttackStyle.upAir ? 7 : 9;
-    assertEquals(fighter.landing.lag, expected);
-    assertEquals(fighter.landing.lCancelSerial, 1);
-    assertFalse(fighter.dodge.airDodging);
-    assertEquals(fighter.tech.window, 0);
-    assertEquals(fighter.attack.style, undefined);
-    assertFalse(canAttack(fighter));
-    input.lCancelPressed = false;
-    input.airDodgePressed = false;
-    input.techPressed = false;
-    for (let tick = 1; tick <= expected - 1; tick++) {
-      advanceSolo(fighter, 0, input, 0.0);
-      assertFalse(canAttack(fighter));
-    }
-    advanceSolo(fighter, 0, input, 0.0);
-    assertTrue(canAttack(fighter));
-    assertEquals(fighter.landing.lCancelSerial, 1);
-  }
-});
-
-// Melee ages the L/R press counter (x67F) on every input frame, frozen or not
-// (melee:src/melee/ft/fighter.c Fighter_procInput); the landing compares it with PlCo +0x0E4 = 7.
-test("an L-cancel press during hitlag ages through the freeze", () => {
-  for (const age of [6, 7]) {
-    const fighter = lCancelTestFighter(AttackStyle.upAir);
-    const input = controls({ lCancelPressed: true });
-    fighter.launch.hitlag = 4;
-    advanceSolo(fighter, 0, input, 0.0);
-    input.lCancelPressed = false;
-    for (let tick = 2; tick <= 3; tick++) {
-      advanceSolo(fighter, 0, input, 0.0);
-      assertEquals(fighter.landing.lCancelWindow, 8 - tick);
-    }
-    for (let tick = 4; tick <= age; tick++) advanceSolo(fighter, 0, input, 0.0);
-    landLCancelTest(fighter, input);
-    assertEquals(fighter.landing.lag, age === 6 ? 7 : 15);
-  }
-});
-
-test("an L-cancel doesn't shorten air dodge or empty landings and clears on stock loss", () => {
+test("air dodge and empty landings keep their own landing lag", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
-  const world = soloWorld(fighter);
   fighter.motion.grounded = false;
-  fighter.motion.z = 1.0;
-  fighter.motion.vz = -2.0;
   fighter.dodge.airDodging = true;
-  const input = controls({ lCancelPressed: true });
-  landLCancelTest(fighter, input);
+  land(fighter, controls());
   assertEquals(fighter.landing.lag, AIR_DODGE_LANDING_LAG);
-  assertEquals(fighter.landing.lCancelSerial, 0);
-  assertEquals(fighter.landing.lCancelWindow, 0);
-  respawnFighter(world, 0, 0.0);
+  respawnFighter(soloWorld(fighter), 0, 0.0);
   fighter.motion.grounded = false;
-  landLCancelTest(fighter, input);
+  land(fighter, controls());
   assertEquals(fighter.landing.lag, 4);
-  assertEquals(fighter.landing.lCancelSerial, 0);
-  fighter.motion.x = 921.0;
-  advanceFighter(world, 0, 0, input, 0.0);
-  assertTrue(fighter.status.out);
-  assertEquals(fighter.landing.lCancelWindow, 0);
-  fighter.landing.lCancelSerial = 2;
-  respawnFighter(world, 0, 0.0);
-  assertEquals(fighter.landing.lCancelWindow, 0);
-  assertEquals(fighter.landing.lCancelSerial, 0);
 });
 
 /** Starts a chargeable smash with the attack held through its startup. */

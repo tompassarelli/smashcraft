@@ -152,7 +152,6 @@ function catchLedge(f: Fighter, stage: number, side: number): void {
   f.dodge.airMotionFrames = 0;
   f.jump.remaining = 1;
   motion.dropTime = 0;
-  f.landing.lCancelWindow = 0;
   clearTech(f);
 }
 

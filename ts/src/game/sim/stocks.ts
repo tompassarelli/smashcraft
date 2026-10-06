@@ -51,7 +51,6 @@ export function checkBlastZone(world: Roster, slot: number): void {
   launch.knockbackX = 0.0;
   launch.groundKnockbackX = 0.0;
   launch.knockbackZ = 0.0;
-  f.landing.lCancelWindow = 0;
   clearTech(f);
   status.stocks = max(0, status.stocks - 1);
   status.respawn = status.stocks > 0 ? RESPAWN_FRAMES : 0;
@@ -117,8 +116,6 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   recovery.contactZ = 0.0;
   recovery.contactNormalX = 0.0;
   recovery.contactNormalZ = 0.0;
-  landing.lCancelWindow = 0;
-  landing.lCancelSerial = 0;
   clearTech(f);
   jump.serial = 0;
   jump.isDouble = false;

@@ -258,8 +258,6 @@ interface Dodge {
 
 interface Landing {
   lag: number;
-  lCancelWindow: number;
-  lCancelSerial: number;
 }
 
 interface Down {
@@ -494,7 +492,7 @@ export function createFighter(character: Character, startX: number, facing: numb
     hippogryph: { life: 0, x: 0.0, z: 0.0, velocityX: 0.0, velocityZ: 0.0, kind: HippogryphKind.none },
     freezeTrap: { life: 0, arming: 0, x: 0.0, z: 0.0, surface: undefined, serial: 0, cooldown: 0 },
     dodge: { airDodging: false, airFrame: 0, airMotionFrames: 0, groundFrame: 0, groundDirection: 0, groundEntryFacing: 0 },
-    landing: { lag: 0, lCancelWindow: 0, lCancelSerial: 0 },
+    landing: { lag: 0 },
     down: { state: DownState.none, frame: 0, direction: 0, waitRemaining: 0, faceUp: true, attackQueued: false },
     tech: { ...emptyTechInput(), window: 0 },
     surfaceRecovery: {

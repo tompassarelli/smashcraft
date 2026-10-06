@@ -100,13 +100,12 @@ test("special releases preserve press direction and leave neutral turnaround to 
   assertEquals(f.input.specialZ, 0);
 });
 
-test("grab, throw, mash, L-cancel, tech and ledge intents use fresh edges", () => {
+test("grab, throw, mash, tech and ledge intents use fresh edges", () => {
   const f = fixture();
   f.adapt({ pressed: maskOf(Action.grab, Action.attack, Action.moveLeft, Action.moveUp, Action.rightTrigger), dodgeX: -1, sdi: true, sdiZ: 1, ledgeVertical: 1 }, 7);
   assertTrue(f.input.attackPressed);
   assertTrue(f.input.grabMashPressed);
   assertTrue(f.input.mashPressed);
-  assertTrue(f.input.lCancelPressed);
   assertTrue(f.input.techPressed);
   assertEquals(f.input.grabThrowX, -1);
   assertEquals(f.input.grabThrowZ, 1);

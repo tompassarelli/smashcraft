@@ -68,7 +68,6 @@ export function adaptInput(row: Readonly<InputRow>, fighter: Readonly<Fighter>, 
   destination.grabMashPressed = (pressed & GRAB_MASH_ACTIONS) !== 0;
   destination.grabThrowX = sign(row.throwX);
   destination.grabThrowZ = sign(row.throwZ);
-  destination.lCancelPressed = has(pressed, Action.grab) || destination.airDodgePressed;
   destination.ledgeVerticalPressed = row.ledgeVertical;
   destination.getupAttackPressed = destination.attackPressed || destination.specialPressed;
   destination.getupStandPressed = has(pressed, Action.moveUp) || destination.jumpPressed || destination.airDodgePressed;

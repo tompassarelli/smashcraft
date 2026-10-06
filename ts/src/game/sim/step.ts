@@ -34,7 +34,7 @@ import { DASH_GUARD_EARLY_FRAMES, advanceGroundMovement, clearDash } from "./gro
 import { AIR_DODGE_ANIMATION_FRAMES, AIR_DODGE_DECAY, beginAirDodge, beginGroundDodge, beginJump, canBeginGroundDodge } from "./jumpsAndDodges";
 import { ageKnockback, applyDirectionalInfluence, decayKnockback } from "./knockback";
 import { advanceLedge } from "./ledge";
-import { DOWN_ATTACK_FRAMES, L_CANCEL_WINDOW_FRAMES, SMASH_MAX_CHARGE_FRAMES, attackStartupFrames, isSmashAttack } from "./moves";
+import { DOWN_ATTACK_FRAMES, SMASH_MAX_CHARGE_FRAMES, attackStartupFrames, isSmashAttack } from "./moves";
 import {
   addMeleeWorldValues,
   airDriftVelocity,
@@ -329,9 +329,6 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
       return;
     }
   }
-  // Counts include the current contact tick and age through hitlag, as Melee's input timers do.
-  f.landing.lCancelWindow = max(0, f.landing.lCancelWindow - 1);
-  if (input.lCancelPressed) f.landing.lCancelWindow = L_CANCEL_WINDOW_FRAMES;
   if (launch.hitlag <= 0) {
     f.surfaceRecovery.reflectCooldown = max(0, f.surfaceRecovery.reflectCooldown - 1);
     endFinishedDownStates(f);

@@ -2,7 +2,8 @@
 // played through the frame executor from controller rows, compared with
 // values cited from the NTSC 1.02 decompilation and the retail reference
 // corpus. `bun wisp oracle` prints the table; meleeOracle.tests.ts keeps CI
-// to the known mismatches below.
+// to the known mismatches below. A row where Smashcraft departs from Melee by
+// decision names that decision and still shows Melee's value.
 //
 // Citations: melee: is ~/code/resources/melee at 0296f009f32f710495979d30772d8332af2d411a.
 // Fighter data is recorded in smashcraft:docs/smash-melee-reference/physics-parameters.json
@@ -20,7 +21,7 @@ import { AttackStyle, Character, ContactKind, DownState, LedgeState, SurfaceCont
 import { isIntangible } from "../src/game/sim/conditions";
 import { beginDamageContacts, collectDamageContact, finishDamageContacts } from "../src/game/sim/contacts";
 import { type Fighter, createFighter } from "../src/game/sim/fighter";
-import { attackLandingLag } from "../src/game/sim/moves";
+import { uncancelledLandingLag } from "../src/game/sim/moves";
 import { type Roster, createRoster, fighterAt } from "../src/game/sim/roster";
 import { SOLID_DECK_TEST_STAGE, surfaceRight, surfaceZ } from "../src/game/sim/stage";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "../src/game/sim/tuning";
@@ -207,7 +208,7 @@ function meleeKnockback(percent: number, power: number, weight: number, growth: 
 
 // ------------------------------------------------------------------ rows
 
-type Outcome = "pass" | "mismatch" | "n/a";
+type Outcome = "pass" | "mismatch" | "departure" | "n/a";
 
 interface OracleRow {
   readonly area: string;
@@ -232,6 +233,8 @@ interface Scenario {
   readonly cite: string;
   /** The check for one fighter; undefined where the fighter has no Melee reference for this value. */
   readonly run: (character: Character) => Check | undefined;
+  /** A deliberate difference from Melee: the decision, its owner and date. */
+  readonly departure?: string;
 }
 
 const FIGHTERS = [
@@ -244,12 +247,12 @@ const show = (value: string | number | boolean): string =>
   typeof value === "number" ? (Number.isInteger(value) ? String(value) : value.toFixed(4).replace(/0+$/, "")) : String(value);
 
 function rowFor(scenario: Scenario, character: Character, name: string): OracleRow {
-  const base = { area: scenario.area, scenario: scenario.name, fighter: name, cite: scenario.cite };
+  const base = { area: scenario.area, scenario: scenario.name, fighter: name, cite: scenario.departure === undefined ? scenario.cite : `${scenario.cite}; departure: ${scenario.departure}` };
   const check = scenario.run(character);
   if (check === undefined) return { ...base, expected: "-", actual: "-", outcome: "n/a" };
   const { expected, actual, tolerance = 0.0 } = check;
   const pass = typeof expected === "number" && typeof actual === "number" ? Math.abs(expected - actual) <= tolerance : expected === actual;
-  return { ...base, expected: show(expected), actual: show(actual), outcome: pass ? "pass" : "mismatch" };
+  return { ...base, expected: show(expected), actual: show(actual), outcome: pass ? "pass" : scenario.departure === undefined ? "mismatch" : "departure" };
 }
 
 /** Character-data checks: Illidan has no Melee movement profile. */
@@ -405,7 +408,7 @@ const FAST_FALL: readonly Scenario[] = [
   },
 ];
 
-// ------------------------------------------------------------------ landing and L-cancel
+// ------------------------------------------------------------------ landing lag
 
 /** The least wait in 1..40 that `accepted` holds for, given it holds for every later wait too; 99 for none. */
 function firstAccepted(accepted: (wait: number) => boolean): number {
@@ -419,77 +422,41 @@ function firstAccepted(accepted: (wait: number) => boolean): number {
   return low > 40 ? 99 : low;
 }
 
-interface Landing {
-  /** First grounded frame. */
-  readonly landing: number | undefined;
-  /** Whether the jump pressed on `jumpAt` started. */
-  readonly jumped: boolean;
-  readonly cancelled: boolean;
-}
-
 interface Fall {
   /** Places the fighter before frame 1. */
   readonly setup: (f: Fighter) => void;
   readonly held: (frame: number) => readonly Action[];
-  /** Frozen frames of the fighter's own hitlag, starting on `freezeAt`. */
-  readonly freezeAt?: number;
-  readonly frozen?: number;
 }
 
 /** Plays a fall until it lands and, when asked, until a jump pressed on `jumpAt` was or wasn't accepted. */
-function playFall(character: Character, { setup, held, freezeAt, frozen = 0 }: Fall, jumpAt?: number): Landing {
+function playFall(character: Character, { setup, held }: Fall, jumpAt?: number): { landing: number | undefined; jumped: boolean } {
   const s = solo(0, character);
   const f = fighter(s);
   setup(f);
   let landing: number | undefined;
   let jumped = false;
   for (let n = 1; n <= 120; n++) {
-    if (n === freezeAt) f.launch.hitlag = frozen + 1;
     frame(s, n === jumpAt ? [...held(n), Action.jump] : held(n));
     if (landing === undefined && f.motion.grounded) landing = n;
     if (n === jumpAt) jumped = f.jump.squat > 0;
     if (landing !== undefined && n >= (jumpAt ?? landing)) break;
   }
-  return { landing, jumped, cancelled: f.landing.lCancelSerial > 0 };
-}
-
-function landingFrame(character: Character, fall: Fall): number {
-  const { landing } = playFall(character, fall);
-  if (landing === undefined) throw new Error("the fall never landed");
-  return landing;
+  return { landing, jumped };
 }
 
 /** Frames after the landing frame until a jump is accepted. */
 function landingLag(character: Character, fall: Fall): number {
-  const landing = landingFrame(character, fall);
+  const { landing } = playFall(character, fall);
+  if (landing === undefined) throw new Error("the fall never landed");
   return firstAccepted((wait) => playFall(character, fall, landing + wait).jumped);
 }
 
 const emptyFall: Fall = { setup: (f) => airborne(f, 0.0, 120.0), held: () => [] };
+/** A neutral aerial started on frame 1 from 200 units up, with no other button. */
+const aerialFall: Fall = { setup: (f) => airborne(f, 0.0, 200.0), held: (n) => (n === 1 ? [Action.attack] : []) };
 
-/** A neutral aerial started on frame 1 from 200 units up, with L pressed on `lAt`. */
-function aerialFall(lAt?: number, freezeAt?: number, frozen?: number): Fall {
-  const held = (n: number): readonly Action[] => [...(n === 1 ? [Action.attack] : []), ...(n === lAt ? [Action.leftTrigger] : [])];
-  return { setup: (f) => airborne(f, 0.0, 200.0), held, ...(freezeAt === undefined ? {} : { freezeAt }), ...(frozen === undefined ? {} : { frozen }) };
-}
-
-function aerialLandingLag(character: Character, lEarly: number | undefined): number {
-  return landingLag(character, aerialFall(lEarly === undefined ? undefined : landingFrame(character, aerialFall()) - lEarly));
-}
-
-function lCancels(character: Character, early: number): boolean {
-  return playFall(character, aerialFall(landingFrame(character, aerialFall()) - early)).cancelled;
-}
-
-/** L pressed `early` frames before landing, counted on the clock, with `frozen` frames of own hitlag in between. */
-function lCancelsAcrossHitlag(character: Character, early: number, frozen: number): boolean {
-  const freezeAt = landingFrame(character, aerialFall()) - frozen;
-  const landing = landingFrame(character, aerialFall(undefined, freezeAt, frozen));
-  return playFall(character, aerialFall(landing - early, freezeAt, frozen)).cancelled;
-}
-
-const L_CANCEL = "PlCo +0x0E4 = 7: L/R press age (x67F, fighter.c Fighter_procInput) < 7 at landing; PlCo +0x0E8 = 2: lag = max(1, (int)(lag / 2)); melee:src/melee/ft/kinds/ftCommon/ftCo_LandingAir.c";
-const NAIR_LAG = attackLandingLag(AttackStyle.neutralAir);
+const L_CANCEL = "an L/R press under PlCo +0x0E4 = 7 frames before landing (x67F, fighter.c Fighter_procInput) divides the lag by PlCo +0x0E8 = 2, at least 1: melee:src/melee/ft/kinds/ftCommon/ftCo_LandingAir.c";
+const NAIR_LAG = uncancelledLandingLag(AttackStyle.neutralAir);
 
 const LANDING: readonly Scenario[] = [
   {
@@ -498,21 +465,15 @@ const LANDING: readonly Scenario[] = [
     run: (c) => forReference(c, () => ({ expected: 4, actual: landingLag(c, emptyFall) })),
   },
   {
-    area: "landing", name: `neutral aerial landing lag, no L (authored ${NAIR_LAG})`,
-    cite: "LandingAir lasts the lag (anim rate (frames + 0.1) / lag): melee:src/melee/ft/kinds/ftCommon/ftCo_LandingAir.c",
-    run: (c) => ({ expected: NAIR_LAG, actual: aerialLandingLag(c, undefined) }),
-  },
-  {
-    area: "landing", name: "neutral aerial landing lag, L on the landing frame",
+    area: "landing", name: `neutral aerial landing lag is Melee's L-cancelled lag (authored ${NAIR_LAG})`,
     cite: L_CANCEL,
-    run: (c) => ({ expected: Math.max(1, Math.trunc(NAIR_LAG / 2)), actual: aerialLandingLag(c, 0) }),
+    run: (c) => ({ expected: Math.max(1, Math.trunc(NAIR_LAG / 2)), actual: landingLag(c, aerialFall) }),
   },
-  { area: "landing", name: "L 6 frames before landing cancels", cite: L_CANCEL, run: (c) => ({ expected: true, actual: lCancels(c, 6) }) },
-  { area: "landing", name: "L 7 frames before landing cancels", cite: L_CANCEL, run: (c) => ({ expected: false, actual: lCancels(c, 7) }) },
   {
-    area: "landing", name: "L 7 frames before landing, 3 of them in own hitlag, cancels",
-    cite: `${L_CANCEL}; input ages count hitlag frames (Fighter_procInput has no hitlag gate; melee-tech-input.md)`,
-    run: (c) => ({ expected: false, actual: lCancelsAcrossHitlag(c, 7, 3) }),
+    area: "landing", name: "neutral aerial landing lag with no L press",
+    cite: L_CANCEL,
+    departure: "L-cancelling omitted, every aerial lands with the cancelled lag (owner decision 2026-10-06, #54, smashcraft:docs/gameplay-design.md)",
+    run: (c) => ({ expected: NAIR_LAG, actual: landingLag(c, aerialFall) }),
   },
 ];
 
@@ -932,7 +893,7 @@ export function runOracle(): OracleRow[] {
  */
 const KNOWN_MISMATCHES: ReadonlyMap<string, string> = new Map<string, string>();
 
-/** Mismatches that aren't known, known mismatches that now pass, and known rows the table no longer has. */
+/** Mismatches that aren't known, known mismatches and departures that now match Melee, and known rows the table no longer has. */
 export function oracleProblems(rows: readonly OracleRow[]): string[] {
   const keys = new Set(rows.map(rowKey));
   return [
@@ -940,6 +901,8 @@ export function oracleProblems(rows: readonly OracleRow[]): string[] {
       .map((row) => `new mismatch: ${rowKey(row)}: expected ${row.expected}, got ${row.actual}`),
     ...rows.filter((row) => row.outcome !== "mismatch" && KNOWN_MISMATCHES.has(rowKey(row)))
       .map((row) => `known mismatch now ${row.outcome}: ${rowKey(row)}; remove it from KNOWN_MISMATCHES`),
+    ...rows.filter((row) => row.outcome === "pass" && SCENARIOS.some((scenario) => scenario.name === row.scenario && scenario.departure !== undefined))
+      .map((row) => `departure now matches Melee: ${rowKey(row)}; remove its departure`),
     ...[...KNOWN_MISMATCHES.keys()].filter((key) => !keys.has(key)).map((key) => `known mismatch has no row: ${key}`),
   ];
 }
@@ -959,13 +922,13 @@ export function formatOracle(rows: readonly OracleRow[]): string {
     const mark = row.outcome === "mismatch" ? (KNOWN_MISMATCHES.has(rowKey(row)) ? "MISMATCH (known)" : "MISMATCH") : row.outcome;
     lines.push(`    ${pad(row.fighter, 9)} expected ${pad(row.expected, 28)} actual ${pad(row.actual, 28)} ${mark}`);
   }
-  lines.push("", `${pad("area", 13)} ${pad("pass", 5)} ${pad("mismatch", 9)} n/a`);
+  const counts = (label: string, count: (outcome: Outcome) => number): string =>
+    `${pad(label, 13)} ${pad(String(count("pass")), 5)} ${pad(String(count("mismatch")), 9)} ${pad(String(count("departure")), 10)} ${count("n/a")}`;
+  lines.push("", `${pad("area", 13)} ${pad("pass", 5)} ${pad("mismatch", 9)} ${pad("departure", 10)} n/a`);
   for (const area of [...new Set(rows.map((row) => row.area))]) {
-    const count = (outcome: Outcome) => rows.filter((row) => row.area === area && row.outcome === outcome).length;
-    lines.push(`${pad(area, 13)} ${pad(String(count("pass")), 5)} ${pad(String(count("mismatch")), 9)} ${count("n/a")}`);
+    lines.push(counts(area, (outcome) => rows.filter((row) => row.area === area && row.outcome === outcome).length));
   }
-  const total = (outcome: Outcome) => rows.filter((row) => row.outcome === outcome).length;
-  lines.push(`${pad("all", 13)} ${pad(String(total("pass")), 5)} ${pad(String(total("mismatch")), 9)} ${total("n/a")}`);
+  lines.push(counts("all", (outcome) => rows.filter((row) => row.outcome === outcome).length));
   const mismatches = rows.filter((row) => row.outcome === "mismatch");
   if (mismatches.length > 0) {
     lines.push("", "mismatches:");

@@ -233,8 +233,6 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("surfaceContactNormalZ", e.surfaceRecovery.contactNormalZ, a.surfaceRecovery.contactNormalZ);
   add("airDodgeTime", e.dodge.airMotionFrames, a.dodge.airMotionFrames);
   add("landingLag", e.landing.lag, a.landing.lag);
-  add("lCancelWindow", e.landing.lCancelWindow, a.landing.lCancelWindow);
-  add("lCancelSerial", e.landing.lCancelSerial, a.landing.lCancelSerial);
   add("airDodging", e.dodge.airDodging, a.dodge.airDodging);
   add("airDodgeFrame", e.dodge.airFrame, a.dodge.airFrame);
   add("groundDodgeFrame", e.dodge.groundFrame, a.dodge.groundFrame);
