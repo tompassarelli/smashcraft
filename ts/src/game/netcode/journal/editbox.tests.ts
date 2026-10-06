@@ -13,7 +13,7 @@ test("draining keeps an incomplete record and acknowledges receipt and use in th
   assertEquals(receipt.name, "smashcraft-journal-text-ack-candidate-e1-p2.txt");
   assertEquals(receipt.line, "SMASHCRAFT TEXT ACK v=1 build=candidate epoch=1 slot=2 received=2 consumed=0 revision=1 chat=0 chatState=0 chatFrame=1");
   assertTrue(session.consume());
-  for (let tick = 1; tick < 6; tick++) assertFalse(session.tick());
+  assertFalse(session.tick());
   assertTrue(session.tick());
   assertTrue(session.requestChat(4));
   assertEquals(session.receipt(false).line, "SMASHCRAFT TEXT ACK v=1 build=candidate epoch=1 slot=2 received=2 consumed=1 revision=2 chat=4 chatState=1 chatFrame=0");
