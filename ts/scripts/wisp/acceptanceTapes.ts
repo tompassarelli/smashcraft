@@ -74,8 +74,8 @@ function formatControls(controls: Controls, attacks: AttackBuffer): string {
 
 function menuLines(script: MatchScript): string[] {
   return [
-    `character 0 ${script.characters[0]}`, `character 1 ${script.characters[1]}`, "stage-select 0",
-    ...(script.stage > 1 ? [`test-stage ${script.stage}`] : [`stage 0 ${script.stage}`]), `stocks 0 ${script.stocks}`, `time 0 ${script.minutes}`, "start 0",
+    `character 0 ${script.characters[0]}`, `character 1 ${script.characters[1]}`, `stocks 0 ${script.stocks}`, `time 0 ${script.minutes}`, "stage-select 0",
+    ...(script.stage > 1 ? [`test-stage ${script.stage}`] : [`stage 0 ${script.stage}`]), "start 0",
   ];
 }
 

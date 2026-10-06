@@ -6,7 +6,7 @@ import { isCarrierKey } from "../../game/netcode/journal/keyboard";
 import { type ParticipantSlot, isParticipantSlot } from "../../game/input/participants";
 import { heldActions, keyDown, pressKey, releaseKey } from "../../game/input/playerKeys";
 import { startKeyDown, startKeyUp } from "../../game/match/controls";
-import { Phase, characterFor, firstHumanSlot, humanActive, leavePractice, recallCharacter, selectCharacter } from "../../game/match/rules";
+import { Phase, cancelRematchCountdown, characterFor, firstHumanSlot, humanActive, leaveMatch, recallCharacter, selectCharacter } from "../../game/match/rules";
 import { DESYNC_COMMAND, QUICK_MATCH_COMMAND, applyDevCommand } from "../../game/shell/devSettings";
 import { keepMomentEnd } from "../../game/replay/moment";
 import { devReceiptFile } from "../../game/shell/journalFiles";
@@ -59,6 +59,7 @@ function startDown(s: ShellState, slot: ParticipantSlot): void {
 
 /** Journal menus have fixed controller keys, independent of combat bindings and the mouse. */
 function journalMenuKey(s: ShellState, slot: ParticipantSlot, key: number): boolean {
+  if ((key === Key.w || key === Key.r || key === Key.n || key === Key.u) && cancelRematchCountdown(s.game, slot)) return true;
   if (key === Key.w || key === Key.r) choose(s, slot, key === Key.w ? -1 : 1);
   else if (key === Key.n) {
     if (s.game.phase !== Phase.characterMenu) confirm(s, slot);
@@ -83,6 +84,7 @@ function participantKeyDown(s: ShellState, slot: ParticipantSlot): void {
   const { keys, bindings } = participant;
   const settings = views(s).settings[slot];
   if (key < 0 || key > 255 || keyDown(keys, key)) return;
+  if ((key === Key.y || key === Key.escape) && cancelRematchCountdown(s.game, slot)) return;
   if (key === Key.y) {
     startDown(s, slot);
     return;
@@ -107,9 +109,9 @@ function participantKeyDown(s: ShellState, slot: ParticipantSlot): void {
     back(s, slot);
     return;
   }
-  // Leaving practice ends the match between frames: the moment keeps it as its last frame left it.
-  if (key === Key.escape && s.session.paused && game.practice) keepMomentEnd(s.moment.recorder, s.world, game, s.controls, s.runtime);
-  if (key === Key.escape && s.session.paused && leavePractice(game, slot)) {
+  // Leaving practice or an endless match ends it between frames: the moment keeps it as its last frame left it.
+  if (key === Key.escape && s.session.paused && (game.practice || game.endless)) keepMomentEnd(s.moment.recorder, s.world, game, s.controls, s.runtime);
+  if (key === Key.escape && s.session.paused && leaveMatch(game, slot)) {
     s.session.paused = false;
     setStatus(s, "", 0.0);
     makePreview(s);
@@ -119,6 +121,7 @@ function participantKeyDown(s: ShellState, slot: ParticipantSlot): void {
   if (game.phase === Phase.match && (s.session.paused || activeRollback(s) !== undefined)) return;
   const action = pressKey(keys, key, bindings.bindings);
   if (action === undefined) return;
+  if (cancelRematchCountdown(game, slot)) return;
   participant.lastInputAction = action;
   traceParticipant(s, slot, `mapped action ${action}`);
   if (game.phase === Phase.match) sampleKeys(participant.capture, heldActions(keys));

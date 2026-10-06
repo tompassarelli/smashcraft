@@ -12,6 +12,9 @@ import { integritySchedule } from "../scripts/integrity/schedule";
 
 const evidence = (run: string) => join(import.meta.dir, "../../evidence", `input-integrity-0042-${run}-20261005`);
 
+/** Captures before #60's held rows report no press captured while prediction was held. */
+const NOTHING_HELD = { local_start_while_prediction_held_frames: { n: 0, p50: null, p95: null, max: null, distribution: {} }, held_missing_first_prediction: 0 };
+
 const reconcileRun = async (run: string) => {
   const root = evidence(run);
   const metadata = await Effect.runPromise(readMetadata(root));
@@ -28,6 +31,7 @@ test("the r8 capture reconciles to #26's measured table", async () => {
     "| Lost / duplicated / reordered / stuck edges | 0 / 0 / 0 / 0 |",
     "| Edges applied at expected frame, both clients | 1296/1296 (100.0%) |",
     "| Local start − capture, frames | 8 / 88 / 97 (n=203); missing first prediction 0 |",
+    "| Local start while a remote row held prediction back (not gated) | None / None / None (n=0); missing first prediction 0 |",
     "| Opponent input lateness, frames: p50 / p95 / max | 9 / 21 / 23 (n=1391) |",
     "| Rollback depth, frames: p50 / p95 / max | 13 / 24 / 24 (n=198) |",
     "| Prediction stalls at 24-frame limit | 169; longest 52 callbacks |",
@@ -36,9 +40,9 @@ test("the r8 capture reconciles to #26's measured table", async () => {
   ]);
   expect(result.gates).toEqual({ edges: true, expectedFrame: true, localStart: false, checksums: true });
   expect(result.failures).toEqual([]);
-  // The retained summary predates the rollback-limit, four-fighter and player-view fields.
+  // The retained summary predates the rollback-limit, four-fighter, player-view and held-prediction fields.
   const retained = await Bun.file(join(evidence("r8"), "summary.json")).json();
-  expect(summaryJson(result)).toEqual({ ...retained, rollback_limit_frames: 24, four_fighters: false, player_view_failures: [] });
+  expect(summaryJson(result)).toEqual({ ...retained, rollback_limit_frames: 24, four_fighters: false, player_view_failures: [], ...NOTHING_HELD });
 });
 
 test("the r7 capture reconciles to its retained failing summary", async () => {
@@ -49,7 +53,7 @@ test("the r7 capture reconciles to its retained failing summary", async () => {
     "| Edges applied at expected frame, both clients | 1291/1296 (99.6141975308642%) |",
   ]);
   const retained = await Bun.file(join(evidence("r7"), "summary.json")).json();
-  expect(summaryJson(result)).toEqual({ ...retained, rollback_limit_frames: 24, four_fighters: false, player_view_failures: [] });
+  expect(summaryJson(result)).toEqual({ ...retained, rollback_limit_frames: 24, four_fighters: false, player_view_failures: [], ...NOTHING_HELD });
 });
 
 const NOW = 10 ** 15;
@@ -123,8 +127,8 @@ test("each match's integrity workload sends, waits, stalls and pauses as the Pyt
 test("the integrity workload raises one stock to three before its first match and changes it no more", async () => {
   const { rig, trace } = recordingRig(gameFiles, "1 Stock");
   await Effect.runPromise(journey(rig, R8).run);
-  expect(trace.filter((line) => line.startsWith("ui b click ") && line.endsWith(" 155"))).toEqual(["ui b click 1675 155", "ui b click 1675 155"]);
-  expect(trace.indexOf("ui b click 1675 155")).toBeLessThan(trace.findIndex((line) => line.includes("menu-match-1-start")));
+  expect(trace.filter((line) => line.startsWith("ui b click ") && line.endsWith(" 445"))).toEqual(["ui b click 884 445", "ui b click 884 445"]);
+  expect(trace.indexOf("ui b click 884 445")).toBeLessThan(trace.findIndex((line) => line.includes("menu-match-1-start")));
 });
 
 test("the journey sends r8's pad edges in r8's order, then returns to fighter selection", async () => {
@@ -200,7 +204,7 @@ test("the result reports player-view failures without gating them", async () => 
     const result = integrityResult(await Effect.runPromise(readEvidence(root, metadata)), capturePair(metadata));
     const retained = await Bun.file(join(root, "summary.json")).json();
     // r8's table, gates and verdict, with the failure beside them.
-    expect(summaryJson(result)).toEqual({ ...retained, rollback_limit_frames: 24, four_fighters: false, player_view_failures: [`match 2 at result: ${SCENE_FAILURE}`] });
+    expect(summaryJson(result)).toEqual({ ...retained, rollback_limit_frames: 24, four_fighters: false, player_view_failures: [`match 2 at result: ${SCENE_FAILURE}`], ...NOTHING_HELD });
   } finally {
     rmSync(directory, { recursive: true });
   }
@@ -229,9 +233,9 @@ test("#17's normal timed journey reaches both results without integrity stalls o
   expect(four.trace.some((line) => line.startsWith("stop "))).toBe(false);
   expect(four.trace.some((line) => line.includes("stock-loss") || line.includes("-integrity-"))).toBe(false);
   expect(four.trace).toContain("ui b wait 1:00");
-  expect(four.trace.filter((line) => line === "ui b click 1380 155")).toHaveLength(4);
+  expect(four.trace.filter((line) => line === "ui b click 428 445")).toHaveLength(4);
   expect(four.trace.filter((line) => line === "ui b wait [1-9] Stock")).toHaveLength(2);
-  expect(four.trace).not.toContain("ui b click 1675 155");
+  expect(four.trace).not.toContain("ui b click 884 445");
   expect(four.events.filter((event) => event.event === "start" || event.event === "end").map((event) => [event.event, event.epoch])).toEqual([["start", 1], ["end", 1], ["start", 2], ["end", 2]]);
   expect(four.events.filter((event) => event.event === "integrity-slot-change")).toHaveLength(1);
 });
@@ -245,7 +249,7 @@ test("a playable journey plays one-stock matches that end when Player 1, then Pl
     `send 1 ${EV_ABS} ${ABS_X} 32767 match-2-stock-loss`, `send 1 ${EV_ABS} ${ABS_X} 0 match-2-stock-loss`,
   ]);
   expect(sends.filter((line) => line.includes("-combat"))).toHaveLength(32);
-  expect(playable.trace.filter((line) => line === "ui b click 1380 155")).toHaveLength(4);
+  expect(playable.trace.filter((line) => line === "ui b click 428 445")).toHaveLength(4);
   expect(playable.trace.filter((line) => line.startsWith("key "))).toEqual(["key a ctrl+t", "key a ctrl+t"]);
   expect(playable.trace.some((line) => line.startsWith("stop ") || line.includes("-integrity-") || line.includes("ui a click"))).toBe(false);
   expect(playable.events.filter((event) => event.event !== "menu").map((event) => [event.event, "epoch" in event ? event.epoch : undefined]))
@@ -299,4 +303,17 @@ test("xpad pads press X for special, Y for jump, and stick-up only as up", () =>
   expect(isolated("xpad")).toMatchObject({ special: 0x133, "jump-y": 0x134, "move-up": 1 });
   expect(isolated("xpad")).not.toHaveProperty("jump-stick");
   expect(isolated("compass-tap-jump")).toMatchObject({ special: 0x134, "jump-y": 0x133, "jump-stick": 1 });
+});
+
+ test("bot sessions enable automatic rematch and wait for the second game without selection or a Start press", async () => {
+  const bot = recordingRig(gameFiles, "3 Stock 7:00 Automatic rematch: Off Player 2 wins!");
+  await Effect.runPromise(journey(bot.rig, { ...R8, build: "typescript-integrity", workload: "bot", botPerf: true }).run);
+  expect(bot.trace).toContain("type a -dev rematch 20");
+  expect(bot.trace).toContain("ui b click 656 690");
+  expect(bot.trace.some(line => line.includes("menu-match-2-start") || line.includes("menu-match-2-stage"))).toBe(false);
+  const firstEnd = bot.trace.indexOf("event end");
+  const secondStart = bot.trace.indexOf("event start", bot.trace.indexOf("event start") + 1);
+  expect(bot.trace.indexOf("type a -dev perf")).toBeGreaterThan(secondStart);
+  expect(bot.trace.slice(firstEnd, secondStart).some(line => line.includes("menu-results-confirm") || line.includes("menu-character"))).toBe(false);
+  expect(bot.events.filter(event => event.event === "start" || event.event === "end").map(event => [event.event, event.epoch])).toEqual([["start", 1], ["end", 1], ["start", 2], ["end", 2]]);
 });

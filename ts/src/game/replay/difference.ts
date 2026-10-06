@@ -312,6 +312,9 @@ export function firstStateDifference(expected: Readonly<ReplayState>, actual: Re
   if (e.practice !== a.practice) return "match.practice";
   if (e.stockCount !== a.stockCount) return "match.stockCount";
   if (e.timeLimitMinutes !== a.timeLimitMinutes) return "match.timeLimitMinutes";
+  if (e.endless !== a.endless) return "match.endless";
+  if (e.automaticRematch !== a.automaticRematch) return "match.automaticRematch";
+  if (e.rematchCountdown !== a.rematchCountdown) return "match.rematchCountdown";
   if (e.remainingFrames !== a.remainingFrames) return "match.remainingFrames";
   if (e.matchFrame !== a.matchFrame) return "match.matchFrame";
   if (e.timedOut !== a.timedOut) return "match.timedOut";

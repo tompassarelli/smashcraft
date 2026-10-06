@@ -98,6 +98,12 @@ export class ReplayHistory {
   private readonly snapshots = repeat(REPLAY_HISTORY_CAPACITY, createReplaySnapshot);
   private readonly inputs = repeat(REPLAY_HISTORY_CAPACITY, createMatchFrameInput);
   private readonly speculative = repeat(REPLAY_HISTORY_CAPACITY, () => false);
+  // The corrected state a repair replays, apart from live state, which keeps running.
+  private readonly repairState = createReplaySnapshot();
+  /** The next frame a pending repair runs; every snapshot before it is corrected. */
+  private repairNext: number | undefined;
+  /** Whether repairState holds the state before repairNext. */
+  private repairPositioned = false;
   private correctionWindow = 0;
   private authoritativeThrough = 0;
   private current: number | undefined;
@@ -113,6 +119,8 @@ export class ReplayHistory {
     this.count = 0;
     this.correctionWindow = correctionWindow;
     this.authoritativeThrough = firstFrame - 1;
+    this.repairNext = undefined;
+    this.repairPositioned = false;
     for (const row of this.inputs) resetMatchFrameInput(row);
     this.speculative.fill(false);
     return true;
@@ -130,6 +138,7 @@ export class ReplayHistory {
   /** Every snapshot's world, retained or not, for a change they must all take, such as authored tuning a reload changed. */
   visitWorlds(visit: (world: Roster) => void): void {
     for (const snapshot of this.snapshots) visit(snapshot.world);
+    visit(this.repairState.world);
   }
 
   firstRetainedFrame(): number {
@@ -189,6 +198,17 @@ export class ReplayHistory {
    * is rejected whole, before history or live state changes.
    */
   correct(epoch: number, corrections: ReplayCorrections, live: ReplayState): CorrectionResult {
+    const earliest = this.amend(epoch, corrections, live);
+    if (earliest === "rejected" || this.repairNext === undefined) return earliest;
+    return this.repair(epoch, REPLAY_HISTORY_CAPACITY, live) === "rejected" ? "rejected" : earliest;
+  }
+
+  /**
+   * As correct, but replays nothing yet: the rows change now, and repair()
+   * replays from the earliest frame any amendment changed. Returns the
+   * earliest frame this batch changed.
+   */
+  amend(epoch: number, corrections: ReplayCorrections, live: Readonly<ReplayState>): CorrectionResult {
     if (this.current === undefined || epoch !== this.current || corrections.epoch() !== epoch || live.runtime.simulationFrame !== this.nextFrame - 1) return "rejected";
     let earliest = this.nextFrame;
     for (let index = 0; index < corrections.size(); index++) {
@@ -208,13 +228,44 @@ export class ReplayHistory {
     }
     this.advanceAuthoritative();
     if (earliest === this.nextFrame) return "unchanged";
-    this.restore(epoch, earliest, live);
-    for (let frame = earliest; frame < this.nextFrame; frame++) {
-      copyReplayState(this.snapshotAt(frame), live);
-      if (!this.executeRecorded(frame, live)) return "rejected";
+    // Snapshots before repairNext are corrected; a later change waits for the repair to reach it.
+    if (this.repairNext === undefined || earliest < this.repairNext) {
+      this.repairNext = earliest;
+      this.repairPositioned = false;
     }
     return earliest;
   }
+
+  /**
+   * Replays a pending amendment in the history's own state, at most budget
+   * frames, refreshing each snapshot it passes. Live state keeps running the
+   * present meanwhile; once the repair reaches it, the corrected state
+   * replaces live state. Returns the frames it replayed.
+   */
+  repair(epoch: number, budget: number, live: ReplayState): number | "rejected" {
+    if (this.current === undefined || epoch !== this.current) return "rejected";
+    const start = this.repairNext;
+    if (start === undefined) return 0;
+    if (live.runtime.simulationFrame !== this.nextFrame - 1 || !this.contains(epoch, start)) return "rejected";
+    const state = this.repairState;
+    if (!this.repairPositioned) {
+      copyReplayState(state, this.snapshotAt(start));
+      this.repairPositioned = true;
+    }
+    let frame = start;
+    for (let steps = 0; steps < budget && frame < this.nextFrame; steps++) {
+      copyReplayState(this.snapshotAt(frame), state);
+      if (!this.executeRecorded(frame, state)) return "rejected";
+      frame++;
+      this.repairNext = frame;
+    }
+    if (frame < this.nextFrame) return frame - start;
+    copyReplayState(live, state);
+    this.repairNext = undefined;
+    this.repairPositioned = false;
+    return frame - start;
+  }
+
 
   private saveRow(epoch: number, row: Readonly<MatchFrameInput>, predicted: boolean, live: Readonly<ReplayState>): boolean {
     if (this.current === undefined || epoch !== this.current || row.mask !== live.world.mask) return false;

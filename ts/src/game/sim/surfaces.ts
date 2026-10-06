@@ -2,7 +2,7 @@
 // the wall and ceiling techs that recover from them, and wall jumps.
 import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
-import { DownState, SpecialAction, SurfaceContact } from "./codes";
+import { Character, DownState, SpecialAction, SurfaceContact } from "./codes";
 import { WALL_TECH_STARTUP_FRAMES, inGrabContext, isTumbling } from "./conditions";
 import { type Fighter, WALL_JUMP_FLICK_FRAMES, WALL_TECH_JUMP_INPUT_WINDOW_FRAMES } from "./fighter";
 import { setWorldMotionValue, totalVelocityX, totalVelocityZ } from "./motion";
@@ -34,13 +34,37 @@ const WALL_JUMPS_USED_LIMIT = 255;
 export const BODY_HALF_WIDTH = 2.0;
 const BODY_REACH = melee(BODY_HALF_WIDTH);
 
-/** How far a fighter's body moves a surface sideways: a sideways-facing surface meets its flank, a level underside its feet. */
+/**
+ * How far above its position a fighter's top is, in Melee units: Melee's
+ * airborne ECB top, the highest of its six ECB bones (ftData x44;
+ * melee:src/melee/mp/mpcoll.c mpColl_LoadECB_JObj, with no 2-unit pad, as
+ * falls and jumps load it), in its model's bind pose (PlFxNr.dat,
+ * PlFcNr.dat, PlCaNr.dat) times its model_scaling (+0x8C): Fox's head 11.625
+ * x 0.96, Falco's 12.5 x 1.1, Captain Falcon's 19.3585 x 0.97.
+ */
+export function bodyTop(character: Character): number {
+  switch (character) {
+    case Character.archer:
+      return 11.15999984741211;
+    case Character.rifleman:
+      return 13.75;
+    case Character.demonHunter:
+      return 18.777746200561523;
+  }
+}
+
+/** How far a fighter's body moves a surface sideways: a sideways-facing surface meets its flank. */
 function bodyShift(surface: SolidSurface): number {
   return surface.normalX > 0 ? BODY_REACH : surface.normalX < 0 ? -BODY_REACH : 0.0;
 }
 
-function signedDistance(surface: SolidSurface, shift: number, x: number, z: number): number {
-  return f32(f32(f32(x - f32(surface.startX + shift)) * surface.normalX) + f32(f32(z - surface.startZ) * surface.normalZ));
+/** How far a fighter's body moves a surface down: a ceiling meets its top, other surfaces its position. */
+function bodyLift(f: Fighter, surface: SolidSurface): number {
+  return surface.kind === SurfaceContact.ceiling ? -melee(bodyTop(f.character)) : 0.0;
+}
+
+function signedDistance(surface: SolidSurface, shift: number, lift: number, x: number, z: number): number {
+  return f32(f32(f32(x - f32(surface.startX + shift)) * surface.normalX) + f32(f32(z - f32(surface.startZ + lift)) * surface.normalZ));
 }
 
 /**
@@ -49,8 +73,8 @@ function signedDistance(surface: SolidSurface, shift: number, x: number, z: numb
  * sign is signedDistance's in both, without the exact operations (about 1 µs
  * each in Lua) that every fighter would pay for every surface on every frame.
  */
-function roughDistance(surface: SolidSurface, shift: number, x: number, z: number): number {
-  return (x - (surface.startX + shift)) * surface.normalX + (z - surface.startZ) * surface.normalZ;
+function roughDistance(surface: SolidSurface, shift: number, lift: number, x: number, z: number): number {
+  return (x - (surface.startX + shift)) * surface.normalX + (z - (surface.startZ + lift)) * surface.normalZ;
 }
 
 /**
@@ -124,13 +148,13 @@ function stopInwardMotion(f: Fighter, nx: number, nz: number, own: boolean): voi
 }
 
 /** Puts a point that crossed the shifted surface back onto its line. */
-function placeOnSurface(f: Fighter, surface: SolidSurface, shift: number, distance: number): void {
+function placeOnSurface(f: Fighter, surface: SolidSurface, shift: number, lift: number, distance: number): void {
   const { motion } = f;
   if (surface.normalZ === 0) {
     motion.x = f32(surface.startX + shift);
     setWorldMotionValue(motion.meleeX, motion.x);
   } else if (surface.normalX === 0) {
-    motion.z = surface.startZ;
+    motion.z = f32(surface.startZ + lift);
     setWorldMotionValue(motion.meleeZ, motion.z);
   } else {
     motion.x = f32(motion.x - f32(distance * surface.normalX));
@@ -145,18 +169,19 @@ function resolveSolidSurfaceContact(f: Fighter, stage: number, index: number, ol
   const { kind, normalX: nx, normalZ: nz } = surface;
   const { motion, launch, surfaceRecovery: recovery } = f;
   const shift = bodyShift(surface);
-  if (roughDistance(surface, shift, oldX, oldZ) < -1 || roughDistance(surface, shift, motion.x, motion.z) > 1) return false;
-  const oldDistance = signedDistance(surface, shift, oldX, oldZ);
-  const newDistance = signedDistance(surface, shift, motion.x, motion.z);
+  const lift = bodyLift(f, surface);
+  if (roughDistance(surface, shift, lift, oldX, oldZ) < -1 || roughDistance(surface, shift, lift, motion.x, motion.z) > 1) return false;
+  const oldDistance = signedDistance(surface, shift, lift, oldX, oldZ);
+  const newDistance = signedDistance(surface, shift, lift, motion.x, motion.z);
   if (oldDistance < 0 || newDistance >= 0) return false;
   const fraction = f32(oldDistance / f32(oldDistance - newDistance));
   const contactX = f32(oldX + f32(f32(motion.x - oldX) * fraction));
   const contactZ = f32(oldZ + f32(f32(motion.z - oldZ) * fraction));
   if (!withinSurface(surface, shift, contactX, contactZ)) return false;
-  placeOnSurface(f, surface, shift, newDistance);
+  placeOnSurface(f, surface, shift, lift, newDistance);
   recovery.contactSerial++;
   recovery.contactX = f32(contactX - shift);
-  recovery.contactZ = contactZ;
+  recovery.contactZ = f32(contactZ - lift);
   recovery.contactNormalX = nx;
   recovery.contactNormalZ = nz;
   recovery.contactApproachSpeed = max(0.0, -f32(f32(totalVelocityX(f) * nx) + f32(totalVelocityZ(f) * nz)));

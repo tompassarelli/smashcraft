@@ -9,7 +9,8 @@ import { f32 } from "wisp/src/sim/f32";
 import { Character, SurfaceContact } from "../sim/codes";
 import { WALL_TECH_STARTUP_FRAMES, canAttack, isIntangible, isTumbling } from "../sim/conditions";
 import { type Fighter, createFighter } from "../sim/fighter";
-import { SOLID_DECK_TEST_STAGE, surfaceRight, surfaceZ } from "../sim/stage";
+import { MAIN_DECK_BODY_SURFACES, SOLID_DECK_TEST_STAGE, solidSurfaceAt, surfaceRight } from "../sim/stage";
+import { bodyTop } from "../sim/surfaces";
 import { WORLD_UNITS_PER_MELEE_UNIT, melee } from "../sim/tuning";
 import { type Pad, type PadMatch, padMatch, playPads } from "./helperPads";
 import { testMatch } from "./testMatch";
@@ -240,15 +241,37 @@ function startUnderDeck(victimCharacter: Character): Run {
   return { ...padMatch(match, "ceiling-tech"), victim };
 }
 
-test("a ceiling tech moves each fighter sideways by its reference's impulse on its event frame", () => {
+/** The left raised deck's underside on the solid-deck test stage. */
+const RAISED_UNDERSIDE_Z = solidSurfaceAt(SOLID_DECK_TEST_STAGE, MAIN_DECK_BODY_SURFACES + 2).startZ;
+
+/** Where the fighter stands when its Melee ECB top (Fox's, Falco's or Captain Falcon's) meets that underside. */
+const underUnderside = (character: Character) => f32(RAISED_UNDERSIDE_Z - melee(bodyTop(character)));
+
+test("a launch into a raised deck's underside meets it with the fighter's ECB top and rebounds from there", () => {
   for (const character of VICTIMS) {
-    // The up smash (C-stick up) launches the victim into the deck's underside; it techs on its first free frame.
+    // The up smash (C-stick up) launches the victim into the deck's underside.
+    const run = startUnderDeck(character);
+    launch(run, NEUTRAL, { cy: 1.0 });
+    const { victim } = run;
+    assertEquals(victim.surfaceRecovery.contactKind, SurfaceContact.ceiling);
+    assertEquals(victim.surfaceRecovery.contactZ, RAISED_UNDERSIDE_Z);
+    assertEquals(victim.motion.z, underUnderside(character));
+    assertLessThan(victim.launch.knockbackZ, 0.0);
+  }
+});
+
+test("a ceiling tech starts at the ECB top's contact and moves each fighter sideways by its reference's impulse on its event frame", () => {
+  for (const character of VICTIMS) {
+    // The up smash launches the victim into the deck's underside; it techs on its first free frame.
     const missed = launch(startUnderDeck(character), NEUTRAL, { cy: 1.0 });
     const run = startUnderDeck(character);
     launch(run, (frame) => ({ trigger: frame === missed.free }), { cy: 1.0 });
     const { victim } = run;
     assertEquals(victim.surfaceRecovery.contactKind, SurfaceContact.techCeiling);
-    assertLessThan(victim.motion.z, surfaceZ(SOLID_DECK_TEST_STAGE, 1, 0));
+    assertEquals(victim.surfaceRecovery.contactZ, RAISED_UNDERSIDE_Z);
+    assertEquals(victim.motion.z, underUnderside(character));
+    // Held airborne from here: the floor below this deck is nearer than the fall to the impulse frame.
+    victim.tuning = { ...victim.tuning, physics: { ...victim.tuning.physics, gravity: 0.0 } };
     const reference = referenceWall(character);
     for (let frame = 1; frame < reference.ceilingFrame; frame++) {
       playPads(run, {}, {});

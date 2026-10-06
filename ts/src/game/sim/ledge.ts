@@ -81,6 +81,19 @@ export function ledgeCatchBox(character: Character): LedgeCatchBox {
   }
 }
 
+/**
+ * A fighter hanging on the ledge can't be caught by a standing, dash or shield
+ * grab, whatever its intangibility. ftCliffCommon_80081370 and ftCo_8009A804
+ * (melee:src/melee/ft/ftcliffcommon.c, ftCo_CliffWait.c) give the hanger
+ * x1A6A = 511 through ftCommon_8007E2F4; ftCo_800D8C54 (ftCo_Catch.c) gives every
+ * catch x1A68 = 1; and ftColl_80078A2C (ftcoll.c) skips a victim whose
+ * x1A6A & x1A68 is nonzero. Fighter_ChangeMotionState clears x1A6A, so
+ * climbs, rolls, attacks and drops from the hang are catchable again.
+ */
+export function hangsOnLedge(f: Fighter): boolean {
+  return f.ledge.state === LedgeState.hang;
+}
+
 function ledgeX(stage: number, side: number): number {
   return side < 0 ? mainDeckLeft(stage) : mainDeckRight(stage);
 }

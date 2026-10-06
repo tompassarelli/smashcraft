@@ -34,8 +34,13 @@ class ReplayHistoryPlayback implements RollbackPlayback {
 
   reconcile(schedule: Parameters<RollbackPlayback["reconcile"]>[0], epoch: number, localPlayer: number, match: SpeculativeMatch): ReturnType<RollbackPlayback["reconcile"]> {
     if (epoch !== this.current) return "rejected";
-    const result = this.playback.reconcile(schedule, epoch, localPlayer, this.bind(match), this.history);
+    const result = this.playback.amend(schedule, epoch, localPlayer, this.bind(match), this.history);
     return correction(result);
+  }
+
+  repair(epoch: number, match: SpeculativeMatch, budget: number): number | "rejected" {
+    if (epoch !== this.current) return "rejected";
+    return this.history.repair(epoch, budget, this.bind(match));
   }
 
   catchUp(

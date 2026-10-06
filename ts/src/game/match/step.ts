@@ -114,7 +114,7 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
     if (!isActive(world, slot)) continue;
     const f = fighterAt(world, slot);
     if (inGrabContext(f)) clearAttackBuffer(controls.commands[slot]);
-    if (game.practice && f.status.out && !beforeOut[slot]) {
+    if ((game.practice || game.endless) && f.status.out && !beforeOut[slot]) {
       f.status.stocks = game.stockCount;
       f.status.respawn = 60;
     }

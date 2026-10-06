@@ -3,15 +3,17 @@
 // player's helper is the journal stand-in (test/rematch/journalHelper.ts) on
 // the soak's wall clock: it types rows from the fuzzed controller ("fuzz"),
 // neutral rows while the player's fighter is a computer ("cpu"), or nothing,
-// as when no helper runs ("absent"). Loaded only by the soak's worker
-// processes, so the host type check never reads map code.
+// as when no helper runs ("absent"). The host client's confirmed match also
+// feeds the lock-loop detector (scripts/lockWatch.ts), whose findings are
+// `game` findings. Loaded only by the soak's worker processes, so the host
+// type check never reads map code.
 import { appendFileSync } from "node:fs";
 import { type SoakDriver, type SoakEdge, type SoakMatch, defineSoakGame } from "wisp/scripts/wisp/soak";
 import type { HeadlessClient } from "wisp/src/headless/client";
 import type { Lockstep } from "wisp/src/headless/lockstep";
 import { originalClip, originalClipCount } from "../../src/game/assets/fighterOriginalClipInfo";
 import { Action, bit } from "../../src/game/input/actions";
-import { type InputRow, emptyInput, inputRow } from "../../src/game/input/inputRow";
+import { INPUT_ROW_NUMBERS, type InputRow, emptyInput, inputRow, loadInputNumbers } from "../../src/game/input/inputRow";
 import { PARTICIPANT_SLOTS } from "../../src/game/input/participants";
 import { MATCH_TICKS_PER_SECOND, Phase } from "../../src/game/match/rules";
 import { PLAYABLE_BUILD } from "../../src/game/shell/currentBuild";
@@ -25,6 +27,7 @@ import { confirmedChecksum } from "../../src/platform/shell/diagnostics";
 import { Key } from "../../src/platform/shell/keyEvents";
 import { panelActions } from "../../src/platform/shell/menus";
 import { shell } from "../../src/platform/shell/state";
+import { LockWatch, type RecordedRows } from "../../scripts/lockWatch";
 import { JournalHelpers } from "../rematch/journalHelper";
 import { SOAK_BUTTONS, STICK_DEAD_ZONE } from "./controller";
 
@@ -165,15 +168,17 @@ export function beginMatch(clients: Lockstep, match: SoakMatch, frame: () => voi
   });
   const chosen = readIn(host, () => shell().game.characterChoices.slice(0, fighters.length));
   if (chosen.join() !== fighters.join()) throw new Error(`fighters ${chosen.join()} chosen, not ${fighters.join()}`);
+  clients.everywhere(() => {
+    const { game } = shell();
+    const { selection: actions } = panelActions();
+    while (game.stockCount > STOCKS) actions.changeStocks(0, -1);
+    while (game.timeLimitMinutes > MINUTES) actions.changeTime(0, -1);
+  });
   clients.press(0, Key.y);
   until("stage selection", () => readIn(host, () => shell().game.phase) === Phase.stageMenu);
   clients.everywhere(() => {
-    const { game } = shell();
-    const { stage: actions } = panelActions();
-    if (stage === 0 || stage === 1) actions.selectStage(0, stage);
-    else game.stageChoice = stage;
-    while (game.stockCount > STOCKS) actions.changeStocks(0, -1);
-    while (game.timeLimitMinutes > MINUTES) actions.changeTime(0, -1);
+    if (stage === 0 || stage === 1) panelActions().stage.selectStage(0, stage);
+    else shell().game.stageChoice = stage;
   });
   clients.press(0, Key.y);
   until("the match", () => readIn(host, () => shell().game.phase) === Phase.match);
@@ -219,6 +224,28 @@ export function matchView(journaled: (slot: number) => number | undefined): Pick
         const character = s.game.characterChoices[slot];
         return [{ name: `${NAMES[character] ?? "fighter"} (Player ${slot + 1})`, models: clipModels(character) }];
       });
+    },
+  };
+}
+
+/** The row a human slot ran a confirmed frame with, as the moment recorder keeps it (src/game/replay/moment.ts). */
+const recordedRows: RecordedRows = (frame, slot) => {
+  const { recorder } = shell().moment;
+  const ring = recorder.rowFrames.length;
+  const index = ((frame % ring) + ring) % ring;
+  const numbers = recorder.rows[slot];
+  if (numbers === undefined || recorder.rowFrames[index] !== frame || ((recorder.rowMasks[index] ?? 0) & (1 << slot)) === 0) return undefined;
+  return loadInputNumbers(numbers, index * INPUT_ROW_NUMBERS);
+};
+
+/** The lock-loop detector (scripts/lockWatch.ts) on the host client's confirmed match: each loop a fighter can't act out of. */
+function lockLoops(): Pick<SoakDriver, "findings"> {
+  const watch = new LockWatch();
+  return {
+    findings: (client) => {
+      if (client.slot !== 0) return [];
+      const s = shell();
+      return watch.advance({ world: s.world, match: s.game, controls: s.controls, runtime: s.runtime }, recordedRows).map((text) => ({ detector: "lock-loop", text }));
     },
   };
 }
@@ -426,7 +453,7 @@ export default defineSoakGame({
     if (match.typed === true) {
       // Played through the real helpers (test/soak/helper.ts): the soak types what they typed, so no stand-in types.
       beginMatch(clients, match, () => clients.frames(1));
-      return { input: () => undefined, ...matchView(() => undefined) };
+      return { input: () => undefined, ...matchView(() => undefined), ...lockLoops() };
     }
     const helpers = new JournalHelpers(PLAYABLE_BUILD.id, true);
     const controllers = new Map<number, ControllerRows>();
@@ -459,6 +486,7 @@ export default defineSoakGame({
         helpers.service(clients);
       },
       ...view,
+      ...lockLoops(),
       typed: (slot) => helpers.typed.get(slot) ?? 0,
       observe: (client) => {
         const seen = view.observe(client);

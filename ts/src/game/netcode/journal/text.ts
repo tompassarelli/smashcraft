@@ -12,6 +12,14 @@ import { padDecimal, parseDecimal } from "./decimal";
 /** Records received ahead of consumption that the stream holds. */
 export const TEXT_WINDOW = 16;
 
+/**
+ * Characters the helper types at most past the record the receipt says the
+ * edit box received, a joined record included (wc3-journal's
+ * TYPED_AHEAD_BYTES): Warcraft takes typed text at a cost that grows with how
+ * much it takes at once.
+ */
+export const TYPED_AHEAD_CHARACTERS = 256;
+
 const CHECKSUM_ALPHABET = `${ALPHABET}|`;
 const PAYLOAD_START = 29;
 const LAST_SEQUENCE = 2147483647;
