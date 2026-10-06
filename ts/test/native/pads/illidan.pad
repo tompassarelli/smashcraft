@@ -1,0 +1,70 @@
+# Illidan's native checks by parity: #116 Mana Burn, #128 Immolate and glide, #147 Fel Rush.
+# Illidan a against Illidan b; syntax and checks: smashcraft:docs/native-bot-session.md.
+#! chat -dev quick hero illidan
+# #116: the orb hits a standing b and stuns it.
+60 a tap X 2
+# #116 counterplay: b full-jumps the second orb.
+200 a tap X 2
+232 b tap B 8
+# Both dash in, about 75 apart.
+300 b stick -1 0
+302 b stick 0 0
+310 a stick 1 0
+312 a stick 0 0
+# #147: a Fel Rush into b's held shield stops short.
+330 b shield 1
+340 a stick 1 0
+340 a tap X 2
+341 a stick 0 0
+420 b shield 0
+# #147: a rush through b, then Vengeful Retreat (special on its frame 17).
+470 a stick 1 0
+470 a tap X 2
+471 a stick 0 0
+486 a tap X 2
+# #147: a rush through b, then Chaos Strike (attack on its frame 17).
+# View held a second: the first of two moments the parity check replays.
+500 a press VIEW
+570 a release VIEW
+600 a stick 1 0
+600 a tap X 2
+601 a stick 0 0
+616 a tap A 2
+# #128: Immolate cancelled by a jump on its 6th frame.
+720 a stick 0 -1
+720 a tap X 2
+721 a stick 0 0
+725 a tap B 6
+# #128: turn left, jump, Wing Ascent, glide on its 17th frame, wing slash.
+800 a stick -0.5 0
+804 a stick 0 0
+840 a tap B 6
+847 a stick 0 1
+847 a tap X 2
+848 a stick 0 0
+863 a tap B 2
+871 a tap A 2
+# Expected, frame by frame (headless run of this script):
+#! expect a 60 special 9 form 0
+#! expect b 110 damage 5.000 hitlag 4 hitstun 15
+#! expect a 200 special 9 form 0
+#! expect b 235 applied jump
+#! absent b 111-330 damage
+#! expect a 340 special 10 form 0
+#! expect a 372 special 0 form 0 action-frame 0 x 50.719
+#! expect a 470 special 10 form 0
+#! expect a 486 special-form 1 action 10
+#! expect a 600 special 10 form 0
+#! expect b 606 damage 11.000
+#! expect a 616 special-form 2 action 10
+#! expect a 720 special 12 form 0
+#! expect a 725 special 0
+#! expect a 728 applied jump
+#! expect a 847 special 11 form 0
+#! expect a 863 special-form 1 action 11
+#! expect a 871 special-form 2 action 11
+#! expect a 890 special 0 form 2
+#! scene a ManaBurnTarget
+#! scene a DemonHunterMissile
+1000 a press VIEW
+1070 a release VIEW

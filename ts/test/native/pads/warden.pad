@@ -1,0 +1,43 @@
+# Warden's native checks by parity: #126 the mark and Shadow Pursuit.
+# Warden a against Warden b; syntax and checks: smashcraft:docs/native-bot-session.md.
+#! chat -dev quick hero warden
+# b dashes in to about 280 away, within Shadow Pursuit's reach.
+40 b stick -1 0
+42 b stick 0 0
+# Counterplay: b's held shield takes Shadow Strike, so no mark.
+50 b shield 1
+60 a tap X 2
+140 b shield 0
+# Shadow Strike marks b.
+200 a tap X 2
+# Shadow Pursuit appears behind the marked b and slashes.
+290 a stick 1 0
+290 a tap X 2
+291 a stick 0 0
+# The mark is spent: the next side special, back toward b, is the plain Pursuit Lunge.
+440 a stick -1 0
+440 a tap X 2
+441 a stick 0 0
+# Fan of Knives.
+# View held a second: the first of two moments the parity check replays.
+500 a press VIEW
+570 a release VIEW
+600 a stick 0 -1
+600 a tap X 2
+601 a stick 0 0
+# Expected, frame by frame (headless run of this script):
+#! expect a 60 special 13 form 0
+#! absent b 60-199 damage
+#! expect a 200 special 13 form 0
+#! expect b 229 damage 5.000
+#! expect b 289 damage 6.000 hitlag 0 hitstun 0
+#! expect a 290 special 14 form 4
+#! expect b 307 damage 16.000
+#! expect a 334 special 0 form 4 action-frame 0 x 137.240
+#! expect a 440 special 14 form 0
+#! expect b 450 damage 26.000
+#! expect a 600 special 16 form 0
+#! expect b 608 damage 33.000
+#! expect b 668 damage 34.000 hitlag 0 hitstun 0
+1000 a press VIEW
+1070 a release VIEW

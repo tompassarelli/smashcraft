@@ -1,10 +1,10 @@
 import { expect, test } from "bun:test";
-import { ABS_X, ABS_Y, ABS_Z, BTN_A, EV_ABS, EV_KEY } from "../scripts/integrity/linuxInput";
+import { ABS_X, ABS_Y, ABS_Z, BTN_A, BTN_SELECT, EV_ABS, EV_KEY } from "../scripts/integrity/linuxInput";
 import { frameWriteNs, landEdges, matchStart, parsePadScript, publishedFrame, ruleFrame } from "../scripts/integrity/padScript";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { compareRuns, parseExpectations, parseTrace, unmetExpectations } from "../scripts/integrity/padParity";
+import { compareRuns, parseExpectations, parseTrace, scriptChat, unmetExpectations } from "../scripts/integrity/padParity";
 
 test("a pad script becomes frame-ordered edges, a tap a press and its release", () => {
   const steps = parsePadScript(`
@@ -78,4 +78,20 @@ test("a native pad run that desynced, crashed or ended early is invalid, neither
   const report = compareRuns(native, headless, "60 a tap X 2");
   expect(report).toEqual({ passed: false, invalid: true, lines: ["INVALID: desynced, rerun: client a wrote a desync report (Errors/2026-10-07_064512)"] });
   rmSync(root, { recursive: true });
+});
+
+test("every native check script parses, names its match, starts after the helpers see it and saves a moment", () => {
+  const folder = join(import.meta.dir, "native", "pads");
+  const scripts = readdirSync(folder).filter((name) => name.endsWith(".pad"));
+  expect(scripts.length).toBeGreaterThan(0);
+  for (const name of scripts) {
+    const script = readFileSync(join(folder, name), "utf8");
+    const steps = parsePadScript(script);
+    expect([name, scriptChat(script)?.startsWith("-dev quick")]).toEqual([name, true]);
+    expect([name, (steps.find((step) => step.kind === "edge")?.frame ?? 0) >= 15]).toEqual([name, true]);
+    // View held a second asks for the moment the parity check replays.
+    const view = steps.filter((step) => step.kind === "edge" && step.edges.some((edge) => edge.code === BTN_SELECT));
+    expect([name, view.length >= 2 && view.length % 2 === 0 && view.every((press, index) => index % 2 === 1 || (view[index + 1]?.frame ?? 0) - press.frame >= 60)]).toEqual([name, true]);
+    expect([name, parseExpectations(script).length > 0]).toEqual([name, true]);
+  }
 });

@@ -1,0 +1,42 @@
+# Blademaster's native checks by parity: #124 Wind Walk Backstab and Mirror Image swap.
+# Blademaster a against Blademaster b; syntax and checks: smashcraft:docs/native-bot-session.md.
+#! chat -dev quick hero blademaster
+40 b stick -1 0
+48 b stick 0 0
+# Wind Walk toward b, Backstab on its 16th frame.
+60 a stick 1 0
+60 a tap X 2
+61 a stick 0 0
+75 a tap A 2
+# Mirror Image, then the swap with its slash.
+200 a stick 0 -1
+200 a tap X 2
+201 a stick 0 0
+260 a stick 0 -1
+260 a tap X 2
+261 a stick 0 0
+# Counterplay: b's held shield blocks the swap slash.
+# View held a second: the first of two moments the parity check replays.
+500 a press VIEW
+570 a release VIEW
+600 a stick 0 -1
+600 a tap X 2
+601 a stick 0 0
+620 b shield 1
+650 a stick 0 -1
+650 a tap X 2
+651 a stick 0 0
+700 b shield 0
+# Expected, frame by frame (headless run of this script):
+#! expect a 60 special 14 form 0
+#! expect a 75 special-form 5 action 14
+#! expect b 80 damage 10.000
+#! expect a 200 special 16 form 0
+#! expect a 223 special 0 form 0 action-frame 0 x -202.456
+#! expect a 260 special 16 form 3
+#! expect b 267 damage 20.000
+#! expect a 650 special 16 form 3
+#! absent b 620-700 damage
+#! scene a MirrorImageCaster
+1000 a press VIEW
+1070 a release VIEW

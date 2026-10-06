@@ -214,8 +214,9 @@ It sends the script through the same helper binary, in two headless clients
 of the integrity build, so both sides translate the pad the same way. Then
 it checks three things:
 
-- The headless moment, saved because the script holds View for a second,
-  replays to every native confirmed-state checksum in its frames.
+- Each headless moment replays to every native confirmed-state checksum
+  in its frames. A View hold of a second saves a moment of the last ten
+  seconds, so scripts hold View twice, near frames 500 and 1000.
 - The confirmed fighter lines in the traces are equal: specials, attacks,
   jumps, hits and recoveries, each with its frame.
 - Each `#! expect CLIENT FRAME TEXT`, `#! absent CLIENT FROM-TO TEXT` and

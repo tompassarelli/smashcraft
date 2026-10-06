@@ -185,27 +185,31 @@ export function compareRuns(nativeDir: string, headlessDir: string, script: stri
     const nativeTrace = parseTrace(nativeLines);
     const headlessTrace = parseTrace(headlessLines);
     problems.push(...unmetExpectations(nativeTrace, expectations, "native"), ...unmetExpectations(headlessTrace, expectations, "headless"));
-    const momentName = readdirSync(headlessDir).find((name) => REPRO_NAME.test(name));
-    const moment = momentName === undefined ? undefined : parseRepro(readLines(join(headlessDir, momentName)) ?? []);
-    if (moment === undefined || typeof moment === "string") problems.push(`headless: no moment saved (${moment ?? "hold View a second at the script's end"})`);
-    else {
+    const moments = (dir: string) => readdirSync(dir).flatMap((name) => {
+      const parsed = REPRO_NAME.test(name) ? parseRepro(readLines(join(dir, name)) ?? []) : undefined;
+      return parsed === undefined || typeof parsed === "string" ? [] : [parsed];
+    });
+    const headlessMoments = moments(headlessDir).sort((x, y) => x.frame - y.frame);
+    const nativeMoments = moments(nativeDir);
+    if (headlessMoments.length === 0) problems.push("headless: no moment saved (hold View a second in the script)");
+    const checked = new Set<number>();
+    for (const moment of headlessMoments) {
+      // Each moment, saved by a View hold, replays to the native checksums of its frames.
       const start = Number(/^start (\d+) /m.exec(moment.lines.join("\n"))?.[1] ?? Number.NaN);
-      const nativeMoments = readdirSync(nativeDir).flatMap((name) => {
-        const parsed = REPRO_NAME.test(name) ? parseRepro(readLines(join(nativeDir, name)) ?? []) : undefined;
-        return parsed === undefined || typeof parsed === "string" ? [] : [parsed];
-      });
       const checkpoints = new Map<number, string>();
       for (const [frame, checksum] of nativeTrace.checksums) if (frame > start && frame <= moment.frame) checkpoints.set(frame, checksum);
       for (const saved of nativeMoments) if (saved.frame > start && saved.frame <= moment.frame) checkpoints.set(saved.frame, saved.checksum);
       const replay = replayRepro({ ...moment, lines: [...moment.lines, ...[...checkpoints].map(([frame, checksum]) => `checkpoint ${frame} ${checksum}`)] });
-      problems.push(...replay.problems.map((problem) => `checksum parity: ${problem}`));
-      if (checkpoints.size < 2) problems.push(`checksum parity: only ${checkpoints.size} native checksums fall in the headless moment (frames ${start + 1}-${moment.frame})`);
-      lines.push(`checksums: ${checkpoints.size} native confirmed-state checksums on frames ${[...checkpoints.keys()].sort((x, y) => x - y).join(", ")} replay equal in the headless moment (frames ${start + 1}-${moment.frame})${replay.problems.length === 0 ? "" : " -- NOT"}`);
-      const through = Math.min(moment.frame, Math.max(0, ...nativeTrace.checksums.keys()), Math.max(0, ...headlessTrace.checksums.keys()));
-      const difference = eventDifference(nativeTrace, headlessTrace, through);
-      if (difference !== undefined) problems.push(`fighter lines differ through frame ${through}: ${difference}`);
-      else lines.push(`fighter lines: ${nativeTrace.events.filter((event) => event.frame <= through).length} confirmed lines equal through frame ${through}`);
+      problems.push(...replay.problems.map((problem) => `checksum parity (moment ending ${moment.frame}): ${problem}`));
+      for (const frame of checkpoints.keys()) checked.add(frame);
+      lines.push(`checksums: ${checkpoints.size} native confirmed-state checksums on frames ${[...checkpoints.keys()].sort((x, y) => x - y).join(", ")} replay ${replay.problems.length === 0 ? "equal" : "UNEQUAL"} in the headless moment of frames ${start + 1}-${moment.frame}`);
     }
+    if (headlessMoments.length > 0 && checked.size < 2) problems.push(`checksum parity: only ${checked.size} native checksums fall in the headless moments`);
+    const last = headlessMoments.at(-1)?.frame ?? 0;
+    const through = Math.min(last, Math.max(0, ...nativeTrace.checksums.keys()), Math.max(0, ...headlessTrace.checksums.keys()));
+    const difference = eventDifference(nativeTrace, headlessTrace, through);
+    if (difference !== undefined) problems.push(`fighter lines differ through frame ${through}: ${difference}`);
+    else lines.push(`fighter lines: ${nativeTrace.events.filter((event) => event.frame <= through).length} confirmed lines equal through frame ${through}`);
     lines.push(`expectations: ${expectations.length} checked on both sides`);
   }
   const scenes = parseSceneExpectations(script);

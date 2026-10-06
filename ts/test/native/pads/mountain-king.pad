@@ -1,0 +1,37 @@
+# Mountain King's native checks by parity: #125 Storm Bolt, Thunder Clap, Hammerfall.
+# Mountain King a against Mountain King b; syntax and checks: smashcraft:docs/native-bot-session.md.
+#! chat -dev quick hero mountain king
+# Storm Bolt out and back; its return hits b.
+60 a tap X 2
+# Storm Bolt recalled early on its 16th frame.
+200 a tap X 2
+215 a tap X 2
+# b dashes in; a late Thunder Clap, held 50 frames.
+300 b stick -1 0
+308 b stick 0 0
+330 a stick 0 -1
+330 a press X
+331 a stick 0 0
+380 a release X
+# Thunder Leap, Hammerfall on its 16th frame.
+# View held a second: the first of two moments the parity check replays.
+500 a press VIEW
+570 a release VIEW
+600 a stick 0 1
+600 a tap X 2
+601 a stick 0 0
+615 a tap X 2
+# Expected, frame by frame (headless run of this script):
+#! expect a 60 special 13 form 0
+#! expect b 104 damage 5.000
+#! expect a 200 special 13 form 0
+#! expect b 245 damage 10.000
+#! expect a 330 special 16 form 0
+#! expect b 394 damage 17.000 hitlag 5 hitstun 20
+#! expect a 600 special 15 form 0
+#! expect a 615 special-form 5 action 15
+#! expect a 625 special 0 form 5
+#! scene a StormBoltMissile
+#! scene a ThunderClapCaster
+1000 a press VIEW
+1070 a release VIEW

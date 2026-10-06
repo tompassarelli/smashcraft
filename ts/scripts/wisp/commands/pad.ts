@@ -217,20 +217,21 @@ const freshGame = (map: string) => Effect.gen(function*() {
   if (code !== 0) return yield* new IntegrityFailure({ operation: "start a new game", path: map, cause: `bun wisp fresh exited ${code}` });
 });
 
-/** Writes the schedule from padScheduleWorker.ts's thread, so the headless clients' frames keep their time. */
-const scheduled = (schedule: Schedule) => Effect.callback<readonly SentEdge[], IntegrityFailure>((resume) => {
-  const worker = new Worker(join(import.meta.dir, "../../integrity/padScheduleWorker.ts"));
+/** The thread padScheduleWorker.ts runs in, started before the match so its module has loaded by the first edge. */
+const scheduleThread = Effect.acquireRelease(
+  Effect.sync(() => new Worker(join(import.meta.dir, "../../integrity/padScheduleWorker.ts"))),
+  (worker) => Effect.sync(() => worker.terminate()),
+);
+
+/** Writes the schedule from that thread, so the headless clients' frames keep their time. */
+const scheduled = (worker: Worker, schedule: Schedule) => Effect.callback<readonly SentEdge[], IntegrityFailure>((resume) => {
   const sent: SentEdge[] = [];
   worker.onmessage = (event: MessageEvent<ScheduleReply>) => {
     const reply = event.data;
     if (reply.kind === "sent") sent.push({ line: reply.line, text: reply.text, slot: reply.slot, planned: reply.planned, injectedNs: reply.injectedNs });
-    else {
-      worker.terminate();
-      resume(reply.kind === "done" ? Effect.succeed(sent) : Effect.fail(new IntegrityFailure({ operation: "write pad edges", path: "padScheduleWorker", cause: reply.error })));
-    }
+    else resume(reply.kind === "done" ? Effect.succeed(sent) : Effect.fail(new IntegrityFailure({ operation: "write pad edges", path: "padScheduleWorker", cause: reply.error })));
   };
   worker.postMessage(schedule);
-  return Effect.sync(() => worker.terminate());
 });
 
 const headless = (options: PadOptions) => Effect.scoped(Effect.gen(function*() {
@@ -252,6 +253,7 @@ const headless = (options: PadOptions) => Effect.scoped(Effect.gen(function*() {
       helper, "--follow-matches", "--build", build, "--slot", String(slot), "--device", device.device, "--out", at(data, slot), "--text-out", textPath, "--trace",
     ], Bun.env, join(out, `helper-${slot}.log`));
   }
+  const worker = yield* scheduleThread;
   const clients = runtime.clients(entry, SLOTS, { files: (slot) => customMapData(at(data, slot)), delivery: syncDelivery(MEASURED_BATTLE_NET, 1), keepCalls: 64 });
   const realtime = new RealtimeClients(clients, typed);
   let crashed: unknown;
@@ -270,7 +272,7 @@ const headless = (options: PadOptions) => Effect.scoped(Effect.gen(function*() {
   const epochs = yield* matchEpochs(logs, startedNs, out);
   yield* checkFirstEdge(steps, epochs, scriptPath);
   const edges: ScheduledEdge[] = steps.flatMap((item) => item.kind === "edge" ? item.edges.map((edge) => ({ slot: item.slot, frame: item.frame, edge, line: item.line, text: item.text })) : []);
-  const sent = yield* scheduled({ pads: [at(pads, 0), at(pads, 1)], epochs, edges });
+  const sent = yield* scheduled(worker, { pads: [at(pads, 0), at(pads, 1)], epochs, edges });
   const last = steps.at(-1)?.frame ?? 0;
   yield* until(frameWriteNs(Math.max(...epochs), last + 30));
   const finished = yield* Effect.exit(finish(out, scriptPath, build, epochs, sent, logs()));
