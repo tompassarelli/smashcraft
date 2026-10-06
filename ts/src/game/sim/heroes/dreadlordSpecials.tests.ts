@@ -2,8 +2,9 @@
 // contact steps: costs, Carrion Swarm, Sleep Orb, Night Pounce's command grab
 // and Bat Ascension's steerable rise with its free form.
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
-import { resolveAttacks } from "../attacks";
-import { Character, HeroStatusKind, ProjectileKind, SpecialAction } from "../codes";
+import { f32 } from "wisp/src/sim/f32";
+import { beginFighterAttack, resolveAttacks } from "../attacks";
+import { AttackStyle, Character, HeroStatusKind, ProjectileKind, SpecialAction } from "../codes";
 import { beginDamageContacts, finishDamageContacts } from "../contacts";
 import { type Fighter, createFighter } from "../fighter";
 import { advanceGrabs, captureGrabPauses, resolveGrabs } from "../grabs";
@@ -218,4 +219,22 @@ test("replaying Night Pounce from a restored snapshot reproduces both fighters",
   run();
   assertEquals(firstFighterDifference(endOwner, owner, 3, 3), undefined);
   assertEquals(firstFighterDifference(endVictim, victim, 3, 3), undefined);
+});
+
+test("Night Pounce loses to a jab thrown into its approach and whiffs on a retreat", () => {
+  const read = pair(f32(1.2 * H));
+  frame(read.world, side);
+  for (let f = 2; f <= 16; f++) {
+    if (f === 11) beginFighterAttack(read.world, 1, AttackStyle.jab, false);
+    frame(read.world);
+  }
+  assertGreaterThan(read.owner.status.damage, 0.0);
+  assertEquals(read.owner.special.grabFrame, 0);
+  assertEquals(read.victim.grab.owner, undefined);
+  const retreat = pair(1.5 * H);
+  const away = controls({ direction: 1 });
+  frame(retreat.world, side, away);
+  for (let f = 2; f <= 20; f++) frame(retreat.world, controls(), away);
+  assertEquals(retreat.owner.special.grabFrame, 0);
+  assertEquals(retreat.victim.grab.owner, undefined);
 });
