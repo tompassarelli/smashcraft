@@ -61,7 +61,18 @@ function bodyShift(surface: SolidSurface): number {
 
 /** How far a fighter's body moves a surface down: a ceiling meets its top, other surfaces its position. */
 function bodyLift(f: Fighter, surface: SolidSurface): number {
-  return surface.kind === SurfaceContact.ceiling ? -melee(bodyTop(f.character)) : 0.0;
+  return surface.kind === SurfaceContact.ceiling ? ceilingLift(f.character) : 0.0;
+}
+
+// Each character's ceiling lift, found on first ask: every solid face asks it every frame.
+const CEILING_LIFTS: Record<number, number | undefined> = {};
+
+function ceilingLift(character: Character): number {
+  const cached = CEILING_LIFTS[character];
+  if (cached !== undefined) return cached;
+  const lift = -melee(bodyTop(character));
+  CEILING_LIFTS[character] = lift;
+  return lift;
 }
 
 function signedDistance(surface: SolidSurface, shift: number, lift: number, x: number, z: number): number {

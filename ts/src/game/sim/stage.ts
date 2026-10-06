@@ -174,7 +174,7 @@ const STAGE_DECKS: readonly (readonly Deck[])[] = [
   SOLID_RAISED_DECKS,
 ];
 
-function decks(stage: number): readonly Deck[] {
+function stageDecks(stage: number): readonly Deck[] {
   if (stage === WIND_TEST_STAGE) return NORDRASSIL_DECKS;
   if (stage === CANNON_TEST_STAGE) return FROZEN_THRONE_DECKS;
   if (stage === HELLFIRE_STAGE) return HELLFIRE_DECKS;
@@ -184,6 +184,19 @@ function decks(stage: number): readonly Deck[] {
 }
 const CARRIED_DECKS = [MAIN_DECK, CARRIED_DECK, at(GRYPHON_DECKS, 1), at(GRYPHON_DECKS, 2), at(GRYPHON_DECKS, 3)];
 const TIMED_DECKS = [MAIN_DECK, LIFT_DECK];
+
+// Each stage's tables, found on first ask: every fighter's motion, the
+// confirmed match, prediction and replays ask many times a frame. A pure
+// function's cache, which never changes a result.
+const DECKS_BY_STAGE: Record<number, readonly Deck[] | undefined> = {};
+
+function decks(stage: number): readonly Deck[] {
+  const cached = DECKS_BY_STAGE[stage];
+  if (cached !== undefined) return cached;
+  const found = stageDecks(stage);
+  DECKS_BY_STAGE[stage] = found;
+  return found;
+}
 
 /** Walkable decks. */
 export function surfaceCount(stage: number): number {
@@ -405,10 +418,16 @@ function mainDeckBodyOf(stage: number): readonly SolidSurface[] {
 /** The height of Final Destination's level underside, which stages 0, 1 and 5 keep. */
 export const MAIN_DECK_UNDERSIDE_Z = referenceZ(at(REFERENCE_RIGHT_SIDE, REFERENCE_RIGHT_SIDE.length - 1));
 
+const UNDERSIDE_Z_BY_STAGE: Record<number, number | undefined> = {};
+
 /** The height of the main deck's level underside on `stage`, the lowest of its lines. */
 export function mainDeckUndersideZ(stage: number): number {
+  const cached = UNDERSIDE_Z_BY_STAGE[stage];
+  if (cached !== undefined) return cached;
   const profile = deckProfile(stage);
-  return referenceZ(at(profile, profile.length - 1));
+  const z = referenceZ(at(profile, profile.length - 1));
+  UNDERSIDE_Z_BY_STAGE[stage] = z;
+  return z;
 }
 
 /** The main deck's walls and underside lead every stage's solid surfaces; every profile has as many. */
@@ -439,11 +458,22 @@ function raisedDeckSurfaces(raised: readonly Deck[]): SolidSurface[] {
 
 const SOLID_DECK_TEST_SURFACES = [...MAIN_DECK_BODY, ...raisedDeckSurfaces(SOLID_RAISED_DECKS)];
 
-function solidSurfaces(stage: number): readonly SolidSurface[] {
+function stageSolidSurfaces(stage: number): readonly SolidSurface[] {
   // Kongo Jungle 64 has a floor-only main deck (GrOk.dat coll_data).
-  if (stage === CANNON_TEST_STAGE) return [];
+  if (stage === CANNON_TEST_STAGE) return NO_SOLID_SURFACES;
   if (stage === SOLID_DECK_TEST_STAGE) return SOLID_DECK_TEST_SURFACES;
-  return surfaceCount(stage) > 0 ? mainDeckBodyOf(stage) : [];
+  return surfaceCount(stage) > 0 ? mainDeckBodyOf(stage) : NO_SOLID_SURFACES;
+}
+
+const NO_SOLID_SURFACES: readonly SolidSurface[] = [];
+const SOLID_SURFACES_BY_STAGE: Record<number, readonly SolidSurface[] | undefined> = {};
+
+function solidSurfaces(stage: number): readonly SolidSurface[] {
+  const cached = SOLID_SURFACES_BY_STAGE[stage];
+  if (cached !== undefined) return cached;
+  const found = stageSolidSurfaces(stage);
+  SOLID_SURFACES_BY_STAGE[stage] = found;
+  return found;
 }
 
 export function solidSurfaceCount(stage: number): number {

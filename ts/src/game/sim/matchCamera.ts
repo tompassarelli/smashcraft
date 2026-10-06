@@ -58,28 +58,84 @@ const extent = (current: number, target: number, step: number): number => f32(cu
 // The eased camera's goal this frame; never part of match state.
 const goal = createMatchCamera();
 
-/** The extreme vertical rays where the camera meets the fighters' plane. */
-function cameraReach(distance: number, tangent: number): { readonly above: number; readonly below: number } {
-  const span = f32(distance * tangent);
+/**
+ * The extreme vertical rays where the camera meets the fighters' plane:
+ * distance * tangent over a ray's denominator from tangentTerms.
+ */
+function cameraReach(distance: number, tangent: number, denominator: number): number {
+  return f32(f32(distance * tangent) / denominator);
+}
+
+/**
+ * What the camera's tangent alone decides: its rays' denominators and the
+ * HUD's narrower tangent with its own. The tangent settles early in a match
+ * and the confirmed match, prediction and replays all ask again, so the last
+ * tangent's terms are kept: a pure function's cache, which never changes a result.
+ */
+const tangentTerms = { tangent: -1.0, above: 0.0, below: 0.0, hudTangent: 0.0, hudAbove: 0.0, hudBelow: 0.0 };
+
+function termsOf(tangent: number): Readonly<typeof tangentTerms> {
+  const terms = tangentTerms;
+  if (terms.tangent === tangent) return terms;
   const tilt = f32(tangent * CAMERA_PITCH_SIN);
-  return { above: f32(span / f32(CAMERA_PITCH_COS + tilt)), below: f32(span / f32(CAMERA_PITCH_COS - tilt)) };
+  terms.above = f32(CAMERA_PITCH_COS + tilt);
+  terms.below = f32(CAMERA_PITCH_COS - tilt);
+  const hudTangent = f32(tangent * 0.4399999976158142);
+  const hudTilt = f32(hudTangent * CAMERA_PITCH_SIN);
+  terms.hudTangent = hudTangent;
+  terms.hudAbove = f32(CAMERA_PITCH_COS + hudTilt);
+  terms.hudBelow = f32(CAMERA_PITCH_COS - hudTilt);
+  terms.tangent = tangent;
+  return terms;
+}
+
+/** limitCamera's terms that don't depend on the camera's position or distance, kept for the last arguments as tangentTerms is. */
+interface RangeTerms {
+  tangent: number;
+  bounds: Readonly<StageRegion> | undefined;
+  aspect: number;
+  blastBottom: number;
+  maxWidth: number;
+  maxHeight: number;
+  tangentAspect: number;
+  blastFloor: number;
+}
+const rangeTerms: RangeTerms = { tangent: -1.0, bounds: undefined, aspect: 0.0, blastBottom: 0.0, maxWidth: 0.0, maxHeight: 0.0, tangentAspect: 0.0, blastFloor: 0.0 };
+
+function rangeOf(tangent: number, bounds: Readonly<StageRegion>, aspect: number, blastBottom: number): Readonly<RangeTerms> {
+  const range = rangeTerms;
+  if (range.tangent === tangent && range.bounds === bounds && range.aspect === aspect && range.blastBottom === blastBottom) return range;
+  const terms = termsOf(tangent);
+  const unitAbove = cameraReach(1.0, tangent, terms.above);
+  const unitBelow = cameraReach(1.0, tangent, terms.below);
+  const hudBelow = cameraReach(1.0, terms.hudTangent, terms.hudBelow);
+  const tangentAspect = f32(tangent * aspect);
+  const wide = f32(f32(1.0 + f32(unitBelow * CAMERA_PITCH_SIN)) * tangentAspect);
+  const blastFloor = f32(blastBottom + 20.0);
+  range.maxWidth = f32(f32(bounds.right - bounds.left) / f32(2.0 * wide));
+  // The camera limit is the bottom of the unobscured fighting view. The HUD
+  // may cover farther down, but its raw frame also stays above the KO plane.
+  range.maxHeight = Math.min(f32(f32(bounds.top - bounds.bottom) / f32(unitAbove + hudBelow)), f32(f32(bounds.top - blastFloor) / f32(unitAbove + unitBelow)));
+  range.tangentAspect = tangentAspect;
+  range.blastFloor = blastFloor;
+  range.tangent = tangent;
+  range.bounds = bounds;
+  range.aspect = aspect;
+  range.blastBottom = blastBottom;
+  return range;
 }
 
 /** The whole frame stays in the stage's camera range, even during easing or an aspect change. */
 export function limitCamera(camera: MatchCamera, bounds: StageRegion, aspect: number, blastBottom: number = -840.0): void {
-  const unit = cameraReach(1.0, camera.tangent);
-  const hud = cameraReach(1.0, f32(camera.tangent * 0.4399999976158142));
-  const wide = f32(f32(1.0 + f32(unit.below * CAMERA_PITCH_SIN)) * f32(camera.tangent * aspect));
-  const maxWidth = f32(f32(bounds.right - bounds.left) / f32(2.0 * wide));
-  // The camera limit is the bottom of the unobscured fighting view. The HUD
-  // may cover farther down, but its raw frame also stays above the KO plane.
-  const maxHeight = Math.min(f32(f32(bounds.top - bounds.bottom) / f32(unit.above + hud.below)), f32(f32(bounds.top - f32(blastBottom + 20.0)) / f32(unit.above + unit.below)));
-  camera.distance = Math.min(camera.distance, maxWidth, maxHeight);
-  const reach = cameraReach(camera.distance, camera.tangent);
-  const aboveHud = cameraReach(camera.distance, f32(camera.tangent * 0.4399999976158142));
-  const halfWidth = f32(f32(camera.distance + f32(reach.below * CAMERA_PITCH_SIN)) * f32(camera.tangent * aspect));
+  const range = rangeOf(camera.tangent, bounds, aspect, blastBottom);
+  camera.distance = Math.min(camera.distance, range.maxWidth, range.maxHeight);
+  const terms = termsOf(camera.tangent);
+  const reachAbove = cameraReach(camera.distance, camera.tangent, terms.above);
+  const reachBelow = cameraReach(camera.distance, camera.tangent, terms.below);
+  const hudBelow = cameraReach(camera.distance, terms.hudTangent, terms.hudBelow);
+  const halfWidth = f32(f32(camera.distance + f32(reachBelow * CAMERA_PITCH_SIN)) * range.tangentAspect);
   camera.x = clamp(camera.x, f32(bounds.left + halfWidth), f32(bounds.right - halfWidth));
-  camera.z = clamp(camera.z, Math.max(f32(bounds.bottom + aboveHud.below), f32(f32(blastBottom + 20.0) + reach.below)), f32(bounds.top - reach.above));
+  camera.z = clamp(camera.z, Math.max(f32(bounds.bottom + hudBelow), f32(range.blastFloor + reachBelow)), f32(bounds.top - reachAbove));
 }
 
 /** Camera bone: ftData's box is centred ten Melee units above the feet. */
@@ -145,8 +201,8 @@ export function advanceMatchCamera(camera: MatchCamera, world: Readonly<Roster>,
   const underside = mainDeckUndersideZ(stage);
   const nearUnderside = lowest >= f32(underside - 100.0) && lowest <= f32(underside + 100.0);
   const floorOfView = nearUnderside ? Math.min(lowest, f32(underside - 35.0)) : lowest;
-  const hud = cameraReach(distance, f32(camera.tangent * 0.4399999976158142));
-  const targetZ = Math.min(middleZ, f32(floorOfView + hud.below));
+  const terms = termsOf(camera.tangent);
+  const targetZ = Math.min(middleZ, f32(floorOfView + cameraReach(distance, terms.hudTangent, terms.hudBelow)));
   // Camera_8002A768 limits the goal, not the eased view, so reaching a limit
   // or the underside eases in instead of snapping.
   goal.tangent = camera.tangent;
@@ -155,11 +211,11 @@ export function advanceMatchCamera(camera: MatchCamera, world: Readonly<Roster>,
   goal.distance = distance;
   limitCamera(goal, bounds, MATCH_CAMERA_ASPECT, blast.bottom);
   if (nearUnderside) {
-    const unit = cameraReach(1.0, goal.tangent);
-    const unitHud = cameraReach(1.0, f32(goal.tangent * 0.4399999976158142));
-    goal.distance = Math.min(goal.distance, f32(f32(floorOfView - f32(blast.bottom + 20.0)) / f32(unit.below - unitHud.below)));
-    const actualHud = cameraReach(goal.distance, f32(goal.tangent * 0.4399999976158142));
-    goal.z = Math.min(goal.z, f32(floorOfView + actualHud.below));
+    const goalTerms = termsOf(goal.tangent);
+    const unitBelow = cameraReach(1.0, goal.tangent, goalTerms.below);
+    const unitHudBelow = cameraReach(1.0, goalTerms.hudTangent, goalTerms.hudBelow);
+    goal.distance = Math.min(goal.distance, f32(f32(floorOfView - f32(blast.bottom + 20.0)) / f32(unitBelow - unitHudBelow)));
+    goal.z = Math.min(goal.z, f32(floorOfView + cameraReach(goal.distance, goalTerms.hudTangent, goalTerms.hudBelow)));
     limitCamera(goal, bounds, MATCH_CAMERA_ASPECT, blast.bottom);
   }
   camera.x = camera.initialized ? ease(camera.x, goal.x, rate) : goal.x;
