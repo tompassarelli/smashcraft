@@ -247,7 +247,8 @@ export function fighterSpecialsCanonical(specials: Readonly<FighterSpecials> | u
     const kit = at(kits, slot);
     if (kit.recallWhile !== undefined) result.push(canonicalInt(`${prefix}.kit[${slot}].recallWhile`, kit.recallWhile === "armor" ? 2 : 1));
     const forms = [kit.ground, kit.air, kit.free, kit.recall, kit.marked?.special];
-    for (let form = 0; form < forms.length; form++) {
+    // A fixed count: the list holds undefined forms, which a Lua length would skip.
+    for (let form = 0; form < 5; form++) {
       const move = forms[form];
       if (move === undefined) continue;
       const name = `${prefix}.kit[${slot}].form[${form}]`;
