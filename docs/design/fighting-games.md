@@ -429,15 +429,12 @@ of the opponent's options.
 One line each, neutral; the options are those the sources above describe.
 
 - Attack hurtboxes: extend along limbs and weapons before and after the active frames (Street Fighter whiff-punish model), stay on the body, or vary per move?
-- Disjoint budget: disjoints free per move, tied to slower startup (Guilty Gear pattern), or none outside projectiles?
 - Hurtbox fidelity: per-frame authored volumes, bone-attached capsules that follow the animation (Smash), or per-state shapes?
 - Hitbox generosity: hitboxes matched to the drawn strike, or slightly larger than it?
 - Counter hits: extra reward for hitting startup frames, or none?
 - Knockdowns: some moves give hard knockdowns, or every knockdown leaves wakeup choices?
 - Invincible reversals: any fighter with a fully invincible option out of stun or knockdown, and at what punish cost?
-- Throw defence: a timed throw tech, a mash escape, or no escape once caught?
 - Same-frame strike contact: trade (both hit), clash (both cancel), or a priority rule?
 - Option selects: keep those that emerge, or design them out case by case?
 - Mixup branches: a minimum reward for the weaker branch of each designed mixup, so that ab / (a + b) stays meaningful, or none?
-- Archetypes: assign each fighter an archetype up front, or let it emerge from move design?
 - Balance changes: buff-first, symmetric, or a matchup target such as Yomi's "no 7-3"?

@@ -20,14 +20,35 @@ one JSON row per situation and variant, are in
 smashcraft:tools/move-data/interactions/interactions.jsonl. Both are generated
 output: never edit them by hand, and never treat them as tuning input.
 
+Combo trees are measured by the same command. Their rows are in
+smashcraft:tools/move-data/interactions/combos.jsonl, with each fighter's
+report in smashcraft:tools/move-data/interactions/combos-FIGHTER.md. These
+reports compare the measured strings and stock-taking paths with the accepted
+[combo targets](../gameplay-design.md#combo-structure). A reported violation
+feeds balance work; a passing regeneration check says the written measurement
+matches the game, not that the fighter meets every balance target.
+
+The guaranteed-string search selects a common true follow-up greedily by its
+least immediate damage across the victim scripts. Its measured damage and
+length describe that selected string, rather than an exhaustive maximum.
+Stock paths use the beam and depth limits written in each generated report.
+A read requires a sampled victim choice that escapes the committed move;
+when every choice is hit after gaining freedom, the extension is unclassified
+and is excluded from the reported stock paths.
+Stock loss is observed against those defender scripts; there is no separate
+search for a directed ledge or special recovery.
+
 From smashcraft:ts/:
 
-- `bun wisp interactions` plays every situation for every fighter, one worker
-  thread a fighter (about 10 s with three free cores; run it in the capacity
-  scope on a shared machine), and writes the rows and pages.
+- `bun wisp interactions` plays every situation and combo search for every
+  fighter, one worker thread a fighter (three workers; run it in a finite
+  capacity scope on a shared machine), and writes the rows and pages. The five
+  original situations take about 10 s with three free cores; the bounded combo
+  search also explores stock-taking routes and reports progress per opening.
 - `bun wisp interactions --check` plays them again and lists every row added,
   removed or changed against the written files, with the changed fields; it
-  fails until the files are written again. smashcraft:tools/move-data/compare.sh
+  also checks the combo rows and reports, and fails until the files are written
+  again. smashcraft:tools/move-data/compare.sh
   `--check` runs it after the move comparisons.
 - `bun wisp interactions --move FIGHTER:MOVE` (for example
   `archer:forward-air`, `rifleman:down-tilt`) plays that fighter's situations
@@ -113,8 +134,9 @@ from the farthest; the page lists every distance that reaches it.
 
 These are absent from the model, not claims about the game:
 
-- Percent, DI, SDI and ASDI. Bounded true links and their conditions are in
-  [move comparisons](../move-comparisons.md).
+- The five original situations above omit percent, DI, SDI and ASDI. The
+  combo reports exercise their separately declared percent and victim-choice
+  menu; bounded true links are also in [move comparisons](../move-comparisons.md).
 - Reaction time. Windows count frames from frame 0 and include presses a
   player could only make on a read; execution limits are in
   [execution windows](execution-windows.md).
@@ -122,4 +144,6 @@ These are absent from the model, not claims about the game:
   double-jump aerials, platforms, analog shields, powershields and shield
   drops.
 - Other matchups than the mirror, and the situation an exchange leads to: a
-  cell ends at its first hit or grab, or when both fighters can act again.
+  cell in the original situations ends at its first hit or grab, or when both
+  fighters can act again. Combo trees continue from the full replay state of
+  each contact, through controller rows and the same match-frame executor.

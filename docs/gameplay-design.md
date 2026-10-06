@@ -109,11 +109,12 @@ mash. A **read** is a follow-up that lands against some of those choices but
 not all, when the victim makes one it beats. A **string** is an opening and the
 follow-ups that land after it.
 
-Proposed targets, for the owner to accept or change; they are proposals, not
-decisions. Accepted targets become interaction-graph checks
-([interaction graph](design/interaction-graph.md)).
+Accepted measurement targets for #83, following the owner's 6 Oct 2026
+authorization to carry out the recommendations. The interaction graph reports
+violations to guide balance work; this measurement issue does not rebalance
+every move ([interaction graph](design/interaction-graph.md)).
 
-| Target | Proposed | Breaks it |
+| Target | Accepted | Breaks it |
 |---|---|---|
 | Guaranteed follow-ups after an opening | at most 2, at every percent | a string of 4 or more hits that no victim choice escapes |
 | Guaranteed damage from one opening, by the victim's percent when it lands | at most 30% at 0–99%; from 100%, a guaranteed string may end in a KO | more damage than that before the victim has a choice that escapes |
@@ -185,6 +186,32 @@ checks that every oracle departure names a row here.
   requested shared profile.
 
 ## Fighters
+
+### Expansion roster defaults
+
+Owner decision, 6 October 2026: adopt the 2 October expansion brief as
+[the roster specification](design/roster.md). Build Blademaster, Mountain King,
+Warden, Lich, Uther, Dreadlord and Shadow Hunter in that order; "shadow shaman"
+means Shadow Hunter (Rokhan), and Uther uses the Paladin identity. The eight
+Tavern fighters are optional candidates, including Brewmaster; their inclusion
+in the specification is not a commitment to ship them.
+
+The specification answers these design questions for the expansion:
+
+| Question | Adopted default |
+| --- | --- |
+| Physical differences | Use each hero's relative weight, run and air-speed table as initial tuning. The complete candidate table spans weight 0.85–1.28, run 0.80–1.14 and air 0.70–1.12. Jump velocity and gravity initially inherit the reference. |
+| Archetypes | State each fighter's purpose and exploitable weakness before building its moves. |
+| Meter | 100 mana, full on spawn; ground regeneration at 6/second after 120 frames without spending, while actionable. Specials use their listed costs; normals and grabs are free. Every up special has a weaker free recovery. |
+| Cooldowns | Only optional ultimates use cooldowns; ultimates are off in competitive play. |
+| Disjoints | Weapon extensions only; attached body parts keep hurtboxes. |
+| Throw escape | Mashing; retain the existing escape system and use the brief's fallback only where none exists. |
+| Simultaneous grabs | Both break, with symmetric separation and 12 frames of recovery. |
+| Regrabs | Today's #85 throw-hitstun restriction, including remaining hitstun after gentle landing; no fixed 45-frame timer. |
+
+These are expansion defaults and authored starting values, not claims that the
+existing three fighters have already changed. Preserve existing fighters and
+the infrastructure finish line when integrating new gameplay.
 
 - **Rifleman's trap escape** (delegated choice, 6 Oct 2026, #84): keep the
   single 300-frame freeze, then prevent any trap from catching that fighter
@@ -427,6 +454,10 @@ or guaranteed reaction option; the graph's existence of a punish is not a
 claim that a human can react to it.
 
 ## Open questions for the owner
+
+Roster physics spread, archetypes, mana, cooldowns, weapon disjoints, mash
+escape and simultaneous grabs are answered by the adopted expansion defaults
+above. They need no further approval before implementation.
 
 Mechanic-level questions drawn from other games (parry, air dodge, rage, short-hop input, ledge rules and others) are listed at the end of [modern platform fighters](design/modern-platform-fighters.md). Questions raised by fighting-game and platform-fighter design language (hurtbox extension, disjoints, counter hits, shield geometry, whiff penalties, DI strength, launchers and others) are listed at the end of [fighting games](design/fighting-games.md) and [platform fighters](design/platform-fighters.md).
 
