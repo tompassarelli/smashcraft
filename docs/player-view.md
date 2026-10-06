@@ -53,16 +53,44 @@ effect destroyed in view whose death animation emits. It reads:
   view across the frame's width: in the 1280x720 four-fighter recording,
   world x 0 sat at screen x 283 with the camera 592 to its right, where 70
   degrees across the width predicts 274 and 70 degrees down its height 434.
-  Its lowest ray falls about 31.5 degrees.
+  Its lowest ray falls about 31.5 degrees, and the camera never lowers it to
+  meet the ground nearer than 1300 units beyond the stage center.
 - **Parking**: `hideEffect` parks hidden effects on the ground beneath the
   stage center, FLOOR_HEIGHT below the floor, where they are created.
 
 With the models of the 0.0.44 inputs, everything a parked effect can draw
 stays out of all 225 framings. The margin is how much higher the parking
-place could be: about 95 units for Illidan's flames (ImmolationTarget, whose
-particles rise and spread from 150 units up), about 290 for the hippogryph's
-death spray and the GyroCopterMissile's death bursts, and over 400 for every
-other model.
+place could be: about 88 units for Illidan's flames (ImmolationTarget, whose
+particles rise and spread from 150 units up), about 280 for the hippogryph's
+death spray and the GyroCopterMissile's death bursts, and 400 or more for
+every other model.
+
+## Below the deck
+
+The match HUD covers the frame from about 77% of its height down
+(smashcraft:ts/src/game/ui/matchHud.ts). Framing fighters 160 below the
+camera's target put a fighter under the main deck, and the deck's underside,
+behind it: on 0.0.49 the deck's charcoal reached 76–91% of the frame height
+and the HUD started at about 82%
+(smashcraft:evidence/bot-session-0049-native-20261006/README.md). So when the
+lowest fighter would show below 72% of the frame, the camera follows it down,
+as Melee's follows a fighter under the stage, keeps up to 100 units below it in
+view down to the underside, and backs off to keep the highest fighter's head
+below the frame's top 3%. Parking caps how far it lowers: the frame's lowest
+ray meets the ground no nearer than 1300 units beyond the stage center, which
+keeps the margins above. A framing with every fighter on or above the floor
+and the lowest showing above 72% is unchanged.
+smashcraft:ts/test/player-view.test.ts places a fighter within 100 units of the
+underside, under it or beside the walls, with the other fighter KO'd, on a deck,
+high, at the top blast zone or far to a side, and checks the camera the
+development build sets: the fighter and the underside nearest it show above
+77% of the frame in all 60 cases.
+
+For a native capture, set `CURRENT_BUILD`'s scenario to `underside`
+(smashcraft:ts/src/game/shell/currentBuild.ts), build the development map and
+run `bun wisp fresh MAP.w3x`. The quick match freezes player 1 in the air
+beside the main deck's lower right corner, level with its underside, for ten
+seconds, and fresh saves each client's frame at match frame 30.
 
 ## Where it runs
 

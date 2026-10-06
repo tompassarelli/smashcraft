@@ -1,0 +1,16 @@
+frames 1800 step 100 problems 0
+collector us=994095 kb=170985
+p0 instructions start=1220900 total=393064512 median=162250 p95=626800 mean=218369 max=2052800
+p0 lua-us start=74010 total=7169171 median=2981 p95=11747 mean=3983 max=30734
+p0 natives start=111 total=392463 median=141 p95=296 mean=218 max=2053
+p0 alloc-kb start=14930 total=76926 median=14 p95=105 mean=43 max=679
+p0 typed start=0 total=37561 median=0 p95=51 mean=21 max=60
+p0 native-us start=56079 total=9308690 median=3779 p95=15409 mean=5171 max=45018
+p0 typing-us start=0 total=802055 median=0 p95=1301 mean=446 max=1800
+p1 instructions start=1220800 total=392395904 median=163200 p95=606300 mean=217998 max=2679900
+p1 lua-us start=72682 total=7220481 median=3002 p95=11689 mean=4011 max=39617
+p1 natives start=111 total=392706 median=141 p95=296 mean=218 max=2062
+p1 alloc-kb start=14908 total=73536 median=14 p95=84 mean=41 max=678
+p1 typed start=0 total=37561 median=0 p95=51 mean=21 max=60
+p1 native-us start=56034 total=9288164 median=3801 p95=13917 mean=5160 max=57956
+p1 typing-us start=0 total=802055 median=0 p95=1301 mean=446 max=1800

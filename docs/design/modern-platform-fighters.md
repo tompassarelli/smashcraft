@@ -9,8 +9,8 @@ Slap City, Brawlhalla, MultiVersus (2022 beta, relaunched 2024, servers closed
 Already decided for Smashcraft, so not re-asked here
 (smashcraft:docs/gameplay-design.md): no stale-move or freshness mechanics;
 L-cancelling removed, aerials always get the L-cancelled landing lag
-automatically; non-interactive execution tests are treated as dubious; no
-tap-jump.
+automatically; non-interactive execution tests are treated as dubious;
+[no tap-jump](../gameplay-design.md#controls).
 
 ## How to read the estimates
 

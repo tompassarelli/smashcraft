@@ -7,7 +7,7 @@
 import { Context, Effect } from "effect";
 import type { Region } from "wisp/scripts/warcraft/desktop";
 import { IntegrityFailure } from "./evidence";
-import { ABS_X, ABS_Y, ABS_Z, BTN_A, BTN_SELECT, BTN_START, BTN_X, BTN_Y, EV_ABS, EV_KEY, type SourceEdge } from "./linuxInput";
+import { ABS_RX, ABS_RY, ABS_X, ABS_Y, ABS_Z, BTN_A, BTN_SELECT, BTN_START, BTN_X, BTN_Y, EV_ABS, EV_KEY, type SourceEdge } from "./linuxInput";
 import { SLOTS, type Slot } from "./reconcile";
 import { type PadLayout, PULSE_HOLD_MILLIS, STALL_MILLIS, type Pulse, type Send, type StallTarget, integritySchedule, pulseSends } from "./schedule";
 import { INPUT_TRACE_FILE, devCommandReceiptFile, journalControlFile, journalLifecycleFile, journalMenuFile, responsePageFile } from "../../src/runtime/gameFiles";
@@ -128,8 +128,10 @@ export interface JourneyOptions {
    * complete input workload.
    */
   readonly workload?: "match" | "playable" | "bot";
-  /** A bot session with a second computer, an Archer in slot D: four fighters. */
+  /** A bot session with a second computer, an Archer in slot D: four fighters, the frame-cost overlay shown in an undisturbed rematch. */
   readonly botFour?: boolean;
+  /** A bot session whose rematch, three fighters, is undisturbed and shows the frame-cost overlay, as --bot-four's does. */
+  readonly botPerf?: boolean;
   /** A bot session whose first match starts with #49's pad script on slot 0. */
   readonly pad49?: boolean;
   /** How the helper reads the pads; `xpad` unless replaying a capture before #49. */
@@ -155,24 +157,39 @@ const PLAYABLE_TRACE_TICKS = 300;
 /** A bot session's match timeline, in ms after its start boundary (#48's 2 s stalls; the helper saves a moment for View held 1 s). */
 const BOT_STALLS = [6000, 14000, 22000] as const;
 const BOT_STALL_MILLIS = 2000;
-const BOT_MOMENT = 30000;
+/** Two moments a match, so a short bot session still saves at least five (#59). */
+const BOT_MOMENTS = [12000, 30000] as const;
 const BOT_MOMENT_HOLD_MILLIS = 1300;
 const BOT_PLAY_MILLIS = 58000;
 const BOT_BEAT_MILLIS = 400;
-/** A bot beat: a 5 ms button tap, or a stick or trigger held then released. */
+/**
+ * A bot beat: a 5 ms button tap, or a stick or trigger held then released.
+ * Its name ends the edge's phase, so the reconciler reports every action the
+ * session pressed (#60).
+ */
 const BOT_BEATS = [
-  { kind: "tap", code: BTN_A },
-  { kind: "tap", code: BTN_Y },
-  { kind: "tap", code: BTN_X },
-  { kind: "hold", code: ABS_Z, value: 32767, holdMillis: 200 },
-  { kind: "hold", code: ABS_X, value: 32767, holdMillis: 300 },
-  { kind: "hold", code: ABS_X, value: -32768, holdMillis: 300 },
+  { kind: "tap", code: BTN_A, name: "attack" },
+  { kind: "hold", code: ABS_RX, value: 32767, holdMillis: 100, name: "c-right" },
+  { kind: "tap", code: BTN_Y, name: "jump" },
+  { kind: "hold", code: ABS_RY, value: -32768, holdMillis: 100, name: "c-up" },
+  { kind: "tap", code: BTN_X, name: "special" },
+  { kind: "hold", code: ABS_Z, value: 32767, holdMillis: 200, name: "shield" },
+  { kind: "hold", code: ABS_RX, value: -32768, holdMillis: 100, name: "c-left" },
+  { kind: "hold", code: ABS_X, value: 32767, holdMillis: 300, name: "dash-right" },
+  { kind: "hold", code: ABS_RY, value: 32767, holdMillis: 100, name: "c-down" },
+  { kind: "hold", code: ABS_X, value: -32768, holdMillis: 300, name: "dash-left" },
 ] as const;
 /** Stick down (+Y) just below and just past Melee's 0.6625 of full scale (#49). */
 const PAD49_BELOW_DOWN = 21299;
 const PAD49_PAST_DOWN = 21954;
 /** The frame meter's overlay toggle (smashcraft:ts/src/platform/frameMeter.ts). */
 const PERF_TOGGLE = "-dev perf";
+/**
+ * The stage screen's preview name, stageUi.ts's frame at (0.045, 0.19) sized
+ * 0.37 by 0.036, on the same 2560x1440 client frame as RESULT_NOTICE.
+ */
+const STAGE_PREVIEW_NAME: Region = { x: 428, y: 984, width: 888, height: 86 };
+const SECOND_STAGE = /Three\s*Bridges/i;
 
 /**
  * Stocks in each match of #26's integrity workload. Its pads dash both ways
@@ -288,8 +305,8 @@ export function journey(rig: RigShape, options: JourneyOptions) {
   /**
    * A bot session's match, timed from its start boundary: both pads attack,
    * jump and use specials, client B's game stops for 2 s at each BOT_STALLS
-   * time, and both pads hold View at BOT_MOMENT so each helper asks its client
-   * to save a moment. Stops early when the match ends.
+   * time, and both pads hold View at each BOT_MOMENTS time so each helper
+   * asks its client to save a moment. Stops early when the match ends.
    */
   /**
    * #49's pad script on slot 0 (pad49Result.ts checks the rows): resting and
@@ -340,6 +357,24 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       yield* at(20000);
     });
 
+  /**
+   * A bot session's rematch plays the other stage, so one session shows both
+   * (#57): slot 0's stick flips the stage screen's choice, read back from its
+   * preview name. A flip that never shows is logged and the rematch plays on.
+   */
+  const secondStage = (epoch: number) =>
+    Effect.gen(function*() {
+      // The helper sends menu keys only after it has seen the stage screen with the pad at rest.
+      yield* rig.sleep(400);
+      yield* send(0, { type: EV_ABS, code: ABS_X, value: 32767 }, `menu-match-${epoch}-stage`);
+      yield* rig.sleep(150);
+      yield* send(0, { type: EV_ABS, code: ABS_X, value: 0 }, `menu-match-${epoch}-stage`);
+      yield* rig.until("rematch stage not shown", rig.readText(0, STAGE_PREVIEW_NAME).pipe(Effect.map((text) => SECOND_STAGE.test(text))), 10).pipe(
+        Effect.andThen(rig.progress(`Epoch ${epoch}: Three Bridges chosen`)),
+        Effect.catch((failure) => rig.progress(`Epoch ${epoch}: stage flip not observed: ${failure.message}`)),
+      );
+    });
+
   const botMatch = (epoch: number, startNs: number) =>
     Effect.gen(function*() {
       if (options.pad49 === true && epoch === firstEpoch) yield* pad49(epoch, startNs);
@@ -349,7 +384,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       const beatOnce = Effect.gen(function*() {
         const step = BOT_BEATS[beat % BOT_BEATS.length] ?? BOT_BEATS[0];
         beat++;
-        const phase = `bot-${epoch}-beat`;
+        const phase = `bot-${epoch}-beat:${step.name}`;
         for (const slot of SLOTS) yield* send(slot, step.kind === "tap" ? button(step.code, 1) : { type: EV_ABS, code: step.code, value: step.value }, phase);
         yield* rig.sleep(step.kind === "tap" ? PULSE_HOLD_MILLIS : step.holdMillis);
         for (const slot of SLOTS) yield* send(slot, step.kind === "tap" ? button(step.code, 0) : { type: EV_ABS, code: step.code, value: 0 }, phase);
@@ -364,30 +399,36 @@ export function journey(rig: RigShape, options: JourneyOptions) {
           }
           return !(yield* ended);
         });
-      // A four-fighter session measures its rematch's frame cost undisturbed, and #49's script plays alone: no stalls there.
-      const stallTimes = (options.botFour === true && epoch % 2 === 0) || (options.pad49 === true && epoch === firstEpoch) ? [] : BOT_STALLS;
-      for (const [index, offset] of stallTimes.entries()) {
-        if (!(yield* playUntil(offset))) return;
+      // A four-fighter or --bot-perf session measures its rematch's frame cost undisturbed, and #49's script plays alone: no stalls there.
+      const stallTimes = ((options.botFour === true || options.botPerf === true) && epoch % 2 === 0) || (options.pad49 === true && epoch === firstEpoch) ? [] : BOT_STALLS;
+      const timeline = [
+        ...stallTimes.map((at, index) => ({ at, kind: "stall" as const, trial: index + 1 })),
+        ...BOT_MOMENTS.map((at) => ({ at, kind: "moment" as const, trial: 0 })),
+      ].sort((a, b) => a.at - b.at);
+      for (const { at, kind, trial } of timeline) {
+        if (!(yield* playUntil(at))) return;
+        if (kind === "moment") {
+          const pressedNs = yield* rig.monotonicNs;
+          for (const slot of SLOTS) yield* send(slot, button(BTN_SELECT, 1), `bot-${epoch}-moment`);
+          yield* rig.sleep(BOT_MOMENT_HOLD_MILLIS);
+          for (const slot of SLOTS) yield* send(slot, button(BTN_SELECT, 0), `bot-${epoch}-moment`);
+          yield* rig.record({ event: "bot-moment", epoch, pressed_monotonic_ns: pressedNs, released_monotonic_ns: yield* rig.monotonicNs });
+          yield* rig.progress(`Epoch ${epoch}: both pads held View for a moment`);
+          continue;
+        }
         const stopped = yield* rig.stop({ kind: "game", slot: 1 });
         const stoppedNs = yield* rig.monotonicNs;
-        yield* rig.progress(`Epoch ${epoch}: trial ${index + 1}: stopped client B's game, pid ${stopped.pid}`);
+        yield* rig.progress(`Epoch ${epoch}: trial ${trial}: stopped client B's game, pid ${stopped.pid}`);
         yield* Effect.gen(function*() {
           yield* rig.sleep(Math.max(0, (stoppedNs + BOT_STALL_MILLIS * 1_000_000 - (yield* rig.monotonicNs)) / 1_000_000));
         }).pipe(
           Effect.ensuring(Effect.gen(function*() {
             const continuedNs = yield* rig.monotonicNs;
             yield* rig.resume(stopped);
-            yield* rig.record({ event: "bot-stall", epoch, trial: index + 1, slot: 1, pid: stopped.pid, stopped_monotonic_ns: stoppedNs, continued_monotonic_ns: continuedNs });
+            yield* rig.record({ event: "bot-stall", epoch, trial, slot: 1, pid: stopped.pid, stopped_monotonic_ns: stoppedNs, continued_monotonic_ns: continuedNs });
           })),
         );
       }
-      if (!(yield* playUntil(BOT_MOMENT))) return;
-      const pressedNs = yield* rig.monotonicNs;
-      for (const slot of SLOTS) yield* send(slot, button(BTN_SELECT, 1), `bot-${epoch}-moment`);
-      yield* rig.sleep(BOT_MOMENT_HOLD_MILLIS);
-      for (const slot of SLOTS) yield* send(slot, button(BTN_SELECT, 0), `bot-${epoch}-moment`);
-      yield* rig.record({ event: "bot-moment", epoch, pressed_monotonic_ns: pressedNs, released_monotonic_ns: yield* rig.monotonicNs });
-      yield* rig.progress(`Epoch ${epoch}: both pads held View for a moment`);
       yield* playUntil(BOT_PLAY_MILLIS);
     });
 
@@ -586,7 +627,8 @@ export function journey(rig: RigShape, options: JourneyOptions) {
         yield* devCommand(epoch, `-dev batch ${batch}`, ` batch=${batch} `);
         yield* devCommand(epoch, `-dev rb ${window}`, ` rb=${window} `);
       }
-      if (bot && options.botFour === true && !odd) {
+      if (bot && !odd) yield* secondStage(epoch);
+      if (bot && (options.botFour === true || options.botPerf === true) && !odd) {
         // The frame meter registers its toggle at the first match start; its overlay shows on A for the rematch.
         yield* rig.key(0, "Return");
         yield* rig.type(0, PERF_TOGGLE);
@@ -633,8 +675,11 @@ export function journey(rig: RigShape, options: JourneyOptions) {
         const notices = yield* both((client) => rig.readText(client, RESULT_NOTICE));
         yield* rig.record({ event: "results", epoch, texts: results, notices });
         if (bot && diagnosticBuild) {
-          // A diagnostic build's Ctrl+G trace from the match start holds its confirmed checksums.
+          // A diagnostic build's Ctrl+G trace from the match start holds its confirmed checksums;
+          // its response pages give every press's frame and local start (#60).
           for (const client of SLOTS) yield* rig.until(`epoch ${epoch}: trace did not complete`, traceComplete(client, traceAfterNs), 30);
+          yield* rig.archive(String(epoch));
+          yield* exportResponse(epoch, traceAfterNs);
         } else {
           const resultAfterNs = yield* rig.realtimeNs;
           yield* rig.key(0, "ctrl+t");

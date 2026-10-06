@@ -9,7 +9,7 @@ use six Warcraft units per Melee unit. Original fighter parameters are unchanged
 A grounded shield contact replaces the defender's previous self ground speed.
 The simulation retains its separate pushback field and clears the old self
 velocity when installing that field, so previous movement is not added again.
-This change does not introduce stale-move penalties or freshness bonuses.
+Stale moves stay omitted (smashcraft:docs/gameplay-design.md).
 
 ## Independent numeric evidence
 
@@ -71,5 +71,5 @@ It does not establish native Warcraft timing, a complete original-game
 trajectory, signed-zero bit identity, slopes, faster-than-walk friction,
 shield release and movement-state transitions, analog shields, collision
 geometry, or shield contact magnitude precision. Ground dodge travel retains
-its separately modeled path. Retail fighters remain test rigs rather than
-replacing the original Warcraft fighters.
+its separately modeled path. Retail fighters are test rigs only
+(smashcraft:docs/gameplay-design.md, "Principles").

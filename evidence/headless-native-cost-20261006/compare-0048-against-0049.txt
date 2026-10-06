@@ -1,0 +1,16 @@
+A: 1800 frames, B: 1800 frames, per frame A -> B
+p0 Lua instructions: mean 283266 -> 260788 (-7.9%), median 212600 -> 195700, p95 847100 -> 747900 (-11.7%), max 2664800 -> 2665900 (+0.0%), start 1220800 -> 1164400
+p0 Lua µs: mean 5058 -> 5999 (+18.6%), median 3860 -> 4295, p95 15385 -> 17954 (+16.7%), max 39151 -> 53417 (+36.4%), start 68161 -> 82800
+p0 native calls: mean 247 -> 242 (-2.0%), median 156 -> 151, p95 347 -> 342 (-1.4%), max 2335 -> 2346 (+0.5%), start 111 -> 111
+p0 allocated KB: mean 45 -> 168 (+273.3%), median 15 -> 63, p95 108 -> 649 (+500.9%), max 721 -> 2645 (+266.9%), start 14930 -> 14728
+p0 typed characters: mean 21 -> 19 (-9.5%), median 0 -> 0, p95 51 -> 39 (-23.5%), max 60 -> 45 (-25.0%), start 0 -> 0
+p0 predicted native µs: mean 6616 -> 6373 (-3.7%), median 4890 -> 4610, p95 20167 -> 19185 (-4.9%), max 57943 -> 59807 (+3.2%), start 56077 -> 54473
+p0 predicted typing stall µs: mean 446 -> 378 (-15.2%), median 0 -> 0, p95 1301 -> 761 (-41.5%), max 1800 -> 1013 (-43.7%), start 0 -> 0
+p1 Lua instructions: mean 282227 -> 258176 (-8.5%), median 213050 -> 197700, p95 788300 -> 693200 (-12.1%), max 3499600 -> 3467200 (-0.9%), start 1220800 -> 1164400
+p1 Lua µs: mean 5109 -> 6034 (+18.1%), median 3911 -> 4411, p95 14740 -> 17627 (+19.6%), max 48720 -> 75046 (+54.0%), start 65157 -> 73058
+p1 native calls: mean 247 -> 242 (-2.0%), median 156 -> 151, p95 347 -> 341 (-1.7%), max 2347 -> 2340 (-0.3%), start 111 -> 111
+p1 allocated KB: mean 42 -> 162 (+285.7%), median 15 -> 63, p95 86 -> 637 (+640.7%), max 707 -> 2114 (+199.0%), start 14908 -> 14707
+p1 typed characters: mean 21 -> 19 (-9.5%), median 0 -> 0, p95 51 -> 39 (-23.5%), max 60 -> 45 (-25.0%), start 0 -> 0
+p1 predicted native µs: mean 6589 -> 6304 (-4.3%), median 4896 -> 4650, p95 18158 -> 17320 (-4.6%), max 75534 -> 77461 (+2.6%), start 56034 -> 54430
+p1 predicted typing stall µs: mean 446 -> 378 (-15.2%), median 0 -> 0, p95 1301 -> 761 (-41.5%), max 1800 -> 1013 (-43.7%), start 0 -> 0
+B is worse than A by more than 5%: p0 allocated KB mean +273.3%; p0 allocated KB p95 +500.9%; p1 allocated KB mean +285.7%; p1 allocated KB p95 +640.7%

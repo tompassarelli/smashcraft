@@ -1,22 +1,26 @@
-// `bun wisp play`: from Tom's desktop to a match of the current playable
-// candidate against a computer, with his Xbox controller (wisp:docs/play.md).
-// The candidate, its helper and the computer's slot are declared here and
-// change with each candidate.
+// `bun wisp play [--keep-launch-options]`: from Tom's desktop to a match
+// against a computer, with his Xbox controller (wisp:docs/play.md). Warcraft
+// III loads the map from its launch options; the map reads the playtest
+// request at its start and starts the match on the go-ahead
+// (src/platform/shell/playtest.ts). The map, its helper and the computer's
+// slot are declared here and change with each candidate.
 import { readFileSync, readdirSync, realpathSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { Clock, Effect, Option, Schema } from "effect";
+import { linePreloadFile } from "wisp/scripts/wisp/boundary";
 import { makePlay } from "wisp/scripts/wisp/commands/play";
-import { type GameFiles, dataDirectory, readGameFile } from "wisp/scripts/wisp/gameFiles";
+import { GameFiles, dataDirectory, readGameFile } from "wisp/scripts/wisp/gameFiles";
 import { type PlayDeclaration, type PlayGame, PlayProblem } from "wisp/scripts/wisp/play";
-import { cardX } from "../../../src/game/menu/selectionDrag";
-import { JournalMenu, journalMenuFile } from "../boundary";
+import { playtestRequest } from "../../../src/game/shell/playtest";
+import { JournalMenu, PLAYTEST_GO_FILE, PLAYTEST_REQUEST_FILE, journalMenuFile, playtestReceiptFile } from "../boundary";
 import { clientState, gameFilesLayer } from "../project";
 
 interface Playtest {
+  /** The map build's ID: its journal files and the helper's --build. */
   readonly build: string;
   readonly map: PlayDeclaration["map"];
-  /** The candidate's Linux helper. */
+  /** The Linux helper for the build. */
   readonly helper: string;
   /** The computer's slot from 0; Tom's own is 0. */
   readonly computerSlot: number;
@@ -24,19 +28,27 @@ interface Playtest {
   readonly inputDevices: string;
 }
 
-const inputs = join(homedir(), ".local/share/smashcraft-build-inputs/playable-0047");
+const inputs = join(homedir(), ".local/share/smashcraft-build-inputs");
 
+/**
+ * The first map that takes playtest requests: a diagnostic build of the
+ * playable profile from wisp-play-20261006 (build ID playable-0047, so the
+ * 0.0.47 helper fits). Candidates built from main after it take them too.
+ */
 export const PLAYTEST: Playtest = {
   build: "playable-0047",
-  map: { folder: "00-Smashcraft", file: "Smashcraft 0.0.47.w3x", title: "Smashcraft 0.0.47", source: join(inputs, "Smashcraft 0.0.47.w3x") },
-  helper: join(inputs, "wc3-journal-0.0.47-fix1"),
+  map: {
+    folder: "00-Smashcraft", file: "Smashcraft wisp-play diagnostic.w3x", title: "Smashcraft wisp-play diagnostic",
+    source: join(inputs, "wisp-play-20261006/Smashcraft wisp-play diagnostic.w3x"),
+  },
+  helper: join(inputs, "playable-0047/wc3-journal-0.0.47-fix1"),
   computerSlot: 2,
   inputDevices: "/dev/input/by-id",
 };
 
-/** Seconds the map has from Start to fighter selection, and a slot tag click to its new menu file. */
+/** Seconds the map has to reach fighter selection, and to take the go-ahead. */
 const LOAD_SECONDS = 120;
-const TAG_SECONDS = 5;
+const MATCH_SECONDS = 15;
 
 const problem = (cause: { readonly message: string }) => new PlayProblem({ problem: cause.message });
 
@@ -51,19 +63,6 @@ const until = <A, R>(seconds: number, observe: Effect.Effect<A | undefined, Play
   }
 });
 
-/**
- * A card's mode tag (src/game/ui/selectionUi.ts: 0.132 by 0.027 from
- * cardX + 0.014, 0.27). Each click cycles its slot HMN, CPU, EMPTY.
- */
-const tagCentre = (slot: number) => ({ x: cardX(slot) + 0.014 + 0.066, y: 0.27 - 0.0135 });
-
-/** The widescreen margin right of the 4:3 area, which no frame covers; undefined on a 4:3 window. */
-function margin(game: PlayGame) {
-  const unit = game.xWindow.height / 0.6;
-  const width = (game.xWindow.width / unit - 0.8) / 2;
-  return width > 0.01 ? { x: 0.8 + width / 2, y: 0.5167 } : undefined;
-}
-
 export function playtest({ build, map, helper, computerSlot, inputDevices }: Playtest): PlayDeclaration<GameFiles> {
   const name = journalMenuFile(build, 0);
   /** The host's menu file; one being written reads as absent. */
@@ -71,8 +70,12 @@ export function playtest({ build, map, helper, computerSlot, inputDevices }: Pla
     Effect.catchTag("MalformedGameFile", () => Effect.succeed(undefined)),
     Effect.mapError(problem),
   );
-  const bit = 1 << computerSlot;
-  const player = `Player ${computerSlot + 1}`;
+  const request = playtestRequest(1 << computerSlot);
+  const files = (documents: string) => ({
+    request: join(dataDirectory(documents), PLAYTEST_REQUEST_FILE),
+    go: join(dataDirectory(documents), PLAYTEST_GO_FILE),
+    receipt: join(dataDirectory(documents), playtestReceiptFile(0)),
+  });
   return {
     prefix: join(homedir(), ".local/share/Steam/steamapps/compatdata/3516115571/pfx"),
     display: ":0",
@@ -80,23 +83,32 @@ export function playtest({ build, map, helper, computerSlot, inputDevices }: Pla
     map,
     gameName: "Smashcraft",
     debugDirectory: join(homedir(), ".local/state/smashcraft/play-debug"),
+    // The request, read once at map start; no go-ahead or receipt from an earlier run.
+    prepare: (documents) => Effect.gen(function*() {
+      const gameFiles = yield* GameFiles;
+      const { request: requestFile, go, receipt } = files(documents);
+      for (const path of [go, receipt]) if ((yield* gameFiles.read(path)) !== undefined) yield* gameFiles.remove(path);
+      yield* gameFiles.write(requestFile, linePreloadFile(request));
+    }).pipe(Effect.mapError(problem)),
+    // A request left behind would have the map's next session look for a go-ahead twice a second at fighter selection.
+    cleanup: (documents) => Effect.gen(function*() {
+      const gameFiles = yield* GameFiles;
+      for (const path of Object.values(files(documents))) if ((yield* gameFiles.read(path)) !== undefined) yield* gameFiles.remove(path);
+    }).pipe(Effect.mapError(problem)),
     started: (game, since) => until(LOAD_SECONDS, menu(game).pipe(Effect.map((file) => (file !== undefined && file.modified > since && file.value.phase === "CHARACTER" ? true : undefined))),
       `Smashcraft didn't reach fighter selection within ${LOAD_SECONDS} s (no new ${name})`),
-    opponent: (game) => Effect.gen(function*() {
-      // From EMPTY a computer is two clicks away; from HMN, one.
-      for (let click = 0; click < 3; click++) {
-        const shown = yield* menu(game);
-        if (shown === undefined) return yield* new PlayProblem({ problem: `fighter selection has no ${name}` });
-        if ((shown.value.computers & bit) !== 0) return `computer as ${player}`;
-        const aside = margin(game);
-        // Mouse focus on the inert margin first, as the native slot journeys do.
-        if (aside !== undefined) yield* game.clickUi(aside.x, aside.y);
-        const tag = tagCentre(computerSlot);
-        yield* game.clickUi(tag.x, tag.y);
-        yield* until(TAG_SECONDS, menu(game).pipe(Effect.map((file) => (file !== undefined && file.modified > shown.modified ? true : undefined))),
-          `clicking ${player}'s card tag didn't change fighter selection`);
-      }
-      return yield* new PlayProblem({ problem: `no computer appeared as ${player} after 3 clicks on its card tag` });
+    // The go-ahead: the map sends the request to every client and starts the match; its receipt says how it went.
+    match: (game) => Effect.gen(function*() {
+      const gameFiles = yield* GameFiles;
+      const { request: requestFile, go, receipt } = files(game.documents);
+      const since = yield* Clock.currentTimeMillis;
+      yield* gameFiles.write(go, linePreloadFile("GO")).pipe(Effect.mapError(problem));
+      const answer = yield* until(MATCH_SECONDS, gameFiles.read(receipt).pipe(Effect.mapError(problem), Effect.map((file) => (file !== undefined && file.modified >= since ? file.text : undefined))),
+        `Smashcraft didn't take the playtest request within ${MATCH_SECONDS} s; a map built before it read requests ignores them`);
+      // Later sessions of the map start at fighter selection as usual.
+      for (const path of [requestFile, go]) if ((yield* gameFiles.read(path).pipe(Effect.mapError(problem))) !== undefined) yield* gameFiles.remove(path).pipe(Effect.mapError(problem));
+      if (!answer.includes(`${request} started`)) return yield* new PlayProblem({ problem: `Smashcraft refused the playtest request "${request}": fighter selection had moved on or a human holds Player ${computerSlot + 1}` });
+      return `computer as Player ${computerSlot + 1}, match started`;
     }),
     helper: {
       binary: helper,

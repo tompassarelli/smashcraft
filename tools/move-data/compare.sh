@@ -8,3 +8,6 @@ if [[ "$mode" == --check ]]; then
     "${MOVE_DATA_BUN:-bun}" test ./scripts/moveComparisons.tests.ts
 fi
 "${MOVE_DATA_BUN:-bun}" scripts/moveData.ts compare "$mode"
+if [[ "$mode" == --check ]]; then
+    "${MOVE_DATA_BUN:-bun}" scripts/wisp.ts interactions --check
+fi

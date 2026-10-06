@@ -13,21 +13,44 @@ import { requestStageSelect, requestStart, selectCharacter, setParticipants } fr
 import { FLOOR_HEIGHT } from "../src/game/presentation/arenaCamera";
 import { STOCK_MODELS } from "../src/game/render/effects";
 import { IMPACT_DUST, IMPACTS_PER_KIND, impactLifetime } from "../src/game/presentation/impactState";
-import { Character } from "../src/game/sim/codes";
+import { Character, SurfaceContact } from "../src/game/sim/codes";
+import { fighterAt } from "../src/game/sim/roster";
+import { MAIN_DECK_BODY_SURFACES, MAIN_DECK_UNDERSIDE_Z, solidSurfaceAt } from "../src/game/sim/stage";
+import { BLAST_ZONE_BOTTOM, BLAST_ZONE_SIDE, BLAST_ZONE_TOP } from "../src/game/sim/stocks";
 import { QUICK_MATCH_COMMAND } from "../src/game/shell/devSettings";
+import { initializeScenario } from "../src/game/shell/scenarios";
 import { install as installDevelopment, start as startDevelopment } from "../src/platform/devMain";
 import { PERF_COMMAND } from "../src/platform/frameMeter";
 import { startMatch } from "../src/platform/shell/matchStart";
 import { shell } from "../src/platform/shell/state";
-import { renderPersistentPresentation } from "../src/platform/shell/view";
+import { lockArenaCamera, renderPersistentPresentation } from "../src/platform/shell/view";
 import { installHeadless, readNativeDeclarations } from "wisp/scripts/wisp/headless";
 import type { HeadlessClient } from "wisp/src/headless/client";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
+import { MAIN_DECK_HALF_DEPTH } from "../scripts/stageDeck";
 
 // Nothing here compares clients' native calls, so none are logged: the dense-dust match runs 240 frames.
 const declarations = readNativeDeclarations();
 const unlogged = Object.fromEntries(declarations.functions.map(([name]) => [name, "this file compares no calls"]));
-const headless = installHeadless({ ...SMASHCRAFT_HEADLESS, localNatives: unlogged }, declarations);
+/** The camera fields and position each client last set. */
+interface SetCamera {
+  readonly fields: Map<string, number>;
+  x: number;
+  y: number;
+}
+const cameras = new Map<HeadlessClient, SetCamera>();
+const recordCamera = (client: HeadlessClient) => {
+  const camera: SetCamera = { fields: new Map(), x: 0, y: 0 };
+  cameras.set(client, camera);
+  return {
+    SetCameraField: (field: string, value: number) => void camera.fields.set(field, value),
+    SetCameraPosition: (x: number, y: number) => {
+      camera.x = x;
+      camera.y = y;
+    },
+  };
+};
+const headless = installHeadless({ ...SMASHCRAFT_HEADLESS, localNatives: unlogged, natives: recordCamera }, declarations);
 const seconds = (value: number) => value * SMASHCRAFT_SCENE.framesPerSecond;
 afterAll(headless.restore);
 
@@ -170,6 +193,123 @@ test("development build: -dev perf shows the typing player what the match's fram
   const overlay = (client: HeadlessClient | undefined) => client?.frames.shownText().filter((text) => text.startsWith("frame cost")) ?? [];
   const [host, guest] = clients.clients;
   // Bun has no Lua clock and counts no natives; the frames are the shell's since its first tick, the match advancing one a frame.
-  expect(overlay(host)).toEqual(["frame cost, last 89 frames, median / max\nLua: no clock\nnatives: 0 / 0\ncatch-up frames: 1 / 1"]);
+  expect(overlay(host)).toEqual(["frame cost, last 89 frames, median / p95 / max\nLua: no clock\nnatives: 0 / 0 / 0\ncatch-up frames: 1 / 1 / 1"]);
   expect(overlay(guest)).toEqual([]);
+});
+
+/** The match HUD's panels reach 0.139 up the 0.6-high screen (src/game/ui/matchHud.ts). */
+const HUD_TOP_ROW = 1 - 0.139 / 0.6;
+type Point = readonly [x: number, y: number, z: number];
+
+/**
+ * Where an arena point shows in the frame of the camera a client set, as
+ * fractions of the frame's width and height from its top left. The ground is
+ * level, so the camera's target is its z offset above the ground, FLOOR_HEIGHT
+ * below the floor. The clients run 16:9 and Warcraft spreads the field of
+ * view across the width, as wisp:scripts/wisp/visibility.ts frames a camera.
+ */
+function framePoint(camera: SetCamera, origin: { readonly x: number; readonly y: number }, [x, y, z]: Point) {
+  const field = (name: string) => camera.fields.get(name) ?? Number.NaN;
+  const radians = (degrees: number) => (degrees * Math.PI) / 180;
+  const attack = field("CAMERA_FIELD_ANGLE_OF_ATTACK");
+  const pitch = radians(attack > 180 ? attack - 360 : attack);
+  const yaw = radians(field("CAMERA_FIELD_ROTATION"));
+  const forward = [Math.cos(pitch) * Math.cos(yaw), Math.cos(pitch) * Math.sin(yaw), Math.sin(pitch)] as const;
+  const right = [Math.sin(yaw), -Math.cos(yaw), 0] as const;
+  const up = [right[1] * forward[2] - right[2] * forward[1], right[2] * forward[0] - right[0] * forward[2], right[0] * forward[1] - right[1] * forward[0]] as const;
+  const distance = field("CAMERA_FIELD_TARGET_DISTANCE");
+  const target = [camera.x - origin.x, camera.y - origin.y, field("CAMERA_FIELD_ZOFFSET") - FLOOR_HEIGHT] as const;
+  const relative = [0, 1, 2].map((axis) => [x, y, z][axis]! - (target[axis]! - distance * forward[axis]!));
+  const along = (axis: readonly number[]) => relative.reduce((sum, value, index) => sum + value * axis[index]!, 0);
+  const across = Math.tan(radians(field("CAMERA_FIELD_FIELD_OF_VIEW") / 2));
+  return { column: 0.5 + along(right) / (2 * along(forward) * across), row: 0.5 - along(up) / (2 * along(forward) * (across * 9) / 16) };
+}
+
+test("a fighter within 100 of the main deck's underside shows above the HUD with the underside, wherever the others are", () => {
+  const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
+  clients.start();
+  clients.frames(30);
+  const client = clients.clients[0];
+  const camera = client === undefined ? undefined : cameras.get(client);
+  if (client === undefined || camera === undefined) throw new Error("missing client");
+  const near = 100;
+  const underside = Array.from({ length: MAIN_DECK_BODY_SURFACES }, (_, index) => solidSurfaceAt(0, index))
+    .find((line) => line.kind === SurfaceContact.ceiling && line.startZ === MAIN_DECK_UNDERSIDE_Z && line.endZ === MAIN_DECK_UNDERSIDE_Z);
+  if (underside === undefined) throw new Error("the main deck has no level underside");
+  // The underside's front edge where it is nearest the fighter.
+  const undersideNear = ([x]: Point): Point => [Math.min(Math.max(x, underside.endX), underside.startX), -MAIN_DECK_HALF_DEPTH, MAIN_DECK_UNDERSIDE_Z];
+  // Beside a wall, 12 outside it as a fighter stands against it; under the underside, down to the blast zone.
+  const beside = (side: number, z: number): Point => {
+    const wall = Array.from({ length: MAIN_DECK_BODY_SURFACES }, (_, index) => solidSurfaceAt(0, index))
+      .find((line) => line.normalX * side > 0 && Math.min(line.startZ, line.endZ) <= z && Math.max(line.startZ, line.endZ) >= z);
+    if (wall === undefined) throw new Error(`no wall at ${z}`);
+    return [wall.startX + ((wall.endX - wall.startX) * (z - wall.startZ)) / (wall.endZ - wall.startZ) + 12 * side, 0, z];
+  };
+  const fighters: Point[] = [
+    ...[underside.endX, 0, underside.startX].flatMap((x) => [MAIN_DECK_UNDERSIDE_Z - 1, BLAST_ZONE_BOTTOM + 1].map((z): Point => [x, 0, z])),
+    ...[-1, 1].flatMap((side) => [MAIN_DECK_UNDERSIDE_Z + near / 2, MAIN_DECK_UNDERSIDE_Z + near].map((z) => beside(side, z))),
+  ];
+  // The other fighter: KO'd, on the main deck, on a raised deck, high, at the top blast zone, far to a side.
+  const others: (Point | undefined)[] = [undefined, [300, 0, 0], [-265, 0, 170], [0, 0, 465], [0, 0, BLAST_ZONE_TOP - 1], [-(BLAST_ZONE_SIDE - 20), 0, 0]];
+  const misses: string[] = [];
+  let origin = { x: 0, y: 0 };
+  client.run(() => {
+    const s = shell();
+    setParticipants(s.game, 1, 2);
+    selectCharacter(s.game, 0, Character.archer);
+    expect(requestStageSelect(s.game, 0)).toBe(true);
+    expect(requestStart(s.game, 0)).toBe(true);
+    startMatch(s);
+    origin = s.origin;
+    for (const fighter of fighters) for (const other of others) {
+      const low = fighterAt(s.world, 0).motion;
+      [low.x, low.z] = [fighter[0], fighter[2]];
+      const high = fighterAt(s.world, 1);
+      high.status.out = other === undefined;
+      [high.motion.x, high.motion.z] = [other?.[0] ?? 0, other?.[2] ?? 0];
+      lockArenaCamera(s);
+      const seen = [undersideNear(fighter), fighter].map((point) => framePoint(camera, origin, point));
+      const outside = seen.filter(({ column, row }) => column < 0 || column > 1 || row < 0 || row > HUD_TOP_ROW);
+      const otherSeen = other === undefined ? undefined : framePoint(camera, origin, other);
+      if (outside.length > 0 || (otherSeen !== undefined && (otherSeen.row < 0 || otherSeen.row > 1))) {
+        misses.push(`fighter at (${fighter[0].toFixed(0)}, ${fighter[2].toFixed(0)}) with the other at ${other === undefined ? "none" : `(${other[0]}, ${other[2]})`}: underside and fighter at ${seen.map(({ column, row }) => `(${column.toFixed(2)}, ${row.toFixed(2)})`).join(" and ")}${otherSeen === undefined ? "" : `, other ${otherSeen.row.toFixed(2)}`}`);
+      }
+    }
+    trampoline("scene.report")();
+  });
+  expect(misses).toEqual([]);
+  expect(sceneProblems(sceneReport(client), SMASHCRAFT_SCENE)).toEqual([]);
+});
+
+test("the underside scenario holds a fighter under the main deck, shown above the HUD with the underside, through fresh's frame 30", () => {
+  const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
+  clients.start();
+  clients.frames(30);
+  const client = clients.clients[0];
+  const camera = client === undefined ? undefined : cameras.get(client);
+  if (client === undefined || camera === undefined) throw new Error("missing client");
+  let origin = { x: 0, y: 0 };
+  client.run(() => {
+    const s = shell();
+    setParticipants(s.game, 1, 2);
+    selectCharacter(s.game, 0, Character.archer);
+    expect(requestStageSelect(s.game, 0)).toBe(true);
+    expect(requestStart(s.game, 0)).toBe(true);
+    startMatch(s);
+    initializeScenario("underside", s.game, s.world);
+    origin = s.origin;
+  });
+  clients.frames(30);
+  client.run(() => {
+    const { motion, status } = fighterAt(shell().world, 0);
+    expect([motion.x, motion.z, status.frozenFrames > 0]).toEqual([520, MAIN_DECK_UNDERSIDE_Z, true]);
+  });
+  // The underside's right end, and the fighter's feet.
+  const shown: Point[] = [[371, -MAIN_DECK_HALF_DEPTH, MAIN_DECK_UNDERSIDE_Z], [520, 0, MAIN_DECK_UNDERSIDE_Z]];
+  for (const { column, row } of shown.map((point) => framePoint(camera, origin, point))) {
+    expect(column).toBeGreaterThan(0);
+    expect(column).toBeLessThan(1);
+    expect(row).toBeGreaterThan(0);
+    expect(row).toBeLessThan(HUD_TOP_ROW);
+  }
 });

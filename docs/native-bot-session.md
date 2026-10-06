@@ -13,23 +13,40 @@ The session has a match and a rematch:
 
 - Slot C becomes a computer Demon Hunter. `--bot-four` adds a computer
   Archer in slot D, for four fighters.
-- The match timer is one minute; matches use their normal stocks.
+- The match timer is one minute; matches use their normal stocks. The
+  match plays Sky Deck. Before the rematch, slot 0's stick switches the
+  stage screen to Three Bridges, so a session shows both stages.
 - Both pads play a beat every 400 ms: 5 ms taps of A, Y and X, a 200 ms
-  left-trigger shield, and 300 ms full-tilt dashes right and left.
+  left-trigger shield, 300 ms full-tilt dashes right and left, and 100 ms
+  full-tilt C-stick flicks right, up, left and down. Each edge's phase
+  names its beat (`bot-EPOCH-beat:c-up`).
 - At 6, 14 and 22 s, client B's game is stopped with SIGSTOP for 2 s. Before
   any stall, the capture checks that the window's process runs on the
   client's own DISPLAY.
-- At 30 s both pads hold View for 1.3 s, so each helper asks its client to
-  save a moment.
+- At 12 and 30 s both pads hold View for 1.3 s, so each helper asks its
+  client to save a moment. A session that plays both matches past 30 s
+  saves eight moment files (four moments, saved on both clients).
+- On a development or integrity build, each match exports its response
+  pages after its trace, so its presses can be reconciled like #26's.
 - `--bot-four` leaves the rematch undisturbed and types `-dev perf` into
   client A before it, so the frame-cost overlay shows a four-fighter match
   (development and integrity builds only).
+- `--bot-perf` does the same with the three fighters of `--bot`, so a
+  session measures both the matches `bun wisp perf bot` and `perf bot-four`
+  predict. Read the overlay's median / p95 / max on a quiet machine: the
+  meter's clock is likely wall time, so other work on the host inflates it.
 - `--pad49` opens the first match with #49's script on slot 0, and that
   match has no stalls. The script: resting and drifted sticks, X, Y, down at
   0.650 and 0.670 of full tilt, and a held right.
 
+Before the first `bun wisp fresh` after a client starts, open Custom Games
+→ Create Game and the 00-Smashcraft folder once: fresh clicks the folder's
+first map, and Warcraft keeps the open folder for the session. Fresh moves
+every other map in that folder to `smashcraft-replaced-maps`. Client A's
+prefix also holds Tom's playtest map, so copy it back after a session.
+
 ```sh
-bun wisp parity capture --bot [--bot-four] [--pad49] \
+bun wisp parity capture --bot [--bot-four | --bot-perf] [--pad49] \
   --helper /absolute/path/to/wc3-journal --build BUILD_ID \
   --out /absolute/path/to/new-capture \
   --app-id a=GAME_APP_ID_A --app-id b=GAME_APP_ID_B --first-epoch 1
@@ -55,6 +72,18 @@ From smashcraft:ts/:
   step by step against slot 0's rows.
 - `bun scripts/integrity/stallSeries.ts DIR SLOT EPOCH TRIAL` prints one
   helper's delay at each receipt around one stall.
+- `bun scripts/integrity/pressResult.ts OUT.json DIR ...` checks #60's
+  claim over integrity-build captures, bot sessions and #26's alike. It
+  counts presses, the actions they cover, lost and extra edges, and edges
+  applied off their frame. It also gives each legal press's local start:
+  callbacks from the presser's client capturing it to that client first
+  predicting it. Presses made while the presser's own game or helper was
+  stopped are reported apart from the gate. So are presses made while the
+  other player's was stopped, and presses in the second after a stop.
+  `worst_gated_presses` names the latest ones by capture, match, slot and
+  frame. A legal press whose first prediction didn't start its action has
+  no local start; `confirmedAfter` gives the callbacks until the confirmed
+  frame showed it.
 
 Input delay here is how many frames a helper has journaled by its own
 clock beyond the last frame its client consumed. It is read at the helper's

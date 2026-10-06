@@ -121,6 +121,9 @@ function mainDeckBody(): SolidSurface[] {
 
 const MAIN_DECK_BODY = mainDeckBody();
 
+/** The height of the main deck's level underside, the lowest of its lines. */
+export const MAIN_DECK_UNDERSIDE_Z = mainDeckZ(at(REFERENCE_RIGHT_SIDE, REFERENCE_RIGHT_SIDE.length - 1));
+
 /** The main deck's walls and underside lead every stage's solid surfaces. */
 export const MAIN_DECK_BODY_SURFACES = MAIN_DECK_BODY.length;
 

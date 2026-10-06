@@ -3,7 +3,7 @@
 // whose controller input is missing or stops (#46).
 import { expect } from "bun:test";
 import type { HeadlessRuntime } from "wisp/scripts/wisp/headless";
-import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/scripts/wisp/syncChannel";
+import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/src/headless/syncChannel";
 import type { HeadlessClient } from "wisp/src/headless/client";
 import type { Lockstep } from "wisp/src/headless/lockstep";
 import { Phase } from "../../src/game/match/rules";

@@ -83,7 +83,8 @@ The stores at 0x8006BB14 and 0x8006BB18 clear vertical launch and horizontal
 attacker recoil respectively. Horizontal launch and vertical attacker recoil
 remain unchanged. Thus launch's below-cutoff branch clears both launch axes,
 but recoil's below-cutoff branch has a cross-channel effect. Production keeps
-this retail behavior for the requested starting physics foundation. It updates
+this retail behavior, as the shared physics follows Melee's
+(smashcraft:docs/gameplay-design.md, "Physics foundation"). It updates
 launch before recoil and skips empty recoil vectors, avoiding accidental
 suppression of ordinary launches.
 
