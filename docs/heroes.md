@@ -41,9 +41,17 @@ acts again on N+1. It may author:
   once per action. Strike paths are disjoint by construction: a weapon never
   extends the body. Limbs that must be hittable belong in the hero's hurt
   volumes;
-- `motion`: velocity set on each frame of a window, facing-relative, with an
-  optional `aimedSpeed` that follows the stick held on entry, or `steerX`,
-  a horizontal speed times the stick side held on each frame;
+- `motion`: velocity set on each frame of a window, facing-relative. The
+  next frame moves by exactly that velocity, without steering, drag, gravity
+  or the fall-speed cap; stage collision still stops it, so a long one-frame
+  displacement (Warden's Blink) ends at the deck body or lands on the deck.
+  `aimedSpeed` replaces the direction with one of eight aimed directions;
+  `aimedTilt` turns a horizontal heading to a fixed angle for an up or down
+  aim (Pursuit Lunge's 20 degrees); `steerX` makes the horizontal velocity
+  that speed times the stick side held on each frame (Bat Ascension);
+- `aimFrames`: through this frame a held stick re-chooses the aim, so an up
+  special can still be aimed sideways or down; without it the aim is the
+  stick on entry;
 - `projectiles`: spawn frame, offset, velocity (and an up-held velocity),
   life, radius, `activeFrom`, effect, `reflectable`, `limit` and
   `cancelOnInterrupt`; a cast that would exceed a limit or the three-projectile
