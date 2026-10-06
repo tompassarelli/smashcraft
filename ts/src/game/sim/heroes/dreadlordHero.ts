@@ -11,7 +11,7 @@ export const DREADLORD_HERO: HeroDefinition = {
   name: "Dreadlord",
   purpose: "Air movement, grabs, and close pressure",
   weakness: "Large hurtbox and no safe long-range approach",
-  complete: false,
+  complete: true,
   moves: DREADLORD_MOVES,
   specials: DREADLORD_SPECIALS,
   presentation: {

@@ -285,6 +285,27 @@ const MOUNTAIN_KING: MatchScript = {
   predictions: [[150, 162], [400, 412]],
 };
 
+/**
+ * Dreadlord's Carrion Swarm hits, a Sleep Orb meets a shield and a second one
+ * sleeps the Archer, Night Pounce catches and bites, a second whiffs, the free
+ * Bat Ascension rises on the 5 mana left, then normals and a grab and throw.
+ */
+const DREADLORD: MatchScript = {
+  characters: [Character.dreadlord, Character.archer], stage: 0, stocks: 3, minutes: 0, frames: 640,
+  holds: [[
+    [20, 2, SPECIAL], [80, 4, DOWN], [81, 2, SPECIAL], [150, 4, TOWARD], [151, 2, SPECIAL], [235, 4, DOWN],
+    [236, 2, SPECIAL], [300, 4, TOWARD], [301, 2, SPECIAL], [370, 3, JUMP], [381, 4, UP], [382, 2, SPECIAL],
+    [386, 20, TOWARD], [480, 2, ATTACK], [500, 8, DOWN], [502, 2, ATTACK], [530, 2, GRAB], [534, 4, AWAY],
+    [590, 3, JUMP], [596, 2, C_DOWN],
+  ], [
+    [40, 2, ATTACK], [100, 12, SHIELD_LEFT], [170, 2, ATTACK], [305, 16, SHIELD_RIGHT],
+    [420, 2, GRAB], [450, 2, ATTACK],
+  ]],
+  approaches: [[[460, 45]], [[1, 60], [130, 60], [200, 45], [280, 45], [430, 45]]],
+  rollbacks: [[24, 50], [84, 112], [154, 200], [240, 290], [304, 345], [384, 420], [532, 580]],
+  predictions: [[150, 162], [384, 396]],
+};
+
 /** Records the acceptance tapes by name, and checks they press every bound source. */
 export function generateTapes(): Map<string, string> {
   const pressed = [new Set<string>(), new Set<string>()];
@@ -294,6 +315,7 @@ export function generateTapes(): Map<string, string> {
     ["rematch", recordTape("A one-stock match ends, both players confirm the rematch, a new match runs.", [FIRST_MATCH, SECOND_MATCH])],
     ["computer", recordTape("A player against the computer on the raised decks, with replays.", [COMPUTER])],
     ["lich", recordTape("Lich's specials, free recovery and normals against the Archer, with replays.", [LICH])],
+    ["dreadlord", recordTape("Dreadlord's specials, sleep, a command grab, free Bat Ascension, normals and a throw against the Archer, with replays.", [DREADLORD])],
     ["mountain-king", recordTape("Mountain King's specials, free Thunder Leap, normals and a throw against the Archer, with replays.", [MOUNTAIN_KING])],
     ["moving-platforms", recordTape("Moving decks, jumping, dropping through, predictions and rollback over complete path cycles.", [{
       characters: [Character.archer, Character.rifleman], stage: 3, stocks: 3, minutes: 0, frames: 620,
