@@ -25,7 +25,9 @@ III fullscreen. Each step prints a line; a problem stops it with what to do
 (wisp:docs/play.md). The helper keeps running
 after the command ends, with its output in
 ~/.local/state/smashcraft/play-helper.log; stop it with `kill PID` (the pid
-the command printed) after leaving the map. smashcraft:ts/scripts/wisp/commands/play.ts
+the command printed) after leaving the map. Each run saves a picture before
+and after every click, and its click log, in a folder under
+~/.local/state/smashcraft/play-debug/. smashcraft:ts/scripts/wisp/commands/play.ts
 declares the candidate, its helper and the computer's slot.
 
 Put the map in each player's Warcraft III `Maps/00-Smashcraft` folder. Join the
