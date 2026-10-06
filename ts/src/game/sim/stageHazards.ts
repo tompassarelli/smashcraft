@@ -155,6 +155,7 @@ function catchFighter(world: Roster, slot: number, frame: number): void {
   motion.fastFalling = false;
   motion.crouching = false;
   launch.hitstun = 0;
+  launch.throwHitstun = false;
   launch.diPending = false;
   launch.diLaunchSpeed = 0.0;
   f.shield.raised = false;
@@ -173,6 +174,7 @@ function fire(f: Fighter, frame: number): void {
   const knockback = contactKnockback(f.status.damage, 0.0, f.tuning.physics.weight, 0.0, CANNON_BASE_KNOCKBACK, 1.0);
   const { launch } = f;
   launch.hitstun = ordinaryHitstunFrames(knockback);
+  launch.throwHitstun = false;
   installDamageLaunch(f, knockback, meleeSin(aim), meleeCos(aim), false);
   if (launch.damageLevel === 3) {
     f.down.state = DownState.tumble;

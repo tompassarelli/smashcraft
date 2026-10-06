@@ -389,6 +389,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
     return;
   }
   if (launch.hitlag <= 0) launch.hitstun = max(0, launch.hitstun - 1);
+  if (launch.hitstun === 0) launch.throwHitstun = false;
   const squatBeforeInput = jump.squat;
   if (input.jumpPressed && !wallJumped) beginJump(f, input.direction);
   if (jump.squat > 0 && launch.hitlag === 0 && (f.character === Character.demonHunter || squatBeforeInput !== 1)) jump.held = jump.held && input.jumpHeld;

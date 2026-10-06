@@ -3,7 +3,7 @@
 // attacker; mutual catches clash and competing catches take the nearest victim.
 import { f32 } from "wisp/src/sim/f32";
 import { AttackPhase, AttackStyle, Character, DASH_GRAB_REQUEST } from "./codes";
-import { attackPhase, canStartAttackStyle, inGrabContext, isIntangible } from "./conditions";
+import { attackPhase, canBeGrabbed, canStartAttackStyle, inGrabContext, isIntangible } from "./conditions";
 import { finishDamageContacts, openDamageContacts } from "./contacts";
 import type { Fighter } from "./fighter";
 import { type HitRegion, NO_HIT_REGION, authoredHitRegion, authoredHitRegionCount, copyHitRegion, emptyHitRegion } from "./hitRegions";
@@ -84,6 +84,7 @@ function selectHitRegion(world: Roster, attackerSlot: number, targetSlot: number
   copyHitRegion(out, NO_HIT_REGION);
   if (attacker.status.out || attacker.launch.hitlag > 0 || target.status.out || isIntangible(target)) return;
   const { attack } = attacker;
+  if (attack.style === AttackStyle.grab && !canBeGrabbed(target)) return;
   // Only grabs read the target's offset, so ordinary hits skip its exact arithmetic.
   if (attack.dashGrab) {
     const { startupFrames, activeFrames } = attacker.tuning.dashGrab;

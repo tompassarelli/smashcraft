@@ -240,6 +240,7 @@ export function beginDownDamage(f: Fighter, hitstunFrames: number): void {
   down.waitRemaining = max(0, hitstunFrames);
   down.attackQueued = false;
   launch.hitstun = max(0, hitstunFrames);
+  launch.throwHitstun = false;
   launch.diPending = false;
   launch.diLaunchSpeed = 0.0;
   motion.vx = 0.0;

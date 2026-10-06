@@ -3,6 +3,7 @@
 import { max } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, ContactKind, GrabAction, SpecialAction } from "./codes";
+import { canBeGrabbed } from "./conditions";
 import { collectDamageContact } from "./contacts";
 import type { Fighter } from "./fighter";
 import { clearDash } from "./groundMovement";
@@ -30,6 +31,7 @@ export function resolveDemonHunterParry(defender: Fighter, attacker: Fighter, aw
   cancelSpecialState(attacker);
   const { launch, motion } = attacker;
   launch.hitstun = max(launch.hitstun, 10);
+  launch.throwHitstun = false;
   launch.hitlag = max(launch.hitlag, 4);
   motion.grounded = false;
   motion.vx = 0.0;
@@ -70,6 +72,7 @@ function catchTarget(world: Roster, attackerSlot: number, targetSlot: number): v
   cancelAttack(target);
   target.grab.grabbedFrames = grabHoldFrames(target.status.damage);
   target.launch.hitstun = 0;
+  target.launch.throwHitstun = false;
   target.launch.hitlag = 0;
   cancelSpecialState(target);
   target.shield.raised = false;
@@ -77,7 +80,7 @@ function catchTarget(world: Roster, attackerSlot: number, targetSlot: number): v
   stopMotion(target);
 }
 
-/** Applies a selected strike: a parry turns it back, a grab catches unless the target is frozen. */
+/** Applies a selected strike: a parry turns it back, an eligible grab catches. */
 export function applyAttackHit(
   world: Roster, attackerSlot: number, targetSlot: number, style: AttackStyle, facing: number,
   effect: Readonly<HitEffect>, directContact: boolean, shieldContact: boolean,
@@ -88,7 +91,7 @@ export function applyAttackHit(
     return;
   }
   if (style === AttackStyle.grab) {
-    if (target.status.frozenFrames <= 0) catchTarget(world, attackerSlot, targetSlot);
+    if (canBeGrabbed(target)) catchTarget(world, attackerSlot, targetSlot);
     return;
   }
   collectDamageContact(world, attackerSlot, targetSlot, effect, facing, ContactKind.launch, directContact, undefined, shieldContact);

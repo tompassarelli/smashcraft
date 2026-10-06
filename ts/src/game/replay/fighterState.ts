@@ -84,6 +84,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   launch.knockbackAge = sourceLaunch.knockbackAge;
   launch.damageLevel = sourceLaunch.damageLevel;
   launch.hitstun = sourceLaunch.hitstun;
+  launch.throwHitstun = sourceLaunch.throwHitstun;
   launch.hitlag = sourceLaunch.hitlag;
   launch.diPending = sourceLaunch.diPending;
   launch.diLaunchSpeed = sourceLaunch.diLaunchSpeed;

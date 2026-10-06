@@ -54,6 +54,11 @@ export function inGrabContext(f: Fighter): boolean {
   return grab.owner !== undefined || grab.target !== undefined || grab.action !== GrabAction.none || grab.grabbedFrames > 0;
 }
 
+/** Throws permit follow-up strikes, but no regrab before their hitstun ends. */
+export function canBeGrabbed(f: Readonly<Fighter>): boolean {
+  return f.status.frozenFrames <= 0 && !(f.launch.throwHitstun && f.launch.hitstun > 0);
+}
+
 /** A wall tech's startup and a ceiling tech lock out jumps, dodges and attacks. */
 export function inSurfaceTechStartup(f: Fighter): boolean {
   const { state, frame } = f.surfaceRecovery;
