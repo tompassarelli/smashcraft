@@ -12,13 +12,17 @@ should look like is Tom's stance, written only in
 
 ## The generated graph
 
-One page per fighter, with every situation's tables and a Mermaid graph:
-[Archer](../../tools/move-data/interactions/archer.md),
-[Rifleman](../../tools/move-data/interactions/rifleman.md),
-[Illidan](../../tools/move-data/interactions/illidan.md). The same numbers,
-one JSON row per situation and variant, are in
-smashcraft:tools/move-data/interactions/interactions.jsonl. Both are generated
-output: never edit them by hand, and never treat them as tuning input.
+`bun wisp interactions` writes one page per fighter, with every situation's
+tables and a Mermaid graph, to smashcraft:tools/move-data/interactions/FIGHTER.md
+(archer.md, rifleman.md, illidan.md). The same numbers, one JSON row per
+situation and variant, are in smashcraft:tools/move-data/interactions/interactions.jsonl.
+Both are generated output: never edit them by hand, and never treat them as
+tuning input.
+
+Git ignores that directory: each checkout plays and writes its own graph.
+Many lanes change moves at once, and a committed graph was regenerated on
+different trees, so landings conflicted and a merged graph could describe
+neither tree. The graph is a function of the source; derive it where it is read.
 
 Combo trees are measured by the same command. Their rows are in
 smashcraft:tools/move-data/interactions/combos.jsonl, with each fighter's
@@ -46,9 +50,10 @@ From smashcraft:ts/:
   original situations take about 10 s with three free cores; the bounded combo
   search also explores stock-taking routes and reports progress per opening.
 - `bun wisp interactions --check` plays them again and lists every row added,
-  removed or changed against the written files, with the changed fields; it
-  also checks the combo rows and reports, and fails until the files are written
-  again. smashcraft:tools/move-data/compare.sh
+  removed or changed against the files this checkout last wrote, with the
+  changed fields; it also checks the combo rows and reports, and fails until the
+  files are written again. Write the graph before changing a move, and
+  `--check` lists what the change moved. smashcraft:tools/move-data/compare.sh
   `--check` runs it after the move comparisons.
 - `bun wisp interactions --move FIGHTER:MOVE` (for example
   `archer:forward-air`, `rifleman:down-tilt`) plays that fighter's situations

@@ -1,3 +1,4 @@
 /build/
 /.clj-kondo/
 /tools/animations/node_modules/
+/tools/move-data/interactions/

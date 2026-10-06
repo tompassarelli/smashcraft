@@ -164,8 +164,8 @@ code. From smashcraft:ts/:
   (smashcraft:docs/physics.md, "Melee behaviour oracle").
 - Interaction graph: `bun wisp interactions` plays every fighter's
   situations (aerials on shield, neutral, landing, ledge, tech) and writes
-  smashcraft:tools/move-data/interactions/; `--check` lists what a change
-  moved and `--move FIGHTER:MOVE` evaluates one move against the graph
+  smashcraft:tools/move-data/interactions/, which Git ignores (write it before
+  a change); `--check` lists what the change moved and `--move FIGHTER:MOVE` evaluates one move against the graph
   (smashcraft:docs/design/interaction-graph.md).
 - Physics diagnostic: `bun wisp build --profile physics-probe ...` selects
   the production numerical fixtures. Rebuild it with

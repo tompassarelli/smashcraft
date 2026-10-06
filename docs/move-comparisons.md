@@ -127,8 +127,9 @@ These comparisons sample one contact state; the
 (aerials on shield at each spacing and drift, out-of-shield options, neutral,
 landing, ledge, tech) for every fighter. After changing or adding a move, run
 `bun wisp interactions --move FIGHTER:MOVE` from smashcraft:ts/ for every place
-the move now appears and what changed in its fighter's graph, then
-`bun wisp interactions` to write the new graph.
+the move now appears and what changed in its fighter's graph since the graph
+was last written in this checkout (write it before the change), then
+`bun wisp interactions` to write the new graph. The graph is not committed.
 smashcraft:tools/move-data/compare.sh `--check` runs `bun wisp interactions
 --check` after its own comparison, so a changed move fails the check until the
 graph's changes are looked at and written.

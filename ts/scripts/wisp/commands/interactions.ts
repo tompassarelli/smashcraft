@@ -1,11 +1,13 @@
 // `wisp interactions`: plays every situation of the interaction graph for each
 // fighter (smashcraft:ts/scripts/interactions.ts, one worker thread a fighter)
-// and writes its rows and pages to smashcraft:tools/move-data/interactions/.
+// and writes its rows and pages to smashcraft:tools/move-data/interactions/,
+// which Git ignores: each checkout derives its own graph, so lanes that change
+// moves in parallel never merge, or land, a graph played from another tree.
 // Every selectable fighter's throw roles (smashcraft:ts/scripts/throwRoles.ts)
 // go to throws.jsonl and throws.md beside them.
-// `--check` compares a fresh graph with those files and lists what changed;
-// `--move FIGHTER:MOVE` prints one move's place in its fighter's fresh graph
-// and what changed there since the files were written.
+// `--check` compares a fresh graph with the files this checkout last wrote and
+// lists what changed; `--move FIGHTER:MOVE` prints one move's place in its
+// fighter's fresh graph and what changed there since the files were written.
 import { join } from "node:path";
 import { Console, Effect, Schema } from "effect";
 import { type Command, UsageFailure, describeCause } from "wisp/scripts/wisp/command";
@@ -87,7 +89,20 @@ const playThrowRoles: Effect.Effect<ThrowRoleRow[], InteractionsFailure> = Effec
 
 const jsonl = (rows: readonly (Row | ComboRow | ThrowRoleRow)[]): string => rows.map((row) => JSON.stringify(row)).join("\n") + "\n";
 
-const committedRows = Effect.tryPromise({ try: async () => parseRows(await Bun.file(rowsFile).text()), catch: failure });
+const notWritten = `no graph is written in ${directory}: run bun wisp interactions first (before a change, to see what it moves)`;
+
+const writtenRows = Effect.tryPromise({
+  try: async () => {
+    if (!(await Bun.file(rowsFile).exists())) throw new Error(notWritten);
+    return parseRows(await Bun.file(rowsFile).text());
+  },
+  catch: failure,
+});
+
+const graphWritten = Effect.promise(() => Bun.file(rowsFile).exists());
+
+/** A written file's text, or undefined when this checkout hasn't written it. */
+const writtenText = async (file: string): Promise<string | undefined> => ((await Bun.file(file).exists()) ? Bun.file(file).text() : undefined);
 
 const write = (rows: readonly FighterRows[], throws: readonly ThrowRoleRow[]) =>
   Effect.tryPromise({
@@ -106,17 +121,17 @@ const write = (rows: readonly FighterRows[], throws: readonly ThrowRoleRow[]) =>
 
 const check = (rows: readonly FighterRows[], throws: readonly ThrowRoleRow[]) =>
   Effect.gen(function* () {
-    const changes = rowChanges(yield* committedRows, rows.flatMap((row) => row.interactions));
+    const changes = rowChanges(yield* writtenRows, rows.flatMap((row) => row.interactions));
     const stalePages = yield* Effect.tryPromise({
       try: async () => {
         const stale: string[] = [];
         for (const [index, entry] of FIGHTERS.entries()) {
-          if ((await Bun.file(pageFile(entry.slug)).text()) !== fighterPage(entry, rows[index]?.interactions ?? []) + "\n") stale.push(`page ${entry.slug}.md differs from its rows`);
-          if ((await Bun.file(comboPageFile(entry.slug)).text()) !== comboPage(entry, rows[index]?.combos ?? []) + "\n") stale.push(`page combos-${entry.slug}.md differs from its rows`);
+          if ((await writtenText(pageFile(entry.slug))) !== fighterPage(entry, rows[index]?.interactions ?? []) + "\n") stale.push(`page ${entry.slug}.md differs from its rows`);
+          if ((await writtenText(comboPageFile(entry.slug))) !== comboPage(entry, rows[index]?.combos ?? []) + "\n") stale.push(`page combos-${entry.slug}.md differs from its rows`);
         }
-        if ((await Bun.file(combosFile).text()) !== jsonl(rows.flatMap((row) => row.combos))) stale.push(`${combosFile} differs from the freshly played combo trees`);
-        if ((await Bun.file(throwsFile).text()) !== jsonl(throws)) stale.push(`${throwsFile} differs from the freshly played throw roles`);
-        if ((await Bun.file(throwsPage).text()) !== throwRolePage(throws) + "\n") stale.push("page throws.md differs from its rows");
+        if ((await writtenText(combosFile)) !== jsonl(rows.flatMap((row) => row.combos))) stale.push(`${combosFile} differs from the freshly played combo trees`);
+        if ((await writtenText(throwsFile)) !== jsonl(throws)) stale.push(`${throwsFile} differs from the freshly played throw roles`);
+        if ((await writtenText(throwsPage)) !== throwRolePage(throws) + "\n") stale.push("page throws.md differs from its rows");
         return stale;
       },
       catch: failure,
@@ -136,8 +151,9 @@ const profile = (spec: string) =>
     const rows = played?.interactions ?? [];
     const lines = moveProfile(rows, moveName);
     yield* Console.log(lines.length === 0 ? `${moveName} takes part in none of ${entry.name}'s situations` : [`${entry.name} ${moveName}:`, ...lines.map((line) => `  ${line}`)].join("\n"));
-    const committed = (yield* committedRows).filter((row) => row.fighter === entry.name);
-    const changes = rowChanges(committed, rows);
+    if (!(yield* graphWritten)) return yield* Console.log(notWritten);
+    const written = (yield* writtenRows).filter((row) => row.fighter === entry.name);
+    const changes = rowChanges(written, rows);
     yield* Console.log(changes.length === 0 ? `${entry.name}'s graph is unchanged from ${rowsFile}` : [`Changes in ${entry.name}'s graph from ${rowsFile}:`, ...changes.map((line) => `  ${line}`)].join("\n"));
   });
 
@@ -145,6 +161,7 @@ export const interactions: Command = (args) => {
   if (args.length === 2 && args[0] === "--move") return profile(args[1] ?? "");
   if (args.length > 1 || (args.length === 1 && args[0] !== "--check")) return Effect.fail(new UsageFailure({ problem: "interactions takes --check or --move FIGHTER:MOVE" }));
   return Effect.gen(function* () {
+    if (args[0] === "--check" && !(yield* graphWritten)) return yield* Effect.fail(new InteractionsFailure({ problems: [notWritten] }));
     const rows = yield* playFighters(FIGHTERS.map((entry) => entry.name)).pipe(step("every fighter's situations"));
     const throws = yield* playThrowRoles.pipe(step("every selectable fighter's throw roles"));
     if (args[0] === "--check") return yield* check(rows, throws);
