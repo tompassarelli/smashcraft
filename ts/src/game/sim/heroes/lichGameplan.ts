@@ -1,7 +1,7 @@
 // Lich's gameplan (sim/gameplan.ts, #105): deliberate projectile placement
-// from range by a frail, slow caster. He keeps the gap where Frost Nova's
-// marker lands on the target (centre 1.5H ahead, 0.65H radius) and a
-// Frost Shard still flies, covers the approach with Ice Spear's XL reach, and
+// from range by a frail, slow caster. He keeps the gap where Death and Decay's
+// field lands on the target (centre 1.5H ahead, 0.75H radius) and a
+// Frost Nova still flies, covers the approach with Ice Spear's XL reach, and
 // backs out of close range rather than brawling with his slow normals.
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle } from "../codes";
@@ -14,7 +14,7 @@ export const LICH_GAMEPLAN: FighterGameplan = {
   // Outside most forward tilts and dash attacks, inside the nova's far rim.
   range: { near: h(f32(1.5)), far: h(f32(2.4)) },
   spacing: [
-    // Frost Nova's burst reaches 0.85H-2.15H ahead of him, plus the target's body.
+    // Death and Decay reaches 0.75H-2.25H ahead of him, plus the target's body.
     { move: GameplanSpecial.side, near: h(f32(0.9)), far: h(f32(2.2)) },
     { move: GameplanSpecial.neutral, near: h(f32(1.2)), far: h(f32(4.0)) },
     // Ice Spear: the XL stationary spear that punishes a run-in.

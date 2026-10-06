@@ -1,9 +1,13 @@
-// Lich's specials through the production special, projectile, contact and
-// resource functions: costs, placement, the free recovery and the armor shell.
+// Lich's specials (#130) through the production special, projectile, contact and
+// resource functions: Frost Nova and its burst, Chill, Death and Decay, the
+// free recovery, Frost Armor and Dark Ritual.
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
-import { AttackStyle, Character, ProjectileKind, SpecialAction } from "../codes";
+import { AttackStyle, Character, HeroStatusKind, ProjectileKind, SpecialAction } from "../codes";
+import { CHILL } from "../chill";
+import { inGrabContext } from "../conditions";
+import { applyHeroStatus } from "../heroStatus";
 import { beginDamageContacts, finishDamageContacts } from "../contacts";
 import { type Fighter, createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
@@ -51,54 +55,123 @@ const sideBack = controls({ specialPressed: true, specialX: -1 });
 const up = controls({ specialPressed: true, specialZ: 1 });
 const down = controls({ specialPressed: true, specialZ: -1 });
 
-test("Frost Shard is free, leaves the hand on frame 20 and keeps one shard alive", () => {
-  const { world, lich } = lichPair(1200.0);
+const shield = controls({ shield: true, shieldStrength: 1.0 });
+const chilled = (f: Readonly<Fighter>) => f.status.condition === HeroStatusKind.chill;
+
+test("Frost Nova costs 10, its slow orb leaves the hand on frame 18 and chills a body it reaches", () => {
+  const { world, lich, target } = lichPair(400.0);
   frame(world, neutral);
   assertEquals(lich.special.action, SpecialAction.heroNeutral);
-  for (let f = 2; f <= 19; f++) frame(world);
+  assertEquals(lich.mana.points, 90);
+  for (let f = 2; f <= 17; f++) frame(world);
   assertEquals(live(lich).length, 0);
   frame(world);
   assertEquals(live(lich).length, 1);
-  assertNear(Math.abs(live(lich)[0]!.velocityX), f32(H * f32(0.10)), f32(0.01));
-  for (let f = 21; f <= 45; f++) frame(world);
-  assertEquals(lich.special.action, SpecialAction.none);
-  frame(world, neutral);
-  assertEquals(lich.special.action, SpecialAction.none);
-  assertEquals(lich.mana.points, 100);
+  assertNear(Math.abs(live(lich)[0]!.velocityX), f32(H * f32(0.07)), f32(0.01));
+  for (let f = 19; f <= 80 && target.status.damage === 0.0; f++) frame(world);
+  assertEquals(target.status.damage, 6.0);
+  assertTrue(chilled(target));
+  assertGreaterThan(target.status.conditionFrames, 73);
 });
 
-test("Frost Nova costs 20, places a fixed marker 1.5H ahead and bursts on frame 30 only", () => {
+test("a second Frost Nova press stops the orb on its frame 4 and bursts it 6 frames later, chilling what it catches", () => {
+  const { world, lich, target } = lichPair(1200.0);
+  frame(world, neutral);
+  // The cast ends on frame 40; the orb is then about 1.9H ahead.
+  for (let f = 2; f <= 45; f++) frame(world);
+  const orb = live(lich)[0]!;
+  frame(world, neutral);
+  assertEquals(lich.special.action, SpecialAction.heroNeutral);
+  assertEquals(lich.mana.points, 90);
+  for (let f = 2; f <= 4; f++) frame(world);
+  const x = orb.x;
+  frame(world);
+  assertEquals(orb.x, x);
+  // Something that jumped the orb sits above it, inside the burst's radius.
+  target.motion.x = x;
+  target.motion.z = f32(lich.motion.z + f32(H * f32(0.5)));
+  target.motion.grounded = false;
+  target.motion.surface = undefined;
+  target.motion.vz = 0.0;
+  let burstFrame = 0;
+  for (let f = 1; f <= 8 && target.status.damage === 0.0; f++) {
+    frame(world);
+    burstFrame = f;
+  }
+  assertEquals(target.status.damage, 10.0);
+  // The loop starts on the gesture's frame 6: the burst strikes on frame 10, 6 frames after the stop.
+  assertEquals(burstFrame, 5);
+  assertTrue(chilled(target));
+});
+
+test("Chill lowers run and air drift speed, stops at a shield and cannot chain inside its immunity", () => {
+  const travel = (chill: boolean, airborne: boolean) => {
+    const { world, target } = lichPair(1200.0);
+    if (chill) applyHeroStatus(target, CHILL);
+    if (airborne) {
+      target.motion.grounded = false;
+      target.motion.surface = undefined;
+      target.motion.z = 400.0;
+    }
+    const x = target.motion.x;
+    for (let f = 0; f < 30; f++) frame(world, controls(), controls({ direction: -1 }));
+    return f32(x - target.motion.x);
+  };
+  assertLessThan(travel(true, false), f32(travel(false, false) * 0.7));
+  assertLessThan(travel(true, true), f32(travel(false, true) * 0.7));
+  const guarded = lichPair(300.0);
+  frame(guarded.world, neutral, shield);
+  for (let f = 2; f <= 60; f++) frame(guarded.world, controls(), shield);
+  assertEquals(guarded.target.status.damage, 0.0);
+  assertFalse(chilled(guarded.target));
+  const { target } = lichPair(300.0);
+  applyHeroStatus(target, CHILL);
+  for (let f = 0; f < 75; f++) advanceHeroStatus(target);
+  assertFalse(chilled(target));
+  applyHeroStatus(target, CHILL);
+  assertFalse(chilled(target));
+});
+
+test("Death and Decay costs 25 and strikes a fighter standing in it on frame 30 and again from frame 70", () => {
   const ahead = f32(H * f32(1.5));
   const { world, lich, target } = lichPair(ahead);
   frame(world, sideForward);
-  assertEquals(lich.mana.points, 80);
+  assertEquals(lich.mana.points, 75);
   for (let f = 2; f <= 8; f++) frame(world);
-  const marker = live(lich)[0]!;
-  assertNear(marker.x, f32(lich.motion.x + ahead), 1.0);
+  assertEquals(live(lich).length, 2);
+  assertNear(live(lich)[0]!.x, f32(lich.motion.x + ahead), 1.0);
   for (let f = 9; f <= 29; f++) frame(world);
-  assertNear(marker.x, f32(lich.motion.x + ahead), 1.0);
   assertEquals(target.status.damage, 0.0);
   frame(world);
-  assertEquals(target.status.damage, 11.0);
-  for (let f = 31; f <= 58; f++) frame(world);
-  assertEquals(lich.special.action, SpecialAction.none);
-  assertEquals(target.status.damage, 11.0);
+  assertEquals(target.status.damage, 5.0);
+  // Back in the field after the pop-up, it is struck again once the second strike is live.
+  for (let f = 31; f <= 69; f++) frame(world);
+  assertEquals(target.status.damage, 5.0);
+  target.motion.x = f32(lich.motion.x + ahead);
+  for (let f = 70; f <= 72; f++) frame(world);
+  assertEquals(target.status.damage, 14.0);
+  for (let f = 73; f <= 100; f++) frame(world);
+  assertEquals(live(lich).length, 0);
 });
 
-test("Frost Nova pressed backward keeps Lich's facing and places the marker 0.9H ahead", () => {
-  const { world, lich } = lichPair(1200.0);
-  frame(world, sideBack);
-  assertEquals(lich.special.action, SpecialAction.heroSide);
-  assertEquals(lich.facing, 1);
-  for (let f = 2; f <= 8; f++) frame(world);
-  assertNear(live(lich)[0]!.x, f32(lich.motion.x + f32(H * f32(0.9))), 1.0);
+test("a shield spends one Death and Decay strike, and pressing toward Lich's back places it 0.9H ahead", () => {
+  const { world, lich, target } = lichPair(f32(H * f32(1.5)));
+  frame(world, sideForward, shield);
+  for (let f = 2; f <= 31; f++) frame(world, controls(), shield);
+  assertEquals(target.status.damage, 0.0);
+  assertEquals(live(lich).length, 1);
+  const near = lichPair(1200.0);
+  frame(near.world, sideBack);
+  assertEquals(near.lich.facing, 1);
+  for (let f = 2; f <= 8; f++) frame(near.world);
+  assertNear(live(near.lich)[0]!.x, f32(near.lich.motion.x + f32(H * f32(0.9))), 1.0);
 });
 
-test("interrupting Lich before the burst removes the marker", () => {
+test("interrupting Lich before Death and Decay's first strike removes the field", () => {
   const { world, lich, target } = lichPair(70.0, Character.lich);
   frame(world, sideForward);
   for (let f = 2; f <= 10; f++) frame(world);
-  assertEquals(live(lich).length, 1);
+  assertEquals(live(lich).length, 2);
   beginFighterAttack(world, 1, AttackStyle.forwardTilt, false);
   for (let f = 0; f < 12; f++) frame(world);
   assertGreaterThan(lich.status.damage, 0.0);
@@ -106,7 +179,7 @@ test("interrupting Lich before the burst removes the marker", () => {
   assertEquals(target.status.damage, 0.0);
 });
 
-test("Frost Nova is not placed through solid stage geometry", () => {
+test("Death and Decay is not placed through solid stage geometry", () => {
   const placedFrom = (z: number): number => {
     const { world, lich } = lichPair(1600.0);
     // Below the main deck's top, off its left wall, facing the deck.
@@ -119,7 +192,80 @@ test("Frost Nova is not placed through solid stage geometry", () => {
     return live(lich).length;
   };
   assertEquals(placedFrom(-90.0), 0);
-  assertEquals(placedFrom(160.0), 1);
+  assertEquals(placedFrom(160.0), 2);
+});
+
+/** Lich with a formed Frost Armor shell, the opponent 70 away facing him. */
+function armoredLich(): { world: Roster; lich: Fighter; target: Fighter } {
+  const pair = lichPair(70.0, Character.lich);
+  pair.lich.facing = 1;
+  pair.target.facing = -1;
+  frame(pair.world, down);
+  for (let f = 2; f <= 45; f++) frame(pair.world);
+  return pair;
+}
+
+test("Frost Armor costs 20, its shell lasts 240 frames, takes one small hit's reaction and chills the striker", () => {
+  const { world, lich, target } = armoredLich();
+  assertEquals(lich.mana.points, 80);
+  assertGreaterThan(lich.status.armorFrames, 0);
+  // A 3% Bone Knuckle: damage applies, the reaction does not, the shell is spent and the striker chilled.
+  beginFighterAttack(world, 1, AttackStyle.jab, false);
+  for (let f = 0; f < 8; f++) frame(world);
+  assertEquals(lich.status.damage, 3.0);
+  assertEquals(lich.launch.hitstun, 0);
+  assertEquals(lich.status.armorFrames, 0);
+  assertTrue(chilled(target));
+  const lasting = lichPair(600.0);
+  frame(lasting.world, down);
+  for (let f = 2; f <= 22 + 238; f++) frame(lasting.world);
+  assertGreaterThan(lasting.lich.status.armorFrames, 0);
+  frame(lasting.world);
+  frame(lasting.world);
+  assertEquals(lasting.lich.status.armorFrames, 0);
+});
+
+test("a grab ignores Frost Armor and leaves the shell", () => {
+  const { world, lich } = armoredLich();
+  beginFighterAttack(world, 1, AttackStyle.grab, false);
+  for (let f = 0; f < 14; f++) frame(world);
+  assertTrue(inGrabContext(lich));
+});
+
+test("Dark Ritual: down special while the shell holds shatters it on frame 6 into a 5% burst and restores 30 mana", () => {
+  const { world, lich, target } = armoredLich();
+  lich.mana.points = 50;
+  frame(world, down);
+  assertEquals(lich.special.action, SpecialAction.heroDown);
+  assertEquals(lich.mana.points, 50);
+  for (let f = 2; f <= 5; f++) frame(world);
+  assertGreaterThan(lich.status.armorFrames, 0);
+  frame(world);
+  assertEquals(lich.status.armorFrames, 0);
+  assertEquals(lich.mana.points, 80);
+  for (let f = 7; f <= 9; f++) frame(world);
+  assertEquals(target.status.damage, 5.0);
+  // The burst's hitlag holds the ritual a few frames.
+  for (let f = 10; f <= 40; f++) frame(world);
+  assertEquals(lich.special.action, SpecialAction.none);
+  // Without a shell, down special casts Frost Armor again.
+  frame(world, down);
+  assertEquals(lich.mana.points, 60);
+});
+
+test("Frost Nova and Death and Decay casts extend Lich's hittable casting arm only while casting", () => {
+  const { world, lich } = lichPair(1200.0);
+  frame(world, neutral);
+  for (let f = 2; f <= 13; f++) frame(world);
+  assertEquals(fighterHurtParts(lich).length, 1);
+  frame(world);
+  assertEquals(fighterHurtParts(lich).length, 2);
+  for (let f = 15; f <= 25; f++) frame(world);
+  assertEquals(fighterHurtParts(lich).length, 1);
+  for (let f = 26; f <= 120; f++) frame(world);
+  frame(world, sideForward);
+  for (let f = 2; f <= 5; f++) frame(world);
+  assertEquals(fighterHurtParts(lich).length, 2);
 });
 
 test("Spectral Ascent rises 2.1H and steers at most 0.4H; the zero-mana form rises 1.4H for free", () => {
@@ -146,61 +292,6 @@ test("Spectral Ascent rises 2.1H and steers at most 0.4H; the zero-mana form ris
   assertEquals(free.mana, 10);
   assertNear(free.rise, f32(H * f32(1.4)), 2.0);
   assertTrue(free.helpless);
-});
-
-test("Frost Armor's shell outlasts the cast, takes one small hit's reaction and blocks a recast", () => {
-  const { world, lich, target } = lichPair(70.0, Character.lich);
-  lich.facing = 1;
-  frame(world, down);
-  assertEquals(lich.mana.points, 75);
-  for (let f = 2; f <= 20; f++) frame(world);
-  assertEquals(lich.status.armorFrames, 0);
-  frame(world);
-  assertGreaterThan(lich.status.armorFrames, 0);
-  for (let f = 22; f <= 120; f++) frame(world);
-  assertEquals(lich.special.action, SpecialAction.none);
-  assertGreaterThan(lich.status.armorFrames, 0);
-  frame(world, down);
-  assertEquals(lich.special.action, SpecialAction.none);
-  assertEquals(lich.mana.points, 75);
-  // A 3% Bone Knuckle: damage applies, the reaction does not, and the shell is spent.
-  target.facing = -1;
-  beginFighterAttack(world, 1, AttackStyle.jab, false);
-  for (let f = 0; f < 8; f++) frame(world);
-  assertEquals(lich.status.damage, 3.0);
-  assertEquals(lich.launch.hitstun, 0);
-  assertEquals(lich.status.armorFrames, 0);
-  for (let f = 0; f < 20; f++) frame(world);
-  beginFighterAttack(world, 1, AttackStyle.jab, false);
-  for (let f = 0; f < 8; f++) frame(world);
-  assertEquals(lich.status.damage, 6.0);
-  assertFalse(lich.launch.hitstun === 0 && lich.launch.hitlag === 0 && lich.motion.vx === 0.0);
-});
-
-test("an unbroken Frost Armor shell expires 180 frames after it forms", () => {
-  const { world, lich } = lichPair(600.0);
-  frame(world, down);
-  for (let f = 2; f <= 22 + 178; f++) frame(world);
-  assertGreaterThan(lich.status.armorFrames, 0);
-  frame(world);
-  frame(world);
-  assertEquals(lich.status.armorFrames, 0);
-});
-
-
-test("Frost Shard and Frost Nova casts extend Lich's hittable casting arm only while casting", () => {
-  const { world, lich } = lichPair(1200.0);
-  frame(world, neutral);
-  for (let f = 2; f <= 15; f++) frame(world);
-  assertEquals(fighterHurtParts(lich).length, 1);
-  frame(world);
-  assertEquals(fighterHurtParts(lich).length, 2);
-  for (let f = 17; f <= 27; f++) frame(world);
-  assertEquals(fighterHurtParts(lich).length, 1);
-  for (let f = 28; f <= 45; f++) frame(world);
-  frame(world, sideForward);
-  for (let f = 2; f <= 5; f++) frame(world);
-  assertEquals(fighterHurtParts(lich).length, 2);
 });
 
 test("replaying Lich's nova, armor and ascent from a restored snapshot reproduces both fighters", () => {
@@ -231,7 +322,7 @@ test("replaying Lich's nova, armor and ascent from a restored snapshot reproduce
   assertEquals(firstFighterDifference(endTarget, target, 3, 3), undefined);
 });
 
-test("an Archer inside forward-tilt range challenges Frost Shard's startup and no shard is thrown", () => {
+test("an Archer inside forward-tilt range challenges Frost Nova's startup and no orb is thrown", () => {
   const { world, lich } = lichPair(90.0);
   frame(world, neutral);
   for (let f = 2; f <= 6; f++) frame(world);

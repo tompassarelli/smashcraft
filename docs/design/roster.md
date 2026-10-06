@@ -371,10 +371,10 @@ Standing grab 8/3/25, reach 0.60H. Pummel: belly bump.
 
 | Input | Proposed move and behavior | Timing and cost |
 | --- | --- | --- |
-| Neutral B | **Frost Shard:** 6 damage, POKE at 35 degrees; speed 0.10H/frame, life 45, radius 0.16H. One active shard, reflectable. No slow status on this cheap move. | Spawn f20, end f45; 0 mana |
-| Side B | **Frost Nova:** place a visible marker 1.5H ahead, or 0.9H if back is held on entry. At f30 a radius 0.65H burst hits once for 11 damage, LAUNCH at 70 degrees. Marker stays fixed in world space, is cancelled by interruption before detonation, and must have line of sight at placement. No remote instant targeting. | Marker f8, burst f30–32, R26; 20 mana |
+| Neutral B | **Frost Nova** (#130, [kit review 2](kit-review-2.md#lich-130)): a slow orb, speed 0.07H/frame, life 80, radius 0.16H; 6 damage, POKE at 35 degrees and Chill on a body. Neutral B again while it flies stops it on the gesture's frame 4; 6 frames later it bursts for 3 frames: radius 0.7H, 10 damage, LAUNCH at 70 degrees, Chill. One orb, reflectable until burst. **Chill:** 75 frames at 60% walk, dash, run and air-drift top speed; a shield stops it; 120 frames of immunity. | Orb f18, end f40; 10 mana. Burst gesture end f14, free |
+| Side B | **Death and Decay** (#130): a field placed 1.5H ahead, or 0.9H if pressed backward, only with line of sight; radius 0.75H. It strikes the first body or shield in it from f30 (5 damage, POKE at 80 degrees) and again from f70 (9 damage, LAUNCH at 70 degrees), and is gone after f97. Interrupting Lich before f30 removes it. | Field f8, end f50; 25 mana |
 | Up B | **Spectral Ascent:** visible upward glide, 2.1H height and up to 0.4H lateral drift, no hitbox or intangibility. Free version 1.4H. | Movement f10–34, helpless afterward; 15 mana |
-| Down B | **Frost Armor:** f22 cast grants a 180-frame shell that absorbs the hit reaction of one hit of at most 6 damage. Damage still applies; the hit consumes the shell. Grabs bypass it. Cannot recast while active; no retaliation or slow. | Cast f22, end f45; 25 mana |
+| Down B | **Frost Armor** (#130): f22 cast grants a 240-frame shell that absorbs the hit reaction of one hit of at most 8 damage and chills the melee striker. Damage still applies; grabs bypass it. **Dark Ritual:** down B while the shell holds shatters it on f6 into a 0.6H burst around Lich (5 damage, POKE at 60 degrees) and restores 30 mana. | Cast f22, end f45; 20 mana. Ritual end f24, free |
 
 ### Grab and throws
 
@@ -389,7 +389,7 @@ Standing grab 10/2/28, reach 0.70H. Visible spectral hand, no tether recovery or
 
 **Ultimate — Death and Decay:** ground-only, f36 telegraph to a marked 2.0H-radius region centered 1.0H ahead; channel for up to 180 frames. Six 3-damage ticks per target at least 30 frames apart, no flinch, then a 12-damage LAUNCH burst at 80 degrees if the channel completes. Hitting or grabbing Lich ends the field without finisher. R35 after release. No percentage-health damage or unavoidable map-wide effect.
 
-**Required counterplay test:** a fast fighter already inside Lich’s forward-tilt range must be able to challenge a missed shard or nova. Frost Armor may help one trade but cannot permit casting through an entire combo.
+**Required counterplay test:** a fast fighter already inside Lich’s forward-tilt range must be able to challenge a missed orb or field. Frost Armor may help one trade but cannot permit casting through an entire combo.
 
 ### As built
 
@@ -398,20 +398,23 @@ lichSpecials.ts. Every normal, grab, pummel, throw and special above is
 implemented; the ultimate is not (there is no ultimate action). Changes from
 the tables:
 
-- **Frost Nova** "back held on entry" is a side special pressed toward
-  Lich's back: Lich keeps facing and places the marker 0.9H ahead instead of
-  turning. A marker whose line from Lich crosses solid stage geometry is not
-  placed (the cast and its cost still happen).
+- **Death and Decay** "pressed backward" is a side special pressed toward
+  Lich's back: Lich keeps facing and places the field 0.9H ahead instead of
+  turning. A field whose line from Lich crosses solid stage geometry is not
+  placed (the cast and its cost still happen). Its two strikes are two
+  stationary zones, so with Frost Nova's orb Lich owns three projectiles.
+- **Frost Nova's burst** press is accepted once the 40-frame cast has ended,
+  so the nearest burst is about 1.9H ahead.
 - **Spectral Ascent** steers with the live stick at up to 0.4H/25 per frame
   over its window, in place of air drift; with a neutral stick it rises
   straight up.
-- **Frost Armor**'s shell protects from frame 22 for 180 frames, even after
-  the cast ends; any hit spends it, and only a hit of at most 6 damage loses
-  its reaction. Casting again fails without spending while any armor remains.
+- **Frost Armor**'s shell protects from frame 22 for 240 frames, even after
+  the cast ends; any hit spends it, and only a hit of at most 8 damage loses
+  its reaction. While it holds, down B is Dark Ritual.
 - **Bodies:** Lich has no weapon, so the conjured frost beyond the hand is
   each move's disjoint; the casting arm extends the hurt volume from late
-  startup through early recovery of every normal, the grab, Frost Shard and
-  Frost Nova.
+  startup through early recovery of every normal, the grab, Frost Nova and
+  Death and Decay.
 - **Presentation:** the stock HeroLich model has ten sequences (Stand, Stand
   Ready, Stand - 2, Stand - 3, Walk, Stand Channel, Attack, Spell, Death,
   Dissipate). Hand strikes play Attack, frost casts Spell, sustained magic
@@ -419,7 +422,7 @@ the tables:
 - Knockback classes use provisional growth/base values, not the
   displacement-calibrated bands.
 
-**Gameplan** (smashcraft:ts/src/game/sim/heroes/lichGameplan.ts, #105): he keeps 1.5-2.4H, where Frost Nova's marker lands on the target and Frost Shard still flies, and never runs in: he advances behind his shots and covers a run-in with Ice Spear. A threat close by he mostly answers by backing out to range. Frost Nova, down tilt, up tilt and the down throw start his strings; Ice Spear, Bone Spike and a late Frost Nova finish. He jumps before Spectral Ascent, aims for the ledge, and stays off the edge, out of close range and out from under a target.
+**Gameplan** (smashcraft:ts/src/game/sim/heroes/lichGameplan.ts, #105): he keeps 1.5-2.4H, where Death and Decay lands on the target and Frost Nova still flies, and never runs in: he advances behind his shots and covers a run-in with Ice Spear. A threat close by he mostly answers by backing out to range. Death and Decay, down tilt, up tilt and the down throw start his strings; Ice Spear, Bone Spike and a late Death and Decay finish. He jumps before Spectral Ascent, aims for the ledge, and stays off the edge, out of close range and out from under a target.
 
 ## Uther
 

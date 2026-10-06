@@ -240,6 +240,7 @@ export function fighterSpecialsCanonical(specials: Readonly<FighterSpecials> | u
   const kits = [specials.neutral, specials.side, specials.up, specials.down];
   for (let slot = 0; slot < kits.length; slot++) {
     const kit = at(kits, slot);
+    if (kit.recallWhile !== undefined) result.push(canonicalInt(`${prefix}.kit[${slot}].recallWhile`, kit.recallWhile === "armor" ? 2 : 1));
     const forms = [kit.ground, kit.air, kit.free, kit.recall];
     for (let form = 0; form < 4; form++) {
       const move = forms[form];
@@ -268,6 +269,15 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
   int("armor.last", move.armor?.last ?? -1);
   real("armor.maxDamage", move.armor?.maxDamage ?? 0.0);
   int("armor.shell", move.armor?.shell === true ? 1 : 0);
+  if (move.armor?.chillsStriker === true) int("armor.chillsStriker", 1);
+  if (move.burst !== undefined) {
+    int("burst.frame", move.burst.frame);
+    result.push(specialProjectileCanonical(move.burst.from, `${name}.burst.from`), specialProjectileCanonical(move.burst.into, `${name}.burst.into`));
+  }
+  if (move.ritual !== undefined) {
+    int("ritual.frame", move.ritual.frame);
+    int("ritual.mana", move.ritual.mana);
+  }
   if (move.placement !== undefined) result.push(specialPlacementCanonical(move.placement, `${name}.placement`));
   if (move.recall === true) int("recall", 1);
   if (move.guard !== undefined) {
@@ -732,6 +742,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
     if (sp.grabFrame !== 0) int("specialGrabFrame", sp.grabFrame);
     int("armorFrames", st.armorFrames);
     real("armorMaxDamage", st.armorMaxDamage);
+    if (st.armorChills) int("armorChills", 1);
     const { placed } = fighter;
     int("placedLife", placed.life);
     int("placedAge", placed.age);

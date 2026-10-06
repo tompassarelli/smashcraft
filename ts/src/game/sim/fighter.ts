@@ -429,6 +429,8 @@ interface Status {
   /** Frames of hero armor left, and the largest hit it absorbs. */
   armorFrames: number;
   armorMaxDamage: number;
+  /** The armor chills the melee striker whose hit spends it (Lich's Frost Armor). */
+  armorChills: boolean;
   /** A hero status (HeroStatusKind), its frames left, its immunity group and the immunity it grants on ending. */
   condition: number;
   conditionFrames: number;
@@ -697,7 +699,7 @@ export function createFighter(character: Character, startX: number, facing: numb
       stand: false, shield: false, wrapLeft: 0, wrapLeftAge: 0, wrapRight: 0, wrapRightAge: 0, dodgeQueued: false, dodgeX: 0, dodgeZ: 0, specialQueued: false, specialX: 0, specialZ: 0,
     },
     cannon: { held: undefined, firing: undefined, cooldown: 0 },
-    status: { offscreenFrames: 0, damage: 0.0, stocks: STARTING_STOCKS, respawn: 0, out: false, invincible: 0, frozenFrames: 0, freezeImmunityFrames: 0, armorFrames: 0, armorMaxDamage: 0.0, condition: 0, conditionFrames: 0, conditionGroup: 0, conditionImmunityFrames: 0, conditionImmunity: [0, 0], guardHealed: 0.0, poisonFrames: 0, poisonEvery: 0, poisonDamage: 0.0 },
+    status: { offscreenFrames: 0, damage: 0.0, stocks: STARTING_STOCKS, respawn: 0, out: false, invincible: 0, frozenFrames: 0, freezeImmunityFrames: 0, armorFrames: 0, armorMaxDamage: 0.0, armorChills: false, condition: 0, conditionFrames: 0, conditionGroup: 0, conditionImmunityFrames: 0, conditionImmunity: [0, 0, 0], guardHealed: 0.0, poisonFrames: 0, poisonEvery: 0, poisonDamage: 0.0 },
     mana: { points: tuning.specials?.mana.max ?? 0, sinceSpend: tuning.specials?.mana.regenDelayFrames ?? 0, progress: 0 },
     placed: { life: 0, age: 0, x: 0.0, z: 0.0, direction: 1, durability: 0.0, serial: 0, spec: undefined, struck: repeat<number | undefined>(PARTICIPANT_CAPACITY, () => undefined), specialStruck: 0 },
   };

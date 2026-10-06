@@ -198,6 +198,7 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("freezeImmunityFrames", e.status.freezeImmunityFrames, a.status.freezeImmunityFrames);
   add("armorFrames", e.status.armorFrames, a.status.armorFrames);
   add("armorMaxDamage", e.status.armorMaxDamage, a.status.armorMaxDamage);
+  add("armorChills", e.status.armorChills, a.status.armorChills);
   add("condition", e.status.condition, a.status.condition);
   add("conditionFrames", e.status.conditionFrames, a.status.conditionFrames);
   add("conditionGroup", e.status.conditionGroup, a.status.conditionGroup);

@@ -33,6 +33,7 @@ import { beginShieldBreak } from "./shieldBreak";
 import { beginSmashDirectionalInfluenceHit } from "./smashDirectionalInfluence";
 import { beginDownDamage, cancelAttack, cancelSpecialState, clearDownState, clearGrabLinks, interruptJumpOrDodge, thawFighter } from "./transitions";
 import { at } from "wisp/src/runtime/lookup";
+import { CHILL } from "./chill";
 import { type AppliedStatus, applyHeroStatus, damageEndsHeroStatus } from "./heroStatus";
 
 /** One contact, with the source's and target's state sampled when it was collected. */
@@ -255,7 +256,14 @@ function resolveDamageContacts(world: Roster, slot: number): void {
   // Hero armor takes one hit's reaction up to its limit; its damage stays applied. Throws ignore it.
   if (status.armorFrames > 0 && contactAt(chosenIndex).kind !== ContactKind.throw) {
     status.armorFrames = 0;
-    if (hitlagDamage <= status.armorMaxDamage) return;
+    const armorChills = status.armorChills;
+    status.armorChills = false;
+    if (hitlagDamage <= status.armorMaxDamage) {
+      // Frost Armor chills the striker whose melee hit spent it.
+      const spentBy = contactAt(chosenIndex);
+      if (armorChills && spentBy.direct) applyHeroStatus(fighterAt(world, spentBy.source), CHILL);
+      return;
+    }
   }
   // A later hit replaces both shield-contact motion channels.
   shield.pushbackX = 0.0;

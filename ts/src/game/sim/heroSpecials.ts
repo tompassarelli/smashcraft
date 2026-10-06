@@ -108,6 +108,8 @@ export interface SpecialArmor extends FrameWindow {
    * fighter still has armor (Frost Armor).
    */
   readonly shell?: boolean | undefined;
+  /** The melee striker whose hit the shell absorbs is chilled (Lich's Frost Armor, sim/chill.ts). */
+  readonly chillsStriker?: boolean | undefined;
 }
 
 /**
@@ -181,6 +183,14 @@ export interface AuthoredSpecial {
    * `special.cost` and is captured once; it cannot itself be followed up.
    */
   readonly followUp?: SpecialFollowUp | undefined;
+  /**
+   * On action frame `frame`, each of the fighter's live `from` projectiles
+   * stops where it is and becomes `into`, its age starting again (Lich's
+   * Frost Nova burst).
+   */
+  readonly burst?: { readonly frame: number; readonly from: SpecialProjectile; readonly into: SpecialProjectile } | undefined;
+  /** On action frame `frame`, the fighter's armor shell ends and `mana` is restored (Lich's Dark Ritual). */
+  readonly ritual?: { readonly frame: number; readonly mana: number } | undefined;
 }
 
 export interface SpecialFollowUp {
@@ -198,8 +208,14 @@ export interface SpecialKit {
    * special has one (the roster's weaker zero-mana recovery); it costs nothing.
    */
   readonly free?: AuthoredSpecial | undefined;
-  /** Chosen instead of every other form while the fighter's placed object stands. */
+  /** Chosen instead of every other form while `recallWhile` holds. */
   readonly recall?: AuthoredSpecial | undefined;
+  /**
+   * What chooses `recall`: the fighter's placed object standing (the
+   * default), a live projectile of the grounded form's first projectile
+   * (Frost Nova's burst), or the fighter's armor shell holding (Dark Ritual).
+   */
+  readonly recallWhile?: "projectile" | "armor" | undefined;
 }
 
 export interface ManaProfile {

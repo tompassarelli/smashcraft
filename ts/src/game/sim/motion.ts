@@ -5,6 +5,7 @@ import { max, min } from "../../runtime/numbers";
 import { addFloat32, divideFloat32, fusedMultiplyAddFloat32, multiplyFloat32, roundToFloat32, subtractFloat32 } from "wisp/src/sim/binary32";
 import { f32 } from "wisp/src/sim/f32";
 import { meleeAtan2, meleeCos, meleeSin } from "../../sim/meleeScalarMath";
+import { chillScaled } from "./chill";
 import { Character } from "./codes";
 import type { Fighter, MeleeMotionValue } from "./fighter";
 import { surfaceCount, surfaceLeft, surfaceMoves, surfaceRight, surfaceShiftX, surfaceShiftZ, surfaceZ } from "./stage";
@@ -117,7 +118,8 @@ export function totalVelocityZ(f: Fighter): number {
  * and never past `cap` (ftCo_DatAttrs +0x078 air_max_horizontal_velocity).
  */
 function retailAirDriftVelocity(f: Fighter, velocity: number, direction: number, cap: number): number {
-  const { airSpeed: target, airAcceleration: acceleration, airFriction } = f.tuning.physics;
+  const { airAcceleration: acceleration, airFriction } = f.tuning.physics;
+  const target = chillScaled(f, f.tuning.physics.airSpeed);
   const alongInput = f32(velocity * direction);
   const next = alongInput > target ? max(target, f32(alongInput - airFriction)) : min(target, f32(alongInput + acceleration));
   return f32(max(-cap, min(cap, next)) * direction);
@@ -126,7 +128,10 @@ function retailAirDriftVelocity(f: Fighter, velocity: number, direction: number,
 export function airDriftVelocity(f: Fighter, velocity: number, direction: number): number {
   const { airAcceleration: acceleration, airCap } = f.tuning.physics;
   // Illidan retains his authored immediate drift cap.
-  if (f.character === Character.demonHunter) return max(-airCap, min(airCap, f32(velocity + f32(direction * acceleration))));
+  if (f.character === Character.demonHunter) {
+    const cap = chillScaled(f, airCap);
+    return max(-cap, min(cap, f32(velocity + f32(direction * acceleration))));
+  }
   return retailAirDriftVelocity(f, velocity, direction, airCap);
 }
 

@@ -345,6 +345,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   status.freezeImmunityFrames = sourceStatus.freezeImmunityFrames;
   status.armorFrames = sourceStatus.armorFrames;
   status.armorMaxDamage = sourceStatus.armorMaxDamage;
+  status.armorChills = sourceStatus.armorChills;
   status.condition = sourceStatus.condition;
   status.conditionFrames = sourceStatus.conditionFrames;
   status.conditionGroup = sourceStatus.conditionGroup;

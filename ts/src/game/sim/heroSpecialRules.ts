@@ -10,7 +10,7 @@ import { advanceHeroConditions } from "./heroStatus";
 import { AttackStyle, ProjectileKind, SpecialAction } from "./codes";
 import { canAttack, inGrabContext, isIntangible } from "./conditions";
 import type { Fighter } from "./fighter";
-import { type FighterSpecials, type AuthoredSpecial, type SpecialGuard, type SpecialPlacement, type SpecialProjectile, FOLLOW_UP_FORM, SpecialForm, SpecialSlot, specialForm, specialKit } from "./heroSpecials";
+import { type FighterSpecials, type AuthoredSpecial, type SpecialGuard, type SpecialKit, type SpecialPlacement, type SpecialProjectile, FOLLOW_UP_FORM, SpecialForm, SpecialSlot, specialForm, specialKit } from "./heroSpecials";
 import { type HitRegion, NO_HIT_REGION, authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "./hitRegions";
 import { type Controls, type Roster, fighterAt, isActive } from "./roster";
 import { travelBeforeBodies } from "./travelStop";
@@ -53,6 +53,16 @@ function projectilesFit(f: Readonly<Fighter>, move: Readonly<AuthoredSpecial>): 
   return true;
 }
 
+/** Whether the kit's `recall` form is the one a press starts now. */
+function recallHolds(f: Readonly<Fighter>, kit: Readonly<SpecialKit>): boolean {
+  if (kit.recallWhile === "armor") return f.status.armorFrames > 0;
+  if (kit.recallWhile === "projectile") {
+    const spec = kit.ground.projectiles?.[0];
+    return spec !== undefined && ownedCount(f, spec) > 0;
+  }
+  return f.placed.life > 0;
+}
+
 export interface HeroSpecialChoice {
   slot: SpecialSlot;
   form: SpecialForm;
@@ -71,7 +81,7 @@ export function chooseHeroSpecial(f: Readonly<Fighter>, specials: Readonly<Fight
   const slot = requestedSlot(input);
   const kit = specialKit(specials, slot);
   const airborne = !f.motion.grounded;
-  const recalls = kit.recall !== undefined && f.placed.life > 0;
+  const recalls = kit.recall !== undefined && recallHolds(f, kit);
   let form: SpecialForm = recalls ? SpecialForm.recall : airborne && kit.air !== undefined ? SpecialForm.air : SpecialForm.ground;
   let move = specialForm(kit, form);
   if (move.groundOnly === true && airborne) return undefined;
@@ -179,10 +189,12 @@ function applyWindows(f: Fighter, move: Readonly<AuthoredSpecial>, frame: number
     if (frame + 1 === armor.first) {
       status.armorFrames = armor.last - armor.first + 2;
       status.armorMaxDamage = armor.maxDamage;
+      status.armorChills = armor.chillsStriker === true;
     }
   } else if (armor !== undefined && (inWindow(armor, frame + 1) || inWindow(armor, frame))) {
     status.armorFrames = max(status.armorFrames, inWindow(armor, frame + 1) ? 2 : 1);
     status.armorMaxDamage = armor.maxDamage;
+    status.armorChills = false;
   }
 }
 
@@ -304,6 +316,17 @@ function endHeroSpecial(f: Fighter, move: Readonly<AuthoredSpecial>): void {
   f.special.frame = 0;
 }
 
+/** Stops each of the fighter's live `from` projectiles where it is and makes it `into`, newly aged. */
+function burstProjectiles(f: Fighter, from: Readonly<SpecialProjectile>, into: Readonly<SpecialProjectile>): void {
+  for (const projectile of f.projectiles) {
+    if (projectile.life <= 0 || projectile.kind !== ProjectileKind.hero || projectile.spec !== from) continue;
+    projectile.spec = into;
+    projectile.velocityX = 0.0;
+    projectile.velocityZ = 0.0;
+    projectile.life = into.life;
+  }
+}
+
 /** One frame of a running hero special, after its frame counter advanced. */
 export function advanceHeroSpecial(f: Fighter, stage = 0, input?: Readonly<Controls>): void {
   const move = runningHeroSpecial(f);
@@ -312,6 +335,12 @@ export function advanceHeroSpecial(f: Fighter, stage = 0, input?: Readonly<Contr
   applyMotion(f, move, frame, input);
   for (const spec of move.projectiles ?? []) if (spec.spawnFrame === frame) spawnHeroProjectile(f, spec, f.attack.serial + 1, stage);
   if (move.placement?.frame === frame) placeObject(f, move.placement);
+  if (move.burst?.frame === frame) burstProjectiles(f, move.burst.from, move.burst.into);
+  if (move.ritual?.frame === frame) {
+    f.status.armorFrames = 0;
+    f.status.armorChills = false;
+    f.mana.points = min(f.tuning.specials?.mana.max ?? 0, f.mana.points + move.ritual.mana);
+  }
   applyWindows(f, move, frame);
   if (frame >= heroSpecialEndFrame(f, move)) {
     if (move.recall === true) f.placed.life = 0;
