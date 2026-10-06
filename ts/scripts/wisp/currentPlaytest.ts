@@ -17,7 +17,7 @@ const run = (cwd: string, args: readonly string[]) => Effect.tryPromise({
 });
 
 export const currentPlaytest = Effect.gen(function*() {
-  const { revision, companion, mainCheckout } = yield* Effect.tryPromise({
+  const { revision, companion, mainCheckout, version } = yield* Effect.tryPromise({
     try: async () => {
       const child = Bun.spawn(["git", "rev-parse", "main", "main:companion"], { cwd: projectRoot, stdout: "pipe", stderr: "pipe" });
       const [revision, companion] = (await new Response(child.stdout).text()).trim().split("\n");
@@ -26,11 +26,14 @@ export const currentPlaytest = Effect.gen(function*() {
       const mainBlock = (await new Response(registry.stdout).text()).split("\n\n").find((block) => block.split("\n").includes("branch refs/heads/main"));
       const mainCheckout = mainBlock?.split("\n").find((line) => line.startsWith("worktree "))?.slice(9);
       if (await registry.exited !== 0 || mainCheckout === undefined) throw new Error("couldn't locate the main checkout");
-      return { mainCheckout, revision, companion };
+      const manifest = Bun.spawn(["git", "show", `${revision}:ts/package.json`], { cwd: projectRoot, stdout: "pipe", stderr: "pipe" });
+      const version: unknown = JSON.parse(await new Response(manifest.stdout).text()).version;
+      if (await manifest.exited !== 0 || typeof version !== "string" || !/^\d+\.\d+\.\d+$/.test(version)) throw new Error("Smashcraft main has no version in ts/package.json");
+      return { mainCheckout, revision, companion, version };
     },
     catch: (cause) => new PlayProblem({ problem: String(cause) }),
   });
-  const title = `Smashcraft latest ${revision.slice(0, 8)}`;
+  const title = `Smashcraft ${version} ${revision.slice(0, 8)}`;
   const directory = join(inputsRoot, "play-current", revision);
   const source = join(directory, `${title}.w3x`);
   const helper = join(inputsRoot, "play-helpers", companion, "wc3-journal");

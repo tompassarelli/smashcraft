@@ -1,5 +1,6 @@
 {
   "name": "smashcraft",
+  "version": "0.5.0",
   "private": true,
   "license": "MIT",
   "type": "module",
@@ -21,6 +22,6 @@
     "typescript": "6.0.2",
     "typescript-native": "npm:typescript@7.0.2",
     "typescript-to-lua": "1.37.1",
-    "wisp": "file:vendor/wisp-7a391719db8aa46de0f6d57699134c1e5c6ce83e.tgz"
+    "wisp": "file:vendor/wisp-a6125bf2b0d78f1bf3128a4623c3702c7322df1b.tgz"
   }
 }

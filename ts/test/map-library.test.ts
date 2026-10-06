@@ -15,13 +15,13 @@ test("latest installation keeps two previous versions and puts diagnostics in te
       utimesSync(path, version, version);
     }
     writeFileSync(join(maps, "Smashcraft diagnostic.w3x"), "test");
-    const latest = join(root, "Smashcraft latest abc12345.w3x");
+    const latest = join(root, "Smashcraft 0.5.0 abc12345.w3x");
     writeFileSync(latest, "current");
     installLatest(root, latest);
-    expect(readdirSync(maps).sort()).toEqual(["Smashcraft 0.0.48.w3x", "Smashcraft 0.0.49.w3x", "Smashcraft latest abc12345.w3x", "older", "tests"]);
+    expect(readdirSync(maps).sort()).toEqual(["Smashcraft 0.0.48.w3x", "Smashcraft 0.0.49.w3x", "Smashcraft 0.5.0 abc12345.w3x", "older", "tests"]);
     expect(readFileSync(join(maps, "older/Smashcraft 0.0.47.w3x"), "utf8")).toBe("version 47");
     expect(readFileSync(join(maps, "tests/Smashcraft diagnostic.w3x"), "utf8")).toBe("test");
     installLatest(root, latest);
-    expect(readFileSync(join(maps, "Smashcraft latest abc12345.w3x"), "utf8")).toBe("current");
+    expect(readFileSync(join(maps, "Smashcraft 0.5.0 abc12345.w3x"), "utf8")).toBe("current");
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
