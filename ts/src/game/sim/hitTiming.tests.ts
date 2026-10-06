@@ -99,7 +99,7 @@ test("a shield contact freezes both bodies before shieldstun counts down", () =>
 
 test("a detached projectile impact does not freeze its shooter", () => {
   for (const shielded of [false, true]) {
-    for (const kind of [ProjectileKind.arrow, ProjectileKind.fanArrow, ProjectileKind.recoil]) {
+    for (const kind of [ProjectileKind.arrow, ProjectileKind.homingArrow, ProjectileKind.recoil]) {
       const shooter = createFighter(Character.archer, 0.0, 1);
       const target = createFighter(Character.rifleman, 100.0, -1);
       target.shield.raised = shielded;

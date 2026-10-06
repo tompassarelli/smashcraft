@@ -137,7 +137,7 @@ function specialAction(character: Character, option: number): SpecialAction {
         : option === SIDE_SPECIAL ? SpecialAction.heroSide : SpecialAction.heroNeutral;
     case Character.archer:
       return option === UP_SPECIAL ? SpecialAction.archerRecovery : option === DOWN_SPECIAL ? SpecialAction.archerDisengage
-        : option === SIDE_SPECIAL ? SpecialAction.archerMultishot : SpecialAction.archerArrow;
+        : option === SIDE_SPECIAL ? SpecialAction.archerHomingArrow : SpecialAction.archerArrow;
     case Character.rifleman:
       return option === DOWN_SPECIAL ? SpecialAction.riflemanTrap : option === UP_SPECIAL ? SpecialAction.riflemanRecovery
         : option === SIDE_SPECIAL ? SpecialAction.riflemanBear : SpecialAction.riflemanBlaster;
@@ -161,7 +161,7 @@ function addHeroSpecials(f: Readonly<Fighter>, target: Readonly<Fighter>, stage:
   return added;
 }
 
-/** Appends the specials that strike from range: shots, Archer's Multishot, the Rifleman's bear, a hero's projectiles. */
+/** Appends the specials that strike from range: shots, Archer's homing arrow, the Rifleman's bear, a hero's projectiles. */
 function addShots(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, count: number): number {
   if (f.tuning.specials !== undefined) return addHeroSpecials(f, target, stage, HeroSpecialUse.ranged, count);
   const { motion } = f;

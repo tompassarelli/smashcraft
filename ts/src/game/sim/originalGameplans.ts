@@ -9,7 +9,7 @@ import { ILLIDAN_GAMEPLAN } from "./illidanGameplan";
 /**
  * Archer: the fastest run and jump start on the lightest body. Her speed is
  * her edge: she runs in for grabs and tilts and jumps in with forward air more
- * than she shoots; arrows and Multishot chip from range without stopping
+ * than she shoots; arrows and the homing arrow chip from range without stopping
  * anyone, and her hippogryph resets the gap. She stays off the edge, where her
  * weight loses stocks early.
  */

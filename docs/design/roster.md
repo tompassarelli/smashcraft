@@ -941,7 +941,7 @@ tilt is the exception), so physics and specials carry their identities.
 ### Archer
 
 **Identity:** a hit-and-run archer: the fastest run (13.20) and jump start
-(3 frames) on the lightest body (weight 75). Arrows and Multishot add damage
+(3 frames) on the lightest body (weight 75). Arrows and the homing arrow add damage
 from range without hitstun or interruption. Her spaced fade-back forward air
 is safe on shield. One hippogryph serves both remaining specials
 ([Archer's hippogryph specials](archer-specials.md)): her down special calls
@@ -954,7 +954,7 @@ early, her arrows can't stop an approach, and hitting her scares the
 hippogryph off its perch.
 
 **Gameplan:** keeps 180–460 units away. Her spacing tools are forward air at
-110–240, the arrow at 200–700 and Multishot at 160–520. Her speed is her
+110–240, the arrow at 200–700 and the homing arrow at 160–520. Her speed is her
 edge: she runs in with grab, down tilt or up tilt or jumps in with forward or
 neutral air (weight 2 each) more than she shoots (weight 1). She answers threats by
 retreating or jumping, and sometimes by shield or spot dodge. Up tilt leads

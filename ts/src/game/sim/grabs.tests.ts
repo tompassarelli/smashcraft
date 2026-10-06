@@ -39,7 +39,7 @@ function grabbedPair(): { world: Roster; owner: Fighter; target: Fighter } {
 
 test("only flinching projectiles release either end of a grab", () => {
   for (const victim of [0, 1]) {
-    for (const kind of [ProjectileKind.blaster, ProjectileKind.arrow, ProjectileKind.fanArrow, ProjectileKind.recoil]) {
+    for (const kind of [ProjectileKind.blaster, ProjectileKind.arrow, ProjectileKind.homingArrow, ProjectileKind.recoil]) {
       const { world, owner, target } = grabbedPair();
       const shooter = victim === 0 ? target : owner;
       const hit = victim === 0 ? owner : target;
@@ -52,7 +52,7 @@ test("only flinching projectiles release either end of a grab", () => {
       projectile.direction = 1;
       updateProjectiles(world);
       assertGreaterThan(hit.status.damage, 0.0);
-      if (kind === ProjectileKind.arrow || kind === ProjectileKind.fanArrow) {
+      if (kind === ProjectileKind.arrow || kind === ProjectileKind.homingArrow) {
         assertEquals(hit.launch.hitstun, 0);
         assertEquals(hit.launch.hitlag, 0);
         assertEquals(owner.grab.target, 1);

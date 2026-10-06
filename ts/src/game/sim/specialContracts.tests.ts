@@ -65,7 +65,7 @@ test("arrowTravelDirectionDoesNotFollowTheShootersLaterFacing", () => {
 });
 
 test("bothArcherArrowKindsPreserveReactionMovementAndActionState", () => {
-  for (let kind = ProjectileKind.arrow; kind <= ProjectileKind.fanArrow; kind++) {
+  for (let kind = ProjectileKind.arrow; kind <= ProjectileKind.homingArrow; kind++) {
     const owner = createFighter(Character.archer, -100.0, 1);
     const target = createFighter(Character.rifleman, 20.0, -1);
     Object.assign(owner.projectiles[0]!, {
@@ -82,7 +82,7 @@ test("bothArcherArrowKindsPreserveReactionMovementAndActionState", () => {
     target.down.frame = 3;
     target.status.frozenFrames = 20;
     updateProjectiles(testWorld(owner, target));
-    assertEquals(target.status.damage, kind === ProjectileKind.arrow ? 7.0 : 4.0);
+    assertEquals(target.status.damage, kind === ProjectileKind.arrow ? 7.0 : 6.0);
     assertEquals(target.motion.grounded, false);
     assertEquals(target.motion.vx, 3.0);
     assertEquals(target.motion.vz, -4.0);
@@ -98,7 +98,7 @@ test("bothArcherArrowKindsPreserveReactionMovementAndActionState", () => {
 });
 
 test("arrowsDamageShieldWithoutAddingShieldstunOrHitlag", () => {
-  for (let kind = ProjectileKind.arrow; kind <= ProjectileKind.fanArrow; kind++) {
+  for (let kind = ProjectileKind.arrow; kind <= ProjectileKind.homingArrow; kind++) {
     const owner = createFighter(Character.archer, -100.0, 1);
     const target = createFighter(Character.rifleman, 20.0, -1);
     Object.assign(owner.projectiles[0]!, {

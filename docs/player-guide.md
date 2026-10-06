@@ -63,7 +63,7 @@ normal aerial momentum. QWERTY uses 7 for right trigger and 8 for the
 alternate jump key.
 
 Specials use U with a direction: neutral fires an arrow or bullet, horizontal
-uses a multishot or bear, up uses a hippogryph or recoil recovery, and down
+uses a homing arrow or bear, up uses a hippogryph or recoil recovery, and down
 uses Archer's hippogryph or Rifleman's freezing trap. Archer steers her
 hippogryph ride with the stick (down for a low line) and can jump off it to
 act again. Her first down special sends the hippogryph swooping to a perch;

@@ -66,7 +66,7 @@ export type PlatformMove = (typeof PlatformMove)[keyof typeof PlatformMove];
 export const SpecialAction = {
   none: 0,
   archerArrow: 1,
-  archerMultishot: 2,
+  archerHomingArrow: 2,
   archerDisengage: 3,
   archerRecovery: 4,
   riflemanBear: 5,
@@ -89,7 +89,7 @@ export type SpecialAction = (typeof SpecialAction)[keyof typeof SpecialAction];
 export const SPECIAL_ACTION_CAPACITY = 13;
 
 /** A hero projectile carries its authored record in Projectile.spec. */
-export const ProjectileKind = { blaster: 0, arrow: 1, fanArrow: 2, recoil: 3, manaBurn: 4, hero: 5 } as const;
+export const ProjectileKind = { blaster: 0, arrow: 1, homingArrow: 2, recoil: 3, manaBurn: 4, hero: 5 } as const;
 export type ProjectileKind = (typeof ProjectileKind)[keyof typeof ProjectileKind];
 
 /**

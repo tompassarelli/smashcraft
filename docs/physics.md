@@ -2541,7 +2541,7 @@ installed-build check and are not proved by the numerical tests.
 
 ### Archer arrows: damage without interruption
 
-Normal/running arrows and multishot arrows (an owner correction,
+Normal/running arrows and the homing arrow (an owner correction,
 smashcraft:docs/gameplay-design.md, "Fighters") add damage without
 hitstun, hitlag, knockback, DI setup or interruption of attacks, grabs, ledges or
 recovery. They do not erase a reaction already in progress. Shield hits retain

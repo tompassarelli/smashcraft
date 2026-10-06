@@ -15,7 +15,7 @@ import { applyAttackHit } from "./hits";
 import { meleeHitIntersectsShield } from "./attacks";
 import { observeActionDecision } from "./observations";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
-import { BLASTER_PROJECTILE_LIFETIME, BLASTER_PROJECTILE_SPEED, spawnArcherArrow, spawnProjectileMotion } from "./projectiles";
+import { BLASTER_PROJECTILE_LIFETIME, BLASTER_PROJECTILE_SPEED, spawnArcherArrow, spawnHomingArrow, spawnProjectileMotion } from "./projectiles";
 import { type Controls, type Roster, fighterAt, isActive } from "./roster";
 import { surfaceZ } from "./stage";
 import { HIPPOGRYPH_DIVE_ARRIVAL, HIPPOGRYPH_DIVE_OVERSHOOT, RIFLEMAN_BEAR_LIFETIME, advanceBear, advanceHippogryph, recordSpecialHit, specialAlreadyHit, startFreezeTrap } from "./summons";
@@ -30,7 +30,7 @@ export const DEMONHUNTER_WING_DURATION = 28;
 export const DEMONHUNTER_IMMOLATE_STARTUP = 4;
 export const DEMONHUNTER_IMMOLATE_ACTIVE = 4;
 export const DEMONHUNTER_IMMOLATE_DURATION = 27;
-const ARCHER_MULTISHOT_WINDUP_FRAMES = 12;
+const ARCHER_HOMING_WINDUP_FRAMES = 12;
 // Archer's hippogryph ride (up special): a hover, then a steerable ride
 // ending in helpless fall, or a leap off that leaves her actionable.
 export const ARCHER_RIDE_HOVER_FRAMES = 5;
@@ -58,7 +58,7 @@ const ARCHER_CALL_FORM = 0;
 const ARCHER_DIVE_FORM = 1;
 const RIFLEMAN_RECOVERY_STARTUP_FRAMES = 4;
 const RIFLEMAN_RECOVERY_PROTECTION_END = 24;
-const MULTISHOT_FRAMES = 34;
+const ARCHER_HOMING_FRAMES = 34;
 const RIFLEMAN_RECOVERY_FRAMES = 34;
 const BEAR_SUMMON_FRAMES = 18;
 const TRAP_SET_FRAMES = 20;
@@ -106,7 +106,7 @@ function requestedSpecial(owner: Fighter, input: Readonly<Controls>): SpecialAct
     default:
       return up ? SpecialAction.heroUp : down ? SpecialAction.heroDown : side ? SpecialAction.heroSide : SpecialAction.heroNeutral;
     case Character.archer:
-      return up ? SpecialAction.archerRecovery : down ? SpecialAction.archerDisengage : side ? SpecialAction.archerMultishot : SpecialAction.archerArrow;
+      return up ? SpecialAction.archerRecovery : down ? SpecialAction.archerDisengage : side ? SpecialAction.archerHomingArrow : SpecialAction.archerArrow;
     case Character.rifleman:
       return down ? SpecialAction.riflemanTrap : up ? SpecialAction.riflemanRecovery : side ? SpecialAction.riflemanBear : SpecialAction.riflemanBlaster;
     case Character.demonHunter:
@@ -177,8 +177,8 @@ function startArcherSpecial(owner: Fighter, action: SpecialAction, moveX: number
     special.cooldowns[action] = 24;
     return true;
   }
-  if (action === SpecialAction.archerMultishot) {
-    startSpecialAction(owner, action, MULTISHOT_FRAMES, moveX);
+  if (action === SpecialAction.archerHomingArrow) {
+    startSpecialAction(owner, action, ARCHER_HOMING_FRAMES, moveX);
     special.cooldowns[action] = 40;
     return true;
   }
@@ -374,17 +374,15 @@ function advanceSpecialAction(owner: Fighter, stage: number, input: Readonly<Con
     return;
   }
   const shotSerial = owner.attack.serial + 1;
-  if (special.action === SpecialAction.archerArrow && special.frame === 2) spawnArcherArrow(owner, owner.facing, 0.0, ProjectileKind.arrow, shotSerial);
+  if (special.action === SpecialAction.archerArrow && special.frame === 2) spawnArcherArrow(owner, owner.facing, shotSerial);
   if (special.action === SpecialAction.riflemanBlaster && special.frame === 2) {
     spawnProjectileMotion(owner, ProjectileKind.blaster, f32(owner.facing * BLASTER_PROJECTILE_SPEED), 0.0, BLASTER_PROJECTILE_LIFETIME, shotSerial);
   }
   if (special.action === SpecialAction.demonHunterManaBurn && special.frame === DEMONHUNTER_MANA_BURN_STARTUP) {
     spawnProjectileMotion(owner, ProjectileKind.manaBurn, f32(owner.facing * 30.0), 0.0, 48, shotSerial);
   }
-  if (special.action === SpecialAction.archerMultishot && special.frame === ARCHER_MULTISHOT_WINDUP_FRAMES) {
-    spawnArcherArrow(owner, special.direction, 10.0, ProjectileKind.fanArrow, shotSerial);
-    spawnArcherArrow(owner, special.direction, 0.0, ProjectileKind.fanArrow, shotSerial);
-    spawnArcherArrow(owner, special.direction, -10.0, ProjectileKind.fanArrow, shotSerial);
+  if (special.action === SpecialAction.archerHomingArrow && special.frame === ARCHER_HOMING_WINDUP_FRAMES) {
+    spawnHomingArrow(owner, special.direction, shotSerial);
   }
   if (special.action === SpecialAction.riflemanRecovery) {
     if (special.frame === RIFLEMAN_RECOVERY_STARTUP_FRAMES) {
@@ -414,7 +412,7 @@ function advanceSpecialAction(owner: Fighter, stage: number, input: Readonly<Con
     special.hit = false;
   }
   if (special.action === SpecialAction.archerRecovery && special.frame >= ARCHER_RIDE_FRAMES) endSpecialAction(owner, true);
-  if (special.action === SpecialAction.archerMultishot && special.frame >= MULTISHOT_FRAMES) endSpecialAction(owner, false);
+  if (special.action === SpecialAction.archerHomingArrow && special.frame >= ARCHER_HOMING_FRAMES) endSpecialAction(owner, false);
   if (special.action === SpecialAction.riflemanBear && special.frame >= BEAR_SUMMON_FRAMES) endSpecialAction(owner, false);
   if (special.action === SpecialAction.riflemanRecovery && special.frame >= RIFLEMAN_RECOVERY_FRAMES) endSpecialAction(owner, true);
   if (special.action === SpecialAction.riflemanTrap && special.frame >= TRAP_SET_FRAMES) endSpecialAction(owner, false);
