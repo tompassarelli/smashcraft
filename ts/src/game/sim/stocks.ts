@@ -75,7 +75,7 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   motion.fastFalling = false;
   motion.fastFallDownHeld = false;
   motion.fastFallInputAge = FAST_FALL_INPUT_WINDOW;
-  motion.previousHorizontalDirection = 0;
+  motion.previousStickSide = 0;
   jump.inputAge = WALL_TECH_JUMP_INPUT_WINDOW_FRAMES;
   motion.crouching = false;
   f.ground.dashGrabWindow = 0;
