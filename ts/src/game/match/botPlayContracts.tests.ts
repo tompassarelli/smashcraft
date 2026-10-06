@@ -164,9 +164,10 @@ test("computer Uther raises Divine Shield against a strike timed into its guard 
   assertGreaterThan(grabbed.grabs, 0);
 });
 
-test("every complete hero's computer uses its specials and grabs in a match against another computer, the same each time", () => {
-  for (const hero of HERO_ROSTER) {
-    if (!hero.complete) continue;
+// One test a hero: the roster grows, and each hero's two 3600-frame matches take 0.3-0.5 s alone.
+for (const hero of HERO_ROSTER) {
+  if (!hero.complete) continue;
+  test(`${hero.name}'s computer uses its specials and grabs in a match against another computer, the same each time`, () => {
     const checksums: string[] = [];
     for (let run = 0; run < 2; run++) {
       const game = computerMatch([Character.archer, hero.character], [-240.0, 240.0], 0, 3);
@@ -175,8 +176,8 @@ test("every complete hero's computer uses its specials and grabs in a match agai
       checksums.push(stateChecksum(game));
     }
     assertEquals(checksums[0], checksums[1]);
-  }
-});
+  });
+}
 
 test("a computer hero's recovery counts its up special spent once used this airtime, and free below its cost", () => {
   const uther = createFighter(Character.uther, 0.0, 1);

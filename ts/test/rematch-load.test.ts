@@ -164,6 +164,7 @@ function shownClipProblems(client: HeadlessClient, parkedBelow: number, seen: Ma
   return problems;
 }
 
+// About 2.3 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
 test("a match and its three-fighter rematch show each pooled fighter whole where he stands, read only correctable rollback rows, touch no parked effect and keep nothing between them", () => {
   const clients = headless.clients({ start: () => startBuild(PLAYABLE_BUILD), install }, [0, 1], { delivery: syncDelivery(MEASURED_BATTLE_NET, 7) });
   const host = clients.clients[0] as HeadlessClient;
@@ -260,4 +261,4 @@ test("a match and its three-fighter rematch show each pooled fighter whole where
       expect(record[record.length - 1]).toBe(`end lines=${record.length - 1}`);
     }
   });
-});
+}, 30_000);

@@ -36,6 +36,7 @@ function expectReplays(lines: readonly string[] | undefined, checksum: string): 
   expect(result.frames).toBe(Math.min(repro.frame, MOMENT_FRAMES + Math.max(0, repro.frame - MOMENT_FRAMES) % 120));
 }
 
+// About 1.9 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
 test("K in the development build's match saves its last ten seconds on that player's client, which replay to its checksum", () => {
   const clients = headless.clients({ start, install }, [0, 1]);
   const hold = (player: number, key: number, down: boolean) => {
@@ -67,7 +68,7 @@ test("K in the development build's match saves its last ten seconds on that play
   for (const client of clients.clients) expect(client.errors).toEqual([]);
   const [name = ""] = moments(a);
   expectReplays(a.files.get(name), checksum);
-});
+}, 30_000);
 
 test("in the playable build's rollback match, a controller helper's request and K each save the moment on their own client", () => {
   const helpers = new JournalHelpers(PLAYABLE_BUILD.id, true);

@@ -51,13 +51,14 @@ test("the powershield's reflector stays inside the accepted 2-4 frame window", (
 });
 
 for (const fighter of FIGHTERS) {
+  // About 2-3 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
   test(`${fighter.name}'s projectiles follow the projectile rules or name a departure`, () => {
     const found = violations(fighter.character, fighter.name);
     const unexpected = [...found].filter(([key]) => DEPARTURES[key] === undefined).map(([key, detail]) => `${key}: ${detail}`);
     expect(unexpected).toEqual([]);
     const stale = Object.keys(DEPARTURES).filter((key) => key.startsWith(`${fighter.name} `) && !found.has(key));
     expect(stale).toEqual([]);
-  });
+  }, 30_000);
 }
 
 test("Rifleman's blaster point blank on a shield is punished out of shield and reflected by a powershield", () => {

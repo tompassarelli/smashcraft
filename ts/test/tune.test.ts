@@ -108,6 +108,7 @@ function play(next: MapEntry): Observed[][] {
 let tuned: Promise<Tuned> | undefined;
 const tunedGravity = () => (tuned ??= tunedEntry(TUNED_GRAVITY));
 
+// About 1.5 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
 test("under rollback the speculative match and every history snapshot take tuned values too, so a correction can't undo them", async () => {
   const { entry, tuning } = await tunedGravity();
   const clients = headless.clients({ install, start: () => startBuild(INTEGRITY_BUILD) });
@@ -133,8 +134,9 @@ test("under rollback the speculative match and every history snapshot take tuned
       expect(tuning.authoredTuning(character).physics.gravity).not.toBe(authoredTuning(character).physics.gravity);
     });
   }
-});
+}, 30_000);
 
+// About 2 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
 test("tuned gravity reaches both clients' fighters on the frame they install it and changes the match alike in both", async () => {
   const tuned = await tunedGravity();
   expect(tuned.files).toEqual(["src/game/sim/tuning.ts"]);
@@ -160,4 +162,4 @@ test("tuned gravity reaches both clients' fighters on the frame they install it 
   expect(heights.slice(0, 20)).toEqual(referenceHeights.slice(0, 20));
   expect(heights.some((height, frame) => height !== referenceHeights[frame])).toBe(true);
   expect(Math.max(...heights.map(Number))).toBeLessThan(Math.max(...referenceHeights.map(Number)));
-});
+}, 30_000);

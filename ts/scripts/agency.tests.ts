@@ -53,6 +53,7 @@ test("mashing out of a hold the attacker keeps is acting", () => {
   expect(report.frames[0]?.classes).toContain("attack (mash)");
 });
 
+// About 1.2 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
 test("the soak's detector flags a loop the victim can't act out of, and passes one it can", () => {
   // Uther regrabs Rifleman after each up throw at 50%: only buttons get the victim out of the cycle.
   const start = standingMatch(Character.uther, Character.rifleman, 50, 40);
@@ -81,4 +82,4 @@ test("the soak's detector flags a loop the victim can't act out of, and passes o
   const every = watch(INPUT_CLASSES.filter(({ changes }) => changes !== "both"));
   expect(every.cycles).toBe(1);
   expect(every.found).toEqual([]);
-});
+}, 30_000);

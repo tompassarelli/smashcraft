@@ -39,8 +39,14 @@ const BEATS: readonly (readonly [mask: number, held: number, press: RowFields])[
   [1, 18, { axisX: -127, sdi: true, sdiX: -1, throwX: -1 }],
 ];
 const BEAT_GAP = 24;
-/** Long enough for the gate's 15 steady-play presses however the computers' kits play out. */
-const MATCH_FRAMES = 2400;
+/**
+ * The gate's sample: steady-play legal presses. The match plays the beats until
+ * the stalls are over and this many have been confirmed, so a kit change that
+ * makes fewer beats legal lengthens the match instead of failing the floor.
+ */
+const GATED_PRESSES = 15;
+/** A ceiling of two minutes of beats; the sample, not this, ends the match. */
+const MATCH_FRAMES = 7200;
 
 function beatRows(frames: number): InputRow[] {
   const row = (fields: RowFields = {}) => {
@@ -239,14 +245,15 @@ test("#60: every local press starts in the presser's next prediction unless a re
     helpers.silent.clear();
     ownStalls.push([from, helpers.journaled(1) ?? 0]);
   }
-  until("the match's last beats", () => (helpers.journaled(0) ?? 0) >= MATCH_FRAMES, MATCH_FRAMES);
+  const own = (press: Press) => press.slot === 1 && ownStalls.some(([from, to]) => press.frame > from && press.frame <= to);
+  const steadyLegal = () => [...presses.values()].filter((press) => (press.legal ?? 0) !== 0 && !own(press) && !press.held).length;
+  until(`${GATED_PRESSES} steady-play legal presses`, () => steadyLegal() >= GATED_PRESSES, MATCH_FRAMES);
   until("every press confirmed", () => [...presses.values()].every((press) => press.legal !== undefined), 120);
 
   const legal = [...presses.values()].filter((press) => (press.legal ?? 0) !== 0);
-  const own = (press: Press) => press.slot === 1 && ownStalls.some(([from, to]) => press.frame > from && press.frame <= to);
   const rows = legal.map((press) => ({ ...press, own: own(press), late: (press.predicted ?? Infinity) - press.capture, mispredicted: ((press.started ?? 0) & (press.legal ?? 0)) !== press.legal }));
   const gated = rows.filter((press) => !press.own && !press.held);
-  expect(gated.length).toBeGreaterThanOrEqual(15);
+  expect(gated.length).toBeGreaterThanOrEqual(GATED_PRESSES);
   expect(gated.filter((press) => press.late > 1 || press.mispredicted)).toEqual([]);
   // A's presses while B's game was stopped wait for B's rows, and are reported apart.
   expect(rows.filter((press) => press.held && press.slot === 0).length).toBeGreaterThan(0);

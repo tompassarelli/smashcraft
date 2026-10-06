@@ -64,6 +64,7 @@ test("rules agree on both clients and the visible countdown restarts the same ma
   expect(read(rules)).toEqual(before);
   expectSynchronized(clients);
 });
+// About 1.5 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
 test("either player's press cancels the automatic rematch", () => {
   for (const actor of [0, 1]) {
     for (const key of [Key.n, Key.u, Key.y]) {
@@ -78,7 +79,8 @@ test("either player's press cancels the automatic rematch", () => {
     expectSynchronized(clients);
     }
   }
-});
+}, 30_000);
+// About 2.4 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
 test("endless survives repeated knockouts past the selected time limit", () => {
   const { clients, frames, read } = session(true);
   let respawns = 0; let out = false;
@@ -93,4 +95,4 @@ test("endless survives repeated knockouts past the selected time limit", () => {
   expect(read(() => shell().runtime.simulationFrame)).toBeGreaterThan(3600);
   expect(read(() => shell().game.timedOut)).toBe(false);
   expectSynchronized(clients);
-});
+}, 30_000);

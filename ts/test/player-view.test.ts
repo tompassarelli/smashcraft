@@ -416,8 +416,9 @@ test("a downward offscreen portrait and arrow stay entirely above the HUD at eve
   }
 });
 
-test("every selectable stage keeps its camera inside the blast zones, shows every offscreen bubble and loses stocks outside the view at all supported aspects", () => {
-  for (const { id: stage } of STAGE_CATALOG) for (const aspect of [16 / 9, 16 / 10, 3 / 2]) {
+// One test a stage: the catalog grows, and each stage's three 360-frame matches take 0.2-0.5 s alone.
+for (const { id: stage, name } of STAGE_CATALOG) test(`${name} keeps its camera inside the blast zones, shows every offscreen bubble and loses stocks outside the view at all supported aspects`, () => {
+  for (const aspect of [16 / 9, 16 / 10, 3 / 2]) {
     const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
     clients.start();
     clients.frames(30);

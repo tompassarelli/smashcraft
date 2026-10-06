@@ -66,6 +66,7 @@ function assignedRecordFields(body: ts.ConciseBody | ts.Block | undefined, targe
   return fields.size;
 }
 
+// About 1.4 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
 test("map source follows the TypeScript shapes required by #35", () => {
   const violations: SourceShapeViolation[] = [];
   const counts = {
@@ -146,7 +147,7 @@ test("map source follows the TypeScript shapes required by #35", () => {
 
   console.info(`source shape audit: ${JSON.stringify(counts)}`);
   expect(violations).toEqual([]);
-});
+}, 30_000);
 
 test("production TypeScript has no type escapes (#35, #38)", () => {
   const production = audited([...new Bun.Glob("{src,scripts}/**/*.ts").scanSync(root)]
