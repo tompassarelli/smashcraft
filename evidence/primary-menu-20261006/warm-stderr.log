@@ -1,0 +1,7 @@
+$ bun scripts/wisp.ts play --menus
+   0.018 s  1/7 Wine prefix (0.013 s)
+   0.030 s  2/7 Battle.net (0.012 s)
+  26.157 s  3/7 Warcraft III failed (26.127 s)
+  26.162 s  play failed (26.162 s)
+3/7 Warcraft III stopped: Battle.net's Games tab doesn't list Warcraft III with its install state (pictures and click log: /home/tom/.local/state/smashcraft/play-debug/2026-10-06T10-47-29-753Z)
+error: script "wisp" exited with code 1
