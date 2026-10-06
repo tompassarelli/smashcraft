@@ -44,7 +44,7 @@ jobs:
       - name: Unit tests
         run: |
           if [ "$RUNNER_OS" = Linux ]; then export TMPDIR=/dev/shm; fi
-          cargo test --locked
+          cargo test --locked --workspace
       # End-to-end: a scripted pad drives the real helper binary, which must type
       # every #18 action, in order and nothing else, into a focused stand-in
       # "Warcraft III" window and nothing into a second window; any lost, extra or
