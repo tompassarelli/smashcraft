@@ -5,8 +5,8 @@ import { HitElement, type HitEffect } from "../hitRegions";
 
 // smashcraft:docs/design/roster.md adopts these timings and damages. Geometry
 // is original and provisional until the matching weapon/body poses are seen.
-const SHORT = f32(HERO_REFERENCE_HEIGHT * f32(0.55));
-const MEDIUM = f32(HERO_REFERENCE_HEIGHT * f32(0.80));
+export const SHORT = f32(HERO_REFERENCE_HEIGHT * f32(0.55));
+export const MEDIUM = f32(HERO_REFERENCE_HEIGHT * f32(0.80));
 const LONG = f32(HERO_REFERENCE_HEIGHT * f32(1.10));
 const GRAB = f32(HERO_REFERENCE_HEIGHT * 0.5);
 
@@ -29,20 +29,22 @@ const DIRECTIONS = {
   45: { x: f32(0.7071067811865476), z: f32(0.7071067811865476) },
   50: { x: f32(0.6427876096865394), z: f32(0.766044443118978) },
   55: { x: f32(0.5735764363510462), z: f32(0.8191520442889918) },
+  65: { x: f32(0.42261826174069944), z: f32(0.9063077870366499) },
   70: { x: f32(0.3420201433256688), z: f32(0.9396926207859083) },
   75: { x: f32(0.25881904510252074), z: f32(0.9659258262890683) },
+  80: { x: f32(0.17364817766693041), z: f32(0.984807753012208) },
   85: { x: f32(0.08715574274765814), z: f32(0.9961946980917455) },
   90: { x: 0.0, z: 1.0 },
   270: { x: 0.0, z: -1.0 },
 } as const;
 
-function hit(damage: number, launchClass: LaunchClass, angle: keyof typeof DIRECTIONS, backwards = false, element: HitElement = HitElement.normal): Readonly<HitEffect> {
+export function hit(damage: number, launchClass: LaunchClass, angle: keyof typeof DIRECTIONS, backwards = false, element: HitElement = HitElement.normal): Readonly<HitEffect> {
   const direction = DIRECTIONS[angle];
   const strength = CLASS_HYPOTHESES[launchClass];
   return { damage, growth: strength.growth, base: strength.base, launchX: backwards ? -direction.x : direction.x, launchZ: direction.z, electric: false, element };
 }
 
-const capsule = (x1: number, z1: number, x2: number, z2: number, radius: number): StrikeCapsule => ({ x1, z1, x2, z2, radius });
+export const capsule = (x1: number, z1: number, x2: number, z2: number, radius: number): StrikeCapsule => ({ x1, z1, x2, z2, radius });
 const circle = (x: number, z: number, radius: number): StrikeCapsule => capsule(x, z, x, z, radius);
 const frame = (active: number, strike: StrikeCapsule, effect: Readonly<HitEffect>, groundedEffect?: Readonly<HitEffect>) => heroRegion(active, active, strike, effect, groundedEffect);
 
