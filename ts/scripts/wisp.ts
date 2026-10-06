@@ -43,6 +43,16 @@ if (name === undefined || entry === undefined) {
   console.error(`usage: bun wisp COMMAND\n${Object.values(COMMANDS).map(({ usage }) => `  ${usage}`).join("\n")}`);
   process.exit(2);
 }
+// Play is Tom's path from main and the client's Play button; Bun installs nothing
+// once node_modules exists, so a pull that moved the Wisp pin left play on the
+// old Wisp (7 Oct: main's checkout still ran 33e44eb with e54345e pinned).
+if (name === "play") {
+  const install = Bun.spawnSync([process.execPath, "install", "--frozen-lockfile"], { cwd: import.meta.dir + "/..", stdout: "ignore", stderr: "pipe" });
+  if (install.exitCode !== 0) {
+    console.error(`couldn't install the pinned dependencies: ${install.stderr.toString().trim()}`);
+    process.exit(1);
+  }
+}
 const command = await entry.load();
 const exit = await Effect.runPromiseExit(command(args).pipe(step(name), Effect.provide(timingsLayer((line) => console.error(line)))));
 if (Exit.isFailure(exit)) {
