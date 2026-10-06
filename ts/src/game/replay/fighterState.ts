@@ -287,6 +287,8 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   grab.frame = sourceGrab.frame;
   grab.serial = sourceGrab.serial;
   grab.pummels = sourceGrab.pummels;
+  grab.heldFrames = sourceGrab.heldFrames;
+  grab.queuedThrow = sourceGrab.queuedThrow;
   grab.mashX = sourceGrab.mashX;
   grab.mashZ = sourceGrab.mashZ;
   grab.owner = retained(activeMask, sourceGrab.owner);

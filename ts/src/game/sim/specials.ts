@@ -19,7 +19,7 @@ import { type Controls, type Roster, fighterAt, isActive } from "./roster";
 import { surfaceZ } from "./stage";
 import { RIFLEMAN_BEAR_LIFETIME, advanceBear, advanceHippogryph, recordSpecialHit, specialAlreadyHit, startFreezeTrap } from "./summons";
 import { at } from "wisp/src/runtime/lookup";
-import { advanceHeroSpecial, chooseHeroSpecial, enterHeroSpecial, heroSpecialContact, heroStrikeMeetsShield, isHeroSpecialAction, stopHeroMotionAtBodies } from "./heroSpecialRules";
+import { advanceHeroSpecial, chooseHeroSpecial, enterHeroSpecial, heroSpecialContact, heroStrikeMeetsShield, isHeroSpecialAction, steerHeroSpecial, stopHeroMotionAtBodies } from "./heroSpecialRules";
 
 export const DEMONHUNTER_MANA_BURN_STARTUP = 8;
 const DEMONHUNTER_MANA_BURN_RECOVERY = 25;
@@ -226,9 +226,11 @@ function startHeroFighterSpecial(owner: Fighter, input: Readonly<Controls>): boo
   observeActionDecision(SPECIAL_ACTION_BIT);
   const lastTap = owner.motion.lastAerialTapDirection;
   if (!owner.motion.grounded && input.specialX === 0 && input.specialZ === 0 && lastTap !== 0) owner.facing = lastTap;
-  if (input.specialX !== 0 && input.specialZ === 0) owner.facing = input.specialX < 0 ? -1 : 1;
-  const action = SpecialAction.heroNeutral + chosen.slot;
   const move = heroSpecialMove(specials, chosen);
+  // A placement with a near form keeps the facing when pressed backward.
+  const keepsFacing = (move.projectiles ?? []).some(spec => spec.backOffsetX !== undefined) && input.specialX * owner.facing < 0;
+  if (input.specialX !== 0 && input.specialZ === 0 && !keepsFacing) owner.facing = input.specialX < 0 ? -1 : 1;
+  const action = SpecialAction.heroNeutral + chosen.slot;
   startSpecialAction(owner, heroAction(action), move.endFrame, specialDirection(input, owner.facing));
   enterHeroSpecial(owner, chosen, input);
   return true;
@@ -236,6 +238,7 @@ function startHeroFighterSpecial(owner: Fighter, input: Readonly<Controls>): boo
 
 /** Starts the special the input asks for if it may; a neutral aerial special turns to the last air steering. */
 export function startFighterSpecial(owner: Fighter, stage: number, matchFrame: number, input: Readonly<Controls>): boolean {
+  steerHeroSpecial(owner, input);
   if (!input.specialPressed) return false;
   if (owner.tuning.specials !== undefined) return startHeroFighterSpecial(owner, input);
   const requested = requestedSpecial(owner, input);
@@ -266,12 +269,12 @@ function endSpecialAction(owner: Fighter, helpless: boolean): void {
   owner.special.frame = 0;
 }
 
-function advanceSpecialAction(owner: Fighter): void {
+function advanceSpecialAction(owner: Fighter, stage: number, input: Readonly<Controls> | undefined): void {
   const { special, motion } = owner;
   if (special.action === SpecialAction.none || owner.launch.hitlag > 0) return;
   special.frame++;
   if (isHeroSpecialAction(special.action)) {
-    advanceHeroSpecial(owner);
+    advanceHeroSpecial(owner, stage, input);
     return;
   }
   const shotSerial = owner.attack.serial + 1;
@@ -357,12 +360,12 @@ const specialScratch = {
 };
 
 /** Advances every special timeline, applies Immolation contacts selected against one state, then summons. */
-export function advanceSpecials(world: Roster, stage: number, matchFrame: number): void {
+export function advanceSpecials(world: Roster, stage: number, matchFrame: number, inputs?: readonly Readonly<Controls>[]): void {
   const ownsBatch = openDamageContacts();
   const { contacts, facings } = specialScratch;
   for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
     if (!isActive(world, slot)) continue;
-    advanceSpecialAction(fighterAt(world, slot));
+    advanceSpecialAction(fighterAt(world, slot), stage, inputs?.[slot]);
     stopHeroMotionAtBodies(world, slot);
   }
   for (let ownerSlot = 0; ownerSlot < PARTICIPANT_CAPACITY; ownerSlot++) {

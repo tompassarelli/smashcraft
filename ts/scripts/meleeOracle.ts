@@ -1268,6 +1268,40 @@ const LEDGES: readonly Scenario[] = [
   { area: "ledge", name: "standing grab on a fighter hanging past its intangible frames", cite: "ftColl_80078A2C skips a victim with x1A6A & x1A68 (melee:src/melee/ft/ftcoll.c:1330); the hang sets x1A6A = 511 (ftCliffCommon_80081370, melee:src/melee/ft/ftcliffcommon.c:86; ftCo_8009A804, ftCo_CliffWait.c:25) and every catch sets x1A68 = 1 (ftCo_800D8C54, ftCo_Catch.c:115) (#72)", run: (c) => ({ expected: "not caught", actual: grabOnLedgeHanger(c) }) },
 ];
 
+// ------------------------------------------------------------------ grabs
+
+/** Frames a Rifleman at `percent` stays in the fighter's grab, with one mash press on held frame `mashOn` when given. */
+function grabHold(character: Character, percent: number, mashOn?: number): number | string {
+  const s = scene(0, [{ character, x: 0.0, facing: 1 }, { character: Character.rifleman, x: 50.0, facing: -1 }]);
+  const victim = fighter(s, 1);
+  victim.status.damage = percent;
+  if (framesUntil(s, () => victim.grab.owner !== undefined, 30, (n) => (n === 1 ? [Action.grab] : [])) === undefined) return "never caught";
+  let held = 0;
+  while (victim.grab.owner !== undefined && held < 400) {
+    held++;
+    frame(s, [], held === mashOn ? [Action.jump] : []);
+  }
+  return held;
+}
+
+const GRAB_RULE = "the escape timer starts at 76 + 1.6 frames per percent and falls 1 a frame plus 6 per mash input (ftCo_CaptureWait): smashcraft:docs/design/melee/defense.md#grabs";
+const GRAB_DEPARTURE = "Grab hold: 90 frames at any percent, 8 off per mash input down to 30, one pummel connecting on frame 48 (owner direction 2026-10-06, #101)";
+
+const GRABS: readonly Scenario[] = [
+  {
+    area: "grabs", name: "frames held at 150% without mashing", cite: GRAB_RULE, departure: GRAB_DEPARTURE,
+    run: (c) => ({ expected: 76 + 240, actual: grabHold(c, 150.0) }),
+  },
+  {
+    area: "grabs", name: "frames one mash press takes off a hold at 0%", cite: GRAB_RULE, departure: GRAB_DEPARTURE,
+    run: (c) => {
+      const plain = grabHold(c, 0.0);
+      const mashed = grabHold(c, 0.0, 1);
+      return { expected: 6, actual: typeof plain === "number" && typeof mashed === "number" ? plain - mashed : `${plain}, ${mashed}` };
+    },
+  },
+];
+
 // ------------------------------------------------------------------ table
 
 const windowBound = (name: string, lower: number, upper: number, actual: (character: Character) => number): Scenario => ({
@@ -1338,7 +1372,7 @@ const EXECUTION_BOUNDS: readonly Scenario[] = [
 ];
 
 const SCENARIOS: readonly Scenario[] = [
-  ...JUMPS, ...GROUND, ...FAST_FALL, ...LANDING, ...TECHS, ...GETUPS, ...KNOCKBACK, ...PLATFORMS, ...SURFACES, ...SHIELD_AND_DODGES, ...POWERSHIELD, ...LEDGES, ...SMASH_DI, ...EXECUTION_BOUNDS,
+  ...JUMPS, ...GROUND, ...FAST_FALL, ...LANDING, ...TECHS, ...GETUPS, ...KNOCKBACK, ...PLATFORMS, ...SURFACES, ...SHIELD_AND_DODGES, ...POWERSHIELD, ...LEDGES, ...GRABS, ...SMASH_DI, ...EXECUTION_BOUNDS,
   ...[59, 60, 120].map((frames): Scenario => ({
     area: "offscreen", name: `magnifier damage after ${frames} consecutive frames`,
     cite: "Fighter_procAnim, PlCo +0x7AC=60, +0x7B0=150, +0x7B4=1; ftLib_UpdateScreenVisibility; canonical 16:9 match view (#80)",

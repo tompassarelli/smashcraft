@@ -14,6 +14,7 @@ import { hitlagTint } from "../../game/presentation/hitPresentation";
 import { DamagePose, damagePose } from "../../game/presentation/damagePose";
 import type { FighterPose } from "../../game/presentation/fighterPose";
 import { CANNON_MODEL, PLATFORM_CUE_FRAMES, framesUntilPlatformMoves, stageWarning } from "../../game/presentation/stageHazards";
+import { escapeMeterView, readEscapeMeter } from "../../game/presentation/escapeMeter";
 import { type MapBuild, journalIngress } from "../../game/shell/build";
 import { MOMENT_SAVED_MESSAGE, type StartControl, fighterLabel, matchHelp, resultNotice, waitingMessage } from "../../game/shell/messages";
 import { isIntangible } from "../../game/sim/conditions";
@@ -205,6 +206,9 @@ export function renderPersistentPresentation(s: ShellState): void {
   }
 }
 
+// Preallocated scratch for each slot's escape meter.
+const meter = escapeMeterView();
+
 /** Frames the live fighters of the presented match from the side. */
 export function lockArenaCamera(s: ShellState): void {
   const { world, game } = presentedMatch(s);
@@ -230,6 +234,10 @@ export function lockArenaCamera(s: ShellState): void {
     const point = cameraPoint(framing, aspect, fighter?.motion.x ?? 0.0, (fighter?.motion.z ?? 0.0) + 60.0);
     const outside = point.column < 0.0 || point.column > 1.0 || point.row < 0.0 || point.row > 1.0;
     views(s).bubbles[slot].update(game.phase === Phase.match && fighter !== undefined && !fighter.status.out && outside, fighter?.character ?? 0, point.column, point.row, aspect);
+    readEscapeMeter(world, slot, meter);
+    if (game.phase !== Phase.match) meter.shown = false;
+    const meterPoint = cameraPoint(framing, aspect, meter.x, meter.z);
+    views(s).escapeMeters[slot].update(meter, meterPoint.column, meterPoint.row, aspect);
   }
 }
 
@@ -244,7 +252,8 @@ export function renderUi(s: ShellState): void {
   for (const slot of PARTICIPANT_SLOTS) {
     if (s.participants[slot].body !== undefined && isActive(s.world, slot)) {
       const fighter = fighterAt(s.world, slot);
-      ui.huds[slot].update(showMatch, fighter.character, fighter.status.damage, s.game.endless ? 0 : fighter.status.stocks);
+      ui.huds[slot].update(showMatch, fighter.character, fighter.status.damage, s.game.endless ? 0 : fighter.status.stocks,
+        fighter.tuning.specials === undefined ? undefined : fighter.mana.points, fighter.visuals.manaDenied);
     } else ui.huds[slot].update(false, 0, 0.0, 0);
     ui.selections[slot].update(game, ui.settings[slot].isOpen());
     ui.settings[slot].update();

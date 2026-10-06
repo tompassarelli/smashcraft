@@ -8,7 +8,7 @@ import { AttackStyle, Character, DownState, ShieldBreak } from "./codes";
 import { canAttack, isIntangible } from "./conditions";
 import { type Fighter, SHIELD_MAX, createFighter } from "./fighter";
 import { beginAirDodge, beginJump } from "./jumpsAndDodges";
-import { attackStartupFrames, grabHoldFrames } from "./moves";
+import { attackStartupFrames, GRAB_HOLD_FRAMES } from "./moves";
 import { updateProjectiles } from "./projectiles";
 import type { Controls } from "./roster";
 import { shieldBreakDizzyFrames } from "./shield";
@@ -270,7 +270,7 @@ test("flinching damage and grabs interrupt every shield-break phase", () => {
         assertEquals(fighter.status.damage, 5.0);
         assertGreaterThan(fighter.launch.hitstun, 0);
       } else {
-        assertEquals(fighter.grab.grabbedFrames, grabHoldFrames(fighter.status.damage));
+        assertEquals(fighter.grab.grabbedFrames, GRAB_HOLD_FRAMES);
       }
     }
   }
