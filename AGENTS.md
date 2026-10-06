@@ -85,6 +85,20 @@ code. From smashcraft:ts/:
 - Fresh match: `bun wisp fresh MAP.w3x [--rebuild]` starts a new game, sends
   `-dev quick`, and waits until every signed-in client writes its receipt.
   `--rebuild` replaces the map script first.
+- Client state: `bun wisp watch [CLIENT...] [--once]` prints what each client
+  is doing (signed in, menu screen, lobby, loading, in match, results,
+  disconnected, crashed, its map's load errors, the ladder scan) from its menus,
+  log, crash reports, match receipts and processes, never its screen. Run it
+  before clicking or reading a client; `bun wisp client state CLIENT` and
+  `bun wisp client wait CLIENT STATE...` read or wait on one (wisp:docs/watch.md).
+- Client recovery: `bun wisp doctor [CLIENT...]` brings clients A and B to a
+  ready state: it recovers a client that dropped from Battle.net, crashed
+  with its error dialog up, sits at the empty login shell, a stale lobby or
+  a stuck loading screen, or shares its prefix with a second runtime, and
+  stops with one line when Tom must sign in (wisp:docs/doctor.md). `fresh`,
+  `parity capture` (bot sessions included), `play` and `accept` run it before
+  they start and once after a failure; run it instead of driving a client by
+  hand.
 - Client driver: `bun wisp client look|read|click|keys CLIENT ...` reads and
   drives a client. Session values live in ~/.local/state/smashcraft/clients.json.
 - Menus: `bun wisp menus host|join|start|leave` drives lobbies through Wisp's
@@ -133,6 +147,11 @@ code. From smashcraft:ts/:
   #17's four-fighter match (smashcraft:docs/native-four-fighters.md);
   `bun wisp playable capture|result` a playable candidate's one-stock match
   and rematch (smashcraft:docs/playable-0047.md).
+- Native acceptance: `bun wisp accept [--only ID...] [--dry-run]` runs every
+  open native check declared in smashcraft:ts/scripts/wisp/acceptChecks.ts in
+  as few fresh matches as their maps allow and prints pass, fail or
+  needs-look per check with its evidence folder (wisp:docs/accept.md). Declare
+  a new native box there, next to the issue it closes, instead of a hand procedure.
 - Melee oracle: `bun wisp oracle` plays Melee situations for every fighter
   and prints each outcome beside the value cited from the decompilation; the
   test suite fails on any mismatch it doesn't list as known

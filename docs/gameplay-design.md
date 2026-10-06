@@ -163,16 +163,20 @@ platform and climb off it. They replace #51's instant pass-through and the
 used, not camped.
 
 - **Platform ascent.** When a rising fighter's body meets a pass-through
-  platform from below, the fighter ascends it and its current attack or special
-  ends, recovery included: rising into a platform after a hit is a lag cancel.
+  platform from below, the fighter ascends it. An attack in its startup or
+  active frames carries on through the platform, so its hitbox still reaches a
+  fighter standing there: the platform never protects the fighter on top. The
+  ascent begins as those frames end, if the body is still in the platform, and
+  cancels the attack's remaining recovery; contact during recovery, or during a
+  special, ascends at once. Rising into a platform after a hit is a lag cancel.
   A helpless fighter stays helpless. The ascent lasts the fighter's jump squat
   (Archer 3, Rifleman 5, Illidan 4, each hero its own), the honest proxy for
   its agility, and carries its feet from where they met the platform to its top.
   - Rising through is the default: the fighter keeps its momentum, with gravity,
     and leaves the top still rising if it has rise left. Holding jump, or up
     past the stick-up jump threshold (0.6625), sustains the rise with no
-    gravity. An up air into a platform cancels into the ascent; a fresh rising
-    up air or another aerial can follow it.
+    gravity. An up air into a platform hits through it, then its recovery
+    cancels into the ascent; a fresh rising up air or another aerial can follow.
   - Down held or pressed during the ascent ends it standing on the platform,
     with no landing lag; still holding down crouches.
   - Shield held or pressed ends it standing on the platform, shielding.
@@ -194,8 +198,15 @@ used, not camped.
 - **No platform shield drop.** Down while shielding does not fall through a
   platform; leaving one goes through a descent.
 - Fighters are fully vulnerable, hittable and grabbable, through ascent,
-  descent and wraps. With no shield drop and a jump-squat descent, a fighter on
-  a platform is slightly behind one below it, as the principle intends.
+  descent and wraps. With no shield drop, a jump-squat descent and attacks
+  that hit through the platform from below, a fighter on a platform is slightly
+  behind one below it, as the principle intends. Measured by
+  smashcraft:ts/scripts/platformAdvantage.ts (earliest first hit from rest, each
+  fighter on a stage 1 side platform with another directly below): across the
+  64 pairs of the 8 selectable fighters at #103's landing, the fighter below
+  strikes first in 31, level in 10 and later in 23; its test requires the fighter below to
+  strike no later in at least 60% of pairs. The trailing pairs are mostly
+  Archer, Rifleman and Illidan on top, whose descent plus down air is fastest.
 - Presentation: ascent plays the fighter's ledge-climb clip, descent its
   ledge-hang clip and both wraps its ledge-roll clip, each stretched over the
   move (smashcraft:ts/src/game/presentation/fighterClips.ts).
@@ -260,7 +271,8 @@ checks that every oracle departure names a row here.
 | Air dodge | Directional; ends in helpless fall (FallSpecial) until landing | Ultimate: one directional air dodge per airtime, no helpless fall, refreshed on landing, ledge grab and being hit ([SmashWiki](https://www.ssbwiki.com/Air_dodge)). Rivals of Aether 2: the dodge ends in an ordinary fall ([workshop](https://rivals2.com/workshop/?p=389)) | Once per airtime, ending actionable; refreshed on landing, ledge catch and being hit; spends no jump. Direction, momentum and the wavedash/waveland through landing are unchanged | Owner decision, 6 Oct: the air dodge works as in Smash | #100 |
 | Shield release lag | 15 frames (GuardOff) | Ultimate: 11 frames | 11 frames; the 8-frame minimum hold and direct shield grab/jump bypass are unchanged | Owner decision, 6 Oct: Melee's lag makes dropping shield almost never worth it; dropping shield should be a real alternative to jumping into an aerial or rolling out of shield. Ultimate's value is the starting point; tune if it still goes unused | #100 |
 | Dodge timing | Per fighter | – | One shared profile: spot dodge 22 frames, intangible 2–15; rolls 31, intangible 4–19; air dodge 49, intangible 4–29, landing 10 | Owner's common frame-data profile | – |
-| Platform ascent | A rising fighter passes up through a platform with no change to its action (mpCheckFloor meets a platform only while descending) | Ultimate passes through the same way ([SmashWiki](https://www.ssbwiki.com/Soft_platform)); Rivals 2 not sourced | An ascent over the jump squat cancels the attack; jump or up sustains the rise, down stands, shield shields, a half-circle wraps over ([Platforms](#platforms)) | Platforms are contested physically; positions are used, not camped | #103 |
+| Powershield | A full press within 2 frames of the trigger moving, while raising the shield: a hit in its first 4 frames does no shield damage and pushes back harder, a projectile in its first 2 reflects. The hit's shieldstun is unchanged, and the common +0x2B8 counter (4 frames) only lets attacks and grabs cut the shield drop short (`ftCo_80092F2C`, `ftCo_GuardOff_IASA`, `ftCo_80094138`); a press during shieldstun is ignored (`ftCo_GuardSetOff_IASA` is empty) | Ultimate: release-timed in the first 5 frames of the 11-frame shield drop; any attack skips the drop lag and acts 3 frames sooner than a block against direct hits; no reflection ([SmashWiki](https://www.ssbwiki.com/Perfect_shield)). Rivals 2: a 4-frame perfect shield plus a separate parry, active 6–13, that stuns the attacker 40–100 frames ([Dragdown](https://dragdown.wiki/wiki/RoA2/System_Mechanics/Defense)) | Melee's raise-timed press, but a parry: no shield damage, no shieldstun, no release lag; any grounded option on the first frame after the hit's freeze, an option pressed during the freeze buffered into it. One press parries one hit; a red parry re-pressed in shieldstun parries the next hit in a 2-frame window. Ground only ([Powershield and parry](#powershield-and-parry)) | A true parry with a clear reward that stays the player's own choice of punish, after Street Fighter III's parry and red parry (owner, 6 Oct) | #102 |
+| Platform ascent | A rising fighter passes up through a platform with no change to its action (mpCheckFloor meets a platform only while descending) | Ultimate passes through the same way ([SmashWiki](https://www.ssbwiki.com/Soft_platform)); Rivals 2 not sourced | Attacks hit through it; an ascent over the jump squat cancels the remaining recovery; jump or up sustains the rise, down stands, shield shields, a half-circle wraps over ([Platforms](#platforms)) | Platforms are contested physically; positions are used, not camped | #103 |
 | Platform descent | A fresh down falls through at once | Ultimate drops through at once ([SmashWiki](https://www.ssbwiki.com/Soft_platform)); Rivals 2 not sourced | A vulnerable descent over the jump squat; a half-circle onto a platform from above wraps under it ([Platforms](#platforms)) | Leaving a platform is a commitment, so sitting on one is slightly disadvantaged | #103 |
 | Platform shield drop | Down while shielding drops through a platform | Removed in Ultimate ([SmashWiki](https://www.ssbwiki.com/Shield_drop)); Project+ keeps it | Removed: down while shielding stays on the platform | Owner (6 Oct): no safe retaliation from a platform; leaving one goes through a descent | #103 |
 
@@ -531,6 +543,7 @@ not claims that these timings guarantee human reaction on every setup.
 | Jump squat; short-hop release window | 3 | 5 | 3 and 5 |
 | Parry active window | 6 | 10 | 6 |
 | Powershield input window | 2 | 4 | 2 |
+| Red parry (re-press in shieldstun) | 2 | 4 | 2 |
 | Ledge intangibility | 30 | 37 | 30 |
 | Ledge regrab lock | 30 | 60 | 30 |
 | Any required precision input with no aid | 3 | n/a | L-cancel removed |
@@ -546,11 +559,11 @@ The 20-frame tech-lockout floor and 60-frame regrab ceiling are chosen bounds,
 not empirical limits.
 
 The oracle checks the shipped tech, lockout, attack buffer, jump squat and
-short-hop release, parry, powershield and ledge windows against these ranges.
-Interaction timing checks apply the reaction, required-link and precision
-rules to authored situations. No current move is designated a required link
-or guaranteed reaction option; the graph's existence of a punish is not a
-claim that a human can react to it.
+short-hop release, parry, powershield, red parry and ledge windows against
+these ranges. Interaction timing checks apply the reaction, required-link and
+precision rules to authored situations. No current move is designated a
+required link or guaranteed reaction option; the graph's existence of a punish
+is not a claim that a human can react to it.
 
 ## Shared mechanic defaults
 
@@ -587,7 +600,7 @@ The descriptive basis is [fighting-game language](design/fighting-games.md),
 
 | Question | Adopted default | Reason |
 |---|---|---|
-| Shield geometry | Keep a health-dependent shrinking shield that can be poked. Preserve the authored shield centre and current input handling; add no required shield-tilt input. | Keep the established shield system and visible body exposure rather than replacing it with a fixed bubble. |
+| Shield geometry | Keep the shrinking bubble (confirmed by #102): it drains while held (0.28 health a frame digitally), regenerates once lowered (0.07 a frame), and its radius scales with health (0.15 + 0.85 × health/60 × pressure scale), so a worn shield exposes the body to a projectile passing outside it. Melee contacts on a raised shield are all blocked; melee pokes are not modelled yet. Preserve the authored shield centre and current input handling; add no required shield-tilt input. | Keep the established shield system and visible body exposure rather than replacing it with a fixed bubble. |
 | Aerial shieldstun | Keep the shared ground/aerial formula. | Aerial safety already varies through contact timing, landing, spacing and drift; no separate universal aerial multiplier is needed. |
 | Whiff penalties | No global extra miss-only recovery or landing-lag multiplier. Author commitment and recovery per move. | Counterplay should follow the same visible move phases whether the strike connects or misses. |
 | Ground moves on shield | Close committed moves should have reachable punishment; spaced pokes may be safe. In the same shield-contact context, greater shield damage costs later attacker recovery or an earlier defender response. | Adopts smashcraft:docs/move-comparisons.md's measured category rule without changing its gate; it is not a global damage-to-lag formula. |
@@ -595,7 +608,7 @@ The descriptive basis is [fighting-game language](design/fighting-games.md),
 | Shield release and out-of-shield actions | Owner decision (6 Oct, #100): 11-frame release lag, Ultimate's value, with the 8-frame minimum shield hold. Direct shield grab and jump bypass release lag when otherwise legal; jump into aerials, rolls and spot dodges remain available. Add no instant grounded up-smash cancel. | Melee's 15 frames make dropping shield almost never worth it; dropping shield should be a real alternative to jumping into an aerial or rolling out of shield. Tune later if it is still never used. Shieldstun and other action locks still apply. |
 | Platform shield drop | Removed (owner, 6 Oct, #103): down while shielding stays on the platform. Leaving a platform goes through a [platform descent](#platforms); shielded fighters use their jump, dodge or release choices. | Superseded: no safe retaliation from a platform, so a fighter on one is slightly behind one below. |
 | Cross-ups | Coverage follows each move's authored front/back regions and legal facing change. No automatic tracking or universal behind-the-fighter hit extension. | A cross-up changes which responses reach; the answer comes from the move, not hidden target tracking. |
-| Powershield and dedicated parry | Keep raise-timed powershield and its projectile reflection, with the accepted 2-frame window. Keep Illidan's authored parry; add no universal parry button or release-timed replacement. | Retains two existing defensive identities without adding another shared input. |
+| Powershield and dedicated parry | The raise-timed powershield, with the accepted 2-frame input window and its projectile reflection, is a true parry: no shieldstun and no release lag, any grounded option on the first frame after the hit's freeze ([Powershield and parry](#powershield-and-parry), #102). Ground only. Counters stay per-fighter specials such as Illidan's parry; add no universal parry button or release-timed replacement. | One shared, learnable timing whose reward is the defender's own punish, kept apart from the committal counters a kit can author. |
 
 ### Movement, recovery and resources
 
@@ -727,6 +740,13 @@ lose to a hurtbox the player could not see. The mechanisms behind Ultimate's
 [hurtbox legibility](design/hurtbox-legibility.md). Authoring is described in
 smashcraft:docs/hurtboxes.md.
 
+Two owner principles (6 Oct 2026) frame the rules: **attacking limbs can be
+hit**, so counter-hitting an extended arm, leg or wing is always possible,
+and **weapons are disjoint**: a held weapon (Blademaster's sword, Mountain
+King's and Uther's hammers, Archer's bow, Rifleman's gun) is never part of the
+hurtbox, so striking the weapon does nothing while the hand and arm holding it
+can be hit. Counter-hit the limb, not the sword.
+
 1. **One body outside attacks.** Standing, idle, walking, dashing, running,
    jumping, falling and shielding all use the standing body; only crouch,
    attacks and specials author others. No idle pose, animation timing or
@@ -740,21 +760,109 @@ smashcraft:docs/hurtboxes.md.
    returning to standing) moves the body's front, back, top or bottom extent by
    at most 60 world units (10 Melee units, about one standing body width plus
    a quarter). A longer reach ramps through intermediate poses.
-5. **Protection where the strike is.** An intangible or invincible part
-   touches one of the same move's hit regions: protection belongs to the
-   striking limb, never to a hidden torso or head.
-6. **Touching is hitting.** Any overlap of a strike and a normal part,
+5. **Attacking limbs can be hit** (owner decision, 6 Oct 2026): counter-hitting
+   an extended limb is an important mechanic, and an unhittable limb breaks
+   it. No attack or special pose authors an intangible or invincible part.
+   Intangibility and invincibility belong only to explicit defensive states,
+   whole-body and shown: dodges, ledge, techs, respawn, and a special's own
+   intangible or armor window or a counter.
+6. **Weapons are disjoint** (owner decision, 6 Oct 2026): no hurt part
+   follows a weapon past the hand. Every part stays within a fully extended
+   limb's reach of the fighter: horizontally within 0.7 of its standing
+   height of its feet, vertically from a quarter of that height below its
+   feet to 0.3 of it above its head. A wing or tail that reaches farther is a
+   named departure.
+7. **Touching is hitting.** Any overlap of a strike and a normal part,
    tangency included, is a hit: no glancing-blow or phantom band. A strike's
    tested volume is its authored capsule on that frame, never a chord swept
    from the previous frame.
-7. **Judged on the shown frame.** A contact is resolved against the pose both
+8. **Judged on the shown frame.** A contact is resolved against the pose both
    fighters show on the contact frame, from the same pre-contact state for
    both; no zoom or slowdown replays the hit in a different pose.
 
-Rules 1–6 are checked on every fighter's authored bodies, the original three
+Rules 1–7 are checked on every fighter's authored bodies, the original three
 and each registered hero, by smashcraft:ts/src/game/sim/hurtboxLegibility.tests.ts. A fighter that needs
 to break a rule lists a named departure there and in this section, with its
-reason. Current departures: none.
+reason. Current departures:
+
+- **Mountain King's down air (Double Boot), rule 6.** The boots are the
+  strike, so the leg volume follows the whole downward strike, about 70 units
+  below his feet, past a limb's reach. It is body, not weapon, and can be hit.
+- **Uther's back air (boot kick), rule 6.** The extended leg is the strike,
+  about 0.78 of his height behind him, and stays hittable to its full length.
+- **Dreadlord's wings and claws, rule 6** (down smash, forward smash, forward
+  air, back air, down air). The roster keeps hurtboxes on attached body parts;
+  the wings reach about 0.83 of his height sideways and the claws about half
+  below his feet, all hittable.
+
+## Powershield and parry
+
+Delegated design, 6 Oct 2026 (#102), under the owner's direction that the
+shield stays Smash's slowly shrinking bubble and a powershield becomes a true
+parry with a clear reward; the owner added Street Fighter III: Third Strike's
+parry strings and red parry the same day, and decided against an air parry.
+Ultimate's and Rivals 2's parries are cited first and Melee's from the
+decompilation in the deviations table above; Third Strike's rules are in
+[fighting-game design language](design/fighting-games.md#parries-street-fighter-iii-third-strike).
+The starting point is Ultimate's reward, any option with no shield-drop lag,
+taken further to no shieldstun so the defender acts on the next frame, as the
+owner asked. Rivals 2's stun on the parried attacker is not adopted: it pays
+out automatically, which is what counter specials are for (below). The input
+stays Melee's raise-timed press, so a parry is a read of the hit's timing.
+
+1. **The shield.** The bubble drains while held, regenerates once lowered and
+   shrinks with its health, as the Shields and defence rows above record.
+2. **Parry timing.** A full shield press within 2 frames of the trigger first
+   moving, while raising the shield, opens the parry: a melee hit in its first
+   4 frames, or a projectile in its first 2 (which reflects, rule 1 of
+   [Projectiles and powershield](#projectiles-and-powershield)), is parried.
+   An unshielded fighter presses on the hit's frame or up to 3 frames before.
+3. **The reward.** A parried hit does no shield damage and no shieldstun. Its
+   freeze (hitlag) still plays, and on the freeze's last frame, the first the
+   defender can act on, it can start any grounded option: jab, a tilt, a
+   smash, shield grab, a jump into any aerial, either roll, a spot dodge, or
+   simply drop the shield, all with no release lag. An option pressed during
+   the freeze is buffered into that frame: an attack keeps its buffer through
+   the freeze, a jump or ground dodge is held for it. A parried projectile
+   gives the same reward from the next frame. The reward lasts while the
+   shield stays held for 4 frames (Melee's `+0x2B8` counter); holding it
+   longer spends it, and dropping the shield then costs the ordinary release
+   lag.
+4. **One press, one hit.** A press parries one hit or one projectile and its
+   window closes. Each hit of a multi-hit move and each projectile of a stream
+   needs its own timed press: drop the shield (free after a parry) and press
+   again. An ordinary block anywhere in the string ends the reward and takes
+   that hit's shieldstun, so parrying every hit gives the reward after the
+   last one, as Third Strike's parried supers do.
+5. **Red parry.** In shieldstun from an ordinary block, a fresh full press (let
+   go of the shield and press it again; the shieldstun holds it up) parries the
+   next hit if it lands on the hit's contact frame or the one before: a 2-frame
+   window. Success clears the shieldstun and gives the same reward. One try
+   per blocked hit: a second press in the same shieldstun does nothing, so
+   mashing earns nothing. Why 2 frames: tighter than the parry's 4, as Third
+   Strike's red parry is tighter than its parry, and at #69's lower bound for
+   an optional powershield; 1 frame would be an unaided one-frame input,
+   below every bound #69 accepts.
+6. **Ground only.** There is no air parry (owner, 6 Oct): it would make every
+   aerial approach a guess. Shields and parries are ground tools; airborne
+   defence is the air dodge and a fighter's counter specials.
+
+### Powershield versus counter specials
+
+Melee keeps the universal powershield apart from per-character counters
+(Marth's and Roy's Counter), and Smashcraft keeps that split:
+
+| | Universal powershield | Counter specials |
+|---|---|---|
+| Who | Every fighter, through the shared shield | Fighters whose kit authors one: Illidan's parry (Parry Step), Uther's Divine Guard (#96) |
+| Input | The ordinary shield press, timed | A special move |
+| Commitment | None beyond the shield: a press that parries nothing is an ordinary shield | Startup, a counter window and recovery; a whiff is punishable |
+| Reward | No shieldstun or release lag and next-frame action with the defender's own grounded option, which can still be the wrong choice | An automatic strike or effect authored by the move, such as Parry Step cancelling the attack and launching the attacker |
+| Against strings | One press per hit; the red parry rejoins a string | The move's own window |
+
+The powershield never strikes back on its own: the punish is the defender's
+choice and execution. A counter is a committed read with an automatic payoff
+and a whiff punish.
 
 ## Projectiles and powershield
 
@@ -769,6 +877,9 @@ projectile properties are described in [projectiles](design/projectiles.md).
    shield's first 2 frames, inside #69's accepted 2–4. Every traveling
    projectile is reflectable; only persistent zones, puddles, markers and
    summons are not (the roster contract), and a held shield blocks those.
+   A reflection is a parry: the defender acts from the next frame with no
+   shieldstun or release lag, and each projectile of a stream needs its own
+   press ([Powershield and parry](#powershield-and-parry)).
 2. **Unsafe up close.** Fired point blank into a held shield, every
    projectile is punishable: some out-of-shield option of the defender lands
    before the shooter can act. At range a projectile may be safe by distance;
@@ -785,7 +896,19 @@ projectile properties are described in [projectiles](design/projectiles.md).
    grab, jump out of shield into any aerial, both rolls, spot dodge and the
    raise-timed powershield; no fighter trades one of them away.
 
-The headless checks measure every fighter's projectiles, the original three
-and each registered hero's, against rules 1–5; rule 6 is checked from the
-interaction graph's out-of-shield options. Any departure is named here with
-its reason.
+smashcraft:ts/scripts/projectileRules.tests.ts measures every fighter's
+projectiles, the original three and each registered hero's, through the
+interaction graph's projectile situations (each special that makes a
+projectile, fired at a mirror defender 60, 240 and 480 apart): the
+powershield presses that reflect it (at least 2), the out-of-shield punishes
+from point blank, the most out at once with the special pressed every other
+frame, its flight, and the answers of a standing defender. Rule 6 is checked
+from a held shield: each out-of-shield option must start. Named departures:
+
+- **Archer's arrow (neutral special), rules 2 and 3.** Arrows deal damage
+  without hitstun or shieldstun (see "Archer's arrows" above), so they hold no
+  shield and lock no fighter; the 3-frame shot is safe point blank and keeps
+  up to 10 arrows in flight. A powershield reflects each, and a jump, dodge or
+  roll avoids it from range.
+- **Archer's Multishot (side special), rule 3.** Each volley is three arrows,
+  and a second volley overlaps the first: 6 out at once.

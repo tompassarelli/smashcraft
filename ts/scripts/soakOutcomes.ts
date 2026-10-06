@@ -11,6 +11,7 @@
 // Usage (from ts/): bun scripts/soakOutcomes.ts FILE...
 import { Schema } from "effect";
 import soak from "./wisp/soak";
+import { heroDefinition, selectableCharacterBySlug } from "../src/game/sim/heroes/registry";
 
 /** A stock lost this long after the last hit taken, or with none, was lost without the opponent: a self-destruct. */
 const KO_CREDIT_FRAMES = 180;
@@ -45,7 +46,9 @@ const AUTHORED_MOVES = [
   "down-throw", "get-up-attack", "ledge-attack", "neutral-special", "side-special", "up-special", "down-special",
 ] as const;
 const FIGHTER_MOVES: Readonly<Record<string, readonly string[]>> = { illidan: [...AUTHORED_MOVES, "dash-attack"] };
-const movesOf = (fighter: string): readonly string[] => FIGHTER_MOVES[fighter] ?? AUTHORED_MOVES;
+// Every expansion hero has a dash attack of its own.
+const movesOf = (fighter: string): readonly string[] =>
+  FIGHTER_MOVES[fighter] ?? (heroDefinition(selectableCharacterBySlug(fighter) ?? -1) !== undefined ? [...AUTHORED_MOVES, "dash-attack"] : AUTHORED_MOVES);
 
 /** 95% Wilson score interval of `wins` in `trials`. */
 function wilson(wins: number, trials: number): readonly [number, number] {

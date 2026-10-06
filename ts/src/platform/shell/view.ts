@@ -78,6 +78,7 @@ export function drawStage(s: ShellState): void {
   drawStageScenery(s);
   const { origin } = s;
   const stage = s.game.stageChoice;
+  s.drawnStage = stage;
   for (let index = 0; index < surfaceCount(stage); index++) {
     const left = surfaceLeft(stage, index, s.game.matchFrame);
     const right = surfaceRight(stage, index, s.game.matchFrame);
@@ -168,15 +169,17 @@ function presentedMatch(s: ShellState): PresentedMatch {
 export function renderPersistentPresentation(s: ShellState): void {
   const { game, world, runtime, playing } = presentedMatch(s);
   const { stageChoice: stage, matchFrame } = game;
-  const beforePlatform = framesUntilPlatformMoves(stage, matchFrame);
+  // The decks drawn are the drawn stage's: the stage menu changes the choice before the match draws it.
+  const drawn = s.drawnStage;
+  const beforePlatform = framesUntilPlatformMoves(drawn, matchFrame);
   for (let index = 1; index < s.stageDecks.length; index++) {
-    if (!surfaceMoves(stage, index)) continue;
-    const x = s.origin.x + (surfaceLeft(stage, index, matchFrame) + surfaceRight(stage, index, matchFrame)) / 2;
-    BlzSetSpecialEffectPosition(at(s.stageDecks, index), x, s.origin.y, s.origin.z + surfaceZ(stage, index, matchFrame));
+    if (!surfaceMoves(drawn, index)) continue;
+    const x = s.origin.x + (surfaceLeft(drawn, index, matchFrame) + surfaceRight(drawn, index, matchFrame)) / 2;
+    BlzSetSpecialEffectPosition(at(s.stageDecks, index), x, s.origin.y, s.origin.z + surfaceZ(drawn, index, matchFrame));
     const warns = beforePlatform !== undefined && beforePlatform <= PLATFORM_CUE_FRAMES;
     BlzSetSpecialEffectColor(at(s.stageDecks, index), 255, warns ? 170 : 255, warns ? 40 : 255);
   }
-  if (s.stageCannon !== undefined && hasCannon(stage)) {
+  if (s.stageCannon !== undefined && hasCannon(drawn)) {
     BlzSetSpecialEffectPosition(s.stageCannon, s.origin.x + cannonX(matchFrame), s.origin.y, s.origin.z + CANNON_Z);
     BlzSetSpecialEffectPitch(s.stageCannon, cannonAim(matchFrame));
     let firing = false;

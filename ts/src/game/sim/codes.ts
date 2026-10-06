@@ -16,6 +16,10 @@ export type GroundAction = (typeof GroundAction)[keyof typeof GroundAction];
 export const ShieldBreak = { none: 0, air: 1, land: 2, stand: 3, dizzy: 4 } as const;
 export type ShieldBreak = (typeof ShieldBreak)[keyof typeof ShieldBreak];
 
+/** An option pressed during a parried hit's freeze, started on its first actionable frame; attacks wait in the attack buffer. */
+export const ParryBuffer = { none: 0, jump: 1, groundDodge: 2 } as const;
+export type ParryBuffer = (typeof ParryBuffer)[keyof typeof ParryBuffer];
+
 /** Tumble and every grounded state that follows a knockdown or a floor tech. */
 export const DownState = {
   none: 0,

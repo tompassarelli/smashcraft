@@ -13,6 +13,7 @@ import {
   GroundAction,
   HippogryphKind,
   LedgeState,
+  ParryBuffer,
   PlatformMove,
   ProjectileKind,
   SPECIAL_ACTION_CAPACITY,
@@ -153,7 +154,13 @@ interface Shield {
   triggerAge: number;
   reflectFrames: number;
   perfectFrames: number;
+  /** A parry's reward while the shield stays held: it drops without release lag into any grounded option. */
   perfectActionFrames: number;
+  /** A red parry was already pressed in this shieldstun: one try per blocked hit, so mashing earns nothing. */
+  redParryTried: boolean;
+  parryBuffer: ParryBuffer;
+  /** The buffered ground dodge's direction: 0 spot dodge, otherwise the roll's. */
+  parryBufferDirection: number;
   breakState: ShieldBreak;
   breakFrame: number;
   breakSerial: number;
@@ -609,6 +616,9 @@ export function createFighter(character: Character, startX: number, facing: numb
       reflectFrames: 0,
       perfectFrames: 0,
       perfectActionFrames: 0,
+      redParryTried: false,
+      parryBuffer: ParryBuffer.none,
+      parryBufferDirection: 0,
       breakState: ShieldBreak.none,
       breakFrame: 0,
       breakSerial: 0,

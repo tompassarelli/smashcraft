@@ -1,5 +1,5 @@
 // Developer chat commands ("-dev rb 12", "-dev delay 2", "-dev batch 6",
-// "-dev rematch 20", "-dev show", "-dev quick") arrive as synchronized
+// "-dev rematch 20", "-dev show", "-dev quick", "-dev quick hero NAME") arrive as synchronized
 // player-chat events. A match reads the settings once at its start, so a
 // command typed during a match applies from the next match on every client;
 // "-dev quick" starts one at once. The receipts are read by the integrity
@@ -14,6 +14,8 @@ import {
 } from "../match/rules";
 import { selectableStage } from "../menu/stageCatalog";
 import { REPLAY_MAX_CORRECTION_FRAMES } from "../replay/limits";
+import type { Character } from "../sim/codes";
+import { SELECTABLE_CHARACTERS, fighterName } from "../sim/heroes/registry";
 
 export interface DevSettings {
   rollback: number;
@@ -85,21 +87,32 @@ export function quickMatchStage(message: string): number | undefined {
   return stage !== undefined && selectableStage(stage) ? stage : undefined;
 }
 
+/** `-dev quick hero NAME`: a quick match in which every present human plays NAME (a selectable fighter's name, any case), such as `-dev quick hero mountain king`. */
+export const QUICK_HERO_COMMAND = "-dev quick hero ";
+
+export function quickMatchHero(message: string): Character | undefined {
+  if (!message.startsWith(QUICK_HERO_COMMAND)) return undefined;
+  const wanted = message.substring(QUICK_HERO_COMMAND.length).toLowerCase();
+  for (const character of SELECTABLE_CHARACTERS) if (fighterName(character).toLowerCase() === wanted) return character;
+  return undefined;
+}
+
 /** Desynchronizes the game on purpose, to check that the host names what diverged. */
 export const DESYNC_COMMAND = "-dev desync";
 
 /**
- * Readies every present human with their slot's default fighter and starts
+ * Readies every present human with `character`, else their slot's default
+ * fighter, and starts
  * a one-stock match on the default stage, from either menu. False, with no match
  * started, when the menus could not start one.
  */
-export function prepareQuickMatch(game: MatchState, stage = 0): boolean {
+export function prepareQuickMatch(game: MatchState, stage = 0, character?: Character): boolean {
   const first = firstHumanSlot(game);
   if (first === undefined || (game.phase !== Phase.characterMenu && game.phase !== Phase.stageMenu)) return false;
   returnToCharacters(game, first);
   const defaults = createMatchState().characterChoices;
   for (const slot of PARTICIPANT_SLOTS) {
-    if (humanFighterActive(game, slot) && humanPresent(game, slot)) selectCharacter(game, slot, defaults[slot]);
+    if (humanFighterActive(game, slot) && humanPresent(game, slot)) selectCharacter(game, slot, character ?? defaults[slot]);
   }
   setStocks(game, first, 1);
   if (!requestStageSelect(game, first)) return false;

@@ -1,4 +1,4 @@
-import { clearAttackBuffer, hasPendingAttack, takeAttack } from "../input/attackBuffer";
+import { clearAttackBuffer, hasPendingAttack, holdAttack, takeAttack } from "../input/attackBuffer";
 import { attackStyleForGrounding } from "../input/combat";
 import { PARTICIPANT_SLOTS, type Slots } from "../input/participants";
 import { beginFighterAttack, resolveAttacks } from "../sim/attacks";
@@ -102,6 +102,8 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
     const f = fighterAt(world, slot);
     const commands = controls.commands[slot];
     if (f.status.frozenFrames > 0) clearAttackBuffer(commands);
+    // An attack pressed during a parried hit's freeze waits for its first actionable frame.
+    if (f.launch.hitlag > 0 && f.shield.perfectActionFrames > 0) holdAttack(commands, frame);
     const command = takeAttack(commands, frame, canStartAttackStyle(f, requestedStyle(commands.pending?.style)));
     const dashGrabInput = f.motion.grounded && f.ground.dashFrame > 0 && f.tuning.dashGrab.startupFrames > 0 && command?.style === AttackStyle.grab;
     const catchDash = f.ground.dashGrabWindow > 0 && command?.style === AttackStyle.grab && f.tuning.dashGrab.startupFrames > 0;

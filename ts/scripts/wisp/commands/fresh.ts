@@ -4,7 +4,8 @@
 // stops at character selection, as captures and playable builds need.
 // The first client hosts; the others join by game name. The map signals
 // character selection by writing its ready file into each client's
-// CustomMapData.
+// CustomMapData. A client that crashes or loses Battle.net stops fresh at once
+// (wisp:docs/watch.md).
 import { basename, join } from "node:path";
 import { Clock, Console, Effect, Layer } from "effect";
 import { QUICK_MATCH_COMMAND } from "../../../src/game/shell/devSettings";
@@ -17,6 +18,7 @@ import { GameFiles, dataDirectory, prepareHotFolders, readGameFile } from "wisp/
 import { checkPlayerView } from "wisp/scripts/wisp/playerView";
 import { step } from "wisp/scripts/wisp/timings";
 import { hostLobby, joinLobby, leaveLobby, reportedMenus, startLobby } from "wisp/scripts/wisp/menus";
+import { ClientWatch, unlessLost } from "wisp/scripts/wisp/watch";
 import { rebuildMap } from "../mapInputs";
 
 // Regions of the 2560x1440 frame where each screen's identifying label appears.
@@ -50,6 +52,7 @@ export const PASSWORD_CANCEL = { x: 1111, y: 745 };
 import { clientState, profileOption, sceneProfiles } from "../project";
 import { freshFrames, smashcraftPlayerView } from "../playerView";
 import { profileOptions } from "./map";
+import { onHealthyClients } from "../doctor";
 
 /** Six random letters and digits, as `wisp menus host` chooses. */
 const gamePassword = () => Array.from(crypto.getRandomValues(new Uint8Array(6)), (byte) => (byte % 36).toString(36)).join("");
@@ -61,15 +64,17 @@ export const fresh: Command = (args) => Effect.gen(function*() {
   if (map === undefined || flags.some((flag) => flag !== "--rebuild" && flag !== "--from-game" && flag !== "--no-quick")) {
     return yield* new UsageFailure({ problem: "fresh takes MAP.w3x [--rebuild] [--from-game] [--no-quick] [--profile PROFILE]" });
   }
-  yield* Effect.gen(function*() {
-    if (flags.includes("--rebuild")) yield* rebuildMap(map).pipe(step("map rebuilt"));
+  if (flags.includes("--rebuild")) yield* rebuildMap(map).pipe(step("map rebuilt"), Effect.provide(options.services));
+  // Doctor heals the clients first and once after a failure (wisp:docs/doctor.md);
+  // Clients' layer finds each client's Warcraft window only after it.
+  yield* onHealthyClients(Effect.gen(function*() {
     yield* freshMatch(map, flags.includes("--from-game"));
     if (!flags.includes("--no-quick")) {
       const since = yield* Clock.currentTimeMillis;
       yield* sendQuickMatchCommand.pipe(step("quick match and client receipts"));
       yield* checkPlayerView(smashcraftPlayerView({ frame: true, scene: sceneProfiles.has(profile) }), since, freshFrames).pipe(step("player view"));
     }
-  }).pipe(Effect.provide(options.services.pipe(Layer.provideMerge(Clients.layer(clientState)))));
+  }).pipe(Effect.provide(Layer.merge(options.services.pipe(Layer.provideMerge(Clients.layer(clientState))), ClientWatch.layer({ filePrefix: "smashcraft" })))));
 });
 
 /** The game in every client, at character selection. */
@@ -180,18 +185,18 @@ export const freshMatch = (map: string, fromGame = false) => Effect.scoped(Effec
   });
 
   yield* Effect.all([install, ...clients.all.map(leave)], { concurrency: "unbounded", discard: true });
-  yield* Effect.all([host(first), ...others.map(prepareJoin)], { concurrency: clients.all.length, discard: true });
-  yield* Effect.forEach(others, joinByName, { discard: true });
-  yield* waitForText(first, "all players", new RegExp(`PLAYERS\\s*:?\\s*${clients.all.length}\\s*/\\s*4`, "i"), LOBBY, "light", 60).pipe(step("everyone in the lobby"));
+  yield* Effect.all([unlessLost(first, host(first)), ...others.map(prepareJoin)], { concurrency: clients.all.length, discard: true });
+  yield* Effect.forEach(others, (client) => unlessLost(client, joinByName(client)), { discard: true });
+  yield* unlessLost(first, waitForText(first, "all players", new RegExp(`PLAYERS\\s*:?\\s*${clients.all.length}\\s*/\\s*4`, "i"), LOBBY, "light", 60)).pipe(step("everyone in the lobby"));
   const start = yield* Clock.currentTimeMillis;
   const hostMenus = menus.get(first.name);
   if (hostMenus === undefined) yield* click(first, START);
   else yield* startLobby(hostMenus);
-  return yield* Effect.forEach(clients.all, (client) => readyAfter(client, start), { concurrency: "unbounded" }).pipe(step("every client at character selection"));
+  return yield* Effect.forEach(clients.all, (client) => unlessLost(client, readyAfter(client, start)), { concurrency: "unbounded" }).pipe(step("every client at character selection"));
 }));
 
-/** Sends `-dev quick` from the host client and waits until every player's new receipt arrives. */
-export const sendQuickMatchCommand = Effect.gen(function*() {
+/** Sends a developer chat command, such as `-dev quick`, from the host client and waits until every player's new receipt arrives. */
+export const sendDevCommand = (command: string) => Effect.gen(function*() {
   const clients = yield* Clients;
   const files = yield* GameFiles;
   const [host] = clients.all;
@@ -200,7 +205,7 @@ export const sendQuickMatchCommand = Effect.gen(function*() {
     return readGameFile(path, MeleeReady);
   });
   const build = mapReady[0]?.value.build;
-  if (host === undefined || build === undefined) return yield* new UsageFailure({ problem: "fresh quick match needs a ready game on every client" });
+  if (host === undefined || build === undefined) return yield* new UsageFailure({ problem: `${command} needs a ready game on every client` });
 
   const receipts = clients.all.map((client, slot) => ({ client, path: join(dataDirectory(client.documents), devCommandReceiptFile(build, slot)), slot }));
   yield* Effect.forEach(receipts, ({ path }) => files.read(path).pipe(
@@ -209,9 +214,9 @@ export const sendQuickMatchCommand = Effect.gen(function*() {
 
   yield* clients.batch(host, [
     { kind: "keys", keys: ["Return"] },
-    { kind: "text", text: QUICK_MATCH_COMMAND },
+    { kind: "text", text: command },
     { kind: "keys", keys: ["Return"] },
-  ]).pipe(step("send -dev quick"));
+  ]).pipe(step(`send ${command}`));
 
   const waitReceipt = ({ client, path, slot }: typeof receipts[number]) => Effect.gen(function*() {
     let problem: MalformedGameFile | undefined;
@@ -222,12 +227,14 @@ export const sendQuickMatchCommand = Effect.gen(function*() {
         return undefined;
       })),
     );
-    const receipt = yield* waitFor(client, `-dev quick receipt for slot ${slot}`, 4, observe).pipe(
+    const receipt = yield* waitFor(client, `${command} receipt for slot ${slot}`, 4, observe).pipe(
       Effect.catchTag("DesktopFailure", (timeout): Effect.Effect<never, DesktopFailure | MalformedGameFile> =>
         problem === undefined ? Effect.fail(timeout) : Effect.fail(problem)),
     );
     return receipt;
   });
   const received = yield* Effect.forEach(receipts, (receipt) => waitReceipt(receipt).pipe(step(`${receipt.client.name} quick-match receipt`)), { concurrency: "unbounded" });
-  yield* Console.log(`-dev quick acknowledged by ${received.length} client(s)`);
+  yield* Console.log(`${command} acknowledged by ${received.length} client(s)`);
 });
+
+export const sendQuickMatchCommand = sendDevCommand(QUICK_MATCH_COMMAND);

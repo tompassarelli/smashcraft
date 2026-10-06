@@ -126,6 +126,9 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   shield.reflectFrames = sourceShield.reflectFrames;
   shield.perfectFrames = sourceShield.perfectFrames;
   shield.perfectActionFrames = sourceShield.perfectActionFrames;
+  shield.redParryTried = sourceShield.redParryTried;
+  shield.parryBuffer = sourceShield.parryBuffer;
+  shield.parryBufferDirection = sourceShield.parryBufferDirection;
   shield.breakState = sourceShield.breakState;
   shield.breakFrame = sourceShield.breakFrame;
   shield.breakSerial = sourceShield.breakSerial;

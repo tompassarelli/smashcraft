@@ -163,6 +163,8 @@ export interface AuthoredSpecial {
   readonly landingLag?: number | undefined;
   /** Through this frame a held stick re-chooses the aim (eight directions); a neutral stick keeps the entry aim. */
   readonly aimFrames?: number | undefined;
+  /** A stick held left or right on entry turns the fighter that way first, so a recovery drifts where it is steered. */
+  readonly facesStick?: boolean | undefined;
   /**
    * Bodies over brief frames (hurtPose(first, last, parts) with 1-based
    * frames); frames no pose covers use the standing body. Weapons stay out.

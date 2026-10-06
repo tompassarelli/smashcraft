@@ -5,7 +5,7 @@
 import { max, min } from "../../runtime/numbers";
 import { divideFloat32, roundToFloat32, subtractFloat32 } from "wisp/src/sim/binary32";
 import { f32 } from "wisp/src/sim/f32";
-import { Character, DownState, GroundAction, LedgeState, PlatformMove, ShieldBreak, SpecialAction, SurfaceContact } from "./codes";
+import { Character, DownState, GroundAction, LedgeState, ParryBuffer, PlatformMove, ShieldBreak, SpecialAction, SurfaceContact } from "./codes";
 import {
   SPOT_DODGE_FRAMES,
   GROUND_ROLL_FRAMES,
@@ -62,8 +62,10 @@ import {
   SHIELD_MIN_HOLD_FRAMES,
   SHIELD_PERFECT_ACTIVE_FRAMES,
   SHIELD_REFLECTOR_ACTIVE_FRAMES,
+  SHIELD_RED_PARRY_FRAMES,
   SHIELD_RELEASE_LAG_FRAMES,
   advanceShieldInputClocks,
+  bufferParryOption,
   decayShieldMotion,
   regenerateShield,
   shieldDrain,
@@ -240,7 +242,8 @@ function advanceGuard(f: Fighter, input: Readonly<Controls>, forcedShield: boole
       if (wantsShield) {
         shield.heldFrames++;
       } else if (shield.raised && !input.shield) {
-        shield.releaseLag = SHIELD_RELEASE_LAG_FRAMES;
+        // A parry's reward drops the shield with no release lag.
+        shield.releaseLag = shield.perfectActionFrames > 0 ? 0 : SHIELD_RELEASE_LAG_FRAMES;
         shield.heldFrames = 0;
       }
     }
@@ -252,10 +255,16 @@ function advanceGuard(f: Fighter, input: Readonly<Controls>, forcedShield: boole
   else if (!wantsShield && shield.releaseLag <= 0) shield.perfectActionFrames = 0;
   shield.raised = wantsShield;
   if (shieldCanStart && shield.raised) observeActionStart(GUARD_BITS);
-  if (wantsShield && input.shieldPressed && shield.triggerAge < SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES
-    && shield.heldFrames <= SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES && input.shieldStrength >= 1 && !forcedShield) {
+  const fullPress = wantsShield && input.shieldPressed && input.shieldStrength >= 1;
+  if (fullPress && !forcedShield && shield.triggerAge < SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES
+    && shield.heldFrames <= SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES) {
     shield.reflectFrames = SHIELD_REFLECTOR_ACTIVE_FRAMES;
     shield.perfectFrames = SHIELD_PERFECT_ACTIVE_FRAMES;
+  } else if (fullPress && forcedShield && !shield.redParryTried) {
+    // A red parry: a fresh press in shieldstun, timed tighter, parries the next hit.
+    shield.redParryTried = true;
+    shield.reflectFrames = SHIELD_RED_PARRY_FRAMES;
+    shield.perfectFrames = SHIELD_RED_PARRY_FRAMES;
   }
   if (wantsShield && input.shield && !forcedShield && !shield.drainResumePending) shield.strength = input.shieldStrength;
   if (lateDashGuardEntry) ground.dashGrabWindow = LATE_DASH_GUARD_GRAB_WINDOW;
@@ -351,6 +360,16 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   // Expiry resumes this frame, including input gates and state countdowns.
   const hitlagBefore = launch.hitlag;
   launch.hitlag = max(0, launch.hitlag - 1);
+  // A jump or ground dodge pressed during a parried hit's freeze starts on its first actionable frame.
+  let parryOption: ParryBuffer = ParryBuffer.none;
+  const parryDirection = shield.parryBufferDirection;
+  if (launch.hitlag > 0) {
+    if (shield.perfectActionFrames > 0) bufferParryOption(f, input);
+  } else if (shield.parryBuffer !== ParryBuffer.none) {
+    parryOption = shield.parryBuffer;
+    shield.parryBuffer = ParryBuffer.none;
+    shield.parryBufferDirection = 0;
+  }
   advanceTechInput(f.tech, input.techPressed, launch.hitlag > 0);
   f.tech.window = techContactWindow(f.tech);
   if (launch.hitlag <= 0) {
@@ -409,7 +428,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   if (launch.hitlag <= 0) launch.hitstun = max(0, launch.hitstun - 1);
   if (launch.hitstun === 0) launch.throwHitstun = false;
   const squatBeforeInput = jump.squat;
-  if (input.jumpPressed && !wallJumped) beginJump(f, input.direction);
+  if ((input.jumpPressed || parryOption === ParryBuffer.jump) && !wallJumped) beginJump(f, input.direction);
   if (jump.squat > 0 && launch.hitlag === 0 && (f.character === Character.demonHunter || squatBeforeInput !== 1)) jump.held = jump.held && input.jumpHeld;
   if (input.airDodgePressed) {
     if (motion.grounded && jump.squat > 0) {
@@ -424,8 +443,9 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
     jump.dodgeX = input.direction;
     jump.dodgeZ = input.verticalDirection;
   }
-  if (input.groundDodgePressed && input.shield && !input.jumpPressed && canBeginGroundDodge(f)) {
-    beginGroundDodge(f, input.groundDodgeDirection);
+  const dodgePressed = input.groundDodgePressed && input.shield;
+  if ((dodgePressed || parryOption === ParryBuffer.groundDodge) && !input.jumpPressed && canBeginGroundDodge(f)) {
+    beginGroundDodge(f, dodgePressed ? input.groundDodgeDirection : parryDirection);
     groundDodgeStarted = true;
   }
   const groundTakeoff = advanceJumpSquat(f, input, squatBeforeInput);
@@ -546,7 +566,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   const frameDeltaX = f32(motion.x - oldX);
   let wallSide = resolveSolidSurfaceContacts(f, stage, oldX, oldZ, input);
   // Rising into a platform ascends it; a half-circle onto one wraps under it instead of landing.
-  const ascending = beginPlatformAscent(f, stage, matchFrame, oldZ);
+  const ascending = beginPlatformAscent(f, stage, matchFrame);
   const landing = ascending ? undefined : landingDeck(f, stage, matchFrame, oldX, oldZ, carried);
   const wrapping = landing !== undefined && beginPlatformWrapUnder(f, stage, matchFrame, landing);
   if (landing !== undefined && !wrapping) {

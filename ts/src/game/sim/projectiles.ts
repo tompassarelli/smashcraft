@@ -13,7 +13,7 @@ import { demonHunterParryIsActive, resolveDemonHunterParry } from "./hits";
 import { attackDamage } from "./moves";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type Roster, fighterAt, isActive } from "./roster";
-import { SHIELD_PROJECTILE_DAMAGE_MULTIPLIER, SHIELD_PROJECTILE_SPEED_MULTIPLIER, SHIELD_REFLECTOR_RADIUS_FACTOR, shieldCircleIntersects } from "./shield";
+import { SHIELD_PROJECTILE_DAMAGE_MULTIPLIER, SHIELD_PROJECTILE_SPEED_MULTIPLIER, SHIELD_REFLECTOR_RADIUS_FACTOR, grantParry, shieldCircleIntersects } from "./shield";
 import { at } from "wisp/src/runtime/lookup";
 import { solidSurfaceAt, solidSurfaceCount, surfaceCount, surfaceLeft, surfacePass, surfaceRight, surfaceZ } from "./stage";
 
@@ -132,6 +132,7 @@ function reflectProjectile(target: Fighter, source: Projectile): boolean {
     source.life = 0;
     target.visuals.shieldReflect++;
     target.visuals.shieldElectric = source.kind === ProjectileKind.manaBurn;
+    grantParry(target);
     return true;
   }
   return false;

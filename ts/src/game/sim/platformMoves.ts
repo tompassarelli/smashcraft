@@ -6,7 +6,8 @@
 // moving platform carries the fighter through the move.
 import { max, min } from "../../runtime/numbers";
 import { addFloat32, divideFloat32, multiplyFloat32, subtractFloat32 } from "wisp/src/sim/binary32";
-import { PlatformMove } from "./codes";
+import { AttackPhase, PlatformMove } from "./codes";
+import { attackPhase } from "./conditions";
 import { finishLanding } from "./down";
 import { type Fighter, PLATFORM_DROP_INPUT_WINDOW } from "./fighter";
 import { beginAirDodge } from "./jumpsAndDodges";
@@ -120,8 +121,8 @@ function wrapX(f: Readonly<Fighter>, stage: number, matchFrame: number, deck: nu
     : max(surfaceLeft(stage, deck, matchFrame), subtractFloat32(x, PLATFORM_WRAP_REACH));
 }
 
-/** A movement step that rises into a platform from below, if this frame's took the fighter there: the lowest such platform. */
-function ascentDeck(f: Readonly<Fighter>, stage: number, matchFrame: number, oldZ: number): number | undefined {
+/** The lowest platform the fighter's body straddles: its top at or above the platform, its feet below. */
+function ascentDeck(f: Readonly<Fighter>, stage: number, matchFrame: number): number | undefined {
   const { motion } = f;
   const top = addFloat32(motion.z, bodyHeight(f));
   let found: number | undefined;
@@ -129,7 +130,7 @@ function ascentDeck(f: Readonly<Fighter>, stage: number, matchFrame: number, old
   for (let i = 0; i < surfaceCount(stage); i++) {
     if (!surfacePass(stage, i)) continue;
     const deckZ = surfaceZ(stage, i, matchFrame);
-    if (!(oldZ < deckZ && top >= deckZ)) continue;
+    if (!(motion.z < deckZ && top >= deckZ)) continue;
     if (motion.x < surfaceLeft(stage, i, matchFrame) || motion.x > surfaceRight(stage, i, matchFrame)) continue;
     if (found === undefined || deckZ < foundZ) {
       found = i;
@@ -140,14 +141,19 @@ function ascentDeck(f: Readonly<Fighter>, stage: number, matchFrame: number, old
 }
 
 /**
- * Enters an ascent when a rising fighter's body meets a platform from below.
- * The current attack or special ends with its remaining recovery, a lag
- * cancel; a helpless fighter stays helpless.
+ * Enters an ascent while a rising fighter's body straddles a platform from
+ * below. An attack in its startup or active frames carries on through the
+ * platform, so it still reaches a fighter standing there; the ascent begins
+ * once those frames end, if the body still straddles the platform. The
+ * attack's remaining recovery, or a special, ends with it: a lag cancel. A
+ * helpless fighter stays helpless.
  */
-export function beginPlatformAscent(f: Fighter, stage: number, matchFrame: number, oldZ: number): boolean {
+export function beginPlatformAscent(f: Fighter, stage: number, matchFrame: number): boolean {
   const { motion, launch, dodge } = f;
   if (motion.grounded || launch.hitstun > 0 || launch.hitlag > 0 || totalVelocityZ(f) <= 0) return false;
-  const deck = ascentDeck(f, stage, matchFrame, oldZ);
+  const phase = attackPhase(f);
+  if (phase === AttackPhase.startup || phase === AttackPhase.active) return false;
+  const deck = ascentDeck(f, stage, matchFrame);
   if (deck === undefined) return false;
   const helpless = f.special.fall;
   cancelAttack(f);

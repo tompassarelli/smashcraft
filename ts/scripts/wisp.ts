@@ -20,7 +20,9 @@ const COMMANDS: Record<string, { readonly usage: string; readonly load: () => Pr
   integrity: { usage: "integrity capture OPTIONS... | result CAPTURE_DIR | headless --helper BINARY --out DIR", load: async () => (await import("./wisp/commands/parity")).integrity },
   "four-fighters": { usage: "four-fighters capture OPTIONS... | result CAPTURE_DIR", load: async () => (await import("./wisp/commands/fourFighters")).fourFighters },
   playable: { usage: "playable capture OPTIONS... | result CAPTURE_DIR", load: async () => (await import("./wisp/commands/playable")).playable },
-  client: { usage: "client look|read|click|keys CLIENT ...", load: async () => (await import("./wisp/commands/client")).client },
+  client: { usage: "client look|read|click|keys CLIENT ... | state CLIENT | wait CLIENT STATE... [--seconds N]", load: async () => (await import("./wisp/commands/client")).client },
+  watch: { usage: "watch [CLIENT...] [--once] [--json] [--record FILE]   (each client's state from its events: wisp:docs/watch.md)", load: async () => (await import("wisp/scripts/wisp/commands/watch")).makeWatch((await import("./wisp/project")).clientState, { filePrefix: "smashcraft" }) },
+  doctor: { usage: "doctor [CLIENT...]   (recovers dropped, crashed, login-stuck, loading-stuck or lobby-stuck clients; wisp:docs/doctor.md)", load: async () => (await import("./wisp/commands/doctor")).doctor },
   menus: { usage: "menus host|join|start|leave [OPTIONS]", load: async () => (await import("wisp/scripts/wisp/commands/menus")).makeMenus() },
   view: { usage: "view scene DATA_DIR... | frame FRAME.ppm... | models --assets DIR --summon DIR --extractor CASC_EXTRACT --storage WARCRAFT_DIR", load: async () => (await import("./wisp/commands/view")).view },
   headless: { usage: "headless [quick-match|desync] [--clients N] [--cost]", load: async () => (await import("./wisp/commands/headless")).headless },
@@ -29,6 +31,7 @@ const COMMANDS: Record<string, { readonly usage: string; readonly load: () => Pr
   play: { usage: "play   (Tom's desktop: Battle.net, Play, the map hosted after Warcraft's ladder scan, the controller helper, a match against a computer)", load: async () => (await import("./wisp/commands/play")).play },
   tune: { usage: "tune --data DIR [--data DIR ...] [--port N] [--profile main|integrity|playable|physics-probe|frame-cost|stack-trace]", load: async () => (await import("./wisp/commands/tune")).tune },
   repro: { usage: "repro FILE [--test NAME]", load: async () => (await import("./wisp/commands/repro")).repro },
+  accept: { usage: "accept [--only ID...] [--dry-run] [--out DIR]   (the declared native checks, batched: scripts/wisp/acceptChecks.ts)", load: async () => (await import("./wisp/commands/accept")).accept },
   perf: { usage: "perf [quick-match|bot|bot-four] [--frames N] [--samples] [--out FILE] | perf compare A B [--threshold SHARE]   (LUA=<32-bit lua>)", load: async () => (await import("./wisp/commands/perf")).perf },
 };
 
