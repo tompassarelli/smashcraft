@@ -11,6 +11,7 @@ import { advanceFighter } from "../step";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
 import { HurtContact, fighterHurtParts, strikeHurtContact } from "../hurtboxes";
 import { WARDEN_BODY, WARDEN_MOVES } from "./wardenMoves";
+import { isMultiHit } from "./multiHit";
 
 const NORMALS = [
   [AttackStyle.jab, 3, 2, 13, 0],
@@ -26,8 +27,8 @@ const NORMALS = [
   [AttackStyle.neutralAir, 5, 5, 18, 10],
   [AttackStyle.forwardAir, 8, 3, 20, 12],
   [AttackStyle.backAir, 7, 3, 22, 12],
-  [AttackStyle.upAir, 5, 3, 17, 10],
-  [AttackStyle.downAir, 12, 3, 27, 19],
+  [AttackStyle.upAir, 5, 9, 15, 10],
+  [AttackStyle.downAir, 7, 7, 14, 10],
   [AttackStyle.grab, 6, 2, 22, 0],
 ] as const;
 
@@ -71,11 +72,12 @@ test("Warden roster phases final landings and single-contact paths reach product
         authoredHitRegion(out, Character.archer, style, frame, 0, index, WARDEN_MOVES);
         if (out.window > 0) {
           live++;
-          assertEquals(out.window, 1);
+          assertTrue(out.window === 1 || (isMultiHit(WARDEN_MOVES.normals[style]) && out.window > 1));
           assertTrue(out.strike !== undefined);
         }
       }
-      assertEquals(live > 0, frame >= first - 1 && frame < first - 1 + active);
+      // A multi-hit may pause between its hits; nothing strikes outside its active frames.
+      if (live > 0 || !isMultiHit(WARDEN_MOVES.normals[style])) assertEquals(live > 0, frame >= first - 1 && frame < first - 1 + active);
     }
   }
 });
@@ -114,22 +116,6 @@ test("Warden angled slices and narrow vertical blades leave honest gaps", () => 
       resolveAttacks(world);
       assertEquals(target.status.damage, damage);
     }
-  }
-});
-
-test("Warden Execution Point spikes airborne targets and lifts grounded targets without a dive", () => {
-  for (const facing of [-1, 1]) {
-    for (const grounded of [false, true]) {
-      const { owner, target, world } = pair(AttackStyle.downAir, 11, 0.0, 0.0, facing, grounded, 150.0);
-      const velocity = owner.motion.vz;
-      resolveAttacks(world);
-      assertEquals(target.status.damage, 11.0);
-      assertEquals(target.launch.knockbackZ > 0.0, grounded);
-      assertEquals(owner.motion.vz, velocity);
-    }
-    const gap = pair(AttackStyle.downAir, 11, 70.0, 0.0, facing, false, 150.0);
-    resolveAttacks(gap.world);
-    assertEquals(gap.target.status.damage, 0.0);
   }
 });
 

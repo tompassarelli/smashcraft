@@ -40,6 +40,7 @@ function releaseThrow(world: Roster, ownerSlot: number, targetSlot: number, targ
   throwHit.launchX = up ? 0.17364799976348877 : down ? 0.3420200049877167 : 0.8660249710083008;
   throwHit.launchZ = up ? 0.9848080277442932 : down ? 0.9396929740905762 : 0.5;
   throwHit.element = undefined;
+  throwHit.carry = undefined;
   throwHit.electric = false;
   throwHit.manaDrain = owner.character === Character.demonHunter ? DEMON_HUNTER_THROW_DRAIN : undefined;
   const authored = owner.tuning.moves?.throws[action];

@@ -95,6 +95,7 @@ export function fighterMovesCanonical(moves: FighterMoves | undefined, prefix = 
     real(`${name}.launchZ`, hit.launchZ);
     int(`${name}.electric`, hit.electric ? 1 : 0);
     int(`${name}.element`, hit.element ?? 0);
+    if (hit.carry === true) int(`${name}.carry`, 1);
   };
   int("chargeFrames", moves.smashMaxChargeFrames);
   int("maxPummels", moves.maxPummels ?? -1);
@@ -109,6 +110,20 @@ export function fighterMovesCanonical(moves: FighterMoves | undefined, prefix = 
     int(`${name}.landingLag`, move.landingLag);
     real(`${name}.travel`, move.startupTravelX ?? 0.0);
     int(`${name}.stopsAtBody`, move.startupStopsAtBody ? 1 : 0);
+    // Optional fields enter the text only when present, so kits without them keep their checksum.
+    const phases = move.fall ?? [];
+    for (let index = 0; index < phases.length; index++) {
+      const phase = at(phases, index);
+      const part = `${name}.fall[${index}]`;
+      int(`${part}.first`, phase.firstFrame);
+      int(`${part}.last`, phase.lastFrame);
+      real(`${part}.speedZ`, phase.speedZ);
+      if (phase.speedX !== undefined) real(`${part}.speedX`, phase.speedX);
+    }
+    if (move.landingHit !== undefined) {
+      int(`${name}.landingHit.first`, move.landingHit.firstFrame);
+      int(`${name}.landingHit.total`, move.landingHit.totalFrames);
+    }
     int(`${name}.regions`, move.regions.length);
     for (let index = 0; index < move.regions.length; index++) {
       const region = at(move.regions, index);
@@ -240,7 +255,7 @@ function hitEffectCanonical(hit: Readonly<HitEffect>, prefix: string): string {
   return canonicalRealField(`${prefix}.damage`, hit.damage) + canonicalRealField(`${prefix}.growth`, hit.growth)
     + canonicalRealField(`${prefix}.base`, hit.base) + canonicalRealField(`${prefix}.launchX`, hit.launchX)
     + canonicalRealField(`${prefix}.launchZ`, hit.launchZ) + canonicalInt(`${prefix}.electric`, hit.electric ? 1 : 0)
-    + canonicalInt(`${prefix}.element`, hit.element ?? 0);
+    + canonicalInt(`${prefix}.element`, hit.element ?? 0) + (hit.carry === true ? canonicalInt(`${prefix}.carry`, 1) : "");
 }
 
 /** A hero's authored specials; empty for fighters without them. */

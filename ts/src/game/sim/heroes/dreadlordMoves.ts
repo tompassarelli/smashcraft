@@ -3,6 +3,7 @@ import { AttackStyle, GrabAction, HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT, heroMove, heroRegion, type AuthoredMove, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
 import { type FighterHurtboxes, type HurtPart, type HurtPose, hurtPart, hurtPose } from "../hurtboxes";
 import type { HitEffect } from "../hitRegions";
+import { type Strike, linkAt, multiHit } from "./multiHit";
 
 // smashcraft:docs/design/roster.md supplies timing, damage and outer reach.
 // These original limb paths require matching exposed hurt volumes in poses.
@@ -37,6 +38,12 @@ const DIRECTION = {
   85: { x: f32(0.087155743), z: f32(0.996194698) },
   270: { x: 0.0, z: -1.0 },
 } as const;
+
+const BATWING_DRAG: readonly Strike[] = [
+  [capsule(16.0, 30.0, f32(M - WING_RADIUS), 50.0, WING_RADIUS), linkAt(2.0, 28.0, 100)],
+  [capsule(0.0, 65.0, 0.0, f32(M - WING_RADIUS), WING_RADIUS), linkAt(2.0, 28.0, 90)],
+  [capsule(-16.0, 30.0, -f32(M - WING_RADIUS), 50.0, WING_RADIUS), linkAt(2.0, 28.0, 80)],
+];
 
 export function dreadlordHit(damage: number, kind: keyof typeof CLASS, angle: keyof typeof DIRECTION, facing = 1.0, element: HitElement = HitElement.slash): Readonly<HitEffect> {
   const tuning = CLASS[kind];
@@ -102,18 +109,17 @@ const NORMALS: { readonly [style: number]: AuthoredMove | undefined } = {
       capsule(-20.0, 58.0, -70.0, 95.0, WING_RADIUS),
     ], dreadlordHit(16.0, "KILL", 85))),
     [AttackStyle.downSmash]: heroMove(15, 6, 32, 0, [...wingSweep(15, 1.0), ...wingSweep(18, -1.0)]),
-    [AttackStyle.neutralAir]: heroMove(7, 6, 22, 14, [
-      ...path(7, [
-        capsule(16.0, 30.0, f32(M - WING_RADIUS), 30.0, WING_RADIUS),
-        capsule(12.0, 48.0, 68.0, 80.0, WING_RADIUS),
-        capsule(0.0, 65.0, 18.0, f32(M - WING_RADIUS), WING_RADIUS),
-      ], dreadlordHit(9.0, "POKE", 50)),
-      ...path(10, [
-        capsule(-12.0, 52.0, -68.0, 80.0, WING_RADIUS),
-        capsule(-16.0, 32.0, -f32(M - WING_RADIUS), 32.0, WING_RADIUS),
-        capsule(-10.0, 18.0, -70.0, 8.0, WING_RADIUS),
-      ], dreadlordHit(9.0, "POKE", 50, -1.0)),
-    ]),
+    // Batwing Turn (#152): three wing beats around him. The first two drag the
+    // target along with him at any percent; the third launches it.
+    [AttackStyle.neutralAir]: heroMove(7, 10, 19, 14, multiHit([
+      { first: 7, last: 8, strikes: BATWING_DRAG },
+      { first: 10, last: 11, strikes: BATWING_DRAG },
+      { first: 14, last: 16, strikes: [
+        [capsule(16.0, 30.0, f32(M - WING_RADIUS), 45.0, WING_RADIUS), dreadlordHit(5.0, "POKE", 50)],
+        [capsule(0.0, 65.0, 0.0, f32(M - WING_RADIUS), WING_RADIUS), dreadlordHit(5.0, "POKE", 50)],
+        [capsule(-16.0, 30.0, -f32(M - WING_RADIUS), 45.0, WING_RADIUS), dreadlordHit(5.0, "POKE", 50, -1.0)],
+      ] },
+    ])),
     [AttackStyle.forwardAir]: heroMove(10, 4, 24, 15, rake(10, [64.0, 52.0, 40.0, 28.0], L, dreadlordHit(12.0, "EDGE", 40))),
     [AttackStyle.backAir]: heroMove(9, 4, 25, 15, path(9, [
       capsule(-16.0, 54.0, -f32(L - WING_RADIUS), 68.0, WING_RADIUS),

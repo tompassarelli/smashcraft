@@ -73,7 +73,8 @@ export const WARDEN_CLIPS = {
   forwardAir: s.attack2,
   backAir: s.attack1,
   upAir: s.spell,
-  downAir: s.spellSlam,
+  // Falling Knives plays her Fan of Knives cast.
+  downAir: s.spell,
   grab: s.attack1,
   grabHold: s.standReady,
   grabbed: s.standReady,

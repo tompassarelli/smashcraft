@@ -35,6 +35,8 @@ export interface HitEffect {
    * smashcraft:docs/design/illidan.md); a shield stops it, and mana floors at 0.
    */
   manaDrain?: number | undefined;
+  /** A link hit (#152): an airborne target struck directly also takes the attacker's own velocity, so it travels with the attacker to the next hit. */
+  carry?: boolean | undefined;
 }
 
 export interface HitRegion {
@@ -65,6 +67,7 @@ export function copyHitEffect(target: HitEffect, source: Readonly<HitEffect>): v
   target.electric = source.electric;
   target.element = source.element;
   target.manaDrain = source.manaDrain;
+  target.carry = source.carry;
 }
 
 export function copyHitRegion(target: HitRegion, source: Readonly<HitRegion>): void {

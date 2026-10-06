@@ -4,7 +4,7 @@ import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { idiv } from "wisp/src/sim/intMath";
 import { AttackStyle, Character, GrabAction } from "./codes";
-import type { FighterMoves } from "./heroMoves";
+import type { AuthoredFall, FighterMoves } from "./heroMoves";
 
 export const SMASH_MAX_CHARGE_FRAMES = 60;
 export const SMASH_MAX_DAMAGE_MULTIPLIER = 1.3671000003814697;
@@ -47,6 +47,20 @@ const UNCANCELLED_AERIAL_LANDING_LAG = {
 
 export function isAerialAttack(style: AttackStyle | undefined): boolean {
   return style !== undefined && style >= AttackStyle.neutralAir && style <= AttackStyle.downAir;
+}
+
+/** The descent an authored drill holds on this attack frame, if any. */
+export function attackFall(style: AttackStyle | undefined, frame: number, moves?: FighterMoves): AuthoredFall | undefined {
+  const phases = style === undefined ? undefined : moves?.normals[style]?.fall;
+  if (phases === undefined) return undefined;
+  for (const phase of phases) if (frame >= phase.firstFrame && frame <= phase.lastFrame) return phase;
+  return undefined;
+}
+
+/** Whether landing on this attack frame continues into the aerial's landing hit: only during its active frames. */
+export function landsIntoAttack(style: AttackStyle | undefined, frame: number, moves?: FighterMoves): boolean {
+  const move = style === undefined ? undefined : moves?.normals[style];
+  return move?.landingHit !== undefined && frame >= move.startupFrames && frame < move.startupFrames + move.activeFrames;
 }
 
 export function isSmashAttack(style: AttackStyle | undefined): boolean {

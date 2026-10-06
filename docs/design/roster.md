@@ -138,11 +138,11 @@ The individual hero sections below specify all attacks. Their counterplay descri
 | Forward smash — Execution Cut | 17/3/32 | 15 inner, 19 outer | XL, 40, KILL | Large horizontal cut; outer 0.20H is sweetspot |
 | Up smash — Sky Splitter | 15/4/30 | 16 | L, 90, KILL | Narrow vertical blade with no broad ground scoop |
 | Down smash — Low Circle | 14/6/31 | 14 | L, 25, EDGE | Front frames 14–16, back 17–19; one hit total per target |
-| Neutral air — Blade Wheel | 7/5/20; L12 | 8 | M, 50, POKE | One rotating sword arc; no continuous full-body shield |
+| Neutral air — Blade Wheel | 7/9/17; L12 | 3 + 6 | M, 50, POKE | Two turns ([multi-hit](aerials.md)): a wide pull-in link, then a tighter launcher |
 | Forward air — Long Cut | 10/3/22; L14 | 11 inner, 14 outer | L, 40, EDGE | Primary spacing aerial; outer 0.20H sweetspot |
 | Back air — Reverse Edge | 8/3/23; L13 | 12 | L, 35, KILL | Strong behind, commits facing |
 | Up air — High Thrust | 6/3/19; L11 | 8 | M, 85, LAUNCH | Narrow upward poke |
-| Down air — Plunging Point | 13/4/28; L20 | 12 | M, 270, SPIKE | No forced downward velocity; tip only spikes airborne targets |
+| Down air — Bladestorm | 10/25/12; L20 | 6×2 + 4 landing | M, drill | Longest [drill](aerials.md): hangs, plunges, landing hit pops up; punishable on shield |
 
 ### B specials
 
@@ -259,8 +259,8 @@ Standing grab 8/2/25, reach 0.50H. Pummel: helmet headbutt.
 | Neutral air — Cloak Spin | 5/5/18; L10 | 6 | M, 50, POKE | Short circular blade sweep |
 | Forward air — Pursuer | 8/3/20; L12 | 10 | M, 40, EDGE | Fast approach aerial with limited reach |
 | Back air — Heel Blade | 7/3/22; L12 | 11 | M, 35, KILL | Exposed leg before weapon tip |
-| Up air — Sky Crescent | 5/3/17; L10 | 7 | M, 85, LAUNCH | Juggle move, little lateral coverage |
-| Down air — Execution Point | 12/3/27; L19 | 11 | M, 270, SPIKE | Narrow downward blade; no dive velocity |
+| Up air — Sky Crescent | 5/9/15; L10 | 2 + 2 + 5 | M, 85, LAUNCH | Three rising kicks ([multi-hit](aerials.md)); the last launches |
+| Down air — Falling Knives | 7/7/14; L10 | 2×3 + 3 | M, drill | Fan of Knives in miniature: a short fast [drill](aerials.md) that drags down; no landing hit; safe, sets up a grab or her Fan of Knives mark |
 
 ### B specials
 
@@ -289,7 +289,6 @@ Standing grab 6/2/22, reach 0.48H. Pummel: elbow to the ribs.
 **As implemented** (smashcraft:ts/src/game/sim/heroes/wardenMoves.ts, wardenSpecials.ts, wardenHero.ts; clips in smashcraft:ts/src/game/presentation/heroes/wardenClips.ts). Every row above is authored; these are the departures:
 
 - Forward tilt also has up- and down-angled forms with the row's timing and damage; only the blade path changes.
-- Execution Point spikes airborne targets only; it sends grounded targets at 55 degrees, as the shared notation directs.
 - Warden's arm reaches each blade's hand from two frames before the strike to four after, in held poses; only the blades are disjoint. Heel Blade's leg is exposed on frames 5-13.
 - Pursuit Cut and Pursuit Lunge stop dead after their travel instead of sliding on. Pursuit Lunge's 20-degree air tilt reads the stick held through frame 4.
 - Blink reads its eight directions from the stick held through frame 8, because an up special is always entered holding up. A grounded endpoint keeps the full recovery to frame 30, and a displacement into the stage stops at its body or lands on the deck.
@@ -362,7 +361,7 @@ Standing grab 8/3/25, reach 0.60H. Pummel: belly bump.
 | Forward smash — Ice Spear | 22/3/36 | 18 | XL, 35, KILL | Stationary linear spear, not a traveling projectile |
 | Up smash — Frozen Spire | 20/5/34 | 17 | L, 90, KILL | Narrow ground-to-air column |
 | Down smash — Grave Frost | 19/5/35 | 14 | L, 25, EDGE | Two short floor bursts, one hit per target |
-| Neutral air — Frost Halo | 9/6/23; L16 | 8 | M, 50, POKE | Brief circular zone around torso |
+| Neutral air — Frost Halo | 9/14/17; L16 | 3×2 + 4 | M, 50, POKE | Ring around the torso that pulses three times, then bursts ([multi-hit](aerials.md)) |
 | Forward air — Shard Fan | 12/3/27; L17 | 11 | L, 40, EDGE | Attached fan-shaped magic hitbox |
 | Back air — Bone Spike | 10/3/25; L15 | 12 | M, 35, KILL | Short rear burst |
 | Up air — Cold Star | 8/4/23; L14 | 9 | M, 85, LAUNCH | Precise overhead hit |
@@ -520,7 +519,7 @@ sequence table and every pose's clip.
 | Forward smash — Twin Talons | 18/4/34 | 18 | L, 40, KILL | Two claws act as a single hit |
 | Up smash — Night Ascendant | 16/5/31 | 16 | L, 85, KILL | Wings and claws overhead |
 | Down smash — Wing Sweep | 15/6/32 | 14 | L, 25, EDGE | Broad front/rear body attack |
-| Neutral air — Batwing Turn | 7/6/22; L14 | 9 | M, 50, POKE | Wide body arc, tradeable |
+| Neutral air — Batwing Turn | 7/10/19; L14 | 2 + 2 + 5 | M, 50, POKE | Three wing beats ([multi-hit](aerials.md)); wide, tradeable |
 | Forward air — Talon Reach | 10/4/24; L15 | 12 | L, 40, EDGE | Forward reach at cost of exposing arm |
 | Back air — Wing Backhand | 9/4/25; L15 | 13 | L, 35, KILL | Wing hurtbox extends too |
 | Up air — Horn Lift | 7/3/21; L12 | 8 | M, 85, LAUNCH | Short upward head attack |
@@ -578,7 +577,7 @@ Standing grab 7/3/26, reach 0.65H. Pummel: claw squeeze. No automatic lifesteal.
 | Forward air — Spirit Edge | 10/3/25; L15 | 11 | L, 40, EDGE | Weapon extension |
 | Back air — Heel Hook | 8/3/23; L13 | 10 | M, 35, EDGE | Exposed foot |
 | Up air — Crescent Sky | 7/3/21; L12 | 8 | M, 85, LAUNCH | Short upward cut |
-| Down air — Totem Point | 14/4/29; L20 | 11 | M, 270, SPIKE | Glaive point downward |
+| Down air — Glaive Drill | 9/14/15; L14 | 4×2 + 4 | M, drill | Sideways-carrying [drill](aerials.md) ending in a fling toward the ledge |
 
 ### B specials
 

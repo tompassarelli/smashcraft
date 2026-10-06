@@ -1,8 +1,9 @@
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction, HitElement } from "../codes";
-import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
+import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion, type AuthoredMove, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
 import type { HitEffect } from "../hitRegions";
 import { type FighterHurtboxes, type HurtPart, hurtPart } from "../hurtboxes";
+import { drillStrikes, linkAt, multiHit } from "./multiHit";
 
 // smashcraft:docs/design/roster.md supplies F/A/R/L, damage and outer reach.
 // These narrow paths are original, provisional weapon and limb geometry.
@@ -54,6 +55,28 @@ function chop(first: number, heights: readonly number[], reach: number, effect: 
   return path(first, heights.map(z => capsule(20.0, 45.0, f32(reach - BLADE_RADIUS), z)), effect);
 }
 
+// Glaive drill (down air, #152): a spinning glaive under him that carries a
+// target sideways while he drifts forward, then throws it toward the ledge;
+// an edge-guard and positioning drill rather than a combo starter.
+// smashcraft:docs/design/aerials.md.
+const GLAIVE_SPINS = [9, 12, 15, 18] as const;
+const GLAIVE_THROW = 21;
+const GLAIVE_REACH = f32(M - BLADE_RADIUS);
+// The fling tumbles at every percent, so holding down cannot keep the target on the floor.
+const GLAIVE_FLING: Readonly<HitEffect> = { ...hit(4.0, "EDGE", 25), base: 65.0 };
+const GLAIVE = drillStrikes(-4.0, -80.0, GLAIVE_REACH,
+  { centre: linkAt(2.0, 25.0, 20), front: linkAt(2.0, 15.0, 20), back: linkAt(2.0, 35.0, 20) },
+  { centre: linkAt(2.0, 25.0, 340), front: linkAt(2.0, 15.0, 340), back: linkAt(2.0, 35.0, 340) });
+const GLAIVE_DRILL: AuthoredMove = {
+  ...heroMove(9, GLAIVE_THROW + 1 - 9 + 1, 15, 14, multiHit([
+    ...GLAIVE_SPINS.map(first => ({ first, last: first + 1, strikes: GLAIVE })),
+    { first: GLAIVE_THROW, last: GLAIVE_THROW + 1, strikes: drillStrikes(-4.0, -80.0, GLAIVE_REACH,
+      { centre: GLAIVE_FLING, front: GLAIVE_FLING, back: GLAIVE_FLING }) },
+  ])),
+  // A slow fall that drifts forward with the carried target.
+  fall: [{ firstFrame: 8, lastFrame: GLAIVE_THROW, speedZ: -3.0, speedX: 4.0 }],
+};
+
 // Body: the reference capsule scaled by the roster's 0.92 width and 1.08
 // height. Limbs reach toward each strike from late startup through early
 // recovery, fitted to the classic model's skinned clips (hands reach about
@@ -94,7 +117,7 @@ const SHADOW_HUNTER_BODY: FighterHurtboxes = {
       heroHurtPose(13, 15, HALF_HOOK),
     ],
     [AttackStyle.upAir]: reaching(7, 3, RAISED_ARMS),
-    [AttackStyle.downAir]: reaching(14, 4, limb(2.0, 30.0, 2.0, -20.0)),
+    [AttackStyle.downAir]: reaching(9, 14, limb(2.0, 30.0, 2.0, -20.0)),
     [AttackStyle.grab]: reaching(8, 2, limb(10.0, 45.0, f32(S - 10.0), 42.0)),
   },
 };
@@ -166,12 +189,7 @@ export const SHADOW_HUNTER_MOVES: FighterMoves = {
       capsule(0.0, 50.0, 0.0, f32(M - BLADE_RADIUS)),
       capsule(-8.0, 50.0, -18.0, f32(M - BLADE_RADIUS)),
     ], hit(8.0, "LAUNCH", 85))),
-    [AttackStyle.downAir]: heroMove(14, 4, 29, 20, path(14, [
-      capsule(0.0, 4.0, 0.0, -f32(M - BLADE_RADIUS)),
-      capsule(2.0, 4.0, 2.0, -f32(M - BLADE_RADIUS)),
-      capsule(4.0, 4.0, 4.0, -f32(M - BLADE_RADIUS)),
-      capsule(6.0, 4.0, 6.0, -f32(M - BLADE_RADIUS)),
-    ], hit(11.0, "SPIKE", 270), hit(11.0, "SPIKE", 55))),
+    [AttackStyle.downAir]: GLAIVE_DRILL,
     [AttackStyle.grab]: heroMove(8, 2, 24, 0, [heroRegion(8, 9,
       capsule(18.0, 42.0, f32(S - 10.0), 42.0, 10.0),
       { damage: 0.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false })]),

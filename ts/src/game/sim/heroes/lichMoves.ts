@@ -3,6 +3,7 @@ import { AttackStyle, GrabAction, HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion, type AuthoredThrow, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
 import type { HitEffect } from "../hitRegions";
 import { type FighterHurtboxes, type HurtPart, type HurtPose, hurtPart, hurtPose } from "../hurtboxes";
+import { type Strike, linkAt, multiHit } from "./multiHit";
 
 // Original geometry for smashcraft:docs/design/roster.md; the frost volumes
 // stay attached to the caster and never become traveling projectiles.
@@ -56,6 +57,7 @@ function palm(first: number, heights: readonly number[]): readonly MoveRegion[] 
 }
 
 /** Opposite thin arcs rotate around the torso instead of filling their box. */
+/** Frost Halo (#152): a ring around the torso that pulses, after Ultimate's rehitting n-airs. */
 function halo(): readonly MoveRegion[] {
   const outer = f32(M - 10.0);
   const diagonal = f32(outer * f32(0.707106781));
@@ -67,14 +69,16 @@ function halo(): readonly MoveRegion[] {
     capsule(-outer, 66.0, -outer, 24.0, 10.0),
     capsule(-diagonal, f32(45.0 - diagonal), -18.0, f32(45.0 - outer), 10.0),
   ];
-  const regions: MoveRegion[] = [];
-  for (let index = 0; index < strikes.length; index++) {
-    const strike = strikes[index];
-    if (strike === undefined) continue;
-    regions.push(frame(9 + index, strike, hit(8.0, "POKE", 50, strike.x1 < 0.0)));
-    regions.push(frame(9 + index, capsule(-strike.x1, f32(90.0 - strike.z1), -strike.x2, f32(90.0 - strike.z2), strike.radius), hit(8.0, "POKE", 50, strike.x1 >= 0.0)));
-  }
-  return regions;
+  const ring = [...strikes, ...strikes.map(strike => capsule(-strike.x1, f32(90.0 - strike.z1), -strike.x2, f32(90.0 - strike.z2), strike.radius))];
+  // Three chilling pulses hold a target in the ring at any percent; the last bursts outward.
+  const hold = (effect: Readonly<HitEffect>): readonly Strike[] => ring.map(strike => [strike, effect]);
+  const burst: readonly Strike[] = ring.map(strike => [strike, hit(4.0, "POKE", 50, strike.x1 + strike.x2 < 0.0)]);
+  return multiHit([
+    { first: 9, last: 11, strikes: hold(linkAt(2.0, 18.0, 90, HitElement.ice)) },
+    { first: 13, last: 15, strikes: hold(linkAt(2.0, 18.0, 90, HitElement.ice)) },
+    { first: 17, last: 19, strikes: hold(linkAt(2.0, 18.0, 90, HitElement.ice)) },
+    { first: 21, last: 22, strikes: burst },
+  ]);
 }
 
 function fan(): readonly MoveRegion[] {
@@ -172,7 +176,7 @@ export const LICH_MOVES: FighterMoves = {
       heroRegion(19, 23, capsule(24.0, 8.0, f32(L - 10.0), 8.0, 10.0), hit(14.0, "EDGE", 25)),
       heroRegion(19, 23, capsule(-24.0, 8.0, -f32(L - 10.0), 8.0, 10.0), hit(14.0, "EDGE", 25, true)),
     ]),
-    [AttackStyle.neutralAir]: heroMove(9, 6, 23, 16, halo()),
+    [AttackStyle.neutralAir]: heroMove(9, 14, 17, 16, halo()),
     [AttackStyle.forwardAir]: heroMove(12, 3, 27, 17, fan()),
     [AttackStyle.backAir]: heroMove(10, 3, 25, 15, [
       frame(10, capsule(-20.0, 49.0, -f32(M - 8.0), 49.0), hit(12.0, "KILL", 35, true)),

@@ -9,6 +9,7 @@ import { attackDurationFramesForGrounding, attackLandingLag, attackStartupFrames
 import { controls, testGrabFrame, testWorld } from "../testWorld";
 import { HurtContact, strikeHurtContact } from "../hurtboxes";
 import { SHADOW_HUNTER_MOVES } from "./shadowHunterMoves";
+import { isMultiHit } from "./multiHit";
 
 // Adopted F/A/R/L values from smashcraft:docs/design/roster.md.
 const NORMALS = [
@@ -26,7 +27,7 @@ const NORMALS = [
   [AttackStyle.forwardAir, 10, 3, 25, 15],
   [AttackStyle.backAir, 8, 3, 23, 13],
   [AttackStyle.upAir, 7, 3, 21, 12],
-  [AttackStyle.downAir, 14, 4, 29, 20],
+  [AttackStyle.downAir, 9, 14, 15, 14],
   [AttackStyle.grab, 8, 2, 24, 0],
 ] as const;
 
@@ -59,11 +60,12 @@ test("Shadow Hunter adopted phases landings and narrow single-contact regions re
         authoredHitRegion(out, Character.archer, style, frame, 0, index, SHADOW_HUNTER_MOVES);
         if (out.window > 0) {
           live++;
-          assertEquals(out.window, 1);
+          assertTrue(out.window === 1 || (isMultiHit(SHADOW_HUNTER_MOVES.normals[style]) && out.window > 1));
           assertTrue(out.strike !== undefined);
         }
       }
-      assertEquals(live > 0, frame >= first - 1 && frame < first - 1 + active);
+      // A multi-hit may pause between its hits; nothing strikes outside its active frames.
+      if (live > 0 || !isMultiHit(SHADOW_HUNTER_MOVES.normals[style])) assertEquals(live > 0, frame >= first - 1 && frame < first - 1 + active);
     }
   }
 });
@@ -103,22 +105,6 @@ test("Shadow Hunter tilted crescent and vertical outline leave gaps outside thei
       resolveAttacks(world);
       assertEquals(target.status.damage, damage);
     }
-  }
-});
-
-test("Shadow Hunter Totem Point spikes airborne targets and lifts grounded targets", () => {
-  for (const facing of [-1, 1]) {
-    for (const grounded of [false, true]) {
-      const { owner, target, world } = pair(AttackStyle.downAir, 13, 0.0, 0.0, facing, grounded, 160.0);
-      const vz = owner.motion.vz;
-      resolveAttacks(world);
-      assertEquals(target.status.damage, 11.0);
-      assertEquals(target.launch.knockbackZ > 0.0, grounded);
-      assertEquals(owner.motion.vz, vz);
-    }
-    const gap = pair(AttackStyle.downAir, 13, 70.0, 0.0, facing, false, 160.0);
-    resolveAttacks(gap.world);
-    assertEquals(gap.target.status.damage, 0.0);
   }
 });
 

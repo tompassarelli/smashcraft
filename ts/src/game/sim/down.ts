@@ -7,7 +7,7 @@ import { isFloorTeching, isTumbling } from "./conditions";
 import { type Fighter } from "./fighter";
 import { clearDash } from "./groundMovement";
 import { MAX_GROUNDED_KNOCKBACK_ON_LANDING, airborneDamageLandingReaction, decayKnockback } from "./knockback";
-import { RIFLEMAN_BLASTER_AIR_FRAMES, RIFLEMAN_BLASTER_LANDING_LAG, attackLandingLag, isAerialAttack } from "./moves";
+import { RIFLEMAN_BLASTER_AIR_FRAMES, RIFLEMAN_BLASTER_LANDING_LAG, attackLandingLag, isAerialAttack, landsIntoAttack } from "./moves";
 import { clearMotionValue, setWorldMotionValue, totalVelocityX } from "./motion";
 import type { Controls } from "./roster";
 import { surfaceCount, surfaceLeft, surfaceRight, surfaceZ } from "./stage";
@@ -91,8 +91,17 @@ export function finishLanding(f: Fighter, stage: number, matchFrame: number, inp
     dodge.airDodging = false;
     dodge.airFrame = 0;
   }
-  if (isAerialAttack(f.attack.style)) {
-    landingState.lag = max(landingState.lag, attackLandingLag(f.attack.style, f.tuning.moves));
+  const { attack } = f;
+  const landingHit = attack.style === undefined ? undefined : f.tuning.moves?.normals[attack.style]?.landingHit;
+  if (landingHit !== undefined && attack.frame >= landingHit.firstFrame) {
+    // Already continuing on the ground.
+  } else if (landingHit !== undefined && !wasGrounded && landsIntoAttack(attack.style, attack.frame, f.tuning.moves)) {
+    // The same attack continues on the ground, so its hit registry carries over.
+    attack.frame = landingHit.firstFrame;
+    attack.duration = landingHit.totalFrames;
+    attack.cooldown = landingHit.totalFrames - landingHit.firstFrame;
+  } else if (isAerialAttack(attack.style)) {
+    landingState.lag = max(landingState.lag, attackLandingLag(attack.style, f.tuning.moves));
     cancelAttack(f);
   }
   motion.grounded = true;

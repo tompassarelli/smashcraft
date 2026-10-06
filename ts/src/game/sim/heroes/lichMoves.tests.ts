@@ -10,6 +10,7 @@ import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hi
 import { attackLandingLag, attackRecoveryFrames, attackStartupFrames, grabActionDuration, grabContactFrame, isAerialAttack, smashDamageMultiplier } from "../moves";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
 import { LICH_MOVES } from "./lichMoves";
+import { isMultiHit } from "./multiHit";
 
 // Adopted Lich rows from smashcraft:docs/design/roster.md, including final L.
 const NORMALS = [
@@ -23,7 +24,7 @@ const NORMALS = [
   [AttackStyle.forwardSmash, 22, 3, 36, 0],
   [AttackStyle.upSmash, 20, 5, 34, 0],
   [AttackStyle.downSmash, 19, 5, 35, 0],
-  [AttackStyle.neutralAir, 9, 6, 23, 16],
+  [AttackStyle.neutralAir, 9, 14, 17, 16],
   [AttackStyle.forwardAir, 12, 3, 27, 17],
   [AttackStyle.backAir, 10, 3, 25, 15],
   [AttackStyle.upAir, 8, 4, 23, 14],
@@ -71,10 +72,11 @@ test("Lich normal phases contact windows and final landing lag match the adopted
         authoredHitRegion(out, owner.character, style, tick, 0, index, LICH_MOVES);
         if (out.window <= 0) continue;
         live++;
-        assertEquals(out.window, 1);
+        assertTrue(out.window === 1 || (isMultiHit(LICH_MOVES.normals[style]) && out.window > 1));
         assertTrue(out.strike !== undefined);
       }
-      assertEquals(live > 0, tick >= first - 1 && tick < first - 1 + active);
+      // A multi-hit may pause between its hits; nothing strikes outside its active frames.
+      if (live > 0 || !isMultiHit(LICH_MOVES.normals[style])) assertEquals(live > 0, tick >= first - 1 && tick < first - 1 + active);
     }
   }
 });
@@ -90,7 +92,7 @@ test("Lich normals deal their adopted damage only after startup in both facings"
       [AttackStyle.forwardSmash, 170.0, 0.0, 18.0],
       [AttackStyle.upSmash, 0.0, 0.0, 17.0],
       [AttackStyle.downSmash, 130.0, 0.0, 14.0],
-      [AttackStyle.neutralAir, 95.0, 0.0, 8.0],
+      [AttackStyle.neutralAir, 95.0, 0.0, 2.0],
       [AttackStyle.forwardAir, 130.0, 0.0, 11.0],
       [AttackStyle.backAir, -90.0, 0.0, 12.0],
       [AttackStyle.upAir, 0.0, 0.0, 9.0],

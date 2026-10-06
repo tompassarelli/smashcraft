@@ -43,7 +43,7 @@ import { demonHunterGliding, demonHunterJumpOrGlideCancel } from "./specials";
 import { AIR_DODGE_ANIMATION_FRAMES, AIR_DODGE_DECAY, beginAirDodge, beginGroundDodge, beginJump, canBeginGroundDodge } from "./jumpsAndDodges";
 import { ageKnockback, applyDirectionalInfluence, decayKnockback } from "./knockback";
 import { advanceLedge } from "./ledge";
-import { DOWN_ATTACK_FRAMES, EARLY_ASCENT_GRAB_FRAMES, SMASH_MAX_CHARGE_FRAMES, attackStartupFrames, isSmashAttack } from "./moves";
+import { DOWN_ATTACK_FRAMES, EARLY_ASCENT_GRAB_FRAMES, SMASH_MAX_CHARGE_FRAMES, attackFall, attackStartupFrames, isSmashAttack } from "./moves";
 import {
   addMeleeWorldValues,
   airDriftVelocity,
@@ -554,6 +554,8 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
     motion.vx = f32(motion.vx * AIR_DODGE_DECAY);
     motion.vz = f32(motion.vz * AIR_DODGE_DECAY);
   }
+  const drill = motion.grounded ? undefined : attackFall(attack.style, attack.frame, f.tuning.moves);
+  if (drill?.speedX !== undefined) motion.vx = f32(drill.speedX * f.facing);
   moveHorizontally(f, stage, matchFrame, dashEntryDisplacementAdjustment);
   if (isGroundDodging(f) || (motion.grounded && jump.squat > 0)) {
     motion.vz = 0.0;
@@ -564,7 +566,8 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
       motion.fastFalling = true;
       motion.fastFallInputAge = PLATFORM_DROP_INPUT_WINDOW;
     }
-    if (motion.fastFalling) motion.vz = -physics.fastFallSpeed;
+    if (drill !== undefined) motion.vz = drill.speedZ;
+    else if (motion.fastFalling) motion.vz = -physics.fastFallSpeed;
     else applyMeleeGravity(f);
   }
   moveMeleeVerticalVelocity(f);

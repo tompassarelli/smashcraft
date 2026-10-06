@@ -53,6 +53,9 @@ interface DamageContact {
   sourceAerial: boolean;
   sourceDeltaX: number;
   sourceDeltaZ: number;
+  /** The source's own velocity, which a link hit gives its airborne target. */
+  sourceVelocityX: number;
+  sourceVelocityZ: number;
   targetDeltaX: number;
   targetDeltaZ: number;
   down: boolean;
@@ -67,7 +70,7 @@ interface DamageContact {
 function emptyContact(): DamageContact {
   return {
     source: 0, target: 0, effect: emptyHitEffect(), facing: 0, kind: ContactKind.launch, direct: false, blocked: false,
-    crouching: false, grounded: false, sourceGrounded: false, sourceAerial: false, sourceDeltaX: 0.0, sourceDeltaZ: 0.0, targetDeltaX: 0.0,
+    crouching: false, grounded: false, sourceGrounded: false, sourceAerial: false, sourceDeltaX: 0.0, sourceDeltaZ: 0.0, sourceVelocityX: 0.0, sourceVelocityZ: 0.0, targetDeltaX: 0.0,
     targetDeltaZ: 0.0, down: false, smashCharging: false, throwInput: undefined, status: undefined, earnsMana: false,
   };
 }
@@ -124,6 +127,8 @@ export function collectDamageContact(
   contact.sourceAerial = direct && isAerialAttack(source.attack.style);
   contact.sourceDeltaX = source.motion.deltaX;
   contact.sourceDeltaZ = source.motion.deltaZ;
+  contact.sourceVelocityX = source.motion.vx;
+  contact.sourceVelocityZ = source.motion.vz;
   contact.targetDeltaX = target.motion.deltaX;
   contact.targetDeltaZ = target.motion.deltaZ;
   contact.down = isDownDamageState(target);
@@ -308,6 +313,10 @@ function resolveDamageContacts(world: Roster, slot: number): void {
   target.motion.vx = 0.0;
   target.motion.vz = 0.0;
   installDamageLaunch(target, strongest, multiplyFloat32(chosen.facing, chosen.effect.launchX), chosen.effect.launchZ, chosen.grounded);
+  if (chosen.direct && chosen.effect.carry === true && !target.motion.grounded) {
+    target.motion.vx = chosen.sourceVelocityX;
+    target.motion.vz = chosen.sourceVelocityZ;
+  }
   launch.sdiWasGrounded = chosen.grounded;
   launch.sdiLaunchesUpward = launch.knockbackZ > 0;
   launch.diPending = true;

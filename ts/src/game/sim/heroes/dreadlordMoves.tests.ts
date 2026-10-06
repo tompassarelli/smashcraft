@@ -10,6 +10,7 @@ import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hi
 import { attackLandingLag, attackRecoveryFrames, attackStartupFrames, grabActionDuration, grabContactFrame, isAerialAttack, smashDamageMultiplier } from "../moves";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
 import { DREADLORD_MOVES } from "./dreadlordMoves";
+import { isMultiHit } from "./multiHit";
 
 // Existing actors carry the kit so these fixtures exercise production combat
 // independently of selection and asset integration.
@@ -24,7 +25,7 @@ const NORMAL_TIMINGS = [
   [AttackStyle.forwardSmash, 18, 4, 34, 0],
   [AttackStyle.upSmash, 16, 5, 31, 0],
   [AttackStyle.downSmash, 15, 6, 32, 0],
-  [AttackStyle.neutralAir, 7, 6, 22, 14],
+  [AttackStyle.neutralAir, 7, 10, 19, 14],
   [AttackStyle.forwardAir, 10, 4, 24, 15],
   [AttackStyle.backAir, 9, 4, 25, 15],
   [AttackStyle.upAir, 7, 3, 21, 12],
@@ -76,12 +77,13 @@ test("Dreadlord paths are narrow capsules active only on adopted contact frames"
         authoredHitRegion(out, Character.archer, style, frame, 0, index, DREADLORD_MOVES);
         if (out.window > 0) {
           live++;
-          assertEquals(out.window, 1);
+          assertTrue(out.window === 1 || (isMultiHit(DREADLORD_MOVES.normals[style]) && out.window > 1));
           assertTrue(out.strike !== undefined);
           if (out.strike !== undefined) assertTrue(out.strike.radius <= 14.0);
         }
       }
-      assertEquals(live > 0, frame >= first - 1 && frame < first - 1 + active);
+      // A multi-hit may pause between its hits; nothing strikes outside its active frames.
+      if (live > 0 || !isMultiHit(DREADLORD_MOVES.normals[style])) assertEquals(live > 0, frame >= first - 1 && frame < first - 1 + active);
     }
   }
 });

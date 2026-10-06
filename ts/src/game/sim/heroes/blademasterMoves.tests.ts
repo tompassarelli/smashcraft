@@ -8,6 +8,7 @@ import { attackDurationFramesForGrounding, attackLandingLag, attackStartupFrames
 import { controls, testGrabFrame, testWorld } from "../testWorld";
 import { HurtContact, strikeHurtContact } from "../hurtboxes";
 import { BLADEMASTER_MOVES } from "./blademasterMoves";
+import { isMultiHit } from "./multiHit";
 
 // The adopted roster's F/A/R/L rows, rather than shared legacy frame data.
 const NORMALS = [
@@ -21,11 +22,11 @@ const NORMALS = [
   [AttackStyle.forwardSmash, 17, 3, 32, 0],
   [AttackStyle.upSmash, 15, 4, 30, 0],
   [AttackStyle.downSmash, 14, 6, 31, 0],
-  [AttackStyle.neutralAir, 7, 5, 20, 12],
+  [AttackStyle.neutralAir, 7, 9, 17, 12],
   [AttackStyle.forwardAir, 10, 3, 22, 14],
   [AttackStyle.backAir, 8, 3, 23, 13],
   [AttackStyle.upAir, 6, 3, 19, 11],
-  [AttackStyle.downAir, 13, 4, 28, 20],
+  [AttackStyle.downAir, 10, 25, 12, 20],
   [AttackStyle.grab, 7, 2, 22, 0],
 ] as const;
 
@@ -63,12 +64,13 @@ test("Blademaster roster timings and final aerial landing lag reach production A
       for (let index = 0; index < count; index++) {
         authoredHitRegion(out, Character.archer, style, frame, 0, index, BLADEMASTER_MOVES);
         if (out.window > 0) {
-          assertEquals(out.window, 1);
+          assertTrue(out.window === 1 || (isMultiHit(BLADEMASTER_MOVES.normals[style]) && out.window > 1));
           assertTrue(out.strike !== undefined);
           activeCount++;
         }
       }
-      assertEquals(activeCount > 0, frame >= startup && frame < startup + active);
+      // A multi-hit may pause between its hits; nothing strikes outside its active frames.
+      if (activeCount > 0 || !isMultiHit(BLADEMASTER_MOVES.normals[style])) assertEquals(activeCount > 0, frame >= startup && frame < startup + active);
     }
   }
 });
@@ -97,20 +99,6 @@ test("Blademaster angles move the blade and narrow upward strikes miss the low f
     assertEquals(contact(AttackStyle.upSmash, facing, 100.0).status.damage, 0.0);
     assertEquals(contact(AttackStyle.upAir, facing, 70.0, 0.0, true).status.damage, 0.0);
     assertEquals(contact(AttackStyle.upAir, facing, 0.0, 30.0, true).status.damage, 8.0);
-  }
-});
-
-test("Blademaster down air spikes only the airborne tip contact", () => {
-  for (const facing of [-1, 1]) {
-    const airborneTip = contact(AttackStyle.downAir, facing, 0.0, 0.0, true, true, 160.0);
-    assertEquals(airborneTip.status.damage, 12.0);
-    assertLessThan(airborneTip.launch.knockbackZ, 0.0);
-    const groundedTip = contact(AttackStyle.downAir, facing, 0.0, 0.0, true, false, 160.0);
-    assertEquals(groundedTip.status.damage, 12.0);
-    assertGreaterThan(groundedTip.launch.knockbackZ, 0.0);
-    const airborneInner = contact(AttackStyle.downAir, facing, 0.0, 110.0, true, true, 160.0);
-    assertEquals(airborneInner.status.damage, 12.0);
-    assertGreaterThan(airborneInner.launch.knockbackZ, 0.0);
   }
 });
 

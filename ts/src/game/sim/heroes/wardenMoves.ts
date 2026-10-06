@@ -4,6 +4,7 @@ import { AttackStyle, GrabAction, HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion, type AuthoredMove, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
 import type { HitEffect } from "../hitRegions";
 import { type FighterHurtboxes, type HurtPart, type HurtPose, hurtPart, hurtPose } from "../hurtboxes";
+import { type Strike, drillStrikes, linkAt, multiHit } from "./multiHit";
 
 // smashcraft:docs/design/roster.md counts reach from the fighter center.
 const S = f32(HERO_REFERENCE_HEIGHT * f32(0.55));
@@ -76,8 +77,30 @@ function throwMove(release: number, recovery: number, damage: number, kind: keyo
 }
 
 const BACK_AIR = wardenHit(11.0, "KILL", 35, -1.0);
-const DOWN_AIR = wardenHit(11.0, "SPIKE", 270);
-const DOWN_AIR_GROUNDED = wardenHit(11.0, "SPIKE", 55);
+// Sky Crescent's lifting kicks (up air, #152): weak links that rise with her.
+const SKY_LIFT: readonly Strike[] = [
+  [blade(0.0, 48.0, 0.0, f32(M - BLADE_RADIUS), 10.0), linkAt(2.0, 8.0, 90, HitElement.normal)],
+  [blade(16.0, 40.0, 30.0, f32(M - 20.0), 10.0), linkAt(2.0, 8.0, 95, HitElement.normal)],
+  [blade(-16.0, 40.0, -30.0, f32(M - 20.0), 10.0), linkAt(2.0, 8.0, 85, HitElement.normal)],
+];
+// Falling Knives (down air, #152), Fan of Knives in miniature: a short, fast
+// drill. Four quick knife hits as she drops at a fixed fast speed drag the
+// target down with her; no landing hit, so the reward is the grab or her Fan
+// of Knives mark after it, and the low landing lag keeps it safe.
+// smashcraft:docs/design/aerials.md.
+const KNIFE_REACH = f32(S + 10.0);
+const fallingKnives = (damage: number, base: number) => drillStrikes(-4.0, -70.0, KNIFE_REACH,
+  { centre: linkAt(damage, base, 270), front: linkAt(damage, base, 250), back: linkAt(damage, base, 290) },
+  { centre: linkAt(damage, base, 270), front: linkAt(damage, base, 250), back: linkAt(damage, base, 290) });
+const FALLING_KNIVES: AuthoredMove = {
+  ...heroMove(7, 7, 14, 10, multiHit([
+    { first: 7, last: 7, strikes: fallingKnives(2.0, 25.0) },
+    { first: 9, last: 9, strikes: fallingKnives(2.0, 25.0) },
+    { first: 11, last: 11, strikes: fallingKnives(2.0, 25.0) },
+    { first: 13, last: 13, strikes: fallingKnives(3.0, 40.0) },
+  ])),
+  fall: [{ firstFrame: 6, lastFrame: 12, speedZ: -9.0 }],
+};
 const GRAB_EFFECT = { damage: 0.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } as const;
 
 const NORMALS: { readonly [style: number]: AuthoredMove | undefined } = {
@@ -127,16 +150,14 @@ const NORMALS: { readonly [style: number]: AuthoredMove | undefined } = {
       ...cut(7, [54.0, 45.0, 36.0], M, BACK_AIR, undefined, -1.0),
       heroRegion(7, 9, blade(-8.0, 42.0, -16.0, 38.0, 8.0), BACK_AIR),
     ]),
-    [AttackStyle.upAir]: heroMove(5, 3, 17, 10, path(5, [
-      blade(0.0, 48.0, 0.0, f32(M - BLADE_RADIUS)),
-      blade(4.0, 48.0, 4.0, f32(M - BLADE_RADIUS)),
-      blade(-4.0, 48.0, -4.0, f32(M - BLADE_RADIUS)),
-    ], wardenHit(7.0, "LAUNCH", 85))),
-    [AttackStyle.downAir]: heroMove(12, 3, 27, 19, path(12, [
-      blade(0.0, -18.0, 0.0, -f32(M - BLADE_RADIUS)),
-      blade(2.0, -18.0, 2.0, -f32(M - BLADE_RADIUS)),
-      blade(-2.0, -18.0, -2.0, -f32(M - BLADE_RADIUS)),
-    ], DOWN_AIR, DOWN_AIR_GROUNDED)),
+    // Sky Crescent (#152): three rising kicks, after Fox's and Falco's up airs.
+    // The first two lift the target with her at any percent; the third launches.
+    [AttackStyle.upAir]: heroMove(5, 9, 15, 10, multiHit([
+      { first: 5, last: 6, strikes: SKY_LIFT },
+      { first: 8, last: 9, strikes: SKY_LIFT },
+      { first: 11, last: 13, strikes: [[blade(0.0, 48.0, 0.0, f32(M - BLADE_RADIUS), 10.0), wardenHit(5.0, "LAUNCH", 85, 1.0, HitElement.normal)]] },
+    ])),
+    [AttackStyle.downAir]: FALLING_KNIVES,
     [AttackStyle.grab]: heroMove(6, 2, 22, 0, [heroRegion(6, 7,
       blade(16.0, 45.0, f32(GRAB - 10.0), 45.0, 10.0), GRAB_EFFECT)]),
 };

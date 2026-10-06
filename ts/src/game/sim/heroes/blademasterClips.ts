@@ -83,7 +83,8 @@ export const BLADEMASTER_CLIPS: { readonly [pose in Exclude<HeroPose, Exclude<He
   // The spin's blade passes behind at three quarters of a turn.
   backAir: sequence("Attack Walk Stand Spin", aligned(f32(0.75 * SPIN_TURN), 8, 3, 23)),
   upAir: sequence("Stand - 4", aligned(RISE, 6, 3, 19)),
-  downAir: sequence("Attack", aligned(f32(0.39), 13, 4, 28)),
+  // Bladestorm: the hero's own Bladestorm spin.
+  downAir: sequence("Attack Walk Stand Spin", f32(2.0 * SPIN_TURN)),
   getUpAttack: sequence("Attack Walk Stand Spin", f32(2.0 * SPIN_TURN)),
   ledgeHang: COMBAT_STANCE,
   ledgeClimb: COMBAT_STANCE,

@@ -1,8 +1,9 @@
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction, HitElement } from "../codes";
-import { type AuthoredThrow, type FighterMoves, type MoveRegion, type StrikeCapsule, HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion } from "../heroMoves";
+import { type AuthoredMove, type AuthoredThrow, type FighterMoves, type MoveRegion, type StrikeCapsule, HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion } from "../heroMoves";
 import { type FighterHurtboxes, type HurtPart, hurtPart } from "../hurtboxes";
 import type { HitEffect } from "../hitRegions";
+import { drillStrikes, linkAt, multiHit } from "./multiHit";
 
 // smashcraft:docs/design/roster.md uses Archer's standing outer capsule height.
 export const H = HERO_REFERENCE_HEIGHT;
@@ -86,14 +87,34 @@ function lowSweep(firstFrame: number, facing: number): readonly MoveRegion[] {
   ], hit(14.0, "EDGE", 25, facing));
 }
 
-const downAir: MoveRegion[] = [];
-for (let frame = 13; frame <= 16; frame++) {
-  const x = f32((frame - 13) * 2.0);
-  downAir.push(heroRegion(frame, frame,
-    capsule(x, -f32(M - TIP_LENGTH), x, -f32(M - BLADE_RADIUS)), hit(12.0, "SPIKE", 270), hit(12.0, "SPIKE", 55)));
-  downAir.push(heroRegion(frame, frame,
-    capsule(x, -18.0, x, -f32(M - TIP_LENGTH)), hit(12.0, "POKE", 55)));
-}
+// Bladestorm (down air, #152): the longest drill. Six spinning hits that
+// pull a target toward the blade while he hangs in the air, then plunge;
+// landing during them spins out a landing hit that pops the target up for a
+// follow-up. Airborne targets are lifted against their gravity, grounded ones
+// held on the floor; the flanks pull inward. Smashcraft:docs/design/aerials.md.
+const BLADE_WHEEL_INNER = 60.0;
+const BLADESTORM_SPINS = [10, 13, 16, 19, 22] as const;
+const BLADESTORM_PLUNGE = 25;
+const BLADESTORM_LAST = 34;
+const BLADESTORM_TOTAL = 46;
+const BLADESTORM_REACH = f32(M - BLADE_RADIUS);
+const BLADESTORM = drillStrikes(-6.0, -96.0, BLADESTORM_REACH,
+  { centre: linkAt(2.0, 10.0, 90), front: linkAt(2.0, 10.0, 100), back: linkAt(2.0, 10.0, 80) },
+  { centre: linkAt(2.0, 20.0, 270), front: linkAt(2.0, 20.0, 250), back: linkAt(2.0, 20.0, 290) });
+const bladestorm: AuthoredMove = {
+  ...heroMove(10, BLADESTORM_LAST - 10 + 1, BLADESTORM_TOTAL - BLADESTORM_LAST, 20, [
+    ...multiHit([
+      ...BLADESTORM_SPINS.map(first => ({ first, last: first + 1, strikes: BLADESTORM })),
+      // The plunge spins until he lands or the move ends.
+      { first: BLADESTORM_PLUNGE, last: BLADESTORM_LAST, strikes: BLADESTORM },
+    ]),
+    heroRegion(BLADESTORM_TOTAL + 1, BLADESTORM_TOTAL + 2, capsule(-BLADESTORM_REACH, 30.0, BLADESTORM_REACH, 30.0, 30.0),
+      linkAt(4.0, 90.0, 80), undefined, BLADESTORM_SPINS.length + 2),
+  ]),
+  // Hangs while the spins land, then plunges.
+  fall: [{ firstFrame: 9, lastFrame: BLADESTORM_PLUNGE - 2, speedZ: -1.5 }, { firstFrame: BLADESTORM_PLUNGE - 1, lastFrame: BLADESTORM_LAST - 1, speedZ: -14.0 }],
+  landingHit: { firstFrame: BLADESTORM_TOTAL, totalFrames: BLADESTORM_TOTAL + 12 },
+};
 
 function authoredThrow(releaseFrame: number, recovery: number, damage: number, kind: keyof typeof CLASS, angle: keyof typeof ANGLE, facing = 1.0): AuthoredThrow {
   return { contactFrame: releaseFrame, totalFrames: releaseFrame + recovery, effect: hit(damage, kind, angle, facing) };
@@ -126,11 +147,11 @@ const BODY: FighterHurtboxes = {
     [AttackStyle.forwardSmash]: [heroHurtPose(17, 23, reach(62.0, 76.0))],
     [AttackStyle.upSmash]: [heroHurtPose(15, 21, reach(10.0, 140.0))],
     [AttackStyle.downSmash]: [heroHurtPose(14, 16, reach(44.0, 26.0)), heroHurtPose(17, 22, reach(-44.0, 26.0))],
-    [AttackStyle.neutralAir]: [heroHurtPose(6, 13, reach(46.0, 86.0))],
+    [AttackStyle.neutralAir]: [heroHurtPose(6, 17, reach(46.0, 86.0))],
     [AttackStyle.forwardAir]: [heroHurtPose(8, 16, reach(46.0, 60.0))],
     [AttackStyle.backAir]: [heroHurtPose(6, 14, reach(-46.0, 70.0))],
     [AttackStyle.upAir]: [heroHurtPose(5, 11, reach(4.0, 140.0))],
-    [AttackStyle.downAir]: [heroHurtPose(11, 19, arm(0.0, 70.0, 4.0, 26.0))],
+    [AttackStyle.downAir]: [heroHurtPose(9, 36, arm(0.0, 70.0, 4.0, 26.0))],
     [AttackStyle.grab]: [heroHurtPose(5, 12, reach(50.0, 76.0))],
   },
 };
@@ -165,13 +186,21 @@ export const BLADEMASTER_MOVES: FighterMoves = {
       capsule(-8.0, 38.0, -12.0, f32(L - BLADE_RADIUS)),
     ], hit(16.0, "KILL", 90))),
     [AttackStyle.downSmash]: heroMove(14, 6, 31, 0, [...lowSweep(14, 1.0), ...lowSweep(17, -1.0)]),
-    [AttackStyle.neutralAir]: heroMove(7, 5, 20, 12, path(7, [
-      capsule(20.0, 35.0, f32(M - BLADE_RADIUS), 35.0),
-      capsule(15.0, 50.0, 60.0, 90.0),
-      capsule(0.0, 55.0, 0.0, f32(M - BLADE_RADIUS)),
-      capsule(-15.0, 50.0, -70.0, 80.0),
-      capsule(-20.0, 30.0, -f32(M - BLADE_RADIUS), 30.0),
-    ], hit(8.0, "POKE", 50))),
+    // Blade Wheel (#152): two turns of the sword, after Falcon's and Marth's
+    // n-airs. The wide first turn pulls toward him at any percent; the tighter
+    // second launches, so smash DI away from the first can clear it.
+    [AttackStyle.neutralAir]: heroMove(7, 9, 17, 12, multiHit([
+      { first: 7, last: 9, strikes: [
+        [capsule(20.0, 35.0, f32(M - BLADE_RADIUS), 50.0), linkAt(3.0, 30.0, 100)],
+        [capsule(0.0, 55.0, 0.0, f32(M - BLADE_RADIUS)), linkAt(3.0, 30.0, 90)],
+        [capsule(-20.0, 35.0, -f32(M - BLADE_RADIUS), 50.0), linkAt(3.0, 30.0, 80)],
+      ] },
+      { first: 13, last: 15, strikes: [
+        [capsule(20.0, 45.0, BLADE_WHEEL_INNER, 45.0, 10.0), hit(6.0, "POKE", 50)],
+        [capsule(0.0, 55.0, 0.0, f32(BLADE_WHEEL_INNER + 45.0), 10.0), hit(6.0, "POKE", 50)],
+        [capsule(-20.0, 45.0, -BLADE_WHEEL_INNER, 45.0, 10.0), hit(6.0, "POKE", 50, -1.0)],
+      ] },
+    ])),
     [AttackStyle.forwardAir]: heroMove(10, 3, 22, 14, cut(10, [60.0, 45.0, 30.0], L, hit(11.0, "EDGE", 40), hit(14.0, "EDGE", 40))),
     [AttackStyle.backAir]: heroMove(8, 3, 23, 13, cut(8, [34.0, 45.0, 56.0], L, hit(12.0, "KILL", 35, -1.0), undefined, -1.0)),
     [AttackStyle.upAir]: heroMove(6, 3, 19, 11, path(6, [
@@ -179,7 +208,7 @@ export const BLADEMASTER_MOVES: FighterMoves = {
       capsule(3.0, 45.0, 3.0, f32(M - BLADE_RADIUS)),
       capsule(6.0, 45.0, 6.0, f32(M - BLADE_RADIUS)),
     ], hit(8.0, "LAUNCH", 85))),
-    [AttackStyle.downAir]: heroMove(13, 4, 28, 20, downAir),
+    [AttackStyle.downAir]: bladestorm,
     [AttackStyle.grab]: heroMove(7, 2, 22, 0, path(7, [
       capsule(18.0, 45.0, f32(S - 10.0), 45.0, 10.0),
       capsule(18.0, 47.0, f32(S - 10.0), 47.0, 10.0),

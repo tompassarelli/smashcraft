@@ -39,6 +39,28 @@ export interface AuthoredMove {
   /** Facing-relative displacement distributed across startup frames. */
   readonly startupTravelX?: number | undefined;
   readonly startupStopsAtBody?: boolean | undefined;
+  /** A drill's descent in phases: over each phase's attack frames its speeds are held, replacing gravity and fast fall. */
+  readonly fall?: readonly AuthoredFall[] | undefined;
+  /** Landing during the active frames continues into this grounded hit instead of landing lag. */
+  readonly landingHit?: AuthoredLandingHit | undefined;
+}
+
+/**
+ * Zero-based attack frames, inclusive, and the speeds held on them in world
+ * units per frame: vertical (negative falls) and, if set, facing-relative
+ * horizontal, replacing air drift.
+ */
+export interface AuthoredFall {
+  readonly firstFrame: number;
+  readonly lastFrame: number;
+  readonly speedZ: number;
+  readonly speedX?: number | undefined;
+}
+
+/** The landing attack's frames follow the aerial's: it starts at firstFrame and ends at totalFrames. */
+interface AuthoredLandingHit {
+  readonly firstFrame: number;
+  readonly totalFrames: number;
 }
 
 export interface AuthoredThrow {
@@ -69,7 +91,8 @@ export function heroMove(firstActive: number, active: number, recovery: number, 
   return { startupFrames: firstActive - 1, activeFrames: active, totalFrames: firstActive - 1 + active + recovery, landingLag, regions, startupTravelX, startupStopsAtBody };
 }
 
-export function heroRegion(firstActive: number, lastActive: number, strike: StrikeCapsule, effect: Readonly<HitEffect>, groundedEffect?: Readonly<HitEffect>): MoveRegion {
+/** A contact over the brief's attack frames; a multi-hit gives each later hit a higher window so it may strike again. */
+export function heroRegion(firstActive: number, lastActive: number, strike: StrikeCapsule, effect: Readonly<HitEffect>, groundedEffect?: Readonly<HitEffect>, window = 1): MoveRegion {
   return {
     firstFrame: firstActive - 1,
     lastFrame: lastActive - 1,
@@ -78,7 +101,7 @@ export function heroRegion(firstActive: number, lastActive: number, strike: Stri
       maxX: f32(Math.max(strike.x1, strike.x2) + strike.radius),
       minZ: f32(Math.min(strike.z1, strike.z2) - strike.radius),
       maxZ: f32(Math.max(strike.z1, strike.z2) + strike.radius),
-      effect, window: 1, strike, groundedEffect,
+      effect, window, strike, groundedEffect,
     },
   };
 }
