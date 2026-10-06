@@ -3,11 +3,13 @@
 // (readiness, I4 rows of one frame, or of two as the companion's are, pause
 // acknowledgments, the end marker) and its quiescence file. Like the real
 // helper it types at most TEXT_WINDOW records past what the map's receipt has
-// consumed.
+// consumed, and with pairs, as the companion does, at most
+// TYPED_AHEAD_CHARACTERS past what it received, joining packets that wait.
 import type { Lockstep } from "wisp/src/headless/lockstep";
 import { Action, bit } from "../../src/game/input/actions";
 import { type InputRow, inputRow } from "../../src/game/input/inputRow";
 import { encodePacket, inputPacket } from "../../src/game/input/wire";
+import { RECORD_PACKETS } from "../../src/game/netcode/journal/source";
 import { TEXT_WINDOW, textEnvelope } from "../../src/game/netcode/journal/text";
 import { momentRequest } from "../../src/game/replay/moment";
 import { quiescentFile } from "../../src/game/shell/journalFiles";
@@ -54,9 +56,14 @@ export function rowFor(slot: number, frame: number, workload: Workload): InputRo
   return row;
 }
 
+/** Characters the companion types past what its client's receipt says the edit box received. */
+const TYPED_AHEAD_CHARACTERS = 256;
+
 interface Helper {
   epoch: number;
   sequence: number;
+  /** Records typed and not yet received, by sequence, with their characters. */
+  readonly typed: [sequence: number, characters: number][];
   state: "idle" | "ready" | "journaling" | "ended";
   readonly queue: string[];
   journaled: number;
@@ -74,6 +81,8 @@ export class JournalHelpers {
   readonly silent = new Set<number>();
   /** The row a slot's controller makes on a frame of its helper's clock; the workload's by default. */
   rows: (slot: number, frame: number) => InputRow = (slot, frame) => rowFor(slot, frame, this.workload);
+  /** Characters each slot's helper typed into its client's edit box in the last service. */
+  readonly typed = new Map<number, number>();
   /** The helpers' clock in frames, such as a soak's wall clock; the clients' frames by default. */
   clock: ((clients: Lockstep) => number) | undefined = undefined;
   /**
@@ -89,7 +98,7 @@ export class JournalHelpers {
   private helper(slot: number): Helper {
     let helper = this.helpers.get(slot);
     if (helper === undefined) {
-      helper = { epoch: 0, sequence: 0, state: "idle", queue: [], journaled: 0, started: 0, control: 1, limit: undefined };
+      helper = { epoch: 0, sequence: 0, typed: [], state: "idle", queue: [], journaled: 0, started: 0, control: 1, limit: undefined };
       this.helpers.set(slot, helper);
     }
     return helper;
@@ -116,6 +125,7 @@ export class JournalHelpers {
       if ((helper.state === "idle" || helper.state === "ended") && client.files.has(journalReadyFile(this.build, next, client.slot))) {
         Object.assign(helper, { epoch: next, sequence: 0, state: "ready", control: 1, limit: undefined });
         helper.queue.length = 0;
+        helper.typed.length = 0;
         helper.queue.push(`JR1${next}`);
       }
       const { epoch } = helper;
@@ -152,7 +162,11 @@ export class JournalHelpers {
         if (this.pairs && first < due) rows.push(this.rows(client.slot, first + 1));
         const packet = inputPacket(epoch, first, rows);
         if (packet === undefined) throw new Error("no packet");
-        helper.queue.push(encodePacket(packet));
+        // As the companion does, a packet joins the untyped record before it.
+        const last = helper.queue.length - 1;
+        const untyped = helper.queue[last];
+        if (this.pairs && untyped?.startsWith("I4") === true && untyped.split("|").length < RECORD_PACKETS) helper.queue[last] = `${untyped}|${encodePacket(packet)}`;
+        else helper.queue.push(encodePacket(packet));
         helper.journaled += rows.length;
       }
       if (committed !== undefined) acknowledge("PAUSE", committed);
@@ -162,14 +176,22 @@ export class JournalHelpers {
       if (box === undefined || !client.frames.shown(box) || this.silent.has(client.slot)) continue;
       const receipt = client.files.get(`smashcraft-journal-text-ack-${this.build}-e${epoch}-p${client.slot}.txt`)?.join("") ?? "";
       const consumed = Number(/ consumed=(\d+)/.exec(receipt)?.[1] ?? 0);
+      const received = Number(/ received=(\d+)/.exec(receipt)?.[1] ?? 0);
+      while ((helper.typed[0]?.[0] ?? Infinity) <= received) helper.typed.shift();
+      let ahead = helper.typed.reduce((sum, [, characters]) => sum + characters, 0);
+      const before = box.text.length;
       for (let payload = helper.queue.shift(); payload !== undefined; payload = helper.queue.shift()) {
-        if (helper.sequence >= consumed + TEXT_WINDOW) {
+        const envelope = textEnvelope(epoch, helper.sequence + 1, payload) ?? "";
+        if (helper.sequence >= consumed + TEXT_WINDOW || (this.pairs && ahead > 0 && ahead + envelope.length > TYPED_AHEAD_CHARACTERS)) {
           helper.queue.unshift(payload);
           break;
         }
         helper.sequence++;
-        box.text += textEnvelope(epoch, helper.sequence, payload) ?? "";
+        helper.typed.push([helper.sequence, envelope.length]);
+        ahead += envelope.length;
+        box.text += envelope;
       }
+      this.typed.set(client.slot, box.text.length - before);
     }
   }
 }
