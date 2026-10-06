@@ -133,6 +133,7 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   clearTech(f);
   jump.serial = 0;
   jump.isDouble = false;
+  jump.ascent = 0;
   motion.x = startX;
   motion.z = RESPAWN_HEIGHT;
   setWorldMotionValue(motion.meleeX, motion.x);

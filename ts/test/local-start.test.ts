@@ -39,7 +39,8 @@ const BEATS: readonly (readonly [mask: number, held: number, press: RowFields])[
   [1, 18, { axisX: -127, sdi: true, sdiX: -1, throwX: -1 }],
 ];
 const BEAT_GAP = 24;
-const MATCH_FRAMES = 1800;
+/** Long enough for the gate's 15 steady-play presses however the computers' kits play out. */
+const MATCH_FRAMES = 2400;
 
 function beatRows(frames: number): InputRow[] {
   const row = (fields: RowFields = {}) => {

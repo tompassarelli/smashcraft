@@ -1,5 +1,5 @@
 // The owner's play command consumes main. Experiments use fresh/accept instead.
-import { copyFileSync, existsSync, mkdirSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, dirname } from "node:path";
 import { Effect, Schema } from "effect";
@@ -16,8 +16,25 @@ const run = (cwd: string, args: readonly string[]) => Effect.tryPromise({
   catch: (cause) => new PlayProblem({ problem: String(cause) }),
 });
 
-export const currentPlaytest = Effect.gen(function*() {
-  const { revision, companion, mainCheckout, version } = yield* Effect.tryPromise({
+/** Main's build keeps its number; a new build of main takes the next number after every one built or in the owner's library. */
+export function playVersion(builds: string, library: string, revision: string): string {
+  const numbered = (directory: string): (readonly [number, number, number])[] => {
+    if (!existsSync(directory)) return [];
+    return readdirSync(directory).flatMap((entry) => {
+      const match = /^Smashcraft (\d+)\.(\d+)\.(\d+)\.w3x$/.exec(entry);
+      return match === null ? [] : [[Number(match[1]), Number(match[2]), Number(match[3])] as const];
+    });
+  };
+  const [own] = numbered(join(builds, revision));
+  if (own !== undefined) return own.join(".");
+  const seen = [library, join(library, "older"), ...(existsSync(builds) ? readdirSync(builds).map((entry) => join(builds, entry)) : [])].flatMap(numbered);
+  const [major, minor, patch] = seen.reduce((best, next) => (next[0] - best[0] || next[1] - best[1] || next[2] - best[2]) > 0 ? next : best, [0, 0, 0] as const);
+  return `${major}.${minor}.${patch + 1}`;
+}
+
+/** Main's playable map and helper, built on first use; `library` is the owner's Smashcraft maps folder. */
+export const currentPlaytest = (library: string) => Effect.gen(function*() {
+  const { revision, companion, mainCheckout } = yield* Effect.tryPromise({
     try: async () => {
       const child = Bun.spawn(["git", "rev-parse", "main", "main:companion"], { cwd: projectRoot, stdout: "pipe", stderr: "pipe" });
       const [revision, companion] = (await new Response(child.stdout).text()).trim().split("\n");
@@ -26,15 +43,13 @@ export const currentPlaytest = Effect.gen(function*() {
       const mainBlock = (await new Response(registry.stdout).text()).split("\n\n").find((block) => block.split("\n").includes("branch refs/heads/main"));
       const mainCheckout = mainBlock?.split("\n").find((line) => line.startsWith("worktree "))?.slice(9);
       if (await registry.exited !== 0 || mainCheckout === undefined) throw new Error("couldn't locate the main checkout");
-      const manifest = Bun.spawn(["git", "show", `${revision}:ts/package.json`], { cwd: projectRoot, stdout: "pipe", stderr: "pipe" });
-      const version: unknown = JSON.parse(await new Response(manifest.stdout).text()).version;
-      if (await manifest.exited !== 0 || typeof version !== "string" || !/^\d+\.\d+\.\d+$/.test(version)) throw new Error("Smashcraft main has no version in ts/package.json");
-      return { mainCheckout, revision, companion, version };
+      return { mainCheckout, revision, companion };
     },
     catch: (cause) => new PlayProblem({ problem: String(cause) }),
   });
-  const title = `Smashcraft ${version} ${revision.slice(0, 8)}`;
-  const directory = join(inputsRoot, "play-current", revision);
+  const builds = join(inputsRoot, "play-current");
+  const title = `Smashcraft ${playVersion(builds, library, revision)}`;
+  const directory = join(builds, revision);
   const source = join(directory, `${title}.w3x`);
   const helper = join(inputsRoot, "play-helpers", companion, "wc3-journal");
   if (existsSync(source) && existsSync(helper)) return { map: { folder: "00-Smashcraft", file: `${title}.w3x`, title, source }, helper };

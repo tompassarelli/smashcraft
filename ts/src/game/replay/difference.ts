@@ -266,6 +266,7 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("jumpSerial", e.jump.serial, a.jump.serial);
   add("jumpIsDouble", e.jump.isDouble, a.jump.isDouble);
   add("jumpSquat", e.jump.squat, a.jump.squat);
+  add("jumpAscent", e.jump.ascent, a.jump.ascent);
   add("jumpDodgeQueued", e.jump.dodgeQueued, a.jump.dodgeQueued);
   add("jumpDodgeX", e.jump.dodgeX, a.jump.dodgeX);
   add("jumpDodgeZ", e.jump.dodgeZ, a.jump.dodgeZ);

@@ -23,6 +23,9 @@ const CLASS = {
   EDGE: { growth: 100.0, base: 22.0 },
   KILL: { growth: 110.0, base: 26.0 },
   SPIKE: { growth: 100.0, base: 22.0 },
+  // Throw roles (#107): an up throw's guaranteed short juggle and a down throw's tech chase.
+  JUGGLE: { growth: 55.0, base: 50.0 },
+  CHASE: { growth: 40.0, base: 75.0 },
 } as const;
 const ANGLE = {
   25: { x: f32(0.906307787), z: f32(0.422618262) },
@@ -186,8 +189,8 @@ export const BLADEMASTER_MOVES: FighterMoves = {
     [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: { damage: 3.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } },
     [GrabAction.throwForward]: authoredThrow(12, 18, 7.0, "EDGE", 35),
     [GrabAction.throwBack]: authoredThrow(15, 22, 8.0, "EDGE", 40, -1.0),
-    [GrabAction.throwUp]: authoredThrow(13, 17, 6.0, "LAUNCH", 85),
-    [GrabAction.throwDown]: authoredThrow(16, 20, 5.0, "LINK", 65),
+    [GrabAction.throwUp]: authoredThrow(13, 10, 6.0, "JUGGLE", 85),
+    [GrabAction.throwDown]: authoredThrow(16, 20, 5.0, "CHASE", 65),
   },
   dashAttack: AttackStyle.dashAttack,
   smashMaxChargeFrames: 45,

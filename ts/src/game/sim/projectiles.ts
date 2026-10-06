@@ -2,6 +2,7 @@
 // and trajectories are first-pass character-special tuning.
 import { max, min } from "../../runtime/numbers";
 import { roundToFloat32 } from "wisp/src/sim/binary32";
+import { meleeCos, meleeSin } from "../../sim/meleeScalarMath";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, ContactKind, ProjectileKind } from "./codes";
 import { isIntangible } from "./conditions";
@@ -25,6 +26,17 @@ const BLASTER_PROJECTILE_RADIUS = 24.0;
 const BLASTER_PROJECTILE_SPAWN_OFFSET = 35.0;
 /** Height of a target's body center above its position. */
 const TARGET_CENTER_HEIGHT = 45;
+/** Archer's homing arrow (side special): slower than his arrow, so a jump timed as it closes in leaves it behind. */
+export const HOMING_ARROW_SPEED = 22.0;
+export const HOMING_ARROW_LIFETIME = 75;
+/** The most it turns toward its target in one frame. */
+export const HOMING_ARROW_TURN_DEGREES = 2.5;
+/** It never climbs or dives steeper than this, so it can't turn back or drop onto a target from above. */
+export const HOMING_ARROW_MAX_PITCH_DEGREES = 50.0;
+const DEGREES_TO_RADIANS = 0.01745329238474369;
+const HOMING_TURN_COS = meleeCos(f32(HOMING_ARROW_TURN_DEGREES * DEGREES_TO_RADIANS));
+const HOMING_TURN_SIN = meleeSin(f32(HOMING_ARROW_TURN_DEGREES * DEGREES_TO_RADIANS));
+const HOMING_MAX_PITCH_TAN = f32(meleeSin(f32(HOMING_ARROW_MAX_PITCH_DEGREES * DEGREES_TO_RADIANS)) / meleeCos(f32(HOMING_ARROW_MAX_PITCH_DEGREES * DEGREES_TO_RADIANS)));
 
 export function projectileCount(f: Fighter): number {
   let count = 0;
@@ -61,10 +73,16 @@ export function spawnProjectile(owner: Fighter): void {
   spawnProjectileMotion(owner, ProjectileKind.blaster, f32(owner.facing * BLASTER_PROJECTILE_SPEED), 0.0, BLASTER_PROJECTILE_LIFETIME, owner.attack.serial);
 }
 
-/** An arrow toward direction, or the owner's facing for zero. */
-export function spawnArcherArrow(owner: Fighter, direction: number, verticalSpeed: number, kind: ProjectileKind, serial: number): void {
-  const facing = direction === 0 ? owner.facing : direction > 0 ? 1 : -1;
-  spawnProjectileMotion(owner, kind, f32(facing * BLASTER_PROJECTILE_SPEED), verticalSpeed, kind === ProjectileKind.arrow ? 75 : 65, serial);
+const facingOf = (owner: Fighter, direction: number): number => (direction === 0 ? owner.facing : direction > 0 ? 1 : -1);
+
+/** Archer's arrow, level toward direction, or the owner's facing for zero. */
+export function spawnArcherArrow(owner: Fighter, direction: number, serial: number): void {
+  spawnProjectileMotion(owner, ProjectileKind.arrow, f32(facingOf(owner, direction) * BLASTER_PROJECTILE_SPEED), 0.0, 75, serial);
+}
+
+/** Archer's homing arrow, launched level toward direction, or the owner's facing for zero. */
+export function spawnHomingArrow(owner: Fighter, direction: number, serial: number): void {
+  spawnProjectileMotion(owner, ProjectileKind.homingArrow, f32(facingOf(owner, direction) * HOMING_ARROW_SPEED), 0.0, HOMING_ARROW_LIFETIME, serial);
 }
 
 // Preallocated: collected contacts copy it, so one record serves every hit.
@@ -75,7 +93,7 @@ export function projectileDamage(projectile: Readonly<Projectile>): number {
   const { kind, spec } = projectile;
   const damage = kind === ProjectileKind.hero && spec !== undefined ? spec.effect.damage
     : kind === ProjectileKind.blaster ? attackDamage(AttackStyle.shot)
-      : kind === ProjectileKind.fanArrow ? 4.0 : kind === ProjectileKind.recoil || kind === ProjectileKind.manaBurn ? 5.0 : 7.0;
+      : kind === ProjectileKind.homingArrow ? 6.0 : kind === ProjectileKind.recoil || kind === ProjectileKind.manaBurn ? 5.0 : 7.0;
   return roundToFloat32(f32(damage * projectile.damageMultiplier));
 }
 
@@ -103,7 +121,7 @@ function applyProjectileHit(world: Roster, ownerSlot: number, targetSlot: number
     collectDamageContact(world, ownerSlot, targetSlot, projectileHit, projectile.direction, ContactKind.flinch, false, undefined, shieldContact);
     return;
   }
-  const damageOnly = kind === ProjectileKind.arrow || kind === ProjectileKind.fanArrow;
+  const damageOnly = kind === ProjectileKind.arrow || kind === ProjectileKind.homingArrow;
   projectileHit.damage = projectileDamage(projectile);
   projectileHit.growth = 85.0;
   projectileHit.base = 16.0;
@@ -146,8 +164,45 @@ const targets = {
   intangible: [false, false, false, false],
 };
 
+/**
+ * Turns a homing arrow one step toward the body center of the nearest
+ * opponent still ahead of it. It keeps its speed, turns at most
+ * HOMING_ARROW_TURN_DEGREES, keeps its heading when a turn would not bring it
+ * closer to the target's line, and stays within HOMING_ARROW_MAX_PITCH_DEGREES
+ * of level; once every opponent is behind it, it flies straight.
+ */
+function steerHomingArrow(world: Roster, ownerSlot: number, projectile: Projectile): void {
+  const velocityX = projectile.velocityX;
+  const velocityZ = projectile.velocityZ;
+  let found = false;
+  let towardX = 0.0;
+  let towardZ = 0.0;
+  let distance = 0.0;
+  for (let targetSlot = 0; targetSlot < PARTICIPANT_CAPACITY; targetSlot++) {
+    if (!isActive(world, targetSlot) || targetSlot === ownerSlot || targets.out[targetSlot]) continue;
+    const dx = f32(at(targets.x, targetSlot) - projectile.x);
+    const dz = f32(f32(at(targets.z, targetSlot) + TARGET_CENTER_HEIGHT) - projectile.z);
+    if (f32(f32(dx * velocityX) + f32(dz * velocityZ)) <= 0) continue;
+    const candidate = f32(Math.abs(dx) + Math.abs(dz));
+    if (found && candidate >= distance) continue;
+    found = true;
+    towardX = dx;
+    towardZ = dz;
+    distance = candidate;
+  }
+  if (!found) return;
+  const turn = f32(f32(velocityX * towardZ) - f32(velocityZ * towardX)) >= 0 ? HOMING_TURN_SIN : -HOMING_TURN_SIN;
+  const turnedX = f32(f32(velocityX * HOMING_TURN_COS) - f32(velocityZ * turn));
+  const turnedZ = f32(f32(velocityX * turn) + f32(velocityZ * HOMING_TURN_COS));
+  if (Math.abs(turnedZ) > f32(Math.abs(turnedX) * HOMING_MAX_PITCH_TAN)) return;
+  if (f32(f32(turnedX * towardX) + f32(turnedZ * towardZ)) <= f32(f32(velocityX * towardX) + f32(velocityZ * towardZ))) return;
+  projectile.velocityX = turnedX;
+  projectile.velocityZ = turnedZ;
+}
+
 /** Flies one projectile and returns the slot of the target it reaches, or undefined. */
 function flyProjectile(world: Roster, ownerSlot: number, projectile: Projectile, hit: { reflector: boolean; shield: boolean }): number | undefined {
+  if (projectile.kind === ProjectileKind.homingArrow) steerHomingArrow(world, ownerSlot, projectile);
   const oldX = projectile.x;
   const oldZ = projectile.z;
   let velocityX = projectile.velocityX;
@@ -288,7 +343,7 @@ export function updateProjectiles(world: Roster, stage?: number, matchFrame = 0)
       const fromX = projectile.x;
       const fromZ = projectile.z;
       const nearest = projectile.kind === ProjectileKind.hero ? flyHeroProjectile(world, ownerSlot, projectile, selected) : flyProjectile(world, ownerSlot, projectile, selected);
-      if (nearest === undefined && stage !== undefined && projectile.kind === ProjectileKind.hero
+      if (nearest === undefined && stage !== undefined && (projectile.kind === ProjectileKind.hero || projectile.kind === ProjectileKind.homingArrow)
         && projectileMeetsStage(stage, matchFrame, fromX, fromZ, projectile.x, projectile.z)) {
         projectile.life = 0;
         continue;

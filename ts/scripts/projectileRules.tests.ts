@@ -19,7 +19,6 @@ const MAX_FLIGHT = 90;
 const DEPARTURES: Readonly<Record<string, string>> = {
   "Archer neutral special rule 2": "arrows deal damage without hitstun or shieldstun, so they hold no shield and lock no fighter",
   "Archer neutral special rule 3": "a 3-frame shot that only adds damage; volume is its pressure",
-  "Archer side special rule 3": "each volley is three arrows; a second volley overlaps the first",
 };
 
 const FIGHTERS: readonly { readonly character: Character; readonly name: string }[] = [

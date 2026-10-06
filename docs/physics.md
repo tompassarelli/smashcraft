@@ -2004,29 +2004,10 @@ frozen or launched upward faster than PlCo +0x4F0 = 2.4 Melee units/frame
 (a star KO with chance PlCo +0x520 = 16 in 100 unless the camera forbids it),
 bottom if y < bottom. Every comparison is strict.
 
-**Camera.** melee:src/melee/cm/camera.c `Camera_8002B3D4` each frame: subject
-extents ease toward their targets by 0.5 Melee units a frame
-(`Camera_800293E0`); each subject's position and its four extent points are
-clamped into the camera range (`Camera_8002958C`, bottom also at least the
-stage's ground level + 1); the union's bottom drops by
-10 + 390 × clamp((|camera z| − 80) / 4920, 0, 1); the field of view eases
-from 30° to 38° (cm_803BCCA0 +0x40, rate +0x44 = 0.1); `Camera_80029CF8`
-fits the union in the view (vertical angle -10° + clamp(-(base − 30) ×
-0.05°, -7°, 5°), where base is the union's centre height lowered by up to
-0.0682 of its height (cm_803BCCA0 +0x1C..+0x28); horizontal
-clamp(-(centre x) × 0.05°, ±17.5°) on Final Destination; aspect 1.2173333) and clamps the distance to [83, 1000]
-(grGroundParam +0xC, +0x10); `Camera_8002A768` then shifts the target so the
-view's four corners stay inside the camera range, centering it when both
-opposite sides overflow. The interest follows its target by
-clamp(speed × 1.8, 0.0001, 1) a frame, speed 0.05 for a spread under 120,
-0.1 over 900 and linear between (cm_803BCCA0 +0x2C, +0x30, +0x34, +0x38;
-track smooth grGroundParam +0x28 = 1.8); the eye by 0.15 × 1.8 = 0.27 a frame
-(+0x3C), the same rate zooming in and out. A fighter's camera box
-(ftData +0x3C; `ftCamera_UpdateCameraBox`, melee:src/melee/ft/ftcamera.c) is
-centred 10 above its feet, reaches 22 forward (times the stage's +0x24 = 1.5)
-and 9 back, 16 up and 9 down, for Fox, Falco and Captain Falcon alike; the
-extents are multiplied by the stage's track ratio (+0x20 = 1.5) times 1.5,
-1.32, 1.16 or 1.0 for one to four subjects (cm_803BCB9C).
+**Camera.** melee:src/melee/cm/camera.c `Camera_8002B3D4` frames the
+fighters' camera boxes, eases toward that framing and keeps the view inside
+the camera range; smashcraft:docs/melee-camera.md lists its steps, constants
+and where our camera differs.
 
 **Off-screen.** A fighter is off-screen when its camera bone projects outside
 the screen (`ftLib_UpdateScreenVisibility`, melee:src/melee/ft/ftlib.c;
@@ -2043,7 +2024,7 @@ some events clear it).
 
 Smashcraft stores one **16:9 match view** and each fighter's magnifier timer
 in deterministic snapshots. Its subject extents, eye-distance easing and
-interest rates use the reference values above. The camera remains a side
+interest rates use the reference values (smashcraft:docs/melee-camera.md). The camera remains a side
 view: Warcraft keeps the yaw at 90° and the downward pitch at 10°; the field
 of view eases its half-angle tangent between the cited 30° and 38° endpoints
 by 10% each frame. This is the projection used by
@@ -2063,7 +2044,8 @@ smashcraft:ts/src/game/sim/stageBounds.ts owns these conversions.
 The unobscured fighting view stops at the camera limits. The part behind
 the HUD may extend below the bottom camera limit, but the whole raw frame
 stops at least 20 world units above the bottom blast plane. Corner clamping
-runs after easing and after local aspect adaptation. Recovery within 100
+shapes the eased goal, then runs again after easing and after local aspect
+adaptation. Recovery within 100
 world units of the main deck underside keeps the fighter and nearby underside
 above the HUD; a distant high fighter may then use a bubble. Bubbles project
 the fighter's camera point against the actual local view and place its portrait
@@ -2541,7 +2523,7 @@ installed-build check and are not proved by the numerical tests.
 
 ### Archer arrows: damage without interruption
 
-Normal/running arrows and multishot arrows (an owner correction,
+Normal/running arrows and the homing arrow (an owner correction,
 smashcraft:docs/gameplay-design.md, "Fighters") add damage without
 hitstun, hitlag, knockback, DI setup or interruption of attacks, grabs, ledges or
 recovery. They do not erase a reaction already in progress. Shield hits retain

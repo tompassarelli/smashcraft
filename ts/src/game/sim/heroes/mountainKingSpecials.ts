@@ -15,7 +15,7 @@ const heights = (amount: number) => f32(H * f32(amount));
 // Storm Bolt: one straight, reflectable hammer; normal hitstun, no stun status.
 const BOLT_SPEED = heights(f32(0.12));
 const BOLT_RADIUS = heights(f32(0.18));
-const STORM_BOLT = hit(7.0, "LAUNCH", 65);
+const STORM_BOLT = hit(5.0, "LAUNCH", 65);
 
 // Storm Rush: 1.2H of shoulder travel over its six active frames, then a dead stop.
 const RUSH_FRAMES = 6;

@@ -203,9 +203,15 @@ export function interruptJumpOrDodge(f: Fighter): void {
   dodge.airMotionFrames = 0;
   dodge.airFrame = 0;
   dodge.airUsed = false;
+  refreshOriginalAirtime(f);
   dodge.groundFrame = 0;
   dodge.groundDirection = 0;
   dodge.groundEntryFacing = 0;
+}
+
+/** A hit, grab or ledge catch lets an original fighter use its once-per-airtime specials again (Archer's ride). */
+export function refreshOriginalAirtime(f: Fighter): void {
+  if (f.tuning.specials === undefined) f.special.airtimeUses = 0;
 }
 
 /** Breaks the fighter's grab links from both ends. */

@@ -23,6 +23,7 @@ export function drawStageScenery(s: ShellState): void {
     const effect = AddSpecialEffect(piece.model, x, y);
     BlzSetSpecialEffectPosition(effect, x, y, s.origin.z + piece.z);
     BlzSetSpecialEffectScale(effect, piece.scale);
+    BlzSetSpecialEffectYaw(effect, piece.yaw * (Math.PI / 180.0));
     effects.push(effect);
   }
   s.stageScenery = effects;

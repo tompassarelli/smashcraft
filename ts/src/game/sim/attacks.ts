@@ -3,7 +3,7 @@
 // attacker; mutual catches clash and competing catches take the nearest victim.
 import { f32 } from "wisp/src/sim/f32";
 import { AttackPhase, AttackStyle, Character, DASH_GRAB_REQUEST } from "./codes";
-import { attackPhase, canBeGrabbed, canStartAttackStyle, inGrabContext, isIntangible } from "./conditions";
+import { attackPhase, canBeGrabbed, canStartAttackStyle, inEarlyAscent, inGrabContext, isIntangible } from "./conditions";
 import { finishDamageContacts, openDamageContacts } from "./contacts";
 import type { Fighter } from "./fighter";
 import { type HitRegion, NO_HIT_REGION, authoredHitRegion, authoredHitRegionCount, copyHitEffect, copyHitRegion, emptyHitRegion } from "./hitRegions";
@@ -77,6 +77,11 @@ function facingOffsetX(attacker: Readonly<Fighter>, target: Readonly<Fighter>): 
   return f32(f32(target.motion.x - attacker.motion.x) * attacker.facing);
 }
 
+/** Where a grab meets the target's feet: early in a ground jump's ascent, still at the grabber's height (#107). */
+function grabTargetZ(attacker: Readonly<Fighter>, target: Readonly<Fighter>): number {
+  return inEarlyAscent(target) && target.motion.z > attacker.motion.z ? attacker.motion.z : target.motion.z;
+}
+
 function selectAuthoredGrabRegion(attacker: Fighter, target: Fighter, frame: number, out: HitRegion): void {
   const moves = attacker.tuning.moves;
   const localX = facingOffsetX(attacker, target);
@@ -84,7 +89,7 @@ function selectAuthoredGrabRegion(attacker: Fighter, target: Fighter, frame: num
     authoredHitRegion(out, attacker.character, AttackStyle.grab, frame, 0, index, moves);
     if (out.window <= 0 || localX < 0 || localX > out.maxX) continue;
     placeStrikeCapsule(attacker, out);
-    if (grabTouchesBody(strikeCapsule, target)) return;
+    if (grabTouchesBody(strikeCapsule, target, grabTargetZ(attacker, target))) return;
   }
   copyHitRegion(out, NO_HIT_REGION);
 }
@@ -111,7 +116,7 @@ function selectHitRegion(world: Roster, attackerSlot: number, targetSlot: number
     const { startupFrames, activeFrames } = attacker.tuning.dashGrab;
     if (attack.frame >= startupFrames && attack.frame < startupFrames + activeFrames) {
       const localX = facingOffsetX(attacker, target);
-      const localZ = f32(target.motion.z - attacker.motion.z);
+      const localZ = f32(grabTargetZ(attacker, target) - attacker.motion.z);
       if (localX >= 0 && localX <= GRAB_REACH && localZ >= -130 && localZ <= 130) copyHitRegion(out, DASH_GRAB_REGION);
     }
     return false;
@@ -126,7 +131,7 @@ function selectHitRegion(world: Roster, attackerSlot: number, targetSlot: number
       return false;
     }
     const localX = facingOffsetX(attacker, target);
-    const localZ = f32(target.motion.z - attacker.motion.z);
+    const localZ = f32(grabTargetZ(attacker, target) - attacker.motion.z);
     const inside = localX >= out.minX && localX <= out.maxX && localZ >= out.minZ && localZ <= out.maxZ;
     if (out.window <= 0 || alreadyHit || !inside) copyHitRegion(out, NO_HIT_REGION);
     return false;

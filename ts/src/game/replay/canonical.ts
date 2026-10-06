@@ -602,6 +602,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   int("jumpSerial", j.serial);
   bool("jumpIsDouble", j.isDouble);
   int("jumpSquat", j.squat);
+  int("jumpAscent", j.ascent);
   bool("jumpDodgeQueued", j.dodgeQueued);
   int("jumpDodgeX", j.dodgeX);
   int("jumpDodgeZ", j.dodgeZ);

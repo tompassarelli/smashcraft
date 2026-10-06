@@ -33,22 +33,20 @@ interface Playtest {
   readonly computerSlot: number;
   /** Where the controller's stable device links are. */
   readonly inputDevices: string;
-  /** This prefix's installed Wisp page report port; absent uses ordinary menu controls. */
+  /** The report port of the Wisp page installed on Tom's prefix; absent uses ordinary menu controls. */
   readonly menuReportPort?: number;
 }
 
-const inputs = join(homedir(), ".local/share/smashcraft-build-inputs");
+/** Tom's own Warcraft III install. */
+const PLAYTEST_PREFIX = join(homedir(), ".local/share/Steam/steamapps/compatdata/3516115571/pfx");
 
 /** Journal identity of the current playable profile; map and helper resolve from main at invocation. */
-export const PLAYTEST: Playtest = {
+export const PLAYTEST: Omit<Playtest, "map" | "helper"> = {
   build: PLAYABLE_BUILD.id,
-  map: {
-    folder: "00-Smashcraft", file: "Smashcraft latest.w3x", title: "Smashcraft latest",
-    source: join(inputs, "play-current/Smashcraft latest.w3x"),
-  },
-  helper: join(inputs, "play-current/wc3-journal"),
   computerSlot: 2,
   inputDevices: "/dev/input/by-id",
+  // Tom's install is not a test client, so the clients file doesn't list it.
+  menuReportPort: 47124,
 };
 
 /** Seconds the map has to reach fighter selection, and to take the go-ahead. */
@@ -82,7 +80,7 @@ export function playtest({ build, map, helper, computerSlot, inputDevices, menuR
     receipt: join(dataDirectory(documents), playtestReceiptFile(0)),
   });
   return {
-    prefix: join(homedir(), ".local/share/Steam/steamapps/compatdata/3516115571/pfx"),
+    prefix: PLAYTEST_PREFIX,
     display: ":0",
     shortcut: { appId: 3775098022, name: "Warcraft III (Battle.net)" },
     map,
@@ -142,28 +140,25 @@ export function playtest({ build, map, helper, computerSlot, inputDevices, menuR
 
 const ClientSettings = Schema.Struct({
   tools: Schema.Struct({ grim: Schema.String, xdotool: Schema.String, wlrctl: Schema.String, tesseract: Schema.String, nsenter: Schema.optional(Schema.String) }),
-  clients: Schema.Array(Schema.Struct({ documents: Schema.String, menuReportPort: Schema.optional(Schema.Int) })),
 });
 
 /** The tool paths the clients file records; the commands on PATH without one. */
-function clientSettings(): { readonly tools: Partial<PlayTools>; readonly menuReportPort?: number } {
+function clientTools(): Partial<PlayTools> {
   try {
     const decoded = Schema.decodeUnknownOption(ClientSettings)(JSON.parse(readFileSync(clientState, "utf8")));
-    if (Option.isNone(decoded)) return { tools: {} };
-    const prefix = playtest(PLAYTEST).prefix;
-    const menuReportPort = decoded.value.clients.find((client) => client.documents === documentsFolder(prefix))?.menuReportPort;
+    if (Option.isNone(decoded)) return {};
     const { nsenter, ...tools } = decoded.value.tools;
-    return { tools: { ...tools, ...(nsenter === undefined ? {} : { nsenter }) }, ...(menuReportPort === undefined ? {} : { menuReportPort }) };
+    return { ...tools, ...(nsenter === undefined ? {} : { nsenter }) };
   } catch {
-    return { tools: {} };
+    return {};
   }
 }
 
-const settings = clientSettings();
+const tools = clientTools();
 // Doctor checks the prefix before play and once after a failure (wisp:docs/doctor.md).
 export const play: Command = (args) => Effect.gen(function*() {
-  const current = yield* currentPlaytest;
-  const declaration = playtest({ ...PLAYTEST, ...current, ...(settings.menuReportPort === undefined ? {} : { menuReportPort: settings.menuReportPort }) });
+  const current = yield* currentPlaytest(join(documentsFolder(PLAYTEST_PREFIX), "Maps/00-Smashcraft"));
+  const declaration = playtest({ ...PLAYTEST, ...current });
   yield* Effect.try({ try: () => installLatest(documentsFolder(declaration.prefix), current.map.source), catch: (cause) => new PlayProblem({ problem: String(cause) }) });
-  return yield* makePlay(declaration, gameFilesLayer, settings.tools, smashcraftWatch())(args);
+  return yield* makePlay(declaration, gameFilesLayer, tools, smashcraftWatch())(args);
 });

@@ -60,7 +60,7 @@ function specialMove(action: number): number | undefined {
   switch (action) {
     case SpecialAction.archerArrow: case SpecialAction.riflemanBlaster: case SpecialAction.demonHunterManaBurn: case SpecialAction.heroNeutral:
       return SPECIAL_MOVE.neutral;
-    case SpecialAction.archerMultishot: case SpecialAction.riflemanBear: case SpecialAction.demonHunterParryStep: case SpecialAction.heroSide:
+    case SpecialAction.archerHomingArrow: case SpecialAction.riflemanBear: case SpecialAction.demonHunterParryStep: case SpecialAction.heroSide:
       return SPECIAL_MOVE.side;
     case SpecialAction.archerRecovery: case SpecialAction.riflemanRecovery: case SpecialAction.demonHunterWingAscent: case SpecialAction.heroUp:
       return SPECIAL_MOVE.up;

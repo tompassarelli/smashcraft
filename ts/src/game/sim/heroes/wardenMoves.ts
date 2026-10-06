@@ -21,6 +21,9 @@ const CLASS = {
   EDGE: { growth: 100.0, base: 22.0 },
   KILL: { growth: 110.0, base: 26.0 },
   SPIKE: { growth: 100.0, base: 22.0 },
+  // Throw roles (#107): an up throw's guaranteed short juggle and a down throw's tech chase.
+  JUGGLE: { growth: 55.0, base: 45.0 },
+  CHASE: { growth: 40.0, base: 75.0 },
 } as const;
 const ANGLES = {
   25: { x: f32(0.906307787), z: f32(0.422618262) },
@@ -224,7 +227,7 @@ export const WARDEN_MOVES: FighterMoves = {
     [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: { damage: 3.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } },
     [GrabAction.throwForward]: throwMove(10, 18, 6.0, "EDGE", 35),
     [GrabAction.throwBack]: throwMove(14, 21, 7.0, "EDGE", 40, -1.0),
-    [GrabAction.throwUp]: throwMove(11, 16, 5.0, "LAUNCH", 85),
-    [GrabAction.throwDown]: throwMove(14, 20, 4.0, "LINK", 70),
+    [GrabAction.throwUp]: throwMove(11, 9, 5.0, "JUGGLE", 85),
+    [GrabAction.throwDown]: throwMove(14, 20, 4.0, "CHASE", 70),
   },
 };

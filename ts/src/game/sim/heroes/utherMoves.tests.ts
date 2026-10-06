@@ -252,7 +252,7 @@ test("Uther standing and dash grabs preserve 0.55H reach and dash recovery addit
 const THROW_ROWS = [
   [GrabAction.throwForward, 14, 23, 8.0, 40],
   [GrabAction.throwBack, 18, 26, 9.0, 40],
-  [GrabAction.throwUp, 16, 22, 7.0, 90],
+  [GrabAction.throwUp, 16, 9, 7.0, 90],
   [GrabAction.throwDown, 20, 26, 6.0, 70],
 ] as const;
 

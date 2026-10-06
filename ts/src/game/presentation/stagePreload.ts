@@ -1,14 +1,16 @@
 // Every model a stage's scene creates, so the shell can load them before a match.
-import { STAGE_DECK_MODEL, STAGE_MAIN_DECK_MODEL } from "../assets/stageAssetInfo";
+import { STAGE_DECK_MODEL, STAGE_DECK_MODELS, STAGE_MAIN_DECK_MODEL } from "../assets/stageAssetInfo";
 import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { surfaceCount } from "../sim/stage";
 import { hasCannon } from "../sim/stageHazards";
 import { CANNON_MODEL } from "./stageHazards";
 import { stageScenery } from "./stageScenery";
 
-/** The model drawn for one deck of a stage. */
+/** The model drawn for one deck of a stage, in the stage's palette. */
 export function deckModel(stage: number, index: number): string {
-  return index === 0 && !hasCannon(stage) ? STAGE_MAIN_DECK_MODEL : STAGE_DECK_MODEL;
+  const themed = STAGE_DECK_MODELS[stage];
+  if (index === 0 && !hasCannon(stage)) return themed === undefined ? STAGE_MAIN_DECK_MODEL : themed.main;
+  return themed === undefined ? STAGE_DECK_MODEL : themed.slab;
 }
 
 /** The effect models a stage's scene draws: decks, cannon and scenery pieces. */

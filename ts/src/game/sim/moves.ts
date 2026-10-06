@@ -211,7 +211,7 @@ export function attackDurationFramesForGrounding(style: AttackStyle, grounded: b
     case AttackStyle.getupAttack:
       return DOWN_ATTACK_FRAMES;
     case AttackStyle.shot:
-      return grounded ? 24 : 15;
+      return grounded ? 32 : 20;
     case AttackStyle.upSmash:
     case AttackStyle.downSmash:
       return 42;
@@ -232,6 +232,13 @@ export function attackDurationFramesForGrounding(style: AttackStyle, grounded: b
 export function attackRecoveryFrames(character: Character, style: AttackStyle, grounded: boolean, moves?: FighterMoves): number {
   return attackDurationFramesForGrounding(style, grounded, moves) - attackStartupFrames(style, moves) - characterAttackActiveFrames(character, style, moves);
 }
+
+/**
+ * A grab catches a fighter this many frames into a ground jump's ascent as if it
+ * were still on the deck it left (#107): the slowest standing grab's first
+ * active frame (Lich, frame 10) less the fastest jump squat (3).
+ */
+export const EARLY_ASCENT_GRAB_FRAMES = 7;
 
 /** Frames every grab holds when the victim doesn't mash, at any percent (#101). */
 export const GRAB_HOLD_FRAMES = 120;
@@ -276,7 +283,8 @@ export function grabActionDuration(action: GrabAction, moves?: FighterMoves): nu
     case GrabAction.throwBack:
       return 34;
     case GrabAction.throwUp:
-      return 32;
+      // Throw roles (#107): the thrower recovers in time for a guaranteed juggle.
+      return 24;
     case GrabAction.throwDown:
       return 36;
     default:

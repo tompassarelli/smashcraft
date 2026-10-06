@@ -95,12 +95,13 @@ holder/victim poses and one defined release/contact event per action; prevent
 grab-context commands from leaking into ordinary attacks after release.
 
 Archer: jump-cancellable neutral arrow; side-special wind-up followed by a
-multishot fan; down-special hippogryph cover with a backward somersault and
-brief airborne hang; up-special briefly mounts the hippogryph for fast ascent.
+homing arrow that a well-timed jump avoids (#112); down-special hippogryph call to a perch and a dive from it
+(down with a side keeps the backward hop); up-special steerable hippogryph
+ride with a leap-off (smashcraft:docs/design/archer-specials.md).
 Finish the legible fist jab, directional tilts, extended-leg neutral air,
 Fox/Falco-like back kick and tucked-startup downward dive kick. Running/basic
 arrows are damage-only: no hitstun, hitlag, knockback or move interruption.
-This includes multishot arrows and supersedes the earlier stun request.
+This includes the homing arrow and supersedes the earlier stun request.
 
 Rifleman: recognizable Warcraft-style bullet; running/swiping bear;
 neutral-special bullet impact must briefly flinch the victim, like Falco's

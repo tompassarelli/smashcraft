@@ -70,6 +70,10 @@ test("hitlag and shieldstun respect Melee integer boundaries", () => {
   assertEquals(ordinaryHitlagFrames(100.0), 20);
   assertEquals(digitalShieldstunFrames(12.0), 7);
   assertEquals(digitalShieldstunFrames(7.0), 5);
+  // Aerials' tilt toward aggression (#106): 0.6 a damage rather than 0.45.
+  assertEquals(digitalShieldstunFrames(12.0, true), 9);
+  assertEquals(digitalShieldstunFrames(7.0, true), 6);
+  assertEquals(digitalShieldstunFrames(5.0, true), 4);
   assertEquals(ordinaryHitstunFrames(100.0), 40);
 });
 
@@ -95,7 +99,7 @@ test("a shield contact freezes both bodies before shieldstun counts down", () =>
 
 test("a detached projectile impact does not freeze its shooter", () => {
   for (const shielded of [false, true]) {
-    for (const kind of [ProjectileKind.arrow, ProjectileKind.fanArrow, ProjectileKind.recoil]) {
+    for (const kind of [ProjectileKind.arrow, ProjectileKind.homingArrow, ProjectileKind.recoil]) {
       const shooter = createFighter(Character.archer, 0.0, 1);
       const target = createFighter(Character.rifleman, 100.0, -1);
       target.shield.raised = shielded;

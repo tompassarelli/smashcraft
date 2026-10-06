@@ -28,6 +28,7 @@ import {
   shieldContactPushback,
   shieldstunFrames,
 } from "./shield";
+import { isAerialAttack } from "./moves";
 import { beginShieldBreak } from "./shieldBreak";
 import { beginSmashDirectionalInfluenceHit } from "./smashDirectionalInfluence";
 import { beginDownDamage, cancelAttack, cancelSpecialState, clearDownState, clearGrabLinks, interruptJumpOrDodge, thawFighter } from "./transitions";
@@ -46,6 +47,8 @@ interface DamageContact {
   crouching: boolean;
   grounded: boolean;
   sourceGrounded: boolean;
+  /** A direct hit from an aerial attack, whose shieldstun has the aerial tilt. */
+  sourceAerial: boolean;
   sourceDeltaX: number;
   sourceDeltaZ: number;
   targetDeltaX: number;
@@ -60,7 +63,7 @@ interface DamageContact {
 function emptyContact(): DamageContact {
   return {
     source: 0, target: 0, effect: emptyHitEffect(), facing: 0, kind: ContactKind.launch, direct: false, blocked: false,
-    crouching: false, grounded: false, sourceGrounded: false, sourceDeltaX: 0.0, sourceDeltaZ: 0.0, targetDeltaX: 0.0,
+    crouching: false, grounded: false, sourceGrounded: false, sourceAerial: false, sourceDeltaX: 0.0, sourceDeltaZ: 0.0, targetDeltaX: 0.0,
     targetDeltaZ: 0.0, down: false, smashCharging: false, throwInput: undefined, status: undefined,
   };
 }
@@ -106,6 +109,7 @@ export function collectDamageContact(
   contact.crouching = target.motion.crouching;
   contact.grounded = target.motion.grounded;
   contact.sourceGrounded = source.motion.grounded;
+  contact.sourceAerial = direct && isAerialAttack(source.attack.style);
   contact.sourceDeltaX = source.motion.deltaX;
   contact.sourceDeltaZ = source.motion.deltaZ;
   contact.targetDeltaX = target.motion.deltaX;
@@ -175,7 +179,7 @@ function resolveDamageContacts(world: Roster, slot: number): void {
     if (contact.direct) source.launch.hitlag = max(source.launch.hitlag, ordinaryHitlagFrames(damage));
     if (contact.blocked) {
       if (contact.kind === ContactKind.damageOnly) continue;
-      if (!perfectShield) shield.stun = max(shield.stun, shieldstunFrames(damage, shield.strength));
+      if (!perfectShield) shield.stun = max(shield.stun, shieldstunFrames(damage, shield.strength, contact.sourceAerial));
       launch.hitlag = max(launch.hitlag, ordinaryHitlagFrames(damage));
       const pushback = shieldContactPushback(damage, shield.strength, perfectShield);
       shieldPushback = max(shieldPushback, pushback);

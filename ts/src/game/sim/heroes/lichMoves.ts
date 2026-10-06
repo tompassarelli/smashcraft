@@ -21,6 +21,9 @@ const CLASS = {
   EDGE: { growth: 100.0, base: 22.0 },
   KILL: { growth: 110.0, base: 26.0 },
   SPIKE: { growth: 100.0, base: 22.0 },
+  // Throw roles (#107): an up throw's guaranteed short juggle and a down throw's tech chase.
+  JUGGLE: { growth: 70.0, base: 45.0 },
+  CHASE: { growth: 40.0, base: 75.0 },
 } as const;
 const ANGLE = {
   25: { x: f32(0.906307787), z: f32(0.422618262) },
@@ -188,7 +191,7 @@ export const LICH_MOVES: FighterMoves = {
     [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: { damage: 3.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false, element: HitElement.ice } },
     [GrabAction.throwForward]: throwMove(14, 23, 7.0, "EDGE", 35),
     [GrabAction.throwBack]: throwMove(18, 26, 8.0, "EDGE", 40, true),
-    [GrabAction.throwUp]: throwMove(17, 25, 7.0, "LAUNCH", 90),
-    [GrabAction.throwDown]: throwMove(19, 26, 6.0, "LINK", 75),
+    [GrabAction.throwUp]: throwMove(17, 13, 7.0, "JUGGLE", 90),
+    [GrabAction.throwDown]: throwMove(19, 26, 6.0, "CHASE", 75),
   },
 };

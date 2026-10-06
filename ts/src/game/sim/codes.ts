@@ -66,7 +66,7 @@ export type PlatformMove = (typeof PlatformMove)[keyof typeof PlatformMove];
 export const SpecialAction = {
   none: 0,
   archerArrow: 1,
-  archerMultishot: 2,
+  archerHomingArrow: 2,
   archerDisengage: 3,
   archerRecovery: 4,
   riflemanBear: 5,
@@ -89,11 +89,15 @@ export type SpecialAction = (typeof SpecialAction)[keyof typeof SpecialAction];
 export const SPECIAL_ACTION_CAPACITY = 13;
 
 /** A hero projectile carries its authored record in Projectile.spec. */
-export const ProjectileKind = { blaster: 0, arrow: 1, fanArrow: 2, recoil: 3, manaBurn: 4, hero: 5 } as const;
+export const ProjectileKind = { blaster: 0, arrow: 1, homingArrow: 2, recoil: 3, manaBurn: 4, hero: 5 } as const;
 export type ProjectileKind = (typeof ProjectileKind)[keyof typeof ProjectileKind];
 
-/** Spawned cover strikes once; a mount carries its archer and ends with the action. */
-export const HippogryphKind = { none: 0, strike: 1, mount: 2 } as const;
+/**
+ * Archer's one hippogryph: a swoop strikes each fighter once and ends on a
+ * perch; a mount carries its archer and ends with the ride; a dive leaves the
+ * perch at its archer; a released hippogryph flies on after a leap-off.
+ */
+export const HippogryphKind = { none: 0, strike: 1, mount: 2, perch: 3, dive: 4, released: 5 } as const;
 export type HippogryphKind = (typeof HippogryphKind)[keyof typeof HippogryphKind];
 
 /** How an airborne hitstun landing resolves (NTSC 1.02 common +0x1E4/+0x1E0). */

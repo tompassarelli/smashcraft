@@ -280,7 +280,7 @@ const THROW_NAMES: Readonly<Record<number, string>> = {
 /** The special each projectile flies from. */
 const PROJECTILE_MOVES: Readonly<Record<number, string>> = {
   [ProjectileKind.arrow]: "neutral-special", [ProjectileKind.blaster]: "neutral-special", [ProjectileKind.manaBurn]: "neutral-special",
-  [ProjectileKind.fanArrow]: "side-special", [ProjectileKind.recoil]: "up-special",
+  [ProjectileKind.homingArrow]: "side-special", [ProjectileKind.recoil]: "up-special",
 };
 /** Specials with nothing that strikes: Archer's mount and Illidan's ascent count once started. */
 const STRIKELESS_SPECIALS: Readonly<Record<number, string>> = { [SpecialAction.archerRecovery]: "up-special", [SpecialAction.demonHunterWingAscent]: "up-special" };
@@ -372,7 +372,9 @@ function creditStrike(victim: Readonly<Fighter>, victimSeen: Seen, attackerSlot:
   const projectile = attacker.projectiles[ended];
   if (projectile !== undefined) return land(attackerSeen, projectile.kind === ProjectileKind.hero ? heroProjectileMove(attacker, projectile.spec) : PROJECTILE_MOVES[projectile.kind]);
   if (attacker.bear.hitSerial !== attackerSeen.bearHits) return land(attackerSeen, "side-special");
-  const disengage = attacker.hippogryph.kind === HippogryphKind.strike || attacker.special.action === SpecialAction.archerDisengage;
+  const hippogryph = attacker.hippogryph.kind;
+  const disengage = hippogryph === HippogryphKind.strike || hippogryph === HippogryphKind.dive || attacker.special.action === SpecialAction.archerDisengage;
+  if (attacker.special.hit && !attackerSeen.specialHit && hippogryph === HippogryphKind.released) return land(attackerSeen, "up-special");
   if (attacker.special.hit && !attackerSeen.specialHit && isHeroSpecialAction(attacker.special.action)) {
     return land(attackerSeen, HERO_SPECIAL_NAMES[attacker.special.action - SpecialAction.heroNeutral]);
   }

@@ -269,7 +269,7 @@ percents and escape, and the match's repro file. The rows don't replay the
 shell's own changes between frames (a pause or the match's end clears the
 attack buffers); the detector follows the match again from there.
 
-`bun wisp agency [--attacker NAME]... [--out FILE]` is the sweep
+`bun wisp agency [--attacker NAME]... [--starter NAME]... [--out FILE]` is the sweep
 (smashcraft:ts/scripts/agencySweep.ts): every fighter's grab and four
 throws, and a jab on a fighter lying after a missed tech, at 0-150% in
 steps of 10, its ground normals and specials at 0, 50, 100 and 150%, against
@@ -284,9 +284,11 @@ also replays the move comparisons' bounded true links (smashcraft:docs/move-comp
 through the frame executor, with and without each held DI direction. It
 prints every stretch longer than 20 frames, every loop and every link, and
 fails when a loop leaves at most three escape frames whatever direction the
-victim holds. Run three at once, one per attacker, inside the capacity scope:
-on 6 October, on a shared machine, Archer's took 11 minutes, Illidan's 13 and
-the Rifleman's 28, most of it checking his trap loops against every DI.
+victim holds. `--starter` sweeps only the named starters ("up throw",
+"jab reset") and skips the links. Run three at once, one per attacker,
+inside the capacity scope: on 6 October, on a shared machine, Archer's took
+11 minutes, Illidan's 13 and the Rifleman's 28, most of it checking his
+trap loops against every DI.
 
 `bun wisp soak --helper BIN [--matches N] [--seconds S]` plays matches through
 the real input path instead (smashcraft:ts/test/soak/helper.ts): each player

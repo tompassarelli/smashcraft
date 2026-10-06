@@ -289,7 +289,7 @@ const WING_ASCENT: GroundingClips = { grounded: clip(dh.DEMON_HUNTER_SPECIAL_UP_
 const IMMOLATE: GroundingClips = { grounded: clip(dh.DEMON_HUNTER_SPECIAL_DOWN_INDEX, dh.DEMON_HUNTER_SPECIAL_DOWN_SECONDS), air: clip(dh.DEMON_HUNTER_SPECIAL_DOWN_AIR_INDEX, dh.DEMON_HUNTER_SPECIAL_DOWN_AIR_SECONDS) };
 const RIFLEMAN_BLASTER: GroundingClips = { grounded: clip(assets.RIFLEMAN_SPECIAL_NEUTRAL_INDEX, assets.RIFLEMAN_SPECIAL_NEUTRAL_SECONDS), air: clip(assets.RIFLEMAN_SPECIAL_NEUTRAL_AIR_INDEX, assets.RIFLEMAN_SPECIAL_NEUTRAL_AIR_SECONDS) };
 const ARCHER_ARROW = clip(assets.ARCHER_SPECIAL_NEUTRAL_INDEX, assets.ARCHER_SPECIAL_NEUTRAL_SECONDS);
-const ARCHER_MULTISHOT = clip(assets.ARCHER_SPECIAL_SIDE_INDEX, assets.ARCHER_SPECIAL_SIDE_SECONDS);
+const ARCHER_HOMING_ARROW = clip(assets.ARCHER_SPECIAL_SIDE_INDEX, assets.ARCHER_SPECIAL_SIDE_SECONDS);
 const ARCHER_DISENGAGE = clip(assets.ARCHER_SPECIAL_DOWN_INDEX, assets.ARCHER_SPECIAL_DOWN_SECONDS);
 const ARCHER_RECOVERY = clip(assets.ARCHER_SPECIAL_UP_INDEX, assets.ARCHER_SPECIAL_UP_SECONDS);
 const RIFLEMAN_BEAR = clip(assets.RIFLEMAN_SPECIAL_SIDE_INDEX, assets.RIFLEMAN_SPECIAL_SIDE_SECONDS);
@@ -322,7 +322,7 @@ export function specialClip(character: number, action: SpecialAction, grounded: 
     case SpecialAction.demonHunterWingAscent: return byGrounding(WING_ASCENT, grounded);
     case SpecialAction.demonHunterImmolate: return byGrounding(IMMOLATE, grounded);
     case SpecialAction.archerArrow: return ARCHER_ARROW;
-    case SpecialAction.archerMultishot: return ARCHER_MULTISHOT;
+    case SpecialAction.archerHomingArrow: return ARCHER_HOMING_ARROW;
     case SpecialAction.archerDisengage: return ARCHER_DISENGAGE;
     case SpecialAction.archerRecovery: return ARCHER_RECOVERY;
     case SpecialAction.riflemanBear: return RIFLEMAN_BEAR;

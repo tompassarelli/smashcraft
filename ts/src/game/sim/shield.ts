@@ -32,6 +32,8 @@ const SHIELD_REGEN_PER_FRAME = 0.07000000029802322;
 const SHIELD_DAMAGE_SCALE = 1.0;
 const SHIELD_DAMAGE_BASE = 0.0;
 const SHIELD_STUN_MULTIPLIER = 1.5;
+/** Aerials tilt toward aggression: a third more shieldstun per damage than Melee (#106). */
+export const AERIAL_SHIELD_STUN_MULTIPLIER = 2.0;
 const SHIELD_STUN_BASE = 2.0;
 const SHIELD_PUSHBACK_BASE = 0.20000000298023224;
 const SHIELD_PUSHBACK_CAP = 2.0;
@@ -62,22 +64,24 @@ export function shieldDrain(strength: number): number {
   return multiplyFloat32(SHIELD_DRAIN_BASE, shieldInterpolation(strength, 0.10000000149011612, 2.0));
 }
 
-export function shieldstunDuration(damage: number, strength: number): number {
+export function shieldstunDuration(damage: number, strength: number, multiplier = SHIELD_STUN_MULTIPLIER): number {
   const factor = subtractFloat32(1.0, shieldInterpolation(strength, 0.05000000074505806, 0.699999988079071));
   const scaledPower = multiplyFloat32(integerHitPower(damage), factor);
-  return fusedMultiplyAddFloat32(scaledPower, SHIELD_STUN_MULTIPLIER, SHIELD_STUN_BASE);
+  return fusedMultiplyAddFloat32(scaledPower, multiplier, SHIELD_STUN_BASE);
 }
 
 export function digitalShieldstunDuration(damage: number): number {
   return shieldstunDuration(damage, 1.0);
 }
 
-export function shieldstunFrames(hitDamage: number, strength: number): number {
-  return toInt(divideFloat32(multiplyFloat32(shieldstunDuration(hitDamage, strength), 200.0), 201.0));
+/** An aerial's shieldstun uses AERIAL_SHIELD_STUN_MULTIPLIER; its pushback keeps Melee's duration. */
+export function shieldstunFrames(hitDamage: number, strength: number, aerial = false): number {
+  const duration = shieldstunDuration(hitDamage, strength, aerial ? AERIAL_SHIELD_STUN_MULTIPLIER : SHIELD_STUN_MULTIPLIER);
+  return toInt(divideFloat32(multiplyFloat32(duration, 200.0), 201.0));
 }
 
-export function digitalShieldstunFrames(hitDamage: number): number {
-  return shieldstunFrames(hitDamage, 1.0);
+export function digitalShieldstunFrames(hitDamage: number, aerial = false): number {
+  return shieldstunFrames(hitDamage, 1.0, aerial);
 }
 
 /** Defender pushback in world units; a perfect shield keeps the unreduced speed under the same cap. */

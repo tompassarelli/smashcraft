@@ -554,12 +554,13 @@ function cellOf(row: string, column: string, played: Played, zero: number, lead:
  * The attacker approaches until its aerial meets the shield; then each drift
  * holds its own stick, and picks its press in the hop, after the terms in
  * smashcraft:docs/design/platform-fighters.md: an advancing aerial hits as low
- * as it can and lands in front, a fade hits as early as it can and drifts the
- * rest of the fall away from the shield (fade-back) or on through it
- * (fade-forward).
+ * as it can and lands in front, an early advancing one as high as it can and
+ * lands in front, a fade hits as early as it can and drifts the rest of the
+ * fall away from the shield (fade-back) or on through it (fade-forward).
  */
 const DRIFTS = [
   { name: "advancing", after: 0, press: "latest" },
+  { name: "early advancing", after: 0, press: "earliest" },
   { name: "fade-back", after: -1, press: "earliest" },
   { name: "fade-forward", after: 1, press: "earliest" },
 ] as const;
@@ -772,7 +773,7 @@ function spans(values: readonly number[], step = 1): string {
   return parts.join(", ");
 }
 
-/** The press a drift uses from one reach: the lowest hit for advancing, the earliest for a fade. */
+/** The press a drift uses from one reach: the lowest hit for advancing, the earliest for early advancing and a fade. */
 const pressFor = (drift: Drift, reach: Reach): Found => (drift.press === "latest" ? reach.latest : reach.earliest);
 
 /** Each aerial on a shield: the start distances it reaches it from, and each drift's rows for the nearest (unspaced) and farthest (spaced). */
@@ -1289,7 +1290,7 @@ function aerialSection(entry: FighterEntry, rows: readonly Row[]): string[] {
   const variant = (row: AerialRow): string => `${row.spacing}, ${row.drift}`;
   const lines = [
     "## Aerial on shield", "",
-    `${entry.name} short hops at a shielding ${entry.name} from a standing start, approaching until the aerial meets the shield. Advancing presses the aerial as late in the hop as still meets the shield and holds no stick after; fade-back and fade-forward press it as early as meets the shield, then hold away or on through for the rest of the fall. Unspaced starts from the nearest distance that reaches the shield, spaced from the farthest. Frame 0 is the frame the aerial meets the shield; the other frames count from it. Advantage is the defender's first action minus the attacker's: negative means the defender acts first. Punish start frames are when the defender's option can start and still land before the attacker can act.`, "",
+    `${entry.name} short hops at a shielding ${entry.name} from a standing start, approaching until the aerial meets the shield. Advancing presses the aerial as late in the hop as still meets the shield and holds no stick after; early advancing presses it as early as meets the shield and holds no stick after, landing in front; fade-back and fade-forward press it as early as meets the shield, then hold away or on through for the rest of the fall. Unspaced starts from the nearest distance that reaches the shield, spaced from the farthest. Frame 0 is the frame the aerial meets the shield; the other frames count from it. Advantage is the defender's first action minus the attacker's: negative means the defender acts first. Punish start frames are when the defender's option can start and still land before the attacker can act.`, "",
     "### Start distances that reach the shield", "",
     ...table(["Aerial", "Start distances"], AERIALS.map((aerial) =>
       [aerial.name, reach.find((row) => row.aerial === aerial.name)?.distances || "none"])),

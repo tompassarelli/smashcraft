@@ -21,6 +21,9 @@ const CLASS_HYPOTHESES = {
   EDGE: { growth: 100.0, base: 25.0 },
   KILL: { growth: 110.0, base: 30.0 },
   SPIKE: { growth: 100.0, base: 24.0 },
+  // Throw roles (#107): an up throw's guaranteed short juggle and a down throw's tech chase.
+  JUGGLE: { growth: 55.0, base: 50.0 },
+  CHASE: { growth: 40.0, base: 75.0 },
 } as const;
 type LaunchClass = keyof typeof CLASS_HYPOTHESES;
 
@@ -198,7 +201,7 @@ export const MOUNTAIN_KING_MOVES: FighterMoves = {
     [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: { damage: 3.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } },
     [GrabAction.throwForward]: { contactFrame: 14, totalFrames: 36, effect: hit(9.0, "EDGE", 35) },
     [GrabAction.throwBack]: { contactFrame: 18, totalFrames: 45, effect: hit(10.0, "KILL", 40, true) },
-    [GrabAction.throwUp]: { contactFrame: 16, totalFrames: 39, effect: hit(8.0, "LAUNCH", 90) },
-    [GrabAction.throwDown]: { contactFrame: 20, totalFrames: 46, effect: hit(7.0, "LINK", 75) },
+    [GrabAction.throwUp]: { contactFrame: 16, totalFrames: 29, effect: hit(8.0, "JUGGLE", 90) },
+    [GrabAction.throwDown]: { contactFrame: 20, totalFrames: 46, effect: hit(7.0, "CHASE", 75) },
   },
 };

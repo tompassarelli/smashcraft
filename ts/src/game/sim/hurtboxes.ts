@@ -162,14 +162,14 @@ const placed = emptyCapsule();
  * Whether a placed strike capsule touches the target's body: a normal part
  * hits, invincible parts alone spend the strike, intangible parts pass it.
  */
-export function strikeHurtContact(strike: Readonly<Capsule>, target: Readonly<Fighter>): HurtContact {
+export function strikeHurtContact(strike: Readonly<Capsule>, target: Readonly<Fighter>, z = target.motion.z): HurtContact {
   const parts = fighterHurtParts(target);
   const facing = fighterPoseFacing(target);
   let contact: HurtContact = HurtContact.none;
   for (const part of parts) {
     const state = part.state ?? HurtState.normal;
     if (state === HurtState.intangible || (state === HurtState.invincible && contact !== HurtContact.none)) continue;
-    placeCapsule(placed, part, target.motion.x, target.motion.z, facing);
+    placeCapsule(placed, part, target.motion.x, z, facing);
     if (!capsulesIntersect(strike, placed)) continue;
     if (state === HurtState.normal) return HurtContact.hit;
     contact = HurtContact.invincible;
@@ -177,9 +177,9 @@ export function strikeHurtContact(strike: Readonly<Capsule>, target: Readonly<Fi
   return contact;
 }
 
-/** Grabs take any part a strike could touch, invincible ones included. */
-export function grabTouchesBody(strike: Readonly<Capsule>, target: Readonly<Fighter>): boolean {
-  return strikeHurtContact(strike, target) !== HurtContact.none;
+/** Grabs take any part a strike could touch, invincible ones included; `z` places the body for an early-ascent catch. */
+export function grabTouchesBody(strike: Readonly<Capsule>, target: Readonly<Fighter>, z = target.motion.z): boolean {
+  return strikeHurtContact(strike, target, z) !== HurtContact.none;
 }
 
 /** Styles the shipped fighters author poses for; tests and captures iterate them. */

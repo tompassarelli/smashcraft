@@ -88,9 +88,9 @@ function region(
 // before charge.
 const DEMON_HUNTER_REGIONS: { readonly [style: number]: Readonly<HitRegion> } = {
   [AttackStyle.jab]: region(0.0, 92.0, -55.0, 105.0, 5.0, 100.0, 18.0, DIAGONAL_UNIT, DIAGONAL_UNIT),
-  [AttackStyle.upSmash]: region(-105.0, 105.0, -30.0, 195.0, 15.0, 100.0, 28.0, DIAGONAL_UNIT, DIAGONAL_UNIT),
-  [AttackStyle.downSmash]: region(-105.0, 105.0, -195.0, 45.0, 15.0, 100.0, 28.0, DIAGONAL_UNIT, DIAGONAL_UNIT),
-  [AttackStyle.forwardSmash]: region(25.0, 195.0, -75.0, 105.0, 15.0, 100.0, 28.0, DIAGONAL_UNIT, DIAGONAL_UNIT),
+  [AttackStyle.upSmash]: region(-105.0, 105.0, -30.0, 195.0, 15.0, 100.0, 20.0, DIAGONAL_UNIT, DIAGONAL_UNIT),
+  [AttackStyle.downSmash]: region(-105.0, 105.0, -195.0, 45.0, 15.0, 100.0, 20.0, DIAGONAL_UNIT, DIAGONAL_UNIT),
+  [AttackStyle.forwardSmash]: region(25.0, 195.0, -75.0, 105.0, 12.0, 85.0, 20.0, DIAGONAL_UNIT, DIAGONAL_UNIT),
   [AttackStyle.demonHunterDashAttack]: region(0.0, 150.0, -70.0, 115.0, 9.0, 95.0, 20.0, 0.9200000166893005, 0.38999998569488525),
   [AttackStyle.forwardTilt]: region(0.0, 135.0, -80.0, 95.0, 8.0, 95.0, 18.0, 0.9399999976158142, 0.3400000035762787),
   [AttackStyle.upTilt]: region(0.0, 125.0, -30.0, 185.0, 8.0, 105.0, 18.0, 0.25, 0.968245804309845),
@@ -98,8 +98,8 @@ const DEMON_HUNTER_REGIONS: { readonly [style: number]: Readonly<HitRegion> } = 
   [AttackStyle.forwardTiltUp]: region(0.0, 135.0, -30.0, 145.0, 8.0, 100.0, 18.0, 0.8799999952316284, 0.47999998927116394),
   [AttackStyle.forwardTiltDown]: region(0.0, 135.0, -145.0, 5.0, 8.0, 100.0, 18.0, 0.8799999952316284, -0.47999998927116394),
   [AttackStyle.neutralAir]: region(-115.0, 115.0, -45.0, 100.0, 7.0, 95.0, 16.0, DIAGONAL_UNIT, DIAGONAL_UNIT),
-  [AttackStyle.forwardAir]: region(0.0, 175.0, -55.0, 115.0, 8.0, 100.0, 18.0, 0.9399999976158142, 0.3400000035762787),
-  [AttackStyle.backAir]: region(-175.0, 0.0, -55.0, 115.0, 8.0, 100.0, 18.0, -0.9399999976158142, 0.3400000035762787),
+  [AttackStyle.forwardAir]: region(0.0, 175.0, -55.0, 115.0, 6.0, 85.0, 18.0, 0.9399999976158142, 0.3400000035762787),
+  [AttackStyle.backAir]: region(-175.0, 0.0, -55.0, 115.0, 6.0, 85.0, 18.0, -0.9399999976158142, 0.3400000035762787),
   [AttackStyle.upAir]: region(-115.0, 115.0, 10.0, 205.0, 8.0, 105.0, 19.0, 0.2199999988079071, 0.9750000238418579),
   [AttackStyle.downAir]: region(-105.0, 105.0, -190.0, -10.0, 9.0, 100.0, 20.0, 0.1599999964237213, -0.9869999885559082),
 };

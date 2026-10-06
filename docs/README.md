@@ -18,8 +18,10 @@ Dated trial records live in [evidence](../evidence/README.md).
 - [Modern platform-fighter mechanics](design/modern-platform-fighters.md): sourced inventory of mechanics later games added or changed relative to Melee.
 - [Execution and reaction windows](design/execution-windows.md): windows other games use, human limits, and proposed bounds.
 - [Stages](design/stages.md): what Melee and Ultimate players pick and why, accepted variance and hazards, Warcraft places and built-in assets per race, and an evaluation of the draft stage list.
+- [Stage art](design/stage-art.md): research-based rules for stage backgrounds, skies and scenery: readable fight plane, symmetric decks with asymmetric dressing, depth bands, fog, motion budget.
 - [Hurtbox legibility](design/hurtbox-legibility.md): why Ultimate players report losing with correct spacing (hurtbox shapes per animation, interpolation, hit-pose shifts, glancing blows, randomness) and Melee's comparable cases, with sources.
 - [Projectiles](design/projectiles.md): Ultimate's projectile properties players blame, Melee's powershield and laser answers, other platform fighters, and Smashcraft's current projectiles.
+- [Archer's hippogryph specials](design/archer-specials.md): how great platform-fighter specials create decisions, and Archer's steerable ride with a leap-off and her perch-and-dive, with frame data and counterplay.
 - [Interaction graph](design/interaction-graph.md): for each situation, Smashcraft's options, what beats what by how many frames, and the punish windows, computed per fighter from its move data.
 - [Match flow](design/match-flow.md): match rules, endless play and automatic rematch, with Slippi and other platform-fighter prior art.
 - [Delivery goal](delivery-goal.md): what the finished game contains.
@@ -28,6 +30,7 @@ Dated trial records live in [evidence](../evidence/README.md).
 ## Physics and moves
 
 - [Physics reference](physics.md): source values, implementation and known differences.
+- [Melee camera](melee-camera.md): how Melee's match camera frames and follows the fighters, and how ours follows it.
 - [Expansion heroes](heroes.md): registering a hero, its specials and mana.
 - Melee mechanics: [air cutoff](melee-air-cutoff.md), [analog shield](melee-analog-shield.md), [ground motion](melee-ground-motion.md), [hitlag scalars](melee-hitlag-scalars.md), [hitstun boundaries](melee-hitstun-boundaries.md), [powershield](melee-powershield.md), [scalar math](melee-scalar-math.md), [tech input](melee-tech-input.md).
 - [Smash Melee reference data](smash-melee-reference/README.md): physics parameters, every fighter's retail attributes and the targeted retail observations used by the physics tests.

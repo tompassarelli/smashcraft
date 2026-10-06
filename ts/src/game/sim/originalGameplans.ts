@@ -7,10 +7,11 @@ import { type FighterGameplan, GameplanSpecial, GameplanThrow } from "./gameplan
 import { ILLIDAN_GAMEPLAN } from "./illidanGameplan";
 
 /**
- * Archer: the fastest run and jump start on the lightest body. He kites:
- * arrows and Multishot chip from range without stopping anyone, spaced
- * forward air is safe on shield, and Disengage resets the gap. He doesn't
- * brawl or stand by the edge, where his weight loses stocks early.
+ * Archer: the fastest run and jump start on the lightest body. Her speed is
+ * her edge: she runs in for grabs and tilts and jumps in with forward air more
+ * than she shoots; arrows and the homing arrow chip from range without stopping
+ * anyone, and her hippogryph resets the gap. She stays off the edge, where her
+ * weight loses stocks early.
  */
 const ARCHER: FighterGameplan = {
   range: { near: 180.0, far: 460.0 },
@@ -20,8 +21,9 @@ const ARCHER: FighterGameplan = {
     { move: GameplanSpecial.side, near: 160.0, far: 520.0 },
   ],
   approach: [
-    { via: "shoot", moves: [GameplanSpecial.neutral, GameplanSpecial.side], weight: 2 },
-    { via: "jump", moves: [AttackStyle.forwardAir, AttackStyle.neutralAir] },
+    { via: "shoot", moves: [GameplanSpecial.neutral, GameplanSpecial.side], weight: 1 },
+    { via: "run", moves: [AttackStyle.grab, AttackStyle.downTilt, AttackStyle.upTilt], weight: 2 },
+    { via: "jump", moves: [AttackStyle.forwardAir, AttackStyle.neutralAir], weight: 2 },
   ],
   defense: ["retreat", "retreat", "jump", "shield", "spotDodge"],
   combos: [
@@ -35,7 +37,7 @@ const ARCHER: FighterGameplan = {
     { move: AttackStyle.backAir, fromPercent: 110.0 },
   ],
   recovery: { aim: "mixed", upSpecial: "last" },
-  avoid: ["close", "edge"],
+  avoid: ["edge"],
 };
 
 /**

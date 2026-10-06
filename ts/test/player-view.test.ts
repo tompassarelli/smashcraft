@@ -13,6 +13,7 @@ import { Action, bit } from "../src/game/input/actions";
 import { requestStageSelect, requestStart, selectCharacter, selectStage, setParticipants } from "../src/game/match/rules";
 import { FLOOR_HEIGHT } from "../src/game/presentation/arenaCamera";
 import { CANNON_MODEL } from "../src/game/presentation/stageHazards";
+import { deckModel } from "../src/game/presentation/stagePreload";
 import { STAGE_CATALOG } from "../src/game/menu/stageCatalog";
 import { stageScenery } from "../src/game/presentation/stageScenery";
 import { modelReach } from "wisp/scripts/wisp/models";
@@ -91,36 +92,41 @@ test("Frozen Throne: a selectable match draws four platforms and the winter back
   }
 });
 
-test("winter meshes and drifting snow stay behind fighters, and fog starts beyond the fight in every declared camera", () => {
+test("every stage's scenery stays behind fighters, and fog starts beyond the fight in every declared camera", () => {
   const visibility = SMASHCRAFT_SCENE.visibility;
-  const scenery = stageScenery(2);
-  if (visibility === undefined || scenery.fog === undefined) throw new Error("missing winter visibility or fog");
+  if (visibility === undefined) throw new Error("missing visibility");
   const problems: string[] = [];
-  const corners = (box: { min: readonly number[]; max: readonly number[] }) =>
-    [box.min[0]!, box.max[0]!].flatMap(x => [box.min[1]!, box.max[1]!].flatMap(y => [box.min[2]!, box.max[2]!].map(z => [x, y, z] as const)));
-  for (const camera of visibility.cameras) {
-    const radians = (degrees: number) => degrees * Math.PI / 180;
-    const pitch = radians(camera.angleOfAttack > 180 ? camera.angleOfAttack - 360 : camera.angleOfAttack);
-    const yaw = radians(camera.rotation);
-    const forward = [Math.cos(pitch) * Math.cos(yaw), Math.cos(pitch) * Math.sin(yaw), Math.sin(pitch)] as const;
-    const along = (point: readonly number[]) => point.reduce((sum, value, axis) => sum + value * forward[axis]!, 0);
-    // Includes the complete visible fighting volume and a 200-unit allowance for fighter bodies.
-    const blast = stageBounds(2).blast;
-    const fight = { min: [blast.left - 200, -200, blast.bottom - 200], max: [blast.right + 200, 200, blast.top + 200] };
-    const farthestFighter = Math.max(...corners(fight).map(along));
-    const eye = camera.target.map((value, axis) => value - camera.distance * forward[axis]!);
-    expect(farthestFighter - along(eye)).toBeLessThan(scenery.fog.start);
-    for (const piece of scenery.pieces) {
-      const facts = MODEL_FACTS[piece.model];
-      if (facts === undefined) throw new Error(`missing facts for ${piece.model}`);
-      const reach = modelReach(facts);
-      expect(reach.unknown).toEqual([]);
-      for (const box of reach.boxes) {
-        const placed = {
-          min: [box.min[0] * piece.scale + piece.x, box.min[1] * piece.scale + piece.y, box.min[2] * piece.scale + piece.z] as const,
-          max: [box.max[0] * piece.scale + piece.x, box.max[1] * piece.scale + piece.y, box.max[2] * piece.scale + piece.z] as const,
-        };
-        if (boxSeen(placed, camera) && Math.min(...corners(placed).map(along)) <= farthestFighter) problems.push(piece.model);
+  for (const stage of STAGE_CATALOG) {
+    const scenery = stageScenery(stage.id);
+    const corners = (box: { min: readonly number[]; max: readonly number[] }) =>
+      [box.min[0]!, box.max[0]!].flatMap(x => [box.min[1]!, box.max[1]!].flatMap(y => [box.min[2]!, box.max[2]!].map(z => [x, y, z] as const)));
+    for (const camera of visibility.cameras) {
+      const radians = (degrees: number) => degrees * Math.PI / 180;
+      const pitch = radians(camera.angleOfAttack > 180 ? camera.angleOfAttack - 360 : camera.angleOfAttack);
+      const yaw = radians(camera.rotation);
+      const forward = [Math.cos(pitch) * Math.cos(yaw), Math.cos(pitch) * Math.sin(yaw), Math.sin(pitch)] as const;
+      const along = (point: readonly number[]) => point.reduce((sum, value, axis) => sum + value * forward[axis]!, 0);
+      // Includes the complete visible fighting volume and a 200-unit allowance for fighter bodies.
+      const blast = stageBounds(stage.id).blast;
+      const fight = { min: [blast.left - 200, -200, blast.bottom - 200], max: [blast.right + 200, 200, blast.top + 200] };
+      const farthestFighter = Math.max(...corners(fight).map(along));
+      const eye = camera.target.map((value, axis) => value - camera.distance * forward[axis]!);
+      if (scenery.fog !== undefined) expect(farthestFighter - along(eye)).toBeLessThan(scenery.fog.start);
+      for (const piece of scenery.pieces) {
+        const turn = radians(piece.yaw);
+        const turned = (x: number, y: number) => [x * Math.cos(turn) - y * Math.sin(turn), x * Math.sin(turn) + y * Math.cos(turn)] as const;
+        const facts = MODEL_FACTS[piece.model];
+        if (facts === undefined) throw new Error(`missing facts for ${piece.model}`);
+        const reach = modelReach(facts);
+        expect(reach.unknown).toEqual([]);
+        for (const box of reach.boxes) {
+          const flat = [box.min[0], box.max[0]].flatMap(x => [box.min[1], box.max[1]].map(y => turned(x, y)));
+          const placed = {
+            min: [Math.min(...flat.map(p => p[0])) * piece.scale + piece.x, Math.min(...flat.map(p => p[1])) * piece.scale + piece.y, box.min[2] * piece.scale + piece.z] as const,
+            max: [Math.max(...flat.map(p => p[0])) * piece.scale + piece.x, Math.max(...flat.map(p => p[1])) * piece.scale + piece.y, box.max[2] * piece.scale + piece.z] as const,
+          };
+          if (boxSeen(placed, camera) && Math.min(...corners(placed).map(along)) <= farthestFighter) problems.push(`${stage.name}: ${piece.model}`);
+        }
       }
     }
   }
@@ -140,8 +146,10 @@ test("development build: a match's scene report shows the stage and declares eve
   clients.frames(30);
   const client = clients.clients[0];
   if (client === undefined) throw new Error("missing host client");
+  let mainDeck = "";
   client.run(() => {
     const s = shell();
+    mainDeck = deckModel(s.game.stageChoice, 0);
     selectCharacter(s.game, 0, Character.demonHunter);
     selectCharacter(s.game, 1, Character.rifleman);
     expect(requestStageSelect(s.game, 0)).toBe(true);
@@ -156,7 +164,7 @@ test("development build: a match's scene report shows the stage and declares eve
   const declared = new Set(SMASHCRAFT_SCENE.kinds.flatMap(({ models }) => models.map((model) => model.replaceAll("\\", "/"))));
   expect(report.models.filter(({ model }) => !declared.has(model)).map(({ model }) => model)).toEqual([]);
   expect(report.effects).toBeGreaterThan(200);
-  expect(report.models.find(({ model }) => model === reportedModel(STAGE_MAIN_DECK_MODEL))).toMatchObject({ live: 1, inView: 1, drawn: 1 });
+  expect(report.models.find(({ model }) => model === reportedModel(mainDeck))).toMatchObject({ live: 1, inView: 1, drawn: 1 });
   expect(client.errors).toEqual([]);
 });
 
@@ -216,7 +224,7 @@ test("moving decks are visible and their effects follow the presented match fram
         trampoline("scene.report")();
         const report = sceneReport(client);
         expect(sceneProblems(report, SMASHCRAFT_SCENE)).toEqual([]);
-        expect(report.models.find(({ model }) => model === reportedModel(STAGE_DECK_MODEL))).toMatchObject({ live: stage === DRIFTING_DECK_STAGE ? 1 : 2, drawn: stage === DRIFTING_DECK_STAGE ? 1 : 2 });
+        expect(report.models.find(({ model }) => model === reportedModel(deckModel(stage, 1)))).toMatchObject({ live: stage === DRIFTING_DECK_STAGE ? 1 : 2, drawn: stage === DRIFTING_DECK_STAGE ? 1 : 2 });
       }
     });
     expect(client.errors).toEqual([]);
