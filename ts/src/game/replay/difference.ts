@@ -134,6 +134,14 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("sdiLaunchesUpward", e.launch.sdiLaunchesUpward, a.launch.sdiLaunchesUpward);
   add("sdiSerial", e.launch.sdiSerial, a.launch.sdiSerial);
   add("asdiSerial", e.launch.asdiSerial, a.launch.asdiSerial);
+  add("sdiHitTravel", e.launch.sdiHitTravel, a.launch.sdiHitTravel);
+  add("sdiStringTravel", e.launch.sdiStringTravel, a.launch.sdiStringTravel);
+  add("sdiStepX", e.launch.sdiStepX, a.launch.sdiStepX);
+  add("sdiStepZ", e.launch.sdiStepZ, a.launch.sdiStepZ);
+  add("sdiStepTravel", e.launch.sdiStepTravel, a.launch.sdiStepTravel);
+  add("sdiNextX", e.launch.sdiNextX, a.launch.sdiNextX);
+  add("sdiNextZ", e.launch.sdiNextZ, a.launch.sdiNextZ);
+  add("sdiNextTravel", e.launch.sdiNextTravel, a.launch.sdiNextTravel);
   add("cooldown", e.attack.cooldown, a.attack.cooldown);
   add("attackStyle", e.attack.style, a.attack.style);
   add("attackFrame", e.attack.frame, a.attack.frame);

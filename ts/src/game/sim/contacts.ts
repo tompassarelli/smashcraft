@@ -30,6 +30,7 @@ import {
   shieldstunFrames,
 } from "./shield";
 import { beginShieldBreak } from "./shieldBreak";
+import { beginSmashDirectionalInfluenceHit } from "./smashDirectionalInfluence";
 import { beginDownDamage, cancelAttack, cancelSpecialState, clearDownState, clearGrabLinks, interruptJumpOrDodge, thawFighter } from "./transitions";
 import { at } from "wisp/src/runtime/lookup";
 
@@ -243,6 +244,7 @@ function resolveDamageContacts(world: Roster, slot: number): void {
   const jabReset = chosen.kind !== ContactKind.throw && chosen.down && totalDamage < DOWN_DAMAGE_RESET_THRESHOLD;
   clearGrabLinks(world, slot);
   launch.diPending = false;
+  beginSmashDirectionalInfluenceHit(launch);
   launch.diLaunchSpeed = 0.0;
   interruptJumpOrDodge(target);
   if (!jabReset) clearDownState(target);

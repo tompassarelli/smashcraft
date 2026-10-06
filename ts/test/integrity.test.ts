@@ -5,10 +5,11 @@ import { Effect } from "effect";
 import { expect, test } from "bun:test";
 import { captureEpochs, parseCaptureArguments, parseSweep } from "../scripts/integrity/capture";
 import { IntegrityFailure, kernelLine, producerLine, readEvidence, readMetadata } from "../scripts/integrity/evidence";
-import { type JourneyOptions, type JourneyRecord, type PublicationRecord, type RigShape, journey } from "../scripts/integrity/journey";
+import { type JourneyOptions, type JourneyRecord, type PublicationRecord, Rig, type RigShape, journey, nextMatchEpoch } from "../scripts/integrity/journey";
 import { ABS_X, EV_ABS, PAD_BUTTONS, decodeEvents, edgePacket, padCapabilities, padSetup } from "../scripts/integrity/linuxInput";
 import { type Slot, capturePair, integrityResult, integrityTable, summaryJson } from "../scripts/integrity/reconcile";
 import { integritySchedule } from "../scripts/integrity/schedule";
+import { frameCostOverlay } from "../scripts/integrity/botFiles";
 
 const evidence = (run: string) => join(import.meta.dir, "../../evidence", `input-integrity-0042-${run}-20261005`);
 
@@ -316,4 +317,86 @@ test("xpad pads press X for special, Y for jump, and stick-up only as up", () =>
   expect(bot.trace.indexOf("type a -dev perf")).toBeGreaterThan(secondStart);
   expect(bot.trace.slice(firstEnd, secondStart).some(line => line.includes("menu-results-confirm") || line.includes("menu-character"))).toBe(false);
   expect(bot.events.filter(event => event.event === "start" || event.event === "end").map(event => [event.event, event.epoch])).toEqual([["start", 1], ["end", 1], ["start", 2], ["end", 2]]);
+  // The overlay is read from A's screen during the rematch that shows it, and only then.
+  const overlay = bot.events.flatMap(event => (event.event === "perf-overlay" ? [event.epoch] : []));
+  expect(overlay.length).toBeGreaterThan(0);
+  expect(new Set(overlay)).toEqual(new Set([2]));
+  expect(bot.trace).toContain("ui a read 1700,90 530x210");
+});
+
+/** The recording rig over menu receipts whose slot modes follow A's tag clicks: C at x 1484, D at 1904, each cycling HMN → CPU → EMPTY. */
+function lobbyRig(humans: number, computers: number) {
+  const modes = { humans, computers };
+  const menu = () => `SMASHCRAFT JOURNAL MENU v=1 build=b epoch=0 slot=0 phase=CHARACTER\nconnected=3 human-fighters=${modes.humans} computers=${modes.computers} fighters=${modes.humans + modes.computers}\nendfunction\n`;
+  const recording = recordingRig((client, name) => (name.includes("-menu-") ? menu() : gameFiles(client, name)), "3 Stock 7:00 Automatic rematch: Off Player 2 wins!");
+  const atSetup: (readonly [number, number])[] = [];
+  const rig: RigShape = {
+    ...recording.rig,
+    click: (client, x, y) => recording.rig.click(client, x, y).pipe(Effect.tap(() => Effect.sync(() => {
+      const bit = client === 0 && y === 824 ? { 1484: 4, 1904: 8 }[x] : undefined;
+      if (bit === undefined) return;
+      if ((modes.humans & bit) !== 0) [modes.humans, modes.computers] = [modes.humans - bit, modes.computers + bit];
+      else if ((modes.computers & bit) !== 0) modes.computers -= bit;
+      else modes.humans += bit;
+    }))),
+    record: (event) => recording.rig.record(event).pipe(Effect.tap(() => Effect.sync(() => {
+      if (event.event === "bot-setup") atSetup.push([modes.humans, modes.computers]);
+    }))),
+  };
+  return { ...recording, rig, modes, atSetup };
+}
+
+test("bot sessions set slots C/D from whatever the lobby gave them", async () => {
+  const tagClicks = (trace: readonly string[]) => trace.filter((line) => / (?:1484|1904) 824$/.test(line)).map((line) => Number(line.split(" ")[3]));
+  // The lobby's computer players: C and D come up CPU.
+  for (const [botFour, setup, clicks] of [[false, [3, 4], [1484, 1904, 1484, 1484]], [true, [3, 12], [1484, 1904, 1484, 1484, 1904, 1904]]] as const) {
+    const bot = lobbyRig(3, 12);
+    await Effect.runPromise(journey(bot.rig, { ...R8, build: "typescript-integrity", workload: "bot", botFour }).run);
+    expect(bot.atSetup).toEqual([setup]);
+    // The lobby's CPUs are cleared once each before setup; the run ends with two humans again.
+    expect(tagClicks(bot.trace).slice(0, clicks.length)).toEqual([...clicks]);
+    expect(bot.modes).toEqual({ humans: 3, computers: 0 });
+  }
+  // From two humans, setup clicks only as before.
+  const clean = lobbyRig(3, 0);
+  await Effect.runPromise(journey(clean.rig, { ...R8, build: "typescript-integrity", workload: "bot" }).run);
+  expect(tagClicks(clean.trace).slice(0, 2)).toEqual([1484, 1484]);
+  expect(clean.atSetup).toEqual([[3, 4]]);
+  // #26's integrity run also starts its rematch slot change from two humans.
+  const integrity = lobbyRig(3, 12);
+  await Effect.runPromise(journey(integrity.rig, R8).run);
+  expect(tagClicks(integrity.trace).slice(0, 2)).toEqual([1484, 1904]);
+  expect(integrity.modes).toEqual({ humans: 3, computers: 0 });
+});
+
+test("a capture starts at the game's next match, read from both menu receipts", async () => {
+  const next = (epochs: readonly [number, number]) => {
+    const { rig } = recordingRig((client) => `SMASHCRAFT JOURNAL MENU v=1 build=b epoch=${epochs[client]} slot=${client} phase=CHARACTER\nendfunction\n`);
+    return Effect.runPromiseExit(nextMatchEpoch("b").pipe(Effect.provideService(Rig, rig)));
+  };
+  expect(await next([0, 0])).toMatchObject({ _tag: "Success", value: 1 });
+  expect(await next([2, 2])).toMatchObject({ _tag: "Success", value: 3 });
+  // A rematch can't start a capture, and the clients must agree.
+  expect((await next([1, 1]))._tag).toBe("Failure");
+  expect((await next([2, 4]))._tag).toBe("Failure");
+  const base = ["--helper", "h", "--build", "b", "--out", "o", "--app-id", "a=x", "--app-id", "b=y"];
+  expect(parseCaptureArguments([...base, "--bot"]).epochs).toBeUndefined();
+});
+
+test("overlay readings reduce to the rematch's frame cost, unreadable ones counted apart", () => {
+  const reading = (text: string) => ({ event: "perf-overlay", epoch: 2, observed_monotonic_ns: NOW, text });
+  const result = frameCostOverlay([
+    { event: "start", epoch: 2 },
+    reading("frame cost, last 120 frames, median / p95 / max\nLua ms: 5 / 12.5 / 30 (clock step 1 ms)\nnatives: 165 / 400 / 2257\ncatch-up frames: 0 / 0 / 6"),
+    reading("frame cost, last 120 frames, median / p95 / max\nLua ms: 4 / 9 / 15 (clock step 1 ms)\nnatives: 150 / 380 / 900"),
+    reading("frame cost, last 120 frames, median /{npgx|Lua ms: 6 / 35.02 (clock step 1 msl)'"),
+    reading("unread: the window did not answer"),
+  ]);
+  expect(result).toMatchObject({
+    readings: 4,
+    unread: 2,
+    lua_ms: { median_of_medians: 4, median_p95: 9, max_p95: 12.5, max: 30 },
+    windows_with_a_frame_over_16_7_ms: 1,
+    natives_median: 150,
+  });
 });

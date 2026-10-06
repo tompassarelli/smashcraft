@@ -31,6 +31,8 @@ const HELD_BUTTONS = bit(Action.attack) | bit(Action.jump) | bit(Action.special)
 
 const events = readEvents(directory);
 const edges = readEdges(directory);
+/** #49's script plays in the capture's first match. */
+const firstMatch = Math.min(...events.flatMap((event) => (event.event === "start" && event.epoch !== undefined ? [event.epoch] : [])));
 
 const percentile = (values: readonly number[], p: number) => {
   const sorted = [...values].sort((a, b) => a - b);
@@ -78,7 +80,7 @@ const report = [0, 1].flatMap((slot) => {
     if (admitted !== undefined && ns >= current.epochNs && !nearStall) current.delays.push(1 + Math.floor(((ns - current.epochNs) * 60) / 1e9) - admitted);
   }
   return [...byEpoch].map(([matchEpoch, { rows, delays }]) => {
-    const sent = edges.filter((edge) => edge.event === `slot-${slot}` && edge.value !== 0 && (edge.phase.startsWith(`bot-${matchEpoch}-`) || (edge.phase.startsWith("pad49-") && matchEpoch === 1)));
+    const sent = edges.filter((edge) => edge.event === `slot-${slot}` && edge.value !== 0 && (edge.phase.startsWith(`bot-${matchEpoch}-`) || (edge.phase.startsWith("pad49-") && matchEpoch === firstMatch)));
     const frames = [...rows.keys()].sort((a, b) => a - b);
     const last = rows.get(frames.at(-1) ?? 0);
     const buttons = BUTTONS.map(([type, code, sign, name, mask]) => {
