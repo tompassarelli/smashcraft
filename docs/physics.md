@@ -1514,7 +1514,8 @@ direction while holding the walk modifier as tilt. C-stick bindings request
 smashes directly. Walking uses the character baseline of 1.6/1.4 Melee units
 per frame (Archer/Rifleman), independently of run speed. Walking changes
 directly to the requested walk speed rather than modeling analog walk
-acceleration. Tilt damage is 10 side / 8 up / 8 down. These damage values
+acceleration. Tilt damage is 10 side / 8 up / 8 down; Rifleman's down tilt
+deals 10 (smashcraft:docs/move-comparisons.md). These damage values
 and the ground/air blaster timing
 difference are provisional tuning. Blaster duration is captured at attack
 start, so landing cannot rewrite its recovery. Aerial normals are now separate

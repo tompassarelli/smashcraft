@@ -56,7 +56,11 @@ From smashcraft:ts/:
   `bot-result.json`. It holds each stall's input delay before, at its peak
   and after; each match's end receipts; both clients' confirmed states at
   common trace frames; and the moments saved during the capture, copied
-  into `DIR/moments`.
+  into `DIR/moments`. It then replays every moment in `DIR/moments` in two
+  simulated clients, as `bun wisp repro` does, and records in
+  `moment_replays` whether each lands on the checksum Warcraft recorded
+  (`moment_replays_passed`; a `PASS` or `FAIL` line per moment on stderr).
+  Run it from the source the captured build was made from.
 - `bun scripts/integrity/botInputs.ts DIR` counts each match's scripted
   presses against the rows each helper typed. It also reports any button
   held in the last row, and the input delay away from stalls.
@@ -79,7 +83,7 @@ From smashcraft:ts/:
 
 Input delay here is how many frames a helper has journaled by its own
 clock beyond the last frame its client consumed. It is read at the helper's
-edit-box receipts, about every 200 ms. Moments replay with
+edit-box receipts, about every 200 ms. One moment replays alone with
 `bun wisp repro FILE`. A playable build writes no input trace, so only
 integrity and development builds give confirmed states.
 

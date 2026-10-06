@@ -24,3 +24,21 @@ jobs:
         working-directory: ts
         env:
           CI_TIMING: report
+      # Replay tapes and the numeric corpus in a stock Lua32 and in one whose
+      # raw float + - * round toward zero (wisp:docs/headless.md#raw-float-rounding):
+      # both must equal Bun, so no raw float operation leaks past the exact helpers.
+      - name: Build stock and toward-zero 32-bit Luas
+        working-directory: ts
+        run: |
+          mkdir -p build/lua-stock build/toward-zero-lua
+          curl -fsSL https://www.lua.org/ftp/lua-5.3.6.tar.gz -o build/lua-5.3.6.tar.gz
+          echo 'fc5fd69bb8736323f026672b1b7235da613d7177e72558893a0bdcd320466d60  build/lua-5.3.6.tar.gz' | sha256sum --check
+          tar -xzf build/lua-5.3.6.tar.gz -C build/lua-stock
+          tar -xzf build/lua-5.3.6.tar.gz -C build/toward-zero-lua
+          make -C build/lua-stock/lua-5.3.6 -j2 generic MYCFLAGS=-DLUA_32BITS
+          make -C build/toward-zero-lua/lua-5.3.6 -j2 generic "MYCFLAGS=-DLUA_32BITS -include $PWD/node_modules/wisp/native/toward-zero.h"
+      - run: bun wisp tapes && bun wisp parity numeric
+        working-directory: ts
+        env:
+          LUA: ${{ github.workspace }}/ts/build/lua-stock/lua-5.3.6/src/lua
+          TOWARD_ZERO_LUA: ${{ github.workspace }}/ts/build/toward-zero-lua/lua-5.3.6/src/lua
