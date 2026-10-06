@@ -63,7 +63,7 @@ export function startFreezeTrap(owner: Fighter, stage: number, matchFrame: numbe
 
 function trapCanContact(owner: Fighter, target: Fighter): boolean {
   const trap = owner.freezeTrap;
-  return trap.life > 0 && trap.arming === 0 && !owner.status.out && !target.status.out && target.status.frozenFrames === 0
+  return trap.life > 0 && trap.arming === 0 && !owner.status.out && !target.status.out && target.status.frozenFrames === 0 && target.status.freezeImmunityFrames === 0
     && target.motion.grounded && target.motion.surface === trap.surface && !isIntangible(target)
     && Math.abs(f32(target.motion.x - trap.x)) <= FREEZE_TRAP_TRIGGER_RADIUS;
 }

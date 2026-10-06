@@ -2336,6 +2336,13 @@ Rendered fall-special pose and input feel still require in-game verification.
 
 ## Rifleman freezing trap
 
+When ice expires or a hit breaks it, every trap ignores that fighter until
+20 frames after thaw (#84). The thaw frame completes the frozen tick; normal
+movement resumes on the next frame. Trap eligibility returns on frame 20,
+after that frame's movement, so a jump pressed on frame 15 completes even the
+Rifleman's five-frame squat before contact. Other attacks still hit normally.
+The immunity timer is replay state and clears on stock loss and respawn.
+
 Down+B places one trap on Rifleman's current grounded surface. Placement is
 instant when the next simulation frame accepts the input; airborne placement,
 placement while shielded or action-locked, and a second live trap are ignored.

@@ -268,6 +268,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   int("freezeTrapSurface", fighter.freezeTrap.surface ?? -1);
   int("freezeTrapSerial", fighter.freezeTrap.serial);
   int("frozenFrames", st.frozenFrames);
+  int("freezeImmunityFrames", st.freezeImmunityFrames);
   int("freezeTrapCooldown", fighter.freezeTrap.cooldown);
   bool("out", st.out);
   int("respawn", st.respawn);

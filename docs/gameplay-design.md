@@ -126,6 +126,15 @@ checks that every oracle departure names a row here.
 
 ## Fighters
 
+- **Rifleman's trap escape** (delegated choice, 6 Oct 2026, #84): keep the
+  single 300-frame freeze, then prevent any trap from catching that fighter
+  until 20 frames after thaw. A hit that breaks ice grants the same interval.
+  This covers the accepted 15-frame response floor plus the longest current
+  five-frame jump squat: a jump chosen 15 frames after thaw leaves the ground
+  before a waiting trap can spring. The trade-off is that Rifleman can still
+  cover the escape with another move, and an idle fighter can be caught again
+  when the interval expires. This is trap immunity, not protection from damage.
+
 - **Archer's arrows** (owner correction): normal, running and multishot arrows
   add damage without hitstun, hitlag, knockback or interruption; shields still
   take their damage. smashcraft:docs/physics.md, "Archer arrows: damage without
