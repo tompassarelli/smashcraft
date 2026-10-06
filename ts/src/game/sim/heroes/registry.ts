@@ -7,12 +7,13 @@ import { BLADEMASTER_HERO } from "./blademasterHero";
 import { DREADLORD_HERO } from "./dreadlordHero";
 import { LICH_HERO } from "./lichHero";
 import { MOUNTAIN_KING_HERO } from "./mountainKingHero";
+import { PIT_LORD_HERO } from "./pitLordHero";
 import { SHADOW_HUNTER_HERO } from "./shadowHunterHero";
 import { UTHER_HERO } from "./utherHero";
 import { WARDEN_HERO } from "./wardenHero";
 
 export const HERO_ROSTER: readonly HeroDefinition[] = [
-  BLADEMASTER_HERO, MOUNTAIN_KING_HERO, WARDEN_HERO, LICH_HERO, UTHER_HERO, DREADLORD_HERO, SHADOW_HUNTER_HERO,
+  BLADEMASTER_HERO, MOUNTAIN_KING_HERO, WARDEN_HERO, LICH_HERO, UTHER_HERO, DREADLORD_HERO, SHADOW_HUNTER_HERO, PIT_LORD_HERO,
 ];
 
 const BY_CHARACTER: { readonly [character: number]: HeroDefinition | undefined } = {
@@ -23,6 +24,7 @@ const BY_CHARACTER: { readonly [character: number]: HeroDefinition | undefined }
   [Character.uther]: UTHER_HERO,
   [Character.dreadlord]: DREADLORD_HERO,
   [Character.shadowHunter]: SHADOW_HUNTER_HERO,
+  [Character.pitLord]: PIT_LORD_HERO,
 };
 
 export function heroDefinition(character: number): HeroDefinition | undefined {

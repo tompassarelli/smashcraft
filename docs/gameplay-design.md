@@ -910,6 +910,9 @@ reason. Current departures:
   air, back air, down air). The roster keeps hurtboxes on attached body parts;
   the wings reach about 0.83 of his height sideways and the claws about half
   below his feet, all hittable.
+- **Pit Lord's back air (Tail Lash), rule 6.** The tail is the strike and the
+  roster lengthens his tail hurtbox with it, so the tail volume reaches about
+  0.97 of his height behind him and stays hittable to its full length.
 
 ## Aerials on shield
 

@@ -306,6 +306,26 @@ const SHADOW_HUNTER: MatchScript = {
 };
 
 /**
+ * Pit Lord's Fel Spit arcs at the Archer, Ruin Charge runs in on its armor,
+ * Howl of Terror roars and the terrified Archer jabs back, Abyssal Leap
+ * rises, then the cleaver normals, a grab and a back throw, and a down air.
+ */
+const PIT_LORD: MatchScript = {
+  characters: [Character.pitLord, Character.archer], stage: 0, stocks: 3, minutes: 0, frames: 600,
+  holds: [[
+    [20, 2, SPECIAL], [90, 4, TOWARD], [91, 2, SPECIAL], [170, 4, DOWN], [171, 2, SPECIAL], [250, 2, ATTACK],
+    [280, 8, DOWN], [282, 2, ATTACK], [320, 3, JUMP], [332, 4, UP], [333, 2, SPECIAL], [440, 2, GRAB],
+    [446, 4, AWAY], [500, 3, JUMP], [506, 2, C_DOWN], [550, 2, C_RIGHT],
+  ], [
+    [60, 2, ATTACK], [110, 2, ATTACK], [200, 2, ATTACK], [215, 2, ATTACK], [260, 12, SHIELD_LEFT], [400, 2, ATTACK],
+    [470, 10, SHIELD_RIGHT],
+  ]],
+  approaches: [[[240, 60], [430, 45], [495, 50]], [[60, 120], [150, 60], [195, 60], [390, 60]]],
+  rollbacks: [[24, 55], [92, 130], [172, 210], [252, 300], [334, 380], [442, 490], [508, 560]],
+  predictions: [[90, 102], [440, 452]],
+};
+
+/**
  * Dreadlord's Carrion Swarm hits, a Sleep meets a shield and a second one
  * sleeps the Archer, Vampiric Pounce catches and bites, a second whiffs, the free
  * Bat Ascension rises on the 5 mana left, then normals and a grab and throw.
@@ -382,6 +402,7 @@ export function generateTapes(): Map<string, string> {
     ["dreadlord", recordTape("Dreadlord's specials, sleep, a command grab, free Bat Ascension, normals and a throw against the Archer, with replays.", [DREADLORD])],
     ["mountain-king", recordTape("Mountain King's specials, free Thunder Leap, normals and a throw against the Archer, with replays.", [MOUNTAIN_KING])],
     ["shadow-hunter", recordTape("Shadow Hunter's glaive, ward, Hex, recall, vault and normals against the Archer, with replays.", [SHADOW_HUNTER])],
+    ["pit-lord", recordTape("Pit Lord's arcing spit, armored charge, Terror, leap, cleaver normals and a throw against the Archer, with replays.", [PIT_LORD])],
     ["warden", recordTape("Warden's specials with poison and an aimed Blink, normals and a throw against the Archer, with replays.", [WARDEN])],
     ["uther", recordTape("Uther's specials, guard, free recovery and normals against the Archer, with replays.", [UTHER])],
     ["moving-platforms", recordTape("Moving decks, jumping, dropping through, predictions and rollback over complete path cycles.", [{

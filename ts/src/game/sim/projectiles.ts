@@ -325,6 +325,7 @@ function flyHeroProjectile(world: Roster, ownerSlot: number, projectile: Project
   if (spec?.returns !== undefined && projectile.damageMultiplier === 1.0 && spec.life - projectile.life >= spec.returns.age && !returnToOwner(fighterAt(world, ownerSlot), projectile, spec.returns.speed)) return undefined;
   const oldX = projectile.x;
   const oldZ = projectile.z;
+  if (spec?.gravity !== undefined) projectile.velocityZ = f32(projectile.velocityZ - spec.gravity);
   projectile.x = f32(oldX + projectile.velocityX);
   projectile.z = f32(oldZ + projectile.velocityZ);
   projectile.life--;

@@ -114,3 +114,13 @@ matches until the match rules turn them on.
 | Down special | Hex | A short orb that stops its target attacking, grabbing or casting until it mashes out. |
 | Passive | Voodoo Crossfire | Glaive and ward hits charge his next melee hit with extra damage. |
 | Ultimate | Big Bad Voodoo | A ward zone that makes him take less damage while he stands in it. |
+
+## Pit Lord
+
+| Input | Name | What it does |
+| --- | --- | --- |
+| Neutral special | Fel Spit | A heavy glob that arcs up and falls onto an approaching target. |
+| Side special | Ruin Charge | A slow charge whose armor shrugs off one light hit; it stops at a shield. |
+| Up special | Abyssal Leap | A slow arcing leap with a hoof strike, then a helpless fall. |
+| Down special | Howl of Terror | A roar around him; anyone it hits deals less damage for three seconds. |
+| Passive | Cleaving Attack | His cleaver strikes every opponent in its path, and the blade itself can't be hit. |

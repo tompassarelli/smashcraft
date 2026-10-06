@@ -1,13 +1,13 @@
 # Expansion heroes: how a hero is registered and run
 
-The seven roster heroes ([roster specification](design/roster.md)) share one
+The roster heroes ([roster specification](design/roster.md)) share one
 registration path, one special-move executor and one resource. A hero is a
 data record; the simulation, replay, selection and object data read it.
 
 ## Registering a hero
 
 - `ts/src/game/sim/codes.ts` reserves the Character codes: Blademaster 3,
-  Mountain King 4, Warden 5, Lich 6, Uther 7, Dreadlord 8, Shadow Hunter 9.
+  Mountain King 4, Warden 5, Lich 6, Uther 7, Dreadlord 8, Shadow Hunter 9, Pit Lord 10.
   Hero specials run under `SpecialAction.heroNeutral`..`heroDown` (13-16) and
   hero projectiles under `ProjectileKind.hero` (5).
 - `ts/src/game/sim/heroes/<hero>Hero.ts` is one hero's `HeroDefinition`
@@ -18,7 +18,9 @@ data record; the simulation, replay, selection and object data read it.
   code, portrait, projectile model, per-pose clips with a fallback) and
   `complete`.
 - `ts/src/game/sim/heroes/heroBodies.ts` holds the roster's weight, run,
-  air-speed, width and height multipliers. `sim/tuning.ts` derives a hero's
+  air-speed, width and height multipliers. An optional `shield` scale grows the
+  reference shield's centre height and radius for a body that would stand
+  outside it (Pit Lord 1.35). `sim/tuning.ts` derives a hero's
   physics from Archer's (weight, dash/run/walk speed, air speed; jumps and
   gravity unchanged) and `physics/contactGeometry.ts` scales Archer's hurt
   capsule by width and height. Ledge, wall and roll data use Archer's.
@@ -63,7 +65,7 @@ acts again on N+1. It may author:
   behind the nearest marked opponent within `relocateReach`, spending the mark
   (Shadow Pursuit); a kit's `marked` form is chosen while a poisoned opponent
   is within its range, and `strikeStatus` applies a status with each strike
-  that reaches a body;
+  that reaches a body (Howl of Terror's Terror);
 - `aimFrames`: through this frame a held stick re-chooses the aim, so an up
   special can still be aimed sideways or down; without it the aim is the
   stick on entry;
@@ -71,7 +73,8 @@ acts again on N+1. It may author:
   life, radius, `activeFrom` (the spawn frame is age one), effect,
   `reflectable`, `limit`, `cancelOnInterrupt`, `backOffsetX` (used when
   the special is pressed toward the back, which then keeps the facing) and
-  `needsLineOfSight` (not placed through solid stage surfaces); a cast that
+  `needsLineOfSight` (not placed through solid stage surfaces), `gravity` (subtracted from
+  the vertical velocity before each move: Fel Spit's arc); a cast that
   would exceed a limit or the three-projectile cap fails before spending; in a
   match a hero projectile ends on a wall, an underside or a solid deck's top,
   and passes through pass decks; an optional
@@ -128,7 +131,7 @@ acts again on N+1. It may author:
 `sim/codes.ts` (`HeroStatusKind`, `HeroStatusGroup`). A kind's rules say
 whether it discards every input (motion and gravity continue and the current
 action ends), refuses neutral, side and down specials, or ends on the next
-damaging hit; the hit that applies a status resolves first, so it never ends
+damaging hit, or scales the damage of every hit the fighter deals (Terror, 0.9); the hit that applies a status resolves first, so it never ends
 its own status. A status ending by time or hit grants its group's immunity, so
 no source chains it. Reapplying refreshes the duration. Status, frames, group
 and per-group immunity are rollback state, written to the canonical record

@@ -107,6 +107,8 @@ export interface SpecialProjectile {
   readonly velocityZ: number;
   readonly upVelocityX?: number | undefined;
   readonly upVelocityZ?: number | undefined;
+  /** Subtracted from the vertical velocity before each move: an arcing flask or spit. */
+  readonly gravity?: number | undefined;
   readonly life: number;
   readonly radius: number;
   readonly activeFrom?: number | undefined;

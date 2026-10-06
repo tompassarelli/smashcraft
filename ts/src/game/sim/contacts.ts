@@ -34,7 +34,7 @@ import { beginSmashDirectionalInfluenceHit } from "./smashDirectionalInfluence";
 import { beginDownDamage, cancelAttack, cancelSpecialState, clearDownState, clearGrabLinks, interruptJumpOrDodge, thawFighter } from "./transitions";
 import { at } from "wisp/src/runtime/lookup";
 import { CHILL } from "./chill";
-import { type AppliedStatus, applyHeroStatus, damageEndsHeroStatus } from "./heroStatus";
+import { type AppliedStatus, applyHeroStatus, damageEndsHeroStatus, heroStatusDamageDealt } from "./heroStatus";
 import { contactEarnsMana, dealtManaGain, gainMana, takenManaGain } from "./mana";
 
 /** One contact, with the source's and target's state sampled when it was collected. */
@@ -111,6 +111,9 @@ export function collectDamageContact(
   contact.source = sourceSlot;
   contact.target = targetSlot;
   copyHitEffect(contact.effect, effect);
+  // A status on the source (Terror) scales the damage of everything it deals, launch and hitlag included.
+  const dealt = heroStatusDamageDealt(source);
+  if (dealt !== 1.0) contact.effect.damage = multiplyFloat32(contact.effect.damage, dealt);
   contact.facing = facing;
   contact.kind = kind;
   contact.direct = direct;

@@ -230,10 +230,15 @@ function scaledHurtCapsule(character: number): Readonly<Capsule> | undefined {
   return { x1: 0.0, z1: reference.z1, x2: 0.0, z2: f32(reference.z1 + f32(height - f32(2.0 * radius))), radius };
 }
 
-const HURT_CAPSULES: readonly Readonly<Capsule>[] = [
-  ...ORIGINAL_HURT_CAPSULES,
-  ...[3, 4, 5, 6, 7, 8, 9].map(character => scaledHurtCapsule(character) ?? at(ORIGINAL_HURT_CAPSULES, 0)),
-];
+/** The original fighters' capsules, then each hero's by Character code while heroBodies lists one. */
+const HURT_CAPSULES: readonly Readonly<Capsule>[] = (() => {
+  const capsules: Readonly<Capsule>[] = [...ORIGINAL_HURT_CAPSULES];
+  for (let character = capsules.length; ; character++) {
+    const scaled = scaledHurtCapsule(character);
+    if (scaled === undefined) return capsules;
+    capsules.push(scaled);
+  }
+})();
 
 /** A character's facing-relative hurt capsule; characters past the table share its last entry. */
 export function hurtCapsule(character: number): Readonly<Capsule> {

@@ -350,6 +350,17 @@ export function applyAuthoredTuning(world: Roster): void {
   for (const fighter of world.fighters) if (fighter !== undefined) fighter.tuning = authoredTuning(fighter.character);
 }
 
+/**
+ * The reference shield, or one scaled to a hero's body when its roster body
+ * declares a shield scale: a body much wider than the reference's (Pit Lord)
+ * would otherwise stand outside its own shield.
+ */
+function heroShieldGeometry(character: Character): ShieldGeometry {
+  const scale = heroBody(character)?.shield;
+  if (scale === undefined) return AUTHORED_SHIELD_GEOMETRY;
+  return { centerX: 0.0, centerZ: f32(AUTHORED_SHIELD_GEOMETRY.centerZ * scale), radius: f32(AUTHORED_SHIELD_GEOMETRY.radius * scale) };
+}
+
 export function authoredTuning(character: Character): FighterTuning {
   const hero = heroDefinition(character);
   return {
@@ -359,7 +370,7 @@ export function authoredTuning(character: Character): FighterTuning {
     surface: authoredSurfaceRecovery(character),
     ground: AUTHORED_GROUND_MOVEMENT_RULES,
     dashGrab: AUTHORED_DASH_GRAB_RULES,
-    shield: AUTHORED_SHIELD_GEOMETRY,
+    shield: heroShieldGeometry(character),
     tech: character === Character.demonHunter ? CAPTAIN_FALCON_TECH_TIMING : AUTHORED_TECH_TIMING,
     shieldBreak: AUTHORED_SHIELD_BREAK_TIMING,
   };

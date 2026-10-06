@@ -652,6 +652,48 @@ Standing grab 11/3/31, reach 0.80H. Pummel: horn jab, shared 3 damage despite hu
 
 **Required counterplay test:** fast characters can get inside a missed cleave and punish it. Pit Lord must have a usable close escape, but cannot turn jab into a fast long-range wall. Check that size does not make standard platforms impossible to traverse.
 
+### Pit Lord as built
+
+Source: smashcraft:ts/src/game/sim/heroes/pitLordMoves.ts (normals, grabs,
+throws, body), pitLordSpecials.ts and pitLordHero.ts (#121). Every row
+above is implemented with its listed timing, damage, angle and reach. Launch
+classes use provisional coefficients. Deliberate differences:
+
+- The up throw is a JUGGLE and the down throw a CHASE (#107), released on
+  f20 and f23. Their totals are 30 and 50 frames.
+- The standing grab is 10/3/32, one frame earlier than 11/3/31 with the
+  same total, so it still catches a jump out of shield in the early-ascent
+  window (#107).
+- Down air's hooves reach about 60 below his feet, so the attached hoof
+  volume stays inside the legible-hurtbox limit. Tail Lash's tail is body to
+  its full length, a named rule-6 departure (smashcraft:docs/gameplay-design.md).
+- His shield is the reference shield scaled by his 1.35 height (centre and
+  radius). The reference shield would leave his 1.65-wide body outside it, and
+  an arcing Fel Spit then struck him through it.
+- Fel Spit leaves at 0.45H and falls 0.003H a frame faster each frame
+  (`gravity` on the projectile). Its arc stays within a raised shield's reach
+  at 240 and 480 units, so a powershield reflects it.
+- Howl of Terror applies Terror (`HeroStatusKind.terror`, its own immunity
+  group, no immunity window): for 180 frames every hit the target deals does
+  0.9 of its damage, including its knockback and hitlag. Nothing else
+  changes. A shield stops it.
+- Ruin Charge's armor lapses during his own hitlag, like every special's
+  armor window, so the charge's contact frame does not extend it.
+
+Presentation uses the stock classic HeroPitLord model, scale 0.95. It has
+seventeen sequences and no hit, ready or jump clip, so flinches play
+"Stand - 2". The cleaver normals map to "Attack" (thrust), the "Attack Slam"
+pair (overhead) and "attack - 2" (both-sides sweep). pitLordHero.ts lists
+every pose's clip.
+
+**Gameplan** (smashcraft:ts/src/game/sim/heroes/pitLordGameplan.ts, #105):
+he holds 120-190 units at Cleaving Sweep's tip. He makes the target act with
+Fel Spit from range and runs in behind Ruin Charge's armor. Down tilt and the
+throws start his strings. Annihilating Cleave kills from 70%, then Abyssal
+Lift, Falling Cleaver and the back throw. Being caught inside a whiffed
+cleave is his weakness, so he backs out of close range and stays on the ground
+away from the edge.
+
 ## Goblin Tinker
 
 **Identity:** a mechanical gadget fighter with telescoping arms and one factory. His gadgets are readable and destructible, and the opponent can attack him while he installs them. Keep robots as bounded deterministic objects.

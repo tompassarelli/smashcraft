@@ -63,6 +63,8 @@ export type Race = (typeof Race)[keyof typeof Race];
 /** By Character. */
 const RACES: readonly Race[] = [
   Race.nightElf, Race.human, Race.nightElf, Race.orc, Race.human, Race.nightElf, Race.undead, Race.human, Race.undead, Race.orc,
+  // Pit Lord: the game lists him as undead.
+  Race.undead,
 ];
 
 export const characterRace = (character: Character): Race => at(RACES, character);
@@ -88,6 +90,7 @@ const VOICES: readonly (readonly [string, string])[] = [
   ["Units\\Human\\Uther\\", "Uther"],
   ["Units\\Undead\\HeroDreadLord\\", "HeroDreadLord"],
   ["Units\\Orc\\HeroShadowHunter\\", "ShadowHunter"],
+  ["Units\\Demon\\HeroPitLord\\", "HPitLord"],
 ];
 
 function voice(character: Character, line: string): string {
@@ -106,7 +109,8 @@ export function victoryAnimation(character: Character): string {
   switch (character) {
     case Character.archer: case Character.blademaster: case Character.uther: case Character.shadowHunter:
       return "stand victory";
-    case Character.lich:
+    // Pit Lord has no ready stance; he roars.
+    case Character.lich: case Character.pitLord:
       return "stand channel";
     default:
       return "stand ready";

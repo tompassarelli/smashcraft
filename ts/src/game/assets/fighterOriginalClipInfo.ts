@@ -371,6 +371,26 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\ShadowHunterOriginalClip12-dd77fd535f14f1f9e84b396d97e1c782b1982057af198ba8b3a4dda055904f7f.mdx", startSeconds: f32(65.167), endSeconds: f32(66.833), looping: false },
     { modelPath: "war3mapImported\\ShadowHunterOriginalClip13-cb63ab9fc15ce91c676654e9cdf5160125bd776ca354bc1ddbfaf09854d21d33.mdx", startSeconds: f32(86.667), endSeconds: f32(89.367), looping: true },
   ],
+  // PitLord
+  [
+    { modelPath: "war3mapImported\\PitLordOriginalClip0-2780c740be99eb9182d66e6b186df279403ab4d73ddd0d480a5525580135729d.mdx", startSeconds: 10.0, endSeconds: f32(12.833), looping: true },
+    { modelPath: "war3mapImported\\PitLordOriginalClip1-52e684fb188d2665c71f152667364f6041f63bcaf9247cbd4d09b0fd21ce93fd.mdx", startSeconds: 165.0, endSeconds: f32(166.333), looping: true },
+    { modelPath: "war3mapImported\\PitLordOriginalClip2-fcf59ec39912ec1e24fbf8423bcc0fa280daaa27037065798ec548709d82a1fb.mdx", startSeconds: f32(167.333), endSeconds: 170.0, looping: true },
+    { modelPath: "war3mapImported\\PitLordOriginalClip3-66a359a3d50b7401924535221d847c2ad11294431f06fc925408837fc0d83b34.mdx", startSeconds: f32(177.667), endSeconds: f32(178.133), looping: true },
+    { modelPath: "war3mapImported\\PitLordOriginalClip4-2ff988ebc81769acb31a14ff448d5ef2033c147a92f2003c09466f3df01ef4d2.mdx", startSeconds: f32(183.333), endSeconds: 184.5, looping: true },
+    { modelPath: "war3mapImported\\PitLordOriginalClip5-7ad9900f49d4e57cdbc03a97f0e816f0b0a3f768273e760ca743839823172ad9.mdx", startSeconds: f32(186.667), endSeconds: f32(188.167), looping: false },
+    { modelPath: "war3mapImported\\PitLordOriginalClip6-4054ff0d5244a2861daa066c3e06ae331d98ba17713e2d0fa87efa9145c234a5.mdx", startSeconds: 190.0, endSeconds: 191.5, looping: false },
+    { modelPath: "war3mapImported\\PitLordOriginalClip7-10f183f43315f513ab9841570f746dc601ac5abee750045401a33f6c9b57f2ba.mdx", startSeconds: f32(193.333), endSeconds: f32(194.833), looping: false },
+    { modelPath: "war3mapImported\\PitLordOriginalClip8-62617e1470ef236c78b816c7a91cda492380947bb9142d1c670106d091294e26.mdx", startSeconds: f32(196.667), endSeconds: f32(199.333), looping: false },
+    { modelPath: "war3mapImported\\PitLordOriginalClip9-971fe5019b91229b076ff2ef52f960ad4ecccf42f35467ada638159b1d03f10a.mdx", startSeconds: 200.0, endSeconds: 202.0, looping: false },
+    { modelPath: "war3mapImported\\PitLordOriginalClip10-85c3b3e3ce22089a9155a63bac19f72fbc3980408163897f100b26069b6a3dbf.mdx", startSeconds: f32(206.667), endSeconds: f32(266.667), looping: false },
+    { modelPath: "war3mapImported\\PitLordOriginalClip11-0e2dda73050f7377b24385447276d771de44d88d6be506443f25ecce05e14bed.mdx", startSeconds: f32(273.333), endSeconds: f32(333.333), looping: false },
+    { modelPath: "war3mapImported\\PitLordOriginalClip12-03b242c9051aa526abcf72418119fc64b4cc639142cd0ea3120825574229dc5e.mdx", startSeconds: 335.0, endSeconds: f32(336.333), looping: true },
+    { modelPath: "war3mapImported\\PitLordOriginalClip13-4cac5c1f6bf749f7024b342d9f0e0d6ceb95eb1bfae4c91a970781671c67a9b5.mdx", startSeconds: f32(336.667), endSeconds: f32(338.333), looping: false },
+    { modelPath: "war3mapImported\\PitLordOriginalClip14-19f5e4775aac88f86ea2c574115766f041ac88c415fa5166168069dcef557dc2.mdx", startSeconds: 340.0, endSeconds: 341.5, looping: false },
+    { modelPath: "war3mapImported\\PitLordOriginalClip15-b99fca294f9fbfc3f1a3deb1607dac03dd9b414f723f1107a16ca82441a00005.mdx", startSeconds: f32(343.333), endSeconds: 345.0, looping: false },
+    { modelPath: "war3mapImported\\PitLordOriginalClip16-2be4142fc6f61899056c1891a9d34482fa0828398b74fa79cf6c61d0a290ffe0.mdx", startSeconds: f32(346.667), endSeconds: f32(348.167), looping: false },
+  ],
 ];
 
 /** Each character's lowercase original sequence names; a name without its numeric variant selects the first variant. */
@@ -741,6 +761,27 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["dissipate", 12],
     ["stand channel", 13],
     ["stand", 1],
+  ]),
+  // PitLord
+  new Map<string, number>([
+    ["stand - 3", 0],
+    ["walk", 1],
+    ["stand", 2],
+    ["walk fast", 3],
+    ["stand - 2", 4],
+    ["attack slam - 1", 5],
+    ["spell slam", 6],
+    ["attack", 7],
+    ["death", 8],
+    ["dissipate", 9],
+    ["decay flesh", 10],
+    ["decay bone", 11],
+    ["stand channel", 12],
+    ["attack slam - 2", 13],
+    ["spell", 14],
+    ["attack - 2", 15],
+    ["attack - 3", 16],
+    ["attack slam", 5],
   ]),
 ];
 
