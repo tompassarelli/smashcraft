@@ -219,13 +219,6 @@ function addCloseSpecials(f: Readonly<Fighter>, target: Readonly<Fighter>, stage
       if (localX >= region.minX && localX <= region.maxX && localZ >= region.minZ && localZ <= region.maxZ && specialReady(f, DOWN_SPECIAL)) options[added++] = DOWN_SPECIAL;
       break;
     }
-    case Character.shadowHunter:
-      // A ward set between him and a grounded target at mid range; Hex at the orb's short reach.
-      if (motion.grounded && target.motion.grounded && f.placed.life <= 0 && f.mana.points >= 20 && facing === f.facing
-        && distance >= 160 && distance <= 420 && Math.abs(dz) <= 60 && specialReady(f, SIDE_SPECIAL)) options[added++] = SIDE_SPECIAL;
-      if (f.mana.points >= 25 && facing === f.facing && distance >= 60 && distance <= 200 && Math.abs(dz) <= 80
-        && specialReady(f, DOWN_SPECIAL)) options[added++] = DOWN_SPECIAL;
-      break;
   }
   return added;
 }

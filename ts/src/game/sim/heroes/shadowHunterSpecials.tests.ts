@@ -5,6 +5,8 @@ import { f32 } from "wisp/src/sim/f32";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
 import { AttackStyle, Character, HeroStatusGroup, HeroStatusKind, ProjectileKind, SpecialAction } from "../codes";
 import { maskHeroStatusControls } from "../heroStatus";
+import { SpecialSlot } from "../heroSpecials";
+import { HeroSpecialUse, heroSpecialUse } from "../../match/botHeroKit";
 import { attackBuffer } from "../../input/attackBuffer";
 import { beginDamageContacts, finishDamageContacts } from "../contacts";
 import { type Fighter, createFighter } from "../fighter";
@@ -233,4 +235,16 @@ test("a shielded Hex orb applies no Hex", () => {
   for (let f = 2; f <= 53; f++) frame(world, controls(), controls({ shield: true }));
   assertTrue(owner.projectiles.every(p => p.life <= 0));
   assertEquals(target.status.condition, HeroStatusKind.none);
+});
+
+test("the computer sets a ward when its shot would reach a grounded target, and never recalls one", () => {
+  const { world, owner, target } = pair(300.0);
+  assertEquals(heroSpecialUse(owner, target, 0, SpecialSlot.side), HeroSpecialUse.ranged);
+  target.motion.x = f32(owner.motion.x + 900.0);
+  assertEquals(heroSpecialUse(owner, target, 0, SpecialSlot.side), HeroSpecialUse.none);
+  target.motion.x = f32(owner.motion.x + 300.0);
+  placeWard(world);
+  for (let f = 27; f <= 60; f++) frame(world);
+  assertGreaterThan(owner.placed.life, 0);
+  assertEquals(heroSpecialUse(owner, target, 0, SpecialSlot.side), HeroSpecialUse.none);
 });
