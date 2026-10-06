@@ -60,33 +60,12 @@ rule reproduces SmashWiki's Fox heights, which the script asserts.
   flat ground with the stick fully held. It is arithmetic on the recorded
   parameters, not a recorded game trace.
 
-## Open design questions for the owner
+## Smashcraft decisions
 
-Each is a fact about Melee that Smashcraft has not yet taken a position on.
-Decided items are in [gameplay design decisions](../../gameplay-design.md) and
-not repeated here.
-
-2. Wavedash and waveland: they follow from the air dodge carrying momentum into
-   the landing ([Techniques](techniques.md#wavedash-and-waveland)). Whether
-   Smashcraft keeps that property is open.
-3. Dash dancing and the initial dash window: per-fighter initial dash lengths
-   range as shown in [Movement](movement.md#ground-movement). How long
-   Smashcraft's windows are, and whether they differ by fighter, is open.
-4. Ground moves on shield: in Melee nearly every grounded normal loses on
-   shield and only spacing makes it safe ([Attacks](attacks.md#safety-on-shield)).
-   The target on-shield range for Smashcraft's moves is open.
-5. Aerials on shield: an aerial's safety depends on hitting late and landing
-   at once ([Attacks](attacks.md#aerials-on-shield-by-timing-spacing-and-drift)).
-   How much spacing and drift decide safety in Smashcraft is open.
-6. Out-of-shield options: Melee lets the defender grab, jump-cancel into up
-   smash or grab, or jump into an aerial ([Defence](defense.md#shield)). Which
-   of these Smashcraft offers, and how fast, is open.
-7. Chain grabs that depend on the victim's fall speed or weight
-   ([Techniques](techniques.md#chain-grabs)). Whether any such grab is acceptable
-   short of a loop is open (#68 covers loops without escape).
-8. Ledge play: regrab lock, ledge intangibility and edge-hogging
-   ([Defence](defense.md#ledges)). Smashcraft's ledge rules follow Melee today;
-   whether they stay is open.
-10. Crouch cancelling and ASDI down: low-percent hits on a crouching fighter
-    lose knockback and hitlag ([Defence](defense.md#influence-on-knockback)).
-    Whether Smashcraft keeps both is open.
+The questions raised by Melee's wavedash, dash dancing, shield safety,
+out-of-shield actions, ledges, crouch cancelling and ASDI are resolved in
+[shared mechanic defaults](../../gameplay-design.md#shared-mechanic-defaults).
+Throw-to-regrab chains use the adopted
+[throw regrab rule](../../gameplay-design.md#throw-regrabs), and roster physics
+and trade-offs use the [expansion defaults](../../gameplay-design.md#expansion-roster-defaults).
+The case study's Melee values remain reference facts, not a template for fighters.

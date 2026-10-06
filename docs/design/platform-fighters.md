@@ -370,19 +370,12 @@ play ([slippi-js stats](https://github.com/project-slippi/slippi-js/tree/master/
   the opponent's own opening was in progress) or **trades** (both at once),
   giving a neutral win ratio, counter-hit ratio and beneficial-trade ratio.
 
-## Open design questions for the owner
+## Smashcraft decisions
 
-One line each, neutral; the options are those the sources above describe.
-
-- Shield geometry: a shrinking bubble that can be poked and tilted (Melee), a fixed bubble, or no shield (Rivals 1, Brawlhalla)?
-- Aerial shieldstun: the same formula as ground moves (Melee) or reduced for aerials (Ultimate t = 0.33)?
-- Whiff penalty: extra recovery or landing lag only on a miss (Rivals 1 × 1.5, Street Fighter 6 patches), or none?
-- Cross-ups: out-of-shield options face the original side only, or some (or all) reach behind?
-- Grab against hitbox on the same frame: grab wins (Melee) or hitbox wins (Smash 4, Ultimate)?
-- Clanking: Smash's 9% rebound rule for ground attacks, aerials always trade, or a different rule?
-- Ledge: a two-frame vulnerability before intangibility, or intangible from the first frame?
-- DI strength: Melee's 18°, Smash 4 and Ultimate's 9.74°, or another bound?
-- Tech chases: tech rolls long and distinct enough to chase on reaction (Melee), or short enough to need reads (Ultimate)?
-- Launchers: does every fighter need a launcher into a follow-up situation (tech chase, juggle, ledge), or is that per fighter?
-- Recovery: a minimum number of distinct recovery routes per fighter (high/low, ledge/stage, timing), or none?
-- Interaction graph: which properties to require per situation (no sink, a minimum option count, payoff ratios), measured by #67?
+The questions raised here about shields, aerial shieldstun, whiffs, cross-ups,
+grab/strike priority, clanking, ledges, DI, tech chases, launchers, recovery and
+graph properties are resolved in
+[shared mechanic defaults](../gameplay-design.md#shared-mechanic-defaults).
+Physical spread also uses the adopted
+[expansion roster defaults](../gameplay-design.md#expansion-roster-defaults).
+This reference describes the alternatives; the stance lives in gameplay design.

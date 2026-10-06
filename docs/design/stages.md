@@ -4,7 +4,8 @@ What Melee and Ultimate players pick, why, which layouts and hazards they
 accept, and which Warcraft places and built-in assets could dress Smashcraft's
 stages. Descriptive and sourced; the stance is the owner's
 ([gameplay design](../gameplay-design.md)). The last two sections evaluate the
-draft list of eight in issue #75 and list the open questions.
+draft list of eight in issue #75; current choices are in
+[gameplay design's stage defaults](../gameplay-design.md#stage-defaults).
 
 Units: Melee lengths are Melee units; Ultimate lengths are Ultimate units (its
 Battlefield is 160 wide against Melee's 136.8). Smashcraft's world uses 6
@@ -498,18 +499,15 @@ widths are given as the reference stage's, in Melee units unless noted.
 
 The flat stage stays outside the eight, as the draft says.
 
-## Open design questions for the owner
+## Smashcraft decisions
 
-- Should the flat stage appear on the selection list, or only in testing?
-- Should moving platforms move during tournament play, as in Brawl and Smash 4, or hold still, as Ultimate's hazards-off setting does?
-- Should hazard stages be starters, counterpicks, or both?
-- Should every stage have a hazard, or should some be static?
-- Should a hazard ever damage or launch, or only move fighters and platforms?
-- Should blast zones sit inside Melee's legal band (Yoshi's Story to Dream Land), given smashcraft:ts/src/game/sim/stocks.ts's current zones are tighter than Yoshi's Story's?
-- Should the Burning Legion or Naga replace one of the two Orc or two Undead stages?
-- Should stages use HD-only skies and models, given the test clients run classic graphics?
-- Should Ahn'Qiraj get an authored tentacle model, or a built-in stand-in?
-- How many stages should a tournament list hold: Melee's six, or Ultimate's eight to nine?
+The questions this research raised about the flat arena, platform motion,
+starter/counterpick roles, hazard variety and effects, blast zones, race themes,
+classic graphics, Ahn'Qiraj art and list size are resolved in
+[stage defaults](../gameplay-design.md#stage-defaults).
+The eight-stage evaluation above describes the original #75 draft; the current
+stance and catalog supersede that draft where they differ. It is not evidence
+of competitive balance or external tournament adoption.
 
 ## Sources
 
