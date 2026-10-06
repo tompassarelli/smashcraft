@@ -73,13 +73,16 @@ From smashcraft:ts/:
   counts presses, the actions they cover, lost and extra edges, and edges
   applied off their frame. It also gives each legal press's local start:
   callbacks from the presser's client capturing it to that client first
-  predicting it. Presses made while the presser's own game or helper was
-  stopped are reported apart from the gate. So are presses made while the
-  other player's was stopped, and presses in the second after a stop.
-  `worst_gated_presses` names the latest ones by capture, match, slot and
-  frame. A legal press whose first prediction didn't start its action has
-  no local start; `confirmedAfter` gives the callbacks until the confirmed
-  frame showed it.
+  predicting it. The gate leaves out presses made while the presser's own
+  game or helper was stopped, and presses the presser's client captured
+  while a remote row 24 frames behind held its prediction (the probe's
+  `held` rows); both are reported apart (`by_stall.own`,
+  `prediction_held`). Presses made while the other player's process was
+  stopped, and those in the second after a stop, are gated and also listed
+  apart. `worst_gated_presses` names the latest ones by capture, match, slot
+  and frame. A legal press whose first prediction didn't start its action
+  has no local start; `confirmedAfter` gives the callbacks until the
+  confirmed frame showed it. It exits 1 when the gate fails.
 
 Input delay here is how many frames a helper has journaled by its own
 clock beyond the last frame its client consumed. It is read at the helper's

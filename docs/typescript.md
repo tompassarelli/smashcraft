@@ -373,6 +373,18 @@ TypeScriptToLua keeps one variable for the whole loop instead of one per
 iteration. Copy the index into a `const` in the body, or take it as a
 `forEach` callback parameter.
 
+An array that can hold `undefined` has no reliable `length` in Lua, which
+stores no nil entries, so Wisp's compiler rejects reading it (Wisp 0e46c0f);
+loop to the array's fixed capacity instead. A Special's hit targets, copied
+up to their `length`, were left out of every replay snapshot in Lua: after a
+rollback the speculative match no longer matched the confirmed one. In
+0.0.49's four-fighter bot session 26 of 57 legal presses did not start in
+their first prediction, two of them predicted with every row already known
+(#60). Bun cannot show such a difference: `GAME_SOAK=1` with
+scripts/lua-tests.ts runs
+smashcraft:ts/src/game/replay/fourFighterRollback.soak.ts, which compares the
+speculative history with the confirmed match through late rows in Lua32.
+
 ## Tests
 
 `test(name, fn)` from `wisp/src/runtime/testing` registers a test that runs under Bun
@@ -395,7 +407,8 @@ From smashcraft:ts/:
   Each save prints the saved files' type errors, the affected unit tests, the
   journeys (the quick match plus the affected tests that play simulated
   clients: the desync guard, the visual and player-view group, stack-trace,
-  rematch-load, missing-input, input-stall, tune and lag-recovery) and the
+  rematch-load, missing-input, input-stall, tune, lag-recovery and
+  local-start) and the
   whole `bun run check`, each timed from the save.
   smashcraft:ts/scripts/wisp/commands/dev.ts declares the tests: the Bun test
   files, the registry modules game.test.ts runs, the files a test reads at run

@@ -102,6 +102,11 @@ export interface LocalStart {
   readonly afterStall: number | undefined;
   /** When the first prediction did not start the action: callbacks from capture to the confirmed frame that did. */
   readonly confirmedAfter: number | undefined;
+  /**
+   * The presser's client captured it while its prediction was held back by a
+   * remote row R frames behind, or hadn't yet run every local row since (#60).
+   */
+  readonly held: boolean;
 }
 
 export interface IntegrityResult {
@@ -118,7 +123,11 @@ export interface IntegrityResult {
   readonly reordered: number;
   readonly stuck: number;
   readonly expectedFrame: { readonly correct: number; readonly total: number; readonly percent: number | undefined };
+  /** Legal presses captured while prediction ran; held ones are in heldLocalStart. */
   readonly localStart: Distribution;
+  /** Legal presses captured while a remote row held prediction back: reported, not gated. */
+  readonly heldLocalStart: Distribution;
+  readonly heldMissingFirstPrediction: number;
   /** Each legal press's local start, with whether a process of its own or the other player was stopped when it was pressed. */
   readonly localStarts: readonly LocalStart[];
   /** Workload presses (edges that turn a source on) per slot, and the bindings they pressed. */
@@ -296,11 +305,11 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
   const injected: [number, number] = [0, 0];
   const presses: [number, number] = [0, 0];
   let lost = 0, duplicated = 0, reordered = 0, stuck = 0, correct = 0, total = 0;
-  const localDelays: number[] = [], opponentLateness: number[] = [], rollbackDepths: number[] = [], stallLengths: number[] = [];
+  const localDelays: number[] = [], heldDelays: number[] = [], opponentLateness: number[] = [], rollbackDepths: number[] = [], stallLengths: number[] = [];
   const localStarts: LocalStart[] = [];
   /** Lost and extra edges as "epoch E slot S client C: lost|extra FRAME:BIT:PRESSED". */
   const mismatchedEdges: string[] = [];
-  let missingLocal = 0, illegalPresses = 0, legalPresses = 0;
+  let missingLocal = 0, heldMissing = 0, illegalPresses = 0, legalPresses = 0;
   const native = new Map<string, NativeRow[]>();
   const rollbackLimits = new Set<number>();
   const endpoints = new Map<string, Endpoint>();
@@ -472,8 +481,10 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
       const what = `epoch ${epoch} slot ${slot} local row`;
       const captures = new Map<number, number>();
       const predicted = new Map<number, readonly [serial: number, actions: number]>();
+      const held = new Set<number>();
       for (const { serial, stage, values } of local) {
         if (stage === "capture" && values[1] === slot) captures.set(at(values, 2, what), serial);
+        if (stage === "held" && values[1] === slot) held.add(at(values, 2, what));
         if (stage === "action" && values[1] === slot) predicted.set(at(values, 2, what), [serial, at(values, 5, what)]);
       }
       for (const { serial, stage, values } of local) {
@@ -487,18 +498,20 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
         const prediction = predicted.get(frame);
         const capture = captures.get(frame);
         const stall = stallSide(frame);
+        const wasHeld = held.has(frame);
         if (capture === undefined || prediction === undefined || (prediction[1] & legal) !== legal) {
-          missingLocal += popcount(legal);
+          if (wasHeld) heldMissing += popcount(legal);
+          else missingLocal += popcount(legal);
           // A first prediction that did not start the action shows it only once the confirmed frame replays it.
           const confirmedAfter = capture === undefined ? undefined : serial - capture;
-          for (let i = popcount(legal); i > 0; i--) localStarts.push({ epoch, slot, frame, delay: undefined, confirmedAfter, stall, afterStall: afterStall(frame) });
+          for (let i = popcount(legal); i > 0; i--) localStarts.push({ epoch, slot, frame, delay: undefined, confirmedAfter, stall, afterStall: afterStall(frame), held: wasHeld });
           continue;
         }
         // The callback that FIRST executed prediction is compared to the
         // admission callback. A later rollback replay never creates this row.
         for (let i = popcount(legal); i > 0; i--) {
-          localDelays.push(prediction[0] - capture);
-          localStarts.push({ epoch, slot, frame, delay: prediction[0] - capture, confirmedAfter: undefined, stall, afterStall: afterStall(frame) });
+          (wasHeld ? heldDelays : localDelays).push(prediction[0] - capture);
+          localStarts.push({ epoch, slot, frame, delay: prediction[0] - capture, confirmedAfter: undefined, stall, afterStall: afterStall(frame), held: wasHeld });
         }
       }
     }
@@ -554,6 +567,8 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
     stuck,
     expectedFrame: { correct, total, percent: total > 0 ? (100 * correct) / total : undefined },
     localStart: distribution(localDelays),
+    heldLocalStart: distribution(heldDelays),
+    heldMissingFirstPrediction: heldMissing,
     localStarts,
     mismatchedEdges,
     presses,
@@ -613,6 +628,7 @@ export function integrityTable(r: IntegrityResult): string[] {
     `| Lost / duplicated / reordered / stuck edges | ${r.lost} / ${r.duplicated} / ${r.reordered} / ${r.stuck} |`,
     `| Edges applied at expected frame, both clients | ${r.expectedFrame.correct}/${r.expectedFrame.total} (${percent(r.expectedFrame.percent)}%) |`,
     `| Local start − capture, frames | ${brief(r.localStart)} (n=${r.localStart.n}); missing first prediction ${r.legalActionsMissingFirstPrediction} |`,
+    `| Local start while a remote row held prediction back (not gated) | ${brief(r.heldLocalStart)} (n=${r.heldLocalStart.n}); missing first prediction ${r.heldMissingFirstPrediction} |`,
     `| Opponent input lateness, frames: p50 / p95 / max | ${brief(r.opponentLateness)} (n=${r.opponentLateness.n}) |`,
     `| Rollback depth, frames: p50 / p95 / max | ${brief(r.rollbackDepth)} (n=${r.rollbackDepth.n}) |`,
     `| Prediction stalls at ${shown(r.rollbackLimit)}-frame limit | ${r.stalls.count}; longest ${r.stalls.longest} callbacks |`,
@@ -657,6 +673,8 @@ export function summaryJson(r: IntegrityResult) {
     legal_action_edges: r.legalActionEdges,
     illegal_action_edges: r.illegalActionEdges,
     legal_actions_missing_first_prediction: r.legalActionsMissingFirstPrediction,
+    local_start_while_prediction_held_frames: distributionJson(r.heldLocalStart),
+    held_missing_first_prediction: r.heldMissingFirstPrediction,
     opponent_input_lateness_frames: distributionJson(r.opponentLateness),
     rollback_depth_frames: distributionJson(r.rollbackDepth),
     prediction_stalls: { count: r.stalls.count, longest_callbacks: r.stalls.longest },

@@ -12,6 +12,9 @@ import { integritySchedule } from "../scripts/integrity/schedule";
 
 const evidence = (run: string) => join(import.meta.dir, "../../evidence", `input-integrity-0042-${run}-20261005`);
 
+/** Captures before #60's held rows report no press captured while prediction was held. */
+const NOTHING_HELD = { local_start_while_prediction_held_frames: { n: 0, p50: null, p95: null, max: null, distribution: {} }, held_missing_first_prediction: 0 };
+
 const reconcileRun = async (run: string) => {
   const root = evidence(run);
   const metadata = await Effect.runPromise(readMetadata(root));
@@ -28,6 +31,7 @@ test("the r8 capture reconciles to #26's measured table", async () => {
     "| Lost / duplicated / reordered / stuck edges | 0 / 0 / 0 / 0 |",
     "| Edges applied at expected frame, both clients | 1296/1296 (100.0%) |",
     "| Local start − capture, frames | 8 / 88 / 97 (n=203); missing first prediction 0 |",
+    "| Local start while a remote row held prediction back (not gated) | None / None / None (n=0); missing first prediction 0 |",
     "| Opponent input lateness, frames: p50 / p95 / max | 9 / 21 / 23 (n=1391) |",
     "| Rollback depth, frames: p50 / p95 / max | 13 / 24 / 24 (n=198) |",
     "| Prediction stalls at 24-frame limit | 169; longest 52 callbacks |",
@@ -36,9 +40,9 @@ test("the r8 capture reconciles to #26's measured table", async () => {
   ]);
   expect(result.gates).toEqual({ edges: true, expectedFrame: true, localStart: false, checksums: true });
   expect(result.failures).toEqual([]);
-  // The retained summary predates the rollback-limit, four-fighter and player-view fields.
+  // The retained summary predates the rollback-limit, four-fighter, player-view and held-prediction fields.
   const retained = await Bun.file(join(evidence("r8"), "summary.json")).json();
-  expect(summaryJson(result)).toEqual({ ...retained, rollback_limit_frames: 24, four_fighters: false, player_view_failures: [] });
+  expect(summaryJson(result)).toEqual({ ...retained, rollback_limit_frames: 24, four_fighters: false, player_view_failures: [], ...NOTHING_HELD });
 });
 
 test("the r7 capture reconciles to its retained failing summary", async () => {
@@ -49,7 +53,7 @@ test("the r7 capture reconciles to its retained failing summary", async () => {
     "| Edges applied at expected frame, both clients | 1291/1296 (99.6141975308642%) |",
   ]);
   const retained = await Bun.file(join(evidence("r7"), "summary.json")).json();
-  expect(summaryJson(result)).toEqual({ ...retained, rollback_limit_frames: 24, four_fighters: false, player_view_failures: [] });
+  expect(summaryJson(result)).toEqual({ ...retained, rollback_limit_frames: 24, four_fighters: false, player_view_failures: [], ...NOTHING_HELD });
 });
 
 const NOW = 10 ** 15;
@@ -200,7 +204,7 @@ test("the result reports player-view failures without gating them", async () => 
     const result = integrityResult(await Effect.runPromise(readEvidence(root, metadata)), capturePair(metadata));
     const retained = await Bun.file(join(root, "summary.json")).json();
     // r8's table, gates and verdict, with the failure beside them.
-    expect(summaryJson(result)).toEqual({ ...retained, rollback_limit_frames: 24, four_fighters: false, player_view_failures: [`match 2 at result: ${SCENE_FAILURE}`] });
+    expect(summaryJson(result)).toEqual({ ...retained, rollback_limit_frames: 24, four_fighters: false, player_view_failures: [`match 2 at result: ${SCENE_FAILURE}`], ...NOTHING_HELD });
   } finally {
     rmSync(directory, { recursive: true });
   }

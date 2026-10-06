@@ -1,10 +1,10 @@
 // The response probe (probe builds, Ctrl+G or Ctrl+J to record, Ctrl+H to
 // export): per-callback service timings, transport echo ages and the
-// integrity rows the #26 harness reconciles (capture, receive, confirmed,
-// predict, action, legal, rollback, stall, checksum). Pages are written as
-// smashcraft-response-p<slot>-run<run>-page<page>.txt; their lines are the
-// harness's format. Times are native game milliseconds, not host time, and
-// nothing here feeds synchronized state.
+// integrity rows the #26 harness reconciles (capture, held, receive,
+// confirmed, predict, action, legal, rollback, stall, checksum). Pages are
+// written as smashcraft-response-p<slot>-run<run>-page<page>.txt; their lines
+// are the harness's format. Times are native game milliseconds, not host
+// time, and nothing here feeds synchronized state.
 import { f32 } from "wisp/src/sim/f32";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { trampoline } from "wisp/src/platform/dispatch";
