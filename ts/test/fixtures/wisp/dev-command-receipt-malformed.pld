@@ -1,5 +1,6 @@
 function PreloadFiles takes nothing returns nothing
 call PreloadStart()
 call Preload( "SMASHCRAFT DEV v=1 build=ts-shell-r1 receipt=no epoch=0 rb=6 delay=0 batch=2 rematchSeconds=5 " )
+call Preload( "SETUP phase=0 human-fighters=3 computers=0 characters=0,1,2,0 stocks=1 minutes=7 automatic-rematch=0 stage=2 " )
 call PreloadEnd( 0.0 )
 endfunction
