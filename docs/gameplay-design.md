@@ -232,16 +232,18 @@ smashcraft:ts/src/game/sim/moves.ts:
 - **Only the throw is guaranteed.** A throw input on any of the first 29 held
   frames starts the throw whatever the victim mashes.
 - **One pummel, and it is a read.** Every fighter's pummel deals 3% (owner
-  decision, 6 Oct 2026) and connects 48 frames
-  after its input and lasts 56; a kit authors only its look. Pressed on the
-  first held frame, it lands on frame 48. A victim who doesn't mash takes it.
+  decision, 6 Oct 2026) and connects 60 frames
+  after its input and lasts 68; a kit authors only its look. Pressed on the
+  first held frame, it lands on frame 60. A victim mashing
+  8 presses a second from the catch escapes on frame 56, before it, so a realistic mash
+  from the start beats it; a slow or absent one takes it.
   Escape frame by mash rate, from the catch (120-frame hold, 8 off per press,
   first press on the first held frame):
 
   | Presses a second | 4 | 6 | 8 | 10 | 12 | 14 |
   |---|---|---|---|---|---|---|
   | Escape frame | 75 | 64 | 56 | 48 | 45 | 40 |
-  | Against the pummel | takes it | takes it | takes it | lands on its frame | escapes | escapes |
+  | Against the 60-frame pummel | takes it | takes it | escapes | escapes | escapes | escapes |
 
   After the pummel the grabber throws (a throw pressed during the pummel
   starts when it ends) or the victim goes free.
@@ -251,7 +253,7 @@ smashcraft:ts/src/game/sim/moves.ts:
 - **Escape meter.** Both players see a segmented bar above the held fighter:
   full is the whole hold, it drains each frame and faster with mashing, and
   empty is the escape; its lines split it into 10-frame segments. A mark
-  stands as many frames from the empty end as a pummel needs to land: 48
+  stands as many frames from the empty end as a pummel needs to land: 60
   while the pummel is available, closing in as a started pummel winds up, and
   gone once it has landed. A bar at or short of the mark empties before the
   pummel lands, even without mashing. Implemented in
@@ -279,7 +281,7 @@ checks that every oracle departure names a row here.
 | Tap-jump | Stick up jumps, always | Optional from Brawl onward ("Stick Jump" in Ultimate; [SmashWiki](https://www.ssbwiki.com/Tap_jump)) | Removed: stick-up and Space are just "up"; jump is its own button | Jump is its own button (owner, 6 Oct) | #49 |
 | Stick deadzone | Each stick axis reads zero within 0.28 of centre, after a radial clamp | not covered here | Melee's deadzone applies to every controller; the value and its decompilation citation are in smashcraft:companion/README.md | A resting or drifting stick reads neutral | #49 |
 | SDI | Each fresh stick movement during hitlag moves the fighter 6 units, as often as every frame ([case study](design/melee/defense.md#influence-on-knockback)) | Weakened in later games ([SmashWiki](https://www.ssbwiki.com/Smash_directional_influence)) | SDI + ASDI travel capped at 12 units per hit (at most 9 SDI) and 24 per uninterrupted string, in steps of at most 3 per tick ([bounded SDI](#bounded-sdi)) | Keep displacement choices useful while bounding visible jumps and repeated-hit travel | #70 |
-| Grab hold | 76 + 1.6 frames per percent, minus 1 a frame and 6 per mash input; pummels repeat while held ([case study](design/melee/defense.md#grabs)) | Brawl onward: 90 + 1.7 frames per percent, 8 per stick mash input (14.4 per button in Smash 4 and Ultimate), never under 19 ([SmashWiki](https://www.ssbwiki.com/Grab)). Rivals 2: one pummel per grab, Attack or Special, broken when the victim presses the same button ([FAQ](https://rivals2.com/faq)); a 60-frame hold animation ([workshop](https://rivals2.com/workshop/?p=389)) | 120 frames at any percent; 8 off per mash input, never under 30; one pummel, connecting 48 frames after its input, then a throw or a neutral release ([grab holds](#grab-holds-and-pummels)) | Legible: the same hold every grab, a visible escape meter, no pummel chore; 120 frames matches a typical mid-percent hold (Melee about 116 at 25%, Ultimate about 120 at 18%), owner decision 6 Oct | #101 |
+| Grab hold | 76 + 1.6 frames per percent, minus 1 a frame and 6 per mash input; pummels repeat while held ([case study](design/melee/defense.md#grabs)) | Brawl onward: 90 + 1.7 frames per percent, 8 per stick mash input (14.4 per button in Smash 4 and Ultimate), never under 19 ([SmashWiki](https://www.ssbwiki.com/Grab)). Rivals 2: one pummel per grab, Attack or Special, broken when the victim presses the same button ([FAQ](https://rivals2.com/faq)); a 60-frame hold animation ([workshop](https://rivals2.com/workshop/?p=389)) | 120 frames at any percent; 8 off per mash input, never under 30; one pummel, connecting 60 frames after its input, then a throw or a neutral release ([grab holds](#grab-holds-and-pummels)) | Legible: the same hold every grab, a visible escape meter, no pummel chore; 120 frames matches a typical mid-percent hold (Melee about 116 at 25%, Ultimate about 120 at 18%), owner decision 6 Oct | #101 |
 | Horizontal air dodge | The dodge goes where the stick points | – | A horizontal-only digital air dodge angles 18° below horizontal, mirrored, by default and with no toggle | Owner-selected control (30 Sep); the shallow angle keeps horizontal momentum into the landing | – |
 | Fast fall | A fresh stick down, diagonals included | – | Down with neutral horizontal input only; down-left and down-right keep drifting | Owner-selected control, 30 Sep | – |
 | Air dodge | Directional; ends in helpless fall (FallSpecial) until landing | Ultimate: one directional air dodge per airtime, no helpless fall, refreshed on landing, ledge grab and being hit ([SmashWiki](https://www.ssbwiki.com/Air_dodge)). Rivals of Aether 2: the dodge ends in an ordinary fall ([workshop](https://rivals2.com/workshop/?p=389)) | Once per airtime, ending actionable; refreshed on landing, ledge catch and being hit; spends no jump. Direction, momentum and the wavedash/waveland through landing are unchanged | Owner decision, 6 Oct: the air dodge works as in Smash | #100 |
@@ -642,7 +644,7 @@ The descriptive basis is [fighting-game language](design/fighting-games.md),
 | Same-frame strikes and clanking | Resolve valid fighter strikes symmetrically as trades from the same pre-contact state. Add no universal 9%-difference clank rule; any move-specific clash or projectile interaction must be explicit. | Preserve the established simultaneous-contact model instead of adding an unseen priority system. |
 | Grab versus strike; mutual grabs | Preserve the existing grab-over-strike contact priority. Mutual grabs break symmetrically, with the roster's 12-frame recovery. Throw-hitstun regrabs remain forbidden by #85. | Make the interaction deterministic and retain the adopted throw counterplay. |
 | Throw defence | Existing mash escape; no new timed throw-tech input. Once an immediate throw has started, only the release-frame DI choice remains, as the locked-state signal explains. | The expansion contract preserves the existing escape system and true throw-to-strike follow-ups. |
-| Grab hold and pummel | Every hold lasts 120 frames at any percent; each mash input takes 8 off, never below 30. One 3% pummel per grab, connecting 48 frames after its input; then a throw (bufferable) or a neutral release. Both players see the escape meter above the held fighter ([grab holds](#grab-holds-and-pummels)). | Owner direction (#101): the throw is the guarantee, the pummel a visible read, and no grab is a chore. |
+| Grab hold and pummel | Every hold lasts 120 frames at any percent; each mash input takes 8 off, never below 30. One 3% pummel per grab, connecting 60 frames after its input; then a throw (bufferable) or a neutral release. Both players see the escape meter above the held fighter ([grab holds](#grab-holds-and-pummels)). | Owner direction (#101): the throw is the guarantee, the pummel a visible read, and no grab is a chore. |
 | Option selects | Keep combinations that retain commitment and an opponent answer. Repair a specific option select when it removes both branches' counterplay for free; no blanket ban on emergent input combinations. | Judge the actual interaction, not the mere existence of a multi-purpose input. |
 | Mixup branch reward | Each intended branch must offer a meaningful different result or punish. Use its measured reward/risk and break-even probability; no universal damage floor for the weaker branch. | A position, escape or stock threat can matter without an invented damage-equivalent score. |
 | Balance changes and archetypes | State each fighter's purpose and exploitable weakness, then adjust the evidenced interaction with buffs or nerfs as needed. No buff-first rule or universal "no 7–3" numerical promise. | Preserves the adopted roster identities and the current bounded evaluation model. |

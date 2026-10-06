@@ -138,17 +138,17 @@ test("grab mash uses one button and one remembered stick contribution", () => {
 
 const GRABBERS = [Character.archer, Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map((hero) => hero.character)];
 
-type Mash = "none" | "human" | "quick" | "fastest";
+type Mash = "none" | "slow" | "human" | "quick" | "fastest";
 
 /**
  * The victim's input on held frame `frame` (one-based): "human" presses the
- * button 8 times a second from the catch and "quick" 12 times; "fastest" presses every other frame
+ * button 8 times a second from the catch, "slow" 6 and "quick" 10; "fastest" presses every other frame
  * and flips the stick every frame.
  */
 function mashInput(mash: Mash, frame: number): Controls {
   if (mash === "none") return controls();
-  if (mash === "human" || mash === "quick") {
-    const rate = mash === "human" ? 8 : 12;
+  if (mash === "human" || mash === "quick" || mash === "slow") {
+    const rate = mash === "human" ? 8 : mash === "quick" ? 10 : 6;
     return controls({ grabMashPressed: floorDiv(frame * rate, 60) !== floorDiv((frame - 1) * rate, 60) || frame === 1 });
   }
   return controls({ grabMashPressed: floorMod(frame, 2) === 1, direction: floorMod(frame, 2) === 1 ? 1 : -1 });
@@ -172,7 +172,7 @@ function heldBy(character: Character, percent: number): { world: Roster; owner: 
 }
 
 /** The held frame each mash frees the victim on from a 120-frame hold. */
-const MASH_ESCAPE = { none: GRAB_HOLD_FRAMES, human: 56, quick: 45, fastest: GRAB_HOLD_MINIMUM_FRAMES };
+const MASH_ESCAPE = { none: GRAB_HOLD_FRAMES, slow: 64, human: 56, quick: 48, fastest: GRAB_HOLD_MINIMUM_FRAMES };
 
 /** Runs held frames until the victim is free; the frame it went free on, or undefined. */
 function holdUntilFree(world: Roster, target: Fighter, mash: Mash, owner: (frame: number) => Controls, frames = GRAB_HOLD_FRAMES + 30): number | undefined {
@@ -187,7 +187,7 @@ test("every grab holds the same time at any percent, and mashing shortens it wit
   const freedOn: string[] = [];
   for (const character of GRABBERS) {
     for (const percent of [0.0, 150.0]) {
-      for (const mash of ["none", "human", "quick", "fastest"] as const) {
+      for (const mash of ["none", "slow", "human", "quick", "fastest"] as const) {
         const { world, owner, target } = heldBy(character, percent);
         const frame = holdUntilFree(world, target, mash, () => controls());
         const label = `${character} at ${percent}% with ${mash} mashing`;
@@ -198,16 +198,16 @@ test("every grab holds the same time at any percent, and mashing shortens it wit
       }
     }
   }
-  assertEquals(freedOn.length, GRABBERS.length * 8);
+  assertEquals(freedOn.length, GRABBERS.length * 10);
 });
 
 
-test("a victim mashing 12 times a second escapes the pummel; 8 a second or caught off guard takes it", () => {
-  assertTrue(MASH_ESCAPE.quick < PUMMEL_CONTACT_FRAME);
-  assertTrue(MASH_ESCAPE.human > PUMMEL_CONTACT_FRAME);
+test("a victim mashing 8 or more times a second escapes the pummel; 6 a second or caught off guard takes it", () => {
+  assertTrue(MASH_ESCAPE.human < PUMMEL_CONTACT_FRAME);
+  assertTrue(MASH_ESCAPE.slow > PUMMEL_CONTACT_FRAME);
   for (const character of GRABBERS) {
     for (const percent of [0.0, 150.0]) {
-      for (const mash of ["none", "human", "quick", "fastest"] as const) {
+      for (const mash of ["none", "slow", "human", "quick", "fastest"] as const) {
         const { world, owner, target } = heldBy(character, percent);
         const pummel = owner.tuning.moves?.throws[GrabAction.pummel]?.effect.damage ?? PUMMEL_DAMAGE;
         assertEquals(pummel, PUMMEL_DAMAGE, `${character} pummels for the shared damage`);
@@ -215,10 +215,10 @@ test("a victim mashing 12 times a second escapes the pummel; 8 a second or caugh
         const frame = holdUntilFree(world, target, mash, () => controls({ attackPressed: true }));
         const label = `${character} at ${percent}% with ${mash} mashing`;
         assertEquals(owner.grab.pummels, 1, label);
-        if (mash === "none" || mash === "human") {
+        if (mash === "none" || mash === "slow") {
           assertEquals(target.status.damage, f32(percent + pummel), label);
           // No throw input: the pummel's end lets the victim go.
-          assertEquals(frame, mash === "none" ? PUMMEL_TOTAL_FRAMES + 1 : MASH_ESCAPE.human, label);
+          assertEquals(frame, mash === "none" ? PUMMEL_TOTAL_FRAMES + 1 : MASH_ESCAPE.slow, label);
         } else {
           assertEquals(target.status.damage, percent, label);
           assertEquals(frame !== undefined && frame < PUMMEL_CONTACT_FRAME, true, label);
