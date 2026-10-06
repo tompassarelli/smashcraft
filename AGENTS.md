@@ -91,6 +91,11 @@ code. From smashcraft:ts/:
 - Headless match: `bun wisp headless [quick-match|desync] [--clients N]` plays
   the dev build's quick match in simulated clients in about a second and prints
   desyncs, error reports and scene problems.
+- Soak: `bun wisp soak` plays 200 headless matches, every fighter pair on
+  every stage with fuzzed and computer players, in at most four workers
+  (run it inside the capacity scope), and writes a repro file per finding;
+  `bun wisp soak --repro FILE` replays one. `--helper BIN` plays through the
+  real controller helper instead (needs /dev/uinput).
 - Tapes: set `LUA` to the 32-bit Lua executable, then run `bun wisp tapes` to
   compare replay results across Bun and Lua32.
 - Parity: `bun wisp parity numeric` compares the numeric corpus with Lua32;

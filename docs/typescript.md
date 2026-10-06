@@ -189,6 +189,30 @@ over eight frames: 3.4 ms when it begins (copies of the snapshot and the
 match, and the rows), then one 6.5–8.6 ms step a frame (a checksum each, then
 the snapshot's text). The file is about 36 KB.
 
+`bun wisp soak` is the automatic playtester ([Wisp soak](https://github.com/tompassarelli/wisp/blob/main/docs/soak.md)):
+200 headless matches of the playable build with the scene recorder
+(smashcraft:ts/test/soak/game.ts), every ordered fighter pair on every stage
+eleven times over, in at most four worker processes. Each one-stock,
+one-minute match pairs two of: the fuzzed controller (`fuzz`), the game's
+computer (`cpu`, its human's helper typing neutral rows) and a human whose
+helper never runs (`absent`, #46). The players' helpers are the journal
+stand-in (smashcraft:ts/test/rematch/journalHelper.ts), sending two frames
+a packet as the companion does, on the soak's wall clock, so a lag spike or
+a quiet helper leaves input waiting as it does natively. It reports stalls,
+desyncs, error reports, scene problems, an invisible fighter, costly frames
+and catch-ups that never recover, with a repro file per finding that
+`bun wisp soak --repro FILE` replays exactly. Run it inside the machine's
+capacity scope; it is not part of `bun run test`. `--fighter`, `--stage`
+and `--policy` narrow a run. The 200-match run took 46 s with four workers
+and 245 s of CPU on 6 October 2026.
+
+`bun wisp soak --helper BIN [--matches N] [--seconds S]` plays matches through
+the real input path instead (smashcraft:ts/test/soak/helper.ts): each player
+a uinput pad the fuzzer drives about once a second, read by a persistent
+wc3-journal helper built with `--text-out`, into headless clients in real
+time, with the same detectors. It needs /dev/uinput, as `bun wisp parity
+headless` does.
+
 `bun wisp parity headless --helper BIN --out DIR` runs issue #26's capture
 without Warcraft (smashcraft:ts/scripts/integrity/headless.ts): the
 integrity build's TypeScript in two headless clients at 60 frames a second of
