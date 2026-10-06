@@ -982,7 +982,7 @@ Frame 0 is the ledge option's start. Punish start frames are when the opponent's
 
 | Option | Acts | Intangible | Travel | Hits the opponent | Punished by (start frames) |
 | --- | --- | --- | --- | --- | --- |
-| hang | - | 0..27 | -24 | - | forward tilt 22..84; down tilt 22..84; forward smash 20..83; down smash 18..81; grab 22..84 |
+| hang | - | 0..27 | -24 | - | forward tilt 22..84; down tilt 22..84; forward smash 20..83; down smash 18..81 |
 | climb | 25 | 0..24 | 24 | - | safe |
 | roll | 36 | 0..27 | 140 | - | forward tilt 22..30; down tilt 22..30; forward smash 20..29; down smash 18..27 |
 | ledge attack | 44 | 0..15 | 64 | 16 | jab 32..39; forward tilt 32..38; up tilt 32..37; down tilt 32..38; forward smash 32..37; up smash 32..35; down smash 32..35; grab 32..38 |
@@ -1001,15 +1001,14 @@ flowchart LR
   p_down_tilt["down tilt"]
   p_forward_smash["forward smash"]
   p_down_smash["down smash"]
-  p_grab["grab"]
   p_jab["jab"]
   p_up_tilt["up tilt"]
   p_up_smash["up smash"]
+  p_grab["grab"]
   p_forward_tilt -->|"22..84"| t_hang
   p_down_tilt -->|"22..84"| t_hang
   p_forward_smash -->|"20..83"| t_hang
   p_down_smash -->|"18..81"| t_hang
-  p_grab -->|"22..84"| t_hang
   p_forward_tilt -->|"22..30"| t_roll
   p_down_tilt -->|"22..30"| t_roll
   p_forward_smash -->|"20..29"| t_roll
@@ -1028,7 +1027,7 @@ flowchart LR
 
 | Option | Acts | Intangible | Travel | Hits the opponent | Punished by (start frames) |
 | --- | --- | --- | --- | --- | --- |
-| hang | - | none | -24 | - | forward tilt 0..84; down tilt 0..84; forward smash 0..83; down smash 0..81; grab 0..84 |
+| hang | - | none | -24 | - | forward tilt 0..84; down tilt 0..84; forward smash 0..83; down smash 0..81 |
 | climb | 25 | none | 24 | - | jab 0..20; forward tilt 0..19; up tilt 0..18; down tilt 0..19; forward smash 0..18; up smash 0..16; down smash 0..16; grab 0..19 |
 | roll | 36 | none | 140 | - | jab 0..5; forward tilt 0..4, 8..30; up tilt 0..4; down tilt 0..30; forward smash 0..1, 8..29; up smash 0..2; down smash 0..27; grab 0..1 |
 | ledge attack | 44 | none | 64 | 16 | jab 0..11, 32..39; forward tilt 0..10, 32..38; up tilt 0..9, 32..37; down tilt 0..10, 21, 32..38; forward smash 0..9, 32..37; up smash 0..7, 32..35; down smash 0..7, 21, 32..35; grab 0..11, 32..38 |
@@ -1047,15 +1046,14 @@ flowchart LR
   p_down_tilt["down tilt"]
   p_forward_smash["forward smash"]
   p_down_smash["down smash"]
-  p_grab["grab"]
   p_jab["jab"]
   p_up_tilt["up tilt"]
   p_up_smash["up smash"]
+  p_grab["grab"]
   p_forward_tilt -->|"0..84"| t_hang
   p_down_tilt -->|"0..84"| t_hang
   p_forward_smash -->|"0..83"| t_hang
   p_down_smash -->|"0..81"| t_hang
-  p_grab -->|"0..84"| t_hang
   p_jab -->|"0..20"| t_climb
   p_forward_tilt -->|"0..19"| t_climb
   p_up_tilt -->|"0..18"| t_climb
