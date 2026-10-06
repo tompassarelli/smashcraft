@@ -11,7 +11,7 @@ import type { Fighter } from "../sim/fighter";
 import { AIR_DODGE_ANIMATION_FRAMES } from "../sim/jumpsAndDodges";
 import { LEDGE_CLIMB_FRAMES, LEDGE_ROLL_FRAMES } from "../sim/ledge";
 import { totalVelocityX } from "../sim/motion";
-import { LEDGE_ATTACK_FRAMES, RIFLEMAN_BLASTER_AIR_FRAMES, attackStartupFrames, grabActionDuration } from "../sim/moves";
+import { LEDGE_ATTACK_FRAMES, RIFLEMAN_BLASTER_AIR_FRAMES, attackStartupFrames, characterAttackActiveFrames, grabActionDuration } from "../sim/moves";
 import { type Controls, type Roster, fighterAt } from "../sim/roster";
 import { SHIELD_RELEASE_LAG_FRAMES } from "../sim/shield";
 import { INITIAL_DASH_FRAMES, SHIELD_BREAK_LAND_FRAMES, SHIELD_BREAK_STAND_FRAMES, authoredPhysics } from "../sim/tuning";
@@ -19,6 +19,7 @@ import { DamagePose, damagePose } from "./damagePose";
 import * as dh from "./demonHunterAssetInfo";
 import type { HeroClip, HeroClipTable, HeroPose } from "../sim/heroes/hero";
 import * as clips from "./fighterClips";
+import { HERO_STRIKE_MOMENTS } from "./heroStrikeMomentInfo";
 import {
   ESCAPE_FRAMES, IllidanLocomotion, LEDGE_CATCH_FRAMES, RESPAWN_FRAMES, TRANSITION_FRAMES, type IllidanMotion,
   advanceIllidanMotion, clearIllidanMotion, copyIllidanMotion, createIllidanMotion, firstIllidanMotionDifference,
@@ -433,13 +434,15 @@ function selectAttackClip(pose: FighterPose, f: Readonly<Fighter>): void {
   const { style } = f.attack;
   if (f.character === Character.demonHunter) pose.animation = "";
   const own = clips.ownAttackClip(f.character, style);
-  if (own !== undefined) {
-    selectFighterClipIndex(pose, own.index);
+  const shared = clips.attackPose(style);
+  const clip = own ?? (shared === undefined ? undefined : clips.clipFor(f.character, shared));
+  if (clip === undefined) {
+    selectFighterClipName(pose, "attack");
     return;
   }
-  const shared = clips.attackPose(style);
-  if (shared === undefined) selectFighterClipName(pose, "attack");
-  else selectFighterClipIndex(pose, clips.clipFor(f.character, shared).index);
+  selectFighterClipIndex(pose, clip.index);
+  // Pooled clips start past a wind-up the startup cannot play; a unit plays its sequence from the start.
+  if (style !== undefined) pose.clipTime = strikeStart(f.character, style, clip, attackStartupFrames(style, f.tuning.moves));
 }
 
 /** The rate that fits the current action's clip to the action's frames; 1 without one. */
@@ -463,15 +466,58 @@ function actionRate(pose: Readonly<FighterPose>, f: Readonly<Fighter>, phase: At
   return attackRate(f, phase);
 }
 
+/** A measured strike earlier than this is the clip's first pose, not a swing. */
+const EARLIEST_STRIKE = f32(0.034);
+/** Bounds on an aligned swing's rate: a wind-up plays at most this much faster, and never slower than the floor. */
+const FASTEST_SWING = 4.0;
+const SLOWEST_SWING = f32(0.35);
+/** After the strike the clip plays on through its table length, or at least this much follow-through. */
+const FOLLOW_THROUGH = f32(0.4);
+
+/** The clip seconds a swing starts at: past the wind-up a startup could not play even at the fastest swing rate. */
+const strikeSkip = (strike: number, startup: number): number => max(0.0, f32(strike - f32(FASTEST_SWING * f32(startup * FRAME_SECONDS))));
+
+/** Where a hero swing's clip starts, so a long wind-up still strikes on the first active frame; 0 plays it from its start. */
+export function strikeStart(character: number, style: number, clip: Readonly<HeroClip>, startup: number): number {
+  const moment = HERO_STRIKE_MOMENTS[character]?.[style];
+  return moment === undefined || moment.clip !== clip.index || moment.seconds < EARLIEST_STRIKE || startup <= 0 ? 0.0 : strikeSkip(moment.seconds, startup);
+}
+
+/**
+ * A hero swing's rate where its strike moment is measured
+ * (heroStrikeMomentInfo.ts, #144): the startup plays the wind-up so the clip's
+ * farthest reach lands on the first active frame, a wind-up too long for the
+ * startup catches up over the active frames, and recovery plays the
+ * follow-through. Undefined plays the clip evenly.
+ */
+export function strikeAlignedRate(character: number, style: number, clip: Readonly<HeroClip>, startup: number, active: number, duration: number, phase: AttackPhase): number | undefined {
+  const moment = HERO_STRIKE_MOMENTS[character]?.[style];
+  const recovery = duration - startup - active;
+  if (moment === undefined || moment.clip !== clip.index || moment.seconds < EARLIEST_STRIKE || startup <= 0 || active <= 0 || recovery <= 0) return undefined;
+  const bounded = (seconds: number, frames: number): number => min(FASTEST_SWING, max(SLOWEST_SWING, f32(seconds / f32(frames * FRAME_SECONDS))));
+  const skip = strikeSkip(moment.seconds, startup);
+  const windUp = bounded(f32(moment.seconds - skip), startup);
+  if (phase === AttackPhase.startup) return windUp;
+  const atActive = f32(skip + f32(windUp * f32(startup * FRAME_SECONDS)));
+  const strike = atActive < moment.seconds ? bounded(f32(moment.seconds - atActive), active) : bounded(FOLLOW_THROUGH, active + recovery);
+  if (phase === AttackPhase.active) return strike;
+  const atRecovery = f32(atActive + f32(strike * f32(active * FRAME_SECONDS)));
+  const end = max(clip.seconds, min(moment.end, f32(moment.seconds + FOLLOW_THROUGH)));
+  return min(FASTEST_SWING, max(0.0, f32(f32(end - atRecovery) / f32(recovery * FRAME_SECONDS))));
+}
+
 function attackRate(f: Readonly<Fighter>, phase: AttackPhase): number {
   if (phase === AttackPhase.none) return 1.0;
   const { style, duration } = f.attack;
+  const aligned = (clip: Readonly<HeroClip>): number =>
+    (style === undefined ? undefined : strikeAlignedRate(f.character, style, clip, attackStartupFrames(style, f.tuning.moves), characterAttackActiveFrames(f.character, style, f.tuning.moves), duration, phase))
+    ?? clipRate(clip.seconds, duration);
   const own = clips.ownAttackClip(f.character, style);
-  if (own !== undefined) return clipRate(own.seconds, duration);
+  if (own !== undefined) return aligned(own);
   // A ledge attack's clip spans the ledge option, not the attack's duration.
   if (style === AttackStyle.ledgeAttack) return clipRate(clips.clipFor(f.character, "getUpAttack").seconds, LEDGE_ATTACK_FRAMES);
   const shared = clips.attackPose(style);
-  return shared === undefined ? 1.0 : clipRate(clips.clipFor(f.character, shared).seconds, duration);
+  return shared === undefined ? 1.0 : aligned(clips.clipFor(f.character, shared));
 }
 
 function downClipIndex(f: Readonly<Fighter>): number {

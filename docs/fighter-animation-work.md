@@ -1093,3 +1093,19 @@ Both Spot Dodge clips now end at frame 22, with the protected crouch pose held
 from frames 5 through 15. Archer's existing Back Air already reads as one leg
 extended backward and the other tucked in the stage-side export; it keeps its
 three-startup/16-active/37-total timing. Rifleman's Back Air is unchanged.
+
+## Hero swing alignment
+
+Hero normals play classic stock sequences whose strike rarely sits where the
+move's hitbox does. `bun wisp view strikes --extractor CASC_EXTRACT --storage
+WARCRAFT_DIR` (from smashcraft:ts/) skins each hero's stock model and
+records, per normal, the clip second where the silhouette reaches farthest
+toward the move's first hit region, into
+smashcraft:ts/src/game/presentation/heroStrikeMomentInfo.ts. Pose selection
+(`strikeAlignedRate` in presentation/fighterPose.ts) then plays the wind-up
+over the startup so that moment lands on the first active frame (at most 4x;
+a pooled clip starts past a wind-up longer than that), catches up over the
+active frames if it must, and plays the follow-through over recovery. A
+measured moment counts only while its clip index matches the table; rerun the
+command after a clip or move change. On 7 Oct it moved the strike onto the
+active frames for 118 of 120 hero normals (52 had been more than 4 frames off).

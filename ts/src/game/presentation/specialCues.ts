@@ -160,9 +160,10 @@ export const ORIGINAL_CUES: { readonly [action: number]: MoveCues } = {
 
 /**
  * A branch's cues: its own spell, "slot" when it is deliberately its
- * special's own spell again, or null when it shows nothing (a dropped charge).
+ * special's own spell again, or "none" when it shows nothing (a dropped charge;
+ * Lua drops a null array entry, so the absence is a word).
  */
-export type BranchCue = MoveCues | "slot" | null;
+export type BranchCue = MoveCues | "slot" | "none";
 
 /** The branches of a hero special: its recall and marked forms and each follow-up, in `followUps` order. */
 export interface HeroBranchCues {
@@ -186,7 +187,7 @@ export const HERO_BRANCH_CUES: { readonly [character: number]: { readonly [slot 
     neutral: { recall: branch("Storm Bolt recall", STORM, cue("Abilities\\Spells\\Orc\\LightningShield\\LightningShieldBuff.mdx", "hand", f32(0.8))) },
     up: { followUps: [branch("Hammerfall", STORM, cue("Abilities\\Spells\\Orc\\WarStomp\\WarStompCaster.mdx", "feet", f32(0.8)))] },
     // The small Clap, the full Thunder Clap (its special's own spell) and a dropped charge.
-    down: { followUps: [branch("Small Clap", STORM, cue("Abilities\\Spells\\Orc\\EarthQuake\\EarthquakeTarget.mdx", "feet", f32(0.3))), "slot", null] },
+    down: { followUps: [branch("Small Clap", STORM, cue("Abilities\\Spells\\Orc\\EarthQuake\\EarthquakeTarget.mdx", "feet", f32(0.3))), "slot", "none"] },
   },
   [Character.warden]: {
     side: { marked: branch("Shadow Pursuit", SHADOW, cue("Abilities\\Spells\\Undead\\Possession\\PossessionTarget.mdx", "body", f32(0.6))) },
@@ -256,7 +257,8 @@ const widen = (window: { first: number; last: number }, first: number, last: num
  * last; startup is everything before.
  */
 export function heroCueWindows(move: Readonly<AuthoredSpecial>): CueWindows {
-  const active = { first: Number.MAX_SAFE_INTEGER, last: 0 };
+  // Past any action's last frame, and a 32-bit integer in Lua.
+  const active = { first: 1000000, last: 0 };
   // Regions count zero-based attack frames: special frame N strikes with region frame N - 1.
   for (const region of move.regions ?? []) widen(active, region.firstFrame + 1, region.lastFrame + 1);
   for (const projectile of move.projectiles ?? []) widen(active, projectile.spawnFrame, projectile.spawnFrame);
@@ -319,7 +321,7 @@ export function specialCueState(fighter: Readonly<Fighter>): CueState {
     const move = runningHeroSpecial(fighter);
     const slot = SPECIAL_SLOTS[action - SpecialAction.heroNeutral] ?? "neutral";
     const branchCue = heroBranchCue(HERO_BRANCH_CUES[fighter.character]?.[slot], fighter.special.form);
-    if (branchCue === null) return NONE;
+    if (branchCue === "none") return NONE;
     cues = branchCue === undefined || branchCue === "slot" ? HERO_CUES[fighter.character]?.[slot] : branchCue;
     windows = move === undefined ? undefined : heroCueWindows(move);
   } else {
@@ -356,7 +358,7 @@ export function fighterCueList(character: Character): readonly Cue[] {
 export function fighterBranchCues(character: Character): readonly MoveCues[] {
   const out: MoveCues[] = [];
   const add = (cue: BranchCue | undefined): void => {
-    if (cue !== undefined && cue !== null && cue !== "slot" && !out.includes(cue)) out.push(cue);
+    if (cue !== undefined && cue !== "none" && cue !== "slot" && !out.includes(cue)) out.push(cue);
   };
   for (const slot of SPECIAL_SLOTS) {
     const branches = HERO_BRANCH_CUES[character]?.[slot];

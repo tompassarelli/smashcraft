@@ -20,6 +20,8 @@ import { importedAssets } from "../mapInputs";
 import { gameFilesLayer } from "../project";
 import { SMASHCRAFT_FRAME, SMASHCRAFT_SCENE } from "../playerView";
 import { CHARACTER_NAMES, STYLE_NAMES, loadDrawnModel, sampleAttack, sampleState, sheet } from "../hurtboxView";
+import { measureStrikeMoments, strikeMomentSource } from "../strikeMoments";
+import { HERO_ROSTER } from "../../../src/game/sim/heroes/registry";
 import { AttackPhase, AttackStyle, Character } from "../../../src/game/sim/codes";
 import { AUTHORED_SAMPLE_STYLES } from "../../../src/game/sim/hurtboxes";
 
@@ -140,8 +142,40 @@ const hurtboxes = (args: readonly string[]) => Effect.gen(function*() {
   });
 });
 
+const STRIKE_TABLE = join(import.meta.dir, "../../../src/game/presentation/heroStrikeMomentInfo.ts");
+
+/**
+ * Measures every hero normal's strike moment on the classic stock model the
+ * clients draw, extracted through the CascLib extractor, and rewrites the
+ * strike moment table pose selection aligns swings with.
+ */
+const strikes = (args: readonly string[]) => Effect.scoped(Effect.gen(function*() {
+  const options = Object.fromEntries(args.flatMap((arg, index) => (arg.startsWith("--") && args[index + 1] !== undefined ? [[arg.slice(2), args[index + 1]]] : [])));
+  const { extractor, storage } = options;
+  if (extractor === undefined || storage === undefined || args.length !== 4) {
+    return yield* new UsageFailure({ problem: "view strikes takes --extractor CASC_EXTRACT --storage WARCRAFT_DIR" });
+  }
+  const scratch = yield* Effect.acquireRelease(
+    Effect.sync(() => mkdtempSync(join(tmpdir(), "smashcraft-strikes."))),
+    (directory) => Effect.sync(() => rmSync(directory, { recursive: true, force: true })),
+  );
+  const files = new Map<string, string>();
+  for (const [index, model] of [...new Set(HERO_ROSTER.map(({ presentation }) => presentation.model))].entries()) {
+    const file = join(scratch, `hero-${index}.mdx`);
+    yield* runProcess("extract stock model", model, [extractor, storage, stockPath(model), file]);
+    files.set(model, file);
+  }
+  const moments = yield* Effect.tryPromise({
+    try: () => measureStrikeMoments((model) => Bun.file(files.get(model) ?? "").arrayBuffer()),
+    catch: (cause) => new MapBuildFailure({ operation: "measure strike moments", path: STRIKE_TABLE, cause }),
+  });
+  yield* Effect.tryPromise({ try: () => Bun.write(STRIKE_TABLE, strikeMomentSource(moments)), catch: (cause) => new MapBuildFailure({ operation: "write strike moments", path: STRIKE_TABLE, cause }) });
+  yield* Console.log(`${moments.length} strike moments: ${STRIKE_TABLE}`);
+}));
+
 export const view: Command = ([mode, ...paths]) => {
   if (mode === "models") return models(paths);
+  if (mode === "strikes") return strikes(paths);
   if (mode === "hurtboxes") return hurtboxes(paths);
   if (paths.length === 0) return Effect.fail(new UsageFailure({ problem: "view takes scene DATA_DIR..., frame FRAME.ppm... or models --assets DIR ..." }));
   if (mode === "scene") return scenes(paths);
