@@ -216,10 +216,10 @@ const ROLLBACK: MatchScript = {
 
 /** A one-stock match ends when the Rifleman runs off the stage; one replay crosses the end. */
 const FIRST_MATCH: MatchScript = {
-  characters: [Character.demonHunter, Character.rifleman], stage: 0, stocks: 1, minutes: 0, frames: 90,
-  holds: [[[20, 2, ATTACK], [40, 3, JUMP], [60, 2, SPECIAL]], [[1, 90, RIGHT]]],
+  characters: [Character.demonHunter, Character.rifleman], stage: 0, stocks: 1, minutes: 0, frames: 110,
+  holds: [[[20, 2, ATTACK], [40, 3, JUMP], [60, 2, SPECIAL]], [[1, 110, RIGHT]]],
   approaches: [[], []],
-  rollbacks: [[62, 80]],
+  rollbacks: [[80, 100]],
 };
 
 /** The rematch, configured through the menus: other fighters, the raised decks, two stocks and a clock. */
