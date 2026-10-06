@@ -19,6 +19,8 @@ import { MATCH_TICKS_PER_SECOND, Phase } from "../../src/game/match/rules";
 import { PLAYABLE_BUILD } from "../../src/game/shell/currentBuild";
 import { AttackStyle, Character, DownState, GrabAction, HippogryphKind, ProjectileKind, SpecialAction } from "../../src/game/sim/codes";
 import type { Fighter } from "../../src/game/sim/fighter";
+import { isHeroSpecialAction } from "../../src/game/sim/heroSpecialRules";
+import type { SpecialProjectile } from "../../src/game/sim/heroSpecials";
 import { fighterName, heroDefinition, selectableCharacterBySlug } from "../../src/game/sim/heroes/registry";
 import { fighterAt, isActive } from "../../src/game/sim/roster";
 import { mainDeckLeft, mainDeckRight } from "../../src/game/sim/stage";
@@ -269,7 +271,7 @@ const MOVE_NAMES: Readonly<Record<number, string>> = {
   [AttackStyle.forwardTiltDown]: "forward-tilt-down", [AttackStyle.upTilt]: "up-tilt", [AttackStyle.downTilt]: "down-tilt",
   [AttackStyle.forwardSmash]: "forward-smash", [AttackStyle.upSmash]: "up-smash", [AttackStyle.downSmash]: "down-smash",
   [AttackStyle.neutralAir]: "neutral-air", [AttackStyle.forwardAir]: "forward-air", [AttackStyle.backAir]: "back-air",
-  [AttackStyle.upAir]: "up-air", [AttackStyle.downAir]: "down-air", [AttackStyle.demonHunterDashAttack]: "dash-attack",
+  [AttackStyle.upAir]: "up-air", [AttackStyle.downAir]: "down-air", [AttackStyle.demonHunterDashAttack]: "dash-attack", [AttackStyle.dashAttack]: "dash-attack",
   [AttackStyle.getupAttack]: "get-up-attack", [AttackStyle.ledgeAttack]: "ledge-attack",
 };
 const THROW_NAMES: Readonly<Record<number, string>> = {
@@ -282,6 +284,21 @@ const PROJECTILE_MOVES: Readonly<Record<number, string>> = {
 };
 /** Specials with nothing that strikes: Archer's mount and Illidan's ascent count once started. */
 const STRIKELESS_SPECIALS: Readonly<Record<number, string>> = { [SpecialAction.archerRecovery]: "up-special", [SpecialAction.demonHunterWingAscent]: "up-special" };
+/** A hero's specials by the move names, in SpecialSlot order. */
+const HERO_SPECIAL_NAMES = ["neutral-special", "side-special", "up-special", "down-special"] as const;
+
+/** The special of the attacker's kit a hero projectile flies from. */
+function heroProjectileMove(attacker: Readonly<Fighter>, spec: Readonly<SpecialProjectile> | undefined): string | undefined {
+  const specials = attacker.tuning.specials;
+  if (specials === undefined || spec === undefined) return undefined;
+  const kits = [specials.neutral, specials.side, specials.up, specials.down];
+  for (let slot = 0; slot < kits.length; slot++) {
+    const kit = kits[slot];
+    for (const form of [kit?.ground, kit?.air, kit?.free]) if (form?.projectiles?.includes(spec) === true) return HERO_SPECIAL_NAMES[slot];
+  }
+  return undefined;
+}
+
 /** A fighter that leaves the stage this long after the last hit it took left on its own. */
 const UNFORCED_FRAMES = 60;
 
@@ -353,9 +370,12 @@ function creditStrike(victim: Readonly<Fighter>, victimSeen: Seen, attackerSlot:
   if (attacker.grab.action === GrabAction.pummel) return land(attackerSeen, "pummel");
   const ended = attacker.projectiles.findIndex((projectile, index) => projectile.life === 0 && (attackerSeen.projectiles[index] ?? 0) > elapsed);
   const projectile = attacker.projectiles[ended];
-  if (projectile !== undefined) return land(attackerSeen, PROJECTILE_MOVES[projectile.kind]);
+  if (projectile !== undefined) return land(attackerSeen, projectile.kind === ProjectileKind.hero ? heroProjectileMove(attacker, projectile.spec) : PROJECTILE_MOVES[projectile.kind]);
   if (attacker.bear.hitSerial !== attackerSeen.bearHits) return land(attackerSeen, "side-special");
   const disengage = attacker.hippogryph.kind === HippogryphKind.strike || attacker.special.action === SpecialAction.archerDisengage;
+  if (attacker.special.hit && !attackerSeen.specialHit && isHeroSpecialAction(attacker.special.action)) {
+    return land(attackerSeen, HERO_SPECIAL_NAMES[attacker.special.action - SpecialAction.heroNeutral]);
+  }
   if (attacker.special.hit && !attackerSeen.specialHit && (disengage || attacker.special.action === SpecialAction.demonHunterImmolate)) land(attackerSeen, "down-special");
 }
 
