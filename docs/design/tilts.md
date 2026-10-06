@@ -323,7 +323,6 @@ retimed so the sequence's strike moment lands on the first active frame
 (`aligned` in each hero's clip table). Angled variants choose the sequence
 that already swings high or low where the model has one; otherwise they share
 the plain clip. The drawn body must stay over its hurt volumes (#97,
-the plain clip. The drawn body must stay over its hurt volumes (#97,
 smashcraft:ts/test/drawn-size.test.ts). Each sequence is chosen by drawn reach:
 the skinned model must reach toward the hit on its active frames, and
 smashcraft:ts/test/drawn-reach.test.ts pins every hero's jab, tilts and dash
