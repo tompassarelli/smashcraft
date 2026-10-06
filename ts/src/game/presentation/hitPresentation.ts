@@ -29,7 +29,7 @@ export function impactAnimation(kind: number): string {
   return kind === 2 || kind === 5 || kind === 8 || kind === 9 || kind === IMPACT_ELECTRIC_SHIELD ? "Stand" : "Birth";
 }
 
-export type ImpactSoundSink = (label: string, x: number, z: number, volume: number, pitch: number) => void;
+type ImpactSoundSink = (label: string, x: number, z: number, volume: number, pitch: number) => void;
 
 /** Confirmed event audio; the renderer's frame cursor suppresses repeats. */
 export function presentImpactSounds(events: Readonly<ImpactEvents>, sink: ImpactSoundSink): void {
