@@ -10,6 +10,7 @@
 // travel), and Spell Slam is the two-handed ground slam. The model has no
 // jump, hit, dodge, ledge or grab sequences, so those states reuse the nearest
 // readable sequence, often only its opening.
+import { f32 } from "wisp/src/sim/f32";
 
 export interface StockSequence {
   readonly index: number;
@@ -44,7 +45,7 @@ export interface MountainKingClip {
 
 const play = (sequence: MountainKingSequence, seconds?: number): MountainKingClip => {
   const { index, seconds: length } = MOUNTAIN_KING_SEQUENCES[sequence];
-  return { index, seconds: seconds ?? length };
+  return { index, seconds: f32(seconds ?? length) };
 };
 
 /** Idle, walking and every pose without its own entry. */
@@ -52,6 +53,8 @@ export const MOUNTAIN_KING_FALLBACK = play("Stand Ready");
 
 /** Every table-selected pose (the shared hero pose names), hammer for blunt hits and axe for cuts. */
 export const MOUNTAIN_KING_CLIPS = {
+  idle: play("Stand Ready"),
+  walk: play("Walk"),
   jab: play("Attack -1"),
   grab: play("Attack -2"),
   forwardTilt: play("Attack -2"),
