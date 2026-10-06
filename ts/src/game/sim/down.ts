@@ -140,6 +140,13 @@ function tappedRollDirection(input: Readonly<Controls>): number {
   return input.getupDirectionPressed && stickX(input) === 0 && stickZ(input) === 0 ? input.getupDirection : 0;
 }
 
+/** A C-stick sideways flick first, then the held left stick, then a tapped direction; 0 for none. */
+function downRollDirection(input: Readonly<Controls>): number {
+  if (input.cStickSideFlick !== 0) return input.cStickSideFlick;
+  const heldRoll = stickRollDirection(input);
+  return heldRoll !== 0 ? heldRoll : tappedRollDirection(input);
+}
+
 /** A stand press, or the stick up past Melee's tilt and steeper than its roll angle. */
 function standRequested(input: Readonly<Controls>): boolean {
   const z = stickZ(input);
@@ -213,8 +220,8 @@ export function advanceDownState(f: Fighter, stage: number, input: Readonly<Cont
       return true;
     }
     // Melee's bound ends on a get-up attack pressed during it, then a held roll, before the wait reads this frame.
-    const attackQueued = down.attackQueued;
-    const roll = stickRollDirection(input);
+    const attackQueued = down.attackQueued || input.cStickUpFlick;
+    const roll = downRollDirection(input);
     startDownWait(f, DOWN_WAIT_FRAMES);
     if (attackQueued || roll !== 0) {
       standOnDeck(f, stage);
@@ -248,9 +255,8 @@ export function advanceDownState(f: Fighter, stage: number, input: Readonly<Cont
         return true;
       }
     }
-    const heldRoll = stickRollDirection(input);
-    const roll = heldRoll !== 0 ? heldRoll : tappedRollDirection(input);
-    if (input.getupAttackPressed) beginDownState(f, DownState.attack, 0);
+    const roll = downRollDirection(input);
+    if (input.getupAttackPressed || input.cStickUpFlick) beginDownState(f, DownState.attack, 0);
     else if (roll !== 0) beginDownState(f, DownState.roll, roll);
     else if (standRequested(input)) startDownStand(f);
     applyDownRollTravel(f, stage);

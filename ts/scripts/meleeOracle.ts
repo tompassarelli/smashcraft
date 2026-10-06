@@ -567,6 +567,7 @@ function getupFrames(character: Character, option: DownState, choose: readonly A
 }
 
 const GETUP_ORDER = "DownBound ends into get-up attack (A/B pressed within PlCo +0x24C = 60 frames), then held stick roll (|x| >= PlCo +0x248 0.2), else DownWait: melee:src/melee/ft/kinds/ftCommon/ftCo_DownBound.c ftCo_DownBound_Anim, ftCo_Down.c";
+const C_STICK_GETUP = "DownWait IASA: ftCo_800984D4 attacks on a C-stick up crossing PlCo +0x7F4 = 0.6625 (ftCo_800DF644), ftCo_Down_CheckInput rolls on a C-stick sideways crossing +0x248 = 0.2 within +0x020 of horizontal (ftCo_800DF678): melee:src/melee/ft/kinds/ftCommon/ftCo_DownAttack.c, ftCo_Down.c, melee:src/melee/ft/ft_0DF1.c";
 const DOWN_ANIMATIONS = "Fox/Falco animation frames (retail-action-lengths.json)";
 
 const GETUPS: readonly Scenario[] = [
@@ -604,6 +605,16 @@ const GETUPS: readonly Scenario[] = [
     area: "getup", name: "get-up attack frames",
     cite: `${DOWN_ANIMATIONS} DownAttackU 50, entered with ftAnim_8006EBA4: ftCo_DownAttack.c:47`,
     run: (c) => forReference(c, () => ({ expected: 49, actual: getupFrames(c, DownState.attack, [Action.attack]) })),
+  },
+  {
+    area: "getup", name: "C-stick up flick in the down wait: get-up attack",
+    cite: C_STICK_GETUP,
+    run: (c) => ({ expected: "get-up attack", actual: downStateName(stateAfter(knockdown(c, 120, (after) => (after === 40 ? [Action.smashUp] : [])), DownState.wait)) }),
+  },
+  {
+    area: "getup", name: "C-stick right flick in the down wait: roll",
+    cite: C_STICK_GETUP,
+    run: (c) => ({ expected: "roll", actual: downStateName(stateAfter(knockdown(c, 120, (after) => (after === 40 ? [Action.smashRight] : [])), DownState.wait)) }),
   },
 ];
 
@@ -644,7 +655,36 @@ function launchCheck(character: Character, offset: number): Check {
 
 const KNOCKBACK_RULE = "knockback: melee:src/melee/ft/ftcoll.c with PlCo +0x0F4..+0x120 (fighter's own weight); hitstun (int)(K x +0x154 0.4), tumble when K x 0.4 >= +0x160 32: melee:src/melee/ft/kinds/ftCommon/ftCo_Damage.c:285";
 
+/** The test hit landed `count` times in a row by the same attacker on a target put back to 0% each time; each hit's damage, knockback and hitstun. */
+function repeatedHits(character: Character, count: number): string[] {
+  const s = scene(0, [{ character, x: 0.0, facing: 1 }, { character: Character.rifleman, x: -60.0, facing: 1 }]);
+  const target = fighter(s, 0);
+  const hits: string[] = [];
+  for (let n = 0; n < count; n++) {
+    target.status.damage = 0.0;
+    target.launch.hitstun = 0;
+    target.launch.hitlag = 0;
+    target.down.state = DownState.none;
+    beginDamageContacts();
+    collectDamageContact(s.world, 1, 0, TEST_HIT, 1, ContactKind.launch, false, undefined, false);
+    finishDamageContacts(s.world);
+    hits.push(`${target.status.damage} damage, knockback ${target.launch.knockbackX}, ${target.launch.hitstun} hitstun`);
+  }
+  return hits;
+}
+
+const STALE_MOVES = "ft_80089118 scales damage by 1 - the staling table entries (Fighter_804D6548, PlCo data) for each of the last 9 queued instances of the same move id, queued by plStale_UpdateStaleMovesFromFighter (melee:src/melee/pl/plstale.c) and applied by ft_80089228 (melee:src/melee/ft/ft_0881.c:337)";
+
 const KNOCKBACK: readonly Scenario[] = [
+  {
+    area: "knockback", name: "the same move landing 5 times in a row: hit 5 damage against hit 1",
+    cite: STALE_MOVES,
+    departure: "Stale moves and freshness bonuses omitted (owner decision 2026-10-04, reaffirmed 2026-10-06; smashcraft:docs/gameplay-design.md)",
+    run: (c) => {
+      const hits = repeatedHits(c, 5);
+      return { expected: "hit 5 deals less than hit 1", actual: hits.every((hit) => hit === hits[0]) ? `all 5 hits: ${hits[0]}` : `varies: ${hits.join("; ")}` };
+    },
+  },
   { area: "knockback", name: "10-damage hit (growth 100, base 21) 1% below the tumble threshold", cite: KNOCKBACK_RULE, run: (c) => launchCheck(c, -1) },
   { area: "knockback", name: "10-damage hit (growth 100, base 21) at the tumble threshold", cite: KNOCKBACK_RULE, run: (c) => launchCheck(c, 0) },
 ];

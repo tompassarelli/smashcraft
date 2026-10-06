@@ -73,6 +73,8 @@ export function adaptInput(row: Readonly<InputRow>, fighter: Readonly<Fighter>, 
   destination.getupStandPressed = has(pressed, Action.moveUp) || destination.jumpPressed || destination.airDodgePressed;
   destination.getupDirection = edgePair(pressed, Action.moveLeft, Action.moveRight);
   destination.getupDirectionPressed = destination.getupDirection !== 0;
+  destination.cStickUpFlick = has(pressed, Action.smashUp);
+  destination.cStickSideFlick = edgePair(pressed, Action.smashLeft, Action.smashRight);
   destination.walking = has(held, Action.walk);
   destination.attackHeld = has(held, Action.attack);
   const dodge = groundDodgeIntent(destination.shield, has(pressed, Action.moveLeft), has(pressed, Action.moveRight), has(pressed, Action.moveDown));

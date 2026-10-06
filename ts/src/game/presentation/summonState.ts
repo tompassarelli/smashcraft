@@ -71,11 +71,12 @@ export function advanceSummons(state: SummonState, fighter: Readonly<Fighter> | 
   state.bearHitSerial[slot] = bear.hitSerial;
 }
 
-export function projectBear(state: Readonly<SummonState>, fighter: Readonly<Fighter> | undefined, slot: number): SummonProjection {
+// Shared and never changed: renderers project every pooled effect on every callback.
+const HIDDEN: Readonly<SummonProjection> = { visible: false, clipIndex: undefined, seconds: 0.0, x: 0.0, z: 0.0, yaw: 0.0, scale: 0.0 };
+
+export function projectBear(state: Readonly<SummonState>, fighter: Readonly<Fighter> | undefined, slot: number): Readonly<SummonProjection> {
   const pose = state.bears[slot];
-  if (fighter === undefined || pose === undefined || fighter.status.out || fighter.bear.life <= 0 || !pose.active) {
-    return { visible: false, clipIndex: undefined, seconds: 0.0, x: 0.0, z: 0.0, yaw: 0.0, scale: 0.0 };
-  }
+  if (fighter === undefined || pose === undefined || fighter.status.out || fighter.bear.life <= 0 || !pose.active) return HIDDEN;
   const { bear } = fighter;
   return {
     visible: true,

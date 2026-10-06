@@ -224,7 +224,6 @@ export default defineSoakGame({
   entry: SOAK_ENTRY,
   begin: (clients, match) => {
     const helpers = new JournalHelpers(PLAYABLE_BUILD.id, true);
-    helpers.pairsOnly = true;
     const controllers = new Map<number, ControllerRows>();
     match.policies.forEach((policy, slot) => {
       if (policy === "fuzz") controllers.set(slot, new ControllerRows());

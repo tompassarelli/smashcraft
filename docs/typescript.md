@@ -311,6 +311,12 @@ on those paths: TypeScriptToLua's `Object.assign` packs its arguments into a
 new table and walks the source with `pairs` on every call, and in the
 integrity build's rematch the input and control copies made with it were an
 eighth of the match's Lua work (Lua32, 6 October 2026).
+Presentation projects every pooled effect on every callback, so a hidden pose
+is one shared constant and an empty impact slot is not projected at all: a
+new table for each hidden pose was 82 of a solo match callback's 87 KB of
+Lua allocation when it ran no frame, and 82 of 137 KB on average (Lua32,
+6 October 2026). Lua's collector works in proportion to what is
+allocated, in steps that land on whichever callback allocates next.
 
 Native calls cost Warcraft more than Lua does. A renderer parks a pooled
 effect once, when it stops showing it, and keeps a flag per effect so it does
@@ -318,6 +324,10 @@ not park it again until it has shown it (`parkOnce`,
 smashcraft:ts/src/game/render/effects.ts). Re-parking every hidden impact,
 missile, trap and special effect on every frame was about 530 of a match
 frame's 766 native calls with two fighters.
+The fighter HUD likewise sets a plate's visibility, damage text and stock
+icons only when they change (smashcraft:ts/src/game/ui/matchHud.ts): setting
+them on every callback was 60 of the 166–183 native calls of each callback in
+a solo match against a computer.
 
 Engine callbacks (timers, triggers, frame events) go through the dispatch
 table, so hot reload can replace code without rebinding them.
@@ -349,8 +359,8 @@ From smashcraft:ts/:
   Each save prints the saved files' type errors, the affected unit tests, the
   journeys (the quick match plus the affected tests that play simulated
   clients: the desync guard, the visual and player-view group, stack-trace,
-  rematch-load, missing-input, input-stall and tune) and the whole `bun run check`,
-  each timed from the save.
+  rematch-load, missing-input, input-stall, tune and lag-recovery) and the
+  whole `bun run check`, each timed from the save.
   smashcraft:ts/scripts/wisp/commands/dev.ts declares the tests: the Bun test
   files, the registry modules game.test.ts runs, the files a test reads at run
   time (a test that reads files without declaring them runs on every save),

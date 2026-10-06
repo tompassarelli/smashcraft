@@ -12,6 +12,8 @@ rule comparisons. It is generated output, never gameplay tuning input. The
 fixtures use the TypeScript production simulation APIs for state, motion,
 contact resolution and actionability. The existing move export supplies move
 names and declared timing/contact facts for further joins.
+Smashcraft omits stale moves and freshness bonuses (smashcraft:docs/gameplay-design.md),
+so every comparison with Melee damage or knockback leaves that modifier out.
 
 ## Conditions and clocks
 
