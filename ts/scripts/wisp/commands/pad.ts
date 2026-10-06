@@ -41,7 +41,11 @@ export const pad: Command = (args) => Effect.gen(function*() {
   const { helper, build, out, chat } = parsed.values;
   const [scriptPath] = parsed.positionals;
   if (scriptPath === undefined || helper === undefined || build === undefined || out === undefined) return yield* new UsageFailure({ problem: `usage: bun wisp ${USAGE}` });
-  const appIds = new Map((parsed.values["app-id"] ?? []).map((entry) => entry.split("=", 2) as [string, string]));
+  const appIds = new Map<string, string>();
+  for (const entry of parsed.values["app-id"] ?? []) {
+    const at = entry.indexOf("=");
+    if (at > 0) appIds.set(entry.slice(0, at), entry.slice(at + 1));
+  }
   const steps = yield* Effect.try({ try: () => parsePadScript(readFileSync(scriptPath, "utf8")), catch: (cause) => new UsageFailure({ problem: describeCause(cause) }) });
 
   const run = Effect.scoped(Effect.gen(function*() {
@@ -64,7 +68,8 @@ export const pad: Command = (args) => Effect.gen(function*() {
         "--editbox-display", client.x11.DISPLAY ?? "", "--x11-window", client.window, "--pid", String(pid), "--private-wlr-app-id", appId, "--trace",
       ], { ...Bun.env, ...client.x11, ...client.wayland }, join(out, `helper-${slot}.log`));
     }
-    const logs = () => SLOTS.map((slot) => readFileSync(join(out, `helper-${slot}.log`), "utf8")) as [string, string];
+    const log = (slot: number) => readFileSync(join(out, `helper-${slot}.log`), "utf8");
+    const logs = (): [string, string] => [log(SLOTS[0]), log(SLOTS[1])];
     if (chat !== undefined) {
       yield* Effect.sleep("1 second");
       yield* keys(clients[0], "Return").pipe(Effect.andThen(typeText(clients[0], chat, 35)), Effect.andThen(keys(clients[0], "Return")), Effect.mapError(fromDesktop));

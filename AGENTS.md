@@ -161,6 +161,10 @@ code. From smashcraft:ts/:
   #17's four-fighter match (smashcraft:docs/native-four-fighters.md);
   `bun wisp playable capture|result` a playable candidate's one-stock match
   and rematch (smashcraft:docs/playable-0047.md).
+- Scripted pad: `bun wisp pad SCRIPT --helper BINARY --build BUILD --out DIR
+  --app-id a=ID --app-id b=ID [--chat=TEXT]` plays timed virtual-pad input
+  through each client's real helper and reports the frame each edge landed on
+  (script syntax: smashcraft:ts/scripts/integrity/padScript.ts).
 - Native acceptance: `bun wisp accept [--only ID...] [--dry-run]` runs every
   open native check declared in smashcraft:ts/scripts/wisp/acceptChecks.ts in
   as few fresh matches as their maps allow and prints pass, fail or
