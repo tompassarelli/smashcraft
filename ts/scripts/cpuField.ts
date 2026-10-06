@@ -18,6 +18,8 @@ import { createPacingAndPresentation } from "../src/game/match/pacingAndPresenta
 import { MATCH_TICKS_PER_SECOND, Phase, createMatchState, setParticipants } from "../src/game/match/rules";
 import { initializeMatchFighters, matchSpawnX } from "../src/game/match/step";
 import { produceComputerInput } from "../src/game/match/botPlay";
+import { gameplanOf } from "../src/game/match/botGameplan";
+import { type GameplanMove, GameplanSpecial, GameplanThrow } from "../src/game/sim/gameplan";
 import { AttackStyle, type Character, SpecialAction } from "../src/game/sim/codes";
 import { createFighter, type Fighter } from "../src/game/sim/fighter";
 import { SELECTABLE_CHARACTERS, fighterSlug, selectableCharacterBySlug } from "../src/game/sim/heroes/registry";
@@ -32,8 +34,8 @@ const FIELD_STAGES: Readonly<Record<string, number>> = {
 };
 /** A stock lost this long after the last hit taken, or with none, was lost without the opponent (#105 box 3). */
 const NO_HIT_FRAMES = 3 * MATCH_TICKS_PER_SECOND;
-/** Specials as the computer's option numbers (match/botMoves.ts): neutral, side, up, down. */
-export const SPECIAL_MOVE = { neutral: 30, side: 31, up: 32, down: 33 } as const;
+/** Specials as gameplans and the computer's options number them: neutral, side, up, down. */
+export const SPECIAL_MOVE = GameplanSpecial;
 /** Spawn shifts, in order, for each variant of a setup. */
 const SHIFTS = [0.0, -60.0, 60.0, -120.0, 120.0, -30.0, 30.0, -90.0, 90.0] as const;
 
@@ -257,6 +259,33 @@ export function keyMovesAmongMostUsed(usage: readonly MoveUse[], key: readonly n
   const leading = new Set(usage.slice(0, top).map((use) => use.move));
   const missing = key.filter((move) => !leading.has(move));
   return { ok: missing.length === 0, missing };
+}
+
+/** A gameplan move as fighterMoveUsage counts it: a throw starts with the grab. */
+const countedAs = (move: number): number => (move >= GameplanThrow.forward && move <= GameplanThrow.down ? AttackStyle.grab : move);
+/** A started move as a gameplan names it: Illidan's dash attack is the dash attack, angled forward tilts the forward tilt. */
+const namedAs = (move: number): number =>
+  move === AttackStyle.demonHunterDashAttack ? AttackStyle.dashAttack
+    : move === AttackStyle.forwardTiltUp || move === AttackStyle.forwardTiltDown ? AttackStyle.forwardTilt : move;
+
+/**
+ * The per-fighter gameplan test (#105 box 2): whether the fighter's declared
+ * key moves (its spacing tools unless `key` names others) are among its
+ * `top` most-used moves in its computer matches against the field.
+ */
+export function gameplanKeyMovesCheck(character: Character, { top = 6, key, options = {} }: { top?: number; key?: readonly GameplanMove[]; options?: FieldOptions } = {}) {
+  const plan = gameplanOf(character);
+  if (plan === undefined) throw new Error(`${fighterSlug(character)} declares no gameplan`);
+  const merged = new Map<number, MoveUse>();
+  for (const use of fighterMoveUsage(character, options)) {
+    const move = namedAs(use.move);
+    const known = merged.get(move);
+    merged.set(move, { move, name: moveName(move), count: (known?.count ?? 0) + use.count, share: (known?.share ?? 0) + use.share });
+  }
+  const usage = [...merged.values()].sort((x, y) => y.count - x.count || x.move - y.move);
+  const declared = [...new Set((key ?? plan.spacing.map((spaced) => spaced.move)).map(countedAs))];
+  const result = keyMovesAmongMostUsed(usage, declared, top);
+  return { ...result, missingNames: result.missing.map(moveName), usage };
 }
 
 function summarizeField(records: readonly MatchRecord[]): FighterSummary[] {

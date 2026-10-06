@@ -41,6 +41,13 @@ Owner decisions, 6 Oct 2026 (#62):
   sitting on a platform is slightly disadvantaged against one below it;
   advantage comes from leaving a position well (running off and fast falling),
   not from height or from the fastest jump. See "Platforms" below.
+- **Balance by sharpening identity, never by homogenizing** (6 Oct, #105).
+  Each fighter declares a gameplan its computer plays: the range it keeps, its
+  key spacing tools, how it approaches and defends, its combos and finishers,
+  its way back and the situations it avoids. A fighter that loses is fixed by
+  raising its signature strengths or making its weakness more avoidable
+  through its gameplan, measured, not by making its kit like the others. See
+  "Fighter gameplans" under "Computer opponent".
 
 ## Bounded SDI
 
@@ -521,6 +528,42 @@ stay inside 32-bit integers, so Bun and Warcraft's Lua compute it alike.
   misses the tech. It never lies still under jab resets.
 - Off the stage it returns to the deck or, facing a free ledge, falls onto
   the ledge and climbs, rolls, jumps or attacks from it.
+
+### Fighter gameplans
+
+A fighter may declare a `FighterGameplan` (smashcraft:ts/src/game/sim/gameplan.ts)
+next to its kit: a hero in its `HeroDefinition.gameplan`, an original fighter
+in smashcraft:ts/src/game/sim/originalGameplans.ts. Its computer then plays it
+(smashcraft:ts/src/game/match/botGameplan.ts); one without a gameplan plays
+as above. Moves are attack styles (aerials by their own style, the dash
+attack as `dashAttack`), `GameplanSpecial` or `GameplanThrow`.
+
+- **Plan.** Each 40-frame stretch it either keeps its preferred range (weight
+  2, or 1 when it avoids long range) or follows one of its approach options
+  (run, jump or shoot, each by its weight, default 1).
+- **Position.** Keeping range, it stands a gap in its band away, on its own
+  side of the target, and short-hops when a spacing aerial's band holds the
+  gap. Running or jumping in it closes fully, or to the near end of its band
+  when it avoids close range; shooting keeps the far end. Avoiding `below`, it
+  keeps its range instead of standing under a target overhead and never jumps
+  into one; avoiding `edge`, its spot stays 160 units inside the deck; avoiding
+  `air`, it never plans to jump in; avoiding `above`, it never jumps in over a
+  grounded target.
+- **Moves.** Of the moves in reach, an unnamed one weighs 1. A spacing tool
+  at its spacing weighs 4 and is thrown there even out of reach; a move of
+  the approach in force 3; a combo starter 2 in neutral; a follow-up 4 while
+  the fighter's own hit stuns the target; a finisher 6 inside its percent
+  window. The factors multiply.
+- **Defense, grabs, recovery.** A threat it answers (7 in 10, as before) gets
+  one of its listed answers: shield, spot dodge, roll, its stance special,
+  jump or retreat; at the edge a roll, shield or retreat becomes a spot
+  dodge. Holding a grab it throws for the kill inside a throw finisher's
+  window, else into a throw combo starter. Its route back aims always for the
+  ledge, always for the deck or either, and spends its up special before or
+  after its jump.
+
+The gameplan is static kit data and the computer keeps no new state, so
+snapshots and replays are unchanged.
 
 The 540-match `--policy cpu` soak checks this behaviour: departures,
 self-destructs, time-outs and the moves that landed

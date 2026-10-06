@@ -2,6 +2,7 @@
 // Warcraft presentation. Body multipliers live in heroBodies.ts. Plain data:
 // the simulation, selection and presentation all read the same record.
 import type { Character } from "../codes";
+import type { FighterGameplan } from "../gameplan";
 import type { FighterMoves } from "../heroMoves";
 import type { FighterSpecials } from "../heroSpecials";
 
@@ -84,6 +85,8 @@ export interface HeroDefinition {
   readonly moves: FighterMoves;
   readonly specials?: FighterSpecials | undefined;
   readonly presentation: HeroPresentation;
+  /** How its computer plays (sim/gameplan.ts); without one it plays the general computer. */
+  readonly gameplan?: FighterGameplan | undefined;
 }
 
 /** The stock-model default: sequence zero for a second, until a hero maps its poses. */

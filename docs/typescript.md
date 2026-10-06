@@ -566,7 +566,11 @@ From smashcraft:ts/:
   each opponent, the share of stocks lost with no hit taken in the previous
   3 s, damage per hit landed and its most-started moves. About 0.15 s a
   match, 900 matches a variant. `fighterMoveUsage` gives a per-fighter test
-  the same move ranking.
+  the same move ranking; `gameplanKeyMovesCheck(character)` checks that the
+  fighter's declared key moves (its gameplan's spacing tools unless `key`
+  names others) are among its `top` (6) most-used, counting a throw as the
+  grab, any dash attack as `dashAttack` and angled forward tilts as the
+  forward tilt.
 
 ## Build the map
 
