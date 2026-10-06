@@ -20,6 +20,7 @@ import {
 } from "./transitions";
 
 import { stageBounds } from "./stageBounds";
+import { refillMana } from "./heroSpecialRules";
 const RESPAWN_FRAMES = 60;
 const RESPAWN_HEIGHT = 280.0;
 const RESPAWN_INVINCIBLE_FRAMES = 90;
@@ -86,6 +87,8 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   clearGrabLinks(world, slot);
   clearSpecialOnStock(f);
   f.visuals.parry = 0;
+  refillMana(f);
+  f.status.armorFrames = 0;
   motion.lastAerialTapDirection = 0;
   hits.lastAttacker = undefined;
   hits.lastAttackSerial = undefined;

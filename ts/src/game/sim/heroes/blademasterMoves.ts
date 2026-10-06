@@ -1,8 +1,8 @@
 import { f32 } from "wisp/src/sim/f32";
-import { AttackStyle, GrabAction } from "../codes";
+import { AttackStyle, GrabAction, HitElement } from "../codes";
 import { type AuthoredThrow, type FighterMoves, type MoveRegion, type StrikeCapsule, HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion } from "../heroMoves";
 import { type FighterHurtboxes, type HurtPart, hurtPart } from "../hurtboxes";
-import { type HitEffect, HitElement } from "../hitRegions";
+import type { HitEffect } from "../hitRegions";
 
 // smashcraft:docs/design/roster.md uses Archer's standing outer capsule height.
 export const H = HERO_REFERENCE_HEIGHT;

@@ -29,6 +29,7 @@ function referenceWall(character: Character): {
   readonly ceilingFrame: number;
 } {
   switch (character) {
+    default:
     case Character.archer:
       return { pushOff: 0.5, jumpX: 1.399999976158142, jumpZ: 3.299999952316284, ceiling: 0.699999988079071, ceilingFrame: 14 };
     case Character.rifleman:
