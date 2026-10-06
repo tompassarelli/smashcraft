@@ -2,7 +2,7 @@
 // and the camera. Everything here is presentation; with predicted
 // presentation, persistent visuals follow the speculative match and event
 // effects, audio, results and HUD follow the confirmed one.
-import { STAGE_DECK_MODEL } from "../../game/assets/stageAssetInfo";
+import { STAGE_DECK_MODEL, STAGE_MAIN_DECK_MODEL } from "../../game/assets/stageAssetInfo";
 import { f32 } from "wisp/src/sim/f32";
 import { PARTICIPANT_SLOTS, type ParticipantSlot } from "../../game/input/participants";
 import type { PacingAndPresentation } from "../../game/match/pacingAndPresentation";
@@ -61,7 +61,7 @@ function clearStageDecks(s: ShellState): void {
   s.stageDecks.length = 0;
 }
 
-/** One deck model per surface of the chosen stage. */
+/** One deck model per surface of the chosen stage: the main deck's own, drawn from its collision, and a slab for each raised deck. */
 export function drawStage(s: ShellState): void {
   clearStageDecks(s);
   const { origin } = s;
@@ -71,10 +71,10 @@ export function drawStage(s: ShellState): void {
     const right = surfaceRight(stage, index);
     const pass = surfacePass(stage, index);
     const x = origin.x + (left + right) / 2;
-    const deck = AddSpecialEffect(STAGE_DECK_MODEL, x, origin.y);
+    const deck = AddSpecialEffect(index === 0 ? STAGE_MAIN_DECK_MODEL : STAGE_DECK_MODEL, x, origin.y);
     BlzSetSpecialEffectPosition(deck, x, origin.y, origin.z + surfaceZ(stage, index));
-    // The authored walking plane spans [-50, 50] at z = 0; the body stays below it.
-    BlzSetSpecialEffectMatrixScale(deck, (right - left) / 100, pass ? f32(0.65) : 1.0, pass ? f32(0.45) : 1.0);
+    // The slab's walking plane spans [-50, 50] at z = 0; the body stays below it.
+    if (index > 0) BlzSetSpecialEffectMatrixScale(deck, (right - left) / 100, pass ? f32(0.65) : 1.0, pass ? f32(0.45) : 1.0);
     s.stageDecks.push(deck);
   }
 }

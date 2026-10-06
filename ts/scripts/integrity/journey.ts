@@ -7,7 +7,7 @@
 import { Context, Effect } from "effect";
 import type { Region } from "wisp/scripts/warcraft/desktop";
 import { IntegrityFailure } from "./evidence";
-import { ABS_X, BTN_A, BTN_START, EV_ABS, EV_KEY, type SourceEdge } from "./linuxInput";
+import { ABS_X, ABS_Y, ABS_Z, BTN_A, BTN_SELECT, BTN_START, BTN_X, BTN_Y, EV_ABS, EV_KEY, type SourceEdge } from "./linuxInput";
 import { SLOTS, type Slot } from "./reconcile";
 import { type PadLayout, PULSE_HOLD_MILLIS, STALL_MILLIS, type Pulse, type Send, type StallTarget, integritySchedule, pulseSends } from "./schedule";
 import { INPUT_TRACE_FILE, devCommandReceiptFile, journalControlFile, journalLifecycleFile, journalMenuFile, responsePageFile } from "../../src/runtime/gameFiles";
@@ -53,7 +53,17 @@ export type JourneyRecord =
     readonly continued_monotonic_ns: number;
     readonly verified_stopped_state: true;
   }
-  | { readonly event: "integrity-slot-change" | "four-fighter-setup"; readonly epoch: number; readonly changes: readonly ModeReceipt[] }
+  | { readonly event: "integrity-slot-change" | "four-fighter-setup" | "bot-setup"; readonly epoch: number; readonly changes: readonly ModeReceipt[] }
+  | {
+    readonly event: "bot-stall";
+    readonly epoch: number;
+    readonly trial: number;
+    readonly slot: Slot;
+    readonly pid: number;
+    readonly stopped_monotonic_ns: number;
+    readonly continued_monotonic_ns: number;
+  }
+  | { readonly event: "bot-moment"; readonly epoch: number; readonly pressed_monotonic_ns: number; readonly released_monotonic_ns: number }
   | { readonly event: "dev-config"; readonly epoch: number; readonly command: string; readonly publications: readonly PublicationRecord[] }
   | { readonly event: "results"; readonly epoch: number; readonly texts: readonly string[]; readonly notices?: readonly string[] }
   /** What an input-integrity capture's player-view check found; `failure` is undefined when it passed. */
@@ -117,7 +127,11 @@ export interface JourneyOptions {
    * matches that end when a player walks off; the default retains #26's
    * complete input workload.
    */
-  readonly workload?: "match" | "playable";
+  readonly workload?: "match" | "playable" | "bot";
+  /** A bot session with a second computer, an Archer in slot D: four fighters. */
+  readonly botFour?: boolean;
+  /** A bot session whose first match starts with #49's pad script on slot 0. */
+  readonly pad49?: boolean;
   /** How the helper reads the pads; `xpad` unless replaying a capture before #49. */
   readonly padLayout?: PadLayout;
 }
@@ -138,6 +152,34 @@ const TRACE = INPUT_TRACE_FILE;
 const PROBE_TRACE_TICKS = 1200;
 const PLAYABLE_TRACE_TICKS = 300;
 
+/** A bot session's match timeline, in ms after its start boundary (#48's 2 s stalls; the helper saves a moment for View held 1 s). */
+const BOT_STALLS = [6000, 14000, 22000] as const;
+const BOT_STALL_MILLIS = 2000;
+const BOT_MOMENT = 30000;
+const BOT_MOMENT_HOLD_MILLIS = 1300;
+const BOT_PLAY_MILLIS = 58000;
+const BOT_BEAT_MILLIS = 400;
+/** A bot beat: a 5 ms button tap, or a stick or trigger held then released. */
+const BOT_BEATS = [
+  { kind: "tap", code: BTN_A },
+  { kind: "tap", code: BTN_Y },
+  { kind: "tap", code: BTN_X },
+  { kind: "hold", code: ABS_Z, value: 32767, holdMillis: 200 },
+  { kind: "hold", code: ABS_X, value: 32767, holdMillis: 300 },
+  { kind: "hold", code: ABS_X, value: -32768, holdMillis: 300 },
+] as const;
+/** Stick down (+Y) just below and just past Melee's 0.6625 of full scale (#49). */
+const PAD49_BELOW_DOWN = 21299;
+const PAD49_PAST_DOWN = 21954;
+/** The frame meter's overlay toggle (smashcraft:ts/src/platform/frameMeter.ts). */
+const PERF_TOGGLE = "-dev perf";
+
+/**
+ * Stocks in each match of #26's integrity workload. Its pads dash both ways
+ * through the whole workload, and on 0.0.48 Player 2 drifted off the stage on
+ * its one stock 19–21 s in, ending the match before its scheduled pause.
+ */
+const INTEGRITY_STOCKS = 3;
 const stocks = (count: number) => new RegExp(`${count} Stock`, "i");
 const signature = (humans: number, computers: number) => `connected=3 human-fighters=${humans} computers=${computers} fighters=${humans + computers}`;
 const both = <A, E>(each: (client: Slot) => Effect.Effect<A, E>) => Effect.forEach(SLOTS, each, { concurrency: 2 });
@@ -147,6 +189,9 @@ export function journey(rig: RigShape, options: JourneyOptions) {
   const { build, epochs, fourFighters, sweep } = options;
   const matchOnly = options.workload === "match";
   const playable = options.workload === "playable";
+  const bot = options.workload === "bot";
+  /** A bot session on a playable build has neither the Ctrl+G trace nor scene reports; other workloads name their build's kind. */
+  const diagnosticBuild = !bot || !build.startsWith("playable");
   const firstEpoch = epochs[0] ?? 1;
   const lastEpoch = epochs.at(-1) ?? firstEpoch;
 
@@ -180,7 +225,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
    * every match still exports its pages.
    */
   const playerView = (epoch: number, at: PlayerViewMoment, checks: { readonly frame: boolean; readonly scene: boolean }) =>
-    matchOnly || playable
+    matchOnly || playable || bot
       ? rig.playerView(epoch, checks)
       : rig.playerView(epoch, checks).pipe(
         Effect.as<string | undefined>(undefined),
@@ -233,6 +278,119 @@ export function journey(rig: RigShape, options: JourneyOptions) {
     yield* rig.record({ event: "four-fighter-setup", epoch: firstEpoch, changes });
   });
 
+  /** A bot session's computer opponent: slot C's tag goes EMPTY → HMN → CPU, keeping its default Demon Hunter. */
+  const botSetup = Effect.gen(function*() {
+    yield* characterScreen;
+    const changes = yield* modeChanges("bot session computer absent on one client", options.botFour === true ? [[1484, 7, 0], [1484, 3, 4], [1904, 11, 4], [1904, 3, 12]] : [[1484, 7, 0], [1484, 3, 4]]);
+    yield* rig.record({ event: "bot-setup", epoch: firstEpoch, changes });
+  });
+
+  /**
+   * A bot session's match, timed from its start boundary: both pads attack,
+   * jump and use specials, client B's game stops for 2 s at each BOT_STALLS
+   * time, and both pads hold View at BOT_MOMENT so each helper asks its client
+   * to save a moment. Stops early when the match ends.
+   */
+  /**
+   * #49's pad script on slot 0 (pad49Result.ts checks the rows): resting and
+   * drifted sticks, X and Y taps, down just below and just past 0.6625, and a
+   * held right during which `pad49: focus blip` asks the operator's watcher
+   * to move the desktop's focus away for 150 ms. Phases name each step.
+   */
+  const pad49 = (epoch: number, startNs: number) =>
+    Effect.gen(function*() {
+      const at = (offsetMs: number) => Effect.gen(function*() {
+        yield* rig.sleep(Math.max(0, (startNs + offsetMs * 1_000_000 - (yield* rig.monotonicNs)) / 1_000_000));
+      });
+      const stick = (x: number, y: number, phase: string) => Effect.gen(function*() {
+        yield* send(0, { type: EV_ABS, code: ABS_X, value: x }, `pad49-${phase}`);
+        yield* send(0, { type: EV_ABS, code: ABS_Y, value: y }, `pad49-${phase}`);
+      });
+      const press = (code: number, phase: string) => Effect.gen(function*() {
+        yield* send(0, button(code, 1), `pad49-${phase}`);
+        yield* rig.sleep(100);
+        yield* send(0, button(code, 0), `pad49-${phase}`);
+      });
+      yield* at(3000);
+      yield* stick(0, 0, "rest");
+      yield* at(4500);
+      yield* stick(8000, -8000, "drift-a");
+      yield* at(6000);
+      yield* stick(-9000, 9000, "drift-b");
+      yield* at(7500);
+      yield* stick(0, 0, "rest-b");
+      yield* at(8500);
+      yield* press(BTN_X, "x");
+      yield* at(9500);
+      yield* press(BTN_Y, "y");
+      yield* at(10500);
+      yield* stick(0, PAD49_BELOW_DOWN, "down-below");
+      yield* at(12000);
+      yield* stick(0, 0, "rest-c");
+      yield* at(13000);
+      yield* stick(0, PAD49_PAST_DOWN, "down-past");
+      yield* at(14500);
+      yield* stick(0, 0, "rest-d");
+      yield* at(15500);
+      yield* stick(32767, 0, "right-hold");
+      yield* at(16500);
+      yield* rig.progress("pad49: focus blip");
+      yield* at(19000);
+      yield* stick(0, 0, "rest-e");
+      yield* at(20000);
+    });
+
+  const botMatch = (epoch: number, startNs: number) =>
+    Effect.gen(function*() {
+      if (options.pad49 === true && epoch === firstEpoch) yield* pad49(epoch, startNs);
+      const ended = Effect.forEach(SLOTS, (client) => rig.file(client, controlName("end", epoch, client))).pipe(Effect.map((files) => files.some(complete)));
+      let beat = 0;
+      /** One beat on both pads, in a cycle of 5 ms taps (A, Y, X), a held shield and dashes right and left. */
+      const beatOnce = Effect.gen(function*() {
+        const step = BOT_BEATS[beat % BOT_BEATS.length] ?? BOT_BEATS[0];
+        beat++;
+        const phase = `bot-${epoch}-beat`;
+        for (const slot of SLOTS) yield* send(slot, step.kind === "tap" ? button(step.code, 1) : { type: EV_ABS, code: step.code, value: step.value }, phase);
+        yield* rig.sleep(step.kind === "tap" ? PULSE_HOLD_MILLIS : step.holdMillis);
+        for (const slot of SLOTS) yield* send(slot, step.kind === "tap" ? button(step.code, 0) : { type: EV_ABS, code: step.code, value: 0 }, phase);
+        yield* rig.sleep(BOT_BEAT_MILLIS);
+      });
+      /** Plays beats until `offsetMs` after the start; false once the match has ended. */
+      const playUntil = (offsetMs: number) =>
+        Effect.gen(function*() {
+          while ((yield* rig.monotonicNs) < startNs + offsetMs * 1_000_000) {
+            if (yield* ended) return false;
+            yield* beatOnce;
+          }
+          return !(yield* ended);
+        });
+      // A four-fighter session measures its rematch's frame cost undisturbed, and #49's script plays alone: no stalls there.
+      const stallTimes = (options.botFour === true && epoch % 2 === 0) || (options.pad49 === true && epoch === firstEpoch) ? [] : BOT_STALLS;
+      for (const [index, offset] of stallTimes.entries()) {
+        if (!(yield* playUntil(offset))) return;
+        const stopped = yield* rig.stop({ kind: "game", slot: 1 });
+        const stoppedNs = yield* rig.monotonicNs;
+        yield* rig.progress(`Epoch ${epoch}: trial ${index + 1}: stopped client B's game, pid ${stopped.pid}`);
+        yield* Effect.gen(function*() {
+          yield* rig.sleep(Math.max(0, (stoppedNs + BOT_STALL_MILLIS * 1_000_000 - (yield* rig.monotonicNs)) / 1_000_000));
+        }).pipe(
+          Effect.ensuring(Effect.gen(function*() {
+            const continuedNs = yield* rig.monotonicNs;
+            yield* rig.resume(stopped);
+            yield* rig.record({ event: "bot-stall", epoch, trial: index + 1, slot: 1, pid: stopped.pid, stopped_monotonic_ns: stoppedNs, continued_monotonic_ns: continuedNs });
+          })),
+        );
+      }
+      if (!(yield* playUntil(BOT_MOMENT))) return;
+      const pressedNs = yield* rig.monotonicNs;
+      for (const slot of SLOTS) yield* send(slot, button(BTN_SELECT, 1), `bot-${epoch}-moment`);
+      yield* rig.sleep(BOT_MOMENT_HOLD_MILLIS);
+      for (const slot of SLOTS) yield* send(slot, button(BTN_SELECT, 0), `bot-${epoch}-moment`);
+      yield* rig.record({ event: "bot-moment", epoch, pressed_monotonic_ns: pressedNs, released_monotonic_ns: yield* rig.monotonicNs });
+      yield* rig.progress(`Epoch ${epoch}: both pads held View for a moment`);
+      yield* playUntil(BOT_PLAY_MILLIS);
+    });
+
   /** Exercises the slot-mode UI while both human fighters keep playing the rematch. */
   const slotChange = (epoch: number) =>
     Effect.gen(function*() {
@@ -265,18 +423,19 @@ export function journey(rig: RigShape, options: JourneyOptions) {
     yield* rig.until("slots C/D were not restored to EMPTY", menusShow(TWO_HUMANS));
   });
 
-  /** Stock count on B's stage screen, one click at a time. */
-  const reduceStocks = Effect.gen(function*() {
+  /** Stock count on B's stage screen, one click at a time: 1380 lowers it, 1675 raises it. */
+  const stockCount = (target: number) => Effect.gen(function*() {
     const text = yield* rig.waitText(1, /[1-9] Stock/i);
     const shown = /([1-9])\s+Stock/i.exec(text)?.[1];
     if (shown === undefined) return yield* failed("read stocks", text);
-    for (let count = Number(shown); count > 1;) {
+    for (let count = Number(shown); count !== target;) {
       yield* rig.click(1, 250, 900);
-      yield* rig.click(1, 1380, 155);
-      count--;
+      yield* rig.click(1, count > target ? 1380 : 1675, 155);
+      count += count > target ? -1 : 1;
       yield* rig.waitText(1, stocks(count));
     }
   });
+  const reduceStocks = stockCount(1);
 
   /** A normal one-minute match bounds the CPU journey without changing combat rules. */
   const oneMinute = Effect.gen(function*() {
@@ -291,14 +450,6 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       yield* rig.waitText(1, new RegExp(`${minutes}:00`));
     }
   });
-
-  const setStocks = (x: number, counts: readonly number[]) =>
-    Effect.forEach(counts, (count) =>
-      Effect.gen(function*() {
-        yield* rig.click(1, 250, 900);
-        yield* rig.click(1, x, 155);
-        yield* rig.waitText(1, stocks(count));
-      }), { discard: true });
 
   /** A synchronized player chat command; both clients' receipts must show the value. */
   const devCommand = (epoch: number, command: string, expected: string) =>
@@ -429,21 +580,21 @@ export function journey(rig: RigShape, options: JourneyOptions) {
     Effect.gen(function*() {
       const odd = epoch % 2 === 1;
       if (matchOnly || playable) yield* reduceStocks;
-      // #26's named integrity workload keeps three stocks in its rematch so
-      // the complete edge sample finishes before ordinary stock loss.
-      else {
-        if (!fourFighters && !odd) yield* setStocks(1675, [2, 3]);
-        if (!fourFighters && epoch > firstEpoch && odd) yield* setStocks(1380, [2, 1]);
-      }
       const commanded = sweep[(epoch - firstEpoch) / 2];
       if (odd && commanded !== undefined) {
         const [window, batch] = commanded;
         yield* devCommand(epoch, `-dev batch ${batch}`, ` batch=${batch} `);
         yield* devCommand(epoch, `-dev rb ${window}`, ` rb=${window} `);
       }
+      if (bot && options.botFour === true && !odd) {
+        // The frame meter registers its toggle at the first match start; its overlay shows on A for the rematch.
+        yield* rig.key(0, "Return");
+        yield* rig.type(0, PERF_TOGGLE);
+        yield* rig.key(0, "Return");
+      }
       const traceAfterNs = yield* rig.realtimeNs;
       // Ctrl+G only enables the diagnostic trace; the pads choose, start and rematch.
-      if (!playable) yield* rig.key(0, "ctrl+g");
+      if (!playable && diagnosticBuild) yield* rig.key(0, "ctrl+g");
       yield* menuButton(0, BTN_START, `menu-match-${epoch}-start`);
       const start = (client: Slot) => controlName("start", epoch, client);
       yield* rig.until(`epoch ${epoch}: game-controlled start absent`, Effect.forEach(SLOTS, (client) => rig.file(client, start(client))).pipe(Effect.map((files) => files.every(complete))));
@@ -453,8 +604,9 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       yield* rig.sleep(Math.max(0, (deadline - (yield* rig.monotonicNs)) / 1_000_000));
       yield* rig.sleep(700);
       // The playable build starts no scene recorder.
-      yield* playerView(epoch, "start", { frame: true, scene: !playable });
-      if (matchOnly || playable) {
+      yield* playerView(epoch, "start", { frame: true, scene: !playable && diagnosticBuild });
+      if (bot) yield* botMatch(epoch, deadline - 300_000_000);
+      else if (matchOnly || playable) {
         for (let attack = 0; attack < 4; attack++) {
           for (const slot of SLOTS) yield* tap(slot, `match-${epoch}-combat`);
           yield* rig.sleep(500);
@@ -464,25 +616,30 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       const stockLoss = `match-${epoch}-stock-loss`;
       // Each player walks off their own side. A playable one-stock match loses
       // Player 1's stock, its rematch Player 2's.
-      const walkers: readonly Slot[] = matchOnly ? [] : playable ? [odd ? 0 : 1] : odd ? [0] : [0, 1];
+      const walkers: readonly Slot[] = matchOnly || bot ? [] : playable ? [odd ? 0 : 1] : odd ? [0] : [0, 1];
       for (const slot of walkers) yield* send(slot, { type: EV_ABS, code: ABS_X, value: slot === 0 ? -32768 : 32767 }, stockLoss);
       const end = (client: Slot) => controlName("end", epoch, client);
-      yield* rig.until(`epoch ${epoch}: result did not stop capture`, Effect.forEach(SLOTS, (client) => rig.file(client, end(client))).pipe(Effect.map((files) => files.every(complete))), matchOnly ? 120 : 75);
+      yield* rig.until(`epoch ${epoch}: result did not stop capture`, Effect.forEach(SLOTS, (client) => rig.file(client, end(client))).pipe(Effect.map((files) => files.every(complete))), matchOnly || bot ? 120 : 75);
       for (const slot of walkers) yield* send(slot, { type: EV_ABS, code: ABS_X, value: 0 }, stockLoss);
       const quiescent = new RegExp(`match_quiescent epoch=${epoch}(?:\\s|$)`);
       yield* rig.until(`epoch ${epoch}: helpers did not quiesce`, Effect.forEach(SLOTS, rig.helperLog).pipe(Effect.map((logs) => logs.every((log) => quiescent.test(log)))));
       yield* rig.record({ event: "end", epoch, publications: yield* boundaries(end), observed_monotonic_ns: yield* rig.monotonicNs });
       // At the result every stay in view is complete; the screen no longer shows the arena.
-      if (!playable) yield* playerView(epoch, "result", { frame: false, scene: true });
+      if (!playable && diagnosticBuild) yield* playerView(epoch, "result", { frame: false, scene: true });
       const results = yield* both((client) => rig.waitText(client, RESULTS));
-      if (playable) {
+      if (playable || bot) {
         // The playable build has no response probe: its results are the
         // result screens and a stationary confirmed-checksum trace.
         const notices = yield* both((client) => rig.readText(client, RESULT_NOTICE));
         yield* rig.record({ event: "results", epoch, texts: results, notices });
-        const resultAfterNs = yield* rig.realtimeNs;
-        yield* rig.key(0, "ctrl+t");
-        for (const client of SLOTS) yield* rig.until(`epoch ${epoch}: result trace incomplete`, traceComplete(client, resultAfterNs, PLAYABLE_TRACE_TICKS), 35);
+        if (bot && diagnosticBuild) {
+          // A diagnostic build's Ctrl+G trace from the match start holds its confirmed checksums.
+          for (const client of SLOTS) yield* rig.until(`epoch ${epoch}: trace did not complete`, traceComplete(client, traceAfterNs), 30);
+        } else {
+          const resultAfterNs = yield* rig.realtimeNs;
+          yield* rig.key(0, "ctrl+t");
+          for (const client of SLOTS) yield* rig.until(`epoch ${epoch}: result trace incomplete`, traceComplete(client, resultAfterNs, PLAYABLE_TRACE_TICKS), 35);
+        }
         yield* rig.archive(String(epoch));
       } else {
         for (const client of SLOTS) yield* rig.until(`epoch ${epoch}: trace did not complete`, traceComplete(client, traceAfterNs), 30);
@@ -505,17 +662,20 @@ export function journey(rig: RigShape, options: JourneyOptions) {
         yield* menuPhase("RESULT");
         yield* tap(0, "results-only");
         yield* menuButton(1, BTN_START, "menu-results-confirm");
-        if (!playable) yield* (epoch + 1) % 2 === 0 ? slotChange(epoch + 1) : slotRestore;
+        if (!playable && !bot) yield* (epoch + 1) % 2 === 0 ? slotChange(epoch + 1) : slotRestore;
         yield* controllerSelect;
       }
-      yield* rig.progress(`Epoch ${epoch}: ${matchOnly ? "four-fighter combat and results" : playable ? "one-stock combat, stock loss and results" : "game start, tap, stock loss and results"} observed`);
+      yield* rig.progress(`Epoch ${epoch}: ${bot ? "bot combat, stalls, moment and results" : matchOnly ? "four-fighter combat and results" : playable ? "one-stock combat, stock loss and results" : "game start, tap, stock loss and results"} observed`);
     });
 
   const run = Effect.gen(function*() {
     if (fourFighters) yield* fourFighterSetup;
+    if (bot) yield* botSetup;
     yield* controllerSelect;
-    if (matchOnly) yield* oneMinute;
-    if (!matchOnly && !playable && !fourFighters) yield* reduceStocks;
+    if (matchOnly || bot) yield* oneMinute;
+    // #26's named integrity workload plays INTEGRITY_STOCKS in every match: its stalls, pause and
+    // complete edge sample must finish before ordinary stock loss can end the match.
+    if (!matchOnly && !playable && !fourFighters && !bot) yield* stockCount(INTEGRITY_STOCKS);
     for (const epoch of epochs) yield* match(epoch);
     yield* menuPhase("RESULT");
     yield* tap(0, "results-only");

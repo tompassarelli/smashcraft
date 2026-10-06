@@ -1810,8 +1810,9 @@ corpus, with the constant and source path for each scenario, then the counts
 per area. The scenarios are in smashcraft:ts/scripts/meleeOracle.ts: jump squat
 and hop heights, dash/run/walk speeds, fast-fall, landing lag, floor techs,
 get-up options and timings, the tumble threshold, pass-through platforms, the
-main deck's walls and underside (where launches meet them and the techs off
-them), shield release and dodges, and ledge catches, one from against the wall.
+main deck's walls and underside (where launches meet them, the techs off them,
+the push-off and wall jumps), shield release and dodges, and ledge catches, one
+from against the wall.
 smashcraft:ts/scripts/meleeOracle.tests.ts runs the table in the test suite and
 fails on any mismatch not listed in its `KNOWN_MISMATCHES`, and on a listed row
 that now passes. A deliberate difference from Melee is reported as a departure
@@ -1822,7 +1823,8 @@ so the aerial landing lag without an L press is such a departure.
 Character data compares only where a fighter borrows it: Archer's and
 Rifleman's movement, landing and action timings are Fox's and Falco's, and
 Illidan's are original, so those rows read n/a for him; Illidan's ledge catch
-box is Captain Falcon's. Common rules (input windows, tech gates,
+box and wall data are Captain Falcon's, as Archer's and Rifleman's are Fox's
+and Falco's. Common rules (input windows, tech gates,
 knockback, platforms, ledge boxes) apply to all three. Where Smashcraft
 authors a value, such as ground acceleration or aerial landing lag, the
 scenario checks Melee's rule applied to it, not the value.
@@ -1874,8 +1876,14 @@ Destination's, at six world units per Melee unit. Smashcraft's deck is 200 Melee
 Destination's 171.13, so the level underside spans the wider deck between the
 sides: in world units the walls drop straight from each ledge (x ±600) to z -63,
 slope in to x ±481.4 at z -122.7, and meet the underside at z -332.33,
-which spans x ±371.3. The drawn deck model (smashcraft:tools/stage/package.ts)
-is still the 54-unit slab and does not show the body below it.
+which spans x ±371.3. The main deck's model is drawn from these lines on
+every stage: smashcraft:ts/scripts/stageDeck.ts extrudes the walking line,
+walls and underside 60 units to each side of the fighters' plane, and
+smashcraft:tools/stage/package.ts writes it at arena scale, named after its
+MDL text. smashcraft:ts/test/stage-model.test.ts checks that the shipped
+model is the one drawn from the current lines, that its front faces' outline
+is those lines on both shipped stages, and that its model facts' bounds reach
+each wall and the underside. Stage 1's raised decks keep the scaled slab.
 
 A fighter meets a wall with its flank: Melee's ECB side touches the wall, and
 `mpColl_LoadECB_JObj` (melee:src/melee/mp/mpcoll.c) keeps an airborne ECB at
@@ -1891,7 +1899,7 @@ carries on over the stage. An underside stops a rise. A fighter that slips past
 a ledge's corner within its half-width of the wall, as when running off the
 ledge, is moved out sideways to its flank, as Melee's ECB slides off the
 corner. A wall tech pushes off along the facing it turns to, away from even a
-sloped wall (`ftCo_PassiveWall_Anim`).
+sloped wall (`ftCo_PassiveWall_Anim`); see "Wall techs and wall jumps" below.
 
 Ledge actions don't collide with the body; Melee's cliff actions run their own
 collision (`ftCo_CliffClimb_Coll`). Climbs, rolls and ledge attacks pass through
@@ -1905,6 +1913,47 @@ table, smashcraft:ts/src/game/match/wallTechInputContracts.tests.ts launches
 each fighter into the side through helper journal rows and techs off it, and
 the oracle's wall/ceiling and ledge rows check where launches meet the side and
 underside, the techs off them and a catch from against the wall.
+
+## Wall techs and wall jumps
+
+A wall tech holds the fighter on the wall for five frames (PlCo +0x760), then
+pushes it off away from the wall at its reference's `passivewall_vel_x`
+(ftCo_DatAttrs +0x100), or, when jump was pressed in the last 20 frames or
+the stick is up (`ftCo_800C1E0C`), launches its reference's wall jump (+0x104
+sideways, +0x108 up), then air friction and gravity act as usual
+(melee:src/melee/ft/kinds/ftCommon/ftCo_PassiveWall.c). Each fighter takes
+these from its Melee reference, read from the owner's GALE01 revision 2 DATs
+(smashcraft:docs/smash-melee-reference/physics-parameters.json), in Melee
+units a frame:
+
+| Fighter | Reference | Push-off | Wall jump sideways | Wall jump up | Minimum approach |
+| --- | --- | --- | --- | --- | --- |
+| Archer | Fox | 0.5 | 1.4 | 3.3 | 0.5 |
+| Rifleman | Falco | 0.5 | 1.3 | 3.6 | 0.5 |
+| Illidan | Captain Falcon | 0.5 | 1.4 | 3.1 | 0.5 |
+
+All three references wall jump (`ftFx_Init_OnLoad`, `ftFc_Init_OnLoad` and
+`ftCa_Init_OnLoad` set `can_walljump`); a fighter whose tuning lacks
+`canWallJump` never wall jumps. Ceiling techs keep no sideways impulse.
+
+A wall jump follows `ftWallJump_8008169C` (melee:src/melee/ft/ftwalljump.c).
+After the frame's collision, a fighter that is falling, jumping, tumbling
+past hitstun, or in a wall or ceiling recovery past its hang checks it;
+aerials, specials, air dodges, special fall and hitstun don't. Meeting a wall
+faster sideways than the minimum approach speed opens a 130-frame window
+(PlCo +0x768) while the fighter stays against that wall, and pushing the
+stick at least 0.8 away from it (+0x76C) within 3 frames of the stick leaving
+the horizontal smash deadzone (+0x770) starts the jump. It enters the wall
+tech's state (`ftCo_800C1E64`): motion stops, the fighter turns away, it is
+protected for 14 frames, hangs 5 (+0x774), then launches as above. Each
+earlier wall jump since the fighter last stood on the ground scales the rise
+by 0.975 (+0x778). A fighter moved out of the deck's body (see above) counts
+as against that wall, as Melee's collision leaves it touching.
+
+smashcraft:ts/src/game/match/wallTechInputContracts.tests.ts checks the
+push-off, the wall tech's jump and a drift-and-flick wall jump for each
+fighter through helper journal rows, and the oracle's wall/ceiling rows
+compare the hang, launch speeds and rises with the reference values.
 
 ## Shield presentation boundary
 

@@ -5,9 +5,9 @@ Physics parameters are recorded separately in
 [its source notes](physics-parameters.md). They include 78 extracted Fox/Falco
 values, retail verification for those values, 14 common-data annotations and
 78 selected retail common-data fields across 29 gameplay groups. The complete
-common table remains outside this corpus. Nine additional common shield and
-wall-recovery values, plus five Captain Falcon wall-recovery fields, are
-recorded as separate targeted checks.
+common table remains outside this corpus. Fourteen additional common shield,
+wall-recovery and wall-jump values, plus Fox's, Falco's and Captain Falcon's
+wall-recovery fields, are recorded as separate targeted checks.
 
 [ntsc-common-shield-values.json](ntsc-common-shield-values.json) adds a
 published NTSC 1.02 extraction of common shield recoil decay (0.05)

@@ -1,0 +1,5 @@
+1 s, computer smashcraft-repro-p1-f38-1.txt 38 []
+25 s, computer smashcraft-repro-p1-f1478-1.txt 638 []
+25 s, no computer smashcraft-repro-p1-f1478-1.txt 638 []
+ 3 pass
+ 0 fail
