@@ -22,7 +22,7 @@ import { readChunk, writeLines } from "wisp/src/platform/fileio";
 import { pollMailbox, releaseMessage } from "../keyboardJournal";
 import { startInputTrace } from "./diagnostics";
 import { controlsAvailable, pollLocalKeys } from "./inputs";
-import { probeClockMs, probeFileRead, probeInput, probePoll, probeSendFinished, probeTransportSend } from "./responseProbe";
+import { probeClockMs, probeFileRead, probeInput, probeIntegrity, probePoll, probeSendFinished, probeTransportSend } from "./responseProbe";
 import { type Journal, type Rollback, type ShellState, localSlot, playsOnKeyboard } from "./state";
 import { recordSend, traceInput } from "./trace";
 import { LASTING, setStatus } from "./view";
@@ -268,6 +268,7 @@ export function serviceJournalInput(s: ShellState, rollback: Rollback, journal: 
       if (captured !== Capture.captured) continue;
       probePoll(s.probe, row.held, row.pressed, row.released, frame);
       probeInput(s.probe, "capture", rollback.epoch, slot, frame, row.held, row.pressed, row.released, schedule.speculativeFrame());
+      if (rollback.predictionHeld && row.pressed !== 0) probeIntegrity(s.probe, `held ${rollback.epoch} ${slot} ${frame}`);
       if (s.trace.active) s.trace.window.localCaptures++;
     }
     for (let index = 0; index < rows; index++) {

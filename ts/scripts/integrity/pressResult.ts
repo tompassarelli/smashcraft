@@ -4,8 +4,10 @@
 // confirmed rows, the share applied on the frame its injection time implies,
 // and each legal press's local start (callbacks from capture to the presser's
 // first prediction). Presses made while a capture had stopped the presser's
-// own game or helper are reported apart from the gate, and presses made while
-// the other player's process was stopped apart from presses with no stall.
+// own game or helper, and presses the presser's client captured while a remote
+// row R frames behind held its prediction back, are reported apart from the
+// gate; presses made while the other player's process was stopped are listed
+// apart from presses with no stall.
 import { writeFileSync } from "node:fs";
 import { Effect } from "effect";
 import { readEvidence, readMetadata } from "./evidence";
@@ -46,7 +48,8 @@ const captures = await Effect.runPromise(Effect.forEach(directories, (directory)
   })));
 
 const all = captures.flatMap(({ directory, result }) => result.localStarts.map((start) => ({ capture: directory, ...start })));
-const gated = all.filter((start) => start.stall !== "own");
+const gated = all.filter((start) => start.stall !== "own" && !start.held);
+const held = all.filter((start) => start.held && start.stall !== "own");
 const presses = captures.reduce((sum, { result }) => sum + result.presses[0] + result.presses[1], 0);
 const lost = captures.reduce((sum, { result }) => sum + result.lost, 0);
 const extra = captures.reduce((sum, { result }) => sum + result.duplicated, 0);
@@ -95,6 +98,7 @@ const summary = {
   local_start_callbacks: {
     all: distribution(measured(all)),
     by_stall: bySide(all),
+    prediction_held: { ...distribution(measured(held)), missing_first_prediction: held.filter((start) => start.delay === undefined).length },
     // Diagnosis of the gated presses: those in the second after a stop ended, while the clients catch up, and the rest.
     gated_within_1s_after_stop: distribution(measured(gated.filter((start) => start.afterStall !== undefined && start.afterStall <= RECOVERY_FRAMES))),
     gated_clear_of_stops: distribution(measured(gated.filter((start) => start.stall === "none" && (start.afterStall === undefined || start.afterStall > RECOVERY_FRAMES)))),
@@ -108,4 +112,5 @@ const summary = {
   passed: Object.values(gate).every(Boolean),
 };
 writeFileSync(out, `${JSON.stringify(summary, undefined, 2)}\n`);
+process.exitCode = summary.passed ? 0 : 1;
 console.log(JSON.stringify({ presses, missing_actions: missingActions, lost, extra, on_frame: summary.on_frame, gated_local_start: summary.gated_local_start, local_start_callbacks: summary.local_start_callbacks, gate, passed: summary.passed }, undefined, 2));
