@@ -11,7 +11,7 @@
 // plays the same script through the same helper into two headless clients
 // of the integrity build, and with --compare checks a native run's folder
 // against it (smashcraft:ts/scripts/integrity/padParity.ts).
-import { copyFileSync, existsSync, mkdirSync, openSync, readFileSync, readdirSync, statSync, writeFileSync, writeSync, closeSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, openSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync, writeSync, closeSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { Effect } from "effect";
@@ -38,7 +38,7 @@ import { sceneFile } from "wisp/src/runtime/scene";
 import { clientState } from "../project";
 import { onHealthyClients } from "../doctor";
 
-const USAGE = "pad SCRIPT --helper BINARY --build BUILD --out DIR --app-id a=ID --app-id b=ID [--chat=TEXT]\n"
+const USAGE = "pad SCRIPT --helper BINARY --build BUILD --out DIR --app-id a=ID --app-id b=ID [--chat=TEXT] [--map MAP.w3x [--retries N]]\n"
   + "       bun wisp pad SCRIPT --headless --helper BINARY --out DIR [--chat=TEXT] [--compare NATIVE_DIR]";
 
 /** The integrity build writes its input trace 1200 callbacks after the first journal row: about 20 s after the match starts. */
@@ -127,7 +127,11 @@ const native = (options: PadOptions, appIds: ReadonlyMap<string, string>) => Eff
   const loaded = yield* loadClients(clientState).pipe(Effect.mapError(fromDesktop));
   if (loaded.length !== 2) return yield* new IntegrityFailure({ operation: "load clients", path: clientState, cause: `${loaded.length} clients, need 2` });
   const clients = [at(loaded, 0), at(loaded, 1)] as const;
-  yield* tryIntegrity("create pad directory", out, () => mkdirSync(out, { recursive: true }));
+  yield* tryIntegrity("create pad directory", out, () => {
+    mkdirSync(out, { recursive: true });
+    // A rerun leaves nothing of the attempt before it.
+    for (const name of readdirSync(out)) if (/^(trace-[ab]\.txt|scene-[ab]\.txt|result\.json)$/.test(name) || REPRO_NAME.test(name)) rmSync(join(out, name));
+  });
   const data = [join(clients[0].documents, "CustomMapData"), join(clients[1].documents, "CustomMapData")] as const;
   const startedMs = Date.now();
   const startedNs = monotonicNs();
@@ -175,8 +179,43 @@ const native = (options: PadOptions, appIds: ReadonlyMap<string, string>) => Eff
   yield* until(frameWriteNs(Math.max(...epochs), last + 30));
   const finished = yield* Effect.exit(finish(out, scriptPath, build, epochs, sent, logs()));
   yield* collect(data, out, startedMs);
-  return yield* finished;
+  const invalid = invalidRun(clients.map((client) => client.name), clients.map((client) => client.documents), data, startedMs);
+  if (invalid.length > 0) {
+    yield* tryIntegrity("mark result invalid", out, () => {
+      const path = join(out, "result.json");
+      const result: unknown = existsSync(path) ? JSON.parse(readFileSync(path, "utf8")) : {};
+      writeFileSync(path, json({ ...(typeof result === "object" && result !== null ? result : {}), invalid }));
+    });
+    console.log(`INVALID: desynced, rerun: ${invalid.join("; ")}`);
+    return "invalid" as const;
+  }
+  yield* finished;
+  return "valid" as const;
 }));
+
+/** A native run that proves nothing either way: the game desynced, a client crashed, or the match ended early. */
+const INVALID_RUN = "invalid native run";
+
+/** Why a native run is invalid: a desync report or crash in a client's Errors folder, or a match record (the match reached its results) since `sinceMs`. */
+function invalidRun(names: readonly string[], documents: readonly string[], data: readonly string[], sinceMs: number): string[] {
+  const reasons: string[] = [];
+  const fresh = (path: string) => existsSync(path) && statSync(path).mtimeMs >= sinceMs;
+  documents.forEach((dir, index) => {
+    const errors = join(dir, "Errors");
+    const folders = existsSync(errors) ? readdirSync(errors).filter((folder) => fresh(join(errors, folder))) : [];
+    for (const folder of folders) reasons.push(`client ${names[index] ?? index} ${existsSync(join(errors, folder, "Crash.txt")) ? "crashed" : "wrote a desync report"} (Errors/${folder})`);
+    const records = existsSync(at(data, index)) ? readdirSync(at(data, index)).filter((name) => /^smashcraft-match-\d+\.txt$/.test(name) && fresh(join(at(data, index), name))) : [];
+    if (records.length > 0) reasons.push(`client ${names[index] ?? index} reached the match results (${records.join(", ")})`);
+  });
+  return reasons;
+}
+
+/** `bun wisp fresh MAP --no-quick`: a new game at fighter selection after a desynced run. */
+const freshGame = (map: string) => Effect.gen(function*() {
+  console.log(`starting a new game of ${map} for the rerun`);
+  const code = yield* Effect.promise(() => Bun.spawn(["bun", join(import.meta.dir, "../../wisp.ts"), "fresh", map, "--no-quick"], { stdout: "inherit", stderr: "inherit" }).exited);
+  if (code !== 0) return yield* new IntegrityFailure({ operation: "start a new game", path: map, cause: `bun wisp fresh exited ${code}` });
+});
 
 /** Writes the schedule from padScheduleWorker.ts's thread, so the headless clients' frames keep their time. */
 const scheduled = (schedule: Schedule) => Effect.callback<readonly SentEdge[], IntegrityFailure>((resume) => {
@@ -246,7 +285,7 @@ export const pad: Command = (args) => Effect.gen(function*() {
   const parsed = yield* Effect.try({
     try: () => parseArgs({ args: [...args], allowPositionals: true, options: {
       helper: { type: "string" }, build: { type: "string" }, out: { type: "string" }, chat: { type: "string" }, "app-id": { type: "string", multiple: true },
-      headless: { type: "boolean" }, compare: { type: "string" },
+      headless: { type: "boolean" }, compare: { type: "string" }, retries: { type: "string" }, map: { type: "string" },
     } }),
     catch: (cause) => new UsageFailure({ problem: describeCause(cause) }),
   });
@@ -266,13 +305,23 @@ export const pad: Command = (args) => Effect.gen(function*() {
       const separator = entry.indexOf("=");
       if (separator > 0) appIds.set(entry.slice(0, separator), entry.slice(separator + 1));
     }
-    return yield* onHealthyClients(native(options, appIds).pipe(step("pad script")), { retry: false });
+    const retries = Number(parsed.values.retries ?? "3");
+    const map = parsed.values.map;
+    for (let attempt = 0; ; attempt++) {
+      const ran = yield* onHealthyClients(native(options, appIds).pipe(step("pad script")), { retry: false });
+      if (ran === "valid") return;
+      if (map === undefined || attempt >= retries) {
+        return yield* new IntegrityFailure({ operation: INVALID_RUN, path: out, cause: `desynced, rerun (${attempt + 1} attempt${attempt === 0 ? "" : "s"}${map === undefined ? "; --map MAP.w3x reruns it automatically" : ""})` });
+      }
+      console.log(`rerun ${attempt + 1} of ${retries}`);
+      yield* freshGame(map);
+    }
   }
   const ran = yield* Effect.exit(headless(options).pipe(step("headless pad script")));
   if (compare !== undefined) {
     const report = yield* tryIntegrity("compare with the native run", compare, () => compareRuns(compare, out, script));
     for (const line of report.lines) console.log(line);
-    if (!report.passed) return yield* new IntegrityFailure({ operation: "pad parity", path: compare, cause: "the native run differs from the headless run" });
+    if (!report.passed) return yield* new IntegrityFailure({ operation: "pad parity", path: compare, cause: report.invalid === true ? "desynced, rerun the native run" : "the native run differs from the headless run" });
   }
   return yield* ran;
 });

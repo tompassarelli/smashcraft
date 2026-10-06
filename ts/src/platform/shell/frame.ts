@@ -41,6 +41,8 @@ function observe(before: FrameObservation, fighter: Readonly<Fighter>): void {
   before.special = fighter.special.action;
   before.grab = fighter.grab.action;
   before.di = fighter.launch.diSerial;
+  before.damage = fighter.status.damage;
+  before.form = fighter.special.form;
 }
 
 const bit = (value: boolean) => (value ? "1" : "0");
@@ -51,6 +53,7 @@ function reportChanges(s: ShellState, slot: ParticipantSlot, before: Readonly<Fr
   const holding = f.grab.target !== undefined;
   if (before.holding !== holding) traceParticipant(s, slot, `grab-hold ${holding ? "start" : "end"}`);
   if (before.special !== f.special.action) traceParticipant(s, slot, `special ${f.special.action} action-frame ${f.special.frame} x ${R2S(f.motion.x)} z ${R2S(f.motion.z)}`);
+  else if (before.form !== f.special.form) traceParticipant(s, slot, `special-form ${f.special.form} action ${f.special.action} action-frame ${f.special.frame} x ${R2S(f.motion.x)} z ${R2S(f.motion.z)}`);
   const actionable = canAttack(f);
   if (s.trace.active && (f.down.state !== before.down || actionable !== before.actionable)) {
     traceParticipant(s, slot, `recovery down ${f.down.state} actionable ${bit(actionable)} hitlag ${f.launch.hitlag} hitstun ${f.launch.hitstun} damage ${R2S(f.status.damage)}`);
@@ -59,6 +62,7 @@ function reportChanges(s: ShellState, slot: ParticipantSlot, before: Readonly<Fr
   if (before.breakState !== f.shield.breakState) traceParticipant(s, slot, `shield-break ${f.shield.breakState} z ${R2S(f.motion.z)} remaining ${R2S(f.shield.breakRemaining)}`);
   if (before.ledge !== f.ledge.state) traceParticipant(s, slot, `ledge ${f.ledge.state} x ${R2S(f.motion.x)} z ${R2S(f.motion.z)}`);
   if (before.jump !== f.jump.serial) traceParticipant(s, slot, `applied jump ${f.jump.serial} double ${bit(f.jump.isDouble)} z ${R2S(f.motion.z)}`);
+  if (before.damage !== f.status.damage) traceParticipant(s, slot, `damage ${R2S(f.status.damage)} hitlag ${f.launch.hitlag} hitstun ${f.launch.hitstun}`);
   const influence = s.trace.active && before.di !== f.launch.diSerial ? influenceOperands(f) : undefined;
   if (influence !== undefined) {
     // Exact x, z, stick x, stick z, degrees, radians and angle, so a replay can repeat the DI operation by operation.

@@ -1,7 +1,10 @@
 import { expect, test } from "bun:test";
 import { ABS_X, ABS_Y, ABS_Z, BTN_A, EV_ABS, EV_KEY } from "../scripts/integrity/linuxInput";
 import { frameWriteNs, landEdges, matchStart, parsePadScript, publishedFrame, ruleFrame } from "../scripts/integrity/padScript";
-import { parseExpectations, parseTrace, unmetExpectations } from "../scripts/integrity/padParity";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { compareRuns, parseExpectations, parseTrace, unmetExpectations } from "../scripts/integrity/padParity";
 
 test("a pad script becomes frame-ordered edges, a tap a press and its release", () => {
   const steps = parsePadScript(`
@@ -63,4 +66,16 @@ test("a pad parity check reads the input trace's checksums and fighter lines and
     "native script line 4 (expect b 118 special): no such line; nearby: 118 phase 2 recovery down 0 actionable 0 hitlag 5 hitstun 13 damage 6.000",
   ]);
   expect(() => parseExpectations("#! expects a 1 x")).toThrow("line 1");
+});
+
+test("a native pad run that desynced, crashed or ended early is invalid, neither pass nor fail", () => {
+  const root = mkdtempSync(join(tmpdir(), "pad-parity-"));
+  const [native, headless] = [join(root, "native"), join(root, "headless")];
+  mkdirSync(native);
+  mkdirSync(headless);
+  writeFileSync(join(native, "result.json"), JSON.stringify({ invalid: ["client a wrote a desync report (Errors/2026-10-07_064512)"] }));
+  writeFileSync(join(headless, "result.json"), JSON.stringify({ off_frame: 0, helpers_stopped: [] }));
+  const report = compareRuns(native, headless, "60 a tap X 2");
+  expect(report).toEqual({ passed: false, invalid: true, lines: ["INVALID: desynced, rerun: client a wrote a desync report (Errors/2026-10-07_064512)"] });
+  rmSync(root, { recursive: true });
 });

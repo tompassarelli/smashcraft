@@ -33,7 +33,7 @@ export interface Trace {
 }
 
 /** Confirmed-state changes the shell traces the same way on every client; presentation lines are left out. */
-const COMPARED = /^phase \d+ (special |applied attack |applied jump |recovery |grab action |grab-hold |shield-break |ledge |di )/;
+const COMPARED = /^phase \d+ (special |special-form |applied attack |applied jump |damage \d|recovery |grab action |grab-hold |shield-break |ledge |di )/;
 
 export function parseTrace(lines: readonly string[]): Trace {
   const checksums = new Map<number, string>();
@@ -127,6 +127,8 @@ export function readLines(path: string): string[] | undefined {
 }
 
 export interface ParityReport {
+  /** The native run proves nothing either way: rerun it. */
+  readonly invalid?: boolean;
   readonly passed: boolean;
   readonly lines: readonly string[];
 }
@@ -143,15 +145,19 @@ function eventDifference(native: Trace, headless: Trace, through: number): strin
 }
 
 interface RunResult {
-  readonly off_frame: number;
-  readonly helpers_stopped: readonly string[];
+  readonly off_frame?: number;
+  readonly helpers_stopped?: readonly string[];
   readonly build?: string;
+  /** Why the native run proves nothing: a desync, a crash or an early end (pad.ts). */
+  readonly invalid?: readonly string[];
 }
 
+const isStrings = (value: unknown): value is readonly string[] => Array.isArray(value) && value.every((item) => typeof item === "string");
+
 const isRunResult = (value: unknown): value is RunResult => typeof value === "object" && value !== null
-  && "off_frame" in value && typeof value.off_frame === "number"
-  && "helpers_stopped" in value && Array.isArray(value.helpers_stopped) && value.helpers_stopped.every((item) => typeof item === "string")
-  && (!("build" in value) || typeof value.build === "string");
+  && (!("build" in value) || typeof value.build === "string")
+  && ("invalid" in value ? isStrings(value.invalid) && (!("off_frame" in value) || typeof value.off_frame === "number")
+    : "off_frame" in value && typeof value.off_frame === "number" && "helpers_stopped" in value && isStrings(value.helpers_stopped));
 
 /** Compares a native pad run's folder with a headless one's, both written by `bun wisp pad`. */
 export function compareRuns(nativeDir: string, headlessDir: string, script: string): ParityReport {
@@ -163,9 +169,10 @@ export function compareRuns(nativeDir: string, headlessDir: string, script: stri
     return parsed;
   };
   const [native, headless] = [result(nativeDir), result(headlessDir)];
+  if (native.invalid !== undefined && native.invalid.length > 0) return { passed: false, invalid: true, lines: [`INVALID: desynced, rerun: ${native.invalid.join("; ")}`] };
   for (const [side, run] of [["native", native], ["headless", headless]] as const) {
-    if (run.off_frame !== 0) problems.push(`${side}: ${run.off_frame} edges landed off their planned frame`);
-    if (run.helpers_stopped.length > 0) problems.push(`${side}: ${run.helpers_stopped.join("; ")}`);
+    if (run.off_frame !== 0) problems.push(`${side}: ${run.off_frame ?? "?"} edges landed off their planned frame`);
+    if ((run.helpers_stopped ?? []).length > 0) problems.push(`${side}: ${(run.helpers_stopped ?? []).join("; ")}`);
   }
   if (native.build !== undefined && native.build !== headless.build) problems.push(`native build ${native.build}, headless build ${headless.build ?? "?"}`);
   const nativeLines = readLines(join(nativeDir, "trace-a.txt")) ?? readLines(join(nativeDir, "trace-b.txt"));

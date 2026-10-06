@@ -166,10 +166,11 @@ code. From smashcraft:ts/:
   `bun wisp playable capture|result` a playable candidate's one-stock match
   and rematch (smashcraft:docs/playable-0047.md).
 - Scripted pad: `bun wisp pad SCRIPT --helper BINARY --build BUILD --out DIR
-  --app-id a=ID --app-id b=ID [--chat=TEXT]` plays timed virtual-pad input
+  --app-id a=ID --app-id b=ID [--chat=TEXT] [--map MAP.w3x [--retries N]]` plays timed virtual-pad input
   through each client's real helper and reports the frame each edge landed on
   (script syntax: smashcraft:ts/scripts/integrity/padScript.ts). It copies
-  the clients' input traces, scene reports and moments beside the result.
+  the clients' input traces, scene reports and moments beside the result;
+  a desynced, crashed or early-ended run is INVALID and, with --map, rerun.
   `bun wisp pad SCRIPT --headless --helper BINARY --out DIR [--chat=TEXT]
   [--compare NATIVE_DIR]` plays the same script through the same helper into
   headless integrity clients. It passes a native run when checksums, fighter
