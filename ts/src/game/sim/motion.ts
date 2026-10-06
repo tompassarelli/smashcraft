@@ -7,7 +7,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { meleeAtan2, meleeCos, meleeSin } from "../../sim/meleeScalarMath";
 import { Character } from "./codes";
 import type { Fighter, MeleeMotionValue } from "./fighter";
-import { surfaceCount, surfaceLeft, surfaceMoves, surfacePass, surfaceRight, surfaceShiftX, surfaceShiftZ, surfaceZ } from "./stage";
+import { surfaceCount, surfaceLeft, surfaceMoves, surfaceRight, surfaceShiftX, surfaceShiftZ, surfaceZ } from "./stage";
 import { WORLD_UNITS_PER_MELEE_UNIT, melee } from "./tuning";
 
 function setOriginal(value: MeleeMotionValue, original: number): void {
@@ -240,7 +240,7 @@ export function landingAlongShift(f: Fighter, stage: number, matchFrame: number,
     const fromZ = follows ? f32(oldZ + surfaceShiftZ(stage, i, matchFrame)) : oldZ;
     if (newZ >= fromZ) continue;
     const platformZ = surfaceZ(stage, i, matchFrame);
-    if (fromZ >= platformZ && newZ <= platformZ && !(surfacePass(stage, i) && f.motion.dropTime > 0)) {
+    if (fromZ >= platformZ && newZ <= platformZ) {
       const fraction = f32(f32(fromZ - platformZ) / f32(fromZ - newZ));
       const crossingX = f32(fromX + f32(f32(newX - fromX) * fraction));
       const left = surfaceLeft(stage, i, matchFrame);

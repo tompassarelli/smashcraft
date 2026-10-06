@@ -108,7 +108,7 @@ developer statements on buffer lengths. Add them with their source when found.
 | Roll, spot dodge, air dodge intangibility | 4 to 19; 2 to 15; 4 to 29 | [physics.md](../physics.md) |
 | Dash to run command; run brake opposite-input window | 12 or 16; through 14 | [physics.md](../physics.md) |
 | Late dash guard grab | 3 | smashcraft:ts/src/game/sim/step.ts |
-| Shield release lag; minimum shield hold | 15; 8 | [physics.md](../physics.md) |
+| Shield release lag; minimum shield hold | 11; 8 | [physics.md](../physics.md) |
 | L-cancel; wavedash input timing | none; not a defined window | [gameplay design decisions](../gameplay-design.md) |
 
 ## Bounds adopted for Smashcraft

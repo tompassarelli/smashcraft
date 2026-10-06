@@ -3,7 +3,7 @@
 // that spans fighters, so clearing them takes the roster.
 import { clearTechInput } from "../physics/techInput";
 import { max } from "../../runtime/numbers";
-import { AttackStyle, DASH_GRAB_REQUEST, DownState, GrabAction, HippogryphKind, LedgeState, ProjectileKind, SpecialAction, SurfaceContact } from "./codes";
+import { AttackStyle, DASH_GRAB_REQUEST, DownState, GrabAction, HippogryphKind, LedgeState, PlatformMove, ProjectileKind, SpecialAction, SurfaceContact } from "./codes";
 import { isTumbling } from "./conditions";
 import { type Fighter, SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES } from "./fighter";
 import { clearDash } from "./groundMovement";
@@ -162,9 +162,36 @@ export function clearOwnedFreezeTrap(f: Fighter): void {
   trap.surface = undefined;
 }
 
-/** A hit, grab or shield break stops jumps, dodges, dashes and ledge hangs in progress. */
+/** Ends a move through a platform where the fighter is, with its latched inputs. */
+export function clearPlatformMove(f: Fighter): void {
+  const p = f.platform;
+  p.move = PlatformMove.none;
+  p.frame = 0;
+  p.duration = 0;
+  p.deck = undefined;
+  p.fromX = 0.0;
+  p.toX = 0.0;
+  p.fromZ = 0.0;
+  p.toZ = 0.0;
+  p.rise = 0.0;
+  p.stand = false;
+  p.shield = false;
+  p.wrapLeft = 0;
+  p.wrapLeftAge = 0;
+  p.wrapRight = 0;
+  p.wrapRightAge = 0;
+  p.dodgeQueued = false;
+  p.dodgeX = 0;
+  p.dodgeZ = 0;
+  p.specialQueued = false;
+  p.specialX = 0;
+  p.specialZ = 0;
+}
+
+/** A hit, grab or shield break stops jumps, dodges, dashes, ledge hangs and platform moves in progress. */
 export function interruptJumpOrDodge(f: Fighter): void {
   const { jump, dodge, shield } = f;
+  clearPlatformMove(f);
   f.motion.fastFalling = false;
   f.motion.crouching = false;
   clearDash(f);
@@ -181,6 +208,7 @@ export function interruptJumpOrDodge(f: Fighter): void {
   dodge.airDodging = false;
   dodge.airMotionFrames = 0;
   dodge.airFrame = 0;
+  dodge.airUsed = false;
   dodge.groundFrame = 0;
   dodge.groundDirection = 0;
   dodge.groundEntryFacing = 0;

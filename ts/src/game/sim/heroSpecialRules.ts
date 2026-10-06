@@ -144,6 +144,7 @@ export function enterHeroSpecial(f: Fighter, chosen: Readonly<HeroSpecialChoice>
   const move = specialForm(specialKit(specials, chosen.slot), chosen.form);
   const { special, mana } = f;
   special.form = chosen.form;
+  special.grabFrame = 0;
   const aimX = input.specialX !== 0 ? input.specialX : input.direction;
   const aimZ = input.specialZ !== 0 ? input.specialZ : input.verticalDirection;
   special.aimX = aimX < 0 ? -1 : aimX > 0 ? 1 : 0;
@@ -312,10 +313,16 @@ export function advanceHeroSpecial(f: Fighter, stage = 0, input?: Readonly<Contr
   for (const spec of move.projectiles ?? []) if (spec.spawnFrame === frame) spawnHeroProjectile(f, spec, f.attack.serial + 1, stage);
   if (move.placement?.frame === frame) placeObject(f, move.placement);
   applyWindows(f, move, frame);
-  if (frame >= move.endFrame) {
+  if (frame >= heroSpecialEndFrame(f, move)) {
     if (move.recall === true) f.placed.life = 0;
     endHeroSpecial(f, move);
   }
+}
+
+/** The last frame of the running form: a caught command grab ends after its release and recovery. */
+export function heroSpecialEndFrame(f: Readonly<Fighter>, move: Readonly<AuthoredSpecial>): number {
+  const grab = move.commandGrab;
+  return grab !== undefined && f.special.grabFrame > 0 ? f.special.grabFrame + grab.holdFrames + grab.recovery : move.endFrame;
 }
 
 /** Landing ends a form that sets a landing lag; true when it did. */

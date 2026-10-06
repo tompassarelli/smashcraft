@@ -180,7 +180,8 @@ test("a hero drawn with its fighter unit counts as drawn in the scene report", (
   clients.frames(60);
   client.run(() => trampoline("scene.report")());
   const report = sceneReport(client);
-  expect(report.models.find(({ model }) => model.toLowerCase() === reportedModel(warden).toLowerCase())).toMatchObject({ live: 1, inView: 1, drawn: 1 });
+  // A selectable hero also parks its star-KO bodies (render/combatEffects.ts), live but never in view.
+  expect(report.models.find(({ model }) => model.toLowerCase() === reportedModel(warden).toLowerCase())).toMatchObject({ inView: 1, drawn: 1 });
   expect(bodyProblems(report, [{ name: "Warden (Player 2)", models: [warden] }], MODEL_FACTS)).toEqual([]);
   expect(sceneProblems(report, SMASHCRAFT_SCENE)).toEqual([]);
   expect(client.errors).toEqual([]);

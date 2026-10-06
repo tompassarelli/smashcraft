@@ -3,6 +3,8 @@
 // them, and when one ends its group grants an immunity window so two sources
 // cannot chain it. Every value here is fighter state, so rollback restores it.
 import { max } from "../../runtime/numbers";
+import { addFloat32, roundToFloat32 } from "wisp/src/sim/binary32";
+import { floorMod } from "wisp/src/sim/intMath";
 import type { Fighter } from "./fighter";
 import { type AttackBuffer, clearAttackBuffer } from "../input/attackBuffer";
 import { type Controls, copyControls, neutralControls } from "./roster";
@@ -32,6 +34,8 @@ export interface AppliedStatus {
   readonly group: HeroStatusGroup;
   /** Immunity to the group once the status ends, by time or by a hit. */
   readonly immunityFrames: number;
+  /** Poison's damage: `damage` every `every` frames of its `frames`, with no hitlag, hitstun or knockback. */
+  readonly tick?: { readonly every: number; readonly damage: number } | undefined;
 }
 
 const rules = (f: Readonly<Fighter>): StatusRules | undefined => RULES[f.status.condition];
@@ -39,6 +43,14 @@ const rules = (f: Readonly<Fighter>): StatusRules | undefined => RULES[f.status.
 /** Applies the status unless the fighter is immune to its group; a reapplication refreshes it. */
 export function applyHeroStatus(f: Fighter, status: Readonly<AppliedStatus>): void {
   const { status: state } = f;
+  // Poison has its own slot: it neither replaces nor waits on the condition, and does not stack.
+  if (status.kind === HeroStatusKind.poison) {
+    if (state.out) return;
+    state.poisonFrames = status.frames;
+    state.poisonEvery = status.tick?.every ?? status.frames;
+    state.poisonDamage = status.tick?.damage ?? 0.0;
+    return;
+  }
   if (state.out || (state.conditionImmunity[status.group] ?? 0) > 0) return;
   state.condition = status.kind;
   state.conditionFrames = status.frames;
@@ -68,6 +80,10 @@ export function damageEndsHeroStatus(f: Fighter): void {
 /** One frame of status and immunity time; it runs during hitlag too. */
 export function advanceHeroConditions(f: Fighter): void {
   const { status } = f;
+  if (status.poisonFrames > 0) {
+    status.poisonFrames--;
+    if (floorMod(status.poisonFrames, status.poisonEvery) === 0) status.damage = addFloat32(roundToFloat32(status.damage), status.poisonDamage);
+  }
   for (let group = 0; group < HERO_STATUS_GROUPS; group++) {
     const left = status.conditionImmunity[group] ?? 0;
     if (left > 0) status.conditionImmunity[group] = left - 1;
@@ -85,6 +101,9 @@ export function clearHeroStatus(f: Fighter): void {
   status.conditionGroup = 0;
   status.conditionImmunityFrames = 0;
   for (let group = 0; group < HERO_STATUS_GROUPS; group++) status.conditionImmunity[group] = 0;
+  status.poisonFrames = 0;
+  status.poisonEvery = 0;
+  status.poisonDamage = 0.0;
 }
 
 const NEUTRAL = neutralControls();

@@ -60,14 +60,14 @@ function risingBlade(mana: number, gap = 60.0): { rise: number; drift: number; m
 }
 
 test("Rising Blade peaks 2.0H up and 0.5H out at 15 mana; below 15 its free form reaches 1.4H and 0.35H without a hit", () => {
-  const near = (value: number, heights: number) => Math.abs(value - f32(heights * H)) <= f32(0.02 * H);
+  const near = (value: number, heights: number) => Math.abs(value - f32(heights * H)) <= f32(f32(0.02) * H);
   const full = risingBlade(100, 900.0);
   assertEquals(full.mana, 85);
   assertTrue(near(full.rise, 2.0) && near(full.drift, 0.5));
   assertGreaterThan(risingBlade(100).damage, 0.0);
   const free = risingBlade(14, 900.0);
   assertEquals(free.mana, 14);
-  assertTrue(near(free.rise, 1.4) && near(free.drift, 0.35));
+  assertTrue(near(free.rise, f32(1.4)) && near(free.drift, f32(0.35)));
   assertEquals(risingBlade(14).damage, 0.0);
 });
 
@@ -109,7 +109,7 @@ test("Mirror Feint steps back 0.5H; a second press inside its window requests th
   for (let f = 2; f <= 11; f++) frame(world);
   frame(world, press(0, -1));
   for (let f = 2; f <= 4; f++) frame(world);
-  assertTrue(Math.abs(owner.motion.x + f32(0.5 * H)) <= f32(0.02 * H));
+  assertTrue(Math.abs(owner.motion.x + f32(0.5 * H)) <= f32(f32(0.02) * H));
   for (let f = 5; f <= 12; f++) frame(world);
   assertEquals(target.status.damage, 10.0);
   assertEquals(owner.mana.points, 85);

@@ -119,7 +119,7 @@ reflection, exact parry rules or final tuning from move names alone. Deliver
 his full normals, aerials, grabs/throws, shared actions, effects, portraits,
 selection and replay coverage, not just his specials or model.
 
-Apply smashcraft-character-creation-distilled to every completed/new fighter.
+Apply smashcraft-character-creation to every completed/new fighter.
 Author distinct startup, contact and recovery poses in the existing Blender
 pipeline, preserving interpolation and existing clips. Include grounded and
 airborne hitstun reactions, contact-pose hitlag freezing, prone/getup poses,

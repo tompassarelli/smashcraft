@@ -72,6 +72,11 @@ acts again on N+1. It may author:
   armed once on its first frame, lasts through its last even after the
   action ends, is spent by one hit, and blocks starting the special again
   while any armor remains;
+- `commandGrab`: a window whose strike latches the nearest grabbable body
+  through the shared grab link (shields do not stop it, an external hit breaks
+  it, #85's throw-hitstun rule refuses it), releases it `holdFrames` later
+  with its effect as a throw, and ends the action `recovery` frames after
+  that instead of at the whiff `endFrame` (`sim/heroCommandGrab.ts`);
 - `followUp`: `{ window, special }`. A new special press inside the window
   replaces the rest of the action with `special`, whose frame 1 is the press
   tick; it spends its own cost, clears the hit registry and cannot itself be

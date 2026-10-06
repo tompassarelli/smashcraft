@@ -2,7 +2,7 @@
 // FighterMoves, executed by heroSpecialRules.ts. Frame numbers follow the
 // roster brief (smashcraft:docs/design/roster.md): the entry tick is frame 1,
 // windows are inclusive, and "end fN" means the fighter acts again on N+1.
-import type { MoveRegion } from "./heroMoves";
+import type { MoveRegion, StrikeCapsule } from "./heroMoves";
 import type { HitEffect } from "./hitRegions";
 import type { AppliedStatus } from "./heroStatus";
 import type { HurtPose } from "./hurtboxes";
@@ -48,6 +48,21 @@ export interface SpecialMotion extends FrameWindow {
    * instead of carrying into or through it (the roster's dash specials).
    */
   readonly stopsAtBody?: boolean | undefined;
+}
+
+/**
+ * A command grab: in its window (brief frames) the strike path latches the
+ * nearest grabbable body, shield or not, through the shared grab link, so
+ * external hits break it and #85's throw-hitstun rule refuses a regrab. The
+ * held target is released `holdFrames` after the catch with `effect` as a
+ * throw, and the action then ends `recovery` frames later instead of at its
+ * whiff `endFrame`.
+ */
+export interface CommandGrab extends FrameWindow {
+  readonly strike: StrikeCapsule;
+  readonly holdFrames: number;
+  readonly effect: Readonly<HitEffect>;
+  readonly recovery: number;
 }
 
 /**
@@ -157,6 +172,7 @@ export interface AuthoredSpecial {
   readonly placement?: SpecialPlacement | undefined;
   /** Completing the action removes the fighter's placed object. */
   readonly recall?: boolean | undefined;
+  readonly commandGrab?: CommandGrab | undefined;
   /**
    * A second special press inside `window` (brief frames) replaces the rest of
    * this action with `special`, whose frame 1 is the press tick. It spends

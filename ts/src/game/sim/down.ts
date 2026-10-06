@@ -74,6 +74,7 @@ export function finishLanding(f: Fighter, stage: number, matchFrame: number, inp
   if (!motion.grounded && !dodge.airDodging && !isAerialAttack(f.attack.style) && f.down.state === DownState.none && launch.hitstun <= 0 && !fromAsdi) {
     landingState.lag = max(landingState.lag, EMPTY_LANDING_LAG);
   }
+  dodge.airUsed = false;
   if (dodge.airDodging) {
     landingState.lag = AIR_DODGE_LANDING_LAG;
     dodge.airDodging = false;
