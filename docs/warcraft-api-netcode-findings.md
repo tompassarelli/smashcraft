@@ -434,6 +434,19 @@ humans' rollback corrections are half of that match's Lua time, and Wisp's
 exact binary32 arithmetic, knockback decay above all, about a sixth; that
 arithmetic also allocates at least half of what a solo match does.
 
+The worst callbacks were the collector's: Lua's incremental collector works
+in proportion to what a callback allocates, so its sweep landed on the
+callbacks that confirm or replay, which allocated the most. In that build a
+four-fighter callback confirming a message allocated 571 KB at p50 and
+1.65 MB at p95, and callbacks in which the collector freed memory were the
+slowest of the run. Since Wisp 880e4e8 binary32 allocates nothing for a
+normal result, and replay copies only what it must
+(smashcraft:docs/typescript.md); the same callbacks allocate 18 and 26 KB,
+a solo match 8.8 KB a callback instead of 45, and a callback in which the
+collector freed memory is no slower than the others. Measured interleaved
+with the build before on the same busy host, four fighters' confirming
+callbacks fell 41% at p95 and catching up 42%.
+
 Throughput limits catching up too. Holds cost no bytes, but a message carries
 only 8 frames whose every field changes: with such input on every frame, 10
 messages a second carry 80 frames a second, and a 2 s backlog of it takes

@@ -332,6 +332,13 @@ new table for each hidden pose was 82 of a solo match callback's 87 KB of
 Lua allocation when it ran no frame, and 82 of 137 KB on average (Lua32,
 6 October 2026). Lua's collector works in proportion to what is
 allocated, in steps that land on whichever callback allocates next.
+Rollback runs each frame several times (confirmed, predicted, replayed), so
+per-frame copies stay to what a replay needs: a network row's controls are
+execution scratch that executeMatchFrame writes before reading, so
+copyMatchFrameInput leaves them out; a free impact slot holds the empty
+pool's values, so copying the pool skips slots free in both; and
+decayedAirMotion keeps recent results by input, since 87% of a four-fighter
+match's airborne decays repeat one already computed (#48).
 
 Native calls cost Warcraft more than Lua does. A renderer parks a pooled
 effect once, when it stops showing it, and keeps a flag per effect so it does
