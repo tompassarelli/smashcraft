@@ -29,7 +29,7 @@ test("a missing local frame waits for its own input; a later row never stands in
   const schedule = new ShadowInputSchedule();
   const inputs = participantInputs();
   assertTrue(schedule.beginEpoch(1400, 0, 6, 3));
-  assertTrue(schedule.mayAdvanceSpeculative());
+  assertTrue(schedule.mayAdvanceSpeculative(0));
   assertFalse(schedule.mayAdvanceSpeculativeFor(0));
   assertEquals(schedule.resolveSpeculative(1400, 0, inputs), undefined);
   assertEquals(schedule.speculativeFrame(), 1);
@@ -82,7 +82,7 @@ test("tagged captures keep their original frames while speculation stalls", () =
     assertTrue(schedule.completeSpeculative(1300, frame));
   }
   assertEquals(schedule.speculativeFrame(), 7);
-  assertFalse(schedule.mayAdvanceSpeculative());
+  assertFalse(schedule.mayAdvanceSpeculative(0));
   for (let frame = 7; frame <= 8; frame++) {
     const pending = assertDefined(schedule.pending(1300, frame));
     assertEquals(pending.held, frame);
@@ -215,7 +215,7 @@ test("pending local samples never move the common frontier", () => {
   assertEquals(schedule.captureLocal(901, WALK_RIGHT), Capture.alreadyCaptured);
   assertEquals(schedule.knownThrough(), 3);
   assertEquals(schedule.speculativeFrame(), 1);
-  assertTrue(schedule.mayAdvanceSpeculative());
+  assertTrue(schedule.mayAdvanceSpeculative(0));
   assertEquals(schedule.resolveSpeculative(901, 0, inputs), "accepted");
   assertEquals(inputs[0].held, 0);
   assertEquals(inputs[1].held, 0);
@@ -240,7 +240,7 @@ test("a late remote row is predicted with its holds kept and its edges dropped",
   assertEquals(inputs[1].released, 0);
 });
 
-test("a twelve-frame window stops at K + 12, keeps captures immutable and holds for the epoch", () => {
+test("a twelve-frame window stops 12 frames past the remote's rows, keeps captures immutable and holds for the epoch", () => {
   const schedule = new ShadowInputSchedule();
   const inputs = participantInputs();
   assertTrue(schedule.beginEpoch(906, 3, 12, 3));
@@ -251,15 +251,18 @@ test("a twelve-frame window stops at K + 12, keeps captures immutable and holds 
   }
   assertEquals(schedule.speculativeFrame(), 16);
   assertEquals(schedule.knownThrough(), 3);
-  assertFalse(schedule.mayAdvanceSpeculative());
+  assertFalse(schedule.mayAdvanceSpeculative(0));
   assertEquals(schedule.captureLocal(906, NEUTRAL), Capture.captured);
   assertEquals(schedule.captureLocal(906, WALK_RIGHT), Capture.alreadyCaptured);
   assertEquals(schedule.pending(906, 19)?.held, 0);
+  // The local player's own echo never holds prediction back; the remote's row does.
   deliver(schedule, 0, 906, 4, NEUTRAL);
-  assertFalse(schedule.mayAdvanceSpeculative());
+  assertFalse(schedule.mayAdvanceSpeculative(0));
+  assertTrue(schedule.windowHalted(0));
   deliver(schedule, 1, 906, 4, NEUTRAL);
   assertEquals(schedule.knownThrough(), 4);
-  assertTrue(schedule.mayAdvanceSpeculative());
+  assertTrue(schedule.mayAdvanceSpeculative(0));
+  assertFalse(schedule.windowHalted(0));
   assertFalse(schedule.beginEpoch(906, 3, 6, 3));
   assertFalse(schedule.beginEpoch(907, 3, 0, 3));
   assertFalse(schedule.beginEpoch(907, 3, 25, 3));
@@ -280,19 +283,20 @@ test("a twenty-four-frame window stops and resumes without reassigning local inp
   }
   assertEquals(schedule.speculativeFrame(), 25);
   assertEquals(schedule.knownThrough(), 0);
-  assertFalse(schedule.mayAdvanceSpeculative());
+  assertFalse(schedule.mayAdvanceSpeculative(0));
   assertEquals(schedule.captureLocal(908, NEUTRAL), Capture.captured);
   assertEquals(schedule.captureLocal(908, WALK_RIGHT), Capture.alreadyCaptured);
   assertEquals(schedule.resolveSpeculative(908, 0, inputs), undefined);
+  // The remote's row alone reopens the window; K waits for the local echo too.
   deliver(schedule, 1, 908, 1, NEUTRAL);
-  assertFalse(schedule.mayAdvanceSpeculative());
+  assertEquals(schedule.knownThrough(), 0);
+  assertTrue(schedule.mayAdvanceSpeculative(0));
   deliver(schedule, 0, 908, 1, NEUTRAL);
   assertEquals(schedule.knownThrough(), 1);
-  assertTrue(schedule.mayAdvanceSpeculative());
   assertTrue(schedule.resolveSpeculative(908, 0, inputs) !== undefined);
   assertTrue(sameInput(inputs[0], NEUTRAL));
   assertTrue(schedule.completeSpeculative(908, 25));
-  assertFalse(schedule.mayAdvanceSpeculative());
+  assertFalse(schedule.mayAdvanceSpeculative(0));
   assertFalse(schedule.beginEpoch(908, 0, 12, 3));
   assertFalse(schedule.beginEpoch(909, 0, 25, 3));
   assertEquals(schedule.rollbackFrames(), 24);
@@ -319,7 +323,8 @@ test("every local slot predicts each remote from that remote's own causal histor
     });
     assertEquals(schedule.captureLocal(epoch, local), Capture.captured);
     assertEquals(schedule.captureLocal(epoch, NEUTRAL), Capture.alreadyCaptured);
-    assertEquals(schedule.resolveSpeculative(epoch, localPlayer, inputs), "speculative");
+    // Every remote row is here, and the local row is final once captured.
+    assertEquals(schedule.resolveSpeculative(epoch, localPlayer, inputs), "accepted");
     source.forEach((input, sender) => assertTrue(sameInput(inputs[sender]!, input)));
     assertTrue(schedule.completeSpeculative(epoch, 1));
     assertEquals(schedule.knownThrough(), 0);
