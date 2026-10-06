@@ -186,9 +186,12 @@ function nextPacketText(s: ShellState, rollback: Rollback, journal: Journal): st
 /**
  * Polls the local keyboard once per running callback and advances its clock,
  * which a pause holds: from a prepared pause the rows stop before keyStop.
+ * The clock counts callbacks, so time the game lost, as in a lag spike, is
+ * lost from it too while another player's helper journals on: the clock
+ * follows the frames other players have already sent.
  */
-function sampleKeyboard(s: ShellState, journal: Journal): void {
-  if (journal.keyStop === undefined) journal.keyClock++;
+function sampleKeyboard(s: ShellState, rollback: Rollback, journal: Journal): void {
+  if (journal.keyStop === undefined) journal.keyClock = rollback.schedule.othersThrough(localSlot(), journal.keyClock + 1);
   // Typing into Warcraft's chat entry is not play.
   const chatting = journal.editbox?.chatOpen() === true;
   sampleKeys(journal.keys, chatting ? 0 : pollLocalKeys(s));
@@ -223,7 +226,7 @@ export function serviceJournalInput(s: ShellState, rollback: Rollback, journal: 
   if (source === undefined || !isParticipantSlot(slot) || !humanActive(s.game, slot)) return;
   const { schedule } = rollback;
   const keyboard = playsOnKeyboard(journal, slot);
-  if (keyboard) sampleKeyboard(s, journal);
+  if (keyboard) sampleKeyboard(s, rollback, journal);
   // Rows behind their clock, a helper's or a keyboard's after a stall, catch up within the callback budget.
   for (let admitted = 0; admitted < CATCH_UP_FRAMES; ) {
     const latest = Math.min(INPUT_LAST_FRAME, schedule.nextConfirmedFrame() - 1 + FUTURE_LIMIT);
