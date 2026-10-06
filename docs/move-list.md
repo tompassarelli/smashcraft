@@ -80,6 +80,7 @@ matches until the match rules turn them on.
 | Up special | Spectral Ascent | A steerable rise, then a helpless fall. |
 | Down special | Frost Armor (Dark Ritual) | A shell that takes the knockback of one light hit and chills the attacker; press again for Dark Ritual: shatter it for mana. |
 | Passive | Frost Aura | The third melee hit he takes in a short time chills the attacker. |
+| Ultimate | Frost Wyrm | He summons a frost wyrm. |
 
 ## Uther
 

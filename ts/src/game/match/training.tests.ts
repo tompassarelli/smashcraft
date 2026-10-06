@@ -31,7 +31,7 @@ import { trainingReadout } from "../shell/messages";
 const NEUTRAL = neutralControls();
 
 /** A player in slot 0 and the partner (a computer) in slot 1, `gap` apart on the test deck, in training. */
-function trainingMatch(behaviour: number, gap = 30.0, character = Character.rifleman) {
+function trainingMatch(behaviour: number, gap = 30.0, character: Character = Character.rifleman) {
   const world = createRoster(3, [createFighter(character, -gap / 2, 1), createFighter(character, gap / 2, -1)]);
   const game = createMatchState();
   game.phase = Phase.match;

@@ -5,7 +5,8 @@ import { floorDiv } from "wisp/src/sim/intMath";
 import { MATCH_TICKS_PER_SECOND, type MatchState, humanFighterActive, humanPresent, keepsStocks, practiceSelected } from "../match/rules";
 import { AttackStyle, DownState, LedgeState } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
-import { normalName, specialName } from "../sim/moveNames";
+import { SPECIAL_INPUTS, fighterKit, normalName, specialName } from "../sim/moveNames";
+import { fighterName } from "../sim/heroes/registry";
 
 /** The control that starts, pauses and resumes: a controller's Start, or Y on a keyboard. */
 export type StartControl = "Start" | "Y";
@@ -114,4 +115,21 @@ export function trainingReadout(state: Readonly<TrainingState>): string {
   if (state.advantageKind !== Advantage.none) lines.push(`${signed(state.advantage)} on ${state.advantageKind === Advantage.shield ? "shield" : "hit"}`);
   if (state.comboHits > 0) lines.push(`Combo: ${state.comboHits} ${state.comboHits === 1 ? "hit" : "hits"} · ${Math.floor(state.comboDamage)}%`);
   return lines.join("\n");
+}
+
+/**
+ * The Moves page: a fighter's specials, passive and, while ultimates are on,
+ * ultimate, one line each. Title first, then one line per move.
+ */
+export function movesPage(character: number, ultimates: boolean): { title: string; lines: string[] } {
+  const kit = fighterKit(character);
+  const lines: string[] = [];
+  for (let slot = 0; slot < kit.specials.length; slot++) {
+    const special = kit.specials[slot];
+    if (special !== undefined) lines.push(`${SPECIAL_INPUTS[slot] ?? "Special"}: ${special.name}. ${special.description}`);
+  }
+  const { passive } = kit;
+  lines.push(passive === undefined ? `No passive. ${kit.trait ?? ""}` : `Passive: ${passive.name}. ${passive.description}`);
+  if (ultimates && kit.ultimate !== undefined) lines.push(`Ultimate: ${kit.ultimate.name}. ${kit.ultimate.description}`);
+  return { title: `${fighterName(character).toUpperCase()} — MOVES`, lines };
 }

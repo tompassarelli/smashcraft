@@ -37,6 +37,7 @@ export const LICH_HERO: HeroDefinition = {
   moves: LICH_MOVES,
   specials: LICH_SPECIALS,
   passive: { name: "Frost Aura", description: "The third melee hit he takes in a short time chills the attacker." },
+  ultimate: { name: "Frost Wyrm", description: "He summons a frost wyrm." },
   gameplan: LICH_GAMEPLAN,
   presentation: {
     model: "units\\undead\\HeroLich\\HeroLich.mdl",

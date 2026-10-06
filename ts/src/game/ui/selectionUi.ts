@@ -37,9 +37,9 @@ import {
   updateSelectionDrag,
 } from "../menu/selectionDrag";
 import { cellRect, rosterGrid } from "../menu/selectionGrid";
-import { SELECTABLE_CHARACTERS, fighterName, fighterPortrait } from "../sim/heroes/registry";
+import { SELECTABLE_CHARACTERS, fighterName, fighterPortrait, nextSelectableCharacter } from "../sim/heroes/registry";
 import {
-  automaticRematchSetting, cpuLevelSetting, endlessSetting, hitAreasSetting, partnerBehaviourSetting, partnerDamageSetting, partnerEscapeSetting,
+  automaticRematchSetting, cpuLevelSetting, movesPage, endlessSetting, hitAreasSetting, partnerBehaviourSetting, partnerDamageSetting, partnerEscapeSetting,
   partnerTechSetting, stockSetting, timeSetting, trainingSetting, trainingSpeedSetting,
 } from "../shell/messages";
 import { Character } from "../sim/codes";
@@ -66,7 +66,8 @@ export interface SelectionActions {
 
 type RuleButton = { kind: "stocks"; direction: -1 | 1 } | { kind: "time"; direction: -1 | 1 } | { kind: "endless" } | { kind: "automaticRematch" }
   | { kind: "training" } | { kind: "partner"; setting: TrainingSetting; direction: -1 | 1 } | { kind: "hitAreas" } | { kind: "speed" };
-type SelectionButton = { kind: "mode"; slot: number } | { kind: "level"; slot: number; direction: -1 | 1 } | { kind: "start" } | { kind: "settings" } | RuleButton;
+type SelectionButton = { kind: "mode"; slot: number } | { kind: "level"; slot: number; direction: -1 | 1 } | { kind: "start" } | { kind: "settings" } | RuleButton
+  | { kind: "moves" } | { kind: "movesBack" } | { kind: "movesStep"; direction: -1 | 1 };
 
 /** One participant slot's card along the bottom of the panel. */
 interface CardFrames {
@@ -143,6 +144,13 @@ export class SelectionPanel {
   /** The match the panel last showed; synchronized events check choices against it. */
   private game: Readonly<MatchState> | undefined;
   private settingsOpen = false;
+  /** The Moves page: presentation only, opened and paged by the owner's clicks; the fighter it shows. */
+  private movesOpen = false;
+  private movesCharacter: number = Character.archer;
+  private shownMoves = -1;
+  private readonly movesFrames: readonly framehandle[];
+  private readonly movesTitle: framehandle;
+  private readonly movesBody: framehandle;
   private readonly stockValue: framehandle;
   private readonly timeValue: framehandle;
   private readonly endlessToggle: framehandle;
@@ -218,6 +226,32 @@ export class SelectionPanel {
     const settingsLabel = label(root, `MeleeSettingsLabel${suffix}`, f32(0.518), f32(0.039), f32(0.219), f32(0.028), f32(0.011));
     BlzFrameSetText(settingsLabel, "CONTROLS  [F1]");
     this.clicks.add(hotspot(root, f32(0.51), f32(0.043), f32(0.235), f32(0.037)), { kind: "settings" });
+    art(root, `MeleeMovesArt${suffix}`, "war3mapImported\\SelectionAction.tga", f32(0.318), f32(0.043), f32(0.18), f32(0.037));
+    BlzFrameSetText(label(root, `MeleeMovesLabel${suffix}`, f32(0.324), f32(0.039), f32(0.168), f32(0.028), f32(0.011)), "MOVES");
+    this.clicks.add(hotspot(root, f32(0.318), f32(0.043), f32(0.18), f32(0.037)), { kind: "moves" });
+    const page = (frame: framehandle, x: number, y: number, width: number, height: number) => {
+      placeTopLeft(frame, x, y);
+      BlzFrameSetSize(frame, width, height);
+      BlzFrameSetVisible(frame, false);
+      return frame;
+    };
+    this.movesTitle = page(createText(`MeleeMovesTitle${suffix}`, gameUi(), 470 + participantId), f32(0.12), f32(0.56), f32(0.56), f32(0.035));
+    BlzFrameSetFont(this.movesTitle, MENU_FONT, f32(0.016), 0);
+    BlzFrameSetTextAlignment(this.movesTitle, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER);
+    this.movesBody = page(createText(`MeleeMovesBody${suffix}`, gameUi(), 474 + participantId), f32(0.12), f32(0.51), f32(0.56), f32(0.4));
+    BlzFrameSetFont(this.movesBody, MENU_FONT, f32(0.012), 0);
+    BlzFrameSetTextAlignment(this.movesBody, TEXT_JUSTIFY_TOP, TEXT_JUSTIFY_LEFT);
+    const pageButton = (name: string, x: number, width: number, text: string, target: SelectionButton) => {
+      const frame = page(BlzCreateFrameByType("GLUETEXTBUTTON", name, gameUi(), "ScriptDialogButton", 0), x, f32(0.075), width, f32(0.032));
+      BlzFrameSetText(frame, text);
+      return this.clicks.add(frame, target);
+    };
+    this.movesFrames = [
+      this.movesTitle, this.movesBody,
+      pageButton(`MeleeMovesPrevious${suffix}`, f32(0.2), f32(0.1), "<", { kind: "movesStep", direction: -1 }),
+      pageButton(`MeleeMovesBack${suffix}`, f32(0.33), f32(0.14), "Back", { kind: "movesBack" }),
+      pageButton(`MeleeMovesNext${suffix}`, f32(0.5), f32(0.1), ">", { kind: "movesStep", direction: 1 }),
+    ];
     const caption = label(root, `MeleeRulesCaption${suffix}`, f32(0.03), f32(0.566), f32(0.22), f32(0.02), f32(0.011));
     BlzFrameSetText(caption, "MATCH RULES");
     const ruleButton = (box: RuleBox, target: RuleButton, text: string) => {
@@ -281,6 +315,7 @@ export class SelectionPanel {
   destroy(): void {
     this.clicks.destroy();
     for (const trigger of this.syncTriggers) DestroyTrigger(trigger);
+    for (const frame of this.movesFrames) BlzDestroyFrame(frame);
     BlzDestroyFrame(this.root);
     BlzDestroyFrame(this.backdrop);
   }
@@ -290,6 +325,9 @@ export class SelectionPanel {
     if (button.kind === "mode") this.actions.cycleMode(this.participantId, button.slot);
     else if (button.kind === "start") this.actions.start(this.participantId);
     else if (button.kind === "settings") this.actions.openSettings(this.participantId);
+    else if (button.kind === "moves") this.openMoves();
+    else if (button.kind === "movesBack") this.movesOpen = false;
+    else if (button.kind === "movesStep") this.movesCharacter = nextSelectableCharacter(this.movesCharacter, button.direction);
     else if (button.kind === "stocks") this.actions.changeStocks(this.participantId, button.direction);
     else if (button.kind === "time") this.actions.changeTime(this.participantId, button.direction);
     else if (button.kind === "endless") this.actions.toggleEndless(this.participantId);
@@ -364,8 +402,15 @@ export class SelectionPanel {
     const visible = this.choosing() !== undefined;
     BlzFrameSetVisible(this.root, visible);
     BlzFrameSetVisible(this.backdrop, visible);
+    for (const frame of this.movesFrames) BlzFrameSetVisible(frame, visible && this.movesOpen);
     if (!visible) {
       clearSelectionDrag(drag);
+      return;
+    }
+    if (this.movesOpen) {
+      BlzFrameSetVisible(this.root, false);
+      clearSelectionDrag(drag);
+      this.showMoves();
       return;
     }
     if (drag.held === undefined && humanFighterActive(game, participantId)) drag.held = participantId;
@@ -428,6 +473,22 @@ export class SelectionPanel {
     }
     BlzFrameSetText(this.confirm, this.confirmText(game));
     this.showRules(game);
+  }
+
+  /** Opens on the owner's chosen fighter. */
+  private openMoves(): void {
+    const game = this.game;
+    this.movesCharacter = (game === undefined ? undefined : characterFor(game, this.participantId)) ?? Character.archer;
+    this.movesOpen = true;
+  }
+
+  private showMoves(): void {
+    if (this.shownMoves === this.movesCharacter) return;
+    this.shownMoves = this.movesCharacter;
+    // Ultimates have no match rule yet, so the page leaves them out.
+    const { title, lines } = movesPage(this.movesCharacter, false);
+    BlzFrameSetText(this.movesTitle, title);
+    BlzFrameSetText(this.movesBody, lines.join("\n\n"));
   }
 
   private showRules(game: Readonly<MatchState>): void {

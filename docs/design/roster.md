@@ -388,7 +388,7 @@ Standing grab 10/2/28, reach 0.70H. Visible spectral hand, no tether recovery or
 | Up | Raise on an ice pillar | 7 | f17, R13 | 90, JUGGLE |
 | Down | Drop and burst beneath target | 6 | f19, R26 | 75, CHASE |
 
-**Ultimate — Death and Decay:** ground-only, f36 telegraph to a marked 2.0H-radius region centered 1.0H ahead; channel for up to 180 frames. Six 3-damage ticks per target at least 30 frames apart, no flinch, then a 12-damage LAUNCH burst at 80 degrees if the channel completes. Hitting or grabbing Lich ends the field without finisher. R35 after release. No percentage-health damage or unavoidable map-wide effect.
+**Ultimate — Frost Wyrm** (design only; owner direction, 7 Oct 2026): he summons a frost wyrm. Death and Decay became his side special ([kit review 2](kit-review-2.md)), so the channelled field below no longer describes his ultimate; it stays as the earlier design reference. **Earlier Death and Decay ultimate:** ground-only, f36 telegraph to a marked 2.0H-radius region centered 1.0H ahead; channel for up to 180 frames. Six 3-damage ticks per target at least 30 frames apart, no flinch, then a 12-damage LAUNCH burst at 80 degrees if the channel completes. Hitting or grabbing Lich ends the field without finisher. R35 after release. No percentage-health damage or unavoidable map-wide effect.
 
 **Required counterplay test:** a fast fighter already inside Lich’s forward-tilt range must be able to challenge a missed orb or field. Frost Armor may help one trade but cannot permit casting through an entire combo.
 
