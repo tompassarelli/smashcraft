@@ -546,7 +546,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   const frameDeltaX = f32(motion.x - oldX);
   let wallSide = resolveSolidSurfaceContacts(f, stage, oldX, oldZ, input);
   // Rising into a platform ascends it; a half-circle onto one wraps under it instead of landing.
-  const ascending = beginPlatformAscent(f, stage, matchFrame, oldZ);
+  const ascending = beginPlatformAscent(f, stage, matchFrame);
   const landing = ascending ? undefined : landingDeck(f, stage, matchFrame, oldX, oldZ, carried);
   const wrapping = landing !== undefined && beginPlatformWrapUnder(f, stage, matchFrame, landing);
   if (landing !== undefined && !wrapping) {

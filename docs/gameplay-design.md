@@ -163,16 +163,20 @@ platform and climb off it. They replace #51's instant pass-through and the
 used, not camped.
 
 - **Platform ascent.** When a rising fighter's body meets a pass-through
-  platform from below, the fighter ascends it and its current attack or special
-  ends, recovery included: rising into a platform after a hit is a lag cancel.
+  platform from below, the fighter ascends it. An attack in its startup or
+  active frames carries on through the platform, so its hitbox still reaches a
+  fighter standing there: the platform never protects the fighter on top. The
+  ascent begins as those frames end, if the body is still in the platform, and
+  cancels the attack's remaining recovery; contact during recovery, or during a
+  special, ascends at once. Rising into a platform after a hit is a lag cancel.
   A helpless fighter stays helpless. The ascent lasts the fighter's jump squat
   (Archer 3, Rifleman 5, Illidan 4, each hero its own), the honest proxy for
   its agility, and carries its feet from where they met the platform to its top.
   - Rising through is the default: the fighter keeps its momentum, with gravity,
     and leaves the top still rising if it has rise left. Holding jump, or up
     past the stick-up jump threshold (0.6625), sustains the rise with no
-    gravity. An up air into a platform cancels into the ascent; a fresh rising
-    up air or another aerial can follow it.
+    gravity. An up air into a platform hits through it, then its recovery
+    cancels into the ascent; a fresh rising up air or another aerial can follow.
   - Down held or pressed during the ascent ends it standing on the platform,
     with no landing lag; still holding down crouches.
   - Shield held or pressed ends it standing on the platform, shielding.
@@ -194,8 +198,15 @@ used, not camped.
 - **No platform shield drop.** Down while shielding does not fall through a
   platform; leaving one goes through a descent.
 - Fighters are fully vulnerable, hittable and grabbable, through ascent,
-  descent and wraps. With no shield drop and a jump-squat descent, a fighter on
-  a platform is slightly behind one below it, as the principle intends.
+  descent and wraps. With no shield drop, a jump-squat descent and attacks
+  that hit through the platform from below, a fighter on a platform is slightly
+  behind one below it, as the principle intends. Measured by
+  smashcraft:ts/scripts/platformAdvantage.ts (earliest first hit from rest, each
+  fighter on a stage 1 side platform with another directly below): across the
+  64 pairs of the 8 selectable fighters at #103's landing, the fighter below
+  strikes first in 31, level in 10 and later in 23; its test requires the fighter below to
+  strike no later in at least 60% of pairs. The trailing pairs are mostly
+  Archer, Rifleman and Illidan on top, whose descent plus down air is fastest.
 - Presentation: ascent plays the fighter's ledge-climb clip, descent its
   ledge-hang clip and both wraps its ledge-roll clip, each stretched over the
   move (smashcraft:ts/src/game/presentation/fighterClips.ts).
@@ -260,7 +271,7 @@ checks that every oracle departure names a row here.
 | Air dodge | Directional; ends in helpless fall (FallSpecial) until landing | Ultimate: one directional air dodge per airtime, no helpless fall, refreshed on landing, ledge grab and being hit ([SmashWiki](https://www.ssbwiki.com/Air_dodge)). Rivals of Aether 2: the dodge ends in an ordinary fall ([workshop](https://rivals2.com/workshop/?p=389)) | Once per airtime, ending actionable; refreshed on landing, ledge catch and being hit; spends no jump. Direction, momentum and the wavedash/waveland through landing are unchanged | Owner decision, 6 Oct: the air dodge works as in Smash | #100 |
 | Shield release lag | 15 frames (GuardOff) | Ultimate: 11 frames | 11 frames; the 8-frame minimum hold and direct shield grab/jump bypass are unchanged | Owner decision, 6 Oct: Melee's lag makes dropping shield almost never worth it; dropping shield should be a real alternative to jumping into an aerial or rolling out of shield. Ultimate's value is the starting point; tune if it still goes unused | #100 |
 | Dodge timing | Per fighter | – | One shared profile: spot dodge 22 frames, intangible 2–15; rolls 31, intangible 4–19; air dodge 49, intangible 4–29, landing 10 | Owner's common frame-data profile | – |
-| Platform ascent | A rising fighter passes up through a platform with no change to its action (mpCheckFloor meets a platform only while descending) | Ultimate passes through the same way ([SmashWiki](https://www.ssbwiki.com/Soft_platform)); Rivals 2 not sourced | An ascent over the jump squat cancels the attack; jump or up sustains the rise, down stands, shield shields, a half-circle wraps over ([Platforms](#platforms)) | Platforms are contested physically; positions are used, not camped | #103 |
+| Platform ascent | A rising fighter passes up through a platform with no change to its action (mpCheckFloor meets a platform only while descending) | Ultimate passes through the same way ([SmashWiki](https://www.ssbwiki.com/Soft_platform)); Rivals 2 not sourced | Attacks hit through it; an ascent over the jump squat cancels the remaining recovery; jump or up sustains the rise, down stands, shield shields, a half-circle wraps over ([Platforms](#platforms)) | Platforms are contested physically; positions are used, not camped | #103 |
 | Platform descent | A fresh down falls through at once | Ultimate drops through at once ([SmashWiki](https://www.ssbwiki.com/Soft_platform)); Rivals 2 not sourced | A vulnerable descent over the jump squat; a half-circle onto a platform from above wraps under it ([Platforms](#platforms)) | Leaving a platform is a commitment, so sitting on one is slightly disadvantaged | #103 |
 | Platform shield drop | Down while shielding drops through a platform | Removed in Ultimate ([SmashWiki](https://www.ssbwiki.com/Shield_drop)); Project+ keeps it | Removed: down while shielding stays on the platform | Owner (6 Oct): no safe retaliation from a platform; leaving one goes through a descent | #103 |
 

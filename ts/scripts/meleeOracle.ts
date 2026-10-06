@@ -11,8 +11,8 @@
 // owner's GALE01 revision 2 PlCo.dat (SHA-1 c904de0c4c5eb3ef65211a75d8bd70ca5b0f9f41);
 // the retail files stay private, only the cited numbers appear here.
 import { Action } from "../src/game/input/actions";
-import { AttackStyle, Character, ContactKind, DownState, LedgeState, PlatformMove, SurfaceContact } from "../src/game/sim/codes";
-import { isIntangible } from "../src/game/sim/conditions";
+import { AttackPhase, AttackStyle, Character, ContactKind, DownState, LedgeState, PlatformMove, SurfaceContact } from "../src/game/sim/codes";
+import { attackPhase, isIntangible } from "../src/game/sim/conditions";
 import { beginDamageContacts, collectDamageContact, finishDamageContacts } from "../src/game/sim/contacts";
 import { type Fighter, createFighter } from "../src/game/sim/fighter";
 import { uncancelledLandingLag } from "../src/game/sim/moves";
@@ -642,6 +642,32 @@ function upAirIntoDeck(character: Character): string {
   return "never met the deck";
 }
 
+/**
+ * A full or short hop under the raised deck, a double jump on frame `doubleAt` and an
+ * up air on frame `pressAt`, searched for the first that leaves the aerial's
+ * active frames ending while the body straddles the deck: what follows them.
+ */
+function upAirRecoveryInDeck(character: Character): string {
+  for (const full of [true, false]) for (let doubleAt = 0; doubleAt <= 30; doubleAt++) for (let pressAt = 1; pressAt <= 40; pressAt++) {
+    const s = solo(1, character, UNDER_DECK_X);
+    const f = fighter(s);
+    const deckZ = surfaceZ(1, 1, 0);
+    let wasActive = false;
+    for (let n = 1; n <= 60; n++) {
+      const jump = n === 1 || n === doubleAt || (full && n <= 6 && doubleAt > 7) ? [Action.jump] : [];
+      frame(s, n === pressAt ? [...jump, Action.moveUp, Action.attack] : jump);
+      if (f.attack.style === AttackStyle.upAir && attackPhase(f) === AttackPhase.active) wasActive = true;
+      else if (wasActive) {
+        const straddling = f.motion.z < deckZ && f.motion.z + bodyTop(character) * WORLD_UNITS_PER_MELEE_UNIT >= deckZ;
+        if (f.platform.move === PlatformMove.ascent) return "recovery cancelled into an ascent";
+        if (straddling && f.attack.style === AttackStyle.upAir) return "recovery continues";
+        break;
+      }
+    }
+  }
+  return "never straddled the deck";
+}
+
 /** A fresh down on the raised deck: whether the fighter falls through at once or descends. */
 function downThroughDeck(character: Character): string {
   const s = solo(1, character, UNDER_DECK_X);
@@ -704,8 +730,12 @@ const PLATFORMS: readonly Scenario[] = [
   { area: "platform", name: "down pressed on a raised deck", cite: PLATFORM_PASS, run: (c) => ({ expected: "main deck", actual: downOnDeck(c) }) },
   {
     area: "platform", name: "up air rising into a raised deck", cite: `${PLATFORM_LINES}; a fighter's action is unchanged by passing a platform`,
-    departure: "Platform ascent: the body meeting a platform from below cancels the attack into an ascent over the jump squat (owner decision 2026-10-06, #103)",
     run: (c) => ({ expected: "up air continues", actual: upAirIntoDeck(c) }),
+  },
+  {
+    area: "platform", name: "up air's active frames ending inside a raised deck", cite: `${PLATFORM_LINES}; a fighter's action is unchanged by passing a platform`,
+    departure: "Platform ascent: once an attack's active frames end with the body in a platform, an ascent over the jump squat cancels its recovery (owner decision 2026-10-06, #103)",
+    run: (c) => ({ expected: "recovery continues", actual: upAirRecoveryInDeck(c) }),
   },
   {
     area: "platform", name: "fresh down on a raised deck: how the fighter leaves it", cite: `${PLATFORM_PASS}; ftCo_Pass enters a fall at once`,
