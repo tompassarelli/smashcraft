@@ -11,6 +11,7 @@ import { HERO_ROSTER } from "../sim/heroes/registry";
 import { createFighter } from "../sim/fighter";
 import { copyControls, createRoster, fighterAt, isActive, neutralControls } from "../sim/roster";
 import { surfaceLeft, surfaceRight } from "../sim/stage";
+import { FREEZE_TRAP_FREEZE_FRAMES } from "../sim/summons";
 import { produceComputerInput } from "./botPlay";
 import { chooseDefense } from "./botDefense";
 import { upSpecialStartable } from "./botHeroKit";
@@ -189,4 +190,20 @@ test("a computer hero's recovery counts its up special spent once used this airt
   const archer = createFighter(Character.archer, 0.0, 1);
   assertTrue(upSpecialStartable(archer, true));
   assertFalse(upSpecialStartable(archer, false));
+});
+
+test("a frozen computer mashes out of the freeze at a human pace", () => {
+  // Ten presses a second (botPlay.ts) thaw it on frame 131 of 300, well above the 60-frame floor.
+  for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
+    const game = computerMatch([Character.rifleman, character], [-300.0, 0.0], 0, 2);
+    const computer = fighterAt(game.world, 1);
+    game.step();
+    computer.status.frozenFrames = FREEZE_TRAP_FREEZE_FRAMES;
+    let frames = 0;
+    while (computer.status.frozenFrames > 0) {
+      game.step();
+      frames++;
+    }
+    assertEquals(frames, 131);
+  }
 });

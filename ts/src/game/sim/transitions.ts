@@ -7,6 +7,7 @@ import { AttackStyle, DASH_GRAB_REQUEST, DownState, GrabAction, HippogryphKind, 
 import { isTumbling } from "./conditions";
 import { type Fighter, SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES } from "./fighter";
 import { clearDash } from "./groundMovement";
+import { clearMash } from "./mash";
 import { DOWN_ATTACK_FRAMES, attackDurationFramesForGrounding, isSmashAttack } from "./moves";
 import type { Roster } from "./roster";
 import { clearPowershield, clearShieldBreak } from "./shield";
@@ -15,12 +16,15 @@ export const LEDGE_REGRAB_FRAMES = 30;
 // A response at the 15-frame reaction floor completes the longest jump squat
 // (5 frames) before the next trap check may catch the fighter.
 const FREEZE_IMMUNITY_FRAMES = 20;
+/** However fast a frozen fighter mashes, the freeze lasts this long, so a trap sprung near Rifleman still gives him a follow-up. */
+export const FREEZE_MINIMUM_FRAMES = 60;
 
-/** Natural thaw and hits that break ice grant the same finite trap escape interval. */
+/** Natural thaw, a mash-out and hits that break ice grant the same finite trap escape interval. */
 export function thawFighter(f: Fighter): void {
   if (f.status.frozenFrames <= 0) return;
   f.status.frozenFrames = 0;
   f.status.freezeImmunityFrames = FREEZE_IMMUNITY_FRAMES;
+  clearMash(f.grab);
 }
 
 export function clearSurfaceRecovery(f: Fighter): void {

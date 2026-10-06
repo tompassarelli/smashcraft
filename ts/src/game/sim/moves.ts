@@ -244,8 +244,6 @@ export const EARLY_ASCENT_GRAB_FRAMES = 7;
 export const GRAB_HOLD_FRAMES = 120;
 /** However fast the victim mashes, a hold lasts this long, so a prompt throw always starts. */
 export const GRAB_HOLD_MINIMUM_FRAMES = 30;
-/** Frames each mash input (a press, or a new stick direction) takes off the hold. */
-export const GRAB_MASH_FRAMES = 8;
 /** Every fighter's one pummel connects this late, so mashing from the catch escapes it. */
 export const PUMMEL_CONTACT_FRAME = 60;
 export const PUMMEL_TOTAL_FRAMES = 68;

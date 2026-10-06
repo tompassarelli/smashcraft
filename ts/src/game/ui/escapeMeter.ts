@@ -1,4 +1,4 @@
-// A held fighter's escape meter: a segmented bar over its head that drains to
+// A held or frozen fighter's escape meter: a segmented bar over its head that drains to
 // empty at the escape, with a mark where a pummel would land. Every client
 // creates the same handles; only drawn position and visibility are local.
 import { f32 } from "wisp/src/sim/f32";
@@ -74,7 +74,7 @@ export class EscapeMeter {
     this.lines.forEach((line, index) => {
       BlzFrameSetAbsPoint(line, FRAMEPOINT_CENTER, left + (WIDTH * (index + 1)) / SEGMENTS, centerY);
     });
-    if (markShown) BlzFrameSetAbsPoint(this.mark, FRAMEPOINT_CENTER, left + WIDTH * Math.min(1.0, view.pummel / GRAB_HOLD_FRAMES), centerY);
+    if (markShown) BlzFrameSetAbsPoint(this.mark, FRAMEPOINT_CENTER, left + WIDTH * Math.min(1.0, view.pummel / view.full), centerY);
   }
 
   destroy(): void {

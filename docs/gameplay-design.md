@@ -393,6 +393,24 @@ the infrastructure finish line when integrating new gameplay.
   before a waiting trap can spring. The trade-off is that Rifleman can still
   cover the escape with another move, and an idle fighter can be caught again
   when the interval expires. This is trap immunity, not protection from damage.
+- **Mashing out of a freeze** (owner direction, 7 Oct 2026, #114: "wiggle out
+  of the frost trap"): a frozen fighter mashes out with the grab hold's rule
+  and code (smashcraft:ts/src/game/sim/mash.ts). Each frame, a fresh press of
+  attack, special, jump, grab or a shield button counts once and a new stick
+  direction once more; each takes 8 frames off the 300-frame freeze, but
+  mashing never thaws it before frame 60, so a trap sprung near Rifleman still
+  gives him a follow-up. Holding a button or a direction counts only on its
+  first frame. Melee's freeze runs its grab-mash routine on its own timer the
+  same way (`ftCo_DamageIce_Anim`, melee:src/melee/ft/kinds/ftCommon/ftCo_DamageIce.c).
+  The thaw frame, from the freeze, by presses a second (first on frame 1):
+
+  | Mash | none | 4 | 8 | 12 | 8 + 8 stick flips | 14 + 14 stick flips |
+  |---|---|---|---|---|---|---|
+  | Thaw frame | 300 | 195 | 143 | 115 | 92 | 61 |
+
+  The escape meter shows over a frozen fighter too: full is the 300-frame
+  freeze (its 12 segments are 25 frames each) and empty is the thaw. A frozen
+  computer presses 10 times a second and thaws on frame 131.
 
 - **Archer's arrows** (owner correction): normal and running arrows and the homing arrow
   add damage without hitstun, hitlag, knockback or interruption; shields still

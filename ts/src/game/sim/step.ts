@@ -80,7 +80,8 @@ import { checkBlastZone, respawnFighter } from "./stocks";
 import { advanceSurfaceRecovery, advanceWallJump, leaveMainDeckBody, resolveSolidSurfaceContacts } from "./surfaces";
 import { forwardRollTurnFrame, rollTravel } from "../physics/rollTravel";
 import { advanceTechInput, techContactWindow } from "../physics/techInput";
-import { clearDownState, clearOwnedFreezeTrap, thawFighter } from "./transitions";
+import { FREEZE_MINIMUM_FRAMES, clearDownState, clearOwnedFreezeTrap, thawFighter } from "./transitions";
+import { advanceMash } from "./mash";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
 import { at } from "wisp/src/runtime/lookup";
 
@@ -120,14 +121,17 @@ function advanceOut(world: Roster, slot: number, respawnX: number): boolean {
   return true;
 }
 
-/** Freeze and trap timers; true while the fighter was frozen at the start of the frame. */
-function advanceFreeze(f: Fighter): boolean {
+/** Freeze and trap timers, mashing out of a freeze as out of a grab; true while the fighter was frozen at the start of the frame. */
+function advanceFreeze(f: Fighter, input: Readonly<Controls>): boolean {
   const { status } = f;
   const trap = f.freezeTrap;
   const wasFrozen = status.frozenFrames > 0;
   if (status.freezeImmunityFrames > 0) status.freezeImmunityFrames--;
-  if (status.frozenFrames === 1) thawFighter(f);
-  else if (status.frozenFrames > 1) status.frozenFrames--;
+  if (wasFrozen) {
+    const remaining = advanceMash(f.grab, input, status.frozenFrames, FREEZE_MINIMUM_FRAMES);
+    if (remaining === 0) thawFighter(f);
+    else status.frozenFrames = remaining;
+  }
   if (trap.cooldown > 0) trap.cooldown--;
   if (trap.life > 0) {
     trap.life--;
@@ -345,7 +349,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   // The deck this fighter stands on carried it before the frame began (carryOnMovingDecks).
   const carried = motion.grounded ? motion.surface : undefined;
   jump.inputAge =input.jumpPressed ? 0 : min(WALL_TECH_JUMP_INPUT_WINDOW_FRAMES, jump.inputAge + 1);
-  if (advanceFreeze(f)) {
+  if (advanceFreeze(f, input)) {
     checkBlastZone(world, slot, stage);
     return;
   }

@@ -9,13 +9,14 @@ import { AttackStyle, Character, ContactKind, GrabAction, ProjectileKind } from 
 import { queueDamageContact } from "./contacts";
 import { type Fighter, createFighter } from "./fighter";
 import { resolveGrabs } from "./grabs";
-import { GRAB_HOLD_FRAMES, GRAB_HOLD_MINIMUM_FRAMES, GRAB_MASH_FRAMES, PUMMEL_CONTACT_FRAME, PUMMEL_DAMAGE, PUMMEL_TOTAL_FRAMES, attackStartupFrames, grabContactFrame } from "./moves";
+import { GRAB_HOLD_FRAMES, GRAB_HOLD_MINIMUM_FRAMES, PUMMEL_CONTACT_FRAME, PUMMEL_DAMAGE, PUMMEL_TOTAL_FRAMES, attackStartupFrames, grabContactFrame } from "./moves";
 import { updateProjectiles } from "./projectiles";
 import type { Controls, Roster } from "./roster";
 import { advanceFighter } from "./step";
 import { respawnFighter } from "./stocks";
 import { advanceFreezeTraps } from "./summons";
 import { contactBatch, controls, hitEffect, testBeginAttacks, testGrabFrame, testWorld } from "./testWorld";
+import { MASH_FRAMES } from "./mash";
 
 /** Slot 0 grabs slot 1 on the ground and holds it. */
 function catchTarget(world: Roster, owner: Fighter, target: Fighter): void {
@@ -118,20 +119,20 @@ test("grab mash uses one button and one remembered stick contribution", () => {
   const held = controls();
   const mash = controls({ grabMashPressed: true, direction: 1, verticalDirection: 1 });
   testGrabFrame(world, [held, mash], false);
-  assertEquals(target.grab.grabbedFrames, GRAB_HOLD_FRAMES - 1 - 2 * GRAB_MASH_FRAMES);
+  assertEquals(target.grab.grabbedFrames, GRAB_HOLD_FRAMES - 1 - 2 * MASH_FRAMES);
   mash.grabMashPressed = false;
   mash.direction = 0;
   mash.verticalDirection = 0;
   testGrabFrame(world, [held, mash], false);
-  assertEquals(target.grab.grabbedFrames, GRAB_HOLD_FRAMES - 2 - 2 * GRAB_MASH_FRAMES);
+  assertEquals(target.grab.grabbedFrames, GRAB_HOLD_FRAMES - 2 - 2 * MASH_FRAMES);
   mash.direction = 1;
   mash.verticalDirection = 1;
   testGrabFrame(world, [held, mash], false);
-  assertEquals(target.grab.grabbedFrames, GRAB_HOLD_FRAMES - 3 - 2 * GRAB_MASH_FRAMES);
+  assertEquals(target.grab.grabbedFrames, GRAB_HOLD_FRAMES - 3 - 2 * MASH_FRAMES);
   mash.direction = -1;
   mash.verticalDirection = -1;
   testGrabFrame(world, [held, mash], false);
-  assertEquals(target.grab.grabbedFrames, GRAB_HOLD_FRAMES - 4 - 3 * GRAB_MASH_FRAMES);
+  assertEquals(target.grab.grabbedFrames, GRAB_HOLD_FRAMES - 4 - 3 * MASH_FRAMES);
 });
 
 // ------------------------------------------------------------------ legible holds (#101)

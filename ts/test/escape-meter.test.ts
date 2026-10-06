@@ -10,6 +10,7 @@ import { resolveGrabs } from "../src/game/sim/grabs";
 import { GRAB_HOLD_FRAMES, PUMMEL_CONTACT_FRAME, attackStartupFrames } from "../src/game/sim/moves";
 import { fighterAt } from "../src/game/sim/roster";
 import { ESCAPE_METER_SEGMENT_FRAMES } from "../src/game/presentation/escapeMeter";
+import { FREEZE_TRAP_FREEZE_FRAMES } from "../src/game/sim/summons";
 
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
@@ -82,6 +83,42 @@ test("both players see the held fighter's escape meter drain with the simulation
   // The mark closes on the bar's empty end as the pummel winds up, then goes.
   expect(pummelled.some((entry) => Number(entry.split(":")[2]) > 0 && Number(entry.split(":")[2]) < PUMMEL_CONTACT_FRAME)).toBe(true);
   expect(pummelled.some((entry) => entry.endsWith(":-1"))).toBe(true);
+  for (const client of clients.clients) expect(client.errors).toEqual([]);
+  expect(clients.firstDivergence()).toBeUndefined();
+});
+
+test("both players see a frozen fighter's escape meter drain with the freeze, faster as it mashes", () => {
+  const clients = headless.clients({ start, install });
+  clients.start();
+  clients.frames(1);
+  clients.chat(0, "-dev quick");
+  clients.frames(5);
+  for (const client of clients.clients) client.run(() => { fighterAt(shell().world, 0).status.frozenFrames = FREEZE_TRAP_FREEZE_FRAMES; });
+  const seen: number[] = [];
+  for (let frame = 0; frame < FREEZE_TRAP_FREEZE_FRAMES; frame++) {
+    // Slot 0 mashes attack for a while, 6 presses a second.
+    if (frame >= 30 && frame < 90 && frame % 10 === 0) clients.press(0, Key.n);
+    clients.frames(1);
+    const remaining: number[] = [];
+    for (const client of clients.clients) {
+      let frozen = 0;
+      client.run(() => { frozen = fighterAt(shell().world, 0).status.frozenFrames; });
+      remaining.push(frozen);
+      const fill = client.frames.named("EscapeMeterFill0", 1101);
+      const mark = client.frames.named("EscapeMeterMark0", 1101 + Math.floor(GRAB_HOLD_FRAMES / ESCAPE_METER_SEGMENT_FRAMES));
+      expect(fill && mark).toBeTruthy();
+      if (fill === undefined || mark === undefined) return;
+      expect(client.frames.shown(fill)).toBe(frozen > 0);
+      expect(client.frames.shown(mark)).toBe(false);
+      if (frozen > 0) expect(fill.width).toBeCloseTo(Math.max(0.0006, (0.07 * frozen) / FREEZE_TRAP_FREEZE_FRAMES), 4);
+    }
+    expect(remaining[1]).toBe(remaining[0]!);
+    seen.push(remaining[0]!);
+    if (remaining[0] === 0) break;
+  }
+  // Six presses took 48 frames off: the bar empties at the thaw, well before 300 frames.
+  expect(seen.length).toBeLessThan(FREEZE_TRAP_FREEZE_FRAMES - 40);
+  expect(seen.at(-1)).toBe(0);
   for (const client of clients.clients) expect(client.errors).toEqual([]);
   expect(clients.firstDivergence()).toBeUndefined();
 });

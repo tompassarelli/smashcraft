@@ -2,13 +2,16 @@ import { stageBounds } from "./stageBounds";
 import { assertEquals, assertGreaterThan, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { AttackStyle, Character, SpecialAction } from "./codes";
 import { canStartAttackStyle } from "./conditions";
-import { createFighter } from "./fighter";
+import { type Fighter, createFighter } from "./fighter";
 import { attackDurationFramesForGrounding, attackStartupFrames } from "./moves";
 import { resolveAttacks, beginFighterAttack } from "./attacks";
-import { advanceFreezeTraps } from "./summons";
+import { FREEZE_TRAP_FREEZE_FRAMES, advanceFreezeTraps } from "./summons";
 import { advanceSolo, controls, testWorld } from "./testWorld";
 import { respawnFighter } from "./stocks";
-import { createRoster } from "./roster";
+import { MASH_FRAMES } from "./mash";
+import { FREEZE_MINIMUM_FRAMES } from "./transitions";
+import { floorDiv, floorMod } from "wisp/src/sim/intMath";
+import { type Controls, createRoster } from "./roster";
 import { f32 } from "wisp/src/sim/f32";
 import { executeNext, testMatch } from "../match/testMatch";
 import { fighterAt } from "./roster";
@@ -191,4 +194,77 @@ test("koRespawnAndResetClearTrapAndFrozenState", () => {
   assertEquals(rifleman.freezeTrap.life, 0);
   assertEquals(rifleman.status.frozenFrames, 0);
   assertEquals(rifleman.status.freezeImmunityFrames, 0);
+});
+
+/** An Archer the Rifleman's trap has just frozen, through the real trap contact. */
+function trapFrozenArcher(): Fighter {
+  const owner = createFighter(Character.rifleman, 0.0, 1);
+  const target = createFighter(Character.archer, 0.0, -1);
+  owner.motion.surface = 0;
+  target.motion.surface = 0;
+  owner.freezeTrap.life = 30;
+  owner.freezeTrap.x = 0.0;
+  owner.freezeTrap.surface = 0;
+  advanceFreezeTraps(testWorld(owner, target));
+  assertEquals(target.status.frozenFrames, FREEZE_TRAP_FREEZE_FRAMES);
+  return target;
+}
+
+test("each fresh press or new stick direction takes eight frames off a freeze, never ending it before frame sixty", () => {
+  const target = trapFrozenArcher();
+  const step = (input: Partial<Controls>) => advanceSolo(target, 0, controls(input), 0.0);
+  step({});
+  assertEquals(target.status.frozenFrames, FREEZE_TRAP_FREEZE_FRAMES - 1);
+  // A press and a new direction in one frame count once each.
+  step({ grabMashPressed: true, direction: 1, verticalDirection: 1 });
+  assertEquals(target.status.frozenFrames, FREEZE_TRAP_FREEZE_FRAMES - 2 - 2 * MASH_FRAMES);
+  // Holding the stick, or going neutral, keeps the remembered direction: nothing more.
+  step({ direction: 1, verticalDirection: 1 });
+  step({});
+  assertEquals(target.status.frozenFrames, FREEZE_TRAP_FREEZE_FRAMES - 4 - 2 * MASH_FRAMES);
+  // Flipping one axis is one new direction.
+  step({ direction: -1 });
+  assertEquals(target.status.frozenFrames, FREEZE_TRAP_FREEZE_FRAMES - 5 - 3 * MASH_FRAMES);
+  // Mashing every frame frees the fighter on frame 60, not before.
+  let frame = 5;
+  while (target.status.frozenFrames > 0) {
+    frame++;
+    step({ grabMashPressed: true, direction: frame % 2 === 0 ? 1 : -1 });
+  }
+  assertEquals(frame, FREEZE_MINIMUM_FRAMES);
+  assertGreaterThan(target.status.freezeImmunityFrames, 0);
+  assertEquals(target.grab.heldFrames, 0);
+  assertEquals(target.grab.mashX, 0);
+});
+
+/** The frozen frame a mash of `rate` presses a second (first on frame 1) thaws on; `wiggle` flips the stick as often. */
+function thawFrame(rate: number, wiggle: boolean): number {
+  const target = trapFrozenArcher();
+  let frame = 0;
+  while (target.status.frozenFrames > 0) {
+    frame++;
+    const press = rate > 0 && (floorDiv(frame * rate, 60) !== floorDiv((frame - 1) * rate, 60) || frame === 1);
+    const direction = wiggle ? (floorMod(floorDiv((frame - 1) * rate, 60), 2) === 0 ? 1 : -1) : 0;
+    advanceSolo(target, 0, controls({ grabMashPressed: press, direction }), 0.0);
+  }
+  return frame;
+}
+
+test("mashing out of a freeze: the thaw frame by mash rate", () => {
+  // smashcraft:docs/gameplay-design.md, "Rifleman's trap escape", lists these.
+  assertEquals(thawFrame(0, false), 300);
+  assertEquals(thawFrame(4, false), 195);
+  assertEquals(thawFrame(8, false), 143);
+  assertEquals(thawFrame(12, false), 115);
+  assertEquals(thawFrame(8, true), 92);
+  assertEquals(thawFrame(14, true), 61);
+  assertEquals(thawFrame(30, true), FREEZE_MINIMUM_FRAMES);
+});
+
+test("a held button does not mash a freeze", () => {
+  // grabMashPressed is a fresh press (input/adapter.ts); a held button never sets it again.
+  const target = trapFrozenArcher();
+  advanceSolo(target, 0, controls({ grabMashPressed: true, attackHeld: true, jumpHeld: true, shield: true }), 0.0);
+  for (let frame = 2; frame <= 20; frame++) advanceSolo(target, 0, controls({ attackHeld: true, jumpHeld: true, shield: true }), 0.0);
+  assertEquals(target.status.frozenFrames, FREEZE_TRAP_FREEZE_FRAMES - 20 - MASH_FRAMES);
 });

@@ -1,10 +1,11 @@
 // Holding a grabbed fighter: mash-out escapes, pummels and throws.
-import { max, min } from "../../runtime/numbers";
+import { min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { ContactKind, GrabAction } from "./codes";
 import { finishDamageContacts, openDamageContacts, queueDamageContact } from "./contacts";
 import { copyHitEffect, emptyHitEffect } from "./hitRegions";
-import { GRAB_HOLD_DISTANCE, GRAB_HOLD_MINIMUM_FRAMES, GRAB_MASH_FRAMES, PUMMEL_DAMAGE, grabActionDuration, grabContactFrame, pummelLimit } from "./moves";
+import { advanceMash, clearMash } from "./mash";
+import { GRAB_HOLD_DISTANCE, GRAB_HOLD_MINIMUM_FRAMES, PUMMEL_DAMAGE, grabActionDuration, grabContactFrame, pummelLimit } from "./moves";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import type { Fighter } from "./fighter";
 import { type Controls, type Roster, controlsAt, fighterAt, isActive } from "./roster";
@@ -28,9 +29,7 @@ function releaseThrow(world: Roster, ownerSlot: number, targetSlot: number, targ
   owner.grab.target = undefined;
   target.grab.owner = undefined;
   target.grab.grabbedFrames = 0;
-  target.grab.heldFrames = 0;
-  target.grab.mashX = 0;
-  target.grab.mashZ = 0;
+  clearMash(target.grab);
   const up = action === GrabAction.throwUp;
   const down = action === GrabAction.throwDown;
   throwHit.damage = up ? 6.0 : down ? 5.0 : 7.0;
@@ -108,14 +107,7 @@ function advanceGrab(world: Roster, ownerSlot: number, ownerInput: Readonly<Cont
   const targetSlot = grab.target;
   if (targetSlot !== undefined && (grab.action === GrabAction.hold || grab.action === GrabAction.pummel)) {
     const held = fighterAt(world, targetSlot).grab;
-    let contributions = targetInput.grabMashPressed ? 1 : 0;
-    const x = targetInput.direction === 0 ? held.mashX : targetInput.direction;
-    const z = targetInput.verticalDirection === 0 ? held.mashZ : targetInput.verticalDirection;
-    if (x !== held.mashX || z !== held.mashZ) contributions++;
-    held.mashX = x;
-    held.mashZ = z;
-    held.heldFrames++;
-    held.grabbedFrames = max(0, max(GRAB_HOLD_MINIMUM_FRAMES - held.heldFrames, held.grabbedFrames - 1 - GRAB_MASH_FRAMES * contributions));
+    held.grabbedFrames = advanceMash(held, targetInput, held.grabbedFrames, GRAB_HOLD_MINIMUM_FRAMES);
     if (held.grabbedFrames === 0) {
       escapeGrab(world, ownerSlot, targetSlot);
       return;
