@@ -17,6 +17,7 @@ import { fighterPoseFacing, isIntangible } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
 import { type WorldOrigin, facingYaw, hideEffect } from "./effects";
 import { characterModelScale } from "../presentation/modelScale";
+import { fitFighterPlacement } from "../presentation/fighterPlacement";
 
 export class FighterPoolPresentation {
   private readonly clips: effect[] = [];
@@ -24,6 +25,7 @@ export class FighterPoolPresentation {
   private readonly scale: number;
   private lightVisible = false;
   private visible: number | undefined;
+  private readonly placement = { x: 0.0, z: 0.0 };
   /** Frames whose pose selected a clip this pool doesn't have. */
   missingSelections = 0;
 
@@ -79,7 +81,7 @@ export class FighterPoolPresentation {
     }
   }
 
-  present(fighter: Readonly<Fighter>, pose: Readonly<FighterPose>): void {
+  present(fighter: Readonly<Fighter>, pose: Readonly<FighterPose>, stage = 0): void {
     if (this.clips.length === 0) return;
     const index = pose.clipIndex ?? originalClipNamed(this.character, pose.clipName);
     const model = index === undefined ? undefined : this.clips[index];
@@ -99,9 +101,10 @@ export class FighterPoolPresentation {
     if (duration <= 0.0) seconds = 0.0;
     else if (clip.looping) seconds -= I2R(R2I(seconds / duration)) * duration;
     else if (seconds > duration) seconds = duration;
-    const x = this.origin.x + fighter.motion.x;
+    fitFighterPlacement(this.placement, fighter, stage);
+    const x = this.origin.x + this.placement.x;
     const y = this.origin.y;
-    const z = this.origin.z + fighter.motion.z;
+    const z = this.origin.z + this.placement.z;
     const yaw = facingYaw(fighterPoseFacing(fighter));
     BlzSetSpecialEffectPosition(model, x, y, z);
     BlzSetSpecialEffectYaw(model, yaw);

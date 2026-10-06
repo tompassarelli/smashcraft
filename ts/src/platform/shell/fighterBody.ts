@@ -9,6 +9,8 @@ import type { WorldOrigin } from "../../game/render/effects";
 import type { FighterBody } from "./state";
 import { FIGHTER_OBJECTS } from "../../game/objectData";
 import { applyFighterObject } from "../objectData";
+import { fitFighterPlacement } from "../../game/presentation/fighterPlacement";
+import { characterModelScale } from "../../game/presentation/modelScale";
 
 /** Crow Form, added and removed so the unit's flying height can change. */
 const CROW_FORM = 0x416d7266;
@@ -16,10 +18,16 @@ const CROW_FORM = 0x416d7266;
 const LOCUST = 0x416c6f63;
 const DIZZY_MODEL = "Abilities\\Spells\\Human\\Thunderclap\\ThunderclapTarget.mdx";
 
-export function placeFighterBody(body: FighterBody, fighter: Readonly<Fighter>, origin: WorldOrigin): void {
-  SetUnitX(body.unit, origin.x + fighter.motion.x);
+// Preallocated: every callback projects each fighter without retaining offsets.
+const placement = { x: 0.0, z: 0.0 };
+
+export function placeFighterBody(body: FighterBody, fighter: Readonly<Fighter>, origin: WorldOrigin, stage = 0): void {
+  fitFighterPlacement(placement, fighter, stage);
+  SetUnitX(body.unit, origin.x + placement.x);
   SetUnitY(body.unit, origin.y);
-  SetUnitFlyHeight(body.unit, FLOOR_HEIGHT + fighter.motion.z, 0.0);
+  SetUnitFlyHeight(body.unit, FLOOR_HEIGHT + placement.z, 0.0);
+  const scale = characterModelScale(fighter.character);
+  SetUnitScale(body.unit, scale, scale, scale);
   BlzSetUnitFacingEx(body.unit, fighterPoseFacing(fighter) > 0 ? 0.0 : 180.0);
 }
 

@@ -19,6 +19,7 @@ import { clearAllInputs } from "./inputs";
 import { journalEpoch, journalIdentity } from "./journal";
 import { chatBusy, requestPause } from "./journalPause";
 import { Key } from "./keyEvents";
+import { startBodyFit } from "./bodyFit";
 import { back, choose, confirm, openSettingsScreen, startQuickMatch } from "./menus";
 import { makePreview } from "./preview";
 import { exportProbe, probeIntegrity, probeRecording, startProbe } from "./responseProbe";
@@ -209,7 +210,7 @@ export function onDevCommand(s: ShellState): void {
     receipt = `dev: desync from player ${slot + 1}'s client`;
     // One more handle on one client: Warcraft's handle counter and tempest checksum diverge.
     if (slot === GetPlayerId(GetLocalPlayer())) CreateTimer();
-  } else receipt = applyDevCommand(s.dev, message);
+  } else receipt = startBodyFit(s, message) ?? applyDevCommand(s.dev, message);
   if (receipt === undefined) return;
   s.devReceipts++;
   DisplayTextToPlayer(GetLocalPlayer(), 0.0, 0.0, receipt);
