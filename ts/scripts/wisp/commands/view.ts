@@ -19,7 +19,8 @@ import { describeScene, sceneProblems } from "wisp/scripts/wisp/scene";
 import { importedAssets } from "../mapInputs";
 import { gameFilesLayer } from "../project";
 import { SMASHCRAFT_FRAME, SMASHCRAFT_SCENE } from "../playerView";
-import { CHARACTER_NAMES, STYLE_NAMES, loadDrawnModel, sampleAttack, sampleState, sheet } from "../hurtboxView";
+import { CHARACTER_NAMES, FIGHTER_MODELS, STYLE_NAMES, loadDrawnModel, sampleAttack, sampleState, sheet } from "../hurtboxView";
+import { type DrawnReachRow, REACH_CHECKED, drawnReachSource, measureDrawnReach } from "../drawnReach";
 import { measureStrikeMoments, strikeMomentSource } from "../strikeMoments";
 import { HERO_ROSTER } from "../../../src/game/sim/heroes/registry";
 import { AttackPhase, AttackStyle, Character } from "../../../src/game/sim/codes";
@@ -173,11 +174,40 @@ const strikes = (args: readonly string[]) => Effect.scoped(Effect.gen(function*(
   yield* Console.log(`${moments.length} strike moments: ${STRIKE_TABLE}`);
 }));
 
+const REACH_TABLE = join(import.meta.dir, "../drawnReachInfo.ts");
+
+/**
+ * Measures how far each re-authored original swing draws toward its strike
+ * (#156) on a build's packaged fighter models and rewrites the table
+ * ts/test/drawn-reach.test.ts checks.
+ */
+const reach = (args: readonly string[]) => Effect.gen(function*() {
+  const assets = args[0] === "--assets" ? args[1] : undefined;
+  if (assets === undefined || args.length !== 2) return yield* new UsageFailure({ problem: "view reach takes --assets DIR" });
+  const rows = yield* Effect.tryPromise({
+    try: async () => {
+      const measured: DrawnReachRow[] = [];
+      for (const { character, styles } of REACH_CHECKED) {
+        const bytes = await Bun.file(join(assets, FIGHTER_MODELS[character] ?? "")).arrayBuffer();
+        const name = (FIGHTER_MODELS[character] ?? "").split("/").at(-1)?.replace(/\.mdx$/, "");
+        const hash = new Bun.CryptoHasher("sha256").update(new Uint8Array(bytes)).digest("hex");
+        const model = await loadDrawnModel(assets, character);
+        for (const style of styles) measured.push({ character, style, model: `war3mapImported\\${name}-${hash}.mdx`, ...measureDrawnReach(model, character, style) });
+      }
+      return measured;
+    },
+    catch: (cause) => new MapBuildFailure({ operation: "measure drawn reach", path: assets, cause }),
+  });
+  for (const row of rows) yield* Console.log(`${CHARACTER_NAMES[row.character] ?? row.character} ${row.style}: swing ${row.swing.toFixed(1)}, peak frame ${row.peakFrame}, active ${row.firstActive}-${row.lastActive}`);
+  yield* Effect.tryPromise({ try: () => Bun.write(REACH_TABLE, drawnReachSource(rows)), catch: (cause) => new MapBuildFailure({ operation: "write drawn reach", path: REACH_TABLE, cause }) });
+});
+
 export const view: Command = ([mode, ...paths]) => {
   if (mode === "models") return models(paths);
+  if (mode === "reach") return reach(paths);
   if (mode === "strikes") return strikes(paths);
   if (mode === "hurtboxes") return hurtboxes(paths);
-  if (paths.length === 0) return Effect.fail(new UsageFailure({ problem: "view takes scene DATA_DIR..., frame FRAME.ppm... or models --assets DIR ..." }));
+  if (paths.length === 0) return Effect.fail(new UsageFailure({ problem: "view takes scene DATA_DIR..., frame FRAME.ppm..., models --assets DIR ..., hurtboxes, strikes or reach --assets DIR" }));
   if (mode === "scene") return scenes(paths);
   if (mode === "frame") return frames(paths);
   return Effect.fail(new UsageFailure({ problem: `unknown view check ${mode}` }));

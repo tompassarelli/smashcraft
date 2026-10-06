@@ -659,10 +659,13 @@ Blender step as `blender --background --python-exit-code 1 --python FILE`:
 2. smashcraft:tools/animations/import-demonhunter.py saves the editable scene.
 3. smashcraft:tools/animations/demonhunter.py authors the combat clips and
    exports the fighter model to smashcraft:build/illidan-animation/.
-4. smashcraft:tools/animations/check-illidan.py checks that stock actions and
+4. smashcraft:tools/animations/strikes.py `-- illidan` re-authors his weak
+   swings (see "Strikes that reach" below), as it does Archer's and Rifleman's
+   after their own authoring scripts.
+5. smashcraft:tools/animations/check-illidan.py checks that stock actions and
    geosets are unchanged and that combat clips keep the authored visibility,
    root and wing rules, then records the source textures for packaging.
-5. `bun tools/animations/package-illidan.ts` encodes the model and regenerates
+6. `bun tools/animations/package-illidan.ts` encodes the model and regenerates
    smashcraft:ts/src/game/presentation/demonHunterAssetInfo.ts.
 
 smashcraft:tools/selection/render-fighters.ts renders every fighter's grid tile
@@ -1110,3 +1113,31 @@ active frames if it must, and plays the follow-through over recovery. A
 measured moment counts only while its clip index matches the table; rerun the
 command after a clip or move change. On 7 Oct it moved the strike onto the
 active frames for 118 of 120 hero normals (52 had been more than 4 frames off).
+
+## Strikes that reach
+
+Fifteen original swings drew almost no motion toward their hits: the body
+stayed put while the volume reached out (#156). smashcraft:tools/animations/strikes.py
+re-authors them on each fighter's editable scene (`-- archer`, `-- rifleman`,
+`-- illidan`): Archer's jab (a bow-tip thrust), forward tilts (lunging side
+kicks: level, head-high, floor-skimming), up tilt (an overhead bow chop) and
+get-up attack (a seated sweep kick with the bow behind her); Rifleman's
+neutral air (level bayonet lunge, legs split), up air (bayonet driven
+overhead) and down air (muzzle-first stamp); Illidan's jab (glaive thrust),
+forward tilts (lunging sweeps level, rising and low), down tilt (both glaives
+along the floor) and down smash (both glaives thrown wide, with its charge and
+release). Each clip lasts exactly its move's frames, so clip frame N plays on
+attack frame N: anticipation in the two frames before the first active frame,
+the strike pose held over the active frames, follow-through into recovery.
+The script replaces only the skeleton's keys; mesh visibility and particle
+gates keep their place in the clip.
+
+The scenes to run it on are the editable scenes behind the shipped models
+(their packaged bytes reproduce the shipped hashes), kept with the private
+build inputs. The authoring scripts on main no longer rebuild those scenes
+exactly: the shipped Illidan, for example, has smash release, combat idle and
+ledge catch clips that smashcraft:tools/animations/demonhunter.py lacks.
+`bun tools/animations/check-strikes.ts BEFORE.mdx AFTER.mdx NAMES` confirms a
+re-export changed no other sequence. `bun wisp view reach --assets DIR`
+(smashcraft:docs/hurtboxes.md) measures each swing; the test requires at least
+30 units toward the strike, peaking within two frames of the active window.

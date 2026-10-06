@@ -11,13 +11,14 @@ import { advanceFighterPose, createFighterPose } from "../../src/game/presentati
 import { characterModelScale } from "../../src/game/presentation/modelScale";
 import { type Capsule, attackCapsule, emptyCapsule, placeCapsule } from "../../src/game/physics/contactGeometry";
 import { beginFighterAttack } from "../../src/game/sim/attacks";
-import { AttackPhase, AttackStyle, Character } from "../../src/game/sim/codes";
+import { AttackPhase, AttackStyle, Character, DownState } from "../../src/game/sim/codes";
 import { attackPhase, fighterPoseFacing } from "../../src/game/sim/conditions";
 import { type Fighter, createFighter } from "../../src/game/sim/fighter";
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../../src/game/sim/hitRegions";
 import { HurtState, fighterHurtParts } from "../../src/game/sim/hurtboxes";
 import { createRoster, neutralControls } from "../../src/game/sim/roster";
 import { advanceFighter } from "../../src/game/sim/step";
+import { beginDownState } from "../../src/game/sim/transitions";
 
 /** Each fighter's packaged model under a build's --assets directory. */
 export const FIGHTER_MODELS: Readonly<Record<number, string>> = {
@@ -96,7 +97,9 @@ export function sampleAttack(character: Character, style: AttackStyle, facing = 
   }
   const pose = createFighterPose();
   const input = neutralControls();
-  beginFighterAttack(world, 0, style, false);
+  // A get-up attack starts from lying down, not from an attack input.
+  if (style === AttackStyle.getupAttack) beginDownState(f, DownState.attack, 0);
+  else beginFighterAttack(world, 0, style, false);
   advanceFighterPose(pose, f, world, input, false, false, true, false);
   const frames = [capture(f, pose)];
   while (f.attack.style === style && frames.length < 120) {

@@ -124,7 +124,9 @@ code. From smashcraft:ts/:
   FRAME.ppm...` report what a player would see wrong; `view models` rewrites
   the model facts they read (smashcraft:docs/player-view.md); `view strikes`
   rewrites the hero strike moments swings and specials align to
-  (smashcraft:docs/fighter-animation-work.md, "Hero swing alignment").
+  (smashcraft:docs/fighter-animation-work.md, "Hero swing alignment");
+  `view reach --assets DIR` rewrites how far the original fighters' swings
+  draw toward their strikes (smashcraft:docs/hurtboxes.md).
 - Repro: `bun wisp repro FILE [--test NAME]` replays a moment a player saved
   with K (or View held on a controller) in simulated clients, to the checksum
   the game recorded; `--test NAME` writes a test that replays it.

@@ -83,6 +83,14 @@ cover and how much of the volumes the body fills. Held weapons are part of the
 drawn silhouette and deliberately outside the volumes, so coverage below 100%
 is expected.
 
+`bun wisp view reach --assets DIR` measures how far each re-authored
+original swing (#156) draws toward its strike: every frame of the move through
+the same pose path, the opaque silhouette projected onto the direction from the
+chest (z 50) to the far end of the first active strike capsule. It rewrites
+smashcraft:ts/scripts/wisp/drawnReachInfo.ts, and
+smashcraft:ts/test/drawn-reach.test.ts requires each swing to travel at least
+30 units toward its strike and peak within two frames of its active window.
+
 ## Shipped fighters
 
 Archer, Rifleman and Illidan author poses for the sampled moves: jab, down
