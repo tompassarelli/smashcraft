@@ -1132,6 +1132,13 @@ the strike pose held over the active frames, follow-through into recovery.
 The script replaces only the skeleton's keys; mesh visibility and particle
 gates keep their place in the clip.
 
+Rifleman's own ground kit (#151) is authored the same way on his frames: a
+rifle-stock shove jab, a lunging bayonet thrust forward tilt (level, rising,
+low), an up tilt that swings the rifle overhead and on behind him, and a
+crouched floor sweep down tilt. His lunge dash attack replays the forward
+tilt, retimed to its own first active frame. Archer's down tilt is a
+crouching floor sweep, which her sliding dash attack replays.
+
 The scenes to run it on are the editable scenes behind the shipped models
 (their packaged bytes reproduce the shipped hashes), kept with the private
 build inputs. The authoring scripts on main no longer rebuild those scenes

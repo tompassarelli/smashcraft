@@ -13,9 +13,9 @@ import * as assets from "./fighterAssetInfo";
 const clip = (index: number, seconds: number): HeroClip => ({ index, seconds });
 
 /**
- * An original clip authored with its strike on the shared timing's first active
- * frame (`startup` of `total`), retimed to land on the kit's own
- * (smashcraft:docs/design/tilts.md).
+ * A clip whose strike is authored on frame `startup` of `total`, retimed to
+ * land on another move's first active frame: each dash attack reuses a tilt's
+ * clip (smashcraft:docs/design/tilts.md).
  */
 const retimed = (index: number, seconds: number, startup: number, total: number, kit: GroundKit, style: AttackStyle): HeroClip =>
   strikeClip({ index }, f32(f32(seconds * startup) / total), kit, style);
@@ -73,15 +73,15 @@ const ARCHER_CLIPS: HeroClipTable = {
 };
 
 const RIFLEMAN_CLIPS: HeroClipTable = {
-  jab: retimed(assets.RIFLEMAN_JAB_INDEX, assets.RIFLEMAN_JAB_SECONDS, 4, 21, RIFLEMAN_GROUND, AttackStyle.jab),
+  jab: clip(assets.RIFLEMAN_JAB_INDEX, assets.RIFLEMAN_JAB_SECONDS),
   grab: clip(assets.RIFLEMAN_GRAB_INDEX, assets.RIFLEMAN_GRAB_SECONDS),
-  forwardTilt: retimed(assets.RIFLEMAN_FORWARD_TILT_INDEX, assets.RIFLEMAN_FORWARD_TILT_SECONDS, 5, 28, RIFLEMAN_GROUND, AttackStyle.forwardTilt),
-  upTilt: retimed(assets.RIFLEMAN_UP_TILT_INDEX, assets.RIFLEMAN_UP_TILT_SECONDS, 6, 29, RIFLEMAN_GROUND, AttackStyle.upTilt),
-  downTilt: retimed(assets.RIFLEMAN_DOWN_TILT_INDEX, assets.RIFLEMAN_DOWN_TILT_SECONDS, 5, 28, RIFLEMAN_GROUND, AttackStyle.downTilt),
-  forwardTiltUp: retimed(assets.RIFLEMAN_FORWARD_TILT_UP_INDEX, assets.RIFLEMAN_FORWARD_TILT_UP_SECONDS, 5, 28, RIFLEMAN_GROUND, AttackStyle.forwardTiltUp),
-  forwardTiltDown: retimed(assets.RIFLEMAN_FORWARD_TILT_DOWN_INDEX, assets.RIFLEMAN_FORWARD_TILT_DOWN_SECONDS, 5, 28, RIFLEMAN_GROUND, AttackStyle.forwardTiltDown),
+  forwardTilt: clip(assets.RIFLEMAN_FORWARD_TILT_INDEX, assets.RIFLEMAN_FORWARD_TILT_SECONDS),
+  upTilt: clip(assets.RIFLEMAN_UP_TILT_INDEX, assets.RIFLEMAN_UP_TILT_SECONDS),
+  downTilt: clip(assets.RIFLEMAN_DOWN_TILT_INDEX, assets.RIFLEMAN_DOWN_TILT_SECONDS),
+  forwardTiltUp: clip(assets.RIFLEMAN_FORWARD_TILT_UP_INDEX, assets.RIFLEMAN_FORWARD_TILT_UP_SECONDS),
+  forwardTiltDown: clip(assets.RIFLEMAN_FORWARD_TILT_DOWN_INDEX, assets.RIFLEMAN_FORWARD_TILT_DOWN_SECONDS),
   // The lunge plays the bayonet thrust.
-  dashAttack: retimed(assets.RIFLEMAN_FORWARD_TILT_INDEX, assets.RIFLEMAN_FORWARD_TILT_SECONDS, 5, 28, RIFLEMAN_GROUND, AttackStyle.dashAttack),
+  dashAttack: retimed(assets.RIFLEMAN_FORWARD_TILT_INDEX, assets.RIFLEMAN_FORWARD_TILT_SECONDS, 6, 30, RIFLEMAN_GROUND, AttackStyle.dashAttack),
   neutralAir: clip(assets.RIFLEMAN_AERIAL_NEUTRAL_INDEX, assets.RIFLEMAN_AERIAL_NEUTRAL_SECONDS),
   forwardAir: clip(assets.RIFLEMAN_AERIAL_FORWARD_INDEX, assets.RIFLEMAN_AERIAL_FORWARD_SECONDS),
   backAir: clip(assets.RIFLEMAN_AERIAL_BACK_INDEX, assets.RIFLEMAN_AERIAL_BACK_SECONDS),

@@ -58,10 +58,10 @@ export function measureDrawnReach(model: DrawnModel, character: Character, style
   };
 }
 
-/** The moves #156 re-authored, by character: the swings that barely moved toward their strike. */
+/** The moves #156 re-authored, by character: the swings that barely moved toward, or drew away from, their strike. */
 export const REACH_CHECKED: readonly { readonly character: Character; readonly styles: readonly AttackStyle[] }[] = [
-  { character: Character.archer, styles: [AttackStyle.jab, AttackStyle.forwardTilt, AttackStyle.forwardTiltUp, AttackStyle.forwardTiltDown, AttackStyle.upTilt, AttackStyle.getupAttack] },
-  { character: Character.rifleman, styles: [AttackStyle.neutralAir, AttackStyle.upAir, AttackStyle.downAir] },
+  { character: Character.archer, styles: [AttackStyle.jab, AttackStyle.forwardTilt, AttackStyle.forwardTiltUp, AttackStyle.forwardTiltDown, AttackStyle.upTilt, AttackStyle.downTilt, AttackStyle.dashAttack, AttackStyle.getupAttack] },
+  { character: Character.rifleman, styles: [AttackStyle.jab, AttackStyle.forwardTilt, AttackStyle.forwardTiltUp, AttackStyle.forwardTiltDown, AttackStyle.upTilt, AttackStyle.downTilt, AttackStyle.dashAttack, AttackStyle.neutralAir, AttackStyle.upAir, AttackStyle.downAir] },
   { character: Character.demonHunter, styles: [AttackStyle.jab, AttackStyle.forwardTilt, AttackStyle.forwardTiltUp, AttackStyle.forwardTiltDown, AttackStyle.downTilt, AttackStyle.downSmash] },
 ];
 

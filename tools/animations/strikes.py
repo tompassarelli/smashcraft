@@ -304,6 +304,13 @@ if fighter == 'archer':
         strike={'step': (6, 4), 'lean': -14, 'hand_L': (26, 0, 100), 'aim_L': (150, 0, 124), 'hand_R': (-14, -18, 64), 'cloth': 1},
         follow={'step': (6, 0), 'lean': 8, 'hand_L': (34, 0, 70), 'aim_L': (90, 0, 10), 'cloth': .7},
         wind_at=3, settle=(19, {'step': (2, 0), 'hand_L': (36, -4, 70), 'aim_L': (60, 0, 130), 'cloth': .2})))
+    # Down tilt (5/2/28), also the sliding dash attack's clip: she drops into
+    # a crouch and sweeps the camera-side leg along the floor.
+    author('Down Tilt', swing(5, 2, 28,
+        wind={'step': (-10, -6), 'lean': -8, 'foot_R': (-8, -12, 20), 'hand_L': (4, 6, 60), 'cloth': .5},
+        strike={'step': (30, -30), 'lean': 24, 'foot_R': (120, -12, 3), 'foot_L': (40, 8, 1), 'hand_L': (40, 6, 26), 'cloth': 1},
+        follow={'step': (24, -26), 'lean': 18, 'foot_R': (92, -12, 4), 'foot_L': (40, 8, 1), 'hand_L': (34, 6, 30), 'cloth': .7},
+        settle=(19, {'step': (3, -6), 'foot_R': (10, -12, 6), 'cloth': .2})))
     # Get-up attack (16/3/49): she sits up from her back, sweeps the
     # camera-side leg out in front at hip height while the bow swings behind
     # her, then stands. Grounded afterwards like her other recoveries.
@@ -321,12 +328,16 @@ if fighter == 'archer':
     from grounding import ground_recovery
     ground_recovery(rig, attack, 49)
 elif fighter == 'rifleman':
-    rifle_base = None
-    sample(bpy.data.actions['Aerial Up'], 0)
-    rifle_base = bones['Rifle01'].matrix.copy()
-    hand_base = {s: bones[f'Bone_Hand_{s}'].matrix.copy() for s in 'RL'}
-    grips = {s: rifle_base.inverted() @ hand_base[s].translation for s in 'RL'}
-    grip_center = (hand_base['R'].translation + hand_base['L'].translation) / 2
+    def hold_rifle(action, frame=0):
+        # The rifle's chest-relative hold and both grips, from a reference pose.
+        global rifle_base, hand_base, grips, grip_center
+        sample(bpy.data.actions[action], frame)
+        rifle_base = bones['Rifle01'].matrix.copy()
+        hand_base = {s: bones[f'Bone_Hand_{s}'].matrix.copy() for s in 'RL'}
+        grips = {s: rifle_base.inverted() @ hand_base[s].translation for s in 'RL'}
+        grip_center = (hand_base['R'].translation + hand_base['L'].translation) / 2
+
+    hold_rifle('Aerial Up')
     # Up air (5/3/34): he drives the bayonet straight overhead with both
     # hands, arching back, and kicks one boot up beside it.
     author('Aerial Up', swing(5, 3, 34,
@@ -348,6 +359,38 @@ elif fighter == 'rifleman':
         strike={'rifle_pitch': -88, 'rifle_lift': (-10, -16), 'lean': 16, 'foot_R': (8, -10, 2), 'foot_L': (-8, 16, 4)},
         follow={'rifle_pitch': -60, 'rifle_lift': (-6, -8), 'lean': 10, 'foot_R': (8, -10, 12), 'foot_L': (-8, 16, 14)},
         wind_at=4), plant=False)
+    # Ground normals (#151's kit; first active frame, active frames, total).
+    # Each holds the rifle as his ready stance does.
+    hold_rifle('Stand Ready')
+    # Jab (3/3/22): a two-handed shove of the rifle stock at chest height.
+    author('Attack Jab', swing(3, 3, 22,
+        wind={'rifle_lift': (-10, 2), 'lean': -6, 'step': (-3, 0)},
+        strike={'rifle_lift': (22, 6), 'rifle_pitch': 6, 'lean': 14, 'step': (10, 0)},
+        follow={'rifle_lift': (16, 4), 'rifle_pitch': 4, 'lean': 10, 'step': (8, 0)},
+        settle=(14, {'rifle_lift': (4, 1), 'lean': 3, 'step': (2, 0)})))
+    # Forward tilts (6/3/30): a lunging bayonet thrust, level, rising or low.
+    for name, pitch, lift, lean, step in [('Forward Tilt', 0, (26, 4), 18, (16, -2)),
+                                          ('Forward Tilt Up', 34, (18, 16), 4, (12, 0)),
+                                          ('Forward Tilt Down', -30, (22, -10), 24, (16, -12))]:
+        author(name, swing(6, 3, 30,
+            wind={'rifle_lift': (-16, 2), 'rifle_pitch': pitch * .3, 'lean': -10, 'step': (-6, -3)},
+            strike={'rifle_lift': lift, 'rifle_pitch': pitch, 'lean': lean, 'step': step},
+            follow={'rifle_lift': (lift[0] * .7, lift[1] * .7), 'rifle_pitch': pitch * .8, 'lean': lean * .7, 'step': (step[0] * .8, step[1] * .7)},
+            settle=(20, {'rifle_lift': (4, 1), 'lean': 3, 'step': (3, 0)})))
+    # Up tilt (5/3/30): the rifle swings up from his hip in an arc overhead
+    # and on behind him.
+    author('Up Tilt', swing(5, 3, 30,
+        wind={'rifle_lift': (-4, -6), 'rifle_pitch': -20, 'lean': 8, 'step': (0, -6)},
+        strike={'rifle_lift': (6, 34), 'rifle_pitch': 80, 'lean': -6, 'step': (4, 6)},
+        follow={'rifle_lift': (-14, 16), 'rifle_pitch': 150, 'lean': -16, 'step': (0, 2)},
+        settle=(20, {'rifle_lift': (-2, 8), 'rifle_pitch': 30, 'lean': -4})))
+    # Down tilt (6/3/31): he drops to a crouch and sweeps the bayonet along
+    # the floor in front.
+    author('Down Tilt', swing(6, 3, 31,
+        wind={'rifle_lift': (-10, 4), 'rifle_pitch': 18, 'lean': 4, 'step': (-2, -8)},
+        strike={'rifle_lift': (22, -14), 'rifle_pitch': -26, 'lean': 26, 'step': (8, -18)},
+        follow={'rifle_lift': (16, -12), 'rifle_pitch': -18, 'lean': 20, 'step': (6, -16)},
+        settle=(21, {'rifle_lift': (4, -2), 'lean': 6, 'step': (2, -4)})))
 else:
     clips_path = SCENES['illidan'].parent / 'clips.json'
     clips = json.loads(clips_path.read_text())
