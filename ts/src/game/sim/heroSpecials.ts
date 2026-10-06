@@ -1,0 +1,132 @@
+// Authored special kits for the expansion heroes: plain immutable data, like
+// FighterMoves, executed by heroSpecialRules.ts. Frame numbers follow the
+// roster brief (smashcraft:docs/design/roster.md): the entry tick is frame 1,
+// windows are inclusive, and "end fN" means the fighter acts again on N+1.
+import type { MoveRegion } from "./heroMoves";
+import type { HitEffect } from "./hitRegions";
+
+/** The four special inputs, in SpecialAction.heroNeutral order. */
+export const SpecialSlot = { neutral: 0, side: 1, up: 2, down: 3 } as const;
+export type SpecialSlot = (typeof SpecialSlot)[keyof typeof SpecialSlot];
+
+/** Which authored form of a special is running; captured on entry. */
+export const SpecialForm = { ground: 0, air: 1, free: 2 } as const;
+export type SpecialForm = (typeof SpecialForm)[keyof typeof SpecialForm];
+
+/** Brief frames, inclusive. */
+export interface FrameWindow {
+  readonly first: number;
+  readonly last: number;
+}
+
+/**
+ * Velocity the special sets on every frame of its window, in world units per
+ * frame, facing-relative. Gravity and collision still apply to the next frame's
+ * movement. With `aimedSpeed`, a stick held on entry (one of eight directions)
+ * replaces the authored direction at that speed; a neutral stick keeps it.
+ */
+export interface SpecialMotion extends FrameWindow {
+  readonly velocityX: number;
+  readonly velocityZ: number;
+  readonly aimedSpeed?: number | undefined;
+}
+
+/**
+ * A projectile, marker or zone the special emits. Offsets and velocities are
+ * facing-relative; `upVelocity*` replace the velocity when up is held on entry.
+ * It hits once and disappears on a body, shield or reflector; it may hit once
+ * its age reaches `activeFrom`.
+ */
+export interface SpecialProjectile {
+  readonly spawnFrame: number;
+  readonly offsetX: number;
+  readonly offsetZ: number;
+  readonly velocityX: number;
+  readonly velocityZ: number;
+  readonly upVelocityX?: number | undefined;
+  readonly upVelocityZ?: number | undefined;
+  readonly life: number;
+  readonly radius: number;
+  readonly activeFrom?: number | undefined;
+  readonly effect: Readonly<HitEffect>;
+  readonly reflectable: boolean;
+  /** Owned at once; a cast beyond it fails before spending mana. */
+  readonly limit: number;
+  /** Removed when the owner's special is interrupted before it becomes active (Frost Nova's marker). */
+  readonly cancelOnInterrupt?: boolean | undefined;
+}
+
+export interface SpecialArmor extends FrameWindow {
+  /** A hit of at most this damage applies its damage without its reaction; any hit consumes the armor. */
+  readonly maxDamage: number;
+}
+
+export interface AuthoredSpecial {
+  /** Mana spent once, on entry. */
+  readonly cost: number;
+  /** The last frame of the action. */
+  readonly endFrame: number;
+  /** Strike paths in brief frames (heroRegion); each target is struck once per action. */
+  readonly regions?: readonly MoveRegion[] | undefined;
+  readonly motion?: readonly SpecialMotion[] | undefined;
+  readonly projectiles?: readonly SpecialProjectile[] | undefined;
+  readonly intangible?: FrameWindow | undefined;
+  readonly armor?: SpecialArmor | undefined;
+  /** Does not start in the air and spends nothing there. */
+  readonly groundOnly?: boolean | undefined;
+  /** Once per airtime; landing or a new stock restores it, a ledge catch does not. */
+  readonly oncePerAirtime?: boolean | undefined;
+  /** Ends in a helpless fall when it ends airborne. */
+  readonly helpless?: boolean | undefined;
+  /** Landing during the action ends it with this landing lag; otherwise it continues on the ground. */
+  readonly landingLag?: number | undefined;
+}
+
+/** One special input: its grounded form, its airborne form and its zero-mana form. */
+export interface SpecialKit {
+  readonly ground: AuthoredSpecial;
+  /** The airborne form; the grounded form when absent. */
+  readonly air?: AuthoredSpecial | undefined;
+  /**
+   * Chosen instead of failing when mana is below the full form's cost. Every up
+   * special has one (the roster's weaker zero-mana recovery); it costs nothing.
+   */
+  readonly free?: AuthoredSpecial | undefined;
+}
+
+export interface ManaProfile {
+  readonly max: number;
+  /** Frames since the last spend before regeneration starts. */
+  readonly regenDelayFrames: number;
+  /** Eligible frames per regenerated point. */
+  readonly framesPerPoint: number;
+}
+
+/** The adopted roster resource: 100 mana, 6 per second on the ground after 120 frames without spending. */
+export const ROSTER_MANA: ManaProfile = { max: 100, regenDelayFrames: 120, framesPerPoint: 10 };
+
+export interface FighterSpecials {
+  readonly mana: ManaProfile;
+  readonly neutral: SpecialKit;
+  readonly side: SpecialKit;
+  readonly up: SpecialKit;
+  readonly down: SpecialKit;
+}
+
+export function specialKit(specials: Readonly<FighterSpecials>, slot: number): SpecialKit {
+  return slot === SpecialSlot.side ? specials.side : slot === SpecialSlot.up ? specials.up : slot === SpecialSlot.down ? specials.down : specials.neutral;
+}
+
+/** The form a running special uses. */
+export function specialForm(kit: Readonly<SpecialKit>, form: number): AuthoredSpecial {
+  if (form === SpecialForm.free) return kit.free ?? kit.ground;
+  return form === SpecialForm.air ? kit.air ?? kit.ground : kit.ground;
+}
+
+/** The form a choice starts. */
+export function heroSpecialMove(specials: Readonly<FighterSpecials>, chosen: { readonly slot: number; readonly form: number }): AuthoredSpecial {
+  return specialForm(specialKit(specials, chosen.slot), chosen.form);
+}
+
+/** A frame window in the brief's numbering. */
+export const frames = (first: number, last: number): FrameWindow => ({ first, last });

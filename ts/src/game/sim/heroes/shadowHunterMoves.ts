@@ -1,7 +1,7 @@
 import { f32 } from "wisp/src/sim/f32";
-import { AttackStyle, GrabAction } from "../codes";
+import { AttackStyle, GrabAction, HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
-import { HitElement, type HitEffect } from "../hitRegions";
+import type { HitEffect } from "../hitRegions";
 import { type FighterHurtboxes, type HurtPart, hurtPart } from "../hurtboxes";
 
 // smashcraft:docs/design/roster.md supplies F/A/R/L, damage and outer reach.

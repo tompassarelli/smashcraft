@@ -8,7 +8,8 @@ import { canAttack, isIntangible } from "./conditions";
 import { finishDamageContacts, openDamageContacts } from "./contacts";
 import type { Fighter } from "./fighter";
 import { attackDurationFramesForGrounding } from "./moves";
-import { HitElement, type HitRegion, NO_HIT_REGION } from "./hitRegions";
+import { HitElement, type HitEffect, type HitRegion, NO_HIT_REGION } from "./hitRegions";
+import { heroSpecialMove } from "./heroSpecials";
 import { applyAttackHit } from "./hits";
 import { meleeHitIntersectsShield } from "./attacks";
 import { observeActionDecision } from "./observations";
@@ -18,6 +19,7 @@ import { type Controls, type Roster, fighterAt, isActive } from "./roster";
 import { surfaceZ } from "./stage";
 import { RIFLEMAN_BEAR_LIFETIME, advanceBear, advanceHippogryph, recordSpecialHit, specialAlreadyHit, startFreezeTrap } from "./summons";
 import { at } from "wisp/src/runtime/lookup";
+import { advanceHeroSpecial, chooseHeroSpecial, enterHeroSpecial, heroSpecialContact, heroStrikeMeetsShield, isHeroSpecialAction } from "./heroSpecialRules";
 
 export const DEMONHUNTER_MANA_BURN_STARTUP = 8;
 const DEMONHUNTER_MANA_BURN_RECOVERY = 25;
@@ -42,7 +44,7 @@ const SPECIAL_ACTION_BIT = 64;
 
 function startSpecialAction(owner: Fighter, action: SpecialAction, duration: number, direction: number): void {
   const { special, attack } = owner;
-  if (action === SpecialAction.archerDisengage || action === SpecialAction.demonHunterImmolate) {
+  if (action === SpecialAction.archerDisengage || action === SpecialAction.demonHunterImmolate || isHeroSpecialAction(action)) {
     for (let entry = 0; entry < PARTICIPANT_CAPACITY; entry++) special.hitTargets[entry] = undefined;
   }
   owner.surfaceRecovery.state = SurfaceContact.none;
@@ -77,6 +79,8 @@ function requestedSpecial(owner: Fighter, input: Readonly<Controls>): SpecialAct
   const down = input.specialZ < 0;
   const side = input.specialX !== 0;
   switch (owner.character) {
+    default:
+      return up ? SpecialAction.heroUp : down ? SpecialAction.heroDown : side ? SpecialAction.heroSide : SpecialAction.heroNeutral;
     case Character.archer:
       return up ? SpecialAction.archerRecovery : down ? SpecialAction.archerDisengage : side ? SpecialAction.archerMultishot : SpecialAction.archerArrow;
     case Character.rifleman:
@@ -203,9 +207,37 @@ function startDemonHunterSpecial(owner: Fighter, action: SpecialAction, moveX: n
   return true;
 }
 
+// Preallocated: a refused hero press reports why.
+const heroRefusal = { manaShort: false };
+
+/**
+ * Starts an expansion hero's special through its authored kit. A press it
+ * cannot afford starts nothing and counts one refusal for presentation.
+ */
+function startHeroFighterSpecial(owner: Fighter, input: Readonly<Controls>): boolean {
+  const specials = owner.tuning.specials;
+  const { special } = owner;
+  if (specials === undefined || special.lockFrames > 0 || special.action !== SpecialAction.none || !canAttack(owner)) return false;
+  const chosen = chooseHeroSpecial(owner, specials, input, heroRefusal);
+  if (chosen === undefined) {
+    if (heroRefusal.manaShort) owner.visuals.manaDenied++;
+    return false;
+  }
+  observeActionDecision(SPECIAL_ACTION_BIT);
+  const lastTap = owner.motion.lastAerialTapDirection;
+  if (!owner.motion.grounded && input.specialX === 0 && input.specialZ === 0 && lastTap !== 0) owner.facing = lastTap;
+  if (input.specialX !== 0 && input.specialZ === 0) owner.facing = input.specialX < 0 ? -1 : 1;
+  const action = SpecialAction.heroNeutral + chosen.slot;
+  const move = heroSpecialMove(specials, chosen);
+  startSpecialAction(owner, heroAction(action), move.endFrame, specialDirection(input, owner.facing));
+  enterHeroSpecial(owner, chosen, input);
+  return true;
+}
+
 /** Starts the special the input asks for if it may; a neutral aerial special turns to the last air steering. */
 export function startFighterSpecial(owner: Fighter, stage: number, matchFrame: number, input: Readonly<Controls>): boolean {
   if (!input.specialPressed) return false;
+  if (owner.tuning.specials !== undefined) return startHeroFighterSpecial(owner, input);
   const requested = requestedSpecial(owner, input);
   if (!specialCanStart(owner, requested)) return false;
   observeActionDecision(SPECIAL_ACTION_BIT);
@@ -219,6 +251,8 @@ export function startFighterSpecial(owner: Fighter, stage: number, matchFrame: n
       return startRiflemanSpecial(owner, stage, matchFrame, requested, moveX);
     case Character.demonHunter:
       return startDemonHunterSpecial(owner, requested, moveX);
+    default:
+      return false;
   }
 }
 
@@ -236,6 +270,10 @@ function advanceSpecialAction(owner: Fighter): void {
   const { special, motion } = owner;
   if (special.action === SpecialAction.none || owner.launch.hitlag > 0) return;
   special.frame++;
+  if (isHeroSpecialAction(special.action)) {
+    advanceHeroSpecial(owner);
+    return;
+  }
   const shotSerial = owner.attack.serial + 1;
   if (special.action === SpecialAction.archerArrow && special.frame === 2) spawnArcherArrow(owner, owner.facing, 0.0, ProjectileKind.arrow, shotSerial);
   if (special.action === SpecialAction.riflemanBlaster && special.frame === 2) {
@@ -331,7 +369,9 @@ export function advanceSpecials(world: Roster, stage: number, matchFrame: number
     facings[ownerSlot] = owner.facing;
     for (let targetSlot = 0; targetSlot < PARTICIPANT_CAPACITY; targetSlot++) {
       if (!isActive(world, targetSlot) || targetSlot === ownerSlot) continue;
-      contacts[ownerSlot * PARTICIPANT_CAPACITY + targetSlot] = demonHunterSpecialContact(owner, targetSlot, fighterAt(world, targetSlot));
+      contacts[ownerSlot * PARTICIPANT_CAPACITY + targetSlot] = isHeroSpecialAction(owner.special.action)
+        ? heroSpecialContact(owner, fighterAt(world, targetSlot), specialAlreadyHit(owner, targetSlot))
+        : demonHunterSpecialContact(owner, targetSlot, fighterAt(world, targetSlot));
     }
   }
   for (let ownerSlot = 0; ownerSlot < PARTICIPANT_CAPACITY; ownerSlot++) {
@@ -343,7 +383,8 @@ export function advanceSpecials(world: Roster, stage: number, matchFrame: number
       if (contact.window <= 0) continue;
       const target = fighterAt(world, targetSlot);
       recordSpecialHit(owner, targetSlot);
-      applyAttackHit(world, ownerSlot, targetSlot, AttackStyle.jab, at(facings, ownerSlot), contact.effect, true, meleeHitIntersectsShield(owner, target, contact));
+      applyAttackHit(world, ownerSlot, targetSlot, AttackStyle.jab, at(facings, ownerSlot), heroContactEffect(contact, target), true,
+        contact.strike === undefined ? meleeHitIntersectsShield(owner, target, contact) : heroStrikeMeetsShield(owner, target, contact));
     }
   }
   for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
@@ -352,4 +393,18 @@ export function advanceSpecials(world: Roster, stage: number, matchFrame: number
     advanceHippogryph(world, slot);
   }
   if (ownsBatch) finishDamageContacts(world);
+}
+
+/** A strike path's grounded variant applies to a grounded target. */
+function heroContactEffect(contact: Readonly<HitRegion>, target: Readonly<Fighter>): Readonly<HitEffect> {
+  return target.motion.grounded && contact.groundedEffect !== undefined ? contact.groundedEffect : contact.effect;
+}
+
+function heroAction(action: number): SpecialAction {
+  switch (action) {
+    case SpecialAction.heroSide: return SpecialAction.heroSide;
+    case SpecialAction.heroUp: return SpecialAction.heroUp;
+    case SpecialAction.heroDown: return SpecialAction.heroDown;
+    default: return SpecialAction.heroNeutral;
+  }
 }

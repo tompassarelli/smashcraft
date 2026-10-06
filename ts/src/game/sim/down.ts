@@ -17,6 +17,7 @@ import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
 import { squareRoot } from "./warcraftMath";
 import { meleeAtan2 } from "../../sim/meleeScalarMath";
 import { stickX, stickZ } from "./stick";
+import { isHeroSpecialAction, landHeroSpecial } from "./heroSpecialRules";
 
 export const AIR_DODGE_LANDING_LAG = 10;
 const EMPTY_LANDING_LAG = 4;
@@ -93,7 +94,9 @@ export function finishLanding(f: Fighter, stage: number, matchFrame: number, inp
     launch.groundKnockbackX = max(-MAX_GROUNDED_KNOCKBACK_ON_LANDING, min(MAX_GROUNDED_KNOCKBACK_ON_LANDING, launch.knockbackX));
     launch.knockbackX = launch.groundKnockbackX;
   }
+  if (!wasGrounded) landHeroSpecial(f);
   f.special.fall = false;
+  if (!isHeroSpecialAction(f.special.action)) f.special.airtimeUses = 0;
   motion.lastAerialTapDirection = 0;
   if (f.jump.squat <= 0) f.jump.remaining = 2;
   if (isTumbling(f)) {

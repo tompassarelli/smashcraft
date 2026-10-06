@@ -234,6 +234,11 @@ function resolveDamageContacts(world: Roster, slot: number): void {
   }
   const chosenIndex = winner ?? flinch;
   if (chosenIndex === undefined) return;
+  // Hero armor takes one hit's reaction up to its limit; its damage stays applied. Throws ignore it.
+  if (status.armorFrames > 0 && contactAt(chosenIndex).kind !== ContactKind.throw) {
+    status.armorFrames = 0;
+    if (hitlagDamage <= status.armorMaxDamage) return;
+  }
   // A later hit replaces both shield-contact motion channels.
   shield.pushbackX = 0.0;
   shield.recoilX = 0.0;

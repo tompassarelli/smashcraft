@@ -6,7 +6,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { type AuthoredSpecial, type FighterSpecials, type SpecialProjectile, ROSTER_MANA, frames } from "../heroSpecials";
-import { HitElement } from "../hitRegions";
+import { HitElement } from "../codes";
 import { hit } from "./shadowHunterMoves";
 
 const H = HERO_REFERENCE_HEIGHT;
