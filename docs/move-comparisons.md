@@ -2,8 +2,8 @@
 
 Run `~/code/smashcraft/worktrees/playable-integration-20261005/tools/move-data/compare.sh`
 from the current owned checkout. It runs the pinned Bun TypeScript comparison
-fixtures and writes smashcraft:build/move-comparisons/comparisons.jsonl. Allow
-roughly two minutes for the bounded sweep. `--check` runs the focused
+fixtures and writes smashcraft:build/move-comparisons/comparisons.jsonl. The
+bounded sweep takes about 2.5 s. `--check` runs the focused
 category/follow-up tests and compares fresh output with
 smashcraft:tools/move-data/comparisons.jsonl at 12-decimal numeric precision.
 
