@@ -16,6 +16,8 @@ import type { FighterMoves } from "../sim/heroMoves";
 import type { Controls } from "../sim/roster";
 import { immolationRegion } from "../sim/specials";
 import { safeAt, slideStaysOnDeck } from "./botFooting";
+import { HeroSpecialUse, heroSpecialUse } from "./botHeroKit";
+import { SpecialSlot } from "../sim/heroSpecials";
 
 /** A prime whose square stays inside a 32-bit integer, so squaring is exact in Bun and Warcraft's Lua. */
 const HASH_PRIME = 46337;
@@ -77,8 +79,8 @@ function strikeIndex(character: Character, style: AttackStyle, moves?: FighterMo
     let high = region.maxX;
     let bottom = region.minZ;
     let top = region.maxZ;
-    // A grab catches a target whose position lies in its region; strikes reach with their capsule.
-    if (style !== AttackStyle.grab) {
+    // An original grab catches a target whose position lies in its region; strikes and kit grabs reach with their capsule.
+    if (style !== AttackStyle.grab || moves?.normals[AttackStyle.grab] !== undefined) {
       const strike = attackCapsule(scratchCapsule, style, region);
       low = f32(Math.min(strike.x1, strike.x2) - strike.radius);
       high = f32(Math.max(strike.x1, strike.x2) + strike.radius);
@@ -106,7 +108,8 @@ export function moveReaches(character: Character, style: AttackStyle, target: Re
   const maxX = at(strikeBounds, index + 1);
   const minZ = at(strikeBounds, index + 2);
   const maxZ = at(strikeBounds, index + 3);
-  if (style === AttackStyle.grab) return localX >= minX && localX <= maxX && localZ >= minZ && localZ <= maxZ;
+  // An original fighter's grab catches a target whose position lies in its region; a kit's grab path takes the body like a strike.
+  if (style === AttackStyle.grab && moves?.normals[AttackStyle.grab] === undefined) return localX >= minX && localX <= maxX && localZ >= minZ && localZ <= maxZ;
   const hurt = hurtCapsule(target.character);
   return localX >= f32(minX - hurt.radius) && localX <= f32(maxX + hurt.radius)
     && localZ >= f32(f32(minZ - hurt.z2) - hurt.radius) && localZ <= f32(f32(maxZ - hurt.z1) + hurt.radius);
@@ -140,8 +143,23 @@ function specialAction(character: Character, option: number): SpecialAction {
   }
 }
 
-/** Appends the specials that strike from range: shots, Archer's Multishot, the Rifleman's bear. */
-function addShots(f: Readonly<Fighter>, target: Readonly<Fighter>, count: number): number {
+const HERO_SLOTS = [SpecialSlot.neutral, SpecialSlot.side, SpecialSlot.up, SpecialSlot.down] as const;
+const SLOT_OPTIONS = [NEUTRAL_SPECIAL, SIDE_SPECIAL, UP_SPECIAL, DOWN_SPECIAL] as const;
+
+/** Appends, twice each so a kit's specials compete with its many normals, the hero specials that suit this frame as `use`. */
+function addHeroSpecials(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, use: HeroSpecialUse, count: number): number {
+  let added = count;
+  for (let index = 0; index < HERO_SLOTS.length; index++) {
+    if (heroSpecialUse(f, target, stage, at(HERO_SLOTS, index)) !== use) continue;
+    options[added++] = at(SLOT_OPTIONS, index);
+    options[added++] = at(SLOT_OPTIONS, index);
+  }
+  return added;
+}
+
+/** Appends the specials that strike from range: shots, Archer's Multishot, the Rifleman's bear, a hero's projectiles. */
+function addShots(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, count: number): number {
+  if (f.tuning.specials !== undefined) return addHeroSpecials(f, target, stage, HeroSpecialUse.ranged, count);
   const { motion } = f;
   const dx = f32(target.motion.x - motion.x);
   const dz = f32(target.motion.z - motion.z);
@@ -157,8 +175,9 @@ function addShots(f: Readonly<Fighter>, target: Readonly<Fighter>, count: number
   return added;
 }
 
-/** Appends the specials that suit a target close by: each fighter's own. */
+/** Appends the specials that suit a target close by: each fighter's own, a hero's strikes and stances. */
 function addCloseSpecials(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, count: number): number {
+  if (f.tuning.specials !== undefined) return addHeroSpecials(f, target, stage, HeroSpecialUse.close, count);
   const { motion } = f;
   const dx = f32(target.motion.x - motion.x);
   const dz = f32(target.motion.z - motion.z);
@@ -269,7 +288,7 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
   const strikes = count;
   if (canAttack(f)) count = addCloseSpecials(f, target, stage, count);
   const close = count;
-  if (canAttack(f)) count = addShots(f, target, count);
+  if (canAttack(f)) count = addShots(f, target, stage, count);
   if (count === 0 || (close === 0 && !ranged)) return false;
   const grabbing = target.shield.raised && f.motion.grounded && strikes > 0 && at(options, strikes - 1) === AttackStyle.grab;
   const option = grabbing ? AttackStyle.grab : at(options, botChoice(frame, f.attack.serial * 7 + f.character, count));

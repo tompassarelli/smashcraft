@@ -2,6 +2,7 @@
 // free ledge it then falls onto, and spends its jump and up special; on the
 // ledge it takes a ledge option; knocked down it techs or gets up.
 import { runningHeroSpecial, specialCooldownReady } from "../sim/heroSpecialRules";
+import { upSpecialStartable } from "./botHeroKit";
 import { at } from "wisp/src/runtime/lookup";
 import { f32 } from "wisp/src/sim/f32";
 import { toInt } from "../../runtime/numbers";
@@ -136,7 +137,7 @@ function upSpecial(character: Character): SpecialAction {
  */
 function aimsForLedge(f: Readonly<Fighter>, side: number, target: Readonly<Fighter> | undefined): boolean {
   const taken = target !== undefined && target.ledge.state !== LedgeState.none && target.ledge.side === side;
-  const spare = f.jump.remaining > 0 || specialCooldownReady(f, upSpecial(f.character));
+  const spare = f.jump.remaining > 0 || upSpecialStartable(f, specialCooldownReady(f, upSpecial(f.character)));
   return f.facing === -side && !taken && spare && botChoice(f.visuals.hit + toInt(f.status.damage), f.character * 7 + 3, 2) === 0;
 }
 
@@ -222,7 +223,7 @@ export function chooseRecoveryInput(fighter: Readonly<Fighter>, stage: number, m
   // Close outside the ledge and above where it catches, it falls onto the ledge.
   if (ledge && outside <= LEDGE_LINE_REACH && z >= f32(floor - LEDGE_MISSED)) return true;
   // Near the edge and still above the deck, one return in two spends the up special first and keeps the jump.
-  const specialFirst = outside <= SPECIAL_FIRST_REACH && z >= floor && specialCooldownReady(fighter, upSpecial(fighter.character))
+  const specialFirst = outside <= SPECIAL_FIRST_REACH && z >= floor && upSpecialStartable(fighter, specialCooldownReady(fighter, upSpecial(fighter.character)))
     && botChoice(fighter.visuals.hit + toInt(fighter.status.damage), fighter.character * 13 + 5, 2) === 0;
   if (totalVelocityZ(fighter) <= 0 && z < f32(floor + 100)) {
     if (fighter.jump.remaining > 0 && fighter.attack.cooldown === 0 && !specialFirst) {

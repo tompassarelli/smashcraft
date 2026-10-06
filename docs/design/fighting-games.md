@@ -221,6 +221,27 @@ as reproduced by
   Fighter exchange of throw, throw escape, slow strong move and block
   ([Playing to Win, ch. 7](https://www.sirlin.net/ptw-book/7-spies-of-the-mind)).
 
+### Parries (Street Fighter III: Third Strike)
+
+- **Input.** Instead of blocking, the defender taps the stick toward the
+  opponent (high and mid attacks) or down (lows) just before a hit lands. The
+  ground window is 10 frames, shorter if the direction is held rather than
+  tapped; Third Strike also has air parries
+  ([SuperCombo, 3rd Strike system](https://srk.shib.live/w/Street_Fighter_3:_3rd_Strike/System)).
+- **Reward.** A parried hit does no damage, not even chip, and causes no
+  blockstun; after the brief freeze the defender acts first and chooses its
+  own punish. Nothing strikes back automatically.
+- **Strings.** Every hit of a multi-hit move or super needs its own parry, and
+  a missed one is taken or blocked. Daigo parrying all fifteen hits of
+  Chun-Li's Houyoku Sen at Evo 2004, then punishing, is the canonical example
+  ([critpoints, Evo Moment #37](https://critpoints.net/2016/04/25/mtm-evo-moment-37/)).
+- **Red parry.** A parry input during blockstun (the guard parry, shown by a
+  red flash) lets a defender who blocked the first hits parry the rest and
+  punish. Its window is much tighter, about 2 frames; sources disagree by a
+  frame.
+- **Cost.** A mistimed tap is no block: the hit lands clean. Parrying trades
+  safety for a larger reward, so it rewards anticipating the attack's timing.
+
 ### The arithmetic of a mixup
 
 A guess between two options is a zero-sum 2×2 game. With no dominant option,

@@ -227,6 +227,9 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("shieldReflectFrames", e.shield.reflectFrames, a.shield.reflectFrames);
   add("shieldPerfectFrames", e.shield.perfectFrames, a.shield.perfectFrames);
   add("shieldPerfectActionFrames", e.shield.perfectActionFrames, a.shield.perfectActionFrames);
+  add("shieldRedParryTried", e.shield.redParryTried, a.shield.redParryTried);
+  add("shieldParryBuffer", e.shield.parryBuffer, a.shield.parryBuffer);
+  add("shieldParryBufferDirection", e.shield.parryBufferDirection, a.shield.parryBufferDirection);
   record("shieldGeometry", expectedTuning.shield, actualTuning.shield, SHIELD_GEOMETRY_KEYS);
   add("shieldStrength", e.shield.strength, a.shield.strength);
   add("shieldEnergy", e.shield.energy, a.shield.energy);

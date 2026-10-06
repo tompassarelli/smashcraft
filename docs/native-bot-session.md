@@ -53,6 +53,20 @@ The session has a match and a rematch:
   match has no stalls. The script: resting and drifted sticks, X, Y, down at
   0.650 and 0.670 of full tilt, and a held right.
 
+## Healthy clients first
+
+`bun wisp fresh` and `bun wisp parity capture` run `bun wisp doctor` before
+they start and once after a failure (wisp:docs/doctor.md). It recovers a
+client that dropped from Battle.net, crashed with its error dialog up, sits
+at the empty Options/Exit Game login shell, a stale lobby, a score screen or
+a stuck loading screen, or shares its prefix with a second runtime: it ends
+the game (or the prefix), starts Battle.net on the client's own desktop when
+needed and presses Play in the signed-in launcher. Don't restart or
+hand-drive a client for these; run `bun wisp doctor` (or `bun wisp doctor b`)
+and read its lines. It stops with one line when Tom must sign in. A capture
+that failed isn't repeated: doctor heals its clients, and the next capture
+starts healthy.
+
 Before the first `bun wisp fresh` after a client starts, open Custom Games
 → Create Game and the 00-Smashcraft folder once: fresh clicks the folder's
 first map, and Warcraft keeps the open folder for the session. Fresh moves

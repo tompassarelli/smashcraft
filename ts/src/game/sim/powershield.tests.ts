@@ -1,18 +1,28 @@
-// Powershield: reflect and perfect-shield windows, projectile reflection,
-// and the original capsule-against-shield boundaries.
+// Powershield: the parry and red parry, the shield bubble, reflect and
+// perfect-shield windows, projectile reflection, and the original
+// capsule-against-shield boundaries.
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
+import { roundToFloat32 } from "wisp/src/sim/binary32";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, ContactKind, ProjectileKind } from "./codes";
 import { canAttack } from "./conditions";
 import { queueDamageContact } from "./contacts";
-import { createFighter } from "./fighter";
+import { type Fighter, SHIELD_MAX, createFighter } from "./fighter";
 import { projectileActive, updateProjectiles } from "./projectiles";
+import { type Controls, type Roster, fighterAt } from "./roster";
 import {
+  SHIELD_MIN_HOLD_FRAMES,
+  SHIELD_PERFECT_ACTIVE_FRAMES,
+  SHIELD_PERFECT_POST_CONTACT_FRAMES,
   SHIELD_PROJECTILE_DAMAGE_MULTIPLIER,
+  SHIELD_RED_PARRY_FRAMES,
   SHIELD_REFLECTOR_ACTIVE_FRAMES,
   SHIELD_RELEASE_LAG_FRAMES,
   capsuleCircleIntersects,
+  shieldCircleIntersects,
   shieldContactPushback,
+  shieldDrain,
+  shieldSizeMultiplier,
 } from "./shield";
 import { surfaceZ } from "./stage";
 import { respawnFighter } from "./stocks";
@@ -146,62 +156,231 @@ test("perfect-shield pushback matches the original contact observations", () => 
   assertEquals(shieldContactPushback(30.0, 1.0, true), f32(2.0 * WORLD_UNITS_PER_MELEE_UNIT));
 });
 
-test("a perfect melee contact preserves shield health and ordinary contact resumes after expiry", () => {
+
+const queueHitOf = (world: Roster, damage: number) => (): void =>
+  queueDamageContact(world, 0, 1, hitEffect(damage, 100.0, 20.0, 1.0, 1.0), 1, ContactKind.launch, true, undefined);
+
+/** Slot 1 standing on the main deck with an ordinary held shield. */
+function guarding(world: Roster): Fighter {
+  respawnFighter(world, 1, 0.0);
+  const target = fighterAt(world, 1);
+  target.motion.grounded = true;
+  target.motion.z = surfaceZ(0, 0, 0);
+  target.shield.raised = true;
+  target.shield.heldFrames = SHIELD_MIN_HOLD_FRAMES;
+  return target;
+}
+
+const held = (): Controls => controls({ shield: true, shieldTriggerActive: true, shieldStrength: 1.0 });
+const pressed = (): Controls => controls({ shield: true, shieldPressed: true, shieldTriggerActive: true, shieldStrength: 1.0 });
+const released = (): Controls => controls({ shieldStrength: 1.0 });
+
+/** Plays the freeze's frames up to, not including, the last one: the frame the fighter can act again. */
+function untilLastFreezeFrame(f: Fighter, input: Readonly<Controls>): void {
+  while (f.launch.hitlag > 1) {
+    assertFalse(canAttack(f));
+    advanceSolo(f, 0, input, 0.0);
+  }
+}
+
+test("a parried hit takes no shield damage or shieldstun; an ordinary block takes both", () => {
   const attacker = createFighter(Character.archer, -100.0, 1);
   const target = createFighter(Character.rifleman, 0.0, -1);
   const world = testWorld(attacker, target);
-  const queueHit = (): void => queueDamageContact(world, 0, 1, hitEffect(10.0, 100.0, 20.0, 1.0, 1.0), 1, ContactKind.launch, true, undefined);
   target.shield.raised = true;
   target.shield.perfectFrames = 1;
-  contactBatch(world, queueHit);
+  contactBatch(world, queueHitOf(world, 10.0));
   assertEquals(target.status.damage, 0.0);
   assertEquals(target.shield.energy, 60.0);
-  assertEquals(target.shield.stun, 6);
+  assertEquals(target.shield.stun, 0);
+  assertGreaterThan(target.launch.hitlag, 0);
   assertEquals(target.shield.pushbackX, f32(1.3000000715255737 * WORLD_UNITS_PER_MELEE_UNIT));
   assertEquals(target.visuals.shieldReflect, 1);
   assertEquals(target.visuals.shield, 0);
-  target.shield.perfectFrames = 0;
-  contactBatch(world, queueHit);
+  assertEquals(target.shield.perfectActionFrames, SHIELD_PERFECT_POST_CONTACT_FRAMES);
+  contactBatch(world, queueHitOf(world, 10.0));
   assertEquals(target.shield.energy, 53.0);
+  assertEquals(target.shield.stun, 6);
   assertEquals(target.shield.pushbackX, f32(0.7800000905990601 * WORLD_UNITS_PER_MELEE_UNIT));
   assertEquals(target.visuals.shieldReflect, 1);
   assertEquals(target.visuals.shield, 1);
+  assertEquals(target.shield.perfectActionFrames, 0);
 });
 
-test("a perfect contact allows an attack during the drop and holding guard consumes the window", () => {
+test("a parry's reward drops the shield with no release lag until holding guard spends it", () => {
   const attacker = createFighter(Character.archer, -100.0, 1);
-  const target = createFighter(Character.rifleman, 0.0, -1);
-  const world = testWorld(attacker, target);
-  const input = controls();
-  const queueHit = (): void => queueDamageContact(world, 0, 1, hitEffect(10.0, 100.0, 20.0, 1.0, 1.0), 1, ContactKind.launch, true, undefined);
-  for (let heldTicks = 0; heldTicks <= 4; heldTicks++) {
-    respawnFighter(world, 1, 0.0);
-    target.motion.grounded = true;
-    target.motion.z = surfaceZ(0, 0, 0);
-    target.shield.raised = true;
+  const world = testWorld(attacker, createFighter(Character.rifleman, 0.0, -1));
+  for (let heldTicks = 0; heldTicks <= SHIELD_PERFECT_POST_CONTACT_FRAMES; heldTicks++) {
+    const target = guarding(world);
     target.shield.perfectFrames = 1;
-    contactBatch(world, queueHit);
-    assertEquals(target.shield.perfectActionFrames, 4);
-    input.shield = true;
-    while (target.launch.hitlag > 0 || target.shield.stun > 0) {
-      assertFalse(canAttack(target));
-      advanceSolo(target, 0, input, 0.0);
-      assertEquals(target.shield.perfectActionFrames, 4);
-    }
-    for (let tick = 1; tick <= heldTicks; tick++) advanceSolo(target, 0, input, 0.0);
-    assertEquals(target.shield.perfectActionFrames, 4 - heldTicks);
-    input.shield = false;
-    advanceSolo(target, 0, input, 0.0);
+    contactBatch(world, queueHitOf(world, 10.0));
+    untilLastFreezeFrame(target, held());
+    assertEquals(target.shield.perfectActionFrames, SHIELD_PERFECT_POST_CONTACT_FRAMES);
+    // The first held tick is the freeze's last frame, the first the fighter can act on.
+    for (let tick = 1; tick <= heldTicks; tick++) advanceSolo(target, 0, held(), 0.0);
+    assertEquals(target.shield.perfectActionFrames, SHIELD_PERFECT_POST_CONTACT_FRAMES - heldTicks);
+    advanceSolo(target, 0, released(), 0.0);
     assertFalse(target.shield.raised);
-    assertEquals(target.shield.releaseLag, SHIELD_RELEASE_LAG_FRAMES);
-    assertEquals(canAttack(target), heldTicks < 4);
-    if (heldTicks < 4) {
-      testBeginAttacks(testWorld(target, attacker), AttackStyle.jab, undefined, true, false);
-      assertEquals(target.attack.style, AttackStyle.jab);
-      assertEquals(target.shield.releaseLag, 0);
-      assertEquals(target.shield.perfectActionFrames, 0);
+    const rewarded = heldTicks < SHIELD_PERFECT_POST_CONTACT_FRAMES;
+    assertEquals(target.shield.releaseLag, rewarded ? 0 : SHIELD_RELEASE_LAG_FRAMES);
+    assertEquals(canAttack(target), rewarded);
+    if (rewarded) {
+      testBeginAttacks(testWorld(target, attacker), AttackStyle.forwardTilt, undefined);
+      assertEquals(target.attack.style, AttackStyle.forwardTilt);
     }
   }
+});
+
+test("each hit of a string needs its own parry, and the reward follows the last", () => {
+  const world = testWorld(createFighter(Character.archer, -100.0, 1), createFighter(Character.rifleman, 0.0, -1));
+  for (const retimed of [false, true]) {
+    const target = guarding(world);
+    target.shield.reflectFrames = SHIELD_REFLECTOR_ACTIVE_FRAMES;
+    target.shield.perfectFrames = SHIELD_PERFECT_ACTIVE_FRAMES;
+    contactBatch(world, queueHitOf(world, 10.0));
+    assertEquals(target.visuals.shieldReflect, 1);
+    // One press parries one hit, however much of its window is left.
+    assertEquals(target.shield.perfectFrames, 0);
+    assertEquals(target.shield.reflectFrames, 0);
+    untilLastFreezeFrame(target, held());
+    if (retimed) {
+      advanceSolo(target, 0, released(), 0.0);
+      assertEquals(target.shield.releaseLag, 0);
+      advanceSolo(target, 0, pressed(), 0.0);
+      assertEquals(target.shield.perfectFrames, SHIELD_PERFECT_ACTIVE_FRAMES);
+    } else {
+      advanceSolo(target, 0, held(), 0.0);
+      advanceSolo(target, 0, held(), 0.0);
+    }
+    contactBatch(world, queueHitOf(world, 10.0));
+    if (retimed) {
+      assertEquals(target.visuals.shieldReflect, 2);
+      assertEquals(target.shield.stun, 0);
+      assertEquals(target.shield.energy, 60.0);
+      assertEquals(target.shield.perfectActionFrames, SHIELD_PERFECT_POST_CONTACT_FRAMES);
+    } else {
+      assertEquals(target.visuals.shield, 1);
+      assertGreaterThan(target.shield.stun, 0);
+      assertLessThan(target.shield.energy, 60.0);
+      assertEquals(target.shield.perfectActionFrames, 0);
+    }
+    target.visuals.shield = 0;
+    target.visuals.shieldReflect = 0;
+  }
+});
+
+/** A shot `distance` left of the defender's shield centre, flying right at 60 a frame. */
+function aimShot(shooter: Fighter, defender: Fighter, index: number, distance: number): void {
+  const shot = shooter.projectiles[index]!;
+  shot.x = f32(defender.motion.x - distance);
+  shot.z = 45.0;
+  shot.velocityX = 60.0;
+  shot.velocityZ = 0.0;
+  shot.direction = 1;
+  shot.kind = ProjectileKind.blaster;
+  shot.visualFamily = Character.archer;
+  shot.life = 10;
+  shot.damageMultiplier = 1.0;
+}
+
+test("each projectile in a stream needs its own parry", () => {
+  const shooter = createFighter(Character.archer, -300.0, 1);
+  const defender = createFighter(Character.rifleman, 0.0, -1);
+  const world = testWorld(shooter, defender);
+  defender.tuning.shield = { centerX: 0.0, centerZ: 45.0, radius: 60.0 };
+  defender.shield.raised = true;
+  defender.shield.reflectFrames = SHIELD_REFLECTOR_ACTIVE_FRAMES;
+  defender.shield.perfectFrames = SHIELD_PERFECT_ACTIVE_FRAMES;
+  aimShot(shooter, defender, 0, 50.0);
+  aimShot(shooter, defender, 1, 110.0);
+  contactBatch(world, () => updateProjectiles(world));
+  assertEquals(defender.visuals.shieldReflect, 1);
+  assertTrue(projectileActive(defender, 0));
+  assertTrue(projectileActive(shooter, 1));
+  assertEquals(defender.shield.reflectFrames, 0);
+  assertEquals(defender.shield.stun, 0);
+  contactBatch(world, () => updateProjectiles(world));
+  assertFalse(projectileActive(shooter, 1));
+  assertFalse(projectileActive(defender, 1));
+  assertEquals(defender.visuals.shieldReflect, 1);
+  assertEquals(defender.visuals.shield, 1);
+  assertGreaterThan(defender.shield.stun, 0);
+});
+
+test("a red parry, a re-press in shieldstun on the next hit's frame or the one before, parries it", () => {
+  const world = testWorld(createFighter(Character.archer, -100.0, 1), createFighter(Character.rifleman, 0.0, -1));
+  for (let early = 0; early <= SHIELD_RED_PARRY_FRAMES; early++) {
+    const target = guarding(world);
+    target.visuals.shield = 0;
+    target.visuals.shieldReflect = 0;
+    contactBatch(world, queueHitOf(world, 20.0));
+    assertGreaterThan(target.shield.stun, 4);
+    while (target.launch.hitlag > 0) advanceSolo(target, 0, held(), 0.0);
+    advanceSolo(target, 0, released(), 0.0);
+    assertTrue(target.shield.raised);
+    advanceSolo(target, 0, pressed(), 0.0);
+    assertTrue(target.shield.redParryTried);
+    for (let wait = 0; wait < early; wait++) advanceSolo(target, 0, held(), 0.0);
+    const energy = target.shield.energy;
+    contactBatch(world, queueHitOf(world, 10.0));
+    if (early < SHIELD_RED_PARRY_FRAMES) {
+      assertEquals(target.visuals.shieldReflect, 1);
+      assertEquals(target.shield.stun, 0);
+      assertEquals(target.shield.energy, energy);
+      // The same reward as a parry from neutral: act on the freeze's last frame with no release lag.
+      untilLastFreezeFrame(target, held());
+      advanceSolo(target, 0, released(), 0.0);
+      assertEquals(target.shield.releaseLag, 0);
+      assertTrue(canAttack(target));
+    } else {
+      assertEquals(target.visuals.shieldReflect, 0);
+      assertGreaterThan(target.shield.stun, 0);
+      assertLessThan(target.shield.energy, energy);
+      assertFalse(target.shield.redParryTried);
+    }
+  }
+});
+
+test("mashing the shield in shieldstun gets one red parry try per blocked hit", () => {
+  const world = testWorld(createFighter(Character.archer, -100.0, 1), createFighter(Character.rifleman, 0.0, -1));
+  const target = guarding(world);
+  contactBatch(world, queueHitOf(world, 20.0));
+  while (target.launch.hitlag > 0) advanceSolo(target, 0, held(), 0.0);
+  advanceSolo(target, 0, released(), 0.0);
+  advanceSolo(target, 0, pressed(), 0.0);
+  advanceSolo(target, 0, released(), 0.0);
+  advanceSolo(target, 0, pressed(), 0.0);
+  assertTrue(target.shield.stun > 0);
+  assertEquals(target.shield.perfectFrames, 0);
+  contactBatch(world, queueHitOf(world, 10.0));
+  assertEquals(target.visuals.shieldReflect, 0);
+  assertGreaterThan(target.shield.stun, 0);
+});
+
+test("the shield bubble shrinks as it drains while held, regenerates once released, and can be poked", () => {
+  const fighter = createFighter(Character.archer, 0.0, 1);
+  advanceSolo(fighter, 0, pressed(), 0.0);
+  let previous = fighter.shield.energy;
+  for (let frame = 1; frame <= 60; frame++) {
+    advanceSolo(fighter, 0, held(), 0.0);
+    assertEquals(fighter.shield.energy, roundToFloat32(f32(previous - shieldDrain(1.0))));
+    previous = fighter.shield.energy;
+  }
+  assertLessThan(shieldSizeMultiplier(fighter.shield.energy, 1.0), shieldSizeMultiplier(SHIELD_MAX, 1.0));
+  advanceSolo(fighter, 0, released(), 0.0);
+  assertFalse(fighter.shield.raised);
+  for (let frame = 1; frame <= 2000 && fighter.shield.energy < SHIELD_MAX; frame++) {
+    previous = fighter.shield.energy;
+    advanceSolo(fighter, 0, released(), 0.0);
+    assertGreaterThan(fighter.shield.energy, previous);
+  }
+  assertEquals(fighter.shield.energy, SHIELD_MAX);
+  // A path 30 above the centre meets a full bubble and passes over a worn one.
+  fighter.tuning.shield = { centerX: 0.0, centerZ: 45.0, radius: 60.0 };
+  fighter.shield.raised = true;
+  assertTrue(shieldCircleIntersects(fighter, -100.0, 75.0, 100.0, 75.0, 1.0));
+  fighter.shield.energy = 5.0;
+  assertFalse(shieldCircleIntersects(fighter, -100.0, 75.0, 100.0, 75.0, 1.0));
 });
 
 test("original stationary capsule shield boundaries", () => {

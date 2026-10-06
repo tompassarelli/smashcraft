@@ -3,7 +3,7 @@
 // smashcraft:docs/melee-analog-shield.md and smashcraft:docs/melee-powershield.md.
 import { max, min, toInt } from "../../runtime/numbers";
 import { addFloat32, divideFloat32, fusedMultiplyAddFloat32, multiplyFloat32, roundToFloat32, subtractFloat32 } from "wisp/src/sim/binary32";
-import { ShieldBreak } from "./codes";
+import { ParryBuffer, ShieldBreak } from "./codes";
 import { type Fighter, SHIELD_MAX, SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES } from "./fighter";
 import { integerHitPower } from "./knockback";
 import { AIR_RECOIL_DECAY, AIR_RECOIL_SQUARED_CUTOFF, decayedAirMotion, retainedOriginal, setMeleeRecoil } from "./motion";
@@ -14,6 +14,8 @@ import { squareRoot } from "./warcraftMath";
 export const SHIELD_REFLECTOR_ACTIVE_FRAMES = 2;
 export const SHIELD_PERFECT_ACTIVE_FRAMES = 4;
 export const SHIELD_PERFECT_POST_CONTACT_FRAMES = 4;
+/** A red parry's window: the re-press in shieldstun must come on the next hit's contact frame or the one before. */
+export const SHIELD_RED_PARRY_FRAMES = 2;
 export const SHIELD_REFLECTOR_RADIUS_FACTOR = 0.75;
 export const SHIELD_PROJECTILE_DAMAGE_MULTIPLIER = 0.5;
 export const SHIELD_PROJECTILE_SPEED_MULTIPLIER = 0.699999988079071;
@@ -120,6 +122,44 @@ export function shieldSizeMultiplier(health: number, strength: number): number {
 
 export function shieldBreakDizzyFrames(percent: number): number {
   return addFloat32(max(0.0, subtractFloat32(SHIELD_BREAK_BASE_PERCENT, percent)), SHIELD_BREAK_MIN_FRAMES);
+}
+
+/** Ends every powershield window, reward and buffered parry option. */
+export function clearPowershield(f: Fighter): void {
+  const { shield } = f;
+  shield.reflectFrames = 0;
+  shield.perfectFrames = 0;
+  shield.perfectActionFrames = 0;
+  shield.redParryTried = false;
+  shield.parryBuffer = ParryBuffer.none;
+  shield.parryBufferDirection = 0;
+}
+
+/**
+ * A parried hit or projectile: no shieldstun, even one already running (a
+ * red parry), and the reward of a lag-free drop into any grounded option.
+ * The timed window is spent, so the next hit needs its own press.
+ */
+export function grantParry(f: Fighter): void {
+  const { shield } = f;
+  shield.reflectFrames = 0;
+  shield.perfectFrames = 0;
+  shield.stun = 0;
+  shield.redParryTried = false;
+  shield.perfectActionFrames = SHIELD_PERFECT_POST_CONTACT_FRAMES;
+  shield.heldFrames = SHIELD_MIN_HOLD_FRAMES;
+}
+
+/** The jump or ground dodge pressed during a parried hit's freeze; the latest press wins. */
+export function bufferParryOption(f: Fighter, input: Readonly<Controls>): void {
+  const { shield } = f;
+  if (input.jumpPressed) {
+    shield.parryBuffer = ParryBuffer.jump;
+    shield.parryBufferDirection = 0;
+  } else if (input.groundDodgePressed) {
+    shield.parryBuffer = ParryBuffer.groundDodge;
+    shield.parryBufferDirection = input.groundDodgeDirection;
+  }
 }
 
 export function clearShieldBreak(f: Fighter): void {

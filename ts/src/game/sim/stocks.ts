@@ -7,7 +7,7 @@ import { TOP_KO_MINIMUM_UPWARD_KNOCKBACK } from "./knockback";
 import { clearMotionValue, setWorldMotionValue } from "./motion";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type Roster, fighterAt } from "./roster";
-import { clearShieldBreak } from "./shield";
+import { clearPowershield, clearShieldBreak } from "./shield";
 import { at } from "wisp/src/runtime/lookup";
 import {
   clearDownState,
@@ -151,9 +151,7 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   shield.drainResumePending = false;
   shield.triggerWasActive = false;
   shield.triggerAge = SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES;
-  shield.reflectFrames = 0;
-  shield.perfectFrames = 0;
-  shield.perfectActionFrames = 0;
+  clearPowershield(f);
   status.damage = 0.0;
   status.offscreenFrames = 0;
   launch.knockbackAge = undefined;

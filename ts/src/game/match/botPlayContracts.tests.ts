@@ -1,15 +1,22 @@
 // The computer opponent's contracts (#56): it never leaves the stage chasing
 // an opponent who stands on it, it gets up from jab resets, and the same
 // start plays the same match.
-import { assertEquals, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
+import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { clearAttackBuffer, queueAttack } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS, type ParticipantSlot } from "../input/participants";
 import { stateChecksum } from "../replay/canonical";
-import { AttackStyle, Character, DownState } from "../sim/codes";
+import { AttackStyle, Character, DownState, SpecialAction } from "../sim/codes";
+import { isHeroSpecialAction } from "../sim/heroSpecialRules";
+import { HERO_ROSTER } from "../sim/heroes/registry";
 import { createFighter } from "../sim/fighter";
 import { copyControls, createRoster, fighterAt, isActive, neutralControls } from "../sim/roster";
 import { surfaceLeft, surfaceRight } from "../sim/stage";
 import { produceComputerInput } from "./botPlay";
+import { chooseDefense } from "./botDefense";
+import { upSpecialStartable } from "./botHeroKit";
+import { SpecialSlot } from "../sim/heroSpecials";
+import { beginFighterAttack } from "../sim/attacks";
+import { attackStartupFrames } from "../sim/moves";
 import { createFrameControls } from "./controls";
 import { captureFrame, createMatchFrameInput, executeMatchFrame } from "./frameInput";
 import { createPacingAndPresentation } from "./pacingAndPresentation";
@@ -93,4 +100,93 @@ test("computerMatchesRepeatFromTheSameStart", () => {
     assertEquals(checksums[0], checksums[1]);
     assertGreaterThan(landed, 0);
   }
+});
+
+/** Counts the hero special starts by slot (neutral, side, up, down) and the grabs a computer makes over `frames`. */
+function heroUsage(game: ReturnType<typeof computerMatch>, slot: number, frames: number, human?: (slot: ParticipantSlot, frame: number) => void) {
+  const computer = fighterAt(game.world, slot);
+  const specials = [0, 0, 0, 0];
+  let grabs = 0;
+  let action: number = computer.special.action;
+  let grabbing = false;
+  for (let frame = 1; frame <= frames; frame++) {
+    game.step(human);
+    const started = computer.special.action - SpecialAction.heroNeutral;
+    if (computer.special.action !== action && isHeroSpecialAction(computer.special.action)) specials[started] = (specials[started] ?? 0) + 1;
+    action = computer.special.action;
+    const holding = computer.grab.target !== undefined;
+    if (holding && !grabbing) grabs++;
+    grabbing = holding;
+  }
+  return { specials, grabs, computer };
+}
+
+test("computer Uther shoots Holy Bolt at a level target in range and never presses what its mana can't pay", () => {
+  const game = computerMatch([Character.archer, Character.uther], [-200.0, 200.0], 0, 2);
+  const { specials } = heroUsage(game, 1, 900);
+  assertGreaterThan(specials[0] ?? 0, 0);
+  const broke = computerMatch([Character.archer, Character.uther], [-200.0, 200.0], 0, 2);
+  const uther = fighterAt(broke.world, 1);
+  let pressedWithoutMana = 0;
+  for (let frame = 1; frame <= 600; frame++) {
+    uther.mana.points = 0;
+    uther.mana.sinceSpend = 0;
+    broke.step();
+    if (broke.produced.inputs[1].specialPressed && broke.produced.inputs[1].specialZ <= 0) pressedWithoutMana++;
+  }
+  assertEquals(pressedWithoutMana, 0);
+  assertEquals(uther.visuals.manaDenied, 0);
+});
+
+test("computer Uther raises Divine Guard against a strike timed into its guard window, and grabs a shield", () => {
+  // An Archer forward smash about to land on Uther in 6 frames, its 7th: inside Divine Guard's f6-9.
+  let guards = 0;
+  for (let serial = 0; serial < 30; serial++) {
+    const world = createRoster(3, [createFighter(Character.archer, -60.0, 1), createFighter(Character.uther, 30.0, -1)]);
+    const archer = fighterAt(world, 0);
+    beginFighterAttack(world, 0, AttackStyle.forwardSmash, false);
+    archer.attack.serial = serial;
+    archer.attack.frame = attackStartupFrames(AttackStyle.forwardSmash) - 6;
+    const input = neutralControls();
+    if (chooseDefense(fighterAt(world, 1), archer, 0, input) && input.specialPressed) {
+      assertEquals(input.specialZ, -1);
+      guards++;
+    }
+  }
+  assertGreaterThan(guards, 0);
+  const shielding = computerMatch([Character.archer, Character.uther], [-40.0, 40.0], 0, 2);
+  const grabbed = heroUsage(shielding, 1, 600, (slot) => {
+    const input = shielding.produced.inputs[slot];
+    input.shield = true;
+    input.shieldStrength = 255;
+  });
+  assertGreaterThan(grabbed.grabs, 0);
+});
+
+test("every complete hero's computer uses its specials and grabs in a match against another computer, the same each time", () => {
+  for (const hero of HERO_ROSTER) {
+    if (!hero.complete) continue;
+    const checksums: string[] = [];
+    for (let run = 0; run < 2; run++) {
+      const game = computerMatch([Character.archer, hero.character], [-240.0, 240.0], 0, 3);
+      const { specials, grabs } = heroUsage(game, 1, 3600);
+      assertGreaterThan(specials.filter((count, slot) => slot !== 2 && count > 0).length, 0);
+      checksums.push(stateChecksum(game));
+    }
+    assertEquals(checksums[0], checksums[1]);
+  }
+});
+
+test("a computer hero's recovery counts its up special spent once used this airtime, and free below its cost", () => {
+  const uther = createFighter(Character.uther, 0.0, 1);
+  uther.motion.grounded = false;
+  uther.motion.z = 300.0;
+  assertTrue(upSpecialStartable(uther, false));
+  uther.mana.points = 0;
+  assertTrue(upSpecialStartable(uther, false));
+  uther.special.airtimeUses = 1 << SpecialSlot.up;
+  assertFalse(upSpecialStartable(uther, true));
+  const archer = createFighter(Character.archer, 0.0, 1);
+  assertTrue(upSpecialStartable(archer, true));
+  assertFalse(upSpecialStartable(archer, false));
 });

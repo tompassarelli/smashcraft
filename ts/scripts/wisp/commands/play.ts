@@ -16,6 +16,7 @@ import { type PlayDeclaration, type PlayGame, PlayProblem } from "wisp/scripts/w
 import { playtestRequest } from "../../../src/game/shell/playtest";
 import { JournalMenu, PLAYTEST_GO_FILE, PLAYTEST_REQUEST_FILE, journalMenuFile, playtestReceiptFile } from "../boundary";
 import { clientState, gameFilesLayer } from "../project";
+import { smashcraftWatch } from "../doctor";
 
 interface Playtest {
   /** The map build's ID: its journal files and the helper's --build. */
@@ -157,4 +158,5 @@ function clientSettings(): { readonly tools: Partial<typeof ClientSettings.Type[
 }
 
 const settings = clientSettings();
-export const play = makePlay(playtest({ ...PLAYTEST, ...(settings.menuReportPort === undefined ? {} : { menuReportPort: settings.menuReportPort }) }), gameFilesLayer, settings.tools);
+// Doctor checks the prefix before play and once after a failure (wisp:docs/doctor.md).
+export const play = makePlay(playtest({ ...PLAYTEST, ...(settings.menuReportPort === undefined ? {} : { menuReportPort: settings.menuReportPort }) }), gameFilesLayer, settings.tools, smashcraftWatch());
