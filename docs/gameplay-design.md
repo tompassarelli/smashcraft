@@ -226,7 +226,7 @@ grab allows, and every grab invites a pummel chore. Implemented in
 smashcraft:ts/src/game/sim/grabs.ts with its values in
 smashcraft:ts/src/game/sim/moves.ts:
 
-- **Hold ignores percent.** Every grab holds 90 frames (Ultimate's 0% hold).
+- **Hold ignores percent.** Every grab holds 120 frames (owner decision, 6 Oct: Ultimate's hold is 90 + 1.7 per percent, about 120 at 18%; Melee's 76 + 1.6 per percent is about 116 at 25%, so 120 matches a typical mid-percent hold).
   Each mash input, a fresh press or a new stick direction as before, takes 8
   frames off (Ultimate's stick value), but no hold ends before frame 30.
 - **Only the throw is guaranteed.** A throw input on any of the first 29 held
@@ -234,9 +234,15 @@ smashcraft:ts/src/game/sim/moves.ts:
 - **One pummel, and it is a read.** Every fighter's pummel deals 3% (owner
   decision, 6 Oct 2026) and connects 48 frames
   after its input and lasts 56; a kit authors only its look. Pressed on the
-  first held frame, it lands on frame 48. A victim pressing 8 times a second
-  from the catch escapes on frame 42; 7 a second escapes on frame 43; 6 a
-  second escapes on frame 50 and takes it. A victim who doesn't mash takes it.
+  first held frame, it lands on frame 48. A victim who doesn't mash takes it.
+  Escape frame by mash rate, from the catch (120-frame hold, 8 off per press,
+  first press on the first held frame):
+
+  | Presses a second | 4 | 6 | 8 | 10 | 12 | 14 |
+  |---|---|---|---|---|---|---|
+  | Escape frame | 75 | 64 | 56 | 48 | 45 | 40 |
+  | Against the pummel | takes it | takes it | takes it | lands on its frame | escapes | escapes |
+
   After the pummel the grabber throws (a throw pressed during the pummel
   starts when it ends) or the victim goes free.
 - **Neutral release.** A mash escape and the release after a pummel leave both
@@ -273,13 +279,14 @@ checks that every oracle departure names a row here.
 | Tap-jump | Stick up jumps, always | Optional from Brawl onward ("Stick Jump" in Ultimate; [SmashWiki](https://www.ssbwiki.com/Tap_jump)) | Removed: stick-up and Space are just "up"; jump is its own button | Jump is its own button (owner, 6 Oct) | #49 |
 | Stick deadzone | Each stick axis reads zero within 0.28 of centre, after a radial clamp | not covered here | Melee's deadzone applies to every controller; the value and its decompilation citation are in smashcraft:companion/README.md | A resting or drifting stick reads neutral | #49 |
 | SDI | Each fresh stick movement during hitlag moves the fighter 6 units, as often as every frame ([case study](design/melee/defense.md#influence-on-knockback)) | Weakened in later games ([SmashWiki](https://www.ssbwiki.com/Smash_directional_influence)) | SDI + ASDI travel capped at 12 units per hit (at most 9 SDI) and 24 per uninterrupted string, in steps of at most 3 per tick ([bounded SDI](#bounded-sdi)) | Keep displacement choices useful while bounding visible jumps and repeated-hit travel | #70 |
-| Grab hold | 76 + 1.6 frames per percent, minus 1 a frame and 6 per mash input; pummels repeat while held ([case study](design/melee/defense.md#grabs)) | Brawl onward: 90 + 1.7 frames per percent, 8 per stick mash input (14.4 per button in Smash 4 and Ultimate), never under 19 ([SmashWiki](https://www.ssbwiki.com/Grab)). Rivals 2: one pummel per grab, Attack or Special, broken when the victim presses the same button ([FAQ](https://rivals2.com/faq)); a 60-frame hold animation ([workshop](https://rivals2.com/workshop/?p=389)) | 90 frames at any percent; 8 off per mash input, never under 30; one pummel, connecting 48 frames after its input, then a throw or a neutral release ([grab holds](#grab-holds-and-pummels)) | Legible: the same hold every grab, a visible escape meter, no pummel chore; deliberately further than Ultimate | #101 |
+| Grab hold | 76 + 1.6 frames per percent, minus 1 a frame and 6 per mash input; pummels repeat while held ([case study](design/melee/defense.md#grabs)) | Brawl onward: 90 + 1.7 frames per percent, 8 per stick mash input (14.4 per button in Smash 4 and Ultimate), never under 19 ([SmashWiki](https://www.ssbwiki.com/Grab)). Rivals 2: one pummel per grab, Attack or Special, broken when the victim presses the same button ([FAQ](https://rivals2.com/faq)); a 60-frame hold animation ([workshop](https://rivals2.com/workshop/?p=389)) | 120 frames at any percent; 8 off per mash input, never under 30; one pummel, connecting 48 frames after its input, then a throw or a neutral release ([grab holds](#grab-holds-and-pummels)) | Legible: the same hold every grab, a visible escape meter, no pummel chore; 120 frames matches a typical mid-percent hold (Melee about 116 at 25%, Ultimate about 120 at 18%), owner decision 6 Oct | #101 |
 | Horizontal air dodge | The dodge goes where the stick points | – | A horizontal-only digital air dodge angles 18° below horizontal, mirrored, by default and with no toggle | Owner-selected control (30 Sep); the shallow angle keeps horizontal momentum into the landing | – |
 | Fast fall | A fresh stick down, diagonals included | – | Down with neutral horizontal input only; down-left and down-right keep drifting | Owner-selected control, 30 Sep | – |
 | Air dodge | Directional; ends in helpless fall (FallSpecial) until landing | Ultimate: one directional air dodge per airtime, no helpless fall, refreshed on landing, ledge grab and being hit ([SmashWiki](https://www.ssbwiki.com/Air_dodge)). Rivals of Aether 2: the dodge ends in an ordinary fall ([workshop](https://rivals2.com/workshop/?p=389)) | Once per airtime, ending actionable; refreshed on landing, ledge catch and being hit; spends no jump. Direction, momentum and the wavedash/waveland through landing are unchanged | Owner decision, 6 Oct: the air dodge works as in Smash | #100 |
 | Shield release lag | 15 frames (GuardOff) | Ultimate: 11 frames | 11 frames; the 8-frame minimum hold and direct shield grab/jump bypass are unchanged | Owner decision, 6 Oct: Melee's lag makes dropping shield almost never worth it; dropping shield should be a real alternative to jumping into an aerial or rolling out of shield. Ultimate's value is the starting point; tune if it still goes unused | #100 |
 | Dodge timing | Per fighter | – | One shared profile: spot dodge 22 frames, intangible 2–15; rolls 31, intangible 4–19; air dodge 49, intangible 4–29, landing 10 | Owner's common frame-data profile | – |
 | Powershield | A full press within 2 frames of the trigger moving, while raising the shield: a hit in its first 4 frames does no shield damage and pushes back harder, a projectile in its first 2 reflects. The hit's shieldstun is unchanged, and the common +0x2B8 counter (4 frames) only lets attacks and grabs cut the shield drop short (`ftCo_80092F2C`, `ftCo_GuardOff_IASA`, `ftCo_80094138`); a press during shieldstun is ignored (`ftCo_GuardSetOff_IASA` is empty) | Ultimate: release-timed in the first 5 frames of the 11-frame shield drop; any attack skips the drop lag and acts 3 frames sooner than a block against direct hits; no reflection ([SmashWiki](https://www.ssbwiki.com/Perfect_shield)). Rivals 2: a 4-frame perfect shield plus a separate parry, active 6–13, that stuns the attacker 40–100 frames ([Dragdown](https://dragdown.wiki/wiki/RoA2/System_Mechanics/Defense)) | Melee's raise-timed press, but a parry: no shield damage, no shieldstun, no release lag; any grounded option on the first frame after the hit's freeze, an option pressed during the freeze buffered into it. One press parries one hit; a red parry re-pressed in shieldstun parries the next hit in a 2-frame window. Ground only ([Powershield and parry](#powershield-and-parry)) | A true parry with a clear reward that stays the player's own choice of punish, after Street Fighter III's parry and red parry (owner, 6 Oct) | #102 |
+| Aerial shieldstun | ⌊(0.45 × damage + 2) × 200/201⌋ frames on a full shield, the same for every attack (`ftCo_80092F2C`); 1.425 × damage + 2 on the lightest shield ([case study](design/melee/aerials-on-shield.md#shieldstun)) | Ultimate: ⌊0.8 × damage × 0.33 + 2⌋ for aerials, 0.264 a damage, with shield hitlag × 0.67 ([SmashWiki](https://www.ssbwiki.com/Shieldstun), [hitlag](https://www.ssbwiki.com/Hitlag)). Rivals 2: 0.8 × damage + 1 for every attack, and the input buffer drops to 2 frames after a shield contact ([Dragdown](https://dragdown.wiki/wiki/RoA2/System_Mechanics/Defense)) | Aerials: ⌊(0.6 × damage + 2) × 200/201⌋ (Melee's damage term × 4/3; the same × 4/3 on light shields). Ground attacks, hitlag, pushback and landing lag stay Melee's ([Aerials on shield](#aerials-on-shield)) | Tilt slightly toward aggression from Melee, in Rivals 2's direction rather than Ultimate's; pays back the defender's 6-frame grab buffer, which Melee lacks | #106 |
 | Platform ascent | A rising fighter passes up through a platform with no change to its action (mpCheckFloor meets a platform only while descending) | Ultimate passes through the same way ([SmashWiki](https://www.ssbwiki.com/Soft_platform)); Rivals 2 not sourced | Attacks hit through it; an ascent over the jump squat cancels the remaining recovery; jump or up sustains the rise, down stands, shield shields, a half-circle wraps over ([Platforms](#platforms)) | Platforms are contested physically; positions are used, not camped | #103 |
 | Platform descent | A fresh down falls through at once | Ultimate drops through at once ([SmashWiki](https://www.ssbwiki.com/Soft_platform)); Rivals 2 not sourced | A vulnerable descent over the jump squat; a half-circle onto a platform from above wraps under it ([Platforms](#platforms)) | Leaving a platform is a commitment, so sitting on one is slightly disadvantaged | #103 |
 | Platform shield drop | Down while shielding drops through a platform | Removed in Ultimate ([SmashWiki](https://www.ssbwiki.com/Shield_drop)); Project+ keeps it | Removed: down while shielding stays on the platform | Owner (6 Oct): no safe retaliation from a platform; leaving one goes through a descent | #103 |
@@ -636,7 +643,7 @@ The descriptive basis is [fighting-game language](design/fighting-games.md),
 | Same-frame strikes and clanking | Resolve valid fighter strikes symmetrically as trades from the same pre-contact state. Add no universal 9%-difference clank rule; any move-specific clash or projectile interaction must be explicit. | Preserve the established simultaneous-contact model instead of adding an unseen priority system. |
 | Grab versus strike; mutual grabs | Preserve the existing grab-over-strike contact priority. Mutual grabs break symmetrically, with the roster's 12-frame recovery. Throw-hitstun regrabs remain forbidden by #85. | Make the interaction deterministic and retain the adopted throw counterplay. |
 | Throw defence | Existing mash escape; no new timed throw-tech input. Once an immediate throw has started, only the release-frame DI choice remains, as the locked-state signal explains. | The expansion contract preserves the existing escape system and true throw-to-strike follow-ups. |
-| Grab hold and pummel | Every hold lasts 90 frames at any percent; each mash input takes 8 off, never below 30. One 3% pummel per grab, connecting 48 frames after its input; then a throw (bufferable) or a neutral release. Both players see the escape meter above the held fighter ([grab holds](#grab-holds-and-pummels)). | Owner direction (#101): the throw is the guarantee, the pummel a visible read, and no grab is a chore. |
+| Grab hold and pummel | Every hold lasts 120 frames at any percent; each mash input takes 8 off, never below 30. One 3% pummel per grab, connecting 48 frames after its input; then a throw (bufferable) or a neutral release. Both players see the escape meter above the held fighter ([grab holds](#grab-holds-and-pummels)). | Owner direction (#101): the throw is the guarantee, the pummel a visible read, and no grab is a chore. |
 | Option selects | Keep combinations that retain commitment and an opponent answer. Repair a specific option select when it removes both branches' counterplay for free; no blanket ban on emergent input combinations. | Judge the actual interaction, not the mere existence of a multi-purpose input. |
 | Mixup branch reward | Each intended branch must offer a meaningful different result or punish. Use its measured reward/risk and break-even probability; no universal damage floor for the weaker branch. | A position, escape or stock threat can matter without an invented damage-equivalent score. |
 | Balance changes and archetypes | State each fighter's purpose and exploitable weakness, then adjust the evidenced interaction with buffs or nerfs as needed. No buff-first rule or universal "no 7–3" numerical promise. | Preserves the adopted roster identities and the current bounded evaluation model. |
@@ -646,10 +653,10 @@ The descriptive basis is [fighting-game language](design/fighting-games.md),
 | Question | Adopted default | Reason |
 |---|---|---|
 | Shield geometry | Keep the shrinking bubble (confirmed by #102): it drains while held (0.28 health a frame digitally), regenerates once lowered (0.07 a frame), and its radius scales with health (0.15 + 0.85 × health/60 × pressure scale), so a worn shield exposes the body to a projectile passing outside it. Melee contacts on a raised shield are all blocked; melee pokes are not modelled yet. Preserve the authored shield centre and current input handling; add no required shield-tilt input. | Keep the established shield system and visible body exposure rather than replacing it with a fixed bubble. |
-| Aerial shieldstun | Keep the shared ground/aerial formula. | Aerial safety already varies through contact timing, landing, spacing and drift; no separate universal aerial multiplier is needed. |
+| Aerial shieldstun | Superseded (owner, 6 Oct, #106): aerials take a third more shieldstun per damage than Melee, 0.6 rather than 0.45 a damage on a full shield; ground attacks keep Melee's ([Aerials on shield](#aerials-on-shield)). | Aerial safety still varies through contact timing, landing, spacing and drift; the tilt rewards aggression slightly without making any aerial safe by rule. |
 | Whiff penalties | No global extra miss-only recovery or landing-lag multiplier. Author commitment and recovery per move. | Counterplay should follow the same visible move phases whether the strike connects or misses. |
 | Ground moves on shield | Close committed moves should have reachable punishment; spaced pokes may be safe. In the same shield-contact context, greater shield damage costs later attacker recovery or an earlier defender response. | Adopts smashcraft:docs/move-comparisons.md's measured category rule without changing its gate; it is not a global damage-to-lag formula. |
-| Aerials on shield | Preserve late-contact, immediate-landing and fade-back safety; close advancing aerials can be punished. | The existing graph distinguishes close down air from spaced forward air. Do not make all aerials uniformly safe or unsafe. |
+| Aerials on shield | Safety is earned by timing, spacing, side and the move's own properties, never granted by rule ([Aerials on shield](#aerials-on-shield), #106). | The graph shows the spread: late and low, spaced and cross-up aerials safe or close; early and high hits in front punished out of shield. |
 | Shield release and out-of-shield actions | Owner decision (6 Oct, #100): 11-frame release lag, Ultimate's value, with the 8-frame minimum shield hold. Direct shield grab and jump bypass release lag when otherwise legal; jump into aerials, rolls and spot dodges remain available. Add no instant grounded up-smash cancel. | Melee's 15 frames make dropping shield almost never worth it; dropping shield should be a real alternative to jumping into an aerial or rolling out of shield. Tune later if it is still never used. Shieldstun and other action locks still apply. |
 | Platform shield drop | Removed (owner, 6 Oct, #103): down while shielding stays on the platform. Leaving a platform goes through a [platform descent](#platforms); shielded fighters use their jump, dodge or release choices. | Superseded: no safe retaliation from a platform, so a fighter on one is slightly behind one below. |
 | Cross-ups | Coverage follows each move's authored front/back regions and legal facing change. No automatic tracking or universal behind-the-fighter hit extension. | A cross-up changes which responses reach; the answer comes from the move, not hidden target tracking. |
@@ -839,6 +846,66 @@ reason. Current departures:
   air, back air, down air). The roster keeps hurtboxes on attached body parts;
   the wings reach about 0.83 of his height sideways and the claws about half
   below his feet, all hittable.
+
+## Aerials on shield
+
+Owner direction, 6 Oct 2026 (#106): an aerial's safety on shield comes from
+physics, timing and spacing, not a blanket rule. No move is safe by rule:
+safety is earned by timing, spacing, mixups and the move's own properties, and
+a slower, set-up-heavy move can be safer. Melee's derivation, with the knee and
+drill worked through, is in
+[the case study](design/melee/aerials-on-shield.md).
+
+- **Timing.** A hit late in the fall, just before landing, leaves only the
+  landing lag: the safest pressure. A hit at the top of the fall leaves the rest
+  of the fall plus the landing lag. Fast falling shortens the fall.
+- **Hit strength.** Strong hits deal much more shieldstun than weak ones.
+  A weak hit high on the shield followed by a slow fall can be grabbed before
+  the attacker lands.
+- **Shieldstun and hitlag.** Both fighters take the hit's hitlag, so it moves
+  no advantage; shieldstun, computed differently from hitstun, outlasts the
+  remaining fall plus landing lag only for well-timed hits.
+- **Out-of-shield options.** A buffered shield grab and a jump out of shield
+  into an aerial, which for a fast fighter comes out about as soon as a grab.
+- **Spacing and side.** Landing in front of the shield is the risk; landing
+  out of shield-grab range or crossing up behind the shield is the answer, and
+  mixing them is the skill.
+- **Hitbox timing.** Early, lingering hitboxes cover space and chip the shield
+  but concede frames; late, committed hits risk more and reward more.
+
+**The aggression tilt.** Start from Melee's numbers and tilt slightly toward
+the attacker, in Rivals 2's direction rather than Ultimate's:
+
+| Full-shield shieldstun, frames | 4 damage | 8 | 12 | 18 |
+|---|---:|---:|---:|---:|
+| Melee, every attack: ⌊(0.45 d + 2) × 200/201⌋ | 3 | 5 | 7 | 10 |
+| Ultimate, aerials: ⌊0.264 d + 2⌋ | 3 | 4 | 5 | 6 |
+| Rivals 2, every attack: 0.8 d + 1 | 4.2 | 7.4 | 10.6 | 15.4 |
+| Smashcraft, aerials: ⌊(0.6 d + 2) × 200/201⌋ | 4 | 6 | 9 | 12 |
+
+- Aerials' shieldstun per damage is Melee's × 4/3 (the shield's 1.5 stun
+  multiplier becomes 2), on a full or a light shield. Hits up to 10
+  damage gain at most one frame (1, 3 and 5 damage none), 11–18 damage two or
+  three, stronger hits more. The tilt widens the gap between strong and weak hits as well as
+  favouring the attacker.
+- Everything else stays Melee's: ground attacks' shieldstun, hitlag on shield
+  for both fighters (Ultimate's × 0.67 is not adopted: equal hitlag moves no
+  advantage), pushback, attacker recoil, and the landing lag, which is the
+  automatic L-cancelled lag (#54).
+- Why the attacker needs it: Smashcraft's defender has a 6-frame attack
+  buffer, so a shield grab pressed during shieldstun comes out on the first
+  free frame. Melee has none (`ftCo_GuardSetOff_IASA` is empty and
+  `ftCo_Catch_CheckInput` reads that frame's press), which made its shield grab
+  a frame-perfect input. Rivals 2 answers the same problem by cutting the
+  buffer to 2 frames after a shield contact; Smashcraft keeps the buffer, an
+  aid with no decision in it, and pays the attacker in shieldstun instead.
+- Shield release (#100, 11 frames) does not touch this: shield grab and jump
+  out of shield bypass it. A parry (#102) takes no shieldstun at all, so the
+  tilt never reaches it: a defender who reads the aerial's timing still gets
+  the full reward.
+
+The [interaction graph](design/interaction-graph.md) measures the spread for
+each fighter.
 
 ## Powershield and parry
 

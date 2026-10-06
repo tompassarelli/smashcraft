@@ -295,6 +295,8 @@ Standing grab 6/2/22, reach 0.48H. Pummel: elbow to the ribs.
 - Presentation uses the stock Warden model. It has twelve sequences and no hit, jump, roll or ledge animations: blade swings play Attack - 1 and Attack - 2, overhead strikes Spell Slam, rising strikes and Fan of Knives Spell, Shadow Strike Spell Throw, and Blink, spot dodge and air dodge Dissipate. Knockdowns and tumbles play Death.
 - Spirit of Vengeance is not implemented; ultimates stay off in competitive play.
 
+**Gameplan** (smashcraft:ts/src/game/sim/heroes/wardenGameplan.ts, #105): she keeps 0.7-1.4H, just past her blades, and spaces with Crescent Slice, Pursuer and Pursuit Lunge; she runs in with dash attack, lunge and grab or jumps in with aerials, and never camps at long range. Up tilt, down tilt, up air and the up and down throws start her strings; Heel Blade, Judgment Edge, Moon Arc and the low outward Pursuer and Twin Crescent finish. She spends her jump before Blink, so its punishable endpoint is her last resort, and stays out from under a target.
+
 ## Pandaren Brewmaster
 
 **Identity:** a staff-and-body heavyweight with expressive drunken movement and a brew-then-fire combination. Drunken Brawler becomes a timed evasive move rather than random dodging. He is fun at close range without copying Mountain King’s stun and hammer game.
@@ -414,6 +416,8 @@ the tables:
   Stand Channel; hit reactions use the Stand - 3 sway and knockdowns Death.
 - Knockback classes use provisional growth/base values, not the
   displacement-calibrated bands.
+
+**Gameplan** (smashcraft:ts/src/game/sim/heroes/lichGameplan.ts, #105): he keeps 1.5-2.4H, where Frost Nova's marker lands on the target and Frost Shard still flies, and never runs in: he advances behind his shots and covers a run-in with Ice Spear. A threat close by he mostly answers by backing out to range. Frost Nova, down tilt, up tilt and the down throw start his strings; Ice Spear, Bone Spike and a late Frost Nova finish. He jumps before Spectral Ascent, aims for the ledge, and stays off the edge, out of close range and out from under a target.
 
 ## Uther
 
@@ -922,6 +926,66 @@ Standing grab 9/2/26, reach 0.60H. Pummel: ember squeeze, no extra heat mark.
 **Ultimate — Volcano:** ground-only f40 startup creates a volcano 1.3H ahead, 25 durability, life 180. Three eruptions at ages 30, 90, and 150, radius 0.85H, each 9 damage, LAUNCH at 80 degrees. No random rocks or full-map targeting. Destroying the volcano ends later eruptions. Owner’s casting action ends f78. Each eruption has a 20-frame visible warning; cannot hit through solid platforms.
 
 **Required counterplay test:** lava fire plus Molten Patch leaves an aerial route and cannot cause indefinite shieldstun. Heat marks create a readable incentive to avoid the third hit without giving normals hidden passive explosions.
+
+## Original fighters
+
+Archer and Rifleman were built before this specification. Their kits live in
+the shared move tables (smashcraft:ts/src/game/sim/hitRegions.ts,
+smashcraft:ts/src/game/sim/specials.ts, smashcraft:ts/src/game/sim/summons.ts)
+and their gameplans (#105) in smashcraft:ts/src/game/sim/originalGameplans.ts.
+Their normals still share one set of frame data and hitboxes (Rifleman's down
+tilt is the exception), so physics and specials carry their identities.
+
+### Archer
+
+**Identity:** a hit-and-run archer: the fastest run (13.20) and jump start
+(3 frames) on the lightest body (weight 75). Arrows and Multishot add damage
+from range without hitstun or interruption. His spaced fade-back forward air
+is safe on shield. Disengage hops him back and sends the hippogryph through
+the gap. **Weakness:** his weight loses stocks early, and his arrows can't
+stop an approach.
+
+**Gameplan:** keeps 180–460 units away. His spacing tools are forward air at
+110–240, the arrow at 200–700 and Multishot at 160–520. He shoots (weight 2)
+or jumps in with forward or neutral air (weight 1). He answers threats by
+retreating or jumping, and sometimes by shield or spot dodge. Up tilt leads
+into up air or up smash, down tilt into forward air or up tilt, and up throw
+into up air. He kills with forward smash from 90%, up smash from 100% and back
+air from 110%. He returns to the ledge or the deck and keeps the hippogryph
+until his jump is gone. He avoids close range and the edge.
+
+### Rifleman
+
+**Identity:** a gunner who holds ground. He is slow on the ground (run 9.00)
+and late off it (5-frame jump squat), but floaty, heavier than Archer (80) and
+harder-hitting: his down tilt deals 10. The blaster shoots with hitstun from
+range. The bear walks ahead as cover. The freezing trap guards the gap in
+front of him and sets up a smash. **Weakness:** he can't chase, and in close
+his slow start loses scrambles.
+
+**Gameplan:** keeps 220–520 units away. His spacing tools are the blaster at
+200–700, the bear at 120–450, the trap at 60–260 and down tilt within 150.
+He mostly shoots and advances behind his shots (weight 3), and sometimes
+jumps in with forward or down air (weight 1). He answers threats with his
+shield, a spot dodge or a jump; he never retreats, because he is too slow to.
+Down tilt leads into forward air, up tilt or another down tilt; the trap
+into forward or up smash; the bear into a shot or forward smash. He kills
+with forward smash from 80%, up smash from 95% and the recoil shot from
+100%. He returns to the ledge and spends his jump before the recoil. He
+avoids close range.
+
+### Balance record
+
+Measured with `bun scripts/cpuField.ts` (both fighters computers, every
+ordered pair with a different fighter, every soak stage, 3 stocks, 4-minute
+clock, one spawn variant: 180 matches for each of Archer and Rifleman). The
+win rate counts decisive matches against the field. A no-hit loss is a stock
+lost with no hit taken in the previous 3 s.
+
+| Change (build) | Archer win rate / no-hit losses | Rifleman win rate / no-hit losses |
+| --- | --- | --- |
+| Before gameplans (9e57c43a) | 82% / 21% | 88% / 31% |
+| Gameplans declared | 54% / 26% | 82% / 27% |
 
 ## Implementation details for the overnight agent
 

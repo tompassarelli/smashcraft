@@ -2,6 +2,7 @@
 // lane; set `complete` only when the whole base kit works (hero.ts).
 import { Character } from "../codes";
 import type { HeroDefinition } from "./hero";
+import { BLADEMASTER_GAMEPLAN } from "./blademasterGameplan";
 import { BLADEMASTER_CLIPS, BLADEMASTER_FALLBACK_CLIP } from "./blademasterClips";
 import { BLADEMASTER_MOVES } from "./blademasterMoves";
 import { BLADEMASTER_SPECIALS } from "./blademasterSpecials";
@@ -14,6 +15,7 @@ export const BLADEMASTER_HERO: HeroDefinition = {
   complete: true,
   moves: BLADEMASTER_MOVES,
   specials: BLADEMASTER_SPECIALS,
+  gameplan: BLADEMASTER_GAMEPLAN,
   presentation: {
     model: "units\\orc\\HeroBladeMaster\\HeroBladeMaster.mdl",
     scale: 1.0,
