@@ -4,6 +4,7 @@
 // renderer objects keep the code they were created with, so a reload
 // recreates them (ui.ts).
 import type { CryGate } from "../../game/presentation/hurtVoice";
+import type { StageLoad } from "../../game/shell/stageLoad";
 import type { Action } from "../../game/input/actions";
 import { type KeyboardCapture, keyboardCapture } from "../../game/input/keyboardCapture";
 import { PARTICIPANT_SLOTS, type ParticipantInputs, type ParticipantSlot, type Slots, participantActive, participantInputs } from "../../game/input/participants";
@@ -238,6 +239,8 @@ export interface ShellState {
   readonly diagnostic: ReplayState;
   /** Assigned again when a reload finds a match from a bundle without it. */
   moment: MomentSaves;
+  /** The stage-loading screen between the start press and the match (stageLoad.ts). */
+  stageLoad?: StageLoad | undefined;
 }
 
 declare global {

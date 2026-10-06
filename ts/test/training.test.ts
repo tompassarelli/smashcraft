@@ -65,7 +65,7 @@ test("training settings agree on both clients and both shields with attack reset
   clients.press(0, Key.y);
   until("stage selection", () => read(() => shell().game.phase) === Phase.stageMenu, 30);
   clients.press(0, Key.y);
-  until("match", () => read(() => shell().game.phase) === Phase.match, 30);
+  until("match", () => read(() => shell().game.phase) === Phase.match, 120);
   expect(read(() => fighterAt(shell().world, 2).status.damage)).toBe(40);
   // Player 1 walks left; the reset puts every fighter back on its spot and the partner at its damage.
   until("player 1 walks away from its spot", () => read(() => fighterAt(shell().world, 0).motion.x) < matchSpawnX(0) - 100.0, 1200);

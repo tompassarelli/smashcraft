@@ -24,7 +24,8 @@ test("a playtest adds a computer as Player 3 to one human and starts on the defa
   game.stageChoice = 1;
   assertTrue(preparePlaytest(game, { computers: 0b100, level: 4 }));
   assertEquals(game.cpuLevels[2], 4);
-  assertEquals(game.phase, Phase.match);
+  // The match itself starts once every client has loaded the stage (platform/shell/stageLoad.ts).
+  assertEquals(game.phase, Phase.stageMenu);
   assertEquals(fighterMask(game), 0b101);
   assertTrue(computerActive(game, 2));
   assertEquals(game.characterChoices[0], Character.archer);

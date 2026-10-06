@@ -43,7 +43,7 @@ function session(endless = false) {
   frames(5); clients.press(0, Key.y);
   until("stage selection", () => read(() => shell().game.phase) === Phase.stageMenu, 30);
   clients.press(0, Key.y);
-  until("match", () => read(() => shell().game.phase) === Phase.match, 30);
+  until("match", () => read(() => shell().game.phase) === Phase.match, 120);
   return { clients, frames, read, until };
 }
 test("rules agree on both clients and the visible countdown restarts the same match on its last frame", () => {

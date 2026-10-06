@@ -4,7 +4,7 @@
 // all clients take the same path.
 import { type ParticipantSlot, isParticipantSlot } from "../../game/input/participants";
 import {
-  Phase, canChooseComputer, cancelRematchCountdown, characterFor, confirmRematch, cycleSlotMode, humanActive, recallCharacter,
+  Phase, canChooseComputer, cancelRematchCountdown, firstHumanSlot, characterFor, confirmRematch, cycleSlotMode, humanActive, recallCharacter,
   requestStageSelect, requestStart, setAutomaticRematch, setCpuLevel, setEndless, setHitAreas, setPartnerDamage, setTraining, stepPartnerBehaviour,
   stepPartnerEscape, stepPartnerTech, stepTrainingSpeed, tickRematchCountdown,
   returnToCharacters, selectCharacter, selectCpuCharacter, selectStage, setStocks, setTimeLimit, updateConnectedHumans,
@@ -19,6 +19,7 @@ import { nextSelectableCharacter } from "../../game/sim/heroes/registry";
 import { traceSelectionState } from "./diagnostics";
 import { clearParticipantInputs, controlsAvailable, currentHumanMask } from "./inputs";
 import { startMatch } from "./matchStart";
+import { requestStageLoad, stageLoading } from "./stageLoad";
 import { makePreview } from "./preview";
 import { type ShellState, shell } from "./state";
 import type { PanelActions } from "./ui";
@@ -27,7 +28,7 @@ import { announce, setStatus } from "./view";
 
 /** Left and right on a menu: the next fighter, or the other stage. */
 export function choose(s: ShellState, slot: ParticipantSlot, direction: -1 | 1): void {
-  if (!controlsAvailable(s, slot)) return;
+  if (!controlsAvailable(s, slot) || stageLoading(s)) return;
   if (s.game.phase === Phase.characterMenu) {
     selectCharacter(s.game, slot, nextSelectableCharacter(characterFor(s.game, slot), direction));
     makePreview(s);
@@ -41,10 +42,11 @@ export function confirm(s: ShellState, slot: ParticipantSlot): void {
     return;
   }
   const { game } = s;
+  if (stageLoading(s)) return;
   if (game.phase === Phase.characterMenu) {
     if (requestStageSelect(game, slot)) for (const panel of views(s).settings) panel.close();
   } else if (game.phase === Phase.stageMenu) {
-    if (requestStart(game, slot)) startMatch(s);
+    requestStageLoad(s, slot);
   } else if (game.phase === Phase.result) {
     if (cancelRematchCountdown(game, slot)) return;
     if (!confirmRematch(game, slot)) return;
@@ -55,7 +57,7 @@ export function confirm(s: ShellState, slot: ParticipantSlot): void {
 }
 
 export function back(s: ShellState, slot: ParticipantSlot): void {
-  if (!controlsAvailable(s, slot)) return;
+  if (!controlsAvailable(s, slot) || stageLoading(s)) return;
   if (s.game.phase === Phase.characterMenu) views(s).selections[slot].recallHeld();
   else if (s.game.phase === Phase.stageMenu) returnToCharacters(s.game, slot);
   else if (s.game.phase === Phase.result) cancelRematchCountdown(s.game, slot);
@@ -94,10 +96,10 @@ export function startQuickMatch(s: ShellState, stage = 0, scenario: Scenario = s
 
 /** A playtest request: its computers at its level, then the match, past both menus. */
 export function startPlaytest(s: ShellState, request: PlaytestRequest): boolean {
-  if (!preparePlaytest(s.game, request)) return false;
+  const first = firstHumanSlot(s.game);
+  if (first === undefined || !preparePlaytest(s.game, request)) return false;
   for (const panel of views(s).settings) panel.close();
-  startMatch(s);
-  return true;
+  return requestStageLoad(s, first);
 }
 
 /** Panel events carry a participant number; anything but a slot is ignored. */
@@ -166,9 +168,13 @@ export function panelActions(): PanelActions {
       }),
     },
     stage: {
-      selectStage: (participant, choice) => withSlot(participant, (s, slot) => selectStage(s.game, slot, choice)),
+      selectStage: (participant, choice) => withSlot(participant, (s, slot) => {
+        if (!stageLoading(s)) selectStage(s.game, slot, choice);
+      }),
       start: participant => withSlot(participant, confirm),
-      back: participant => withSlot(participant, (s, slot) => returnToCharacters(s.game, slot)),
+      back: participant => withSlot(participant, (s, slot) => {
+        if (!stageLoading(s)) returnToCharacters(s.game, slot);
+      }),
     },
     settings: {
       closeSettings: participant => withSlot(participant, clearParticipantInputs),

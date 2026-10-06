@@ -15,7 +15,7 @@ import {
 } from "../presentation/matchCues";
 import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
 import { STAGE_CATALOG } from "../menu/stageCatalog";
-import { MENU_FONT, createBackdrop, createText, gameUi } from "../ui/frames";
+import { MENU_FONT, coverScreen, createBackdrop, createText, gameUi } from "../ui/frames";
 import type { WorldOrigin } from "./effects";
 import { fighterModel } from "./combatEffects";
 
@@ -217,6 +217,42 @@ export class MatchPresentation {
       DestroyEffect(this.victory);
       this.victory = undefined;
     }
+  }
+
+  /** The stage-loading screen; created when first shown, on every client in the same synchronized step. */
+  private loadingFrames: { readonly cover: framehandle; readonly art: framehandle; readonly name: framehandle } | undefined;
+
+  /** Covers the screen with the chosen stage's art and name while every client draws it. */
+  showLoading(name: string, texture: string): void {
+    const parent = gameUi();
+    const frames = (this.loadingFrames ??= {
+      cover: createBackdrop("StageLoadingCover", parent, 0),
+      art: createBackdrop("StageLoadingArt", parent, 0),
+      name: createText("StageLoadingName", parent, 0),
+    });
+    BlzFrameSetTexture(frames.cover, PANEL_TEXTURE, 0, true);
+    coverScreen(frames.cover);
+    BlzFrameSetLevel(frames.cover, 8);
+    BlzFrameSetTexture(frames.art, texture, 0, true);
+    BlzFrameSetAbsPoint(frames.art, FRAMEPOINT_CENTER, f32(0.4), f32(0.35));
+    BlzFrameSetSize(frames.art, f32(0.32), f32(0.18));
+    BlzFrameSetLevel(frames.art, 9);
+    BlzFrameSetAbsPoint(frames.name, FRAMEPOINT_TOP, f32(0.4), f32(0.24));
+    BlzFrameSetSize(frames.name, f32(0.4), f32(0.06));
+    BlzFrameSetFont(frames.name, MENU_FONT, f32(0.02), 0);
+    BlzFrameSetTextAlignment(frames.name, TEXT_JUSTIFY_TOP, TEXT_JUSTIFY_CENTER);
+    BlzFrameSetLevel(frames.name, 9);
+    BlzFrameSetText(frames.name, `${name}\n|cffbbbbbbGetting the arena ready…|r`);
+    for (const frame of [frames.cover, frames.art, frames.name]) {
+      BlzFrameSetEnable(frame, false);
+      BlzFrameSetVisible(frame, true);
+    }
+  }
+
+  hideLoading(): void {
+    const frames = this.loadingFrames;
+    if (frames === undefined) return;
+    for (const frame of [frames.cover, frames.art, frames.name]) BlzFrameSetVisible(frame, false);
   }
 
   /** Fighter selection: menu music, no results. */

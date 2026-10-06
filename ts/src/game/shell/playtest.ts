@@ -64,5 +64,6 @@ export function preparePlaytest(game: MatchState, { computers, level }: Playtest
   }
   if (!requestStageSelect(game, first)) return false;
   selectStage(game, first, defaults.stageChoice);
-  return requestStart(game, first);
+  // The match starts once every client has loaded the stage (platform/shell/stageLoad.ts).
+  return true;
 }

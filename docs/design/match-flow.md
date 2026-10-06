@@ -123,3 +123,20 @@ simulation. Every path is a script path into the installed game:
 against the game's storage through CascLib and records it in
 smashcraft:ts/src/game/assets/stockSoundInfo.ts, and a test holds the
 presentation to that table. No audio is copied.
+
+### Stage loading
+
+Warcraft III streams a stage's models and textures after the script creates
+them, so a match that begins on the start press can open on a half-drawn stage
+(Tom, 7 Oct). Smashcraft puts a loading screen between the press and the
+match: the chosen stage's selection art and name over a dark cover, with the
+stage drawn behind it. Each client reports "stage drawn" through a
+synchronized message once its drawing has settled (`STAGE_SETTLE_FRAMES`). The
+match, and so its countdown, begins on the callback where the last present
+player's report arrives, or after `STAGE_LOAD_TIMEOUT_FRAMES` (ten seconds), so
+a stuck client can't hold the others. Every step runs from a synchronized event,
+so all clients start together (smashcraft:ts/src/game/shell/stageLoad.ts).
+The settle time is provisional until a native timing of the slowest stage,
+Gryphon Aerie, measures it. An automatic rematch keeps its drawn stage and
+starts at once, and `-dev quick` skips both the loading screen and the
+countdown.

@@ -203,7 +203,7 @@ test("after a 2 s stall of one or both games, each client catches up within a se
   clients.press(0, Key.y);
   until("stage menu", () => phase() === Phase.stageMenu, 30);
   clients.press(0, Key.y);
-  until("match", () => phase() === Phase.match, 30);
+  until("match", () => phase() === Phase.match, 120);
   until("journaling", () => (helpers.journaled(0) ?? 0) > 0 && (helpers.journaled(1) ?? 0) > 0, 60);
   expect(read(host, () => [shell().game.humanFighterMask, shell().game.computerMask, shell().game.characterChoices[2]])).toEqual([3, 4, Character.rifleman]);
   measuring = true;

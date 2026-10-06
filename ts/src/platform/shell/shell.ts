@@ -29,6 +29,8 @@ import { onDevCommand, onDeveloperRestart, onDeveloperTrace, onKeyDown, onKeyUp,
 import { panelActions, serviceAutomaticRematch } from "./menus";
 import { PLAYER_FILE_RECEIVED, bindingFiles, playerFileReceived, playerFilesOwnerLeft, startPlayerFiles } from "./playerFiles";
 import { PLAYTEST, PLAYTEST_PREFIX, playtestRequested, readPlaytestRequest, servicePlaytestRequest } from "./playtest";
+import { STAGE_READY, cancelStageLoad, serviceStageLoad, stageReadyEvent } from "./stageLoad";
+import { STAGE_READY_PREFIX } from "../../game/shell/stageLoad";
 import { makePreview } from "./preview";
 import { preloadStageAssets } from "./stageScenery";
 import { PROBE_EXPORT, exportProbePage, probeBegin, probePresent } from "./responseProbe";
@@ -112,6 +114,7 @@ function gameTick(s: ShellState): void {
     editbox.updatePauseHint(s.session.paused, barrier.request !== undefined, pausing(barrier));
   }
   servicePlaytestRequest(s);
+  serviceStageLoad(s);
   if (s.game.phase === Phase.result) serviceAutomaticRematch(s);
   presentMatchFlow(s);
   publishMenu(s);
@@ -160,6 +163,7 @@ function playerLeft(s: ShellState): void {
     views(s).match.beginResults(resultsView(s.game, s.world, views(s).match.tally), 0);
     writeMatchRecord(s);
   } else if (s.game.phase === Phase.characterMenu || s.game.phase === Phase.stageMenu) {
+    cancelStageLoad(s);
     s.game.phase = Phase.characterMenu;
     const humans = currentHumanMask(s.game.departedMask);
     if (isParticipantMask(humans)) {
@@ -221,6 +225,7 @@ function createTriggers(s: ShellState): void {
     TriggerAddAction(chat, trampoline(DEV_COMMAND));
   }
   syncTrigger(s, PLAYTEST_PREFIX, PLAYTEST, true);
+  syncTrigger(s, STAGE_READY_PREFIX, STAGE_READY, true);
   const leave = CreateTrigger();
   for (const slot of PARTICIPANT_SLOTS) TriggerRegisterPlayerEvent(leave, Player(slot), EVENT_PLAYER_LEAVE);
   TriggerAddAction(leave, trampoline(PLAYER_LEFT));
@@ -304,6 +309,7 @@ export function installShell(): void {
   on(PLAYER_FILE_RECEIVED, playerFileReceived);
   on(SAVE_MOMENT, withShell(momentKey));
   on(PLAYTEST, withShell(playtestRequested));
+  on(STAGE_READY, withShell(stageReadyEvent));
   const s = shellState();
   if (s?.ui !== undefined) recreateUi(s, panelActions());
   // A match from a bundle without the moment record keeps running with a new one.

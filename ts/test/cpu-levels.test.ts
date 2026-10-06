@@ -45,7 +45,7 @@ test("a computer card's level buttons set its level on every client, and the mat
   frames(5); clients.press(0, Key.y);
   for (let i = 0; i < 30 && value(clients.client(0), () => shell().game.phase) !== Phase.stageMenu; i++) frames(1);
   clients.press(0, Key.y);
-  for (let i = 0; i < 30 && value(clients.client(0), () => shell().game.phase) !== Phase.match; i++) frames(1);
+  for (let i = 0; i < 120 && value(clients.client(0), () => shell().game.phase) !== Phase.match; i++) frames(1);
   expect(value(clients.client(0), () => shell().game.phase)).toBe(Phase.match);
   frames(600);
   expect(levels()).toEqual([6, 6]);

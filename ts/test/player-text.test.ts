@@ -216,6 +216,7 @@ test("the playable build shows players no developer text through selection, a ma
   expect(phases()).toEqual([Phase.stageMenu, Phase.stageMenu]);
   frames(10);
   clients.press(0, Key.y);
+  for (let frame = 0; frame < 120 && !phases().every((phase) => phase === Phase.match); frame++) frames(1);
   expect(phases()).toEqual([Phase.match, Phase.match]);
   for (let frame = 0; frame < 1200 && !phases().every((phase) => phase === Phase.result); frame++) frames(1);
   expect(phases()).toEqual([Phase.result, Phase.result]);

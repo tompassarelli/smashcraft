@@ -3,6 +3,7 @@
 // asks for before it draws, so these counts bound a frame's native cost: the
 // 0.0.45 candidate stalled at selection on 32 file lookups a second, and the
 // pooled fighter clips are hundreds of effects created on one frame.
+import { value } from "./rematch/playableMatch";
 import { afterAll, expect, test } from "bun:test";
 import { originalClip, originalClipCount, originalLightPath } from "../src/game/assets/fighterOriginalClipInfo";
 import { Phase } from "../src/game/match/rules";
@@ -111,7 +112,11 @@ test("playable: selection creates no effect and reads no file; match start creat
   });
   expect(selection.filter(({ created, fileReads }) => created > 0 || fileReads > 0)).toEqual([]);
 
-  const start = work(() => clients.press(0, Key.y));
+  // The press draws the stage behind its loading screen; the match starts once every client has reported it.
+  const loading = work(() => clients.press(0, Key.y));
+  expect(loading.fileReads).toBe(0);
+  let start = work(() => clients.frames(1));
+  for (let frame = 0; frame < 120 && value(host, () => shell().game.phase) !== Phase.match; frame++) start = work(() => clients.frames(1));
   let stage = 0;
   host.run(() => {
     const s = shell();

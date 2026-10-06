@@ -204,7 +204,7 @@ test("a match and its three-fighter rematch show each pooled fighter whole where
     until("stage menu", () => phase() === Phase.stageMenu, 30);
     helpers.workload = workload;
     clients.press(0, Key.y);
-    until("match", () => phase() === Phase.match, 30);
+    until("match", () => phase() === Phase.match, 120);
     rowsRead.length = 0;
     corrections = 0;
     lifetimes.clear();

@@ -309,8 +309,12 @@ function beginMatch(game: MatchState): void {
   game.phase = Phase.match;
 }
 
+/** Whether `slot`'s start press at stage selection may start the match. */
+export const canRequestStart = (game: Readonly<MatchState>, slot: number): boolean =>
+  game.phase === Phase.stageMenu && humanActive(game, slot) && allCharactersReady(game);
+
 export function requestStart(game: MatchState, slot: number): boolean {
-  if (game.phase !== Phase.stageMenu || !humanActive(game, slot) || !allCharactersReady(game)) return false;
+  if (!canRequestStart(game, slot)) return false;
   beginMatch(game);
   return true;
 }
