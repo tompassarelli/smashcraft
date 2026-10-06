@@ -128,7 +128,7 @@ export const HERO_CUES: { readonly [character: number]: { readonly [slot in Spec
   [Character.beastmaster]: {
     neutral: { spell: "Throwing Axe", startup: BEAST, active: cue("Abilities\\Weapons\\Axe\\AxeMissile.mdx", "hand", 1.0) },
     side: { spell: "Summon Bear", startup: BEAST, active: cue("Abilities\\Spells\\NightElf\\Rejuvenation\\RejuvenationTarget.mdx", "ahead", f32(0.8)) },
-    up: { spell: "Hawk Lift", startup: BEAST, active: cue("Abilities\\Spells\\Other\\Tornado\\TornadoSpinner.mdx", "feet", f32(0.4)) },
+    up: { spell: "Hawk Lift", startup: BEAST, active: cue("Abilities\\Weapons\\HarpyMissile\\HarpyMissile.mdx", "body", 1.0) },
     down: { spell: "Quillbeast Dart", startup: BEAST, active: cue("Abilities\\Spells\\Orc\\Ensnare\\EnsnareMissile.mdx", "hand", f32(0.6)) },
   },
 };

@@ -47,6 +47,8 @@ export type HeroPose =
   | "ledgeHang" | "ledgeClimb" | "ledgeRoll" | "ledgeAttack"
   | "knockdown" | "getUp" | "downDamage" | "rollForward" | "rollBackward" | "spotDodge"
   | "jump" | "doubleJump" | "fallSpecial"
+  // A wall jump pushes off a wall facing away; a wall tech springs off it out of tumble (sim/surfaces.ts).
+  | "wallJump" | "wallTech"
   | "damageGround" | "damageAir" | "damageTumble" | "damageShield"
   | "grabHold" | "grabbed"
   | "pummel" | "throwForward" | "throwBack" | "throwUp" | "throwDown"

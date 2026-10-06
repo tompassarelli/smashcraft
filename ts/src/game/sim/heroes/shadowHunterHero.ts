@@ -67,6 +67,8 @@ export const SHADOW_HUNTER_HERO: HeroDefinition = {
       knockdown: DEATH, getUp: STAND_READY, downDamage: DEATH,
       rollForward: WALK, rollBackward: WALK, spotDodge: STAND_HIT,
       jump: STAND_VICTORY, doubleJump: STAND_VICTORY, fallSpecial: STAND_4,
+      // Spell Throw's crouch and fling pushes off a wall; a wall tech recoils with Stand Hit.
+      wallJump: SPELL_THROW, wallTech: STAND_HIT,
       damageGround: STAND_HIT, damageAir: STAND_HIT, damageTumble: STAND_HIT, damageShield: STAND_HIT,
       grabHold: STAND_READY, grabbed: STAND_HIT,
       pummel: ATTACK, throwForward: SPELL_THROW, throwBack: STAND_2, throwUp: SPELL, throwDown: STAND_CHANNEL,

@@ -58,6 +58,9 @@ export const UTHER_CLIPS: HeroClipTable = {
   spotDodge: STAND_HIT,
   jump: STAND_READY,
   doubleJump: STAND_READY,
+  // The hammer swings him off a wall (Attack - 2 winds high, then drives down); a wall tech recoils with Stand Hit.
+  wallJump: ATTACK_SLAM,
+  wallTech: STAND_HIT,
   fallSpecial: STAND_HIT,
   damageGround: STAND_HIT,
   damageAir: STAND_HIT,

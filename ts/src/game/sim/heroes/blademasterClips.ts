@@ -100,6 +100,9 @@ export const BLADEMASTER_CLIPS: { readonly [pose in Exclude<HeroPose, Exclude<He
   spotDodge: sequence("Stand cinematic", 2.0),
   jump: COMBAT_STANCE,
   doubleJump: sequence("Attack Walk Stand Spin"),
+  // Push off a wall: the Attack Slam leap, which travels away from it; spring off out of tumble with a blade spin.
+  wallJump: sequence("Attack Slam"),
+  wallTech: sequence("Stand - 4", f32(0.6)),
   fallSpecial: sequence("Stand - 2"),
   damageGround: RECOIL,
   damageAir: RECOIL,

@@ -2,10 +2,10 @@
 // determines whether the elapsed interval advances, freezes or restarts.
 import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
-import { AttackPhase, AttackStyle, Character, DownState, GrabAction, LedgeState, PlatformMove, ShieldBreak, SpecialAction, HeroStatusKind } from "../sim/codes";
+import { AttackPhase, AttackStyle, Character, DownState, GrabAction, LedgeState, PlatformMove, ShieldBreak, SpecialAction, HeroStatusKind, SurfaceContact } from "../sim/codes";
 import { FOLLOW_UP_FORM, SpecialForm } from "../sim/heroSpecials";
 
-import { GROUND_ROLL_FRAMES, SPOT_DODGE_FRAMES, attackPhase, inGrabContext, isForwardGroundRoll, isGroundDodging } from "../sim/conditions";
+import { GROUND_ROLL_FRAMES, SPOT_DODGE_FRAMES, WALL_TECH_STARTUP_FRAMES, attackPhase, inGrabContext, isForwardGroundRoll, isGroundDodging } from "../sim/conditions";
 import { DOWN_BOUND_FRAMES, DOWN_DAMAGE_FRAMES, DOWN_ROLL_FRAMES, DOWN_STAND_FRAMES, TECH_IN_PLACE_FRAMES, TECH_ROLL_FRAMES } from "../sim/down";
 import type { Fighter } from "../sim/fighter";
 import { AIR_DODGE_ANIMATION_FRAMES } from "../sim/jumpsAndDodges";
@@ -244,6 +244,13 @@ function selectClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly<Ros
       pose.animation = key;
     }
     return rate;
+  }
+  // A wall jump or wall tech plays its own clip over the wall hang and push-off (#144).
+  if (f.surfaceRecovery.state === SurfaceContact.techWall) {
+    const jumping = f.surfaceRecovery.wallJumpQueued;
+    const wall = clips.clipFor(character, jumping ? "wallJump" : "wallTech");
+    playIndex(pose, jumping ? "walljump" : "walltech", wall.index);
+    return clipRate(wall.seconds, WALL_TECH_STARTUP_FRAMES + (jumping ? f.tuning.tech.wallJumpAnimationEndFrame : f.tuning.tech.wallAnimationEndFrame));
   }
   if (illidan && pose.motion.escapeRemaining > 0) {
     playIndex(pose, "grab-escape", dh.DEMON_HUNTER_GRAB_ESCAPE_INDEX);

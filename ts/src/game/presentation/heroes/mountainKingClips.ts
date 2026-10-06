@@ -90,6 +90,9 @@ export const MOUNTAIN_KING_CLIPS = {
   spotDodge: play("Spell Slam", f32(0.4)),
   jump: play("Stand - 3", f32(0.6)),
   doubleJump: play("Stand - 3", f32(0.6)),
+  // The Attack Slam leap kicks off a wall; a wall tech braces with the Spell Slam crouch.
+  wallJump: play("Attack Slam"),
+  wallTech: play("Spell Slam", f32(0.5)),
   fallSpecial: play("Death", f32(0.3)),
   damageGround: play("Death", f32(0.35)),
   damageAir: play("Death", f32(0.35)),

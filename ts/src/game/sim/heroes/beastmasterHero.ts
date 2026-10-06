@@ -56,6 +56,8 @@ export const BEASTMASTER_HERO: HeroDefinition = {
       knockdown: DEATH, getUp: STAND_READY, downDamage: DEATH,
       rollForward: WALK, rollBackward: WALK, spotDodge: STAND_READY,
       jump: STAND_READY, doubleJump: STAND_READY, fallSpecial: STAND_1,
+      // Spell Slam's crouch and spring kicks off a wall; a wall tech is the quick Attack -2 swing.
+      wallJump: SPELL_SLAM, wallTech: ATTACK_2,
       damageGround: STAND_READY, damageAir: STAND_READY, damageTumble: STAND_READY, damageShield: STAND_READY,
       grabHold: STAND_READY, grabbed: STAND_READY,
       pummel: ATTACK, throwForward: ATTACK, throwBack: ATTACK_2, throwUp: ATTACK_2, throwDown: SPELL_SLAM,

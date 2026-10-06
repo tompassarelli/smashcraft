@@ -64,6 +64,8 @@ export const PIT_LORD_HERO: HeroDefinition = {
       knockdown: DEATH, getUp: STAND_2, downDamage: DEATH,
       rollForward: WALK_FAST, rollBackward: WALK_FAST, spotDodge: STAND_2,
       jump: STAND_2, doubleJump: STAND_2, fallSpecial: STAND_3,
+      // The Attack Slam's heave shoves him off a wall; a wall tech braces with Spell Slam.
+      wallJump: ATTACK_SLAM_1, wallTech: SPELL_SLAM,
       damageGround: STAND_2, damageAir: STAND_2, damageTumble: STAND_2, damageShield: STAND_2,
       grabHold: STAND, grabbed: STAND_2,
       pummel: ATTACK, throwForward: ATTACK_3, throwBack: ATTACK_2, throwUp: SPELL_SLAM, throwDown: ATTACK_SLAM_1,

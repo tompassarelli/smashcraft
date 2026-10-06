@@ -41,6 +41,9 @@ export const WARDEN_CLIPS = {
   crouch: s.standChannel,
   jump: s.standReady,
   doubleJump: s.spellThrow,
+  // Spell Slam's crouch and spring pushes off a wall; a wall tech is her quick Attack - 1 flip of the blade.
+  wallJump: s.spellSlam,
+  wallTech: s.attack1,
   fall: s.standReady,
   fallSpecial: s.standChannel,
   landing: s.standReady,

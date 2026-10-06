@@ -39,6 +39,8 @@ export const DREADLORD_CLIP_TABLE: HeroClipTable = {
   idle: s.standReady, walk: s.walk, dash: s.walk, run: s.walk, crouch: s.spellSlam, fall: s.standReady,
   landing: s.standReady, shield: s.standReady, airDodge: s.wingStretch, smashCharge: s.standReady, ko: s.death, dizzy: s.stand,
   jump: s.wingStretch, doubleJump: s.wingStretch, fallSpecial: s.standReady,
+  // He rears up off a wall, wings back, and a wall tech beats the wings with the Spell Slam.
+  wallJump: s.rearUp, wallTech: s.spellSlam,
   spotDodge: s.standReady, rollForward: s.walk, rollBackward: s.walk,
   damageGround: s.standReady, damageAir: s.standReady, damageTumble: s.death, damageShield: s.standReady,
   knockdown: s.death, downDamage: s.death, getUp: s.standReady, getUpAttack: s.attack2,

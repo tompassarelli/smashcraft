@@ -56,6 +56,8 @@ export const LICH_HERO: HeroDefinition = {
       knockdown: DEATH, downDamage: DEATH, getUp: STAND_READY,
       rollForward: WALK, rollBackward: WALK, spotDodge: CHANNEL,
       jump: STAND_READY, doubleJump: CHANNEL, fallSpecial: CHANNEL,
+      // Spell's raised hands push off a wall; a wall tech is the Attack's quick frost flick.
+      wallJump: SPELL, wallTech: ATTACK,
       damageGround: STAND_3, damageAir: STAND_3, damageTumble: STAND_3, damageShield: STAND_3,
       grabHold: CHANNEL, grabbed: STAND_3,
       pummel: ATTACK, throwForward: SPELL, throwBack: CHANNEL, throwUp: SPELL, throwDown: SPELL,

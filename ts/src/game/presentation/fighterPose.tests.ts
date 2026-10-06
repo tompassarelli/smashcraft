@@ -7,8 +7,8 @@ import { stateChecksum } from "../replay/canonical";
 import { firstPoseDifference, firstStateDifference } from "../replay/difference";
 import { ReplayHistory } from "../replay/history";
 import { type ReplayState, captureReplaySnapshot, copyReplayState, createReplaySnapshot } from "../replay/snapshot";
-import { AttackStyle, Character, GrabAction, PlatformMove, SpecialAction } from "../sim/codes";
-import { HERO_ROSTER } from "../sim/heroes/registry";
+import { AttackStyle, Character, GrabAction, PlatformMove, SpecialAction, SurfaceContact } from "../sim/codes";
+import { HERO_ROSTER, SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
 import { FOLLOW_UP_FORM, SpecialForm } from "../sim/heroSpecials";
 import { type Fighter, createFighter } from "../sim/fighter";
 import { surfaceLeft, surfaceRight, surfaceZ } from "../sim/stage";
@@ -17,7 +17,7 @@ import { bodyTop } from "../sim/surfaces";
 import { melee } from "../sim/tuning";
 import { f32 } from "wisp/src/sim/f32";
 import * as assets from "./fighterAssetInfo";
-import { platformClip, specialClip } from "./fighterClips";
+import { characterClips, platformClip, specialClip } from "./fighterClips";
 import { attackDurationFramesForGrounding } from "../sim/moves";
 import { type Controls, fighterAt, neutralControls } from "../sim/roster";
 import { soloWorld, testWorld } from "../sim/testWorld";
@@ -240,5 +240,29 @@ test("a hero special's follow-up plays its own follow-up clip, or the special's,
     assertEquals(pose.selectionSerial, selected + 1);
     assertEquals(pose.clipTime, 0.0);
     assertEquals(pose.clipIndex, (hero.presentation.clips.downSpecialFollowUp ?? base).index);
+  }
+});
+
+test("every selectable fighter plays its own wall jump and wall tech clip, never the fallback", () => {
+  for (const character of SELECTABLE_CHARACTERS) {
+    const table = characterClips(character);
+    const jump = table.wallJump;
+    const tech = table.wallTech;
+    assertEquals(jump !== undefined && tech !== undefined, true, `fighter ${character} maps wall clips`);
+    if (jump === undefined || tech === undefined) continue;
+    assertEquals(jump.index !== tech.index, true, `fighter ${character} wall jump and wall tech differ`);
+    const f = createFighter(character, 0.0, -1);
+    const world = soloWorld(f);
+    const input = neutralControls();
+    const pose = createFighterPose();
+    f.motion.grounded = false;
+    f.surfaceRecovery.state = SurfaceContact.techWall;
+    f.surfaceRecovery.wallJumpQueued = true;
+    advanceFighterPose(pose, f, world, input, false, false, false, false);
+    assertEquals(pose.clipIndex, jump.index);
+    assertGreaterThan(pose.rate, 0.0);
+    f.surfaceRecovery.wallJumpQueued = false;
+    advanceFighterPose(pose, f, world, input, false, false, false, false);
+    assertEquals(pose.clipIndex, tech.index);
   }
 });
