@@ -37,9 +37,11 @@ import {
   updateSelectionDrag,
 } from "../menu/selectionDrag";
 import { cellRect, rosterGrid } from "../menu/selectionGrid";
+import type { TextBox } from "./hudLayout";
+import { MOVES_BODY_BOX, MOVES_BUTTON_HEIGHT, MOVES_BUTTON_TOP, MOVES_TITLE_BOX, selectionTitleBox } from "./selectionLayout";
 import { SELECTABLE_CHARACTERS, fighterName, fighterPortrait, nextSelectableCharacter } from "../sim/heroes/registry";
 import {
-  automaticRematchSetting, cpuLevelSetting, movesPage, endlessSetting, hitAreasSetting, partnerBehaviourSetting, partnerDamageSetting, partnerEscapeSetting,
+  MOVES_HEADER, automaticRematchSetting, cpuLevelSetting, movesPage, selectionModeLabel, endlessSetting, hitAreasSetting, partnerBehaviourSetting, partnerDamageSetting, partnerEscapeSetting,
   partnerTechSetting, stockSetting, timeSetting, trainingSetting, trainingSpeedSetting,
 } from "../shell/messages";
 import { Character } from "../sim/codes";
@@ -152,6 +154,9 @@ export class SelectionPanel {
   private readonly movesFrames: readonly framehandle[];
   private readonly movesTitle: framehandle;
   private readonly movesBody: framehandle;
+  /** The match mode in the header's title box. */
+  private readonly modeLabel: framehandle;
+  private shownMode = "";
   private readonly stockValue: framehandle;
   private readonly timeValue: framehandle;
   private readonly endlessToggle: framehandle;
@@ -238,17 +243,24 @@ export class SelectionPanel {
       BlzFrameSetVisible(frame, false);
       return frame;
     };
-    this.movesTitle = page(createText(`MeleeMovesTitle${suffix}`, gameUi(), 470 + participantId), f32(0.12), f32(0.56), f32(0.56), f32(0.035));
+    const at = (frame: framehandle, box: TextBox) => page(frame, box.left, box.top, box.width, box.height);
+    this.movesTitle = at(createText(`MeleeMovesTitle${suffix}`, gameUi(), 470 + participantId), MOVES_TITLE_BOX);
     BlzFrameSetFont(this.movesTitle, MENU_FONT, f32(0.016), 0);
     BlzFrameSetTextAlignment(this.movesTitle, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER);
-    this.movesBody = page(createText(`MeleeMovesBody${suffix}`, gameUi(), 474 + participantId), f32(0.12), f32(0.51), f32(0.56), f32(0.4));
+    this.movesBody = at(createText(`MeleeMovesBody${suffix}`, gameUi(), 474 + participantId), MOVES_BODY_BOX);
     BlzFrameSetFont(this.movesBody, MENU_FONT, f32(0.012), 0);
     BlzFrameSetTextAlignment(this.movesBody, TEXT_JUSTIFY_TOP, TEXT_JUSTIFY_LEFT);
     const pageButton = (name: string, x: number, width: number, text: string, target: SelectionButton) => {
-      const frame = page(BlzCreateFrameByType("GLUETEXTBUTTON", name, gameUi(), "ScriptDialogButton", 0), x, f32(0.075), width, f32(0.032));
+      const frame = page(BlzCreateFrameByType("GLUETEXTBUTTON", name, gameUi(), "ScriptDialogButton", 0), x, MOVES_BUTTON_TOP, width, MOVES_BUTTON_HEIGHT);
       BlzFrameSetText(frame, text);
       return this.clicks.add(frame, target);
     };
+    const height = BlzGetLocalClientHeight();
+    const titleBox = selectionTitleBox(height <= 0 ? f32(4.0 / 3.0) : I2R(BlzGetLocalClientWidth()) / I2R(height));
+    this.modeLabel = page(createText(`MeleeModeLabel${suffix}`, gameUi(), 478 + participantId), titleBox.left, titleBox.top, titleBox.width, titleBox.height);
+    BlzFrameSetFont(this.modeLabel, MENU_FONT, f32(0.022), 0);
+    BlzFrameSetTextAlignment(this.modeLabel, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER);
+    BlzFrameSetEnable(this.modeLabel, false);
     this.movesFrames = [
       this.movesTitle, this.movesBody,
       pageButton(`MeleeMovesPrevious${suffix}`, f32(0.2), f32(0.1), "<", { kind: "movesStep", direction: -1 }),
@@ -319,6 +331,7 @@ export class SelectionPanel {
     this.clicks.destroy();
     for (const trigger of this.syncTriggers) DestroyTrigger(trigger);
     for (const frame of this.movesFrames) BlzDestroyFrame(frame);
+    BlzDestroyFrame(this.modeLabel);
     BlzDestroyFrame(this.root);
     BlzDestroyFrame(this.backdrop);
   }
@@ -406,6 +419,12 @@ export class SelectionPanel {
     BlzFrameSetVisible(this.root, visible);
     BlzFrameSetVisible(this.backdrop, visible);
     for (const frame of this.movesFrames) BlzFrameSetVisible(frame, visible && this.movesOpen);
+    BlzFrameSetVisible(this.modeLabel, visible);
+    const mode = this.movesOpen ? MOVES_HEADER : selectionModeLabel(game.training);
+    if (mode !== this.shownMode) {
+      this.shownMode = mode;
+      BlzFrameSetText(this.modeLabel, mode);
+    }
     if (!visible) {
       clearSelectionDrag(drag);
       return;

@@ -117,6 +117,12 @@ export function trainingReadout(state: Readonly<TrainingState>): string {
   return lines.join("\n");
 }
 
+/** The selection header's title: the match mode, or the Moves page while it is open. */
+export function selectionModeLabel(training: boolean): string {
+  return training ? "TRAINING" : "VERSUS";
+}
+export const MOVES_HEADER = "MOVES";
+
 /**
  * The Moves page: a fighter's specials, passive and, while ultimates are on,
  * ultimate, one line each. Title first, then one line per move.
