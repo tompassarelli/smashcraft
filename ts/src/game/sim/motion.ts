@@ -8,7 +8,7 @@ import { meleeAtan2, meleeCos, meleeSin } from "../../sim/meleeScalarMath";
 import { Character } from "./codes";
 import type { Fighter, MeleeMotionValue } from "./fighter";
 import { surfaceCount, surfaceLeft, surfacePass, surfaceRight, surfaceZ } from "./stage";
-import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
+import { WORLD_UNITS_PER_MELEE_UNIT, melee } from "./tuning";
 
 function setOriginal(value: MeleeMotionValue, original: number): void {
   value.original = original;
@@ -109,13 +109,40 @@ export function totalVelocityZ(f: Fighter): number {
   return f32(f32(f.motion.vz + f.launch.knockbackZ) + f.shield.recoilZ);
 }
 
-export function airDriftVelocity(f: Fighter, velocity: number, direction: number): number {
-  const { airSpeed: target, airAcceleration: acceleration, airCap, airFriction } = f.tuning.physics;
-  // Illidan retains his authored immediate drift cap.
-  if (f.character === Character.demonHunter) return max(-airCap, min(airCap, f32(velocity + f32(direction * acceleration))));
+/**
+ * Melee's air drift with the stick held (ftCommon_CalcSelfAccel_DriftFrom,
+ * ftCommon_CalcSelfAccel_AccelToVelClampedFrom in melee:src/melee/ft/ftcommon.c):
+ * toward the stick it gains its acceleration up to the air speed; above the
+ * air speed it loses its air friction instead, never below the air speed,
+ * and never past `cap` (ftCo_DatAttrs +0x078 air_max_horizontal_velocity).
+ */
+function retailAirDriftVelocity(f: Fighter, velocity: number, direction: number, cap: number): number {
+  const { airSpeed: target, airAcceleration: acceleration, airFriction } = f.tuning.physics;
   const alongInput = f32(velocity * direction);
   const next = alongInput > target ? max(target, f32(alongInput - airFriction)) : min(target, f32(alongInput + acceleration));
-  return f32(max(-airCap, min(airCap, next)) * direction);
+  return f32(max(-cap, min(cap, next)) * direction);
+}
+
+export function airDriftVelocity(f: Fighter, velocity: number, direction: number): number {
+  const { airAcceleration: acceleration, airCap } = f.tuning.physics;
+  // Illidan retains his authored immediate drift cap.
+  if (f.character === Character.demonHunter) return max(-airCap, min(airCap, f32(velocity + f32(direction * acceleration))));
+  return retailAirDriftVelocity(f, velocity, direction, airCap);
+}
+
+/** Captain Falcon's ftCo_DatAttrs +0x078 air_max_horizontal_velocity, 3.0 (retail PlCa.dat). */
+const CAPTAIN_FALCON_AIR_MAX_HORIZONTAL_VELOCITY = melee(3.0);
+
+/**
+ * The drift on a ceiling tech's impulse frame, after the impulse
+ * (ftCo_PassiveCeil_Phys runs ft_80084DB0's drift): Melee's rule for every
+ * fighter. Illidan's Captain Falcon impulse of 2.0 loses a frame of his air
+ * friction there instead of meeting his authored cap; the rule's cap is
+ * Captain Falcon's.
+ */
+export function ceilingImpulseDriftVelocity(f: Fighter, velocity: number, direction: number): number {
+  if (f.character !== Character.demonHunter) return airDriftVelocity(f, velocity, direction);
+  return retailAirDriftVelocity(f, velocity, direction, CAPTAIN_FALCON_AIR_MAX_HORIZONTAL_VELOCITY);
 }
 
 function retailAirDecaySquaredCutoff(decay: number): number {

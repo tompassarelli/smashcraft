@@ -3,6 +3,7 @@
 // below the right ledge into the main deck's side, at medium and high
 // percent; each fighter drifts into the side and flicks away from it; and an
 // Archer's up smash launches each fighter into a raised deck's underside.
+import { max, min } from "../../runtime/numbers";
 import { assertDefined, assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { Character, SurfaceContact } from "../sim/codes";
@@ -259,9 +260,10 @@ test("a ceiling tech moves each fighter sideways by its reference's impulse on i
     assertFalse(victim.motion.grounded);
     assertTrue(victim.surfaceRecovery.velocityApplied);
     assertFalse(isIntangible(victim));
-    const { airAcceleration, airCap } = victim.tuning.physics;
-    // Illidan's authored drift caps his air speed at once, Captain Falcon's 2.0 included.
-    const expected = character === Character.demonHunter ? -airCap : -f32(melee(reference.ceiling) + airAcceleration);
+    // Melee's drift: below the air speed it adds the acceleration, above it (Illidan's 2.0) it loses the air friction.
+    const { airAcceleration, airFriction, airSpeed } = victim.tuning.physics;
+    const impulse = melee(reference.ceiling);
+    const expected = -(impulse > airSpeed ? max(airSpeed, f32(impulse - airFriction)) : min(airSpeed, f32(impulse + airAcceleration)));
     assertEquals(victim.motion.vx, expected);
   }
 });

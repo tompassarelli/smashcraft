@@ -928,10 +928,32 @@ const WALL_JUMP = "can_walljump (ftFx/ftFc/ftCa_Init_OnLoad); met faster than +0
  * Ceiling tech data: ftCo_DatAttrs +0x10C passiveceil_vel_x (Melee units a
  * frame) from the retail DATs and the animation's impulse event frame
  * (retail-ceiling-tech-events.json): Fox and Falco 0.7 on frame 14, Captain
- * Falcon (Illidan) 2.0 on frame 11.
+ * Falcon (Illidan) 2.0 on frame 11; and +0x078 air_max_horizontal_velocity,
+ * the cap of the drift that follows: Fox 3, Falco 4, Captain Falcon 3.
  */
-function referenceCeiling(character: Character): { readonly speed: number; readonly frame: number } {
-  return character === Character.demonHunter ? { speed: 2.0, frame: 11 } : { speed: 0.699999988079071, frame: 14 };
+function referenceCeiling(character: Character): { readonly speed: number; readonly frame: number; readonly airMax: number } {
+  if (character === Character.demonHunter) return { speed: 2.0, frame: 11, airMax: 3.0 };
+  return { speed: 0.699999988079071, frame: 14, airMax: character === Character.rifleman ? 4.0 : 3.0 };
+}
+
+/**
+ * One frame of Melee's air drift with the stick fully toward `velocity`
+ * (ftCommon_CalcSelfAccel_DriftFrom, ftCommon_CalcSelfAccel_AccelToVelClampedFrom,
+ * melee:src/melee/ft/ftcommon.c): the acceleration toward the drift maximum,
+ * or, past it, the air friction instead, no lower than that maximum and no
+ * higher than air_max_horizontal_velocity. Melee units, from the fighter's own
+ * air values.
+ */
+function meleeAirDrift(character: Character, velocity: number, airMax: number): number {
+  const physics = createFighter(character, 0.0, 1).tuning.physics;
+  const target = f32(melee(physics.airSpeed));
+  let accel = f32(melee(physics.airAcceleration));
+  if (f32(velocity + accel) > target) {
+    accel = -f32(melee(physics.airFriction));
+    if (f32(velocity + accel) < target) accel = f32(target - velocity);
+    if (f32(velocity + accel) > airMax) accel = f32(airMax - velocity);
+  }
+  return f32(velocity + accel);
 }
 
 /**
@@ -1025,13 +1047,11 @@ const SURFACES: readonly Scenario[] = [
   },
   {
     area: "wall/ceiling", name: "ceiling tech: speed after the impulse frame with the stick fully left (Melee units/frame)",
-    cite: `${CEILING_IMPULSE}; Illidan's authored air drift caps his speed on that frame, so his row is n/a`,
+    cite: `${CEILING_IMPULSE}; that frame's drift uses each fighter's air speed, acceleration and friction, so Illidan's 2.0 loses his friction rather than meeting his authored cap`,
     run: (c) => {
-      if (c === Character.demonHunter) return undefined;
-      const { speed, frame: impulse } = referenceCeiling(c);
-      const drift = melee(createFighter(c, 0.0, 1).tuning.physics.airAcceleration);
+      const { speed, frame: impulse, airMax } = referenceCeiling(c);
       const actual = ceilingTechSpeed(c, impulse);
-      return { expected: f32(speed + drift), actual: actual === undefined ? "no ceiling tech in the air" : -actual, tolerance: 0.0001 };
+      return { expected: meleeAirDrift(c, speed, airMax), actual: actual === undefined ? "no ceiling tech in the air" : -actual, tolerance: 0.0001 };
     },
   },
 ];
