@@ -65,7 +65,7 @@ test("beingHitDuringAttackStartupCancelsBeforeItsActiveFrame", () => {
     stepMatch(game, testRoster(first, second), frameControls(firstInput, secondInput, firstCommands, secondCommands), frame);
   }
   assertEquals(first.status.damage, 0.0);
-  assertEquals(second.status.damage, 12.0);
+  assertEquals(second.status.damage, 5.0);
   assertEquals(second.attack.serial, 1);
   assertEquals(second.attack.style, undefined);
   assertEquals(second.attack.cooldown, 0);
@@ -88,18 +88,18 @@ test("aHitAddsDamageHitlagAndDamageScaledKnockback", () => {
   for (let tick = 2; tick <= attackStartupFrames(0) + 1; tick++) {
     stepMatch(game, testRoster(attacker, target), frameControls(attackerInput, targetInput, attackerCommands, targetCommands), tick);
   }
-  assertEquals(target.status.damage, 12.0);
+  assertEquals(target.status.damage, 5.0);
   assertEquals(target.motion.vx, 0.0);
   assertEquals(target.motion.vz, 0.0);
-  assertNear(target.launch.knockbackX, 6.508500099182129, 0.009999999776482582);
-  assertNear(target.launch.knockbackZ, 6.508500099182129, 0.009999999776482582);
+  assertNear(target.launch.knockbackX, 5.18310022354126, 0.009999999776482582);
+  assertNear(target.launch.knockbackZ, 5.18310022354126, 0.009999999776482582);
   assertEquals(totalVelocityX(target), target.launch.knockbackX);
   assertEquals(totalVelocityZ(target), target.launch.knockbackZ);
-  assertEquals(target.launch.hitstun, 20);
-  assertEquals(target.launch.hitlag, 7);
+  assertEquals(target.launch.hitstun, 16);
+  assertEquals(target.launch.hitlag, 4);
   assertTrue(target.launch.diPending);
   assertGreaterThan(target.launch.diLaunchSpeed, 0.0);
-  assertEquals(attacker.launch.hitlag, 7);
+  assertEquals(attacker.launch.hitlag, 4);
   let frame = attackStartupFrames(0) + 2;
   while (attacker.launch.hitlag > 0) {
     stepMatch(game, testRoster(attacker, target), frameControls(attackerInput, targetInput, attackerCommands, targetCommands), frame);
@@ -177,11 +177,11 @@ test("attacksCommitRecoveryOnWhiffAndBlockDuringLandingLag", () => {
   const attackerCommands = attackBuffer(0);
   const targetCommands = attackBuffer(0);
   runToAttackActive(game, attacker, target, attackerInput, targetInput, attackerCommands, targetCommands, 0, 1);
-  assertEquals(attacker.attack.cooldown, 32);
+  assertEquals(attacker.attack.cooldown, 17);
   assertTrue((attackPhase(attacker) === AttackPhase.active));
   target.motion.x = 100;
   stepMatch(game, testRoster(attacker, target), frameControls(attackerInput, targetInput, attackerCommands, targetCommands), attackStartupFrames(0) + 2);
-  assertEquals(target.status.damage, 12.0);
+  assertEquals(target.status.damage, 5.0);
   assertTrue(attacker.attack.hit);
   const damageAfterContact = target.status.damage;
   for (let frame = attackStartupFrames(0) + 3; frame <= attackStartupFrames(0) + attackActiveFrames(0) + 1; frame++) {

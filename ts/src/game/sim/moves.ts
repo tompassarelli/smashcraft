@@ -88,7 +88,7 @@ export function attackDamage(style: AttackStyle): number {
     case AttackStyle.forwardTiltDown:
       return 10.0;
     case AttackStyle.jab:
-      return 12.0;
+      return 5.0;
   }
 }
 
@@ -209,6 +209,8 @@ export function attackDurationFramesForGrounding(style: AttackStyle, grounded: b
       return 28;
     case AttackStyle.upTilt:
       return 29;
+    case AttackStyle.jab:
+      return 21;
     default:
       return 36;
   }

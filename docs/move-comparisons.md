@@ -117,3 +117,41 @@ The factual action-family reference join and bounded trade-off analysis are
 recorded in smashcraft:docs/move-reference-join.md. No Melee character is equated
 with an original Warcraft fighter. Native parity, balance tuning and playable
 before/after acceptance remain in issue #12.
+
+## Jab change, 6 October 2026 (#12)
+
+Issue #12's first balance change, proposed from bot soak data
+(smashcraft:evidence/soak-balance-20261006/) and the Melee reference join:
+
+| Jab | Before | After |
+| --- | ---: | ---: |
+| Archer and Rifleman damage | 12 | 5 (Illidan's, unchanged) |
+| Recovery, every fighter | 30 | 15 |
+| Total frames, every fighter | 36 | 21 |
+| Knockback at 0%, weight 100 (Archer, Rifleman) | 49.76 | 40.45 |
+| Hitstun / victim hitlag (Archer, Rifleman) | 19 / 7 | 16 / 4 |
+| Digital shield damage / shieldstun (Archer, Rifleman) | 8.4 / 7 | 3.5 / 4 |
+
+Startup (4), active frames (2), reach and knockback growth and base are
+unchanged. Melee's jab1 records for its 26 characters report 2–8 base damage
+(median 3, fresh values; Smashcraft has no stale moves) and 15–31 total
+frames (median 20); 12 damage and 36 frames were above every one of them.
+Each fighter's forward tilt (8–10 damage, 28 frames) is now the stronger,
+slower option and the jab the fast, weak one.
+
+The comparison snapshot is unchanged: all 54 contact contexts and 2,236
+option trials, including all 21 `bounded-true-link` and 3 `bounded-punish`
+rows, are identical. Their verdicts depend on startup, reach and the
+opponent's recovery, none of which changed. What changed is what a link is
+worth: Archer's late neutral air (5) into jab at 60%, the four approach
+delays 2–5 above, now confirms **10%** instead of **17%**.
+
+A jab's 5 damage is below the 7-damage down-damage threshold
+(smashcraft:docs/physics.md, "Grounded knockdown and jab resets"), so a jab
+on a downed fighter is now a jab reset, not a launch. A downed fighter that
+stands, rolls or get-up attacks leaves after the first reset, before the
+next jab. One that does nothing stays down: jabbing as fast as the game
+allows held a passive Archer for 25 resets in 600 frames from 30% and from
+100%. The game's computer never chooses a get-up option, so in
+computer-against-computer matches a jabbing Archer or Rifleman can hold a
+downed opponent until time runs out.
