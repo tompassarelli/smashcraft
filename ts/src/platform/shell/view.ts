@@ -122,7 +122,7 @@ export function renderFighter(s: ShellState, slot: ParticipantSlot, pose: Readon
   }
   if (!pooled) SetUnitTimeScale(body.unit, pose.rate);
   if (fighter.status.out) return;
-  placeFighterBody(body, fighter, s.origin);
+  placeFighterBody(body, fighter, s.origin, s.game.stageChoice);
   if (fighter.status.frozenFrames > 0) SetUnitVertexColor(body.unit, 155, 210, 255, 255);
   else if (hitlagTint(fighter) !== undefined) {
     const tint = hitlagTint(fighter);
@@ -187,7 +187,7 @@ export function renderPersistentPresentation(s: ShellState): void {
     const fighter = isActive(world, slot) ? fighterAt(world, slot) : undefined;
     const renderers = ui.fighters[slot];
     if (renderers?.pool !== undefined) {
-      if (fighter !== undefined) renderers.pool.present(fighter, runtime.poses[slot]);
+      if (fighter !== undefined) renderers.pool.present(fighter, runtime.poses[slot], stage);
       else renderers.pool.hide();
     }
     const live = playing ? fighter : undefined;
