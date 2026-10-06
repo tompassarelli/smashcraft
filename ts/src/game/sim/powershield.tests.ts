@@ -177,7 +177,7 @@ test("a perfect contact allows an attack during the drop and holding guard consu
   for (let heldTicks = 0; heldTicks <= 4; heldTicks++) {
     respawnFighter(world, 1, 0.0);
     target.motion.grounded = true;
-    target.motion.z = surfaceZ(0, 0);
+    target.motion.z = surfaceZ(0, 0, 0);
     target.shield.raised = true;
     target.shield.perfectFrames = 1;
     contactBatch(world, queueHit);

@@ -66,8 +66,8 @@ class Rig {
   }
 
   motion(): void {
-    advanceFighterMotion(this.world, 0, 0, this.attackInput, 0);
-    advanceFighterMotion(this.world, 1, 0, this.defendInput, 0);
+    advanceFighterMotion(this.world, 0, 0, 0, this.attackInput, 0);
+    advanceFighterMotion(this.world, 1, 0, 0, this.defendInput, 0);
   }
 
   contacts(): void {

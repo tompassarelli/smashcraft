@@ -1,5 +1,26 @@
 # Physics reference and implementation
 
+## Moving platforms
+
+Smashcraft's moving decks follow closed paths of timed linear legs, including
+stationary legs for waits. The match frame chooses a binary32 pose directly;
+rollback and prediction use that same frame, with no accumulated stage timer.
+The main deck stays fixed. Hidden test stages 3 and 4 provide a Smashville-style
+back-and-forth platform and independent loop/lift patterns.
+
+Grounded fighters ride their floor before their own motion, including hitlag,
+as Melee's `Fighter_procUpdate` adds `mpGetSpeed` to grounded position
+(melee:src/melee/ft/fighter.c). Grounded traps and bears ride the same way,
+following grounded items in melee:src/melee/it/item.c. Landing remaps the
+previous endpoint by the floor's displacement (`mpCheckFloorRemap` in
+melee:src/melee/mp/mplib.c); an already carried fighter is not shifted twice.
+Down presses retain Melee's pass-through gate, and floor tech recovery rides
+the platform. Moving raised platforms have no ledge: Melee's Stadium platform
+line 0 and Icicle Mountain lines 0–2 have `LINE_FLAG_PLATFORM` without
+`LINE_FLAG_LEDGE` (GrSt.dat/GrIz.dat). Main-deck ledges retain their usual catch
+rules. Path dimensions and schedules are authored here; they are inspired by
+Ultimate's layouts, without claiming Ultimate's exact timing.
+
 The live simulation is smashcraft:ts/src/game/sim/. The numerical fixture suites
 are smashcraft:ts/src/game/sim/physicsPrecisionState.tests.ts,
 smashcraft:ts/src/game/sim/physicsPrecisionScalar.tests.ts and
