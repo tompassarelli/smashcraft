@@ -10,7 +10,7 @@ import { advanceHeroConditions } from "./heroStatus";
 import { ProjectileKind, SpecialAction } from "./codes";
 import { canAttack, inGrabContext, isIntangible } from "./conditions";
 import type { Fighter } from "./fighter";
-import { type FighterSpecials, type AuthoredSpecial, type SpecialProjectile, SpecialForm, SpecialSlot, specialForm, specialKit } from "./heroSpecials";
+import { type FighterSpecials, type AuthoredSpecial, type SpecialProjectile, FOLLOW_UP_FORM, SpecialForm, SpecialSlot, specialForm, specialKit } from "./heroSpecials";
 import { type HitRegion, NO_HIT_REGION } from "./hitRegions";
 import { type Controls, type Roster, fighterAt } from "./roster";
 import { travelBeforeBodies } from "./travelStop";
@@ -365,4 +365,34 @@ export function stopHeroMotionAtBodies(world: Roster, slot: number): void {
     f.motion.vx = f32(f.facing * travelBeforeBodies(world, slot, forward, true));
     return;
   }
+}
+
+/**
+ * A second special press inside the running form's follow-up window replaces
+ * the rest of the action with the follow-up; true when it did. The press tick
+ * is the follow-up's frame 1, as an entry is.
+ */
+export function followUpHeroSpecial(f: Fighter, input: Readonly<Controls>): boolean {
+  const { special, mana } = f;
+  const followUp = runningHeroSpecial(f)?.followUp;
+  if (followUp === undefined || special.form >= FOLLOW_UP_FORM || f.launch.hitlag > 0 || f.launch.hitstun > 0) return false;
+  if (!inWindow(followUp.window, special.frame + 1)) return false;
+  const next = followUp.special;
+  if (next.cost > mana.points) {
+    f.visuals.manaDenied++;
+    return false;
+  }
+  special.form += FOLLOW_UP_FORM;
+  special.frame = 0;
+  special.duration = next.endFrame;
+  special.lockFrames = next.endFrame;
+  for (let entry = 0; entry < PARTICIPANT_CAPACITY; entry++) special.hitTargets[entry] = undefined;
+  special.hit = false;
+  if (next.cost > 0) {
+    mana.points = max(0, mana.points - next.cost);
+    mana.sinceSpend = 0;
+    mana.progress = 0;
+  }
+  applyWindows(f, next, 0);
+  return true;
 }

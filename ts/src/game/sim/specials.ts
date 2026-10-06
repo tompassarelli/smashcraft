@@ -19,7 +19,7 @@ import { type Controls, type Roster, fighterAt, isActive } from "./roster";
 import { surfaceZ } from "./stage";
 import { RIFLEMAN_BEAR_LIFETIME, advanceBear, advanceHippogryph, recordSpecialHit, specialAlreadyHit, startFreezeTrap } from "./summons";
 import { at } from "wisp/src/runtime/lookup";
-import { advanceHeroSpecial, chooseHeroSpecial, enterHeroSpecial, heroSpecialContact, heroStrikeMeetsShield, isHeroSpecialAction, steerHeroSpecial, stopHeroMotionAtBodies } from "./heroSpecialRules";
+import { advanceHeroSpecial, chooseHeroSpecial, enterHeroSpecial, followUpHeroSpecial, heroSpecialContact, heroStrikeMeetsShield, isHeroSpecialAction, steerHeroSpecial, stopHeroMotionAtBodies } from "./heroSpecialRules";
 
 export const DEMONHUNTER_MANA_BURN_STARTUP = 8;
 const DEMONHUNTER_MANA_BURN_RECOVERY = 25;
@@ -217,6 +217,7 @@ const heroRefusal = { manaShort: false };
 function startHeroFighterSpecial(owner: Fighter, input: Readonly<Controls>): boolean {
   const specials = owner.tuning.specials;
   const { special } = owner;
+  if (isHeroSpecialAction(special.action)) return followUpHeroSpecial(owner, input);
   if (specials === undefined || special.lockFrames > 0 || special.action !== SpecialAction.none || !canAttack(owner)) return false;
   const chosen = chooseHeroSpecial(owner, specials, input, heroRefusal);
   if (chosen === undefined) {
