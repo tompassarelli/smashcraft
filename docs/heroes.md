@@ -47,6 +47,9 @@ acts again on N+1. It may author:
   life, radius, `activeFrom`, effect, `reflectable`, `limit` and
   `cancelOnInterrupt`; a cast that would exceed a limit or the three-projectile
   cap fails before spending;
+- `hurt`: body poses over the special's frames (`hurtPose`, 1-based), which
+  `sim/hurtboxes.ts` uses instead of the standing body while they cover the
+  current special frame;
 - `intangible` and `armor` windows (armor takes one hit's reaction up to its
   damage; the damage applies and throws ignore it);
 - `groundOnly`, `oncePerAirtime`, `helpless` and `landingLag`.

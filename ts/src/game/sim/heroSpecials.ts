@@ -4,6 +4,7 @@
 // windows are inclusive, and "end fN" means the fighter acts again on N+1.
 import type { MoveRegion } from "./heroMoves";
 import type { HitEffect } from "./hitRegions";
+import type { HurtPose } from "./hurtboxes";
 
 /** The four special inputs, in SpecialAction.heroNeutral order. */
 export const SpecialSlot = { neutral: 0, side: 1, up: 2, down: 3 } as const;
@@ -85,6 +86,11 @@ export interface AuthoredSpecial {
   readonly helpless?: boolean | undefined;
   /** Landing during the action ends it with this landing lag; otherwise it continues on the ground. */
   readonly landingLag?: number | undefined;
+  /**
+   * Bodies over brief frames (hurtPose(first, last, parts) with 1-based
+   * frames); frames no pose covers use the standing body. Weapons stay out.
+   */
+  readonly hurt?: readonly HurtPose[] | undefined;
 }
 
 /** One special input: its grounded form, its airborne form and its zero-mana form. */
