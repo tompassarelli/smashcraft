@@ -18,6 +18,12 @@ the same fighters, stage and rules, with a visible five-second countdown
 after the result. A player can stop it with a menu control, then choose the
 next match. It starts off.
 
+An orange halo means your fighter is locked and no current input can help.
+A green halo means moving the stick can change the hit or throw, while buttons
+cannot. The halo disappears as soon as a button can matter, including an attack
+you can queue before recovery or a tech you can press before landing. The
+fighter keeps the usual hit and ice colours inside the halo.
+
 ## Menus and controls
 
 Mouse buttons and W/R + N select a fighter or stage; U goes back. Drag a

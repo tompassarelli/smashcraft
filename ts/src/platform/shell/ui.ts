@@ -3,6 +3,8 @@
 import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots } from "../../game/input/participants";
 import { CombatEffects } from "../../game/render/combatEffects";
 import { FighterPoolPresentation } from "../../game/render/fighterPool";
+import { AgencyMarker } from "../../game/render/agencyMarker";
+import { FighterAgencyForecast } from "../../game/presentation/fighterAgency";
 import { FrostEffects } from "../../game/render/frostEffects";
 import { modelSoundPresentation } from "../../game/render/modelSoundPresentation";
 import type { ModelSoundSink } from "../../game/render/modelSounds";
@@ -26,6 +28,7 @@ interface FighterRenderers {
   readonly shield: ShieldPresentation;
   readonly projectiles: ProjectilePresentation;
   readonly pool: FighterPoolPresentation | undefined;
+  readonly agency: AgencyMarker;
 }
 
 export interface UiObjects {
@@ -85,6 +88,7 @@ function endFighterRenderers(renderers: FighterRenderers | undefined): void {
   renderers?.shield.destroy();
   renderers?.projectiles.destroy();
   renderers?.pool?.destroy();
+  renderers?.agency.destroy();
 }
 
 /**
@@ -95,7 +99,7 @@ export function beginFighterRenderers(s: ShellState, slot: ParticipantSlot, char
   const ui = views(s);
   endFighterRenderers(ui.fighters[slot]);
   const pool = pooled ? new FighterPoolPresentation(character, slot, s.origin) : undefined;
-  ui.fighters[slot] = { character, shield: new ShieldPresentation(slot, s.origin), projectiles: new ProjectilePresentation(character, s.origin), pool };
+  ui.fighters[slot] = { character, shield: new ShieldPresentation(slot, s.origin), projectiles: new ProjectilePresentation(character, s.origin), pool, agency: new AgencyMarker(s.origin) };
   return pool?.admitted() === true;
 }
 
@@ -138,6 +142,8 @@ export function recreateUi(s: ShellState, actions: PanelActions): void {
     bindPrototype(renderers.shield, ShieldPresentation.prototype);
     bindPrototype(renderers.projectiles, ProjectilePresentation.prototype);
     if (renderers.pool !== undefined) bindPrototype(renderers.pool, FighterPoolPresentation.prototype);
+    bindPrototype(renderers.agency, AgencyMarker.prototype);
+    bindPrototype(renderers.agency.forecast, FighterAgencyForecast.prototype);
   }
 }
 

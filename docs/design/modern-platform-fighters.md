@@ -341,6 +341,4 @@ One line per mechanic. No stance is taken.
 - Parry: add a dedicated parry alongside the shield (7)?
 - Wall jump and wall tech: any wall movement (8)?
 - Ledge: edgehog, trump or limited regrab (9)?
-- Dedicated meter resource (slime meter style): any (14)?
-- Cooldown-gated specials (13): any?
 - Tech-chase design: confirm how platforms should interact with floor tech, once sourced (16).
