@@ -95,6 +95,17 @@ export interface SpecialArmor extends FrameWindow {
   readonly shell?: boolean | undefined;
 }
 
+/**
+ * A guard: when an opponent's damaging strike or projectile overlaps the
+ * fighter's body during the window, the action records one success and
+ * restores `heal` damage percent, never more than `healCapPerStock` in a
+ * stock. It protects nothing by itself; pair it with an intangible window.
+ */
+export interface SpecialGuard extends FrameWindow {
+  readonly heal: number;
+  readonly healCapPerStock: number;
+}
+
 export interface AuthoredSpecial {
   /** Mana spent once, on entry. */
   readonly cost: number;
@@ -106,6 +117,7 @@ export interface AuthoredSpecial {
   readonly projectiles?: readonly SpecialProjectile[] | undefined;
   readonly intangible?: FrameWindow | undefined;
   readonly armor?: SpecialArmor | undefined;
+  readonly guard?: SpecialGuard | undefined;
   /** Does not start in the air and spends nothing there. */
   readonly groundOnly?: boolean | undefined;
   /** Once per airtime; landing or a new stock restores it, a ledge catch does not. */

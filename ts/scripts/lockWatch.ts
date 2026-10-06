@@ -11,7 +11,7 @@ import { type InputRow, emptyInput } from "../src/game/input/inputRow";
 import { PARTICIPANT_SLOTS } from "../src/game/input/participants";
 import { Phase } from "../src/game/match/rules";
 import { type ReplayState, copyReplayState, createReplaySnapshot } from "../src/game/replay/snapshot";
-import { Character } from "../src/game/sim/codes";
+import { fighterName } from "../src/game/sim/heroes/registry";
 import { fighterAt, isActive } from "../src/game/sim/roster";
 import { ESCAPE_FRAMES, INPUT_CLASSES, type InputClass, TIGHT_ESCAPE, analyzeAgency, escapeFrames, runFrame, sameGameplay, situationKey, snapshotOf, underControl } from "./agency";
 
@@ -21,7 +21,6 @@ const LONGEST_STRETCH = 600;
 const AFTER_CYCLE = 120;
 /** A gap in the confirmed frames longer than this starts the record again. */
 const LONGEST_GAP = 60;
-const NAMES: Readonly<Record<number, string>> = { [Character.archer]: "Archer", [Character.rifleman]: "Rifleman", [Character.demonHunter]: "Illidan" };
 
 /** A situation that came back, waiting to be replayed: the match at its first frame and when it came back. */
 interface Cycle {
@@ -43,7 +42,7 @@ interface Stretch {
 /** The rows a human slot ran a confirmed frame with, as the match recorded them. */
 export type RecordedRows = (frame: number, slot: number) => Readonly<InputRow> | undefined;
 
-const describe = (state: Readonly<ReplayState>, slot: number) => `p${slot} (${NAMES[fighterAt(state.world, slot).character] ?? "fighter"})`;
+const describe = (state: Readonly<ReplayState>, slot: number) => `p${slot} (${fighterName(fighterAt(state.world, slot).character)})`;
 
 export class LockWatch {
   constructor(private readonly classes: readonly InputClass[] = INPUT_CLASSES) {}
