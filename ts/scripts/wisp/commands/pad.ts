@@ -83,6 +83,12 @@ export const pad: Command = (args) => Effect.gen(function*() {
       else if (Date.now() > deadline) return yield* new IntegrityFailure({ operation: "wait for match start", path: out, cause: "a helper reported no match start within 60 s" });
       else yield* Effect.sleep("20 millis");
     }
+    // The helpers report the match a few frames after it starts: an edge meant for an earlier frame can't land on it.
+    const first = steps.find((item) => item.kind === "edge");
+    const seen = Math.max(...SLOTS.map((slot) => ruleFrame(at(epochs, slot), monotonicNs())));
+    if (first !== undefined && first.frame <= seen) {
+      return yield* new IntegrityFailure({ operation: "replay pad script", path: scriptPath, cause: `line ${first.line} is meant for frame ${first.frame}, but the helpers reported the match at frame ${seen}; start scripts at frame ${seen + 10} or later` });
+    }
     const producerPath = join(out, "producer.jsonl");
     const producer = yield* Effect.acquireRelease(tryIntegrity("open producer log", producerPath, () => openSync(producerPath, "w")), (fd) => Effect.sync(() => closeSync(fd)));
     const sent: SentEdge[] = [];
