@@ -28,6 +28,14 @@ reports compare the measured strings and stock-taking paths with the accepted
 feeds balance work; a passing regeneration check says the written measurement
 matches the game, not that the fighter meets every balance target.
 
+The guaranteed-string search selects a common true follow-up greedily by its
+least immediate damage across the victim scripts. Its measured damage and
+length describe that selected string, rather than an exhaustive maximum.
+Stock paths use the beam and depth limits written in each generated report.
+A read requires a sampled victim choice that escapes the committed move;
+when every choice is hit after gaining freedom, the extension is unclassified
+and is excluded from the reported stock paths.
+
 From smashcraft:ts/:
 
 - `bun wisp interactions` plays every situation and combo search for every

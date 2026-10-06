@@ -31,7 +31,7 @@ class InteractionsFailure extends Schema.TaggedError<InteractionsFailure>()("Int
 const failure = (cause: unknown): InteractionsFailure => new InteractionsFailure({ problems: [describeCause(cause)] });
 
 /** Each named fighter's rows, every fighter on its own worker thread. */
-const playFighters = (names: readonly string[]): Effect.Effect<FighterRows[], InteractionsFailure> =>
+const playFighters = (names: readonly string[], combos = true): Effect.Effect<FighterRows[], InteractionsFailure> =>
   Effect.tryPromise({
     try: () => Promise.all(names.map((name) => new Promise<FighterRows>((resolve, reject) => {
       const worker = new Worker(new URL("../../interactionsWorker.ts", import.meta.url).href);
@@ -43,7 +43,7 @@ const playFighters = (names: readonly string[]): Effect.Effect<FighterRows[], In
         reject(new Error(`${name}: ${event.message}`));
         worker.terminate();
       };
-      worker.postMessage(name);
+      worker.postMessage({ fighter: name, combos });
     }))),
     catch: failure,
   });
@@ -91,7 +91,7 @@ const profile = (spec: string) =>
     const entry = fighterNamed(name);
     if (entry === undefined || move === "") return yield* Effect.fail(new UsageFailure({ problem: `--move takes FIGHTER:MOVE, a fighter of ${FIGHTERS.map((fighter) => fighter.slug).join(", ")}` }));
     const moveName = move.replaceAll("-", " ");
-    const [played] = yield* playFighters([entry.name]).pipe(step(`${entry.name}'s situations`));
+    const [played] = yield* playFighters([entry.name], false).pipe(step(`${entry.name}'s situations`));
     const rows = played?.interactions ?? [];
     const lines = moveProfile(rows, moveName);
     yield* Console.log(lines.length === 0 ? `${moveName} takes part in none of ${entry.name}'s situations` : [`${entry.name} ${moveName}:`, ...lines.map((line) => `  ${line}`)].join("\n"));

@@ -11,7 +11,7 @@ import { fighterAt } from "../src/game/sim/roster";
 import { Timeline, type FighterEntry, type Held, type Option, type Situation } from "./interactions";
 import { airborne } from "./frameScene";
 
-export const COMBO_PERCENTS = [0, 30, 60, 90, 120] as const;
+const COMBO_PERCENTS = [0, 30, 60, 90, 120] as const;
 const HORIZON = 120;
 const STRING_LIMIT = 6;
 const PATH_HITS = 12;
@@ -24,8 +24,7 @@ const DIRECTIONS = [
   { name: "down-left", x: -1, z: -1 }, { name: "down-right", x: 1, z: -1 },
 ] as const;
 const RESPONSES = ["hold", "SDI", "tech in place", "tech left", "tech right", "missed tech", "jump", "air dodge", "mash"] as const;
-type Response = (typeof RESPONSES)[number];
-export const VICTIM_CHOICES = DIRECTIONS.flatMap((di) => RESPONSES.map((response) => ({ name: `DI ${di.name}; ${response}`, di, response })));
+const VICTIM_CHOICES = DIRECTIONS.flatMap((di) => RESPONSES.map((response) => ({ name: `DI ${di.name}; ${response}`, di, response })));
 type VictimChoice = (typeof VICTIM_CHOICES)[number];
 
 interface Move {
@@ -35,7 +34,7 @@ interface Move {
   readonly throw?: "forward" | "back" | "up" | "down";
   readonly dash?: boolean;
 }
-export const COMBO_OPENINGS: readonly Move[] = [
+const COMBO_OPENINGS: readonly Move[] = [
   { name: "jab", style: AttackStyle.jab },
   { name: "forward tilt", style: AttackStyle.forwardTilt }, { name: "up tilt", style: AttackStyle.upTilt }, { name: "down tilt", style: AttackStyle.downTilt },
   { name: "forward tilt up", style: AttackStyle.forwardTiltUp }, { name: "forward tilt down", style: AttackStyle.forwardTiltDown },
@@ -178,7 +177,7 @@ function openingState(entry: FighterEntry, move: Move, percent: number, throwDI?
       row.axisX = throwDI.x * 127;
       row.axisZ = throwDI.z * 127;
     },
-  }, HORIZON);
+  }, HORIZON, "first");
   let landed = false;
   line.play([[{ option: moveOption(move, true), start: 1 }], []], HORIZON, (_n, a, b) => {
     const caught = b.visuals.hit > 0 || (move.style === AttackStyle.grab && b.visuals.grab > 0);
@@ -192,7 +191,7 @@ function openingState(entry: FighterEntry, move: Move, percent: number, throwDI?
 
 /** Tests all committed follow-up moves from one exact state against one victim script. */
 function links(entry: FighterEntry, start: Checkpoint, choice: VictimChoice): Link[] {
-  const line = new Timeline(situation(entry, start, choice), HORIZON);
+  const line = new Timeline(situation(entry, start, choice), HORIZON, "first");
   const old = fighterAt(start.state.world, 1);
   const oldAttacker = fighterAt(start.state.world, 0);
   if (old.status.out || old.status.respawn > 0) { line.release(); return []; }
@@ -216,7 +215,7 @@ function links(entry: FighterEntry, start: Checkpoint, choice: VictimChoice): Li
       const after = line.capture();
       const target = fighterAt(after.state.world, 1);
       const damage = target.status.damage - old.status.damage;
-      const flight = new Timeline(situation(entry, after, choice), HORIZON);
+      const flight = new Timeline(situation(entry, after, choice), HORIZON, "first");
       let koAfterFrames: number | undefined;
       flight.play([[], []], HORIZON, (n, _a, b) => {
         if (b.status.stocks >= old.status.stocks) return false;
@@ -334,7 +333,7 @@ function bestChoices(rowsByChoice: readonly (readonly Link[])[]): ChoiceResult[]
   });
 }
 
-export function comboRow(entry: FighterEntry, move: Move, percent: number): ComboRow {
+function comboRow(entry: FighterEntry, move: Move, percent: number): ComboRow {
   const initial = openingState(entry, move, percent);
   if (initial === undefined) return { kind: "combo", fighter: entry.name, opening: move.name, percent, openingLands: false, openingDamage: 0, choices: VICTIM_CHOICES.map((choice) => ({ victim: choice.name, best: undefined })), guaranteed: { damage: 0, followups: 0, moves: [], capped: false, ko: false }, stockPath: undefined, tree: [], violations: ["opening does not land in this setup"] };
   const roots = VICTIM_CHOICES.map((choice) => {

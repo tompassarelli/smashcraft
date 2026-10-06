@@ -20,9 +20,9 @@ import { type Placement, type Scene, airborne, fighter, frameRows, scene, tumbli
 // ------------------------------------------------------------------ playing a situation
 
 export type Held = readonly Action[];
-export type Side = 0 | 1;
+type Side = 0 | 1;
 /** A side's inputs on frame n (from 1), seeing both fighters as frame n - 1 left them. */
-export type Policy = (n: number, self: Fighter, other: Fighter) => Held;
+type Policy = (n: number, self: Fighter, other: Fighter) => Held;
 
 const idle: Policy = () => [];
 
@@ -51,14 +51,14 @@ export interface Option {
   readonly input: (i: number, self: Fighter, other: Fighter, base: Held) => Held;
 }
 
-export interface Choice {
+interface Choice {
   readonly option: Option;
   readonly start: number;
 }
 
 /** A side's options; each, from its start, decides the inputs, given those of the options started before it. */
-export type Plan = readonly Choice[];
-export type Plans = readonly [Plan, Plan];
+type Plan = readonly Choice[];
+type Plans = readonly [Plan, Plan];
 
 const NONE: Plans = [[], []];
 
@@ -145,13 +145,14 @@ export class Timeline {
   private readonly states: ReplayState[] = [];
   private readonly held: number[][] = [];
 
-  constructor(private readonly sit: Situation, readonly last: number) {
+  constructor(private readonly sit: Situation, readonly last: number, retention: "all" | "first" = "all") {
     this.live = scene(0, sit.placements);
     if (sit.initial !== undefined) restoreReplaySnapshot(sit.initial, this.live.world, this.live.game, this.live.controls, this.live.runtime);
     if (sit.previous !== undefined) this.live.previous.splice(0, this.live.previous.length, ...sit.previous);
     const [a, b] = this.fighters();
     sit.prepare?.(a, b);
-    for (let n = 1; n <= last; n++) {
+    // Combo candidates all branch on frame 1; they need no later baseline snapshots.
+    for (let n = 1; n <= (retention === "first" ? 1 : last); n++) {
       const snapshot = spareStates.pop() ?? createReplaySnapshot();
       captureReplaySnapshot(snapshot, this.live.world, this.live.game, this.live.controls, this.live.runtime);
       this.states[n] = snapshot;
