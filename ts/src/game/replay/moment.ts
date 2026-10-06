@@ -173,6 +173,9 @@ function savedView(state: Readonly<ReplayState>): object {
   return { mask: state.world.mask, fighters, match: state.match, commands: state.controls.commands, runtime: state.runtime };
 }
 
+/** Reused for each row's numbers, so a full-match replay's rows allocate only their text. */
+const ROW_TEXT = filled(INPUT_ROW_NUMBERS, 0);
+
 /** One frame's rows: its mask, then each of those slots' numbers. */
 function frameRowText(recorder: MomentRecorder, index: number): string {
   const mask = at(recorder.rowMasks, index);
@@ -180,7 +183,9 @@ function frameRowText(recorder: MomentRecorder, index: number): string {
   for (const slot of PARTICIPANT_SLOTS) {
     if (!participantActive(mask, slot)) continue;
     const base = index * INPUT_ROW_NUMBERS;
-    slots.push(recorder.rows[slot].slice(base, base + INPUT_ROW_NUMBERS).join(","));
+    const numbers = recorder.rows[slot];
+    for (let field = 0; field < INPUT_ROW_NUMBERS; field++) ROW_TEXT[field] = at(numbers, base + field);
+    slots.push(ROW_TEXT.join(","));
   }
   return `${mask}:${slots.join("/")}`;
 }
