@@ -120,6 +120,13 @@ test("each match's integrity workload sends, waits, stalls and pauses as the Pyt
   }
 });
 
+test("the integrity workload raises one stock to three before its first match and changes it no more", async () => {
+  const { rig, trace } = recordingRig(gameFiles, "1 Stock");
+  await Effect.runPromise(journey(rig, R8).run);
+  expect(trace.filter((line) => line.startsWith("ui b click ") && line.endsWith(" 155"))).toEqual(["ui b click 1675 155", "ui b click 1675 155"]);
+  expect(trace.indexOf("ui b click 1675 155")).toBeLessThan(trace.findIndex((line) => line.includes("menu-match-1-start")));
+});
+
 test("the journey sends r8's pad edges in r8's order, then returns to fighter selection", async () => {
   const { rig, trace, events } = recordingRig(gameFiles);
   await Effect.runPromise(journey(rig, R8).run);

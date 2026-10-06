@@ -174,6 +174,12 @@ const PAD49_PAST_DOWN = 21954;
 /** The frame meter's overlay toggle (smashcraft:ts/src/platform/frameMeter.ts). */
 const PERF_TOGGLE = "-dev perf";
 
+/**
+ * Stocks in each match of #26's integrity workload. Its pads dash both ways
+ * through the whole workload, and on 0.0.48 Player 2 drifted off the stage on
+ * its one stock 19–21 s in, ending the match before its scheduled pause.
+ */
+const INTEGRITY_STOCKS = 3;
 const stocks = (count: number) => new RegExp(`${count} Stock`, "i");
 const signature = (humans: number, computers: number) => `connected=3 human-fighters=${humans} computers=${computers} fighters=${humans + computers}`;
 const both = <A, E>(each: (client: Slot) => Effect.Effect<A, E>) => Effect.forEach(SLOTS, each, { concurrency: 2 });
@@ -417,18 +423,19 @@ export function journey(rig: RigShape, options: JourneyOptions) {
     yield* rig.until("slots C/D were not restored to EMPTY", menusShow(TWO_HUMANS));
   });
 
-  /** Stock count on B's stage screen, one click at a time. */
-  const reduceStocks = Effect.gen(function*() {
+  /** Stock count on B's stage screen, one click at a time: 1380 lowers it, 1675 raises it. */
+  const stockCount = (target: number) => Effect.gen(function*() {
     const text = yield* rig.waitText(1, /[1-9] Stock/i);
     const shown = /([1-9])\s+Stock/i.exec(text)?.[1];
     if (shown === undefined) return yield* failed("read stocks", text);
-    for (let count = Number(shown); count > 1;) {
+    for (let count = Number(shown); count !== target;) {
       yield* rig.click(1, 250, 900);
-      yield* rig.click(1, 1380, 155);
-      count--;
+      yield* rig.click(1, count > target ? 1380 : 1675, 155);
+      count += count > target ? -1 : 1;
       yield* rig.waitText(1, stocks(count));
     }
   });
+  const reduceStocks = stockCount(1);
 
   /** A normal one-minute match bounds the CPU journey without changing combat rules. */
   const oneMinute = Effect.gen(function*() {
@@ -443,14 +450,6 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       yield* rig.waitText(1, new RegExp(`${minutes}:00`));
     }
   });
-
-  const setStocks = (x: number, counts: readonly number[]) =>
-    Effect.forEach(counts, (count) =>
-      Effect.gen(function*() {
-        yield* rig.click(1, 250, 900);
-        yield* rig.click(1, x, 155);
-        yield* rig.waitText(1, stocks(count));
-      }), { discard: true });
 
   /** A synchronized player chat command; both clients' receipts must show the value. */
   const devCommand = (epoch: number, command: string, expected: string) =>
@@ -581,12 +580,6 @@ export function journey(rig: RigShape, options: JourneyOptions) {
     Effect.gen(function*() {
       const odd = epoch % 2 === 1;
       if (matchOnly || playable) yield* reduceStocks;
-      // #26's named integrity workload keeps three stocks in its rematch so
-      // the complete edge sample finishes before ordinary stock loss.
-      else if (!bot) {
-        if (!fourFighters && !odd) yield* setStocks(1675, [2, 3]);
-        if (!fourFighters && epoch > firstEpoch && odd) yield* setStocks(1380, [2, 1]);
-      }
       const commanded = sweep[(epoch - firstEpoch) / 2];
       if (odd && commanded !== undefined) {
         const [window, batch] = commanded;
@@ -680,7 +673,9 @@ export function journey(rig: RigShape, options: JourneyOptions) {
     if (bot) yield* botSetup;
     yield* controllerSelect;
     if (matchOnly || bot) yield* oneMinute;
-    if (!matchOnly && !playable && !fourFighters && !bot) yield* reduceStocks;
+    // #26's named integrity workload plays INTEGRITY_STOCKS in every match: its stalls, pause and
+    // complete edge sample must finish before ordinary stock loss can end the match.
+    if (!matchOnly && !playable && !fourFighters && !bot) yield* stockCount(INTEGRITY_STOCKS);
     for (const epoch of epochs) yield* match(epoch);
     yield* menuPhase("RESULT");
     yield* tap(0, "results-only");
