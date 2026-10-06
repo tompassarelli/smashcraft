@@ -248,3 +248,10 @@ export function allCueModels(): readonly string[] {
   for (const character of characters) for (const cue of fighterCueList(character)) if (cue.drawn !== true && !models.includes(cue.model)) models.push(cue.model);
   return models;
 }
+
+/** The cues a fighter's renderer draws itself, one effect each: its own effects show the rest. */
+export function fighterOwnCues(character: Character): readonly Cue[] {
+  const own: Cue[] = [];
+  for (const cue of fighterCueList(character)) if (cue.drawn !== true && !own.includes(cue)) own.push(cue);
+  return own;
+}

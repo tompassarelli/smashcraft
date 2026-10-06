@@ -5,7 +5,7 @@
 import type { Character } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 import { characterModelScale } from "../presentation/modelScale";
-import { CUE_ANCHORS, type Cue, type CueState, fighterCueList, specialCueState } from "../presentation/specialCues";
+import { CUE_ANCHORS, type Cue, type CueState, fighterOwnCues, specialCueState } from "../presentation/specialCues";
 import { type ParkedFlags, type WorldOrigin, facingYaw, parkOnce } from "./effects";
 
 interface CueModel {
@@ -25,10 +25,7 @@ export class SpecialCueEffects {
   constructor(character: Character, private readonly origin: WorldOrigin) {
     this.front = origin.y - 12.0;
     this.scale = characterModelScale(character);
-    for (const cue of fighterCueList(character)) {
-      if (cue.drawn === true || this.cues.some((known) => known.cue === cue)) continue;
-      this.cues.push({ cue, model: AddSpecialEffect(cue.model, origin.x, origin.y) });
-    }
+    for (const cue of fighterOwnCues(character)) this.cues.push({ cue, model: AddSpecialEffect(cue.model, origin.x, origin.y) });
     this.clear();
   }
 
