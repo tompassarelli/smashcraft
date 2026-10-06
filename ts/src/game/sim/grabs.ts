@@ -17,6 +17,7 @@ function escapeGrab(world: Roster, ownerSlot: number, targetSlot: number): void 
   clearGrabLinks(world, ownerSlot);
   beginGrabAction(fighterAt(world, ownerSlot), GrabAction.escape);
   fighterAt(world, targetSlot).launch.hitstun = 10;
+  fighterAt(world, targetSlot).launch.throwHitstun = false;
 }
 
 function releaseThrow(world: Roster, ownerSlot: number, targetSlot: number, targetInput: Readonly<Controls>): void {

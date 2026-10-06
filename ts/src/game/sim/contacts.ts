@@ -30,7 +30,7 @@ import {
   shieldstunFrames,
 } from "./shield";
 import { beginShieldBreak } from "./shieldBreak";
-import { beginDownDamage, cancelAttack, cancelSpecialState, clearDownState, clearGrabLinks, interruptJumpOrDodge } from "./transitions";
+import { beginDownDamage, cancelAttack, cancelSpecialState, clearDownState, clearGrabLinks, interruptJumpOrDodge, thawFighter } from "./transitions";
 import { at } from "wisp/src/runtime/lookup";
 
 /** One contact, with the source's and target's state sampled when it was collected. */
@@ -183,7 +183,7 @@ function resolveDamageContacts(world: Roster, slot: number): void {
     }
     if (contact.kind === ContactKind.throw) target.visuals.throw++;
     visualContact ??= index;
-    if (damage > 0 && contact.kind !== ContactKind.pummel) status.frozenFrames = 0;
+    if (damage > 0 && contact.kind !== ContactKind.pummel) thawFighter(target);
     if (contact.kind !== ContactKind.damageOnly && contact.kind !== ContactKind.throw) {
       hitlagDamage = max(hitlagDamage, damage);
       hurtContact ??= index;
@@ -249,6 +249,7 @@ function resolveDamageContacts(world: Roster, slot: number): void {
   cancelAttack(target);
   cancelSpecialState(target);
   launch.hitstun = winner !== undefined ? ordinaryHitstunFrames(strongest) : max(launch.hitstun, 11);
+  launch.throwHitstun = chosen.kind === ContactKind.throw && launch.hitstun > 0;
   if (jabReset) {
     beginDownDamage(target, launch.hitstun);
     return;

@@ -13,6 +13,8 @@ import { TOP_KO_MINIMUM_UPWARD_KNOCKBACK } from "../sim/knockback";
 import { type Controls, type Roster, copyControls, fighterAt, isActive, neutralControls } from "../sim/roster";
 import { MAIN_DECK_UNDERSIDE_Z, mainDeckLeft, mainDeckRight } from "../sim/stage";
 import { stageBounds } from "../sim/stageBounds";
+import { BODY_HALF_WIDTH, bodyTop } from "../sim/surfaces";
+import { melee } from "../sim/tuning";
 import type { Scenario } from "./build";
 
 /** A 90-unit gap puts an ordinary Archer jab in range with or without Parry Step. */
@@ -142,6 +144,23 @@ export function initializeScenario(scenario: Scenario, game: Readonly<MatchState
       first.down.state = DownState.tumble;
       second.motion.x = 0.0;
       return;
+    case "body-ceiling":
+    case "body-wall":
+      for (const slot of PARTICIPANT_SLOTS) {
+        if (!isActive(world, slot)) continue;
+        const fighter = fighterAt(world, slot);
+        const side = slot === firstSlot ? -1 : 1;
+        fighter.facing = -side;
+        fighter.motion.x = scenario === "body-ceiling" ? side * 160.0
+          : f32((side < 0 ? mainDeckLeft(game.stageChoice) : mainDeckRight(game.stageChoice)) + side * melee(BODY_HALF_WIDTH));
+        fighter.motion.z = scenario === "body-ceiling" ? f32(MAIN_DECK_UNDERSIDE_Z - melee(bodyTop(fighter.character))) : -30.0;
+        fighter.motion.grounded = false;
+        fighter.motion.surface = undefined;
+        fighter.motion.vx = 0.0;
+        fighter.motion.vz = 0.0;
+        fighter.status.frozenFrames = UNDERSIDE_FROZEN_FRAMES;
+      }
+      return;
     case "normal":
       return;
   }
@@ -150,6 +169,7 @@ export function initializeScenario(scenario: Scenario, game: Readonly<MatchState
 /** Staged scenarios keep the computer passive, except the parry scenario's answering jab. */
 const COMPUTER_PLAYS: Readonly<Record<Scenario, boolean>> = {
   normal: true, ko: true, knockdown: false, tech: false, "shield-break": false, ledge: false, parry: false, spike: false, underside: false, camera: false,
+  "body-ceiling": false, "body-wall": false,
 };
 
 const NEUTRAL = neutralControls();

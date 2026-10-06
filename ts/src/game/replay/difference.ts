@@ -123,6 +123,7 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("shieldReflectVisualSerial", e.visuals.shieldReflect, a.visuals.shieldReflect);
   add("stocks", e.status.stocks, a.status.stocks);
   add("hitstun", e.launch.hitstun, a.launch.hitstun);
+  add("throwHitstun", e.launch.throwHitstun, a.launch.throwHitstun);
   add("hitlag", e.launch.hitlag, a.launch.hitlag);
   add("diPending", e.launch.diPending, a.launch.diPending);
   add("diLaunchSpeed", e.launch.diLaunchSpeed, a.launch.diLaunchSpeed);
@@ -182,6 +183,7 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("freezeTrapSerial", e.freezeTrap.serial, a.freezeTrap.serial);
   add("frozenFrames", e.status.frozenFrames, a.status.frozenFrames);
   add("offscreenFrames", e.status.offscreenFrames, a.status.offscreenFrames);
+  add("freezeImmunityFrames", e.status.freezeImmunityFrames, a.status.freezeImmunityFrames);
   add("freezeTrapCooldown", e.freezeTrap.cooldown, a.freezeTrap.cooldown);
   add("out", e.status.out, a.status.out);
   add("respawn", e.status.respawn, a.status.respawn);

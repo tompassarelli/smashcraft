@@ -30,6 +30,7 @@ export function beginShieldBreak(world: Roster, slot: number): void {
   shield.heldFrames = 0;
   shield.releaseLag = 0;
   launch.hitstun = 0;
+  launch.throwHitstun = false;
   f.grab.grabbedFrames = 0;
   f.landing.lag = 0;
   clearTech(f);

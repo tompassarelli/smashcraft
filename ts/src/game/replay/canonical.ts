@@ -201,6 +201,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   real("damage", st.damage);
   int("stocks", st.stocks);
   int("hitstun", l.hitstun);
+  bool("throwHitstun", l.throwHitstun);
   int("hitlag", l.hitlag);
   bool("diPending", l.diPending);
   real("diLaunchSpeed", l.diLaunchSpeed);
@@ -268,6 +269,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   int("freezeTrapSerial", fighter.freezeTrap.serial);
   int("frozenFrames", st.frozenFrames);
   int("offscreenFrames", st.offscreenFrames);
+  int("freezeImmunityFrames", st.freezeImmunityFrames);
   int("freezeTrapCooldown", fighter.freezeTrap.cooldown);
   bool("out", st.out);
   int("respawn", st.respawn);
