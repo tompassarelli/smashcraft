@@ -123,6 +123,15 @@ interface Launch {
   sdiLaunchesUpward: boolean;
   sdiSerial: number;
   asdiSerial: number;
+  /** Bounded SDI in Melee units: travel charged this hit and this string, and the queued requests (smashDirectionalInfluence.ts). */
+  sdiHitTravel: number;
+  sdiStringTravel: number;
+  sdiStepX: number;
+  sdiStepZ: number;
+  sdiStepTravel: number;
+  sdiNextX: number;
+  sdiNextZ: number;
+  sdiNextTravel: number;
 }
 
 interface Shield {
@@ -469,6 +478,14 @@ export function createFighter(character: Character, startX: number, facing: numb
       sdiLaunchesUpward: false,
       sdiSerial: 0,
       asdiSerial: 0,
+      sdiHitTravel: 0,
+      sdiStringTravel: 0,
+      sdiStepX: 0,
+      sdiStepZ: 0,
+      sdiStepTravel: 0,
+      sdiNextX: 0,
+      sdiNextZ: 0,
+      sdiNextTravel: 0,
     },
     shield: {
       raised: false,
