@@ -22,6 +22,7 @@ import { Character } from "../src/game/sim/codes";
 import { PROJECTILE_CAPACITY } from "../src/game/sim/fighter";
 import { fighterAt, isActive } from "../src/game/sim/roster";
 import { PLAYABLE_BUILD } from "../src/game/shell/currentBuild";
+import { matchRecordFile } from "../src/runtime/gameFiles";
 import { install, startBuild } from "../src/platform/main";
 import { Key } from "../src/platform/shell/keyEvents";
 import { panelActions } from "../src/platform/shell/menus";
@@ -250,4 +251,13 @@ test("a match and its three-fighter rematch show each pooled fighter whole where
   expect(rematch.effectsAtResult - first.effectsAtResult).toBe(illidan + 1 + PROJECTILE_CAPACITY + 1);
   expect(host.effectPoses().length).toBe(selectionAfterFirst);
   for (const client of clients.clients) expect(client.errors).toEqual([]);
+  // Each client wrote its own player's record of both matches for the Smashcraft client: two fighters, then three.
+  clients.clients.forEach((client, index) => {
+    for (const [serial, fighters] of [[1, 2], [2, 3]] as const) {
+      const record = client.files.get(matchRecordFile(serial)) ?? [];
+      expect(record[0]).toStartWith(`smashcraft-match v=1 build=${PLAYABLE_BUILD.id} serial=${serial} local=P${index + 1} mode=versus`);
+      expect(record.filter(line => line.startsWith("fighter ")).length).toBe(fighters);
+      expect(record[record.length - 1]).toBe(`end lines=${record.length - 1}`);
+    }
+  });
 });

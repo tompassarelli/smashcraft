@@ -24,3 +24,7 @@ export const PLAYTEST_GO_FILE = "smashcraft-play-go.txt";
 export const playtestReceiptFile = (slot: number) => `smashcraft-play-p${slot}.txt`;
 /** The stage a match drew, written at its start by builds with the dev console, so a capture checks the player's view only after it. */
 export const stageReceiptFile = (build: string, slot: number) => `smashcraft-stage-${build}-p${slot}.txt`;
+/** The record of this client's `serial`th finished match for the Smashcraft client (smashcraft:ts/src/game/shell/matchRecord.ts); serials count across sessions. */
+export const matchRecordFile = (serial: number) => `smashcraft-match-${serial}.txt`;
+/** Holds the next match record's serial, as one FileIO chunk. */
+export const MATCH_RECORD_INDEX_FILE = "smashcraft-match-index.pld";

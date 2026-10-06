@@ -26,6 +26,7 @@ import { MatchCue } from "../../game/presentation/matchAudio";
 import { resultsView } from "../../game/presentation/matchCues";
 import { RESULTS_DELAY_FRAMES } from "../../game/render/matchPresentation";
 import { LASTING, announce, renderFighter, setStatus } from "./view";
+import { writeMatchRecord } from "./matchRecords";
 
 function observe(before: FrameObservation, fighter: Readonly<Fighter>): void {
   before.out = fighter.status.out;
@@ -113,6 +114,7 @@ export function applyFrame(s: ShellState): void {
   beginRematchCountdown(s.game, s.dev.rematchSeconds);
   const call = cues.find(cue => cue === MatchCue.game || cue === MatchCue.time);
   ui.match.beginResults(resultsView(s.game, world, ui.match.tally), call === undefined ? 0 : RESULTS_DELAY_FRAMES);
+  writeMatchRecord(s);
   setStatus(s, resultMessage(s.game), LASTING);
 }
 

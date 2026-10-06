@@ -34,6 +34,7 @@ import { preloadStageAssets } from "./stageScenery";
 import { PROBE_EXPORT, exportProbePage, probeBegin, probePresent } from "./responseProbe";
 import { receiveInput, rollbackTick } from "./rollback";
 import { SAVE_MOMENT, momentKey, serviceMomentRequest, serviceMomentSave } from "./moment";
+import { writeMatchRecord } from "./matchRecords";
 import { type ShellState, activeRollback, createShellState, momentSaves, shellState } from "./state";
 import { CONTROL_ACK_PREFIX } from "../../game/shell/pauseBarrier";
 import { clearMatchEffects, createUi, recreateUi, views } from "./ui";
@@ -157,6 +158,7 @@ function playerLeft(s: ShellState): void {
     pauseMatchPresentation(s, false);
     setStatus(s, resultMessage(s.game), LASTING);
     views(s).match.beginResults(resultsView(s.game, s.world, views(s).match.tally), 0);
+    writeMatchRecord(s);
   } else if (s.game.phase === Phase.characterMenu || s.game.phase === Phase.stageMenu) {
     s.game.phase = Phase.characterMenu;
     const humans = currentHumanMask(s.game.departedMask);
