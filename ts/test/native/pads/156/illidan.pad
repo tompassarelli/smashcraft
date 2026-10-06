@@ -1,0 +1,37 @@
+# #156 Illidan: jab, forward tilts (level, up, down), down tilt and down smash
+# facing right, then forward tilt and down tilt facing left; B stands idle.
+# Each capture is the move's first active frame (tap frame + startup).
+20 a tap A 2
++4 a capture
++36 a press LB
++0 a stick 0.6 0
++2 a tap A 2
++5 a capture
++3 a stick 0 0
++40 a stick 0.6 0.6
++2 a tap A 2
++5 a capture
++3 a stick 0 0
++40 a stick 0.6 -0.6
++2 a tap A 2
++5 a capture
++3 a stick 0 0
++40 a stick 0 -0.8
++2 a tap A 2
++5 a capture
++3 a stick 0 0
++2 a release LB
++40 a stick 0 -1
++2 a tap A 2
++8 a capture
++3 a stick 0 0
++50 a press LB
++0 a stick -0.6 0
++2 a tap A 2
++5 a capture
++3 a stick 0 0
++40 a stick 0 -0.8
++2 a tap A 2
++5 a capture
++3 a stick 0 0
++2 a release LB
