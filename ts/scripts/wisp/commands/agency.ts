@@ -3,16 +3,17 @@
 // act, every loop a repeating follow-up made with its escape window, and the
 // move comparisons' bounded true links replayed with every input class.
 // `--attacker NAME` sweeps one fighter's starters, so three runs can share
-// the machine; `--out FILE` keeps every result as JSON lines. Fails when a
-// loop leaves the victim at most a frame-tight input to act on, whatever
-// direction it holds.
+// the machine; `--starter NAME` sweeps only that starter (an "up throw", say)
+// and skips the move comparisons' links; `--out FILE` keeps every result as
+// JSON lines. Fails when a loop leaves the victim at most a frame-tight input
+// to act on, whatever direction it holds.
 import { writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { Console, Effect, Schema } from "effect";
 import { type Command, UsageFailure, describeCause } from "wisp/scripts/wisp/command";
 import { step } from "wisp/scripts/wisp/timings";
 import { TIGHT_ESCAPE } from "../../agency";
-import { FIGHTERS, type LinkResult, REPORTED_FRAMES, type StarterResult, sweepComparisonLinks, sweepStarters } from "../../agencySweep";
+import { FIGHTERS, type LinkResult, REPORTED_FRAMES, STARTER_NAMES, type StarterResult, sweepComparisonLinks, sweepStarters } from "../../agencySweep";
 
 class AgencyFailure extends Schema.TaggedError<AgencyFailure>()("AgencyFailure", { problem: Schema.String }) {
   override get message(): string {
@@ -58,10 +59,10 @@ function linkLines(links: readonly LinkResult[]): string[] {
   });
 }
 
-/** `agency [--attacker NAME]... [--out FILE]`. */
+/** `agency [--attacker NAME]... [--starter NAME]... [--out FILE]`. */
 export const agency: Command = (args) => Effect.gen(function*() {
   const parsed = yield* Effect.try({
-    try: () => parseArgs({ args: [...args], options: { attacker: { type: "string", multiple: true }, out: { type: "string" } }, strict: true }).values,
+    try: () => parseArgs({ args: [...args], options: { attacker: { type: "string", multiple: true }, starter: { type: "string", multiple: true }, out: { type: "string" } }, strict: true }).values,
     catch: (cause) => new UsageFailure({ problem: describeCause(cause) }),
   });
   const names = parsed.attacker ?? [];
@@ -69,8 +70,11 @@ export const agency: Command = (args) => Effect.gen(function*() {
   if (attackers.length !== Math.max(1, names.length) && names.length > 0) {
     return yield* new UsageFailure({ problem: `--attacker takes ${FIGHTERS.map(({ name }) => name).join(", ")}` });
   }
-  const starters = yield* Effect.sync(() => sweepStarters(attackers)).pipe(step(`starters of ${attackers.map(({ name }) => name).join(", ")}`));
-  const links = yield* Effect.sync(() => sweepComparisonLinks().filter(({ name }) => attackers.some((attacker) => name.startsWith(attacker.name))))
+  const only = parsed.starter;
+  const unknown = only?.filter((name) => !STARTER_NAMES.includes(name)) ?? [];
+  if (unknown.length > 0) return yield* new UsageFailure({ problem: `--starter takes ${STARTER_NAMES.join(", ")}` });
+  const starters = yield* Effect.sync(() => sweepStarters(attackers, only)).pipe(step(`starters of ${attackers.map(({ name }) => name).join(", ")}`));
+  const links = only !== undefined ? [] : yield* Effect.sync(() => sweepComparisonLinks().filter(({ name }) => attackers.some((attacker) => name.startsWith(attacker.name))))
     .pipe(step("move comparisons' bounded true links"));
   if (parsed.out !== undefined) {
     const file = parsed.out;

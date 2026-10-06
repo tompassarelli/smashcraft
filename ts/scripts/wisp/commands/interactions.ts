@@ -1,6 +1,8 @@
 // `wisp interactions`: plays every situation of the interaction graph for each
 // fighter (smashcraft:ts/scripts/interactions.ts, one worker thread a fighter)
 // and writes its rows and pages to smashcraft:tools/move-data/interactions/.
+// Every selectable fighter's throw roles (smashcraft:ts/scripts/throwRoles.ts)
+// go to throws.jsonl and throws.md beside them.
 // `--check` compares a fresh graph with those files and lists what changed;
 // `--move FIGHTER:MOVE` prints one move's place in its fighter's fresh graph
 // and what changed there since the files were written.
@@ -10,12 +12,17 @@ import { type Command, UsageFailure, describeCause } from "wisp/scripts/wisp/com
 import { step } from "wisp/scripts/wisp/timings";
 import { FIGHTERS, type Row, fighterNamed, fighterPage, moveProfile, parseRows, rowChanges } from "../../interactions";
 import { type ComboRow, comboPage } from "../../comboTrees";
+import { THROW_FIGHTERS, type ThrowRoleRow, throwRolePage } from "../../throwRoles";
 
 const directory = join(import.meta.dir, "../../../../tools/move-data/interactions");
 const rowsFile = join(directory, "interactions.jsonl");
 const pageFile = (slug: string): string => join(directory, `${slug}.md`);
 const combosFile = join(directory, "combos.jsonl");
 const comboPageFile = (slug: string): string => join(directory, `combos-${slug}.md`);
+const throwsFile = join(directory, "throws.jsonl");
+const throwsPage = join(directory, "throws.md");
+/** Throw-role workers at once: each fighter's rows take about a minute. */
+const THROW_WORKERS = 3;
 
 interface FighterRows {
   readonly interactions: readonly Row[];
@@ -48,13 +55,45 @@ const playFighters = (names: readonly string[], combos = true): Effect.Effect<Fi
     catch: failure,
   });
 
-const jsonl = (rows: readonly (Row | ComboRow)[]): string => rows.map((row) => JSON.stringify(row)).join("\n") + "\n";
+/** Every selectable fighter's throw-role rows, THROW_WORKERS fighters at a time, in roster order. */
+const playThrowRoles: Effect.Effect<ThrowRoleRow[], InteractionsFailure> = Effect.tryPromise({
+  try: async () => {
+    const results: ThrowRoleRow[][] = [];
+    let next = 0;
+    const runner = async () => {
+      while (next < THROW_FIGHTERS.length) {
+        const index = next++;
+        const entry = THROW_FIGHTERS[index];
+        if (entry === undefined) return;
+        results[index] = await new Promise<ThrowRoleRow[]>((resolve, reject) => {
+          const worker = new Worker(new URL("../../interactionsWorker.ts", import.meta.url).href);
+          worker.onmessage = (event: MessageEvent<ThrowRoleRow[]>) => {
+            resolve(event.data);
+            worker.terminate();
+          };
+          worker.onerror = (event) => {
+            reject(new Error(`${entry.name} throw roles: ${event.message}`));
+            worker.terminate();
+          };
+          worker.postMessage({ throwRoles: entry.name });
+        });
+      }
+    };
+    await Promise.all(Array.from({ length: THROW_WORKERS }, runner));
+    return results.flat();
+  },
+  catch: failure,
+});
+
+const jsonl = (rows: readonly (Row | ComboRow | ThrowRoleRow)[]): string => rows.map((row) => JSON.stringify(row)).join("\n") + "\n";
 
 const committedRows = Effect.tryPromise({ try: async () => parseRows(await Bun.file(rowsFile).text()), catch: failure });
 
-const write = (rows: readonly FighterRows[]) =>
+const write = (rows: readonly FighterRows[], throws: readonly ThrowRoleRow[]) =>
   Effect.tryPromise({
     try: async () => {
+      await Bun.write(throwsFile, jsonl(throws));
+      await Bun.write(throwsPage, throwRolePage(throws) + "\n");
       await Bun.write(rowsFile, jsonl(rows.flatMap((row) => row.interactions)));
       await Bun.write(combosFile, jsonl(rows.flatMap((row) => row.combos)));
       for (const [index, entry] of FIGHTERS.entries()) {
@@ -65,7 +104,7 @@ const write = (rows: readonly FighterRows[]) =>
     catch: failure,
   });
 
-const check = (rows: readonly FighterRows[]) =>
+const check = (rows: readonly FighterRows[], throws: readonly ThrowRoleRow[]) =>
   Effect.gen(function* () {
     const changes = rowChanges(yield* committedRows, rows.flatMap((row) => row.interactions));
     const stalePages = yield* Effect.tryPromise({
@@ -76,13 +115,15 @@ const check = (rows: readonly FighterRows[]) =>
           if ((await Bun.file(comboPageFile(entry.slug)).text()) !== comboPage(entry, rows[index]?.combos ?? []) + "\n") stale.push(`page combos-${entry.slug}.md differs from its rows`);
         }
         if ((await Bun.file(combosFile).text()) !== jsonl(rows.flatMap((row) => row.combos))) stale.push(`${combosFile} differs from the freshly played combo trees`);
+        if ((await Bun.file(throwsFile).text()) !== jsonl(throws)) stale.push(`${throwsFile} differs from the freshly played throw roles`);
+        if ((await Bun.file(throwsPage).text()) !== throwRolePage(throws) + "\n") stale.push("page throws.md differs from its rows");
         return stale;
       },
       catch: failure,
     });
     const problems = [...changes, ...stalePages];
     if (problems.length > 0) return yield* Effect.fail(new InteractionsFailure({ problems: [...problems, `${problems.length} differences from ${rowsFile}; inspect them, then run bun wisp interactions to write the new graph`] }));
-    yield* Console.log(`The fresh interaction graph and combo trees match ${directory}`);
+    yield* Console.log(`The fresh interaction graph, combo trees and throw roles match ${directory}`);
   });
 
 const profile = (spec: string) =>
@@ -103,8 +144,11 @@ const profile = (spec: string) =>
 export const interactions: Command = (args) => {
   if (args.length === 2 && args[0] === "--move") return profile(args[1] ?? "");
   if (args.length > 1 || (args.length === 1 && args[0] !== "--check")) return Effect.fail(new UsageFailure({ problem: "interactions takes --check or --move FIGHTER:MOVE" }));
-  return playFighters(FIGHTERS.map((entry) => entry.name)).pipe(
-    step("every fighter's situations"),
-    Effect.flatMap((rows) => (args[0] === "--check" ? check(rows) : write(rows).pipe(Effect.tap(() => Console.log(`Wrote interaction and combo rows, with ${FIGHTERS.length * 2} pages, to ${directory}`))))),
-  );
+  return Effect.gen(function* () {
+    const rows = yield* playFighters(FIGHTERS.map((entry) => entry.name)).pipe(step("every fighter's situations"));
+    const throws = yield* playThrowRoles.pipe(step("every selectable fighter's throw roles"));
+    if (args[0] === "--check") return yield* check(rows, throws);
+    yield* write(rows, throws);
+    yield* Console.log(`Wrote interaction, combo and throw-role rows, with ${FIGHTERS.length * 2 + 1} pages, to ${directory}`);
+  });
 };

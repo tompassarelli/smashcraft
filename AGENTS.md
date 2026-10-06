@@ -129,11 +129,12 @@ code. From smashcraft:ts/:
   `bun wisp soak --repro FILE` replays one. `--helper BIN` plays through the
   real controller helper instead (needs /dev/uinput). Its lock-loop detector
   reports a fighter caught in a loop it can't act out of (#68).
-- Agency sweep: `bun wisp agency [--attacker NAME]` replays every fighter's
-  throws, jab resets, normals and specials against every fighter with every
-  victim input class and prints the stretches the victim can't act in and
-  the loops follow-ups make (smashcraft:docs/typescript.md); 11-28 minutes
-  an attacker, inside the capacity scope.
+- Agency sweep: `bun wisp agency [--attacker NAME] [--starter NAME]`
+  replays every fighter's throws, jab resets, normals and specials (or only
+  the named starters) against every fighter with every victim input class and
+  prints the stretches the victim can't act in and the loops follow-ups make
+  (smashcraft:docs/typescript.md); 11-28 minutes an attacker, inside the
+  capacity scope.
 - Tapes: set `LUA` to the 32-bit Lua executable, then run `bun wisp tapes` to
   compare replay results across Bun, that Lua32 and a Lua32 whose raw float
   `+ - *` round toward zero (`TOWARD_ZERO_LUA`, or built with nix on first use).

@@ -34,8 +34,10 @@ function releaseThrow(world: Roster, ownerSlot: number, targetSlot: number, targ
   const up = action === GrabAction.throwUp;
   const down = action === GrabAction.throwDown;
   throwHit.damage = up ? 6.0 : down ? 5.0 : 7.0;
-  throwHit.growth = 70.0;
-  throwHit.base = down ? 55.0 : 45.0;
+  // Throw roles (#107): an up throw stays out of tumble through mid percent for
+  // its juggle; a down throw tumbles from 0% into a tech chase.
+  throwHit.growth = down ? 40.0 : up ? 55.0 : 70.0;
+  throwHit.base = down ? 75.0 : 45.0;
   throwHit.launchX = up ? 0.17364799976348877 : down ? 0.3420200049877167 : 0.8660249710083008;
   throwHit.launchZ = up ? 0.9848080277442932 : down ? 0.9396929740905762 : 0.5;
   throwHit.element = undefined;

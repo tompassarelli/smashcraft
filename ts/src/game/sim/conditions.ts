@@ -59,6 +59,11 @@ export function canBeGrabbed(f: Readonly<Fighter>): boolean {
   return f.status.frozenFrames <= 0 && !(f.launch.throwHitstun && f.launch.hitstun > 0);
 }
 
+/** Early in a ground jump's ascent, where a grab still reaches it at the deck it left (#107). */
+export function inEarlyAscent(f: Readonly<Fighter>): boolean {
+  return f.jump.ascent > 0 && !f.motion.grounded && f.launch.hitstun <= 0 && f.status.frozenFrames <= 0;
+}
+
 /** A wall tech's startup and a ceiling tech lock out jumps, dodges and attacks. */
 export function inSurfaceTechStartup(f: Fighter): boolean {
   const { state, frame } = f.surfaceRecovery;

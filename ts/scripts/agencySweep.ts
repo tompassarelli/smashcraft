@@ -323,20 +323,24 @@ function sweepStarter(start: Readonly<ReplayState>, attacker: string, victim: st
 /**
  * Every starter of `attackers` against every fighter: throws and jab resets
  * at each percent from 0 to 150, other starters at 0, 50, 100 and 150, as
- * their stretches change less with percent than throws' do.
+ * their stretches change less with percent than throws' do. `only` names
+ * the starters to sweep, "jab reset" included; absent, every one.
  */
-export function sweepStarters(attackers: readonly Entry[] = FIGHTERS): StarterResult[] {
+export function sweepStarters(attackers: readonly Entry[] = FIGHTERS, only?: readonly string[]): StarterResult[] {
   const results: StarterResult[] = [];
   const reset: Starter = { name: "jab reset", buttons: ATTACK, aim: "neutral" };
+  const starters = STARTERS.filter(({ name }) => only === undefined || only.includes(name));
+  const resets = only === undefined || only.includes(reset.name);
   for (const attacker of attackers) {
     for (const victim of FIGHTERS) {
       for (const percent of PERCENTS) {
         const coarse = percent % 50 === 0;
-        for (const starter of STARTERS) {
+        for (const starter of starters) {
           if (starter.throw === undefined && !coarse) continue;
           const result = sweepStarter(standingMatch(attacker.character, victim.character, percent, 40), attacker.name, victim.name, starter, percent);
           if (result !== undefined) results.push(result);
         }
+        if (!resets) continue;
         const lying = sweepStarter(lyingMatch(attacker.character, victim.character, percent, 40), attacker.name, victim.name, reset, percent);
         if (lying !== undefined) results.push(lying);
       }
@@ -425,6 +429,9 @@ export function sweepComparisonLinks(): LinkResult[] {
     return { name, comparisonContact: row.firstContact, contact: contact > 0 ? contact : undefined, stretch, holdsUnderDi };
   });
 }
+
+/** Every starter's name, "jab reset" included. */
+export const STARTER_NAMES: readonly string[] = [...STARTERS.map(({ name }) => name), "jab reset"];
 
 /** The attacker's rows for a starter named `name`, pressed on `first` and, with `repeat`, again whenever the victim is that close. */
 export function attackerPlan(name: string, first: number, repeat?: number, approach = false): (state: Readonly<ReplayState>, frame: number) => InputRow {

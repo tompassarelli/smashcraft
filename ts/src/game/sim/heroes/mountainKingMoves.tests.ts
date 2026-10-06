@@ -205,7 +205,7 @@ test("Mountain King dash grab keeps standing reach with three startup and eight 
 const THROW_ROWS = [
   [GrabAction.throwForward, 14, 22, 9.0, 35],
   [GrabAction.throwBack, 18, 27, 10.0, 40],
-  [GrabAction.throwUp, 16, 23, 8.0, 90],
+  [GrabAction.throwUp, 16, 13, 8.0, 90],
   [GrabAction.throwDown, 20, 26, 7.0, 75],
 ] as const;
 

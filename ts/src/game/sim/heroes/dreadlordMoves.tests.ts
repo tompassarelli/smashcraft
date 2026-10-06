@@ -178,7 +178,7 @@ test("Dreadlord shield grab and dash grab retain adopted reach and whiff timing"
 const THROW_ROWS = [
   [GrabAction.throwForward, 12, 20, 8.0],
   [GrabAction.throwBack, 18, 25, 10.0],
-  [GrabAction.throwUp, 15, 21, 7.0],
+  [GrabAction.throwUp, 15, 11, 7.0],
   [GrabAction.throwDown, 19, 25, 6.0],
 ] as const;
 

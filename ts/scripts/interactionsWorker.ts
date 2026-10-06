@@ -1,17 +1,26 @@
-// One fighter's interaction rows on a worker thread, so `bun wisp
-// interactions` plays the fighters at once (smashcraft:ts/scripts/interactions.ts).
+// One fighter's interaction rows, or its throw-role rows, on a worker thread,
+// so `bun wisp interactions` plays the fighters at once
+// (smashcraft:ts/scripts/interactions.ts, smashcraft:ts/scripts/throwRoles.ts).
 import { fighterNamed, interactionRows } from "./interactions";
 import { comboRows } from "./comboTrees";
+import { throwFighterNamed, throwRoleRows } from "./throwRoles";
 
 declare const self: Worker;
 
-interface InteractionRequest { readonly fighter: string; readonly combos: boolean }
+type InteractionRequest = { readonly fighter: string; readonly combos: boolean } | { readonly throwRoles: string };
 
 self.onmessage = (event: MessageEvent<InteractionRequest>) => {
-  const entry = fighterNamed(event.data.fighter);
-  if (entry === undefined) throw new Error(`no fighter named ${event.data.fighter}`);
+  const request = event.data;
+  if ("throwRoles" in request) {
+    const entry = throwFighterNamed(request.throwRoles);
+    if (entry === undefined) throw new Error(`no fighter named ${request.throwRoles}`);
+    self.postMessage(throwRoleRows(entry, (line) => console.info(line)));
+    return;
+  }
+  const entry = fighterNamed(request.fighter);
+  if (entry === undefined) throw new Error(`no fighter named ${request.fighter}`);
   const interactions = interactionRows(entry);
   const started = performance.now();
-  const combos = event.data.combos ? comboRows(entry, (opening, rows) => console.info(`${entry.name} combos: ${opening}; ${rows} opening/percent rows; ${((performance.now() - started) / 1000).toFixed(1)} s`)) : [];
+  const combos = request.combos ? comboRows(entry, (opening, rows) => console.info(`${entry.name} combos: ${opening}; ${rows} opening/percent rows; ${((performance.now() - started) / 1000).toFixed(1)} s`)) : [];
   self.postMessage({ interactions, combos });
 };

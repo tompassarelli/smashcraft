@@ -54,8 +54,8 @@ test("mashing out of a hold the attacker keeps is acting", () => {
 });
 
 test("the soak's detector flags a loop the victim can't act out of, and passes one it can", () => {
-  // Archer regrabs Rifleman after each up throw at 0%: the victim may act on 7 frames of each cycle.
-  const start = standingMatch(Character.archer, Character.rifleman, 0, 40);
+  // Uther regrabs Rifleman after each up throw at 50%: only buttons get the victim out of the cycle.
+  const start = standingMatch(Character.uther, Character.rifleman, 50, 40);
   const attacker = attackerPlan("up throw", start.runtime.simulationFrame + 1, 80);
   const watch = (classes: typeof INPUT_CLASSES) => {
     const lockWatch = new LockWatch(classes);
@@ -75,7 +75,7 @@ test("the soak's detector flags a loop the victim can't act out of, and passes o
   // With only the stick to move, nothing could get the victim out; with the buttons too, it can act on frames between throw and regrab.
   const stickOnly = watch(INPUT_CLASSES.filter(({ changes }) => changes === "stick"));
   expect(stickOnly.found.length).toBe(1);
-  expect(stickOnly.found[0]).toMatch(/^p1 \(Rifleman\) was caught by p0 \(Archer\) in a \d+-frame loop.*only the stick changed anything/);
+  expect(stickOnly.found[0]).toMatch(/^p1 \(Rifleman\) was caught by p0 \(Uther\) in a \d+-frame loop.*only the stick changed anything/);
   // The cycle is the throw and the regrab, not a moment the fighters stood still.
   expect(Number(/in a (\d+)-frame loop/.exec(stickOnly.found[0] ?? "")?.[1])).toBeGreaterThan(30);
   const every = watch(INPUT_CLASSES.filter(({ changes }) => changes !== "both"));

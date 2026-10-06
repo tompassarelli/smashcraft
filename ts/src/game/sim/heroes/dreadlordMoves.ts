@@ -22,6 +22,9 @@ const CLASS = {
   EDGE: { growth: 100.0, base: 22.0 },
   KILL: { growth: 110.0, base: 26.0 },
   SPIKE: { growth: 100.0, base: 22.0 },
+  // Throw roles (#107): an up throw's guaranteed short juggle and a down throw's tech chase.
+  JUGGLE: { growth: 62.0, base: 50.0 },
+  CHASE: { growth: 40.0, base: 75.0 },
 } as const;
 const DIRECTION = {
   25: { x: f32(0.906307787), z: f32(0.422618262) },
@@ -239,7 +242,7 @@ export const DREADLORD_MOVES: FighterMoves = {
     [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: { damage: 3.0, ...NO_LAUNCH } },
     [GrabAction.throwForward]: { contactFrame: 12, totalFrames: 32, effect: dreadlordHit(8.0, "EDGE", 35) },
     [GrabAction.throwBack]: { contactFrame: 18, totalFrames: 43, effect: dreadlordHit(10.0, "KILL", 40, -1.0) },
-    [GrabAction.throwUp]: { contactFrame: 15, totalFrames: 36, effect: dreadlordHit(7.0, "LAUNCH", 85) },
-    [GrabAction.throwDown]: { contactFrame: 19, totalFrames: 44, effect: dreadlordHit(6.0, "LINK", 65) },
+    [GrabAction.throwUp]: { contactFrame: 15, totalFrames: 26, effect: dreadlordHit(7.0, "JUGGLE", 85) },
+    [GrabAction.throwDown]: { contactFrame: 19, totalFrames: 44, effect: dreadlordHit(6.0, "CHASE", 65) },
   },
 };

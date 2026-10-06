@@ -8,8 +8,11 @@ import { canAttack } from "../src/game/sim/conditions";
 import type { Fighter } from "../src/game/sim/fighter";
 import type { ReplayState } from "../src/game/replay/snapshot";
 import { fighterAt } from "../src/game/sim/roster";
-import { Timeline, type FighterEntry, type Held, type Option, type Situation } from "./interactions";
+import { Timeline, type Held, type Option, type Situation } from "./interactions";
 import { airborne } from "./frameScene";
+
+/** Any selectable fighter: the graph's three and, for throw roles, every hero. */
+export interface FighterEntry { readonly character: Character; readonly name: string; readonly slug: string }
 
 const COMBO_PERCENTS = [0, 30, 60, 90, 120] as const;
 const HORIZON = 120;
@@ -24,10 +27,10 @@ const DIRECTIONS = [
   { name: "down-left", x: -1, z: -1 }, { name: "down-right", x: 1, z: -1 },
 ] as const;
 const RESPONSES = ["hold", "SDI", "tech in place", "tech left", "tech right", "missed tech", "jump", "air dodge", "mash"] as const;
-const VICTIM_CHOICES = DIRECTIONS.flatMap((di) => RESPONSES.map((response) => ({ name: `DI ${di.name}; ${response}`, di, response })));
-type VictimChoice = (typeof VICTIM_CHOICES)[number];
+export const VICTIM_CHOICES = DIRECTIONS.flatMap((di) => RESPONSES.map((response) => ({ name: `DI ${di.name}; ${response}`, di, response })));
+export type VictimChoice = (typeof VICTIM_CHOICES)[number];
 
-interface Move {
+export interface Move {
   readonly name: string;
   readonly style?: AttackStyle;
   readonly aerial?: boolean;
@@ -116,7 +119,8 @@ function victimButtons(choice: VictimChoice, n: number, self: Fighter): Held {
     case "air dodge": return n % 2 === 1 && canAttack(self) && !self.motion.grounded ? [...held, Action.rightTrigger] : held;
     case "mash": return n % 2 === 1 ? [...held, Action.attack, Action.special, Action.jump, Action.grab] : held;
     case "tech in place": case "tech left": case "tech right": {
-      if (self.down.state === DownState.tumble && self.motion.z < 90 && self.motion.vz < 0) {
+      // Falling counts the launch too, so a fighter still carried upward does not spend its tech press early.
+      if (self.down.state === DownState.tumble && self.motion.z < 90 && self.motion.vz + self.launch.knockbackZ < 0) {
         const direction = choice.response === "tech left" ? [Action.moveLeft] : choice.response === "tech right" ? [Action.moveRight] : [];
         if (self.tech.pressAge > 40) return [Action.rightTrigger, ...direction];
         if (self.tech.pressAge < 20) return direction;
@@ -127,8 +131,8 @@ function victimButtons(choice: VictimChoice, n: number, self: Fighter): Held {
   }
 }
 
-interface Checkpoint { readonly state: ReplayState; readonly previous: readonly number[] }
-interface Link {
+export interface Checkpoint { readonly state: ReplayState; readonly previous: readonly number[] }
+export interface Link {
   readonly move: string;
   readonly frame: number;
   readonly damage: number;
@@ -164,7 +168,7 @@ function situation(entry: FighterEntry, start: Checkpoint, choice: VictimChoice)
   };
 }
 
-function openingState(entry: FighterEntry, move: Move, percent: number, throwDI?: VictimChoice["di"]): Checkpoint | undefined {
+export function openingState(entry: FighterEntry, move: Move, percent: number, throwDI?: VictimChoice["di"]): Checkpoint | undefined {
   const line = new Timeline({
     placements: placements(entry, move.style === AttackStyle.backAir),
     prepare: (a, b) => {
@@ -190,7 +194,7 @@ function openingState(entry: FighterEntry, move: Move, percent: number, throwDI?
 }
 
 /** Tests all committed follow-up moves from one exact state against one victim script. */
-function links(entry: FighterEntry, start: Checkpoint, choice: VictimChoice): Link[] {
+export function links(entry: FighterEntry, start: Checkpoint, choice: VictimChoice): Link[] {
   const line = new Timeline(situation(entry, start, choice), HORIZON, "first");
   const old = fighterAt(start.state.world, 1);
   const oldAttacker = fighterAt(start.state.world, 0);
@@ -333,7 +337,7 @@ function bestChoices(rowsByChoice: readonly (readonly Link[])[]): ChoiceResult[]
   });
 }
 
-function comboRow(entry: FighterEntry, move: Move, percent: number): ComboRow {
+export function comboRow(entry: FighterEntry, move: Move, percent: number, stock = percent === 0): ComboRow {
   const initial = openingState(entry, move, percent);
   if (initial === undefined) return { kind: "combo", fighter: entry.name, opening: move.name, percent, openingLands: false, openingDamage: 0, choices: VICTIM_CHOICES.map((choice) => ({ victim: choice.name, best: undefined })), guaranteed: { damage: 0, followups: 0, moves: [], capped: false, ko: false }, stockPath: undefined, tree: [], violations: ["opening does not land in this setup"] };
   const roots = VICTIM_CHOICES.map((choice) => {
@@ -347,12 +351,12 @@ function comboRow(entry: FighterEntry, move: Move, percent: number): ComboRow {
     return links(entry, root, choice);
   });
   const guaranteed = guaranteedString(entry, move, percent, roots, first);
-  const search = percent === 0 ? stockPath(entry, move, initial, first) : undefined;
+  const search = stock ? stockPath(entry, move, initial, first) : undefined;
   const path = search?.path;
   const violations = [
     ...(guaranteed.followups > 2 ? ["more than 2 guaranteed follow-ups"] : []),
     ...(percent < 100 && guaranteed.damage > 30 ? ["more than 30% guaranteed damage below 100%"] : []),
-    ...(percent === 0 && path === undefined ? ["no 0-to-death path found with at most 3 reads in the sampled search"] : []),
+    ...(stock && path === undefined ? ["no 0-to-death path found with at most 3 reads in the sampled search"] : []),
     ...(path !== undefined && path.reads < 2 ? ["sampled 0-to-death takes fewer than 2 reads"] : []),
   ];
   const choices = bestChoices(first);

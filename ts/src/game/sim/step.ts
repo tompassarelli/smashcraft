@@ -42,7 +42,7 @@ import { heroMotionHolds } from "./heroSpecialRules";
 import { AIR_DODGE_ANIMATION_FRAMES, AIR_DODGE_DECAY, beginAirDodge, beginGroundDodge, beginJump, canBeginGroundDodge } from "./jumpsAndDodges";
 import { ageKnockback, applyDirectionalInfluence, decayKnockback } from "./knockback";
 import { advanceLedge } from "./ledge";
-import { DOWN_ATTACK_FRAMES, SMASH_MAX_CHARGE_FRAMES, attackStartupFrames, isSmashAttack } from "./moves";
+import { DOWN_ATTACK_FRAMES, EARLY_ASCENT_GRAB_FRAMES, SMASH_MAX_CHARGE_FRAMES, attackStartupFrames, isSmashAttack } from "./moves";
 import {
   addMeleeWorldValues,
   airDriftVelocity,
@@ -189,6 +189,7 @@ function advanceJumpSquat(f: Fighter, input: Readonly<Controls>, squatBeforeInpu
   const physics = f.tuning.physics;
   // Illidan retains his entry-frame squat countdown and immediate jump physics.
   const illidan = f.character === Character.demonHunter;
+  if (jump.ascent > 0) jump.ascent = motion.grounded || jump.ascent >= EARLY_ASCENT_GRAB_FRAMES ? 0 : jump.ascent + 1;
   if (!(jump.squat > 0 && f.launch.hitlag === 0 && (illidan || squatBeforeInput > 0))) return false;
   jump.squat--;
   if (jump.squat !== 0) return false;
@@ -198,6 +199,7 @@ function advanceJumpSquat(f: Fighter, input: Readonly<Controls>, squatBeforeInpu
     motion.vx = max(-physics.jumpHorizontalCap, min(physics.jumpHorizontalCap, jumpX));
   }
   motion.vz = jump.held ? physics.fullJumpSpeed : physics.shortJumpSpeed;
+  jump.ascent = 1;
   jump.serial++;
   jump.isDouble = false;
   if (jump.dodgeQueued) {

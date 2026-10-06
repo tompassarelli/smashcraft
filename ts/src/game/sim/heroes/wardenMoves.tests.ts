@@ -189,7 +189,7 @@ test("Warden throws hold through adopted release then launch once in both facing
     for (const [action, release, recovery, damage] of [
       [GrabAction.throwForward, 10, 18, 6.0],
       [GrabAction.throwBack, 14, 21, 7.0],
-      [GrabAction.throwUp, 11, 16, 5.0],
+      [GrabAction.throwUp, 11, 9, 5.0],
       [GrabAction.throwDown, 14, 20, 4.0],
     ] as const) {
       const { owner, target, world } = pair(AttackStyle.grab, 5, 40.0, 0.0, facing);

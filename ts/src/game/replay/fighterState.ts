@@ -69,6 +69,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   jump.serial = sourceJump.serial;
   jump.isDouble = sourceJump.isDouble;
   jump.squat = sourceJump.squat;
+  jump.ascent = sourceJump.ascent;
   jump.held = sourceJump.held;
   jump.dodgeQueued = sourceJump.dodgeQueued;
   jump.dodgeX = sourceJump.dodgeX;

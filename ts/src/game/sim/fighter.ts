@@ -96,6 +96,8 @@ interface Jump {
   serial: number;
   isDouble: boolean;
   squat: number;
+  /** Frames since a ground jump left the deck, takeoff counting as 1, through EARLY_ASCENT_GRAB_FRAMES; 0 otherwise (#107). */
+  ascent: number;
   held: boolean;
   /** An air dodge pressed during jump squat, taken on the takeoff frame. */
   dodgeQueued: boolean;
@@ -565,6 +567,7 @@ export function createFighter(character: Character, startX: number, facing: numb
       serial: 0,
       isDouble: false,
       squat: 0,
+      ascent: 0,
       held: false,
       dodgeQueued: false,
       dodgeX: 0,

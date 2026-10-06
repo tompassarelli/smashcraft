@@ -180,7 +180,7 @@ test("Shadow Hunter throws hold through their adopted release and launch once in
     for (const [action, release, recovery, damage] of [
       [GrabAction.throwForward, 12, 20, 7.0],
       [GrabAction.throwBack, 16, 24, 8.0],
-      [GrabAction.throwUp, 14, 20, 6.0],
+      [GrabAction.throwUp, 14, 8, 6.0],
       [GrabAction.throwDown, 17, 23, 5.0],
     ] as const) {
       const { owner, target, world } = pair(AttackStyle.grab, 7, 50.0, 0.0, facing);
