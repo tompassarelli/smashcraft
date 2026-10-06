@@ -32,7 +32,6 @@ export function beginShieldBreak(world: Roster, slot: number): void {
   launch.hitstun = 0;
   f.grab.grabbedFrames = 0;
   f.landing.lag = 0;
-  f.landing.lCancelWindow = 0;
   clearTech(f);
   motion.dropTime = 0;
   launch.diPending = false;

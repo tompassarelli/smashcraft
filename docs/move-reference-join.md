@@ -58,6 +58,9 @@ not a multihit sum. `end` does not establish continuous active intervals, and
 `total - end` is not an established recovery calculation. Reference game
 revision is unknown. Null can mean missing or inapplicable; zero is never
 substituted. Excluded notes may contain conditions and multihit gaps.
+Smashcraft omits L-cancelling (smashcraft:docs/gameplay-design.md): a
+production aerial's `landingLag` is already the cancelled lag, comparable with
+a reference's L-cancel lag rather than its landing lag.
 
 The reference has no established hit/hurtbox geometry, launch angle, knockback
 or hitstun data. The join deliberately does not invent corresponding fields.

@@ -20,7 +20,6 @@ test("move export reads jab contact through production resolution for all fighte
   }
 });
 
-test("move export observes landing lag through the production step, halved by an L-cancel", () => {
-  expect(observeLandingLag(Character.archer, AttackStyle.neutralAir, false)).toBe(10);
-  expect(observeLandingLag(Character.archer, AttackStyle.neutralAir, true)).toBe(5);
+test("move export observes the short aerial landing lag through the production step", () => {
+  expect(observeLandingLag(Character.archer, AttackStyle.neutralAir)).toBe(5);
 });
