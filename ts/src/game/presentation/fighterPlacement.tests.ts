@@ -21,7 +21,8 @@ function insideDeck(x: number, z: number): boolean {
 }
 
 test("each fighter's visible envelope clears the main underside and every side face at its unchanged ECB contact, both facings", () => {
-  for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
+  // Every registered fighter, heroes included, whether or not it is selectable yet.
+  for (const character of Object.values(Character)) {
     for (const facing of [-1, 1]) {
       const fighter = createFighter(character, 0.0, facing);
       fighter.motion.grounded = false;

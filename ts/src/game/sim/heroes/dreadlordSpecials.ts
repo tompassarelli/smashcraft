@@ -72,7 +72,7 @@ function batAscension(cost: number, rise: number, across: number): AuthoredSpeci
   return {
     cost,
     endFrame: 32,
-    motion: [{ ...frames(9, 32), velocityX: 0.0, velocityZ: perFrame(h(rise), 24), steerX: perFrame(h(across), 24) }],
+    motion: [{ ...frames(9, 32), velocityX: 0.0, velocityZ: perFrame(h(rise), 24), driftSpeed: perFrame(h(across), 24) }],
     oncePerAirtime: true,
     helpless: true,
     hurt: SPREAD_WINGS,

@@ -199,6 +199,8 @@ function specialProjectileCanonical(spec: Readonly<SpecialProjectile>, prefix: s
     int("status.group", spec.status.group);
     int("status.immunityFrames", spec.status.immunityFrames);
   }
+  real("backOffsetX", spec.backOffsetX ?? -1.0);
+  int("needsLineOfSight", spec.needsLineOfSight === true ? 1 : 0);
   return result;
 }
 
@@ -243,6 +245,7 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
   int("armor.first", move.armor?.first ?? -1);
   int("armor.last", move.armor?.last ?? -1);
   real("armor.maxDamage", move.armor?.maxDamage ?? 0.0);
+  int("armor.shell", move.armor?.shell === true ? 1 : 0);
   const motion = move.motion ?? [];
   for (let index = 0; index < motion.length; index++) {
     const segment = at(motion, index);
@@ -251,7 +254,7 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
     real(`motion[${index}].velocityX`, segment.velocityX);
     real(`motion[${index}].velocityZ`, segment.velocityZ);
     real(`motion[${index}].aimedSpeed`, segment.aimedSpeed ?? 0.0);
-    if (segment.steerX !== undefined) real(`motion[${index}].steerX`, segment.steerX);
+    real(`motion[${index}].driftSpeed`, segment.driftSpeed ?? 0.0);
   }
   const grab = move.commandGrab;
   if (grab !== undefined) {
@@ -558,7 +561,9 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   int("grabbedFrames", gr.grabbedFrames);
   int("grabAction", gr.action);
   int("grabFrame", gr.frame);
-  if (gr.pummels !== undefined) int("grabPummels", gr.pummels);
+  int("grabPummels", gr.pummels);
+  int("grabHeldFrames", gr.heldFrames);
+  int("grabQueuedThrow", gr.queuedThrow);
   int("grabSerial", gr.serial);
   int("grabMashX", gr.mashX);
   int("grabMashZ", gr.mashZ);

@@ -46,10 +46,12 @@ export interface AuthoredThrow {
 /** Plain immutable values so moment exports and rollback retain the same authored kit. */
 export interface FighterMoves {
   readonly normals: { readonly [style: number]: AuthoredMove | undefined };
+  /** A pummel entry supplies only its effect; every pummel shares one timing (smashcraft:docs/gameplay-design.md, "Grab holds and pummels"). */
   readonly throws: { readonly [action: number]: AuthoredThrow | undefined };
   readonly dashAttack: AttackStyle;
   readonly smashMaxChargeFrames: number;
   readonly smashMaxDamageMultiplier: number;
+  /** 0 disables the pummel; the shared rule allows at most one. */
   readonly maxPummels?: number | undefined;
   /** Bodies that follow the kit's animation (smashcraft:docs/hurtboxes.md); absent, the character's standing body. */
   readonly hurtboxes?: FighterHurtboxes | undefined;

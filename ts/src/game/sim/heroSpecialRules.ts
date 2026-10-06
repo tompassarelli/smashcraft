@@ -18,6 +18,7 @@ import { capsuleCircleIntersects, shieldSizeMultiplier } from "./shield";
 import { emptyCapsule, placeCapsule } from "../physics/contactGeometry";
 import { HurtContact, strikeHurtContact } from "./hurtboxes";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
+import { solidSurfaceAt, solidSurfaceCount } from "./stage";
 
 /** Diagonal aim keeps the authored speed. */
 const DIAGONAL = 0.7071067690849304;
@@ -73,6 +74,7 @@ export function chooseHeroSpecial(f: Readonly<Fighter>, specials: Readonly<Fight
   let form: SpecialForm = airborne && kit.air !== undefined ? SpecialForm.air : SpecialForm.ground;
   let move = specialForm(kit, form);
   if (move.groundOnly === true && airborne) return undefined;
+  if (move.armor?.shell === true && f.status.armorFrames > 0) return undefined;
   if (move.cost > f.mana.points) {
     if (kit.free === undefined) {
       out.manaShort = true;
@@ -169,13 +171,46 @@ function applyWindows(f: Fighter, move: Readonly<AuthoredSpecial>, frame: number
   if (inWindow(move.intangible, frame + 1)) status.invincible = max(status.invincible, 2);
   else if (inWindow(move.intangible, frame)) status.invincible = max(status.invincible, 1);
   const armor = move.armor;
-  if (armor !== undefined && (inWindow(armor, frame + 1) || inWindow(armor, frame))) {
+  if (armor?.shell === true) {
+    // Armed once; the step's status countdown then runs it through `last`.
+    if (frame + 1 === armor.first) {
+      status.armorFrames = armor.last - armor.first + 2;
+      status.armorMaxDamage = armor.maxDamage;
+    }
+  } else if (armor !== undefined && (inWindow(armor, frame + 1) || inWindow(armor, frame))) {
     status.armorFrames = max(status.armorFrames, inWindow(armor, frame + 1) ? 2 : 1);
     status.armorMaxDamage = armor.maxDamage;
   }
 }
 
-function spawnHeroProjectile(owner: Fighter, spec: Readonly<SpecialProjectile>, serial: number): void {
+/** Whether segment a-b properly crosses segment c-d. */
+function segmentsCross(ax: number, az: number, bx: number, bz: number, cx: number, cz: number, dx: number, dz: number): boolean {
+  const side = (px: number, pz: number, qx: number, qz: number, rx: number, rz: number): number =>
+    f32(f32(f32(qx - px) * f32(rz - pz)) - f32(f32(qz - pz) * f32(rx - px)));
+  const c = side(ax, az, bx, bz, cx, cz);
+  const d = side(ax, az, bx, bz, dx, dz);
+  const a = side(cx, cz, dx, dz, ax, az);
+  const b = side(cx, cz, dx, dz, bx, bz);
+  return ((c > 0 && d < 0) || (c < 0 && d > 0)) && ((a > 0 && b < 0) || (a < 0 && b > 0));
+}
+
+/** Whether no solid stage surface lies between two points. */
+function clearLine(stage: number, fromX: number, fromZ: number, toX: number, toZ: number): boolean {
+  for (let index = 0; index < solidSurfaceCount(stage); index++) {
+    const surface = solidSurfaceAt(stage, index);
+    if (segmentsCross(fromX, fromZ, toX, toZ, surface.startX, surface.startZ, surface.endX, surface.endZ)) return false;
+  }
+  return true;
+}
+
+/** Whether the special was pressed toward the fighter's back, which keeps its facing. */
+const pressedBackward = (f: Readonly<Fighter>): boolean => f.special.aimX !== 0 && f.special.aimX === -f.facing;
+
+function spawnHeroProjectile(owner: Fighter, spec: Readonly<SpecialProjectile>, serial: number, stage: number): void {
+  const offsetX = spec.backOffsetX !== undefined && pressedBackward(owner) ? spec.backOffsetX : spec.offsetX;
+  const x = f32(owner.motion.x + f32(owner.facing * offsetX));
+  const z = f32(owner.motion.z + spec.offsetZ);
+  if (spec.needsLineOfSight === true && !clearLine(stage, owner.motion.x, z, x, z)) return;
   for (const projectile of owner.projectiles) {
     if (projectile.life > 0) continue;
     const up = owner.special.aimZ > 0 && spec.upVelocityX !== undefined;
@@ -187,8 +222,8 @@ function spawnHeroProjectile(owner: Fighter, spec: Readonly<SpecialProjectile>, 
     projectile.direction = owner.facing < 0 ? -1 : 1;
     projectile.velocityX = f32(owner.facing * velocityX);
     projectile.velocityZ = velocityZ;
-    projectile.x = f32(owner.motion.x + f32(owner.facing * spec.offsetX));
-    projectile.z = f32(owner.motion.z + spec.offsetZ);
+    projectile.x = x;
+    projectile.z = z;
     projectile.serial = serial;
     projectile.damageMultiplier = 1.0;
     projectile.newlyReflected = false;
@@ -197,7 +232,7 @@ function spawnHeroProjectile(owner: Fighter, spec: Readonly<SpecialProjectile>, 
   }
 }
 
-function applyMotion(f: Fighter, move: Readonly<AuthoredSpecial>, frame: number): void {
+function applyMotion(f: Fighter, move: Readonly<AuthoredSpecial>, frame: number, input: Readonly<Controls> | undefined): void {
   const { motion, special } = f;
   for (const segment of move.motion ?? []) {
     if (frame < segment.first || frame > segment.last) continue;
@@ -211,7 +246,10 @@ function applyMotion(f: Fighter, move: Readonly<AuthoredSpecial>, frame: number)
       velocityX = f32(velocityX * segment.aimedTilt.x);
       velocityZ = f32(f32(special.aimZ * Math.abs(segment.velocityX)) * segment.aimedTilt.z);
     }
-    if (segment.steerX !== undefined) velocityX = f32(f.motion.previousStickSide * segment.steerX);
+    if (segment.driftSpeed !== undefined && input !== undefined) {
+      const stick = input.diStickValid ? input.diStickX : input.direction;
+      velocityX = f32(velocityX + f32(min(1.0, max(-1.0, stick)) * segment.driftSpeed));
+    }
     motion.vx = velocityX;
     motion.vz = velocityZ;
     if (velocityZ > 0 && motion.grounded) {
@@ -244,12 +282,12 @@ function endHeroSpecial(f: Fighter, move: Readonly<AuthoredSpecial>): void {
 }
 
 /** One frame of a running hero special, after its frame counter advanced. */
-export function advanceHeroSpecial(f: Fighter): void {
+export function advanceHeroSpecial(f: Fighter, stage = 0, input?: Readonly<Controls>): void {
   const move = runningHeroSpecial(f);
   if (move === undefined) return;
   const frame = f.special.frame;
-  applyMotion(f, move, frame);
-  for (const spec of move.projectiles ?? []) if (spec.spawnFrame === frame) spawnHeroProjectile(f, spec, f.attack.serial + 1);
+  applyMotion(f, move, frame, input);
+  for (const spec of move.projectiles ?? []) if (spec.spawnFrame === frame) spawnHeroProjectile(f, spec, f.attack.serial + 1, stage);
   applyWindows(f, move, frame);
   if (frame >= heroSpecialEndFrame(f, move)) endHeroSpecial(f, move);
 }

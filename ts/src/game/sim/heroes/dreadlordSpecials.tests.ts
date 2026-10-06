@@ -30,7 +30,7 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), second: Re
   advanceGrabs(world, inputs);
   for (let slot = 0; slot < 2; slot++) startFighterSpecial(world.fighters[slot]!, 0, 0, inputs[slot] ?? controls());
   resolveAttacks(world);
-  advanceSpecials(world, 0, 0);
+  advanceSpecials(world, 0, 0, inputs);
   updateProjectiles(world);
   for (let slot = 0; slot < 2; slot++) {
     regenerateMana(world.fighters[slot]!);
