@@ -615,3 +615,75 @@ not a thirty-input replay workload to run for every fighter during a match.
 
 The Rifleman's trap can freeze a fighter again as each freeze ends (#84).
 Throw-to-regrab chains are governed by the throw regrab rule above (#85).
+
+## Legible hurtboxes
+
+Delegated choices, 6 Oct 2026 (#97), under the owner's instruction that
+correct play should win: spacing that is right by every visible cue must not
+lose to a hurtbox the player could not see. The mechanisms behind Ultimate's
+"played right, still lost" reports, and Melee's comparable cases, are in
+[hurtbox legibility](design/hurtbox-legibility.md). Authoring is described in
+smashcraft:docs/hurtboxes.md.
+
+1. **One body outside attacks.** Standing, idle, walking, dashing, running,
+   jumping, falling and shielding all use the standing body; only crouch,
+   attacks and specials author others. No idle pose, animation timing or
+   random draw ever selects a body.
+2. **Connected.** Every part of every body touches its first part (the torso)
+   directly or through other parts: no floating hurt volumes.
+3. **Held poses.** Every authored pose lasts at least 3 frames, and an
+   attack's or special's poses do not overlap and end within the move. A
+   gap between poses returns to the standing body, and counts as a change.
+4. **Bounded steps.** One change of body (entering the move, pose to pose,
+   returning to standing) moves the body's front, back, top or bottom extent by
+   at most 60 world units (10 Melee units, about one standing body width plus
+   a quarter). A longer reach ramps through intermediate poses.
+5. **Protection where the strike is.** An intangible or invincible part
+   touches one of the same move's hit regions: protection belongs to the
+   striking limb, never to a hidden torso or head.
+6. **Touching is hitting.** Any overlap of a strike and a normal part,
+   tangency included, is a hit: no glancing-blow or phantom band. A strike's
+   tested volume is its authored capsule on that frame, never a chord swept
+   from the previous frame.
+7. **Judged on the shown frame.** A contact is resolved against the pose both
+   fighters show on the contact frame, from the same pre-contact state for
+   both; no zoom or slowdown replays the hit in a different pose.
+
+Rules 1–6 are checked on every fighter's authored bodies, the original three
+and each registered hero, by smashcraft:ts/src/game/sim/hurtboxLegibility.tests.ts. A fighter that needs
+to break a rule lists a named departure there and in this section, with its
+reason. Current departures: none.
+
+## Projectiles and powershield
+
+Delegated choices, 6 Oct 2026 (#98), under the owner's direction that
+projectiles create pressure without making play safe, spammy and boring, and
+that a practised player can powershield on purpose. Ultimate's and Melee's
+projectile properties are described in [projectiles](design/projectiles.md).
+
+1. **Powershield reflects.** Raising the shield so its reflector is up when a
+   traveling projectile arrives reflects it back at its shooter, at 0.7 speed
+   and half damage, now owned by the reflector. The reflector is up for the
+   shield's first 2 frames, inside #69's accepted 2–4. Every traveling
+   projectile is reflectable; only persistent zones, puddles, markers and
+   summons are not (the roster contract), and a held shield blocks those.
+2. **Unsafe up close.** Fired point blank into a held shield, every
+   projectile is punishable: some out-of-shield option of the defender lands
+   before the shooter can act. At range a projectile may be safe by distance;
+   rule 5 covers that.
+3. **Few at once.** A fighter has at most 3 traveling projectiles and 2
+   persistent objects out at once (the roster contract); a cast beyond the
+   cap fails before spending mana.
+4. **Short flights.** A traveling projectile lives at most 90 frames.
+5. **A counterplay option in every projectile situation.** Against each
+   projectile at every tested spacing, the defender has at least one option
+   other than holding shield that avoids it: a powershield, a jump, a dodge
+   or a roll. The interaction graph's projectile situations show which.
+6. **Out-of-shield answers for every fighter.** Every fighter keeps shield
+   grab, jump out of shield into any aerial, both rolls, spot dodge and the
+   raise-timed powershield; no fighter trades one of them away.
+
+The headless checks measure every fighter's projectiles, the original three
+and each registered hero's, against rules 1–5; rule 6 is checked from the
+interaction graph's out-of-shield options. Any departure is named here with
+its reason.
