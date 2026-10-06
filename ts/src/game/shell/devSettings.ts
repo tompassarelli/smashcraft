@@ -10,8 +10,9 @@ import { MAX_BATCH } from "../netcode/journal/transport";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import {
   type MatchState, Phase, createMatchState, firstHumanSlot, humanFighterActive, humanPresent, requestStageSelect, requestStart, returnToCharacters,
-  selectCharacter, selectStage, setStocks,
+  selectCharacter, selectStage, setStocks, computerActive, cycleSlotMode, setHitAreas, setPartnerDamage, setTraining, stepPartnerBehaviour,
 } from "../match/rules";
+import { PartnerBehaviour } from "../match/trainingState";
 import { selectableStage } from "../menu/stageCatalog";
 import { REPLAY_MAX_CORRECTION_FRAMES } from "../replay/limits";
 import type { Character } from "../sim/codes";
@@ -118,4 +119,18 @@ export function prepareQuickMatch(game: MatchState, stage = 0, character?: Chara
   if (!requestStageSelect(game, first)) return false;
   selectStage(game, first, stage);
   return requestStart(game, first);
+}
+
+/** Training's native check (#120): a computer partner shielding at 40%, hit areas on, then the quick match. */
+export const QUICK_TRAINING_COMMAND = "-dev quick training";
+
+export function prepareQuickTraining(game: MatchState): void {
+  const first = firstHumanSlot(game);
+  if (first === undefined || game.phase !== Phase.characterMenu) return;
+  const partner = PARTICIPANT_SLOTS.find(slot => !humanFighterActive(game, slot) && !computerActive(game, slot));
+  if (partner !== undefined) for (let step = 0; step < 2; step++) cycleSlotMode(game, first, partner);
+  setTraining(game, first, true);
+  setHitAreas(game, first, true);
+  setPartnerDamage(game, first, 40);
+  while (game.trainer.behaviour !== PartnerBehaviour.shield) stepPartnerBehaviour(game, first, 1);
 }

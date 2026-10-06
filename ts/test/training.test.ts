@@ -9,7 +9,8 @@ import { inputRow } from "../src/game/input/inputRow";
 import { Phase } from "../src/game/match/rules";
 import { matchSpawnX } from "../src/game/match/step";
 import { PartnerBehaviour, PartnerEscape } from "../src/game/match/trainingState";
-import { PLAYABLE_BUILD } from "../src/game/shell/currentBuild";
+import { INTEGRITY_BUILD, PLAYABLE_BUILD } from "../src/game/shell/currentBuild";
+import { QUICK_TRAINING_COMMAND } from "../src/game/shell/devSettings";
 import { fighterAt } from "../src/game/sim/roster";
 import { RULE_BUTTONS } from "../src/game/ui/ruleButtons";
 import { install, startBuild } from "../src/platform/main";
@@ -80,4 +81,21 @@ test("training settings agree on both clients and both shields with attack reset
   expect(read(() => shell().game.phase)).toBe(Phase.match);
   expect(read(() => fighterAt(shell().world, 2).shield.raised)).toBe(true);
   expectSynchronized(clients);
+});
+
+test("-dev quick training starts a training match with a shielding partner at 40% and hit areas on, on both clients", () => {
+  const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1]);
+  const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);
+  const frames = (n: number) => { for (let i = 0; i < n; i++) { clients.frames(1); helpers.service(clients); } };
+  clients.start();
+  frames(30);
+  clients.chat(0, QUICK_TRAINING_COMMAND);
+  frames(240);
+  for (const client of clients.clients) {
+    expect(client.errors).toEqual([]);
+    expect(value(client, () => {
+      const { game, world } = shell();
+      return [game.phase, game.training, game.trainer.showHitAreas, game.computerMask, fighterAt(world, 2).status.damage, game.trainer.behaviour];
+    })).toEqual([Phase.match, true, true, 4, 40, PartnerBehaviour.shield]);
+  }
 });

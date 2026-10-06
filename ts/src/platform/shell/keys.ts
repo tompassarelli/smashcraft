@@ -10,7 +10,7 @@ import { type ParticipantSlot, isParticipantSlot } from "../../game/input/partic
 import { heldActions, keyDown, pressKey, releaseKey } from "../../game/input/playerKeys";
 import { startKeyDown, startKeyUp } from "../../game/match/controls";
 import { Phase, cancelRematchCountdown, characterFor, firstHumanSlot, humanActive, leaveMatch, recallCharacter, selectCharacter } from "../../game/match/rules";
-import { DESYNC_COMMAND, quickMatchHero, quickMatchStage, applyDevCommand } from "../../game/shell/devSettings";
+import { DESYNC_COMMAND, QUICK_TRAINING_COMMAND, applyDevCommand, prepareQuickTraining, quickMatchHero, quickMatchStage } from "../../game/shell/devSettings";
 import { fighterName } from "../../game/sim/heroes/registry";
 import { keepMomentEnd } from "../../game/replay/moment";
 import { devReceiptFile } from "../../game/shell/journalFiles";
@@ -209,7 +209,11 @@ export function onDevCommand(s: ShellState): void {
   const quickHero = quickMatchHero(message);
   // Session setup (sessionSetup.ts) changes the menus only for its own spellings.
   const setup = applySetupCommand(s.game, GetPlayerId(GetTriggerPlayer()), message);
-  if (message === "-dev camera") {
+  if (message === QUICK_TRAINING_COMMAND) {
+    receipt = "dev: quick training";
+    prepareQuickTraining(s.game);
+    startQuickMatch(s, 0);
+  } else if (message === "-dev camera") {
     receipt = "dev: camera match";
     startQuickMatch(s, 0, "camera");
   } else if (quickStage !== undefined) {

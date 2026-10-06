@@ -5,7 +5,7 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
 import type { AcceptSuite, NativeCheck, Rule } from "wisp/scripts/wisp/accept";
-import { QUICK_HERO_COMMAND } from "../../src/game/shell/devSettings";
+import { QUICK_HERO_COMMAND, QUICK_TRAINING_COMMAND } from "../../src/game/shell/devSettings";
 import { HIT_PRESENTATION_CASES } from "../../src/game/shell/hitPresentationCases";
 import { HERO_ROSTER } from "../../src/game/sim/heroes/registry";
 
@@ -30,6 +30,7 @@ export const MAP_PROFILES: Readonly<Record<string, SmashcraftMapProfile>> = {
   presentation: { describe: "development map rebuilt from this checkout, `-dev quick` (Archer and Rifleman idle on the default stage)", path: PRESENTATION, rebuild: "main", quick: "-dev quick" },
   // smashcraft:docs/player-view.md: CURRENT_BUILD's scenario set to underside, built as a development map.
   underside: { describe: "development map built with scenario underside (smashcraft:docs/player-view.md), `-dev quick`", path: join(inputs, "stage-model-20261006/Smashcraft diagnostic underside.w3x"), quick: "-dev quick" },
+  training: { describe: "development map rebuilt from this checkout, `-dev quick training` (a computer partner shielding at 40%, hit areas on)", path: PRESENTATION, rebuild: "main", quick: QUICK_TRAINING_COMMAND },
   ...Object.fromEntries(heroes.map(({ name }) => [heroProfile(name), {
     describe: `development map rebuilt from this checkout, every human plays ${name}`,
     path: PRESENTATION,
@@ -108,6 +109,15 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
       capture: [{ kind: "frames", name: "underside", client: "a" }, { kind: "frames", name: "underside", client: "b" }],
       pass: [NO_IMPORT_FAILURES, NO_ERRORS],
       look: "the deck's underside edge at about 74% of the frame height, player 1 at about 62-72%, both above the HUD (about 82%)",
+    },
+    {
+      id: "120-training",
+      closes: "smashcraft#120 box 5",
+      map: "training",
+      setup: [{ waitMs: 3000 }],
+      capture: [{ kind: "frames", name: "match", client: "a" }, { kind: "frames", name: "match", client: "b" }],
+      pass: [NO_IMPORT_FAILURES, NO_ERRORS],
+      look: "green body outlines on every fighter and the partner's shield, outlines on the fighters' plane; after an attack, the top-left readout (frames, advantage, combo) readable on both clients",
     },
     ...heroes.map(({ name }): NativeCheck => ({
       id: `96-hero-${heroProfile(name).slice(5)}`,
