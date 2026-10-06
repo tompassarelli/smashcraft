@@ -5,7 +5,7 @@
 // the computer punishes windows as they come up.
 import { assertEquals, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
-import { floorDiv } from "wisp/src/sim/intMath";
+import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { clearAttackBuffer, queueAttack } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import { AttackStyle, Character } from "../sim/codes";
@@ -99,23 +99,26 @@ for (const whiff of WHIFFS) {
       assertEquals(punishCount(whiff, character, 9, HARD_SEEDS), HARD_SEEDS);
       easy += punishCount(whiff, character, 1, EASY_SEEDS);
     }
-    // Measured 5, 0 and 6 of 96 at the change; a quarter is the bound.
-    assertLessThan(easy, Math.floor((SELECTABLE_CHARACTERS.length * EASY_SEEDS) / 4));
+    // Measured 6, 0 and 6 of 96 at the change; a quarter is the bound.
+    assertLessThan(easy, floorDiv(SELECTABLE_CHARACTERS.length * EASY_SEEDS, 4));
   });
 }
 
-/** Level-9 computers on both sides of these pairings, one seeded match each. */
+/** Level-9 computers on both sides of these pairings, MATCH_SEEDS seeded matches each. */
 const PAIRS = [
   [Character.pitLord, Character.blademaster], [Character.mountainKing, Character.lich], [Character.archer, Character.uther],
   [Character.dreadlord, Character.warden], [Character.shadowHunter, Character.beastmaster], [Character.demonHunter, Character.rifleman],
 ] as const;
 const MATCH_FRAMES = 1800;
+const MATCH_SEEDS = 4;
 
-test("computers punish in ordinary level-9 matches: they attack into open windows and land most", () => {
+test("computers punish in ordinary level-9 matches: they attack into open windows and land in more of them than without the punish", () => {
+  // Windows each computer saw open, the ones it attacked into, and the ones it hit or grabbed in.
+  let windowsSeen = 0;
   let attempts = 0;
   let landed = 0;
-  for (let index = 0; index < PAIRS.length; index++) {
-    const pair = PAIRS[index] ?? PAIRS[0];
+  for (let index = 0; index < PAIRS.length * MATCH_SEEDS; index++) {
+    const pair = PAIRS[floorMod(index, PAIRS.length)] ?? PAIRS[0];
     const world = createRoster(3, [createFighter(pair[0], -200.0, 1), createFighter(pair[1], 200.0, -1)]);
     const match = createMatchState();
     match.phase = Phase.match;
@@ -130,13 +133,22 @@ test("computers punish in ordinary level-9 matches: they attack into open window
       { frames: 0, kind: PunishKind.none, elapsed: 0, key: 0 }, { frames: 0, kind: PunishKind.none, elapsed: 0, key: 0 },
     ];
     const open = [false, false];
+    const wasOpen = [false, false];
+    const tried = [false, false];
+    const scored = [false, false];
     const serials = [0, 0];
     const damage = [0.0, 0.0];
     for (let n = 0; n < MATCH_FRAMES; n++) {
       const frame = runtime.simulationFrame + 1;
       for (const slot of [0, 1] as const) {
         const other = fighterAt(world, slot === 0 ? 1 : 0);
+        wasOpen[slot] = open[slot] === true;
         open[slot] = punishWindow(other, frame, windows[slot] ?? windows[0]);
+        if (open[slot] === true && !wasOpen[slot]) {
+          windowsSeen++;
+          tried[slot] = false;
+          scored[slot] = false;
+        }
         serials[slot] = fighterAt(world, slot).attack.serial;
         damage[slot] = other.status.damage;
       }
@@ -151,12 +163,18 @@ test("computers punish in ordinary level-9 matches: they attack into open window
       for (const slot of [0, 1] as const) {
         if (open[slot] !== true) continue;
         const other = fighterAt(world, slot === 0 ? 1 : 0);
-        if (fighterAt(world, slot).attack.serial !== serials[slot]) attempts++;
-        if (other.status.damage > (damage[slot] ?? 0.0) || other.grab.owner === slot) landed++;
+        if (tried[slot] !== true && fighterAt(world, slot).attack.serial !== serials[slot]) {
+          tried[slot] = true;
+          attempts++;
+        }
+        if (scored[slot] !== true && (other.status.damage > (damage[slot] ?? 0.0) || other.grab.owner === slot)) {
+          scored[slot] = true;
+          landed++;
+        }
       }
     }
   }
-  // Measured 72 attacks into open windows, 57 landed, at the change; without the punish 50 and 31.
-  assertGreaterThan(attempts, 55);
-  assertGreaterThan(landed, 40);
+  // Measured over 1127 windows: 251 attacked into, 188 landed in (16.7%); without the punish 150 and 123 of 1038 (11.9%).
+  assertGreaterThan(attempts, 200);
+  assertGreaterThan(landed * 100, windowsSeen * 14);
 });

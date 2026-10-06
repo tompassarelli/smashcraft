@@ -1,10 +1,12 @@
 // The computer's whiff punish: an opponent in a move's end lag, a missed
 // grab, a whiffed special, a landing, a dropped shield or a dodge's end can't
 // act for a number of frames its own counters already hold. The computer reads
-// that window, takes its fastest ground move whose first active frame lands
-// inside it, running in first when the gap needs it, and commits. A level
-// recognizes only a share of windows and may misjudge their length.
+// that window, takes its gameplan spacing tool, or else its fastest ground move,
+// whose first active frame lands inside it, running in first when the gap needs
+// it, and commits. A level recognizes only a share of windows and may misjudge
+// their length.
 import { at } from "wisp/src/runtime/lookup";
+import { hurtCapsule } from "../physics/contactGeometry";
 import { f32 } from "wisp/src/sim/f32";
 import { floorDiv } from "wisp/src/sim/intMath";
 import { type AttackBuffer, queueAttack } from "../input/attackBuffer";
@@ -15,7 +17,9 @@ import { heroSpecialEndFrame, runningHeroSpecial } from "../sim/heroSpecialRules
 import { attackStartupFrames, characterAttackActiveFrames } from "../sim/moves";
 import type { Controls } from "../sim/roster";
 import { SHIELD_RELEASE_LAG_FRAMES } from "../sim/shield";
+import type { FighterGameplan } from "../sim/gameplan";
 import { safeAt, slideStaysOnDeck } from "./botFooting";
+import { gameplanOf } from "./botGameplan";
 import { botChance, moveReachAhead, moveReaches } from "./botMoves";
 import type { CpuSkill } from "./cpuLevel";
 
@@ -120,18 +124,31 @@ const aheadX = (f: Readonly<Fighter>, t: Readonly<Fighter>, frames: number) =>
 const aheadZ = (f: Readonly<Fighter>, t: Readonly<Fighter>, frames: number) =>
   f32(f32(t.motion.z - f.motion.z) + f32(f32(t.motion.deltaZ - f.motion.deltaZ) * frames));
 
-/** The style a ground move comes out as out of a run: a jab is the kit's dash attack. */
+/** The style a ground move comes out as from a run: a jab is the kit's dash attack. */
 function runningStyle(f: Readonly<Fighter>, move: AttackStyle): AttackStyle {
   const dashes = f.character === Character.demonHunter || f.tuning.moves !== undefined;
   return dashes && move === AttackStyle.jab ? f.tuning.moves?.dashAttack ?? AttackStyle.demonHunterDashAttack : move;
 }
 
-/** A run ends in its dash attack or a grab. */
-const fromRun = (move: AttackStyle): boolean => move === AttackStyle.jab || move === AttackStyle.grab;
+/**
+ * A grab catches a narrower body than a strike strikes (sim/attacks.ts), and a
+ * missed grab is itself punished: it is thrown only at a target whose
+ * position, not just its body's edge, lies within the grab's reach.
+ */
+function grabSure(f: Readonly<Fighter>, style: AttackStyle, target: Readonly<Fighter>, x: number): boolean {
+  return style !== AttackStyle.grab || x <= f32(moveReachAhead(f.character, style, target, f.tuning.moves) - hurtCapsule(target.character).radius);
+}
+
+/** Whether the gameplan names `move` among its spacing tools. */
+function spacingTool(plan: Readonly<FighterGameplan>, move: AttackStyle): boolean {
+  for (let index = 0; index < plan.spacing.length; index++) if (at(plan.spacing, index).move === move) return true;
+  return false;
+}
+
 
 /**
- * Punishes the target's open window: the fastest move that reaches it before
- * it can act, or a run in when a move would reach after it. True when that
+ * Punishes the target's open window: the fighter's gameplan spacing tool, or
+ * else its fastest move, that reaches it before it can act, or a run in when a move would reach after it. True when that
  * took this frame's input. Ground only; a shield lets go only for a grab.
  */
 export function choosePunish(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, matchFrame: number, frame: number, skill: CpuSkill, input: Controls, commands: AttackBuffer): boolean {
@@ -146,28 +163,33 @@ export function choosePunish(f: Readonly<Fighter>, target: Readonly<Fighter>, st
   const believed = open.frames + skill.punishMisjudge - INPUT_FRAMES;
   if (!slideStaysOnDeck(f, stage, matchFrame)) return false;
   const moves = f.tuning.moves;
+  const plan = skill.gameplanWeights ? gameplanOf(f.character) : undefined;
   let best: AttackStyle | undefined;
   let bestStartup = 0;
+  let bestTool = false;
   let runFits = false;
   const speed = Math.max(Math.abs(f.motion.vx), f.tuning.physics.dashSpeed);
   const running = f.ground.dashFrame > 0;
   for (let index = 0; index < PUNISH_MOVES.length; index++) {
     const move = at(PUNISH_MOVES, index);
     if (shielding && move !== AttackStyle.grab) continue;
-    if (running && !fromRun(move)) continue;
     const style = running ? runningStyle(f, move) : move;
     const startup = attackStartupFrames(style, moves);
-    if (startup <= believed && (best === undefined || startup < bestStartup)
-      && moveReaches(f.character, style, target, Math.abs(aheadX(f, target, startup)), aheadZ(f, target, startup), moves)) {
+    // A gameplan's spacing tool that arrives in time is its punish; otherwise the fastest move that does.
+    const tool = plan !== undefined && spacingTool(plan, style === move ? move : AttackStyle.dashAttack);
+    const better = best === undefined || (tool && !bestTool) || (tool === bestTool && startup < bestStartup);
+    const x = Math.abs(aheadX(f, target, startup));
+    if (startup <= believed && better && moveReaches(f.character, style, target, x, aheadZ(f, target, startup), moves) && grabSure(f, style, target, x)) {
       best = move;
       bestStartup = startup;
+      bestTool = tool;
     }
-    // Out of reach: a run closes the rest at dash speed, then its dash attack or grab comes out.
-    if (shielding || runFits || !fromRun(move)) continue;
+    // Out of reach: a run closes the rest at dash speed, then the move (a jab as the dash attack) comes out.
+    if (shielding || runFits) continue;
     const ran = runningStyle(f, move);
     const ranStartup = attackStartupFrames(ran, moves);
     const short = f32(Math.abs(aheadX(f, target, ranStartup)) - moveReachAhead(f.character, ran, target, moves));
-    if (short > 0 && short <= RUN_FAR && Math.ceil(short / speed) + ranStartup <= believed) runFits = true;
+    if (short > 0 && short <= RUN_FAR && Math.ceil(f32(short / speed)) + ranStartup <= believed) runFits = true;
   }
   const dx = f32(target.motion.x - f.motion.x);
   const toward = dx === 0 ? (f.facing < 0 ? -1 : 1) : dx > 0 ? 1 : -1;

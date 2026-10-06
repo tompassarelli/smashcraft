@@ -105,12 +105,16 @@ can act: a ground move past its active frames (`attack.cooldown`), a missed
 grab, a hero special past its last strike with nothing still to come (no
 shot, partner, guard, armor or branch), landing lag, a dropped shield's
 release lag and a dodge after its intangibility. A hit, a grab, a knockdown,
-the ledge or the air is not a window. The computer then takes its fastest
-ground move whose first active frame lands inside the window and whose
-strike reaches where the opponent will be (the bot's cached first-active-
-frame reach), or runs in when a dash attack or grab would arrive in time; a
-running punish ends in the dash attack or a grab, and a shield lets go only
-for a grab. It runs after defense and before the attack pause and idle
+the ledge or the air is not a window. The computer then takes a ground move whose
+first active frame lands inside the window and whose strike reaches where
+the opponent will be (the bot's cached first-active-frame reach): its
+gameplan's spacing tool when one fits (from level 4, with the gameplan
+weights), so punishes keep each fighter's identity, else its fastest. A grab
+is thrown only when the opponent's position, not just its body's edge, is in
+reach, since grabs catch a narrower body and a missed grab is punished in
+turn. With nothing in reach it runs in when a move would arrive in time
+(a jab out of a run is the dash attack), and a shield lets go only for a
+grab. It runs after defense and before the attack pause and idle
 stretches, so a level's pause doesn't eat the window; the level gates it
 with its reaction (frames of the window that must pass first, where the
 window's start is known), the punish share and the misjudgment, each drawn

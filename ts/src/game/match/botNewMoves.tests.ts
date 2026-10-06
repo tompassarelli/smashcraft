@@ -116,9 +116,9 @@ function mirrorMatch(character: Character, opponent: Character, seed: number, da
 }
 
 /** The counts over the fighter's seeded matches; a seed replays its counts exactly. */
-function played(character: Character, opponent: Character = character): Counts {
+function played(character: Character, opponent: Character = character, matches = MATCHES): Counts {
   const counts: Counts = {};
-  for (let index = 0; index < MATCHES; index++) mirrorMatch(character, opponent, 11 + index * 12, index < floorDiv(MATCHES, 2) ? 0.0 : 110.0, counts);
+  for (let index = 0; index < matches; index++) mirrorMatch(character, opponent, 11 + index * 12, index < floorDiv(matches, 2) ? 0.0 : 110.0, counts);
   const first: Counts = {};
   const again: Counts = {};
   mirrorMatch(character, opponent, 11, 0.0, first);
@@ -153,7 +153,8 @@ function shieldsReady(counts: Counts): void {
 const { forwardTiltUp, forwardTiltDown, downTilt, dashAttack, neutralAir, upAir, downAir, forwardAir, forwardTilt, downSmash } = AttackStyle;
 
 test("computer Blademaster throws Bladestorm, Blade Wheel, his down tilt and dash attack, and cashes Critical Strike", () => {
-  const counts = played(Character.blademaster);
+  // Shields are rare (about 2% of his mirror's attacks) and whiff punishes reshuffle the mirror: 16 matches give the shares a sample.
+  const counts = played(Character.blademaster, Character.blademaster, 2 * MATCHES);
   throws(counts, [downAir, neutralAir, downTilt, dashAttack]);
   playsPassives(counts);
   shieldsReady(counts);
