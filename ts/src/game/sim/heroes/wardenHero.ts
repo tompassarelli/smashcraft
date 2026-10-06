@@ -12,7 +12,7 @@ export const WARDEN_HERO: HeroDefinition = {
   name: "Warden",
   purpose: "Precision mobility and edge pressure",
   weakness: "Light body and punishable teleport endpoints",
-  complete: false,
+  complete: true,
   moves: WARDEN_MOVES,
   specials: WARDEN_SPECIALS,
   presentation: {
