@@ -207,6 +207,16 @@ test("ledge eligibility rejects locks, wrong facing and positions outside the re
   }
 });
 
+test("only a full down passes ledges; a slight downward tilt still catches", () => {
+  // Melee refuses a catch from stick y -0.66 (ftCliffCommon_80081298, +0x480);
+  // the helper reports `down` there, and any tilt past the deadzone as the axis.
+  const fighter = ledgeTestFighter(Character.archer, -1);
+  const input = controls();
+  input.verticalDirection = -1;
+  catchTestLedge(fighter, input);
+  assertEquals(fighter.ledge.state, LedgeState.hang);
+});
+
 test("upper platform ledges can't be caught", () => {
   const fighter = ledgeTestFighter(Character.rifleman, -1);
   fighter.motion.x = f32(surfaceLeft(1, 1) - 20);
