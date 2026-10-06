@@ -424,17 +424,12 @@ of the opponent's options.
   The arithmetic above settles local questions (is this punishable, what is
   this guess worth); matchup-level balance is judged by play.
 
-## Open design questions for the owner
+## Smashcraft decisions
 
-One line each, neutral; the options are those the sources above describe.
-
-- Attack hurtboxes: extend along limbs and weapons before and after the active frames (Street Fighter whiff-punish model), stay on the body, or vary per move?
-- Hurtbox fidelity: per-frame authored volumes, bone-attached capsules that follow the animation (Smash), or per-state shapes?
-- Hitbox generosity: hitboxes matched to the drawn strike, or slightly larger than it?
-- Counter hits: extra reward for hitting startup frames, or none?
-- Knockdowns: some moves give hard knockdowns, or every knockdown leaves wakeup choices?
-- Invincible reversals: any fighter with a fully invincible option out of stun or knockdown, and at what punish cost?
-- Same-frame strike contact: trade (both hit), clash (both cancel), or a priority rule?
-- Option selects: keep those that emerge, or design them out case by case?
-- Mixup branches: a minimum reward for the weaker branch of each designed mixup, so that ab / (a + b) stays meaningful, or none?
-- Balance changes: buff-first, symmetric, or a matchup target such as Yomi's "no 7-3"?
+The questions this reference raised about hurtbox exposure/fidelity, hitbox
+extent, counter hits, knockdowns, reversals, simultaneous contact, option
+selects, mixup rewards and balance changes are resolved in
+[shared mechanic defaults](../gameplay-design.md#shared-mechanic-defaults).
+The weapon-disjoint, throw-escape and archetype decisions also use the adopted
+[expansion roster defaults](../gameplay-design.md#expansion-roster-defaults).
+This reference describes other games; Smashcraft's stance stays in that document.

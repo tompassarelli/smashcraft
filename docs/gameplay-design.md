@@ -124,10 +124,6 @@ The damage cap is chosen to fit the reads target: an opening and 2–3 reads,
 each followed by guaranteed follow-ups worth up to about 30%, bring a victim
 from 0% to roughly 90–120% before the last hit.
 
-## Direction, not yet a rule
-
-- Fighters generally need launchers into follow-ups such as tech chases.
-
 ## Throw regrabs
 
 Implementation choice, 6 Oct 2026 (#85), under the owner's instruction to
@@ -453,24 +449,87 @@ rules to authored situations. No current move is designated a required link
 or guaranteed reaction option; the graph's existence of a punish is not a
 claim that a human can react to it.
 
-## Open questions for the owner
+## Shared mechanic defaults
 
-Roster physics spread, archetypes, mana, cooldowns, weapon disjoints, mash
-escape and simultaneous grabs are answered by the adopted expansion defaults
-above. They need no further approval before implementation.
+Delegated choices, 6 Oct 2026 (#62): the owner authorized carrying out the
+recommended defaults without another approval round. The remaining questions
+from the descriptive references are resolved below. Existing explicit owner
+decisions, the expansion roster contract and the #85 throw-hitstun rule take
+precedence over older proposals. These are authoring defaults; recording one
+does not imply its implementation or balance has been checked.
 
-Mechanic-level questions drawn from other games (parry, air dodge, rage, short-hop input, ledge rules and others) are listed at the end of [modern platform fighters](design/modern-platform-fighters.md). Questions raised by fighting-game and platform-fighter design language (hurtbox extension, disjoints, counter hits, shield geometry, whiff penalties, DI strength, launchers and others) are listed at the end of [fighting games](design/fighting-games.md) and [platform fighters](design/platform-fighters.md).
+### Attack geometry and commitment
 
-Stage questions (the flat stage, moving platforms, hazards, blast zones and the stage list) are at the end of [stages](design/stages.md#open-design-questions-for-the-owner).
+The descriptive basis is [fighting-game language](design/fighting-games.md),
+[platform-fighter language](design/platform-fighters.md) and
+[Melee's attacks](design/melee/attacks.md).
 
-Questions drawn from Melee itself are at the end of the
-[Melee case study](design/melee/README.md#open-design-questions-for-the-owner).
+| Question | Adopted default | Reason |
+|---|---|---|
+| Attack hurtboxes and fidelity | Author deterministic per-frame body volumes from the verified animation pose, including extended limbs during startup, active frames and recovery. Weapons can extend without a hurtbox; attached hands, feet, wings and tails cannot. | Make visible exposure and whiff punishment agree; implements #62's animated-hurtbox direction and the roster's weapon-only disjoints. |
+| Hitbox generosity | Match the visible strike's path and outer extent. Use its authored capsule thickness, without an extra invisible range bonus or a solid volume filling an entire swing. | Spacing must be readable; the roster already states this geometry contract. |
+| Disjoint cost | Keep weapon-only disjoints. Pay for extra effective reach with an observable cost in commitment, body exposure, safe spacing or punishability; do not require one universal startup tax. | Reach matters through whole interactions, as the character-evaluation model above measures. |
+| Counter hits | No new universal bonus for hitting startup. Preserve explicitly authored vulnerabilities, including the existing interrupted-smash-charge modifier. | Predictable move outcomes; no random critical hits or hidden universal damage layer. |
+| Knockdowns | Ordinary knockdowns retain tech or missed-tech/get-up choices. Authored forced states, such as jab-reset stand and freeze, remain explicitly marked by the locked-state signal. | Preserve real defensive choices without pretending that a forced interval can be escaped. |
+| Invincible reversals | No universal action that clears hitstun or knockdown. A kit can have stated armor or intangible frames after its action becomes legal, with punishable failed commitment; keep the roster's defensive limits. | A defensive read can have value without bypassing the opponent's earned hit. |
+| Same-frame strikes and clanking | Resolve valid fighter strikes symmetrically as trades from the same pre-contact state. Add no universal 9%-difference clank rule; any move-specific clash or projectile interaction must be explicit. | Preserve the established simultaneous-contact model instead of adding an unseen priority system. |
+| Grab versus strike; mutual grabs | Preserve the existing grab-over-strike contact priority. Mutual grabs break symmetrically, with the roster's 12-frame recovery. Throw-hitstun regrabs remain forbidden by #85. | Make the interaction deterministic and retain the adopted throw counterplay. |
+| Throw defence | Existing mash escape; no new timed throw-tech input. Once an immediate throw has started, only the release-frame DI choice remains, as the locked-state signal explains. | The expansion contract preserves the existing escape system and true throw-to-strike follow-ups. |
+| Option selects | Keep combinations that retain commitment and an opponent answer. Repair a specific option select when it removes both branches' counterplay for free; no blanket ban on emergent input combinations. | Judge the actual interaction, not the mere existence of a multi-purpose input. |
+| Mixup branch reward | Each intended branch must offer a meaningful different result or punish. Use its measured reward/risk and break-even probability; no universal damage floor for the weaker branch. | A position, escape or stock threat can matter without an invented damage-equivalent score. |
+| Balance changes and archetypes | State each fighter's purpose and exploitable weakness, then adjust the evidenced interaction with buffs or nerfs as needed. No buff-first rule or universal "no 7–3" numerical promise. | Preserves the adopted roster identities and the current bounded evaluation model. |
 
-The move comparisons check one category rule that no owner decision states:
-in the same shield-contact context, greater shield damage costs later attacker
-recovery or an earlier defender response
-(smashcraft:docs/move-comparisons.md). Whether it is a design rule for
-Smashcraft's moves is open.
+### Shields and defence
+
+| Question | Adopted default | Reason |
+|---|---|---|
+| Shield geometry | Keep a health-dependent shrinking shield that can be poked. Preserve the authored shield centre and current input handling; add no required shield-tilt input. | Keep the established shield system and visible body exposure rather than replacing it with a fixed bubble. |
+| Aerial shieldstun | Keep the shared ground/aerial formula. | Aerial safety already varies through contact timing, landing, spacing and drift; no separate universal aerial multiplier is needed. |
+| Whiff penalties | No global extra miss-only recovery or landing-lag multiplier. Author commitment and recovery per move. | Counterplay should follow the same visible move phases whether the strike connects or misses. |
+| Ground moves on shield | Close committed moves should have reachable punishment; spaced pokes may be safe. In the same shield-contact context, greater shield damage costs later attacker recovery or an earlier defender response. | Adopts smashcraft:docs/move-comparisons.md's measured category rule without changing its gate; it is not a global damage-to-lag formula. |
+| Aerials on shield | Preserve late-contact, immediate-landing and fade-back safety; close advancing aerials can be punished. | The existing graph distinguishes close down air from spaced forward air. Do not make all aerials uniformly safe or unsafe. |
+| Shield release and out-of-shield actions | Retain 15-frame normal release lag and the 8-frame minimum shield hold. Direct shield grab and jump bypass release lag when otherwise legal; jump into aerials, rolls and spot dodges remain available. Add no instant grounded up-smash cancel. | Keeps the actual authored defence choices and their current timing; shieldstun and other action locks still apply. |
+| Platform shield drop | Keep the current fresh-Down platform drop when ordinary movement is legal. Add no dedicated analog-threshold shield-drop technique; shielded fighters use their existing jump, dodge or release choices. | Retains supported input behaviour instead of adding a precision stick-threshold requirement. |
+| Cross-ups | Coverage follows each move's authored front/back regions and legal facing change. No automatic tracking or universal behind-the-fighter hit extension. | A cross-up changes which responses reach; the answer comes from the move, not hidden target tracking. |
+| Powershield and dedicated parry | Keep raise-timed powershield and its projectile reflection, with the accepted 2-frame window. Keep Illidan's authored parry; add no universal parry button or release-timed replacement. | Retains two existing defensive identities without adding another shared input. |
+
+### Movement, recovery and resources
+
+| Question | Adopted default | Reason |
+|---|---|---|
+| Air dodge | Keep the current directional, helpless air dodge and shared frame profile. Do not add an airtime recharge; its existing action lock prevents repeated free dodges. | Preserves wavedash movement and the recovery commitment already authored. |
+| Wavedash and waveland | Keep air-dodge momentum through landing and the 10-frame dodge landing lag, including the owner-selected shallow digital angle. | An interactive movement option, unlike the removed L-cancel chore. |
+| Offstage air-dodge buffering | Do not add a general held-input air-dodge buffer. Retain fresh dodge presses and the deliberate dodge press queued during jump squat; a fresh offstage press still works when legal. | Avoid accidental automatic dodges while preserving explicit player commands. |
+| Short hop and jump squat | Keep release-during-squat short hops, without a jump+attack macro or a new mandatory binding. Jump squat remains per fighter within #69's 3–5 frames: Archer 3, Rifleman 5, Illidan 4. | Preserves current controls and physical differences inside the accepted execution bounds. |
+| Input buffer and priority | Keep the 6-frame human attack grace. Same-frame attack requests prefer grab, unchargeable C-stick smash, chargeable smash, tilt, then the established style ordering; conflicting equal requests leave facing neutral. Existing action locks and fresh-input rules remain authoritative. | Deterministic input intent without a new universal hold buffer or callback-order priority. |
+| Wall movement | Keep existing wall tech and authored wall-jump eligibility. No wall climbing or free refresh of jumps, recovery specials or ledge protection. | Movement should respect the visible stage walls without granting an unlimited recovery loop. |
+| Ledges | Keep exclusive occupancy/edgehogging, first-frame catch intangibility of 30 frames and the 30-frame regrab lock. No trump or extra two-frame catch vulnerability. | Retains the current Melee-derived ledge system within #69's accepted bounds. |
+| DI, crouch and ASDI | Retain 18° maximum continuous DI rotation, crouch cancelling and ASDI-down landing behaviour. SDI/ASDI travel uses the selected bounded-SDI design when #70 is implemented. | Keep useful defensive positioning while addressing teleport distance at its chosen seam. |
+| Tech chases and platforms | Preserve current floor-tech and tech-roll timing on the surface actually contacted; pass-through platforms catch from above and do not become walls or ceilings. Extensions can require reads; only call a response reaction-based when its visible cue meets #69's budget. | Gives platforms a real escape/landing role and supports the short-combo, chained-read direction without promising a guaranteed human reaction chase. |
+| Launchers and recovery routes | Each fighter has at least one deliberate launcher into a juggle, tech chase or ledge situation and at least two meaningfully different recovery choices through path, drift, ledge/stage destination or timing. A second recovery special is not required. | Makes follow-up reads and offstage counterplay part of each kit; the roster already requires a weaker free recovery. |
+| Physical spread and dash dancing | Keep existing per-fighter gravity, fall/air/run speed, weight and initial-dash windows; retain dash dancing. Expansion fighters use the adopted relative-property table as starting tuning, with reference jump velocity/gravity until deliberately authored otherwise. | No forced common weight/speed profile and no heavy-must-be-slow rule; each strength needs its stated cost. |
+| Rage, meter and cooldowns | No percent-dependent rage bonus. Expansion mana and free recovery use the adopted roster contract; no new common meter or cooldown on ordinary specials. Optional ultimate cooldowns stay off in competitive play. | Predictable knockback and explicit resources, consistent with the removed stale/freshness layer and adopted expansion defaults. |
+| Interaction-graph requirements | Use the existing contextual option-count, reachable-punish and reward/risk model above, plus #83's accepted combo targets. Keep distinct defensive answers in ordinary neutral; do not impose one payoff ratio or option count on every forced state. | A locked interval can be honest, while an ordinary neutral option needs a reachable counter. The measured sample is not a guarantee about every matchup. |
+
+## Stage defaults
+
+Delegated choices, 6 Oct 2026 (#75), reconciling the owner's stage direction,
+the [stage research](design/stages.md) and the published themed catalog.
+Tournament labels below are a proposed competitive preset, not a claim of
+external tournament adoption or proven matchup balance.
+
+| Question | Adopted default | Reason |
+|---|---|---|
+| Flat stage | Keep Sky Deck accessible as the clearly labelled test/practice tile after the eight themed stages; exclude it from the ranked competitive list. | Matches the owner's testing use without promoting the flat arena as the default competitive choice. |
+| Moving platforms | Their deterministic movement remains enabled in competitive play. | The owner explicitly welcomes drifting and independently patrolling platforms. |
+| Starters and counterpicks | Start with Frozen Throne, Hellfire Citadel, Durotar Skies and Naxxramas; use Nordrassil, Gryphon Aerie, Blackrock and Ahn'Qiraj as counterpicks. | Stable or broadly familiar layouts lead; wind, tight carried-platform play, cannon recovery and timed platform relief provide deliberate matchup variation. |
+| Static versus hazardous | Keep both. Frozen Throne and Hellfire Citadel are mechanically static; blizzard, embers and background motion are cosmetic. | The owner asks for light learned hazards, not a hazard on every stage. |
+| Hazard effects | No incidental hazard damage. Wind and platforms can move fighters; Blackrock's readable recovery cannon can launch them. Fixed schedules and visible routes remain learnable. | Preserves the requested wind, Randall-like platform and barrel without random chip damage. |
+| Blast zones and size | Use the published #80 per-stage bounds; keep new competitive layouts within the researched Melee legal size band as a starting point. Keep Blackrock's cannon on its normal-size deck, not Kongo Jungle's oversized camping layout. | The earlier overly tight blast zones are superseded; legal-band dimensions are a starting design choice, not proof of competitive balance. |
+| Race/theme spread | Keep Hellfire Citadel, the Burning Legion stage, in place of Ring of Valor. Preserve Frozen Throne and representation for Human, Orc and Night Elf alongside Scourge and raid themes. | Adopts the research's variety recommendation and the already published catalog; no additional Naga stage is required. |
+| Graphics | Support the installed classic-graphics clients with available classic models/skies and authored effects. HD-only scenery is optional future art, never required for these stages to read correctly. | The actual test clients must see the intended arena. |
+| Ahn'Qiraj platform art | Keep the authored rising platform in a Qiraji/Obsidian Statue scene. Do not describe a built-in substitute as a tentacle; a bespoke animated tentacle is not required for the current platform mechanic. | The research found no available tentacle model; the current themed platform gives an honest supported default. |
+| Competitive list size | Eight themed stages, in the published order: Frozen Throne, Nordrassil, Gryphon Aerie, Durotar Skies, Naxxramas, Hellfire Citadel, Blackrock, Ahn'Qiraj. | Fits the owner's 5–8-stage scope and the accepted variety proposal. |
 
 ## Hit presentation
 

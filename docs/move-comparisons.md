@@ -67,8 +67,8 @@ not cover alternative shield responses, defensive inputs or human reactions.
 
 The comparison checks one local category rule: **in the same shield contact
 context, greater shield damage costs later attacker recovery or an earlier
-defender response**. No owner decision states it; whether it is a design rule
-is an open question in smashcraft:docs/gameplay-design.md. Production
+defender response**. The 6 Oct delegated mechanic defaults adopt this contextual
+rule in smashcraft:docs/gameplay-design.md, "Shields and defence". Production
 satisfies it in all six sampled comparisons. A fixture mutation sets only the
 smash's post-contact cooldown and remaining attack duration to one tick. The same comparison then rejects
 all six mutants; Archer's recovery becomes tick 9 while the normal remains 28,

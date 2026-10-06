@@ -324,21 +324,13 @@ game and version and have not been re-measured.
 
 ---
 
-## Open design questions for the owner
+## Smashcraft decisions
 
-One line per mechanic. No stance is taken.
-
-- Perfect shield: keep Melee's raise-timed powershield with projectile reflection, or release-timed parry (1)?
-- Platform shield drop: keep (Melee, P+) or remove (Ultimate) (2)?
-- Shield release lag: any fixed number of frames before grounded actions (2)?
-- Air dodge: unlimited and helpless (Melee), or once per airtime with landing lag (Ultimate, Rivals 2) (3)?
-- Wavedash/wave-landing: keep Melee's full effect, or nerf (Ultimate) (3)?
-- Offstage buffered air dodge: allow, or suppress (3, 6)?
-- Rage: any state-dependent knockback scaling, or none (4)?
-- Short hop: raw release window, a dedicated input, or jump+attack macro (5)?
-- Jump squat: per-fighter variation or uniform (5)?
-- Input buffer: window length and per-action priority (6)?
-- Parry: add a dedicated parry alongside the shield (7)?
-- Wall jump and wall tech: any wall movement (8)?
-- Ledge: edgehog, trump or limited regrab (9)?
-- Tech-chase design: confirm how platforms should interact with floor tech, once sourced (16).
+The questions raised by these mechanics—powershield, platform shield drop,
+release lag, air dodge, wavedash, offstage buffering, rage, short hop, jump
+squat, buffer priority, parry, walls, ledges and platform tech chases—are
+resolved in [shared mechanic defaults](../gameplay-design.md#shared-mechanic-defaults).
+Mana and cooldowns use the adopted
+[expansion roster defaults](../gameplay-design.md#expansion-roster-defaults);
+window bounds are in [execution and reaction windows](../gameplay-design.md#execution-and-reaction-windows-69).
+The source comparisons and reception above remain descriptive.

@@ -1814,8 +1814,8 @@ assigned frame. They execute once when the action becomes legal, or expire;
 this adds no delay to an already legal attack. During jump squat a C-stick
 command retains its direction and resolves against airborne state at takeoff,
 so an opposite-facing horizontal command begins back-air on the first airborne
-frame. Melee has no general input buffer; the window's size is an open question in
-smashcraft:docs/gameplay-design.md.
+frame. Melee has no general input buffer; Smashcraft's six-frame window is
+adopted in smashcraft:docs/gameplay-design.md, "Execution and reaction windows".
 
 A current queued attack takes priority over voluntary platform dropping during
 the movement step. Action recovery also blocks the drop, so holding Down cannot
@@ -1827,7 +1827,8 @@ press must be under six input frames old. The fast-fall input age is that one
 stick timer, so landing on a deck with Down still held stays on it.
 The command queue's actual frame window determines whether an attack is current;
 expired and future commands do not suppress movement. This is our digital-input
-priority rule. Analog shield dropping and stick-threshold fidelity remain open.
+priority rule. The adopted mechanic defaults add no dedicated analog-threshold
+shield-drop technique; shielded fighters keep their existing escape choices.
 
 ## Melee behaviour oracle
 
