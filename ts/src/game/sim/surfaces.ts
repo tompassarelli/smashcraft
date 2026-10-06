@@ -44,6 +44,16 @@ function signedDistance(surface: SolidSurface, shift: number, x: number, z: numb
 }
 
 /**
+ * signedDistance in raw arithmetic: binary64 on the host, Warcraft's own
+ * rounding in Lua. It is within a few ulps of signedDistance, so beyond ±1 its
+ * sign is signedDistance's in both, without the exact operations (about 1 µs
+ * each in Lua) that every fighter would pay for every surface on every frame.
+ */
+function roughDistance(surface: SolidSurface, shift: number, x: number, z: number): number {
+  return (x - (surface.startX + shift)) * surface.normalX + (z - surface.startZ) * surface.normalZ;
+}
+
+/**
  * Whether a point on the shifted surface's line lies within it, along its
  * longer axis. A level underside reaches a body's half-width further at each
  * end, so it still meets its shifted neighbours.
@@ -135,6 +145,7 @@ function resolveSolidSurfaceContact(f: Fighter, stage: number, index: number, ol
   const { kind, normalX: nx, normalZ: nz } = surface;
   const { motion, launch, surfaceRecovery: recovery } = f;
   const shift = bodyShift(surface);
+  if (roughDistance(surface, shift, oldX, oldZ) < -1 || roughDistance(surface, shift, motion.x, motion.z) > 1) return false;
   const oldDistance = signedDistance(surface, shift, oldX, oldZ);
   const newDistance = signedDistance(surface, shift, motion.x, motion.z);
   if (oldDistance < 0 || newDistance >= 0) return false;

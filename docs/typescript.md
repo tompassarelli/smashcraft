@@ -50,9 +50,15 @@ Map Lua has 32-bit integers that wrap silently and binary32 numbers whose raw
   use them for masks instead of division arithmetic. Shift right with
   `floorDiv`: TypeScriptToLua rejects `>>`, and its `>>>` masks with
   4294967295, which a 32-bit Lua integer can't hold.
-- Reals in synchronized code: wrap each real `+ - * /` in `f32()` (host
-  rounding, free in Lua), or use the exact `wisp/src/sim/binary32` helpers where the value
-  must match Melee or the game bit for bit.
+- Reals in synchronized code: wrap each real `+ - * /` in its own `f32()`.
+  On the host it rounds to binary32. In Lua the compiler turns `f32(a + b)`,
+  `f32(a - b)` and `f32(a * b)` into exact binary32 operations (about 1 µs
+  each in Lua32), so Warcraft gets the host's result; an operation nested
+  inside one `f32()` stays raw. `f32(a / b)` and a product with a
+  power-of-two literal stay raw, which is exact. A hot loop can test a raw
+  estimate with a margin first (smashcraft:ts/src/game/sim/surfaces.ts,
+  `roughDistance`). The `wisp/src/sim/binary32` helpers add fused
+  multiply-add, square root and Melee's operations.
 - Decimal literals are exact binary32 values (`0.10000000149011612`, not `0.1`)
   and keep a decimal point (`2.0`) so they stay Lua floats.
 

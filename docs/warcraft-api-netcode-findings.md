@@ -287,6 +287,18 @@ results bit for bit in the game. A raw float product in Melee sine/cosine
 differed by one ulp in 150 of 600 results until it used `multiplyFloat32`.
 No host test reproduces the game's raw float results.
 
+Until Wisp a382883, `f32(a op b)` compiled to the raw operator, so every
+synchronized `f32` sum and product could differ from Bun by an ulp. In the
+0.0.48 bot session no native moment replayed headlessly (#59). The first
+differing state was at frame 0: the Rifleman's `aerialJumpSpeed`,
+`f32(melee(4.1) * 0.94)`, was 23.12399673461914 in the game, the exact product
+rounded toward zero, and 23.123998641967773 on the host. A 32-bit Lua whose raw
+`+ - *` round toward zero landed one of the five moments on its recorded
+checksum, which no round-to-nearest runtime did. It still diverged on the others,
+so toward-zero is not the whole model. Wisp now compiles `f32(a + b)`,
+`f32(a - b)` and `f32(a * b)` to exact binary32 operations. Evidence:
+smashcraft:evidence/native-divergence-20261006/README.md.
+
 `string.pack`, `load` and `math.type` are available to map code. Evidence:
 smashcraft:evidence/warcraft-lua-numbers-20261005/README.md.
 
