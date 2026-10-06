@@ -456,15 +456,22 @@ From smashcraft:ts/:
   restores the source in `finally` and checks it again. Cold startup has no
   latency gate; every check still fails CI on unexpected compiler errors.
 - `LUA=<32-bit lua> bun wisp parity numeric`: emitted Lua against Bun on
-  the numeric corpus.
+  the numeric corpus, in that stock Lua32 and in one whose raw float `+ - *`
+  round toward zero (`TOWARD_ZERO_LUA`, or built in build/toward-zero-lua
+  with nix). The corpus includes `f32(a + b)`, `f32(a - b)` and `f32(a * b)`
+  as the compiler emits them.
 - `GAME_SOAK=1 bun test test/game.test.ts`: the long `*.soak.ts` scenarios,
   such as the 100000-frame replay tape, which the default suite leaves out.
   `GAME_SOAK=1` selects the same modules for `scripts/lua-tests.ts`.
 - Set `LUA=<32-bit lua>`, then run `bun wisp tapes` for replay acceptance
   tapes. It records cases for every bound action, corrected predictions and a
   rematch, then compares canonical replay state and fighter poses after every
-  frame in Bun and emitted Lua32. It reports the first divergent frame and
-  field; the TypeScript Lua compile is cached by input hash.
+  frame in Bun and emitted Lua32, in the stock Lua32 and the toward-zero one
+  parity uses: results equal in both rely on no raw float `+ - *`, whatever
+  Warcraft's exact rounding is (wisp:docs/headless.md, "Raw float rounding";
+  smashcraft:evidence/native-divergence-20261006/README.md). It reports the
+  first divergent frame and field; the TypeScript Lua compile is cached by
+  input hash.
 - `bun scripts/unused-code.ts`: lists exports no other module uses,
   smashcraft:ts/ files nothing imports or names, and smashcraft:tools/ files no
   live document or source names, and exits 1 if any remain. Map bundle entries'

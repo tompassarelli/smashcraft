@@ -97,8 +97,9 @@ code. From smashcraft:ts/:
   `bun wisp soak --repro FILE` replays one. `--helper BIN` plays through the
   real controller helper instead (needs /dev/uinput).
 - Tapes: set `LUA` to the 32-bit Lua executable, then run `bun wisp tapes` to
-  compare replay results across Bun and Lua32.
-- Parity: `bun wisp parity numeric` compares the numeric corpus with Lua32;
+  compare replay results across Bun, that Lua32 and a Lua32 whose raw float
+  `+ - *` round toward zero (`TOWARD_ZERO_LUA`, or built with nix on first use).
+- Parity: `bun wisp parity numeric` compares the numeric corpus with both Lua32s;
   `bun wisp parity capture ...` runs native input-integrity capture and
   `bun wisp parity result DIR` reconciles its output. `bun wisp parity
   headless --helper BIN --out DIR` runs the same capture through the real

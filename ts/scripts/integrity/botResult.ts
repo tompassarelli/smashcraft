@@ -6,9 +6,16 @@
 // which the delay stays within the most it was in the 4 s before the stall
 // for a second (recovery_ms: the first receipt back within it). Confirmed checksums
 // come from both clients' input traces; moments saved during the capture are
-// copied from the given CustomMapData folders into CAPTURE_DIR/moments.
+// copied from the given CustomMapData folders into CAPTURE_DIR/moments, and
+// every moment there replays headlessly in two simulated clients of this
+// source, as `bun wisp repro` does, to the checksum Warcraft recorded
+// (moment_replays). Run it from the source the captured build was made from.
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { Effect } from "effect";
+import { describeCause } from "wisp/scripts/wisp/command";
+import { readRepro, replayInClients, reproReport } from "wisp/scripts/wisp/commands/repro";
+import { SMASHCRAFT_HEADLESS } from "../wisp/headless";
 import { readEvents, readGamePids } from "./botFiles";
 
 interface Receipt {
@@ -146,6 +153,21 @@ for (const folder of dataFolders) {
   }
 }
 
+// Map code loads only now, after the capture's own numbers are read.
+const { replayRepro } = await import("../../src/game/replay/moment");
+const momentFiles = existsSync(momentsDirectory) ? readdirSync(momentsDirectory).filter((entry) => /^smashcraft-repro-p\d+-f\d+-\d+\.txt$/.test(entry)).sort() : [];
+const momentReplays = momentFiles.map((name) => {
+  const file = join(momentsDirectory, name);
+  try {
+    const { repro } = Effect.runSync(readRepro(file));
+    const report = reproReport(file, repro, replayInClients(SMASHCRAFT_HEADLESS, replayRepro, repro));
+    return { moment: name, build: repro.build, frame: repro.frame, recorded_checksum: repro.checksum, passed: report.landed, replay: report.lines.slice(1) };
+  } catch (cause) {
+    return { moment: name, passed: false, replay: [`the replay stopped: ${describeCause(cause)}`] };
+  }
+});
+for (const { passed, moment, replay } of momentReplays) console.error(`${passed ? "PASS" : "FAIL"} ${moment}: ${replay.at(-1) ?? ""}`);
+
 const summary = {
   game_pids: readGamePids(directory).map((client) => ({ client: client.name, pid: client.pid })),
   input_delay: "frames a helper journaled by its clock beyond the last frame its client admitted, at each edit-box receipt",
@@ -153,6 +175,8 @@ const summary = {
   trials_passed: `${trials.filter((trial) => trial.passed).length}/${trials.length}`,
   matches,
   moments,
+  moment_replays_passed: `${momentReplays.filter(({ passed }) => passed).length}/${momentReplays.length}`,
+  moment_replays: momentReplays,
   moment_requests: events.filter((event) => event.event === "bot-moment").map((event) => ({
     epoch: event.epoch,
     after_start_ms: event.pressed_monotonic_ns === undefined ? undefined : Math.round((event.pressed_monotonic_ns - startedNs) / 1e6),
