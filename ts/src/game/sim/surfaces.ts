@@ -1,13 +1,14 @@
 // Wall and ceiling contacts: stopping against solid faces, tumble rebounds,
 // the wall and ceiling techs that recover from them, and wall jumps.
 import { max, min } from "../../runtime/numbers";
+import { at } from "wisp/src/runtime/lookup";
 import { f32 } from "wisp/src/sim/f32";
 import { Character, DownState, SpecialAction, SurfaceContact } from "./codes";
 import { WALL_TECH_STARTUP_FRAMES, inGrabContext, isTumbling } from "./conditions";
 import { type Fighter, WALL_JUMP_FLICK_FRAMES, WALL_TECH_JUMP_INPUT_WINDOW_FRAMES } from "./fighter";
 import { setWorldMotionValue, totalVelocityX, totalVelocityZ } from "./motion";
 import type { Controls } from "./roster";
-import { MAIN_DECK_BODY_SURFACES, type SolidSurface, mainDeckZ, solidSurfaceAt, solidSurfaceCount } from "./stage";
+import { MAIN_DECK_BODY_SURFACES, type SolidSurface, mainDeckZ, solidSurfaceAt, solidSurfaceCount, solidSurfacesOf } from "./stage";
 import { stickX } from "./stick";
 import { clearDownState } from "./transitions";
 import { melee } from "./tuning";
@@ -176,8 +177,7 @@ function placeOnSurface(f: Fighter, surface: SolidSurface, shift: number, lift: 
   }
 }
 
-function resolveSolidSurfaceContact(f: Fighter, stage: number, index: number, oldX: number, oldZ: number, input: Readonly<Controls>): boolean {
-  const surface = solidSurfaceAt(stage, index);
+function resolveSolidSurfaceContact(f: Fighter, surface: SolidSurface, index: number, oldX: number, oldZ: number, input: Readonly<Controls>): boolean {
   const { kind, normalX: nx, normalZ: nz } = surface;
   const { motion, launch, surfaceRecovery: recovery } = f;
   const shift = bodyShift(surface);
@@ -245,10 +245,11 @@ function resolveSolidSurfaceContact(f: Fighter, stage: number, index: number, ol
 export function resolveSolidSurfaceContacts(f: Fighter, stage: number, oldX: number, oldZ: number, input: Readonly<Controls>): number {
   let touched = false;
   let wallSide = 0;
-  for (let i = 0; i < solidSurfaceCount(stage); i++) {
-    if (!resolveSolidSurfaceContact(f, stage, i, oldX, oldZ, input)) continue;
+  const surfaces = solidSurfacesOf(stage);
+  for (let i = 0; i < surfaces.length; i++) {
+    const surface = at(surfaces, i);
+    if (!resolveSolidSurfaceContact(f, surface, i, oldX, oldZ, input)) continue;
     touched = true;
-    const surface = solidSurfaceAt(stage, i);
     if (surface.kind === SurfaceContact.wall) wallSide = surface.normalX > 0 ? -1 : 1;
   }
   if (!touched) f.surfaceRecovery.lastReflectedSurface = undefined;

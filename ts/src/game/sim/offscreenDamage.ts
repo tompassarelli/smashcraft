@@ -2,7 +2,7 @@
 // 60 consecutive magnifier frames below 150 percent; training disables it.
 import { f32 } from "wisp/src/sim/f32";
 import { PARTICIPANT_SLOTS } from "../input/participants";
-import { outsideCamera, type MatchCamera } from "./matchCamera";
+import { outsideCamera, wellInsideCamera, type MatchCamera } from "./matchCamera";
 import { fighterAt, isActive, type Roster } from "./roster";
 
 export function advanceOffscreenDamage(world: Roster, camera: Readonly<MatchCamera>, practice: boolean): void {
@@ -15,7 +15,7 @@ export function advanceOffscreenDamage(world: Roster, camera: Readonly<MatchCame
     }
     // At 150% the original stops both counting and resetting.
     if (status.damage >= 150.0) continue;
-    if (!outsideCamera(camera, motion.x, f32(motion.z + 60.0))) {
+    if (wellInsideCamera(camera, motion.x, motion.z + 60.0) || !outsideCamera(camera, motion.x, f32(motion.z + 60.0))) {
       status.offscreenFrames = 0;
       continue;
     }

@@ -476,6 +476,11 @@ function solidSurfaces(stage: number): readonly SolidSurface[] {
   return found;
 }
 
+/** The stage's solid surfaces, in solidSurfaceAt's order. */
+export function solidSurfacesOf(stage: number): readonly SolidSurface[] {
+  return solidSurfaces(stage);
+}
+
 export function solidSurfaceCount(stage: number): number {
   return solidSurfaces(stage).length;
 }

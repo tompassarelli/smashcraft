@@ -138,6 +138,8 @@ function selectHitRegion(world: Roster, attackerSlot: number, targetSlot: number
     if (out.window <= 0 || alreadyHit || !inside) copyHitRegion(out, NO_HIT_REGION);
     return false;
   }
+  // A fighter not attacking strikes nothing: out stays empty.
+  if (attack.style === undefined) return false;
   for (let index = 0; index < authoredHitRegionCount(attack.style, attacker.tuning.moves); index++) {
     authoredHitRegion(out, attacker.character, attack.style, attack.frame, attack.smashChargeFrames, index, attacker.tuning.moves);
     if (out.window <= 0 || alreadyHitRegion(attackerSlot, attacker, target, out.window)) continue;

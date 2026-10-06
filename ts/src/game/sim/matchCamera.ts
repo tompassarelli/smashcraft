@@ -166,6 +166,20 @@ function subjectScale(count: number): SubjectScale {
 // Every frame reads one of these, confirmed, predicted and replayed.
 const SUBJECT_SCALES: readonly SubjectScale[] = [subjectScale(1), subjectScale(2), subjectScale(3), subjectScale(4)];
 
+/**
+ * outsideCamera's test in raw arithmetic: binary64 on the host, Warcraft's own
+ * rounding in Lua. Within the camera's range its values are within a few
+ * hundredths of outsideCamera's exact ones, so a point a whole unit inside
+ * the view is inside outsideCamera's too, without the exact operations every
+ * fighter would pay on every frame.
+ */
+export function wellInsideCamera(camera: Readonly<MatchCamera>, x: number, z: number, aspect: number = MATCH_CAMERA_ASPECT): boolean {
+  const dz = z - camera.z;
+  const depth = camera.distance - dz * CAMERA_PITCH_SIN;
+  const halfHeight = depth * camera.tangent;
+  return depth > 1.0 && Math.abs(x - camera.x) < halfHeight * aspect - 1.0 && Math.abs(dz * CAMERA_PITCH_COS) < halfHeight - 1.0;
+}
+
 /** Advances exactly once per match frame; rollback restores the camera with the match. */
 export function advanceMatchCamera(camera: MatchCamera, world: Readonly<Roster>, stage: number): void {
   const { camera: bounds, blast } = stageBounds(stage);
