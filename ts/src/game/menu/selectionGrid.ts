@@ -1,3 +1,5 @@
+import { f32 } from "wisp/src/sim/f32";
+import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 // The roster grid on the character panel: one contiguous block of fighter
 // cells sized from the number of selectable fighters. Drawn frames, hover
 // targets and chip positions all read these cells (UI frame units, pointer.ts).
@@ -9,14 +11,14 @@ export type RosterTile = number;
 export const SELECTABLE_FIGHTERS = 3;
 
 /** One cell at full size; the frame art's own proportions. */
-const CELL_WIDTH = 0.112;
-const CELL_HEIGHT = 0.132;
+const CELL_WIDTH = f32(0.112);
+const CELL_HEIGHT = f32(0.132);
 /** The grid region: left edge, width, height above its bottom edge. */
-const REGION_X = 0.26;
-const REGION_WIDTH = 0.48;
+const REGION_X = f32(0.26);
+const REGION_WIDTH = f32(0.48);
 /** The grid sits on this bottom edge and grows upward. */
-const REGION_BOTTOM = 0.292;
-const REGION_HEIGHT = 0.268;
+const REGION_BOTTOM = f32(0.292);
+const REGION_HEIGHT = f32(0.268);
 
 export interface RosterGrid {
   readonly count: number;
@@ -57,8 +59,8 @@ export function rosterGrid(count: number): RosterGrid {
 }
 
 export function cellRect(grid: RosterGrid, tile: number): CellRect {
-  const column = tile % grid.columns;
-  const row = (tile - column) / grid.columns;
+  const column = floorMod(tile, grid.columns);
+  const row = floorDiv(tile, grid.columns);
   const left = grid.left + column * grid.cellWidth;
   const top = grid.top - row * grid.cellHeight;
   return { left, top, right: left + grid.cellWidth, bottom: top - grid.cellHeight };
@@ -66,8 +68,8 @@ export function cellRect(grid: RosterGrid, tile: number): CellRect {
 
 /** The fighter cell under the pointer. */
 export function tileAt(grid: RosterGrid, x: number, y: number): RosterTile | undefined {
-  const column = Math.floor((x - grid.left) / grid.cellWidth);
-  const row = Math.floor((grid.top - y) / grid.cellHeight);
+  const column = floorDiv(x - grid.left, grid.cellWidth);
+  const row = floorDiv(grid.top - y, grid.cellHeight);
   if (column < 0 || column >= grid.columns || row < 0 || row >= grid.rows) return undefined;
   const tile = row * grid.columns + column;
   return tile < grid.count ? tile : undefined;
