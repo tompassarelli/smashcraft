@@ -51,7 +51,8 @@ const frames = (paths: readonly string[]) => Effect.gen(function*() {
 const MODEL_TABLE = join(import.meta.dir, "../modelFacts.ts");
 
 /** The game's archive path of a stock model, as CascLib names it: the classic models the clients draw. */
-const stockPath = (model: string) => `war3.w3mod:${model.replaceAll("\\", "/").toLowerCase()}`;
+// Warcraft accepts .mdl model names; the archive stores their binary .mdx files.
+const stockPath = (model: string) => `war3.w3mod:${model.replaceAll("\\", "/").toLowerCase().replace(/\.mdl$/, ".mdx")}`;
 
 /** Facts rounded to thousandths, so a table changes only when a model does. */
 const tableLine = (model: string, facts: ModelFacts) =>

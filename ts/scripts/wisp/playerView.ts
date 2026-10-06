@@ -93,6 +93,7 @@ export const SMASHCRAFT_SCENE: SceneExpectations & { readonly settledFrame: numb
     // An unsprung trap waits 30 s; a frozen fighter thaws within 5 s.
     { name: "freeze trap", lifetime: seconds(31), models: [FROST_TRAP_MODEL] },
     { name: "ice shell", lifetime: seconds(6), models: [FROST_ICE_MODEL] },
+    { name: "agency marker", models: ["Abilities\\Spells\\Other\\GeneralAuraTarget\\GeneralAuraTarget.mdl"] },
     // Stock game models (render/effects.ts STOCK_MODELS, shell/fighterBody.ts); the host can't load those modules' natives.
     {
       name: "projectile", lifetime: seconds(4), models: [

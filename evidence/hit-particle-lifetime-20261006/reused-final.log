@@ -1,0 +1,12 @@
+{"decision":"RESERVED","reason":"RUN","class":"moderate","requestedCpus":2,"requestedMemoryMiB":2048,"leasedCpuCeilings":14,"aggregateCpuLimit":18,"leasedMemoryMiB":22272,"cpuSomeAvg10":7.97,"memoryFullAvg10":0,"memoryAvailableMiB":69607,"reclaimed":0,"lease":"30fae71f-863d-42ab-911b-8c96ae66f544","expiresAt":1791284888312}
+bun test v1.3.13 (bf2e2cec)
+
+test/player-view.test.ts:
+(pass) a dust slot reused while shown is a new stay each use; a standing spark and a collapsed missile still fail [471.01ms]
+
+ 1 pass
+ 13 filtered out
+ 0 fail
+ 6 expect() calls
+Ran 1 test across 1 file. [642.00ms]
+{"decision":"RELEASED","lease":"30fae71f-863d-42ab-911b-8c96ae66f544"}

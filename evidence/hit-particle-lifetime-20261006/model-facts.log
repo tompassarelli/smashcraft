@@ -1,0 +1,5 @@
+{"decision":"RESERVED","reason":"RUN","class":"moderate","requestedCpus":2,"requestedMemoryMiB":2048,"leasedCpuCeilings":14,"aggregateCpuLimit":18,"leasedMemoryMiB":22272,"cpuSomeAvg10":1.11,"memoryFullAvg10":0,"memoryAvailableMiB":69917,"reclaimed":0,"lease":"38f50bd7-81b7-46c5-aa2a-bfff868d723b","expiresAt":1791284911880}
+$ bun scripts/wisp.ts view models --assets "/home/tom/.local/share/smashcraft-build-inputs/northrend-stage-20261006/assets" --summon "/home/tom/.local/share/smashcraft-build-inputs/build-port-20261005/summon-original-clips" --extractor /home/tom/code/smashcraft/worktrees/test-loop/build/animation-assets/casc-extract --storage "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/Program Files (x86)/Warcraft III"
+298 models, 50 from the game's archives: /home/tom/code/smashcraft/worktrees/hit-effects-20261006/ts/scripts/wisp/modelFacts.ts
+  15.427 s  view (15.427 s)
+{"decision":"RELEASED","lease":"38f50bd7-81b7-46c5-aa2a-bfff868d723b"}
