@@ -14,7 +14,9 @@ import { FLOOR_HEIGHT } from "../src/game/presentation/arenaCamera";
 import { STOCK_MODELS } from "../src/game/render/effects";
 import { IMPACT_DUST, IMPACTS_PER_KIND, impactLifetime } from "../src/game/presentation/impactState";
 import { Character } from "../src/game/sim/codes";
+import { QUICK_MATCH_COMMAND } from "../src/game/shell/devSettings";
 import { install as installDevelopment, start as startDevelopment } from "../src/platform/devMain";
+import { PERF_COMMAND } from "../src/platform/frameMeter";
 import { startMatch } from "../src/platform/shell/matchStart";
 import { shell } from "../src/platform/shell/state";
 import { renderPersistentPresentation } from "../src/platform/shell/view";
@@ -156,4 +158,18 @@ test("a dust slot reused while shown is a new stay each use; a standing spark an
     "1 hidden projectile in view still show particles",
   ]);
   expect(client.errors).toEqual([]);
+});
+
+test("development build: -dev perf shows the typing player what the match's frames cost", () => {
+  const clients = headless.clients({ start: startDevelopment, install: installDevelopment });
+  clients.start();
+  clients.frames(30);
+  clients.chat(0, QUICK_MATCH_COMMAND);
+  clients.frames(60);
+  clients.chat(0, PERF_COMMAND);
+  const overlay = (client: HeadlessClient | undefined) => client?.frames.shownText().filter((text) => text.startsWith("frame cost")) ?? [];
+  const [host, guest] = clients.clients;
+  // Bun has no Lua clock and counts no natives; the frames are the shell's since its first tick, the match advancing one a frame.
+  expect(overlay(host)).toEqual(["frame cost, last 89 frames, median / max\nLua: no clock\nnatives: 0 / 0\ncatch-up frames: 1 / 1"]);
+  expect(overlay(guest)).toEqual([]);
 });

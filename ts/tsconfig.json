@@ -42,6 +42,7 @@
     "src/platform/**",
     "src/game/ui/**",
     "src/game/render/**",
-    "src/parity/lua-entry.ts"
+    "src/parity/lua-entry.ts",
+    "scripts/wisp/perfLua.ts"
   ]
 }
