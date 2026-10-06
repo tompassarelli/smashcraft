@@ -83,13 +83,31 @@ melee:src/melee/gm/gmmain.c). Each axis whose magnitude is then at most
 0x3e8f5c29 in smashcraft:docs/smash-melee-reference/physics-parameters.json).
 Full scale is SDL's and the normalized evdev range, ±32767, standing in for
 Melee's 80 units, so a left-stick axis counts from 9175. No resting-offset
-calibration is applied; the deadzone absorbs a pad's resting offset. A left-stick
-direction is active when its axis is outside the deadzone, and the journal's
-rows carry the deadzoned axes. Right-stick directions additionally need 11000
+calibration is applied; the deadzone absorbs a pad's resting offset. Left,
+right and up are active when their axis is outside the deadzone; down needs
+the stronger threshold below. The journal's rows carry the deadzoned axes. Right-stick directions additionally need 11000
 and triggers 4000, strictly beyond. Shared sources are unioned before emission:
 releasing LT while RT is held retains shield; B and Y share one held jump
 action. Stick-up is only up: aim, up-special, getup and ledge stand. Hold
 duration remains available to the game's jump logic.
+
+Down is active only at **0.6625** of full scale (53 of Melee's 80 units; a
+left-stick axis counts from 21709), after the radial clamp. Melee has no single
+down threshold; the retail values (NTSC 1.02 PlCo.dat common block, selected
+fields read privately) are: fast-fall +0x88 = 0x3f29999a (0.6625,
+`ftCommon_CheckFallFast`, melee:src/melee/ft/ftcommon.c); platform drop +0x464
+and refusing a ledge catch +0x480 = 0x3f28f5c3 (0.66, the same 53 units;
+`ftCo_80099F1C` in melee:src/melee/ft/kinds/ftCommon/ftCo_Pass.c and
+`ftCliffCommon_80081298` in melee:src/melee/ft/ftcliffcommon.c); down smash
++0xD4 = -0.6625 (ftCo_AttackLw4.c). Crouch +0x90 = 0.6875 (strict, 56 units;
+ftCo_Squat.c) and spot dodge +0x314 = -0.7 (ftCo_Escape.c) need slightly more.
+The single digital down (E) takes the 53-unit value shared by four of those
+six actions, so a slight tilt no longer fast-falls, drops through a platform or
+passes a ledge. Crouch and spot dodge trigger about three stick units early.
+Up keeps the deadzone: ledge climb +0x494 = 0.25 and getup +0x244 = 0.2 lie
+inside it, and the 0.6625 up actions (tap jump, up smash) are not served by
+digital up. Up-special (+0x21C = 0.55) and the direction sent with a special or
+dodge press still use the deadzone, as does the journal's analog axis.
 
 On Linux the journal reads face buttons by position. Sony's driver reports
 positions, but xpad and other Xbox-style drivers report labels: X as `BTN_X`
