@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import { ABS_X, ABS_Y, ABS_Z, BTN_A, EV_ABS, EV_KEY } from "../scripts/integrity/linuxInput";
 import { frameWriteNs, landEdges, matchStart, parsePadScript, publishedFrame, ruleFrame } from "../scripts/integrity/padScript";
+import { parseExpectations, parseTrace, unmetExpectations } from "../scripts/integrity/padParity";
 
 test("a pad script becomes frame-ordered edges, a tap a press and its release", () => {
   const steps = parsePadScript(`
@@ -43,4 +44,23 @@ test("edges land on the frames a fake helper journaled them on", () => {
     { line: 2, text: "190 a stick 1 0", slot: 0, planned: 190, injectedNs: 34285600000000 },
   ], [log, ""]);
   expect(landed.map((edge) => edge.landed)).toEqual([181, undefined]);
+});
+
+test("a pad parity check reads the input trace's checksums and fighter lines and holds the script's expectations", () => {
+  const { checksums, events } = parseTrace([
+    "45 0.750 confirmed frame 0 state 461891:9677",
+    "72 1.200 participant 0 frame 60 phase 2 special 13 action-frame 1 x -240.000 z 0.000",
+    "73 1.217 participant 0 frame 60 phase 2 received down 12",
+    "132 2.200 participant 1 frame 118 phase 2 recovery down 0 actionable 0 hitlag 5 hitstun 13 damage 6.000",
+    "132 2.200 participant 1 frame 118 phase 2 damage pose 1 hitlag 5 hitstun 13 x 240.000 z 0.000 launch 5.098:3.570",
+    "165 2.750 confirmed frame 110 state 196331:389408",
+  ]);
+  expect([...checksums]).toEqual([[0, "461891:9677"], [110, "196331:389408"]]);
+  // Presentation and key lines are left out: only confirmed changes are compared.
+  expect(events.map((event) => [event.slot, event.frame])).toEqual([[0, 60], [1, 118]]);
+  const expectations = parseExpectations("60 a tap X 2\n#! expect a 60 special 13\n#! absent b 100-110 recovery\n#! expect b 118 special");
+  expect(unmetExpectations({ checksums, events }, expectations, "native")).toEqual([
+    "native script line 4 (expect b 118 special): no such line; nearby: 118 phase 2 recovery down 0 actionable 0 hitlag 5 hitstun 13 damage 6.000",
+  ]);
+  expect(() => parseExpectations("#! expects a 1 x")).toThrow("line 1");
 });

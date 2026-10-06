@@ -99,7 +99,7 @@ const padThread = Effect.acquireRelease(
   ({ worker }) => Effect.sync(() => worker.terminate()),
 );
 
-const loadEntry = tryIntegrityPromise("load the integrity entry", "src/platform/integrityMain.ts", async (): Promise<MapEntry> => {
+export const loadEntry = tryIntegrityPromise("load the integrity entry", "src/platform/integrityMain.ts", async (): Promise<MapEntry> => {
   // Loaded at run time, so the host type check never reads map code.
   const module: unknown = await import(join(tsDirectory, "src/platform/integrityMain.ts"));
   if (typeof module !== "object" || module === null || !("start" in module) || !("install" in module)) throw new Error("no start() and install()");

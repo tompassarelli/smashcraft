@@ -166,7 +166,13 @@ code. From smashcraft:ts/:
 - Scripted pad: `bun wisp pad SCRIPT --helper BINARY --build BUILD --out DIR
   --app-id a=ID --app-id b=ID [--chat=TEXT]` plays timed virtual-pad input
   through each client's real helper and reports the frame each edge landed on
-  (script syntax: smashcraft:ts/scripts/integrity/padScript.ts).
+  (script syntax: smashcraft:ts/scripts/integrity/padScript.ts). It copies
+  the clients' input traces, scene reports and moments beside the result.
+  `bun wisp pad SCRIPT --headless --helper BINARY --out DIR [--chat=TEXT]
+  [--compare NATIVE_DIR]` plays the same script through the same helper into
+  headless integrity clients. It passes a native run when checksums, fighter
+  lines and the script's `#!` expectations match (smashcraft:docs/native-bot-session.md,
+  "Native checks by parity"; issue scripts in smashcraft:ts/test/native/pads/).
 - Native acceptance: `bun wisp accept [--only ID...] [--dry-run]` runs every
   open native check declared in smashcraft:ts/scripts/wisp/acceptChecks.ts in
   as few fresh matches as their maps allow and prints pass, fail or

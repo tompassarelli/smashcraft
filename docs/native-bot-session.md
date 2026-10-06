@@ -200,7 +200,31 @@ or later. Each edge is written a fifth into its frame on the helper's own
 clock (its log's `match_start ... epoch_ns` and frame rule), and
 `result.json` gives the frame each landed on: from the helper's event line
 for buttons, from its frame rule for sticks and triggers. It exits 1 when an
-edge landed off its frame or a helper stopped.
+edge landed off its frame or a helper stopped. It also copies each client's
+input trace (`trace-a.txt`, `trace-b.txt`, written about 20 s into an
+integrity-build match), its scene report (`scene-a.txt`, `scene-b.txt`) and
+the moments it saved beside the result.
+
+### Native checks by parity
+
+A gameplay box passes natively when the native run of a pad script equals a
+headless run of the same script. The headless run is
+`bun wisp pad SCRIPT --headless --helper HELPER --out DIR --chat=TEXT --compare NATIVE_DIR`.
+It sends the script through the same helper binary, in two headless clients
+of the integrity build, so both sides translate the pad the same way. Then
+it checks three things:
+
+- The headless moment, saved because the script holds View for a second,
+  replays to every native confirmed-state checksum in its frames.
+- The confirmed fighter lines in the traces are equal: specials, attacks,
+  jumps, hits and recoveries, each with its frame.
+- Each `#! expect CLIENT FRAME TEXT`, `#! absent CLIENT FROM-TO TEXT` and
+  `#! scene CLIENT MODEL` line in the script holds on both sides.
+
+A press that never landed natively fails all three. The native map must be
+the integrity build (`bun wisp rebuild MAP.w3x --profile integrity`,
+`--build typescript-integrity`), since only that build writes the trace.
+Issue scripts live in smashcraft:ts/test/native/pads/, one folder per issue.
 
 ## Declared checks: `bun wisp accept`
 
