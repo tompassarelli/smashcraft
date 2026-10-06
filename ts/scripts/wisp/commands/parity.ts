@@ -6,6 +6,7 @@ import { Effect } from "effect";
 import { runNumericParity } from "../../numericParity";
 import { luaRuntimes } from "../luaRuntimes";
 import { tsDirectory } from "../project";
+import { onHealthyClients } from "../doctor";
 import { captureMatches, parseCaptureArguments } from "../../integrity/capture";
 import { IntegrityFailure, reconcileCapture } from "../../integrity/evidence";
 import { captureHeadless, parseHeadlessArguments } from "../../integrity/headless";
@@ -45,7 +46,9 @@ export const parity: Command = ([mode, ...args]) => {
         try: () => parseCaptureArguments(args),
         catch: (cause) => new IntegrityFailure({ operation: "parse capture arguments", path: "wisp parity capture", cause: describeCause(cause) }),
       }).pipe(
-        Effect.flatMap(captureMatches),
+        // Doctor heals the clients before a capture (bot sessions included) and once after a
+        // failure; a capture writes its own folder, so its failure stands (wisp:docs/doctor.md).
+        Effect.flatMap((options) => onHealthyClients(captureMatches(options), { retry: false })),
         step("native input-integrity capture"),
       );
     case "result": {

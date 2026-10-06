@@ -91,6 +91,14 @@ code. From smashcraft:ts/:
   log, crash reports, match receipts and processes, never its screen. Run it
   before clicking or reading a client; `bun wisp client state CLIENT` and
   `bun wisp client wait CLIENT STATE...` read or wait on one (wisp:docs/watch.md).
+- Client recovery: `bun wisp doctor [CLIENT...]` brings clients A and B to a
+  ready state: it recovers a client that dropped from Battle.net, crashed
+  with its error dialog up, sits at the empty login shell, a stale lobby or
+  a stuck loading screen, or shares its prefix with a second runtime, and
+  stops with one line when Tom must sign in (wisp:docs/doctor.md). `fresh`,
+  `parity capture` (bot sessions included), `play` and `accept` run it before
+  they start and once after a failure; run it instead of driving a client by
+  hand.
 - Client driver: `bun wisp client look|read|click|keys CLIENT ...` reads and
   drives a client. Session values live in ~/.local/state/smashcraft/clients.json.
 - Menus: `bun wisp menus host|join|start|leave` drives lobbies through Wisp's

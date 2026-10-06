@@ -52,6 +52,7 @@ export const PASSWORD_CANCEL = { x: 1111, y: 745 };
 import { clientState, profileOption, sceneProfiles } from "../project";
 import { freshFrames, smashcraftPlayerView } from "../playerView";
 import { profileOptions } from "./map";
+import { onHealthyClients } from "../doctor";
 
 /** Six random letters and digits, as `wisp menus host` chooses. */
 const gamePassword = () => Array.from(crypto.getRandomValues(new Uint8Array(6)), (byte) => (byte % 36).toString(36)).join("");
@@ -63,15 +64,17 @@ export const fresh: Command = (args) => Effect.gen(function*() {
   if (map === undefined || flags.some((flag) => flag !== "--rebuild" && flag !== "--from-game" && flag !== "--no-quick")) {
     return yield* new UsageFailure({ problem: "fresh takes MAP.w3x [--rebuild] [--from-game] [--no-quick] [--profile PROFILE]" });
   }
-  yield* Effect.gen(function*() {
-    if (flags.includes("--rebuild")) yield* rebuildMap(map).pipe(step("map rebuilt"));
+  if (flags.includes("--rebuild")) yield* rebuildMap(map).pipe(step("map rebuilt"), Effect.provide(options.services));
+  // Doctor heals the clients first and once after a failure (wisp:docs/doctor.md);
+  // Clients' layer finds each client's Warcraft window only after it.
+  yield* onHealthyClients(Effect.gen(function*() {
     yield* freshMatch(map, flags.includes("--from-game"));
     if (!flags.includes("--no-quick")) {
       const since = yield* Clock.currentTimeMillis;
       yield* sendQuickMatchCommand.pipe(step("quick match and client receipts"));
       yield* checkPlayerView(smashcraftPlayerView({ frame: true, scene: sceneProfiles.has(profile) }), since, freshFrames).pipe(step("player view"));
     }
-  }).pipe(Effect.provide(Layer.merge(options.services.pipe(Layer.provideMerge(Clients.layer(clientState))), ClientWatch.layer({ filePrefix: "smashcraft" }))));
+  }).pipe(Effect.provide(Layer.merge(options.services.pipe(Layer.provideMerge(Clients.layer(clientState))), ClientWatch.layer({ filePrefix: "smashcraft" })))));
 });
 
 /** The game in every client, at character selection. */

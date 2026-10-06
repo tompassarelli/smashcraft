@@ -22,6 +22,7 @@ const COMMANDS: Record<string, { readonly usage: string; readonly load: () => Pr
   playable: { usage: "playable capture OPTIONS... | result CAPTURE_DIR", load: async () => (await import("./wisp/commands/playable")).playable },
   client: { usage: "client look|read|click|keys CLIENT ... | state CLIENT | wait CLIENT STATE... [--seconds N]", load: async () => (await import("./wisp/commands/client")).client },
   watch: { usage: "watch [CLIENT...] [--once] [--json] [--record FILE]   (each client's state from its events: wisp:docs/watch.md)", load: async () => (await import("wisp/scripts/wisp/commands/watch")).makeWatch((await import("./wisp/project")).clientState, { filePrefix: "smashcraft" }) },
+  doctor: { usage: "doctor [CLIENT...]   (recovers dropped, crashed, login-stuck, loading-stuck or lobby-stuck clients; wisp:docs/doctor.md)", load: async () => (await import("./wisp/commands/doctor")).doctor },
   menus: { usage: "menus host|join|start|leave [OPTIONS]", load: async () => (await import("wisp/scripts/wisp/commands/menus")).makeMenus() },
   view: { usage: "view scene DATA_DIR... | frame FRAME.ppm... | models --assets DIR --summon DIR --extractor CASC_EXTRACT --storage WARCRAFT_DIR", load: async () => (await import("./wisp/commands/view")).view },
   headless: { usage: "headless [quick-match|desync] [--clients N] [--cost]", load: async () => (await import("./wisp/commands/headless")).headless },
