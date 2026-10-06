@@ -57,26 +57,24 @@ export interface RollbackPlayback {
 export const CATCH_UP_FRAMES = 6;
 
 /**
- * Frames one callback runs in all: confirmed, replayed and speculative. Every
- * frame costs about the same, so the count bounds a callback's work. Replayed
- * whole, a correction 24 frames deep took one Lua32 callback 23 ms, and the
- * same callback could confirm a message's 6 frames and predict 6 more
+ * Frames of a pending correction one callback replays. Replayed whole, a
+ * correction 24 frames deep took one Lua32 callback 23 ms, with a message's
+ * 6 confirmed frames and up to 6 predicted ones beside it
  * (smashcraft:docs/warcraft-api-netcode-findings.md, "What a callback costs").
- * A deep correction now shows a few callbacks later, and a message's
- * confirmed events and HUD a callback later.
+ * A deep correction now shows a few callbacks later.
  */
-export const CALLBACK_FRAMES = 12;
-
-/** Frames of a pending correction one callback replays. */
 export const REPAIR_FRAMES = 6;
 
-/** Confirmed frames one callback runs: a message's six over two callbacks, a backlog, as after a stall, at the catch-up budget. */
-export const confirmedBudget = (confirmable: number): number => (confirmable > CATCH_UP_FRAMES ? CATCH_UP_FRAMES : 3);
+/**
+ * Confirmed frames one callback runs: a message's frames 3 a callback, so its
+ * confirmed events and HUD show a callback or two later; a backlog of more
+ * than two messages, as after a stall, at the catch-up budget.
+ */
+export const confirmedBudget = (confirmable: number): number => (confirmable > 2 * CATCH_UP_FRAMES ? CATCH_UP_FRAMES : 3);
 
 /**
  * Speculative frames one callback may run. Keyboard sampling owns one new
  * frame, and running farther would skip capture targets; journals already
- * hold their original frames, and run what the callback's confirmed and
- * replayed frames leave of CALLBACK_FRAMES, at least one.
+ * hold their original frames.
  */
-export const speculativeBudget = (journal: boolean, framesRun: number): number => (journal ? Math.min(CATCH_UP_FRAMES, Math.max(1, CALLBACK_FRAMES - framesRun)) : 1);
+export const speculativeBudget = (journal: boolean): number => (journal ? CATCH_UP_FRAMES : 1);

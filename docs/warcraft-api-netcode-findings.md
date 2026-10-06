@@ -485,6 +485,24 @@ collector freed memory is no slower than the others. Measured interleaved
 with the build before on the same busy host, four fighters' confirming
 callbacks fell 41% at p95 and catching up 42%.
 
+Exact f32 arithmetic (#59) made every frame about a quarter costlier, and
+the worst four-fighter callbacks ran 21–31 frames: a message's 6 confirmed
+frames, a correction 15–24 frames deep replayed whole, and up to 6
+predicted. Every frame costs about the same, so each kind is now bounded
+(smashcraft:ts/src/game/shell/playback.ts): a correction replays at most 6
+frames a callback in the history's own state while the speculative match
+keeps running local rows, and replaces it once the replay reaches the
+present; a message's frames confirm 3 a callback, and only a backlog of
+more than two messages, as after a stall, 6. Prediction keeps its 6: #60's
+gate needs every admitted local row predicted within a callback, which a
+smaller share failed while catching up. In steady four-fighter play a
+callback ran at most 14 frames instead of 31 (11 but when two messages
+land together), and only catching up after a stall, with a correction
+pending, 18. A deep correction shows up to four callbacks late (until
+catching up ends, after a stall), and a message's confirmed events and HUD
+a callback or two late; local presses still start within a callback, and
+a 2 s stall still recovers in 21 callbacks headless.
+
 Throughput limits catching up too. Holds cost no bytes, but a message carries
 only 8 frames whose every field changes: with such input on every frame, 10
 messages a second carry 80 frames a second, and a 2 s backlog of it takes

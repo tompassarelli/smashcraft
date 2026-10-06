@@ -278,7 +278,7 @@ export function rollbackTick(s: ShellState, rollback: Rollback): void {
   // replays over several callbacks while local rows keep running.
   if (s.game.phase === Phase.match) {
     const before = schedule.speculativeFrame();
-    const advanced = rollback.playback.catchUp(schedule, epoch, slot, speculative, speculativeBudget(journal !== undefined, steps + repaired), stopAt, observeSpeculativeFrame);
+    const advanced = rollback.playback.catchUp(schedule, epoch, slot, speculative, speculativeBudget(journal !== undefined), stopAt, observeSpeculativeFrame);
     const after = schedule.speculativeFrame();
     const blocked = after === before && before > schedule.knownThrough() + schedule.rollbackFrames();
     if (trace.active) {
