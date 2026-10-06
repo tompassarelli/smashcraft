@@ -26,6 +26,7 @@ const IDLE_TOPS: readonly { readonly character: Character; readonly idleClip: nu
   { character: Character.dreadlord, idleClip: 1, top: 161 },
   { character: Character.shadowHunter, idleClip: 7, top: 138 },
   { character: Character.pitLord, idleClip: 2, top: 180 },
+  { character: Character.beastmaster, idleClip: 9, top: 168 },
 ];
 
 /** The hurt capsule's top may sit at most a tenth above the drawn head. */
