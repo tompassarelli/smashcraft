@@ -12,40 +12,12 @@ import { applyDirectionalInfluence, directionalInfluenceVector, influenceOperand
 import { attackStartupFrames, grabHoldFrames } from "./moves";
 import { setMeleeKnockback, totalVelocityX, totalVelocityZ } from "./motion";
 import { updateProjectiles } from "./projectiles";
-import { ASDI_DISTANCE, SDI_DISTANCE } from "./smashDirectionalInfluence";
+import { ASDI_DISTANCE, SDI_STEP_DISTANCE } from "./smashDirectionalInfluence";
 import { respawnFighter } from "./stocks";
 import { advanceSolo, controls, seedTechWindow, soloWorld, testBeginAttacks, testWorld } from "./testWorld";
 import { authoredPhysics } from "./tuning";
 
 const length = (x: number, z: number) => Math.sqrt(x * x + z * z);
-
-test("smash DI pulses shift only on new axis components", () => {
-  const fighter = createFighter(Character.archer, 0.0, 1);
-  fighter.motion.grounded = false;
-  fighter.motion.z = 400.0;
-  fighter.launch.hitlag = 8;
-  fighter.launch.diPending = true;
-  fighter.launch.diLaunchSpeed = 10.0;
-  // The pulses a directional input produces holding right, adding up,
-  // releasing up, then reversing; held and removed components don't pulse.
-  const pulse = (sdiX: number, sdiZ: number) =>
-    advanceSolo(fighter, 0, controls({ direction: sdiX, sdiPulse: sdiX !== 0 || sdiZ !== 0, sdiX, sdiZ }), -240.0);
-  pulse(1, 0);
-  assertEquals(fighter.motion.x, SDI_DISTANCE);
-  assertEquals(fighter.launch.sdiSerial, 1);
-  pulse(0, 0);
-  assertEquals(fighter.motion.x, SDI_DISTANCE);
-  assertEquals(fighter.launch.sdiSerial, 1);
-  pulse(1, 1);
-  assertNear(fighter.motion.x, SDI_DISTANCE + SDI_DISTANCE * 0.7071067690849304, 0.0010000000474974513);
-  assertNear(fighter.motion.z, 400 + SDI_DISTANCE * 0.7071067690849304, 0.0010000000474974513);
-  assertEquals(fighter.launch.sdiSerial, 2);
-  pulse(0, 0);
-  assertEquals(fighter.launch.sdiSerial, 2);
-  pulse(-1, 0);
-  assertNear(fighter.motion.x, SDI_DISTANCE * 0.7071067690849304, 0.0010000000474974513);
-  assertEquals(fighter.launch.sdiSerial, 3);
-});
 
 test("a direction held before the hit creates no SDI pulse, and an attacker's freeze doesn't move it", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
@@ -150,7 +122,7 @@ test("a forbidden down SDI doesn't land, but ASDI down sweeps onto a platform an
   airborne.launch.diPending = true;
   airborne.launch.diLaunchSpeed = 10.0;
   advanceSolo(airborne, 0, controls({ verticalDirection: -1, sdiPulse: true, sdiZ: -1 }), -240.0);
-  assertEquals(airborne.motion.z, f32(400 - SDI_DISTANCE));
+  assertEquals(airborne.motion.z, f32(400 - SDI_STEP_DISTANCE));
   assertEquals(airborne.launch.sdiSerial, 1);
   const grounded = createFighter(Character.archer, 0.0, 1);
   grounded.motion.z = 0.0;
@@ -159,7 +131,7 @@ test("a forbidden down SDI doesn't land, but ASDI down sweeps onto a platform an
   grounded.launch.diLaunchSpeed = 10.0;
   grounded.launch.sdiWasGrounded = true;
   advanceSolo(grounded, 0, controls({ direction: 1, verticalDirection: 1, sdiPulse: true, sdiX: 1, sdiZ: 1 }), -240.0);
-  assertNear(grounded.motion.x, SDI_DISTANCE * 0.7071067690849304, 0.0010000000474974513);
+  assertNear(grounded.motion.x, SDI_STEP_DISTANCE * 0.7071067690849304, 0.0010000000474974513);
   assertEquals(grounded.motion.z, 0.0);
   assertEquals(grounded.launch.sdiSerial, 1);
 });

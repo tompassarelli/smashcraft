@@ -9,6 +9,7 @@ import { Phase } from "../src/game/match/rules";
 import { PLAYABLE_BUILD } from "../src/game/shell/currentBuild";
 import { Character } from "../src/game/sim/codes";
 import { PROJECTILE_CAPACITY } from "../src/game/sim/fighter";
+import { stageScenery } from "../src/game/presentation/stageScenery";
 import { surfaceCount } from "../src/game/sim/stage";
 import { install, startBuild } from "../src/platform/main";
 import { Key } from "../src/platform/shell/keyEvents";
@@ -118,9 +119,9 @@ test("playable: selection creates no effect and reads no file; match start creat
     expect(s.participants.map(({ pooled }) => pooled)).toEqual([true, true, true, true]);
     stage = s.game.stageChoice;
   });
-  // Each fighter's clip pool, shield and projectile pool, and the stage's decks; nothing more.
+  // Each fighter's clip pool, shield, projectile pool and agency halo, and the stage's decks and scenery; nothing more.
   expect(start.poolCreated).toBe(4 * poolEffects(Character.demonHunter));
-  expect(start.created).toBe(start.poolCreated + 4 * (1 + PROJECTILE_CAPACITY) + surfaceCount(stage));
+  expect(start.created).toBe(start.poolCreated + 4 * (1 + PROJECTILE_CAPACITY + 1) + surfaceCount(stage) + stageScenery(stage).pieces.length);
   expect(start.fileReads).toBe(0);
 
   const match: Work[] = [];

@@ -309,6 +309,14 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   bool("sdiLaunchesUpward", l.sdiLaunchesUpward);
   int("sdiSerial", l.sdiSerial);
   int("asdiSerial", l.asdiSerial);
+  int("sdiHitTravel", l.sdiHitTravel);
+  int("sdiStringTravel", l.sdiStringTravel);
+  int("sdiStepX", l.sdiStepX);
+  int("sdiStepZ", l.sdiStepZ);
+  int("sdiStepTravel", l.sdiStepTravel);
+  int("sdiNextX", l.sdiNextX);
+  int("sdiNextZ", l.sdiNextZ);
+  int("sdiNextTravel", l.sdiNextTravel);
   int("cooldown", a.cooldown);
   int("attackStyle", a.style ?? -1);
   int("attackFrame", a.frame);
