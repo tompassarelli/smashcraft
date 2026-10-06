@@ -58,3 +58,17 @@ export function nextSelectableCharacter(current: number | undefined, direction: 
   for (let i = 0; i < count; i++) if (SELECTABLE_CHARACTERS[i] === current) index = i;
   return SELECTABLE_CHARACTERS[floorMod(index + direction, count)] ?? Character.archer;
 }
+
+const ORIGINAL_SLUGS = ["archer", "rifleman", "illidan"] as const;
+
+/** The fighter's name in commands and soak records: "archer", "illidan", "mountain-king". */
+export function fighterSlug(character: number): string {
+  const hero = heroDefinition(character);
+  return hero === undefined ? ORIGINAL_SLUGS[character] ?? "archer" : hero.name.toLowerCase().split(" ").join("-");
+}
+
+/** The selectable fighters by slug, for tools that name fighters on the command line. */
+export function selectableCharacterBySlug(slug: string): Character | undefined {
+  for (const character of SELECTABLE_CHARACTERS) if (fighterSlug(character) === slug) return character;
+  return undefined;
+}

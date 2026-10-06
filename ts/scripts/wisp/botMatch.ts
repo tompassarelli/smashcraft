@@ -26,6 +26,8 @@ interface BotMatch {
 export const BOT_THREE: BotMatch = { computers: [[2, Character.demonHunter]] };
 /** `--bot-four`: a computer Illidan and a computer Archer. */
 export const BOT_FOUR: BotMatch = { computers: [[2, Character.demonHunter], [3, Character.archer]] };
+/** `perf bot-NAME`: one computer of any selectable fighter, by its slug (sim/heroes/registry.ts). */
+export const botMatchAgainst = (character: Character): BotMatch => ({ computers: [[2, character]] });
 
 /** Frames between beats: 400 ms. */
 const REST = 24;
