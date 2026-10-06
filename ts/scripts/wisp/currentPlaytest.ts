@@ -1,5 +1,5 @@
 // The owner's play command consumes main. Experiments use fresh/accept instead.
-import { copyFileSync, existsSync, mkdirSync, readdirSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readdirSync, renameSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, dirname } from "node:path";
 import { Effect, Schema } from "effect";
@@ -61,7 +61,10 @@ const buildHelper = (lane: string, helper: string) => Effect.gen(function*() {
   yield* run(join(lane, "companion"), ["nix-shell", "-p", "stdenv.cc", "cmake", "pkg-config", "libxkbcommon", "udev", "--run",
     `PATH=${join(homedir(), ".rustup/toolchains/1.96.1-x86_64-unknown-linux-gnu/bin")}:$PATH bun '${capacity}' run --class moderate --owner smashcraft:play-helper --timeout-seconds 900 -- cargo build --release --locked --jobs 2 --bin wc3-journal`]);
   mkdirSync(dirname(helper), { recursive: true });
-  copyFileSync(join(lane, "companion/target/release/wc3-journal"), helper);
+  // A helper another run installed meanwhile may be running: replace it by rename, never write over it (ETXTBSY).
+  const staged = `${helper}.${process.pid}.tmp`;
+  copyFileSync(join(lane, "companion/target/release/wc3-journal"), staged);
+  renameSync(staged, helper);
 });
 
 /** Main's controller helper, built on first use. */
