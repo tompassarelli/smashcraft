@@ -30,7 +30,7 @@ export const buildProject = (profile: Profile = "main"): BuildProject => ({
   projectRoot,
   configPath: profileConfig(profile),
   bundlePath: join(tsDirectory, profile === "main" ? "build/map.lua" : `build/${profile}.lua`),
-  compileInputs: [join(tsDirectory, "src"), join(tsDirectory, "node_modules/wisp/src"), join(tsDirectory, "node_modules/wisp/plugins"),
+  compileInputs: [join(tsDirectory, "src"), join(tsDirectory, "node_modules/wisp/src"), join(tsDirectory, "node_modules/wisp/plugins"), join(tsDirectory, "plugins"), join(tsDirectory, "wisp.lock"),
     ...profiles.map(profileConfig), join(tsDirectory, "tsconfig.json")],
   packager: join(projectRoot, "build/tools/map-pack"),
   toolchainLockPath: join(projectRoot, "typescript-toolchain.lock"),

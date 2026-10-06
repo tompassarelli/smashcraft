@@ -348,6 +348,12 @@ and smashcraft:ts/src/platform/shell/replays.ts writes.
   state as `state` record text (as a moment's, without each fighter's
   authored tuning, restored from its character), `rows` runs and
   `checkpoint FRAME CHECKSUM` every 120 frames and at its end.
+- **Version.** `version` is the map's source version. It is the first 12
+  hex digits of a SHA-256 over `ts/src` (tests left out) and the Wisp pin
+  (smashcraft:ts/scripts/sourceVersion.ts). The map build sets it as the
+  global `SMASHCRAFT_SOURCE` (smashcraft:ts/plugins/source-version.ts), and
+  the client's `sim.js` gets the same value, so a client knows which replays
+  its simulation plays. Unstamped code says `development`.
 - **Cost.** The replay checksum folds every number and boolean of each
   fighter, its projectiles and the match, in any order. In 32-bit Lua it is
   about 0.22 million instructions for four fighters. The canonical checksum
