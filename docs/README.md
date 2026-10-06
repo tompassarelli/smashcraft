@@ -30,6 +30,7 @@ Dated trial records live in [evidence](../evidence/README.md).
 ## Physics and moves
 
 - [Physics reference](physics.md): source values, implementation and known differences.
+- [Melee camera](melee-camera.md): how Melee's match camera frames and follows the fighters, and how ours follows it.
 - [Expansion heroes](heroes.md): registering a hero, its specials and mana.
 - Melee mechanics: [air cutoff](melee-air-cutoff.md), [analog shield](melee-analog-shield.md), [ground motion](melee-ground-motion.md), [hitlag scalars](melee-hitlag-scalars.md), [hitstun boundaries](melee-hitstun-boundaries.md), [powershield](melee-powershield.md), [scalar math](melee-scalar-math.md), [tech input](melee-tech-input.md).
 - [Smash Melee reference data](smash-melee-reference/README.md): physics parameters, every fighter's retail attributes and the targeted retail observations used by the physics tests.

@@ -1,5 +1,5 @@
 // Camera_800293E0/8002958C/80029CF8/8002A768: subject box, fit, follow
-// and corner limits. Warcraft's side view keeps yaw/pitch fixed; only the
+// and corner limits (smashcraft:docs/melee-camera.md). Warcraft's side view keeps yaw/pitch fixed; only the
 // eye distance and interest move. Gameplay uses one 16:9 view on every client.
 import { f32 } from "wisp/src/sim/f32";
 import { PARTICIPANT_SLOTS, type Slots } from "../input/participants";
@@ -54,7 +54,9 @@ export function copyMatchCamera(target: MatchCamera, source: Readonly<MatchCamer
 
 const clamp = (value: number, low: number, high: number): number => Math.min(high, Math.max(low, value));
 const ease = (current: number, target: number, rate: number): number => f32(current + f32(f32(target - current) * rate));
-const extent = (current: number, target: number): number => f32(current + clamp(f32(target - current), -3.0, 3.0));
+const extent = (current: number, target: number, step: number): number => f32(current + clamp(f32(target - current), -step, step));
+// The eased camera's goal this frame; never part of match state.
+const goal = createMatchCamera();
 
 /** The extreme vertical rays where the camera meets the fighters' plane. */
 function cameraReach(distance: number, tangent: number): { readonly above: number; readonly below: number } {
@@ -95,6 +97,8 @@ export function advanceMatchCamera(camera: MatchCamera, world: Readonly<Roster>,
   for (const slot of PARTICIPANT_SLOTS) if (isActive(world, slot) && !fighterAt(world, slot).status.out) count++;
   if (count === 0) return;
   const ratio = f32(1.5 * (count === 1 ? 1.5 : count === 2 ? 1.3200000524520874 : count === 3 ? 1.159999966621399 : 1.0));
+  // Camera_800293E0 eases the unscaled extents by 0.5 Melee units, then scales them by the subject ratio.
+  const step = f32(3.0 * ratio);
   let left = bounds.right;
   let right = bounds.left;
   let bottom = bounds.top;
@@ -110,10 +114,10 @@ export function advanceMatchCamera(camera: MatchCamera, world: Readonly<Roster>,
     const back = f32(54.0 * ratio);
     const box = camera.boxes[slot];
     const toward = fighter.facing > 0;
-    box.left = camera.initialized ? extent(box.left, -(toward ? back : front)) : -(toward ? back : front);
-    box.right = camera.initialized ? extent(box.right, toward ? front : back) : toward ? front : back;
-    box.bottom = camera.initialized ? extent(box.bottom, -f32(54.0 * ratio)) : -f32(54.0 * ratio);
-    box.top = camera.initialized ? extent(box.top, f32(96.0 * ratio)) : f32(96.0 * ratio);
+    box.left = camera.initialized ? extent(box.left, -(toward ? back : front), step) : -(toward ? back : front);
+    box.right = camera.initialized ? extent(box.right, toward ? front : back, step) : toward ? front : back;
+    box.bottom = camera.initialized ? extent(box.bottom, -f32(54.0 * ratio), step) : -f32(54.0 * ratio);
+    box.top = camera.initialized ? extent(box.top, f32(96.0 * ratio), step) : f32(96.0 * ratio);
     left = Math.min(left, clamp(f32(x + box.left), bounds.left, bounds.right));
     right = Math.max(right, clamp(f32(x + box.right), bounds.left, bounds.right));
     bottom = Math.min(bottom, clamp(f32(f32(z + 60.0) + box.bottom), bounds.bottom, bounds.top));
@@ -124,7 +128,9 @@ export function advanceMatchCamera(camera: MatchCamera, world: Readonly<Roster>,
   camera.bottom = bottom;
   camera.top = top;
   camera.tangent = ease(camera.tangent, WIDE, 0.10000000149011612);
-  const spread = f32(camera.right - camera.left);
+  const width = f32(camera.right - camera.left);
+  // Camera_80029AAC: the follow speed reads the larger side of the subject box.
+  const spread = Math.max(width, f32(camera.top - camera.bottom));
   // cm_803BCCA0: interest 0.05..0.1 * track_smooth 1.8, eye 0.15 * 1.8.
   const rate = f32(f32(0.05000000074505806 + f32(clamp(f32(f32(f32(spread / 6.0) - 120.0) / 780.0), 0.0, 1.0) * 0.05000000074505806)) * 1.7999999523162842);
   const padding = f32(60.0 + f32(2340.0 * clamp(f32(f32(f32(camera.distance / 6.0) - 80.0) / 4920.0), 0.0, 1.0)));
@@ -132,7 +138,7 @@ export function advanceMatchCamera(camera: MatchCamera, world: Readonly<Roster>,
   const targetX = f32(f32(camera.left + camera.right) / 2.0);
   const middleZ = f32(f32(lower + camera.top) / 2.0);
   const vertical = f32(f32(camera.top - lower) / f32(1.440000057220459 * camera.tangent));
-  const horizontal = f32(spread / f32(f32(2.0 * camera.tangent) * MATCH_CAMERA_ASPECT));
+  const horizontal = f32(width / f32(f32(2.0 * camera.tangent) * MATCH_CAMERA_ASPECT));
   const distance = clamp(Math.max(vertical, horizontal), 498.0, 6000.0);
   // Keep recovery space above the HUD, including the foreground underside
   // when a fighter is within 100 of it. Distant high subjects get a bubble.
@@ -140,17 +146,25 @@ export function advanceMatchCamera(camera: MatchCamera, world: Readonly<Roster>,
   const floorOfView = nearUnderside ? Math.min(lowest, f32(MAIN_DECK_UNDERSIDE_Z - 35.0)) : lowest;
   const hud = cameraReach(distance, f32(camera.tangent * 0.4399999976158142));
   const targetZ = Math.min(middleZ, f32(floorOfView + hud.below));
-  camera.x = camera.initialized ? ease(camera.x, targetX, rate) : targetX;
-  camera.z = camera.initialized ? ease(camera.z, targetZ, rate) : targetZ;
-  camera.distance = camera.initialized ? ease(camera.distance, distance, 0.27000001072883606) : distance;
-  camera.initialized = true;
-  limitCamera(camera, bounds, MATCH_CAMERA_ASPECT, blast.bottom);
+  // Camera_8002A768 limits the goal, not the eased view, so reaching a limit
+  // or the underside eases in instead of snapping.
+  goal.tangent = camera.tangent;
+  goal.x = targetX;
+  goal.z = targetZ;
+  goal.distance = distance;
+  limitCamera(goal, bounds, MATCH_CAMERA_ASPECT, blast.bottom);
   if (nearUnderside) {
-    const unit = cameraReach(1.0, camera.tangent);
-    const unitHud = cameraReach(1.0, f32(camera.tangent * 0.4399999976158142));
-    camera.distance = Math.min(camera.distance, f32(f32(floorOfView - f32(blast.bottom + 20.0)) / f32(unit.below - unitHud.below)));
-    const actualHud = cameraReach(camera.distance, f32(camera.tangent * 0.4399999976158142));
-    camera.z = Math.min(camera.z, f32(floorOfView + actualHud.below));
-    limitCamera(camera, bounds, MATCH_CAMERA_ASPECT, blast.bottom);
+    const unit = cameraReach(1.0, goal.tangent);
+    const unitHud = cameraReach(1.0, f32(goal.tangent * 0.4399999976158142));
+    goal.distance = Math.min(goal.distance, f32(f32(floorOfView - f32(blast.bottom + 20.0)) / f32(unit.below - unitHud.below)));
+    const actualHud = cameraReach(goal.distance, f32(goal.tangent * 0.4399999976158142));
+    goal.z = Math.min(goal.z, f32(floorOfView + actualHud.below));
+    limitCamera(goal, bounds, MATCH_CAMERA_ASPECT, blast.bottom);
   }
+  camera.x = camera.initialized ? ease(camera.x, goal.x, rate) : goal.x;
+  camera.z = camera.initialized ? ease(camera.z, goal.z, rate) : goal.z;
+  camera.distance = camera.initialized ? ease(camera.distance, goal.distance, 0.27000001072883606) : goal.distance;
+  camera.initialized = true;
+  // The eased view itself never leaves the camera range either.
+  limitCamera(camera, bounds, MATCH_CAMERA_ASPECT, blast.bottom);
 }
