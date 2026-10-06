@@ -605,6 +605,96 @@ set("tapjump.window", commonValue("tap_jump_window"));
 set("dash.smashWindow", commonValue("dash_smash_window"));
 set("dash.smashThreshold", f2(commonValue("dash_smash_stick_threshold")));
 
+// ------------------------------------------------------------------ aerials on shield
+
+// Shieldstun (ftCo_80092F2C): GuardSetOff plays for x28C × power × (1 − (light × (x2E8 − x2E4) + x2E4)) + x290
+// frames of its animation; Smashcraft's verified tick count of that is ⌊raw × 200/201⌋ (smashcraft:docs/physics.md).
+const STUN = { scale: commonValue("x28C"), base: commonValue("x290"), light: commonValue("x2E4"), full: commonValue("x2E8") };
+const fullShieldRaw = (damage: number): number => STUN.scale * Math.trunc(damage) * (1 - STUN.full) + STUN.base;
+const shieldstunTicks = (damage: number): number => Math.trunc((fullShieldRaw(damage) * 200) / 201);
+set("aos.stunFactor", f2(STUN.scale * (1 - STUN.full)));
+set("aos.stunBase", STUN.base);
+set("aos.lightFactor", (STUN.scale * (1 - STUN.light)).toFixed(3));
+{
+  const stunned = records.filter((r) => r.category === "attacks" && field(r, "stun") !== null && field(r, "percent") !== null);
+  const agree = stunned.filter((r) => shieldstunTicks(field(r, "percent") ?? 0) === field(r, "stun"));
+  set("aos.agree", `${agree.length} of ${stunned.length}`);
+  const off = stunned.filter((r) => shieldstunTicks(field(r, "percent") ?? 0) !== field(r, "stun"));
+  set("aos.agreeOffByOne", off.filter((r) => Math.abs(shieldstunTicks(field(r, "percent") ?? 0) - (field(r, "stun") ?? 0)) === 1).length);
+}
+tables.set("aosStun", table(
+  ["Damage", "Shieldstun", "Hitlag, both fighters", "Defender's initial slide"],
+  ["r", "r", "r", "r"],
+  [3, 6, 9, 12, 15, 18, 24].map((d) => [String(d), String(shieldstunTicks(d)), String(hitlag(d, false)), f2(pushback(d))]),
+));
+
+// Advantage of an aerial whose hitbox meets the shield on hop frame `contact` of a hop landing on frame `landing`:
+// shieldstun minus the frames still to fall minus the landing lag (attacks.md, "Reading the numbers").
+const aerialAdvantage = (damage: number, contact: number, landing: number, lag: number): number => shieldstunTicks(damage) - (landing - 1 - contact) - lag;
+const fighterById = (id: string): Movement => {
+  const m = movement.find((entry) => entry.f.id === id);
+  if (m === undefined) throw new Error(`no fighter ${id}`);
+  return m;
+};
+{
+  // Captain Falcon's knee: SmashWiki's sweetspot (frames 14–16, 18%) and sourspot (17–30, 6%).
+  const falcon = fighterById("captain_falcon"), knee = frameRecord("captain_falcon", "attacks", "fair");
+  const strong = field(knee, "percent") ?? 0, weak = field(knee, "percent_weak") ?? 0, start = field(knee, "start") ?? 0;
+  const lag = attribute(falcon.f, "landingairf_lag"), cancelled = Math.trunc(lag / commonValue("xE8"));
+  const SOUR = 17;
+  set("knee.strong", strong);
+  set("knee.weak", weak);
+  set("knee.start", start);
+  set("knee.sour", SOUR);
+  set("knee.strongStun", shieldstunTicks(strong));
+  set("knee.weakStun", shieldstunTicks(weak));
+  set("knee.lag", lag);
+  set("knee.cancelled", cancelled);
+  set("knee.strongLate", signed(shieldstunTicks(strong) - cancelled));
+  set("knee.weakLate", signed(shieldstunTicks(weak) - cancelled));
+  set("knee.strongLateUncancelled", signed(shieldstunTicks(strong) - lag));
+  set("knee.hopAir", falcon.short.airtime);
+  set("knee.hopAirFast", falcon.shortFastFall.airtime);
+  set("knee.fullAir", falcon.full.airtime);
+  set("knee.fullAirFast", falcon.fullFastFall.airtime);
+  // Pressed on the takeoff frame: the strong hit meets the shield on hop frame `start`, the weak on 17.
+  set("knee.weakHighHop", signed(aerialAdvantage(weak, SOUR, falcon.short.airtime, cancelled)));
+  set("knee.weakHighHopFall", falcon.short.airtime - 1 - SOUR);
+  set("knee.strongFastHop", start < falcon.shortFastFall.airtime ? signed(aerialAdvantage(strong, start, falcon.shortFastFall.airtime, cancelled)) : "lands first");
+  set("knee.strongFastHopFall", falcon.shortFastFall.airtime - 1 - start);
+  set("knee.grab", f0(field(frameRecord("captain_falcon", "grabs", "standing_grab"), "start")));
+  set("knee.normalLanding", attribute(falcon.f, "normal_landing_lag"));
+}
+{
+  // Fox's drill (down air, multi-hit) and shine (grounded down special: hits on frame 1, jump-cancellable from the frame after it ends).
+  const fox = fighterById("fox"), drill = frameRecord("fox", "attacks", "dair"), shine = frameRecord("fox", "attacks", "down_b");
+  const drillDamage = field(drill, "percent") ?? 0, drillLag = attribute(fox.f, "landingairlw_lag"), drillCancelled = Math.trunc(drillLag / commonValue("xE8"));
+  set("drill.damage", drillDamage);
+  set("drill.weak", field(drill, "percent_weak") ?? 0);
+  set("drill.active", `${field(drill, "start") ?? 0}–${field(drill, "end") ?? 0}`);
+  set("drill.stun", shieldstunTicks(drillDamage));
+  set("drill.lag", drillLag);
+  set("drill.cancelled", drillCancelled);
+  set("drill.late", signed(shieldstunTicks(drillDamage) - drillCancelled));
+  const shineDamage = field(shine, "percent") ?? 0, shineHit = field(shine, "start") ?? 0, shineActs = actionable(shine) ?? 0;
+  set("shine.damage", shineDamage);
+  set("shine.stun", shieldstunTicks(shineDamage));
+  set("shine.corpusStun", f0(field(shine, "stun")));
+  set("shine.hit", shineHit);
+  set("shine.acts", shineActs);
+  set("shine.onShield", signed(shineHit + shieldstunTicks(shineDamage) + 1 - shineActs));
+  const nair = frameRecord("fox", "attacks", "nair");
+  set("fox.oosNair", fox.squat + (field(nair, "start") ?? 0));
+  set("fox.grab", f0(field(frameRecord("fox", "grabs", "standing_grab"), "start")));
+}
+// Jump out of shield into each aerial (ftCo_Guard_IASA → KneeBend; the aerial on the takeoff frame): jump squat + startup.
+tables.set("oosAerials", table(
+  ["Fighter", "Shield grab", "Jump squat", "Neutral air", "Forward air", "Back air", "Up air", "Down air"],
+  ["l", "r", "r", "r", "r", "r", "r", "r"],
+  movement.map((m) => [name(m.f.id), f0(field(frameRecord(m.f.id, "grabs", "standing_grab"), "start")), String(m.squat),
+    ...AERIALS.map((action) => { const s = field(frameRecord(m.f.id, "attacks", action), "start"); return s === null ? "–" : String(m.squat + s); })]),
+));
+
 // ------------------------------------------------------------------ archetypes
 
 interface Profile { readonly f: Fighter; readonly weight: number; readonly run: number; readonly air: number; readonly fall: number; readonly gravity: number; readonly groundStartup: number; readonly bestAerial: number | null; readonly oos: number }
