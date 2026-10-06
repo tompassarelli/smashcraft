@@ -1,7 +1,7 @@
 // The drawn body stays outside nearby stage faces without changing its ECB.
 // Combat uses the simulation origin and authored hurt volumes (docs/hurtboxes.md).
-import { at } from "wisp/src/runtime/lookup";
-import { LedgeState, type Character } from "../sim/codes";
+import { Character, LedgeState } from "../sim/codes";
+import { heroBody } from "../sim/heroes/heroBodies";
 import { fighterPoseFacing } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
 import { mainDeckZ, solidSurfaceAt, solidSurfaceCount } from "../sim/stage";
@@ -24,7 +24,31 @@ const BODY_ENVELOPES: readonly BodyEnvelope[] = [
   { left: -101.0, right: 100.0, bottom: -6.0, top: 185.0 },
 ];
 
-export const fighterBodyEnvelope = (character: Character): Readonly<BodyEnvelope> => at(BODY_ENVELOPES, character);
+/** Hero envelopes, made on first use. */
+const heroEnvelopes: (BodyEnvelope | undefined)[] = [];
+
+/**
+ * A hero's envelope is Archer's, the roster's reference body, stretched by
+ * the hero's width and height multipliers, in its own model's units.
+ */
+function heroEnvelope(character: Character): BodyEnvelope {
+  const reference = BODY_ENVELOPES[Character.archer] ?? { left: 0.0, right: 0.0, bottom: 0.0, top: 0.0 };
+  const body = heroBody(character);
+  const width = (body?.width ?? 1.0) / characterModelScale(character);
+  const height = (body?.height ?? 1.0) / characterModelScale(character);
+  return { left: reference.left * width, right: reference.right * width, bottom: reference.bottom * height, top: reference.top * height };
+}
+
+/** The drawn body's extent around the fighter's origin, in its model's units. */
+export function fighterBodyEnvelope(character: Character): Readonly<BodyEnvelope> {
+  const original = BODY_ENVELOPES[character];
+  if (original !== undefined) return original;
+  const known = heroEnvelopes[character];
+  if (known !== undefined) return known;
+  const made = heroEnvelope(character);
+  heroEnvelopes[character] = made;
+  return made;
+}
 
 interface FighterPlacement {
   x: number;

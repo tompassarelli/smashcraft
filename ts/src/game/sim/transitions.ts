@@ -196,18 +196,22 @@ export function clearGrabLinks(world: Roster, slot: number): void {
   grab.owner = undefined;
   grab.target = undefined;
   grab.grabbedFrames = 0;
+  grab.heldFrames = 0;
+  grab.queuedThrow = GrabAction.none;
   grab.action = GrabAction.none;
   grab.frame = 0;
   grab.mashX = 0;
   grab.mashZ = 0;
   if (owner !== undefined && owner.grab.target === slot) {
     owner.grab.target = undefined;
+    owner.grab.queuedThrow = GrabAction.none;
     owner.grab.action = GrabAction.none;
     owner.grab.frame = 0;
   }
   if (target !== undefined && target.grab.owner === slot) {
     target.grab.owner = undefined;
     target.grab.grabbedFrames = 0;
+    target.grab.heldFrames = 0;
     target.grab.mashX = 0;
     target.grab.mashZ = 0;
   }

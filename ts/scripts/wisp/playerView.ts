@@ -25,6 +25,7 @@ import { ARENA_CAMERA, FLOOR_HEIGHT, arenaFraming } from "../../src/game/present
 import { SUMMON_BEAR, summonClip, summonClipCount } from "../../src/game/presentation/summonClipInfo";
 import { CANNON_MODEL } from "../../src/game/presentation/stageHazards";
 import { Character } from "../../src/game/sim/codes";
+import { HERO_ROSTER } from "../../src/game/sim/heroes/registry";
 import { STAGE_CATALOG } from "../../src/game/menu/stageCatalog";
 import { stageBounds } from "../../src/game/sim/stageBounds";
 import { stageScenery } from "../../src/game/presentation/stageScenery";
@@ -78,6 +79,8 @@ export const SMASHCRAFT_SCENE: SceneExpectations & { readonly settledFrame: numb
     { name: "stage cannon", models: [CANNON_MODEL] },
     { name: "stage scenery", models: [...new Set(STAGE_CATALOG.flatMap(({ id }) => stageScenery(id).pieces.map(({ model }) => model)))] },
     { name: "pooled fighter", models: fighterModels },
+    // Heroes draw with their fighter unit, shown while the hero is in play.
+    { name: "hero body", models: HERO_ROSTER.map(({ presentation }) => presentation.model) },
     // Sparks and dust last under half a second; a star-KO sparkle, about two.
     {
       name: "hit spark", lifetime: seconds(3), models: [

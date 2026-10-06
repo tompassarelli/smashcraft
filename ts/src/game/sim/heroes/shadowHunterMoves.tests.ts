@@ -175,24 +175,6 @@ test("Shadow Hunter standing and dash grabs cover both active frames and stop at
   }
 });
 
-test("Shadow Hunter mask pummels contact on frame five without launch and stop after two", () => {
-  const { owner, target, world } = pair(AttackStyle.grab, 7, 50.0);
-  resolveAttacks(world);
-  assertEquals(owner.grab.target, 1);
-  for (let pummel = 0; pummel < 2; pummel++) {
-    for (let frame = 1; frame <= 13; frame++) {
-      testGrabFrame(world, [controls({ attackPressed: frame === 1 }), controls()], false);
-      assertEquals(target.status.damage, pummel + (frame < 5 ? 0 : 1));
-      assertEquals(target.launch.knockbackX, 0.0);
-      assertEquals(target.launch.knockbackZ, 0.0);
-    }
-    assertEquals(owner.grab.action, GrabAction.hold);
-  }
-  testGrabFrame(world, [controls({ attackPressed: true }), controls()], false);
-  assertEquals(owner.grab.action, GrabAction.hold);
-  assertEquals(target.status.damage, 2.0);
-});
-
 test("Shadow Hunter throws hold through their adopted release and launch once in both facings", () => {
   for (const facing of [-1, 1]) {
     for (const [action, release, recovery, damage] of [

@@ -296,6 +296,8 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("grabAction", e.grab.action, a.grab.action);
   add("grabFrame", e.grab.frame, a.grab.frame);
   add("grabPummels", e.grab.pummels, a.grab.pummels);
+  add("grabHeldFrames", e.grab.heldFrames, a.grab.heldFrames);
+  add("grabQueuedThrow", e.grab.queuedThrow, a.grab.queuedThrow);
   add("grabSerial", e.grab.serial, a.grab.serial);
   add("grabMashX", e.grab.mashX, a.grab.mashX);
   add("grabMashZ", e.grab.mashZ, a.grab.mashZ);

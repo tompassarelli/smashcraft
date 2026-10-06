@@ -76,7 +76,7 @@ Offensive specials may be interrupted by being hit normally. No generic B-to-B o
 
 The grab line for each fighter gives standing F/A/R and reach. Dash grab uses standing startup +3 frames and recovery +8 frames; active duration and reach are unchanged unless implemented geometry requires movement. A successful grab latches one target at a defined anchor and ends grab hitboxes. Grabs beat shield, but never intangible opponents. Mutual grabs on the same frame break both grabs with symmetric separation and 12 frames of recovery.
 
-Use the existing escape system if one exists. Otherwise use a deterministic 45-frame base hold plus min(30, floor(victim percent / 5)) frames, reduced by validated new input edges at most once every three frames. Each accepted edge removes two hold frames. Throw input starts immediately and locks out pummel. Pummel is 1 percent, 12 total frames, contact on frame 5, at most twice per grab; no mana gain or healing. Throws list damage, release frame counted from throw entry, thrower recovery after release, launch angle, and knockback class. Targets are held until release and then enter normal hitstun. Do not add a second guaranteed hit via throw animation contact.
+Use the existing escape system if one exists. Otherwise use a deterministic 45-frame base hold plus min(30, floor(victim percent / 5)) frames, reduced by validated new input edges at most once every three frames. Each accepted edge removes two hold frames. Throw input starts immediately and locks out pummel. Each kit authors its pummel's effect (1 percent, no launch; no mana gain or healing); hold length, mashing and the pummel's timing and single use are shared (smashcraft:docs/gameplay-design.md, "Grab holds and pummels", #101). Throws list damage, release frame counted from throw entry, thrower recovery after release, launch angle, and knockback class. Targets are held until release and then enter normal hitstun. Do not add a second guaranteed hit via throw animation contact.
 
 Use #85's adopted regrab rule: a fighter cannot be grabbed while its remaining hitstun comes from a throw, including remaining hitstun after a gentle landing. This restriction ends with that throw hitstun or a replacing hit, and does not block ordinary attacks. Do not add a fixed post-throw protection timer. Throws cannot be cancelled or redirected after entry. Thrower movement is limited to the scripted anchor motion; no walk-off carrying. In multiplayer, an external hit breaks the hold before release and clears both actors consistently. Resolve same-frame external hits, throw releases, and grabs with stable rules; do not let player-slot iteration decide.
 
@@ -361,6 +361,34 @@ Standing grab 10/2/28, reach 0.70H. Visible spectral hand, no tether recovery or
 **Ultimate — Death and Decay:** ground-only, f36 telegraph to a marked 2.0H-radius region centered 1.0H ahead; channel for up to 180 frames. Six 3-damage ticks per target at least 30 frames apart, no flinch, then a 12-damage LAUNCH burst at 80 degrees if the channel completes. Hitting or grabbing Lich ends the field without finisher. R35 after release. No percentage-health damage or unavoidable map-wide effect.
 
 **Required counterplay test:** a fast fighter already inside Lich’s forward-tilt range must be able to challenge a missed shard or nova. Frost Armor may help one trade but cannot permit casting through an entire combo.
+
+### As built
+
+Source: smashcraft:ts/src/game/sim/heroes/lichHero.ts, lichMoves.ts and
+lichSpecials.ts. Every normal, grab, pummel, throw and special above is
+implemented; the ultimate is not (there is no ultimate action). Changes from
+the tables:
+
+- **Frost Nova** "back held on entry" is a side special pressed toward
+  Lich's back: Lich keeps facing and places the marker 0.9H ahead instead of
+  turning. A marker whose line from Lich crosses solid stage geometry is not
+  placed (the cast and its cost still happen).
+- **Spectral Ascent** steers with the live stick at up to 0.4H/25 per frame
+  over its window, in place of air drift; with a neutral stick it rises
+  straight up.
+- **Frost Armor**'s shell protects from frame 22 for 180 frames, even after
+  the cast ends; any hit spends it, and only a hit of at most 6 damage loses
+  its reaction. Casting again fails without spending while any armor remains.
+- **Bodies:** Lich has no weapon, so the conjured frost beyond the hand is
+  each move's disjoint; the casting arm extends the hurt volume from late
+  startup through early recovery of every normal, the grab, Frost Shard and
+  Frost Nova.
+- **Presentation:** the stock HeroLich model has ten sequences (Stand, Stand
+  Ready, Stand - 2, Stand - 3, Walk, Stand Channel, Attack, Spell, Death,
+  Dissipate). Hand strikes play Attack, frost casts Spell, sustained magic
+  Stand Channel; hit reactions use the Stand - 3 sway and knockdowns Death.
+- Knockback classes use provisional growth/base values, not the
+  displacement-calibrated bands.
 
 ## Uther
 
