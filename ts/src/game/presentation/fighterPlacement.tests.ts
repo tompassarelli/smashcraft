@@ -1,5 +1,5 @@
 import { assertEquals, assertFalse, test } from "wisp/src/runtime/testing";
-import { Character, LedgeState } from "../sim/codes";
+import { Character, LedgeState, SurfaceContact } from "../sim/codes";
 import { createFighter } from "../sim/fighter";
 import { MAIN_DECK_BODY_SURFACES, MAIN_DECK_UNDERSIDE_Z, mainDeckLeft, mainDeckRight, solidSurfaceAt } from "../sim/stage";
 import { BODY_HALF_WIDTH, bodyTop } from "../sim/surfaces";
@@ -32,7 +32,7 @@ test("each fighter's visible envelope clears the main underside and every side f
       const placement = { x: 0.0, z: 0.0 };
       for (let surface = 0; surface <= MAIN_DECK_BODY_SURFACES; surface++) {
         const face = surface < MAIN_DECK_BODY_SURFACES ? solidSurfaceAt(0, surface) : undefined;
-        if (face !== undefined && face.normalX === 0.0) continue;
+        if (face !== undefined && face.kind !== SurfaceContact.wall) continue;
         fighter.motion.x = face === undefined ? 0.0 : (face.startX + face.endX) / 2 + (face.normalX > 0 ? 1 : -1) * melee(BODY_HALF_WIDTH);
         fighter.motion.z = face === undefined ? MAIN_DECK_UNDERSIDE_Z - melee(bodyTop(character)) : (face.startZ + face.endZ) / 2;
         const x = fighter.motion.x;
