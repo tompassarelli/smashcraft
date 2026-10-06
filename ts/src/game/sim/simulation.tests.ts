@@ -9,6 +9,7 @@ import { resolveAttacks } from "./attacks";
 import { AttackPhase, AttackStyle, Character } from "./codes";
 import { attackPhase, canAttack } from "./conditions";
 import { AIR_DODGE_LANDING_LAG } from "./down";
+import { squareRoot } from "./warcraftMath";
 import { type Fighter, createFighter } from "./fighter";
 import { beginJump } from "./jumpsAndDodges";
 import { SMASH_MAX_CHARGE_FRAMES, SMASH_MAX_DAMAGE_MULTIPLIER, attackActiveFrames, attackStartupFrames, isAerialAttack, smashDamageMultiplier } from "./moves";
@@ -131,7 +132,7 @@ test("hit regions distinguish inner and outer, early and late parameters", () =>
       if (inner) {
         assertEquals(target.status.damage, frame === 5 ? 7.0 : 5.0);
         const speed = frame === 5 ? 6.177599906921387 : 4.770999908447266;
-        assertNear(f32(Math.sqrt(f32(f32(knockbackX * knockbackX) + f32(knockbackZ * knockbackZ)))), speed, 0.00009999999747378752);
+        assertNear(squareRoot(f32(f32(knockbackX * knockbackX) + f32(knockbackZ * knockbackZ))), speed, 0.00009999999747378752);
         assertNear(knockbackX, knockbackZ, 0.00009999999747378752);
         assertEquals(target.launch.hitlag, frame === 5 ? 5 : 4);
       } else {

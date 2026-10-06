@@ -67,3 +67,16 @@ Wisp's helpers built infinity by squaring 2^24. A toward-zero product
 overflows to the largest finite value instead. In Wisp's toward-zero Lua32 the
 Lua tests failed 5, and 2 after Wisp 0e46c0f set infinity to `math.huge`.
 None of these moments reaches an overflow.
+
+## Math libraries
+
+The DI angle path uses no platform math library and no Warcraft math native:
+only Wisp's binary32 helpers and Melee's atan2, sin and cos
+(smashcraft:ts/src/sim/meleeScalarMath.ts), which are the parity corpus's.
+Its operands and results for fighter 0's DI at f774 frame 375 are identical
+in Bun, stock Lua32 and the toward-zero Lua32 (the registered test "a DI's
+traced operands repeat its angle exactly"). The game's one library call in
+synchronized code was the ground-bounce check's `f32(Math.atan2(...))` in
+knockback.ts; it and the projectile pitch now use Melee's atan2. Wisp b1c3e19
+and later reject the platform math library inside `f32()` and Warcraft's math
+and random natives anywhere.
