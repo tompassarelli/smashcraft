@@ -77,6 +77,18 @@ particles rise and spread from 150 units up), about 280 for the hippogryph's
 death spray and the GyroCopterMissile's death bursts, and 400 or more for
 every other model.
 
+## Offscreen portraits
+
+Offscreen portrait and arrow frames use `ConsoleUIBackdrop` as their parent.
+Warcraft limits custom BACKDROP and TEXT frames parented to GameUI to the
+central 4:3 screen area, compressing backdrops and cutting off text beyond
+it ([frame positioning, 4:3 limitation](https://www.hiveworkshop.com/threads/the-big-ui-frame-tutorial.335296/#PosFrames_Limitation43)).
+At 16:9 our right-side portrait and arrow can lie beyond that area, so their
+fullscreen parent is a native rendering constraint. The camera detector
+checks it explicitly because the headless frame recorder stores requested
+points without reproducing the native clipping. A fresh map creates the
+correct parents; hot reload retains the parents of existing native handles.
+
 ## Below the deck
 
 The match HUD covers the frame from about 77% of its height down

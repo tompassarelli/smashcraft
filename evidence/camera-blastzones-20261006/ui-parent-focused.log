@@ -1,0 +1,11 @@
+bun test v1.3.13 (bf2e2cec)
+
+test/player-view.test.ts:
+(pass) a downward offscreen portrait and arrow stay entirely above the HUD at every supported aspect [96.00ms]
+(pass) every selectable stage keeps its camera inside the blast zones, shows every offscreen bubble and loses stocks outside the view at all supported aspects [1334.02ms]
+
+ 2 pass
+ 12 filtered out
+ 0 fail
+ 136206 expect() calls
+Ran 2 tests across 1 file. [1.61s]
