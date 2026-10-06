@@ -188,6 +188,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   special.aimX = sourceSpecial.aimX;
   special.aimZ = sourceSpecial.aimZ;
   special.airtimeUses = sourceSpecial.airtimeUses;
+  special.guarded = sourceSpecial.guarded;
 
   for (let i = 0; i < target.projectiles.length; i++) {
     const to = at(target.projectiles, i);
@@ -324,6 +325,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   status.poisonFrames = sourceStatus.poisonFrames;
   status.poisonEvery = sourceStatus.poisonEvery;
   status.poisonDamage = sourceStatus.poisonDamage;
+  status.guardHealed = sourceStatus.guardHealed;
 
   const mana = target.mana;
   const sourceMana = source.mana;

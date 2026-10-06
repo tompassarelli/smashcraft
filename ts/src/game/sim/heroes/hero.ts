@@ -18,6 +18,14 @@ export interface HeroClip {
 export type HeroStatePose = "dash" | "run" | "crouch" | "fall" | "landing" | "shield" | "airDodge" | "smashCharge" | "ko" | "dizzy";
 
 /**
+ * A special's follow-up (AuthoredSpecial.followUp) while it runs; a table that
+ * leaves one out plays the special's own clip.
+ */
+export type HeroFollowUpPose =
+  | "neutralSpecialFollowUp" | "sideSpecialFollowUp" | "upSpecialFollowUp" | "downSpecialFollowUp"
+  | "neutralSpecialFollowUpAir" | "sideSpecialFollowUpAir" | "upSpecialFollowUpAir" | "downSpecialFollowUpAir";
+
+/**
  * Every pose that selects a clip by table (presentation/fighterClips.ts); the
  * original fighters fill the same table. Poses a hero leaves unmapped play its
  * `fallback` clip, except HeroStatePose. `idle` and `walk` play by index where
@@ -37,7 +45,8 @@ export type HeroPose =
   | "pummel" | "throwForward" | "throwBack" | "throwUp" | "throwDown"
   | "victimPummel" | "victimThrowForward" | "victimThrowBack" | "victimThrowUp" | "victimThrowDown"
   | "neutralSpecial" | "sideSpecial" | "upSpecial" | "downSpecial"
-  | "neutralSpecialAir" | "sideSpecialAir" | "upSpecialAir" | "downSpecialAir";
+  | "neutralSpecialAir" | "sideSpecialAir" | "upSpecialAir" | "downSpecialAir"
+  | HeroFollowUpPose;
 
 /** Pose to clip: a hero's presentation, or an original fighter's packaged clips. */
 export type HeroClipTable = { readonly [pose in HeroPose]?: HeroClip | undefined };
@@ -46,8 +55,7 @@ export interface HeroPresentation {
   /** The Warcraft model; stock paths need no import. */
   readonly model: string;
   readonly scale: number;
-  /** The stock unit the fighter's object derives from, and the object's own four-character code. */
-  readonly baseUnit: string;
+  /** The fighter object's own four-character code; every fighter derives from a plain unit (objectData.ts). */
   readonly objectId: number;
   /** Selection, HUD and off-screen portrait texture. */
   readonly portrait: string;

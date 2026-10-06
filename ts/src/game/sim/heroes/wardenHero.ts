@@ -18,7 +18,6 @@ export const WARDEN_HERO: HeroDefinition = {
   presentation: {
     model: WARDEN_MODEL_FILE,
     scale: 1.0,
-    baseUnit: "Ewar",
     objectId: 0x6d667764,
     portrait: "ReplaceableTextures\\CommandButtons\\BTNHeroWarden.blp",
     projectileModel: "Abilities\\Spells\\NightElf\\shadowstrike\\ShadowStrikeMissile.mdl",

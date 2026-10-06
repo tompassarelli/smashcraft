@@ -230,3 +230,14 @@ test("replaying Lich's nova, armor and ascent from a restored snapshot reproduce
   assertEquals(firstFighterDifference(endLich, lich, 3, 3), undefined);
   assertEquals(firstFighterDifference(endTarget, target, 3, 3), undefined);
 });
+
+test("an Archer inside forward-tilt range challenges Frost Shard's startup and no shard is thrown", () => {
+  const { world, lich } = lichPair(90.0);
+  frame(world, neutral);
+  for (let f = 2; f <= 6; f++) frame(world);
+  beginFighterAttack(world, 1, AttackStyle.jab, false);
+  for (let f = 7; f <= 25; f++) frame(world);
+  assertGreaterThan(lich.status.damage, 0.0);
+  assertEquals(lich.special.action, SpecialAction.none);
+  assertEquals(live(lich).length, 0);
+});

@@ -29,12 +29,16 @@ const fighterFields = {
   attackCooldown: 1.5,
 } as const;
 
-/** A hero's object, from its registered presentation. */
+/**
+ * A hero's object, from its registered presentation. Like the originals it
+ * derives from a plain unit, not a hero, so its body shows no hero icon or
+ * experience bar.
+ */
 function heroObject(character: Character): FighterObject {
   const hero = heroDefinition(character);
   if (hero === undefined) throw new Error(`hero ${character} is not registered`);
   const { presentation } = hero;
-  return { ...fighterFields, base: presentation.baseUnit, id: presentation.objectId, name: hero.name, model: presentation.model, scale: presentation.scale };
+  return { ...fighterFields, base: "earc", id: presentation.objectId, name: hero.name, model: presentation.model, scale: presentation.scale };
 }
 
 export const FIGHTER_OBJECTS: Readonly<Record<Character, FighterObject>> = {

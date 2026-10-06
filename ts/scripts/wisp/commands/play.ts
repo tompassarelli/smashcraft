@@ -1,7 +1,7 @@
-// `bun wisp play [--keep-launch-options]`: from Tom's desktop to a match
-// against a computer, with his Xbox controller (wisp:docs/play.md). Warcraft
-// III loads the map from its launch options; the map reads the playtest
-// request at its start and starts the match on the go-ahead
+// `bun wisp play`: from Tom's desktop to a match against a computer, with
+// his Xbox controller (wisp:docs/play.md). Wisp hosts the map once Warcraft
+// III has read its ladder maps; the map reads the playtest request at its
+// start and starts the match on the go-ahead
 // (src/platform/shell/playtest.ts). The map, its helper and the computer's
 // slot are declared here and change with each candidate.
 import { readFileSync, readdirSync, realpathSync } from "node:fs";
