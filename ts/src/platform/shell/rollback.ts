@@ -50,6 +50,7 @@ export function beginRollbackEpoch(s: ShellState, rollback: Rollback): boolean {
   rollback.sendFailed = false;
   rollback.stalled = 0;
   rollback.waitingFor = 0;
+  rollback.predictionHeld = false;
   speculative.world.mask = s.world.mask;
   captureReplaySnapshot(rollback.seed, s.world, s.game, s.controls, s.runtime);
   restoreReplaySnapshot(rollback.seed, speculative.world, speculative.game, speculative.controls, speculative.runtime);
@@ -273,13 +274,16 @@ export function rollbackTick(s: ShellState, rollback: Rollback): void {
     const before = schedule.speculativeFrame();
     const advanced = rollback.playback.catchUp(schedule, epoch, slot, speculative, speculativeBudget(journal !== undefined), stopAt, observeSpeculativeFrame);
     const after = schedule.speculativeFrame();
-    const blocked = after === before && before > schedule.knownThrough() + schedule.rollbackFrames();
+    const halted = schedule.windowHalted(slot);
+    const blocked = halted && after === before;
+    if (halted) rollback.predictionHeld = true;
+    else if (!schedule.hasLocalRow(slot)) rollback.predictionHeld = false;
     if (trace.active) {
       trace.window.speculativeSteps += after - before;
       if (!advanced) trace.window.speculativeFailures++;
       else if (blocked) trace.window.windowBlocks++;
     }
-    if (blocked) probeIntegrity(probe, `stall ${epoch} ${before} ${schedule.knownThrough()}`);
+    if (blocked) probeIntegrity(probe, `stall ${epoch} ${after} ${schedule.remoteThrough(slot)}`);
     // A pause round holds every helper's rows on purpose.
     const holding = stopAt !== undefined || journal?.barrier.request !== undefined;
     noteWaiting(rollback, after > before || holding ? 0 : schedule.awaitedSlots(), STALL_NOTICE_CALLBACKS);

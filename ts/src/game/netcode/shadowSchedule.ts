@@ -1,8 +1,10 @@
-// Rollback input on top of the fixed schedule. A speculative cursor F runs up
-// to R frames past the common frontier K on the local row and predictions of
-// late remote rows; a confirmed cursor runs only on accepted rows, through
-// min(K, F - 1). The common ledger owns synchronized rows and the confirmed
-// cursor; local samples and predictions stay private to this client.
+// Rollback input on top of the fixed schedule. A speculative cursor F runs on
+// the local row and predictions of late remote rows, up to R frames past the
+// last frame every remote row has arrived through: the local row is final once
+// captured, so its own echo never holds prediction back. A confirmed cursor
+// runs only on accepted rows, through min(K, F - 1), where K is the common
+// frontier. The common ledger owns synchronized rows and the confirmed cursor;
+// local samples and predictions stay private to this client.
 import { type InputRow, copyInput, emptyInput, predictInto, sameInput } from "../input/inputRow";
 import { PARTICIPANT_CAPACITY, type ParticipantInputs, participantInputs } from "../input/participants";
 import { INPUT_LAST_FRAME, type InputPacket } from "../input/wire";
@@ -16,7 +18,7 @@ import { at } from "wisp/src/runtime/lookup";
 export const DEFAULT_ROLLBACK_WINDOW = 6;
 export const PENDING_CAPACITY = 256;
 
-/** Whether a resolved row used only accepted input, or local or predicted rows too. */
+/** Whether a resolved row used only accepted and captured local input, or predicted some remote row. */
 type Resolution = "accepted" | "speculative";
 
 const NEUTRAL: Readonly<InputRow> = emptyInput();
@@ -98,6 +100,15 @@ export class ShadowInputSchedule {
     return through;
   }
 
+  /** The last frame through which every active slot but `localPlayer` has rows accepted: what a prediction can't have to correct. */
+  remoteThrough(localPlayer: number): number {
+    let through = INPUT_LAST_FRAME;
+    for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
+      if (slot !== localPlayer && this.isActive(slot)) through = Math.min(through, this.schedule.acceptedThrough(slot));
+    }
+    return through;
+  }
+
   firstAcceptedFrame(): number {
     return this.schedule.firstRetained();
   }
@@ -160,23 +171,35 @@ export class ShadowInputSchedule {
     return this.schedule.receiveSynchronized(sender, wire);
   }
 
-  /** F may run while it is within R frames past K. */
-  mayAdvanceSpeculative(): boolean {
+  /** F may run while it is within R frames past the last frame every remote row has arrived through. */
+  mayAdvanceSpeculative(localPlayer: number): boolean {
     return this.current !== undefined && this.nextSpeculative <= INPUT_LAST_FRAME
-      && this.nextSpeculative - this.window <= this.schedule.knownThrough();
+      && this.nextSpeculative - this.window <= this.remoteThrough(localPlayer);
   }
 
   /** As mayAdvanceSpeculative, and the local player's row for F is accepted or captured. */
   mayAdvanceSpeculativeFor(localPlayer: number): boolean {
-    if (this.current === undefined || !this.isActive(localPlayer) || !this.mayAdvanceSpeculative()) return false;
+    return this.isActive(localPlayer) && this.mayAdvanceSpeculative(localPlayer) && this.hasLocalRow(localPlayer);
+  }
+
+  /** Whether the local row for F is ready and prediction waits only for a remote row R frames behind it. */
+  windowHalted(localPlayer: number): boolean {
+    return this.current !== undefined && this.isActive(localPlayer) && this.nextSpeculative <= INPUT_LAST_FRAME
+      && this.hasLocalRow(localPlayer) && !this.mayAdvanceSpeculative(localPlayer);
+  }
+
+  /** Whether the local player's row for F is accepted or captured: prediction has local rows it hasn't run. */
+  hasLocalRow(localPlayer: number): boolean {
+    const epoch = this.current;
     const frame = this.nextSpeculative;
-    return this.schedule.accepted(this.current, localPlayer, frame) !== undefined || this.pendingRows.row(frame) !== undefined;
+    return epoch !== undefined && (this.schedule.accepted(epoch, localPlayer, frame) !== undefined || this.pendingRows.row(frame) !== undefined);
   }
 
   /**
    * Fills every active slot for F. Accepted input wins; otherwise the local
    * player uses its captured row and remote players are predicted from their
-   * previous row, holds kept and edges and press data dropped.
+   * previous row, holds kept and edges and press data dropped. Only a
+   * prediction makes the frame speculative.
    */
   resolveSpeculative(epoch: number, localPlayer: number, inputs: ParticipantInputs): Resolution | undefined {
     if (epoch !== this.current || this.preparedSpeculative !== undefined || !this.mayAdvanceSpeculativeFor(localPlayer)) return undefined;
@@ -189,10 +212,11 @@ export class ShadowInputSchedule {
       const accepted = this.schedule.accepted(epoch, slot, frame);
       if (accepted !== undefined) {
         copyInput(target, accepted);
+      } else if (slot === localPlayer) {
+        copyInput(target, this.capturedRow(frame));
       } else {
         resolution = "speculative";
-        if (slot === localPlayer) copyInput(target, this.capturedRow(frame));
-        else predictInto(target, previous);
+        predictInto(target, previous);
       }
       copyInput(previous, target);
     }
