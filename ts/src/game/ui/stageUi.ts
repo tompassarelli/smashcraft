@@ -1,24 +1,24 @@
-// The stage panel all players share. Its buttons are synchronized frame clicks
-// any player may press; dragging the stage chip is local cursor art until a
-// finished choice crosses the "stage-drop" sync event.
+// The stage panel all players share, which also shows the rules chosen at
+// fighter selection. Its buttons are synchronized frame clicks any player may
+// press; dragging the stage chip is local cursor art until a finished choice
+// crosses the "stage-drop" sync event.
 import { f32 } from "wisp/src/sim/f32";
 import { bindPrototype } from "../../platform/rebind";
 import { PARTICIPANT_SLOTS } from "../input/participants";
-import { type MatchState, Phase, humanActive, practiceSelected } from "../match/rules";
+import { type MatchState, Phase, humanActive } from "../match/rules";
 import { pointerX, pointerY } from "../menu/pointer";
 import { type StageTile, clearStageDrag, stageDrag, stageTileLeft, updateStageDrag } from "../menu/stageSelection";
+import { rulesSummary } from "../shell/messages";
 import { ButtonClicks, MENU_FONT, type MenuControls, bindSyncHandler, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, placeTopLeft } from "./frames";
 
 /** What the stage panel asks the game to do; each call comes from a synchronized event. */
 export interface StageActions {
   selectStage(participantId: number, choice: StageTile): void;
-  changeStocks(participantId: number, direction: -1 | 1): void;
-  changeTime(participantId: number, direction: -1 | 1): void;
   start(participantId: number): void;
   back(participantId: number): void;
 }
 
-type StageButton = { kind: "stocks"; direction: -1 | 1 } | { kind: "time"; direction: -1 | 1 } | { kind: "start" } | { kind: "back" };
+type StageButton = { kind: "start" } | { kind: "back" };
 
 interface StageInfo {
   readonly name: string;
@@ -79,12 +79,6 @@ export class StagePanel {
     BlzFrameSetTexture(this.backdrop, "war3mapImported\\StageBackdrop.tga", 0, false);
     coverScreen(this.backdrop);
     this.ruleLabel = stageText(root, "MeleeStageRules", f32(0.41), f32(0.584), f32(0.35), f32(0.025), f32(0.016), "");
-    stageText(root, "MeleeStageStockCaption", f32(0.47), f32(0.547), f32(0.09), f32(0.025), f32(0.011), "STOCK");
-    stageText(root, "MeleeStageTimeCaption", f32(0.65), f32(0.547), f32(0.09), f32(0.025), f32(0.011), "TIME");
-    this.clicks.add(stageButton(root, f32(0.425), f32(0.55), f32(0.033), f32(0.029), "−"), { kind: "stocks", direction: -1 });
-    this.clicks.add(stageButton(root, f32(0.548), f32(0.55), f32(0.033), f32(0.029), "+"), { kind: "stocks", direction: 1 });
-    this.clicks.add(stageButton(root, f32(0.603), f32(0.55), f32(0.033), f32(0.029), "−"), { kind: "time", direction: -1 });
-    this.clicks.add(stageButton(root, f32(0.73), f32(0.55), f32(0.033), f32(0.029), "+"), { kind: "time", direction: 1 });
     this.preview = createBackdrop("MeleeStagePreview", root, 0);
     placeTopLeft(this.preview, f32(0.042), f32(0.445));
     BlzFrameSetSize(this.preview, f32(0.372), 0.25);
@@ -134,9 +128,7 @@ export class StagePanel {
   }
 
   private click(button: StageButton, actor: number): void {
-    if (button.kind === "stocks") this.actions.changeStocks(actor, button.direction);
-    else if (button.kind === "time") this.actions.changeTime(actor, button.direction);
-    else if (button.kind === "start") this.actions.start(actor);
+    if (button.kind === "start") this.actions.start(actor);
     else this.actions.back(actor);
   }
 
@@ -159,9 +151,7 @@ export class StagePanel {
       BlzFrameSetText(this.previewDescription, stage.description);
       this.lastChoice = game.stageChoice;
     }
-    const rules = practiceSelected(game)
-      ? "Practice · No time limit"
-      : `${I2S(game.stockCount)} Stock  ·  ${game.timeLimitMinutes === 0 ? "No time limit" : `${I2S(game.timeLimitMinutes)}:00`}`;
+    const rules = rulesSummary(game);
     if (this.lastRules !== rules) {
       BlzFrameSetText(this.ruleLabel, rules);
       this.lastRules = rules;

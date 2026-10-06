@@ -5,7 +5,7 @@ import { MAX_BATCH } from "../netcode/journal/transport";
 import { REPLAY_MAX_CORRECTION_FRAMES } from "../replay/limits";
 import { type DevSettings, applyDevCommand, prepareQuickMatch } from "./devSettings";
 
-const settings = (): DevSettings => ({ rollback: 24, delay: 0, batch: 2 });
+const settings = (): DevSettings => ({ rollback: 24, delay: 0, batch: 2, rematchSeconds: 5 });
 
 test("dev commands set the next match's window, delay and batch", () => {
   const dev = settings();
@@ -33,6 +33,14 @@ test("dev commands reject values the schedule cannot start", () => {
   assertEquals(dev.rollback, 24);
   assertEquals(dev.delay, 0);
   assertEquals(dev.batch, 2);
+});
+
+test("a dev command sets the automatic rematch's countdown within a minute", () => {
+  const dev = settings();
+  assertEquals(applyDevCommand(dev, "-dev rematch 20"), "dev: automatic rematch after 20 s");
+  assertEquals(dev.rematchSeconds, 20);
+  for (const refused of ["-dev rematch 0", "-dev rematch 61", "-dev rematch 07"]) assertEquals(applyDevCommand(dev, refused), "dev: rematch must be 1-60");
+  assertEquals(dev.rematchSeconds, 20);
 });
 
 test("a quick match readies every present human's default fighter and starts with one stock on the default stage", () => {

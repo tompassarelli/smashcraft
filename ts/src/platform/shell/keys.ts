@@ -6,7 +6,7 @@ import { isCarrierKey } from "../../game/netcode/journal/keyboard";
 import { type ParticipantSlot, isParticipantSlot } from "../../game/input/participants";
 import { heldActions, keyDown, pressKey, releaseKey } from "../../game/input/playerKeys";
 import { startKeyDown, startKeyUp } from "../../game/match/controls";
-import { Phase, characterFor, firstHumanSlot, humanActive, leavePractice, recallCharacter, selectCharacter } from "../../game/match/rules";
+import { Phase, characterFor, firstHumanSlot, humanActive, leaveMatch, recallCharacter, selectCharacter } from "../../game/match/rules";
 import { DESYNC_COMMAND, QUICK_MATCH_COMMAND, applyDevCommand } from "../../game/shell/devSettings";
 import { keepMomentEnd } from "../../game/replay/moment";
 import { devReceiptFile } from "../../game/shell/journalFiles";
@@ -107,9 +107,9 @@ function participantKeyDown(s: ShellState, slot: ParticipantSlot): void {
     back(s, slot);
     return;
   }
-  // Leaving practice ends the match between frames: the moment keeps it as its last frame left it.
-  if (key === Key.escape && s.session.paused && game.practice) keepMomentEnd(s.moment.recorder, s.world, game, s.controls, s.runtime);
-  if (key === Key.escape && s.session.paused && leavePractice(game, slot)) {
+  // Leaving practice or an endless match ends it between frames: the moment keeps it as its last frame left it.
+  if (key === Key.escape && s.session.paused && (game.practice || game.endless)) keepMomentEnd(s.moment.recorder, s.world, game, s.controls, s.runtime);
+  if (key === Key.escape && s.session.paused && leaveMatch(game, slot)) {
     s.session.paused = false;
     setStatus(s, "", 0.0);
     makePreview(s);
