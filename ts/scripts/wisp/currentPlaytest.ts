@@ -17,12 +17,16 @@ const run = (cwd: string, args: readonly string[]) => Effect.tryPromise({
 });
 
 export const currentPlaytest = Effect.gen(function*() {
-  const { revision, companion, common } = yield* Effect.tryPromise({
+  const { revision, companion, mainCheckout } = yield* Effect.tryPromise({
     try: async () => {
-      const child = Bun.spawn(["git", "rev-parse", "--path-format=absolute", "--git-common-dir", "main", "main:companion"], { cwd: projectRoot, stdout: "pipe", stderr: "pipe" });
-      const [common, revision, companion] = (await new Response(child.stdout).text()).trim().split("\n");
-      if (await child.exited !== 0 || common === undefined || revision === undefined || companion === undefined || !/^[a-f0-9]{40}$/.test(revision) || !/^[a-f0-9]{40}$/.test(companion)) throw new Error("couldn't resolve Smashcraft main");
-      return { common, revision, companion };
+      const child = Bun.spawn(["git", "rev-parse", "main", "main:companion"], { cwd: projectRoot, stdout: "pipe", stderr: "pipe" });
+      const [revision, companion] = (await new Response(child.stdout).text()).trim().split("\n");
+      if (await child.exited !== 0 || revision === undefined || companion === undefined || !/^[a-f0-9]{40}$/.test(revision) || !/^[a-f0-9]{40}$/.test(companion)) throw new Error("couldn't resolve Smashcraft main");
+      const registry = Bun.spawn(["git", "worktree", "list", "--porcelain"], { cwd: projectRoot, stdout: "pipe", stderr: "pipe" });
+      const mainBlock = (await new Response(registry.stdout).text()).split("\n\n").find((block) => block.split("\n").includes("branch refs/heads/main"));
+      const mainCheckout = mainBlock?.split("\n").find((line) => line.startsWith("worktree "))?.slice(9);
+      if (await registry.exited !== 0 || mainCheckout === undefined) throw new Error("couldn't locate the main checkout");
+      return { mainCheckout, revision, companion };
     },
     catch: (cause) => new PlayProblem({ problem: String(cause) }),
   });
@@ -36,7 +40,7 @@ export const currentPlaytest = Effect.gen(function*() {
     Effect.flatMap(Schema.decodeUnknownEffect(Inputs)), Effect.mapError((cause) => new PlayProblem({ problem: String(cause) })),
   );
   // Builds and dependency installs stay in a dedicated lane, never main.
-  const lane = join(dirname(dirname(common)), "worktrees", `play-build-${revision.slice(0, 12)}`);
+  const lane = join(dirname(mainCheckout), "worktrees", `play-build-${revision.slice(0, 12)}`);
   if (!existsSync(lane)) yield* run(projectRoot, ["git", "worktree", "add", "--detach", lane, revision]);
   yield* run(join(lane, "ts"), ["bun", "install", "--frozen-lockfile"]);
   mkdirSync(directory, { recursive: true });
