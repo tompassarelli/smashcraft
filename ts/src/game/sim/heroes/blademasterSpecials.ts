@@ -33,7 +33,11 @@ const windCutter: AuthoredSpecial = {
 };
 
 const WIND_WALK_DASH_FRAMES = 10;
-const windWalkMotion = [{ ...frames(10, 19), velocityX: f32(length(f32(1.4)) / WIND_WALK_DASH_FRAMES), velocityZ: 0.0, stopsAtBody: true }];
+// Each motion frame moves exactly its velocity; the slash frame stops the dash.
+const windWalkMotion = [
+  { ...frames(10, 19), velocityX: f32(length(f32(1.4)) / WIND_WALK_DASH_FRAMES), velocityZ: 0.0, stopsAtBody: true },
+  { ...frames(20, 20), velocityX: 0.0, velocityZ: 0.0 },
+];
 const windWalkSlash = cut(20, [52.0, 45.0, 38.0], L, hit(11.0, "EDGE", 40));
 
 /** Wind Walk Strike: a visible 1.4H dash f10-19, then a slash f20-22 and 26 recovery; 18 mana. */
@@ -41,21 +45,20 @@ const windWalkStrike: AuthoredSpecial = { cost: 18, endFrame: 48, motion: windWa
 /** In the air it travels once per airtime and ends helpless, even on hit. */
 const windWalkStrikeAir: AuthoredSpecial = { ...windWalkStrike, oncePerAirtime: true, helpless: true };
 
-// Rising Blade sets its velocity f7-25; gravity still applies each frame and
-// the climb coasts on after f25. These speeds are calibrated so the
-// unobstructed peak and drift match the row (blademasterSpecials.tests.ts).
-const RISE_SPEED_FULL = f32(13.0);
-const DRIFT_SPEED_FULL = f32(3.6);
-const RISE_SPEED_FREE = f32(9.93);
-const DRIFT_SPEED_FREE = f32(2.56);
-const rise = (velocityZ: number, velocityX: number) => [{ ...frames(7, 25), velocityX, velocityZ }];
+// Rising Blade climbs evenly over f7-24 and stops at the top on f25, so the
+// row's travel is its peak; the helpless fall starts from rest.
+const RISE_FRAMES = 18;
+const rise = (ascent: number, drift: number) => [
+  { ...frames(7, 24), velocityX: f32(length(drift) / RISE_FRAMES), velocityZ: f32(length(ascent) / RISE_FRAMES) },
+  { ...frames(25, 25), velocityX: 0.0, velocityZ: 0.0 },
+];
 const BLADE_TOP = f32(M - BLADE_RADIUS);
 
 /** Rising Blade: 2.0H up and 0.5H forward, one 9-damage hit f7-12, then helpless; 15 mana; no intangibility. */
 const risingBlade: AuthoredSpecial = {
   cost: 15,
   endFrame: 25,
-  motion: rise(RISE_SPEED_FULL, DRIFT_SPEED_FULL),
+  motion: rise(f32(2.0), f32(0.5)),
   regions: path(7, [
     capsule(40.0, 30.0, 70.0, 70.0),
     capsule(30.0, 40.0, 55.0, 90.0),
@@ -73,13 +76,13 @@ const risingBlade: AuthoredSpecial = {
 const risingBladeFree: AuthoredSpecial = {
   cost: 0,
   endFrame: 25,
-  motion: rise(RISE_SPEED_FREE, DRIFT_SPEED_FREE),
+  motion: rise(f32(1.4), f32(0.35)),
   oncePerAirtime: true,
   helpless: true,
 };
 
-// Four frames of back step, then a stop; calibrated against ground traction to 0.5H.
-const FEINT_STEP_SPEED = f32(-17.0);
+// Four frames of back step, then a stop: 0.5H in all.
+const FEINT_STEP_SPEED = f32(-f32(length(f32(0.5)) / 4));
 
 /**
  * Mirror Feint's real forward slash: a second special press within 12 frames of the
