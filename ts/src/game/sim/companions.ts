@@ -36,7 +36,7 @@ function stepToward(f: Fighter, target: number, speed: number): number {
 
 /** Whether the owner can't direct its partner now: launched, held, holding or throwing, or out. */
 function ownerBusy(owner: Readonly<Fighter>): boolean {
-  return owner.status.out || owner.launch.hitstun > 0 || inGrabContext(owner as Fighter);
+  return owner.status.out || owner.launch.hitstun > 0 || inGrabContext(owner);
 }
 
 /** The lunge's bite against every opponent it hasn't bitten yet this lunge. */

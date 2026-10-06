@@ -49,7 +49,7 @@ export function fighterPoseFacing(f: Fighter): number {
   return isGroundDodging(f) ? f.dodge.groundEntryFacing : f.facing;
 }
 
-export function inGrabContext(f: Fighter): boolean {
+export function inGrabContext(f: Readonly<Fighter>): boolean {
   const { grab } = f;
   return grab.owner !== undefined || grab.target !== undefined || grab.action !== GrabAction.none || grab.grabbedFrames > 0;
 }
