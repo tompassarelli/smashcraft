@@ -19,7 +19,8 @@ bun wisp play
 It checks that nothing else runs in the Warcraft prefix, reuses or starts the
 signed-in Battle.net launcher through the Steam shortcut "Warcraft III
 (Battle.net)", presses Play, hosts "Smashcraft" with this map from
-Maps/00-Smashcraft, adds a computer as Player 3, starts the helper
+Maps/00-Smashcraft (copied there from playable-0047 when missing), adds a
+computer as Player 3, starts the helper
 (`wc3-journal-0.0.47-fix1`) for the first Xbox controller and leaves Warcraft
 III fullscreen. Each step prints a line; a problem stops it with what to do
 (wisp:docs/play.md). The helper keeps running
