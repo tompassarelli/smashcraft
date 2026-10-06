@@ -7,7 +7,7 @@ import type { Fighter } from "../sim/fighter";
 import { type ParkedFlags, type WorldOrigin, parkOnce } from "./effects";
 
 /** Serpent Ward, the only placed object: the classic model stands about 300 units tall. */
-export const PLACED_OBJECT_MODEL = "Units\\Orc\\SerpentWard\\SerpentWard.mdx";
+const PLACED_OBJECT_MODEL = "Units\\Orc\\SerpentWard\\SerpentWard.mdx";
 const MODEL_HEIGHT = 300.0;
 
 export class PlacedObjectEffects {

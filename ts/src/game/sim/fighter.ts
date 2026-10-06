@@ -389,7 +389,7 @@ interface Mana {
 }
 
 /** A hero's one placed object (sim/placedObjects.ts); `life` 0 when none stands. */
-export interface PlacedObject {
+interface PlacedObject {
   life: number;
   /** Frames since placement. */
   age: number;
