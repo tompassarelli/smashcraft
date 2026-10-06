@@ -1107,7 +1107,13 @@ const shooterPolicy = (input: SpecialInput, fire: number, every = 0): Policy => 
 
 const liveProjectiles = (f: Fighter): number => f.projectiles.filter((projectile) => projectile.life > 0).length;
 
-/** Fired away from everyone: how long the first projectile lives, whether it moves, and the most out while the input repeats. */
+/**
+ * Fired away from everyone: how long the first projectile lives, whether it
+ * moves, and the most out while the input repeats. A projectile sent backward
+ * (Thunder Clap's rear wave) can reach the idle fighter behind; the flight
+ * runs through that contact, which ends the projectile, instead of stopping
+ * there and reading the projectile as never ending.
+ */
 function projectileFlight(character: Character, input: SpecialInput): { readonly flight: number; readonly traveling: boolean; readonly mostOut: number } | undefined {
   const away = (every: number): Timeline => new Timeline({
     placements: [{ character, x: 0.0, facing: 1 }, { character, x: -400.0, facing: 1 }],
@@ -1125,7 +1131,7 @@ function projectileFlight(character: Character, input: SpecialInput): { readonly
     }
     if (born !== undefined && live === 0) died = n;
     return died !== undefined;
-  });
+  }, true);
   once.release();
   if (born === undefined) return undefined;
   const spam = away(2);
