@@ -17,12 +17,12 @@ const TITLE_RIGHT = 1251.0;
 const TITLE_TOP = 78.0;
 const TITLE_BOTTOM = 154.0;
 
-const artY = (row: number): number => f32(0.6 * (1.0 - row / ART_HEIGHT));
+const artY = (row: number): number => f32(f32(0.6) * f32(1.0 - f32(row / ART_HEIGHT)));
 
 /** UI x of an art column on a screen `aspect` (width over height) wide: the backdrop is centred at 0.4 and 0.6 tall. */
 const artX = (column: number, aspect: number): number => {
-  const width = aspect * 0.6;
-  return f32(0.4 - width / 2.0 + (column / ART_WIDTH) * width);
+  const width = f32(aspect * f32(0.6));
+  return f32(f32(f32(0.4) - f32(width / 2.0)) + f32(f32(column / ART_WIDTH) * width));
 };
 
 /** The UI height below which the header band ends; nothing else on the page draws above it. */
