@@ -420,6 +420,14 @@
           "units": "Melee units/frame"
         },
         {
+          "offset": "0x10C",
+          "field": "passiveceil_vel_x",
+          "type": "float32",
+          "value": 0.699999988079071,
+          "bits": "0x3f333333",
+          "units": "Melee units/frame"
+        },
+        {
           "offset": "0x148",
           "field": "wall_jump_min_approach_speed",
           "type": "float32",
@@ -826,6 +834,14 @@
           "type": "float32",
           "value": 3.5999999046325684,
           "bits": "0x40666666",
+          "units": "Melee units/frame"
+        },
+        {
+          "offset": "0x10C",
+          "field": "passiveceil_vel_x",
+          "type": "float32",
+          "value": 0.699999988079071,
+          "bits": "0x3f333333",
           "units": "Melee units/frame"
         },
         {

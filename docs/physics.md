@@ -1743,8 +1743,10 @@ contact chooses the roll when the stick is at least +0x254 = 0.2 sideways
 (`ftCo_80098928`); its movement is clamped to the current platform.
 A tech clears impact hitstun and consumes its input window. Early-hitlag versus
 last-hitlag inputs, repeated/grounded presses, window/lockout boundaries,
-recovery actions, interruption and reset are tested in the same Wurst simulation
-used by the map. Wall/ceiling techs and SDI/ASDI collision are not implemented.
+recovery actions, interruption and reset are tested in the simulation the map
+runs. Wall and ceiling techs are in "Wall and ceiling techs and wall jumps"
+below; SDI and ASDI shifts meet the main deck's walls and underside as other
+movement does (smashcraft:ts/src/game/sim/smashDirectionalInfluence.ts).
 
 ## Aerial landing lag
 
@@ -1899,7 +1901,7 @@ carries on over the stage. An underside stops a rise. A fighter that slips past
 a ledge's corner within its half-width of the wall, as when running off the
 ledge, is moved out sideways to its flank, as Melee's ECB slides off the
 corner. A wall tech pushes off along the facing it turns to, away from even a
-sloped wall (`ftCo_PassiveWall_Anim`); see "Wall techs and wall jumps" below.
+sloped wall (`ftCo_PassiveWall_Anim`); see "Wall and ceiling techs and wall jumps" below.
 
 Ledge actions don't collide with the body; Melee's cliff actions run their own
 collision (`ftCo_CliffClimb_Coll`). Climbs, rolls and ledge attacks pass through
@@ -1914,7 +1916,7 @@ each fighter into the side through helper journal rows and techs off it, and
 the oracle's wall/ceiling and ledge rows check where launches meet the side and
 underside, the techs off them and a catch from against the wall.
 
-## Wall techs and wall jumps
+## Wall and ceiling techs and wall jumps
 
 A wall tech holds the fighter on the wall for five frames (PlCo +0x760), then
 pushes it off away from the wall at its reference's `passivewall_vel_x`
@@ -1926,15 +1928,26 @@ these from its Melee reference, read from the owner's GALE01 revision 2 DATs
 (smashcraft:docs/smash-melee-reference/physics-parameters.json), in Melee
 units a frame:
 
-| Fighter | Reference | Push-off | Wall jump sideways | Wall jump up | Minimum approach |
-| --- | --- | --- | --- | --- | --- |
-| Archer | Fox | 0.5 | 1.4 | 3.3 | 0.5 |
-| Rifleman | Falco | 0.5 | 1.3 | 3.6 | 0.5 |
-| Illidan | Captain Falcon | 0.5 | 1.4 | 3.1 | 0.5 |
+| Fighter | Reference | Push-off | Wall jump sideways | Wall jump up | Minimum approach | Ceiling impulse (frame) |
+| --- | --- | --- | --- | --- | --- | --- |
+| Archer | Fox | 0.5 | 1.4 | 3.3 | 0.5 | 0.7 (14) |
+| Rifleman | Falco | 0.5 | 1.3 | 3.6 | 0.5 | 0.7 (14) |
+| Illidan | Captain Falcon | 0.5 | 1.4 | 3.1 | 0.5 | 2.0 (11) |
 
 All three references wall jump (`ftFx_Init_OnLoad`, `ftFc_Init_OnLoad` and
 `ftCa_Init_OnLoad` set `can_walljump`); a fighter whose tuning lacks
-`canWallJump` never wall jumps. Ceiling techs keep no sideways impulse.
+`canWallJump` never wall jumps.
+
+A ceiling tech (`ftCo_800C23FC`, melee:src/melee/ft/kinds/ftCommon/ftCo_PassiveCeil.c)
+stops the fighter's motion and has no hang: gravity and air drift go on
+(`ft_80084DB0`). On its animation's throw-flag event, frame 14 for Fox and
+Falco and 11 for Captain Falcon
+(smashcraft:docs/smash-melee-reference/retail-ceiling-tech-events.json), the
+fighter's sideways speed becomes the stick's horizontal value times its
+reference's `passiveceil_vel_x` (+0x10C, `ftCo_PassiveCeil_Anim`), and it
+stops being intangible. Illidan's authored air drift caps his speed at his
+0.88 air cap on that same frame, so with the stick held his 2.0 impulse ends
+at 0.88.
 
 A wall jump follows `ftWallJump_8008169C` (melee:src/melee/ft/ftwalljump.c).
 After the frame's collision, a fighter that is falling, jumping, tumbling
@@ -1951,9 +1964,10 @@ by 0.975 (+0x778). A fighter moved out of the deck's body (see above) counts
 as against that wall, as Melee's collision leaves it touching.
 
 smashcraft:ts/src/game/match/wallTechInputContracts.tests.ts checks the
-push-off, the wall tech's jump and a drift-and-flick wall jump for each
-fighter through helper journal rows, and the oracle's wall/ceiling rows
-compare the hang, launch speeds and rises with the reference values.
+push-off, the wall tech's jump, a drift-and-flick wall jump and the ceiling
+tech's impulse for each fighter through helper journal rows, and the oracle's
+wall/ceiling rows compare the hang, launch speeds, rises and the ceiling
+impulse's frame and speed with the reference values.
 
 ## Shield presentation boundary
 

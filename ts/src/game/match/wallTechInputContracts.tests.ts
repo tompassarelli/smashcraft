@@ -1,26 +1,38 @@
-// Wall techs and wall jumps off the main deck's side through a controller's
-// real input path (helperPads.ts): an Archer's forward air launches each
-// fighter from below the right ledge into the side, at medium and high
-// percent, and each fighter drifts into the side and flicks away from it.
+// Wall techs, wall jumps and ceiling techs through a controller's real input
+// path (helperPads.ts): an Archer's forward air launches each fighter from
+// below the right ledge into the main deck's side, at medium and high
+// percent; each fighter drifts into the side and flicks away from it; and an
+// Archer's up smash launches each fighter into a raised deck's underside.
 import { assertDefined, assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { Character, SurfaceContact } from "../sim/codes";
-import { WALL_TECH_STARTUP_FRAMES, canAttack, isTumbling } from "../sim/conditions";
+import { WALL_TECH_STARTUP_FRAMES, canAttack, isIntangible, isTumbling } from "../sim/conditions";
 import { type Fighter, createFighter } from "../sim/fighter";
-import { surfaceRight } from "../sim/stage";
+import { SOLID_DECK_TEST_STAGE, surfaceRight, surfaceZ } from "../sim/stage";
 import { WORLD_UNITS_PER_MELEE_UNIT, melee } from "../sim/tuning";
 import { type Pad, type PadMatch, padMatch, playPads } from "./helperPads";
 import { testMatch } from "./testMatch";
 
-/** Each fighter's Melee reference, in Melee units a frame: ftCo_DatAttrs +0x100 push-off and +0x104/+0x108 wall jump of Fox, Falco and Captain Falcon. */
-function referenceWall(character: Character): { readonly pushOff: number; readonly jumpX: number; readonly jumpZ: number } {
+/**
+ * Each fighter's Melee reference, in Melee units a frame: ftCo_DatAttrs
+ * +0x100 push-off, +0x104/+0x108 wall jump and +0x10C ceiling impulse of Fox,
+ * Falco and Captain Falcon, and the ceiling tech's impulse event frame
+ * (retail-ceiling-tech-events.json).
+ */
+function referenceWall(character: Character): {
+  readonly pushOff: number;
+  readonly jumpX: number;
+  readonly jumpZ: number;
+  readonly ceiling: number;
+  readonly ceilingFrame: number;
+} {
   switch (character) {
     case Character.archer:
-      return { pushOff: 0.5, jumpX: 1.399999976158142, jumpZ: 3.299999952316284 };
+      return { pushOff: 0.5, jumpX: 1.399999976158142, jumpZ: 3.299999952316284, ceiling: 0.699999988079071, ceilingFrame: 14 };
     case Character.rifleman:
-      return { pushOff: 0.5, jumpX: 1.2999999523162842, jumpZ: 3.5999999046325684 };
+      return { pushOff: 0.5, jumpX: 1.2999999523162842, jumpZ: 3.5999999046325684, ceiling: 0.699999988079071, ceilingFrame: 14 };
     case Character.demonHunter:
-      return { pushOff: 0.5, jumpX: 1.399999976158142, jumpZ: 3.0999999046325684 };
+      return { pushOff: 0.5, jumpX: 1.399999976158142, jumpZ: 3.0999999046325684, ceiling: 2.0, ceilingFrame: 11 };
   }
 }
 
@@ -60,21 +72,21 @@ function startRun(victimCharacter: Character, percent: number): Run {
 const STRIKE: Pad = { cx: -1.0 };
 
 interface Launch {
-  /** The first frame after the hit's hitlag, and the frame the victim met the side. */
+  /** The first frame after the hit's hitlag, and the frame the victim met a solid surface. */
   readonly free: number;
   readonly contact: number;
 }
 
 /** Plays the strike and the victim's pads until the victim meets a solid surface. */
-function launch(run: Run, victimPadAt: (frame: number) => Pad): Launch {
+function launch(run: Run, victimPadAt: (frame: number) => Pad, strike: Pad = STRIKE): Launch {
   let free: number | undefined;
   for (let frame = 1; frame <= 40; frame++) {
-    playPads(run, frame === 1 ? STRIKE : {}, victimPadAt(frame));
+    playPads(run, frame === 1 ? strike : {}, victimPadAt(frame));
     const { victim } = run;
     if (free === undefined && isTumbling(victim) && victim.launch.hitlag === 0) free = frame;
     if (victim.surfaceRecovery.contactSerial > 0) return { free: assertDefined(free, "launch"), contact: frame };
   }
-  throw new Error("the victim never met the side");
+  throw new Error("the victim never met a solid surface");
 }
 
 const VICTIMS = [Character.archer, Character.rifleman, Character.demonHunter] as const;
@@ -214,4 +226,42 @@ test("a fighter without Melee's wall jump trait doesn't wall jump", () => {
   assertEquals(victim.surfaceRecovery.state, SurfaceContact.none);
   assertEquals(victim.surfaceRecovery.wallJumpsUsed, 0);
   assertLessThan(victim.motion.deltaZ, 0.0);
+});
+
+/** On the solid-deck test stage, the Archer facing right below its left raised deck and the victim beside it, at 120%. */
+function startUnderDeck(victimCharacter: Character): Run {
+  const match = testMatch(3, Character.archer);
+  match.game.stageChoice = SOLID_DECK_TEST_STAGE;
+  const victim = createFighter(victimCharacter, -380.0, -1);
+  victim.status.damage = 120.0;
+  match.world.fighters[0] = createFighter(Character.archer, -420.0, 1);
+  match.world.fighters[1] = victim;
+  return { ...padMatch(match, "ceiling-tech"), victim };
+}
+
+test("a ceiling tech moves each fighter sideways by its reference's impulse on its event frame", () => {
+  for (const character of VICTIMS) {
+    // The up smash (C-stick up) launches the victim into the deck's underside; it techs on its first free frame.
+    const missed = launch(startUnderDeck(character), NEUTRAL, { cy: 1.0 });
+    const run = startUnderDeck(character);
+    launch(run, (frame) => ({ trigger: frame === missed.free }), { cy: 1.0 });
+    const { victim } = run;
+    assertEquals(victim.surfaceRecovery.contactKind, SurfaceContact.techCeiling);
+    assertLessThan(victim.motion.z, surfaceZ(SOLID_DECK_TEST_STAGE, 1));
+    const reference = referenceWall(character);
+    for (let frame = 1; frame < reference.ceilingFrame; frame++) {
+      playPads(run, {}, {});
+      assertEquals(victim.motion.vx, 0.0);
+      assertTrue(isIntangible(victim));
+    }
+    // On the event, the stick fully left sets speed to -passiveceil_vel_x, then a frame of air drift acts on it (ftCo_PassiveCeil_Anim, ft_80084DB0).
+    playPads(run, {}, { x: -1.0 });
+    assertFalse(victim.motion.grounded);
+    assertTrue(victim.surfaceRecovery.velocityApplied);
+    assertFalse(isIntangible(victim));
+    const { airAcceleration, airCap } = victim.tuning.physics;
+    // Illidan's authored drift caps his air speed at once, Captain Falcon's 2.0 included.
+    const expected = character === Character.demonHunter ? -airCap : -f32(melee(reference.ceiling) + airAcceleration);
+    assertEquals(victim.motion.vx, expected);
+  }
 });
