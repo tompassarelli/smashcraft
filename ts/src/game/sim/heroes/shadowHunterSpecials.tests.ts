@@ -1,7 +1,8 @@
 // Shadow Hunter's specials through the production special, projectile and
 // contact path (smashcraft:docs/design/roster.md, "Shadow Hunter").
-import { assertEquals, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
+import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
+import { floorMod } from "wisp/src/sim/intMath";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
 import { AttackStyle, Character, HeroStatusGroup, HeroStatusKind, ProjectileKind, SpecialAction } from "../codes";
 import { maskHeroStatusControls } from "../heroStatus";
@@ -85,6 +86,38 @@ test("Spirit Glaive is free, leaves on frame 18, strikes once and frees the hunt
   assertEquals(owner.special.action, SpecialAction.none);
   assertEquals(owner.mana.points, 100);
   assertEquals(target.status.damage, 6.0);
+});
+
+const glaives = (f: Readonly<Fighter>) => f.projectiles.filter(p => p.life > 0 && p.kind === ProjectileKind.hero);
+
+test("Spirit Glaive turns back at age 22, is caught by Shadow Hunter, and only one flies at a time", () => {
+  const { world, owner } = pair(1200.0);
+  frame(world, neutral);
+  for (let f = 2; f <= 18; f++) frame(world);
+  const glaive = glaives(owner)[0]!;
+  assertGreaterThan(glaive.velocityX, 0.0);
+  for (let f = 19; f <= 41; f++) frame(world);
+  assertLessThan(glaive.velocityX, 0.0);
+  assertEquals(owner.special.action, SpecialAction.none);
+  frame(world, neutral);
+  assertEquals(owner.special.action, SpecialAction.none);
+  for (let f = 0; f < 40 && glaive.life > 0; f++) frame(world);
+  assertEquals(glaive.life, 0);
+  assertEquals(owner.status.damage, 0.0);
+  frame(world, neutral);
+  assertEquals(owner.special.action, SpecialAction.heroNeutral);
+});
+
+test("the returning Spirit Glaive strikes a fighter between it and Shadow Hunter for 5, knocking it toward him", () => {
+  const { world, owner, target } = pair(1200.0);
+  frame(world, neutral);
+  for (let f = 2; f <= 45; f++) frame(world);
+  const glaive = glaives(owner)[0]!;
+  assertLessThan(glaive.velocityX, 0.0);
+  target.motion.x = f32(glaive.x - 50.0);
+  for (let f = 0; f < 10 && target.status.damage === 0.0; f++) frame(world);
+  assertEquals(target.status.damage, 5.0);
+  assertLessThan(target.launch.knockbackX, 0.0);
 });
 
 test("Hex costs 25 and its orb leaves on frame 24 and strikes for 2", () => {
@@ -200,28 +233,51 @@ test("replaying a ward from a restored snapshot reproduces every fighter field",
   assertEquals(firstFighterDifference(endTarget, target, 3, 3), undefined);
 });
 
-test("Hex locks the target's neutral, side and down specials for 45 frames, keeps its up special, then grants 180 frames of immunity", () => {
-  const { world, owner, target } = pair(200.0);
-  frame(world, down);
-  for (let f = 2; f <= 53 && target.status.condition === HeroStatusKind.none; f++) frame(world);
-  assertEquals(target.status.condition, HeroStatusKind.hex);
+/** Hexes the target with an orb from 200 away. */
+function hexed(): { world: Roster; owner: Fighter; target: Fighter } {
+  const p = pair(200.0);
+  frame(p.world, down);
+  for (let f = 2; f <= 53 && p.target.status.condition === HeroStatusKind.none; f++) frame(p.world);
+  assertEquals(p.target.status.condition, HeroStatusKind.hex);
+  return p;
+}
+
+/** Frames until the hex ends, with the masking and mashing a match applies to the target's input `mash(frame)`. */
+function framesHexed(world: Roster, target: Fighter, mash: (frame: number) => Readonly<Controls>): number {
+  const commands = attackBuffer(0);
+  for (let f = 1; f <= 200; f++) {
+    const input = { ...mash(f) };
+    maskHeroStatusControls(target, input, commands);
+    frame(world, controls(), input);
+    if (target.status.condition !== HeroStatusKind.hex) return f;
+  }
+  return 200;
+}
+
+test("Hex stops attacks, grabs and neutral, side and down specials for 50 frames; up special, jump and shield stay", () => {
+  const { world, target } = hexed();
   const commands = attackBuffer(0);
   for (const [press, kept] of [[neutral, false], [side, false], [down, false], [up, true]] as const) {
     const input = { ...press };
     maskHeroStatusControls(target, input, commands);
     assertEquals(input.specialPressed, kept);
   }
-  const attack = { ...controls({ attackRequested: true, direction: 1 }) };
+  const attack = { ...controls({ attackRequested: true, attackPressed: true, jumpPressed: true, shield: true }) };
   maskHeroStatusControls(target, attack, commands);
-  assertTrue(attack.attackRequested && attack.direction === 1);
-  let frames = 0;
-  while (target.status.condition === HeroStatusKind.hex) {
-    frame(world);
-    frames++;
-  }
-  assertTrue(frames <= 45);
-  assertEquals(target.status.conditionImmunity[HeroStatusGroup.silence], 180);
-  for (let f = 0; f < 60; f++) frame(world);
+  assertFalse(attack.attackRequested);
+  assertFalse(attack.attackPressed);
+  assertTrue(attack.jumpPressed && attack.shield);
+  const fresh = hexed();
+  // The frame that applied it already counted one of its 50.
+  assertEquals(framesHexed(fresh.world, fresh.target, () => controls()), 49);
+  assertEquals(fresh.target.status.conditionImmunity[HeroStatusGroup.silence], 240);
+});
+
+test("a hexed fighter mashes out sooner but never before frame 20, and immunity stops a second Hex", () => {
+  const { world, owner, target } = hexed();
+  const woke = framesHexed(world, target, (f) => controls({ grabMashPressed: floorMod(f, 2) === 0, direction: floorMod(f, 4) < 2 ? 1 : -1 }));
+  assertLessThan(woke, 30);
+  assertGreaterThan(woke, 17);
   owner.mana.points = 100;
   target.motion.x = f32(owner.motion.x + f32(owner.facing * 150.0));
   frame(world, down);

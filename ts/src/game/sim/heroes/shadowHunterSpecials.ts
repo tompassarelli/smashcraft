@@ -17,11 +17,13 @@ const AIR_SPECIAL_LANDING_LAG = 20;
 /** Chest height of the drawn throw release. */
 const CAST_HEIGHT = h(f32(0.45));
 
+/** Spirit Glaive (#133): out 22 frames, then back to Shadow Hunter (6% out, 5% back toward him). */
 const SPIRIT_GLAIVE_SHOT: SpecialProjectile = {
   model: "Abilities\\Weapons\\ShadowHunterMissile\\ShadowHunterMissile.mdx",
   spawnFrame: 18, offsetX: h(f32(0.35)), offsetZ: CAST_HEIGHT,
-  velocityX: h(f32(0.12)), velocityZ: 0.0, life: 28, radius: h(f32(0.15)),
+  velocityX: h(f32(0.12)), velocityZ: 0.0, life: 70, radius: h(f32(0.15)),
   effect: hit(6.0, "POKE", 35), reflectable: true, limit: 1,
+  returns: { age: 22, speed: h(f32(0.12)) }, returnEffect: hit(5.0, "POKE", 35),
 };
 
 const spiritGlaive = (air: boolean): AuthoredSpecial => ({
@@ -43,16 +45,18 @@ const loaVault = (cost: number, riseVelocity: number, driftVelocity: number): Au
 });
 
 /**
- * Hex: for 45 frames the target cannot start neutral, side or down specials;
- * normals, grabs, movement, jumps, shield, DI and up special stay. No hurtbox
- * change. When it ends, 180 frames of immunity shared with silence.
+ * Hex (#133, docs/design/kit-review-2.md): for 50 frames the target cannot
+ * attack, grab or start a neutral, side or down special; movement, jumps,
+ * shield, dodges, DI and up special stay. It mashes out, never before frame
+ * 20 (sim/heroStatus.ts). No hurtbox change. When it ends, 240 frames of
+ * immunity shared with silence.
  */
-const HEX: AppliedStatus = { kind: HeroStatusKind.hex, frames: 45, group: HeroStatusGroup.silence, immunityFrames: 180 };
+const HEX: AppliedStatus = { kind: HeroStatusKind.hex, frames: 50, group: HeroStatusGroup.silence, immunityFrames: 240 };
 
 const HEX_ORB: SpecialProjectile = {
   model: "Abilities\\Weapons\\WitchDoctorMissile\\WitchDoctorMissile.mdx",
   spawnFrame: 24, offsetX: h(f32(0.3)), offsetZ: CAST_HEIGHT,
-  velocityX: h(f32(0.07)), velocityZ: 0.0, life: 18, radius: h(f32(0.18)),
+  velocityX: h(f32(0.07)), velocityZ: 0.0, life: 26, radius: h(f32(0.18)),
   effect: hit(2.0, "POKE", 40, 1.0, HitElement.normal), reflectable: true, limit: 1, status: HEX,
 };
 

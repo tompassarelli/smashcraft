@@ -286,8 +286,8 @@ All are fighter state, restored by rollback and checked by tapes:
 - **Re-press forms:** a special pressed while its own orb flies (Lich's
   burst) or while its shell holds (Dark Ritual) chooses a different form,
   the way Serpent Ward's recall does.
-- **Returning projectiles** with an optional owner heal (Holy Light, Spirit
-  Glaive).
+- **Returning projectiles:** Mountain King's shared `returns` rule (#125),
+  with an optional return hit and owner heal (Holy Light, Spirit Glaive).
 - **Divine Shield:** a guard success grants intangibility that the next
   attack, special or grab ends.
 - **Mashable statuses** (Sleep, Hex) and a hex that blocks attacks and grabs.

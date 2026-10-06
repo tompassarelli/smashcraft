@@ -21,6 +21,8 @@ interface StatusRules {
   readonly blocksSpecials: boolean;
   /** The next damaging hit ends it. */
   readonly endsOnDamage: boolean;
+  /** No attack, aerial or grab starts: movement, jumps, shield, dodges and DI stay (Hex). */
+  readonly blocksAttacks?: boolean | undefined;
   /** The fighter mashes out with the grab and freeze rule (sim/mash.ts), never before this many frames. */
   readonly mashMinimum?: number | undefined;
 }
@@ -28,7 +30,8 @@ interface StatusRules {
 const RULES: { readonly [kind: number]: StatusRules | undefined } = {
   // Sleep (#132): mashed out as a freeze is, never before frame 24.
   [HeroStatusKind.sleep]: { blocksActions: true, blocksSpecials: true, endsOnDamage: true, mashMinimum: 24 },
-  [HeroStatusKind.hex]: { blocksActions: false, blocksSpecials: true, endsOnDamage: false },
+  // Hex (#133): a critter that cannot attack, grab or cast, mashed out never before frame 20.
+  [HeroStatusKind.hex]: { blocksActions: false, blocksSpecials: true, blocksAttacks: true, endsOnDamage: false, mashMinimum: 20 },
   // Chill only lowers top speeds (sim/chill.ts).
   [HeroStatusKind.chill]: { blocksActions: false, blocksSpecials: false, endsOnDamage: false },
   [HeroStatusKind.stun]: { blocksActions: true, blocksSpecials: true, endsOnDamage: true },
@@ -152,6 +155,12 @@ export function maskHeroStatusControls(f: Fighter, input: Controls, commands: At
     copyControls(input, NEUTRAL);
     clearAttackBuffer(commands);
     return;
+  }
+  if (active.blocksAttacks === true) {
+    clearAttackBuffer(commands);
+    input.attackRequested = false;
+    input.attackPressed = false;
+    input.getupAttackPressed = false;
   }
   if (active.blocksSpecials && input.specialZ <= 0) input.specialPressed = false;
 }

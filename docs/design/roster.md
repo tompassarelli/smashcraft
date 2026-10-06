@@ -584,10 +584,10 @@ Standing grab 7/3/26, reach 0.65H. Pummel: claw squeeze. No automatic lifesteal.
 
 | Input | Proposed move and behavior | Timing and cost |
 | --- | --- | --- |
-| Neutral B | **Spirit Glaive:** one straight projectile, 6 damage, POKE at 35 degrees, speed 0.12H/frame, life 28, radius 0.15H. It does not return or bounce in v1; one active and reflectable. | Spawn f18, end f40; 0 mana |
+| Neutral B | **Spirit Glaive** (#133, [kit review 2](kit-review-2.md#shadow-hunter-133)): a returning glaive, speed 0.12H/frame out for 22 frames, then back toward Shadow Hunter at the same speed; life 70, radius 0.15H, one active, reflectable (a reflected glaive flies straight). Outbound 6 damage, POKE at 35 degrees; returning 5 damage, POKE toward him. Caught, it ends. | Spawn f18, end f40; 0 mana |
 | Side B | **Serpent Ward:** ground-only placement 0.65H ahead; one ward, 12 durability, 240-frame life. It fires straight in its placement-facing direction at age 45, 105, and 165, never auto-aiming. Shots: 4 damage, POKE at 35 degrees, speed 0.10H/frame, life 24, radius 0.12H, reflectable. Recasting with a ward active recalls it after the same vulnerable animation, costs 0, and grants no refund. | Ward appears f26, action ends f52; initial cast 20 mana |
 | Up B | **Loa Vault:** a spirit-assisted arc 2.0H high and 0.6H lateral, no hitbox or intangibility. Free version 1.4H and 0.3H lateral. | Movement f8–30, then helpless; 15 mana |
-| Down B | **Hex:** short visible orb, speed 0.07H/frame, life 18, radius 0.18H. 2 damage, POKE at 40 degrees. For 45 frames target cannot start B specials but keeps normals, grab, movement, jump, shield, and DI; up B remains available as a recovery exception. No hurtbox change. 180-frame hex immunity after expiration. Reflectable; one active. | Spawn f24, end f53; 25 mana |
+| Down B | **Hex** (#133): short visible orb, speed 0.07H/frame, life 26, radius 0.18H. 2 damage, POKE at 40 degrees. For 50 frames the target cannot attack, grab or start neutral, side or down specials, but keeps movement, jump, shield, dodges, DI and up special (recovery). It mashes out with the grab and freeze rule, never before frame 20. No hurtbox change. 240-frame hex immunity after it ends. Reflectable; one active. | Spawn f24, end f53; 25 mana |
 
 ### Grab and throws
 
