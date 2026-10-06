@@ -522,8 +522,11 @@ Shield reactions, both-facing coverage and replay pose restoration remain open.
 
 The directional-specials pass connects stock bear/hippogryph effect animations
 to numerical state. Dedicated body clips now cover neutral fire, fan wind-up,
-backward disengage, riding recovery, bear summon, trap placement and downward
-gunshot/recoil. Archer authoring is in smashcraft:tools/animations/archer-specials.py;
+backward disengage, riding recovery, trap placement and downward
+gunshot/recoil. Rifleman summons his bear with the model's stock `Spell`
+sequence over the whole 42-frame cast (#111): he rocks back with a raised hand,
+then points the rifle forward about as the bear appears on frame 24.
+Archer authoring is in smashcraft:tools/animations/archer-specials.py;
 Rifleman authoring is in smashcraft:tools/animations/rifleman.py. Separate ground
 and air Rifleman shots preserve the frame-2 firing pose despite different
 recovery durations. The adapter scales generated clip durations to the current

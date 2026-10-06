@@ -292,7 +292,9 @@ const ARCHER_ARROW = clip(assets.ARCHER_SPECIAL_NEUTRAL_INDEX, assets.ARCHER_SPE
 const ARCHER_HOMING_ARROW = clip(assets.ARCHER_SPECIAL_SIDE_INDEX, assets.ARCHER_SPECIAL_SIDE_SECONDS);
 const ARCHER_DISENGAGE = clip(assets.ARCHER_SPECIAL_DOWN_INDEX, assets.ARCHER_SPECIAL_DOWN_SECONDS);
 const ARCHER_RECOVERY = clip(assets.ARCHER_SPECIAL_UP_INDEX, assets.ARCHER_SPECIAL_UP_SECONDS);
-const RIFLEMAN_BEAR = clip(assets.RIFLEMAN_SPECIAL_SIDE_INDEX, assets.RIFLEMAN_SPECIAL_SIDE_SECONDS);
+// The stock Warcraft cast: he rocks back with a raised hand, then points the rifle
+// forward about when the bear appears (60% through, frame 24 of 42).
+const RIFLEMAN_BEAR = clip(assets.RIFLEMAN_SPELL_INDEX, assets.RIFLEMAN_SPELL_SECONDS);
 const RIFLEMAN_TRAP = clip(assets.RIFLEMAN_SPECIAL_DOWN_INDEX, assets.RIFLEMAN_SPECIAL_DOWN_SECONDS);
 const RIFLEMAN_RECOVERY = clip(assets.RIFLEMAN_SPECIAL_UP_INDEX, assets.RIFLEMAN_SPECIAL_UP_SECONDS);
 

@@ -3,12 +3,13 @@ import { f32 } from "wisp/src/sim/f32";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import { clearPresentationHistory } from "../match/pacingAndPresentation";
 import { Phase } from "../match/rules";
-import { createFrameControls } from "../match/controls";
+import { type FrameControls, createFrameControls } from "../match/controls";
 import { captureFrame, createMatchFrameInput } from "../match/frameInput";
 import { captureNext, executeCaptured, executeNext, replayState, testMatch } from "../match/testMatch";
 import { stateChecksum } from "../replay/canonical";
 import { firstPoseDifference, firstStateDifference } from "../replay/difference";
 import { ReplayCorrections, ReplayHistory } from "../replay/history";
+import { REPLAY_MAX_CORRECTION_FRAMES } from "../replay/limits";
 import { captureReplaySnapshot, createReplaySnapshot, restoreReplaySnapshot } from "../replay/snapshot";
 import { Character } from "../sim/codes";
 import { createFighter } from "../sim/fighter";
@@ -114,45 +115,54 @@ test("a bear's clip restores backward from a snapshot and projects read-only", (
 });
 
 test("a late correction removes or restores a bear's spawn and swipe", () => {
-  for (const initiallySummons of [0, 1]) {
+  // Rifleman 0 casts the bear on frame 1; slot 3's shot on frame 14 interrupts the cast
+  // or not, and the correction arrives after the uninterrupted bear has swiped.
+  const SHOT = 14;
+  const LAST = SHOT + REPLAY_MAX_CORRECTION_FRAMES - 1;
+  const setUp = () => {
     const match = testMatch(9, Character.rifleman);
+    const shooter = fighterAt(match.world, 3);
+    shooter.motion.x = -150.0;
+    shooter.facing = -1;
+    return match;
+  };
+  const press = (inputs: FrameControls, frame: number, shoots: boolean) => {
+    inputs.inputs[0].specialPressed = frame === 1;
+    inputs.inputs[0].specialX = frame === 1 ? 1 : 0;
+    inputs.inputs[3].specialPressed = shoots && frame === SHOT;
+  };
+  for (const initiallyShoots of [false, true]) {
+    const match = setUp();
     const live = replayState(match);
-    fighterAt(match.world, 3).motion.x = -150.0;
     const history = new ReplayHistory();
-    assertTrue(history.beginEpoch(92, 1, 12));
-    for (let frame = 1; frame <= 8; frame++) {
-      match.inputs.inputs[0].specialPressed = frame === 1 && initiallySummons === 1;
-      match.inputs.inputs[0].specialX = frame === 1 ? initiallySummons : 0;
+    assertTrue(history.beginEpoch(92, 1, REPLAY_MAX_CORRECTION_FRAMES));
+    for (let frame = 1; frame <= LAST; frame++) {
+      press(match.inputs, frame, initiallyShoots);
       captureNext(match);
-      assertTrue(history.saveSpeculative(92, match.row, live));
+      // Rows before the shot are confirmed; the rest wait for the remote input.
+      assertTrue(frame < SHOT ? history.save(92, match.row, live) : history.saveSpeculative(92, match.row, live));
       executeCaptured(match);
     }
     const summons = match.runtime.summons;
-    assertEquals(projectBear(summons, fighterAt(match.world, 0), 0).visible, initiallySummons === 1);
-    if (initiallySummons === 1) {
-      assertEquals(summons.bears[0].clipIndex, SUMMON_BEAR_ATTACK);
-      assertEquals(summons.bearHitSerial[0], 1);
-    }
+    assertEquals(projectBear(summons, fighterAt(match.world, 0), 0).visible, !initiallyShoots);
+    assertEquals(summons.bearHitSerial[0], initiallyShoots ? 0 : 1);
     const replacement = createFrameControls();
-    replacement.inputs[0].specialPressed = initiallySummons === 0;
-    replacement.inputs[0].specialX = 1 - initiallySummons;
+    press(replacement, SHOT, !initiallyShoots);
     const row = createMatchFrameInput();
-    assertTrue(captureFrame(row, 1, 9, replacement, match.runtime));
+    assertTrue(captureFrame(row, SHOT, 9, replacement, match.runtime));
     const corrections = new ReplayCorrections();
     assertTrue(corrections.beginEpoch(92));
     assertTrue(corrections.add(row));
-    assertEquals(history.correct(92, corrections, live), 1);
-    const expected = testMatch(9, Character.rifleman);
-    fighterAt(expected.world, 3).motion.x = -150.0;
-    for (let frame = 1; frame <= 8; frame++) {
-      expected.inputs.inputs[0].specialPressed = frame === 1 && initiallySummons === 0;
-      expected.inputs.inputs[0].specialX = frame === 1 ? 1 - initiallySummons : 0;
+    assertEquals(history.correct(92, corrections, live), SHOT);
+    const expected = setUp();
+    for (let frame = 1; frame <= LAST; frame++) {
+      press(expected.inputs, frame, !initiallyShoots);
       executeNext(expected);
     }
     assertEquals(firstSummonDifference(summons, expected.runtime.summons), undefined);
-    assertEquals(projectBear(summons, fighterAt(match.world, 0), 0).visible, initiallySummons === 0);
-    assertEquals(summons.bearHitSerial[0], 1 - initiallySummons);
-    if (initiallySummons === 0) {
+    assertEquals(projectBear(summons, fighterAt(match.world, 0), 0).visible, initiallyShoots);
+    assertEquals(summons.bearHitSerial[0], initiallyShoots ? 1 : 0);
+    if (initiallyShoots) {
       assertEquals(summons.bears[0].clipIndex, SUMMON_BEAR_ATTACK);
       assertTrue(summons.bears[0].clipTime > 0.0);
     }

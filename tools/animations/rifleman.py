@@ -243,17 +243,6 @@ author_timed_special('Special Neutral Air', {
     4: {'strike': -.08, 'lean': 1}, 9: {'strike': 0}, 15: {},
 }, 15)
 
-# The bear launches on summon. A planted stance and lifted cape give the
-# gesture a silhouette while keeping the two-hand rifle attachment intact.
-author_timed_special('Special Side', {
-    0: {'crouch': .15, 'lean': -4, 'cape_lift': 14, 'strike': .05, 'summon': .35},
-    3: {'crouch': .75, 'lean': -10, 'leg_r': -12, 'leg_l': 10,
-        'cape_lift': 35, 'strike': .18, 'elevation': 12, 'summon': 1},
-    7: {'crouch': .58, 'lean': -8, 'leg_r': -8, 'leg_l': 7,
-        'cape_lift': 25, 'strike': .1, 'elevation': 8, 'summon': 1},
-    12: {'crouch': .25, 'lean': -3, 'cape_lift': 10, 'summon': .3}, 18: {},
-}, 18)
-
 # Down-B places the trap at the feet; the deep crouch and barrel-down angle
 # communicate placement without changing trap activation timing.
 author_timed_special('Special Down', {

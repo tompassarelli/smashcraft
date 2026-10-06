@@ -60,7 +60,10 @@ const RIFLEMAN_RECOVERY_STARTUP_FRAMES = 4;
 const RIFLEMAN_RECOVERY_PROTECTION_END = 24;
 const ARCHER_HOMING_FRAMES = 34;
 const RIFLEMAN_RECOVERY_FRAMES = 34;
-const BEAR_SUMMON_FRAMES = 18;
+/** The bear appears this many frames into the cast, past the reaction floor in docs/gameplay-design.md (#69). */
+export const RIFLEMAN_BEAR_CAST_FRAMES = 24;
+/** The cast, then 18 frames after the bear appears. */
+export const RIFLEMAN_BEAR_SUMMON_FRAMES = RIFLEMAN_BEAR_CAST_FRAMES + 18;
 const TRAP_SET_FRAMES = 20;
 const ARCHER_ARROW_FRAMES = 3;
 /** The special input bit in action observations. */
@@ -204,21 +207,27 @@ function startRiflemanSpecial(owner: Fighter, stage: number, matchFrame: number,
   }
   if (action === SpecialAction.riflemanBear) {
     if (bear.life > 0) return false;
-    startSpecialAction(owner, action, BEAR_SUMMON_FRAMES, moveX);
-    bear.life = RIFLEMAN_BEAR_LIFETIME;
-    bear.x = f32(motion.x + f32(moveX * 45));
-    bear.z = motion.grounded && motion.surface !== undefined ? surfaceZ(stage, motion.surface, matchFrame) : motion.z;
-    bear.velocityX = f32(moveX * 14.0);
+    startSpecialAction(owner, action, RIFLEMAN_BEAR_SUMMON_FRAMES, moveX);
     owner.facing = moveX;
-    bear.velocityZ = motion.grounded ? 0.0 : motion.vz;
-    bear.surface = motion.grounded ? motion.surface : undefined;
-    bear.swipeCooldown = 5;
     special.cooldowns[action] = 90;
     return true;
   }
   startSpecialAction(owner, action, attackDurationFramesForGrounding(AttackStyle.shot, motion.grounded), moveX);
   special.cooldowns[action] = 8;
   return true;
+}
+
+/** The cast completes: the bear appears ahead of the Rifleman and runs the way he cast it. */
+function summonBear(owner: Fighter, stage: number, matchFrame: number): void {
+  const { motion, bear, special } = owner;
+  const moveX = special.direction;
+  bear.life = RIFLEMAN_BEAR_LIFETIME;
+  bear.x = f32(motion.x + f32(moveX * 45));
+  bear.z = motion.grounded && motion.surface !== undefined ? surfaceZ(stage, motion.surface, matchFrame) : motion.z;
+  bear.velocityX = f32(moveX * 14.0);
+  bear.velocityZ = motion.grounded ? 0.0 : motion.vz;
+  bear.surface = motion.grounded ? motion.surface : undefined;
+  bear.swipeCooldown = 5;
 }
 
 function startDemonHunterSpecial(owner: Fighter, action: SpecialAction, moveX: number): boolean {
@@ -365,7 +374,7 @@ function startHippogryphDive(owner: Fighter): void {
   hippogryph.velocityZ = f32(f32(f32(motion.z + 40) - hippogryph.z) / HIPPOGRYPH_DIVE_ARRIVAL);
 }
 
-function advanceSpecialAction(owner: Fighter, stage: number, input: Readonly<Controls> | undefined): void {
+function advanceSpecialAction(owner: Fighter, stage: number, matchFrame: number, input: Readonly<Controls> | undefined): void {
   const { special, motion } = owner;
   if (special.action === SpecialAction.none || owner.launch.hitlag > 0) return;
   special.frame++;
@@ -378,6 +387,7 @@ function advanceSpecialAction(owner: Fighter, stage: number, input: Readonly<Con
   if (special.action === SpecialAction.riflemanBlaster && special.frame === 2) {
     spawnProjectileMotion(owner, ProjectileKind.blaster, f32(owner.facing * BLASTER_PROJECTILE_SPEED), 0.0, BLASTER_PROJECTILE_LIFETIME, shotSerial);
   }
+  if (special.action === SpecialAction.riflemanBear && special.frame === RIFLEMAN_BEAR_CAST_FRAMES) summonBear(owner, stage, matchFrame);
   if (special.action === SpecialAction.demonHunterManaBurn && special.frame === DEMONHUNTER_MANA_BURN_STARTUP) {
     spawnProjectileMotion(owner, ProjectileKind.manaBurn, f32(owner.facing * 30.0), 0.0, 48, shotSerial);
   }
@@ -413,7 +423,7 @@ function advanceSpecialAction(owner: Fighter, stage: number, input: Readonly<Con
   }
   if (special.action === SpecialAction.archerRecovery && special.frame >= ARCHER_RIDE_FRAMES) endSpecialAction(owner, true);
   if (special.action === SpecialAction.archerHomingArrow && special.frame >= ARCHER_HOMING_FRAMES) endSpecialAction(owner, false);
-  if (special.action === SpecialAction.riflemanBear && special.frame >= BEAR_SUMMON_FRAMES) endSpecialAction(owner, false);
+  if (special.action === SpecialAction.riflemanBear && special.frame >= RIFLEMAN_BEAR_SUMMON_FRAMES) endSpecialAction(owner, false);
   if (special.action === SpecialAction.riflemanRecovery && special.frame >= RIFLEMAN_RECOVERY_FRAMES) endSpecialAction(owner, true);
   if (special.action === SpecialAction.riflemanTrap && special.frame >= TRAP_SET_FRAMES) endSpecialAction(owner, false);
   if (special.action === SpecialAction.riflemanBlaster && special.frame >= special.duration) endSpecialAction(owner, false);
@@ -464,7 +474,7 @@ export function advanceSpecials(world: Roster, stage: number, matchFrame: number
   resolveHeroGuards(world);
   for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
     if (!isActive(world, slot)) continue;
-    advanceSpecialAction(fighterAt(world, slot), stage, inputs?.[slot]);
+    advanceSpecialAction(fighterAt(world, slot), stage, matchFrame, inputs?.[slot]);
     stopHeroMotionAtBodies(world, slot);
     advanceHeroCommandGrab(world, slot);
   }
