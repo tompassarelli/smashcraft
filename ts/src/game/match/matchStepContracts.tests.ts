@@ -1,3 +1,4 @@
+import { startAtGo } from "./testMatch";
 import { stageBounds } from "../sim/stageBounds";
 // These contracts exercise ordering in the complete match executor: input,
 // shield, contact, landing, stocks and timeout can interact on one frame.
@@ -12,7 +13,7 @@ import { attackBuffer, hasPendingAttack, queueAttack } from "../input/attackBuff
 import type { Direction } from "../input/inputRow";
 import { copyControls, neutralControls, type Controls, createRoster } from "../sim/roster";
 import { createFrameControls, type FrameControls } from "./controls";
-import { Phase, createMatchState, setParticipants, recallCharacter, cpuSlot, requestStageSelect, requestStart, selectCharacter, selectCpuCharacter, selectStage, setHumanCount, setStocks, setTimeLimit } from "./rules";
+import { Phase, createMatchState, setParticipants, recallCharacter, cpuSlot, requestStageSelect, selectCharacter, selectCpuCharacter, selectStage, setHumanCount, setStocks, setTimeLimit } from "./rules";
 import { initializeMatchFighters, stepMatch, matchSpawnX } from "./step";
 import { SHIELD_MIN_HOLD_FRAMES, SHIELD_RELEASE_LAG_FRAMES, digitalShieldDamage } from "../sim/shield";
 import { ATTACK_BUFFER_FRAMES } from "../input/attackBuffer";
@@ -361,7 +362,7 @@ test("practiceMatchMovesJumpsAttacksAndRespawnsWithoutOpponent", () => {
     setStocks(game, 0, 1);
     setTimeLimit(game, 0, 1);
     assertTrue(requestStageSelect(game, 0));
-    assertTrue(requestStart(game, 0));
+    assertTrue(startAtGo(game, 0));
     const first = createFighter(character as Character, -240, 1);
     const second = createFighter(1, 240, -1);
     initializeMatchFighters(game, testRoster(first, second));
@@ -429,7 +430,7 @@ test("humanDirectAttacksReachBothSlotsOnTheNextStep", () => {
     selectCharacter(game, 0, 0);
     selectCharacter(game, 1, 1);
     requestStageSelect(game, 0);
-    requestStart(game, 0);
+    startAtGo(game, 0);
     const first = createFighter(0, -240, 1);
     const second = createFighter(1, 240, -1);
     const firstInput = neutralControls();
@@ -457,7 +458,7 @@ test("activeShieldConsumesGrabButRejectsOrdinaryAttackCommand", () => {
   selectCharacter(game, 0, 0);
   selectCpuCharacter(game, 0, (cpuSlot(game) ?? -1), 1);
   requestStageSelect(game, 0);
-  requestStart(game, 0);
+  startAtGo(game, 0);
   const first = createFighter(0, 0, 1);
   const second = createFighter(1, 350, -1);
   const firstInput = neutralControls();
@@ -484,7 +485,7 @@ test("downOnlyDropsWhenAttackQueueIsEmptyExpiredOrFuture", () => {
     selectCpuCharacter(game, 0, (cpuSlot(game) ?? -1), 1);
     requestStageSelect(game, 0);
     game.stageChoice = 1;
-    requestStart(game, 0);
+    startAtGo(game, 0);
     const first = createFighter(0, -240, 1);
     first.motion.z = 170;
     first.motion.surface = 1;
@@ -513,7 +514,7 @@ test("downwardNormalsTakePriorityOverDroppingThroughUpperPlatforms", () => {
       selectCpuCharacter(game, 0, (cpuSlot(game) ?? -1), 1);
       requestStageSelect(game, 0);
       game.stageChoice = 1;
-      requestStart(game, 0);
+      startAtGo(game, 0);
       const first = createFighter(0, -240, 1);
       first.motion.z = 170;
       first.motion.surface = 1;
@@ -543,7 +544,7 @@ test("heldNormalSmashChargesAndReleasesButDirectCommandStaysImmediate", () => {
     selectCharacter(game, 0, 0);
     selectCpuCharacter(game, 0, (cpuSlot(game) ?? -1), 1);
     requestStageSelect(game, 0);
-    requestStart(game, 0);
+    startAtGo(game, 0);
     const first = createFighter(0, 0, 1);
     const second = createFighter(1, 350, -1);
     const firstInput = neutralControls();
@@ -577,7 +578,7 @@ test("airborneBackAttackKeepsFacingWhileDriftingBackwards", () => {
   selectCharacter(game, 0, 0);
   selectCpuCharacter(game, 0, (cpuSlot(game) ?? -1), 1);
   requestStageSelect(game, 0);
-  requestStart(game, 0);
+  startAtGo(game, 0);
   const first = createFighter(0, 0, 1);
   const second = createFighter(1, 350, -1);
   first.motion.grounded = false;
@@ -635,7 +636,7 @@ test("attackSelectionUsesGroundingAfterTheMovementStep", () => {
   selectCharacter(game, 0, 0);
   selectCpuCharacter(game, 0, (cpuSlot(game) ?? -1), 1);
   requestStageSelect(game, 0);
-  requestStart(game, 0);
+  startAtGo(game, 0);
   const first = createFighter(0, 0, 1);
   const second = createFighter(1, 350, -1);
   const firstInput = neutralControls();
@@ -673,7 +674,7 @@ test("shieldPressAppliesBeforeSameFrameAttack", () => {
   selectCharacter(game, 0, 0);
   selectCpuCharacter(game, 0, (cpuSlot(game) ?? -1), 1);
   requestStageSelect(game, 0);
-  requestStart(game, 0);
+  startAtGo(game, 0);
   const first = createFighter(0, 0, 1);
   const second = createFighter(1, 100, -1);
   const firstInput = neutralControls();
@@ -695,7 +696,7 @@ test("bothFinalStocksResolveAfterTheSameStep", () => {
   selectCharacter(game, 0, 0);
   selectCpuCharacter(game, 0, (cpuSlot(game) ?? -1), 1);
   requestStageSelect(game, 0);
-  requestStart(game, 0);
+  startAtGo(game, 0);
   const first = createFighter(0, (stageBounds(game.stageChoice).blast.left - 1), 1);
   const second = createFighter(1, (stageBounds(game.stageChoice).blast.right + 1), -1);
   first.status.stocks = 1;
@@ -717,7 +718,7 @@ test("ledgeSharedMatchStepCatchesBothSlotsThenAcceptsFreshOptions", () => {
   selectCharacter(game, 0, 0);
   selectCpuCharacter(game, 0, (cpuSlot(game) ?? -1), 1);
   requestStageSelect(game, 0);
-  requestStart(game, 0);
+  startAtGo(game, 0);
   const first = createFighter(0, -620, 1);
   const second = createFighter(1, 620, -1);
   first.motion.grounded = false;
@@ -755,7 +756,7 @@ test("configuredStocksAndLastTickKnockoutPrecedeTimeout", () => {
   selectCpuCharacter(game, 0, (cpuSlot(game) ?? -1), 1);
   setStocks(game, 0, 1);
   requestStageSelect(game, 0);
-  requestStart(game, 0);
+  startAtGo(game, 0);
   const first = createFighter(0, (stageBounds(game.stageChoice).blast.left - 1), 1);
   const second = createFighter(1, 240, -1);
   initializeMatchFighters(game, testRoster(first, second));
@@ -787,7 +788,7 @@ test("sharedStepClockRunsOnlyDuringMatch", () => {
   requestStageSelect(game, 0);
   stepMatch(game, testRoster(first, second), testFrameControls(firstInput, secondInput, firstCommands, secondCommands), 2);
   assertEquals(game.remainingFrames, 25200);
-  requestStart(game, 0);
+  startAtGo(game, 0);
   stepMatch(game, testRoster(first, second), testFrameControls(firstInput, secondInput, firstCommands, secondCommands), 3);
   assertEquals(game.remainingFrames, 25199);
   game.remainingFrames = 1;

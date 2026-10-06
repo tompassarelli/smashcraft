@@ -1,10 +1,11 @@
+import { startAtGo } from "./testMatch";
 import { assertEquals, assertFalse, assertGreaterThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { AttackPhase, AttackStyle, Character, GrabAction } from "../sim/codes";
 import { createFighter, type Fighter } from "../sim/fighter";
 import { createRoster, copyControls, neutralControls, type Controls } from "../sim/roster";
 import { attackBuffer, queueAttack } from "../input/attackBuffer";
 import { createFrameControls, type FrameControls } from "./controls";
-import { Phase, createMatchState, setParticipants, recallCharacter, cpuSlot, selectCharacter, selectCpuCharacter, requestStageSelect, requestStart } from "./rules";
+import { Phase, createMatchState, setParticipants, recallCharacter, cpuSlot, selectCharacter, selectCpuCharacter, requestStageSelect } from "./rules";
 import { floorMod } from "wisp/src/sim/intMath";
 import { stepMatch } from "./step";
 import { HERO_ROSTER } from "../sim/heroes/registry";
@@ -22,7 +23,7 @@ function frameControls(first: Controls, second: Controls, firstCommands: ReturnT
 function testMatch() {
   const game = createMatchState(); setParticipants(game, 1, 2); recallCharacter(game, 0, 1);
   selectCharacter(game, 0, 0); selectCpuCharacter(game, 0, cpuSlot(game) ?? -1, 1);
-  requestStageSelect(game, 0); requestStart(game, 0); return game;
+  requestStageSelect(game, 0); startAtGo(game, 0); return game;
 }
 function runToAttackActive(game: ReturnType<typeof createMatchState>, first: Fighter, second: Fighter, firstInput: Controls, secondInput: Controls, firstCommands: ReturnType<typeof attackBuffer>, secondCommands: ReturnType<typeof attackBuffer>, style: number, startFrame: number): void {
   queueAttack(firstCommands, { style, facing: 0, frame: startFrame, mayCharge: false });

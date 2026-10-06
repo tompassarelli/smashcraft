@@ -1,5 +1,6 @@
 // All match-phase transitions share this roster fixture, including sparse
 // humans, computers, selection, results and same-frame timeout decisions.
+import { startAtGo } from "./testMatch";
 import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { imod } from "wisp/src/sim/intMath";
 import { createFighter } from "../sim/fighter";
@@ -273,7 +274,7 @@ test("timeoutComparesStocksThenDamageAndExactTieDraws", () => {
     selectCpuCharacter(game, 0, (cpuSlot(game) ?? -1), 0);
     setTimeLimit(game, 0, 1);
     requestStageSelect(game, 0);
-    requestStart(game, 0);
+    startAtGo(game, 0);
     for (let tick = 1; tick <= 3599; tick++) {
       advanceClock(game, testStanding(3, 100.0, 2, 0.0));
     }

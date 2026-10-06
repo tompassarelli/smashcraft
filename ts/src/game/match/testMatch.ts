@@ -8,7 +8,7 @@ import { type Roster, createRoster, isActive } from "../sim/roster";
 import { type FrameControls, createFrameControls } from "./controls";
 import { type MatchFrameInput, captureFrame, createMatchFrameInput, executeMatchFrame } from "./frameInput";
 import { type PacingAndPresentation, createPacingAndPresentation } from "./pacingAndPresentation";
-import { type MatchState, Phase, createMatchState, setHumanMask } from "./rules";
+import { type MatchState, Phase, createMatchState, requestStart, setHumanMask } from "./rules";
 import type { ReplayState } from "../replay/snapshot";
 
 export interface TestMatch {
@@ -49,4 +49,15 @@ export function executeNext(match: TestMatch): void {
 /** The match as replay state, for history saves, replays and snapshots. */
 export function replayState({ world, game, inputs, runtime }: TestMatch): ReplayState {
   return { world, match: game, controls: inputs, runtime };
+}
+
+/**
+ * Starts the match from the stage menu without its countdown, so combat and
+ * clock contracts run from its first frame; the hold has its own contracts
+ * (startHold.tests.ts).
+ */
+export function startAtGo(game: MatchState, slot: number): boolean {
+  const started = requestStart(game, slot);
+  game.startHold = 0;
+  return started;
 }
