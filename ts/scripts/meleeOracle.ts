@@ -21,6 +21,12 @@ import { CANNON_Z, cannonX } from "../src/game/sim/stageHazards";
 import { bodyTop } from "../src/game/sim/surfaces";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "../src/game/sim/tuning";
 import { type Scene, airborne, fighter, frame, framesUntil, scene, solo, tumbling } from "./frameScene";
+import { ATTACK_BUFFER_FRAMES } from "../src/game/input/attackBuffer";
+import { TECH_WINDOW_FRAMES, TECH_REPEAT_MINIMUM_AGE_FRAMES } from "../src/game/physics/techInput";
+import { SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES } from "../src/game/sim/fighter";
+import { DEMONHUNTER_PARRY_START, DEMONHUNTER_PARRY_END } from "../src/game/sim/hits";
+import { LEDGE_INTANGIBLE_FRAMES } from "../src/game/sim/ledge";
+import { LEDGE_REGRAB_FRAMES } from "../src/game/sim/transitions";
 
 const melee = (world: number): number => world / WORLD_UNITS_PER_MELEE_UNIT;
 
@@ -1210,8 +1216,28 @@ const LEDGES: readonly Scenario[] = [
 
 // ------------------------------------------------------------------ table
 
+const windowBound = (name: string, lower: number, upper: number, actual: (character: Character) => number): Scenario => ({
+  area: "execution bounds", name: `${name}: ${lower}..${upper} frames`,
+  cite: "smashcraft:docs/gameplay-design.md, Execution and reaction windows (#69), adopted 6 Oct 2026",
+  run: (character) => {
+    const frames = actual(character);
+    return { expected: `within ${lower}..${upper}`, actual: frames >= lower && frames <= upper ? `within ${lower}..${upper}` : `${frames} frames` };
+  },
+});
+
+const EXECUTION_BOUNDS: readonly Scenario[] = [
+  windowBound("tech", 11, 20, () => TECH_WINDOW_FRAMES),
+  windowBound("tech lockout", 20, 40, () => TECH_REPEAT_MINIMUM_AGE_FRAMES),
+  windowBound("human attack buffer", 4, 10, () => ATTACK_BUFFER_FRAMES),
+  windowBound("jump squat / short-hop release", 3, 5, jumpSquatFrames),
+  windowBound("parry", 6, 10, () => DEMONHUNTER_PARRY_END - DEMONHUNTER_PARRY_START + 1),
+  windowBound("optional powershield", 2, 4, () => SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES),
+  windowBound("ledge intangibility", 30, 37, () => LEDGE_INTANGIBLE_FRAMES),
+  windowBound("ledge regrab lock", 30, 60, () => LEDGE_REGRAB_FRAMES),
+];
+
 const SCENARIOS: readonly Scenario[] = [
-  ...JUMPS, ...GROUND, ...FAST_FALL, ...LANDING, ...TECHS, ...GETUPS, ...KNOCKBACK, ...PLATFORMS, ...SURFACES, ...SHIELD_AND_DODGES, ...LEDGES,
+  ...JUMPS, ...GROUND, ...FAST_FALL, ...LANDING, ...TECHS, ...GETUPS, ...KNOCKBACK, ...PLATFORMS, ...SURFACES, ...SHIELD_AND_DODGES, ...LEDGES, ...EXECUTION_BOUNDS,
 ];
 
 const rowKey = (row: Pick<OracleRow, "area" | "scenario" | "fighter">): string => `${row.area} | ${row.scenario} | ${row.fighter}`;
