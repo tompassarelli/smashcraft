@@ -257,6 +257,12 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
   int("armor.shell", move.armor?.shell === true ? 1 : 0);
   if (move.placement !== undefined) result += specialPlacementCanonical(move.placement, `${name}.placement`);
   if (move.recall === true) int("recall", 1);
+  if (move.guard !== undefined) {
+    int("guard.first", move.guard.first);
+    int("guard.last", move.guard.last);
+    real("guard.heal", move.guard.heal);
+    real("guard.healCapPerStock", move.guard.healCapPerStock);
+  }
   const motion = move.motion ?? [];
   for (let index = 0; index < motion.length; index++) {
     const segment = at(motion, index);
@@ -265,7 +271,9 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
     real(`motion[${index}].velocityX`, segment.velocityX);
     real(`motion[${index}].velocityZ`, segment.velocityZ);
     real(`motion[${index}].aimedSpeed`, segment.aimedSpeed ?? 0.0);
+    if (segment.stopsAtBody === true) int(`motion[${index}].stopsAtBody`, 1);
     real(`motion[${index}].driftSpeed`, segment.driftSpeed ?? 0.0);
+    if (segment.stopsAtBody === true) int(`motion[${index}].stopsAtBody`, 1);
   }
   const poses = move.hurt ?? [];
   for (let index = 0; index < poses.length; index++) {
@@ -305,6 +313,11 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
     }
     result += hitEffectCanonical(region.hit.effect, `${name}.${part}.hit`);
     if (region.hit.groundedEffect !== undefined) result += hitEffectCanonical(region.hit.groundedEffect, `${name}.${part}.groundedHit`);
+  }
+  if (move.followUp !== undefined) {
+    int("followUp.first", move.followUp.window.first);
+    int("followUp.last", move.followUp.window.last);
+    result += specialMoveCanonical(move.followUp.special, `${name}.followUp`);
   }
   return result;
 }
@@ -649,6 +662,8 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
     for (let i = 0; i < PARTICIPANT_CAPACITY; i++) int(`placedStruck[${i}]`, placed.struck[i] ?? -1);
     int("placedSpecialStruck", placed.specialStruck);
     if (placed.spec !== undefined) emit(specialPlacementCanonical(placed.spec, `${prefix}.placedSpec`));
+    int("specialGuarded", sp.guarded ? 1 : 0);
+    real("guardHealed", st.guardHealed);
   }
   // Any fighter can carry a hero status; it is written only while one or its immunity is live.
   if (st.condition !== 0 || st.conditionImmunity.some(frames => frames !== 0)) {

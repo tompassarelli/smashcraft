@@ -7,12 +7,15 @@ import { stateChecksum } from "../replay/canonical";
 import { firstPoseDifference, firstStateDifference } from "../replay/difference";
 import { ReplayHistory } from "../replay/history";
 import { type ReplayState, captureReplaySnapshot, copyReplayState, createReplaySnapshot } from "../replay/snapshot";
-import { AttackStyle, Character, GrabAction } from "../sim/codes";
+import { AttackStyle, Character, GrabAction, SpecialAction } from "../sim/codes";
+import { HERO_ROSTER } from "../sim/heroes/registry";
+import { FOLLOW_UP_FORM, SpecialForm } from "../sim/heroSpecials";
 import { createFighter } from "../sim/fighter";
 import { attackDurationFramesForGrounding } from "../sim/moves";
 import { fighterAt, neutralControls } from "../sim/roster";
 import { soloWorld, testWorld } from "../sim/testWorld";
 import * as dh from "./demonHunterAssetInfo";
+import { specialClip } from "./fighterClips";
 import { advanceFighterPose, createFighterPose } from "./fighterPose";
 
 test("replaying rows from a restored frame reproduces each pose's selection and clock", () => {
@@ -166,3 +169,27 @@ test("an attack restart and a smash release keep their authored clips", () => {
   assertEquals(pose.clipTime, 0.0);
 });
 
+
+test("a hero special's follow-up plays its own follow-up clip, or the special's, from the start", () => {
+  for (const hero of HERO_ROSTER) {
+    const f = createFighter(hero.character, 0.0, 1);
+    const world = soloWorld(f);
+    const input = neutralControls();
+    const pose = createFighterPose();
+    f.special.action = SpecialAction.heroDown;
+    f.special.form = SpecialForm.ground;
+    f.special.frame = 8;
+    f.special.duration = 24;
+    advanceFighterPose(pose, f, world, input, false, false, false, false);
+    const base = specialClip(hero.character, SpecialAction.heroDown, true, false);
+    assertEquals(pose.clipIndex, base.index);
+    const selected = pose.selectionSerial;
+    f.special.form = SpecialForm.ground + FOLLOW_UP_FORM;
+    f.special.frame = 1;
+    f.special.duration = 37;
+    advanceFighterPose(pose, f, world, input, false, false, false, false);
+    assertEquals(pose.selectionSerial, selected + 1);
+    assertEquals(pose.clipTime, 0.0);
+    assertEquals(pose.clipIndex, (hero.presentation.clips.downSpecialFollowUp ?? base).index);
+  }
+});

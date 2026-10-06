@@ -19,7 +19,7 @@ import { MATCH_TICKS_PER_SECOND, Phase } from "../../src/game/match/rules";
 import { PLAYABLE_BUILD } from "../../src/game/shell/currentBuild";
 import { AttackStyle, Character, DownState, GrabAction, HippogryphKind, ProjectileKind, SpecialAction } from "../../src/game/sim/codes";
 import type { Fighter } from "../../src/game/sim/fighter";
-import { fighterName, heroDefinition } from "../../src/game/sim/heroes/registry";
+import { fighterName, heroDefinition, selectableCharacterBySlug } from "../../src/game/sim/heroes/registry";
 import { fighterAt, isActive } from "../../src/game/sim/roster";
 import { mainDeckLeft, mainDeckRight } from "../../src/game/sim/stage";
 import { install as installGame, startBuild } from "../../src/platform/main";
@@ -33,8 +33,6 @@ import { JournalHelpers } from "../rematch/journalHelper";
 import { SOAK_BUTTONS, STICK_DEAD_ZONE } from "./controller";
 import { CameraFindings } from "../cameraFindings";
 
-const CHARACTERS: Readonly<Record<string, Character>> = { archer: Character.archer, rifleman: Character.rifleman, illidan: Character.demonHunter };
-const NAMES: Readonly<Record<number, string>> = { [Character.archer]: "Archer", [Character.rifleman]: "Rifleman", [Character.demonHunter]: "Illidan" };
 const STAGES: Readonly<Record<string, number>> = { "sky-deck": 0, "three-bridges": 1, "frozen-throne": 2, "drifting-deck": 3, "patterned-decks": 4, "wind": 10, "carried": 11, "cannon": 12, "timed-lift": 13, "hellfire": 14 };
 const FRAME_MS = 1000 / 60;
 /** A one-stock match with a one-minute clock: each ends by a KO or by time. */
@@ -137,7 +135,7 @@ function readIn<T>(client: HeadlessClient, body: () => T): T {
 /** A match's fighters and stage as the game numbers them. */
 function matchChoices(match: SoakMatch): { readonly fighters: readonly Character[]; readonly stage: number } {
   const fighters = match.fighters.map((name) => {
-    const character = CHARACTERS[name];
+    const character = selectableCharacterBySlug(name);
     if (character === undefined) throw new Error(`no fighter named ${name}`);
     return character;
   });
@@ -227,7 +225,7 @@ export function matchView(journaled: (slot: number) => number | undefined): Pick
         const out = (world: typeof s.world | undefined) => world !== undefined && isActive(world, slot) && fighterAt(world, slot).status.out;
         if (fighterAt(s.world, slot).status.stocks <= 0 || out(s.world) || out(predicted)) return [];
         const character = s.game.characterChoices[slot];
-        return [{ name: `${NAMES[character] ?? fighterName(character)} (Player ${slot + 1})`, models: clipModels(character) }];
+        return [{ name: `${fighterName(character)} (Player ${slot + 1})`, models: clipModels(character) }];
       });
     },
   };

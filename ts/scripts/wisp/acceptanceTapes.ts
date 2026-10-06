@@ -301,6 +301,22 @@ const SHADOW_HUNTER: MatchScript = {
   predictions: [[140, 152], [430, 442]],
 };
 
+/** Uther's four specials (three rushes drain his mana to the free Ascension), Divine Guard against the Archer's jab, and his hammer normals and throw, replayed across each. */
+const UTHER: MatchScript = {
+  characters: [Character.uther, Character.archer], stage: 0, stocks: 3, minutes: 0, frames: 540,
+  holds: [[
+    [20, 2, SPECIAL], [80, 4, TOWARD], [81, 2, SPECIAL], [140, 4, DOWN], [141, 2, SPECIAL], [200, 4, TOWARD],
+    [201, 2, SPECIAL], [260, 4, AWAY], [261, 2, SPECIAL], [320, 3, JUMP], [332, 4, UP], [333, 2, SPECIAL],
+    [420, 2, ATTACK], [440, 8, DOWN], [442, 2, ATTACK], [460, 2, GRAB], [464, 4, TOWARD], [500, 2, C_RIGHT],
+  ], [
+    [40, 2, ATTACK], [90, 12, SHIELD_LEFT], [144, 2, ATTACK], [210, 2, ATTACK], [270, 2, ATTACK], [380, 2, GRAB],
+    [480, 10, SHIELD_RIGHT], [505, 2, ATTACK],
+  ]],
+  approaches: [[[400, 45]], [[1, 60], [120, 50], [190, 45], [360, 45], [470, 45]]],
+  rollbacks: [[24, 50], [84, 112], [140, 170], [330, 370], [500, 540]],
+  predictions: [[140, 152], [440, 452]],
+};
+
 /** Records the acceptance tapes by name, and checks they press every bound source. */
 export function generateTapes(): Map<string, string> {
   const pressed = [new Set<string>(), new Set<string>()];
@@ -308,10 +324,23 @@ export function generateTapes(): Map<string, string> {
     ["actions", recordTape("Every bound source pressed by both players, with short replays.", [ACTIONS], pressed)],
     ["rollback", recordTape("Combat replayed from one frame up to the whole retained history.", [ROLLBACK])],
     ["rematch", recordTape("A one-stock match ends, both players confirm the rematch, a new match runs.", [FIRST_MATCH, SECOND_MATCH])],
+    ["blademaster", recordTape("Blademaster's specials, follow-up, smashes, aerials and throws against Archer, with replays and corrected predictions.", [{
+      characters: [Character.blademaster, Character.archer], stage: 0, stocks: 3, minutes: 0, frames: 480,
+      holds: [[
+        [20, 2, SPECIAL], [70, 2, DOWN, SPECIAL], [82, 2, SPECIAL], [130, 2, TOWARD, SPECIAL], [190, 2, GRAB], [198, 2, UP],
+        [240, 3, JUMP], [246, 2, UP, SPECIAL], [300, 2, C_RIGHT], [330, 2, GRAB], [338, 2, DOWN], [370, 3, JUMP], [374, 2, ATTACK],
+        [410, 2, C_LEFT], [440, 2, UP, SPECIAL],
+      ], [
+        [40, 14, SHIELD_RIGHT], [100, 2, ATTACK], [150, 2, GRAB], [210, 2, SPECIAL], [260, 16, SHIELD_LEFT], [320, 2, ATTACK], [400, 2, SPECIAL],
+      ]],
+      approaches: [[[1, 60], [60, 70], [120, 140], [180, 45], [290, 60], [325, 45], [360, 60], [430, 60]], [[1, 80], [90, 50], [140, 45]]],
+      rollbacks: [...every(30, 470, 40, 8), [76, 100], [244, 290]], predictions: [[70, 86], [126, 140], [436, 450]],
+    }])],
     ["computer", recordTape("A player against the computer on the raised decks, with replays.", [COMPUTER])],
     ["lich", recordTape("Lich's specials, free recovery and normals against the Archer, with replays.", [LICH])],
     ["mountain-king", recordTape("Mountain King's specials, free Thunder Leap, normals and a throw against the Archer, with replays.", [MOUNTAIN_KING])],
     ["shadow-hunter", recordTape("Shadow Hunter's glaive, ward, Hex, recall, vault and normals against the Archer, with replays.", [SHADOW_HUNTER])],
+    ["uther", recordTape("Uther's specials, guard, free recovery and normals against the Archer, with replays.", [UTHER])],
     ["moving-platforms", recordTape("Moving decks, jumping, dropping through, predictions and rollback over complete path cycles.", [{
       characters: [Character.archer, Character.rifleman], stage: 3, stocks: 3, minutes: 0, frames: 620,
       holds: [[[1, 20, RIGHT, WALK], [30, 10, JUMP], [180, 3, DOWN], [240, 10, JUMP], [400, 10, JUMP]], [[1, 10, JUMP], [140, 3, DOWN], [300, 10, JUMP]]],

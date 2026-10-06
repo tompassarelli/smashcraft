@@ -1,12 +1,14 @@
 import { f32 } from "wisp/src/sim/f32";
-import { AttackStyle, GrabAction } from "../codes";
-import { HERO_REFERENCE_HEIGHT, heroMove, heroRegion, type FighterMoves, type StrikeCapsule } from "../heroMoves";
+import { AttackStyle, Character, GrabAction } from "../codes";
+import { hurtCapsule } from "../../physics/contactGeometry";
+import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion, type FighterMoves, type StrikeCapsule } from "../heroMoves";
 import type { HitEffect } from "../hitRegions";
+import { type FighterHurtboxes, type HurtPart, hurtPart } from "../hurtboxes";
 
 // Timings and damage: smashcraft:docs/design/roster.md. Original hammer paths
 // are provisional until checked against the matching animation poses.
 const SHORT = f32(HERO_REFERENCE_HEIGHT * f32(0.55));
-const MEDIUM = f32(HERO_REFERENCE_HEIGHT * f32(0.80));
+export const MEDIUM = f32(HERO_REFERENCE_HEIGHT * f32(0.80));
 const LONG = f32(HERO_REFERENCE_HEIGHT * f32(1.10));
 const GRAB = SHORT;
 
@@ -30,18 +32,20 @@ const DIRECTIONS = {
   50: { x: f32(0.6427876096865394), z: f32(0.766044443118978) },
   55: { x: f32(0.5735764363510462), z: f32(0.8191520442889918) },
   70: { x: f32(0.3420201433256688), z: f32(0.9396926207859083) },
+  80: { x: f32(0.17364817766693041), z: f32(0.984807753012208) },
   85: { x: f32(0.08715574274765814), z: f32(0.9961946980917455) },
   90: { x: 0.0, z: 1.0 },
   270: { x: 0.0, z: -1.0 },
 } as const;
 
-function hit(damage: number, launchClass: LaunchClass, angle: keyof typeof DIRECTIONS, backwards = false): Readonly<HitEffect> {
+/** Uther's provisional launch for a roster row: damage, tuning class and facing-relative angle. */
+export function hit(damage: number, launchClass: LaunchClass, angle: keyof typeof DIRECTIONS, backwards = false): Readonly<HitEffect> {
   const direction = DIRECTIONS[angle];
   const strength = CLASS_HYPOTHESES[launchClass];
   return { damage, growth: strength.growth, base: strength.base, launchX: backwards ? -direction.x : direction.x, launchZ: direction.z, electric: false };
 }
 
-const capsule = (x1: number, z1: number, x2: number, z2: number, radius: number): StrikeCapsule => ({ x1, z1, x2, z2, radius });
+export const capsule = (x1: number, z1: number, x2: number, z2: number, radius: number): StrikeCapsule => ({ x1, z1, x2, z2, radius });
 const head = (x: number, z: number, radius: number): StrikeCapsule => capsule(x, z, x, z, radius);
 const frame = (active: number, strike: StrikeCapsule, effect: Readonly<HitEffect>, groundedEffect?: Readonly<HitEffect>) => heroRegion(active, active, strike, effect, groundedEffect);
 
@@ -64,16 +68,58 @@ const DOWN_AIR = hit(13.0, "SPIKE", 270);
 const DOWN_AIR_GROUNDED = hit(13.0, "LAUNCH", 55);
 const GRAB_CONTACT = { damage: 0.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } as const;
 
+// Uther's body (smashcraft:docs/hurtboxes.md, gameplay-design.md "Legible
+// hurtboxes"). The hammer stays outside it, so a swing's reach past the
+// gauntlet is its disjoint; the swinging arm reaches toward each strike from
+// late startup into early recovery, at the hand heights of the Paladin's
+// "Attack - 1", "Attack - 2" and "Spell" sequences (utherClips.ts). The jab's
+// gauntlet, back air's boot and the grabbing hand are the strikes themselves.
+// Shoulder of Justice strikes with the torso.
+const body = hurtCapsule(Character.uther);
+const UTHER_TORSO = hurtPart(body.x1, body.z1, body.x2, body.z2, body.radius);
+const ARM_RADIUS = 10.0;
+/** The torso and the swinging arm from the shoulder to the hand. */
+export const utherReach = (handX: number, handZ: number): readonly HurtPart[] => [UTHER_TORSO, hurtPart(6.0, 88.0, handX, handZ, ARM_RADIUS)];
+const JAB_ARM = hurtPart(10.0, 66.0, f32(SHORT - 10.0), 60.0, 10.0);
+const GRAB_ARM = hurtPart(10.0, 56.0, f32(GRAB - 12.0), 40.0, 12.0);
+// Rearward Boot reaches 0.8H behind through a half-extended leg on each side,
+// keeping every body change within 60 units.
+const BOOT_TIP = -f32(MEDIUM - 11.0);
+const BOOT = hurtPart(-8.0, 42.0, BOOT_TIP, 30.0, 11.0);
+const HALF_BOOT = hurtPart(-8.0, 42.0, f32(BOOT_TIP * f32(0.6)), 36.0, 11.0);
+
+const UTHER_HURTBOXES: FighterHurtboxes = {
+  stand: [UTHER_TORSO],
+  attacks: {
+    [AttackStyle.jab]: [heroHurtPose(3, 10, [UTHER_TORSO, JAB_ARM])],
+    [AttackStyle.grab]: [heroHurtPose(6, 14, [UTHER_TORSO, GRAB_ARM])],
+    [AttackStyle.forwardTilt]: [heroHurtPose(7, 16, utherReach(44.0, 64.0))],
+    [AttackStyle.forwardTiltUp]: [heroHurtPose(7, 16, utherReach(40.0, 92.0))],
+    [AttackStyle.forwardTiltDown]: [heroHurtPose(7, 16, utherReach(44.0, 40.0))],
+    [AttackStyle.upTilt]: [heroHurtPose(6, 15, utherReach(10.0, 136.0))],
+    [AttackStyle.downTilt]: [heroHurtPose(5, 13, utherReach(44.0, 28.0))],
+    [AttackStyle.forwardSmash]: [heroHurtPose(18, 26, utherReach(48.0, 60.0))],
+    [AttackStyle.upSmash]: [heroHurtPose(15, 24, utherReach(8.0, 140.0))],
+    [AttackStyle.downSmash]: [heroHurtPose(14, 19, utherReach(44.0, 26.0)), heroHurtPose(20, 25, utherReach(-44.0, 26.0))],
+    [AttackStyle.neutralAir]: [heroHurtPose(6, 10, utherReach(44.0, 60.0)), heroHurtPose(11, 15, utherReach(-44.0, 60.0))],
+    [AttackStyle.forwardAir]: [heroHurtPose(10, 18, utherReach(46.0, 62.0))],
+    [AttackStyle.backAir]: [heroHurtPose(6, 8, [UTHER_TORSO, HALF_BOOT]), heroHurtPose(9, 13, [UTHER_TORSO, BOOT]), heroHurtPose(14, 16, [UTHER_TORSO, HALF_BOOT])],
+    [AttackStyle.upAir]: [heroHurtPose(6, 13, utherReach(6.0, 136.0))],
+    [AttackStyle.downAir]: [heroHurtPose(12, 20, utherReach(4.0, 20.0))],
+  },
+};
+
 export const UTHER_MOVES: FighterMoves = {
   dashAttack: AttackStyle.dashAttack,
   smashMaxChargeFrames: 45,
   smashMaxDamageMultiplier: 1.25,
   maxPummels: 2,
+  hurtboxes: UTHER_HURTBOXES,
   normals: {
-    // Until limb hurt poses exist, unarmed contacts stay on the exposed body.
+    // The gauntlet reaches 0.55H; the arm's hurt part (UTHER_HURTBOXES) reaches it too.
     [AttackStyle.jab]: heroMove(5, 2, 15, 0, [
-      frame(5, capsule(10.0, 40.0, 14.0, 46.0, 10.0), JAB),
-      frame(6, capsule(10.0, 40.0, 12.0, 43.0, 10.0), JAB),
+      frame(5, capsule(24.0, 64.0, f32(SHORT - 10.0), 60.0, 10.0), JAB),
+      frame(6, capsule(24.0, 64.0, f32(SHORT - 14.0), 60.0, 10.0), JAB),
     ]),
     [AttackStyle.forwardTilt]: heroMove(10, 3, 23, 0, [
       frame(10, capsule(22.0, 64.0, 115.0, 86.0, 12.0), FORWARD_TILT),
@@ -140,9 +186,9 @@ export const UTHER_MOVES: FighterMoves = {
       frame(16, capsule(18.0, 42.0, 95.0, 0.0, 14.0), FORWARD_AIR),
     ]),
     [AttackStyle.backAir]: heroMove(9, 3, 24, 14, [
-      frame(9, capsule(-8.0, 16.0, -14.0, 24.0, 10.0), BACK_AIR),
-      frame(10, capsule(-8.0, 18.0, -14.0, 18.0, 10.0), BACK_AIR),
-      frame(11, capsule(-8.0, 16.0, -10.0, 10.0, 10.0), BACK_AIR),
+      frame(9, capsule(-30.0, 38.0, -f32(MEDIUM - 10.0), 32.0, 10.0), BACK_AIR),
+      frame(10, capsule(-30.0, 36.0, -f32(MEDIUM - 10.0), 30.0, 10.0), BACK_AIR),
+      frame(11, capsule(-30.0, 34.0, -f32(MEDIUM - 16.0), 26.0, 10.0), BACK_AIR),
     ]),
     [AttackStyle.upAir]: heroMove(8, 4, 23, 14, [
       frame(8, head(30.0, 82.0, 14.0), UP_AIR),
@@ -157,7 +203,7 @@ export const UTHER_MOVES: FighterMoves = {
       frame(18, capsule(-4.0, 10.0, -20.0, -75.0, 12.0), DOWN_AIR, DOWN_AIR_GROUNDED),
     ]),
     [AttackStyle.grab]: heroMove(8, 2, 25, 0, [
-      heroRegion(8, 9, capsule(14.0, 14.0, f32(GRAB - 14.0), 24.0, 14.0), GRAB_CONTACT),
+      heroRegion(8, 9, capsule(14.0, 44.0, f32(GRAB - 12.0), 36.0, 12.0), GRAB_CONTACT),
     ]),
   },
   throws: {

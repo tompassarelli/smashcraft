@@ -13,7 +13,7 @@ data record; the simulation, replay, selection and object data read it.
 - `ts/src/game/sim/heroes/<hero>Hero.ts` is one hero's `HeroDefinition`
   (`sim/heroes/hero.ts`): product name, purpose, weakness, `moves`
   (`FighterMoves`, `sim/heroMoves.ts`), `specials` (`FighterSpecials`,
-  `sim/heroSpecials.ts`), presentation (Warcraft model, base unit, object
+  `sim/heroSpecials.ts`), presentation (Warcraft model, object
   code, portrait, projectile model, per-pose clips with a fallback) and
   `complete`.
 - `ts/src/game/sim/heroes/heroBodies.ts` holds the roster's weight, run,
@@ -48,7 +48,9 @@ acts again on N+1. It may author:
   `aimedSpeed` replaces the direction with one of eight aimed directions;
   `aimedTilt` turns a horizontal heading to a fixed angle for an up or down
   aim (Pursuit Lunge's 20 degrees); `driftSpeed` adds the live stick's x at
-  that many units per frame (Spectral Ascent's steering);
+  that many units per frame (Spectral Ascent's steering); `stopsAtBody`
+  clamps forward travel to end just short of a raised shield or another
+  fighter's body (Wind Walk Strike);
 - `aimFrames`: through this frame a held stick re-chooses the aim, so an up
   special can still be aimed sideways or down; without it the aim is the
   stick on entry;
@@ -70,6 +72,18 @@ acts again on N+1. It may author:
   armed once on its first frame, lasts through its last even after the
   action ends, is spent by one hit, and blocks starting the special again
   while any armor remains;
+- `followUp`: `{ window, special }`. A new special press inside the window
+  replaces the rest of the action with `special`, whose frame 1 is the press
+  tick; it spends its own cost, clears the hit registry and cannot itself be
+  followed up. The running form records it (base form + `FOLLOW_UP_FORM`), so
+  rollback restores it, and it plays the `<slot>SpecialFollowUp` pose when the
+  hero's clip table maps one (Mirror Feint's slash);
+- a `guard` window with `heal` and `healCapPerStock`: when an opponent's
+  damaging strike, hero special strike or projectile overlaps the fighter's
+  body during it, the action records one success and restores `heal` damage
+  percent, never more than `healCapPerStock` in a stock (`resolveHeroGuards`,
+  run before specials advance). It protects nothing itself; pair it with
+  `intangible`. The success and the stock's healing are fighter state;
 - `groundOnly`, `oncePerAirtime`, `helpless` and `landingLag`;
 - `placement`: the fighter's one placed object (`SpecialPlacement`, such as
   Serpent Ward), standing `offsetX` ahead of the caster's feet from the
@@ -119,3 +133,26 @@ enough mana" for about three quarters of a second after each refused press
 (`ui/manaReadout.ts`). There is no ultimate action, so ultimates stay off.
 
 The shared contracts are in `ts/src/game/sim/heroSpecials.tests.ts`.
+
+## Presentation
+
+- A hero draws with its fighter unit, made from its own object (base `earc`,
+  like the original fighters, so no hero icon or experience bar shows) with
+  the hero's stock model. The unit plays each clip by sequence index
+  (`SetUnitAnimationByIndex`): an animation name picks at random among
+  same-named variants, and this game build has no by-index special-effect
+  native, so the original fighters' effect pool is not used for heroes.
+- `presentation.clips` is a `HeroClipTable` (`sim/heroes/hero.ts`): pose to
+  `{ index, seconds }`. Pose selection (`presentation/fighterPose.ts`) fits
+  `seconds` to the action's frames. The original fighters fill the same table
+  from their packaged clips (`presentation/fighterClips.ts`). A pose the table
+  leaves out plays `fallback`, except the `HeroStatePose` states (dash, run,
+  crouch, fall, landing, shield, air dodge, smash charge, KO, dizzy), which
+  keep the original fighters' pose for that state.
+- The drawn body keeps clear of stage faces with Archer's body envelope
+  stretched by the hero's width and height (`presentation/fighterPlacement.ts`).
+- Star KOs fly the hero's own model off; there is one KO body per star-KO
+  impact and selectable fighter (`render/combatEffects.ts`).
+- The scene report counts a shown hero unit as drawn under its model
+  (`platform/sceneReport.ts` passes Wisp's `unitModel`), and the player view
+  declares every hero model, with model facts read from the classic models.

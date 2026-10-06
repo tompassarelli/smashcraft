@@ -22,15 +22,17 @@ import { canAttack } from "../src/game/sim/conditions";
 import { type Fighter, createFighter } from "../src/game/sim/fighter";
 import { attackStartupFrames } from "../src/game/sim/moves";
 import { createRoster, fighterAt } from "../src/game/sim/roster";
+import { SELECTABLE_CHARACTERS, fighterName } from "../src/game/sim/heroes/registry";
 import { type AgencyReport, ESCAPE_FRAMES, type Loop, TIGHT_ESCAPE, agencyLetters, analyzeAgency, runFrame, sameGameplay, snapshotOf } from "./agency";
 import { exportComparisons } from "./moveComparisons";
 
-export const FIGHTERS = [
-  { name: "Archer", character: Character.archer },
-  { name: "Rifleman", character: Character.rifleman },
-  { name: "Illidan", character: Character.demonHunter },
-] as const;
-type Entry = (typeof FIGHTERS)[number];
+interface Entry {
+  readonly name: string;
+  readonly character: Character;
+}
+
+/** Every selectable fighter: the original three and each complete hero. */
+export const FIGHTERS: readonly Entry[] = SELECTABLE_CHARACTERS.map((character) => ({ name: fighterName(character), character }));
 const nameOf = (character: number) => FIGHTERS.find((entry) => entry.character === character)?.name ?? "fighter";
 
 const PERCENTS = Array.from({ length: 16 }, (_, index) => index * 10);
