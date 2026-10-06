@@ -21,9 +21,12 @@ export interface DeckPalette {
   readonly underside: Rgb;
 }
 
+/** Sky Deck's deck materials. */
+export const NEUTRAL_DECK_PALETTE: DeckPalette = { top: STAGE_PALETTE.slate, lip: STAGE_PALETTE.brass, body: STAGE_PALETTE.charcoal, underside: STAGE_PALETTE.steel };
+
 /** Each selectable stage's deck palette; the first is the neutral one. */
 export const STAGE_DECK_PALETTES: readonly { readonly stage: number; readonly theme: string; readonly palette: DeckPalette }[] = [
-  { stage: 0, theme: "Sky", palette: { top: STAGE_PALETTE.slate, lip: STAGE_PALETTE.brass, body: STAGE_PALETTE.charcoal, underside: STAGE_PALETTE.steel } },
+  { stage: 0, theme: "Sky", palette: NEUTRAL_DECK_PALETTE },
   // Icecrown ice over dark saronite.
   { stage: FROZEN_THRONE_STAGE, theme: "Icecrown", palette: { top: [200, 226, 240], lip: [92, 132, 168], body: [38, 48, 66], underside: [58, 72, 92] } },
   // Silvered Night Elf bark with a moonwell-teal lip.

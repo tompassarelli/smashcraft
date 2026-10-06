@@ -4,7 +4,7 @@
 // smashcraft:ts/src/game/sim/stage.ts, as one outline extruded through the
 // deck's depth. Plain data and MDL text, so the logic tests check the model
 // against the collision lines without the model compiler.
-import { type DeckPalette, STAGE_DECK_PALETTES } from "../src/game/assets/stagePalette";
+import { type DeckPalette, NEUTRAL_DECK_PALETTE } from "../src/game/assets/stagePalette";
 import { SurfaceContact } from "../src/game/sim/codes";
 import { MAIN_DECK_BODY_SURFACES, mainDeckLeft, mainDeckRight, mainDeckZ, solidSurfaceAt } from "../src/game/sim/stage";
 
@@ -33,7 +33,7 @@ export function paletteTexture(palette: DeckPalette) {
 }
 
 /** The neutral palette's texture. */
-export const STAGE_PALETTE_TEXTURE = paletteTexture(STAGE_DECK_PALETTES[0]!.palette);
+export const STAGE_PALETTE_TEXTURE = paletteTexture(NEUTRAL_DECK_PALETTE);
 
 type OutlineKind = "floor" | "wall" | "ceiling";
 
