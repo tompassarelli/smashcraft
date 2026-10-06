@@ -100,7 +100,7 @@ export interface RigShape {
   readonly stop: (target: StallTarget) => Effect.Effect<Stopped, IntegrityFailure>;
   readonly resume: (stopped: Stopped) => Effect.Effect<void>;
   /** Waits until a client's screen shows text matching `pattern`, and returns the text read. */
-  readonly waitText: (client: Slot, pattern: RegExp) => Effect.Effect<string, IntegrityFailure>;
+  readonly waitText: (client: Slot, pattern: RegExp, region?: Region) => Effect.Effect<string, IntegrityFailure>;
   /** Reads one region of a client's screen once. */
   readonly readText: (client: Slot, region: Region) => Effect.Effect<string, IntegrityFailure>;
   readonly click: (client: Slot, x: number, y: number) => Effect.Effect<void, IntegrityFailure>;
@@ -140,6 +140,9 @@ export interface JourneyOptions {
 }
 
 const CONTROLS = /CONTROLS/i;
+/** The selection help row: whole-screen word OCR drops its small Controls label. */
+const SELECTION_HELP: Region = { x: 350, y: 1000, width: 1850, height: 400 };
+const REMATCH_SETTING: Region = { x: 390, y: 655, width: 555, height: 90 };
 const RESULTS = /wins|rematch/i;
 /**
  * The result announcement, view.ts's notice frame at (0.26, 0.47) sized 0.42 by
@@ -255,7 +258,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
 
   const characterScreen = Effect.gen(function*() {
     yield* menuPhase("CHARACTER");
-    yield* rig.waitText(0, CONTROLS);
+    yield* rig.waitText(0, CONTROLS, SELECTION_HELP);
   });
 
   /** Both pads pick their highlighted fighter; A's Start picks the stage. */
@@ -703,8 +706,9 @@ export function journey(rig: RigShape, options: JourneyOptions) {
     if (matchOnly || bot) yield* oneMinute;
     if (matchOnly || playable || bot) yield* reduceStocks;
     if (bot) {
-      yield* clickRule("automaticRematch");
-      yield* both(client => rig.waitText(client, /Automatic rematch: On/i));
+      const rematch = yield* rig.readText(1, REMATCH_SETTING);
+      if (!/Automatic rematch: On/i.test(rematch)) yield* clickRule("automaticRematch");
+      yield* both(client => rig.waitText(client, /Automatic rematch: On/i, REMATCH_SETTING));
       if (diagnosticBuild) yield* devCommand(firstEpoch, "-dev rematch 20", " rematchSeconds=20 ");
     }
     // #26's named integrity workload plays INTEGRITY_STOCKS in every match: its stalls, pause and

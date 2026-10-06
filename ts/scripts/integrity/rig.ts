@@ -193,10 +193,10 @@ export function liveRig(parts: LiveRigParts): RigShape {
       ? stopHelperProcess(parts.helpers, target)
       : stopProcess(parts.gamePids[target.slot]).pipe(Effect.as({ target, pid: parts.gamePids[target.slot] } satisfies Stopped)),
     resume: ({ pid }) => continueProcess(pid),
-    waitText: (client, pattern) =>
+    waitText: (client, pattern, region) =>
       Effect.gen(function*() {
         // Light labels and the gold menu labels each read only after separating their ink.
-        const screen = Effect.all([read(clients[client], undefined, "light"), read(clients[client], undefined, "gold")], { concurrency: 2 }).pipe(
+        const screen = Effect.all([read(clients[client], region, "light"), read(clients[client], region, "gold")], { concurrency: 2 }).pipe(
           Effect.map(([light, gold]) => `${light}\n${gold}`),
         );
         let last = "";
