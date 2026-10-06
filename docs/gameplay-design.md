@@ -847,23 +847,24 @@ stays Melee's raise-timed press, so a parry is a read of the hit's timing.
    aerial approach a guess. Shields and parries are ground tools; airborne
    defence is the air dodge and a fighter's counter specials.
 
-### Powershield versus counter specials
+### Powershield, counter specials and guard specials
 
 Melee keeps the universal powershield apart from per-character counters
-(Marth's and Roy's Counter), and Smashcraft keeps that split:
+(Marth's and Roy's Counter), and Smashcraft keeps that split, with a third
+kind of defensive special beside the counters:
 
-| | Universal powershield | Counter specials |
-|---|---|---|
-| Who | Every fighter, through the shared shield | Fighters whose kit authors one: Illidan's parry (Parry Step), Uther's Divine Guard (#96) |
-| Input | The ordinary shield press, timed | A special move |
-| Commitment | None beyond the shield: a press that parries nothing is an ordinary shield | Startup, a counter window and recovery; a whiff is punishable |
-| Reward | No shieldstun or release lag and next-frame action with the defender's own grounded option, which can still be the wrong choice | An automatic strike or effect authored by the move, such as Parry Step cancelling the attack and launching the attacker |
-| Against strings | One press per hit; the red parry rejoins a string | The move's own window |
+| | Universal powershield | Counter specials | Guard specials |
+|---|---|---|---|
+| Who | Every fighter, through the shared shield | Fighters whose kit authors one: Illidan's parry (Parry Step) | Fighters whose kit authors one: Uther's Divine Guard (#96) |
+| Input | The ordinary shield press, timed | A special move | A special move |
+| Commitment | None beyond the shield: a press that parries nothing is an ordinary shield | Startup, a counter window and recovery; a whiff is punishable | Startup, a guard window and recovery; a whiff is punishable, and grabs beat it |
+| Reward | No shieldstun or release lag and next-frame action with the defender's own grounded option, which can still be the wrong choice | An automatic strike authored by the move: Parry Step cancels the attack and launches the attacker | A non-strike reward and no automatic strike: Divine Guard is intangible through its window and heals 3% once on a successful guard, capped per stock |
+| Against strings | One press per hit; the red parry rejoins a string | The move's own window | The move's own window |
 
 The powershield never strikes back on its own: the punish is the defender's
-choice and execution. A counter is a committed read with an automatic payoff
-and a whiff punish.
-
+choice and execution. A counter is a committed read with an automatic strike
+and a whiff punish. A guard special is a committed read whose payoff is
+something other than a strike, such as healing, with the same whiff punish.
 ## Projectiles and powershield
 
 Delegated choices, 6 Oct 2026 (#98), under the owner's direction that
