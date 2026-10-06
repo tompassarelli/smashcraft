@@ -117,8 +117,8 @@ test("Chill lowers run and air drift speed, stops at a shield and cannot chain i
     for (let f = 0; f < 30; f++) frame(world, controls(), controls({ direction: -1 }));
     return f32(x - target.motion.x);
   };
-  assertLessThan(travel(true, false), f32(travel(false, false) * 0.7));
-  assertLessThan(travel(true, true), f32(travel(false, true) * 0.7));
+  assertLessThan(travel(true, false), f32(travel(false, false) * f32(0.7)));
+  assertLessThan(travel(true, true), f32(travel(false, true) * f32(0.7)));
   const guarded = lichPair(300.0);
   frame(guarded.world, neutral, shield);
   for (let f = 2; f <= 60; f++) frame(guarded.world, controls(), shield);
