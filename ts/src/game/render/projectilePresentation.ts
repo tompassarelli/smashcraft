@@ -2,12 +2,15 @@
 // destroyed only in the synchronized match lifecycle; projecting never
 // allocates handles. Particles the engine emits are not replay state.
 import { Character } from "../sim/codes";
+import { heroDefinition } from "../sim/heroes/registry";
 import { PROJECTILE_CAPACITY, type Fighter } from "../sim/fighter";
 import { f32 } from "wisp/src/sim/f32";
 import { type ParkedFlags, STOCK_MODELS, type WorldOrigin, parkOnce } from "./effects";
 import { projectedProjectile } from "../presentation/projectilePose";
 
 function projectileModel(character: Character): string {
+  const hero = heroDefinition(character);
+  if (hero !== undefined) return hero.presentation.projectileModel;
   return character === Character.demonHunter ? STOCK_MODELS.manaFlareMissile : character === Character.archer ? STOCK_MODELS.arrowMissile : STOCK_MODELS.gyroCopterMissile;
 }
 
