@@ -200,6 +200,101 @@ checks that every oracle departure names a row here.
   take their damage. smashcraft:docs/physics.md, "Archer arrows: damage without
   interruption", has the rule.
 
+## Character trade-offs and move evaluation
+
+Evaluation model selected under the owner's authorization, 6 Oct 2026 (#62).
+Use the current Archer, Rifleman and Illidan, with jab, down tilt, forward smash,
+forward air and down air as the first sample. The numerical baseline is
+smashcraft:tools/move-data/gameplay-model.json, derived from the published
+move exports, contextual comparisons, interaction graph and retained bot data;
+it is an analysis artifact, never gameplay tuning input.
+
+### Numerical identities
+
+These are authored values at d1971253, rounded for display. Run and air speed
+are world units per frame. Reach below is the hit capsule's forward extent
+relative to its fighter, before adding the opponent's hurt capsule; it is not
+an effective range or a guaranteed connection. All three have a 4-frame,
+5-damage jab, with 21 unpaused frames total. Down tilt starts on frame 5 and
+lasts 28 frames; forward smash starts on 6 and lasts 36.
+
+| Fighter | Weight | Run / air speed | Jump squat | Down tilt damage / reach | Forward smash damage / reach | Down air active frames |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Archer | 75 | 13.20 / 4.98 | 3 | 8 / 145 | 18 / 121 | 20 |
+| Rifleman | 80 | 9.00 / 4.98 | 5 | 10 / 145 | 18 / 121 | 3 |
+| Illidan | 80 | 11.10 / 5.28 | 4 | 7 / 115 | 15 / 171 | 3 |
+
+Archer pays for the fastest run and jump start with the lowest weight.
+Rifleman's down tilt pays more damage at Archer's timing and reach, while his
+run is slower and jump start later. Illidan's forward smash reaches farther
+but deals less, and his down tilt gives up both damage and reach; his air speed
+is highest. These are the strengths and costs to preserve or deliberately
+replace when authoring the fighters' original volumes and animations.
+
+### Model and provisional targets
+
+Evaluate a move in a named situation: fighter and opponent, stage, spacing,
+percent, grounded/airborne state, timing, and DI/defensive policy. The definitions
+of frame advantage, reachable punishment and weighted choices come from
+[fighting-game design](design/fighting-games.md#frame-advantage-safety-and-punishes)
+and the [interaction graph](design/platform-fighters.md#the-interaction-graph).
+
+- **Option count N:** group inputs by their ordered outcome against every
+  tested response (winner, hit/grab/none, blocked). Count distinct groups;
+  keep timing and damage alongside them. The neutral mirror fixtures offer
+  13 inputs each, but N is 8 at distance 60 for all three, and 6/6/7 at 120
+  for Archer/Rifleman/Illidan. This is a coarse sampled distinction, not a
+  count of all strategic choices. Provisional target: at least three distinct
+  patterns in each ordinary neutral sample, with each attacking choice denied
+  by a reachable block, evasion or counter in that named situation.
+- **Punish window P:** retain the exact set of start frames that land before
+  the target can act, and its longest contiguous interval. Do not turn holes
+  into a continuous window or infer a punish from negative advantage alone.
+  Close advancing down air is -8/-10/-8 in the three mirror fixtures; jump
+  neutral air and jump back air each punish from frames 12 and 13. Spaced
+  fade-back forward air is -2 for all three and has no tested reachable punish.
+  Of the 30 aerial/shield variants per fighter, 19/19/20 have no tested punish.
+  Preserve the spacing-dependent safe/unsafe distinction rather than making
+  every aerial uniformly safe or unsafe.
+- **Reward and risk:** use direct damage R on a successful named hit and
+  damage C from a specified reachable punish, then report R/C and the binary
+  break-even success probability C/(R+C). Keep stock loss, follow-up situation
+  and escape choices separate; do not convert them into invented damage points.
+  If no tested punish reaches, C and the ratio are unknown, not zero/infinity.
+  Provisional target: extra reward pays in an observed cost (commitment,
+  exposure, fewer safe spacings or a stronger punish), not merely a slower
+  number whose consequence no opponent can exploit.
+
+In the grounded first-active, spacing-60, 0% contact fixture against Rifleman,
+Illidan's forward smash deals 15 and is -6 at the normal-action gate after
+shield release. An approaching Rifleman jab starts at 32 and hits at 36 before
+Illidan acts at 37: a 5-damage cost, R/C = 3, break-even 25% for precisely that
+binary branch. Archer and Rifleman deal 18 and are -4; no tested jab reaches
+before recovery, so their ratios remain unknown. These comparisons are not
+the mirror fixture's earliest out-of-shield gate or a full payoff matrix.
+
+### Predictions and the role of bots
+
+The existing fixtures make three falsifiable predictions for this sample:
+Archer's long-active down air remains punishable at close advancing spacing
+while his spaced fade-back forward air is safe against the tested responses;
+Rifleman's stronger down tilt produces 18 hitstun frames against weight 100
+versus Archer's 17 at the same timing and reach; Illidan's longer-reaching
+forward smash still permits the specified shield-release jab punish. Evaluate
+any proposed change against these named rows with the existing move and
+interaction commands, then retain its before/after effect on N, P and R/C.
+
+The retained post-down-tilt 540-match bot run supplies historical context:
+CPU-versus-fuzz wins were 118/120, 120/120 and 116/120, and damage per landed
+hit 8.86, 7.03 and 8.32 for Archer, Rifleman and Illidan. Repeated deterministic
+CPU setups are not independent samples. The Rifleman change moved 118 to 120
+wins, while two unrelated fuzz matches also changed; that run did not resolve
+a balance effect. Its policy, stages and revision are named in
+smashcraft:evidence/rifleman-down-tilt-20261006/README.md. Later gameplay changes
+mean these are historical observations, not present balance, human win odds,
+or a complete formula for fun. A playable change and its relevant bot/geometry
+measurement remain the acceptance work in #62 after #61.
+
 ## Stale moves and freshness bonuses
 
 Smashcraft deliberately has neither stale-move penalties nor freshness bonuses.

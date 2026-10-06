@@ -1,0 +1,89 @@
+{
+  "schema": 1,
+  "baselineRevision": "d1971253475797b591a8c8af4ec138692c05d98c",
+  "units": "world units; frames at 60 Hz; damage in percent points",
+  "sources": {
+    "moves": "smashcraft:tools/move-data/moves.jsonl at 931ddc8c",
+    "graph": "smashcraft:tools/move-data/interactions/interactions.jsonl at 3d40e321",
+    "comparisons": "smashcraft:tools/move-data/comparisons.jsonl at 931ddc8c",
+    "physics": "smashcraft:ts/src/game/sim/tuning.ts at d1971253",
+    "bots": "smashcraft:evidence/rifleman-down-tilt-20261006/outcomes-cpu-after.jsonl; 540 matches, 563 records deduplicated by seed/index/stage/fighters/policies"
+  },
+  "conditions": {
+    "neutral": "mirror, stage 0, 0%, distance 60 or 120; first successful contact or both actionable; signatures include winner, contact kind, blocked and exclude frame differences",
+    "aerials": "mirror, stage 0, 0%, short-hop shield approach; exact named spacing/drift; punish starts land before attacker acts",
+    "smashPayoffs": "all fighters hit Rifleman, 0%, stage 0, spacing 60, first-active contact checkpoint; shield released after contact; only jab/forward-tilt candidates, normal action gate; uniform 5-damage jab cost from move export",
+    "bots": "historical computer-versus-fuzz, one stock, one minute, two stages, 120 matches per CPU fighter; later gameplay changes mean these are not current balance"
+  },
+  "definitions": {
+    "optionCount": "number of distinct ordered response signatures, not input bindings or demonstrated human choices",
+    "punishWindow": "exact set of press/start frames with reachable contact strictly before target can act; never replace disconnected intervals with min..max",
+    "riskReward": "conditional single-hit reward divided by the damage of a named reached punish; null when that branch was not observed, not infinite reward",
+    "breakEven": "loss/(reward+loss) for a binary hit-or-that-punish branch; no inferred human probability"
+  },
+  "fighters": [
+    {
+      "fighter": "Archer",
+      "weight": 75,
+      "runSpeed": 13.200000762939453,
+      "airSpeed": 4.980000019073486,
+      "terminalSpeed": 16.799999237060547,
+      "jumpSquat": 3,
+      "jab": {"move":"jab","startup":4,"active":2,"total":21,"damage":[5],"forwardExtent":80,"hitstunAtWeight100":[16]},
+      "downTilt": {"move":"down-tilt","startup":5,"active":2,"total":28,"damage":[8],"forwardExtent":145,"hitstunAtWeight100":[17]},
+      "forwardSmash": {"move":"forward-smash","startup":6,"active":3,"total":36,"damage":[18],"forwardExtent":121,"hitstunAtWeight100":[25]},
+      "downAir": {"active":20},
+      "sampledShieldSafety": {"safe":19,"total":30},
+      "historicalCpuVsFuzz": {"matches":120,"wins":118,"dealt":6522.925430297852,"landed":736,"damagePerHit":8.862670421600342}
+    },
+    {
+      "fighter": "Rifleman",
+      "weight": 80,
+      "runSpeed": 9,
+      "airSpeed": 4.980000019073486,
+      "terminalSpeed": 18.599998474121094,
+      "jumpSquat": 5,
+      "jab": {"move":"jab","startup":4,"active":2,"total":21,"damage":[5],"forwardExtent":80,"hitstunAtWeight100":[16]},
+      "downTilt": {"move":"down-tilt","startup":5,"active":2,"total":28,"damage":[10],"forwardExtent":145,"hitstunAtWeight100":[18]},
+      "forwardSmash": {"move":"forward-smash","startup":6,"active":3,"total":36,"damage":[18],"forwardExtent":121,"hitstunAtWeight100":[25]},
+      "downAir": {"active":3},
+      "sampledShieldSafety": {"safe":19,"total":30},
+      "historicalCpuVsFuzz": {"matches":120,"wins":120,"dealt":5655.54035949707,"landed":805,"damagePerHit":7.0255159745305225}
+    },
+    {
+      "fighter": "Illidan",
+      "weight": 80,
+      "runSpeed": 11.100000381469727,
+      "airSpeed": 5.279999732971191,
+      "terminalSpeed": 18,
+      "jumpSquat": 4,
+      "jab": {"move":"jab","startup":4,"active":2,"total":21,"damage":[5],"forwardExtent":80,"hitstunAtWeight100":[15]},
+      "downTilt": {"move":"down-tilt","startup":5,"active":2,"total":28,"damage":[7],"forwardExtent":115,"hitstunAtWeight100":[14]},
+      "forwardSmash": {"move":"forward-smash","startup":6,"active":3,"total":36,"damage":[15],"forwardExtent":171,"hitstunAtWeight100":[25]},
+      "downAir": {"active":3},
+      "sampledShieldSafety": {"safe":20,"total":30},
+      "historicalCpuVsFuzz": {"matches":120,"wins":116,"dealt":4967.437526702881,"landed":597,"damagePerHit":8.320665873874173}
+    }
+  ],
+  "neutral": [
+    {"fighter":"Archer","distance":60,"rawOptions":13,"distinctSignatures":8},
+    {"fighter":"Archer","distance":120,"rawOptions":13,"distinctSignatures":6},
+    {"fighter":"Rifleman","distance":60,"rawOptions":13,"distinctSignatures":8},
+    {"fighter":"Rifleman","distance":120,"rawOptions":13,"distinctSignatures":6},
+    {"fighter":"Illidan","distance":60,"rawOptions":13,"distinctSignatures":8},
+    {"fighter":"Illidan","distance":120,"rawOptions":13,"distinctSignatures":7}
+  ],
+  "aerials": [
+    {"fighter":"Archer","aerial":"forward air","spacing":"spaced","drift":"fade-back","distance":264,"separation":170.22,"advantage":-2,"punishes":[]},
+    {"fighter":"Archer","aerial":"down air","spacing":"unspaced","drift":"advancing","distance":48,"separation":-20.88,"advantage":-8,"punishes":[{"punisher":"jump neutral air","starts":[12,13]},{"punisher":"jump back air","starts":[12,13]}]},
+    {"fighter":"Rifleman","aerial":"forward air","spacing":"spaced","drift":"fade-back","distance":282,"separation":168.6,"advantage":-2,"punishes":[]},
+    {"fighter":"Rifleman","aerial":"down air","spacing":"unspaced","drift":"advancing","distance":48,"separation":-30.54,"advantage":-10,"punishes":[{"punisher":"jump neutral air","starts":[12,13]},{"punisher":"jump back air","starts":[12,13]}]},
+    {"fighter":"Illidan","aerial":"forward air","spacing":"spaced","drift":"fade-back","distance":270,"separation":182.22,"advantage":-2,"punishes":[]},
+    {"fighter":"Illidan","aerial":"down air","spacing":"unspaced","drift":"advancing","distance":48,"separation":-13.38,"advantage":-8,"punishes":[{"punisher":"jump neutral air","starts":[12,13]},{"punisher":"jump back air","starts":[12,13]}]}
+  ],
+  "smashPayoffs": [
+    {"fighter":"Archer","immediateHitDamage":18,"shieldNormalGateAdvantage":-4,"shieldSeparation":163.56002044677734,"reachingJabTrials":[],"branchLossDamage":null,"branchRewardRisk":null,"branchBreakEvenSuccessProbability":null},
+    {"fighter":"Rifleman","immediateHitDamage":18,"shieldNormalGateAdvantage":-4,"shieldSeparation":163.56002044677734,"reachingJabTrials":[],"branchLossDamage":null,"branchRewardRisk":null,"branchBreakEvenSuccessProbability":null},
+    {"fighter":"Illidan","immediateHitDamage":15,"shieldNormalGateAdvantage":-6,"shieldSeparation":134.07601165771484,"reachingJabTrials":[{"start":32,"contact":36,"opponentReady":37,"approach":true,"delay":1}],"branchLossDamage":5,"branchRewardRisk":3,"branchBreakEvenSuccessProbability":0.25}
+  ]
+}
