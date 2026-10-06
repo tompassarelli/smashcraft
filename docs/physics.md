@@ -2362,7 +2362,8 @@ if they remain in range. KO and reset clear both placed and frozen state.
 
 Numerical state lives in `FighterState.freezeTrapLife`, `freezeTrapArming`,
 `freezeTrapX/Z`, `freezeTrapSurface`, `freezeTrapSerial`, `freezeTrapCooldown`
-and `frozenFrames`. Snapshot restore copies and compares these fields exactly.
+and `frozenFrames`/`freezeImmunityFrames`. Snapshot restore copies and compares
+these fields exactly.
 The trap and ice shell are presentation only; animation, visual timing and
 native multiplayer behavior require a loaded Warcraft build to validate.
 
