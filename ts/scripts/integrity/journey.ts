@@ -6,6 +6,7 @@
 // the Rig service, so a recording Rig can replay the journey without Warcraft.
 import { Context, Effect } from "effect";
 import { RULE_BUTTONS } from "../../src/game/ui/ruleButtons";
+import { stageTileLeft, stageTileTop } from "../../src/game/menu/stageSelection";
 import type { Region } from "wisp/scripts/warcraft/desktop";
 import { IntegrityFailure } from "./evidence";
 import { ABS_RX, ABS_RY, ABS_X, ABS_Y, ABS_Z, BTN_A, BTN_SELECT, BTN_START, BTN_X, BTN_Y, EV_ABS, EV_KEY, type SourceEdge } from "./linuxInput";
@@ -267,6 +268,11 @@ export function journey(rig: RigShape, options: JourneyOptions) {
     for (const slot of SLOTS) yield* menuButton(slot, BTN_A, "menu-character-select");
     yield* menuButton(0, BTN_START, "menu-character-confirm");
     yield* menuPhase("STAGE");
+    if (bot) {
+      // The calibrated bot workload uses Sky Deck, independent of the catalog's first stage.
+      yield* rig.click(0, Math.round(320 + 2400 * (stageTileLeft(0) + 0.047)), Math.round(1440 - 2400 * (stageTileTop(0) - 0.039)));
+      yield* rig.waitText(0, /Sky Deck/i, { x: 420, y: 965, width: 900, height: 110 });
+    }
   });
 
   /** Native slot tags use WC3's centered 4:3 coordinates on the 2560x1440 desktop. */
