@@ -1,0 +1,209 @@
+{
+  "claim": "#60: every press lands on its frame and shows on the presser's next local frame",
+  "captures": [
+    {
+      "directory": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r3-r26",
+      "build": "typescript-integrity",
+      "epochs": [
+        1,
+        2
+      ],
+      "presses": [
+        324,
+        324
+      ],
+      "pressed_bindings": [
+        [
+          "attack",
+          "grab",
+          "jump-b",
+          "jump-y",
+          "move-down",
+          "move-left",
+          "move-right",
+          "move-up",
+          "shield-lt",
+          "shield-rt",
+          "special",
+          "walk"
+        ],
+        [
+          "attack",
+          "grab",
+          "jump-b",
+          "jump-y",
+          "move-down",
+          "move-left",
+          "move-right",
+          "move-up",
+          "shield-lt",
+          "shield-rt",
+          "special",
+          "walk"
+        ]
+      ],
+      "edges": [
+        648,
+        648
+      ],
+      "lost": 0,
+      "extra": 0,
+      "reordered": 0,
+      "stuck": 0,
+      "on_frame": {
+        "correct": 1296,
+        "total": 1296,
+        "percent": 100
+      },
+      "legal_presses": 203,
+      "local_start": {
+        "none": {
+          "n": 203,
+          "p50": 0,
+          "p95": 0,
+          "max": 5,
+          "counts": [
+            [
+              0,
+              202
+            ],
+            [
+              5,
+              1
+            ]
+          ],
+          "missing_first_prediction": 0
+        },
+        "opponent": {
+          "n": 0,
+          "counts": [],
+          "missing_first_prediction": 0
+        },
+        "own": {
+          "n": 0,
+          "counts": [],
+          "missing_first_prediction": 0
+        }
+      },
+      "checksums_equal": true,
+      "mismatched_edges": [],
+      "reconciler_failures": []
+    }
+  ],
+  "presses": 648,
+  "missing_actions": [
+    "dash",
+    "c-stick"
+  ],
+  "lost": 0,
+  "extra": 0,
+  "on_frame": {
+    "correct": 1296,
+    "total": 1296,
+    "percent": 100
+  },
+  "local_start_callbacks": {
+    "all": {
+      "n": 203,
+      "p50": 0,
+      "p95": 0,
+      "max": 5,
+      "counts": [
+        [
+          0,
+          202
+        ],
+        [
+          5,
+          1
+        ]
+      ]
+    },
+    "by_stall": {
+      "none": {
+        "n": 203,
+        "p50": 0,
+        "p95": 0,
+        "max": 5,
+        "counts": [
+          [
+            0,
+            202
+          ],
+          [
+            5,
+            1
+          ]
+        ],
+        "missing_first_prediction": 0
+      },
+      "opponent": {
+        "n": 0,
+        "counts": [],
+        "missing_first_prediction": 0
+      },
+      "own": {
+        "n": 0,
+        "counts": [],
+        "missing_first_prediction": 0
+      }
+    },
+    "gated_within_1s_after_stop": {
+      "n": 24,
+      "p50": 0,
+      "p95": 0,
+      "max": 0,
+      "counts": [
+        [
+          0,
+          24
+        ]
+      ]
+    },
+    "gated_clear_of_stops": {
+      "n": 179,
+      "p50": 0,
+      "p95": 0,
+      "max": 5,
+      "counts": [
+        [
+          0,
+          178
+        ],
+        [
+          5,
+          1
+        ]
+      ]
+    }
+  },
+  "gated_local_start": {
+    "n": 203,
+    "max": 5,
+    "missing_first_prediction": 0
+  },
+  "gated_shown_only_when_confirmed": {
+    "n": 0,
+    "counts": []
+  },
+  "worst_gated_presses": [
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r3-r26",
+      "epoch": 2,
+      "slot": 1,
+      "frame": 761,
+      "delay": 5,
+      "stall": "none"
+    }
+  ],
+  "gated_without_first_prediction": [],
+  "gate": {
+    "presses": false,
+    "every_action": false,
+    "lost_extra": true,
+    "on_frame": true,
+    "local_start": false,
+    "checksums": true
+  },
+  "passed": false
+}
