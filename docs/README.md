@@ -12,6 +12,8 @@ Dated trial records live in [evidence](../evidence/README.md).
 
 - [Player guide](player-guide.md): controls, menus and match flow.
 - [Gameplay design decisions](gameplay-design.md): intentional mechanics choices.
+- [Fighting-game design language](design/fighting-games.md): frame advantage, highs and lows, footsies, okizeme, strike/throw, hitboxes and hurtboxes, archetypes, with sources.
+- [Platform-fighter design language](design/platform-fighters.md): how platform fighters change that language: shield, aerials on shield, ledge, DI and SDI, tech chases, edgeguarding, the interaction graph.
 - [Modern platform-fighter mechanics](design/modern-platform-fighters.md): sourced inventory of mechanics later games added or changed relative to Melee.
 - [Execution and reaction windows](design/execution-windows.md): windows other games use, human limits, and proposed bounds.
 - [Delivery goal](delivery-goal.md): what the finished game contains.
