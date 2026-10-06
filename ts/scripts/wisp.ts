@@ -20,6 +20,7 @@ const COMMANDS: Record<string, { readonly usage: string; readonly load: () => Pr
   client: { usage: "client look|read|click|keys CLIENT ...", load: async () => (await import("./wisp/commands/client")).client },
   view: { usage: "view scene DATA_DIR... | frame FRAME.ppm... | models --assets DIR --summon DIR --extractor CASC_EXTRACT --storage WARCRAFT_DIR", load: async () => (await import("./wisp/commands/view")).view },
   headless: { usage: "headless [quick-match|desync] [--clients N]", load: async () => (await import("./wisp/commands/headless")).headless },
+  soak: { usage: "soak [--matches N] [--seed N] [--workers N<=4] [--minutes N<=30] [--fighter NAME]... [--stage NAME]... [--policy NAME]... [--out DIR] | --repro FILE | --helper BINARY [--matches N<=20] [--seconds S<=90] [--seed N] [--out DIR]", load: async () => (await import("./wisp/commands/soak")).soak },
   dev: { usage: "dev [--data DIR --data DIR]", load: async () => (await import("./wisp/commands/dev")).dev },
   play: { usage: "play   (Tom's desktop: Battle.net, Play, a hosted game against a computer, the controller helper)", load: async () => (await import("./wisp/commands/play")).play },
   tune: { usage: "tune --data DIR [--data DIR ...] [--port N] [--profile main|integrity|playable|physics-probe|frame-cost|stack-trace]", load: async () => (await import("./wisp/commands/tune")).tune },
