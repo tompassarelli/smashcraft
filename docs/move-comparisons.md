@@ -65,21 +65,21 @@ starts at tick 31, contacts at 36, and precedes Demon Hunter's normal recovery
 at 37. Moving for one tick before a jab also contacts at 36. Those results do
 not cover alternative shield responses, defensive inputs or human reactions.
 
-The deliberate category rule is local and explicit: **in the same shield
-contact context, greater shield damage must cost later attacker recovery or
-an earlier defender response**. Production satisfies it in all six sampled
-comparisons. A fixture mutation sets only the smash's post-contact cooldown
-and remaining attack duration to one tick. The same comparison then rejects
+The comparison checks one local category rule: **in the same shield contact
+context, greater shield damage costs later attacker recovery or an earlier
+defender response**. No owner decision states it; whether it is a design rule
+is an open question in smashcraft:docs/gameplay-design.md. Production
+satisfies it in all six sampled comparisons. A fixture mutation sets only the
+smash's post-contact cooldown and remaining attack duration to one tick. The same comparison then rejects
 all six mutants; Archer's recovery becomes tick 9 while the normal remains 28,
 with the smash's greater shield damage retained. This does not edit production
 or establish a universal balance law.
 
-Late aerial pressure is an intentional exception to applying that ground-move
-rule indiscriminately: its checkpoint already spent 20 airborne attack frames,
-its sampled damage is lower, its landing lag matters, and it misses at
-the farther spacing. Counterplay outside the checkpoint includes contesting
-that approach or moving outside its contact geometry. These are options to
-investigate, not measured success rates. No generic balance score is assigned.
+The rule is not applied to late aerial pressure: its checkpoint already spent
+20 airborne attack frames, its sampled damage is lower, its landing lag
+matters, and it misses at the farther spacing. Counterplay outside the
+checkpoint includes contesting that approach or moving outside its contact
+geometry; these are not measured. No generic balance score is assigned.
 
 ## A follow-up interval needs reach as well as time
 
@@ -119,6 +119,19 @@ The factual action-family reference join and bounded trade-off analysis are
 recorded in smashcraft:docs/move-reference-join.md. No Melee character is equated
 with an original Warcraft fighter. Native parity, balance tuning and playable
 before/after acceptance remain in issue #12.
+
+## Evaluating a move against the interaction graph
+
+These comparisons sample one contact state; the
+[interaction graph](design/interaction-graph.md) plays whole situations
+(aerials on shield at each spacing and drift, out-of-shield options, neutral,
+landing, ledge, tech) for every fighter. After changing or adding a move, run
+`bun wisp interactions --move FIGHTER:MOVE` from smashcraft:ts/ for every place
+the move now appears and what changed in its fighter's graph, then
+`bun wisp interactions` to write the new graph.
+smashcraft:tools/move-data/compare.sh `--check` runs `bun wisp interactions
+--check` after its own comparison, so a changed move fails the check until the
+graph's changes are looked at and written.
 
 ## Jab change, 6 October 2026 (#12)
 

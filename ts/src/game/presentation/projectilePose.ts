@@ -1,7 +1,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import type { Fighter } from "../sim/fighter";
 import { projectileActive } from "../sim/projectiles";
-import { atan2 } from "../sim/warcraftMath";
+import { meleeAtan2 } from "../../sim/meleeScalarMath";
 
 interface ProjectilePose {
   visible: boolean;
@@ -26,6 +26,6 @@ export function projectedProjectile(fighter: Readonly<Fighter> | undefined, inde
     x: projectile.x,
     z: projectile.z,
     yaw: velocityX >= 0.0 ? 0.0 : f32(3.141592654),
-    pitch: -atan2(velocityZ, Math.abs(velocityX)),
+    pitch: -meleeAtan2(velocityZ, Math.abs(velocityX)),
   };
 }

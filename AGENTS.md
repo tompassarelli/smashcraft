@@ -90,7 +90,12 @@ code. From smashcraft:ts/:
   the game recorded; `--test NAME` writes a test that replays it.
 - Headless match: `bun wisp headless [quick-match|desync] [--clients N]` plays
   the dev build's quick match in simulated clients in about a second and prints
-  desyncs, error reports and scene problems.
+  desyncs, error reports and scene problems; `--cost` adds its predicted
+  Warcraft cost per frame.
+- Frame cost: `LUA=<32-bit lua> bun wisp perf [quick-match|bot|bot-four]`
+  plays a run in 32-bit Lua and prints each client's predicted Warcraft cost
+  per frame (p50, p95, worst, typing stall); `bun wisp perf compare A B` fails
+  on a rise in predicted cost, allocation or typing stall.
 - Soak: `bun wisp soak` plays 200 headless matches, every fighter pair on
   every stage with fuzzed and computer players, in at most four workers
   (run it inside the capacity scope), and writes a repro file per finding;
@@ -108,6 +113,11 @@ code. From smashcraft:ts/:
   and prints each outcome beside the value cited from the decompilation; the
   test suite fails on any mismatch it doesn't list as known
   (smashcraft:docs/physics.md, "Melee behaviour oracle").
+- Interaction graph: `bun wisp interactions` plays every fighter's
+  situations (aerials on shield, neutral, landing, ledge, tech) and writes
+  smashcraft:tools/move-data/interactions/; `--check` lists what a change
+  moved and `--move FIGHTER:MOVE` evaluates one move against the graph
+  (smashcraft:docs/design/interaction-graph.md).
 - Physics diagnostic: `bun wisp build --profile physics-probe ...` selects
   the production numerical fixtures. Rebuild it with
   `bun wisp rebuild MAP.w3x --profile physics-probe`; see

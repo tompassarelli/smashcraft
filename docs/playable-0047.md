@@ -25,7 +25,8 @@ for the first Xbox controller at fighter selection, and has the map add a
 computer as Player 3 and start the match; then it leaves Warcraft III
 fullscreen. Each step prints a line; a problem stops it with what to do
 (wisp:docs/play.md). After Play nothing is clicked unless Warcraft III shows
-its main menu instead of the map. Battle.net's own Play stops loading the map
+its main menu instead of the map; the loaded map waits on "Press any key to
+continue", which play answers with space. Battle.net's own Play stops loading the map
 afterwards; `--keep-launch-options` keeps it loading the map, so the next run
 reuses the running launcher.
 

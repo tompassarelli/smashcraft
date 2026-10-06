@@ -31,6 +31,10 @@ The session has a match and a rematch:
 - `--bot-four` leaves the rematch undisturbed and types `-dev perf` into
   client A before it, so the frame-cost overlay shows a four-fighter match
   (development and integrity builds only).
+- `--bot-perf` does the same with the three fighters of `--bot`, so a
+  session measures both the matches `bun wisp perf bot` and `perf bot-four`
+  predict. Read the overlay's median / p95 / max on a quiet machine: the
+  meter's clock is likely wall time, so other work on the host inflates it.
 - `--pad49` opens the first match with #49's script on slot 0, and that
   match has no stalls. The script: resting and drifted sticks, X, Y, down at
   0.650 and 0.670 of full tilt, and a held right.
@@ -42,7 +46,7 @@ every other map in that folder to `smashcraft-replaced-maps`. Client A's
 prefix also holds Tom's playtest map, so copy it back after a session.
 
 ```sh
-bun wisp parity capture --bot [--bot-four] [--pad49] \
+bun wisp parity capture --bot [--bot-four | --bot-perf] [--pad49] \
   --helper /absolute/path/to/wc3-journal --build BUILD_ID \
   --out /absolute/path/to/new-capture \
   --app-id a=GAME_APP_ID_A --app-id b=GAME_APP_ID_B --first-epoch 1

@@ -49,7 +49,7 @@
   "contact": {
     "frame": 10525,
     "damage": 4,
-    "damageEvidence": "Sheik jab damage is 4 in smashcraft:docs/smash-melee-reference/melee-frame-data.json, character sheik, ground attack jab; pasted source lines 5425-5432 also report three shieldstun frames. Shield health loss 3.079998016357422 is consistent with 4*0.7 contact damage plus 0.28 held drain on the contact frame. Damage is not a raw exported field here.",
+    "damageEvidence": "Sheik jab damage is 4 in smashcraft:references/melee-frame-data/records.jsonl, character sheik, attacks, jab1 (percent 4), which also reports three shieldstun frames (stun 3). Shield health loss 3.079998016357422 is consistent with 4*0.7 contact damage plus 0.28 held drain on the contact frame. Damage is not a raw exported field here.",
     "defenderPushback": 0.45600005984306335,
     "attackerRecoilInitial": 0.3,
     "attackerRecoilEvidence": "Published digital-shield formula4*0.07+0.02, corroborated by released position deltas; initial recoil is not exported in selfInducedSpeeds.",

@@ -16,7 +16,7 @@ import { sceneFile } from "wisp/src/runtime/scene";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { RealtimeClients, type TypedInput, customMapData, typedFile } from "wisp/scripts/wisp/headlessInput";
 import { readSceneLines, sceneProblems } from "wisp/scripts/wisp/scene";
-import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/scripts/wisp/syncChannel";
+import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/src/headless/syncChannel";
 import { INTEGRITY_BUILD } from "../../src/game/shell/currentBuild";
 import { PREDICTED_HEADLESS, SMASHCRAFT_HEADLESS } from "../wisp/headless";
 import { SMASHCRAFT_SCENE } from "../wisp/playerView";

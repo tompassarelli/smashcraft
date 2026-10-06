@@ -245,14 +245,26 @@ pads; the pads' edges stay in the file as evidence.
 The development and integrity builds measure what each frame costs
 (smashcraft:ts/src/platform/frameMeter.ts, [Wisp frame cost](https://github.com/tompassarelli/wisp/blob/main/docs/frame-cost.md)):
 Lua time, native calls and the confirmed frames each 60 Hz callback caught up.
-`-dev perf` shows the player who types it the medians and maxima of the last
-120 frames. After each hot reload every client writes the 120 frames before
-and after it to `smashcraft-perf-p<slot>.txt`, and `bun wisp hot --watch` and
-`bun wisp dev --data` print the change and flag a rise over 20%. The playable
-entry never imports the meter. `LUA=<32-bit lua> bun wisp perf [--out FILE]`
-plays the headless quick match in 32-bit Lua and prints each client's Lua
-instructions, Lua time and native calls per frame; `bun wisp perf compare A B`
-fails when B's instructions or calls per frame exceed A's by more than 5%.
+`-dev perf` shows the player who types it the medians, 95th percentiles and
+maxima of the last 120 frames. After each hot reload every client writes the
+120 frames before and after it to `smashcraft-perf-p<slot>.txt`, and
+`bun wisp hot --watch` and `bun wisp dev --data` print the change and flag a
+rise over 20%. The playable entry never imports the meter.
+
+`LUA=<32-bit lua> bun wisp perf [quick-match|bot|bot-four] [--frames N]`
+plays a run in 32-bit Lua and prints each client's Lua instructions, Lua
+time, native calls, allocation and typed text per frame, and the frame's
+predicted cost in Warcraft (p50, p95, worst; [Wisp's model](https://github.com/tompassarelli/wisp/blob/main/docs/frame-cost.md#predicted-native-cost)).
+quick-match is the development build's headless quick match; bot and
+bot-four are the native bot session's match with the integrity build:
+both players' helpers journal the session's pad beats, computer Illidan (and
+Archer), Battle.net's measured sync latency, counted from the match's first
+frame (smashcraft:ts/scripts/wisp/botMatch.ts). `bun wisp perf compare A B`
+fails when B's instructions, calls, allocation, predicted cost or worst
+typing stall rise beyond 5%; `bun wisp headless --cost` adds the quick
+match's prediction to a headless run. The model was fitted to 0.0.49's
+four-fighter overlay and predicts 0.0.48's median frame within 15%
+(smashcraft:evidence/headless-native-cost-20261006/README.md).
 On 2f29ab3 with Wisp 1fe6d71 the quick match's first client ran a median
 47,800 Lua instructions and 138 native calls a frame; the meter adds 2.0% to
 its mean instructions a frame, and the playable bundle is the same bytes as

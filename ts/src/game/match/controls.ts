@@ -1,4 +1,4 @@
-import { type AttackBuffer, attackBuffer } from "../input/attackBuffer";
+import { ATTACK_BUFFER_FRAMES, type AttackBuffer, attackBuffer } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS, type Slots, isParticipantSlot } from "../input/participants";
 import { type Controls, neutralControls } from "../sim/roster";
 import { Phase } from "./rules";
@@ -14,6 +14,13 @@ export function createFrameControls(): FrameControls {
     inputs: [neutralControls(), neutralControls(), neutralControls(), neutralControls()],
     commands: [attackBuffer(0), attackBuffer(0), attackBuffer(0), attackBuffer(0)],
   };
+}
+
+/** Match controls whose attack buffers keep a press for the buffered frames, as a live match plays. */
+export function createBufferedFrameControls(): FrameControls {
+  const controls = createFrameControls();
+  for (const slot of PARTICIPANT_SLOTS) controls.commands[slot] = attackBuffer(ATTACK_BUFFER_FRAMES);
+  return controls;
 }
 
 /** Session controls are outside replay state: rollback must not undo a pause. */
