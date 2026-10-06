@@ -321,7 +321,8 @@ export function projectImpact(state: Readonly<ImpactState>, i: number): Readonly
   const opacity = kind === IMPACT_DUST ? f32(220 * strength) : 255.0;
   return {
     visible: true,
-    alpha: toInt(f32(f32(opacity * fade) * fade)),
+    // Stock particles ignore alpha: a live slot must stay drawn until it parks.
+    alpha: max(1, toInt(f32(f32(opacity * fade) * fade))),
     scale: f32(scale * strength),
     x: f32(originX + travel(drift, age)),
     z: f32(f32(originZ + travel(at(state.driftZ, i), age)) + (kind === IMPACT_DUST ? f32(progress * 9) : 0.0)),
