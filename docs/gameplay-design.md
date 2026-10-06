@@ -28,6 +28,42 @@ Owner decisions, 6 Oct 2026 (#62):
   be legible (#68).
 - **SDI without teleport jank** (#70).
 - **Non-interactive execution is dubious** (6 Oct, #54; see "L-cancelling" below).
+- **Short true combos, devastating combos through reads** (6 Oct, #83; see
+  "Combo structure" below).
+
+## Combo structure
+
+Owner decision, 6 Oct 2026 (#83): devastating combos should be the norm
+against a player who is being outplayed, but they are earned through reads,
+not granted by one hit.
+
+- True combos are short: a hit guarantees about one or two follow-ups at most.
+- Every extension beyond that is a read: a DI guess, a tech or escape guess,
+  a coin flip the defender influences.
+- A player who wins 2–3 reads in a row can take a stock from 0. Explosive
+  moments come from chained reads, not from everyone landing two hits.
+- One hit never guarantees a stock (see also "No false agency", #68).
+
+Terms for measuring it. An **opening** is a hit or grab that lands. A
+**guaranteed follow-up** lands whatever the victim does: every DI direction
+including none, SDI, tech in place, left, right or missed, jump, air dodge and
+mash. A **read** is a follow-up that lands against some of those choices but
+not all, when the victim makes one it beats. A **string** is an opening and the
+follow-ups that land after it.
+
+Proposed targets, for the owner to accept or change; they are proposals, not
+decisions. Accepted targets become interaction-graph checks
+([interaction graph](design/interaction-graph.md)).
+
+| Target | Proposed | Breaks it |
+|---|---|---|
+| Guaranteed follow-ups after an opening | at most 2, at every percent | a string of 4 or more hits that no victim choice escapes |
+| Guaranteed damage from one opening, by the victim's percent when it lands | at most 30% at 0–99%; from 100%, a guaranteed string may end in a KO | more damage than that before the victim has a choice that escapes |
+| Reads for 0-to-death | about 2–3: from 0%, no opening takes the stock with fewer than 2 reads, and each fighter has openings that take it with 3 | a stock taken from 0% with 0 or 1 reads; or a fighter with no 0-to-death path even with 3 reads |
+
+The damage cap is chosen to fit the reads target: an opening and 2–3 reads,
+each followed by guaranteed follow-ups worth up to about 30%, bring a victim
+from 0% to roughly 90–120% before the last hit.
 
 ## Direction, not yet a rule
 
