@@ -4,8 +4,9 @@
 // saturated Battle.net's synchronized channel (#26 r8). Keyboard rollback
 // still sends one I4 packet per message.
 import type { InputRow } from "../../input/inputRow";
-import { type InputMessage, type InputPacket, MESSAGE_MAX_FRAMES, decodeInputMessage, decodePacket, encodeInputMessage } from "../../input/wire";
+import { type InputMessage, type InputPacket, decodeInputMessage, decodePacket, encodeInputMessage } from "../../input/wire";
 import { FrameRing } from "../frameRing";
+import { FUTURE_LIMIT } from "../ledger";
 
 /** Callbacks per input message by default: 10 messages a second at 60 callbacks a second. */
 export const DEFAULT_BATCH = 6;
@@ -27,7 +28,7 @@ export function decodeTransport(wire: string): readonly InputPacket[] | undefine
  */
 export class OutgoingInput {
   // Preallocated: holds the unsent frames, which the future limit bounds.
-  private readonly rows = new FrameRing(MESSAGE_MAX_FRAMES);
+  private readonly rows = new FrameRing(FUTURE_LIMIT);
   private epoch = 0;
   private nextUnsent = 1;
   private admitted = 0;

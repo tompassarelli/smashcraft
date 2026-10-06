@@ -17,6 +17,7 @@ import { isMomentRequest } from "../../game/replay/moment";
 import { FUTURE_LIMIT } from "../../game/netcode/ledger";
 import { type JournalIdentity, type MenuPhase, endFile, failureFile, menuFile, quiescentFile, startFile, transportReadyFile } from "../../game/shell/journalFiles";
 import { KEYBOARD_FALLBACK_MESSAGE } from "../../game/shell/messages";
+import { CATCH_UP_FRAMES } from "../../game/shell/playback";
 import { readChunk, writeLines } from "wisp/src/platform/fileio";
 import { pollMailbox, releaseMessage } from "../keyboardJournal";
 import { startInputTrace } from "./diagnostics";
@@ -29,18 +30,12 @@ import { LASTING, setStatus } from "./view";
 /** Synchronized prefix of input rows and helper readiness. */
 export const INPUT_PREFIX = "SC_GP";
 
-/** Journal packets admitted per callback. */
-const PACKETS_PER_CALLBACK = 1;
-
 /**
  * Callbacks after a match starts before a human whose helper has not reported
  * ready plays it on the keyboard. In the 0.0.47 capture the helper took the
  * match 0.13 s after its Start press and every client started at 0.43 s.
  */
 const HELPER_READY_CALLBACKS = 120;
-
-/** Keyboard rows admitted per callback: a keyboard behind its clock, as after another player's stall, catches up. */
-const KEYBOARD_ROWS_PER_CALLBACK = 6;
 
 /** How long a player who plays on the keyboard sees why, in seconds. */
 const KEYBOARD_NOTICE_SECONDS = 4.0;
@@ -192,9 +187,12 @@ function nextPacketText(s: ShellState, rollback: Rollback, journal: Journal): st
 /**
  * Polls the local keyboard once per running callback and advances its clock,
  * which a pause holds: from a prepared pause the rows stop before keyStop.
+ * The clock counts callbacks, so time the game lost, as in a lag spike, is
+ * lost from it too while another player's helper journals on: the clock
+ * follows the frames other players have already sent.
  */
-function sampleKeyboard(s: ShellState, journal: Journal): void {
-  if (journal.keyStop === undefined) journal.keyClock++;
+function sampleKeyboard(s: ShellState, rollback: Rollback, journal: Journal): void {
+  if (journal.keyStop === undefined) journal.keyClock = rollback.schedule.othersThrough(localSlot(), journal.keyClock + 1);
   // Typing into Warcraft's chat entry is not play.
   const chatting = journal.editbox?.chatOpen() === true;
   sampleKeys(journal.keys, chatting ? 0 : pollLocalKeys(s));
@@ -229,8 +227,9 @@ export function serviceJournalInput(s: ShellState, rollback: Rollback, journal: 
   if (source === undefined || !isParticipantSlot(slot) || !humanActive(s.game, slot)) return;
   const { schedule } = rollback;
   const keyboard = playsOnKeyboard(journal, slot);
-  if (keyboard) sampleKeyboard(s, journal);
-  for (let read = 0; read < (keyboard ? KEYBOARD_ROWS_PER_CALLBACK : PACKETS_PER_CALLBACK); read++) {
+  if (keyboard) sampleKeyboard(s, rollback, journal);
+  // Rows behind their clock, a helper's or a keyboard's after a stall, catch up within the callback budget.
+  for (let admitted = 0; admitted < CATCH_UP_FRAMES; ) {
     const latest = Math.min(INPUT_LAST_FRAME, schedule.nextConfirmedFrame() - 1 + FUTURE_LIMIT);
     if (source.expectedFrame() > latest) return;
     let result: JournalRead;
@@ -285,6 +284,7 @@ export function serviceJournalInput(s: ShellState, rollback: Rollback, journal: 
     else if (editbox) {
       if (!consumeEditbox(s, rollback, journal)) return;
     } else if (journal.mailbox !== undefined) releaseMessage(journal.mailbox);
+    admitted += packet.rows.length;
   }
 }
 

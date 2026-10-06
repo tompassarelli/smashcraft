@@ -56,6 +56,10 @@ export class FighterHud {
   /** The frames that show and hide with the plate; stock icons also follow the stock count. */
   private readonly body: readonly framehandle[];
   private shownCharacter: number | undefined;
+  // What the plate shows, so a callback that changes nothing calls no native.
+  private shownVisible: boolean | undefined;
+  private shownDamage: string | undefined;
+  private shownStocks: number | undefined;
 
   /** `count` plates share the bottom of the screen; this one starts at its slot's position. */
   constructor(slot: number, count: number) {
@@ -116,7 +120,10 @@ export class FighterHud {
   }
 
   update(visible: boolean, character: Character, damage: number, stocks: number): void {
-    for (const frame of this.body) BlzFrameSetVisible(frame, visible);
+    if (this.shownVisible !== visible) {
+      this.shownVisible = visible;
+      for (const frame of this.body) BlzFrameSetVisible(frame, visible);
+    }
     if (this.shownCharacter !== character) {
       this.shownCharacter = character;
       const art = fighterArt(character);
@@ -124,10 +131,18 @@ export class FighterHud {
       BlzFrameSetText(this.name, fighterTitle(character));
       for (const icon of this.stocks) BlzFrameSetTexture(icon, `war3mapImported\\${art}Tile.tga`, 0, true);
     }
-    BlzFrameSetText(this.damage, damageText(damage));
+    const shownDamage = damageText(damage);
+    if (this.shownDamage !== shownDamage) {
+      this.shownDamage = shownDamage;
+      BlzFrameSetText(this.damage, shownDamage);
+    }
+    const shownStocks = visible ? stocks : 0;
+    const previous = this.shownStocks;
+    if (previous === shownStocks) return;
+    this.shownStocks = shownStocks;
     for (let index = 0; index < this.stocks.length; index++) {
       const icon = this.stocks[index];
-      if (icon !== undefined) BlzFrameSetVisible(icon, visible && index < stocks);
+      if (icon !== undefined && (previous === undefined || index < previous !== index < shownStocks)) BlzFrameSetVisible(icon, index < shownStocks);
     }
   }
 }

@@ -225,8 +225,8 @@ export function decodePacket(wire: string): InputPacket | undefined {
  * room for the prefix and still carries 8 frames whose every group changes.
  */
 export const MESSAGE_MAX_BYTES = 200;
-/** Frames in one message; the ledger's future limit bounds a sender's unsent frames to this. */
-export const MESSAGE_MAX_FRAMES = 64;
+/** Frames in one message; a longer backlog of unsent frames takes the next messages. */
+const MESSAGE_MAX_FRAMES = 64;
 
 export interface InputMessage {
   readonly wire: string;
