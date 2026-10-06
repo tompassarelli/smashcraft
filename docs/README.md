@@ -25,6 +25,7 @@ Dated trial records live in [evidence](../evidence/README.md).
 - [Projectiles](design/projectiles.md): Ultimate's projectile properties players blame, Melee's powershield and laser answers, other platform fighters, and Smashcraft's current projectiles.
 - [Archer's hippogryph specials](design/archer-specials.md): how great platform-fighter specials create decisions, and Archer's steerable ride with a leap-off and her perch-and-dive, with frame data and counterplay.
 - [Kit review 1](design/kit-review-1.md): Blademaster, Mountain King, Warden, Rifleman's recovery and Illidan scored for decisions, mixups, reads and counterplay, with redesigned specials, frame data and counterplay.
+- [Mana](design/mana.md): every fighter's one resource for specials: earned by landing normals and throws, a capped comeback share and a trickle; cost tiers; Mana Burn; the overhead bar; Hero, Inkling, Steve, Robin, WoW, Street Fighter and Guilty Gear prior art; designed ultimates.
 - [Tilts and dash attacks](design/tilts.md): each fighter's jab, forward/up/down tilt and dash attack by identity, Melee's timing distribution, Ultimate's angled forward-tilt rule (straight strikes angle, vertical swings do not) and the down-tilt and dash-attack roles.
 - [Interaction graph](design/interaction-graph.md): for each situation, Smashcraft's options, what beats what by how many frames, and the punish windows, computed per fighter from its move data.
 - [Match flow](design/match-flow.md): match rules, endless play and automatic rematch, with Slippi and other platform-fighter prior art.
