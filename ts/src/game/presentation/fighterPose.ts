@@ -2,7 +2,7 @@
 // determines whether the elapsed interval advances, freezes or restarts.
 import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
-import { AttackPhase, AttackStyle, Character, DownState, GrabAction, LedgeState, PlatformMove, ShieldBreak, SpecialAction } from "../sim/codes";
+import { AttackPhase, AttackStyle, Character, DownState, GrabAction, LedgeState, PlatformMove, ShieldBreak, SpecialAction, HeroStatusKind } from "../sim/codes";
 import { FOLLOW_UP_FORM, SpecialForm } from "../sim/heroSpecials";
 
 import { GROUND_ROLL_FRAMES, SPOT_DODGE_FRAMES, attackPhase, inGrabContext, isForwardGroundRoll, isGroundDodging } from "../sim/conditions";
@@ -221,6 +221,16 @@ function selectClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly<Ros
       else if (table.dizzy !== undefined) selectFighterClipIndex(pose, table.dizzy.index);
       else selectFighterClipName(pose, "stand hit");
       pose.animation = key;
+    }
+    return rate;
+  }
+  // Mana Burn's stun plays the shield-break dizzy once the hit's flinch ends (#116).
+  if (f.status.condition === HeroStatusKind.stun && f.launch.hitlag <= 0 && f.launch.hitstun <= 0) {
+    if (pose.animation !== "stunned") {
+      if (illidan) selectFighterClipIndex(pose, dh.DEMON_HUNTER_SHIELD_BREAK_INDEX);
+      else if (table.dizzy !== undefined) selectFighterClipIndex(pose, table.dizzy.index);
+      else selectFighterClipName(pose, "stand hit");
+      pose.animation = "stunned";
     }
     return rate;
   }

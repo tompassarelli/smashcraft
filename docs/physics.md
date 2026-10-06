@@ -2553,7 +2553,7 @@ hit effects for each action; no Archer or Rifleman region is used.
 
 | Special ID | Action and provisional timing | Contact/effect |
 | --- | --- | --- |
-| 9 | Mana Burn: 8-tick startup, 25-tick recovery; 24-tick cooldown | Fires a 5-damage flinching projectile at 30 world units/tick. No mana resource is modeled or drained. |
+| 9 | Mana Burn: 16-tick startup, 30-tick recovery; one orb out at a time | Fires a slow orb at 12 world units/tick for 90 ticks at shield-centre height; 5 damage, a flinch and a stun that scales with percent ([roster](design/roster.md#mana-burn-neutral-special)). No mana resource is modeled or drained. |
 | 10 | Parry Step: 22 ticks; 9-unit directional evasion; 45-tick cooldown | Incoming strike during action ticks 4–9 is canceled; attacker receives 10 hitstun and 4 hitlag with a small knockback. Does not reflect projectiles. |
 | 11 | Wing Ascent: 3-tick startup within 28 total ticks; 90-tick cooldown | Quick upward launch, consumes remaining jumps, grants four ticks of protection at launch, and enters helpless fall if still airborne at completion. A post-ascent glide is not implemented. |
 | 12 | Immolate: 4-tick startup, 4-tick active window, 27 total ticks; 24-tick cooldown | One contact per action. Grounded: forward region to 140 units, 7 damage and horizontal launch. Airborne: region around/below the fighter, 9 damage and downward spike launch. |

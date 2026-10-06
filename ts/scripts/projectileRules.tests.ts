@@ -65,3 +65,13 @@ test("Rifleman's blaster point blank on a shield is punished out of shield and r
   expect(row?.punishes.map((entry) => entry.punisher)).toContain("shield grab");
   expect(row?.powershield.length).toBeGreaterThanOrEqual(MIN_POWERSHIELD_PRESSES);
 });
+
+test("Illidan's slow Mana Burn point blank on a shield is punished out of shield, reflected by a powershield and jumped from range (#116)", () => {
+  for (const row of projectileRows(Character.demonHunter, "Illidan")) {
+    expect(row.pokes).toBe(false);
+    expect(row.powershield.length).toBeGreaterThanOrEqual(MIN_POWERSHIELD_PRESSES);
+    expect(row.answers.find((answer) => answer.option === "jump")?.starts.length).toBeGreaterThan(0);
+    expect(row.mostOut).toBe(1);
+    if (row.distance === POINT_BLANK) expect(row.punishes.map((entry) => entry.punisher)).toContain("shield grab");
+  }
+});

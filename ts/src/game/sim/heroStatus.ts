@@ -2,9 +2,9 @@
 // "Defense and status limits"): one at a time per fighter, a shield stops
 // them, and when one ends its group grants an immunity window so two sources
 // cannot chain it. Every value here is fighter state, so rollback restores it.
-import { max } from "../../runtime/numbers";
+import { max, min, toInt } from "../../runtime/numbers";
 import { addFloat32, roundToFloat32 } from "wisp/src/sim/binary32";
-import { floorMod } from "wisp/src/sim/intMath";
+import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import type { Fighter } from "./fighter";
 import { type AttackBuffer, clearAttackBuffer } from "../input/attackBuffer";
 import { type Controls, copyControls, neutralControls } from "./roster";
@@ -27,6 +27,7 @@ const RULES: { readonly [kind: number]: StatusRules | undefined } = {
   [HeroStatusKind.hex]: { blocksActions: false, blocksSpecials: true, endsOnDamage: false },
   // Chill only lowers top speeds (sim/chill.ts).
   [HeroStatusKind.chill]: { blocksActions: false, blocksSpecials: false, endsOnDamage: false },
+  [HeroStatusKind.stun]: { blocksActions: true, blocksSpecials: true, endsOnDamage: true },
 };
 
 
@@ -39,9 +40,24 @@ export interface AppliedStatus {
   readonly immunityFrames: number;
   /** Poison's damage: `damage` every `every` frames of its `frames`, with no hitlag, hitstun or knockback. */
   readonly tick?: { readonly every: number; readonly damage: number } | undefined;
+  /** `frames` more for every `percent` of damage after the hit, in whole steps, up to `max` frames in all. */
+  readonly scaling?: { readonly frames: number; readonly percent: number; readonly max: number } | undefined;
 }
 
 const rules = (f: Readonly<Fighter>): StatusRules | undefined => RULES[f.status.condition];
+
+/** The status's duration on a fighter at this percent; integer steps keep Lua32 and the host equal. */
+export function heroStatusFrames(status: Readonly<AppliedStatus>, percent: number): number {
+  const { scaling } = status;
+  if (scaling === undefined) return status.frames;
+  const steps = floorDiv(toInt(max(0.0, percent)), scaling.percent);
+  return min(status.frames + steps * scaling.frames, scaling.max);
+}
+
+/** Whether the fighter's status stops every action: no input changes anything while it lasts. */
+export function heroStatusBlocksActions(f: Readonly<Fighter>): boolean {
+  return rules(f)?.blocksActions === true;
+}
 
 /** Applies the status unless the fighter is immune to its group; a reapplication refreshes it. */
 export function applyHeroStatus(f: Fighter, status: Readonly<AppliedStatus>): void {
@@ -56,7 +72,7 @@ export function applyHeroStatus(f: Fighter, status: Readonly<AppliedStatus>): vo
   }
   if (state.out || (state.conditionImmunity[status.group] ?? 0) > 0) return;
   state.condition = status.kind;
-  state.conditionFrames = status.frames;
+  state.conditionFrames = heroStatusFrames(status, state.damage);
   state.conditionGroup = status.group;
   state.conditionImmunityFrames = status.immunityFrames;
   // A status that stops every action also stops the one in progress.

@@ -6,6 +6,7 @@ import { canAttack, canShieldGrab } from "../sim/conditions";
 import { type Fighter, createFighter } from "../sim/fighter";
 import { advanceGrabs, resolveGrabs } from "../sim/grabs";
 import { grabContactFrame } from "../sim/moves";
+import { heroStatusBlocksActions } from "../sim/heroStatus";
 import { observedActions } from "../sim/observations";
 import { createRoster, fighterAt, neutralControls, type Roster } from "../sim/roster";
 import { advanceFighterMotion } from "../sim/step";
@@ -33,6 +34,7 @@ export class FighterAgencyForecast {
     const f = fighterAt(world, slot);
     if (f.status.out) return "act";
     if (f.status.frozenFrames > 1) return "none";
+    if (heroStatusBlocksActions(f) && f.status.conditionFrames > 1) return "none";
     if (f.grab.owner !== undefined) {
       const owner = fighterAt(world, f.grab.owner);
       if (owner.grab.action === GrabAction.hold || owner.grab.action === GrabAction.pummel) {

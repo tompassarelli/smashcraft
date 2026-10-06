@@ -1096,3 +1096,8 @@ table; a press that only parries does not count as a reflection). Named departur
   shield and lock no fighter; the 3-frame shot is safe point blank and keeps
   up to 10 arrows in flight. A powershield reflects each, and a jump, dodge or
   roll avoids it from range.
+
+One move-specific projectile clash exists (#116). Illidan's Mana Burn orb
+and any opposing traveling projectile it meets cancel each other. Other
+projectiles pass through each other
+([Mana Burn](design/roster.md#mana-burn-neutral-special)).

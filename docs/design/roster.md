@@ -1004,6 +1004,48 @@ the air at his glaives' length, forward air in and back air drifting out,
 threatens forward smash's reach on the ground, and answers a committed
 strike with Parry Step.
 
+#### Mana Burn (neutral special)
+
+Delegated design, 7 Oct 2026 (#116). Tom asked for a slower B, "like a Ryu
+thing", with a stun that is more devastating when it hits, or a longer cast.
+In the fireball game, a slow projectile is a wall its thrower walks behind.
+Ultimate's Ryu throws the slow Hadoken at speed 0.8 from frame 12, and it
+lasts 82 frames ([SmashWiki](https://www.ssbwiki.com/Ryu_(SSBU)/Neutral_special)).
+Street Fighter V's light Hadoken starts in 13 frames and recovers in 32
+([Prima](https://primagames.com/eguides/street-fighter-v-eguide/fighters/ryu/special-moves)).
+
+- **Cast** 16 frames, during which the mana glow shows on his hand.
+  Recovery is 30 frames, 46 in all. He can't cast a second orb while one is
+  out, and that includes one he reflected.
+- **Orb**: speed 12 for 90 frames (1080 units), at the shield's centre
+  height. His run speed is 11.1, so he can follow just behind the orb, and a
+  short hop clears it.
+- **Hit**: 5 damage and a flinch with no knockback, then a stun. The stunned
+  fighter can't act, plays its dizzy clip with Mana Burn's glow over its
+  head, and shows the locked-state marker. The stun lasts 20 frames, plus
+  2 frames for every 5% after the hit, up to 80. That is 22 at a fresh hit,
+  40 at 50%, 60 at 100% and 80 from 150%. The next damaging hit ends it.
+  When it ends, the fighter is immune to stun and sleep for 300 frames, so
+  stuns never chain.
+- **Reward**: a low-percent hit gives Illidan a free poke. A high-percent
+  hit gives him a free smash, but only if he followed the orb in. Thrown
+  from far away and left alone, the orb's stun runs out before he arrives.
+- **Counterplay**: jump the orb. Powershield it, and it returns at 0.7 speed
+  and stuns Illidan instead. Shield it: no stun, and point blank he is
+  punished by shield grab and jump-out-of-shield aerials. The orb and an
+  opposing traveling projectile cancel each other. This is the one
+  projectile clash in the game; others pass through each other.
+
+Rejected:
+- **A charged orb** (Samus's Charge Shot, Lucario's Aura Sphere). A stored
+  charge is a safe standing threat, the camping #98 rejects.
+- **The old fast orb with a stun added.** It would be a safe long-range
+  poke with a bigger reward and no screen control.
+
+Source: smashcraft:ts/src/game/sim/specials.ts and projectiles.ts (stun
+`MANA_BURN_STUN`), and the contract tests in
+smashcraft:ts/src/game/sim/demonHunterContracts.tests.ts.
+
 ### Balance record
 
 Measured with `bun scripts/cpuField.ts` (both fighters computers, every

@@ -1,15 +1,19 @@
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
-import { AttackStyle, Character, LedgeState, ProjectileKind, SpecialAction } from "./codes";
+import { AttackStyle, Character, HeroStatusGroup, HeroStatusKind, LedgeState, ProjectileKind, SpecialAction } from "./codes";
 import { DEMONHUNTER_IMMOLATE_STARTUP, DEMONHUNTER_MANA_BURN_STARTUP, DEMONHUNTER_WING_DURATION, startFighterSpecial, advanceSpecials } from "./specials";
 import { DEMONHUNTER_PARRY_START } from "./hits";
-import { createFighter } from "./fighter";
+import { type Fighter, type Projectile, createFighter } from "./fighter";
 import { beginFighterAttack, resolveAttacks } from "./attacks";
-import { projectileCount, updateProjectiles } from "./projectiles";
+import { MANA_BURN_STUN, projectileCount, updateProjectiles } from "./projectiles";
+import { heroStatusFrames, maskHeroStatusControls } from "./heroStatus";
+import { SHIELD_REFLECTOR_ACTIVE_FRAMES } from "./shield";
+import { attackBuffer } from "../input/attackBuffer";
+import { f32 } from "wisp/src/sim/f32";
 import { attackDurationFramesForGrounding, attackStartupFrames } from "./moves";
 import { advanceSolo, controls, testWorld } from "./testWorld";
 import { beginJump } from "./jumpsAndDodges";
 import { respawnFighter } from "./stocks";
-import { createRoster } from "./roster";
+import { type Roster, createRoster } from "./roster";
 import { canAttack } from "./conditions";
 import { resolveLedges } from "./ledge";
 import { cancelSpecialState } from "./transitions";
@@ -278,4 +282,159 @@ test("hitInterruptsIllidanSpecialAndStockResetClearsSpecialState", () => {
   assertEquals(illidan.special.frame, 0);
   assertFalse(illidan.special.fall);
   assertEquals(illidan.special.cooldowns[SpecialAction.demonHunterImmolate], 0);
+});
+
+// Mana Burn (#116): a slow orb Illidan can run behind, one at a time, whose
+// stun grows with percent and has counterplay.
+
+/** Casts Mana Burn and advances to the frame its orb leaves the hand. */
+function castOrb(illidan: Fighter, world: Roster): Projectile {
+  assertTrue(startFighterSpecial(illidan, 0, 0, controls({ specialPressed: true })));
+  for (let tick = 1; tick <= DEMONHUNTER_MANA_BURN_STARTUP; tick++) advanceSpecials(world, 0, 0);
+  return illidan.projectiles[0]!;
+}
+
+/** Flies the orb straight into a target standing just ahead of it. */
+function orbHit(target: Fighter, world: Roster, orb: Readonly<Projectile>): void {
+  target.motion.x = f32(orb.x + 20.0);
+  updateProjectiles(world);
+}
+
+test("manaBurnCastsASlowOrbOnFrame16RecoversOnFrame46AndKeepsOneOut", () => {
+  const illidan = createFighter(Character.demonHunter, 0.0, 1);
+  const target = createFighter(Character.archer, 5000.0, -1);
+  const world = testWorld(illidan, target);
+  assertTrue(startFighterSpecial(illidan, 0, 0, controls({ specialPressed: true })));
+  for (let tick = 1; tick < 16; tick++) {
+    advanceSpecials(world, 0, 0);
+    assertEquals(projectileCount(illidan), 0);
+  }
+  advanceSpecials(world, 0, 0);
+  assertEquals(projectileCount(illidan), 1);
+  const orb = illidan.projectiles[0]!;
+  assertEquals(orb.velocityX, 12.0);
+  assertEquals(orb.life, 90);
+  for (let tick = 17; tick < 46; tick++) advanceSpecials(world, 0, 0);
+  assertEquals(illidan.special.action, SpecialAction.demonHunterManaBurn);
+  advanceSpecials(world, 0, 0);
+  assertEquals(illidan.special.action, SpecialAction.none);
+  illidan.attack.cooldown = 0;
+  illidan.special.lockFrames = 0;
+  illidan.special.cooldowns[SpecialAction.demonHunterManaBurn] = 0;
+  assertFalse(startFighterSpecial(illidan, 0, 0, controls({ specialPressed: true })));
+  const startX = orb.x;
+  for (let tick = 1; tick < 90; tick++) updateProjectiles(world);
+  assertEquals(orb.x, f32(startX + 12.0 * 89));
+  assertEquals(projectileCount(illidan), 1);
+  updateProjectiles(world);
+  assertEquals(projectileCount(illidan), 0);
+  assertTrue(startFighterSpecial(illidan, 0, 0, controls({ specialPressed: true })));
+});
+
+test("manaBurnStunsWithoutKnockbackForLongerAtHigherPercent", () => {
+  assertEquals(heroStatusFrames(MANA_BURN_STUN, 0.0), 20);
+  for (const [before, frames] of [[0.0, 22], [45.0, 40], [95.0, 60], [145.0, 80], [300.0, 80]] as const) {
+    const illidan = createFighter(Character.demonHunter, 0.0, 1);
+    const target = createFighter(Character.archer, 5000.0, -1);
+    const world = testWorld(illidan, target);
+    target.status.damage = before;
+    orbHit(target, world, castOrb(illidan, world));
+    assertEquals(target.status.damage, before + 5.0);
+    assertEquals(target.status.condition, HeroStatusKind.stun);
+    assertEquals(target.status.conditionFrames, frames);
+    assertEquals(target.launch.knockbackX, 0.0);
+    assertEquals(target.launch.knockbackZ, 0.0);
+  }
+});
+
+test("manaBurnStunIgnoresInputEndsOnTheNextHitAndCannotChain", () => {
+  const illidan = createFighter(Character.demonHunter, 0.0, 1);
+  const target = createFighter(Character.archer, 5000.0, -1);
+  const world = testWorld(illidan, target);
+  target.status.damage = 95.0;
+  orbHit(target, world, castOrb(illidan, world));
+  assertEquals(target.status.condition, HeroStatusKind.stun);
+  const input = controls({ specialPressed: true, jumpPressed: true, jumpHeld: true, shield: true, shieldPressed: true, attackPressed: true, direction: 1 });
+  const commands = attackBuffer(6);
+  maskHeroStatusControls(target, input, commands);
+  for (const pressed of [input.specialPressed, input.jumpPressed, input.jumpHeld, input.shield, input.shieldPressed, input.attackPressed]) assertFalse(pressed);
+  assertEquals(input.direction, 0);
+  // A second orb is the next damaging hit: it ends the stun, and the immunity it leaves refuses a new one.
+  illidan.projectiles[0]!.life = 0;
+  cancelSpecialState(illidan);
+  illidan.attack.cooldown = 0;
+  illidan.special.lockFrames = 0;
+  illidan.special.cooldowns[SpecialAction.demonHunterManaBurn] = 0;
+  orbHit(target, world, castOrb(illidan, world));
+  assertEquals(target.status.damage, 105.0);
+  assertEquals(target.status.condition, HeroStatusKind.none);
+  assertEquals(target.status.conditionImmunity[HeroStatusGroup.sleep], 300);
+});
+
+test("aHeldShieldBlocksManaBurnsStun", () => {
+  const illidan = createFighter(Character.demonHunter, 0.0, 1);
+  const target = createFighter(Character.archer, 5000.0, -1);
+  const world = testWorld(illidan, target);
+  target.shield.raised = true;
+  orbHit(target, world, castOrb(illidan, world));
+  assertEquals(projectileCount(illidan), 0);
+  assertEquals(target.status.condition, HeroStatusKind.none);
+});
+
+test("aFullJumpClearsManaBurnWhereStandingStillIsHit", () => {
+  for (const jumps of [false, true]) {
+    const illidan = createFighter(Character.demonHunter, 0.0, 1);
+    const target = createFighter(Character.archer, 600.0, -1);
+    const world = testWorld(illidan, target);
+    const orb = castOrb(illidan, world);
+    let pressed = false;
+    for (let tick = 0; tick < 90 && target.status.damage === 0.0; tick++) {
+      const press = jumps && !pressed && f32(target.motion.x - orb.x) <= 150.0;
+      if (press) pressed = true;
+      advanceSolo(target, 0, controls({ jumpPressed: press, jumpHeld: jumps }), 600.0);
+      updateProjectiles(world);
+    }
+    if (jumps) {
+      assertEquals(target.status.damage, 0.0);
+      assertGreaterThan(orb.x, target.motion.x);
+    } else assertEquals(target.status.condition, HeroStatusKind.stun);
+  }
+});
+
+test("aPowershieldReflectsManaBurnAndTheOrbStunsIllidan", () => {
+  const illidan = createFighter(Character.demonHunter, 0.0, 1);
+  const defender = createFighter(Character.archer, 5000.0, -1);
+  const world = testWorld(illidan, defender);
+  const orb = castOrb(illidan, world);
+  // projectileRules.tests.ts measures the real presses that reflect it (#98 rule 1); this pins what the reflection does.
+  defender.motion.x = f32(orb.x + 120.0);
+  defender.shield.raised = true;
+  for (let tick = 0; tick < 20 && projectileCount(illidan) > 0; tick++) {
+    defender.shield.reflectFrames = SHIELD_REFLECTOR_ACTIVE_FRAMES;
+    updateProjectiles(world);
+  }
+  assertEquals(projectileCount(illidan), 0);
+  const reflected = defender.projectiles[0]!;
+  assertEquals(reflected.kind, ProjectileKind.manaBurn);
+  assertLessThan(reflected.velocityX, 0.0);
+  defender.shield.raised = false;
+  defender.shield.reflectFrames = 0;
+  for (let tick = 0; tick < 60 && illidan.status.damage === 0.0; tick++) updateProjectiles(world);
+  assertEquals(illidan.status.condition, HeroStatusKind.stun);
+});
+
+test("manaBurnAndAnOpposingShotCancelEachOther", () => {
+  const illidan = createFighter(Character.demonHunter, 0.0, 1);
+  const rifleman = createFighter(Character.rifleman, 2000.0, -1);
+  const world = testWorld(illidan, rifleman);
+  const orb = castOrb(illidan, world);
+  assertTrue(startFighterSpecial(rifleman, 0, 0, controls({ specialPressed: true })));
+  for (let tick = 0; tick < 30 && projectileCount(rifleman) === 0; tick++) advanceSpecials(world, 0, 0);
+  assertEquals(projectileCount(rifleman), 1);
+  for (let tick = 0; tick < 60 && projectileCount(illidan) > 0; tick++) updateProjectiles(world);
+  assertEquals(projectileCount(illidan), 0);
+  assertEquals(projectileCount(rifleman), 0);
+  assertEquals(illidan.status.damage, 0.0);
+  assertEquals(rifleman.status.damage, 0.0);
+  assertGreaterThan(orb.x, 0.0);
 });

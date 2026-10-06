@@ -25,8 +25,13 @@ import { HIPPOGRYPH_DIVE_ARRIVAL, HIPPOGRYPH_DIVE_OVERSHOOT, RIFLEMAN_BEAR_LIFET
 import { at } from "wisp/src/runtime/lookup";
 import { advanceHeroSpecial, chooseHeroSpecial, enterHeroSpecial, followUpHeroSpecial, heroSpecialContact, heroStrikeMeetsShield, isHeroSpecialAction, relocateHeroSpecial, runningHeroSpecial, resolveHeroGuards, steerHeroSpecial, stopHeroMotionAtBodies } from "./heroSpecialRules";
 
-export const DEMONHUNTER_MANA_BURN_STARTUP = 8;
-const DEMONHUNTER_MANA_BURN_RECOVERY = 25;
+// Mana Burn (#116): a slow orb Illidan can run behind, one at a time; its stun is in projectiles.ts.
+export const DEMONHUNTER_MANA_BURN_STARTUP = 16;
+export const DEMONHUNTER_MANA_BURN_RECOVERY = 30;
+export const DEMONHUNTER_MANA_BURN_SPEED = 12.0;
+export const DEMONHUNTER_MANA_BURN_LIFETIME = 90;
+// At the shield's centre: a held shield always meets the slow orb, and a short hop clears it.
+export const DEMONHUNTER_MANA_BURN_HEIGHT = 45.0;
 const DEMONHUNTER_PARRY_DURATION = 22;
 export const DEMONHUNTER_WING_STARTUP = 3;
 export const DEMONHUNTER_WING_DURATION = 28;
@@ -233,6 +238,12 @@ function summonBear(owner: Fighter, stage: number, matchFrame: number): void {
   bear.swipeCooldown = 5;
 }
 
+/** Illidan has one orb out at a time, counting one he reflected. */
+function manaBurnInFlight(owner: Readonly<Fighter>): boolean {
+  for (const projectile of owner.projectiles) if (projectile.life > 0 && projectile.kind === ProjectileKind.manaBurn) return true;
+  return false;
+}
+
 function startDemonHunterSpecial(owner: Fighter, action: SpecialAction, moveX: number): boolean {
   const { motion, special } = owner;
   if (action === SpecialAction.demonHunterWingAscent) {
@@ -256,6 +267,7 @@ function startDemonHunterSpecial(owner: Fighter, action: SpecialAction, moveX: n
     motion.vx = f32(moveX * 9.0);
     return true;
   }
+  if (manaBurnInFlight(owner)) return false;
   startSpecialAction(owner, action, DEMONHUNTER_MANA_BURN_STARTUP + DEMONHUNTER_MANA_BURN_RECOVERY, moveX);
   special.cooldowns[action] = 24;
   return true;
@@ -393,7 +405,7 @@ function advanceSpecialAction(owner: Fighter, stage: number, matchFrame: number,
   }
   if (special.action === SpecialAction.riflemanBear && special.frame === RIFLEMAN_BEAR_CAST_FRAMES) summonBear(owner, stage, matchFrame);
   if (special.action === SpecialAction.demonHunterManaBurn && special.frame === DEMONHUNTER_MANA_BURN_STARTUP) {
-    spawnProjectileMotion(owner, ProjectileKind.manaBurn, f32(owner.facing * 30.0), 0.0, 48, shotSerial);
+    spawnProjectileMotion(owner, ProjectileKind.manaBurn, f32(owner.facing * DEMONHUNTER_MANA_BURN_SPEED), 0.0, DEMONHUNTER_MANA_BURN_LIFETIME, shotSerial, 1.0, DEMONHUNTER_MANA_BURN_HEIGHT);
   }
   if (special.action === SpecialAction.archerHomingArrow && special.frame === ARCHER_HOMING_WINDUP_FRAMES) {
     spawnHomingArrow(owner, special.direction, shotSerial);

@@ -147,7 +147,7 @@ export const HitElement = { normal: 0, fire: 1, electric: 2, slash: 3, ice: 5 } 
 export type HitElement = (typeof HitElement)[keyof typeof HitElement];
 
 /** Hero statuses (sim/heroStatus.ts) a body hit applies. Append only: the code is in replay text. */
-export const HeroStatusKind = { none: 0, sleep: 1, poison: 2, hex: 3, chill: 5 } as const;
+export const HeroStatusKind = { none: 0, sleep: 1, poison: 2, hex: 3, stun: 4, chill: 5 } as const;
 export type HeroStatusKind = (typeof HeroStatusKind)[keyof typeof HeroStatusKind];
 
 /**

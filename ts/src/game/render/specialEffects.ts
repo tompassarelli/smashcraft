@@ -16,7 +16,7 @@ import {
 import { SUMMON_BEAR } from "../presentation/summonClipInfo";
 import { type SummonState, projectBear } from "../presentation/summonState";
 import { f32 } from "wisp/src/sim/f32";
-import { Character, HippogryphKind, SpecialAction } from "../sim/codes";
+import { Character, HeroStatusKind, HippogryphKind, SpecialAction } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 import { DEMONHUNTER_IMMOLATE_ACTIVE, DEMONHUNTER_IMMOLATE_STARTUP, DEMONHUNTER_MANA_BURN_STARTUP } from "../sim/specials";
 import { type ParkedFlags, STOCK_MODELS, type WorldOrigin, facingYaw, parkOnce } from "./effects";
@@ -129,6 +129,12 @@ export class SpecialEffects {
     BlzSetSpecialEffectTimeScale(model, fighter.launch.hitlag > 0 || fighter.status.frozenFrames > 0 ? 0.0 : 1.0);
   }
 
+  /** Mana Burn's stun (#116) burns over the stunned fighter's head; it never overlaps the fighter's own cast. */
+  private showStun(fighter: Readonly<Fighter>, index: number, manaHand: effect): void {
+    if (fighter.status.condition === HeroStatusKind.stun) this.show(manaHand, index, MANA_HAND, fighter, 0.0, 175.0, f32(0.6));
+    else this.park(manaHand, index, MANA_HAND);
+  }
+
   private presentConfirmedParticles(fighter: Readonly<Fighter>, slot: SpecialSlot, index: number): void {
     const { action, frame } = fighter.special;
     const entered = action !== slot.previousSpecial || frame < slot.previousSpecialFrame;
@@ -140,10 +146,11 @@ export class SpecialEffects {
       if (burning) this.show(felFlames, index, FEL_FLAMES, fighter, 0.0, 25.0, f32(1.15));
       else this.park(felFlames, index, FEL_FLAMES);
       if (action === SpecialAction.demonHunterManaBurn && frame <= DEMONHUNTER_MANA_BURN_STARTUP) this.show(manaHand, index, MANA_HAND, fighter, fighter.facing * 45.0, 90.0, 0.75);
-      else this.park(manaHand, index, MANA_HAND);
+      else this.showStun(fighter, index, manaHand);
     } else {
       this.park(felFlames, index, FEL_FLAMES);
-      this.park(manaHand, index, MANA_HAND);
+      if (fighter.status.out) this.park(manaHand, index, MANA_HAND);
+      else this.showStun(fighter, index, manaHand);
     }
     slot.previousSpecial = action;
     slot.previousSpecialFrame = frame;

@@ -4,7 +4,8 @@ import { max, min } from "../../runtime/numbers";
 import { roundToFloat32 } from "wisp/src/sim/binary32";
 import { meleeCos, meleeSin } from "../../sim/meleeScalarMath";
 import { f32 } from "wisp/src/sim/f32";
-import { AttackStyle, ContactKind, ProjectileKind } from "./codes";
+import { AttackStyle, ContactKind, HeroStatusGroup, HeroStatusKind, ProjectileKind } from "./codes";
+import type { AppliedStatus } from "./heroStatus";
 import { isIntangible } from "./conditions";
 import { collectDamageContact, finishDamageContacts, openDamageContacts } from "./contacts";
 import { type Fighter, PROJECTILE_CAPACITY, type Projectile } from "./fighter";
@@ -97,6 +98,16 @@ export function spawnHomingArrow(owner: Fighter, direction: number, serial: numb
   spawnProjectileMotion(owner, ProjectileKind.homingArrow, f32(facingOf(owner, direction) * HOMING_ARROW_SPEED), 0.0, HOMING_ARROW_LIFETIME, serial);
 }
 
+/**
+ * Mana Burn's stun (#116): 20 frames, 2 more for every 5% after the hit, at
+ * most 80; the next damaging hit ends it, and 300 frames of sleep-group
+ * immunity follow so stuns and sleeps never chain.
+ */
+export const MANA_BURN_STUN: Readonly<AppliedStatus> = {
+  kind: HeroStatusKind.stun, frames: 20, group: HeroStatusGroup.sleep, immunityFrames: 300,
+  scaling: { frames: 2, percent: 5, max: 80 },
+};
+
 // Preallocated: collected contacts copy it, so one record serves every hit.
 const projectileHit = emptyHitEffect();
 
@@ -124,13 +135,14 @@ function applyProjectileHit(world: Roster, ownerSlot: number, targetSlot: number
   }
   const { kind } = projectile;
   projectileHit.element = kind === ProjectileKind.manaBurn ? HitElement.electric : HitElement.normal;
-  if (kind === ProjectileKind.blaster) {
+  if (kind === ProjectileKind.blaster || kind === ProjectileKind.manaBurn) {
     projectileHit.damage = projectileDamage(projectile);
     projectileHit.growth = 0.0;
     projectileHit.base = 0.0;
     projectileHit.launchX = 0.0;
     projectileHit.launchZ = 0.0;
-    collectDamageContact(world, ownerSlot, targetSlot, projectileHit, projectile.direction, ContactKind.flinch, false, undefined, shieldContact);
+    collectDamageContact(world, ownerSlot, targetSlot, projectileHit, projectile.direction, ContactKind.flinch, false, undefined, shieldContact,
+      kind === ProjectileKind.manaBurn ? MANA_BURN_STUN : undefined);
     return;
   }
   const damageOnly = kind === ProjectileKind.arrow || kind === ProjectileKind.homingArrow;
@@ -354,6 +366,39 @@ function projectileMeetsStage(stage: number, matchFrame: number, oldX: number, o
   return false;
 }
 
+/** Whether a and b meet this frame: their centres cross or come within both reaches, horizontally and vertically. */
+function projectilesMeet(a: Readonly<Projectile>, b: Readonly<Projectile>): boolean {
+  const reachX = f32(BLASTER_PROJECTILE_RADIUS + (b.spec?.radius ?? BLASTER_PROJECTILE_RADIUS));
+  const reachZ = f32(BLASTER_PROJECTILE_HALF_HEIGHT + (b.spec?.radius ?? BLASTER_PROJECTILE_HALF_HEIGHT));
+  const before = f32(a.x - b.x);
+  const after = f32(f32(a.x + a.velocityX) - f32(b.x + b.velocityX));
+  const crossed = (before <= 0 && after >= 0) || (before >= 0 && after <= 0) || Math.abs(after) <= reachX;
+  return crossed && Math.abs(f32(f32(a.z + a.velocityZ) - f32(b.z + b.velocityZ))) <= reachZ;
+}
+
+/**
+ * A Mana Burn orb and an opposing traveling projectile that meet this frame
+ * cancel each other before either flies (#116). Persistent, non-reflectable
+ * hero objects are not traveling projectiles and are left alone.
+ */
+function clashManaBurns(world: Roster): void {
+  for (let ownerSlot = 0; ownerSlot < PARTICIPANT_CAPACITY; ownerSlot++) {
+    if (!isActive(world, ownerSlot)) continue;
+    for (const orb of fighterAt(world, ownerSlot).projectiles) {
+      if (orb.life <= 0 || orb.kind !== ProjectileKind.manaBurn) continue;
+      for (let otherSlot = 0; otherSlot < PARTICIPANT_CAPACITY && orb.life > 0; otherSlot++) {
+        if (otherSlot === ownerSlot || !isActive(world, otherSlot)) continue;
+        for (const other of fighterAt(world, otherSlot).projectiles) {
+          if (other.life <= 0 || (other.spec !== undefined && !other.spec.reflectable) || !projectilesMeet(orb, other)) continue;
+          orb.life = 0;
+          other.life = 0;
+          break;
+        }
+      }
+    }
+  }
+}
+
 // Preallocated: rollback replays fly projectiles every frame.
 const selected = { reflector: false, shield: false };
 
@@ -373,6 +418,7 @@ export function updateProjectiles(world: Roster, stage?: number, matchFrame = 0)
     targets.intangible[slot] = isIntangible(target);
     targets.reflecting[slot] = target.shield.reflectFrames > 0;
   }
+  clashManaBurns(world);
   for (let ownerSlot = 0; ownerSlot < PARTICIPANT_CAPACITY; ownerSlot++) {
     if (!isActive(world, ownerSlot)) continue;
     const owner = fighterAt(world, ownerSlot);
