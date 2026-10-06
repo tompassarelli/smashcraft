@@ -1,0 +1,397 @@
+{
+  "claim": "#60: every press lands on its frame and shows on the presser's next local frame",
+  "captures": [
+    {
+      "directory": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r1-bot",
+      "build": "typescript-integrity",
+      "epochs": [
+        1,
+        2
+      ],
+      "presses": [
+        110,
+        110
+      ],
+      "pressed_bindings": [
+        [
+          "attack",
+          "c-down",
+          "c-left",
+          "c-right",
+          "c-up",
+          "dash-left",
+          "dash-right",
+          "jump",
+          "shield",
+          "special"
+        ],
+        [
+          "attack",
+          "c-down",
+          "c-left",
+          "c-right",
+          "c-up",
+          "dash-left",
+          "dash-right",
+          "jump",
+          "shield",
+          "special"
+        ]
+      ],
+      "edges": [
+        219,
+        219
+      ],
+      "lost": 0,
+      "extra": 0,
+      "reordered": 0,
+      "stuck": 0,
+      "on_frame": {
+        "correct": 438,
+        "total": 438,
+        "percent": 100
+      },
+      "legal_presses": 45,
+      "local_start": {
+        "none": {
+          "n": 42,
+          "p50": 0,
+          "p95": 17,
+          "max": 22,
+          "counts": [
+            [
+              0,
+              35
+            ],
+            [
+              10,
+              1
+            ],
+            [
+              12,
+              1
+            ],
+            [
+              15,
+              2
+            ],
+            [
+              17,
+              1
+            ],
+            [
+              22,
+              2
+            ]
+          ],
+          "missing_first_prediction": 0
+        },
+        "opponent": {
+          "n": 2,
+          "p50": 46,
+          "p95": 50,
+          "max": 50,
+          "counts": [
+            [
+              46,
+              1
+            ],
+            [
+              50,
+              1
+            ]
+          ],
+          "missing_first_prediction": 0
+        },
+        "own": {
+          "n": 1,
+          "p50": 9,
+          "p95": 9,
+          "max": 9,
+          "counts": [
+            [
+              9,
+              1
+            ]
+          ],
+          "missing_first_prediction": 0
+        }
+      },
+      "checksums_equal": true,
+      "mismatched_edges": [],
+      "reconciler_failures": [
+        "slot 0: fewer than 500 injected edges",
+        "slot 0: missing binding coverage",
+        "slot 1: fewer than 500 injected edges",
+        "slot 1: missing binding coverage",
+        "required process stalls absent",
+        "Start pause/resume absent",
+        "rematch slot change absent"
+      ]
+    }
+  ],
+  "presses": 220,
+  "missing_actions": [
+    "grab",
+    "move"
+  ],
+  "lost": 0,
+  "extra": 0,
+  "on_frame": {
+    "correct": 438,
+    "total": 438,
+    "percent": 100
+  },
+  "local_start_callbacks": {
+    "all": {
+      "n": 45,
+      "p50": 0,
+      "p95": 22,
+      "max": 50,
+      "counts": [
+        [
+          0,
+          35
+        ],
+        [
+          9,
+          1
+        ],
+        [
+          10,
+          1
+        ],
+        [
+          12,
+          1
+        ],
+        [
+          15,
+          2
+        ],
+        [
+          17,
+          1
+        ],
+        [
+          22,
+          2
+        ],
+        [
+          46,
+          1
+        ],
+        [
+          50,
+          1
+        ]
+      ]
+    },
+    "by_stall": {
+      "none": {
+        "n": 42,
+        "p50": 0,
+        "p95": 17,
+        "max": 22,
+        "counts": [
+          [
+            0,
+            35
+          ],
+          [
+            10,
+            1
+          ],
+          [
+            12,
+            1
+          ],
+          [
+            15,
+            2
+          ],
+          [
+            17,
+            1
+          ],
+          [
+            22,
+            2
+          ]
+        ],
+        "missing_first_prediction": 0
+      },
+      "opponent": {
+        "n": 2,
+        "p50": 46,
+        "p95": 50,
+        "max": 50,
+        "counts": [
+          [
+            46,
+            1
+          ],
+          [
+            50,
+            1
+          ]
+        ],
+        "missing_first_prediction": 0
+      },
+      "own": {
+        "n": 1,
+        "p50": 9,
+        "p95": 9,
+        "max": 9,
+        "counts": [
+          [
+            9,
+            1
+          ]
+        ],
+        "missing_first_prediction": 0
+      }
+    },
+    "gated_within_1s_after_stop": {
+      "n": 7,
+      "p50": 15,
+      "p95": 22,
+      "max": 22,
+      "counts": [
+        [
+          10,
+          1
+        ],
+        [
+          12,
+          1
+        ],
+        [
+          15,
+          2
+        ],
+        [
+          17,
+          1
+        ],
+        [
+          22,
+          2
+        ]
+      ]
+    },
+    "gated_clear_of_stops": {
+      "n": 35,
+      "p50": 0,
+      "p95": 0,
+      "max": 0,
+      "counts": [
+        [
+          0,
+          35
+        ]
+      ]
+    }
+  },
+  "gated_local_start": {
+    "n": 44,
+    "max": 50,
+    "missing_first_prediction": 0
+  },
+  "gated_shown_only_when_confirmed": {
+    "n": 0,
+    "counts": []
+  },
+  "worst_gated_presses": [
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r1-bot",
+      "epoch": 1,
+      "slot": 0,
+      "frame": 500,
+      "delay": 50,
+      "stall": "opponent"
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r1-bot",
+      "epoch": 1,
+      "slot": 0,
+      "frame": 1465,
+      "delay": 46,
+      "stall": "opponent",
+      "afterStall": 489
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r1-bot",
+      "epoch": 1,
+      "slot": 0,
+      "frame": 543,
+      "delay": 22,
+      "stall": "none",
+      "afterStall": 43
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r1-bot",
+      "epoch": 2,
+      "slot": 0,
+      "frame": 525,
+      "delay": 22,
+      "stall": "none",
+      "afterStall": 42
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r1-bot",
+      "epoch": 2,
+      "slot": 1,
+      "frame": 526,
+      "delay": 17,
+      "stall": "none",
+      "afterStall": 42
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r1-bot",
+      "epoch": 1,
+      "slot": 0,
+      "frame": 1031,
+      "delay": 15,
+      "stall": "none",
+      "afterStall": 55
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r1-bot",
+      "epoch": 1,
+      "slot": 1,
+      "frame": 543,
+      "delay": 15,
+      "stall": "none",
+      "afterStall": 42
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r1-bot",
+      "epoch": 1,
+      "slot": 1,
+      "frame": 1031,
+      "delay": 12,
+      "stall": "none",
+      "afterStall": 54
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r1-bot",
+      "epoch": 2,
+      "slot": 1,
+      "frame": 1503,
+      "delay": 10,
+      "stall": "none",
+      "afterStall": 55
+    }
+  ],
+  "gated_without_first_prediction": [],
+  "gate": {
+    "presses": false,
+    "every_action": false,
+    "lost_extra": true,
+    "on_frame": true,
+    "local_start": false,
+    "checksums": true
+  },
+  "passed": false
+}

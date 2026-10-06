@@ -21,8 +21,8 @@ export const BTN_SELECT = 0x13a;
 export const ABS_X = 0;
 export const ABS_Y = 1;
 export const ABS_Z = 2;
-const ABS_RX = 3;
-const ABS_RY = 4;
+export const ABS_RX = 3;
+export const ABS_RY = 4;
 export const ABS_RZ = 5;
 
 /** One raw controller transition as the kernel reports it. */

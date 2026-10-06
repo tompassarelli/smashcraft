@@ -157,3 +157,24 @@ allows held a passive Archer for 25 resets in 600 frames from 30% and from
 100%. The game's computer never chooses a get-up option, so in
 computer-against-computer matches a jabbing Archer or Rifleman can hold a
 downed opponent until time runs out.
+
+## Rifleman down tilt, 6 October 2026 (#63)
+
+Rifleman's down tilt deals 10 damage; Archer's stays 8. Rifleman has Falco's
+slower ground movement and Archer Fox's faster one, and in Melee's corpus
+Falco's down tilt hits 13% and Fox's 10% on identical frames: the slower
+fighter of the pair hits harder. Rifleman keeps that ratio (8 × 1.3 ≈ 10).
+Timing, hit region, launch direction, growth and base are unchanged.
+
+| Rifleman down tilt, 0%, weight 100 | Before | After |
+| --- | ---: | ---: |
+| Damage | 8 | 10 |
+| Knockback | 43.60 | 46.40 |
+| Hitstun / hitlag | 17 / 5 | 18 / 6 |
+| Digital shield damage / shieldstun | 5.6 / 5 | 7 / 6 |
+
+The comparison fixtures don't sample down tilts, so their verdicts are
+unchanged. In the 540-match computer soak only Rifleman's matches changed;
+computer Rifleman beat the fuzzed player in 120 of 120 matches instead of
+118 (smashcraft:evidence/rifleman-down-tilt-20261006/). That is below what
+the soak resolves as a balance effect.

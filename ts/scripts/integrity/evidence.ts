@@ -86,6 +86,13 @@ const Stall = Schema.Struct({
   stoppedNs: Schema.Int,
   continuedNs: Schema.Int,
 }).pipe(Schema.encodeKeys({ verifiedStoppedState: "verified_stopped_state", stoppedNs: "stopped_monotonic_ns", continuedNs: "continued_monotonic_ns" }));
+const BotStall = Schema.Struct({
+  event: Schema.Literal("bot-stall"),
+  epoch: Schema.Int,
+  slot: Schema.Int,
+  stoppedNs: Schema.Int,
+  continuedNs: Schema.Int,
+}).pipe(Schema.encodeKeys({ stoppedNs: "stopped_monotonic_ns", continuedNs: "continued_monotonic_ns" }));
 const Pause = Schema.Struct({ event: Schema.Literal("integrity-pause"), epoch: Schema.optionalKey(Schema.Int) });
 const ModeChange = Schema.Struct({
   event: Schema.Literals(["integrity-slot-change", "four-fighter-setup"]),
@@ -99,7 +106,7 @@ const PlayerView = Schema.Struct({
   failure: Schema.optionalKey(Schema.String),
 });
 const EventName = Schema.Struct({ event: Schema.String });
-const READ_EVENTS = new Set(["start", "end", "integrity-resume", "integrity-stall", "integrity-pause", "integrity-slot-change", "four-fighter-setup", "player-view"]);
+const READ_EVENTS = new Set(["start", "end", "integrity-resume", "integrity-stall", "bot-stall", "integrity-pause", "integrity-slot-change", "four-fighter-setup", "player-view"]);
 
 const CaptureFile = Schema.Struct({
   scope: Schema.String,
@@ -136,6 +143,8 @@ const journeyEvent = (path: string) => (raw: unknown): Effect.Effect<readonly Jo
     }
     const decoded = event === "integrity-stall"
       ? yield* decode(Stall, path)(raw)
+      : event === "bot-stall"
+      ? yield* decode(BotStall, path)(raw)
       : event === "integrity-pause"
       ? yield* decode(Pause, path)(raw)
       : event === "integrity-slot-change" || event === "four-fighter-setup"
