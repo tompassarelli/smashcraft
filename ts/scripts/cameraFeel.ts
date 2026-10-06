@@ -13,7 +13,7 @@ import { writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { f32 } from "wisp/src/sim/f32";
 import { clearAttackBuffer } from "../src/game/input/attackBuffer";
-import { PARTICIPANT_SLOTS } from "../src/game/input/participants";
+import { PARTICIPANT_SLOTS, type Slots } from "../src/game/input/participants";
 import { produceComputerInput } from "../src/game/match/botPlay";
 import { createFrameControls } from "../src/game/match/controls";
 import { captureFrame, createMatchFrameInput, executeMatchFrame } from "../src/game/match/frameInput";
@@ -43,6 +43,8 @@ const radians = (degrees: number) => (degrees * Math.PI) / 180.0;
 /** One frame of a camera as the viewer sees it: centre, eye distance and the visible size at the fighters' plane. */
 interface View { readonly x: number; readonly z: number; readonly distance: number; readonly width: number; readonly height: number }
 
+const box = () => ({ left: -1.0, right: 1.0, top: 1.0, bottom: -1.0 });
+
 /**
  * Melee's standard camera on our fighter paths, in Melee units: subject boxes
  * (ftcamera.c, ftData +0x3C for Fox/Falco/Falcon), `Camera_800293E0` extent
@@ -51,7 +53,7 @@ interface View { readonly x: number; readonly z: number; readonly distance: numb
  * `Camera_80029AAC`/`Camera_80029C88` easing, with cm_803BCCA0's constants.
  */
 class MeleeCamera {
-  private readonly ext = PARTICIPANT_SLOTS.map(() => ({ left: -1.0, right: 1.0, top: 1.0, bottom: -1.0 }));
+  private readonly ext: Slots<{ left: number; right: number; top: number; bottom: number }> = [box(), box(), box(), box()];
   private interest = { x: 0.0, y: 0.0 };
   private eye = { x: 0.0, y: 0.0, z: 0.0 };
   private fov = 30.0;
@@ -62,13 +64,13 @@ class MeleeCamera {
     const bounds = { left: camera.left / 6, right: camera.right / 6, bottom: camera.bottom / 6, top: camera.top / 6 };
     const live = PARTICIPANT_SLOTS.filter((slot) => isActive(world, slot) && !fighterAt(world, slot).status.out);
     if (live.length === 0) return undefined;
-    const multiplier = [0.0, 1.5, 1.32, 1.16, 1.0][live.length]! * 1.5;
+    const multiplier = (live.length === 1 ? 1.5 : live.length === 2 ? 1.32 : live.length === 3 ? 1.16 : 1.0) * 1.5;
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
     const clampX = (x: number) => Math.min(bounds.right, Math.max(bounds.left, x));
     const clampY = (y: number) => Math.min(bounds.top, Math.max(bounds.bottom, y));
     for (const slot of live) {
       const fighter = fighterAt(world, slot);
-      const ext = this.ext[slot]!;
+      const ext = this.ext[slot];
       const target = fighter.facing > 0 ? { left: -9.0, right: 22.0 * 1.5 } : { left: -22.0 * 1.5, right: 9.0 };
       const ease = (current: number, goal: number) => (goal - current > 0.5 ? current + 0.5 : goal - current < -0.5 ? current - 0.5 : goal);
       ext.left = this.started ? ease(ext.left, target.left) : target.left;
@@ -136,11 +138,12 @@ function observe(into: Samples, before: View, now: View, last: [number, number, 
   velocity[2] = deltas[2];
   into.pan.push(Math.hypot(deltas[0], deltas[1]));
   into.zoom.push(Math.abs(deltas[2]));
-  deltas.forEach((delta, axis) => {
-    if (Math.abs(delta) <= REVERSAL_FLOOR) return;
-    if (Math.abs(last[axis]!) > REVERSAL_FLOOR && Math.sign(delta) !== Math.sign(last[axis]!)) into.reversals[axis]!++;
+  for (const axis of [0, 1, 2] as const) {
+    const delta = deltas[axis];
+    if (Math.abs(delta) <= REVERSAL_FLOOR) continue;
+    if (Math.abs(last[axis]) > REVERSAL_FLOOR && Math.sign(delta) !== Math.sign(last[axis])) into.reversals[axis]++;
     last[axis] = delta;
-  });
+  }
   into.frames++;
 }
 
@@ -227,7 +230,7 @@ if (import.meta.main) {
   for (const [name, view] of [["ours ", result.ours], ["melee", result.melee]] as const) {
     console.log(`${name} pan/frame p50/p95/p99/max ${percent(view.pan)}; zoom/frame ${percent(view.zoom)}`);
     console.log(`${name} velocity change/frame p50/p95/p99/max ${percent(view.jerk)}; snap frames (pan > 3% or zoom > 6%) ${view.snaps}`);
-    console.log(`${name} travel/s pan ${(view.panTravel * 100).toFixed(1)}% zoom ${(view.zoomTravel * 100).toFixed(1)}%; reversals/s x ${view.reversals[0]!.toFixed(2)} z ${view.reversals[1]!.toFixed(2)} zoom ${view.reversals[2]!.toFixed(2)}`);
+    console.log(`${name} travel/s pan ${(view.panTravel * 100).toFixed(1)}% zoom ${(view.zoomTravel * 100).toFixed(1)}%; reversals/s x/z/zoom ${view.reversals.map((n) => n.toFixed(2)).join(" / ")}`);
   }
   if (values.json !== undefined) writeFileSync(values.json, JSON.stringify(result, null, 2));
 }
