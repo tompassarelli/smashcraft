@@ -204,6 +204,8 @@ export function renderPersistentPresentation(s: ShellState): void {
     ui.special.presentSummons(runtime.summons, live, slot);
     if (live !== undefined) ui.frost.present(live, slot);
     else ui.frost.hideSlot(slot);
+    if (live !== undefined) ui.placed.present(live, slot);
+    else ui.placed.hideSlot(slot);
     renderers?.shield.present(fighter, playing);
     renderers?.projectiles.present(fighter, playing, s.session.paused);
   }

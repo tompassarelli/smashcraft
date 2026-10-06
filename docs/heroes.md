@@ -89,7 +89,20 @@ acts again on N+1. It may author:
   percent, never more than `healCapPerStock` in a stock (`resolveHeroGuards`,
   run before specials advance). It protects nothing itself; pair it with
   `intangible`. The success and the stock's healing are fighter state;
-- `groundOnly`, `oncePerAirtime`, `helpless` and `landingLag`.
+- `groundOnly`, `oncePerAirtime`, `helpless` and `landingLag`;
+- `placement`: the fighter's one placed object (`SpecialPlacement`, such as
+  Serpent Ward), standing `offsetX` ahead of the caster's feet from the
+  placement frame, which is its age 1. `sim/placedObjects.ts` runs it after
+  the frame's projectiles: each opponent's normal, hero special and
+  projectile that touches its upright capsule spends durability by that
+  hit's damage, once per attack or action (projectiles are used up); it
+  never stops a strike from reaching a fighter. At each age in `fireAges` it
+  emits its `shot` straight along its facing unless its owner is held, in
+  hitstun or out, and under the three-projectile cap. It ends at zero
+  durability, after `life` frames, or on its owner's stock loss;
+- `recall` on an `AuthoredSpecial` removes the placed object when the action
+  completes, and a kit's `recall` form replaces every other form while the
+  object stands (Serpent Ward's free recast).
 
 ## Statuses
 
@@ -117,7 +130,7 @@ held, stunned or acting) regains a point every 10 such frames. A press the
 fighter cannot afford starts nothing and counts one `visuals.manaDenied`; an
 up special below its full cost takes its `free` form instead. Mana, its delay
 and remainder, the entry form and aim, airtime uses, armor and each hero
-projectile's record are fighter state: rollback copies them, replay
+projectile's record and the placed object are fighter state: rollback copies them, replay
 difference compares them, and the canonical replay text includes them for
 fighters with a hero kit. The original fighters keep their cooldowns and no
 mana. In a match each hero's HUD plate shows "Mana N" above it, and "Not

@@ -70,6 +70,15 @@ export function spawnArcherArrow(owner: Fighter, direction: number, verticalSpee
 // Preallocated: collected contacts copy it, so one record serves every hit.
 const projectileHit = emptyHitEffect();
 
+/** The damage a projectile deals a body, before shield or reflection changes. */
+export function projectileDamage(projectile: Readonly<Projectile>): number {
+  const { kind, spec } = projectile;
+  const damage = kind === ProjectileKind.hero && spec !== undefined ? spec.effect.damage
+    : kind === ProjectileKind.blaster ? attackDamage(AttackStyle.shot)
+      : kind === ProjectileKind.fanArrow ? 4.0 : kind === ProjectileKind.recoil || kind === ProjectileKind.manaBurn ? 5.0 : 7.0;
+  return roundToFloat32(f32(damage * projectile.damageMultiplier));
+}
+
 function applyProjectileHit(world: Roster, ownerSlot: number, targetSlot: number, projectile: Readonly<Projectile>, shieldContact: boolean): void {
   const target = fighterAt(world, targetSlot);
   if (demonHunterParryIsActive(target)) {
@@ -79,14 +88,14 @@ function applyProjectileHit(world: Roster, ownerSlot: number, targetSlot: number
   const { spec } = projectile;
   if (projectile.kind === ProjectileKind.hero && spec !== undefined) {
     copyHitEffect(projectileHit, spec.effect);
-    projectileHit.damage = roundToFloat32(f32(spec.effect.damage * projectile.damageMultiplier));
+    projectileHit.damage = projectileDamage(projectile);
     collectDamageContact(world, ownerSlot, targetSlot, projectileHit, projectile.direction, ContactKind.launch, false, undefined, shieldContact, spec.status);
     return;
   }
   const { kind } = projectile;
   projectileHit.element = kind === ProjectileKind.manaBurn ? HitElement.electric : HitElement.normal;
   if (kind === ProjectileKind.blaster) {
-    projectileHit.damage = roundToFloat32(f32(attackDamage(AttackStyle.shot) * projectile.damageMultiplier));
+    projectileHit.damage = projectileDamage(projectile);
     projectileHit.growth = 0.0;
     projectileHit.base = 0.0;
     projectileHit.launchX = 0.0;
@@ -94,9 +103,8 @@ function applyProjectileHit(world: Roster, ownerSlot: number, targetSlot: number
     collectDamageContact(world, ownerSlot, targetSlot, projectileHit, projectile.direction, ContactKind.flinch, false, undefined, shieldContact);
     return;
   }
-  const damage = kind === ProjectileKind.fanArrow ? 4.0 : kind === ProjectileKind.recoil || kind === ProjectileKind.manaBurn ? 5.0 : 7.0;
   const damageOnly = kind === ProjectileKind.arrow || kind === ProjectileKind.fanArrow;
-  projectileHit.damage = roundToFloat32(f32(damage * projectile.damageMultiplier));
+  projectileHit.damage = projectileDamage(projectile);
   projectileHit.growth = 85.0;
   projectileHit.base = 16.0;
   projectileHit.launchX = 0.800000011920929;
