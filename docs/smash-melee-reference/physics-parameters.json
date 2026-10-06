@@ -1917,6 +1917,48 @@
             "bits": "0x3e4ccccd"
           }
         ]
+      },
+      {
+        "mechanic": "down-state roll and stand stick thresholds and bound attack-press age",
+        "offsets": [
+          "0x020",
+          "0x244",
+          "0x248",
+          "0x24C"
+        ],
+        "units": "0x020 radians above horizontal; 0x244/0x248 stick units; 0x24C frames",
+        "source": "melee:src/melee/ft/kinds/ftCommon/ftCo_Down.c, ftCo_DownStand.c and ftCo_DownBound.c",
+        "status": "retail-extracted",
+        "values": [
+          {
+            "offset": "0x020",
+            "field": "x20_radians",
+            "type": "float32",
+            "value": 0.8726646304130554,
+            "bits": "0x3f5f66f3"
+          },
+          {
+            "offset": "0x244",
+            "field": "x244",
+            "type": "float32",
+            "value": 0.20000000298023224,
+            "bits": "0x3e4ccccd"
+          },
+          {
+            "offset": "0x248",
+            "field": "x248",
+            "type": "float32",
+            "value": 0.20000000298023224,
+            "bits": "0x3e4ccccd"
+          },
+          {
+            "offset": "0x24C",
+            "field": "x24C",
+            "type": "float32",
+            "value": 60,
+            "bits": "0x42700000"
+          }
+        ]
       }
     ]
   },

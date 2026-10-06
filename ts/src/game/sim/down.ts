@@ -16,6 +16,8 @@ import { rollTravel } from "../physics/rollTravel";
 import { beginDownState, cancelAttack, clearDownState } from "./transitions";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
 import { squareRoot } from "./warcraftMath";
+import { meleeAtan2 } from "../../sim/meleeScalarMath";
+import { stickX, stickZ } from "./stick";
 
 export const AIR_DODGE_LANDING_LAG = 10;
 const EMPTY_LANDING_LAG = 4;
@@ -31,6 +33,13 @@ export const DOWN_ROLL_FRAMES = 35;
 export const DOWN_DAMAGE_FRAMES = 13;
 /** Weaker hits on a lying fighter jab-reset instead of launching. */
 export const DOWN_DAMAGE_RESET_THRESHOLD = 7.0;
+/** Melee common +0x248/+0x244: stick tilt that rolls or stands from a down state. */
+const GETUP_ROLL_STICK_X = 0.20000000298023224;
+const GETUP_STAND_STICK_Z = 0.20000000298023224;
+/** Melee common +0x020: the stick angle above horizontal that separates a get-up roll from standing. */
+const GETUP_STICK_ANGLE = 0.8726646304130554;
+/** Melee common +0x254: stick tilt that turns a floor tech into a tech roll. */
+const TECH_ROLL_STICK_X = 0.20000000298023224;
 
 /** Moves a getup or tech roll along its recorded travel, kept on its deck. */
 function applyDownRollTravel(f: Fighter, stage: number): void {
@@ -98,7 +107,8 @@ export function finishLanding(f: Fighter, stage: number, input: Readonly<Control
     const launchDirection = totalVelocityX(f) < 0 ? -1 : 1;
     launch.hitstun = 0;
     if (f.tech.window > 0) {
-      const techDirection = input.direction === 0 ? 0 : input.direction < 0 ? -1 : 1;
+      const x = stickX(input);
+      const techDirection = Math.abs(x) < TECH_ROLL_STICK_X ? 0 : x < 0 ? -1 : 1;
       f.tech.window = 0;
       beginDownState(f, techDirection === 0 ? DownState.tech : DownState.techRoll, techDirection);
       applyDownRollTravel(f, stage);
@@ -122,6 +132,25 @@ function startDownWait(f: Fighter, remainingFrames: number): void {
   down.frame = 0;
   down.direction = 0;
   down.waitRemaining = max(0, remainingFrames);
+  down.attackQueued = false;
+}
+
+/** The held stick's get-up roll: sideways past Melee's tilt, within its angle of horizontal; 0 for none. */
+function stickRollDirection(input: Readonly<Controls>): number {
+  const x = stickX(input);
+  if (Math.abs(x) < GETUP_ROLL_STICK_X || meleeAtan2(stickZ(input), Math.abs(x)) >= GETUP_STICK_ANGLE) return 0;
+  return x < 0 ? -1 : 1;
+}
+
+/** A sideways tap released within its row, which leaves the stick neutral. */
+function tappedRollDirection(input: Readonly<Controls>): number {
+  return input.getupDirectionPressed && stickX(input) === 0 && stickZ(input) === 0 ? input.getupDirection : 0;
+}
+
+/** A stand press, or the stick up past Melee's tilt and steeper than its roll angle. */
+function standRequested(input: Readonly<Controls>): boolean {
+  const z = stickZ(input);
+  return input.getupStandPressed || (z >= GETUP_STAND_STICK_Z && meleeAtan2(z, Math.abs(stickX(input))) >= GETUP_STICK_ANGLE);
 }
 
 function startDownStand(f: Fighter): void {
@@ -184,11 +213,20 @@ export function advanceDownState(f: Fighter, stage: number, input: Readonly<Cont
   }
   // Bound and damage fall through into the wait they start.
   if (down.state === DownState.bound) {
-    if (down.frame >= DOWN_BOUND_FRAMES) {
-      startDownWait(f, DOWN_WAIT_FRAMES);
-    } else {
+    if (down.frame < DOWN_BOUND_FRAMES) {
+      if (input.getupAttackPressed) down.attackQueued = true;
       down.frame++;
       standOnDeck(f, stage);
+      return true;
+    }
+    // Melee's bound ends on a get-up attack pressed during it, then a held roll, before the wait reads this frame.
+    const attackQueued = down.attackQueued;
+    const roll = stickRollDirection(input);
+    startDownWait(f, DOWN_WAIT_FRAMES);
+    if (attackQueued || roll !== 0) {
+      standOnDeck(f, stage);
+      beginDownState(f, attackQueued ? DownState.attack : DownState.roll, attackQueued ? 0 : roll);
+      applyDownRollTravel(f, stage);
       return true;
     }
   }
@@ -217,10 +255,11 @@ export function advanceDownState(f: Fighter, stage: number, input: Readonly<Cont
         return true;
       }
     }
+    const heldRoll = stickRollDirection(input);
+    const roll = heldRoll !== 0 ? heldRoll : tappedRollDirection(input);
     if (input.getupAttackPressed) beginDownState(f, DownState.attack, 0);
-    else if (input.getupDirectionPressed && input.getupDirection !== 0) beginDownState(f, DownState.roll, input.getupDirection);
-    else if (input.direction !== 0) beginDownState(f, DownState.roll, input.direction < 0 ? -1 : 1);
-    else if (input.getupStandPressed || input.verticalDirection > 0) startDownStand(f);
+    else if (roll !== 0) beginDownState(f, DownState.roll, roll);
+    else if (standRequested(input)) startDownStand(f);
     applyDownRollTravel(f, stage);
     return true;
   }

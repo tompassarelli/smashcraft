@@ -2,7 +2,7 @@
 
 smashcraft:docs/smash-melee-reference/physics-parameters.json records 78 Fox/Falco
 movement and recovery values, 14 common values reported by the decompile's
-annotations, and 74 selected retail common values across 28 gameplay groups.
+annotations, and 78 selected retail common values across 29 gameplay groups.
 It also records nine additional common shield and wall-recovery fields and five
 Captain Falcon wall-recovery attributes. It remains a partial factual
 reference, not a complete common table or a simulation oracle.

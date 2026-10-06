@@ -1030,10 +1030,14 @@ delayed-input counterexample, with zero compiler errors and the existing
 unused-import warning (smashcraft:build/physics-slippi-jump.log).
 
 Launch speed already uses 0.03*K, converted by the six-world-units scale.
-The general >=80 tumble rule remains a prototype: the reference selects
-damage states through scaled-knockback thresholds and ground/air conditions.
-Exact boundary and grounded exceptions still require verification before a
-full tumble-parity claim; a screenshot saying “exceeds 80” is not sufficient.
+Tumble follows the reference's damage-level selection
+(melee:src/melee/ft/kinds/ftCommon/ftCo_Damage.c `ftCo_8008DCE0`): level 3,
+DamageFly, when knockback times +0x154 = 0.4 reaches +0x160 = 32, grounded or
+airborne. Only tumbling landings tech or knock down; a weaker airborne hit
+lands, or keeps its stun below +0x1E4 = 0.5, because its launch never reaches
+the +0x1E0 = 5 knockdown speed (`ftCo_Damage_Coll`).
+smashcraft:ts/src/game/sim/tumbleLandings.tests.ts checks every authored move
+of each fighter at 10, 50 and 100 percent, grounded and airborne.
 
 ## Frame-authored hit regions
 
@@ -1114,11 +1118,27 @@ the running client has not loaded it and native combat feel is unverified.
 At Melee revision `0296f009f32f710495979d30772d8332af2d411a`,
 `ftCo_DownBound.c`, `ftCo_DownDamage.c`, `ftCo_Down.c`,
 `ftCo_DownStand.c`, and `ftCo_DownAttack.c` establish separate bound, wait,
-down-damage, stand, get-up attack, and directional-roll states. `DownWait`
-loads its timeout from `ftCommonData + 0x424`; the local checkout has the field
-and use site but not the source common-data table, so its numerical value is
-not established here. The simulation retains its existing 180-tick wait as
-explicit provisional tuning.
+down-damage, stand, get-up attack, and directional-roll states. The retail
+common values are in smashcraft:docs/smash-melee-reference/physics-parameters.json.
+
+- DownBound's entry forgets earlier A/B presses. As the bound ends,
+  `ftCo_DownBound_Anim` starts a get-up attack pressed during it (A/B press
+  age under +0x24C = 60 frames, longer than any bound), else a get-up roll
+  from the held stick, else enters DownWait with +0x424 = 220 frames.
+  DownWait reads that same frame's input.
+- DownWait counts down, then stands. Each frame it takes, in order: an A or B
+  press (get-up attack), the stick at least +0x248 = 0.2 sideways and less
+  than +0x020 = 50 degrees above horizontal (roll forward or back relative to
+  facing), and the stick at least +0x244 = 0.2 up at 50 degrees or more, or an
+  L/R press (stand).
+- A C-stick up or sideways flick also strikes or rolls in Melee; the
+  simulation reads only the left stick for these.
+- Smashcraft also stands on Jump and treats a sideways press released within
+  its input row as a roll, for keyboards.
+
+smashcraft:ts/src/game/match/knockdownInputContracts.tests.ts drives these
+through helper rows, journal packets and synchronized input messages after
+low-, medium- and high-percent knockdowns.
 
 The extracted Sheik actions provide `DownBoundU/D` 26-frame clips,
 `DownDamageU/D` 14-frame clips, and `DownStandU/D` 30-frame clips. The
@@ -1147,12 +1167,10 @@ roll while face-down, and 27/22 for Up/Down get-up attacks. This mapping
 accounts for the `waitFor` delays and remains subject to native gameplay
 verification.
 
-The local down-damage entry checks the hit's temporary damage against
-`ftCommonData + 0x428`; the numeric table is absent from this checkout. The
-Melee reference's jab-reset secondary description places the cutoff strictly
-below 7% damage. Smashcraft uses `damage < 7` as its reset rule and labels it
-secondary-source data rather than a locally recovered `0x428` value. A hit in
-DownBound, DownWait, or DownDamage at that damage enters the 13-tick
+The down-damage entry compares the frame's summed damage (`percentTemp`,
+accumulated per contact in melee:src/melee/ft/ftcoll.c) against +0x428 = 7.
+A frame whose contacts sum below 7 damage on a fighter in
+DownBound, DownWait, or DownDamage enters the 13-tick
 DownDamage reaction. Its hitstun is retained; after the animation, remaining
 hitstun sets the down-wait timeout, and an expired timer forces stand. Damage
 of 7 or more interrupts the grounded recovery and follows ordinary launch
@@ -1623,14 +1641,13 @@ forward/back relative to facing. These are factual state/input observations;
 no decompiled implementation is copied or translated. Timing values for our
 first recovery pass are provisional rather than extracted animation data.
 
-Our current prototype enters tumble at knockback magnitude 80 or above. It
-can leave tumble through an accepted air jump, air dodge or attack after
-hitstun; landing while still tumbling starts knockdown. Ground impact lasts
-12 ticks, followed by a vulnerable wait of up to 180 ticks before automatic
-stand-up. Recovery checks attack, then horizontal roll, then stand. Held
-horizontal input and held Up are accepted, including on the bound-to-wait
-transition; an attack edge on that transition is consumed immediately. This
-repairs the previous requirement to release/repress direction after impact.
+Tumble starts at knockback 80 (damage level 3). After hitstun it ends on an
+accepted air jump, air dodge or attack, or on a sideways stick flick: at least
++0x210 = 0.8 on the frame the stick crosses +0x008 = 0.25
+(melee:src/melee/ft/kinds/ftCommon/ftCo_DamageFall.c `ftCo_DamageFall_IASA`).
+A full keyboard diagonal reads 0.707 and does not flick. Landing while still
+tumbling techs or starts the 26-tick bound, then the 220-tick wait and its
+options listed under "Grounded knockdown and jab resets".
 Stand-up lasts 30 ticks; roll lasts 31 and covers 128 world units, clamped to
 the current platform. Their first 8 ticks are intangible. Get-up attack lasts
 45 ticks, has 16 startup/3 active ticks, deals 7 damage once, covers both sides,
@@ -1716,7 +1733,8 @@ An in-place tech lasts 26 ticks with intangibility on 1–20; a directional tech
 lasts 40 with intangibility on 1–34. These totals are shared chosen tuning;
 both leave six vulnerable recovery ticks. Archer/Rifleman use 39 empirical
 motion samples and a stationary final tick; Illidan retains the 128-unit path. Direction at
-contact chooses the roll, whose movement is clamped to the current platform.
+contact chooses the roll when the stick is at least +0x254 = 0.2 sideways
+(`ftCo_80098928`); its movement is clamped to the current platform.
 A tech clears impact hitstun and consumes its input window. Early-hitlag versus
 last-hitlag inputs, repeated/grounded presses, window/lockout boundaries,
 recovery actions, interruption and reset are tested in the same Wurst simulation

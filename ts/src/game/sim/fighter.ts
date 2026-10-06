@@ -62,7 +62,8 @@ interface Motion {
   fastFallInputAge: number;
   /** Frames left falling through pass-through platforms. */
   dropTime: number;
-  previousHorizontalDirection: number;
+  /** The side of Melee's horizontal smash deadzone the stick was past on the previous input frame: -1, 0 or 1. */
+  previousStickSide: number;
   /** The last air-steering direction; a neutral aerial special turns to it. */
   lastAerialTapDirection: number;
 }
@@ -265,6 +266,8 @@ interface Down {
   direction: number;
   waitRemaining: number;
   faceUp: boolean;
+  /** A get-up attack pressed during the bound, which Melee starts as the bound ends. */
+  attackQueued: boolean;
 }
 
 /** Tech input ages; they continue through frozen input frames. */
@@ -387,7 +390,7 @@ export function createFighter(character: Character, startX: number, facing: numb
       fastFallDownHeld: false,
       fastFallInputAge: FAST_FALL_INPUT_WINDOW,
       dropTime: 0,
-      previousHorizontalDirection: 0,
+      previousStickSide: 0,
       lastAerialTapDirection: 0,
     },
     ground: {
@@ -490,7 +493,7 @@ export function createFighter(character: Character, startX: number, facing: numb
     freezeTrap: { life: 0, arming: 0, x: 0.0, z: 0.0, surface: undefined, serial: 0, cooldown: 0 },
     dodge: { airDodging: false, airFrame: 0, airMotionFrames: 0, groundFrame: 0, groundDirection: 0, groundEntryFacing: 0 },
     landing: { lag: 0, lCancelWindow: 0, lCancelSerial: 0 },
-    down: { state: DownState.none, frame: 0, direction: 0, waitRemaining: 0, faceUp: true },
+    down: { state: DownState.none, frame: 0, direction: 0, waitRemaining: 0, faceUp: true, attackQueued: false },
     tech: { ...emptyTechInput(), window: 0 },
     surfaceRecovery: {
       state: SurfaceContact.none,

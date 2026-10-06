@@ -61,6 +61,7 @@ import {
 import { advanceShieldBreak, beginShieldBreak } from "./shieldBreak";
 import { applyAutomaticSmashDirectionalInfluence, applySmashDirectionalInfluence } from "./smashDirectionalInfluence";
 import { surfaceCount, surfaceLeft, surfacePass, surfaceRight, surfaceZ } from "./stage";
+import { stickX } from "./stick";
 import { checkBlastZone, respawnFighter } from "./stocks";
 import { advanceSurfaceRecovery, resolveSolidSurfaceContacts } from "./surfaces";
 import { forwardRollTurnFrame, rollTravel } from "../physics/rollTravel";
@@ -70,6 +71,10 @@ import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
 import { at } from "wisp/src/runtime/lookup";
 
 const FAST_FALL_DOWN_THRESHOLD = 0.6625000238418579;
+/** Melee common +0x008: the stick crosses this sideways to count as a fresh flick. */
+const STICK_SMASH_DEADZONE_X = 0.25;
+/** Melee common +0x210/+0x214: tumble ends on a flick at least this far sideways, on the frame it crosses the deadzone. */
+const TUMBLE_EXIT_STICK_X = 0.800000011920929;
 const PLATFORM_DROP_FRAMES = 12;
 /** Dash-to-guard after the early window opens a dash-grab window this long. */
 const LATE_DASH_GUARD_GRAB_WINDOW = 3;
@@ -295,9 +300,10 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   const downHeld = (input.down ? 1.0 : 0.0) >= FAST_FALL_DOWN_THRESHOLD;
   motion.fastFallInputAge = downHeld ? (motion.fastFallDownHeld ? min(FAST_FALL_INPUT_WINDOW, motion.fastFallInputAge + 1) : 0) : FAST_FALL_INPUT_WINDOW;
   motion.fastFallDownHeld = downHeld;
-  // Digital directions exceed the retail 0.8 tumble-exit threshold; its window is one input frame.
-  const freshHorizontalInput = input.direction !== 0 && input.direction !== motion.previousHorizontalDirection;
-  motion.previousHorizontalDirection = input.direction;
+  const horizontalStick = stickX(input);
+  const stickSide = horizontalStick >= STICK_SMASH_DEADZONE_X ? 1 : horizontalStick <= -STICK_SMASH_DEADZONE_X ? -1 : 0;
+  const tumbleExitFlick = stickSide !== 0 && stickSide !== motion.previousStickSide && Math.abs(horizontalStick) >= TUMBLE_EXIT_STICK_X;
+  motion.previousStickSide = stickSide;
   // Expiry resumes this frame, including input gates and state countdowns.
   const hitlagBefore = launch.hitlag;
   launch.hitlag = max(0, launch.hitlag - 1);
@@ -402,7 +408,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   shield.releaseLag = max(0, shield.releaseLag - 1);
   const wantsShield = advanceGuard(f, input, forcedShield);
   let direction = input.direction;
-  if (isTumbling(f) && !motion.grounded && launch.hitstun <= 0 && launch.hitlag <= 0 && freshHorizontalInput) {
+  if (isTumbling(f) && !motion.grounded && launch.hitstun <= 0 && launch.hitlag <= 0 && tumbleExitFlick) {
     clearDownState(f);
     motion.vx = max(-physics.airSpeed, min(physics.airSpeed, motion.vx));
   }

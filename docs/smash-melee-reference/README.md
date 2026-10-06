@@ -4,7 +4,7 @@ Physics parameters are recorded separately in
 [the parameter corpus](physics-parameters.json) and
 [its source notes](physics-parameters.md). They include 78 extracted Fox/Falco
 values, retail verification for those values, 14 common-data annotations and
-74 selected retail common-data fields across 28 gameplay groups. The complete
+78 selected retail common-data fields across 29 gameplay groups. The complete
 common table remains outside this corpus. Nine additional common shield and
 wall-recovery values, plus five Captain Falcon wall-recovery fields, are
 recorded as separate targeted checks.

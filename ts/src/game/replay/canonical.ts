@@ -307,6 +307,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   int("downDirection", fighter.down.direction);
   int("downWaitRemaining", fighter.down.waitRemaining);
   bool("downFaceUp", fighter.down.faceUp);
+  bool("downAttackQueued", fighter.down.attackQueued);
   int("techWindow", fighter.tech.window);
   int("techPressAge", fighter.tech.pressAge);
   int("techPreviousPressAge", fighter.tech.previousPressAge);

@@ -1,5 +1,5 @@
 import { f32 } from "wisp/src/sim/f32";
-import { AttackStyle, Character } from "../sim/codes";
+import { AttackStyle } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 import type { Controls } from "../sim/roster";
 import { analogShieldActive, analogShieldStrength } from "../sim/shield";
@@ -70,7 +70,7 @@ export function adaptInput(row: Readonly<InputRow>, fighter: Readonly<Fighter>, 
   destination.grabThrowZ = sign(row.throwZ);
   destination.lCancelPressed = has(pressed, Action.grab) || destination.airDodgePressed;
   destination.ledgeVerticalPressed = row.ledgeVertical;
-  destination.getupAttackPressed = destination.attackPressed || (destination.specialPressed && (fighter.character !== Character.rifleman || destination.specialZ >= 0));
+  destination.getupAttackPressed = destination.attackPressed || destination.specialPressed;
   destination.getupStandPressed = has(pressed, Action.moveUp) || destination.jumpPressed || destination.airDodgePressed;
   destination.getupDirection = edgePair(pressed, Action.moveLeft, Action.moveRight);
   destination.getupDirectionPressed = destination.getupDirection !== 0;
