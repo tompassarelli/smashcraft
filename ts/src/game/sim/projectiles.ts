@@ -18,8 +18,8 @@ import { SHIELD_PROJECTILE_DAMAGE_MULTIPLIER, SHIELD_PROJECTILE_SPEED_MULTIPLIER
 import { at } from "wisp/src/runtime/lookup";
 import { solidSurfaceAt, solidSurfaceCount, surfaceCount, surfaceLeft, surfacePass, surfaceRight, surfaceZ } from "./stage";
 
-export const BLASTER_PROJECTILE_SPEED = 36.0;
-export const BLASTER_PROJECTILE_LIFETIME = 60;
+const BLASTER_PROJECTILE_SPEED = 36.0;
+const BLASTER_PROJECTILE_LIFETIME = 60;
 const BLASTER_PROJECTILE_HEIGHT = 75.0;
 const BLASTER_AIR_SHOT_HEIGHT = 30.0;
 const BLASTER_PROJECTILE_HALF_HEIGHT = 36.0;

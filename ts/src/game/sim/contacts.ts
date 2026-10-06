@@ -73,7 +73,7 @@ function emptyContact(): DamageContact {
 const batch: { contacts: DamageContact[]; count: number; collecting: boolean } = { contacts: [], count: 0, collecting: false };
 
 /** A flinch without knockback (the blaster's) stuns 3 frames per point of damage: 9 for an aerial shot, 12 for a grounded one (#117). */
-export function flinchHitstunFrames(damage: number): number {
+function flinchHitstunFrames(damage: number): number {
   return toInt(multiplyFloat32(3.0, roundToFloat32(damage)));
 }
 
