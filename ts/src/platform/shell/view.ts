@@ -192,6 +192,10 @@ export function renderPersistentPresentation(s: ShellState): void {
       else renderers.pool.hide();
     }
     const live = playing ? fighter : undefined;
+    if (renderers !== undefined) {
+      const agency = live === undefined ? "act" : renderers.agency.forecast.classify(world, slot, stage, matchFrame, s.controls.commands[slot].graceFrames);
+      renderers.agency.present(live, agency);
+    }
     ui.special.presentStatic(runtime.specials, live, slot);
     ui.special.presentSummons(runtime.summons, live, slot);
     if (live !== undefined) ui.frost.present(live, slot);

@@ -81,6 +81,26 @@ export function initializeScenario(scenario: Scenario, game: Readonly<MatchState
   const second = fighterAt(world, otherSlot);
   const tech = scenario === "tech";
   switch (scenario) {
+    case "agency-none":
+    case "agency-thaw":
+    case "agency-di":
+    case "agency-act":
+      for (const slot of PARTICIPANT_SLOTS) {
+        if (!isActive(world, slot)) continue;
+        const fighter = fighterAt(world, slot);
+        fighter.motion.x = slot === firstSlot ? -160.0 : 160.0;
+        fighter.facing = slot === firstSlot ? 1 : -1;
+        if (scenario === "agency-none" || scenario === "agency-thaw") fighter.status.frozenFrames = scenario === "agency-thaw" ? 180 : 300;
+        if (scenario === "agency-di") {
+          fighter.launch.hitlag = 9;
+          fighter.launch.hitstun = 30;
+          fighter.launch.diPending = true;
+          fighter.launch.knockbackX = 6.0;
+          fighter.launch.knockbackZ = 6.0;
+          fighter.launch.diLaunchSpeed = 8.0;
+        }
+      }
+      return;
     case "parry":
       initializeParryScenario(first, second);
       return;
@@ -168,6 +188,10 @@ export function initializeScenario(scenario: Scenario, game: Readonly<MatchState
 
 /** Staged scenarios keep the computer passive, except the parry scenario's answering jab. */
 const COMPUTER_PLAYS: Readonly<Record<Scenario, boolean>> = {
+  "agency-none": false,
+  "agency-di": false,
+  "agency-act": false,
+  "agency-thaw": false,
   normal: true, ko: true, knockdown: false, tech: false, "shield-break": false, ledge: false, parry: false, spike: false, underside: false, camera: false,
   "body-ceiling": false, "body-wall": false,
 };
