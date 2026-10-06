@@ -14,6 +14,7 @@ import { type FighterSpecials, type AuthoredSpecial, type SpecialFollowUp, type 
 import { type HitRegion, NO_HIT_REGION, authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "./hitRegions";
 import { type Controls, type Roster, fighterAt, isActive } from "./roster";
 import { travelBeforeBodies } from "./travelStop";
+import { fillMana, gainMana, spendMana } from "./mana";
 import { endDivineShield } from "./transitions";
 import { capsuleCircleIntersects, shieldSizeMultiplier } from "./shield";
 import { attackCapsule, emptyCapsule, placeCapsule } from "../physics/contactGeometry";
@@ -128,39 +129,9 @@ export function chooseHeroSpecial(f: Readonly<Fighter>, specials: Readonly<Fight
   return choice;
 }
 
-/** Mana may regenerate: grounded and actionable, not shielding, held, stunned or acting. */
-function regenerates(f: Readonly<Fighter>): boolean {
-  return f.motion.grounded && !f.status.out && f.attack.style === undefined && f.special.action === SpecialAction.none
-    && !inGrabContext(f) && canAttack(f);
-}
-
-/** One frame of the roster resource: the spend delay, then a point per eligible `framesPerPoint`. */
-export function regenerateMana(f: Fighter): void {
-  const profile = f.tuning.specials?.mana;
-  if (profile === undefined) return;
-  const { mana } = f;
-  if (mana.sinceSpend < profile.regenDelayFrames) {
-    mana.sinceSpend++;
-    return;
-  }
-  if (mana.points >= profile.max) {
-    mana.progress = 0;
-    return;
-  }
-  if (!regenerates(f)) return;
-  mana.progress++;
-  if (mana.progress >= profile.framesPerPoint) {
-    mana.progress = 0;
-    mana.points = min(profile.max, mana.points + 1);
-  }
-}
-
 /** A new stock starts with full mana, its airtime uses restored and no guard healing spent. */
 export function refillMana(f: Fighter): void {
-  const profile = f.tuning.specials?.mana;
-  f.mana.points = profile?.max ?? 0;
-  f.mana.sinceSpend = profile?.regenDelayFrames ?? 0;
-  f.mana.progress = 0;
+  fillMana(f);
   f.special.airtimeUses = 0;
   f.status.guardHealed = 0.0;
 }
@@ -179,7 +150,7 @@ export function enterHeroSpecial(f: Fighter, chosen: Readonly<HeroSpecialChoice>
   const specials = f.tuning.specials;
   if (specials === undefined) throw new Error("hero special without a kit");
   const move = specialForm(specialKit(specials, chosen.slot), chosen.form);
-  const { special, mana } = f;
+  const { special } = f;
   endDivineShield(f);
   special.form = chosen.form;
   special.grabFrame = 0;
@@ -190,11 +161,7 @@ export function enterHeroSpecial(f: Fighter, chosen: Readonly<HeroSpecialChoice>
   for (let entry = 0; entry < PARTICIPANT_CAPACITY; entry++) special.hitTargets[entry] = undefined;
   special.hit = false;
   special.guarded = false;
-  if (move.cost > 0) {
-    mana.points = max(0, mana.points - move.cost);
-    mana.sinceSpend = 0;
-    mana.progress = 0;
-  }
+  spendMana(f, move.cost);
   if (move.oncePerAirtime === true) special.airtimeUses |= 1 << chosen.slot;
   if (move.recallsProjectiles === true) recallProjectiles(f);
   applyWindows(f, move, 0);
@@ -369,7 +336,7 @@ export function advanceHeroSpecial(f: Fighter, stage = 0, input?: Readonly<Contr
   if (move.ritual?.frame === frame) {
     f.status.armorFrames = 0;
     f.status.armorChills = false;
-    f.mana.points = min(f.tuning.specials?.mana.max ?? 0, f.mana.points + move.ritual.mana);
+    gainMana(f, move.ritual.mana);
   }
   applyWindows(f, move, frame);
   if (frame >= heroSpecialEndFrame(f, move)) {
@@ -510,7 +477,7 @@ export function advanceHeroStatus(f: Fighter): void {
   advanceHeroConditions(f);
 }
 
-/** Whether a special action is off cooldown; hero actions have none and spend mana when they start. */
+/** Whether a special action is off cooldown; hero actions have none. */
 export function specialCooldownReady(f: Readonly<Fighter>, action: number): boolean {
   return isHeroSpecialAction(action) || (f.special.cooldowns[action] ?? 0) <= 0;
 }
@@ -584,7 +551,7 @@ function followUpPressed(followUp: Readonly<SpecialFollowUp>, input: Readonly<Co
  * did. The press tick is the follow-up's frame 1, as an entry is.
  */
 export function followUpHeroSpecial(f: Fighter, input: Readonly<Controls>): boolean {
-  const { special, mana } = f;
+  const { special } = f;
   const followUps = runningHeroSpecial(f)?.followUps;
   if (followUps === undefined || special.form >= FOLLOW_UP_FORM || f.launch.hitlag > 0 || f.launch.hitstun > 0) return false;
   let index = 0;
@@ -592,7 +559,7 @@ export function followUpHeroSpecial(f: Fighter, input: Readonly<Controls>): bool
   if (index >= followUps.length) return false;
   const followUp = at(followUps, index);
   const next = followUp.special;
-  if (next.cost > mana.points) {
+  if (next.cost > f.mana.points) {
     f.visuals.manaDenied++;
     return false;
   }
@@ -605,11 +572,7 @@ export function followUpHeroSpecial(f: Fighter, input: Readonly<Controls>): bool
   f.attack.cooldown = next.endFrame;
   for (let entry = 0; entry < PARTICIPANT_CAPACITY; entry++) special.hitTargets[entry] = undefined;
   special.hit = false;
-  if (next.cost > 0) {
-    mana.points = max(0, mana.points - next.cost);
-    mana.sinceSpend = 0;
-    mana.progress = 0;
-  }
+  spendMana(f, next.cost);
   applyWindows(f, next, 0);
   return true;
 }

@@ -3,7 +3,7 @@ import { hurtCapsule } from "../../physics/contactGeometry";
 import { Character, HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT, type MoveRegion, heroRegion } from "../heroMoves";
 import { hurtPart, hurtPose } from "../hurtboxes";
-import { type AuthoredSpecial, type FighterSpecials, type SpecialMotion, type SpecialProjectile, FollowUpInput, ROSTER_MANA, frames } from "../heroSpecials";
+import { type AuthoredSpecial, type FighterSpecials, type SpecialMotion, type SpecialProjectile, FollowUpInput, frames } from "../heroSpecials";
 import { MEDIUM, SHORT, capsule, hit } from "./mountainKingMoves";
 
 // smashcraft:docs/design/roster.md "Mountain King": costs, frames, damage,
@@ -97,7 +97,6 @@ const CHARGED_CLAP: AuthoredSpecial = {
 const AIR_CLAP = hit(10.0, "LAUNCH", 70, false, HitElement.electric);
 
 export const MOUNTAIN_KING_SPECIALS: FighterSpecials = {
-  mana: ROSTER_MANA,
   neutral: {
     ground: {
       cost: 8,

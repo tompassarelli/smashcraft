@@ -331,15 +331,19 @@ test("manaBurnCastsASlowOrbOnFrame16RecoversOnFrame46AndKeepsOneOut", () => {
   assertTrue(startFighterSpecial(illidan, 0, 0, controls({ specialPressed: true })));
 });
 
-test("manaBurnStunsWithoutKnockbackForLongerAtHigherPercent", () => {
-  assertEquals(heroStatusFrames(MANA_BURN_STUN, 0.0), 20);
-  for (const [before, frames] of [[0.0, 22], [45.0, 40], [95.0, 60], [145.0, 80], [300.0, 80]] as const) {
+test("manaBurnBurns25ManaAndStunsWithoutKnockbackLongerTheEmptierItLeavesTheTarget", () => {
+  assertEquals(heroStatusFrames(MANA_BURN_STUN, 100), 15);
+  assertEquals(heroStatusFrames(MANA_BURN_STUN, 0), 60);
+  // The 5% hit earns the target 2 mana before the burn.
+  for (const [before, after, frames] of [[100, 75, 26], [50, 27, 47], [25, 2, 59], [0, 0, 60]] as const) {
     const illidan = createFighter(Character.demonHunter, 0.0, 1);
     const target = createFighter(Character.archer, 5000.0, -1);
     const world = testWorld(illidan, target);
-    target.status.damage = before;
+    target.mana.points = before;
+    target.status.damage = 40.0;
     orbHit(target, world, castOrb(illidan, world));
-    assertEquals(target.status.damage, before + 5.0);
+    assertEquals(target.status.damage, 45.0);
+    assertEquals(target.mana.points, after);
     assertEquals(target.status.condition, HeroStatusKind.stun);
     assertEquals(target.status.conditionFrames, frames);
     assertEquals(target.launch.knockbackX, 0.0);

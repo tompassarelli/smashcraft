@@ -2,7 +2,7 @@
 // "B specials"), as data for sim/heroSpecials.ts. Brief frame numbering: the
 // entry tick is frame 1 and windows are inclusive.
 import { f32 } from "wisp/src/sim/f32";
-import { type AuthoredSpecial, type FighterSpecials, type SpecialPlacement, FollowUpInput, ROSTER_MANA, Relocation, frames } from "../heroSpecials";
+import { type AuthoredSpecial, type FighterSpecials, type SpecialPlacement, FollowUpInput, Relocation, frames } from "../heroSpecials";
 import { hurtPose } from "../hurtboxes";
 import { BLADE_RADIUS, L, M, capsule, cut, hit, length, path, reach } from "./blademasterMoves";
 
@@ -132,7 +132,6 @@ const imageSwap: AuthoredSpecial = {
 const inAir = (special: AuthoredSpecial): AuthoredSpecial => ({ ...special, landingLag: AIR_LANDING_LAG });
 
 export const BLADEMASTER_SPECIALS: FighterSpecials = {
-  mana: ROSTER_MANA,
   neutral: { ground: windCutter, air: inAir(windCutter) },
   side: { ground: windWalk(false), air: windWalk(true) },
   up: { ground: risingBlade, free: risingBladeFree },

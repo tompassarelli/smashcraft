@@ -9,8 +9,9 @@ import { type Fighter, createFighter } from "./fighter";
 import { heroRegion } from "./heroMoves";
 import { HurtContact, fighterHurtParts, hurtPart, hurtPose, strikeHurtContact } from "./hurtboxes";
 import { emptyCapsule, hurtCapsule, placeCapsule } from "../physics/contactGeometry";
-import { advanceHeroStatus, regenerateMana } from "./heroSpecialRules";
-import { type AuthoredSpecial, type FighterSpecials, ROSTER_MANA, frames } from "./heroSpecials";
+import { advanceHeroStatus } from "./heroSpecialRules";
+import { ROSTER_MANA, regenerateMana } from "./mana";
+import { type AuthoredSpecial, type FighterSpecials, frames } from "./heroSpecials";
 import { HERO_ROSTER, SELECTABLE_CHARACTERS, isSelectableCharacter, nextSelectableCharacter, selectableCharactersOf } from "./heroes/registry";
 import { updateProjectiles } from "./projectiles";
 import { FROZEN_THRONE_STAGE, SOLID_DECK_TEST_STAGE, surfaceCount, surfaceLeft, surfacePass, surfaceRight, surfaceZ } from "./stage";
@@ -36,13 +37,12 @@ const UP: AuthoredSpecial = { cost: 15, endFrame: 25, helpless: true, oncePerAir
 const UP_FREE: AuthoredSpecial = { ...UP, cost: 0, motion: [{ ...frames(5, 20), velocityX: 0.0, velocityZ: 8.0 }] };
 const DOWN: AuthoredSpecial = { cost: 25, endFrame: 30, groundOnly: true, intangible: frames(5, 8), armor: { ...frames(10, 20), maxDamage: 6.0 } };
 
-const KIT: FighterSpecials = { mana: ROSTER_MANA, neutral: { ground: NEUTRAL }, side: { ground: SIDE }, up: { ground: UP, free: UP_FREE }, down: { ground: DOWN } };
+const KIT: FighterSpecials = { neutral: { ground: NEUTRAL }, side: { ground: SIDE }, up: { ground: UP, free: UP_FREE }, down: { ground: DOWN } };
 
 function hero(x: number, facing: number): Fighter {
   const f = createFighter(Character.blademaster, x, facing);
   f.tuning = { ...f.tuning, specials: KIT };
-  f.mana.points = KIT.mana.max;
-  f.mana.sinceSpend = KIT.mana.regenDelayFrames;
+  f.mana.points = ROSTER_MANA.max;
   return f;
 }
 
@@ -132,17 +132,16 @@ test("an up special is used once per airtime and landing restores it", () => {
   assertEquals(owner.special.airtimeUses, 0);
 });
 
-test("mana waits 120 frames after a spend, then regenerates a point every 10 grounded actionable frames", () => {
+test("mana trickles back a point every 15 grounded frames from the frame a special ends, never during it", () => {
   const { world, owner } = pair(600.0);
   frame(world, side);
   for (let f = 2; f <= 30; f++) frame(world);
   assertEquals(owner.mana.points, 82);
-  for (let f = 31; f <= 120; f++) frame(world);
-  assertEquals(owner.mana.points, 82);
-  for (let f = 1; f <= 10; f++) frame(world);
+  assertEquals(owner.special.action, SpecialAction.none);
+  for (let f = 1; f <= 15; f++) frame(world);
   assertEquals(owner.mana.points, 83);
   for (let f = 1; f <= 60; f++) frame(world);
-  assertEquals(owner.mana.points, 89);
+  assertEquals(owner.mana.points, 87);
   owner.shield.raised = true;
   const shielded = owner.mana.points;
   for (let f = 1; f <= 30; f++) frame(world, controls({ shield: true }));

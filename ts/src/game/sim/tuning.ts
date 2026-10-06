@@ -97,7 +97,7 @@ interface ShieldBreakTiming {
 /** Every tuning record a fighter carries; each is replaced whole, never edited in place. */
 export interface FighterTuning {
   moves?: FighterMoves | undefined;
-  /** Expansion hero specials and their mana profile; the original fighters keep cooldowns. */
+  /** Expansion hero specials; the original fighters run theirs in sim/specials.ts. */
   specials?: FighterSpecials | undefined;
   physics: FighterPhysics;
   surface: SurfaceRecoveryPhysics;

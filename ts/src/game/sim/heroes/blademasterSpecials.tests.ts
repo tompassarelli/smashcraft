@@ -7,7 +7,8 @@ import { AttackStyle, Character, ProjectileKind, SpecialAction } from "../codes"
 import { beginDamageContacts, finishDamageContacts } from "../contacts";
 import { type Fighter, createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
-import { advanceHeroStatus, regenerateMana } from "../heroSpecialRules";
+import { advanceHeroStatus } from "../heroSpecialRules";
+import { regenerateMana } from "../mana";
 import { HurtContact, strikeHurtContact } from "../hurtboxes";
 import { advancePlacedObjects } from "../placedObjects";
 import { updateProjectiles } from "../projectiles";
@@ -199,8 +200,9 @@ test("Mirror Image counterplay: a hit shatters the image, so the next press is a
   beginFighterAttack(world, 1, AttackStyle.jab, false);
   run(world, 20);
   assertEquals(owner.placed.life, 0);
+  const before = owner.mana.points;
   frame(world, press(0, -1));
-  assertEquals(owner.mana.points, 70);
+  assertEquals(owner.mana.points, before - 15);
   const guarded = match(70.0);
   const guard = controls({ shield: true, shieldTriggerActive: true });
   frame(guarded.world, press(0, -1));

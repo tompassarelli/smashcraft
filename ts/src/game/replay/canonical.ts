@@ -246,8 +246,7 @@ function hitEffectCanonical(hit: Readonly<HitEffect>, prefix: string): string {
 /** A hero's authored specials; empty for fighters without them. */
 export function fighterSpecialsCanonical(specials: Readonly<FighterSpecials> | undefined, prefix = "specials"): string {
   if (specials === undefined) return "";
-  const result: string[] = [canonicalInt(`${prefix}.mana.max`, specials.mana.max) + canonicalInt(`${prefix}.mana.delay`, specials.mana.regenDelayFrames)
-    + canonicalInt(`${prefix}.mana.framesPerPoint`, specials.mana.framesPerPoint)];
+  const result: string[] = [];
   const kits = [specials.neutral, specials.side, specials.up, specials.down];
   for (let slot = 0; slot < kits.length; slot++) {
     const kit = at(kits, slot);
@@ -759,14 +758,12 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   real("surfacePhysics.passiveCeilingSpeed", t.surface.passiveCeilingSpeed);
   real("surfacePhysics.wallJumpMinimumApproach", t.surface.wallJumpMinimumApproach);
   bool("surfacePhysics.canWallJump", t.surface.canWallJump);
-  // Hero state is written only where a hero kit or hero projectile exists, so
-  // the original fighters' canonical text is unchanged.
   emit(kitDigestField(`${prefix}.specials`, t.specials, SPECIALS_DIGESTS, fighterSpecialsCanonical));
+  int("manaPoints", fighter.mana.points);
+  int("manaProgress", fighter.mana.progress);
+  int("manaDeniedSerial", v.manaDenied);
+  // Other hero state is written only where a hero kit or hero projectile exists.
   if (t.specials !== undefined) {
-    int("manaPoints", fighter.mana.points);
-    int("manaSinceSpend", fighter.mana.sinceSpend);
-    int("manaProgress", fighter.mana.progress);
-    int("manaDeniedSerial", v.manaDenied);
     int("specialForm", sp.form);
     int("specialAimX", sp.aimX);
     int("specialAimZ", sp.aimZ);

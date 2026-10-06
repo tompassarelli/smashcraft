@@ -11,7 +11,8 @@ import { applyHeroStatus } from "../heroStatus";
 import { beginDamageContacts, finishDamageContacts } from "../contacts";
 import { type Fighter, createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
-import { advanceHeroStatus, regenerateMana } from "../heroSpecialRules";
+import { advanceHeroStatus } from "../heroSpecialRules";
+import { regenerateMana } from "../mana";
 import { fighterHurtParts } from "../hurtboxes";
 import { updateProjectiles } from "../projectiles";
 import { type Controls, type Roster, createRoster } from "../roster";
@@ -44,7 +45,6 @@ function lichPair(gap: number, opponent: Character = Character.archer): { world:
   const target = createFighter(opponent, f32(gap * 0.5), -1);
   const world = createRoster(3, [lich, target]);
   for (let i = 0; i < 3; i++) frame(world);
-  lich.mana.sinceSpend = 120;
   return { world, lich, target };
 }
 
@@ -249,8 +249,9 @@ test("Dark Ritual: down special while the shell holds shatters it on frame 6 int
   for (let f = 10; f <= 40; f++) frame(world);
   assertEquals(lich.special.action, SpecialAction.none);
   // Without a shell, down special casts Frost Armor again.
+  const before = lich.mana.points;
   frame(world, down);
-  assertEquals(lich.mana.points, 60);
+  assertEquals(lich.mana.points, before - 20);
 });
 
 test("Frost Nova and Death and Decay casts extend Lich's hittable casting arm only while casting", () => {

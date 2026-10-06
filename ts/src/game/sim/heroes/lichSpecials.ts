@@ -4,7 +4,7 @@
 // sim/chill.ts.
 import { f32 } from "wisp/src/sim/f32";
 import { HERO_REFERENCE_HEIGHT, heroRegion } from "../heroMoves";
-import { type AuthoredSpecial, type FighterSpecials, type SpecialProjectile, ROSTER_MANA, frames } from "../heroSpecials";
+import { type AuthoredSpecial, type FighterSpecials, type SpecialProjectile, frames } from "../heroSpecials";
 import { CHILL } from "../chill";
 import { HitElement } from "../codes";
 import { hit, lichCastBody } from "./lichMoves";
@@ -97,7 +97,6 @@ const DARK_RITUAL: AuthoredSpecial = {
 };
 
 export const LICH_SPECIALS: FighterSpecials = {
-  mana: ROSTER_MANA,
   neutral: { ground: frostNova(undefined), air: frostNova(AIR_LANDING_LAG), recall: frostNovaBurst(undefined), recallWhile: "projectile" },
   side: { ground: DEATH_AND_DECAY },
   up: { ground: ascent(15, f32(2.1)), free: ascent(0, f32(1.4)) },

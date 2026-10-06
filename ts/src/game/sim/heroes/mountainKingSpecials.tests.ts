@@ -7,7 +7,8 @@ import { Character, ProjectileKind, SpecialAction } from "../codes";
 import { beginDamageContacts, finishDamageContacts } from "../contacts";
 import { type Fighter, createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
-import { advanceHeroStatus, regenerateMana } from "../heroSpecialRules";
+import { advanceHeroStatus } from "../heroSpecialRules";
+import { regenerateMana } from "../mana";
 import { updateProjectiles } from "../projectiles";
 import { type Controls, type Roster, createRoster } from "../roster";
 import { advanceSpecials, startFighterSpecial } from "../specials";
@@ -26,7 +27,6 @@ const down = controls({ specialPressed: true, specialZ: -1 });
 function mountainKing(x: number, facing: number): Fighter {
   const f = createFighter(Character.mountainKing, x, facing);
   f.mana.points = 100;
-  f.mana.sinceSpend = 120;
   return f;
 }
 

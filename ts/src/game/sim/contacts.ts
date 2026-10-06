@@ -35,6 +35,7 @@ import { beginDownDamage, cancelAttack, cancelSpecialState, clearDownState, clea
 import { at } from "wisp/src/runtime/lookup";
 import { CHILL } from "./chill";
 import { type AppliedStatus, applyHeroStatus, damageEndsHeroStatus } from "./heroStatus";
+import { contactEarnsMana, dealtManaGain, gainMana, takenManaGain } from "./mana";
 
 /** One contact, with the source's and target's state sampled when it was collected. */
 interface DamageContact {
@@ -57,6 +58,8 @@ interface DamageContact {
   down: boolean;
   smashCharging: boolean;
   throwInput: Readonly<Controls> | undefined;
+  /** A normal or throw: reaching a body earns its source mana. */
+  earnsMana: boolean;
   /** A hero status the contact applies if it reaches the body. */
   status: Readonly<AppliedStatus> | undefined;
 }
@@ -65,7 +68,7 @@ function emptyContact(): DamageContact {
   return {
     source: 0, target: 0, effect: emptyHitEffect(), facing: 0, kind: ContactKind.launch, direct: false, blocked: false,
     crouching: false, grounded: false, sourceGrounded: false, sourceAerial: false, sourceDeltaX: 0.0, sourceDeltaZ: 0.0, targetDeltaX: 0.0,
-    targetDeltaZ: 0.0, down: false, smashCharging: false, throwInput: undefined, status: undefined,
+    targetDeltaZ: 0.0, down: false, smashCharging: false, throwInput: undefined, status: undefined, earnsMana: false,
   };
 }
 
@@ -124,6 +127,7 @@ export function collectDamageContact(
   contact.smashCharging = target.attack.smashCharging;
   contact.throwInput = throwInput;
   contact.status = status;
+  contact.earnsMana = contactEarnsMana(source, kind, direct);
 }
 
 /** Adds a contact that the target's raised shield blocks. */
@@ -201,6 +205,8 @@ function resolveDamageContacts(world: Roster, slot: number): void {
     if (damage > 0 && contact.kind !== ContactKind.pummel) {
       thawFighter(target);
       damageEndsHeroStatus(target);
+      if (contact.earnsMana) gainMana(source, dealtManaGain(damage));
+      gainMana(target, takenManaGain(damage));
     }
     if (contact.kind !== ContactKind.damageOnly && contact.kind !== ContactKind.throw) {
       hitlagDamage = max(hitlagDamage, damage);

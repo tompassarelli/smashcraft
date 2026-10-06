@@ -10,7 +10,8 @@ import { AttackStyle, Character, ProjectileKind, SpecialAction } from "../codes"
 import { beginDamageContacts, finishDamageContacts } from "../contacts";
 import { type Fighter, createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
-import { advanceHeroStatus, refillMana, regenerateMana } from "../heroSpecialRules";
+import { advanceHeroStatus, refillMana } from "../heroSpecialRules";
+import { regenerateMana } from "../mana";
 import { updateProjectiles } from "../projectiles";
 import { type Controls, type Roster, createRoster } from "../roster";
 import { advanceSpecials, startFighterSpecial } from "../specials";

@@ -131,7 +131,6 @@ test("computer Uther shoots Holy Light at a level target in range and never pres
   let pressedWithoutMana = 0;
   for (let frame = 1; frame <= 600; frame++) {
     uther.mana.points = 0;
-    uther.mana.sinceSpend = 0;
     broke.step();
     if (broke.produced.inputs[1].specialPressed && broke.produced.inputs[1].specialZ <= 0) pressedWithoutMana++;
   }

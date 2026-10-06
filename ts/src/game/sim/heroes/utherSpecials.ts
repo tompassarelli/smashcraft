@@ -5,7 +5,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT, heroRegion } from "../heroMoves";
-import { type AuthoredSpecial, type FighterSpecials, ROSTER_MANA, frames } from "../heroSpecials";
+import { type AuthoredSpecial, type FighterSpecials, frames } from "../heroSpecials";
 import { hurtPose } from "../hurtboxes";
 import { MEDIUM, capsule, hit, utherReach } from "./utherMoves";
 
@@ -102,7 +102,6 @@ const DIVINE_SHIELD: AuthoredSpecial = {
 };
 
 export const UTHER_SPECIALS: FighterSpecials = {
-  mana: ROSTER_MANA,
   neutral: { ground: holyLight(undefined), air: holyLight(20) },
   side: { ground: CRUSADER_RUSH, air: CRUSADER_RUSH_AIR },
   up: { ground: ascension(15, f32(1.9), true), free: ascension(0, f32(1.3), false) },

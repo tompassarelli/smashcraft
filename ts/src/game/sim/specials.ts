@@ -14,6 +14,7 @@ import {
 import { HitElement, type HitEffect, type HitRegion, NO_HIT_REGION } from "./hitRegions";
 import { heroSpecialMove } from "./heroSpecials";
 import { advanceHeroCommandGrab } from "./heroCommandGrab";
+import { originalSpecialCost, spendMana } from "./mana";
 import { applyAttackHit } from "./hits";
 import { meleeHitIntersectsShield } from "./attacks";
 import { observeActionDecision } from "./observations";
@@ -423,10 +424,21 @@ export function startFighterSpecial(owner: Fighter, stage: number, matchFrame: n
   if (owner.character === Character.rifleman && owner.special.action === SpecialAction.riflemanRecovery) return secondRecoilShot(owner, input);
   const requested = requestedSpecial(owner, input);
   if (!specialCanStart(owner, requested)) return false;
+  const cost = originalSpecialCost(requested);
+  if (cost > owner.mana.points) {
+    owner.visuals.manaDenied++;
+    return false;
+  }
   observeActionDecision(SPECIAL_ACTION_BIT);
   const lastTap = owner.motion.lastAerialTapDirection;
   if (!owner.motion.grounded && input.specialX === 0 && input.specialZ === 0 && lastTap !== 0) owner.facing = lastTap;
   const moveX = specialDirection(input, owner.facing);
+  const started = startOriginalSpecial(owner, stage, matchFrame, requested, moveX);
+  if (started) spendMana(owner, cost);
+  return started;
+}
+
+function startOriginalSpecial(owner: Fighter, stage: number, matchFrame: number, requested: SpecialAction, moveX: number): boolean {
   switch (owner.character) {
     case Character.archer:
       return startArcherSpecial(owner, requested, moveX);

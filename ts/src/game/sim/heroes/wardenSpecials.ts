@@ -2,7 +2,7 @@
 // specials), in the brief's frame numbering. Starting values, not balance.
 import { f32 } from "wisp/src/sim/f32";
 import { HERO_REFERENCE_HEIGHT, heroRegion, type MoveRegion, type StrikeCapsule } from "../heroMoves";
-import { ROSTER_MANA, Relocation, frames, type AuthoredSpecial, type FighterSpecials } from "../heroSpecials";
+import { Relocation, frames, type AuthoredSpecial, type FighterSpecials } from "../heroSpecials";
 import { HeroStatusGroup, HeroStatusKind, HitElement } from "../codes";
 import type { AppliedStatus } from "../heroStatus";
 import { wardenHit } from "./wardenMoves";
@@ -87,7 +87,6 @@ const fanRegions = (): readonly MoveRegion[] => {
 const FAN_OF_KNIVES: AuthoredSpecial = { cost: 18, endFrame: 38, regions: fanRegions(), strikeStatus: POISON };
 
 export const WARDEN_SPECIALS: FighterSpecials = {
-  mana: ROSTER_MANA,
   neutral: { ground: SHADOW_STRIKE },
   side: { ground: PURSUIT_LUNGE, air: PURSUIT_LUNGE_AIR, marked: { special: SHADOW_PURSUIT, range: PURSUIT_REACH } },
   up: { ground: BLINK, free: BLINK_FREE },

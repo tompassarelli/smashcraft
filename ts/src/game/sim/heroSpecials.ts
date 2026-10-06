@@ -277,19 +277,7 @@ export interface SpecialKit {
   readonly marked?: { readonly special: AuthoredSpecial; readonly range: number } | undefined;
 }
 
-export interface ManaProfile {
-  readonly max: number;
-  /** Frames since the last spend before regeneration starts. */
-  readonly regenDelayFrames: number;
-  /** Eligible frames per regenerated point. */
-  readonly framesPerPoint: number;
-}
-
-/** The adopted roster resource: 100 mana, 6 per second on the ground after 120 frames without spending. */
-export const ROSTER_MANA: ManaProfile = { max: 100, regenDelayFrames: 120, framesPerPoint: 10 };
-
 export interface FighterSpecials {
-  readonly mana: ManaProfile;
   readonly neutral: SpecialKit;
   readonly side: SpecialKit;
   readonly up: SpecialKit;

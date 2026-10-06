@@ -100,13 +100,15 @@ export function spawnHomingArrow(owner: Fighter, direction: number, serial: numb
 }
 
 /**
- * Mana Burn's stun (#116): 20 frames, 2 more for every 5% after the hit, at
- * most 80; the next damaging hit ends it, and 300 frames of sleep-group
- * immunity follow so stuns and sleeps never chain.
+ * Mana Burn (#116, smashcraft:docs/design/mana.md): a body hit burns 25 of
+ * the target's mana, then stuns it 15 frames plus up to 45 more the emptier
+ * that leaves it (26 on a full bar, 60 on an empty one); the next damaging
+ * hit ends it, and 300 frames of sleep-group immunity follow so stuns and
+ * sleeps never chain.
  */
 export const MANA_BURN_STUN: Readonly<AppliedStatus> = {
-  kind: HeroStatusKind.stun, frames: 20, group: HeroStatusGroup.sleep, immunityFrames: 300,
-  scaling: { frames: 2, percent: 5, max: 80 },
+  kind: HeroStatusKind.stun, frames: 15, group: HeroStatusGroup.sleep, immunityFrames: 300,
+  drain: { mana: 25, emptyFrames: 45 },
 };
 
 // Preallocated: collected contacts copy it, so one record serves every hit.

@@ -4,7 +4,7 @@
 // hero reference height H.
 import { f32 } from "wisp/src/sim/f32";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
-import { type AuthoredSpecial, type FighterSpecials, type SpecialPlacement, type SpecialProjectile, ROSTER_MANA, frames } from "../heroSpecials";
+import { type AuthoredSpecial, type FighterSpecials, type SpecialPlacement, type SpecialProjectile, frames } from "../heroSpecials";
 import { HeroStatusGroup, HeroStatusKind, HitElement } from "../codes";
 import type { AppliedStatus } from "../heroStatus";
 import { hit } from "./shadowHunterMoves";
@@ -90,7 +90,6 @@ const SERPENT_WARD_CAST: AuthoredSpecial = { cost: 20, endFrame: 52, groundOnly:
 const SERPENT_WARD_RECALL: AuthoredSpecial = { cost: 0, endFrame: 52, groundOnly: true, recall: true };
 
 export const SHADOW_HUNTER_SPECIALS: FighterSpecials = {
-  mana: ROSTER_MANA,
   neutral: { ground: spiritGlaive(false), air: spiritGlaive(true) },
   side: { ground: SERPENT_WARD_CAST, recall: SERPENT_WARD_RECALL },
   up: { ground: loaVault(15, f32(0.0909), f32(0.0273)), free: loaVault(0, f32(0.0636), f32(0.0137)) },

@@ -360,7 +360,6 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   const mana = target.mana;
   const sourceMana = source.mana;
   mana.points = sourceMana.points;
-  mana.sinceSpend = sourceMana.sinceSpend;
   mana.progress = sourceMana.progress;
 
   const placed = target.placed;

@@ -4,7 +4,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { HeroStatusGroup, HeroStatusKind, HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT, type StrikeCapsule, heroRegion } from "../heroMoves";
-import { type AuthoredSpecial, type FighterSpecials, ROSTER_MANA, frames } from "../heroSpecials";
+import { type AuthoredSpecial, type FighterSpecials, frames } from "../heroSpecials";
 import { hurtPart, hurtPose } from "../hurtboxes";
 import { DREADLORD_STAND, dreadlordHit, dreadlordLimbPoses } from "./dreadlordMoves";
 
@@ -99,7 +99,6 @@ function batAscension(cost: number, rise: number, across: number): AuthoredSpeci
 }
 
 export const DREADLORD_SPECIALS: FighterSpecials = {
-  mana: ROSTER_MANA,
   neutral: { ground: CARRION_SWARM, air: { ...CARRION_SWARM, landingLag: AIR_LANDING_LAG } },
   side: { ground: NIGHT_POUNCE, air: NIGHT_POUNCE_AIR },
   up: { ground: batAscension(15, 2.0, f32(0.8)), free: batAscension(0, f32(1.4), f32(0.3)) },

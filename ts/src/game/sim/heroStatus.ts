@@ -11,6 +11,7 @@ import { type AttackBuffer, clearAttackBuffer } from "../input/attackBuffer";
 import { type Controls, copyControls, neutralControls } from "./roster";
 import { cancelAttack, cancelSpecialState } from "./transitions";
 import { HERO_STATUS_GROUPS, HeroStatusKind, type HeroStatusGroup } from "./codes";
+import { ROSTER_MANA, drainMana } from "./mana";
 
 
 /** What a status prevents and what ends it early. */
@@ -49,18 +50,21 @@ export interface AppliedStatus {
   readonly tick?: { readonly every: number; readonly damage: number } | undefined;
   /** Its frames instead when it reaches an airborne fighter (Sleep: an offstage hit is an opening, not a KO). */
   readonly airFrames?: number | undefined;
-  /** `frames` more for every `percent` of damage after the hit, in whole steps, up to `max` frames in all. */
-  readonly scaling?: { readonly frames: number; readonly percent: number; readonly max: number } | undefined;
+  /**
+   * Mana Burn's: takes `mana` from the body it reaches, immune or not, then
+   * lasts up to `emptyFrames` more in proportion to how empty that leaves it.
+   */
+  readonly drain?: { readonly mana: number; readonly emptyFrames: number } | undefined;
 }
 
 const rules = (f: Readonly<Fighter>): StatusRules | undefined => RULES[f.status.condition];
 
-/** The status's duration on a fighter at this percent; integer steps keep Lua32 and the host equal. */
-export function heroStatusFrames(status: Readonly<AppliedStatus>, percent: number): number {
-  const { scaling } = status;
-  if (scaling === undefined) return status.frames;
-  const steps = floorDiv(toInt(max(0.0, percent)), scaling.percent);
-  return min(status.frames + steps * scaling.frames, scaling.max);
+/** The status's duration on a fighter left with `mana`; integer division keeps Lua32 and the host equal. */
+export function heroStatusFrames(status: Readonly<AppliedStatus>, mana: number): number {
+  const { drain } = status;
+  if (drain === undefined) return status.frames;
+  const empty = ROSTER_MANA.max - min(ROSTER_MANA.max, max(0, mana));
+  return status.frames + floorDiv(drain.emptyFrames * empty, ROSTER_MANA.max);
 }
 
 /** Whether the fighter's status is mashed out of (Sleep), as a freeze is. */
@@ -84,9 +88,11 @@ export function applyHeroStatus(f: Fighter, status: Readonly<AppliedStatus>): vo
     state.poisonDamage = status.tick?.damage ?? 0.0;
     return;
   }
-  if (state.out || (state.conditionImmunity[status.group] ?? 0) > 0) return;
+  if (state.out) return;
+  if (status.drain !== undefined) drainMana(f, status.drain.mana);
+  if ((state.conditionImmunity[status.group] ?? 0) > 0) return;
   state.condition = status.kind;
-  state.conditionFrames = status.airFrames !== undefined && !f.motion.grounded ? status.airFrames : heroStatusFrames(status, state.damage);
+  state.conditionFrames = status.airFrames !== undefined && !f.motion.grounded ? status.airFrames : heroStatusFrames(status, f.mana.points);
   if (RULES[status.kind]?.mashMinimum !== undefined) clearMash(f.grab);
   state.conditionGroup = status.group;
   state.conditionImmunityFrames = status.immunityFrames;
