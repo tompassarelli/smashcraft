@@ -46,8 +46,7 @@ export interface HeroPresentation {
   /** The Warcraft model; stock paths need no import. */
   readonly model: string;
   readonly scale: number;
-  /** The stock unit the fighter's object derives from, and the object's own four-character code. */
-  readonly baseUnit: string;
+  /** The fighter object's own four-character code; every fighter derives from a plain unit (objectData.ts). */
   readonly objectId: number;
   /** Selection, HUD and off-screen portrait texture. */
   readonly portrait: string;

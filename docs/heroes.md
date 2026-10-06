@@ -13,7 +13,7 @@ data record; the simulation, replay, selection and object data read it.
 - `ts/src/game/sim/heroes/<hero>Hero.ts` is one hero's `HeroDefinition`
   (`sim/heroes/hero.ts`): product name, purpose, weakness, `moves`
   (`FighterMoves`, `sim/heroMoves.ts`), `specials` (`FighterSpecials`,
-  `sim/heroSpecials.ts`), presentation (Warcraft model, base unit, object
+  `sim/heroSpecials.ts`), presentation (Warcraft model, object
   code, portrait, projectile model, per-pose clips with a fallback) and
   `complete`.
 - `ts/src/game/sim/heroes/heroBodies.ts` holds the roster's weight, run,
@@ -92,3 +92,26 @@ enough mana" for about three quarters of a second after each refused press
 (`ui/manaReadout.ts`). There is no ultimate action, so ultimates stay off.
 
 The shared contracts are in `ts/src/game/sim/heroSpecials.tests.ts`.
+
+## Presentation
+
+- A hero draws with its fighter unit, made from its own object (base `earc`,
+  like the original fighters, so no hero icon or experience bar shows) with
+  the hero's stock model. The unit plays each clip by sequence index
+  (`SetUnitAnimationByIndex`): an animation name picks at random among
+  same-named variants, and this game build has no by-index special-effect
+  native, so the original fighters' effect pool is not used for heroes.
+- `presentation.clips` is a `HeroClipTable` (`sim/heroes/hero.ts`): pose to
+  `{ index, seconds }`. Pose selection (`presentation/fighterPose.ts`) fits
+  `seconds` to the action's frames. The original fighters fill the same table
+  from their packaged clips (`presentation/fighterClips.ts`). A pose the table
+  leaves out plays `fallback`, except the `HeroStatePose` states (dash, run,
+  crouch, fall, landing, shield, air dodge, smash charge, KO, dizzy), which
+  keep the original fighters' pose for that state.
+- The drawn body keeps clear of stage faces with Archer's body envelope
+  stretched by the hero's width and height (`presentation/fighterPlacement.ts`).
+- Star KOs fly the hero's own model off; there is one KO body per star-KO
+  impact and selectable fighter (`render/combatEffects.ts`).
+- The scene report counts a shown hero unit as drawn under its model
+  (`platform/sceneReport.ts` passes Wisp's `unitModel`), and the player view
+  declares every hero model, with model facts read from the classic models.

@@ -90,7 +90,7 @@ export const SMASHCRAFT_SCENE: SceneExpectations & { readonly settledFrame: numb
       ],
     },
     // A star KO flies the fighter off for under two seconds.
-    { name: "KO body", lifetime: seconds(3), models: [ARCHER_MODEL_FILE, RIFLEMAN_MODEL_FILE, DEMON_HUNTER_MODEL_FILE] },
+    { name: "KO body", lifetime: seconds(3), models: [ARCHER_MODEL_FILE, RIFLEMAN_MODEL_FILE, DEMON_HUNTER_MODEL_FILE, ...HERO_ROSTER.map(({ presentation }) => presentation.model)] },
     // The lightest press drains a full shield in about 72 s.
     { name: "shield bubble", lifetime: seconds(75), models: [SHIELD_P1_MODEL, SHIELD_P2_MODEL, SHIELD_P3_MODEL, SHIELD_P4_MODEL] },
     // An unsprung trap waits 30 s; a frozen fighter thaws within 5 s.
