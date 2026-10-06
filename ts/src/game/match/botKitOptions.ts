@@ -15,9 +15,9 @@ import { hurtCapsule } from "../physics/contactGeometry";
 import { Character, HeroStatusKind, HippogryphKind, ProjectileKind, SpecialAction } from "../sim/codes";
 import { canAttack } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
-import { isHeroSpecialAction, runningHeroSpecial, specialCooldownReady } from "../sim/heroSpecialRules";
+import { companionReady, isHeroSpecialAction, runningHeroSpecial, specialCooldownReady } from "../sim/heroSpecialRules";
 import { heroStatusBlocksActions } from "../sim/heroStatus";
-import { type AuthoredSpecial, type SpecialFollowUp, type SpecialProjectile, FOLLOW_UP_FORM, FollowUpInput, SpecialSlot, specialKit } from "../sim/heroSpecials";
+import { type AuthoredSpecial, type SpecialFollowUp, type SpecialProjectile, CompanionOrder, FOLLOW_UP_FORM, FollowUpInput, SpecialSlot, specialKit } from "../sim/heroSpecials";
 import type { Controls } from "../sim/roster";
 import { originalSpecialCost } from "../sim/mana";
 import {
@@ -41,6 +41,9 @@ const IMAGE_ROOM = 160.0;
 /** Frost Armor is cast with the target at least this far away and this much mana to spare past its cost. */
 const ARMOR_GAP = 240.0;
 const ARMOR_SPARE = 15;
+/** A partner's bite reaches about this far past its lunge; it is called back past this share of its leash. */
+const PARTNER_BITE_REACH = 60.0;
+const PARTNER_STRAY = f32(0.3);
 /** Dark Ritual is cashed for mana below this, the target this far away, or before the shell runs out. */
 const RITUAL_MANA = 25;
 const RITUAL_GAP = 200.0;
@@ -205,6 +208,22 @@ function pressRecall(f: Readonly<Fighter>, target: Readonly<Fighter>, move: Read
     pressSlot(input, slot, 0);
     return true;
   }
+  const order = move.command?.order;
+  const partner = f.placed.spec?.companion;
+  if (order !== undefined && partner !== undefined && f.placed.life > 0) {
+    const fromPartner = f32(motion.x - f.placed.x);
+    if (order === CompanionOrder.lunge) {
+      // The partner lunges the way its owner turns: at a target in reach of its front.
+      const reach = f32(f32(partner.lungeTravel + body.radius) + PARTNER_BITE_REACH);
+      if (!companionReady(f) || Math.abs(fromPartner) > reach || Math.abs(f32(motion.z - f.placed.z)) > 60.0 || !takes(skill, floorDiv(frame, 20), f.character * 7 + 22)) return false;
+      pressSlot(input, slot, fromPartner < 0 ? -1 : 1);
+      return true;
+    }
+    // Called back when it strays far from its owner.
+    if (Math.abs(f32(f.placed.x - f.motion.x)) < f32(partner.leash * PARTNER_STRAY) || !takes(skill, floorDiv(frame, 30), f.character * 7 + 23)) return false;
+    pressSlot(input, slot, 0);
+    return true;
+  }
   if (move.ritual !== undefined) {
     // Close by, the shatter strikes (heroSpecialUse); far away it is cashed for mana, or before the shell runs out.
     const cash = (f.mana.points < RITUAL_MANA && Math.abs(f32(motion.x - f.motion.x)) >= RITUAL_GAP) || f.status.armorFrames <= RITUAL_LAST_FRAMES;
@@ -247,7 +266,7 @@ function pressHeroOption(f: Readonly<Fighter>, target: Readonly<Fighter>, stage:
       continue;
     }
     if (!ready || !f.motion.grounded) continue;
-    // An image that strikes nothing, set between the fighter and the target as he steps back.
+    // An image or a partner that strikes nothing, set between the fighter and the target (Mirror Image steps back from it).
     if (move.placement !== undefined && move.placement.shot === undefined && (move.regions ?? []).length === 0 && f.placed.life <= 0
       && gap >= IMAGE_NEAR && gap <= IMAGE_FAR && level && safeAt(stage, f32(f.motion.x - f32(toward * IMAGE_ROOM)), 0.0)
       && botChoice(floorDiv(frame, 45), f.character * 7 + 9, 3) === 0 && takes(skill, floorDiv(frame, 45), f.character * 7 + 10)) {
