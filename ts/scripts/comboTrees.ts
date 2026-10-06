@@ -91,18 +91,18 @@ function matchesMove(move: Move, self: Fighter): boolean {
 }
 
 /** One committed move, approaching and trying on alternating frames; no move chosen from the defender's script. */
-function moveOption(move: Move, opening: boolean): Option {
+export function moveOption(move: Move, opening: boolean): Option {
   return {
     name: move.name, kind: "none",
     input: (i, self, other) => {
       if (self.grab.action === GrabAction.hold) return i % 2 === 0 ? throwButtons(move, self) : [];
       if (i % 2 !== 0) return self.motion.grounded || !opening ? [toward(self, other)] : [];
-      if (move.dash && (i < 8 || Math.abs(self.motion.vx) < 15)) return [toward(self, other)];
+      if (move.dash && self.ground.dashFrame === 0) return [toward(self, other)];
       if (!canAttack(self)) return [];
       if (move.aerial && self.motion.grounded) return [Action.jump];
       if (!move.aerial && !self.motion.grounded) return [toward(self, other)];
       if (!opening && Math.abs(other.motion.x - self.motion.x) > 90) return [toward(self, other)];
-      return move.dash ? [toward(self, other), Action.attack] : attackButtons(move, self, other);
+      return move.dash ? [Action.attack] : attackButtons(move, self, other);
     },
   };
 }
