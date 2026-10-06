@@ -83,11 +83,11 @@ test("Whispy's wind waits, warns for 45 frames, then pushes standing fighters on
   });
   // The first gust blows right: the fighter right of center moves, the one left of center does not.
   playWind(run, WIND_CYCLE_FRAMES, (_frame, first, second) => {
-    assertNear(first, WIND_SPEED, 0.0001);
+    assertNear(first, WIND_SPEED, 0.00009999999747378752);
     assertEquals(second, 0.0);
   });
   const pushed = fighterAt(run.match.world, 0);
-  assertNear(pushed.motion.x, f32(240.0 + f32(WIND_BLOW_FRAMES * WIND_SPEED)), 0.01);
+  assertNear(pushed.motion.x, f32(240.0 + f32(WIND_BLOW_FRAMES * WIND_SPEED)), 0.009999999776482582);
   assertTrue(pushed.motion.grounded);
   // The next gust blows left, after the same wait and warning; it stops pushing at its box's outer edge, short of the ledge.
   playWind(run, WIND_CYCLE_FRAMES + gust, (_frame, first, second) => {
@@ -96,7 +96,7 @@ test("Whispy's wind waits, warns for 45 frames, then pushes standing fighters on
   });
   playWind(run, 2 * WIND_CYCLE_FRAMES, (_frame, first, second) => {
     assertEquals(first, 0.0);
-    assertTrue(second === 0.0 || Math.abs(f32(second + WIND_SPEED)) < 0.0001);
+    assertTrue(second === 0.0 || Math.abs(f32(second + WIND_SPEED)) < 0.00009999999747378752);
   });
   const left = fighterAt(run.match.world, 1);
   assertLessThan(left.motion.x, windLeft(WIND_TEST_STAGE, -1) + 2.0);
