@@ -210,11 +210,18 @@ function specialProjectileCanonical(spec: Readonly<SpecialProjectile>, prefix: s
 
 /** An authored placed object, field by field. */
 function specialPlacementCanonical(spec: Readonly<SpecialPlacement>, prefix: string): string {
-  let result = canonicalInt(`${prefix}.frame`, spec.frame) + canonicalRealField(`${prefix}.offsetX`, spec.offsetX)
-    + canonicalRealField(`${prefix}.radius`, spec.radius) + canonicalRealField(`${prefix}.height`, spec.height)
-    + canonicalRealField(`${prefix}.durability`, spec.durability) + canonicalInt(`${prefix}.life`, spec.life);
-  for (let index = 0; index < spec.fireAges.length; index++) result += canonicalInt(`${prefix}.fireAge[${index}]`, at(spec.fireAges, index));
-  return result + specialProjectileCanonical(spec.shot, `${prefix}.shot`);
+  const result: string[] = [];
+  const int = (name: string, value: number) => { result.push(canonicalInt(`${prefix}.${name}`, value)); };
+  const real = (name: string, value: number) => { result.push(canonicalRealField(`${prefix}.${name}`, value)); };
+  int("frame", spec.frame);
+  real("offsetX", spec.offsetX);
+  real("radius", spec.radius);
+  real("height", spec.height);
+  real("durability", spec.durability);
+  int("life", spec.life);
+  for (let index = 0; index < spec.fireAges.length; index++) int(`fireAge[${index}]`, at(spec.fireAges, index));
+  result.push(specialProjectileCanonical(spec.shot, `${prefix}.shot`));
+  return result.join("");
 }
 
 function hitEffectCanonical(hit: Readonly<HitEffect>, prefix: string): string {
@@ -260,7 +267,7 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
   int("armor.last", move.armor?.last ?? -1);
   real("armor.maxDamage", move.armor?.maxDamage ?? 0.0);
   int("armor.shell", move.armor?.shell === true ? 1 : 0);
-  if (move.placement !== undefined) result += specialPlacementCanonical(move.placement, `${name}.placement`);
+  if (move.placement !== undefined) result.push(specialPlacementCanonical(move.placement, `${name}.placement`));
   if (move.recall === true) int("recall", 1);
   if (move.guard !== undefined) {
     int("guard.first", move.guard.first);
@@ -385,6 +392,7 @@ type Emit = (fragment: string) => void;
 // about 116 MB of Lua strings per checksum for one hero (perf bot-blademaster).
 const MOVES_DIGESTS = new Map<Readonly<FighterMoves>, string>();
 const SPECIALS_DIGESTS = new Map<Readonly<FighterSpecials>, string>();
+const PLACEMENT_DIGESTS = new Map<Readonly<SpecialPlacement>, string>();
 
 function kitDigestField<K>(name: string, kit: K | undefined, digests: Map<K, string>, text: (kit: K) => string): string {
   if (kit === undefined) return "";
@@ -718,7 +726,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
     int("placedSerial", placed.serial);
     for (let i = 0; i < PARTICIPANT_CAPACITY; i++) int(`placedStruck[${i}]`, placed.struck[i] ?? -1);
     int("placedSpecialStruck", placed.specialStruck);
-    if (placed.spec !== undefined) emit(specialPlacementCanonical(placed.spec, `${prefix}.placedSpec`));
+    emit(kitDigestField(`${prefix}.placedSpec`, placed.spec, PLACEMENT_DIGESTS, (spec) => specialPlacementCanonical(spec, "placedSpec")));
     int("specialGuarded", sp.guarded ? 1 : 0);
     real("guardHealed", st.guardHealed);
   }
