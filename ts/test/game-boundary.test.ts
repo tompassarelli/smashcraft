@@ -61,7 +61,7 @@ const fixtures = [
       "B row held pressed released capture_result phase confirmed_shield predicted_shield pose_serial correction",
       "C row journal_read_count journal_read_bytes journal_read_ms sync_send_count sync_send_ms",
       "D epoch frame sync_send_ms local_echo_ms echo_age_ms; echo=-1 means not observed before export",
-      "I 132 capture 1 0 103 0 1 1 103", "I 132 action 1 0 103 1 1 1", "I 139 rollback 1 8", "I 140 stall 1 111 103", "I 140 checksum 1 111 247377:465362 2",
+      "I 132 capture 1 0 103 0 1 1 103", "I 132 action 1 0 103 1 1 1", "I 139 rollback 1 8", "I 140 stall 1 111 103", "I 140 held 1 0 111", "I 140 checksum 1 111 247377:465362 2",
       "A 0 0.1 -1 -1 -1 0.2 0 0 0 0 0 -1", "B 0 -1 -1 -1 -1 2 -1 -1 -1 -1", "C 0 0 0 0.0 0 0.0", "D 1 103 1.0 -1 -1"],
   },
   {

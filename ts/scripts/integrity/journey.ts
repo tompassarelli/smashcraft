@@ -9,6 +9,7 @@ import { RULE_BUTTONS } from "../../src/game/ui/ruleButtons";
 import { STAGE_CATALOG } from "../../src/game/menu/stageCatalog";
 import { Character } from "../../src/game/sim/codes";
 import { fighterName } from "../../src/game/sim/heroes/registry";
+import { MATCH_TICKS_PER_SECOND, START_HOLD_FRAMES } from "../../src/game/match/rules";
 import type { Region } from "wisp/scripts/warcraft/desktop";
 import { IntegrityFailure } from "./evidence";
 import { ABS_RX, ABS_RY, ABS_X, ABS_Y, ABS_Z, BTN_A, BTN_SELECT, BTN_START, BTN_X, BTN_Y, EV_ABS, EV_KEY, type SourceEdge } from "./linuxInput";
@@ -727,6 +728,9 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       if (commands) yield* stageDrawn(epoch);
       // The playable build starts no scene recorder.
       yield* playerView(epoch, "start", { frame: true, scene: !playable && diagnosticBuild });
+      // A menu-started match holds every fighter until GO! (#129): scripted input starts after it.
+      const goNs = deadline - 300_000_000 + START_HOLD_FRAMES * 1_000_000_000 / MATCH_TICKS_PER_SECOND;
+      yield* rig.sleep(Math.max(0, (goNs - (yield* rig.monotonicNs)) / 1_000_000));
       if (bot) {
         // The rematch that shows the overlay is read throughout, beside its beats.
         const overlay = bot && (options.botFour === true || options.botPerf === true) && !odd
@@ -736,7 +740,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
             yield* rig.sleep(PERF_READ_MILLIS);
           })), { startImmediately: true })
           : undefined;
-        yield* botMatch(epoch, deadline - 300_000_000);
+        yield* botMatch(epoch, goNs);
         if (overlay !== undefined) yield* Fiber.interrupt(overlay);
       }
       else if (matchOnly || playable) {
