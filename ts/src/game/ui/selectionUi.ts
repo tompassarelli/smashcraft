@@ -36,6 +36,7 @@ import {
   selectionDrag,
   updateSelectionDrag,
 } from "../menu/selectionDrag";
+import { SELECTABLE_FIGHTERS, cellRect, rosterGrid } from "../menu/selectionGrid";
 import { automaticRematchSetting, endlessSetting, stockSetting, timeSetting } from "../shell/messages";
 import { Character } from "../sim/codes";
 import { ButtonClicks, MENU_FONT, type MenuControls, bindSyncHandler, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, placeTopLeft } from "./frames";
@@ -105,7 +106,10 @@ function hotspot(parent: framehandle, x: number, y: number, width: number, heigh
   return frame;
 }
 
-const decodeTile = (data: string): RosterTile | undefined => (data === "0" ? 0 : data === "1" ? 1 : data === "2" ? 2 : undefined);
+const decodeTile = (data: string): RosterTile | undefined => {
+  const tile = S2I(data);
+  return I2S(tile) === data && tile >= 0 && tile < SELECTABLE_FIGHTERS ? tile : undefined;
+};
 const decodeSlot = (data: string): number | undefined => (data === "0" ? 0 : data === "1" ? 1 : data === "2" ? 2 : data === "3" ? 3 : undefined);
 
 export class SelectionPanel {
@@ -118,7 +122,7 @@ export class SelectionPanel {
   private readonly drag = selectionDrag();
   // Preallocated: the owner's client reads the pointer every rendered frame.
   private readonly chips: RosterChip[] = PARTICIPANT_SLOTS.map(() => ({ choice: 0, placed: false }));
-  private readonly roster: Roster = { selectable: 0, chips: this.chips };
+  private readonly roster: Roster = { grid: rosterGrid(SELECTABLE_FIGHTERS), selectable: 0, chips: this.chips };
   /** The match the panel last showed; synchronized events check choices against it. */
   private game: Readonly<MatchState> | undefined;
   private settingsOpen = false;
@@ -143,12 +147,16 @@ export class SelectionPanel {
     this.backdrop = createBackdrop(`MeleeSelectBackdrop${suffix}`, consoleUi(), 400 + participantId);
     BlzFrameSetTexture(this.backdrop, "war3mapImported\\SelectionBackdrop.tga", 0, false);
     coverScreen(this.backdrop);
-    for (let choice = 0; choice < 3; choice++) {
-      const x = f32(0.26) + choice * f32(0.18);
+    const grid = this.roster.grid;
+    const scale = f32(grid.scale);
+    for (let choice = 0; choice < grid.count; choice++) {
+      const { left, top } = cellRect(grid, choice);
+      const x = f32(left);
+      const y = f32(top);
       const name = `${suffix}_${I2S(choice)}`;
-      art(root, `MeleeTile${name}`, "war3mapImported\\SelectionTileFrame.tga", x, f32(0.424), f32(0.112), f32(0.132));
-      art(root, `MeleeTilePortrait${name}`, portraitTexture(choice, true), x + f32(0.0125), f32(0.411), f32(0.087), f32(0.087));
-      art(root, `MeleeTileName${name}`, nameTexture(choice), x + f32(0.004), f32(0.316), f32(0.103), f32(0.018));
+      art(root, `MeleeTile${name}`, "war3mapImported\\SelectionTileFrame.tga", x, y, f32(grid.cellWidth), f32(grid.cellHeight));
+      art(root, `MeleeTilePortrait${name}`, portraitTexture(choice, true), x + f32(0.0125) * scale, y - f32(0.013) * scale, f32(0.087) * scale, f32(0.087) * scale);
+      art(root, `MeleeTileName${name}`, nameTexture(choice), x + f32(0.004) * scale, y - f32(0.108) * scale, f32(0.103) * scale, f32(0.018) * scale);
     }
     this.cards = PARTICIPANT_SLOTS.map((slot) => {
       const x = cardX(slot);
@@ -338,8 +346,8 @@ export class SelectionPanel {
       const chipChoice = choice ?? Character.archer;
       placeTopLeft(
         frames.chip,
-        carried ? x - f32(0.02) : ready ? chipX(slot, chipChoice) : cardX(slot) + f32(0.06),
-        carried ? y + f32(0.02) : ready ? chipY(slot) : f32(0.2),
+        carried ? x - f32(0.02) : ready ? chipX(this.roster.grid, slot, chipChoice) : cardX(slot) + f32(0.06),
+        carried ? y + f32(0.02) : ready ? chipY(this.roster.grid, slot, chipChoice) : f32(0.2),
       );
     }
     BlzFrameSetText(this.confirm, this.confirmText(game));
