@@ -82,6 +82,16 @@ const GLIDE_DIVE = { speed: 11.0, sink: 4.0 };
 export const DEMONHUNTER_IMMOLATE_STARTUP = 4;
 export const DEMONHUNTER_IMMOLATE_ACTIVE = 4;
 export const DEMONHUNTER_IMMOLATE_DURATION = 27;
+// Flame Crash (#147): down special in the air hangs on frames 1-4, plunges
+// from 5 striking once on the way down, and bursts on landing (its frames
+// 1-3), acting 24 frames after landing; still airborne on frame 34, helpless.
+export const FLAME_CRASH_FORM = 1;
+export const FLAME_CRASH_LANDING_FORM = 2;
+export const FLAME_CRASH_HANG_LAST = 4;
+export const FLAME_CRASH_FRAMES = 34;
+export const FLAME_CRASH_SPEED = 24.0;
+export const FLAME_CRASH_LANDING_FRAMES = 24;
+export const FLAME_CRASH_BURST_LAST = 3;
 export const ARCHER_HOMING_WINDUP_FRAMES = 12;
 // Archer's hippogryph ride (up special): a hover, then a steerable ride
 // ending in helpless fall, or a leap off that leaves her actionable.
@@ -321,7 +331,7 @@ function secondRecoilShot(owner: Fighter, input: Readonly<Controls>): boolean {
 export function demonHunterJumpOrGlideCancel(owner: Fighter, input: Readonly<Controls>): void {
   const { special } = owner;
   if (owner.character !== Character.demonHunter || owner.launch.hitlag > 0) return;
-  if (input.jumpPressed && special.action === SpecialAction.demonHunterImmolate && special.frame >= DEMONHUNTER_IMMOLATE_STARTUP) {
+  if (input.jumpPressed && special.action === SpecialAction.demonHunterImmolate && special.form === 0 && special.frame >= DEMONHUNTER_IMMOLATE_STARTUP) {
     special.action = SpecialAction.none;
     special.frame = 0;
     special.lockFrames = 0;
@@ -356,7 +366,29 @@ export function demonHunterGliding(f: Readonly<Fighter>): boolean {
   if (special.action === SpecialAction.demonHunterFelRush) {
     return special.form === 0 ? special.frame < FEL_RUSH_LAST : special.form === VENGEFUL_RETREAT_FORM && special.frame < VENGEFUL_RETREAT_MOVE_LAST;
   }
+  if (special.action === SpecialAction.demonHunterImmolate) return special.form === FLAME_CRASH_FORM;
   return special.action === SpecialAction.demonHunterWingAscent && special.form !== 0;
+}
+
+/**
+ * One Flame Crash frame: still through the hang, then straight down; landing
+ * starts the burst, a fresh strike allowance, and its recovery.
+ */
+function advanceFlameCrash(owner: Fighter): void {
+  const { special, motion } = owner;
+  if (special.form !== FLAME_CRASH_FORM) return;
+  if (motion.grounded) {
+    for (let entry = 0; entry < PARTICIPANT_CAPACITY; entry++) special.hitTargets[entry] = undefined;
+    special.form = FLAME_CRASH_LANDING_FORM;
+    special.frame = 1;
+    special.duration = FLAME_CRASH_LANDING_FRAMES;
+    special.lockFrames = FLAME_CRASH_LANDING_FRAMES - 1;
+    owner.attack.cooldown = FLAME_CRASH_LANDING_FRAMES - 1;
+    motion.vx = 0.0;
+    return;
+  }
+  motion.vx = 0.0;
+  motion.vz = special.frame < FLAME_CRASH_HANG_LAST ? 0.0 : -FLAME_CRASH_SPEED;
 }
 
 /**
@@ -484,9 +516,15 @@ function startDemonHunterSpecial(owner: Fighter, action: SpecialAction, moveX: n
     return true;
   }
   if (action === SpecialAction.demonHunterImmolate) {
-    startSpecialAction(owner, action, DEMONHUNTER_IMMOLATE_DURATION, moveX);
+    const crash = !motion.grounded;
+    startSpecialAction(owner, action, crash ? FLAME_CRASH_FRAMES : DEMONHUNTER_IMMOLATE_DURATION, moveX);
     special.cooldowns[action] = 24;
     special.hit = false;
+    if (crash) {
+      special.form = FLAME_CRASH_FORM;
+      motion.vx = 0.0;
+      motion.vz = 0.0;
+    }
     return true;
   }
   if (action === SpecialAction.demonHunterFelRush) {
@@ -676,6 +714,7 @@ function advanceSpecialAction(owner: Fighter, stage: number, matchFrame: number,
   }
   if (special.action === SpecialAction.demonHunterWingAscent && special.form !== 0) glide(owner, input);
   if (special.action === SpecialAction.demonHunterFelRush) advanceFelRush(owner);
+  if (special.action === SpecialAction.demonHunterImmolate) advanceFlameCrash(owner);
   if (special.action === SpecialAction.demonHunterWingAscent && special.form === 0 && special.frame === DEMONHUNTER_WING_STARTUP) {
     motion.vz = 30.0;
     motion.vx = f32(special.direction * 5.0);
@@ -704,7 +743,7 @@ function advanceSpecialAction(owner: Fighter, stage: number, matchFrame: number,
     special.lockFrames = 0;
   }
   if (special.action === SpecialAction.demonHunterWingAscent && special.frame >= special.duration) endSpecialAction(owner, true);
-  if (special.action === SpecialAction.demonHunterImmolate && special.frame >= special.duration) endSpecialAction(owner, false);
+  if (special.action === SpecialAction.demonHunterImmolate && special.frame >= special.duration) endSpecialAction(owner, special.form === FLAME_CRASH_FORM);
   if (special.action === SpecialAction.archerArrow && special.frame >= ARCHER_ARROW_FRAMES) endSpecialAction(owner, false);
 }
 
@@ -721,6 +760,26 @@ const IMMOLATE_AIR: Readonly<HitRegion> = {
 
 /** Where Immolation strikes a target's position, facing right, from the ground or the air. */
 export const immolationRegion = (grounded: boolean): Readonly<HitRegion> => (grounded ? IMMOLATE_GROUND : IMMOLATE_AIR);
+
+// Flame Crash's plunge spikes an airborne target and launches a grounded one; the landing burst surrounds him.
+const FLAME_CRASH_PLUNGE: Readonly<HitRegion> = {
+  minX: -60.0, maxX: 60.0, minZ: -120.0, maxZ: 20.0,
+  effect: { damage: 9.0, growth: 100.0, base: 26.0, launchX: 0.1736481785774231, launchZ: -0.9848077297210693, electric: false, element: HitElement.fire, manaDrain: 6 },
+  groundedEffect: { damage: 9.0, growth: 100.0, base: 30.0, launchX: 0.5, launchZ: 0.8660253882408142, electric: false, element: HitElement.fire, manaDrain: 6 },
+  window: 1,
+};
+const FLAME_CRASH_BURST: Readonly<HitRegion> = {
+  minX: -150.0, maxX: 150.0, minZ: -20.0, maxZ: 120.0,
+  effect: { damage: 8.0, growth: 95.0, base: 30.0, launchX: 0.4226182699203491, launchZ: 0.9063078165054321, electric: false, element: HitElement.fire, manaDrain: 6 },
+  window: 1,
+};
+
+/** The Flame Crash region that strikes this frame: the plunge from frame 5, the burst on landing frames 1-3. */
+export function flameCrashRegion(form: number, frame: number): Readonly<HitRegion> {
+  if (form === FLAME_CRASH_FORM) return frame > FLAME_CRASH_HANG_LAST ? FLAME_CRASH_PLUNGE : NO_HIT_REGION;
+  if (form === FLAME_CRASH_LANDING_FORM) return frame <= FLAME_CRASH_BURST_LAST ? FLAME_CRASH_BURST : NO_HIT_REGION;
+  return NO_HIT_REGION;
+}
 
 /** Immolation strikes each target inside its grounded or aerial region once during its active frames. */
 const GLIDE_SLASH: Readonly<HitRegion> = {
@@ -771,6 +830,13 @@ function demonHunterSpecialContact(owner: Fighter, targetSlot: number, target: F
   if (owner.character === Character.demonHunter && special.action === SpecialAction.demonHunterFelRush) return felRushContact(owner, targetSlot, target);
   if (owner.character === Character.demonHunter && special.action === SpecialAction.demonHunterWingAscent && special.form === DEMONHUNTER_GLIDE_SLASH_FORM) return glideSlashContact(owner, targetSlot, target);
   if (owner.character !== Character.demonHunter || special.action !== SpecialAction.demonHunterImmolate) return NO_HIT_REGION;
+  if (special.form !== 0) {
+    const crash = flameCrashRegion(special.form, special.frame);
+    if (crash.window <= 0 || specialAlreadyHit(owner, targetSlot) || target.status.out || isIntangible(target)) return NO_HIT_REGION;
+    const x = f32(f32(target.motion.x - owner.motion.x) * owner.facing);
+    const z = f32(target.motion.z - owner.motion.z);
+    return x >= crash.minX && x <= crash.maxX && z >= crash.minZ && z <= crash.maxZ ? crash : NO_HIT_REGION;
+  }
   if (specialAlreadyHit(owner, targetSlot) || special.frame < DEMONHUNTER_IMMOLATE_STARTUP) return NO_HIT_REGION;
   if (special.frame >= DEMONHUNTER_IMMOLATE_STARTUP + DEMONHUNTER_IMMOLATE_ACTIVE || target.status.out || isIntangible(target)) return NO_HIT_REGION;
   const localX = f32(f32(target.motion.x - owner.motion.x) * owner.facing);

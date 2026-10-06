@@ -34,9 +34,16 @@ matches until the match rules turn them on.
 | Neutral special | Mana Burn | A slow orb that burns mana and stuns; the emptier it leaves the target, the longer the stun. |
 | Side special | Fel Rush (Vengeful Retreat, Chaos Strike, Aerial Chaos Strike) | Dash through anyone in your path; press special to flip back out, or attack to slash. |
 | Up special | Wing Ascent (Glide, Wing Slash) | Rise on his wings; jump near the top to glide, attack in the glide to slash. |
-| Down special | Immolate | A burst of flame around him that a jump can cancel. |
+| Down special | Immolate (Flame Crash) | A burst of flame around him that a jump can cancel; in the air, plunge down in a Flame Crash. |
 | Passive | none | Every hit he lands drains the target's mana; bigger hits drain more. |
 | Ultimate | Metamorphosis | He becomes a demon for a while: heavier, with a fast bolt and a draining aura. |
+
+Normals, inspired by:
+
+- Down smash: Flames of Azzinoth, from the Black Temple encounter
+- Forward smash: Eye Blast, from the Black Temple encounter
+- Forward tilt: Shear, from the Black Temple encounter
+- Forward air: His twin warglaives crossing
 
 ## Blademaster
 

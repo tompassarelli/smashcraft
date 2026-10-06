@@ -1,6 +1,6 @@
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { AttackStyle, Character, HeroStatusGroup, HeroStatusKind, LedgeState, ProjectileKind, SpecialAction } from "./codes";
-import { DEMONHUNTER_IMMOLATE_STARTUP, DEMONHUNTER_MANA_BURN_STARTUP, DEMONHUNTER_WING_DURATION, startFighterSpecial, advanceSpecials } from "./specials";
+import { DEMONHUNTER_IMMOLATE_STARTUP, DEMONHUNTER_MANA_BURN_STARTUP, DEMONHUNTER_WING_DURATION, FLAME_CRASH_HANG_LAST, startFighterSpecial, advanceSpecials } from "./specials";
 import { type Fighter, type Projectile, createFighter } from "./fighter";
 import { beginFighterAttack, resolveAttacks } from "./attacks";
 import { MANA_BURN_STUN, projectileCount, updateProjectiles } from "./projectiles";
@@ -68,7 +68,8 @@ test("simultaneousImmolatesTradeInEitherSlotOrder", () => {
     assertTrue(startFighterSpecial(left, 0, 0, controls({ specialPressed: true, down: true, specialZ: -1 })));
     assertTrue(startFighterSpecial(right, 0, 0, controls({ specialPressed: true, down: true, specialZ: -1 })));
     const world = reversed ? testWorld(right, left) : testWorld(left, right);
-    for (let tick = 1; tick <= DEMONHUNTER_IMMOLATE_STARTUP; tick++) advanceSpecials(world, 0, 0);
+    // In the air, down special is Flame Crash: its plunge strikes from frame 5.
+    for (let tick = 1; tick <= (airborne ? FLAME_CRASH_HANG_LAST + 1 : DEMONHUNTER_IMMOLATE_STARTUP); tick++) advanceSpecials(world, 0, 0);
     const damage = airborne ? 9.0 : 7.0;
     assertEquals(left.status.damage, damage);
     assertEquals(right.status.damage, damage);
@@ -94,7 +95,7 @@ test("immolateGroundShineMirrorsAndHitsOneTargetOnce", () => {
   }
 });
 
-test("immolateAirSpecialSpikesAndUsesSingleContact", () => {
+test("flameCrashPlungeSpikesAndUsesSingleContact", () => {
   const illidan = createFighter(Character.demonHunter, 0.0, -1);
   const target = createFighter(Character.rifleman, 0.0, 1);
   illidan.motion.grounded = false;
@@ -103,7 +104,7 @@ test("immolateAirSpecialSpikesAndUsesSingleContact", () => {
   target.motion.z = 400.0;
   const world = testWorld(illidan, target);
   assertTrue(startFighterSpecial(illidan, 0, 0, controls({ specialPressed: true, down: true, specialZ: -1 })));
-  for (let tick = 1; tick <= DEMONHUNTER_IMMOLATE_STARTUP; tick++) advanceSpecials(world, 0, 0);
+  for (let tick = 1; tick <= FLAME_CRASH_HANG_LAST + 1; tick++) advanceSpecials(world, 0, 0);
   assertEquals(target.status.damage, 9.0);
   assertLessThan(target.launch.knockbackX, 0.0);
   assertLessThan(target.launch.knockbackZ, 0.0);

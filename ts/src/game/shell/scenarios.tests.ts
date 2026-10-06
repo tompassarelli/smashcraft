@@ -17,7 +17,7 @@ function frameControls(first: Controls, second: Controls, firstCommands: AttackB
   return controls;
 }
 
-test("an offstage Immolate launches downward through the ordinary match step", () => {
+test("an offstage Flame Crash spikes downward through the ordinary match step", () => {
   for (const side of [-1, 1] as const) {
     const game = createMatchState();
     game.phase = Phase.match;
@@ -39,13 +39,14 @@ test("an offstage Immolate launches downward through the ordinary match step", (
     firstInput.specialPressed = false;
     firstInput.specialZ = 0;
     firstInput.down = false;
-    for (let frame = 14; frame <= 16; frame++) step(frame);
+    // The hang lasts frames 1-4; the plunge strikes from frame 5.
+    for (let frame = 14; frame <= 18; frame++) step(frame);
     assertEquals(second.status.damage, 9.0);
     assertFalse(second.motion.grounded);
     assertLessThan(second.launch.knockbackZ, 0.0);
     assertGreaterThan(second.launch.hitstun, 0);
     const contactHeight = second.motion.z;
-    for (let frame = 17; frame <= 30; frame++) step(frame);
+    for (let frame = 19; frame <= 30; frame++) step(frame);
     assertEquals(second.status.damage, 9.0);
     assertLessThan(second.motion.z, contactHeight);
     assertFalse(second.motion.grounded);

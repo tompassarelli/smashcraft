@@ -1,11 +1,11 @@
 // The original fighters' move names: their specials run as code (specials.ts),
 // so their names and one-line descriptions live in this record, shaped like a
 // hero's (SpecialKit.name, HeroDefinition.passive and ultimate).
-import { SpecialAction } from "./codes";
+import { AttackStyle, SpecialAction } from "./codes";
 import type { NamedMove } from "./heroes/hero";
 import {
   ARCHER_DIVE_FORM, CHAOS_STRIKE_AIR_FORM, CHAOS_STRIKE_FORM, DEMONHUNTER_GLIDE_FORM, DEMONHUNTER_GLIDE_SLASH_FORM, RIFLEMAN_SECOND_SHOT_FORM,
-  VENGEFUL_RETREAT_FORM,
+  FLAME_CRASH_FORM, VENGEFUL_RETREAT_FORM,
 } from "./specials";
 
 export interface OriginalSpecial extends NamedMove {
@@ -62,9 +62,18 @@ export const ORIGINAL_KITS: readonly OriginalKit[] = [
         action: SpecialAction.demonHunterWingAscent, name: "Wing Ascent", description: "Rise on his wings; jump near the top to glide, attack in the glide to slash.",
         forms: [{ form: DEMONHUNTER_GLIDE_FORM, name: "Glide" }, { form: DEMONHUNTER_GLIDE_SLASH_FORM, name: "Wing Slash" }],
       },
-      { action: SpecialAction.demonHunterImmolate, name: "Immolate", description: "A burst of flame around him that a jump can cancel." },
+      {
+        action: SpecialAction.demonHunterImmolate, name: "Immolate", description: "A burst of flame around him that a jump can cancel; in the air, plunge down in a Flame Crash.",
+        forms: [{ form: FLAME_CRASH_FORM, name: "Flame Crash" }],
+      },
     ],
     trait: "Every hit he lands drains the target's mana; bigger hits drain more.",
+    inspiredBy: {
+      [AttackStyle.forwardTilt]: "Shear, from the Black Temple encounter",
+      [AttackStyle.downSmash]: "Flames of Azzinoth, from the Black Temple encounter",
+      [AttackStyle.forwardSmash]: "Eye Blast, from the Black Temple encounter",
+      [AttackStyle.forwardAir]: "His twin warglaives crossing",
+    },
     ultimate: { name: "Metamorphosis", description: "He becomes a demon for a while: heavier, with a fast bolt and a draining aura." },
   },
 ];

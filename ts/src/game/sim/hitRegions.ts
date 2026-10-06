@@ -7,8 +7,10 @@ import { AttackStyle, Character, HitElement } from "./codes";
 import type { FighterMoves, StrikeCapsule } from "./heroMoves";
 import { DIAGONAL_UNIT, ORDINARY_HIT_BASE_KNOCKBACK, ORDINARY_HIT_GROWTH_PERCENT } from "./knockback";
 import {
+  DEMON_HUNTER_FORWARD_SMASH_ACTIVE,
   DOWN_ATTACK_BASE_KNOCKBACK,
   DOWN_ATTACK_DAMAGE,
+  EYE_BLAST_CHARGE_FRAMES,
   attackDamage,
   attackReach,
   attackStartupFrames,
@@ -109,17 +111,51 @@ const DEMON_HUNTER_REGIONS: { readonly [style: number]: Readonly<HitRegion> } = 
   [AttackStyle.downSmash]: draining(region(-105.0, 105.0, -195.0, 45.0, 15.0, 100.0, 20.0, DIAGONAL_UNIT, DIAGONAL_UNIT), 8),
   [AttackStyle.forwardSmash]: draining(region(25.0, 195.0, -75.0, 105.0, 12.0, 85.0, 20.0, DIAGONAL_UNIT, DIAGONAL_UNIT), 10),
   [AttackStyle.demonHunterDashAttack]: draining(region(0.0, 150.0, -70.0, 115.0, 9.0, 95.0, 20.0, 0.9200000166893005, 0.38999998569488525), 5),
-  [AttackStyle.forwardTilt]: draining(region(0.0, 135.0, -80.0, 95.0, 8.0, 95.0, 18.0, 0.9399999976158142, 0.3400000035762787), 4),
+  // Shear (#147): the tank-buster as the mana cutter, 9% at a low 25 degrees.
+  [AttackStyle.forwardTilt]: draining(region(0.0, 135.0, -80.0, 95.0, 9.0, 80.0, 20.0, 0.9063078165054321, 0.4226182699203491), 12),
   [AttackStyle.upTilt]: draining(region(0.0, 125.0, -30.0, 185.0, 8.0, 105.0, 18.0, 0.25, 0.968245804309845), 4),
   [AttackStyle.downTilt]: draining(region(-115.0, 115.0, -145.0, 40.0, 7.0, 90.0, 16.0, DIAGONAL_UNIT, 0.30000001192092896), 4),
-  [AttackStyle.forwardTiltUp]: draining(region(0.0, 135.0, -30.0, 145.0, 8.0, 100.0, 18.0, 0.8799999952316284, 0.47999998927116394), 4),
-  [AttackStyle.forwardTiltDown]: draining(region(0.0, 135.0, -145.0, 5.0, 8.0, 100.0, 18.0, 0.8799999952316284, -0.47999998927116394), 4),
+  [AttackStyle.forwardTiltUp]: draining(region(0.0, 135.0, -30.0, 145.0, 9.0, 80.0, 20.0, 0.8799999952316284, 0.47999998927116394), 12),
+  [AttackStyle.forwardTiltDown]: draining(region(0.0, 135.0, -145.0, 5.0, 9.0, 80.0, 20.0, 0.8799999952316284, -0.47999998927116394), 12),
   [AttackStyle.neutralAir]: draining(region(-115.0, 115.0, -45.0, 100.0, 7.0, 95.0, 16.0, DIAGONAL_UNIT, DIAGONAL_UNIT), 4),
   [AttackStyle.forwardAir]: draining(region(0.0, 175.0, -55.0, 115.0, 6.0, 85.0, 18.0, 0.9399999976158142, 0.3400000035762787), 4),
   [AttackStyle.backAir]: draining(region(-175.0, 0.0, -55.0, 115.0, 6.0, 85.0, 18.0, -0.9399999976158142, 0.3400000035762787), 5),
   [AttackStyle.upAir]: draining(region(-115.0, 115.0, 10.0, 205.0, 8.0, 105.0, 19.0, 0.2199999988079071, 0.9750000238418579), 4),
   [AttackStyle.downAir]: draining(region(-105.0, 105.0, -190.0, -10.0, 9.0, 100.0, 20.0, 0.1599999964237213, -0.9869999885559082), 8),
 };
+
+// Illidan's raid-boss normals (#147, smashcraft:docs/design/illidan.md), by
+// active frame (0 is the first): the twin-glaive forward air's link and
+// launcher, Flames of Azzinoth's glaives then fire, and Eye Blast's beam.
+const FORWARD_AIR_LINK = draining(region(0.0, 175.0, -55.0, 115.0, 3.0, 10.0, 30.0, -0.258819043636322, 0.9659258127212524), 1);
+const FORWARD_AIR_LAUNCH = draining(region(0.0, 150.0, -40.0, 110.0, 5.0, 85.0, 18.0, 0.7660444378852844, 0.6427876353263855, 2), 4);
+const AZZINOTH_GLAIVES = draining(region(-190.0, 190.0, -60.0, 60.0, 14.0, 95.0, 22.0, 0.258819043636322, 0.9659258127212524), 8);
+// The fire burns only a fighter the glaives missed: one contact window for both.
+const AZZINOTH_FLAMES = draining(region(-190.0, 190.0, -30.0, 170.0, 3.0, 20.0, 30.0, 0.08715574443340302, 0.9961947202682495), 2);
+/** Eye Blast's beam sweeps out along the floor: 195 on its first active frame, 50 further each frame. */
+function eyeBlastBeam(): readonly Readonly<HitRegion>[] {
+  const beam: Readonly<HitRegion>[] = [];
+  for (let frame = 0; frame < DEMON_HUNTER_FORWARD_SMASH_ACTIVE; frame++) {
+    beam.push(draining(region(25.0, 195.0 + frame * 50.0, -60.0, 45.0, 10.0, 90.0, 24.0, 0.8660253882408142, 0.5), 10));
+  }
+  return beam;
+}
+const EYE_BLAST_BEAM = eyeBlastBeam();
+
+/** Illidan's region on an active frame: the raid-boss normals vary by frame and charge, the rest are one row. */
+function demonHunterRegion(style: AttackStyle, activeFrame: number, chargeFrames: number): Readonly<HitRegion> {
+  switch (style) {
+    case AttackStyle.forwardAir:
+      return activeFrame <= 1 ? FORWARD_AIR_LINK : activeFrame >= 4 ? FORWARD_AIR_LAUNCH : NO_HIT_REGION;
+    case AttackStyle.downSmash:
+      return activeFrame <= 2 ? AZZINOTH_GLAIVES : AZZINOTH_FLAMES;
+    case AttackStyle.forwardSmash:
+      if (chargeFrames >= EYE_BLAST_CHARGE_FRAMES) return EYE_BLAST_BEAM[activeFrame] ?? NO_HIT_REGION;
+      return activeFrame <= 2 ? DEMON_HUNTER_REGIONS[style] ?? NO_HIT_REGION : NO_HIT_REGION;
+    default:
+      return DEMON_HUNTER_REGIONS[style] ?? NO_HIT_REGION;
+  }
+}
 
 const ordinary = (minX: number, maxX: number, minZ: number, maxZ: number, damage: number, launchX = DIAGONAL_UNIT) =>
   region(minX, maxX, minZ, maxZ, damage, ORDINARY_HIT_GROWTH_PERCENT, ORDINARY_HIT_BASE_KNOCKBACK, launchX, DIAGONAL_UNIT);
@@ -175,11 +211,11 @@ export function authoredHitRegionCount(style: AttackStyle | undefined, moves?: F
   return style === AttackStyle.forwardTilt ? 2 : 1;
 }
 
-function activeRegion(character: Character, style: AttackStyle, frame: number, index: number): Readonly<HitRegion> {
+function activeRegion(character: Character, style: AttackStyle, frame: number, index: number, chargeFrames: number): Readonly<HitRegion> {
   const startup = attackStartupFrames(style);
   // Grab and recovery attacks use the shared contact rules below.
   if (character === Character.demonHunter && style !== AttackStyle.grab && style !== AttackStyle.getupAttack && style !== AttackStyle.ledgeAttack) {
-    return DEMON_HUNTER_REGIONS[style] ?? NO_HIT_REGION;
+    return demonHunterRegion(style, frame - startup, chargeFrames);
   }
   switch (style) {
     case AttackStyle.forwardTilt: {
@@ -231,7 +267,7 @@ export function authoredHitRegion(out: HitRegion, character: Character, style: A
     copyHitRegion(out, NO_HIT_REGION);
     return out;
   }
-  copyHitRegion(out, activeRegion(character, style, frame, index));
+  copyHitRegion(out, activeRegion(character, style, frame, index, chargeFrames));
   if (character === Character.demonHunter && style !== AttackStyle.grab) out.effect.element = HitElement.slash;
   if (isSmashAttack(style)) out.effect.damage = f32(out.effect.damage * smashDamageMultiplier(chargeFrames));
   return out;

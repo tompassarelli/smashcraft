@@ -3,20 +3,16 @@
 // through the ordinary match step: inputs and attack commands in, state out.
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
-import { ATTACK_BUFFER_FRAMES, type AttackBuffer, attackBuffer, queueAttack } from "../input/attackBuffer";
-import { type FrameControls, createFrameControls } from "../match/controls";
-import { Phase, createMatchState } from "../match/rules";
-import { stepMatch } from "../match/step";
+import { queueAttack } from "../input/attackBuffer";
 import { AttackStyle, Character, SpecialAction } from "./codes";
 import { canAttack } from "./conditions";
-import { type Fighter, createFighter } from "./fighter";
 import { DEMON_HUNTER_THROW_DRAIN } from "./hitRegions";
-import { takenManaGain } from "./mana";
-import { type Controls, copyControls, createRoster } from "./roster";
+import type { Controls } from "./roster";
 import {
   CHAOS_STRIKE_FORM, FEL_RUSH_BRANCH_FIRST, FEL_RUSH_BRANCH_LAST, FEL_RUSH_FRAMES, FEL_RUSH_SPEED, FEL_RUSH_TELL_LAST,
   VENGEFUL_RETREAT_FORM, VENGEFUL_RETREAT_FRAMES,
 } from "./specials";
+import { type Duel, duel } from "./testDuel";
 import { controls } from "./testWorld";
 
 const RUSH = FEL_RUSH_SPEED * 10;
@@ -29,54 +25,6 @@ function actsOnTheNextFrame(d: Duel, facing: number): void {
   queueAttack(d.commands[0], { style: AttackStyle.jab, facing: facing < 0 ? -1 : 1, frame: last + 1, mayCharge: false });
   d.step();
   assertTrue(d.illidan.attack.style !== undefined);
-}
-
-interface Duel {
-  readonly illidan: Fighter;
-  readonly target: Fighter;
-  readonly commands: readonly [AttackBuffer, AttackBuffer];
-  /**
-   * Mana drained from the target so far: each frame it took damage, its mana
-   * change less the shared comeback gain for being hit (smashcraft:docs/design/mana.md).
-   */
-  drained: number;
-  /** One match frame with these controls for Illidan and the target; returns the frame number. */
-  readonly step: (this: void, first?: Readonly<Controls>, second?: Readonly<Controls>) => number;
-  readonly run: (this: void, frames: number, first?: Readonly<Controls>, second?: Readonly<Controls>) => void;
-}
-
-/** Illidan at 0 facing right and an Archer `gap` ahead facing him, both standing on the main deck. */
-function duel(gap: number, character: Character = Character.archer): Duel {
-  const game = createMatchState();
-  game.phase = Phase.match;
-  const illidan = createFighter(Character.demonHunter, 0.0, 1);
-  const target = createFighter(character, gap, -1);
-  const world = createRoster(3, [illidan, target]);
-  const commands: [AttackBuffer, AttackBuffer] = [attackBuffer(ATTACK_BUFFER_FRAMES), attackBuffer(ATTACK_BUFFER_FRAMES)];
-  let frame = 0;
-  const frameControls = (first: Readonly<Controls>, second: Readonly<Controls>): FrameControls => {
-    const out = createFrameControls();
-    copyControls(out.inputs[0], first);
-    copyControls(out.inputs[1], second);
-    out.commands[0] = commands[0];
-    out.commands[1] = commands[1];
-    return out;
-  };
-  const step = (first: Readonly<Controls> = controls(), second: Readonly<Controls> = controls()) => {
-    frame++;
-    const mana = target.mana.points;
-    const damage = target.status.damage;
-    stepMatch(game, world, frameControls(first, second), frame);
-    if (target.status.damage > damage) d.drained += mana - target.mana.points + takenManaGain(target.status.damage - damage);
-    return frame;
-  };
-  const d: Duel = {
-    illidan, target, commands, step, drained: 0,
-    run: (frames, first, second) => { for (let i = 0; i < frames; i++) step(first, second); },
-  };
-  // Settle on the deck before the scripted inputs.
-  d.run(3);
-  return d;
 }
 
 const sideB = (side: number) => controls({ specialPressed: true, specialX: side, direction: side });

@@ -225,11 +225,12 @@ Flame of Azzinoth. Startup 8 and total 42 as before; active frames 3 → 9:
 - Frames 1–3 of the active window: the glaives strike both sides out to
   190 (was 105), 14% at 75°, base 22, growth 95, drain 8.
 - Frames 4–9: fel fire fills the space between the glaives, ±190 and up to
-  170 high: 3% at 85°, base 30, growth 20, drain 2, a second contact window,
-  so a fighter who dodged the glaives still burns once.
+  170 high: 3% at 85°, base 30, growth 20, drain 2. Glaives and fire share
+  one contact, so only a fighter the glaives missed burns.
 
 Counterplay: the total is unchanged, so after the flames he still has 26
-frames of recovery: shield both parts and punish; a full jump clears the
+frames of recovery: a shield holds both parts and drops with more than 10
+frames of the smash left; a full jump clears the
 flames' height; a roll through ends past the glaives. Alternatives: **B, the
 glaives thrown as two returning projectiles** (rejected: a smash that
 becomes two projectiles breaks the 3-projectile cap's spirit and duplicates
@@ -266,7 +267,9 @@ down special stays Immolate; in the air it is Flame Crash:
   striking what he passes once: 9%, a spike (-80°) against airborne
   targets, a 60° launch against grounded ones, drain 6.
 - Landing: a fel burst around him on its frames 1–3 (±150 wide, 120 high),
-  8% at 65°, drain 6; he recovers until frame 24 after landing.
+  8% at 65°, drain 6; he recovers until frame 24 after landing (a shield
+  that blocked the burst still drops with more frames left than a jab's
+  startup).
 - Not landing by frame 34 leaves him helpless. No jump cancel.
 
 Counterplay: the plunge is straight down, so a fighter not under him is
@@ -276,6 +279,24 @@ with its jump cancel** (rejected by the owner's direction: Flame Crash is his
 down special in the air); **C, Agonizing Flames: a thrown fireball that
 burns over time** (rejected: a second ranged option beside Mana Burn, and
 damage over time without hitstun is Warden's poison, #126).
+
+### Forward air: twin-glaive cross slash (picked, owner direction)
+
+Tom (7 Oct): forward air multi-hits. Startup 5 and total 31 as before;
+active 2 → 6. Active frames 1–2: the **link**, both glaives crossing out to
+175: 3%, a fixed small knockback pulling slightly in and up (105°, base 30,
+growth 10), drain 1. Frames 5–6: the **launcher**, the cross opening to 150:
+5% at 40° (base 18, growth 85), drain 4. 8% in all (was 6). The link's
+knockback barely grows, so both hits connect at 0, 50 and 100%.
+
+Counterplay: the launcher reaches 25 less than the link, so a fighter caught
+at the tip who SDIs away during the link's freeze slips the launcher
+(bounded SDI, smashcraft:docs/gameplay-design.md); shields take both hits.
+Alternatives: **B, a three-hit drill** (rejected: Archer and the drills
+lane own multi-hit drills, and a third hit adds lock without a decision);
+**C, a single sweet-spotted slash** (rejected by the owner's direction).
+Neutral air stays single-hit: it is his out-of-shield and landing poke, and a
+multi-hit there would crowd the forward air's role.
 
 ## Ultimate: Metamorphosis (design only)
 

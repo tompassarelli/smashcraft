@@ -17,6 +17,12 @@ export const DOWN_ATTACK_DAMAGE = 7.0;
 // the opponent's first active wake-up attack. See smashcraft:docs/physics.md.
 export const DOWN_ATTACK_BASE_KNOCKBACK = 75.0;
 const ARCHER_DOWN_ACTIVE_FRAMES = 20;
+// Illidan's raid-boss normals (#147, smashcraft:docs/design/illidan.md): longer active windows inside the shared totals.
+export const DEMON_HUNTER_FORWARD_AIR_ACTIVE = 6;
+export const DEMON_HUNTER_DOWN_SMASH_ACTIVE = 9;
+export const DEMON_HUNTER_FORWARD_SMASH_ACTIVE = 10;
+/** Forward smash held this long becomes Eye Blast's beam. */
+export const EYE_BLAST_CHARGE_FRAMES = 20;
 /**
  * Rifleman's blaster (neutral special), after Melee Falco's laser and a little
  * less oppressive. Shot frames count special frames from the press (frame 1).
@@ -209,7 +215,14 @@ export function attackActiveFrames(style: AttackStyle): number {
 export function characterAttackActiveFrames(character: Character, style: AttackStyle, moves?: FighterMoves): number {
   const authored = moves?.normals[style];
   if (authored !== undefined) return authored.activeFrames;
-  return character === Character.archer && style === AttackStyle.downAir ? ARCHER_DOWN_ACTIVE_FRAMES : attackActiveFrames(style);
+  if (character === Character.archer && style === AttackStyle.downAir) return ARCHER_DOWN_ACTIVE_FRAMES;
+  // Illidan's raid-boss normals (#147): the twin-glaive forward air, Flames of Azzinoth, Eye Blast.
+  if (character === Character.demonHunter) {
+    if (style === AttackStyle.forwardAir) return DEMON_HUNTER_FORWARD_AIR_ACTIVE;
+    if (style === AttackStyle.downSmash) return DEMON_HUNTER_DOWN_SMASH_ACTIVE;
+    if (style === AttackStyle.forwardSmash) return DEMON_HUNTER_FORWARD_SMASH_ACTIVE;
+  }
+  return attackActiveFrames(style);
 }
 
 export function attackDurationFrames(style: AttackStyle): number {
