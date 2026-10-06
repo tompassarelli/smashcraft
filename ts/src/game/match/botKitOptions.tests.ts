@@ -202,8 +202,8 @@ test("computer Lich bursts Frost Nova, places Death and Decay, arms Frost Armor 
 });
 
 test("computer Uther shoots Holy Light and attacks out of Divine Shield", () => {
-  // Divine Shield succeeds only against a strike timed into its window: twice the matches.
-  usesEvery(Character.uther, ["special0", "divineAttack"], Character.uther, 2 * MATCHES);
+  // Divine Shield succeeds only against a strike timed into its window, about once in 30 mirror matches: eight times the matches.
+  usesEvery(Character.uther, ["special0", "divineAttack"], Character.uther, 8 * MATCHES);
 });
 
 test("computer Dreadlord feints Vampiric Pounce, sleeps a target, mashes out of Sleep and hits a sleeper", () => {

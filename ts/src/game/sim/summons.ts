@@ -13,8 +13,8 @@ import { type Roster, fighterAt, isActive } from "./roster";
 import { mainDeckLeft, mainDeckRight, mainDeckZ, surfaceZ } from "./stage";
 import { cancelAttack, cancelSpecialState, clearDownState, clearGrabLinks, clearLedge, clearOwnedFreezeTrap } from "./transitions";
 
-export const RIFLEMAN_BEAR_LIFETIME = 100;
-const RIFLEMAN_BEAR_SWIPE_INTERVAL = 18;
+export const RIFLEMAN_BEAR_LIFETIME = 150;
+const RIFLEMAN_BEAR_SWIPE_INTERVAL = 14;
 const FREEZE_TRAP_ARMING_FRAMES = 20;
 const FREEZE_TRAP_LIFETIME_FRAMES = 480;
 /** A freeze no one mashes out of lasts this long. */
@@ -22,7 +22,7 @@ export const FREEZE_TRAP_FREEZE_FRAMES = 300;
 const FREEZE_TRAP_COOLDOWN_FRAMES = 90;
 const FREEZE_TRAP_TRIGGER_RADIUS = 42.0;
 
-const BEAR_SWIPE = { damage: 6.0, growth: 90.0, base: 18.0, launchX: DIAGONAL_UNIT, launchZ: 0.3499999940395355, electric: false } as const;
+const BEAR_SWIPE = { damage: 10.0, growth: 90.0, base: 18.0, launchX: DIAGONAL_UNIT, launchZ: 0.3499999940395355, electric: false } as const;
 const HIPPOGRYPH_STRIKE = { damage: 8.0, growth: 100.0, base: 22.0, launchX: DIAGONAL_UNIT, launchZ: DIAGONAL_UNIT, electric: false } as const;
 /** The dive launches low along its path: 20 degrees. */
 const HIPPOGRYPH_DIVE = { damage: 9.0, growth: 95.0, base: 26.0, launchX: 0.9396926164627075, launchZ: 0.3420201539993286, electric: false } as const;

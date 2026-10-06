@@ -117,7 +117,7 @@ const PIT_LORD_BODY: FighterHurtboxes = {
 
 const NO_LAUNCH = { growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } as const;
 
-const CLEAVING_SWEEP = heroMove(13, 4, 29, 0, cleave(13, [150.0, 100.0, 50.0, 10.0], XL, hit(14.0, "EDGE", 35)));
+const CLEAVING_SWEEP = heroMove(13, 4, 35, 0, cleave(13, [150.0, 100.0, 50.0, 10.0], XL, hit(12.0, "EDGE", 35)));
 
 export const PIT_LORD_MOVES: FighterMoves = {
   dashAttack: AttackStyle.dashAttack,

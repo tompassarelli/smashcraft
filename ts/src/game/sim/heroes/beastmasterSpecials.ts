@@ -36,16 +36,16 @@ const throwingAxe = (air: boolean): AuthoredSpecial => ({
  */
 export const BEAR: SpecialCompanion = {
   followSpeed: h(f32(0.035)), followBehind: h(f32(0.8)), returnSpeed: h(f32(0.06)),
-  lungeStartup: 16, lungeActive: 4, lungeRecovery: 30, lungeTravel: h(f32(0.9)),
+  lungeStartup: 12, lungeActive: 4, lungeRecovery: 30, lungeTravel: h(f32(0.9)),
   bite: capsule(15.0, 30.0, f32(h(f32(0.45)) - 20.0), 40.0, 20.0),
-  biteEffect: hit(8.0, "EDGE", 40, 1.0, HitElement.normal),
+  biteEffect: hit(11.0, "EDGE", 40, 1.0, HitElement.normal),
   stunFrames: 18, leash: h(6.0), leashFrames: 120,
 };
 
 /** The bear's body: 22 durability, 600 frames, an upright capsule its drawn size. */
 const BEAR_PLACEMENT: SpecialPlacement = {
   frame: 30, offsetX: h(f32(0.6)), radius: h(f32(0.3)), height: h(f32(0.8)),
-  durability: 22.0, life: 600, fireAges: [], companion: BEAR,
+  durability: 30.0, life: 600, fireAges: [], companion: BEAR,
 };
 
 /** Without a bear: a ground-only summon, the bear appearing f30, the action ending f56. */

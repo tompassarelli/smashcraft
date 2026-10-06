@@ -149,7 +149,7 @@ The individual hero sections below specify all attacks. Their counterplay descri
 | Input | Proposed move and behavior | Timing and cost |
 | --- | --- | --- |
 | Neutral B | **Wind Cutter:** short traveling blade wave. 6 damage, POKE at 35 degrees; speed 0.14H/frame, life 24 frames, radius 0.16H. Reflectable; only one owned wave at a time. | Spawn f18, action ends f40; 0 mana |
-| Side B | **Wind Walk** (#124, smashcraft:docs/design/kit-review-1.md): a 7-frame fade, then a 2.2H walk that passes bodies and stops at a raised shield. In f10–31 an attack press is **Backstab**, a slash for 12 damage at 40 degrees, EDGE, toward the held stick (back turns him: the cross-up); a special press steps out; nothing recovers. No invisibility or invulnerability. In air once per airtime, then helpless. | Walk f8–31, end f44; Backstab active f6–8 of its press, end f28; step out ends 8 frames after its press; 18 mana |
+| Side B | **Wind Walk** (#124, smashcraft:docs/design/kit-review-1.md): a 7-frame fade, then a 2.2H walk that passes bodies and stops at a raised shield. In f10–31 an attack press is **Backstab**, a slash for 10 damage at 40 degrees, EDGE, toward the held stick (back turns him: the cross-up); a special press steps out; nothing recovers. No invisibility or invulnerability. In air once per airtime, then helpless. | Walk f8–31, end f44; Backstab active f6–8 of its press, end f38; step out ends 8 frames after its press; 18 mana |
 | Up B | **Rising Blade:** upward sword leap, 2.0H maximum ascent and 0.5H lateral travel; one hit for 9 damage at 80 degrees, LAUNCH. No intangibility. Mana-free version travels 1.4H with no attack. | Starts f7, hit f7–12, movement through f25, then helpless; 15 mana |
 | Down B | **Mirror Image** (#124): after a visible tell, an image stays where he stood (one hit of any kind shatters it; 150 frames) and he steps 1.0H back (down with a side turns him to that side first). Down special while the image stands **swaps**: he takes the image's place facing its way and slashes for 10 damage at 40 degrees, EDGE. The image never attacks; no intangibility. | Image and step f8, end f24, 15 mana; swap f6, slash f8–10, end f30, free |
 
@@ -205,7 +205,7 @@ Standing grab 7/2/22, reach 0.55H, one-handed collar catch. Pummel: pommel strik
 
 | Input | Proposed move and behavior | Timing and cost |
 | --- | --- | --- |
-| Neutral B | **Storm Bolt** (#125, smashcraft:docs/design/kit-review-1.md): thrown hammer; 5 damage, LAUNCH at 65 degrees, speed 0.12H/frame for 45 frames, then back to his body at 0.14H/frame (life 90), launching toward him on the way back. Neutral special while it flies calls it back at once. Reflectable (a reflected hammer flies on and never returns); one bolt active. | Spawn f20, end f48; 8 mana; recall 10 frames, free |
+| Neutral B | **Storm Bolt** (#125, smashcraft:docs/design/kit-review-1.md): thrown hammer; 5 damage, LAUNCH at 65 degrees, speed 0.12H/frame for 45 frames, then back to his body at 0.14H/frame (life 90), launching toward him on the way back. Neutral special while it flies calls it back at once. Reflectable (a reflected hammer flies on and never returns); one bolt active. | Spawn f20, end f58; 8 mana; recall 10 frames, free |
 | Side B | **Storm Rush:** shoulder dash 1.2H; 12 damage, EDGE at 35 degrees. No armor, no command grab, stops at shield. Air version has no upward lift and ends helpless. | f13–18 active/moving, R28; 18 mana |
 | Up B | **Thunder Leap:** arcing 1.8H rise and up to 0.7H horizontal travel; hammer attack during ascent for 8 damage, LAUNCH at 80 degrees. Free version reaches 1.3H, no attack. **Hammerfall** (#125): special in f16–28 of the full leap hangs 3 frames, then plunges straight down at 0.16H/frame: 12 damage SPIKE against airborne targets, 10 at 55 degrees against grounded ones; landing lag 24, helpless if it ends airborne. | Rise/hit f9–14, movement through f28, then helpless; 15 mana; Hammerfall free |
 | Down B | **Thunder Clap, charged** (#125): he raises the hammer f1–9 and holds the charge f10–49. Special in f10–29: Clap, ground ring of 0.85H both sides, 9 damage LAUNCH 70 degrees; special in f30–49 or running out (slam f53): Thunder Clap, the ring at 12 plus a reflectable ground wave each way (0.10H/frame, 24 frames, active from its 6th, 7 damage LAUNCH 75 degrees); shield in f10–49 drops the charge. No armor. Air version swings hammer underneath with 0.55H reach, no charge, no shockwave. | Slam active f4–7 after the release, end 28 (Clap) or 32 (Thunder Clap) frames after it; run-out ends f81; 20 mana |
@@ -371,7 +371,7 @@ Standing grab 8/3/25, reach 0.60H. Pummel: belly bump.
 
 | Input | Proposed move and behavior | Timing and cost |
 | --- | --- | --- |
-| Neutral B | **Frost Nova** (#130, [kit review 2](kit-review-2.md#lich-130)): a slow orb, speed 0.07H/frame, life 80, radius 0.16H; 6 damage, POKE at 35 degrees and Chill on a body. Neutral B again while it flies stops it on the gesture's frame 4; 6 frames later it bursts for 3 frames: radius 0.7H, 10 damage, LAUNCH at 70 degrees, Chill. One orb, reflectable until burst. **Chill:** 75 frames at 60% walk, dash, run and air-drift top speed; a shield stops it; 120 frames of immunity. | Orb f18, end f40; 10 mana. Burst gesture end f14, free |
+| Neutral B | **Frost Nova** (#130, [kit review 2](kit-review-2.md#lich-130)): a slow orb, speed 0.07H/frame, life 80, radius 0.16H; 8 damage, POKE at 35 degrees and Chill on a body. Neutral B again while it flies stops it on the gesture's frame 4; 6 frames later it bursts for 3 frames: radius 0.7H, 10 damage, LAUNCH at 70 degrees, Chill. One orb, reflectable until burst. **Chill:** 75 frames at 60% walk, dash, run and air-drift top speed; a shield stops it; 120 frames of immunity. | Orb f18, end f32; 10 mana. Burst gesture end f14, free |
 | Side B | **Death and Decay** (#130): a field placed 1.5H ahead, or 0.9H if pressed backward, only with line of sight; radius 0.75H. It strikes the first body or shield in it from f30 (5 damage, POKE at 80 degrees) and again from f70 (9 damage, LAUNCH at 70 degrees), and is gone after f97. Interrupting Lich before f30 removes it. | Field f8, end f50; 25 mana |
 | Up B | **Spectral Ascent:** visible upward glide, 2.1H height and up to 0.4H lateral drift, no hitbox or intangibility. Free version 1.4H. | Movement f10–34, helpless afterward; 15 mana |
 | Down B | **Frost Armor** (#130): f22 cast grants a 240-frame shell that absorbs the hit reaction of one hit of at most 8 damage and chills the melee striker. Damage still applies; grabs bypass it. **Dark Ritual:** down B while the shell holds shatters it on f6 into a 0.6H burst around Lich (5 damage, POKE at 60 degrees) and restores 30 mana. | Cast f22, end f45; 20 mana. Ritual end f24, free |
@@ -450,7 +450,7 @@ the tables:
 
 | Input | Proposed move and behavior | Timing and cost |
 | --- | --- | --- |
-| Neutral B | **Holy Light** (#131, [kit review 2](kit-review-2.md#uther-131)): aimed straight or 30 degrees up by holding up on entry; speed 0.11H/frame out for 26 frames, then back toward Uther's chest at the same speed; life 80, radius 0.17H, one active. Outbound 7 damage, POKE at 40 degrees; returning 5 damage, POKE toward Uther. Reaching Uther untouched restores 3 percent, at most 9 a stock. A reflected orb flies straight. | Spawn f20, end f44; 10 mana |
+| Neutral B | **Holy Light** (#131, [kit review 2](kit-review-2.md#uther-131)): aimed straight or 30 degrees up by holding up on entry; speed 0.11H/frame out for 26 frames, then back toward Uther's chest at the same speed; life 80, radius 0.17H, one active. Outbound 5 damage, POKE at 40 degrees; returning 5 damage, POKE toward Uther. Reaching Uther untouched restores 3 percent, at most 9 a stock. A reflected orb flies straight. | Spawn f20, end f66; 10 mana |
 | Side B | **Crusader Rush:** advance 0.9H with a hammer check, 11 damage at 45 degrees, LAUNCH. Armor against one hit of at most 5 damage only on f12–15; grabs ignore it. Air version has no armor, no rise, and ends helpless. | Active/movement f12–17, R30; 20 mana |
 | Up B | **Ascension:** rising hammer leap, 1.9H rise and 0.45H horizontal drift; one 8-damage hit, LAUNCH at 80 degrees. Free version 1.3H without hitbox. | Hit f10–15, travel through f29, then helpless; 15 mana |
 | Down B | **Divine Shield** (#131): ground-only timed stance, intangible f6–9, vulnerable otherwise, no automatic counter. A damaging melee or projectile hit overlapping it on those frames raises Divine Shield: 45 frames in which strikes and projectiles pass through Uther; starting an attack, special or grab ends it. Grabs beat both the guard and the shield. No healing. | End f36; 25 mana. Air version fails without spending |
@@ -520,8 +520,8 @@ sequence table and every pose's clip.
 | Up smash — Night Ascendant | 16/5/31 | 16 | L, 85, KILL | Wings and claws overhead |
 | Down smash — Wing Sweep | 15/6/32 | 14 | L, 25, EDGE | Broad front/rear body attack |
 | Neutral air — Batwing Turn | 7/10/19; L14 | 2 + 2 + 5 | M, 50, POKE | Three wing beats ([multi-hit](aerials.md)); wide, tradeable |
-| Forward air — Talon Reach | 10/4/24; L15 | 12 | L, 40, EDGE | Forward reach at cost of exposing arm |
-| Back air — Wing Backhand | 9/4/25; L15 | 13 | L, 35, KILL | Wing hurtbox extends too |
+| Forward air — Talon Reach | 10/4/24; L15 | 14 | L, 40, EDGE | Forward reach at cost of exposing arm |
+| Back air — Wing Backhand | 9/4/25; L15 | 15 | L, 35, KILL | Wing hurtbox extends too |
 | Up air — Horn Lift | 7/3/21; L12 | 8 | M, 85, LAUNCH | Short upward head attack |
 | Down air — Talon Drop | 14/4/29; L20 | 12 | M, 270, SPIKE | Downward claw strike, no stall |
 
@@ -540,10 +540,10 @@ Standing grab 7/3/26, reach 0.65H. Pummel: claw squeeze. No automatic lifesteal.
 
 | Throw | Animation and release | Damage | Release and recovery | Launch |
 | --- | --- | --- | --- | --- |
-| Forward | Wing-assisted shove | 8 | f12, R20 | 35, EDGE |
-| Back | Spin and fling | 10 | f18, R25 | 40, KILL |
-| Up | Toss into bat cloud | 7 | f15, R11 | 85, JUGGLE |
-| Down | Claw pin then kick free | 6 | f19, R25 | 65, CHASE |
+| Forward | Wing-assisted shove | 10 | f12, R20 | 35, EDGE |
+| Back | Spin and fling | 12 | f18, R25 | 40, KILL |
+| Up | Toss into bat cloud | 9 | f15, R11 | 85, JUGGLE |
+| Down | Claw pin then kick free | 8 | f19, R25 | 65, CHASE |
 
 **Ultimate — Infernal:** f30 cast places a clearly visible marker 1.2H ahead. An infernal lands at f60 for 14 damage, LAUNCH at 75 degrees, radius 0.8H, then stays as a stationary hazard for 180 frames. It performs exactly two telegraphed swipes at spawn+60 and spawn+120, each 10 damage, EDGE at 40 degrees, reach 0.8H, with 20 durability. No autonomous chasing, invulnerable summon, or instant full-stage hit. Dreadlord’s casting action ends f75.
 
@@ -614,7 +614,7 @@ Standing grab 8/2/24, reach 0.55H. Pummel: mask headbutt.
 | Input and move | F/A/R and landing | Damage | Reach and launch | Behavior |
 | --- | --- | --- | --- | --- |
 | Jab — Haft Check | 7/3/19 | 6 | M, 35, POKE | Slow close-range jab |
-| Forward tilt — Cleaving Sweep | 13/4/29 | 14 | XL, 35, EDGE | Main space claim; blade disjoint only |
+| Forward tilt — Cleaving Sweep | 13/4/35 | 12 | XL, 35, EDGE | Main space claim; blade disjoint only |
 | Up tilt — Horn and Cleaver | 12/5/27 | 12 | L, 85, LAUNCH | Broad overhead arc with weak low front |
 | Down tilt — Front Hoof | 10/3/24 | 9 | M, 65, LINK | Exposed hoof attack |
 | Dash attack — Demonic Bulk | 15/6/34 | 16 | L, 40, EDGE | Body charge, no armor |
@@ -858,7 +858,7 @@ Standing grab 9/2/27, reach 0.65H, short tail coil. No dragging or moving hold. 
 | Input | Proposed move and behavior | Timing and cost |
 | --- | --- | --- |
 | Neutral B | **Throwing Axe:** straight thrown axe, 7 damage, POKE at 40 degrees, speed 0.11H/frame, life 28, radius 0.17H, one active and reflectable. No boomerang return. | Spawn f20, end f44; 0 mana |
-| Side B | **Bear Command:** without a bear, ground-only summon at 0.6H ahead, 22 durability and 600-frame life. With a bear, issue a lunge in owner-facing direction: travel 0.9H, bite for 8 damage, EDGE at 40 degrees. Owner commits to command animation; commands fail while bear is attacking or stunned. Bear cannot attack during owner hitstun and does not auto-counter a combo. | Summon f30, end f56, cost 25. Command end f24, cost 8; bear startup 16, active 4, recovery 30 |
+| Side B | **Bear Command:** without a bear, ground-only summon at 0.6H ahead, 30 durability and 600-frame life. With a bear, issue a lunge in owner-facing direction: travel 0.9H, bite for 11 damage, EDGE at 40 degrees. Owner commits to command animation; commands fail while bear is attacking or stunned. Bear cannot attack during owner hitstun and does not auto-counter a combo. | Summon f30, end f56, cost 25. Command end f24, cost 8; bear startup 12, active 4, recovery 30 |
 | Up B | **Hawk Lift:** a cosmetic hawk lifts Beastmaster 2.0H with 0.5H drift. No independent hawk AI or attack. Free version 1.4H. | Lift f10–32, then helpless; 15 mana |
 | Down B | **Bear Recall or Quilbeast Dart:** with a bear, recalls it along the ground toward the owner at 0.06H/frame, cancelling only its idle/follow state; no teleport, attack, invulnerability, or durability reset. Without a bear, throw one short quill at speed 0.14H/frame, life 20, radius 0.10H; 4 damage, POKE at 35 degrees, reflectable. | Recall action 20 frames, 0 mana. Dart spawn f18, end f40, 3 mana |
 
@@ -1148,6 +1148,31 @@ hit taken since the fighter last stood on a deck or held the ledge.
 | --- | --- | --- | --- |
 | Before the pass (b2ed6109, 100/pair) | 27%, self-destructs 1% | 85%, 0% | 82%, 1% |
 | Archer runs in on his speed; blaster 32/20 frames (was 24/15); Illidan's glaives deal less (forward/back air 8→6, forward smash 15→12, growth 100→85, smash base 28→20); Storm Bolt 7→5 | 51%, 1% | 74%, 0% | 58%, 0% |
+
+After the kit redesigns, mana, passives and hero tilts, the field is twelve
+fighters (66 pairs) at computer level 9, 100 matches a pair (spawn variant
+0, seeds 0-4, every soak stage, both orders). Each change works a fighter's
+own strength or weakness lever. Cells are the win rate against the field,
+then self-destructs as a share of stocks lost. Matrices:
+smashcraft:evidence/balance-105-20261007/.
+
+| Fighter | Lever (identity) | Before (d5994278) | After |
+| --- | --- | --- | --- |
+| Archer | none yet | 79%, 1% | 85%, 1% |
+| Rifleman | bear as cover: swipe 6→10 every 14 frames (was 18), lifetime 100→150 | 17%, 3% | 56%, 6% |
+| Illidan | none | 42%, 5% | 46%, 5% |
+| Blademaster | Backstab punishable on shield: 12→10 damage, end f28→f38 | 66%, 4% | 52%, 4% |
+| Mountain King | close reads over the thrown hammer: Storm Bolt end f48→f58 | 65%, 3% | 50%, 3% |
+| Warden | none | 56%, 13% | 52%, 11% |
+| Lich | projectile placement: Frost Nova 6→8 damage, end f40→f32; launch growth +10 (LAUNCH 105, EDGE 110, KILL 120) | 33%, 2% | 48%, 2% |
+| Uther | holds space rather than zoning: Holy Light end f44→f66, outbound 7→5 | 78%, 3% | 55%, 3% |
+| Dreadlord | grabs and air pressure: throws +2 (10/12/9/8), forward air 12→14, back air 13→15, launch growth +10, KILL base 26→28 | 20%, 2% | 27%, 2% |
+| Shadow Hunter | none yet | 39%, 2% | 26%, 2% |
+| Pit Lord | caught inside a whiffed cleave: Cleaving Sweep 14→12 damage, recovery 29→35 | 80%, 5% | 71%, 4% |
+| Beastmaster | bear coordination: lunge startup 16→12, bite 8→11, bear durability 22→30; launch growth +10 | 23%, 5% | 32%, 6% |
+
+Matchups: 5 of 66 inside 45-55% before, 10 after; 95% intervals
+overlapping the band 13 → 19; median distance from 50% 33.5 → 22 points.
 
 ## Implementation details for the overnight agent
 

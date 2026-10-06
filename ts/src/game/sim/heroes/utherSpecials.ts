@@ -22,7 +22,7 @@ const BOLT_UP_X = f32(BOLT_SPEED * f32(0.8660254037844387));
 const BOLT_UP_Z = f32(BOLT_SPEED * f32(0.5));
 const holyLight = (landingLag: number | undefined): AuthoredSpecial => ({
   cost: 10,
-  endFrame: 44,
+  endFrame: 66,
   projectiles: [{
     model: "Abilities\\Spells\\Human\\HolyBolt\\HolyBoltMissile.mdx",
     spawnFrame: 20,
@@ -34,7 +34,7 @@ const holyLight = (landingLag: number | undefined): AuthoredSpecial => ({
     upVelocityZ: BOLT_UP_Z,
     life: 80,
     radius: heights(f32(0.17)),
-    effect: hit(7.0, "POKE", 40, false, HitElement.holy),
+    effect: hit(5.0, "POKE", 40, false, HitElement.holy),
     returns: { age: 26, speed: BOLT_SPEED },
     returnEffect: hit(5.0, "POKE", 40, false, HitElement.holy),
     catchHeal: { heal: 3.0, capPerStock: 9.0 },

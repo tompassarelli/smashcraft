@@ -103,7 +103,7 @@ export const MOUNTAIN_KING_SPECIALS: FighterSpecials = {
     description: "A hammer that flies out and back, hitting toward him on the return; press again to call it back.",
     ground: {
       cost: 8,
-      endFrame: 48,
+      endFrame: 58,
       projectiles: [{
         model: "Abilities\\Spells\\Human\\StormBolt\\StormBoltMissile.mdx",
         spawnFrame: 20, offsetX: 32.0, offsetZ: 56.0, velocityX: BOLT_SPEED, velocityZ: 0.0,

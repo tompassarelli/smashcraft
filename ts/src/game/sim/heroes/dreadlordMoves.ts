@@ -20,9 +20,9 @@ const WING_RADIUS = 12.0;
 const CLASS = {
   LINK: { growth: 55.0, base: 12.0 },
   POKE: { growth: 75.0, base: 18.0 },
-  LAUNCH: { growth: 95.0, base: 20.0 },
-  EDGE: { growth: 100.0, base: 22.0 },
-  KILL: { growth: 110.0, base: 26.0 },
+  LAUNCH: { growth: 105.0, base: 20.0 },
+  EDGE: { growth: 110.0, base: 22.0 },
+  KILL: { growth: 128.0, base: 28.0 },
   SPIKE: { growth: 100.0, base: 22.0 },
   // Throw roles (#107): an up throw's guaranteed short juggle and a down throw's tech chase.
   JUGGLE: { growth: 62.0, base: 50.0 },
@@ -100,13 +100,13 @@ const NORMALS: { readonly [style: number]: AuthoredMove | undefined } = {
         [capsule(-16.0, 30.0, -f32(M - WING_RADIUS), 45.0, WING_RADIUS), dreadlordHit(5.0, "POKE", 50, -1.0)],
       ] },
     ])),
-    [AttackStyle.forwardAir]: heroMove(10, 4, 24, 15, rake(10, [64.0, 52.0, 40.0, 28.0], L, dreadlordHit(12.0, "EDGE", 40))),
+    [AttackStyle.forwardAir]: heroMove(10, 4, 24, 15, rake(10, [64.0, 52.0, 40.0, 28.0], L, dreadlordHit(14.0, "EDGE", 40))),
     [AttackStyle.backAir]: heroMove(9, 4, 25, 15, path(9, [
       capsule(-16.0, 54.0, -f32(L - WING_RADIUS), 68.0, WING_RADIUS),
       capsule(-16.0, 46.0, -f32(L - WING_RADIUS), 52.0, WING_RADIUS),
       capsule(-16.0, 38.0, -f32(L - WING_RADIUS), 36.0, WING_RADIUS),
       capsule(-16.0, 30.0, -f32(L - WING_RADIUS), 20.0, WING_RADIUS),
-    ], dreadlordHit(13.0, "KILL", 35, -1.0))),
+    ], dreadlordHit(15.0, "KILL", 35, -1.0))),
     [AttackStyle.upAir]: heroMove(7, 3, 21, 12, path(7, [
       capsule(0.0, 68.0, 8.0, f32(M - 12.0), 12.0),
       capsule(0.0, 68.0, 0.0, f32(M - 12.0), 12.0),
@@ -226,9 +226,9 @@ export const DREADLORD_MOVES: FighterMoves = {
   hurtboxes: attachedBodies(),
   throws: {
     [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: { damage: 3.0, ...NO_LAUNCH } },
-    [GrabAction.throwForward]: { contactFrame: 12, totalFrames: 32, effect: dreadlordHit(8.0, "EDGE", 35) },
-    [GrabAction.throwBack]: { contactFrame: 18, totalFrames: 43, effect: dreadlordHit(10.0, "KILL", 40, -1.0) },
-    [GrabAction.throwUp]: { contactFrame: 15, totalFrames: 26, effect: dreadlordHit(7.0, "JUGGLE", 85) },
-    [GrabAction.throwDown]: { contactFrame: 19, totalFrames: 44, effect: dreadlordHit(6.0, "CHASE", 65) },
+    [GrabAction.throwForward]: { contactFrame: 12, totalFrames: 32, effect: dreadlordHit(10.0, "EDGE", 35) },
+    [GrabAction.throwBack]: { contactFrame: 18, totalFrames: 43, effect: dreadlordHit(12.0, "KILL", 40, -1.0) },
+    [GrabAction.throwUp]: { contactFrame: 15, totalFrames: 26, effect: dreadlordHit(9.0, "JUGGLE", 85) },
+    [GrabAction.throwDown]: { contactFrame: 19, totalFrames: 44, effect: dreadlordHit(8.0, "CHASE", 65) },
   },
 };

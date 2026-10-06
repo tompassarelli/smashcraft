@@ -127,7 +127,7 @@ test("Backstab: an attack press in the walk slashes in front, or behind with the
     run(front.world, 11);
     frame(front.world, attack())
     run(front.world, 9);
-    assertEquals(front.target.status.damage, 12.0);
+    assertEquals(front.target.status.damage, 10.0);
     run(front.world, 20);
     assertGreaterThan(f32(front.target.motion.x * facing), 180.0);
     const behind = match(60.0, facing);
@@ -137,7 +137,7 @@ test("Backstab: an attack press in the walk slashes in front, or behind with the
     frame(behind.world, attack(-facing));
     assertEquals(behind.owner.facing, -facing);
     run(behind.world, 9);
-    assertEquals(behind.target.status.damage, 12.0);
+    assertEquals(behind.target.status.damage, 10.0);
     run(behind.world, 20);
     assertLessThan(f32(behind.target.motion.x * facing), 60.0);
   }

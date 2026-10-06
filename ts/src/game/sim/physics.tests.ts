@@ -950,8 +950,8 @@ test("contact-batch special trades survive melee, and summons use total damage",
   advanceSpecials(world, 0, 0);
   finishDamageContacts(world);
   assertEquals(first.status.damage, 7.0);
-  assertEquals(second.status.damage, 19.0);
-  assertNear(second.launch.diLaunchSpeed, f32(9.86), f32(0.0001));
+  assertEquals(second.status.damage, 23.0);
+  assertNear(second.launch.diLaunchSpeed, f32(10.42), f32(0.0001));
   assertEquals(first.bear.hitSerial, 1);
   assertTrue(first.special.hit);
   assertTrue(second.special.hit);

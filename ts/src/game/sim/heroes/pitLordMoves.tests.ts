@@ -14,9 +14,9 @@ import { heroBody } from "./heroBodies";
 // Adopted F/A/R/L values from smashcraft:docs/design/roster.md, "Pit Lord".
 const NORMALS = [
   [AttackStyle.jab, 7, 3, 19, 0],
-  [AttackStyle.forwardTilt, 13, 4, 29, 0],
-  [AttackStyle.forwardTiltUp, 13, 4, 29, 0],
-  [AttackStyle.forwardTiltDown, 13, 4, 29, 0],
+  [AttackStyle.forwardTilt, 13, 4, 35, 0],
+  [AttackStyle.forwardTiltUp, 13, 4, 35, 0],
+  [AttackStyle.forwardTiltDown, 13, 4, 35, 0],
   [AttackStyle.upTilt, 12, 5, 27, 0],
   [AttackStyle.downTilt, 10, 3, 24, 0],
   [AttackStyle.dashAttack, 15, 6, 34, 0],
@@ -82,7 +82,7 @@ test("Annihilating Cleave's head hits for 25 and its inner blade for 19; Cleavin
       [AttackStyle.forwardSmash, 28, 165.0, 25.0],
       [AttackStyle.forwardSmash, 28, 70.0, 19.0],
       [AttackStyle.forwardSmash, 28, 240.0, 0.0],
-      [AttackStyle.forwardTilt, 13, 195.0, 14.0],
+      [AttackStyle.forwardTilt, 13, 195.0, 12.0],
       [AttackStyle.forwardTilt, 13, 235.0, 0.0],
       [AttackStyle.jab, 7, 90.0, 6.0],
       [AttackStyle.jab, 7, 160.0, 0.0],

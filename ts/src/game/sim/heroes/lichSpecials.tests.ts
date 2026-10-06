@@ -69,7 +69,7 @@ test("Frost Nova costs 10, its slow orb leaves the hand on frame 18 and chills a
   assertEquals(live(lich).length, 1);
   assertNear(Math.abs(live(lich)[0]!.velocityX), f32(H * f32(0.07)), f32(0.01));
   for (let f = 19; f <= 80 && target.status.damage === 0.0; f++) frame(world);
-  assertEquals(target.status.damage, 6.0);
+  assertEquals(target.status.damage, 8.0);
   assertTrue(chilled(target));
   assertGreaterThan(target.status.conditionFrames, 73);
 });
@@ -77,7 +77,7 @@ test("Frost Nova costs 10, its slow orb leaves the hand on frame 18 and chills a
 test("a second Frost Nova press stops the orb on its frame 4 and bursts it 6 frames later, chilling what it catches", () => {
   const { world, lich, target } = lichPair(1200.0);
   frame(world, neutral);
-  // The cast ends on frame 40; the orb is then about 1.9H ahead.
+  // The cast ends on frame 32; the orb is then about 1.9H ahead.
   for (let f = 2; f <= 45; f++) frame(world);
   const orb = live(lich)[0]!;
   frame(world, neutral);

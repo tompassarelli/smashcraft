@@ -45,7 +45,7 @@ const walkMotion = [{ ...frames(8, 31), velocityX: WALK_SPEED, velocityZ: 0.0, s
 const WALK_BRANCHES = frames(10, 31);
 
 /** Backstab: active f6-8 from its press, 12% EDGE at 40 degrees, ends f28. */
-const backstab: AuthoredSpecial = { name: "Backstab", cost: 0, endFrame: 28, hurt: [hurtPose(4, 12, LOW_CUT_ARM)], motion: [{ ...frames(1, 1), ...STOP }], regions: cut(6, [52.0, 45.0, 38.0], L, hit(12.0, "EDGE", 40)) };
+const backstab: AuthoredSpecial = { name: "Backstab", cost: 0, endFrame: 38, hurt: [hurtPose(4, 12, LOW_CUT_ARM)], motion: [{ ...frames(1, 1), ...STOP }], regions: cut(6, [52.0, 45.0, 38.0], L, hit(10.0, "EDGE", 40)) };
 /** Step out: the walk stops and the action ends 8 frames later. */
 const stepOut: AuthoredSpecial = { name: "Step Out", cost: 0, endFrame: 8, motion: [{ ...frames(1, 1), ...STOP }] };
 

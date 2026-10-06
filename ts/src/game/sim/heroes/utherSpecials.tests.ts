@@ -55,7 +55,7 @@ const near = (actual: number, expected: number, tolerance: number) => assertTrue
 
 test("Uther's specials spend their listed mana once and end on their listed frames", () => {
   for (const [input, action, cost, end] of [
-    [neutral, SpecialAction.heroNeutral, 10, 44],
+    [neutral, SpecialAction.heroNeutral, 10, 66],
     [side, SpecialAction.heroSide, 20, 47],
     [up, SpecialAction.heroUp, 15, 29],
     [down, SpecialAction.heroDown, 25, 36],
@@ -74,7 +74,7 @@ test("Uther's specials spend their listed mana once and end on their listed fram
   assertEquals(UTHER_SPECIALS.up.free?.cost, 0);
 });
 
-test("Holy Light leaves on frame 20, flies straight or 30 degrees up when up is held, and strikes once for 7", () => {
+test("Holy Light leaves on frame 20, flies straight or 30 degrees up when up is held, and strikes once for 5", () => {
   for (const vertical of [0, 1]) {
     const { world, owner, target } = pair(300.0);
     frame(world, controls({ specialPressed: true, verticalDirection: vertical }));
@@ -88,7 +88,7 @@ test("Holy Light leaves on frame 20, flies straight or 30 degrees up when up is 
     if (vertical === 0) assertEquals(bolt.velocityZ, 0.0);
     else near(bolt.velocityZ / bolt.velocityX, Math.tan(Math.PI / 6), f32(0.001));
     for (let f = 0; f < 40; f++) frame(world);
-    assertEquals(target.status.damage, vertical === 0 ? 7.0 : 0.0);
+    assertEquals(target.status.damage, vertical === 0 ? 5.0 : 0.0);
   }
 });
 

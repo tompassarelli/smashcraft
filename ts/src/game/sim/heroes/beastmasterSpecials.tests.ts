@@ -77,7 +77,7 @@ test("Summon Bear costs 25, sets the bear down on f30 and ends on f56; the comma
   assertGreaterThan(owner.placed.life, 0);
   // Set down 0.6H ahead, it takes its first step toward his heel on the same frame.
   assertNear(f32(owner.placed.x - owner.motion.x), f32(f32(H * f32(0.6)) - BEAR.followSpeed), 1.0);
-  assertEquals(owner.placed.durability, 22.0);
+  assertEquals(owner.placed.durability, 30.0);
   for (let f = 31; f <= 56; f++) frame(world);
   assertEquals(owner.special.action, SpecialAction.none);
   // The trickle refills a point or two over the cast; the summon spent 25.
@@ -108,7 +108,7 @@ test("the bear walks after him 0.8H behind at 0.035H a frame and never leaves it
   assertGreaterThan(owner.placed.x, -2000.0);
 });
 
-test("Bear Command lunges the bear 0.9H for an 8 bite once, and a second command refuses while it lunges", () => {
+test("Bear Command lunges the bear 0.9H for an 11 bite once, and a second command refuses while it lunges", () => {
   for (const facing of [1, -1]) {
     const { world, owner, target } = withBear(f32(H * f32(1.4)), facing);
     owner.facing = facing;
@@ -122,10 +122,10 @@ test("Bear Command lunges the bear 0.9H for an 8 bite once, and a second command
     frame(world, controls({ specialPressed: true, specialX: facing }));
     assertEquals(owner.mana.points >= spent, true);
     for (let f = 0; f < 40 && target.status.damage === 0.0; f++) frame(world);
-    assertEquals(target.status.damage, 8.0);
+    assertEquals(target.status.damage, 11.0);
     assertGreaterThan(f32(target.launch.knockbackX * facing), 0.0);
     run(world, 60);
-    assertEquals(target.status.damage, 8.0);
+    assertEquals(target.status.damage, 11.0);
     assertEquals(owner.placed.mode, CompanionMode.follow);
     assertTrue(Math.abs(f32(owner.placed.x - start)) > 0.0);
   }
@@ -146,7 +146,7 @@ test("a hit on the lunging bear stuns it 18 frames and cancels the bite", () => 
     stunned = owner.placed.mode === CompanionMode.stunned;
   }
   assertTrue(stunned);
-  assertLessThan(owner.placed.durability, 22.0);
+  assertLessThan(owner.placed.durability, 30.0);
   run(world, 30);
   assertEquals(owner.placed.mode, CompanionMode.follow);
 });
@@ -223,7 +223,7 @@ test("rollback restores the bear mid-lunge", () => {
   const expectedTarget = createFighter(Character.archer, 0.0, 1);
   copyFighterState(expectedOwner, owner, 3);
   copyFighterState(expectedTarget, target, 3);
-  assertEquals(target.status.damage, 8.0);
+  assertEquals(target.status.damage, 11.0);
   copyFighterState(owner, savedOwner, 3);
   copyFighterState(target, savedTarget, 3);
   run(world, 20);

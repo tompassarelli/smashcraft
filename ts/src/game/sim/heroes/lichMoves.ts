@@ -19,9 +19,9 @@ const GRAB = f32(HERO_REFERENCE_HEIGHT * f32(0.70));
 const CLASS = {
   LINK: { growth: 55.0, base: 12.0 },
   POKE: { growth: 75.0, base: 18.0 },
-  LAUNCH: { growth: 95.0, base: 20.0 },
-  EDGE: { growth: 100.0, base: 22.0 },
-  KILL: { growth: 110.0, base: 26.0 },
+  LAUNCH: { growth: 105.0, base: 20.0 },
+  EDGE: { growth: 110.0, base: 22.0 },
+  KILL: { growth: 120.0, base: 26.0 },
   SPIKE: { growth: 100.0, base: 22.0 },
   // Throw roles (#107): an up throw's guaranteed short juggle and a down throw's tech chase.
   JUGGLE: { growth: 70.0, base: 45.0 },

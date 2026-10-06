@@ -118,7 +118,7 @@ test("Dreadlord wing backhand launches away from facing and talon drop converts 
   for (const facing of [1, -1]) {
     const back = attackPair(AttackStyle.backAir, 8, -100.0, 0.0, facing, false);
     resolveAttacks(back.world);
-    assertEquals(back.target.status.damage, 13.0);
+    assertEquals(back.target.status.damage, 15.0);
     assertLessThan(back.target.launch.knockbackX * facing, 0.0);
     for (const grounded of [false, true]) {
       const drop = attackPair(AttackStyle.downAir, 13, 12.0, -70.0, facing, grounded);
@@ -180,10 +180,10 @@ test("Dreadlord shield grab and dash grab retain adopted reach and whiff timing"
 });
 
 const THROW_ROWS = [
-  [GrabAction.throwForward, 12, 20, 8.0],
-  [GrabAction.throwBack, 18, 25, 10.0],
-  [GrabAction.throwUp, 15, 11, 7.0],
-  [GrabAction.throwDown, 19, 25, 6.0],
+  [GrabAction.throwForward, 12, 20, 10.0],
+  [GrabAction.throwBack, 18, 25, 12.0],
+  [GrabAction.throwUp, 15, 11, 9.0],
+  [GrabAction.throwDown, 19, 25, 8.0],
 ] as const;
 
 test("Dreadlord throws hold until the adopted release and launch once in both facings", () => {

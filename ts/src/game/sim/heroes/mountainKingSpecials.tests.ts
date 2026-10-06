@@ -67,7 +67,7 @@ function actionLength(world: Roster, owner: Fighter, press: Readonly<Controls>):
 
 test("Mountain King's specials spend their roster costs once and end on their roster frames", () => {
   assertTrue(MOUNTAIN_KING_HERO.specials !== undefined);
-  for (const [press, cost, end] of [[neutral, 8, 48], [side, 18, 46], [down, 20, 81]] as const) {
+  for (const [press, cost, end] of [[neutral, 8, 58], [side, 18, 46], [down, 20, 81]] as const) {
     const { world, owner } = pair(1200.0);
     assertEquals(actionLength(world, owner, press), end);
     assertEquals(owner.mana.points, 100 - cost);
@@ -91,7 +91,7 @@ test("Storm Bolt flies 0.12H a frame from frame 20, one at a time, and hits once
     const start = bolt.x;
     frame(world);
     assertNear(f32((bolt.x - start) * facing), f32(H * f32(0.12)), f32(0.001));
-    for (let f = 0; f < 40 && owner.special.action !== SpecialAction.none; f++) frame(world);
+    for (let f = 0; f < 40 && owner.special.action !== SpecialAction.none && target.status.damage === 0.0; f++) frame(world);
     const before = owner.mana.points;
     if (bolt.life > 0) {
       frame(world, neutral);
@@ -226,7 +226,7 @@ test("Storm Bolt recall: neutral special while it flies calls it back at once, a
   if (bolt === undefined) throw new Error("no bolt");
   // Let it pass the target's spot, standing the target clear of the outbound path.
   const keepClear = () => { target.motion.z = 300.0; target.motion.vz = 0.0; target.motion.grounded = false; };
-  for (let f = 0; f < 29; f++) { keepClear(); frame(world); }
+  for (let f = 0; f < 39; f++) { keepClear(); frame(world); }
   assertGreaterThan(bolt.x, target.motion.x);
   assertEquals(owner.special.action, SpecialAction.none);
   frame(world, neutral);

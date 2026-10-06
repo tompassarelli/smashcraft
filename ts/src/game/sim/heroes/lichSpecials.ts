@@ -18,7 +18,7 @@ const AIR_LANDING_LAG = 20;
 const FROST_NOVA_ORB: SpecialProjectile = {
   model: "Abilities\\Spells\\Other\\FrostBolt\\FrostBoltMissile.mdx",
   spawnFrame: 18, offsetX: h(f32(0.40)), offsetZ: CHEST, velocityX: h(f32(0.07)), velocityZ: 0.0,
-  life: 80, radius: h(f32(0.16)), effect: hit(6.0, "POKE", 35), reflectable: true, limit: 1, status: CHILL,
+  life: 80, radius: h(f32(0.16)), effect: hit(8.0, "POKE", 35), reflectable: true, limit: 1, status: CHILL,
 };
 
 /** The orb burst in place: it cracks for 6 frames, then strikes for 3; a zone, so never reflected. */
@@ -30,7 +30,7 @@ const FROST_NOVA_BURST: SpecialProjectile = {
 
 const frostNova = (landingLag: number | undefined): AuthoredSpecial => ({
   cost: 10,
-  endFrame: 40,
+  endFrame: 32,
   landingLag,
   hurt: lichCastBody(14, 24, 28.0, CHEST),
   projectiles: [FROST_NOVA_ORB],
