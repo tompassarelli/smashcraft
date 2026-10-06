@@ -500,6 +500,47 @@ widths are given as the reference stage's, in Melee units unless noted.
 
 The flat stage stays outside the eight, as the draft says.
 
+## Main-deck topology
+
+Each ranked stage's main deck has its own silhouette, as Melee's and
+Ultimate's legal stages do (Battlefield's tapered keel, Final Destination's
+slab, Pokémon Stadium's flat with its lower shell). The walking line stays
+flat and 1,200 wide on every stage, so blast zones, camera limits, bots and
+hazards keep their measurements; what changes is everything under it.
+smashcraft:ts/src/game/sim/stage.ts declares each profile as its right side
+from the ledge down, in Melee units, mirrored for the left.
+
+| Stage | Archetype | Under the walking line |
+| --- | --- | --- |
+| Sky Deck | Final Destination | Melee's FD walls and underside (the reference) |
+| Frozen Throne | Battlefield | a thin lip over a long taper to a narrow keel |
+| Nordrassil | Dream Land | a deep rounded bowl, like a root mass |
+| Gryphon Aerie | Pokémon Stadium | a flat lip, a step in, then a lower shell |
+| Durotar Skies | floating spire | a thin rim undercut to a deep point |
+| Naxxramas | inverted ziggurat | three steps in |
+| Hellfire Citadel | heavy slab | tall straight walls, a broad blunt base |
+| Blackrock | Kongo Jungle | a floor-only deck: no walls or underside to touch |
+| Ahn'Qiraj | temple | an even trapezoid taper |
+
+Competitive rules every profile keeps:
+
+- **Mirror-symmetric collision**, with a wall dropping straight from each
+  ledge so both ledges are grabbable corners.
+- **No overhang, no pocket**: every line of a side descends and stays inside
+  its ledge, so each height crosses the body once and nothing can hold a
+  fighter under the lip. No walk-offs and no cave-of-life walls.
+- **Seven profile points**: five walls and an underside line per side, then
+  the level underside, so every stage has the same number of body lines.
+- **Recoverable**: every fighter gets back onto every stage from below
+  either ledge (smashcraft:ts/src/game/match/stageRecoveryContracts.tests.ts);
+  smashcraft:ts/src/game/sim/stageTopology.tests.ts checks symmetry, ledges,
+  one outline per stage and the level underside.
+
+Melee-reference contracts (wall techs, the underside scenario, the oracle and
+the interaction graph) measure Final Destination's walls on stage 0. Each
+stage's drawn main deck is generated from its own outline by
+smashcraft:tools/stage/package.ts.
+
 ## Smashcraft decisions
 
 The questions this research raised about the flat arena, platform motion,

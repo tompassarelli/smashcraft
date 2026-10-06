@@ -11,7 +11,7 @@ import { AttackStyle, Character, DownState } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 import { TOP_KO_MINIMUM_UPWARD_KNOCKBACK } from "../sim/knockback";
 import { type Controls, type Roster, copyControls, fighterAt, isActive, neutralControls } from "../sim/roster";
-import { MAIN_DECK_UNDERSIDE_Z, mainDeckLeft, mainDeckRight } from "../sim/stage";
+import { mainDeckLeft, mainDeckRight, mainDeckUndersideZ } from "../sim/stage";
 import { stageBounds } from "../sim/stageBounds";
 import { BODY_HALF_WIDTH, bodyTop } from "../sim/surfaces";
 import { melee } from "../sim/tuning";
@@ -144,7 +144,7 @@ export function initializeScenario(scenario: Scenario, game: Readonly<MatchState
     case "underside":
       // Frozen in the air beside the main deck's lower right corner, level with its underside, for native captures of both.
       first.motion.x = 520.0;
-      first.motion.z = MAIN_DECK_UNDERSIDE_Z;
+      first.motion.z = mainDeckUndersideZ(game.stageChoice);
       first.motion.grounded = false;
       first.motion.surface = undefined;
       first.status.frozenFrames = UNDERSIDE_FROZEN_FRAMES;
@@ -173,7 +173,7 @@ export function initializeScenario(scenario: Scenario, game: Readonly<MatchState
         fighter.facing = -side;
         fighter.motion.x = scenario === "body-ceiling" ? side * 160.0
           : f32((side < 0 ? mainDeckLeft(game.stageChoice) : mainDeckRight(game.stageChoice)) + side * melee(BODY_HALF_WIDTH));
-        fighter.motion.z = scenario === "body-ceiling" ? f32(MAIN_DECK_UNDERSIDE_Z - melee(bodyTop(fighter.character))) : -30.0;
+        fighter.motion.z = scenario === "body-ceiling" ? f32(mainDeckUndersideZ(game.stageChoice) - melee(bodyTop(fighter.character))) : -30.0;
         fighter.motion.grounded = false;
         fighter.motion.surface = undefined;
         fighter.motion.vx = 0.0;

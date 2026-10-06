@@ -1,14 +1,16 @@
 import { expect, test } from "bun:test";
-import { MAIN_DECK_HALF_DEPTH, STAGE_PALETTE_TEXTURE, type DeckFace, type OutlinePoint, mainDeckFaces, mainDeckMdl, mainDeckModelFile, paletteTexture } from "../scripts/stageDeck";
+import { MAIN_DECK_HALF_DEPTH, STAGE_PALETTE_TEXTURE, type DeckFace, type OutlinePoint, mainDeckFaces, mainDeckMdl, mainDeckModelFile, mainDeckOutlineStage, paletteTexture } from "../scripts/stageDeck";
 import { MODEL_FACTS } from "../scripts/wisp/modelFacts";
 import { STAGE_DECK_MODELS, STAGE_MAIN_DECK_MODEL } from "../src/game/assets/stageAssetInfo";
 import { STAGE_DECK_PALETTES } from "../src/game/assets/stagePalette";
-import { MAIN_DECK_BODY_SURFACES, mainDeckLeft, mainDeckRight, mainDeckZ, solidSurfaceAt } from "../src/game/sim/stage";
+import { MAIN_DECK_BODY_SURFACES, mainDeckLeft, mainDeckRight, mainDeckZ, solidSurfaceAt, solidSurfaceCount } from "../src/game/sim/stage";
 
-/** The stages a match can select; all draw the same main deck model. */
-const SHIPPED_STAGES = [0, 1, 2];
-/** The model the map draws for every stage's main deck. */
+/** The stages whose main deck has walls and an underside, each drawn from its own outline. */
+const SHIPPED_STAGES = [1, ...STAGE_DECK_PALETTES.map(({ stage }) => stage).filter((stage) => solidSurfaceCount(stage) > 0)];
+/** The neutral main deck model, which stages without a profile of their own draw. */
 const MAIN_DECK = mainDeckFaces(0);
+/** The main deck model a stage draws. */
+const shippedMainDeck = (stage: number) => STAGE_DECK_MODELS[stage]?.main ?? STAGE_MAIN_DECK_MODEL;
 
 /** The main deck's collision corners on `stage`, from its left ledge along the walking line, then down its walls and underside, in model units. */
 function collisionCorners(stage: number): OutlinePoint[] {
@@ -68,7 +70,7 @@ const area = (points: readonly OutlinePoint[]) => Math.abs(points.reduce((sum, [
 test("the map ships the main deck model drawn from the collision", () => {
   expect(STAGE_MAIN_DECK_MODEL).toBe(`war3mapImported\\${mainDeckModelFile(mainDeckMdl(MAIN_DECK, STAGE_PALETTE_TEXTURE.name))}`);
   for (const { stage, palette } of STAGE_DECK_PALETTES) {
-    expect(STAGE_DECK_MODELS[stage]?.main).toBe(`war3mapImported\\${mainDeckModelFile(mainDeckMdl(MAIN_DECK, paletteTexture(palette).name))}`);
+    expect(STAGE_DECK_MODELS[stage]?.main).toBe(`war3mapImported\\${mainDeckModelFile(mainDeckMdl(mainDeckFaces(mainDeckOutlineStage(stage)), paletteTexture(palette).name))}`);
   }
 });
 
@@ -77,14 +79,15 @@ test("the main deck model's outline is the main deck's collision lines on every 
     const corners = collisionCorners(stage);
     const [ledge] = corners;
     if (ledge === undefined) throw new Error(`stage ${stage} has no main deck`);
-    const outline = frontOutline(MAIN_DECK, ledge);
+    const faces = mainDeckFaces(stage);
+    const outline = frontOutline(faces, ledge);
     expect(outline.length).toBe(corners.length);
     outline.forEach(([x, z], index) => {
       expect(x).toBeCloseTo(corners[index]?.[0] ?? Number.NaN, 3);
       expect(z).toBeCloseTo(corners[index]?.[1] ?? Number.NaN, 3);
     });
     // The front faces fill the outline once: no gaps, no overlaps.
-    const fronts = MAIN_DECK.filter(({ normal }) => normal[1] === -1).map(({ corners: points }) => points.map(([x, , z]): OutlinePoint => [x, z]));
+    const fronts = faces.filter(({ normal }) => normal[1] === -1).map(({ corners: points }) => points.map(([x, , z]): OutlinePoint => [x, z]));
     expect(fronts.reduce((sum, face) => sum + area(face), 0)).toBeCloseTo(area(corners), 2);
     // Each collision line is drawn through the deck's depth, facing out along its normal.
     for (let index = 0; index < MAIN_DECK_BODY_SURFACES; index++) {
@@ -92,7 +95,7 @@ test("the main deck model's outline is the main deck's collision lines on every 
       const center = (mainDeckLeft(stage) + mainDeckRight(stage)) / 2;
       const floor = mainDeckZ(stage);
       const front = [[line.startX - center, -MAIN_DECK_HALF_DEPTH, line.startZ - floor], [line.endX - center, -MAIN_DECK_HALF_DEPTH, line.endZ - floor]];
-      const side = MAIN_DECK.find(({ corners: points }) => JSON.stringify(points.slice(0, 2)) === JSON.stringify(front));
+      const side = faces.find(({ corners: points }) => JSON.stringify(points.slice(0, 2)) === JSON.stringify(front));
       expect(side?.normal).toEqual([line.normalX, 0, line.normalZ]);
       expect(side?.corners.map(([, y]) => y)).toEqual([-MAIN_DECK_HALF_DEPTH, -MAIN_DECK_HALF_DEPTH, MAIN_DECK_HALF_DEPTH, MAIN_DECK_HALF_DEPTH]);
     }
@@ -100,7 +103,7 @@ test("the main deck model's outline is the main deck's collision lines on every 
 });
 
 test("every face of the main deck faces out along its normal, so Warcraft draws it from outside", () => {
-  for (const { normal, corners } of MAIN_DECK) {
+  for (const { normal, corners } of SHIPPED_STAGES.flatMap((stage) => mainDeckFaces(stage))) {
     // Newell's normal of the polygon as wound.
     const wound = [0, 0, 0];
     corners.forEach(([x, y, z], index) => {
@@ -114,8 +117,8 @@ test("every face of the main deck faces out along its normal, so Warcraft draws 
 });
 
 test("the shipped main deck model draws over the whole collision outline, read from the model file", () => {
-  const bounds = MODEL_FACTS[STAGE_MAIN_DECK_MODEL]?.bounds;
   for (const stage of SHIPPED_STAGES) {
+    const bounds = MODEL_FACTS[shippedMainDeck(stage)]?.bounds;
     const corners = collisionCorners(stage);
     expect(bounds?.min[0]).toBeCloseTo(Math.min(...corners.map(([x]) => x)), 2);
     expect(bounds?.max[0]).toBeCloseTo(Math.max(...corners.map(([x]) => x)), 2);

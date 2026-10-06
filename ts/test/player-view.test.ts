@@ -566,6 +566,8 @@ test("the underside scenario holds a fighter under the main deck, shown above th
     setParticipants(s.game, 1, 2);
     selectCharacter(s.game, 0, Character.archer);
     expect(requestStageSelect(s.game, 0)).toBe(true);
+    // Final Destination's reference underside, which these checks measure.
+    selectStage(s.game, 0, 0);
     expect(requestStart(s.game, 0)).toBe(true);
     startMatch(s);
     initializeScenario("underside", s.game, s.world);
@@ -618,6 +620,8 @@ test("in the underside scenario's match, a fighter rising into the main deck's u
     setParticipants(s.game, 1, 2);
     selectCharacter(s.game, 0, Character.archer);
     expect(requestStageSelect(s.game, 0)).toBe(true);
+    // Final Destination's reference underside, which these checks measure.
+    selectStage(s.game, 0, 0);
     expect(requestStart(s.game, 0)).toBe(true);
     startMatch(s);
     initializeScenario("underside", s.game, s.world);
