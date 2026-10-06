@@ -372,3 +372,16 @@ test("sparse membership with local slot three invents no inactive or missing acc
   assertEquals(schedule.pending(1201, 1), undefined);
   assertFalse(schedule.isActive(2));
 });
+
+test("the confirmed match waits for exactly the players whose row after the common frontier has not arrived", () => {
+  const schedule = new ShadowInputSchedule();
+  assertTrue(schedule.beginEpoch(1500, 0, DEFAULT_ROLLBACK_WINDOW, 0b1011));
+  assertEquals(schedule.awaitedSlots(), 0b1011);
+  deliver(schedule, 0, 1500, 1, NEUTRAL);
+  deliver(schedule, 0, 1500, 2, NEUTRAL);
+  deliver(schedule, 3, 1500, 1, NEUTRAL);
+  assertEquals(schedule.awaitedSlots(), 0b0010);
+  deliver(schedule, 1, 1500, 1, NEUTRAL);
+  assertEquals(schedule.knownThrough(), 1);
+  assertEquals(schedule.awaitedSlots(), 0b1010);
+});

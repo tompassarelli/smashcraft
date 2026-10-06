@@ -30,7 +30,7 @@ const SMASHCRAFT_DEV: DevProject = {
     journeys: [
       "test/desync-guard.test.ts", "test/desync-guard-integrity.test.ts",
       "test/visual-lifecycle.test.ts", "test/player-view.test.ts", "test/selection-load.test.ts", "test/player-text.test.ts",
-      "test/stack-trace.test.ts", "test/rematch-load.test.ts",
+      "test/stack-trace.test.ts", "test/rematch-load.test.ts", "test/missing-input.test.ts", "test/input-stall.test.ts",
     ],
     perFile: ["test/source-shapes.test.ts"],
     // The audit parses with the TypeScript compiler, a third of a second to load.

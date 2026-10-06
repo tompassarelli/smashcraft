@@ -1,5 +1,5 @@
 // Player-facing text of the match: announcements, results and help.
-import { PARTICIPANT_SLOTS } from "../input/participants";
+import { PARTICIPANT_SLOTS, participantActive } from "../input/participants";
 import { type MatchState, humanFighterActive, humanPresent } from "../match/rules";
 import { AttackStyle, DownState, LedgeState } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
@@ -37,6 +37,16 @@ function rematchStatus(game: Readonly<MatchState>, start: StartControl): string 
 }
 
 export const pausedMessage = (start: StartControl) => `Paused — press ${start} to resume.`;
+
+/** The players a stalled match waits for, by the labels the HUD shows: "Waiting for Player 2". */
+export function waitingMessage(slots: number): string {
+  const players = PARTICIPANT_SLOTS.filter(slot => participantActive(slots, slot)).map(slot => `${slot + 1}`);
+  const last = players.pop() ?? "";
+  return players.length === 0 ? `Waiting for Player ${last}` : `Waiting for Players ${players.join(", ")} and ${last}`;
+}
+
+/** Shown to a player whose controller helper never reported ready, when the match starts on their keyboard. */
+export const KEYBOARD_FALLBACK_MESSAGE = "No controller found: use the keyboard.";
 
 /** The help line under the HUD during a match or its result. */
 export function matchHelp(game: Readonly<MatchState>, paused: boolean, start: StartControl, local: Readonly<Fighter> | undefined, playing: boolean): string {

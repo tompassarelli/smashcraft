@@ -150,7 +150,11 @@ a player would see wrong in each client's scene report, and exits 1 on any.
 `desync` adds `-dev desync` typed by the second player, which it must report.
 smashcraft:ts/scripts/wisp/headless.ts declares the natives Smashcraft calls
 on one client only; the desync guard, visual-lifecycle, player-view and
-stack-trace tests run their clients with the same declaration.
+stack-trace tests run their clients with the same declaration. Its
+`PREDICTED_HEADLESS` also declares the effect poses and camera of the
+integrity and playable builds' predicted presentation local, for the
+integrity capture and the tests of a player whose controller input is
+missing (missing-input) or stops (input-stall).
 
 `bun wisp parity headless --helper BIN --out DIR` runs issue #26's capture
 without Warcraft (smashcraft:ts/scripts/integrity/headless.ts): the
@@ -271,8 +275,9 @@ From smashcraft:ts/:
   code ([Wisp dev loop](https://github.com/tompassarelli/wisp/blob/main/docs/dev.md)).
   Each save prints the saved files' type errors, the affected unit tests, the
   journeys (the quick match plus the affected tests that play simulated
-  clients: the desync guard, the visual and player-view group, stack-trace
-  and rematch-load) and the whole `bun run check`, each timed from the save.
+  clients: the desync guard, the visual and player-view group, stack-trace,
+  rematch-load, missing-input and input-stall) and the whole `bun run check`,
+  each timed from the save.
   smashcraft:ts/scripts/wisp/commands/dev.ts declares the tests: the Bun test
   files, the registry modules game.test.ts runs, the files a test reads at run
   time (a test that reads files without declaring them runs on every save),

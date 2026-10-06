@@ -13,12 +13,12 @@ import { Effect, Exit } from "effect";
 import type { MapEntry } from "wisp/src/headless/client";
 import { at } from "wisp/src/runtime/lookup";
 import { sceneFile } from "wisp/src/runtime/scene";
-import { type HeadlessMap, installHeadless } from "wisp/scripts/wisp/headless";
+import { installHeadless } from "wisp/scripts/wisp/headless";
 import { RealtimeClients, type TypedInput, customMapData, typedFile } from "wisp/scripts/wisp/headlessInput";
 import { readSceneLines, sceneProblems } from "wisp/scripts/wisp/scene";
 import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/scripts/wisp/syncChannel";
 import { INTEGRITY_BUILD } from "../../src/game/shell/currentBuild";
-import { SMASHCRAFT_HEADLESS } from "../wisp/headless";
+import { PREDICTED_HEADLESS, SMASHCRAFT_HEADLESS } from "../wisp/headless";
 import { SMASHCRAFT_SCENE } from "../wisp/playerView";
 import { tsDirectory } from "../wisp/project";
 import { json, startHelper } from "./capture";
@@ -74,23 +74,6 @@ function keyChord(chord: string): readonly [key: number, meta: number] | undefin
   return /^[a-z0-9]$/.test(key) ? [key.toUpperCase().charCodeAt(0), meta] : undefined;
 }
 
-/**
- * The integrity build's pool-predicted presentation poses existing effects
- * and frames the camera from each client's own prediction, which differs
- * between clients until inputs confirm; creating and destroying effects stays
- * synchronized.
- */
-const PREDICTED_PRESENTATION: Readonly<Record<string, string>> = {
-  ...Object.fromEntries([
-    "BlzSetSpecialEffectAlpha", "BlzSetSpecialEffectAnimation", "BlzSetSpecialEffectAnimationBlendTime", "BlzSetSpecialEffectColor",
-    "BlzSetSpecialEffectColorByPlayer", "BlzSetSpecialEffectMatrixScale", "BlzSetSpecialEffectPitch", "BlzSetSpecialEffectPosition",
-    "BlzSetSpecialEffectRoll", "BlzSetSpecialEffectScale", "BlzSetSpecialEffectTime", "BlzSetSpecialEffectTimeScale", "BlzSetSpecialEffectYaw",
-  ].map((name) => [name, "poses an existing effect from this client's prediction"])),
-  ...Object.fromEntries(["SetCameraBounds", "SetCameraField", "SetCameraPosition"].map((name) => [name, "frames this client's camera on its predicted fighters"])),
-};
-
-const INTEGRITY_HEADLESS: HeadlessMap = { ...SMASHCRAFT_HEADLESS, localNatives: { ...SMASHCRAFT_HEADLESS.localNatives, ...PREDICTED_PRESENTATION } };
-
 const UI_WAIT_MILLIS = 25_000;
 const POLL_MILLIS = 20;
 /** Seeds the measured sync-message latency, so its delays repeat from run to run. */
@@ -142,7 +125,7 @@ export const captureHeadless = (options: HeadlessCaptureOptions) =>
     const entry = yield* loadEntry;
 
     const run = Effect.scoped(Effect.gen(function*() {
-      const runtime = yield* Effect.acquireRelease(Effect.sync(() => installHeadless(INTEGRITY_HEADLESS)), (runtime) => Effect.sync(runtime.restore));
+      const runtime = yield* Effect.acquireRelease(Effect.sync(() => installHeadless(PREDICTED_HEADLESS)), (runtime) => Effect.sync(runtime.restore));
       const typed = new Map<number, TypedInput>();
       const pads: Pad[] = [];
       const observers: Observer[] = [];
