@@ -8,6 +8,7 @@ import { finishDamageContacts, openDamageContacts } from "./contacts";
 import type { Fighter } from "./fighter";
 import { type HitRegion, NO_HIT_REGION, authoredHitRegion, authoredHitRegionCount, copyHitRegion, emptyHitRegion } from "./hitRegions";
 import { applyAttackHit } from "./hits";
+import { hangsOnLedge } from "./ledge";
 import { attackReach, isAerialAttack } from "./moves";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { spawnProjectile } from "./projectiles";
@@ -184,7 +185,7 @@ export function resolveAttacks(world: Roster): void {
       if (!isActive(world, target) || target === source || grabbed[target] || choices[target] !== undefined) continue;
       const victim = fighterAt(world, target);
       const candidate = Math.abs(f32(victim.motion.x - sourceX));
-      if (contactBetween(source, target).window > 0 && victim.status.frozenFrames === 0 && !inGrabContext(victim)
+      if (contactBetween(source, target).window > 0 && victim.status.frozenFrames === 0 && !inGrabContext(victim) && !hangsOnLedge(victim)
         && (best === undefined || candidate < distance)) {
         best = target;
         distance = candidate;
