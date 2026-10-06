@@ -8,6 +8,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { toInt } from "../../runtime/numbers";
 import { TECH_REPEAT_MINIMUM_AGE_FRAMES } from "../physics/techInput";
 import { Character, DownState, LedgeState, SpecialAction } from "../sim/codes";
+import { isTumbling } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
 import { totalVelocityZ } from "../sim/motion";
 import type { Controls } from "../sim/roster";
@@ -222,6 +223,10 @@ export function chooseRecoveryInput(fighter: Readonly<Fighter>, stage: number, m
   if (ledge) input.direction = outside < LEDGE_LINE_NEAR ? side : outside > LEDGE_LINE_FAR ? -side : 0;
   else input.direction = x < (side < 0 ? f32(left + 60) : f32(right - 60)) ? 1 : -1;
   aimUpSpecial(fighter, stage, side, input);
+  // Tumble ends only on a fresh sideways flick (sim/step.ts) and can't steer while it lasts: a stick
+  // already held toward home lets go for a frame, unless tumble already carries it home faster than drift.
+  if (isTumbling(fighter) && fighter.launch.hitstun <= 0 && input.direction !== 0 && fighter.motion.previousStickSide === input.direction
+    && f32(fighter.motion.vx * input.direction) < fighter.tuning.physics.airSpeed) input.direction = 0;
   if (fighter.launch.hitstun > 0 || fighter.launch.hitlag > 0 || fighter.special.action !== SpecialAction.none) return true;
   // Close outside the ledge and above where it catches, it falls onto the ledge.
   if (ledge && outside <= LEDGE_LINE_REACH && z >= f32(floor - LEDGE_MISSED)) return true;
