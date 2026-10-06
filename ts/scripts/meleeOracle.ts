@@ -1082,6 +1082,27 @@ function catchAgainstWall(character: Character): string {
   return "fell";
 }
 
+/** A fighter hanging on the ledge past its intangible frames, grabbed from 70 units inside it: "caught", or "not caught" with the grab started. */
+function grabOnLedgeHanger(character: Character): string {
+  const s = scene(0, [
+    { character, x: surfaceRight(0, 0) - 70.0, facing: 1 },
+    { character, x: surfaceRight(0, 0) + 30.0, facing: -1 },
+  ]);
+  const grabber = fighter(s, 0);
+  const hanger = fighter(s, 1);
+  airborne(hanger, surfaceRight(0, 0) + 30.0, surfaceZ(0, 0));
+  hanger.jump.remaining = 1;
+  if (framesUntil(s, () => hanger.ledge.state === LedgeState.hang, 60) === undefined) return "never hung";
+  if (framesUntil(s, () => !isIntangible(hanger), 60) === undefined) return "still intangible";
+  let started = false;
+  for (let n = 0; n < 40; n++) {
+    frame(s, n === 0 ? [Action.grab] : []);
+    started = started || grabber.attack.style === AttackStyle.grab;
+    if (hanger.grab.grabbedFrames > 0) return "caught";
+  }
+  return started ? "not caught" : "grab never started";
+}
+
 const LEDGE_BOX = "ledge snap ftData x44 +0x10/+0x14/+0x18: Fox/Falco 11/13/9, Captain Falcon 9/17/11 (Illidan), reach adds the 2-unit minimum ECB half-width; melee:src/melee/ft/ftcliffcommon.c, melee:src/melee/mp/mpcoll.c mpColl_80044164 (#47)";
 
 const LEDGES: readonly Scenario[] = [
@@ -1091,6 +1112,7 @@ const LEDGES: readonly Scenario[] = [
   { area: "ledge", name: "fall from 1 unit inside the box top (104; Illidan 134 below)", cite: LEDGE_BOX, run: (c) => ({ expected: true, actual: catchesLedge(c, 30.0, ledgeBox(c).highest - 1.0) }) },
   { area: "ledge", name: "fall from 1 unit above the box top (106; Illidan 136 below)", cite: LEDGE_BOX, run: (c) => ({ expected: false, actual: catchesLedge(c, 30.0, ledgeBox(c).highest + 1.0) }) },
   { area: "ledge", name: "drifting in below the ledge, a fall along the main deck's side wall", cite: `${LEDGE_BOX}; ${WALL_FLANK}`, run: (c) => ({ expected: "caught against the wall", actual: catchAgainstWall(c) }) },
+  { area: "ledge", name: "standing grab on a fighter hanging past its intangible frames", cite: "ftColl_80078A2C skips a victim with x1A6A & x1A68 (melee:src/melee/ft/ftcoll.c:1330); the hang sets x1A6A = 511 (ftCliffCommon_80081370, melee:src/melee/ft/ftcliffcommon.c:86; ftCo_8009A804, ftCo_CliffWait.c:25) and every catch sets x1A68 = 1 (ftCo_800D8C54, ftCo_Catch.c:115) (#72)", run: (c) => ({ expected: "not caught", actual: grabOnLedgeHanger(c) }) },
 ];
 
 // ------------------------------------------------------------------ table
