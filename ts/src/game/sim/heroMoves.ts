@@ -3,6 +3,7 @@ import type { AttackStyle } from "./codes";
 import type { HitEffect, HitRegion } from "./hitRegions";
 import { hurtCapsule } from "../physics/contactGeometry";
 import { Character } from "./codes";
+import { type FighterHurtboxes, type HurtPart, type HurtPose, hurtPose } from "./hurtboxes";
 
 const referenceBody = hurtCapsule(Character.archer);
 export const HERO_REFERENCE_HEIGHT = f32(f32(referenceBody.z2 - referenceBody.z1) + f32(2.0 * referenceBody.radius));
@@ -50,6 +51,8 @@ export interface FighterMoves {
   readonly smashMaxChargeFrames: number;
   readonly smashMaxDamageMultiplier: number;
   readonly maxPummels?: number | undefined;
+  /** Bodies that follow the kit's animation (smashcraft:docs/hurtboxes.md); absent, the character's standing body. */
+  readonly hurtboxes?: FighterHurtboxes | undefined;
 }
 
 /** The roster brief counts the entry tick as frame one; the simulation counts it as zero. */
@@ -69,4 +72,9 @@ export function heroRegion(firstActive: number, lastActive: number, strike: Stri
       effect, window: 1, strike, groundedEffect,
     },
   };
+}
+
+/** A body pose over the brief's attack frames, counting the entry tick as frame one like heroRegion. */
+export function heroHurtPose(first: number, last: number, parts: readonly HurtPart[]): HurtPose {
+  return hurtPose(first - 1, last - 1, parts);
 }
