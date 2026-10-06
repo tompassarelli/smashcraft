@@ -5,6 +5,7 @@ import { AttackPhase, AttackStyle, Character, DASH_GRAB_REQUEST, GrabAction } fr
 import { attackPhase } from "../conditions";
 import { createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
+import type { HurtPart } from "../hurtboxes";
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hitRegions";
 import { attackLandingLag, attackRecoveryFrames, attackStartupFrames, grabActionDuration, grabContactFrame, isAerialAttack, smashDamageMultiplier } from "../moves";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
@@ -224,27 +225,52 @@ function jabIntoDreadlord(style: AttackStyle | undefined, frame: number, gap: nu
   return target.status.damage;
 }
 
-test("Dreadlord's claws and wings are attached body: no strike of his is disjointed", () => {
+test("Dreadlord's claws and wings are attached body: every strike is his limb on its active frames", () => {
   for (const [style, first, active] of NORMAL_TIMINGS) {
     const move = DREADLORD_MOVES.normals[style];
     const hurt = DREADLORD_MOVES.hurtboxes?.attacks[style];
     assertTrue(move !== undefined && hurt !== undefined);
     if (move === undefined || hurt === undefined) continue;
+    // Zero-based active frames first-1 .. first+active-2 sit inside one held, fully drawn-out pose.
+    const peak = hurt.find(pose => pose.firstFrame <= first - 1 && pose.lastFrame >= first + active - 2);
+    assertTrue(peak !== undefined);
+    if (peak === undefined) continue;
     for (const region of move.regions) {
       const strike = region.hit.strike;
       if (strike === undefined) continue;
-      const pose = hurt.find(candidate => candidate.firstFrame === region.firstFrame);
-      assertTrue(pose !== undefined);
-      if (pose === undefined) continue;
-      const limb = pose.parts.find(part => part.x2 === strike.x2 && part.z2 === strike.z2);
+      const limb = peak.parts.find(part => part.x1 === strike.x1 && part.z1 === strike.z1 && part.x2 === strike.x2 && part.z2 === strike.z2);
       assertTrue(limb !== undefined);
       if (limb !== undefined) assertEquals(limb.radius, f32(strike.radius - 2.0));
     }
-    // Drawn out from two frames before the first active frame through four after the last.
-    assertEquals(hurt[0]?.firstFrame, first - 3);
-    assertEquals(hurt[hurt.length - 1]?.lastFrame, first + active + 2);
+    // Held at least three frames, in order, and no body change moves an extent more than 60 units.
+    const stand = DREADLORD_MOVES.hurtboxes?.stand ?? [];
+    let previous = stand;
+    let previousLast = -1;
+    for (const pose of hurt) {
+      assertGreaterThan(pose.lastFrame - pose.firstFrame + 1, 2);
+      assertGreaterThan(pose.firstFrame, previousLast);
+      if (pose.firstFrame > previousLast + 1 && previousLast >= 0) {
+        assertLessThan(largestExtentStep(previous, stand), 60.0001);
+        previous = stand;
+      }
+      assertLessThan(largestExtentStep(previous, pose.parts), 60.0001);
+      previous = pose.parts;
+      previousLast = pose.lastFrame;
+    }
+    assertLessThan(largestExtentStep(previous, stand), 60.0001);
+    assertLessThan(previousLast, move.totalFrames);
   }
 });
+
+function largestExtentStep(a: readonly HurtPart[], b: readonly HurtPart[]): number {
+  const bounds = (parts: readonly HurtPart[]) => [
+    Math.max(...parts.map(p => Math.max(p.x1, p.x2) + p.radius)), Math.min(...parts.map(p => Math.min(p.x1, p.x2) - p.radius)),
+    Math.max(...parts.map(p => Math.max(p.z1, p.z2) + p.radius)), Math.min(...parts.map(p => Math.min(p.z1, p.z2) - p.radius)),
+  ];
+  const x = bounds(a);
+  const y = bounds(b);
+  return Math.max(...x.map((value, index) => Math.abs(value - (y[index] ?? 0.0))));
+}
 
 test("Dreadlord's extended arm and wing can be hit where his standing body cannot", () => {
   // Rifleman's jab reaches past the standing body at this gap but not to it.

@@ -1,6 +1,6 @@
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction, HitElement } from "../codes";
-import { HERO_REFERENCE_HEIGHT, heroMove, heroRegion, type AuthoredMove, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
+import { HERO_REFERENCE_HEIGHT, heroMove, heroRegion, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
 import { type FighterHurtboxes, type HurtPart, type HurtPose, hurtPart, hurtPose } from "../hurtboxes";
 import type { HitEffect } from "../hitRegions";
 
@@ -141,34 +141,80 @@ const NORMALS: { readonly [style: number]: AuthoredMove | undefined } = {
 const TORSO = hurtPart(0.0, 4.0, 0.0, 103.0, f32(26.4));
 const FOLDED_WINGS = hurtPart(-18.0, 70.0, -30.0, 135.0, 16.0);
 const STAND: readonly HurtPart[] = [TORSO, FOLDED_WINGS];
-/** Frames the attacking limb or wing is drawn out before and after its strike. */
-const LIMB_LEAD = 2;
-const LIMB_TRAIL = 4;
 /** A touch thinner than the strike, so a mirrored limb-on-limb meeting trades rather than whiffs. */
 const LIMB_INSET = 2.0;
+/** Largest extent change per body change, inside the 60-unit legible-hurtbox rule. */
+const BODY_STEP = 55.0;
+/** Every authored pose is held at least this long (legible-hurtbox rule 3). */
+const POSE_FRAMES = 3;
+
+interface Extent { front: number; back: number; top: number; bottom: number }
+
+function extent(parts: readonly HurtPart[]): Extent {
+  const out = { front: -1.0e9, back: 1.0e9, top: -1.0e9, bottom: 1.0e9 };
+  for (const p of parts) {
+    out.front = Math.max(out.front, f32(Math.max(p.x1, p.x2) + p.radius));
+    out.back = Math.min(out.back, f32(Math.min(p.x1, p.x2) - p.radius));
+    out.top = Math.max(out.top, f32(Math.max(p.z1, p.z2) + p.radius));
+    out.bottom = Math.min(out.bottom, f32(Math.min(p.z1, p.z2) - p.radius));
+  }
+  return out;
+}
+
+function smallStep(a: readonly HurtPart[], b: readonly HurtPart[]): boolean {
+  const x = extent(a);
+  const y = extent(b);
+  return Math.abs(f32(x.front - y.front)) <= BODY_STEP && Math.abs(f32(x.back - y.back)) <= BODY_STEP
+    && Math.abs(f32(x.top - y.top)) <= BODY_STEP && Math.abs(f32(x.bottom - y.bottom)) <= BODY_STEP;
+}
+
+const torsoZ = (z: number): number => Math.min(Math.max(z, TORSO.z1), TORSO.z2);
+const toward = (from: number, to: number, t: number): number => f32(from + f32(f32(to - from) * t));
+
+/** The strike path drawn `t` of the way out from the torso axis. */
+function drawnOut(strike: Readonly<StrikeCapsule>, t: number): HurtPart {
+  return hurtPart(toward(0.0, strike.x1, t), toward(torsoZ(strike.z1), strike.z1, t),
+    toward(0.0, strike.x2, t), toward(torsoZ(strike.z2), strike.z2, t), f32(strike.radius - LIMB_INSET));
+}
 
 /**
  * Dreadlord carries no weapon, so nothing he swings is disjointed: every claw,
- * wing, horn and elbow path is also his body from late startup through early
- * recovery (roster "Weapon-only extensions can be disjointed").
+ * wing, horn and elbow path is also his body (roster "Weapon-only extensions
+ * can be disjointed"). The limbs are fully out from a frame before the first
+ * strike to two after the last, and are drawn out and folded back through
+ * held intermediate poses so no body change moves an extent more than
+ * BODY_STEP. `offset` shifts zero-based region frames to the pose numbering
+ * (1 for specials, which count their entry frame as one).
  */
-function attachedLimbs(move: Readonly<AuthoredMove>): readonly HurtPose[] {
-  let first = move.totalFrames;
+export function dreadlordLimbPoses(regions: readonly MoveRegion[], totalFrames: number, offset = 0): readonly HurtPose[] {
+  let first = totalFrames;
   let last = -1;
-  for (const region of move.regions) {
+  for (const region of regions) {
     first = Math.min(first, region.firstFrame);
     last = Math.max(last, region.lastFrame);
   }
-  const poses: HurtPose[] = [];
-  for (let frame = Math.max(0, first - LIMB_LEAD); frame <= Math.min(move.totalFrames - 1, last + LIMB_TRAIL); frame++) {
-    const drawn = Math.min(Math.max(frame, first), last);
-    const parts: HurtPart[] = [...STAND];
-    for (const region of move.regions) {
-      const strike = region.hit.strike;
-      if (strike === undefined || drawn < region.firstFrame || drawn > region.lastFrame) continue;
-      parts.push(hurtPart(strike.x1, strike.z1, strike.x2, strike.z2, f32(strike.radius - LIMB_INSET)));
-    }
-    poses.push(hurtPose(frame, frame, parts));
+  const strikes: StrikeCapsule[] = [];
+  for (const region of regions) if (region.hit.strike !== undefined) strikes.push(region.hit.strike);
+  const posed = (t: number): readonly HurtPart[] => [...STAND, ...strikes.map(strike => drawnOut(strike, t))];
+  let steps = 1;
+  for (;;) {
+    let ok = true;
+    for (let k = 0; k < steps && ok; k++) ok = smallStep(k === 0 ? STAND : posed(f32(k / steps)), posed(f32((k + 1) / steps)));
+    if (ok) break;
+    steps++;
+  }
+  const lastFrame = totalFrames - 1;
+  let peakFirst = Math.max(0, first - 1);
+  const peakLast = Math.min(lastFrame, last + 2);
+  if (peakLast - peakFirst + 1 < POSE_FRAMES) peakFirst = peakLast - POSE_FRAMES + 1;
+  const poses: HurtPose[] = [hurtPose(peakFirst + offset, peakLast + offset, posed(1.0))];
+  for (let k = steps - 1; k >= 1; k--) {
+    const end = peakFirst - (steps - 1 - k) * POSE_FRAMES - 1;
+    const begin = peakLast + (steps - k - 1) * POSE_FRAMES + 1;
+    if (end - POSE_FRAMES + 1 < 0 || begin + POSE_FRAMES - 1 > lastFrame) throw new Error("Dreadlord limb ramp does not fit its move");
+    const parts = posed(f32(k / steps));
+    poses.unshift(hurtPose(end - POSE_FRAMES + 1 + offset, end + offset, parts));
+    poses.push(hurtPose(begin + offset, begin + POSE_FRAMES - 1 + offset, parts));
   }
   return poses;
 }
@@ -177,7 +223,7 @@ function attachedBodies(): FighterHurtboxes {
   const attacks: { [style: number]: readonly HurtPose[] | undefined } = {};
   for (let style = AttackStyle.jab; style <= AttackStyle.dashAttack; style++) {
     const move = NORMALS[style];
-    if (move !== undefined) attacks[style] = attachedLimbs(move);
+    if (move !== undefined) attacks[style] = dreadlordLimbPoses(move.regions, move.totalFrames);
   }
   return { stand: STAND, attacks };
 }
