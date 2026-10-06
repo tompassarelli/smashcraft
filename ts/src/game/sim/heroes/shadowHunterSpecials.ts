@@ -29,9 +29,9 @@ const spiritGlaive = (air: boolean): AuthoredSpecial => ({
 
 /**
  * Loa Vault: f8-30 travel, then helpless. Velocities are per frame in H,
- * calibrated in shadowHunterSpecials.tests.ts so that, with gravity acting
- * between the set frames and the ballistic rise after the window, the peak
- * reaches the listed 2.0H rise and 0.6H drift (free form 1.4H and 0.3H).
+ * calibrated in shadowHunterSpecials.tests.ts: the window sets velocity
+ * exactly, and with the ballistic rise after it the peak reaches the listed
+ * 2.0H rise and 0.6H drift (free form 1.4H and 0.3H).
  */
 const loaVault = (cost: number, riseVelocity: number, driftVelocity: number): AuthoredSpecial => ({
   cost, endFrame: 30,
@@ -78,6 +78,6 @@ export const SHADOW_HUNTER_SPECIALS: FighterSpecials = {
   mana: ROSTER_MANA,
   neutral: { ground: spiritGlaive(false), air: spiritGlaive(true) },
   side: { ground: SERPENT_WARD_CAST, recall: SERPENT_WARD_RECALL },
-  up: { ground: loaVault(15, f32(0.1014), f32(0.0283)), free: loaVault(0, f32(0.0741), f32(0.0146)) },
+  up: { ground: loaVault(15, f32(0.0909), f32(0.0273)), free: loaVault(0, f32(0.0636), f32(0.0137)) },
   down: { ground: hex(false), air: hex(true) },
 };
