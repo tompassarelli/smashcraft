@@ -22,14 +22,19 @@ export interface FrameWindow {
 
 /**
  * Velocity the special sets on every frame of its window, in world units per
- * frame, facing-relative. Gravity and collision still apply to the next frame's
- * movement. With `aimedSpeed`, a stick held on entry (one of eight directions)
+ * frame, facing-relative. The next frame moves by exactly that velocity:
+ * no steering, drag, gravity or fall-speed cap, but stage collision still
+ * stops it. With `aimedSpeed`, a stick held on entry (one of eight directions)
  * replaces the authored direction at that speed; a neutral stick keeps it.
+ * With `aimedTilt`, an up or down aim instead turns the authored horizontal
+ * heading to that facing-relative unit direction (z for up, mirrored for
+ * down) at the same speed.
  */
 export interface SpecialMotion extends FrameWindow {
   readonly velocityX: number;
   readonly velocityZ: number;
   readonly aimedSpeed?: number | undefined;
+  readonly aimedTilt?: { readonly x: number; readonly z: number } | undefined;
   /**
    * Forward travel ends just short of a raised shield or another fighter's body
    * instead of carrying into or through it (the roster's dash specials).
@@ -86,6 +91,8 @@ export interface AuthoredSpecial {
   readonly helpless?: boolean | undefined;
   /** Landing during the action ends it with this landing lag; otherwise it continues on the ground. */
   readonly landingLag?: number | undefined;
+  /** Through this frame a held stick re-chooses the aim (eight directions); a neutral stick keeps the entry aim. */
+  readonly aimFrames?: number | undefined;
   /**
    * Bodies over brief frames (hurtPose(first, last, parts) with 1-based
    * frames); frames no pose covers use the standing body. Weapons stay out.
