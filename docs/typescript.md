@@ -233,6 +233,61 @@ any that never did. The computer has no randomness
 against itself repeat exactly whatever the seed, and the pair tables count
 identical results of one setup without a fuzzed player once.
 
+Victim agency (#68) is measured by replaying frames, not by reading state
+(smashcraft:ts/scripts/agency.ts). From a match state, the next frames run
+once as the players played them, then again for each frame with the victim's
+input on that frame changed by each input class: the stick moved in eight
+directions or to neutral, an SDI pulse in eight directions, the buttons
+alone (none, a trigger for shield or tech in place, jump, attack, special,
+grab) and a trigger or special with a direction (tech rolls, air dodges,
+up, down and side specials). A class matters on a frame when its replay's
+fighters move, act, take damage or keep projectiles and summons differently
+from the played frames before the window ends; a replay whose whole
+gameplay state rejoins the played one changes nothing, with tech press ages
+past the 40-frame lockout taken as equal. A frame lets the victim act when
+the buttons alone matter, or a button with a direction does while that
+direction alone doesn't; it is DI only when only the stick matters; it has
+no agency when nothing does. A buffered press or a tech press counts on the
+frame it is pressed, up to 6 and 20 frames before it shows. A loop is a
+situation under control (hit, held, knocked down or stunned) that comes back
+while the victim could act on fewer than 20 frames in a row. A situation is
+the fighters' actions and their clocks, a hold counted from its start,
+positions relative to the victim, up to a mirror, with damage left out, so a
+loop that adds damage each time round still repeats; its escape frames are
+the frames of the cycle the victim could act on. Every replay runs through
+the frame executor from copies of replay state.
+
+The soak runs the lock-loop detector on the host client's confirmed match
+(smashcraft:ts/scripts/lockWatch.ts): it follows every confirmed frame,
+replaying the moment record's rows when a step confirms several, and, while
+a fighter is hit, held, knocked down or stunned, or free of that for fewer
+than 20 frames, remembers each situation under control it was in. When one
+comes back it waits two seconds, or until the stretch ends, then replays the
+cycle with every input class. A cycle the fighter could act on at most three
+frames of is a Wisp `game` finding named `lock-loop`, with its frames,
+percents and escape, and the match's repro file. The rows don't replay the
+shell's own changes between frames (a pause or the match's end clears the
+attack buffers); the detector follows the match again from there.
+
+`bun wisp agency [--attacker NAME]... [--out FILE]` is the sweep
+(smashcraft:ts/scripts/agencySweep.ts): every fighter's grab and four
+throws, and a jab on a fighter lying after a missed tech, at 0-150% in
+steps of 10, its ground normals and specials at 0, 50, 100 and 150%, against
+every fighter, 40 units apart in the middle of stage 0. Once a starter
+catches the victim, the analysis runs until the victim can act; then the
+attacker repeats the starter whenever it can act and the victim is within
+25, 40, 60, 80, 110 or 150 units, standing or approaching, and the plan that
+holds the victim longest, or loops it with the fewest escape frames, is
+kept. A loop with at most three escape frames is played again with the
+victim holding each DI direction from the catch, against every plan. It
+also replays the move comparisons' bounded true links (smashcraft:docs/move-comparisons.md)
+through the frame executor, with and without each held DI direction. It
+prints every stretch longer than 20 frames, every loop and every link, and
+fails when a loop leaves at most three escape frames whatever direction the
+victim holds. Run three at once, one per attacker, inside the capacity scope:
+on 6 October, on a shared machine, Archer's took 11 minutes, Illidan's 13 and
+the Rifleman's 28, most of it checking his trap loops against every DI.
+
 `bun wisp soak --helper BIN [--matches N] [--seconds S]` plays matches through
 the real input path instead (smashcraft:ts/test/soak/helper.ts): each player
 a uinput pad the fuzzer drives about once a second, read by a persistent
@@ -385,6 +440,18 @@ TypeScriptToLua keeps one variable for the whole loop instead of one per
 iteration. Copy the index into a `const` in the body, or take it as a
 `forEach` callback parameter.
 
+An array that can hold `undefined` has no reliable `length` in Lua, which
+stores no nil entries, so Wisp's compiler rejects reading it (Wisp 0e46c0f);
+loop to the array's fixed capacity instead. A Special's hit targets, copied
+up to their `length`, were left out of every replay snapshot in Lua: after a
+rollback the speculative match no longer matched the confirmed one. In
+0.0.49's four-fighter bot session 26 of 57 legal presses did not start in
+their first prediction, two of them predicted with every row already known
+(#60). Bun cannot show such a difference: `GAME_SOAK=1` with
+scripts/lua-tests.ts runs
+smashcraft:ts/src/game/replay/fourFighterRollback.soak.ts, which compares the
+speculative history with the confirmed match through late rows in Lua32.
+
 ## Tests
 
 `test(name, fn)` from `wisp/src/runtime/testing` registers a test that runs under Bun
@@ -407,7 +474,8 @@ From smashcraft:ts/:
   Each save prints the saved files' type errors, the affected unit tests, the
   journeys (the quick match plus the affected tests that play simulated
   clients: the desync guard, the visual and player-view group, stack-trace,
-  rematch-load, missing-input, input-stall, tune and lag-recovery) and the
+  rematch-load, missing-input, input-stall, tune, lag-recovery and
+  local-start) and the
   whole `bun run check`, each timed from the save.
   smashcraft:ts/scripts/wisp/commands/dev.ts declares the tests: the Bun test
   files, the registry modules game.test.ts runs, the files a test reads at run

@@ -10,7 +10,7 @@ import type { Fighter } from "./fighter";
 import { AIR_KNOCKBACK_DECAY, AIR_KNOCKBACK_SQUARED_CUTOFF, decayedAirMotion, retainedOriginal, roundMeleeWorldValue, setMeleeKnockback } from "./motion";
 import type { Controls } from "./roster";
 import { melee } from "./tuning";
-import { atan2, squareRoot } from "./warcraftMath";
+import { squareRoot } from "./warcraftMath";
 
 const KNOCKBACK_LAUNCH_SCALE = melee(0.029999999329447746);
 const HITSTUN_FRAMES_PER_KNOCKBACK = 0.4000000059604645;
@@ -126,7 +126,7 @@ export function installDamageLaunch(target: Fighter, knockback: number, directio
     launchZ = 0.0;
   } else if (wasGrounded && launch.damageLevel === 3 && directionZ < 0) {
     // The floor normal is vertical on the current flat stage surfaces.
-    if (atan2(-directionZ, Math.abs(directionX)) > GROUND_LAUNCH_BOUNCE_ANGLE) launchZ = -f32(launchZ * GROUND_LAUNCH_REBOUND);
+    if (meleeAtan2(-directionZ, Math.abs(directionX)) > GROUND_LAUNCH_BOUNCE_ANGLE) launchZ = -f32(launchZ * GROUND_LAUNCH_REBOUND);
   }
   launch.groundKnockbackX = motion.grounded ? launchX : 0.0;
   if (launch.knockbackAge !== undefined && launch.knockbackAge >= KNOCKBACK_STACKING_FRAMES) {

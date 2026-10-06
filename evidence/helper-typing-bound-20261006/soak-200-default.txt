@@ -1,0 +1,2 @@
+200 matches, 195,792 frames (55.5 game minutes) in 53.5 s with 4 workers (4 started): 62x real time, 284.9 s CPU
+costliest client frame 26.9 ms; no findings

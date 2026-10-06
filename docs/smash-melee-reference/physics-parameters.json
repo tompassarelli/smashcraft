@@ -436,7 +436,32 @@
           "units": "Melee units/frame"
         }
       ],
-      "wallRecoverySource": "Read from the retail DAT named in retailVerification; melee:src/melee/ft/kinds/ftFox/ftfox.c ftFx_Init_OnLoad sets can_walljump, which melee:src/melee/ft/ftwalljump.c ftWallJump_8008169C requires."
+      "wallRecoverySource": "Read from the retail DAT named in retailVerification; melee:src/melee/ft/kinds/ftFox/ftfox.c ftFx_Init_OnLoad sets can_walljump, which melee:src/melee/ft/ftwalljump.c ftWallJump_8008169C requires.",
+      "ecbTop": {
+        "model": "PlFxNr.dat",
+        "modelSha1": "45f8fdb975f066c2ee7ec443eb196a3a611e358b",
+        "bones": [
+          41,
+          55,
+          25,
+          13,
+          7,
+          4
+        ],
+        "boneHeights": [
+          11.625,
+          10.388,
+          10.388,
+          4.0474,
+          4.0527,
+          8.3
+        ],
+        "bindTop": 11.625,
+        "modelScaling": 0.9599999785423279,
+        "top": 11.15999984741211,
+        "units": "Melee units above the fighter's position",
+        "source": "Highest bind-pose height of the six ECB bones listed at ftData x44 +0x0..+0xA (melee:src/melee/ft/ft_081B.c ft_80081B38) in the model archive's joint tree, which falls and jumps load with no pad (melee:src/melee/mp/mpcoll.c mpColl_LoadECB_JObj), times model_scaling +0x8C; joint world positions from the joint descriptors agree with their inverse bind matrices. Read by ~/.local/share/smashcraft-melee-reference/ecb-top-facts.ts."
+      }
     },
     "Falco": {
       "sourceUrl": "https://melee.theshoemaker.de/dat-dumps/Falco.json",
@@ -853,7 +878,32 @@
           "units": "Melee units/frame"
         }
       ],
-      "wallRecoverySource": "Read from the retail DAT named in retailVerification; melee:src/melee/ft/kinds/ftFalco/ftfalco.c ftFc_Init_OnLoad sets can_walljump, which melee:src/melee/ft/ftwalljump.c ftWallJump_8008169C requires."
+      "wallRecoverySource": "Read from the retail DAT named in retailVerification; melee:src/melee/ft/kinds/ftFalco/ftfalco.c ftFc_Init_OnLoad sets can_walljump, which melee:src/melee/ft/ftwalljump.c ftWallJump_8008169C requires.",
+      "ecbTop": {
+        "model": "PlFcNr.dat",
+        "modelSha1": "18764bc67bd286ec0563affebaaf82684c3dcbaf",
+        "bones": [
+          39,
+          49,
+          23,
+          13,
+          7,
+          4
+        ],
+        "boneHeights": [
+          12.5,
+          10.388,
+          10.388,
+          4.0437,
+          4.0496,
+          8.3
+        ],
+        "bindTop": 12.5,
+        "modelScaling": 1.100000023841858,
+        "top": 13.75,
+        "units": "Melee units above the fighter's position",
+        "source": "Highest bind-pose height of the six ECB bones listed at ftData x44 +0x0..+0xA (melee:src/melee/ft/ft_081B.c ft_80081B38) in the model archive's joint tree, which falls and jumps load with no pad (melee:src/melee/mp/mpcoll.c mpColl_LoadECB_JObj), times model_scaling +0x8C; joint world positions from the joint descriptors agree with their inverse bind matrices. Read by ~/.local/share/smashcraft-melee-reference/ecb-top-facts.ts."
+      }
     }
   },
   "common": {
@@ -2202,7 +2252,32 @@
           "units": "Melee units/frame"
         }
       ],
-      "airDriftSource": "Read from this check's retail DAT; melee:src/melee/ft/ftcommon.c ftCommon_CalcSelfAccel_DriftFrom and ftCommon_CalcSelfAccel_AccelToVelClampedFrom use them, the last capping drift at +0x078."
+      "airDriftSource": "Read from this check's retail DAT; melee:src/melee/ft/ftcommon.c ftCommon_CalcSelfAccel_DriftFrom and ftCommon_CalcSelfAccel_AccelToVelClampedFrom use them, the last capping drift at +0x078.",
+      "ecbTop": {
+        "model": "PlCaNr.dat",
+        "modelSha1": "f09743b73128a62a415be07fc9213458ab884b8a",
+        "bones": [
+          39,
+          47,
+          25,
+          14,
+          8,
+          4
+        ],
+        "boneHeights": [
+          19.3585,
+          17.7516,
+          17.7517,
+          6.9204,
+          6.9208,
+          12.6472
+        ],
+        "bindTop": 19.3585,
+        "modelScaling": 0.9700000286102295,
+        "top": 18.777746200561523,
+        "units": "Melee units above the fighter's position",
+        "source": "Highest bind-pose height of the six ECB bones listed at ftData x44 +0x0..+0xA (melee:src/melee/ft/ft_081B.c ft_80081B38) in the model archive's joint tree, which falls and jumps load with no pad (melee:src/melee/mp/mpcoll.c mpColl_LoadECB_JObj), times model_scaling +0x8C; joint world positions from the joint descriptors agree with their inverse bind matrices. Read by ~/.local/share/smashcraft-melee-reference/ecb-top-facts.ts."
+      }
     },
     {
       "character": "Jigglypuff",
