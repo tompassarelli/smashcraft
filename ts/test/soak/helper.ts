@@ -15,7 +15,7 @@ import {
   FUZZ_POLICY, SOAK_LIMITS, type SoakController, type SoakEdge, type SoakMatch, SoakMonitor, type SoakResult, cpuMillis, describeMatch, fuzzedInputs,
   helperRecorder, planSoak, soakRepro,
 } from "wisp/scripts/wisp/soak";
-import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/scripts/wisp/syncChannel";
+import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/src/headless/syncChannel";
 import { at } from "wisp/src/runtime/lookup";
 import { PLAYABLE_BUILD } from "../../src/game/shell/currentBuild";
 import { startHelper } from "../../scripts/integrity/capture";

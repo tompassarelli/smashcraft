@@ -7,7 +7,7 @@
 // simulates.
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless, readNativeDeclarations } from "wisp/scripts/wisp/headless";
-import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/scripts/wisp/syncChannel";
+import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/src/headless/syncChannel";
 import type { EffectPose, HeadlessClient } from "wisp/src/headless/client";
 import { originalClipCount, originalLightPath } from "../src/game/assets/fighterOriginalClipInfo";
 import { PARTICIPANT_SLOTS } from "../src/game/input/participants";

@@ -135,8 +135,8 @@ function decodeLine(line: number, text: string): Decoded<TapeOperation> | undefi
   const fail = (message: string): Decoded<TapeOperation> => ({ ok: false, line, message });
   const numbers = rest.map(word => parseInteger(word));
   const [first, second] = numbers;
-  const pair = numbers.length === 2 && first !== undefined && second !== undefined;
-  const single = numbers.length === 1 && first !== undefined;
+  const pair = rest.length === 2 && first !== undefined && second !== undefined;
+  const single = rest.length === 1 && first !== undefined;
   switch (operation) {
     case "input":
       if (first === undefined || !isParticipantSlot(first)) return fail("input takes a participant slot");
