@@ -7,15 +7,21 @@ import { reportedModel, sceneFile } from "wisp/src/runtime/scene";
 import { type SceneReport, readSceneLines, sceneProblems } from "wisp/scripts/wisp/scene";
 import { SMASHCRAFT_SCENE } from "../scripts/wisp/playerView";
 import { IMPACT_DUST_MODEL, IMPACT_HIT_MODEL } from "../src/game/assets/impactAssetInfo";
-import { STAGE_MAIN_DECK_MODEL } from "../src/game/assets/stageAssetInfo";
+import { STAGE_DECK_MODEL, STAGE_MAIN_DECK_MODEL } from "../src/game/assets/stageAssetInfo";
 import { Action, bit } from "../src/game/input/actions";
 import { requestStageSelect, requestStart, selectCharacter, setParticipants } from "../src/game/match/rules";
 import { FLOOR_HEIGHT } from "../src/game/presentation/arenaCamera";
+import { CANNON_MODEL } from "../src/game/presentation/stageHazards";
+import { stageScenery } from "../src/game/presentation/stageScenery";
+import { modelReach } from "wisp/scripts/wisp/models";
+import { boxSeen } from "wisp/scripts/wisp/visibility";
+import { MODEL_FACTS } from "../scripts/wisp/modelFacts";
+import { FROZEN_THRONE_QUICK_COMMAND } from "../src/game/shell/devSettings";
 import { STOCK_MODELS } from "../src/game/render/effects";
 import { IMPACT_DUST, IMPACTS_PER_KIND, impactLifetime } from "../src/game/presentation/impactState";
 import { Character, DownState, SurfaceContact } from "../src/game/sim/codes";
 import { fighterAt } from "../src/game/sim/roster";
-import { MAIN_DECK_BODY_SURFACES, MAIN_DECK_UNDERSIDE_Z, solidSurfaceAt } from "../src/game/sim/stage";
+import { CANNON_TEST_STAGE, CARRIED_TEST_STAGE, TIMED_TEST_STAGE, WIND_TEST_STAGE, DRIFTING_DECK_STAGE, PATTERNED_DECKS_STAGE, MAIN_DECK_BODY_SURFACES, MAIN_DECK_UNDERSIDE_Z, solidSurfaceAt, surfaceLeft, surfaceRight, surfaceZ } from "../src/game/sim/stage";
 import { BLAST_ZONE_BOTTOM, BLAST_ZONE_SIDE, BLAST_ZONE_TOP } from "../src/game/sim/stocks";
 import { QUICK_MATCH_COMMAND } from "../src/game/shell/devSettings";
 import { initializeScenario } from "../src/game/shell/scenarios";
@@ -25,7 +31,7 @@ import { install as installDevelopment, start as startDevelopment } from "../src
 import { PERF_COMMAND } from "../src/platform/frameMeter";
 import { startMatch } from "../src/platform/shell/matchStart";
 import { shell } from "../src/platform/shell/state";
-import { lockArenaCamera, renderPersistentPresentation } from "../src/platform/shell/view";
+import { drawStage, lockArenaCamera, renderPersistentPresentation, renderUi } from "../src/platform/shell/view";
 import { installHeadless, readNativeDeclarations } from "wisp/scripts/wisp/headless";
 import type { HeadlessClient } from "wisp/src/headless/client";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
@@ -55,6 +61,60 @@ const recordCamera = (client: HeadlessClient) => {
 const headless = installHeadless({ ...SMASHCRAFT_HEADLESS, localNatives: unlogged, natives: recordCamera }, declarations);
 const seconds = (value: number) => value * SMASHCRAFT_SCENE.framesPerSecond;
 afterAll(headless.restore);
+
+test("Frozen Throne: a selectable match draws four platforms and the winter background without scene problems", () => {
+  const clients = headless.clients({ start: startDevelopment, install: installDevelopment });
+  clients.start();
+  clients.frames(30);
+  clients.chat(0, FROZEN_THRONE_QUICK_COMMAND);
+  clients.frames(60);
+  for (const client of clients.clients) {
+    client.run(() => {
+      const s = shell();
+      expect(s.game.stageChoice).toBe(2);
+      expect(s.stageDecks).toHaveLength(4);
+      expect(s.stageScenery).toHaveLength(stageScenery(2).pieces.length);
+      trampoline("scene.report")();
+    });
+    expect(sceneProblems(sceneReport(client), SMASHCRAFT_SCENE)).toEqual([]);
+    expect(client.errors).toEqual([]);
+  }
+});
+
+test("winter meshes and drifting snow stay behind fighters, and fog starts beyond the fight in every declared camera", () => {
+  const visibility = SMASHCRAFT_SCENE.visibility;
+  const scenery = stageScenery(2);
+  if (visibility === undefined || scenery.fog === undefined) throw new Error("missing winter visibility or fog");
+  const problems: string[] = [];
+  const corners = (box: { min: readonly number[]; max: readonly number[] }) =>
+    [box.min[0]!, box.max[0]!].flatMap(x => [box.min[1]!, box.max[1]!].flatMap(y => [box.min[2]!, box.max[2]!].map(z => [x, y, z] as const)));
+  for (const camera of visibility.cameras) {
+    const radians = (degrees: number) => degrees * Math.PI / 180;
+    const pitch = radians(camera.angleOfAttack > 180 ? camera.angleOfAttack - 360 : camera.angleOfAttack);
+    const yaw = radians(camera.rotation);
+    const forward = [Math.cos(pitch) * Math.cos(yaw), Math.cos(pitch) * Math.sin(yaw), Math.sin(pitch)] as const;
+    const along = (point: readonly number[]) => point.reduce((sum, value, axis) => sum + value * forward[axis]!, 0);
+    // Includes the complete visible fighting volume and a 200-unit allowance for fighter bodies.
+    const fight = { min: [-BLAST_ZONE_SIDE - 200, -200, BLAST_ZONE_BOTTOM - 200], max: [BLAST_ZONE_SIDE + 200, 200, BLAST_ZONE_TOP + 200] };
+    const farthestFighter = Math.max(...corners(fight).map(along));
+    const eye = camera.target.map((value, axis) => value - camera.distance * forward[axis]!);
+    expect(farthestFighter - along(eye)).toBeLessThan(scenery.fog.start);
+    for (const piece of scenery.pieces) {
+      const facts = MODEL_FACTS[piece.model];
+      if (facts === undefined) throw new Error(`missing facts for ${piece.model}`);
+      const reach = modelReach(facts);
+      expect(reach.unknown).toEqual([]);
+      for (const box of reach.boxes) {
+        const placed = {
+          min: [box.min[0] * piece.scale + piece.x, box.min[1] * piece.scale + piece.y, box.min[2] * piece.scale + piece.z] as const,
+          max: [box.max[0] * piece.scale + piece.x, box.max[1] * piece.scale + piece.y, box.max[2] * piece.scale + piece.z] as const,
+        };
+        if (boxSeen(placed, camera) && Math.min(...corners(placed).map(along)) <= farthestFighter) problems.push(piece.model);
+      }
+    }
+  }
+  expect([...new Set(problems)]).toEqual([]);
+});
 
 /** The client's latest scene report, from the lines it wrote. */
 function sceneReport(client: HeadlessClient): SceneReport {
@@ -87,6 +147,81 @@ test("development build: a match's scene report shows the stage and declares eve
   expect(report.effects).toBeGreaterThan(200);
   expect(report.models.find(({ model }) => model === reportedModel(STAGE_MAIN_DECK_MODEL))).toMatchObject({ live: 1, inView: 1, drawn: 1 });
   expect(client.errors).toEqual([]);
+});
+
+test("moving decks are visible and their effects follow the presented match frame", () => {
+  for (const stage of [DRIFTING_DECK_STAGE, PATTERNED_DECKS_STAGE]) {
+    const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
+    clients.start();
+    clients.frames(30);
+    const client = clients.clients[0];
+    if (client === undefined) throw new Error("missing client");
+    client.run(() => {
+      const s = shell();
+      selectCharacter(s.game, 0, Character.archer);
+      selectCharacter(s.game, 1, Character.rifleman);
+      requestStageSelect(s.game, 0);
+      s.game.stageChoice = stage;
+      requestStart(s.game, 0);
+      startMatch(s);
+      drawStage(s);
+      for (const frame of [0, 100, 210, 420, 600]) {
+        s.game.matchFrame = frame;
+        renderPersistentPresentation(s);
+        lockArenaCamera(s);
+        for (let deck = 1; deck < s.stageDecks.length; deck++) {
+          const effect = s.stageDecks[deck];
+          if (effect === undefined) throw new Error("missing deck");
+          expect(BlzGetLocalSpecialEffectX(effect)).toBe(s.origin.x + (surfaceLeft(stage, deck, frame) + surfaceRight(stage, deck, frame)) / 2);
+          expect(BlzGetLocalSpecialEffectZ(effect)).toBe(s.origin.z + surfaceZ(stage, deck, frame));
+        }
+        trampoline("scene.report")();
+        const report = sceneReport(client);
+        expect(sceneProblems(report, SMASHCRAFT_SCENE)).toEqual([]);
+        expect(report.models.find(({ model }) => model === reportedModel(STAGE_DECK_MODEL))).toMatchObject({ live: stage === DRIFTING_DECK_STAGE ? 1 : 2, drawn: stage === DRIFTING_DECK_STAGE ? 1 : 2 });
+      }
+    });
+    expect(client.errors).toEqual([]);
+  }
+});
+
+test("every hazard stage shows its warning before acting and declares the cannon players see", () => {
+  for (const [stage, frame, warning] of [
+    [WIND_TEST_STAGE, 601, "Wind pushes right in 45 frames."],
+    [CARRIED_TEST_STAGE, 30, "Platform moves in 30 frames."],
+    [TIMED_TEST_STAGE, 60, "Platform moves in 30 frames."],
+    [CANNON_TEST_STAGE, 31, "Cannon fires in 10 frames."],
+  ] as const) {
+    const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
+    clients.start();
+    clients.frames(30);
+    const client = clients.clients[0];
+    if (client === undefined) throw new Error("missing client");
+    client.run(() => {
+      const s = shell();
+      selectCharacter(s.game, 0, Character.archer);
+      selectCharacter(s.game, 1, Character.rifleman);
+      requestStageSelect(s.game, 0);
+      s.game.stageChoice = stage;
+      requestStart(s.game, 0);
+      startMatch(s);
+      s.game.matchFrame = frame;
+      s.status.seconds = 0;
+      if (stage === CANNON_TEST_STAGE) {
+        fighterAt(s.world, 0).cannon.held = 30;
+        fighterAt(s.world, 0).cannon.firing = 1;
+      }
+      renderPersistentPresentation(s);
+      renderUi(s);
+      lockArenaCamera(s);
+      expect(client.frames.shownText()).toContain(warning);
+      trampoline("scene.report")();
+      const report = sceneReport(client);
+      expect(sceneProblems(report, SMASHCRAFT_SCENE)).toEqual([]);
+      if (stage === CANNON_TEST_STAGE) expect(report.models.find(({ model }) => model === reportedModel(CANNON_MODEL))).toMatchObject({ live: 1, drawn: 1 });
+    });
+    expect(client.errors).toEqual([]);
+  }
 });
 
 test("the two shipped defects fail the scene check from the match's first report", () => {

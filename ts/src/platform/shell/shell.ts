@@ -239,7 +239,6 @@ function initialize(): void {
   CameraSetSmoothingFactor(0.0);
   SetTimeOfDay(12.0);
   SetTimeOfDayScale(0.0);
-  SetSkyModel("Environment\\Sky\\LordaeronSummerSky\\LordaeronSummerSky.mdl");
   startPlayerFiles();
   makePreview(s);
   lockArenaCamera(s);

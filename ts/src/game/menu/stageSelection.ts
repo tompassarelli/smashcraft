@@ -3,7 +3,7 @@
 // cursor; only a finished choice crosses the sync event.
 
 /** The playable stages' tiles, left to right. */
-export type StageTile = 0 | 1;
+export type StageTile = 0 | 1 | 2;
 
 /** What the button did when it went down. */
 type StageGesture =
@@ -22,19 +22,20 @@ interface StageDrag {
 const CARRY: StageGesture = { kind: "carry" };
 
 export function stageTileLeft(choice: number): number {
-  return choice === 0 ? 0.45399999618530273 : 0.6119999885559082;
+  return choice === 0 ? 0.45399999618530273 : choice === 1 ? 0.5559999942779541 : 0.6579999923706055;
 }
 
 export function stageTileAt(x: number, y: number): StageTile | undefined {
   if (y < 0.2980000078678131 || y > 0.41600000858306885) return undefined;
-  if (x >= 0.45399999618530273 && x <= 0.5960000157356262) return 0;
-  if (x >= 0.6119999885559082 && x <= 0.7540000081062317) return 1;
+  if (x >= 0.45399999618530273 && x <= 0.5479999780654907) return 0;
+  if (x >= 0.5559999942779541 && x <= 0.6499999761581421) return 1;
+  if (x >= 0.6579999923706055 && x <= 0.7519999742507935) return 2;
   return undefined;
 }
 
 /** The chip is centered on the chosen tile; a press within 0.02 of its center picks it up. */
 function onStageChip(choice: number, x: number, y: number): boolean {
-  const dx = x - (stageTileLeft(choice) + 0.07100000232458115);
+  const dx = x - (stageTileLeft(choice) + 0.04699999839067459);
   const dy = y - 0.3569999933242798;
   return dx * dx + dy * dy <= 0.00039999998989515007;
 }

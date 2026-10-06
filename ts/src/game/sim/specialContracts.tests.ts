@@ -18,15 +18,15 @@ test("bearRunsWithoutSwipingUntilATargetEntersItsPath", () => {
   owner.bear.velocityX = 14.0;
   owner.bear.surface = 0;
   const world = testWorld(owner, target);
-  for (let frame = 1; frame <= 10; frame++) advanceSpecials(world, 0);
+  for (let frame = 1; frame <= 10; frame++) advanceSpecials(world, 0, 0);
   assertEquals(owner.bear.hitSerial, 0);
   assertEquals(owner.bear.swipeCooldown, 0);
   assertEquals(target.status.damage, 0.0);
   target.motion.x = f32(owner.bear.x + 40.0);
-  advanceSpecials(world, 0);
+  advanceSpecials(world, 0, 0);
   assertEquals(owner.bear.hitSerial, 1);
   assertGreaterThan(target.status.damage, 0.0);
-  advanceSpecials(world, 0);
+  advanceSpecials(world, 0, 0);
   assertEquals(owner.bear.hitSerial, 1);
 });
 

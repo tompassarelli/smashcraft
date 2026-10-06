@@ -1,0 +1,9 @@
+bun test v1.3.13 (bf2e2cec)
+
+test/local-start.test.ts:
+(pass) #60: every local press starts in the presser's next prediction unless a remote holds prediction back [1292.02ms]
+
+ 1 pass
+ 0 fail
+ 8 expect() calls
+Ran 1 test across 1 file. [1468.00ms]

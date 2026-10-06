@@ -267,6 +267,9 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("ledgeSerial", e.ledge.serial, a.ledge.serial);
   add("ledgeIntangible", e.ledge.intangible, a.ledge.intangible);
   add("ledgeRegrab", e.ledge.regrab, a.ledge.regrab);
+  add("cannonHeld", e.cannon.held ?? -1, a.cannon.held ?? -1);
+  add("cannonFiring", e.cannon.firing ?? -1, a.cannon.firing ?? -1);
+  add("cannonCooldown", e.cannon.cooldown, a.cannon.cooldown);
   return found;
 }
 
@@ -316,6 +319,7 @@ export function firstStateDifference(expected: Readonly<ReplayState>, actual: Re
   if (e.automaticRematch !== a.automaticRematch) return "match.automaticRematch";
   if (e.rematchCountdown !== a.rematchCountdown) return "match.rematchCountdown";
   if (e.remainingFrames !== a.remainingFrames) return "match.remainingFrames";
+  if (e.matchFrame !== a.matchFrame) return "match.matchFrame";
   if (e.timedOut !== a.timedOut) return "match.timedOut";
   if (expected.runtime.simulationFrame !== actual.runtime.simulationFrame) return "runtime.simulationFrame";
   for (const slot of PARTICIPANT_SLOTS) {

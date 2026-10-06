@@ -1,0 +1,16 @@
+{
+  "base": "e628cc77a89d614172ab2b46694beb83ff79622c",
+  "typedAheadCharacters": 160,
+  "receiptTicks": 2,
+  "slot": 0,
+  "frame": 1584,
+  "captureCallback": 1686,
+  "predictedCallback": 1691,
+  "remoteThroughAtAdmission": 1558,
+  "speculativeFrameAtAdmission": 1583,
+  "rollbackFrames": 24,
+  "remoteDistance": 26,
+  "windowHaltedAtAdmission": true,
+  "predictionHeldBeforeFix": false,
+  "legalAndStartedAction": 32
+}

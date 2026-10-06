@@ -7,7 +7,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { meleeAtan2, meleeCos, meleeSin } from "../../sim/meleeScalarMath";
 import { Character } from "./codes";
 import type { Fighter, MeleeMotionValue } from "./fighter";
-import { surfaceCount, surfaceLeft, surfacePass, surfaceRight, surfaceZ } from "./stage";
+import { surfaceCount, surfaceLeft, surfaceMoves, surfacePass, surfaceRight, surfaceShiftX, surfaceShiftZ, surfaceZ } from "./stage";
 import { WORLD_UNITS_PER_MELEE_UNIT, melee } from "./tuning";
 
 function setOriginal(value: MeleeMotionValue, original: number): void {
@@ -224,17 +224,32 @@ export function decayedAirMotion(horizontal: number, vertical: number, decay: nu
   return decayed;
 }
 
-/** The highest deck whose top the step from old to new crosses downward, within its span at both crossing and end. */
-export function landingAlongShift(f: Fighter, stage: number, oldX: number, oldZ: number, newX: number, newZ: number): number | undefined {
-  if (newZ >= oldZ) return undefined;
+/**
+ * The highest deck whose top the step from old to new crosses downward,
+ * within its span at both crossing and end, on match frame `matchFrame`. A
+ * shift within the frame meets every deck where it is; a step `overFrame`
+ * starts where the fighter was relative to each moving deck a frame ago, as
+ * Melee's mpCheckFloorRemap moves the previous position with its line.
+ */
+export function landingAlongShift(f: Fighter, stage: number, matchFrame: number, oldX: number, oldZ: number, newX: number, newZ: number, overFrame: boolean): number | undefined {
   let landing: number | undefined;
+  let landingZ = 0.0;
   for (let i = 0; i < surfaceCount(stage); i++) {
-    const platformZ = surfaceZ(stage, i);
-    if (oldZ >= platformZ && newZ <= platformZ && !(surfacePass(stage, i) && f.motion.dropTime > 0)) {
-      const fraction = f32(f32(oldZ - platformZ) / f32(oldZ - newZ));
-      const crossingX = f32(oldX + f32(f32(newX - oldX) * fraction));
-      if (crossingX >= surfaceLeft(stage, i) && crossingX <= surfaceRight(stage, i) && newX >= surfaceLeft(stage, i) && newX <= surfaceRight(stage, i)) {
-        if (landing === undefined || platformZ > surfaceZ(stage, landing)) landing = i;
+    const follows = overFrame && surfaceMoves(stage, i);
+    const fromX = follows ? f32(oldX + surfaceShiftX(stage, i, matchFrame)) : oldX;
+    const fromZ = follows ? f32(oldZ + surfaceShiftZ(stage, i, matchFrame)) : oldZ;
+    if (newZ >= fromZ) continue;
+    const platformZ = surfaceZ(stage, i, matchFrame);
+    if (fromZ >= platformZ && newZ <= platformZ && !(surfacePass(stage, i) && f.motion.dropTime > 0)) {
+      const fraction = f32(f32(fromZ - platformZ) / f32(fromZ - newZ));
+      const crossingX = f32(fromX + f32(f32(newX - fromX) * fraction));
+      const left = surfaceLeft(stage, i, matchFrame);
+      const right = surfaceRight(stage, i, matchFrame);
+      if (crossingX >= left && crossingX <= right && newX >= left && newX <= right) {
+        if (landing === undefined || platformZ > landingZ) {
+          landing = i;
+          landingZ = platformZ;
+        }
       }
     }
   }

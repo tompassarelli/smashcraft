@@ -31,6 +31,8 @@ export interface MatchState {
   /** Frames until the automatic rematch starts; 0 while none counts down. */
   rematchCountdown: number;
   remainingFrames: number;
+  /** Frames this match has run; moving decks follow their paths by it. */
+  matchFrame: number;
   timedOut: boolean;
   practice: boolean;
 }
@@ -41,7 +43,7 @@ export function createMatchState(): MatchState {
     characterReadiness: [false, false, false, false], rematchReadiness: [false, false, false, false],
     departedMask: 0, interrupted: false, humanMask: 1, humanFighterMask: 1, humanCount: 1, computerMask: 0,
     stageChoice: 0, winner: undefined, stockCount: 3, timeLimitMinutes: 7, endless: false, automaticRematch: false, rematchCountdown: 0,
-    remainingFrames: 7 * 60 * MATCH_TICKS_PER_SECOND, timedOut: false, practice: false,
+    remainingFrames: 7 * 60 * MATCH_TICKS_PER_SECOND, matchFrame: 0, timedOut: false, practice: false,
   };
 }
 
@@ -134,6 +136,7 @@ export function copyMatchState(target: MatchState, source: Readonly<MatchState>)
   target.automaticRematch = source.automaticRematch;
   target.rematchCountdown = source.rematchCountdown;
   target.remainingFrames = source.remainingFrames;
+  target.matchFrame = source.matchFrame;
   target.timedOut = source.timedOut;
   target.practice = source.practice;
   for (const slot of PARTICIPANT_SLOTS) {
@@ -182,7 +185,7 @@ export function recallCharacter(game: MatchState, actor: number, chip: number): 
 }
 
 export function selectStage(game: MatchState, slot: number, choice: number): void {
-  if (game.phase === Phase.stageMenu && humanActive(game, slot) && choice >= 0 && choice <= 1) game.stageChoice = choice;
+  if (game.phase === Phase.stageMenu && humanActive(game, slot) && choice >= 0 && choice <= 2) game.stageChoice = choice;
 }
 
 export function requestStageSelect(game: MatchState, slot: number): boolean {
@@ -227,6 +230,7 @@ function beginMatch(game: MatchState): void {
   game.rematchCountdown = 0;
   game.practice = practiceSelected(game);
   game.remainingFrames = timedMatch(game) ? game.timeLimitMinutes * 60 * MATCH_TICKS_PER_SECOND : 0;
+  game.matchFrame = 0;
   game.phase = Phase.match;
 }
 

@@ -9,7 +9,7 @@ import { applyAttackHit } from "./hits";
 import { DIAGONAL_UNIT } from "./knockback";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type Roster, fighterAt, isActive } from "./roster";
-import { surfaceLeft, surfaceRight, surfaceZ } from "./stage";
+import { mainDeckLeft, mainDeckRight, mainDeckZ, surfaceZ } from "./stage";
 import { cancelAttack, cancelSpecialState, clearDownState, clearGrabLinks, clearLedge, clearOwnedFreezeTrap } from "./transitions";
 
 export const RIFLEMAN_BEAR_LIFETIME = 100;
@@ -43,7 +43,7 @@ export function recordSpecialHit(owner: Fighter, targetSlot: number): void {
 }
 
 /** Places a trap at a grounded Rifleman's feet, one at a time and after its cooldown. */
-export function startFreezeTrap(owner: Fighter, stage: number): boolean {
+export function startFreezeTrap(owner: Fighter, stage: number, matchFrame: number): boolean {
   const { motion } = owner;
   const trap = owner.freezeTrap;
   if (owner.character !== Character.rifleman || !motion.grounded || motion.surface === undefined || trap.life > 0 || trap.cooldown > 0 || !canAttack(owner)) {
@@ -52,7 +52,7 @@ export function startFreezeTrap(owner: Fighter, stage: number): boolean {
   trap.x = motion.x;
   motion.crouching = false;
   trap.surface = motion.surface;
-  trap.z = surfaceZ(stage, motion.surface);
+  trap.z = surfaceZ(stage, motion.surface, matchFrame);
   trap.life = FREEZE_TRAP_LIFETIME_FRAMES;
   trap.arming = FREEZE_TRAP_ARMING_FRAMES;
   trap.serial++;
@@ -137,7 +137,7 @@ export function advanceFreezeTraps(world: Roster): void {
 }
 
 /** The bear walks, falls to the main deck, and swipes everyone within reach on an interval. */
-export function advanceBear(world: Roster, ownerSlot: number, stage: number): void {
+export function advanceBear(world: Roster, ownerSlot: number, stage: number, matchFrame: number): void {
   const owner = fighterAt(world, ownerSlot);
   const { bear } = owner;
   if (bear.life <= 0) return;
@@ -145,12 +145,12 @@ export function advanceBear(world: Roster, ownerSlot: number, stage: number): vo
   bear.x = f32(bear.x + bear.velocityX);
   if (bear.swipeCooldown > 0) bear.swipeCooldown--;
   if (bear.surface !== undefined) {
-    bear.z = surfaceZ(stage, bear.surface);
+    bear.z = surfaceZ(stage, bear.surface, matchFrame);
   } else {
     bear.velocityZ = max(-owner.tuning.physics.terminalSpeed, f32(bear.velocityZ - owner.tuning.physics.gravity));
     bear.z = f32(bear.z + bear.velocityZ);
-    if (bear.z <= surfaceZ(stage, 0)) {
-      bear.z = surfaceZ(stage, 0);
+    if (bear.z <= mainDeckZ(stage)) {
+      bear.z = mainDeckZ(stage);
       bear.velocityZ = 0.0;
       bear.surface = 0;
     }
@@ -169,7 +169,7 @@ export function advanceBear(world: Roster, ownerSlot: number, stage: number): vo
       bear.hitSerial++;
     }
   }
-  if (bear.life <= 0 || bear.x < f32(surfaceLeft(stage, 0) - 100) || bear.x > f32(surfaceRight(stage, 0) + 100)) bear.life = 0;
+  if (bear.life <= 0 || bear.x < f32(mainDeckLeft(stage) - 100) || bear.x > f32(mainDeckRight(stage) + 100)) bear.life = 0;
 }
 
 /** A mount rides above its archer; cover flies ahead and strikes each target it passes once. */
