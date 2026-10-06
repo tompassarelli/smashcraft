@@ -16,6 +16,8 @@ const MANA_FLASH_BLINK = 6;
 /** A rise of at least this much in one update glows; the trickle's single points never do. */
 export const MANA_GLOW_GAIN = 3;
 export const MANA_GLOW_UPDATES = 12;
+/** Rendered updates the bar burns purple after an opponent's hit drains it, about a third of a second. */
+export const MANA_DRAIN_UPDATES = 20;
 
 /** UI height of the overhead bar and its border, and the gap kept from the escape meter under it. */
 /** The overhead bar's length, the escape meter's. */
@@ -31,17 +33,24 @@ export interface ManaFeedback {
   seenPoints: number;
   flashLeft: number;
   glowLeft: number;
+  /** The drain count last seen; a larger one burns the bar purple. */
+  seenDrains: number;
+  drainLeft: number;
 }
 
-export const manaFeedback = (): ManaFeedback => ({ seenDenials: 0, seenPoints: -1, flashLeft: 0, glowLeft: 0 });
+export const manaFeedback = (): ManaFeedback => ({ seenDenials: 0, seenPoints: -1, flashLeft: 0, glowLeft: 0, seenDrains: 0, drainLeft: 0 });
 
-/** Advances one rendered update from the fighter's points and refusal count. */
-export function advanceManaFeedback(feedback: ManaFeedback, points: number, denials: number): void {
+/** Advances one rendered update from the fighter's points, refusal count and drain count. */
+export function advanceManaFeedback(feedback: ManaFeedback, points: number, denials: number, drains: number): void {
   if (feedback.seenPoints < 0) {
     feedback.seenPoints = points;
     feedback.seenDenials = denials;
+    feedback.seenDrains = drains;
     return;
   }
+  if (drains > feedback.seenDrains) feedback.drainLeft = MANA_DRAIN_UPDATES;
+  else if (feedback.drainLeft > 0) feedback.drainLeft--;
+  feedback.seenDrains = drains;
   if (denials > feedback.seenDenials) feedback.flashLeft = MANA_FLASH_UPDATES;
   else if (feedback.flashLeft > 0) feedback.flashLeft--;
   feedback.seenDenials = denials;
@@ -53,6 +62,11 @@ export function advanceManaFeedback(feedback: ManaFeedback, points: number, deni
 /** Whether the refusal flash is lit this update: it blinks while it lasts. */
 export function manaFlashLit(feedback: Readonly<ManaFeedback>): boolean {
   return feedback.flashLeft > 0 && imod(idiv(MANA_FLASH_UPDATES - feedback.flashLeft, MANA_FLASH_BLINK), 2) === 0;
+}
+
+/** Whether the drain burn is lit: an opponent's hit just took mana. */
+export function manaDrainLit(feedback: Readonly<ManaFeedback>): boolean {
+  return feedback.drainLeft > 0;
 }
 
 export function manaGlowLit(feedback: Readonly<ManaFeedback>): boolean {

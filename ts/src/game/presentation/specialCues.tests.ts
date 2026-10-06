@@ -7,7 +7,7 @@ import { createFighter } from "../sim/fighter";
 import { HERO_ROSTER } from "../sim/heroes/registry";
 import type { AuthoredSpecial } from "../sim/heroSpecials";
 import { SPECIAL_SLOTS } from "./projectileArt";
-import { HERO_CUES, ORIGINAL_CUES, fighterMoveCues, heroCueWindows, specialCueState } from "./specialCues";
+import { HERO_BRANCH_CUES, HERO_CUES, ORIGINAL_CUES, fighterBranchCues, fighterMoveCues, heroCueWindows, specialCueState } from "./specialCues";
 
 const FIGHTERS: readonly Character[] = [
   Character.archer, Character.rifleman, Character.demonHunter, Character.blademaster, Character.mountainKing,
@@ -29,11 +29,11 @@ test("every fighter's four specials each show a startup and an active spell", ()
   }
 });
 
-test("no two moves show the same startup and active pair, nor the same active spell", () => {
+test("no two moves or branches show the same startup and active pair, nor the same active spell", () => {
   const pairs = new Map<string, string>();
   const actives = new Map<string, string>();
   for (const character of FIGHTERS) {
-    fighterMoveCues(character).forEach((move, slot) => {
+    [...fighterMoveCues(character), ...fighterBranchCues(character)].forEach((move, slot) => {
       const id = `${character}:${slot} ${move.spell}`;
       const pair = `${move.startup.model}|${move.active.model}`;
       assertEquals(pairs.get(pair), undefined, `${id} pair`);
@@ -91,4 +91,33 @@ test("a running special shows its startup cue, then its active cue", () => {
   illidan.special.frame = 1;
   assertEquals(specialCueState(illidan).phase, "startup");
   assertTrue(specialCueState(illidan).cues === ORIGINAL_CUES[SpecialAction.demonHunterManaBurn]);
+});
+
+test("every hero branch (recall, marked form, follow-up) names its cue", () => {
+  let branches = 0;
+  for (const hero of HERO_ROSTER) {
+    const specials = hero.specials;
+    if (specials === undefined) continue;
+    for (const slot of SPECIAL_SLOTS) {
+      const kit = specials[slot];
+      const named = HERO_BRANCH_CUES[hero.character]?.[slot];
+      if (kit.recall !== undefined) {
+        assertEquals(named?.recall !== undefined, true, `${hero.name} ${slot} recall`);
+        branches++;
+      }
+      if (kit.marked !== undefined) {
+        assertEquals(named?.marked !== undefined, true, `${hero.name} ${slot} marked`);
+        branches++;
+      }
+      const kitForms = [kit.ground, kit.air, kit.free, kit.recall, kit.marked?.special];
+      for (let form = 0; form < 5; form++) {
+        const followUps = kitForms[form]?.followUps ?? [];
+        for (let index = 0; index < followUps.length; index++) {
+          assertEquals(named?.followUps?.[index] !== undefined, true, `${hero.name} ${slot} follow-up ${index}`);
+          branches++;
+        }
+      }
+    }
+  }
+  assertTrue(branches >= 10);
 });

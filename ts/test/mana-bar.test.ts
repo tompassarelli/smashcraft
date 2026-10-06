@@ -9,7 +9,7 @@ import { AttackStyle } from "../src/game/sim/codes";
 import { resolveGrabs } from "../src/game/sim/grabs";
 import { attackStartupFrames } from "../src/game/sim/moves";
 import { fighterAt } from "../src/game/sim/roster";
-import { MANA_BAR_SEGMENTS, OVERHEAD_MANA_WIDTH } from "../src/game/presentation/manaBar";
+import { MANA_BAR_SEGMENTS, MANA_DRAIN_UPDATES, OVERHEAD_MANA_WIDTH, advanceManaFeedback, manaDrainLit, manaFeedback } from "../src/game/presentation/manaBar";
 import { plateManaSlot } from "../src/game/ui/matchHud";
 
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
@@ -118,4 +118,16 @@ test("a held fighter's mana bar stacks just above its escape meter, never over i
   }
   for (const client of clients.clients) expect(client.errors).toEqual([]);
   expect(clients.firstDivergence()).toBeUndefined();
+});
+
+test("an opponent's draining hit burns the bar purple for a moment", () => {
+  const feedback = manaFeedback();
+  advanceManaFeedback(feedback, 50, 0, 0);
+  expect(manaDrainLit(feedback)).toBe(false);
+  advanceManaFeedback(feedback, 44, 0, 1);
+  expect(manaDrainLit(feedback)).toBe(true);
+  for (let update = 1; update < MANA_DRAIN_UPDATES; update++) advanceManaFeedback(feedback, 44, 0, 1);
+  expect(manaDrainLit(feedback)).toBe(true);
+  advanceManaFeedback(feedback, 44, 0, 1);
+  expect(manaDrainLit(feedback)).toBe(false);
 });

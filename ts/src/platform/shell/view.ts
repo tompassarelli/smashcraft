@@ -232,7 +232,7 @@ const meter = escapeMeterView();
 /** A fighter's overhead mana bar: over its head, stacked above its escape meter when that shows. */
 function presentOverheadMana(bar: ManaBar, fighter: Readonly<Fighter> | undefined, escapeShown: boolean, framing: Readonly<MatchCamera>, aspect: number): void {
   if (fighter === undefined || fighter.status.out) {
-    bar.update(false, fighter?.mana.points ?? 0, fighter?.visuals.manaDenied ?? 0);
+    bar.update(false, fighter?.mana.points ?? 0, fighter?.visuals.manaDenied ?? 0, fighter?.visuals.manaDrained ?? 0);
     return;
   }
   const point = cameraPoint(framing, aspect, fighter.motion.x, overheadAnchorZ(fighter));
@@ -241,7 +241,7 @@ function presentOverheadMana(bar: ManaBar, fighter: Readonly<Fighter> | undefine
     const centerX = f32(0.4) + (point.column - 0.5) * aspect * f32(0.6);
     bar.place(centerX - OVERHEAD_MANA_WIDTH / 2.0, (1.0 - point.row) * f32(0.6) + overheadManaLift(escapeShown), OVERHEAD_MANA_WIDTH);
   }
-  bar.update(onScreen, fighter.mana.points, fighter.visuals.manaDenied);
+  bar.update(onScreen, fighter.mana.points, fighter.visuals.manaDenied, fighter.visuals.manaDrained);
 }
 
 /** Frames the live fighters of the presented match from the side. */
@@ -289,10 +289,10 @@ export function renderUi(s: ShellState): void {
     if (s.participants[slot].body !== undefined && isActive(s.world, slot)) {
       const fighter = fighterAt(s.world, slot);
       ui.huds[slot].update(showMatch, fighter.character, fighter.status.damage, s.game.endless ? 0 : fighter.status.stocks);
-      ui.manaBars[slot].hud.update(showMatch, fighter.mana.points, fighter.visuals.manaDenied);
+      ui.manaBars[slot].hud.update(showMatch, fighter.mana.points, fighter.visuals.manaDenied, fighter.visuals.manaDrained);
     } else {
       ui.huds[slot].update(false, 0, 0.0, 0);
-      ui.manaBars[slot].hud.update(false, 0, 0);
+      ui.manaBars[slot].hud.update(false, 0, 0, 0);
     }
     ui.selections[slot].update(game, ui.settings[slot].isOpen());
     ui.settings[slot].update();
