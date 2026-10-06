@@ -2,6 +2,7 @@
 // client had none, a computer Illidan made three, and the match stopped at
 // 7:00 on its first frames with nothing on screen. Here in two simulated
 // clients of the playable build, with Battle.net's measured sync latency.
+import { holdingStart } from "../src/game/match/rules";
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { Action, bit } from "../src/game/input/actions";
@@ -54,6 +55,8 @@ test("a human without a controller helper plays on the keyboard: the match runs,
   frames(20);
   expect([shows(a, WAITING), shows(b, WAITING)]).toEqual([false, false]);
   expect(player2Actions).toBe(0);
+  // Keys move the fighter from GO!, after the countdown's hold.
+  for (let i = 0; i < 240 && value(a, () => holdingStart(shell().game)); i++) frames(1);
   // Player 2 holds QWERTY's move right.
   const before = player2X(a);
   held.set(1, new Set([Key.r]));

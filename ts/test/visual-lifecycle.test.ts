@@ -1,7 +1,8 @@
 import { afterAll, expect, test } from "bun:test";
 import { createFrameControls } from "../src/game/match/controls";
 import { captureFrame, createMatchFrameInput } from "../src/game/match/frameInput";
-import { Phase, requestStageSelect, requestStart, selectCharacter } from "../src/game/match/rules";
+import { Phase, requestStageSelect, selectCharacter } from "../src/game/match/rules";
+import { startAtGo } from "../src/game/match/testMatch";
 import { IMPACT_DUST, IMPACTS_PER_KIND } from "../src/game/presentation/impactState";
 import { FLOOR_HEIGHT } from "../src/game/presentation/arenaCamera";
 import { ReplayCorrections, ReplayHistory } from "../src/game/replay/history";
@@ -97,7 +98,7 @@ test("combat effects: rollback, pause/resume and rematch neither replay nor reta
     selectCharacter(s.game, 0, Character.demonHunter);
     selectCharacter(s.game, 1, Character.archer);
     expect(requestStageSelect(s.game, 0)).toBe(true);
-    expect(requestStart(s.game, 0)).toBe(true);
+    expect(startAtGo(s.game, 0)).toBe(true);
     startMatch(s);
     s.game.timeLimitMinutes = 0;
     const handles = new Set([...effectPoses(client)].filter(([, pose]) => hidden(pose)).map(([handle]) => handle));
@@ -177,7 +178,7 @@ test("combat effects: rollback, pause/resume and rematch neither replay nor reta
     expect(s.game.phase).toBe(Phase.characterMenu);
     expect(visible(client, handles).size).toBe(0);
     expect(requestStageSelect(s.game, 0)).toBe(true);
-    expect(requestStart(s.game, 0)).toBe(true);
+    expect(startAtGo(s.game, 0)).toBe(true);
     startMatch(s);
     expect(s.runtime.simulationFrame).toBe(0);
     expect(visible(client, handles).size).toBe(0);
@@ -204,7 +205,7 @@ test("quick match: a shot's missile and the idle missile pools stay out of the a
     selectCharacter(s.game, 0, Character.archer);
     selectCharacter(s.game, 1, Character.rifleman);
     expect(requestStageSelect(s.game, 0)).toBe(true);
-    expect(requestStart(s.game, 0)).toBe(true);
+    expect(startAtGo(s.game, 0)).toBe(true);
     startMatch(s);
     s.game.timeLimitMinutes = 0;
     // The two idle fighters' missile pools, before any input.
@@ -239,7 +240,7 @@ test("quick match: a shot's missile and the idle missile pools stay out of the a
     confirm(s, 0);
     confirm(s, 1);
     expect(requestStageSelect(s.game, 0)).toBe(true);
-    expect(requestStart(s.game, 0)).toBe(true);
+    expect(startAtGo(s.game, 0)).toBe(true);
     startMatch(s);
     expect(hiddenInView(client)).toEqual([]);
   });
