@@ -71,7 +71,7 @@ export interface CaptureEvidence {
   readonly exports: ReadonlyMap<number, readonly [ClientExport, ClientExport]>;
 }
 
-export interface Distribution {
+interface Distribution {
   readonly n: number;
   readonly p50: number | undefined;
   readonly p95: number | undefined;
