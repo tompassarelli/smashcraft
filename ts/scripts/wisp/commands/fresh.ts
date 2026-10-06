@@ -7,7 +7,7 @@
 // CustomMapData. A client that crashes or loses Battle.net stops fresh at once
 // (wisp:docs/watch.md).
 import { basename, join } from "node:path";
-import { Clock, Console, Effect, Layer } from "effect";
+import { Clock, Console, Effect, Layer, Schedule } from "effect";
 import { QUICK_MATCH_COMMAND } from "../../../src/game/shell/devSettings";
 import { devCommandReceiptFile, MELEE_READY_FILE } from "../../../src/runtime/gameFiles";
 import { DevCommandReceipt, MeleeReady } from "../boundary";
@@ -18,7 +18,7 @@ import { GameFiles, dataDirectory, prepareHotFolders, readGameFile } from "wisp/
 import { checkPlayerView } from "wisp/scripts/wisp/playerView";
 import { step } from "wisp/scripts/wisp/timings";
 import { hostLobby, joinLobby, leaveLobby, reportedMenus, startLobby } from "wisp/scripts/wisp/menus";
-import { ClientWatch, unlessLost } from "wisp/scripts/wisp/watch";
+import { ClientWatch, inState, unlessLost, waitFor as waitForState } from "wisp/scripts/wisp/watch";
 import { rebuildMap } from "../mapInputs";
 
 // Regions of the 2560x1440 frame where each screen's identifying label appears.
@@ -88,14 +88,32 @@ export const freshMatch = (map: string, fromGame = false) => Effect.scoped(Effec
   // A page join of a game without a password lands the guest in Battle.net's
   // password prompt; a private game joined with its password does not. A
   // client driven by clicks types no password, so its game stays public.
-  const password = connections.every((socket) => socket !== undefined) ? gamePassword() : "";
+  const paged = connections.every((socket) => socket !== undefined);
+  const password = paged ? gamePassword() : "";
 
   const read = (client: Client, region: typeof RESULTS, ink: "light" | "gold", pattern: RegExp) =>
     clients.read(client, region, ink).pipe(Effect.map((text) => pattern.test(text)));
   const click = (client: Client, at: { readonly x: number; readonly y: number }) => clients.click(client, at.x, at.y);
 
+  /**
+   * With every client's menu page, from wherever the watch places the client to its menus:
+   * a lobby or match is left through the page, and the score screen with Escape
+   * (Warcraft III 3.0 ignores the page's ScoreScreenClose). The page hosts from any menu screen.
+   */
+  const leaveByEvents = (client: Client, socket: NonNullable<(typeof connections)[number]>) => Effect.gen(function*() {
+    const { state } = yield* ClientWatch.use((watch) => watch.view(client));
+    if (state.kind === "menus" || state.kind === "signed in") return;
+    if (state.kind === "lobby" || state.kind === "loading" || state.kind === "in match") yield* leaveLobby(socket);
+    if (state.kind === "lobby") return;
+    yield* Effect.sleep("2 seconds");
+    yield* clients.keys(client, "Escape");
+    yield* waitForState(client, inState("menus"), { what: "the menus", seconds: 20 });
+  }).pipe(step(`${client.name} at the menus`));
+
   /** From a running game, its score screen, a lobby, Create Game or Custom Games, to Custom Games. */
   const leave = (client: Client) => Effect.gen(function*() {
+    const page = menus.get(client.name);
+    if (paged && page !== undefined) return yield* leaveByEvents(client, page);
     if (!fromGame && (yield* read(client, CUSTOM_GAMES, "light", /CREATE/i))) return;
     const socket = menus.get(client.name);
     if (!fromGame && socket !== undefined && (yield* read(client, LOBBY, "light", LOBBY_READY))) {
@@ -156,7 +174,8 @@ export const freshMatch = (map: string, fromGame = false) => Effect.scoped(Effec
   const joinByName = (client: Client) => Effect.gen(function*() {
     const socket = menus.get(client.name);
     if (socket !== undefined) {
-      yield* joinLobby(socket, game, password);
+      // A join sent as the host's lobby appears went unanswered on 7 Oct (client B); the same join a second later entered it.
+      yield* joinLobby(socket, game, password, 10).pipe(Effect.retry({ times: 2, schedule: Schedule.spaced("2 seconds") }));
       return;
     }
     yield* click(client, JOIN);
@@ -187,9 +206,12 @@ export const freshMatch = (map: string, fromGame = false) => Effect.scoped(Effec
   yield* Effect.all([install, ...clients.all.map(leave)], { concurrency: "unbounded", discard: true });
   yield* Effect.all([unlessLost(first, host(first)), ...others.map(prepareJoin)], { concurrency: clients.all.length, discard: true });
   yield* Effect.forEach(others, (client) => unlessLost(client, joinByName(client)), { discard: true });
-  yield* unlessLost(first, waitForText(first, "all players", new RegExp(`PLAYERS\\s*:?\\s*${clients.all.length}\\s*/\\s*4`, "i"), LOBBY, "light", 60)).pipe(step("everyone in the lobby"));
-  const start = yield* Clock.currentTimeMillis;
+  // Each page join returns once its guest is in the lobby; without pages the host's player count is read.
+  if (!paged) yield* unlessLost(first, waitForText(first, "all players", new RegExp(`PLAYERS\\s*:?\\s*${clients.all.length}\\s*/\\s*4`, "i"), LOBBY, "light", 60)).pipe(step("everyone in the lobby"));
   const hostMenus = menus.get(first.name);
+  // A LobbyStart sent as soon as the lobby exists crashed Warcraft III 3.0 in 6 of 6 starts on client B; 2 s later, 0 of 11 (smashcraft#119).
+  if (hostMenus !== undefined) yield* Effect.sleep("2 seconds");
+  const start = yield* Clock.currentTimeMillis;
   if (hostMenus === undefined) yield* click(first, START);
   else yield* startLobby(hostMenus);
   return yield* Effect.forEach(clients.all, (client) => unlessLost(client, readyAfter(client, start)), { concurrency: "unbounded" }).pipe(step("every client at character selection"));

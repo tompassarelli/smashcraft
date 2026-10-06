@@ -4,6 +4,7 @@ import { Effect, Layer } from "effect";
 import { expect, test } from "bun:test";
 import { Clients, type Client } from "wisp/scripts/wisp/clients";
 import { GameFiles } from "wisp/scripts/wisp/gameFiles";
+import { ClientWatch, type ClientView } from "wisp/scripts/wisp/watch";
 import { CREATE, CREATE_GAME, CREATE_TITLE, CUSTOM_GAMES, FIRST_MAP, JOIN, LOBBY, MAP_TITLE, START, freshMatch } from "../scripts/wisp/commands/fresh";
 
 test.each([[true, false], [false, true], [true, true]])("fresh uses each client's page independently (host=%s, guest=%s)", async (hostPage, guestPage) => {
@@ -105,7 +106,9 @@ test.each([[true, false], [false, true], [true, true]])("fresh uses each client'
       write: () => Effect.void, replace: () => Effect.void, remove: () => Effect.void,
       list: () => Effect.succeed([]), installMap: () => Effect.void,
     });
-    await Effect.runPromise(freshMatch("/maps/test.w3x").pipe(Effect.provide(Layer.merge(Layer.succeed(Clients, driver), Layer.succeed(GameFiles, files)))));
+    // Both clients sit in their menus, as the watch reports them.
+    const watch = ClientWatch.of({ view: () => Effect.succeed({ state: { kind: "menus" } } as unknown as ClientView) });
+    await Effect.runPromise(freshMatch("/maps/test.w3x").pipe(Effect.provide(Layer.mergeAll(Layer.succeed(Clients, driver), Layer.succeed(GameFiles, files), Layer.succeed(ClientWatch, watch)))));
     expect([...state.values()]).toEqual(["playing", "playing"]);
     if (hostPage) {
       expect(commands).toContain("a:CreateLobby");
@@ -126,4 +129,4 @@ test.each([[true, false], [false, true], [true, true]])("fresh uses each client'
     for (const interval of intervals) clearInterval(interval);
     for (const server of servers) server.stop(true);
   }
-});
+}, 10_000);

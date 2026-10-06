@@ -47,7 +47,7 @@ export const accept: Command = (args) => {
       }
       yield* freshMatch(profile.path, false);
       yield* sendDevCommand(profile.quick).pipe(step(profile.quick));
-    }).pipe(Effect.provide(options.services.pipe(Layer.provideMerge(Clients.layer(clientState)))));
+    }).pipe(Effect.provide(Layer.merge(options.services.pipe(Layer.provideMerge(Clients.layer(clientState))), smashcraftWatch())));
   });
   const driver = liveAcceptDriver({
     start,
