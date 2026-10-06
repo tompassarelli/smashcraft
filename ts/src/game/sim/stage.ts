@@ -9,9 +9,18 @@ import { squareRoot } from "./warcraftMath";
 
 /** Stage 1's layout with solid raised decks; collision tests only, never selectable. */
 export const SOLID_DECK_TEST_STAGE = 2;
+/** Stage 1's layout with Dream Land's wind (stageHazards.ts); tests and the soak only, never selectable. */
+export const WIND_TEST_STAGE = 10;
+/** Stage 1's layout with Kongo Jungle's barrel cannon beneath it (stageHazards.ts); tests and the soak only, never selectable. */
+export const CANNON_TEST_STAGE = 12;
+
+/** Stage 1's three pass-through decks. */
+function hasBridgeDecks(stage: number): boolean {
+  return stage === 1 || stage === WIND_TEST_STAGE || stage === CANNON_TEST_STAGE;
+}
 
 function hasRaisedDecks(stage: number): boolean {
-  return stage === 1 || stage === SOLID_DECK_TEST_STAGE;
+  return hasBridgeDecks(stage) || stage === SOLID_DECK_TEST_STAGE;
 }
 
 /** Walkable decks. */
@@ -39,7 +48,7 @@ export function surfaceZ(stage: number, index: number): number {
 
 /** Raised decks can be dropped through and landed on from below. */
 export function surfacePass(stage: number, index: number): boolean {
-  return stage === 1 && index > 0;
+  return hasBridgeDecks(stage) && index > 0;
 }
 
 /**
@@ -155,6 +164,9 @@ const SOLID_DECK_TEST_SURFACES = [...MAIN_DECK_BODY, ...raisedDeckSurfaces(SOLID
 
 function solidSurfaces(stage: number): readonly SolidSurface[] {
   if (stage === SOLID_DECK_TEST_STAGE) return SOLID_DECK_TEST_SURFACES;
+  // Kongo Jungle 64's main stage is floor lines alone (GrOk.dat coll_data: 17
+  // floor lines, no wall or ceiling), so its barrel's shot from beneath passes up through it.
+  if (stage === CANNON_TEST_STAGE) return [];
   return surfaceCount(stage) > 0 ? MAIN_DECK_BODY : [];
 }
 

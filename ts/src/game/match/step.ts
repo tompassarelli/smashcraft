@@ -13,6 +13,7 @@ import { type Roster, fighterAt, isActive } from "../sim/roster";
 import { regenerateShield } from "../sim/shield";
 import { advanceSpecials, startFighterSpecial } from "../sim/specials";
 import { advanceFighterMotion } from "../sim/step";
+import { advanceStageCannon } from "../sim/stageHazards";
 import { advanceFreezeTraps } from "../sim/summons";
 import type { FrameControls } from "./controls";
 import { type MatchState, Phase, advanceClock, humanFighterActive, resolveStocks } from "./rules";
@@ -66,10 +67,11 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) continue;
     resetObservedActions();
-    advanceFighterMotion(world, slot, game.stageChoice, controls.inputs[slot], matchSpawnX(slot));
+    advanceFighterMotion(world, slot, game.stageChoice, controls.inputs[slot], matchSpawnX(slot), frame);
     observedFrameLegalActions[slot] = observedActions.legal;
     observedFrameStartedActions[slot] = observedActions.started;
   }
+  advanceStageCannon(world, game.stageChoice, frame, controls.inputs);
   captureGrabPauses(world);
   resolveGrabs(world);
   beginDamageContacts();

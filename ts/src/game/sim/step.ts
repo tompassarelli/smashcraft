@@ -69,6 +69,7 @@ import {
 import { advanceShieldBreak, beginShieldBreak } from "./shieldBreak";
 import { applyAutomaticSmashDirectionalInfluence, applySmashDirectionalInfluence } from "./smashDirectionalInfluence";
 import { surfaceCount, surfaceLeft, surfacePass, surfaceRight, surfaceZ } from "./stage";
+import { inStageCannon, windPush } from "./stageHazards";
 import { stickX } from "./stick";
 import { checkBlastZone, respawnFighter } from "./stocks";
 import { advanceSurfaceRecovery, advanceWallJump, leaveMainDeckBody, resolveSolidSurfaceContacts } from "./surfaces";
@@ -291,14 +292,19 @@ function landingDeck(f: Fighter, stage: number, oldX: number, oldZ: number): num
   return landing;
 }
 
-/** Advances one fighter's frame. The match step regenerates shields separately, after contact collection. */
-export function advanceFighterMotion(world: Roster, slot: number, stage: number, input: Readonly<Controls>, respawnX: number): void {
+/**
+ * Advances one fighter's frame. The match step regenerates shields separately,
+ * after contact collection. `frame` is the match frame, which drives the stage's hazards.
+ */
+export function advanceFighterMotion(world: Roster, slot: number, stage: number, input: Readonly<Controls>, respawnX: number, frame = 0): void {
   const f = fighterAt(world, slot);
   const { motion, launch, shield, attack, jump, dodge, down, status } = f;
   const physics = f.tuning.physics;
   motion.deltaX = 0.0;
   motion.deltaZ = 0.0;
   if (advanceOut(world, slot, respawnX)) return;
+  // The stage's cannon moves the fighter it holds (stageHazards.ts advanceStageCannon).
+  if (inStageCannon(f)) return;
   jump.inputAge = input.jumpPressed ? 0 : min(WALL_TECH_JUMP_INPUT_WINDOW_FRAMES, jump.inputAge + 1);
   if (advanceFreeze(f)) {
     checkBlastZone(world, slot);
@@ -487,6 +493,8 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   moveMeleeVerticalVelocity(f);
   moveMeleeZ(f, divideFloat32(launch.knockbackZ, WORLD_UNITS_PER_MELEE_UNIT));
   moveMeleeZ(f, divideFloat32(shield.recoilZ, WORLD_UNITS_PER_MELEE_UNIT));
+  // Melee adds the wind to the position after the frame's velocities, before collision (fighter.c Fighter_procUpdate, windOffset).
+  if (!isGroundDodging(f)) moveMeleeX(f, windPush(stage, frame, motion.x, motion.z));
   const frameDeltaX = f32(motion.x - oldX);
   let wallSide = resolveSolidSurfaceContacts(f, stage, oldX, oldZ, input);
   const landing = landingDeck(f, stage, oldX, oldZ);

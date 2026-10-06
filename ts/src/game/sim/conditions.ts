@@ -76,7 +76,8 @@ export function isIntangible(f: Fighter): boolean {
   const techIntangible = isFloorTeching(f) && down.frame >= 1
     && down.frame <= (down.state === DownState.tech ? TECH_INTANGIBLE_FRAMES : TECH_ROLL_INTANGIBLE_FRAMES);
   const ceilingTechIntangible = f.surfaceRecovery.state === SurfaceContact.techCeiling && f.surfaceRecovery.frame < f.tuning.tech.ceilingImpulseFrame;
-  return f.status.invincible > 0 || groundDodgeIntangible || downRecoveryIntangible || techIntangible || ceilingTechIntangible
+  // Melee's barrel makes the fighter it holds intangible (ftCo_BarrelWait.c ftCo_8009EB18, x1988 = 2).
+  return f.status.invincible > 0 || f.cannon.held !== undefined || groundDodgeIntangible || downRecoveryIntangible || techIntangible || ceilingTechIntangible
     || (dodge.airDodging && dodge.airFrame >= AIR_DODGE_INTANGIBLE_START && dodge.airFrame <= AIR_DODGE_INTANGIBLE_END);
 }
 
@@ -85,7 +86,7 @@ function canStartAttack(attacker: Fighter): boolean {
   const { grab, shield } = attacker;
   if (grab.target !== undefined || grab.action !== GrabAction.none) return false;
   if (attacker.status.frozenFrames > 0) return false;
-  if (attacker.ledge.state !== LedgeState.none) return false;
+  if (attacker.ledge.state !== LedgeState.none || attacker.cannon.held !== undefined) return false;
   const shieldDropAllowsAttack = shield.releaseLag <= 0 || (attacker.motion.grounded && !shield.raised && shield.perfectActionFrames > 0);
   return !attacker.status.out && !attacker.special.fall && attacker.special.lockFrames <= 0 && shield.breakState === ShieldBreak.none
     && (attacker.down.state === DownState.none || isTumbling(attacker)) && grab.grabbedFrames <= 0
