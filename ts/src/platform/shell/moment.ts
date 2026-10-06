@@ -1,11 +1,12 @@
 // Saving a moment of the confirmed match for `bun wisp repro`
-// (smashcraft:ts/src/game/replay/moment.ts): F8, or a controller helper's
+// (smashcraft:ts/src/game/replay/moment.ts): K, or a controller helper's
 // request typed into the journal's edit box. Only the asking player's client
 // saves, over the next frames, writes the file and shows the confirmation;
 // the match runs on undisturbed.
 import { writeRepro } from "wisp/src/platform/repro";
 import { reproFile } from "wisp/src/runtime/repro";
 import { beginMomentSave, continueMomentSave, isMomentRequest, momentInput, momentRequest } from "../../game/replay/moment";
+import { journalIngress } from "../../game/shell/build";
 import { consumeEditbox, peekEditbox } from "./journal";
 import { type Journal, type Rollback, type ShellState, localSlot } from "./state";
 
@@ -20,9 +21,13 @@ function saveMoment(s: ShellState): void {
   beginMomentSave(s.moment.recorder, momentInput(s.build), s.world, s.game, s.controls, s.runtime);
 }
 
-/** F8 reaches every client as a synchronized key event; the player who pressed it saves. */
+/**
+ * K reaches every client as a synchronized key event, registered as Y is;
+ * Warcraft keeps F8 from the map's key events. The player who pressed it
+ * saves. The keyboard journal ingress carries its text on K.
+ */
 export function momentKey(s: ShellState): void {
-  if (GetPlayerId(GetTriggerPlayer()) === localSlot()) saveMoment(s);
+  if (journalIngress(s.build) !== "keyboard" && GetPlayerId(GetTriggerPlayer()) === localSlot()) saveMoment(s);
 }
 
 /** The local helper's request, consumed in its turn among the edit box's records. */
