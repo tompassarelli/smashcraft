@@ -103,7 +103,7 @@ const reach = (first: number, last: number, ...limbs: readonly HurtPart[]) => [h
 export const lichCastBody = (first: number, last: number, handX: number, handZ: number): readonly HurtPose[] =>
   [hurtPose(first, last, [TORSO, arm(handX, handZ)])];
 
-export const LICH_BODY: FighterHurtboxes = {
+const LICH_BODY: FighterHurtboxes = {
   stand: [TORSO],
   crouch: [hurtPart(0.0, 4.0, 0.0, f32(BODY_TOP * f32(0.6)), BODY_RADIUS)],
   attacks: {
