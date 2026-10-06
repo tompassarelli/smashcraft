@@ -845,6 +845,85 @@ function surfaceTech(character: Character, wall: boolean, early: number): string
   return surfaceRun(character, wall, true, frozen).result;
 }
 
+/**
+ * Wall data, Melee units a frame: ftCo_DatAttrs +0x100 passivewall_vel_x and
+ * +0x104/+0x108 wall jump launch from the retail PlFx/PlFc/PlCa.dat
+ * (physics-parameters.json). Archer = Fox, Rifleman = Falco, Illidan =
+ * Captain Falcon; all three set can_walljump.
+ */
+function referenceWall(character: Character): { readonly pushOff: number; readonly jumpX: number; readonly jumpZ: number } {
+  if (character === Character.archer) return { pushOff: 0.5, jumpX: 1.399999976158142, jumpZ: 3.299999952316284 };
+  if (character === Character.rifleman) return { pushOff: 0.5, jumpX: 1.2999999523162842, jumpZ: 3.5999999046325684 };
+  return { pushOff: 0.5, jumpX: 1.399999976158142, jumpZ: 3.0999999046325684 };
+}
+
+/** The fighter's own air friction and gravity in Melee units: Fox's and Falco's for Archer and Rifleman, Illidan's authored ones. */
+function airDrag(character: Character): { readonly friction: number; readonly gravity: number } {
+  const { airFriction, gravity } = createFighter(character, 0.0, 1).tuning.physics;
+  return { friction: f32(melee(airFriction)), gravity: f32(melee(gravity)) };
+}
+
+interface WallLeave {
+  /** Frames from the wall recovery's first frame until the fighter moves off the wall. */
+  readonly hang: number;
+  /** Its speed away from the wall on that frame, and how far it then rose (Melee units). */
+  readonly speed: number;
+  readonly rise: number;
+}
+
+/** Plays a wall recovery that began this frame until the fighter leaves the wall and stops rising. */
+function leaveWall(s: Scene): WallLeave | undefined {
+  const f = fighter(s);
+  if (f.surfaceRecovery.state !== SurfaceContact.techWall) return undefined;
+  const hang = framesUntil(s, () => f.motion.deltaX !== 0.0 || f.motion.deltaZ !== 0.0, 10);
+  if (hang === undefined) return undefined;
+  const speed = melee(f.motion.deltaX);
+  const wallZ = f.motion.z - f.motion.deltaZ;
+  let top = Math.max(wallZ, f.motion.z);
+  for (let n = 1; n <= 120 && f.motion.deltaZ > 0; n++) {
+    frame(s, []);
+    top = Math.max(top, f.motion.z);
+  }
+  return { hang, speed, rise: melee(top - wallZ) };
+}
+
+/** A tumbler that pressed tech, launched left into the main deck's right side 5 units below its ledge; `up` holds the stick up. */
+function wallTechLeave(character: Character, up: boolean): WallLeave | undefined {
+  const s = solo(0, character);
+  const f = fighter(s);
+  tumbling(f, RIGHT_LEDGE + 30.0, -30.0);
+  f.launch.knockbackX = -18.0;
+  const held = (n: number): readonly Action[] => [...(n === 1 ? [Action.leftTrigger] : []), ...(up ? [Action.moveUp] : [])];
+  if (framesUntil(s, () => f.surfaceRecovery.contactSerial > 0, 10, held) === undefined) return undefined;
+  return leaveWall(s);
+}
+
+/**
+ * Drifts left at `speed` (world units a frame) from `outside` world units
+ * beyond the main deck's right side, just below its ledge and facing away,
+ * holding left until it meets the side, then flicks the stick right.
+ */
+function wallJumpLeave(character: Character, outside: number, speed: number): WallLeave | undefined {
+  const s = solo(0, character);
+  const f = fighter(s);
+  airborne(f, RIGHT_LEDGE + LEDGE_BODY_HALF_WIDTH * WORLD_UNITS_PER_MELEE_UNIT + outside, -10.0);
+  f.facing = 1;
+  f.motion.vx = -speed;
+  if (framesUntil(s, () => f.surfaceRecovery.contactSerial > 0, 20, () => [Action.moveLeft]) === undefined) return undefined;
+  frame(s, [Action.moveRight]);
+  return leaveWall(s);
+}
+
+const fastWallJump = (character: Character): WallLeave | undefined => wallJumpLeave(character, 30.0, createFighter(character, 0.0, 1).tuning.physics.airSpeed);
+
+function leaveCheck(leave: WallLeave | undefined, check: (leave: WallLeave) => Check): Check {
+  return leave === undefined ? { expected: "leaves the wall", actual: "no wall recovery" } : check(leave);
+}
+
+const WALL_HANG = "PlCo +0x760 = 5 (wall tech) and +0x774 = 5 (wall jump) frames held on the wall: melee:src/melee/ft/kinds/ftCommon/ftCo_PassiveWall.c ftCo_800C1E64, ftCo_PassiveWall_Anim";
+const WALL_LAUNCH = "ftCo_DatAttrs +0x100 push-off 0.5, +0x104/+0x108 wall jump 1.4/3.3 (Fox), 1.3/3.6 (Falco), 1.4/3.1 (Captain Falcon) from the retail DATs (physics-parameters.json), set when the hang ends, then a frame of aerial friction and gravity: ftCo_PassiveWall_Anim, ftCo_PassiveWall_Phys";
+const WALL_JUMP = "can_walljump (ftFx/ftFc/ftCa_Init_OnLoad); met faster than +0x148 = 0.5 a frame, then the stick at least PlCo +0x76C = 0.8 away within +0x770 = 3 frames of leaving the deadzone and +0x768 = 130 frames of meeting the wall: melee:src/melee/ft/ftwalljump.c ftWallJump_8008169C";
+
 const SURFACE_GATE = "wall and ceiling techs use the floor's gate 0x800986B0 (PlCo +0x250 = 20, +0x01C = 40): melee:src/melee/ft/kinds/ftCommon/ftCo_PassiveWall.c ftCo_800C1D38, ftCo_PassiveCeil.c";
 const WALL_FLANK = "the ECB's side meets a wall, and mpColl_LoadECB_JObj keeps an airborne ECB at least 2 units a side (melee:src/melee/mp/mpcoll.c); airborne collision moves only the position (melee:src/melee/ft/ft_081B.c ft_800835B0)";
 
@@ -865,6 +944,38 @@ const SURFACES: readonly Scenario[] = [
   },
   { area: "wall/ceiling", name: "wall tech off the main deck's side 19 frames before contact", cite: SURFACE_GATE, run: (c) => ({ expected: "tech", actual: surfaceTech(c, true, 19) }) },
   { area: "wall/ceiling", name: "wall tech off the main deck's side 20 frames before contact", cite: SURFACE_GATE, run: (c) => ({ expected: "no tech", actual: surfaceTech(c, true, 20) }) },
+  {
+    area: "wall/ceiling", name: "wall tech: frames on the wall before it pushes off", cite: WALL_HANG,
+    run: (c) => leaveCheck(wallTechLeave(c, false), (leave) => ({ expected: 5, actual: leave.hang })),
+  },
+  {
+    area: "wall/ceiling", name: "wall tech: push-off speed away from the side (Melee units/frame)", cite: WALL_LAUNCH,
+    run: (c) => leaveCheck(wallTechLeave(c, false), (leave) => ({ expected: f32(referenceWall(c).pushOff - airDrag(c).friction), actual: leave.speed, tolerance: 0.0001 })),
+  },
+  {
+    area: "wall/ceiling", name: "wall tech with the stick up: wall jump speed away from the side", cite: `${WALL_LAUNCH}; up selects the jump: ftCo_800C1E0C`,
+    run: (c) => leaveCheck(wallTechLeave(c, true), (leave) => ({ expected: f32(referenceWall(c).jumpX - airDrag(c).friction), actual: leave.speed, tolerance: 0.0001 })),
+  },
+  {
+    area: "wall/ceiling", name: "wall tech with the stick up: wall jump rise (Melee units)", cite: `${WALL_LAUNCH}; up selects the jump: ftCo_800C1E0C`,
+    run: (c) => leaveCheck(wallTechLeave(c, true), (leave) => ({ expected: aerialJumpApex(referenceWall(c).jumpZ, airDrag(c).gravity), actual: leave.rise, tolerance: 0.01 })),
+  },
+  {
+    area: "wall/ceiling", name: "wall jump: drifting into the side at air speed, a flick away holds it this many frames", cite: `${WALL_JUMP}; ${WALL_HANG}`,
+    run: (c) => leaveCheck(fastWallJump(c), (leave) => ({ expected: 5, actual: leave.hang })),
+  },
+  {
+    area: "wall/ceiling", name: "wall jump: speed away from the side (Melee units/frame)", cite: `${WALL_JUMP}; ${WALL_LAUNCH}`,
+    run: (c) => leaveCheck(fastWallJump(c), (leave) => ({ expected: f32(referenceWall(c).jumpX - airDrag(c).friction), actual: leave.speed, tolerance: 0.0001 })),
+  },
+  {
+    area: "wall/ceiling", name: "wall jump: rise (Melee units)", cite: `${WALL_JUMP}; ${WALL_LAUNCH}`,
+    run: (c) => leaveCheck(fastWallJump(c), (leave) => ({ expected: aerialJumpApex(referenceWall(c).jumpZ, airDrag(c).gravity), actual: leave.rise, tolerance: 0.01 })),
+  },
+  {
+    area: "wall/ceiling", name: "wall jump: drifting in from 1 unit out, slower than the minimum approach speed, a flick away", cite: WALL_JUMP,
+    run: (c) => ({ expected: "no wall jump", actual: wallJumpLeave(c, WORLD_UNITS_PER_MELEE_UNIT, 0.0) === undefined ? "no wall jump" : "wall jump" }),
+  },
   { area: "wall/ceiling", name: "ceiling tech off the main deck's underside 19 frames before contact", cite: SURFACE_GATE, run: (c) => ({ expected: "tech", actual: surfaceTech(c, false, 19) }) },
   { area: "wall/ceiling", name: "ceiling tech off the main deck's underside 20 frames before contact", cite: SURFACE_GATE, run: (c) => ({ expected: "no tech", actual: surfaceTech(c, false, 20) }) },
 ];

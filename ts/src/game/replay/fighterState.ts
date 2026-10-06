@@ -44,6 +44,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   motion.fastFallInputAge = sourceMotion.fastFallInputAge;
   motion.dropTime = sourceMotion.dropTime;
   motion.previousStickSide = sourceMotion.previousStickSide;
+  motion.stickSideAge = sourceMotion.stickSideAge;
   motion.lastAerialTapDirection = sourceMotion.lastAerialTapDirection;
 
   const ground = target.ground;
@@ -241,6 +242,10 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   recovery.frame = sourceRecovery.frame;
   recovery.velocityApplied = sourceRecovery.velocityApplied;
   recovery.wallJumpQueued = sourceRecovery.wallJumpQueued;
+  recovery.wallJumpRepeat = sourceRecovery.wallJumpRepeat;
+  recovery.wallJumpAge = sourceRecovery.wallJumpAge;
+  recovery.wallJumpSide = sourceRecovery.wallJumpSide;
+  recovery.wallJumpsUsed = sourceRecovery.wallJumpsUsed;
   recovery.reflectCooldown = sourceRecovery.reflectCooldown;
   recovery.lastReflectedSurface = sourceRecovery.lastReflectedSurface;
   recovery.contactSerial = sourceRecovery.contactSerial;

@@ -10,7 +10,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { Character, DownState, SurfaceContact } from "./codes";
 import { WALL_TECH_STARTUP_FRAMES, canAttack, isIntangible } from "./conditions";
 import { DOWN_DAMAGE_RESET_THRESHOLD, DOWN_WAIT_FRAMES } from "./down";
-import { type Fighter, WALL_TECH_JUMP_INPUT_WINDOW_FRAMES, createFighter } from "./fighter";
+import { type Fighter, WALL_JUMP_FLICK_FRAMES, WALL_TECH_JUMP_INPUT_WINDOW_FRAMES, createFighter } from "./fighter";
 import { beginAirDodge, beginJump } from "./jumpsAndDodges";
 import { MAX_GROUNDED_KNOCKBACK_ON_LANDING } from "./knockback";
 import {
@@ -30,6 +30,9 @@ import {
   SURFACE_REFLECT_COOLDOWN_FRAMES,
   SURFACE_REFLECT_SPEED_THRESHOLD,
   SURFACE_TECH_WALL_COLLISION_GRACE_FRAMES,
+  WALL_JUMP_INPUT_WINDOW_FRAMES,
+  WALL_JUMP_REPEAT_RISE_SCALE,
+  WALL_JUMP_STICK_X,
 } from "./surfaces";
 import { advanceSolo, controls, seedTechWindow, withPhysics } from "./testWorld";
 import { type SurfaceRecoveryPhysics, WORLD_UNITS_PER_MELEE_UNIT, melee } from "./tuning";
@@ -485,6 +488,30 @@ test("a retail wall tech's jump input age expires at the twenty-frame boundary",
   assertNear(fighter.motion.vx, -2.880000114440918, 0.0010000000474974513);
 });
 
+test("each earlier wall jump since landing lowers a wall jump's rise, and landing resets the count", () => {
+  for (const earlier of [0, 2]) {
+    const fighter = createFighter(Character.archer, f32(RAISED_WALL_CONTACT_X - 4.0), 1);
+    fighter.motion.grounded = false;
+    fighter.motion.z = 160.0;
+    fighter.motion.vx = fighter.tuning.physics.airSpeed;
+    fighter.surfaceRecovery.wallJumpsUsed = earlier;
+    advanceSolo(fighter, SOLID_DECK_TEST_STAGE, controls({ direction: 1 }), 0.0);
+    assertEquals(fighter.surfaceRecovery.wallJumpAge, 0);
+    advanceSolo(fighter, SOLID_DECK_TEST_STAGE, controls({ direction: -1 }), 0.0);
+    assertEquals(fighter.surfaceRecovery.state, SurfaceContact.techWall);
+    assertEquals(fighter.surfaceRecovery.wallJumpsUsed, earlier + 1);
+    for (let tick = 1; tick <= WALL_TECH_STARTUP_FRAMES; tick++) advanceSolo(fighter, SOLID_DECK_TEST_STAGE, controls(), 0.0);
+    assertTrue(fighter.surfaceRecovery.velocityApplied);
+    // Fox's +0x108 = 3.3 times powf(PlCo +0x778 = 0.975, earlier), less a frame of gravity (ftCo_PassiveWall_Anim).
+    const scale = earlier === 0 ? 1.0 : f32(0.9750000238418579 * 0.9750000238418579);
+    const gravity = f32(fighter.tuning.physics.gravity / WORLD_UNITS_PER_MELEE_UNIT);
+    assertNear(f32(fighter.motion.vz / WORLD_UNITS_PER_MELEE_UNIT), f32(f32(3.299999952316284 * scale) - gravity), 0.0001);
+    for (let tick = 1; tick <= 200 && !fighter.motion.grounded; tick++) advanceSolo(fighter, SOLID_DECK_TEST_STAGE, controls(), 0.0);
+    assertTrue(fighter.motion.grounded);
+    assertEquals(fighter.surfaceRecovery.wallJumpsUsed, 0);
+  }
+});
+
 test("a retail landing caps ground knockback at the decoded common value", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
   fighter.motion.grounded = false;
@@ -597,6 +624,10 @@ test("shared recovery values match the decoded common table", () => {
   assertEquals(SURFACE_REFLECT_COOLDOWN_FRAMES, 3);
   assertEquals(WALL_TECH_STARTUP_FRAMES, 5);
   assertEquals(SURFACE_TECH_WALL_COLLISION_GRACE_FRAMES, 14);
+  assertEquals(WALL_JUMP_INPUT_WINDOW_FRAMES, 130);
+  assertEquals(WALL_JUMP_STICK_X, 0.800000011920929);
+  assertEquals(WALL_JUMP_FLICK_FRAMES, 3);
+  assertEquals(WALL_JUMP_REPEAT_RISE_SCALE, 0.9750000238418579);
 });
 
 test("solid raised deck walls reject incoming launches from both exterior sides", () => {

@@ -1,10 +1,10 @@
 // Wall and ceiling contacts: stopping against solid faces, tumble rebounds,
-// and the wall and ceiling techs that recover from them.
+// the wall and ceiling techs that recover from them, and wall jumps.
 import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
-import { SurfaceContact } from "./codes";
-import { WALL_TECH_STARTUP_FRAMES, isTumbling } from "./conditions";
-import { type Fighter, WALL_TECH_JUMP_INPUT_WINDOW_FRAMES } from "./fighter";
+import { DownState, SpecialAction, SurfaceContact } from "./codes";
+import { WALL_TECH_STARTUP_FRAMES, inGrabContext, isTumbling } from "./conditions";
+import { type Fighter, WALL_JUMP_FLICK_FRAMES, WALL_TECH_JUMP_INPUT_WINDOW_FRAMES } from "./fighter";
 import { setWorldMotionValue, totalVelocityX, totalVelocityZ } from "./motion";
 import type { Controls } from "./roster";
 import { MAIN_DECK_BODY_SURFACES, type SolidSurface, solidSurfaceAt, solidSurfaceCount, surfaceZ } from "./stage";
@@ -15,6 +15,15 @@ export const SURFACE_REFLECT_SPEED_THRESHOLD = melee(1.0);
 export const SURFACE_REFLECT_ATTENUATION = 0.800000011920929;
 export const SURFACE_REFLECT_COOLDOWN_FRAMES = 3;
 export const SURFACE_TECH_WALL_COLLISION_GRACE_FRAMES = 14;
+/** PlCo +0x768: frames after meeting a wall fast enough in which a flick away wall jumps. */
+export const WALL_JUMP_INPUT_WINDOW_FRAMES = 130;
+/** PlCo +0x76C: how far from the wall the flick must push the stick. */
+export const WALL_JUMP_STICK_X = 0.800000011920929;
+/** PlCo +0x778: each earlier wall jump since landing scales a wall jump's rise by this. */
+export const WALL_JUMP_REPEAT_RISE_SCALE = 0.9750000238418579;
+/** Melee's wall-jump input timer saturates here and then rechecks the approach (ftwalljump.c max_input_frames). */
+const WALL_JUMP_AGE_LIMIT = 254;
+const WALL_JUMPS_USED_LIMIT = 255;
 
 /**
  * Melee's airborne collision box is never narrower than 2 units a side
@@ -49,6 +58,14 @@ function wallTechJumpInputIsRecent(f: Fighter, input: Readonly<Controls>): boole
   return f.jump.inputAge < WALL_TECH_JUMP_INPUT_WINDOW_FRAMES || input.jumpPressed || input.verticalDirection > 0;
 }
 
+/** A wall jump's rise: each earlier wall jump since landing scales it by PlCo +0x778 (ftCo_PassiveWall_Anim's powf). */
+function wallJumpRise(speed: number, repeat: number): number {
+  if (repeat === 0) return speed;
+  let scale = 1.0;
+  for (let i = 0; i < repeat; i++) scale = f32(scale * WALL_JUMP_REPEAT_RISE_SCALE);
+  return f32(speed * scale);
+}
+
 function clearMotionForSurfaceTech(f: Fighter): void {
   f.motion.vx = 0.0;
   f.motion.vz = 0.0;
@@ -58,6 +75,26 @@ function clearMotionForSurfaceTech(f: Fighter): void {
   f.shield.pushbackX = 0.0;
   f.shield.recoilX = 0.0;
   f.shield.recoilZ = 0.0;
+}
+
+/**
+ * Enters Melee's wall recovery, which wall techs and wall jumps share
+ * (melee:src/melee/ft/kinds/ftCommon/ftCo_PassiveWall.c ftCo_800C1E64): motion
+ * stops, the fighter turns `away` from the wall, and its push-off or jump
+ * comes when the five-frame hang ends.
+ */
+function beginWallRecovery(f: Fighter, away: number, jumpQueued: boolean, repeat: number): void {
+  clearDownState(f);
+  const recovery = f.surfaceRecovery;
+  recovery.state = SurfaceContact.techWall;
+  recovery.frame = 0;
+  recovery.velocityApplied = false;
+  recovery.wallJumpQueued = jumpQueued;
+  recovery.wallJumpRepeat = repeat;
+  clearMotionForSurfaceTech(f);
+  f.motion.fastFalling = false;
+  f.status.invincible = max(f.status.invincible, SURFACE_TECH_WALL_COLLISION_GRACE_FRAMES);
+  f.facing = away;
 }
 
 /** Removes the launch velocity component pointing into the surface, and the fighter's own when `own`. */
@@ -120,14 +157,14 @@ function resolveSolidSurfaceContact(f: Fighter, stage: number, index: number, ol
     eventKind = kind === SurfaceContact.wall ? SurfaceContact.techWall : SurfaceContact.techCeiling;
     f.tech.window = 0;
     launch.hitstun = 0;
-    clearDownState(f);
-    recovery.state = eventKind;
-    recovery.frame = 0;
-    recovery.velocityApplied = false;
-    if (eventKind === SurfaceContact.techWall) recovery.wallJumpQueued = wallTechJumpInputIsRecent(f, input);
-    clearMotionForSurfaceTech(f);
-    if (eventKind === SurfaceContact.techWall) f.status.invincible = max(f.status.invincible, SURFACE_TECH_WALL_COLLISION_GRACE_FRAMES);
-    f.facing = nx < 0 ? -1 : nx > 0 ? 1 : f.facing;
+    if (eventKind === SurfaceContact.techWall) {
+      beginWallRecovery(f, nx > 0 ? 1 : -1, wallTechJumpInputIsRecent(f, input), 0);
+    } else {
+      clearDownState(f);
+      recovery.state = eventKind;
+      clearMotionForSurfaceTech(f);
+      f.facing = nx < 0 ? -1 : nx > 0 ? 1 : f.facing;
+    }
   }
   recovery.contactKind = eventKind;
   const inwardKnockback = -f32(f32(launch.knockbackX * nx) + f32(launch.knockbackZ * nz));
@@ -154,13 +191,66 @@ function resolveSolidSurfaceContact(f: Fighter, stage: number, index: number, ol
   return true;
 }
 
-/** Resolves the step from (old) against every solid face. */
-export function resolveSolidSurfaceContacts(f: Fighter, stage: number, oldX: number, oldZ: number, input: Readonly<Controls>): void {
+/** Resolves the step from (old) against every solid face; returns the side of the fighter a wall met (-1 left, 1 right), or 0. */
+export function resolveSolidSurfaceContacts(f: Fighter, stage: number, oldX: number, oldZ: number, input: Readonly<Controls>): number {
   let touched = false;
+  let wallSide = 0;
   for (let i = 0; i < solidSurfaceCount(stage); i++) {
-    if (resolveSolidSurfaceContact(f, stage, i, oldX, oldZ, input)) touched = true;
+    if (!resolveSolidSurfaceContact(f, stage, i, oldX, oldZ, input)) continue;
+    touched = true;
+    const surface = solidSurfaceAt(stage, i);
+    if (surface.kind === SurfaceContact.wall) wallSide = surface.normalX > 0 ? -1 : 1;
   }
   if (!touched) f.surfaceRecovery.lastReflectedSurface = undefined;
+  return wallSide;
+}
+
+/**
+ * Whether Melee checks for a wall jump after this frame's collision: falls,
+ * jumps, tumbles past hitstun and recoveries past their hang do; aerials,
+ * specials, air dodges, special falls and hitstun don't (the callers of
+ * ftWallJump_8008169C in melee:src/melee/ft/ft_081B.c).
+ */
+function checksWallJump(f: Fighter): boolean {
+  const { motion, launch, attack, special, dodge, down, surfaceRecovery: recovery } = f;
+  return !motion.grounded && !f.status.out && launch.hitstun <= 0 && launch.hitlag <= 0 && attack.style === undefined
+    && special.action === SpecialAction.none && !special.fall && !dodge.airDodging && !inGrabContext(f)
+    && (down.state === DownState.none || isTumbling(f))
+    && !(recovery.state === SurfaceContact.techWall && recovery.frame < WALL_TECH_STARTUP_FRAMES);
+}
+
+/**
+ * Melee's wall jump (melee:src/melee/ft/ftwalljump.c ftWallJump_8008169C):
+ * meeting a wall faster than the fighter's minimum approach speed opens a
+ * window while it stays against that wall, and a fresh flick away from it in
+ * that window jumps off it. `wallSide` is the side of the fighter a wall met
+ * this frame (-1 left, 1 right, 0 none) and `deltaX` the frame's sideways
+ * movement. True when a wall jump began.
+ */
+export function advanceWallJump(f: Fighter, wallSide: number, deltaX: number, stickX: number): boolean {
+  const physics = f.tuning.surface;
+  const recovery = f.surfaceRecovery;
+  if (!physics.canWallJump || !checksWallJump(f)) return false;
+  if (wallSide === 0) {
+    recovery.wallJumpAge = undefined;
+    return false;
+  }
+  const age = recovery.wallJumpAge;
+  if (age !== undefined && wallSide === recovery.wallJumpSide) {
+    recovery.wallJumpAge = age + 1 < WALL_JUMP_AGE_LIMIT ? age + 1 : undefined;
+  } else if (Math.abs(deltaX) > physics.wallJumpMinimumApproach) {
+    recovery.wallJumpSide = wallSide;
+    recovery.wallJumpAge = 0;
+  }
+  const window = recovery.wallJumpAge;
+  const away = -recovery.wallJumpSide;
+  if (window === undefined || window >= WALL_JUMP_INPUT_WINDOW_FRAMES || f.motion.stickSideAge >= WALL_JUMP_FLICK_FRAMES) return false;
+  if (away > 0 ? stickX < WALL_JUMP_STICK_X : stickX > -WALL_JUMP_STICK_X) return false;
+  recovery.wallJumpAge = undefined;
+  const used = recovery.wallJumpsUsed;
+  beginWallRecovery(f, away, true, used);
+  recovery.wallJumpsUsed = min(WALL_JUMPS_USED_LIMIT, used + 1);
+  return true;
 }
 
 /**
@@ -186,15 +276,19 @@ function mainDeckSideX(stage: number, side: number, z: number): number | undefin
  * sideways to the nearer flank, as Melee's collision box slides off a ledge's
  * corner: a fighter running off a ledge drops within its half-width of the
  * wall without crossing it. Callers skip it on a frame that lands on a deck.
+ * Returns the side of the fighter the wall it now stands against is on (-1
+ * left, 1 right), or 0 when it wasn't inside.
  */
-export function leaveMainDeckBody(f: Fighter, stage: number): void {
+export function leaveMainDeckBody(f: Fighter, stage: number): number {
   const { motion } = f;
-  if (solidSurfaceCount(stage) === 0 || motion.z >= surfaceZ(stage, 0)) return;
+  if (solidSurfaceCount(stage) === 0 || motion.z >= surfaceZ(stage, 0)) return 0;
   const right = mainDeckSideX(stage, 1, motion.z);
   const left = mainDeckSideX(stage, -1, motion.z);
-  if (right === undefined || left === undefined || motion.x <= left || motion.x >= right) return;
-  motion.x = f32(right - motion.x) <= f32(motion.x - left) ? right : left;
+  if (right === undefined || left === undefined || motion.x <= left || motion.x >= right) return 0;
+  const toRight = f32(right - motion.x) <= f32(motion.x - left);
+  motion.x = toRight ? right : left;
   setWorldMotionValue(motion.meleeX, motion.x);
+  return toRight ? -1 : 1;
 }
 
 /** Advances a wall or ceiling tech; true on the frame a queued wall jump launches. */
@@ -229,11 +323,10 @@ export function advanceSurfaceRecovery(f: Fighter, input: Readonly<Controls>): b
   recovery.frame++;
   if (recovery.frame !== WALL_TECH_STARTUP_FRAMES) return false;
   // Melee pushes off along the facing it turned to, away from even a sloped wall (ftCo_PassiveWall.c ftCo_PassiveWall_Anim).
-  const away = recovery.contactNormalX > 0 ? 1.0 : -1.0;
+  const away = f.facing > 0 ? 1.0 : -1.0;
   if (recovery.wallJumpQueued) {
     motion.vx = f32(away * physics.wallJumpHorizontalSpeed);
-    motion.vz = physics.wallJumpVerticalSpeed;
-    f.facing = away > 0 ? 1 : -1;
+    motion.vz = wallJumpRise(physics.wallJumpVerticalSpeed, recovery.wallJumpRepeat);
     f.jump.serial++;
     f.jump.isDouble = false;
   } else {
