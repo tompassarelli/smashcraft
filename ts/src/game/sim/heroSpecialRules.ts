@@ -122,6 +122,15 @@ export function refillMana(f: Fighter): void {
   f.special.airtimeUses = 0;
 }
 
+/** While the running form's `aimFrames` last, a held stick re-chooses its aim. */
+export function steerHeroSpecial(f: Fighter, input: Readonly<Controls>): void {
+  const move = runningHeroSpecial(f);
+  if (move?.aimFrames === undefined || f.special.frame >= move.aimFrames) return;
+  if (input.direction === 0 && input.verticalDirection === 0) return;
+  f.special.aimX = input.direction < 0 ? -1 : input.direction > 0 ? 1 : 0;
+  f.special.aimZ = input.verticalDirection < 0 ? -1 : input.verticalDirection > 0 ? 1 : 0;
+}
+
 /** Spends the chosen form's cost and records the entry; the caller has started the action. */
 export function enterHeroSpecial(f: Fighter, chosen: Readonly<HeroSpecialChoice>, input: Readonly<Controls>): AuthoredSpecial {
   const specials = f.tuning.specials;
@@ -195,6 +204,9 @@ function applyMotion(f: Fighter, move: Readonly<AuthoredSpecial>, frame: number)
       const scale = special.aimX !== 0 && special.aimZ !== 0 ? f32(segment.aimedSpeed * DIAGONAL) : segment.aimedSpeed;
       velocityX = f32(special.aimX * scale);
       velocityZ = f32(special.aimZ * scale);
+    } else if (segment.aimedTilt !== undefined && special.aimZ !== 0) {
+      velocityX = f32(velocityX * segment.aimedTilt.x);
+      velocityZ = f32(f32(special.aimZ * Math.abs(segment.velocityX)) * segment.aimedTilt.z);
     }
     motion.vx = velocityX;
     motion.vz = velocityZ;
@@ -203,6 +215,18 @@ function applyMotion(f: Fighter, move: Readonly<AuthoredSpecial>, frame: number)
       motion.surface = undefined;
     }
   }
+}
+
+/**
+ * Whether the velocity this frame moves by was set by the running special's
+ * motion (its window covered the frame just advanced): steering and drag then
+ * leave it alone, and so do gravity and the fall-speed cap; collision still applies.
+ */
+export function heroMotionHolds(f: Readonly<Fighter>): boolean {
+  const move = runningHeroSpecial(f);
+  if (move === undefined) return false;
+  for (const segment of move.motion ?? []) if (f.special.frame >= segment.first && f.special.frame <= segment.last) return true;
+  return false;
 }
 
 /** Ends the action; a helpless form that ends airborne leaves a helpless fall. */

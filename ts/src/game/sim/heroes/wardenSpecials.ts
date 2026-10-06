@@ -21,20 +21,27 @@ const SHADOW_STRIKE: AuthoredSpecial = {
   }],
 };
 
-// Pursuit Lunge: 1.0H of travel through the slash, which is active f11-14.
+// Pursuit Lunge: 1.0H of travel through the slash, which is active f11-14; the
+// dash stops dead after it.
 const LUNGE_TRAVEL_FRAMES = 10;
 const LUNGE_SPEED = f32(H / f32(LUNGE_TRAVEL_FRAMES));
 const lungeRegions = (): readonly MoveRegion[] => [heroRegion(11, 14, blade(16.0, 48.0, f32(f32(H * f32(0.80)) - KNIFE_RADIUS), 44.0), wardenHit(10.0, "EDGE", 35))];
 const PURSUIT_LUNGE: AuthoredSpecial = {
   cost: 15, endFrame: 40, regions: lungeRegions(),
-  motion: [{ ...frames(5, 14), velocityX: LUNGE_SPEED, velocityZ: 0.0 }],
+  motion: [{ ...frames(5, 14), velocityX: LUNGE_SPEED, velocityZ: 0.0 }, { ...frames(15, 15), velocityX: 0.0, velocityZ: 0.0 }],
 };
-const PURSUIT_LUNGE_AIR: AuthoredSpecial = { ...PURSUIT_LUNGE, oncePerAirtime: true, helpless: true, landingLag: 12 };
+// Up or down held through entry tilts the air dash 20 degrees; no later steering.
+const LUNGE_TILT = { x: f32(0.939692621), z: f32(0.342020143) };
+const PURSUIT_LUNGE_AIR: AuthoredSpecial = {
+  ...PURSUIT_LUNGE, oncePerAirtime: true, helpless: true, landingLag: 12, aimFrames: 4,
+  motion: [{ ...frames(5, 14), velocityX: LUNGE_SPEED, velocityZ: 0.0, aimedTilt: LUNGE_TILT }, { ...frames(15, 15), velocityX: 0.0, velocityZ: 0.0 }],
+};
 
-// Blink: one displacement on f9, aimed in eight directions from the stick held
-// on entry, intangible f8-10, then a vulnerable endpoint and helpless fall.
+// Blink: one displacement on f9, aimed in eight directions by the stick held
+// through f8, intangible f8-10, then a vulnerable endpoint through f30 (on the
+// ground as well) and a helpless fall in the air.
 const blink = (cost: number, distance: number, aimed: boolean, intangible: boolean): AuthoredSpecial => ({
-  cost, endFrame: 30, oncePerAirtime: true, helpless: true, landingLag: 12,
+  cost, endFrame: 30, oncePerAirtime: true, helpless: true, aimFrames: aimed ? 8 : undefined,
   motion: [
     { ...frames(9, 9), velocityX: 0.0, velocityZ: distance, aimedSpeed: aimed ? distance : undefined },
     { ...frames(10, 10), velocityX: 0.0, velocityZ: 0.0 },
