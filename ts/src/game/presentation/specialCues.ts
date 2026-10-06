@@ -21,6 +21,10 @@ import {
   CHAOS_STRIKE_FORM,
   CHAOS_STRIKE_LAST,
   DEMONHUNTER_GLIDE_SLASH_FORM,
+  FLAME_CRASH_BURST_LAST,
+  FLAME_CRASH_FORM,
+  FLAME_CRASH_FRAMES,
+  FLAME_CRASH_LANDING_FORM,
   DEMONHUNTER_IMMOLATE_ACTIVE,
   DEMONHUNTER_IMMOLATE_STARTUP,
   DEMONHUNTER_MANA_BURN_STARTUP,
@@ -225,6 +229,11 @@ export const ORIGINAL_BRANCH_CUES: { readonly [action: number]: { readonly [form
     [VENGEFUL_RETREAT_FORM]: { cues: branch("Vengeful Retreat", FEL_TELL, cue("Abilities\\Spells\\Undead\\Possession\\PossessionMissile.mdx", "body", 1.0)), first: 1, last: VENGEFUL_RETREAT_MOVE_LAST },
     [CHAOS_STRIKE_FORM]: CHAOS_STRIKE_CUES,
     [CHAOS_STRIKE_AIR_FORM]: CHAOS_STRIKE_CUES,
+  },
+  // Flame Crash: a fire streak through its hang and plunge, then a volcanic burst where it lands.
+  [SpecialAction.demonHunterImmolate]: {
+    [FLAME_CRASH_FORM]: { cues: branch("Flame Crash", FEL_TELL, cue("Abilities\\Spells\\Other\\BreathOfFire\\BreathOfFireMissile.mdx", "body", 1.0)), first: 1, last: FLAME_CRASH_FRAMES },
+    [FLAME_CRASH_LANDING_FORM]: { cues: branch("Flame Crash landing", FEL_TELL, cue("Abilities\\Spells\\Other\\Volcano\\VolcanoDeath.mdx", "feet", f32(0.6))), first: 1, last: FLAME_CRASH_BURST_LAST },
   },
   [SpecialAction.demonHunterWingAscent]: {
     [DEMONHUNTER_GLIDE_SLASH_FORM]: { cues: branch("Glide slash", FEL_TELL, cue("Abilities\\Spells\\Undead\\Impale\\ImpaleHitTarget.mdx", "ahead", f32(0.8))), first: 1, last: 1 },
