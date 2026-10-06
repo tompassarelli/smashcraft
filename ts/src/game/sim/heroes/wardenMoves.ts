@@ -1,7 +1,8 @@
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction } from "../codes";
-import { HERO_REFERENCE_HEIGHT, heroMove, heroRegion, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
+import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion, type AuthoredMove, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
 import { HitElement, type HitEffect } from "../hitRegions";
+import { type FighterHurtboxes, type HurtPart, type HurtPose, hurtPart, hurtPose } from "../hurtboxes";
 
 // smashcraft:docs/design/roster.md counts reach from the fighter center.
 const S = f32(HERO_REFERENCE_HEIGHT * f32(0.55));
@@ -75,12 +76,7 @@ const DOWN_AIR = wardenHit(11.0, "SPIKE", 270);
 const DOWN_AIR_GROUNDED = wardenHit(11.0, "SPIKE", 55);
 const GRAB_EFFECT = { damage: 0.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } as const;
 
-export const WARDEN_MOVES: FighterMoves = {
-  dashAttack: AttackStyle.dashAttack,
-  smashMaxChargeFrames: 45,
-  smashMaxDamageMultiplier: 1.25,
-  maxPummels: 2,
-  normals: {
+const NORMALS: { readonly [style: number]: AuthoredMove | undefined } = {
     [AttackStyle.jab]: heroMove(3, 2, 13, 0, cut(3, [44.0, 48.0], S, wardenHit(3.0, "POKE", 35))),
     [AttackStyle.forwardTilt]: heroMove(7, 3, 18, 0, cut(7, [58.0, 45.0, 32.0], M, wardenHit(8.0, "POKE", 35))),
     [AttackStyle.forwardTiltUp]: heroMove(7, 3, 18, 0, cut(7, [85.0, 100.0, 112.0], M, wardenHit(8.0, "POKE", 35))),
@@ -139,7 +135,76 @@ export const WARDEN_MOVES: FighterMoves = {
     ], DOWN_AIR, DOWN_AIR_GROUNDED)),
     [AttackStyle.grab]: heroMove(6, 2, 22, 0, [heroRegion(6, 7,
       blade(16.0, 45.0, f32(GRAB - 10.0), 45.0, 10.0), GRAB_EFFECT)]),
-  },
+};
+
+// Warden's body: the roster's 0.90 width and 1.00 height of the reference
+// capsule. Blades stay outside it; the arm (for Heel Blade, also the leg)
+// reaches toward each strike from two frames before it through four after,
+// so a whiff is punishable at the hand while the blade beyond it is disjoint.
+const BODY_RADIUS = f32(24.0 * f32(0.90));
+export const WARDEN_BODY: HurtPart = hurtPart(0.0, 4.0, 0.0, f32(f32(4.0 + 132.0) - f32(2.0 * BODY_RADIUS)), BODY_RADIUS);
+const SHOULDER_Z = 70.0;
+const LIMB_RADIUS = 7.0;
+const LIMB_LEAD_FRAMES = 2;
+const LIMB_HOLD_FRAMES = 4;
+const HEEL = hurtPart(-4.0, 42.0, -26.0, 38.0, 8.0);
+
+interface Point {
+  readonly x: number;
+  readonly z: number;
+}
+
+/** The strike end nearest the shoulder: where the hand holds the blade. */
+function handOf(strike: StrikeCapsule): Point {
+  const near = (x: number, z: number) => f32(f32(x * x) + f32(f32(z - SHOULDER_Z) * f32(z - SHOULDER_Z)));
+  return near(strike.x1, strike.z1) <= near(strike.x2, strike.z2) ? { x: strike.x1, z: strike.z1 } : { x: strike.x2, z: strike.z2 };
+}
+
+/** One arm pose per active frame; the first starts two frames earlier and the last holds four frames longer. */
+function limbPoses(move: AuthoredMove | undefined, reachEnd: boolean): readonly HurtPose[] {
+  if (move === undefined) return [];
+  let first = Number.MAX_SAFE_INTEGER;
+  let last = -1;
+  for (const region of move.regions) {
+    first = Math.min(first, region.firstFrame);
+    last = Math.max(last, region.lastFrame);
+  }
+  const poses: HurtPose[] = [];
+  for (let frame = first; frame <= last; frame++) {
+    let hand: Point | undefined;
+    for (const region of move.regions) {
+      const strike = region.hit.strike;
+      if (strike === undefined || frame < region.firstFrame || frame > region.lastFrame) continue;
+      // A grab's capsule is the hand itself, so the arm reaches its far end.
+      const candidate = reachEnd ? { x: strike.x2, z: strike.z2 } : handOf(strike);
+      if (hand === undefined || Math.abs(candidate.x) < Math.abs(hand.x)) hand = candidate;
+    }
+    if (hand === undefined) continue;
+    const parts = [WARDEN_BODY, hurtPart(0.0, SHOULDER_Z, hand.x, hand.z, LIMB_RADIUS)];
+    poses.push(hurtPose(frame === first ? Math.max(0, first - LIMB_LEAD_FRAMES) : frame, frame === last ? last + LIMB_HOLD_FRAMES : frame, parts));
+  }
+  return poses;
+}
+
+function wardenHurtboxes(): FighterHurtboxes {
+  const attacks: { [style: number]: readonly HurtPose[] | undefined } = {};
+  for (let style = 0; style <= AttackStyle.dashAttack; style++) {
+    if (NORMALS[style] === undefined) continue;
+    // Heel Blade's leg is exposed before and after the heel strikes.
+    attacks[style] = style === AttackStyle.backAir
+      ? [heroHurtPose(5, 13, [WARDEN_BODY, HEEL])]
+      : limbPoses(NORMALS[style], style === AttackStyle.grab);
+  }
+  return { stand: [WARDEN_BODY], attacks };
+}
+
+export const WARDEN_MOVES: FighterMoves = {
+  dashAttack: AttackStyle.dashAttack,
+  smashMaxChargeFrames: 45,
+  smashMaxDamageMultiplier: 1.25,
+  maxPummels: 2,
+  normals: NORMALS,
+  hurtboxes: wardenHurtboxes(),
   throws: {
     [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: { damage: 1.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } },
     [GrabAction.throwForward]: throwMove(10, 18, 6.0, "EDGE", 35),

@@ -9,6 +9,7 @@ import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hi
 import { attackLandingLag, attackRecoveryFrames, attackStartupFrames, grabActionDuration, grabContactFrame, isAerialAttack, smashDamageMultiplier } from "../moves";
 import { advanceFighter } from "../step";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
+import { HurtContact, strikeHurtContact } from "../hurtboxes";
 import { WARDEN_MOVES } from "./wardenMoves";
 
 const NORMALS = [
@@ -233,5 +234,47 @@ test("Warden throws hold through adopted release then launch once in both facing
       testGrabFrame(world, [input, controls()], false);
       assertEquals(target.status.damage, damage);
     }
+  }
+});
+
+test("Warden's blades are disjoint while the arm and Heel Blade leg stay hittable", () => {
+  const probe = (target: ReturnType<typeof createFighter>, x: number, z: number) =>
+    strikeHurtContact({ x1: x, z1: z, x2: x, z2: z, radius: 1.0 }, target);
+  for (const facing of [-1, 1]) {
+    const warden = createFighter(Character.archer, 0.0, facing);
+    warden.tuning.moves = WARDEN_MOVES;
+    // At rest the hand is inside the body.
+    assertEquals(probe(warden, f32(26.0 * facing), 70.0), HurtContact.none);
+    for (const style of [AttackStyle.jab, AttackStyle.forwardTilt, AttackStyle.forwardTiltUp, AttackStyle.forwardTiltDown,
+      AttackStyle.downTilt, AttackStyle.dashAttack, AttackStyle.forwardSmash, AttackStyle.downSmash, AttackStyle.forwardAir]) {
+      const move = WARDEN_MOVES.normals[style];
+      assertTrue(move !== undefined);
+      if (move === undefined) continue;
+      warden.attack.style = style;
+      for (const region of move.regions) {
+        warden.attack.frame = region.firstFrame;
+        // The hand holds the nearest blade end of the frame; the farthest end is the disjoint tip.
+        let hand = { x: 1000.0, z: 0.0 };
+        let tip = { x: 0.0, z: 0.0 };
+        for (const other of move.regions) {
+          const strike = other.hit.strike;
+          if (strike === undefined || other.firstFrame > region.firstFrame || other.lastFrame < region.firstFrame) continue;
+          for (const end of [{ x: strike.x1, z: strike.z1 }, { x: strike.x2, z: strike.z2 }]) {
+            if (Math.abs(end.x) < Math.abs(hand.x)) hand = end;
+            if (Math.abs(end.x) > Math.abs(tip.x)) tip = end;
+          }
+        }
+        assertEquals(probe(warden, f32(tip.x * facing), tip.z), HurtContact.none);
+        assertEquals(probe(warden, f32(hand.x * facing), hand.z), HurtContact.hit);
+      }
+    }
+    warden.attack.style = AttackStyle.backAir;
+    warden.attack.frame = 4;
+    assertEquals(probe(warden, f32(-30.0 * facing), 40.0), HurtContact.hit);
+    warden.attack.frame = 13;
+    assertEquals(probe(warden, f32(-30.0 * facing), 40.0), HurtContact.none);
+    warden.attack.style = AttackStyle.grab;
+    warden.attack.frame = 5;
+    assertEquals(probe(warden, f32(50.0 * facing), 47.0), HurtContact.hit);
   }
 });
