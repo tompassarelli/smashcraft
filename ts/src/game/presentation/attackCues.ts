@@ -44,6 +44,10 @@ export const ATTACK_CUES: { readonly [character: number]: { readonly [style: num
     // The lingering ice crown above his shoulders.
     [AttackStyle.upTilt]: [{ name: "Ice crown", fromActive: 0, cue: cue("Abilities\\Spells\\Undead\\FreezingBreath\\FreezingBreathMissile.mdx", f32(0.8)) }],
   },
+  [Character.pitLord]: {
+    // Demonic Bulk, the strongest dash attack: the ground shakes under the heave.
+    [AttackStyle.dashAttack]: [{ name: "Demonic Bulk", fromActive: 0, cue: cue("Abilities\\Spells\\Orc\\WarStomp\\WarStompCaster.mdx", f32(0.45)) }],
+  },
   [Character.demonHunter]: {
     // Eye Blast: the fel breath of the green dragon along the floor beam.
     [AttackStyle.forwardSmash]: [{ name: "Eye Blast", fromActive: 0, cue: cue("Abilities\\Weapons\\GreenDragonMissile\\GreenDragonMissile.mdx", f32(1.5)) }],
