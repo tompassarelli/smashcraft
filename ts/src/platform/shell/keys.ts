@@ -13,6 +13,7 @@ import { Phase, cancelRematchCountdown, characterFor, firstHumanSlot, humanActiv
 import { DESYNC_COMMAND, QUICK_TRAINING_COMMAND, applyDevCommand, prepareQuickTraining, quickMatchHero, quickMatchStage } from "../../game/shell/devSettings";
 import { fighterName } from "../../game/sim/heroes/registry";
 import { keepMomentEnd } from "../../game/replay/moment";
+import { endReplaySegment } from "./replays";
 import { devReceiptFile } from "../../game/shell/journalFiles";
 import { applySetupCommand } from "../../game/shell/sessionSetup";
 import { pausedMessage } from "../../game/shell/messages";
@@ -117,7 +118,10 @@ function participantKeyDown(s: ShellState, slot: ParticipantSlot): void {
     return;
   }
   // Leaving practice or an endless match ends it between frames: the moment keeps it as its last frame left it.
-  if (key === Key.escape && s.session.paused && (game.practice || game.endless || game.training)) keepMomentEnd(s.moment.recorder, s.world, game, s.controls, s.runtime);
+  if (key === Key.escape && s.session.paused && (game.practice || game.endless || game.training)) {
+    keepMomentEnd(s.moment.recorder, s.world, game, s.controls, s.runtime);
+    endReplaySegment(s);
+  }
   if (key === Key.escape && s.session.paused && leaveMatch(game, slot)) {
     s.session.paused = false;
     setStatus(s, "", 0.0);

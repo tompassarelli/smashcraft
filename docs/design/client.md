@@ -331,6 +331,31 @@ the parts.
 A replay plays only on its build. The client keeps the simulation bundle of
 every build it has played and names the version an unknown replay needs.
 
+**What the map writes.** smashcraft:ts/src/game/replay/matchReplay.ts records
+and smashcraft:ts/src/platform/shell/replays.ts writes.
+
+- **Parts.** `smashcraft-replay-<serial>-<part>.txt`, from part 1, each
+  written once 48 lines are waiting. The serial is the match record's: it is
+  taken at the match's first frame.
+- **Manifest.** `smashcraft-replay-<serial>.txt`, written when the match
+  leaves play: a repro header (build, last frame, checksum there), then
+  `replay SERIAL`, `version SOURCE` and `parts COUNT`.
+- **Joined replay.** The header, `replay` and `version` lines, then every
+  part's lines in order. `bun wisp replay FILE --out JOINED` writes one.
+- **Segments.** A segment starts wherever the moment recorder starts its
+  record again: the match's first frame, and after a pause, a player leaving
+  or a binding change. Its lines are `segment FRAME CHECKSUM`, its starting
+  state as `state` record text (as a moment's, without each fighter's
+  authored tuning, restored from its character), `rows` runs and
+  `checkpoint FRAME CHECKSUM` every 120 frames and at its end.
+- **Cost.** The replay checksum folds every number and boolean of each
+  fighter, its projectiles and the match, in any order. In 32-bit Lua it is
+  about 0.22 million instructions for four fighters. The canonical checksum
+  `wisp repro` uses is 3.2 million, too much every two seconds. A starting
+  state's text is about 1.9 million instructions. It is written 240 tokens a
+  callback, about 0.25 million at most, after the callback that starts the
+  segment.
+
 ## Phases
 
 | Phase | Issue | What it delivers | Feasibility | Owner decisions |

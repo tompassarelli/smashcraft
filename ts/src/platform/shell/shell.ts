@@ -37,7 +37,8 @@ import { PROBE_EXPORT, exportProbePage, probeBegin, probePresent } from "./respo
 import { receiveInput, rollbackTick } from "./rollback";
 import { SAVE_MOMENT, momentKey, serviceMomentRequest, serviceMomentSave } from "./moment";
 import { writeMatchRecord } from "./matchRecords";
-import { type ShellState, activeRollback, createShellState, momentSaves, shellState } from "./state";
+import { type ShellState, activeRollback, createShellState, momentSaves, replayRecording, shellState } from "./state";
+import { endReplaySegment, serviceReplay } from "./replays";
 import { CONTROL_ACK_PREFIX } from "../../game/shell/pauseBarrier";
 import { clearMatchEffects, createUi, recreateUi, views } from "./ui";
 import { resultsView } from "../../game/presentation/matchCues";
@@ -93,6 +94,7 @@ function gameTick(s: ShellState): void {
   s.status.seconds = Math.max(0.0, f32(s.status.seconds - FRAME_SECONDS));
   s.moment.notice = Math.max(0.0, f32(s.moment.notice - FRAME_SECONDS));
   serviceMomentSave(s);
+  serviceReplay(s);
   if (rollback !== undefined && s.game.phase === Phase.match) {
     const { journal } = rollback;
     if (journal !== undefined) serviceControlAck(s, rollback, journal);
@@ -150,6 +152,7 @@ function playerLeft(s: ShellState): void {
   if (!humanPresent(s.game, slot)) return;
   const wasMatch = s.game.phase === Phase.match;
   keepMomentEnd(s.moment.recorder, s.world, s.game, s.controls, s.runtime);
+  endReplaySegment(s);
   participantLeft(s.game, slot, s.world);
   clearAllInputs(s);
   startKeyUp(s.session, slot);
@@ -314,6 +317,7 @@ export function installShell(): void {
   if (s?.ui !== undefined) recreateUi(s, panelActions());
   // A match from a bundle without the moment record keeps running with a new one.
   if (s !== undefined && s.moment === undefined) s.moment = momentSaves();
+  if (s !== undefined && s.replay === undefined) s.replay = replayRecording();
   // A shell from a bundle that didn't record its drawn stage draws the chosen one.
   if (s !== undefined && s.drawnStage === undefined) drawStage(s);
 }

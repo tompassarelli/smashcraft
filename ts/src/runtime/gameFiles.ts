@@ -26,5 +26,8 @@ export const playtestReceiptFile = (slot: number) => `smashcraft-play-p${slot}.t
 export const stageReceiptFile = (build: string, slot: number) => `smashcraft-stage-${build}-p${slot}.txt`;
 /** The record of this client's `serial`th finished match for the Smashcraft client (smashcraft:ts/src/game/shell/matchRecord.ts); serials count across sessions. */
 export const matchRecordFile = (serial: number) => `smashcraft-match-${serial}.txt`;
+/** A replay's manifest, written at its match's end, and its parts, written during the match (smashcraft:ts/src/game/replay/matchReplay.ts). */
+export const replayFile = (serial: number) => `smashcraft-replay-${serial}.txt`;
+export const replayPartFile = (serial: number, part: number) => `smashcraft-replay-${serial}-${part}.txt`;
 /** Holds the next match record's serial, as one FileIO chunk. */
 export const MATCH_RECORD_INDEX_FILE = "smashcraft-match-index.pld";

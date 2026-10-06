@@ -43,6 +43,12 @@ jobs:
         env:
           LUA: ${{ github.workspace }}/ts/build/lua-stock/lua-5.3.6/src/lua
           TOWARD_ZERO_LUA: ${{ github.workspace }}/ts/build/toward-zero-lua/lua-5.3.6/src/lua
+      # A headless match's replay replayed to every recorded checksum in 32-bit Lua too (#141).
+      - if: ${{ !cancelled() }}
+        run: bun test test/replay.test.ts
+        working-directory: ts
+        env:
+          LUA: ${{ github.workspace }}/ts/build/lua-stock/lua-5.3.6/src/lua
       # The game's tests in Warcraft's number model (32-bit Lua), which the Bun suite cannot catch.
       - if: ${{ !cancelled() }}
         run: bun scripts/lua-tests.ts

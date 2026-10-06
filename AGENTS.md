@@ -130,6 +130,12 @@ code. From smashcraft:ts/:
 - Repro: `bun wisp repro FILE [--test NAME]` replays a moment a player saved
   with K (or View held on a controller) in simulated clients, to the checksum
   the game recorded; `--test NAME` writes a test that replays it.
+- Replays: every client records each match as `smashcraft-replay-N.txt` (a
+  manifest written at its end) and `smashcraft-replay-N-K.txt` parts written
+  during it. `LUA=<32-bit lua> bun wisp replay FILE [--out JOINED]` replays a
+  manifest with its parts, or a joined replay, in Bun and 32-bit Lua to every
+  recorded checksum; `--out` writes the joined replay to share
+  (smashcraft:docs/design/client.md, "Full-match replays").
 - Headless match: `bun wisp headless [quick-match|desync] [--clients N]` plays
   the dev build's quick match in simulated clients in about a second and prints
   desyncs, error reports and scene problems; `--cost` adds its predicted

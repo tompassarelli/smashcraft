@@ -28,6 +28,7 @@ import { resultsView } from "../../game/presentation/matchCues";
 import { RESULTS_DELAY_FRAMES } from "../../game/render/matchPresentation";
 import { LASTING, announce, renderFighter, setStatus } from "./view";
 import { writeMatchRecord } from "./matchRecords";
+import { beginReplayFrame, endReplaySegment, replayFrameRan } from "./replays";
 
 function observe(before: FrameObservation, fighter: Readonly<Fighter>): void {
   before.out = fighter.status.out;
@@ -89,6 +90,7 @@ export function applyFrame(s: ShellState): void {
   const frame = s.frameInput.frame;
   if (frame === undefined) return;
   const { recorder } = s.moment;
+  beginReplayFrame(s, frame);
   beginMomentFrame(recorder, frame, world, s.game, s.controls, runtime);
   views(s).match.observe(s.game, world);
   // The speculative match usually ran this frame on this row already. The
@@ -100,6 +102,7 @@ export function applyFrame(s: ShellState): void {
     for (const slot of PARTICIPANT_SLOTS) if (participantActive(s.frameInput.networkMask, slot)) recordMomentRow(recorder, frame, slot, s.frameInput.network[slot]);
   }
   momentFrameRan(recorder, frame);
+  replayFrameRan(s, frame);
   const ui = views(s);
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) continue;
@@ -119,6 +122,7 @@ export function applyFrame(s: ShellState): void {
   clearMatchEffects(s);
   // The countdown changes the match between frames: the moment keeps it as its last frame left it.
   keepMomentEnd(recorder, world, s.game, s.controls, runtime);
+  endReplaySegment(s);
   beginRematchCountdown(s.game, s.dev.rematchSeconds);
   const call = cues.find(cue => cue === MatchCue.game || cue === MatchCue.time);
   ui.match.beginResults(resultsView(s.game, world, ui.match.tally), call === undefined ? 0 : RESULTS_DELAY_FRAMES);

@@ -15,11 +15,18 @@ declare global {
   var __smashcraftMatchSerial: number | undefined;
 }
 
-/** Writes the record of the match that just reached its result: the index first, so a serial is never reused. */
-export function writeMatchRecord(s: ShellState): void {
+/** The next serial, its successor written to the index first so a serial is never reused. */
+export function takeMatchSerial(): number {
   const serial = globalThis.__smashcraftMatchSerial ?? nextSerial(readChunk(MATCH_RECORD_INDEX_FILE));
   globalThis.__smashcraftMatchSerial = serial + 1;
   writeChunks(MATCH_RECORD_INDEX_FILE, [`${serial + 1}`]);
+  return serial;
+}
+
+/** Writes the record of the match that just reached its result, under the serial its replay took at its start. */
+export function writeMatchRecord(s: ShellState): void {
+  const serial = s.replay.recordSerial ?? takeMatchSerial();
+  s.replay.recordSerial = undefined;
   const players: Slots<string | undefined> = [undefined, undefined, undefined, undefined];
   for (const slot of PARTICIPANT_SLOTS) players[slot] = GetPlayerName(Player(slot));
   writeLines(matchRecordFile(serial), matchRecordLines({ build: s.build.id, serial, local: localSlot(), players }, s.game, s.world, views(s).match.tally));

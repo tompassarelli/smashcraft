@@ -26,6 +26,7 @@ import { ShadowInputSchedule } from "../../game/netcode/shadowSchedule";
 import type { WorldOrigin } from "../../game/render/effects";
 import { type ModelSoundCursor, ORIGINAL_MODEL_SOUNDS, createModelSoundCursor } from "../../game/render/modelSounds";
 import { type MomentRecorder, createMomentRecorder } from "../../game/replay/moment";
+import { type MatchReplayRecorder, createMatchReplayRecorder } from "../../game/replay/matchReplay";
 import { type ReplayState, createReplaySnapshot } from "../../game/replay/snapshot";
 import { type JournalIngress, type MapBuild, type ShadowInputMode, isShadow } from "../../game/shell/build";
 import type { DevSettings } from "../../game/shell/devSettings";
@@ -197,6 +198,17 @@ interface MomentSaves {
 
 export const momentSaves = (): MomentSaves => ({ recorder: createMomentRecorder(), saved: 0, notice: 0.0 });
 
+/** The match being recorded as a replay (replays.ts). */
+export interface ReplayRecording {
+  readonly recorder: MatchReplayRecorder;
+  /** The open replay's serial. */
+  serial: number;
+  /** The serial the match's record takes, until it is written. */
+  recordSerial: number | undefined;
+}
+
+export const replayRecording = (): ReplayRecording => ({ recorder: createMatchReplayRecorder(), serial: 0, recordSerial: undefined });
+
 /** Key triggers for every key, which exist only while keys drive menus or a callback match. */
 interface KeyEvents {
   down: trigger | undefined;
@@ -241,6 +253,8 @@ export interface ShellState {
   readonly diagnostic: ReplayState;
   /** Assigned again when a reload finds a match from a bundle without it. */
   moment: MomentSaves;
+  /** Assigned again when a reload finds a match from a bundle without it. */
+  replay: ReplayRecording;
   /** The stage-loading screen between the start press and the match (stageLoad.ts). */
   stageLoad?: StageLoad | undefined;
 }
@@ -328,7 +342,7 @@ export function createShellState(build: MapBuild, setup: ShellSetup): ShellState
     probe: build.responseProbe ? createResponseProbe(build.id) : undefined,
     rollback: isShadow(input) ? rollback(input, setup.playback, setup.editbox) : undefined,
     keyEvents: { down: undefined, up: undefined }, readyMarkerWritten: false, restartRequested: false,
-    diagnostic: createReplaySnapshot(), moment: momentSaves(),
+    diagnostic: createReplaySnapshot(), moment: momentSaves(), replay: replayRecording(),
   };
   globalThis.__smashcraftShell = state;
   return state;

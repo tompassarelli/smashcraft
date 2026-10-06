@@ -25,17 +25,17 @@ import { stateChecksum } from "./canonical";
 import { type ReplayState, captureReplaySnapshot, copyReplayState, createReplaySnapshot } from "./snapshot";
 
 /** Frames between snapshots: two seconds. */
-const SNAPSHOT_FRAMES = 120;
+export const SNAPSHOT_FRAMES = 120;
 const SNAPSHOTS = 6;
 /** A moment starts at the latest snapshot at least this many frames, ten seconds, before its end. */
 export const MOMENT_FRAMES = 600;
 /** Frames of rows each slot keeps: every frame since the oldest snapshot. */
-const ROW_FRAMES = SNAPSHOT_FRAMES * SNAPSHOTS;
+export const ROW_FRAMES = SNAPSHOT_FRAMES * SNAPSHOTS;
 /** Characters before a line's tokens: its section word and a space. */
 const SECTION_WIDTH = 6;
 
 /** How the match's frames got their controls: synchronized rows, or keys adapted on the game callback, with the build's scenario. */
-type MomentInput = { readonly kind: "network" } | { readonly kind: "callback"; readonly scenario: Scenario };
+export type MomentInput = { readonly kind: "network" } | { readonly kind: "callback"; readonly scenario: Scenario };
 
 /** A controller helper's journal record asking to save a moment: "JM1" and the epoch in ten digits. */
 const MOMENT_REQUEST = "JM1";
@@ -154,7 +154,7 @@ export function keepMomentEnd(recorder: MomentRecorder, world: Readonly<Roster>,
 }
 
 /** The state's checksum as the shell computes the confirmed match's: captured into scratch storage first. */
-function checksumOf(scratch: ReplayState, state: Readonly<ReplayState>): string {
+export function checksumOf(scratch: ReplayState, state: Readonly<ReplayState>): string {
   copyReplayState(scratch, state);
   return stateChecksum(scratch);
 }
@@ -164,7 +164,7 @@ function checksumOf(scratch: ReplayState, state: Readonly<ReplayState>): string 
  * throws and attack poses), which the record text keeps by key; recordTokens
  * throws naming any other integer-keyed field.
  */
-const KEYED_BY_ACTION = ["attacks", "normals", "throws"];
+export const KEYED_BY_ACTION = ["attacks", "normals", "throws"];
 
 /** What a snapshot saves: the active fighters, the match, the command buffers and the pacing and presentation. */
 function savedView(state: Readonly<ReplayState>): object {
@@ -200,7 +200,7 @@ function sameFrameRows(recorder: MomentRecorder, first: number, second: number):
 }
 
 /** Rows of frames start + 1 through last, a token per run of equal frames; text only at each run's end. */
-function rowTokens(recorder: MomentRecorder, start: number, last: number): string[] {
+export function rowTokens(recorder: MomentRecorder, start: number, last: number): string[] {
   const tokens: string[] = [];
   let run = floorMod(start + 1, ROW_FRAMES);
   let count = 1;
@@ -231,7 +231,7 @@ function startSnapshot(recorder: MomentRecorder, last: number): number | undefin
   return chosen;
 }
 
-const section = (word: string, tokens: readonly string[]) => tokenLines(tokens, REPRO_LINE_WIDTH - SECTION_WIDTH).map(line => `${word} ${line}`);
+export const section = (word: string, tokens: readonly string[]) => tokenLines(tokens, REPRO_LINE_WIDTH - SECTION_WIDTH).map(line => `${word} ${line}`);
 
 /**
  * Begins saving the moment that ends on the last frame the match ran, with
@@ -296,7 +296,7 @@ export function continueMomentSave(recorder: MomentRecorder, scratch: ReplayStat
 // ---------------------------------------------------------------- replay
 
 /** A frame's saved rows. */
-interface FrameRows {
+export interface FrameRows {
   readonly mask: number;
   readonly rows: ParticipantInputs;
 }
@@ -328,7 +328,7 @@ function isCommands(value: unknown): value is Slots<AttackBuffer> {
 }
 
 /** The snapshot's state, in records copyReplayState reads; undefined when a part is missing. */
-function savedState(record: Readonly<Record<string, unknown>>): ReplayState | undefined {
+export function savedState(record: Readonly<Record<string, unknown>>): ReplayState | undefined {
   const { mask, fighters, match, commands, runtime } = record;
   if (typeof mask !== "number" || !isList(fighters) || !isMatch(match) || !isCommands(commands) || !isRuntime(runtime)) return undefined;
   const world = createRoster(mask);
@@ -341,13 +341,13 @@ function savedState(record: Readonly<Record<string, unknown>>): ReplayState | un
   return { world, match, controls: { inputs: createFrameControls().inputs, commands }, runtime };
 }
 
-const wholeNumber = (text: string | undefined) => {
+export const wholeNumber = (text: string | undefined) => {
   const value = Number(text);
   return text !== undefined && text.length > 0 && value === Math.floor(value) ? value : undefined;
 };
 
 /** The frames a run of saved rows stands for, appended to `frames`; false when malformed. */
-function readRun(token: string, frames: FrameRows[]): boolean {
+export function readRun(token: string, frames: FrameRows[]): boolean {
   const [countText, maskText, slotsText = ""] = token.split(":");
   const count = wholeNumber(countText);
   const mask = wholeNumber(maskText);
@@ -405,7 +405,7 @@ function parseMoment(lines: readonly string[], last: number): Moment | string {
 }
 
 /** The scratch records a replayed frame produces its controls in. */
-interface FrameScratch {
+export interface FrameScratch {
   readonly frameInput: MatchFrameInput;
   readonly produced: FrameControls;
 }
@@ -415,7 +415,7 @@ interface FrameScratch {
  * runs it: humans' rows adapted, the computers' controls chosen, captured,
  * then executed.
  */
-function runCallbackFrame(state: ReplayState, scenario: Scenario, scratch: FrameScratch, saved: FrameRows, frame: number): boolean {
+export function runCallbackFrame(state: ReplayState, scenario: Scenario, scratch: FrameScratch, saved: FrameRows, frame: number): boolean {
   const { world, match, controls, runtime } = state;
   const { frameInput, produced } = scratch;
   for (const slot of PARTICIPANT_SLOTS) {
@@ -430,7 +430,7 @@ function runCallbackFrame(state: ReplayState, scenario: Scenario, scratch: Frame
 }
 
 /** A rollback match's confirmed frame: every human's accepted row, as the shell's stepConfirmed runs it. */
-function runNetworkFrame(state: ReplayState, scratch: FrameScratch, saved: FrameRows, frame: number): boolean {
+export function runNetworkFrame(state: ReplayState, scratch: FrameScratch, saved: FrameRows, frame: number): boolean {
   const { world, match, controls, runtime } = state;
   return captureNetworkFrame(scratch.frameInput, frame, saved.rows, world, saved.mask)
     && executeMatchFrame(scratch.frameInput, match, world, controls, runtime, frame);
