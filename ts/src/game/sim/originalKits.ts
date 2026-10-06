@@ -50,7 +50,7 @@ export const ORIGINAL_KITS: readonly OriginalKit[] = [
   },
   {
     specials: [
-      { action: SpecialAction.demonHunterManaBurn, name: "Mana Burn", description: "A slow orb that stuns; the more damage the target has, the longer the stun." },
+      { action: SpecialAction.demonHunterManaBurn, name: "Mana Burn", description: "A slow orb that burns mana and stuns; the emptier it leaves the target, the longer the stun." },
       { action: SpecialAction.demonHunterParryStep, name: "Parry Step", description: "A side step that stops an attack caught early in it and leaves the attacker stunned." },
       {
         action: SpecialAction.demonHunterWingAscent, name: "Wing Ascent", description: "Rise on his wings; jump near the top to glide, attack in the glide to slash.",

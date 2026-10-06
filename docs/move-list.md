@@ -31,7 +31,7 @@ matches until the match rules turn them on.
 
 | Input | Name | What it does |
 | --- | --- | --- |
-| Neutral special | Mana Burn | A slow orb that stuns; the more damage the target has, the longer the stun. |
+| Neutral special | Mana Burn | A slow orb that burns mana and stuns; the emptier it leaves the target, the longer the stun. |
 | Side special | Parry Step | A side step that stops an attack caught early in it and leaves the attacker stunned. |
 | Up special | Wing Ascent (Glide, Wing Slash) | Rise on his wings; jump near the top to glide, attack in the glide to slash. |
 | Down special | Immolate | A burst of flame around him that a jump can cancel. |
