@@ -1,6 +1,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction } from "../codes";
-import { HERO_REFERENCE_HEIGHT, heroMove, heroRegion, type FighterMoves, type StrikeCapsule } from "../heroMoves";
+import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion, type FighterMoves, type StrikeCapsule } from "../heroMoves";
+import { type FighterHurtboxes, type HurtPart, hurtPart } from "../hurtboxes";
 import { HitElement, type HitEffect } from "../hitRegions";
 
 // smashcraft:docs/design/roster.md adopts these timings and damages. Geometry
@@ -69,7 +70,40 @@ const DOWN_AIR = hit(13.0, "SPIKE", 270);
 const DOWN_AIR_GROUNDED = hit(13.0, "LAUNCH", 55);
 const GRAB_CONTACT = { damage: 0.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } as const;
 
+// Bodies that follow the swings: the torso plus the arm, leg or head that
+// drives each strike, from late startup through early recovery. Hammer head,
+// handle and axe blade stay outside, so only weapon reach is disjoint; the
+// kick, boots, headbutt and body checks carry their own hurt volume.
+const BODY_RADIUS = f32(24.0 * f32(1.10));
+const BODY = hurtPart(0.0, 4.0, 0.0, f32(f32(4.0 + f32(HERO_REFERENCE_HEIGHT * f32(0.85))) - f32(2.0 * BODY_RADIUS)), BODY_RADIUS);
+const ARM = 10.0;
+const LEG = 12.0;
+const limb = (first: number, last: number, ...parts: HurtPart[]) => heroHurtPose(first, last, [BODY, ...parts]);
+
+const MOUNTAIN_KING_BODIES: FighterHurtboxes = {
+  stand: [BODY],
+  attacks: {
+    [AttackStyle.jab]: [limb(3, 10, hurtPart(8.0, 58.0, 40.0, 42.0, ARM))],
+    [AttackStyle.forwardTilt]: [limb(6, 16, hurtPart(8.0, 58.0, 46.0, 52.0, ARM))],
+    [AttackStyle.forwardTiltUp]: [limb(6, 16, hurtPart(8.0, 60.0, 42.0, 72.0, ARM))],
+    [AttackStyle.forwardTiltDown]: [limb(6, 16, hurtPart(8.0, 52.0, 44.0, 34.0, ARM))],
+    [AttackStyle.upTilt]: [limb(6, 15, hurtPart(8.0, 60.0, 22.0, 92.0, ARM))],
+    [AttackStyle.downTilt]: [limb(5, 13, hurtPart(6.0, 20.0, f32(SHORT - 12.0), 10.0, LEG))],
+    [AttackStyle.forwardSmash]: [limb(14, 28, hurtPart(8.0, 60.0, 46.0, 62.0, ARM))],
+    [AttackStyle.upSmash]: [limb(13, 26, hurtPart(6.0, 62.0, 14.0, 98.0, ARM))],
+    [AttackStyle.downSmash]: [
+      limb(13, 18, hurtPart(8.0, 40.0, 46.0, 18.0, ARM)),
+      limb(19, 26, hurtPart(-8.0, 40.0, -46.0, 18.0, ARM)),
+    ],
+    [AttackStyle.forwardAir]: [limb(12, 24, hurtPart(8.0, 60.0, 44.0, 48.0, ARM))],
+    [AttackStyle.backAir]: [limb(8, 17, hurtPart(-8.0, 58.0, -46.0, 50.0, ARM))],
+    [AttackStyle.downAir]: [limb(10, 20, hurtPart(0.0, 20.0, 0.0, -f32(SHORT - 14.0), LEG))],
+    [AttackStyle.grab]: [limb(6, 12, hurtPart(8.0, 50.0, f32(GRAB - 14.0), 24.0, ARM))],
+  },
+};
+
 export const MOUNTAIN_KING_MOVES: FighterMoves = {
+  hurtboxes: MOUNTAIN_KING_BODIES,
   dashAttack: AttackStyle.dashAttack,
   smashMaxChargeFrames: 45,
   smashMaxDamageMultiplier: 1.25,
