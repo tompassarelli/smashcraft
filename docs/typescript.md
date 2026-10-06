@@ -566,12 +566,15 @@ From smashcraft:ts/:
   (3 stocks, 4-minute clock by default). The computer is deterministic, so
   each setup is one sample; each variant shifts both spawn points sideways.
   Per fighter it prints win rate over decisive matches against the field and
-  each opponent, the share of stocks lost with no hit taken in the previous
-  3 s, damage per hit landed and its most-started moves. About 0.15 s a
+  each opponent, its self-destructs (stocks lost with no hit taken since it
+  last stood on a deck or held the ledge, outside hitlag and hitstun), the
+  stocks lost over 3 s after the last hit (fall time), damage per hit
+  landed and its most-started moves. About 0.15 s a
   match, 900 matches a variant. `fighterMoveUsage` gives a per-fighter test
   the same move ranking; `gameplanKeyMovesCheck(character)` checks that the
   fighter's declared key moves (its gameplan's spacing tools unless `key`
-  names others) are among its `top` (6) most-used, counting a throw as the
+  names others) are among its `top` (8) most-used in its mirror on every
+  stage (3 stocks, 4 minutes, about a second), counting a throw as the
   grab, any dash attack as `dashAttack` and angled forward tilts as the
   forward tilt.
 
