@@ -362,6 +362,34 @@ Standing grab 10/2/28, reach 0.70H. Visible spectral hand, no tether recovery or
 
 **Required counterplay test:** a fast fighter already inside Lich’s forward-tilt range must be able to challenge a missed shard or nova. Frost Armor may help one trade but cannot permit casting through an entire combo.
 
+### As built
+
+Source: smashcraft:ts/src/game/sim/heroes/lichHero.ts, lichMoves.ts and
+lichSpecials.ts. Every normal, grab, pummel, throw and special above is
+implemented; the ultimate is not (there is no ultimate action). Changes from
+the tables:
+
+- **Frost Nova** "back held on entry" is a side special pressed toward
+  Lich's back: Lich keeps facing and places the marker 0.9H ahead instead of
+  turning. A marker whose line from Lich crosses solid stage geometry is not
+  placed (the cast and its cost still happen).
+- **Spectral Ascent** steers with the live stick at up to 0.4H/25 per frame
+  over its window, in place of air drift; with a neutral stick it rises
+  straight up.
+- **Frost Armor**'s shell protects from frame 22 for 180 frames, even after
+  the cast ends; any hit spends it, and only a hit of at most 6 damage loses
+  its reaction. Casting again fails without spending while any armor remains.
+- **Bodies:** Lich has no weapon, so the conjured frost beyond the hand is
+  each move's disjoint; the casting arm extends the hurt volume from late
+  startup through early recovery of every normal, the grab, Frost Shard and
+  Frost Nova.
+- **Presentation:** the stock HeroLich model has ten sequences (Stand, Stand
+  Ready, Stand - 2, Stand - 3, Walk, Stand Channel, Attack, Spell, Death,
+  Dissipate). Hand strikes play Attack, frost casts Spell, sustained magic
+  Stand Channel; hit reactions use the Stand - 3 sway and knockdowns Death.
+- Knockback classes use provisional growth/base values, not the
+  displacement-calibrated bands.
+
 ## Uther
 
 **Identity:** a defensive paladin with a substantial hammer, deliberate protection, and limited healing. He wins by holding space and reading approaches, not by infinitely stalling with invulnerability. Divine Shield must be a short defensive action in a fighter.
