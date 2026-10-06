@@ -29,6 +29,14 @@ export interface SpecialMotion extends FrameWindow {
   readonly velocityX: number;
   readonly velocityZ: number;
   readonly aimedSpeed?: number | undefined;
+  /**
+   * Horizontal steering: the live stick's world-relative x, scaled to this
+   * many units per frame, is added to the authored velocity on each frame;
+   * the shared air drift does not also steer.
+   */
+  readonly driftSpeed?: number | undefined;
+  /** The fighter's gravity is added to velocityZ, so the window moves exactly velocityZ per frame. */
+  readonly offsetsGravity?: boolean | undefined;
 }
 
 /**
@@ -54,11 +62,24 @@ export interface SpecialProjectile {
   readonly limit: number;
   /** Removed when the owner's special is interrupted before it becomes active (Frost Nova's marker). */
   readonly cancelOnInterrupt?: boolean | undefined;
+  /**
+   * The offset used when the special was pressed toward the fighter's back;
+   * the fighter then keeps its facing instead of turning (Frost Nova's near placement).
+   */
+  readonly backOffsetX?: number | undefined;
+  /** Not placed when solid stage geometry lies between the owner's offsetZ height and the spawn point. */
+  readonly needsLineOfSight?: boolean | undefined;
 }
 
 export interface SpecialArmor extends FrameWindow {
   /** A hit of at most this damage applies its damage without its reaction; any hit consumes the armor. */
   readonly maxDamage: number;
+  /**
+   * A shell armed once on `first` that lasts through `last` even after the
+   * action ends; one hit consumes it, and the special cannot start while the
+   * fighter still has armor (Frost Armor).
+   */
+  readonly shell?: boolean | undefined;
 }
 
 export interface AuthoredSpecial {

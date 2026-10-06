@@ -192,6 +192,8 @@ function specialProjectileCanonical(spec: Readonly<SpecialProjectile>, prefix: s
   int("reflectable", spec.reflectable ? 1 : 0);
   int("limit", spec.limit);
   int("cancelOnInterrupt", spec.cancelOnInterrupt === true ? 1 : 0);
+  real("backOffsetX", spec.backOffsetX ?? -1.0);
+  int("needsLineOfSight", spec.needsLineOfSight === true ? 1 : 0);
   return result;
 }
 
@@ -236,6 +238,7 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
   int("armor.first", move.armor?.first ?? -1);
   int("armor.last", move.armor?.last ?? -1);
   real("armor.maxDamage", move.armor?.maxDamage ?? 0.0);
+  int("armor.shell", move.armor?.shell === true ? 1 : 0);
   const motion = move.motion ?? [];
   for (let index = 0; index < motion.length; index++) {
     const segment = at(motion, index);
@@ -244,6 +247,8 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
     real(`motion[${index}].velocityX`, segment.velocityX);
     real(`motion[${index}].velocityZ`, segment.velocityZ);
     real(`motion[${index}].aimedSpeed`, segment.aimedSpeed ?? 0.0);
+    real(`motion[${index}].driftSpeed`, segment.driftSpeed ?? 0.0);
+    int(`motion[${index}].offsetsGravity`, segment.offsetsGravity === true ? 1 : 0);
   }
   const projectiles = move.projectiles ?? [];
   for (let index = 0; index < projectiles.length; index++) result += specialProjectileCanonical(at(projectiles, index), `${name}.projectile[${index}]`);

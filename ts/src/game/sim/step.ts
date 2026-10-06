@@ -78,6 +78,7 @@ import { checkBlastZone, respawnFighter } from "./stocks";
 import { advanceSurfaceRecovery, advanceWallJump, leaveMainDeckBody, resolveSolidSurfaceContacts } from "./surfaces";
 import { forwardRollTurnFrame, rollTravel } from "../physics/rollTravel";
 import { advanceTechInput, techContactWindow } from "../physics/techInput";
+import { heroSpecialSteers } from "./heroSpecialRules";
 import { clearDownState, clearOwnedFreezeTrap, thawFighter } from "./transitions";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
 import { at } from "wisp/src/runtime/lookup";
@@ -491,7 +492,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
       const previousGroundVelocity = motion.vx;
       // Dash entry stores new ground velocity after this frame's displacement.
       if (advanceGroundMovement(f, direction, input.walking)) dashEntryDisplacementAdjustment = f32(previousGroundVelocity - motion.vx);
-    } else if (direction !== 0 && !groundTakeoff) {
+    } else if (direction !== 0 && !groundTakeoff && !heroSpecialSteers(f)) {
       // Air steering changes velocity, not facing; back aerials rely on a stable orientation.
       const ceilingImpulse = f.surfaceRecovery.state === SurfaceContact.techCeiling && f.surfaceRecovery.frame === f.tuning.tech.ceilingImpulseFrame;
       motion.vx = ceilingImpulse ? ceilingImpulseDriftVelocity(f, motion.vx, direction) : airDriftVelocity(f, motion.vx, direction);

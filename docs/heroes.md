@@ -42,13 +42,21 @@ acts again on N+1. It may author:
   extends the body. Limbs that must be hittable belong in the hero's hurt
   volumes;
 - `motion`: velocity set on each frame of a window, facing-relative, with an
-  optional `aimedSpeed` that follows the stick held on entry;
+  optional `aimedSpeed` that follows the stick held on entry, `driftSpeed`
+  that adds the live stick's x at that many units per frame in place of the
+  shared air drift, and `offsetsGravity` so the window moves exactly its
+  velocity per frame (velocity set on frame N moves the fighter on N + 1);
 - `projectiles`: spawn frame, offset, velocity (and an up-held velocity),
-  life, radius, `activeFrom`, effect, `reflectable`, `limit` and
-  `cancelOnInterrupt`; a cast that would exceed a limit or the three-projectile
+  life, radius, `activeFrom` (the spawn frame is age one), effect,
+  `reflectable`, `limit`, `cancelOnInterrupt`, `backOffsetX` (used when
+  the special is pressed toward the back, which then keeps the facing) and
+  `needsLineOfSight` (not placed through solid stage surfaces); a cast that would exceed a limit or the three-projectile
   cap fails before spending;
 - `intangible` and `armor` windows (armor takes one hit's reaction up to its
-  damage; the damage applies and throws ignore it);
+  damage; the damage applies and throws ignore it). A `shell` armor is
+  armed once on its first frame, lasts through its last even after the
+  action ends, is spent by one hit, and blocks starting the special again
+  while any armor remains;
 - `groundOnly`, `oncePerAirtime`, `helpless` and `landingLag`.
 
 `sim/heroSpecialRules.ts` executes them: `chooseHeroSpecial` selects the
