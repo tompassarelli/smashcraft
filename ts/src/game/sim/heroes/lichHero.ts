@@ -3,6 +3,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { Character } from "../codes";
 import type { HeroClip, HeroDefinition } from "./hero";
+import { LICH_GAMEPLAN } from "./lichGameplan";
 import { LICH_MOVES } from "./lichMoves";
 import { LICH_SPECIALS } from "./lichSpecials";
 
@@ -35,6 +36,7 @@ export const LICH_HERO: HeroDefinition = {
   complete: true,
   moves: LICH_MOVES,
   specials: LICH_SPECIALS,
+  gameplan: LICH_GAMEPLAN,
   presentation: {
     model: "units\\undead\\HeroLich\\HeroLich.mdl",
     // The stand pose's top (z 177) at the roster's 1.05 height.
