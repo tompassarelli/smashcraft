@@ -195,7 +195,7 @@ meant for (or `+N` after the previous line), `a` or `b`, and
 (-1..1, up positive), `shield AMOUNT` (0..1) or `capture` (that
 client's whole frame, saved as `frame-FRAME-CLIENT.ppm`). A menu-started
 match holds fighters until GO! on frame 181; `-dev quick` matches start at
-frame 1. Each edge is written in the middle of its frame on the helper's own
+frame 1. Each edge is written a fifth into its frame on the helper's own
 clock (its log's `match_start ... epoch_ns` and frame rule), and
 `result.json` gives the frame each landed on: from the helper's event line
 for buttons, from its frame rule for sticks and triggers. It exits 1 when an

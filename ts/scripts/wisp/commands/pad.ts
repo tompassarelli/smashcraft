@@ -1,7 +1,7 @@
 // `bun wisp pad SCRIPT --helper BINARY --build BUILD --out DIR --app-id a=ID --app-id b=ID [--chat=TEXT]`:
 // a virtual pad and the real helper for each client, as the integrity
 // capture runs them; `--chat` types a developer command into client A (such
-// as `-dev quick hero lich`); each script edge is written in the middle of its
+// as `-dev quick hero lich`); each script edge is written a fifth into its
 // frame on the helper's own clock, and result.json gives the frame each one
 // landed on. Script syntax: smashcraft:ts/scripts/integrity/padScript.ts.
 import { mkdirSync, openSync, readFileSync, writeFileSync, writeSync, closeSync } from "node:fs";
@@ -17,7 +17,7 @@ import { gameProcess, json, startHelper } from "../../integrity/capture";
 import { IntegrityFailure, producerLine, tryIntegrity } from "../../integrity/evidence";
 import { inject, monotonicNs, openPad } from "../../integrity/linux";
 import { BTN_SELECT, PAD_BUTTONS } from "../../integrity/linuxInput";
-import { type SentEdge, frameMiddleNs, landEdges, matchStart, parsePadScript, ruleFrame } from "../../integrity/padScript";
+import { type SentEdge, frameWriteNs, landEdges, matchStart, parsePadScript, ruleFrame } from "../../integrity/padScript";
 import { SLOTS } from "../../integrity/reconcile";
 import { clientState } from "../project";
 import { onHealthyClients } from "../doctor";
@@ -26,9 +26,9 @@ const USAGE = "pad SCRIPT --helper BINARY --build BUILD --out DIR --app-id a=ID 
 
 const fromDesktop = (failure: DesktopFailure) => new IntegrityFailure({ operation: failure.operation, path: failure.client, cause: failure.cause });
 
-/** Sleeps to `targetNs` on CLOCK_MONOTONIC: a coarse sleep, then a short spin for the last 2 ms. */
+/** Sleeps to `targetNs` on CLOCK_MONOTONIC: a coarse sleep, then a spin for the last 5 ms. */
 const until = (targetNs: number) => Effect.gen(function*() {
-  const coarse = (targetNs - monotonicNs()) / 1e6 - 2;
+  const coarse = (targetNs - monotonicNs()) / 1e6 - 5;
   if (coarse > 0) yield* Effect.sleep(coarse);
   while (monotonicNs() < targetNs) { /* spin */ }
 });
@@ -87,7 +87,7 @@ export const pad: Command = (args) => Effect.gen(function*() {
     const producer = yield* Effect.acquireRelease(tryIntegrity("open producer log", producerPath, () => openSync(producerPath, "w")), (fd) => Effect.sync(() => closeSync(fd)));
     const sent: SentEdge[] = [];
     for (const item of steps) {
-      yield* until(frameMiddleNs(at(epochs, item.slot), item.frame));
+      yield* until(frameWriteNs(at(epochs, item.slot), item.frame));
       if (item.kind === "capture") {
         const client = clients[item.slot];
         yield* Effect.forkScoped(capture(client).pipe(
@@ -103,7 +103,7 @@ export const pad: Command = (args) => Effect.gen(function*() {
       }
     }
     const last = steps.at(-1)?.frame ?? 0;
-    yield* until(frameMiddleNs(Math.max(...epochs), last + 30));
+    yield* until(frameWriteNs(Math.max(...epochs), last + 30));
     const final = logs();
     const results = landEdges(sent, final).map((edge) => ({
       ...edge,

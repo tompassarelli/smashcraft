@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { ABS_X, ABS_Y, ABS_Z, BTN_A, EV_ABS, EV_KEY } from "../scripts/integrity/linuxInput";
-import { frameMiddleNs, landEdges, matchStart, parsePadScript, publishedFrame, ruleFrame } from "../scripts/integrity/padScript";
+import { frameWriteNs, landEdges, matchStart, parsePadScript, publishedFrame, ruleFrame } from "../scripts/integrity/padScript";
 
 test("a pad script becomes frame-ordered edges, a tap a press and its release", () => {
   const steps = parsePadScript(`
@@ -36,8 +36,8 @@ test("edges land on the frames a fake helper journaled them on", () => {
   expect(start).toEqual({ epoch: 1, epochNs: 34282443282605 });
   expect(publishedFrame(log)).toBe(181);
   const epochNs = start?.epochNs ?? 0;
-  // The middle of a frame falls on that frame by the helper's rule.
-  for (const frame of [1, 181, 1309]) expect(ruleFrame(epochNs, frameMiddleNs(epochNs, frame))).toBe(frame);
+  // The write time of a frame falls on that frame by the helper's rule.
+  for (const frame of [1, 181, 1309]) expect(ruleFrame(epochNs, frameWriteNs(epochNs, frame))).toBe(frame);
   const landed = landEdges([
     { line: 1, text: "181 a press X", slot: 0, planned: 181, injectedNs: 34285446238000 },
     { line: 2, text: "190 a stick 1 0", slot: 0, planned: 190, injectedNs: 34285600000000 },

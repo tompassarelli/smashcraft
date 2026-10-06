@@ -113,8 +113,8 @@ export function matchStart(log: string): { readonly epoch: number; readonly epoc
   return last === undefined ? undefined : { epoch: Number(last[1]), epochNs: Number(last[2]) };
 }
 
-/** When to write an edge meant for `frame`: the middle of that frame on the helper's clock, clear of both boundaries. */
-export const frameMiddleNs = (epochNs: number, frame: number): number => epochNs + Math.round(((frame - 1) * 1e9 + 0.5e9) / 60);
+/** When to write an edge meant for `frame`: a fifth into that frame on the helper's clock, clear of its start and leaving 13 ms for a late wake on a loaded host. */
+export const frameWriteNs = (epochNs: number, frame: number): number => epochNs + Math.round(((frame - 1) * 1e9 + 0.2e9) / 60);
 
 /** The frame the helper's rule gives a stamp (the helper's own event line confirms buttons). */
 export const ruleFrame = (epochNs: number, stampNs: number): number => 1 + Math.floor((stampNs - epochNs) * 60 / 1e9);
