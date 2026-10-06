@@ -1,6 +1,6 @@
 // Attack timing, damage and reach for every action ID. Frame counts are
 // provisional authored values unless a constant names its Melee source.
-import { max, min, toInt } from "../../runtime/numbers";
+import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { idiv } from "wisp/src/sim/intMath";
 import { AttackStyle, Character, GrabAction } from "./codes";
@@ -233,21 +233,28 @@ export function attackRecoveryFrames(character: Character, style: AttackStyle, g
   return attackDurationFramesForGrounding(style, grounded, moves) - attackStartupFrames(style, moves) - characterAttackActiveFrames(character, style, moves);
 }
 
-export const GRAB_HOLD_FRAMES = 76;
+/** Frames every grab holds when the victim doesn't mash, at any percent (#101). */
+export const GRAB_HOLD_FRAMES = 90;
+/** However fast the victim mashes, a hold lasts this long, so a prompt throw always starts. */
+export const GRAB_HOLD_MINIMUM_FRAMES = 30;
+/** Frames each mash input (a press, or a new stick direction) takes off the hold. */
+export const GRAB_MASH_FRAMES = 8;
+/** Every fighter's one pummel connects this late, so mashing from the catch escapes it. */
+export const PUMMEL_CONTACT_FRAME = 48;
+export const PUMMEL_TOTAL_FRAMES = 56;
 export const GRAB_HOLD_DISTANCE = 50.0;
 
-/** Frames a grabbed fighter is held before mashing, longer at higher percent. */
-export function grabHoldFrames(damage: number): number {
-  return toInt(f32(GRAB_HOLD_FRAMES + f32(1.600000023841858 * max(0.0, damage))));
+/** At most one pummel per grab; a kit may allow none. */
+export function pummelLimit(moves?: FighterMoves): number {
+  return min(1, moves?.maxPummels ?? 1);
 }
 
 /** The one-based action frame, counting entry, on which a pummel or throw connects. */
 export function grabContactFrame(action: GrabAction, moves?: FighterMoves): number {
+  if (action === GrabAction.pummel) return PUMMEL_CONTACT_FRAME;
   const authored = moves?.throws[action];
   if (authored !== undefined) return authored.contactFrame;
   switch (action) {
-    case GrabAction.pummel:
-      return 5;
     case GrabAction.throwForward:
       return 12;
     case GrabAction.throwUp:
@@ -258,11 +265,10 @@ export function grabContactFrame(action: GrabAction, moves?: FighterMoves): numb
 }
 
 export function grabActionDuration(action: GrabAction, moves?: FighterMoves): number {
+  if (action === GrabAction.pummel) return PUMMEL_TOTAL_FRAMES;
   const authored = moves?.throws[action];
   if (authored !== undefined) return authored.totalFrames;
   switch (action) {
-    case GrabAction.pummel:
-      return 24;
     case GrabAction.throwForward:
       return 30;
     case GrabAction.throwBack:

@@ -261,25 +261,3 @@ test("Lich throws release once on their adopted frames with facing-relative dire
     }
   }
 });
-
-test("Lich cold pummel deals one percent on frame five with no launch and caps at two", () => {
-  const { owner, target, world } = attackPair(AttackStyle.grab, 60.0);
-  target.status.damage = 100.0;
-  resolveAttacks(world);
-  assertEquals(owner.grab.target, 1);
-  assertEquals(grabContactFrame(GrabAction.pummel, LICH_MOVES), 5);
-  assertEquals(grabActionDuration(GrabAction.pummel, LICH_MOVES), 12);
-  for (let tick = 1; tick <= 5; tick++) {
-    testGrabFrame(world, [controls({ attackPressed: true }), controls()], false);
-    assertEquals(target.status.damage, tick < 5 ? 100.0 : 101.0);
-  }
-  assertEquals(target.launch.knockbackX, 0.0);
-  assertEquals(target.launch.knockbackZ, 0.0);
-  for (let tick = 6; tick <= 40; tick++) testGrabFrame(world, [controls({ attackPressed: true }), controls()], false);
-  assertEquals(target.status.damage, 102.0);
-  assertEquals(owner.grab.pummels, 2);
-  assertEquals(owner.grab.action, GrabAction.hold);
-  testGrabFrame(world, [controls({ attackPressed: true, grabThrowX: 1 }), controls()], false);
-  assertEquals(owner.grab.action, GrabAction.throwForward);
-  assertEquals(owner.grab.frame, 1);
-});

@@ -183,24 +183,6 @@ test("Warden standing and dash grabs retain exact reach on both active frames", 
   }
 });
 
-test("Warden elbow pummels contact on frame five and stop after two", () => {
-  const { owner, target, world } = pair(AttackStyle.grab, 5, 40.0);
-  resolveAttacks(world);
-  assertEquals(owner.grab.target, 1);
-  for (let pummel = 0; pummel < 2; pummel++) {
-    for (let frame = 1; frame <= 13; frame++) {
-      testGrabFrame(world, [controls({ attackPressed: frame === 1 }), controls()], false);
-      assertEquals(target.status.damage, pummel + (frame < 5 ? 0 : 1));
-      assertEquals(target.launch.knockbackX, 0.0);
-      assertEquals(target.launch.knockbackZ, 0.0);
-    }
-    assertEquals(owner.grab.action, GrabAction.hold);
-  }
-  testGrabFrame(world, [controls({ attackPressed: true }), controls()], false);
-  assertEquals(owner.grab.action, GrabAction.hold);
-  assertEquals(target.status.damage, 2.0);
-});
-
 test("Warden throws hold through adopted release then launch once in both facings", () => {
   for (const facing of [-1, 1]) {
     for (const [action, release, recovery, damage] of [
