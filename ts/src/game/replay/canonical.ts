@@ -295,8 +295,6 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   int("surface", m.surface ?? -1);
   int("airDodgeTime", fighter.dodge.airMotionFrames);
   int("landingLag", fighter.landing.lag);
-  int("lCancelWindow", fighter.landing.lCancelWindow);
-  int("lCancelSerial", fighter.landing.lCancelSerial);
   bool("airDodging", fighter.dodge.airDodging);
   int("airDodgeFrame", fighter.dodge.airFrame);
   int("groundDodgeFrame", fighter.dodge.groundFrame);
@@ -307,6 +305,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   int("downDirection", fighter.down.direction);
   int("downWaitRemaining", fighter.down.waitRemaining);
   bool("downFaceUp", fighter.down.faceUp);
+  bool("downAttackQueued", fighter.down.attackQueued);
   int("techWindow", fighter.tech.window);
   int("techPressAge", fighter.tech.pressAge);
   int("techPreviousPressAge", fighter.tech.previousPressAge);

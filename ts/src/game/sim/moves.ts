@@ -2,6 +2,7 @@
 // provisional authored values unless a constant names its Melee source.
 import { max, min, toInt } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
+import { idiv } from "wisp/src/sim/intMath";
 import { AttackStyle, Character, GrabAction } from "./codes";
 
 export const SMASH_MAX_CHARGE_FRAMES = 60;
@@ -15,9 +16,13 @@ export const DOWN_ATTACK_DAMAGE = 7.0;
 // the opponent's first active wake-up attack. See smashcraft:docs/physics.md.
 export const DOWN_ATTACK_BASE_KNOCKBACK = 75.0;
 const ARCHER_DOWN_ACTIVE_FRAMES = 20;
-export const L_CANCEL_WINDOW_FRAMES = 7;
-
-const AERIAL_LANDING_LAG = {
+/**
+ * Each aerial's authored landing lag before Melee's L-cancel would halve it
+ * (PlCo +0x0E8 = 2, melee:src/melee/ft/kinds/ftCommon/ftCo_LandingAir.c).
+ * Smashcraft omits L-cancelling: every aerial lands with the halved lag
+ * (smashcraft:docs/gameplay-design.md).
+ */
+const UNCANCELLED_AERIAL_LANDING_LAG = {
   [AttackStyle.neutralAir]: 10,
   [AttackStyle.forwardAir]: 14,
   [AttackStyle.backAir]: 16,
@@ -33,18 +38,24 @@ export function isSmashAttack(style: AttackStyle | undefined): boolean {
   return style !== undefined && style >= AttackStyle.upSmash && style <= AttackStyle.forwardSmash;
 }
 
-/** Landing lag of an aerial before L-cancelling halves it; zero for other actions. */
-export function attackLandingLag(style: AttackStyle | undefined): number {
+/** An aerial's landing lag before Melee's L-cancel would halve it; zero for other actions. */
+export function uncancelledLandingLag(style: AttackStyle | undefined): number {
   switch (style) {
     case AttackStyle.neutralAir:
     case AttackStyle.forwardAir:
     case AttackStyle.backAir:
     case AttackStyle.upAir:
     case AttackStyle.downAir:
-      return AERIAL_LANDING_LAG[style];
+      return UNCANCELLED_AERIAL_LANDING_LAG[style];
     default:
       return 0;
   }
+}
+
+/** The landing lag an aerial lands with, always Melee's L-cancelled lag: half, at least one; zero for other actions. */
+export function attackLandingLag(style: AttackStyle | undefined): number {
+  const lag = uncancelledLandingLag(style);
+  return lag > 0 ? max(1, idiv(lag, 2)) : 0;
 }
 
 export function attackDamage(style: AttackStyle): number {
@@ -77,7 +88,7 @@ export function attackDamage(style: AttackStyle): number {
     case AttackStyle.forwardTiltDown:
       return 10.0;
     case AttackStyle.jab:
-      return 12.0;
+      return 5.0;
   }
 }
 
@@ -198,6 +209,8 @@ export function attackDurationFramesForGrounding(style: AttackStyle, grounded: b
       return 28;
     case AttackStyle.upTilt:
       return 29;
+    case AttackStyle.jab:
+      return 21;
     default:
       return 36;
   }

@@ -29,7 +29,6 @@ function observe(before: FrameObservation, fighter: Readonly<Fighter>): void {
   before.attack = fighter.attack.serial;
   before.jump = fighter.jump.serial;
   before.down = fighter.down.state;
-  before.lCancel = fighter.landing.lCancelSerial;
   before.shieldBreak = fighter.shield.breakSerial;
   before.breakState = fighter.shield.breakState;
   before.ledge = fighter.ledge.state;
@@ -53,7 +52,6 @@ function reportChanges(s: ShellState, slot: ParticipantSlot, before: Readonly<Fr
   if (before.breakState !== f.shield.breakState) traceParticipant(s, slot, `shield-break ${f.shield.breakState} z ${R2S(f.motion.z)} remaining ${R2S(f.shield.breakRemaining)}`);
   if (before.ledge !== f.ledge.state) traceParticipant(s, slot, `ledge ${f.ledge.state} x ${R2S(f.motion.x)} z ${R2S(f.motion.z)}`);
   if (before.jump !== f.jump.serial) traceParticipant(s, slot, `applied jump ${f.jump.serial} double ${bit(f.jump.isDouble)} z ${R2S(f.motion.z)}`);
-  if (f.landing.lCancelSerial > before.lCancel) announce(s, "L-cancel!");
   if (before.down !== f.down.state) {
     if (f.down.state === DownState.tech) announce(s, "Tech!");
     else if (f.down.state === DownState.techRoll) announce(s, "Tech roll!");

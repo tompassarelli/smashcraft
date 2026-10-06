@@ -385,3 +385,18 @@ test("the confirmed match waits for exactly the players whose row after the comm
   assertEquals(schedule.knownThrough(), 1);
   assertEquals(schedule.awaitedSlots(), 0b1010);
 });
+
+test("a keyboard's clock follows the furthest frame another player has sent, never its own rows", () => {
+  const schedule = new ShadowInputSchedule();
+  assertTrue(schedule.beginEpoch(1501, 0, DEFAULT_ROLLBACK_WINDOW, 0b0111));
+  // Nothing from the others: the clock only takes its own next frame.
+  assertEquals(schedule.othersThrough(0, 1), 1);
+  for (let frame = 1; frame <= 40; frame++) deliver(schedule, 0, 1501, frame, NEUTRAL);
+  assertEquals(schedule.othersThrough(0, 1), 1);
+  // A helper whose game lost time sent frames past this clock; the furthest of the others counts.
+  for (let frame = 1; frame <= 30; frame++) deliver(schedule, 1, 1501, frame, NEUTRAL);
+  for (let frame = 1; frame <= 12; frame++) deliver(schedule, 2, 1501, frame, NEUTRAL);
+  assertEquals(schedule.othersThrough(0, 5), 30);
+  assertEquals(schedule.othersThrough(0, 31), 31);
+  assertEquals(schedule.othersThrough(2, 5), 40);
+});

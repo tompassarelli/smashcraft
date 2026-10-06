@@ -1,5 +1,5 @@
 import { f32 } from "wisp/src/sim/f32";
-import { AttackStyle, Character } from "../sim/codes";
+import { AttackStyle } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 import type { Controls } from "../sim/roster";
 import { analogShieldActive, analogShieldStrength } from "../sim/shield";
@@ -68,12 +68,13 @@ export function adaptInput(row: Readonly<InputRow>, fighter: Readonly<Fighter>, 
   destination.grabMashPressed = (pressed & GRAB_MASH_ACTIONS) !== 0;
   destination.grabThrowX = sign(row.throwX);
   destination.grabThrowZ = sign(row.throwZ);
-  destination.lCancelPressed = has(pressed, Action.grab) || destination.airDodgePressed;
   destination.ledgeVerticalPressed = row.ledgeVertical;
-  destination.getupAttackPressed = destination.attackPressed || (destination.specialPressed && (fighter.character !== Character.rifleman || destination.specialZ >= 0));
+  destination.getupAttackPressed = destination.attackPressed || destination.specialPressed;
   destination.getupStandPressed = has(pressed, Action.moveUp) || destination.jumpPressed || destination.airDodgePressed;
   destination.getupDirection = edgePair(pressed, Action.moveLeft, Action.moveRight);
   destination.getupDirectionPressed = destination.getupDirection !== 0;
+  destination.cStickUpFlick = has(pressed, Action.smashUp);
+  destination.cStickSideFlick = edgePair(pressed, Action.smashLeft, Action.smashRight);
   destination.walking = has(held, Action.walk);
   destination.attackHeld = has(held, Action.attack);
   const dodge = groundDodgeIntent(destination.shield, has(pressed, Action.moveLeft), has(pressed, Action.moveRight), has(pressed, Action.moveDown));

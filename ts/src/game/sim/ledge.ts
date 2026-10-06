@@ -1,48 +1,121 @@
 // Ledge catches and the options from a hang: jump, climb, drop, roll and attack.
 import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
-import { AttackStyle, DownState, LedgeState } from "./codes";
-import { canAttack, isTumbling } from "./conditions";
+import { AttackStyle, Character, DownState, LedgeState, ShieldBreak, SpecialAction } from "./codes";
+import { inGrabContext, isTumbling } from "./conditions";
 import type { Fighter } from "./fighter";
 import { clearDash } from "./groundMovement";
+import { AIR_DODGE_ANIMATION_FRAMES } from "./jumpsAndDodges";
 import { LEDGE_ATTACK_FRAMES } from "./moves";
-import { totalVelocityZ } from "./motion";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type Controls, type Roster, controlsAt, fighterAt, isActive } from "./roster";
 import { surfaceLeft, surfaceRight, surfaceZ } from "./stage";
+import { BODY_HALF_WIDTH } from "./surfaces";
 import { checkBlastZone } from "./stocks";
-import { beginAttack, cancelAttack, clearDownState, clearTech, leaveLedge } from "./transitions";
+import { beginAttack, cancelAttack, clearDownState, clearLedge, clearTech, leaveLedge } from "./transitions";
+import { melee } from "./tuning";
 
 export const LEDGE_CLIMB_FRAMES = 25;
 export const LEDGE_ROLL_FRAMES = 36;
 export const LEDGE_INTANGIBLE_FRAMES = 30;
-const LEDGE_GRAB_WIDTH = 54.0;
-const LEDGE_GRAB_BELOW = 90.0;
-const LEDGE_GRAB_ABOVE = 12.0;
 export const LEDGE_HANG_OUTSET = 24.0;
 export const LEDGE_HANG_DEPTH = 90.0;
 const LEDGE_MOUNT_FRAMES = 12;
 const LEDGE_CLIMB_INSET = 24.0;
 
+/** A fighter's NTSC 1.02 ledge snap data (ftData x44 +0x10/+0x14/+0x18), in Melee units. */
+interface LedgeSnap {
+  readonly x: number;
+  readonly y: number;
+  readonly height: number;
+}
+
+/**
+ * Where a fighter catches ledges, in world units: up to `reach` ahead of its
+ * position, for ledges strictly between `lowest` and `highest` above its feet.
+ */
+interface LedgeCatchBox {
+  readonly reach: number;
+  readonly lowest: number;
+  readonly highest: number;
+}
+
+// Archer, Rifleman and Illidan catch with Fox's, Falco's and Captain Falcon's data.
+const FOX_LEDGE_SNAP: LedgeSnap = { x: 11.0, y: 13.0, height: 9.0 };
+const FALCO_LEDGE_SNAP: LedgeSnap = { x: 11.0, y: 13.0, height: 9.0 };
+const CAPTAIN_FALCON_LEDGE_SNAP: LedgeSnap = { x: 9.0, y: 17.0, height: 11.0 };
+
+export function ledgeSnap(character: Character): LedgeSnap {
+  switch (character) {
+    case Character.archer:
+      return FOX_LEDGE_SNAP;
+    case Character.rifleman:
+      return FALCO_LEDGE_SNAP;
+    case Character.demonHunter:
+      return CAPTAIN_FALCON_LEDGE_SNAP;
+  }
+}
+
+function catchBox(snap: LedgeSnap): LedgeCatchBox {
+  const half = f32(snap.height * 0.5);
+  // Melee widens the reach by the airborne collision box; fighters reach with its minimum.
+  return {
+    reach: melee(f32(BODY_HALF_WIDTH + snap.x)),
+    lowest: melee(f32(snap.y - half)),
+    highest: melee(f32(snap.y + half)),
+  };
+}
+
+const ARCHER_CATCH_BOX = catchBox(FOX_LEDGE_SNAP);
+const RIFLEMAN_CATCH_BOX = catchBox(FALCO_LEDGE_SNAP);
+const DEMON_HUNTER_CATCH_BOX = catchBox(CAPTAIN_FALCON_LEDGE_SNAP);
+
+export function ledgeCatchBox(character: Character): LedgeCatchBox {
+  switch (character) {
+    case Character.archer:
+      return ARCHER_CATCH_BOX;
+    case Character.rifleman:
+      return RIFLEMAN_CATCH_BOX;
+    case Character.demonHunter:
+      return DEMON_HUNTER_CATCH_BOX;
+  }
+}
+
 function ledgeX(stage: number, side: number): number {
   return side < 0 ? surfaceLeft(stage, 0) : surfaceRight(stage, 0);
 }
 
-/** The ledge side a falling fighter facing the stage can catch, or zero. */
+/**
+ * Falling, helpless and tumbling fighters catch; attacks, specials, air dodges,
+ * hitstun and shield breaks don't. An air dodge turns helpless when its
+ * animation ends.
+ */
+function canCatchLedge(f: Fighter): boolean {
+  const { attack, special, dodge, launch, down } = f;
+  return !f.status.out && f.status.frozenFrames <= 0 && launch.hitlag <= 0 && launch.hitstun <= 0
+    && attack.style === undefined && attack.cooldown <= 0 && special.action === SpecialAction.none && special.lockFrames <= 0
+    && (!dodge.airDodging || dodge.airFrame >= AIR_DODGE_ANIMATION_FRAMES) && f.shield.breakState === ShieldBreak.none
+    && !inGrabContext(f) && (down.state === DownState.none || isTumbling(f));
+}
+
+/**
+ * The ledge ahead that the fighter's last movement swept into its catch box,
+ * or zero. Only a downward movement catches; holding down lets ledges pass.
+ */
 function ledgeCandidate(f: Fighter, stage: number, input: Readonly<Controls>): number {
-  const { launch, motion } = f;
-  const canCatchDuringSpecialFall = f.special.fall && !f.status.out && f.special.lockFrames <= 0 && launch.hitlag <= 0
-    && launch.hitstun <= 0 && f.shield.stun <= 0 && (f.down.state === DownState.none || isTumbling(f));
-  if ((!canAttack(f) && !canCatchDuringSpecialFall) || motion.grounded || f.ledge.regrab > 0 || f.attack.style !== undefined
-    || input.down || input.verticalDirection < 0 || totalVelocityZ(f) >= 0) {
+  const { motion } = f;
+  if (!canCatchLedge(f) || motion.grounded || f.ledge.regrab > 0 || input.down || motion.deltaZ >= 0) {
     return 0;
   }
-  const height = f32(motion.z - surfaceZ(stage, 0));
-  if (height < -LEDGE_GRAB_BELOW || height > LEDGE_GRAB_ABOVE) return 0;
-  const side = motion.x < 0 ? -1 : 1;
-  const outside = f32(f32(motion.x - ledgeX(stage, side)) * side);
-  if (outside < 0 || outside > LEDGE_GRAB_WIDTH || f.facing !== -side) return 0;
-  return side;
+  const side = -f.facing;
+  const box = ledgeCatchBox(f.character);
+  const edge = ledgeX(stage, side);
+  const outside = f32(f32(motion.x - edge) * side);
+  const outsideBefore = f32(f32(f32(motion.x - motion.deltaX) - edge) * side);
+  if (outside <= 0 || min(outside, outsideBefore) >= box.reach) return 0;
+  const below = f32(surfaceZ(stage, 0) - motion.z);
+  const belowBefore = f32(below + motion.deltaZ);
+  return below > box.lowest && belowBefore < box.highest ? side : 0;
 }
 
 function ledgeDistance(f: Fighter, stage: number, side: number): number {
@@ -73,9 +146,11 @@ function catchLedge(f: Fighter, stage: number, side: number): void {
   launch.groundKnockbackX = 0.0;
   launch.knockbackZ = 0.0;
   f.special.fall = false;
+  f.dodge.airDodging = false;
+  f.dodge.airFrame = 0;
+  f.dodge.airMotionFrames = 0;
   f.jump.remaining = 1;
   motion.dropTime = 0;
-  f.landing.lCancelWindow = 0;
   clearTech(f);
 }
 
@@ -129,7 +204,7 @@ export function advanceLedge(world: Roster, slot: number, stage: number, input: 
         motion.vz = f.tuning.physics.fullJumpSpeed;
         f.jump.serial++;
         f.jump.isDouble = false;
-        leaveLedge(f);
+        clearLedge(f);
         return;
       }
       if (intoStage || input.ledgeVerticalPressed > 0) {
@@ -170,6 +245,6 @@ export function advanceLedge(world: Roster, slot: number, stage: number, input: 
   if (ledge.frame >= duration) {
     if (ledge.state === LedgeState.attack) cancelAttack(f);
     f.jump.remaining = 2;
-    leaveLedge(f);
+    clearLedge(f);
   }
 }

@@ -2,8 +2,8 @@
 
 Run `~/code/smashcraft/worktrees/playable-integration-20261005/tools/move-data/compare.sh`
 from the current owned checkout. It runs the pinned Bun TypeScript comparison
-fixtures and writes smashcraft:build/move-comparisons/comparisons.jsonl. Allow
-roughly two minutes for the bounded sweep. `--check` runs the focused
+fixtures and writes smashcraft:build/move-comparisons/comparisons.jsonl. The
+bounded sweep takes about 2.5 s. `--check` runs the focused
 category/follow-up tests and compares fresh output with
 smashcraft:tools/move-data/comparisons.jsonl at 12-decimal numeric precision.
 
@@ -12,6 +12,8 @@ rule comparisons. It is generated output, never gameplay tuning input. The
 fixtures use the TypeScript production simulation APIs for state, motion,
 contact resolution and actionability. The existing move export supplies move
 names and declared timing/contact facts for further joins.
+Smashcraft omits stale moves and freshness bonuses (smashcraft:docs/gameplay-design.md),
+so every comparison with Melee damage or knockback leaves that modifier out.
 
 ## Conditions and clocks
 
@@ -25,8 +27,7 @@ state; contact is decided by the actual production capsules and contact resolver
 
 Shield contexts use 0%, full digital shield held for 20 frames, no powershield,
 and release immediately after contact. Body contexts use 0% or 60%, neutral DI,
-no SDI/ASDI displacement and no defensive response. One L-cancel press is issued
-on the first airborne tick where hitlag is at most one. The fixture advances
+no SDI/ASDI displacement and no defensive response. The fixture advances
 production motion, action entry and contact batching in match order; specials,
 grabs, ledge acquisition, input buffering, bots and presentation are excluded.
 
@@ -75,7 +76,7 @@ or establish a universal balance law.
 
 Late aerial pressure is an intentional exception to applying that ground-move
 rule indiscriminately: its checkpoint already spent 20 airborne attack frames,
-its sampled damage is lower, its landing and L-cancel matter, and it misses at
+its sampled damage is lower, its landing lag matters, and it misses at
 the farther spacing. Counterplay outside the checkpoint includes contesting
 that approach or moving outside its contact geometry. These are options to
 investigate, not measured success rates. No generic balance score is assigned.
@@ -118,3 +119,41 @@ The factual action-family reference join and bounded trade-off analysis are
 recorded in smashcraft:docs/move-reference-join.md. No Melee character is equated
 with an original Warcraft fighter. Native parity, balance tuning and playable
 before/after acceptance remain in issue #12.
+
+## Jab change, 6 October 2026 (#12)
+
+Issue #12's first balance change, proposed from bot soak data
+(smashcraft:evidence/soak-balance-20261006/) and the Melee reference join:
+
+| Jab | Before | After |
+| --- | ---: | ---: |
+| Archer and Rifleman damage | 12 | 5 (Illidan's, unchanged) |
+| Recovery, every fighter | 30 | 15 |
+| Total frames, every fighter | 36 | 21 |
+| Knockback at 0%, weight 100 (Archer, Rifleman) | 49.76 | 40.45 |
+| Hitstun / victim hitlag (Archer, Rifleman) | 19 / 7 | 16 / 4 |
+| Digital shield damage / shieldstun (Archer, Rifleman) | 8.4 / 7 | 3.5 / 4 |
+
+Startup (4), active frames (2), reach and knockback growth and base are
+unchanged. Melee's jab1 records for its 26 characters report 2–8 base damage
+(median 3, fresh values; Smashcraft has no stale moves) and 15–31 total
+frames (median 20); 12 damage and 36 frames were above every one of them.
+Each fighter's forward tilt (8–10 damage, 28 frames) is now the stronger,
+slower option and the jab the fast, weak one.
+
+The comparison snapshot is unchanged: all 54 contact contexts and 2,236
+option trials, including all 21 `bounded-true-link` and 3 `bounded-punish`
+rows, are identical. Their verdicts depend on startup, reach and the
+opponent's recovery, none of which changed. What changed is what a link is
+worth: Archer's late neutral air (5) into jab at 60%, the four approach
+delays 2–5 above, now confirms **10%** instead of **17%**.
+
+A jab's 5 damage is below the 7-damage down-damage threshold
+(smashcraft:docs/physics.md, "Grounded knockdown and jab resets"), so a jab
+on a downed fighter is now a jab reset, not a launch. A downed fighter that
+stands, rolls or get-up attacks leaves after the first reset, before the
+next jab. One that does nothing stays down: jabbing as fast as the game
+allows held a passive Archer for 25 resets in 600 frames from 30% and from
+100%. The game's computer never chooses a get-up option, so in
+computer-against-computer matches a jabbing Archer or Rifleman can hold a
+downed opponent until time runs out.

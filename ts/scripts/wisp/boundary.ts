@@ -70,7 +70,8 @@ export const JournalControl = preloadRecord(
   }),
 );
 
-const JournalMenu = preloadRecord(
+/** smashcraft-journal-menu-BUILD-sN.txt: the menu phase and slot modes the map last showed. */
+export const JournalMenu = preloadRecord(
   { head: ["SMASHCRAFT JOURNAL MENU v=1 build={build} epoch={epoch} slot={slot} phase={phase}", "connected={connected} human-fighters={humanFighters} computers={computers} fighters={fighters}"] },
   Schema.Struct({ ...Identity, phase: Schema.Literals(["CHARACTER", "STAGE", "RESULT", "BLOCKED"]), connected: Count, humanFighters: Count, computers: Count, fighters: Count }),
 );

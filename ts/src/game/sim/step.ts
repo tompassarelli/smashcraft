@@ -29,12 +29,12 @@ import {
   finishLanding,
   resolveDownGroundContact,
 } from "./down";
-import { FAST_FALL_INPUT_WINDOW, type Fighter, SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES, WALL_TECH_JUMP_INPUT_WINDOW_FRAMES } from "./fighter";
+import { FAST_FALL_INPUT_WINDOW, type Fighter, PLATFORM_DROP_INPUT_WINDOW, SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES, WALL_TECH_JUMP_INPUT_WINDOW_FRAMES } from "./fighter";
 import { DASH_GUARD_EARLY_FRAMES, advanceGroundMovement, clearDash } from "./groundMovement";
 import { AIR_DODGE_ANIMATION_FRAMES, AIR_DODGE_DECAY, beginAirDodge, beginGroundDodge, beginJump, canBeginGroundDodge } from "./jumpsAndDodges";
 import { ageKnockback, applyDirectionalInfluence, decayKnockback } from "./knockback";
 import { advanceLedge } from "./ledge";
-import { DOWN_ATTACK_FRAMES, L_CANCEL_WINDOW_FRAMES, SMASH_MAX_CHARGE_FRAMES, attackStartupFrames, isSmashAttack } from "./moves";
+import { DOWN_ATTACK_FRAMES, SMASH_MAX_CHARGE_FRAMES, attackStartupFrames, isSmashAttack } from "./moves";
 import {
   addMeleeWorldValues,
   airDriftVelocity,
@@ -61,8 +61,9 @@ import {
 import { advanceShieldBreak, beginShieldBreak } from "./shieldBreak";
 import { applyAutomaticSmashDirectionalInfluence, applySmashDirectionalInfluence } from "./smashDirectionalInfluence";
 import { surfaceCount, surfaceLeft, surfacePass, surfaceRight, surfaceZ } from "./stage";
+import { stickX } from "./stick";
 import { checkBlastZone, respawnFighter } from "./stocks";
-import { advanceSurfaceRecovery, resolveSolidSurfaceContacts } from "./surfaces";
+import { advanceSurfaceRecovery, leaveMainDeckBody, resolveSolidSurfaceContacts } from "./surfaces";
 import { forwardRollTurnFrame, rollTravel } from "../physics/rollTravel";
 import { advanceTechInput, techContactWindow } from "../physics/techInput";
 import { clearDownState, clearOwnedFreezeTrap } from "./transitions";
@@ -70,6 +71,10 @@ import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
 import { at } from "wisp/src/runtime/lookup";
 
 const FAST_FALL_DOWN_THRESHOLD = 0.6625000238418579;
+/** Melee common +0x008: the stick crosses this sideways to count as a fresh flick. */
+const STICK_SMASH_DEADZONE_X = 0.25;
+/** Melee common +0x210/+0x214: tumble ends on a flick at least this far sideways, on the frame it crosses the deadzone. */
+const TUMBLE_EXIT_STICK_X = 0.800000011920929;
 const PLATFORM_DROP_FRAMES = 12;
 /** Dash-to-guard after the early window opens a dash-grab window this long. */
 const LATE_DASH_GUARD_GRAB_WINDOW = 3;
@@ -293,11 +298,12 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   }
   // Direction freshness is input time, including hitlag; ages beyond the window are equivalent.
   const downHeld = (input.down ? 1.0 : 0.0) >= FAST_FALL_DOWN_THRESHOLD;
-  motion.fastFallInputAge = downHeld ? (motion.fastFallDownHeld ? min(FAST_FALL_INPUT_WINDOW, motion.fastFallInputAge + 1) : 0) : FAST_FALL_INPUT_WINDOW;
+  motion.fastFallInputAge = downHeld ? (motion.fastFallDownHeld ? min(PLATFORM_DROP_INPUT_WINDOW, motion.fastFallInputAge + 1) : 0) : PLATFORM_DROP_INPUT_WINDOW;
   motion.fastFallDownHeld = downHeld;
-  // Digital directions exceed the retail 0.8 tumble-exit threshold; its window is one input frame.
-  const freshHorizontalInput = input.direction !== 0 && input.direction !== motion.previousHorizontalDirection;
-  motion.previousHorizontalDirection = input.direction;
+  const horizontalStick = stickX(input);
+  const stickSide = horizontalStick >= STICK_SMASH_DEADZONE_X ? 1 : horizontalStick <= -STICK_SMASH_DEADZONE_X ? -1 : 0;
+  const tumbleExitFlick = stickSide !== 0 && stickSide !== motion.previousStickSide && Math.abs(horizontalStick) >= TUMBLE_EXIT_STICK_X;
+  motion.previousStickSide = stickSide;
   // Expiry resumes this frame, including input gates and state countdowns.
   const hitlagBefore = launch.hitlag;
   launch.hitlag = max(0, launch.hitlag - 1);
@@ -323,9 +329,6 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
       return;
     }
   }
-  // Counts include the current contact tick. A hitlag edge starts counting after the freeze.
-  if (launch.hitlag <= 0) f.landing.lCancelWindow = max(0, f.landing.lCancelWindow - 1);
-  if (input.lCancelPressed) f.landing.lCancelWindow = L_CANCEL_WINDOW_FRAMES;
   if (launch.hitlag <= 0) {
     f.surfaceRecovery.reflectCooldown = max(0, f.surfaceRecovery.reflectCooldown - 1);
     endFinishedDownStates(f);
@@ -402,7 +405,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   shield.releaseLag = max(0, shield.releaseLag - 1);
   const wantsShield = advanceGuard(f, input, forcedShield);
   let direction = input.direction;
-  if (isTumbling(f) && !motion.grounded && launch.hitstun <= 0 && launch.hitlag <= 0 && freshHorizontalInput) {
+  if (isTumbling(f) && !motion.grounded && launch.hitstun <= 0 && launch.hitlag <= 0 && tumbleExitFlick) {
     clearDownState(f);
     motion.vx = max(-physics.airSpeed, min(physics.airSpeed, motion.vx));
   }
@@ -442,8 +445,9 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
     const drag = motion.grounded ? physics.traction : physics.airFriction;
     motion.vx = motion.vx > 0 ? max(0.0, f32(motion.vx - drag)) : min(0.0, f32(motion.vx + drag));
   }
-  if (input.down && !input.attackRequested && down.state === DownState.none && motion.grounded && motion.surface !== undefined
-    && surfacePass(stage, motion.surface) && canAttack(f)) {
+  // Melee drops only on a fresh press (ftCo_Pass.c), so landing on a deck with down held stays on it.
+  if (input.down && motion.fastFallInputAge < PLATFORM_DROP_INPUT_WINDOW && !input.attackRequested && down.state === DownState.none
+    && motion.grounded && motion.surface !== undefined && surfacePass(stage, motion.surface) && canAttack(f)) {
     motion.dropTime = PLATFORM_DROP_FRAMES;
     jump.remaining = min(jump.remaining, 1);
     motion.grounded = false;
@@ -465,7 +469,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
     if (!motion.grounded && !motion.fastFalling && downHeld && motion.fastFallInputAge < FAST_FALL_INPUT_WINDOW && input.direction === 0
       && down.state === DownState.none && launch.hitstun <= 0 && motion.vz < 0) {
       motion.fastFalling = true;
-      motion.fastFallInputAge = FAST_FALL_INPUT_WINDOW;
+      motion.fastFallInputAge = PLATFORM_DROP_INPUT_WINDOW;
     }
     if (motion.fastFalling) motion.vz = -physics.fastFallSpeed;
     else applyMeleeGravity(f);
@@ -478,6 +482,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   if (landing !== undefined) {
     finishLanding(f, stage, input, landing, false);
   } else {
+    leaveMainDeckBody(f, stage);
     if (motion.grounded) jump.remaining = min(jump.remaining, 1);
     motion.grounded = false;
     motion.surface = undefined;

@@ -134,7 +134,7 @@ test("the forced shield-break sequence rejects actions and techs for both charac
     const world = testWorld(fighter, createFighter(character === Character.archer ? Character.rifleman : Character.archer, 100.0, -1));
     const input = controls({
       direction: 1, down: true, shield: true, jumpPressed: true, jumpHeld: true, airDodgePressed: true, dodgeX: 1,
-      groundDodgePressed: true, groundDodgeDirection: 1, techPressed: true, lCancelPressed: true, getupAttackPressed: true,
+      groundDodgePressed: true, groundDodgeDirection: 1, techPressed: true, getupAttackPressed: true,
       getupStandPressed: true, getupDirectionPressed: true, getupDirection: 1, attackHeld: true,
     });
     let highest = 0.0;
@@ -266,7 +266,7 @@ test("flinching damage and grabs interrupt every shield-break phase", () => {
       assertEquals(fighter.shield.breakRemaining, 0.0);
       assertEquals(fighter.shield.breakSerial, 1);
       if (attack === AttackStyle.jab) {
-        assertEquals(fighter.status.damage, 12.0);
+        assertEquals(fighter.status.damage, 5.0);
         assertGreaterThan(fighter.launch.hitstun, 0);
       } else {
         assertEquals(fighter.grab.grabbedFrames, grabHoldFrames(fighter.status.damage));

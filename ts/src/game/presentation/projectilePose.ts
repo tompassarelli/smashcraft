@@ -11,11 +11,14 @@ interface ProjectilePose {
   pitch: number;
 }
 
+// Shared and never changed: renderers project every pooled effect on every callback.
+const HIDDEN: Readonly<ProjectilePose> = { visible: false, x: 0.0, z: 0.0, yaw: 0.0, pitch: 0.0 };
+
 /** A live projectile, facing its direction of travel and pitched along its path; hidden outside play. */
-export function projectedProjectile(fighter: Readonly<Fighter> | undefined, index: number, playing: boolean): ProjectilePose {
+export function projectedProjectile(fighter: Readonly<Fighter> | undefined, index: number, playing: boolean): Readonly<ProjectilePose> {
   const projectile = fighter?.projectiles[index];
   if (!playing || fighter === undefined || projectile === undefined || fighter.status.out || !projectileActive(fighter, index)) {
-    return { visible: false, x: 0.0, z: 0.0, yaw: 0.0, pitch: 0.0 };
+    return HIDDEN;
   }
   const { velocityX, velocityZ } = projectile;
   return {

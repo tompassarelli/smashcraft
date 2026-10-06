@@ -191,6 +191,59 @@ over eight frames: 3.4 ms when it begins (copies of the snapshot and the
 match, and the rows), then one 6.5–8.6 ms step a frame (a checksum each, then
 the snapshot's text). The file is about 36 KB.
 
+`bun wisp soak` is the automatic playtester ([Wisp soak](https://github.com/tompassarelli/wisp/blob/main/docs/soak.md)):
+200 headless matches of the playable build with the scene recorder
+(smashcraft:ts/test/soak/game.ts), every ordered fighter pair on every stage
+eleven times over, in at most four worker processes. Each one-stock,
+one-minute match pairs two of: the fuzzed controller (`fuzz`), the game's
+computer (`cpu`, its human's helper typing neutral rows) and a human whose
+helper never runs (`absent`, #46). The players' helpers are the journal
+stand-in (smashcraft:ts/test/rematch/journalHelper.ts), sending two frames
+a packet as the companion does, on the soak's wall clock, so a lag spike or
+a quiet helper leaves input waiting as it does natively. It reports stalls,
+desyncs, error reports, scene problems, an invisible fighter, costly frames
+and catch-ups that never recover, with a repro file per finding that
+`bun wisp soak --repro FILE` replays exactly. Run it inside the machine's
+capacity scope; it is not part of `bun run test`. `--fighter`, `--stage`
+and `--policy` narrow a run. The 200-match run took 46 s with four workers
+and 245 s of CPU on 6 October 2026.
+
+With `SOAK_OUTCOMES=FILE` set, every match also appends its result to FILE
+as one JSON line: the winner, whether time ran out, and for each player the
+damage and hits taken and each stock lost (match frame, percent, frames since
+the last hit taken). `bun scripts/soakOutcomes.ts FILE...` summarizes them
+per fighter pair and policy pair: wins with a 95% Wilson interval, time-outs,
+stock time, the percent stocks were lost at (a loss more than 3 s after the
+last hit counts as a self-destruct) and damage per landed hit. The computer
+has no randomness and only chases, jumps, recovers and jabs (neutral air when
+airborne; smashcraft:ts/src/game/match/step.ts), so its matches against
+itself repeat exactly whatever the seed, and the summary counts identical
+results of one setup without a fuzzed player once. Its numbers describe that
+jab, movement, weight and recovery, not a whole moveset.
+
+`bun wisp soak --helper BIN [--matches N] [--seconds S]` plays matches through
+the real input path instead (smashcraft:ts/test/soak/helper.ts): each player
+a uinput pad the fuzzer drives about once a second, read by a persistent
+wc3-journal helper built with `--text-out`, into headless clients in real
+time, with the same detectors. It needs /dev/uinput, as `bun wisp parity
+headless` does.
+
+The development and integrity builds measure what each frame costs
+(smashcraft:ts/src/platform/frameMeter.ts, [Wisp frame cost](https://github.com/tompassarelli/wisp/blob/main/docs/frame-cost.md)):
+Lua time, native calls and the confirmed frames each 60 Hz callback caught up.
+`-dev perf` shows the player who types it the medians and maxima of the last
+120 frames. After each hot reload every client writes the 120 frames before
+and after it to `smashcraft-perf-p<slot>.txt`, and `bun wisp hot --watch` and
+`bun wisp dev --data` print the change and flag a rise over 20%. The playable
+entry never imports the meter. `LUA=<32-bit lua> bun wisp perf [--out FILE]`
+plays the headless quick match in 32-bit Lua and prints each client's Lua
+instructions, Lua time and native calls per frame; `bun wisp perf compare A B`
+fails when B's instructions or calls per frame exceed A's by more than 5%.
+On 2f29ab3 with Wisp 1fe6d71 the quick match's first client ran a median
+47,800 Lua instructions and 138 native calls a frame; the meter adds 2.0% to
+its mean instructions a frame, and the playable bundle is the same bytes as
+before the meter (smashcraft:ts/build/playable.lua SHA256 082a11b3).
+
 `bun wisp parity headless --helper BIN --out DIR` runs issue #26's capture
 without Warcraft (smashcraft:ts/scripts/integrity/headless.ts): the
 integrity build's TypeScript in two headless clients at 60 frames a second of
@@ -273,6 +326,12 @@ on those paths: TypeScriptToLua's `Object.assign` packs its arguments into a
 new table and walks the source with `pairs` on every call, and in the
 integrity build's rematch the input and control copies made with it were an
 eighth of the match's Lua work (Lua32, 6 October 2026).
+Presentation projects every pooled effect on every callback, so a hidden pose
+is one shared constant and an empty impact slot is not projected at all: a
+new table for each hidden pose was 82 of a solo match callback's 87 KB of
+Lua allocation when it ran no frame, and 82 of 137 KB on average (Lua32,
+6 October 2026). Lua's collector works in proportion to what is
+allocated, in steps that land on whichever callback allocates next.
 
 Native calls cost Warcraft more than Lua does. A renderer parks a pooled
 effect once, when it stops showing it, and keeps a flag per effect so it does
@@ -280,6 +339,10 @@ not park it again until it has shown it (`parkOnce`,
 smashcraft:ts/src/game/render/effects.ts). Re-parking every hidden impact,
 missile, trap and special effect on every frame was about 530 of a match
 frame's 766 native calls with two fighters.
+The fighter HUD likewise sets a plate's visibility, damage text and stock
+icons only when they change (smashcraft:ts/src/game/ui/matchHud.ts): setting
+them on every callback was 60 of the 166–183 native calls of each callback in
+a solo match against a computer.
 
 Engine callbacks (timers, triggers, frame events) go through the dispatch
 table, so hot reload can replace code without rebinding them.
@@ -311,8 +374,8 @@ From smashcraft:ts/:
   Each save prints the saved files' type errors, the affected unit tests, the
   journeys (the quick match plus the affected tests that play simulated
   clients: the desync guard, the visual and player-view group, stack-trace,
-  rematch-load, missing-input and input-stall) and the whole `bun run check`,
-  each timed from the save.
+  rematch-load, missing-input, input-stall, tune and lag-recovery) and the
+  whole `bun run check`, each timed from the save.
   smashcraft:ts/scripts/wisp/commands/dev.ts declares the tests: the Bun test
   files, the registry modules game.test.ts runs, the files a test reads at run
   time (a test that reads files without declaring them runs on every save),
@@ -320,6 +383,29 @@ From smashcraft:ts/:
   the source-shape audit checks only the saved files; `bun run test` and CI
   check every file. Test processes share smashcraft:ts/scripts/testWorkers.ts's
   engine settings with the full suite.
+- `bun wisp tune --data A --data B [--port N] [--profile main|integrity]`: a
+  panel at http://127.0.0.1:7341/ that changes, in the running match, the
+  values smashcraft:ts/scripts/wisp/tunables.ts declares: each fighter's run
+  speed, full and short jump speeds, gravity, fall and fast-fall speeds and
+  jump squat frames, and the ordinary hit's knockback growth, base knockback
+  and hitstun frames per knockback
+  ([Wisp live tuning](https://github.com/tompassarelli/wisp/blob/main/docs/tune.md)).
+  Each change is a hot reload, so run it instead of `hot --watch` or
+  `dev --data`, against a profile that polls for reloads (the playable
+  profile doesn't). Fighters carry their tuning records, so every `install()`
+  gives each fighter its authored tuning again
+  (smashcraft:ts/src/platform/shell/tuning.ts): in the confirmed match and,
+  under rollback, in the speculative match and every history snapshot, so a
+  correction can't bring the old value back. Keep writes the running value
+  into smashcraft:ts/src/game/sim/tuning.ts or knockback.ts and prints the
+  diff; Reset puts back the session's starting value in the match and the
+  source. smashcraft:ts/test/tune.test.ts applies tuned gravity in two
+  headless clients: both install it on the same frame, and from that frame
+  both matches change alike. The input helper's stick deadzone
+  (`STICK_DEADZONE`, smashcraft:companion/src/stick.rs) is compiled into the
+  helper, outside what a reload changes, so it is no tunable: rebuild and
+  restart the helper to change it. A match with tuned values can't be
+  replayed from its inputs alone.
 - `bun run check`: type-check the host tools and the game with TypeScript 7.
   The compiler keeps separate host and game dependency caches in
   smashcraft:ts/build/typecheck-host.tsbuildinfo and
@@ -421,6 +507,14 @@ stock label and keys a pooled clip. Sound labels are the game's own sounds, so
 the map imports none. Hidden pooled clips wait collapsed on the ground beneath
 the floor, like every hidden effect, because alpha does not stop a model's
 particle emitters.
+
+A clip drops its fighter's light and effect nodes, and Warcraft does not read
+a node's ObjectId as written: Illidan's standalone light, written alone as
+ObjectId 155 beside his 276-entry pivot table, lit from the wrong place and
+lit exactly once numbered 0 (2 October). So the export numbers every clip's
+remaining nodes by their place in the file's node order, with parents, skin
+matrices and pivots following (smashcraft:ts/scripts/clipNodes.ts), and fails
+on a clip that does not.
 
 The build first checks the running Bun and the declared and installed packages
 against smashcraft:typescript-toolchain.lock.

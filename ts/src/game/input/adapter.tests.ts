@@ -90,22 +90,22 @@ test("special releases preserve press direction and leave neutral turnaround to 
   assertTrue(f.input.specialPressed);
   assertEquals(f.input.specialZ, -1);
   assertTrue(f.input.getupAttackPressed);
+  // Melee's down and ledge attacks take any A or B press: melee:src/melee/ft/kinds/ftCommon/ftCo_DownAttack.c, ftCo_CliffAttack.c.
   const rifleman = fixture(Character.rifleman);
   rifleman.adapt(downSpecial, 2);
-  assertFalse(rifleman.input.getupAttackPressed);
+  assertTrue(rifleman.input.getupAttackPressed);
   f.fighter.motion.lastAerialTapDirection = -1;
   f.adapt({ pressed: maskOf(Action.special) }, 3);
   assertEquals(f.input.specialX, 0);
   assertEquals(f.input.specialZ, 0);
 });
 
-test("grab, throw, mash, L-cancel, tech and ledge intents use fresh edges", () => {
+test("grab, throw, mash, tech and ledge intents use fresh edges", () => {
   const f = fixture();
   f.adapt({ pressed: maskOf(Action.grab, Action.attack, Action.moveLeft, Action.moveUp, Action.rightTrigger), dodgeX: -1, sdi: true, sdiZ: 1, ledgeVertical: 1 }, 7);
   assertTrue(f.input.attackPressed);
   assertTrue(f.input.grabMashPressed);
   assertTrue(f.input.mashPressed);
-  assertTrue(f.input.lCancelPressed);
   assertTrue(f.input.techPressed);
   assertEquals(f.input.grabThrowX, -1);
   assertEquals(f.input.grabThrowZ, 1);

@@ -5,6 +5,7 @@ import { multiplyFloat32 } from "wisp/src/sim/binary32";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character } from "./codes";
 import { attackDurationFramesForGrounding, attackStartupFrames } from "./moves";
+import type { Roster } from "./roster";
 
 export const WORLD_UNITS_PER_MELEE_UNIT = 6.0;
 
@@ -267,6 +268,15 @@ export const AUTHORED_TECH_TIMING: TechTiming = {
 export const SHIELD_BREAK_LAND_FRAMES = 12;
 export const SHIELD_BREAK_STAND_FRAMES = 30;
 export const AUTHORED_SHIELD_BREAK_TIMING: ShieldBreakTiming = { landFrames: SHIELD_BREAK_LAND_FRAMES, standFrames: SHIELD_BREAK_STAND_FRAMES };
+
+/**
+ * Gives every fighter of `world` its character's authored tuning again. A
+ * hot reload that changed authored values (`bun wisp tune`) reaches the
+ * fighters already playing this way, on the frame every client installs it.
+ */
+export function applyAuthoredTuning(world: Roster): void {
+  for (const fighter of world.fighters) if (fighter !== undefined) fighter.tuning = authoredTuning(fighter.character);
+}
 
 export function authoredTuning(character: Character): FighterTuning {
   return {

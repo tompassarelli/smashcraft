@@ -10,6 +10,7 @@ import {model as mdx} from 'war3-model';
 import {seconds} from './asset-info';
 import {fighters, ensure, hash, parseSource, encodeVerified, tracks, verifyPreservedBody, removeBodyEffects,
     originalBodyClip, splitStaticLights, staticLightGate} from './original-clips';
+import {misplacedNodes} from '../../ts/scripts/clipNodes';
 
 const project = resolve(import.meta.dir, '../..');
 const option = (name: string) => { const index = process.argv.indexOf(name); return index < 0 ? undefined : process.argv[index + 1]; };
@@ -34,6 +35,7 @@ for (const fighter of fighters) {
     const components = splitStaticLights(source);
     let light: {filename: string, modelPath: string, sha256: string, bytes: number} | null = null;
     if (components.lights) {
+        ensure(misplacedNodes(components.lights).length === 0, `${fighter.name}: light nodes ${misplacedNodes(components.lights).join('; ')}`);
         const encoded = encodeVerified(components.lights), sha256 = hash(encoded);
         const filename = `${fighter.name}OriginalLight-${sha256}.mdx`;
         light = {filename, modelPath: `war3mapImported\\${filename}`, sha256, bytes: encoded.byteLength};
@@ -72,6 +74,7 @@ for (const fighter of fighters) {
         const result = originalBodyClip(components.body, index);
         const {model, ...stats} = result;
         verifyPreservedBody(source, model);
+        ensure(misplacedNodes(model).length === 0, `${fighter.name}/${index}: ${misplacedNodes(model).join('; ')}`);
         ensure(model.Lights.length === 0, `${fighter.name}/${index}: body clip still owns illumination`);
         ensure(isDeepStrictEqual(model.Sequences[0], {...source.Sequences[index], Name: 'Stand'}), `${fighter.name}/${index}: source sequence changed`);
         ensure(isDeepStrictEqual(model.Info, source.Info), `${fighter.name}/${index}: source model metadata changed`);

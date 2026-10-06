@@ -1030,10 +1030,14 @@ delayed-input counterexample, with zero compiler errors and the existing
 unused-import warning (smashcraft:build/physics-slippi-jump.log).
 
 Launch speed already uses 0.03*K, converted by the six-world-units scale.
-The general >=80 tumble rule remains a prototype: the reference selects
-damage states through scaled-knockback thresholds and ground/air conditions.
-Exact boundary and grounded exceptions still require verification before a
-full tumble-parity claim; a screenshot saying “exceeds 80” is not sufficient.
+Tumble follows the reference's damage-level selection
+(melee:src/melee/ft/kinds/ftCommon/ftCo_Damage.c `ftCo_8008DCE0`): level 3,
+DamageFly, when knockback times +0x154 = 0.4 reaches +0x160 = 32, grounded or
+airborne. Only tumbling landings tech or knock down; a weaker airborne hit
+lands, or keeps its stun below +0x1E4 = 0.5, because its launch never reaches
+the +0x1E0 = 5 knockdown speed (`ftCo_Damage_Coll`).
+smashcraft:ts/src/game/sim/tumbleLandings.tests.ts checks every authored move
+of each fighter at 10, 50 and 100 percent, grounded and airborne.
 
 ## Frame-authored hit regions
 
@@ -1090,8 +1094,8 @@ reset clears the victim's record.
 Up aerial explicitly advances from window 1 on frames 5–6 to window 2 on
 frame 7, permitting one opening hit and one finisher if the target remains
 in range. Missing the opening does not prevent a finisher. Its old bounds
-(x=-105–105, z=20–190), three active frames, total duration 34 and landing lag
-15 are retained. Hitlag freezes the authored attack clock, so the second
+(x=-105–105, z=20–190), three active frames, total duration 34 and authored
+landing lag 15 (landing with 7) are retained. Hitlag freezes the authored attack clock, so the second
 window is reached after those frozen ticks rather than after a wall-clock
 delay. Each window can connect once; it does not reset every active frame.
 
@@ -1114,11 +1118,32 @@ the running client has not loaded it and native combat feel is unverified.
 At Melee revision `0296f009f32f710495979d30772d8332af2d411a`,
 `ftCo_DownBound.c`, `ftCo_DownDamage.c`, `ftCo_Down.c`,
 `ftCo_DownStand.c`, and `ftCo_DownAttack.c` establish separate bound, wait,
-down-damage, stand, get-up attack, and directional-roll states. `DownWait`
-loads its timeout from `ftCommonData + 0x424`; the local checkout has the field
-and use site but not the source common-data table, so its numerical value is
-not established here. The simulation retains its existing 180-tick wait as
-explicit provisional tuning.
+down-damage, stand, get-up attack, and directional-roll states. The retail
+common values are in smashcraft:docs/smash-melee-reference/physics-parameters.json.
+
+- DownBound's entry forgets earlier A/B presses. As the bound ends,
+  `ftCo_DownBound_Anim` starts a get-up attack pressed during it (A/B press
+  age under +0x24C = 60 frames, longer than any bound), else a get-up roll
+  from the held stick, else enters DownWait with +0x424 = 220 frames.
+  DownWait reads that same frame's input.
+- DownWait counts down, then stands. Each frame it takes, in order: an A or B
+  press (get-up attack), the stick at least +0x248 = 0.2 sideways and less
+  than +0x020 = 50 degrees above horizontal (roll forward or back relative to
+  facing), and the stick at least +0x244 = 0.2 up at 50 degrees or more, or an
+  L/R press (stand).
+- A C-stick flick does the same on the frame it crosses its threshold:
+  `ftCo_800984D4` and `ftCo_80098400` attack on an up crossing of +0x7F4 =
+  0.6625 (`ftCo_800DF644` in melee:src/melee/ft/ft_0DF1.c), and
+  `ftCo_Down_CheckInput` rolls on a sideways crossing of +0x248 within the
+  roll angle (`ftCo_800DF678`), preferring it to the left stick. The roll is
+  forward or back by the flick's side. The C-stick is digital here, so a press
+  of its smash direction is the crossing; held through the wait it does nothing.
+- Smashcraft also stands on Jump and treats a sideways press released within
+  its input row as a roll, for keyboards.
+
+smashcraft:ts/src/game/match/knockdownInputContracts.tests.ts drives these
+through helper rows, journal packets and synchronized input messages after
+low-, medium- and high-percent knockdowns.
 
 The extracted Sheik actions provide `DownBoundU/D` 26-frame clips,
 `DownDamageU/D` 14-frame clips, and `DownStandU/D` 30-frame clips. The
@@ -1147,12 +1172,10 @@ roll while face-down, and 27/22 for Up/Down get-up attacks. This mapping
 accounts for the `waitFor` delays and remains subject to native gameplay
 verification.
 
-The local down-damage entry checks the hit's temporary damage against
-`ftCommonData + 0x428`; the numeric table is absent from this checkout. The
-Melee reference's jab-reset secondary description places the cutoff strictly
-below 7% damage. Smashcraft uses `damage < 7` as its reset rule and labels it
-secondary-source data rather than a locally recovered `0x428` value. A hit in
-DownBound, DownWait, or DownDamage at that damage enters the 13-tick
+The down-damage entry compares the frame's summed damage (`percentTemp`,
+accumulated per contact in melee:src/melee/ft/ftcoll.c) against +0x428 = 7.
+A frame whose contacts sum below 7 damage on a fighter in
+DownBound, DownWait, or DownDamage enters the 13-tick
 DownDamage reaction. Its hitstun is retained; after the animation, remaining
 hitstun sets the down-wait timeout, and an expired timer forces stand. Damage
 of 7 or more interrupts the grounded recovery and follows ordinary launch
@@ -1502,8 +1525,9 @@ preserving facing, allowing a back aerial to hit and launch behind the fighter.
 Landing cancels an aerial's remaining active/recovery animation and starts its
 move-specific landing lag. Aerial hit geometry and damage remain prototype values:
 strong damage 7/8/8/8/9; startup 3/5/3/5/7; active 28/2/16/3/3;
-total 41/31/37/34/38 ticks; landing lag 10/14/16/15/18 ticks, in neutral,
-forward, back, up, down order. Forward and back hit only on their respective
+total 41/31/37/34/38 ticks; authored landing lag 10/14/16/15/18 ticks, which
+they land with halved (see "Aerial landing lag"), in neutral, forward, back,
+up, down order. Forward and back hit only on their respective
 sides; back launches away from facing, up launches mostly upward, and down
 launches downward. Hit regions are simple rectangles around the fighter rather
 than authored hitboxes. Neutral/back timing and weak damage are detailed below.
@@ -1623,14 +1647,13 @@ forward/back relative to facing. These are factual state/input observations;
 no decompiled implementation is copied or translated. Timing values for our
 first recovery pass are provisional rather than extracted animation data.
 
-Our current prototype enters tumble at knockback magnitude 80 or above. It
-can leave tumble through an accepted air jump, air dodge or attack after
-hitstun; landing while still tumbling starts knockdown. Ground impact lasts
-12 ticks, followed by a vulnerable wait of up to 180 ticks before automatic
-stand-up. Recovery checks attack, then horizontal roll, then stand. Held
-horizontal input and held Up are accepted, including on the bound-to-wait
-transition; an attack edge on that transition is consumed immediately. This
-repairs the previous requirement to release/repress direction after impact.
+Tumble starts at knockback 80 (damage level 3). After hitstun it ends on an
+accepted air jump, air dodge or attack, or on a sideways stick flick: at least
++0x210 = 0.8 on the frame the stick crosses +0x008 = 0.25
+(melee:src/melee/ft/kinds/ftCommon/ftCo_DamageFall.c `ftCo_DamageFall_IASA`).
+A full keyboard diagonal reads 0.707 and does not flick. Landing while still
+tumbling techs or starts the 26-tick bound, then the 220-tick wait and its
+options listed under "Grounded knockdown and jab resets".
 Stand-up lasts 30 ticks; roll lasts 31 and covers 128 world units, clamped to
 the current platform. Their first 8 ticks are intangible. Get-up attack lasts
 45 ticks, has 16 startup/3 active ticks, deals 7 damage once, covers both sides,
@@ -1677,7 +1700,7 @@ Archer's down-air uses seven startup ticks and 20 active ticks (indices
 7–26), with 38 total ticks. Its first three active ticks deal 9 damage and
 the lingering kick deals 6, sharing one hit registry window. Its collision
 region remains ±55 horizontally and −180..−10 vertically. Landing cancels
-into 18-frame recovery (9 with L-cancel). The tucked startup and downward
+into 9-frame recovery, half its authored 18. The tucked startup and downward
 kick are animation only: down-air preserves ordinary aerial momentum,
 gravity, and knockback. C-stick Down does not set movement Down or force
 fast-fall; explicit straight-down movement retains separate fast-fall.
@@ -1716,31 +1739,22 @@ An in-place tech lasts 26 ticks with intangibility on 1–20; a directional tech
 lasts 40 with intangibility on 1–34. These totals are shared chosen tuning;
 both leave six vulnerable recovery ticks. Archer/Rifleman use 39 empirical
 motion samples and a stationary final tick; Illidan retains the 128-unit path. Direction at
-contact chooses the roll, whose movement is clamped to the current platform.
+contact chooses the roll when the stick is at least +0x254 = 0.2 sideways
+(`ftCo_80098928`); its movement is clamped to the current platform.
 A tech clears impact hitstun and consumes its input window. Early-hitlag versus
 last-hitlag inputs, repeated/grounded presses, window/lockout boundaries,
 recovery actions, interruption and reset are tested in the same Wurst simulation
 used by the map. Wall/ceiling techs and SDI/ASDI collision are not implemented.
 
-## L-cancel
+## Aerial landing lag
 
-The factual reference https://www.ssbwiki.com/L-canceling (cached at
-~/code/smashcraft/worktrees/test-loop/build/ref-L-canceling.html) describes a
-seven-frame Shield/Grab input window, landing lag halved and rounded down,
-and inputs retained during hitlag. Digital Shield also feeds tech timing;
-L-cancel itself is independent of the tech lockout. No source text or outside
-implementation is incorporated.
-
-Our frame convention gives seven contact opportunities including the press
-tick: contact through +6 ticks succeeds, +7 expires. Inputs during hitlag
-remain valid through the sixth subsequent unfrozen tick. The existing window
-also freezes during hitlag; this pre-hitlag-input case and the exact input-phase
-offset have not been independently measured against Melee. Each fresh Shield
-or Grab press renews the opportunity; holding does not. Any landing consumes it,
-and stock loss/reset clears it. Only an unfinished aerial normal receives the
-reduction: neutral/forward/back/up/down recovery becomes 5/7/8/7/9 ticks under
-current prototype tuning. Empty landings and air-dodge landings are unaffected.
-Animation-specific autocancel windows and analog trigger behavior remain open.
+Landing ends an unfinished aerial and starts its landing lag: half the move's
+authored lag, at least one frame, which is Melee's L-cancelled lag (PlCo +0x0E8
+= 2, melee:src/melee/ft/kinds/ftCommon/ftCo_LandingAir.c). Neutral, forward,
+back, up and down aerials land for 5/7/8/7/9 frames, from authored
+10/14/16/15/18. No input changes it: Smashcraft omits L-cancelling, see
+smashcraft:docs/gameplay-design.md. Empty landings (4 frames) and air-dodge
+landings (10) keep their own lag.
 
 ## Smash charge
 
@@ -1778,10 +1792,40 @@ frame. The six-frame window is a Smashcraft control choice, not Melee parity.
 A current queued attack takes priority over voluntary platform dropping during
 the movement step. Action recovery also blocks the drop, so holding Down cannot
 drop through during down-smash startup/charge or down-tilt recovery. With no
-current attack or action lock, Down still drops through passable platforms.
+current attack or action lock, a fresh Down drops through passable platforms:
+like Melee's Pass check (melee:src/melee/ft/kinds/ftCommon/ftCo_Pass.c, stick
+down past PlCo +0x464 = 0.66 entered under PlCo +0x468 = 6 frames ago), the
+press must be under six input frames old. The fast-fall input age is that one
+stick timer, so landing on a deck with Down still held stays on it.
 The command queue's actual frame window determines whether an attack is current;
 expired and future commands do not suppress movement. This is our digital-input
 priority rule. Analog shield dropping and stick-threshold fidelity remain open.
+
+## Melee behaviour oracle
+
+`bun wisp oracle` (from smashcraft:ts/) plays scripted Melee situations for
+every fighter through the frame executor, from controller rows, and prints each
+outcome beside the value cited from the decompilation and the retail reference
+corpus, with the constant and source path for each scenario, then the counts
+per area. The scenarios are in smashcraft:ts/scripts/meleeOracle.ts: jump squat
+and hop heights, dash/run/walk speeds, fast-fall, landing lag, floor techs,
+get-up options and timings, the tumble threshold, pass-through platforms, the
+main deck's walls and underside (where launches meet them and the techs off
+them), shield release and dodges, and ledge catches, one from against the wall.
+smashcraft:ts/scripts/meleeOracle.tests.ts runs the table in the test suite and
+fails on any mismatch not listed in its `KNOWN_MISMATCHES`, and on a listed row
+that now passes. A deliberate difference from Melee is reported as a departure
+that names its decision and still shows Melee's value; it fails the test only if
+it stops differing. L-cancelling is omitted (smashcraft:docs/gameplay-design.md),
+so the aerial landing lag without an L press is such a departure.
+
+Character data compares only where a fighter borrows it: Archer's and
+Rifleman's movement, landing and action timings are Fox's and Falco's, and
+Illidan's are original, so those rows read n/a for him; Illidan's ledge catch
+box is Captain Falcon's. Common rules (input windows, tech gates,
+knockback, platforms, ledge boxes) apply to all three. Where Smashcraft
+authors a value, such as ground acceleration or aerial landing lag, the
+scenario checks Melee's rule applied to it, not the value.
 
 ## Pass-through platforms
 
@@ -1795,10 +1839,72 @@ wall or ceiling tech. In Melee a platform is a floor line flagged
 the ECB bottom descends, `mpCheckCeiling` scans ceiling-kind lines only, and
 `mpJointUpdateDynamics` disables a platform line that is not floor-kind;
 `mpColl_80044628_Floor` (melee:src/melee/mp/mpcoll.c) skips the platform being
-dropped through. On the playable stages the only solid face is the main deck's
-underside (z -54, x within ±528). Wall and ceiling contact tests use
-`SOLID_DECK_TEST_STAGE` (smashcraft:ts/src/game/sim/stage.ts), stage 1's layout
-with solid raised decks, which no match can select.
+dropped through. The main deck's walls and underside are below.
+
+## Main deck walls and underside
+
+Every stage's main deck has Final Destination's side walls and underside.
+Final Destination is the reference because stage 0 is its layout, one flat
+deck, and stage 1 keeps the same main deck. The lines come from its
+`coll_data` (melee:src/melee/mp/types.h `MapCollData`, `MapLine`; loaded by
+`mpLibLoad` in melee:src/melee/mp/mplib.c) in the owner's GALE01 revision 2
+GrNLa.dat (611125 bytes, SHA-1 fa607d7bb7dd4072d2d3968e1e31fd458bc397f8),
+whose `grGroundParam` scale (`Ground_801C0498`) is 1. The private reader is
+~/.local/share/smashcraft-melee-reference/stage-collision-facts.ts; only the
+numbers below are kept.
+
+Below its floor (ledge vertices at x ±85.5657, y 0) each side is five
+wall lines and a short sloped underside, in Melee units:
+
+| Line | Kind | From | To |
+| --- | --- | --- | --- |
+| 9 | right wall | (85.5657, 0) | (85.5657, -10.5) |
+| 10 | right wall | (85.5657, -10.5) | (65.7993, -20.4538) |
+| 7 | right wall | (65.7993, -20.4538) | (65.8374, -31.3443) |
+| 8 | right wall | (65.8374, -31.3443) | (61.4195, -47.3663) |
+| 6 | right wall | (61.4195, -47.3663) | (53.7736, -54.2584) |
+| 5 | ceiling | (53.7736, -54.2584) | (47.4560, -55.3882) |
+| 4 | ceiling | (47.4560, -55.3882) | (-47.4560, -55.3882) |
+
+Lines 3, 15, 14, 12, 13 and 11 mirror lines 5, 6, 8, 7, 10 and 9 on the left.
+The face kinds are Melee's: line 10 slopes in under the ledge but is a wall,
+so a launch into it can wall tech. smashcraft:ts/src/game/sim/stage.ts keeps
+each side's lines as far from its own ledge as they are from Final
+Destination's, at six world units per Melee unit. Smashcraft's deck is 200 Melee units wide to Final
+Destination's 171.13, so the level underside spans the wider deck between the
+sides: in world units the walls drop straight from each ledge (x ±600) to z -63,
+slope in to x ±481.4 at z -122.7, and meet the underside at z -332.33,
+which spans x ±371.3. The drawn deck model (smashcraft:tools/stage/package.ts)
+is still the 54-unit slab and does not show the body below it.
+
+A fighter meets a wall with its flank: Melee's ECB side touches the wall, and
+`mpColl_LoadECB_JObj` (melee:src/melee/mp/mpcoll.c) keeps an airborne ECB at
+least 2 units a side. Smashcraft fighters use that 2-unit half-width
+(`BODY_HALF_WIDTH`, smashcraft:ts/src/game/sim/surfaces.ts), so a fighter
+stopped against the wall below a ledge stands 12 world units outside it, and
+its ledge catch box (which adds the same half-width) still holds the ledge.
+Undersides stop the feet. A wall moves the fighter but not its own velocity,
+as Melee's airborne collision only moves the position (`ft_800835B0`,
+melee:src/melee/ft/ft_081B.c): launch velocity into the wall stops, or a
+tumbling launch rebounds at 0.8, and a fighter that rises past the wall's top
+carries on over the stage. An underside stops a rise. A fighter that slips past
+a ledge's corner within its half-width of the wall, as when running off the
+ledge, is moved out sideways to its flank, as Melee's ECB slides off the
+corner. A wall tech pushes off along the facing it turns to, away from even a
+sloped wall (`ftCo_PassiveWall_Anim`).
+
+Ledge actions don't collide with the body; Melee's cliff actions run their own
+collision (`ftCo_CliffClimb_Coll`). Climbs, rolls and ledge attacks pass through
+it onto the floor. A ledge jump starts beside the wall below the ledge, slides
+up its face and carries its inward speed onto the stage. Wall and ceiling
+contact tests on raised decks use `SOLID_DECK_TEST_STAGE`
+(smashcraft:ts/src/game/sim/stage.ts), stage 1's layout with solid raised
+decks, which no match can select.
+smashcraft:ts/src/game/sim/surfaces.tests.ts checks the geometry against the
+table, smashcraft:ts/src/game/match/wallTechInputContracts.tests.ts launches
+each fighter into the side through helper journal rows and techs off it, and
+the oracle's wall/ceiling and ledge rows check where launches meet the side and
+underside, the techs off them and a catch from against the wall.
 
 ## Shield presentation boundary
 
@@ -1942,27 +2048,74 @@ pass-through platforms have no catchable ledges. The behavioral reference is
 melee:src/melee/ft/kinds/ftCommon/ftCo_CliffWait.c and the adjacent CliffClimb,
 CliffJump, CliffEscape and CliffAttack actions at the revision above. Their
 separate ledge options and quick/slow variants are factual context only. The
-local data field offsets do not establish actual timing or geometry values;
+local data field offsets do not establish the options' timing or geometry;
 none of that unlicensed implementation is copied or translated.
 
-This independently authored prototype samples catches before either fighter's
-movement on each match tick. An airborne, falling fighter must face inward
-and have its feet within 54 world units outside the endpoint and between
-90 units below and 12 above its height. Down suppresses catching. Existing
-attack/recovery, hitlag, hitstun, grabbed, dodge and shield-break locks suppress
-catching. A free ledge chooses the nearer eligible fighter by squared distance
-to the endpoint from the shared snapshot; exact ties catch neither. Existing
-owners retain the ledge throughout hanging and an ongoing climb/roll/attack.
-Both ledges resolve independently. These region, timing and contention rules
-are provisional choices, not measured Melee parameters.
+Catching follows Melee's cliff-catch check at the revision above:
+melee:src/melee/ft/ftcliffcommon.c (the catch, its facing turn and
+`ftCo_CliffCatch_Phys` placement), the ledge boxes `mpColl_80044164` and
+`mpColl_800443C4` in melee:src/melee/mp/mpcoll.c with their caller's falling
+and facing gates, and each action's collision callback in
+melee:src/melee/ft/ft_081B.c. Only facts and values are used.
+
+- **Who catches.** Falling and jumping fighters, helpless fall (after an
+  up-special, or once an air dodge's 49-frame animation ends), tumble once
+  hitstun ends, and fighters recovering from a tech or grab release. Aerial
+  attacks (AttackAir), air dodges (EscapeAir), hitstun (Damage/DamageFly),
+  shield-break flight, grabs and frozen fighters never catch. Melee's specials
+  choose per move; Smashcraft's original specials have no catch window.
+- **When.** Only after a frame whose movement went down (Melee compares the
+  frame's start and end heights), never while down is held (Melee: stick y at
+  or below minus common +0x480, 0.6600000262260437; Smashcraft's down is the
+  digital direction, which the helper raises at about a fifth of stick
+  travel), and never during the regrab lock.
+- **Which ledge.** Only the ledge ahead of the fighter's facing. A catch turns
+  the fighter toward the stage.
+- **The box.** Each fighter's ledge snap x, y and height (ftData x44
+  +0x10/+0x14/+0x18, melee:src/melee/ft/types.h `ftData_x44_t`) place it: the
+  ledge vertex must lie strictly beyond the fighter's position and strictly
+  less than its collision half-width plus snap x ahead, and strictly between
+  snap y minus and plus half the height above its feet. Both ranges sweep the
+  frame's start and end positions, so a fast fall can't pass through. Melee's
+  half-width is the animated airborne collision box, never under 2 units
+  (`mpColl_LoadECB_JObj`); Smashcraft fighters use 2, the flank they also meet
+  walls with (see "Main deck walls and underside").
+
+| Fighter | Reference data | Snap x / y / height (Melee units) | Reach (world) | Ledge above feet (world) |
+| --- | --- | --- | --- | --- |
+| Archer | Fox, PlFx.dat | 11 / 13 / 9 | 78 | 51–105 |
+| Rifleman | Falco, PlFc.dat | 11 / 13 / 9 | 78 | 51–105 |
+| Illidan | Captain Falcon, PlCa.dat | 9 / 17 / 11 | 66 | 69–135 |
+
+The values were read from the owner's GALE01 revision 2 files (identities in
+smashcraft:docs/smash-melee-reference/physics-parameters.json) and convert at
+six world units per Melee unit. Illidan has no other adopted Melee profile;
+Captain Falcon, the corpus's third retail fighter, supplies only his box.
+
+smashcraft:ts/src/game/match/step.ts resolves catches at the start of each
+match tick, before any fighter moves, from each fighter's stored last movement
+(`motion.deltaX`/`deltaZ`), so both ledges resolve from one shared snapshot.
+A free ledge goes to the nearer eligible fighter by squared distance to the
+endpoint; exact ties catch neither. Owners keep the ledge through hanging and
+an ongoing climb/roll/attack. Melee catches inside the same frame's collision
+step and gives a contested ledge to whichever fighter it updates first.
 
 A catch anchors the feet 24 units outside and 90 below the endpoint, clears
-movement and launch velocity, and restores one air jump. It does not reset
-percent, shield energy, stocks or respawn protection. Catch protection lasts
-30 unfrozen ticks (including the catch tick); hanging afterward is vulnerable.
-Choosing an option never refreshes that protection. Jump, release, interruption
-and completed recovery remove it. Every departure starts a 30-unfrozen-tick
-regrab lock. Ordinary flinching damage and grabs interrupt the ledge action;
+movement and launch velocity, ends a helpless fall or air dodge, and restores
+one air jump. Melee anchors the fighter at the ledge vertex plus its
+CliffCatch animation's TransN offset, scaled by model scaling: Fox 4.8
+outside and 13.44 below on the catch frame, settling to 1.92 and 14.4 while
+hanging; Falco 5.5 and 15.4, then 2.2 and 16.5 (Melee units). Smashcraft's
+24/90 world units (4/15 Melee units) is that rule with an offset fitted to
+these fighters' rigs, which smashcraft:tools/animations/ledges.py bakes into
+the hang clips. A catch does not reset percent, shield energy, stocks or
+respawn protection. Catch protection lasts 30 unfrozen ticks (including the
+catch tick); hanging afterward is vulnerable. Choosing an option never
+refreshes that protection. Jump, release, interruption and completed recovery
+remove it. Release and interruption start a 30-unfrozen-tick regrab lock
+(Melee's common +0x498 ledge cooldown, 30, set by stick drops, the hang
+timeout and damage); a ledge jump and a completed climb, roll or attack don't.
+Ordinary flinching damage and grabs interrupt the ledge action;
 non-flinching lasers only add damage. Stock loss clears ledge ownership and
 protection; reset also clears the catch serial and regrab clock.
 
@@ -1985,12 +2138,16 @@ values 0–4), ledgeSide (-1 left, +1 right), ledgeFrame (0 on phase entry),
 and ledgeSerial (one increment per catch). InputSnapshot.ledgeVerticalPressed
 is a fresh Up (+1) or Down (-1) edge. The simulation reuses jumpPressed,
 getupDirectionPressed/getupDirection, airDodgePressed and getupAttackPressed
-for the other options. smashcraft:wurst/MatchStep.wurst resolves pair catches
-before advancing either fighter; standalone simulation consumers must do the
-same. Pure Wurst checks cover both characters and sides, eligibility, upper
-platform exclusion, contention/ownership, option timing and locks, attack
-contact, protection expiry, regrab timing, hit/grab interruption and reset.
-They do not establish native animation alignment or Melee numerical parity.
+for the other options. Standalone simulation consumers resolve pair catches
+before advancing either fighter, as the match step does.
+smashcraft:ts/src/game/sim/ledge.tests.ts covers every fighter and side, the
+reference boxes and their strict edges, the swept movement, eligibility,
+upper platform exclusion, contention/ownership, option timing and locks,
+attack contact, protection expiry, regrab timing, hit/grab interruption and
+reset. smashcraft:ts/src/game/match/ledgeCatchContracts.tests.ts plays
+recoveries through captured rows and the frame executor: falls beside the
+ledge and double jumps from below catch inside the box and fall past just
+outside it. None of these establish native animation alignment.
 
 The hang dimensions now fit the measured reach of both fighter rigs.
 smashcraft:tools/animations/ledges.py reads the simulation's hang offset, depth,

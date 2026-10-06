@@ -1,7 +1,7 @@
 import { assertDefined, assertEquals, assertTrue, assertFalse, test } from "wisp/src/runtime/testing";
 import { type InputRow, type RowFields, emptyInput, inputRow, predictInto, sameInput } from "../input/inputRow";
 import { INPUT_LAST_FRAME, encodePacket, inputPacket } from "../input/wire";
-import { InputLedger } from "./ledger";
+import { FUTURE_LIMIT, InputLedger } from "./ledger";
 
 const row = (fields: RowFields = {}) => assertDefined(inputRow(fields), "row");
 const packet = (epoch: number, firstFrame: number, ...rows: InputRow[]) => assertDefined(inputPacket(epoch, firstFrame, rows), "packet");
@@ -63,25 +63,25 @@ test("a packet whose second row conflicts commits neither row", () => {
 test("the future bound moves with consumption, and a packet straddling it is refused whole", () => {
   const ledger = new InputLedger();
   assertTrue(ledger.beginEpoch(1, 1, 0, 3));
-  assertEquals(ledger.acceptPacket(0, packet(1, 64, NEUTRAL, NEUTRAL)), "tooFarAhead");
-  assertEquals(ledger.accepted(1, 0, 64), undefined);
-  assertEquals(ledger.acceptPacket(0, packet(1, 64, NEUTRAL)), "accepted");
+  assertEquals(ledger.acceptPacket(0, packet(1, FUTURE_LIMIT, NEUTRAL, NEUTRAL)), "tooFarAhead");
+  assertEquals(ledger.accepted(1, 0, FUTURE_LIMIT), undefined);
+  assertEquals(ledger.acceptPacket(0, packet(1, FUTURE_LIMIT, NEUTRAL)), "accepted");
   assertEquals(ledger.knownThrough(), 0);
-  for (let frame = 1; frame <= 64; frame++) {
+  for (let frame = 1; frame <= FUTURE_LIMIT; frame++) {
     assertEquals(ledger.acceptPacket(0, packet(1, frame, NEUTRAL)), "accepted");
     assertEquals(ledger.acceptPacket(1, packet(1, frame, NEUTRAL)), "accepted");
   }
-  assertEquals(ledger.knownThrough(), 64);
-  assertEquals(ledger.acceptPacket(0, packet(1, 65, NEUTRAL)), "tooFarAhead");
+  assertEquals(ledger.knownThrough(), FUTURE_LIMIT);
+  assertEquals(ledger.acceptPacket(0, packet(1, FUTURE_LIMIT + 1, NEUTRAL)), "tooFarAhead");
   assertTrue(ledger.markConsumed(1, 1));
-  assertEquals(ledger.acceptPacket(0, packet(1, 65, NEUTRAL)), "accepted");
+  assertEquals(ledger.acceptPacket(0, packet(1, FUTURE_LIMIT + 1, NEUTRAL)), "accepted");
 });
 
 test("epochs seed neutral delay rows, only increase, and refuse observers and stale packets", () => {
   const ledger = new InputLedger();
   assertFalse(ledger.beginEpoch(-1, 1, 3, 3));
   assertFalse(ledger.beginEpoch(1, 0, 3, 3));
-  assertFalse(ledger.beginEpoch(1, 1, 65, 3));
+  assertFalse(ledger.beginEpoch(1, 1, FUTURE_LIMIT + 1, 3));
   assertFalse(ledger.beginEpoch(1, 1, -1, 3));
   const neutral = packet(1, 1, NEUTRAL);
   assertEquals(ledger.acceptPacket(0, neutral), "wrongEpoch");

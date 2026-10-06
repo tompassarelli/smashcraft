@@ -201,7 +201,7 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("crouching", e.motion.crouching, a.motion.crouching);
   add("fastFallDownHeld", e.motion.fastFallDownHeld, a.motion.fastFallDownHeld);
   add("fastFallInputAge", e.motion.fastFallInputAge, a.motion.fastFallInputAge);
-  add("previousHorizontalDirection", e.motion.previousHorizontalDirection, a.motion.previousHorizontalDirection);
+  add("previousStickSide", e.motion.previousStickSide, a.motion.previousStickSide);
   add("jumpInputAge", e.jump.inputAge, a.jump.inputAge);
   add("fastFalling", e.motion.fastFalling, a.motion.fastFalling);
   add("grounded", e.motion.grounded, a.motion.grounded);
@@ -233,8 +233,6 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("surfaceContactNormalZ", e.surfaceRecovery.contactNormalZ, a.surfaceRecovery.contactNormalZ);
   add("airDodgeTime", e.dodge.airMotionFrames, a.dodge.airMotionFrames);
   add("landingLag", e.landing.lag, a.landing.lag);
-  add("lCancelWindow", e.landing.lCancelWindow, a.landing.lCancelWindow);
-  add("lCancelSerial", e.landing.lCancelSerial, a.landing.lCancelSerial);
   add("airDodging", e.dodge.airDodging, a.dodge.airDodging);
   add("airDodgeFrame", e.dodge.airFrame, a.dodge.airFrame);
   add("groundDodgeFrame", e.dodge.groundFrame, a.dodge.groundFrame);
@@ -245,6 +243,7 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("downDirection", e.down.direction, a.down.direction);
   add("downWaitRemaining", e.down.waitRemaining, a.down.waitRemaining);
   add("downFaceUp", e.down.faceUp, a.down.faceUp);
+  add("downAttackQueued", e.down.attackQueued, a.down.attackQueued);
   add("techWindow", e.tech.window, a.tech.window);
   add("techPressAge", e.tech.pressAge, a.tech.pressAge);
   add("techPreviousPressAge", e.tech.previousPressAge, a.tech.previousPressAge);

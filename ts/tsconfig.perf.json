@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.map.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "sourceMap": false
+  },
+  "include": [
+    "node_modules/wisp/src/natives/warcraft.d.ts",
+    "scripts/wisp/perfLua.ts"
+  ],
+  "exclude": [],
+  "tstl": {
+    "luaBundle": "perf.lua",
+    "luaBundleEntry": "scripts/wisp/perfLua.ts"
+  }
+}

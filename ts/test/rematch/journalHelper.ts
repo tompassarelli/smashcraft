@@ -43,7 +43,8 @@ const DIRECTIONS = bit(Action.moveLeft) | bit(Action.moveRight) | bit(Action.mov
 
 const tapFrames = (workload: Workload) => workload.denseCycles * PULSES.length * 3;
 
-function rowFor(slot: number, frame: number, workload: Workload): InputRow {
+/** The row a slot's helper journals for a frame of the workload. */
+export function rowFor(slot: number, frame: number, workload: Workload): InputRow {
   const taps = tapFrames(workload);
   const direction = workload.walkers.includes(slot) ? bit(slot === 0 ? Action.moveLeft : Action.moveRight) : 0;
   const pulse = frame <= taps && frame % 3 === 1 ? PULSES[((frame - 1) / 3) % PULSES.length] ?? 0 : 0;
@@ -71,10 +72,14 @@ export class JournalHelpers {
   workload: Workload = { denseCycles: 0, walkers: [] };
   /** Slots whose helper types nothing, as when it isn't running or has stalled; its clock keeps journaling rows. */
   readonly silent = new Set<number>();
-
+  /** The row a slot's controller makes on a frame of its helper's clock; the workload's by default. */
+  rows: (slot: number, frame: number) => InputRow = (slot, frame) => rowFor(slot, frame, this.workload);
+  /** The helpers' clock in frames, such as a soak's wall clock; the clients' frames by default. */
+  clock: ((clients: Lockstep) => number) | undefined = undefined;
   /**
-   * build: the map build whose journal files the helpers follow. pairs: a
-   * packet carries two frames once two are due, as the companion helper's do.
+   * build: the map build whose journal files the helpers follow. pairs: as
+   * the companion journals, a row waits for the next frame's, so each packet
+   * carries two frames until a pause seals one alone.
    */
   constructor(
     private readonly build: string,
@@ -96,8 +101,15 @@ export class JournalHelpers {
     helper.queue.push(momentRequest(helper.epoch));
   }
 
+  /** Frames a slot's helper has journaled this match; undefined while it isn't journaling. */
+  journaled(slot: number): number | undefined {
+    const helper = this.helpers.get(slot);
+    return helper?.state === "journaling" ? helper.journaled : undefined;
+  }
+
   /** One frame of every helper, after the clients ran it. */
   service(clients: Lockstep): void {
+    const now = this.clock?.(clients) ?? clients.frame;
     for (const client of clients.clients) {
       const helper = this.helper(client.slot);
       const next = helper.epoch + 1;
@@ -108,7 +120,7 @@ export class JournalHelpers {
       }
       const { epoch } = helper;
       if (helper.state === "ready" && client.files.has(journalLifecycleFile(this.build, epoch, client.slot, "start"))) {
-        Object.assign(helper, { state: "journaling", journaled: 0, started: clients.frame });
+        Object.assign(helper, { state: "journaling", journaled: 0, started: now });
       }
       if (helper.state === "journaling" && client.files.has(journalLifecycleFile(this.build, epoch, client.slot, "end"))) {
         helper.state = "ended";
@@ -130,13 +142,14 @@ export class JournalHelpers {
       } else if (request === "RESUME") {
         acknowledge("RESUME", helper.journaled + 1);
         helper.limit = undefined;
-        helper.started = clients.frame - helper.journaled;
+        helper.started = now - helper.journaled;
       }
-      const due = helper.limit ?? clients.frame - helper.started + 1;
+      const due = helper.limit ?? Math.floor(now - helper.started) + 1;
       while (helper.state === "journaling" && helper.journaled < due) {
         const first = helper.journaled + 1;
-        const rows = [rowFor(client.slot, first, this.workload)];
-        if (this.pairs && first < due) rows.push(rowFor(client.slot, first + 1, this.workload));
+        if (this.pairs && first === due && helper.limit === undefined) break;
+        const rows = [this.rows(client.slot, first)];
+        if (this.pairs && first < due) rows.push(this.rows(client.slot, first + 1));
         const packet = inputPacket(epoch, first, rows);
         if (packet === undefined) throw new Error("no packet");
         helper.queue.push(encodePacket(packet));

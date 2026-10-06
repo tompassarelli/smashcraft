@@ -268,16 +268,15 @@ export function emitImpacts(state: ImpactState, events: Readonly<ImpactEvents>, 
 /** How far an impact has drifted at the given velocity. */
 const travel = (velocity: number, age: number): number => f32(f32(velocity * age) * f32(1.3));
 
-function hiddenImpact(): ImpactPose {
-  return { visible: false, alpha: 0, scale: 0.0, x: 0.0, z: 0.0, pitch: 0.0 };
-}
+// Shared and never changed: renderers project every pooled effect on every callback.
+const HIDDEN_IMPACT: Readonly<ImpactPose> = { visible: false, alpha: 0, scale: 0.0, x: 0.0, z: 0.0, pitch: 0.0 };
 
 /** An impact slot's transform. KO slots show only a star KO's closing sparkle. */
-export function projectImpact(state: Readonly<ImpactState>, i: number): ImpactPose {
-  if (i < 0 || i >= IMPACT_COUNT) return hiddenImpact();
+export function projectImpact(state: Readonly<ImpactState>, i: number): Readonly<ImpactPose> {
+  if (i < 0 || i >= IMPACT_COUNT) return HIDDEN_IMPACT;
   const age = state.ages[i];
   const kind = idiv(i, IMPACTS_PER_KIND);
-  if (age === undefined || kind === IMPACT_SCREEN_KO || (kind === IMPACT_STAR_KO && age < KO_STAR_FLIGHT_FRAMES)) return hiddenImpact();
+  if (age === undefined || kind === IMPACT_SCREEN_KO || (kind === IMPACT_STAR_KO && age < KO_STAR_FLIGHT_FRAMES)) return HIDDEN_IMPACT;
   const originX = at(state.originX, i);
   const originZ = at(state.originZ, i);
   const drift = at(state.drift, i);
@@ -309,26 +308,25 @@ export function projectImpact(state: Readonly<ImpactState>, i: number): ImpactPo
   };
 }
 
-function hiddenKo(): KoPose {
-  return { visible: false, character: 0, alpha: 0, scale: 0.0, x: 0.0, y: 0.0, z: 0.0, pitch: 0.0, yaw: 0.0, roll: 0.0 };
-}
+// Shared and never changed: renderers project every pooled effect on every callback.
+const HIDDEN_KO: Readonly<KoPose> = { visible: false, character: 0, alpha: 0, scale: 0.0, x: 0.0, y: 0.0, z: 0.0, pitch: 0.0, yaw: 0.0, roll: 0.0 };
 
 /**
  * A top KO's body: a star KO flies away and spins, a screen KO hits the
  * camera and drops. Pure transforms of the age, so they freeze with the
  * confirmed frame clock.
  */
-export function projectKo(state: Readonly<ImpactState>, i: number): KoPose {
-  if (i < IMPACT_STAR_KO * IMPACTS_PER_KIND || i >= IMPACT_COUNT) return hiddenKo();
+export function projectKo(state: Readonly<ImpactState>, i: number): Readonly<KoPose> {
+  if (i < IMPACT_STAR_KO * IMPACTS_PER_KIND || i >= IMPACT_COUNT) return HIDDEN_KO;
   const age = state.ages[i];
-  if (age === undefined) return hiddenKo();
+  if (age === undefined) return HIDDEN_KO;
   const drift = at(state.drift, i);
   const originX = at(state.originX, i);
   const originZ = at(state.originZ, i);
   const character = at(state.character, i);
   const yaw = drift > 0 ? 0.0 : PI;
   if (idiv(i, IMPACTS_PER_KIND) === IMPACT_STAR_KO) {
-    if (age >= KO_STAR_FLIGHT_FRAMES) return hiddenKo();
+    if (age >= KO_STAR_FLIGHT_FRAMES) return HIDDEN_KO;
     const t = f32(f32(age * 1.0) / KO_STAR_FLIGHT_FRAMES);
     const remaining = f32(1.0 - t);
     return {

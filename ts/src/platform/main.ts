@@ -9,6 +9,7 @@ import { installDispatch } from "wisp/src/platform/dispatch";
 import { installHotReload, startHotReload } from "wisp/src/platform/hotReload";
 import { installShell, startShell } from "./shell/shell";
 import { installObjectData } from "./shell/objectData";
+import { installTuning } from "./shell/tuning";
 
 /** Each reload's install() configures the runtime again, so it names the build's error text too. */
 export function install(this: void, build: MapBuild = CURRENT_BUILD): void {
@@ -16,6 +17,7 @@ export function install(this: void, build: MapBuild = CURRENT_BUILD): void {
   installDispatch();
   installShell();
   installObjectData();
+  installTuning();
   installHotReload();
 }
 

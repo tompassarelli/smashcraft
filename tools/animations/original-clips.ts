@@ -2,6 +2,7 @@
 // light component per fighter, retaining native selected-sequence evaluation.
 import {parseMDX, generateMDX, model as mdx} from 'war3-model';
 import {isDeepStrictEqual} from 'node:util';
+import {renumberNodes} from '../../ts/scripts/clipNodes';
 
 /** Each fighter's original model under the private assets directory, in Character order. */
 export const fighters = [
@@ -44,7 +45,7 @@ export function removeBodyEffects(model: mdx.Model) {
     model.ParticleEmitters = [];
     model.ParticleEmitters2 = [];
     model.RibbonEmitters = [];
-    // Preserve original object IDs and pivot indices; only clear the removed aliases.
+    // Keep object IDs and pivot indices and only clear the removed aliases; originalBodyClip renumbers.
     for (const id of ids) delete model.Nodes[id];
     return counts;
 }
@@ -62,7 +63,27 @@ export function encodeVerified(model: mdx.Model) {
     return bytes;
 }
 
+/**
+ * Checks a clip against its source: same textures, materials, geometry,
+ * skin, pivots and bone/helper hierarchy, with each kept node renumbered by
+ * its place in the clip's node order.
+ */
 export function verifyPreservedBody(original: mdx.Model, timeline: mdx.Model) {
+    const kept = ['Bones', 'Helpers', 'Attachments', 'CollisionShapes'] as const;
+    const renumbered = new Map<number, number>();
+    for (const key of kept) {
+        ensure(original[key].length === timeline[key].length, `Source ${key} count changed`);
+        original[key].forEach((node, index) => renumbered.set(node.ObjectId, timeline[key][index].ObjectId));
+    }
+    const id = (objectId: number) => {
+        const place = renumbered.get(objectId);
+        ensure(place !== undefined, `Source ObjectId ${objectId} has no node in the clip`);
+        return place;
+    };
+    for (const key of kept) original[key].forEach((node, index) => {
+        ensure(isDeepStrictEqual(original.PivotPoints[node.ObjectId], timeline.PivotPoints[timeline[key][index].ObjectId]),
+            `${node.Name}: source pivot point changed`);
+    });
     ensure(isDeepStrictEqual(original.Textures, timeline.Textures), 'Source texture references changed');
     // Like bone transforms below, material animation has its own key-preservation
     // check. Normalize only source-animated Alpha; fixed material values stay exact.
@@ -74,12 +95,13 @@ export function verifyPreservedBody(original: mdx.Model, timeline: mdx.Model) {
         }),
     }));
     ensure(isDeepStrictEqual(staticMaterials(original), staticMaterials(timeline)), 'Source materials changed');
-    ensure(isDeepStrictEqual(original.PivotPoints, timeline.PivotPoints), 'Source pivot points changed');
-    const geometry = (m: mdx.Model) => m.Geosets.map(({Anims, ...g}) => g);
-    ensure(isDeepStrictEqual(geometry(original), geometry(timeline)), 'Source geometry/skin/UV changed');
+    const geometry = (m: mdx.Model, skin: (objectId: number) => number) =>
+        m.Geosets.map(({Anims, ...g}) => ({...g, Groups: g.Groups.map(group => group.map(skin))}));
+    ensure(isDeepStrictEqual(geometry(original, id), geometry(timeline, objectId => objectId)), 'Source geometry/skin/UV changed');
     for (const key of ['Bones', 'Helpers'] as const) {
-        const staticNodes = (m: mdx.Model) => m[key].map(({Translation, Rotation, Scaling, ...n}) => n);
-        ensure(isDeepStrictEqual(staticNodes(original), staticNodes(timeline)), `Source ${key} hierarchy changed`);
+        const staticNodes = (m: mdx.Model, place: (objectId: number) => number) => m[key].map(({Translation, Rotation, Scaling, ...n}) =>
+            ({...n, ObjectId: place(n.ObjectId), Parent: n.Parent == null ? n.Parent : place(n.Parent)}));
+        ensure(isDeepStrictEqual(staticNodes(original, id), staticNodes(timeline, objectId => objectId)), `Source ${key} hierarchy changed`);
     }
 }
 
@@ -99,7 +121,8 @@ export const staticLightGate = {
 } as const;
 
 // Independent static illumination belongs to the fighter, not each body clip.
-// Keep body node IDs stable; standalone light IDs and pivots must be dense.
+// The body keeps its node IDs until originalBodyClip numbers each clip's nodes by
+// place; the light's IDs and pivots are dense.
 export function splitStaticLights(source: mdx.Model): {body: mdx.Model, lights: mdx.Model | null} {
     const body = structuredClone(source);
     if (!source.Lights.length) return {body, lights: null};
@@ -211,6 +234,8 @@ export function originalBodyClip(source: mdx.Model, sequenceIndex: number, mode:
     const retainedTracks = new Map<string, mdx.AnimVector>();
     tracks(model, (track, path) => retainedTracks.set(path, track));
     ensure(isDeepStrictEqual(retainedTracks, expectedTracks), 'Original clip changed retained animation channels');
+    // Removed lights and effect nodes leave gaps, and Warcraft does not read ObjectIds as written (ts/scripts/clipNodes.ts).
+    renumberNodes(model);
     return {model, mode, sequenceIndex, name: sequence.Name, interval: [start, end], looping: !sequence.NonLooping,
         originalKeys, retainedKeys, trackCount, emptyTracks, omittedEmptyTracks, omittedEffects};
 }
