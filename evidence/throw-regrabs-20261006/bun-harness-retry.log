@@ -1,0 +1,15 @@
+{"decision":"RESERVED","reason":"RUN","class":"heavy","requestedCpus":6,"requestedMemoryMiB":8192,"leasedCpuCeilings":20,"aggregateCpuLimit":18,"leasedMemoryMiB":34304,"cpuSomeAvg10":5.58,"memoryFullAvg10":0,"memoryAvailableMiB":70961,"reclaimed":0,"lease":"795f9458-4423-40a1-aadf-58d7084f6643","expiresAt":1791281148789}
+bun test v1.3.13 (bf2e2cec)
+
+test/desync-guard-integrity.test.ts:
+(pass) desync guard: the journal integrity build makes the same native calls on every client [709.01ms]
+
+test/input-stall.test.ts:
+helper cut: waiting shown 44/20 frames after the cut, cleared 10/2 frames after input returned; confirmed 50 -> 220
+(pass) a helper that stops mid-match shows every client who the match waits for within a second, and the match resumes when it types again [413.01ms]
+
+ 2 pass
+ 0 fail
+ 28 expect() calls
+Ran 2 tests across 2 files. [1351.00ms]
+{"decision":"RELEASED","lease":"795f9458-4423-40a1-aadf-58d7084f6643"}

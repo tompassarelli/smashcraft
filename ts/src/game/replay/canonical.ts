@@ -201,6 +201,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   real("damage", st.damage);
   int("stocks", st.stocks);
   int("hitstun", l.hitstun);
+  bool("throwHitstun", l.throwHitstun);
   int("hitlag", l.hitlag);
   bool("diPending", l.diPending);
   real("diLaunchSpeed", l.diLaunchSpeed);
@@ -267,6 +268,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   int("freezeTrapSurface", fighter.freezeTrap.surface ?? -1);
   int("freezeTrapSerial", fighter.freezeTrap.serial);
   int("frozenFrames", st.frozenFrames);
+  int("freezeImmunityFrames", st.freezeImmunityFrames);
   int("freezeTrapCooldown", fighter.freezeTrap.cooldown);
   bool("out", st.out);
   int("respawn", st.respawn);
@@ -350,6 +352,10 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   int("throwVisualSerial", v.throw);
   int("hitVisualSerial", v.hit);
   bool("hitVisualElectric", v.hitElectric);
+  int("hitVisualElement", v.hitElement);
+  int("hitVisualStrength", v.hitStrength);
+  bool("hitVisualPummel", v.hitPummel);
+  bool("shieldVisualElectric", v.shieldElectric);
   int("shieldVisualSerial", v.shield);
   bool("fastFallDownHeld", m.fastFallDownHeld);
   int("fastFallInputAge", m.fastFallInputAge);

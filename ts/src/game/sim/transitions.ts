@@ -12,6 +12,16 @@ import type { Roster } from "./roster";
 import { clearShieldBreak } from "./shield";
 
 export const LEDGE_REGRAB_FRAMES = 30;
+// A response at the 15-frame reaction floor completes the longest jump squat
+// (5 frames) before the next trap check may catch the fighter.
+const FREEZE_IMMUNITY_FRAMES = 20;
+
+/** Natural thaw and hits that break ice grant the same finite trap escape interval. */
+export function thawFighter(f: Fighter): void {
+  if (f.status.frozenFrames <= 0) return;
+  f.status.frozenFrames = 0;
+  f.status.freezeImmunityFrames = FREEZE_IMMUNITY_FRAMES;
+}
 
 export function clearSurfaceRecovery(f: Fighter): void {
   const recovery = f.surfaceRecovery;
@@ -240,6 +250,7 @@ export function beginDownDamage(f: Fighter, hitstunFrames: number): void {
   down.waitRemaining = max(0, hitstunFrames);
   down.attackQueued = false;
   launch.hitstun = max(0, hitstunFrames);
+  launch.throwHitstun = false;
   launch.diPending = false;
   launch.diLaunchSpeed = 0.0;
   motion.vx = 0.0;

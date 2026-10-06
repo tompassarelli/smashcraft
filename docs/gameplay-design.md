@@ -31,6 +31,64 @@ Owner decisions, 6 Oct 2026 (#62):
 - **Short true combos, devastating combos through reads** (6 Oct, #83; see
   "Combo structure" below).
 
+## Bounded SDI
+
+Reversible default selected under the owner's authorization, 6 Oct 2026 (#70).
+The selected rule is a design; gameplay still uses the existing SDI until
+the infrastructure gate in #61 closes and #70's implementation passes its checks.
+
+SDI should change where a hit leaves the defender, with a useful escape choice
+in multi-hits, without rewarding ever more inputs with unbounded travel. Count
+travel distance, including reversals, rather than distance from the hit's origin.
+All distances below are Melee units; one is six world units.
+
+- **Per hit:** at most 12 units total, comprising at most 9 SDI and 3 ASDI.
+- **Per uninterrupted string:** at most 24 units total across SDI and ASDI.
+  A new contact renews the hit allowance, never the string allowance. A string
+  ends after one complete tick in which the defender can act, or on stock loss,
+  respawn or match reset. Hitlag, hitstun, grabs and scripted holds keep it open;
+  a gap between multi-hits while the defender is still held does not renew it.
+- **Smoothing:** each fresh pulse requests up to the existing 6-unit travel,
+  spent in ordered steps of at most 3 units per tick while hitlag remains.
+  Reserve up to 3 units of the remaining string allowance for that hit's ASDI
+  before admitting SDI requests. Pending requests reserve the remaining hit and
+  string allowance, so extra flicks cannot build an unbounded queue. ASDI uses
+  the release tick's whole 3-unit step; do not drain queued SDI on that tick.
+  Discard unfinished SDI on release or a replacement hit, and release its
+  unused reservation. Never continue it into hitstun or ordinary movement.
+- **Contacts:** charge each requested step's length before collision clipping;
+  walls cannot refill the allowance. Use the existing swept surface contacts,
+  grounded non-lifting restriction and blast-zone checks for every step. ASDI
+  still prefers the C-stick, can land, and uses the existing non-tumble/tech
+  landing rules. Continuous DI still reads the left stick on release and keeps
+  its launch-angle rule. Attacker hitlag never admits victim SDI.
+
+The shared string cap also limits ASDI: after 24 units have been spent, a later
+hit supplies no positional SDI or ASDI until control returns. This is a deliberate
+departure from Melee; reserving ASDI on each eligible hit keeps the held-direction
+choice useful before that cap. An ordinary stationary-held direction generates
+no repeat pulses. No extra delay is added before the first smoothed step.
+
+At these defaults, a two-frame freeze permits 3 SDI plus 3 ASDI units; a
+four-frame or longer freeze can spend the full 12. Two fully spent hits exhaust
+the 24-unit string budget. These are consequences of the proposed rule, not
+measurements of an implemented change. The numerical defaults are ordinary
+tuning values and can be revised together without altering the rule.
+
+The implementation must carry spent allowances and pending travel through
+snapshots, replay and rollback. Its focused acceptance cases are single-hit
+and three-hit travel bounds (including alternating and diagonal directions),
+the 3-unit per-tick limit, reservation expiry, a real actionable reset versus
+held multi-hit gaps, and the existing ASDI contact/DI cases. Add oracle fixtures
+that name the SDI deviation; the existing oracle does not exercise this rule.
+Native feel remains a later playtest of the implemented candidate.
+
+The factual baseline is [Melee's defense](design/melee/defense.md#influence-on-knockback)
+and [SDI teleports](design/melee/techniques.md#sdi-teleports). The current
+production simulation's bounded measurements at build 89abaf3c are retained in
+smashcraft:evidence/sdi-design-20261006.json; #70 owns their report and the
+implementation dependency.
+
 ## Combo structure
 
 Owner decision, 6 Oct 2026 (#83): devastating combos should be the norm
@@ -69,6 +127,21 @@ from 0% to roughly 90–120% before the last hit.
 
 - Fighters generally need launchers into follow-ups such as tech chases.
 
+## Throw regrabs
+
+Implementation choice, 6 Oct 2026 (#85), under the owner's instruction to
+implement the suggested defaults: a grab cannot catch a fighter whose current
+hitstun came from a throw. Standing, dash and shield grabs share this rule.
+When that hitstun ends, grabs can catch again. A follow-up strike can still hit
+during throw hitstun; if it replaces the throw's hitstun, ordinary grab
+eligibility returns. Damage-only arrows do not replace the throw's hitstun.
+A gentle landing keeps the throw's remaining hitstun instead of ending it
+early while the victim is still recovering from the landing.
+
+This removes direct throw-to-regrab chains while retaining true throw-to-attack
+combos and attack-to-grab reads. It does not grant a timed immunity after control
+returns or forbid grabs during ordinary attack hitstun.
+
 ## Physics foundation
 
 Smashcraft's shared physics follows Melee's NTSC 1.02 rules, as roadmaps #2
@@ -86,7 +159,7 @@ checks that every oracle departure names a row here.
 | Stale moves and freshness bonuses | Repeats among the last 9 connected moves deal less damage and knockback | Ultimate keeps the 9-move queue, adds a freshness bonus, counts shield hits and weakens the knockback effect ([SmashWiki](https://www.ssbwiki.com/Stale-move_negation)) | None: a repeat deals the same damage and knockback | An over-engineered attempt at move diversity; diversity comes by construction, from move design | decisions 4 and 6 Oct |
 | Tap-jump | Stick up jumps, always | Optional from Brawl onward ("Stick Jump" in Ultimate; [SmashWiki](https://www.ssbwiki.com/Tap_jump)) | Removed: stick-up and Space are just "up"; jump is its own button | Jump is its own button (owner, 6 Oct) | #49 |
 | Stick deadzone | Each stick axis reads zero within 0.28 of centre, after a radial clamp | not covered here | Melee's deadzone applies to every controller; the value and its decompilation citation are in smashcraft:companion/README.md | A resting or drifting stick reads neutral | #49 |
-| SDI | Each fresh stick movement during hitlag moves the fighter 6 units, as often as every frame ([case study](design/melee/defense.md#influence-on-knockback)) | Weakened in later games ([SmashWiki](https://www.ssbwiki.com/Smash_directional_influence)) | Pending: SDI that keeps its purpose without teleport jank | SDI should let the victim influence where multi-hits and strong hits leave them, without too much SDI teleporting a fighter | #70 |
+| SDI | Each fresh stick movement during hitlag moves the fighter 6 units, as often as every frame ([case study](design/melee/defense.md#influence-on-knockback)) | Weakened in later games ([SmashWiki](https://www.ssbwiki.com/Smash_directional_influence)) | Selected design, awaiting implementation after #61: SDI + ASDI travel capped at 12 units per hit and 24 per uninterrupted string, in steps of at most 3 per tick ([bounded SDI](#bounded-sdi)) | Keep displacement choices useful while bounding visible jumps and repeated-hit travel | #70 |
 | Horizontal air dodge | The dodge goes where the stick points | – | A horizontal-only digital air dodge angles 18° below horizontal, mirrored, by default and with no toggle | Owner-selected control (30 Sep); the shallow angle keeps horizontal momentum into the landing | – |
 | Fast fall | A fresh stick down, diagonals included | – | Down with neutral horizontal input only; down-left and down-right keep drifting | Owner-selected control, 30 Sep | – |
 | Dodge timing | Per fighter | – | One shared profile: spot dodge 22 frames, intangible 2–15; rolls 31, intangible 4–19; air dodge 49, intangible 4–29, landing 10 | Owner's common frame-data profile | – |
@@ -112,6 +185,15 @@ checks that every oracle departure names a row here.
   requested shared profile.
 
 ## Fighters
+
+- **Rifleman's trap escape** (delegated choice, 6 Oct 2026, #84): keep the
+  single 300-frame freeze, then prevent any trap from catching that fighter
+  until 20 frames after thaw. A hit that breaks ice grants the same interval.
+  This covers the accepted 15-frame response floor plus the longest current
+  five-frame jump squat: a jump chosen 15 frames after thaw leaves the ground
+  before a waiting trap can spring. The trade-off is that Rifleman can still
+  cover the escape with another move, and an idle fighter can be caught again
+  when the interval expires. This is trap immunity, not protection from damage.
 
 - **Archer's arrows** (owner correction): normal, running and multishot arrows
   add damage without hitstun, hitlag, knockback or interruption; shields still
@@ -210,12 +292,13 @@ The 540-match `--policy cpu` soak checks this behaviour: departures,
 self-destructs, time-outs and the moves that landed
 (smashcraft:ts/scripts/soakOutcomes.ts summarizes them).
 
-## Open questions for the owner
+## Execution and reaction windows (#69)
 
-Proposed lower and upper bounds for each execution and reaction window type.
-They are proposals, not decisions; the evidence for each is in
-[execution windows](design/execution-windows.md). Accepted bounds move up into
-this document as decisions and become oracle or interaction-graph checks.
+Adopted 6 Oct 2026 under the owner's instruction to carry out the proposed
+recommendations. These are delegated design choices, not quotations from the
+owner. Evidence and its limitations are in
+[execution windows](design/execution-windows.md). Bounds are design constraints,
+not claims that these timings guarantee human reaction on every setup.
 
 | Window type | Lower | Upper | Today |
 |---|---|---|---|
@@ -231,6 +314,25 @@ this document as decisions and become oracle or interaction-graph checks.
 | Ledge regrab lock | 30 | 60 | 30 |
 | Any required precision input with no aid | 3 | n/a | L-cancel removed |
 
+The reaction figures are authoring targets: at least 15 frames from the first
+visible cue for one response, about 25 for four choices. The latter is a chosen
+budget, not a measured Hick coefficient or a hard maximum on readable cues.
+Required links and unaided precision inputs need at least 3 accepted frames;
+there is no mandatory one-frame input in ordinary play. Optional optimizations
+may be tighter. A powershield is such an optional reward, not required defence.
+Longer delays need a stated gameplay reason rather than automatic rejection.
+The 20-frame tech-lockout floor and 60-frame regrab ceiling are chosen bounds,
+not empirical limits.
+
+The oracle checks the shipped tech, lockout, attack buffer, jump squat and
+short-hop release, parry, powershield and ledge windows against these ranges.
+Interaction timing checks apply the reaction, required-link and precision
+rules to authored situations. No current move is designated a required link
+or guaranteed reaction option; the graph's existence of a punish is not a
+claim that a human can react to it.
+
+## Open questions for the owner
+
 Mechanic-level questions drawn from other games (parry, air dodge, rage, short-hop input, ledge rules and others) are listed at the end of [modern platform fighters](design/modern-platform-fighters.md). Questions raised by fighting-game and platform-fighter design language (hurtbox extension, disjoints, counter hits, shield geometry, whiff penalties, DI strength, launchers and others) are listed at the end of [fighting games](design/fighting-games.md) and [platform fighters](design/platform-fighters.md).
 
 Stage questions (the flat stage, moving platforms, hazards, blast zones and the stage list) are at the end of [stages](design/stages.md#open-design-questions-for-the-owner).
@@ -244,12 +346,40 @@ recovery or an earlier defender response
 (smashcraft:docs/move-comparisons.md). Whether it is a design rule for
 Smashcraft's moves is open.
 
-### Legible locked states (#68)
+## Hit presentation
+
+Recommended defaults adopted under Tom's 6 Oct 2026 instruction to do all
+recommended work (#82), rather than recorded as independently chosen by Tom:
+
+- Warcraft's stock spell and impact art carries Melee's event vocabulary;
+  the descriptive mapping is in smashcraft:docs/design/melee/hit-effects.md.
+  Demon Hunter melee contacts use Cleave, Immolation uses fire and
+  Mana Burn uses lightning; those element choices change presentation only.
+- Strength has three sizes (0.75, 1.0, 1.25), at knockback 80 and 180.
+  The upper threshold follows Melee's strong normal spark; 80 and the sizes
+  are authored readability defaults. No random extra spark obscures strength.
+- Hitlag lightly colours the victim by element and vibrates its body by
+  2 world units, 3 for electric; the camera stays steady. Freeze retains blue.
+  These are bounded Warcraft approximations, not Melee's colour programs.
+- Walk steps are quiet at a 16-frame cadence; run steps are louder at 8;
+  dash has one louder start cue. Combat and landing cues take priority in
+  players' attention. This is an authored rhythm, not imported footstep audio.
+- Pummels are short, quiet and higher-pitched; throw releases use a separate
+  Blink sound. Preserve the existing star/screen KO body treatment, with
+  Warcraft impact sounds and the fighters' original death cues.
+
+Style questions raised by the mapping: should whole-screen shake replace the
+small body vibration; should every contact have a louder flash; should footsteps
+track each clip's exact planted foot; should top KOs become Warcraft explosions?
+The adopted defaults above answer these with a steady camera, bounded sparks,
+a shared footstep rhythm and retained top-KO bodies. Revisit only after an
+observed readability problem; no separate approval is outstanding for them.
+
+## Legible locked states (#68)
 
 No false agency asks that a fighter who can't get out knows it. The agency
 analysis (smashcraft:docs/typescript.md, "Victim agency") sorts every frame
-a fighter is under the other's control into three states, and the open
-questions are how each state shows and exactly when it starts and ends.
+a fighter is under the other's control into three states.
 
 - **Locked, nothing matters**: no input changes anything. Measured on 6
   October: a grab thrown at once (5 to 51 frames from the grab until the
@@ -276,31 +406,24 @@ and in Training Mode a blue glow while intangible and green while invincible;
 from Brawl on, a stunned fighter plays a recovery animation as its stun ends
 ([SmashWiki, stun](https://www.ssbwiki.com/Stun); [SmashWiki, Training Mode](https://www.ssbwiki.com/Training_Mode)).
 
-Questions, each with options:
+Adopted 6 Oct 2026 under the owner's blanket authorization to carry out the
+recommendations; these are delegated choices, not quoted owner answers:
 
-1. Which states show: (a) all three; (b) the two locked states, "can act"
-   being the unmarked default; (c) only the moment control returns.
-2. How: (a) a tint or outline on the locked fighter, one for "nothing
-   matters" and another for "only DI"; (b) an effect on the fighter, such as
-   a ring or chains, that breaks when control returns; (c) a sound as a lock
-   begins or as control returns; (d) a hit counter that counts only hits the
-   victim couldn't act between, shown to both players; (e) in practice only,
-   a frame meter of the victim's three states as the analysis computes them.
-3. Who sees it: both players, or only the locked one.
-4. When "locked" ends: (a) on the first frame a button would change the
-   outcome, which is up to 6 frames (buffer) or 20 (tech) before the fighter
-   moves; (b) on the first frame the fighter can start an action, with the
-   tech window as its own cue; (c) as (b) without a tech cue.
-5. The DI-only frames last 1-9 frames: show them (a) frame by frame, (b) for
-   the whole hitlag, or (c) not apart from "nothing matters".
-6. What computes it in a match: the analysis replays some thirty inputs per
-   frame and is a test-time check. A live signal would follow a rule over the
-   fighter's state (hitlag, hitstun, a hold, a freeze, a forced stand, the
-   tech window) that the sweep checks against the analysis. (a) Accept such a
-   rule; (b) precompute each move's stretch from the sweep; (c) leave live
-   signals out and give only the practice meter.
+- Mark the two locked states; "you can act" is the unmarked default.
+- Use distinct fighter tints or outlines for "nothing matters" and "only DI".
+  Both players see the same distinction. Choose the final colours during the
+  visual implementation so they remain readable on every fighter.
+- Remove the locked signal on the first frame an input can change the outcome,
+  including a buffered button or a tech press before movement resumes.
+- Show DI-only frames accurately, including the one-frame throw release;
+  do not stretch the signal across frames where DI no longer changes anything.
+- Compute the live signal with a cheap rule over current fighter state
+  (hitlag, hitstun, grab, freeze, forced stand, buffer and tech eligibility).
+  Validate it against the existing replay-based agency analysis before shipping.
 
-Two measured patterns already run against the principle and are filed for
-a decision: the Rifleman's trap can freeze a fighter again as each freeze
-ends (#84), and an up throw can be regrabbed before its victim can act
-(#85).
+Implementing and observing these signals is a separate follow-up to #68's
+completed detector and design proposal. The analysis is the validation oracle,
+not a thirty-input replay workload to run for every fighter during a match.
+
+The Rifleman's trap can freeze a fighter again as each freeze ends (#84).
+Throw-to-regrab chains are governed by the throw regrab rule above (#85).

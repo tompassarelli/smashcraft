@@ -14,6 +14,7 @@ import { PARTICIPANT_SLOTS } from "../src/game/input/participants";
 import { Phase } from "../src/game/match/rules";
 import { FLOOR_HEIGHT } from "../src/game/presentation/arenaCamera";
 import { characterModelScale } from "../src/game/presentation/modelScale";
+import { fitFighterPlacement } from "../src/game/presentation/fighterPlacement";
 import { FIGHTER_OBJECTS } from "../src/game/objectData";
 import { ReplayHistory } from "../src/game/replay/history";
 import { ShadowInputPlayback } from "../src/game/replay/shadowPlayback";
@@ -131,7 +132,8 @@ function shownClipProblems(client: HeadlessClient, parkedBelow: number, seen: Ma
     for (const slot of PARTICIPANT_SLOTS) {
       const pool = views(s).fighters[slot]?.pool as unknown as { readonly clips: readonly unknown[] } | undefined;
       if (pool === undefined || !isActive(world, slot)) continue;
-      const { character, motion, status } = fighterAt(world, slot);
+      const fighter = fighterAt(world, slot);
+      const { character, status } = fighter;
       const shown = pool.clips.flatMap((clip) => {
         const pose = poses.get(clip);
         return pose !== undefined && pose.z >= parkedBelow ? [pose] : [];
@@ -146,7 +148,9 @@ function shownClipProblems(client: HeadlessClient, parkedBelow: number, seen: Ma
         continue;
       }
       seen.set(character, (seen.get(character) ?? 0) + 1);
-      const place = [s.origin.x + motion.x, s.origin.y, s.origin.z + motion.z];
+      const fitted = { x: 0, z: 0 };
+      fitFighterPlacement(fitted, fighter, s.game.stageChoice);
+      const place = [s.origin.x + fitted.x, s.origin.y, s.origin.z + fitted.z];
       if (pose.x !== place[0] || pose.y !== place[1] || pose.z !== place[2]) problems.push(`slot ${slot} clip at ${pose.x} ${pose.y} ${pose.z}, fighter at ${place.join(" ")}`);
       if (pose.scale !== characterModelScale(character) || (pose.alpha !== 255 && pose.alpha !== 140)) problems.push(`slot ${slot} clip scale ${pose.scale} alpha ${pose.alpha}`);
       const mesh = MODEL_FACTS[pose.model];

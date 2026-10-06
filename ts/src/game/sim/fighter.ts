@@ -21,6 +21,7 @@ import {
 } from "./codes";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type FighterTuning, authoredTuning } from "./tuning";
+import { HitElement } from "./hitRegions";
 
 export const PROJECTILE_CAPACITY = 16;
 export const SHIELD_MAX = 60.0;
@@ -111,6 +112,8 @@ interface Launch {
   knockbackAge: number | undefined;
   damageLevel: number;
   hitstun: number;
+  /** The current hitstun came from a throw; grabs cannot extend it. */
+  throwHitstun: boolean;
   hitlag: number;
   diPending: boolean;
   diLaunchSpeed: number;
@@ -183,6 +186,10 @@ interface VisualSerials {
   throw: number;
   hit: number;
   hitElectric: boolean;
+  hitElement: HitElement;
+  hitStrength: number;
+  hitPummel: boolean;
+  shieldElectric: boolean;
   shield: number;
   shieldReflect: number;
   parry: number;
@@ -342,6 +349,8 @@ interface Status {
   out: boolean;
   invincible: number;
   frozenFrames: number;
+  /** Frames until another trap may catch a fighter after its ice breaks. */
+  freezeImmunityFrames: number;
 }
 
 export interface Fighter {
@@ -448,6 +457,7 @@ export function createFighter(character: Character, startX: number, facing: numb
       knockbackAge: undefined,
       damageLevel: 0,
       hitstun: 0,
+      throwHitstun: false,
       hitlag: 0,
       diPending: false,
       diLaunchSpeed: 0.0,
@@ -499,7 +509,7 @@ export function createFighter(character: Character, startX: number, facing: numb
       lastAttackSerial: undefined,
       lastWindow: 0,
     },
-    visuals: { grab: 0, throw: 0, hit: 0, hitElectric: false, shield: 0, shieldReflect: 0, parry: 0 },
+    visuals: { grab: 0, throw: 0, hit: 0, hitElectric: false, hitElement: HitElement.normal, hitStrength: 0, hitPummel: false, shieldElectric: false, shield: 0, shieldReflect: 0, parry: 0 },
     special: {
       action: SpecialAction.none,
       frame: 0,
@@ -541,6 +551,6 @@ export function createFighter(character: Character, startX: number, facing: numb
     grab: { grabbedFrames: 0, action: GrabAction.none, frame: 0, serial: 0, mashX: 0, mashZ: 0, owner: undefined, target: undefined },
     ledge: { state: LedgeState.none, side: 0, frame: 0, serial: 0, intangible: 0, regrab: 0 },
     cannon: { held: undefined, firing: undefined, cooldown: 0 },
-    status: { damage: 0.0, stocks: STARTING_STOCKS, respawn: 0, out: false, invincible: 0, frozenFrames: 0 },
+    status: { damage: 0.0, stocks: STARTING_STOCKS, respawn: 0, out: false, invincible: 0, frozenFrames: 0, freezeImmunityFrames: 0 },
   };
 }

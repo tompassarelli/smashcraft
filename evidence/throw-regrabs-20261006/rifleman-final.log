@@ -1,0 +1,122 @@
+{"decision":"RESERVED","reason":"RUN","class":"moderate","requestedCpus":2,"requestedMemoryMiB":2048,"leasedCpuCeilings":30,"aggregateCpuLimit":18,"leasedMemoryMiB":48128,"cpuSomeAvg10":17.73,"memoryFullAvg10":0,"memoryAvailableMiB":67726,"reclaimed":0,"lease":"4fedd011-2a4e-494a-b705-a71a9d27c9ff","expiresAt":1791282988481}
+$ bun scripts/wisp.ts agency --attacker Rifleman --out "../evidence/throw-regrabs-20261006/rifleman-final.jsonl"
+ 469.690 s  starters of Rifleman (469.688 s)
+ 511.895 s  move comparisons' bounded true links (42.203 s)
+360 starters caught their victim; stretches over 20 frames without a frame to act on:
+  Rifleman up tilt on Archer: longest 62 frames at 150% (DI only on 5); by percent 0:8 50:3 100:9 150:62
+  Rifleman down tilt on Archer: longest 105 frames at 150% (DI only on 6); by percent 0:9 50:4 100:22 150:105
+  Rifleman forward smash on Archer: longest 98 frames at 100% (DI only on 9); by percent 0:15 50:27 100:98 150:86
+  Rifleman up smash on Archer: longest 102 frames at 100% (DI only on 8); by percent 0:13 50:17 100:102 150:89
+  Rifleman down smash on Archer: longest 102 frames at 100% (DI only on 8); by percent 0:13 50:17 100:102 150:89
+  Rifleman down special on Archer: longest 299 frames at 0% (DI only on 0); by percent 0:299 50:299 100:299 150:299
+  Rifleman forward throw on Archer: longest 35 frames at 30% (DI only on 1); by percent 0:29 10:31 20:33 30:35 40:1 50:2 60:2 70:3 80:3 90:4 100:5 110:5 120:6 130:7 140:8 150:9
+  Rifleman back throw on Archer: longest 39 frames at 30% (DI only on 1); by percent 0:33 10:35 20:37 30:39 40:5 50:6 60:6 70:7 80:7 90:8 100:9 110:9 120:10 130:11 140:12 150:13
+  Rifleman up throw on Archer: longest 51 frames at 150% (DI only on 1); by percent 0:31 10:32 20:34 30:36 40:38 50:20 60:22 70:25 80:27 90:30 100:33 110:36 120:40 130:43 140:47 150:51
+  Rifleman down throw on Archer: longest 44 frames at 150% (DI only on 1); by percent 0:36 10:38 20:39 30:13 40:15 50:16 60:18 70:20 80:23 90:25 100:28 110:30 120:33 130:37 140:40 150:44
+  Rifleman up tilt on Rifleman: longest 61 frames at 150% (DI only on 5); by percent 0:10 50:3 100:11 150:61
+  Rifleman down tilt on Rifleman: longest 107 frames at 150% (DI only on 6); by percent 0:11 50:4 100:20 150:107
+  Rifleman forward smash on Rifleman: longest 99 frames at 100% (DI only on 9); by percent 0:18 50:25 100:99 150:87
+  Rifleman up smash on Rifleman: longest 104 frames at 100% (DI only on 8); by percent 0:16 50:17 100:104 150:89
+  Rifleman down smash on Rifleman: longest 104 frames at 100% (DI only on 8); by percent 0:16 50:17 100:104 150:89
+  Rifleman up special on Rifleman: longest 27 frames at 100% (DI only on 4); by percent 0:9 50:18 100:27 150:2
+  Rifleman down special on Rifleman: longest 299 frames at 0% (DI only on 0); by percent 0:299 50:299 100:299 150:299
+  Rifleman forward throw on Rifleman: longest 35 frames at 30% (DI only on 1); by percent 0:29 10:31 20:33 30:35 40:4 50:5 60:5 70:6 80:7 90:8 100:8 110:9 120:10 130:11 140:11 150:12
+  Rifleman back throw on Rifleman: longest 39 frames at 30% (DI only on 1); by percent 0:33 10:35 20:37 30:39 40:8 50:9 60:9 70:10 80:11 90:12 100:12 110:13 120:14 130:15 140:15 150:16
+  Rifleman up throw on Rifleman: longest 47 frames at 150% (DI only on 1); by percent 0:32 10:33 20:34 30:36 40:38 50:22 60:23 70:25 80:27 90:30 100:32 110:35 120:37 130:40 140:43 150:47
+  Rifleman down throw on Rifleman: longest 41 frames at 150% (DI only on 1); by percent 0:36 10:38 20:39 30:17 40:18 50:19 60:21 70:22 80:24 90:26 100:28 110:30 120:33 130:35 140:38 150:41
+  Rifleman up tilt on Illidan: longest 61 frames at 150% (DI only on 5); by percent 0:9 50:3 100:10 150:61
+  Rifleman down tilt on Illidan: longest 107 frames at 150% (DI only on 6); by percent 0:10 50:4 100:20 150:107
+  Rifleman forward smash on Illidan: longest 99 frames at 100% (DI only on 9); by percent 0:17 50:24 100:99 150:87
+  Rifleman up smash on Illidan: longest 104 frames at 100% (DI only on 8); by percent 0:15 50:16 100:104 150:89
+  Rifleman down smash on Illidan: longest 104 frames at 100% (DI only on 8); by percent 0:15 50:16 100:104 150:89
+  Rifleman up special on Illidan: longest 27 frames at 100% (DI only on 4); by percent 0:9 50:18 100:27 150:2
+  Rifleman down special on Illidan: longest 299 frames at 0% (DI only on 0); by percent 0:299 50:299 100:299 150:299
+  Rifleman forward throw on Illidan: longest 35 frames at 30% (DI only on 1); by percent 0:29 10:31 20:33 30:35 40:3 50:3 60:4 70:5 80:5 90:6 100:7 110:7 120:8 130:9 140:10 150:11
+  Rifleman back throw on Illidan: longest 39 frames at 30% (DI only on 1); by percent 0:33 10:35 20:37 30:39 40:7 50:7 60:8 70:9 80:9 90:10 100:11 110:11 120:12 130:13 140:14 150:15
+  Rifleman up throw on Illidan: longest 47 frames at 150% (DI only on 1); by percent 0:31 10:32 20:34 30:36 40:38 50:21 60:23 70:25 80:27 90:29 100:32 110:34 120:37 130:40 140:43 150:47
+  Rifleman down throw on Illidan: longest 40 frames at 150% (DI only on 1); by percent 0:36 10:38 20:39 30:15 40:16 50:18 60:19 70:21 80:23 90:25 100:27 110:29 120:32 130:35 140:37 150:40
+loops a repeating follow-up made (77):
+  Rifleman neutral special on Archer from 0%: neutral special again within 40 units; a 25-frame cycle, 3% to 6%, 18 frames to act on
+  Rifleman forward throw on Archer from 0%: forward throw again approaching, within 150 units; a 41-frame cycle, 0% to 7%, 12 frames to act on
+  Rifleman back throw on Archer from 0%: back throw again approaching, within 150 units; a 45-frame cycle, 0% to 7%, 12 frames to act on
+  Rifleman up throw on Archer from 0%: up throw again within 80 units; a 39-frame cycle, 0% to 6%, 8 frames to act on
+  Rifleman down throw on Archer from 0%: down throw again approaching, within 80 units; a 47-frame cycle, 0% to 5%, 11 frames to act on
+  Rifleman forward throw on Archer from 10%: forward throw again approaching, within 150 units; a 43-frame cycle, 10% to 17%, 12 frames to act on
+  Rifleman back throw on Archer from 10%: back throw again approaching, within 150 units; a 47-frame cycle, 10% to 17%, 12 frames to act on
+  Rifleman up throw on Archer from 10%: up throw again within 80 units; a 39-frame cycle, 10% to 16%, 7 frames to act on
+  Rifleman down throw on Archer from 10%: down throw again approaching, within 110 units; a 45-frame cycle, 10% to 15%, 7 frames to act on
+  Rifleman forward throw on Archer from 20%: forward throw again approaching, within 150 units; a 45-frame cycle, 20% to 27%, 12 frames to act on
+  Rifleman back throw on Archer from 20%: back throw again approaching, within 150 units; a 49-frame cycle, 20% to 27%, 12 frames to act on
+  Rifleman up throw on Archer from 20%: up throw again approaching, within 80 units; a 41-frame cycle, 20% to 26%, 7 frames to act on
+  Rifleman down throw on Archer from 20%: down throw again approaching, within 80 units; a 49-frame cycle, 20% to 25%, 10 frames to act on
+  Rifleman forward throw on Archer from 30%: forward throw again approaching, within 110 units; a 51-frame cycle, 30% to 37%, 16 frames to act on
+  Rifleman back throw on Archer from 30%: back throw again approaching, within 110 units; a 55-frame cycle, 30% to 37%, 16 frames to act on
+  Rifleman up throw on Archer from 30%: up throw again approaching, within 60 units; a 43-frame cycle, 30% to 36%, 7 frames to act on
+  Rifleman neutral special on Archer from 50%: neutral special again within 40 units; a 25-frame cycle, 53% to 56%, 18 frames to act on
+  Rifleman up throw on Archer from 50%: up throw again approaching, within 60 units; a 45-frame cycle, 50% to 56%, 20 frames to act on
+  Rifleman up throw on Archer from 60%: up throw again approaching, within 60 units; a 45-frame cycle, 60% to 66%, 20 frames to act on
+  Rifleman up throw on Archer from 70%: up throw again approaching, within 40 units; a 47-frame cycle, 70% to 76%, 20 frames to act on
+  Rifleman neutral special on Archer from 100%: neutral special again within 40 units; a 25-frame cycle, 103% to 106%, 18 frames to act on
+  Rifleman down throw on Archer from 120%: down throw again approaching, within 110 units; a 59-frame cycle, 120% to 125%, 20 frames to act on
+  Rifleman down throw on Archer from 130%: down throw again approaching, within 110 units; a 61-frame cycle, 130% to 135%, 20 frames to act on
+  Rifleman down throw on Archer from 140%: down throw again approaching, within 110 units; a 61-frame cycle, 140% to 145%, 20 frames to act on
+  Rifleman neutral special on Archer from 150%: neutral special again within 40 units; a 25-frame cycle, 153% to 156%, 18 frames to act on
+  Rifleman down throw on Archer from 150%: down throw again approaching, within 80 units; a 69-frame cycle, 150% to 155%, 20 frames to act on
+  Rifleman neutral special on Rifleman from 0%: neutral special again within 40 units; a 25-frame cycle, 3% to 6%, 18 frames to act on
+  Rifleman forward throw on Rifleman from 0%: forward throw again approaching, within 150 units; a 41-frame cycle, 0% to 7%, 12 frames to act on
+  Rifleman back throw on Rifleman from 0%: back throw again approaching, within 150 units; a 45-frame cycle, 0% to 7%, 12 frames to act on
+  Rifleman up throw on Rifleman from 0%: up throw again within 80 units; a 39-frame cycle, 0% to 6%, 7 frames to act on
+  Rifleman down throw on Rifleman from 0%: down throw again approaching, within 110 units; a 45-frame cycle, 0% to 5%, 9 frames to act on
+  Rifleman forward throw on Rifleman from 10%: forward throw again approaching, within 110 units; a 47-frame cycle, 10% to 17%, 16 frames to act on
+  Rifleman back throw on Rifleman from 10%: back throw again approaching, within 110 units; a 51-frame cycle, 10% to 17%, 16 frames to act on
+  Rifleman up throw on Rifleman from 10%: up throw again approaching, within 60 units; a 43-frame cycle, 10% to 16%, 10 frames to act on
+  Rifleman down throw on Rifleman from 10%: down throw again approaching, within 110 units; a 45-frame cycle, 10% to 15%, 7 frames to act on
+  Rifleman forward throw on Rifleman from 20%: forward throw again approaching, within 110 units; a 51-frame cycle, 20% to 27%, 18 frames to act on
+  Rifleman back throw on Rifleman from 20%: back throw again approaching, within 110 units; a 55-frame cycle, 20% to 27%, 18 frames to act on
+  Rifleman up throw on Rifleman from 20%: up throw again approaching, within 80 units; a 41-frame cycle, 20% to 26%, 7 frames to act on
+  Rifleman down throw on Rifleman from 20%: down throw again approaching, within 110 units; a 47-frame cycle, 20% to 25%, 8 frames to act on
+  Rifleman forward throw on Rifleman from 30%: forward throw again approaching, within 150 units; a 49-frame cycle, 30% to 37%, 14 frames to act on
+  Rifleman back throw on Rifleman from 30%: back throw again approaching, within 150 units; a 53-frame cycle, 30% to 37%, 14 frames to act on
+  Rifleman up throw on Rifleman from 30%: up throw again approaching, within 60 units; a 43-frame cycle, 30% to 36%, 7 frames to act on
+  Rifleman neutral special on Rifleman from 50%: neutral special again within 40 units; a 25-frame cycle, 53% to 56%, 18 frames to act on
+  Rifleman up throw on Rifleman from 50%: up throw again approaching, within 60 units; a 45-frame cycle, 50% to 56%, 20 frames to act on
+  Rifleman up throw on Rifleman from 60%: up throw again approaching, within 60 units; a 45-frame cycle, 60% to 66%, 20 frames to act on
+  Rifleman up throw on Rifleman from 70%: up throw again approaching, within 40 units; a 47-frame cycle, 70% to 76%, 20 frames to act on
+  Rifleman neutral special on Rifleman from 100%: neutral special again within 40 units; a 25-frame cycle, 103% to 106%, 18 frames to act on
+  Rifleman down throw on Rifleman from 120%: down throw again approaching, within 110 units; a 59-frame cycle, 120% to 125%, 20 frames to act on
+  Rifleman down throw on Rifleman from 130%: down throw again approaching, within 110 units; a 59-frame cycle, 130% to 135%, 20 frames to act on
+  Rifleman down throw on Rifleman from 140%: down throw again approaching, within 110 units; a 61-frame cycle, 140% to 145%, 20 frames to act on
+  Rifleman neutral special on Rifleman from 150%: neutral special again within 40 units; a 25-frame cycle, 153% to 156%, 18 frames to act on
+  Rifleman down throw on Rifleman from 150%: down throw again approaching, within 110 units; a 63-frame cycle, 150% to 155%, 20 frames to act on
+  Rifleman neutral special on Illidan from 0%: neutral special again within 40 units; a 25-frame cycle, 3% to 6%, 18 frames to act on
+  Rifleman forward throw on Illidan from 0%: forward throw again approaching, within 150 units; a 41-frame cycle, 0% to 7%, 12 frames to act on
+  Rifleman back throw on Illidan from 0%: back throw again approaching, within 150 units; a 45-frame cycle, 0% to 7%, 12 frames to act on
+  Rifleman up throw on Illidan from 0%: up throw again within 80 units; a 39-frame cycle, 0% to 6%, 8 frames to act on
+  Rifleman down throw on Illidan from 0%: down throw again approaching, within 110 units; a 45-frame cycle, 0% to 5%, 9 frames to act on
+  Rifleman forward throw on Illidan from 10%: forward throw again approaching, within 150 units; a 43-frame cycle, 10% to 17%, 12 frames to act on
+  Rifleman back throw on Illidan from 10%: back throw again approaching, within 150 units; a 47-frame cycle, 10% to 17%, 12 frames to act on
+  Rifleman up throw on Illidan from 10%: up throw again within 80 units; a 39-frame cycle, 10% to 16%, 7 frames to act on
+  Rifleman down throw on Illidan from 10%: down throw again approaching, within 110 units; a 45-frame cycle, 10% to 15%, 7 frames to act on
+  Rifleman forward throw on Illidan from 20%: forward throw again approaching, within 150 units; a 45-frame cycle, 20% to 27%, 12 frames to act on
+  Rifleman back throw on Illidan from 20%: back throw again approaching, within 150 units; a 49-frame cycle, 20% to 27%, 12 frames to act on
+  Rifleman up throw on Illidan from 20%: up throw again approaching, within 80 units; a 41-frame cycle, 20% to 26%, 7 frames to act on
+  Rifleman down throw on Illidan from 20%: down throw again approaching, within 110 units; a 47-frame cycle, 20% to 25%, 8 frames to act on
+  Rifleman forward throw on Illidan from 30%: forward throw again approaching, within 150 units; a 49-frame cycle, 30% to 37%, 14 frames to act on
+  Rifleman back throw on Illidan from 30%: back throw again approaching, within 150 units; a 53-frame cycle, 30% to 37%, 14 frames to act on
+  Rifleman up throw on Illidan from 30%: up throw again approaching, within 60 units; a 43-frame cycle, 30% to 36%, 7 frames to act on
+  Rifleman neutral special on Illidan from 50%: neutral special again within 40 units; a 25-frame cycle, 53% to 56%, 18 frames to act on
+  Rifleman up throw on Illidan from 50%: up throw again approaching, within 60 units; a 45-frame cycle, 50% to 56%, 20 frames to act on
+  Rifleman up throw on Illidan from 60%: up throw again approaching, within 60 units; a 45-frame cycle, 60% to 66%, 20 frames to act on
+  Rifleman up throw on Illidan from 70%: up throw again approaching, within 40 units; a 47-frame cycle, 70% to 76%, 20 frames to act on
+  Rifleman neutral special on Illidan from 100%: neutral special again within 40 units; a 25-frame cycle, 103% to 106%, 18 frames to act on
+  Rifleman down throw on Illidan from 130%: down throw again approaching, within 110 units; a 59-frame cycle, 130% to 135%, 20 frames to act on
+  Rifleman down throw on Illidan from 140%: down throw again approaching, within 110 units; a 61-frame cycle, 140% to 145%, 20 frames to act on
+  Rifleman neutral special on Illidan from 150%: neutral special again within 40 units; a 25-frame cycle, 153% to 156%, 18 frames to act on
+  Rifleman down throw on Illidan from 150%: down throw again approaching, within 110 units; a 63-frame cycle, 150% to 155%, 20 frames to act on
+the move comparisons' bounded true links through the frame executor (3):
+  Rifleman late neutral air into forward tilt on Rifleman at 60%, 60 apart, delay 1 approaching: contact at 19 (comparison 19); stretch 26 frames, DI only on 10; holds against 4 of 8 held DI directions (up, up-right, left, up-left)
+  Rifleman late neutral air into forward tilt on Rifleman at 60%, 60 apart, delay 2 approaching: contact at 20 (comparison 20); stretch 27 frames, DI only on 10; holds against 4 of 8 held DI directions (up, up-right, left, up-left)
+  Rifleman late neutral air into forward tilt on Rifleman at 60%, 60 apart, delay 3 approaching: contact at 21 (comparison 21); stretch 28 frames, DI only on 10; holds against 4 of 8 held DI directions (up, up-right, left, up-left)
+0 loops leave the victim 3 frames or fewer to act on when it holds no direction; 0 of them do so against every held DI direction:
+ 511.913 s  agency (511.913 s)
+{"decision":"RELEASED","lease":"4fedd011-2a4e-494a-b705-a71a9d27c9ff"}

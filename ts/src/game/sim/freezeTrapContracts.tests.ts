@@ -9,6 +9,56 @@ import { advanceSolo, controls, testWorld } from "./testWorld";
 import { respawnFighter } from "./stocks";
 import { createRoster } from "./roster";
 import { f32 } from "wisp/src/sim/f32";
+import { executeNext, testMatch } from "../match/testMatch";
+import { fighterAt } from "./roster";
+
+test("a jump chosen fifteen frames after thaw leaves before a waiting trap can refreeze any fighter", () => {
+  for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
+    for (const [direction, verticalDirection] of [[0, 0], [-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, 1], [1, -1], [1, 1]] as const) {
+      const match = testMatch(3, character);
+      const owner = fighterAt(match.world, 0);
+      const target = fighterAt(match.world, 1);
+      owner.character = Character.rifleman;
+      target.motion.surface = 0;
+      target.status.frozenFrames = 1;
+      owner.freezeTrap.life = 900;
+      owner.freezeTrap.surface = target.motion.surface;
+      owner.freezeTrap.x = target.motion.x;
+      executeNext(match);
+      assertEquals(target.status.frozenFrames, 0);
+      match.inputs.inputs[1].direction = direction;
+      match.inputs.inputs[1].verticalDirection = verticalDirection;
+      for (let frame = 1; frame <= 20; frame++) {
+        match.inputs.inputs[1].jumpPressed = frame === 15;
+        match.inputs.inputs[1].jumpHeld = frame >= 15;
+        executeNext(match);
+        assertEquals(target.status.frozenFrames, 0);
+      }
+      assertFalse(target.motion.grounded);
+      assertGreaterThan(owner.freezeTrap.life, 0);
+    }
+  }
+});
+
+test("a thawed fighter who stays on a waiting trap can be caught again only after the escape interval", () => {
+  const match = testMatch(3, Character.rifleman);
+  const owner = fighterAt(match.world, 0);
+  const target = fighterAt(match.world, 1);
+  target.motion.surface = 0;
+  target.status.frozenFrames = 1;
+  owner.freezeTrap.life = 900;
+  owner.freezeTrap.surface = target.motion.surface;
+  owner.freezeTrap.x = target.motion.x;
+  executeNext(match);
+  for (let frame = 1; frame < 20; frame++) {
+    executeNext(match);
+    assertEquals(target.status.frozenFrames, 0);
+    assertGreaterThan(owner.freezeTrap.life, 0);
+  }
+  executeNext(match);
+  assertEquals(target.status.frozenFrames, 300);
+  assertEquals(owner.freezeTrap.life, 0);
+});
 
 test("shieldConsumesTrapWithoutFreezingAndHitBreaksIce", () => {
   const owner = createFighter(Character.rifleman, 0.0, 1);
@@ -33,6 +83,7 @@ test("shieldConsumesTrapWithoutFreezingAndHitBreaksIce", () => {
   resolveAttacks(testWorld(owner, target));
   assertGreaterThan(target.status.damage, 0.0);
   assertEquals(target.status.frozenFrames, 0);
+  assertGreaterThan(target.status.freezeImmunityFrames, 0);
 });
 
 test("trapConsumesOnContactButNotOwnerOrInvulnerableTarget", () => {
@@ -78,12 +129,14 @@ test("koRespawnAndResetClearTrapAndFrozenState", () => {
   rifleman.freezeTrap.arming = 12;
   rifleman.freezeTrap.serial = 3;
   rifleman.status.frozenFrames = 120;
+  rifleman.status.freezeImmunityFrames = 20;
   rifleman.motion.x = f32(920.001);
   advanceSolo(rifleman, 0, controls(), -240.0);
   assertTrue(rifleman.status.out);
   assertEquals(rifleman.status.stocks, 1);
   assertEquals(rifleman.freezeTrap.life, 0);
   assertEquals(rifleman.status.frozenFrames, 0);
+  assertEquals(rifleman.status.freezeImmunityFrames, 0);
   for (let frame = 1; frame <= 60; frame++) advanceSolo(rifleman, 0, controls(), -240.0);
   assertFalse(rifleman.status.out);
   assertEquals(rifleman.freezeTrap.serial, 0);
@@ -93,8 +146,10 @@ test("koRespawnAndResetClearTrapAndFrozenState", () => {
   rifleman.freezeTrap.life = 900;
   rifleman.freezeTrap.serial = 1;
   rifleman.status.frozenFrames = 12;
+  rifleman.status.freezeImmunityFrames = 20;
   respawnFighter(world, 0, 240.0);
   assertEquals(rifleman.freezeTrap.serial, 0);
   assertEquals(rifleman.freezeTrap.life, 0);
   assertEquals(rifleman.status.frozenFrames, 0);
+  assertEquals(rifleman.status.freezeImmunityFrames, 0);
 });
