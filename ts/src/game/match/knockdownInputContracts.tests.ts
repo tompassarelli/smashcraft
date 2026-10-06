@@ -27,6 +27,7 @@ interface Pad {
   readonly x?: number;
   readonly y?: number;
   readonly cx?: number;
+  readonly cy?: number;
   readonly attack?: boolean;
   readonly special?: boolean;
   readonly trigger?: boolean;
@@ -50,6 +51,7 @@ function heldActions(pad: Pad): number {
   if (up > STICK_DIGITAL) held |= bit(Action.moveUp) | bit(Action.jump);
   if (raw(pad.cx) > C_STICK_DIGITAL) held |= bit(Action.smashRight);
   if (raw(pad.cx) < -C_STICK_DIGITAL) held |= bit(Action.smashLeft);
+  if (raw(pad.cy) > C_STICK_DIGITAL) held |= bit(Action.smashUp);
   if (pad.trigger === true && RAW > TRIGGER_DIGITAL) held |= bit(Action.leftTrigger);
   return held;
 }
@@ -218,4 +220,38 @@ test("the down wait takes Special, takes a trigger press, and stands by itself a
   assertEquals(run.victim.down.state, DownState.wait);
   playThrough(run, boundEnd(landing) + DOWN_WAIT_FRAMES, NEUTRAL);
   assertEquals(run.victim.down.state, DownState.stand);
+});
+
+test("a C-stick up flick during the wait starts the get-up attack and a sideways flick rolls that way", () => {
+  // melee:src/melee/ft/kinds/ftCommon/ftCo_Down.c ftCo_Down_CheckInput (sideways cstick, ftCo_800DF678) and
+  // ftCo_DownAttack.c ftCo_800984D4 (up flick, ftCo_800DF644 against common +0x7F4) read the C-stick edge.
+  for (const knockdown of KNOCKDOWNS) {
+    for (const [flick, state, direction] of [[{ cy: 1.0 }, DownState.attack, 0], [{ cx: -1.0 }, DownState.roll, -1], [{ cx: 1.0 }, DownState.roll, 1]] as const) {
+      const run = startRun(knockdown.victim, knockdown.percent);
+      const landing = knockDown(run, knockdown.strike, NEUTRAL);
+      const flickAt = boundEnd(landing) + 20;
+      const pad = (frame: number): Pad => (frame >= flickAt ? flick : {});
+      playThrough(run, flickAt - 1, pad);
+      assertEquals(run.victim.down.state, DownState.wait, knockdown.name);
+      playThrough(run, flickAt, pad);
+      assertEquals(run.victim.down.state, state, knockdown.name);
+      assertEquals(run.victim.down.direction, direction, knockdown.name);
+    }
+  }
+});
+
+test("a C-stick flick as Melee's bound ends gets up, and one held through the wait does nothing", () => {
+  for (const [flick, state, direction] of [[{ cy: 1.0 }, DownState.attack, 0], [{ cx: 1.0 }, DownState.roll, 1]] as const) {
+    const run = startRun(Character.archer, 10.0);
+    const landing = knockDown(run, { cx: 1.0 }, NEUTRAL);
+    const pad = (frame: number): Pad => (frame === boundEnd(landing) ? flick : {});
+    playThrough(run, boundEnd(landing), pad);
+    assertEquals(run.victim.down.state, state);
+    assertEquals(run.victim.down.direction, direction);
+  }
+  const run = startRun(Character.archer, 10.0);
+  const landing = knockDown(run, { cx: 1.0 }, NEUTRAL);
+  const held = (frame: number): Pad => (frame >= landing + 5 ? { cy: 1.0 } : {});
+  playThrough(run, boundEnd(landing) + 20, held);
+  assertEquals(run.victim.down.state, DownState.wait);
 });

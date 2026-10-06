@@ -1131,8 +1131,13 @@ common values are in smashcraft:docs/smash-melee-reference/physics-parameters.js
   than +0x020 = 50 degrees above horizontal (roll forward or back relative to
   facing), and the stick at least +0x244 = 0.2 up at 50 degrees or more, or an
   L/R press (stand).
-- A C-stick up or sideways flick also strikes or rolls in Melee; the
-  simulation reads only the left stick for these.
+- A C-stick flick does the same on the frame it crosses its threshold:
+  `ftCo_800984D4` and `ftCo_80098400` attack on an up crossing of +0x7F4 =
+  0.6625 (`ftCo_800DF644` in melee:src/melee/ft/ft_0DF1.c), and
+  `ftCo_Down_CheckInput` rolls on a sideways crossing of +0x248 within the
+  roll angle (`ftCo_800DF678`), preferring it to the left stick. The roll is
+  forward or back by the flick's side. The C-stick is digital here, so a press
+  of its smash direction is the crossing; held through the wait it does nothing.
 - Smashcraft also stands on Jump and treats a sideways press released within
   its input row as a roll, for keyboards.
 
