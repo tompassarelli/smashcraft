@@ -244,6 +244,32 @@ test("a complete hero ships its four specials with a free up special", () => {
   }
 });
 
+test("a stopsAtBody dash special ends short of an exposed body and a raised shield, and an unmarked one carries through", () => {
+  const dash = (stopsAtBody: boolean): AuthoredSpecial => ({ cost: 0, endFrame: 20, motion: [{ ...frames(2, 16), velocityX: 20.0, velocityZ: 0.0, stopsAtBody }] });
+  for (const facing of [-1, 1]) {
+    for (const [stops, shielded] of [[true, false], [true, true], [false, false]] as const) {
+      const owner = hero(0.0, facing);
+      owner.tuning = { ...owner.tuning, specials: { ...KIT, side: { ground: dash(stops) } } };
+      const target = createFighter(Character.archer, f32(200.0 * facing), -facing);
+      const world = createRoster(3, [owner, target]);
+      for (let i = 0; i < 3; i++) frame(world);
+      const press = controls({ specialPressed: true, specialX: facing });
+      const guard = controls({ shield: shielded, shieldTriggerActive: shielded });
+      frame(world, press, guard);
+      for (let f = 2; f <= 20; f++) frame(world, controls(), guard);
+      assertEquals(target.shield.raised, shielded);
+      const gap = f32(f32(target.motion.x - owner.motion.x) * facing);
+      if (stops) {
+        assertGreaterThan(gap, 0.0);
+        assertTrue(gap >= 47.5);
+      } else {
+        assertTrue(gap < 48.0);
+      }
+    }
+  }
+});
+
+
 test("a hero special's hurt poses replace the body on their frames only", () => {
   const { world, owner, target } = pair(600.0);
   const reach = hurtPart(0.0, 40.0, 140.0, 40.0, 12.0);
