@@ -11,6 +11,8 @@ import type { Fighter } from "../sim/fighter";
 import { isSmashAttack } from "../sim/moves";
 import { type Controls, type Roster, copyControls, fighterAt, isActive, neutralControls } from "../sim/roster";
 import { surfacePass } from "../sim/stage";
+import { type FighterGameplan, GameplanThrow } from "../sim/gameplan";
+import { SPACE_PLAN, gameplanGoal, gameplanOf, gameplanPlan, gameplanThrow, jumpsIn, keptGap, plansRanged, spacingAerialAt } from "./botGameplan";
 import { steerInAir, steerOnGround } from "./botFooting";
 import { botChoice, chooseAttack, smashChargeGoal } from "./botMoves";
 import { chooseDefense } from "./botDefense";
@@ -50,9 +52,15 @@ function planFor(f: Readonly<Fighter>, slot: number, frame: number): Plan {
   return choice < 3 ? Plan.ground : choice < 5 ? Plan.air : Plan.range;
 }
 
-/** Holding a grab: each hold frame pummels, throws one of four ways, or waits. */
-function followUpGrab(f: Readonly<Fighter>, frame: number, input: Controls): void {
+/** Holding a grab: the gameplan's throw, or each hold frame pummels, throws one of four ways, or waits. */
+function followUpGrab(f: Readonly<Fighter>, held: Readonly<Fighter>, gameplan: FighterGameplan | undefined, frame: number, input: Controls): void {
   if (f.grab.action !== GrabAction.hold) return;
+  const planned = gameplan === undefined ? undefined : gameplanThrow(gameplan, held, f.grab.serial, botChoice);
+  if (planned !== undefined) {
+    if (planned === GameplanThrow.forward || planned === GameplanThrow.back) input.grabThrowX = planned === GameplanThrow.forward ? f.facing : -f.facing;
+    else input.grabThrowZ = planned === GameplanThrow.up ? 1 : -1;
+    return;
+  }
   const choice = botChoice(frame, f.grab.serial * 3 + f.character, 8);
   if (choice <= 2) input.attackPressed = true;
   else if (choice <= 4) input.grabThrowX = choice === 3 ? f.facing : -f.facing;
@@ -92,6 +100,37 @@ function approach(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number
   }
 }
 
+/** Under a gameplan: keeps the plan's gap on the stage, short-hops into a spacing aerial, jumps in when the plan does. */
+function approachByGameplan(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, gameplan: FighterGameplan, slot: number, planIndex: number, frame: number, input: Controls): void {
+  const { motion } = f;
+  const dx = f32(target.motion.x - motion.x);
+  const dz = f32(target.motion.z - motion.z);
+  const goal = gameplanGoal(gameplan, f, target, stage, keptGap(gameplan, f, target, slot, planIndex, frame, botChoice));
+  if (!motion.grounded) {
+    steerInAir(f, stage, f.down.state === DownState.tumble ? motion.x : goal, input);
+    if (jumpsIn(gameplan, planIndex, target, dx, dz) && dz > ABOVE && motion.vz < 0 && f.jump.remaining > 0) {
+      input.jumpPressed = true;
+      input.jumpHeld = true;
+    }
+    return;
+  }
+  steerOnGround(f, stage, goal, input);
+  if (f.jump.squat > 0) {
+    input.jumpHeld = dz > ABOVE;
+    return;
+  }
+  if (motion.surface !== undefined && surfacePass(stage, motion.surface) && dz < -80) {
+    input.down = floorMod(frame, 8) < 4;
+    return;
+  }
+  // Under the spacing plan a spacing aerial at its gap is a short hop away, one frame in four.
+  const hop = planIndex === SPACE_PLAN && spacingAerialAt(gameplan, Math.abs(dx)) && botChoice(frame, slot * 5 + f.character, 4) === 0;
+  if (hop || jumpsIn(gameplan, planIndex, target, dx, dz)) {
+    input.jumpPressed = true;
+    input.jumpHeld = dz > ABOVE;
+  }
+}
+
 /** Correcting human movement also corrects every computer decision derived from it. */
 export function produceComputerInput(game: Readonly<MatchState>, world: Roster, runtime: { botAttackDelays: Slots<number> }, slot: ParticipantSlot, frame: number, input: Controls, commands: AttackBuffer): void {
   const fighter = fighterAt(world, slot);
@@ -102,6 +141,7 @@ export function produceComputerInput(game: Readonly<MatchState>, world: Roster, 
   runtime.botAttackDelays[slot] = delay;
   const stage = game.stageChoice;
   const target = nearestOpponent(world, slot, fighter);
+  const gameplan = gameplanOf(fighter.character);
   if (fighter.launch.hitlag > 0) {
     // Hitlag's last frame reads the stick for directional influence: in toward the middle.
     if (fighter.launch.diPending) input.direction = fighter.motion.x < 0 ? 1 : -1;
@@ -113,7 +153,7 @@ export function produceComputerInput(game: Readonly<MatchState>, world: Roster, 
     return;
   }
   if (fighter.grab.target !== undefined) {
-    followUpGrab(fighter, frame, input);
+    followUpGrab(fighter, fighterAt(world, fighter.grab.target), gameplan, frame, input);
     return;
   }
   if (fighter.shield.breakState !== ShieldBreak.none) {
@@ -124,11 +164,21 @@ export function produceComputerInput(game: Readonly<MatchState>, world: Roster, 
   if (isSmashAttack(fighter.attack.style) && fighter.attack.smashChargeAllowed) input.attackHeld = fighter.attack.smashChargeFrames < smashChargeGoal(fighter);
   if (target === undefined) return;
   if (chooseDefense(fighter, target, stage, input)) return;
-  const plan = planFor(fighter, slot, frame);
-  if (delay <= 0 && chooseAttack(fighter, target, stage, game.matchFrame, frame, plan === Plan.range, input, commands)) {
-    runtime.botAttackDelays[slot] = f32(f32(6 + botChoice(frame, fighter.attack.serial, 18)) * TICK);
-    if (!fighter.motion.grounded) steerInAir(fighter, stage, target.motion.x, input);
+  if (gameplan === undefined) {
+    const plan = planFor(fighter, slot, frame);
+    if (delay <= 0 && chooseAttack(fighter, target, stage, game.matchFrame, frame, plan === Plan.range, input, commands)) {
+      runtime.botAttackDelays[slot] = f32(f32(6 + botChoice(frame, fighter.attack.serial, 18)) * TICK);
+      if (!fighter.motion.grounded) steerInAir(fighter, stage, target.motion.x, input);
+      return;
+    }
+    approach(fighter, target, stage, plan, frame, input);
     return;
   }
-  approach(fighter, target, stage, plan, frame, input);
+  const planIndex = gameplanPlan(gameplan, fighter, slot, frame, botChoice);
+  if (delay <= 0 && chooseAttack(fighter, target, stage, game.matchFrame, frame, plansRanged(gameplan, planIndex), input, commands, slot, planIndex)) {
+    runtime.botAttackDelays[slot] = f32(f32(6 + botChoice(frame, fighter.attack.serial, 18)) * TICK);
+    if (!fighter.motion.grounded) steerInAir(fighter, stage, gameplanGoal(gameplan, fighter, target, stage, 0.0), input);
+    return;
+  }
+  approachByGameplan(fighter, target, stage, gameplan, slot, planIndex, frame, input);
 }

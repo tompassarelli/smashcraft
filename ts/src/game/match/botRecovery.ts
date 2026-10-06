@@ -13,6 +13,7 @@ import { totalVelocityZ } from "../sim/motion";
 import type { Controls } from "../sim/roster";
 import { mainDeckLeft, mainDeckRight, mainDeckZ, surfaceCount, surfaceLeft, surfaceRight, surfaceZ } from "../sim/stage";
 import { botChoice } from "./botMoves";
+import { aimsLedge, gameplanOf, upSpecialFirst } from "./botGameplan";
 
 /** A tech pressed this many frames of fall above a deck lands inside its window. */
 const TECH_LEAD_FRAMES = 6;
@@ -138,7 +139,9 @@ function upSpecial(character: Character): SpecialAction {
 function aimsForLedge(f: Readonly<Fighter>, side: number, target: Readonly<Fighter> | undefined): boolean {
   const taken = target !== undefined && target.ledge.state !== LedgeState.none && target.ledge.side === side;
   const spare = f.jump.remaining > 0 || upSpecialStartable(f, specialCooldownReady(f, upSpecial(f.character)));
-  return f.facing === -side && !taken && spare && botChoice(f.visuals.hit + toInt(f.status.damage), f.character * 7 + 3, 2) === 0;
+  const coin = botChoice(f.visuals.hit + toInt(f.status.damage), f.character * 7 + 3, 2) === 0;
+  const gameplan = gameplanOf(f.character);
+  return f.facing === -side && !taken && spare && (gameplan === undefined ? coin : aimsLedge(gameplan, coin));
 }
 
 /** An aimed up special's target: this far inside the near edge and above the deck. */
@@ -223,8 +226,10 @@ export function chooseRecoveryInput(fighter: Readonly<Fighter>, stage: number, m
   // Close outside the ledge and above where it catches, it falls onto the ledge.
   if (ledge && outside <= LEDGE_LINE_REACH && z >= f32(floor - LEDGE_MISSED)) return true;
   // Near the edge and still above the deck, one return in two spends the up special first and keeps the jump.
+  const coin = botChoice(fighter.visuals.hit + toInt(fighter.status.damage), fighter.character * 13 + 5, 2) === 0;
+  const gameplan = gameplanOf(fighter.character);
   const specialFirst = outside <= SPECIAL_FIRST_REACH && z >= floor && upSpecialStartable(fighter, specialCooldownReady(fighter, upSpecial(fighter.character)))
-    && botChoice(fighter.visuals.hit + toInt(fighter.status.damage), fighter.character * 13 + 5, 2) === 0;
+    && (gameplan === undefined ? coin : upSpecialFirst(gameplan, coin));
   if (totalVelocityZ(fighter) <= 0 && z < f32(floor + 100)) {
     if (fighter.jump.remaining > 0 && fighter.attack.cooldown === 0 && !specialFirst) {
       input.jumpPressed = true;

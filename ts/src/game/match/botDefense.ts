@@ -14,6 +14,8 @@ import { SpecialSlot } from "../sim/heroSpecials";
 import { safeAt } from "./botFooting";
 import { heroStanceSlot } from "./botHeroKit";
 import { botChoice, moveReaches } from "./botMoves";
+import { defenseOption, gameplanOf } from "./botGameplan";
+import type { DefenseOption } from "../sim/gameplan";
 
 /** A shield this weak is let go rather than broken. */
 const SHIELD_RESERVE = 20.0;
@@ -29,7 +31,7 @@ const PARRY_ROOM = 100.0;
 /** A shield's pushback can carry the defender about this far. */
 const PUSHBACK_ROOM = 60.0;
 
-const Response = { none: 0, shield: 1, spotDodge: 2, roll: 3, parry: 4, stance: 5 } as const;
+const Response = { none: 0, shield: 1, spotDodge: 2, roll: 3, parry: 4, stance: 5, jump: 6, retreat: 7 } as const;
 type Response = (typeof Response)[keyof typeof Response];
 
 /** Frames until the target's current strike reaches f, or undefined when it won't. */
@@ -81,6 +83,25 @@ function findThreat(f: Readonly<Fighter>, target: Readonly<Fighter>): boolean {
   return false;
 }
 
+/** A gameplan's answer as this frame allows it: no roll or shield push at the edge, a stance only when one meets the threat. */
+function plannedResponse(f: Readonly<Fighter>, planned: DefenseOption, parries: boolean, cornered: boolean): Response {
+  switch (planned) {
+    case "stance":
+      if (f.character === Character.demonHunter && parries) return Response.parry;
+      if (threat.arrival >= 0 && heroStanceSlot(f, Math.floor(threat.arrival)) !== undefined) return Response.stance;
+      return cornered ? Response.spotDodge : Response.shield;
+    case "shield":
+    case "roll":
+      return cornered ? Response.spotDodge : planned === "roll" ? Response.roll : Response.shield;
+    case "spotDodge":
+      return Response.spotDodge;
+    case "jump":
+      return Response.jump;
+    case "retreat":
+      return cornered ? Response.spotDodge : Response.retreat;
+  }
+}
+
 function respond(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number): Response {
   const choice = botChoice(threat.serial, f.visuals.hit * 5 + f.character, 10);
   const away = f.motion.x < target.motion.x ? -1 : 1;
@@ -88,6 +109,9 @@ function respond(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number)
   const cornered = !safeAt(stage, f32(f.motion.x + f32(away * PUSHBACK_ROOM)), 0.0);
   if (choice >= 7) return Response.none;
   const parries = threat.arrival >= PARRY_FIRST && threat.arrival <= PARRY_LAST && safeAt(stage, f32(f.motion.x - f32(away * PARRY_ROOM)), 0.0);
+  const gameplan = gameplanOf(f.character);
+  const planned = gameplan === undefined ? undefined : defenseOption(gameplan, botChoice, threat.serial, f.visuals.hit * 7 + f.character);
+  if (planned !== undefined) return plannedResponse(f, planned, parries, cornered);
   if (f.character === Character.demonHunter && choice >= 4 && parries) return Response.parry;
   // A hero's guard or stance, when its window meets the threat, takes the choices a parry would.
   if (choice >= 4 && threat.arrival >= 0 && heroStanceSlot(f, Math.floor(threat.arrival)) !== undefined) return Response.stance;
@@ -138,6 +162,13 @@ export function chooseDefense(f: Readonly<Fighter>, target: Readonly<Fighter>, s
       return true;
     case Response.shield:
       input.shield = true;
+      return true;
+    case Response.jump:
+      input.jumpPressed = true;
+      input.jumpHeld = true;
+      return true;
+    case Response.retreat:
+      input.direction = away;
       return true;
   }
 }
