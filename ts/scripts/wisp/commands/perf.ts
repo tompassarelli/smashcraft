@@ -2,11 +2,13 @@
 // Smashcraft's runs in 32-bit Lua with every frame measured and its native
 // cost predicted: quick-match, the development build's quick match; bot and
 // bot-four, the native bot session's match with the integrity build
-// (scripts/wisp/botMatch.ts). `bun wisp perf compare A B` holds run B to run A
+// (scripts/wisp/botMatch.ts); bot-NAME, that match against one computer of
+// any selectable fighter (bot-uther). `bun wisp perf compare A B` holds run B to run A
 // (wisp:docs/frame-cost.md#headless).
 import { join } from "node:path";
 import { type PerfProject, makePerf } from "wisp/scripts/wisp/commands/perf";
 import { buildProject, tsDirectory } from "../project";
+import { SELECTABLE_CHARACTERS, fighterSlug } from "../../../src/game/sim/heroes/registry";
 
 const main = buildProject("main");
 const integrity = buildProject("integrity");
@@ -17,7 +19,7 @@ export const SMASHCRAFT_PERF: PerfProject = {
   map: { config: main.configPath, bundle: main.bundlePath },
   program: { config: join(tsDirectory, "tsconfig.perf.json"), bundle: join(tsDirectory, "build/perf.lua") },
   defaultRun: "quick-match",
-  runs: { bot: integrityMap, "bot-four": integrityMap },
+  runs: { bot: integrityMap, "bot-four": integrityMap, ...Object.fromEntries(SELECTABLE_CHARACTERS.map((character) => [`bot-${fighterSlug(character)}`, integrityMap])) },
 };
 
 export const perf = makePerf(SMASHCRAFT_PERF);

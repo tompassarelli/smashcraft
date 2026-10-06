@@ -39,7 +39,6 @@ export const LICH_HERO: HeroDefinition = {
     model: "units\\undead\\HeroLich\\HeroLich.mdl",
     // The stand pose's top (z 177) at the roster's 1.05 height.
     scale: f32(0.8),
-    baseUnit: "Ulic",
     objectId: 0x6d666c63,
     portrait: "ReplaceableTextures\\CommandButtons\\BTNHeroLich.blp",
     projectileModel: "Abilities\\Weapons\\LichMissile\\LichMissile.mdl",

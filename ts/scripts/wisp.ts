@@ -26,7 +26,7 @@ const COMMANDS: Record<string, { readonly usage: string; readonly load: () => Pr
   headless: { usage: "headless [quick-match|desync] [--clients N] [--cost]", load: async () => (await import("./wisp/commands/headless")).headless },
   soak: { usage: "soak [--matches N] [--seed N] [--workers N<=4] [--minutes N<=30] [--fighter NAME]... [--stage NAME]... [--policy NAME]... [--out DIR] | --repro FILE | --helper BINARY [--matches N<=20] [--seconds S<=90] [--seed N] [--out DIR]", load: async () => (await import("./wisp/commands/soak")).soak },
   dev: { usage: "dev [--data DIR --data DIR]", load: async () => (await import("./wisp/commands/dev")).dev },
-  play: { usage: "play [--keep-launch-options]   (Tom's desktop: Battle.net set to load the map, Play, the controller helper, a match against a computer)", load: async () => (await import("./wisp/commands/play")).play },
+  play: { usage: "play   (Tom's desktop: Battle.net, Play, the map hosted after Warcraft's ladder scan, the controller helper, a match against a computer)", load: async () => (await import("./wisp/commands/play")).play },
   tune: { usage: "tune --data DIR [--data DIR ...] [--port N] [--profile main|integrity|playable|physics-probe|frame-cost|stack-trace]", load: async () => (await import("./wisp/commands/tune")).tune },
   repro: { usage: "repro FILE [--test NAME]", load: async () => (await import("./wisp/commands/repro")).repro },
   perf: { usage: "perf [quick-match|bot|bot-four] [--frames N] [--samples] [--out FILE] | perf compare A B [--threshold SHARE]   (LUA=<32-bit lua>)", load: async () => (await import("./wisp/commands/perf")).perf },

@@ -335,3 +335,47 @@ test("hero projectiles end on walls, undersides and solid deck tops, and pass th
   }
   assertEquals(passDecks, 5);
 });
+
+
+test("a second press inside a follow-up window starts the follow-up once; presses outside it change nothing", () => {
+  const slash: AuthoredSpecial = { cost: 0, endFrame: 37, regions: [heroRegion(10, 12, { x1: 10.0, z1: 50.0, x2: 110.0, z2: 50.0, radius: 12.0 }, hit(10.0))] };
+  const feint: AuthoredSpecial = { cost: 15, endFrame: 24, followUp: { window: frames(8, 19), special: slash } };
+  const run = (pressAt: number) => {
+    const owner = hero(0.0, 1);
+    owner.tuning = { ...owner.tuning, specials: { ...KIT, down: { ground: feint } } };
+    const target = createFighter(Character.archer, 100.0, -1);
+    const world = createRoster(3, [owner, target]);
+    for (let i = 0; i < 3; i++) frame(world);
+    frame(world, down);
+    for (let f = 2; f < pressAt; f++) frame(world);
+    frame(world, down);
+    return { world, owner, target };
+  };
+  for (const outside of [5, 7, 20]) {
+    const { world, owner, target } = run(outside);
+    assertEquals(owner.special.form, 0);
+    for (let f = outside + 1; f <= 24; f++) frame(world);
+    assertEquals(owner.special.action, SpecialAction.none);
+    assertEquals(target.status.damage, 0.0);
+    assertEquals(owner.mana.points, 85);
+  }
+  for (const inside of [8, 19]) {
+    const { world, owner, target } = run(inside);
+    assertEquals(owner.special.action, SpecialAction.heroDown);
+    assertEquals(owner.special.frame, 1);
+    for (let f = 2; f <= 9; f++) frame(world, f === 5 ? down : controls());
+    assertEquals(owner.special.frame, 9);
+    assertEquals(target.status.damage, 0.0);
+    frame(world);
+    assertEquals(target.status.damage, 10.0);
+    // Hitlag holds the action, so run it out and check its last frame.
+    let last = owner.special.frame;
+    for (let guard = 0; guard < 80 && owner.special.action !== SpecialAction.none; guard++) {
+      last = owner.special.frame;
+      frame(world);
+    }
+    assertEquals(last, 36);
+    assertEquals(owner.special.action, SpecialAction.none);
+    assertEquals(owner.mana.points, 85);
+  }
+});

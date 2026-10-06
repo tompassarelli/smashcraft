@@ -15,7 +15,6 @@ export const SHADOW_HUNTER_HERO: HeroDefinition = {
   presentation: {
     model: "units\\orc\\HeroShadowHunter\\HeroShadowHunter.mdl",
     scale: 1.0,
-    baseUnit: "Oshd",
     objectId: 0x6d667368,
     portrait: "ReplaceableTextures\\CommandButtons\\BTNShadowHunter.blp",
     projectileModel: "Abilities\\Weapons\\SpiritOfVengeanceMissile\\SpiritOfVengeanceMissile.mdl",

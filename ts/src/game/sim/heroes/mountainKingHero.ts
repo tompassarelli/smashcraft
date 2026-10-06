@@ -17,7 +17,6 @@ export const MOUNTAIN_KING_HERO: HeroDefinition = {
   presentation: {
     model: "units\\human\\HeroMountainKing\\HeroMountainKing.mdl",
     scale: 1.0,
-    baseUnit: "Hmkg",
     objectId: 0x6d666d6b,
     portrait: "ReplaceableTextures\\CommandButtons\\BTNHeroMountainKing.blp",
     projectileModel: "Abilities\\Spells\\Human\\StormBolt\\StormBoltMissile.mdl",

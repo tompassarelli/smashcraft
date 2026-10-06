@@ -96,7 +96,7 @@ test("humanAndCpuCanIndependentlyChooseMirrorMatchups", () => {
 test("onlySoloHostCanChooseCpuAndNeverOverridesHumanTwo", () => {
   const game = testSoloMatch();
   selectCpuCharacter(game, 1, (cpuSlot(game) ?? -1), 0);
-  selectCpuCharacter(game, 0, (cpuSlot(game) ?? -1), 3);
+  selectCpuCharacter(game, 0, (cpuSlot(game) ?? -1), 99);
   assertEquals(characterFor(game, 1), 1);
   setHumanCount(game, 2);
   selectCpuCharacter(game, 0, (cpuSlot(game) ?? -1), 0);
@@ -157,7 +157,7 @@ test("absentAndInvalidParticipantsCannotChooseOrStart", () => {
   const game = testSoloMatch();
   selectCharacter(game, 1, 0);
   assertFalse(characterReady(game, 1));
-  selectCharacter(game, 0, 3);
+  selectCharacter(game, 0, 99);
   assertFalse(characterReady(game, 0));
   selectCharacter(game, 0, 0);
   selectCpuCharacter(game, 0, (cpuSlot(game) ?? -1), 1);
