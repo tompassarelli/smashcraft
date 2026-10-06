@@ -10,7 +10,7 @@ import { JournalTextStream, TEXT_WINDOW } from "./text";
 export const EDITBOX_CAPACITY = 4096;
 
 /** Drained text is acknowledged at most once in this many ticks: every receipt is a file write. */
-const RECEIPT_TICKS = 6;
+const RECEIPT_TICKS = 2;
 
 /** The edit box's part in handing the keyboard to Warcraft's chat entry. */
 type ChatPhase =
