@@ -9,9 +9,7 @@
 // Attack Slam the left (axe, about 177 degrees, Attack Slam with more root
 // travel), and Spell Slam is the two-handed ground slam. The model has no
 // jump, hit, dodge, ledge or grab sequences, so those states reuse the nearest
-// readable sequence; `seconds` plays only the opening of a longer sequence.
-
-export const MOUNTAIN_KING_MODEL = "Units\\Human\\HeroMountainKing\\HeroMountainKing.mdl";
+// readable sequence, often only its opening.
 
 export interface StockSequence {
   readonly index: number;
@@ -38,64 +36,24 @@ export const MOUNTAIN_KING_SEQUENCES = {
 
 export type MountainKingSequence = keyof typeof MOUNTAIN_KING_SEQUENCES;
 
-export interface HeroClipBinding {
-  readonly sequence: MountainKingSequence;
-  /** Plays only this opening part of the sequence over the state; the whole sequence when absent. */
-  readonly seconds?: number | undefined;
-  /** Holds the clip's last sampled pose instead of advancing (falls, hangs, shield hold). */
-  readonly hold?: boolean | undefined;
+/** A pose's sequence; a shorter `seconds` plays only that opening of it over the pose. */
+export interface MountainKingClip {
+  readonly index: number;
+  readonly seconds: number;
 }
 
-const play = (sequence: MountainKingSequence, seconds?: number, hold?: boolean): HeroClipBinding => ({ sequence, seconds, hold });
+const play = (sequence: MountainKingSequence, seconds?: number): MountainKingClip => {
+  const { index, seconds: length } = MOUNTAIN_KING_SEQUENCES[sequence];
+  return { index, seconds: seconds ?? length };
+};
 
-/** Every fighter state and move, keyed by the shared clip-table names. */
+/** Idle, walking and every pose without its own entry. */
+export const MOUNTAIN_KING_FALLBACK = play("Stand Ready");
+
+/** Every table-selected pose (the shared hero pose names), hammer for blunt hits and axe for cuts. */
 export const MOUNTAIN_KING_CLIPS = {
-  // Movement
-  idle: play("Stand Ready"),
-  walk: play("Walk"),
-  dash: play("Walk"),
-  run: play("Walk"),
-  turn: play("Stand Ready"),
-  stop: play("Stand Ready"),
-  crouch: play("Spell Slam", 0.25, true),
-  jumpSquat: play("Spell Slam", 0.2),
-  jump: play("Stand - 3", 0.6),
-  doubleJump: play("Stand - 3", 0.6),
-  fall: play("Stand Ready", undefined, true),
-  fastFall: play("Stand Ready", undefined, true),
-  fallSpecial: play("Death", 0.3, true),
-  land: play("Spell Slam", 0.3),
-  landSpecial: play("Spell Slam", 0.45),
-  // Defense
-  shieldRaise: play("Stand Ready"),
-  shieldHold: play("Stand Ready", undefined, true),
-  shieldRelease: play("Stand Ready"),
-  shieldBreak: play("Death", 0.5),
-  dizzy: play("Stand - 4"),
-  spotDodge: play("Spell Slam", 0.4),
-  rollForward: play("Walk"),
-  rollBackward: play("Walk"),
-  airDodge: play("Stand - 3", 0.6),
-  // Damage and recovery
-  damageGround: play("Death", 0.35),
-  damageAir: play("Death", 0.35),
-  damageTumble: play("Death", 0.8),
-  damageShield: play("Stand Ready"),
-  knockdown: play("Death"),
-  downDamage: play("Death", 0.35),
-  getUp: play("Stand - 3", 1.0),
-  getUpAttack: play("Attack -2"),
-  techNeutral: play("Stand - 3", 0.6),
-  techRoll: play("Walk"),
-  ledgeHang: play("Stand Ready", undefined, true),
-  ledgeClimb: play("Walk"),
-  ledgeRoll: play("Walk"),
-  ledgeAttack: play("Attack -2"),
-  ledgeJump: play("Stand - 3", 0.6),
-  ko: play("Dissipate"),
-  respawn: play("Stand Ready"),
-  // Ground attacks: the hammer (right arm) for blunt hits, the axe (left) for cuts
   jab: play("Attack -1"),
+  grab: play("Attack -2"),
   forwardTilt: play("Attack -2"),
   forwardTiltUp: play("Attack -2"),
   forwardTiltDown: play("Attack -2"),
@@ -103,31 +61,49 @@ export const MOUNTAIN_KING_CLIPS = {
   downTilt: play("Attack -2"),
   dashAttack: play("Attack -1"),
   forwardSmash: play("Attack Slam"),
-  forwardSmashCharge: play("Attack Slam", 0.3, true),
   upSmash: play("Attack -1"),
-  upSmashCharge: play("Attack -1", 0.3, true),
   downSmash: play("Spell Slam"),
-  downSmashCharge: play("Spell Slam", 0.3, true),
-  // Aerials
   neutralAir: play("Attack -1"),
   forwardAir: play("Attack Slam"),
   backAir: play("Attack -2"),
   upAir: play("Attack -1"),
   downAir: play("Spell Slam"),
-  // Grabs and throws (holder and victim)
-  grab: play("Attack -2"),
-  grabHold: play("Stand Ready", undefined, true),
-  grabbed: play("Death", 0.2, true),
+  getUpAttack: play("Attack -2"),
+  ledgeHang: play("Stand Ready"),
+  ledgeClimb: play("Walk"),
+  ledgeRoll: play("Walk"),
+  ledgeAttack: play("Attack -2"),
+  knockdown: play("Death"),
+  getUp: play("Stand - 3", 1.0),
+  downDamage: play("Death", 0.35),
+  rollForward: play("Walk"),
+  rollBackward: play("Walk"),
+  spotDodge: play("Spell Slam", 0.4),
+  jump: play("Stand - 3", 0.6),
+  doubleJump: play("Stand - 3", 0.6),
+  fallSpecial: play("Death", 0.3),
+  damageGround: play("Death", 0.35),
+  damageAir: play("Death", 0.35),
+  damageTumble: play("Death", 0.8),
+  damageShield: play("Stand Ready"),
+  grabHold: play("Stand Ready"),
+  grabbed: play("Death", 0.2),
   pummel: play("Attack -1", 0.5),
   throwForward: play("Attack -1"),
   throwBack: play("Attack Slam"),
   throwUp: play("Spell Throw"),
   throwDown: play("Spell Slam"),
   victimPummel: play("Death", 0.2),
-  victimThrow: play("Death", 0.35, true),
-  // Specials: grounded and airborne forms share a sequence
-  specialNeutral: play("Spell Throw"),
-  specialSide: play("Attack -1"),
-  specialUp: play("Attack Slam"),
-  specialDown: play("Spell Slam"),
-} as const satisfies Readonly<Record<string, HeroClipBinding>>;
+  victimThrowForward: play("Death", 0.35),
+  victimThrowBack: play("Death", 0.35),
+  victimThrowUp: play("Death", 0.35),
+  victimThrowDown: play("Death", 0.35),
+  neutralSpecial: play("Spell Throw"),
+  sideSpecial: play("Attack -1"),
+  upSpecial: play("Attack Slam"),
+  downSpecial: play("Spell Slam"),
+  neutralSpecialAir: play("Spell Throw"),
+  sideSpecialAir: play("Attack -1"),
+  upSpecialAir: play("Attack Slam"),
+  downSpecialAir: play("Attack -1"),
+} as const satisfies Readonly<Record<string, MountainKingClip>>;
