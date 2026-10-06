@@ -1,0 +1,9 @@
+{"decision":"RESERVED","reason":"RUN","class":"heavy","requestedCpus":6,"requestedMemoryMiB":8192,"leasedCpuCeilings":18,"aggregateCpuLimit":18,"leasedMemoryMiB":22528,"cpuSomeAvg10":15.8,"memoryFullAvg10":1.9,"memoryAvailableMiB":68301,"reclaimed":0,"lease":"f0e2b276-d11b-42cb-84a2-0776df2f2537","expiresAt":null}
+$ bun scripts/wisp.ts soak --fighter shadow-hunter --policy cpu --matches "330" --seed "2"
+smashcraft soak: 330 matches in 4 workers, at most 10 min, seed 2; repro files in /home/tom/.local/state/smashcraft/soak/2026-10-06T13-44-34
+ 150.027 s  330 matches (150.009 s)
+330 matches, 296,814 frames (83.5 game minutes) in 150.0 s with 4 workers (4 started): 33x real time, 778.6 s CPU
+recovery typing stalls: none (budget 12.8 ms)
+costliest client frame 33.1 ms; no findings
+ 150.029 s  soak (150.029 s)
+{"decision":"RELEASED","lease":"f0e2b276-d11b-42cb-84a2-0776df2f2537"}
