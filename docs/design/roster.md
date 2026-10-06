@@ -62,7 +62,7 @@ Use the project’s existing knockback, hitlag, hitstun, DI, shieldstun, and sta
 
 Calibrate classes in an empty test stage against a reference weight at 60 percent, no DI and no walls. Indicative displacement along the launch direction after 30 ticks: LINK 0.6–1.2H; POKE 1.2–2.0H; LAUNCH 2.0–3.0H; EDGE 2.5–3.5H; KILL 3.5–5.0H; SPIKE downward 2.5–3.5H before gravity. These are test bands, not a second knockback formula. Publish the actual coefficients and measured outcomes once calibrated. Adjust hitstun separately through the established formula rather than assuming distance proves a true combo. LINK never guarantees a follow-up without testing DI, percentage, weight, and move timing.
 
-No critical-hit RNG, random evasion, chance-on-hit stuns, passive lifesteal, or automatic spell counters. Warcraft passive identities become deliberate moves or temporary states. Damage is Smash-style percent damage; healing reduces damage percent and is tightly bounded. Damage-over-time ticks do not cause hitlag, hitstun, or knockback. A status applies only on an actual body hit, not on shield.
+No critical-hit RNG, random evasion, chance-on-hit stuns, or automatic spell counters. Warcraft passive identities become deliberate moves, temporary states, or one counted passive per fighter whose stacks both players see ([hero passives](passives.md), Tom, 7 Oct 2026): a crit, bash or lifesteal only as a deterministic, capped proc, never a chance. Damage is Smash-style percent damage; healing reduces damage percent and is tightly bounded. Damage-over-time ticks do not cause hitlag, hitstun, or knockback. A status applies only on an actual body hit, not on shield.
 
 ### Proposed resource profile
 
@@ -124,7 +124,7 @@ The individual hero sections below specify all attacks. Their counterplay descri
 
 ## Blademaster
 
-**Identity:** a disciplined sword fighter who wins by spacing the outer blade and punishing misses. He gets strong reach and ground speed, not unrestricted teleportation or automatic critical hits. His exposed hands and torso remain hittable.
+**Identity:** a disciplined sword fighter who wins by spacing the outer blade and punishing misses. He gets strong reach and ground speed, not unrestricted teleportation or random critical hits; his Critical Strike is a counted passive ([hero passives](passives.md)). His exposed hands and torso remain hittable.
 
 ### Normals
 
