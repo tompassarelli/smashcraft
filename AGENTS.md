@@ -43,6 +43,7 @@ investigation.
 
 - smashcraft:ts/src/ owns gameplay, deterministic state/replay, selection and UI.
 - smashcraft:companion/ owns the Rust controller/helper boundary.
+- smashcraft:client/ owns the player's desktop app (Tauri: Rust backend, Bun-built TypeScript pages); it uses controller support only through the service's local interface (smashcraft:client/README.md).
 - smashcraft:tools/ owns build, native probes and automation.
 - smashcraft:docs/ holds durable knowledge only: how systems work, design
   decisions, reference data and procedures. Status, progress, plans and claim
