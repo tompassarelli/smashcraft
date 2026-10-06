@@ -167,9 +167,10 @@ function computerMatch(character: Character, opponent: Character, seed: number, 
 }
 
 /** Every option named appears at least once over the seeds, and the first seed replays its counts. */
-function usesEvery(character: Character, options: readonly string[], opponent: Character = character, matches = MATCHES): void {
+function usesEvery(character: Character, options: readonly string[], opponent: Character = character, matches = MATCHES, extra: readonly (readonly [seed: number, damage: number])[] = []): void {
   const counts: Counts = {};
   for (let index = 0; index < matches; index++) computerMatch(character, opponent, 11 + index * 12, index < floorDiv(matches, 2) ? 0.0 : 110.0, counts);
+  for (const [seed, damage] of extra) computerMatch(character, opponent, seed, damage, counts);
   // "a|b": either option counts.
   for (const option of options) assertGreaterThan(option.split("|").reduce((sum, name) => sum + (counts[name] ?? 0), 0), 0);
   const first: Counts = {};
@@ -202,8 +203,9 @@ test("computer Lich bursts Frost Nova, places Death and Decay, arms Frost Armor 
 });
 
 test("computer Uther shoots Holy Light and attacks out of Divine Shield", () => {
-  // Divine Shield succeeds only against a strike timed into its window, about once in 30 mirror matches: eight times the matches.
-  usesEvery(Character.uther, ["special0", "divineAttack"], Character.uther, 8 * MATCHES);
+  // Divine Shield succeeds only against a strike timed into its window, about once in 30 mirror matches, so
+  // the usual matches add two seeds of the same series (indices 37 and 55 at 110%) where it does.
+  usesEvery(Character.uther, ["special0", "divineAttack"], Character.uther, 2 * MATCHES, [[11 + 37 * 12, 110.0], [11 + 55 * 12, 110.0]]);
 });
 
 test("computer Dreadlord feints Vampiric Pounce, sleeps a target, mashes out of Sleep and hits a sleeper", () => {

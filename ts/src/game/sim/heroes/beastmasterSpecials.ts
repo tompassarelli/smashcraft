@@ -24,7 +24,7 @@ export const THROWING_AXE: SpecialProjectile = {
   model: "Abilities\\Weapons\\Axe\\AxeMissile.mdx",
 };
 const throwingAxe = (air: boolean): AuthoredSpecial => ({
-  cost: 0, endFrame: 36, projectiles: [THROWING_AXE],
+  cost: 0, endFrame: 39, projectiles: [THROWING_AXE],
   landingLag: air ? AIR_SPECIAL_LANDING_LAG : undefined,
 });
 

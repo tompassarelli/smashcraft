@@ -371,7 +371,7 @@ Standing grab 8/3/25, reach 0.60H. Pummel: belly bump.
 
 | Input | Proposed move and behavior | Timing and cost |
 | --- | --- | --- |
-| Neutral B | **Frost Nova** (#130, [kit review 2](kit-review-2.md#lich-130)): a slow orb, speed 0.07H/frame, life 80, radius 0.16H; 8 damage, POKE at 35 degrees and Chill on a body. Neutral B again while it flies stops it on the gesture's frame 4; 6 frames later it bursts for 3 frames: radius 0.7H, 10 damage, LAUNCH at 70 degrees, Chill. One orb, reflectable until burst. **Chill:** 75 frames at 60% walk, dash, run and air-drift top speed; a shield stops it; 120 frames of immunity. | Orb f18, end f32; 10 mana. Burst gesture end f14, free |
+| Neutral B | **Frost Nova** (#130, [kit review 2](kit-review-2.md#lich-130)): a slow orb, speed 0.07H/frame, life 80, radius 0.16H; 8 damage, POKE at 35 degrees and Chill on a body. Neutral B again while it flies stops it on the gesture's frame 4; 6 frames later it bursts for 3 frames: radius 0.7H, 10 damage, LAUNCH at 70 degrees, Chill. One orb, reflectable until burst. **Chill:** 75 frames at 60% walk, dash, run and air-drift top speed; a shield stops it; 120 frames of immunity. | Orb f18, end f37; 10 mana. Burst gesture end f14, free |
 | Side B | **Death and Decay** (#130): a field placed 1.5H ahead, or 0.9H if pressed backward, only with line of sight; radius 0.75H. It strikes the first body or shield in it from f30 (5 damage, POKE at 80 degrees) and again from f70 (9 damage, LAUNCH at 70 degrees), and is gone after f97. Interrupting Lich before f30 removes it. | Field f8, end f50; 25 mana |
 | Up B | **Spectral Ascent:** visible upward glide, 2.1H height and up to 0.4H lateral drift, no hitbox or intangibility. Free version 1.4H. | Movement f10–34, helpless afterward; 15 mana |
 | Down B | **Frost Armor** (#130): f22 cast grants a 240-frame shell that absorbs the hit reaction of one hit of at most 8 damage and chills the melee striker. Damage still applies; grabs bypass it. **Dark Ritual:** down B while the shell holds shatters it on f6 into a 0.6H burst around Lich (5 damage, POKE at 60 degrees) and restores 30 mana. | Cast f22, end f45; 20 mana. Ritual end f24, free |
@@ -857,7 +857,7 @@ Standing grab 9/2/27, reach 0.65H, short tail coil. No dragging or moving hold. 
 
 | Input | Proposed move and behavior | Timing and cost |
 | --- | --- | --- |
-| Neutral B | **Throwing Axe:** straight thrown axe, 9 damage, POKE at 40 degrees, speed 0.11H/frame, life 28, radius 0.17H, one active and reflectable. No boomerang return. | Spawn f20, end f36; 0 mana |
+| Neutral B | **Throwing Axe:** straight thrown axe, 9 damage, POKE at 40 degrees, speed 0.11H/frame, life 28, radius 0.17H, one active and reflectable. No boomerang return. | Spawn f20, end f39; 0 mana |
 | Side B | **Bear Command:** without a bear, ground-only summon at 0.6H ahead, 30 durability and 600-frame life. With a bear, issue a lunge in owner-facing direction: travel 1.2H, bite for 14 damage, EDGE at 40 degrees. Owner commits to command animation; commands fail while bear is attacking or stunned. Bear cannot attack during owner hitstun and does not auto-counter a combo. | Summon f30, end f56, cost 25. Command end f24, cost 8; bear startup 12, active 4, recovery 30 |
 | Up B | **Hawk Lift:** a cosmetic hawk lifts Beastmaster 2.0H with 0.5H drift. No independent hawk AI or attack. Free version 1.4H. | Lift f10–32, then helpless; 15 mana |
 | Down B | **Bear Recall or Quilbeast Dart:** with a bear, recalls it along the ground toward the owner at 0.06H/frame, cancelling only its idle/follow state; no teleport, attack, invulnerability, or durability reset. Without a bear, throw one short quill at speed 0.14H/frame, life 20, radius 0.10H; 4 damage, POKE at 35 degrees, reflectable. | Recall action 20 frames, 0 mana. Dart spawn f18, end f40, 3 mana |
@@ -1164,7 +1164,7 @@ smashcraft:evidence/balance-105-20261007/.
 | Blademaster | Backstab punishable on shield: 12→10 damage, end f28→f38 | 66%, 4% | 52%, 4% |
 | Mountain King | close reads over the thrown hammer: Storm Bolt end f48→f58 | 65%, 3% | 50%, 3% |
 | Warden | none | 56%, 13% | 52%, 11% |
-| Lich | projectile placement: Frost Nova 6→8 damage, end f40→f32; launch growth +10 (LAUNCH 105, EDGE 110, KILL 120) | 33%, 2% | 48%, 2% |
+| Lich | projectile placement: Frost Nova 6→8 damage, end f40→f32 (f37 after pass 2: f32 left it safe on shield point blank, #98 rule 2); launch growth +10 (LAUNCH 105, EDGE 110, KILL 120) | 33%, 2% | 48%, 2% |
 | Uther | holds space rather than zoning: Holy Light end f44→f66, outbound 7→5 | 78%, 3% | 55%, 3% |
 | Dreadlord | grabs and air pressure: throws +2 (10/12/9/8), forward air 12→14, back air 13→15, launch growth +10, KILL base 26→28 | 20%, 2% | 27%, 2% |
 | Shadow Hunter | none yet | 39%, 2% | 26%, 2% |
@@ -1179,7 +1179,7 @@ Pass 2, same field (after pass 1 → after pass 2):
 | Fighter | Lever (identity) | After pass 1 | After pass 2 |
 | --- | --- | --- | --- |
 | Shadow Hunter | totem placement: Serpent Ward fires 5 shots of 6 (ages 45-205, was 3 of 4), shot life 24→36, ward durability 12→20; launch growth +10 | 26%, 2% | 40%, 2% |
-| Beastmaster | bear coordination: lunge travel 0.9H→1.2H, bite 11→14; Throwing Axe 7→9, end f44→f36 | 32%, 6% | 48%, 6% |
+| Beastmaster | bear coordination: lunge travel 0.9H→1.2H, bite 11→14; Throwing Axe 7→9, end f44→f39 (f36 measured; f39 keeps it punishable on shield point blank, #98 rule 2) | 32%, 6% | 48%, 6% |
 | Dreadlord | air movement and close pressure: air speed 1.12→1.22, weight 1.04→1.14, Batwing Turn 3+3+7 (was 2+2+5), Sleep 70→100 frames, Vampiric Pounce 9→13 | 27%, 2% | 39%, 3% |
 | Pit Lord | his KILL and EDGE classes lose some growth (KILL 110→100, base 26→24; EDGE 100→95) | 71%, 4% | 65%, 4% |
 | Archer | arrows can't stop an approach: homing arrow 6→4; her computer now counts both arrows as Trueshot's cashing moves (it already counted the plain arrow) | 85%, 1% | 74%, 1% (her row alone, 100 a pair, after the rest of pass 2) |
