@@ -8,7 +8,7 @@ import { queueAttack } from "../input/attackBuffer";
 import { normalAttackStyle } from "../input/combat";
 import { AttackStyle, Character, DownState } from "../sim/codes";
 import { type Fighter, createFighter } from "../sim/fighter";
-import { HERO_ROSTER, fighterName } from "../sim/heroes/registry";
+import { fighterName } from "../sim/heroes/registry";
 import type { FighterMoves } from "../sim/heroMoves";
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../sim/hitRegions";
 import { attackDurationFramesForGrounding, attackStartupFrames, characterAttackActiveFrames } from "../sim/moves";
@@ -21,7 +21,9 @@ import { type MatchState, Phase, createMatchState } from "./rules";
 import { stepMatch } from "./step";
 
 /** Fighters whose ground normals tilts.md designs; Illidan's belong to his own kit. */
-const DESIGNED: readonly Character[] = HERO_ROSTER.map(hero => hero.character);
+const DESIGNED: readonly Character[] = [
+  Character.blademaster, Character.mountainKing, Character.warden, Character.lich, Character.uther, Character.dreadlord, Character.shadowHunter,
+];
 const GROUND = [AttackStyle.jab, AttackStyle.forwardTilt, AttackStyle.upTilt, AttackStyle.downTilt, AttackStyle.dashAttack] as const;
 /** Forward airs that outreach the forward tilt on purpose (tilts.md, "Reach versus aerials"). */
 const LONGER_AERIAL: readonly Character[] = [Character.lich, Character.dreadlord, Character.archer];
