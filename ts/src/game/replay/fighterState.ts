@@ -2,6 +2,8 @@ import { at } from "wisp/src/runtime/lookup";
 import { participantActive } from "../input/participants";
 import type { Fighter } from "../sim/fighter";
 
+const retained = (activeMask: number, slot: number | undefined) => (slot !== undefined && participantActive(activeMask, slot) ? slot : undefined);
+
 /**
  * Copies every field into existing storage, so a replay row never aliases live
  * mutable records. Tuning records are immutable values and are shared. A
@@ -9,7 +11,6 @@ import type { Fighter } from "../sim/fighter";
  * remap drops a fighter the source world doesn't seat.
  */
 export function copyFighterState(target: Fighter, source: Readonly<Fighter>, activeMask: number): void {
-  const retain = (slot: number | undefined) => (slot !== undefined && participantActive(activeMask, slot) ? slot : undefined);
   target.character = source.character;
   target.facing = source.facing;
   const tuning = target.tuning;
@@ -137,11 +138,11 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   for (let i = 0; i < hits.entries.length; i++) {
     const to = at(hits.entries, i);
     const from = at(sourceHits.entries, i);
-    to.attacker = retain(from.attacker);
+    to.attacker = retained(activeMask, from.attacker);
     to.attackSerial = from.attackSerial;
     to.window = from.window;
   }
-  hits.lastAttacker = retain(sourceHits.lastAttacker);
+  hits.lastAttacker = retained(activeMask, sourceHits.lastAttacker);
   hits.lastAttackSerial = sourceHits.lastAttackSerial;
   hits.lastWindow = sourceHits.lastWindow;
 
@@ -165,7 +166,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   for (let i = 0; i < special.cooldowns.length; i++) special.cooldowns[i] = at(sourceSpecial.cooldowns, i);
   special.direction = sourceSpecial.direction;
   special.hit = sourceSpecial.hit;
-  for (let i = 0; i < special.hitTargets.length; i++) special.hitTargets[i] = retain(sourceSpecial.hitTargets[i]);
+  for (let i = 0; i < special.hitTargets.length; i++) special.hitTargets[i] = retained(activeMask, sourceSpecial.hitTargets[i]);
 
   for (let i = 0; i < target.projectiles.length; i++) {
     const to = at(target.projectiles, i);
@@ -263,8 +264,8 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   grab.serial = sourceGrab.serial;
   grab.mashX = sourceGrab.mashX;
   grab.mashZ = sourceGrab.mashZ;
-  grab.owner = retain(sourceGrab.owner);
-  grab.target = retain(sourceGrab.target);
+  grab.owner = retained(activeMask, sourceGrab.owner);
+  grab.target = retained(activeMask, sourceGrab.target);
   const ledge = target.ledge;
   const sourceLedge = source.ledge;
   ledge.state = sourceLedge.state;

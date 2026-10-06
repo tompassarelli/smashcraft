@@ -171,8 +171,28 @@ interface AirMotion {
 // Preallocated: rollback replays decay launch and recoil every airborne frame.
 const decayed: AirMotion = { x: 0.0, z: 0.0, belowCutoff: false };
 
+// The confirmed match, prediction and every replay decay the same vectors
+// again, and one decay is some forty exact binary32 operations, so recent
+// results are kept by their horizontal input. A pure function's cache: what
+// it holds never changes a result.
+const DECAY_MEMO_LIMIT = 512;
+let decayMemoSize = 0;
+let decayMemoVertical: Record<number, number> = {};
+let decayMemoDecay: Record<number, number> = {};
+let decayMemoCutoff: Record<number, number> = {};
+let decayMemoX: Record<number, number> = {};
+let decayMemoZ: Record<number, number> = {};
+
 /** Decays a Melee-unit vector along its own angle. Valid until the next call. */
 export function decayedAirMotion(horizontal: number, vertical: number, decay: number, squaredCutoff: number): Readonly<AirMotion> {
+  // Zeros would lose their sign as keys, and NaN can't be one.
+  const memoized = horizontal !== 0 && vertical !== 0 && horizontal === horizontal;
+  if (memoized && decayMemoVertical[horizontal] === vertical && decayMemoDecay[horizontal] === decay && decayMemoCutoff[horizontal] === squaredCutoff) {
+    decayed.x = decayMemoX[horizontal] ?? 0.0;
+    decayed.z = decayMemoZ[horizontal] ?? 0.0;
+    decayed.belowCutoff = false;
+    return decayed;
+  }
   const verticalSquare = multiplyFloat32(vertical, vertical);
   const speedSquare = fusedMultiplyAddFloat32(horizontal, horizontal, verticalSquare);
   if (speedSquare < squaredCutoff) {
@@ -185,6 +205,22 @@ export function decayedAirMotion(horizontal: number, vertical: number, decay: nu
   decayed.x = fusedMultiplyAddFloat32(-decay, meleeCos(angle), horizontal);
   decayed.z = fusedMultiplyAddFloat32(-decay, meleeSin(angle), vertical);
   decayed.belowCutoff = false;
+  if (memoized) {
+    if (decayMemoSize === DECAY_MEMO_LIMIT) {
+      decayMemoSize = 0;
+      decayMemoVertical = {};
+      decayMemoDecay = {};
+      decayMemoCutoff = {};
+      decayMemoX = {};
+      decayMemoZ = {};
+    }
+    if (decayMemoVertical[horizontal] === undefined) decayMemoSize++;
+    decayMemoVertical[horizontal] = vertical;
+    decayMemoDecay[horizontal] = decay;
+    decayMemoCutoff[horizontal] = squaredCutoff;
+    decayMemoX[horizontal] = decayed.x;
+    decayMemoZ[horizontal] = decayed.z;
+  }
   return decayed;
 }
 
