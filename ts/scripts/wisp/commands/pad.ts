@@ -1,4 +1,4 @@
-// `bun wisp pad SCRIPT --helper BINARY --build BUILD --out DIR --app-id a=ID --app-id b=ID [--chat TEXT]`:
+// `bun wisp pad SCRIPT --helper BINARY --build BUILD --out DIR --app-id a=ID --app-id b=ID [--chat=TEXT]`:
 // a virtual pad and the real helper for each client, as the integrity
 // capture runs them; `--chat` types a developer command into client A (such
 // as `-dev quick hero lich`); each script edge is written in the middle of its
@@ -22,7 +22,7 @@ import { SLOTS } from "../../integrity/reconcile";
 import { clientState } from "../project";
 import { onHealthyClients } from "../doctor";
 
-const USAGE = "pad SCRIPT --helper BINARY --build BUILD --out DIR --app-id a=ID --app-id b=ID [--chat TEXT]";
+const USAGE = "pad SCRIPT --helper BINARY --build BUILD --out DIR --app-id a=ID --app-id b=ID [--chat=TEXT]";
 
 const fromDesktop = (failure: DesktopFailure) => new IntegrityFailure({ operation: failure.operation, path: failure.client, cause: failure.cause });
 

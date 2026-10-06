@@ -185,9 +185,9 @@ integrity and development builds give confirmed states.
 
 ## Scripted moves: `bun wisp pad`
 
-`bun wisp pad SCRIPT --helper HELPER --build BUILD --out DIR --app-id a=ID --app-id b=ID [--chat TEXT]`
+`bun wisp pad SCRIPT --helper HELPER --build BUILD --out DIR --app-id a=ID --app-id b=ID [--chat=TEXT]`
 plays a script of timed pad states on both clients' virtual pads through
-the real helpers, as the captures do. `--chat` types a developer command
+the real helpers, as the captures do. `--chat=TEXT` types a developer command
 into client A once the helpers run (for example `-dev quick hero lich`).
 Each line is `FRAME CLIENT ACTION [ARGS]`: the match frame the edge is
 meant for (or `+N` after the previous line), `a` or `b`, and
