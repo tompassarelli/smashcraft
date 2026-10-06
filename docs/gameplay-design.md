@@ -112,3 +112,5 @@ this document as decisions and become oracle or interaction-graph checks.
 | Ledge intangibility | 30 | 37 | 30 |
 | Ledge regrab lock | 30 | 60 | 30 |
 | Any required precision input with no aid | 3 | n/a | L-cancel removed |
+
+Mechanic-level questions drawn from other games (parry, air dodge, rage, short-hop input, ledge rules and others) are listed at the end of [modern platform fighters](design/modern-platform-fighters.md).
