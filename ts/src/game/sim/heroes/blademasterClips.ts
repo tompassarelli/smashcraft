@@ -82,7 +82,8 @@ export const BLADEMASTER_CLIPS: { readonly [pose in Exclude<HeroPose, Exclude<He
   forwardTiltUp: ground("Attack", CUT, AttackStyle.forwardTilt, 9),
   forwardTiltDown: ground("Attack", CUT, AttackStyle.forwardTilt, 9),
   // The arc is overhead on its middle active frame.
-  upTilt: ground("Stand - 4", RISE, AttackStyle.upTilt, 8),
+  // Attack 2's blade is highest and farthest toward the arc at 0.60 s (drawn reach, #156).
+  upTilt: ground("Attack 2", f32(0.60), AttackStyle.upTilt, 8),
   downTilt: ground("Attack", LOW_CUT, AttackStyle.downTilt),
   // The sliding thrust: Attack 2's level thrust.
   dashAttack: ground("Attack 2", THRUST, AttackStyle.dashAttack),

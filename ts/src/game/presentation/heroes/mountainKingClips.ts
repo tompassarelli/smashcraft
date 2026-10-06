@@ -36,6 +36,7 @@ export const MOUNTAIN_KING_SEQUENCES = {
   "Spell Slam": { index: 10, seconds: f32(0.9), looping: false },
   "Dissipate": { index: 11, seconds: 2.0, looping: false },
   "Attack Slam": { index: 12, seconds: 1.0, looping: false },
+  "Attack Slam Alternate": { index: 25, seconds: 1.0, looping: false },
 } as const satisfies Readonly<Record<string, StockSequence>>;
 
 export type MountainKingSequence = keyof typeof MOUNTAIN_KING_SEQUENCES;
@@ -75,7 +76,8 @@ export const MOUNTAIN_KING_CLIPS = {
   forwardTiltDown: ground("Attack -2", f32(0.48), AttackStyle.forwardTiltDown),
   // The hammer is highest on the scoop's second active frame.
   upTilt: ground("Attack -1", f32(0.44), AttackStyle.upTilt, 9),
-  downTilt: ground("Spell Slam", f32(0.38), AttackStyle.downTilt),
+  // The low hammer sweep reaches farthest along the floor at 0.57 s (drawn reach, #156).
+  downTilt: ground("Attack Slam Alternate", f32(0.57), AttackStyle.downTilt),
   // Attack Slam's root travel carries the charge forward.
   dashAttack: ground("Attack Slam", f32(0.48), AttackStyle.dashAttack),
   forwardSmash: play("Attack Slam"),

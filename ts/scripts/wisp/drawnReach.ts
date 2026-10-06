@@ -5,6 +5,7 @@
 // end of the move's first active strike capsule. Contact never reads the
 // model; this checks that the body visibly travels toward the volume that hits.
 import { AttackPhase, AttackStyle, Character } from "../../src/game/sim/codes";
+import { HERO_ROSTER } from "../../src/game/sim/heroes/registry";
 import { type DrawnModel, type PoseFrame, sampleAttack } from "./hurtboxView";
 
 /** Chest height of the reference fighter, the point a strike's direction is taken from. */
@@ -59,17 +60,21 @@ export function measureDrawnReach(model: DrawnModel, character: Character, style
   };
 }
 
-/** The moves #156 re-authored, by character: the swings that barely moved toward, or drew away from, their strike. */
+/** Each hero's ground normals (#151), drawn by its stock model's sequences. */
+const HERO_GROUND: readonly AttackStyle[] = [AttackStyle.jab, AttackStyle.forwardTilt, AttackStyle.forwardTiltUp, AttackStyle.forwardTiltDown, AttackStyle.upTilt, AttackStyle.downTilt, AttackStyle.dashAttack];
+
+/** The moves #156 re-authored or re-chose a sequence for, and every hero's ground normals. */
 export const REACH_CHECKED: readonly { readonly character: Character; readonly styles: readonly AttackStyle[] }[] = [
   { character: Character.archer, styles: [AttackStyle.jab, AttackStyle.forwardTilt, AttackStyle.forwardTiltUp, AttackStyle.forwardTiltDown, AttackStyle.upTilt, AttackStyle.downTilt, AttackStyle.dashAttack, AttackStyle.getupAttack] },
   { character: Character.rifleman, styles: [AttackStyle.jab, AttackStyle.forwardTilt, AttackStyle.forwardTiltUp, AttackStyle.forwardTiltDown, AttackStyle.upTilt, AttackStyle.downTilt, AttackStyle.dashAttack, AttackStyle.neutralAir, AttackStyle.upAir, AttackStyle.downAir] },
   { character: Character.demonHunter, styles: [AttackStyle.jab, AttackStyle.forwardTilt, AttackStyle.forwardTiltUp, AttackStyle.forwardTiltDown, AttackStyle.downTilt, AttackStyle.downSmash] },
+  ...HERO_ROSTER.map((hero) => ({ character: hero.character, styles: HERO_GROUND })),
 ];
 
 export interface DrawnReachRow extends DrawnReach {
   readonly character: Character;
   readonly style: AttackStyle;
-  /** The packaged model measured; a re-export makes the row stale. */
+  /** The model measured: an original's packaged file, a hero's stock model; a re-export makes the row stale. */
   readonly model: string;
 }
 

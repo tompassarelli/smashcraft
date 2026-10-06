@@ -63,10 +63,11 @@ export const SHADOW_HUNTER_HERO: HeroDefinition = {
       idle: STAND_READY, walk: WALK, dash: WALK, run: WALK, crouch: STAND_READY, fall: STAND_READY, landing: STAND_READY,
       shield: STAND_READY, airDodge: STAND_HIT, smashCharge: STAND_READY, ko: DISSIPATE, dizzy: STAND_3,
       // Ground normals strike on their first active frame (smashcraft:docs/design/tilts.md): the thrust angles up
-      // through the overhead throw and down through the low stomp; the dash spin plays both of Attack's sweeps.
+      // and the up tilt swing Attack's staff overhead, the low thrust is Spell's downward cast (Spell Throw strikes
+      // too late and Stand Channel too early to reach on time, #156); the dash spin plays both of Attack's sweeps.
       jab: ground(ATTACK, f32(0.52), AttackStyle.jab), grab: ATTACK, forwardTilt: ground(ATTACK, f32(0.52), AttackStyle.forwardTilt),
-      forwardTiltUp: ground(SPELL_THROW, f32(0.82), AttackStyle.forwardTiltUp), forwardTiltDown: ground(STAND_CHANNEL, f32(0.27), AttackStyle.forwardTiltDown),
-      upTilt: ground(SPELL, f32(0.60), AttackStyle.upTilt, 9), downTilt: ground(SPELL_THROW, f32(1.06), AttackStyle.downTilt),
+      forwardTiltUp: ground(ATTACK, f32(0.50), AttackStyle.forwardTiltUp), forwardTiltDown: ground(SPELL, f32(1.30), AttackStyle.forwardTiltDown),
+      upTilt: ground(ATTACK, f32(0.50), AttackStyle.upTilt, 9), downTilt: ground(SPELL_THROW, f32(1.06), AttackStyle.downTilt),
       dashAttack: ground(ATTACK, f32(0.52), AttackStyle.dashAttack),
       forwardSmash: SPELL_THROW, upSmash: SPELL, downSmash: STAND_CHANNEL,
       // No kick exists in the model: Heel Hook plays the rear sweep.

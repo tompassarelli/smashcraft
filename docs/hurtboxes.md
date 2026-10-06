@@ -83,8 +83,10 @@ cover and how much of the volumes the body fills. Held weapons are part of the
 drawn silhouette and deliberately outside the volumes, so coverage below 100%
 is expected.
 
-`bun wisp view reach --assets DIR` measures how far each re-authored
-original swing (#156) draws toward its strike: every frame of the move through
+`bun wisp view reach --assets DIR` measures how far each checked swing
+(#156: the original fighters' re-authored clips and every hero's ground
+normals, heroes on their stock models under `hero-models/`) draws toward its
+strike: every frame of the move through
 the same pose path, the opaque silhouette projected onto the direction from the
 chest (z 50) to the far end of the first active strike capsule. It rewrites
 smashcraft:ts/scripts/wisp/drawnReachInfo.ts, and

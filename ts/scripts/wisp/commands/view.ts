@@ -19,7 +19,8 @@ import { describeScene, sceneProblems } from "wisp/scripts/wisp/scene";
 import { importedAssets } from "../mapInputs";
 import { gameFilesLayer } from "../project";
 import { SMASHCRAFT_FRAME, SMASHCRAFT_SCENE } from "../playerView";
-import { CHARACTER_NAMES, FIGHTER_MODELS, STYLE_NAMES, loadDrawnModel, sampleAttack, sampleState, sheet } from "../hurtboxView";
+import { CHARACTER_NAMES, DrawnModel, FIGHTER_MODELS, STYLE_NAMES, loadDrawnModel, sampleAttack, sampleState, sheet } from "../hurtboxView";
+import { characterModelScale } from "../../../src/game/presentation/modelScale";
 import { type DrawnReachRow, REACH_CHECKED, drawnReachSource, measureDrawnReach } from "../drawnReach";
 import { measureStrikeMoments, strikeMomentSource } from "../strikeMoments";
 import { HERO_ROSTER } from "../../../src/game/sim/heroes/registry";
@@ -177,9 +178,9 @@ const strikes = (args: readonly string[]) => Effect.scoped(Effect.gen(function*(
 const REACH_TABLE = join(import.meta.dir, "../drawnReachInfo.ts");
 
 /**
- * Measures how far each re-authored original swing draws toward its strike
- * (#156) on a build's packaged fighter models and rewrites the table
- * ts/test/drawn-reach.test.ts checks.
+ * Measures how far each checked swing draws toward its strike (#156) on a
+ * build's packaged fighter models and the heroes' stock models under its
+ * hero-models, and rewrites the table ts/test/drawn-reach.test.ts checks.
  */
 const reach = (args: readonly string[]) => Effect.gen(function*() {
   const assets = args[0] === "--assets" ? args[1] : undefined;
@@ -188,11 +189,20 @@ const reach = (args: readonly string[]) => Effect.gen(function*() {
     try: async () => {
       const measured: DrawnReachRow[] = [];
       for (const { character, styles } of REACH_CHECKED) {
-        const bytes = await Bun.file(join(assets, FIGHTER_MODELS[character] ?? "")).arrayBuffer();
-        const name = (FIGHTER_MODELS[character] ?? "").split("/").at(-1)?.replace(/\.mdx$/, "");
-        const hash = new Bun.CryptoHasher("sha256").update(new Uint8Array(bytes)).digest("hex");
-        const model = await loadDrawnModel(assets, character);
-        for (const style of styles) measured.push({ character, style, model: `war3mapImported\\${name}-${hash}.mdx`, ...measureDrawnReach(model, character, style) });
+        const hero = HERO_ROSTER.find((candidate) => candidate.character === character);
+        let model: DrawnModel;
+        let id: string;
+        if (hero === undefined) {
+          const bytes = await Bun.file(join(assets, FIGHTER_MODELS[character] ?? "")).arrayBuffer();
+          const name = (FIGHTER_MODELS[character] ?? "").split("/").at(-1)?.replace(/\.mdx$/, "");
+          id = `war3mapImported\\${name}-${new Bun.CryptoHasher("sha256").update(new Uint8Array(bytes)).digest("hex")}.mdx`;
+          model = await loadDrawnModel(assets, character);
+        } else {
+          const file = join(assets, "hero-models", stockPath(hero.presentation.model).split("/").at(-1) ?? "");
+          model = new DrawnModel(await Bun.file(file).arrayBuffer(), characterModelScale(character));
+          id = hero.presentation.model;
+        }
+        for (const style of styles) measured.push({ character, style, model: id, ...measureDrawnReach(model, character, style) });
       }
       return measured;
     },

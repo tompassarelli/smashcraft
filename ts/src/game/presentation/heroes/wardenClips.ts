@@ -71,7 +71,8 @@ export const WARDEN_CLIPS = {
   ko: s.death,
   // Normals: two blade swings, an overhead slam and a two-handed cast. Ground
   // normals strike on their first active frame (smashcraft:docs/design/tilts.md).
-  jab: ground(s.spellThrow, f32(0.24), AttackStyle.jab),
+  // Spell Throw hides her for a moment and barely moves; Attack - 1 reaches farthest at 0.37 s (#156).
+  jab: ground(s.attack1, f32(0.37), AttackStyle.jab),
   forwardTilt: ground(s.attack2, f32(0.52), AttackStyle.forwardTilt),
   forwardTiltUp: ground(s.spellSlam, f32(0.20), AttackStyle.forwardTiltUp),
   forwardTiltDown: ground(s.attack1, f32(0.38), AttackStyle.forwardTiltDown),
