@@ -16,7 +16,7 @@ import {
 import { SUMMON_BEAR } from "../presentation/summonClipInfo";
 import { type SummonState, projectBear } from "../presentation/summonState";
 import { f32 } from "wisp/src/sim/f32";
-import { Character, SpecialAction } from "../sim/codes";
+import { Character, HippogryphKind, SpecialAction } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 import { DEMONHUNTER_IMMOLATE_ACTIVE, DEMONHUNTER_IMMOLATE_STARTUP, DEMONHUNTER_MANA_BURN_STARTUP } from "../sim/specials";
 import { type ParkedFlags, STOCK_MODELS, type WorldOrigin, facingYaw, parkOnce } from "./effects";
@@ -37,6 +37,12 @@ interface SpecialSlot {
   previousSpecial: SpecialAction;
   previousSpecialFrame: number;
   previousHippogryphLife: number;
+  previousHippogryphKind: HippogryphKind;
+}
+
+/** The hippogryph flies while swooping or carrying, stands on its perch and attacks while diving or flying on. */
+function hippogryphAnimation(kind: HippogryphKind): string {
+  return kind === HippogryphKind.perch ? "stand" : kind === HippogryphKind.dive || kind === HippogryphKind.released ? "attack" : "walk";
 }
 
 /** A slot's effects in its parked flags, after six times the slot. */
@@ -72,7 +78,7 @@ export class SpecialEffects {
       BlzSetSpecialEffectAnimationBlendTime(hippogryph, 0.0);
       return {
         bear, hippogryph, aura, felFlames, manaHand, wingTrail, parryFlash, cursor,
-        previousSpecial: SpecialAction.none, previousSpecialFrame: 0, previousHippogryphLife: 0,
+        previousSpecial: SpecialAction.none, previousSpecialFrame: 0, previousHippogryphLife: 0, previousHippogryphKind: HippogryphKind.none,
       };
     });
     this.clear();
@@ -92,6 +98,7 @@ export class SpecialEffects {
       slot.previousSpecial = SpecialAction.none;
       slot.previousSpecialFrame = 0;
       slot.previousHippogryphLife = 0;
+      slot.previousHippogryphKind = HippogryphKind.none;
     });
   }
 
@@ -186,11 +193,12 @@ export class SpecialEffects {
       BlzSetSpecialEffectYaw(hippogryph, facingYaw(mount.velocityX === 0 ? fighter.facing : mount.velocityX));
       BlzSetSpecialEffectScale(hippogryph, f32(0.7));
       BlzSetSpecialEffectAlpha(hippogryph, 255);
-      if (effects.previousHippogryphLife === 0) BlzSetSpecialEffectAnimation(hippogryph, "walk");
+      if (effects.previousHippogryphLife === 0 || effects.previousHippogryphKind !== mount.kind) BlzSetSpecialEffectAnimation(hippogryph, hippogryphAnimation(mount.kind));
     } else {
       this.park(hippogryph, slot, HIPPOGRYPH);
     }
     effects.previousHippogryphLife = mount.life;
+    effects.previousHippogryphKind = mount.kind;
   }
 
   destroy(): void {

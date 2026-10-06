@@ -61,10 +61,13 @@ From smashcraft:ts/:
 Implementation: smashcraft:ts/scripts/interactions.ts (situations, engine,
 pages), smashcraft:ts/scripts/interactionsWorker.ts and
 smashcraft:ts/scripts/wisp/commands/interactions.ts.
-smashcraft:ts/scripts/interactions.tests.ts pins two of Archer's rows: an
-unspaced advancing down air on shield is -8 and punished by jump neutral air
-and jump back air started 12 or 13 frames after contact; a spaced fade-back
-forward air is -2 and safe.
+smashcraft:ts/scripts/interactions.tests.ts pins one safe and one punishable
+aerial on shield per fighter (#106): Archer's spaced fade-back forward air (-1,
+safe) and early advancing neutral air (-13, shield-grabbed), Rifleman's
+advancing neutral air (+1) and early advancing neutral air (-17), and
+Illidan's back air crossing up the shield (-3) and landing in front from early
+in the hop (-20); also Archer's unspaced advancing down air, -7 and punished by
+jump neutral air and jump back air 13 frames after contact.
 
 ## How it is measured
 
@@ -126,6 +129,7 @@ Aerials on shield use the terms of
 | Drift | Press | Stick after contact |
 |---|---|---|
 | Advancing | the latest in the hop that still meets the shield: the lowest hit, least landing lag | none: lands in front |
+| Early advancing | the earliest in the hop that meets the shield: the highest hit, most fall left | none: lands in front |
 | Fade-back | the earliest in the hop that meets the shield | away for the rest of the fall |
 | Fade-forward | the earliest in the hop that meets the shield | on through the shield for the rest of the fall |
 

@@ -362,16 +362,16 @@ test("the shot's recovery uses its grounding at attack start", () => {
   const grounded = createFighter(Character.archer, 0.0, 1);
   const groundedWorld = testWorld(grounded, createFighter(Character.rifleman, 400.0, -1));
   testBeginAttacks(groundedWorld, AttackStyle.shot, undefined);
-  assertEquals(grounded.attack.duration, 24);
-  assertEquals(grounded.attack.cooldown, 24);
+  assertEquals(grounded.attack.duration, 32);
+  assertEquals(grounded.attack.cooldown, 32);
   grounded.motion.grounded = false;
   const airborne = createFighter(Character.archer, 0.0, 1);
   airborne.motion.grounded = false;
   airborne.motion.z = 120.0;
   const airborneWorld = testWorld(airborne, createFighter(Character.rifleman, 400.0, -1));
   testBeginAttacks(airborneWorld, AttackStyle.shot, undefined);
-  assertEquals(airborne.attack.duration, 15);
-  assertEquals(airborne.attack.cooldown, 15);
+  assertEquals(airborne.attack.duration, 20);
+  assertEquals(airborne.attack.cooldown, 20);
   airborne.motion.grounded = true;
   const input = controls();
   let groundedTicks = 0;
@@ -384,8 +384,8 @@ test("the shot's recovery uses its grounding at attack start", () => {
     advanceFighter(airborneWorld, 0, 0, input, -240.0);
     airborneTicks++;
   }
-  assertEquals(groundedTicks, 24);
-  assertEquals(airborneTicks, 15);
+  assertEquals(groundedTicks, 32);
+  assertEquals(airborneTicks, 20);
   assertEquals(grounded.attack.cooldown, 0);
   assertEquals(airborne.attack.cooldown, 0);
 });

@@ -6,6 +6,7 @@ stages. Descriptive and sourced; the stance is the owner's
 ([gameplay design](../gameplay-design.md)). The last two sections evaluate the
 draft list of eight in issue #75; current choices are in
 [gameplay design's stage defaults](../gameplay-design.md#stage-defaults).
+How each stage's sky and scenery are composed is in [stage art](stage-art.md).
 
 Units: Melee lengths are Melee units; Ultimate lengths are Ultimate units (its
 Battlefield is 160 wide against Melee's 136.8). Smashcraft's world uses 6

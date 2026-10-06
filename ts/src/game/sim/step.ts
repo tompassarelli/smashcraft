@@ -493,7 +493,8 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
     motion.vx = max(-physics.airSpeed, min(physics.airSpeed, motion.vx));
   }
   let dashEntryDisplacementAdjustment = 0.0;
-  const authoredMotion = heroMotionHolds(f);
+  // Archer's hippogryph ride sets her velocity each frame (specials.ts).
+  const authoredMotion = heroMotionHolds(f) || f.special.action === SpecialAction.archerRecovery;
   const canSteer = !authoredMotion && down.state === DownState.none && launch.hitstun <= 0 && (!dodge.airDodging || !dodgeActive) && !isGroundDodging(f)
     && shield.releaseLag <= 0 && f.landing.lag <= 0 && shield.stun <= 0 && jump.squat <= 0 && !smashChargePaused
     && (!motion.grounded || attack.cooldown <= 0) && f.surfaceRecovery.state !== SurfaceContact.techWall;

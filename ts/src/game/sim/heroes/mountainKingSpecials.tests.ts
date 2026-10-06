@@ -78,7 +78,7 @@ test("Mountain King's specials spend their roster costs once and end on their ro
   assertEquals(owner.mana.points, 85);
 });
 
-test("Storm Bolt flies 0.12H a frame from frame 20, one at a time, and hits once for 7", () => {
+test("Storm Bolt flies 0.12H a frame from frame 20, one at a time, and hits once for 5", () => {
   for (const facing of [1, -1]) {
     const { world, owner, target } = pair(400.0, facing);
     frame(world, neutral);
@@ -99,10 +99,10 @@ test("Storm Bolt flies 0.12H a frame from frame 20, one at a time, and hits once
       assertEquals(owner.mana.points, before);
     }
     for (let f = 0; f < 40 && target.status.damage === 0.0; f++) frame(world);
-    assertEquals(target.status.damage, 7.0);
+    assertEquals(target.status.damage, 5.0);
     assertGreaterThan(target.launch.knockbackX * facing, 0.0);
     for (let f = 0; f < 40; f++) frame(world);
-    assertEquals(target.status.damage, 7.0);
+    assertEquals(target.status.damage, 5.0);
   }
 });
 
