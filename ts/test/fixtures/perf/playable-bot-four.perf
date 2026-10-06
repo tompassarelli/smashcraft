@@ -1,16 +1,16 @@
 frames 1800 step 100 problems 0
-collector us=1284508 kb=137354
-p0 instructions start=27745000 total=674684800 median=305100 p95=1018200 mean=374825 max=1738700
-p0 lua-us start=463021 total=15388968 median=7170 p95=22465 mean=8549 max=37243
+collector us=1327349 kb=137266
+p0 instructions start=27869600 total=677579712 median=306300 p95=1022600 mean=376433 max=1755700
+p0 lua-us start=454180 total=14577352 median=6838 p95=20911 mean=8099 max=45353
 p0 natives start=66 total=327866 median=162 p95=267 mean=182 max=357
-p0 alloc-kb start=22773 total=47549 median=19 p95=85 mean=26 max=152
+p0 alloc-kb start=22817 total=47436 median=19 p95=85 mean=26 max=152
 p0 typed start=0 total=37561 median=0 p95=51 mean=21 max=60
-p0 native-us start=636479 total=15117576 median=6878 p95=22301 mean=8399 max=37647
+p0 native-us start=639221 total=15178984 median=6904 p95=22408 mean=8433 max=38009
 p0 typing-us start=0 total=802055 median=0 p95=1301 mean=446 max=1800
-p1 instructions start=27745000 total=670956992 median=307600 p95=979300 mean=372754 max=2049900
-p1 lua-us start=492885 total=15318010 median=7302 p95=22343 mean=8510 max=45949
+p1 instructions start=27869600 total=673781312 median=309050 p95=986300 mean=374323 max=2069300
+p1 lua-us start=453785 total=14463144 median=6831 p95=20746 mean=8035 max=41269
 p1 natives start=66 total=327822 median=162 p95=267 mean=182 max=357
-p1 alloc-kb start=22619 total=47053 median=19 p95=82 mean=26 max=152
+p1 alloc-kb start=22663 total=46953 median=19 p95=82 mean=26 max=152
 p1 typed start=0 total=37561 median=0 p95=51 mean=21 max=60
-p1 native-us start=636171 total=15037118 median=6929 p95=21432 mean=8354 max=44370
+p1 native-us start=638914 total=15097052 median=6942 p95=21532 mean=8387 max=44783
 p1 typing-us start=0 total=802055 median=0 p95=1301 mean=446 max=1800
