@@ -1,0 +1,18 @@
+{"decision":"RESERVED","reason":"RUN","class":"heavy","requestedCpus":6,"requestedMemoryMiB":8192,"leasedCpuCeilings":22,"aggregateCpuLimit":18,"leasedMemoryMiB":34816,"cpuSomeAvg10":4.65,"memoryFullAvg10":0,"memoryAvailableMiB":72855,"reclaimed":0,"lease":"1abf1d34-e5e6-42fd-98ad-6eda0c7c91a7","expiresAt":1791278253889}
+$ bun scripts/wisp.ts soak --stage frozen-throne --matches "200" --out "/home/tom/.local/state/smashcraft/soak/frozen-throne-20261006"
+smashcraft soak: 200 matches in 4 workers, at most 10 min, seed 1; repro files in /home/tom/.local/state/smashcraft/soak/frozen-throne-20261006
+match 46: archer vs rifleman on frozen-throne, absent/fuzz, seed 307785542
+  catch-up after frame 1221: the game stayed behind its input for 3.0 s: 104 frames of input not yet played
+  catch-up after frame 1260: the game fell 1.8 s behind real time and kept falling for 3 s (worst client frame 6.6 ms measured)
+  repro: /home/tom/.local/state/smashcraft/soak/frozen-throne-20261006/match-46.json
+match 87: illidan vs archer on frozen-throne, cpu/fuzz, seed 376693919
+  catch-up after frame 240: the game fell 1.9 s behind real time and kept falling for 3 s (worst client frame 1.8 ms measured)
+  repro: /home/tom/.local/state/smashcraft/soak/frozen-throne-20261006/match-87.json
+  78.040 s  200 matches (78.020 s)
+200 matches, 176,021 frames (50.2 game minutes) in 78.0 s with 4 workers (4 started): 39x real time, 393.2 s CPU
+recovery typing stalls: 620 client frames over 1/60 s, worst 32.8 ms, p95 32.3 ms; budget 32.8 ms, none over it
+costliest client frame 29.2 ms; 3 findings (catch-up) in 2 matches, repro files in /home/tom/.local/state/smashcraft/soak/frozen-throne-20261006
+  78.047 s  soak failed (78.047 s)
+3 findings in 2 matches
+error: script "wisp" exited with code 1
+{"decision":"RELEASED","lease":"1abf1d34-e5e6-42fd-98ad-6eda0c7c91a7"}

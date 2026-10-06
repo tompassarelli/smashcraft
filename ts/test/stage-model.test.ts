@@ -4,8 +4,8 @@ import { MODEL_FACTS } from "../scripts/wisp/modelFacts";
 import { STAGE_MAIN_DECK_MODEL } from "../src/game/assets/stageAssetInfo";
 import { MAIN_DECK_BODY_SURFACES, mainDeckLeft, mainDeckRight, mainDeckZ, solidSurfaceAt } from "../src/game/sim/stage";
 
-/** The stages a match can select; both draw the same main deck model. */
-const SHIPPED_STAGES = [0, 1];
+/** The stages a match can select; all draw the same main deck model. */
+const SHIPPED_STAGES = [0, 1, 2];
 /** The model the map draws for every stage's main deck. */
 const MAIN_DECK = mainDeckFaces(0);
 

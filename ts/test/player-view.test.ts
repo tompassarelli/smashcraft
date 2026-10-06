@@ -11,6 +11,11 @@ import { STAGE_DECK_MODEL, STAGE_MAIN_DECK_MODEL } from "../src/game/assets/stag
 import { Action, bit } from "../src/game/input/actions";
 import { requestStageSelect, requestStart, selectCharacter, setParticipants } from "../src/game/match/rules";
 import { FLOOR_HEIGHT } from "../src/game/presentation/arenaCamera";
+import { stageScenery } from "../src/game/presentation/stageScenery";
+import { modelReach } from "wisp/scripts/wisp/models";
+import { boxSeen } from "wisp/scripts/wisp/visibility";
+import { MODEL_FACTS } from "../scripts/wisp/modelFacts";
+import { FROZEN_THRONE_QUICK_COMMAND } from "../src/game/shell/devSettings";
 import { STOCK_MODELS } from "../src/game/render/effects";
 import { IMPACT_DUST, IMPACTS_PER_KIND, impactLifetime } from "../src/game/presentation/impactState";
 import { Character, DownState, SurfaceContact } from "../src/game/sim/codes";
@@ -55,6 +60,60 @@ const recordCamera = (client: HeadlessClient) => {
 const headless = installHeadless({ ...SMASHCRAFT_HEADLESS, localNatives: unlogged, natives: recordCamera }, declarations);
 const seconds = (value: number) => value * SMASHCRAFT_SCENE.framesPerSecond;
 afterAll(headless.restore);
+
+test("Frozen Throne: a selectable match draws four platforms and the winter background without scene problems", () => {
+  const clients = headless.clients({ start: startDevelopment, install: installDevelopment });
+  clients.start();
+  clients.frames(30);
+  clients.chat(0, FROZEN_THRONE_QUICK_COMMAND);
+  clients.frames(60);
+  for (const client of clients.clients) {
+    client.run(() => {
+      const s = shell();
+      expect(s.game.stageChoice).toBe(2);
+      expect(s.stageDecks).toHaveLength(4);
+      expect(s.stageScenery).toHaveLength(stageScenery(2).pieces.length);
+      trampoline("scene.report")();
+    });
+    expect(sceneProblems(sceneReport(client), SMASHCRAFT_SCENE)).toEqual([]);
+    expect(client.errors).toEqual([]);
+  }
+});
+
+test("winter meshes and drifting snow stay behind fighters, and fog starts beyond the fight in every declared camera", () => {
+  const visibility = SMASHCRAFT_SCENE.visibility;
+  const scenery = stageScenery(2);
+  if (visibility === undefined || scenery.fog === undefined) throw new Error("missing winter visibility or fog");
+  const problems: string[] = [];
+  const corners = (box: { min: readonly number[]; max: readonly number[] }) =>
+    [box.min[0]!, box.max[0]!].flatMap(x => [box.min[1]!, box.max[1]!].flatMap(y => [box.min[2]!, box.max[2]!].map(z => [x, y, z] as const)));
+  for (const camera of visibility.cameras) {
+    const radians = (degrees: number) => degrees * Math.PI / 180;
+    const pitch = radians(camera.angleOfAttack > 180 ? camera.angleOfAttack - 360 : camera.angleOfAttack);
+    const yaw = radians(camera.rotation);
+    const forward = [Math.cos(pitch) * Math.cos(yaw), Math.cos(pitch) * Math.sin(yaw), Math.sin(pitch)] as const;
+    const along = (point: readonly number[]) => point.reduce((sum, value, axis) => sum + value * forward[axis]!, 0);
+    // Includes the complete visible fighting volume and a 200-unit allowance for fighter bodies.
+    const fight = { min: [-BLAST_ZONE_SIDE - 200, -200, BLAST_ZONE_BOTTOM - 200], max: [BLAST_ZONE_SIDE + 200, 200, BLAST_ZONE_TOP + 200] };
+    const farthestFighter = Math.max(...corners(fight).map(along));
+    const eye = camera.target.map((value, axis) => value - camera.distance * forward[axis]!);
+    expect(farthestFighter - along(eye)).toBeLessThan(scenery.fog.start);
+    for (const piece of scenery.pieces) {
+      const facts = MODEL_FACTS[piece.model];
+      if (facts === undefined) throw new Error(`missing facts for ${piece.model}`);
+      const reach = modelReach(facts);
+      expect(reach.unknown).toEqual([]);
+      for (const box of reach.boxes) {
+        const placed = {
+          min: [box.min[0] * piece.scale + piece.x, box.min[1] * piece.scale + piece.y, box.min[2] * piece.scale + piece.z] as const,
+          max: [box.max[0] * piece.scale + piece.x, box.max[1] * piece.scale + piece.y, box.max[2] * piece.scale + piece.z] as const,
+        };
+        if (boxSeen(placed, camera) && Math.min(...corners(placed).map(along)) <= farthestFighter) problems.push(piece.model);
+      }
+    }
+  }
+  expect([...new Set(problems)]).toEqual([]);
+});
 
 /** The client's latest scene report, from the lines it wrote. */
 function sceneReport(client: HeadlessClient): SceneReport {

@@ -3,3 +3,5 @@
 export const STAGE_DECK_MODEL = "war3mapImported\\StageDeck-48ca8b3ca98aa77d741926a42ad589a5f8b1df78e68f565c285ccadd6bc2c27c.mdx";
 /** The main deck, drawn from its collision outline in arena units. */
 export const STAGE_MAIN_DECK_MODEL = "war3mapImported\\StageMainDeck-043d3ab8ff1b03b9c0288e9f38951e8a2a383379d0020e3898cf16a351ca71ae.mdx";
+/** Drifting snow behind the fighting plane, using the stock snowflake texture. */
+export const STAGE_SNOW_MODEL = "war3mapImported\\StageSnow-917b74168e66aca0467360dffd3956aabf3e0b69503b2f26da0ddedc1e8a5bd4.mdx";

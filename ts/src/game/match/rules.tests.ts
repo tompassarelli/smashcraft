@@ -166,7 +166,7 @@ test("absentAndInvalidParticipantsCannotChooseOrStart", () => {
   assertTrue(requestStageSelect(game, 0));
   selectStage(game, 1, 1);
   selectStage(game, -1, 1);
-  selectStage(game, 0, 2);
+  selectStage(game, 0, 3);
   assertEquals(game.stageChoice, 0);
   returnToCharacters(game, 1);
   assertEquals(game.phase, Phase.stageMenu);
