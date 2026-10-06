@@ -57,16 +57,18 @@ if (import.meta.main) {
   const started = performance.now();
   const levels: number[] = [];
   for (let level = CPU_LEVEL_MIN; level <= CPU_LEVEL_MAX; level++) levels.push(level);
-  // wins[a][b]: a's wins against b.
-  const wins = levels.map(() => levels.map(() => 0));
-  const ties = levels.map(() => 0);
+  // a's wins against b, by "a:b"; ties by level.
+  const wins = new Map<string, number>();
+  const ties = new Map<number, number>();
+  const winsOf = (a: number, b: number) => wins.get(`${a}:${b}`) ?? 0;
+  const tiesOf = (level: number) => ties.get(level) ?? 0;
   for (const a of levels) for (const b of levels) {
     if (b <= a) continue;
     const result = playLevels(a, b, matches, rules);
-    wins[a - 1]![b - 1] = result.wins;
-    wins[b - 1]![a - 1] = result.losses;
-    ties[a - 1]! += result.ties;
-    ties[b - 1]! += result.ties;
+    wins.set(`${a}:${b}`, result.wins);
+    wins.set(`${b}:${a}`, result.losses);
+    ties.set(a, tiesOf(a) + result.ties);
+    ties.set(b, tiesOf(b) + result.ties);
   }
   console.error(`round robin done, ${((performance.now() - started) / 1000).toFixed(0)} s`);
   const top = playLevels(CPU_LEVEL_MAX, CPU_LEVEL_MIN, topMatches, rules);
@@ -76,12 +78,11 @@ if (import.meta.main) {
   console.log(`| ---: |${levels.map(() => " ---: |").join("")} ---: | ---: | ---: | ---: |`);
   const rates: number[] = [];
   for (const a of levels) {
-    const row = wins[a - 1]!;
-    const won = row.reduce((sum, count) => sum + count, 0);
-    const lost = levels.reduce((sum, b) => sum + wins[b - 1]![a - 1]!, 0);
+    const won = levels.reduce((sum, b) => sum + winsOf(a, b), 0);
+    const lost = levels.reduce((sum, b) => sum + winsOf(b, a), 0);
     rates.push(won / Math.max(1, won + lost));
-    const cells = levels.map((b) => (a === b ? "-" : percent(row[b - 1]!, wins[b - 1]![a - 1]!)));
-    console.log(`| ${a} | ${cells.join(" | ")} | ${won} | ${lost} | ${ties[a - 1]} | ${percent(won, lost)} |`);
+    const cells = levels.map((b) => (a === b ? "-" : percent(winsOf(a, b), winsOf(b, a))));
+    console.log(`| ${a} | ${cells.join(" | ")} | ${won} | ${lost} | ${tiesOf(a)} | ${percent(won, lost)} |`);
   }
   const rising = rates.every((rate, index) => index === 0 || rate > (rates[index - 1] ?? 1));
   console.log("");
