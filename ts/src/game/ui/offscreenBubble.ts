@@ -1,7 +1,7 @@
 // Every client creates the same handles; only their drawn position and
 // visibility depend on the local camera. No frame receives input focus.
 import { f32 } from "wisp/src/sim/f32";
-import { createBackdrop, createText, gameUi, MENU_FONT } from "./frames";
+import { createBackdrop, createText, consoleUi, MENU_FONT } from "./frames";
 import { Character } from "../sim/codes";
 
 function bubblePosition(column: number, row: number): { readonly column: number; readonly row: number; readonly arrow: string } {
@@ -21,8 +21,10 @@ export class OffscreenBubble {
   private character: Character | undefined;
 
   constructor(slot: number) {
-    this.portrait = createBackdrop(`OffscreenPortrait${I2S(slot)}`, gameUi(), 920 + slot * 2);
-    this.arrow = createText(`OffscreenArrow${I2S(slot)}`, gameUi(), 921 + slot * 2);
+    // GameUI clips BACKDROP/TEXT frames outside its central 4:3 area.
+    const parent = consoleUi();
+    this.portrait = createBackdrop(`OffscreenPortrait${I2S(slot)}`, parent, 920 + slot * 2);
+    this.arrow = createText(`OffscreenArrow${I2S(slot)}`, parent, 921 + slot * 2);
     BlzFrameSetSize(this.portrait, f32(0.046), f32(0.046));
     BlzFrameSetSize(this.arrow, f32(0.027), f32(0.027));
     BlzFrameSetFont(this.arrow, MENU_FONT, f32(0.021), 0);
