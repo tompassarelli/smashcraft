@@ -13,6 +13,7 @@ import { Action, bit } from "../src/game/input/actions";
 import { requestStageSelect, requestStart, selectCharacter, selectStage, setParticipants } from "../src/game/match/rules";
 import { FLOOR_HEIGHT } from "../src/game/presentation/arenaCamera";
 import { CANNON_MODEL } from "../src/game/presentation/stageHazards";
+import { deckModel } from "../src/game/presentation/stagePreload";
 import { STAGE_CATALOG } from "../src/game/menu/stageCatalog";
 import { stageScenery } from "../src/game/presentation/stageScenery";
 import { modelReach } from "wisp/scripts/wisp/models";
@@ -145,8 +146,10 @@ test("development build: a match's scene report shows the stage and declares eve
   clients.frames(30);
   const client = clients.clients[0];
   if (client === undefined) throw new Error("missing host client");
+  let mainDeck = "";
   client.run(() => {
     const s = shell();
+    mainDeck = deckModel(s.game.stageChoice, 0);
     selectCharacter(s.game, 0, Character.demonHunter);
     selectCharacter(s.game, 1, Character.rifleman);
     expect(requestStageSelect(s.game, 0)).toBe(true);
@@ -161,7 +164,7 @@ test("development build: a match's scene report shows the stage and declares eve
   const declared = new Set(SMASHCRAFT_SCENE.kinds.flatMap(({ models }) => models.map((model) => model.replaceAll("\\", "/"))));
   expect(report.models.filter(({ model }) => !declared.has(model)).map(({ model }) => model)).toEqual([]);
   expect(report.effects).toBeGreaterThan(200);
-  expect(report.models.find(({ model }) => model === reportedModel(STAGE_MAIN_DECK_MODEL))).toMatchObject({ live: 1, inView: 1, drawn: 1 });
+  expect(report.models.find(({ model }) => model === reportedModel(mainDeck))).toMatchObject({ live: 1, inView: 1, drawn: 1 });
   expect(client.errors).toEqual([]);
 });
 
@@ -221,7 +224,7 @@ test("moving decks are visible and their effects follow the presented match fram
         trampoline("scene.report")();
         const report = sceneReport(client);
         expect(sceneProblems(report, SMASHCRAFT_SCENE)).toEqual([]);
-        expect(report.models.find(({ model }) => model === reportedModel(STAGE_DECK_MODEL))).toMatchObject({ live: stage === DRIFTING_DECK_STAGE ? 1 : 2, drawn: stage === DRIFTING_DECK_STAGE ? 1 : 2 });
+        expect(report.models.find(({ model }) => model === reportedModel(deckModel(stage, 1)))).toMatchObject({ live: stage === DRIFTING_DECK_STAGE ? 1 : 2, drawn: stage === DRIFTING_DECK_STAGE ? 1 : 2 });
       }
     });
     expect(client.errors).toEqual([]);

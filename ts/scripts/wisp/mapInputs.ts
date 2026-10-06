@@ -11,7 +11,7 @@ import * as frostModels from "../../src/game/assets/frostAssetInfo";
 import * as impactModels from "../../src/game/assets/impactAssetInfo";
 import { type ModelSoundCue, fighterSoundCue, fighterSoundCueCount, modelSoundLabel } from "../../src/game/assets/modelSoundInfo";
 import * as shieldModels from "../../src/game/assets/shieldAssetInfo";
-import { STAGE_DECK_MODEL, STAGE_MAIN_DECK_MODEL, STAGE_SNOW_MODEL } from "../../src/game/assets/stageAssetInfo";
+import { STAGE_DECK_MODELS, STAGE_SNOW_MODEL } from "../../src/game/assets/stageAssetInfo";
 import { DEMON_HUNTER_MODEL_FILE } from "../../src/game/presentation/demonHunterAssetInfo";
 import { ARCHER_MODEL_FILE, RIFLEMAN_MODEL_FILE } from "../../src/game/presentation/fighterAssetInfo";
 import { SUMMON_BEAR, summonClip, summonClipCount } from "../../src/game/presentation/summonClipInfo";
@@ -72,7 +72,7 @@ const importLines = (path: string) =>
  * under --assets must hold them, and its generator writes both.
  */
 export const GENERATED_MODELS: readonly { readonly list: string; readonly generator: string; readonly models: readonly string[] }[] = [
-  { list: "stage-assets/imports.txt", generator: "tools/stage/package.ts", models: [STAGE_MAIN_DECK_MODEL, STAGE_DECK_MODEL, STAGE_SNOW_MODEL] },
+  { list: "stage-assets/imports.txt", generator: "tools/stage/package.ts", models: [...Object.values(STAGE_DECK_MODELS).flatMap(({ main, slab }) => [main, slab]), STAGE_SNOW_MODEL] },
   { list: "impact-assets/imports.txt", generator: "tools/effects/package.ts", models: Object.values(impactModels) },
   { list: "impact-assets/frost-imports.txt", generator: "tools/effects/trap.ts", models: Object.values(frostModels) },
   { list: "impact-assets/shield-imports.txt", generator: "tools/effects/shield.ts", models: Object.values(shieldModels) },

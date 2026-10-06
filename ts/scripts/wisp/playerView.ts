@@ -17,8 +17,8 @@ import {
   IMPACT_MISS_MODEL, IMPACT_RESPAWN_MODEL, IMPACT_ROLL_MODEL, IMPACT_SHIELD_MODEL, IMPACT_TECH_MODEL,
 } from "../../src/game/assets/impactAssetInfo";
 import { SHIELD_P1_MODEL, SHIELD_P2_MODEL, SHIELD_P3_MODEL, SHIELD_P4_MODEL } from "../../src/game/assets/shieldAssetInfo";
-import { STAGE_DECK_MODEL, STAGE_MAIN_DECK_MODEL } from "../../src/game/assets/stageAssetInfo";
-import { STAGE_PALETTE } from "../../src/game/assets/stagePalette";
+import { STAGE_DECK_MODELS } from "../../src/game/assets/stageAssetInfo";
+import { STAGE_DECK_PALETTES } from "../../src/game/assets/stagePalette";
 import { DEMON_HUNTER_MODEL_FILE } from "../../src/game/presentation/demonHunterAssetInfo";
 import { ARCHER_MODEL_FILE, RIFLEMAN_MODEL_FILE } from "../../src/game/presentation/fighterAssetInfo";
 import { ARENA_CAMERA, FLOOR_HEIGHT, arenaFraming } from "../../src/game/presentation/arenaCamera";
@@ -75,7 +75,7 @@ export const SMASHCRAFT_SCENE: SceneExpectations & { readonly settledFrame: numb
   // Half a second into the match the decks are drawn and the camera has framed the fighters.
   settledFrame: 30,
   kinds: [
-    { name: "stage deck", models: [STAGE_MAIN_DECK_MODEL, STAGE_DECK_MODEL] },
+    { name: "stage deck", models: Object.values(STAGE_DECK_MODELS).flatMap(({ main, slab }) => [main, slab]) },
     { name: "stage cannon", models: [CANNON_MODEL] },
     { name: "stage scenery", models: [...new Set(STAGE_CATALOG.flatMap(({ id }) => stageScenery(id).pieces.map(({ model }) => model)))] },
     { name: "pooled fighter", models: fighterModels },
@@ -123,7 +123,7 @@ const SKY = { top: 0, bottom: 0.4, left: 0, right: 1 };
  */
 const STAGE_BAND = { top: 0.45, bottom: 0.71, left: 0, right: 1 };
 /** The deck's front faces; its slate top is too close to the sky and clouds to tell apart. */
-const DECK_COLORS = [STAGE_PALETTE.charcoal, STAGE_PALETTE.steel, STAGE_PALETTE.brass];
+const DECK_COLORS = STAGE_DECK_PALETTES.flatMap(({ palette }) => [palette.body, palette.underside, palette.lip]);
 const DECK_TOLERANCE = 40;
 /** A deck run spans at least a fifth of the frame; fighters, effects and HUD text are narrower. */
 const DECK_RUN = 0.2;

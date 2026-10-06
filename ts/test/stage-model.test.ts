@@ -1,7 +1,8 @@
 import { expect, test } from "bun:test";
-import { MAIN_DECK_HALF_DEPTH, STAGE_PALETTE_TEXTURE, type DeckFace, type OutlinePoint, mainDeckFaces, mainDeckMdl, mainDeckModelFile } from "../scripts/stageDeck";
+import { MAIN_DECK_HALF_DEPTH, STAGE_PALETTE_TEXTURE, type DeckFace, type OutlinePoint, mainDeckFaces, mainDeckMdl, mainDeckModelFile, paletteTexture } from "../scripts/stageDeck";
 import { MODEL_FACTS } from "../scripts/wisp/modelFacts";
-import { STAGE_MAIN_DECK_MODEL } from "../src/game/assets/stageAssetInfo";
+import { STAGE_DECK_MODELS, STAGE_MAIN_DECK_MODEL } from "../src/game/assets/stageAssetInfo";
+import { STAGE_DECK_PALETTES } from "../src/game/assets/stagePalette";
 import { MAIN_DECK_BODY_SURFACES, mainDeckLeft, mainDeckRight, mainDeckZ, solidSurfaceAt } from "../src/game/sim/stage";
 
 /** The stages a match can select; all draw the same main deck model. */
@@ -66,6 +67,9 @@ const area = (points: readonly OutlinePoint[]) => Math.abs(points.reduce((sum, [
 
 test("the map ships the main deck model drawn from the collision", () => {
   expect(STAGE_MAIN_DECK_MODEL).toBe(`war3mapImported\\${mainDeckModelFile(mainDeckMdl(MAIN_DECK, STAGE_PALETTE_TEXTURE.name))}`);
+  for (const { stage, palette } of STAGE_DECK_PALETTES) {
+    expect(STAGE_DECK_MODELS[stage]?.main).toBe(`war3mapImported\\${mainDeckModelFile(mainDeckMdl(MAIN_DECK, paletteTexture(palette).name))}`);
+  }
 });
 
 test("the main deck model's outline is the main deck's collision lines on every shipped stage", () => {

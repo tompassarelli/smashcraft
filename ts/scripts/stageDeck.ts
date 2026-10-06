@@ -4,7 +4,7 @@
 // smashcraft:ts/src/game/sim/stage.ts, as one outline extruded through the
 // deck's depth. Plain data and MDL text, so the logic tests check the model
 // against the collision lines without the model compiler.
-import { STAGE_PALETTE } from "../src/game/assets/stagePalette";
+import { type DeckPalette, STAGE_DECK_PALETTES } from "../src/game/assets/stagePalette";
 import { SurfaceContact } from "../src/game/sim/codes";
 import { MAIN_DECK_BODY_SURFACES, mainDeckLeft, mainDeckRight, mainDeckZ, solidSurfaceAt } from "../src/game/sim/stage";
 
@@ -13,23 +13,27 @@ export type OutlinePoint = readonly [x: number, z: number];
 
 const hash = (bytes: Uint8Array | string) => new Bun.CryptoHasher("sha256").update(bytes).digest("hex");
 
-/** One texel per material, in material order: slate walking surface, brass lip, charcoal body, recessed steel. */
-const MATERIAL_COLORS = [STAGE_PALETTE.slate, STAGE_PALETTE.brass, STAGE_PALETTE.charcoal, STAGE_PALETTE.steel];
+/** Material order of the palette texels: walking surface, lip, body, recessed underside. */
 const DeckMaterial = { slate: 0, brass: 1, charcoal: 2, steel: 3 } as const;
 type DeckMaterial = (typeof DeckMaterial)[keyof typeof DeckMaterial];
+const MATERIALS = 4;
 
-/** The decks' palette texture, an uncompressed TGA, its content-addressed name, and the texture coordinate of each material's texel. */
-export const STAGE_PALETTE_TEXTURE = (() => {
-  const bytes = new Uint8Array(18 + MATERIAL_COLORS.length * 4);
+/** A deck palette's texture, an uncompressed TGA, its content-addressed name, and the texture coordinate of each material's texel. */
+export function paletteTexture(palette: DeckPalette) {
+  const colors = [palette.top, palette.lip, palette.body, palette.underside];
+  const bytes = new Uint8Array(18 + MATERIALS * 4);
   bytes[2] = 2;
-  bytes[12] = MATERIAL_COLORS.length;
+  bytes[12] = MATERIALS;
   bytes[14] = 1;
   bytes[16] = 32;
   bytes[17] = 0x28;
-  MATERIAL_COLORS.forEach(([r, g, b], i) => bytes.set([b, g, r, 255], 18 + i * 4));
-  const coordinate = (material: DeckMaterial): readonly [u: number, v: number] => [(material + 0.5) / MATERIAL_COLORS.length, 0.5];
+  colors.forEach(([r, g, b], i) => bytes.set([b, g, r, 255], 18 + i * 4));
+  const coordinate = (material: DeckMaterial): readonly [u: number, v: number] => [(material + 0.5) / MATERIALS, 0.5];
   return { bytes, name: `StagePalette-${hash(bytes)}.tga`, coordinate };
-})();
+}
+
+/** The neutral palette's texture. */
+export const STAGE_PALETTE_TEXTURE = paletteTexture(STAGE_DECK_PALETTES[0]!.palette);
 
 type OutlineKind = "floor" | "wall" | "ceiling";
 
