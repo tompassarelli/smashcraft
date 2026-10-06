@@ -13,6 +13,7 @@ import { advanceHeroStatus, regenerateMana } from "./heroSpecialRules";
 import { type AuthoredSpecial, type FighterSpecials, ROSTER_MANA, frames } from "./heroSpecials";
 import { HERO_ROSTER, SELECTABLE_CHARACTERS, isSelectableCharacter, nextSelectableCharacter, selectableCharactersOf } from "./heroes/registry";
 import { updateProjectiles } from "./projectiles";
+import { FROZEN_THRONE_STAGE, SOLID_DECK_TEST_STAGE, surfaceCount, surfaceLeft, surfacePass, surfaceRight, surfaceZ } from "./stage";
 import { type Controls, type Roster, createRoster } from "./roster";
 import { advanceSpecials, startFighterSpecial } from "./specials";
 import { advanceFighter } from "./step";
@@ -53,7 +54,7 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), second: Re
   for (let slot = 0; slot < 2; slot++) startFighterSpecial(world.fighters[slot]!, 0, 0, inputs[slot] ?? controls());
   resolveAttacks(world);
   advanceSpecials(world, 0, 0);
-  updateProjectiles(world);
+  updateProjectiles(world, 0, 0);
   finishDamageContacts(world);
   for (let slot = 0; slot < 2; slot++) {
     regenerateMana(world.fighters[slot]!);
@@ -260,4 +261,40 @@ test("a hero special's hurt poses replace the body on their frames only", () => 
   assertEquals(fighterHurtParts(owner).length, 1);
   assertEquals(strikeHurtContact(strike, owner), HurtContact.none);
   void target;
+});
+
+test("hero projectiles end on walls, undersides and solid deck tops, and pass through pass decks", () => {
+  const owner = hero(-100.0, 1);
+  const target = createFighter(Character.archer, 2000.0, -1);
+  const world = createRoster(3, [owner, target]);
+  const launch = (x: number, z: number, velocityX: number, velocityZ: number) => {
+    const projectile = owner.projectiles[0]!;
+    Object.assign(projectile, { life: 30, kind: ProjectileKind.hero, spec: NEUTRAL.projectiles![0], x, z, velocityX, velocityZ, direction: 1 });
+    return projectile;
+  };
+  const down = launch(0.0, 20.0, 0.0, -30.0);
+  updateProjectiles(world, 0, 0);
+  assertEquals(down.life, 0);
+  const wall = launch(700.0, -60.0, -40.0, 0.0);
+  updateProjectiles(world, 0, 0);
+  updateProjectiles(world, 0, 0);
+  assertEquals(wall.life, 28);
+  updateProjectiles(world, 0, 0);
+  assertEquals(wall.life, 0);
+  const level = launch(-500.0, 60.0, 30.0, 0.0);
+  for (let f = 0; f < 10; f++) updateProjectiles(world, 0, 0);
+  assertEquals(level.life, 20);
+  let passDecks = 0;
+  for (const [stage, pass] of [[FROZEN_THRONE_STAGE, true], [SOLID_DECK_TEST_STAGE, false]] as const) {
+    for (let deck = 1; deck < surfaceCount(stage); deck++) {
+      assertEquals(surfacePass(stage, deck), pass);
+      passDecks++;
+      const top = surfaceZ(stage, deck, 0);
+      const through = launch(f32(f32(surfaceLeft(stage, deck, 0) + surfaceRight(stage, deck, 0)) * 0.5), f32(top + 10.0), 0.0, -20.0);
+      updateProjectiles(world, stage, 0);
+      assertEquals(through.life, pass ? 29 : 0);
+      through.life = 0;
+    }
+  }
+  assertEquals(passDecks, 5);
 });
