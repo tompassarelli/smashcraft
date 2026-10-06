@@ -308,8 +308,12 @@ function selectGrabClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly
   const key = `grab${action}:${serial}${victim ? ":victim" : ":holder"}`;
   if (pose.animation !== key) {
     if (illidanEscape) selectFighterClipIndex(pose, dh.DEMON_HUNTER_GRAB_ESCAPE_INDEX);
-    else if (action === GrabAction.escape) selectFighterClipName(pose, "stand ready");
-    else selectFighterClipIndex(pose, grabClipIndex(f.character, action, victim));
+    else if (action === GrabAction.escape) {
+      // A table that maps a stance plays it by index; the originals play the named clip.
+      const stance = clips.characterClips(f.character).idle;
+      if (stance === undefined) selectFighterClipName(pose, "stand ready");
+      else selectFighterClipIndex(pose, stance.index);
+    } else selectFighterClipIndex(pose, grabClipIndex(f.character, action, victim));
     pose.animation = key;
   }
   if (illidanEscape) return clipRate(dh.DEMON_HUNTER_GRAB_ESCAPE_SECONDS, grabActionDuration(action, f.tuning.moves));

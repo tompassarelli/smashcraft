@@ -88,6 +88,8 @@ const RIFLEMAN_CLIPS: HeroClipTable = {
   damageAir: clip(assets.RIFLEMAN_DAMAGE_AIR_INDEX, assets.RIFLEMAN_DAMAGE_AIR_SECONDS),
   damageTumble: clip(assets.RIFLEMAN_DAMAGE_TUMBLE_INDEX, assets.RIFLEMAN_DAMAGE_TUMBLE_SECONDS),
   damageShield: clip(assets.RIFLEMAN_DAMAGE_SHIELD_INDEX, assets.RIFLEMAN_DAMAGE_SHIELD_SECONDS),
+  // Rifleman has no "Stand Hit": a broken shield reels as from a shield hit and holds there.
+  dizzy: clip(assets.RIFLEMAN_DAMAGE_SHIELD_INDEX, assets.RIFLEMAN_DAMAGE_SHIELD_SECONDS),
   grabHold: clip(assets.RIFLEMAN_GRAB_HOLD_INDEX, assets.RIFLEMAN_GRAB_HOLD_SECONDS),
   grabbed: clip(assets.RIFLEMAN_GRABBED_INDEX, assets.RIFLEMAN_GRABBED_SECONDS),
   pummel: clip(assets.RIFLEMAN_PUMMEL_INDEX, assets.RIFLEMAN_PUMMEL_SECONDS),

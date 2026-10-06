@@ -33,10 +33,10 @@ import { MODEL_FACTS } from "./modelFacts";
 
 const FRAMES_PER_SECOND = 60;
 const seconds = (value: number) => value * FRAMES_PER_SECOND;
-const CHARACTERS = [Character.archer, Character.rifleman, Character.demonHunter];
+const CHARACTERS = Object.values(Character);
 const range = (count: number) => Array.from({ length: count }, (_, index) => index);
 
-/** Each pooled fighter's clip models and its light, which follow the fighter all match. */
+/** Each pooled fighter's clip models and its light, which follow the fighter all match; heroes included. */
 const fighterModels = CHARACTERS.flatMap((character) => [
   ...range(originalClipCount(character)).flatMap((index) => originalClip(character, index)?.modelPath ?? []),
   ...[originalLightPath(character) ?? []].flat(),

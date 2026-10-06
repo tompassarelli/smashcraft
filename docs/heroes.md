@@ -152,12 +152,20 @@ The shared contracts are in `ts/src/game/sim/heroSpecials.tests.ts`.
 
 ## Presentation
 
-- A hero draws with its fighter unit, made from its own object (base `earc`,
-  like the original fighters, so no hero icon or experience bar shows) with
-  the hero's stock model. The unit plays each clip by sequence index
-  (`SetUnitAnimationByIndex`): an animation name picks at random among
-  same-named variants, and this game build has no by-index special-effect
-  native, so the original fighters' effect pool is not used for heroes.
+- In the playable build (pooled presentation) a hero draws from its clip
+  pool like the original fighters: one model per sequence of its stock
+  classic model, so a clip index selects that exact sequence.
+  smashcraft:tools/animations/export-original-clips.ts exports a pool for
+  every hero in `HERO_ROSTER` (extracting the stock model from the game's
+  archives with `--extractor`/`--storage`) and regenerates
+  `assets/fighterOriginalClipInfo.ts`; rerun it when a hero is added.
+  smashcraft:ts/src/game/render/fighterPool.tests.ts fails a selectable
+  fighter without a pool, or whose table names a sequence its pool lacks.
+- Without a pool a hero draws with its fighter unit, made from its own object
+  (base `earc`, like the original fighters, so no hero icon or experience bar
+  shows) with the hero's stock model. The unit plays each clip by sequence
+  index (`SetUnitAnimationByIndex`): an animation name picks at random among
+  same-named variants.
 - `presentation.clips` is a `HeroClipTable` (`sim/heroes/hero.ts`): pose to
   `{ index, seconds }`. Pose selection (`presentation/fighterPose.ts`) fits
   `seconds` to the action's frames. The original fighters fill the same table

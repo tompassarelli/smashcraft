@@ -645,7 +645,11 @@ smashcraft:tools/animations/export-original-clips.ts reads them from
 fighter's static light and their evidence to `--out` outside the checkout, and
 writes smashcraft:ts/src/game/assets/fighterOriginalClipInfo.ts; with
 `--metadata-only` it checks retained clips against the current sources and
-writes only the module. smashcraft:tools/animations/export-model-sounds.ts
+writes only the module; with `--keep-unchanged` it keeps `--out`'s retained
+clips for fighters whose source is unchanged and exports the rest. Heroes'
+sources are their stock classic models under `--assets`'s hero-models, which
+`--extractor CASC_EXTRACT --storage WARCRAFT_DIR` extracts when missing; a
+track on a global animation clock (the heroes' blinks) keeps all its keys. smashcraft:tools/animations/export-model-sounds.ts
 resolves each model sound event through the game's AnimSounds.slk (`--sounds`)
 and writes smashcraft:ts/src/game/assets/modelSoundInfo.ts. The build fails
 unless `--assets`'s original-clips-static-lights/original-clips-evidence.json

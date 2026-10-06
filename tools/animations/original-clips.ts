@@ -3,13 +3,28 @@
 import {parseMDX, generateMDX, model as mdx} from 'war3-model';
 import {isDeepStrictEqual} from 'node:util';
 import {renumberNodes} from '../../ts/scripts/clipNodes';
+import {HERO_ROSTER} from '../../ts/src/game/sim/heroes/registry';
 
-/** Each fighter's original model under the private assets directory, in Character order. */
-export const fighters = [
+/** A stock model as the clients draw it (classic graphics), in the game's archives. */
+export const stockModelPath = (model: string) => `war3.w3mod:${model.replaceAll('\\', '/').toLowerCase().replace(/\.mdl$/, '.mdx')}`;
+
+/**
+ * Each fighter's original model under the private assets directory, in
+ * Character order: the original three, then every registered hero's stock
+ * model, which `stock` names in the game's archives.
+ */
+export const fighters: readonly {readonly name: string, readonly source: string, readonly stock?: string}[] = [
     {name: 'Archer', source: 'animation-assets/ArcherFighter.mdx'},
     {name: 'Rifleman', source: 'animation-assets/RiflemanFighter.mdx'},
     {name: 'Illidan', source: 'illidan-animation/DemonHunterFighter.mdx'},
-] as const;
+    ...HERO_ROSTER.toSorted((a, b) => a.character - b.character).map(hero => ({
+        name: hero.name.replaceAll(/[^A-Za-z]/g, ''),
+        source: `hero-models/${stockModelPath(hero.presentation.model).split('/').at(-1)}`,
+        stock: stockModelPath(hero.presentation.model),
+    })),
+];
+fighters.forEach((fighter, index) => ensure(index < 3 || HERO_ROSTER.some(hero => hero.character === index),
+    `${fighter.name}: hero Character codes must follow the original three without gaps`));
 export function ensure(ok: unknown, why: string): asserts ok { if (!ok) throw new Error(why); }
 export const hash = (bytes: ArrayBuffer) => new Bun.CryptoHasher('sha256').update(new Uint8Array(bytes)).digest('hex');
 
@@ -19,6 +34,13 @@ export function tracks(value: unknown, visit: (track: mdx.AnimVector, path: stri
     // Nodes aliases Bones, Helpers, etc.; visiting it would transform each node twice.
     for (const [key, child] of Object.entries(value)) if (key !== 'Nodes') tracks(child, visit, `${path}.${key}`);
 }
+
+/**
+ * A track on a global animation clock (the stock heroes' blinks and glows)
+ * runs on its own time, not the sequence's, so a clip keeps all its keys.
+ */
+export const onGlobalClock = (track: mdx.AnimVector) =>
+    track.GlobalSeqId != null && track.GlobalSeqId !== -1 && track.GlobalSeqId !== 0xffffffff;
 
 export function bounds(items: mdx.GeosetAnimInfo[]) {
     ensure(items.length > 0, 'Cannot union empty extents');
@@ -175,9 +197,8 @@ export function originalBodyClip(source: mdx.Model, sequenceIndex: number, mode:
     const omitEmptyTracks = mode === 'compact';
     ensure(Number.isInteger(sequenceIndex) && sequenceIndex >= 0 && sequenceIndex < source.Sequences.length,
         `Invalid original sequence index ${sequenceIndex}`);
-    ensure(source.GlobalSequences.length === 0, 'Original clip replay does not support global animation clocks');
-    tracks(source, (track, path) => ensure(track.GlobalSeqId == null || track.GlobalSeqId === -1 || track.GlobalSeqId === 0xffffffff,
-        `${path}: original clip replay does not support a global track`));
+    tracks(source, (track, path) => ensure(!onGlobalClock(track) || (track.GlobalSeqId ?? 0) < source.GlobalSequences.length,
+        `${path}: names a missing global animation clock`));
     const model = structuredClone(source);
     const omittedEffects = removeBodyEffects(model);
     const sequence = model.Sequences[sequenceIndex];
@@ -196,7 +217,7 @@ export function originalBodyClip(source: mdx.Model, sequenceIndex: number, mode:
         trackCount++;
         // Zero-key chunks fail the native compact probe. Keep them only in the
         // named diagnostic; normal compact assets omit emptied channels.
-        if (trimKeys) track.Keys = track.Keys.filter(key => key.Frame >= start && key.Frame <= end);
+        if (trimKeys && !onGlobalClock(track)) track.Keys = track.Keys.filter(key => key.Frame >= start && key.Frame <= end);
         retainedKeys += track.Keys.length;
         if (!track.Keys.length) emptyTracks.push(path);
         if (omitEmptyTracks && sourceKeyCount > 0 && !track.Keys.length) {
@@ -210,7 +231,10 @@ export function originalBodyClip(source: mdx.Model, sequenceIndex: number, mode:
                 // writes that backing scalar as 1 for animated Alpha; sources
                 // admitted by parseSource round-trip that exact stored value.
                 Reflect.set(owner, property, 1);
-            } else if (/^\.(Bones|Helpers)\.\d+\.(Translation|Rotation|Scaling)$/.test(path)) {
+            } else if (/^\.GeosetAnims\.\d+\.Color$/.test(path)) {
+                // Likewise GEOA's static Color, written as white for animated Color.
+                Reflect.set(owner, property, new Float32Array([1, 1, 1]));
+            } else if (/^\.(Bones|Helpers|Attachments|CollisionShapes)\.\d+\.(Translation|Rotation|Scaling)$/.test(path)) {
                 ensure(Reflect.deleteProperty(owner, property), `${path}: cannot omit emptied track`);
             } else if (/^\.Attachments\.\d+\.Visibility$/.test(path)) {
                 // ATCH visibility has no serialized backing scalar. Absent KATV
@@ -228,7 +252,7 @@ export function originalBodyClip(source: mdx.Model, sequenceIndex: number, mode:
     const bodySource = structuredClone(source);
     removeBodyEffects(bodySource);
     tracks(bodySource, (track, path) => {
-        const Keys = trimKeys ? track.Keys.filter(key => key.Frame >= start && key.Frame <= end) : track.Keys;
+        const Keys = trimKeys && !onGlobalClock(track) ? track.Keys.filter(key => key.Frame >= start && key.Frame <= end) : track.Keys;
         if (!omitEmptyTracks || Keys.length) expectedTracks.set(path, {...track, Keys});
     });
     const retainedTracks = new Map<string, mdx.AnimVector>();
