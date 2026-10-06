@@ -1,5 +1,6 @@
 import { f32 } from "wisp/src/sim/f32";
-import { AttackStyle, GrabAction, HitElement } from "../codes";
+import { hurtCapsule } from "../../physics/contactGeometry";
+import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion, type FighterMoves, type StrikeCapsule } from "../heroMoves";
 import { type FighterHurtboxes, type HurtPart, hurtPart } from "../hurtboxes";
 import type { HitEffect } from "../hitRegions";
@@ -74,8 +75,7 @@ const GRAB_CONTACT = { damage: 0.0, growth: 0.0, base: 0.0, launchX: 0.0, launch
 // drives each strike, from late startup through early recovery. Hammer head,
 // handle and axe blade stay outside, so only weapon reach is disjoint; the
 // kick, boots, headbutt and body checks carry their own hurt volume.
-const BODY_RADIUS = f32(24.0 * f32(1.10));
-const BODY = hurtPart(0.0, 4.0, 0.0, f32(f32(4.0 + f32(HERO_REFERENCE_HEIGHT * f32(0.85))) - f32(2.0 * BODY_RADIUS)), BODY_RADIUS);
+const BODY: HurtPart = hurtCapsule(Character.mountainKing);
 const ARM = 10.0;
 const LEG = 12.0;
 const limb = (first: number, last: number, ...parts: HurtPart[]) => heroHurtPose(first, last, [BODY, ...parts]);
