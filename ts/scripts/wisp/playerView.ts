@@ -25,7 +25,7 @@ import { ARENA_CAMERA, FLOOR_HEIGHT, arenaFraming } from "../../src/game/present
 import { SUMMON_BEAR, summonClip, summonClipCount } from "../../src/game/presentation/summonClipInfo";
 import { CANNON_MODEL } from "../../src/game/presentation/stageHazards";
 import { Character } from "../../src/game/sim/codes";
-import { BLAST_ZONE_BOTTOM, BLAST_ZONE_SIDE, BLAST_ZONE_TOP } from "../../src/game/sim/stocks";
+import { stageBounds } from "../../src/game/sim/stageBounds";
 import { stageScenery } from "../../src/game/presentation/stageScenery";
 import { MODEL_FACTS } from "./modelFacts";
 
@@ -54,10 +54,10 @@ const spans = (low: number, high: number) => {
  * camera 592 to its right (05266a3), where 70 degrees across the width
  * predicts 274 and 70 degrees down its height 434. The clients run 16:9.
  */
-const ARENA_CAMERAS: readonly CameraView[] = spans(-BLAST_ZONE_SIDE, BLAST_ZONE_SIDE).flatMap(([left, right]) =>
-  spans(BLAST_ZONE_BOTTOM, BLAST_ZONE_TOP).map(([bottom, top]) => {
-    const { x, z, distance } = arenaFraming(left, right, bottom, top);
-    return { target: [x, 0, z], distance, angleOfAttack: ARENA_CAMERA.angleOfAttack, rotation: ARENA_CAMERA.rotation, fieldOfView: ARENA_CAMERA.fieldOfView, aspect: 16 / 9, farZ: ARENA_CAMERA.farZ };
+const ARENA_CAMERAS: readonly CameraView[] = spans(stageBounds(0).blast.left, stageBounds(0).blast.right).flatMap(([left, right]) =>
+  spans(stageBounds(0).blast.bottom, stageBounds(0).blast.top).map(([bottom, top]) => {
+    const { x, z, distance, fieldOfView } = arenaFraming(left, right, bottom, top);
+    return { target: [x, 0, z], distance, angleOfAttack: ARENA_CAMERA.angleOfAttack, rotation: ARENA_CAMERA.rotation, fieldOfView, aspect: 16 / 9, farZ: ARENA_CAMERA.farZ };
   }));
 
 /**

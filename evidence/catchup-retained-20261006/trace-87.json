@@ -1,0 +1,312 @@
+{
+  "revision": "89abaf3c",
+  "summary": [
+    {
+      "from": 1,
+      "through": 97,
+      "count": 176,
+      "predictedLagMin": 0,
+      "predictedLagMax": 0,
+      "confirmedLagMax": 20
+    },
+    {
+      "from": 98,
+      "through": 139,
+      "count": 84,
+      "predictedLagMin": 0,
+      "predictedLagMax": 102,
+      "confirmedLagMax": 126
+    },
+    {
+      "from": 140,
+      "through": 202,
+      "count": 102,
+      "predictedLagMin": 0,
+      "predictedLagMax": 0,
+      "confirmedLagMax": 20
+    },
+    {
+      "from": 203,
+      "through": 240,
+      "count": 0,
+      "predictedLagMin": null,
+      "predictedLagMax": null,
+      "confirmedLagMax": null
+    }
+  ],
+  "findings": [
+    {
+      "kind": "catch-up",
+      "frame": 240,
+      "text": "the game fell 1.9 s behind real time and kept falling for 3 s (worst client frame 13.6 ms measured)"
+    }
+  ],
+  "frames": 251,
+  "wallMs": 6124.976671000041,
+  "checksums": [
+    "-2049994866",
+    "-2049994866"
+  ],
+  "samples": [
+    {
+      "callback": 97,
+      "wallMs": 1600.0000000000016,
+      "slot": 0,
+      "confirmed": 74,
+      "confirmedLag": 14,
+      "predicted": 88,
+      "predictedLag": 0,
+      "over": false
+    },
+    {
+      "callback": 97,
+      "wallMs": 1600.0000000000016,
+      "slot": 1,
+      "confirmed": 74,
+      "confirmedLag": 14,
+      "predicted": 88,
+      "predictedLag": 0,
+      "over": false
+    },
+    {
+      "callback": 98,
+      "wallMs": 3350.6666666666683,
+      "slot": 0,
+      "confirmed": 74,
+      "confirmedLag": 118,
+      "predicted": 94,
+      "predictedLag": 98,
+      "over": false
+    },
+    {
+      "callback": 98,
+      "wallMs": 3350.6666666666683,
+      "slot": 1,
+      "confirmed": 74,
+      "confirmedLag": 118,
+      "predicted": 92,
+      "predictedLag": 100,
+      "over": false
+    },
+    {
+      "callback": 103,
+      "wallMs": 3437.6270693333345,
+      "slot": 0,
+      "confirmed": 80,
+      "confirmedLag": 118,
+      "predicted": 104,
+      "predictedLag": 94,
+      "over": false
+    },
+    {
+      "callback": 103,
+      "wallMs": 3437.6270693333345,
+      "slot": 1,
+      "confirmed": 80,
+      "confirmedLag": 118,
+      "predicted": 104,
+      "predictedLag": 94,
+      "over": false
+    },
+    {
+      "callback": 131,
+      "wallMs": 3967.0086706666725,
+      "slot": 0,
+      "confirmed": 184,
+      "confirmedLag": 46,
+      "predicted": 224,
+      "predictedLag": 6,
+      "over": false
+    },
+    {
+      "callback": 131,
+      "wallMs": 3967.0086706666725,
+      "slot": 1,
+      "confirmed": 184,
+      "confirmedLag": 46,
+      "predicted": 208,
+      "predictedLag": 22,
+      "over": false
+    },
+    {
+      "callback": 132,
+      "wallMs": 3983.675337333339,
+      "slot": 0,
+      "confirmed": 190,
+      "confirmedLag": 40,
+      "predicted": 230,
+      "predictedLag": 0,
+      "over": false
+    },
+    {
+      "callback": 132,
+      "wallMs": 3983.675337333339,
+      "slot": 1,
+      "confirmed": 190,
+      "confirmedLag": 40,
+      "predicted": 214,
+      "predictedLag": 16,
+      "over": false
+    },
+    {
+      "callback": 133,
+      "wallMs": 4000.3420040000055,
+      "slot": 0,
+      "confirmed": 196,
+      "confirmedLag": 36,
+      "predicted": 232,
+      "predictedLag": 0,
+      "over": false
+    },
+    {
+      "callback": 133,
+      "wallMs": 4000.3420040000055,
+      "slot": 1,
+      "confirmed": 196,
+      "confirmedLag": 36,
+      "predicted": 220,
+      "predictedLag": 12,
+      "over": false
+    },
+    {
+      "callback": 134,
+      "wallMs": 4026.5546340000064,
+      "slot": 0,
+      "confirmed": 202,
+      "confirmedLag": 30,
+      "predicted": 232,
+      "predictedLag": 0,
+      "over": false
+    },
+    {
+      "callback": 134,
+      "wallMs": 4026.5546340000064,
+      "slot": 1,
+      "confirmed": 202,
+      "confirmedLag": 30,
+      "predicted": 226,
+      "predictedLag": 6,
+      "over": false
+    },
+    {
+      "callback": 135,
+      "wallMs": 4043.221300666673,
+      "slot": 0,
+      "confirmed": 208,
+      "confirmedLag": 26,
+      "predicted": 234,
+      "predictedLag": 0,
+      "over": false
+    },
+    {
+      "callback": 135,
+      "wallMs": 4043.221300666673,
+      "slot": 1,
+      "confirmed": 208,
+      "confirmedLag": 26,
+      "predicted": 232,
+      "predictedLag": 2,
+      "over": false
+    },
+    {
+      "callback": 136,
+      "wallMs": 4059.8879673333395,
+      "slot": 0,
+      "confirmed": 214,
+      "confirmedLag": 20,
+      "predicted": 234,
+      "predictedLag": 0,
+      "over": false
+    },
+    {
+      "callback": 136,
+      "wallMs": 4059.8879673333395,
+      "slot": 1,
+      "confirmed": 214,
+      "confirmedLag": 20,
+      "predicted": 234,
+      "predictedLag": 0,
+      "over": false
+    },
+    {
+      "callback": 137,
+      "wallMs": 4076.554634000006,
+      "slot": 0,
+      "confirmed": 217,
+      "confirmedLag": 19,
+      "predicted": 236,
+      "predictedLag": 0,
+      "over": false
+    },
+    {
+      "callback": 137,
+      "wallMs": 4076.554634000006,
+      "slot": 1,
+      "confirmed": 217,
+      "confirmedLag": 19,
+      "predicted": 236,
+      "predictedLag": 0,
+      "over": false
+    },
+    {
+      "callback": 139,
+      "wallMs": 4109.8879673333395,
+      "slot": 0,
+      "confirmed": 226,
+      "confirmedLag": 12,
+      "predicted": 238,
+      "predictedLag": 0,
+      "over": false
+    },
+    {
+      "callback": 139,
+      "wallMs": 4109.8879673333395,
+      "slot": 1,
+      "confirmed": 226,
+      "confirmedLag": 12,
+      "predicted": 238,
+      "predictedLag": 0,
+      "over": false
+    },
+    {
+      "callback": 140,
+      "wallMs": 4130.310004333341,
+      "slot": 0,
+      "confirmed": 229,
+      "confirmedLag": 9,
+      "predicted": 238,
+      "predictedLag": 0,
+      "over": false
+    },
+    {
+      "callback": 140,
+      "wallMs": 4130.310004333341,
+      "slot": 1,
+      "confirmed": 229,
+      "confirmedLag": 9,
+      "predicted": 238,
+      "predictedLag": 0,
+      "over": false
+    },
+    {
+      "callback": 190,
+      "wallMs": 4963.643337666689,
+      "slot": 0,
+      "confirmed": 281,
+      "confirmedLag": 7,
+      "predicted": 288,
+      "predictedLag": 0,
+      "over": false
+    },
+    {
+      "callback": 190,
+      "wallMs": 4963.643337666689,
+      "slot": 1,
+      "confirmed": 281,
+      "confirmedLag": 7,
+      "predicted": 288,
+      "predictedLag": 0,
+      "over": false
+    }
+  ]
+}

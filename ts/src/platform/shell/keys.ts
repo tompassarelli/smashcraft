@@ -202,7 +202,10 @@ export function onProbeExport(s: ShellState): void {
 export function onDevCommand(s: ShellState): void {
   const message = GetEventPlayerChatString();
   let receipt: string | undefined;
-  if (message === QUICK_MATCH_COMMAND || message === FROZEN_THRONE_QUICK_COMMAND) {
+  if (message === "-dev camera") {
+    receipt = "dev: camera match";
+    startQuickMatch(s, 0, "camera");
+  } else if (message === QUICK_MATCH_COMMAND || message === FROZEN_THRONE_QUICK_COMMAND) {
     receipt = "dev: quick match";
     startQuickMatch(s, message === FROZEN_THRONE_QUICK_COMMAND ? 2 : 0);
   } else if (message.startsWith("-dev effects ")) {

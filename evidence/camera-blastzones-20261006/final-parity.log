@@ -1,0 +1,8 @@
+$ bun scripts/wisp.ts parity numeric
+   0.012 s  Lua32 rounding toward zero (0.002 s)
+stock Lua32: mismatches by result (+ - * / fma atan2 cos sin, then f32 + - *): []
+stock Lua32: 2000 cases, 22000 results, 0 mismatches
+toward-zero Lua32: mismatches by result (+ - * / fma atan2 cos sin, then f32 + - *): []
+toward-zero Lua32: 2000 cases, 22000 results, 0 mismatches
+   2.927 s  numeric Lua parity (2.925 s)
+   2.927 s  parity (2.927 s)

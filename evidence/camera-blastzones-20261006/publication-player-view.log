@@ -1,0 +1,21 @@
+bun test v1.3.13 (bf2e2cec)
+
+test/player-view.test.ts:
+(pass) Frozen Throne: a selectable match draws four platforms and the winter background without scene problems [358.01ms]
+(pass) winter meshes and drifting snow stay behind fighters, and fog starts beyond the fight in every declared camera [61.00ms]
+(pass) development build: a match's scene report shows the stage and declares every effect the match creates [43.00ms]
+(pass) moving decks are visible and their effects follow the presented match frame [100.00ms]
+(pass) every hazard stage shows its warning before acting and declares the cannon players see [155.00ms]
+(pass) the two shipped defects fail the scene check from the match's first report [5.00ms]
+(pass) a dust slot reused while shown is a new stay each use; a standing spark and a collapsed missile still fail [215.00ms]
+(pass) development build: -dev perf shows the typing player what the match's frames cost [92.00ms]
+(pass) a downward offscreen portrait and arrow stay entirely above the HUD at every supported aspect [100.00ms]
+(pass) every selectable stage keeps its camera inside the blast zones, shows every offscreen bubble and loses stocks outside the view at all supported aspects [730.01ms]
+(pass) a fighter within 100 of the main deck's underside shows above the HUD with the underside, wherever the others are [46.00ms]
+(pass) the underside scenario holds a fighter under the main deck, shown above the HUD with the underside, through fresh's frame 30 [33.00ms]
+(pass) in the underside scenario's match, a fighter rising into the main deck's underside meets it with its ECB top and none of it inside the deck [25.00ms]
+
+ 13 pass
+ 0 fail
+ 47555 expect() calls
+Ran 13 tests across 1 file. [2.24s]

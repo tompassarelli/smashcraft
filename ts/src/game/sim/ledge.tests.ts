@@ -1,3 +1,4 @@
+import { stageBounds } from "./stageBounds";
 // Ledge catches, contention, hang options and their protection.
 import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
@@ -402,7 +403,7 @@ test("ledge hits and grabs interrupt, and a respawn clears ledge ownership", () 
         if (mode === 0) assertGreaterThan(fighter.launch.hitstun, 0);
         else assertEquals(fighter.grab.grabbedFrames, grabHoldFrames(fighter.status.damage));
       } else {
-        fighter.motion.z = -421.0;
+        fighter.motion.z = (stageBounds(0).blast.bottom - 1.0);
         advanceSolo(fighter, 0, input, 0.0);
         assertEquals(fighter.status.stocks, 2);
         assertEquals(fighter.ledge.state, LedgeState.none);

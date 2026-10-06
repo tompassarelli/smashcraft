@@ -11,6 +11,9 @@ import type { LocalNatives } from "wisp/src/headless/client";
 export const SMASHCRAFT_LOCAL_NATIVES: LocalNatives = {
   BlzGetLocalClientWidth: "local screen size, for layout",
   BlzGetLocalClientHeight: "local screen size, for layout",
+  SetCameraBounds: "frames this client's camera for its screen aspect",
+  SetCameraField: "frames this client's camera for its screen aspect",
+  SetCameraPosition: "frames this client's camera for its screen aspect",
   BlzGetMouseScreenPosX: "local pointer, sent through sync data when it chooses",
   BlzGetMouseScreenPosY: "local pointer, sent through sync data when it chooses",
   BlzIsMouseButtonPressed: "local pointer, sent through sync data when it chooses",
@@ -46,7 +49,6 @@ const PREDICTED_PRESENTATION: LocalNatives = {
     "BlzSetSpecialEffectColorByPlayer", "BlzSetSpecialEffectMatrixScale", "BlzSetSpecialEffectPitch", "BlzSetSpecialEffectPosition",
     "BlzSetSpecialEffectRoll", "BlzSetSpecialEffectScale", "BlzSetSpecialEffectTime", "BlzSetSpecialEffectTimeScale", "BlzSetSpecialEffectYaw",
   ].map((name) => [name, "poses an existing effect from this client's prediction"])),
-  ...Object.fromEntries(["SetCameraBounds", "SetCameraField", "SetCameraPosition"].map((name) => [name, "frames this client's camera on its predicted fighters"])),
 };
 
 /** Smashcraft's local natives with predicted presentation, whose confirmed state and handle lifetimes still match on every client. */

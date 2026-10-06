@@ -1,3 +1,4 @@
+import { stageBounds } from "./stageBounds";
 // Grab links: what releases them, mash-out and stock loss.
 import { assertEquals, assertGreaterThan, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
@@ -142,7 +143,7 @@ test("stock loss clears a capture and post-throw recovery immediately", () => {
       assertEquals(owner.grab.target, undefined);
       assertEquals(owner.grab.action, GrabAction.throwUp);
     }
-    owner.motion.x = 921.0;
+    owner.motion.x = (stageBounds(0).blast.right + 1.0);
     advanceFighter(world, 0, 0, input, -240.0);
     assertEquals(owner.status.out, true);
     assertEquals(owner.grab.action, GrabAction.none);
@@ -199,4 +200,23 @@ test("throw follow-up attacks replace throw hitstun and permit attack-to-grab re
     resolveAttacks(world);
     assertEquals(target.grab.owner, kind === ContactKind.damageOnly ? undefined : 0);
   }
+});
+
+test("a gentle throw landing retains the remaining throw hitstun", () => {
+  const { world, owner, target } = grabbedPair();
+  target.status.damage = 20.0;
+  const input = controls({ grabThrowZ: 1 });
+  for (let frame = 1; frame <= grabContactFrame(GrabAction.throwUp); frame++) testGrabFrame(world, [input, controls()], false);
+  for (let frame = 0; frame < 120 && !target.motion.grounded; frame++) advanceFighter(world, 1, 0, controls(), 240.0);
+  assertEquals(target.motion.grounded, true);
+  assertGreaterThan(target.launch.hitstun, 0);
+  assertEquals(target.launch.throwHitstun, true);
+  assertGreaterThan(target.landing.lag, 0);
+  owner.grab.action = GrabAction.none;
+  owner.grab.frame = 0;
+  target.motion.x = 90.0;
+  testBeginAttacks(world, AttackStyle.grab, undefined);
+  owner.attack.frame = attackStartupFrames(AttackStyle.grab);
+  resolveAttacks(world);
+  assertEquals(target.grab.owner, undefined);
 });

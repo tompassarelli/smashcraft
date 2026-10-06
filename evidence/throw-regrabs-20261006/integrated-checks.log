@@ -1,0 +1,46 @@
+{"decision":"RESERVED","reason":"RUN","class":"moderate","requestedCpus":2,"requestedMemoryMiB":2048,"leasedCpuCeilings":18,"aggregateCpuLimit":18,"leasedMemoryMiB":33024,"cpuSomeAvg10":3.41,"memoryFullAvg10":0,"memoryAvailableMiB":67003,"reclaimed":0,"lease":"343f98fd-62fa-4fd5-8495-a26c4158dc16","expiresAt":1791281656079}
+{"check":["bun","run","check"]}
+$ bun node_modules/typescript-native/bin/tsc --build tsconfig.json tsconfig.game.json
+scripts/integrity/botFiles.ts(8,88): suggestion TS377098: This Schema number API accepts `NaN`, `Infinity`, and `-Infinity`. Use `Schema.Finite` for finite domain numbers. If non-finite values are intentional, disable this diagnostic for that line. effect(schemaNumber)
+scripts/integrity/botFiles.ts(8,138): suggestion TS377098: This Schema number API accepts `NaN`, `Infinity`, and `-Infinity`. Use `Schema.Finite` for finite domain numbers. If non-finite values are intentional, disable this diagnostic for that line. effect(schemaNumber)
+scripts/integrity/botFiles.ts(11,33): suggestion TS377098: This Schema number API accepts `NaN`, `Infinity`, and `-Infinity`. Use `Schema.Finite` for finite domain numbers. If non-finite values are intentional, disable this diagnostic for that line. effect(schemaNumber)
+scripts/integrity/botFiles.ts(12,33): suggestion TS377098: This Schema number API accepts `NaN`, `Infinity`, and `-Infinity`. Use `Schema.Finite` for finite domain numbers. If non-finite values are intentional, disable this diagnostic for that line. effect(schemaNumber)
+scripts/integrity/botFiles.ts(13,31): suggestion TS377098: This Schema number API accepts `NaN`, `Infinity`, and `-Infinity`. Use `Schema.Finite` for finite domain numbers. If non-finite values are intentional, disable this diagnostic for that line. effect(schemaNumber)
+scripts/integrity/botFiles.ts(14,48): suggestion TS377098: This Schema number API accepts `NaN`, `Infinity`, and `-Infinity`. Use `Schema.Finite` for finite domain numbers. If non-finite values are intentional, disable this diagnostic for that line. effect(schemaNumber)
+scripts/integrity/botFiles.ts(15,50): suggestion TS377098: This Schema number API accepts `NaN`, `Infinity`, and `-Infinity`. Use `Schema.Finite` for finite domain numbers. If non-finite values are intentional, disable this diagnostic for that line. effect(schemaNumber)
+scripts/integrity/botFiles.ts(16,48): suggestion TS377098: This Schema number API accepts `NaN`, `Infinity`, and `-Infinity`. Use `Schema.Finite` for finite domain numbers. If non-finite values are intentional, disable this diagnostic for that line. effect(schemaNumber)
+scripts/integrity/botFiles.ts(19,105): suggestion TS377098: This Schema number API accepts `NaN`, `Infinity`, and `-Infinity`. Use `Schema.Finite` for finite domain numbers. If non-finite values are intentional, disable this diagnostic for that line. effect(schemaNumber)
+scripts/integrity/botFiles.ts(23,16): suggestion TS377098: This Schema number API accepts `NaN`, `Infinity`, and `-Infinity`. Use `Schema.Finite` for finite domain numbers. If non-finite values are intentional, disable this diagnostic for that line. effect(schemaNumber)
+scripts/integrity/botFiles.ts(24,16): suggestion TS377098: This Schema number API accepts `NaN`, `Infinity`, and `-Infinity`. Use `Schema.Finite` for finite domain numbers. If non-finite values are intentional, disable this diagnostic for that line. effect(schemaNumber)
+scripts/integrity/botFiles.ts(25,17): suggestion TS377098: This Schema number API accepts `NaN`, `Infinity`, and `-Infinity`. Use `Schema.Finite` for finite domain numbers. If non-finite values are intentional, disable this diagnostic for that line. effect(schemaNumber)
+scripts/integrity/botFiles.ts(26,42): suggestion TS377098: This Schema number API accepts `NaN`, `Infinity`, and `-Infinity`. Use `Schema.Finite` for finite domain numbers. If non-finite values are intentional, disable this diagnostic for that line. effect(schemaNumber)
+scripts/wisp/commands/interactions.ts(70,37): suggestion TS377019: This `yield* Effect.fail(...)` passes a yieldable error value. `yield*` represents that value directly without wrapping it in `Effect.fail`. effect(unnecessaryFailYieldableError)
+scripts/wisp/commands/interactions.ts(78,52): suggestion TS377019: This `yield* Effect.fail(...)` passes a yieldable error value. `yield*` represents that value directly without wrapping it in `Effect.fail`. effect(unnecessaryFailYieldableError)
+scripts/wisp/commands/play.ts(73,48): suggestion TS377016: `Effect.void` represents the same outcome as `Effect.succeed(undefined)` or `Effect.succeed(void 0)`. effect(effectSucceedWithVoid)
+{"check":["bun","scripts/unused-code.ts"]}
+unused exports: 0; unreached ts/ files: 0; unreferenced tools/ files: 0
+{"check":["bun","test","test/game.test.ts","-t","throw hitstun|throw follow-up attacks|gentle throw landing"]}
+bun test v1.3.13 (bf2e2cec)
+
+test/game.test.ts:
+(pass) game/sim/grabs > throw hitstun blocks standing and dash regrabs until it ends [22.00ms]
+(pass) game/sim/grabs > throw follow-up attacks replace throw hitstun and permit attack-to-grab reads [4.00ms]
+(pass) game/sim/grabs > a gentle throw landing retains the remaining throw hitstun [4.00ms]
+
+ 3 pass
+ 734 filtered out
+ 0 fail
+Ran 3 tests across 1 file. [401.00ms]
+{"check":["bun","wisp","tapes"]}
+$ bun scripts/wisp.ts tapes
+   0.015 s  Lua32 rounding toward zero (0.002 s)
+   1.896 s  record tapes (1.874 s)
+  13.212 s  compile TypeScript Lua (11.316 s)
+  20.546 s  replay in bun (7.318 s)
+  62.560 s  replay in ts-lua32-toward-zero (49.338 s)
+  62.764 s  replay in ts-lua32 (49.550 s)
+10 tapes, 6830 frames (actions 410, rollback 220, rematch 230, computer 900, moving-platforms 620, patterned-platforms 520, wind 1900, carried 940, cannon 650, timed-lift 440)
+bun/ts-lua32: 0 divergent frames
+bun/ts-lua32-toward-zero: 0 divergent frames
+  63.337 s  tapes (63.337 s)
+{"decision":"RELEASED","lease":"343f98fd-62fa-4fd5-8495-a26c4158dc16"}
