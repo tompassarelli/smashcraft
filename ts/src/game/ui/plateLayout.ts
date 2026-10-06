@@ -21,8 +21,12 @@ export interface PlateBox {
 
 /** The fighter's head-and-shoulders render, breaking out of the plate's top. */
 export const BUST_BOX: PlateBox = { x: -12, y: -96, width: 256, height: 256 };
-/** The whole percent, right-aligned against the tenths and percent sign, which are smaller (Ultimate). */
-export const DAMAGE_BOX: PlateBox = { x: 236, y: -4, width: 214, height: 124 };
+/**
+ * The whole percent, right-aligned against the smaller tenths and percent sign
+ * (Ultimate). Wider than three digits need: Warcraft wraps a number too wide for
+ * its frame onto a second line the frame hides.
+ */
+export const DAMAGE_BOX: PlateBox = { x: 150, y: -4, width: 300, height: 124 };
 export const TENTHS_BOX: PlateBox = { x: 450, y: 34, width: 86, height: 70 };
 /** The mana bar's track in the plate art (the mana bar is drawn by ui/manaBar). */
 export const MANA_BOX: PlateBox = { x: 256, y: 120, width: 270, height: 16 };
