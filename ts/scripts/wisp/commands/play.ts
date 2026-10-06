@@ -37,16 +37,12 @@ interface Playtest {
   readonly menuReportPort?: number;
 }
 
-const inputs = join(homedir(), ".local/share/smashcraft-build-inputs");
+/** Tom's own Warcraft III install. */
+const PLAYTEST_PREFIX = join(homedir(), ".local/share/Steam/steamapps/compatdata/3516115571/pfx");
 
 /** Journal identity of the current playable profile; map and helper resolve from main at invocation. */
-export const PLAYTEST: Playtest = {
+export const PLAYTEST: Omit<Playtest, "map" | "helper"> = {
   build: PLAYABLE_BUILD.id,
-  map: {
-    folder: "00-Smashcraft", file: "Smashcraft latest.w3x", title: "Smashcraft latest",
-    source: join(inputs, "play-current/Smashcraft latest.w3x"),
-  },
-  helper: join(inputs, "play-current/wc3-journal"),
   computerSlot: 2,
   inputDevices: "/dev/input/by-id",
   // Tom's install is not a test client, so the clients file doesn't list it.
@@ -84,7 +80,7 @@ export function playtest({ build, map, helper, computerSlot, inputDevices, menuR
     receipt: join(dataDirectory(documents), playtestReceiptFile(0)),
   });
   return {
-    prefix: join(homedir(), ".local/share/Steam/steamapps/compatdata/3516115571/pfx"),
+    prefix: PLAYTEST_PREFIX,
     display: ":0",
     shortcut: { appId: 3775098022, name: "Warcraft III (Battle.net)" },
     map,
@@ -161,7 +157,7 @@ function clientTools(): Partial<PlayTools> {
 const tools = clientTools();
 // Doctor checks the prefix before play and once after a failure (wisp:docs/doctor.md).
 export const play: Command = (args) => Effect.gen(function*() {
-  const current = yield* currentPlaytest;
+  const current = yield* currentPlaytest(join(documentsFolder(PLAYTEST_PREFIX), "Maps/00-Smashcraft"));
   const declaration = playtest({ ...PLAYTEST, ...current });
   yield* Effect.try({ try: () => installLatest(documentsFolder(declaration.prefix), current.map.source), catch: (cause) => new PlayProblem({ problem: String(cause) }) });
   return yield* makePlay(declaration, gameFilesLayer, tools, smashcraftWatch())(args);

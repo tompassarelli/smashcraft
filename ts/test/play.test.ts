@@ -10,7 +10,9 @@ import { Clock, Effect, Exit, Fiber, Layer } from "effect";
 import { TestClock } from "effect/testing";
 import { GameFiles, type StoredFile, dataDirectory } from "wisp/scripts/wisp/gameFiles";
 import type { PlayGame } from "wisp/scripts/wisp/play";
-import { PLAYTEST, playtest } from "../scripts/wisp/commands/play";
+import { PLAYTEST as OWNER_PLAYTEST, playtest } from "../scripts/wisp/commands/play";
+
+const PLAYTEST = { ...OWNER_PLAYTEST, map: { folder: "00-Smashcraft", file: "Smashcraft 0.0.50.w3x", title: "Smashcraft 0.0.50", source: "/builds/Smashcraft 0.0.50.w3x" }, helper: "/builds/wc3-journal" };
 
 const DOCUMENTS = "/pfx/drive_c/users/steamuser/Documents/Warcraft III";
 const DATA = dataDirectory(DOCUMENTS);

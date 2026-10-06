@@ -1,10 +1,10 @@
-import { copyFileSync, existsSync, mkdirSync, readdirSync, renameSync, statSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readdirSync, renameSync } from "node:fs";
 import { basename, join } from "node:path";
 
-/** A build the owner plays: a release, or a version from main with its commit. */
-const PLAYABLE = /^Smashcraft (?:latest [a-f0-9]+|\d+\.\d+\.\d+(?: [a-f0-9]+)?)\.w3x$/;
+/** A version the owner plays; one-off builds add a suffix ("Smashcraft 0.0.50 test 1") and go to tests/. */
+const PLAYABLE = /^Smashcraft \d+\.\d+\.\d+\.w3x$/;
 
-/** Keep the owner's playable builds visible; diagnostics belong in tests/. */
+/** Keep the newest version and the two before it visible; older versions go to older/, diagnostics and tests to tests/. */
 export function installLatest(documents: string, map: string): void {
   const root = join(documents, "Maps/00-Smashcraft");
   const older = join(root, "older");
@@ -15,7 +15,7 @@ export function installLatest(documents: string, map: string): void {
   copyFileSync(map, join(root, `${name}.next`));
   renameSync(join(root, `${name}.next`), join(root, name));
   const versions = readdirSync(root).filter((entry) => PLAYABLE.test(entry) && entry !== name);
-  versions.sort((a, b) => statSync(join(root, b)).mtimeMs - statSync(join(root, a)).mtimeMs || b.localeCompare(a, undefined, { numeric: true }));
+  versions.sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
   for (const entry of versions.slice(2)) {
     const target = join(older, entry);
     if (!existsSync(target)) renameSync(join(root, entry), target);
