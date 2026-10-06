@@ -9,7 +9,7 @@ import { resolveAttacks } from "./attacks";
 import { AttackStyle, Character, DownState } from "./codes";
 import { createFighter } from "./fighter";
 import { applyDirectionalInfluence, directionalInfluenceVector, influenceOperands, ordinaryHitKnockback, ordinaryHitlagFrames, ordinaryHitstunFrames } from "./knockback";
-import { attackStartupFrames, grabHoldFrames } from "./moves";
+import { attackStartupFrames, GRAB_HOLD_FRAMES } from "./moves";
 import { setMeleeKnockback, totalVelocityX, totalVelocityZ } from "./motion";
 import { updateProjectiles } from "./projectiles";
 import { ASDI_DISTANCE, SDI_STEP_DISTANCE } from "./smashDirectionalInfluence";
@@ -357,7 +357,7 @@ test("the DI opportunity clears on respawn, stock loss and hits without knockbac
   testBeginAttacks(grabWorld, AttackStyle.grab, undefined);
   grabber.attack.frame = attackStartupFrames(AttackStyle.grab);
   resolveAttacks(grabWorld);
-  assertEquals(grabbed.grab.grabbedFrames, grabHoldFrames(grabbed.status.damage));
+  assertEquals(grabbed.grab.grabbedFrames, GRAB_HOLD_FRAMES);
   assertFalse(grabbed.launch.diPending);
   const shooter = createFighter(Character.archer, 0.0, 1);
   const shotTarget = createFighter(Character.archer, 30.0, -1);

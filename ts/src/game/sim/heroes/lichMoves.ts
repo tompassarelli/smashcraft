@@ -1,7 +1,8 @@
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction, HitElement } from "../codes";
-import { HERO_REFERENCE_HEIGHT, heroMove, heroRegion, type AuthoredThrow, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
+import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion, type AuthoredThrow, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
 import type { HitEffect } from "../hitRegions";
+import { type FighterHurtboxes, type HurtPart, type HurtPose, hurtPart, hurtPose } from "../hurtboxes";
 
 // Original geometry for smashcraft:docs/design/roster.md; the frost volumes
 // stay attached to the caster and never become traveling projectiles.
@@ -28,13 +29,14 @@ const ANGLE = {
   50: { x: f32(0.642787610), z: f32(0.766044443) },
   55: { x: f32(0.573576436), z: f32(0.819152044) },
   65: { x: f32(0.422618262), z: f32(0.906307787) },
+  70: { x: f32(0.342020143), z: f32(0.939692621) },
   75: { x: f32(0.258819045), z: f32(0.965925826) },
   85: { x: f32(0.087155743), z: f32(0.996194698) },
   90: { x: 0.0, z: 1.0 },
   270: { x: 0.0, z: -1.0 },
 } as const;
 
-function hit(damage: number, kind: keyof typeof CLASS, angle: keyof typeof ANGLE, backwards = false, element: HitElement = HitElement.ice): Readonly<HitEffect> {
+export function hit(damage: number, kind: keyof typeof CLASS, angle: keyof typeof ANGLE, backwards = false, element: HitElement = HitElement.ice): Readonly<HitEffect> {
   const strength = CLASS[kind];
   const direction = ANGLE[angle];
   return { damage, growth: strength.growth, base: strength.base, launchX: backwards ? -direction.x : direction.x, launchZ: direction.z, electric: false, element };
@@ -85,12 +87,54 @@ function throwMove(release: number, recovery: number, damage: number, kind: keyo
   return { contactFrame: release, totalFrames: release + recovery, effect: hit(damage, kind, angle, backwards) };
 }
 
-const GRAB_EFFECT = { damage: 0.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } as const;
+// Lich's body: the reference capsule scaled by the roster's 0.90 width and
+// 1.05 height. Lich has no weapon, so the conjured frost beyond the hand is the
+// move's disjoint while the casting arm extends the body from late startup
+// through early recovery; a whiffed cast is punishable at the hand.
+const BODY_RADIUS = f32(24.0 * f32(0.90));
+const BODY_TOP = f32(f32(4.0 + f32(HERO_REFERENCE_HEIGHT * f32(1.05))) - f32(2.0 * BODY_RADIUS));
+const SHOULDER = f32(BODY_TOP - 14.0);
+const TORSO = hurtPart(0.0, 4.0, 0.0, BODY_TOP, BODY_RADIUS);
+const ARM_RADIUS = 9.0;
+const arm = (handX: number, handZ: number, shoulderX = 8.0) => hurtPart(shoulderX, SHOULDER, handX, handZ, ARM_RADIUS);
+const reach = (first: number, last: number, ...limbs: readonly HurtPart[]) => [heroHurtPose(first, last, [TORSO, ...limbs])];
+
+/** A special's casting arm over special frames (entry frame 1). */
+export const lichCastBody = (first: number, last: number, handX: number, handZ: number): readonly HurtPose[] =>
+  [hurtPose(first, last, [TORSO, arm(handX, handZ)])];
+
+const LICH_BODY: FighterHurtboxes = {
+  stand: [TORSO],
+  crouch: [hurtPart(0.0, 4.0, 0.0, f32(BODY_TOP * f32(0.6)), BODY_RADIUS)],
+  attacks: {
+    // Bone Knuckle: the hand is the strike, so the arm reaches its full length.
+    [AttackStyle.jab]: reach(4, 12, arm(f32(S - 10.0), 44.0)),
+    [AttackStyle.forwardTilt]: reach(8, 18, arm(26.0, 47.0)),
+    [AttackStyle.forwardTiltUp]: reach(8, 18, arm(26.0, 80.0)),
+    [AttackStyle.forwardTiltDown]: reach(8, 18, arm(26.0, 22.0)),
+    [AttackStyle.upTilt]: reach(7, 18, arm(14.0, f32(BODY_TOP + 18.0)), arm(-14.0, f32(BODY_TOP + 18.0), -8.0)),
+    [AttackStyle.downTilt]: reach(6, 15, arm(26.0, 16.0)),
+    [AttackStyle.dashAttack]: reach(10, 22, arm(26.0, 40.0)),
+    [AttackStyle.forwardSmash]: reach(18, 30, arm(28.0, 47.0)),
+    [AttackStyle.upSmash]: reach(16, 30, arm(10.0, f32(BODY_TOP + 20.0)), arm(-10.0, f32(BODY_TOP + 20.0), -8.0)),
+    [AttackStyle.downSmash]: reach(16, 28, arm(28.0, 14.0), arm(-28.0, 14.0, -8.0)),
+    [AttackStyle.forwardAir]: reach(10, 18, arm(28.0, 47.0)),
+    // Bone Spike: an elbow-and-hand strike, so the rear arm reaches the burst's root.
+    [AttackStyle.backAir]: reach(8, 15, arm(-34.0, 47.0, -8.0)),
+    [AttackStyle.upAir]: reach(6, 14, arm(8.0, f32(BODY_TOP + 16.0))),
+    [AttackStyle.downAir]: reach(13, 22, arm(10.0, -6.0)),
+    // The spectral hand is conjured; the real arm reaches toward it.
+    [AttackStyle.grab]: reach(8, 14, arm(30.0, 47.0)),
+  },
+};
+
+const GRAB_EFFECT ={ damage: 0.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } as const;
 export const LICH_MOVES: FighterMoves = {
   dashAttack: AttackStyle.dashAttack,
   smashMaxChargeFrames: 45,
   smashMaxDamageMultiplier: 1.25,
   maxPummels: 2,
+  hurtboxes: LICH_BODY,
   normals: {
     [AttackStyle.jab]: heroMove(6, 2, 16, 0, [
       frame(6, capsule(18.0, 42.0, f32(S - 8.0), 42.0), hit(3.0, "POKE", 35, false, HitElement.normal)),

@@ -10,6 +10,7 @@ import { firstSummonDifference } from "../presentation/summonState";
 import { SPECIAL_ACTION_CAPACITY } from "../sim/codes";
 import { PROJECTILE_CAPACITY, type Fighter, type MeleeMotionValue, type Projectile } from "../sim/fighter";
 import { fighterAt, isActive } from "../sim/roster";
+import { HERO_STATUS_GROUPS } from "../sim/codes";
 import type { DashGrabRules, FighterPhysics, GroundMovementRules, ShieldGeometry, SurfaceRecoveryPhysics } from "../sim/tuning";
 import { at } from "wisp/src/runtime/lookup";
 import { canonicalSlot, fighterMovesCanonical, fighterSpecialsCanonical } from "./canonical";
@@ -197,6 +198,11 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("freezeImmunityFrames", e.status.freezeImmunityFrames, a.status.freezeImmunityFrames);
   add("armorFrames", e.status.armorFrames, a.status.armorFrames);
   add("armorMaxDamage", e.status.armorMaxDamage, a.status.armorMaxDamage);
+  add("condition", e.status.condition, a.status.condition);
+  add("conditionFrames", e.status.conditionFrames, a.status.conditionFrames);
+  add("conditionGroup", e.status.conditionGroup, a.status.conditionGroup);
+  add("conditionImmunityFrames", e.status.conditionImmunityFrames, a.status.conditionImmunityFrames);
+  for (let i = 0; i < HERO_STATUS_GROUPS; i++) add(`conditionImmunity[${i}]`, e.status.conditionImmunity[i] ?? 0, a.status.conditionImmunity[i] ?? 0);
   add("manaPoints", e.mana.points, a.mana.points);
   add("manaSinceSpend", e.mana.sinceSpend, a.mana.sinceSpend);
   add("manaProgress", e.mana.progress, a.mana.progress);
@@ -286,6 +292,8 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("grabAction", e.grab.action, a.grab.action);
   add("grabFrame", e.grab.frame, a.grab.frame);
   add("grabPummels", e.grab.pummels, a.grab.pummels);
+  add("grabHeldFrames", e.grab.heldFrames, a.grab.heldFrames);
+  add("grabQueuedThrow", e.grab.queuedThrow, a.grab.queuedThrow);
   add("grabSerial", e.grab.serial, a.grab.serial);
   add("grabMashX", e.grab.mashX, a.grab.mashX);
   add("grabMashZ", e.grab.mashZ, a.grab.mashZ);

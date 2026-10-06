@@ -15,6 +15,7 @@ import { regenerateShield } from "../sim/shield";
 import { advanceSpecials, startFighterSpecial } from "../sim/specials";
 import { advanceHeroStatus, regenerateMana } from "../sim/heroSpecialRules";
 import { advanceFighterMotion } from "../sim/step";
+import { maskHeroStatusControls } from "../sim/heroStatus";
 import { advanceStageCannon } from "../sim/stageHazards";
 import { advanceFreezeTraps } from "../sim/summons";
 import { advanceMatchCamera } from "../sim/matchCamera";
@@ -66,6 +67,7 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
     observedFrameLegalActions[slot] = 0;
     observedFrameStartedActions[slot] = 0;
     beforeOut[slot] = f.status.out;
+    maskHeroStatusControls(f, controls.inputs[slot], controls.commands[slot]);
     hadDashGrabWindow[slot] = f.ground.dashGrabWindow > 0 && f.status.frozenFrames === 0 && f.launch.hitlag <= 1;
     wasGrabbed[slot] = inGrabContext(f);
     if (wasGrabbed[slot]) clearAttackBuffer(controls.commands[slot]);
@@ -111,7 +113,7 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
     if (hadDashGrabWindow[slot] && f.ground.dashGrabWindow > 0 && !f.attack.dashGrab) f.ground.dashGrabWindow = Math.max(0, f.ground.dashGrabWindow - 1);
   }
   resolveAttacks(world);
-  advanceSpecials(world, stage, matchFrame);
+  advanceSpecials(world, stage, matchFrame, controls.inputs);
   updateProjectiles(world, stage, matchFrame);
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) continue;
