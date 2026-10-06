@@ -11,7 +11,8 @@ import { canAttack, inGrabContext, isIntangible } from "./conditions";
 import type { Fighter } from "./fighter";
 import { type FighterSpecials, type AuthoredSpecial, type SpecialProjectile, SpecialForm, SpecialSlot, specialForm, specialKit } from "./heroSpecials";
 import { type HitRegion, NO_HIT_REGION } from "./hitRegions";
-import type { Controls } from "./roster";
+import { type Controls, type Roster, fighterAt } from "./roster";
+import { travelBeforeBodies } from "./travelStop";
 import { capsuleCircleIntersects, shieldSizeMultiplier } from "./shield";
 import { emptyCapsule, placeCapsule } from "../physics/contactGeometry";
 import { HurtContact, strikeHurtContact } from "./hurtboxes";
@@ -281,4 +282,22 @@ export function advanceHeroStatus(f: Fighter): void {
 /** Whether a special action is off cooldown; hero actions have none and spend mana when they start. */
 export function specialCooldownReady(f: Readonly<Fighter>, action: number): boolean {
   return isHeroSpecialAction(action) || (f.special.cooldowns[action] ?? 0) <= 0;
+}
+
+/**
+ * Clamps the forward velocity a running special's `stopsAtBody` motion set
+ * this frame so it ends short of a raised shield or another fighter's body.
+ */
+export function stopHeroMotionAtBodies(world: Roster, slot: number): void {
+  const f = fighterAt(world, slot);
+  const move = runningHeroSpecial(f);
+  if (move?.motion === undefined) return;
+  const frame = f.special.frame;
+  for (const segment of move.motion) {
+    if (segment.stopsAtBody !== true || frame < segment.first || frame > segment.last) continue;
+    const forward = f32(f.motion.vx * f.facing);
+    if (forward <= 0.0) return;
+    f.motion.vx = f32(f.facing * travelBeforeBodies(world, slot, forward, true));
+    return;
+  }
 }
