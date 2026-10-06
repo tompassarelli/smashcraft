@@ -9,34 +9,20 @@
 // copied from the given CustomMapData folders into CAPTURE_DIR/moments.
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { readEvents, readGamePids } from "./botFiles";
 
 interface Receipt {
   readonly ns: number;
   readonly lag: number;
 }
 
-interface Publication {
-  readonly contents: string;
-  readonly mtime_realtime_ns: number;
-  readonly publication_monotonic_estimate_ns: number;
-}
-
-type CaptureEvent =
-  | { readonly event: "start" | "end"; readonly epoch: number; readonly publications: readonly Publication[] }
-  | { readonly event: "bot-stall"; readonly epoch: number; readonly trial: number; readonly pid: number; readonly stopped_monotonic_ns: number; readonly continued_monotonic_ns: number }
-  | { readonly event: "bot-moment"; readonly epoch: number; readonly pressed_monotonic_ns: number }
-  | { readonly event: string; readonly epoch?: number };
-
 const BASELINE_NS = 4e9;
 const RECOVERY_LIMIT_MS = 1000;
 
-const [directory, ...dataFolders] = process.argv.slice(2);
-if (directory === undefined) throw new Error("usage: bun scripts/integrity/botResult.ts CAPTURE_DIR [CUSTOM_MAP_DATA ...]");
-// A failed capture keeps only events.json.
-const capture = existsSync(join(directory, "capture.json"))
-  ? JSON.parse(readFileSync(join(directory, "capture.json"), "utf8")) as { readonly settings: { readonly clients: readonly { readonly name: string; readonly pid: number }[] }; readonly events: readonly CaptureEvent[] }
-  : { settings: { clients: [] }, events: JSON.parse(readFileSync(join(directory, "events.json"), "utf8")) as readonly CaptureEvent[] };
-const events = capture.events;
+const [given, ...dataFolders] = process.argv.slice(2);
+if (given === undefined) throw new Error("usage: bun scripts/integrity/botResult.ts CAPTURE_DIR [CUSTOM_MAP_DATA ...]");
+const directory: string = given;
+const events = readEvents(directory);
 
 /** Each epoch's receipts on one helper: time and input delay in frames. */
 function receipts(slot: number): Map<number, Receipt[]> {
@@ -45,7 +31,7 @@ function receipts(slot: number): Map<number, Receipt[]> {
   let epochNs = 0;
   let published = 0;
   let frameOf = new Map<number, number>();
-  for (const line of readFileSync(join(directory as string, `helper-${slot}.log`), "utf8").split("\n")) {
+  for (const line of readFileSync(join(directory, `helper-${slot}.log`), "utf8").split("\n")) {
     const start = /^match_start epoch=(\d+) epoch_ns=(\d+)/.exec(line);
     if (start !== null) {
       epoch = Number(start[1]);
@@ -78,13 +64,16 @@ function receipts(slot: number): Map<number, Receipt[]> {
 
 /** Confirmed frame → state, from one client's archived input trace of an epoch. */
 function confirmed(epochLabel: string, client: number): Map<number, string> {
-  const path = join(directory as string, `epoch-${epochLabel}`, `${client}-wc3-melee-input-trace.txt`);
+  const path = join(directory, `epoch-${epochLabel}`, `${client}-wc3-melee-input-trace.txt`);
   if (!existsSync(path)) return new Map();
   return new Map([...readFileSync(path, "utf8").matchAll(/confirmed frame (\d+) state ([^\s"]+)/g)].map((row) => [Number(row[1]), row[2] ?? ""] as const));
 }
 
 const helperReceipts = [receipts(0), receipts(1)] as const;
-const stalls = events.flatMap((event) => (event.event === "bot-stall" && "stopped_monotonic_ns" in event ? [event] : []));
+const stalls = events.flatMap(({ event, epoch, trial, pid, stopped_monotonic_ns, continued_monotonic_ns }) =>
+  event === "bot-stall" && epoch !== undefined && stopped_monotonic_ns !== undefined && continued_monotonic_ns !== undefined
+    ? [{ epoch, trial, pid, stopped_monotonic_ns, continued_monotonic_ns }]
+    : []);
 const trials = stalls.map((stall) => {
   const clients = helperReceipts.map((byEpoch, slot) => {
     const list = byEpoch.get(stall.epoch) ?? [];
@@ -121,14 +110,14 @@ const trials = stalls.map((stall) => {
 const epochs = [...new Set(events.flatMap((event) => (event.event === "start" && event.epoch !== undefined ? [event.epoch] : [])))];
 const matches = epochs.map((epoch) => {
   const end = events.find((event) => event.event === "end" && event.epoch === epoch);
-  const receiptsText = end !== undefined && "publications" in end ? end.publications.map((publication) => publication.contents) : [];
+  const receiptsText = (end?.publications ?? []).map((publication) => publication.contents);
   const ends = receiptsText.map((text) => ({ frame: Number(/ frame=(\d+)/.exec(text)?.[1] ?? 0), winner: / winner=(\S+?)(?:\s|"|$)/.exec(text)?.[1] }));
   const traces = [0, 1].map((client) => {
     const merged = new Map<number, string>();
     for (const label of [String(epoch), `${epoch}-result`]) for (const [frame, state] of confirmed(label, client)) merged.set(frame, state);
     return merged;
   });
-  const [a, b] = traces as [Map<number, string>, Map<number, string>];
+  const [a = new Map<number, string>(), b = new Map<number, string>()] = traces;
   const common = [...a.keys()].filter((frame) => b.has(frame)).sort((x, y) => x - y);
   const differing = common.filter((frame) => a.get(frame) !== b.get(frame));
   const last = common.at(-1);
@@ -141,11 +130,12 @@ const matches = epochs.map((epoch) => {
   };
 });
 
-const startedNs = Math.min(...events.flatMap((event) => (event.event === "start" && "publications" in event ? event.publications.map((publication) => publication.publication_monotonic_estimate_ns) : [])));
+const starts = events.filter((event) => event.event === "start");
+const startedNs = Math.min(...starts.flatMap((event) => (event.publications ?? []).map((publication) => publication.publication_monotonic_estimate_ns)));
 const momentsDirectory = join(directory, "moments");
 const moments: string[] = [];
 // Moments saved after the first match started belong to this capture.
-const firstWrite = Math.min(...events.flatMap((event) => (event.event === "start" && "publications" in event ? event.publications.map((publication) => publication.mtime_realtime_ns / 1e6) : [])));
+const firstWrite = Math.min(...starts.flatMap((event) => (event.publications ?? []).map((publication) => publication.mtime_realtime_ns / 1e6)));
 for (const folder of dataFolders) {
   for (const name of readdirSync(folder).filter((entry) => /^smashcraft-repro-p\d+-f\d+-\d+\.txt$/.test(entry))) {
     const source = join(folder, name);
@@ -157,7 +147,7 @@ for (const folder of dataFolders) {
 }
 
 const summary = {
-  game_pids: capture.settings.clients.map((client) => ({ client: client.name, pid: client.pid })),
+  game_pids: readGamePids(directory).map((client) => ({ client: client.name, pid: client.pid })),
   input_delay: "frames a helper journaled by its clock beyond the last frame its client admitted, at each edit-box receipt",
   trials,
   trials_passed: `${trials.filter((trial) => trial.passed).length}/${trials.length}`,
@@ -165,7 +155,7 @@ const summary = {
   moments,
   moment_requests: events.filter((event) => event.event === "bot-moment").map((event) => ({
     epoch: event.epoch,
-    after_start_ms: "pressed_monotonic_ns" in event ? Math.round((event.pressed_monotonic_ns - startedNs) / 1e6) : undefined,
+    after_start_ms: event.pressed_monotonic_ns === undefined ? undefined : Math.round((event.pressed_monotonic_ns - startedNs) / 1e6),
   })),
 };
 writeFileSync(join(directory, "bot-result.json"), `${JSON.stringify(summary, null, 2)}\n`);

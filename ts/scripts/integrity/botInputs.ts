@@ -9,6 +9,7 @@ import { join } from "node:path";
 import { Action, bit } from "../../src/game/input/actions";
 import type { InputRow } from "../../src/game/input/inputRow";
 import { decodePacket } from "../../src/game/input/wire";
+import { readEdges, readEvents } from "./botFiles";
 import { ABS_X, ABS_Z, BTN_A, BTN_X, BTN_Y, EV_ABS, EV_KEY } from "./linuxInput";
 
 const [directory] = process.argv.slice(2);
@@ -24,9 +25,8 @@ const BUTTONS = [
 ] as const;
 const HELD_BUTTONS = bit(Action.attack) | bit(Action.jump) | bit(Action.special) | bit(Action.grab) | bit(Action.leftTrigger) | bit(Action.rightTrigger);
 
-const events = JSON.parse(readFileSync(join(directory, "events.json"), "utf8")) as readonly { readonly event: string; readonly epoch?: number; readonly continued_monotonic_ns?: number }[];
-const edges = readFileSync(join(directory, "producer.jsonl"), "utf8").split("\n").filter((line) => line !== "")
-  .map((line) => JSON.parse(line) as { readonly phase: string; readonly event: string; readonly type: number; readonly code: number; readonly value: number });
+const events = readEvents(directory);
+const edges = readEdges(directory);
 
 const percentile = (values: readonly number[], p: number) => {
   const sorted = [...values].sort((a, b) => a - b);

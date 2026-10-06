@@ -2,10 +2,11 @@
 // each edit-box receipt from 4 s before a bot-stall to 6 s after it continued (botResult.ts's measure).
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { readEvents } from "./botFiles";
 
 const [directory, slotText, epochText, trialText] = process.argv.slice(2);
 if (directory === undefined || slotText === undefined || epochText === undefined || trialText === undefined) throw new Error("usage: CAPTURE_DIR SLOT EPOCH TRIAL");
-const events = JSON.parse(readFileSync(join(directory, "events.json"), "utf8")) as readonly { readonly event: string; readonly epoch?: number; readonly trial?: number; readonly stopped_monotonic_ns?: number; readonly continued_monotonic_ns?: number }[];
+const events = readEvents(directory);
 const stall = events.find((event) => event.event === "bot-stall" && event.epoch === Number(epochText) && event.trial === Number(trialText));
 if (stall?.stopped_monotonic_ns === undefined || stall.continued_monotonic_ns === undefined) throw new Error("no such stall");
 const { stopped_monotonic_ns: stopped, continued_monotonic_ns: continued } = stall;

@@ -9,6 +9,7 @@ import { join } from "node:path";
 import { Action, bit } from "../../src/game/input/actions";
 import type { InputRow } from "../../src/game/input/inputRow";
 import { decodePacket } from "../../src/game/input/wire";
+import { readEdges } from "./botFiles";
 
 const [directory, epochText = "1"] = process.argv.slice(2);
 if (directory === undefined) throw new Error("usage: bun scripts/integrity/pad49Result.ts CAPTURE_DIR [EPOCH]");
@@ -49,9 +50,7 @@ const frameAt = (ns: number) => 1 + Math.floor(((ns - startNs) * 60) / 1e9);
 
 /** Each pad49 phase's first edge, in order. */
 const phases: { readonly phase: string; readonly frame: number }[] = [];
-for (const line of readFileSync(join(directory, "producer.jsonl"), "utf8").split("\n")) {
-  if (line === "") continue;
-  const edge = JSON.parse(line) as { readonly phase: string; readonly event: string; readonly producer_injected_monotonic_ns: number };
+for (const edge of readEdges(directory)) {
   if (!edge.phase.startsWith("pad49-") || edge.event !== "slot-0") continue;
   const phase = edge.phase.slice("pad49-".length);
   if (phases.at(-1)?.phase !== phase) phases.push({ phase, frame: frameAt(edge.producer_injected_monotonic_ns) });
