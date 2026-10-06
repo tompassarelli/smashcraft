@@ -10,7 +10,7 @@
 // (Attack Slam leaps about 130 units, Dissipate rises) stay off poses whose
 // body the simulation keeps still, so the drawn body stays over its hurtbox.
 import { f32 } from "wisp/src/sim/f32";
-import type { HeroClip, HeroFollowUpPose, HeroPose, HeroStatePose } from "./hero";
+import type { HeroClip, HeroFollowUpPose, HeroPose } from "./hero";
 
 /** The model's sequences in index order, with their authored lengths in milliseconds. */
 export const BLADEMASTER_SEQUENCES = [
@@ -53,9 +53,20 @@ const COMBAT_STANCE = sequence("Stand Ready");
 const RECOIL = sequence("Death", f32(0.45));
 
 /** Every table pose; the stock model has no hit, jump, roll or ledge sequences, so those reuse the nearest readable one. */
-export const BLADEMASTER_CLIPS: { readonly [pose in Exclude<HeroPose, HeroStatePose | HeroFollowUpPose>]: HeroClip } = {
+export const BLADEMASTER_CLIPS: { readonly [pose in Exclude<HeroPose, Exclude<HeroFollowUpPose, "downSpecialFollowUp" | "downSpecialFollowUpAir">>]: HeroClip } = {
   idle: COMBAT_STANCE,
   walk: sequence("Walk"),
+  dash: sequence("Walk"),
+  run: sequence("Walk"),
+  // The only kneel (Stand cinematic) stands back up within its loop, so crouch keeps the stance.
+  crouch: COMBAT_STANCE,
+  fall: COMBAT_STANCE,
+  landing: COMBAT_STANCE,
+  shield: COMBAT_STANCE,
+  airDodge: sequence("Attack Walk Stand Spin"),
+  smashCharge: COMBAT_STANCE,
+  ko: sequence("Death"),
+  dizzy: sequence("Stand - 2"),
   jab: sequence("Attack 2", aligned(THRUST, 4, 2, 13)),
   grab: sequence("Attack 2", aligned(THRUST, 7, 2, 22)),
   forwardTilt: sequence("Attack", aligned(CUT, 8, 3, 19)),
@@ -116,6 +127,9 @@ export const BLADEMASTER_CLIPS: { readonly [pose in Exclude<HeroPose, HeroStateP
   // Mirror Feint's tell: the blade lifts before the back step (f8).
   downSpecial: sequence("Stand - 4", f32(0.6)),
   downSpecialAir: sequence("Stand - 4", f32(0.6)),
+  // Mirror Feint's real slash: the thrust lands on its first active frame (f10).
+  downSpecialFollowUp: sequence("Attack 2", aligned(THRUST, 10, 3, 25)),
+  downSpecialFollowUpAir: sequence("Attack 2", aligned(THRUST, 10, 3, 25)),
 };
 
 /** The idle a fighter without a mapped pose shows. */
