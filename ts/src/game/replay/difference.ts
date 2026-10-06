@@ -119,6 +119,7 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("shieldReflectVisualSerial", e.visuals.shieldReflect, a.visuals.shieldReflect);
   add("stocks", e.status.stocks, a.status.stocks);
   add("hitstun", e.launch.hitstun, a.launch.hitstun);
+  add("throwHitstun", e.launch.throwHitstun, a.launch.throwHitstun);
   add("hitlag", e.launch.hitlag, a.launch.hitlag);
   add("diPending", e.launch.diPending, a.launch.diPending);
   add("diLaunchSpeed", e.launch.diLaunchSpeed, a.launch.diLaunchSpeed);

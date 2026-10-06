@@ -2,7 +2,8 @@
 import { assertEquals, assertGreaterThan, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { resolveAttacks } from "./attacks";
-import { AttackStyle, Character, GrabAction, ProjectileKind } from "./codes";
+import { AttackStyle, Character, ContactKind, GrabAction, ProjectileKind } from "./codes";
+import { queueDamageContact } from "./contacts";
 import { type Fighter, createFighter } from "./fighter";
 import { resolveGrabs } from "./grabs";
 import { GRAB_HOLD_FRAMES, attackStartupFrames, grabContactFrame } from "./moves";
@@ -11,7 +12,7 @@ import type { Roster } from "./roster";
 import { advanceFighter } from "./step";
 import { respawnFighter } from "./stocks";
 import { advanceFreezeTraps } from "./summons";
-import { controls, testBeginAttacks, testGrabFrame, testWorld } from "./testWorld";
+import { contactBatch, controls, hitEffect, testBeginAttacks, testGrabFrame, testWorld } from "./testWorld";
 
 /** Slot 0 grabs slot 1 on the ground and holds it. */
 function catchTarget(world: Roster, owner: Fighter, target: Fighter): void {
@@ -149,5 +150,53 @@ test("stock loss clears a capture and post-throw recovery immediately", () => {
     assertEquals(owner.grab.target, undefined);
     assertEquals(target.grab.owner, undefined);
     assertEquals(target.grab.grabbedFrames, 0);
+  }
+});
+
+test("throw hitstun blocks standing and dash regrabs until it ends", () => {
+  for (const dash of [false, true]) {
+    const { world, owner, target } = grabbedPair();
+    const input = controls({ grabThrowZ: 1 });
+    for (let frame = 1; frame <= grabContactFrame(GrabAction.throwUp); frame++) testGrabFrame(world, [input, controls()], false);
+    assertGreaterThan(target.launch.hitstun, 0);
+    assertEquals(target.launch.throwHitstun, true);
+    owner.grab.action = GrabAction.none;
+    owner.grab.frame = 0;
+    target.motion.x = 90.0;
+    target.motion.z = 65.0;
+    testBeginAttacks(world, AttackStyle.grab, undefined);
+    owner.attack.dashGrab = dash;
+    owner.attack.frame = dash ? owner.tuning.dashGrab.startupFrames : attackStartupFrames(AttackStyle.grab);
+    resolveAttacks(world);
+    assertEquals(target.grab.owner, undefined);
+    // The same grab contact is eligible once the throw's hitstun ends.
+    target.launch.hitstun = 1;
+    advanceFighter(world, 1, 0, controls(), 240.0);
+    assertEquals(target.launch.throwHitstun, false);
+    target.motion.x = 90.0;
+    target.motion.z = 65.0;
+    resolveAttacks(world);
+    assertEquals(target.grab.owner, 0, dash ? "dash regrab" : "standing regrab");
+  }
+});
+
+test("throw follow-up attacks replace throw hitstun and permit attack-to-grab reads", () => {
+  for (const kind of [ContactKind.launch, ContactKind.flinch, ContactKind.damageOnly]) {
+    const { world, owner, target } = grabbedPair();
+    const input = controls({ grabThrowZ: 1 });
+    for (let frame = 1; frame <= grabContactFrame(GrabAction.throwUp); frame++) testGrabFrame(world, [input, controls()], false);
+    const damage = target.status.damage;
+    contactBatch(world, () => queueDamageContact(world, 0, 1, hitEffect(5.0, 100.0, 18.0, 0.0, 1.0), 1, kind, false, undefined));
+    assertEquals(target.status.damage, f32(damage + 5.0));
+    assertGreaterThan(target.launch.hitstun, 0);
+    assertEquals(target.launch.throwHitstun, kind === ContactKind.damageOnly);
+    owner.grab.action = GrabAction.none;
+    owner.grab.frame = 0;
+    target.motion.x = 90.0;
+    target.motion.z = 65.0;
+    testBeginAttacks(world, AttackStyle.grab, undefined);
+    owner.attack.frame = attackStartupFrames(AttackStyle.grab);
+    resolveAttacks(world);
+    assertEquals(target.grab.owner, kind === ContactKind.damageOnly ? undefined : 0);
   }
 });

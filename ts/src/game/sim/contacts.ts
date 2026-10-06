@@ -243,6 +243,7 @@ function resolveDamageContacts(world: Roster, slot: number): void {
   cancelAttack(target);
   cancelSpecialState(target);
   launch.hitstun = winner !== undefined ? ordinaryHitstunFrames(strongest) : max(launch.hitstun, 11);
+  launch.throwHitstun = chosen.kind === ContactKind.throw && launch.hitstun > 0;
   if (jabReset) {
     beginDownDamage(target, launch.hitstun);
     return;

@@ -82,6 +82,7 @@ function freezeFromTrap(world: Roster, slot: number): void {
   shield.stun = 0;
   shield.releaseLag = 0;
   launch.hitstun = 0;
+  launch.throwHitstun = false;
   launch.hitlag = 0;
   target.grab.grabbedFrames = 0;
   motion.vx = 0.0;

@@ -111,6 +111,8 @@ interface Launch {
   knockbackAge: number | undefined;
   damageLevel: number;
   hitstun: number;
+  /** The current hitstun came from a throw; grabs cannot extend it. */
+  throwHitstun: boolean;
   hitlag: number;
   diPending: boolean;
   diLaunchSpeed: number;
@@ -448,6 +450,7 @@ export function createFighter(character: Character, startX: number, facing: numb
       knockbackAge: undefined,
       damageLevel: 0,
       hitstun: 0,
+      throwHitstun: false,
       hitlag: 0,
       diPending: false,
       diLaunchSpeed: 0.0,

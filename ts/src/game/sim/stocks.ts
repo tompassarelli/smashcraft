@@ -151,6 +151,7 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   launch.knockbackAge = undefined;
   launch.damageLevel = 0;
   launch.hitstun = 0;
+  launch.throwHitstun = false;
   launch.hitlag = 0;
   launch.diPending = false;
   launch.diLaunchSpeed = 0.0;

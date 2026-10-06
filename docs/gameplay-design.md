@@ -69,6 +69,19 @@ from 0% to roughly 90–120% before the last hit.
 
 - Fighters generally need launchers into follow-ups such as tech chases.
 
+## Throw regrabs
+
+Implementation choice, 6 Oct 2026 (#85), under the owner's instruction to
+implement the suggested defaults: a grab cannot catch a fighter whose current
+hitstun came from a throw. Standing, dash and shield grabs share this rule.
+When that hitstun ends, grabs can catch again. A follow-up strike can still hit
+during throw hitstun; if it replaces the throw's hitstun, ordinary grab
+eligibility returns. Damage-only arrows do not replace the throw's hitstun.
+
+This removes direct throw-to-regrab chains while retaining true throw-to-attack
+combos and attack-to-grab reads. It does not grant a timed immunity after control
+returns or forbid grabs during ordinary attack hitstun.
+
 ## Physics foundation
 
 Smashcraft's shared physics follows Melee's NTSC 1.02 rules, as roadmaps #2
@@ -300,7 +313,5 @@ Questions, each with options:
    rule; (b) precompute each move's stretch from the sweep; (c) leave live
    signals out and give only the practice meter.
 
-Two measured patterns already run against the principle and are filed for
-a decision: the Rifleman's trap can freeze a fighter again as each freeze
-ends (#84), and an up throw can be regrabbed before its victim can act
-(#85).
+The Rifleman's trap can freeze a fighter again as each freeze ends (#84).
+Throw-to-regrab chains are governed by the throw regrab rule above (#85).

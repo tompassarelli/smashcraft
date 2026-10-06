@@ -99,6 +99,7 @@ export function finishLanding(f: Fighter, stage: number, matchFrame: number, inp
   if (isTumbling(f)) {
     const launchDirection = totalVelocityX(f) < 0 ? -1 : 1;
     launch.hitstun = 0;
+    launch.throwHitstun = false;
     if (f.tech.window > 0) {
       const x = stickX(input);
       const techDirection = Math.abs(x) < TECH_ROLL_STICK_X ? 0 : x < 0 ? -1 : 1;
@@ -110,12 +111,15 @@ export function finishLanding(f: Fighter, stage: number, matchFrame: number, inp
     }
   } else if (damageLanding === DamageLanding.knockdown) {
     launch.hitstun = 0;
+    launch.throwHitstun = false;
     beginDownState(f, DownState.bound, totalVelocityX(f) < 0 ? -1 : 1);
   } else if (damageLanding === DamageLanding.normal) {
     launch.hitstun = 0;
+    launch.throwHitstun = false;
     landingState.lag = max(landingState.lag, EMPTY_LANDING_LAG);
   } else if (fromAsdi) {
     launch.hitstun = 0;
+    launch.throwHitstun = false;
   }
 }
 
