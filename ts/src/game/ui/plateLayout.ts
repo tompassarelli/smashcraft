@@ -28,8 +28,9 @@ export const TENTHS_BOX: PlateBox = { x: 450, y: 34, width: 86, height: 70 };
 export const MANA_BOX: PlateBox = { x: 256, y: 120, width: 270, height: 16 };
 /** The bar inside the track, leaving room for an edge above and below. */
 export const MANA_BAR_HEIGHT_PX = 12;
-export const NAME_BOX: PlateBox = { x: 244, y: 148, width: 200, height: 30 };
-export const SLOT_BOX: PlateBox = { x: 448, y: 148, width: 60, height: 30 };
+/** Wide enough for the longest name, "SHADOW HUNTER", at the name font. */
+export const NAME_BOX: PlateBox = { x: 244, y: 148, width: 228, height: 30 };
+export const SLOT_BOX: PlateBox = { x: 472, y: 148, width: 40, height: 30 };
 /** Stock icons sit in a row above the plate's right half. */
 export const STOCK_ICON_PX = 64;
 export const STOCK_STEP_PX = 56;

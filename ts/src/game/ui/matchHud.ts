@@ -92,12 +92,12 @@ export class FighterHud {
     BlzFrameSetEnable(this.tenths, false);
     this.name = createText(`FighterHUDName${suffix}`, parent, context + 3);
     sizeTo(this.name, NAME_BOX);
-    BlzFrameSetFont(this.name, MENU_FONT, f32(0.0095), 1);
+    BlzFrameSetFont(this.name, MENU_FONT, f32(0.0072), 1);
     BlzFrameSetTextAlignment(this.name, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_LEFT);
     BlzFrameSetEnable(this.name, false);
     this.slotLabel = createText(`FighterHUDSlot${suffix}`, parent, context + 4);
     sizeTo(this.slotLabel, SLOT_BOX);
-    BlzFrameSetFont(this.slotLabel, MENU_FONT, f32(0.0095), 1);
+    BlzFrameSetFont(this.slotLabel, MENU_FONT, f32(0.0085), 1);
     BlzFrameSetTextAlignment(this.slotLabel, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_RIGHT);
     BlzFrameSetText(this.slotLabel, `P${I2S(slot + 1)}`);
     BlzFrameSetEnable(this.slotLabel, false);
