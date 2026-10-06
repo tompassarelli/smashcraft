@@ -29,6 +29,7 @@ const COMMANDS: Record<string, { readonly usage: string; readonly load: () => Pr
   play: { usage: "play   (Tom's desktop: Battle.net, Play, the map hosted after Warcraft's ladder scan, the controller helper, a match against a computer)", load: async () => (await import("./wisp/commands/play")).play },
   tune: { usage: "tune --data DIR [--data DIR ...] [--port N] [--profile main|integrity|playable|physics-probe|frame-cost|stack-trace]", load: async () => (await import("./wisp/commands/tune")).tune },
   repro: { usage: "repro FILE [--test NAME]", load: async () => (await import("./wisp/commands/repro")).repro },
+  accept: { usage: "accept [--only ID...] [--dry-run] [--out DIR]   (the declared native checks, batched: scripts/wisp/acceptChecks.ts)", load: async () => (await import("./wisp/commands/accept")).accept },
   perf: { usage: "perf [quick-match|bot|bot-four] [--frames N] [--samples] [--out FILE] | perf compare A B [--threshold SHARE]   (LUA=<32-bit lua>)", load: async () => (await import("./wisp/commands/perf")).perf },
 };
 

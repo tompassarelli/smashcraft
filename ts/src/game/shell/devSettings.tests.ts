@@ -3,7 +3,7 @@ import { Phase, createMatchState, fighterMask, selectCharacter, setParticipants 
 import { Character } from "../sim/codes";
 import { MAX_BATCH } from "../netcode/journal/transport";
 import { REPLAY_MAX_CORRECTION_FRAMES } from "../replay/limits";
-import { type DevSettings, applyDevCommand, prepareQuickMatch } from "./devSettings";
+import { type DevSettings, applyDevCommand, prepareQuickMatch, quickMatchHero } from "./devSettings";
 
 const settings = (): DevSettings => ({ rollback: 24, delay: 0, batch: 2, rematchSeconds: 5 });
 
@@ -63,4 +63,17 @@ test("a quick match readies every present human's default fighter and starts wit
   playing.phase = Phase.match;
   assertFalse(prepareQuickMatch(playing));
   assertEquals(playing.stockCount, 3);
+});
+
+test("a hero quick match gives every present human the named fighter", () => {
+  assertEquals(quickMatchHero("-dev quick hero ILLIDAN"), Character.demonHunter);
+  assertEquals(quickMatchHero("-dev quick hero nobody"), undefined);
+  assertEquals(quickMatchHero("-dev quick"), undefined);
+  const game = createMatchState();
+  setParticipants(game, 0b011, 0b100);
+  game.phase = Phase.characterMenu;
+  assertTrue(prepareQuickMatch(game, 0, Character.demonHunter));
+  assertEquals(game.phase, Phase.match);
+  assertEquals(game.characterChoices[0], Character.demonHunter);
+  assertEquals(game.characterChoices[1], Character.demonHunter);
 });

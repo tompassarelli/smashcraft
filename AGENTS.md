@@ -133,6 +133,11 @@ code. From smashcraft:ts/:
   #17's four-fighter match (smashcraft:docs/native-four-fighters.md);
   `bun wisp playable capture|result` a playable candidate's one-stock match
   and rematch (smashcraft:docs/playable-0047.md).
+- Native acceptance: `bun wisp accept [--only ID...] [--dry-run]` runs every
+  open native check declared in smashcraft:ts/scripts/wisp/acceptChecks.ts in
+  as few fresh matches as their maps allow and prints pass, fail or
+  needs-look per check with its evidence folder (wisp:docs/accept.md). Declare
+  a new native box there, next to the issue it closes, instead of a hand procedure.
 - Melee oracle: `bun wisp oracle` plays Melee situations for every fighter
   and prints each outcome beside the value cited from the decompilation; the
   test suite fails on any mismatch it doesn't list as known

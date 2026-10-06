@@ -10,7 +10,8 @@ import { type ParticipantSlot, isParticipantSlot } from "../../game/input/partic
 import { heldActions, keyDown, pressKey, releaseKey } from "../../game/input/playerKeys";
 import { startKeyDown, startKeyUp } from "../../game/match/controls";
 import { Phase, cancelRematchCountdown, characterFor, firstHumanSlot, humanActive, leaveMatch, recallCharacter, selectCharacter } from "../../game/match/rules";
-import { DESYNC_COMMAND, quickMatchStage, applyDevCommand } from "../../game/shell/devSettings";
+import { DESYNC_COMMAND, quickMatchHero, quickMatchStage, applyDevCommand } from "../../game/shell/devSettings";
+import { fighterName } from "../../game/sim/heroes/registry";
 import { keepMomentEnd } from "../../game/replay/moment";
 import { devReceiptFile } from "../../game/shell/journalFiles";
 import { pausedMessage } from "../../game/shell/messages";
@@ -204,12 +205,16 @@ export function onDevCommand(s: ShellState): void {
   const message = GetEventPlayerChatString();
   let receipt: string | undefined;
   const quickStage = quickMatchStage(message);
+  const quickHero = quickMatchHero(message);
   if (message === "-dev camera") {
     receipt = "dev: camera match";
     startQuickMatch(s, 0, "camera");
   } else if (quickStage !== undefined) {
     receipt = "dev: quick match";
     startQuickMatch(s, quickStage);
+  } else if (quickHero !== undefined) {
+    receipt = `dev: quick match ${fighterName(quickHero)}`;
+    startQuickMatch(s, 0, s.build.scenario, quickHero);
   } else if (message.startsWith("-dev effects ")) {
     const index = S2I(message.slice(13));
     const scenario = HIT_PRESENTATION_CASES[index];
