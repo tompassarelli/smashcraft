@@ -118,7 +118,10 @@ export function prepareQuickMatch(game: MatchState, stage = 0, character?: Chara
   setStocks(game, first, 1);
   if (!requestStageSelect(game, first)) return false;
   selectStage(game, first, stage);
-  return requestStart(game, first);
+  if (!requestStart(game, first)) return false;
+  // A developer's quick match skips the countdown: tests and captures drive it from its first frame.
+  game.startHold = 0;
+  return true;
 }
 
 /** Training's native check (#120): a computer partner shielding at 40%, hit areas on, then the quick match. */

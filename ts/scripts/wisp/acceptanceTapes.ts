@@ -94,7 +94,11 @@ function playMatch(script: MatchScript, session: TapeSession, play: (...lines: s
   const rollbacks = new Map(script.rollbacks.map(([first, last]) => [last, first]));
   /** Recorded input lines of the predicted frames still to correct. */
   const actual: string[][] = [];
+  // A competitive match holds its fighters for the countdown: the script's frame 1 is GO!.
+  const hold = session.live.match.startHold;
+  for (let at = 1; at <= hold; at++) play(`frame ${at}`);
   for (let frame = 1; frame <= script.frames; frame++) {
+    const at = frame + hold;
     const inputs = players.map(player => {
       const self = fighterAt(session.live.world, player.slot);
       const dx = fighterAt(session.live.world, 1 - player.slot).motion.x - self.motion.x;
@@ -121,19 +125,19 @@ function playMatch(script: MatchScript, session: TapeSession, play: (...lines: s
       }
       player.held = held;
       sampleKeys(player.capture, mask);
-      adaptInput(player.capture.row, self, frame, player.controls, player.attacks);
+      adaptInput(player.capture.row, self, at, player.controls, player.attacks);
       commitEdges(player.capture);
       return `input ${player.slot} ${formatControls(player.controls, player.attacks)}`.trimEnd();
     });
     const first = rollbacks.get(frame);
     const prediction = script.predictions?.find(([from, to]) => frame >= from && frame <= to);
-    if (prediction === undefined) play(...inputs, `frame ${frame}`);
+    if (prediction === undefined) play(...inputs, `frame ${at}`);
     else {
       actual.push(inputs);
-      play(...inputs.slice(0, 1), "input 1", `predict ${frame}`);
-      if (frame === prediction[1]) actual.splice(0).forEach((recorded, index) => play(...recorded, `correct ${prediction[0] + index}`));
+      play(...inputs.slice(0, 1), "input 1", `predict ${at}`);
+      if (frame === prediction[1]) actual.splice(0).forEach((recorded, index) => play(...recorded, `correct ${prediction[0] + hold + index}`));
     }
-    if (first !== undefined) play(`rollback ${first} ${frame}`);
+    if (first !== undefined) play(`rollback ${first + hold} ${at}`);
   }
 }
 
