@@ -13,6 +13,8 @@ import { f32 } from "wisp/src/sim/f32";
 import type { HeroClip, HeroClipTable } from "./hero";
 
 const clip = (index: number, seconds: number): HeroClip => ({ index, seconds });
+// Standing upright: Stand Ready crouches to 0.82 of his standing body, below the hurt capsule (#144).
+const STAND_1 = clip(0, f32(3.334));
 const STAND_READY = clip(3, 1.0);
 const ATTACK_SWEEP = clip(4, 1.0);
 const ATTACK_SLAM = clip(5, f32(1.166));
@@ -25,7 +27,7 @@ const WALK = clip(12, f32(0.766));
 export const UTHER_FALLBACK_CLIP = STAND_READY;
 
 export const UTHER_CLIPS: HeroClipTable = {
-  idle: STAND_READY,
+  idle: STAND_1,
   walk: WALK,
   jab: ATTACK_SWEEP,
   grab: ATTACK_SWEEP,
