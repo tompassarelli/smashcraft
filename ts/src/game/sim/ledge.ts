@@ -10,6 +10,7 @@ import { LEDGE_ATTACK_FRAMES } from "./moves";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type Controls, type Roster, controlsAt, fighterAt, isActive } from "./roster";
 import { surfaceLeft, surfaceRight, surfaceZ } from "./stage";
+import { BODY_HALF_WIDTH } from "./surfaces";
 import { checkBlastZone } from "./stocks";
 import { beginAttack, cancelAttack, clearDownState, clearLedge, clearTech, leaveLedge } from "./transitions";
 import { melee } from "./tuning";
@@ -43,9 +44,6 @@ interface LedgeCatchBox {
 const FOX_LEDGE_SNAP: LedgeSnap = { x: 11.0, y: 13.0, height: 9.0 };
 const FALCO_LEDGE_SNAP: LedgeSnap = { x: 11.0, y: 13.0, height: 9.0 };
 const CAPTAIN_FALCON_LEDGE_SNAP: LedgeSnap = { x: 9.0, y: 17.0, height: 11.0 };
-// Melee widens the reach by the airborne collision box, never under 2 units a
-// side; Smashcraft fighters collide as points, so they reach with that minimum.
-export const LEDGE_CATCH_BODY_HALF_WIDTH = 2.0;
 
 export function ledgeSnap(character: Character): LedgeSnap {
   switch (character) {
@@ -60,8 +58,9 @@ export function ledgeSnap(character: Character): LedgeSnap {
 
 function catchBox(snap: LedgeSnap): LedgeCatchBox {
   const half = f32(snap.height * 0.5);
+  // Melee widens the reach by the airborne collision box; fighters reach with its minimum.
   return {
-    reach: melee(f32(LEDGE_CATCH_BODY_HALF_WIDTH + snap.x)),
+    reach: melee(f32(BODY_HALF_WIDTH + snap.x)),
     lowest: melee(f32(snap.y - half)),
     highest: melee(f32(snap.y + half)),
   };

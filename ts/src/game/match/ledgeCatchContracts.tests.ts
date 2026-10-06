@@ -1,6 +1,6 @@
 // Recoveries played through captured rows and the frame executor: a fighter
-// whose fall carries the ledge into its catch box snaps to it, and one just
-// outside the box falls past.
+// whose fall carries the ledge into its catch box snaps to it, one just
+// outside the box falls past, and a ledge jump clears the wall below it.
 import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { Character, LedgeState } from "../sim/codes";
@@ -123,6 +123,27 @@ test("a fall that starts just below the catch box falls past the ledge", () => {
       const match = testMatch(3, character);
       const fighter = besideLedge(match, side, 30.0, f32(highest + 1.0));
       assertEquals(playRecovery(match, fighter, false, f32(highest + 120.0)).caught, undefined);
+    }
+  }
+});
+
+test("a ledge jump rises past the main deck's side wall and lands on the stage", () => {
+  for (const character of ROSTER) {
+    const { reach } = ledgeCatchBox(character);
+    for (const side of [-1, 1]) {
+      const match = testMatch(3, character);
+      const fighter = besideLedge(match, side, f32(reach - 6.0), 0.0);
+      assertTrue(playRecovery(match, fighter, false, 400.0).caught !== undefined);
+      executeNext(match);
+      match.inputs.inputs[0].jumpPressed = true;
+      executeNext(match);
+      match.inputs.inputs[0].jumpPressed = false;
+      assertEquals(fighter.ledge.state, LedgeState.none);
+      for (let frame = 1; frame <= 120 && !fighter.motion.grounded; frame++) executeNext(match);
+      assertTrue(fighter.motion.grounded);
+      assertGreaterThan(fighter.surfaceRecovery.contactSerial, 0);
+      assertEquals(fighter.motion.surface, 0);
+      assertEquals(fighter.ledge.serial, 1);
     }
   }
 });
