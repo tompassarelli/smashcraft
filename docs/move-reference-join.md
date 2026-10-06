@@ -114,11 +114,10 @@ safety while reducing reachable follow-ups. Grounded Demon Hunter comparisons
 trade earlier readiness against lower damage/earlier defender response; there
 is no unsupported universal speed-versus-power score.
 
-**No parameter change is proposed.** The current evidence establishes the
-three-field projection, but neither an unwanted overall trade-off nor a tuning
-target. Matching Rifleman's recovery to Archer merely to erase that difference
-would be an unsupported balance decision. The Melee corpus cannot supply that
-decision through a guessed fighter mapping or unresolved recovery arithmetic.
+The projection is a fact about these snapshots, not a tuning target: it does
+not show an overall trade-off, and the Melee corpus maps no Smashcraft fighter
+to a Melee one and leaves its recovery arithmetic unresolved. Balance
+proposals and their evidence belong to issue #12.
 
 The focused tests check the first-active conversion and variant restrictions,
 and distinguish costly extra damage from a deliberate free-damage dominance

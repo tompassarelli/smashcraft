@@ -1,0 +1,165 @@
+{
+  "game_pids": [
+    {
+      "client": "a",
+      "pid": 958554
+    },
+    {
+      "client": "b",
+      "pid": 861650
+    }
+  ],
+  "input_delay": "frames a helper journaled by its clock beyond the last frame its client admitted, at each edit-box receipt",
+  "trials": [
+    {
+      "epoch": 1,
+      "trial": 1,
+      "pid": 861650,
+      "stopped_ms": 2000,
+      "clients": [
+        {
+          "slot": 0,
+          "receipts_before": 39,
+          "baseline_lag_frames": 6,
+          "peak_lag_frames": 27,
+          "recovery_ms": 6,
+          "settled_ms": 1815,
+          "max_lag_in_next_second": 27
+        },
+        {
+          "slot": 1,
+          "receipts_before": 39,
+          "baseline_lag_frames": 5,
+          "peak_lag_frames": 147,
+          "recovery_ms": 1191,
+          "settled_ms": 2153,
+          "max_lag_in_next_second": 13
+        }
+      ],
+      "passed": false
+    },
+    {
+      "epoch": 1,
+      "trial": 2,
+      "pid": 861650,
+      "stopped_ms": 2001,
+      "clients": [
+        {
+          "slot": 0,
+          "receipts_before": 40,
+          "baseline_lag_frames": 7,
+          "peak_lag_frames": 46,
+          "recovery_ms": 8,
+          "settled_ms": 2332,
+          "max_lag_in_next_second": 46
+        },
+        {
+          "slot": 1,
+          "receipts_before": 41,
+          "baseline_lag_frames": 7,
+          "peak_lag_frames": 156,
+          "recovery_ms": 1728,
+          "settled_ms": 2453,
+          "max_lag_in_next_second": 11
+        }
+      ],
+      "passed": false
+    },
+    {
+      "epoch": 1,
+      "trial": 3,
+      "pid": 861650,
+      "stopped_ms": 1999,
+      "clients": [
+        {
+          "slot": 0,
+          "receipts_before": 40,
+          "baseline_lag_frames": 8,
+          "peak_lag_frames": 30,
+          "recovery_ms": 65,
+          "settled_ms": 1216,
+          "max_lag_in_next_second": 30
+        },
+        {
+          "slot": 1,
+          "receipts_before": 41,
+          "baseline_lag_frames": 7,
+          "peak_lag_frames": 143,
+          "recovery_ms": 1364,
+          "settled_ms": 1834,
+          "max_lag_in_next_second": 11
+        }
+      ],
+      "passed": false
+    }
+  ],
+  "trials_passed": "0/3",
+  "matches": [
+    {
+      "epoch": 1,
+      "ends": [
+        {
+          "frame": 3317,
+          "winner": "P3"
+        },
+        {
+          "frame": 3317,
+          "winner": "P3"
+        }
+      ],
+      "confirmed_frames_compared": 19,
+      "confirmed_frames_differing": [],
+      "last_common_confirmed": {
+        "frame": 1192,
+        "state": "206207:246603"
+      }
+    },
+    {
+      "epoch": 2,
+      "ends": [
+        {
+          "frame": 3607,
+          "winner": "P4"
+        },
+        {
+          "frame": 3609,
+          "winner": "P4"
+        }
+      ],
+      "confirmed_frames_compared": 17,
+      "confirmed_frames_differing": [],
+      "last_common_confirmed": {
+        "frame": 1186,
+        "state": "258035:373125"
+      }
+    }
+  ],
+  "moments": [
+    "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4/moments/smashcraft-repro-p0-f778-1.txt",
+    "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4/moments/smashcraft-repro-p0-f1866-2.txt",
+    "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4/moments/smashcraft-repro-p0-f774-3.txt",
+    "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4/moments/smashcraft-repro-p0-f1850-4.txt",
+    "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4/moments/smashcraft-repro-p1-f778-1.txt",
+    "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4/moments/smashcraft-repro-p1-f1866-2.txt",
+    "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4/moments/smashcraft-repro-p1-f774-3.txt",
+    "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4/moments/smashcraft-repro-p1-f1850-4.txt"
+  ],
+  "moment_requests": [
+    {
+      "epoch": 1,
+      "after_start_ms": 12183
+    },
+    {
+      "epoch": 1,
+      "after_start_ms": 30268
+    },
+    {
+      "epoch": 2,
+      "after_start_ms": 80357
+    },
+    {
+      "epoch": 2,
+      "after_start_ms": 98252
+    }
+  ]
+}

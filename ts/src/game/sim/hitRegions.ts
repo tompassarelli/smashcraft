@@ -136,6 +136,10 @@ const downAir = (minX: number, maxX: number, damage: number) =>
 const ARCHER_DOWN_AIR_DIVE = downAir(-55.0, 55.0, attackDamage(AttackStyle.downAir));
 const ARCHER_DOWN_AIR_LATE = downAir(-55.0, 55.0, 6.0);
 const DOWN_AIR = downAir(-95.0, 95.0, attackDamage(AttackStyle.downAir));
+// Melee's Falco down tilt hits 1.3 times Fox's on the same frames (13% and
+// 10%, smashcraft:references/melee-frame-data/); Rifleman's keeps that ratio
+// over the shared down tilt's 8.
+const RIFLEMAN_DOWN_TILT = ordinary(0.0, attackReach(AttackStyle.downTilt), -130.0, 130.0, 10.0);
 
 export function authoredHitRegionCount(style: AttackStyle | undefined): number {
   return style === AttackStyle.forwardTilt ? 2 : 1;
@@ -168,6 +172,8 @@ function activeRegion(character: Character, style: AttackStyle, frame: number, i
     case AttackStyle.downAir:
       if (character === Character.archer) return frame < startup + 3 ? ARCHER_DOWN_AIR_DIVE : ARCHER_DOWN_AIR_LATE;
       return DOWN_AIR;
+    case AttackStyle.downTilt:
+      return character === Character.rifleman ? RIFLEMAN_DOWN_TILT : REACH_REGIONS[style] ?? NO_HIT_REGION;
     default:
       return REACH_REGIONS[style] ?? NO_HIT_REGION;
   }

@@ -28,6 +28,7 @@ import { KEY_DOWN, KEY_UP, Key, registerKey, removeKeyEvents, syncKeyEvents } fr
 import { onDevCommand, onDeveloperRestart, onDeveloperTrace, onKeyDown, onKeyUp, onProbeExport, onProbeStart } from "./keys";
 import { panelActions } from "./menus";
 import { PLAYER_FILE_RECEIVED, bindingFiles, playerFileReceived, playerFilesOwnerLeft, startPlayerFiles } from "./playerFiles";
+import { PLAYTEST, PLAYTEST_PREFIX, playtestRequested, readPlaytestRequest, servicePlaytestRequest } from "./playtest";
 import { makePreview } from "./preview";
 import { PROBE_EXPORT, exportProbePage, probeBegin, probePresent } from "./responseProbe";
 import { receiveInput, rollbackTick } from "./rollback";
@@ -107,6 +108,7 @@ function gameTick(s: ShellState): void {
     const { barrier } = journal;
     editbox.updatePauseHint(s.session.paused, barrier.request !== undefined, pausing(barrier));
   }
+  servicePlaytestRequest(s);
   publishMenu(s);
   const local = localParticipantSlot(s);
   if (s.probe !== undefined && local !== undefined) {
@@ -195,6 +197,7 @@ function createTriggers(s: ShellState): void {
     for (const slot of PARTICIPANT_SLOTS) TriggerRegisterPlayerChatEvent(chat, Player(slot), "-dev ", false);
     TriggerAddAction(chat, trampoline(DEV_COMMAND));
   }
+  syncTrigger(s, PLAYTEST_PREFIX, PLAYTEST, true);
   const leave = CreateTrigger();
   for (const slot of PARTICIPANT_SLOTS) TriggerRegisterPlayerEvent(leave, Player(slot), EVENT_PLAYER_LEAVE);
   TriggerAddAction(leave, trampoline(PLAYER_LEFT));
@@ -241,6 +244,7 @@ function initialize(): void {
   lockArenaCamera(s);
   renderUi(s);
   createTriggers(s);
+  readPlaytestRequest(s);
   for (const participant of s.participants) {
     if (humanActive(s.game, participant.slot)) initializeBindingSettings(participant.bindings);
     else useDefaultBindings(participant.bindings);
@@ -276,6 +280,7 @@ export function installShell(): void {
   on(PROBE_EXPORT, withShell(s => { if (s.probe !== undefined) exportProbePage(s.probe); }));
   on(PLAYER_FILE_RECEIVED, playerFileReceived);
   on(SAVE_MOMENT, withShell(momentKey));
+  on(PLAYTEST, withShell(playtestRequested));
   const s = shellState();
   if (s?.ui !== undefined) recreateUi(s, panelActions());
   // A match from a bundle without the moment record keeps running with a new one.

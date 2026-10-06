@@ -1,0 +1,338 @@
+[
+  {
+    "epoch": 1,
+    "slot": 0,
+    "rows": 2406,
+    "buttons": [
+      {
+        "button": "attack",
+        "script_presses": 6,
+        "rows_with_press": 6,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "jump",
+        "script_presses": 6,
+        "rows_with_press": 6,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "special",
+        "script_presses": 6,
+        "rows_with_press": 6,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "shield",
+        "script_presses": 6,
+        "rows_with_press": 6,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "dash-right",
+        "script_presses": 6,
+        "rows_with_press": 6,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "dash-left",
+        "script_presses": 6,
+        "rows_with_press": 6,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "c-right",
+        "script_presses": 6,
+        "rows_with_press": 6,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "c-left",
+        "script_presses": 6,
+        "rows_with_press": 6,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "c-up",
+        "script_presses": 6,
+        "rows_with_press": 6,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "c-down",
+        "script_presses": 6,
+        "rows_with_press": 6,
+        "missed": 0,
+        "extra": 0
+      }
+    ],
+    "held_in_last_row": 0,
+    "input_delay_frames": {
+      "n": 235,
+      "p50": 4,
+      "p95": 5,
+      "max": 6
+    }
+  },
+  {
+    "epoch": 2,
+    "slot": 0,
+    "rows": 2096,
+    "buttons": [
+      {
+        "button": "attack",
+        "script_presses": 5,
+        "rows_with_press": 5,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "jump",
+        "script_presses": 5,
+        "rows_with_press": 5,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "special",
+        "script_presses": 5,
+        "rows_with_press": 5,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "shield",
+        "script_presses": 5,
+        "rows_with_press": 5,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "dash-right",
+        "script_presses": 5,
+        "rows_with_press": 5,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "dash-left",
+        "script_presses": 5,
+        "rows_with_press": 5,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "c-right",
+        "script_presses": 5,
+        "rows_with_press": 5,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "c-left",
+        "script_presses": 5,
+        "rows_with_press": 5,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "c-up",
+        "script_presses": 5,
+        "rows_with_press": 5,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "c-down",
+        "script_presses": 5,
+        "rows_with_press": 5,
+        "missed": 0,
+        "extra": 0
+      }
+    ],
+    "held_in_last_row": 0,
+    "input_delay_frames": {
+      "n": 184,
+      "p50": 3,
+      "p95": 5,
+      "max": 6
+    }
+  },
+  {
+    "epoch": 1,
+    "slot": 1,
+    "rows": 2404,
+    "buttons": [
+      {
+        "button": "attack",
+        "script_presses": 6,
+        "rows_with_press": 6,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "jump",
+        "script_presses": 6,
+        "rows_with_press": 6,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "special",
+        "script_presses": 6,
+        "rows_with_press": 6,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "shield",
+        "script_presses": 6,
+        "rows_with_press": 6,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "dash-right",
+        "script_presses": 6,
+        "rows_with_press": 6,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "dash-left",
+        "script_presses": 6,
+        "rows_with_press": 6,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "c-right",
+        "script_presses": 6,
+        "rows_with_press": 6,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "c-left",
+        "script_presses": 6,
+        "rows_with_press": 6,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "c-up",
+        "script_presses": 6,
+        "rows_with_press": 6,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "c-down",
+        "script_presses": 6,
+        "rows_with_press": 6,
+        "missed": 0,
+        "extra": 0
+      }
+    ],
+    "held_in_last_row": 0,
+    "input_delay_frames": {
+      "n": 235,
+      "p50": 4,
+      "p95": 5,
+      "max": 8
+    }
+  },
+  {
+    "epoch": 2,
+    "slot": 1,
+    "rows": 2092,
+    "buttons": [
+      {
+        "button": "attack",
+        "script_presses": 5,
+        "rows_with_press": 5,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "jump",
+        "script_presses": 5,
+        "rows_with_press": 5,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "special",
+        "script_presses": 5,
+        "rows_with_press": 5,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "shield",
+        "script_presses": 5,
+        "rows_with_press": 5,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "dash-right",
+        "script_presses": 5,
+        "rows_with_press": 5,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "dash-left",
+        "script_presses": 5,
+        "rows_with_press": 5,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "c-right",
+        "script_presses": 5,
+        "rows_with_press": 5,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "c-left",
+        "script_presses": 5,
+        "rows_with_press": 5,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "c-up",
+        "script_presses": 5,
+        "rows_with_press": 5,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "c-down",
+        "script_presses": 5,
+        "rows_with_press": 5,
+        "missed": 0,
+        "extra": 0
+      }
+    ],
+    "held_in_last_row": 0,
+    "input_delay_frames": {
+      "n": 184,
+      "p50": 3,
+      "p95": 4,
+      "max": 5
+    }
+  }
+]

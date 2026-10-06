@@ -14,6 +14,7 @@ import { TEXT_WINDOW, textEnvelope } from "../../src/game/netcode/journal/text";
 import { momentRequest } from "../../src/game/replay/moment";
 import { quiescentFile } from "../../src/game/shell/journalFiles";
 import { journalControlFile, journalLifecycleFile, journalReadyFile } from "../../src/runtime/gameFiles";
+import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 
 
 /** #26's twelve bindings as the actions each press reports, then attack and special together. */
@@ -45,11 +46,24 @@ const DIRECTIONS = bit(Action.moveLeft) | bit(Action.moveRight) | bit(Action.mov
 
 const tapFrames = (workload: Workload) => workload.denseCycles * PULSES.length * 3;
 
+/** The letters, digits and underscores right after `key` in `text`; "" without the key. Plain string calls, so Lua programs can use the helper. */
+function wordAfter(text: string, key: string): string {
+  const at = text.indexOf(key);
+  if (at < 0) return "";
+  const start = at + key.length;
+  let end = start;
+  for (; end < text.length; end++) {
+    const code = text.charCodeAt(end);
+    if (!((code >= 48 && code <= 57) || (code >= 65 && code <= 90) || (code >= 97 && code <= 122) || code === 95)) break;
+  }
+  return text.substring(start, end);
+}
+
 /** The row a slot's helper journals for a frame of the workload. */
 export function rowFor(slot: number, frame: number, workload: Workload): InputRow {
   const taps = tapFrames(workload);
   const direction = workload.walkers.includes(slot) ? bit(slot === 0 ? Action.moveLeft : Action.moveRight) : 0;
-  const pulse = frame <= taps && frame % 3 === 1 ? PULSES[((frame - 1) / 3) % PULSES.length] ?? 0 : 0;
+  const pulse = frame <= taps && floorMod(frame, 3) === 1 ? PULSES[floorMod(floorDiv(frame - 1, 3), PULSES.length)] ?? 0 : 0;
   const tap = direction === 0 ? pulse : pulse & ~DIRECTIONS;
   const row = inputRow({ held: direction, pressed: tap | (frame === 1 ? direction : 0), released: tap, axisX: direction === 0 ? 0 : slot === 0 ? -127 : 127 });
   if (row === undefined) throw new Error(`no row for frame ${frame}`);
@@ -81,8 +95,13 @@ export class JournalHelpers {
   readonly silent = new Set<number>();
   /** The row a slot's controller makes on a frame of its helper's clock; the workload's by default. */
   rows: (slot: number, frame: number) => InputRow = (slot, frame) => rowFor(slot, frame, this.workload);
-  /** Characters each slot's helper typed into its client's edit box in the last service. */
+  /** Characters each slot's helper typed into its client's edit box in the last service; none for a slot that typed nothing. */
   readonly typed = new Map<number, number>();
+  /**
+   * Type as wc3-journal did before 8ac53f2f: every record the window allows
+   * at once, none joined, which after a stall is a burst of hundreds of characters.
+   */
+  bursts = false;
   /** The helpers' clock in frames, such as a soak's wall clock; the clients' frames by default. */
   clock: ((clients: Lockstep) => number) | undefined = undefined;
   /**
@@ -119,18 +138,25 @@ export class JournalHelpers {
   /** One frame of every helper, after the clients ran it. */
   service(clients: Lockstep): void {
     const now = this.clock?.(clients) ?? clients.frame;
+    this.typed.clear();
     for (const client of clients.clients) {
       const helper = this.helper(client.slot);
       const next = helper.epoch + 1;
       if ((helper.state === "idle" || helper.state === "ended") && client.files.has(journalReadyFile(this.build, next, client.slot))) {
-        Object.assign(helper, { epoch: next, sequence: 0, state: "ready", control: 1, limit: undefined });
+        helper.epoch = next;
+        helper.sequence = 0;
+        helper.state = "ready";
+        helper.control = 1;
+        helper.limit = undefined;
         helper.queue.length = 0;
         helper.typed.length = 0;
         helper.queue.push(`JR1${next}`);
       }
       const { epoch } = helper;
       if (helper.state === "ready" && client.files.has(journalLifecycleFile(this.build, epoch, client.slot, "start"))) {
-        Object.assign(helper, { state: "journaling", journaled: 0, started: now });
+        helper.state = "journaling";
+        helper.journaled = 0;
+        helper.started = now;
       }
       if (helper.state === "journaling" && client.files.has(journalLifecycleFile(this.build, epoch, client.slot, "end"))) {
         helper.state = "ended";
@@ -140,7 +166,9 @@ export class JournalHelpers {
       // Control requests, answered as the companion does: a pause stops at the next frame,
       // its commit journals up to the committed frame, and a resume restarts the clock there.
       const control = helper.state === "journaling" ? client.files.get(journalControlFile(this.build, epoch, client.slot, helper.control)) : undefined;
-      const [, request = "", frame = "0"] = /state=(\w+) frame=(\d+)/.exec(control?.join("") ?? "") ?? [];
+      const controlText = control?.join("") ?? "";
+      const request = wordAfter(controlText, "state=");
+      const frame = wordAfter(controlText, " frame=");
       const acknowledge = (stage: string, at: number) => helper.queue.push(`ACK1|${helper.control}|${stage}|${at}`);
       let committed: number | undefined;
       if (request === "PAUSE") {
@@ -165,7 +193,7 @@ export class JournalHelpers {
         // As the companion does, a packet joins the untyped record before it.
         const last = helper.queue.length - 1;
         const untyped = helper.queue[last];
-        if (this.pairs && untyped?.startsWith("I4") === true && untyped.split("|").length < RECORD_PACKETS) helper.queue[last] = `${untyped}|${encodePacket(packet)}`;
+        if (this.pairs && !this.bursts && untyped?.startsWith("I4") === true && untyped.split("|").length < RECORD_PACKETS) helper.queue[last] = `${untyped}|${encodePacket(packet)}`;
         else helper.queue.push(encodePacket(packet));
         helper.journaled += rows.length;
       }
@@ -175,14 +203,14 @@ export class JournalHelpers {
       const box = client.frames.named("JournalControllerInput", 969);
       if (box === undefined || !client.frames.shown(box) || this.silent.has(client.slot)) continue;
       const receipt = client.files.get(`smashcraft-journal-text-ack-${this.build}-e${epoch}-p${client.slot}.txt`)?.join("") ?? "";
-      const consumed = Number(/ consumed=(\d+)/.exec(receipt)?.[1] ?? 0);
-      const received = Number(/ received=(\d+)/.exec(receipt)?.[1] ?? 0);
+      const consumed = Number(wordAfter(receipt, " consumed=") === "" ? "0" : wordAfter(receipt, " consumed="));
+      const received = Number(wordAfter(receipt, " received=") === "" ? "0" : wordAfter(receipt, " received="));
       while ((helper.typed[0]?.[0] ?? Infinity) <= received) helper.typed.shift();
       let ahead = helper.typed.reduce((sum, [, characters]) => sum + characters, 0);
       const before = box.text.length;
       for (let payload = helper.queue.shift(); payload !== undefined; payload = helper.queue.shift()) {
         const envelope = textEnvelope(epoch, helper.sequence + 1, payload) ?? "";
-        if (helper.sequence >= consumed + TEXT_WINDOW || (this.pairs && ahead > 0 && ahead + envelope.length > TYPED_AHEAD_CHARACTERS)) {
+        if (helper.sequence >= consumed + TEXT_WINDOW || (this.pairs && !this.bursts && ahead > 0 && ahead + envelope.length > TYPED_AHEAD_CHARACTERS)) {
           helper.queue.unshift(payload);
           break;
         }

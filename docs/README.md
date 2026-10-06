@@ -11,7 +11,12 @@ Dated trial records live in [evidence](../evidence/README.md).
 ## Game
 
 - [Player guide](player-guide.md): controls, menus and match flow.
-- [Gameplay design decisions](gameplay-design.md): intentional mechanics choices.
+- [Gameplay design decisions](gameplay-design.md): the owner's principles and decisions, the deviations from Melee and open questions. The only place Smashcraft's stance is written.
+- [Melee case study](design/melee/README.md): Melee's movement, attacks, defence, archetypes, techniques and jank, described with numbers computed from the reference data.
+- [Fighting-game design language](design/fighting-games.md): frame advantage, highs and lows, footsies, okizeme, strike/throw, hitboxes and hurtboxes, archetypes, with sources.
+- [Platform-fighter design language](design/platform-fighters.md): how platform fighters change that language: shield, aerials on shield, ledge, DI and SDI, tech chases, edgeguarding, the interaction graph.
+- [Modern platform-fighter mechanics](design/modern-platform-fighters.md): sourced inventory of mechanics later games added or changed relative to Melee.
+- [Execution and reaction windows](design/execution-windows.md): windows other games use, human limits, and proposed bounds.
 - [Delivery goal](delivery-goal.md): what the finished game contains.
 - [Current release](playable-0041.md): files, startup and controls for 0.0.41.
 
@@ -19,8 +24,8 @@ Dated trial records live in [evidence](../evidence/README.md).
 
 - [Physics reference](physics.md): source values, implementation and known differences.
 - Melee mechanics: [air cutoff](melee-air-cutoff.md), [analog shield](melee-analog-shield.md), [ground motion](melee-ground-motion.md), [hitlag scalars](melee-hitlag-scalars.md), [hitstun boundaries](melee-hitstun-boundaries.md), [powershield](melee-powershield.md), [scalar math](melee-scalar-math.md), [tech input](melee-tech-input.md).
-- [Smash Melee reference data](smash-melee-reference/README.md): structured reference corpus used by the physics tests.
-- [Melee frame-data reference](../references/melee-frame-data/README.md): factual JSONL intake and conventions.
+- [Smash Melee reference data](smash-melee-reference/README.md): physics parameters, every fighter's retail attributes and the targeted retail observations used by the physics tests.
+- [Melee frame-data reference](../references/melee-frame-data/README.md): the one Melee frame-data corpus: per-move frame data, hitbox positions and dodge travel.
 - [Move data](move-data.md), [move comparisons](move-comparisons.md) and [move reference join](move-reference-join.md): queryable production move facts.
 - [Native arithmetic comparison](native-physics-precision.md): how to check Warcraft against headless numbers.
 
