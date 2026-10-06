@@ -1,6 +1,6 @@
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction, HitElement } from "../codes";
-import { HERO_REFERENCE_HEIGHT, heroMove, heroRegion, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
+import { HERO_REFERENCE_HEIGHT, heroMove, heroRegion, type AuthoredMove, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
 import { type FighterHurtboxes, type HurtPart, type HurtPose, hurtPart, hurtPose } from "../hurtboxes";
 import type { HitEffect } from "../hitRegions";
 
