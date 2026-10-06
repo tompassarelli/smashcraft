@@ -12,6 +12,7 @@ Dated trial records live in [evidence](../evidence/README.md).
 
 - [Player guide](player-guide.md): controls, menus and match flow.
 - [Gameplay design decisions](gameplay-design.md): intentional mechanics choices.
+- [Modern platform-fighter mechanics](design/modern-platform-fighters.md): sourced inventory of mechanics later games added or changed relative to Melee.
 - [Delivery goal](delivery-goal.md): what the finished game contains.
 - [Current release](playable-0041.md): files, startup and controls for 0.0.41.
 
