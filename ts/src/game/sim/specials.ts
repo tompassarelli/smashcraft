@@ -296,6 +296,9 @@ const IMMOLATE_AIR: Readonly<HitRegion> = {
   window: 1,
 };
 
+/** Where Immolation strikes a target's position, facing right, from the ground or the air. */
+export const immolationRegion = (grounded: boolean): Readonly<HitRegion> => (grounded ? IMMOLATE_GROUND : IMMOLATE_AIR);
+
 /** Immolation strikes each target inside its grounded or aerial region once during its active frames. */
 function demonHunterSpecialContact(owner: Fighter, targetSlot: number, target: Fighter): Readonly<HitRegion> {
   const { special } = owner;
@@ -304,7 +307,7 @@ function demonHunterSpecialContact(owner: Fighter, targetSlot: number, target: F
   if (special.frame >= DEMONHUNTER_IMMOLATE_STARTUP + DEMONHUNTER_IMMOLATE_ACTIVE || target.status.out || isIntangible(target)) return NO_HIT_REGION;
   const localX = f32(f32(target.motion.x - owner.motion.x) * owner.facing);
   const localZ = f32(target.motion.z - owner.motion.z);
-  const contact = owner.motion.grounded ? IMMOLATE_GROUND : IMMOLATE_AIR;
+  const contact = immolationRegion(owner.motion.grounded);
   const inside = localX >= contact.minX && localX <= contact.maxX && localZ >= contact.minZ && localZ <= contact.maxZ;
   return inside ? contact : NO_HIT_REGION;
 }

@@ -208,16 +208,21 @@ and 245 s of CPU on 6 October 2026.
 
 With `SOAK_OUTCOMES=FILE` set, every match also appends its result to FILE
 as one JSON line: the winner, whether time ran out, and for each player the
-damage and hits taken and each stock lost (match frame, percent, frames since
-the last hit taken). `bun scripts/soakOutcomes.ts FILE...` summarizes them
+damage and hits taken, each stock lost (match frame, percent, frames since
+the last hit taken), the moves its fighter landed by name, the attacks its
+shield stopped, the dodges it started, the jab resets it took, and the frames
+it left the main deck on its own (no hit taken for a second) while its
+opponent stood on it. `bun scripts/soakOutcomes.ts FILE...` summarizes them
 per fighter pair and policy pair: wins with a 95% Wilson interval, time-outs,
 stock time, the percent stocks were lost at (a loss more than 3 s after the
-last hit counts as a self-destruct) and damage per landed hit. The computer
-has no randomness and only chases, jumps, recovers and jabs (neutral air when
-airborne; smashcraft:ts/src/game/match/step.ts), so its matches against
-itself repeat exactly whatever the seed, and the summary counts identical
-results of one setup without a fuzzed player once. Its numbers describe that
-jab, movement, weight and recovery, not a whole moveset.
+last hit counts as a self-destruct) and damage per landed hit; then, for each
+fighter the computer played over every match, those departures,
+self-destructs, blocks, dodges and time-outs (and time-outs where a fighter
+took five or more jab resets), and how often each of its moves landed, naming
+any that never did. The computer has no randomness
+(smashcraft:docs/gameplay-design.md, "Computer opponent"), so its matches
+against itself repeat exactly whatever the seed, and the pair tables count
+identical results of one setup without a fuzzed player once.
 
 `bun wisp soak --helper BIN [--matches N] [--seconds S]` plays matches through
 the real input path instead (smashcraft:ts/test/soak/helper.ts): each player

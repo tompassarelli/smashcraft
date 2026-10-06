@@ -4,8 +4,9 @@ import { clearAttackBuffer, queueAttack } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import { type FrameControls, createFrameControls } from "../match/controls";
 import { captureFrame, createMatchFrameInput, executeMatchFrame, resetMatchFrameInput, type MatchFrameInput } from "../match/frameInput";
+import { produceComputerInput } from "../match/botPlay";
 import {
-  confirmRematch, createMatchState, fighterMask, requestStageSelect, requestStart, selectCharacter, selectStage,
+  computerActive, confirmRematch, createMatchState, fighterMask, requestStageSelect, requestStart, selectCharacter, selectStage,
   setParticipants, setStocks, setTimeLimit, updateConnectedHumans,
 } from "../match/rules";
 import { clearPresentationHistory, createPacingAndPresentation } from "../match/pacingAndPresentation";
@@ -96,6 +97,10 @@ function clearProduced({ produced }: TapeSession): void {
 function runFrame(session: TapeSession, frame: number, predicted: boolean): string | undefined {
   const { live, history, row, produced, epoch } = session;
   const { match, world, controls, runtime } = live;
+  // Computers choose from the live match, as the game's frame callback has them, so each runtime replays their decisions.
+  for (const slot of PARTICIPANT_SLOTS) {
+    if (isActive(world, slot) && computerActive(match, slot)) produceComputerInput(match, world, runtime, slot, frame, produced.inputs[slot], produced.commands[slot]);
+  }
   if (!captureFrame(row, frame, world.mask, produced, runtime)) return `capture refused frame ${frame}`;
   if (!(predicted ? history.saveSpeculative(epoch, row, live) : history.save(epoch, row, live))) return `history refused frame ${frame}`;
   if (!executeMatchFrame(row, match, world, controls, runtime, frame)) return `execution refused frame ${frame}`;

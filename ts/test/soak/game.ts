@@ -16,8 +16,10 @@ import { PARTICIPANT_SLOTS } from "../../src/game/input/participants";
 import type { StageTile } from "../../src/game/menu/stageSelection";
 import { MATCH_TICKS_PER_SECOND, Phase } from "../../src/game/match/rules";
 import { PLAYABLE_BUILD } from "../../src/game/shell/currentBuild";
-import { Character } from "../../src/game/sim/codes";
+import { AttackStyle, Character, DownState, GrabAction, HippogryphKind, ProjectileKind, SpecialAction } from "../../src/game/sim/codes";
+import type { Fighter } from "../../src/game/sim/fighter";
 import { fighterAt, isActive } from "../../src/game/sim/roster";
+import { surfaceLeft, surfaceRight } from "../../src/game/sim/stage";
 import { install as installGame, startBuild } from "../../src/platform/main";
 import { installSceneReport, startMatchSceneReport } from "../../src/platform/sceneReport";
 import { confirmedChecksum } from "../../src/platform/shell/diagnostics";
@@ -229,24 +231,151 @@ interface StockLoss {
   readonly sinceHit: number | undefined;
 }
 
+/** Attack styles by the move names of the move data (scripts/moveData.ts). */
+const MOVE_NAMES: Readonly<Record<number, string>> = {
+  [AttackStyle.jab]: "jab", [AttackStyle.forwardTilt]: "forward-tilt", [AttackStyle.forwardTiltUp]: "forward-tilt-up",
+  [AttackStyle.forwardTiltDown]: "forward-tilt-down", [AttackStyle.upTilt]: "up-tilt", [AttackStyle.downTilt]: "down-tilt",
+  [AttackStyle.forwardSmash]: "forward-smash", [AttackStyle.upSmash]: "up-smash", [AttackStyle.downSmash]: "down-smash",
+  [AttackStyle.neutralAir]: "neutral-air", [AttackStyle.forwardAir]: "forward-air", [AttackStyle.backAir]: "back-air",
+  [AttackStyle.upAir]: "up-air", [AttackStyle.downAir]: "down-air", [AttackStyle.demonHunterDashAttack]: "dash-attack",
+  [AttackStyle.getupAttack]: "get-up-attack", [AttackStyle.ledgeAttack]: "ledge-attack",
+};
+const THROW_NAMES: Readonly<Record<number, string>> = {
+  [GrabAction.throwForward]: "forward-throw", [GrabAction.throwBack]: "back-throw", [GrabAction.throwUp]: "up-throw", [GrabAction.throwDown]: "down-throw",
+};
+/** The special each projectile flies from. */
+const PROJECTILE_MOVES: Readonly<Record<number, string>> = {
+  [ProjectileKind.arrow]: "neutral-special", [ProjectileKind.blaster]: "neutral-special", [ProjectileKind.manaBurn]: "neutral-special",
+  [ProjectileKind.fanArrow]: "side-special", [ProjectileKind.recoil]: "up-special",
+};
+/** Specials with nothing that strikes: Archer's mount and Illidan's ascent count once started. */
+const STRIKELESS_SPECIALS: Readonly<Record<number, string>> = { [SpecialAction.archerRecovery]: "up-special", [SpecialAction.demonHunterWingAscent]: "up-special" };
+/** A fighter that leaves the stage this long after the last hit it took left on its own. */
+const UNFORCED_FRAMES = 60;
+
+/** One player's record, and what its fighter showed at the previous observation. */
+interface Seen {
+  readonly baseHits: number;
+  hits: number;
+  lastHit: number | undefined;
+  damage: number;
+  damageTaken: number;
+  out: boolean;
+  readonly losses: StockLoss[];
+  frame: number;
+  registry: number | undefined;
+  blocks: number;
+  grabs: number;
+  throws: number;
+  parries: number;
+  frozen: boolean;
+  bearHits: number;
+  specialHit: boolean;
+  special: number;
+  readonly projectiles: number[];
+  groundDodging: boolean;
+  airDodging: boolean;
+  offStage: boolean;
+  downDamage: boolean;
+  /** Moves this player's fighter landed on the opponent, by name. */
+  readonly landed: Record<string, number>;
+  /** Match frames the fighter left the stage on its own while the opponent stood on it. */
+  readonly departures: number[];
+  /** Attacks this player's shield stopped, and dodges started. */
+  blocked: number;
+  dodges: number;
+  /** Jab resets taken: weak hits that kept the fighter lying down. */
+  resets: number;
+}
+
+function firstSight(f: Readonly<Fighter>, frame: number): Seen {
+  return {
+    baseHits: f.visuals.hit, hits: f.visuals.hit, lastHit: undefined, damage: f.status.damage, damageTaken: 0, out: false, losses: [], frame,
+    registry: f.hits.lastAttackSerial, blocks: f.visuals.shield + f.visuals.shieldReflect, grabs: f.visuals.grab, throws: f.visuals.throw,
+    parries: f.visuals.parry, frozen: f.status.frozenFrames > 0, bearHits: f.bear.hitSerial, specialHit: f.special.hit, special: f.special.action,
+    projectiles: f.projectiles.map((projectile) => projectile.life), groundDodging: false, airDodging: false, offStage: false,
+    downDamage: false, landed: {}, departures: [], blocked: 0, dodges: 0, resets: 0,
+  };
+}
+
+const land = (seen: Seen, move: string | undefined) => {
+  if (move !== undefined) seen.landed[move] = (seen.landed[move] ?? 0) + 1;
+};
+
+/**
+ * The move that struck `victim` since the previous observation, credited to
+ * its attacker: a normal by the attack the victim's hit registry names, else
+ * a throw, a pummel, a projectile that ended early, the bear or a special's
+ * own contact.
+ */
+function creditStrike(victim: Readonly<Fighter>, victimSeen: Seen, attackerSlot: number, attacker: Readonly<Fighter>, attackerSeen: Seen, elapsed: number): void {
+  const struck = victim.visuals.hit !== victimSeen.hits;
+  const registry = victim.hits.lastAttackSerial;
+  if (registry !== undefined && registry !== victimSeen.registry && victim.hits.lastAttacker === attackerSlot) {
+    const style = attacker.attack.serial === registry ? attacker.attack.style : undefined;
+    if (struck && style !== undefined) land(attackerSeen, MOVE_NAMES[style]);
+    return;
+  }
+  if (!struck) return;
+  if (victim.visuals.throw !== victimSeen.throws) return land(attackerSeen, THROW_NAMES[attacker.grab.action]);
+  if (attacker.grab.action === GrabAction.pummel) return land(attackerSeen, "pummel");
+  const ended = attacker.projectiles.findIndex((projectile, index) => projectile.life === 0 && (attackerSeen.projectiles[index] ?? 0) > elapsed);
+  const projectile = attacker.projectiles[ended];
+  if (projectile !== undefined) return land(attackerSeen, PROJECTILE_MOVES[projectile.kind]);
+  if (attacker.bear.hitSerial !== attackerSeen.bearHits) return land(attackerSeen, "side-special");
+  const disengage = attacker.hippogryph.kind === HippogryphKind.strike || attacker.special.action === SpecialAction.archerDisengage;
+  if (attacker.special.hit && !attackerSeen.specialHit && (disengage || attacker.special.action === SpecialAction.demonHunterImmolate)) land(attackerSeen, "down-special");
+}
+
 /**
  * Appends the match's result to `file` as one JSON line, once the result
- * shows: the winner and, per player, the damage and hits taken and each
- * stock lost. It reads the host's confirmed state after every frame; frames
- * count from the match's start. scripts/soakOutcomes.ts summarizes the file.
+ * shows: the winner and, per player, the damage and hits taken, each stock
+ * lost, the moves its fighter landed, the attacks it blocked, dodges it
+ * started and jab resets it took, and when it left the stage on its own while
+ * its opponent stood on it. It reads the host's confirmed state after every frame; frames count
+ * from the match's start. scripts/soakOutcomes.ts summarizes the file.
  */
 function outcomeRecorder(match: SoakMatch, file: string): (client: HeadlessClient, over: boolean) => void {
-  const players = new Map<number, { baseHits: number; hits: number; lastHit: number | undefined; damage: number; damageTaken: number; out: boolean; losses: StockLoss[] }>();
+  const players = new Map<number, Seen>();
   let written = false;
   return (client, over) => {
     if (client.slot !== 0 || written) return;
     const { game, world } = shell();
     if (game.phase !== Phase.match && game.phase !== Phase.result) return;
     const frame = game.timeLimitMinutes * 60 * MATCH_TICKS_PER_SECOND - game.remainingFrames;
-    for (const slot of PARTICIPANT_SLOTS) {
-      if (!isActive(world, slot)) continue;
-      const { visuals, status } = fighterAt(world, slot);
-      const seen = players.get(slot) ?? { baseHits: visuals.hit, hits: visuals.hit, lastHit: undefined, damage: status.damage, damageTaken: 0, out: false, losses: [] };
+    const left = surfaceLeft(game.stageChoice, 0);
+    const right = surfaceRight(game.stageChoice, 0);
+    const active = PARTICIPANT_SLOTS.filter((slot) => isActive(world, slot));
+    for (const slot of active) if (!players.has(slot)) players.set(slot, firstSight(fighterAt(world, slot), frame));
+    const seenOf = (slot: number): Seen => {
+      const seen = players.get(slot);
+      if (seen === undefined) throw new Error(`slot ${slot} has no record`);
+      return seen;
+    };
+    // Soak matches have two players: each one's opponent is the other.
+    const [first, second] = active;
+    if (active.length === 2 && first !== undefined && second !== undefined) {
+      for (const [victimSlot, attackerSlot] of [[first, second], [second, first]] as const) {
+        const victim = fighterAt(world, victimSlot);
+        const attacker = fighterAt(world, attackerSlot);
+        const victimSeen = seenOf(victimSlot);
+        const attackerSeen = seenOf(attackerSlot);
+        creditStrike(victim, victimSeen, attackerSlot, attacker, attackerSeen, frame - victimSeen.frame);
+        if (victim.visuals.grab !== victimSeen.grabs) land(attackerSeen, "grab");
+        if (victim.status.frozenFrames > 0 && !victimSeen.frozen && attacker.character === Character.rifleman) land(attackerSeen, "down-special");
+      }
+    }
+    for (const slot of active) {
+      const f = fighterAt(world, slot);
+      const { visuals, status, motion } = f;
+      const seen = seenOf(slot);
+      if (visuals.parry > seen.parries) land(seen, "side-special");
+      if (f.special.action !== seen.special) land(seen, STRIKELESS_SPECIALS[f.special.action]);
+      if (visuals.shield + visuals.shieldReflect !== seen.blocks) seen.blocked++;
+      if ((f.dodge.groundFrame > 0 && !seen.groundDodging) || (f.dodge.airDodging && !seen.airDodging)) seen.dodges++;
+      const downDamage = f.down.state === DownState.damage;
+      if (downDamage && !seen.downDamage) seen.resets++;
+      seen.downDamage = downDamage;
       if (visuals.hit !== seen.hits) seen.lastHit = frame;
       seen.hits = visuals.hit;
       // A respawn resets the percent; only rises are damage taken.
@@ -254,14 +383,38 @@ function outcomeRecorder(match: SoakMatch, file: string): (client: HeadlessClien
       seen.damage = status.damage;
       if (status.out && !seen.out) seen.losses.push({ frame, percent: status.damage, sinceHit: seen.lastHit === undefined ? undefined : frame - seen.lastHit });
       seen.out = status.out;
-      players.set(slot, seen);
+      const offStage = !status.out && !motion.grounded && (motion.x < left || motion.x > right);
+      const opponent = active.find((other) => other !== slot);
+      const rival = opponent === undefined ? undefined : fighterAt(world, opponent);
+      const rivalOnStage = rival !== undefined && !rival.status.out && (rival.motion.grounded || (rival.motion.x >= left && rival.motion.x <= right));
+      const unforced = seen.lastHit === undefined || frame - seen.lastHit > UNFORCED_FRAMES;
+      if (offStage && !seen.offStage && unforced && rivalOnStage) seen.departures.push(frame);
+      seen.offStage = offStage;
+      seen.frame = frame;
+      seen.registry = f.hits.lastAttackSerial;
+      seen.blocks = visuals.shield + visuals.shieldReflect;
+      seen.grabs = visuals.grab;
+      seen.throws = visuals.throw;
+      seen.parries = visuals.parry;
+      seen.frozen = status.frozenFrames > 0;
+      seen.bearHits = f.bear.hitSerial;
+      seen.specialHit = f.special.hit;
+      seen.special = f.special.action;
+      f.projectiles.forEach((projectile, index) => {
+        seen.projectiles[index] = projectile.life;
+      });
+      seen.groundDodging = f.dodge.groundFrame > 0;
+      seen.airDodging = f.dodge.airDodging;
     }
     if (!over) return;
     written = true;
     const outcome = {
       index: match.index, seed: match.seed, stage: match.stage, fighters: match.fighters, policies: match.policies,
       winner: game.winner ?? null, timedOut: game.timedOut, interrupted: game.interrupted, frames: frame,
-      players: [...players].map(([slot, seen]) => ({ slot, damageTaken: seen.damageTaken, hitsTaken: seen.hits - seen.baseHits, stockLosses: seen.losses })),
+      players: [...players].map(([slot, seen]) => ({
+        slot, damageTaken: seen.damageTaken, hitsTaken: seen.hits - seen.baseHits, stockLosses: seen.losses,
+        landed: seen.landed, departures: seen.departures, blocked: seen.blocked, dodges: seen.dodges, resets: seen.resets,
+      })),
     };
     appendFileSync(file, `${JSON.stringify(outcome)}\n`);
   };

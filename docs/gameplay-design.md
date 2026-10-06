@@ -24,6 +24,43 @@ accepted scope, not a fidelity defect or a deferred implementation task.
 Independent Melee comparisons must state that this modifier is omitted; all
 other shared formula requirements remain open until verified.
 
+## Computer opponent
+
+The computer (smashcraft:ts/src/game/match/botPlay.ts and its bot*.ts
+siblings) plays inside the synchronized simulation: each frame it reads the
+match and writes its fighter's controls and attack commands, as a player's
+input row would, so every client and every rollback replay derives the same
+decisions. It keeps no state of its own beyond the attack delay in the
+replayed runtime (`botAttackDelays`). Each choice that looks random is
+`botChoice`, a nonlinear hash of whole numbers from the match (the frame,
+attack and grab serials, hits taken, the truncated percent) whose squares
+stay inside 32-bit integers, so Bun and Warcraft's Lua compute it alike.
+
+- It never steers its fighter past the point where it could still stop on
+  the main deck: on the ground and in the air it compares where the fighter
+  would come to rest, braking at traction or air acceleration, with the
+  deck's edges less 40 units, and turns back when that point would pass them.
+  A ground attack starts only if the slide it leaves ends on the deck it
+  stands on, and specials that move it (Disengage, Parry Step) only with room
+  to land.
+- It attacks with whatever reaches: each move's strike at its first active
+  frame, from the authored hit regions and contact capsules, against the
+  target where both will be by then. Specials join when they suit the
+  distance; shots, Multishot and the bear from range. A 40-frame plan
+  weighs ground pressure, jumping in with aerials, or keeping away and
+  shooting.
+- It shields, spot dodges, rolls or (Illidan) parries some strikes, shots,
+  Immolations and bear swipes, one choice per threat, and lets others land.
+- Knocked down it gets up: with the target in reach mostly a get-up attack,
+  otherwise a stand, a roll or a short wait; one tumble landing in three it
+  misses the tech. It never lies still under jab resets.
+- Off the stage it returns to the deck or, facing a free ledge, falls onto
+  the ledge and climbs, rolls, jumps or attacks from it.
+
+The 540-match `--policy cpu` soak checks this behaviour: departures,
+self-destructs, time-outs and the moves that landed
+(smashcraft:ts/scripts/soakOutcomes.ts summarizes them).
+
 ## L-cancelling
 
 Non-interactive execution is dubious. Smash's execution tests are meant to be
