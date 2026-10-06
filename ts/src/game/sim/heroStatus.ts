@@ -22,6 +22,7 @@ interface StatusRules {
 
 const RULES: { readonly [kind: number]: StatusRules | undefined } = {
   [HeroStatusKind.sleep]: { blocksActions: true, blocksSpecials: true, endsOnDamage: true },
+  [HeroStatusKind.hex]: { blocksActions: false, blocksSpecials: true, endsOnDamage: false },
 };
 
 /** An authored status a hit applies. */

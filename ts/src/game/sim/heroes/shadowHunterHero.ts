@@ -12,6 +12,8 @@ import { SHADOW_HUNTER_SPECIALS } from "./shadowHunterSpecials";
 const clip = (index: number, seconds: number): HeroClip => ({ index, seconds });
 const WALK = clip(0, f32(0.8));
 const STAND_1 = clip(1, 1.0);
+/** Stand -3: a low, swaying idle with the glaive lowered. */
+const STAND_3 = clip(5, f32(4.2));
 /** Stand -2: the glaive sweeps the front (0.65 s), then fully behind (x -196 at 1.94 s). */
 const STAND_2 = clip(2, f32(3.233));
 /** Spell Throw: a low forward lunge (body to z -62 at 1.55 s), then an overhand release reaching x 243 at 2.48 s. */
@@ -31,17 +33,19 @@ const ATTACK = clip(10, f32(1.567));
 const STAND_VICTORY = clip(11, 3.0);
 /** Stand Channel: a hopping voodoo stomp, front reach at 0.27 s, rear at 1.08 s. */
 const STAND_CHANNEL = clip(13, f32(2.7));
+/** Dissipate: the spirit rises out of the slumped body. */
+const DISSIPATE = clip(12, f32(1.666));
 
 export const SHADOW_HUNTER_HERO: HeroDefinition = {
   character: Character.shadowHunter,
   name: "Shadow Hunter",
   purpose: "Totem placement and angles",
   weakness: "Setup can be destroyed or bypassed",
-  complete: false,
+  complete: true,
   moves: SHADOW_HUNTER_MOVES,
   specials: SHADOW_HUNTER_SPECIALS,
   presentation: {
-    model: "units\\orc\\HeroShadowHunter\\HeroShadowHunter.mdx",
+    model: "units\\orc\\HeroShadowHunter\\HeroShadowHunter.mdl",
     // Stand Ready is 138 units tall at scale 1, against the roster's 1.08H (143).
     scale: 1.0,
     baseUnit: "Oshd",
@@ -49,7 +53,8 @@ export const SHADOW_HUNTER_HERO: HeroDefinition = {
     portrait: "ReplaceableTextures\\CommandButtons\\BTNShadowHunter.blp",
     projectileModel: "Abilities\\Weapons\\SpiritOfVengeanceMissile\\SpiritOfVengeanceMissile.mdl",
     clips: {
-      idle: STAND_READY, walk: WALK,
+      idle: STAND_READY, walk: WALK, dash: WALK, run: WALK, crouch: STAND_READY, fall: STAND_READY, landing: STAND_READY,
+      shield: STAND_READY, airDodge: STAND_HIT, smashCharge: STAND_READY, ko: DISSIPATE, dizzy: STAND_3,
       jab: ATTACK, grab: ATTACK, forwardTilt: ATTACK, forwardTiltUp: ATTACK, forwardTiltDown: ATTACK,
       upTilt: SPELL, downTilt: SPELL_THROW, dashAttack: ATTACK,
       forwardSmash: SPELL_THROW, upSmash: SPELL, downSmash: STAND_CHANNEL,

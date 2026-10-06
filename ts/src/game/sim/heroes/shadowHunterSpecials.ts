@@ -5,7 +5,8 @@
 import { f32 } from "wisp/src/sim/f32";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { type AuthoredSpecial, type FighterSpecials, type SpecialPlacement, type SpecialProjectile, ROSTER_MANA, frames } from "../heroSpecials";
-import { HitElement } from "../codes";
+import { HeroStatusGroup, HeroStatusKind, HitElement } from "../codes";
+import type { AppliedStatus } from "../heroStatus";
 import { hit } from "./shadowHunterMoves";
 
 const H = HERO_REFERENCE_HEIGHT;
@@ -39,11 +40,17 @@ const loaVault = (cost: number, riseVelocity: number, driftVelocity: number): Au
   oncePerAirtime: true, helpless: true,
 });
 
-/** Hex's orb; its status is HEX below. */
+/**
+ * Hex: for 45 frames the target cannot start neutral, side or down specials;
+ * normals, grabs, movement, jumps, shield, DI and up special stay. No hurtbox
+ * change. When it ends, 180 frames of immunity shared with silence.
+ */
+const HEX: AppliedStatus = { kind: HeroStatusKind.hex, frames: 45, group: HeroStatusGroup.silence, immunityFrames: 180 };
+
 const HEX_ORB: SpecialProjectile = {
   spawnFrame: 24, offsetX: h(f32(0.3)), offsetZ: CAST_HEIGHT,
   velocityX: h(f32(0.07)), velocityZ: 0.0, life: 18, radius: h(f32(0.18)),
-  effect: hit(2.0, "POKE", 40, 1.0, HitElement.normal), reflectable: true, limit: 1,
+  effect: hit(2.0, "POKE", 40, 1.0, HitElement.normal), reflectable: true, limit: 1, status: HEX,
 };
 
 const hex = (air: boolean): AuthoredSpecial => ({

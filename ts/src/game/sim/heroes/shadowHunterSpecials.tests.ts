@@ -3,7 +3,9 @@
 import { assertEquals, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
-import { AttackStyle, Character, ProjectileKind, SpecialAction } from "../codes";
+import { AttackStyle, Character, HeroStatusGroup, HeroStatusKind, ProjectileKind, SpecialAction } from "../codes";
+import { maskHeroStatusControls } from "../heroStatus";
+import { attackBuffer } from "../../input/attackBuffer";
 import { beginDamageContacts, finishDamageContacts } from "../contacts";
 import { type Fighter, createFighter } from "../fighter";
 import { advanceHeroStatus, regenerateMana } from "../heroSpecialRules";
@@ -194,4 +196,41 @@ test("replaying a ward from a restored snapshot reproduces every fighter field",
   run();
   assertEquals(firstFighterDifference(endOwner, owner, 3, 3), undefined);
   assertEquals(firstFighterDifference(endTarget, target, 3, 3), undefined);
+});
+
+test("Hex locks the target's neutral, side and down specials for 45 frames, keeps its up special, then grants 180 frames of immunity", () => {
+  const { world, owner, target } = pair(200.0);
+  frame(world, down);
+  for (let f = 2; f <= 53 && target.status.condition === HeroStatusKind.none; f++) frame(world);
+  assertEquals(target.status.condition, HeroStatusKind.hex);
+  const commands = attackBuffer(0);
+  for (const [press, kept] of [[neutral, false], [side, false], [down, false], [up, true]] as const) {
+    const input = { ...press };
+    maskHeroStatusControls(target, input, commands);
+    assertEquals(input.specialPressed, kept);
+  }
+  const attack = { ...controls({ attackRequested: true, direction: 1 }) };
+  maskHeroStatusControls(target, attack, commands);
+  assertTrue(attack.attackRequested && attack.direction === 1);
+  let frames = 0;
+  while (target.status.condition === HeroStatusKind.hex) {
+    frame(world);
+    frames++;
+  }
+  assertTrue(frames <= 45);
+  assertEquals(target.status.conditionImmunity[HeroStatusGroup.silence], 180);
+  for (let f = 0; f < 60; f++) frame(world);
+  owner.mana.points = 100;
+  target.motion.x = f32(owner.motion.x + f32(owner.facing * 150.0));
+  frame(world, down);
+  for (let f = 2; f <= 53; f++) frame(world);
+  assertEquals(target.status.condition, HeroStatusKind.none);
+});
+
+test("a shielded Hex orb applies no Hex", () => {
+  const { world, owner, target } = pair(200.0);
+  frame(world, down, controls({ shield: true }));
+  for (let f = 2; f <= 53; f++) frame(world, controls(), controls({ shield: true }));
+  assertTrue(owner.projectiles.every(p => p.life <= 0));
+  assertEquals(target.status.condition, HeroStatusKind.none);
 });
