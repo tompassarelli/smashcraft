@@ -7,10 +7,13 @@ import { Character, ProjectileKind, SpecialAction } from "./codes";
 import { beginDamageContacts, finishDamageContacts } from "./contacts";
 import { type Fighter, createFighter } from "./fighter";
 import { heroRegion } from "./heroMoves";
+import { HurtContact, fighterHurtParts, hurtPart, hurtPose, strikeHurtContact } from "./hurtboxes";
+import { emptyCapsule, hurtCapsule, placeCapsule } from "../physics/contactGeometry";
 import { advanceHeroStatus, regenerateMana } from "./heroSpecialRules";
 import { type AuthoredSpecial, type FighterSpecials, ROSTER_MANA, frames } from "./heroSpecials";
 import { HERO_ROSTER, SELECTABLE_CHARACTERS, isSelectableCharacter, nextSelectableCharacter, selectableCharactersOf } from "./heroes/registry";
 import { updateProjectiles } from "./projectiles";
+import { FROZEN_THRONE_STAGE, SOLID_DECK_TEST_STAGE, surfaceCount, surfaceLeft, surfacePass, surfaceRight, surfaceZ } from "./stage";
 import { type Controls, type Roster, createRoster } from "./roster";
 import { advanceSpecials, startFighterSpecial } from "./specials";
 import { advanceFighter } from "./step";
@@ -51,7 +54,7 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), second: Re
   for (let slot = 0; slot < 2; slot++) startFighterSpecial(world.fighters[slot]!, 0, 0, inputs[slot] ?? controls());
   resolveAttacks(world);
   advanceSpecials(world, 0, 0);
-  updateProjectiles(world);
+  updateProjectiles(world, 0, 0);
   finishDamageContacts(world);
   for (let slot = 0; slot < 2; slot++) {
     regenerateMana(world.fighters[slot]!);
@@ -239,4 +242,96 @@ test("a complete hero ships its four specials with a free up special", () => {
     assertTrue(specials !== undefined);
     assertTrue(specials?.up.free !== undefined && specials.up.free.cost === 0);
   }
+});
+
+test("a stopsAtBody dash special ends short of an exposed body and a raised shield, and an unmarked one carries through", () => {
+  const dash = (stopsAtBody: boolean): AuthoredSpecial => ({ cost: 0, endFrame: 20, motion: [{ ...frames(2, 16), velocityX: 20.0, velocityZ: 0.0, stopsAtBody }] });
+  for (const facing of [-1, 1]) {
+    for (const [stops, shielded] of [[true, false], [true, true], [false, false]] as const) {
+      const owner = hero(0.0, facing);
+      owner.tuning = { ...owner.tuning, specials: { ...KIT, side: { ground: dash(stops) } } };
+      const target = createFighter(Character.archer, f32(200.0 * facing), -facing);
+      const world = createRoster(3, [owner, target]);
+      for (let i = 0; i < 3; i++) frame(world);
+      const press = controls({ specialPressed: true, specialX: facing });
+      const guard = controls({ shield: shielded, shieldTriggerActive: shielded });
+      frame(world, press, guard);
+      for (let f = 2; f <= 20; f++) frame(world, controls(), guard);
+      assertEquals(target.shield.raised, shielded);
+      const gap = f32(f32(target.motion.x - owner.motion.x) * facing);
+      if (stops) {
+        assertGreaterThan(gap, 0.0);
+        assertTrue(gap >= 47.5);
+      } else {
+        assertTrue(gap < 48.0);
+      }
+    }
+  }
+});
+
+
+test("a hero special's hurt poses replace the body on their frames only", () => {
+  const { world, owner, target } = pair(600.0);
+  const reach = hurtPart(0.0, 40.0, 140.0, 40.0, 12.0);
+  const posed: AuthoredSpecial = { ...SIDE, hurt: [hurtPose(5, 8, [hurtCapsule(Character.blademaster), reach])] };
+  owner.tuning = { ...owner.tuning, specials: { ...KIT, side: { ground: posed } } };
+  frame(world, side);
+  for (let f = 2; f <= 4; f++) frame(world);
+  assertEquals(fighterHurtParts(owner).length, 1);
+  frame(world);
+  assertEquals(owner.special.frame, 5);
+  assertEquals(fighterHurtParts(owner).length, 2);
+  const strike = placeCapsule(emptyCapsule(), { x1: 0.0, z1: 40.0, x2: 0.0, z2: 40.0, radius: 5.0 }, f32(owner.motion.x + 130.0), owner.motion.z, 1);
+  assertEquals(strikeHurtContact(strike, owner), HurtContact.hit);
+  for (let f = 6; f <= 9; f++) frame(world);
+  assertEquals(fighterHurtParts(owner).length, 1);
+  assertEquals(strikeHurtContact(strike, owner), HurtContact.none);
+  void target;
+});
+
+test("a broad hero projectile meets a raised shield before the body behind it", () => {
+  const broad: FighterSpecials = { ...KIT, neutral: { ground: { ...NEUTRAL, projectiles: [{ ...NEUTRAL.projectiles![0]!, radius: 24.0 }] } } };
+  const { world, owner, target } = pair(400.0);
+  owner.tuning = { ...owner.tuning, specials: broad };
+  const guard = controls({ shield: true });
+  frame(world, neutral, guard);
+  for (let f = 2; f <= 40 && target.shield.stun === 0 && target.status.damage === 0.0; f++) frame(world, controls(), guard);
+  assertEquals(target.status.damage, 0.0);
+  assertGreaterThan(target.shield.stun, 0);
+});
+
+test("hero projectiles end on walls, undersides and solid deck tops, and pass through pass decks", () => {
+  const owner = hero(-100.0, 1);
+  const target = createFighter(Character.archer, 2000.0, -1);
+  const world = createRoster(3, [owner, target]);
+  const launch = (x: number, z: number, velocityX: number, velocityZ: number) => {
+    const projectile = owner.projectiles[0]!;
+    Object.assign(projectile, { life: 30, kind: ProjectileKind.hero, spec: NEUTRAL.projectiles![0], x, z, velocityX, velocityZ, direction: 1 });
+    return projectile;
+  };
+  const down = launch(0.0, 20.0, 0.0, -30.0);
+  updateProjectiles(world, 0, 0);
+  assertEquals(down.life, 0);
+  const wall = launch(700.0, -60.0, -40.0, 0.0);
+  updateProjectiles(world, 0, 0);
+  updateProjectiles(world, 0, 0);
+  assertEquals(wall.life, 28);
+  updateProjectiles(world, 0, 0);
+  assertEquals(wall.life, 0);
+  const level = launch(-500.0, 60.0, 30.0, 0.0);
+  for (let f = 0; f < 10; f++) updateProjectiles(world, 0, 0);
+  assertEquals(level.life, 20);
+  let passDecks = 0;
+  for (const [stage, pass] of [[FROZEN_THRONE_STAGE, true], [SOLID_DECK_TEST_STAGE, false]] as const) {
+    for (let deck = 1; deck < surfaceCount(stage); deck++) {
+      assertEquals(surfacePass(stage, deck), pass);
+      passDecks++;
+      const top = surfaceZ(stage, deck, 0);
+      const through = launch(f32(f32(surfaceLeft(stage, deck, 0) + surfaceRight(stage, deck, 0)) * 0.5), f32(top + 10.0), 0.0, -20.0);
+      updateProjectiles(world, stage, 0);
+      assertEquals(through.life, pass ? 29 : 0);
+      through.life = 0;
+    }
+  }
+  assertEquals(passDecks, 5);
 });

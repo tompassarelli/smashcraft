@@ -46,7 +46,11 @@ acts again on N+1. It may author:
 - `projectiles`: spawn frame, offset, velocity (and an up-held velocity),
   life, radius, `activeFrom`, effect, `reflectable`, `limit` and
   `cancelOnInterrupt`; a cast that would exceed a limit or the three-projectile
-  cap fails before spending;
+  cap fails before spending; in a match a hero projectile ends on a wall, an
+  underside or a solid deck's top, and passes through pass decks;
+- `hurt`: body poses over the special's frames (`hurtPose`, 1-based), which
+  `sim/hurtboxes.ts` uses instead of the standing body while they cover the
+  current special frame;
 - `intangible` and `armor` windows (armor takes one hit's reaction up to its
   damage; the damage applies and throws ignore it);
 - `groundOnly`, `oncePerAirtime`, `helpless` and `landingLag`.

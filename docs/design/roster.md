@@ -168,6 +168,16 @@ Standing grab 7/2/22, reach 0.55H, one-handed collar catch. Pummel: pommel strik
 
 **Required counterplay test:** forward smash whiff must give a fast fighter at its outer edge a plausible approach punish; Mirror Feint cannot reset its own recovery or create a true 50/50 without prior advantage.
 
+**As implemented** (smashcraft:ts/src/game/sim/heroes/blademasterMoves.ts, blademasterSpecials.ts, blademasterClips.ts). Every row above is authored; these are the departures:
+
+- Forward tilt also has up- and down-angled forms with the row's timing and damage; only the blade path changes.
+- Down air's tip spikes airborne targets only; it sends grounded targets at 55 degrees, as the shared notation directs.
+- Dash grab uses the shared rule (startup +3, recovery +8) on the standing grab's volumes.
+- Wind Cutter, Mirror Feint and Wind Walk Strike keep their grounded timing in the air; Wind Cutter and Mirror Feint end on landing with 20 frames of lag, and the airborne Wind Walk Strike is once per airtime and ends helpless.
+- Rising Blade's free form follows the full form's path at 1.4H ascent and 0.35H drift (the row's distance ratio) with no hit.
+- Presentation uses the stock Blademaster model. It has fourteen sequences and no hit, jump, roll or ledge animations: thrusts play Attack 2, cuts Attack, rising strikes Stand - 4, and spinning moves, rolls and the double jump the Bladestorm spin; hit reactions play the start of Death. Attack Slam is unused because its leap moves the body about 130 units away from the hurtbox.
+- Bladestorm is not implemented; ultimates stay off in competitive play.
+
 ## Mountain King
 
 **Identity:** a compact heavy whose hammer, axe, and deliberate stun setups reward close reads. He has strong burst force and a projectile, but poor chase and limited air drift. No random Bash.
