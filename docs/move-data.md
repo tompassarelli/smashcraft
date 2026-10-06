@@ -70,10 +70,10 @@ remain in issue #12.
 facing right, x=0, no input, zero initial velocity, ground z=0 or aerial z=700,
 no opponent and no hitlag or charge. Each row is the state after `elapsed`
 advances. Aerial gravity and any landing are included; this is not an animation
-root-motion curve or all possible steering. Landing/L-cancel values are obtained
-by advancing an aerial from z=1, vz=-2 onto stage 0, with and without a fresh
-L-cancel press. Ground moves report zero landing lag; the shared L-cancel window
-is not a ground-move property.
+root-motion curve or all possible steering. The observed landing lag is obtained
+by advancing an aerial from z=1, vz=-2 onto stage 0; aerials land with half
+their authored lag, as L-cancelling is omitted
+(smashcraft:docs/gameplay-design.md). Ground moves report zero landing lag.
 
 Unrepresented autocancel windows and animation hurtboxes are explicitly `null`.
 smashcraft:docs/move-reference-join.md records the factual action-family joins

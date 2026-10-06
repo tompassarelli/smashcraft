@@ -8,7 +8,7 @@ import { type Fighter, createFighter } from "../src/game/sim/fighter";
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../src/game/sim/hitRegions";
 import { attackCapsule, emptyCapsule, hurtCapsule } from "../src/game/physics/contactGeometry";
 import { attackLandingLag, attackStartupFrames, attackDurationFramesForGrounding, characterAttackActiveFrames,
-  isAerialAttack, isSmashAttack, L_CANCEL_WINDOW_FRAMES, SMASH_MAX_CHARGE_FRAMES, smashDamageMultiplier } from "../src/game/sim/moves";
+  isAerialAttack, isSmashAttack, SMASH_MAX_CHARGE_FRAMES, smashDamageMultiplier } from "../src/game/sim/moves";
 import { ordinaryHitKnockback, ordinaryHitstunFrames, ordinaryHitlagFrames, victimHitlagFrames } from "../src/game/sim/knockback";
 import { digitalShieldDamage, digitalShieldstunFrames, digitalShieldPushback, digitalShieldRecoil } from "../src/game/sim/shield";
 import { createRoster, neutralControls } from "../src/game/sim/roster";
@@ -57,7 +57,7 @@ const capsule = (style: AttackStyle, character: Character, frame: number, charge
   const hit = authoredHitRegion(emptyHitRegion(), character, style, frame, charge, regionIndex);
   return attackCapsule(emptyCapsule(), style, hit);
 };
-export function observeLandingLag(character: Character, style: AttackStyle, cancel: boolean): number {
+export function observeLandingLag(character: Character, style: AttackStyle): number {
   if (!isAerialAttack(style)) return 0;
   const fighter = createFighter(character, 0, 1);
   fighter.motion.grounded = false;
@@ -67,9 +67,7 @@ export function observeLandingLag(character: Character, style: AttackStyle, canc
   fighter.attack.duration = attackDurationFramesForGrounding(style, false);
   fighter.attack.cooldown = fighter.attack.duration;
   const world = createRoster(1, [fighter]);
-  const controls = neutralControls();
-  controls.lCancelPressed = cancel;
-  advanceFighterMotion(world, 0, 0, controls, 0);
+  advanceFighterMotion(world, 0, 0, neutralControls(), 0);
   return fighter.landing.lag;
 }
 
@@ -86,8 +84,8 @@ function emitMoves(): void {
       const multiplier = isSmashAttack(style) ? smashDamageMultiplier(charge) : 1;
       const hurt = hurtCapsule(character);
       const move = { kind: "move", character, move: names[style], style, chargeFrames: charge, startup, active, recovery, totalUnpaused: total,
-        landingLag: attackLandingLag(style), observedLandingLag: observeLandingLag(character, style, false), observedLCancelLandingLag: observeLandingLag(character, style, true),
-        lCancelWindow: L_CANCEL_WINDOW_FRAMES, chargeDamageMultiplier: multiplier, hurtCapsule: hurt, autocancelWindows: null, animationHurtboxes: null };
+        landingLag: attackLandingLag(style), observedLandingLag: observeLandingLag(character, style),
+        chargeDamageMultiplier: multiplier, hurtCapsule: hurt, autocancelWindows: null, animationHurtboxes: null };
       rows.push(json(move));
       for (let frame = 0; frame < total; frame++) for (let region = 0; region < authoredHitRegionCount(style); region++) {
         const hit = authoredHitRegion(emptyHitRegion(), character, style, frame, charge, region);

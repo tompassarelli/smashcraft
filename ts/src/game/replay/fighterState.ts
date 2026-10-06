@@ -221,8 +221,6 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   const landing = target.landing;
   const sourceLanding = source.landing;
   landing.lag = sourceLanding.lag;
-  landing.lCancelWindow = sourceLanding.lCancelWindow;
-  landing.lCancelSerial = sourceLanding.lCancelSerial;
   const down = target.down;
   const sourceDown = source.down;
   down.state = sourceDown.state;

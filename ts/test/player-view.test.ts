@@ -85,7 +85,7 @@ test("the two shipped defects fail the scene check from the match's first report
 });
 
 /**
- * Dense play's dust: an archer jumping every 10 frames while running back and
+ * Dense play's dust: an archer jumping every 9 frames while running back and
  * forth, with two computers chasing it, takes the eight-slot dust pool's next
  * slot before the last dust in it fades. Counted as one stay, a reused slot
  * stayed in view over 180 frames and failed the rematch of #26's clean-folders
@@ -118,7 +118,7 @@ test("a dust slot reused while shown is a new stay each use; a standing spark an
       const { row } = participants[0].capture;
       const direction = Math.floor(frame / 40) % 2 === 0 ? Action.moveLeft : Action.moveRight;
       row.held = bit(direction);
-      row.pressed = (frame % 10 === 0 ? bit(Action.jump) : 0) | (frame % 40 === 0 ? bit(direction) : 0);
+      row.pressed = (frame % 9 === 0 ? bit(Action.jump) : 0) | (frame % 40 === 0 ? bit(direction) : 0);
       row.axisX = direction === Action.moveLeft ? -127 : 127;
       if (lingering !== undefined && frame % 60 === 0) BlzSetSpecialEffectPosition(lingering, origin.x + frame, origin.y, origin.z);
     });

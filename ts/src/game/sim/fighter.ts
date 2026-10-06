@@ -27,6 +27,8 @@ export const SHIELD_MAX = 60.0;
 // Common NTSC 1.02 input counters; the shield geometry is Smashcraft's own.
 export const SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES = 2;
 export const FAST_FALL_INPUT_WINDOW = 4;
+/** PlCo +0x468: a platform drop needs down pressed fewer input frames ago than this. */
+export const PLATFORM_DROP_INPUT_WINDOW = 6;
 export const WALL_TECH_JUMP_INPUT_WINDOW_FRAMES = 20;
 const STARTING_STOCKS = 3;
 /** A tech press age that is never inside a window; the input driver saturates at 255. */
@@ -58,7 +60,7 @@ interface Motion {
   crouching: boolean;
   fastFalling: boolean;
   fastFallDownHeld: boolean;
-  /** Input frames since down was pressed; ages past the window are equivalent. */
+  /** Input frames since down was pressed, Melee's one stick timer for fast-falls and platform drops; ages past the longer window are equivalent. */
   fastFallInputAge: number;
   /** Frames left falling through pass-through platforms. */
   dropTime: number;
@@ -256,8 +258,6 @@ interface Dodge {
 
 interface Landing {
   lag: number;
-  lCancelWindow: number;
-  lCancelSerial: number;
 }
 
 interface Down {
@@ -388,7 +388,7 @@ export function createFighter(character: Character, startX: number, facing: numb
       crouching: false,
       fastFalling: false,
       fastFallDownHeld: false,
-      fastFallInputAge: FAST_FALL_INPUT_WINDOW,
+      fastFallInputAge: PLATFORM_DROP_INPUT_WINDOW,
       dropTime: 0,
       previousStickSide: 0,
       lastAerialTapDirection: 0,
@@ -492,7 +492,7 @@ export function createFighter(character: Character, startX: number, facing: numb
     hippogryph: { life: 0, x: 0.0, z: 0.0, velocityX: 0.0, velocityZ: 0.0, kind: HippogryphKind.none },
     freezeTrap: { life: 0, arming: 0, x: 0.0, z: 0.0, surface: undefined, serial: 0, cooldown: 0 },
     dodge: { airDodging: false, airFrame: 0, airMotionFrames: 0, groundFrame: 0, groundDirection: 0, groundEntryFacing: 0 },
-    landing: { lag: 0, lCancelWindow: 0, lCancelSerial: 0 },
+    landing: { lag: 0 },
     down: { state: DownState.none, frame: 0, direction: 0, waitRemaining: 0, faceUp: true, attackQueued: false },
     tech: { ...emptyTechInput(), window: 0 },
     surfaceRecovery: {

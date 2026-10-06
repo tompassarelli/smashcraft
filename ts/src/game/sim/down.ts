@@ -2,7 +2,6 @@
 import { max, min } from "../../runtime/numbers";
 import { roundToFloat32 } from "wisp/src/sim/binary32";
 import { f32 } from "wisp/src/sim/f32";
-import { idiv } from "wisp/src/sim/intMath";
 import { Character, DamageLanding, DownState } from "./codes";
 import { isFloorTeching, isTumbling } from "./conditions";
 import { type Fighter } from "./fighter";
@@ -64,7 +63,7 @@ function damageLandingReaction(f: Fighter): DamageLanding {
   return airborneDamageLandingReaction(roundToFloat32(squareRoot(squaredSpeed)));
 }
 
-/** Lands on a deck: landing lag, L-cancels, floor techs and knockdowns. ASDI landings end hitstun without lag. */
+/** Lands on a deck: landing lag, floor techs and knockdowns. ASDI landings end hitstun without lag. */
 export function finishLanding(f: Fighter, stage: number, input: Readonly<Controls>, landing: number, fromAsdi: boolean): void {
   const { motion, launch, landing: landingState, dodge } = f;
   motion.fastFalling = false;
@@ -80,15 +79,9 @@ export function finishLanding(f: Fighter, stage: number, input: Readonly<Control
     dodge.airFrame = 0;
   }
   if (isAerialAttack(f.attack.style)) {
-    let recovery = attackLandingLag(f.attack.style);
-    if (landingState.lCancelWindow > 0) {
-      recovery = idiv(recovery, 2);
-      landingState.lCancelSerial++;
-    }
-    landingState.lag = max(landingState.lag, recovery);
+    landingState.lag = max(landingState.lag, attackLandingLag(f.attack.style));
     cancelAttack(f);
   }
-  landingState.lCancelWindow = 0;
   motion.grounded = true;
   motion.surface = landing;
   motion.z = surfaceZ(stage, landing);

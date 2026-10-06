@@ -23,6 +23,7 @@ import { DEFAULT_BATCH, OutgoingInput } from "../../game/netcode/journal/transpo
 import { ShadowInputSchedule } from "../../game/netcode/shadowSchedule";
 import type { WorldOrigin } from "../../game/render/effects";
 import { type ModelSoundCursor, ORIGINAL_MODEL_SOUNDS, createModelSoundCursor } from "../../game/render/modelSounds";
+import { type MomentRecorder, createMomentRecorder } from "../../game/replay/moment";
 import { type ReplayState, createReplaySnapshot } from "../../game/replay/snapshot";
 import { type JournalIngress, type MapBuild, type ShadowInputMode, isShadow } from "../../game/shell/build";
 import type { DevSettings } from "../../game/shell/devSettings";
@@ -54,7 +55,6 @@ export interface FrameObservation {
   attack: number;
   jump: number;
   down: DownState;
-  lCancel: number;
   shieldBreak: number;
   breakState: ShieldBreak;
   ledge: LedgeState;
@@ -173,6 +173,17 @@ interface StatusLine {
   seconds: number;
 }
 
+/** The confirmed match's recent moments, which this client's player can save for `bun wisp repro`. */
+interface MomentSaves {
+  readonly recorder: MomentRecorder;
+  /** Moments this client saved, which names the next file. */
+  saved: number;
+  /** Seconds the player still sees that their moment was saved; local presentation. */
+  notice: number;
+}
+
+export const momentSaves = (): MomentSaves => ({ recorder: createMomentRecorder(), saved: 0, notice: 0.0 });
+
 /** Key triggers for every key, which exist only while keys drive menus or a callback match. */
 interface KeyEvents {
   down: trigger | undefined;
@@ -210,6 +221,8 @@ export interface ShellState {
   restartRequested: boolean;
   /** Checksums capture the confirmed match here. */
   readonly diagnostic: ReplayState;
+  /** Assigned again when a reload finds a match from a bundle without it. */
+  moment: MomentSaves;
 }
 
 declare global {
@@ -227,7 +240,7 @@ export function shell(): ShellState {
 }
 
 function observation(): FrameObservation {
-  return { out: false, holding: false, actionable: false, attack: 0, jump: 0, down: 0, lCancel: 0, shieldBreak: 0, breakState: 0, ledge: 0, special: 0, grab: 0 };
+  return { out: false, holding: false, actionable: false, attack: 0, jump: 0, down: 0, shieldBreak: 0, breakState: 0, ledge: 0, special: 0, grab: 0 };
 }
 
 function participant(slot: ParticipantSlot, persistence: BindingPersistence): Participant {
@@ -301,7 +314,7 @@ export function createShellState(build: MapBuild, setup: ShellSetup): ShellState
     probe: build.responseProbe ? createResponseProbe(build.id) : undefined,
     rollback: isShadow(input) ? rollback(input, setup.playback, setup.editbox) : undefined,
     keyEvents: { down: undefined, up: undefined }, readyMarkerWritten: false, restartRequested: false,
-    diagnostic: createReplaySnapshot(),
+    diagnostic: createReplaySnapshot(), moment: momentSaves(),
   };
   globalThis.__smashcraftShell = state;
   return state;

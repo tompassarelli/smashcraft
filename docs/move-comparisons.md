@@ -25,8 +25,7 @@ state; contact is decided by the actual production capsules and contact resolver
 
 Shield contexts use 0%, full digital shield held for 20 frames, no powershield,
 and release immediately after contact. Body contexts use 0% or 60%, neutral DI,
-no SDI/ASDI displacement and no defensive response. One L-cancel press is issued
-on the first airborne tick where hitlag is at most one. The fixture advances
+no SDI/ASDI displacement and no defensive response. The fixture advances
 production motion, action entry and contact batching in match order; specials,
 grabs, ledge acquisition, input buffering, bots and presentation are excluded.
 
@@ -75,7 +74,7 @@ or establish a universal balance law.
 
 Late aerial pressure is an intentional exception to applying that ground-move
 rule indiscriminately: its checkpoint already spent 20 airborne attack frames,
-its sampled damage is lower, its landing and L-cancel matter, and it misses at
+its sampled damage is lower, its landing lag matters, and it misses at
 the farther spacing. Counterplay outside the checkpoint includes contesting
 that approach or moving outside its contact geometry. These are options to
 investigate, not measured success rates. No generic balance score is assigned.

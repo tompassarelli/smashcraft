@@ -31,10 +31,12 @@ import { PLAYER_FILE_RECEIVED, bindingFiles, playerFileReceived, playerFilesOwne
 import { makePreview } from "./preview";
 import { PROBE_EXPORT, exportProbePage, probeBegin, probePresent } from "./responseProbe";
 import { receiveInput, rollbackTick } from "./rollback";
-import { type ShellState, activeRollback, createShellState, shellState } from "./state";
+import { SAVE_MOMENT, momentKey, serviceMomentRequest, serviceMomentSave } from "./moment";
+import { type ShellState, activeRollback, createShellState, momentSaves, shellState } from "./state";
 import { CONTROL_ACK_PREFIX } from "../../game/shell/pauseBarrier";
 import { clearMatchEffects, createUi, recreateUi } from "./ui";
 import { LASTING, announce, createStatusFrames, drawStage, lockArenaCamera, pauseMatchPresentation, renderPersistentPresentation, renderUi, setStatus } from "./view";
+import { keepMomentEnd } from "../../game/replay/moment";
 import { resultMessage } from "../../game/shell/messages";
 import { fighterAt, isActive } from "../../game/sim/roster";
 
@@ -70,6 +72,7 @@ function gameTick(s: ShellState): void {
   if (epoch !== undefined) {
     serviceChat(s, epoch.rollback, epoch.journal);
     servicePauseRequest(s, epoch.rollback, epoch.journal);
+    serviceMomentRequest(s, epoch.rollback, epoch.journal);
     if (editbox !== undefined && s.game.phase !== Phase.match) serviceJournalEnd(s, epoch.rollback, epoch.journal);
   }
   const rollback = activeRollback(s);
@@ -82,6 +85,8 @@ function gameTick(s: ShellState): void {
     participant.appliedBindingRevision = participant.bindings.revision;
   }
   s.status.seconds = Math.max(0.0, f32(s.status.seconds - FRAME_SECONDS));
+  s.moment.notice = Math.max(0.0, f32(s.moment.notice - FRAME_SECONDS));
+  serviceMomentSave(s);
   if (rollback !== undefined && s.game.phase === Phase.match) {
     const { journal } = rollback;
     if (journal !== undefined) serviceControlAck(s, rollback, journal);
@@ -118,6 +123,7 @@ function playerLeft(s: ShellState): void {
   playerFilesOwnerLeft(slot);
   if (!humanPresent(s.game, slot)) return;
   const wasMatch = s.game.phase === Phase.match;
+  keepMomentEnd(s.moment.recorder, s.world, s.game, s.controls, s.runtime);
   participantLeft(s.game, slot, s.world);
   clearAllInputs(s);
   startKeyUp(s.session, slot);
@@ -173,6 +179,9 @@ function createTriggers(s: ShellState): void {
   registerKey(s, startUp, Key.y, false);
   TriggerAddAction(startDown, trampoline(KEY_DOWN));
   TriggerAddAction(startUp, trampoline(KEY_UP));
+  const moment = CreateTrigger();
+  registerKey(s, moment, Key.f8, true);
+  TriggerAddAction(moment, trampoline(SAVE_MOMENT));
   syncKeyEvents(s);
   const { rollback } = s;
   if (rollback !== undefined) syncTrigger(s, INPUT_PREFIX, INPUT, true);
@@ -266,8 +275,11 @@ export function installShell(): void {
   on(PROBE_DUMP, withShell(onProbeExport));
   on(PROBE_EXPORT, withShell(s => { if (s.probe !== undefined) exportProbePage(s.probe); }));
   on(PLAYER_FILE_RECEIVED, playerFileReceived);
+  on(SAVE_MOMENT, withShell(momentKey));
   const s = shellState();
   if (s?.ui !== undefined) recreateUi(s, panelActions());
+  // A match from a bundle without the moment record keeps running with a new one.
+  if (s !== undefined && s.moment === undefined) s.moment = momentSaves();
 }
 
 /** Starts the shell once, when the map starts. */

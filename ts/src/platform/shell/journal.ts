@@ -13,6 +13,7 @@ import { Capture } from "../../game/netcode/capture";
 import type { JournalInputSource, JournalRead } from "../../game/netcode/journal/source";
 import { TEXT_WINDOW } from "../../game/netcode/journal/text";
 import { readVocabularyPacket } from "../../game/netcode/journal/vocabulary";
+import { isMomentRequest } from "../../game/replay/moment";
 import { FUTURE_LIMIT } from "../../game/netcode/ledger";
 import { type JournalIdentity, type MenuPhase, endFile, failureFile, menuFile, quiescentFile, startFile, transportReadyFile } from "../../game/shell/journalFiles";
 import { KEYBOARD_FALLBACK_MESSAGE } from "../../game/shell/messages";
@@ -166,8 +167,8 @@ function nextPacketText(s: ShellState, rollback: Rollback, journal: Journal): st
   switch (journal.ingress) {
     case "editbox": {
       const wire = peekEditbox(s, rollback, journal);
-      // Pause acknowledgments and requests are serviced in their own order.
-      return wire === undefined || wire.startsWith("ACK1|") || wire.startsWith("JP1") ? undefined : wire;
+      // Pause acknowledgments and requests, and moment requests, are serviced in their own order.
+      return wire === undefined || wire.startsWith("ACK1|") || wire.startsWith("JP1") || isMomentRequest(wire) ? undefined : wire;
     }
     case "keyboard":
       return mailboxMessage(journal, "I4");

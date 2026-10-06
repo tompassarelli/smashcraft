@@ -85,9 +85,17 @@ code. From smashcraft:ts/:
   `--rebuild` replaces the map script first.
 - Client driver: `bun wisp client look|read|click|keys CLIENT ...` reads and
   drives a client. Session values live in ~/.local/state/smashcraft/clients.json.
+- Repro: `bun wisp repro FILE [--test NAME]` replays a moment a player saved
+  with F8 (or View held on a controller) in simulated clients, to the checksum
+  the game recorded; `--test NAME` writes a test that replays it.
 - Headless match: `bun wisp headless [quick-match|desync] [--clients N]` plays
   the dev build's quick match in simulated clients in about a second and prints
   desyncs, error reports and scene problems.
+- Soak: `bun wisp soak` plays 200 headless matches, every fighter pair on
+  every stage with fuzzed and computer players, in at most four workers
+  (run it inside the capacity scope), and writes a repro file per finding;
+  `bun wisp soak --repro FILE` replays one. `--helper BIN` plays through the
+  real controller helper instead (needs /dev/uinput).
 - Tapes: set `LUA` to the 32-bit Lua executable, then run `bun wisp tapes` to
   compare replay results across Bun and Lua32.
 - Parity: `bun wisp parity numeric` compares the numeric corpus with Lua32;
@@ -95,6 +103,10 @@ code. From smashcraft:ts/:
   `bun wisp parity result DIR` reconciles its output. `bun wisp parity
   headless --helper BIN --out DIR` runs the same capture through the real
   helper (built with `--text-out`) into headless clients, then reconciles it.
+- Melee oracle: `bun wisp oracle` plays Melee situations for every fighter
+  and prints each outcome beside the value cited from the decompilation; the
+  test suite fails on any mismatch it doesn't list as known
+  (smashcraft:docs/physics.md, "Melee behaviour oracle").
 - Physics diagnostic: `bun wisp build --profile physics-probe ...` selects
   the production numerical fixtures. Rebuild it with
   `bun wisp rebuild MAP.w3x --profile physics-probe`; see

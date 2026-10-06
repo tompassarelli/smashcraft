@@ -1,3 +1,4 @@
+import { at } from "wisp/src/runtime/lookup";
 import { ALL_ACTIONS, Action, has } from "./actions";
 
 export type Direction = -1 | 0 | 1;
@@ -107,6 +108,43 @@ export function copyInput(target: InputRow, source: Readonly<InputRow>): void {
   target.ledgeVertical = source.ledgeVertical;
   target.throwX = source.throwX;
   target.throwZ = source.throwZ;
+}
+
+/** Numbers per row in storeInputNumbers' layout. */
+export const INPUT_ROW_NUMBERS = FIELDS.length;
+
+/** Stores a row as INPUT_ROW_NUMBERS numbers in FIELDS order from `base`, sdi as 0 or 1: a ring of rows without a table per row. */
+export function storeInputNumbers(target: number[], base: number, row: Readonly<InputRow>): void {
+  target[base] = row.held;
+  target[base + 1] = row.pressed;
+  target[base + 2] = row.released;
+  target[base + 3] = row.axisX;
+  target[base + 4] = row.axisZ;
+  target[base + 5] = row.triggerLeft;
+  target[base + 6] = row.triggerRight;
+  target[base + 7] = row.specialX;
+  target[base + 8] = row.specialZ;
+  target[base + 9] = row.dodgeX;
+  target[base + 10] = row.dodgeZ;
+  target[base + 11] = row.sdi ? 1 : 0;
+  target[base + 12] = row.sdiX;
+  target[base + 13] = row.sdiZ;
+  target[base + 14] = row.ledgeVertical;
+  target[base + 15] = row.throwX;
+  target[base + 16] = row.throwZ;
+}
+
+/** The row storeInputNumbers stored from `base`; undefined for numbers no controller sends. */
+export function loadInputNumbers(source: readonly number[], base: number): InputRow | undefined {
+  const sdi = at(source, base + 11);
+  if (sdi !== 0 && sdi !== 1) return undefined;
+  return inputRow({
+    held: at(source, base), pressed: at(source, base + 1), released: at(source, base + 2),
+    axisX: at(source, base + 3), axisZ: at(source, base + 4), triggerLeft: at(source, base + 5), triggerRight: at(source, base + 6),
+    specialX: at(source, base + 7), specialZ: at(source, base + 8), dodgeX: at(source, base + 9), dodgeZ: at(source, base + 10),
+    sdi: sdi === 1, sdiX: at(source, base + 12), sdiZ: at(source, base + 13), ledgeVertical: at(source, base + 14),
+    throwX: at(source, base + 15), throwZ: at(source, base + 16),
+  });
 }
 
 export function sameInput(a: Readonly<InputRow>, b: Readonly<InputRow>): boolean {

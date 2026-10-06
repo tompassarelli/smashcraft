@@ -1094,8 +1094,8 @@ reset clears the victim's record.
 Up aerial explicitly advances from window 1 on frames 5–6 to window 2 on
 frame 7, permitting one opening hit and one finisher if the target remains
 in range. Missing the opening does not prevent a finisher. Its old bounds
-(x=-105–105, z=20–190), three active frames, total duration 34 and landing lag
-15 are retained. Hitlag freezes the authored attack clock, so the second
+(x=-105–105, z=20–190), three active frames, total duration 34 and authored
+landing lag 15 (landing with 7) are retained. Hitlag freezes the authored attack clock, so the second
 window is reached after those frozen ticks rather than after a wall-clock
 delay. Each window can connect once; it does not reset every active frame.
 
@@ -1520,8 +1520,9 @@ preserving facing, allowing a back aerial to hit and launch behind the fighter.
 Landing cancels an aerial's remaining active/recovery animation and starts its
 move-specific landing lag. Aerial hit geometry and damage remain prototype values:
 strong damage 7/8/8/8/9; startup 3/5/3/5/7; active 28/2/16/3/3;
-total 41/31/37/34/38 ticks; landing lag 10/14/16/15/18 ticks, in neutral,
-forward, back, up, down order. Forward and back hit only on their respective
+total 41/31/37/34/38 ticks; authored landing lag 10/14/16/15/18 ticks, which
+they land with halved (see "Aerial landing lag"), in neutral, forward, back,
+up, down order. Forward and back hit only on their respective
 sides; back launches away from facing, up launches mostly upward, and down
 launches downward. Hit regions are simple rectangles around the fighter rather
 than authored hitboxes. Neutral/back timing and weak damage are detailed below.
@@ -1694,7 +1695,7 @@ Archer's down-air uses seven startup ticks and 20 active ticks (indices
 7–26), with 38 total ticks. Its first three active ticks deal 9 damage and
 the lingering kick deals 6, sharing one hit registry window. Its collision
 region remains ±55 horizontally and −180..−10 vertically. Landing cancels
-into 18-frame recovery (9 with L-cancel). The tucked startup and downward
+into 9-frame recovery, half its authored 18. The tucked startup and downward
 kick are animation only: down-air preserves ordinary aerial momentum,
 gravity, and knockback. C-stick Down does not set movement Down or force
 fast-fall; explicit straight-down movement retains separate fast-fall.
@@ -1740,25 +1741,15 @@ last-hitlag inputs, repeated/grounded presses, window/lockout boundaries,
 recovery actions, interruption and reset are tested in the same Wurst simulation
 used by the map. Wall/ceiling techs and SDI/ASDI collision are not implemented.
 
-## L-cancel
+## Aerial landing lag
 
-The factual reference https://www.ssbwiki.com/L-canceling (cached at
-~/code/smashcraft/worktrees/test-loop/build/ref-L-canceling.html) describes a
-seven-frame Shield/Grab input window, landing lag halved and rounded down,
-and inputs retained during hitlag. Digital Shield also feeds tech timing;
-L-cancel itself is independent of the tech lockout. No source text or outside
-implementation is incorporated.
-
-Our frame convention gives seven contact opportunities including the press
-tick: contact through +6 ticks succeeds, +7 expires. Inputs during hitlag
-remain valid through the sixth subsequent unfrozen tick. The existing window
-also freezes during hitlag; this pre-hitlag-input case and the exact input-phase
-offset have not been independently measured against Melee. Each fresh Shield
-or Grab press renews the opportunity; holding does not. Any landing consumes it,
-and stock loss/reset clears it. Only an unfinished aerial normal receives the
-reduction: neutral/forward/back/up/down recovery becomes 5/7/8/7/9 ticks under
-current prototype tuning. Empty landings and air-dodge landings are unaffected.
-Animation-specific autocancel windows and analog trigger behavior remain open.
+Landing ends an unfinished aerial and starts its landing lag: half the move's
+authored lag, at least one frame, which is Melee's L-cancelled lag (PlCo +0x0E8
+= 2, melee:src/melee/ft/kinds/ftCommon/ftCo_LandingAir.c). Neutral, forward,
+back, up and down aerials land for 5/7/8/7/9 frames, from authored
+10/14/16/15/18. No input changes it: Smashcraft omits L-cancelling, see
+smashcraft:docs/gameplay-design.md. Empty landings (4 frames) and air-dodge
+landings (10) keep their own lag.
 
 ## Smash charge
 
@@ -1796,10 +1787,39 @@ frame. The six-frame window is a Smashcraft control choice, not Melee parity.
 A current queued attack takes priority over voluntary platform dropping during
 the movement step. Action recovery also blocks the drop, so holding Down cannot
 drop through during down-smash startup/charge or down-tilt recovery. With no
-current attack or action lock, Down still drops through passable platforms.
+current attack or action lock, a fresh Down drops through passable platforms:
+like Melee's Pass check (melee:src/melee/ft/kinds/ftCommon/ftCo_Pass.c, stick
+down past PlCo +0x464 = 0.66 entered under PlCo +0x468 = 6 frames ago), the
+press must be under six input frames old. The fast-fall input age is that one
+stick timer, so landing on a deck with Down still held stays on it.
 The command queue's actual frame window determines whether an attack is current;
 expired and future commands do not suppress movement. This is our digital-input
 priority rule. Analog shield dropping and stick-threshold fidelity remain open.
+
+## Melee behaviour oracle
+
+`bun wisp oracle` (from smashcraft:ts/) plays scripted Melee situations for
+every fighter through the frame executor, from controller rows, and prints each
+outcome beside the value cited from the decompilation and the retail reference
+corpus, with the constant and source path for each scenario, then the counts
+per area. The scenarios are in smashcraft:ts/scripts/meleeOracle.ts: jump squat
+and hop heights, dash/run/walk speeds, fast-fall, landing lag, floor techs,
+get-up options and timings, the tumble threshold, pass-through platforms, wall
+and ceiling techs, shield release and dodges, and ledge catches.
+smashcraft:ts/scripts/meleeOracle.tests.ts runs the table in the test suite and
+fails on any mismatch not listed in its `KNOWN_MISMATCHES`, and on a listed row
+that now passes. A deliberate difference from Melee is reported as a departure
+that names its decision and still shows Melee's value; it fails the test only if
+it stops differing. L-cancelling is omitted (smashcraft:docs/gameplay-design.md),
+so the aerial landing lag without an L press is such a departure.
+
+Character data compares only where a fighter borrows it: Archer's and
+Rifleman's movement, landing and action timings are Fox's and Falco's, and
+Illidan's are original, so those rows read n/a for him; Illidan's ledge catch
+box is Captain Falcon's. Common rules (input windows, tech gates,
+knockback, platforms, ledge boxes) apply to all three. Where Smashcraft
+authors a value, such as ground acceleration or aerial landing lag, the
+scenario checks Melee's rule applied to it, not the value.
 
 ## Pass-through platforms
 

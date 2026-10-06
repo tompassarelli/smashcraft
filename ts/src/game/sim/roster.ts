@@ -62,7 +62,6 @@ export interface Controls {
   grabMashPressed: boolean;
   grabThrowX: number;
   grabThrowZ: number;
-  lCancelPressed: boolean;
   groundDodgePressed: boolean;
   groundDodgeDirection: number;
   getupAttackPressed: boolean;
@@ -106,7 +105,6 @@ export function neutralControls(): Controls {
     grabMashPressed: false,
     grabThrowX: 0,
     grabThrowZ: 0,
-    lCancelPressed: false,
     groundDodgePressed: false,
     groundDodgeDirection: 0,
     getupAttackPressed: false,
@@ -151,7 +149,6 @@ export function copyControls(target: Controls, source: Readonly<Controls>): void
   target.grabMashPressed = source.grabMashPressed;
   target.grabThrowX = source.grabThrowX;
   target.grabThrowZ = source.grabThrowZ;
-  target.lCancelPressed = source.lCancelPressed;
   target.groundDodgePressed = source.groundDodgePressed;
   target.groundDodgeDirection = source.groundDodgeDirection;
   target.getupAttackPressed = source.getupAttackPressed;
@@ -174,7 +171,7 @@ export function controlsAt(controls: readonly Readonly<Controls>[], slot: number
 }
 
 const CONTROL_FIELDS = [
-  "direction", "verticalDirection", "diStickValid", "diStickX", "diStickZ", "sdiPulse", "sdiX", "sdiZ", "cStickX", "cStickZ", "attackRequested", "specialPressed", "specialX", "specialZ", "down", "shield", "shieldPressed", "shieldTriggerActive", "shieldStrength", "jumpPressed", "airDodgePressed", "techPressed", "mashPressed", "attackPressed", "grabMashPressed", "grabThrowX", "grabThrowZ", "lCancelPressed", "groundDodgePressed", "groundDodgeDirection", "getupAttackPressed", "ledgeVerticalPressed", "getupStandPressed", "getupDirectionPressed", "getupDirection", "dodgeX", "dodgeZ", "jumpHeld", "walking", "attackHeld"
+  "direction", "verticalDirection", "diStickValid", "diStickX", "diStickZ", "sdiPulse", "sdiX", "sdiZ", "cStickX", "cStickZ", "attackRequested", "specialPressed", "specialX", "specialZ", "down", "shield", "shieldPressed", "shieldTriggerActive", "shieldStrength", "jumpPressed", "airDodgePressed", "techPressed", "mashPressed", "attackPressed", "grabMashPressed", "grabThrowX", "grabThrowZ", "groundDodgePressed", "groundDodgeDirection", "getupAttackPressed", "ledgeVerticalPressed", "getupStandPressed", "getupDirectionPressed", "getupDirection", "dodgeX", "dodgeZ", "jumpHeld", "walking", "attackHeld"
 ] as const satisfies readonly (keyof Controls)[];
 
 export function sameControls(a: Readonly<Controls>, b: Readonly<Controls>): boolean {

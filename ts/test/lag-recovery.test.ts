@@ -29,6 +29,9 @@ const unlogged = Object.fromEntries(declarations.functions.map(([name]) => [name
 // Two rows a record once two are due, as wc3-journal sends them.
 const helpers = new JournalHelpers(PLAYABLE_BUILD.id, true);
 helpers.workload = { denseCycles: 40, walkers: [] };
+/** The helpers' clock: one tick a frame of wall time, stalled or not. */
+let now = 0;
+helpers.clock = () => now;
 const headless = installHeadless({ ...SMASHCRAFT_HEADLESS, localNatives: unlogged }, declarations);
 afterAll(headless.restore);
 
@@ -65,12 +68,10 @@ test("after a 2 s stall of one or both games, each client catches up within a se
     return value as T;
   };
   const phase = () => read(host, () => shell().game.phase);
-  /** The helpers' clock: one tick a frame of wall time, stalled or not. */
-  let now = 0;
   const tick = (stalled = false) => {
     now++;
     if (!stalled) clients.frames(1);
-    helpers.service(clients, now);
+    helpers.service(clients);
   };
   const until = (what: string, done: () => boolean, limit: number) => {
     for (let frame = 0; frame < limit && !done(); frame++) tick();
@@ -81,7 +82,7 @@ test("after a 2 s stall of one or both games, each client catches up within a se
     const s = shell();
     const rollback = s.rollback;
     if (rollback === undefined) throw new Error("no rollback");
-    const journaled = helpers.frameAt(client.slot, now);
+    const journaled = helpers.journaled(client.slot) ?? 0;
     const admitted = (rollback.journal?.source?.expectedFrame() ?? 1) - 1;
     const predicted = rollback.schedule.speculativeFrame() - 1;
     const confirmed = s.runtime.simulationFrame;
@@ -132,7 +133,7 @@ test("after a 2 s stall of one or both games, each client catches up within a se
   until("stage menu", () => phase() === Phase.stageMenu, 30);
   clients.press(0, Key.y);
   until("match", () => phase() === Phase.match, 30);
-  until("journaling", () => helpers.frameAt(0, now) > 0 && helpers.frameAt(1, now) > 0, 60);
+  until("journaling", () => (helpers.journaled(0) ?? 0) > 0 && (helpers.journaled(1) ?? 0) > 0, 60);
   expect(read(host, () => [shell().game.humanFighterMask, shell().game.computerMask, shell().game.characterChoices[2]])).toEqual([3, 4, Character.rifleman]);
 
   const both = stall(new Set([0, 1]));

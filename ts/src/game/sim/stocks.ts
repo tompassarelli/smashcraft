@@ -1,7 +1,7 @@
 // Losing a stock past the blast zone, and respawning.
 import { max } from "../../runtime/numbers";
 import { SurfaceContact } from "./codes";
-import { FAST_FALL_INPUT_WINDOW, SHIELD_MAX, SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES, WALL_TECH_JUMP_INPUT_WINDOW_FRAMES } from "./fighter";
+import { PLATFORM_DROP_INPUT_WINDOW, SHIELD_MAX, SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES, WALL_TECH_JUMP_INPUT_WINDOW_FRAMES } from "./fighter";
 import { clearDash } from "./groundMovement";
 import { TOP_KO_MINIMUM_UPWARD_KNOCKBACK } from "./knockback";
 import { clearMotionValue, setWorldMotionValue } from "./motion";
@@ -51,7 +51,6 @@ export function checkBlastZone(world: Roster, slot: number): void {
   launch.knockbackX = 0.0;
   launch.groundKnockbackX = 0.0;
   launch.knockbackZ = 0.0;
-  f.landing.lCancelWindow = 0;
   clearTech(f);
   status.stocks = max(0, status.stocks - 1);
   status.respawn = status.stocks > 0 ? RESPAWN_FRAMES : 0;
@@ -74,7 +73,7 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   const { motion, jump, launch, shield, attack, hits, special, dodge, landing, status, surfaceRecovery: recovery } = f;
   motion.fastFalling = false;
   motion.fastFallDownHeld = false;
-  motion.fastFallInputAge = FAST_FALL_INPUT_WINDOW;
+  motion.fastFallInputAge = PLATFORM_DROP_INPUT_WINDOW;
   motion.previousStickSide = 0;
   jump.inputAge = WALL_TECH_JUMP_INPUT_WINDOW_FRAMES;
   motion.crouching = false;
@@ -117,8 +116,6 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   recovery.contactZ = 0.0;
   recovery.contactNormalX = 0.0;
   recovery.contactNormalZ = 0.0;
-  landing.lCancelWindow = 0;
-  landing.lCancelSerial = 0;
   clearTech(f);
   jump.serial = 0;
   jump.isDouble = false;
