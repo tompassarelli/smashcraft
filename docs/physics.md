@@ -1801,6 +1801,28 @@ The command queue's actual frame window determines whether an attack is current;
 expired and future commands do not suppress movement. This is our digital-input
 priority rule. Analog shield dropping and stick-threshold fidelity remain open.
 
+## Melee behaviour oracle
+
+`bun wisp oracle` (from smashcraft:ts/) plays scripted Melee situations for
+every fighter through the frame executor, from controller rows, and prints each
+outcome beside the value cited from the decompilation and the retail reference
+corpus, with the constant and source path for each scenario, then the counts
+per area. The scenarios are in smashcraft:ts/scripts/meleeOracle.ts: jump squat
+and hop heights, dash/run/walk speeds, fast-fall, landing lag and L-cancel,
+floor techs, get-up options and timings, the tumble threshold, pass-through
+platforms, wall and ceiling techs, shield release and dodges, and ledge catches.
+smashcraft:ts/scripts/meleeOracle.tests.ts runs the table in the test suite and
+fails on any mismatch not listed in its `KNOWN_MISMATCHES`, and on a listed row
+that now passes.
+
+Character data compares only where a fighter borrows it: Archer's and
+Rifleman's movement, landing and action timings are Fox's and Falco's, and
+Illidan's are original, so those rows read n/a for him; Illidan's ledge catch
+box is Captain Falcon's. Common rules (input windows, tech and L-cancel gates,
+knockback, platforms, ledge boxes) apply to all three. Where Smashcraft
+authors a value, such as ground acceleration or aerial landing lag, the
+scenario checks Melee's rule applied to it, not the value.
+
 ## Pass-through platforms
 
 Stage 1's two raised decks are pass-through platforms, as in Melee: a fighter

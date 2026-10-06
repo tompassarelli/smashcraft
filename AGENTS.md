@@ -95,6 +95,10 @@ code. From smashcraft:ts/:
   `bun wisp parity result DIR` reconciles its output. `bun wisp parity
   headless --helper BIN --out DIR` runs the same capture through the real
   helper (built with `--text-out`) into headless clients, then reconciles it.
+- Melee oracle: `bun wisp oracle` plays Melee situations for every fighter
+  and prints each outcome beside the value cited from the decompilation; the
+  test suite fails on any mismatch it doesn't list as known
+  (smashcraft:docs/physics.md, "Melee behaviour oracle").
 - Physics diagnostic: `bun wisp build --profile physics-probe ...` selects
   the production numerical fixtures. Rebuild it with
   `bun wisp rebuild MAP.w3x --profile physics-probe`; see
