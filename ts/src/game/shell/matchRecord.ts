@@ -7,9 +7,10 @@
 // Each line is a word and space-separated key=value fields. A `name=` field
 // comes last and runs to the end of its line, so a name may hold spaces.
 // Values never hold `"` or `\`: a Preload line becomes a JASS string.
-import { PARTICIPANT_SLOTS, type Slots, isParticipantSlot } from "../input/participants";
+import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots, isParticipantSlot } from "../input/participants";
 import { type MatchState, computerActive } from "../match/rules";
 import { stageInfo } from "../menu/stageCatalog";
+import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import type { MatchTally } from "../presentation/matchCues";
 import { fighterName } from "../sim/heroes/registry";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
@@ -50,6 +51,22 @@ function mode(game: Readonly<MatchState>): string {
 
 const flag = (value: boolean) => (value ? "1" : "0");
 
+/** `count / per` to one decimal place, rounded down, or `none` when `per` is 0. Integer steps so Bun and Lua print it alike. */
+export function ratio(count: number, per: number): string {
+  if (per <= 0) return "none";
+  const tenths = floorDiv(count * 10, per);
+  return `${floorDiv(tenths, 10)}.${floorMod(tenths, 10)}`;
+}
+
+/** A fighter's combat stats line, which follows its fighter line. */
+function combatLine(slot: ParticipantSlot, tally: Readonly<MatchTally>): string {
+  const { dealt, openings, techs, missedTechs, ledgeGrabs } = tally.combat;
+  const damage = Math.floor(dealt[slot]);
+  const opened = openings[slot];
+  return `combat slot=${label(slot)} dealt=${damage} openings=${opened} per-opening=${ratio(damage, opened)} openings-per-ko=${ratio(opened, tally.kos[slot])}`
+    + ` techs=${techs[slot]} missed-techs=${missedTechs[slot]} ledge-grabs=${ledgeGrabs[slot]}`;
+}
+
 /** The record's lines for a match in its result, with the results screen's tally. */
 export function matchRecordLines(source: Readonly<MatchRecordSource>, game: Readonly<MatchState>, world: Readonly<Roster>, tally: Readonly<MatchTally>): string[] {
   const stage = stageInfo(game.stageChoice);
@@ -66,6 +83,7 @@ export function matchRecordLines(source: Readonly<MatchRecordSource>, game: Read
     const who = computerActive(game, slot) ? "kind=computer" : `kind=human player=${recordValue(player === undefined || player === "" ? label(slot) : player)}`;
     const departed = (game.departedMask & (1 << slot)) !== 0;
     lines.push(`fighter slot=${label(slot)} ${who} character=${fighter.character} stocks=${fighter.status.stocks} damage=${Math.floor(fighter.status.damage)} kos=${tally.kos[slot]} falls=${tally.falls[slot]} left=${flag(departed)} name=${nameText(fighterName(fighter.character))}`);
+    lines.push(combatLine(slot, tally));
   }
   lines.push(`end lines=${lines.length}`);
   return lines;

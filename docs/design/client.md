@@ -184,8 +184,10 @@ rules stocks=3 minutes=7
 result frames=4521 winner=P1 timed-out=0 interrupted=0
 stage id=2 name=Frozen Throne
 fighter slot=P1 kind=human player=Tom#1234 character=4 stocks=2 damage=37 kos=3 falls=1 left=0 name=Mountain King
+combat slot=P1 dealt=141 openings=9 per-opening=15.6 openings-per-ko=3.0 techs=2 missed-techs=1 ledge-grabs=4
 fighter slot=P2 kind=computer character=6 stocks=0 damage=112 kos=1 falls=3 left=0 name=Lich
-end lines=6
+combat slot=P2 dealt=36 openings=3 per-opening=12.0 openings-per-ko=3.0 techs=0 missed-techs=0 ledge-grabs=1
+end lines=8
 ```
 
 **Reading the lines:**
@@ -202,14 +204,22 @@ end lines=6
 - A record is identified by its `build`, `serial` and the writer's
   `player`.
 
-Phase 2's stats need counters the map doesn't keep yet. They are computed in
-presentation from confirmed frames, as the tally is:
+Each fighter line is followed by its `combat` line. Its counters are computed
+in presentation from confirmed frames, beside the results tally
+(smashcraft:ts/src/game/presentation/combatStats.ts):
 
-- damage dealt;
-- openings (the first hit that starts hitstun);
-- damage per opening and openings per KO;
-- techs and missed techs;
-- ledge grabs.
+- `dealt`: percent the fighter's hits added to others, credited to the last
+  fighter to hit, as KOs are; rounded down.
+- `openings`: hits that put a fighter who was in neither hitstun nor hitlag
+  into hitstun. A throw out of a grab counts; a hit during a string doesn't.
+- `per-opening` (dealt per opening) and `openings-per-ko`: one decimal,
+  rounded down, or `none` when the divisor is 0.
+- `techs`: floor techs in place or rolling, and wall and ceiling techs.
+  `missed-techs`: tumble landings that bounce without a tech.
+- `ledge-grabs`: catches of a ledge.
+
+Records written before the combat line existed have none; the client shows
+those matches without combat stats.
 
 L-cancel stats don't apply, because Smashcraft removed L-cancelling (#54).
 

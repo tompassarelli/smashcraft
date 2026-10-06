@@ -9,35 +9,40 @@ import { fighterName } from "../sim/heroes/registry";
 import { fighterLabel } from "../shell/messages";
 import { MatchCue } from "./matchAudio";
 import type { Character } from "../sim/codes";
+import { type CombatObservation, type CombatTally, clearCombatTally, createCombatObservation, createCombatTally, observeCombat, tallyCombat } from "./combatStats";
 
 /** Confirmed state a frame's cues compare against, captured before it runs. */
 export interface CueObservation {
   phase: Phase;
   readonly out: Slots<boolean>;
+  readonly combat: CombatObservation;
 }
 
 export function createCueObservation(): CueObservation {
-  return { phase: Phase.characterMenu, out: [false, false, false, false] };
+  return { phase: Phase.characterMenu, out: [false, false, false, false], combat: createCombatObservation() };
 }
 
 export function observeForCues(observation: CueObservation, game: Readonly<MatchState>, world: Readonly<Roster>): void {
   observation.phase = game.phase;
   for (const slot of PARTICIPANT_SLOTS) observation.out[slot] = isActive(world, slot) && fighterAt(world, slot).status.out;
+  observeCombat(observation.combat, world);
 }
 
-/** KOs credited to each fighter and stocks each lost, for the results. */
+/** KOs credited to each fighter and stocks each lost, for the results, and the match record's combat stats. */
 export interface MatchTally {
   readonly kos: Slots<number>;
   readonly falls: Slots<number>;
+  readonly combat: CombatTally;
 }
 
 export function createMatchTally(): MatchTally {
-  return { kos: [0, 0, 0, 0], falls: [0, 0, 0, 0] };
+  return { kos: [0, 0, 0, 0], falls: [0, 0, 0, 0], combat: createCombatTally() };
 }
 
 export function clearMatchTally(tally: MatchTally): void {
   tally.kos.fill(0);
   tally.falls.fill(0);
+  clearCombatTally(tally.combat);
 }
 
 /**
@@ -59,13 +64,14 @@ export function countdownCue(game: Readonly<MatchState>): MatchCue | undefined {
 
 /**
  * The cues of one confirmed frame, in play order: the countdown, knockouts,
- * then the end of the match. Counts each knockout in `tally`; the last fighter to land
+ * then the end of the match. Counts each knockout and the combat stats in `tally`; the last fighter to land
  * a hit takes the KO.
  */
 export function confirmedFrameCues(before: Readonly<CueObservation>, game: Readonly<MatchState>, world: Readonly<Roster>, tally: MatchTally, cues: MatchCue[]): void {
   cues.length = 0;
   const countdown = countdownCue(game);
   if (countdown !== undefined) cues.push(countdown);
+  tallyCombat(before.combat, world, tally.combat);
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot) || before.out[slot]) continue;
     const fighter = fighterAt(world, slot);
