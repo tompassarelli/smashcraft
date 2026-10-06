@@ -183,6 +183,24 @@ edit-box receipts, about every 200 ms. One moment replays alone with
 `bun wisp repro FILE`. A playable build writes no input trace, so only
 integrity and development builds give confirmed states.
 
+## Scripted moves: `bun wisp pad`
+
+`bun wisp pad SCRIPT --helper HELPER --build BUILD --out DIR --app-id a=ID --app-id b=ID [--chat TEXT]`
+plays a script of timed pad states on both clients' virtual pads through
+the real helpers, as the captures do. `--chat` types a developer command
+into client A once the helpers run (for example `-dev quick hero lich`).
+Each line is `FRAME CLIENT ACTION [ARGS]`: the match frame the edge is
+meant for (or `+N` after the previous line), `a` or `b`, and
+`press|release|tap BUTTON [FRAMES]`, `stick X Y`, `cstick X Y`
+(-1..1, up positive), `shield AMOUNT` (0..1) or `capture` (that
+client's whole frame, saved as `frame-FRAME-CLIENT.ppm`). A menu-started
+match holds fighters until GO! on frame 181; `-dev quick` matches start at
+frame 1. Each edge is written in the middle of its frame on the helper's own
+clock (its log's `match_start ... epoch_ns` and frame rule), and
+`result.json` gives the frame each landed on: from the helper's event line
+for buttons, from its frame rule for sticks and triggers. It exits 1 when an
+edge landed off its frame or a helper stopped.
+
 ## Declared checks: `bun wisp accept`
 
 Native boxes that a chat command, a capture and a rule can answer (#82's
