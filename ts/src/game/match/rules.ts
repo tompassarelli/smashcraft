@@ -1,3 +1,4 @@
+import { selectableStage } from "../menu/stageCatalog";
 import { floorDiv } from "wisp/src/sim/intMath";
 import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots, isParticipantMask, isParticipantSlot, participantActive } from "../input/participants";
 import { Character } from "../sim/codes";
@@ -42,7 +43,7 @@ export function createMatchState(): MatchState {
     phase: Phase.characterMenu, characterChoices: [0, 1, 2, 0],
     characterReadiness: [false, false, false, false], rematchReadiness: [false, false, false, false],
     departedMask: 0, interrupted: false, humanMask: 1, humanFighterMask: 1, humanCount: 1, computerMask: 0,
-    stageChoice: 0, winner: undefined, stockCount: 3, timeLimitMinutes: 7, endless: false, automaticRematch: false, rematchCountdown: 0,
+    stageChoice: 2, winner: undefined, stockCount: 3, timeLimitMinutes: 7, endless: false, automaticRematch: false, rematchCountdown: 0,
     remainingFrames: 7 * 60 * MATCH_TICKS_PER_SECOND, matchFrame: 0, timedOut: false, practice: false,
   };
 }
@@ -185,7 +186,7 @@ export function recallCharacter(game: MatchState, actor: number, chip: number): 
 }
 
 export function selectStage(game: MatchState, slot: number, choice: number): void {
-  if (game.phase === Phase.stageMenu && humanActive(game, slot) && choice >= 0 && choice <= 2) game.stageChoice = choice;
+  if (game.phase === Phase.stageMenu && humanActive(game, slot) && selectableStage(choice)) game.stageChoice = choice;
 }
 
 export function requestStageSelect(game: MatchState, slot: number): boolean {

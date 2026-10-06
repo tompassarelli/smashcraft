@@ -1,8 +1,10 @@
 // Stage scenery is presentation only: arena coordinates never become collision.
 import { STAGE_SNOW_MODEL } from "../assets/stageAssetInfo";
-import { FROZEN_THRONE_STAGE } from "../sim/stage";
+import { AHNQIRAJ_SCENERY, BLACKROCK_SCENERY, GRYPHON_SCENERY, NORDRASSIL_SCENERY } from "./hazardStageScenery";
+import { DUROTAR_SCENERY, HELLFIRE_SCENERY, NAXXRAMAS_SCENERY } from "./patrolStageScenery";
+import { CANNON_TEST_STAGE, CARRIED_TEST_STAGE, DRIFTING_DECK_STAGE, FROZEN_THRONE_STAGE, HELLFIRE_STAGE, PATTERNED_DECKS_STAGE, TIMED_TEST_STAGE, WIND_TEST_STAGE } from "../sim/stage";
 
-export interface SceneryPiece {
+interface SceneryPiece {
   readonly model: string;
   readonly x: number;
   readonly y: number;
@@ -37,4 +39,14 @@ const FROZEN_THRONE: StageScenery = {
   ],
 };
 
-export const stageScenery = (stage: number): StageScenery => stage === FROZEN_THRONE_STAGE ? FROZEN_THRONE : SUMMER;
+export function stageScenery(stage: number): StageScenery {
+  if (stage === FROZEN_THRONE_STAGE) return FROZEN_THRONE;
+  if (stage === WIND_TEST_STAGE) return NORDRASSIL_SCENERY;
+  if (stage === CARRIED_TEST_STAGE) return GRYPHON_SCENERY;
+  if (stage === DRIFTING_DECK_STAGE) return DUROTAR_SCENERY;
+  if (stage === PATTERNED_DECKS_STAGE) return NAXXRAMAS_SCENERY;
+  if (stage === HELLFIRE_STAGE) return HELLFIRE_SCENERY;
+  if (stage === CANNON_TEST_STAGE) return BLACKROCK_SCENERY;
+  if (stage === TIMED_TEST_STAGE) return AHNQIRAJ_SCENERY;
+  return SUMMER;
+}

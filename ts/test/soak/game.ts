@@ -33,7 +33,7 @@ import { SOAK_BUTTONS, STICK_DEAD_ZONE } from "./controller";
 
 const CHARACTERS: Readonly<Record<string, Character>> = { archer: Character.archer, rifleman: Character.rifleman, illidan: Character.demonHunter };
 const NAMES: Readonly<Record<number, string>> = { [Character.archer]: "Archer", [Character.rifleman]: "Rifleman", [Character.demonHunter]: "Illidan" };
-const STAGES: Readonly<Record<string, number>> = { "sky-deck": 0, "three-bridges": 1, "frozen-throne": 2, "drifting-deck": 3, "patterned-decks": 4, "wind": 10, "carried": 11, "cannon": 12, "timed-lift": 13 };
+const STAGES: Readonly<Record<string, number>> = { "sky-deck": 0, "three-bridges": 1, "frozen-throne": 2, "drifting-deck": 3, "patterned-decks": 4, "wind": 10, "carried": 11, "cannon": 12, "timed-lift": 13, "hellfire": 14 };
 const FRAME_MS = 1000 / 60;
 /** A one-stock match with a one-minute clock: each ends by a KO or by time. */
 const STOCKS = 1;
@@ -177,7 +177,7 @@ export function beginMatch(clients: Lockstep, match: SoakMatch, frame: () => voi
   clients.press(0, Key.y);
   until("stage selection", () => readIn(host, () => shell().game.phase) === Phase.stageMenu);
   clients.everywhere(() => {
-    if (stage === 0 || stage === 1 || stage === 2) panelActions().stage.selectStage(0, stage);
+    if (stage !== 1) panelActions().stage.selectStage(0, stage);
     else shell().game.stageChoice = stage;
   });
   clients.press(0, Key.y);

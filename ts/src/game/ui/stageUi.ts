@@ -7,7 +7,8 @@ import { bindPrototype } from "../../platform/rebind";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import { type MatchState, Phase, humanActive } from "../match/rules";
 import { pointerX, pointerY } from "../menu/pointer";
-import { type StageTile, clearStageDrag, stageDrag, stageTileLeft, updateStageDrag } from "../menu/stageSelection";
+import { type StageTile, clearStageDrag, stageDrag, stageTileLeft, stageTileTop, updateStageDrag } from "../menu/stageSelection";
+import { STAGE_CATALOG, selectableStage, stageInfo } from "../menu/stageCatalog";
 import { rulesSummary } from "../shell/messages";
 import { ButtonClicks, MENU_FONT, type MenuControls, bindSyncHandler, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, placeTopLeft } from "./frames";
 
@@ -19,20 +20,6 @@ export interface StageActions {
 }
 
 type StageButton = { kind: "start" } | { kind: "back" };
-
-interface StageInfo {
-  readonly name: string;
-  readonly texture: string;
-  readonly description: string;
-}
-
-const STAGES: readonly [StageInfo, StageInfo, StageInfo] = [
-  { name: "Sky Deck", texture: "war3mapImported\\SelectionSkyDeck.tga", description: "One open platform.\nRoom to fight, nowhere to hide." },
-  { name: "Three Bridges", texture: "war3mapImported\\SelectionThreeBridges.tga", description: "A broad deck and two raised bridges.\nTake the high ground or fight below." },
-  { name: "Frozen Throne", texture: "war3mapImported\\SelectionFrozenThrone.tga", description: "Three icy platforms above Icecrown.\nFight beneath the Frozen Throne." },
-];
-
-const stageInfo = (choice: number): StageInfo => (choice === 0 ? STAGES[0] : choice === 1 ? STAGES[1] : STAGES[2]);
 
 function stageText(parent: framehandle, name: string, x: number, y: number, width: number, height: number, fontSize: number, text: string): framehandle {
   const label = createText(name, parent, 0);
@@ -86,14 +73,15 @@ export class StagePanel {
     BlzFrameSetEnable(this.preview, false);
     this.previewName = stageText(root, "MeleeStagePreviewName", f32(0.045), f32(0.19), f32(0.37), f32(0.036), f32(0.022), "");
     this.previewDescription = stageText(root, "MeleeStageDescription", f32(0.045), f32(0.148), f32(0.36), f32(0.05), f32(0.011), "");
-    stageText(root, "MeleeStageGridTitle", f32(0.454), f32(0.453), f32(0.3), f32(0.022), f32(0.012), "CHOOSE A STAGE");
-    for (let choice = 0; choice < STAGES.length; choice++) {
+    stageText(root, "MeleeStageGridTitle", f32(0.454), f32(0.48), f32(0.3), f32(0.022), f32(0.012), "CHOOSE A STAGE");
+    for (const stage of STAGE_CATALOG) {
+      const choice = stage.id;
       const tile = createBackdrop(`MeleeStageTile${I2S(choice)}`, root, choice);
       BlzFrameSetTexture(tile, stageInfo(choice).texture, 0, true);
-      placeTopLeft(tile, stageTileLeft(choice), f32(0.416));
-      BlzFrameSetSize(tile, f32(0.094), f32(0.118));
+      placeTopLeft(tile, stageTileLeft(choice), stageTileTop(choice));
+      BlzFrameSetSize(tile, f32(0.094), f32(0.078));
       BlzFrameSetEnable(tile, false);
-      stageText(root, `MeleeStageTileName${I2S(choice)}`, stageTileLeft(choice), f32(0.29), f32(0.094), f32(0.022), f32(0.01), stageInfo(choice).name);
+      stageText(root, `MeleeStageTileName${I2S(choice)}`, stageTileLeft(choice), f32(stageTileTop(choice) - f32(0.08)), f32(0.094), f32(0.022), f32(0.008), stageInfo(choice).name);
     }
     this.chip = createBackdrop("MeleeStageChip", root, 0);
     BlzFrameSetTexture(this.chip, "war3mapImported\\StageChip.tga", 0, true);
@@ -102,11 +90,12 @@ export class StagePanel {
     const help = journal
       ? "Click a stage or move the stick.\nAny player can choose.\nA or Start: start · X: back"
       : "Click a stage or move the chip.\nAny player can choose.\nLeft/Right: change stage · Y: start";
-    stageText(root, "MeleeStageHelp", f32(0.454), f32(0.23), f32(0.3), f32(0.065), f32(0.011), help);
+    stageText(root, "MeleeStageHelp", f32(0.454), f32(0.132), f32(0.3), f32(0.036), f32(0.008), help);
     this.clicks.add(stageButton(root, f32(0.545), f32(0.092), f32(0.21), f32(0.048), journal ? "START MATCH [A]" : "START MATCH"), { kind: "start" });
     this.clicks.add(stageButton(root, f32(0.045), f32(0.082), f32(0.17), f32(0.037), journal ? "BACK [X]" : "BACK TO FIGHTERS"), { kind: "back" });
     this.sync = createSyncTrigger("ui.stage.drop", "stage-drop", PARTICIPANT_SLOTS, (sender, data) => {
-      if (data === "0" || data === "1" || data === "2") this.actions.selectStage(sender, data === "0" ? 0 : data === "1" ? 1 : 2);
+      const choice = S2I(data);
+      if (I2S(choice) === data && selectableStage(choice)) this.actions.selectStage(sender, choice);
     });
     BlzFrameSetVisible(root, false);
     BlzFrameSetVisible(this.backdrop, false);
@@ -117,7 +106,8 @@ export class StagePanel {
     bindPrototype(this.clicks, ButtonClicks.prototype);
     this.clicks.bindHandler((button, clicker) => this.click(button, GetPlayerId(clicker)));
     bindSyncHandler("ui.stage.drop", (sender, data) => {
-      if (data === "0" || data === "1" || data === "2") this.actions.selectStage(sender, data === "0" ? 0 : data === "1" ? 1 : 2);
+      const choice = S2I(data);
+      if (I2S(choice) === data && selectableStage(choice)) this.actions.selectStage(sender, choice);
     });
   }
 
@@ -158,7 +148,7 @@ export class StagePanel {
       this.lastRules = rules;
     }
     let x = stageTileLeft(game.stageChoice) + f32(0.047);
-    let y = f32(0.357);
+    let y = f32(stageTileTop(game.stageChoice) - f32(0.039));
     const width = I2R(BlzGetLocalClientWidth());
     const height = I2R(BlzGetLocalClientHeight());
     if (width > 0 && height > 0) {

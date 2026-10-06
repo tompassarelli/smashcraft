@@ -9,9 +9,10 @@ import { SMASHCRAFT_SCENE } from "../scripts/wisp/playerView";
 import { IMPACT_DUST_MODEL, IMPACT_HIT_MODEL } from "../src/game/assets/impactAssetInfo";
 import { STAGE_DECK_MODEL, STAGE_MAIN_DECK_MODEL } from "../src/game/assets/stageAssetInfo";
 import { Action, bit } from "../src/game/input/actions";
-import { requestStageSelect, requestStart, selectCharacter, setParticipants } from "../src/game/match/rules";
+import { requestStageSelect, requestStart, selectCharacter, selectStage, setParticipants } from "../src/game/match/rules";
 import { FLOOR_HEIGHT } from "../src/game/presentation/arenaCamera";
 import { CANNON_MODEL } from "../src/game/presentation/stageHazards";
+import { STAGE_CATALOG } from "../src/game/menu/stageCatalog";
 import { stageScenery } from "../src/game/presentation/stageScenery";
 import { modelReach } from "wisp/scripts/wisp/models";
 import { boxSeen } from "wisp/scripts/wisp/visibility";
@@ -21,7 +22,7 @@ import { STOCK_MODELS } from "../src/game/render/effects";
 import { IMPACT_DUST, IMPACTS_PER_KIND, impactLifetime } from "../src/game/presentation/impactState";
 import { Character, DownState, SurfaceContact } from "../src/game/sim/codes";
 import { fighterAt } from "../src/game/sim/roster";
-import { CANNON_TEST_STAGE, CARRIED_TEST_STAGE, TIMED_TEST_STAGE, WIND_TEST_STAGE, DRIFTING_DECK_STAGE, PATTERNED_DECKS_STAGE, MAIN_DECK_BODY_SURFACES, MAIN_DECK_UNDERSIDE_Z, solidSurfaceAt, surfaceLeft, surfaceRight, surfaceZ } from "../src/game/sim/stage";
+import { CANNON_TEST_STAGE, CARRIED_TEST_STAGE, TIMED_TEST_STAGE, WIND_TEST_STAGE, DRIFTING_DECK_STAGE, PATTERNED_DECKS_STAGE, MAIN_DECK_BODY_SURFACES, MAIN_DECK_UNDERSIDE_Z, solidSurfaceAt, surfaceCount, surfaceLeft, surfaceRight, surfaceZ } from "../src/game/sim/stage";
 import { BLAST_ZONE_BOTTOM, BLAST_ZONE_SIDE, BLAST_ZONE_TOP } from "../src/game/sim/stocks";
 import { QUICK_MATCH_COMMAND } from "../src/game/shell/devSettings";
 import { initializeScenario } from "../src/game/shell/scenarios";
@@ -516,4 +517,36 @@ test("in the underside scenario's match, a fighter rising into the main deck's u
     expect(ecbInside(motion.x, motion.z)).toBe(false);
     expect(insideMainDeck(motion.x, motion.z + top + 0.5)).toBe(true);
   });
+});
+
+test("ranked stage lineup: both clients choose all eight stages and draw their decks and themed scenery", () => {
+  const stages = STAGE_CATALOG.filter(({ id }) => id !== 0);
+  expect(stages).toHaveLength(8);
+  for (const stage of stages) {
+    const clients = headless.clients({ start: startDevelopment, install: installDevelopment });
+    clients.start();
+    clients.frames(30);
+    clients.everywhere(() => {
+      const s = shell();
+      selectCharacter(s.game, 0, Character.archer);
+      selectCharacter(s.game, 1, Character.rifleman);
+      expect(requestStageSelect(s.game, 0)).toBe(true);
+      selectStage(s.game, 0, stage.id);
+      expect(s.game.stageChoice).toBe(stage.id);
+      expect(requestStart(s.game, 0)).toBe(true);
+      startMatch(s);
+    });
+    clients.frames(60);
+    for (const client of clients.clients) {
+      client.run(() => {
+        const s = shell();
+        expect(s.stageDecks).toHaveLength(surfaceCount(stage.id));
+        expect(s.stageScenery).toHaveLength(stageScenery(stage.id).pieces.length);
+        expect(s.stageScenery?.length).toBeGreaterThan(0);
+        trampoline("scene.report")();
+      });
+      expect(sceneProblems(sceneReport(client), SMASHCRAFT_SCENE)).toEqual([]);
+      expect(client.errors).toEqual([]);
+    }
+  }
 });
