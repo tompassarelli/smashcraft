@@ -17,7 +17,7 @@ const capacity = join(homedir(), "code/nixos-config/main/dotfiles/agents/skills/
 
 /** Each client's Steam compatibility folder (its prefix's parent), and the app and game ids its Battle.net ran as on 6 Oct. */
 const CLIENTS: Readonly<Record<string, { readonly compatData: string; readonly appId: number; readonly gameId: string }>> = {
-  a: { compatData: join(steam, "steamapps/compatdata/3516115571"), appId: 3516115571, gameId: "16213922543717842944" },
+  a: { compatData: join(homedir(), ".local/share/wc3-melee/client-a"), appId: 3516115573, gameId: "16213922543717842946" },
   b: { compatData: join(homedir(), ".local/share/wc3-melee/client-b"), appId: 3516115572, gameId: "16213922543717842945" },
 };
 

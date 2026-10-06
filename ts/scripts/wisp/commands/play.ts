@@ -33,7 +33,7 @@ interface Playtest {
   readonly computerSlot: number;
   /** Where the controller's stable device links are. */
   readonly inputDevices: string;
-  /** This prefix's installed Wisp page report port; absent uses ordinary menu controls. */
+  /** The report port of the Wisp page installed on Tom's prefix; absent uses ordinary menu controls. */
   readonly menuReportPort?: number;
 }
 
@@ -49,6 +49,8 @@ export const PLAYTEST: Playtest = {
   helper: join(inputs, "play-current/wc3-journal"),
   computerSlot: 2,
   inputDevices: "/dev/input/by-id",
+  // Tom's install is not a test client, so the clients file doesn't list it.
+  menuReportPort: 47124,
 };
 
 /** Seconds the map has to reach fighter selection, and to take the go-ahead. */
@@ -142,28 +144,25 @@ export function playtest({ build, map, helper, computerSlot, inputDevices, menuR
 
 const ClientSettings = Schema.Struct({
   tools: Schema.Struct({ grim: Schema.String, xdotool: Schema.String, wlrctl: Schema.String, tesseract: Schema.String, nsenter: Schema.optional(Schema.String) }),
-  clients: Schema.Array(Schema.Struct({ documents: Schema.String, menuReportPort: Schema.optional(Schema.Int) })),
 });
 
 /** The tool paths the clients file records; the commands on PATH without one. */
-function clientSettings(): { readonly tools: Partial<PlayTools>; readonly menuReportPort?: number } {
+function clientTools(): Partial<PlayTools> {
   try {
     const decoded = Schema.decodeUnknownOption(ClientSettings)(JSON.parse(readFileSync(clientState, "utf8")));
-    if (Option.isNone(decoded)) return { tools: {} };
-    const prefix = playtest(PLAYTEST).prefix;
-    const menuReportPort = decoded.value.clients.find((client) => client.documents === documentsFolder(prefix))?.menuReportPort;
+    if (Option.isNone(decoded)) return {};
     const { nsenter, ...tools } = decoded.value.tools;
-    return { tools: { ...tools, ...(nsenter === undefined ? {} : { nsenter }) }, ...(menuReportPort === undefined ? {} : { menuReportPort }) };
+    return { ...tools, ...(nsenter === undefined ? {} : { nsenter }) };
   } catch {
-    return { tools: {} };
+    return {};
   }
 }
 
-const settings = clientSettings();
+const tools = clientTools();
 // Doctor checks the prefix before play and once after a failure (wisp:docs/doctor.md).
 export const play: Command = (args) => Effect.gen(function*() {
   const current = yield* currentPlaytest;
-  const declaration = playtest({ ...PLAYTEST, ...current, ...(settings.menuReportPort === undefined ? {} : { menuReportPort: settings.menuReportPort }) });
+  const declaration = playtest({ ...PLAYTEST, ...current });
   yield* Effect.try({ try: () => installLatest(documentsFolder(declaration.prefix), current.map.source), catch: (cause) => new PlayProblem({ problem: String(cause) }) });
-  return yield* makePlay(declaration, gameFilesLayer, settings.tools, smashcraftWatch())(args);
+  return yield* makePlay(declaration, gameFilesLayer, tools, smashcraftWatch())(args);
 });
