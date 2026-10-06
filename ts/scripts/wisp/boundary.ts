@@ -26,7 +26,7 @@ export const MeleeReady = preloadRecord(
 
 /** smashcraft-dev-BUILD-pN.txt: confirmation a client handled a developer chat command. */
 export const DevCommandReceipt = preloadRecord(
-  { head: ["SMASHCRAFT DEV v=1 build={build} receipt={receipt} epoch={epoch} rb={rollback} delay={delay} batch={batch} "] },
+  { head: ["SMASHCRAFT DEV v=1 build={build} receipt={receipt} epoch={epoch} rb={rollback} delay={delay} batch={batch} rematchSeconds={rematchSeconds} "] },
   Schema.Struct({
     build: Schema.NonEmptyString,
     receipt: Count.check(Schema.isGreaterThanOrEqualTo(1)),
@@ -34,6 +34,7 @@ export const DevCommandReceipt = preloadRecord(
     rollback: Count.check(Schema.isGreaterThanOrEqualTo(1)),
     delay: Count,
     batch: Count.check(Schema.isGreaterThanOrEqualTo(1)).check(Schema.isLessThanOrEqualTo(MAX_BATCH)),
+    rematchSeconds: Count.check(Schema.isGreaterThanOrEqualTo(1)),
   }),
 );
 
