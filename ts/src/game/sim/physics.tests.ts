@@ -854,10 +854,10 @@ test("a combat shield break uses the character's launch attribute after the cont
     owner.attack.frame = attackStartupFrames(AttackStyle.jab);
     resolveAttacks(world);
     assertEquals(target.shield.breakState, ShieldBreak.air);
-    assertEquals(target.launch.hitlag, 7);
+    assertEquals(target.launch.hitlag, 4);
     const launch = character === Character.demonHunter ? 24.0 : f32(19.7999997139);
     assertNear(target.motion.vz, launch, f32(0.0001));
-    for (let frame = 1; frame <= 6; frame++) {
+    for (let frame = 1; frame <= 3; frame++) {
       advanceFighter(world, 1, 0, controls(), 0.0);
       assertEquals(target.motion.z, 0.0);
     }
@@ -888,15 +888,15 @@ test("a contact batch collects all damage before choosing a launch, in either tr
     }
     assertEquals(target.status.damage, 10.899999618530273);
     finishDamageContacts(world);
-    assertNear(target.status.damage, f32(37.9), f32(0.0001));
-    // floor(10.9)+27=37 percent, jab power 12, weight 80, crouch 2/3.
+    assertNear(target.status.damage, f32(30.9), f32(0.0001));
+    // floor(10.9)+20=30 percent, jab power 5, weight 80, crouch 2/3.
     // The later downward recoil and zero-launch laser cannot replace the jab.
-    assertNear(target.launch.diLaunchSpeed, f32(9.3946666667), f32(0.0001));
-    assertNear(target.launch.knockbackX, f32(9.3946666667) * f32(0.70710678), f32(0.0001));
+    assertNear(target.launch.diLaunchSpeed, f32(6.52), f32(0.0001));
+    assertNear(target.launch.knockbackX, f32(6.52) * f32(0.70710678), f32(0.0001));
     assertGreaterThan(target.launch.knockbackZ, 0.0);
-    assertEquals(target.launch.hitstun, 20);
-    assertEquals(target.launch.hitlag, 4);
-    assertEquals(owner.launch.hitlag, 7);
+    assertEquals(target.launch.hitstun, 14);
+    assertEquals(target.launch.hitlag, 2);
+    assertEquals(owner.launch.hitlag, 4);
     assertTrue(target.launch.diPending);
     assertTrue(target.launch.sdiWasGrounded);
     assertFalse(target.motion.crouching);
@@ -922,7 +922,7 @@ test("a contact-batch shield break blocks every collected contact", () => {
   assertEquals(target.status.damage, 0.0);
   assertEquals(target.shield.energy, 30.0);
   assertEquals(target.shield.breakState, ShieldBreak.air);
-  assertEquals(owner.launch.hitlag, 7);
+  assertEquals(owner.launch.hitlag, 4);
   assertEquals(projectileCount(owner), 0);
 });
 
@@ -950,8 +950,8 @@ test("contact-batch special trades survive melee, and summons use total damage",
   advanceSpecials(world, 0);
   finishDamageContacts(world);
   assertEquals(first.status.damage, 7.0);
-  assertEquals(second.status.damage, 26.0);
-  assertNear(second.launch.diLaunchSpeed, f32(11.936), f32(0.0001));
+  assertEquals(second.status.damage, 19.0);
+  assertNear(second.launch.diLaunchSpeed, f32(9.86), f32(0.0001));
   assertEquals(first.bear.hitSerial, 1);
   assertTrue(first.special.hit);
   assertTrue(second.special.hit);
@@ -1112,10 +1112,10 @@ test("crouch and charge are sampled before a hit interrupts the action", () => {
     testBeginAttacks(world, AttackStyle.jab, undefined);
     attacker.attack.frame = attackStartupFrames(AttackStyle.jab);
     resolveAttacks(world);
-    assertEquals(victim.status.damage, 12.0);
-    assertNear(victim.launch.diLaunchSpeed, f32(9.192) * (context === 1 ? 2.0 / 3.0 : context === 2 ? f32(1.2) : 1.0), f32(0.0001));
-    assertEquals(victim.launch.hitlag, context === 1 ? 4 : 7);
-    assertEquals(attacker.launch.hitlag, 7);
+    assertEquals(victim.status.damage, 5.0);
+    assertNear(victim.launch.diLaunchSpeed, f32(7.33) * (context === 1 ? 2.0 / 3.0 : context === 2 ? f32(1.2) : 1.0), f32(0.0001));
+    assertEquals(victim.launch.hitlag, context === 1 ? 2 : 4);
+    assertEquals(attacker.launch.hitlag, 4);
     assertFalse(victim.motion.crouching);
     assertFalse(victim.attack.smashCharging);
   }
@@ -1414,9 +1414,9 @@ test("the same character uses its assigned weight for an actual damage contact",
     testBeginAttacks(world, AttackStyle.jab, undefined);
     owner.attack.frame = attackStartupFrames(AttackStyle.jab);
     resolveAttacks(world);
-    assertEquals(target.status.damage, 12.0);
-    // Jab at 12 percent: ((12/10 + 12*12/20)*200/(weight+100)*1.4+18)+20.
-    assertNear(target.launch.diLaunchSpeed, weight === 50.0 ? f32(9.6624) : f32(8.53344), f32(0.00001));
+    assertEquals(target.status.damage, 5.0);
+    // Jab at 5 percent: ((5/10 + 5*5/20)*200/(weight+100)*1.4+18)+20.
+    assertNear(target.launch.diLaunchSpeed, weight === 50.0 ? f32(7.428) : f32(7.1928), f32(0.00001));
   }
 });
 
