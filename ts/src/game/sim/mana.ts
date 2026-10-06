@@ -50,8 +50,8 @@ const ORIGINAL_SPECIAL_COSTS: readonly number[] = [
   15, // Rifleman: freeze trap
   10, // Illidan: Mana Burn
   12, // Illidan: side special
-  15, // Illidan: Immolation
   0, // Illidan: Wing Ascent
+  15, // Illidan: Immolation
 ];
 if (ORIGINAL_SPECIAL_COSTS.length !== SPECIAL_ACTION_CAPACITY) throw new Error("one mana cost per original special action");
 
