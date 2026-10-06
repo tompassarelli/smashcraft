@@ -147,6 +147,7 @@ const SHOULDER_Z = 70.0;
 const LIMB_RADIUS = 7.0;
 const LIMB_LEAD_FRAMES = 2;
 const LIMB_HOLD_FRAMES = 4;
+const LIMB_POSE_FRAMES = 3;
 const HEEL = hurtPart(-4.0, 42.0, -26.0, 38.0, 8.0);
 
 interface Point {
@@ -160,7 +161,24 @@ function handOf(strike: StrikeCapsule): Point {
   return near(strike.x1, strike.z1) <= near(strike.x2, strike.z2) ? { x: strike.x1, z: strike.z1 } : { x: strike.x2, z: strike.z2 };
 }
 
-/** One arm pose per active frame; the first starts two frames earlier and the last holds four frames longer. */
+/** Where the hand holds the blades on one attack frame: the strike end nearest the body. */
+function handAt(move: AuthoredMove, frame: number, reachEnd: boolean): Point | undefined {
+  let hand: Point | undefined;
+  for (const region of move.regions) {
+    const strike = region.hit.strike;
+    if (strike === undefined || frame < region.firstFrame || frame > region.lastFrame) continue;
+    // A grab's capsule is the hand itself, so the arm reaches its far end.
+    const candidate = reachEnd ? { x: strike.x2, z: strike.z2 } : handOf(strike);
+    if (hand === undefined || Math.abs(candidate.x) < Math.abs(hand.x)) hand = candidate;
+  }
+  return hand;
+}
+
+/**
+ * Arm poses held for LIMB_POSE_FRAMES each (the last takes the remainder),
+ * from two frames before the first strike through four after the last; each
+ * reaches the hand of the active frame nearest its middle.
+ */
 function limbPoses(move: AuthoredMove | undefined, reachEnd: boolean): readonly HurtPose[] {
   if (move === undefined) return [];
   let first = Number.MAX_SAFE_INTEGER;
@@ -170,18 +188,14 @@ function limbPoses(move: AuthoredMove | undefined, reachEnd: boolean): readonly 
     last = Math.max(last, region.lastFrame);
   }
   const poses: HurtPose[] = [];
-  for (let frame = first; frame <= last; frame++) {
-    let hand: Point | undefined;
-    for (const region of move.regions) {
-      const strike = region.hit.strike;
-      if (strike === undefined || frame < region.firstFrame || frame > region.lastFrame) continue;
-      // A grab's capsule is the hand itself, so the arm reaches its far end.
-      const candidate = reachEnd ? { x: strike.x2, z: strike.z2 } : handOf(strike);
-      if (hand === undefined || Math.abs(candidate.x) < Math.abs(hand.x)) hand = candidate;
-    }
-    if (hand === undefined) continue;
-    const parts = [WARDEN_BODY, hurtPart(0.0, SHOULDER_Z, hand.x, hand.z, LIMB_RADIUS)];
-    poses.push(hurtPose(frame === first ? Math.max(0, first - LIMB_LEAD_FRAMES) : frame, frame === last ? last + LIMB_HOLD_FRAMES : frame, parts));
+  const from = Math.max(0, first - LIMB_LEAD_FRAMES);
+  const through = last + LIMB_HOLD_FRAMES;
+  for (let poseStart = from; poseStart <= through; poseStart += LIMB_POSE_FRAMES) {
+    const poseEnd = through - poseStart < 2 * LIMB_POSE_FRAMES ? through : poseStart + LIMB_POSE_FRAMES - 1;
+    const middle = Math.min(last, Math.max(first, Math.floor((poseStart + poseEnd) / 2)));
+    const hand = handAt(move, middle, reachEnd);
+    if (hand !== undefined) poses.push(hurtPose(poseStart, poseEnd, [WARDEN_BODY, hurtPart(0.0, SHOULDER_Z, hand.x, hand.z, LIMB_RADIUS)]));
+    if (poseEnd === through) break;
   }
   return poses;
 }
