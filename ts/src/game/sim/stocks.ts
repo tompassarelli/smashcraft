@@ -200,6 +200,7 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   landing.lag = 0;
   dodge.airDodging = false;
   dodge.airFrame = 0;
+  dodge.airUsed = false;
   dodge.groundFrame = 0;
   dodge.groundDirection = 0;
   dodge.groundEntryFacing = 0;

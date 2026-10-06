@@ -457,6 +457,10 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   shield.stun = max(0, shield.stun - 1);
   status.invincible = max(0, status.invincible - 1);
   if (dodge.airDodging) dodge.airFrame = min(AIR_DODGE_ANIMATION_FRAMES, dodge.airFrame + 1);
+  if (dodge.airDodging && dodge.airFrame >= AIR_DODGE_ANIMATION_FRAMES) {
+    dodge.airDodging = false;
+    dodge.airFrame = 0;
+  }
   const dodgeActive = dodge.airMotionFrames > 0;
   dodge.airMotionFrames = max(0, dodge.airMotionFrames - 1);
   shield.releaseLag = max(0, shield.releaseLag - 1);
@@ -542,7 +546,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   const frameDeltaX = f32(motion.x - oldX);
   let wallSide = resolveSolidSurfaceContacts(f, stage, oldX, oldZ, input);
   // Rising into a platform ascends it; a half-circle onto one wraps under it instead of landing.
-  const ascending = beginPlatformAscent(f, stage, matchFrame, oldZ);
+  const ascending = beginPlatformAscent(f, stage, matchFrame);
   const landing = ascending ? undefined : landingDeck(f, stage, matchFrame, oldX, oldZ, carried);
   const wrapping = landing !== undefined && beginPlatformWrapUnder(f, stage, matchFrame, landing);
   if (landing !== undefined && !wrapping) {

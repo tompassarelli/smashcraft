@@ -11,8 +11,8 @@
 // owner's GALE01 revision 2 PlCo.dat (SHA-1 c904de0c4c5eb3ef65211a75d8bd70ca5b0f9f41);
 // the retail files stay private, only the cited numbers appear here.
 import { Action } from "../src/game/input/actions";
-import { AttackStyle, Character, ContactKind, DownState, LedgeState, PlatformMove, SurfaceContact } from "../src/game/sim/codes";
-import { isIntangible } from "../src/game/sim/conditions";
+import { AttackPhase, AttackStyle, Character, ContactKind, DownState, LedgeState, PlatformMove, SurfaceContact } from "../src/game/sim/codes";
+import { attackPhase, isIntangible } from "../src/game/sim/conditions";
 import { beginDamageContacts, collectDamageContact, finishDamageContacts } from "../src/game/sim/contacts";
 import { type Fighter, createFighter } from "../src/game/sim/fighter";
 import { uncancelledLandingLag } from "../src/game/sim/moves";
@@ -642,6 +642,32 @@ function upAirIntoDeck(character: Character): string {
   return "never met the deck";
 }
 
+/**
+ * A full or short hop under the raised deck, a double jump on frame `doubleAt` and an
+ * up air on frame `pressAt`, searched for the first that leaves the aerial's
+ * active frames ending while the body straddles the deck: what follows them.
+ */
+function upAirRecoveryInDeck(character: Character): string {
+  for (const full of [true, false]) for (let doubleAt = 0; doubleAt <= 30; doubleAt++) for (let pressAt = 1; pressAt <= 40; pressAt++) {
+    const s = solo(1, character, UNDER_DECK_X);
+    const f = fighter(s);
+    const deckZ = surfaceZ(1, 1, 0);
+    let wasActive = false;
+    for (let n = 1; n <= 60; n++) {
+      const jump = n === 1 || n === doubleAt || (full && n <= 6 && doubleAt > 7) ? [Action.jump] : [];
+      frame(s, n === pressAt ? [...jump, Action.moveUp, Action.attack] : jump);
+      if (f.attack.style === AttackStyle.upAir && attackPhase(f) === AttackPhase.active) wasActive = true;
+      else if (wasActive) {
+        const straddling = f.motion.z < deckZ && f.motion.z + bodyTop(character) * WORLD_UNITS_PER_MELEE_UNIT >= deckZ;
+        if (f.platform.move === PlatformMove.ascent) return "recovery cancelled into an ascent";
+        if (straddling && f.attack.style === AttackStyle.upAir) return "recovery continues";
+        break;
+      }
+    }
+  }
+  return "never straddled the deck";
+}
+
 /** A fresh down on the raised deck: whether the fighter falls through at once or descends. */
 function downThroughDeck(character: Character): string {
   const s = solo(1, character, UNDER_DECK_X);
@@ -704,8 +730,12 @@ const PLATFORMS: readonly Scenario[] = [
   { area: "platform", name: "down pressed on a raised deck", cite: PLATFORM_PASS, run: (c) => ({ expected: "main deck", actual: downOnDeck(c) }) },
   {
     area: "platform", name: "up air rising into a raised deck", cite: `${PLATFORM_LINES}; a fighter's action is unchanged by passing a platform`,
-    departure: "Platform ascent: the body meeting a platform from below cancels the attack into an ascent over the jump squat (owner decision 2026-10-06, #103)",
     run: (c) => ({ expected: "up air continues", actual: upAirIntoDeck(c) }),
+  },
+  {
+    area: "platform", name: "up air's active frames ending inside a raised deck", cite: `${PLATFORM_LINES}; a fighter's action is unchanged by passing a platform`,
+    departure: "Platform ascent: once an attack's active frames end with the body in a platform, an ascent over the jump squat cancels its recovery (owner decision 2026-10-06, #103)",
+    run: (c) => ({ expected: "recovery continues", actual: upAirRecoveryInDeck(c) }),
   },
   {
     area: "platform", name: "fresh down on a raised deck: how the fighter leaves it", cite: `${PLATFORM_PASS}; ftCo_Pass enters a fall at once`,
@@ -1146,16 +1176,29 @@ function airDodgeFirstTravel(character: Character): number {
   return melee(f.motion.deltaZ);
 }
 
+/** Whether an attack pressed on frame 55, after a frame-1 air dodge's 49-frame animation, starts before landing. */
+function actsAfterAirDodge(character: Character): boolean {
+  const s = solo(0, character);
+  const f = fighter(s);
+  airborne(f, 0.0, 2000.0);
+  for (let n = 1; n <= 55; n++) frame(s, n === 1 ? [Action.leftTrigger] : n === 55 ? [Action.attack] : []);
+  return !f.motion.grounded && f.attack.serial > 0;
+}
+
 /** A straight-down air dodge just above the main deck. */
 const wavelandFall: Fall = { setup: (f) => airborne(f, 0.0, 6.0), held: (n) => (n === 1 ? [Action.moveDown, Action.leftTrigger] : []) };
 
 const DODGE_DATA = "Fox/Falco animation frames (retail-action-lengths.json, private PlFxAJ/PlFcAJ read)";
 const DODGE_INTANGIBLE = "Fox/Falco intangibility: body-state commands in retail-roster.json (EscapeN, EscapeF, EscapeAir), as references/melee-frame-data/records.jsonl reports for the ground dodges";
 
+const SHIELD_RELEASE_DEPARTURE = "Shield release lag: 11 frames, Ultimate's value (owner decision 2026-10-06, #100)";
+const AIR_DODGE_DEPARTURE = "Air dodge: once per airtime, ends actionable, refreshed on landing, ledge catch and being hit (owner decision 2026-10-06, #100)";
+
 const SHIELD_AND_DODGES: readonly Scenario[] = [
   {
     area: "shield/dodge", name: "shield release: frames until an attack starts",
     cite: `${DODGE_DATA} GuardOff 15, entered without an extra step: melee:src/melee/ft/kinds/ftCommon/ftCo_Guard.c:587 ftCo_80092C54`,
+    departure: SHIELD_RELEASE_DEPARTURE,
     run: (c) => forReference(c, () => ({ expected: 15, actual: shieldReleaseLag(c) })),
   },
   {
@@ -1175,6 +1218,12 @@ const SHIELD_AND_DODGES: readonly Scenario[] = [
     area: "shield/dodge", name: "air dodge first-frame travel (Melee units)",
     cite: "PlCo +0x338 = 3.1 force x +0x33C = 0.9 decay before the first move: melee:src/melee/ft/kinds/ftCommon/ftCo_EscapeAir.c",
     run: (c) => ({ expected: f32(3.0999999046325684 * 0.8999999761581421), actual: airDodgeFirstTravel(c), tolerance: 0.0001 }),
+  },
+  {
+    area: "shield/dodge", name: "air dodge ends in helpless fall: no attack before landing",
+    cite: "EscapeAir ends in FallSpecial, which allows no action until landing: melee:src/melee/ft/kinds/ftCommon/ftCo_EscapeAir.c",
+    departure: AIR_DODGE_DEPARTURE,
+    run: (c) => ({ expected: false, actual: actsAfterAirDodge(c) }),
   },
   {
     area: "shield/dodge", name: "waveland landing lag (frames to act)",

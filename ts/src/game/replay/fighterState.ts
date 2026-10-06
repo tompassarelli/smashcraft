@@ -239,6 +239,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   const sourceDodge = source.dodge;
   dodge.airDodging = sourceDodge.airDodging;
   dodge.airFrame = sourceDodge.airFrame;
+  dodge.airUsed = sourceDodge.airUsed;
   dodge.airMotionFrames = sourceDodge.airMotionFrames;
   dodge.groundFrame = sourceDodge.groundFrame;
   dodge.groundDirection = sourceDodge.groundDirection;
@@ -345,6 +346,9 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   status.conditionGroup = sourceStatus.conditionGroup;
   status.conditionImmunityFrames = sourceStatus.conditionImmunityFrames;
   for (let i = 0; i < HERO_STATUS_GROUPS; i++) status.conditionImmunity[i] = sourceStatus.conditionImmunity[i] ?? 0;
+  status.poisonFrames = sourceStatus.poisonFrames;
+  status.poisonEvery = sourceStatus.poisonEvery;
+  status.poisonDamage = sourceStatus.poisonDamage;
   status.guardHealed = sourceStatus.guardHealed;
 
   const mana = target.mana;

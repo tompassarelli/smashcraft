@@ -284,6 +284,8 @@ interface FreezeTrap {
 interface Dodge {
   airDodging: boolean;
   airFrame: number;
+  /** The airtime's one air dodge is spent; landing, a ledge catch or a hit refreshes it. */
+  airUsed: boolean;
   /** Frames of decaying air dodge motion left. */
   airMotionFrames: number;
   groundFrame: number;
@@ -425,6 +427,10 @@ interface Status {
   conditionImmunityFrames: number;
   /** Frames of immunity left per HeroStatusGroup. */
   readonly conditionImmunity: number[];
+  /** Poison, beside the condition: frames left, ticks every this many frames, damage per tick. */
+  poisonFrames: number;
+  poisonEvery: number;
+  poisonDamage: number;
   /** Damage percent hero guards restored this stock. */
   guardHealed: number;
 }
@@ -627,7 +633,7 @@ export function createFighter(character: Character, startX: number, facing: numb
     bear: { life: 0, x: 0.0, z: 0.0, velocityX: 0.0, velocityZ: 0.0, swipeCooldown: 0, hitSerial: 0, surface: undefined },
     hippogryph: { life: 0, x: 0.0, z: 0.0, velocityX: 0.0, velocityZ: 0.0, kind: HippogryphKind.none },
     freezeTrap: { life: 0, arming: 0, x: 0.0, z: 0.0, surface: undefined, serial: 0, cooldown: 0 },
-    dodge: { airDodging: false, airFrame: 0, airMotionFrames: 0, groundFrame: 0, groundDirection: 0, groundEntryFacing: 0 },
+    dodge: { airDodging: false, airFrame: 0, airUsed: false, airMotionFrames: 0, groundFrame: 0, groundDirection: 0, groundEntryFacing: 0 },
     landing: { lag: 0 },
     down: { state: DownState.none, frame: 0, direction: 0, waitRemaining: 0, faceUp: true, attackQueued: false },
     tech: { ...emptyTechInput(), window: 0 },
@@ -657,7 +663,7 @@ export function createFighter(character: Character, startX: number, facing: numb
       stand: false, shield: false, wrapLeft: 0, wrapLeftAge: 0, wrapRight: 0, wrapRightAge: 0, dodgeQueued: false, dodgeX: 0, dodgeZ: 0, specialQueued: false, specialX: 0, specialZ: 0,
     },
     cannon: { held: undefined, firing: undefined, cooldown: 0 },
-    status: { offscreenFrames: 0, damage: 0.0, stocks: STARTING_STOCKS, respawn: 0, out: false, invincible: 0, frozenFrames: 0, freezeImmunityFrames: 0, armorFrames: 0, armorMaxDamage: 0.0, condition: 0, conditionFrames: 0, conditionGroup: 0, conditionImmunityFrames: 0, conditionImmunity: [0, 0], guardHealed: 0.0 },
+    status: { offscreenFrames: 0, damage: 0.0, stocks: STARTING_STOCKS, respawn: 0, out: false, invincible: 0, frozenFrames: 0, freezeImmunityFrames: 0, armorFrames: 0, armorMaxDamage: 0.0, condition: 0, conditionFrames: 0, conditionGroup: 0, conditionImmunityFrames: 0, conditionImmunity: [0, 0], guardHealed: 0.0, poisonFrames: 0, poisonEvery: 0, poisonDamage: 0.0 },
     mana: { points: tuning.specials?.mana.max ?? 0, sinceSpend: tuning.specials?.mana.regenDelayFrames ?? 0, progress: 0 },
   };
 }

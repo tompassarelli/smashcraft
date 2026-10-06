@@ -1,5 +1,4 @@
 // Starting jumps, air dodges and ground dodges.
-import { max } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { Character, DownState, LedgeState, PlatformMove, ShieldBreak, SurfaceContact } from "./codes";
 import { inGrabContext, inSurfaceTechStartup, isGroundDodging, isTumbling } from "./conditions";
@@ -60,10 +59,13 @@ export function beginJump(f: Fighter, horizontal: number): void {
   observeActionStart(JUMP_BIT);
 }
 
-/** An air dodge in a digital direction; horizontal dodges angle shallowly downward, explicit vertical input stays directional. */
+/**
+ * An air dodge in a digital direction; horizontal dodges angle shallowly downward, explicit vertical input stays directional.
+ * One per airtime, ending actionable rather than helpless (owner decision, #100).
+ */
 export function beginAirDodge(f: Fighter, horizontal: number, vertical: number): void {
   const { motion, launch, dodge } = f;
-  if (lockedOut(f) || motion.grounded || dodge.airDodging || dodge.airMotionFrames > 0) return;
+  if (lockedOut(f) || motion.grounded || dodge.airDodging || dodge.airUsed || dodge.airMotionFrames > 0) return;
   observeActionDecision(DODGE_BITS);
   motion.fastFalling = false;
   const dx = sign(horizontal);
@@ -81,11 +83,11 @@ export function beginAirDodge(f: Fighter, horizontal: number, vertical: number):
   launch.knockbackZ = 0.0;
   dodge.airMotionFrames = AIR_DODGE_DECAY_FRAMES;
   dodge.airDodging = true;
+  dodge.airUsed = true;
   observeActionStart(DODGE_BITS);
   motion.crouching = false;
   dodge.airFrame = 0;
   motion.grounded = false;
-  f.jump.remaining = max(0, f.jump.remaining - 1);
   clearDownState(f);
   const recovery = f.surfaceRecovery;
   recovery.lastReflectedSurface = undefined;

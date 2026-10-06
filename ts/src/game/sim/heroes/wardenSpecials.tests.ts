@@ -2,8 +2,8 @@
 // and motion functions (smashcraft:docs/design/roster.md, Warden B specials).
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
-import { resolveAttacks } from "../attacks";
-import { Character, ProjectileKind, SpecialAction } from "../codes";
+import { beginFighterAttack, resolveAttacks } from "../attacks";
+import { AttackStyle, Character, ProjectileKind, SpecialAction } from "../codes";
 import { isIntangible } from "../conditions";
 import { beginDamageContacts, finishDamageContacts } from "../contacts";
 import { type Fighter, createFighter } from "../fighter";
@@ -247,4 +247,72 @@ test("a point-blank Shadow Strike on a held shield leaves the defender free well
   assertGreaterThan(blockedAt, 0);
   // Warden acts on frame 38; an out-of-shield grab needs about ten frames.
   assertLessThan(blockedAt + stun + 10, 38);
+});
+
+test("Fan of Knives on a held shield leaves the defender a punish before Warden acts", () => {
+  for (const side of [-1, 1]) {
+    const { world, target } = pair(0.0, f32(70.0 * side));
+    const guard = controls({ shield: true });
+    let blockedAt = 0;
+    let stun = 0;
+    for (let f = 1; f <= 38 && blockedAt === 0; f++) {
+      frame(world, f === 1 ? downB : controls(), guard);
+      if (target.shield.stun > 0) {
+        blockedAt = f;
+        stun = target.shield.stun;
+      }
+    }
+    assertEquals(target.status.damage, 0.0);
+    assertGreaterThan(blockedAt, 0);
+    // Warden acts on frame 39; an out-of-shield grab needs about ten frames.
+    assertLessThan(blockedAt + stun + 10, 39);
+  }
+});
+
+test("Blink cannot start from an attack's recovery", () => {
+  const { world, warden } = pair(0.0, 1500.0);
+  beginFighterAttack(world, 0, AttackStyle.forwardTilt, false);
+  for (let f = 1; f < warden.attack.duration; f++) {
+    frame(world, upB);
+    assertEquals(warden.special.action, SpecialAction.none);
+    assertEquals(warden.mana.points, 100);
+  }
+});
+
+test("Shadow Strike poisons a body hit for three 1-damage ticks over 90 frames without flinching, refreshed not stacked", () => {
+  const { world, warden, target } = pair(0.0, 260.0);
+  frame(world, neutralB);
+  let hitFrame = 0;
+  for (let f = 2; f <= 60 && hitFrame === 0; f++) {
+    frame(world);
+    if (target.status.damage > 0.0) hitFrame = f;
+  }
+  assertGreaterThan(hitFrame, 0);
+  assertEquals(target.status.damage, 5.0);
+  assertEquals(target.status.poisonFrames > 0, true);
+  const ticks: number[] = [];
+  for (let f = 1; f <= 100; f++) {
+    const before = target.status.damage;
+    frame(world);
+    if (target.status.damage !== before) {
+      ticks.push(f);
+      // A tick changes damage only: no new hitstun or hitlag.
+      assertEquals(target.launch.hitlag, 0);
+    }
+  }
+  assertEquals(target.status.damage, 8.0);
+  assertEquals(ticks.length, 3);
+  assertEquals(ticks[1]! - ticks[0]!, 30);
+  assertEquals(ticks[2]! - ticks[1]!, 30);
+  assertEquals(target.status.poisonFrames, 0);
+  assertEquals(warden.status.damage, 0.0);
+});
+
+test("a shielded Shadow Strike applies no poison", () => {
+  const { world, target } = pair(0.0, 260.0);
+  const guard = controls({ shield: true });
+  frame(world, neutralB, guard);
+  for (let f = 2; f <= 60; f++) frame(world, controls(), guard);
+  assertEquals(target.status.damage, 0.0);
+  assertEquals(target.status.poisonFrames, 0);
 });

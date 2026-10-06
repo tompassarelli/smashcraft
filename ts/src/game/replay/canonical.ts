@@ -198,6 +198,10 @@ function specialProjectileCanonical(spec: Readonly<SpecialProjectile>, prefix: s
     int("status.frames", spec.status.frames);
     int("status.group", spec.status.group);
     int("status.immunityFrames", spec.status.immunityFrames);
+    if (spec.status.tick !== undefined) {
+      int("status.tick.every", spec.status.tick.every);
+      real("status.tick.damage", spec.status.tick.damage);
+    }
   }
   real("backOffsetX", spec.backOffsetX ?? -1.0);
   int("needsLineOfSight", spec.needsLineOfSight === true ? 1 : 0);
@@ -558,6 +562,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   int("landingLag", fighter.landing.lag);
   bool("airDodging", fighter.dodge.airDodging);
   int("airDodgeFrame", fighter.dodge.airFrame);
+  bool("airDodgeUsed", fighter.dodge.airUsed);
   int("groundDodgeFrame", fighter.dodge.groundFrame);
   int("groundDodgeDirection", fighter.dodge.groundDirection);
   int("groundDodgeEntryFacing", fighter.dodge.groundEntryFacing);
@@ -686,6 +691,11 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
     int("conditionGroup", st.conditionGroup);
     int("conditionImmunityFrames", st.conditionImmunityFrames);
     for (let i = 0; i < HERO_STATUS_GROUPS; i++) int(`conditionImmunity[${i}]`, st.conditionImmunity[i] ?? 0);
+  }
+  if (st.poisonFrames !== 0) {
+    int("poisonFrames", st.poisonFrames);
+    int("poisonEvery", st.poisonEvery);
+    real("poisonDamage", st.poisonDamage);
   }
   for (let i = 0; i < PROJECTILE_CAPACITY; i++) {
     const spec = at(fighter.projectiles, i).spec;

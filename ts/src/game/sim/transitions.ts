@@ -207,6 +207,7 @@ export function interruptJumpOrDodge(f: Fighter): void {
   dodge.airDodging = false;
   dodge.airMotionFrames = 0;
   dodge.airFrame = 0;
+  dodge.airUsed = false;
   dodge.groundFrame = 0;
   dodge.groundDirection = 0;
   dodge.groundEntryFacing = 0;

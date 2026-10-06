@@ -5,7 +5,6 @@ import { AttackStyle, Character, DownState, LedgeState, ShieldBreak, SpecialActi
 import { inGrabContext, isTumbling } from "./conditions";
 import type { Fighter } from "./fighter";
 import { clearDash } from "./groundMovement";
-import { AIR_DODGE_ANIMATION_FRAMES } from "./jumpsAndDodges";
 import { LEDGE_ATTACK_FRAMES } from "./moves";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type Controls, type Roster, controlsAt, fighterAt, isActive } from "./roster";
@@ -104,14 +103,14 @@ function ledgeX(stage: number, side: number): number {
 
 /**
  * Falling, helpless and tumbling fighters catch; attacks, specials, air dodges,
- * hitstun and shield breaks don't. An air dodge turns helpless when its
+ * hitstun and shield breaks don't. An air dodge ends actionable when its
  * animation ends.
  */
 function canCatchLedge(f: Fighter): boolean {
   const { attack, special, dodge, launch, down } = f;
   return !f.status.out && f.status.frozenFrames <= 0 && launch.hitlag <= 0 && launch.hitstun <= 0
     && attack.style === undefined && attack.cooldown <= 0 && special.action === SpecialAction.none && special.lockFrames <= 0
-    && (!dodge.airDodging || dodge.airFrame >= AIR_DODGE_ANIMATION_FRAMES) && f.shield.breakState === ShieldBreak.none
+    && !dodge.airDodging && f.shield.breakState === ShieldBreak.none
     && !inGrabContext(f) && (down.state === DownState.none || isTumbling(f));
 }
 
@@ -166,6 +165,7 @@ function catchLedge(f: Fighter, stage: number, side: number): void {
   f.dodge.airDodging = false;
   f.dodge.airFrame = 0;
   f.dodge.airMotionFrames = 0;
+  f.dodge.airUsed = false;
   f.jump.remaining = 1;
   clearPlatformMove(f);
   clearTech(f);
