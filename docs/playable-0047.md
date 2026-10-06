@@ -8,6 +8,26 @@ Use this map and its matching helper together:
 
 Windows and macOS use a different helper; see the section for them below.
 
+## One command
+
+On Tom's desktop, from smashcraft:ts/:
+
+```sh
+bun wisp play
+```
+
+It checks that nothing else runs in the Warcraft prefix, reuses or starts the
+signed-in Battle.net launcher through the Steam shortcut "Warcraft III
+(Battle.net)", presses Play, hosts "Smashcraft" with this map from
+Maps/00-Smashcraft, adds a computer as Player 3, starts the helper
+(`wc3-journal-0.0.47-fix1`) for the first Xbox controller and leaves Warcraft
+III fullscreen. Each step prints a line; a problem stops it with what to do
+(wisp:docs/play.md). The helper keeps running
+after the command ends, with its output in
+~/.local/state/smashcraft/play-helper.log; stop it with `kill PID` (the pid
+the command printed) after leaving the map. smashcraft:ts/scripts/wisp/commands/play.ts
+declares the candidate, its helper and the computer's slot.
+
 Put the map in each player's Warcraft III `Maps/00-Smashcraft` folder. Join the
 same custom game and start it. At fighter selection, start one helper for each
 human player with that player's controller, Warcraft window and data folder.
