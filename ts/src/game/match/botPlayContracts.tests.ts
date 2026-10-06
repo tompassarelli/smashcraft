@@ -158,7 +158,7 @@ test("computer Uther raises Divine Guard against a strike timed into its guard w
   const grabbed = heroUsage(shielding, 1, 600, (slot) => {
     const input = shielding.produced.inputs[slot];
     input.shield = true;
-    input.shieldStrength = 255;
+    input.shieldStrength = 1.0;
   });
   assertGreaterThan(grabbed.grabs, 0);
 });

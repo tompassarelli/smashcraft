@@ -3,6 +3,7 @@
 import { Character } from "../codes";
 import { MOUNTAIN_KING_CLIPS, MOUNTAIN_KING_FALLBACK } from "../../presentation/heroes/mountainKingClips";
 import type { HeroDefinition } from "./hero";
+import { MOUNTAIN_KING_GAMEPLAN } from "./mountainKingGameplan";
 import { MOUNTAIN_KING_MOVES } from "./mountainKingMoves";
 import { MOUNTAIN_KING_SPECIALS } from "./mountainKingSpecials";
 
@@ -14,6 +15,7 @@ export const MOUNTAIN_KING_HERO: HeroDefinition = {
   complete: true,
   moves: MOUNTAIN_KING_MOVES,
   specials: MOUNTAIN_KING_SPECIALS,
+  gameplan: MOUNTAIN_KING_GAMEPLAN,
   presentation: {
     model: "units\\human\\HeroMountainKing\\HeroMountainKing.mdl",
     scale: 1.0,

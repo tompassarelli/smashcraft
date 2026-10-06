@@ -74,6 +74,9 @@ export function keptGap(plan: Readonly<FighterGameplan>, f: Readonly<Fighter>, t
   }
   // Under a target overhead it keeps its range instead of standing beneath it.
   if (avoids(plan, "below") && f32(target.motion.z - f.motion.z) > ABOVE) gap = Math.max(gap, near, 120.0);
+  // A shield on the ground is a grab away: a plan walks in to take it, unless
+  // it avoids close range and pressures the shield with its spacing tools.
+  if (target.shield.raised && target.motion.grounded && !avoids(plan, "close")) gap = 0.0;
   return gap;
 }
 
