@@ -1,5 +1,5 @@
 // The drawn body stays outside nearby stage faces without changing its ECB.
-// Combat still uses the simulation origin and the coarse hurt capsule (#62).
+// Combat uses the simulation origin and authored hurt volumes (docs/hurtboxes.md).
 import { at } from "wisp/src/runtime/lookup";
 import { LedgeState, type Character } from "../sim/codes";
 import { fighterPoseFacing } from "../sim/conditions";

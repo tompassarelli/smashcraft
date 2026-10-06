@@ -7,6 +7,9 @@ import { AttackStyle, Character } from "./codes";
 import { attackDurationFramesForGrounding, attackStartupFrames } from "./moves";
 import type { Roster } from "./roster";
 import type { FighterMoves } from "./heroMoves";
+import type { FighterSpecials } from "./heroSpecials";
+import { heroBody } from "./heroes/heroBodies";
+import { heroDefinition } from "./heroes/registry";
 
 export const WORLD_UNITS_PER_MELEE_UNIT = 6.0;
 
@@ -94,6 +97,8 @@ interface ShieldBreakTiming {
 /** Every tuning record a fighter carries; each is replaced whole, never edited in place. */
 export interface FighterTuning {
   moves?: FighterMoves | undefined;
+  /** Expansion hero specials and their mana profile; the original fighters keep cooldowns. */
+  specials?: FighterSpecials | undefined;
   physics: FighterPhysics;
   surface: SurfaceRecoveryPhysics;
   ground: GroundMovementRules;
@@ -119,8 +124,11 @@ const ORIGINAL_ACCELERATION = {
   groundSpeedCap: GROUND_SPEED_CAP,
 } as const;
 
+/** The three fighters authored before the roster expansion. */
+type OriginalFighter = "archer" | "rifleman" | "demonHunter";
+
 /** Defaults for the original roster, never a reference-character selector. */
-export const AUTHORED_PHYSICS: { readonly [name in keyof typeof Character]: FighterPhysics } = {
+export const AUTHORED_PHYSICS: { readonly [name in OriginalFighter]: FighterPhysics } = {
   archer: {
     weight: 75.0,
     gravity: melee(0.23000000417232513),
@@ -203,7 +211,27 @@ export function authoredPhysics(character: Character): FighterPhysics {
       return AUTHORED_PHYSICS.rifleman;
     case Character.demonHunter:
       return AUTHORED_PHYSICS.demonHunter;
+    default:
+      return heroPhysics(character);
   }
+}
+
+/**
+ * An expansion hero's physics: Archer's, with the roster's weight, run and
+ * air-speed multipliers. Jumps and gravity stay the reference's.
+ */
+function heroPhysics(character: Character): FighterPhysics {
+  const reference = AUTHORED_PHYSICS.archer;
+  const body = heroBody(character);
+  if (body === undefined) return reference;
+  return {
+    ...reference,
+    weight: f32(reference.weight * body.weight),
+    dashSpeed: f32(reference.dashSpeed * body.run),
+    runSpeed: f32(reference.runSpeed * body.run),
+    walkSpeed: f32(reference.walkSpeed * body.run),
+    airSpeed: f32(reference.airSpeed * body.air),
+  };
 }
 
 /**
@@ -215,7 +243,7 @@ export function authoredPhysics(character: Character): FighterPhysics {
  * Captain Falcon), all of whom wall jump (can_walljump in ftFx_Init_OnLoad,
  * ftFc_Init_OnLoad, ftCa_Init_OnLoad).
  */
-const AUTHORED_SURFACE_RECOVERY: { readonly [name in keyof typeof Character]: SurfaceRecoveryPhysics } = {
+const AUTHORED_SURFACE_RECOVERY: { readonly [name in OriginalFighter]: SurfaceRecoveryPhysics } = {
   archer: {
     passiveWallSpeed: melee(0.5),
     wallJumpHorizontalSpeed: melee(1.399999976158142),
@@ -250,6 +278,8 @@ function authoredSurfaceRecovery(character: Character): SurfaceRecoveryPhysics {
       return AUTHORED_SURFACE_RECOVERY.rifleman;
     case Character.demonHunter:
       return AUTHORED_SURFACE_RECOVERY.demonHunter;
+    default:
+      return AUTHORED_SURFACE_RECOVERY.archer;
   }
 }
 
@@ -321,7 +351,10 @@ export function applyAuthoredTuning(world: Roster): void {
 }
 
 export function authoredTuning(character: Character): FighterTuning {
+  const hero = heroDefinition(character);
   return {
+    moves: hero?.moves,
+    specials: hero?.specials,
     physics: authoredPhysics(character),
     surface: authoredSurfaceRecovery(character),
     ground: AUTHORED_GROUND_MOVEMENT_RULES,

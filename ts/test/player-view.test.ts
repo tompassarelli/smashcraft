@@ -491,6 +491,7 @@ test("a fighter within 100 of the main deck's underside shows above the HUD with
     setParticipants(s.game, 1, 2);
     selectCharacter(s.game, 0, Character.archer);
     expect(requestStageSelect(s.game, 0)).toBe(true);
+    selectStage(s.game, 0, 0);
     expect(requestStart(s.game, 0)).toBe(true);
     startMatch(s);
     origin = s.origin;
