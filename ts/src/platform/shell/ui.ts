@@ -159,7 +159,8 @@ export function recreateUi(s: ShellState, actions: PanelActions): void {
   ui.special.bindNestedCode();
   ui.sounds = modelSoundPresentation(s.origin);
   // A bundle from before the match presentation left none to rebind.
-  if ((ui as Partial<UiObjects>).match === undefined) ui.match = new MatchPresentation(s.origin);
+  const retained: { readonly match?: MatchPresentation } = ui;
+  if (retained.match === undefined) ui.match = new MatchPresentation(s.origin);
   else bindPrototype(ui.match, MatchPresentation.prototype);
   for (const slot of PARTICIPANT_SLOTS) {
     const renderers = ui.fighters[slot];
