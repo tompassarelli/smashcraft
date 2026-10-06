@@ -104,7 +104,9 @@ function traceWindow(): TraceWindow {
 /** The probe build keeps a longer trace. */
 export function inputTrace(capacity: number): InputTrace {
   return {
-    clock: undefined, active: false, ticks: 0, pausedTicks: 0, capacity, lines: [], dropped: 0,
+    // Created with the shell on every client at once: a timer made when this client's own first journal row arrives
+    // is a handle the other client makes on another turn, which Warcraft reports as a tempest-checksum desync.
+    clock: CreateTimer(), active: false, ticks: 0, pausedTicks: 0, capacity, lines: [], dropped: 0,
     lastAxes: undefined, lastDodge: undefined, lastLandingLag: undefined, rawSyncEvents: 0, window: traceWindow(),
     echoes: Array.from({ length: ECHO_CAPACITY }, () => ({ epoch: -1, frame: undefined, callback: 0, seconds: 0.0 })),
     echoPending: 0,
