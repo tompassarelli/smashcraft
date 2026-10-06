@@ -1,4 +1,4 @@
-// `wisp repro FILE [--test NAME]`: replays a moment a player saved with F8,
+// `wisp repro FILE [--test NAME]`: replays a moment a player saved with K,
 // or a controller's View held for a second, in two simulated clients, which
 // must land on the checksum the game recorded; --test NAME writes
 // src/game/replay/repros/NAME.tests.ts, which replays it in Bun and 32-bit Lua

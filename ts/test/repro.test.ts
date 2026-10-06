@@ -1,4 +1,4 @@
-// wisp#15: F8 saves the last ten seconds of a match on the asking player's
+// wisp#15: K saves the last ten seconds of a match on the asking player's
 // client only, with no desync, and the saved moment replays to the checksum
 // the game recorded: the development build's callback match and the
 // playable build's rollback match, where a controller helper asks through
@@ -36,7 +36,7 @@ function expectReplays(lines: readonly string[] | undefined, checksum: string): 
   expect(result.frames).toBe(Math.min(repro.frame, MOMENT_FRAMES + Math.max(0, repro.frame - MOMENT_FRAMES) % 120));
 }
 
-test("F8 in the development build's match saves its last ten seconds on that player's client, which replay to its checksum", () => {
+test("K in the development build's match saves its last ten seconds on that player's client, which replay to its checksum", () => {
   const clients = headless.clients({ start, install }, [0, 1]);
   const hold = (player: number, key: number, down: boolean) => {
     for (const client of clients.clients) client.key(player, key, 0, down);
@@ -58,7 +58,7 @@ test("F8 in the development build's match saves its last ten seconds on that pla
   if (a === undefined || b === undefined) throw new Error("two clients");
   expect(value(a, () => shell().game.phase)).toBe(Phase.match);
   const checksum = value(a, () => confirmedChecksum(shell()));
-  clients.press(0, Key.f8);
+  clients.press(0, Key.k);
   // The save takes a step a frame while the match runs on.
   clients.frames(12);
   expect([moments(a).length, moments(b).length]).toEqual([1, 0]);
@@ -69,7 +69,7 @@ test("F8 in the development build's match saves its last ten seconds on that pla
   expectReplays(a.files.get(name), checksum);
 });
 
-test("in the playable build's rollback match, a controller helper's request and F8 each save the moment on their own client", () => {
+test("in the playable build's rollback match, a controller helper's request and K each save the moment on their own client", () => {
   const helpers = new JournalHelpers(PLAYABLE_BUILD.id, true);
   helpers.workload = { denseCycles: 2, walkers: [1] };
   const { clients, frames, clientA: a, clientB: b } = startPlayableMatch(headless, helpers, true);
@@ -88,7 +88,7 @@ test("in the playable build's rollback match, a controller helper's request and 
   if (typeof repro === "string") throw new Error(repro);
   expectReplays(saved, repro.checksum);
   const keyChecksum = value(a, () => confirmedChecksum(shell()));
-  clients.press(0, Key.f8);
+  clients.press(0, Key.k);
   frames(12);
   expect(moments(a).length).toBe(1);
   expectReplays(a.files.get(moments(a)[0] ?? ""), keyChecksum);
