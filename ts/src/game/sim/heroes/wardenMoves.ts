@@ -24,6 +24,7 @@ const ANGLES = {
   25: { x: f32(0.906307787), z: f32(0.422618262) },
   35: { x: f32(0.819152044), z: f32(0.573576436) },
   40: { x: f32(0.766044443), z: f32(0.642787610) },
+  45: { x: f32(0.707106781), z: f32(0.707106781) },
   50: { x: f32(0.642787610), z: f32(0.766044443) },
   55: { x: f32(0.573576436), z: f32(0.819152044) },
   60: { x: 0.5, z: f32(0.866025404) },
@@ -33,7 +34,7 @@ const ANGLES = {
   270: { x: 0.0, z: -1.0 },
 } as const;
 
-function hit(damage: number, kind: keyof typeof CLASS, angle: keyof typeof ANGLES, facing = 1.0): Readonly<HitEffect> {
+export function wardenHit(damage: number, kind: keyof typeof CLASS, angle: keyof typeof ANGLES, facing = 1.0): Readonly<HitEffect> {
   const strength = CLASS[kind];
   const direction = ANGLES[angle];
   return { damage, growth: strength.growth, base: strength.base, launchX: f32(direction.x * facing), launchZ: direction.z, electric: false, element: HitElement.slash };
@@ -66,12 +67,12 @@ function cut(first: number, heights: readonly number[], reach: number, inner: Re
 }
 
 function throwMove(release: number, recovery: number, damage: number, kind: keyof typeof CLASS, angle: keyof typeof ANGLES, facing = 1.0) {
-  return { contactFrame: release, totalFrames: release + recovery, effect: hit(damage, kind, angle, facing) };
+  return { contactFrame: release, totalFrames: release + recovery, effect: wardenHit(damage, kind, angle, facing) };
 }
 
-const BACK_AIR = hit(11.0, "KILL", 35, -1.0);
-const DOWN_AIR = hit(11.0, "SPIKE", 270);
-const DOWN_AIR_GROUNDED = hit(11.0, "SPIKE", 55);
+const BACK_AIR = wardenHit(11.0, "KILL", 35, -1.0);
+const DOWN_AIR = wardenHit(11.0, "SPIKE", 270);
+const DOWN_AIR_GROUNDED = wardenHit(11.0, "SPIKE", 55);
 const GRAB_EFFECT = { damage: 0.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } as const;
 
 export const WARDEN_MOVES: FighterMoves = {
@@ -80,38 +81,38 @@ export const WARDEN_MOVES: FighterMoves = {
   smashMaxDamageMultiplier: 1.25,
   maxPummels: 2,
   normals: {
-    [AttackStyle.jab]: heroMove(3, 2, 13, 0, cut(3, [44.0, 48.0], S, hit(3.0, "POKE", 35))),
-    [AttackStyle.forwardTilt]: heroMove(7, 3, 18, 0, cut(7, [58.0, 45.0, 32.0], M, hit(8.0, "POKE", 35))),
-    [AttackStyle.forwardTiltUp]: heroMove(7, 3, 18, 0, cut(7, [85.0, 100.0, 112.0], M, hit(8.0, "POKE", 35))),
-    [AttackStyle.forwardTiltDown]: heroMove(7, 3, 18, 0, cut(7, [16.0, 0.0, -16.0], M, hit(8.0, "POKE", 35))),
+    [AttackStyle.jab]: heroMove(3, 2, 13, 0, cut(3, [44.0, 48.0], S, wardenHit(3.0, "POKE", 35))),
+    [AttackStyle.forwardTilt]: heroMove(7, 3, 18, 0, cut(7, [58.0, 45.0, 32.0], M, wardenHit(8.0, "POKE", 35))),
+    [AttackStyle.forwardTiltUp]: heroMove(7, 3, 18, 0, cut(7, [85.0, 100.0, 112.0], M, wardenHit(8.0, "POKE", 35))),
+    [AttackStyle.forwardTiltDown]: heroMove(7, 3, 18, 0, cut(7, [16.0, 0.0, -16.0], M, wardenHit(8.0, "POKE", 35))),
     [AttackStyle.upTilt]: heroMove(6, 4, 18, 0, path(6, [
       blade(18.0, 40.0, f32(M - BLADE_RADIUS), 55.0),
       blade(16.0, 48.0, 70.0, 84.0),
       blade(8.0, 54.0, 35.0, f32(M - BLADE_RADIUS)),
       blade(0.0, 54.0, -8.0, f32(M - BLADE_RADIUS)),
-    ], hit(7.0, "LINK", 85))),
+    ], wardenHit(7.0, "LINK", 85))),
     [AttackStyle.downTilt]: heroMove(5, 2, 17, 0, path(5, [
       blade(16.0, 9.0, f32(M - BLADE_RADIUS), 9.0),
       blade(16.0, 6.0, f32(M - BLADE_RADIUS), 6.0),
-    ], hit(5.0, "LINK", 70))),
-    [AttackStyle.dashAttack]: heroMove(8, 4, 24, 0, cut(8, [26.0, 42.0, 58.0, 74.0], M, hit(9.0, "LAUNCH", 60)), f32(HERO_REFERENCE_HEIGHT * f32(0.60)), true),
-    [AttackStyle.forwardSmash]: heroMove(15, 3, 30, 0, cut(15, [64.0, 45.0, 26.0], L, hit(12.0, "KILL", 40), hit(16.0, "KILL", 40))),
+    ], wardenHit(5.0, "LINK", 70))),
+    [AttackStyle.dashAttack]: heroMove(8, 4, 24, 0, cut(8, [26.0, 42.0, 58.0, 74.0], M, wardenHit(9.0, "LAUNCH", 60)), f32(HERO_REFERENCE_HEIGHT * f32(0.60)), true),
+    [AttackStyle.forwardSmash]: heroMove(15, 3, 30, 0, cut(15, [64.0, 45.0, 26.0], L, wardenHit(12.0, "KILL", 40), wardenHit(16.0, "KILL", 40))),
     [AttackStyle.upSmash]: heroMove(13, 4, 27, 0, path(13, [
       blade(12.0, 46.0, 24.0, f32(M - BLADE_RADIUS)),
       blade(8.0, 46.0, 10.0, f32(M - BLADE_RADIUS)),
       blade(0.0, 46.0, -10.0, f32(M - BLADE_RADIUS)),
       blade(-8.0, 46.0, -24.0, f32(M - BLADE_RADIUS)),
-    ], hit(14.0, "KILL", 90))),
+    ], wardenHit(14.0, "KILL", 90))),
     [AttackStyle.downSmash]: heroMove(12, 5, 28, 0, [
       ...path(12, [
         blade(18.0, 16.0, f32(M - BLADE_RADIUS), 16.0),
         blade(18.0, 8.0, f32(M - BLADE_RADIUS), 8.0),
         blade(18.0, 2.0, 84.0, 2.0),
-      ], hit(12.0, "EDGE", 25)),
+      ], wardenHit(12.0, "EDGE", 25)),
       ...path(15, [
         blade(-18.0, 12.0, -f32(M - BLADE_RADIUS), 12.0),
         blade(-18.0, 4.0, -f32(M - BLADE_RADIUS), 4.0),
-      ], hit(12.0, "EDGE", 25, -1.0)),
+      ], wardenHit(12.0, "EDGE", 25, -1.0)),
     ]),
     [AttackStyle.neutralAir]: heroMove(5, 5, 18, 10, path(5, [
       blade(18.0, 35.0, f32(M - BLADE_RADIUS), 35.0),
@@ -119,8 +120,8 @@ export const WARDEN_MOVES: FighterMoves = {
       blade(0.0, 52.0, 0.0, f32(M - BLADE_RADIUS)),
       blade(-12.0, 50.0, -62.0, 85.0),
       blade(-18.0, 35.0, -f32(M - BLADE_RADIUS), 35.0),
-    ], hit(6.0, "POKE", 50))),
-    [AttackStyle.forwardAir]: heroMove(8, 3, 20, 12, cut(8, [64.0, 45.0, 26.0], M, hit(10.0, "EDGE", 40))),
+    ], wardenHit(6.0, "POKE", 50))),
+    [AttackStyle.forwardAir]: heroMove(8, 3, 20, 12, cut(8, [64.0, 45.0, 26.0], M, wardenHit(10.0, "EDGE", 40))),
     // The exposed leg remains inside the body. Only the heel blade extends.
     [AttackStyle.backAir]: heroMove(7, 3, 22, 12, [
       ...cut(7, [54.0, 45.0, 36.0], M, BACK_AIR, undefined, -1.0),
@@ -130,7 +131,7 @@ export const WARDEN_MOVES: FighterMoves = {
       blade(0.0, 48.0, 0.0, f32(M - BLADE_RADIUS)),
       blade(4.0, 48.0, 4.0, f32(M - BLADE_RADIUS)),
       blade(-4.0, 48.0, -4.0, f32(M - BLADE_RADIUS)),
-    ], hit(7.0, "LAUNCH", 85))),
+    ], wardenHit(7.0, "LAUNCH", 85))),
     [AttackStyle.downAir]: heroMove(12, 3, 27, 19, path(12, [
       blade(0.0, -18.0, 0.0, -f32(M - BLADE_RADIUS)),
       blade(2.0, -18.0, 2.0, -f32(M - BLADE_RADIUS)),
