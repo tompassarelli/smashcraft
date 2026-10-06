@@ -51,11 +51,12 @@ mash. A **read** is a follow-up that lands against some of those choices but
 not all, when the victim makes one it beats. A **string** is an opening and the
 follow-ups that land after it.
 
-Proposed targets, for the owner to accept or change; they are proposals, not
-decisions. Accepted targets become interaction-graph checks
-([interaction graph](design/interaction-graph.md)).
+Accepted measurement targets for #83, following the owner's 6 Oct 2026
+authorization to carry out the recommendations. The interaction graph reports
+violations to guide balance work; this measurement issue does not rebalance
+every move ([interaction graph](design/interaction-graph.md)).
 
-| Target | Proposed | Breaks it |
+| Target | Accepted | Breaks it |
 |---|---|---|
 | Guaranteed follow-ups after an opening | at most 2, at every percent | a string of 4 or more hits that no victim choice escapes |
 | Guaranteed damage from one opening, by the victim's percent when it lands | at most 30% at 0–99%; from 100%, a guaranteed string may end in a KO | more damage than that before the victim has a choice that escapes |
