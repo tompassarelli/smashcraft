@@ -42,8 +42,9 @@ Sources: [TrainingMode Community Edition](https://github.com/AlexanderHarrison/T
    jab, again and again) or Fight (the normal computer). Drift, the stick it
    holds as a hit launches it: None, Toward you, Away or Random. Tech: None,
    In place, Toward you, Away or Random. "Drift" names directional influence
-   in product words; "Escape" already names the key that leaves a match. Random draws from the match frame, so every
-   client and every replay draws the same.
+   in product words; "Escape" already names the key that leaves a match.
+   Random draws from the partner's hit count, so every client and every
+   replay draws the same.
 4. **Damage.** The partner starts and restarts at a chosen damage, 0% to
    300% in steps of 10.
 5. **Reset.** Any player holding both shields and pressing attack puts every
@@ -52,8 +53,8 @@ Sources: [TrainingMode Community Edition](https://github.com/AlexanderHarrison/T
    simulation, so it rolls back and replays like any other input.
 6. **Hit areas.** An option draws every active attack's hit areas and every
    fighter's body, red and green after Rivals (parts that cannot be hit in
-   blue), as lightning outlines on the fighters' plane. It reads the same authored
-   volumes the hits use (smashcraft:docs/hurtboxes.md), so what it draws is
+   blue), as lightning outlines on the fighters' plane. It reads the same
+   authored volumes the hits use (smashcraft:docs/hurtboxes.md), so what it draws is
    what hits.
 7. **Speed.** Full, Half or Quarter: the match runs on the last of every one,
    two or four input frames. Presses made on the frames it skips are kept
