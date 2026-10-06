@@ -6,6 +6,7 @@ import { type Fighter, createFighter } from "../fighter";
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hitRegions";
 import { attackDurationFramesForGrounding, attackLandingLag, attackStartupFrames, characterAttackActiveFrames, grabActionDuration, grabContactFrame, smashDamageMultiplier } from "../moves";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
+import { HurtContact, strikeHurtContact } from "../hurtboxes";
 import { BLADEMASTER_MOVES } from "./blademasterMoves";
 
 // The adopted roster's F/A/R/L rows, rather than shared legacy frame data.
@@ -194,5 +195,21 @@ test("Blademaster catches shield and releases each throw once on its adopted fra
       testGrabFrame(world, [input, controls()], false);
       assertEquals(target.status.damage, damage);
     }
+  }
+});
+
+test("Blademaster's sword arm is hittable through a whiffed forward smash while the blade stays disjoint", () => {
+  for (const facing of [-1, 1]) {
+    const owner = fighter(facing);
+    const world = testWorld(owner, createFighter(Character.archer, f32(400.0 * facing), -facing));
+    beginFighterAttack(world, 0, AttackStyle.forwardSmash, false);
+    const probe = (x: number, z: number) => strikeHurtContact({ x1: f32(x * facing), z1: z, x2: f32(x * facing), z2: z, radius: 4.0 }, owner);
+    owner.attack.frame = 5;
+    assertEquals(probe(62.0, 76.0), HurtContact.none);
+    owner.attack.frame = attackStartupFrames(AttackStyle.forwardSmash, BLADEMASTER_MOVES);
+    assertEquals(probe(62.0, 76.0), HurtContact.hit);
+    assertEquals(probe(110.0, 76.0), HurtContact.none);
+    owner.attack.frame = attackStartupFrames(AttackStyle.forwardSmash, BLADEMASTER_MOVES) + 8;
+    assertEquals(probe(62.0, 76.0), HurtContact.none);
   }
 });

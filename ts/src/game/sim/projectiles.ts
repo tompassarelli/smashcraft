@@ -15,6 +15,7 @@ import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type Roster, fighterAt, isActive } from "./roster";
 import { SHIELD_PROJECTILE_DAMAGE_MULTIPLIER, SHIELD_PROJECTILE_SPEED_MULTIPLIER, SHIELD_REFLECTOR_RADIUS_FACTOR, shieldCircleIntersects } from "./shield";
 import { at } from "wisp/src/runtime/lookup";
+import { solidSurfaceAt, solidSurfaceCount, surfaceCount, surfaceLeft, surfacePass, surfaceRight, surfaceZ } from "./stage";
 
 export const BLASTER_PROJECTILE_SPEED = 36.0;
 export const BLASTER_PROJECTILE_LIFETIME = 60;
@@ -217,6 +218,39 @@ function flyHeroProjectile(world: Roster, ownerSlot: number, projectile: Project
   return nearest;
 }
 
+/** Whether segments p1-p2 and q1-q2 cross or touch. */
+function segmentsMeet(p1x: number, p1z: number, p2x: number, p2z: number, q1x: number, q1z: number, q2x: number, q2z: number): boolean {
+  const side = (ax: number, az: number, bx: number, bz: number, cx: number, cz: number) =>
+    f32(f32(f32(bx - ax) * f32(cz - az)) - f32(f32(bz - az) * f32(cx - ax)));
+  const d1 = side(q1x, q1z, q2x, q2z, p1x, p1z);
+  const d2 = side(q1x, q1z, q2x, q2z, p2x, p2z);
+  const d3 = side(p1x, p1z, p2x, p2z, q1x, q1z);
+  const d4 = side(p1x, p1z, p2x, p2z, q2x, q2z);
+  return ((d1 <= 0 && d2 >= 0) || (d1 >= 0 && d2 <= 0)) && ((d3 <= 0 && d4 >= 0) || (d3 >= 0 && d4 <= 0))
+    && !(d1 === 0 && d2 === 0 && d3 === 0 && d4 === 0);
+}
+
+/**
+ * Whether a hero projectile's step from (oldX, oldZ) to (x, z) meets solid
+ * stage: a wall or underside line, or a solid deck's top from above. Pass
+ * decks let projectiles through.
+ */
+function projectileMeetsStage(stage: number, matchFrame: number, oldX: number, oldZ: number, x: number, z: number): boolean {
+  for (let i = 0; i < solidSurfaceCount(stage); i++) {
+    const surface = solidSurfaceAt(stage, i);
+    if (segmentsMeet(oldX, oldZ, x, z, surface.startX, surface.startZ, surface.endX, surface.endZ)) return true;
+  }
+  for (let i = 0; i < surfaceCount(stage); i++) {
+    if (surfacePass(stage, i)) continue;
+    const top = surfaceZ(stage, i, matchFrame);
+    if (!(oldZ >= top && z < top)) continue;
+    const fraction = f32(f32(oldZ - top) / f32(oldZ - z));
+    const crossingX = f32(oldX + f32(f32(x - oldX) * fraction));
+    if (crossingX >= surfaceLeft(stage, i, matchFrame) && crossingX <= surfaceRight(stage, i, matchFrame)) return true;
+  }
+  return false;
+}
+
 // Preallocated: rollback replays fly projectiles every frame.
 const selected = { reflector: false, shield: false };
 
@@ -225,7 +259,7 @@ const selected = { reflector: false, shield: false };
  * resolves. A projectile stops at the nearest target it reaches: a reflecting
  * shield sends it back, anything else takes the hit.
  */
-export function updateProjectiles(world: Roster): void {
+export function updateProjectiles(world: Roster, stage?: number, matchFrame = 0): void {
   const ownsBatch = openDamageContacts();
   for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
     if (!isActive(world, slot)) continue;
@@ -242,7 +276,14 @@ export function updateProjectiles(world: Roster): void {
       if (projectile.life <= 0 || projectile.newlyReflected) continue;
       selected.reflector = false;
       selected.shield = false;
+      const fromX = projectile.x;
+      const fromZ = projectile.z;
       const nearest = projectile.kind === ProjectileKind.hero ? flyHeroProjectile(world, ownerSlot, projectile, selected) : flyProjectile(world, ownerSlot, projectile, selected);
+      if (nearest === undefined && stage !== undefined && projectile.kind === ProjectileKind.hero
+        && projectileMeetsStage(stage, matchFrame, fromX, fromZ, projectile.x, projectile.z)) {
+        projectile.life = 0;
+        continue;
+      }
       if (nearest !== undefined) {
         if (!(selected.reflector && reflectProjectile(fighterAt(world, nearest), projectile))) {
           applyProjectileHit(world, ownerSlot, nearest, projectile, selected.shield);
