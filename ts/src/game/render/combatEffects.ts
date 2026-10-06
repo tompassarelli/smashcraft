@@ -109,9 +109,10 @@ export class CombatEffects {
       const model = this.impacts[i];
       if (model === undefined) continue;
       const source = i >= STAR_KO_FIRST ? confirmed : state;
-      const pose = projectImpact(source, i);
       const age = source.ages[i];
-      if (!playing || !pose.visible) {
+      // An empty slot projects hidden, and most of the pool is empty for most of a match.
+      const pose = playing && age !== undefined ? projectImpact(source, i) : undefined;
+      if (pose === undefined || !pose.visible) {
         parkOnce(model, this, parked, i);
         shownAges[i] = undefined;
         continue;
@@ -131,8 +132,9 @@ export class CombatEffects {
     for (let i = 0; i < this.koBodies.length; i++) {
       const model = this.koBodies[i];
       if (model === undefined) continue;
-      const pose = projectKo(confirmed, STAR_KO_FIRST + floorDiv(i, 3));
-      if (!playing || !pose.visible || pose.character !== floorMod(i, 3)) {
+      const impact = STAR_KO_FIRST + floorDiv(i, 3);
+      const pose = playing && confirmed.ages[impact] !== undefined ? projectKo(confirmed, impact) : undefined;
+      if (pose === undefined || !pose.visible || pose.character !== floorMod(i, 3)) {
         parkOnce(model, this, parked, IMPACT_COUNT + i);
         continue;
       }
