@@ -33,7 +33,7 @@ test("computerRecoversFromBothSidesWithAndWithoutJump", () => {
       fighter.motion.grounded = false;
       fighter.motion.surface = undefined;
       fighter.jump.remaining = jumps;
-      assertTrue(chooseRecoveryInput(fighter, 0, input));
+      assertTrue(chooseRecoveryInput(fighter, 0, 0, input));
       assertEquals(input.direction, -side);
       assertEquals(input.jumpPressed, jumps > 0);
       assertEquals(input.specialPressed, jumps === 0);
@@ -41,7 +41,7 @@ test("computerRecoversFromBothSidesWithAndWithoutJump", () => {
         input.direction = 0;
         input.jumpPressed = false;
         input.jumpHeld = false;
-        chooseRecoveryInput(fighter, 0, input);
+        chooseRecoveryInput(fighter, 0, 0, input);
         stepMatch(game, testRoster(fighter, opponent), frameControls(input, opponentInput), frame);
       }
       assertFalse(fighter.status.out);
@@ -58,11 +58,11 @@ test("computerPreservesJumpDuringAscentAndClimbsLedge", () => {
   fighter.motion.grounded = false;
   fighter.motion.vz = 10.0;
   fighter.motion.z = 70.0;
-  assertTrue(chooseRecoveryInput(fighter, 0, input));
+  assertTrue(chooseRecoveryInput(fighter, 0, 0, input));
   assertFalse(input.jumpPressed);
   assertFalse(input.specialPressed);
   fighter.ledge.state = LedgeState.hang;
   fighter.ledge.side = 1;
-  assertTrue(chooseRecoveryInput(fighter, 0, input));
+  assertTrue(chooseRecoveryInput(fighter, 0, 0, input));
   assertEquals(input.ledgeVerticalPressed, 1);
 });

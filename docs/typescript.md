@@ -177,7 +177,7 @@ every row since and the checksums of the end, the start and each later
 snapshot, as `smashcraft-repro-p<slot>-f<frame>-<n>.txt` in CustomMapData,
 then shows "Moment saved". The shell changes the confirmed match between
 frames only where a callback pause, a binding change or the match's end clears
-attack buffers, a player leaves, or practice ends: the record keeps the match
+attack buffers, a player leaves, or practice/endless play ends: the record keeps the match
 as the last frame left it, so a moment ends there, and the next frame starts a
 new record.
 `bun wisp repro FILE` restores the snapshot and runs every row through the

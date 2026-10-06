@@ -32,7 +32,7 @@ function advanceTechAirTick(fighter: Fighter, input: Readonly<Controls>): void {
 }
 
 function landTechTest(fighter: Fighter, stage: number, surface: number, input: Readonly<Controls>): void {
-  fighter.motion.z = f32(surfaceZ(stage, surface) + 1);
+  fighter.motion.z = f32(surfaceZ(stage, surface, 0) + 1);
   fighter.motion.vz = -2.0;
   advanceSolo(fighter, stage, input, 0.0);
 }
@@ -130,13 +130,13 @@ test("Illidan's tech contact retains his original travel and protection frames",
 test("a tech roll clamps at both ends of the current platform", () => {
   for (const direction of [-1, 1]) {
     const fighter = techTestTumbler();
-    fighter.motion.x = direction < 0 ? f32(surfaceLeft(1, 1) + 3) : f32(surfaceRight(1, 1) - 3);
+    fighter.motion.x = direction < 0 ? f32(surfaceLeft(1, 1, 0) + 3) : f32(surfaceRight(1, 1, 0) - 3);
     const input = controls({ techPressed: true, direction });
     landTechTest(fighter, 1, 1, input);
     input.techPressed = false;
     for (let frame = 2; frame <= 19; frame++) advanceSolo(fighter, 1, input, 0.0);
-    assertEquals(fighter.motion.x, direction < 0 ? surfaceLeft(1, 1) : surfaceRight(1, 1));
-    assertEquals(fighter.motion.z, surfaceZ(1, 1));
+    assertEquals(fighter.motion.x, direction < 0 ? surfaceLeft(1, 1, 0) : surfaceRight(1, 1, 0));
+    assertEquals(fighter.motion.z, surfaceZ(1, 1, 0));
     assertEquals(fighter.motion.surface, 1);
     assertTrue(fighter.motion.grounded);
   }

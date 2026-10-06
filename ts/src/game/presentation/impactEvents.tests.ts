@@ -297,8 +297,8 @@ test("ledge cues follow an accepted catch and its options, at the actual lip", (
     input.down = false;
     journal(events, fighter, () => resolveLedges(world, 0, controls));
     assertTrue(events.ledgeCatch);
-    assertEquals(events.ledgeX, surfaceLeft(0, 0));
-    assertEquals(events.ledgeZ, surfaceZ(0, 0));
+    assertEquals(events.ledgeX, surfaceLeft(0, 0, 0));
+    assertEquals(events.ledgeZ, surfaceZ(0, 0, 0));
     journal(events, fighter, () => advanceSolo(fighter, 0, input, 0.0));
     assertFalse(events.ledgeCatch);
     assertFalse(events.ledgeRecovery);
@@ -310,8 +310,8 @@ test("ledge cues follow an accepted catch and its options, at the actual lip", (
     assertEquals(events.ledgeRecovery, option !== 4);
     assertEquals(events.jump, JumpCue.none);
     if (option !== 4) {
-      assertEquals(events.ledgeX, surfaceLeft(0, 0));
-      assertEquals(events.ledgeZ, surfaceZ(0, 0));
+      assertEquals(events.ledgeX, surfaceLeft(0, 0, 0));
+      assertEquals(events.ledgeZ, surfaceZ(0, 0, 0));
     }
     journal(events, fighter);
     assertFalse(events.ledgeRecovery);

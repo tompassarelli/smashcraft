@@ -97,7 +97,7 @@ const NEUTRAL = (): Pad => ({});
 function assertMetSide(victim: Fighter): void {
   const { contactX, contactNormalX } = victim.surfaceRecovery;
   assertGreaterThan(contactNormalX, 0.0);
-  assertLessThan(contactX, surfaceRight(0, 0));
+  assertLessThan(contactX, surfaceRight(0, 0, 0));
 }
 
 test("a launch into the main deck's side bounces off it without a press", () => {

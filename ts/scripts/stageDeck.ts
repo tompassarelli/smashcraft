@@ -6,7 +6,7 @@
 // against the collision lines without the model compiler.
 import { STAGE_PALETTE } from "../src/game/assets/stagePalette";
 import { SurfaceContact } from "../src/game/sim/codes";
-import { MAIN_DECK_BODY_SURFACES, solidSurfaceAt, surfaceLeft, surfaceRight, surfaceZ } from "../src/game/sim/stage";
+import { MAIN_DECK_BODY_SURFACES, mainDeckLeft, mainDeckRight, mainDeckZ, solidSurfaceAt } from "../src/game/sim/stage";
 
 type Vector3 = readonly [x: number, y: number, z: number];
 export type OutlinePoint = readonly [x: number, z: number];
@@ -48,10 +48,10 @@ interface OutlineLine {
  * order, back to the left ledge.
  */
 function mainDeckOutline(stage: number): OutlineLine[] {
-  const left = surfaceLeft(stage, 0);
-  const right = surfaceRight(stage, 0);
+  const left = mainDeckLeft(stage);
+  const right = mainDeckRight(stage);
   const center = (left + right) / 2;
-  const floor = surfaceZ(stage, 0);
+  const floor = mainDeckZ(stage);
   const point = (x: number, z: number): OutlinePoint => [x - center, z - floor];
   const lines: OutlineLine[] = [{ kind: "floor", start: point(left, floor), end: point(right, floor), normal: [0, 1] }];
   for (let index = 0; index < MAIN_DECK_BODY_SURFACES; index++) {

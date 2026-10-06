@@ -191,11 +191,11 @@ test("a match and its three-fighter rematch show each pooled fighter whole where
   const play = (workload: Workload) => {
     for (const slot of [0, 1]) clients.press(slot, Key.n);
     frames(5);
+    clients.everywhere(() => {
+      while (shell().game.stockCount > 1) panelActions().selection.changeStocks(1, -1);
+    });
     clients.press(0, Key.y);
     until("stage menu", () => phase() === Phase.stageMenu, 30);
-    clients.everywhere(() => {
-      while (shell().game.stockCount > 1) panelActions().stage.changeStocks(1, -1);
-    });
     helpers.workload = workload;
     clients.press(0, Key.y);
     until("match", () => phase() === Phase.match, 30);

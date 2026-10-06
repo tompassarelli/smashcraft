@@ -9,7 +9,7 @@ import { Character, DownState, LedgeState, SpecialAction } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 import { totalVelocityZ } from "../sim/motion";
 import type { Controls } from "../sim/roster";
-import { surfaceCount, surfaceLeft, surfaceRight, surfaceZ } from "../sim/stage";
+import { mainDeckLeft, mainDeckRight, mainDeckZ, surfaceCount, surfaceLeft, surfaceRight, surfaceZ } from "../sim/stage";
 import { botChoice } from "./botMoves";
 
 /** A tech pressed this many frames of fall above a deck lands inside its window. */
@@ -38,9 +38,9 @@ type LedgeOption = (typeof LedgeOption)[keyof typeof LedgeOption];
 function ledgeOption(f: Readonly<Fighter>, stage: number, target: Readonly<Fighter> | undefined): LedgeOption {
   if (target === undefined) return LedgeOption.climb;
   const { side } = f.ledge;
-  const edge = side < 0 ? surfaceLeft(stage, 0) : surfaceRight(stage, 0);
+  const edge = side < 0 ? mainDeckLeft(stage) : mainDeckRight(stage);
   const inward = f32(f32(edge - target.motion.x) * side);
-  const near = !target.status.out && inward >= LEDGE_ATTACK_NEAR && inward <= LEDGE_ATTACK_FAR && Math.abs(f32(target.motion.z - surfaceZ(stage, 0))) <= 90;
+  const near = !target.status.out && inward >= LEDGE_ATTACK_NEAR && inward <= LEDGE_ATTACK_FAR && Math.abs(f32(target.motion.z - mainDeckZ(stage))) <= 90;
   const choice = botChoice(f.ledge.serial + toInt(f.status.damage), f.visuals.hit * 3 + f.character, 6);
   if (near && choice < 5) return LedgeOption.attack;
   // Mostly it hangs a while, waiting for the target to come where the ledge attack reaches.
@@ -102,13 +102,13 @@ function chooseGetUp(f: Readonly<Fighter>, input: Controls, target: Readonly<Fig
  * its window, in place or rolling toward the middle; one landing in three it
  * misses the tech, as players do, and gets up from the floor instead.
  */
-function techLanding(f: Readonly<Fighter>, stage: number, input: Controls): void {
+function techLanding(f: Readonly<Fighter>, stage: number, matchFrame: number, input: Controls): void {
   const { motion } = f;
   if (f.down.state !== DownState.tumble || motion.grounded || motion.deltaZ >= 0 || botChoice(f.visuals.hit + toInt(f.status.damage), f.character * 5 + 1, 3) === 0) return;
   const lead = f32(f32(-motion.deltaZ) * TECH_LEAD_FRAMES);
   for (let deck = 0; deck < surfaceCount(stage); deck++) {
-    const height = f32(motion.z - surfaceZ(stage, deck));
-    if (height < 0 || height > lead || motion.x < surfaceLeft(stage, deck) || motion.x > surfaceRight(stage, deck)) continue;
+    const height = f32(motion.z - surfaceZ(stage, deck, matchFrame));
+    if (height < 0 || height > lead || motion.x < surfaceLeft(stage, deck, matchFrame) || motion.x > surfaceRight(stage, deck, matchFrame)) continue;
     input.direction = botChoice(f.visuals.hit, f.character, 2) === 0 ? 0 : motion.x < 0 ? 1 : -1;
     input.techPressed = f.tech.pressAge >= TECH_REPEAT_MINIMUM_AGE_FRAMES;
     return;
@@ -141,7 +141,7 @@ function aimsForLedge(f: Readonly<Fighter>, side: number, target: Readonly<Fight
  * Produces ordinary frame inputs: recovery never moves a fighter directly.
  * True when getting back to the stage, or onto its feet, took the frame.
  */
-export function chooseRecoveryInput(fighter: Readonly<Fighter>, stage: number, input: Controls, target?: Readonly<Fighter>): boolean {
+export function chooseRecoveryInput(fighter: Readonly<Fighter>, stage: number, matchFrame: number, input: Controls, target?: Readonly<Fighter>): boolean {
   input.specialPressed = false;
   input.specialX = 0;
   input.specialZ = 0;
@@ -153,10 +153,10 @@ export function chooseRecoveryInput(fighter: Readonly<Fighter>, stage: number, i
     return true;
   }
   if (chooseGetUp(fighter, input, target)) return true;
-  techLanding(fighter, stage, input);
-  const left = surfaceLeft(stage, 0);
-  const right = surfaceRight(stage, 0);
-  const floor = surfaceZ(stage, 0);
+  techLanding(fighter, stage, matchFrame, input);
+  const left = mainDeckLeft(stage);
+  const right = mainDeckRight(stage);
+  const floor = mainDeckZ(stage);
   const { x, z, grounded } = fighter.motion;
   if (grounded || (x >= left && x <= right && z >= floor)) return false;
   const side = x < 0 ? -1 : 1;

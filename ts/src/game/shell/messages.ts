@@ -1,6 +1,7 @@
 // Player-facing text of the match: announcements, results and help.
 import { PARTICIPANT_SLOTS, participantActive } from "../input/participants";
-import { type MatchState, humanFighterActive, humanPresent } from "../match/rules";
+import { floorDiv } from "wisp/src/sim/intMath";
+import { MATCH_TICKS_PER_SECOND, type MatchState, humanFighterActive, humanPresent, practiceSelected } from "../match/rules";
 import { AttackStyle, DownState, LedgeState } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 
@@ -30,10 +31,30 @@ export function resultMessage(game: Readonly<MatchState>): string {
   return game.timedOut ? "Time! Draw." : "Draw!";
 }
 
+const confirmControl = (start: StartControl) => (start === "Start" ? "A or Start" : "Y");
+
 function rematchStatus(game: Readonly<MatchState>, start: StartControl): string {
+  if (game.rematchCountdown > 0) return "Press any button to stop the rematch.";
   const present = PARTICIPANT_SLOTS.filter(slot => humanPresent(game, slot));
   const ready = present.filter(slot => game.rematchReadiness[slot]);
-  return `${ready.length}/${present.length} ready. Press ${start === "Start" ? "A or Start" : "Y"} to choose your next match.`;
+  return `${ready.length}/${present.length} ready. Press ${confirmControl(start)} to choose your next match.`;
+}
+
+/** The result announcement, with the automatic rematch's countdown while it runs. */
+export function resultNotice(game: Readonly<MatchState>, result: string): string {
+  return game.rematchCountdown > 0 ? `${result}\nRematch in ${floorDiv(game.rematchCountdown + MATCH_TICKS_PER_SECOND - 1, MATCH_TICKS_PER_SECOND)}` : result;
+}
+
+export const stockSetting = (count: number) => (count === 1 ? "1 Stock" : `${count} Stocks`);
+export const timeSetting = (minutes: number) => (minutes === 0 ? "No time limit" : `${minutes}:00`);
+export const endlessSetting = (endless: boolean) => `Endless: ${endless ? "On" : "Off"}`;
+export const automaticRematchSetting = (automatic: boolean) => `Automatic rematch: ${automatic ? "On" : "Off"}`;
+
+/** The rules the next match plays by, as the stage screen shows them. */
+export function rulesSummary(game: Readonly<MatchState>): string {
+  if (practiceSelected(game)) return "Practice · No time limit";
+  const rules = game.endless ? "Endless" : `${stockSetting(game.stockCount)}  ·  ${timeSetting(game.timeLimitMinutes)}`;
+  return game.automaticRematch ? `${rules}  ·  Automatic rematch` : rules;
 }
 
 export const pausedMessage = (start: StartControl) => `Paused — press ${start} to resume.`;
@@ -55,7 +76,7 @@ export function matchHelp(game: Readonly<MatchState>, paused: boolean, start: St
     if (local.ledge.state === LedgeState.hang) return "Ledge: Up or toward stage to climb; Jump to leap; Shield to roll; Attack to strike.\nDown or away from stage lets go.";
   }
   if (!playing) return rematchStatus(game, start);
-  if (paused) return `PAUSED — Press ${start} to resume. Combat is frozen.`;
+  if (paused) return `PAUSED — Press ${start} to resume. Combat is frozen.${game.practice || game.endless ? "\nEscape: back to fighter selection." : ""}`;
   return `${start}: pause. Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\nHold Shield on the ground, then tap Left/Right to roll or Down to dodge.`;
 }
 

@@ -2,7 +2,7 @@
 // the main deck walls: six world units per Melee unit, preserving the
 // distance from each ledge. Both current layouts use that FD deck body.
 import { f32 } from "wisp/src/sim/f32";
-import { surfaceLeft, surfaceRight } from "./stage";
+import { mainDeckLeft, mainDeckRight } from "./stage";
 import { melee } from "./tuning";
 
 export interface StageRegion {
@@ -16,7 +16,7 @@ const REFERENCE_LEDGE = 85.5656967163086;
 
 function region(stage: number, side: number, bottom: number, top: number, referenceLedge: number = REFERENCE_LEDGE): StageRegion {
   const beyondLedge = melee(f32(side - referenceLedge));
-  return { left: f32(surfaceLeft(stage, 0) - beyondLedge), right: f32(surfaceRight(stage, 0) + beyondLedge), bottom: melee(bottom), top: melee(top) };
+  return { left: f32(mainDeckLeft(stage) - beyondLedge), right: f32(mainDeckRight(stage) + beyondLedge), bottom: melee(bottom), top: melee(top) };
 }
 
 /** Current stage layouts borrow FD's body; a future matching layout selects its own cited points here. */

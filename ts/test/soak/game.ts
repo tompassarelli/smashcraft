@@ -15,13 +15,12 @@ import { originalClip, originalClipCount } from "../../src/game/assets/fighterOr
 import { Action, bit } from "../../src/game/input/actions";
 import { INPUT_ROW_NUMBERS, type InputRow, emptyInput, inputRow, loadInputNumbers } from "../../src/game/input/inputRow";
 import { PARTICIPANT_SLOTS } from "../../src/game/input/participants";
-import type { StageTile } from "../../src/game/menu/stageSelection";
 import { MATCH_TICKS_PER_SECOND, Phase } from "../../src/game/match/rules";
 import { PLAYABLE_BUILD } from "../../src/game/shell/currentBuild";
 import { AttackStyle, Character, DownState, GrabAction, HippogryphKind, ProjectileKind, SpecialAction } from "../../src/game/sim/codes";
 import type { Fighter } from "../../src/game/sim/fighter";
 import { fighterAt, isActive } from "../../src/game/sim/roster";
-import { surfaceLeft, surfaceRight } from "../../src/game/sim/stage";
+import { mainDeckLeft, mainDeckRight } from "../../src/game/sim/stage";
 import { install as installGame, startBuild } from "../../src/platform/main";
 import { installSceneReport, startMatchSceneReport } from "../../src/platform/sceneReport";
 import { confirmedChecksum } from "../../src/platform/shell/diagnostics";
@@ -35,7 +34,7 @@ import { CameraFindings } from "../cameraFindings";
 
 const CHARACTERS: Readonly<Record<string, Character>> = { archer: Character.archer, rifleman: Character.rifleman, illidan: Character.demonHunter };
 const NAMES: Readonly<Record<number, string>> = { [Character.archer]: "Archer", [Character.rifleman]: "Rifleman", [Character.demonHunter]: "Illidan" };
-const STAGES: Readonly<Record<string, StageTile>> = { "sky-deck": 0, "three-bridges": 1 };
+const STAGES: Readonly<Record<string, number>> = { "sky-deck": 0, "three-bridges": 1, "frozen-throne": 2, "drifting-deck": 3, "patterned-decks": 4 };
 const FRAME_MS = 1000 / 60;
 /** A one-stock match with a one-minute clock: each ends by a KO or by time. */
 const STOCKS = 1;
@@ -132,7 +131,7 @@ function readIn<T>(client: HeadlessClient, body: () => T): T {
 }
 
 /** A match's fighters and stage as the game numbers them. */
-function matchChoices(match: SoakMatch): { readonly fighters: readonly Character[]; readonly stage: StageTile } {
+function matchChoices(match: SoakMatch): { readonly fighters: readonly Character[]; readonly stage: number } {
   const fighters = match.fighters.map((name) => {
     const character = CHARACTERS[name];
     if (character === undefined) throw new Error(`no fighter named ${name}`);
@@ -170,14 +169,17 @@ export function beginMatch(clients: Lockstep, match: SoakMatch, frame: () => voi
   });
   const chosen = readIn(host, () => shell().game.characterChoices.slice(0, fighters.length));
   if (chosen.join() !== fighters.join()) throw new Error(`fighters ${chosen.join()} chosen, not ${fighters.join()}`);
+  clients.everywhere(() => {
+    const { game } = shell();
+    const { selection: actions } = panelActions();
+    while (game.stockCount > STOCKS) actions.changeStocks(0, -1);
+    while (game.timeLimitMinutes > MINUTES) actions.changeTime(0, -1);
+  });
   clients.press(0, Key.y);
   until("stage selection", () => readIn(host, () => shell().game.phase) === Phase.stageMenu);
   clients.everywhere(() => {
-    const { game } = shell();
-    const { stage: actions } = panelActions();
-    actions.selectStage(0, stage);
-    while (game.stockCount > STOCKS) actions.changeStocks(0, -1);
-    while (game.timeLimitMinutes > MINUTES) actions.changeTime(0, -1);
+    if (stage === 0 || stage === 1 || stage === 2) panelActions().stage.selectStage(0, stage);
+    else shell().game.stageChoice = stage;
   });
   clients.press(0, Key.y);
   until("the match", () => readIn(host, () => shell().game.phase) === Phase.match);
@@ -371,8 +373,8 @@ function outcomeRecorder(match: SoakMatch, file: string): (client: HeadlessClien
     const { game, world } = shell();
     if (game.phase !== Phase.match && game.phase !== Phase.result) return;
     const frame = game.timeLimitMinutes * 60 * MATCH_TICKS_PER_SECOND - game.remainingFrames;
-    const left = surfaceLeft(game.stageChoice, 0);
-    const right = surfaceRight(game.stageChoice, 0);
+    const left = mainDeckLeft(game.stageChoice);
+    const right = mainDeckRight(game.stageChoice);
     const active = PARTICIPANT_SLOTS.filter((slot) => isActive(world, slot));
     for (const slot of active) if (!players.has(slot)) players.set(slot, firstSight(fighterAt(world, slot), frame));
     const seenOf = (slot: number): Seen => {

@@ -23,6 +23,7 @@ import { ARENA_CAMERA, FLOOR_HEIGHT, arenaFraming } from "../../src/game/present
 import { SUMMON_BEAR, summonClip, summonClipCount } from "../../src/game/presentation/summonClipInfo";
 import { Character } from "../../src/game/sim/codes";
 import { stageBounds } from "../../src/game/sim/stageBounds";
+import { stageScenery } from "../../src/game/presentation/stageScenery";
 import { MODEL_FACTS } from "./modelFacts";
 
 const FRAMES_PER_SECOND = 60;
@@ -70,6 +71,7 @@ export const SMASHCRAFT_SCENE: SceneExpectations & { readonly settledFrame: numb
   settledFrame: 30,
   kinds: [
     { name: "stage deck", models: [STAGE_MAIN_DECK_MODEL, STAGE_DECK_MODEL] },
+    { name: "stage scenery", models: [...new Set(stageScenery(2).pieces.map(({ model }) => model))] },
     { name: "pooled fighter", models: fighterModels },
     // Sparks and dust last under half a second; a star-KO sparkle, about two.
     {

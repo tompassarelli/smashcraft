@@ -17,7 +17,7 @@ export const ASDI_DISTANCE = melee(3.0);
  * floor; smash DI cannot land through a deck, while automatic smash DI can.
  */
 function applyHitlagShift(
-  world: Roster, slot: number, stage: number, input: Readonly<Controls>,
+  world: Roster, slot: number, stage: number, matchFrame: number, input: Readonly<Controls>,
   directionX: number, directionZ: number, distance: number, fromAsdi: boolean,
 ): void {
   if (directionX === 0 && directionZ === 0) return;
@@ -32,7 +32,7 @@ function applyHitlagShift(
   const oldZ = motion.z;
   const newX = f32(oldX + shiftX);
   let newZ = f32(oldZ + shiftZ);
-  let landing = landingAlongShift(f, stage, oldX, oldZ, newX, newZ);
+  let landing = landingAlongShift(f, stage, matchFrame, oldX, oldZ, newX, newZ, false);
   if (!fromAsdi && landing !== undefined && shiftZ < 0) {
     newZ = oldZ;
     landing = undefined;
@@ -40,7 +40,7 @@ function applyHitlagShift(
   motion.x = newX;
   motion.z = newZ;
   resolveSolidSurfaceContacts(f, stage, oldX, oldZ, input);
-  if (landing !== undefined) finishLanding(f, stage, input, landing, fromAsdi);
+  if (landing !== undefined) finishLanding(f, stage, matchFrame, input, landing, fromAsdi);
   else leaveMainDeckBody(f, stage);
   if (motion.x !== oldX || motion.z !== oldZ) {
     if (fromAsdi) launch.asdiSerial++;
@@ -50,14 +50,14 @@ function applyHitlagShift(
 }
 
 /** One smash-DI pulse during hitlag. */
-export function applySmashDirectionalInfluence(world: Roster, slot: number, stage: number, input: Readonly<Controls>): void {
-  if (input.sdiPulse) applyHitlagShift(world, slot, stage, input, input.sdiX, input.sdiZ, SDI_DISTANCE, false);
+export function applySmashDirectionalInfluence(world: Roster, slot: number, stage: number, matchFrame: number, input: Readonly<Controls>): void {
+  if (input.sdiPulse) applyHitlagShift(world, slot, stage, matchFrame, input, input.sdiX, input.sdiZ, SDI_DISTANCE, false);
 }
 
 /** The shift when hitlag ends, along the C-stick if it is held, otherwise the control stick. */
-export function applyAutomaticSmashDirectionalInfluence(world: Roster, slot: number, stage: number, input: Readonly<Controls>): void {
+export function applyAutomaticSmashDirectionalInfluence(world: Roster, slot: number, stage: number, matchFrame: number, input: Readonly<Controls>): void {
   const cStick = input.cStickX !== 0 || input.cStickZ !== 0;
   const directionX = cStick ? input.cStickX : input.direction;
   const directionZ = cStick ? input.cStickZ : input.verticalDirection;
-  applyHitlagShift(world, slot, stage, input, directionX, directionZ, ASDI_DISTANCE, true);
+  applyHitlagShift(world, slot, stage, matchFrame, input, directionX, directionZ, ASDI_DISTANCE, true);
 }

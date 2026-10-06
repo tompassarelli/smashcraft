@@ -358,9 +358,9 @@ test("practiceMatchMovesJumpsAttacksAndRespawnsWithoutOpponent", () => {
   for (let character = 0; character <= 2; character++) {
     const game = createMatchState();
     selectCharacter(game, 0, character as Character);
-    assertTrue(requestStageSelect(game, 0));
     setStocks(game, 0, 1);
     setTimeLimit(game, 0, 1);
+    assertTrue(requestStageSelect(game, 0));
     assertTrue(requestStart(game, 0));
     const first = createFighter(character as Character, -240, 1);
     const second = createFighter(1, 240, -1);
@@ -752,8 +752,8 @@ test("configuredStocksAndLastTickKnockoutPrecedeTimeout", () => {
   const game = testSoloMatch();
   selectCharacter(game, 0, 0);
   selectCpuCharacter(game, 0, (cpuSlot(game) ?? -1), 1);
-  requestStageSelect(game, 0);
   setStocks(game, 0, 1);
+  requestStageSelect(game, 0);
   requestStart(game, 0);
   const first = createFighter(0, (stageBounds(0).blast.left - 1), 1);
   const second = createFighter(1, 240, -1);

@@ -1,9 +1,11 @@
-// Character selection, stage selection, settings and the rematch. Every
-// entry point runs from a synchronized event (a key event, frame click, sync
-// message or chat), so all clients take the same path.
+// Character selection with the match rules, stage selection, settings and the
+// rematch, chosen or automatic. Every entry point runs from a synchronized
+// event (a key event, frame click, sync message, chat or the game timer), so
+// all clients take the same path.
 import { type ParticipantSlot, isParticipantSlot } from "../../game/input/participants";
 import {
-  Phase, canChooseComputer, characterFor, confirmRematch, cycleSlotMode, humanActive, recallCharacter, requestStageSelect, requestStart,
+  Phase, canChooseComputer, cancelRematchCountdown, characterFor, confirmRematch, cycleSlotMode, humanActive, recallCharacter,
+  requestStageSelect, requestStart, setAutomaticRematch, setEndless, tickRematchCountdown,
   returnToCharacters, selectCharacter, selectCpuCharacter, selectStage, setStocks, setTimeLimit, updateConnectedHumans,
 } from "../../game/match/rules";
 import { prepareQuickMatch } from "../../game/shell/devSettings";
@@ -25,7 +27,7 @@ export function choose(s: ShellState, slot: ParticipantSlot, direction: -1 | 1):
   if (s.game.phase === Phase.characterMenu) {
     selectCharacter(s.game, slot, floorMod((characterFor(s.game, slot) ?? 0) + direction, 3));
     makePreview(s);
-  } else if (s.game.phase === Phase.stageMenu) selectStage(s.game, slot, 1 - s.game.stageChoice);
+  } else if (s.game.phase === Phase.stageMenu) selectStage(s.game, slot, floorMod(s.game.stageChoice + direction, 3));
 }
 
 /** Accept: continue to stages, start the match, or ready up for a rematch. */
@@ -39,7 +41,9 @@ export function confirm(s: ShellState, slot: ParticipantSlot): void {
     if (requestStageSelect(game, slot)) for (const panel of views(s).settings) panel.close();
   } else if (game.phase === Phase.stageMenu) {
     if (requestStart(game, slot)) startMatch(s);
-  } else if (game.phase === Phase.result && confirmRematch(game, slot)) {
+  } else if (game.phase === Phase.result) {
+    if (cancelRematchCountdown(game, slot)) return;
+    if (!confirmRematch(game, slot)) return;
     updateConnectedHumans(game, currentHumanMask(game.departedMask));
     setStatus(s, "", 0.0);
     makePreview(s);
@@ -50,6 +54,20 @@ export function back(s: ShellState, slot: ParticipantSlot): void {
   if (!controlsAvailable(s, slot)) return;
   if (s.game.phase === Phase.characterMenu) views(s).selections[slot].recallHeld();
   else if (s.game.phase === Phase.stageMenu) returnToCharacters(s.game, slot);
+  else if (s.game.phase === Phase.result) cancelRematchCountdown(s.game, slot);
+}
+
+/**
+ * Each game callback at a result: the countdown runs once the players'
+ * controller helpers have all stopped sending the last match, which is when
+ * their presses reach the menus, and starts the rematch when it runs out.
+ */
+export function serviceAutomaticRematch(s: ShellState): void {
+  const journal = s.rollback?.journal;
+  if (journal !== undefined && s.rollback?.active === true && journal.lifecycle?.quiescent() !== true) return;
+  if (!tickRematchCountdown(s.game)) return;
+  setStatus(s, "", 0.0);
+  startMatch(s);
 }
 
 export function openSettingsScreen(s: ShellState, slot: ParticipantSlot): void {
@@ -63,8 +81,8 @@ export function openSettingsScreen(s: ShellState, slot: ParticipantSlot): void {
 }
 
 /** `-dev quick`: every human's default fighter on the default stage, past both menus. */
-export function startQuickMatch(s: ShellState, scenario: Scenario = s.build.scenario): void {
-  if (prepareQuickMatch(s.game)) {
+export function startQuickMatch(s: ShellState, stage = 0, scenario: Scenario = s.build.scenario): void {
+  if (prepareQuickMatch(s.game, stage)) {
     for (const panel of views(s).settings) panel.close();
     startMatch(s, scenario);
   }
@@ -111,11 +129,21 @@ export function panelActions(): PanelActions {
       start: participant => withSlot(participant, (s, slot) => {
         if (s.game.phase === Phase.characterMenu) confirm(s, slot);
       }),
+      changeStocks: (participant, direction) => withSlot(participant, (s, slot) => {
+        if (controlsAvailable(s, slot)) setStocks(s.game, slot, s.game.stockCount + direction);
+      }),
+      changeTime: (participant, direction) => withSlot(participant, (s, slot) => {
+        if (controlsAvailable(s, slot)) setTimeLimit(s.game, slot, s.game.timeLimitMinutes + direction);
+      }),
+      toggleEndless: participant => withSlot(participant, (s, slot) => {
+        if (controlsAvailable(s, slot)) setEndless(s.game, slot, !s.game.endless);
+      }),
+      toggleAutomaticRematch: participant => withSlot(participant, (s, slot) => {
+        if (controlsAvailable(s, slot)) setAutomaticRematch(s.game, slot, !s.game.automaticRematch);
+      }),
     },
     stage: {
       selectStage: (participant, choice) => withSlot(participant, (s, slot) => selectStage(s.game, slot, choice)),
-      changeStocks: (participant, direction) => withSlot(participant, (s, slot) => setStocks(s.game, slot, s.game.stockCount + direction)),
-      changeTime: (participant, direction) => withSlot(participant, (s, slot) => setTimeLimit(s.game, slot, s.game.timeLimitMinutes + direction)),
       start: participant => withSlot(participant, confirm),
       back: participant => withSlot(participant, (s, slot) => returnToCharacters(s.game, slot)),
     },

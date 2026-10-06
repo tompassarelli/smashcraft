@@ -74,8 +74,8 @@ function formatControls(controls: Controls, attacks: AttackBuffer): string {
 
 function menuLines(script: MatchScript): string[] {
   return [
-    `character 0 ${script.characters[0]}`, `character 1 ${script.characters[1]}`, "stage-select 0",
-    `stage 0 ${script.stage}`, `stocks 0 ${script.stocks}`, `time 0 ${script.minutes}`, "start 0",
+    `character 0 ${script.characters[0]}`, `character 1 ${script.characters[1]}`, `stocks 0 ${script.stocks}`, `time 0 ${script.minutes}`, "stage-select 0",
+    ...(script.stage > 1 ? [`test-stage ${script.stage}`] : [`stage 0 ${script.stage}`]), "start 0",
   ];
 }
 
@@ -259,6 +259,16 @@ export function generateTapes(): Map<string, string> {
     ["rollback", recordTape("Combat replayed from one frame up to the whole retained history.", [ROLLBACK])],
     ["rematch", recordTape("A one-stock match ends, both players confirm the rematch, a new match runs.", [FIRST_MATCH, SECOND_MATCH])],
     ["computer", recordTape("A player against the computer on the raised decks, with replays.", [COMPUTER])],
+    ["moving-platforms", recordTape("Moving decks, jumping, dropping through, predictions and rollback over complete path cycles.", [{
+      characters: [Character.archer, Character.rifleman], stage: 3, stocks: 3, minutes: 0, frames: 620,
+      holds: [[[1, 20, RIGHT, WALK], [30, 10, JUMP], [180, 3, DOWN], [240, 10, JUMP], [400, 10, JUMP]], [[1, 10, JUMP], [140, 3, DOWN], [300, 10, JUMP]]],
+      approaches: [[], []], rollbacks: [[57, 120], [357, 420], [537, 600]], predictions: [[250, 260]],
+    }])],
+    ["patterned-platforms", recordTape("Two independently patterned platforms through full loops and lifts with rollback.", [{
+      characters: [Character.archer, Character.demonHunter], stage: 4, stocks: 3, minutes: 0, frames: 520,
+      holds: [[[1, 10, JUMP], [140, 3, DOWN], [220, 10, JUMP]], [[1, 10, JUMP], [100, 3, DOWN], [180, 10, JUMP]]],
+      approaches: [[], []], rollbacks: [[147, 210], [437, 500]], predictions: [[240, 250]],
+    }])],
   ]);
   pressed.forEach((sources, slot) => {
     const missing = [...SOURCES.keys()].filter(source => !sources.has(source));
@@ -267,4 +277,3 @@ export function generateTapes(): Map<string, string> {
   if (SOURCES.size !== 18 || new Set(SOURCES.values()).size !== ACTION_COUNT) throw new Error("the standard layout no longer binds the sources the tapes press");
   return tapes;
 }
-

@@ -50,7 +50,7 @@ const MELEE_CAPTAIN_FALCON_SURFACE_RECOVERY_PHYSICS: SurfaceRecoveryPhysics = {
 };
 
 /** Where a fighter meets the solid-deck test stage's left raised deck's left wall (x -420): its flank touches the wall. */
-const RAISED_WALL_CONTACT_X = f32(surfaceLeft(SOLID_DECK_TEST_STAGE, 1) - melee(BODY_HALF_WIDTH));
+const RAISED_WALL_CONTACT_X = f32(surfaceLeft(SOLID_DECK_TEST_STAGE, 1, 0) - melee(BODY_HALF_WIDTH));
 
 /** That deck's underside, which a fighter meets with its ECB top. */
 const RAISED_UNDERSIDE_Z = solidSurfaceAt(SOLID_DECK_TEST_STAGE, MAIN_DECK_BODY_SURFACES + 2).startZ;
@@ -111,8 +111,8 @@ const FLAT_UNDERSIDE = 6;
 /** A reference point's world x on the main deck: as far inside that side's ledge as it lies inside Final Destination's. */
 function mainDeckWorldX(referenceX: number): number {
   return referenceX > 0
-    ? f32(surfaceRight(0, 0) + f32(f32(referenceX - REFERENCE_LEDGE_X) * WORLD_UNITS_PER_MELEE_UNIT))
-    : f32(surfaceLeft(0, 0) + f32(f32(referenceX + REFERENCE_LEDGE_X) * WORLD_UNITS_PER_MELEE_UNIT));
+    ? f32(surfaceRight(0, 0, 0) + f32(f32(referenceX - REFERENCE_LEDGE_X) * WORLD_UNITS_PER_MELEE_UNIT))
+    : f32(surfaceLeft(0, 0, 0) + f32(f32(referenceX + REFERENCE_LEDGE_X) * WORLD_UNITS_PER_MELEE_UNIT));
 }
 
 test("each shipped stage's main deck has Final Destination's side walls and underside below its ledges", () => {
@@ -134,8 +134,8 @@ test("each shipped stage's main deck has Final Destination's side walls and unde
     });
   }
   // The walls fall from each ledge vertex, which stays the end of the walking deck.
-  assertEquals(solidSurfaceAt(0, 0).startX, surfaceRight(0, 0));
-  assertEquals(solidSurfaceAt(0, MAIN_DECK_BODY_SURFACES - 1).endX, surfaceLeft(0, 0));
+  assertEquals(solidSurfaceAt(0, 0).startX, surfaceRight(0, 0, 0));
+  assertEquals(solidSurfaceAt(0, MAIN_DECK_BODY_SURFACES - 1).endX, surfaceLeft(0, 0, 0));
   assertEquals(solidSurfaceAt(0, FLAT_UNDERSIDE).startZ, -332.3291931152344);
 });
 
@@ -151,7 +151,7 @@ const PLAYABLE_FIGHTERS = [Character.archer, Character.rifleman, Character.demon
  * below the raised decks, so it adds its aerial jump on its first falling frame.
  */
 function jumpBeneathDeck(character: Character, stage: number, deck: number, shortHop: boolean): { fighter: Fighter; apex: number } {
-  const fighter = createFighter(character, f32(f32(surfaceLeft(stage, deck) + surfaceRight(stage, deck)) / 2), 1);
+  const fighter = createFighter(character, f32(f32(surfaceLeft(stage, deck, 0) + surfaceRight(stage, deck, 0)) / 2), 1);
   const input = controls({ jumpPressed: true, jumpHeld: !shortHop });
   let apex = fighter.motion.z;
   let aerialJumped = !shortHop;
@@ -174,10 +174,10 @@ test("full and short hops rise through every pass deck and land on top", () => {
       for (const shortHop of [false, true]) {
         const { fighter, apex } = jumpBeneathDeck(character, 1, deck, shortHop);
         assertEquals(fighter.surfaceRecovery.contactSerial, 0);
-        assertGreaterThan(apex, surfaceZ(1, deck));
+        assertGreaterThan(apex, surfaceZ(1, deck, 0));
         assertTrue(fighter.motion.grounded);
         assertEquals(fighter.motion.surface, deck);
-        assertEquals(fighter.motion.z, surfaceZ(1, deck));
+        assertEquals(fighter.motion.z, surfaceZ(1, deck, 0));
       }
     }
   }
@@ -216,7 +216,7 @@ test("a jump under a solid surface still bumps its head", () => {
 
 test("a launch passes through a pass deck's sides", () => {
   for (const side of [-1, 1]) {
-    const edgeX = side < 0 ? surfaceLeft(1, 1) : surfaceRight(1, 1);
+    const edgeX = side < 0 ? surfaceLeft(1, 1, 0) : surfaceRight(1, 1, 0);
     const fighter = createFighter(Character.archer, f32(edgeX + side * 5), -side);
     fighter.motion.grounded = false;
     fighter.motion.z = 160.0;
@@ -650,7 +650,7 @@ test("shared recovery values match the decoded common table", () => {
 
 test("solid raised deck walls reject incoming launches from both exterior sides", () => {
   for (const side of [-1, 1]) {
-    const wallX = side < 0 ? surfaceLeft(SOLID_DECK_TEST_STAGE, 1) : surfaceRight(SOLID_DECK_TEST_STAGE, 1);
+    const wallX = side < 0 ? surfaceLeft(SOLID_DECK_TEST_STAGE, 1, 0) : surfaceRight(SOLID_DECK_TEST_STAGE, 1, 0);
     const contactX = f32(wallX + f32(side * melee(BODY_HALF_WIDTH)));
     const fighter = createFighter(Character.archer, f32(contactX + side * 5), -side);
     fighter.motion.grounded = false;
