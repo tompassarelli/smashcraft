@@ -1899,7 +1899,20 @@ least 2 units a side. Smashcraft fighters use that 2-unit half-width
 (`BODY_HALF_WIDTH`, smashcraft:ts/src/game/sim/surfaces.ts), so a fighter
 stopped against the wall below a ledge stands 12 world units outside it, and
 its ledge catch box (which adds the same half-width) still holds the ledge.
-Undersides stop the feet. A wall moves the fighter but not its own velocity,
+Undersides and other ceilings stop the fighter's top: Melee's airborne ECB
+top, the highest of the six ECB bones its fighter data lists (ftData x44),
+which falls and jumps load with no pad (`mpColl_LoadECB_JObj`). In each
+reference model's bind pose (PlFxNr.dat, PlFcNr.dat, PlCaNr.dat, read by
+~/.local/share/smashcraft-melee-reference/ecb-top-facts.ts) times its
+`model_scaling` (+0x8C) that is Fox's 11.625 x 0.96 = 11.16 for Archer,
+Falco's 12.5 x 1.1 = 13.75 for Rifleman and Captain Falcon's 19.36 x 0.97 =
+18.78 for Illidan, Melee units (`bodyTop`, smashcraft:ts/src/game/sim/surfaces.ts).
+The contact, and the ceiling tech or bounce that starts from it, is on the
+ceiling; the fighter stands its top below it. The animation moves Melee's
+bones, so its ECB top changes from frame to frame; Smashcraft keeps the bind
+pose's. Under the main deck's underside the bottom blast zone (-420) leaves
+Archer 20.7 world units and Rifleman 5.2, and Illidan none: his position
+would be past it (#80 lowers it to Final Destination's). A wall moves the fighter but not its own velocity,
 as Melee's airborne collision only moves the position (`ft_800835B0`,
 melee:src/melee/ft/ft_081B.c): launch velocity into the wall stops, or a
 tumbling launch rebounds at 0.8, and a fighter that rises past the wall's top
