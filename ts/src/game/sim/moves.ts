@@ -241,14 +241,14 @@ export function attackRecoveryFrames(character: Character, style: AttackStyle, g
 export const EARLY_ASCENT_GRAB_FRAMES = 7;
 
 /** Frames every grab holds when the victim doesn't mash, at any percent (#101). */
-export const GRAB_HOLD_FRAMES = 90;
+export const GRAB_HOLD_FRAMES = 120;
 /** However fast the victim mashes, a hold lasts this long, so a prompt throw always starts. */
 export const GRAB_HOLD_MINIMUM_FRAMES = 30;
 /** Frames each mash input (a press, or a new stick direction) takes off the hold. */
 export const GRAB_MASH_FRAMES = 8;
 /** Every fighter's one pummel connects this late, so mashing from the catch escapes it. */
-export const PUMMEL_CONTACT_FRAME = 48;
-export const PUMMEL_TOTAL_FRAMES = 56;
+export const PUMMEL_CONTACT_FRAME = 60;
+export const PUMMEL_TOTAL_FRAMES = 68;
 /** Every fighter's pummel deals this much, whatever its look (owner decision, #101). */
 export const PUMMEL_DAMAGE = 3.0;
 export const GRAB_HOLD_DISTANCE = 50.0;

@@ -8,11 +8,13 @@ import { f32 } from "wisp/src/sim/f32";
 import { toInt } from "../../runtime/numbers";
 import { TECH_REPEAT_MINIMUM_AGE_FRAMES } from "../physics/techInput";
 import { Character, DownState, LedgeState, SpecialAction } from "../sim/codes";
+import { isTumbling } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
 import { totalVelocityZ } from "../sim/motion";
 import type { Controls } from "../sim/roster";
 import { mainDeckLeft, mainDeckRight, mainDeckZ, surfaceCount, surfaceLeft, surfaceRight, surfaceZ } from "../sim/stage";
 import { botChoice } from "./botMoves";
+import { aimsLedge, gameplanOf, upSpecialFirst } from "./botGameplan";
 
 /** A tech pressed this many frames of fall above a deck lands inside its window. */
 const TECH_LEAD_FRAMES = 6;
@@ -138,7 +140,9 @@ function upSpecial(character: Character): SpecialAction {
 function aimsForLedge(f: Readonly<Fighter>, side: number, target: Readonly<Fighter> | undefined): boolean {
   const taken = target !== undefined && target.ledge.state !== LedgeState.none && target.ledge.side === side;
   const spare = f.jump.remaining > 0 || upSpecialStartable(f, specialCooldownReady(f, upSpecial(f.character)));
-  return f.facing === -side && !taken && spare && botChoice(f.visuals.hit + toInt(f.status.damage), f.character * 7 + 3, 2) === 0;
+  const coin = botChoice(f.visuals.hit + toInt(f.status.damage), f.character * 7 + 3, 2) === 0;
+  const gameplan = gameplanOf(f.character);
+  return f.facing === -side && !taken && spare && (gameplan === undefined ? coin : aimsLedge(gameplan, coin));
 }
 
 /** An aimed up special's target: this far inside the near edge and above the deck. */
@@ -219,12 +223,18 @@ export function chooseRecoveryInput(fighter: Readonly<Fighter>, stage: number, m
   if (ledge) input.direction = outside < LEDGE_LINE_NEAR ? side : outside > LEDGE_LINE_FAR ? -side : 0;
   else input.direction = x < (side < 0 ? f32(left + 60) : f32(right - 60)) ? 1 : -1;
   aimUpSpecial(fighter, stage, side, input);
+  // Tumble ends only on a fresh sideways flick (sim/step.ts) and can't steer while it lasts: a stick
+  // already held toward home lets go for a frame, unless tumble already carries it home faster than drift.
+  if (isTumbling(fighter) && fighter.launch.hitstun <= 0 && input.direction !== 0 && fighter.motion.previousStickSide === input.direction
+    && f32(fighter.motion.vx * input.direction) < fighter.tuning.physics.airSpeed) input.direction = 0;
   if (fighter.launch.hitstun > 0 || fighter.launch.hitlag > 0 || fighter.special.action !== SpecialAction.none) return true;
   // Close outside the ledge and above where it catches, it falls onto the ledge.
   if (ledge && outside <= LEDGE_LINE_REACH && z >= f32(floor - LEDGE_MISSED)) return true;
   // Near the edge and still above the deck, one return in two spends the up special first and keeps the jump.
+  const coin = botChoice(fighter.visuals.hit + toInt(fighter.status.damage), fighter.character * 13 + 5, 2) === 0;
+  const gameplan = gameplanOf(fighter.character);
   const specialFirst = outside <= SPECIAL_FIRST_REACH && z >= floor && upSpecialStartable(fighter, specialCooldownReady(fighter, upSpecial(fighter.character)))
-    && botChoice(fighter.visuals.hit + toInt(fighter.status.damage), fighter.character * 13 + 5, 2) === 0;
+    && (gameplan === undefined ? coin : upSpecialFirst(gameplan, coin));
   if (totalVelocityZ(fighter) <= 0 && z < f32(floor + 100)) {
     if (fighter.jump.remaining > 0 && fighter.attack.cooldown === 0 && !specialFirst) {
       input.jumpPressed = true;

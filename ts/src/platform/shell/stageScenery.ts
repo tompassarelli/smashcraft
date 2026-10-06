@@ -1,4 +1,5 @@
 import { FLOOR_HEIGHT } from "../../game/presentation/arenaCamera";
+import { preloadModels, preloadSkies } from "../../game/presentation/stagePreload";
 import { stageScenery } from "../../game/presentation/stageScenery";
 import type { ShellState } from "./state";
 
@@ -25,4 +26,11 @@ export function drawStageScenery(s: ShellState): void {
     effects.push(effect);
   }
   s.stageScenery = effects;
+}
+
+/** Loads every stage's models and skies while the map starts, so no match frame waits on a first load. */
+export function preloadStageAssets(s: ShellState): void {
+  const { x, y } = s.origin;
+  for (const model of preloadModels()) DestroyEffect(AddSpecialEffect(model, x, y));
+  for (const sky of preloadSkies()) SetSkyModel(sky);
 }

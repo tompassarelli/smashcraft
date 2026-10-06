@@ -47,5 +47,5 @@ export const profileOption = (args: readonly string[]) => Effect.gen(function*()
   return { profile, args: index < 0 ? [...args] : [...args.slice(0, index), ...args.slice(index + 2)] };
 });
 
-export const gameFilesLayer = GameFiles.layer({ mapFolder: "Maps/00-Smashcraft", replacedMaps: "smashcraft-replaced-maps" });
+export const gameFilesLayer = GameFiles.layer({ mapFolder: "Maps/00-Smashcraft/tests", replacedMaps: "Maps/00-Smashcraft/tests", preserveMaps: true });
 export const sourceErrorsLayer = SourceErrors.layer({ sourceMapDirectory, filePrefix: "smashcraft" });

@@ -18,6 +18,8 @@ import { immolationRegion } from "../sim/specials";
 import { safeAt, slideStaysOnDeck } from "./botFooting";
 import { HeroSpecialUse, heroSpecialUse } from "./botHeroKit";
 import { SpecialSlot } from "../sim/heroSpecials";
+import { SPACE_PLAN, gameplanOf, moveWeight, spacedAt, toGameplanMove } from "./botGameplan";
+import type { FighterGameplan, GameplanMove } from "../sim/gameplan";
 
 /** A prime whose square stays inside a 32-bit integer, so squaring is exact in Bun and Warcraft's Lua. */
 const HASH_PRIME = 46337;
@@ -60,6 +62,8 @@ const scratchRegion = emptyHitRegion();
 const scratchCapsule = emptyCapsule();
 // Preallocated: the options a decision weighs.
 const options: number[] = [];
+// Preallocated: each option's weight under a gameplan.
+const weights: number[] = [];
 
 /** The first active frame's strike of a move, facing right: where its [minX, maxX, minZ, maxZ] start in strikeBounds. */
 function strikeIndex(character: Character, style: AttackStyle, moves?: FighterMoves): number {
@@ -254,12 +258,36 @@ function perform(f: Readonly<Fighter>, target: Readonly<Fighter>, option: number
   queueAttack(commands, { style: request, facing: option === AttackStyle.backAir ? (facing < 0 ? 1 : -1) : facing, frame, mayCharge: false });
 }
 
+/** The move a gameplan names for an option: a dashing jab is the kit's dash attack. */
+function gameplanMoveOf(f: Readonly<Fighter>, option: number): GameplanMove {
+  if (option === AttackStyle.jab && f.motion.grounded && f.ground.dashFrame > 0 && (f.character === Character.demonHunter || f.tuning.moves !== undefined)) return AttackStyle.dashAttack;
+  return toGameplanMove(option);
+}
+
+/** One of the first `count` options, each as likely as its gameplan weight. */
+function weightedOption(gameplan: Readonly<FighterGameplan>, planIndex: number, f: Readonly<Fighter>, slot: number, target: Readonly<Fighter>, count: number, frame: number): number {
+  let total = 0;
+  for (let index = 0; index < count; index++) {
+    const weight = moveWeight(gameplan, planIndex, f, slot, target, gameplanMoveOf(f, at(options, index)));
+    weights[index] = weight;
+    total += weight;
+  }
+  let pick = botChoice(frame, f.attack.serial * 7 + f.character, total);
+  for (let index = 0; index < count; index++) {
+    pick -= at(weights, index);
+    if (pick < 0) return at(options, index);
+  }
+  return at(options, count - 1);
+}
+
 /**
  * Chooses an attack that reaches the target, or a special that suits the
  * distance, and enters it in input and commands. `ranged` lets a decision
  * with nothing in reach but a special take it. False when it chose nothing.
  */
-export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, matchFrame: number, frame: number, ranged: boolean, input: Controls, commands: AttackBuffer): boolean {
+export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, matchFrame: number, frame: number, ranged: boolean, input: Controls, commands: AttackBuffer, slot = -1, planIndex: number = SPACE_PLAN): boolean {
+  const gameplan = gameplanOf(f.character);
+  const gap = Math.abs(f32(target.motion.x - f.motion.x));
   if (!canAttack(f) && !(f.shield.raised && f.motion.grounded)) return false;
   // A ground attack stops the steering: its slide must end on the deck.
   if (f.motion.grounded && !slideStaysOnDeck(f, stage, matchFrame)) return false;
@@ -273,7 +301,9 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
         const style = dashing && move === AttackStyle.jab ? f.tuning.moves?.dashAttack ?? AttackStyle.demonHunterDashAttack : move;
         const frames = attackStartupFrames(style, f.tuning.moves);
         const x = aheadX(f, target, frames);
-        if (!moveReaches(f.character, style, target, Math.abs(x), aheadZ(f, target, frames), f.tuning.moves)) continue;
+        // A gameplan's spacing tool is thrown at its spacing, in reach or not.
+        const spaced = gameplan !== undefined && spacedAt(gameplan, dashing && move === AttackStyle.jab ? AttackStyle.dashAttack : move, gap);
+        if (!spaced && !moveReaches(f.character, style, target, Math.abs(x), aheadZ(f, target, frames), f.tuning.moves)) continue;
         options[count++] = move;
         // A grab counts twice: one of ten moves in reach would rarely be it.
         if (move === AttackStyle.grab) options[count++] = move;
@@ -281,7 +311,8 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
     } else {
       for (const aerial of AERIALS) {
         const frames = attackStartupFrames(aerial, f.tuning.moves);
-        if (moveReaches(f.character, aerial, target, f32(aheadX(f, target, frames) * f.facing), aheadZ(f, target, frames), f.tuning.moves)) options[count++] = aerial;
+        const spaced = gameplan !== undefined && spacedAt(gameplan, aerial, gap);
+        if (spaced || moveReaches(f.character, aerial, target, f32(aheadX(f, target, frames) * f.facing), aheadZ(f, target, frames), f.tuning.moves)) options[count++] = aerial;
       }
     }
   }
@@ -291,7 +322,9 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
   if (canAttack(f)) count = addShots(f, target, stage, count);
   if (count === 0 || (close === 0 && !ranged)) return false;
   const grabbing = target.shield.raised && f.motion.grounded && strikes > 0 && at(options, strikes - 1) === AttackStyle.grab;
-  const option = grabbing ? AttackStyle.grab : at(options, botChoice(frame, f.attack.serial * 7 + f.character, count));
+  const option = grabbing ? AttackStyle.grab
+    : gameplan === undefined ? at(options, botChoice(frame, f.attack.serial * 7 + f.character, count))
+    : weightedOption(gameplan, planIndex, f, slot, target, count, frame);
   perform(f, target, option, frame, input, commands);
   return true;
 }

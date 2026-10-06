@@ -134,6 +134,27 @@ test("a solid surface contact publishes its position and inward normal once", ()
   assertEquals(events.surface, SurfaceContact.none);
 });
 
+test("a wall push-off gets its own jump cue at the wall contact", () => {
+  const fighter = createFighter(Character.rifleman, -240.0, 1);
+  fighter.motion.grounded = false;
+  const events = createImpactEvents();
+  journal(events, fighter, () => {
+    fighter.surfaceRecovery.state = SurfaceContact.techWall;
+    fighter.surfaceRecovery.contactX = -280.0;
+    fighter.surfaceRecovery.contactZ = 64.0;
+    fighter.surfaceRecovery.contactNormalX = 1.0;
+    fighter.surfaceRecovery.contactNormalZ = 0.0;
+    fighter.jump.serial++;
+    fighter.jump.isDouble = false;
+  });
+  assertEquals(events.jump, JumpCue.wall);
+  assertEquals(events.contactX, -280.0);
+  assertEquals(events.contactZ, 64.0);
+  assertEquals(events.normalX, 1.0);
+  journal(events, fighter);
+  assertEquals(events.jump, JumpCue.none);
+});
+
 test("dodge dust appears on entry and keeps the roll direction", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
   const events = createImpactEvents();

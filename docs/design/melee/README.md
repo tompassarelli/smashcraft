@@ -10,6 +10,9 @@ leaves out is decided only in [gameplay design decisions](../../gameplay-design.
   air control, wavedashes and wavelands, rolls and spot dodges.
 - [Attacks](attacks.md): startup, ending lag, reach and safety on shield across
   the cast; out-of-shield punishes; aerials on shield by timing, spacing and drift.
+- [Aerials on shield](aerials-on-shield.md): the shieldstun formula, hitlag on
+  shield, landing lag and fast fall, out-of-shield options per fighter, and how
+  timing, strength, spacing and side set an aerial's safety, with worked examples.
 - [Defence](defense.md): shield, dodges, influence on knockback, techs, ledges and grabs.
 - [Archetypes](archetypes.md): weight, speed and frame data across the cast.
 - [Techniques and jank](techniques.md): emergent techniques and the engine

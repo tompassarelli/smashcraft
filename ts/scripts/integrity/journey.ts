@@ -6,13 +6,15 @@
 // the Rig service, so a recording Rig can replay the journey without Warcraft.
 import { Context, Effect, Fiber } from "effect";
 import { RULE_BUTTONS } from "../../src/game/ui/ruleButtons";
-import { stageTileLeft, stageTileTop } from "../../src/game/menu/stageSelection";
+import { STAGE_CATALOG } from "../../src/game/menu/stageCatalog";
+import { Character } from "../../src/game/sim/codes";
+import { fighterName } from "../../src/game/sim/heroes/registry";
 import type { Region } from "wisp/scripts/warcraft/desktop";
 import { IntegrityFailure } from "./evidence";
 import { ABS_RX, ABS_RY, ABS_X, ABS_Y, ABS_Z, BTN_A, BTN_SELECT, BTN_START, BTN_X, BTN_Y, EV_ABS, EV_KEY, type SourceEdge } from "./linuxInput";
 import { SLOTS, type Slot } from "./reconcile";
 import { type PadLayout, PULSE_HOLD_MILLIS, STALL_MILLIS, type Pulse, type Send, type StallTarget, integritySchedule, pulseSends } from "./schedule";
-import { INPUT_TRACE_FILE, devCommandReceiptFile, journalControlFile, journalLifecycleFile, journalMenuFile, responsePageFile } from "../../src/runtime/gameFiles";
+import { INPUT_TRACE_FILE, devCommandReceiptFile, journalControlFile, journalLifecycleFile, journalMenuFile, responsePageFile, stageReceiptFile } from "../../src/runtime/gameFiles";
 
 /** A game file's text and modification time. */
 export interface GameFile {
@@ -145,6 +147,9 @@ export interface JourneyOptions {
 const CONTROLS = /CONTROLS/i;
 /** The selection help row: whole-screen word OCR drops its small Controls label. */
 const SELECTION_HELP: Region = { x: 350, y: 1000, width: 1850, height: 400 };
+/** Stage selection names the chosen stage in its preview panel. */
+const STAGE_NAME: Region = { x: 420, y: 965, width: 900, height: 110 };
+const SKY_DECK = /Sky Deck/i;
 const REMATCH_SETTING: Region = { x: 390, y: 655, width: 555, height: 90 };
 const RESULTS = /wins|rematch/i;
 /**
@@ -206,6 +211,12 @@ const PERF_READ_MILLIS = 2000;
 const INTEGRITY_STOCKS = 3;
 const stocks = (count: number) => new RegExp(`${count} Stock`, "i");
 const signature = (humans: number, computers: number) => `connected=3 human-fighters=${humans} computers=${computers} fighters=${humans + computers}`;
+/** The calibrated bot workload's stage, Sky Deck (smashcraft:ts/src/game/menu/stageCatalog.ts), whatever the catalog lists first. */
+const BOT_STAGE = 0;
+/** A bot session's computers by player number: an Illidan in C, and with --bot-four an Archer in D (scripts/wisp/botMatch.ts). */
+const BOT_COMPUTERS = [[3, Character.demonHunter], [4, Character.archer]] as const;
+/** A developer receipt's `name=value` fields, from both its lines (journalFiles.ts devReceiptFile). */
+export const receiptFields = (text: string): ReadonlyMap<string, string> => new Map([...text.matchAll(/([A-Za-z-]+)=(\S+)/g)].map(([, name, value]) => [name ?? "", value ?? ""]));
 const both = <A, E>(each: (client: Slot) => Effect.Effect<A, E>) => Effect.forEach(SLOTS, each, { concurrency: 2 });
 
 /** The journey's steps over one Rig; `run` is the whole capture. */
@@ -216,6 +227,12 @@ export function journey(rig: RigShape, options: JourneyOptions) {
   const bot = options.workload === "bot";
   /** A bot session on a playable build has neither the Ctrl+G trace nor scene reports; other workloads name their build's kind. */
   const diagnosticBuild = !bot || !build.startsWith("playable");
+  /**
+   * Builds with the dev console are set up by chat commands and their
+   * receipts (sessionSetup.ts); a playable build has no console, so its
+   * journeys still click the menus and read their labels.
+   */
+  const commands = !playable && diagnosticBuild;
   const firstEpoch = epochs[0] ?? 1;
   const lastEpoch = epochs.at(-1) ?? firstEpoch;
 
@@ -266,9 +283,48 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       yield* rig.record({ event: "menu", phase, contents, observed_monotonic_ns: yield* rig.monotonicNs });
     });
 
+  /**
+   * A synchronized player chat command, typed into client A. Both clients'
+   * developer receipts confirm it: each a newer complete file than before the
+   * command, with the same game-wide receipt count, past the count this
+   * capture saw before. Only then are `expected`'s fields checked, so a
+   * refused command fails with its receipt instead of waiting out a timeout.
+   */
+  const command = (text: string, expected: Readonly<Record<string, string | number | RegExp>>) =>
+    Effect.gen(function*() {
+      const name = (client: Slot) => devCommandReceiptFile(build, client);
+      const receipts = Effect.forEach(SLOTS, (client) => rig.file(client, name(client)));
+      const count = (file: GameFile | undefined) => Number(receiptFields(file?.text ?? "").get("receipt") ?? -1);
+      const before = (yield* receipts).map((file) => ({ mtimeNs: file?.mtimeNs ?? -1n, count: complete(file) ? count(file) : -1 }));
+      // Counts this capture saw bound the new one; a file from before it (perhaps an earlier game) only by its time.
+      const floor = Math.max(...before.map((receipt) => receipt.count));
+      // The map hides Warcraft's chat box; both clients' receipts confirm the command.
+      yield* rig.key(0, "Return");
+      yield* rig.type(0, text);
+      yield* rig.key(0, "Return");
+      yield* rig.until(`dev command not confirmed: ${text}`, receipts.pipe(Effect.map((files) => {
+        const counts = files.map(count);
+        return files.every((file, client) => complete(file) && file.mtimeNs > (before[client]?.mtimeNs ?? -1n)) && counts[0] === counts[1] && (counts[0] ?? -1) > floor;
+      })));
+      const confirmed = yield* receipts;
+      for (const [client, file] of confirmed.entries()) {
+        const fields = receiptFields(file?.text ?? "");
+        const wrong = Object.entries(expected).filter(([field, value]) => (value instanceof RegExp ? !value.test(fields.get(field) ?? "") : fields.get(field) !== String(value)));
+        if (wrong.length > 0) return yield* failed(`dev command ${text}`, `client ${client} receipt has ${wrong.map(([field]) => `${field}=${fields.get(field)}`).join(" ")}, wanted ${wrong.map(([field, value]) => `${field}=${value}`).join(" ")}:\n${file?.text ?? ""}`);
+      }
+    });
+
+  /** A developer command whose receipts the capture records as a dev-config event. */
+  const devCommand = (epoch: number, text: string, expected: Readonly<Record<string, string | number | RegExp>>) =>
+    Effect.gen(function*() {
+      yield* command(text, expected);
+      yield* rig.record({ event: "dev-config", epoch, command: text, publications: yield* boundaries((client) => devCommandReceiptFile(build, client)) });
+    });
+
+  /** Fighter selection: the menu receipts say each client's controller may drive it. */
   const characterScreen = Effect.gen(function*() {
     yield* menuPhase("CHARACTER");
-    yield* rig.waitText(0, CONTROLS, SELECTION_HELP);
+    if (!commands) yield* rig.waitText(0, CONTROLS, SELECTION_HELP);
   });
 
   /** Both pads pick their highlighted fighter; A's Start picks the stage. */
@@ -277,10 +333,17 @@ export function journey(rig: RigShape, options: JourneyOptions) {
     for (const slot of SLOTS) yield* menuButton(slot, BTN_A, "menu-character-select");
     yield* menuButton(0, BTN_START, "menu-character-confirm");
     yield* menuPhase("STAGE");
-    if (bot) {
-      // The calibrated bot workload uses Sky Deck, independent of the catalog's first stage.
-      yield* rig.click(0, Math.round(320 + 2400 * (stageTileLeft(0) + 0.047)), Math.round(1440 - 2400 * (stageTileTop(0) - 0.039)));
-      yield* rig.waitText(0, /Sky Deck/i, { x: 420, y: 965, width: 900, height: 110 });
+    if (bot && !commands) {
+      // The calibrated bot workload uses Sky Deck, independent of the catalog's first stage. The stage
+      // panel polls the mouse button once a frame, so a desktop click can fall between frames; A's
+      // stick steps through the catalog instead.
+      for (let step = 0; step < STAGE_CATALOG.length && !SKY_DECK.test(yield* rig.readText(0, STAGE_NAME)); step++) {
+        yield* send(0, { type: EV_ABS, code: ABS_X, value: -32768 }, "menu-stage-left");
+        yield* rig.sleep(120);
+        yield* send(0, { type: EV_ABS, code: ABS_X, value: 0 }, "menu-stage-left");
+        yield* rig.sleep(200);
+      }
+      yield* rig.waitText(0, SKY_DECK, STAGE_NAME);
     }
   });
 
@@ -292,10 +355,14 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       yield* rig.click(0, x, 824);
     });
 
+  /** Sets slot tags by command (or, on a build without the dev console, one tag click at `x`). */
+  const setSlots = (x: number, humans: number, computers: number) =>
+    commands ? command(`-dev slots ${humans} ${computers}`, { "human-fighters": humans, computers }) : clickSlotTag(x);
+
   const modeChanges = (what: string, changes: readonly (readonly [x: number, humans: number, computers: number])[]) =>
     Effect.forEach(changes, ([x, humans, computers]) =>
       Effect.gen(function*() {
-        yield* clickSlotTag(x);
+        yield* setSlots(x, humans, computers);
         yield* rig.until(what, menusShow(signature(humans, computers)));
         return { human_fighters: humans, computers, publications: yield* boundaries(menuName) } satisfies ModeReceipt;
       }));
@@ -312,6 +379,13 @@ export function journey(rig: RigShape, options: JourneyOptions) {
     yield* characterScreen;
     const changes = yield* modeChanges("bot session computer absent on one client", options.botFour === true ? [[1484, 7, 0], [1484, 3, 4], [1904, 11, 4], [1904, 3, 12]] : [[1484, 7, 0], [1484, 3, 4]]);
     yield* rig.record({ event: "bot-setup", epoch: firstEpoch, changes });
+    if (commands) {
+      // The computers' fighters and the stage, which the defaults and the stage menu's mouse targets otherwise decide.
+      for (const [player, character] of BOT_COMPUTERS.slice(0, options.botFour === true ? 2 : 1)) {
+        yield* command(`-dev fighter ${player} ${fighterName(character)}`, { characters: new RegExp(`^(?:\\d+,){${player - 1}}${character}(?:,|$)`) });
+      }
+      yield* command(`-dev stage ${BOT_STAGE}`, { stage: BOT_STAGE });
+    }
   });
 
   /**
@@ -438,12 +512,16 @@ export function journey(rig: RigShape, options: JourneyOptions) {
   /** The rematch left slot C as CPU; one tag click returns it to EMPTY. */
   const slotRestore = Effect.gen(function*() {
     yield* characterScreen;
-    yield* clickSlotTag(1484);
+    yield* setSlots(1484, 3, 0);
     yield* rig.until("slot C was not restored to EMPTY", menusShow(TWO_HUMANS));
   });
 
   /** Chained runs start from two humans with slots C and D EMPTY; tags cycle HMN, CPU, EMPTY. */
   const restoreTwoHumans = Effect.gen(function*() {
+    if (commands) {
+      yield* command("-dev slots 3 0", { "human-fighters": 3, computers: 0 });
+      return yield* rig.until("slots C/D were not restored to EMPTY", menusShow(TWO_HUMANS));
+    }
     for (const [bit, x] of [[4, 1484], [8, 1904]] as const) {
       for (let click = 0; click < 2; click++) {
         const text = (yield* rig.file(0, menuName(0)))?.text ?? "";
@@ -467,6 +545,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
 
   /** Stock count on B's fighter selection screen, one click at a time. */
   const stockCount = (target: number) => Effect.gen(function*() {
+    if (commands) return yield* command(`-dev stocks ${target}`, { stocks: target });
     const text = yield* rig.waitText(1, /[1-9] Stock/i);
     const shown = /([1-9])\s+Stock/i.exec(text)?.[1];
     if (shown === undefined) return yield* failed("read stocks", text);
@@ -480,6 +559,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
 
   /** A normal one-minute match bounds the CPU journey without changing combat rules. */
   const oneMinute = Effect.gen(function*() {
+    if (commands) return yield* command("-dev time 1", { minutes: 1 });
     const text = yield* rig.waitText(1, /(?:[0-9]+:00|No time limit)/i);
     const shown = /([0-9]+):00/.exec(text)?.[1];
     let minutes = shown === undefined ? 0 : Number(shown);
@@ -491,20 +571,19 @@ export function journey(rig: RigShape, options: JourneyOptions) {
     }
   });
 
-  /** A synchronized player chat command; both clients' receipts must show the value. */
-  const devCommand = (epoch: number, command: string, expected: string) =>
+  /**
+   * Both clients' receipts that they drew this match's stage (matchStart.ts),
+   * before the player's view is captured; a bot match must be on BOT_STAGE.
+   */
+  const stageDrawn = (epoch: number) =>
     Effect.gen(function*() {
-      const name = (client: Slot) => devCommandReceiptFile(build, client);
-      // A new game rewrites the same receipt text, so a fresh publication is a newer file, not different text.
-      const before = (yield* Effect.forEach(SLOTS, (client) => rig.file(client, name(client)))).map((file) => file?.mtimeNs ?? -1n);
-      // The map hides Warcraft's chat box; both clients' receipts confirm the command.
-      yield* rig.key(0, "Return");
-      yield* rig.type(0, command);
-      yield* rig.key(0, "Return");
-      yield* rig.until(`dev command not confirmed: ${command}`, Effect.forEach(SLOTS, (client) => rig.file(client, name(client))).pipe(
-        Effect.map((files) => files.every((file, client) => complete(file) && file.mtimeNs > (before[client] ?? -1n) && file.text.includes(expected))),
-      ));
-      yield* rig.record({ event: "dev-config", epoch, command, publications: yield* boundaries(name) });
+      const receipts = Effect.forEach(SLOTS, (client) => rig.file(client, stageReceiptFile(build, client)));
+      yield* rig.until(`epoch ${epoch}: stage drawn receipts absent`, receipts.pipe(Effect.map((files) => files.every((file) => complete(file) && receiptFields(file.text).get("epoch") === String(epoch)))));
+      if (!bot) return;
+      for (const [client, file] of (yield* receipts).entries()) {
+        const stage = receiptFields(file?.text ?? "").get("stage");
+        if (stage !== String(BOT_STAGE)) return yield* failed(`epoch ${epoch}: stage drawn`, `client ${client} drew stage ${stage}, wanted ${BOT_STAGE}`);
+      }
     });
 
   const runPulse = (epoch: number, pulse: Pulse) =>
@@ -624,8 +703,8 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       const commanded = sweep[(epoch - firstEpoch) / 2];
       if (odd && commanded !== undefined) {
         const [window, batch] = commanded;
-        yield* devCommand(epoch, `-dev batch ${batch}`, ` batch=${batch} `);
-        yield* devCommand(epoch, `-dev rb ${window}`, ` rb=${window} `);
+        yield* devCommand(epoch, `-dev batch ${batch}`, { batch });
+        yield* devCommand(epoch, `-dev rb ${window}`, { rb: window });
       }
 
       const traceAfterNs = yield* rig.realtimeNs;
@@ -645,6 +724,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       const deadline = Math.max(...started.map((publication) => publication.publication_monotonic_estimate_ns)) + 300_000_000;
       yield* rig.sleep(Math.max(0, (deadline - (yield* rig.monotonicNs)) / 1_000_000));
       yield* rig.sleep(700);
+      if (commands) yield* stageDrawn(epoch);
       // The playable build starts no scene recorder.
       yield* playerView(epoch, "start", { frame: true, scene: !playable && diagnosticBuild });
       if (bot) {
@@ -736,11 +816,13 @@ export function journey(rig: RigShape, options: JourneyOptions) {
     if (matchOnly || playable || bot) yield* characterScreen;
     if (matchOnly || bot) yield* oneMinute;
     if (matchOnly || playable || bot) yield* reduceStocks;
-    if (bot) {
+    if (bot && commands) {
+      yield* command("-dev auto-rematch on", { "automatic-rematch": 1 });
+      yield* devCommand(firstEpoch, "-dev rematch 20", { rematchSeconds: 20 });
+    } else if (bot) {
       const rematch = yield* rig.readText(1, REMATCH_SETTING);
       if (!/Automatic rematch: On/i.test(rematch)) yield* clickRule("automaticRematch");
       yield* both(client => rig.waitText(client, /Automatic rematch: On/i, REMATCH_SETTING));
-      if (diagnosticBuild) yield* devCommand(firstEpoch, "-dev rematch 20", " rematchSeconds=20 ");
     }
     // #26's named integrity workload plays INTEGRITY_STOCKS in every match: its stalls, pause and
     // complete edge sample must finish before ordinary stock loss can end the match.

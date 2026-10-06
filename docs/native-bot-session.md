@@ -19,15 +19,15 @@ loses Battle.net, with the evidence the watch saw.
 
 The session has a match and a rematch:
 
-- Slot C becomes a computer Demon Hunter. `--bot-four` adds a computer
-  Archer in slot D, for four fighters.
-- On fighter selection, client B sets one stock and one minute, then turns
-  Automatic rematch on; both clients must show it. The match and its automatic
-  rematch play Sky Deck with the same fighters and settings, with no menu
-  presses between matches. A development/integrity build uses `-dev rematch 20`
-  so response export finishes during the visible countdown. The final result
-  cancels the countdown with Escape before collecting evidence. A playable
-  build uses its ordinary five-second countdown.
+- Slot C becomes a computer Illidan (Demon Hunter). `--bot-four` adds a
+  computer Archer in slot D, for four fighters.
+- On fighter selection the match is set to one stock and one minute, with
+  Automatic rematch on, on Sky Deck. The match and its automatic rematch play
+  with the same fighters and settings, with no menu presses between matches.
+  A development/integrity build uses `-dev rematch 20` so response export
+  finishes during the visible countdown. The final result cancels the
+  countdown with Escape before collecting evidence. A playable build uses its
+  ordinary five-second countdown.
 - Both pads play a beat every 400 ms: 5 ms taps of A, Y and X, a 200 ms
   left-trigger shield, 300 ms full-tilt dashes right and left, and 100 ms
   full-tilt C-stick flicks right, up, left and down. Each edge's phase
@@ -85,10 +85,52 @@ bun wisp parity capture --bot [--bot-four | --bot-perf] [--pad49] \
   --app-id a=GAME_APP_ID_A --app-id b=GAME_APP_ID_B
 ```
 
-Every capture, `--bot` or not, starts from two humans: it reads slots C
-and D from A's menu receipt and clicks their tags (HMN → CPU → EMPTY) until
-both are EMPTY, so the computers a Battle.net lobby adds are cleared before
-`--bot` adds its own. It then plays the game's next match and its rematch.
+Every capture, `--bot` or not, starts from two humans: `-dev slots 3 0`
+empties slots C and D, so the computers a Battle.net lobby adds are cleared
+before `--bot` adds its own. It then plays the game's next match and its rematch.
+
+### Setup by command, not by pointer
+
+On a build with the dev console (development and integrity builds), a
+capture sets the match up by typing chat commands into client A, never by
+clicking the menus or reading their labels
+(smashcraft:ts/src/game/shell/sessionSetup.ts). Each command applies the
+menus' own rule for player 1, and both clients write their developer receipt
+`smashcraft-dev-BUILD-pN.txt`: its `receipt=` count (the game's commands
+so far) and its `SETUP` line, the fighter-selection state after the command
+(`human-fighters`, `computers`, `characters`, `stocks`, `minutes`,
+`automatic-rematch`, `stage`). The capture takes a command as confirmed
+when both clients' receipts are newer, carry the same count and pass any
+count this capture saw; it then checks the `SETUP` fields and stops with the
+receipt when the map refused the command. A bot session types, in order:
+
+```text
+-dev slots 3 0              # C and D EMPTY
+-dev slots 7 0              # C HMN
+-dev slots 3 4              # C CPU
+-dev slots 11 4             # --bot-four: D HMN
+-dev slots 3 12             # --bot-four: D CPU
+-dev fighter 3 Illidan
+-dev fighter 4 Archer       # --bot-four
+-dev stage 0                # Sky Deck
+-dev time 1
+-dev stocks 1
+-dev auto-rematch on
+-dev rematch 20
+```
+
+The pads then pick both players' fighters and start, as in #26's journey.
+At each match start both clients write `smashcraft-stage-BUILD-pN.txt`
+(`epoch`, `stage`, `decks`); the capture checks the player's view only
+after both name the match, and a bot match must name stage 0. #26's
+integrity capture sets its three stocks with `-dev stocks 3` and makes its
+rematch slot change with `-dev slots`, recorded with the menu receipts as
+before. A playable build has no dev console, so its journeys still click the
+menus and read their labels.
+
+What still reads the screen is evidence, not driving: the result screens
+and their announcement, #26's pause notice, and `--bot-four`/`--bot-perf`'s
+frame-cost overlay, besides the player-view frames.
 The next match is one past the `epoch=` both clients' menu receipts name
 (the last match begun, 0 in a new game); a capture can't start at a
 rematch, so it stops there before any input and asks for a new game.

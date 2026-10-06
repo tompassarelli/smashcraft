@@ -22,3 +22,5 @@ export const objectDataReceiptFile = (slot: number) => `smashcraft-object-data-p
 export const PLAYTEST_REQUEST_FILE = "smashcraft-play.txt";
 export const PLAYTEST_GO_FILE = "smashcraft-play-go.txt";
 export const playtestReceiptFile = (slot: number) => `smashcraft-play-p${slot}.txt`;
+/** The stage a match drew, written at its start by builds with the dev console, so a capture checks the player's view only after it. */
+export const stageReceiptFile = (build: string, slot: number) => `smashcraft-stage-${build}-p${slot}.txt`;

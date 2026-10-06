@@ -39,7 +39,7 @@ const SMASHCRAFT_DEV: DevProject = {
       "test/desync-guard.test.ts", "test/desync-guard-integrity.test.ts",
       "test/visual-lifecycle.test.ts", "test/player-view.test.ts", "test/selection-load.test.ts", "test/player-text.test.ts",
       "test/stack-trace.test.ts", "test/rematch-load.test.ts", "test/match-settings.test.ts", "test/missing-input.test.ts", "test/input-stall.test.ts", "test/tune.test.ts", "test/repro.test.ts",
-      "test/lag-recovery.test.ts", "test/local-start.test.ts", "test/bot-selection.test.ts",
+      "test/lag-recovery.test.ts", "test/local-start.test.ts", "test/bot-selection.test.ts", "test/session-setup.test.ts",
     ],
     perFile: ["test/source-shapes.test.ts"],
     // The audit parses with the TypeScript compiler, a third of a second to load.

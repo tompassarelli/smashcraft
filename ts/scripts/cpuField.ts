@@ -6,7 +6,7 @@
 // since the loser last took a hit. The computer has no randomness, so each
 // setup is one sample; a variant shifts both spawn points sideways to start a
 // different match. Mirrors are left out of the field.
-// Usage (from ts/): bun scripts/cpuField.ts [--variants N] [--stocks N] [--minutes N] [--json FILE] [--fighters a,b,...]
+// Usage (from ts/): bun scripts/cpuField.ts [--variants N | --per-pair N] [--stocks N] [--minutes N] [--json FILE] [--fighters a,b,...]
 import { writeFileSync } from "node:fs";
 import { f32 } from "wisp/src/sim/f32";
 import { parseArgs } from "node:util";
@@ -18,7 +18,9 @@ import { createPacingAndPresentation } from "../src/game/match/pacingAndPresenta
 import { MATCH_TICKS_PER_SECOND, Phase, createMatchState, setParticipants } from "../src/game/match/rules";
 import { initializeMatchFighters, matchSpawnX } from "../src/game/match/step";
 import { produceComputerInput } from "../src/game/match/botPlay";
-import { AttackStyle, type Character, SpecialAction } from "../src/game/sim/codes";
+import { gameplanOf } from "../src/game/match/botGameplan";
+import { type GameplanMove, GameplanSpecial, GameplanThrow } from "../src/game/sim/gameplan";
+import { AttackStyle, type Character, LedgeState, SpecialAction } from "../src/game/sim/codes";
 import { createFighter, type Fighter } from "../src/game/sim/fighter";
 import { SELECTABLE_CHARACTERS, fighterSlug, selectableCharacterBySlug } from "../src/game/sim/heroes/registry";
 import { copyControls, createRoster, fighterAt, neutralControls } from "../src/game/sim/roster";
@@ -32,8 +34,13 @@ const FIELD_STAGES: Readonly<Record<string, number>> = {
 };
 /** A stock lost this long after the last hit taken, or with none, was lost without the opponent (#105 box 3). */
 const NO_HIT_FRAMES = 3 * MATCH_TICKS_PER_SECOND;
-/** Specials as the computer's option numbers (match/botMoves.ts): neutral, side, up, down. */
-export const SPECIAL_MOVE = { neutral: 30, side: 31, up: 32, down: 33 } as const;
+// A self-destruct (#105 box 3) is a stock lost with no hit taken since the fighter last stood on a deck or held the ledge.
+// The 3 s count above is kept as fall time: a far launch that takes longer than 3 s to finish counts there.
+/** Every matchup's win rate, both directions, belongs in this band (#105 box 3). */
+const MATCHUP_LOW = 0.45;
+const MATCHUP_HIGH = 0.55;
+/** Specials as gameplans and the computer's options number them: neutral, side, up, down. */
+export const SPECIAL_MOVE = GameplanSpecial;
 /** Spawn shifts, in order, for each variant of a setup. */
 const SHIFTS = [0.0, -60.0, 60.0, -120.0, 120.0, -30.0, 30.0, -90.0, 90.0] as const;
 
@@ -70,7 +77,7 @@ interface SideRecord {
   readonly moves: Record<number, number>;
   hitsLanded: number;
   damageDealt: number;
-  readonly stockLosses: { readonly frame: number; readonly sinceHit: number | undefined }[];
+  readonly stockLosses: { readonly frame: number; readonly sinceHit: number | undefined; readonly selfDestruct: boolean }[];
 }
 
 interface MatchRecord {
@@ -90,6 +97,8 @@ export interface FieldOptions {
   readonly minutes?: number;
   readonly fighters?: readonly Character[];
   readonly stages?: readonly string[];
+  /** Plays spawn variants, both orders on every stage, until each pair of fighters has this many matches (at most every variant). */
+  readonly perPair?: number;
 }
 
 interface Watch {
@@ -100,10 +109,12 @@ interface Watch {
   damage: number;
   out: boolean;
   lastHit: number | undefined;
+  /** The last frame it stood on a deck or held the ledge. */
+  lastSafe: number | undefined;
 }
 
 const watchOf = (f: Readonly<Fighter>): Watch => ({
-  serial: f.attack.serial, special: f.special.action, specialFrame: f.special.frame, hits: f.visuals.hit, damage: f.status.damage, out: f.status.out, lastHit: undefined,
+  serial: f.attack.serial, special: f.special.action, specialFrame: f.special.frame, hits: f.visuals.hit, damage: f.status.damage, out: f.status.out, lastHit: undefined, lastSafe: undefined,
 });
 
 const NEUTRAL = neutralControls();
@@ -131,7 +142,8 @@ function playCpuMatch(a: Character, b: Character, stageName: string, variant: nu
   const runtime = createPacingAndPresentation();
   const row = createMatchFrameInput();
   initializeMatchFighters(match, world);
-  const sides = [a, b].map((character) => ({ fighter: fighterSlug(character), moves: {}, hitsLanded: 0, damageDealt: 0, stockLosses: [] })) as unknown as [SideRecord, SideRecord];
+  const side = (character: Character): SideRecord => ({ fighter: fighterSlug(character), moves: {}, hitsLanded: 0, damageDealt: 0, stockLosses: [] });
+  const sides: [SideRecord, SideRecord] = [side(a), side(b)];
   const watches = [watchOf(fighterAt(world, 0)), watchOf(fighterAt(world, 1))] as const;
   const limit = (match.timeLimitMinutes * 60 + 5) * MATCH_TICKS_PER_SECOND;
   let frame = 0;
@@ -157,7 +169,13 @@ function playCpuMatch(a: Character, b: Character, stageName: string, variant: nu
         seen.lastHit = frame;
       }
       if (f.status.damage > seen.damage && other !== undefined) other.damageDealt += f.status.damage - seen.damage;
-      if (f.status.out && !seen.out) own.stockLosses.push({ frame, sinceHit: seen.lastHit === undefined ? undefined : frame - seen.lastHit });
+      // Standing in hitlag or hitstun isn't standing: the hit that put it there still counts.
+      if (!f.status.out && f.launch.hitlag <= 0 && f.launch.hitstun <= 0 && (f.motion.grounded || f.ledge.state !== LedgeState.none)) seen.lastSafe = frame;
+      if (f.status.out && !seen.out) {
+        const selfDestruct = seen.lastHit === undefined || (seen.lastSafe !== undefined && seen.lastHit < seen.lastSafe);
+        own.stockLosses.push({ frame, sinceHit: seen.lastHit === undefined ? undefined : frame - seen.lastHit, selfDestruct });
+        seen.lastHit = undefined;
+      }
       seen.serial = f.attack.serial;
       seen.special = f.special.action;
       seen.specialFrame = f.special.frame;
@@ -172,20 +190,34 @@ function playCpuMatch(a: Character, b: Character, stageName: string, variant: nu
   };
 }
 
-/** Every ordered pair of different fighters on every stage, `variants` times over. */
+/**
+ * Every pair of different fighters, both orders, on every stage, `variants`
+ * times over; with `perPair`, as many variants as each pair needs to reach
+ * that many matches (spawn shifts that leave a deck make none).
+ */
 function playCpuField(options: FieldOptions = {}, progress?: (done: number, total: number) => void): MatchRecord[] {
   const fighters = options.fighters ?? SELECTABLE_CHARACTERS;
   const stages = options.stages ?? Object.keys(FIELD_STAGES);
-  const variants = options.variants ?? 1;
-  const total = fighters.length * (fighters.length - 1) * stages.length * variants;
+  const perPair = options.perPair;
+  const variants = perPair === undefined ? options.variants ?? 1 : SHIFTS.length;
+  const pairs = (fighters.length * (fighters.length - 1)) / 2;
+  const total = pairs * (perPair ?? 2 * stages.length * variants);
   const records: MatchRecord[] = [];
   let done = 0;
-  for (const a of fighters) for (const b of fighters) {
-    if (a === b) continue;
-    for (const stage of stages) for (let variant = 0; variant < variants; variant++) {
-      const record = playCpuMatch(a, b, stage, variant, options);
-      if (record !== undefined) records.push(record);
-      progress?.(++done, total);
+  for (let first = 0; first < fighters.length; first++) for (let second = first + 1; second < fighters.length; second++) {
+    const a = fighters[first];
+    const b = fighters[second];
+    if (a === undefined || b === undefined) continue;
+    let played = 0;
+    for (let variant = 0; variant < variants && (perPair === undefined || played < perPair); variant++) {
+      for (const stage of stages) for (const [x, y] of [[a, b], [b, a]] as const) {
+        const record = playCpuMatch(x, y, stage, variant, options);
+        if (record !== undefined) {
+          records.push(record);
+          played++;
+        }
+        progress?.(Math.min(++done, total), total);
+      }
     }
   }
   return records;
@@ -209,8 +241,13 @@ interface FighterSummary {
   readonly winRate: number;
   /** Win rate against each opponent, over decisive matches. */
   readonly against: Readonly<Record<string, number>>;
+  /** Matches played against each opponent. */
+  readonly played: Readonly<Record<string, number>>;
   readonly stockLosses: number;
-  /** Stock losses with no hit taken in the previous NO_HIT_FRAMES. */
+  /** Stock losses with no hit taken since the fighter last stood on a deck or held the ledge. */
+  readonly selfDestructs: number;
+  readonly selfDestructShare: number;
+  /** Fall time: stock losses with no hit taken in the previous NO_HIT_FRAMES. */
   readonly noHitLosses: number;
   readonly noHitShare: number;
   readonly damagePerHit: number;
@@ -241,9 +278,10 @@ export function fighterMoveUsage(character: Character, options: FieldOptions = {
   const stages = options.stages ?? Object.keys(FIELD_STAGES);
   const records: MatchRecord[] = [];
   for (const other of fighters) {
-    if (other === character) continue;
+    // A mirror plays only when asked for alone; its two orders are the same match.
+    if (other === character && fighters.length > 1) continue;
     for (const stage of stages) for (let variant = 0; variant < (options.variants ?? 1); variant++) {
-      for (const pair of [[character, other], [other, character]] as const) {
+      for (const pair of other === character ? [[character, other] as const] : [[character, other], [other, character]] as const) {
         const record = playCpuMatch(pair[0], pair[1], stage, variant, options);
         if (record !== undefined) records.push(record);
       }
@@ -259,13 +297,42 @@ export function keyMovesAmongMostUsed(usage: readonly MoveUse[], key: readonly n
   return { ok: missing.length === 0, missing };
 }
 
+/** A gameplan move as fighterMoveUsage counts it: a throw starts with the grab. */
+const countedAs = (move: number): number => (move >= GameplanThrow.forward && move <= GameplanThrow.down ? AttackStyle.grab : move);
+/** A started move as a gameplan names it: Illidan's dash attack is the dash attack, angled forward tilts the forward tilt. */
+const namedAs = (move: number): number =>
+  move === AttackStyle.demonHunterDashAttack ? AttackStyle.dashAttack
+    : move === AttackStyle.forwardTiltUp || move === AttackStyle.forwardTiltDown ? AttackStyle.forwardTilt : move;
+
+/**
+ * The per-fighter gameplan test (#105 box 2): whether the fighter's declared
+ * key moves (its spacing tools unless `key` names others) are among its
+ * `top` (8) most-used moves in its computer matches: by default its mirror
+ * on every stage at 3 stocks and 4 minutes, about a second a fighter, so the
+ * check depends only on its own kit and gameplan, never another lane's.
+ */
+export function gameplanKeyMovesCheck(character: Character, { top = 8, key, options = {} }: { top?: number; key?: readonly GameplanMove[]; options?: FieldOptions } = {}) {
+  const plan = gameplanOf(character);
+  if (plan === undefined) throw new Error(`${fighterSlug(character)} declares no gameplan`);
+  const merged = new Map<number, MoveUse>();
+  for (const use of fighterMoveUsage(character, { fighters: [character], ...options })) {
+    const move = namedAs(use.move);
+    const known = merged.get(move);
+    merged.set(move, { move, name: moveName(move), count: (known?.count ?? 0) + use.count, share: (known?.share ?? 0) + use.share });
+  }
+  const usage = [...merged.values()].sort((x, y) => y.count - x.count || x.move - y.move);
+  const declared = [...new Set((key ?? plan.spacing.map((spaced) => spaced.move)).map((move) => namedAs(countedAs(move))))];
+  const result = keyMovesAmongMostUsed(usage, declared, top);
+  return { ...result, missingNames: result.missing.map(moveName), usage };
+}
+
 function summarizeField(records: readonly MatchRecord[]): FighterSummary[] {
   const names = [...new Set(records.flatMap((record) => record.fighters))];
   const order = soak.roster.fighters;
   names.sort((x, y) => order.indexOf(x) - order.indexOf(y));
   return names.map((fighter) => {
-    let matches = 0, wins = 0, losses = 0, ties = 0, timeOuts = 0, hits = 0, damage = 0, stockLosses = 0, noHit = 0;
-    const versus = new Map<string, { wins: number; decisive: number }>();
+    let matches = 0, wins = 0, losses = 0, ties = 0, timeOuts = 0, hits = 0, damage = 0, stockLosses = 0, noHit = 0, selfDestructs = 0;
+    const versus = new Map<string, { wins: number; decisive: number; matches: number }>();
     for (const record of records) {
       const slot = record.fighters.indexOf(fighter);
       if (slot < 0) continue;
@@ -274,8 +341,9 @@ function summarizeField(records: readonly MatchRecord[]): FighterSummary[] {
       if (side === undefined) continue;
       matches++;
       if (record.timedOut) timeOuts++;
-      const pair = versus.get(opponent) ?? { wins: 0, decisive: 0 };
+      const pair = versus.get(opponent) ?? { wins: 0, decisive: 0, matches: 0 };
       versus.set(opponent, pair);
+      pair.matches++;
       if (record.winner === null) ties++;
       else {
         pair.decisive++;
@@ -289,13 +357,18 @@ function summarizeField(records: readonly MatchRecord[]): FighterSummary[] {
       for (const loss of side.stockLosses) {
         stockLosses++;
         if (loss.sinceHit === undefined || loss.sinceHit > NO_HIT_FRAMES) noHit++;
+        if (loss.selfDestruct) selfDestructs++;
       }
     }
     const against: Record<string, number> = {};
-    for (const [opponent, pair] of versus) against[opponent] = pair.decisive === 0 ? Number.NaN : pair.wins / pair.decisive;
+    const played: Record<string, number> = {};
+    for (const [opponent, pair] of versus) {
+      against[opponent] = pair.decisive === 0 ? Number.NaN : pair.wins / pair.decisive;
+      played[opponent] = pair.matches;
+    }
     return {
-      fighter, matches, wins, losses, ties, timeOuts, winRate: wins + losses === 0 ? Number.NaN : wins / (wins + losses), against,
-      stockLosses, noHitLosses: noHit, noHitShare: stockLosses === 0 ? 0 : noHit / stockLosses, damagePerHit: hits === 0 ? Number.NaN : damage / hits,
+      fighter, matches, wins, losses, ties, timeOuts, winRate: wins + losses === 0 ? Number.NaN : wins / (wins + losses), against, played,
+      stockLosses, selfDestructs, selfDestructShare: stockLosses === 0 ? 0 : selfDestructs / stockLosses, noHitLosses: noHit, noHitShare: stockLosses === 0 ? 0 : noHit / stockLosses, damagePerHit: hits === 0 ? Number.NaN : damage / hits,
       moves: moveUsage(records, fighter),
     };
   });
@@ -305,23 +378,37 @@ const percent = (value: number) => (Number.isNaN(value) ? "-" : `${(100 * value)
 
 function fieldTable(summaries: readonly FighterSummary[]): string {
   const lines = [
-    "| Fighter | Matches | Wins | Losses | Ties | Time-outs | Win rate vs field | Stock losses | No-hit losses (share) | Damage per hit | Top moves (share of moves started) |",
-    "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | ---: | --- |",
+    "| Fighter | Matches | Wins | Losses | Ties | Time-outs | Win rate vs field | Stock losses | Self-destructs (share) | Lost over 3 s after a hit (share) | Damage per hit | Top moves (share of moves started) |",
+    "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | ---: | --- |",
   ];
   for (const s of summaries) {
     const top = s.moves.slice(0, 6).map((use) => `${use.name} ${percent(use.share)}`).join(", ");
-    lines.push(`| ${s.fighter} | ${s.matches} | ${s.wins} | ${s.losses} | ${s.ties} | ${s.timeOuts} | ${percent(s.winRate)} | ${s.stockLosses} | ${s.noHitLosses} (${percent(s.noHitShare)}) | ${s.damagePerHit.toFixed(2)} | ${top} |`);
+    lines.push(`| ${s.fighter} | ${s.matches} | ${s.wins} | ${s.losses} | ${s.ties} | ${s.timeOuts} | ${percent(s.winRate)} | ${s.stockLosses} | ${s.selfDestructs} (${percent(s.selfDestructShare)}) | ${s.noHitLosses} (${percent(s.noHitShare)}) | ${s.damagePerHit.toFixed(2)} | ${top} |`);
   }
   const names = summaries.map((s) => s.fighter);
-  lines.push("", `| Row's win rate vs | ${names.join(" | ")} |`, `| --- |${names.map(() => " ---: |").join("")}`);
-  for (const s of summaries) lines.push(`| ${s.fighter} | ${names.map((name) => (name === s.fighter ? "-" : percent(s.against[name] ?? Number.NaN))).join(" | ")} |`);
+  lines.push("", `| Row's win rate vs (matches) | ${names.join(" | ")} |`, `| --- |${names.map(() => " ---: |").join("")}`);
+  const cell = (s: FighterSummary, name: string) => (name === s.fighter ? "-" : `${percent(s.against[name] ?? Number.NaN)} (${s.played[name] ?? 0})`);
+  for (const s of summaries) lines.push(`| ${s.fighter} | ${names.map((name) => cell(s, name)).join(" | ")} |`);
+  // #105 box 3: every matchup inside the band, both directions.
+  const outside: string[] = [];
+  let inside = 0;
+  let smallest = Number.POSITIVE_INFINITY;
+  summaries.forEach((s, row) => {
+    for (const name of names.slice(row + 1)) {
+      const rate = s.against[name] ?? Number.NaN;
+      smallest = Math.min(smallest, s.played[name] ?? 0);
+      if (rate >= MATCHUP_LOW && rate <= MATCHUP_HIGH) inside++;
+      else outside.push(`${s.fighter}-${name} ${percent(rate)}`);
+    }
+  });
+  lines.push("", `Matchups inside ${percent(MATCHUP_LOW)}-${percent(MATCHUP_HIGH)}: ${inside} of ${inside + outside.length}, at least ${smallest} matches each.${outside.length === 0 ? "" : ` Outside: ${outside.join(", ")}.`}`);
   return lines.join("\n");
 }
 
 if (import.meta.main) {
   const { values } = parseArgs({
     args: process.argv.slice(2),
-    options: { variants: { type: "string" }, stocks: { type: "string" }, minutes: { type: "string" }, json: { type: "string" }, fighters: { type: "string" } },
+    options: { variants: { type: "string" }, "per-pair": { type: "string" }, stocks: { type: "string" }, minutes: { type: "string" }, json: { type: "string" }, fighters: { type: "string" } },
     strict: true,
   });
   const fighters = values.fighters?.split(",").map((slug) => {
@@ -332,6 +419,7 @@ if (import.meta.main) {
   const options: FieldOptions = {
     variants: Number(values.variants ?? 1), stocks: Number(values.stocks ?? 3), minutes: Number(values.minutes ?? 4),
     ...(fighters === undefined ? {} : { fighters }),
+    ...(values["per-pair"] === undefined ? {} : { perPair: Number(values["per-pair"]) }),
   };
   const started = performance.now();
   let reported = 0;
@@ -343,7 +431,7 @@ if (import.meta.main) {
     }
   });
   const summaries = summarizeField(records);
-  console.log(`${records.length} computer matches (${options.stocks} stocks, ${options.minutes}-minute clock, ${options.variants} spawn variant(s) per ordered pair and stage), ${((performance.now() - started) / 1000).toFixed(0)} s; win rate over decisive matches; a no-hit loss is a stock lost with no hit taken in the previous ${NO_HIT_FRAMES / MATCH_TICKS_PER_SECOND} s.`);
+  console.log(`${records.length} computer matches (${options.stocks} stocks, ${options.minutes}-minute clock, ${options.perPair === undefined ? `${options.variants} spawn variant(s) per ordered pair and stage` : `spawn variants until each pair has ${options.perPair} matches`}), ${((performance.now() - started) / 1000).toFixed(0)} s; win rate over decisive matches; a self-destruct is a stock lost with no hit taken since the fighter last stood on a deck or held the ledge; the fall-time column counts stocks lost over ${NO_HIT_FRAMES / MATCH_TICKS_PER_SECOND} s after the last hit.`);
   console.log("");
   console.log(fieldTable(summaries));
   if (values.json !== undefined) writeFileSync(values.json, `${JSON.stringify({ options, summaries, records }, null, 1)}\n`);

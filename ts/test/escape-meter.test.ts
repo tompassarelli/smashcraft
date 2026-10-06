@@ -9,6 +9,7 @@ import { AttackStyle, GrabAction } from "../src/game/sim/codes";
 import { resolveGrabs } from "../src/game/sim/grabs";
 import { GRAB_HOLD_FRAMES, PUMMEL_CONTACT_FRAME, attackStartupFrames } from "../src/game/sim/moves";
 import { fighterAt } from "../src/game/sim/roster";
+import { ESCAPE_METER_SEGMENT_FRAMES } from "../src/game/presentation/escapeMeter";
 
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
@@ -50,7 +51,7 @@ function watch(clients: ReturnType<typeof headless.clients>, frames: number, pre
       });
       const back = client.frames.named("EscapeMeterBack1", 1120);
       const fill = client.frames.named("EscapeMeterFill1", 1121);
-      const mark = client.frames.named(`EscapeMeterMark1`, 1130);
+      const mark = client.frames.named(`EscapeMeterMark1`, 1121 + Math.floor(GRAB_HOLD_FRAMES / ESCAPE_METER_SEGMENT_FRAMES));
       expect(back && fill && mark).toBeTruthy();
       if (back === undefined || fill === undefined || mark === undefined) return seen;
       expect(client.frames.shown(fill)).toBe(remaining > 0);

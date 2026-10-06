@@ -12,7 +12,7 @@ import { ReplayCorrections, ReplayHistory } from "../replay/history";
 import { firstFighterDifference, firstPoseDifference, firstStateDifference } from "../replay/difference";
 import { captureReplaySnapshot, createReplaySnapshot, restoreReplaySnapshot } from "../replay/snapshot";
 import { beginFighterAttack } from "../sim/attacks";
-import { AttackStyle, Character, DownState, GrabAction } from "../sim/codes";
+import { AttackStyle, Character, DownState, GrabAction, SurfaceContact } from "../sim/codes";
 import { TOP_KO_MINIMUM_UPWARD_KNOCKBACK } from "../sim/knockback";
 import { attackStartupFrames, grabContactFrame } from "../sim/moves";
 import { fighterAt, isActive } from "../sim/roster";
@@ -26,6 +26,33 @@ import {
 function projectAll(match: TestMatch): void {
   for (let i = 0; i < IMPACT_COUNT; i++) projectImpact(match.runtime.impacts, i);
 }
+
+test("wall tech stays at contact and wall jump has a separate short push-off ring", () => {
+  const pool = createImpactState();
+  const events = createImpactEvents();
+  events.surface = SurfaceContact.techWall;
+  events.contactX = -280.0;
+  events.contactZ = 64.0;
+  events.normalX = 1.0;
+  emitImpacts(pool, events, 1);
+  const tech = IMPACTS_PER_KIND;
+  for (let frame = 0; frame < 15; frame++) {
+    const pose = projectImpact(pool, tech);
+    assertTrue(pose.visible);
+    assertEquals(pose.x, events.contactX);
+    assertEquals(pose.z, events.contactZ);
+    advanceImpacts(pool);
+  }
+  assertFalse(projectImpact(pool, tech).visible);
+  events.surface = SurfaceContact.none;
+  events.jump = JumpCue.wall;
+  emitImpacts(pool, events, 16);
+  const jump = 7 * IMPACTS_PER_KIND;
+  assertEquals(projectImpact(pool, jump).x, events.contactX);
+  assertEquals(projectImpact(pool, jump).z, events.contactZ);
+  for (let frame = 0; frame < 12; frame++) advanceImpacts(pool);
+  assertFalse(projectImpact(pool, jump).visible);
+});
 
 test("stock dust remains drawn until its slot expires", () => {
   const pool = createImpactState();

@@ -558,17 +558,27 @@ From smashcraft:ts/:
   smashcraft:ts/ files nothing imports or names, and smashcraft:tools/ files no
   live document or source names, and exits 1 if any remain. Map bundle entries'
   exports count as used; references from smashcraft:evidence/ do not. About 10 s.
-- `bun scripts/cpuField.ts [--variants N] [--stocks N] [--minutes N]
-  [--json FILE] [--fighters a,b]`: the computer against the field (#105).
+- `bun scripts/cpuField.ts [--variants N | --per-pair N] [--stocks N]
+  [--minutes N] [--json FILE] [--fighters a,b]`: the computer against the
+  field (#105). `--per-pair N` plays spawn variants until every pair has at
+  least N matches (#105 box 3 uses 100); the matchup matrix shows each
+  win rate with its match count and counts the matchups inside 45-55%.
   Every ordered pair of different selectable fighters, both computers, on
   every soak stage, played in process through frame capture and execution
   (3 stocks, 4-minute clock by default). The computer is deterministic, so
   each setup is one sample; each variant shifts both spawn points sideways.
   Per fighter it prints win rate over decisive matches against the field and
-  each opponent, the share of stocks lost with no hit taken in the previous
-  3 s, damage per hit landed and its most-started moves. About 0.15 s a
+  each opponent, its self-destructs (stocks lost with no hit taken since it
+  last stood on a deck or held the ledge, outside hitlag and hitstun), the
+  stocks lost over 3 s after the last hit (fall time), damage per hit
+  landed and its most-started moves. About 0.15 s a
   match, 900 matches a variant. `fighterMoveUsage` gives a per-fighter test
-  the same move ranking.
+  the same move ranking; `gameplanKeyMovesCheck(character)` checks that the
+  fighter's declared key moves (its gameplan's spacing tools unless `key`
+  names others) are among its `top` (8) most-used in its mirror on every
+  stage (3 stocks, 4 minutes, about a second), counting a throw as the
+  grab, any dash attack as `dashAttack` and angled forward tilts as the
+  forward tilt.
 
 ## Build the map
 

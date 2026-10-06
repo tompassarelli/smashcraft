@@ -16,6 +16,7 @@ import { HERO_STATUS_GROUPS } from "../sim/codes";
 import { PROJECTILE_CAPACITY, type Fighter } from "../sim/fighter";
 import { fighterAt, isActive } from "../sim/roster";
 import type { ReplayState } from "./snapshot";
+import { HERO_ROSTER } from "../sim/heroes/registry";
 
 const REPLAY_CHECKSUM_MODULUS = 1_000_003;
 
@@ -388,16 +389,25 @@ export function canonicalChecksum(text: string): string {
 type Emit = (fragment: string) => void;
 
 // A kit is immutable, so its canonical text is folded once per kit object and
-// a state writes that digest. Writing the whole text into every checksum built
-// about 116 MB of Lua strings per checksum for one hero (perf bot-blademaster).
+// a state writes that digest. Map load folds every registered kit
+// (prepareKitDigests), so no match frame builds kit text: one kit's text is
+// millions of Lua instructions (perf bot-blademaster).
 const MOVES_DIGESTS = new Map<Readonly<FighterMoves>, string>();
 const SPECIALS_DIGESTS = new Map<Readonly<FighterSpecials>, string>();
 const PLACEMENT_DIGESTS = new Map<Readonly<SpecialPlacement>, string>();
+const placedSpecCanonical = (spec: Readonly<SpecialPlacement>): string => specialPlacementCanonical(spec, "placedSpec");
+let kitDigestBuilds = 0;
+
+/** Kit texts folded so far; a match frame after prepareKitDigests adds none. */
+export function kitDigestBuildCount(): number {
+  return kitDigestBuilds;
+}
 
 function kitDigestField<K>(name: string, kit: K | undefined, digests: Map<K, string>, text: (kit: K) => string): string {
   if (kit === undefined) return "";
   let digest = digests.get(kit);
   if (digest === undefined) {
+    kitDigestBuilds++;
     digest = canonicalChecksum(text(kit));
     digests.set(kit, digest);
   }
@@ -727,7 +737,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
     int("placedSerial", placed.serial);
     for (let i = 0; i < PARTICIPANT_CAPACITY; i++) int(`placedStruck[${i}]`, placed.struck[i] ?? -1);
     int("placedSpecialStruck", placed.specialStruck);
-    emit(kitDigestField(`${prefix}.placedSpec`, placed.spec, PLACEMENT_DIGESTS, (spec) => specialPlacementCanonical(spec, "placedSpec")));
+    emit(kitDigestField(`${prefix}.placedSpec`, placed.spec, PLACEMENT_DIGESTS, placedSpecCanonical));
     int("specialGuarded", sp.guarded ? 1 : 0);
     real("guardHealed", st.guardHealed);
   }
@@ -811,4 +821,19 @@ export function stateChecksum(state: Readonly<ReplayState>): string {
   const lanes: ChecksumLanes = { valid: true, first: 0, second: 0 };
   writeState(fragment => foldChecksum(lanes, fragment), state);
   return checksumText(lanes);
+}
+
+/** Folds every registered hero kit's digest; map load calls it before any match frame. */
+export function prepareKitDigests(): void {
+  for (const hero of HERO_ROSTER) {
+    kitDigestField("moves", hero.moves, MOVES_DIGESTS, fighterMovesCanonical);
+    kitDigestField("specials", hero.specials, SPECIALS_DIGESTS, fighterSpecialsCanonical);
+    const specials = hero.specials;
+    if (specials === undefined) continue;
+    for (const kit of [specials.neutral, specials.side, specials.up, specials.down]) {
+      for (const form of [kit.ground, kit.air, kit.free, kit.ground.followUp?.special, kit.air?.followUp?.special]) {
+        kitDigestField("placedSpec", form?.placement, PLACEMENT_DIGESTS, placedSpecCanonical);
+      }
+    }
+  }
 }

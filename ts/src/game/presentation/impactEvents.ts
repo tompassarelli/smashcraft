@@ -12,8 +12,8 @@ import { WORLD_UNITS_PER_MELEE_UNIT } from "../sim/tuning";
 export const ImpactLanding = { none: 0, tech: 1, missedTech: 2 } as const;
 export type ImpactLanding = (typeof ImpactLanding)[keyof typeof ImpactLanding];
 
-/** A new jump: from the ground, a double jump, or an aerial jump that isn't one. */
-export const JumpCue = { none: 0, ground: 1, double: 2, air: 3 } as const;
+/** A new jump: ground, double, other aerial, or a wall push-off. */
+export const JumpCue = { none: 0, ground: 1, double: 2, air: 3, wall: 4 } as const;
 export type JumpCue = (typeof JumpCue)[keyof typeof JumpCue];
 
 export const DodgeCue = { none: 0, spot: 1, roll: 2 } as const;
@@ -233,7 +233,14 @@ export function finishImpactEventsAfter(events: ImpactEvents, fighter: Readonly<
   events.shieldBreak = present && events.previousShieldBreak === ShieldBreak.none && shield.breakState !== ShieldBreak.none;
   events.ordinaryLanding = present && !events.previouslyGrounded && motion.grounded && down.state === DownState.none;
   if (present && jump.serial !== events.previousJumpSerial && !events.ledgeRecovery) {
-    events.jump = jump.isDouble ? JumpCue.double : events.previouslyGrounded ? JumpCue.ground : JumpCue.air;
+    events.jump = surfaceRecovery.state === SurfaceContact.techWall ? JumpCue.wall
+      : jump.isDouble ? JumpCue.double : events.previouslyGrounded ? JumpCue.ground : JumpCue.air;
+    if (events.jump === JumpCue.wall) {
+      events.contactX = surfaceRecovery.contactX;
+      events.contactZ = surfaceRecovery.contactZ;
+      events.normalX = surfaceRecovery.contactNormalX;
+      events.normalZ = surfaceRecovery.contactNormalZ;
+    }
     events.jumpOriginX = events.previousX;
     events.jumpOriginZ = events.previousZ;
   }
