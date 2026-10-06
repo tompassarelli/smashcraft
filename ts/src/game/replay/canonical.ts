@@ -12,7 +12,7 @@ import type { FighterMoves } from "../sim/heroMoves";
 import type { AuthoredSpecial, FighterSpecials, SpecialProjectile } from "../sim/heroSpecials";
 import type { HitEffect } from "../sim/hitRegions";
 import { type HurtPart, HurtState } from "../sim/hurtboxes";
-import { HERO_STATUS_GROUPS } from "../sim/heroStatus";
+import { HERO_STATUS_GROUPS } from "../sim/codes";
 import { PROJECTILE_CAPACITY, type Fighter } from "../sim/fighter";
 import { fighterAt, isActive } from "../sim/roster";
 import type { ReplayState } from "./snapshot";
@@ -251,6 +251,20 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
     real(`motion[${index}].velocityX`, segment.velocityX);
     real(`motion[${index}].velocityZ`, segment.velocityZ);
     real(`motion[${index}].aimedSpeed`, segment.aimedSpeed ?? 0.0);
+    if (segment.steerX !== undefined) real(`motion[${index}].steerX`, segment.steerX);
+  }
+  const grab = move.commandGrab;
+  if (grab !== undefined) {
+    int("commandGrab.first", grab.first);
+    int("commandGrab.last", grab.last);
+    real("commandGrab.strike.x1", grab.strike.x1);
+    real("commandGrab.strike.z1", grab.strike.z1);
+    real("commandGrab.strike.x2", grab.strike.x2);
+    real("commandGrab.strike.z2", grab.strike.z2);
+    real("commandGrab.strike.radius", grab.strike.radius);
+    int("commandGrab.hold", grab.holdFrames);
+    int("commandGrab.recovery", grab.recovery);
+    result += hitEffectCanonical(grab.effect, `${name}.commandGrab.effect`);
   }
   const poses = move.hurt ?? [];
   for (let index = 0; index < poses.length; index++) {
@@ -619,6 +633,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
     int("specialAimX", sp.aimX);
     int("specialAimZ", sp.aimZ);
     int("specialAirtimeUses", sp.airtimeUses);
+    if (sp.grabFrame !== 0) int("specialGrabFrame", sp.grabFrame);
     int("armorFrames", st.armorFrames);
     real("armorMaxDamage", st.armorMaxDamage);
   }

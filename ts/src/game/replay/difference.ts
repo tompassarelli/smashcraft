@@ -10,7 +10,7 @@ import { firstSummonDifference } from "../presentation/summonState";
 import { SPECIAL_ACTION_CAPACITY } from "../sim/codes";
 import { PROJECTILE_CAPACITY, type Fighter, type MeleeMotionValue, type Projectile } from "../sim/fighter";
 import { fighterAt, isActive } from "../sim/roster";
-import { HERO_STATUS_GROUPS } from "../sim/heroStatus";
+import { HERO_STATUS_GROUPS } from "../sim/codes";
 import type { DashGrabRules, FighterPhysics, GroundMovementRules, ShieldGeometry, SurfaceRecoveryPhysics } from "../sim/tuning";
 import { at } from "wisp/src/runtime/lookup";
 import { canonicalSlot, fighterMovesCanonical, fighterSpecialsCanonical } from "./canonical";
@@ -211,6 +211,7 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("specialAimX", e.special.aimX, a.special.aimX);
   add("specialAimZ", e.special.aimZ, a.special.aimZ);
   add("specialAirtimeUses", e.special.airtimeUses, a.special.airtimeUses);
+  add("specialGrabFrame", e.special.grabFrame, a.special.grabFrame);
   for (let i = 0; i < PROJECTILE_CAPACITY; i++) add(`projectileSpec[${i}]`, at(e.projectiles, i).spec === at(a.projectiles, i).spec, true);
   add("freezeTrapCooldown", e.freezeTrap.cooldown, a.freezeTrap.cooldown);
   add("out", e.status.out, a.status.out);

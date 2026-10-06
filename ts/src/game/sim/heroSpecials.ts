@@ -2,7 +2,7 @@
 // FighterMoves, executed by heroSpecialRules.ts. Frame numbers follow the
 // roster brief (smashcraft:docs/design/roster.md): the entry tick is frame 1,
 // windows are inclusive, and "end fN" means the fighter acts again on N+1.
-import type { MoveRegion } from "./heroMoves";
+import type { MoveRegion, StrikeCapsule } from "./heroMoves";
 import type { HitEffect } from "./hitRegions";
 import type { AppliedStatus } from "./heroStatus";
 import type { HurtPose } from "./hurtboxes";
@@ -36,6 +36,26 @@ export interface SpecialMotion extends FrameWindow {
    * instead of carrying into or through it (the roster's dash specials).
    */
   readonly stopsAtBody?: boolean | undefined;
+  /**
+   * Steerable: the horizontal velocity is the stick side held this frame
+   * times this speed, in world terms; a neutral stick travels straight.
+   */
+  readonly steerX?: number | undefined;
+}
+
+/**
+ * A command grab: in its window (brief frames) the strike path latches the
+ * nearest grabbable body, shield or not, through the shared grab link, so
+ * external hits break it and #85's throw-hitstun rule refuses a regrab. The
+ * held target is released `holdFrames` after the catch with `effect` as a
+ * throw, and the action then ends `recovery` frames later instead of at its
+ * whiff `endFrame`.
+ */
+export interface CommandGrab extends FrameWindow {
+  readonly strike: StrikeCapsule;
+  readonly holdFrames: number;
+  readonly effect: Readonly<HitEffect>;
+  readonly recovery: number;
 }
 
 /**
@@ -94,6 +114,7 @@ export interface AuthoredSpecial {
    * frames); frames no pose covers use the standing body. Weapons stay out.
    */
   readonly hurt?: readonly HurtPose[] | undefined;
+  readonly commandGrab?: CommandGrab | undefined;
 }
 
 /** One special input: its grounded form, its airborne form and its zero-mana form. */

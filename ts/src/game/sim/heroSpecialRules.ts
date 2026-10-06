@@ -131,6 +131,7 @@ export function enterHeroSpecial(f: Fighter, chosen: Readonly<HeroSpecialChoice>
   const move = specialForm(specialKit(specials, chosen.slot), chosen.form);
   const { special, mana } = f;
   special.form = chosen.form;
+  special.grabFrame = 0;
   const aimX = input.specialX !== 0 ? input.specialX : input.direction;
   const aimZ = input.specialZ !== 0 ? input.specialZ : input.verticalDirection;
   special.aimX = aimX < 0 ? -1 : aimX > 0 ? 1 : 0;
@@ -198,6 +199,7 @@ function applyMotion(f: Fighter, move: Readonly<AuthoredSpecial>, frame: number)
       velocityX = f32(special.aimX * scale);
       velocityZ = f32(special.aimZ * scale);
     }
+    if (segment.steerX !== undefined) velocityX = f32(f.motion.previousStickSide * segment.steerX);
     motion.vx = velocityX;
     motion.vz = velocityZ;
     if (velocityZ > 0 && motion.grounded) {
@@ -225,7 +227,13 @@ export function advanceHeroSpecial(f: Fighter): void {
   applyMotion(f, move, frame);
   for (const spec of move.projectiles ?? []) if (spec.spawnFrame === frame) spawnHeroProjectile(f, spec, f.attack.serial + 1);
   applyWindows(f, move, frame);
-  if (frame >= move.endFrame) endHeroSpecial(f, move);
+  if (frame >= heroSpecialEndFrame(f, move)) endHeroSpecial(f, move);
+}
+
+/** The last frame of the running form: a caught command grab ends after its release and recovery. */
+export function heroSpecialEndFrame(f: Readonly<Fighter>, move: Readonly<AuthoredSpecial>): number {
+  const grab = move.commandGrab;
+  return grab !== undefined && f.special.grabFrame > 0 ? f.special.grabFrame + grab.holdFrames + grab.recovery : move.endFrame;
 }
 
 /** Landing ends a form that sets a landing lag; true when it did. */

@@ -7,19 +7,8 @@ import type { Fighter } from "./fighter";
 import { type AttackBuffer, clearAttackBuffer } from "../input/attackBuffer";
 import { type Controls, copyControls, neutralControls } from "./roster";
 import { cancelAttack, cancelSpecialState } from "./transitions";
+import { HERO_STATUS_GROUPS, HeroStatusKind, type HeroStatusGroup } from "./codes";
 
-/** Status kinds; a kit names one in `AppliedStatus.kind`. Append only: the code is in replay text. */
-export const HeroStatusKind = { none: 0, sleep: 1 } as const;
-export type HeroStatusKind = (typeof HeroStatusKind)[keyof typeof HeroStatusKind];
-
-/**
- * Immunity groups: a status ending in a group makes its fighter immune to
- * every status of that group for the authored frames. Hex and silence are
- * meant to share one group.
- */
-export const HeroStatusGroup = { sleep: 0, silence: 1 } as const;
-export type HeroStatusGroup = (typeof HeroStatusGroup)[keyof typeof HeroStatusGroup];
-export const HERO_STATUS_GROUPS = 2;
 
 /** What a status prevents and what ends it early. */
 interface StatusRules {

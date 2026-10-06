@@ -4,6 +4,7 @@ import { Character } from "../codes";
 import { DREADLORD_CLIP_TABLE, DREADLORD_FALLBACK_CLIP, DREADLORD_MODEL_FILE } from "../../presentation/heroes/dreadlordClips";
 import type { HeroDefinition } from "./hero";
 import { DREADLORD_MOVES } from "./dreadlordMoves";
+import { DREADLORD_SPECIALS } from "./dreadlordSpecials";
 
 export const DREADLORD_HERO: HeroDefinition = {
   character: Character.dreadlord,
@@ -12,7 +13,7 @@ export const DREADLORD_HERO: HeroDefinition = {
   weakness: "Large hurtbox and no safe long-range approach",
   complete: false,
   moves: DREADLORD_MOVES,
-  specials: undefined,
+  specials: DREADLORD_SPECIALS,
   presentation: {
     model: DREADLORD_MODEL_FILE,
     scale: 1.0,

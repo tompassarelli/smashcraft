@@ -8,11 +8,11 @@ import { copyFighterState } from "../replay/fighterState";
 import { firstFighterDifference } from "../replay/difference";
 import { stateChecksum } from "../replay/canonical";
 import { createReplaySnapshot } from "../replay/snapshot";
-import { Character, ContactKind } from "./codes";
+import { Character, ContactKind, HeroStatusGroup, HeroStatusKind } from "./codes";
 import { beginDamageContacts, collectDamageContact, finishDamageContacts } from "./contacts";
 import { createFighter } from "./fighter";
 import { advanceHeroStatus } from "./heroSpecialRules";
-import { type AppliedStatus, HeroStatusGroup, applyHeroStatus, HeroStatusKind, clearHeroStatus, maskHeroStatusControls } from "./heroStatus";
+import { type AppliedStatus, applyHeroStatus, clearHeroStatus, maskHeroStatusControls } from "./heroStatus";
 import { createRoster, fighterAt } from "./roster";
 import { controls } from "./testWorld";
 

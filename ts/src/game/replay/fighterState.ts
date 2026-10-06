@@ -1,7 +1,7 @@
 import { at } from "wisp/src/runtime/lookup";
 import { PARTICIPANT_CAPACITY, participantActive } from "../input/participants";
 import type { Fighter } from "../sim/fighter";
-import { HERO_STATUS_GROUPS } from "../sim/heroStatus";
+import { HERO_STATUS_GROUPS } from "../sim/codes";
 
 const retained = (activeMask: number, slot: number | undefined) => (slot !== undefined && participantActive(activeMask, slot) ? slot : undefined);
 
@@ -188,6 +188,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   special.aimX = sourceSpecial.aimX;
   special.aimZ = sourceSpecial.aimZ;
   special.airtimeUses = sourceSpecial.airtimeUses;
+  special.grabFrame = sourceSpecial.grabFrame;
 
   for (let i = 0; i < target.projectiles.length; i++) {
     const to = at(target.projectiles, i);
