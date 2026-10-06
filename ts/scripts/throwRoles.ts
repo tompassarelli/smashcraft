@@ -11,9 +11,9 @@ import { type FighterEntry, type Move, VICTIM_CHOICES, comboRow, openingState } 
 import { Timeline } from "./interactions";
 
 /** Low to mid percent: where an up throw's juggle must be guaranteed and a down throw must force a tech. */
-export const ROLE_PERCENTS = [0, 30, 60] as const;
+export const ROLE_PERCENTS: readonly number[] = [0, 30, 60];
 /** Reported beyond the role, where an up throw is expected to stop guaranteeing. */
-export const REPORT_PERCENTS = [...ROLE_PERCENTS, 90] as const;
+export const REPORT_PERCENTS: readonly number[] = [...ROLE_PERCENTS, 90];
 const UP_THROW: Move = { name: "up throw", throw: "up" };
 const DOWN_THROW: Move = { name: "down throw", throw: "down" };
 const TECH_OPTIONS = ["tech in place", "tech left", "tech right", "missed tech"] as const;
@@ -90,7 +90,7 @@ function landing(entry: FighterEntry, percent: number, di: (typeof VICTIM_CHOICE
 
 export function upThrowRow(entry: FighterEntry, percent: number): UpThrowRow {
   const row = comboRow(entry, UP_THROW, percent, false);
-  const role = (ROLE_PERCENTS as readonly number[]).includes(percent);
+  const role = ROLE_PERCENTS.includes(percent);
   const problems = [
     ...(!row.openingLands ? ["the up throw does not land"] : []),
     ...(role && row.guaranteed.followups < 1 ? ["no guaranteed follow-up at low to mid percent"] : []),
@@ -115,7 +115,7 @@ export function downThrowRow(entry: FighterEntry, percent: number): DownThrowRow
       best: [...new Set(scripts.flatMap((choice) => (choice.best === undefined ? [] : [choice.best.move])))],
     };
   });
-  const role = (ROLE_PERCENTS as readonly number[]).includes(percent);
+  const role = ROLE_PERCENTS.includes(percent);
   const problems = [
     ...(!row.openingLands ? ["the down throw does not land"] : []),
     ...(role && forcedTech < landings.length ? [`the victim escapes the tech after ${landings.length - forcedTech} DI directions`] : []),
