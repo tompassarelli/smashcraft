@@ -15,6 +15,7 @@ import type { Character } from "../../game/sim/codes";
 import { isActive } from "../../game/sim/roster";
 import type { MenuControls } from "../../game/ui/frames";
 import { FighterHud, MatchClock } from "../../game/ui/matchHud";
+import { EscapeMeter } from "../../game/ui/escapeMeter";
 import { OffscreenBubble } from "../../game/ui/offscreenBubble";
 import { type SelectionActions, SelectionPanel } from "../../game/ui/selectionUi";
 import { type SettingsActions, SettingsPanel } from "../../game/ui/settingsUi";
@@ -35,6 +36,7 @@ export interface UiObjects {
   readonly clock: MatchClock;
   readonly huds: Slots<FighterHud>;
   readonly bubbles: Slots<OffscreenBubble>;
+  readonly escapeMeters: Slots<EscapeMeter>;
   readonly selections: Slots<SelectionPanel>;
   readonly settings: Slots<SettingsPanel>;
   readonly stage: StagePanel;
@@ -71,6 +73,7 @@ export function createUi(s: ShellState, actions: PanelActions): UiObjects {
     clock: new MatchClock(),
     huds: each(slot => new FighterHud(slot, 4)),
     bubbles: each(slot => new OffscreenBubble(slot)),
+    escapeMeters: each(slot => new EscapeMeter(slot)),
     stage: new StagePanel(actions.stage, controls),
     selections: each(slot => new SelectionPanel(actions.selection, slot, controls)),
     settings: each(slot => new SettingsPanel(s.participants[slot].bindings, actions.settings, slot)),
@@ -124,6 +127,7 @@ export function recreateUi(s: ShellState, actions: PanelActions): void {
   for (const slot of PARTICIPANT_SLOTS) {
     bindPrototype(ui.huds[slot], FighterHud.prototype);
     bindPrototype(ui.bubbles[slot], OffscreenBubble.prototype);
+    bindPrototype(ui.escapeMeters[slot], EscapeMeter.prototype);
     bindPrototype(ui.selections[slot], SelectionPanel.prototype);
     ui.selections[slot].bindActions(actions.selection);
     bindPrototype(ui.settings[slot], SettingsPanel.prototype);

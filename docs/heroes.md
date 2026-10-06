@@ -47,20 +47,27 @@ acts again on N+1. It may author:
   displacement (Warden's Blink) ends at the deck body or lands on the deck.
   `aimedSpeed` replaces the direction with one of eight aimed directions;
   `aimedTilt` turns a horizontal heading to a fixed angle for an up or down
-  aim (Pursuit Lunge's 20 degrees);
+  aim (Pursuit Lunge's 20 degrees); `driftSpeed` adds the live stick's x at
+  that many units per frame (Spectral Ascent's steering);
 - `aimFrames`: through this frame a held stick re-chooses the aim, so an up
   special can still be aimed sideways or down; without it the aim is the
   stick on entry;
 - `projectiles`: spawn frame, offset, velocity (and an up-held velocity),
-  life, radius, `activeFrom`, effect, `reflectable`, `limit` and
-  `cancelOnInterrupt`; a cast that would exceed a limit or the three-projectile
-  cap fails before spending; in a match a hero projectile ends on a wall, an
-  underside or a solid deck's top, and passes through pass decks;
+  life, radius, `activeFrom` (the spawn frame is age one), effect,
+  `reflectable`, `limit`, `cancelOnInterrupt`, `backOffsetX` (used when
+  the special is pressed toward the back, which then keeps the facing) and
+  `needsLineOfSight` (not placed through solid stage surfaces); a cast that
+  would exceed a limit or the three-projectile cap fails before spending; in a
+  match a hero projectile ends on a wall, an underside or a solid deck's top,
+  and passes through pass decks;
 - `hurt`: body poses over the special's frames (`hurtPose`, 1-based), which
   `sim/hurtboxes.ts` uses instead of the standing body while they cover the
   current special frame;
 - `intangible` and `armor` windows (armor takes one hit's reaction up to its
-  damage; the damage applies and throws ignore it);
+  damage; the damage applies and throws ignore it). A `shell` armor is
+  armed once on its first frame, lasts through its last even after the
+  action ends, is spent by one hit, and blocks starting the special again
+  while any armor remains;
 - `groundOnly`, `oncePerAirtime`, `helpless` and `landingLag`.
 
 `sim/heroSpecialRules.ts` executes them: `chooseHeroSpecial` selects the
