@@ -85,8 +85,8 @@ Full scale is SDL's and the normalized evdev range, ±32767, standing in for
 Melee's 80 units, so a left-stick axis counts from 9175. No resting-offset
 calibration is applied; the deadzone absorbs a pad's resting offset. Left,
 right and up are active when their axis is outside the deadzone; down needs
-the stronger threshold below. The journal's rows carry the deadzoned axes. Right-stick directions additionally need 11000
-and triggers 4000, strictly beyond. Shared sources are unioned before emission:
+the stronger threshold below. The journal's rows carry the deadzoned axes. Right-stick directions
+use the flick thresholds below and triggers need 4000, strictly beyond. Shared sources are unioned before emission:
 releasing LT while RT is held retains shield; B and Y share one held jump
 action. Stick-up is only up: aim, up-special, getup and ledge stand. Hold
 duration remains available to the game's jump logic.
@@ -108,6 +108,23 @@ Up keeps the deadzone: ledge climb +0x494 = 0.25 and getup +0x244 = 0.2 lie
 inside it, and the 0.6625 up actions (tap jump, up smash) are not served by
 digital up. Up-special (+0x21C = 0.55) and the direction sent with a special or
 dodge press still use the deadzone, as does the journal's analog axis.
+
+The right stick presses a direction at Melee's smash-flick thresholds, after the
+same clamp and deadzone: **0.8** sideways and **0.6625** up or down (axis
+values from about 26215 and 21709). Retail common values (NTSC 1.02 PlCo.dat,
+selected fields read privately), all in melee:src/melee/ft/ft_0DF1.c: smash
+side `dash_smash_stick_threshold` +0x3C = 0.8 (0x3f4ccccd, `ftCo_800DF1C8`);
+smash up +0xCC = 0.6625 (`ftCo_800DF2D8`); smash down +0xD4 = -0.6625
+(`ftCo_800DF3A8`); get-up up +0x7F4 = 0.6625 (`ftCo_800DF644`); ledge-attack up
++0x7F8 = 0.6625 and sideways +0x7FC = 0.8 (`ftCo_800DF6F8`, `ftCo_800DF72C`);
+C-stick up jump = tap-jump 0.6625 (`ftCo_800DF910`). Lower thresholds also
+exist: aerials (+0xDC/+0xE0 = 0.25, `ftCo_800DF478`), throws (+0x98, +0xAC,
++0xB0 = 0.25), side get-up +0x248 = 0.2 (`ftCo_800DF678`) and ledge climb
++0x494 = 0.25 all fall inside the 0.28 deadzone, and C-stick roll and spot
+dodge use 0.7 (+0x31C, +0x314). One digital press per direction takes the smash
+values, so an aerial, throw or side get-up by C-stick needs a harder flick than
+in Melee. A full-scale diagonal clamps to 0.707 per axis, so it presses up or
+down but not sideways, as in Melee.
 
 On Linux the journal reads face buttons by position. Sony's driver reports
 positions, but xpad and other Xbox-style drivers report labels: X as `BTN_X`
