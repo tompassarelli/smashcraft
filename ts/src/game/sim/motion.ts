@@ -9,7 +9,7 @@ import { chillScaled } from "./chill";
 import { Character } from "./codes";
 import type { Fighter, MeleeMotionValue } from "./fighter";
 import { surfaceCount, surfaceLeft, surfaceMoves, surfaceRight, surfaceShiftX, surfaceShiftZ, surfaceZ } from "./stage";
-import { WORLD_UNITS_PER_MELEE_UNIT, melee } from "./tuning";
+import { type FighterPhysics, WORLD_UNITS_PER_MELEE_UNIT, melee } from "./tuning";
 
 function setOriginal(value: MeleeMotionValue, original: number): void {
   value.original = original;
@@ -77,10 +77,37 @@ export function moveMeleeZ(f: Fighter, originalDisplacement: number): void {
   motion.z = motion.meleeZ.published;
 }
 
+/** A physics record's per-frame terms in Melee units. */
+export interface PhysicsTerms {
+  readonly gravity: number;
+  readonly terminalSpeed: number;
+  /** Ground knockback's friction: the traction, rounded through Melee units. */
+  readonly knockbackFriction: number;
+}
+
+// Physics records are immutable and every fighter reads these terms every
+// frame, confirmed, predicted and replayed: a pure function's cache, which
+// never changes a result.
+const physicsTerms = new WeakMap<Readonly<FighterPhysics>, PhysicsTerms>();
+
+export function termsOfPhysics(physics: Readonly<FighterPhysics>): PhysicsTerms {
+  const cached = physicsTerms.get(physics);
+  if (cached !== undefined) return cached;
+  const terms: PhysicsTerms = {
+    gravity: divideFloat32(physics.gravity, WORLD_UNITS_PER_MELEE_UNIT),
+    terminalSpeed: divideFloat32(physics.terminalSpeed, WORLD_UNITS_PER_MELEE_UNIT),
+    knockbackFriction: roundMeleeWorldValue(f32(physics.traction * GROUND_KNOCKBACK_FRICTION_MULTIPLIER)),
+  };
+  physicsTerms.set(physics, terms);
+  return terms;
+}
+
+/** Ground knockback slows by the fighter's traction times this. */
+const GROUND_KNOCKBACK_FRICTION_MULTIPLIER = 1.0;
+
 export function applyMeleeGravity(f: Fighter): void {
   const velocity = retainedOriginal(f.motion.meleeVelocityZ, f.motion.vz);
-  const gravity = divideFloat32(f.tuning.physics.gravity, WORLD_UNITS_PER_MELEE_UNIT);
-  const terminal = divideFloat32(f.tuning.physics.terminalSpeed, WORLD_UNITS_PER_MELEE_UNIT);
+  const { gravity, terminalSpeed: terminal } = termsOfPhysics(f.tuning.physics);
   setMeleeVerticalVelocity(f, max(-terminal, subtractFloat32(velocity, gravity)));
 }
 

@@ -7,7 +7,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { meleeAtan2, meleeCos, meleeSin } from "../../sim/meleeScalarMath";
 import { DamageLanding } from "./codes";
 import type { Fighter } from "./fighter";
-import { AIR_KNOCKBACK_DECAY, AIR_KNOCKBACK_SQUARED_CUTOFF, decayedAirMotion, retainedOriginal, roundMeleeWorldValue, setMeleeKnockback } from "./motion";
+import { AIR_KNOCKBACK_DECAY, AIR_KNOCKBACK_SQUARED_CUTOFF, decayedAirMotion, retainedOriginal, roundMeleeWorldValue, setMeleeKnockback, termsOfPhysics } from "./motion";
 import type { Controls } from "./roster";
 import { melee } from "./tuning";
 import { squareRoot } from "./warcraftMath";
@@ -15,7 +15,6 @@ import { squareRoot } from "./warcraftMath";
 const KNOCKBACK_LAUNCH_SCALE = melee(0.029999999329447746);
 const HITSTUN_FRAMES_PER_KNOCKBACK = 0.4000000059604645;
 const KNOCKBACK_STACKING_FRAMES = 10;
-const GROUND_KNOCKBACK_FRICTION_MULTIPLIER = 1.0;
 const GROUND_LAUNCH_BOUNCE_ANGLE = 0.1745329201221466;
 const GROUND_LAUNCH_REBOUND = 0.800000011920929;
 const RADIANS_TO_DEGREES = 57.295780181884766;
@@ -151,7 +150,7 @@ export function decayKnockback(f: Fighter): void {
   const { launch } = f;
   if (f.motion.grounded) {
     if (launch.groundKnockbackX === 0) launch.groundKnockbackX = launch.knockbackX;
-    const friction = roundMeleeWorldValue(f32(f.tuning.physics.traction * GROUND_KNOCKBACK_FRICTION_MULTIPLIER));
+    const friction = termsOfPhysics(f.tuning.physics).knockbackFriction;
     const sliding = launch.groundKnockbackX;
     launch.groundKnockbackX = roundMeleeWorldValue(sliding > 0 ? max(0.0, f32(sliding - friction)) : min(0.0, f32(sliding + friction)));
     launch.knockbackX = launch.groundKnockbackX;

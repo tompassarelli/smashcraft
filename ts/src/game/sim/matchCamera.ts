@@ -2,6 +2,7 @@
 // and corner limits (smashcraft:docs/melee-camera.md). Warcraft's side view keeps yaw/pitch fixed; only the
 // eye distance and interest move. Gameplay uses one 16:9 view on every client.
 import { f32 } from "wisp/src/sim/f32";
+import { at } from "wisp/src/runtime/lookup";
 import { PARTICIPANT_SLOTS, type Slots } from "../input/participants";
 import { fighterAt, isActive, type Roster } from "./roster";
 import { stageBounds, type StageRegion } from "./stageBounds";
@@ -146,15 +147,32 @@ export function outsideCamera(camera: Readonly<MatchCamera>, x: number, z: numbe
   return depth <= 0 || Math.abs(f32(x - camera.x)) > f32(halfHeight * aspect) || Math.abs(f32(dz * CAMERA_PITCH_COS)) > halfHeight;
 }
 
+/** The subject box's extents for a count of fighters in play, scaled by Camera_800293E0's subject ratio. */
+interface SubjectScale {
+  readonly ratio: number;
+  readonly step: number;
+  readonly front: number;
+  readonly back: number;
+  readonly bottom: number;
+  readonly top: number;
+}
+
+function subjectScale(count: number): SubjectScale {
+  const ratio = f32(1.5 * (count === 1 ? 1.5 : count === 2 ? 1.3200000524520874 : count === 3 ? 1.159999966621399 : 1.0));
+  // Camera_800293E0 eases the unscaled extents by 0.5 Melee units, then scales them by the subject ratio.
+  return { ratio, step: f32(3.0 * ratio), front: f32(198.0 * ratio), back: f32(54.0 * ratio), bottom: -f32(54.0 * ratio), top: f32(96.0 * ratio) };
+}
+
+// Every frame reads one of these, confirmed, predicted and replayed.
+const SUBJECT_SCALES: readonly SubjectScale[] = [subjectScale(1), subjectScale(2), subjectScale(3), subjectScale(4)];
+
 /** Advances exactly once per match frame; rollback restores the camera with the match. */
 export function advanceMatchCamera(camera: MatchCamera, world: Readonly<Roster>, stage: number): void {
   const { camera: bounds, blast } = stageBounds(stage);
   let count = 0;
   for (const slot of PARTICIPANT_SLOTS) if (isActive(world, slot) && !fighterAt(world, slot).status.out) count++;
   if (count === 0) return;
-  const ratio = f32(1.5 * (count === 1 ? 1.5 : count === 2 ? 1.3200000524520874 : count === 3 ? 1.159999966621399 : 1.0));
-  // Camera_800293E0 eases the unscaled extents by 0.5 Melee units, then scales them by the subject ratio.
-  const step = f32(3.0 * ratio);
+  const { step, front, back, bottom: boxBottom, top: boxTop } = count <= SUBJECT_SCALES.length ? at(SUBJECT_SCALES, count - 1) : subjectScale(count);
   let left = bounds.right;
   let right = bounds.left;
   let bottom = bounds.top;
@@ -166,14 +184,12 @@ export function advanceMatchCamera(camera: MatchCamera, world: Readonly<Roster>,
     if (fighter.status.out) continue;
     const { x, z } = fighter.motion;
     lowest = Math.min(lowest, clamp(z, bounds.bottom, bounds.top));
-    const front = f32(198.0 * ratio);
-    const back = f32(54.0 * ratio);
     const box = camera.boxes[slot];
     const toward = fighter.facing > 0;
     box.left = camera.initialized ? extent(box.left, -(toward ? back : front), step) : -(toward ? back : front);
     box.right = camera.initialized ? extent(box.right, toward ? front : back, step) : toward ? front : back;
-    box.bottom = camera.initialized ? extent(box.bottom, -f32(54.0 * ratio), step) : -f32(54.0 * ratio);
-    box.top = camera.initialized ? extent(box.top, f32(96.0 * ratio), step) : f32(96.0 * ratio);
+    box.bottom = camera.initialized ? extent(box.bottom, boxBottom, step) : boxBottom;
+    box.top = camera.initialized ? extent(box.top, boxTop, step) : boxTop;
     left = Math.min(left, clamp(f32(x + box.left), bounds.left, bounds.right));
     right = Math.max(right, clamp(f32(x + box.right), bounds.left, bounds.right));
     bottom = Math.min(bottom, clamp(f32(f32(z + 60.0) + box.bottom), bounds.bottom, bounds.top));

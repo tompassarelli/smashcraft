@@ -359,16 +359,20 @@ function flyHeroProjectile(world: Roster, ownerSlot: number, projectile: Project
   return nearest;
 }
 
+/** Which side of the line a-b point c lies on: the sign of their cross product. */
+function side(ax: number, az: number, bx: number, bz: number, cx: number, cz: number): number {
+  return f32(f32(f32(bx - ax) * f32(cz - az)) - f32(f32(bz - az) * f32(cx - ax)));
+}
+
 /** Whether segments p1-p2 and q1-q2 cross or touch. */
 function segmentsMeet(p1x: number, p1z: number, p2x: number, p2z: number, q1x: number, q1z: number, q2x: number, q2z: number): boolean {
-  const side = (ax: number, az: number, bx: number, bz: number, cx: number, cz: number) =>
-    f32(f32(f32(bx - ax) * f32(cz - az)) - f32(f32(bz - az) * f32(cx - ax)));
   const d1 = side(q1x, q1z, q2x, q2z, p1x, p1z);
   const d2 = side(q1x, q1z, q2x, q2z, p2x, p2z);
+  // Most steps lie wholly on one side of a surface's line; p's own line isn't needed then.
+  if (!((d1 <= 0 && d2 >= 0) || (d1 >= 0 && d2 <= 0))) return false;
   const d3 = side(p1x, p1z, p2x, p2z, q1x, q1z);
   const d4 = side(p1x, p1z, p2x, p2z, q2x, q2z);
-  return ((d1 <= 0 && d2 >= 0) || (d1 >= 0 && d2 <= 0)) && ((d3 <= 0 && d4 >= 0) || (d3 >= 0 && d4 <= 0))
-    && !(d1 === 0 && d2 === 0 && d3 === 0 && d4 === 0);
+  return ((d3 <= 0 && d4 >= 0) || (d3 >= 0 && d4 <= 0)) && !(d1 === 0 && d2 === 0 && d3 === 0 && d4 === 0);
 }
 
 /**
