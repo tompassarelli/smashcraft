@@ -11,6 +11,7 @@
 // jump, hit, dodge, ledge or grab sequences, so those states reuse the nearest
 // readable sequence, often only its opening.
 import { f32 } from "wisp/src/sim/f32";
+import type { HeroClip, HeroClipTable } from "../../sim/heroes/hero";
 
 export interface StockSequence {
   readonly index: number;
@@ -37,13 +38,8 @@ export const MOUNTAIN_KING_SEQUENCES = {
 
 export type MountainKingSequence = keyof typeof MOUNTAIN_KING_SEQUENCES;
 
-/** A pose's sequence; a shorter `seconds` plays only that opening of it over the pose. */
-export interface MountainKingClip {
-  readonly index: number;
-  readonly seconds: number;
-}
-
-const play = (sequence: MountainKingSequence, seconds?: number): MountainKingClip => {
+/** A shorter `seconds` plays only that opening of the sequence over the pose. */
+const play = (sequence: MountainKingSequence, seconds?: number): HeroClip => {
   const { index, seconds: length } = MOUNTAIN_KING_SEQUENCES[sequence];
   return { index, seconds: f32(seconds ?? length) };
 };
@@ -55,6 +51,16 @@ export const MOUNTAIN_KING_FALLBACK = play("Stand Ready");
 export const MOUNTAIN_KING_CLIPS = {
   idle: play("Stand Ready"),
   walk: play("Walk"),
+  dash: play("Walk"),
+  run: play("Walk"),
+  crouch: play("Spell Slam", 0.25),
+  fall: play("Stand Ready"),
+  landing: play("Spell Slam", 0.3),
+  shield: play("Stand Ready"),
+  airDodge: play("Stand - 3", 0.6),
+  smashCharge: play("Attack Slam", 0.3),
+  ko: play("Dissipate"),
+  dizzy: play("Stand - 4"),
   jab: play("Attack -1"),
   grab: play("Attack -2"),
   forwardTilt: play("Attack -2"),
@@ -109,4 +115,4 @@ export const MOUNTAIN_KING_CLIPS = {
   sideSpecialAir: play("Attack -1"),
   upSpecialAir: play("Attack Slam"),
   downSpecialAir: play("Attack -1"),
-} as const satisfies Readonly<Record<string, MountainKingClip>>;
+} as const satisfies HeroClipTable;

@@ -1,5 +1,8 @@
 import { f32 } from "wisp/src/sim/f32";
+import { hurtCapsule } from "../../physics/contactGeometry";
+import { Character } from "../codes";
 import { HERO_REFERENCE_HEIGHT, heroRegion } from "../heroMoves";
+import { hurtPart, hurtPose } from "../hurtboxes";
 import { type FighterSpecials, ROSTER_MANA, frames } from "../heroSpecials";
 import { MEDIUM, SHORT, capsule, hit } from "./mountainKingMoves";
 
@@ -19,6 +22,8 @@ const RUSH_FRAMES = 6;
 const RUSH_SPEED = f32(heights(1.2) / RUSH_FRAMES);
 const STORM_RUSH = hit(12.0, "EDGE", 35);
 const RUSH_BODY = capsule(0.0, 14.0, 12.0, 60.0, 26.0);
+// The lowered shoulder is body, so it carries its own hurt volume while it strikes.
+const RUSH_HURT = [hurtPose(13, 18, [hurtCapsule(Character.mountainKing), hurtPart(RUSH_BODY.x1, RUSH_BODY.z1, RUSH_BODY.x2, RUSH_BODY.z2, RUSH_BODY.radius)])];
 
 // Thunder Leap: rise over f9-28 (20 frames), front-loaded into the hit window.
 // Full form 1.8H up and 0.7H forward; the free form 1.3H up, no attack.
@@ -61,12 +66,14 @@ export const MOUNTAIN_KING_SPECIALS: FighterSpecials = {
       cost: 18,
       endFrame: 46,
       regions: [heroRegion(13, 18, RUSH_BODY, STORM_RUSH)],
+      hurt: RUSH_HURT,
       motion: [{ ...frames(13, 18), velocityX: RUSH_SPEED, velocityZ: 0.0, stopsAtBody: true }],
     },
     air: {
       cost: 18,
       endFrame: 46,
       regions: [heroRegion(13, 18, RUSH_BODY, STORM_RUSH)],
+      hurt: RUSH_HURT,
       motion: [{ ...frames(13, 18), velocityX: RUSH_SPEED, velocityZ: 0.0, stopsAtBody: true }],
       oncePerAirtime: true,
       helpless: true,
