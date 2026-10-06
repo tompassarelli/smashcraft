@@ -27,6 +27,20 @@ function projectAll(match: TestMatch): void {
   for (let i = 0; i < IMPACT_COUNT; i++) projectImpact(match.runtime.impacts, i);
 }
 
+test("stock dust remains drawn until its slot expires", () => {
+  const pool = createImpactState();
+  const events = createImpactEvents();
+  events.movementDust = true;
+  emitImpacts(pool, events, 1);
+  const slot = IMPACT_DUST * IMPACTS_PER_KIND;
+  for (let frame = 0; frame < impactLifetime(IMPACT_DUST); frame++) {
+    const pose = projectImpact(pool, slot);
+    assertTrue(pose.visible && pose.alpha > 0);
+    advanceImpacts(pool);
+  }
+  assertFalse(projectImpact(pool, slot).visible);
+});
+
 /** Presses a spot dodge, or releases it. */
 function dodge(match: TestMatch, slot: ParticipantSlot, pressed: boolean): void {
   const input = match.inputs.inputs[slot];

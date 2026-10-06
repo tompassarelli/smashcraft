@@ -1,0 +1,38 @@
+{"decision":"RESERVED","reason":"RUN","class":"moderate","requestedCpus":2,"requestedMemoryMiB":2048,"leasedCpuCeilings":12,"aggregateCpuLimit":18,"leasedMemoryMiB":19456,"cpuSomeAvg10":1.06,"memoryFullAvg10":0,"memoryAvailableMiB":70460,"reclaimed":0,"lease":"9221c01e-9cda-42c0-b061-e8dc3eeb859d","expiresAt":1791284734236}
+bun test v1.3.13 (bf2e2cec)
+
+test/game.test.ts:
+(pass) game/presentation/impactState > stock dust remains drawn until its slot expires [1.00ms]
+
+test/visual-lifecycle.test.ts:
+(pass) hit event language: 26 event cases reach stock effects and confirmed sounds without replay [95.00ms]
+(pass) combat effects: rollback, pause/resume and rematch neither replay nor retain effects [76.00ms]
+
+test/player-view.test.ts:
+332 |   // A dust slot stayed in view across uses for longer than a hit spark may stay;
+333 |   // each use was a stay of its own, and only the standing spark and the collapsed missile fail.
+334 |   expect(longestReused).toBeGreaterThan(seconds(3));
+335 |   const report = sceneReport(client);
+336 |   expect(report.models.find(({ model }) => model === reportedModel(impactModel(IMPACT_DUST)))?.longest).toBe(impactLifetime(IMPACT_DUST));
+337 |   expect(sceneProblems(report, SMASHCRAFT_SCENE).map(({ seen }) => seen)).toEqual([
+                                                                                ^
+error: expect(received).toEqual(expected)
+
+  [
+    "a hit spark stayed in view for 4.00 s; it should be gone within 3.00 s",
++   "what 3 effects of an undeclared model draw is unknown",
+    "1 hidden projectile in view still show particles",
+  ]
+
+- Expected  - 0
++ Received  + 1
+
+      at <anonymous> (/home/tom/code/smashcraft/worktrees/hit-effects-20261006/ts/test/player-view.test.ts:337:75)
+(fail) a dust slot reused while shown is a new stay each use; a standing spark and a collapsed missile still fail [454.01ms]
+
+ 3 pass
+ 756 filtered out
+ 1 fail
+ 168 expect() calls
+Ran 4 tests across 3 files. [947.00ms]
+{"decision":"RELEASED","lease":"9221c01e-9cda-42c0-b061-e8dc3eeb859d"}
