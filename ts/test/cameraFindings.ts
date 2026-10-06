@@ -19,7 +19,9 @@ export class CameraFindings {
     const previous = this.out.get(client) ?? new Map<number, boolean>();
     this.out.set(client, previous);
     const findings: { detector: string; text: string }[] = [];
-    const world = s.build.presentation === "pool-predicted" && s.rollback?.active && s.game.phase === Phase.match ? s.rollback.speculative.world : s.world;
+    const presented = s.build.presentation === "pool-predicted" && s.rollback?.active && s.game.phase === Phase.match ? s.rollback.speculative : undefined;
+    const world = presented?.world ?? s.world;
+    const game = presented?.game ?? s.game;
     for (const slot of PARTICIPANT_SLOTS) {
       if (!isActive(s.world, slot)) continue;
       const confirmed = fighterAt(s.world, slot);
@@ -38,7 +40,7 @@ export class CameraFindings {
       const fighter = isActive(world, slot) ? fighterAt(world, slot) : undefined;
       const point = cameraPoint(s.camera, aspect, fighter?.motion.x ?? 0, (fighter?.motion.z ?? 0) + 60);
       const outside = point.column < 0 || point.column > 1 || point.row < 0 || point.row > 1;
-      const needsBubble = s.game.phase === Phase.match && fighter !== undefined && !fighter.status.out && outside;
+      const needsBubble = game.phase === Phase.match && fighter !== undefined && !fighter.status.out && outside;
       if (needsBubble) this.offscreenFrames++;
       for (const [name, context] of [[`OffscreenPortrait${slot}`, 920 + slot * 2], [`OffscreenArrow${slot}`, 921 + slot * 2]] as const) {
         const frame = client.frames.named(name, context);

@@ -5,15 +5,35 @@
 // typed; its pads' edges never reach the game.
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
-import { type SoakInputs, type SoakMatch, playSoakMatch } from "wisp/scripts/wisp/soak";
+import { type SoakGame, type SoakInputs, type SoakMatch, playSoakMatch, readSoakRepro } from "wisp/scripts/wisp/soak";
 import project from "../scripts/wisp/soak";
 import game from "./soak/game";
+import { Phase } from "../src/game/match/rules";
+import { shell } from "../src/platform/shell/state";
+import phaseRepro from "../../evidence/camera-blastzones-20261006/match-72.json";
 
 const runtime = installHeadless(project.map);
 afterAll(runtime.restore);
 
 const match: SoakMatch = { index: 0, seed: 96542, fighters: ["archer", "archer"], stage: "sky-deck", policies: ["fuzz", "cpu"], frames: 30 };
 const quiet: SoakInputs = { edges: [], silences: [], hitches: [], slow: [] };
+
+test("offscreen indicators follow the presented result while confirmation is still finishing the match", () => {
+  const repro = readSoakRepro(JSON.stringify(phaseRepro));
+  let sawResultAhead = false;
+  const observed: SoakGame = { ...game, begin: (clients, match) => {
+    const driver = game.begin(clients, match);
+    return { ...driver, findings: (client) => {
+      const s = shell();
+      const presented = s.rollback?.active ? s.rollback.speculative.game : s.game;
+      if (s.game.phase === Phase.match && presented.phase === Phase.result) sawResultAhead = true;
+      return driver.findings?.(client) ?? [];
+    } };
+  } };
+  const result = playSoakMatch(runtime, observed, project, repro.match, repro.inputs);
+  expect(sawResultAhead).toBe(true);
+  expect(result.findings).toEqual([]);
+}, 30_000);
 
 test("a stick inside its dead zone replays: through the helpers as pad edges the game never sees, through the stand-in as a row", () => {
   // The native file's first edges: the helper's full-scale stick, inside its 9175 dead zone.
