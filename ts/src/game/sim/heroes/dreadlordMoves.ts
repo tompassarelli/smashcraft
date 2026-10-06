@@ -2,6 +2,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction, HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT, heroMove, heroRegion, type AuthoredMove, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
 import { type FighterHurtboxes, type HurtPart, type HurtPose, hurtPart, hurtPose } from "../hurtboxes";
+import { DREADLORD_GROUND } from "./groundNormals";
 import type { HitEffect } from "../hitRegions";
 import { type Strike, linkAt, multiHit } from "./multiHit";
 
@@ -75,28 +76,7 @@ function wingSweep(first: number, facing: number): readonly MoveRegion[] {
 const NO_LAUNCH = { growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } as const;
 
 const NORMALS: { readonly [style: number]: AuthoredMove | undefined } = {
-    [AttackStyle.jab]: heroMove(5, 2, 15, 0, rake(5, [46.0, 40.0], S, dreadlordHit(4.0, "POKE", 35))),
-    [AttackStyle.forwardTilt]: heroMove(9, 3, 22, 0, rake(9, [62.0, 46.0, 30.0], M, dreadlordHit(10.0, "EDGE", 35))),
-    [AttackStyle.forwardTiltUp]: heroMove(9, 3, 22, 0, rake(9, [95.0, 82.0, 70.0], M, dreadlordHit(10.0, "EDGE", 35))),
-    [AttackStyle.forwardTiltDown]: heroMove(9, 3, 22, 0, rake(9, [20.0, 8.0, -4.0], M, dreadlordHit(10.0, "EDGE", 35))),
-    [AttackStyle.upTilt]: heroMove(8, 4, 22, 0, path(8, [
-      capsule(18.0, 60.0, 68.0, 78.0, WING_RADIUS),
-      capsule(12.0, 68.0, 35.0, f32(M - WING_RADIUS), WING_RADIUS),
-      capsule(0.0, 70.0, -10.0, f32(M - WING_RADIUS), WING_RADIUS),
-      capsule(-12.0, 65.0, -55.0, 85.0, WING_RADIUS),
-    ], dreadlordHit(9.0, "LAUNCH", 85))),
-    [AttackStyle.downTilt]: heroMove(7, 3, 20, 0, path(7, [
-      capsule(16.0, 16.0, f32(M - CLAW_RADIUS), 16.0),
-      capsule(16.0, 12.0, f32(M - CLAW_RADIUS), 8.0),
-      capsule(16.0, 8.0, f32(M - CLAW_RADIUS), 0.0),
-    ], dreadlordHit(6.0, "LINK", 70))),
-    [AttackStyle.dashAttack]: heroMove(10, 5, 27, 0, path(10, [
-      capsule(12.0, 42.0, f32(M - 14.0), 50.0, 14.0),
-      capsule(12.0, 42.0, f32(M - 14.0), 46.0, 14.0),
-      capsule(12.0, 42.0, f32(M - 14.0), 42.0, 14.0),
-      capsule(12.0, 42.0, f32(M - 14.0), 38.0, 14.0),
-      capsule(12.0, 42.0, f32(M - 14.0), 34.0, 14.0),
-    ], dreadlordHit(11.0, "LAUNCH", 50)), f32(HERO_REFERENCE_HEIGHT * 0.5)),
+    ...DREADLORD_GROUND.normals,
     [AttackStyle.forwardSmash]: heroMove(18, 4, 34, 0, [
       ...rake(18, [70.0, 58.0, 46.0, 34.0], L, dreadlordHit(18.0, "KILL", 40)),
       ...rake(18, [22.0, 34.0, 46.0, 58.0], L, dreadlordHit(18.0, "KILL", 40)),

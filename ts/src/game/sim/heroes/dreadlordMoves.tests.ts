@@ -15,13 +15,13 @@ import { isMultiHit } from "./multiHit";
 // Existing actors carry the kit so these fixtures exercise production combat
 // independently of selection and asset integration.
 const NORMAL_TIMINGS = [
-  [AttackStyle.jab, 5, 2, 15, 0],
-  [AttackStyle.forwardTilt, 9, 3, 22, 0],
-  [AttackStyle.forwardTiltUp, 9, 3, 22, 0],
-  [AttackStyle.forwardTiltDown, 9, 3, 22, 0],
-  [AttackStyle.upTilt, 8, 4, 22, 0],
-  [AttackStyle.downTilt, 7, 3, 20, 0],
-  [AttackStyle.dashAttack, 10, 5, 27, 0],
+  [AttackStyle.jab, 4, 3, 14, 0],
+  [AttackStyle.forwardTilt, 8, 3, 21, 0],
+  [AttackStyle.forwardTiltUp, 8, 3, 21, 0],
+  [AttackStyle.forwardTiltDown, 8, 3, 21, 0],
+  [AttackStyle.upTilt, 7, 4, 20, 0],
+  [AttackStyle.downTilt, 6, 3, 18, 0],
+  [AttackStyle.dashAttack, 7, 4, 24, 0],
   [AttackStyle.forwardSmash, 18, 4, 34, 0],
   [AttackStyle.upSmash, 16, 5, 31, 0],
   [AttackStyle.downSmash, 15, 6, 32, 0],
@@ -135,17 +135,19 @@ test("Dreadlord angled claws retain separate paths and horn lift leaves a latera
   const straight = emptyHitRegion();
   const up = emptyHitRegion();
   const down = emptyHitRegion();
-  authoredHitRegion(straight, Character.archer, AttackStyle.forwardTilt, 9, 0, 1, DREADLORD_MOVES);
-  authoredHitRegion(up, Character.archer, AttackStyle.forwardTiltUp, 9, 0, 1, DREADLORD_MOVES);
-  authoredHitRegion(down, Character.archer, AttackStyle.forwardTiltDown, 9, 0, 1, DREADLORD_MOVES);
+  authoredHitRegion(straight, Character.archer, AttackStyle.forwardTilt, 8, 0, 1, DREADLORD_MOVES);
+  authoredHitRegion(up, Character.archer, AttackStyle.forwardTiltUp, 8, 0, 1, DREADLORD_MOVES);
+  authoredHitRegion(down, Character.archer, AttackStyle.forwardTiltDown, 8, 0, 1, DREADLORD_MOVES);
   assertGreaterThan(up.maxZ, straight.maxZ);
   assertLessThan(down.minZ, straight.minZ);
+  assertGreaterThan(up.effect.launchZ, straight.effect.launchZ);
+  assertLessThan(down.effect.launchZ, straight.effect.launchZ);
   const hornGap = attackPair(AttackStyle.upAir, 6, 72.0, 0.0, 1, false);
   resolveAttacks(hornGap.world);
   assertEquals(hornGap.target.status.damage, 0.0);
   const dash = DREADLORD_MOVES.normals[AttackStyle.dashAttack];
   assertTrue(dash !== undefined);
-  if (dash !== undefined) assertEquals(dash.startupTravelX, f32(HERO_REFERENCE_HEIGHT * 0.5));
+  if (dash !== undefined) assertEquals(dash.startupTravelX, 132.0);
   assertEquals(smashDamageMultiplier(0, DREADLORD_MOVES), 1.0);
   assertEquals(smashDamageMultiplier(45, DREADLORD_MOVES), 1.25);
   assertEquals(smashDamageMultiplier(100, DREADLORD_MOVES), 1.25);

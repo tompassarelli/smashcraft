@@ -10,6 +10,8 @@
 // overhead; Stand Hit recoils backward. The model has no punch, kick, jump,
 // roll, ledge or grab sequence, so those poses reuse the nearest readable one.
 import { f32 } from "wisp/src/sim/f32";
+import { AttackStyle } from "../codes";
+import { UTHER_GROUND, strikeClip } from "./groundNormals";
 import type { HeroClip, HeroClipTable } from "./hero";
 
 const clip = (index: number, seconds: number): HeroClip => ({ index, seconds });
@@ -24,22 +26,27 @@ const STAND_CHANNEL = clip(9, f32(1.667));
 const STAND_HIT = clip(10, 0.5);
 const WALK = clip(12, f32(0.766));
 
+// Strike moments: where the drawn hammer reaches farthest or highest.
+const ground = (clip: HeroClip, strike: number, style: AttackStyle, frame?: number): HeroClip => strikeClip(clip, strike, UTHER_GROUND, style, frame);
+
 export const UTHER_FALLBACK_CLIP = STAND_READY;
 
 export const UTHER_CLIPS: HeroClipTable = {
   idle: STAND_1,
   walk: WALK,
-  jab: ATTACK_SWEEP,
+  jab: ground(ATTACK_SWEEP, f32(0.56), AttackStyle.jab),
   grab: ATTACK_SWEEP,
-  forwardTilt: ATTACK_SWEEP,
-  forwardTiltUp: ATTACK_SWEEP,
-  forwardTiltDown: ATTACK_SWEEP,
-  upTilt: SPELL,
-  downTilt: ATTACK_SLAM,
+  // Ground normals strike on their first active frame (smashcraft:docs/design/tilts.md). The forward
+  // tilt is one overhead slam for every angle, high on its first active frame; the down tilt is the low sweep.
+  forwardTilt: ground(ATTACK_SLAM, f32(0.52), AttackStyle.forwardTilt),
+  forwardTiltUp: ground(ATTACK_SLAM, f32(0.52), AttackStyle.forwardTilt),
+  forwardTiltDown: ground(ATTACK_SLAM, f32(0.52), AttackStyle.forwardTilt),
+  upTilt: ground(SPELL, f32(0.84), AttackStyle.upTilt, 11),
+  downTilt: ground(ATTACK_SWEEP, f32(0.60), AttackStyle.downTilt),
   forwardSmash: ATTACK_SLAM,
   upSmash: SPELL,
   downSmash: ATTACK_SLAM,
-  dashAttack: ATTACK_SWEEP,
+  dashAttack: ground(ATTACK_SLAM, f32(0.60), AttackStyle.dashAttack),
   neutralAir: ATTACK_SWEEP,
   forwardAir: ATTACK_SLAM,
   backAir: STAND_HIT,

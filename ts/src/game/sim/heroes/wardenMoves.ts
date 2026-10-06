@@ -2,6 +2,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { floorDiv } from "wisp/src/sim/intMath";
 import { AttackStyle, GrabAction, HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion, type AuthoredMove, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
+import { WARDEN_GROUND } from "./groundNormals";
 import type { HitEffect } from "../hitRegions";
 import { type FighterHurtboxes, type HurtPart, type HurtPose, hurtPart, hurtPose } from "../hurtboxes";
 import { type Strike, drillStrikes, linkAt, multiHit } from "./multiHit";
@@ -104,21 +105,7 @@ const FALLING_KNIVES: AuthoredMove = {
 const GRAB_EFFECT = { damage: 0.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } as const;
 
 const NORMALS: { readonly [style: number]: AuthoredMove | undefined } = {
-    [AttackStyle.jab]: heroMove(3, 2, 13, 0, cut(3, [44.0, 48.0], S, wardenHit(3.0, "POKE", 35))),
-    [AttackStyle.forwardTilt]: heroMove(7, 3, 18, 0, cut(7, [58.0, 45.0, 32.0], M, wardenHit(8.0, "POKE", 35))),
-    [AttackStyle.forwardTiltUp]: heroMove(7, 3, 18, 0, cut(7, [85.0, 100.0, 112.0], M, wardenHit(8.0, "POKE", 35))),
-    [AttackStyle.forwardTiltDown]: heroMove(7, 3, 18, 0, cut(7, [16.0, 0.0, -16.0], M, wardenHit(8.0, "POKE", 35))),
-    [AttackStyle.upTilt]: heroMove(6, 4, 18, 0, path(6, [
-      blade(18.0, 40.0, f32(M - BLADE_RADIUS), 55.0),
-      blade(16.0, 48.0, 70.0, 84.0),
-      blade(8.0, 54.0, 35.0, f32(M - BLADE_RADIUS)),
-      blade(0.0, 54.0, -8.0, f32(M - BLADE_RADIUS)),
-    ], wardenHit(7.0, "LINK", 85))),
-    [AttackStyle.downTilt]: heroMove(5, 2, 17, 0, path(5, [
-      blade(16.0, 9.0, f32(M - BLADE_RADIUS), 9.0),
-      blade(16.0, 6.0, f32(M - BLADE_RADIUS), 6.0),
-    ], wardenHit(5.0, "LINK", 70))),
-    [AttackStyle.dashAttack]: heroMove(8, 4, 24, 0, cut(8, [26.0, 42.0, 58.0, 74.0], M, wardenHit(9.0, "LAUNCH", 60)), f32(HERO_REFERENCE_HEIGHT * f32(0.60)), true),
+    ...WARDEN_GROUND.normals,
     [AttackStyle.forwardSmash]: heroMove(15, 3, 30, 0, cut(15, [64.0, 45.0, 26.0], L, wardenHit(12.0, "KILL", 40), wardenHit(16.0, "KILL", 40))),
     [AttackStyle.upSmash]: heroMove(13, 4, 27, 0, path(13, [
       blade(12.0, 46.0, 24.0, f32(M - BLADE_RADIUS)),

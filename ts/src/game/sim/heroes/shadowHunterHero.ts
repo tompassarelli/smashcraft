@@ -1,7 +1,8 @@
 // Shadow Hunter's registration: identity, kit and presentation. Owned by this hero's
 // lane; set `complete` only when the whole base kit works (hero.ts).
 import { f32 } from "wisp/src/sim/f32";
-import { Character } from "../codes";
+import { AttackStyle, Character } from "../codes";
+import { SHADOW_HUNTER_GROUND, strikeClip } from "./groundNormals";
 import type { HeroClip, HeroDefinition } from "./hero";
 import { SHADOW_HUNTER_GAMEPLAN } from "./shadowHunterGameplan";
 import { SHADOW_HUNTER_MOVES } from "./shadowHunterMoves";
@@ -37,6 +38,10 @@ const STAND_CHANNEL = clip(13, f32(2.7));
 /** Dissipate: the spirit rises out of the slumped body. */
 const DISSIPATE = clip(12, f32(1.666));
 
+// Strike moments: where the drawn glaive is farthest out or highest.
+const ground = (clip: HeroClip, strike: number, style: AttackStyle, frame?: number): HeroClip =>
+  strikeClip(clip, strike, SHADOW_HUNTER_GROUND, style, frame);
+
 export const SHADOW_HUNTER_HERO: HeroDefinition = {
   character: Character.shadowHunter,
   name: "Shadow Hunter",
@@ -57,8 +62,12 @@ export const SHADOW_HUNTER_HERO: HeroDefinition = {
     clips: {
       idle: STAND_READY, walk: WALK, dash: WALK, run: WALK, crouch: STAND_READY, fall: STAND_READY, landing: STAND_READY,
       shield: STAND_READY, airDodge: STAND_HIT, smashCharge: STAND_READY, ko: DISSIPATE, dizzy: STAND_3,
-      jab: ATTACK, grab: ATTACK, forwardTilt: ATTACK, forwardTiltUp: ATTACK, forwardTiltDown: ATTACK,
-      upTilt: SPELL, downTilt: SPELL_THROW, dashAttack: ATTACK,
+      // Ground normals strike on their first active frame (smashcraft:docs/design/tilts.md): the thrust angles up
+      // through the overhead throw and down through the low stomp; the dash spin plays both of Attack's sweeps.
+      jab: ground(ATTACK, f32(0.52), AttackStyle.jab), grab: ATTACK, forwardTilt: ground(ATTACK, f32(0.52), AttackStyle.forwardTilt),
+      forwardTiltUp: ground(SPELL_THROW, f32(0.82), AttackStyle.forwardTiltUp), forwardTiltDown: ground(STAND_CHANNEL, f32(0.27), AttackStyle.forwardTiltDown),
+      upTilt: ground(SPELL, f32(0.60), AttackStyle.upTilt, 9), downTilt: ground(SPELL_THROW, f32(1.06), AttackStyle.downTilt),
+      dashAttack: ground(ATTACK, f32(0.52), AttackStyle.dashAttack),
       forwardSmash: SPELL_THROW, upSmash: SPELL, downSmash: STAND_CHANNEL,
       // No kick exists in the model: Heel Hook plays the rear sweep.
       neutralAir: STAND_2, forwardAir: ATTACK, backAir: STAND_2, upAir: SPELL, downAir: SPELL_THROW,

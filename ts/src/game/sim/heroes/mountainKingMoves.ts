@@ -3,6 +3,7 @@ import { hurtCapsule } from "../../physics/contactGeometry";
 import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion, type FighterMoves, type StrikeCapsule } from "../heroMoves";
 import { type FighterHurtboxes, type HurtPart, hurtPart } from "../hurtboxes";
+import { MOUNTAIN_KING_GROUND, groundPoses } from "./groundNormals";
 import type { HitEffect } from "../hitRegions";
 
 // smashcraft:docs/design/roster.md adopts these timings and damages. Geometry
@@ -86,12 +87,9 @@ const limb = (first: number, last: number, ...parts: HurtPart[]) => heroHurtPose
 const MOUNTAIN_KING_BODIES: FighterHurtboxes = {
   stand: [BODY],
   attacks: {
-    [AttackStyle.jab]: [limb(3, 10, hurtPart(8.0, 58.0, 40.0, 42.0, ARM))],
-    [AttackStyle.forwardTilt]: [limb(6, 16, hurtPart(8.0, 58.0, 46.0, 52.0, ARM))],
-    [AttackStyle.forwardTiltUp]: [limb(6, 16, hurtPart(8.0, 60.0, 42.0, 72.0, ARM))],
-    [AttackStyle.forwardTiltDown]: [limb(6, 16, hurtPart(8.0, 52.0, 44.0, 34.0, ARM))],
-    [AttackStyle.upTilt]: [limb(6, 15, hurtPart(8.0, 60.0, 22.0, 92.0, ARM))],
-    [AttackStyle.downTilt]: [limb(5, 13, hurtPart(6.0, 20.0, f32(SHORT - 12.0), 10.0, LEG))],
+    ...groundPoses(MOUNTAIN_KING_GROUND, (x, z) => [BODY, hurtPart(8.0, 58.0, x, z, ARM)]),
+    // Boot and Axe: the leg kicks out through a half extension; the axe past the boot is the disjoint.
+    [AttackStyle.downTilt]: [limb(5, 7, hurtPart(6.0, 20.0, 40.0, 12.0, LEG)), limb(8, 12, hurtPart(6.0, 20.0, 64.0, 10.0, LEG)), limb(13, 15, hurtPart(6.0, 20.0, 40.0, 12.0, LEG))],
     [AttackStyle.forwardSmash]: [limb(14, 28, hurtPart(8.0, 60.0, 46.0, 62.0, ARM))],
     [AttackStyle.upSmash]: [limb(13, 26, hurtPart(6.0, 62.0, 14.0, 98.0, ARM))],
     [AttackStyle.downSmash]: [
@@ -112,41 +110,7 @@ export const MOUNTAIN_KING_MOVES: FighterMoves = {
   smashMaxDamageMultiplier: 1.25,
   maxPummels: 2,
   normals: {
-    [AttackStyle.jab]: heroMove(5, 2, 15, 0, [
-      frame(5, capsule(18.0, 38.0, f32(SHORT - 10.0), 42.0, 10.0), JAB),
-      frame(6, capsule(18.0, 40.0, f32(SHORT - 10.0), 36.0, 10.0), JAB),
-    ]),
-    [AttackStyle.forwardTilt]: heroMove(9, 3, 21, 0, [
-      frame(9, capsule(22.0, 63.0, f32(MEDIUM - 12.0), 70.0, 12.0), FORWARD_TILT),
-      frame(10, capsule(22.0, 46.0, f32(MEDIUM - 12.0), 42.0, 12.0), FORWARD_TILT),
-      frame(11, capsule(22.0, 32.0, 86.0, 16.0, 12.0), FORWARD_TILT),
-    ]),
-    [AttackStyle.forwardTiltUp]: heroMove(9, 3, 21, 0, [
-      frame(9, capsule(22.0, 63.0, 72.0, f32(MEDIUM - 12.0), 12.0), FORWARD_TILT),
-      frame(10, capsule(22.0, 54.0, f32(MEDIUM - 12.0), 80.0, 12.0), FORWARD_TILT),
-      frame(11, capsule(22.0, 46.0, 86.0, 56.0, 12.0), FORWARD_TILT),
-    ]),
-    [AttackStyle.forwardTiltDown]: heroMove(9, 3, 21, 0, [
-      frame(9, capsule(22.0, 48.0, f32(MEDIUM - 12.0), 28.0, 12.0), FORWARD_TILT),
-      frame(10, capsule(22.0, 36.0, f32(MEDIUM - 12.0), 8.0, 12.0), FORWARD_TILT),
-      frame(11, capsule(22.0, 26.0, 86.0, -8.0, 12.0), FORWARD_TILT),
-    ]),
-    [AttackStyle.upTilt]: heroMove(8, 4, 22, 0, [
-      frame(8, capsule(20.0, 56.0, 68.0, 78.0, 14.0), UP_TILT),
-      frame(9, capsule(16.0, 68.0, 40.0, f32(MEDIUM - 14.0), 14.0), UP_TILT),
-      frame(10, capsule(4.0, 72.0, -12.0, f32(MEDIUM - 14.0), 14.0), UP_TILT),
-      frame(11, capsule(-8.0, 68.0, -24.0, 78.0, 14.0), UP_TILT),
-    ]),
-    [AttackStyle.downTilt]: heroMove(7, 3, 18, 0, [
-      frame(7, capsule(12.0, 8.0, f32(SHORT - 12.0), 12.0, 12.0), DOWN_TILT),
-      frame(8, capsule(12.0, 8.0, f32(SHORT - 12.0), 4.0, 12.0), DOWN_TILT),
-      frame(9, capsule(12.0, 8.0, 48.0, -2.0, 12.0), DOWN_TILT),
-    ]),
-    // Body actions stay inside the exposed torso instead of filling M reach
-    // with a disjoint volume. Dwarf Charge carries its reach by movement.
-    [AttackStyle.dashAttack]: heroMove(11, 5, 28, 0, [
-      heroRegion(11, 15, capsule(0.0, 12.0, 0.0, 65.0, 24.0), DASH),
-    ], f32(MEDIUM - 24.0)),
+    ...MOUNTAIN_KING_GROUND.normals,
     [AttackStyle.forwardSmash]: heroMove(20, 3, 36, 0, [
       frame(20, circle(108.0, 92.0, 18.0), FORWARD_SMASH_HEAD),
       frame(21, circle(f32(LONG - 18.0), 56.0, 18.0), FORWARD_SMASH_HEAD),

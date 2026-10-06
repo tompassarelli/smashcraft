@@ -15,13 +15,13 @@ import { UTHER_MOVES } from "./utherMoves";
 // Existing actors exercise the production move-profile seam independently of
 // the parent-owned identity, selection and animation integration.
 const NORMAL_TIMINGS = [
-  [AttackStyle.jab, 5, 2, 15, 0],
-  [AttackStyle.forwardTilt, 10, 3, 23, 0],
-  [AttackStyle.forwardTiltUp, 10, 3, 23, 0],
-  [AttackStyle.forwardTiltDown, 10, 3, 23, 0],
-  [AttackStyle.upTilt, 9, 4, 22, 0],
-  [AttackStyle.downTilt, 8, 3, 20, 0],
-  [AttackStyle.dashAttack, 12, 5, 29, 0],
+  [AttackStyle.jab, 5, 3, 15, 0],
+  [AttackStyle.forwardTilt, 11, 3, 24, 0],
+  [AttackStyle.forwardTiltUp, 11, 3, 24, 0],
+  [AttackStyle.forwardTiltDown, 11, 3, 24, 0],
+  [AttackStyle.upTilt, 10, 4, 22, 0],
+  [AttackStyle.downTilt, 9, 3, 20, 0],
+  [AttackStyle.dashAttack, 12, 3, 20, 0],
   [AttackStyle.forwardSmash, 21, 3, 36, 0],
   [AttackStyle.upSmash, 18, 4, 33, 0],
   [AttackStyle.downSmash, 17, 6, 34, 0],
@@ -141,15 +141,15 @@ test("Uther Falling Judgment spikes airborne targets and launches grounded targe
   }
 });
 
-test("Uther narrow hammer paths leave gaps and angled tilts occupy distinct heights", () => {
-  const straight = emptyHitRegion();
-  const up = emptyHitRegion();
-  const down = emptyHitRegion();
-  authoredHitRegion(straight, Character.archer, AttackStyle.forwardTilt, 10, 0, 1, UTHER_MOVES);
-  authoredHitRegion(up, Character.archer, AttackStyle.forwardTiltUp, 10, 0, 1, UTHER_MOVES);
-  authoredHitRegion(down, Character.archer, AttackStyle.forwardTiltDown, 10, 0, 1, UTHER_MOVES);
-  assertGreaterThan(up.maxZ, straight.maxZ);
-  assertLessThan(down.minZ, straight.minZ);
+test("Uther's overhead hammer arc is one move for every angle, from above his head to the floor, and leaves gaps", () => {
+  assertTrue(UTHER_MOVES.normals[AttackStyle.forwardTiltUp] === UTHER_MOVES.normals[AttackStyle.forwardTilt]);
+  assertTrue(UTHER_MOVES.normals[AttackStyle.forwardTiltDown] === UTHER_MOVES.normals[AttackStyle.forwardTilt]);
+  const high = emptyHitRegion();
+  const low = emptyHitRegion();
+  authoredHitRegion(high, Character.archer, AttackStyle.forwardTilt, 10, 0, 0, UTHER_MOVES);
+  authoredHitRegion(low, Character.archer, AttackStyle.forwardTilt, 12, 0, 2, UTHER_MOVES);
+  assertGreaterThan(high.maxZ, 140.0);
+  assertLessThan(low.minZ, 0.0);
   const gap = attackPair(AttackStyle.upSmash, 19, 85.0, 0.0);
   resolveAttacks(gap.world);
   assertEquals(gap.target.status.damage, 0.0);
@@ -165,9 +165,9 @@ const segmentDistance = (px: number, pz: number, part: Readonly<HurtPart>): numb
   return Math.sqrt(ex * ex + ez * ez);
 };
 
-test("Uther's gauntlet, boot, grabbing hand and shoulder strike from inside his own exposed body", () => {
+test("Uther's gauntlet, boot and grabbing hand strike from inside his own exposed body", () => {
   const region = emptyHitRegion();
-  for (const style of [AttackStyle.jab, AttackStyle.backAir, AttackStyle.grab, AttackStyle.dashAttack]) {
+  for (const style of [AttackStyle.jab, AttackStyle.backAir, AttackStyle.grab]) {
     const owner = createFighter(Character.archer, 0.0, 1);
     owner.tuning.moves = UTHER_MOVES;
     owner.attack.style = style;
@@ -242,7 +242,7 @@ test("Uther standing and dash grabs preserve 0.55H reach and dash recovery addit
     owner.ground.dashFrame = 1;
     beginFighterAttack(testWorld(owner, createFighter(Character.rifleman, 1000.0, -facing)), 0, AttackStyle.jab, false);
     assertEquals(owner.attack.style, AttackStyle.dashAttack);
-    assertEquals(owner.attack.duration, 45);
+    assertEquals(owner.attack.duration, 34);
   }
   assertEquals(smashDamageMultiplier(0, UTHER_MOVES), 1.0);
   assertEquals(smashDamageMultiplier(45, UTHER_MOVES), 1.25);

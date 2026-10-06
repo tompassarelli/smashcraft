@@ -1,7 +1,8 @@
 // Lich's registration: identity, kit and presentation. Owned by this hero's
 // lane; set `complete` only when the whole base kit works (hero.ts).
 import { f32 } from "wisp/src/sim/f32";
-import { Character } from "../codes";
+import { AttackStyle, Character } from "../codes";
+import { LICH_GROUND, strikeClip } from "./groundNormals";
 import type { HeroClip, HeroDefinition } from "./hero";
 import { LICH_GAMEPLAN } from "./lichGameplan";
 import { LICH_MOVES } from "./lichMoves";
@@ -23,6 +24,8 @@ const CHANNEL = sequence(5, f32(1.866));
 const ATTACK = sequence(6, 1);
 /** Frost casts. */
 const SPELL = sequence(7, f32(1.5));
+// Strike moments: where the drawn hand or cast reaches farthest or highest.
+const ground = (clip: HeroClip, strike: number, style: AttackStyle, frame?: number): HeroClip => strikeClip(clip, strike, LICH_GROUND, style, frame);
 /** "Death", the model's only lying pose. */
 const DEATH = sequence(8, f32(1.667));
 /** "Dissipate", the spirit fading upward. */
@@ -48,9 +51,12 @@ export const LICH_HERO: HeroDefinition = {
     clips: {
       idle: STAND_READY, walk: WALK, dash: WALK, run: WALK, crouch: CHANNEL, fall: STAND_READY, landing: STAND_READY,
       shield: CHANNEL, airDodge: CHANNEL, smashCharge: CHANNEL, ko: DISSIPATE, dizzy: STAND_3,
-      jab: ATTACK, grab: ATTACK, getUpAttack: ATTACK, ledgeAttack: ATTACK, backAir: ATTACK,
-      forwardTilt: SPELL, forwardTiltUp: SPELL, forwardTiltDown: SPELL, upTilt: SPELL, downTilt: SPELL,
-      forwardSmash: SPELL, upSmash: SPELL, downSmash: SPELL, dashAttack: SPELL,
+      jab: ground(ATTACK, f32(0.72), AttackStyle.jab), grab: ATTACK, getUpAttack: ATTACK, ledgeAttack: ATTACK, backAir: ATTACK,
+      // Ground normals strike on their first active frame (smashcraft:docs/design/tilts.md); the low frost is the hand strike's low reach.
+      forwardTilt: ground(SPELL, f32(0.48), AttackStyle.forwardTilt), forwardTiltUp: ground(SPELL, f32(0.48), AttackStyle.forwardTiltUp),
+      forwardTiltDown: ground(ATTACK, f32(0.64), AttackStyle.forwardTiltDown), upTilt: ground(SPELL, f32(0.72), AttackStyle.upTilt, 10),
+      downTilt: ground(ATTACK, f32(0.64), AttackStyle.downTilt), dashAttack: ground(SPELL, f32(0.48), AttackStyle.dashAttack),
+      forwardSmash: SPELL, upSmash: SPELL, downSmash: SPELL,
       neutralAir: CHANNEL, forwardAir: SPELL, upAir: SPELL, downAir: SPELL,
       ledgeHang: STAND_READY, ledgeClimb: WALK, ledgeRoll: WALK,
       knockdown: DEATH, downDamage: DEATH, getUp: STAND_READY,

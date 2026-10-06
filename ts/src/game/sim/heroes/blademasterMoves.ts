@@ -2,6 +2,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction, HitElement } from "../codes";
 import { type AuthoredMove, type AuthoredThrow, type FighterMoves, type MoveRegion, type StrikeCapsule, HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion } from "../heroMoves";
 import { type FighterHurtboxes, type HurtPart, hurtPart } from "../hurtboxes";
+import { BLADEMASTER_GROUND, groundPoses } from "./groundNormals";
 import type { HitEffect } from "../hitRegions";
 import { drillStrikes, linkAt, multiHit } from "./multiHit";
 
@@ -136,13 +137,7 @@ export const reach = (handX: number, handZ: number) => arm(SHOULDER_X, SHOULDER_
 const BODY: FighterHurtboxes = {
   stand: [TORSO],
   attacks: {
-    [AttackStyle.jab]: [heroHurtPose(2, 8, reach(46.0, 76.0))],
-    [AttackStyle.forwardTilt]: [heroHurtPose(6, 14, reach(48.0, 66.0))],
-    [AttackStyle.forwardTiltUp]: [heroHurtPose(6, 14, reach(46.0, 92.0))],
-    [AttackStyle.forwardTiltDown]: [heroHurtPose(6, 14, reach(46.0, 44.0))],
-    [AttackStyle.upTilt]: [heroHurtPose(5, 14, reach(14.0, 136.0))],
-    [AttackStyle.downTilt]: [heroHurtPose(5, 12, reach(44.0, 30.0))],
-    [AttackStyle.dashAttack]: [heroHurtPose(8, 16, reach(46.0, 56.0))],
+    ...groundPoses(BLADEMASTER_GROUND, reach),
     // Smash charge holds the frame before the first active one, wound back.
     [AttackStyle.forwardSmash]: [heroHurtPose(17, 23, reach(62.0, 76.0))],
     [AttackStyle.upSmash]: [heroHurtPose(15, 21, reach(10.0, 140.0))],
@@ -158,26 +153,7 @@ const BODY: FighterHurtboxes = {
 
 export const BLADEMASTER_MOVES: FighterMoves = {
   normals: {
-    [AttackStyle.jab]: heroMove(4, 2, 13, 0, path(4, [
-      capsule(18.0, 45.0, f32(S - BLADE_RADIUS), 45.0),
-      capsule(20.0, 47.0, f32(S - BLADE_RADIUS), 47.0),
-    ], hit(3.0, "POKE", 35))),
-    [AttackStyle.forwardTilt]: heroMove(8, 3, 19, 0, cut(8, [34.0, 45.0, 56.0], L, hit(8.0, "POKE", 35), hit(10.0, "POKE", 35))),
-    [AttackStyle.forwardTiltUp]: heroMove(8, 3, 19, 0, cut(8, [80.0, 95.0, 110.0], L, hit(8.0, "POKE", 35), hit(10.0, "POKE", 35))),
-    [AttackStyle.forwardTiltDown]: heroMove(8, 3, 19, 0, cut(8, [10.0, -5.0, -20.0], L, hit(8.0, "POKE", 35), hit(10.0, "POKE", 35))),
-    [AttackStyle.upTilt]: heroMove(7, 5, 20, 0, path(7, [
-      capsule(35.0, 35.0, 90.0, 60.0),
-      capsule(24.0, 55.0, 65.0, 90.0),
-      capsule(2.0, 55.0, 8.0, f32(M - BLADE_RADIUS)),
-      capsule(-20.0, 50.0, -65.0, 85.0),
-      capsule(-30.0, 40.0, -f32(M - BLADE_RADIUS), 55.0),
-    ], hit(8.0, "LAUNCH", 90))),
-    [AttackStyle.downTilt]: heroMove(7, 3, 17, 0, path(7, [
-      capsule(18.0, 14.0, f32(L - BLADE_RADIUS), 14.0),
-      capsule(18.0, 8.0, f32(L - BLADE_RADIUS), 8.0),
-      capsule(18.0, 2.0, f32(L - BLADE_RADIUS), 2.0),
-    ], hit(6.0, "LINK", 75))),
-    [AttackStyle.dashAttack]: heroMove(10, 4, 26, 0, cut(10, [60.0, 45.0, 30.0, 18.0], L, hit(10.0, "LAUNCH", 45)), S),
+    ...BLADEMASTER_GROUND.normals,
     [AttackStyle.forwardSmash]: heroMove(17, 3, 32, 0, cut(17, [58.0, 45.0, 32.0], XL, hit(15.0, "KILL", 40), hit(19.0, "KILL", 40))),
     [AttackStyle.upSmash]: heroMove(15, 4, 30, 0, path(15, [
       capsule(16.0, 38.0, 24.0, f32(L - BLADE_RADIUS)),

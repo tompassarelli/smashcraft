@@ -1,6 +1,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction, HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion, type AuthoredMove, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
+import { SHADOW_HUNTER_GROUND, groundPoses } from "./groundNormals";
 import type { HitEffect } from "../hitRegions";
 import { type FighterHurtboxes, type HurtPart, hurtPart } from "../hurtboxes";
 import { drillStrikes, linkAt, multiHit } from "./multiHit";
@@ -96,13 +97,7 @@ const HALF_HOOK = limb(-12.0, 40.0, -45.0, 41.0, 11.0);
 const SHADOW_HUNTER_BODY: FighterHurtboxes = {
   stand: [BODY],
   attacks: {
-    [AttackStyle.jab]: reaching(5, 2, limb(10.0, 58.0, 45.0, 52.0)),
-    [AttackStyle.forwardTilt]: reaching(9, 3, FORWARD_ARM),
-    [AttackStyle.forwardTiltUp]: reaching(9, 3, limb(10.0, 66.0, 55.0, 80.0)),
-    [AttackStyle.forwardTiltDown]: reaching(9, 3, limb(10.0, 55.0, 55.0, 35.0)),
-    [AttackStyle.upTilt]: reaching(8, 4, RAISED_ARMS),
-    [AttackStyle.downTilt]: reaching(7, 3, limb(10.0, 30.0, 50.0, 15.0)),
-    [AttackStyle.dashAttack]: reaching(10, 4, FORWARD_ARM),
+    ...groundPoses(SHADOW_HUNTER_GROUND, (x, z) => limb(10.0, 62.0, x, z)),
     [AttackStyle.forwardSmash]: reaching(19, 3, limb(10.0, 80.0, 70.0, 90.0)),
     [AttackStyle.upSmash]: reaching(17, 4, RAISED_ARMS),
     [AttackStyle.neutralAir]: [
@@ -129,25 +124,7 @@ export const SHADOW_HUNTER_MOVES: FighterMoves = {
   maxPummels: 2,
   hurtboxes: SHADOW_HUNTER_BODY,
   normals: {
-    [AttackStyle.jab]: heroMove(5, 2, 14, 0, path(5, [
-      capsule(16.0, 42.0, f32(S - 9.0), 42.0, 9.0),
-      capsule(18.0, 44.0, f32(S - 9.0), 44.0, 9.0),
-    ], hit(3.0, "POKE", 35, 1.0, HitElement.normal))),
-    [AttackStyle.forwardTilt]: heroMove(9, 3, 21, 0, chop(9, [65.0, 45.0, 25.0], L, hit(9.0, "POKE", 35))),
-    [AttackStyle.forwardTiltUp]: heroMove(9, 3, 21, 0, chop(9, [105.0, 125.0, 145.0], L, hit(9.0, "POKE", 35))),
-    [AttackStyle.forwardTiltDown]: heroMove(9, 3, 21, 0, chop(9, [-15.0, -35.0, -55.0], L, hit(9.0, "POKE", 35))),
-    [AttackStyle.upTilt]: heroMove(8, 4, 21, 0, path(8, [
-      capsule(20.0, 50.0, 45.0, 85.0),
-      capsule(12.0, 52.0, 20.0, f32(M - BLADE_RADIUS)),
-      capsule(0.0, 52.0, 0.0, f32(M - BLADE_RADIUS)),
-      capsule(-12.0, 52.0, -25.0, 90.0),
-    ], hit(8.0, "LAUNCH", 85))),
-    [AttackStyle.downTilt]: heroMove(7, 3, 19, 0, path(7, [
-      capsule(18.0, 12.0, f32(M - BLADE_RADIUS), 16.0),
-      capsule(18.0, 10.0, f32(M - BLADE_RADIUS), 8.0),
-      capsule(18.0, 8.0, f32(M - BLADE_RADIUS), 0.0),
-    ], hit(6.0, "LINK", 70))),
-    [AttackStyle.dashAttack]: heroMove(10, 4, 27, 0, chop(10, [70.0, 50.0, 30.0, 12.0], M, hit(10.0, "LAUNCH", 50)), 24.0),
+    ...SHADOW_HUNTER_GROUND.normals,
     [AttackStyle.forwardSmash]: heroMove(19, 3, 34, 0, chop(19, [85.0, 45.0, 5.0], L, hit(18.0, "KILL", 40))),
     [AttackStyle.upSmash]: heroMove(17, 4, 31, 0, path(17, [
       capsule(10.0, 36.0, 18.0, f32(L - BLADE_RADIUS)),

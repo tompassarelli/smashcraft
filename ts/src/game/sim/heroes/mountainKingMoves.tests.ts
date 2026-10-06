@@ -14,13 +14,13 @@ import { MOUNTAIN_KING_MOVES, SHORT } from "./mountainKingMoves";
 // Use an existing actor with the authored profile: these contracts exercise
 // production attacks/throws without depending on the selection/presentation seam.
 const NORMAL_TIMINGS = [
-  [AttackStyle.jab, 5, 2, 15, 0],
-  [AttackStyle.forwardTilt, 9, 3, 21, 0],
-  [AttackStyle.forwardTiltUp, 9, 3, 21, 0],
-  [AttackStyle.forwardTiltDown, 9, 3, 21, 0],
+  [AttackStyle.jab, 5, 2, 16, 0],
+  [AttackStyle.forwardTilt, 10, 3, 22, 0],
+  [AttackStyle.forwardTiltUp, 10, 3, 22, 0],
+  [AttackStyle.forwardTiltDown, 10, 3, 22, 0],
   [AttackStyle.upTilt, 8, 4, 22, 0],
-  [AttackStyle.downTilt, 7, 3, 18, 0],
-  [AttackStyle.dashAttack, 11, 5, 28, 0],
+  [AttackStyle.downTilt, 8, 3, 21, 0],
+  [AttackStyle.dashAttack, 11, 5, 26, 0],
   [AttackStyle.forwardSmash, 20, 3, 36, 0],
   [AttackStyle.upSmash, 17, 5, 32, 0],
   [AttackStyle.downSmash, 16, 6, 34, 0],
@@ -136,11 +136,13 @@ test("Mountain King angled axe hooks have distinct narrow paths and body attacks
   const straight = emptyHitRegion();
   const up = emptyHitRegion();
   const down = emptyHitRegion();
-  authoredHitRegion(straight, Character.archer, AttackStyle.forwardTilt, 9, 0, 1, MOUNTAIN_KING_MOVES);
-  authoredHitRegion(up, Character.archer, AttackStyle.forwardTiltUp, 9, 0, 1, MOUNTAIN_KING_MOVES);
-  authoredHitRegion(down, Character.archer, AttackStyle.forwardTiltDown, 9, 0, 1, MOUNTAIN_KING_MOVES);
+  authoredHitRegion(straight, Character.archer, AttackStyle.forwardTilt, 9, 0, 0, MOUNTAIN_KING_MOVES);
+  authoredHitRegion(up, Character.archer, AttackStyle.forwardTiltUp, 9, 0, 0, MOUNTAIN_KING_MOVES);
+  authoredHitRegion(down, Character.archer, AttackStyle.forwardTiltDown, 9, 0, 0, MOUNTAIN_KING_MOVES);
   assertGreaterThan(up.maxZ, straight.maxZ);
   assertLessThan(down.minZ, straight.minZ);
+  assertGreaterThan(up.effect.launchZ, straight.effect.launchZ);
+  assertLessThan(down.effect.launchZ, straight.effect.launchZ);
   for (const style of [AttackStyle.dashAttack, AttackStyle.neutralAir, AttackStyle.upAir]) {
     const region = emptyHitRegion();
     const first = attackStartupFrames(style, MOUNTAIN_KING_MOVES);
@@ -171,7 +173,7 @@ test("Mountain King standing grab reaches half H and its dash jab selects the bo
     owner.ground.dashFrame = 1;
     beginFighterAttack(testWorld(owner, createFighter(Character.rifleman, 1000.0, -facing)), 0, AttackStyle.jab, false);
     assertEquals(owner.attack.style, AttackStyle.dashAttack);
-    assertEquals(owner.attack.duration, 43);
+    assertEquals(owner.attack.duration, 41);
   }
   assertEquals(smashDamageMultiplier(0, MOUNTAIN_KING_MOVES), 1.0);
   assertEquals(smashDamageMultiplier(45, MOUNTAIN_KING_MOVES), 1.25);
@@ -262,7 +264,7 @@ test("Mountain King's limbs follow his swings while hammer and axe stay disjoint
     const foot = { x1: f32((SHORT - 8.0) * facing), z1: 10.0, x2: f32((SHORT - 8.0) * facing), z2: 10.0, radius: 2.0 };
     assertEquals(strikeHurtContact(foot, mk), HurtContact.none);
     mk.attack.style = AttackStyle.downTilt;
-    for (const [frame, exposed] of [[3, false], [4, true], [9, true], [12, true], [13, false]] as const) {
+    for (const [frame, exposed] of [[6, false], [7, true], [9, true], [11, true], [12, false]] as const) {
       mk.attack.frame = frame;
       assertEquals(strikeHurtContact(foot, mk), exposed ? HurtContact.hit : HurtContact.none);
     }

@@ -3,6 +3,8 @@
 // clients run hd=0); the model has twelve sequences and no hit, jump or
 // knockdown clips, so those poses reuse the nearest readable sequence.
 import { f32 } from "wisp/src/sim/f32";
+import { AttackStyle } from "../../sim/codes";
+import { WARDEN_GROUND, strikeClip } from "../../sim/heroes/groundNormals";
 
 export const WARDEN_MODEL_FILE = "Units\\NightElf\\HeroWarden\\HeroWarden.mdx";
 
@@ -31,6 +33,10 @@ export const WARDEN_SEQUENCES = {
 } as const;
 
 const s = WARDEN_SEQUENCES;
+
+// Strike moments: where the drawn blades are farthest out or highest.
+const ground = (clip: StockClip, strike: number, style: AttackStyle, frame?: number): StockClip =>
+  ({ ...clip, ...strikeClip(clip, strike, WARDEN_GROUND, style, frame) });
 
 /** The sequence each pose family plays; the presentation fits it to the action's frames. */
 export const WARDEN_CLIPS = {
@@ -63,12 +69,15 @@ export const WARDEN_CLIPS = {
   ledgeClimb: s.spellSlam,
   ledgeAttack: s.attack2,
   ko: s.death,
-  // Normals: two blade swings, an overhead slam and a two-handed cast.
-  jab: s.attack1,
-  forwardTilt: s.attack2,
-  upTilt: s.spell,
-  downTilt: s.attack1,
-  dashAttack: s.attack2,
+  // Normals: two blade swings, an overhead slam and a two-handed cast. Ground
+  // normals strike on their first active frame (smashcraft:docs/design/tilts.md).
+  jab: ground(s.spellThrow, f32(0.24), AttackStyle.jab),
+  forwardTilt: ground(s.attack2, f32(0.52), AttackStyle.forwardTilt),
+  forwardTiltUp: ground(s.spellSlam, f32(0.20), AttackStyle.forwardTiltUp),
+  forwardTiltDown: ground(s.attack1, f32(0.38), AttackStyle.forwardTiltDown),
+  upTilt: ground(s.spell, f32(0.56), AttackStyle.upTilt, 6),
+  downTilt: ground(s.attack1, f32(0.38), AttackStyle.downTilt),
+  dashAttack: ground(s.attack2, f32(0.52), AttackStyle.dashAttack),
   forwardSmash: s.spellSlam,
   upSmash: s.spell,
   downSmash: s.attack2,

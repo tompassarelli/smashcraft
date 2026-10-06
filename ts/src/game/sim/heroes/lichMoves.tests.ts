@@ -14,13 +14,13 @@ import { isMultiHit } from "./multiHit";
 
 // Adopted Lich rows from smashcraft:docs/design/roster.md, including final L.
 const NORMALS = [
-  [AttackStyle.jab, 6, 2, 16, 0],
-  [AttackStyle.forwardTilt, 10, 3, 23, 0],
-  [AttackStyle.forwardTiltUp, 10, 3, 23, 0],
-  [AttackStyle.forwardTiltDown, 10, 3, 23, 0],
-  [AttackStyle.upTilt, 9, 4, 23, 0],
-  [AttackStyle.downTilt, 8, 3, 20, 0],
-  [AttackStyle.dashAttack, 12, 5, 29, 0],
+  [AttackStyle.jab, 6, 2, 15, 0],
+  [AttackStyle.forwardTilt, 9, 4, 22, 0],
+  [AttackStyle.forwardTiltUp, 9, 4, 22, 0],
+  [AttackStyle.forwardTiltDown, 9, 4, 22, 0],
+  [AttackStyle.upTilt, 8, 8, 20, 0],
+  [AttackStyle.downTilt, 10, 4, 19, 0],
+  [AttackStyle.dashAttack, 10, 6, 22, 0],
   [AttackStyle.forwardSmash, 22, 3, 36, 0],
   [AttackStyle.upSmash, 20, 5, 34, 0],
   [AttackStyle.downSmash, 19, 5, 35, 0],
@@ -85,10 +85,10 @@ test("Lich normals deal their adopted damage only after startup in both facings"
   for (const facing of [-1, 1]) {
     for (const [style, x, z, damage] of [
       [AttackStyle.jab, 50.0, 0.0, 3.0],
-      [AttackStyle.forwardTilt, 80.0, 0.0, 8.0],
-      [AttackStyle.upTilt, 35.0, 0.0, 8.0],
+      [AttackStyle.forwardTilt, 80.0, 0.0, 9.0],
+      [AttackStyle.upTilt, 20.0, 20.0, 9.0],
       [AttackStyle.downTilt, 90.0, 0.0, 6.0],
-      [AttackStyle.dashAttack, 35.0, 0.0, 10.0],
+      [AttackStyle.dashAttack, 35.0, 0.0, 8.0],
       [AttackStyle.forwardSmash, 170.0, 0.0, 18.0],
       [AttackStyle.upSmash, 0.0, 0.0, 17.0],
       [AttackStyle.downSmash, 130.0, 0.0, 14.0],
@@ -126,13 +126,13 @@ test("Lich thin spear crown star and angled palms retain punishable gaps", () =>
     }
     const high = attackPair(AttackStyle.forwardTiltUp, 95.0, 60.0, facing);
     resolveAttacks(high.world);
-    assertEquals(high.target.status.damage, 8.0);
+    assertEquals(high.target.status.damage, 9.0);
     const lowMiss = attackPair(AttackStyle.forwardTiltDown, 95.0, 60.0, facing);
     resolveAttacks(lowMiss.world);
     assertEquals(lowMiss.target.status.damage, 0.0);
     const low = attackPair(AttackStyle.forwardTiltDown, 95.0, -90.0, facing);
     resolveAttacks(low.world);
-    assertEquals(low.target.status.damage, 8.0);
+    assertEquals(low.target.status.damage, 9.0);
     const highMiss = attackPair(AttackStyle.forwardTiltUp, 95.0, -90.0, facing);
     resolveAttacks(highMiss.world);
     assertEquals(highMiss.target.status.damage, 0.0);
@@ -175,14 +175,14 @@ test("Lich Grave Frost hits once across both floor bursts and sends the rear hit
   }
 });
 
-test("Lich dash attack selects Cold Drift and smash charge caps at 45 frames", () => {
+test("Lich dash attack selects the hovering glide and smash charge caps at 45 frames", () => {
   const owner = createFighter(Character.archer, 0.0, 1);
   owner.tuning.moves = LICH_MOVES;
   owner.ground.dashFrame = 1;
   beginFighterAttack(testWorld(owner, createFighter(Character.archer, 1000.0, -1)), 0, AttackStyle.jab, false);
   assertEquals(owner.attack.style, AttackStyle.dashAttack);
-  assertEquals(owner.attack.duration, 45);
-  assertEquals(LICH_MOVES.normals[AttackStyle.dashAttack]?.startupTravelX, f32(HERO_REFERENCE_HEIGHT * f32(0.45)));
+  assertEquals(owner.attack.duration, 37);
+  assertEquals(LICH_MOVES.normals[AttackStyle.dashAttack]?.startupTravelX, 105.0);
   assertEquals(smashDamageMultiplier(0, LICH_MOVES), 1.0);
   assertEquals(smashDamageMultiplier(45, LICH_MOVES), 1.25);
   assertEquals(smashDamageMultiplier(90, LICH_MOVES), 1.25);

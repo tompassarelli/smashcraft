@@ -5,7 +5,9 @@
 // clips, so those poses reuse the nearest readable sequence. Dissipate draws
 // no body at all, so no pose plays it: his hurt volumes stay visible.
 import { f32 } from "wisp/src/sim/f32";
-import type { HeroClipTable } from "../../sim/heroes/hero";
+import { AttackStyle } from "../../sim/codes";
+import { DREADLORD_GROUND, strikeClip } from "../../sim/heroes/groundNormals";
+import type { HeroClip, HeroClipTable } from "../../sim/heroes/hero";
 
 export const DREADLORD_MODEL_FILE = "units\\undead\\HeroDreadLord\\HeroDreadLord.mdl";
 
@@ -34,6 +36,10 @@ export const DREADLORD_SEQUENCES = {
 
 const s = DREADLORD_SEQUENCES;
 
+// Strike moments: where the drawn claw or wing is farthest out or highest.
+const ground = (clip: StockClip, strike: number, style: AttackStyle, frame?: number): HeroClip =>
+  strikeClip(clip, strike, DREADLORD_GROUND, style, frame);
+
 /** Each pose's sequence; the presentation fits it to the action's frames. */
 export const DREADLORD_CLIP_TABLE: HeroClipTable = {
   idle: s.standReady, walk: s.walk, dash: s.walk, run: s.walk, crouch: s.spellSlam, fall: s.standReady,
@@ -46,8 +52,12 @@ export const DREADLORD_CLIP_TABLE: HeroClipTable = {
   knockdown: s.death, downDamage: s.death, getUp: s.standReady, getUpAttack: s.attack2,
   ledgeHang: s.standReady, ledgeClimb: s.spellSlam, ledgeRoll: s.walk, ledgeAttack: s.attack2,
   // Claws are the two attack swings; wings and horns the raised spell and rear-up; the slam is the low sweep.
-  jab: s.attack1, forwardTilt: s.attack2, forwardTiltUp: s.attack2, forwardTiltDown: s.attack2,
-  upTilt: s.spell, downTilt: s.attack1, dashAttack: s.attack2,
+  // Ground normals strike on their first active frame (smashcraft:docs/design/tilts.md): the claw
+  // rake angles up through the rear-up and down through the low slam; the wing stretch is the up tilt's arc.
+  jab: ground(s.attack2, f32(0.76), AttackStyle.jab), forwardTilt: ground(s.attack1, f32(0.70), AttackStyle.forwardTilt),
+  forwardTiltUp: ground(s.rearUp, f32(0.82), AttackStyle.forwardTiltUp), forwardTiltDown: ground(s.spellSlam, f32(0.38), AttackStyle.forwardTiltDown),
+  upTilt: ground(s.wingStretch, f32(1.38), AttackStyle.upTilt, 9), downTilt: ground(s.attack2, f32(0.76), AttackStyle.downTilt),
+  dashAttack: ground(s.attack1, f32(0.70), AttackStyle.dashAttack),
   forwardSmash: s.attack2, upSmash: s.rearUp, downSmash: s.spellSlam,
   neutralAir: s.spell, forwardAir: s.attack2, backAir: s.attack1, upAir: s.rearUp, downAir: s.spellSlam,
   grab: s.attack1, grabHold: s.standReady, grabbed: s.standReady, pummel: s.attack1,

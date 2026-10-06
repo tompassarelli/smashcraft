@@ -37,8 +37,8 @@ test("the original fighters' tables play their packaged clips", () => {
 
 test("a hero plays its registered sequences and its fallback for any pose it leaves out", () => {
   const warden = Character.warden;
-  assertEquals(clipFor(warden, "jab").index, WARDEN_SEQUENCES.attack1.index);
-  assertEquals(clipFor(warden, "jab").seconds, WARDEN_SEQUENCES.attack1.seconds);
+  assertEquals(clipFor(warden, "forwardAir").index, WARDEN_SEQUENCES.attack2.index);
+  assertEquals(clipFor(warden, "forwardAir").seconds, WARDEN_SEQUENCES.attack2.seconds);
   assertEquals(ownAttackClip(warden, AttackStyle.forwardSmash)?.index, WARDEN_SEQUENCES.spellSlam.index);
   assertEquals(ownAttackClip(warden, AttackStyle.dashAttack)?.index, WARDEN_SEQUENCES.attack2.index);
   assertEquals(specialClip(warden, SpecialAction.heroUp, false, false).index, WARDEN_SEQUENCES.dissipate.index);

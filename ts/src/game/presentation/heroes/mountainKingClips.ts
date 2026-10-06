@@ -11,6 +11,8 @@
 // jump, hit, dodge, ledge or grab sequences, so those states reuse the nearest
 // readable sequence, often only its opening.
 import { f32 } from "wisp/src/sim/f32";
+import { AttackStyle } from "../../sim/codes";
+import { MOUNTAIN_KING_GROUND, strikeClip } from "../../sim/heroes/groundNormals";
 import type { HeroClip, HeroClipTable } from "../../sim/heroes/hero";
 
 export interface StockSequence {
@@ -44,6 +46,10 @@ const play = (sequence: MountainKingSequence, seconds?: number): HeroClip => {
   return { index, seconds: f32(seconds ?? length) };
 };
 
+// Strike moments: where the drawn hammer or axe is farthest out (smashcraft:docs/design/tilts.md, "Animation").
+const ground = (sequence: MountainKingSequence, strike: number, style: AttackStyle, frame?: number): HeroClip =>
+  strikeClip(MOUNTAIN_KING_SEQUENCES[sequence], strike, MOUNTAIN_KING_GROUND, style, frame);
+
 /** Idle, walking and every pose without its own entry. */
 export const MOUNTAIN_KING_FALLBACK = play("Stand Ready");
 
@@ -61,14 +67,17 @@ export const MOUNTAIN_KING_CLIPS = {
   smashCharge: play("Attack Slam", f32(0.3)),
   ko: play("Dissipate"),
   dizzy: play("Stand - 4"),
-  jab: play("Attack -1"),
+  jab: ground("Attack -1", f32(0.38), AttackStyle.jab),
   grab: play("Attack -2"),
-  forwardTilt: play("Attack -2"),
-  forwardTiltUp: play("Attack -2"),
-  forwardTiltDown: play("Attack -2"),
-  upTilt: play("Attack -1"),
-  downTilt: play("Attack -2"),
-  dashAttack: play("Attack -1"),
+  // The level axe hook, whose swing already ends low; the up angle is the overhead throw.
+  forwardTilt: ground("Attack -2", f32(0.48), AttackStyle.forwardTilt),
+  forwardTiltUp: ground("Spell Throw", f32(0.52), AttackStyle.forwardTiltUp),
+  forwardTiltDown: ground("Attack -2", f32(0.48), AttackStyle.forwardTiltDown),
+  // The hammer is highest on the scoop's second active frame.
+  upTilt: ground("Attack -1", f32(0.44), AttackStyle.upTilt, 9),
+  downTilt: ground("Spell Slam", f32(0.38), AttackStyle.downTilt),
+  // Attack Slam's root travel carries the charge forward.
+  dashAttack: ground("Attack Slam", f32(0.48), AttackStyle.dashAttack),
   forwardSmash: play("Attack Slam"),
   upSmash: play("Attack -1"),
   downSmash: play("Spell Slam"),

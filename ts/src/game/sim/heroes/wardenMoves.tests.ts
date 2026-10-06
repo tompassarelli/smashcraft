@@ -14,13 +14,13 @@ import { WARDEN_BODY, WARDEN_MOVES } from "./wardenMoves";
 import { isMultiHit } from "./multiHit";
 
 const NORMALS = [
-  [AttackStyle.jab, 3, 2, 13, 0],
-  [AttackStyle.forwardTilt, 7, 3, 18, 0],
-  [AttackStyle.forwardTiltUp, 7, 3, 18, 0],
-  [AttackStyle.forwardTiltDown, 7, 3, 18, 0],
-  [AttackStyle.upTilt, 6, 4, 18, 0],
-  [AttackStyle.downTilt, 5, 2, 17, 0],
-  [AttackStyle.dashAttack, 8, 4, 24, 0],
+  [AttackStyle.jab, 2, 2, 11, 0],
+  [AttackStyle.forwardTilt, 5, 3, 17, 0],
+  [AttackStyle.forwardTiltUp, 5, 3, 17, 0],
+  [AttackStyle.forwardTiltDown, 5, 3, 17, 0],
+  [AttackStyle.upTilt, 4, 4, 16, 0],
+  [AttackStyle.downTilt, 3, 2, 9, 0],
+  [AttackStyle.dashAttack, 5, 3, 18, 0],
   [AttackStyle.forwardSmash, 15, 3, 30, 0],
   [AttackStyle.upSmash, 13, 4, 27, 0],
   [AttackStyle.downSmash, 12, 5, 28, 0],
@@ -137,11 +137,11 @@ test("Warden Twin Crescent hits once across front and rear blades", () => {
   }
 });
 
-test("Warden Pursuit Cut travels six tenths H during startup in both facings", () => {
+test("Warden's dash attack slides four tenths H (53 units) during startup in both facings", () => {
   for (const facing of [-1, 1]) {
     const { owner, world } = pair(AttackStyle.dashAttack, 0, 1000.0, 0.0, facing);
-    for (let tick = 0; tick < 7; tick++) advanceFighter(world, 0, 0, controls(), 0.0);
-    assertNear(f32(owner.motion.x * facing), f32(HERO_REFERENCE_HEIGHT * f32(0.60)), f32(0.0001));
+    for (let tick = 0; tick < 4; tick++) advanceFighter(world, 0, 0, controls(), 0.0);
+    assertNear(f32(owner.motion.x * facing), 53.0, f32(0.0001));
   }
 });
 

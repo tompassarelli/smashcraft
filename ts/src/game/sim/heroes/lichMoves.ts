@@ -1,6 +1,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction, HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion, type AuthoredThrow, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
+import { LICH_GROUND, groundPoses } from "./groundNormals";
 import type { HitEffect } from "../hitRegions";
 import { type FighterHurtboxes, type HurtPart, type HurtPose, hurtPart, hurtPose } from "../hurtboxes";
 import { type Strike, linkAt, multiHit } from "./multiHit";
@@ -116,14 +117,8 @@ const LICH_BODY: FighterHurtboxes = {
   stand: [TORSO],
   crouch: [hurtPart(0.0, 4.0, 0.0, f32(BODY_TOP * f32(0.6)), BODY_RADIUS)],
   attacks: {
-    // Bone Knuckle: the hand is the strike, so the arm reaches its full length.
-    [AttackStyle.jab]: reach(4, 12, arm(f32(S - 10.0), 44.0)),
-    [AttackStyle.forwardTilt]: reach(8, 18, arm(26.0, 47.0)),
-    [AttackStyle.forwardTiltUp]: reach(8, 18, arm(26.0, 80.0)),
-    [AttackStyle.forwardTiltDown]: reach(8, 18, arm(26.0, 22.0)),
-    [AttackStyle.upTilt]: reach(7, 18, arm(14.0, f32(BODY_TOP + 18.0)), arm(-14.0, f32(BODY_TOP + 18.0), -8.0)),
-    [AttackStyle.downTilt]: reach(6, 15, arm(26.0, 16.0)),
-    [AttackStyle.dashAttack]: reach(10, 22, arm(26.0, 40.0)),
+    ...groundPoses(LICH_GROUND, (x, z) => [TORSO, arm(x, z)]),
+    [AttackStyle.upTilt]: reach(6, 17, arm(14.0, f32(BODY_TOP + 18.0)), arm(-14.0, f32(BODY_TOP + 18.0), -8.0)),
     [AttackStyle.forwardSmash]: reach(18, 30, arm(28.0, 47.0)),
     [AttackStyle.upSmash]: reach(16, 30, arm(10.0, f32(BODY_TOP + 20.0)), arm(-10.0, f32(BODY_TOP + 20.0), -8.0)),
     [AttackStyle.downSmash]: reach(16, 28, arm(28.0, 14.0), arm(-28.0, 14.0, -8.0)),
@@ -145,27 +140,7 @@ export const LICH_MOVES: FighterMoves = {
   maxPummels: 2,
   hurtboxes: LICH_BODY,
   normals: {
-    [AttackStyle.jab]: heroMove(6, 2, 16, 0, [
-      frame(6, capsule(18.0, 42.0, f32(S - 8.0), 42.0), hit(3.0, "POKE", 35, false, HitElement.normal)),
-      frame(7, capsule(18.0, 44.0, f32(S - 8.0), 44.0), hit(3.0, "POKE", 35, false, HitElement.normal)),
-    ]),
-    [AttackStyle.forwardTilt]: heroMove(10, 3, 23, 0, palm(10, [41.0, 45.0, 49.0])),
-    [AttackStyle.forwardTiltUp]: heroMove(10, 3, 23, 0, palm(10, [78.0, 86.0, 94.0])),
-    [AttackStyle.forwardTiltDown]: heroMove(10, 3, 23, 0, palm(10, [18.0, 8.0, -2.0])),
-    [AttackStyle.upTilt]: heroMove(9, 4, 23, 0, [
-      frame(9, capsule(32.0, 68.0, 44.0, 88.0), hit(8.0, "LAUNCH", 85)),
-      frame(10, capsule(24.0, 80.0, 10.0, f32(M - 8.0)), hit(8.0, "LAUNCH", 85)),
-      frame(11, capsule(10.0, f32(M - 8.0), -10.0, f32(M - 8.0)), hit(8.0, "LAUNCH", 85)),
-      frame(12, capsule(-10.0, 90.0, -32.0, 72.0), hit(8.0, "LAUNCH", 85)),
-    ]),
-    [AttackStyle.downTilt]: heroMove(8, 3, 20, 0, [
-      frame(8, capsule(18.0, 12.0, f32(M - 6.0), 12.0, 6.0), hit(6.0, "LINK", 65)),
-      frame(9, capsule(18.0, 8.0, f32(M - 6.0), 8.0, 6.0), hit(6.0, "LINK", 65)),
-      frame(10, capsule(18.0, 4.0, f32(M - 6.0), 4.0, 6.0), hit(6.0, "LINK", 65)),
-    ]),
-    [AttackStyle.dashAttack]: heroMove(12, 5, 29, 0, [
-      heroRegion(12, 16, capsule(0.0, 14.0, 0.0, 74.0, 24.0), hit(10.0, "LAUNCH", 50)),
-    ], f32(HERO_REFERENCE_HEIGHT * f32(0.45))),
+    ...LICH_GROUND.normals,
     [AttackStyle.forwardSmash]: heroMove(22, 3, 36, 0, [
       heroRegion(22, 24, capsule(20.0, 45.0, f32(XL - 7.0), 45.0, 7.0), hit(18.0, "KILL", 35)),
     ]),

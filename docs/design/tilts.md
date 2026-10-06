@@ -6,7 +6,7 @@ has its own frame data, hit volumes, reach and reward, so a player can tell
 the fighters apart by their tilts alone. This page covers the reference
 distribution, the angling rule and each fighter's design. The numbers come
 from the kits in smashcraft:ts/src/game/sim/heroes/ and the original fighters'
-tables, and smashcraft:ts/src/game/sim/tilts.tests.ts pins the relations.
+tables, and smashcraft:ts/src/game/match/groundNormalContracts.tests.ts pins the relations.
 Illidan's normals belong to his own kit work and are not designed here.
 
 Notation follows [the roster](roster.md#timing-and-geometry-notation):
@@ -118,7 +118,7 @@ input is never wasted or surprising.
 
 | Role | What it does | Fighters |
 | --- | --- | --- |
-| Spacing poke | Long, low and thin. The tip is safe on shield. | Blademaster |
+| Spacing poke | Long, low and thin. On shield, the tip pushes him out of the defender's grab range. | Blademaster |
 | Chain poke | Fastest, with almost no knockback. It repeats before the victim can act. | Warden |
 | Launcher at high percent | A small pop at low percent; vertical tumble from about 90%. | Mountain King |
 | Knockdown | A low sweep that tumbles the victim at 0%. Starts a tech chase. | Uther |
@@ -141,14 +141,14 @@ input.
 
 His forward tilt is a descending cut that covers head height down to the
 feet, so it is not angled; its outer 0.20H is the tipper. His down tilt is
-the longest low poke on the roster and the only one safe on shield at the tip.
+the longest low poke on the roster; on shield its tip leaves him out of the defender's grab range.
 
 | Normal | F/A/R | Damage | Reach | Launch | Angled | Inspired by |
 | --- | --- | --- | --- | --- | --- | --- |
 | Jab | 3/2/13 | 4 | 0.62H | 50, 55/22 | | Marth jab (fast check) |
 | Forward tilt | 7/3/20 | 8 inner, 11 tip | 1.25H | 30, 100/24 tip | no | Marth forward tilt (non-angled arc) |
 | Up tilt | 6/5/18 | 7 | 0.85H arc over him | 85, 70/38 | | Marth up tilt (covers behind) |
-| Down tilt | 6/2/15 | 5 inner, 7 tip | 1.20H, below 0.15H | 20, 60/18 | | Marth down tilt (long thin poke) |
+| Down tilt | 6/2/10 | 5 inner, 8 tip | 1.20H, below 0.15H | 20, 60/18 | | Marth down tilt (long thin poke) |
 
 ### Mountain King: the heavy hammer
 
@@ -212,7 +212,7 @@ victim in, onto the ground and toward his grab.
 
 | Normal | F/A/R | Damage | Reach | Launch | Angled | Inspired by |
 | --- | --- | --- | --- | --- | --- | --- |
-| Jab | 4/3/14 | 4 | 0.65H | 40, 50/25 | | Captain Falcon jab (sets up) |
+| Jab | 4/3/14 | 4 | 0.60H | 40, 50/25 | | Captain Falcon jab (sets up) |
 | Forward tilt | 8/3/21 | 10 | 0.95H | 35, 100/22 | up 55, down 20 | Captain Falcon forward tilt (angled) |
 | Up tilt | 7/4/20 | 9 | 0.80H, farther behind | 90, 90/25 | | Mewtwo up tilt (arc behind) |
 | Down tilt | 6/3/18 | 6 | 0.80H, below 0.15H | toward him, 0, 30/30 | | Ultimate pull-in tilts (Ridley's tail, a reach-in rake) |
@@ -273,7 +273,7 @@ Each now has one role:
 | --- | --- | --- | --- | --- | --- | --- |
 | Warden | Fast, low commitment | 5/3/18 | 0.40H | 7 | 50, 70/24 | Sheik and Fox dash attacks (frames 4–6) |
 | Blademaster | Sliding long poke | 9/4/22 | 0.70H | 8 inner, 10 tip | 30, 100/24 | Marth dash attack |
-| Mountain King | Launcher | 11/5/26 | 0.60H | 12 | 75, 95/30 | Donkey Kong dash attack |
+| Mountain King | Launcher, body only | 11/5/26 | 0.60H | 12 | 75, 95/30 | Donkey Kong dash attack |
 | Dreadlord | Cross-up | 7/4/24 | 1.00H, passes through | 9 | 60, 90/22, front then back | Ultimate's pass-through dash attacks |
 | Shadow Hunter | Multi-hit | 8/9/20 | 0.50H | 3 + 3 + 5 | last hit 45, 100/22 | Kirby's and Luigi's multi-hit dash attacks |
 | Uther | Heavy, pushes off shield | 12/3/20 | 0.35H | 12 | 30, 100/26 | Ganondorf dash attack |

@@ -13,13 +13,13 @@ import { isMultiHit } from "./multiHit";
 
 // Adopted F/A/R/L values from smashcraft:docs/design/roster.md.
 const NORMALS = [
-  [AttackStyle.jab, 5, 2, 14, 0],
-  [AttackStyle.forwardTilt, 9, 3, 21, 0],
-  [AttackStyle.forwardTiltUp, 9, 3, 21, 0],
-  [AttackStyle.forwardTiltDown, 9, 3, 21, 0],
-  [AttackStyle.upTilt, 8, 4, 21, 0],
-  [AttackStyle.downTilt, 7, 3, 19, 0],
-  [AttackStyle.dashAttack, 10, 4, 27, 0],
+  [AttackStyle.jab, 4, 2, 12, 0],
+  [AttackStyle.forwardTilt, 9, 2, 21, 0],
+  [AttackStyle.forwardTiltUp, 9, 2, 21, 0],
+  [AttackStyle.forwardTiltDown, 9, 2, 21, 0],
+  [AttackStyle.upTilt, 7, 5, 19, 0],
+  [AttackStyle.downTilt, 7, 2, 16, 0],
+  [AttackStyle.dashAttack, 8, 9, 20, 0],
   [AttackStyle.forwardSmash, 19, 3, 34, 0],
   [AttackStyle.upSmash, 17, 4, 31, 0],
   [AttackStyle.downSmash, 16, 5, 33, 0],

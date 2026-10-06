@@ -10,6 +10,8 @@
 // (Attack Slam leaps about 130 units, Dissipate rises) stay off poses whose
 // body the simulation keeps still, so the drawn body stays over its hurtbox.
 import { f32 } from "wisp/src/sim/f32";
+import { AttackStyle } from "../codes";
+import { BLADEMASTER_GROUND, strikeClip } from "./groundNormals";
 import type { HeroClip, HeroFollowUpPose, HeroPose } from "./hero";
 
 /** The model's sequences in index order, with their authored lengths in milliseconds. */
@@ -49,6 +51,12 @@ const SPIN_TURN = f32(0.433); // Attack Walk Stand Spin: one level full turn, lo
 const aligned = (strike: number, firstActive: number, active: number, recovery: number) =>
   f32(f32(strike * (firstActive - 1 + active + recovery)) / (firstActive - 1));
 
+// Attack's blade is farthest forward and low at 0.40 s (drawn silhouette).
+const LOW_CUT = f32(0.40);
+/** A ground normal's clip, its strike on the first active frame or `frame`. */
+const ground = (name: SequenceName, strike: number, style: AttackStyle, frame?: number): HeroClip =>
+  strikeClip(sequence(name), strike, BLADEMASTER_GROUND, style, frame);
+
 const COMBAT_STANCE = sequence("Stand Ready");
 const RECOIL = sequence("Death", f32(0.45));
 
@@ -67,14 +75,17 @@ export const BLADEMASTER_CLIPS: { readonly [pose in Exclude<HeroPose, Exclude<He
   smashCharge: COMBAT_STANCE,
   ko: sequence("Death"),
   dizzy: sequence("Stand - 2"),
-  jab: sequence("Attack 2", aligned(THRUST, 4, 2, 13)),
+  jab: ground("Attack 2", THRUST, AttackStyle.jab),
   grab: sequence("Attack 2", aligned(THRUST, 7, 2, 22)),
-  forwardTilt: sequence("Attack", aligned(CUT, 8, 3, 19)),
-  forwardTiltUp: sequence("Attack 2", aligned(THRUST, 8, 3, 19)),
-  forwardTiltDown: sequence("Attack", aligned(CUT, 8, 3, 19)),
-  upTilt: sequence("Stand - 4", aligned(f32(0.25), 7, 5, 20)),
-  downTilt: sequence("Attack", aligned(f32(0.39), 7, 3, 17)),
-  dashAttack: sequence("Attack", aligned(CUT, 10, 4, 26)),
+  // One descending cut for every angle (smashcraft:docs/design/tilts.md): its low cut lands on the last active frame.
+  forwardTilt: ground("Attack", CUT, AttackStyle.forwardTilt, 9),
+  forwardTiltUp: ground("Attack", CUT, AttackStyle.forwardTilt, 9),
+  forwardTiltDown: ground("Attack", CUT, AttackStyle.forwardTilt, 9),
+  // The arc is overhead on its middle active frame.
+  upTilt: ground("Stand - 4", RISE, AttackStyle.upTilt, 8),
+  downTilt: ground("Attack", LOW_CUT, AttackStyle.downTilt),
+  // The sliding thrust: Attack 2's level thrust.
+  dashAttack: ground("Attack 2", THRUST, AttackStyle.dashAttack),
   forwardSmash: sequence("Attack 2", aligned(THRUST, 17, 3, 32)),
   upSmash: sequence("Stand - 4", aligned(RISE, 15, 4, 30)),
   downSmash: sequence("Attack Walk Stand Spin", f32(2.0 * SPIN_TURN)),

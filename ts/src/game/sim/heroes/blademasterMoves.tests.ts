@@ -12,13 +12,13 @@ import { isMultiHit } from "./multiHit";
 
 // The adopted roster's F/A/R/L rows, rather than shared legacy frame data.
 const NORMALS = [
-  [AttackStyle.jab, 4, 2, 13, 0],
-  [AttackStyle.forwardTilt, 8, 3, 19, 0],
-  [AttackStyle.forwardTiltUp, 8, 3, 19, 0],
-  [AttackStyle.forwardTiltDown, 8, 3, 19, 0],
-  [AttackStyle.upTilt, 7, 5, 20, 0],
-  [AttackStyle.downTilt, 7, 3, 17, 0],
-  [AttackStyle.dashAttack, 10, 4, 26, 0],
+  [AttackStyle.jab, 3, 2, 13, 0],
+  [AttackStyle.forwardTilt, 7, 3, 20, 0],
+  [AttackStyle.forwardTiltUp, 7, 3, 20, 0],
+  [AttackStyle.forwardTiltDown, 7, 3, 20, 0],
+  [AttackStyle.upTilt, 6, 5, 18, 0],
+  [AttackStyle.downTilt, 6, 2, 10, 0],
+  [AttackStyle.dashAttack, 9, 4, 22, 0],
   [AttackStyle.forwardSmash, 17, 3, 32, 0],
   [AttackStyle.upSmash, 15, 4, 30, 0],
   [AttackStyle.downSmash, 14, 6, 31, 0],
@@ -77,10 +77,10 @@ test("Blademaster roster timings and final aerial landing lag reach production A
 
 test("Blademaster blade tips reward spacing in both facings", () => {
   for (const facing of [-1, 1]) {
-    assertEquals(contact(AttackStyle.jab, facing, 60.0).status.damage, 3.0);
+    assertEquals(contact(AttackStyle.jab, facing, 60.0).status.damage, 4.0);
     assertEquals(contact(AttackStyle.jab, facing, 110.0).status.damage, 0.0);
     assertEquals(contact(AttackStyle.forwardTilt, facing, 60.0).status.damage, 8.0);
-    assertEquals(contact(AttackStyle.forwardTilt, facing, 130.0).status.damage, 10.0);
+    assertEquals(contact(AttackStyle.forwardTilt, facing, 140.0).status.damage, 11.0);
     assertEquals(contact(AttackStyle.forwardSmash, facing, 80.0).status.damage, 15.0);
     assertEquals(contact(AttackStyle.forwardSmash, facing, 170.0).status.damage, 19.0);
     assertEquals(contact(AttackStyle.forwardAir, facing, 60.0, 0.0, true).status.damage, 11.0);
@@ -90,12 +90,11 @@ test("Blademaster blade tips reward spacing in both facings", () => {
   }
 });
 
-test("Blademaster angles move the blade and narrow upward strikes miss the low front", () => {
+test("Blademaster's descending cut is one move for every angle and narrow upward strikes miss the low front", () => {
+  assertTrue(BLADEMASTER_MOVES.normals[AttackStyle.forwardTiltUp] === BLADEMASTER_MOVES.normals[AttackStyle.forwardTilt]);
+  assertTrue(BLADEMASTER_MOVES.normals[AttackStyle.forwardTiltDown] === BLADEMASTER_MOVES.normals[AttackStyle.forwardTilt]);
   for (const facing of [-1, 1]) {
-    assertEquals(contact(AttackStyle.forwardTiltUp, facing, 130.0, 90.0).status.damage, 10.0);
-    assertEquals(contact(AttackStyle.forwardTiltDown, facing, 130.0, 90.0).status.damage, 0.0);
-    assertEquals(contact(AttackStyle.forwardTiltDown, facing, 130.0, -100.0).status.damage, 10.0);
-    assertEquals(contact(AttackStyle.forwardTiltUp, facing, 130.0, -100.0).status.damage, 0.0);
+    assertEquals(contact(AttackStyle.forwardTiltUp, facing, 140.0).status.damage, 11.0);
     assertEquals(contact(AttackStyle.upSmash, facing, 100.0).status.damage, 0.0);
     assertEquals(contact(AttackStyle.upAir, facing, 70.0, 0.0, true).status.damage, 0.0);
     assertEquals(contact(AttackStyle.upAir, facing, 0.0, 30.0, true).status.damage, 8.0);

@@ -2,6 +2,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
 import { hurtCapsule } from "../../physics/contactGeometry";
 import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion, type FighterMoves, type StrikeCapsule } from "../heroMoves";
+import { UTHER_GROUND, groundPoses } from "./groundNormals";
 import type { HitEffect } from "../hitRegions";
 import { type FighterHurtboxes, type HurtPart, hurtPart } from "../hurtboxes";
 
@@ -77,7 +78,6 @@ const GRAB_CONTACT = { damage: 0.0, growth: 0.0, base: 0.0, launchX: 0.0, launch
 // late startup into early recovery, at the hand heights of the Paladin's
 // "Attack - 1", "Attack - 2" and "Spell" sequences (utherClips.ts). The jab's
 // gauntlet, back air's boot and the grabbing hand are the strikes themselves.
-// Shoulder of Justice strikes with the torso.
 const body = hurtCapsule(Character.uther);
 const UTHER_TORSO = hurtPart(body.x1, body.z1, body.x2, body.z2, body.radius);
 const ARM_RADIUS = 10.0;
@@ -94,13 +94,9 @@ const HALF_BOOT = hurtPart(-8.0, 42.0, f32(BOOT_TIP * f32(0.6)), 36.0, 11.0);
 const UTHER_HURTBOXES: FighterHurtboxes = {
   stand: [UTHER_TORSO],
   attacks: {
-    [AttackStyle.jab]: [heroHurtPose(3, 10, [UTHER_TORSO, JAB_ARM])],
+    [AttackStyle.jab]: [heroHurtPose(3, 9, [UTHER_TORSO, JAB_ARM])],
     [AttackStyle.grab]: [heroHurtPose(6, 14, [UTHER_TORSO, GRAB_ARM])],
-    [AttackStyle.forwardTilt]: [heroHurtPose(7, 16, utherReach(44.0, 64.0))],
-    [AttackStyle.forwardTiltUp]: [heroHurtPose(7, 16, utherReach(40.0, 92.0))],
-    [AttackStyle.forwardTiltDown]: [heroHurtPose(7, 16, utherReach(44.0, 40.0))],
-    [AttackStyle.upTilt]: [heroHurtPose(6, 15, utherReach(10.0, 136.0))],
-    [AttackStyle.downTilt]: [heroHurtPose(5, 13, utherReach(44.0, 28.0))],
+    ...groundPoses(UTHER_GROUND, utherReach),
     [AttackStyle.forwardSmash]: [heroHurtPose(18, 26, utherReach(48.0, 60.0))],
     [AttackStyle.upSmash]: [heroHurtPose(15, 24, utherReach(8.0, 140.0))],
     [AttackStyle.downSmash]: [heroHurtPose(14, 19, utherReach(44.0, 26.0)), heroHurtPose(20, 25, utherReach(-44.0, 26.0))],
@@ -119,40 +115,7 @@ export const UTHER_MOVES: FighterMoves = {
   maxPummels: 2,
   hurtboxes: UTHER_HURTBOXES,
   normals: {
-    // The gauntlet reaches 0.55H; the arm's hurt part (UTHER_HURTBOXES) reaches it too.
-    [AttackStyle.jab]: heroMove(5, 2, 15, 0, [
-      frame(5, capsule(24.0, 64.0, f32(SHORT - 10.0), 60.0, 10.0), JAB),
-      frame(6, capsule(24.0, 64.0, f32(SHORT - 14.0), 60.0, 10.0), JAB),
-    ]),
-    [AttackStyle.forwardTilt]: heroMove(10, 3, 23, 0, [
-      frame(10, capsule(22.0, 64.0, 115.0, 86.0, 12.0), FORWARD_TILT),
-      frame(11, capsule(22.0, 52.0, f32(LONG - 12.0), 52.0, 12.0), FORWARD_TILT),
-      frame(12, capsule(22.0, 42.0, 115.0, 18.0, 12.0), FORWARD_TILT),
-    ]),
-    [AttackStyle.forwardTiltUp]: heroMove(10, 3, 23, 0, [
-      frame(10, capsule(22.0, 64.0, 80.0, 118.0, 12.0), FORWARD_TILT),
-      frame(11, capsule(22.0, 60.0, f32(LONG - 12.0), 96.0, 12.0), FORWARD_TILT),
-      frame(12, capsule(22.0, 52.0, 115.0, 68.0, 12.0), FORWARD_TILT),
-    ]),
-    [AttackStyle.forwardTiltDown]: heroMove(10, 3, 23, 0, [
-      frame(10, capsule(22.0, 48.0, 115.0, 42.0, 12.0), FORWARD_TILT),
-      frame(11, capsule(22.0, 40.0, f32(LONG - 12.0), 8.0, 12.0), FORWARD_TILT),
-      frame(12, capsule(22.0, 30.0, 115.0, -16.0, 12.0), FORWARD_TILT),
-    ]),
-    [AttackStyle.upTilt]: heroMove(9, 4, 22, 0, [
-      frame(9, capsule(20.0, 54.0, 70.0, 78.0, 12.0), UP_TILT),
-      frame(10, capsule(14.0, 64.0, 40.0, f32(MEDIUM - 12.0), 12.0), UP_TILT),
-      frame(11, capsule(8.0, 70.0, 0.0, f32(MEDIUM - 12.0), 12.0), UP_TILT),
-      frame(12, capsule(4.0, 66.0, -28.0, 88.0, 12.0), UP_TILT),
-    ]),
-    [AttackStyle.downTilt]: heroMove(8, 3, 20, 0, [
-      frame(8, capsule(14.0, 14.0, 78.0, 24.0, 9.0), DOWN_TILT),
-      frame(9, capsule(14.0, 12.0, f32(MEDIUM - 9.0), 10.0, 9.0), DOWN_TILT),
-      frame(10, capsule(14.0, 10.0, 78.0, -2.0, 9.0), DOWN_TILT),
-    ]),
-    [AttackStyle.dashAttack]: heroMove(12, 5, 29, 0, [
-      heroRegion(12, 16, capsule(0.0, 18.0, 0.0, 66.0, 24.0), DASH),
-    ], f32(MEDIUM - 24.0)),
+    ...UTHER_GROUND.normals,
     [AttackStyle.forwardSmash]: heroMove(21, 3, 36, 0, [
       frame(21, head(100.0, 105.0, 18.0), FORWARD_SMASH_HEAD),
       frame(22, head(f32(LONG - 18.0), 54.0, 18.0), FORWARD_SMASH_HEAD),
