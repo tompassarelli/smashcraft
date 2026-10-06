@@ -8,17 +8,17 @@ import { STAGE_PALETTE } from "../src/game/assets/stagePalette";
 import { SurfaceContact } from "../src/game/sim/codes";
 import { MAIN_DECK_BODY_SURFACES, solidSurfaceAt, surfaceLeft, surfaceRight, surfaceZ } from "../src/game/sim/stage";
 
-export type Vector3 = readonly [x: number, y: number, z: number];
+type Vector3 = readonly [x: number, y: number, z: number];
 export type OutlinePoint = readonly [x: number, z: number];
 
 const hash = (bytes: Uint8Array | string) => new Bun.CryptoHasher("sha256").update(bytes).digest("hex");
 
 /** One texel per material, in material order: slate walking surface, brass lip, charcoal body, recessed steel. */
 const MATERIAL_COLORS = [STAGE_PALETTE.slate, STAGE_PALETTE.brass, STAGE_PALETTE.charcoal, STAGE_PALETTE.steel];
-export const DeckMaterial = { slate: 0, brass: 1, charcoal: 2, steel: 3 } as const;
-export type DeckMaterial = (typeof DeckMaterial)[keyof typeof DeckMaterial];
+const DeckMaterial = { slate: 0, brass: 1, charcoal: 2, steel: 3 } as const;
+type DeckMaterial = (typeof DeckMaterial)[keyof typeof DeckMaterial];
 
-/** The decks' palette texture, an uncompressed TGA, and its content-addressed name. */
+/** The decks' palette texture, an uncompressed TGA, its content-addressed name, and the texture coordinate of each material's texel. */
 export const STAGE_PALETTE_TEXTURE = (() => {
   const bytes = new Uint8Array(18 + MATERIAL_COLORS.length * 4);
   bytes[2] = 2;
@@ -27,16 +27,14 @@ export const STAGE_PALETTE_TEXTURE = (() => {
   bytes[16] = 32;
   bytes[17] = 0x28;
   MATERIAL_COLORS.forEach(([r, g, b], i) => bytes.set([b, g, r, 255], 18 + i * 4));
-  return { bytes, name: `StagePalette-${hash(bytes)}.tga` };
+  const coordinate = (material: DeckMaterial): readonly [u: number, v: number] => [(material + 0.5) / MATERIAL_COLORS.length, 0.5];
+  return { bytes, name: `StagePalette-${hash(bytes)}.tga`, coordinate };
 })();
 
-/** The texture coordinate that samples `material`'s texel. */
-export const materialCoordinate = (material: DeckMaterial): readonly [u: number, v: number] => [(material + 0.5) / MATERIAL_COLORS.length, 0.5];
-
-export type OutlineKind = "floor" | "wall" | "ceiling";
+type OutlineKind = "floor" | "wall" | "ceiling";
 
 /** One line of the deck's outline, the solid behind its outward normal. */
-export interface OutlineLine {
+interface OutlineLine {
   readonly kind: OutlineKind;
   readonly start: OutlinePoint;
   readonly end: OutlinePoint;
@@ -49,7 +47,7 @@ export interface OutlineLine {
  * ledge to the right one, then the walls and underside follow in the stage's
  * order, back to the left ledge.
  */
-export function mainDeckOutline(stage: number): OutlineLine[] {
+function mainDeckOutline(stage: number): OutlineLine[] {
   const left = surfaceLeft(stage, 0);
   const right = surfaceRight(stage, 0);
   const center = (left + right) / 2;
@@ -174,7 +172,7 @@ Materials 1 { Material { Layer { FilterMode None, Unshaded, static TextureID 0, 
 Geoset {
     Vertices ${points.length} { ${points.map((point) => `${vector(point)},`).join("\n")} }
     Normals ${points.length} { ${corners.map(({ face }) => `${vector(face.normal)},`).join("\n")} }
-    TVertices ${points.length} { ${corners.map(({ face }) => `${vector(materialCoordinate(face.material))},`).join("\n")} }
+    TVertices ${points.length} { ${corners.map(({ face }) => `${vector(STAGE_PALETTE_TEXTURE.coordinate(face.material))},`).join("\n")} }
     VertexGroup { ${points.map(() => "0,").join(" ")} }
     Faces 1 ${triangles.length} { Triangles { ${vector(triangles)}, } }
     Groups 1 1 { Matrices { 0 }, }

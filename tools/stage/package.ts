@@ -2,17 +2,17 @@
 // ts/scripts/stageDeck.ts draws the main deck from them.
 import { parseMDL, generateMDX, parseMDX } from "../animations/node_modules/war3-model";
 import { join } from "node:path";
-import { STAGE_PALETTE_TEXTURE, mainDeckFaces, mainDeckMdl, mainDeckModelFile, materialCoordinate, type DeckMaterial } from "../../ts/scripts/stageDeck";
+import { STAGE_PALETTE_TEXTURE, mainDeckFaces, mainDeckMdl, mainDeckModelFile } from "../../ts/scripts/stageDeck";
 
 const output = join(import.meta.dir, "../../build/stage-assets");
-const { bytes: texture, name: textureName } = STAGE_PALETTE_TEXTURE;
+const { bytes: texture, name: textureName, coordinate } = STAGE_PALETTE_TEXTURE;
 const hash = (bytes: Uint8Array) => new Bun.CryptoHasher("sha256").update(bytes).digest("hex");
 const vec = (v: readonly number[]) => `{ ${v.join(", ")} }`;
 // The raised decks' slab: a normalized 100-unit deck that the map scales to each deck.
 const extent = 'MinimumExtent { -50, -60, -54 }, MaximumExtent { 50, 60, 0 }, BoundsRadius 96,';
 let geometry = "";
 let count = 0;
-function slab(top: number, bottom: number, halfWidth: number, halfDepth: number, lowerWidth: number, lowerDepth: number, material: DeckMaterial) {
+function slab(top: number, bottom: number, halfWidth: number, halfDepth: number, lowerWidth: number, lowerDepth: number, material: number) {
     const vertices = [
         [-halfWidth,-halfDepth,top], [halfWidth,-halfDepth,top], [halfWidth,halfDepth,top], [-halfWidth,halfDepth,top],
         [-lowerWidth,-lowerDepth,bottom], [lowerWidth,-lowerDepth,bottom], [lowerWidth,lowerDepth,bottom], [-lowerWidth,lowerDepth,bottom],
@@ -24,7 +24,7 @@ function slab(top: number, bottom: number, halfWidth: number, halfDepth: number,
     geometry += `Geoset {
         Vertices 24 { ${points.map(v => vec(v)+",").join("\n")} }
         Normals 24 { ${normals.flatMap(v => Array(4).fill(vec(v)+",")).join("\n")} }
-        TVertices 24 { ${Array(24).fill(vec(materialCoordinate(material))+",").join("\n")} }
+        TVertices 24 { ${Array(24).fill(vec(coordinate(material))+",").join("\n")} }
         VertexGroup { ${Array(24).fill("0,").join(" ")} }
         Faces 1 36 { Triangles { ${vec(triangles)}, } }
         Groups 1 1 { Matrices { 0 }, }
