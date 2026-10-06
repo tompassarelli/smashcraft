@@ -1,6 +1,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction } from "../codes";
-import { type AuthoredThrow, type FighterMoves, type MoveRegion, type StrikeCapsule, HERO_REFERENCE_HEIGHT, heroMove, heroRegion } from "../heroMoves";
+import { type AuthoredThrow, type FighterMoves, type MoveRegion, type StrikeCapsule, HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion } from "../heroMoves";
+import { type FighterHurtboxes, type HurtPart, hurtPart } from "../hurtboxes";
 import { type HitEffect, HitElement } from "../hitRegions";
 
 // smashcraft:docs/design/roster.md uses Archer's standing outer capsule height.
@@ -95,6 +96,41 @@ function authoredThrow(releaseFrame: number, recovery: number, damage: number, k
   return { contactFrame: releaseFrame, totalFrames: releaseFrame + recovery, effect: hit(damage, kind, angle, facing) };
 }
 
+// The body is Archer's capsule at the roster's 1.05 height. The sword arm
+// reaches toward each strike from late startup into early recovery, so a
+// whiff is punishable at the hand; the blade past the hand is the disjoint.
+// Hand positions follow the stock model's Attack, Attack 2 and Stand - 4
+// sequences (blademasterClips.ts).
+const TORSO = hurtPart(0.0, 4.0, 0.0, f32(94.6), 24.0);
+const ARM_RADIUS = 9.0;
+const arm = (x1: number, z1: number, x2: number, z2: number): readonly HurtPart[] => [TORSO, hurtPart(x1, z1, x2, z2, ARM_RADIUS)];
+const SHOULDER_X = 6.0;
+const SHOULDER_Z = 90.0;
+const reach = (handX: number, handZ: number) => arm(SHOULDER_X, SHOULDER_Z, handX, handZ);
+
+const BODY: FighterHurtboxes = {
+  stand: [TORSO],
+  attacks: {
+    [AttackStyle.jab]: [heroHurtPose(2, 8, reach(46.0, 76.0))],
+    [AttackStyle.forwardTilt]: [heroHurtPose(6, 14, reach(48.0, 66.0))],
+    [AttackStyle.forwardTiltUp]: [heroHurtPose(6, 14, reach(46.0, 92.0))],
+    [AttackStyle.forwardTiltDown]: [heroHurtPose(6, 14, reach(46.0, 44.0))],
+    [AttackStyle.upTilt]: [heroHurtPose(5, 14, reach(14.0, 136.0))],
+    [AttackStyle.downTilt]: [heroHurtPose(5, 12, reach(44.0, 30.0))],
+    [AttackStyle.dashAttack]: [heroHurtPose(8, 16, reach(46.0, 56.0))],
+    // Smash charge holds the frame before the first active one, wound back.
+    [AttackStyle.forwardSmash]: [heroHurtPose(17, 23, reach(62.0, 76.0))],
+    [AttackStyle.upSmash]: [heroHurtPose(15, 21, reach(10.0, 140.0))],
+    [AttackStyle.downSmash]: [heroHurtPose(14, 16, reach(44.0, 26.0)), heroHurtPose(17, 22, reach(-44.0, 26.0))],
+    [AttackStyle.neutralAir]: [heroHurtPose(6, 13, reach(46.0, 86.0))],
+    [AttackStyle.forwardAir]: [heroHurtPose(8, 16, reach(46.0, 60.0))],
+    [AttackStyle.backAir]: [heroHurtPose(6, 14, reach(-46.0, 70.0))],
+    [AttackStyle.upAir]: [heroHurtPose(5, 11, reach(4.0, 140.0))],
+    [AttackStyle.downAir]: [heroHurtPose(11, 19, arm(0.0, 70.0, 4.0, 26.0))],
+    [AttackStyle.grab]: [heroHurtPose(5, 12, reach(50.0, 76.0))],
+  },
+};
+
 export const BLADEMASTER_MOVES: FighterMoves = {
   normals: {
     [AttackStyle.jab]: heroMove(4, 2, 13, 0, path(4, [
@@ -156,4 +192,5 @@ export const BLADEMASTER_MOVES: FighterMoves = {
   smashMaxChargeFrames: 45,
   smashMaxDamageMultiplier: 1.25,
   maxPummels: 2,
+  hurtboxes: BODY,
 };
