@@ -9,7 +9,9 @@ import {
   returnToCharacters, selectCharacter, selectCpuCharacter, selectStage, setStocks, setTimeLimit, updateConnectedHumans,
 } from "../../game/match/rules";
 import { prepareQuickMatch } from "../../game/shell/devSettings";
+import type { Scenario } from "../../game/shell/build";
 import { preparePlaytest } from "../../game/shell/playtest";
+import { nextStage } from "../../game/menu/stageCatalog";
 import { floorMod } from "wisp/src/sim/intMath";
 import { traceSelectionState } from "./diagnostics";
 import { clearParticipantInputs, controlsAvailable, currentHumanMask } from "./inputs";
@@ -26,7 +28,7 @@ export function choose(s: ShellState, slot: ParticipantSlot, direction: -1 | 1):
   if (s.game.phase === Phase.characterMenu) {
     selectCharacter(s.game, slot, floorMod((characterFor(s.game, slot) ?? 0) + direction, 3));
     makePreview(s);
-  } else if (s.game.phase === Phase.stageMenu) selectStage(s.game, slot, floorMod(s.game.stageChoice + direction, 3));
+  } else if (s.game.phase === Phase.stageMenu) selectStage(s.game, slot, nextStage(s.game.stageChoice, direction));
 }
 
 /** Accept: continue to stages, start the match, or ready up for a rematch. */
@@ -80,10 +82,10 @@ export function openSettingsScreen(s: ShellState, slot: ParticipantSlot): void {
 }
 
 /** `-dev quick`: every human's default fighter on the default stage, past both menus. */
-export function startQuickMatch(s: ShellState, stage = 0): void {
+export function startQuickMatch(s: ShellState, stage = 0, scenario: Scenario = s.build.scenario): void {
   if (prepareQuickMatch(s.game, stage)) {
     for (const panel of views(s).settings) panel.close();
-    startMatch(s);
+    startMatch(s, scenario);
   }
 }
 

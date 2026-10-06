@@ -1,0 +1,11 @@
+$ bun scripts/wisp.ts tapes
+   0.018 s  Lua32 rounding toward zero (0.003 s)
+   2.425 s  record tapes (2.399 s)
+  16.170 s  compile TypeScript Lua (13.745 s)
+  24.495 s  replay in bun (8.309 s)
+  45.072 s  replay in ts-lua32-toward-zero (28.889 s)
+  45.098 s  replay in ts-lua32 (28.926 s)
+10 tapes, 6850 frames (actions 410, rollback 220, rematch 250, computer 900, moving-platforms 620, patterned-platforms 520, wind 1900, carried 940, cannon 650, timed-lift 440)
+bun/ts-lua32: 0 divergent frames
+bun/ts-lua32-toward-zero: 0 divergent frames
+  45.658 s  tapes (45.658 s)

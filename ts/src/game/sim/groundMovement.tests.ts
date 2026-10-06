@@ -8,6 +8,7 @@ import { AttackStyle, Character, GroundAction } from "./codes";
 import { type Fighter, createFighter } from "./fighter";
 import { advanceFighter } from "./step";
 import { respawnFighter } from "./stocks";
+import { stageBounds } from "./stageBounds";
 import { advanceSolo, controls, testBeginAttacks, testWorld, withPhysics } from "./testWorld";
 import {
   GROUND_TRACTION,
@@ -346,7 +347,7 @@ test("an initial dash clears on a jump, shield, attack and respawn", () => {
       testBeginAttacks(world, AttackStyle.jab, undefined);
       assertEquals(fighter.attack.style, AttackStyle.jab);
     } else {
-      fighter.motion.x = 930.0;
+      fighter.motion.x = f32(stageBounds(0).blast.right + 10.0);
       advanceFighter(world, 0, 0, input, 0.0);
       assertTrue(fighter.status.out);
       assertEquals(fighter.ground.dashFrame, 0);

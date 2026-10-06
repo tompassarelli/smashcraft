@@ -1,0 +1,542 @@
+$ bun scripts/wisp.ts oracle
+   0.803 s  Melee oracle scenarios (0.802 s)
+
+jump: jump squat: grounded frames from the press
+    ftData attributes (physics-parameters.json, Fox/Falco) +0x038 jump_startup_time 3/5; melee:src/melee/ft/kinds/ftCommon/ftCo_KneeBend.c; slippi-ntsc-falco-jump.json
+    Archer    expected 3                            actual 3                            pass
+    Rifleman  expected 5                            actual 5                            pass
+    Illidan   expected -                            actual -                            n/a
+
+jump: full hop apex (Melee units)
+    ftData attributes (physics-parameters.json, Fox/Falco) +0x040 jump_v 3.68/4.1, +0x05C gravity 0.23/0.17; takeoff frame moves by v, then v -= g: ftCo_Jump.c
+    Archer    expected 31.28                        actual 31.28                        pass
+    Rifleman  expected 51.5                         actual 51.5                         pass
+    Illidan   expected -                            actual -                            n/a
+
+jump: short hop apex (released in squat)
+    ftData attributes (physics-parameters.json, Fox/Falco) +0x04C hop_v 2.1/1.9; release during KneeBend selects it: ftCo_KneeBend.c
+    Archer    expected 10.65                        actual 10.65                        pass
+    Rifleman  expected 11.58                        actual 11.58                        pass
+    Illidan   expected -                            actual -                            n/a
+
+jump: double jump rise (Melee units)
+    ftData attributes (physics-parameters.json, Fox/Falco) +0x050 air_jump_v_multiplier 1.2/0.94 x +0x040; gravity from the first frame: ftCo_JumpAerial.c
+    Archer    expected 40.204                       actual 40.204                       pass
+    Rifleman  expected 41.778                       actual 41.778                       pass
+    Illidan   expected -                            actual -                            n/a
+
+ground: initial dash velocity after the first frame
+    ftData attributes (physics-parameters.json, Fox/Falco) +0x01C dash_initial_velocity 1.9; melee:src/melee/ft/kinds/ftCommon/ftCo_Dash.c; retail-ground-movement-events.json
+    Archer    expected 1.9                          actual 1.9                          pass
+    Rifleman  expected 1.9                          actual 1.9                          pass
+    Illidan   expected -                            actual -                            n/a
+
+ground: running: velocity settles at the run maximum
+    ftData attributes (physics-parameters.json, Fox/Falco) +0x028 dash_max_velocity (run) 2.2/1.5, the target of melee:src/melee/ft/kinds/ftCommon/ftCo_Run.c; over the target, ftCommon_CalcGroundAccel_DashRun applies friction down to it (melee:src/melee/ft/ftcommon.c); acceleration below it is Smashcraft's authored tuning
+    Archer    expected 2.2                          actual 2.2                          pass
+    Rifleman  expected 1.5                          actual 1.5                          pass
+    Illidan   expected -                            actual -                            n/a
+
+ground: walking: velocity settles at the walk maximum
+    ftData attributes (physics-parameters.json, Fox/Falco) +0x008 walk_max_vel 1.6/1.4, the target of melee:src/melee/ft/ftwalkcommon.c ftWalkCommon_800E0060; over the target, ftCommon_CalcGroundAccel_DashRun applies friction down to it (melee:src/melee/ft/ftcommon.c); acceleration below it is Smashcraft's authored tuning
+    Archer    expected 1.6                          actual 1.6                          pass
+    Rifleman  expected 1.4                          actual 1.4                          pass
+    Illidan   expected -                            actual -                            n/a
+
+fast-fall: fast-fall velocity
+    ftData attributes (physics-parameters.json, Fox/Falco) +0x074 fast_fall_velocity 3.4/3.5; melee:src/melee/ft/ftcommon.c ftCommon_CheckFallFast
+    Archer    expected 3.4                          actual 3.4                          pass
+    Rifleman  expected 3.5                          actual 3.5                          pass
+    Illidan   expected -                            actual -                            n/a
+
+fast-fall: down held from 3 frames before descent
+    PlCo +0x08C = 4: stick-down age < 4 and self_vel.y < 0; melee:src/melee/ft/ftcommon.c:513 ftCommon_CheckFallFast
+    Archer    expected true                         actual true                         pass
+    Rifleman  expected true                         actual true                         pass
+    Illidan   expected true                         actual true                         pass
+
+fast-fall: down held from 4 frames before descent
+    PlCo +0x08C = 4: stick-down age < 4 and self_vel.y < 0; melee:src/melee/ft/ftcommon.c:513 ftCommon_CheckFallFast
+    Archer    expected false                        actual false                        pass
+    Rifleman  expected false                        actual false                        pass
+    Illidan   expected false                        actual false                        pass
+
+landing: empty landing lag (frames to act)
+    ftData attributes (physics-parameters.json, Fox/Falco) +0x0E4 normal_landing_lag 4; melee:src/melee/ft/kinds/ftCommon/ftCo_Landing.c
+    Archer    expected 4                            actual 4                            pass
+    Rifleman  expected 4                            actual 4                            pass
+    Illidan   expected -                            actual -                            n/a
+
+landing: neutral aerial landing lag is Melee's L-cancelled lag (authored 10)
+    an L/R press under PlCo +0x0E4 = 7 frames before landing (x67F, fighter.c Fighter_procInput) divides the lag by PlCo +0x0E8 = 2, at least 1: melee:src/melee/ft/kinds/ftCommon/ftCo_LandingAir.c
+    Archer    expected 5                            actual 5                            pass
+    Rifleman  expected 5                            actual 5                            pass
+    Illidan   expected 5                            actual 5                            pass
+
+landing: neutral aerial landing lag with no L press
+    an L/R press under PlCo +0x0E4 = 7 frames before landing (x67F, fighter.c Fighter_procInput) divides the lag by PlCo +0x0E8 = 2, at least 1: melee:src/melee/ft/kinds/ftCommon/ftCo_LandingAir.c; departure: L-cancelling: removed, every aerial lands with the cancelled lag (owner decision 2026-10-06, #54)
+    Archer    expected 10                           actual 5                            departure
+    Rifleman  expected 10                           actual 5                            departure
+    Illidan   expected 10                           actual 5                            departure
+
+tech: no tech press
+    missed tech enters DownBound: melee:src/melee/ft/kinds/ftCommon/ftCo_DownBound.c
+    Archer    expected knockdown                    actual knockdown                    pass
+    Rifleman  expected knockdown                    actual knockdown                    pass
+    Illidan   expected knockdown                    actual knockdown                    pass
+
+tech: tech 19 frames before landing
+    PlCo +0x250 = 20: L/R press age (x680) < 20 and previous press interval (x684) >= PlCo +0x01C = 40; melee:src/melee/ft/kinds/ftCommon/ftCo_DownAttack.c:90 (gate 0x800986B0, retail-tech-input-driver.json)
+    Archer    expected tech                         actual tech                         pass
+    Rifleman  expected tech                         actual tech                         pass
+    Illidan   expected tech                         actual tech                         pass
+
+tech: tech 20 frames before landing
+    PlCo +0x250 = 20: L/R press age (x680) < 20 and previous press interval (x684) >= PlCo +0x01C = 40; melee:src/melee/ft/kinds/ftCommon/ftCo_DownAttack.c:90 (gate 0x800986B0, retail-tech-input-driver.json)
+    Archer    expected knockdown                    actual knockdown                    pass
+    Rifleman  expected knockdown                    actual knockdown                    pass
+    Illidan   expected knockdown                    actual knockdown                    pass
+
+tech: tech with the stick held sideways
+    PlCo +0x254 = 0.2 stick x picks PassiveStandF/B: melee:src/melee/ft/kinds/ftCommon/ftCo_PassiveStand.c:26
+    Archer    expected tech roll                    actual tech roll                    pass
+    Rifleman  expected tech roll                    actual tech roll                    pass
+    Illidan   expected tech roll                    actual tech roll                    pass
+
+tech: second press 40 frames after the first
+    PlCo +0x250 = 20: L/R press age (x680) < 20 and previous press interval (x684) >= PlCo +0x01C = 40; melee:src/melee/ft/kinds/ftCommon/ftCo_DownAttack.c:90 (gate 0x800986B0, retail-tech-input-driver.json)
+    Archer    expected knockdown                    actual knockdown                    pass
+    Rifleman  expected knockdown                    actual knockdown                    pass
+    Illidan   expected knockdown                    actual knockdown                    pass
+
+tech: second press 41 frames after the first
+    PlCo +0x250 = 20: L/R press age (x680) < 20 and previous press interval (x684) >= PlCo +0x01C = 40; melee:src/melee/ft/kinds/ftCommon/ftCo_DownAttack.c:90 (gate 0x800986B0, retail-tech-input-driver.json)
+    Archer    expected tech                         actual tech                         pass
+    Rifleman  expected tech                         actual tech                         pass
+    Illidan   expected tech                         actual tech                         pass
+
+getup: frames in down-bound before a held roll
+    Fox/Falco animation frames (retail-action-lengths.json) DownBoundU 26, entered without an extra animation step: ftCo_DownBound.c ftCo_8009794C
+    Archer    expected 26                           actual 26                           pass
+    Rifleman  expected 26                           actual 26                           pass
+    Illidan   expected -                            actual -                            n/a
+
+getup: stick held sideways through the bound: rolls at its end
+    DownBound ends into get-up attack (A/B pressed within PlCo +0x24C = 60 frames), then held stick roll (|x| >= PlCo +0x248 0.2), else DownWait: melee:src/melee/ft/kinds/ftCommon/ftCo_DownBound.c ftCo_DownBound_Anim, ftCo_Down.c
+    Archer    expected roll                         actual roll                         pass
+    Rifleman  expected roll                         actual roll                         pass
+    Illidan   expected roll                         actual roll                         pass
+
+getup: attack pressed during the bound: get-up attack at its end
+    DownBound ends into get-up attack (A/B pressed within PlCo +0x24C = 60 frames), then held stick roll (|x| >= PlCo +0x248 0.2), else DownWait: melee:src/melee/ft/kinds/ftCommon/ftCo_DownBound.c ftCo_DownBound_Anim, ftCo_Down.c
+    Archer    expected get-up attack                actual get-up attack                pass
+    Rifleman  expected get-up attack                actual get-up attack                pass
+    Illidan   expected get-up attack                actual get-up attack                pass
+
+getup: no input: frames in down-wait before standing
+    PlCo +0x424 = 220: ftCo_DownWait_Anim counts mv.co.downwait.x0 down and stands at 0; melee:src/melee/ft/kinds/ftCommon/ftCo_DownBound.c:301
+    Archer    expected 220                          actual 220                          pass
+    Rifleman  expected 220                          actual 220                          pass
+    Illidan   expected 220                          actual 220                          pass
+
+getup: get-up stand frames
+    Fox/Falco animation frames (retail-action-lengths.json) DownStandU 30, entered without an extra step: ftCo_DownStand.c ftCo_80098160
+    Archer    expected 30                           actual 30                           pass
+    Rifleman  expected 30                           actual 30                           pass
+    Illidan   expected -                            actual -                            n/a
+
+getup: get-up roll frames
+    Fox/Falco animation frames (retail-action-lengths.json) DownFowardU 36, entered with ftAnim_8006EBA4: ftCo_Down.c ftCo_80098324
+    Archer    expected 35                           actual 35                           pass
+    Rifleman  expected 35                           actual 35                           pass
+    Illidan   expected -                            actual -                            n/a
+
+getup: get-up attack frames
+    Fox/Falco animation frames (retail-action-lengths.json) DownAttackU 50, entered with ftAnim_8006EBA4: ftCo_DownAttack.c:47
+    Archer    expected 49                           actual 49                           pass
+    Rifleman  expected 49                           actual 49                           pass
+    Illidan   expected -                            actual -                            n/a
+
+getup: C-stick up flick in the down wait: get-up attack
+    DownWait IASA: ftCo_800984D4 attacks on a C-stick up crossing PlCo +0x7F4 = 0.6625 (ftCo_800DF644), ftCo_Down_CheckInput rolls on a C-stick sideways crossing +0x248 = 0.2 within +0x020 of horizontal (ftCo_800DF678): melee:src/melee/ft/kinds/ftCommon/ftCo_DownAttack.c, ftCo_Down.c, melee:src/melee/ft/ft_0DF1.c
+    Archer    expected get-up attack                actual get-up attack                pass
+    Rifleman  expected get-up attack                actual get-up attack                pass
+    Illidan   expected get-up attack                actual get-up attack                pass
+
+getup: C-stick right flick in the down wait: roll
+    DownWait IASA: ftCo_800984D4 attacks on a C-stick up crossing PlCo +0x7F4 = 0.6625 (ftCo_800DF644), ftCo_Down_CheckInput rolls on a C-stick sideways crossing +0x248 = 0.2 within +0x020 of horizontal (ftCo_800DF678): melee:src/melee/ft/kinds/ftCommon/ftCo_DownAttack.c, ftCo_Down.c, melee:src/melee/ft/ft_0DF1.c
+    Archer    expected roll                         actual roll                         pass
+    Rifleman  expected roll                         actual roll                         pass
+    Illidan   expected roll                         actual roll                         pass
+
+knockback: the same move landing 5 times in a row: hit 5 damage against hit 1
+    ft_80089118 scales damage by 1 - the staling table entries (Fighter_804D6548, PlCo data) for each of the last 9 queued instances of the same move id, queued by plStale_UpdateStaleMovesFromFighter (melee:src/melee/pl/plstale.c) and applied by ft_80089228 (melee:src/melee/ft/ft_0881.c:337); departure: Stale moves and freshness bonuses: none (owner decision 2026-10-04, reaffirmed 2026-10-06)
+    Archer    expected hit 5 deals less than hit 1  actual all 5 hits: 10 damage, knockback 6.185769557952881, 19 hitstun departure
+    Rifleman  expected hit 5 deals less than hit 1  actual all 5 hits: 10 damage, knockback 6.151828765869141, 19 hitstun departure
+    Illidan   expected hit 5 deals less than hit 1  actual all 5 hits: 10 damage, knockback 6.151828765869141, 19 hitstun departure
+
+knockback: 10-damage hit (growth 100, base 21) 1% below the tumble threshold
+    knockback: melee:src/melee/ft/ftcoll.c with PlCo +0x0F4..+0x120 (fighter's own weight); hitstun (int)(K x +0x154 0.4), tumble when K x 0.4 >= +0x160 32: melee:src/melee/ft/kinds/ftCommon/ftCo_Damage.c:285
+    Archer    expected 32%: no tumble, 31 hitstun   actual 32%: no tumble, 31 hitstun   pass
+    Rifleman  expected 33%: no tumble, 31 hitstun   actual 33%: no tumble, 31 hitstun   pass
+    Illidan   expected 33%: no tumble, 31 hitstun   actual 33%: no tumble, 31 hitstun   pass
+
+knockback: 10-damage hit (growth 100, base 21) at the tumble threshold
+    knockback: melee:src/melee/ft/ftcoll.c with PlCo +0x0F4..+0x120 (fighter's own weight); hitstun (int)(K x +0x154 0.4), tumble when K x 0.4 >= +0x160 32: melee:src/melee/ft/kinds/ftCommon/ftCo_Damage.c:285
+    Archer    expected 33%: tumble, 32 hitstun      actual 33%: tumble, 32 hitstun      pass
+    Rifleman  expected 34%: tumble, 32 hitstun      actual 34%: tumble, 32 hitstun      pass
+    Illidan   expected 34%: tumble, 32 hitstun      actual 34%: tumble, 32 hitstun      pass
+
+hazard: Whispy's first gust moves a standing fighter
+    GrOp.dat yakumono_param +0x10 = 0.2; groldpupupu.c wind after blow frame 45; fighter.c Fighter_procUpdate windOffset
+    Archer    expected 0.2                          actual 0.2                          pass
+    Rifleman  expected 0.2                          actual 0.2                          pass
+    Illidan   expected 0.2                          actual 0.2                          pass
+
+hazard: Kongo barrel holds an untouched fighter for eight seconds
+    GrOk.dat rframe_barrel_shoot_a = 479 truncated and counted through zero; groldkongo.c stageGObj1_GObjProc
+    Archer    expected 480                          actual 480                          pass
+    Rifleman  expected 480                          actual 480                          pass
+    Illidan   expected 480                          actual 480                          pass
+
+hazard: Kongo barrel fires ten further frames after Attack with base knockback 180
+    groldkongo.c hit_timer > 0xA; GrOk.dat rradd_barrel_attack = 180; ftCo_8009EC70
+    Archer    expected 5.4                          actual 5.4                          pass
+    Rifleman  expected 5.4                          actual 5.4                          pass
+    Illidan   expected 5.4                          actual 5.4                          pass
+
+platform: grounded fighter rides a moving floor in hitlag
+    Fighter_procUpdate adds mpGetSpeed's floor-line displacement while grounded, before its hitlag return (melee:src/melee/ft/fighter.c)
+    Archer    expected 2.5                          actual 2.5                          pass
+    Rifleman  expected 2.5                          actual 2.5                          pass
+    Illidan   expected 2.5                          actual 2.5                          pass
+
+platform: fresh down on a moving platform
+    Pass needs stick y <= -PlCo +0x464 (0.66) reached under PlCo +0x468 = 6 frames ago on a platform: melee:src/melee/ft/kinds/ftCommon/ftCo_Pass.c:26 ftCo_80099F1C; mpColl skips that platform
+    Archer    expected main deck                    actual main deck                    pass
+    Rifleman  expected main deck                    actual main deck                    pass
+    Illidan   expected main deck                    actual main deck                    pass
+
+platform: full hop from under a raised deck
+    platforms are floor lines flagged LINE_FLAG_PLATFORM: mpCheckFloor hits them only while descending, mpCheckCeiling ignores them (melee:src/melee/mp/mplib.c, forward.h)
+    Archer    expected raised deck                  actual raised deck                  pass
+    Rifleman  expected raised deck                  actual raised deck                  pass
+    Illidan   expected raised deck                  actual raised deck                  pass
+
+platform: down pressed on a raised deck
+    Pass needs stick y <= -PlCo +0x464 (0.66) reached under PlCo +0x468 = 6 frames ago on a platform: melee:src/melee/ft/kinds/ftCommon/ftCo_Pass.c:26 ftCo_80099F1C; mpColl skips that platform
+    Archer    expected main deck                    actual main deck                    pass
+    Rifleman  expected main deck                    actual main deck                    pass
+    Illidan   expected main deck                    actual main deck                    pass
+
+platform: falling onto a raised deck holding down: landing
+    platforms are floor lines flagged LINE_FLAG_PLATFORM: mpCheckFloor hits them only while descending, mpCheckCeiling ignores them (melee:src/melee/mp/mplib.c, forward.h); airborne collision has no stick test (melee:src/melee/ft/ft_081B.c)
+    Archer    expected raised deck                  actual raised deck                  pass
+    Rifleman  expected raised deck                  actual raised deck                  pass
+    Illidan   expected raised deck                  actual raised deck                  pass
+
+platform: still holding down 30 frames after that landing
+    Pass needs stick y <= -PlCo +0x464 (0.66) reached under PlCo +0x468 = 6 frames ago on a platform: melee:src/melee/ft/kinds/ftCommon/ftCo_Pass.c:26 ftCo_80099F1C; mpColl skips that platform
+    Archer    expected raised deck                  actual raised deck                  pass
+    Rifleman  expected raised deck                  actual raised deck                  pass
+    Illidan   expected raised deck                  actual raised deck                  pass
+
+wall/ceiling: main deck side: where a launch about 5 below the ledge meets it (from the ledge)
+    Final Destination's coll_data (GrNLa.dat, GALE01 rev 2): rightWall lines 9, 10, 7, 8, 6, ceiling lines 5, 4; each side kept as far from its ledge, the underside spanning the wider deck
+    Archer    expected 0                            actual 0                            pass
+    Rifleman  expected 0                            actual 0                            pass
+    Illidan   expected 0                            actual 0                            pass
+
+wall/ceiling: main deck side: where a launch about 15 below the ledge meets it (from the ledge)
+    Final Destination's coll_data (GrNLa.dat, GALE01 rev 2): rightWall lines 9, 10, 7, 8, 6, ceiling lines 5, 4; each side kept as far from its ledge, the underside spanning the wider deck
+    Archer    expected -9.3027                      actual -9.3027                      pass
+    Rifleman  expected -9.1947                      actual -9.1947                      pass
+    Illidan   expected -9.2296                      actual -9.2296                      pass
+
+wall/ceiling: main deck side: where a launch about 40 below the ledge meets it (from the ledge)
+    Final Destination's coll_data (GrNLa.dat, GALE01 rev 2): rightWall lines 9, 10, 7, 8, 6, ceiling lines 5, 4; each side kept as far from its ledge, the underside spanning the wider deck
+    Archer    expected -22.159                      actual -22.159                      pass
+    Rifleman  expected -22.1473                     actual -22.1473                     pass
+    Illidan   expected -22.1512                     actual -22.1512                     pass
+
+wall/ceiling: main deck side: a fighter stopped against its top, outside the wall
+    the ECB's side meets a wall, and mpColl_LoadECB_JObj keeps an airborne ECB at least 2 units a side (melee:src/melee/mp/mpcoll.c); airborne collision moves only the position (melee:src/melee/ft/ft_081B.c ft_800835B0)
+    Archer    expected 2                            actual 2                            pass
+    Rifleman  expected 2                            actual 2                            pass
+    Illidan   expected 2                            actual 2                            pass
+
+wall/ceiling: main deck underside: a rise beneath its middle meets it this far under the floor
+    Final Destination's coll_data (GrNLa.dat, GALE01 rev 2): rightWall lines 9, 10, 7, 8, 6, ceiling lines 5, 4; each side kept as far from its ledge, the underside spanning the wider deck
+    Archer    expected 55.3882                      actual 55.3882                      pass
+    Rifleman  expected 55.3882                      actual 55.3882                      pass
+    Illidan   expected 55.3882                      actual 55.3882                      pass
+
+wall/ceiling: main deck underside: a rise beneath its middle stops the fighter this far under it (its ECB top)
+    ceilings meet the fighter's airborne ECB top, the highest of its six ftData x44 ECB bones in the model's bind pose times model_scaling +0x8C: Fox 11.16, Falco 13.75, Captain Falcon 18.78 (melee:src/melee/mp/mpcoll.c mpColl_LoadECB_JObj; PlFxNr/PlFcNr/PlCaNr.dat)
+    Archer    expected 11.16                        actual 11.16                        pass
+    Rifleman  expected 13.75                        actual 13.75                        pass
+    Illidan   expected 18.7777                      actual 18.7777                      pass
+
+wall/ceiling: raised deck underside (solid-deck test stage): a rise stops the fighter this far under it (its ECB top)
+    ceilings meet the fighter's airborne ECB top, the highest of its six ftData x44 ECB bones in the model's bind pose times model_scaling +0x8C: Fox 11.16, Falco 13.75, Captain Falcon 18.78 (melee:src/melee/mp/mpcoll.c mpColl_LoadECB_JObj; PlFxNr/PlFcNr/PlCaNr.dat)
+    Archer    expected 11.16                        actual 11.16                        pass
+    Rifleman  expected 13.75                        actual 13.75                        pass
+    Illidan   expected 18.7777                      actual 18.7777                      pass
+
+wall/ceiling: wall tech off the main deck's side 19 frames before contact
+    wall and ceiling techs use the floor's gate 0x800986B0 (PlCo +0x250 = 20, +0x01C = 40): melee:src/melee/ft/kinds/ftCommon/ftCo_PassiveWall.c ftCo_800C1D38, ftCo_PassiveCeil.c
+    Archer    expected tech                         actual tech                         pass
+    Rifleman  expected tech                         actual tech                         pass
+    Illidan   expected tech                         actual tech                         pass
+
+wall/ceiling: wall tech off the main deck's side 20 frames before contact
+    wall and ceiling techs use the floor's gate 0x800986B0 (PlCo +0x250 = 20, +0x01C = 40): melee:src/melee/ft/kinds/ftCommon/ftCo_PassiveWall.c ftCo_800C1D38, ftCo_PassiveCeil.c
+    Archer    expected no tech                      actual no tech                      pass
+    Rifleman  expected no tech                      actual no tech                      pass
+    Illidan   expected no tech                      actual no tech                      pass
+
+wall/ceiling: wall tech: frames on the wall before it pushes off
+    PlCo +0x760 = 5 (wall tech) and +0x774 = 5 (wall jump) frames held on the wall: melee:src/melee/ft/kinds/ftCommon/ftCo_PassiveWall.c ftCo_800C1E64, ftCo_PassiveWall_Anim
+    Archer    expected 5                            actual 5                            pass
+    Rifleman  expected 5                            actual 5                            pass
+    Illidan   expected 5                            actual 5                            pass
+
+wall/ceiling: wall tech: push-off speed away from the side (Melee units/frame)
+    ftCo_DatAttrs +0x100 push-off 0.5, +0x104/+0x108 wall jump 1.4/3.3 (Fox), 1.3/3.6 (Falco), 1.4/3.1 (Captain Falcon) from the retail DATs (physics-parameters.json), set when the hang ends, then a frame of aerial friction and gravity: ftCo_PassiveWall_Anim, ftCo_PassiveWall_Phys
+    Archer    expected 0.48                         actual 0.48                         pass
+    Rifleman  expected 0.48                         actual 0.48                         pass
+    Illidan   expected 0.48                         actual 0.48                         pass
+
+wall/ceiling: wall tech with the stick up: wall jump speed away from the side
+    ftCo_DatAttrs +0x100 push-off 0.5, +0x104/+0x108 wall jump 1.4/3.3 (Fox), 1.3/3.6 (Falco), 1.4/3.1 (Captain Falcon) from the retail DATs (physics-parameters.json), set when the hang ends, then a frame of aerial friction and gravity: ftCo_PassiveWall_Anim, ftCo_PassiveWall_Phys; up selects the jump: ftCo_800C1E0C
+    Archer    expected 1.38                         actual 1.38                         pass
+    Rifleman  expected 1.28                         actual 1.28                         pass
+    Illidan   expected 1.38                         actual 1.38                         pass
+
+wall/ceiling: wall tech with the stick up: wall jump rise (Melee units)
+    ftCo_DatAttrs +0x100 push-off 0.5, +0x104/+0x108 wall jump 1.4/3.3 (Fox), 1.3/3.6 (Falco), 1.4/3.1 (Captain Falcon) from the retail DATs (physics-parameters.json), set when the hang ends, then a frame of aerial friction and gravity: ftCo_PassiveWall_Anim, ftCo_PassiveWall_Phys; up selects the jump: ftCo_800C1E0C
+    Archer    expected 22.05                        actual 22.05                        pass
+    Rifleman  expected 36.33                        actual 36.33                        pass
+    Illidan   expected 23.76                        actual 23.76                        pass
+
+wall/ceiling: wall jump: drifting into the side at air speed, a flick away holds it this many frames
+    can_walljump (ftFx/ftFc/ftCa_Init_OnLoad); met faster than +0x148 = 0.5 a frame, then the stick at least PlCo +0x76C = 0.8 away within +0x770 = 3 frames of leaving the deadzone and +0x768 = 130 frames of meeting the wall: melee:src/melee/ft/ftwalljump.c ftWallJump_8008169C; PlCo +0x760 = 5 (wall tech) and +0x774 = 5 (wall jump) frames held on the wall: melee:src/melee/ft/kinds/ftCommon/ftCo_PassiveWall.c ftCo_800C1E64, ftCo_PassiveWall_Anim
+    Archer    expected 5                            actual 5                            pass
+    Rifleman  expected 5                            actual 5                            pass
+    Illidan   expected 5                            actual 5                            pass
+
+wall/ceiling: wall jump: speed away from the side (Melee units/frame)
+    can_walljump (ftFx/ftFc/ftCa_Init_OnLoad); met faster than +0x148 = 0.5 a frame, then the stick at least PlCo +0x76C = 0.8 away within +0x770 = 3 frames of leaving the deadzone and +0x768 = 130 frames of meeting the wall: melee:src/melee/ft/ftwalljump.c ftWallJump_8008169C; ftCo_DatAttrs +0x100 push-off 0.5, +0x104/+0x108 wall jump 1.4/3.3 (Fox), 1.3/3.6 (Falco), 1.4/3.1 (Captain Falcon) from the retail DATs (physics-parameters.json), set when the hang ends, then a frame of aerial friction and gravity: ftCo_PassiveWall_Anim, ftCo_PassiveWall_Phys
+    Archer    expected 1.38                         actual 1.38                         pass
+    Rifleman  expected 1.28                         actual 1.28                         pass
+    Illidan   expected 1.38                         actual 1.38                         pass
+
+wall/ceiling: wall jump: rise (Melee units)
+    can_walljump (ftFx/ftFc/ftCa_Init_OnLoad); met faster than +0x148 = 0.5 a frame, then the stick at least PlCo +0x76C = 0.8 away within +0x770 = 3 frames of leaving the deadzone and +0x768 = 130 frames of meeting the wall: melee:src/melee/ft/ftwalljump.c ftWallJump_8008169C; ftCo_DatAttrs +0x100 push-off 0.5, +0x104/+0x108 wall jump 1.4/3.3 (Fox), 1.3/3.6 (Falco), 1.4/3.1 (Captain Falcon) from the retail DATs (physics-parameters.json), set when the hang ends, then a frame of aerial friction and gravity: ftCo_PassiveWall_Anim, ftCo_PassiveWall_Phys
+    Archer    expected 22.05                        actual 22.05                        pass
+    Rifleman  expected 36.33                        actual 36.33                        pass
+    Illidan   expected 23.76                        actual 23.76                        pass
+
+wall/ceiling: wall jump: drifting in from 1 unit out, slower than the minimum approach speed, a flick away
+    can_walljump (ftFx/ftFc/ftCa_Init_OnLoad); met faster than +0x148 = 0.5 a frame, then the stick at least PlCo +0x76C = 0.8 away within +0x770 = 3 frames of leaving the deadzone and +0x768 = 130 frames of meeting the wall: melee:src/melee/ft/ftwalljump.c ftWallJump_8008169C
+    Archer    expected no wall jump                 actual no wall jump                 pass
+    Rifleman  expected no wall jump                 actual no wall jump                 pass
+    Illidan   expected no wall jump                 actual no wall jump                 pass
+
+wall/ceiling: ceiling tech off a raised deck's underside (solid-deck test stage) 19 frames before contact
+    wall and ceiling techs use the floor's gate 0x800986B0 (PlCo +0x250 = 20, +0x01C = 40): melee:src/melee/ft/kinds/ftCommon/ftCo_PassiveWall.c ftCo_800C1D38, ftCo_PassiveCeil.c
+    Archer    expected tech                         actual tech                         pass
+    Rifleman  expected tech                         actual tech                         pass
+    Illidan   expected tech                         actual tech                         pass
+
+wall/ceiling: ceiling tech off a raised deck's underside (solid-deck test stage) 20 frames before contact
+    wall and ceiling techs use the floor's gate 0x800986B0 (PlCo +0x250 = 20, +0x01C = 40): melee:src/melee/ft/kinds/ftCommon/ftCo_PassiveWall.c ftCo_800C1D38, ftCo_PassiveCeil.c
+    Archer    expected no tech                      actual no tech                      pass
+    Rifleman  expected no tech                      actual no tech                      pass
+    Illidan   expected no tech                      actual no tech                      pass
+
+wall/ceiling: ceiling tech: frame after contact of its sideways impulse
+    ftCo_DatAttrs +0x10C passiveceil_vel_x 0.7 (Fox, Falco), 2.0 (Captain Falcon) from the retail DATs times the stick at the animation's throw-flag event, frame 14 (Fox, Falco) or 11 (Captain Falcon) (retail-ceiling-tech-events.json): melee:src/melee/ft/kinds/ftCommon/ftCo_PassiveCeil.c ftCo_PassiveCeil_Anim, then a frame of air drift (ft_081B.c ft_80084DB0); under the solid-deck test stage's raised deck, gravity held at zero after the contact since its floor is nearer than the fall to the impulse frame
+    Archer    expected 14                           actual 14                           pass
+    Rifleman  expected 14                           actual 14                           pass
+    Illidan   expected 11                           actual 11                           pass
+
+wall/ceiling: ceiling tech: speed after the impulse frame with the stick fully left (Melee units/frame)
+    ftCo_DatAttrs +0x10C passiveceil_vel_x 0.7 (Fox, Falco), 2.0 (Captain Falcon) from the retail DATs times the stick at the animation's throw-flag event, frame 14 (Fox, Falco) or 11 (Captain Falcon) (retail-ceiling-tech-events.json): melee:src/melee/ft/kinds/ftCommon/ftCo_PassiveCeil.c ftCo_PassiveCeil_Anim, then a frame of air drift (ft_081B.c ft_80084DB0); under the solid-deck test stage's raised deck, gravity held at zero after the contact since its floor is nearer than the fall to the impulse frame; that frame's drift uses each fighter's air speed, acceleration and friction, so Illidan's 2.0 loses his friction rather than meeting his authored cap
+    Archer    expected 0.78                         actual 0.78                         pass
+    Rifleman  expected 0.77                         actual 0.77                         pass
+    Illidan   expected 1.98                         actual 1.98                         pass
+
+shield/dodge: shield release: frames until an attack starts
+    Fox/Falco animation frames (retail-action-lengths.json, private PlFxAJ/PlFcAJ read) GuardOff 15, entered without an extra step: melee:src/melee/ft/kinds/ftCommon/ftCo_Guard.c:587 ftCo_80092C54
+    Archer    expected 15                           actual 15                           pass
+    Rifleman  expected 15                           actual 15                           pass
+    Illidan   expected -                            actual -                            n/a
+
+shield/dodge: spot dodge frames
+    Fox/Falco animation frames (retail-action-lengths.json, private PlFxAJ/PlFcAJ read) EscapeN 23, entered with ftAnim_8006EBA4: ftCo_Escape.c:245
+    Archer    expected 22                           actual 22                           pass
+    Rifleman  expected 22                           actual 22                           pass
+    Illidan   expected -                            actual -                            n/a
+
+shield/dodge: spot dodge intangible frames
+    Fox/Falco intangibility: body-state commands in retail-roster.json (EscapeN, EscapeF, EscapeAir), as references/melee-frame-data/records.jsonl reports for the ground dodges
+    Archer    expected 2-15                         actual 2-15                         pass
+    Rifleman  expected 2-15                         actual 2-15                         pass
+    Illidan   expected -                            actual -                            n/a
+
+shield/dodge: forward roll frames
+    Fox/Falco animation frames (retail-action-lengths.json, private PlFxAJ/PlFcAJ read) EscapeF 32, entered with ftAnim_8006EBA4: ftCo_Escape.c:100
+    Archer    expected 31                           actual 31                           pass
+    Rifleman  expected 31                           actual 31                           pass
+    Illidan   expected -                            actual -                            n/a
+
+shield/dodge: forward roll intangible frames
+    Fox/Falco intangibility: body-state commands in retail-roster.json (EscapeN, EscapeF, EscapeAir), as references/melee-frame-data/records.jsonl reports for the ground dodges
+    Archer    expected 4-19                         actual 4-19                         pass
+    Rifleman  expected 4-19                         actual 4-19                         pass
+    Illidan   expected -                            actual -                            n/a
+
+shield/dodge: air dodge intangible frames
+    Fox/Falco intangibility: body-state commands in retail-roster.json (EscapeN, EscapeF, EscapeAir), as references/melee-frame-data/records.jsonl reports for the ground dodges; EscapeAir 50 frames (retail-escapeair-events.json)
+    Archer    expected 4-29                         actual 4-29                         pass
+    Rifleman  expected 4-29                         actual 4-29                         pass
+    Illidan   expected -                            actual -                            n/a
+
+shield/dodge: air dodge first-frame travel (Melee units)
+    PlCo +0x338 = 3.1 force x +0x33C = 0.9 decay before the first move: melee:src/melee/ft/kinds/ftCommon/ftCo_EscapeAir.c
+    Archer    expected 2.79                         actual 2.79                         pass
+    Rifleman  expected 2.79                         actual 2.79                         pass
+    Illidan   expected 2.79                         actual 2.79                         pass
+
+shield/dodge: waveland landing lag (frames to act)
+    PlCo +0x344 = 10 LandingFallSpecial lag: melee:src/melee/ft/kinds/ftCommon/ftCo_EscapeAir.c:116
+    Archer    expected 10                           actual 10                           pass
+    Rifleman  expected 10                           actual 10                           pass
+    Illidan   expected 10                           actual 10                           pass
+
+ledge: fall from ledge height 60 units out
+    ledge snap ftData x44 +0x10/+0x14/+0x18: Fox/Falco 11/13/9, Captain Falcon 9/17/11 (Illidan), reach adds the 2-unit minimum ECB half-width; melee:src/melee/ft/ftcliffcommon.c, melee:src/melee/mp/mpcoll.c mpColl_80044164 (#47)
+    Archer    expected true                         actual true                         pass
+    Rifleman  expected true                         actual true                         pass
+    Illidan   expected true                         actual true                         pass
+
+ledge: fall from ledge height, reach - 1 out (77; Illidan 65)
+    ledge snap ftData x44 +0x10/+0x14/+0x18: Fox/Falco 11/13/9, Captain Falcon 9/17/11 (Illidan), reach adds the 2-unit minimum ECB half-width; melee:src/melee/ft/ftcliffcommon.c, melee:src/melee/mp/mpcoll.c mpColl_80044164 (#47)
+    Archer    expected true                         actual true                         pass
+    Rifleman  expected true                         actual true                         pass
+    Illidan   expected true                         actual true                         pass
+
+ledge: fall from ledge height, reach + 1 out (79; Illidan 67)
+    ledge snap ftData x44 +0x10/+0x14/+0x18: Fox/Falco 11/13/9, Captain Falcon 9/17/11 (Illidan), reach adds the 2-unit minimum ECB half-width; melee:src/melee/ft/ftcliffcommon.c, melee:src/melee/mp/mpcoll.c mpColl_80044164 (#47)
+    Archer    expected false                        actual false                        pass
+    Rifleman  expected false                        actual false                        pass
+    Illidan   expected false                        actual false                        pass
+
+ledge: fall from 1 unit inside the box top (104; Illidan 134 below)
+    ledge snap ftData x44 +0x10/+0x14/+0x18: Fox/Falco 11/13/9, Captain Falcon 9/17/11 (Illidan), reach adds the 2-unit minimum ECB half-width; melee:src/melee/ft/ftcliffcommon.c, melee:src/melee/mp/mpcoll.c mpColl_80044164 (#47)
+    Archer    expected true                         actual true                         pass
+    Rifleman  expected true                         actual true                         pass
+    Illidan   expected true                         actual true                         pass
+
+ledge: fall from 1 unit above the box top (106; Illidan 136 below)
+    ledge snap ftData x44 +0x10/+0x14/+0x18: Fox/Falco 11/13/9, Captain Falcon 9/17/11 (Illidan), reach adds the 2-unit minimum ECB half-width; melee:src/melee/ft/ftcliffcommon.c, melee:src/melee/mp/mpcoll.c mpColl_80044164 (#47)
+    Archer    expected false                        actual false                        pass
+    Rifleman  expected false                        actual false                        pass
+    Illidan   expected false                        actual false                        pass
+
+ledge: drifting in below the ledge, a fall along the main deck's side wall
+    ledge snap ftData x44 +0x10/+0x14/+0x18: Fox/Falco 11/13/9, Captain Falcon 9/17/11 (Illidan), reach adds the 2-unit minimum ECB half-width; melee:src/melee/ft/ftcliffcommon.c, melee:src/melee/mp/mpcoll.c mpColl_80044164 (#47); the ECB's side meets a wall, and mpColl_LoadECB_JObj keeps an airborne ECB at least 2 units a side (melee:src/melee/mp/mpcoll.c); airborne collision moves only the position (melee:src/melee/ft/ft_081B.c ft_800835B0)
+    Archer    expected caught against the wall      actual caught against the wall      pass
+    Rifleman  expected caught against the wall      actual caught against the wall      pass
+    Illidan   expected caught against the wall      actual caught against the wall      pass
+
+ledge: standing grab on a fighter hanging past its intangible frames
+    ftColl_80078A2C skips a victim with x1A6A & x1A68 (melee:src/melee/ft/ftcoll.c:1330); the hang sets x1A6A = 511 (ftCliffCommon_80081370, melee:src/melee/ft/ftcliffcommon.c:86; ftCo_8009A804, ftCo_CliffWait.c:25) and every catch sets x1A68 = 1 (ftCo_800D8C54, ftCo_Catch.c:115) (#72)
+    Archer    expected not caught                   actual not caught                   pass
+    Rifleman  expected not caught                   actual not caught                   pass
+    Illidan   expected not caught                   actual not caught                   pass
+
+execution bounds: tech: 11..20 frames
+    smashcraft:docs/gameplay-design.md, Execution and reaction windows (#69), adopted 6 Oct 2026
+    Archer    expected within 11..20                actual within 11..20                pass
+    Rifleman  expected within 11..20                actual within 11..20                pass
+    Illidan   expected within 11..20                actual within 11..20                pass
+
+execution bounds: tech lockout: 20..40 frames
+    smashcraft:docs/gameplay-design.md, Execution and reaction windows (#69), adopted 6 Oct 2026
+    Archer    expected within 20..40                actual within 20..40                pass
+    Rifleman  expected within 20..40                actual within 20..40                pass
+    Illidan   expected within 20..40                actual within 20..40                pass
+
+execution bounds: human attack buffer: 4..10 frames
+    smashcraft:docs/gameplay-design.md, Execution and reaction windows (#69), adopted 6 Oct 2026
+    Archer    expected within 4..10                 actual within 4..10                 pass
+    Rifleman  expected within 4..10                 actual within 4..10                 pass
+    Illidan   expected within 4..10                 actual within 4..10                 pass
+
+execution bounds: jump squat / short-hop release: 3..5 frames
+    smashcraft:docs/gameplay-design.md, Execution and reaction windows (#69), adopted 6 Oct 2026
+    Archer    expected within 3..5                  actual within 3..5                  pass
+    Rifleman  expected within 3..5                  actual within 3..5                  pass
+    Illidan   expected within 3..5                  actual within 3..5                  pass
+
+execution bounds: parry: 6..10 frames
+    smashcraft:docs/gameplay-design.md, Execution and reaction windows (#69), adopted 6 Oct 2026
+    Archer    expected within 6..10                 actual within 6..10                 pass
+    Rifleman  expected within 6..10                 actual within 6..10                 pass
+    Illidan   expected within 6..10                 actual within 6..10                 pass
+
+execution bounds: optional powershield: 2..4 frames
+    smashcraft:docs/gameplay-design.md, Execution and reaction windows (#69), adopted 6 Oct 2026
+    Archer    expected within 2..4                  actual within 2..4                  pass
+    Rifleman  expected within 2..4                  actual within 2..4                  pass
+    Illidan   expected within 2..4                  actual within 2..4                  pass
+
+execution bounds: ledge intangibility: 30..37 frames
+    smashcraft:docs/gameplay-design.md, Execution and reaction windows (#69), adopted 6 Oct 2026
+    Archer    expected within 30..37                actual within 30..37                pass
+    Rifleman  expected within 30..37                actual within 30..37                pass
+    Illidan   expected within 30..37                actual within 30..37                pass
+
+execution bounds: ledge regrab lock: 30..60 frames
+    smashcraft:docs/gameplay-design.md, Execution and reaction windows (#69), adopted 6 Oct 2026
+    Archer    expected within 30..60                actual within 30..60                pass
+    Rifleman  expected within 30..60                actual within 30..60                pass
+    Illidan   expected within 30..60                actual within 30..60                pass
+
+offscreen: magnifier damage after 59 consecutive frames
+    Fighter_procAnim, PlCo +0x7AC=60, +0x7B0=150, +0x7B4=1; ftLib_UpdateScreenVisibility; canonical 16:9 match view (#80)
+    Archer    expected 0                            actual 0                            pass
+    Rifleman  expected 0                            actual 0                            pass
+    Illidan   expected 0                            actual 0                            pass
+
+offscreen: magnifier damage after 60 consecutive frames
+    Fighter_procAnim, PlCo +0x7AC=60, +0x7B0=150, +0x7B4=1; ftLib_UpdateScreenVisibility; canonical 16:9 match view (#80)
+    Archer    expected 1                            actual 1                            pass
+    Rifleman  expected 1                            actual 1                            pass
+    Illidan   expected 1                            actual 1                            pass
+
+offscreen: magnifier damage after 120 consecutive frames
+    Fighter_procAnim, PlCo +0x7AC=60, +0x7B0=150, +0x7B4=1; ftLib_UpdateScreenVisibility; canonical 16:9 match view (#80)
+    Archer    expected 2                            actual 2                            pass
+    Rifleman  expected 2                            actual 2                            pass
+    Illidan   expected 2                            actual 2                            pass
+
+area          pass  mismatch  departure  n/a
+jump          8     0         0          4
+ground        6     0         0          3
+fast-fall     8     0         0          1
+landing       5     0         3          1
+tech          18    0         0          0
+getup         23    0         0          4
+knockback     6     0         3          0
+hazard        9     0         0          0
+platform      18    0         0          0
+wall/ceiling  63    0         0          0
+shield/dodge  18    0         0          6
+ledge         21    0         0          0
+execution bounds 24    0         0          0
+offscreen     9     0         0          0
+all           236   0         6          19
+   0.822 s  oracle (0.822 s)

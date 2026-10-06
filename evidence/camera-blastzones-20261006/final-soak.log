@@ -1,0 +1,860 @@
+$ bun scripts/wisp.ts soak
+smashcraft soak: 200 matches in 4 workers, at most 10 min, seed 1; repro files in /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58
+match 1: archer vs archer on three-bridges, fuzz/cpu, seed 365211588
+  scene after frame 55 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 55 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-1.json
+match 2: archer vs archer on frozen-throne, fuzz/cpu, seed 435306125
+  scene after frame 85 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 85 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-2.json
+match 3: archer vs archer on drifting-deck, fuzz/cpu, seed 1681957627
+  scene after frame 265 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 265 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 475 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 475 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-3.json
+match 6: archer vs archer on carried, fuzz/cpu, seed 64320675
+  scene after frame 295 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 295 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-6.json
+match 5: archer vs archer on wind, fuzz/cpu, seed 814711366
+  scene after frame 85 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 85 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-5.json
+match 4: archer vs archer on patterned-decks, fuzz/cpu, seed 2009854435
+  scene after frame 145 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 145 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 475 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 475 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-4.json
+match 7: archer vs archer on cannon, fuzz/cpu, seed 1709433010
+  scene after frame 235 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 235 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-7.json
+match 10: archer vs rifleman on three-bridges, fuzz/cpu, seed 384604742
+  scene after frame 205 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 1 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 205 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 1 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-10.json
+match 11: archer vs rifleman on frozen-throne, fuzz/cpu, seed 259372767
+  scene after frame 115 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 115 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-11.json
+match 13: archer vs rifleman on patterned-decks, fuzz/cpu, seed 1329578651
+  scene after frame 115 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 115 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 535 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 535 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-13.json
+match 14: archer vs rifleman on wind, fuzz/cpu, seed 394788179
+  scene after frame 115 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 115 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-14.json
+match 15: archer vs rifleman on carried, fuzz/cpu, seed 50305031
+  scene after frame 115 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 115 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-15.json
+match 18: archer vs illidan on sky-deck, fuzz/cpu, seed 971571999
+  scene after frame 115 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 115 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-18.json
+match 16: archer vs rifleman on cannon, fuzz/cpu, seed 1617630291
+  scene after frame 115 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 115 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 235 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 235 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-16.json
+match 20: archer vs illidan on frozen-throne, fuzz/cpu, seed 1276044744
+  scene after frame 145 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 145 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-20.json
+match 19: archer vs illidan on three-bridges, fuzz/cpu, seed 2004080543
+  scene after frame 325 (p0): would see 4 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 1 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 325 (p1): would see 4 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 1 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 535 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-19.json
+match 25: archer vs illidan on cannon, fuzz/cpu, seed 1982269609
+  scene after frame 85 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 85 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-25.json
+match 21: archer vs illidan on drifting-deck, fuzz/cpu, seed 1829874370
+  scene after frame 595 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 595 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-21.json
+match 24: archer vs illidan on carried, fuzz/cpu, seed 1724576627
+  scene after frame 85 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 85 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 205 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 1 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 325 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-24.json
+match 26: archer vs illidan on timed-lift, fuzz/cpu, seed 707436660
+  scene after frame 325 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 325 (p1): would see 4 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-26.json
+match 23: archer vs illidan on wind, fuzz/cpu, seed 657124527
+  scene after frame 385 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 385 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-23.json
+match 29: rifleman vs archer on frozen-throne, fuzz/cpu, seed 1262832694
+  scene after frame 85 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 85 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 265 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 265 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-29.json
+match 32: rifleman vs archer on wind, fuzz/cpu, seed 1324811574
+  scene after frame 475 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 475 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-32.json
+match 33: rifleman vs archer on carried, fuzz/cpu, seed 63964541
+  scene after frame 55 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 55 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-33.json
+match 31: rifleman vs archer on patterned-decks, fuzz/cpu, seed 1780884904
+  scene after frame 55 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 55 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 805 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-31.json
+match 34: rifleman vs archer on cannon, fuzz/cpu, seed 1698357872
+  scene after frame 85 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 85 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-34.json
+match 36: rifleman vs rifleman on sky-deck, fuzz/cpu, seed 812356105
+  scene after frame 145 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 145 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-36.json
+match 37: rifleman vs rifleman on three-bridges, fuzz/cpu, seed 190150235
+  scene after frame 115 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 115 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-37.json
+match 35: rifleman vs archer on timed-lift, fuzz/cpu, seed 1244615087
+  scene after frame 115 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 115 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-35.json
+match 40: rifleman vs rifleman on patterned-decks, fuzz/cpu, seed 470232877
+  scene after frame 115 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 115 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-40.json
+match 39: rifleman vs rifleman on drifting-deck, fuzz/cpu, seed 402137410
+  scene after frame 115 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 115 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 355 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 2 in view, 1 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 355 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 2 in view, 1 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-39.json
+match 43: rifleman vs rifleman on cannon, fuzz/cpu, seed 1481452067
+  scene after frame 55 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 55 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 145 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 145 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-43.json
+match 42: rifleman vs rifleman on carried, fuzz/cpu, seed 427561047
+  scene after frame 385 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 385 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-42.json
+match 45: rifleman vs illidan on sky-deck, fuzz/cpu, seed 1171866639
+  scene after frame 85 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 1 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 85 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 1 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-45.json
+match 38: rifleman vs rifleman on frozen-throne, fuzz/cpu, seed 396886407
+  scene after frame 115 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 235 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-38.json
+match 46: rifleman vs illidan on three-bridges, fuzz/cpu, seed 307785542
+  scene after frame 355 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 355 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 445 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 445 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-46.json
+match 44: rifleman vs rifleman on timed-lift, fuzz/cpu, seed 2114764704
+  scene after frame 235 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 235 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 355 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 355 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-44.json
+match 49: rifleman vs illidan on patterned-decks, fuzz/cpu, seed 1204166073
+  scene after frame 85 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 85 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-49.json
+match 47: rifleman vs illidan on frozen-throne, fuzz/cpu, seed 824027936
+  scene after frame 175 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 175 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-47.json
+match 50: rifleman vs illidan on wind, fuzz/cpu, seed 360636434
+  scene after frame 85 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 9 in view, 8 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 85 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 175 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 2 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 175 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 2 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-50.json
+match 51: rifleman vs illidan on carried, fuzz/cpu, seed 778863032
+  scene after frame 85 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 85 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-51.json
+match 53: rifleman vs illidan on timed-lift, fuzz/cpu, seed 339910151
+  scene after frame 85 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 85 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-53.json
+match 54: illidan vs archer on sky-deck, fuzz/cpu, seed 1027835841
+  scene after frame 85 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 85 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-54.json
+match 55: illidan vs archer on three-bridges, fuzz/cpu, seed 1349184270
+  scene after frame 145 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 145 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-55.json
+match 52: rifleman vs illidan on cannon, fuzz/cpu, seed 501209643
+  scene after frame 85 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 85 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-52.json
+match 58: illidan vs archer on patterned-decks, fuzz/cpu, seed 1756165895
+  scene after frame 235 (p0): would see 4 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 235 (p1): would see 4 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-58.json
+match 56: illidan vs archer on frozen-throne, fuzz/cpu, seed 1884818248
+  scene after frame 85 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 85 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 115 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 295 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-56.json
+match 57: illidan vs archer on drifting-deck, fuzz/cpu, seed 1769460406
+  scene after frame 145 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 145 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-57.json
+match 61: illidan vs archer on cannon, fuzz/cpu, seed 704041378
+  scene after frame 325 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 325 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-61.json
+match 63: illidan vs rifleman on sky-deck, fuzz/cpu, seed 1438161918
+  scene after frame 115 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 145 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 325 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-63.json
+match 60: illidan vs archer on carried, fuzz/cpu, seed 330961341
+  scene after frame 55 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 85 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 145 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 2 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 145 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 2 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-60.json
+match 62: illidan vs archer on timed-lift, fuzz/cpu, seed 852643663
+  scene after frame 85 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 85 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-62.json
+match 59: illidan vs archer on wind, fuzz/cpu, seed 2114435867
+  scene after frame 55 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 55 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 115 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 115 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-59.json
+match 65: illidan vs rifleman on frozen-throne, fuzz/cpu, seed 327354682
+  scene after frame 325 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 325 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-65.json
+match 64: illidan vs rifleman on three-bridges, fuzz/cpu, seed 1957570856
+  scene after frame 205 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 205 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 445 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 445 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-64.json
+match 67: illidan vs rifleman on patterned-decks, fuzz/cpu, seed 749574318
+  scene after frame 355 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 355 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-67.json
+match 68: illidan vs rifleman on wind, fuzz/cpu, seed 1897419522
+  scene after frame 235 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 235 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-68.json
+match 69: illidan vs rifleman on carried, fuzz/cpu, seed 160201912
+  scene after frame 175 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 175 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 415 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 2 in view, 1 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 415 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 2 in view, 1 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-69.json
+match 72: illidan vs illidan on sky-deck, fuzz/cpu, seed 339370493
+  scene after frame 175 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 175 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-72.json
+match 71: illidan vs rifleman on timed-lift, fuzz/cpu, seed 2007531208
+  scene after frame 115 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 115 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-71.json
+match 73: illidan vs illidan on three-bridges, fuzz/cpu, seed 747808287
+  scene after frame 175 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 175 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 295 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 295 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-73.json
+match 75: illidan vs illidan on drifting-deck, fuzz/cpu, seed 286488288
+  scene after frame 85 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 145 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-75.json
+match 76: illidan vs illidan on patterned-decks, fuzz/cpu, seed 1428947015
+  scene after frame 205 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 205 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-76.json
+match 70: illidan vs rifleman on cannon, fuzz/cpu, seed 17881305
+  scene after frame 205 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 205 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-70.json
+match 77: illidan vs illidan on wind, fuzz/cpu, seed 1674103072
+  scene after frame 145 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 145 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-77.json
+match 78: illidan vs illidan on carried, fuzz/cpu, seed 819751902
+  scene after frame 175 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-78.json
+match 79: illidan vs illidan on cannon, fuzz/cpu, seed 710381820
+  scene after frame 385 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 385 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-79.json
+match 83: archer vs archer on frozen-throne, fuzz/fuzz, seed 1591883013
+  scene after frame 355 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 355 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 385 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 535 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-83.json
+match 81: archer vs archer on sky-deck, fuzz/fuzz, seed 2107988345
+  scene after frame 235 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 235 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 985 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-81.json
+match 86: archer vs archer on wind, fuzz/fuzz, seed 489821459
+  scene after frame 205 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-86.json
+match 85: archer vs archer on patterned-decks, fuzz/fuzz, seed 741537305
+  scene after frame 265 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 265 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 1 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 355 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 355 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-85.json
+match 88: archer vs archer on cannon, fuzz/fuzz, seed 648124900
+  scene after frame 175 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 175 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-88.json
+match 84: archer vs archer on drifting-deck, fuzz/fuzz, seed 525063569
+  scene after frame 265 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 625 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 985 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-84.json
+match 87: archer vs archer on carried, fuzz/fuzz, seed 376693919
+  scene after frame 85 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 235 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-87.json
+match 92: archer vs rifleman on frozen-throne, fuzz/fuzz, seed 1703605857
+  scene after frame 205 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  game after frame 308 (p0): lock-loop: p0 (Archer) was caught by p1 (Rifleman) in a 29-frame loop, frames 159 to 188, 3% to 6%: it could act on only 3 of its frames
+  scene after frame 505 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-92.json
+match 93: archer vs rifleman on drifting-deck, fuzz/fuzz, seed 1167028676
+  scene after frame 145 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 145 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 325 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 325 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-93.json
+match 91: archer vs rifleman on three-bridges, fuzz/fuzz, seed 399627141
+  scene after frame 775 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 775 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 1 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 805 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 805 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-91.json
+match 94: archer vs rifleman on patterned-decks, fuzz/fuzz, seed 850191092
+  scene after frame 115 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 115 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 1 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 475 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 475 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-94.json
+match 96: archer vs rifleman on carried, fuzz/fuzz, seed 1702389038
+  scene after frame 175 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 175 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 235 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 2 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 235 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 2 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-96.json
+match 97: archer vs rifleman on cannon, fuzz/fuzz, seed 412017196
+  scene after frame 265 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 265 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-97.json
+match 98: archer vs rifleman on timed-lift, fuzz/fuzz, seed 636013249
+  scene after frame 175 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 9 in view, 8 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 205 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 445 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-98.json
+match 100: archer vs illidan on three-bridges, fuzz/fuzz, seed 537251398
+  scene after frame 265 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-100.json
+match 102: archer vs illidan on drifting-deck, fuzz/fuzz, seed 381614118
+  scene after frame 115 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 115 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-102.json
+match 99: archer vs illidan on sky-deck, fuzz/fuzz, seed 569324967
+  scene after frame 205 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 205 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 895 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 895 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-99.json
+match 104: archer vs illidan on wind, fuzz/fuzz, seed 174530491
+  scene after frame 175 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 175 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-104.json
+match 95: archer vs rifleman on wind, fuzz/fuzz, seed 1161707762
+  scene after frame 175 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 175 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  game after frame 319 (p0): lock-loop: p0 (Archer) was caught by p1 (Rifleman) in a 26-frame loop, frames 231 to 257, 37% to 40%: it could act on only 1 of its frames
+  scene after frame 325 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 325 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-95.json
+match 106: archer vs illidan on cannon, fuzz/fuzz, seed 214631369
+  scene after frame 175 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 175 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-106.json
+match 108: rifleman vs archer on sky-deck, fuzz/fuzz, seed 2081104376
+  scene after frame 85 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 85 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-108.json
+match 101: archer vs illidan on frozen-throne, fuzz/fuzz, seed 649711686
+  scene after frame 385 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 385 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 1 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-101.json
+match 105: archer vs illidan on carried, fuzz/fuzz, seed 182983880
+  scene after frame 895 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1105 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 2 in view, 1 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1105 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 2 in view, 1 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-105.json
+match 110: rifleman vs archer on frozen-throne, fuzz/fuzz, seed 31161450
+  scene after frame 475 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 475 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-110.json
+match 109: rifleman vs archer on three-bridges, fuzz/fuzz, seed 1999294530
+  scene after frame 55 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 55 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 175 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 1 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 175 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 1 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-109.json
+match 111: rifleman vs archer on drifting-deck, fuzz/fuzz, seed 955800050
+  scene after frame 415 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 415 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-111.json
+match 112: rifleman vs archer on patterned-decks, fuzz/fuzz, seed 885541402
+  scene after frame 385 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 385 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-112.json
+match 107: archer vs illidan on timed-lift, fuzz/fuzz, seed 1009699871
+  scene after frame 625 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 9 in view, 8 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 895 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1135 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1255 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-107.json
+match 115: rifleman vs archer on cannon, fuzz/fuzz, seed 449122209
+  scene after frame 265 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 265 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-115.json
+match 116: rifleman vs archer on timed-lift, fuzz/fuzz, seed 730734174
+  scene after frame 205 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 205 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-116.json
+match 117: rifleman vs rifleman on sky-deck, fuzz/fuzz, seed 850411179
+  scene after frame 115 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 2 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 115 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 2 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-117.json
+match 118: rifleman vs rifleman on three-bridges, fuzz/fuzz, seed 1048109104
+  scene after frame 445 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 1 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 445 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 1 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-118.json
+match 113: rifleman vs archer on wind, fuzz/fuzz, seed 307022407
+  scene after frame 295 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 895 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 985 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 2 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 985 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 2 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-113.json
+match 114: rifleman vs archer on carried, fuzz/fuzz, seed 493960350
+  scene after frame 445 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 445 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 805 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1105 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 1 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-114.json
+match 121: rifleman vs rifleman on patterned-decks, fuzz/fuzz, seed 745830564
+  scene after frame 265 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 265 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 295 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 295 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-121.json
+match 119: rifleman vs rifleman on frozen-throne, fuzz/fuzz, seed 707319511
+  scene after frame 355 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 355 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 775 (p0): would see 5 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1855 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-119.json
+match 122: rifleman vs rifleman on wind, fuzz/fuzz, seed 1571296536
+  scene after frame 85 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 85 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 385 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 475 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-122.json
+match 124: rifleman vs rifleman on cannon, fuzz/fuzz, seed 1689552360
+  scene after frame 85 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 85 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 265 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-124.json
+match 123: rifleman vs rifleman on carried, fuzz/fuzz, seed 1080160863
+  scene after frame 295 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 295 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1015 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1015 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-123.json
+match 120: rifleman vs rifleman on drifting-deck, fuzz/fuzz, seed 177611828
+  scene after frame 175 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 175 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1255 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1255 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 1 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-120.json
+match 127: rifleman vs illidan on three-bridges, fuzz/fuzz, seed 1087038649
+  scene after frame 235 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 1 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 235 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 1 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-127.json
+match 126: rifleman vs illidan on sky-deck, fuzz/fuzz, seed 272645415
+  scene after frame 1015 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1045 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-126.json
+match 130: rifleman vs illidan on patterned-decks, fuzz/fuzz, seed 1410630633
+  scene after frame 205 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 205 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-130.json
+match 132: rifleman vs illidan on carried, fuzz/fuzz, seed 1204349683
+  scene after frame 55 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 55 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-132.json
+match 133: rifleman vs illidan on cannon, fuzz/fuzz, seed 633740156
+  scene after frame 175 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 175 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 415 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 415 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-133.json
+match 129: rifleman vs illidan on drifting-deck, fuzz/fuzz, seed 1370306280
+  scene after frame 115 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 115 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 475 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 475 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-129.json
+match 134: rifleman vs illidan on timed-lift, fuzz/fuzz, seed 366518761
+  scene after frame 85 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 295 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 325 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-134.json
+match 137: illidan vs archer on frozen-throne, fuzz/fuzz, seed 1771807129
+  scene after frame 145 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 145 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-137.json
+match 138: illidan vs archer on drifting-deck, fuzz/fuzz, seed 1218198537
+  scene after frame 145 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 145 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-138.json
+match 128: rifleman vs illidan on frozen-throne, fuzz/fuzz, seed 827195081
+  scene after frame 445 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 445 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-128.json
+match 139: illidan vs archer on patterned-decks, fuzz/fuzz, seed 1264357373
+  scene after frame 445 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 2 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 445 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 2 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-139.json
+match 140: illidan vs archer on wind, fuzz/fuzz, seed 309504343
+  scene after frame 205 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 2 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 205 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 2 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-140.json
+match 141: illidan vs archer on carried, fuzz/fuzz, seed 40408774
+  scene after frame 205 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 2 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 235 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 595 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-141.json
+match 142: illidan vs archer on cannon, fuzz/fuzz, seed 656778278
+  scene after frame 145 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 145 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-142.json
+match 143: illidan vs archer on timed-lift, fuzz/fuzz, seed 43176677
+  scene after frame 235 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 235 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 265 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 265 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-143.json
+match 145: illidan vs rifleman on three-bridges, fuzz/fuzz, seed 1269565092
+  scene after frame 265 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 2 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 265 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 2 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-145.json
+match 146: illidan vs rifleman on frozen-throne, fuzz/fuzz, seed 435721493
+  scene after frame 235 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 235 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-146.json
+match 147: illidan vs rifleman on drifting-deck, fuzz/fuzz, seed 257349885
+  scene after frame 235 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 235 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-147.json
+match 148: illidan vs rifleman on patterned-decks, fuzz/fuzz, seed 1490884587
+  scene after frame 115 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 115 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-148.json
+match 150: illidan vs rifleman on carried, fuzz/fuzz, seed 1767138229
+  scene after frame 235 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 235 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 295 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 295 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-150.json
+match 149: illidan vs rifleman on wind, fuzz/fuzz, seed 17920813
+  scene after frame 265 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 1 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 265 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 1 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-149.json
+match 151: illidan vs rifleman on cannon, fuzz/fuzz, seed 1331509572
+  scene after frame 205 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-151.json
+match 152: illidan vs rifleman on timed-lift, fuzz/fuzz, seed 1260478949
+  scene after frame 145 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 145 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-152.json
+match 153: illidan vs illidan on sky-deck, fuzz/fuzz, seed 2072660375
+  scene after frame 625 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-153.json
+match 131: rifleman vs illidan on wind, fuzz/fuzz, seed 139806467
+  scene after frame 85 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-131.json
+match 154: illidan vs illidan on three-bridges, fuzz/fuzz, seed 273331542
+  scene after frame 295 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 295 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 745 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-154.json
+match 155: illidan vs illidan on frozen-throne, fuzz/fuzz, seed 1994820361
+  scene after frame 55 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 55 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 445 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 445 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-155.json
+match 158: illidan vs illidan on wind, fuzz/fuzz, seed 488728459
+  scene after frame 295 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 295 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-158.json
+match 157: illidan vs illidan on patterned-decks, fuzz/fuzz, seed 1926566014
+  scene after frame 475 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 475 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-157.json
+match 159: illidan vs illidan on carried, fuzz/fuzz, seed 1303582094
+  scene after frame 385 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 565 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-159.json
+match 160: illidan vs illidan on cannon, fuzz/fuzz, seed 1792918727
+  scene after frame 295 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 1 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 295 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 1 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 445 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-160.json
+match 162: archer vs archer on sky-deck, cpu/cpu, seed 1013687548
+  scene after frame 355 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 355 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 925 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 925 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-162.json
+match 161: illidan vs illidan on timed-lift, fuzz/fuzz, seed 241413270
+  scene after frame 55 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 55 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 595 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 895 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-161.json
+match 166: archer vs archer on patterned-decks, cpu/cpu, seed 488794973
+  scene after frame 1075 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1075 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-166.json
+match 167: archer vs archer on wind, cpu/cpu, seed 219312094
+  scene after frame 355 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 355 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 955 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 1 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 955 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 1 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-167.json
+match 168: archer vs archer on carried, cpu/cpu, seed 1467193411
+  scene after frame 355 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 355 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 475 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 475 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-168.json
+match 170: archer vs archer on timed-lift, cpu/cpu, seed 224451631
+  scene after frame 1075 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1075 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-170.json
+match 172: archer vs rifleman on three-bridges, cpu/cpu, seed 1928827877
+  scene after frame 295 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 295 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1405 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1405 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-172.json
+match 156: illidan vs illidan on drifting-deck, fuzz/fuzz, seed 954397998
+  scene after frame 235 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 235 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 835 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-156.json
+match 171: archer vs rifleman on sky-deck, cpu/cpu, seed 449680886
+  scene after frame 295 (p0): would see 5 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 295 (p1): would see 5 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1405 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1405 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-171.json
+match 173: archer vs rifleman on frozen-throne, cpu/cpu, seed 149451335
+  scene after frame 295 (p0): would see 5 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 295 (p1): would see 5 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1555 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 1 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1555 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 1 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-173.json
+match 175: archer vs rifleman on patterned-decks, cpu/cpu, seed 91942179
+  scene after frame 295 (p0): would see 5 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 295 (p1): would see 5 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1405 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1405 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-175.json
+match 176: archer vs rifleman on wind, cpu/cpu, seed 1439707807
+  scene after frame 775 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 775 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1075 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 1 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1075 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 1 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-176.json
+match 177: archer vs rifleman on carried, cpu/cpu, seed 1417251130
+  scene after frame 295 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 295 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1405 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1405 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-177.json
+match 178: archer vs rifleman on cannon, cpu/cpu, seed 1890237398
+  scene after frame 295 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 295 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1825 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1825 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-178.json
+match 135: illidan vs archer on sky-deck, fuzz/fuzz, seed 1256828245
+  scene after frame 175 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 175 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 385 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 385 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 9 in view, 8 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-135.json
+match 179: archer vs rifleman on timed-lift, cpu/cpu, seed 1364245122
+  scene after frame 295 (p0): would see 5 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 295 (p1): would see 5 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1405 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1405 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-179.json
+match 180: archer vs illidan on sky-deck, cpu/cpu, seed 890248807
+  scene after frame 625 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 2 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 625 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 2 in view, 0 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-180.json
+match 182: archer vs illidan on frozen-throne, cpu/cpu, seed 872476466
+  scene after frame 295 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 295 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 715 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 715 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-182.json
+match 183: archer vs illidan on drifting-deck, cpu/cpu, seed 1009688969
+  scene after frame 295 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 295 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 715 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 715 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-183.json
+match 185: archer vs illidan on wind, cpu/cpu, seed 1948269111
+  scene after frame 295 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 295 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 685 (p0): would see 4 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 685 (p1): would see 4 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 4 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-185.json
+match 184: archer vs illidan on patterned-decks, cpu/cpu, seed 1554853934
+  scene after frame 295 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 295 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 715 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 715 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-184.json
+match 186: archer vs illidan on carried, cpu/cpu, seed 146904010
+  scene after frame 295 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 295 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 715 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 715 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-186.json
+match 187: archer vs illidan on cannon, cpu/cpu, seed 212464316
+  scene after frame 625 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 625 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-187.json
+match 189: rifleman vs archer on sky-deck, cpu/cpu, seed 311548337
+  scene after frame 175 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 175 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 715 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 715 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-189.json
+match 188: archer vs illidan on timed-lift, cpu/cpu, seed 1630583211
+  scene after frame 145 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 145 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 925 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 925 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-188.json
+match 191: rifleman vs archer on frozen-throne, cpu/cpu, seed 261329032
+  scene after frame 145 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 2 in view, 1 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 145 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 2 in view, 1 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1525 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 1 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1525 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 1 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-191.json
+match 190: rifleman vs archer on three-bridges, cpu/cpu, seed 2069279033
+  scene after frame 175 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 175 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 445 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 445 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 6 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-190.json
+match 192: rifleman vs archer on drifting-deck, cpu/cpu, seed 294761194
+  scene after frame 175 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 175 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 715 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 715 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-192.json
+match 193: rifleman vs archer on patterned-decks, cpu/cpu, seed 1338434199
+  scene after frame 715 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 715 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 2515 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 2515 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-193.json
+match 194: rifleman vs archer on wind, cpu/cpu, seed 511699934
+  scene after frame 175 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 175 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 715 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 715 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-194.json
+match 195: rifleman vs archer on carried, cpu/cpu, seed 2058089967
+  scene after frame 715 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 715 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 5 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1885 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1885 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-195.json
+match 196: rifleman vs archer on cannon, cpu/cpu, seed 1319803190
+  scene after frame 175 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 175 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 715 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 715 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-196.json
+match 197: rifleman vs archer on timed-lift, cpu/cpu, seed 969912588
+  scene after frame 175 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 175 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 3 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 715 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 715 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 6 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-197.json
+match 198: rifleman vs rifleman on sky-deck, cpu/cpu, seed 1359547101
+  scene after frame 55 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 55 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1195 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1195 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-198.json
+match 199: rifleman vs rifleman on three-bridges, cpu/cpu, seed 1745343698
+  scene after frame 55 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 55 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 2 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 415 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 415 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-199.json
+match 181: archer vs illidan on three-bridges, cpu/cpu, seed 2052386227
+  scene after frame 85 (p0): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 85 (p1): would see 2 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 7 in view, 5 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 115 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 115 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 8 in view, 7 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-181.json
+match 174: archer vs rifleman on drifting-deck, cpu/cpu, seed 767821512
+  scene after frame 55 (p0): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 1 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 55 (p1): would see 3 hidden hit sparks in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 1 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1855 (p0): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  scene after frame 1855 (p1): would see 1 hidden hit spark in view still show particles (model Objects/Spawnmodels/Undead/ImpaleTargetDust/ImpaleTargetDust.mdx: 4 in view, 3 drawn; BlizParticle05standdust05 emits 60/s, each for 1.5 s)
+  repro: /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58/match-174.json
+ 170.820 s  200 matches (170.799 s)
+200 matches, 183,933 frames (51.9 game minutes) in 170.8 s with 4 workers (4 started): 18x real time, 876.6 s CPU
+recovery typing stalls: none (budget 12.8 ms)
+costliest client frame 52.7 ms; 501 findings (scene, game) in 175 matches, repro files in /home/tom/.local/state/smashcraft/soak/2026-10-06T10-05-58
+ 170.827 s  soak failed (170.827 s)
+501 findings in 175 matches
+error: script "wisp" exited with code 1

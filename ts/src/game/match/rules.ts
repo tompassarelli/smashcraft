@@ -1,4 +1,6 @@
+import { selectableStage } from "../menu/stageCatalog";
 import { floorDiv } from "wisp/src/sim/intMath";
+import { type MatchCamera, createMatchCamera, copyMatchCamera } from "../sim/matchCamera";
 import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots, isParticipantMask, isParticipantSlot, participantActive } from "../input/participants";
 import { Character } from "../sim/codes";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
@@ -9,6 +11,7 @@ export type Phase = (typeof Phase)[keyof typeof Phase];
 export const MATCH_TICKS_PER_SECOND = 60;
 
 export interface MatchState {
+  readonly camera: MatchCamera;
   phase: Phase;
   readonly characterChoices: Slots<Character>;
   readonly characterReadiness: Slots<boolean>;
@@ -39,10 +42,11 @@ export interface MatchState {
 
 export function createMatchState(): MatchState {
   return {
+    camera: createMatchCamera(),
     phase: Phase.characterMenu, characterChoices: [0, 1, 2, 0],
     characterReadiness: [false, false, false, false], rematchReadiness: [false, false, false, false],
     departedMask: 0, interrupted: false, humanMask: 1, humanFighterMask: 1, humanCount: 1, computerMask: 0,
-    stageChoice: 0, winner: undefined, stockCount: 3, timeLimitMinutes: 7, endless: false, automaticRematch: false, rematchCountdown: 0,
+    stageChoice: 2, winner: undefined, stockCount: 3, timeLimitMinutes: 7, endless: false, automaticRematch: false, rematchCountdown: 0,
     remainingFrames: 7 * 60 * MATCH_TICKS_PER_SECOND, matchFrame: 0, timedOut: false, practice: false,
   };
 }
@@ -121,6 +125,7 @@ export function setHumanCount(game: MatchState, count: number): void {
 }
 
 export function copyMatchState(target: MatchState, source: Readonly<MatchState>): void {
+  copyMatchCamera(target.camera, source.camera);
   target.phase = source.phase;
   target.humanMask = source.humanMask;
   target.humanFighterMask = source.humanFighterMask;
@@ -185,7 +190,7 @@ export function recallCharacter(game: MatchState, actor: number, chip: number): 
 }
 
 export function selectStage(game: MatchState, slot: number, choice: number): void {
-  if (game.phase === Phase.stageMenu && humanActive(game, slot) && choice >= 0 && choice <= 2) game.stageChoice = choice;
+  if (game.phase === Phase.stageMenu && humanActive(game, slot) && selectableStage(choice)) game.stageChoice = choice;
 }
 
 export function requestStageSelect(game: MatchState, slot: number): boolean {

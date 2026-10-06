@@ -1,3 +1,4 @@
+import { stageBounds } from "./stageBounds";
 // Shield break: the launch, landing, standing and dizzy phases and what ends them.
 import { assertEquals, assertFalse, assertGreaterThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { max, toInt } from "../../runtime/numbers";
@@ -100,7 +101,7 @@ test("shield-break hitlag keeps regeneration and blast-zone checks active", () =
   advanceSolo(fighter, 0, input, 0.0);
   assertEquals(fighter.shield.breakFrame, 0);
   assertNear(fighter.shield.energy, f32(0.14), f32(0.0001));
-  fighter.motion.x = 921.0;
+  fighter.motion.x = (stageBounds(0).blast.right + 1.0);
   advanceSolo(fighter, 0, input, 0.0);
   assertTrue(fighter.status.out);
   assertEquals(fighter.status.stocks, 2);
@@ -294,7 +295,7 @@ test("stock loss and respawning clear a shield-break recovery", () => {
     const fighter = shieldBreakTestFighter(Character.archer, 0.0);
     const input = controls();
     fighter.shield.breakState = state;
-    fighter.motion.x = 921.0;
+    fighter.motion.x = (stageBounds(0).blast.right + 1.0);
     advanceSolo(fighter, 0, input, 0.0);
     assertTrue(fighter.status.out);
     assertEquals(fighter.status.stocks, 2);

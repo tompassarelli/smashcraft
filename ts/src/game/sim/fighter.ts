@@ -343,6 +343,7 @@ interface StageCannon {
 }
 
 interface Status {
+  offscreenFrames: number;
   damage: number;
   stocks: number;
   respawn: number;
@@ -551,6 +552,6 @@ export function createFighter(character: Character, startX: number, facing: numb
     grab: { grabbedFrames: 0, action: GrabAction.none, frame: 0, serial: 0, mashX: 0, mashZ: 0, owner: undefined, target: undefined },
     ledge: { state: LedgeState.none, side: 0, frame: 0, serial: 0, intangible: 0, regrab: 0 },
     cannon: { held: undefined, firing: undefined, cooldown: 0 },
-    status: { damage: 0.0, stocks: STARTING_STOCKS, respawn: 0, out: false, invincible: 0, frozenFrames: 0, freezeImmunityFrames: 0 },
+    status: { offscreenFrames: 0, damage: 0.0, stocks: STARTING_STOCKS, respawn: 0, out: false, invincible: 0, frozenFrames: 0, freezeImmunityFrames: 0 },
   };
 }

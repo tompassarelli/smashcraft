@@ -1,3 +1,4 @@
+import { stageBounds } from "../sim/stageBounds";
 // These contracts exercise ordering in the complete match executor: input,
 // shield, contact, landing, stocks and timeout can interact on one frame.
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
@@ -482,7 +483,7 @@ test("downOnlyDropsWhenAttackQueueIsEmptyExpiredOrFuture", () => {
     selectCharacter(game, 0, 0);
     selectCpuCharacter(game, 0, (cpuSlot(game) ?? -1), 1);
     requestStageSelect(game, 0);
-    selectStage(game, 0, 1);
+    game.stageChoice = 1;
     requestStart(game, 0);
     const first = createFighter(0, -240, 1);
     first.motion.z = 170;
@@ -510,7 +511,7 @@ test("downwardNormalsTakePriorityOverDroppingThroughUpperPlatforms", () => {
       selectCharacter(game, 0, 0);
       selectCpuCharacter(game, 0, (cpuSlot(game) ?? -1), 1);
       requestStageSelect(game, 0);
-      selectStage(game, 0, 1);
+      game.stageChoice = 1;
       requestStart(game, 0);
       const first = createFighter(0, -240, 1);
       first.motion.z = 170;
@@ -694,8 +695,8 @@ test("bothFinalStocksResolveAfterTheSameStep", () => {
   selectCpuCharacter(game, 0, (cpuSlot(game) ?? -1), 1);
   requestStageSelect(game, 0);
   requestStart(game, 0);
-  const first = createFighter(0, -921, 1);
-  const second = createFighter(1, 921, -1);
+  const first = createFighter(0, (stageBounds(0).blast.left - 1), 1);
+  const second = createFighter(1, (stageBounds(0).blast.right + 1), -1);
   first.status.stocks = 1;
   second.status.stocks = 1;
   const firstInput = neutralControls();
@@ -754,7 +755,7 @@ test("configuredStocksAndLastTickKnockoutPrecedeTimeout", () => {
   setStocks(game, 0, 1);
   requestStageSelect(game, 0);
   requestStart(game, 0);
-  const first = createFighter(0, -921, 1);
+  const first = createFighter(0, (stageBounds(0).blast.left - 1), 1);
   const second = createFighter(1, 240, -1);
   initializeMatchFighters(game, testRoster(first, second));
   assertEquals(first.status.stocks, 1);
