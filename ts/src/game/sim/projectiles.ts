@@ -7,7 +7,7 @@ import { AttackStyle, ContactKind, ProjectileKind } from "./codes";
 import { isIntangible } from "./conditions";
 import { collectDamageContact, finishDamageContacts, openDamageContacts } from "./contacts";
 import { type Fighter, PROJECTILE_CAPACITY, type Projectile } from "./fighter";
-import { emptyHitEffect } from "./hitRegions";
+import { HitElement, emptyHitEffect } from "./hitRegions";
 import { demonHunterParryIsActive, resolveDemonHunterParry } from "./hits";
 import { attackDamage } from "./moves";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
@@ -75,6 +75,7 @@ function applyProjectileHit(world: Roster, ownerSlot: number, targetSlot: number
     return;
   }
   const { kind } = projectile;
+  projectileHit.element = kind === ProjectileKind.manaBurn ? HitElement.electric : HitElement.normal;
   if (kind === ProjectileKind.blaster) {
     projectileHit.damage = roundToFloat32(f32(attackDamage(AttackStyle.shot) * projectile.damageMultiplier));
     projectileHit.growth = 0.0;
@@ -112,6 +113,7 @@ function reflectProjectile(target: Fighter, source: Projectile): boolean {
     reflected.newlyReflected = true;
     source.life = 0;
     target.visuals.shieldReflect++;
+    target.visuals.shieldElectric = source.kind === ProjectileKind.manaBurn;
     return true;
   }
   return false;

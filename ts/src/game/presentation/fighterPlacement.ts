@@ -6,6 +6,7 @@ import { fighterPoseFacing } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
 import { mainDeckZ, solidSurfaceAt, solidSurfaceCount } from "../sim/stage";
 import { characterModelScale } from "./modelScale";
+import { hitlagShake } from "./hitPresentation";
 
 interface BodyEnvelope {
   readonly left: number;
@@ -33,7 +34,7 @@ export interface FighterPlacement {
 /** Fills a caller-owned render origin; neither fighter state nor stage collision moves. */
 export function fitFighterPlacement(out: FighterPlacement, fighter: Readonly<Fighter>, stage: number): void {
   const { motion } = fighter;
-  out.x = motion.x;
+  out.x = motion.x + hitlagShake(fighter);
   out.z = motion.z;
   // Grounded and ledge poses deliberately meet the walking plane or ledge.
   if (motion.grounded || motion.z >= mainDeckZ(stage) || fighter.ledge.state !== LedgeState.none) return;

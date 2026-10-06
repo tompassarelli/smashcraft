@@ -33,11 +33,12 @@ export function facingYaw(facing: number): number {
 /**
  * Hidden effects stay allocated and collapsed, parked on the ground beneath
  * the floor, until presented again. Alpha, scale and time scale do not stop a
- * model's particle emitters, and the arena camera never sees that ground.
+ * model's particle emitters. Stock emitters extend over 2000 units above
+ * their pivot; the extra depth keeps those particles below every arena camera.
  */
 export function hideEffect(model: effect, origin: Readonly<WorldOrigin>): void {
   BlzSetSpecialEffectScale(model, 0.0);
-  BlzSetSpecialEffectPosition(model, origin.x, origin.y, origin.z - FLOOR_HEIGHT);
+  BlzSetSpecialEffectPosition(model, origin.x, origin.y, origin.z - FLOOR_HEIGHT - 4096.0);
 }
 
 /**

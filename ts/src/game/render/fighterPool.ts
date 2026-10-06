@@ -16,6 +16,7 @@ import type { Character } from "../sim/codes";
 import { fighterPoseFacing, isIntangible } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
 import { type WorldOrigin, facingYaw, hideEffect } from "./effects";
+import { hitlagTint } from "../presentation/hitPresentation";
 import { characterModelScale } from "../presentation/modelScale";
 import { fitFighterPlacement } from "../presentation/fighterPlacement";
 
@@ -122,6 +123,10 @@ export class FighterPoolPresentation {
     }
     if (fighter.status.frozenFrames > 0) {
       BlzSetSpecialEffectColor(model, 155, 210, 255);
+      BlzSetSpecialEffectAlpha(model, 255);
+    } else if (hitlagTint(fighter) !== undefined) {
+      const tint = hitlagTint(fighter);
+      if (tint !== undefined) BlzSetSpecialEffectColor(model, tint.red, tint.green, tint.blue);
       BlzSetSpecialEffectAlpha(model, 255);
     } else {
       const shielded = fighter.shield.raised;

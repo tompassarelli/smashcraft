@@ -19,9 +19,51 @@ import { views } from "../src/platform/shell/ui";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import type { EffectPose, HeadlessClient } from "wisp/src/headless/client";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
+import { CombatEffects } from "../src/game/render/combatEffects";
+import { createImpactEvents } from "../src/game/presentation/impactEvents";
+import { createImpactState, emitImpacts } from "../src/game/presentation/impactState";
+import { HIT_PRESENTATION_CASES } from "../src/game/shell/hitPresentationCases";
 
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
+
+test("hit event language: 26 event cases reach stock effects and confirmed sounds without replay", () => {
+  const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install });
+  clients.start();
+  clients.frames(30);
+  clients.chat(0, "-dev quick");
+  clients.frames(1);
+  const commandClient = clients.clients[0];
+  if (commandClient === undefined) throw new Error("missing host client");
+  const commandStart = commandClient.log.length;
+  clients.chat(0, "-dev effects 3");
+  expect(commandClient.log.slice(commandStart).some(call => call.name === "CreateSoundFromLabel" && call.args[0] === "Fireball")).toBe(true);
+  const client = clients.clients[0];
+  if (client === undefined) throw new Error("missing host client");
+  client.run(() => {
+    const renderer = new CombatEffects({ x: 0, y: 0, z: FLOOR_HEIGHT });
+
+    for (const [index, { cue, sound, model }] of HIT_PRESENTATION_CASES.entries()) {
+      renderer.clear();
+      const events = { ...createImpactEvents(), ...cue };
+      const impacts = createImpactState();
+      emitImpacts(impacts, events, 8);
+      const before = client.log.length;
+      renderer.presentConfirmed(index + 1, 0, events);
+      renderer.present(impacts, impacts, true);
+      const calls = client.log.slice(before);
+      expect(calls.filter(call => call.name === "CreateSoundFromLabel").map(call => call.args[0])).toEqual([sound]);
+      expect(calls.filter(call => call.name === "StartSound")).toHaveLength(1);
+      expect(client.effectPoses().some(pose => pose.model.includes(model) && pose.scale > 0)).toBe(true);
+      const after = client.log.length;
+      renderer.presentConfirmed(index + 1, 0, events);
+      renderer.presentConfirmed(index, 0, events);
+      expect(client.log.length).toBe(after);
+    }
+    renderer.destroy();
+  });
+  expect(client.errors).toEqual([]);
+});
 
 /** The client's effects as it poses them; the host does not simulate Warcraft particles. */
 function effectPoses(client: HeadlessClient): Map<unknown, EffectPose> {
@@ -75,9 +117,10 @@ test("combat effects: rollback, pause/resume and rematch neither replay nor reta
     s.produced.inputs[0].specialPressed = true;
     step();
     s.produced.inputs[0].specialPressed = false;
-    const restarts = () => client.log.slice(actionStart).filter(({ name, args }) => name === "BlzSetSpecialEffectTime" && args[1] === 0);
-    expect(restarts()).toHaveLength(1);
-    const animated = restarts()[0]?.args[0];
+    const resets = client.log.slice(actionStart).filter(({ name, args }) => name === "BlzSetSpecialEffectTime" && args[1] === 0);
+    expect(resets).toHaveLength(1);
+    const animated = resets[0]?.args[0];
+    const restarts = () => client.log.slice(actionStart).filter(({ name, args }) => name === "BlzSetSpecialEffectTime" && args[0] === animated && args[1] === 0);
     expect(visible(client, handles).has(animated)).toBe(true);
     s.produced.inputs[1].groundDodgePressed = true;
     s.produced.inputs[1].shield = true;

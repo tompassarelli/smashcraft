@@ -1,17 +1,5 @@
 // Impact sparks, dust and KO bodies. Every handle is created with the match;
 // effects never feed back into combat, and playback creates or destroys none.
-import {
-  IMPACT_DUST_MODEL,
-  IMPACT_ELECTRIC_MODEL,
-  IMPACT_HIT_MODEL,
-  IMPACT_JUMP_MODEL,
-  IMPACT_KO_MODEL,
-  IMPACT_MISS_MODEL,
-  IMPACT_RESPAWN_MODEL,
-  IMPACT_ROLL_MODEL,
-  IMPACT_SHIELD_MODEL,
-  IMPACT_TECH_MODEL,
-} from "../assets/impactAssetInfo";
 import { DEMON_HUNTER_MODEL_FILE } from "../presentation/demonHunterAssetInfo";
 import { ARCHER_MODEL_FILE, RIFLEMAN_MODEL_FILE } from "../presentation/fighterAssetInfo";
 import {
@@ -21,6 +9,7 @@ import {
   IMPACT_LEDGE_CATCH,
   IMPACT_LEDGE_RECOVERY,
   IMPACT_READY,
+  IMPACT_SCREEN_KO,
   IMPACT_STAR_KO,
   IMPACT_THROW,
   IMPACTS_PER_KIND,
@@ -30,6 +19,8 @@ import {
 } from "../presentation/impactState";
 import { f32 } from "wisp/src/sim/f32";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
+import { impactAnimation, impactModel, presentImpactSounds } from "../presentation/hitPresentation";
+import type { ImpactEvents } from "../presentation/impactEvents";
 import { Character } from "../sim/codes";
 import { type ParkedFlags, type WorldOrigin, hideEffect, parkOnce } from "./effects";
 import { characterModelScale } from "../presentation/modelScale";
@@ -40,21 +31,6 @@ const STAR_KO_FIRST = IMPACT_STAR_KO * IMPACTS_PER_KIND;
 /** Star-KO sparkles play far behind the stage, against the sky. */
 const STAR_KO_DEPTH = 1400.0;
 
-function impactModel(kind: number): string {
-  if (kind === 0) return IMPACT_HIT_MODEL;
-  if (kind === 1) return IMPACT_TECH_MODEL;
-  if (kind === 2) return IMPACT_MISS_MODEL;
-  if (kind === 3) return IMPACT_DUST_MODEL;
-  if (kind === 5) return IMPACT_ELECTRIC_MODEL;
-  if (kind === 6) return IMPACT_SHIELD_MODEL;
-  if (kind === 7) return IMPACT_JUMP_MODEL;
-  if (kind === 8) return IMPACT_KO_MODEL;
-  if (kind === 9) return IMPACT_RESPAWN_MODEL;
-  if (kind === IMPACT_GRAB || kind === IMPACT_CHARGE) return IMPACT_SHIELD_MODEL;
-  if (kind === IMPACT_THROW || kind === IMPACT_LEDGE_RECOVERY) return IMPACT_JUMP_MODEL;
-  if (kind === IMPACT_STAR_KO || kind === IMPACT_READY || kind === IMPACT_LEDGE_CATCH) return IMPACT_TECH_MODEL;
-  return IMPACT_ROLL_MODEL;
-}
 
 function fighterModel(character: number): string {
   return character === Character.archer ? ARCHER_MODEL_FILE : character === Character.rifleman ? RIFLEMAN_MODEL_FILE : DEMON_HUNTER_MODEL_FILE;
@@ -64,6 +40,8 @@ export class CombatEffects {
   private readonly impacts: effect[] = [];
   private readonly koBodies: effect[] = [];
   /** Each impact slot's age when last shown; created on first use, so a pool retained across a reload gains it. */
+  private soundFrames: number[] = [];
+
   private shownAges: (number | undefined)[] | undefined;
   /** Impacts at their pool index, then KO bodies. */
   private parked: ParkedFlags | undefined;
@@ -99,6 +77,22 @@ export class CombatEffects {
     this.impacts.forEach((model, i) => parkOnce(model, this, parked, i));
     this.koBodies.forEach((model, i) => parkOnce(model, this, parked, IMPACT_COUNT + i));
     this.shownAges = undefined;
+    this.soundFrames = [];
+  }
+
+  /** Only completed frames dispatch sounds; replay never calls this method. */
+  presentConfirmed(frame: number, slot: number, events: Readonly<ImpactEvents>): void {
+    const previous = this.soundFrames[slot];
+    if (previous !== undefined && frame <= previous) return;
+    this.soundFrames[slot] = frame;
+    presentImpactSounds(events, (label, x, z, volume, pitch) => {
+      const cue = CreateSoundFromLabel(label, false, true, true, 10000, 10000);
+      SetSoundPosition(cue, this.x + x, this.y, this.z + z);
+      SetSoundVolume(cue, volume);
+      SetSoundPitch(cue, pitch);
+      StartSound(cue);
+      KillSoundWhenDone(cue);
+    });
   }
 
   /** KO impacts come from confirmed state, so a rollback never replays one; the rest from `state`. */
@@ -108,7 +102,8 @@ export class CombatEffects {
     for (let i = 0; i < this.impacts.length; i++) {
       const model = this.impacts[i];
       if (model === undefined) continue;
-      const source = i >= STAR_KO_FIRST ? confirmed : state;
+      const kind = floorDiv(i, IMPACTS_PER_KIND);
+      const source = kind === IMPACT_STAR_KO || kind === IMPACT_SCREEN_KO ? confirmed : state;
       const age = source.ages[i];
       // An empty slot projects hidden, and most of the pool is empty for most of a match.
       const pose = playing && age !== undefined ? projectImpact(source, i) : undefined;
@@ -121,6 +116,10 @@ export class CombatEffects {
       // first, as a new effect would start there. The callback draws only its final pose.
       const last = shownAges[i];
       if (last !== undefined && age !== undefined && age < last) hideEffect(model, this);
+      if (last === undefined || age !== undefined && age < last) {
+        BlzSetSpecialEffectAnimation(model, impactAnimation(floorDiv(i, IMPACTS_PER_KIND)));
+        BlzSetSpecialEffectTime(model, 0.0);
+      }
       shownAges[i] = age;
       parked[i] = false;
       const depth = floorDiv(i, IMPACTS_PER_KIND) === IMPACT_STAR_KO ? STAR_KO_DEPTH : 0.0;
