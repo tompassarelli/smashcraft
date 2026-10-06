@@ -205,8 +205,9 @@ test("wingAscentConsumesJumpsAndEndsInHelplessFallAfterInterruptionRules", () =>
     const ledge = createFighter(character, 620.0, -1);
     const other = createFighter(character === Character.archer ? Character.rifleman : Character.archer, 0.0, 1);
     ledge.motion.grounded = false;
-    ledge.motion.z = -30.0;
+    ledge.motion.z = -80.0;
     ledge.motion.vz = -2.0;
+    ledge.motion.deltaZ = -2.0;
     ledge.special.fall = true;
     ledge.jump.remaining = 0;
     const ledgeWorld = testWorld(ledge, other);

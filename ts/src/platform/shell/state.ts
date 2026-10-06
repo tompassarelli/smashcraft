@@ -6,8 +6,9 @@
 import type { Action } from "../../game/input/actions";
 import { ATTACK_BUFFER_FRAMES, attackBuffer } from "../../game/input/attackBuffer";
 import { type KeyboardCapture, keyboardCapture } from "../../game/input/keyboardCapture";
-import { PARTICIPANT_SLOTS, type ParticipantInputs, type ParticipantSlot, type Slots, participantInputs } from "../../game/input/participants";
+import { PARTICIPANT_SLOTS, type ParticipantInputs, type ParticipantSlot, type Slots, participantActive, participantInputs } from "../../game/input/participants";
 import { type PlayerKeys, playerKeys } from "../../game/input/playerKeys";
+import type { InputPacket } from "../../game/input/wire";
 import { type FrameControls, type MatchControls, createFrameControls, createMatchControls } from "../../game/match/controls";
 import { type MatchFrameInput, createMatchFrameInput } from "../../game/match/frameInput";
 import { type PacingAndPresentation, createPacingAndPresentation } from "../../game/match/pacingAndPresentation";
@@ -103,8 +104,22 @@ export interface Journal {
   source: JournalInputSource | undefined;
   failed: boolean;
   readonly outgoing: OutgoingInput;
-  /** Humans whose helper is ready this epoch. */
+  /** Humans whose helper is ready this epoch, or who play it on the keyboard. */
   readyMask: number;
+  /** Humans who play this epoch on the keyboard because their helper never reported ready. */
+  keyboardMask: number;
+  /** Callbacks this epoch has waited for the local helper to report ready. */
+  readyWait: number;
+  /** The local player's keys while they play on the keyboard. */
+  readonly keys: KeyboardCapture;
+  /** The last frame the local keyboard's clock has reached: one more each running callback. */
+  keyClock: number;
+  /** While a pause is prepared or in effect, the frame the local keyboard's rows stop before. */
+  keyStop: number | undefined;
+  /** The pause round the local keyboard answered last; it answers each round once. */
+  keyAnswered: PauseBarrier["request"];
+  /** Preallocated: the packet that carries the local keyboard's next row. */
+  readonly keyPacket: InputPacket;
   startSent: boolean;
   lifecycle: MatchLifecycle | undefined;
   endSent: boolean;
@@ -139,6 +154,10 @@ export interface Rollback {
   sendFailed: boolean;
   readonly keyboard: KeyboardRollback | undefined;
   readonly journal: Journal | undefined;
+  /** Consecutive callbacks the match has waited for players' input; local presentation. */
+  stalled: number;
+  /** Humans every client names while the match waits for their input; 0 while it runs. */
+  waitingFor: number;
 }
 
 export interface StatusFrames {
@@ -231,8 +250,10 @@ function speculativeRoster(): Roster {
 }
 
 function journal(ingress: JournalIngress, editbox: EditboxIngress | undefined): Journal {
+  const keys = keyboardCapture();
   return {
-    ingress, source: undefined, failed: false, outgoing: new OutgoingInput(), readyMask: 0, startSent: false, lifecycle: undefined,
+    ingress, source: undefined, failed: false, outgoing: new OutgoingInput(), readyMask: 0, keyboardMask: 0, readyWait: 0, keys,
+    keyClock: 0, keyStop: undefined, keyAnswered: undefined, keyPacket: { epoch: 0, firstFrame: 1, rows: [keys.row] }, startSent: false, lifecycle: undefined,
     endSent: false, endReceived: false, quiescent: false, chatRequested: [false, false, false, false], chatSerial: [0, 0, 0, 0],
     barrier: pauseBarrier(), menuPhase: undefined, menuTicks: 0, editbox, mailbox: undefined,
   };
@@ -251,6 +272,7 @@ function rollback(mode: ShadowInputMode, playback: RollbackPlayback, editbox: Ed
       }
       : undefined,
     journal: mode.kind === "journal" ? journal(mode.ingress, editbox) : undefined,
+    stalled: 0, waitingFor: 0,
   };
 }
 
@@ -292,4 +314,9 @@ export function activeRollback(state: Readonly<ShellState>): Rollback | undefine
 
 export function localSlot(): number {
   return GetPlayerId(GetLocalPlayer());
+}
+
+/** Whether the player in slot plays this journal epoch on the keyboard; every client knows it. */
+export function playsOnKeyboard(journal: Readonly<Journal> | undefined, slot: number): boolean {
+  return journal !== undefined && participantActive(journal.keyboardMask, slot);
 }

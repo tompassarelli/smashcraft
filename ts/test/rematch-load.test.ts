@@ -10,17 +10,23 @@ import { installHeadless, readNativeDeclarations } from "wisp/scripts/wisp/headl
 import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/scripts/wisp/syncChannel";
 import type { EffectPose, HeadlessClient } from "wisp/src/headless/client";
 import { originalClipCount, originalLightPath } from "../src/game/assets/fighterOriginalClipInfo";
+import { PARTICIPANT_SLOTS } from "../src/game/input/participants";
 import { Phase } from "../src/game/match/rules";
 import { FLOOR_HEIGHT } from "../src/game/presentation/arenaCamera";
+import { characterModelScale } from "../src/game/presentation/modelScale";
+import { FIGHTER_OBJECTS } from "../src/game/objectData";
 import { ReplayHistory } from "../src/game/replay/history";
 import { ShadowInputPlayback } from "../src/game/replay/shadowPlayback";
 import { Character } from "../src/game/sim/codes";
 import { PROJECTILE_CAPACITY } from "../src/game/sim/fighter";
+import { fighterAt, isActive } from "../src/game/sim/roster";
 import { PLAYABLE_BUILD } from "../src/game/shell/currentBuild";
 import { install, startBuild } from "../src/platform/main";
 import { Key } from "../src/platform/shell/keyEvents";
 import { panelActions } from "../src/platform/shell/menus";
-import { shell } from "../src/platform/shell/state";
+import { activeRollback, shell } from "../src/platform/shell/state";
+import { views } from "../src/platform/shell/ui";
+import { MODEL_FACTS } from "../scripts/wisp/modelFacts";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
 import { JournalHelpers, type Workload } from "./rematch/journalHelper";
 
@@ -28,7 +34,7 @@ const declarations = readNativeDeclarations();
 // Desyncs are the desync guard's to find; unlogged natives keep these frames fast.
 const unlogged = Object.fromEntries(declarations.functions.map(([name]) => [name, "this test counts the calls it checks"]));
 const helpers = new JournalHelpers(PLAYABLE_BUILD.id);
-const headless = installHeadless({ ...SMASHCRAFT_HEADLESS, localNatives: unlogged, natives: (client) => helpers.natives(client) }, declarations);
+const headless = installHeadless({ ...SMASHCRAFT_HEADLESS, localNatives: unlogged }, declarations);
 afterAll(headless.restore);
 
 /** History rows each reconcile read, per call, and the corrections that replayed frames. */
@@ -107,11 +113,59 @@ function parkedCallMeter(client: HeadlessClient, parkedBelow: () => number) {
   return meter;
 }
 
-test("a match and its three-fighter rematch read only correctable rollback rows, touch no parked effect and keep nothing between them", () => {
+/**
+ * What is wrong with the clips the client's pooled fighters show this match
+ * frame: each fighter in play shows exactly one clip, where the presented
+ * match puts him, at his model's scale and opacity, and with his own model's
+ * whole mesh; a fighter out shows none. Counts each character's checked
+ * frames in `seen`.
+ */
+function shownClipProblems(client: HeadlessClient, parkedBelow: number, seen: Map<Character, number>): string[] {
+  const problems: string[] = [];
+  client.run(() => {
+    const s = shell();
+    if (s.game.phase !== Phase.match) return;
+    const rollback = activeRollback(s);
+    const world = s.build.presentation === "pool-predicted" && rollback !== undefined ? rollback.speculative.world : s.world;
+    const poses = (client as unknown as { readonly effects: ReadonlyMap<unknown, EffectPose> }).effects;
+    for (const slot of PARTICIPANT_SLOTS) {
+      const pool = views(s).fighters[slot]?.pool as unknown as { readonly clips: readonly unknown[] } | undefined;
+      if (pool === undefined || !isActive(world, slot)) continue;
+      const { character, motion, status } = fighterAt(world, slot);
+      const shown = pool.clips.flatMap((clip) => {
+        const pose = poses.get(clip);
+        return pose !== undefined && pose.z >= parkedBelow ? [pose] : [];
+      });
+      if (status.out) {
+        if (shown.length > 0) problems.push(`slot ${slot} is out but shows ${shown.length} clips`);
+        continue;
+      }
+      const pose = shown[0];
+      if (pose === undefined || shown.length > 1) {
+        problems.push(`slot ${slot} shows ${shown.length} clips`);
+        continue;
+      }
+      seen.set(character, (seen.get(character) ?? 0) + 1);
+      const place = [s.origin.x + motion.x, s.origin.y, s.origin.z + motion.z];
+      if (pose.x !== place[0] || pose.y !== place[1] || pose.z !== place[2]) problems.push(`slot ${slot} clip at ${pose.x} ${pose.y} ${pose.z}, fighter at ${place.join(" ")}`);
+      if (pose.scale !== characterModelScale(character) || (pose.alpha !== 255 && pose.alpha !== 140)) problems.push(`slot ${slot} clip scale ${pose.scale} alpha ${pose.alpha}`);
+      const mesh = MODEL_FACTS[pose.model];
+      const whole = MODEL_FACTS[FIGHTER_OBJECTS[character].model];
+      if (mesh === undefined || whole === undefined || mesh.geosets !== whole.geosets || mesh.triangles !== whole.triangles) {
+        problems.push(`slot ${slot} clip ${pose.model} has ${mesh?.geosets} geosets and ${mesh?.triangles} triangles of ${whole?.geosets} and ${whole?.triangles}`);
+      }
+    }
+  });
+  return problems;
+}
+
+test("a match and its three-fighter rematch show each pooled fighter whole where he stands, read only correctable rollback rows, touch no parked effect and keep nothing between them", () => {
   const clients = headless.clients({ start: () => startBuild(PLAYABLE_BUILD), install }, [0, 1], { delivery: syncDelivery(MEASURED_BATTLE_NET, 7) });
   const host = clients.clients[0] as HeadlessClient;
   const lifetimes = countLifetimes(host);
   let parkedBelow = 0;
+  const shownProblems: string[] = [];
+  const shownFrames = new Map<Character, number>();
   const parked = parkedCallMeter(host, () => parkedBelow);
   const read = <T>(body: () => T): T => {
     let value: T | undefined;
@@ -125,6 +179,7 @@ test("a match and its three-fighter rematch read only correctable rollback rows,
     for (let frame = 0; frame < count; frame++) {
       clients.frames(1);
       parked.frameEnded();
+      if (parked.on) shownProblems.push(...shownClipProblems(host, parkedBelow, shownFrames));
       helpers.service(clients);
     }
   };
@@ -179,6 +234,10 @@ test("a match and its three-fighter rematch read only correctable rollback rows,
     // From the match's first frame through its result, no call touches an effect that stays parked.
     expect(played.parkedCalls).toBe(0);
   }
+  // Every match frame of both matches showed each pooled fighter in play once, whole, where he stands;
+  // the rematch's computer Illidan among them.
+  expect(shownProblems).toEqual([]);
+  for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) expect(shownFrames.get(character) ?? 0).toBeGreaterThan(60);
   // Match frames create and destroy nothing; the result recreates the menu key triggers the match start removed.
   for (const played of [first, rematch]) expect(played.lifetimes).toEqual({ CreateTrigger: 2 });
   // At its result the rematch also holds the computer Illidan's clip pool, shield and projectiles; fighter

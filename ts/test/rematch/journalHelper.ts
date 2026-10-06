@@ -1,17 +1,17 @@
 // The companion helper as headless clients need it: per client, the journal
-// text it types into the integrity build's edit box (readiness, I4 records of
-// one or, as wc3-journal sends them, two rows, the end marker) and its
-// quiescence file. Like the real helper it assigns rows by its own clock, which
-// keeps running while the game stalls, and types at most TEXT_WINDOW records
-// past what the map's receipt has consumed.
-import type { HeadlessClient, NativeBehaviors } from "wisp/src/headless/client";
+// text it types into the integrity build's edit box while the box is shown
+// (readiness, I4 rows of one frame, or of two as the companion's are, pause
+// acknowledgments, the end marker) and its quiescence file. Like the real
+// helper it journals by its own clock, which runs on while the game stalls,
+// and types at most TEXT_WINDOW records past what the map's receipt has
+// consumed.
 import type { Lockstep } from "wisp/src/headless/lockstep";
 import { Action, bit } from "../../src/game/input/actions";
 import { type InputRow, inputRow } from "../../src/game/input/inputRow";
 import { encodePacket, inputPacket } from "../../src/game/input/wire";
 import { TEXT_WINDOW, textEnvelope } from "../../src/game/netcode/journal/text";
 import { quiescentFile } from "../../src/game/shell/journalFiles";
-import { journalLifecycleFile, journalReadyFile } from "../../src/runtime/gameFiles";
+import { journalControlFile, journalLifecycleFile, journalReadyFile } from "../../src/runtime/gameFiles";
 
 
 /** #26's twelve bindings as the actions each press reports, then attack and special together. */
@@ -55,65 +55,61 @@ export function rowFor(slot: number, frame: number, workload: Workload): InputRo
 }
 
 interface Helper {
-  box: unknown;
-  text: string;
   epoch: number;
   sequence: number;
   state: "idle" | "ready" | "journaling" | "ended";
   readonly queue: string[];
-  /** Rows journaled this match, and the ones not yet sent as a record. */
   journaled: number;
+  /** Journaled rows not yet sent: with pairs, an odd one waits for the next frame. */
   readonly pending: InputRow[];
-  /** The helper clock's reading when the match started. */
   started: number;
+  /** The map's next control request: a pause, its commit or a resume. */
+  control: number;
+  /** While a pause is prepared or in effect, the last frame to journal. */
+  limit: number | undefined;
 }
 
 export class JournalHelpers {
   private readonly helpers = new Map<number, Helper>();
   workload: Workload = { denseCycles: 0, walkers: [] };
+  /** Slots whose helper types nothing, as when it isn't running or has stalled; its clock keeps journaling rows. */
+  readonly silent = new Set<number>();
 
-  /** build: the map build whose journal files the helpers follow; rowsPerRecord: 1, or 2 as wc3-journal sends them. */
-  constructor(private readonly build: string, private readonly rowsPerRecord: 1 | 2 = 1) {}
+  /**
+   * build: the map build whose journal files the helpers follow. pairs: a
+   * packet carries two frames, sent once both are due, as the companion
+   * helper's do; a pause or the end sends an odd one alone.
+   */
+  constructor(
+    private readonly build: string,
+    private readonly pairs = false,
+  ) {}
 
   private helper(slot: number): Helper {
     let helper = this.helpers.get(slot);
     if (helper === undefined) {
-      helper = { box: undefined, text: "", epoch: 0, sequence: 0, state: "idle", queue: [], journaled: 0, pending: [], started: 0 };
+      helper = { epoch: 0, sequence: 0, state: "idle", queue: [], journaled: 0, pending: [], started: 0, control: 1, limit: undefined };
       this.helpers.set(slot, helper);
     }
     return helper;
   }
 
-  /** The edit box: the frame given the journal's text limit. Its text is the helper's. */
-  natives(client: HeadlessClient): NativeBehaviors {
-    const helper = this.helper(client.slot);
-    return {
-      BlzFrameSetTextSizeLimit: (frame: unknown) => {
-        helper.box = frame;
-      },
-      BlzFrameGetText: (frame: unknown) => (frame === helper.box ? helper.text : ""),
-      BlzFrameSetText: (frame: unknown, text: string) => {
-        if (frame === helper.box) helper.text = text;
-      },
-    };
-  }
-
-  /** The last frame a slot's helper has journaled by `now`, while it journals a match. */
+  /** The last frame a slot's helper has journaled by its clock's reading `now`, while it journals a match. */
   frameAt(slot: number, now: number): number {
     const helper = this.helper(slot);
-    return helper.state === "journaling" ? now - helper.started + 1 : 0;
+    return helper.state === "journaling" ? helper.limit ?? now - helper.started + 1 : 0;
   }
 
   /**
-   * One frame of every helper by their clock `now`, after the clients ran
-   * theirs. The text typed for a `held` slot's stopped game waits.
+   * One frame of every helper, after the clients ran it. `now`: the helpers'
+   * clock, one a frame of wall time, which goes on while the game stalls.
    */
-  service(clients: Lockstep, now = clients.frame, held: ReadonlySet<number> = new Set()): void {
+  service(clients: Lockstep, now = clients.frame): void {
     for (const client of clients.clients) {
       const helper = this.helper(client.slot);
       const next = helper.epoch + 1;
       if ((helper.state === "idle" || helper.state === "ended") && client.files.has(journalReadyFile(this.build, next, client.slot))) {
-        Object.assign(helper, { epoch: next, sequence: 0, text: "", state: "ready" });
+        Object.assign(helper, { epoch: next, sequence: 0, state: "ready", control: 1, limit: undefined });
         helper.queue.length = 0;
         helper.queue.push(`JR1${next}`);
       }
@@ -123,17 +119,41 @@ export class JournalHelpers {
         helper.pending.length = 0;
       }
       if (helper.state === "journaling" && client.files.has(journalLifecycleFile(this.build, epoch, client.slot, "end"))) {
-        if (helper.pending.length > 0) this.send(helper, helper.journaled - helper.pending.length + 1);
+        this.send(helper);
         helper.state = "ended";
         helper.queue.push(`JE1${epoch}`);
         client.published.set(quiescentFile({ build: this.build, epoch, slot: client.slot }), ["Q"]);
       }
-      while (helper.state === "journaling" && helper.journaled < this.frameAt(client.slot, now)) {
+      // Control requests, answered as the companion does: a pause stops at the next frame,
+      // its commit journals up to the committed frame, and a resume restarts the clock there.
+      const control = helper.state === "journaling" ? client.files.get(journalControlFile(this.build, epoch, client.slot, helper.control)) : undefined;
+      const [, request = "", frame = "0"] = /state=(\w+) frame=(\d+)/.exec(control?.join("") ?? "") ?? [];
+      const acknowledge = (stage: string, at: number) => helper.queue.push(`ACK1|${helper.control}|${stage}|${at}`);
+      let committed: number | undefined;
+      if (request === "PAUSE") {
+        this.send(helper);
+        acknowledge("PREPARE", helper.journaled + 1);
+        helper.limit = helper.journaled;
+      } else if (request === "PAUSE_COMMIT") {
+        committed = Number(frame);
+        helper.limit = committed - 1;
+      } else if (request === "RESUME") {
+        acknowledge("RESUME", helper.journaled + 1);
+        helper.limit = undefined;
+        helper.started = now - helper.journaled;
+      }
+      const due = this.frameAt(client.slot, now);
+      while (helper.state === "journaling" && helper.journaled < due) {
         helper.journaled++;
         helper.pending.push(rowFor(client.slot, helper.journaled, this.workload));
-        if (helper.pending.length === this.rowsPerRecord) this.send(helper, helper.journaled - helper.pending.length + 1);
+        if (helper.pending.length === (this.pairs ? 2 : 1)) this.send(helper);
       }
-      if (held.has(client.slot)) continue;
+      if (helper.limit !== undefined) this.send(helper);
+      if (committed !== undefined) acknowledge("PAUSE", committed);
+      if (request !== "") helper.control++;
+      // The map's edit box, which has the keyboard while it is shown.
+      const box = client.frames.named("JournalControllerInput", 969);
+      if (box === undefined || !client.frames.shown(box) || this.silent.has(client.slot)) continue;
       const receipt = client.files.get(`smashcraft-journal-text-ack-${this.build}-e${epoch}-p${client.slot}.txt`)?.join("") ?? "";
       const consumed = Number(/ consumed=(\d+)/.exec(receipt)?.[1] ?? 0);
       for (let payload = helper.queue.shift(); payload !== undefined; payload = helper.queue.shift()) {
@@ -142,13 +162,15 @@ export class JournalHelpers {
           break;
         }
         helper.sequence++;
-        helper.text += textEnvelope(epoch, helper.sequence, payload) ?? "";
+        box.text += textEnvelope(epoch, helper.sequence, payload) ?? "";
       }
     }
   }
 
-  private send(helper: Helper, firstFrame: number): void {
-    const packet = inputPacket(helper.epoch, firstFrame, helper.pending);
+  /** Sends the journaled rows not yet sent as one record. */
+  private send(helper: Helper): void {
+    if (helper.pending.length === 0) return;
+    const packet = inputPacket(helper.epoch, helper.journaled - helper.pending.length + 1, helper.pending);
     if (packet === undefined) throw new Error("no packet");
     helper.queue.push(encodePacket(packet));
     helper.pending.length = 0;

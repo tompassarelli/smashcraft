@@ -8,6 +8,7 @@ import { type CorrectionResult, ReplayHistory } from "../replay/history";
 import { REPLAY_MAX_CORRECTION_FRAMES } from "../replay/limits";
 import { ShadowInputPlayback } from "../replay/shadowPlayback";
 import type { ReplayState } from "../replay/snapshot";
+import type { Roster } from "../sim/roster";
 import type { RollbackPlayback, SpeculativeMatch } from "./playback";
 
 interface MutableReplayState {
@@ -54,6 +55,10 @@ class ReplayHistoryPlayback implements RollbackPlayback {
       if (!this.playback.advanceSpeculative(schedule, epoch, localPlayer, state, this.history, executed)) return false;
     }
     return true;
+  }
+
+  visitWorlds(visit: (world: Roster) => void): void {
+    this.history.visitWorlds(visit);
   }
 
   private bind(match: SpeculativeMatch): MutableReplayState {

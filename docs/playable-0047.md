@@ -8,6 +8,26 @@ Use this map and its matching helper together:
 
 Windows and macOS use a different helper; see the section for them below.
 
+## One command
+
+On Tom's desktop, from smashcraft:ts/:
+
+```sh
+bun wisp play
+```
+
+It checks that nothing else runs in the Warcraft prefix, reuses or starts the
+signed-in Battle.net launcher through the Steam shortcut "Warcraft III
+(Battle.net)", presses Play, hosts "Smashcraft" with this map from
+Maps/00-Smashcraft, adds a computer as Player 3, starts the helper
+(`wc3-journal-0.0.47-fix1`) for the first Xbox controller and leaves Warcraft
+III fullscreen. Each step prints a line; a problem stops it with what to do
+(wisp:docs/play.md). The helper keeps running
+after the command ends, with its output in
+~/.local/state/smashcraft/play-helper.log; stop it with `kill PID` (the pid
+the command printed) after leaving the map. smashcraft:ts/scripts/wisp/commands/play.ts
+declares the candidate, its helper and the computer's slot.
+
 Put the map in each player's Warcraft III `Maps/00-Smashcraft` folder. Join the
 same custom game and start it. At fighter selection, start one helper for each
 human player with that player's controller, Warcraft window and data folder.
@@ -35,10 +55,25 @@ a different device or USB identity needs a fresh helper.
 | --- | --- |
 | Fighter selection | Stick: choose; A: select; X: recall; Start: continue |
 | Stage selection | Stick: choose; X: back; A or Start: begin |
-| Fight | Stick: move; A: attack; X: special; B/Y or stick-up: jump; RB: grab; LB: walk; either trigger: shield |
+| Fight | Stick: move/aim; A: attack; X: special; B/Y: jump; RB: grab; LB: walk; either trigger: shield |
 | Pause/results | Start: pause/resume; A or Start at results: rematch |
 
 The stage screen's stock and time settings use the mouse.
+
+## Without a helper
+
+A player whose helper isn't running when a match starts plays that match on
+the keyboard. For two seconds every screen shows "Waiting for Player N"; then
+the match begins and that player's screen shows "No controller found: use the
+keyboard." They play with the controls chosen with F1 at fighter selection
+(QWERTY unless changed; see the [player guide](player-guide.md)) and pause with
+Y. Untouched, their fighter stands still. A helper started during a match
+takes over from the next match. While a player's helper runs, their keyboard
+does not control their fighter.
+
+If a player's controller input stops during a match, every screen shows
+"Waiting for Player N" and the match goes on when the input returns. A helper
+that was closed during a match cannot rejoin it.
 
 ## Windows and macOS (verified in CI; not yet on a real Warcraft install)
 

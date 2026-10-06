@@ -90,9 +90,10 @@ test("special releases preserve press direction and leave neutral turnaround to 
   assertTrue(f.input.specialPressed);
   assertEquals(f.input.specialZ, -1);
   assertTrue(f.input.getupAttackPressed);
+  // Melee's down and ledge attacks take any A or B press: melee:src/melee/ft/kinds/ftCommon/ftCo_DownAttack.c, ftCo_CliffAttack.c.
   const rifleman = fixture(Character.rifleman);
   rifleman.adapt(downSpecial, 2);
-  assertFalse(rifleman.input.getupAttackPressed);
+  assertTrue(rifleman.input.getupAttackPressed);
   f.fighter.motion.lastAerialTapDirection = -1;
   f.adapt({ pressed: maskOf(Action.special) }, 3);
   assertEquals(f.input.specialX, 0);

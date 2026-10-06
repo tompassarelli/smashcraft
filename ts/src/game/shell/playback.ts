@@ -32,12 +32,15 @@ export interface RollbackPlayback {
    * before `stopBefore` when given. False when a frame could not run.
    */
   catchUp(schedule: ShadowInputSchedule, epoch: number, localPlayer: number, match: SpeculativeMatch, budget: number, stopBefore: number | undefined, executed: SpeculativeFrameObserver): boolean;
+  /** Every world the history holds, for a change a replay must not undo, such as authored tuning a reload changed. */
+  visitWorlds(visit: (world: Roster) => void): void;
 }
 
 /**
- * Journal rows one callback admits, and frames each of the confirmed and
- * speculative cursors runs in one callback: the per-callback catch-up budget.
- * A stall leaves the helper's clock ahead by the stalled time, and catching up
+ * Journal rows one callback admits, a helper's or the keyboard's, and frames
+ * each of the confirmed and speculative cursors runs in one callback: the
+ * per-callback catch-up budget. A stall leaves the helper's clock ahead by the
+ * stalled time, and catching up
  * needs more frames per callback than real time adds while the rows' echo is
  * on its way (smashcraft:docs/warcraft-api-netcode-findings.md, "Catching up
  * after a stall").

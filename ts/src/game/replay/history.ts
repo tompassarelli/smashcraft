@@ -1,6 +1,7 @@
 // Rollback history: the state before each recorded frame, with that frame's
 // row, in a ring of the last REPLAY_HISTORY_CAPACITY frames of one epoch.
 import { INPUT_LAST_FRAME } from "../input/wire";
+import type { Roster } from "../sim/roster";
 import {
   type MatchFrameInput,
   copyMatchFrameInput,
@@ -126,6 +127,11 @@ export class ReplayHistory {
 
   isSpeculative(epoch: number, frame: number): boolean {
     return this.contains(epoch, frame) && this.speculativeAt(frame);
+  }
+
+  /** Every snapshot's world, retained or not, for a change they must all take, such as authored tuning a reload changed. */
+  visitWorlds(visit: (world: Roster) => void): void {
+    for (const snapshot of this.snapshots) visit(snapshot.world);
   }
 
   firstRetainedFrame(): number {

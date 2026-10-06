@@ -1,10 +1,11 @@
 // Journal pauses and chat: a pause, a resume and a chat request are rounds every
-// human's helper acknowledges, and the match pauses or resumes exactly when the
-// confirmed cursor reaches the frame they agreed on. Rows, lifecycle and menus
-// are in journal.ts.
+// human's helper acknowledges, or the map for a player on the keyboard, and the
+// match pauses or resumes exactly when the confirmed cursor reaches the frame
+// they agreed on. Rows, lifecycle and menus are in journal.ts.
 import { isParticipantSlot } from "../../game/input/participants";
 import { Phase, humanActive } from "../../game/match/rules";
 import { padDecimal } from "../../game/netcode/journal/decimal";
+import type { JournalInputSource } from "../../game/netcode/journal/source";
 import { readVocabularyControlAck } from "../../game/netcode/journal/vocabulary";
 import { controlFile } from "../../game/shell/journalFiles";
 import { pausedMessage } from "../../game/shell/messages";
@@ -12,7 +13,7 @@ import { CONTROL_ACK_PREFIX, agreedFrame, encodeControlAck, pausing, preparedFra
 import { readChunk } from "wisp/src/platform/fileio";
 import { releaseMessage } from "../keyboardJournal";
 import { consumeEditbox, failJournal, journalEpoch, journalIdentity, mailboxMessage, peekEditbox, writeJournalFile } from "./journal";
-import { type Journal, type Rollback, type ShellState, localSlot } from "./state";
+import { type Journal, type Rollback, type ShellState, localSlot, playsOnKeyboard } from "./state";
 import { traceInput } from "./trace";
 import { LASTING, pauseMatchPresentation, setStatus, startControl } from "./view";
 
@@ -33,14 +34,36 @@ export function requestPause(s: ShellState, rollback: Rollback, journal: Journal
   setStatus(s, wantPaused ? "Pausing…" : "Resuming…", LASTING);
 }
 
+/**
+ * What a helper would answer for the local keyboard, once per round: PREPARE
+ * stops its rows at the next frame, PAUSE answers once its rows reach the
+ * committed frame, and RESUME restarts its clock there.
+ */
+function keyboardAck(journal: Journal, source: JournalInputSource, request: NonNullable<Journal["barrier"]["request"]>): string | undefined {
+  if (journal.keyAnswered === request) return undefined;
+  let frame = source.expectedFrame();
+  if (request.stage === "PREPARE") journal.keyStop = frame;
+  else if (request.stage === "PAUSE") {
+    if (journal.keyStop === undefined || frame < journal.keyStop) return undefined;
+    frame = journal.keyStop;
+  } else {
+    journal.keyStop = undefined;
+    journal.keyClock = frame - 1;
+  }
+  journal.keyAnswered = request;
+  return `ACK1|${source.controlSequenceNumber()}|${request.stage}|${frame}`;
+}
+
 /** Relays the local helper's acknowledgment of the current round to every client. */
 export function serviceControlAck(s: ShellState, rollback: Rollback, journal: Journal): void {
   const { source, barrier } = journal;
   const request = barrier.request;
   if (source === undefined || request === undefined || agreedFrame(barrier) !== undefined) return;
   const sequence = source.controlSequenceNumber();
+  const keyboard = playsOnKeyboard(journal, localSlot());
   let wire: string | undefined;
-  if (journal.ingress === "editbox") wire = peekEditbox(s, rollback, journal);
+  if (keyboard) wire = keyboardAck(journal, source, request);
+  else if (journal.ingress === "editbox") wire = peekEditbox(s, rollback, journal);
   else if (journal.ingress === "keyboard") wire = mailboxMessage(journal, "ACK1|");
   else {
     const read = readVocabularyControlAck(readChunk, source.controlAckBase());
@@ -51,6 +74,7 @@ export function serviceControlAck(s: ShellState, rollback: Rollback, journal: Jo
   if (frame === undefined) return;
   const ack = encodeControlAck({ epoch: rollback.epoch, slot: localSlot(), sequence, stage: request.stage, frame });
   if (!BlzSendSyncData(CONTROL_ACK_PREFIX, ack)) failJournal(s, rollback, journal, "pause acknowledgment could not be synchronized");
+  else if (keyboard) return;
   else if (journal.ingress === "editbox") consumeEditbox(s, rollback, journal);
   else if (journal.mailbox !== undefined) releaseMessage(journal.mailbox);
 }
@@ -72,6 +96,7 @@ export function receiveControlAckEvent(s: ShellState): void {
 export function sendPauseCommit(s: ShellState, rollback: Rollback, journal: Journal): void {
   const frame = preparedFrame(journal.barrier);
   if (journal.source === undefined || frame === undefined) return;
+  if (playsOnKeyboard(journal, localSlot())) journal.keyStop = frame;
   writeJournalFile(controlFile(journalIdentity(s, rollback.epoch), journal.source.controlSequenceNumber(), "PAUSE_COMMIT", frame));
   requestRound(journal.barrier, "PAUSE");
 }

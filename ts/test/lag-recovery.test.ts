@@ -26,10 +26,10 @@ import { JournalHelpers, rowFor } from "./rematch/journalHelper";
 const declarations = readNativeDeclarations();
 // Desyncs are the desync guard's to find; unlogged natives keep these frames fast.
 const unlogged = Object.fromEntries(declarations.functions.map(([name]) => [name, "this test compares confirmed state"]));
-// wc3-journal sends two rows a record.
-const helpers = new JournalHelpers(PLAYABLE_BUILD.id, 2);
+// Two rows a record once two are due, as wc3-journal sends them.
+const helpers = new JournalHelpers(PLAYABLE_BUILD.id, true);
 helpers.workload = { denseCycles: 40, walkers: [] };
-const headless = installHeadless({ ...SMASHCRAFT_HEADLESS, localNatives: unlogged, natives: (client) => helpers.natives(client) }, declarations);
+const headless = installHeadless({ ...SMASHCRAFT_HEADLESS, localNatives: unlogged }, declarations);
 afterAll(headless.restore);
 
 /** Every confirmed frame's rows, checked against what the helpers journaled: rows checked, and those that differed. */
@@ -67,10 +67,10 @@ test("after a 2 s stall of one or both games, each client catches up within a se
   const phase = () => read(host, () => shell().game.phase);
   /** The helpers' clock: one tick a frame of wall time, stalled or not. */
   let now = 0;
-  const tick = (held?: ReadonlySet<number>) => {
+  const tick = (stalled = false) => {
     now++;
-    if (held === undefined) clients.frames(1);
-    helpers.service(clients, now, held);
+    if (!stalled) clients.frames(1);
+    helpers.service(clients, now);
   };
   const until = (what: string, done: () => boolean, limit: number) => {
     for (let frame = 0; frame < limit && !done(); frame++) tick();
@@ -112,7 +112,9 @@ test("after a 2 s stall of one or both games, each client catches up within a se
     const usual = (lag: (cursor: Cursors) => number) => Math.max(...steady.flatMap((frame) => frame.map(lag)));
     const predictedLag = usual((cursor) => cursor.predictedLag);
     const confirmedLag = usual((cursor) => cursor.confirmedLag);
-    for (let frame = 0; frame < STALL_FRAMES; frame++) tick(held);
+    for (const slot of held) helpers.silent.add(slot);
+    for (let frame = 0; frame < STALL_FRAMES; frame++) tick(true);
+    helpers.silent.clear();
     const behind = Math.min(...clients.clients.map((client) => cursors(client).predictedLag));
     const recovery = play(2 * SECOND);
     const caughtUp = recovery.findIndex((frame) => frame.every((cursor) => cursor.predictedLag <= predictedLag && cursor.confirmedLag <= confirmedLag));

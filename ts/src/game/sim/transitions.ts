@@ -28,6 +28,7 @@ export function clearDownState(f: Fighter): void {
   down.direction = 0;
   down.waitRemaining = 0;
   down.faceUp = true;
+  down.attackQueued = false;
   clearSurfaceRecovery(f);
 }
 
@@ -206,6 +207,7 @@ export function beginDownState(f: Fighter, state: DownState, direction: number):
   down.frame = 1;
   down.direction = direction;
   if (state !== DownState.damage) down.waitRemaining = 0;
+  down.attackQueued = false;
   motion.vx = 0.0;
   motion.vz = 0.0;
   if (state !== DownState.bound && state !== DownState.tech && state !== DownState.techRoll) {
@@ -235,6 +237,7 @@ export function beginDownDamage(f: Fighter, hitstunFrames: number): void {
   down.state = DownState.damage;
   down.frame = 1;
   down.waitRemaining = max(0, hitstunFrames);
+  down.attackQueued = false;
   launch.hitstun = max(0, hitstunFrames);
   launch.diPending = false;
   launch.diLaunchSpeed = 0.0;

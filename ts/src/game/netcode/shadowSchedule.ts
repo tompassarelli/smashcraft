@@ -74,6 +74,18 @@ export class ShadowInputSchedule {
     return this.schedule.knownThrough();
   }
 
+  /** The active slots whose row for K + 1 has not arrived: the players the confirmed match waits for. */
+  awaitedSlots(): number {
+    const epoch = this.current;
+    if (epoch === undefined) return 0;
+    const frame = this.schedule.knownThrough() + 1;
+    let slots = 0;
+    for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
+      if (this.isActive(slot) && this.schedule.accepted(epoch, slot, frame) === undefined) slots |= 1 << slot;
+    }
+    return slots;
+  }
+
   firstAcceptedFrame(): number {
     return this.schedule.firstRetained();
   }

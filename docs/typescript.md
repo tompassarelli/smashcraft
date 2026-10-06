@@ -150,7 +150,11 @@ a player would see wrong in each client's scene report, and exits 1 on any.
 `desync` adds `-dev desync` typed by the second player, which it must report.
 smashcraft:ts/scripts/wisp/headless.ts declares the natives Smashcraft calls
 on one client only; the desync guard, visual-lifecycle, player-view and
-stack-trace tests run their clients with the same declaration.
+stack-trace tests run their clients with the same declaration. Its
+`PREDICTED_HEADLESS` also declares the effect poses and camera of the
+integrity and playable builds' predicted presentation local, for the
+integrity capture and the tests of a player whose controller input is
+missing (missing-input) or stops (input-stall).
 
 `bun wisp parity headless --helper BIN --out DIR` runs issue #26's capture
 without Warcraft (smashcraft:ts/scripts/integrity/headless.ts): the
@@ -282,8 +286,8 @@ From smashcraft:ts/:
   Each save prints the saved files' type errors, the affected unit tests, the
   journeys (the quick match plus the affected tests that play simulated
   clients: the desync guard, the visual and player-view group, stack-trace,
-  rematch-load and lag-recovery) and the whole `bun run check`, each timed
-  from the save.
+  rematch-load, missing-input, input-stall, tune and lag-recovery) and the
+  whole `bun run check`, each timed from the save.
   smashcraft:ts/scripts/wisp/commands/dev.ts declares the tests: the Bun test
   files, the registry modules game.test.ts runs, the files a test reads at run
   time (a test that reads files without declaring them runs on every save),
@@ -291,6 +295,29 @@ From smashcraft:ts/:
   the source-shape audit checks only the saved files; `bun run test` and CI
   check every file. Test processes share smashcraft:ts/scripts/testWorkers.ts's
   engine settings with the full suite.
+- `bun wisp tune --data A --data B [--port N] [--profile main|integrity]`: a
+  panel at http://127.0.0.1:7341/ that changes, in the running match, the
+  values smashcraft:ts/scripts/wisp/tunables.ts declares: each fighter's run
+  speed, full and short jump speeds, gravity, fall and fast-fall speeds and
+  jump squat frames, and the ordinary hit's knockback growth, base knockback
+  and hitstun frames per knockback
+  ([Wisp live tuning](https://github.com/tompassarelli/wisp/blob/main/docs/tune.md)).
+  Each change is a hot reload, so run it instead of `hot --watch` or
+  `dev --data`, against a profile that polls for reloads (the playable
+  profile doesn't). Fighters carry their tuning records, so every `install()`
+  gives each fighter its authored tuning again
+  (smashcraft:ts/src/platform/shell/tuning.ts): in the confirmed match and,
+  under rollback, in the speculative match and every history snapshot, so a
+  correction can't bring the old value back. Keep writes the running value
+  into smashcraft:ts/src/game/sim/tuning.ts or knockback.ts and prints the
+  diff; Reset puts back the session's starting value in the match and the
+  source. smashcraft:ts/test/tune.test.ts applies tuned gravity in two
+  headless clients: both install it on the same frame, and from that frame
+  both matches change alike. The input helper's stick deadzone
+  (`STICK_DEADZONE`, smashcraft:companion/src/stick.rs) is compiled into the
+  helper, outside what a reload changes, so it is no tunable: rebuild and
+  restart the helper to change it. A match with tuned values can't be
+  replayed from its inputs alone.
 - `bun run check`: type-check the host tools and the game with TypeScript 7.
   The compiler keeps separate host and game dependency caches in
   smashcraft:ts/build/typecheck-host.tsbuildinfo and
@@ -392,6 +419,14 @@ stock label and keys a pooled clip. Sound labels are the game's own sounds, so
 the map imports none. Hidden pooled clips wait collapsed on the ground beneath
 the floor, like every hidden effect, because alpha does not stop a model's
 particle emitters.
+
+A clip drops its fighter's light and effect nodes, and Warcraft does not read
+a node's ObjectId as written: Illidan's standalone light, written alone as
+ObjectId 155 beside his 276-entry pivot table, lit from the wrong place and
+lit exactly once numbered 0 (2 October). So the export numbers every clip's
+remaining nodes by their place in the file's node order, with parents, skin
+matrices and pivots following (smashcraft:ts/scripts/clipNodes.ts), and fails
+on a clip that does not.
 
 The build first checks the running Bun and the declared and installed packages
 against smashcraft:typescript-toolchain.lock.

@@ -69,14 +69,51 @@ intended simulation frame.
 | LT or RT | Shield Q |
 | Start | Y |
 | Left stick left / right / down | W / R / E |
-| Left stick up | Space and I, held until below threshold |
+| Left stick up | Space (up only; no tap jump) |
 | Right stick up / right / down / left | J / M / H / B |
 
-Thresholds are provisional SDL units: left stick 7000, right stick 11000,
-triggers 4000. Active means strictly beyond the threshold. These are the existing
-digital baseline, not Melee calibration. Shared sources are unioned before
-emission: releasing LT while RT is held retains shield; B, Y and stick-up share
-one held jump action. Hold duration remains available to the game's jump logic.
+Both sticks use Melee's conversion on every pad (smashcraft:companion/src/stick.rs,
+shared by wc3-controller and wc3-journal). The stick is first clamped radially
+to full scale, as Melee's `HSD_PadClampCheck3` does with `clamp_stickMax` =
+`scale_stick` = 80 (melee:src/sysdolphin/baselib/controller.c, values set in
+melee:src/melee/gm/gmmain.c). Each axis whose magnitude is then at most
+**0.28** of full scale reads 0; a value outside it is kept, not rescaled
+(melee:src/melee/ft/fighter.c with `horizontal_stick_deadzone` and
+`vertical_stick_deadzone` in melee:src/melee/ft/types.h; retail PlCo.dat value
+0x3e8f5c29 in smashcraft:docs/smash-melee-reference/physics-parameters.json).
+Full scale is SDL's and the normalized evdev range, ±32767, standing in for
+Melee's 80 units, so a left-stick axis counts from 9175. No resting-offset
+calibration is applied; the deadzone absorbs a pad's resting offset. Left,
+right and up are active when their axis is outside the deadzone; down needs
+the stronger threshold below. The journal's rows carry the deadzoned axes. Right-stick directions additionally need 11000
+and triggers 4000, strictly beyond. Shared sources are unioned before emission:
+releasing LT while RT is held retains shield; B and Y share one held jump
+action. Stick-up is only up: aim, up-special, getup and ledge stand. Hold
+duration remains available to the game's jump logic.
+
+Down is active only at **0.6625** of full scale (53 of Melee's 80 units; a
+left-stick axis counts from 21709), after the radial clamp. Melee has no single
+down threshold; the retail values (NTSC 1.02 PlCo.dat common block, selected
+fields read privately) are: fast-fall +0x88 = 0x3f29999a (0.6625,
+`ftCommon_CheckFallFast`, melee:src/melee/ft/ftcommon.c); platform drop +0x464
+and refusing a ledge catch +0x480 = 0x3f28f5c3 (0.66, the same 53 units;
+`ftCo_80099F1C` in melee:src/melee/ft/kinds/ftCommon/ftCo_Pass.c and
+`ftCliffCommon_80081298` in melee:src/melee/ft/ftcliffcommon.c); down smash
++0xD4 = -0.6625 (ftCo_AttackLw4.c). Crouch +0x90 = 0.6875 (strict, 56 units;
+ftCo_Squat.c) and spot dodge +0x314 = -0.7 (ftCo_Escape.c) need slightly more.
+The single digital down (E) takes the 53-unit value shared by four of those
+six actions, so a slight tilt no longer fast-falls, drops through a platform or
+passes a ledge. Crouch and spot dodge trigger about three stick units early.
+Up keeps the deadzone: ledge climb +0x494 = 0.25 and getup +0x244 = 0.2 lie
+inside it, and the 0.6625 up actions (tap jump, up smash) are not served by
+digital up. Up-special (+0x21C = 0.55) and the direction sent with a special or
+dodge press still use the deadzone, as does the journal's analog axis.
+
+On Linux the journal reads face buttons by position. Sony's driver reports
+positions, but xpad and other Xbox-style drivers report labels: X as `BTN_X`
+(0x133, the code also named `BTN_NORTH`) and Y as `BTN_Y` (0x134, `BTN_WEST`).
+The journal decides by vendor exactly as SDL's Linux mapping does, so X is
+special and Y jumps on both helpers; its log prints `face_labels`.
 The Xbox preset is not a claim that GameCube letter labels have the same meaning.
 
 Startup, loss of game eligibility and disconnect require all mapped controls to
@@ -171,8 +208,8 @@ the controller as ordinary keyboard keys with its standard QWERTY bindings.
 `cargo test --locked --features e2e --test e2e -- --nocapture` runs the real
 helper in a Windows or macOS desktop session against an SDL virtual gamepad
 (`--virtual-pad`, driven by stdin) and two `wc3-standin` windows, one copied to
-the Warcraft III executable name. It checks the requested layout, the six
-ordered jump overlaps and the trigger overlap, that no key reaches either
+the Warcraft III executable name. It checks the requested layout, both
+ordered jump-button overlaps and the trigger overlap, that no key reaches either
 window while the other one is focused, that focus loss and disconnect release
 held keys in the operating system's key state, and that a control held through
 refocus must return to neutral. `smashcraft:.github/workflows/companion.yml`
@@ -348,7 +385,12 @@ failed target identity is an error; ordinary focus loss suspends keyboard output
 Focus loss leaves assigned rows and queued I4/ACK1/JP1 records in order. A logical
 neutral release is assigned after any already-assigned open row; subsequent
 unfocused input is explicitly suppressed. The 60 Hz capture segment continues,
-so neutral rows retain the elapsed original frame numbers. On return, queued
+so neutral rows retain the elapsed original frame numbers. Focus away for less
+than 200 ms is a blip: input stays armed and held, and only typing waits for
+focus. Focus checks have reported such blips of a few milliseconds during
+play; each loss logs `focus_away` with what held focus instead (the Niri focused
+window's id, app ID and PID, or the X11 active, focus and pointer windows), and
+`focus_back` with its duration. A loss of 200 ms or more releases as above. On return, queued
 records resume without retargeting, while fresh gameplay requires all mapped
 controls (including Start) to become neutral. A held-through-return stick or
 button cannot reactivate by itself. Start remains usable during game pause after

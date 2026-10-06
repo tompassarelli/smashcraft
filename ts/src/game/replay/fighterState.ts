@@ -43,7 +43,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   motion.fastFallDownHeld = sourceMotion.fastFallDownHeld;
   motion.fastFallInputAge = sourceMotion.fastFallInputAge;
   motion.dropTime = sourceMotion.dropTime;
-  motion.previousHorizontalDirection = sourceMotion.previousHorizontalDirection;
+  motion.previousStickSide = sourceMotion.previousStickSide;
   motion.lastAerialTapDirection = sourceMotion.lastAerialTapDirection;
 
   const ground = target.ground;
@@ -230,6 +230,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   down.direction = sourceDown.direction;
   down.waitRemaining = sourceDown.waitRemaining;
   down.faceUp = sourceDown.faceUp;
+  down.attackQueued = sourceDown.attackQueued;
   const tech = target.tech;
   const sourceTech = source.tech;
   tech.window = sourceTech.window;

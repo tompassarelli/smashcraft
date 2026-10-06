@@ -233,7 +233,8 @@ function resolveDamageContacts(world: Roster, slot: number): void {
   shield.recoilZ = 0.0;
   shield.drainResumePending = false;
   const chosen = contactAt(chosenIndex);
-  const jabReset = chosen.kind !== ContactKind.throw && chosen.down && chosen.effect.damage < DOWN_DAMAGE_RESET_THRESHOLD;
+  // Melee compares the damage summed over the frame's contacts.
+  const jabReset = chosen.kind !== ContactKind.throw && chosen.down && totalDamage < DOWN_DAMAGE_RESET_THRESHOLD;
   clearGrabLinks(world, slot);
   launch.diPending = false;
   launch.diLaunchSpeed = 0.0;
