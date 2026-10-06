@@ -77,8 +77,6 @@ function shippedHurtboxes(character: Character): FighterHurtboxes {
     hurtPose(startup(style) - 2, lastActive(style) + 3, parts),
   ];
   const torso = (lean: number, low = 4.0, high = top, radius = r) => hurtPart(0.0, low, lean, high, radius);
-  const archer = character === Character.archer;
-  const rifleman = character === Character.rifleman;
   return {
     stand: [body],
     attacks: {
@@ -88,15 +86,12 @@ function shippedHurtboxes(character: Character): FighterHurtboxes {
       [AttackStyle.downTilt]: reaching(AttackStyle.downTilt, [torso(8.0, 4.0, h(f32(0.62)), r), hurtPart(10.0, 10.0, 52.0, 6.0, 10.0)]),
       // Wound back through startup, then the torso and striking arm commit forward.
       [AttackStyle.forwardSmash]: reaching(AttackStyle.forwardSmash,
-        [torso(14.0), hurtPart(10.0, h(f32(0.62)), 48.0, h(f32(0.55)), 10.0, character === Character.demonHunter ? HurtState.intangible : HurtState.normal)],
+        [torso(14.0), hurtPart(10.0, h(f32(0.62)), 48.0, h(f32(0.55)), 10.0)],
         [torso(-12.0)]),
       // Tucked, with the front leg kicked out.
       [AttackStyle.forwardAir]: reaching(AttackStyle.forwardAir, [torso(0.0, h(f32(0.22)), h(f32(0.9))), hurtPart(10.0, h(f32(0.42)), 46.0, h(f32(0.32)), 10.0)]),
-      // Legs driven down below the feet: intangible for the archer, invincible for the rifleman.
-      [AttackStyle.downAir]: reaching(AttackStyle.downAir, [
-        torso(0.0, h(f32(0.35))),
-        hurtPart(0.0, h(f32(0.35)), 4.0, -18.0, 12.0, archer ? HurtState.intangible : rifleman ? HurtState.invincible : HurtState.normal),
-      ]),
+      // Legs driven down below the feet; like every attacking limb, they can be hit.
+      [AttackStyle.downAir]: reaching(AttackStyle.downAir, [torso(0.0, h(f32(0.35))), hurtPart(0.0, h(f32(0.35)), 4.0, -18.0, 12.0)]),
     },
   };
 }

@@ -131,25 +131,24 @@ test("each shipped fighter's extended jab arm is hit where its standing body is 
   }
 });
 
-test("down-air legs: the archer's pass strikes, the rifleman's spend them, Illidan's are hit", () => {
+test("every shipped fighter's down-air legs are hit below its feet while they extend", () => {
   const legs = (character: Character, frame: number) => probe(attackingAt(character, AttackStyle.downAir, frame, 1), 0.0, -26.0);
   const active = attackStartupFrames(AttackStyle.downAir);
-  assertEquals(legs(Character.archer, active), HurtContact.none);
-  assertEquals(legs(Character.rifleman, active), HurtContact.invincible);
-  assertEquals(legs(Character.demonHunter, active), HurtContact.hit);
-  for (const character of SHIPPED) assertEquals(legs(character, 0), HurtContact.none);
-});
-
-test("Illidan's forward-smash arm is intangible while the others' arms are hit", () => {
-  const frame = attackStartupFrames(AttackStyle.forwardSmash);
   for (const character of SHIPPED) {
-    const f = attackingAt(character, AttackStyle.forwardSmash, frame, -1);
-    const arm = probe(f, 52.0, f32(hurtCapsule(character).z2 * f32(0.58)));
-    assertEquals(arm, character === Character.demonHunter ? HurtContact.none : HurtContact.hit);
+    assertEquals(legs(character, active), HurtContact.hit);
+    assertEquals(legs(character, 0), HurtContact.none);
   }
 });
 
-test("an intangible down-air leg lets a real strike pass, and a restored snapshot selects the same body", () => {
+test("every shipped fighter's forward-smash arm is hit", () => {
+  const frame = attackStartupFrames(AttackStyle.forwardSmash);
+  for (const character of SHIPPED) {
+    const f = attackingAt(character, AttackStyle.forwardSmash, frame, -1);
+    assertEquals(probe(f, 52.0, f32(hurtCapsule(character).z2 * f32(0.58))), HurtContact.hit);
+  }
+});
+
+test("a strike that reaches only an extended down-air leg counter-hits it, and a restored snapshot selects the same body", () => {
   const attacker = createFighter(Character.rifleman, 0.0, 1);
   const target = createFighter(Character.archer, 0.0, -1);
   attacker.motion.z = 0.0;
@@ -173,7 +172,7 @@ test("an intangible down-air leg lets a real strike pass, and a restored snapsho
   second.attack.frame = attackStartupFrames(AttackStyle.jab);
   resolveAttacks(legsWorld);
   assertTrue(hitWhileStanding > 0.0);
-  assertEquals(fresh.status.damage, 0.0);
+  assertTrue(fresh.status.damage > 0.0);
   const live = createReplaySnapshot();
   const saved = createReplaySnapshot();
   const f = fighterAt(live.world, 0);

@@ -113,4 +113,4 @@ damage; a held shield blocks a projectile that meets the shield circle, and a
 projectile that meets exposed body outside the shield hits. Illidan's parry
 answers projectiles as well as strikes. Rifleman's bear, trap and Archer's
 hippogryph are summons, not projectiles (smashcraft:ts/src/game/sim/summons.ts).
-The [interaction graph](interaction-graph.md) does not yet model projectiles.
+The [interaction graph](interaction-graph.md) measures each projectile's flight, arrival on a shield, out-of-shield punishes, powershield presses and a standing defender's answers in its projectile situations.
