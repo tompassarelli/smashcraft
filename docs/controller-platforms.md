@@ -79,6 +79,40 @@ For a **GameCube support claim on any platform**, additionally open the actual a
 
 If acquisition works but events never reach the map, investigate output, privilege, focus or Warcraft input handling; changing gamepad libraries does not repair that seam. If a library API cannot express a required behavior, preserve the smallest counterexample and repair that capability before expanding the consumer. All these gates prove digital integration only. Continuous analog needs a separate native map-ingress experiment, and physical button-to-pixel or online latency needs measurement beyond timestamps at library boundaries.
 
+## What CI checks on Windows and macOS
+
+The `End-to-end helper test` step of smashcraft:.github/workflows/companion.yml
+(smashcraft:companion/tests/e2e.rs) runs on GitHub's `windows-latest` and
+`macos-latest` runners for every companion change. A scripted pad presses every
+#18 action (A, X, B, Y, RB, LB, both triggers, Start, four stick and four
+C-stick directions), the jump and shield overlaps, a focus switch away and back,
+and a disconnect. The real helper binary types into a small SDL stand-in
+window whose executable is named like Warcraft III, beside a second stand-in.
+The job fails if the game window's key sequence differs at all from the
+expected one (lost, extra, repeated or reordered keys), if the other window
+gets a key, or if the operating system still holds a key after focus loss or
+disconnect.
+
+Simulated layer per runner:
+
+- **Windows**: only the pad. CI installs ViGEmBus and plugs in a virtual
+  DualShock 4, a USB HID device the helper opens through SDL's normal hardware
+  path (`PS4 Controller`, HIDAPI). The Xbox 360 target would need the
+  `xusb22.sys` driver, which Windows Server runners lack, so XInput itself is
+  not exercised.
+- **macOS**: device acquisition. Creating a virtual HID device needs an
+  Apple-restricted entitlement (`IOHIDUserDeviceCreateWithProperties` returns
+  nothing on the runner, macOS 26.6, even with SIP off), so the helper's
+  `--virtual-pad` feeds an SDL virtual gamepad inside the helper. Mapping,
+  focus gating and CGEvent key output are real.
+
+Only a real-hardware tester ([#45](https://github.com/tompassarelli/smashcraft/issues/45))
+can show: a physical pad (Xbox over XInput on Windows; any pad on macOS)
+detected and read in the background; Warcraft III itself accepting the keys
+and its real executable or app identity passing the foreground check;
+Battle.net launch; the macOS Accessibility prompt for the user's actual app;
+keyboard layouts other than the runner's US QWERTY; and an online match.
+
 ## Source pins and reuse rights
 
 Reference downloads and API-page snapshots are under smashcraft:build/two-clients/controller-reuse-20261003/sources. Documentation pages were retrieved on 3 October 2026 for API facts; examples were not copied. Source pins below are research evidence, not a dependency installation. The prior report retains exact pins/licenses for gilrs, evdev, hidapi, rusb, AntiMicroX and the mapping database.
