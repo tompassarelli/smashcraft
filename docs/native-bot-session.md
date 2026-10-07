@@ -239,6 +239,15 @@ Successful images retain their exact frame as `frame-FRAME-CLIENT-drawn-FRAME.pp
 frames and PASS or INVALID result. The terminal report retains successful images
 and names the earliest failed capture boundary; a failed capture invalidates the
 run even when all input edges landed correctly.
+
+For scripts started by `#! chat` or `--chat`, capture rows install a finite
+local visual schedule on the existing quick-match command. After presenting an
+authored target frame, the client holds that pose through the framebuffer read;
+the runner releases it with a unique FileIO acknowledgement on success or failure.
+Simulation and helper input deadlines continue unchanged. A skipped target is
+INVALID. A lost runner releases the visual hold after 600 callbacks, and reset
+clears it immediately. `captures.json` marks these images `held visual`: they
+show the authored pose, and cannot be used to measure live input-to-screen time.
 A dash attack is A with the stick back at neutral while the fighter still
 dashes (a jab out of a dash); A with the stick held, even 12 frames into
 the dash, is a forward smash. A menu-started

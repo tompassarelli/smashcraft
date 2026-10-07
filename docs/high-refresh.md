@@ -70,6 +70,31 @@ candidate tracks the renderer instead, compare its callback cost with the frame
 budget before enabling interpolation. Issue #169's native result, rather than
 the API names or synthetic tests, decides between these outcomes.
 
+Warcraft III 3.0.0.24268 was measured on source `c7da1c70`, with the same
+development map and 1280×720 client on offline LAN pair 1. The native DXVK
+renderer overlay reported 151.1 and 135.5 fps on a private output verified at
+144.000000 Hz. During the four-game-second probe, the zero-period timer made
+40,329 callbacks in 204 bursts (50.8 bursts/s); the 1/1024-second timer made
+4,096 callbacks in 217 bursts (54.1 bursts/s). Median game-time steps between
+bursts were 24.902 and 24.414 ms. Neither tested timer supplied a callback for
+each rendered frame, so presentation retains its 60 Hz simulation updates and
+the optional interpolation remains disabled for players.
+
+Recorded callback work averaged 2.06 µs for period zero and 2.19 µs for
+1/1024 s, totaling 82.962 and 8.987 ms. The clock step was about 1.007 ms;
+individual sub-step callback costs cannot be resolved, and this does not
+measure a future interpolation pass. These measurements concern the two timer
+candidates, not a guarantee about every engine mechanism.
+
+For a high-refresh private run, verify the compositor output as well as the
+game's FPS cap. The private-desktop launcher creates its output at 60 Hz;
+raising the game cap alone left the renderer at 56.6–58.9 fps. On the exact
+owned private runtime, `wlr-randr --output HEADLESS-1 --custom-mode
+1320x760@144Hz` changed that output to 144 Hz. Confirm the resulting mode and
+retain actual renderer samples, such as `DXVK_HUD=fps,frametimes`, before
+interpreting timer cadence. Raw reports and renderer samples are retained at
+`~/.local/state/smashcraft/accept/codex-native-render-clock-20261007/`.
+
 ## Presentation interpolation
 
 Renderers place moving effects (fighters, their lights, projectiles and pooled

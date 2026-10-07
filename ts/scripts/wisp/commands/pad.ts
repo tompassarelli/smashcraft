@@ -16,11 +16,11 @@
 // Several scripts, or a folder of them, run as one batch: one game per client
 // pair with `-dev reset` between scripts, the headless runs alongside, and
 // `--pairs N` sharding over the LAN pool (smashcraft:ts/scripts/wisp/padBatch.ts).
-import { copyFileSync, existsSync, mkdirSync, openSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync, writeSync, closeSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, openSync, readFileSync, readdirSync, renameSync, rmSync, statSync, writeFileSync, writeSync, closeSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { Effect, Fiber, Option, Schema } from "effect";
-import { preloadLines } from "wisp/scripts/wisp/boundary";
+import { linePreloadFile, preloadLines } from "wisp/scripts/wisp/boundary";
 import { at } from "wisp/src/runtime/lookup";
 import { type Command, UsageFailure, describeCause } from "wisp/scripts/wisp/command";
 import { type DesktopFailure, batch, capture, loadClients } from "wisp/scripts/warcraft/desktop";
@@ -40,7 +40,8 @@ import { REPRO_NAME, TRACE_FILE, checkHeadlessRun, compareRuns, comparisonSteps,
 import type { Schedule, ScheduleReply, ScheduledEdge } from "../../integrity/padScheduleWorker";
 import { type PadStep, type SentEdge, deadlineOrder, frameWriteNs, landEdges, matchStart, parsePadScript, ruleFrame } from "../../integrity/padScript";
 import { SLOTS } from "../../integrity/reconcile";
-import { captureWhenDrawn, drawnFrom } from "../../integrity/drawnCapture";
+import { captureWhenDrawn, drawnFrom, visualCaptureCommand } from "../../integrity/drawnCapture";
+import { visualReleaseFile } from "../../../src/game/shell/visualCapture";
 import { drawnFrameFile, nativeChatFile } from "../../../src/runtime/gameFiles";
 import { PREDICTED_HEADLESS, SMASHCRAFT_HEADLESS } from "../headless";
 import { sceneFile } from "wisp/src/runtime/scene";
@@ -239,6 +240,7 @@ export const nativeScript = (session: NativeSession, options: PadOptions) => Eff
   });
   const startedMs = Date.now();
   const startedNs = monotonicNs();
+  const captureToken = chat !== undefined && steps.some(step => step.kind === "capture") ? `${Date.now()}-${process.pid}` : undefined;
   const from = session.logs().map((text) => text.length);
   const logs = (): [string, string] => {
     const [a, b] = session.logs();
@@ -246,7 +248,8 @@ export const nativeScript = (session: NativeSession, options: PadOptions) => Eff
   };
   if (chat !== undefined) {
     yield* Effect.sleep("1 second");
-    yield* selectionChat(session, chat);
+    const command = yield* tryIntegrity("prepare visual capture", scriptPath, () => captureToken === undefined ? chat : visualCaptureCommand(chat, captureToken, steps));
+    yield* selectionChat(session, command);
   }
   const epochs = yield* matchEpochs(logs, startedNs, out);
   const matchIds = logs().map((text) => matchStart(text)?.epoch ?? 0);
@@ -266,12 +269,19 @@ export const nativeScript = (session: NativeSession, options: PadOptions) => Eff
         Effect.flatMap(({ shot: frame, before, after, waitedMs }) => tryIntegrity("save frame", out, () => {
           const name = `frame-${item.frame}-${client.name}-drawn-${before}.ppm`;
           writeFileSync(join(out, name), encodePpm(frame));
-          captures.push({ status: "PASS", candidate: options.candidate ?? build, build, epoch: at(matchIds, item.slot), line: item.line, client: client.name, planned: item.frame, drawn_before: before, drawn_after: after, waited_ms: Math.round(waitedMs), file: name });
+          captures.push({ status: "PASS", mode: captureToken === undefined ? "live" : "held visual", candidate: options.candidate ?? build, build, epoch: at(matchIds, item.slot), line: item.line, client: client.name, planned: item.frame, drawn_before: before, drawn_after: after, waited_ms: Math.round(waitedMs), file: name });
         })),
         Effect.catch((failure) => Effect.sync(() => {
           console.error(`capture at frame ${item.frame}: ${failure.message}`);
           captures.push({ status: "INVALID", candidate: options.candidate ?? build, build, epoch: at(matchIds, item.slot), line: item.line, client: client.name, planned: item.frame, failed: failure.message });
           captureFailures.push({ frame: item.frame, message: failure.message });
+        })),
+        Effect.ensuring(Effect.sync(() => {
+          if (captureToken !== undefined) {
+            const path = join(at(data, item.slot), visualReleaseFile(captureToken, item.slot, item.frame));
+            writeFileSync(`${path}.next`, linePreloadFile(captureToken));
+            renameSync(`${path}.next`, path);
+          }
         })),
       );
       shots.push(yield* Effect.forkScoped(shot));
