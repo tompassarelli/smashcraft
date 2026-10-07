@@ -35,7 +35,7 @@ function hold({ row }: KeyboardCapture, held: number): void {
   row.held = held;
   row.axisX = 127 * horizontal(held);
   row.axisZ = 127 * vertical(held);
-  row.triggerLeft = has(held, Action.leftTrigger) ? 255 : 0;
+  row.triggerLeft = has(held, Action.leftTrigger) ? 255 : has(held, Action.lightShield) ? 77 : 0;
   row.triggerRight = has(held, Action.rightTrigger) ? 255 : 0;
 }
 
@@ -54,7 +54,7 @@ export function sampleKeys(capture: KeyboardCapture, held: number): boolean {
     row.specialZ = z;
   }
   // Every fresh shield press overwrites the dodge direction, as the native callback does.
-  if (has(rose, Action.leftTrigger) || has(rose, Action.rightTrigger)) {
+  if (has(rose, Action.leftTrigger) || has(rose, Action.rightTrigger) || has(rose, Action.lightShield)) {
     row.dodgeX = x;
     row.dodgeZ = z;
   }

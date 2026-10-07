@@ -274,6 +274,15 @@ export function lockArenaCamera(s: ShellState): void {
   SetCameraField(CAMERA_FIELD_FIELD_OF_VIEW, cameraFieldOfView(framing, aspect), 0.0);
   SetCameraField(CAMERA_FIELD_FARZ, ARENA_CAMERA.farZ, 0.0);
   SetCameraPosition(targetX, centerY);
+  if (s.build.analogPadDiagnostic === true) {
+    // Calibration stays valid throughout both candidate ingress measurements.
+    SetCameraBounds(centerX, centerY, centerX, centerY, centerX, centerY, centerX, centerY);
+    SetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK, 270.0, 0.0);
+    SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, 3200.0, 0.0);
+    SetCameraField(CAMERA_FIELD_ZOFFSET, 0.0, 0.0);
+    SetCameraField(CAMERA_FIELD_FIELD_OF_VIEW, 70.0, 0.0);
+    SetCameraPosition(centerX, centerY);
+  }
   for (const slot of PARTICIPANT_SLOTS) {
     const fighter = isActive(world, slot) ? fighterAt(world, slot) : undefined;
     const point = cameraPoint(framing, aspect, fighter?.motion.x ?? 0.0, (fighter?.motion.z ?? 0.0) + 60.0);

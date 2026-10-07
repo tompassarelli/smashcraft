@@ -12,15 +12,18 @@
 600 a tap B 8
 700 a stick -1 0
 702 a stick 0 0
-# Reference after human-paced reactions (#176), Illidan fair retune (#105), and ground/height reach repair.
-# Frames 1-1000: level 1 lands 4 hits, 41.9% (a 41.9, b 0.0), and takes none.
-# Every hit and respawn on its frame:
-#! expect a 143 damage 17.855
-#! expect a 335 damage 24.855
-#! expect a 456 damage 33.855
-#! expect a 636 damage 41.855
-#! expect a 826 damage 0.000
-#! absent b 1-1000 damage
+# Exact references after 081025d3 (#182) move-value policy and named CPU integration.
+# Frames 1-1000: 8 hits on humans; the computer takes no hit.
+# Every hit and respawn on its frame; input timings are unchanged.
+#! expect a 111 damage 12.753
+#! expect a 345 damage 18.753
+#! expect a 411 damage 24.753
+#! expect a 520 damage 30.753
+#! expect a 660 damage 48.608
+#! expect a 822 damage 0.000
+#! expect b 894 damage 12.753
+#! expect a 939 damage 6.000
+#! expect a 995 damage 15.551
 #! absent c 1-1000 damage
 1000 a press VIEW
 1070 a release VIEW

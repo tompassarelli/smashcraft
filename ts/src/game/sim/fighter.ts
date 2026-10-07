@@ -144,6 +144,8 @@ interface Launch {
 
 interface Shield {
   raised: boolean;
+  tiltX: number;
+  tiltZ: number;
   /** Analog pressure scale in [0, 1]; digital is 1. */
   strength: number;
   energy: number;
@@ -653,6 +655,8 @@ export function createFighter(character: Character, startX: number, facing: numb
     },
     shield: {
       raised: false,
+      tiltX: 0.0,
+      tiltZ: 0.0,
       strength: 1.0,
       energy: SHIELD_MAX,
       stun: 0,

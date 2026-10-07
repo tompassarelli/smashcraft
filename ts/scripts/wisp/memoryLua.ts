@@ -10,6 +10,7 @@
 import { parseNativeDeclarations } from "wisp/src/headless/declarations";
 import { type HeadlessClient } from "wisp/src/headless/client";
 import { luaLockstep, readFile } from "wisp/src/headless/lua";
+import { SMASHCRAFT_NOOPS, smashcraftNativeBehavior } from "./headlessNatives";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/src/headless/syncChannel";
 import { Phase } from "../../src/game/match/rules";
@@ -29,7 +30,7 @@ const FRAMES_PER_MINUTE = 3600;
 const totalFrames = Number(minutesText) * FRAMES_PER_MINUTE;
 const declarationsText = readFile(declarationsPath);
 const { functions } = parseNativeDeclarations(declarationsText);
-const clients = luaLockstep({ filePrefix: "smashcraft", localNatives: PREDICTED_LOCAL_NATIVES }, readFile(bundlePath), declarationsText, undefined, syncDelivery(MEASURED_BATTLE_NET, 7));
+const clients = luaLockstep({ filePrefix: "smashcraft", localNatives: PREDICTED_LOCAL_NATIVES, intentionalNoops: SMASHCRAFT_NOOPS, natives: smashcraftNativeBehavior }, readFile(bundlePath), declarationsText, undefined, syncDelivery(MEASURED_BATTLE_NET, 7));
 const host = clients.client(0);
 const censuses = clients.clients.map((client) => new HandleCensus(client, functions));
 // What the emulator and the census put in each environment before the map ran: natives, constants and globals.

@@ -27,7 +27,7 @@ import { type DesktopFailure, batch, capture, loadClients } from "wisp/scripts/w
 import { ClientWatch } from "wisp/scripts/wisp/watch";
 import { confirmedCommand, openObservedChat } from "wisp/scripts/wisp/chatSetup";
 import { encodePpm } from "wisp/scripts/wisp/frameProbe";
-import { installHeadless } from "wisp/scripts/wisp/headless";
+import { installHeadless, type HeadlessRuntime } from "wisp/scripts/wisp/headless";
 import { RealtimeClients, type TypedInput, customMapData, typedFile } from "wisp/scripts/wisp/headlessInput";
 import { step } from "wisp/scripts/wisp/timings";
 import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/src/headless/syncChannel";
@@ -45,6 +45,7 @@ import { captureWhenDrawn, drawnFrom, visualCaptureCommand, visualCaptureToken }
 import { visualReleaseFile } from "../../../src/game/shell/visualCapture";
 import { drawnFrameFile, nativeChatFile } from "../../../src/runtime/gameFiles";
 import { PREDICTED_HEADLESS, SMASHCRAFT_HEADLESS } from "../headless";
+type HeadlessClient = ReturnType<HeadlessRuntime["clients"]>["clients"][number];
 import { sceneFile } from "wisp/src/runtime/scene";
 import { clientState } from "../project";
 import { onHealthyClients } from "../doctor";
@@ -78,7 +79,7 @@ const setupCommand = (session: NativeSession, command: string, send: Effect.Effe
 });
 
 const USAGE = "pad SCRIPT --helper BINARY --build BUILD --out DIR --app-id a=ID --app-id b=ID [--chat=TEXT] [--map MAP.w3x [--retries N]]\n"
-  + "       bun wisp pad SCRIPT --headless --helper BINARY --out DIR [--chat=TEXT] [--compare NATIVE_DIR]\n"
+  + "       bun wisp pad SCRIPT --headless --helper BINARY --out DIR [--chat=TEXT] [--compare NATIVE_DIR] [--render DIR --frames N...]\n"
   + "       bun wisp pad SCRIPT|DIR... --helper BINARY --out DIR --map MAP.w3x [--pairs N | --pair K... | --app-id a=ID --app-id b=ID] [--headless-jobs N] [--fresh-each]\n"
   + "       bun wisp pad SCRIPT|DIR... --headless --helper BINARY --out DIR [--headless-jobs N]";
 
@@ -165,6 +166,8 @@ export interface PadOptions {
   readonly out: string;
   readonly chat: string | undefined;
   readonly candidate?: string | undefined;
+  readonly render?: string | undefined;
+  readonly renderFrames?: readonly number[] | undefined;
 }
 
 /** Helpers and virtual pads belong to one game, across all of its scripted matches. */
@@ -220,7 +223,7 @@ const selectionChat = (session: NativeSession, text: string) => setupCommand(ses
     return current === undefined ? undefined : { available: current.available === "1", open: current.open === "1", modified: statSync(path).mtimeMs };
   });
   yield* openObservedChat(session.clients[0], entry, batch(session.clients[0], [{ kind: "wait", millis: 250 }, { kind: "keys", keys: ["Return"] }]).pipe(Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })), Effect.mapError(fromDesktop))).pipe(Effect.mapError((cause) => cause instanceof IntegrityFailure ? cause : fromDesktop(cause)));
-  yield* batch(session.clients[0], [{ kind: "text", text, delayMillis: 35 }, { kind: "keys", keys: ["Return"] }]).pipe(Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })), Effect.mapError(fromDesktop));
+  yield* batch(session.clients[0], [{ kind: "text", text, delayMillis: 35 }, { kind: "keys", keys: ["Return"], settleMillis: 0 }]).pipe(Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })), Effect.mapError(fromDesktop));
 }));
 
 /** Return requests chat in the journal box; the helper opens chat after its quiescence handshake. */
@@ -240,7 +243,7 @@ export const nativeChat = (session: NativeSession, text: string) => setupCommand
     if (Date.now() > deadline) return yield* new IntegrityFailure({ operation: "open chat", path, cause: "no chatting receipt within 8 s of Return" });
     yield* Effect.sleep("20 millis");
   }
-  yield* batch(host, [{ kind: "text", text, delayMillis: 35 }, { kind: "keys", keys: ["Return"] }]).pipe(Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })), Effect.mapError(fromDesktop));
+  yield* batch(host, [{ kind: "text", text, delayMillis: 35 }, { kind: "keys", keys: ["Return"], settleMillis: 0 }]).pipe(Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })), Effect.mapError(fromDesktop));
 }));
 
 /** One script in the persistent native session's next match. */
@@ -387,7 +390,7 @@ const scheduled = (worker: Worker, schedule: Schedule) => Effect.callback<readon
  * in real time until the scope closes. The helpers follow every match, so a
  * session can play one script after another (`pad SCRIPT SCRIPT... --headless`).
  */
-export const headlessSession = (dir: string, helper: string, build: string) => Effect.gen(function*() {
+export const headlessSession = (dir: string, helper: string, build: string, afterFrame?: (clients: readonly HeadlessClient[]) => void) => Effect.gen(function*() {
   yield* tryIntegrity("create pad directory", dir, () => mkdirSync(dir, { recursive: true }));
   const entry = yield* loadEntry;
   const runtime = yield* Effect.acquireRelease(Effect.sync(() => installHeadless(PREDICTED_HEADLESS)), (installed) => Effect.sync(installed.restore));
@@ -405,7 +408,7 @@ export const headlessSession = (dir: string, helper: string, build: string) => E
   }
   const worker = yield* scheduleThread;
   const clients = runtime.clients(entry, SLOTS, { files: (slot) => customMapData(at(data, slot)), delivery: syncDelivery(MEASURED_BATTLE_NET, 1), keepCalls: 64 });
-  const realtime = new RealtimeClients(clients, typed);
+  const realtime = new RealtimeClients(clients, typed, undefined, () => afterFrame?.(clients.clients));
   const state: { crashed: unknown } = { crashed: undefined };
   yield* tryIntegrity("start headless clients", dir, () => realtime.start());
   yield* Effect.forkScoped(Effect.forever(Effect.suspend(() => Effect.sleep(Math.max(0, realtime.advance())))).pipe(
@@ -451,21 +454,36 @@ export const headlessScript = (session: HeadlessSession, options: PadOptions) =>
   return yield* finished;
 });
 
-const headless = (options: PadOptions) => Effect.scoped(Effect.gen(function*() {
-  const session = yield* headlessSession(options.out, options.helper, options.build);
-  return yield* headlessScript(session, options);
-}));
+const headless = (options: PadOptions) => Effect.gen(function*() {
+  const token = visualCaptureToken();
+  if (options.render !== undefined && options.chat === undefined) return yield* new UsageFailure({ problem: "rendered pad scripts need a #! chat setup command" });
+  const frames = options.render === undefined ? undefined : (yield* Effect.promise(() => import("../padRender"))).padRender(options.out, options.build, options.steps, token, options.renderFrames);
+  const result = yield* Effect.scoped(Effect.gen(function*() {
+    const session = yield* headlessSession(options.out, options.helper, options.build, frames?.afterFrame);
+    return yield* headlessScript(session, frames === undefined || options.chat === undefined ? options : { ...options, chat: visualCaptureCommand(options.chat, token, options.steps) });
+  }));
+  if (frames !== undefined && options.render !== undefined) {
+    yield* Effect.suspend(() => frames.render(options.render ?? options.out)).pipe(
+      Effect.mapError((cause) => new IntegrityFailure({ operation: "render pad frames", path: options.render ?? options.out, cause: describeCause(cause) })),
+    );
+  }
+  return result;
+});
 
 export const pad: Command = (args) => Effect.gen(function*() {
   const parsed = yield* Effect.try({
     try: () => parseArgs({ args: [...args], allowPositionals: true, options: {
       helper: { type: "string" }, build: { type: "string" }, out: { type: "string" }, chat: { type: "string" }, "app-id": { type: "string", multiple: true },
       headless: { type: "boolean" }, compare: { type: "string" }, retries: { type: "string" }, map: { type: "string" },
+      render: { type: "string" }, frames: { type: "string" },
       pairs: { type: "string" }, pair: { type: "string", multiple: true }, pool: { type: "string" }, "fresh-each": { type: "boolean" }, "headless-jobs": { type: "string" },
     } }),
     catch: (cause) => new UsageFailure({ problem: describeCause(cause) }),
   });
   const { helper, out, chat, compare } = parsed.values;
+  const renderFrames = parsed.values.frames?.split(",").map(Number);
+  if (renderFrames !== undefined && (parsed.values.render === undefined || renderFrames.length === 0 || renderFrames.some((frame) => !Number.isInteger(frame) || frame < 0))) return yield* new UsageFailure({ problem: "--frames takes comma-separated whole frame numbers and needs --render DIR" });
+  if (parsed.values.render !== undefined && (parsed.values.headless !== true || parsed.values.pairs !== undefined || (parsed.values.pair?.length ?? 0) > 0 || parsed.positionals.length !== 1 || parsed.positionals[0] === undefined || !existsSync(parsed.positionals[0]) || statSync(parsed.positionals[0]).isDirectory())) return yield* new UsageFailure({ problem: "pad --render DIR takes one existing script with --headless" });
   // Several scripts, or a folder of them, are one batch: one game per pair (scripts/wisp/padBatch.ts).
   if (parsed.values.pairs !== undefined || (parsed.values.pair?.length ?? 0) > 0 || parsed.positionals.length > 1 || (parsed.positionals[0] !== undefined && existsSync(parsed.positionals[0]) && statSync(parsed.positionals[0]).isDirectory())) return yield* scriptBatch(parsed.values, parsed.positionals);
   const isHeadless = parsed.values.headless === true;
@@ -476,7 +494,8 @@ export const pad: Command = (args) => Effect.gen(function*() {
   if (compare !== undefined && !isHeadless) return yield* new UsageFailure({ problem: "--compare NATIVE_DIR goes with --headless" });
   const script = yield* Effect.try({ try: () => readFileSync(scriptPath, "utf8"), catch: (cause) => new UsageFailure({ problem: describeCause(cause) }) });
   const steps = yield* Effect.try({ try: () => compare === undefined ? parsePadScript(script) : comparisonSteps(script, scriptPath), catch: (cause) => new UsageFailure({ problem: describeCause(cause) }) });
-  const options: PadOptions = { scriptPath, steps, helper, build, out, chat: chat ?? scriptChat(script), candidate: parsed.values.map };
+  if (renderFrames !== undefined && renderFrames.some((frame) => !steps.some((step) => step.kind === "capture" && step.frame === frame))) return yield* new UsageFailure({ problem: "every --frames value must name a capture in the pad script" });
+  const options: PadOptions = { scriptPath, steps, helper, build, out, chat: chat ?? scriptChat(script), candidate: parsed.values.map, render: parsed.values.render, renderFrames };
   if (!isHeadless) {
     const appIds = new Map<string, string>();
     for (const entry of parsed.values["app-id"] ?? []) {

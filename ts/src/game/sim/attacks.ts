@@ -14,6 +14,7 @@ import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { spawnProjectile } from "./projectiles";
 import { type Roster, fighterAt, isActive } from "./roster";
 import { capsuleCircleIntersects, shieldSizeMultiplier } from "./shield";
+import { shieldCenterX, shieldCenterZ } from "./shieldTilt";
 import { attackCapsule, emptyCapsule, placeCapsule } from "../physics/contactGeometry";
 import { HurtContact, grabTouchesBody, strikeHurtContact } from "./hurtboxes";
 import { beginAttack } from "./transitions";
@@ -42,8 +43,8 @@ export function meleeHitIntersectsShield(attacker: Fighter, target: Fighter, reg
   if (!target.shield.raised || region.window <= 0) return false;
   placeStrikeCapsule(attacker, region);
   const geometry = target.tuning.shield;
-  const centerX = f32(target.motion.x + f32(target.facing * geometry.centerX));
-  const centerZ = f32(target.motion.z + geometry.centerZ);
+  const centerX = shieldCenterX(target);
+  const centerZ = shieldCenterZ(target);
   return capsuleCircleIntersects(strikeCapsule.x1, strikeCapsule.z1, strikeCapsule.x2, strikeCapsule.z2, strikeCapsule.radius,
     centerX, centerZ, geometry.radius, shieldSizeMultiplier(target.shield.energy, target.shield.strength));
 }

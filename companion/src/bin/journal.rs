@@ -61,6 +61,8 @@ mod linux {
 
     #[derive(Default, Clone, Copy, Debug, PartialEq, Eq)]
     struct State {
+        preset: wc3_controller::model::PadPreset,
+        tap_jump: bool,
         sources: u32,
         x: i16,
         y: i16,
@@ -86,6 +88,8 @@ mod linux {
     }
 
     struct Options {
+        preset: wc3_controller::model::PadPreset,
+        tap_jump: bool,
         device: PathBuf,
         out: PathBuf,
         build: String,
@@ -142,20 +146,16 @@ mod linux {
             Ok(())
         }
 
-        /// Joins an I4 packet to the last record, as the map reads packets joined with '|'.
-        fn join_last(&mut self, wire: &str) -> io::Result<()> {
-            if self.bytes + wire.len() + 1 > OUTPUT_BYTE_LIMIT {
+        fn replace_last(&mut self, wire: String) -> io::Result<()> {
+            let last = self.records.back_mut().ok_or_else(|| io::Error::other("no record to replace"))?;
+            let bytes = self.bytes - last.len() + wire.len();
+            if bytes > OUTPUT_BYTE_LIMIT {
                 return Err(io::Error::other(
                     "journal output queue capacity exceeded (120 records / 2048 bytes); no queued record overwritten; helper stopped",
                 ));
             }
-            let last = self
-                .records
-                .back_mut()
-                .ok_or_else(|| io::Error::other("no record to join"))?;
-            last.push('|');
-            last.push_str(wire);
-            self.bytes += wire.len() + 1;
+            *last = wire;
+            self.bytes = bytes;
             Ok(())
         }
 
@@ -172,8 +172,7 @@ mod linux {
 
     const TEXT_WINDOW: usize = 16;
     const TEXT_RETRY: Duration = Duration::from_millis(250);
-    /// Packets one record may join (the map's RECORD_PACKETS).
-    const RECORD_PACKETS: usize = 16;
+    const MESSAGE_FRAMES: usize = 64;
     /// Envelope characters around a record's payload: "@J1", epoch, sequence, checksum, '|' and ';'.
     const ENVELOPE_BYTES: usize = 30;
     // Warcraft takes typed text into the edit box at a cost that grows with
@@ -468,6 +467,12 @@ mod linux {
     const MAILBOX_CHUNK_BYTES: usize = 7;
     const MAILBOX_SIGNAL_COUNT: usize = 54;
 
+    struct QueuedInput {
+        epoch: u32,
+        first: u32,
+        rows: Vec<String>,
+    }
+
     struct MailboxSender {
         dir: PathBuf,
         build: String,
@@ -476,6 +481,7 @@ mod linux {
         typist: Typist,
         owned: BTreeSet<usize>,
         queued: PendingOutput,
+        last_input: Option<QueuedInput>,
         text_window: TextWindow,
         text_receipt_at: Option<Instant>,
         focus: FocusGrace,
@@ -511,6 +517,7 @@ mod linux {
                 typist,
                 owned: BTreeSet::new(),
                 queued: PendingOutput::default(),
+                last_input: None,
                 text_window: TextWindow::bounded(),
                 text_receipt_at: None,
                 focus: FocusGrace::default(),
@@ -545,26 +552,31 @@ mod linux {
                     "controller record contains an unsupported character",
                 ));
             }
-            if self.editbox && wire.starts_with("I4") {
-                // A packet joins the last record while nothing of it is typed:
-                // a backlog then costs fewer characters to type. A joined
-                // record stays within TYPED_AHEAD_BYTES, so typing it after a
-                // receipt keeps the bound too.
-                let last = self.queued.records.len();
-                let untyped = last > 0
-                    && self.text_window.consumed as usize + last > self.text_window.highest_sent as usize;
-                let bound = self.text_window.typed_ahead;
-                if untyped
-                    && self.queued.records.back().is_some_and(|record| {
-                        record.starts_with("I4")
-                            && record.split('|').count() < RECORD_PACKETS
-                            && bound.is_none_or(|bound| ENVELOPE_BYTES + record.len() + 1 + wire.len() <= bound)
-                    })
-                {
-                    return self.queued.join_last(&wire);
+            self.last_input = None;
+            self.queued.push(wire)
+        }
+
+        fn enqueue_packet(&mut self, epoch: u32, first: u32, rows: &[String]) -> io::Result<()> {
+            let last = self.queued.records.len();
+            let untyped = self.editbox && last > 0
+                && self.text_window.consumed as usize + last > self.text_window.highest_sent as usize;
+            if untyped && let Some(previous) = self.last_input.as_mut()
+                && previous.epoch == epoch && previous.first + previous.rows.len() as u32 == first
+                && previous.rows.len() + rows.len() <= MESSAGE_FRAMES
+            {
+                let combined: Vec<_> = previous.rows.iter().chain(rows).map(String::as_str).collect();
+                let wire = encode_message(epoch, previous.first, &combined);
+                if self.text_window.typed_ahead.is_none_or(|bound| ENVELOPE_BYTES + wire.len() <= bound) {
+                    self.queued.replace_last(wire)?;
+                    previous.rows.extend_from_slice(rows);
+                    return Ok(());
                 }
             }
-            self.queued.push(wire)
+            self.enqueue(encode_packet(epoch, first, rows))?;
+            if self.editbox {
+                self.last_input = Some(QueuedInput { epoch, first, rows: rows.to_vec() });
+            }
+            Ok(())
         }
 
         /// Whether the game has focus now. Typing always requires it.
@@ -850,7 +862,7 @@ mod linux {
     fn usage() -> &'static str {
         "wc3-journal --service [--display :0] [--pads /dev/input/by-id] [--status FILE] [--interface 127.0.0.1:47631|off] [--headless DOCUMENTS]\n\
          Always on: finds Warcraft III on the display, the controller and the map's session, and keeps a helper serving them.\n\
-         wc3-journal --follow-matches --build BUILD --slot N [--epoch N] [--menu-keys all|start] --device /dev/input/eventN --out DIR --editbox-display :N [--trace]\n\
+         wc3-journal --follow-matches --build BUILD --slot N [--epoch N] [--menu-keys all|start] [--preset standard|z-jump] [--tap-jump on|off] --device /dev/input/eventN --out DIR --editbox-display :N [--trace]\n\
          Start in character selection; stick left/right chooses, A selects, X backs, Start confirms. Follows matches and rematches.\n\
          Diagnostic only: wc3-journal --device /dev/input/eventN --out DIR --ready-file PATH --epoch-monotonic-ns NS [--mailbox-display :N | --editbox-display :N] [--first-frame N] [--stop-frame N] [--trace]\n\
          Keyboard output also requires --x11-window DECIMAL_ID --pid PID and exactly one of --niri-window ID / --private-wlr-app-id ID.\n\
@@ -1044,6 +1056,8 @@ mod linux {
             return Err("--build must be 1..80 ASCII letters, digits, '-' or '_'".into());
         }
         Ok(Options {
+            tap_jump: match values.get("--tap-jump").cloned().or_else(|| env::var("WC3_TAP_JUMP").ok()).as_deref().unwrap_or("off") { "on" => true, "off" => false, _ => return Err("--tap-jump needs on or off".into()) },
+            preset: wc3_controller::model::PadPreset::parse(values.get("--preset").cloned().or_else(|| env::var("WC3_PAD_PRESET").ok()).as_deref().unwrap_or("standard"))?,
             device: take("--device")?.into(),
             out: take("--out")?.into(),
             build,
@@ -2046,7 +2060,8 @@ mod linux {
         if s.sources & (1 << 0) != 0 {
             held |= ATTACK;
         }
-        if s.sources & (1 << 1) != 0 || s.sources & (1 << 3) != 0 {
+        let z_jump = s.preset == wc3_controller::model::PadPreset::ZJump;
+        if s.sources & (1 << if z_jump { 5 } else { 1 }) != 0 || s.sources & (1 << 3) != 0 {
             held |= JUMP;
         }
         if s.sources & (1 << 2) != 0 {
@@ -2055,10 +2070,13 @@ mod linux {
         if s.sources & (1 << 4) != 0 {
             held |= WALK;
         }
-        if s.sources & (1 << 5) != 0 {
+        if s.sources & (1 << if z_jump { 1 } else { 5 }) != 0 {
             held |= GRAB;
         }
         let (x, y) = melee_stick(s.x, s.y);
+        if crate::stick::tap_jump(y, s.tap_jump, s.sources & (1 << 4) != 0, s.lt > 4_000 || s.rt > 4_000) {
+            held |= JUMP;
+        }
         if x < 0 {
             held |= MOVE_LEFT;
         }
@@ -2097,6 +2115,46 @@ mod linux {
         (i32::from(raw) * 127 / 32_767).clamp(-127, 127) as i16
     }
 
+    #[test]
+    fn journal_tap_jump_reads_effective_guard_stick_and_keeps_button_jump() {
+        use wc3_controller::model::PadPreset;
+        for preset in [PadPreset::Standard, PadPreset::ZJump] {
+            let state = State { preset, y: -32_767, rt: 20_000, ..State::default() };
+            assert_eq!(action_state(state) & JUMP, 0);
+            let state = State { tap_jump: true, ..state };
+            assert_eq!(action_state(state) & JUMP, JUMP);
+            let state = State { sources: 1 << 4, ..state };
+            assert_eq!(action_state(state) & JUMP, 0);
+            let button = 1 << if preset == PadPreset::ZJump { 5 } else { 1 };
+            assert_eq!(action_state(State { sources: state.sources | button, ..state }) & JUMP, JUMP);
+            assert_eq!(action_state(State { rt: 0, ..state }) & JUMP, JUMP);
+            let mut held = state;
+            release_for_focus_loss(&mut held, &mut BTreeMap::new(), &mut BTreeMap::new(), 1, FrameSegment { epoch_ns: 0, first_frame: 1 }, 0).unwrap();
+            assert!(held.tap_jump);
+            assert_eq!(held.preset, preset);
+        }
+    }
+
+    #[test]
+    fn journal_presets_map_jump_grab_and_digital_shield_pressure() {
+        use wc3_controller::model::PadPreset;
+        for (preset, b, rb) in [(PadPreset::Standard, JUMP, GRAB), (PadPreset::ZJump, GRAB, JUMP)] {
+            let state = State { preset, ..State::default() };
+            assert_eq!(action_state(State { sources: 1 << 1, ..state }), b);
+            assert_eq!(action_state(State { sources: 1 << 5, ..state }), rb);
+            assert_eq!(action_state(State { sources: 1 << 3, ..state }), JUMP);
+            for (lt, rt, held, pressure) in [(20_000, 0, LEFT_TRIGGER, 77 * 256), (0, 20_000, RIGHT_TRIGGER, 255), (20_000, 20_000, LEFT_TRIGGER | RIGHT_TRIGGER, 77 * 256 + 255)] {
+                assert_eq!(encode_row(State { lt, rt, ..state }, 0, Edges::default()), format!("B{}{}000{}", compact(held, 3), compact(held, 3), compact(pressure, 3)));
+            }
+            let mut held = State { sources: 1 << 5, ..state };
+            let mut edges = BTreeMap::new();
+            let mut snapshots = BTreeMap::new();
+            release_for_focus_loss(&mut held, &mut edges, &mut snapshots, 1, FrameSegment { epoch_ns: 0, first_frame: 1 }, 0).unwrap();
+            assert_eq!(held.preset, preset);
+            assert_eq!(action_state(State { sources: 1 << 5, ..held }), rb);
+        }
+    }
+
     fn encode_row(state: State, previous: u32, edges: Edges) -> String {
         let held = action_state(state);
         let pressed = edges.pressed | (held & !previous);
@@ -2120,8 +2178,8 @@ mod linux {
             flags |= 4;
             body.push_str(&compact(axes, 3));
         }
-        let lt = u32::from(state.lt.min(32_767)) * 255 / 32_767;
-        let rt = u32::from(state.rt.min(32_767)) * 255 / 32_767;
+        let lt = if state.lt > 4_000 { 77 } else { 0 };
+        let rt = if state.rt > 4_000 { 255 } else { 0 };
         let triggers = lt * 256 + rt;
         if triggers != 0 {
             flags |= 8;
@@ -2152,6 +2210,41 @@ mod linux {
         encode_counter(first, &mut wire);
         for row in rows {
             wire.push_str(row);
+        }
+        wire
+    }
+
+    fn held_row(row: &str) -> String {
+        let flags = ALPHABET.iter().position(|byte| *byte == row.as_bytes()[0]).expect("encoded row flags");
+        let kept = 1 | 4 | 8;
+        let mut hold = compact((flags & kept) as u32, 1);
+        let mut offset = 1;
+        for (flag, width) in [(1, 3), (2, 6), (4, 3), (8, 3), (16, 2), (32, 3)] {
+            if flags & flag != 0 {
+                if flag & kept != 0 { hold.push_str(&row[offset..offset + width]); }
+                offset += width;
+            }
+        }
+        hold
+    }
+
+    fn encode_message(epoch: u32, first: u32, rows: &[&str]) -> String {
+        let mut wire = "I5".to_owned();
+        encode_counter(epoch, &mut wire);
+        encode_counter(first, &mut wire);
+        encode_counter(rows.len() as u32, &mut wire);
+        wire.push_str(rows[0]);
+        let mut hold = held_row(rows[0]);
+        let mut skipped = 0;
+        for row in &rows[1..] {
+            if *row == hold {
+                skipped += 1;
+            } else {
+                encode_counter(skipped, &mut wire);
+                wire.push_str(row);
+                hold = held_row(row);
+                skipped = 0;
+            }
         }
         wire
     }
@@ -2749,48 +2842,48 @@ mod linux {
         let path = env::temp_dir().join(format!("journal-join-{}", std::process::id()));
         let _ = fs::remove_file(&path);
         let mut sender = MailboxSender::new(&env::temp_dir(), "join", 3, 0, false, true, Typist::file(&path).unwrap()).unwrap();
-        let packet = |first: u32| {
+        let rows = || {
             let row = encode_row(State::default(), 0, Edges::default());
-            encode_packet(3, first, &[row.clone(), row])
+            [row.clone(), row]
         };
         // Steady play: each packet is typed before the next arrives, so none joins.
         let now = Instant::now();
-        sender.enqueue(packet(1)).unwrap();
+        sender.enqueue_packet(3, 1, &rows()).unwrap();
         let (sequence, _) = sender.text_window.next(&sender.queued, 3, now).unwrap().unwrap();
         sender.text_window.sent(sequence, now);
-        sender.enqueue(packet(3)).unwrap();
+        sender.enqueue_packet(3, 3, &rows()).unwrap();
         assert_eq!(sender.queued.records.len(), 2);
-        // A stall: nothing typed, so every packet joins the untyped record, at most RECORD_PACKETS to a record.
-        for first in (5..5 + 2 * 2 * RECORD_PACKETS as u32).step_by(2) {
-            sender.enqueue(packet(first)).unwrap();
+        for first in (5..3 + 2 * MESSAGE_FRAMES as u32).step_by(2) {
+            sender.enqueue_packet(3, first, &rows()).unwrap();
         }
-        assert_eq!(sender.queued.records.len(), 4);
-        assert_eq!(sender.queued.records[1].split('|').count(), RECORD_PACKETS);
-        let expected: Vec<_> = (3..5 + 2 * 2 * RECORD_PACKETS as u32)
-            .step_by(2)
-            .map(packet)
-            .collect();
-        let retained: Vec<_> = sender.queued.records.iter().skip(1)
-            .flat_map(|record| record.split('|').map(str::to_owned))
-            .collect();
-        assert_eq!(retained, expected);
+        assert_eq!(sender.queued.records.len(), 3);
+        assert_eq!(sender.queued.records[0], "I423100");
+        assert_eq!(sender.queued.records[1], "I533W20");
+        assert_eq!(sender.queued.records[2], "I53Z2W20");
         assert!(sender.queued.records.iter().all(|record|
             ENVELOPE_BYTES + record.len() <= TYPED_AHEAD_BYTES));
-        // A control acknowledgment is never joined, and nothing joins it.
         sender.enqueue("ACK1|1|PREPARE|200".into()).unwrap();
-        sender.enqueue(packet(200)).unwrap();
-        assert_eq!(sender.queued.records.len(), 6);
-        // Record 1 plus the next joined record exceed the cap; receipt credit is required.
-        assert!(sender.text_window.next(&sender.queued, 3, now).unwrap().is_none());
-        sender.text_window.receipt(&mut sender.queued, 1, 0, 1).unwrap();
-        let (second, _) = sender.text_window.next(&sender.queued, 3, now).unwrap().unwrap();
-        sender.text_window.sent(second, now);
-        assert!(ENVELOPE_BYTES + sender.queued.records[1].len() <= TYPED_AHEAD_BYTES);
-        assert!(sender.text_window.next(&sender.queued, 3, now).unwrap().is_none());
-        // Once the receipt has the typed ones, the next goes out.
-        sender.text_window.receipt(&mut sender.queued, 2, 1, 1).unwrap();
-        assert_eq!(sender.text_window.next(&sender.queued, 3, now).unwrap().unwrap().0, 3);
+        sender.enqueue_packet(3, 200, &rows()).unwrap();
+        assert_eq!(sender.queued.records.len(), 5);
+        assert_eq!(sender.queued.records[3], "ACK1|1|PREPARE|200");
+        assert_eq!(sender.queued.records[4], encode_packet(3, 200, &rows()));
+        let mut typed = ENVELOPE_BYTES + sender.queued.records[0].len();
+        while let Some((sequence, envelope)) = sender.text_window.next(&sender.queued, 3, now).unwrap() {
+            typed += envelope.len();
+            sender.text_window.sent(sequence, now);
+        }
+        assert!(typed <= TYPED_AHEAD_BYTES);
         fs::remove_file(path).unwrap();
+    }
+
+    #[test]
+    fn backlog_holds_keep_buttons_axes_and_triggers_but_preserve_each_edge() {
+        assert_eq!(held_row("_00100100112345612999"), "D001123456");
+        let press = "3001001000";
+        let hold = "1001";
+        let release = "2000001";
+        assert_eq!(encode_message(3, 3, &[press, hold, release]), format!("I5333{press}1{release}"));
+        assert_eq!(encode_message(1, 574, &["0"; 28]), "I51-HS0");
     }
 
     #[test]
@@ -2798,23 +2891,23 @@ mod linux {
         let path = env::temp_dir().join(format!("journal-join-bound-{}", std::process::id()));
         let _ = fs::remove_file(&path);
         let mut sender = MailboxSender::new(&env::temp_dir(), "join", 3, 0, false, true, Typist::file(&path).unwrap()).unwrap();
-        // Sticks and triggers off center: the longest rows, so 16 packets would be far over TYPED_AHEAD_BYTES.
         let dense = |first: u32| {
-            let state = State { sources: 1, x: -12_345, y: 23_456, cx: 3_456, cy: -4_567, lt: 30_000, rt: 1_000 };
-            let row = encode_row(state, 0, Edges::default());
-            encode_packet(3, first, &[row.clone(), row])
+            let state = State { sources: 1, x: -12_345, y: 23_456, cx: 3_456, cy: -4_567, lt: 30_000, rt: 1_000, ..State::default() };
+            let row = encode_row(state, 0, Edges { pressed: ATTACK, ..Edges::default() });
+            let next = encode_row(State { x: state.x + first as i16, ..state }, 0, Edges { released: ATTACK, ..Edges::default() });
+            [row, next]
         };
         let now = Instant::now();
-        sender.enqueue(dense(1)).unwrap();
+        sender.enqueue_packet(3, 1, &dense(1)).unwrap();
         let (sequence, _) = sender.text_window.next(&sender.queued, 3, now).unwrap().unwrap();
         sender.text_window.sent(sequence, now);
-        for first in (3..3 + 2 * 2 * RECORD_PACKETS as u32).step_by(2) {
-            sender.enqueue(dense(first)).unwrap();
+        for first in (3..3 + MESSAGE_FRAMES as u32).step_by(2) {
+            sender.enqueue_packet(3, first, &dense(first)).unwrap();
         }
         let joined: Vec<_> = sender.queued.records.iter().skip(1).collect();
         assert!(joined.len() > 2, "dense packets join into several records");
         assert!(joined.iter().all(|record| ENVELOPE_BYTES + record.len() <= TYPED_AHEAD_BYTES));
-        assert!(joined.iter().any(|record| record.split('|').count() > 1));
+        assert!(joined.iter().any(|record| record.starts_with("I5")));
         // After the receipt, typing takes at most TYPED_AHEAD_BYTES at once.
         sender.text_window.receipt(&mut sender.queued, 1, 1, 1).unwrap();
         let mut typed = 0;
@@ -3187,7 +3280,7 @@ mod linux {
             return Err("focus release exceeds supported frame range".into());
         }
         edges.entry(frame).or_default().released |= action_state(*state);
-        *state = State::default();
+        *state = State { preset: state.preset, tap_jump: state.tap_jump, ..State::default() };
         snapshots.insert(frame, *state);
         Ok(frame)
     }
@@ -3321,7 +3414,7 @@ mod linux {
         mailbox: &mut Option<MailboxSender>,
     ) -> io::Result<()> {
         if let Some(mailbox) = mailbox.as_mut() {
-            mailbox.enqueue(encode_packet(epoch, first, rows))
+            mailbox.enqueue_packet(epoch, first, rows)
         } else {
             publish(dir, build, epoch, slot, first, rows)
         }
@@ -3904,9 +3997,11 @@ mod linux {
         if let Some(path) = &o.ready_file {
             eprintln!("readiness_receipt={}", path.display());
         }
-        let (mut axes, physical, mut start_held) = device_snapshot(&device).map_err(|e| e.to_string())?;
+        let (mut axes, mut physical, mut start_held) = device_snapshot(&device).map_err(|e| e.to_string())?;
+        physical.preset = o.preset;
+        physical.tap_jump = o.tap_jump;
         let mut capture_axes = axes;
-        let mut state = State::default();
+        let mut state = State { preset: o.preset, tap_jump: o.tap_jump, ..State::default() };
         let identity = DeviceIdentity::of(&device);
         let labels = FaceLabels::of(device.input_id());
         let can_reconnect = identity.reconnectable()
@@ -3978,7 +4073,7 @@ mod linux {
                     stop_capture = false;
                     ended = false;
                     end_marker_sent = false;
-                    state = State::default();
+                    state = State { preset: o.preset, tap_jump: o.tap_jump, ..State::default() };
                     row_state = state;
                     previous = 0;
                     edges.clear();
@@ -4057,7 +4152,9 @@ mod linux {
                         Ok(Some((replacement, snapshot)))
                     })();
                     match restored {
-                        Ok(Some((replacement, (ranges, physical, start)))) => {
+                        Ok(Some((replacement, (ranges, mut physical, start)))) => {
+                            physical.preset = o.preset;
+                            physical.tap_jump = o.tap_jump;
                             let ns = monotonic_ns().map_err(|e| e.to_string())?;
                             capture_axes = ranges;
                             start_held = start;
@@ -4087,9 +4184,9 @@ mod linux {
                     device = None;
                     recovery.ready = false;
                     start_held = false;
-                    menu_input.observe(None, State::default(), false, ns);
+                    menu_input.observe(None, State { preset: o.preset, tap_jump: o.tap_jump, ..State::default() }, false, ns);
                     if waiting_ready {
-                        focus_input.restore(State::default(), false, ns, false);
+                        focus_input.restore(State { preset: o.preset, tap_jump: o.tap_jump, ..State::default() }, false, ns, false);
                         focus_input.armed = false;
                     } else {
                         pending_input.push_capture(Capture::Disconnected(ns))?;
@@ -4218,8 +4315,8 @@ mod linux {
                         epoch_ns: now,
                         first_frame: next_frame,
                     };
-                    state = State::default();
-                    row_state = State::default();
+                    state = State { preset: o.preset, tap_jump: o.tap_jump, ..State::default() };
+                    row_state = State { preset: o.preset, tap_jump: o.tap_jump, ..State::default() };
                     previous = 0;
                     edges.clear();
                     snapshots.clear();
@@ -4242,8 +4339,8 @@ mod linux {
                         epoch_ns: publication.epoch_ns,
                         first_frame: next_frame,
                     };
-                    state = State::default();
-                    row_state = State::default();
+                    state = State { preset: o.preset, tap_jump: o.tap_jump, ..State::default() };
+                    row_state = State { preset: o.preset, tap_jump: o.tap_jump, ..State::default() };
                     previous = 0;
                     edges.clear();
                     snapshots.clear();
@@ -4294,7 +4391,7 @@ mod linux {
                             );
                             eprintln!("controller_release mono_ns={ns} frame={frame}");
                         }
-                        focus_input.restore(State::default(), false, ns, false);
+                        focus_input.restore(State { preset: o.preset, tap_jump: o.tap_jump, ..State::default() }, false, ns, false);
                         focus_input.armed = false;
                         continue;
                     }

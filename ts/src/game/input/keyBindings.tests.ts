@@ -1,6 +1,6 @@
 import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { Action } from "./actions";
-import { type BindingPreset, type KeyBindings, actionFor, decodeBindings, encodeBindings, keyFor, presetBindings, rebind } from "./keyBindings";
+import { ACTION_LABELS, type BindingPreset, type KeyBindings, actionFor, decodeBindings, encodeBindings, keyFor, presetBindings, rebind } from "./keyBindings";
 
 const Key = {
   seven: 55, eight: 56, nine: 57, A: 65, D: 68, E: 69, F: 70, G: 71, I: 73, L: 76, N: 78, O: 79, P: 80, Q: 81, R: 82, S: 83, U: 85,
@@ -10,7 +10,7 @@ const PRESETS: readonly BindingPreset[] = ["standard", "custom"];
 
 const decode = (saved: string) => assertDefined(decodeBindings(saved), saved);
 /** The same layout as a K2 save, which predates the current defaults. */
-const asK2 = (bindings: KeyBindings) => `K2${encodeBindings(bindings).slice(2)}`;
+const asK2 = (bindings: KeyBindings) => `K2${encodeBindings(bindings).slice(2, 92)}`;
 /** The same layout as a K1 save, which predates the walk slots. */
 const asK1 = (bindings: KeyBindings) => `K1${encodeBindings(bindings).slice(2, 86)}`;
 
@@ -35,6 +35,9 @@ test("presets put movement on QWER, actions on N and UIOP, and the owner's numbe
   assertEquals(keyFor(standard, Action.rightTrigger, 0), Key.seven);
   assertEquals(keyFor(custom, Action.jump, 1), Key.nine);
   assertEquals(keyFor(standard, Action.jump, 1), Key.eight);
+  assertEquals(keyFor(standard, Action.lightShield, 0), Key.nine);
+  assertEquals(keyFor(custom, Action.lightShield, 0), 48);
+  assertEquals(ACTION_LABELS[Action.walk], "Tilt");
 });
 
 test("rebinding refuses reserved and already bound keys", () => {

@@ -1,0 +1,18 @@
+{
+  "tier": "rookie",
+  "events": 9,
+  "hits": [
+    7,
+    1,
+    0,
+    0
+  ],
+  "damage": [
+    64.159,
+    12.753,
+    0,
+    0
+  ],
+  "totalHits": 8,
+  "cpuHits": 0
+}

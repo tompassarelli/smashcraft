@@ -192,6 +192,8 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   attack.cooldown = 0;
   special.direction = 0;
   shield.raised = false;
+  shield.tiltX = 0.0;
+  shield.tiltZ = 0.0;
   shield.energy = SHIELD_MAX;
   shield.strength = 1.0;
   jump.squat = 0;

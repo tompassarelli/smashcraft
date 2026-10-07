@@ -1,13 +1,13 @@
 // Local input recorded by the companion helper as a journal: a sequence of
 // immutable canonical I4 packets of one or two rows, each tagged with the
-// frame its row belongs to. A helper behind its clock joins consecutive
-// packets with "|" into one record (at most RECORD_PACKETS), so its backlog
-// costs fewer characters to type. The file names and the control
-// acknowledgment text are written by the helper, so their spellings are a
+// frame its row belongs to. A helper behind its clock packs consecutive
+// unsent rows into an I5 message, so holds cost fewer characters to type.
+// The file names and the control acknowledgment text are written by the
+// helper, so their spellings are a
 // protocol.
 import { PARTICIPANT_CAPACITY } from "../../input/participants";
 import type { InputRow } from "../../input/inputRow";
-import { type InputPacket, decodePacket } from "../../input/wire";
+import { type InputPacket, decodeInputMessage, decodePacket } from "../../input/wire";
 import { FUTURE_LIMIT } from "../ledger";
 import { parseDecimal } from "./decimal";
 
@@ -73,8 +73,8 @@ export class JournalInputSource {
   }
 
   /**
-   * Reads the next packet, or packets joined with "|", as one packet of their
-   * rows not yet sent. A packet whose rows reach past latestAdmissibleFrame
+   * Reads I4 packets or an I5 message as one packet of their rows not yet
+   * sent. A packet whose rows reach past latestAdmissibleFrame
    * waits, buffered.
    */
   read(wire: string, latestAdmissibleFrame: number): JournalRead {
@@ -82,7 +82,8 @@ export class JournalInputSource {
     if (wire !== this.buffered) this.taken = 0;
     this.buffered = undefined;
     if (wire === "") return WAIT;
-    const packet = wire.includes("|") ? decodePackets(wire) : decodePacket(wire);
+    const packet = wire.startsWith("I5") ? joinPackets(decodeInputMessage(wire))
+      : wire.includes("|") ? decodePackets(wire) : decodePacket(wire);
     const rest = packet === undefined || this.taken === 0 ? packet : { epoch: packet.epoch, firstFrame: packet.firstFrame + this.taken, rows: packet.rows.slice(this.taken) };
     const read = rest === undefined ? INVALID : this.offer(rest, latestAdmissibleFrame);
     if (read !== INVALID) this.buffered = wire;
@@ -143,10 +144,19 @@ export class JournalInputSource {
 function decodePackets(wire: string): InputPacket | undefined {
   const parts = wire.split("|");
   if (parts.length > RECORD_PACKETS) return undefined;
-  let joined: { epoch: number; firstFrame: number; rows: InputRow[] } | undefined;
+  const packets: InputPacket[] = [];
   for (const part of parts) {
     const packet = decodePacket(part);
     if (packet === undefined) return undefined;
+    packets.push(packet);
+  }
+  return joinPackets(packets);
+}
+
+function joinPackets(packets: readonly InputPacket[] | undefined): InputPacket | undefined {
+  if (packets === undefined) return undefined;
+  let joined: { epoch: number; firstFrame: number; rows: InputRow[] } | undefined;
+  for (const packet of packets) {
     if (joined === undefined) joined = { epoch: packet.epoch, firstFrame: packet.firstFrame, rows: [...packet.rows] };
     else if (packet.epoch !== joined.epoch || packet.firstFrame !== joined.firstFrame + joined.rows.length) return undefined;
     else joined.rows.push(...packet.rows);
