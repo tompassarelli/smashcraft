@@ -116,10 +116,12 @@ export function playBotMatch(clients: Lockstep, match: BotMatch, frames: number,
   const helpers = new JournalHelpers(build.id, true);
   helpers.rows = (_slot, frame) => botBeatRow(frame);
   const host = clients.client(0);
+  // The beat starts with the match; before it, menus take the keys.
+  let beating = false;
   let beat = 0;
   let held = 0;
   const pressBeat = () => {
-    if (!keyboard || gameOf(host).phase !== Phase.match) return;
+    if (!keyboard || !beating || gameOf(host).phase !== Phase.match) return;
     const [tap, hold] = botBeatKeys(++beat);
     for (const player of clients.clients) {
       if (hold !== held && held !== 0) for (const client of clients.clients) client.key(player.slot, held, 0, false);
@@ -164,6 +166,7 @@ export function playBotMatch(clients: Lockstep, match: BotMatch, frames: number,
   clients.press(0, Key.y);
   until("the match", () => gameOf(host).phase === Phase.match);
   measure.begin();
+  beating = true;
   for (let index = 0; index < frames && gameOf(host).phase === Phase.match; index++) frame();
   const lines: string[] = [];
   const divergence = clients.firstDivergence();
