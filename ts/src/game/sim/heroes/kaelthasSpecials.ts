@@ -24,7 +24,7 @@ const flight = (cost: number, speed: number): AuthoredSpecial => ({
   regions: [heroRegion(11, 20, { x1: -18.0, z1: 45.0, x2: 18.0, z2: 45.0, radius: 25.0 }, kaelHit(6.0, 70))],
 });
 const banish: AuthoredSpecial = {
-  cost: 15, endFrame: 38, landingLag: 20, intangible: frames(5, 12),
+  cost: 15, endFrame: 38, landingLag: 20, intangible: frames(5, 12), defensiveUse: true,
   regions: [heroRegion(13, 15, { x1: -40.0, z1: 50.0, x2: 40.0, z2: 50.0, radius: 25.0 }, kaelHit(5.0, 55))],
 };
 

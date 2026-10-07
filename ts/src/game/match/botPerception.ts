@@ -392,7 +392,13 @@ function foldObservationNumber(value: number): void {
     writeCanonicalNumber(foldObservationByte, value);
   }
 }
-function foldObservationText(text: string): void {
+const repeatedTextFirst: number[] = [0];
+const repeatedTextSecond: number[] = [0];
+const repeatedTextFirstPower: number[] = [1];
+const repeatedTextSecondPower: number[] = [1];
+let repeatedObservationText = "";
+
+function foldObservationText(text: string, repetitions: number): void {
   flushObservationZeroes();
   let digest = textDigests.get(text);
   if (digest === undefined) {
@@ -401,7 +407,23 @@ function foldObservationText(text: string): void {
     digest = buildingDigest;
     textDigests.set(text, digest);
   }
-  foldDigest(digest);
+  if (repetitions === 1) { foldDigest(digest); return; }
+  if (text !== repeatedObservationText) {
+    repeatedObservationText = text;
+    repeatedTextFirst.length = 1;
+    repeatedTextSecond.length = 1;
+    repeatedTextFirstPower.length = 1;
+    repeatedTextSecondPower.length = 1;
+  }
+  while (repeatedTextFirst.length <= repetitions) {
+    const previous = repeatedTextFirst.length - 1;
+    repeatedTextFirst.push(floorMod(at(repeatedTextFirst, previous) * digest.firstPower + digest.first, 46337));
+    repeatedTextSecond.push(floorMod(at(repeatedTextSecond, previous) * digest.secondPower + digest.second, 46337));
+    repeatedTextFirstPower.push(floorMod(at(repeatedTextFirstPower, previous) * digest.firstPower, 46337));
+    repeatedTextSecondPower.push(floorMod(at(repeatedTextSecondPower, previous) * digest.secondPower, 46337));
+  }
+  checksumFirst = floorMod(checksumFirst * at(repeatedTextFirstPower, repetitions) + at(repeatedTextFirst, repetitions), 46337);
+  checksumSecond = floorMod(checksumSecond * at(repeatedTextSecondPower, repetitions) + at(repeatedTextSecond, repetitions), 46337);
 }
 const checksumWriter = { byte: foldObservationByte, number: foldObservationNumber, text: foldObservationText };
 

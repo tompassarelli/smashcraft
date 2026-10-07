@@ -137,16 +137,23 @@ test("an up special is used once per airtime and landing restores it", () => {
   assertEquals(owner.special.airtimeUses, 0);
 });
 
-test("mana trickles back a point every 15 grounded frames from the frame a special ends, never during it", () => {
+test("mana trickles back a point every 60 eligible frames from the frame a special ends, never during it", () => {
   const { world, owner } = pair(600.0);
   frame(world, side);
-  for (let f = 2; f <= 30; f++) frame(world);
+  for (let f = 2; f <= 29; f++) frame(world);
+  assertEquals(owner.mana.progress, 0);
+  frame(world);
   assertEquals(owner.mana.points, 82);
+  assertEquals(owner.mana.progress, 2);
   assertEquals(owner.special.action, SpecialAction.none);
   for (let f = 1; f <= 15; f++) frame(world);
+  assertEquals(owner.mana.points, 82);
+  for (let f = 1; f <= 43; f++) frame(world);
+  assertEquals(owner.mana.points, 82);
+  frame(world);
   assertEquals(owner.mana.points, 83);
-  for (let f = 1; f <= 60; f++) frame(world);
-  assertEquals(owner.mana.points, 87);
+  for (let f = 1; f <= 16; f++) frame(world);
+  assertEquals(owner.mana.points, 83);
   owner.shield.raised = true;
   const shielded = owner.mana.points;
   for (let f = 1; f <= 30; f++) frame(world, controls({ shield: true }));
