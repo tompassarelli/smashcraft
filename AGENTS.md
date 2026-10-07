@@ -201,7 +201,11 @@ code. From smashcraft:ts/:
   verdict and field table; `bun wisp farm pads [--ref REF] [--wait]` plays
   every smashcraft:ts/test/native/pads/ script headless through the real
   helper against its own `#!` expectations, for a change that moves hit
-  timing. Without `--ref` it measures the checkout's HEAD (a commit not on
+  timing; `bun wisp farm perf ["RUN ARGS" ...] [--out DIR]` runs each
+  `bun wisp perf RUN ARGS` in its own job (default `playable-bot-four`),
+  prints each summary and writes each run to DIR. Predictions come from
+  counts, so a runner predicts what this machine would; use it instead of a
+  local perf run. Without `--ref` it measures the checkout's HEAD (a commit not on
   main goes to a scratch `farm/` branch, deleted after the run). Use it
   instead of a local cpuField or pad run: the repository is public, so the
   runners cost nothing, and this machine stays free. Measured 7 Oct on main

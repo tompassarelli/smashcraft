@@ -1,0 +1,70 @@
+name: Perf
+
+# `bun wisp perf` runs on free hosted runners, one job a run: each matrix
+# entry is the argument list of one `bun wisp perf` invocation, such as
+# "playable-bot-four --samples" or "census --fighter archer". Predictions are
+# made from counts, so a hosted runner predicts what this machine would.
+# `bun wisp farm perf` dispatches it and downloads every run's output.
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Commit, branch or tag to measure
+        default: main
+      runs:
+        description: JSON array of `bun wisp perf` argument strings
+        default: '["playable-bot-four"]'
+      tag:
+        description: Names the run so `bun wisp farm` can find the one it dispatched
+        default: ""
+
+run-name: Perf ${{ inputs.ref }} ${{ inputs.tag }}
+
+permissions:
+  contents: read
+
+jobs:
+  perf:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        run: ${{ fromJSON(inputs.runs) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+      - run: bun install --frozen-lockfile
+        working-directory: ts
+      - name: Build a 32-bit Lua
+        working-directory: ts
+        run: |
+          mkdir -p build/lua-stock
+          curl -fsSL https://www.lua.org/ftp/lua-5.3.6.tar.gz -o build/lua-5.3.6.tar.gz
+          echo 'fc5fd69bb8736323f026672b1b7235da613d7177e72558893a0bdcd320466d60  build/lua-5.3.6.tar.gz' | sha256sum --check
+          tar -xzf build/lua-5.3.6.tar.gz -C build/lua-stock
+          make -C build/lua-stock/lua-5.3.6 -j2 generic MYCFLAGS=-DLUA_32BITS
+      - id: name
+        env:
+          RUN: ${{ matrix.run }}
+        run: echo "name=$(printf '%s' "$RUN" | tr -c 'A-Za-z0-9-' '_')" >> "$GITHUB_OUTPUT"
+      - name: perf ${{ matrix.run }}
+        working-directory: ts
+        env:
+          LUA: ${{ github.workspace }}/ts/build/lua-stock/lua-5.3.6/src/lua
+          RUN: ${{ matrix.run }}
+        run: |
+          mkdir -p perf-out
+          set -o pipefail
+          # RUN is split into words on purpose: it is one invocation's argument list.
+          bun wisp perf $RUN --out perf-out/run.txt 2>&1 | tee perf-out/summary.txt
+      - if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: perf-${{ steps.name.outputs.name }}
+          path: ts/perf-out
+          retention-days: 7

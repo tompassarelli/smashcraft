@@ -1,9 +1,12 @@
-// `bun wisp farm balance|pads [--ref REF] [--wait]`: runs headless work on
+// `bun wisp farm balance|pads|perf [--ref REF] [--wait]`: runs headless work on
 // GitHub's free hosted runners instead of this machine. `balance` dispatches
 // smashcraft:.github/workflows/balance.yml (the balance gate's computer
 // field, a `cpuField --pairs` process a core over about 17 jobs, merged in
 // one); `pads` dispatches smashcraft:.github/workflows/headless-pads.yml
-// (every native check script, headless, against its own expectations).
+// (every native check script, headless, against its own expectations);
+// `perf "RUN ARGS" ... [--out DIR]` dispatches smashcraft:.github/workflows/perf.yml,
+// one `bun wisp perf RUN ARGS` a job, and always waits: it prints each run's
+// summary and writes its output to DIR/<run>.txt.
 // --wait waits for the run and prints the verdict and field table, or each
 // failing script. Without --ref, the checkout's HEAD: a commit main doesn't
 // hold yet is pushed with safe-push to a scratch branch farm/<commit>, which
@@ -22,7 +25,7 @@ class FarmFailure extends Schema.TaggedError<FarmFailure>()("FarmFailure", { pro
   }
 }
 
-const WORKFLOWS = { balance: "balance.yml", pads: "headless-pads.yml" } as const;
+const WORKFLOWS = { balance: "balance.yml", pads: "headless-pads.yml", perf: "perf.yml" } as const;
 type Job = keyof typeof WORKFLOWS;
 
 /** Runs a program to completion; its trimmed stdout, or a failure naming its stderr. */
@@ -121,31 +124,55 @@ const padsResult = (repo: string, id: number, state: RunState) => Effect.gen(fun
   return yield* new FarmFailure({ problem: `${failed.length} of ${pads.length} pad scripts failed (${state.conclusion}); evidence: gh run download ${id} -R ${repo}` });
 });
 
+/** The artifact name perf.yml gives a run: its arguments with every other character an underscore. */
+const perfArtifact = (runArgs: string) => `perf-${runArgs.replace(/[^A-Za-z0-9-]/g, "_")}`;
+
+const perfResult = (repo: string, id: number, state: RunState, runs: readonly string[], out: string | undefined) => Effect.gen(function*() {
+  const folder = mkdtempSync(join(tmpdir(), "farm-perf-"));
+  const failed: string[] = [];
+  for (const runArgs of runs) {
+    const name = perfArtifact(runArgs);
+    const got = yield* run(["gh", "run", "download", String(id), "-R", repo, "-n", name, "-D", join(folder, name)]).pipe(Effect.as(true), Effect.orElseSucceed(() => false));
+    if (!got) {
+      failed.push(`${runArgs} (no output)`);
+      continue;
+    }
+    console.log(`== perf ${runArgs}`);
+    console.log(readFileSync(join(folder, name, "summary.txt"), "utf8").split("\n").filter((line) => !line.startsWith("frame ")).join("\n").trimEnd());
+    if (out !== undefined) yield* Effect.tryPromise({ try: () => Bun.write(join(out, `${name.slice(5)}.txt`), Bun.file(join(folder, name, "run.txt"))), catch: (cause) => new FarmFailure({ problem: describeCause(cause) }) }).pipe(Effect.orElseSucceed(() => 0));
+  }
+  rmSync(folder, { recursive: true });
+  const jobsFailed = state.jobs.filter((job) => job.conclusion !== "success").map((job) => job.name);
+  if (state.conclusion !== "success" || failed.length > 0) return yield* new FarmFailure({ problem: `the perf run ended ${state.conclusion} (${[...jobsFailed, ...failed].join(", ")}); gh run view ${id} -R ${repo} --log-failed` });
+});
+
 export const farm: Command = (args) => Effect.gen(function*() {
   const parsed = yield* Effect.try({
     try: () => parseArgs({ args: [...args], allowPositionals: true, options: {
-      ref: { type: "string" }, wait: { type: "boolean" }, level: { type: "string" }, "per-pair": { type: "string" }, seeds: { type: "string" },
+      ref: { type: "string" }, wait: { type: "boolean" }, out: { type: "string" }, level: { type: "string" }, "per-pair": { type: "string" }, seeds: { type: "string" },
     } }),
     catch: (cause) => new UsageFailure({ problem: describeCause(cause) }),
   });
-  const [job] = parsed.positionals;
-  if (job !== "balance" && job !== "pads") return yield* new UsageFailure({ problem: "farm balance or farm pads" });
+  const [job, ...perfRuns] = parsed.positionals;
+  if (job !== "balance" && job !== "pads" && job !== "perf") return yield* new UsageFailure({ problem: "farm balance, farm pads or farm perf" });
+  const runs = perfRuns.length > 0 ? perfRuns : ["playable-bot-four"];
   const workflow = WORKFLOWS[job satisfies Job];
   const repo = yield* run(["gh", "repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner"]);
   const { ref, scratch } = yield* resolveRef(parsed.values.ref, repo);
   const tag = randomBytes(4).toString("hex");
   const inputs = job === "balance"
     ? { ref, level: parsed.values.level ?? "9", "per-pair": parsed.values["per-pair"] ?? "400", seeds: parsed.values.seeds ?? "100", tag }
-    : { ref, tag };
+    : job === "perf" ? { ref, runs: JSON.stringify(runs), tag } : { ref, tag };
   const started = performance.now();
   const work = Effect.gen(function*() {
     yield* run(["gh", "workflow", "run", workflow, "-R", repo, "--ref", "main", ...Object.entries(inputs).flatMap(([name, value]) => ["-f", `${name}=${value}`])]);
     const found = yield* findRun(repo, workflow, tag);
     console.error(`${found.displayTitle}: ${found.url}`);
-    if (parsed.values.wait !== true && scratch === undefined) return;
+    if (parsed.values.wait !== true && scratch === undefined && job !== "perf") return;
     const state = yield* waitFor(repo, found.databaseId);
     console.error(`${((performance.now() - started) / 60000).toFixed(1)} min from dispatch to the result`);
     if (job === "balance") yield* balanceResult(repo, found.databaseId, state);
+    else if (job === "perf") yield* perfResult(repo, found.databaseId, state, runs, parsed.values.out);
     else yield* padsResult(repo, found.databaseId, state);
   });
   yield* work.pipe(Effect.ensuring(scratch === undefined ? Effect.void
