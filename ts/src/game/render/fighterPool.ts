@@ -22,10 +22,15 @@ import { damageTint } from "../presentation/hitPresentation";
 import { characterModelScale } from "../presentation/modelScale";
 import { fitFighterPlacement } from "../presentation/fighterPlacement";
 import { outgoingPoseAlpha, poseBlendFrames } from "../presentation/damageBlend";
+import { IMPACT_DUST_MODEL } from "../assets/impactAssetInfo";
+import { createWhiteGlowState, whiteGlowAlpha } from "../presentation/whiteGlow";
 
 export class FighterPoolPresentation {
   private readonly clips: effect[] = [];
   private readonly light: effect | undefined;
+  private readonly glow: effect;
+  private readonly glowState = createWhiteGlowState();
+  private glowVisible = false;
   private readonly scale: number;
   private lightVisible = false;
   private visible: number | undefined;
@@ -51,6 +56,10 @@ export class FighterPoolPresentation {
   ) {
     const { x, y, z } = origin;
     this.scale = characterModelScale(character);
+    this.glow = AddSpecialEffect(IMPACT_DUST_MODEL, x, y);
+    BlzSetSpecialEffectAnimation(this.glow, "Stand");
+    BlzSetSpecialEffectTimeScale(this.glow, 0.0);
+    hideEffect(this.glow, origin);
     const lightPath = originalLightPath(character);
     if (lightPath !== undefined) {
       const light = AddSpecialEffect(lightPath, x, y);
@@ -93,6 +102,10 @@ export class FighterPoolPresentation {
   }
 
   hide(): void {
+    if (this.glowVisible) {
+      hideEffect(this.glow, this.origin);
+      this.glowVisible = false;
+    }
     this.endBlend();
     const shown = this.visible === undefined ? undefined : this.clips[this.visible];
     if (shown !== undefined) hideEffect(shown, this.origin);
@@ -163,6 +176,17 @@ export class FighterPoolPresentation {
       }
     }
     const tint = damageTint(fighter);
+    const glowAlpha = whiteGlowAlpha(this.glowState, fighter, frame);
+    if (glowAlpha > 0) {
+      // This unshaded white gradient adds light over the body; vertex tint cannot brighten it.
+      placeEffect(this.glow, x - 10.0 * this.scale, y - 25.0, z + 12.0 * this.scale);
+      BlzSetSpecialEffectScale(this.glow, 3.0 * this.scale);
+      BlzSetSpecialEffectAlpha(this.glow, glowAlpha);
+      this.glowVisible = true;
+    } else if (this.glowVisible) {
+      hideEffect(this.glow, this.origin);
+      this.glowVisible = false;
+    }
     let red = 255;
     let green = 255;
     let blue = 255;
@@ -206,6 +230,8 @@ export class FighterPoolPresentation {
   }
 
   destroy(): void {
+    hideEffect(this.glow, this.origin);
+    DestroyEffect(this.glow);
     // DestroyEffect may defer teardown; turn the light off first.
     if (this.light !== undefined) {
       this.suppress(this.light);
