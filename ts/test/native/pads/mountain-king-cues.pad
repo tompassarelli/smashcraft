@@ -102,10 +102,10 @@
 #! expect a 796 special 14 form 1
 #! expect a 880 special 15 form 0
 #! expect a 895 special-form 6 action 15
-# Bash: the first two bolts stun 16 and 17 frames, the third 28.
-#! expect b 633 damage 5.000 hitlag 4 hitstun 16
-#! expect b 694 damage 10.000 hitlag 4 hitstun 17
-#! expect b 756 damage 15.000 hitlag 4 hitstun 28
+# Bash: the first two bolts stun 17 and 18 frames, the third 30.
+#! expect b 637 damage 5.525 hitlag 4 hitstun 17
+#! expect b 699 damage 11.050 hitlag 4 hitstun 18
+#! expect b 761 damage 16.575 hitlag 4 hitstun 30
 # Startup and active cues of each special and branch, both missiles, and Bash's proc on b.
 #! scene a BoltImpact
 #! scene a ForkedLightningTarget

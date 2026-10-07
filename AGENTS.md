@@ -184,6 +184,10 @@ code. From smashcraft:ts/:
   `bun tools/animations/cairne-clips.ts STOCK_TAUREN.mdx PRIVATE_OUTPUT`
   appends the complete totem kit, recovery, paired grabs and nine pain clips
   to the private classic Tauren Chieftain model, preserving its stock clips.
+- Uther animation authoring (from the repository root):
+  `bun tools/animations/uther-clips.ts STOCK_FORSAKEN_PALADIN.mdx PRIVATE_OUTPUT CLASSIC_PALADIN.mdx`
+  keeps the Forsaken body and rig, attaches the classic Paladin hammer, and
+  authors his strikes, recovery, paired throws and nine pain poses.
 - Chen animation authoring (from the repository root):
   `bun tools/animations/chen-clips.ts STOCK_CHEN.mdx PRIVATE_OUTPUT` authors
   Chen's staff, footwork, special, recovery, paired throw and nine pain clips
@@ -308,6 +312,8 @@ code. From smashcraft:ts/:
   with a full three-stock Archer against Wren Expert Rifleman. `--script FILE`
   runs the native driver's exact pad inputs; `--headless --frames N --out DIR`
   saves frame checksums and captures (`--capture-frames N,N` picks their frames).
+  `--presentation native|pool-confirmed|pool-predicted` selects fighter presentation;
+  live play defaults to `pool-predicted`, scripts to `native`.
   Private map and Warcraft assets stay in the existing local asset store.
 - Controller layout: `bun wisp controller layout standard|zjump` changes the running service live, or saves the choice for its next start. Layout, tap jump and left/right full or light shield are kept in `~/.config/smashcraft/controller.json` (or `$XDG_CONFIG_HOME/smashcraft/controller.json`) and editable on the client Controller page.
 - Controller: `bun wisp controller` points the always-on controller service
@@ -437,9 +443,9 @@ code. From smashcraft:ts/:
   lower-tier or smaller exploratory fields remain reports.
   `--matchups archer:chen-stormstout,lich:chen-stormstout` runs only those
   named pairs for a repair comparison; its report is not a full-roster gate.
-  `bun wisp farm pads [--ref REF] [--only DIR]... [--wait]` plays
+  `bun wisp farm pads [--ref REF] [--only PATH]... [--wait]` plays
   every top-level smashcraft:ts/test/native/pads/ script (or each issue
-  folder named by `--only`, such as `--only 151 --only 167`) headless through the
+  file or folder named by `--only`, such as `--only 151 --only archer-cues.pad`) headless through the
   real helper against its own `#!` expectations, for a change that moves hit
   timing or a new issue script on a loaded host; each job uploads its traces
   (`gh run download RUN`), the source of a new script's `#! expect` lines;

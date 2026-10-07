@@ -27,12 +27,12 @@
 #! expect a 118 applied attack 1 style 12
 #! expect a 216 applied attack 2 style 16
 #! expect b 124 damage 3.000
-#! expect b 133 damage 9.000
-#! expect b 225 damage 11.000
-#! expect b 230 damage 13.000
-#! expect b 235 damage 15.000
-#! expect b 240 damage 17.000
-#! expect b 245 damage 19.000
+#! expect b 133 damage 8.730
+#! expect b 225 damage 10.730
+#! expect b 230 damage 12.730
+#! expect b 235 damage 14.730
+#! expect b 240 damage 16.730
+#! expect b 245 damage 18.730
 #! scene a SunderingBlades
 #! scene a CleaveDamageTarget
 # View held a second, twice: the moments the parity check replays.

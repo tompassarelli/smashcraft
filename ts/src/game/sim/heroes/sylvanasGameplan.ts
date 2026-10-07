@@ -24,5 +24,5 @@ export const SYLVANAS_GAMEPLAN: FighterGameplan = {
   ],
   kills: [{ move: AttackStyle.forwardSmash, fromPercent: 100 }, { move: AttackStyle.backAir, fromPercent: 120 }, { move: AttackStyle.upSmash, fromPercent: 120 }],
   recovery: { aim: "ledge", upSpecial: "last" },
-  avoid: ["edge", "close"],
+  avoid: ["edge"],
 };

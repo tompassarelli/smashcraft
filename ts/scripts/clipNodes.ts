@@ -25,7 +25,7 @@ export interface NodeTable {
   RibbonEmitters: Node[];
   EventObjects: Node[];
   CollisionShapes: Node[];
-  Geosets: { Groups: number[][] }[];
+  Geosets: { Groups: number[][]; SkinWeights?: Uint8Array }[];
   PivotPoints: Float32Array[];
   Nodes: Node[];
 }
@@ -76,7 +76,14 @@ export function renumberNodes(model: NodeTable): void {
     if (pivot === undefined) throw new Error(`${node.Name ?? node.ObjectId}: no pivot`);
     return pivot;
   });
-  for (const geoset of model.Geosets) geoset.Groups = geoset.Groups.map((group) => group.map((id) => placeOf(id, "A skin matrix")));
+  for (const geoset of model.Geosets) {
+    geoset.Groups = geoset.Groups.map((group) => group.map((id) => placeOf(id, "A skin matrix")));
+    if (geoset.SkinWeights !== undefined) for (let offset = 0; offset < geoset.SkinWeights.length; offset += 8) {
+      for (let influence = 0; influence < 4; influence++) if ((geoset.SkinWeights[offset + 4 + influence] ?? 0) > 0) {
+        geoset.SkinWeights[offset + influence] = placeOf(geoset.SkinWeights[offset + influence] ?? 0, "A weighted skin matrix");
+      }
+    }
+  }
   for (const node of nodes) {
     if (!isRoot(node.Parent)) node.Parent = placeOf(node.Parent, `${node.Name ?? node.ObjectId}'s parent`);
   }

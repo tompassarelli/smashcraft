@@ -3,7 +3,7 @@
 // smashcraft:.github/workflows/balance.yml (the balance gate's computer
 // field, a `cpuField --pairs` process a core over about 17 jobs, merged in
 // one); `pads` dispatches smashcraft:.github/workflows/headless-pads.yml
-// (every top-level native check script, or the issue folders `--only DIR` names,
+// (every top-level native check script, or the files/folders `--only PATH` names,
 // headless, against its own expectations);
 // `perf "RUN ARGS" ... [--out DIR]` dispatches smashcraft:.github/workflows/perf.yml,
 // one `bun wisp perf RUN ARGS` a job, and always waits: it prints each run's

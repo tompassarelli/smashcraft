@@ -273,6 +273,8 @@ export interface AuthoredSpecial {
   readonly intangible?: FrameWindow | undefined;
   readonly armor?: SpecialArmor | undefined;
   readonly guard?: SpecialGuard | undefined;
+  /** The computer may time its protection defensively even when the special also strikes. */
+  readonly defensiveUse?: boolean | undefined;
   /** Does not start in the air and spends nothing there. */
   readonly groundOnly?: boolean | undefined;
   /** Once per airtime; landing or a new stock restores it, a ledge catch does not. */
@@ -301,6 +303,8 @@ export interface AuthoredSpecial {
   readonly commandGrab?: CommandGrab | undefined;
   /** Applied by each of its strikes that reaches a body, never through a shield (sim/heroStatus.ts). */
   readonly strikeStatus?: AppliedStatus | undefined;
+  /** Removes the caster's poison and movement slow on this action frame. */
+  readonly cleanseFrame?: number | undefined;
   /**
    * Branches after the press: the first whose `window` (brief frames) holds
    * the next frame and whose input was freshly pressed replaces the rest of

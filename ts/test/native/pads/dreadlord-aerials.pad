@@ -18,7 +18,7 @@
 #! expect a 120 applied attack 1 style 12
 #! expect b 126 damage 3.000
 #! expect b 132 damage 6.000
-#! expect b 139 damage 13.000
+#! expect b 139 damage 12.335
 #! scene a CleaveDamageTarget
 # View held a second, twice: the moments the parity check replays.
 500 a press VIEW

@@ -22,7 +22,7 @@ const IDLE_TOPS: readonly { readonly character: Character; readonly idleClip: nu
   { character: Character.mountainKing, idleClip: 1, top: 99 },
   { character: Character.warden, idleClip: 4, top: 146 },
   { character: Character.lich, idleClip: 1, top: 175 },
-  { character: Character.uther, idleClip: 0, top: 111 },
+  { character: Character.uther, idleClip: 1, top: 110.1 },
   { character: Character.dreadlord, idleClip: 1, top: 161 },
   { character: Character.shadowHunter, idleClip: 7, top: 138 },
   { character: Character.pitLord, idleClip: 2, top: 180 },

@@ -172,7 +172,7 @@ export function heroStanceSlot(f: Readonly<Fighter>, arrival: number): SpecialSl
   const frame = arrival + 1;
   for (const slot of STANCE_SLOTS) {
     const move = startableForm(f, specials, slot);
-    if (move === undefined || !isStance(move)) continue;
+    if (move === undefined || (move.defensiveUse !== true && !isStance(move))) continue;
     const window = move.guard ?? move.intangible ?? move.armor;
     if (window !== undefined && frame >= window.first && frame <= window.last) return slot;
   }
@@ -185,7 +185,7 @@ export function heroStanceLater(f: Readonly<Fighter>, arrival: number): boolean 
   if (specials === undefined || arrival < 0 || !canAttack(f)) return false;
   for (const slot of STANCE_SLOTS) {
     const move = startableForm(f, specials, slot);
-    if (move === undefined || !isStance(move)) continue;
+    if (move === undefined || (move.defensiveUse !== true && !isStance(move))) continue;
     const window = move.guard ?? move.intangible ?? move.armor;
     if (window !== undefined && arrival + 1 > window.last) return true;
   }

@@ -1,7 +1,5 @@
 # #194: Gryphon's complete timed platform path.
 #! chat -dev quick stage 11
-15 a stick 1 0
-20 a stick 0 0
 60 a capture
 350 a capture
 910 a capture
