@@ -2,9 +2,9 @@
 // The client's Online page runs these and shows their output lines, which are
 // written for players; the technical reason for a failure goes to stderr.
 //   setup [--client NAME]                 the menu page and Allow Local Files, after the player agrees
-//   host [--client NAME] [--repair]       hosts the newest Smashcraft map, prints "Join code: ABCD-EFGH",
+//   host [--client NAME] [--password VALUE] [--repair]       hosts the newest Smashcraft map, prints "Join code: ABCD-EFGH",
 //                                         starts on a "start" line on stdin (the client's Start now)
-//   join CODE [--client NAME] [--repair]  joins by code and waits for the host to start
+//   join CODE [--client NAME] [--password VALUE] [--repair]  joins by code and waits for the host to start
 // Without --client it is Tom's own install (play's prefix and report port);
 // with it, a client of ~/.local/state/smashcraft/clients.json.
 import { readFileSync } from "node:fs";
@@ -93,6 +93,8 @@ const menusOf = (install: Install, repair: boolean) => Effect.gen(function*() {
 export const online: Command = ([action, ...args]) => Effect.gen(function*() {
   const install = yield* installOf(args);
   const repair = args.includes("--repair");
+  const password = flagValues(args, "password")[0];
+  if (args.some((arg) => arg === "--password" || arg.startsWith("--password=")) && (password === undefined || password.length === 0)) return yield* new UsageFailure({ problem: "--password takes a nonempty value" });
   switch (action) {
     case "setup": {
       const result = yield* explained(setUpMenuPage(install.prefix, install.menuReportPort));
@@ -111,13 +113,14 @@ export const online: Command = ([action, ...args]) => Effect.gen(function*() {
       }
       yield* explained(Effect.scoped(Effect.gen(function*() {
         const menus = yield* menusOf(install, repair);
-        yield* hostMatch({ menus, map: { folder: "00-Smashcraft", file }, documents: install.documents, say, startNow: startLine });
+        yield* hostMatch({ menus, map: { folder: "00-Smashcraft", file }, documents: install.documents, say, startNow: startLine, ...(password === undefined ? {} : { password }) });
       }))).pipe(Effect.provide(gameFilesLayer));
       return;
     }
     case "join": {
-      const [typed] = args.filter((arg, index) => !arg.startsWith("--") && args[index - 1] !== "--client");
-      const code = typed === undefined ? undefined : readJoinCode(typed);
+      const [typed] = args.filter((arg, index) => !arg.startsWith("--") && args[index - 1] !== "--client" && args[index - 1] !== "--password");
+      const parsed = typed === undefined ? undefined : readJoinCode(typed);
+      const code = parsed === undefined || password === undefined ? parsed : { ...parsed, password };
       if (code === undefined) {
         yield* say("That isn't a join code. Codes look like ABCD-EFGH.");
         return yield* new UsageFailure({ problem: `join takes a code like ABCD-EFGH${typed === undefined ? "" : `, not ${typed}`}` });

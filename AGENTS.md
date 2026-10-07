@@ -286,10 +286,12 @@ code. From smashcraft:ts/:
 - Menus: `bun wisp menus host|join|start|leave` drives lobbies through Wisp's
   menu page instead of clicks (`install RETAIL_DIR --port N` once per prefix,
   with the account owner's agreement; smashcraft:docs/wisp.md, "Menu control").
-- Direct play: `bun wisp online host [--client NAME]` hosts the newest
+- Direct play: `bun wisp online host [--client NAME] [--password VALUE]` hosts the newest
   Smashcraft map as a private Battle.net game and prints its join code;
-  `bun wisp online join CODE [--client NAME]` joins it; both return at fighter
-  selection. The host presses Start now once the guest has joined; no Battle.net chat is sent.
+  `bun wisp online join CODE [--client NAME] [--password VALUE]` joins it;
+  with an explicit host password, the guest supplies that same password. All
+  hosted games are private and passworded; without the flag the code carries
+  the generated password. Both return at fighter selection. The host presses Start now once the guest has joined; no Battle.net chat is sent.
   `online setup` installs the menu page and Allow Local Files after
   the owner agrees. The client's Online page runs them
   (smashcraft:docs/design/client.md, "Direct play").
@@ -433,6 +435,8 @@ code. From smashcraft:ts/:
   verdict and field table. A Wren Expert run with at least 400 matches per pair
   fails when the balance gate fails, after publishing the report artifact;
   lower-tier or smaller exploratory fields remain reports.
+  `--matchups archer:chen-stormstout,lich:chen-stormstout` runs only those
+  named pairs for a repair comparison; its report is not a full-roster gate.
   `bun wisp farm pads [--ref REF] [--only DIR]... [--wait]` plays
   every top-level smashcraft:ts/test/native/pads/ script (or each issue
   folder named by `--only`, such as `--only 151 --only 167`) headless through the
@@ -506,6 +510,7 @@ code. From smashcraft:ts/:
   SCRIPT|DIR... --headless ...` plays the same batch in one headless session
   (smashcraft:docs/native-bot-session.md, "Many scripts in one game").
 - Pad cut (#233): `bun scripts/nativePadCut233.ts --pair N --clients-file FILE --helper WC3_CONTROLLER --map MAP --out DIR --app-id NAME=ID --app-id NAME=ID` uses one existing offline LAN pair, stops its own controller producer for 1 s, and checks the HUD waiting count and normal match results.
+- Keyboard timing: `bun scripts/nativeKeyboardPad.ts --script FILE --helper WC3_CONTROLLER --out DIR --clients-file FILE --client NAME --app-id ID`; `--observe` validates the same SDL stimulus without keyboard output. It records the original physical 60 Hz deadlines on CLOCK_MONOTONIC, separately from native simulation frames; this is playable draw timing, while journal parity remains `bun wisp pad`. Export the response probe after capture.
 - Native acceptance: `bun wisp accept [--only ID...] [--pair K... | --pairs N] [--map MAP.w3x] [--dry-run]` runs every
   open native check declared in smashcraft:ts/scripts/wisp/acceptChecks.ts in
   as few fresh matches as their maps allow and prints pass, fail or
