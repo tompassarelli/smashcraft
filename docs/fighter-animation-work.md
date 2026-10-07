@@ -1162,3 +1162,32 @@ With the change:
    --assets NEW --out NEW/original-clips-static-lights --keep-unchanged`.
 4. Build from the change (`bun wisp build --profile playable ... --assets NEW`),
    back up play-inputs.json and change only its `assets` entry.
+
+## Lich King clips on an imported model
+
+The Lich King (#167) is drawn by Kwaliti's Hive model (LichKing2.mdx, kept with
+the private build inputs), which has only thirteen stock sequences.
+`tools/animations/build-lichking.sh [INPUTS]` authors the rest:
+smashcraft:tools/animations/lichking.py imports the model into Blender at 60
+frames a second, so clip frame N is attack frame N, and keys every missing action
+on its skeleton. It uses the same scheme as strikes.py: body lean, twist, hip
+step and somersault, hand and foot goals solved through each limb, and
+Frostmourne aimed by an angle in the stage plane.
+Built-ins are reused where they fit. Attack - 1 and Attack - 2 (jab 1 and 2),
+Spell Throw (Howling Blast), Spell Channel (Defile) and Death (knockdown) are
+retimed piecewise so that the frame where Frostmourne's point reaches farthest
+toward the strike (or the chest reaches the floor) lands on the move's first
+active frame. Every swing is timed to the kit's frames
+(smashcraft:ts/src/game/sim/heroes/lichKingMoves.ts).
+
+The exporter's round trip drops the model's particle emitters and renames
+nodes. smashcraft:tools/animations/package-lichking.ts therefore ships the original
+MDX unchanged, with each authored sequence appended after the built-ins (whose
+indices never move). The skeleton keys come from the export, thinned to those
+that linear interpolation cannot reproduce. Every other track (emitters,
+geoset colour, events) comes from the clip's donor built-in, scaled to the new
+length. It writes `LichKingFighter.mdx`, which the map imports as
+war3mapImported\LichKing2.mdx, and regenerates
+smashcraft:ts/src/game/presentation/heroes/lichKingClipInfo.ts (sequence name
+to index and frames). Run Blender inside the capacity scope (`machine-capacity
+run --class moderate`).
