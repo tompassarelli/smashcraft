@@ -13,6 +13,7 @@ import { runningHeroSpecial } from "../sim/heroSpecialRules";
 import { HERO_ROSTER } from "../sim/heroes/registry";
 import {
   ARCHER_DIVE_FORM,
+  ARCHER_ARROW_SHOT_FRAME,
   ARCHER_DIVE_LAUNCH_FRAME,
   ARCHER_HOMING_WINDUP_FRAMES,
   ARCHER_RIDE_HOVER_FRAMES,
@@ -312,7 +313,7 @@ export function heroCueWindows(move: Readonly<AuthoredSpecial>, minimumActive = 
 /** The frame an original special releases or starts its effect, by action. */
 function originalActiveFrame(action: number, grounded: boolean): number {
   switch (action) {
-    case SpecialAction.archerArrow: return 2;
+    case SpecialAction.archerArrow: return ARCHER_ARROW_SHOT_FRAME;
     case SpecialAction.archerHomingArrow: return ARCHER_HOMING_WINDUP_FRAMES;
     case SpecialAction.archerDisengage: return ARCHER_DIVE_LAUNCH_FRAME;
     case SpecialAction.archerRecovery: return ARCHER_RIDE_HOVER_FRAMES;

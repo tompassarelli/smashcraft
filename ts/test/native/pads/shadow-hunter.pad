@@ -1,0 +1,103 @@
+# #133 Shadow Hunter's native check by parity: Hex refuses b's attacks, grabs and specials while b
+# mashes, which shortens it but never below its floor; immunity and a shield stop the next Hex; a hexed
+# b still jumps and uses up special; unmashed Hex outlasts the floor; Spirit Glaive's return strikes b
+# toward him. Shadow Hunter a against Shadow Hunter b; syntax and checks: smashcraft:docs/native-bot-session.md.
+#! chat -dev quick hero shadow hunter
+# Both dash in, close.
+40 a stick 1 0
+40 b stick -1 0
+42 a stick 0 0
+42 b stick 0 0
+# Hex on b; b mashes attack every 4 frames, with a grab and a neutral special between: all refused until the floor.
+60 a stick 0 -1
+60 a tap X 2
+61 a stick 0 0
+90 b tap A 2
+92 b tap RB 2
+94 b tap A 2
+98 b tap A 2
+100 b tap X 2
+102 b shield 1
+103 b capture
+104 b shield 0
+105 b press LB
+105 b stick 1 0
+106 b tap A 2
+107 b capture
+108 b stick 0 0
+109 b release LB
+110 b tap X 2
+114 b tap RB 2
+118 b tap A 2
+122 b tap A 2
+126 b tap A 2
+130 b tap A 2
+# Immune: the next Hex strikes b, and b attacks at once.
+200 a stick 0 -1
+200 a tap X 2
+201 a stick 0 0
+234 b tap A 2
+238 b tap A 2
+242 b tap A 2
+246 b tap A 2
+250 b tap A 2
+254 b tap A 2
+# b's held shield stops a Hex.
+290 b shield 1
+290 a stick 0 -1
+290 a tap X 2
+291 a stick 0 0
+360 b shield 0
+# Hex once immunity is over: b still jumps and uses up special.
+400 a stick 0 -1
+400 a tap X 2
+401 a stick 0 0
+446 b tap B 8
+452 b stick 0 1
+452 b tap X 2
+453 b stick 0 0
+# View held a second: the first of two moments the parity check replays.
+500 a press VIEW
+# b dashes away from a, once it has landed.
+530 b stick 1 0
+532 b stick 0 0
+570 a release VIEW
+# Spirit Glaive: b spot-dodges it going out, so its return strikes b, toward him.
+640 a tap X 2
+661 b shield 1
+662 b stick 0 -1
+663 b stick 0 0
+665 b shield 0
+# Hex unmashed: b waits through all 50 frames before attacking.
+700 a stick 0 -1
+700 a tap X 2
+701 a stick 0 0
+793 b tap A 2
+#! expect a 60 special 16 form 0
+#! expect b 88 damage 2.000
+#! absent b 89-125 applied attack
+#! absent b 89-125 special
+#! absent b 89-125 grab-hold
+#! expect b 126 applied attack 1 style 0
+#! expect a 200 special 16 form 0
+#! expect b 231 damage 4.000
+#! expect b 241 applied attack 3 style 0
+#! expect a 290 special 16 form 0
+#! absent b 291-433 damage
+#! expect a 400 special 16 form 0
+#! expect b 434 damage 6.000
+#! expect b 449 applied jump 1 double 0
+#! expect b 452 special 15 form 0
+#! expect a 640 special 13 form 0
+#! absent b 641-683 damage
+#! expect b 684 damage 11.000
+#! expect a 700 special 16 form 0
+#! expect b 738 damage 13.000
+#! absent b 739-792 applied attack
+#! expect b 793 applied attack 6 style 0
+#! scene a PolymorphTarget
+#! scene a ShadowHunterMissile
+#! scene a WitchDoctorMissile
+#! scene a ShieldP2
+1000 a press VIEW
+1070 a release VIEW

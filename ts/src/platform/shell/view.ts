@@ -14,6 +14,7 @@ import { ARENA_CAMERA, FLOOR_HEIGHT, cameraFieldOfView, cameraPoint, localCamera
 import { advanceMatchCamera } from "../../game/sim/matchCamera";
 import { hitlagTint } from "../../game/presentation/hitPresentation";
 import { DamagePose, damagePose } from "../../game/presentation/damagePose";
+import { hideEffect } from "../../game/render/effects";
 import type { FighterPose } from "../../game/presentation/fighterPose";
 import { CANNON_MODEL, PLATFORM_CUE_FRAMES, framesUntilPlatformMoves, stageWarning } from "../../game/presentation/stageHazards";
 import { escapeMeterView, overheadAnchorZ, readEscapeMeter } from "../../game/presentation/escapeMeter";
@@ -70,11 +71,12 @@ export function createStatusFrames(build: Readonly<MapBuild>): StatusFrames {
 
 function clearStageDecks(s: ShellState): void {
   if (s.stageCannon !== undefined) {
+    hideEffect(s.stageCannon, s.origin);
     DestroyEffect(s.stageCannon);
     s.stageCannon = undefined;
   }
   for (const deck of s.stageDecks) {
-    BlzSetSpecialEffectScale(deck, 0.0);
+    hideEffect(deck, s.origin);
     DestroyEffect(deck);
   }
   s.stageDecks.length = 0;
@@ -86,7 +88,6 @@ export function drawStage(s: ShellState): void {
   drawStageScenery(s);
   const { origin } = s;
   const stage = s.game.stageChoice;
-  s.drawnStage = stage;
   for (let index = 0; index < surfaceCount(stage); index++) {
     const left = surfaceLeft(stage, index, s.game.matchFrame);
     const right = surfaceRight(stage, index, s.game.matchFrame);
@@ -103,6 +104,7 @@ export function drawStage(s: ShellState): void {
     BlzSetSpecialEffectPosition(s.stageCannon, origin.x + cannonX(s.game.matchFrame), origin.y, origin.z + CANNON_Z);
     BlzSetSpecialEffectScale(s.stageCannon, 1.5);
   }
+  s.drawnStage = stage;
 }
 
 /** The unit's view of a confirmed frame: visibility, clip, rate, position and tint. */

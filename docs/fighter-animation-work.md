@@ -1201,7 +1201,7 @@ on its skeleton. It uses the same scheme as strikes.py: body lean, twist, hip
 step and somersault, hand and foot goals solved through each limb, and
 Frostmourne aimed by an angle in the stage plane.
 Built-ins are reused where they fit. Attack - 1 and Attack - 2 (jab 1 and 2),
-Spell Throw (Howling Blast), Spell Channel (Defile) and Death (knockdown) are
+Spell Throw (Howling Blast) and Death (knockdown) are
 retimed piecewise so that the frame where Frostmourne's point reaches farthest
 toward the strike (or the chest reaches the floor) lands on the move's first
 active frame. Every swing is timed to the kit's frames
@@ -1218,6 +1218,24 @@ war3mapImported\LichKing2.mdx, and regenerates
 smashcraft:ts/src/game/presentation/heroes/lichKingClipInfo.ts (sequence name
 to index and frames). Run Blender inside the capacity scope (`machine-capacity
 run --class moderate`).
+
+Defile's cast (#174) gathers the free hand above his shoulder, presses it
+toward the pool on frame 20, holds the downward pose for three more frames,
+and settles back into the guard by frame 46. Frostmourne stays raised beside
+the body. The non-skeleton tracks retain Spell Channel as their donor.
+
+Movement transitions and floor recovery (#171) append at indices 66–73,
+preserving every combat and stock index. Turn and stop each last eight frames,
+jump squat three, neutral tech 26, directional techs 40 and get-up rolls 35.
+The techs brace low on contact before returning to the guard; get-up rolls
+start from Death's lying pose. Travel remains in the simulation, so the clips
+stay centered on the fighter. The original Stand Ready pose and textures are
+retained for the portraits.
+For additive clips, pass the immutable shipped model as the second argument
+to smashcraft:tools/animations/build-lichking.sh; its packager's
+`--append-to EXISTING.mdx` retains the existing sequences and their tracks,
+then appends only new names. This avoids Blender's millisecond interval
+rounding changing previously shipped clips as the export grows.
 
 His third jab plays its full authored thrust, whose shorter hip step leaves
 its drawn reach below the forward tilt. `bun wisp view reach --assets DIR

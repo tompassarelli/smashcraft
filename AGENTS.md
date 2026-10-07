@@ -92,10 +92,15 @@ code. From smashcraft:ts/:
   `bun tools/animations/recovery-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` from
   the repository root appends fighter recovery and transition clips before
   storing their families and refreshing the clip pool (smashcraft:docs/fighter-animation-work.md).
+- Lich King animation authoring (from the repository root):
+  `tools/animations/build-lichking.sh [PRIVATE_INPUTS] [IMMUTABLE_EXISTING_MODEL]`
+  authors clips through Blender; the optional existing model preserves shipped
+  sequences and appends only new clips (smashcraft:docs/fighter-animation-work.md).
 - Fresh match: `bun wisp fresh MAP.w3x [--rebuild]` starts a new game, sends
   `-dev quick`, and waits until every signed-in client writes its receipt.
   `--rebuild` replaces the map script first. Other quick starts for `--chat`
-  and pad scripts: `-dev quick hero NAME`, and `-dev quick cpu N`, a quick
+  and pad scripts: `-dev quick hero NAME`, `-dev quick recovery hero NAME`
+  (starts tumbling above the floor for recovery captures), and `-dev quick cpu N`, a quick
   match against a computer at level N (1-9) over three stocks.
 - Client state: `bun wisp watch [CLIENT...] [--once]` prints what each client
   is doing (signed in, menu screen, lobby, loading, in match, results,
@@ -215,6 +220,9 @@ code. From smashcraft:ts/:
   match (every fighter and stage, rematches included) in 32-bit Lua and
   fails when the Lua heap, live Warcraft handles or what the map's globals
   reach grow after a 10-minute warm-up (#168); run it with `farm memory`.
+  Its saved samples include each menu's reachable table field shapes and
+  representative reference paths: compare the full shape union between a
+  warm-up high and a later rise to identify the retaining lifecycle.
 - Agency sweep: `bun wisp agency [--attacker NAME] [--starter NAME]`
   replays every fighter's throws, jab resets, normals and specials (or only
   the named starters) against every fighter with every victim input class and
@@ -279,6 +287,15 @@ code. From smashcraft:ts/:
   as few fresh matches as their maps allow and prints pass, fail or
   needs-look per check with its evidence folder (wisp:docs/accept.md). Declare
   a new native box there, next to the issue it closes, instead of a hand procedure.
+  Render cadence: `-dev render-clock` in a development map records timer
+  callback bursts and cost; `bun wisp accept --only 169-render-clock --dry-run`
+  prints its native plan (smashcraft:docs/high-refresh.md).
+- Stage lighting: `bun wisp accept --only '170-*'` captures stock lighting, a
+  fighter mask and stage lighting in one paused scene per stage. From the
+  repository root, `bun tools/stage/contrast.ts MASK.png STOCK.png STAGE.png`
+  measures fighter/background lightness and colour distance. The native
+  owner records the graphics profile and checks #168's budget; procedure:
+  smashcraft:docs/design/visual-quality.md.
 - Melee oracle: `bun wisp oracle` plays Melee situations for every fighter
   and prints each outcome beside the value cited from the decompilation; the
   test suite fails on any mismatch it doesn't list as known

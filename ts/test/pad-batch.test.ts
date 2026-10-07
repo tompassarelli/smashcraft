@@ -7,6 +7,14 @@ import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { batchScripts, lanPairs, needsNewGame } from "../scripts/wisp/padBatch";
+import { nativeChatReceipt } from "../scripts/wisp/commands/pad";
+
+test("native reset reads complete chat hand-off receipts, never a partially written file", () => {
+  const prefix = 'function PreloadFiles takes nothing returns nothing\ncall Preload( "SMASHCRAFT TEXT ACK v=1 build=test epoch=4 slot=0 received=100 consumed=100 revision=12 chat=2 chatState=3 chatFrame=1" )\n';
+  expect(nativeChatReceipt(prefix)).toBeUndefined();
+  expect(nativeChatReceipt(`${prefix}endfunction\n`)).toEqual({ epoch: 4, revision: 12, chat: 2, chatState: 3 });
+  expect(nativeChatReceipt(`${prefix.replace("revision=12", "revision=NaN")}endfunction\n`)).toBeUndefined();
+});
 
 test("a batch session starts one game and resets between valid or failed scripts", () => {
   const outcomes = ["none", "valid", "failed", "valid"] as const;

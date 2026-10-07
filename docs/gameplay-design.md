@@ -9,6 +9,33 @@ The design references are descriptive and take no position:
 [physics reference](physics.md). Each decision below names its owner's date
 and, where there is one, its issue.
 
+## Dash dancing
+
+Owner direction, 7 Oct 2026 (#175): quick reversals should dash back reliably,
+with the sampling tolerance of Slippi/UCF. The authored roster has thirteen
+initial-dash frames, then enters Run on frame fourteen. Thirteen is Melee's
+median initial-dash duration ([movement reference](design/melee/movement.md));
+it replaces the provisional ten-frame window. Reference test rigs keep their
+own actor timing. A reversal started on the last dash frame can finish on
+its second input sample even when that sample falls on the Run boundary.
+
+A horizontal stick flick reaching 0.8 on either of its first two samples
+starts dashback. A first opposite sample below 0.8 keeps the current dash
+until the next sample decides: reaching 0.8 reverses, remaining below it
+selects walking. Full digital directions count as full-strength flicks.
+Small same-direction stick variation keeps an existing dash; the walk
+modifier explicitly selects walking. Reversals after Run has begun use
+the ordinary turnaround, and an expired dash cannot be held open with
+neutral input.
+
+[UCF's technical description](https://www.20xx.me/ucf.html) allows the first
+tilt-turn frame to cancel into dashback, increasing its one-sample opportunity
+to two. Its [v0.65 changelog](https://www.20xx.me/ucf-changelog.html) names a
+0.95 second-frame requirement; Smashcraft deliberately uses the same 0.8
+threshold on both samples for small stick variation. This is an authored
+tolerance policy, not exact UCF emulation. It uses independently described
+behavior and numerical facts; no external implementation was copied.
+
 ## Principles
 
 Owner decisions, 6 Oct 2026 (#62):
@@ -749,7 +776,7 @@ The descriptive basis is [fighting-game language](design/fighting-games.md),
 | DI, crouch and ASDI | Retain 18° maximum continuous DI rotation, crouch cancelling and ASDI-down landing behaviour. SDI/ASDI travel uses the selected bounded-SDI design when #70 is implemented. | Keep useful defensive positioning while addressing teleport distance at its chosen seam. |
 | Tech chases and platforms | Preserve current floor-tech and tech-roll timing on the surface actually contacted; pass-through platforms catch from above and do not become walls or ceilings. Extensions can require reads; only call a response reaction-based when its visible cue meets #69's budget. | Gives platforms a real escape/landing role and supports the short-combo, chained-read direction without promising a guaranteed human reaction chase. |
 | Launchers and recovery routes | Each fighter has at least one deliberate launcher into a juggle, tech chase or ledge situation and at least two meaningfully different recovery choices through path, drift, ledge/stage destination or timing. A second recovery special is not required. | Makes follow-up reads and offstage counterplay part of each kit; the roster already requires a weaker free recovery. |
-| Physical spread and dash dancing | Keep existing per-fighter gravity, fall/air/run speed, weight and initial-dash windows; retain dash dancing. Expansion fighters use the adopted relative-property table as starting tuning, with reference jump velocity/gravity until deliberately authored otherwise. | No forced common weight/speed profile and no heavy-must-be-slow rule; each strength needs its stated cost. |
+| Physical spread and dash dancing | Keep existing per-fighter gravity, fall/air/run speed and weight; the authored dash window and stick tolerance follow [Dash dancing](#dash-dancing). Expansion fighters use the adopted relative-property table as starting tuning, with reference jump velocity/gravity until deliberately authored otherwise. | No forced common weight/speed profile and no heavy-must-be-slow rule; each strength needs its stated cost. |
 | Rage, meter and cooldowns | No percent-dependent rage bonus. Expansion mana and free recovery use the adopted roster contract; no new common meter or cooldown on ordinary specials. Optional ultimate cooldowns stay off in competitive play. | Predictable knockback and explicit resources, consistent with the removed stale/freshness layer and adopted expansion defaults. |
 | Interaction-graph requirements | Use the existing contextual option-count, reachable-punish and reward/risk model above, plus #83's accepted combo targets. Keep distinct defensive answers in ordinary neutral; do not impose one payoff ratio or option count on every forced state. | A locked interval can be honest, while an ordinary neutral option needs a reachable counter. The measured sample is not a guarantee about every matchup. |
 

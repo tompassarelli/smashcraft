@@ -44,7 +44,7 @@ test("every fighter walks and runs with foot cadence following ground speed", ()
         if (stride === undefined) continue;
         assertEquals(pose.clipIndex, groundLocomotionClip(character, motion)?.index);
         assertEquals(pose.clipIndex, stride.clip);
-        assertEquals(Math.abs(f32(stride.speed * pose.rate) - f32(Math.abs(f.motion.vx) * 60.0)) < 0.01, true, `${character}: foot cadence does not follow travel`);
+        assertEquals(Math.abs(f32(stride.speed * pose.rate) - f32(Math.abs(f.motion.vx) * 60.0)) < f32(0.01), true, `${character}: foot cadence does not follow travel`);
         const firstTime = pose.clipTime;
         advanceFighterPose(pose, f, soloWorld(f), input, false, false, false, false);
         assertGreaterThan(pose.clipTime, firstTime);

@@ -4,7 +4,7 @@ import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { surfaceCount } from "../sim/stage";
 import { hasCannon } from "../sim/stageHazards";
 import { CANNON_MODEL } from "./stageHazards";
-import { stageScenery } from "./stageScenery";
+import { stageLightModel, stageScenery } from "./stageScenery";
 
 /** The model drawn for one deck of a stage, in the stage's palette. */
 export function deckModel(stage: number, index: number): string {
@@ -27,6 +27,16 @@ export function preloadModels(): string[] {
   const models: string[] = [];
   for (const { id } of STAGE_CATALOG) for (const model of stageModels(id)) if (!models.includes(model)) models.push(model);
   return models;
+}
+
+/** Each distinct lighting model of every selectable stage. */
+export function preloadLights(): string[] {
+  const lights: string[] = [];
+  for (const { id } of STAGE_CATALOG) {
+    const light = stageLightModel(id);
+    if (!lights.includes(light)) lights.push(light);
+  }
+  return lights;
 }
 
 /** Each distinct sky of every selectable stage. */

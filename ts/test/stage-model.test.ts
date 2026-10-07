@@ -1,7 +1,9 @@
 import { expect, test } from "bun:test";
 import { MAIN_DECK_HALF_DEPTH, STAGE_PALETTE_TEXTURE, type DeckFace, type OutlinePoint, mainDeckFaces, mainDeckMdl, mainDeckModelFile, mainDeckOutlineStage, paletteTexture } from "../scripts/stageDeck";
 import { MODEL_FACTS } from "../scripts/wisp/modelFacts";
-import { STAGE_DECK_MODELS, STAGE_MAIN_DECK_MODEL } from "../src/game/assets/stageAssetInfo";
+import { STAGE_DECK_MODELS, STAGE_LIGHT_MODELS, STAGE_MAIN_DECK_MODEL } from "../src/game/assets/stageAssetInfo";
+import { STAGE_LIGHTS } from "../src/game/assets/stageLighting";
+import { stageLightMdl, stageLightModelFile } from "../scripts/stageLight";
 import { STAGE_DECK_PALETTES } from "../src/game/assets/stagePalette";
 import { MAIN_DECK_BODY_SURFACES, mainDeckLeft, mainDeckRight, mainDeckZ, solidSurfaceAt, solidSurfaceCount } from "../src/game/sim/stage";
 
@@ -124,5 +126,11 @@ test("the shipped main deck model draws over the whole collision outline, read f
     expect(bounds?.max[0]).toBeCloseTo(Math.max(...corners.map(([x]) => x)), 2);
     expect(bounds?.min[2]).toBeCloseTo(Math.min(...corners.map(([, z]) => z)), 2);
     expect(bounds?.max[2]).toBeCloseTo(Math.max(...corners.map(([, z]) => z)), 2);
+  }
+});
+
+test("each stage's shipped lighting model is the one its light declares", () => {
+  for (const { stage, theme, light } of STAGE_LIGHTS) {
+    expect(STAGE_LIGHT_MODELS[stage], theme).toBe(`war3mapImported\\${stageLightModelFile(stageLightMdl(light))}`);
   }
 });

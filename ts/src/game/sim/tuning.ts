@@ -291,7 +291,7 @@ function authoredSurfaceRecovery(character: Character): SurfaceRecoveryPhysics {
 // The original roster keeps authored movement timing. NTSC reference fixtures
 // inject their own actor-owned command timeline; the encoded event is not a
 // universal character constant.
-export const INITIAL_DASH_FRAMES = 10;
+export const INITIAL_DASH_FRAMES = 13;
 
 /** Smashcraft's authored approximation of the run timeline, not a retail-derived value. */
 export const AUTHORED_GROUND_MOVEMENT_RULES: GroundMovementRules = {

@@ -34,7 +34,7 @@ interface Trace {
 }
 
 /** Confirmed-state changes the shell traces the same way on every client; presentation lines are left out. */
-const COMPARED = /^phase \d+ (special |special-form |applied attack |applied jump |damage \d|recovery |grab action |grab-hold |shield-break |ledge |di )/;
+const COMPARED = /^phase \d+ (special |special-form |applied attack |applied jump |damage \d|recovery |grab action |grab-hold |shield-break |ledge |di |ground action )/;
 
 export function parseTrace(lines: readonly string[]): Trace {
   const checksums = new Map<number, string>();

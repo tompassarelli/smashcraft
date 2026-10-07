@@ -72,7 +72,7 @@ export function nextSelectableCharacter(current: number | undefined, direction: 
  */
 export const RENDERED_FIGHTERS: readonly Character[] = [
   Character.archer, Character.rifleman, Character.demonHunter, Character.blademaster, Character.mountainKing, Character.warden,
-  Character.lich, Character.uther, Character.dreadlord, Character.shadowHunter, Character.pitLord, Character.beastmaster,
+  Character.lich, Character.uther, Character.dreadlord, Character.shadowHunter, Character.pitLord, Character.beastmaster, Character.lichKing,
 ];
 
 /** The name a fighter's rendered portraits are filed under: "MountainKing". */

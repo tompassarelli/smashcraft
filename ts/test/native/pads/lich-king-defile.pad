@@ -1,0 +1,54 @@
+# #174: Defile's warning/cast, expired-pool recast refusal, two casts and a jump escape.
+#! chat -dev quick hero lich king
+# Walk the defender toward the first pool; jump away as its warning ends.
+20 b press LB
+20 b stick -1 0
+40 a stick 0 -1
+40 a tap X 2
+41 a stick 0 0
+50 a capture
+65 b stick 0 0
+65 b release LB
+70 b tap B 8
+70 b stick 1 0
+77 a capture
+90 b stick 0 0
+110 b capture
+# Refused after the pool has expired but while Defile's cast wait still holds.
+250 a stick 0 -1
+250 a tap X 2
+251 a stick 0 0
+255 a capture
+# A second cast after the wait: b shields nearby, then jumps and drifts out.
+360 a stick 0 -1
+360 a tap X 2
+361 a stick 0 0
+370 a capture
+380 b shield 1
+400 a capture
+420 b tap B 8
+420 b stick 1 0
+430 b shield 0
+440 b stick 0 0
+450 b capture
+# The opposite facing supplies a left-facing cast and pool.
+540 b stick -1 -1
+540 b tap X 2
+541 b stick 0 0
+550 b capture
+580 b capture
+600 a press VIEW
+670 a release VIEW
+680 a stick 0 -1
+680 a tap X 2
+681 a stick 0 0
+700 a capture
+740 a press VIEW
+810 a release VIEW
+#! expect a 40 special 16
+#! absent a 250-251 special 16
+#! expect a 360 special 16
+#! expect b 540 special 16
+#! expect a 680 special 16
+#! scene a ImpactDefile
+#! scene b ImpactDefile

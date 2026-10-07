@@ -12,7 +12,7 @@ matches until the match rules turn them on.
 
 | Input | Name | What it does |
 | --- | --- | --- |
-| Neutral special | Swift Arrow | A quick arrow you can cancel with a jump. |
+| Neutral special | Swift Arrow | Draw and loose an arrow; recover before firing again. |
 | Side special | Seeking Arrow | An arrow that curves toward the nearest opponent. |
 | Up special | Hippogryph Ride | Ride a hippogryph and steer it; jump off to act again. |
 | Down special | Hippogryph Call (Hippogryph Dive) | Send the hippogryph swooping to a perch; press again and it dives at her through anyone in the way. |
@@ -162,7 +162,7 @@ Normals, inspired by:
 | Neutral special | Howling Blast | A wide frost gust that travels; spending a soul makes it wider and chills. |
 | Side special | Val'kyr Shadowguard | A Val'kyr seizes the first foe she reaches and carries them toward the edge; mash to break free. |
 | Up special | Ascension of the Damned | An ice column lifts him in a frost vortex, then a helpless fall. |
-| Down special | Defile | A shadow pool on the ground that grows each time it hurts someone. One at a time. |
+| Down special | Defile | A short-lived shadow pool that grows when it hurts a grounded foe. Jump out; another cast must wait. |
 | Jab, repeated | Pommel and Rake | A gauntlet check, a rake of the blade, then a Frostmourne thrust on repeated jabs. |
 | Passive | Frostmourne Hungers | Each Frostmourne hit that lands, and Harvest Soul, stores a soul (up to 3); Howling Blast and Val'kyr Shadowguard spend one to grow stronger. |
 | Ultimate | Fury of Frostmourne | Every foe at high damage who isn't shielding or dodging is launched. |

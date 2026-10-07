@@ -149,11 +149,11 @@ test("development build: a match's scene report shows the stage and declares eve
   let mainDeck = "";
   client.run(() => {
     const s = shell();
-    mainDeck = deckModel(s.game.stageChoice, 0);
     selectCharacter(s.game, 0, Character.demonHunter);
     selectCharacter(s.game, 1, Character.rifleman);
     expect(requestStageSelect(s.game, 0)).toBe(true);
     expect(requestStart(s.game, 0)).toBe(true);
+    mainDeck = deckModel(s.game.stageChoice, 0);
     // Every effect pool is created when the match starts.
     startMatch(s);
     renderPersistentPresentation(s);

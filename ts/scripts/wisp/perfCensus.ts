@@ -159,10 +159,10 @@ export function frameProfileLines(heading: string, worstFrame: number, baseFrame
 }
 
 /** A census entry's worst frame against its standing baseline. */
-export function profileLines(entry: CensusEntry, output: string, name: (line: number) => string): string[] {
+export function profileLines(entry: CensusEntry, output: string, name: (line: number) => string, top = 12): string[] {
   const baseFrames = new Set<number>();
   for (let frame = entry.baseFrames[0]; frame <= entry.baseFrames[1]; frame++) baseFrames.add(frame);
-  return frameProfileLines(`profile ${entry.group} ${entry.name} (frame +${entry.worstAt}, ${entry.spikeMs.toFixed(2)} ms over baseline)`, entry.worstFrame, baseFrames, output, name);
+  return frameProfileLines(`profile ${entry.group} ${entry.name} (frame +${entry.worstAt}, ${entry.spikeMs.toFixed(2)} ms over baseline)`, entry.worstFrame, baseFrames, output, name, top);
 }
 
 const compile = (config: string) => Effect.try({
@@ -198,6 +198,8 @@ export const census = (project: CensusProject): Command => (args) => Effect.gen(
   const [jobsText = "2"] = flagValues(args, "jobs");
   const [out] = flagValues(args, "out");
   const profile = args.includes("--profile");
+  const [topText = "12"] = flagValues(args, "top");
+  const top = Number(topText);
   const fighters = flagValues(args, "fighter");
   const stages = flagValues(args, "stage");
   const limit = Number(limitText);
@@ -231,7 +233,7 @@ export const census = (project: CensusProject): Command => (args) => Effect.gen(
         return listed;
       });
       const profiled = yield* runOne(project, run, frames);
-      for (const entry of items) yield* Console.log(profileLines(entry, profiled, name).join("\n"));
+      for (const entry of items) yield* Console.log(profileLines(entry, profiled, name, top).join("\n"));
     }
   }
   if (errors.length > 0) return yield* new PerfFailure({ problem: `the census found problems: ${errors.join("; ")}` });

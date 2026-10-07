@@ -4,8 +4,8 @@ import type { Direction } from "./inputRow";
 export const ATTACK_BUFFER_FRAMES = 6;
 
 /**
- * One attack request. Immutable, so buffer copies share it: only queueing a
- * press creates one, and rollback replays copy buffers every frame.
+ * One attack request. Callers keep immutable values; buffers copy them into
+ * their own storage so replay snapshots retain a fixed number of records.
  */
 export interface AttackCommand {
   /** A Simulation attack style; 0 through 10 can be queued. */
@@ -18,8 +18,12 @@ export interface AttackCommand {
   readonly mayCharge: boolean;
 }
 
+type StoredAttackCommand = { -readonly [Field in keyof AttackCommand]: AttackCommand[Field] };
+
 /** One participant's queued attack, waiting up to graceFrames past its frame for the fighter to be able to start it. */
 export interface AttackBuffer {
+  readonly queued: StoredAttackCommand;
+  readonly previous: StoredAttackCommand;
   graceFrames: number;
   pending: AttackCommand | undefined;
   /** Last queued request, retained because replay snapshots hash Wurst's last facing and target frame. */
@@ -41,11 +45,32 @@ interface AttackBufferCanonicalState {
 }
 
 export function attackBuffer(graceFrames: number): AttackBuffer {
-  return { graceFrames: Math.max(0, graceFrames), pending: undefined, previousRequest: undefined, consumedFacing: 0, consumedMayCharge: false };
+  const request = (): StoredAttackCommand => ({ style: 0, facing: 0, frame: 0, mayCharge: false });
+  return { queued: request(), previous: request(), graceFrames: Math.max(0, graceFrames), pending: undefined, previousRequest: undefined, consumedFacing: 0, consumedMayCharge: false };
+}
+
+function copyCommand(target: StoredAttackCommand, source: Readonly<AttackCommand>): void {
+  target.style = source.style;
+  target.facing = source.facing;
+  target.frame = source.frame;
+  target.mayCharge = source.mayCharge;
+}
+
+function storeCommand(buffer: AttackBuffer, command: Readonly<AttackCommand>): void {
+  copyCommand(buffer.queued, command);
+  copyCommand(buffer.previous, command);
+  buffer.pending = buffer.queued;
+  buffer.previousRequest = buffer.previous;
 }
 
 /** Explicitly reset both the queued request and its last-consume observation. */
 export function clearAttackBuffer(buffer: AttackBuffer): void {
+  for (const command of [buffer.queued, buffer.previous]) {
+    command.style = 0;
+    command.facing = 0;
+    command.frame = 0;
+    command.mayCharge = false;
+  }
   buffer.pending = undefined;
   buffer.previousRequest = undefined;
   buffer.consumedFacing = 0;
@@ -76,8 +101,10 @@ export function sameAttackBuffer(first: Readonly<AttackBuffer>, second: Readonly
 /** A field-by-field copy: Lua's Object.assign skips undefined requests. */
 export function copyAttackBuffer(target: AttackBuffer, source: Readonly<AttackBuffer>): void {
   target.graceFrames = source.graceFrames;
-  target.pending = source.pending;
-  target.previousRequest = source.previousRequest;
+  if (source.pending !== undefined) copyCommand(target.queued, source.pending);
+  if (source.previousRequest !== undefined) copyCommand(target.previous, source.previousRequest);
+  target.pending = source.pending === undefined ? undefined : target.queued;
+  target.previousRequest = source.previousRequest === undefined ? undefined : target.previous;
   target.consumedFacing = source.consumedFacing;
   target.consumedMayCharge = source.consumedMayCharge;
 }
@@ -106,14 +133,12 @@ export function queueAttack(buffer: AttackBuffer, command: AttackCommand): void 
     const order = precedence(queued) - precedence(command);
     if (order > 0 || (order === 0 && queued.style > command.style)) return;
     if (queued.style === command.style && queued.mayCharge === command.mayCharge && queued.facing !== command.facing) {
-      const neutral: AttackCommand = { ...queued, facing: 0 };
-      buffer.pending = neutral;
-      buffer.previousRequest = neutral;
+      buffer.queued.facing = 0;
+      buffer.previous.facing = 0;
       return;
     }
   }
-  buffer.pending = command;
-  buffer.previousRequest = command;
+  storeCommand(buffer, command);
 }
 
 /** Whether the queued attack's frame has come and its grace has not run out. */
@@ -138,7 +163,8 @@ export function takeAttack(buffer: AttackBuffer, frame: number, allowed: boolean
   buffer.pending = undefined;
   buffer.consumedFacing = command.facing;
   buffer.consumedMayCharge = command.mayCharge;
-  return command;
+  // The caller may retain a consumed request while this buffer queues another.
+  return { ...command };
 }
 
 /**
@@ -148,7 +174,6 @@ export function takeAttack(buffer: AttackBuffer, frame: number, allowed: boolean
 export function holdAttack(buffer: AttackBuffer, frame: number): void {
   const command = buffer.pending;
   if (command === undefined || command.frame >= frame || frame - command.frame > buffer.graceFrames) return;
-  const held: AttackCommand = { ...command, frame };
-  buffer.pending = held;
-  buffer.previousRequest = held;
+  buffer.queued.frame = frame;
+  buffer.previous.frame = frame;
 }

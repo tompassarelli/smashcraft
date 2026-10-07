@@ -68,6 +68,8 @@ export interface FrameObservation {
   di: number;
   damage: number;
   form: number;
+  ground: number;
+  facing: number;
 }
 
 interface Participant {
@@ -276,7 +278,7 @@ export function shell(): ShellState {
 }
 
 function observation(): FrameObservation {
-  return { out: false, holding: false, actionable: false, attack: 0, jump: 0, down: 0, shieldBreak: 0, breakState: 0, ledge: 0, special: 0, grab: 0, di: 0, damage: 0, form: 0 };
+  return { out: false, holding: false, actionable: false, attack: 0, jump: 0, down: 0, shieldBreak: 0, breakState: 0, ledge: 0, special: 0, grab: 0, di: 0, damage: 0, form: 0, ground: 0, facing: 0 };
 }
 
 function participant(slot: ParticipantSlot, persistence: BindingPersistence): Participant {

@@ -10,7 +10,7 @@ import { type ParticipantSlot, isParticipantSlot } from "../../game/input/partic
 import { heldActions, keyDown, pressKey, releaseKey } from "../../game/input/playerKeys";
 import { startKeyDown, startKeyUp } from "../../game/match/controls";
 import { Phase, cancelRematchCountdown, characterFor, firstHumanSlot, humanActive, leaveMatch, recallCharacter, selectCharacter } from "../../game/match/rules";
-import { DESYNC_COMMAND, QUICK_CPU_STOCKS, RESET_COMMAND, QUICK_TRAINING_COMMAND, applyDevCommand, prepareQuickCpu, prepareQuickTraining, quickMatchCpuLevel, quickMatchHero, quickMatchStage } from "../../game/shell/devSettings";
+import { DESYNC_COMMAND, QUICK_CPU_STOCKS, RESET_COMMAND, QUICK_TRAINING_COMMAND, applyDevCommand, prepareQuickCpu, prepareQuickTraining, quickMatchCpuLevel, quickMatchHero, quickMatchStage, quickRecoveryHero } from "../../game/shell/devSettings";
 import { fighterName } from "../../game/sim/heroes/registry";
 import { keepMomentEnd } from "../../game/replay/moment";
 import { endReplaySegment } from "./replays";
@@ -22,6 +22,7 @@ import { writeLines } from "wisp/src/platform/fileio";
 import { confirmedChecksum, startInputTrace, traceParticipant } from "./diagnostics";
 import { probeFrameCostClock } from "./frameCost";
 import { probeRenderClock } from "./renderClock";
+import { showBackdrop, showStageLighting } from "./stageScenery";
 import { clearAllInputs } from "./inputs";
 import { journalEpoch, journalIdentity } from "./journal";
 import { chatBusy, requestPause } from "./journalPause";
@@ -212,9 +213,11 @@ export function onDevCommand(s: ShellState): void {
   let receipt: string | undefined;
   const quickStage = quickMatchStage(message);
   const quickHero = quickMatchHero(message);
+  const recoveryHero = quickRecoveryHero(message);
   const quickCpu = quickMatchCpuLevel(message);
   // Session setup (sessionSetup.ts) changes the menus only for its own spellings.
   const setup = applySetupCommand(s.game, GetPlayerId(GetTriggerPlayer()), message);
+  if (setup === `dev: stage ${s.game.stageChoice}` && s.game.phase === Phase.characterMenu) s.dev.stageChoice = s.game.stageChoice;
   if (message === QUICK_TRAINING_COMMAND) {
     receipt = "dev: quick training";
     prepareQuickTraining(s.game);
@@ -232,6 +235,9 @@ export function onDevCommand(s: ShellState): void {
   } else if (quickStage !== undefined) {
     receipt = "dev: quick match";
     startQuickMatch(s, quickStage);
+  } else if (recoveryHero !== undefined) {
+    receipt = `dev: quick recovery ${fighterName(recoveryHero)}`;
+    startQuickMatch(s, 0, "knockdown", recoveryHero);
   } else if (quickHero !== undefined) {
     receipt = `dev: quick match ${fighterName(quickHero)}`;
     startQuickMatch(s, 0, s.build.scenario, quickHero);
@@ -249,6 +255,14 @@ export function onDevCommand(s: ShellState): void {
   } else if (message === "-dev frame-cost-clock") {
     receipt = "dev: frame cost clock probe";
     probeFrameCostClock();
+  } else if (message === "-dev backdrop off" || message === "-dev backdrop on") {
+    const visible = message === "-dev backdrop on";
+    receipt = `dev: backdrop ${visible ? "on" : "off"}`;
+    showBackdrop(s, visible);
+  } else if (message === "-dev lighting stock" || message === "-dev lighting stage") {
+    const authored = message === "-dev lighting stage";
+    showStageLighting(s, authored);
+    receipt = `dev: lighting ${authored ? "stage" : "stock"}`;
   } else if (message === "-dev render-clock") {
     receipt = "dev: render clock probe";
     probeRenderClock();

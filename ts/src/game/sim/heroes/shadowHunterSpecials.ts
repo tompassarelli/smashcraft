@@ -78,7 +78,7 @@ const SERPENT_WARD: SpecialPlacement = {
     model: "Abilities\\Weapons\\SerpentWardMissile\\SerpentWardMissile.mdx",
     spawnFrame: 0, offsetX: h(f32(0.15)), offsetZ: h(f32(0.4)),
     velocityX: h(f32(0.10)), velocityZ: 0.0, life: 36, radius: h(f32(0.12)),
-    effect: hit(6.0, "POKE", 35, 1.0, HitElement.poison), reflectable: true, limit: 3,
+    effect: hit(7.0, "POKE", 35, 1.0, HitElement.poison), reflectable: true, limit: 3,
     feedsPassive: true,
   },
 };

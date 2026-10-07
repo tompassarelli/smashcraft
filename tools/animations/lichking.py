@@ -525,10 +525,14 @@ author('Wall Jump', {0: {**FALL, **TUCK, 'lean': 20, 'hand_L': (-34, 26, 100)}, 
 author('Wall Tech', {0: {**TUMBLE}, 5: {**TUCK, 'lean': 24, 'hand_L': (-40, 26, 96), 'step': (-6, 0)}, 31: FALL}, plant=False)
 
 # ---------------------------------------------------------------- specials
-# Howling Blast and Defile reuse Spell Throw and Spell Channel; the cast
-# lands on the release frame.
+# Howling Blast reuses Spell Throw; the cast lands on the release frame.
 reuse('Special Neutral', 'Spell Throw', zero(16), 44)
-reuse('Special Down', 'Spell Channel', zero(20), 46, angle=-90)
+# Defile: the free hand gathers above his shoulder, then presses visibly down
+# toward the pool on frame 20. Frostmourne stays upright beside the body.
+DEFILE_WIND = {'step': (-6, 0), 'lean': -10, 'twist': -14, 'hand_L': (-4, 26, 150), 'hand_R': (8, -32, 90), 'aim': 70}
+DEFILE_CAST = {'step': (10, -14), 'lean': 28, 'twist': 14, 'hand_L': (62, 16, 40), 'hand_R': (8, -32, 90), 'aim': 70, 'foot_L': (36, 14, 1)}
+author('Special Down', {0: {}, 9: DEFILE_WIND, zero(20): DEFILE_CAST, 22: DEFILE_CAST,
+                        31: {'step': (6, -8), 'lean': 16, 'hand_L': (40, 20, 62), 'hand_R': (10, -32, 92), 'aim': 60}, 46: {}}, copy_of='Spell Channel')
 # Val'kyr Shadowguard: he raises his free hand and sends the Val'kyr out ahead.
 author('Special Side', swing(zero(14), 4, 40,
     wind={'step': (-6, 0), 'lean': -12, 'twist': -20, 'hand_L': (-6, 26, 140), 'hand_R': (-6, -32, 92), 'aim': 70},
@@ -539,6 +543,37 @@ RISE = {'lean': -8, 'hand_R': (6, -26, 148), 'aim': 92, 'hand_L': (24, 30, 132),
 author('Special Up', {0: {}, 5: {'step': (0, -24), 'lean': 14, 'hand_R': (20, -30, 64), 'aim': -40, 'hand_L': (16, 24, 70)},
                       zero(8): RISE, 18: {**RISE, 'twist': -25, 'aim': 96}, 24: {**RISE, 'twist': 25, 'aim': 88}, zero(30): RISE,
                       38: {**FALL, 'lean': 10, 'hand_R': (20, -30, 100), 'aim': 40}, 46: FALL}, plant=False)
+
+# Append transitions and floor recovery after the combat clips: their existing
+# sequence indices are used by the clip pool and must remain stable (#171).
+author('Turn', {0: {'step': (0, -10), 'lean': -14, 'twist': 24, **GUARD},
+                4: {'step': (0, -18), 'lean': 10, 'twist': -24, **GUARD}, 8: {}})
+author('Stop', {0: {'step': (0, -8), 'lean': 24, **GUARD},
+                3: {'step': (-6, -16), 'lean': -16, **GUARD}, 8: {}})
+author('Jump Squat', {0: {}, 3: {'step': (0, -18), 'lean': 14, **GUARD}})
+# Neutral tech braces low on contact, then pushes back into the guard.
+TECH_BRACE = {'step': (0, -42), 'lean': 38, 'hand_R': (14, -30, 64), 'aim': -30,
+              'hand_L': (42, 20, 24), **WIDE}
+author('Tech', {0: TECH_BRACE, 6: {**TECH_BRACE, 'step': (0, -34)},
+                15: {'step': (0, -18), 'lean': 18, **GUARD}, 26: {}})
+# Directional techs tuck on contact; their travel is owned by the simulation.
+for name, sign in [('Tech Forward', 1), ('Tech Backward', -1)]:
+    author(name, {0: TECH_BRACE,
+                  8: {'step': (0, -36), 'lean': sign * 32, 'spin': sign * 24,
+                      'hand_R': (10, -30, 78), 'aim': sign * -50, 'hand_L': (12, 24, 64)},
+                  24: {'step': (0, -28), 'lean': sign * 24, 'spin': sign * 18, **GUARD},
+                  40: {}})
+# Get-up rolls start at the same lying pose as get-up, with the free hand
+# bracing while the body rises into a low directional escape.
+for name, sign in [('Get Up Roll Forward', 1), ('Get Up Roll Backward', -1)]:
+    author(name, {0: {'rise': 0},
+                  7: {'rise': .3, 'step': (0, 6), 'lean': sign * 12},
+                  16: {'rise': .7, 'step': (0, -14), 'lean': sign * 32, 'spin': sign * 20,
+                       'hand_R': (12, -30, 78), 'aim': sign * -40, 'hand_L': (24, 24, 42)},
+                  26: {'rise': 1, 'step': (0, -20), 'lean': sign * 18, **GUARD},
+                  35: {'rise': 1}},
+           base_from='Death', base_frame=int(death.frame_range[0]) + lie,
+           standing_from=('Stand Ready', 0), plant=False)
 
 # Where Frostmourne's point and the sword hand are on the clip's first and strike frames.
 for name, frame in [('Attack Jab', 5), ('Attack Jab 2', 6), ('Attack Jab 3', 8), ('Forward Tilt', 10), ('Up Tilt', 9), ('Down Tilt', 8), ('Dash Attack', 11),

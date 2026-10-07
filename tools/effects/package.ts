@@ -62,6 +62,17 @@ for (let i = 0; i < 24; i++) {
 }
 const models: [string,Shape[]][] = [["Hit",rays(16,47,44)], ["Tech",rays(8,60,22)], ["Miss",miss], ["Dust",dust], ["Roll",rays(8,33,30)],
     ["Electric",electric], ["Shield",rays(10,38,38)], ["Jump",ring], ["KO",rays(20,85,85)], ["Respawn",rays(8,45,65)]];
+// A unit-radius floor rim: the renderer scales it by the pool's simulation
+// radius. Its raised ends stay readable from the side-view camera.
+const defile: Shape[] = [];
+for (let i = 0; i < 32; i++) {
+    const a=i*Math.PI/16, b=(i+1)*Math.PI/16;
+    defile.push({points:[[.95*Math.cos(a),.06+.06*Math.sin(a)],[Math.cos(a),.06+.06*Math.sin(a)],
+        [Math.cos(b),.06+.06*Math.sin(b)],[.95*Math.cos(b),.06+.06*Math.sin(b)]],tile:0});
+}
+defile.push({points:[[-1,0],[-1,.20],[-.95,.20],[-.95,0]],tile:0},
+    {points:[[.95,0],[.95,.20],[1,.20],[1,0]],tile:0});
+models.push(["Defile",defile]);
 const imports = [textureName];
 const assetInfo: string[] = [];
 let preview = `<svg xmlns="http://www.w3.org/2000/svg" width="${models.length*200}" height="210"><defs><radialGradient id="dust"><stop stop-color="white"/><stop offset=".55" stop-color="white" stop-opacity=".65"/><stop offset="1" stop-color="white" stop-opacity="0"/></radialGradient></defs><rect width="${models.length*200}" height="210" fill="#18202c"/>`;

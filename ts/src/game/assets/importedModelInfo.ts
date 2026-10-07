@@ -6,7 +6,7 @@
 
 /** The Lich King's body, by Kwaliti (Hive Workshop). */
 export const LICH_KING_MODEL = "war3mapImported\\LichKing2.mdx";
-/** His command icon, by Kwaliti; the selection screen shows it until his portraits are rendered. */
+/** His command icon, by Kwaliti. */
 export const LICH_KING_ICON = "ReplaceableTextures\\CommandButtons\\BTNLichKing.blp";
 /**
  * His model is not a Warcraft unit's, so it has no unit model scale: it is

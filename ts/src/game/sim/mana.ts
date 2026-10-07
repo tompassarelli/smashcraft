@@ -4,7 +4,7 @@
 // points and an integer trickle remainder keep the host and Lua32 equal.
 import { max, min, toInt } from "../../runtime/numbers";
 import { idiv } from "wisp/src/sim/intMath";
-import { ContactKind, HeroStatusKind, SPECIAL_ACTION_CAPACITY, SpecialAction } from "./codes";
+import { ContactKind, HeroStatusKind, SpecialAction } from "./codes";
 import { inGrabContext } from "./conditions";
 import type { Fighter } from "./fighter";
 import { at } from "wisp/src/runtime/lookup";
@@ -53,11 +53,11 @@ const ORIGINAL_SPECIAL_COSTS: readonly number[] = [
   0, // Illidan: Wing Ascent
   15, // Illidan: Immolation
 ];
-if (ORIGINAL_SPECIAL_COSTS.length !== SPECIAL_ACTION_CAPACITY) throw new Error("one mana cost per original special action");
+if (ORIGINAL_SPECIAL_COSTS.length !== SpecialAction.heroNeutral) throw new Error("one mana cost per original special action");
 
 /** An original fighter's special's cost; hero kits author theirs. */
 export function originalSpecialCost(action: number): number {
-  return action > SpecialAction.none && action < SPECIAL_ACTION_CAPACITY ? at(ORIGINAL_SPECIAL_COSTS, action) : 0;
+  return action > SpecialAction.none && action < SpecialAction.heroNeutral ? at(ORIGINAL_SPECIAL_COSTS, action) : 0;
 }
 
 /** Spends `cost`, which the caller checked is affordable. */

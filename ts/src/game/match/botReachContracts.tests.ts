@@ -13,6 +13,7 @@ import { AttackStyle, Character, DownState, SpecialAction } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 import { createFighter } from "../sim/fighter";
 import { runningHeroSpecial } from "../sim/heroSpecialRules";
+import { Relocation } from "../sim/heroSpecials";
 import { SELECTABLE_CHARACTERS, fighterName } from "../sim/heroes/registry";
 import { attackStartupFrames } from "../sim/moves";
 import { copyControls, createRoster, fighterAt, isActive, neutralControls } from "../sim/roster";
@@ -76,6 +77,8 @@ function specialAccountedFor(c: Readonly<Fighter>, o: Readonly<Fighter>): boolea
   if (move === undefined) return false;
   if (move.projectiles !== undefined || move.placement !== undefined || move.burst !== undefined || move.command !== undefined || move.recallsProjectiles === true) return true;
   if ((move.regions ?? []).length === 0 && move.commandGrab === undefined && (move.followUps ?? []).length === 0) return true;
+  // Shadow Pursuit appears behind its marked target and slashes from there: its reach is the relocation's.
+  for (const step of move.motion ?? []) if (step.relocate === Relocation.behindMark && Math.abs(dx) <= (step.relocateReach ?? 0.0) && Math.abs(dz) <= (step.relocateReach ?? 0.0)) return true;
   for (const slack of [0.0, SLACK, -SLACK]) if (strikeMeets(move, o, f32(f32(dx * c.facing) - slack), dz)) return true;
   return false;
 }

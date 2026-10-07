@@ -11,7 +11,7 @@ import { collectDamageContact, finishDamageContacts, openDamageContacts } from "
 import { type Fighter, PROJECTILE_CAPACITY, type Projectile } from "./fighter";
 import { type HitEffect, HitElement, copyHitEffect, emptyHitEffect } from "./hitRegions";
 import type { SpecialProjectile } from "./heroSpecials";
-import { hurtCapsule } from "../physics/contactGeometry";
+import { hurtCapsule, segmentBoxesOverlap } from "../physics/contactGeometry";
 import { RIFLEMAN_BLASTER_GROUND_DAMAGE_MULTIPLIER, attackDamage } from "./moves";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type Roster, fighterAt, isActive } from "./roster";
@@ -27,6 +27,11 @@ const BLASTER_AIR_SHOT_HEIGHT = 30.0;
 const BLASTER_PROJECTILE_HALF_HEIGHT = 36.0;
 const BLASTER_PROJECTILE_RADIUS = 24.0;
 const BLASTER_PROJECTILE_SPAWN_OFFSET = 35.0;
+export const ARCHER_ARROW_DAMAGE = 5.0;
+export const ARCHER_ARROW_SPEED = 28.0;
+export const ARCHER_ARROW_LIFETIME = 45;
+/** A centered arrow meets a held shield instead of slipping above its shrinking edge. */
+const ARCHER_ARROW_HEIGHT = 45.0;
 /** Height of a target's body center above its position. */
 const TARGET_CENTER_HEIGHT = 45;
 /** Archer's homing arrow (side special): slower than his arrow, so a jump timed as it closes in leaves it behind. */
@@ -98,7 +103,7 @@ const facingOf = (owner: Fighter, direction: number): number => (direction === 0
 
 /** Archer's arrow, level toward direction, or the owner's facing for zero. */
 export function spawnArcherArrow(owner: Fighter, direction: number, serial: number): void {
-  spawnProjectileMotion(owner, ProjectileKind.arrow, f32(facingOf(owner, direction) * BLASTER_PROJECTILE_SPEED), 0.0, 75, serial);
+  spawnProjectileMotion(owner, ProjectileKind.arrow, f32(facingOf(owner, direction) * ARCHER_ARROW_SPEED), 0.0, ARCHER_ARROW_LIFETIME, serial, 1.0, ARCHER_ARROW_HEIGHT);
 }
 
 /** Archer's homing arrow, launched level toward direction, or the owner's facing for zero. */
@@ -147,7 +152,7 @@ export function projectileDamage(projectile: Readonly<Projectile>): number {
   const { kind, spec } = projectile;
   const damage = kind === ProjectileKind.hero && spec !== undefined ? heroProjectileEffect(projectile, spec).damage
     : kind === ProjectileKind.blaster ? attackDamage(AttackStyle.shot)
-      : kind === ProjectileKind.homingArrow ? 3.0 : kind === ProjectileKind.recoil || kind === ProjectileKind.manaBurn ? 5.0 : 7.0;
+      : kind === ProjectileKind.homingArrow ? 3.0 : kind === ProjectileKind.arrow ? ARCHER_ARROW_DAMAGE : kind === ProjectileKind.recoil || kind === ProjectileKind.manaBurn ? 5.0 : 7.0;
   return roundToFloat32(f32(damage * projectile.damageMultiplier));
 }
 
@@ -364,6 +369,8 @@ function flyHeroProjectile(world: Roster, ownerSlot: number, projectile: Project
     const body = hurtCapsule(target.character);
     const targetX = at(targets.x, targetSlot);
     const targetZ = at(targets.z, targetSlot);
+    // Ground pools deny the deck, so jumping leaves their danger even while above the pool.
+    if (spec.pool !== undefined && !target.motion.grounded) continue;
     const reach = f32(radius + body.radius);
     const crossed = f32(f32(targetX - oldX) * direction) >= 0 && f32(f32(targetX - projectile.x) * direction) <= 0;
     const near = Math.abs(f32(targetX - projectile.x)) <= reach;
@@ -389,6 +396,7 @@ function side(ax: number, az: number, bx: number, bz: number, cx: number, cz: nu
 
 /** Whether segments p1-p2 and q1-q2 cross or touch. */
 function segmentsMeet(p1x: number, p1z: number, p2x: number, p2z: number, q1x: number, q1z: number, q2x: number, q2z: number): boolean {
+  if (!segmentBoxesOverlap(p1x, p1z, p2x, p2z, q1x, q1z, q2x, q2z)) return false;
   const d1 = side(q1x, q1z, q2x, q2z, p1x, p1z);
   const d2 = side(q1x, q1z, q2x, q2z, p2x, p2z);
   // Most steps lie wholly on one side of a surface's line; p's own line isn't needed then.
@@ -491,7 +499,7 @@ export function updateProjectiles(world: Roster, stage?: number, matchFrame = 0)
       if (nearest !== undefined && pool !== undefined) {
         // A pool stays: it waits before striking again and widens on a body.
         applyProjectileHit(world, ownerSlot, nearest, projectile, selected.shield);
-        projectile.poolWait = pool.every;
+        projectile.poolWait = pool.every - 1;
         if (!selected.shield) projectile.poolHits++;
       } else if (nearest !== undefined) {
         if (!(selected.reflector && reflectProjectile(fighterAt(world, nearest), projectile))) {

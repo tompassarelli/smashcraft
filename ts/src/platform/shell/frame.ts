@@ -45,12 +45,17 @@ function observe(before: FrameObservation, fighter: Readonly<Fighter>): void {
   before.di = fighter.launch.diSerial;
   before.damage = fighter.status.damage;
   before.form = fighter.special.form;
+  before.ground = fighter.ground.action;
+  before.facing = fighter.facing;
 }
 
 const bit = (value: boolean) => (value ? "1" : "0");
 
 /** Announcements and trace lines for what the frame changed. */
 function reportChanges(s: ShellState, slot: ParticipantSlot, before: Readonly<FrameObservation>, f: Readonly<Fighter>): void {
+  if (s.trace.active && (before.ground !== f.ground.action || before.facing !== f.facing)) {
+    traceParticipant(s, slot, `ground action ${f.ground.action} facing ${f.facing} dash-frame ${f.ground.dashFrame}`);
+  }
   if (before.grab !== f.grab.action) traceParticipant(s, slot, `grab action ${f.grab.action} frame ${f.grab.frame} serial ${f.grab.serial}`);
   const holding = f.grab.target !== undefined;
   if (before.holding !== holding) traceParticipant(s, slot, `grab-hold ${holding ? "start" : "end"}`);

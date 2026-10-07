@@ -20,6 +20,8 @@ import type { Character } from "../sim/codes";
 import { SELECTABLE_CHARACTERS, fighterName } from "../sim/heroes/registry";
 
 export interface DevSettings {
+  /** An explicit setup choice made before the stage menu opens. */
+  stageChoice?: number | undefined;
   rollback: number;
   delay: FixedDelay;
   /** Callbacks per synchronized input message, 1 to MAX_BATCH. */
@@ -93,8 +95,19 @@ export function quickMatchStage(message: string): number | undefined {
 export const QUICK_HERO_COMMAND = "-dev quick hero ";
 
 export function quickMatchHero(message: string): Character | undefined {
-  if (!message.startsWith(QUICK_HERO_COMMAND)) return undefined;
-  const wanted = message.substring(QUICK_HERO_COMMAND.length).toLowerCase();
+  return heroAfter(message, QUICK_HERO_COMMAND);
+}
+
+/** Starts a named fighter tumbling above the floor, for recovery captures. */
+export const QUICK_RECOVERY_HERO_COMMAND = "-dev quick recovery hero ";
+
+export function quickRecoveryHero(message: string): Character | undefined {
+  return heroAfter(message, QUICK_RECOVERY_HERO_COMMAND);
+}
+
+function heroAfter(message: string, prefix: string): Character | undefined {
+  if (!message.startsWith(prefix)) return undefined;
+  const wanted = message.substring(prefix.length).toLowerCase();
   for (const character of SELECTABLE_CHARACTERS) if (fighterName(character).toLowerCase() === wanted) return character;
   return undefined;
 }

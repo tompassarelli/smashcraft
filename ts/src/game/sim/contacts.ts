@@ -96,6 +96,13 @@ export function beginDamageContacts(): void {
   batch.collecting = true;
 }
 
+/** Releases a finished match's scratch pool; no replay state owns contacts. */
+export function clearDamageContacts(): void {
+  batch.contacts.length = 0;
+  batch.count = 0;
+  batch.collecting = false;
+}
+
 /** Opens a batch unless one is already open; true when the caller owns it and must finish it. */
 export function openDamageContacts(): boolean {
   if (batch.collecting) return false;

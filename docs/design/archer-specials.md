@@ -110,3 +110,37 @@ the hippogryph acting on its own.
 Existing assets only: the stock hippogryph model (`walk` while swooping or
 carrying, `stand` while perched, `attack` while diving or flying on after a
 leap-off), and Archer's special-up and special-down clips.
+
+## Neutral special: Swift Arrow
+
+Tom delegated the rework on 7 October 2026 (#172): arrows should zone while
+leaving an opponent a useful response to repeated shots. Archer draws for
+15 frames, releases on action frame 16, and finishes on frame 24. The next
+shot starts no sooner than 30 frames after the last. Drawing and recovering
+commit her to the bow: she cannot jump or attack out of them. The existing
+bow clip plays eight times slower, keeping its release two-thirds through
+the action; the cast cue and projectile use that same release frame.
+
+An arrow deals 5% without flinch, hitlag or knockback, flies 28 world units
+per frame at shield-centre height (45), and lives for 45 frames. Trueshot
+still doubles every third landed arrow: 5, 5, 10. Archer keeps a long level
+lane, but gains less damage for firing blindly and carries at most two
+neutral arrows at once instead of ten.
+
+**Counterplay.** A held shield blocks the level flight without shieldstun;
+advance during the 30-frame gap rather than hold until the shield shrinks.
+A full jump during the visible draw clears the arrow. At 60 units in an
+Archer mirror, shield grab pressed 1–3 frames after blocking catches Archer
+before she recovers; at 240 units, she remains committed 3 frames after
+contact. Farther out, the arrow takes longer to arrive and she can move again
+before it reaches the opponent. A late shield press reflects it under the
+shared powershield rule. These are measured match-frame outcomes, not a
+human reaction-time guarantee.
+
+The previous shot released on frame 2, ended on frame 3, repeated every 8
+frames, and dealt 7% at height 75 while flying 36 units per frame for 75
+frames. Its high flight poked through a held shield as the shield shrank.
+A 180-frame mirror at 240 units, pressing special every other frame, dealt
+203% to an idle defender and 182% through a held shield; the rework deals
+40% to the idle defender and zero through that shield. The baseline and
+rework trials are retained in smashcraft:evidence/archer-neutral-172-20261007/.

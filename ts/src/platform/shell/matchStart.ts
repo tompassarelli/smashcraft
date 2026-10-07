@@ -11,6 +11,7 @@ import { readyFile, stageDrawnFile } from "../../game/shell/journalFiles";
 import { initializeScenario } from "../../game/shell/scenarios";
 import { type Scenario, usesPool } from "../../game/shell/build";
 import { fighterAt, isActive } from "../../game/sim/roster";
+import { surfaceCount } from "../../game/sim/stage";
 import { writeLines } from "wisp/src/platform/fileio";
 import { clearAllInputs } from "./inputs";
 import { journalIdentity, publishMenu } from "./journal";
@@ -37,7 +38,9 @@ export function startMatch(s: ShellState, scenario: Scenario = s.build.scenario)
   s.runtime.botAttackDelays.fill(0.0);
   makePreview(s);
   initializeMatchFighters(s.game, s.world);
-  drawStage(s);
+  // Keep the scene prepared behind the loading screen, including on rematch.
+  // Recreating it here would expose the old scenery's death animations.
+  if (s.drawnStage !== s.game.stageChoice || s.stageDecks.length !== surfaceCount(s.game.stageChoice)) drawStage(s);
   if (wasPaused) pauseMatchPresentation(s, false);
   initializeScenario(scenario, s.game, s.world);
   const { rollback } = s;

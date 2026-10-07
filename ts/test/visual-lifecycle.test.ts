@@ -6,7 +6,7 @@ import { startAtGo } from "../src/game/match/testMatch";
 import { IMPACT_DUST, IMPACTS_PER_KIND } from "../src/game/presentation/impactState";
 import { FLOOR_HEIGHT } from "../src/game/presentation/arenaCamera";
 import { ReplayCorrections, ReplayHistory } from "../src/game/replay/history";
-import { Character } from "../src/game/sim/codes";
+import { Character, SpecialAction } from "../src/game/sim/codes";
 import { fighterAt } from "../src/game/sim/roster";
 import { projectileActive } from "../src/game/sim/projectiles";
 import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
@@ -24,9 +24,37 @@ import { CombatEffects } from "../src/game/render/combatEffects";
 import { createImpactEvents } from "../src/game/presentation/impactEvents";
 import { createImpactState, emitImpacts } from "../src/game/presentation/impactState";
 import { HIT_PRESENTATION_CASES } from "../src/game/shell/hitPresentationCases";
+import { SpecialEffects } from "../src/game/render/specialEffects";
+import { IMMOLATE_SOUNDS } from "../src/game/presentation/elementLooks";
 
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
+
+test("Immolation loops are released on match reset and presentation destruction", () => {
+  const clients = headless.clients({ start, install });
+  clients.start();
+  clients.frames(30);
+  const client = clients.clients[0];
+  if (client === undefined) throw new Error("missing host client");
+  client.run(() => {
+    const renderer = new SpecialEffects(shell().origin);
+    const fighter = fighterAt(shell().world, 0);
+    fighter.character = Character.demonHunter;
+    fighter.special.action = SpecialAction.demonHunterImmolate;
+    fighter.special.frame = 0;
+    for (const finish of [() => renderer.clear(), () => renderer.clear(), () => renderer.destroy()]) {
+      const before = client.log.length;
+      renderer.presentConfirmedAnimated(0, fighter, 0);
+      const made = client.log.slice(before).find(call => call.name === "CreateSoundFromLabel" && call.args[0] === IMMOLATE_SOUNDS.loop);
+      expect(made).toBeDefined();
+      finish();
+      const stops = client.log.slice(before).filter(call => call.name === "StopSound");
+      const releases = client.log.slice(before).filter(call => call.name === "KillSoundWhenDone");
+      expect(stops).toHaveLength(1);
+      expect(releases.some(call => call.args[0] === stops[0]?.args[0])).toBe(true);
+    }
+  });
+});
 
 test("hit event language: 26 event cases reach stock effects and confirmed sounds without replay", () => {
   const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install });

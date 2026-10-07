@@ -1,0 +1,66 @@
+# #132 Dreadlord's Sleep, native check by parity: an airborne Sleep lasts 24; a shield stops Sleep; a
+# grounded Sleep lasts its full length unmashed; mashing wakes the sleeper early, never before frame
+# 24. Each Sleep lands as the 240 frames of immunity from the one before run out. A hit waking the
+# sleeper and Vampiric Pounce are dreadlord-pounce.pad. Dreadlord a against Dreadlord b; syntax and
+# checks: smashcraft:docs/native-bot-session.md.
+#! chat -dev quick hero dreadlord
+# a dashes in, inside Sleep's reach.
+40 a stick 1 0
+42 a stick 0 0
+# Sleep on b just as b hops: an airborne Sleep, 24 frames; b attacks right after it.
+60 a stick 0 -1
+60 a tap X 2
+61 a stick 0 0
+106 b tap B 2
+136 b tap A 2
+# Sleep into b's held shield: no hit.
+160 a stick 0 -1
+160 a tap X 2
+161 a stick 0 0
+170 b shield 1
+250 b shield 0
+# Sleep on a grounded b, unmashed: b waits through all 100 frames before attacking.
+330 a stick 0 -1
+330 a tap X 2
+331 a stick 0 0
+484 b tap A 2
+# View held a second: the first of two moments the parity check replays.
+500 a press VIEW
+570 a release VIEW
+# Sleep again once b's immunity is over; b mashes attack every 4 frames.
+670 a stick 0 -1
+670 a tap X 2
+671 a stick 0 0
+721 b tap A 2
+725 b tap A 2
+729 b tap A 2
+733 b tap A 2
+737 b tap A 2
+741 b tap A 2
+745 b tap A 2
+749 b tap A 2
+753 b tap A 2
+757 b tap A 2
+761 b tap A 2
+765 b tap A 2
+769 b tap A 2
+773 b tap A 2
+777 b tap A 2
+781 b tap A 2
+#! expect a 60 special 16 form 0
+#! expect b 110 damage 2.000
+#! expect b 136 applied attack 1 style 0
+#! expect a 160 special 16 form 0
+#! absent b 161-379 damage
+#! expect a 330 special 16 form 0
+#! expect b 380 damage 4.000
+#! absent b 381-483 applied attack
+#! expect b 484 applied attack 2 style 0
+#! expect a 670 special 16 form 0
+#! expect b 720 damage 6.000
+#! absent b 721-755 applied attack
+#! expect b 757 applied attack 3 style 0
+#! scene a SleepSpecialArt
+#! scene a VoidWalkerMissile
+1000 a press VIEW
+1070 a release VIEW

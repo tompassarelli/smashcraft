@@ -126,10 +126,10 @@ export function attackDamage(style: AttackStyle): number {
       return 9.0;
     case AttackStyle.ledgeAttack:
     case AttackStyle.neutralAir:
+    case AttackStyle.forwardAir:
       return 7.0;
     case AttackStyle.getupAttack:
       return DOWN_ATTACK_DAMAGE;
-    case AttackStyle.forwardAir:
     case AttackStyle.backAir:
     case AttackStyle.upAir:
     case AttackStyle.upTilt:

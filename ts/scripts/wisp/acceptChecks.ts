@@ -23,6 +23,7 @@ export interface SmashcraftMapProfile {
 
 /** A development map rebuilt from this checkout: diagnostics and `-dev` commands. */
 const PRESENTATION = join(inputs, "native-acceptance-20261006/Smashcraft diagnostic native presentation.w3x");
+const LIGHTING = join(inputs, "visuals-170-20261007/Smashcraft diagnostic stage lighting.w3x");
 
 const heroes = HERO_ROSTER.filter(({ complete }) => complete);
 const rankedStages = STAGE_CATALOG.filter(({ id }) => id !== 0);
@@ -39,6 +40,11 @@ export const MAP_PROFILES: Readonly<Record<string, SmashcraftMapProfile>> = {
     describe: `development map rebuilt from this checkout, a quick match on ${name}`,
     path: PRESENTATION,
     rebuild: "main",
+    quick: `-dev quick stage ${id}`,
+  }])),
+  ...Object.fromEntries(STAGE_CATALOG.map(({ id, name }) => [`lighting-${id}`, {
+    describe: `development map with every stage lighting import; paused stock/stage comparison on ${name}`,
+    path: LIGHTING,
     quick: `-dev quick stage ${id}`,
   }])),
   ...Object.fromEntries(heroes.map(({ name }) => [heroProfile(name), {
@@ -90,6 +96,28 @@ const stageChecks: NativeCheck[] = rankedStages.map(({ name }): NativeCheck => (
   look: `${name}: sky, fog and scenery behind the fighting volume, no mirror-twin scenery or creatures, a themed main deck distinct from the fog, both fighters and the HUD drawn`,
 }));
 
+/** One paused scene per stage; the native owner measures the matching masks and frames together. */
+const lightingChecks: NativeCheck[] = STAGE_CATALOG.flatMap(({ id, name }): NativeCheck[] => [
+  {
+    id: `170-${id}-stock`, closes: "smashcraft#170 box 4", map: `lighting-${id}`,
+    setup: [{ waitMs: 5000 }, { keys: ["y"] }, { chat: "-dev lighting stock" }],
+    capture: [{ kind: "frames", name: "stock", client: "a" }, { kind: "frames", name: "stock", client: "b" }],
+    pass: [NO_IMPORT_FAILURES, NO_ERRORS], look: `${name}: paused fighters, sky, fog, scenery and deck; stock lighting reference`,
+  },
+  {
+    id: `170-${id}-mask`, closes: "smashcraft#170 box 4", map: `lighting-${id}`,
+    setup: [{ chat: "-dev backdrop off" }, { waitMs: 13000 }],
+    capture: [{ kind: "frames", name: "mask", client: "a" }, { kind: "frames", name: "mask", client: "b" }],
+    pass: [NO_ERRORS], look: `${name}: same paused fighters alone; no residual snow or fire in the fighter mask`,
+  },
+  {
+    id: `170-${id}-stage`, closes: "smashcraft#170 box 4", map: `lighting-${id}`,
+    setup: [{ chat: "-dev backdrop on" }, { chat: "-dev lighting stage" }, { waitMs: 1000 }],
+    capture: [{ kind: "frames", name: "stage", client: "a" }, { kind: "frames", name: "stage", client: "b" }],
+    pass: [NO_IMPORT_FAILURES, NO_ERRORS], look: `${name}: same paused pose and camera; neither |ΔL| nor ΔE00 reduced against stock; record any change to shadows; run smashcraft:tools/stage/contrast.ts on this pair`,
+  },
+]);
+
 /** smashcraft#82's re-capture: each case 3 s after the last, frames from its receipt to +0.5 s, its model and sound named on screen. */
 const effectChecks: NativeCheck[] = [12, 13, 14, 15, 24, 2, 7, 5, 6, 4, 9, 11, 25, 26].flatMap((index): NativeCheck[] => {
   const scenario = HIT_PRESENTATION_CASES[index];
@@ -113,6 +141,24 @@ const effectChecks: NativeCheck[] = [12, 13, 14, 15, 24, 2, 7, 5, 6, 4, 9, 11, 2
 export const SMASHCRAFT_ACCEPT: AcceptSuite = {
   maps: MAP_PROFILES,
   checks: [
+    ...(["a", "b"] as const).map((client): NativeCheck => ({
+      id: `174-defile-${client}`,
+      closes: "smashcraft#174 box 2",
+      map: heroProfile("Lich King"),
+      session: "174-defile",
+      setup: [{ waitMs: 3000 }, { keys: ["e+u"], client }],
+      capture: [{ kind: "frames", name: "cast-and-pool", client, count: 16, everyMs: 50 }],
+      pass: [NO_IMPORT_FAILURES, NO_ERRORS],
+      look: "Frostmourne's downward cast plants the shadow pool ahead; its low rim changes from dim to violet when armed, stays at the pool's horizontal danger edge, and faces the other way for player 2. Scripted repeated casts and the jump escape are smashcraft:ts/test/native/pads/lich-king-defile.pad.",
+    })),
+    {
+      id: "169-render-clock",
+      closes: "smashcraft#169 box 1 (callback cadence and cost; compare 60/144 fps reports)",
+      map: "presentation",
+      setup: [{ chat: "-dev render-clock" }, { receipt: "^render-clock run=[0-9]+ clock=", seconds: 12 }],
+      pass: [NO_IMPORT_FAILURES, NO_ERRORS, { kind: "receipt", pattern: "^render-clock run=[0-9]+ clock=running", min: 1 }],
+      look: "native session owner: compare callback bursts and recording cost with renderer telemetry at 60 and 144 fps; a receipt alone does not establish a render-rate hook",
+    },
     // First in its session, so its frames show the map as it loaded.
     {
       id: "73-map-load",
@@ -125,6 +171,7 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
     },
     ...effectChecks,
     ...stageChecks,
+    ...lightingChecks,
     {
       id: "57-underside",
       closes: "smashcraft#57 box 2",

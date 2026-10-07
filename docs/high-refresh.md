@@ -1,0 +1,71 @@
+# Presentation cadence in Warcraft III
+
+Smashcraft executes its deterministic simulation at 60 Hz. A faster display
+can only show additional fighter positions if Warcraft calls map Lua between
+those simulation updates. A high timer callback count alone does not establish
+that: multiple timer expirations can execute together before one frame is drawn.
+
+## API and prior art
+
+The declarations consumed by Smashcraft's Wisp pin
+`2d04060f674e8280b4791e37b962da382b42da00` expose timers and UI events but no
+general render-frame callback. The independently pinned
+[jassdoc common.j at d49b2ba](https://github.com/lep/jassdoc/blob/d49b2ba47c72ad757aa17abdfa9ccd55a7493fd5/common.j)
+provides the following evidence. Jassdoc annotations are community observations;
+they do not establish current Warcraft III 3.0 behavior.
+
+| Candidate | Source evidence | Consequence for presentation |
+| --- | --- | --- |
+| `TimerStart(timer, 0, true, callback)` | The `TimerStart` annotation reports 10,077 callbacks/s on 1.32.10. | Measure callback spacing and bursts against actual rendered frames; zero does not mean once per render. |
+| `TimerStart` at 1/1024 s | An exact binary32 period provides a second timer candidate without period rounding drift. | A larger callback count is useful only if callbacks occur between rendered frames. |
+| `TriggerRegisterTimerEvent` | The same annotation reports a 100 Hz ceiling on 1.32.10, including a zero period. | A distinct historical timer path, without a render-rate contract. |
+| `FRAMEEVENT_SPRITE_ANIM_UPDATE` | The annotation says it is not functional and has no implementation in the internal event map. | Its name is insufficient evidence for using it as a render hook. |
+| Other frame events | Click, mouse, edit-box, slider and dialog events describe user actions. | They do not provide a continuous rendering clock. |
+| Camera API | Position, field, controller, noise and smoothing functions expose no `code` callback registration. | Native camera smoothing is not a Lua callback for moving fighter effects. |
+
+[Hive's game-events versus timer discussion](https://www.hiveworkshop.com/threads/using-game-events-as-a-clock-source-instead-of-timers.338408/)
+compares periodic timers with unit attacks and time-of-day events. It reports
+several update rates, and discusses multiple expirations inside one simulation
+update. Those game events provide a distinct clock approach, but none promises
+display refresh cadence. Its timer counts include an exact 1/1024 s period.
+
+[Hive's high-FPS UI movement report](https://www.hiveworkshop.com/threads/frames-begin-moving-with-noticeable-delay-in-network-mode-even-with-just-1-player-when-fps-exceeds-270.363069/)
+reports different behavior above and below 270 fps in a multiplayer match using
+1 ms timers. It demonstrates why actual FPS and multiplayer mode belong in
+the measurement; the discussion does not establish a render hook or a cause.
+
+## Native probe
+
+Development builds expose `-dev render-clock`. It runs zero-period and
+1/1024-second periodic timers together for four game seconds, writing each
+client's `smashcraft-render-clock-pSLOT-runN.txt` in CustomMapData. All timer
+handles and callback registrations are created and freed at synchronized times.
+Clock samples and reports remain local and never change simulation state.
+
+The report includes total callbacks, retained samples, whether the 64,000-sample
+bound was hit, clock resolution, callback burst spacing, callbacks per burst,
+game-time steps and recording cost per callback (mean, median, p90 and maximum).
+Cost covers the two clock reads, array recording and `TimerGetElapsed`; it is
+instrumented callback work, not an estimate of a future interpolation pass.
+Values below the clock's resolution cannot be resolved individually.
+
+The `bursts` field groups callbacks separated by more than 1.953125 ms, or twice
+the observed clock step if larger. It does not count renderer frames. `os.clock`
+is a runtime-provided clock whose relation to elapsed real time must be checked
+against the renderer capture duration; a stopped clock or CPU-time-only clock
+cannot establish presentation cadence.
+
+Run the same development map and match on an offline LAN pair using Wisp's
+`parity` (60 fps) and `hfr` (144 fps) profiles. These profiles differ only in
+foreground/background FPS caps. Keep game speed, resolution, graphics settings,
+match setup and candidate bytes fixed. After scene loading, invoke the command
+once per cap and retain both clients' reports, game version, effective
+War3Preferences, renderer frame times/FPS, and error/desync status. The declared
+`169-render-clock` native check waits for the report; changing the pool profile
+and retaining renderer telemetry remain the native session owner's work.
+
+If callback bursts stay near 60 Hz while the renderer reaches 120–144 fps, timer
+interpolation cannot provide fresh positions for those additional frames. If a
+candidate tracks the renderer instead, compare its callback cost with the frame
+budget before enabling interpolation. Issue #169's native result, rather than
+the API names or synthetic tests, decides between these outcomes.

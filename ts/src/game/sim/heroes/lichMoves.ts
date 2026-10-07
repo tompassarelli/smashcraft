@@ -119,7 +119,7 @@ const LICH_BODY: FighterHurtboxes = {
   attacks: {
     ...groundPoses(LICH_GROUND, (x, z) => [TORSO, arm(x, z)]),
     [AttackStyle.upTilt]: reach(6, 17, arm(14.0, f32(BODY_TOP + 18.0)), arm(-14.0, f32(BODY_TOP + 18.0), -8.0)),
-    [AttackStyle.forwardSmash]: reach(18, 30, arm(28.0, 47.0)),
+    [AttackStyle.forwardSmash]: reach(14, 26, arm(28.0, 47.0)),
     [AttackStyle.upSmash]: reach(16, 30, arm(10.0, f32(BODY_TOP + 20.0)), arm(-10.0, f32(BODY_TOP + 20.0), -8.0)),
     [AttackStyle.downSmash]: reach(16, 28, arm(28.0, 14.0), arm(-28.0, 14.0, -8.0)),
     [AttackStyle.forwardAir]: reach(10, 18, arm(28.0, 47.0)),
@@ -141,8 +141,8 @@ export const LICH_MOVES: FighterMoves = {
   hurtboxes: LICH_BODY,
   normals: {
     ...LICH_GROUND.normals,
-    [AttackStyle.forwardSmash]: heroMove(22, 3, 36, 0, [
-      heroRegion(22, 24, capsule(20.0, 45.0, f32(XL - 7.0), 45.0, 7.0), hit(18.0, "KILL", 35)),
+    [AttackStyle.forwardSmash]: heroMove(18, 3, 36, 0, [
+      heroRegion(18, 20, capsule(20.0, 45.0, f32(XL - 7.0), 45.0, 7.0), hit(18.0, "KILL", 35)),
     ]),
     [AttackStyle.upSmash]: heroMove(20, 5, 34, 0, [
       heroRegion(20, 24, capsule(0.0, 8.0, 0.0, f32(L - 10.0), 10.0), hit(17.0, "KILL", 90)),

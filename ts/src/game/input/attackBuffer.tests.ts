@@ -1,8 +1,26 @@
 import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
-import { attackBufferCanonicalState, clearAttackBuffer, copyAttackBuffer, type AttackBuffer, type AttackCommand, attackBuffer, queueAttack, takeAttack } from "./attackBuffer";
+import { attackBufferCanonicalState, clearAttackBuffer, copyAttackBuffer, holdAttack, type AttackBuffer, type AttackCommand, attackBuffer, queueAttack, takeAttack } from "./attackBuffer";
 import type { Direction } from "./inputRow";
 
 const attack = (style: number, facing: Direction, frame: number, mayCharge = false): AttackCommand => ({ style, facing, frame, mayCharge });
+
+test("a snapshot and a consumed request keep their values when the source buffer queues or holds another", () => {
+  const live = attackBuffer(3);
+  const snapshot = attackBuffer(3);
+  queueAttack(live, attack(4, -1, 10, true));
+  copyAttackBuffer(snapshot, live);
+  holdAttack(live, 11);
+  assertEquals(snapshot.pending?.frame, 10);
+  assertEquals(snapshot.previousRequest?.frame, 10);
+  const consumed = take(live, 11);
+  queueAttack(live, attack(0, 1, 20));
+  assertEquals(consumed.style, 4);
+  assertEquals(consumed.frame, 11);
+  assertEquals(consumed.facing, -1);
+  assertTrue(consumed.mayCharge);
+  assertEquals(snapshot.pending?.style, 4);
+  assertEquals(snapshot.previousRequest?.facing, -1);
+});
 
 function take(buffer: AttackBuffer, frame: number): AttackCommand {
   return assertDefined(takeAttack(buffer, frame, true), `attack on frame ${frame}`);
@@ -138,6 +156,10 @@ test("Replay2 command fields retain a consumed request and reset on expiry or cl
 
   queueAttack(buffer, attack(1, 1, 30));
   clearAttackBuffer(buffer);
+  assertEquals(buffer.queued.frame, 0);
+  assertEquals(buffer.previous.frame, 0);
+  assertEquals(buffer.queued.mayCharge, false);
+  assertEquals(buffer.previous.mayCharge, false);
   assertEquals(attackBufferCanonicalState(buffer).style, -1);
   assertEquals(attackBufferCanonicalState(buffer).targetFrame, -1);
   assertEquals(attackBufferCanonicalState(buffer).consumedFacing, 0);

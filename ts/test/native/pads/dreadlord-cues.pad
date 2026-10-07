@@ -1,0 +1,93 @@
+# #148 Vampiric Aura and #144 special cues: Dreadlord's passive fills on two melee hits and heals on the third; every special form shows its Warcraft spell.
+# Dreadlord a against Dreadlord b; syntax and checks: smashcraft:docs/native-bot-session.md.
+#! chat -dev quick hero dreadlord
+# #144: Bat Ascension, paid.
+40 a stick 0 1
+40 a tap X 2
+41 a stick 0 0
+# b walks in and lands a jab on a.
+70 b press LB
+70 b stick -1 0
+126 b stick 0 0
+127 b release LB
+135 b tap A 2
+# #148: a walks in with forward tilts; the third melee hit heals a.
+170 a press LB
+170 a stick 1 0
+180 a tap A 2
+190 a capture
+220 a tap A 2
+230 a capture
+260 a tap A 2
+270 a stick 0 0
+271 a release LB
+# #144: Sleep on the close b, then Vampiric Pounce on the sleeper.
+300 a stick 0 -1
+300 a tap X 2
+301 a stick 0 0
+360 a stick 1 0
+360 a tap X 2
+361 a stick 0 0
+# Earn mana: two more forward tilts.
+420 a press LB
+420 a stick 1 0
+430 a tap A 2
+440 a capture
+470 a tap A 2
+480 a stick 0 0
+481 a release LB
+# View held a second: the first of two moments the parity check replays.
+500 a press VIEW
+570 a release VIEW
+# #144: Vampiric Pounce feinted into the bat-hop.
+600 a stick 1 0
+600 a tap X 2
+601 a stick 0 0
+605 a stick 1 0
+605 a tap X 2
+606 a stick 0 0
+# #144: Carrion Swarm, then from the air; Sleep from the air; Pounce from the air, back toward the middle.
+640 a tap X 2
+690 a tap B 8
+700 a tap X 2
+750 a tap B 8
+760 a stick 0 -1
+760 a tap X 2
+761 a stick 0 0
+820 a tap B 8
+830 a stick -1 0
+830 a tap X 2
+831 a stick 0 0
+# #144: Bat Ascension, free.
+910 a stick 0 1
+910 a tap X 2
+911 a stick 0 0
+# Expected, frame by frame (headless run of this script): every special form starts on its frame,
+# and the third melee hit to land (b 437) heals a 2 (Vampiric Aura).
+#! expect a 40 special 15 form 0
+#! expect a 138 damage 4.000
+#! expect b 187 damage 12.000
+#! expect b 227 damage 24.000
+#! expect a 300 special 16 form 0
+#! expect b 343 damage 26.000
+#! expect a 360 special 14 form 0
+#! expect b 437 damage 38.000
+#! expect a 437 damage 2.000
+#! expect a 600 special 14 form 0
+#! expect a 605 special-form 6 action 14
+#! expect a 640 special 13 form 0
+#! expect a 700 special 13 form 1
+#! expect a 760 special 16 form 1
+#! expect a 830 special 14 form 1
+#! expect a 910 special 15 form 2
+#! scene a VampiricAuraTarget
+#! scene a UnholyFrenzyTarget
+#! scene a CarrionSwarmDamage
+#! scene a CarrionSwarmMissile
+#! scene a BloodImpact
+#! scene a DeathPactCaster
+#! scene a DarkSummonTarget
+#! scene a SleepSpecialArt
+#! scene a VoidWalkerMissile
+1000 a press VIEW
+1070 a release VIEW

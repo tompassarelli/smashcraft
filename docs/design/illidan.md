@@ -284,9 +284,9 @@ damage over time without hitstun is Warden's poison, #126).
 
 Tom (7 Oct): forward air multi-hits. Startup 5 and total 31 as before;
 active 2 → 6. Active frames 1–2: the **link**, both glaives crossing out to
-175: 3%, a fixed small knockback pulling slightly in and up (105°, base 30,
+175: 2%, a fixed small knockback pulling slightly in and up (105°, base 30,
 growth 10), drain 1. Frames 5–6: the **launcher**, the cross opening to 150:
-4% at 40° (base 18, growth 85), drain 4. 7% in all (was 6; 8% before #105 pass 3). The link's
+3% at 40° (base 18, growth 85), drain 4. 5% in all after #105's bounded retune. The link's
 knockback barely grows, so both hits connect at 0, 50 and 100%.
 
 Counterplay: the launcher reaches 25 less than the link, so a fighter caught

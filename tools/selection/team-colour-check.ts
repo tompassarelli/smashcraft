@@ -49,6 +49,36 @@ export function playerHue(r: number, g: number, b: number): string | undefined {
   return best;
 }
 
+/** Coal's source texture RGB; the isolated pass is unlit, with zero exposure. */
+const COAL = [79, 79, 85] as const;
+const teamPalette = [...PLAYER_COLORS.map((color) => ({ name: color.name, rgb: [(color.rgb >> 16) & 255, (color.rgb >> 8) & 255, color.rgb & 255] })), { name: 'Coal', rgb: COAL }];
+
+/**
+ * Checks the renderer's isolated team layer, including partial contributions
+ * beneath painted skin. Match RGB proportions so alpha blends to black keep
+ * their source colour; Gray remains distinct from Coal's blue-grey proportions.
+ */
+export function teamLayerPixels(layer: Rgba): Pick<TeamColourResult, 'masked' | 'found'> {
+  let masked = 0;
+  const found: { [name: string]: number } = {};
+  for (let index = 0; index < layer.length; index += 4) {
+    const rgb = [layer[index]!, layer[index + 1]!, layer[index + 2]!];
+    const max = Math.max(...rgb);
+    // Below 16, byte quantization cannot distinguish Coal from Gray reliably.
+    if (max < 16 || layer[index + 3]! === 0) continue;
+    masked++;
+    let best = 'unknown';
+    let distance = Infinity;
+    for (const color of teamPalette) {
+      const top = Math.max(...color.rgb);
+      const apart = rgb.reduce((sum, value, channel) => sum + (value / max - color.rgb[channel]! / top) ** 2, 0);
+      if (apart < distance) { best = color.name; distance = apart; }
+    }
+    if (best !== 'Coal') found[best] = (found[best] ?? 0) + 1;
+  }
+  return { masked, found };
+}
+
 /** How much redder the red render must be for a pixel to count as team colour (0-255). */
 const MASK_MARGIN = 48;
 /** The red render's red over the render's, past which the team-colour layer draws most of the pixel. */

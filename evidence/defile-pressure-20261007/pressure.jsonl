@@ -1,0 +1,2 @@
+{"case":"original","source":"3ceb722e","spawnFrame":20,"expireFrame":319,"nextCastFrame":320,"bodyHitFrames":[29,54,79,104,129,154,179,204,229,254,279,304],"damage":36,"maxReachedRadius":118.79999542236328}
+{"case":"rework","poolLife":180,"pulseDamage":2,"pulseEvery":36,"castWait":320,"spawnFrame":20,"expireFrame":199,"nextCastFrame":321,"bodyHitFrames":[37,73,109,145,181],"damage":10,"maxReachedRadius":69.60000610351562}
