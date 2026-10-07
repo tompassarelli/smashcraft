@@ -111,7 +111,7 @@ const DEMON_HUNTER_REGIONS: { readonly [style: number]: Readonly<HitRegion> } = 
   [AttackStyle.jab3]: draining(region(0.0, 110.0, -50.0, 110.0, 6.0, 95.0, 22.0, 0.7660444378852844, 0.6427876353263855), 4),
   [AttackStyle.upSmash]: draining(region(-105.0, 105.0, -30.0, 195.0, 15.0, 100.0, 20.0, DIAGONAL_UNIT, DIAGONAL_UNIT), 8),
   [AttackStyle.downSmash]: draining(region(-105.0, 105.0, -195.0, 45.0, 15.0, 100.0, 20.0, DIAGONAL_UNIT, DIAGONAL_UNIT), 8),
-  [AttackStyle.forwardSmash]: draining(region(25.0, 195.0, -75.0, 105.0, 10.0, 85.0, 20.0, DIAGONAL_UNIT, DIAGONAL_UNIT), 10),
+  [AttackStyle.forwardSmash]: draining(region(25.0, 195.0, -75.0, 105.0, 9.0, 85.0, 20.0, DIAGONAL_UNIT, DIAGONAL_UNIT), 10),
   [AttackStyle.demonHunterDashAttack]: draining(region(0.0, 150.0, -70.0, 115.0, 9.0, 95.0, 20.0, 0.9200000166893005, 0.38999998569488525), 5),
   // Shear (#147): the tank-buster as the mana cutter, 9% at a low 25 degrees.
   [AttackStyle.forwardTilt]: draining(region(0.0, 135.0, -80.0, 95.0, 9.0, 80.0, 20.0, 0.9063078165054321, 0.4226182699203491), 12),
@@ -129,8 +129,8 @@ const DEMON_HUNTER_REGIONS: { readonly [style: number]: Readonly<HitRegion> } = 
 // Illidan's raid-boss normals (#147, smashcraft:docs/design/illidan.md), by
 // active frame (0 is the first): the twin-glaive forward air's link and
 // launcher, Flames of Azzinoth's glaives then fire, and Eye Blast's beam.
-const FORWARD_AIR_LINK = draining(region(0.0, 175.0, -55.0, 115.0, 3.0, 10.0, 30.0, -0.258819043636322, 0.9659258127212524), 1);
-const FORWARD_AIR_LAUNCH = draining(region(0.0, 150.0, -40.0, 110.0, 4.0, 85.0, 18.0, 0.7660444378852844, 0.6427876353263855, 2), 4);
+const FORWARD_AIR_LINK = draining(region(0.0, 175.0, -55.0, 115.0, 2.0, 10.0, 30.0, -0.258819043636322, 0.9659258127212524), 1);
+const FORWARD_AIR_LAUNCH = draining(region(0.0, 150.0, -40.0, 110.0, 3.0, 85.0, 18.0, 0.7660444378852844, 0.6427876353263855, 2), 4);
 const AZZINOTH_GLAIVES = draining(region(-190.0, 190.0, -60.0, 60.0, 14.0, 95.0, 22.0, 0.258819043636322, 0.9659258127212524), 8);
 // The fire burns only a fighter the glaives missed: one contact window for both.
 const AZZINOTH_FLAMES = draining(region(-190.0, 190.0, -30.0, 170.0, 3.0, 20.0, 30.0, 0.08715574443340302, 0.9961947202682495), 2);

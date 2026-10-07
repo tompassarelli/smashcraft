@@ -163,7 +163,7 @@ const aheadX = (f: Readonly<Fighter>, target: Readonly<Fighter>, frames: number)
  * travel, but on the ground no further than its slide once the attack stops
  * its steering, so a run doesn't carry a slow smash into reach (#160).
  */
-function travelOver(f: Readonly<Fighter>, frames: number): number {
+export function travelOver(f: Readonly<Fighter>, frames: number): number {
   const straight = f32(f.motion.deltaX * frames);
   if (!f.motion.grounded) return straight;
   const speed = Math.abs(f.motion.vx);

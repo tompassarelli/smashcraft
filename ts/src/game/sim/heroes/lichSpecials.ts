@@ -17,8 +17,8 @@ const AIR_LANDING_LAG = 20;
 /** Frost Nova's orb: slow, reflectable, chills a body it reaches. */
 const FROST_NOVA_ORB: SpecialProjectile = {
   model: "Abilities\\Spells\\Other\\FrostBolt\\FrostBoltMissile.mdx",
-  spawnFrame: 18, offsetX: h(f32(0.40)), offsetZ: CHEST, velocityX: h(f32(0.07)), velocityZ: 0.0,
-  life: 80, radius: h(f32(0.16)), effect: hit(8.0, "POKE", 35), reflectable: true, limit: 1, status: CHILL,
+  spawnFrame: 18, offsetX: h(f32(0.40)), offsetZ: CHEST, velocityX: h(f32(0.09)), velocityZ: 0.0,
+  life: 80, radius: h(f32(0.16)), effect: hit(9.0, "POKE", 35), reflectable: true, limit: 1, status: CHILL,
 };
 
 /** The orb burst in place: it cracks for 6 frames, then strikes for 3; a zone, so never reflected. */

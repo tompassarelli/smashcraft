@@ -22,7 +22,7 @@ import { SHIELD_RELEASE_LAG_FRAMES } from "../sim/shield";
 import type { FighterGameplan } from "../sim/gameplan";
 import { safeAt, slideStaysOnDeck } from "./botFooting";
 import { gameplanOf } from "./botGameplan";
-import { botChance, moveReachAhead, moveReaches } from "./botMoves";
+import { botChance, moveReachAhead, moveReaches, travelOver } from "./botMoves";
 import type { CpuSkill } from "./cpuLevel";
 
 /** What holds the opponent: the committal states a punish answers. */
@@ -126,9 +126,9 @@ const PUNISH_MOVES = [
   AttackStyle.upSmash, AttackStyle.downSmash, AttackStyle.forwardSmash,
 ] as const;
 
-/** The target's offset from the attacker after `frames` more frames of both moving as they did last frame. */
+/** The target's offset from the attacker after `frames` more frames: the target moving as it did last frame, the attacker no further than its slide (botMoves travelOver). */
 const aheadX = (f: Readonly<Fighter>, t: Readonly<Fighter>, frames: number) =>
-  f32(f32(t.motion.x - f.motion.x) + f32(f32(t.motion.deltaX - f.motion.deltaX) * frames));
+  f32(f32(f32(t.motion.x + f32(t.motion.deltaX * frames)) - f.motion.x) - travelOver(f, frames));
 const aheadZ = (f: Readonly<Fighter>, t: Readonly<Fighter>, frames: number) =>
   f32(f32(t.motion.z - f.motion.z) + f32(f32(t.motion.deltaZ - f.motion.deltaZ) * frames));
 

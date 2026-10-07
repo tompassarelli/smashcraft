@@ -22,7 +22,7 @@ const BOLT_UP_X = f32(BOLT_SPEED * f32(0.8660254037844387));
 const BOLT_UP_Z = f32(BOLT_SPEED * f32(0.5));
 const holyLight = (landingLag: number | undefined): AuthoredSpecial => ({
   cost: 10,
-  endFrame: 56,
+  endFrame: 50,
   projectiles: [{
     model: "Abilities\\Spells\\Human\\HolyBolt\\HolyBoltMissile.mdx",
     spawnFrame: 20,
