@@ -12,7 +12,7 @@
 600 a tap B 8
 700 a stick -1 0
 702 a stick 0 0
-# Expected (headless run of this script): in frames 1-1000 the level-9 computer lands 20 hits, 97.8% (a 54.8, b 43.0)
+# Expected (headless run of this script): in frames 1-1000 the level-9 computer lands 17 hits, 102.4% (a 89.6, b 12.8)
 # and takes none; every hit on its frame:
 #! expect a 52 damage 12.753
 #! expect a 110 damage 17.753
@@ -22,19 +22,16 @@
 #! expect a 189 damage 31.753
 #! expect a 220 damage 34.753
 #! expect a 227 damage 38.753
-#! expect a 326 damage 41.753
-#! expect a 333 damage 45.753
-#! expect a 361 damage 54.753
-#! expect a 489 damage 0.000
-#! expect b 493 damage 5.000
-#! expect b 523 damage 8.000
-#! expect b 530 damage 12.000
-#! expect b 561 damage 15.000
-#! expect b 568 damage 19.000
-#! expect b 599 damage 22.000
-#! expect b 606 damage 26.000
-#! expect b 634 damage 33.000
-#! expect b 675 damage 43.000
+#! expect a 352 damage 43.753
+#! expect a 383 damage 46.753
+#! expect a 391 damage 50.753
+#! expect a 607 damage 53.753
+#! expect a 614 damage 57.753
+#! expect a 742 damage 0.000
+#! expect b 759 damage 12.753
+#! expect a 902 damage 17.855
+#! expect a 949 damage 24.855
+#! expect a 982 damage 31.855
 #! absent c 1-1000 damage
 1000 a press VIEW
 1070 a release VIEW

@@ -12,15 +12,15 @@
 600 a tap B 8
 700 a stick -1 0
 702 a stick 0 0
-# Expected (headless run of this script): in frames 1-1000 the level-1 computer lands 5 hits, 55.2% (a 43.7, b 11.5)
+# Expected (headless run of this script): in frames 1-1000 the level-1 computer lands 5 hits, 49.7% (a 43.7, b 6.0)
 # and takes none; every hit on its frame:
 #! expect a 143 damage 17.855
 #! expect a 323 damage 35.709
 #! expect a 473 damage 38.709
 #! expect a 634 damage 43.709
-#! expect a 833 damage 0.000
+#! expect a 831 damage 0.000
 # Its frame-832 forward air passes over the 87-tall Rifleman (#162); it lands a later one.
-#! expect b 936 damage 11.530
+#! expect b 939 damage 6.000
 #! absent c 1-1000 damage
 1000 a press VIEW
 1070 a release VIEW

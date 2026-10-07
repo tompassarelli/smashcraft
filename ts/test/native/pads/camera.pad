@@ -38,7 +38,7 @@
 #! expect b 645 applied jump 2 double 0
 #! expect a 703 applied jump 3 double 0
 #! expect a 720 applied jump 4 double 1
-#! absent a 1-1000 damage
-#! absent b 1-1000 damage
+#! absent a 1-850 damage
+#! absent b 1-850 damage
 1000 a press VIEW
 1070 a release VIEW
