@@ -129,7 +129,9 @@ export function applyFrame(s: ShellState, recorded = false): void {
       traceInput(s.trace, `model sound rejected confirmed frame ${runtime.simulationFrame} slot ${slot}`);
     }
     const held = heldVisualFrame(localSlot()) !== undefined;
-    if (!held) ui.combat.presentConfirmed(runtime.simulationFrame, slot, runtime.frameImpacts[slot]);
+    if (!held) ui.combat.presentConfirmed(runtime.simulationFrame, slot, runtime.frameImpacts[slot], s.trace.active
+      ? (sound, volume, pitch) => traceInput(s.trace, `participant ${slot} frame ${runtime.simulationFrame} sound ${sound} volume ${volume} pitch ${canonicalReal(pitch)}`)
+      : undefined);
     ui.combat.confirmContacts(runtime.simulationFrame, runtime.frameImpacts[slot]);
     if (!held) {
       renderFighter(s, slot, runtime.poses[slot], participant.before.out);
