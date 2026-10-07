@@ -106,11 +106,16 @@ code. From smashcraft:ts/:
   verifiably offline clients and refuses otherwise. A read tries first; when
   it fails it prints the ptrace_scope commands, which only Tom runs
   (wisp:docs/engine.md).
-- Offline LAN pool (landing in Wisp; until then use A/B): `bun wisp lan pool
-  --pairs N` runs pairs of throwaway offline clients, no account, each in its
-  own network namespace without internet, playing over LAN; its clients file
-  is ~/.local/state/wisp/lan/clients.json. It is the default for native
-  testing (see "Native testing and UI"), and the full engine tier runs there.
+- Offline LAN pool, the default for native testing (see "Native testing and
+  UI"): `bun wisp lan setup --from INSTALL [--pairs N]` creates throwaway
+  clients with no account once; `bun wisp lan pool --pairs N [--profile
+  parity|visual]` runs them in pairs, each pair in a network namespace with
+  only loopback (foreground, admitted by the capacity helper); `bun wisp lan
+  fresh MAP.w3x [--pair K]` hosts and starts a LAN match on Wisp's own host;
+  `lan status`, `lan end --pair K`. The host logs every turn's actions and
+  compares checksums each turn: `bun wisp engine actions --client lan0a,lan0b
+  [--follow]`. The pool's clients file is ~/.local/state/wisp/lan/clients.json;
+  the full engine tier runs there (wisp:docs/lan.md).
 - Client recovery: `bun wisp doctor [CLIENT...]` brings clients A and B to a
   ready state: it recovers a client that dropped from Battle.net, crashed
   with its error dialog up, sits at the empty login shell, a stale lobby or
@@ -272,7 +277,7 @@ Keep ordinary combat completion intact; do not force a win to shorten a test.
 
 Pick the clients by what the test needs (Tom, 7 Oct). The offline LAN pool
 is the default for native testing: pad parity runs, captures, `accept`
-checks and desync hunts (landing; until `bun wisp lan pool` exists, use A/B).
+checks and desync hunts.
 Signed-in A and B are only for tests that need Battle.net itself: real
 netplay or latency, direct play (#142), spectating. Tom's install (account a,
 display :0) is Tom's. A run during which a client wrote a desync report or

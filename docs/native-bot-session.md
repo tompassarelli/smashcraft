@@ -17,8 +17,9 @@ loses Battle.net, with the evidence the watch saw.
 
 ## Which clients
 
-Native testing defaults to Wisp's offline LAN pool (landing; until
-`bun wisp lan pool --pairs N` exists, these captures run on A and B). The
+Native testing defaults to Wisp's offline LAN pool: `bun wisp lan pool
+--pairs N` runs it and `bun wisp lan fresh MAP.w3x --pair K` starts a match
+(wisp:docs/lan.md). The
 pool's throwaway clients have no account and no internet, each in its own
 network namespace, and play over LAN; their clients file is
 ~/.local/state/wisp/lan/clients.json. Signed-in A and B are only for tests
