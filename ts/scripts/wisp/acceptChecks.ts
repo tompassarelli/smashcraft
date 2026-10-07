@@ -146,7 +146,7 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
       setup: [
         { chat: "-dev reset" }, { chat: "-dev slots 1 2" }, { chat: "-dev stocks 1" },
         { chat: "-dev fighter 2 Illidan" }, { chat: "-dev stage 2" }, { chat: "-dev auto-rematch off" },
-        { waitMs: 10000 }, { keys: ["r"], client: "a" }, { waitMs: 1000 },
+        { waitMs: 10000 }, { keys: ["r"], client: "a" }, { waitMs: 2000 },
       ],
       capture: [{ kind: "frames", name: "fighter-selection", client: "a" }],
       pass: [NO_IMPORT_FAILURES, NO_ERRORS],
@@ -154,7 +154,7 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
     },
     {
       id: "123-countdown", closes: "smashcraft#123 box 5", map: "presentation", session: "123-match-flow",
-      setup: [{ keys: ["y"], client: "a" }, { waitMs: 300 }, { keys: ["y"], client: "a" }],
+      setup: [{ keys: ["y"], client: "a" }, { waitMs: 600 }, { keys: ["y"], client: "a" }],
       capture: [{ kind: "frames", name: "countdown", client: "a", count: 24, everyMs: 150 }],
       pass: [NO_IMPORT_FAILURES, NO_ERRORS],
       look: "OCR reads the normal match's 3, 2, 1 and GO! calls from the retained frames.",
