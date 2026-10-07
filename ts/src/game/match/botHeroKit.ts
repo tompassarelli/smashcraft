@@ -126,7 +126,8 @@ export function heroSpecialUse(f: Readonly<Fighter>, target: Readonly<Fighter>, 
   const move = startableForm(f, specials, slot);
   // The free up special is kept for recovery (botRecovery.ts).
   if (move === undefined || (slot === SpecialSlot.up && move.cost === 0 && specials.up.ground.cost > 0)) return HeroSpecialUse.none;
-  const dx = f32(target.motion.x - f.motion.x);
+  const observedNowX = f32(target.motion.x + f32(target.motion.deltaX * observationAge));
+  const dx = f32(observedNowX - f.motion.x);
   const localX = f32(dx * f.facing);
   const localZ = f32(target.motion.z - f.motion.z);
   // Active protection can be spent on offense; it need not reserve the cost of another guard.

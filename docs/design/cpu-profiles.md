@@ -131,7 +131,7 @@ until that window can meet the strike. Protected approaches hand over to attack
 selection at the fighter's projected authored reach. These forecasts use no
 newer opponent sample.
 
-Attack and punish reach also advance the delayed target's horizontal position
+Normal attacks, hero-special reach and punishes advance the delayed target's horizontal position
 through the observation delay using its last observed velocity. The attacker's
 own slide starts at the decision frame, so the delay is counted only for the
 target. The forecast remains fallible when that target changes direction.
