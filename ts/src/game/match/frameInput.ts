@@ -7,7 +7,7 @@ import { advanceImpacts, clearImpactState, emitImpacts } from "../presentation/i
 import { advanceSpecialEffect, clearSpecialEffectState } from "../presentation/specialEffectState";
 import { advanceSummons, clearSummonState } from "../presentation/summonState";
 import { advanceFighterPose } from "../presentation/fighterPose";
-import { type Controls, type Roster, copyControls, fighterAt, isActive, sameControls } from "../sim/roster";
+import { type Roster, copyControls, fighterAt, isActive, sameControls } from "../sim/roster";
 import { type FrameControls, createFrameControls } from "./controls";
 import type { PacingAndPresentation } from "./pacingAndPresentation";
 import { type MatchState, Phase, computerActive } from "./rules";
@@ -113,12 +113,6 @@ export function copyMatchFrameInput(target: MatchFrameInput, source: Readonly<Ma
   }
 }
 
-export function copyExecutedInput(row: Readonly<MatchFrameInput>, slot: number, target: Controls): boolean {
-  if (!isParticipantSlot(slot) || !participantActive(row.mask, slot)) return false;
-  copyControls(target, row.scratch.inputs[slot]);
-  return true;
-}
-
 export function sameMatchFrameInput(a: Readonly<MatchFrameInput>, b: Readonly<MatchFrameInput>): boolean {
   if (a.frame !== b.frame || a.mask !== b.mask || a.networkMask !== b.networkMask || a.source !== b.source) return false;
   if (a.source !== "network" && firstBotMemoryDifference(a.botMemoryAfterInput, b.botMemoryAfterInput) !== undefined) return false;
@@ -212,14 +206,17 @@ export function executeMatchFrame(row: MatchFrameInput, game: MatchState, world:
 
 /**
  * As executeMatchFrame, for a frame a replay history already ran on the same
- * row from the same state: `after` is its state after the frame. The row's
- * controls and the frame's impact events are found as an execution finds
- * them; the step itself is copied instead of run. Training's slow motion
- * edits the row's presses, so a training frame runs.
+ * row from the same state: `after` is its state after the frame. Confirmation
+ * consumes the state and impact events, so neither input adaptation nor CPU
+ * decisions run again. Training's slow motion edits the row's presses, so a
+ * training frame runs.
  */
 export function restoreMatchFrame(row: MatchFrameInput, game: MatchState, world: Roster, controls: FrameControls, runtime: PacingAndPresentation, frame: number, after: Readonly<ReplayState>): boolean {
   if (game.training) return executeMatchFrame(row, game, world, controls, runtime, frame);
-  if (!prepareMatchFrame(row, game, world, controls, runtime, frame)) return false;
+  if (row.frame !== frame || frame !== runtime.simulationFrame + 1 || row.mask !== world.mask || after.runtime.simulationFrame !== frame) return false;
+  for (const slot of PARTICIPANT_SLOTS) {
+    if (isActive(world, slot)) captureImpactEventsBefore(runtime.frameImpacts[slot], fighterAt(world, slot));
+  }
   copyReplayState({ world, match: game, controls, runtime }, after);
   for (const slot of PARTICIPANT_SLOTS) {
     // The step's observations, as running it would leave them.

@@ -5,7 +5,7 @@ import { hasPendingAttack, clearAttackBuffer } from "../../game/input/attackBuff
 import { adaptInput } from "../../game/input/adapter";
 import { commitEdges } from "../../game/input/keyboardCapture";
 import { PARTICIPANT_SLOTS, type ParticipantSlot, participantActive } from "../../game/input/participants";
-import { captureFrame, copyExecutedInput, executeMatchFrame, hasNetworkRows, restoreMatchFrame } from "../../game/match/frameInput";
+import { captureFrame, executeMatchFrame, hasNetworkRows, restoreMatchFrame } from "../../game/match/frameInput";
 import { beginMomentFrame, keepMomentEnd, momentFrameRan, recordMomentRow } from "../../game/replay/moment";
 import { Phase, beginRematchCountdown, computerActive, humanFighterActive } from "../../game/match/rules";
 import { resultMessage, aerialName, fighterLabel } from "../../game/shell/messages";
@@ -123,7 +123,6 @@ export function applyFrame(s: ShellState, recorded = false): void {
     if (!isActive(world, slot)) continue;
     const participant = s.participants[slot];
     const fighter = fighterAt(world, slot);
-    if (rollback !== undefined) copyExecutedInput(s.frameInput, slot, s.produced.inputs[slot]);
     reportChanges(s, slot, participant.before, fighter);
     if (participant.pooled && !confirmModelSounds(s.sounds, s.sounds.epoch ?? 0, runtime.simulationFrame, slot, fighter, runtime.poses[slot], ui.sounds)) {
       traceInput(s.trace, `model sound rejected confirmed frame ${runtime.simulationFrame} slot ${slot}`);
