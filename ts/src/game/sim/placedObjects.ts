@@ -9,7 +9,7 @@ import { inGrabContext } from "./conditions";
 import { staggerCompanion } from "./companions";
 import { type Fighter, type PlacedObject, placedObject } from "./fighter";
 import { HERO_PROJECTILE_CAP, runningHeroSpecial, spawnHeroProjectileAt } from "./heroSpecialRules";
-import type { SpecialPlacement } from "./heroSpecials";
+import { CompanionMode, type SpecialPlacement } from "./heroSpecials";
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "./hitRegions";
 import { projectileDamage } from "./projectiles";
 import { type Roster, fighterAt, isActive } from "./roster";
@@ -114,7 +114,7 @@ export function advancePlacedObjects(world: Roster): void {
       if (placed.life <= 0) continue;
       let scheduled = false;
       for (const age of spec.fireAges) if (age === placed.age) scheduled = true;
-      const fires = scheduled && !inGrabContext(owner) && owner.launch.hitstun <= 0 && !owner.status.out;
+      const fires = scheduled && placed.mode === CompanionMode.follow && !inGrabContext(owner) && owner.launch.hitstun <= 0 && !owner.status.out;
       const { shot } = spec;
       if (fires && shot !== undefined && ownedProjectiles(owner) < HERO_PROJECTILE_CAP) {
         const x = f32(placed.x + f32(placed.direction * shot.offsetX));
