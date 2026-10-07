@@ -123,6 +123,14 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
       pass: [NO_IMPORT_FAILURES, NO_ERRORS],
       look: "Frostmourne's downward cast plants the shadow pool ahead; its low rim changes from dim to violet when armed, stays at the pool's horizontal danger edge, and faces the other way for player 2. Scripted repeated casts and the jump escape are smashcraft:ts/test/native/pads/lich-king-defile.pad.",
     })),
+    {
+      id: "169-render-clock",
+      closes: "smashcraft#169 box 1 (callback cadence and cost; compare 60/144 fps reports)",
+      map: "presentation",
+      setup: [{ chat: "-dev render-clock" }, { receipt: "^render-clock run=[0-9]+ clock=", seconds: 12 }],
+      pass: [NO_IMPORT_FAILURES, NO_ERRORS, { kind: "receipt", pattern: "^render-clock run=[0-9]+ clock=running", min: 1 }],
+      look: "native session owner: compare callback bursts and recording cost with renderer telemetry at 60 and 144 fps; a receipt alone does not establish a render-rate hook",
+    },
     // First in its session, so its frames show the map as it loaded.
     {
       id: "73-map-load",

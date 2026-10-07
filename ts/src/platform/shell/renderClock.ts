@@ -5,13 +5,13 @@
 // report file are local.
 import { f32 } from "wisp/src/sim/f32";
 import { renderClockFile } from "../../runtime/gameFiles";
-declare const os: { readonly clock?: () => number } | undefined;
+declare const os: { readonly clock?: (this: void) => number } | undefined;
 
 const PROBE_GAME_SECONDS = 4.0;
-const MAX_SAMPLES = 20000;
-/** 1/1024 s: the shortest period hive measurements show timers honouring. */
+const MAX_SAMPLES = 64000;
+/** An exact binary32 period near the historical 1 ms timer limit. */
 const FAST_PERIOD = 0.0009765625;
-/** Two callbacks further apart than this on the wall clock ran on different engine frames. */
+/** Gaps above this group separate callback bursts; renderer telemetry must identify actual frames. */
 const MIN_FRAME_GAP = 0.001953125;
 const TENTH = f32(0.1);
 const NINE_TENTHS = f32(0.9);
@@ -20,12 +20,14 @@ interface Candidate {
   readonly name: string;
   readonly clock: number[];
   readonly game: number[];
+  readonly cost: number[];
+  callbacks: number;
 }
 
 let runs = 0;
 
 function now(): number {
-  if (typeof os === "undefined" || typeof os.clock !== "function") return 0;
+  if (typeof os !== "object" || os === null || typeof os.clock !== "function") return 0;
   return os.clock();
 }
 
@@ -47,9 +49,9 @@ function ms(value: number): string {
 }
 
 function summarize(candidate: Candidate, gap: number): string[] {
-  const { clock, game } = candidate;
+  const { clock, game, cost, callbacks } = candidate;
   const n = clock.length;
-  if (n < 2) return [`${candidate.name} callbacks=${I2S(n)}`];
+  if (n < 2) return [`${candidate.name} callbacks=${I2S(callbacks)} samples=${I2S(n)}`];
   const frameGaps: number[] = [];
   const gameSteps: number[] = [];
   const perFrame: number[] = [];
@@ -74,15 +76,23 @@ function summarize(candidate: Candidate, gap: number): string[] {
   frameGaps.sort((a, b) => a - b);
   gameSteps.sort((a, b) => a - b);
   perFrame.sort((a, b) => a - b);
+  let totalCost = 0.0;
+  for (const value of cost) totalCost += value;
+  cost.sort((a, b) => a - b);
   return [
-    `${candidate.name} callbacks=${I2S(n)} frames=${I2S(frames)} wall=${ms(wall)}ms game=${ms(gameSpan)}ms`
-      + ` frames/s=${R2SW(wall > 0 ? (frames - 1) / wall : 0, 1, 1)}`,
-    `${candidate.name} frame-gap-ms p10=${ms(percentile(frameGaps, TENTH))} p50=${ms(percentile(frameGaps, 0.5))}`
+    `${candidate.name} callbacks=${I2S(callbacks)} samples=${I2S(n)} capped=${callbacks > n ? "yes" : "no"}`
+      + ` bursts=${I2S(frames)} clock=${ms(wall)}ms game=${ms(gameSpan)}ms`
+      + ` bursts/s=${R2SW(wall > 0 ? (frames - 1) / wall : 0, 1, 1)}`,
+    `${candidate.name} burst-gap-ms p10=${ms(percentile(frameGaps, TENTH))} p50=${ms(percentile(frameGaps, 0.5))}`
       + ` p90=${ms(percentile(frameGaps, NINE_TENTHS))} max=${ms(percentile(frameGaps, 1.0))}`,
     `${candidate.name} game-step-ms p10=${ms(percentile(gameSteps, TENTH))} p50=${ms(percentile(gameSteps, 0.5))}`
       + ` p90=${ms(percentile(gameSteps, NINE_TENTHS))} max=${ms(percentile(gameSteps, 1.0))}`,
-    `${candidate.name} callbacks-per-frame min=${I2S(perFrame[0] ?? 0)} p50=${I2S(percentile(perFrame, 0.5))}`
+    `${candidate.name} callbacks-per-burst min=${I2S(perFrame[0] ?? 0)} p50=${I2S(percentile(perFrame, 0.5))}`
       + ` max=${I2S(perFrame[frames - 1] ?? 0)} in-burst-spacing-us=${R2SW(burstPairs > 0 ? burstSpan / burstPairs * 1000000.0 : 0, 1, 2)}`,
+    `${candidate.name} record-cost-us mean=${R2SW(totalCost / n * 1000000.0, 1, 2)}`
+      + ` p50=${R2SW(percentile(cost, 0.5) * 1000000.0, 1, 2)}`
+      + ` p90=${R2SW(percentile(cost, NINE_TENTHS) * 1000000.0, 1, 2)}`
+      + ` max=${R2SW(percentile(cost, 1.0) * 1000000.0, 1, 2)} total-ms=${ms(totalCost)}`,
   ];
 }
 
@@ -96,12 +106,15 @@ export function probeRenderClock(): void {
   const zero = CreateTimer();
   const fast = CreateTimer();
   const stop = CreateTimer();
-  const zeroSamples: Candidate = { name: "period0", clock: [], game: [] };
-  const fastSamples: Candidate = { name: "period1024", clock: [], game: [] };
+  const zeroSamples: Candidate = { name: "period0", clock: [], game: [], cost: [], callbacks: 0 };
+  const fastSamples: Candidate = { name: "period1024", clock: [], game: [], cost: [], callbacks: 0 };
   const record = (candidate: Candidate) => {
+    candidate.callbacks++;
     if (candidate.clock.length >= MAX_SAMPLES) return;
-    candidate.clock.push(now());
+    const started = now();
+    candidate.clock.push(started);
     candidate.game.push(TimerGetElapsed(reference));
+    candidate.cost.push(now() - started);
   };
   TimerStart(reference, 3600.0, false, () => {});
   TimerStart(zero, 0.0, true, () => record(zeroSamples));
@@ -114,7 +127,8 @@ export function probeRenderClock(): void {
     DestroyTimer(fast);
     DestroyTimer(reference);
     DestroyTimer(stop);
-    const lines = [`render-clock run=${I2S(run)} clock-step-us=${R2SW(step * 1000000.0, 1, 2)} frame-gap-threshold-ms=${ms(gap)}`];
+    const lines = [`render-clock run=${I2S(run)} clock=${step > 0 ? "running" : "unavailable"}`
+      + ` clock-step-us=${R2SW(step * 1000000.0, 1, 2)} burst-gap-threshold-ms=${ms(gap)}`];
     for (const candidate of [zeroSamples, fastSamples]) for (const line of summarize(candidate, gap)) lines.push(line);
     PreloadGenClear();
     PreloadGenStart();

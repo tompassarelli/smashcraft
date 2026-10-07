@@ -276,6 +276,9 @@ code. From smashcraft:ts/:
   as few fresh matches as their maps allow and prints pass, fail or
   needs-look per check with its evidence folder (wisp:docs/accept.md). Declare
   a new native box there, next to the issue it closes, instead of a hand procedure.
+  Render cadence: `-dev render-clock` in a development map records timer
+  callback bursts and cost; `bun wisp accept --only 169-render-clock --dry-run`
+  prints its native plan (smashcraft:docs/high-refresh.md).
 - Melee oracle: `bun wisp oracle` plays Melee situations for every fighter
   and prints each outcome beside the value cited from the decompilation; the
   test suite fails on any mismatch it doesn't list as known

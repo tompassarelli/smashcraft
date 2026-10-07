@@ -51,7 +51,7 @@ export const accept: Command = (args) => {
   });
   const driver = liveAcceptDriver({
     start,
-    receipt: (name) => name.startsWith("smashcraft-dev-") || name.startsWith("smashcraft-error-"),
+    receipt: (name) => name.startsWith("smashcraft-dev-") || name.startsWith("smashcraft-error-") || name.startsWith("smashcraft-render-clock-"),
   }).pipe(Layer.provide(Layer.mergeAll(Clients.layer(clientState), gameFilesLayer, smashcraftWatch())));
   const run = makeAccept({ suite: SMASHCRAFT_ACCEPT, evidenceRoot: join(homedir(), ".local/state/smashcraft/accept"), driver, clients: clientNames() })(args);
   // A dry run touches no client.
