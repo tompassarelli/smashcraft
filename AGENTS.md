@@ -267,7 +267,7 @@ code. From smashcraft:ts/:
   match and writes kept ones back (smashcraft:docs/typescript.md).
 - Player view: `bun wisp view scene DATA_DIR...` and `bun wisp view frame
   FRAME.ppm...` report what a player would see wrong; `view models` rewrites
-  the model facts they read (smashcraft:docs/player-view.md); `view strikes`
+  the model facts they read (smashcraft:docs/player-view.md); `view strikes --assets DIR`
   rewrites the hero strike moments swings and specials align to
   (smashcraft:docs/fighter-animation-work.md, "Hero swing alignment");
   `view motion --assets DIR` measures every fighter's movement and recovery
