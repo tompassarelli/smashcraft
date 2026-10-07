@@ -101,8 +101,8 @@ Normals, inspired by:
 
 | Input | Name | What it does |
 | --- | --- | --- |
-| Neutral special | Holy Light | An orb of light that flies out and back; it heals Uther if it returns untouched. |
-| Side special | Crusader Rush | An armored hammer charge on the ground; in the air it ends helpless. |
+| Neutral special | Hammer of Justice | A heavy overhead bonk that lifts the opponent for a follow-up. |
+| Side special | Holy Radiance | Drive the hammer forward, then send light beyond it. Strong up close; unsafe if blocked. |
 | Up special | Ascension | A rising hammer strike, then a helpless fall. |
 | Down special | Divine Shield | A guard: read an attack and become untouchable until you act. Grabs still catch him. |
 | Jab, repeated | Hammer and Haft | A hammer check, then a shove of the haft on a second jab. |
@@ -148,12 +148,12 @@ Normals, inspired by:
 
 | Input | Name | What it does |
 | --- | --- | --- |
-| Neutral special | Throwing Axe | A straight thrown axe that costs nothing. |
-| Side special | Summon Bear (Bear Command) | Call a bear to his side; press again to send it lunging ahead. |
-| Up special | Hawk Lift | A hawk lifts him high, then a helpless fall. |
-| Down special | Quillbeast Dart (Bear Recall) | A short quill; with a bear out, call the bear back to him instead. |
+| Neutral special | Wild Axes | Throw two axes; move to guide their return through the enemy. |
+| Side special | Summon Bear (Stampede) | Call Bear, then press again for its lunge and a Stampede. |
+| Up special | Summon Hawk (Hawk Lift, Hawk Dive) | Call Hawk, then command a dive. In the air, Hawk carries him up. |
+| Down special | Summon Quilbeast (Quill Volley) | Set a Quilbeast firing position; press again for a three-quill volley. |
 | Jab, repeated | Twin Axes | Both axe hilts, then a shoulder that shoves, on repeated jabs. |
-| Passive | Pack Bond | His bear walks at his heel and bites only on his command; it never blocks for him. |
+| Passive | Pack Bond | Bear follows, Quilbeast holds a firing position, and Hawk patrols above; commands turn their positions into attacks. |
 
 ## Lich King
 

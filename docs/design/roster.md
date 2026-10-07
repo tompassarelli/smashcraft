@@ -30,7 +30,7 @@ All move designs and numbers below are proposals, not existing implementation fa
 | 10 | Goblin Tinker | Gadgets, mechanical reach, and rockets | Long setup and exposed body |
 | 11 | Goblin Alchemist | Ogre brawler with potion preparation | Slow body and buffs that require commitment |
 | 12 | Naga Sea Witch | Ground control and arcing projectiles | Slow air movement and exposed recovery |
-| 13 | Beastmaster | Fighter and bear coordination | Shared resources and punishable pet commands |
+| 13 | Beastmaster | Three-animal pack coordination | Shared resources and punishable pet commands |
 | 14 | Dark Ranger | Marked targets and a single skeletal helper | Requires setup and cannot replace Archer’s neutral game |
 | 15 | Firelord | Fire zones and one short-lived summon | Zones have startup and can be escaped vertically |
 
@@ -481,7 +481,7 @@ the tables:
 
 ## Uther
 
-**Identity:** a defensive paladin with a substantial hammer, deliberate protection, and limited healing. He wins by holding space and reading approaches, not by infinitely stalling with invulnerability. Divine Shield must be a short defensive action in a fighter.
+**Identity:** a defensive paladin with a substantial hammer, deliberate protection, and a strong close hit backed by weaker ranged light. The current kit and sources are in [Uther](uther.md). He wins by holding space and reading approaches, not by infinitely stalling with invulnerability. Divine Shield must be a short defensive action in a fighter.
 
 ### Normals
 
@@ -505,8 +505,8 @@ the tables:
 
 | Input | Proposed move and behavior | Timing and cost |
 | --- | --- | --- |
-| Neutral B | **Holy Light** (#131, [kit review 2](kit-review-2.md#uther-131)): aimed straight or 30 degrees up by holding up on entry; speed 0.11H/frame out for 26 frames, then back toward Uther's chest at the same speed; life 80, radius 0.17H, one active. Outbound 5 damage, POKE at 40 degrees; returning 5 damage, POKE toward Uther. Reaching Uther untouched restores 3 percent, at most 9 a stock. A reflected orb flies straight. | Spawn f20, end f56; 10 mana |
-| Side B | **Crusader Rush:** advance 0.9H with a hammer check, 11 damage at 45 degrees, LAUNCH. Armor against one hit of at most 5 damage only on f12–15; grabs ignore it. Air version has no armor, no rise, and ends helpless. | Active/movement f12–17, R30; 20 mana |
+| Neutral B | **Hammer of Justice** (#216): overhead hammer launcher, 13 damage at 80°, growth 70/base 42. One hit, 140-unit reach; air keeps drift with 18 landing frames. | Active f14–16, end f38; 10 mana |
+| Side B | **Holy Radiance** (#216): 0.75H hammer lunge, 14 damage at 40°; on f21 a 6-damage holy wave travels straight beyond the head. Ground armor for one ≤5-damage hit f15–18. Air has no armor, one use and helpless finish. | Hammer/travel f15–20, wave f21, end f49; 20 mana |
 | Up B | **Ascension:** rising hammer leap, 1.9H rise and 0.45H horizontal drift; one 8-damage hit, LAUNCH at 80 degrees. Free version 1.3H without hitbox. | Hit f10–15, travel through f29, then helpless; 15 mana |
 | Down B | **Divine Shield** (#131): ground-only timed stance, intangible f6–9, vulnerable otherwise, no automatic counter. A damaging melee or projectile hit overlapping it on those frames raises Divine Shield: 45 frames in which strikes and projectiles pass through Uther; starting an attack, special or grab ends it. Grabs beat both the guard and the shield. No healing. | End f36; 25 mana. Air version fails without spending |
 
@@ -523,7 +523,7 @@ Standing grab 8/2/25, reach 0.55H. Pummel: hammer-hilt tap.
 
 **Ultimate — Guardian of the Light:** f30 vulnerable activation, R15, then 360 frames of +10 percent damage and three visible protective charges. A charge absorbs one hit reaction up to 6 damage while still taking damage; at most one charge consumed per 30 frames. Grabs and larger hits bypass the protection. No resurrection, extra stocks, unlimited heal, or prolonged invulnerability.
 
-**Required counterplay test:** Uther can be grabbed or baited during Divine Shield and punished afterward. Optimal healing cannot outpace plausible damage indefinitely because the stock cap is absolute.
+**Required counterplay test:** Uther can be grabbed or baited during Divine Shield and punished afterward. The hammer launcher can be shielded and its recovery punished.
 
 ### Uther as built
 
@@ -538,15 +538,14 @@ use provisional coefficients. Deliberate differences:
   strikes with the torso and reaches 0.8H by travelling during startup.
 - Grab contact sits at hand height (about 24-56 above the feet), not at the
   shins.
-- Crusader Rush in the air holds its height during the rush (no rise, no
-  fall) and lands with 20 frames of lag; Holy Light cast in the air does too.
+- Holy Radiance in the air holds its height during the lunge and lands with
+  20 frames of lag; Hammer of Justice keeps drift with 18 landing frames.
 - Ascension travels on f8-28 and stops on f29, so its helpless fall starts
   at the 1.9H (free form 1.3H) apex; both forms drift 0.45H.
 - Divine Shield's success is the special's `guard` window: an opponent's
   damaging strike or projectile overlapping Uther on f6-9 raises the shield
   (`status.divineFrames`, sim/transitions.ts `endDivineShield`). The
-  strike that triggered it passes through him. Holy Light's heal and the cap
-  share `status.guardHealed`.
+  strike that triggered it passes through him.
 
 Presentation uses the stock classic Paladin model, which has thirteen
 sequences and no punch, kick, jump, roll, ledge or grab clip. Hammer Sweep's
@@ -556,7 +555,7 @@ while the gauntlet strikes. Down smash's back half and Rearward Boot have no
 matching clip ("Attack - 2" and "Stand Hit" play). utherClips.ts lists the
 sequence table and every pose's clip.
 
-**Gameplan** (smashcraft:ts/src/game/sim/heroes/utherGameplan.ts, #105): he holds 0.9-1.3H, at Hammer Sweep's tip, spacing with Hammer Sweep and Low Judgment and making the target come to him with Holy Light from 1.7H out; he shoots, or walks in only for Hammer Sweep or a grab. He answers an attack with Divine Shield as often as with his shield and spot dodge together. Low Judgment, Guiding Light and the up throw start his strings; Final Judgment, Holy Hammer and Beacon Strike finish. His weak chase is the weakness he plays around: he never follows a target overhead, keeps off the edge and returns to the ledge with his jump before Ascension.
+**Gameplan** (smashcraft:ts/src/game/sim/heroes/utherGameplan.ts): he holds hammer spacing, lifts close opponents with Hammer of Justice and sends Holy Radiance at a retreating opponent. Divine Shield reads incoming strikes; Low Judgment, Guiding Light and up throw start other follow-ups. He returns toward the ledge before spending Ascension.
 
 ## Dreadlord
 
@@ -887,7 +886,7 @@ Standing grab 9/2/27, reach 0.65H, short tail coil. No dragging or moving hold. 
 
 ## Beastmaster
 
-**Identity:** Rexxar-inspired axe fighter with one bear partner. The player still controls one fighter directly; the bear has a small deterministic command set rather than independent Warcraft AI. Bear timing is the primary complexity, so defer this hero until ordinary projectiles and rollback work.
+**Identity:** Rexxar-inspired axe fighter who directs Bear, Quilbeast and Hawk from three separate positions. [The pack design](beastmaster.md) owns his current specials, roles, commitments and references.
 
 ### Normals
 
@@ -909,14 +908,11 @@ Standing grab 9/2/27, reach 0.65H, short tail coil. No dragging or moving hold. 
 
 ### B specials
 
-| Input | Proposed move and behavior | Timing and cost |
-| --- | --- | --- |
-| Neutral B | **Throwing Axe:** straight thrown axe, 9 damage, POKE at 40 degrees, speed 0.11H/frame, life 28, radius 0.17H, one active and reflectable. No boomerang return. | Spawn f20, end f39; 0 mana |
-| Side B | **Bear Command:** without a bear, ground-only summon at 0.6H ahead, 30 durability and 600-frame life. With a bear, issue a lunge in owner-facing direction: travel 1.2H, bite for 16 damage, EDGE at 40 degrees. Owner commits to command animation; commands fail while bear is attacking or stunned. Bear cannot attack during owner hitstun and does not auto-counter a combo. | Summon f30, end f56, cost 25. Command end f24, cost 8; bear startup 10, active 4, recovery 30 |
-| Up B | **Hawk Lift:** a cosmetic hawk lifts Beastmaster 2.0H with 0.5H drift. No independent hawk AI or attack. Free version 1.4H. | Lift f10–32, then helpless; 15 mana |
-| Down B | **Bear Recall or Quilbeast Dart:** with a bear, recalls it along the ground toward the owner at 0.06H/frame, cancelling only its idle/follow state; no teleport, attack, invulnerability, or durability reset. Without a bear, throw one short quill at speed 0.14H/frame, life 20, radius 0.10H; 4 damage, POKE at 35 degrees, reflectable. | Recall action 20 frames, 0 mana. Dart spawn f18, end f40, 3 mana |
-
-**Bear movement:** when idle, follow to a point 0.8H behind the owner at 0.035H/frame; use the same deterministic stage collision as fighters, no pathfinding, no jumps. Stop at platform edges, never body-block, and despawn if outside a blast zone. If separated by more than 6H for 120 frames, despawn with no mana refund. Bear attacks are cancelled on taking a hit and use 18 frames of stun. On owner grab or hitstun, cancel pending bear attacks and suppress new attacks until the owner is actionable. No bear grab, stock, ledge snap, invulnerability, or autonomous attack.
+[The pack design](beastmaster.md) replaces the original single-Bear kit: Wild
+Axes return, side special calls Bear then Stampede, down special calls a
+Quilbeast then its volley, and grounded up special calls Hawk then its dive.
+Airborne up special remains Hawk Lift. Each animal owns a position, health,
+lifetime and command state, and all three may coexist.
 
 ### Grab and throws
 
@@ -929,45 +925,15 @@ Standing grab 8/2/25, reach 0.60H. Pummel: axe-hilt strike. Bear attacks are sup
 | Up | Twin-hilt launch | 7 | f15, R22 | 85, LAUNCH |
 | Down | Wrestling trip | 6 | f19, R25 | 70, LINK |
 
-**Ultimate — Stampede:** f36 ground startup, then six beasts emitted at 24-frame intervals, each moving at 0.10H/frame for 50 frames and stopping at terrain. One beast deals 6 damage, EDGE at 40 degrees; at most three hits per target per activation, with at least 24 frames between hits. Owner channels and is vulnerable until the last emission; R35 afterward. Interruption stops future spawns. No individual AI; use pooled projectiles with a special cap of six for this ultimate only.
+Stampede is the Bear command on side special; it needs no separate ultimate
+input. Normals and throws retain their current authored data, including the
+low down-throw chase from #208 and the accepted #186 numeric tuning.
 
-**Required counterplay test:** opponents can separate Beastmaster from bear and punish the command animation. No bear-plus-throw sequence bypasses regrab protection or produces a guaranteed infinite. Solo Beastmaster must remain playable while the bear is absent.
-
-### Beastmaster as built
-
-Source: smashcraft:ts/src/game/sim/heroes/beastmasterMoves.ts (normals, grabs,
-throws, body), beastmasterSpecials.ts, beastmasterHero.ts and the partner
-rules in smashcraft:ts/src/game/sim/companions.ts (#122). Every row above is
-implemented with its listed timing, damage, angle and reach. Launch classes
-use provisional coefficients. Deliberate differences:
-
-- The bear is his placed object with a `companion` record. Side special
-  summons it (25 mana, ground only). While it stands, side special is Bear
-  Command (8 mana): the bear lunges the way he faces after 10 frames of
-  warning, with a 4-frame bite. Down special is Bear Recall (free), and the
-  Quillbeast Dart only when no bear stands. A lunge order refuses, spending
-  nothing, while the bear is lunging or stunned.
-- The bear follows to 0.8H behind him on the deck it was set down on, and
-  stops at that deck's ends instead of falling. With no fall, it never
-  crosses a blast zone. It also leaves after 120 frames more than 6H from him
-  (or while he is out).
-- A lunge is cancelled while he is in hitstun, held, holding or throwing.
-  Any opponent's hit on the bear mid-lunge spends durability and stuns it for
-  18 frames. The bear never blocks a body or a strike meant for him.
-- The up throw is a JUGGLE and the down throw a CHASE (#107).
-- Hawk Lift's free form drifts 0.35H; the brief gives only its 1.4H rise.
-
-Presentation uses the stock classic BeastMaster model (Rexxar), scale 0.85,
-and the classic GrizzlyBear model for the bear. The bear walks while it moves,
-bites while it lunges and fades as its durability runs down. The model has
-ten sequences and no hit, jump or kick clip, so flinches play "Stand Ready".
-His voice is the game's Beastmaster set (OgreBeastMaster).
-
-**Gameplan** (smashcraft:ts/src/game/sim/heroes/beastmasterGameplan.ts, #105):
-he sets the bear down from range, then walks in behind it with Broad Axe and
-Low Chop and sends it lunging. The free Throwing Axe makes the target act.
-He keeps out of close brawls and off the edge, where being split from the
-bear costs him most.
+Source: smashcraft:ts/src/game/sim/heroes/beastmasterMoves.ts,
+beastmasterSpecials.ts, beastmasterHero.ts and sim/companions.ts. Stock classic
+BeastMaster, GrizzlyBear, QuillBeast and WarEagle models draw the formation;
+the Stampede missile draws its two thunder lizards. The computer uses the
+same four inputs and animal commands as the player.
 
 ## Dark Ranger
 

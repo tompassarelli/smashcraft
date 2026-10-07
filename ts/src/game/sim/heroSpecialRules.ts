@@ -9,7 +9,7 @@ import { at } from "wisp/src/runtime/lookup";
 import { advanceHeroConditions } from "./heroStatus";
 import { AttackStyle, ProjectileKind, SpecialAction } from "./codes";
 import { canAttack, inGrabContext, isIntangible } from "./conditions";
-import type { Fighter } from "./fighter";
+import { type Fighter, placedObject } from "./fighter";
 import { type FighterSpecials, type AuthoredSpecial, CompanionMode, CompanionOrder, type SpecialFollowUp, type SpecialGuard, type SpecialKit, type SpecialPlacement, type SpecialProjectile, FOLLOW_UP_FORM, FollowUpInput, Relocation, SpecialForm, SpecialSlot, specialForm, specialKit } from "./heroSpecials";
 import { type HitRegion, NO_HIT_REGION, authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "./hitRegions";
 import { type Controls, type Roster, fighterAt, isActive } from "./roster";
@@ -89,7 +89,7 @@ function recallHolds(f: Readonly<Fighter>, kit: Readonly<SpecialKit>): boolean {
     const spec = kit.ground.projectiles?.[0];
     return spec !== undefined && ownedCount(f, spec) > 0;
   }
-  return f.placed.life > 0;
+  return (kit.recallGroundOnly !== true || f.motion.grounded) && placedObject(f, kit.ground.placement?.slot).life > 0;
 }
 
 /** Why a press was refused: below its cost without a free form, or a ground-only form in the air. */
@@ -137,7 +137,7 @@ export function chooseHeroSpecial(f: Readonly<Fighter>, specials: Readonly<Fight
     move = kit.free;
   }
   if (move.oncePerAirtime === true && airborne && (f.special.airtimeUses & (1 << slot)) !== 0) return undefined;
-  if (move.command?.order === CompanionOrder.lunge && !companionReady(f)) return undefined;
+  if (move.command?.order === CompanionOrder.lunge && !companionReady(f, move.command.slot)) return undefined;
   if (!projectilesFit(f, move)) return undefined;
   choice.slot = slot;
   choice.form = form;
@@ -294,17 +294,17 @@ function applyMotion(f: Fighter, move: Readonly<AuthoredSpecial>, frame: number,
 }
 
 /** Whether the fighter's partner can take a lunge order: standing, and neither lunging nor stunned. */
-export function companionReady(f: Readonly<Fighter>): boolean {
-  const { placed } = f;
+export function companionReady(f: Readonly<Fighter>, slot = 0): boolean {
+  const placed = placedObject(f, slot);
   return placed.life > 0 && placed.spec?.companion !== undefined && (placed.mode === CompanionMode.follow || placed.mode === CompanionMode.returning);
 }
 
 /** Gives the fighter's partner an order: a lunge the way its owner faces, or a walk back to its owner. */
-function orderCompanion(f: Fighter, order: CompanionOrder): void {
-  const { placed } = f;
+function orderCompanion(f: Fighter, order: CompanionOrder, slot = 0): void {
+  const placed = placedObject(f, slot);
   if (placed.life <= 0 || placed.spec?.companion === undefined) return;
   if (order === CompanionOrder.lunge) {
-    if (!companionReady(f)) return;
+    if (!companionReady(f, slot)) return;
     placed.mode = CompanionMode.lunge;
     placed.direction = f.facing < 0 ? -1 : 1;
     placed.bitten = 0;
@@ -317,11 +317,12 @@ function orderCompanion(f: Fighter, order: CompanionOrder): void {
 
 /** Stands the fighter's placed object ahead of its feet, facing its way, with a clean strike record. */
 function placeObject(f: Fighter, spec: Readonly<SpecialPlacement>): void {
-  const { placed } = f;
+  const placed = placedObject(f, spec.slot);
+  if (spec.keepExisting === true && placed.life > 0) return;
   placed.life = spec.life;
   placed.age = 0;
   placed.x = f32(f.motion.x + f32(f.facing * spec.offsetX));
-  placed.z = f.motion.z;
+  placed.z = f32(f.motion.z + (spec.offsetZ ?? 0.0));
   placed.direction = f.facing < 0 ? -1 : 1;
   placed.durability = spec.durability;
   placed.serial++;
@@ -376,7 +377,7 @@ export function advanceHeroSpecial(f: Fighter, stage = 0, input?: Readonly<Contr
   applyMotion(f, move, frame, input);
   for (const spec of move.projectiles ?? []) if (spec.spawnFrame === frame) spawnHeroProjectile(f, spec, f.attack.serial + 1, stage);
   if (move.placement?.frame === frame) placeObject(f, move.placement);
-  if (move.command?.frame === frame) orderCompanion(f, move.command.order);
+  if (move.command?.frame === frame) orderCompanion(f, move.command.order, move.command.slot);
   if (move.burst?.frame === frame) burstProjectiles(f, move.burst.from, move.burst.into);
   if (move.ritual?.frame === frame) {
     f.status.armorFrames = 0;
