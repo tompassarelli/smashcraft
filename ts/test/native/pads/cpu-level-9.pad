@@ -12,26 +12,20 @@
 600 a tap B 8
 700 a stick -1 0
 702 a stick 0 0
-# Expected (headless run of this script): in frames 1-1000 the level-9 computer lands 17 hits, 102.4% (a 89.6, b 12.8)
-# and takes none; every hit on its frame:
-#! expect a 52 damage 12.753
-#! expect a 110 damage 17.753
-#! expect a 144 damage 20.753
-#! expect a 151 damage 24.753
-#! expect a 182 damage 27.753
-#! expect a 189 damage 31.753
-#! expect a 220 damage 34.753
-#! expect a 227 damage 38.753
-#! expect a 352 damage 43.753
-#! expect a 383 damage 46.753
-#! expect a 391 damage 50.753
-#! expect a 607 damage 53.753
-#! expect a 614 damage 57.753
-#! expect a 742 damage 0.000
-#! expect b 759 damage 12.753
-#! expect a 902 damage 17.855
-#! expect a 949 damage 24.855
-#! expect a 982 damage 31.855
+# Reference after human-paced reactions (#176), Illidan fair retune (#105), and ground/height reach repair.
+# Frames 1-1000: level 9 lands 10 hits, 71.0% (a 59.5, b 11.5), and takes none.
+# Every hit and respawn on its frame:
+#! expect a 64 damage 12.753
+#! expect a 152 damage 25.507
+#! expect a 341 damage 34.507
+#! expect a 619 damage 36.507
+#! expect a 625 damage 39.507
+#! expect a 809 damage 0.000
+#! expect b 818 damage 11.530
+#! expect a 921 damage 9.000
+#! expect a 958 damage 11.000
+#! expect a 964 damage 14.000
+#! expect a 994 damage 20.000
 #! absent c 1-1000 damage
 1000 a press VIEW
 1070 a release VIEW
