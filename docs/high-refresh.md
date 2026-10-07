@@ -113,6 +113,31 @@ alone record every rendered frame. `SetCameraField` currently requests zero
 duration; a timed transition experiment also needs to change the camera bounds
 that currently constrain x to the newly requested target on every callback.
 
+`-dev camera-smooth on` enables that experiment in a development map:
+`PanCameraToTimed` and the changing camera fields request a one-match-frame
+transition, while the engine's x bounds encompass the stage's camera range.
+The canonical camera and its local aspect/corner limits stay unchanged.
+`-dev camera-smooth off` restores the default instantaneous requests. Pausing
+applies the last camera immediately. Compare both modes on the same native
+map and rendered-frame capture before choosing the playable default.
+
+`bun scripts/cameraDraw.ts --video PRIVATE.mkv --pages DATA_DIR --out PRIVATE_DIR`
+reads each video's original presentation timestamp and decodes the probe's
+magenta 128-cell marker, joining each captured frame to its exported A/B/P/Q
+row. `--viewport X,Y,W,H` crops a whole-output recording to the exact game
+window; `--slot` and `--run` select the response export. Start the recorder
+before Ctrl+G so row zero identifies the beginning. The reader reports retained
+frame intervals, held match frames and multiple match-frame advances, and
+writes the matched timeline for pixel analysis. It deliberately leaves drawn
+camera measurement unset: callback camera fields alone cannot establish it.
+
+For the private compositor, `wf-recorder --no-damage --codec libx264rgb
+--codec-param preset=ultrafast --codec-param crf=0 --pixel-format rgb24
+--file PRIVATE.mkv` retains lossless pixels, held frames and original video
+timestamps. Omit `--framerate`, which would replace timing with a constant
+rate. Set and read back the output's 120 Hz mode and the game's cap separately;
+the captured intervals decide the observed recording cadence.
+
 Renderers place moving effects (fighters, their lights, projectiles and pooled
 effects) through `placeEffect` (smashcraft:ts/src/game/render/effects.ts). By
 default it only sets the position. `-dev smooth-draw` starts a zero-period

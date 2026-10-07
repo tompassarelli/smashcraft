@@ -1,0 +1,24 @@
+{
+  "fighter": "Cairne Bloodhoof",
+  "matches": 8,
+  "movement": 6533,
+  "attacks": 91,
+  "kit": 94,
+  "specials": {
+    "neutral": 66,
+    "side": 19,
+    "up": 8,
+    "down": 1
+  },
+  "defense": 286,
+  "recovery": 1085,
+  "manaDenied": 0,
+  "defenseDecisions": 9,
+  "recoveryDecisions": 2,
+  "companions": {
+    "bear": 0,
+    "quilbeast": 0,
+    "hawk": 0
+  },
+  "missing": []
+}

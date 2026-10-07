@@ -56,8 +56,8 @@ const side = controls({ specialPressed: true, specialX: 1 });
 const down = controls({ specialPressed: true, specialZ: -1 });
 const near = (value: number, expected: number) => Math.abs(value - expected) <= f32(0.05);
 
-test("Loa Vault reaches its listed rise and drift, and its free form spends nothing", () => {
-  for (const [points, rise, drift, spent] of [[100, 2.0, f32(0.6), 15], [14, f32(1.4), f32(0.3), 0]] as const) {
+test("Loa Vault vaults its listed 2.9H straight up by default, and its free form spends nothing for 2.0H", () => {
+  for (const [points, rise, drift, spent] of [[100, f32(2.9), 0.0, 15], [14, f32(2.0), 0.0, 0]] as const) {
     const { world, owner } = pair(900.0);
     owner.mana.points = points;
     const x0 = owner.motion.x;
@@ -308,18 +308,19 @@ test("the computer sets a ward when its shot would reach a grounded target, and 
   assertEquals(heroSpecialUse(owner, target, 0, SpecialSlot.side), HeroSpecialUse.none);
 });
 
-test("Loa Vault turns to a stick held sideways on entry, so its drift heads back toward the stage", () => {
+test("Loa Vault's startup aim sends it 2.9H level back toward the stage when the stick is held there", () => {
   for (const facing of [1, -1]) {
     const { world, owner } = pair(1200.0, facing);
     owner.motion.grounded = false;
     owner.motion.surface = undefined;
     owner.motion.z = 600.0;
     const startX = owner.motion.x;
-    frame(world, controls({ specialPressed: true, specialZ: 1, specialX: -facing }));
+    frame(world, controls({ specialPressed: true, specialZ: 1, verticalDirection: 1 }));
     assertEquals(owner.special.action, SpecialAction.heroUp);
-    assertEquals(owner.facing, -facing);
-    for (let f = 2; f <= 30; f++) frame(world);
-    assertTrue(near(f32(f32(startX - owner.motion.x) * facing) / HERO_REFERENCE_HEIGHT, f32(0.6)));
+    const startZ = owner.motion.z;
+    for (let f = 2; f <= 26; f++) frame(world, controls({ direction: f <= 8 ? -facing : 0 }));
+    assertTrue(near(f32(f32(startX - owner.motion.x) * facing) / HERO_REFERENCE_HEIGHT, f32(2.9)));
+    assertTrue(Math.abs(f32(owner.motion.z - startZ)) <= 1.0);
   }
 });
 

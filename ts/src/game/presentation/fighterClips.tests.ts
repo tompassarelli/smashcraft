@@ -1,4 +1,6 @@
 import { assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
+import { ROSTER_ATTACK_CLIPS } from "./rosterAttackClipInfo";
+import type { HeroClipTable } from "../sim/heroes/hero";
 import { FIGHTER_OBJECTS } from "../objectData";
 import { originalClipCount } from "../assets/fighterOriginalClipInfo";
 import { AttackStyle, Character, GrabAction, SpecialAction } from "../sim/codes";
@@ -16,6 +18,7 @@ import { RECOVERY_CLIPS } from "./recoveryClipInfo";
 import { type Fighter, createFighter } from "../sim/fighter";
 import { neutralControls } from "../sim/roster";
 import { soloWorld } from "../sim/testWorld";
+const rosterAttacks: Readonly<Record<number, HeroClipTable | undefined>> = ROSTER_ATTACK_CLIPS;
 
 for (const character of SELECTABLE_CHARACTERS) {
   const forward = clipFor(character, "rollForward");
@@ -68,10 +71,9 @@ test("Archer Fist and Boot plays Attack Jab's quick punch then Down Tilt's low k
 
 test("a hero plays its registered sequences and its fallback for any pose it leaves out", () => {
   const warden = Character.warden;
-  assertEquals(clipFor(warden, "forwardAir").index, WARDEN_SEQUENCES.attack2.index);
-  assertEquals(clipFor(warden, "forwardAir").seconds, WARDEN_SEQUENCES.attack2.seconds);
+  assertEquals(clipFor(warden, "forwardAir"), ROSTER_ATTACK_CLIPS[warden].forwardAir);
   assertEquals(ownAttackClip(warden, AttackStyle.forwardSmash)?.index, WARDEN_SEQUENCES.spellSlam.index);
-  assertEquals(ownAttackClip(warden, AttackStyle.dashAttack)?.index, WARDEN_SEQUENCES.attack2.index);
+  assertEquals(ownAttackClip(warden, AttackStyle.dashAttack), ROSTER_ATTACK_CLIPS[warden].dashAttack);
   assertEquals(specialClip(warden, SpecialAction.heroUp, false, false).index, WARDEN_SEQUENCES.dissipate.index);
   assertEquals(specialClip(warden, SpecialAction.heroDown, true, false).index, WARDEN_FAN_CLIPS.ground.index);
   assertEquals(specialClip(warden, SpecialAction.heroDown, false, false).index, WARDEN_FAN_CLIPS.air.index);
@@ -79,7 +81,7 @@ test("a hero plays its registered sequences and its fallback for any pose it lea
   // Every original or appended action must be present in the packaged pool.
   for (const clip of namedClips(characterClips(warden))) assertTrue(clip.index >= 0 && clip.index < originalClipCount(warden));
   // A hero plays its fallback for a pose its table leaves out; a character no hero registers plays the stock first sequence.
-  for (const hero of HERO_ROSTER) assertEquals(clipFor(hero.character, "upAir"), hero.presentation.clips.upAir ?? hero.presentation.fallback);
+  for (const hero of HERO_ROSTER) assertEquals(clipFor(hero.character, "upAir"), rosterAttacks[hero.character]?.upAir ?? hero.presentation.clips.upAir ?? hero.presentation.fallback);
   assertEquals(clipFor(99, "upAir"), STOCK_FALLBACK_CLIP);
   // One registration gives the body its unit, model and scale.
   assertEquals(FIGHTER_OBJECTS[warden].model, WARDEN_MODEL_FILE);

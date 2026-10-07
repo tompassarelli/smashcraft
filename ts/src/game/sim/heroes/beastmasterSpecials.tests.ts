@@ -212,7 +212,7 @@ test("Beastmaster Wild Axes are free, throw twice and return toward the moving o
 });
 
 test("Beastmaster airborne Hawk Lift retains full and free recovery and leaves Hawk alive", () => {
-  for (const [mana, rise] of [[100, f32(2.0)], [10, f32(1.4)]] as const) {
+  for (const [mana, rise] of [[100, f32(3.2)], [10, f32(2.3)]] as const) {
     const { world, owner } = pair();
     owner.motion.grounded = false;
     owner.motion.surface = undefined;

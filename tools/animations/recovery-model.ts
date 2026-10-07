@@ -3,6 +3,18 @@
 import { model as mdx } from "war3-model";
 import { ensure, onGlobalClock, tracks } from "./original-clips";
 
+/** Illidan locomotion appends three clips without changing the retained rig. */
+export function locomotionBaseModel(source: mdx.Model): mdx.Model | undefined {
+  const first = source.Sequences.findIndex(s => s.Name === "Locomotion Walk");
+  if (first < 0) return undefined;
+  ensure(source.Sequences.slice(first).map(s => s.Name).join("/") === "Locomotion Walk/Locomotion Run/Locomotion Initial Dash Burst", "Locomotion must be a three-clip suffix");
+  const model = structuredClone(source), cutoff = source.Sequences[first]?.Interval[0];
+  ensure(cutoff !== undefined, "Locomotion suffix has no start");
+  model.Sequences = model.Sequences.slice(0, first);
+  tracks(model, track => { if (!onGlobalClock(track)) track.Keys = track.Keys.filter(k => k.Frame < cutoff); });
+  return model;
+}
+
 export function wardenFanBaseModel(source: mdx.Model): mdx.Model | undefined {
   const first = source.Sequences.findIndex(s => s.Name.startsWith("Fan of Knives "));
   if (first < 0) return undefined;
@@ -10,6 +22,44 @@ export function wardenFanBaseModel(source: mdx.Model): mdx.Model | undefined {
   const cutoff = source.Sequences[first]?.Interval[0]; ensure(cutoff !== undefined, "Fan cast has no start");
   const model = structuredClone(source);
   model.Sequences = model.Sequences.slice(0, first);
+  tracks(model, track => { if (!onGlobalClock(track)) track.Keys = track.Keys.filter(k => k.Frame < cutoff); });
+  return model;
+}
+
+
+export function swordGestureBaseModel(source: mdx.Model): mdx.Model | undefined {
+  const first = source.Sequences.findIndex(s => s.Name.startsWith("Sword Gesture "));
+  if (first < 0) return undefined;
+  ensure(first > 0 && source.Sequences.slice(first).every(s => s.Name.startsWith("Sword Gesture ")), "Sword gestures must be the sequence suffix");
+  const cutoff = source.Sequences[first]?.Interval[0];
+  ensure(cutoff !== undefined, "Sword gestures have no start");
+  const model = structuredClone(source);
+  model.Sequences = model.Sequences.slice(0, first);
+  tracks(model, track => { if (!onGlobalClock(track)) track.Keys = track.Keys.filter(k => k.Frame < cutoff); });
+  return model;
+}
+
+export function attackGestureBaseModel(source: mdx.Model): mdx.Model | undefined {
+  const first = source.Sequences.findIndex(s => s.Name.startsWith("Attack Gesture "));
+  if (first < 0) return undefined;
+  ensure(first > 0 && source.Sequences.slice(first).every(s => s.Name.startsWith("Attack Gesture ")), "Attack gestures must be the sequence suffix");
+  const helper = source.Helpers.find(n => n.Name === "Attack Gesture");
+  ensure(helper && helper.ObjectId === source.Nodes.length - 1 && helper.Parent == null && helper.Flags === 0, "Attack gesture helper must be final ordinary root");
+  const rotation = helper.Rotation;
+  ensure(rotation && !onGlobalClock(rotation) && !helper.Translation && !helper.Scaling, "Attack gesture parent must rotate locally");
+  for (const sequence of source.Sequences.slice(0, first)) {
+    const keys = rotation.Keys.filter(k => k.Frame >= sequence.Interval[0] && k.Frame <= sequence.Interval[1]);
+    ensure(keys.length >= 2 && keys[0]?.Frame === sequence.Interval[0] && keys.at(-1)?.Frame === sequence.Interval[1]
+      && keys.every(k => k.Vector.every((v, i) => v === (i === 3 ? 1 : 0))), `${sequence.Name}: attack gesture changes the old parent`);
+  }
+  const cutoff = source.Sequences[first]?.Interval[0];
+  ensure(cutoff !== undefined, "Attack gestures have no start");
+  const model = structuredClone(source);
+  model.Sequences = model.Sequences.slice(0, first);
+  model.Helpers = model.Helpers.filter(n => n.ObjectId !== helper.ObjectId);
+  model.Nodes = model.Nodes.filter(n => n.ObjectId !== helper.ObjectId);
+  model.PivotPoints = model.PivotPoints.slice(0, helper.ObjectId);
+  for (const node of model.Nodes) if (node.Parent === helper.ObjectId) node.Parent = null;
   tracks(model, track => { if (!onGlobalClock(track)) track.Keys = track.Keys.filter(k => k.Frame < cutoff); });
   return model;
 }
