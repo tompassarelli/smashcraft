@@ -361,7 +361,7 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
     },
     "emitters": []
   },
-  "war3mapimported/kaelthassunstriderwhite-f6edaa2f85003681305d8fa5ac6174e0e67eee464da7a2a5d9cf9fc3ef238e1c.mdx": {
+  "war3mapimported/kaelthassunstriderwhite-acde58742944f8cde0c3aa97b8da2c7fbc5f6c23b5c6c8eba72dcee5ed672107.mdx": {
     "geosets": 9,
     "triangles": 603,
     "lights": 0,
