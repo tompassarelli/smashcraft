@@ -23,11 +23,10 @@
 85 a stick 0 0
 89 a stick -1 0
 95 a stick 0 0
-#! expect a 67 ground action 1 facing 1
 #! expect a 68 ground action 1 facing -1 dash-frame 1
-#! expect a 73 ground action 1 facing -1
 #! expect a 74 ground action 1 facing 1 dash-frame 1
 #! expect a 89 ground action 1 facing -1 dash-frame 1
+# The trace logs only changes: no walk (0) or run turn (3) between the dash-backs.
 #! absent a 64-95 ground action 0 facing
 #! absent a 64-95 ground action 3
 #! expect b 63 ground action 1 facing 1 dash-frame 1
