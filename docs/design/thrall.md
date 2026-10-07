@@ -45,17 +45,17 @@ describes the three phases. Landing figures are the automatic final lag.
 | Jab, jab 2 | Hammer butt then short hook; close escape, not a ranged poke | 5/2/14; 7/3/18 | 4; 45°, then 6; 40° | — |
 | Forward tilt, angled up/down | Waist-height hammer hook; aim over or under a shield | 10/3/21 | 10; 35°/55°/20° | — |
 | Up tilt | Lift hammer over the rider; starts a juggle | 8/4/20 | 8; 85° | — |
-| Down tilt | Low hammer sweep; tech-chase starter | 8/3/19 | 7; 70° | — |
+| Down tilt | Wolf's low paw swipe; tech-chase starter | 8/3/19 | 7; 70° | — |
 | Dash attack | Wolf shoulder with rider braced; exposed body travels 65 units | 11/4/25 | 10; 55° | — |
-| Forward smash | Planted overhead Doomhammer; longest punish | 20/3/34 | 18; 40° | — |
+| Forward smash | Planted Doomhammer hook; strongest close punish | 20/3/34 | 18; 40° | — |
 | Up smash | Hammer crown sweep; catches a landing | 17/4/29 | 15; 85° | — |
-| Down smash | Sweep front then back; covers a roll with commitment | 16/6/30 | 13; 25° outward | — |
+| Down smash | Wolf swipes front then back; covers a roll with commitment | 16/6/30 | 13; 25° outward | — |
 | Neutral air | Compact hammer/body turn; stops a close approach | 8/5/20 | 8; 50° | 14 |
 | Forward air | Hammer across the front; spacing and edge guard | 13/3/25 | 12; 45° | 18 |
 | Back air | Reverse hammer hook; heavier rear finisher | 11/3/25 | 13; 35° backward | 17 |
 | Up air | Hammer held high; follows up tilt or up throw | 8/4/20 | 9; 85° | 13 |
-| Down air | Hammer drops under the wolf; meteor only in air | 14/4/28 | 13; down, grounded 55° | 20 |
-| Grab / pummel | Reach from saddle and one hammer-butt check | 8/2/24 | 0 / 2 | — |
+| Down air | Wolf's forward paw presses down; meteor only in air | 14/4/28 | 13; down, grounded 55° | 20 |
+| Grab / pummel | Reach from saddle and one hammer-butt check | 8/2/24 | 0 / shared 3 | — |
 | Forward throw | Shove into hammer | contact14/end34 | 8; 35° | — |
 | Back throw | Turn and toss over the saddle | contact18/end40 | 10; 40° backward | — |
 | Up throw | Lift with lightning spark | contact15/end28 | 7; 90° | — |
@@ -68,6 +68,18 @@ The shared grab escape, throw immunity and hitstun inputs remain active.
 Get-up and ledge attacks use the same hammer sweep vocabulary and shared
 action rules. Only weapon reach is disjoint; shoulder and limb attacks expose
 matching hurt volumes. Smashes charge up to 45 frames for at most 1.25× damage.
+
+The mounted classic model keeps Doomhammer near the rider: measured hammer
+centres at contact are approximately (41,132) for the forward tilt, (39,133)
+for forward smash, (-2,189) for up tilt, (47,128) for forward air and
+(-40,127) for back air, in world units at stock scale. Head radii are22–25.
+Grounded low attacks and down air use the wolf's visible paw, spanning x52–96
+at z20–34 with radius20–24, rather than claiming the rider's hammer touches
+the floor. Their Warcraft source is Feral Spirit and their Smash reference
+is [Duck Hunt's animal strikes](https://www.ssbwiki.com/Duck_Hunt_(SSBU)#Moveset).
+Earthquake's low region is a spell pulse cast from the saddle. The wolf's
+body and attacking paws have exposed hurt volumes. This makes the hammer
+shorter than the initial design and the low paw his longer grounded poke.
 
 ## Specials, passive and ultimate
 

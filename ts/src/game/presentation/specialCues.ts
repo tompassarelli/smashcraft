@@ -101,7 +101,7 @@ export const HERO_CUES: { readonly [character: number]: { readonly [slot in Spec
     neutral: { spell: "Chain Lightning", startup: STORM, active: cue("Abilities\\Weapons\\FarseerMissile\\FarseerMissile.mdx", "hand", 1.0) },
     side: { spell: "Feral Spirit", startup: BEAST, active: cue("units\\orc\\SpiritWolf\\SpiritWolf.mdx", "ahead", 0.5) },
     up: { spell: "Far Sight", startup: STORM, active: cue("Abilities\\Spells\\Orc\\FarSight\\FarSightTarget.mdx", "feet", 0.5) },
-    down: { spell: "Earthquake", startup: STORM, active: cue("Abilities\\Spells\\Orc\\EarthQuake\\EarthQuakeTarget.mdx", "feet", f32(0.3)) },
+    down: { spell: "Earthquake", startup: STORM, active: cue("Abilities\\Spells\\Human\\Thunderclap\\ThunderclapTarget.mdx", "feet", f32(1.3)) },
   },
   [Character.blademaster]: {
     neutral: { spell: "Wind Cutter", startup: BLOODLUST, active: cue("Abilities\\Spells\\Other\\Tornado\\Tornado_Target.mdx", "hand", f32(0.6)) },
