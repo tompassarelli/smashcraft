@@ -1,0 +1,3469 @@
+{
+  "source": "6c1b0888a62583825853f158563ee41208d20bab",
+  "run": "https://github.com/tompassarelli/smashcraft/actions/runs/37682786282",
+  "opponents": 20,
+  "fighter": "goblin-tinker",
+  "matches": 8160,
+  "wins": 4312,
+  "losses": 3848,
+  "ties": 0,
+  "timeOuts": 0,
+  "winRate": 0.5284313725490196,
+  "against": {
+    "archer": 0.6715686274509803,
+    "beastmaster": 0.5367647058823529,
+    "blademaster": 0.4950980392156863,
+    "cairne-bloodhoof": 0.49264705882352944,
+    "chen-stormstout": 0.4534313725490196,
+    "dreadlord": 0.4264705882352941,
+    "kael'thas-sunstrider": 0.821078431372549,
+    "illidan": 0.29411764705882354,
+    "jaina-proudmoore": 0.6666666666666666,
+    "lich-king": 0.4632352941176471,
+    "lich": 0.38480392156862747,
+    "mountain-king": 0.42401960784313725,
+    "peon": 0.8529411764705882,
+    "pit-lord": 0.5490196078431373,
+    "rifleman": 0.5024509803921569,
+    "shadow-hunter": 0.4166666666666667,
+    "sylvanas-windrunner": 0.6127450980392157,
+    "thrall": 0.6715686274509803,
+    "uther": 0.25245098039215685,
+    "warden": 0.5808823529411765
+  },
+  "played": {
+    "archer": 408,
+    "beastmaster": 408,
+    "blademaster": 408,
+    "cairne-bloodhoof": 408,
+    "chen-stormstout": 408,
+    "dreadlord": 408,
+    "kael'thas-sunstrider": 408,
+    "illidan": 408,
+    "jaina-proudmoore": 408,
+    "lich-king": 408,
+    "lich": 408,
+    "mountain-king": 408,
+    "peon": 408,
+    "pit-lord": 408,
+    "rifleman": 408,
+    "shadow-hunter": 408,
+    "sylvanas-windrunner": 408,
+    "thrall": 408,
+    "uther": 408,
+    "warden": 408
+  },
+  "decisive": {
+    "archer": 408,
+    "beastmaster": 408,
+    "blademaster": 408,
+    "cairne-bloodhoof": 408,
+    "chen-stormstout": 408,
+    "dreadlord": 408,
+    "kael'thas-sunstrider": 408,
+    "illidan": 408,
+    "jaina-proudmoore": 408,
+    "lich-king": 408,
+    "lich": 408,
+    "mountain-king": 408,
+    "peon": 408,
+    "pit-lord": 408,
+    "rifleman": 408,
+    "shadow-hunter": 408,
+    "sylvanas-windrunner": 408,
+    "thrall": 408,
+    "uther": 408,
+    "warden": 408
+  },
+  "stockLosses": 19137,
+  "selfDestructs": 536,
+  "selfDestructShare": 0.02800856978627789,
+  "noHitLosses": 4176,
+  "noHitShare": 0.2182160213199561,
+  "damagePerHit": 7.08747330060243,
+  "manaPerStock": 172.450936074033,
+  "refusedShare": 0,
+  "moves": [
+    {
+      "move": 30,
+      "name": "neutral-special",
+      "count": 157525,
+      "share": 0.2667392533840876
+    },
+    {
+      "move": 33,
+      "name": "down-special",
+      "count": 70831,
+      "share": 0.11993910843642792
+    },
+    {
+      "move": 4,
+      "name": "forward-smash",
+      "count": 59954,
+      "share": 0.10152093443827702
+    },
+    {
+      "move": 8,
+      "name": "down-tilt",
+      "count": 57432,
+      "share": 0.09725039708208169
+    },
+    {
+      "move": 6,
+      "name": "forward-tilt",
+      "count": 52871,
+      "share": 0.08952719292601234
+    },
+    {
+      "move": 31,
+      "name": "side-special",
+      "count": 39075,
+      "share": 0.06616623600052832
+    },
+    {
+      "move": 32,
+      "name": "up-special",
+      "count": 19001,
+      "share": 0.032174655156648455
+    },
+    {
+      "move": 19,
+      "name": "dash-attack",
+      "count": 17985,
+      "share": 0.030454248354945663
+    },
+    {
+      "move": 14,
+      "name": "back-air",
+      "count": 17546,
+      "share": 0.029710883604997306
+    },
+    {
+      "move": 3,
+      "name": "down-smash",
+      "count": 16603,
+      "share": 0.02811408870932237
+    },
+    {
+      "move": 13,
+      "name": "forward-air",
+      "count": 13479,
+      "share": 0.022824176456842513
+    },
+    {
+      "move": 10,
+      "name": "forward-tilt-down",
+      "count": 10344,
+      "share": 0.017515637752769413
+    },
+    {
+      "move": 16,
+      "name": "down-air",
+      "count": 9711,
+      "share": 0.016443770129267576
+    },
+    {
+      "move": 9,
+      "name": "forward-tilt-up",
+      "count": 7981,
+      "share": 0.01351433728778545
+    },
+    {
+      "move": 17,
+      "name": "ledge-attack",
+      "count": 7735,
+      "share": 0.01309778209760938
+    },
+    {
+      "move": 12,
+      "name": "neutral-air",
+      "count": 7225,
+      "share": 0.012234192069195574
+    },
+    {
+      "move": 5,
+      "name": "grab",
+      "count": 6934,
+      "share": 0.011741437758865344
+    },
+    {
+      "move": 7,
+      "name": "up-tilt",
+      "count": 6735,
+      "share": 0.01140446831640584
+    },
+    {
+      "move": 2,
+      "name": "up-smash",
+      "count": 3972,
+      "share": 0.00672584233894046
+    },
+    {
+      "move": 0,
+      "name": "jab",
+      "count": 3509,
+      "share": 0.005941838058243221
+    },
+    {
+      "move": 15,
+      "name": "up-air",
+      "count": 3055,
+      "share": 0.005173073601576814
+    },
+    {
+      "move": 11,
+      "name": "get-up-attack",
+      "count": 1055,
+      "share": 0.0017864460391697344
+    }
+  ],
+  "options": {
+    "variants": 1,
+    "seeds": 100,
+    "stocks": 3,
+    "minutes": 4,
+    "tiers": [
+      "expert",
+      "expert"
+    ],
+    "opponents": [
+      "wren",
+      "wren"
+    ],
+    "perPair": 400
+  },
+  "readinessBand": [
+    0.45,
+    0.55
+  ],
+  "originalWholeRosterGate": "pending",
+  "contracts": {
+    "bun": 26,
+    "lua32": 26,
+    "sharedReachBun": 2,
+    "sharedReachLua32": 2,
+    "allFourSpecialCoverage": true
+  },
+  "pairs": [
+    {
+      "opponent": "archer",
+      "fighter": "goblin-tinker",
+      "matches": 408,
+      "wins": 274,
+      "losses": 134,
+      "ties": 0,
+      "timeOuts": 0,
+      "winRate": 0.6715686274509803,
+      "against": {
+        "archer": 0.6715686274509803
+      },
+      "played": {
+        "archer": 408
+      },
+      "decisive": {
+        "archer": 408
+      },
+      "stockLosses": 890,
+      "selfDestructs": 23,
+      "selfDestructShare": 0.025842696629213482,
+      "noHitLosses": 165,
+      "noHitShare": 0.1853932584269663,
+      "damagePerHit": 6.981185447975314,
+      "manaPerStock": 191.21735395189003,
+      "refusedShare": 0,
+      "moves": [
+        {
+          "move": 30,
+          "name": "neutral-special",
+          "count": 8585,
+          "share": 0.2568897932313953
+        },
+        {
+          "move": 33,
+          "name": "down-special",
+          "count": 4138,
+          "share": 0.12382177803046171
+        },
+        {
+          "move": 8,
+          "name": "down-tilt",
+          "count": 3887,
+          "share": 0.11631108052305575
+        },
+        {
+          "move": 6,
+          "name": "forward-tilt",
+          "count": 3106,
+          "share": 0.09294114126694396
+        },
+        {
+          "move": 4,
+          "name": "forward-smash",
+          "count": 2693,
+          "share": 0.08058290194200904
+        },
+        {
+          "move": 31,
+          "name": "side-special",
+          "count": 1905,
+          "share": 0.05700350100242377
+        },
+        {
+          "move": 14,
+          "name": "back-air",
+          "count": 1207,
+          "share": 0.03611717885035459
+        },
+        {
+          "move": 19,
+          "name": "dash-attack",
+          "count": 1135,
+          "share": 0.03396271582034172
+        },
+        {
+          "move": 32,
+          "name": "up-special",
+          "count": 930,
+          "share": 0.027828480804332863
+        },
+        {
+          "move": 10,
+          "name": "forward-tilt-down",
+          "count": 882,
+          "share": 0.026392172117657618
+        },
+        {
+          "move": 13,
+          "name": "forward-air",
+          "count": 792,
+          "share": 0.023699093330141537
+        },
+        {
+          "move": 16,
+          "name": "down-air",
+          "count": 711,
+          "share": 0.02127532242137706
+        },
+        {
+          "move": 3,
+          "name": "down-smash",
+          "count": 600,
+          "share": 0.01795385858344056
+        },
+        {
+          "move": 9,
+          "name": "forward-tilt-up",
+          "count": 514,
+          "share": 0.015380472186480745
+        },
+        {
+          "move": 5,
+          "name": "grab",
+          "count": 435,
+          "share": 0.013016547472994404
+        },
+        {
+          "move": 12,
+          "name": "neutral-air",
+          "count": 428,
+          "share": 0.01280708578952093
+        },
+        {
+          "move": 7,
+          "name": "up-tilt",
+          "count": 404,
+          "share": 0.01208893144618331
+        },
+        {
+          "move": 17,
+          "name": "ledge-attack",
+          "count": 308,
+          "share": 0.00921631407283282
+        },
+        {
+          "move": 2,
+          "name": "up-smash",
+          "count": 249,
+          "share": 0.007450851312127831
+        },
+        {
+          "move": 0,
+          "name": "jab",
+          "count": 245,
+          "share": 0.007331158921571561
+        },
+        {
+          "move": 15,
+          "name": "up-air",
+          "count": 175,
+          "share": 0.00523654208683683
+        },
+        {
+          "move": 11,
+          "name": "get-up-attack",
+          "count": 90,
+          "share": 0.002693078787516084
+        }
+      ]
+    },
+    {
+      "opponent": "beastmaster",
+      "fighter": "goblin-tinker",
+      "matches": 408,
+      "wins": 219,
+      "losses": 189,
+      "ties": 0,
+      "timeOuts": 0,
+      "winRate": 0.5367647058823529,
+      "against": {
+        "beastmaster": 0.5367647058823529
+      },
+      "played": {
+        "beastmaster": 408
+      },
+      "decisive": {
+        "beastmaster": 408
+      },
+      "stockLosses": 956,
+      "selfDestructs": 23,
+      "selfDestructShare": 0.02405857740585774,
+      "noHitLosses": 224,
+      "noHitShare": 0.23430962343096234,
+      "damagePerHit": 7.350499643545301,
+      "manaPerStock": 179.77021276595744,
+      "refusedShare": 0,
+      "moves": [
+        {
+          "move": 30,
+          "name": "neutral-special",
+          "count": 8105,
+          "share": 0.2537173266551886
+        },
+        {
+          "move": 8,
+          "name": "down-tilt",
+          "count": 4008,
+          "share": 0.1254656440757552
+        },
+        {
+          "move": 33,
+          "name": "down-special",
+          "count": 3803,
+          "share": 0.11904836437627171
+        },
+        {
+          "move": 6,
+          "name": "forward-tilt",
+          "count": 2842,
+          "share": 0.08896540929722961
+        },
+        {
+          "move": 4,
+          "name": "forward-smash",
+          "count": 2816,
+          "share": 0.08815151040851464
+        },
+        {
+          "move": 31,
+          "name": "side-special",
+          "count": 1957,
+          "share": 0.06126154327750822
+        },
+        {
+          "move": 14,
+          "name": "back-air",
+          "count": 1046,
+          "share": 0.032743778369071844
+        },
+        {
+          "move": 32,
+          "name": "up-special",
+          "count": 925,
+          "share": 0.02895601815620598
+        },
+        {
+          "move": 19,
+          "name": "dash-attack",
+          "count": 908,
+          "share": 0.028423853498200032
+        },
+        {
+          "move": 3,
+          "name": "down-smash",
+          "count": 861,
+          "share": 0.026952574737830647
+        },
+        {
+          "move": 13,
+          "name": "forward-air",
+          "count": 653,
+          "share": 0.020441383628110814
+        },
+        {
+          "move": 16,
+          "name": "down-air",
+          "count": 525,
+          "share": 0.01643449679136015
+        },
+        {
+          "move": 5,
+          "name": "grab",
+          "count": 513,
+          "share": 0.016058851150414777
+        },
+        {
+          "move": 9,
+          "name": "forward-tilt-up",
+          "count": 500,
+          "share": 0.015651901706057285
+        },
+        {
+          "move": 7,
+          "name": "up-tilt",
+          "count": 491,
+          "share": 0.015370167475348254
+        },
+        {
+          "move": 10,
+          "name": "forward-tilt-down",
+          "count": 482,
+          "share": 0.015088433244639224
+        },
+        {
+          "move": 12,
+          "name": "neutral-air",
+          "count": 381,
+          "share": 0.011926749100015652
+        },
+        {
+          "move": 17,
+          "name": "ledge-attack",
+          "count": 378,
+          "share": 0.011832837689779309
+        },
+        {
+          "move": 2,
+          "name": "up-smash",
+          "count": 258,
+          "share": 0.00807638128032556
+        },
+        {
+          "move": 15,
+          "name": "up-air",
+          "count": 250,
+          "share": 0.007825950853028642
+        },
+        {
+          "move": 0,
+          "name": "jab",
+          "count": 219,
+          "share": 0.006855532947253091
+        },
+        {
+          "move": 11,
+          "name": "get-up-attack",
+          "count": 24,
+          "share": 0.0007512912818907497
+        }
+      ]
+    },
+    {
+      "opponent": "blademaster",
+      "fighter": "goblin-tinker",
+      "matches": 408,
+      "wins": 202,
+      "losses": 206,
+      "ties": 0,
+      "timeOuts": 0,
+      "winRate": 0.4950980392156863,
+      "against": {
+        "blademaster": 0.4950980392156863
+      },
+      "played": {
+        "blademaster": 408
+      },
+      "decisive": {
+        "blademaster": 408
+      },
+      "stockLosses": 976,
+      "selfDestructs": 22,
+      "selfDestructShare": 0.022540983606557378,
+      "noHitLosses": 218,
+      "noHitShare": 0.22336065573770492,
+      "damagePerHit": 7.284716606612891,
+      "manaPerStock": 174.65365025466892,
+      "refusedShare": 0,
+      "moves": [
+        {
+          "move": 30,
+          "name": "neutral-special",
+          "count": 7348,
+          "share": 0.25043454551651273
+        },
+        {
+          "move": 33,
+          "name": "down-special",
+          "count": 4174,
+          "share": 0.1422582734058144
+        },
+        {
+          "move": 8,
+          "name": "down-tilt",
+          "count": 3024,
+          "share": 0.10306397191643094
+        },
+        {
+          "move": 6,
+          "name": "forward-tilt",
+          "count": 2614,
+          "share": 0.08909035138543335
+        },
+        {
+          "move": 4,
+          "name": "forward-smash",
+          "count": 2458,
+          "share": 0.08377355918339525
+        },
+        {
+          "move": 31,
+          "name": "side-special",
+          "count": 1700,
+          "share": 0.057939402201697285
+        },
+        {
+          "move": 19,
+          "name": "dash-attack",
+          "count": 932,
+          "share": 0.031764425207048155
+        },
+        {
+          "move": 32,
+          "name": "up-special",
+          "count": 886,
+          "share": 0.03019665314747282
+        },
+        {
+          "move": 14,
+          "name": "back-air",
+          "count": 787,
+          "share": 0.02682253501925633
+        },
+        {
+          "move": 3,
+          "name": "down-smash",
+          "count": 773,
+          "share": 0.026345387001124706
+        },
+        {
+          "move": 13,
+          "name": "forward-air",
+          "count": 673,
+          "share": 0.0229371868716131
+        },
+        {
+          "move": 10,
+          "name": "forward-tilt-down",
+          "count": 650,
+          "share": 0.022153300841825433
+        },
+        {
+          "move": 5,
+          "name": "grab",
+          "count": 558,
+          "share": 0.019017756722674757
+        },
+        {
+          "move": 7,
+          "name": "up-tilt",
+          "count": 523,
+          "share": 0.017824886677345695
+        },
+        {
+          "move": 9,
+          "name": "forward-tilt-up",
+          "count": 470,
+          "share": 0.016018540608704543
+        },
+        {
+          "move": 17,
+          "name": "ledge-attack",
+          "count": 434,
+          "share": 0.014791588562080365
+        },
+        {
+          "move": 0,
+          "name": "jab",
+          "count": 398,
+          "share": 0.013564636515456188
+        },
+        {
+          "move": 16,
+          "name": "down-air",
+          "count": 336,
+          "share": 0.011451552435158992
+        },
+        {
+          "move": 12,
+          "name": "neutral-air",
+          "count": 278,
+          "share": 0.009474796360042262
+        },
+        {
+          "move": 2,
+          "name": "up-smash",
+          "count": 201,
+          "share": 0.006850482260318326
+        },
+        {
+          "move": 15,
+          "name": "up-air",
+          "count": 87,
+          "share": 0.002965134112675096
+        },
+        {
+          "move": 11,
+          "name": "get-up-attack",
+          "count": 37,
+          "share": 0.0012610340479192938
+        }
+      ]
+    },
+    {
+      "opponent": "cairne-bloodhoof",
+      "fighter": "goblin-tinker",
+      "matches": 408,
+      "wins": 201,
+      "losses": 207,
+      "ties": 0,
+      "timeOuts": 0,
+      "winRate": 0.49264705882352944,
+      "against": {
+        "cairne-bloodhoof": 0.49264705882352944
+      },
+      "played": {
+        "cairne-bloodhoof": 408
+      },
+      "decisive": {
+        "cairne-bloodhoof": 408
+      },
+      "stockLosses": 984,
+      "selfDestructs": 7,
+      "selfDestructShare": 0.007113821138211382,
+      "noHitLosses": 151,
+      "noHitShare": 0.15345528455284552,
+      "damagePerHit": 6.723849602490554,
+      "manaPerStock": 161.59071729957805,
+      "refusedShare": 0,
+      "moves": [
+        {
+          "move": 30,
+          "name": "neutral-special",
+          "count": 8068,
+          "share": 0.3008427175777463
+        },
+        {
+          "move": 33,
+          "name": "down-special",
+          "count": 3035,
+          "share": 0.11317025878141547
+        },
+        {
+          "move": 8,
+          "name": "down-tilt",
+          "count": 2703,
+          "share": 0.1007905138339921
+        },
+        {
+          "move": 6,
+          "name": "forward-tilt",
+          "count": 2536,
+          "share": 0.09456335297188455
+        },
+        {
+          "move": 4,
+          "name": "forward-smash",
+          "count": 2388,
+          "share": 0.08904467148929823
+        },
+        {
+          "move": 31,
+          "name": "side-special",
+          "count": 1827,
+          "share": 0.0681258855992244
+        },
+        {
+          "move": 32,
+          "name": "up-special",
+          "count": 943,
+          "share": 0.03516295025728988
+        },
+        {
+          "move": 3,
+          "name": "down-smash",
+          "count": 827,
+          "share": 0.03083749720337087
+        },
+        {
+          "move": 19,
+          "name": "dash-attack",
+          "count": 660,
+          "share": 0.02461033634126333
+        },
+        {
+          "move": 14,
+          "name": "back-air",
+          "count": 607,
+          "share": 0.022634051756283094
+        },
+        {
+          "move": 13,
+          "name": "forward-air",
+          "count": 518,
+          "share": 0.01931538518905213
+        },
+        {
+          "move": 10,
+          "name": "forward-tilt-down",
+          "count": 507,
+          "share": 0.01890521291669774
+        },
+        {
+          "move": 17,
+          "name": "ledge-attack",
+          "count": 445,
+          "share": 0.01659333283615482
+        },
+        {
+          "move": 16,
+          "name": "down-air",
+          "count": 376,
+          "share": 0.014020434036840928
+        },
+        {
+          "move": 9,
+          "name": "forward-tilt-up",
+          "count": 317,
+          "share": 0.011820419121485569
+        },
+        {
+          "move": 12,
+          "name": "neutral-air",
+          "count": 269,
+          "share": 0.0100305764784846
+        },
+        {
+          "move": 5,
+          "name": "grab",
+          "count": 246,
+          "share": 0.009172943545379968
+        },
+        {
+          "move": 7,
+          "name": "up-tilt",
+          "count": 166,
+          "share": 0.006189872473711686
+        },
+        {
+          "move": 2,
+          "name": "up-smash",
+          "count": 126,
+          "share": 0.004698336937877545
+        },
+        {
+          "move": 15,
+          "name": "up-air",
+          "count": 113,
+          "share": 0.004213587888731449
+        },
+        {
+          "move": 0,
+          "name": "jab",
+          "count": 85,
+          "share": 0.00316951301364755
+        },
+        {
+          "move": 11,
+          "name": "get-up-attack",
+          "count": 56,
+          "share": 0.0020881497501677978
+        }
+      ]
+    },
+    {
+      "opponent": "chen-stormstout",
+      "fighter": "goblin-tinker",
+      "matches": 408,
+      "wins": 185,
+      "losses": 223,
+      "ties": 0,
+      "timeOuts": 0,
+      "winRate": 0.4534313725490196,
+      "against": {
+        "chen-stormstout": 0.4534313725490196
+      },
+      "played": {
+        "chen-stormstout": 408
+      },
+      "decisive": {
+        "chen-stormstout": 408
+      },
+      "stockLosses": 1004,
+      "selfDestructs": 17,
+      "selfDestructShare": 0.01693227091633466,
+      "noHitLosses": 177,
+      "noHitShare": 0.17629482071713148,
+      "damagePerHit": 7.353949454817192,
+      "manaPerStock": 162.69133725820018,
+      "refusedShare": 0,
+      "moves": [
+        {
+          "move": 30,
+          "name": "neutral-special",
+          "count": 6597,
+          "share": 0.22628112780407492
+        },
+        {
+          "move": 33,
+          "name": "down-special",
+          "count": 4182,
+          "share": 0.14344515332372917
+        },
+        {
+          "move": 8,
+          "name": "down-tilt",
+          "count": 3859,
+          "share": 0.13236605611579885
+        },
+        {
+          "move": 6,
+          "name": "forward-tilt",
+          "count": 2854,
+          "share": 0.09789394251217672
+        },
+        {
+          "move": 4,
+          "name": "forward-smash",
+          "count": 2422,
+          "share": 0.08307607875420182
+        },
+        {
+          "move": 31,
+          "name": "side-special",
+          "count": 1607,
+          "share": 0.05512108115524456
+        },
+        {
+          "move": 19,
+          "name": "dash-attack",
+          "count": 1181,
+          "share": 0.04050902106057488
+        },
+        {
+          "move": 14,
+          "name": "back-air",
+          "count": 864,
+          "share": 0.029635727515949783
+        },
+        {
+          "move": 3,
+          "name": "down-smash",
+          "count": 747,
+          "share": 0.02562255608149825
+        },
+        {
+          "move": 32,
+          "name": "up-special",
+          "count": 710,
+          "share": 0.02435343349111614
+        },
+        {
+          "move": 13,
+          "name": "forward-air",
+          "count": 672,
+          "share": 0.023050010290183165
+        },
+        {
+          "move": 10,
+          "name": "forward-tilt-down",
+          "count": 516,
+          "share": 0.017699115044247787
+        },
+        {
+          "move": 16,
+          "name": "down-air",
+          "count": 475,
+          "share": 0.016292790011662207
+        },
+        {
+          "move": 12,
+          "name": "neutral-air",
+          "count": 438,
+          "share": 0.015023667421280099
+        },
+        {
+          "move": 9,
+          "name": "forward-tilt-up",
+          "count": 432,
+          "share": 0.014817863757974892
+        },
+        {
+          "move": 5,
+          "name": "grab",
+          "count": 421,
+          "share": 0.014440557041915346
+        },
+        {
+          "move": 17,
+          "name": "ledge-attack",
+          "count": 338,
+          "share": 0.011593606366193318
+        },
+        {
+          "move": 7,
+          "name": "up-tilt",
+          "count": 332,
+          "share": 0.011387802702888111
+        },
+        {
+          "move": 2,
+          "name": "up-smash",
+          "count": 195,
+          "share": 0.006688619057419222
+        },
+        {
+          "move": 0,
+          "name": "jab",
+          "count": 143,
+          "share": 0.004904987308774096
+        },
+        {
+          "move": 15,
+          "name": "up-air",
+          "count": 129,
+          "share": 0.004424778761061947
+        },
+        {
+          "move": 11,
+          "name": "get-up-attack",
+          "count": 40,
+          "share": 0.0013720244220347122
+        }
+      ]
+    },
+    {
+      "opponent": "dreadlord",
+      "fighter": "goblin-tinker",
+      "matches": 408,
+      "wins": 174,
+      "losses": 234,
+      "ties": 0,
+      "timeOuts": 0,
+      "winRate": 0.4264705882352941,
+      "against": {
+        "dreadlord": 0.4264705882352941
+      },
+      "played": {
+        "dreadlord": 408
+      },
+      "decisive": {
+        "dreadlord": 408
+      },
+      "stockLosses": 1023,
+      "selfDestructs": 27,
+      "selfDestructShare": 0.026392961876832845,
+      "noHitLosses": 255,
+      "noHitShare": 0.24926686217008798,
+      "damagePerHit": 7.187404256546412,
+      "manaPerStock": 185.50877192982455,
+      "refusedShare": 0,
+      "moves": [
+        {
+          "move": 30,
+          "name": "neutral-special",
+          "count": 7980,
+          "share": 0.25018811136192626
+        },
+        {
+          "move": 33,
+          "name": "down-special",
+          "count": 4508,
+          "share": 0.14133433659393027
+        },
+        {
+          "move": 8,
+          "name": "down-tilt",
+          "count": 3343,
+          "share": 0.1048093804865814
+        },
+        {
+          "move": 6,
+          "name": "forward-tilt",
+          "count": 3028,
+          "share": 0.09493353398545272
+        },
+        {
+          "move": 4,
+          "name": "forward-smash",
+          "count": 2432,
+          "share": 0.07624780536744419
+        },
+        {
+          "move": 31,
+          "name": "side-special",
+          "count": 1692,
+          "share": 0.05304740406320542
+        },
+        {
+          "move": 19,
+          "name": "dash-attack",
+          "count": 1425,
+          "share": 0.044676448457486834
+        },
+        {
+          "move": 14,
+          "name": "back-air",
+          "count": 1122,
+          "share": 0.03517682468021068
+        },
+        {
+          "move": 32,
+          "name": "up-special",
+          "count": 985,
+          "share": 0.030881615249561074
+        },
+        {
+          "move": 13,
+          "name": "forward-air",
+          "count": 662,
+          "share": 0.020754953599197393
+        },
+        {
+          "move": 3,
+          "name": "down-smash",
+          "count": 649,
+          "share": 0.020347378981690496
+        },
+        {
+          "move": 10,
+          "name": "forward-tilt-down",
+          "count": 594,
+          "share": 0.018623024830699775
+        },
+        {
+          "move": 9,
+          "name": "forward-tilt-up",
+          "count": 545,
+          "share": 0.017086782041635315
+        },
+        {
+          "move": 7,
+          "name": "up-tilt",
+          "count": 523,
+          "share": 0.016397040381239028
+        },
+        {
+          "move": 16,
+          "name": "down-air",
+          "count": 478,
+          "share": 0.014986205166792074
+        },
+        {
+          "move": 5,
+          "name": "grab",
+          "count": 421,
+          "share": 0.013199147228492601
+        },
+        {
+          "move": 17,
+          "name": "ledge-attack",
+          "count": 395,
+          "share": 0.012383997993478807
+        },
+        {
+          "move": 12,
+          "name": "neutral-air",
+          "count": 377,
+          "share": 0.011819663907700026
+        },
+        {
+          "move": 0,
+          "name": "jab",
+          "count": 272,
+          "share": 0.008527715073990468
+        },
+        {
+          "move": 2,
+          "name": "up-smash",
+          "count": 267,
+          "share": 0.008370955605718586
+        },
+        {
+          "move": 15,
+          "name": "up-air",
+          "count": 160,
+          "share": 0.005016302984700276
+        },
+        {
+          "move": 11,
+          "name": "get-up-attack",
+          "count": 38,
+          "share": 0.0011913719588663154
+        }
+      ]
+    },
+    {
+      "opponent": "illidan",
+      "fighter": "goblin-tinker",
+      "matches": 408,
+      "wins": 120,
+      "losses": 288,
+      "ties": 0,
+      "timeOuts": 0,
+      "winRate": 0.29411764705882354,
+      "against": {
+        "illidan": 0.29411764705882354
+      },
+      "played": {
+        "illidan": 408
+      },
+      "decisive": {
+        "illidan": 408
+      },
+      "stockLosses": 1084,
+      "selfDestructs": 83,
+      "selfDestructShare": 0.07656826568265683,
+      "noHitLosses": 437,
+      "noHitShare": 0.40313653136531363,
+      "damagePerHit": 7.277283990379013,
+      "manaPerStock": 130.96926910299004,
+      "refusedShare": 0,
+      "moves": [
+        {
+          "move": 30,
+          "name": "neutral-special",
+          "count": 7929,
+          "share": 0.2285014409221902
+        },
+        {
+          "move": 4,
+          "name": "forward-smash",
+          "count": 5024,
+          "share": 0.14478386167146973
+        },
+        {
+          "move": 6,
+          "name": "forward-tilt",
+          "count": 3115,
+          "share": 0.08976945244956773
+        },
+        {
+          "move": 8,
+          "name": "down-tilt",
+          "count": 3074,
+          "share": 0.0885878962536023
+        },
+        {
+          "move": 33,
+          "name": "down-special",
+          "count": 2802,
+          "share": 0.0807492795389049
+        },
+        {
+          "move": 3,
+          "name": "down-smash",
+          "count": 1575,
+          "share": 0.045389048991354465
+        },
+        {
+          "move": 14,
+          "name": "back-air",
+          "count": 1359,
+          "share": 0.039164265129683
+        },
+        {
+          "move": 32,
+          "name": "up-special",
+          "count": 1341,
+          "share": 0.03864553314121037
+        },
+        {
+          "move": 13,
+          "name": "forward-air",
+          "count": 1250,
+          "share": 0.03602305475504323
+        },
+        {
+          "move": 19,
+          "name": "dash-attack",
+          "count": 1045,
+          "share": 0.03011527377521614
+        },
+        {
+          "move": 16,
+          "name": "down-air",
+          "count": 844,
+          "share": 0.024322766570605187
+        },
+        {
+          "move": 31,
+          "name": "side-special",
+          "count": 825,
+          "share": 0.02377521613832853
+        },
+        {
+          "move": 12,
+          "name": "neutral-air",
+          "count": 717,
+          "share": 0.020662824207492797
+        },
+        {
+          "move": 10,
+          "name": "forward-tilt-down",
+          "count": 685,
+          "share": 0.019740634005763688
+        },
+        {
+          "move": 9,
+          "name": "forward-tilt-up",
+          "count": 609,
+          "share": 0.01755043227665706
+        },
+        {
+          "move": 17,
+          "name": "ledge-attack",
+          "count": 557,
+          "share": 0.016051873198847263
+        },
+        {
+          "move": 15,
+          "name": "up-air",
+          "count": 462,
+          "share": 0.013314121037463976
+        },
+        {
+          "move": 2,
+          "name": "up-smash",
+          "count": 416,
+          "share": 0.011988472622478387
+        },
+        {
+          "move": 5,
+          "name": "grab",
+          "count": 374,
+          "share": 0.010778097982708934
+        },
+        {
+          "move": 7,
+          "name": "up-tilt",
+          "count": 363,
+          "share": 0.010461095100864553
+        },
+        {
+          "move": 0,
+          "name": "jab",
+          "count": 251,
+          "share": 0.00723342939481268
+        },
+        {
+          "move": 11,
+          "name": "get-up-attack",
+          "count": 83,
+          "share": 0.00239193083573487
+        }
+      ]
+    },
+    {
+      "opponent": "jaina-proudmoore",
+      "fighter": "goblin-tinker",
+      "matches": 408,
+      "wins": 272,
+      "losses": 136,
+      "ties": 0,
+      "timeOuts": 0,
+      "winRate": 0.6666666666666666,
+      "against": {
+        "jaina-proudmoore": 0.6666666666666666
+      },
+      "played": {
+        "jaina-proudmoore": 408
+      },
+      "decisive": {
+        "jaina-proudmoore": 408
+      },
+      "stockLosses": 878,
+      "selfDestructs": 47,
+      "selfDestructShare": 0.05353075170842825,
+      "noHitLosses": 91,
+      "noHitShare": 0.10364464692482915,
+      "damagePerHit": 6.8833496065306115,
+      "manaPerStock": 172.98260869565217,
+      "refusedShare": 0,
+      "moves": [
+        {
+          "move": 30,
+          "name": "neutral-special",
+          "count": 9820,
+          "share": 0.3784492061045167
+        },
+        {
+          "move": 4,
+          "name": "forward-smash",
+          "count": 4161,
+          "share": 0.16035917989825804
+        },
+        {
+          "move": 33,
+          "name": "down-special",
+          "count": 2335,
+          "share": 0.08998766764297826
+        },
+        {
+          "move": 31,
+          "name": "side-special",
+          "count": 2324,
+          "share": 0.0895637428703561
+        },
+        {
+          "move": 6,
+          "name": "forward-tilt",
+          "count": 1841,
+          "share": 0.07094959149067366
+        },
+        {
+          "move": 8,
+          "name": "down-tilt",
+          "count": 1285,
+          "share": 0.04952212116540774
+        },
+        {
+          "move": 3,
+          "name": "down-smash",
+          "count": 785,
+          "share": 0.030252813318945585
+        },
+        {
+          "move": 32,
+          "name": "up-special",
+          "count": 585,
+          "share": 0.022545090180360723
+        },
+        {
+          "move": 13,
+          "name": "forward-air",
+          "count": 574,
+          "share": 0.022121165407738553
+        },
+        {
+          "move": 14,
+          "name": "back-air",
+          "count": 459,
+          "share": 0.017689224603052257
+        },
+        {
+          "move": 16,
+          "name": "down-air",
+          "count": 336,
+          "share": 0.012948974872822568
+        },
+        {
+          "move": 19,
+          "name": "dash-attack",
+          "count": 283,
+          "share": 0.01090642824109758
+        },
+        {
+          "move": 10,
+          "name": "forward-tilt-down",
+          "count": 224,
+          "share": 0.008632649915215045
+        },
+        {
+          "move": 12,
+          "name": "neutral-air",
+          "count": 219,
+          "share": 0.008439956836750424
+        },
+        {
+          "move": 9,
+          "name": "forward-tilt-up",
+          "count": 171,
+          "share": 0.006590103283490057
+        },
+        {
+          "move": 5,
+          "name": "grab",
+          "count": 125,
+          "share": 0.004817326961615539
+        },
+        {
+          "move": 17,
+          "name": "ledge-attack",
+          "count": 109,
+          "share": 0.00420070911052875
+        },
+        {
+          "move": 7,
+          "name": "up-tilt",
+          "count": 99,
+          "share": 0.0038153229535995065
+        },
+        {
+          "move": 15,
+          "name": "up-air",
+          "count": 81,
+          "share": 0.003121627871126869
+        },
+        {
+          "move": 0,
+          "name": "jab",
+          "count": 69,
+          "share": 0.0026591644828117774
+        },
+        {
+          "move": 2,
+          "name": "up-smash",
+          "count": 38,
+          "share": 0.0014644673963311238
+        },
+        {
+          "move": 11,
+          "name": "get-up-attack",
+          "count": 25,
+          "share": 0.0009634653923231077
+        }
+      ]
+    },
+    {
+      "opponent": "kael'thas-sunstrider",
+      "fighter": "goblin-tinker",
+      "matches": 408,
+      "wins": 335,
+      "losses": 73,
+      "ties": 0,
+      "timeOuts": 0,
+      "winRate": 0.821078431372549,
+      "against": {
+        "kael'thas-sunstrider": 0.821078431372549
+      },
+      "played": {
+        "kael'thas-sunstrider": 408
+      },
+      "decisive": {
+        "kael'thas-sunstrider": 408
+      },
+      "stockLosses": 763,
+      "selfDestructs": 34,
+      "selfDestructShare": 0.04456094364351245,
+      "noHitLosses": 191,
+      "noHitShare": 0.2503276539973788,
+      "damagePerHit": 7.201316691994925,
+      "manaPerStock": 164.011839708561,
+      "refusedShare": 0,
+      "moves": [
+        {
+          "move": 30,
+          "name": "neutral-special",
+          "count": 7062,
+          "share": 0.23838779368079935
+        },
+        {
+          "move": 8,
+          "name": "down-tilt",
+          "count": 4299,
+          "share": 0.1451188225762895
+        },
+        {
+          "move": 33,
+          "name": "down-special",
+          "count": 3629,
+          "share": 0.12250202538482312
+        },
+        {
+          "move": 6,
+          "name": "forward-tilt",
+          "count": 3427,
+          "share": 0.11568322981366459
+        },
+        {
+          "move": 4,
+          "name": "forward-smash",
+          "count": 2556,
+          "share": 0.0862813934647583
+        },
+        {
+          "move": 31,
+          "name": "side-special",
+          "count": 1422,
+          "share": 0.04800162030785849
+        },
+        {
+          "move": 19,
+          "name": "dash-attack",
+          "count": 1037,
+          "share": 0.035005401026194975
+        },
+        {
+          "move": 14,
+          "name": "back-air",
+          "count": 847,
+          "share": 0.028591682419659734
+        },
+        {
+          "move": 3,
+          "name": "down-smash",
+          "count": 830,
+          "share": 0.028017823386443423
+        },
+        {
+          "move": 13,
+          "name": "forward-air",
+          "count": 675,
+          "share": 0.022785579260059412
+        },
+        {
+          "move": 10,
+          "name": "forward-tilt-down",
+          "count": 584,
+          "share": 0.019713745611666215
+        },
+        {
+          "move": 32,
+          "name": "up-special",
+          "count": 497,
+          "share": 0.01677693761814745
+        },
+        {
+          "move": 7,
+          "name": "up-tilt",
+          "count": 487,
+          "share": 0.016439373480961382
+        },
+        {
+          "move": 9,
+          "name": "forward-tilt-up",
+          "count": 415,
+          "share": 0.014008911693221712
+        },
+        {
+          "move": 5,
+          "name": "grab",
+          "count": 394,
+          "share": 0.013300027005130974
+        },
+        {
+          "move": 16,
+          "name": "down-air",
+          "count": 369,
+          "share": 0.012456116662165811
+        },
+        {
+          "move": 12,
+          "name": "neutral-air",
+          "count": 276,
+          "share": 0.009316770186335404
+        },
+        {
+          "move": 0,
+          "name": "jab",
+          "count": 275,
+          "share": 0.009283013772616797
+        },
+        {
+          "move": 17,
+          "name": "ledge-attack",
+          "count": 212,
+          "share": 0.007156359708344585
+        },
+        {
+          "move": 2,
+          "name": "up-smash",
+          "count": 172,
+          "share": 0.005806103159600324
+        },
+        {
+          "move": 15,
+          "name": "up-air",
+          "count": 117,
+          "share": 0.003949500405076965
+        },
+        {
+          "move": 11,
+          "name": "get-up-attack",
+          "count": 42,
+          "share": 0.0014177693761814746
+        }
+      ]
+    },
+    {
+      "opponent": "lich",
+      "fighter": "goblin-tinker",
+      "matches": 408,
+      "wins": 157,
+      "losses": 251,
+      "ties": 0,
+      "timeOuts": 0,
+      "winRate": 0.38480392156862747,
+      "against": {
+        "lich": 0.38480392156862747
+      },
+      "played": {
+        "lich": 408
+      },
+      "decisive": {
+        "lich": 408
+      },
+      "stockLosses": 1033,
+      "selfDestructs": 31,
+      "selfDestructShare": 0.030009680542110357,
+      "noHitLosses": 119,
+      "noHitShare": 0.11519845111326234,
+      "damagePerHit": 6.62003680502288,
+      "manaPerStock": 146.29243697478992,
+      "refusedShare": 0,
+      "moves": [
+        {
+          "move": 30,
+          "name": "neutral-special",
+          "count": 7789,
+          "share": 0.3256679349416733
+        },
+        {
+          "move": 4,
+          "name": "forward-smash",
+          "count": 2997,
+          "share": 0.12530835807166452
+        },
+        {
+          "move": 33,
+          "name": "down-special",
+          "count": 2361,
+          "share": 0.09871639419659656
+        },
+        {
+          "move": 6,
+          "name": "forward-tilt",
+          "count": 2088,
+          "share": 0.08730191913701552
+        },
+        {
+          "move": 31,
+          "name": "side-special",
+          "count": 1920,
+          "share": 0.08027762679265794
+        },
+        {
+          "move": 8,
+          "name": "down-tilt",
+          "count": 1717,
+          "share": 0.07178994020989254
+        },
+        {
+          "move": 3,
+          "name": "down-smash",
+          "count": 947,
+          "share": 0.03959526696492035
+        },
+        {
+          "move": 32,
+          "name": "up-special",
+          "count": 711,
+          "share": 0.029727808671656145
+        },
+        {
+          "move": 14,
+          "name": "back-air",
+          "count": 548,
+          "share": 0.02291257264707112
+        },
+        {
+          "move": 13,
+          "name": "forward-air",
+          "count": 507,
+          "share": 0.02119831082493624
+        },
+        {
+          "move": 19,
+          "name": "dash-attack",
+          "count": 442,
+          "share": 0.01848057866789313
+        },
+        {
+          "move": 16,
+          "name": "down-air",
+          "count": 318,
+          "share": 0.013295981937533972
+        },
+        {
+          "move": 10,
+          "name": "forward-tilt-down",
+          "count": 271,
+          "share": 0.011330852531672032
+        },
+        {
+          "move": 17,
+          "name": "ledge-attack",
+          "count": 227,
+          "share": 0.009491156917673622
+        },
+        {
+          "move": 9,
+          "name": "forward-tilt-up",
+          "count": 217,
+          "share": 0.009073044278128528
+        },
+        {
+          "move": 12,
+          "name": "neutral-air",
+          "count": 203,
+          "share": 0.008487686582765396
+        },
+        {
+          "move": 5,
+          "name": "grab",
+          "count": 190,
+          "share": 0.007944140151356775
+        },
+        {
+          "move": 7,
+          "name": "up-tilt",
+          "count": 151,
+          "share": 0.006313500857130911
+        },
+        {
+          "move": 15,
+          "name": "up-air",
+          "count": 151,
+          "share": 0.006313500857130911
+        },
+        {
+          "move": 2,
+          "name": "up-smash",
+          "count": 98,
+          "share": 0.004097503867541916
+        },
+        {
+          "move": 0,
+          "name": "jab",
+          "count": 42,
+          "share": 0.0017560730860893925
+        },
+        {
+          "move": 11,
+          "name": "get-up-attack",
+          "count": 22,
+          "share": 0.0009198478069992056
+        }
+      ]
+    },
+    {
+      "opponent": "lich-king",
+      "fighter": "goblin-tinker",
+      "matches": 408,
+      "wins": 189,
+      "losses": 219,
+      "ties": 0,
+      "timeOuts": 0,
+      "winRate": 0.4632352941176471,
+      "against": {
+        "lich-king": 0.4632352941176471
+      },
+      "played": {
+        "lich-king": 408
+      },
+      "decisive": {
+        "lich-king": 408
+      },
+      "stockLosses": 1010,
+      "selfDestructs": 9,
+      "selfDestructShare": 0.00891089108910891,
+      "noHitLosses": 162,
+      "noHitShare": 0.1603960396039604,
+      "damagePerHit": 6.490424669859752,
+      "manaPerStock": 171.21768140116765,
+      "refusedShare": 0,
+      "moves": [
+        {
+          "move": 30,
+          "name": "neutral-special",
+          "count": 9409,
+          "share": 0.3277597798446372
+        },
+        {
+          "move": 4,
+          "name": "forward-smash",
+          "count": 3080,
+          "share": 0.10729090465740064
+        },
+        {
+          "move": 6,
+          "name": "forward-tilt",
+          "count": 3023,
+          "share": 0.10530532622705263
+        },
+        {
+          "move": 33,
+          "name": "down-special",
+          "count": 2999,
+          "share": 0.10446929320374822
+        },
+        {
+          "move": 31,
+          "name": "side-special",
+          "count": 1899,
+          "share": 0.06615111296896227
+        },
+        {
+          "move": 8,
+          "name": "down-tilt",
+          "count": 1877,
+          "share": 0.06538474936426655
+        },
+        {
+          "move": 3,
+          "name": "down-smash",
+          "count": 1097,
+          "share": 0.03821367610687289
+        },
+        {
+          "move": 32,
+          "name": "up-special",
+          "count": 986,
+          "share": 0.034347023374089944
+        },
+        {
+          "move": 19,
+          "name": "dash-attack",
+          "count": 577,
+          "share": 0.020099627268610445
+        },
+        {
+          "move": 14,
+          "name": "back-air",
+          "count": 537,
+          "share": 0.018706238896436408
+        },
+        {
+          "move": 13,
+          "name": "forward-air",
+          "count": 482,
+          "share": 0.016790329884697114
+        },
+        {
+          "move": 17,
+          "name": "ledge-attack",
+          "count": 452,
+          "share": 0.015745288605566586
+        },
+        {
+          "move": 16,
+          "name": "down-air",
+          "count": 418,
+          "share": 0.014560908489218658
+        },
+        {
+          "move": 10,
+          "name": "forward-tilt-down",
+          "count": 415,
+          "share": 0.014456404361305604
+        },
+        {
+          "move": 12,
+          "name": "neutral-air",
+          "count": 330,
+          "share": 0.011495454070435783
+        },
+        {
+          "move": 9,
+          "name": "forward-tilt-up",
+          "count": 327,
+          "share": 0.01139094994252273
+        },
+        {
+          "move": 5,
+          "name": "grab",
+          "count": 252,
+          "share": 0.008778346744696415
+        },
+        {
+          "move": 15,
+          "name": "up-air",
+          "count": 162,
+          "share": 0.005643222907304839
+        },
+        {
+          "move": 2,
+          "name": "up-smash",
+          "count": 143,
+          "share": 0.0049813634305221725
+        },
+        {
+          "move": 7,
+          "name": "up-tilt",
+          "count": 137,
+          "share": 0.004772355174696067
+        },
+        {
+          "move": 0,
+          "name": "jab",
+          "count": 88,
+          "share": 0.003065454418782875
+        },
+        {
+          "move": 11,
+          "name": "get-up-attack",
+          "count": 17,
+          "share": 0.0005921900581739645
+        }
+      ]
+    },
+    {
+      "opponent": "mountain-king",
+      "fighter": "goblin-tinker",
+      "matches": 408,
+      "wins": 173,
+      "losses": 235,
+      "ties": 0,
+      "timeOuts": 0,
+      "winRate": 0.42401960784313725,
+      "against": {
+        "mountain-king": 0.42401960784313725
+      },
+      "played": {
+        "mountain-king": 408
+      },
+      "decisive": {
+        "mountain-king": 408
+      },
+      "stockLosses": 1020,
+      "selfDestructs": 52,
+      "selfDestructShare": 0.050980392156862744,
+      "noHitLosses": 189,
+      "noHitShare": 0.18529411764705883,
+      "damagePerHit": 7.4357442876847895,
+      "manaPerStock": 158.78457669740152,
+      "refusedShare": 0,
+      "moves": [
+        {
+          "move": 30,
+          "name": "neutral-special",
+          "count": 5361,
+          "share": 0.20231715601177447
+        },
+        {
+          "move": 8,
+          "name": "down-tilt",
+          "count": 3966,
+          "share": 0.14967167333383652
+        },
+        {
+          "move": 33,
+          "name": "down-special",
+          "count": 3680,
+          "share": 0.13887840591742773
+        },
+        {
+          "move": 31,
+          "name": "side-special",
+          "count": 2601,
+          "share": 0.09815835157370367
+        },
+        {
+          "move": 6,
+          "name": "forward-tilt",
+          "count": 2486,
+          "share": 0.09381840138878406
+        },
+        {
+          "move": 4,
+          "name": "forward-smash",
+          "count": 2205,
+          "share": 0.08321382745867613
+        },
+        {
+          "move": 19,
+          "name": "dash-attack",
+          "count": 974,
+          "share": 0.036757491131406146
+        },
+        {
+          "move": 14,
+          "name": "back-air",
+          "count": 790,
+          "share": 0.029813570835534757
+        },
+        {
+          "move": 3,
+          "name": "down-smash",
+          "count": 601,
+          "share": 0.022680957053362517
+        },
+        {
+          "move": 32,
+          "name": "up-special",
+          "count": 601,
+          "share": 0.022680957053362517
+        },
+        {
+          "move": 5,
+          "name": "grab",
+          "count": 501,
+          "share": 0.01890708732734546
+        },
+        {
+          "move": 10,
+          "name": "forward-tilt-down",
+          "count": 465,
+          "share": 0.01754849422597932
+        },
+        {
+          "move": 16,
+          "name": "down-air",
+          "count": 412,
+          "share": 0.015548343271190278
+        },
+        {
+          "move": 13,
+          "name": "forward-air",
+          "count": 406,
+          "share": 0.015321911087629255
+        },
+        {
+          "move": 9,
+          "name": "forward-tilt-up",
+          "count": 351,
+          "share": 0.013246282738319874
+        },
+        {
+          "move": 7,
+          "name": "up-tilt",
+          "count": 294,
+          "share": 0.01109517699449015
+        },
+        {
+          "move": 12,
+          "name": "neutral-air",
+          "count": 269,
+          "share": 0.010151709562985885
+        },
+        {
+          "move": 17,
+          "name": "ledge-attack",
+          "count": 176,
+          "share": 0.006642010717790022
+        },
+        {
+          "move": 2,
+          "name": "up-smash",
+          "count": 138,
+          "share": 0.00520794022190354
+        },
+        {
+          "move": 0,
+          "name": "jab",
+          "count": 96,
+          "share": 0.0036229149369763755
+        },
+        {
+          "move": 15,
+          "name": "up-air",
+          "count": 85,
+          "share": 0.0032077892671144993
+        },
+        {
+          "move": 11,
+          "name": "get-up-attack",
+          "count": 40,
+          "share": 0.0015095478904068231
+        }
+      ]
+    },
+    {
+      "opponent": "peon",
+      "fighter": "goblin-tinker",
+      "matches": 408,
+      "wins": 348,
+      "losses": 60,
+      "ties": 0,
+      "timeOuts": 0,
+      "winRate": 0.8529411764705882,
+      "against": {
+        "peon": 0.8529411764705882
+      },
+      "played": {
+        "peon": 408
+      },
+      "decisive": {
+        "peon": 408
+      },
+      "stockLosses": 703,
+      "selfDestructs": 24,
+      "selfDestructShare": 0.034139402560455195,
+      "noHitLosses": 70,
+      "noHitShare": 0.09957325746799431,
+      "damagePerHit": 7.609914761970917,
+      "manaPerStock": 192.74500475737392,
+      "refusedShare": 0,
+      "moves": [
+        {
+          "move": 30,
+          "name": "neutral-special",
+          "count": 7243,
+          "share": 0.2544975404075896
+        },
+        {
+          "move": 4,
+          "name": "forward-smash",
+          "count": 3820,
+          "share": 0.1342234715390021
+        },
+        {
+          "move": 33,
+          "name": "down-special",
+          "count": 3660,
+          "share": 0.1286015460295151
+        },
+        {
+          "move": 31,
+          "name": "side-special",
+          "count": 2455,
+          "share": 0.08626141953619114
+        },
+        {
+          "move": 6,
+          "name": "forward-tilt",
+          "count": 1926,
+          "share": 0.06767392832044976
+        },
+        {
+          "move": 8,
+          "name": "down-tilt",
+          "count": 1914,
+          "share": 0.06725228390723823
+        },
+        {
+          "move": 14,
+          "name": "back-air",
+          "count": 1003,
+          "share": 0.035242445537596624
+        },
+        {
+          "move": 3,
+          "name": "down-smash",
+          "count": 927,
+          "share": 0.0325720309205903
+        },
+        {
+          "move": 19,
+          "name": "dash-attack",
+          "count": 844,
+          "share": 0.02965565706254392
+        },
+        {
+          "move": 16,
+          "name": "down-air",
+          "count": 736,
+          "share": 0.025860857343640197
+        },
+        {
+          "move": 13,
+          "name": "forward-air",
+          "count": 726,
+          "share": 0.02550948699929726
+        },
+        {
+          "move": 32,
+          "name": "up-special",
+          "count": 548,
+          "share": 0.019255094869992974
+        },
+        {
+          "move": 10,
+          "name": "forward-tilt-down",
+          "count": 526,
+          "share": 0.01848208011243851
+        },
+        {
+          "move": 12,
+          "name": "neutral-air",
+          "count": 431,
+          "share": 0.015144061841180605
+        },
+        {
+          "move": 9,
+          "name": "forward-tilt-up",
+          "count": 371,
+          "share": 0.01303583977512298
+        },
+        {
+          "move": 7,
+          "name": "up-tilt",
+          "count": 304,
+          "share": 0.0106816584680253
+        },
+        {
+          "move": 17,
+          "name": "ledge-attack",
+          "count": 287,
+          "share": 0.010084328882642305
+        },
+        {
+          "move": 5,
+          "name": "grab",
+          "count": 259,
+          "share": 0.00910049191848208
+        },
+        {
+          "move": 2,
+          "name": "up-smash",
+          "count": 183,
+          "share": 0.006430077301475755
+        },
+        {
+          "move": 15,
+          "name": "up-air",
+          "count": 144,
+          "share": 0.005059732958538299
+        },
+        {
+          "move": 0,
+          "name": "jab",
+          "count": 130,
+          "share": 0.004567814476458187
+        },
+        {
+          "move": 11,
+          "name": "get-up-attack",
+          "count": 23,
+          "share": 0.0008081517919887562
+        }
+      ]
+    },
+    {
+      "opponent": "pit-lord",
+      "fighter": "goblin-tinker",
+      "matches": 408,
+      "wins": 224,
+      "losses": 184,
+      "ties": 0,
+      "timeOuts": 0,
+      "winRate": 0.5490196078431373,
+      "against": {
+        "pit-lord": 0.5490196078431373
+      },
+      "played": {
+        "pit-lord": 408
+      },
+      "decisive": {
+        "pit-lord": 408
+      },
+      "stockLosses": 945,
+      "selfDestructs": 18,
+      "selfDestructShare": 0.01904761904761905,
+      "noHitLosses": 180,
+      "noHitShare": 0.19047619047619047,
+      "damagePerHit": 7.142410871802065,
+      "manaPerStock": 147.15996578272026,
+      "refusedShare": 0,
+      "moves": [
+        {
+          "move": 30,
+          "name": "neutral-special",
+          "count": 6867,
+          "share": 0.2857202296746276
+        },
+        {
+          "move": 33,
+          "name": "down-special",
+          "count": 2979,
+          "share": 0.12394940500956977
+        },
+        {
+          "move": 4,
+          "name": "forward-smash",
+          "count": 2684,
+          "share": 0.1116751269035533
+        },
+        {
+          "move": 6,
+          "name": "forward-tilt",
+          "count": 2222,
+          "share": 0.0924523591578597
+        },
+        {
+          "move": 8,
+          "name": "down-tilt",
+          "count": 1666,
+          "share": 0.06931846550719814
+        },
+        {
+          "move": 31,
+          "name": "side-special",
+          "count": 1498,
+          "share": 0.06232836814512774
+        },
+        {
+          "move": 32,
+          "name": "up-special",
+          "count": 979,
+          "share": 0.04073396022301739
+        },
+        {
+          "move": 3,
+          "name": "down-smash",
+          "count": 892,
+          "share": 0.037114088374802366
+        },
+        {
+          "move": 14,
+          "name": "back-air",
+          "count": 675,
+          "share": 0.02808521261546143
+        },
+        {
+          "move": 19,
+          "name": "dash-attack",
+          "count": 564,
+          "share": 0.02346675542980777
+        },
+        {
+          "move": 13,
+          "name": "forward-air",
+          "count": 513,
+          "share": 0.021344761587750685
+        },
+        {
+          "move": 10,
+          "name": "forward-tilt-down",
+          "count": 407,
+          "share": 0.01693434301406341
+        },
+        {
+          "move": 16,
+          "name": "down-air",
+          "count": 366,
+          "share": 0.015228426395939087
+        },
+        {
+          "move": 17,
+          "name": "ledge-attack",
+          "count": 339,
+          "share": 0.01410501789132063
+        },
+        {
+          "move": 9,
+          "name": "forward-tilt-up",
+          "count": 287,
+          "share": 0.011941416326870267
+        },
+        {
+          "move": 12,
+          "name": "neutral-air",
+          "count": 267,
+          "share": 0.011109261879004743
+        },
+        {
+          "move": 2,
+          "name": "up-smash",
+          "count": 202,
+          "share": 0.008404759923441791
+        },
+        {
+          "move": 15,
+          "name": "up-air",
+          "count": 199,
+          "share": 0.008279936756261963
+        },
+        {
+          "move": 7,
+          "name": "up-tilt",
+          "count": 193,
+          "share": 0.008030290421902305
+        },
+        {
+          "move": 5,
+          "name": "grab",
+          "count": 170,
+          "share": 0.007073312806856953
+        },
+        {
+          "move": 0,
+          "name": "jab",
+          "count": 54,
+          "share": 0.0022468170092369145
+        },
+        {
+          "move": 11,
+          "name": "get-up-attack",
+          "count": 11,
+          "share": 0.0004576849463260381
+        }
+      ]
+    },
+    {
+      "opponent": "rifleman",
+      "fighter": "goblin-tinker",
+      "matches": 408,
+      "wins": 205,
+      "losses": 203,
+      "ties": 0,
+      "timeOuts": 0,
+      "winRate": 0.5024509803921569,
+      "against": {
+        "rifleman": 0.5024509803921569
+      },
+      "played": {
+        "rifleman": 408
+      },
+      "decisive": {
+        "rifleman": 408
+      },
+      "stockLosses": 980,
+      "selfDestructs": 7,
+      "selfDestructShare": 0.007142857142857143,
+      "noHitLosses": 330,
+      "noHitShare": 0.336734693877551,
+      "damagePerHit": 6.585032773132464,
+      "manaPerStock": 212.64135021097047,
+      "refusedShare": 0,
+      "moves": [
+        {
+          "move": 30,
+          "name": "neutral-special",
+          "count": 9688,
+          "share": 0.26459101461149803
+        },
+        {
+          "move": 4,
+          "name": "forward-smash",
+          "count": 5993,
+          "share": 0.1636760890345487
+        },
+        {
+          "move": 31,
+          "name": "side-special",
+          "count": 3542,
+          "share": 0.09673631025535982
+        },
+        {
+          "move": 33,
+          "name": "down-special",
+          "count": 3406,
+          "share": 0.09302198552505804
+        },
+        {
+          "move": 6,
+          "name": "forward-tilt",
+          "count": 2789,
+          "share": 0.07617096818243889
+        },
+        {
+          "move": 8,
+          "name": "down-tilt",
+          "count": 1852,
+          "share": 0.05058036323910965
+        },
+        {
+          "move": 32,
+          "name": "up-special",
+          "count": 1397,
+          "share": 0.038153762119349996
+        },
+        {
+          "move": 3,
+          "name": "down-smash",
+          "count": 1249,
+          "share": 0.034111702854021576
+        },
+        {
+          "move": 14,
+          "name": "back-air",
+          "count": 1009,
+          "share": 0.02755701215348901
+        },
+        {
+          "move": 19,
+          "name": "dash-attack",
+          "count": 789,
+          "share": 0.02154854567800082
+        },
+        {
+          "move": 13,
+          "name": "forward-air",
+          "count": 766,
+          "share": 0.020920387819199783
+        },
+        {
+          "move": 16,
+          "name": "down-air",
+          "count": 746,
+          "share": 0.0203741635941554
+        },
+        {
+          "move": 10,
+          "name": "forward-tilt-down",
+          "count": 656,
+          "share": 0.01791615458145569
+        },
+        {
+          "move": 9,
+          "name": "forward-tilt-up",
+          "count": 556,
+          "share": 0.015185033456233784
+        },
+        {
+          "move": 7,
+          "name": "up-tilt",
+          "count": 518,
+          "share": 0.01414720742864946
+        },
+        {
+          "move": 17,
+          "name": "ledge-attack",
+          "count": 364,
+          "share": 0.009941280895807729
+        },
+        {
+          "move": 5,
+          "name": "grab",
+          "count": 337,
+          "share": 0.009203878191997816
+        },
+        {
+          "move": 12,
+          "name": "neutral-air",
+          "count": 310,
+          "share": 0.008466475488187901
+        },
+        {
+          "move": 2,
+          "name": "up-smash",
+          "count": 302,
+          "share": 0.008247985798170149
+        },
+        {
+          "move": 0,
+          "name": "jab",
+          "count": 167,
+          "share": 0.004560972279120579
+        },
+        {
+          "move": 15,
+          "name": "up-air",
+          "count": 128,
+          "share": 0.0034958350402840366
+        },
+        {
+          "move": 11,
+          "name": "get-up-attack",
+          "count": 51,
+          "share": 0.0013928717738631708
+        }
+      ]
+    },
+    {
+      "opponent": "shadow-hunter",
+      "fighter": "goblin-tinker",
+      "matches": 408,
+      "wins": 170,
+      "losses": 238,
+      "ties": 0,
+      "timeOuts": 0,
+      "winRate": 0.4166666666666667,
+      "against": {
+        "shadow-hunter": 0.4166666666666667
+      },
+      "played": {
+        "shadow-hunter": 408
+      },
+      "decisive": {
+        "shadow-hunter": 408
+      },
+      "stockLosses": 1026,
+      "selfDestructs": 28,
+      "selfDestructShare": 0.02729044834307992,
+      "noHitLosses": 196,
+      "noHitShare": 0.19103313840155944,
+      "damagePerHit": 6.984405349366329,
+      "manaPerStock": 185.37625418060202,
+      "refusedShare": 0,
+      "moves": [
+        {
+          "move": 30,
+          "name": "neutral-special",
+          "count": 9153,
+          "share": 0.2990590080376397
+        },
+        {
+          "move": 33,
+          "name": "down-special",
+          "count": 3653,
+          "share": 0.11935568189243939
+        },
+        {
+          "move": 4,
+          "name": "forward-smash",
+          "count": 2950,
+          "share": 0.09638632947788016
+        },
+        {
+          "move": 6,
+          "name": "forward-tilt",
+          "count": 2669,
+          "share": 0.08720512317846174
+        },
+        {
+          "move": 8,
+          "name": "down-tilt",
+          "count": 2382,
+          "share": 0.07782787688688493
+        },
+        {
+          "move": 31,
+          "name": "side-special",
+          "count": 2111,
+          "share": 0.0689734039077305
+        },
+        {
+          "move": 32,
+          "name": "up-special",
+          "count": 1042,
+          "share": 0.034045611971508856
+        },
+        {
+          "move": 14,
+          "name": "back-air",
+          "count": 914,
+          "share": 0.029863425472129647
+        },
+        {
+          "move": 19,
+          "name": "dash-attack",
+          "count": 895,
+          "share": 0.029242632163628046
+        },
+        {
+          "move": 3,
+          "name": "down-smash",
+          "count": 684,
+          "share": 0.022348559106057635
+        },
+        {
+          "move": 13,
+          "name": "forward-air",
+          "count": 662,
+          "share": 0.021629745801476835
+        },
+        {
+          "move": 10,
+          "name": "forward-tilt-down",
+          "count": 590,
+          "share": 0.019277265895576032
+        },
+        {
+          "move": 17,
+          "name": "ledge-attack",
+          "count": 509,
+          "share": 0.016630726001437626
+        },
+        {
+          "move": 16,
+          "name": "down-air",
+          "count": 394,
+          "share": 0.01287329281840162
+        },
+        {
+          "move": 12,
+          "name": "neutral-air",
+          "count": 391,
+          "share": 0.012775272822322421
+        },
+        {
+          "move": 5,
+          "name": "grab",
+          "count": 367,
+          "share": 0.01199111285368882
+        },
+        {
+          "move": 9,
+          "name": "forward-tilt-up",
+          "count": 367,
+          "share": 0.01199111285368882
+        },
+        {
+          "move": 7,
+          "name": "up-tilt",
+          "count": 317,
+          "share": 0.010357446252368816
+        },
+        {
+          "move": 2,
+          "name": "up-smash",
+          "count": 238,
+          "share": 0.007776253022283212
+        },
+        {
+          "move": 0,
+          "name": "jab",
+          "count": 186,
+          "share": 0.00607723975691041
+        },
+        {
+          "move": 15,
+          "name": "up-air",
+          "count": 103,
+          "share": 0.0033653531987192053
+        },
+        {
+          "move": 11,
+          "name": "get-up-attack",
+          "count": 29,
+          "share": 0.0009475266287656015
+        }
+      ]
+    },
+    {
+      "opponent": "sylvanas-windrunner",
+      "fighter": "goblin-tinker",
+      "matches": 408,
+      "wins": 250,
+      "losses": 158,
+      "ties": 0,
+      "timeOuts": 0,
+      "winRate": 0.6127450980392157,
+      "against": {
+        "sylvanas-windrunner": 0.6127450980392157
+      },
+      "played": {
+        "sylvanas-windrunner": 408
+      },
+      "decisive": {
+        "sylvanas-windrunner": 408
+      },
+      "stockLosses": 917,
+      "selfDestructs": 11,
+      "selfDestructShare": 0.011995637949836423,
+      "noHitLosses": 202,
+      "noHitShare": 0.2202835332606325,
+      "damagePerHit": 7.046847094880383,
+      "manaPerStock": 186.43530419880034,
+      "refusedShare": 0,
+      "moves": [
+        {
+          "move": 30,
+          "name": "neutral-special",
+          "count": 8376,
+          "share": 0.27014997581035316
+        },
+        {
+          "move": 33,
+          "name": "down-special",
+          "count": 3966,
+          "share": 0.12791485244315434
+        },
+        {
+          "move": 4,
+          "name": "forward-smash",
+          "count": 2918,
+          "share": 0.09411385260441864
+        },
+        {
+          "move": 8,
+          "name": "down-tilt",
+          "count": 2732,
+          "share": 0.08811482019029189
+        },
+        {
+          "move": 6,
+          "name": "forward-tilt",
+          "count": 2713,
+          "share": 0.0875020158039026
+        },
+        {
+          "move": 31,
+          "name": "side-special",
+          "count": 1995,
+          "share": 0.06434446057087566
+        },
+        {
+          "move": 14,
+          "name": "back-air",
+          "count": 1113,
+          "share": 0.035897435897435895
+        },
+        {
+          "move": 19,
+          "name": "dash-attack",
+          "count": 1071,
+          "share": 0.03454281567489115
+        },
+        {
+          "move": 32,
+          "name": "up-special",
+          "count": 946,
+          "share": 0.030511207869698437
+        },
+        {
+          "move": 13,
+          "name": "forward-air",
+          "count": 772,
+          "share": 0.024899209804870183
+        },
+        {
+          "move": 3,
+          "name": "down-smash",
+          "count": 668,
+          "share": 0.021544912110949846
+        },
+        {
+          "move": 16,
+          "name": "down-air",
+          "count": 547,
+          "share": 0.017642315755523302
+        },
+        {
+          "move": 12,
+          "name": "neutral-air",
+          "count": 502,
+          "share": 0.016190936945653926
+        },
+        {
+          "move": 10,
+          "name": "forward-tilt-down",
+          "count": 471,
+          "share": 0.015191098209966135
+        },
+        {
+          "move": 17,
+          "name": "ledge-attack",
+          "count": 414,
+          "share": 0.013352685050798258
+        },
+        {
+          "move": 7,
+          "name": "up-tilt",
+          "count": 390,
+          "share": 0.012578616352201259
+        },
+        {
+          "move": 9,
+          "name": "forward-tilt-up",
+          "count": 375,
+          "share": 0.012094823415578132
+        },
+        {
+          "move": 0,
+          "name": "jab",
+          "count": 348,
+          "share": 0.011223996129656508
+        },
+        {
+          "move": 5,
+          "name": "grab",
+          "count": 317,
+          "share": 0.010224157393968715
+        },
+        {
+          "move": 2,
+          "name": "up-smash",
+          "count": 174,
+          "share": 0.005611998064828254
+        },
+        {
+          "move": 15,
+          "name": "up-air",
+          "count": 172,
+          "share": 0.00554749233994517
+        },
+        {
+          "move": 11,
+          "name": "get-up-attack",
+          "count": 25,
+          "share": 0.0008063215610385422
+        }
+      ]
+    },
+    {
+      "opponent": "thrall",
+      "fighter": "goblin-tinker",
+      "matches": 408,
+      "wins": 274,
+      "losses": 134,
+      "ties": 0,
+      "timeOuts": 0,
+      "winRate": 0.6715686274509803,
+      "against": {
+        "thrall": 0.6715686274509803
+      },
+      "played": {
+        "thrall": 408
+      },
+      "decisive": {
+        "thrall": 408
+      },
+      "stockLosses": 895,
+      "selfDestructs": 25,
+      "selfDestructShare": 0.027932960893854747,
+      "noHitLosses": 237,
+      "noHitShare": 0.264804469273743,
+      "damagePerHit": 7.242765815636416,
+      "manaPerStock": 180.13002566295978,
+      "refusedShare": 0,
+      "moves": [
+        {
+          "move": 30,
+          "name": "neutral-special",
+          "count": 8097,
+          "share": 0.27895679735409634
+        },
+        {
+          "move": 33,
+          "name": "down-special",
+          "count": 3668,
+          "share": 0.12636946186177908
+        },
+        {
+          "move": 8,
+          "name": "down-tilt",
+          "count": 3533,
+          "share": 0.12171845931234065
+        },
+        {
+          "move": 6,
+          "name": "forward-tilt",
+          "count": 2227,
+          "share": 0.07672431613036589
+        },
+        {
+          "move": 4,
+          "name": "forward-smash",
+          "count": 2051,
+          "share": 0.07066078688072762
+        },
+        {
+          "move": 31,
+          "name": "side-special",
+          "count": 2034,
+          "share": 0.07007510507820575
+        },
+        {
+          "move": 19,
+          "name": "dash-attack",
+          "count": 1096,
+          "share": 0.03775925032729277
+        },
+        {
+          "move": 32,
+          "name": "up-special",
+          "count": 1023,
+          "share": 0.03524426376352236
+        },
+        {
+          "move": 14,
+          "name": "back-air",
+          "count": 894,
+          "share": 0.03079997243850341
+        },
+        {
+          "move": 13,
+          "name": "forward-air",
+          "count": 688,
+          "share": 0.023702887066767726
+        },
+        {
+          "move": 16,
+          "name": "down-air",
+          "count": 537,
+          "share": 0.018500654585543994
+        },
+        {
+          "move": 3,
+          "name": "down-smash",
+          "count": 526,
+          "share": 0.018121684007441605
+        },
+        {
+          "move": 17,
+          "name": "ledge-attack",
+          "count": 454,
+          "share": 0.01564114931440777
+        },
+        {
+          "move": 5,
+          "name": "grab",
+          "count": 410,
+          "share": 0.01412526700199821
+        },
+        {
+          "move": 10,
+          "name": "forward-tilt-down",
+          "count": 407,
+          "share": 0.014021911389788465
+        },
+        {
+          "move": 12,
+          "name": "neutral-air",
+          "count": 404,
+          "share": 0.013918555777578723
+        },
+        {
+          "move": 9,
+          "name": "forward-tilt-up",
+          "count": 310,
+          "share": 0.010680079928340108
+        },
+        {
+          "move": 7,
+          "name": "up-tilt",
+          "count": 292,
+          "share": 0.01005994625508165
+        },
+        {
+          "move": 2,
+          "name": "up-smash",
+          "count": 147,
+          "share": 0.005064424998277407
+        },
+        {
+          "move": 15,
+          "name": "up-air",
+          "count": 107,
+          "share": 0.0036863501688141668
+        },
+        {
+          "move": 0,
+          "name": "jab",
+          "count": 96,
+          "share": 0.0033073795907117755
+        },
+        {
+          "move": 11,
+          "name": "get-up-attack",
+          "count": 25,
+          "share": 0.0008612967684145249
+        }
+      ]
+    },
+    {
+      "opponent": "uther",
+      "fighter": "goblin-tinker",
+      "matches": 408,
+      "wins": 103,
+      "losses": 305,
+      "ties": 0,
+      "timeOuts": 0,
+      "winRate": 0.25245098039215685,
+      "against": {
+        "uther": 0.25245098039215685
+      },
+      "played": {
+        "uther": 408
+      },
+      "decisive": {
+        "uther": 408
+      },
+      "stockLosses": 1105,
+      "selfDestructs": 30,
+      "selfDestructShare": 0.027149321266968326,
+      "noHitLosses": 313,
+      "noHitShare": 0.2832579185520362,
+      "damagePerHit": 7.42843290297855,
+      "manaPerStock": 166.84602649006624,
+      "refusedShare": 0,
+      "moves": [
+        {
+          "move": 30,
+          "name": "neutral-special",
+          "count": 6542,
+          "share": 0.23652337394699735
+        },
+        {
+          "move": 33,
+          "name": "down-special",
+          "count": 3491,
+          "share": 0.12621569832604215
+        },
+        {
+          "move": 8,
+          "name": "down-tilt",
+          "count": 2433,
+          "share": 0.08796413463971944
+        },
+        {
+          "move": 6,
+          "name": "forward-tilt",
+          "count": 2177,
+          "share": 0.0787085577931234
+        },
+        {
+          "move": 31,
+          "name": "side-special",
+          "count": 2075,
+          "share": 0.07502078889330778
+        },
+        {
+          "move": 4,
+          "name": "forward-smash",
+          "count": 2000,
+          "share": 0.0723091941140316
+        },
+        {
+          "move": 32,
+          "name": "up-special",
+          "count": 1813,
+          "share": 0.06554828446436964
+        },
+        {
+          "move": 19,
+          "name": "dash-attack",
+          "count": 962,
+          "share": 0.0347807223688492
+        },
+        {
+          "move": 14,
+          "name": "back-air",
+          "count": 921,
+          "share": 0.03329838388951155
+        },
+        {
+          "move": 17,
+          "name": "ledge-attack",
+          "count": 897,
+          "share": 0.032430673560143175
+        },
+        {
+          "move": 13,
+          "name": "forward-air",
+          "count": 835,
+          "share": 0.030189088542608194
+        },
+        {
+          "move": 3,
+          "name": "down-smash",
+          "count": 655,
+          "share": 0.023681261072345347
+        },
+        {
+          "move": 12,
+          "name": "neutral-air",
+          "count": 403,
+          "share": 0.014570302613977367
+        },
+        {
+          "move": 10,
+          "name": "forward-tilt-down",
+          "count": 402,
+          "share": 0.01453414801692035
+        },
+        {
+          "move": 16,
+          "name": "down-air",
+          "count": 364,
+          "share": 0.013160273328753752
+        },
+        {
+          "move": 11,
+          "name": "get-up-attack",
+          "count": 350,
+          "share": 0.01265410896995553
+        },
+        {
+          "move": 9,
+          "name": "forward-tilt-up",
+          "count": 342,
+          "share": 0.012364872193499403
+        },
+        {
+          "move": 7,
+          "name": "up-tilt",
+          "count": 301,
+          "share": 0.010882533714161756
+        },
+        {
+          "move": 5,
+          "name": "grab",
+          "count": 273,
+          "share": 0.009870204996565313
+        },
+        {
+          "move": 2,
+          "name": "up-smash",
+          "count": 193,
+          "share": 0.006977837232004049
+        },
+        {
+          "move": 15,
+          "name": "up-air",
+          "count": 129,
+          "share": 0.004663943020355038
+        },
+        {
+          "move": 0,
+          "name": "jab",
+          "count": 101,
+          "share": 0.0036516143027585956
+        }
+      ]
+    },
+    {
+      "opponent": "warden",
+      "fighter": "goblin-tinker",
+      "matches": 408,
+      "wins": 237,
+      "losses": 171,
+      "ties": 0,
+      "timeOuts": 0,
+      "winRate": 0.5808823529411765,
+      "against": {
+        "warden": 0.5808823529411765
+      },
+      "played": {
+        "warden": 408
+      },
+      "decisive": {
+        "warden": 408
+      },
+      "stockLosses": 945,
+      "selfDestructs": 18,
+      "selfDestructShare": 0.01904761904761905,
+      "noHitLosses": 269,
+      "noHitShare": 0.28465608465608466,
+      "damagePerHit": 7.181943604000349,
+      "manaPerStock": 180.86040609137055,
+      "refusedShare": 0,
+      "moves": [
+        {
+          "move": 30,
+          "name": "neutral-special",
+          "count": 7506,
+          "share": 0.2406849227217341
+        },
+        {
+          "move": 33,
+          "name": "down-special",
+          "count": 4362,
+          "share": 0.1398704546912076
+        },
+        {
+          "move": 8,
+          "name": "down-tilt",
+          "count": 3878,
+          "share": 0.1243506701725133
+        },
+        {
+          "move": 6,
+          "name": "forward-tilt",
+          "count": 3188,
+          "share": 0.102225357532226
+        },
+        {
+          "move": 4,
+          "name": "forward-smash",
+          "count": 2306,
+          "share": 0.07394343615725005
+        },
+        {
+          "move": 31,
+          "name": "side-special",
+          "count": 1686,
+          "share": 0.05406272045148464
+        },
+        {
+          "move": 19,
+          "name": "dash-attack",
+          "count": 1165,
+          "share": 0.03735650612454306
+        },
+        {
+          "move": 32,
+          "name": "up-special",
+          "count": 1153,
+          "share": 0.036971718078625024
+        },
+        {
+          "move": 14,
+          "name": "back-air",
+          "count": 844,
+          "share": 0.02706342589623549
+        },
+        {
+          "move": 3,
+          "name": "down-smash",
+          "count": 710,
+          "share": 0.022766626050150708
+        },
+        {
+          "move": 13,
+          "name": "forward-air",
+          "count": 653,
+          "share": 0.02093888283204002
+        },
+        {
+          "move": 10,
+          "name": "forward-tilt-down",
+          "count": 610,
+          "share": 0.019560059000833706
+        },
+        {
+          "move": 9,
+          "name": "forward-tilt-up",
+          "count": 505,
+          "share": 0.016193163599050858
+        },
+        {
+          "move": 7,
+          "name": "up-tilt",
+          "count": 450,
+          "share": 0.014429551721926505
+        },
+        {
+          "move": 17,
+          "name": "ledge-attack",
+          "count": 440,
+          "share": 0.014108895016994805
+        },
+        {
+          "move": 16,
+          "name": "down-air",
+          "count": 423,
+          "share": 0.013563778618610915
+        },
+        {
+          "move": 5,
+          "name": "grab",
+          "count": 371,
+          "share": 0.011896363752966075
+        },
+        {
+          "move": 12,
+          "name": "neutral-air",
+          "count": 332,
+          "share": 0.010645802603732444
+        },
+        {
+          "move": 0,
+          "name": "jab",
+          "count": 244,
+          "share": 0.007824023600333484
+        },
+        {
+          "move": 2,
+          "name": "up-smash",
+          "count": 232,
+          "share": 0.007439235554415443
+        },
+        {
+          "move": 15,
+          "name": "up-air",
+          "count": 101,
+          "share": 0.003238632719810171
+        },
+        {
+          "move": 11,
+          "name": "get-up-attack",
+          "count": 27,
+          "share": 0.0008657731033155904
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,125 @@
+{
+  "before": "e951093873f7a18835c6b5c12a495e3df16918dcb6e70c51336d9989c21529a1",
+  "after": "5487fda79f48a2642eed83eb20c571f7b3ca26a47a0455bb3822fb23fd152ab4",
+  "sequences": 98,
+  "changedClips": [
+    23,
+    26,
+    27,
+    28,
+    29,
+    31
+  ],
+  "preservedClips": 92,
+  "preservedTrackIntervals": 23368,
+  "victimContacts": [
+    {
+      "clip": 92,
+      "contact": 0.5,
+      "maxVertexChange": 0
+    },
+    {
+      "clip": 93,
+      "contact": 0.5,
+      "maxVertexChange": 0
+    },
+    {
+      "clip": 94,
+      "contact": 0.5,
+      "maxVertexChange": 0
+    },
+    {
+      "clip": 95,
+      "contact": 0.5,
+      "maxVertexChange": 0
+    },
+    {
+      "clip": 96,
+      "contact": 0.5,
+      "maxVertexChange": 0
+    }
+  ],
+  "rows": [
+    {
+      "style": 0,
+      "clip": 23,
+      "swing": 31.382820016598835,
+      "peakFrame": 3,
+      "firstActive": 3,
+      "lastActive": 4,
+      "forward": 86.6903076171875
+    },
+    {
+      "style": 20,
+      "clip": 24,
+      "swing": 32.34885185380501,
+      "peakFrame": 3,
+      "firstActive": 3,
+      "lastActive": 4,
+      "forward": 88.14163208007812
+    },
+    {
+      "style": 21,
+      "clip": 25,
+      "swing": 33.122296636293406,
+      "peakFrame": 5,
+      "firstActive": 5,
+      "lastActive": 7,
+      "forward": 89.01976013183594
+    },
+    {
+      "style": 6,
+      "clip": 26,
+      "swing": 65.87503278486048,
+      "peakFrame": 7,
+      "firstActive": 7,
+      "lastActive": 9,
+      "forward": 109.51146697998047
+    },
+    {
+      "style": 9,
+      "clip": 27,
+      "swing": 35.89945449477119,
+      "peakFrame": 7,
+      "firstActive": 7,
+      "lastActive": 9,
+      "forward": 83.93790435791016
+    },
+    {
+      "style": 10,
+      "clip": 28,
+      "swing": 51.0811143965581,
+      "peakFrame": 8,
+      "firstActive": 7,
+      "lastActive": 9,
+      "forward": 120.48938751220703
+    },
+    {
+      "style": 7,
+      "clip": 29,
+      "swing": 31.46623501495891,
+      "peakFrame": 6,
+      "firstActive": 6,
+      "lastActive": 9,
+      "forward": 60.123268127441406
+    },
+    {
+      "style": 8,
+      "clip": 30,
+      "swing": 33.097665058899395,
+      "peakFrame": 5,
+      "firstActive": 5,
+      "lastActive": 7,
+      "forward": 95.82080078125
+    },
+    {
+      "style": 19,
+      "clip": 31,
+      "swing": 66.43353421200547,
+      "peakFrame": 9,
+      "firstActive": 9,
+      "lastActive": 12,
+      "forward": 117.7430191040039
+    }
+  ]
+}
