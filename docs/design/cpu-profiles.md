@@ -1,186 +1,218 @@
-# Computer opponents: difficulty and style
+# Named computer opponents
 
-Choose **Difficulty** and **Opponent style** independently. Difficulty has
-exactly five tiers: **Rookie, Beginner, Intermediate, Advanced, Expert**.
-Each offers the same six styles, giving 30 combinations. These are authored
-Smashcraft difficulty settings, with no claimed equivalence to human ratings.
+Choose an **Opponent** and **Difficulty** independently. The six original
+fictional opponents are **Rook, Ember, Flint, Vale, Kite and Wren**. Each grows
+through exactly five tiers: **Rookie, Beginner, Intermediate, Advanced, Expert**.
+These 30 combinations are authored Smashcraft difficulty settings, with no
+claimed equivalence to human ratings or imitation/endorsement of real players.
 Design ownership: [#183](https://github.com/tompassarelli/smashcraft/issues/183).
 
-## Difficulty
+## Identity and growth
+
+An opponent is a recognizable player with several competencies, rather than
+an exclusive archetype. Tendencies weight legal choices; they never forbid
+aggression, defense, grabs, reads, movement, recovery or any part of a fighter's
+kit. Raising difficulty improves weaker skills as well as dominant ones.
+Rook becomes better at scrapping and taking initiative, rather than merely
+becoming a more narrowly specialized planner. Ember learns patience, reads
+and defense while retaining an impatient streak.
 
 Rookie leaves obvious openings; Beginner understands basic exchanges;
 Intermediate combines a plan with inconsistent decisions; Advanced punishes
-ordinary mistakes; Expert is extremely hard but beatable. Strength comes from
-reaction, execution, judgment, spacing and adaptation together. Styles shape
-that strength: fast mechanics can accompany a simple plan, and a patient,
-strategic opponent can react more slowly. Expert combines strong mechanics and
-strategy without erasing those differences.
+ordinary mistakes; Expert is extremely hard but beatable. Each identity has
+its own progression in mechanics, reactions, judgment, adaptation and risk.
+Expert combines excellent primary and secondary skills; persistent habits
+still leave smaller openings for deliberate conditioning or baiting.
 
-Initial authored tuning below is a starting specification, not a measured
-win-rate or human-skill calibration. Percentages are seeded decision shares;
-they never change damage, hit regions, movement speed or legal action windows.
+The description and tendency tags below are final menu copy. Tags summarize
+preferences, not an exhaustive list of the opponent's abilities.
 
-| Base dimension | Rookie | Beginner | Intermediate | Advanced | Expert |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| Observe a new opponent action after (60 Hz frames) | 36 | 30 | 24 | 18 | 12 |
-| Correctly execute an intended eligible technique | 50% | 65% | 80% | 90% | 96% |
-| Use context-sensitive move value instead of a familiar simple choice | 25% | 40% | 60% | 80% | 95% |
-| Correctly judge matchup reach / punish window | 40% | 55% | 70% | 85% | 95% |
-| Observations retained per relevant context | 4 | 8 | 12 | 20 | 32 |
-| New observations between history updates | 4 | 3 | 2 | 1 | 1 |
-| Observations needed before a learned read | 2 | 3 | 3 | 4 | 5 |
-| Observed pattern share needed for a learned read | 50% | 60% | 65% | 70% | 75% |
-| Repeat a familiar eligible answer rather than reconsider | 70% | 55% | 40% | 25% | 15% |
-| Weight given to likely punishment, relative to full evaluation | 50% | 65% | 80% | 90% | 100% |
+| Opponent / stable ID | Description | Tendency tags | Secondary competencies that grow | Persistent weakness |
+| --- | --- | --- | --- | --- |
+| Rook / `rook` | Makes a plan, then fights for the space to use it. | Plans ahead · Controls space | Close scrapping, taking initiative, conversion execution | Reluctant to gamble; can surrender a fleeting chance while seeking safety |
+| Ember / `ember` | Pushes the pace and looks for the next opening. | Takes initiative · Keeps pressure | Habit reads, defensive techs, disengaging after a failed push | Impatient; can extend pressure one step too far |
+| Flint / `flint` | Turns practiced movement into clean attacks. | Precise movement · Clean follow-ups | Matchup judgment, adaptation, choosing when to abandon a string | Trusts rehearsed routes; conditioning can bait the follow-up |
+| Vale / `vale` | Stays composed, then turns defense into an opening. | Patient defense · Punishes mistakes | Proactive grabs, approaching safely, sustained offense | Gives up initiative while waiting for a convincing opening |
+| Kite / `kite` | Changes pace and finds unusual ways through. | Changes routes · Bold choices | Reliable conversions, safe landings, recognizing patterns | Still chooses occasional risky escapes or recoveries |
+| Wren / `wren` | Changes tools to match the fight in front of them. | Flexible choices · Steady pace | Burst pressure, precise defense, exploiting conditioned habits | Falls back to comfortable neutral resets under uncertainty |
 
-An execution miss produces a legal late, dropped or simpler input, never
-impossible movement. A judgment miss evaluates a limited candidate set or
-misjudges observed spacing; it does not secretly inspect a future action.
-History covers neutral approach, shield/escape, landing and ledge choices,
-partitioned by relevant spacing. Short history and slower updates make low
-tiers repeat stale plans. A read is a fallible commitment based on that history;
-low tiers also guess without sufficient evidence, independently of learned reads.
+### Individually authored five-tier paths
 
-Move value considers estimated success, damage or kill reward, punish risk,
-and resulting position at the relevant percent. Losing stocks or running out
-of time increases willingness to take a high-variance comeback option. Difficulty
-improves risk judgment; it does not simply make every stronger opponent safer.
+Each cell is a complete tier-specific strengths/opening preview. Its **Strong
+at / Watch for** wording is final menu copy. Different paths improve secondary
+skills at different points; they do not apply constant archetype offsets.
 
-## Six styles
-
-These descriptions and the **Strong at / Watch for** phrases are final menu copy.
-
-| Style | Description | Strong at | Watch for |
-| --- | --- | --- | --- |
-| All-rounder | Mixes pressure, defense and movement. | Varied choices | Predictable resets |
-| Technician | Moves quickly and strings attacks together. | Fast execution | Baited commitments |
-| Strategist | Controls space and learns your habits. | Spacing and adaptation | Sudden pressure |
-| Rushdown | Stays close and keeps the pressure on. | Sustained pressure | Overextended attacks |
-| Counterpuncher | Waits for an opening, then strikes. | Defense and punishes | Grabs and feints |
-| Wildcard | Changes pace and takes bold chances. | Unpredictable choices | Risky recoveries |
-
-Apply the following offsets to each tier's base dimensions. Clamp percentage
-shares to 5–98%, reaction to at least 12 frames, retained observations to at
-most 32, and update/evidence counts to at least one. Style preferences then
-weight eligible actions within the fighter's own gameplan; every fighter
-retains its kit and recovery choices. These are six parameter sets over one
-decision policy, not 30 separate opponents.
-
-| Style | Reaction | Execution | Judgment / spacing | History / repetition | Risk and enduring bias |
+| Opponent | Rookie | Beginner | Intermediate | Advanced | Expert |
 | --- | --- | --- | --- | --- | --- |
-| All-rounder | Base | Base | Base / base | Base / base | Base; resets to a familiar neutral plan |
-| Technician | −3 frames | +12 points | −12 / −8 points | Updates one observation slower; repeat +10 points | Punish weight −10 points; favors rehearsed movement and strings |
-| Strategist | +6 frames | −8 points | +12 / +12 points | Retain +8; update one observation sooner; repeat −10 points | Punish weight +10 points; learned-read threshold +5 points; favors stage control |
-| Rushdown | −2 frames | +5 points | −5 / −5 points | Repeat +10 points | Punish weight −20 points; favors closing distance and extending advantage |
-| Counterpuncher | Base | +5 points | +5 / +8 points | Learned-read threshold +5 points; repeat +10 points | Punish weight +15 points; favors defense and confirmed punish windows |
-| Wildcard | +2 frames | −5 points | −5 / base | Repeat −15 points; retained history halved | Punish weight −15 points; favors varied routes and occasional speculative commitments |
+| Rook | Strong at: Following a plan. Watch for: Slow answers and mistimed close attacks. | Strong at: Holding useful space. Watch for: Pressure that breaks the setup. | Strong at: Spacing and learning habits. Watch for: Sudden pressure and missed gambles. | Strong at: Reading habits and fighting up close. Watch for: Hesitation at risky openings. | Strong at: Adaptation, spacing and close conversions. Watch for: Baiting caution when a gamble is needed. |
+| Ember | Strong at: Quick approaches. Watch for: Repeated unsafe attacks. | Strong at: Basic pressure and follow-ups. Watch for: Chasing past a safe opening. | Strong at: Sustained pressure and spotting escapes. Watch for: Impatient extensions. | Strong at: Pressure reads and defensive techs. Watch for: A baited extra attack. | Strong at: Fast conversions, reads and pressure resets. Watch for: Impatience after a blocked push. |
+| Flint | Strong at: Practiced movement. Watch for: Repeating a mistimed follow-up. | Strong at: Simple clean strings. Watch for: Starting them at the wrong distance. | Strong at: Execution and reliable punishes. Watch for: Familiar routes after you change habits. | Strong at: Precise movement and matchup choices. Watch for: Conditioning the trusted follow-up. | Strong at: Execution, adaptation and choosing conversions. Watch for: Baiting a rehearsed route. |
+| Vale | Strong at: Blocking obvious attacks. Watch for: Grabs and long waits. | Strong at: Basic whiff punishes. Watch for: Feints that keep the initiative. | Strong at: Defense and proactive grabs. Watch for: Hesitation after a safe reset. | Strong at: Defense, safe approaches and pressure. Watch for: Delayed attacks that restart the wait. | Strong at: Precise punishes and offense from defense. Watch for: Taking initiative while Vale waits for certainty. |
+| Kite | Strong at: Trying different routes. Watch for: Unsafe landings. | Strong at: Changing pace and escaping. Watch for: Dropped conversions. | Strong at: Varied approaches and short conversions. Watch for: Bold recoveries. | Strong at: Pattern reads and reliable follow-ups. Watch for: A risky escape after being cornered. | Strong at: Route changes, precise conversions and reads. Watch for: Recognizing the occasional bold recovery. |
+| Wren | Strong at: Trying attack and defense. Watch for: Long pauses before a reset. | Strong at: Basic answers to several situations. Watch for: Comfortable repeated approaches. | Strong at: Flexible tools and burst pressure. Watch for: Predictable resets under uncertainty. | Strong at: Matchup choices and conditioned punishes. Watch for: Baiting the return to neutral. | Strong at: Adaptation, precise defense and varied pressure. Watch for: Conditioning the preferred neutral reset. |
 
-No style weakens the human-reaction floor or five-frame direction commitment
-from [#176](https://github.com/tompassarelli/smashcraft/issues/176). A prepared
-sequence or prediction may act before a new opponent action occurs; a response
-to unexpected new information must wait for that combination's delay.
-Delayed observations and history/value evaluation are owned by
+## Initial decision parameters
+
+These are individually authored starting rows, not measured win-rate results.
+A shared decision policy consumes independent dimensions, with no identity
+branch that restricts legal behavior. Percentage shares use the match's seeded
+integer draws. They never change damage, hit regions, movement speed or legal
+technique windows. Calibration may tune rows while preserving the identities
+and developmental paths above.
+
+In the table: **Execute** is correct execution of an eligible intended technique;
+**Judge/Space** is context-sensitive move evaluation / correct reach-window
+judgment; **History** is observations retained per relevant context / update
+stride in observations; **Read** is minimum evidence count / pattern-confidence
+percent; **Repeat** is choosing a familiar eligible answer instead of
+reconsidering; **Punish** weights likely punishment relative to full evaluation;
+**Initiative/Variance** weights proactive pressure / high-variance choices;
+**Guess** is speculative commitment without sufficient evidence. All percentage
+columns are decision shares except Punish, which is a value weight and may
+exceed 100. Initiative and variance weight preferences, not capability ceilings.
+
+| Opponent | Tier | Reaction frames | Execute % | Judge/Space % | History | Read | Repeat % | Punish % | Initiative/Variance % | Guess % |
+| --- | --- | ---: | ---: | --- | --- | --- | ---: | ---: | --- | ---: |
+| Rook | Rookie | 36 | 45 | 35/55 | 8/4 | 2/60 | 65 | 80 | 25/15 | 15 |
+| Rook | Beginner | 32 | 62 | 52/68 | 12/3 | 3/65 | 50 | 90 | 35/18 | 12 |
+| Rook | Intermediate | 27 | 80 | 75/82 | 20/2 | 4/70 | 35 | 105 | 50/22 | 8 |
+| Rook | Advanced | 21 | 91 | 88/92 | 28/1 | 5/75 | 22 | 115 | 65/28 | 5 |
+| Rook | Expert | 18 | 96 | 96/97 | 32/1 | 5/80 | 15 | 120 | 75/35 | 3 |
+| Ember | Rookie | 30 | 60 | 20/35 | 4/4 | 2/40 | 80 | 35 | 90/70 | 40 |
+| Ember | Beginner | 27 | 72 | 40/52 | 6/3 | 2/50 | 65 | 45 | 90/65 | 30 |
+| Ember | Intermediate | 21 | 84 | 65/72 | 12/2 | 3/60 | 45 | 60 | 90/60 | 20 |
+| Ember | Advanced | 15 | 93 | 82/86 | 20/1 | 4/65 | 32 | 75 | 90/55 | 12 |
+| Ember | Expert | 12 | 97 | 94/95 | 28/1 | 5/75 | 22 | 90 | 88/50 | 8 |
+| Flint | Rookie | 30 | 65 | 25/35 | 4/4 | 2/45 | 80 | 50 | 60/20 | 20 |
+| Flint | Beginner | 27 | 78 | 40/58 | 8/3 | 3/55 | 68 | 65 | 62/22 | 15 |
+| Flint | Intermediate | 21 | 88 | 65/78 | 12/2 | 3/65 | 52 | 80 | 65/25 | 10 |
+| Flint | Advanced | 15 | 95 | 84/90 | 20/1 | 4/70 | 38 | 90 | 70/30 | 7 |
+| Flint | Expert | 12 | 98 | 95/96 | 28/1 | 5/75 | 28 | 100 | 75/35 | 4 |
+| Vale | Rookie | 36 | 50 | 30/45 | 6/4 | 2/65 | 75 | 90 | 15/10 | 10 |
+| Vale | Beginner | 30 | 65 | 50/62 | 10/3 | 3/70 | 60 | 100 | 25/12 | 8 |
+| Vale | Intermediate | 24 | 80 | 72/80 | 16/2 | 4/75 | 42 | 110 | 45/18 | 6 |
+| Vale | Advanced | 18 | 92 | 88/90 | 24/1 | 5/80 | 28 | 115 | 60/25 | 4 |
+| Vale | Expert | 15 | 97 | 96/95 | 32/1 | 5/80 | 20 | 115 | 72/32 | 3 |
+| Kite | Rookie | 36 | 50 | 25/45 | 4/4 | 2/40 | 45 | 40 | 65/90 | 45 |
+| Kite | Beginner | 30 | 65 | 42/60 | 6/3 | 2/50 | 32 | 50 | 65/85 | 35 |
+| Kite | Intermediate | 24 | 82 | 65/75 | 12/2 | 3/60 | 22 | 65 | 68/78 | 25 |
+| Kite | Advanced | 18 | 92 | 84/88 | 20/1 | 4/65 | 12 | 80 | 72/70 | 15 |
+| Kite | Expert | 14 | 96 | 95/96 | 28/1 | 5/75 | 8 | 95 | 78/65 | 9 |
+| Wren | Rookie | 36 | 50 | 30/40 | 4/4 | 2/50 | 70 | 55 | 40/25 | 20 |
+| Wren | Beginner | 30 | 67 | 48/58 | 8/3 | 3/60 | 55 | 70 | 48/28 | 15 |
+| Wren | Intermediate | 24 | 82 | 70/74 | 16/2 | 3/65 | 40 | 85 | 60/35 | 10 |
+| Wren | Advanced | 18 | 93 | 87/89 | 24/1 | 4/70 | 27 | 95 | 70/40 | 7 |
+| Wren | Expert | 12 | 97 | 96/96 | 32/1 | 5/75 | 20 | 105 | 78/45 | 4 |
+
+An execution miss produces a legal late, dropped or simpler input. A judgment
+miss considers fewer candidates or misjudges observed spacing; it never
+inspects a future action. Bounded history covers neutral approach,
+shield/escape, landing and ledge choices, partitioned by relevant spacing.
+History and every decision commitment participate in rollback/replay.
+
+Move value weighs estimated success, damage/kill reward, likely punishment and
+resulting position at the relevant percent. A stock/time deficit increases
+willingness to take a comeback gamble without faster perception or extra
+knowledge. Rook's reluctance and Ember's impatience remain biases, not rules
+that prevent a rational desperate attack or a safe disengagement.
+
+Every combination preserves [#176](https://github.com/tompassarelli/smashcraft/issues/176):
+new unexpected information waits for the authored reaction delay (never below
+12 frames at 60 Hz), and a horizontal direction holds for at least five frames.
+Prepared sequences and fallible reads can act before a predicted action occurs.
+Delayed observations, bounded history and move-value logic are owned by
 [#182](https://github.com/tompassarelli/smashcraft/issues/182).
-
-### Variety at every tier
-
-Each cell states a recognizable strength and an opening the player can exploit.
-Expert openings are smaller, requiring deliberate baiting or changing a habit.
-
-| Style | Rookie | Beginner | Intermediate | Advanced | Expert |
-| --- | --- | --- | --- | --- | --- |
-| All-rounder | Tries several moves; obvious pauses | Uses basic offense/defense; repeats resets | Covers common options; predictable transitions | Mixes exchanges well; familiar neutral resets | Strong across the kit; bait its preferred reset |
-| Technician | Quick rehearsed inputs; unsafe repetition | Simple strings; chases bad openings | Clean movement/combos; limited adaptation | Precise conversions; baitable commitments | Excellent execution; outsmart its rehearsed follow-up |
-| Strategist | Has a plan; slow reactions and poor reach judgment | Holds useful space; loses to sudden pressure | Learns habits; slower emergency answers | Adapts and controls space; interrupt its setup | Excellent reads/positioning; change pace before it can respond |
-| Rushdown | Runs in often; easy whiff punishes | Maintains pressure; overextends | Converts close openings; chases too far | Strong advantage; bait the next extension | Relentless pressure; punish a committed extension |
-| Counterpuncher | Shields and waits; easy grabs | Finds obvious whiffs; passive resets | Reliable punishes; susceptible to feints | Strong defense; concedes initiative | Precise punishes; condition defense then grab or feint |
-| Wildcard | Varied attempts; poor landings | Surprises with route changes; unsafe gambles | Changes tempo; inconsistent conversions | Difficult to read; voluntary risky routes | Strong varied choices; recognize and punish its bold recovery |
 
 ## CPU-slot selection
 
-The card keeps the fighter portrait/chip and shows a compact summary:
-`CPU 2 · Intermediate · All-rounder`, followed by **Opponent settings**.
-Place that button below the chip's drag area; choosing it never picks up the
-chip. The existing slot owner or first human may edit it; others can read the
-summary and open a read-only preview saying **Only the slot owner or first
-player can change this opponent.** Changing fighter preserves both choices.
+The card retains its fighter portrait/chip and displays a compact summary:
+`CPU 2 · Rook · Intermediate`, followed by **Opponent settings** below the
+chip drag area. Choosing settings never picks up the chip. The slot owner or
+first human can edit; others may open a read-only preview saying **Only the
+slot owner or first player can change this opponent.** Changing fighter
+preserves opponent and difficulty; the identity adapts its tendencies to that
+fighter's kit.
 
-Open a centered panel over the roster, with one CPU slot at a time:
+Open one CPU slot's centered panel over the roster:
 
 ```text
 CPU 2 — Opponent settings                         [Close]
 
-Difficulty        ‹ Intermediate ›
-Opponent style    ‹ Strategist   ›
+Opponent          ‹ Rook         ›
+Difficulty        ‹ Advanced     ›
 
-Controls space and learns your habits.
-Strong at: Spacing and adaptation
-Watch for: Sudden pressure
+Makes a plan, then fights for the space to use it.
+Plans ahead · Controls space
+Strong at: Reading habits and fighting up close.
+Watch for: Hesitation at risky openings.
 
 [Done]
 Move: W/R + Space/E   Choose: N   Back: U
 ```
 
-The last line uses the player's actual bindings; controller input displays
-**Move: Stick or D-pad · Choose: A · Back: X**. The default keyboard preset
-uses W/R for left/right, Space/E for up/down, N for Choose and U for Back.
-Use the same input actions as other menus; do not use Enter (Warcraft chat).
+The last line uses actual bindings. Controller prompts say **Move: Stick or
+D-pad · Choose: A · Back: X**. Default keyboard controls are W/R left/right,
+Space/E up/down, N Choose, U Back; Enter remains Warcraft chat.
 
-1. From the roster, move to **Opponent settings** and press Choose. CPU cards,
-   including their settings buttons, participate in menu focus; keyboard and
-   controller never require a pointer to reach them.
-2. Panel focus starts on Difficulty. Up/down visits Difficulty, Opponent style,
-   then Done. Left/right changes the focused value; Choose on a value advances
-   it once. Difficulty stops at Rookie/Expert; style cycles the six styles and
-   Random. Changed values apply immediately and update the preview.
-3. Choose on Done, Back, or Close closes the panel and returns focus to the
-   settings button. Closing retains changes; there is no hidden Save step.
-   Start also closes the panel, consuming that press, so it cannot start a
-   match behind the panel. Release is required before another menu action.
-4. Mouse clicks on arrows perform the same changes. Only committed value
-   changes are shared; focus and preview are local. A shared update refreshes
-   an open preview, and losing edit permission changes it to read-only.
+1. CPU cards and their **Opponent settings** buttons participate in menu
+   focus. Move to the button and press Choose; no pointer is required.
+2. Focus starts on Opponent. Up/down visits Opponent, Difficulty, Done.
+   Left/right changes the focused value; Choose on a value advances once.
+   Opponent cycles Rook, Ember, Flint, Vale, Kite, Wren, Random. Difficulty
+   stops at Rookie/Expert. Changes apply immediately. The description/tags
+   follow identity; Strong at/Watch for follow both identity and tier.
+3. Choose on Done, Back or Close retains choices, closes the panel and returns
+   focus to the settings button. Start closes and consumes its press, so it
+   cannot start a match behind the panel. Require release before another action.
+4. Mouse arrows perform the same changes. Only committed choices are shared;
+   focus is local. Shared changes refresh an open preview; permission loss
+   changes it to read-only.
 
-New CPU slots default to **Intermediate + All-rounder**, an approachable mix
-without a surprise specialization. Retain slot choices across New Match,
-fighter/stage changes and automatic rematches for the map session. No new
-cross-session storage is needed. Training's **Fight** uses these choices;
-Stand/Shield/etc. retain their explicit training behavior.
+New CPU slots default to **Wren + Intermediate**, offering varied approachable
+play. Retain choices across New Match, fighter/stage changes and automatic
+rematches in the map session; no new cross-session storage is needed. Training
+**Fight** uses these choices; Stand/Shield/etc. keep their explicit behavior.
 
-**Random** changes only style, with preview **A different style each match.**
-and no fixed strength/weakness preview. Choose uniformly from the six styles
-once at match start using the shared match seed, retain the resolved style
-through rollback/replay, and reveal it in the countdown and results, such as
-`CPU 2 · Intermediate · Wildcard`. Each rematch draws again; repeated draws
-are allowed. The selection panel continues to show Random until changed.
+**Random** changes only opponent, with preview **A different opponent each
+match.** and no fixed identity/strength/weakness preview. Draw uniformly from
+six IDs once at match start with the shared match seed. Retain the resolved
+identity through replay/rollback and reveal it in countdown/results, for
+example `CPU 2 · Kite · Intermediate`. Rematches draw again; repeats are
+allowed. The selector continues to show Random until changed.
 
-## State and calibration contract
+## State, implementation and calibration
 
-Selection and match state name the difficulty tier, selected style (including
-Random), resolved style, and bounded observation/commitment history per CPU.
-Include them in snapshots, canonical comparisons and full-match replays.
-Resolve all decisions with the existing seeded integer draws; no clock,
-client-local randomness, hidden opponent inputs or private future state.
-Use stable identifiers distinct from display copy.
+Use stable opponent IDs `rook`, `ember`, `flint`, `vale`, `kite`, `wren` and tier
+IDs `rookie`, `beginner`, `intermediate`, `advanced`, `expert`, distinct from
+copy. Selection records chosen opponent (or Random) and tier; match state also
+records resolved opponent and bounded observation/commitment history per CPU.
+Snapshots, canonical comparisons, first-difference and full-match replays carry
+these fields. All decisions use existing seeded integer draws, with no clock,
+client-local randomness, hidden input or private future state.
 
-The five-tier model replaces the live level-only choice. Migrate in-tree menus,
-launch requests, training Fight, developer setup, reports and fixtures together;
-retain no competing level selector or compatibility adapter. Named diagnostic
-workloads explicitly select Expert + All-rounder when they need strongest
-general play; changing the normal menu default must not silently weaken them.
+[#184](https://github.com/tompassarelli/smashcraft/issues/184) composes a resolved
+independent decision record for each named opponent/tier over #182's shared
+policy. The record supplies execution, judgment, spacing, history capacity /
+update stride, read evidence/confidence, repetition, punish weight, speculative
+guesses, initiative and variance separately from reaction delay. Identity tags
+never dispatch to restricted action sets. The live five-tier/opponent model
+replaces level-only selection; migrate in-tree menus, launch requests, training
+Fight, developer setup, reports and fixtures together without an old selector
+or compatibility adapter. General strongest-play diagnostics explicitly select
+**Wren + Expert**, avoiding a silent weaker default.
 
-Calibration reports all 30 combinations using seeded controlled opponents:
-reaction delay, execution success, punish/spacing judgment, adaptation after
-a pattern change, familiar-answer share, read success/wrong reads, and risk
-when ahead versus behind. A fixed-tier style report must distinguish Technician
-mechanics from Strategist planning and expose each documented weakness.
-Pairwise win rates help order tiers, but are not the only strength measure;
-styles need not tie in every matchup. Run difficulty, whole-roster kit coverage
-and existing fighter balance gates on the integrated policy without lowering
-their thresholds. Farm sweeps use explicit revision/seed sets; fairness,
-direction commitment and deterministic replay remain hard checks.
-
-Implementation boundaries: [policy and replay state #184](https://github.com/tompassarelli/smashcraft/issues/184)
-composes the tier/style model over #182; [selection #185](https://github.com/tompassarelli/smashcraft/issues/185)
-owns controls and copy; [calibration #186](https://github.com/tompassarelli/smashcraft/issues/186)
-owns the aggregate behavior report and tuning.
+[#185](https://github.com/tompassarelli/smashcraft/issues/185) owns selection and
+player-guide copy. [#186](https://github.com/tompassarelli/smashcraft/issues/186)
+owns one aggregate calibration report across all 30 combinations: reaction,
+execution, judgment/spacing, adaptation after a pattern switch, repetition,
+successful/wrong reads, ahead/behind risk, and proactive/defensive/kit activity.
+Fixtures must show secondary growth as well as dominant tendencies: Rook's
+close conversion and initiative, Ember's reads and defensive techs, Flint's
+adaptation, Vale's offense, Kite's disciplined conversions and Wren's pressure.
+One controlled exploit per identity/tier exposes its enduring opening; it need
+not guarantee a player win. Pairwise win rates help order difficulty but do
+not replace behavior measurements, imply human rank or require identities to
+tie every matchup. Keep existing difficulty, whole-roster kit coverage and
+fighter-balance gates; never lower their thresholds. Hosted sweeps use explicit
+revision/seed sets. Fairness, five-frame commitment and replay determinism
+remain hard checks.

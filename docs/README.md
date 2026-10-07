@@ -30,7 +30,7 @@ Dated trial records live in [evidence](../evidence/README.md).
 - [Interaction graph](design/interaction-graph.md): for each situation, Smashcraft's options, what beats what by how many frames, and the punish windows, computed per fighter from its move data.
 - [Match flow](design/match-flow.md): match rules, endless play and automatic rematch, with Slippi and other platform-fighter prior art.
 - [Computer levels](design/cpu-levels.md): levels 1-9 (reaction, answers, pace, misplays, DI, tech, mashing, mixups) from Melee, Ultimate and fighting-game AI prior art, and the deterministic match seed.
-- [Computer opponent profiles](design/cpu-profiles.md): five difficulty tiers and six independent styles, their strengths and openings, CPU-slot selection and deterministic calibration contract.
+- [Computer opponent profiles](design/cpu-profiles.md): six named opponents with individually authored five-tier growth, blended competencies and persistent openings; Opponent + Difficulty selection and deterministic calibration contract.
 - [Smashcraft client](design/client.md): the Slippi-style companion app: Slippi, Rivals, Ultimate and W3Champions prior art, the match record format the map writes, full-match replay design and the phased roadmap.
 - [Delivery goal](delivery-goal.md): what the finished game contains.
 - [Current release](playable-0041.md): files, startup and controls for 0.0.41.
