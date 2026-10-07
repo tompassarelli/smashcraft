@@ -123,7 +123,7 @@ export const DRAWN_REACH: readonly { readonly character: number; readonly style:
   { character: 12, style: 4, model: "war3mapImported\\LichKing2.mdx", clip: 20, swing: 151.2, peakFrame: 19, firstActive: 21, lastActive: 24, forward: 195.3 },
   { character: 12, style: 2, model: "war3mapImported\\LichKing2.mdx", clip: 21, swing: 143.2, peakFrame: 26, firstActive: 17, lastActive: 24, forward: 60.0 },
   { character: 12, style: 3, model: "war3mapImported\\LichKing2.mdx", clip: 22, swing: 111.6, peakFrame: 15, firstActive: 16, lastActive: 21, forward: 151.7 },
-  { character: 12, style: 5, model: "war3mapImported\\LichKing2.mdx", clip: 83, swing: 29.0, peakFrame: 8, firstActive: 8, lastActive: 9, forward: 97.6 },
+  { character: 12, style: 5, model: "war3mapImported\\LichKing2.mdx", clip: 83, swing: 30.5, peakFrame: 8, firstActive: 8, lastActive: 9, forward: 100.3 },
   { character: 12, style: 11, model: "war3mapImported\\LichKing2.mdx", clip: 55, swing: 138.0, peakFrame: 16, firstActive: 16, lastActive: 18, forward: 198.6 },
   { character: 12, style: 17, model: "war3mapImported\\LichKing2.mdx", clip: 59, swing: 134.3, peakFrame: 16, firstActive: 16, lastActive: 18, forward: 185.6 },
 ];

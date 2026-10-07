@@ -3,15 +3,19 @@
 import { chmodSync, cpSync, lstatSync, mkdirSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { generateMDX, model as mdx } from "war3-model";
-import { AttackStyle } from "../../ts/src/game/sim/codes";
+import { AttackStyle, Character } from "../../ts/src/game/sim/codes";
 import { heroDefinition } from "../../ts/src/game/sim/heroes/registry";
 import { attackDurationFramesForGrounding, attackStartupFrames, characterAttackActiveFrames, PUMMEL_CONTACT_FRAME } from "../../ts/src/game/sim/moves";
 import { seconds } from "./asset-info";
 import { encodeVerified, ensure, fighters, onGlobalClock, parseSource, tracks } from "./original-clips";
 
-const [input, output] = process.argv.slice(2).map(p => resolve(p));
+const [input, output] = process.argv.slice(2, 4).map(p => resolve(p));
+const characterAt = process.argv.indexOf("--character");
+const selectedCharacter = characterAt < 0 ? undefined : Number(process.argv[characterAt + 1]);
+ensure(selectedCharacter === undefined || Number.isInteger(selectedCharacter) && selectedCharacter >= 3 && selectedCharacter < fighters.length,
+  "--character takes an expansion fighter's character code");
 const project = resolve(import.meta.dir, "../..");
-ensure(input && output && relative(project, output).startsWith(".."), "usage: bun tools/animations/grab-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT");
+ensure(input && output && relative(project, output).startsWith(".."), "usage: bun tools/animations/grab-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT [--character ID]");
 const metadata = join(project, "ts/src/game/presentation/grabClipInfo.ts");
 // The mesh evaluator imports production pose selection, which reads this
 // generated table even during the first authoring run.
@@ -57,7 +61,9 @@ function phasesFor(action: Action, character: number): readonly { readonly at: n
   const activeEnd = action.pose === "grab" ? contact + characterAttackActiveFrames(character, AttackStyle.grab, moves) / duration : 0.6;
   const coil = action.pose === "grab" ? Math.max(0, contact - 2 / duration)
     : action.pose === "victimPummel" ? contact - contact / PUMMEL_CONTACT_FRAME : 0.3;
-  return [{ at: 0, pose: action.first }, { at: coil, pose: action.coil }, { at: contact, pose: action.contact }, { at: activeEnd, pose: action.contact }, { at: 1, pose: action.last }];
+  // Frostmourne's guard otherwise obscures the reaching shoulder at contact.
+  const contactPose = character === Character.lichKing && action.pose === "grab" ? gesture(action.contact, { chest: 18 }) : action.contact;
+  return [{ at: 0, pose: action.first }, { at: coil, pose: action.coil }, { at: contact, pose: contactPose }, { at: activeEnd, pose: contactPose }, { at: 1, pose: action.last }];
 }
 function at(action: Action, character: number, t: number): Gesture {
   if (action.hold) return action.first;
@@ -105,23 +111,31 @@ const generated: string[] = [], evidence = [];
 for (const [character, fighter] of fighters.entries()) {
   if (character < 3) continue;
   const source = parseSource(await Bun.file(join(input, fighter.source)).arrayBuffer());
-  ensure(!source.Sequences.some(s => s.Name.startsWith("Paired Grab ")), `${fighter.name}: already has paired grab clips`);
   const stand = source.Sequences.find(s => /^stand ready$/i.test(s.Name)) ?? source.Sequences.find(s => /^stand(?:\s*-?\s*\d+)?$/i.test(s.Name));
   ensure(stand, `${fighter.name}: standing donor missing`);
   const model = structuredClone(source), originals = new Map<string, mdx.AnimVector>();
   tracks(source, (track, path) => originals.set(path, track));
   let cursor = Math.max(...source.Sequences.map(s => s.Interval[1])) + 100;
   const bindings: string[] = [], indices: number[] = [];
+  const rewritten = new Set<number>();
   for (const action of actions) {
-    const index = model.Sequences.length, start = cursor, end = start + 1000;
+    const existing = model.Sequences.findIndex(s => s.Name === `Paired Grab ${action.pose}`);
+    const index = existing < 0 ? model.Sequences.length : existing;
+    const start = existing < 0 ? cursor : model.Sequences[index]!.Interval[0];
+    const end = existing < 0 ? start + 1000 : model.Sequences[index]!.Interval[1];
     cursor = end + 100; indices.push(index);
-    model.Sequences.push({ ...stand, Name: `Paired Grab ${action.pose}`, Interval: new Uint32Array([start, end]), NonLooping: true, MoveSpeed: 0, Rarity: 0,
+    const alignment = action.pose === "grab" ? " aligned: true," : action.hold ? "" : ` contact: ${seconds(0.5)},`;
+    bindings.push(`    ${action.pose}: { index: ${index}, seconds: ${seconds(1)},${alignment} },`);
+    if (existing >= 0 && selectedCharacter !== undefined && selectedCharacter !== character) continue;
+    rewritten.add(index);
+    if (existing < 0) model.Sequences.push({ ...stand, Name: `Paired Grab ${action.pose}`, Interval: new Uint32Array([start, end]), NonLooping: true, MoveSpeed: 0, Rarity: 0,
       MinimumExtent: new Float32Array([-300, -300, -200]), MaximumExtent: new Float32Array([300, 300, 350]), BoundsRadius: 400 });
     tracks(model, (track, path) => {
       const donor = originals.get(path);
       if (!donor || onGlobalClock(donor)) return;
       const first = donor.Keys.find(k => k.Frame >= stand.Interval[0] && k.Frame <= stand.Interval[1]);
       if (!first) return;
+      if (existing >= 0) track.Keys = track.Keys.filter(k => k.Frame < start || k.Frame > end);
       const match = /^\.(Bones|Helpers)\.(\d+)\.Rotation$/.exec(path);
       const node = match ? source[match[1] as "Bones" | "Helpers"][Number(match[2])] : undefined;
       for (const { at: t } of phasesFor(action, character)) {
@@ -138,16 +152,16 @@ for (const [character, fighter] of fighters.entries()) {
         // Donor handles describe its old motion. Flat handles keep held
         // gestures still and ease between the newly authored local poses.
         const tangent = () => match || track.LineType === mdx.LineType.Bezier ? Vector.slice() : new Float32Array(Vector.length);
-        track.Keys.push({ ...first, Frame: start + Math.round(t * 1000), Vector,
+        track.Keys.push({ ...first, Frame: start + Math.round(t * (end - start)), Vector,
           ...(first.InTan ? { InTan: tangent() } : {}), ...(first.OutTan ? { OutTan: tangent() } : {}) });
       }
+      if (existing >= 0) track.Keys.sort((a, b) => a.Frame - b.Frame);
     });
-    const alignment = action.pose === "grab" ? " aligned: true," : action.hold ? "" : ` contact: ${seconds(0.5)},`;
-    bindings.push(`    ${action.pose}: { index: ${index}, seconds: ${seconds(1)},${alignment} },`);
   }
   const encoded = encodeVerified(parseSource(generateMDX(model)));
   const before = new DrawnModel(generateMDX(source), 1), after = new DrawnModel(encoded, 1);
   for (const [index, s] of source.Sequences.entries()) for (const t of [0, 0.5, 1]) {
+    if (rewritten.has(index)) continue;
     const time = (s.Interval[1] - s.Interval[0]) * t / 1000, a = before.triangles(index, time, 1), b = after.triangles(index, time, 1);
     ensure(a.length === b.length && a.every((v, i) => Math.abs(v - b[i]!) < 0.001), `${fighter.name}/${s.Name}: existing pose changed`);
   }

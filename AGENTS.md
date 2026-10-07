@@ -103,9 +103,10 @@ code. From smashcraft:ts/:
   `bun tools/animations/drill-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends
   Blademaster, Warden and Shadow Hunter down-air drills, preserving earlier
   clips and writing both-facing silhouette sheets for the native review.
-  `bun tools/animations/grab-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends
+  `bun tools/animations/grab-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT [--character ID]` appends
   coordinated expansion-hero reach, hold, pummel and four-direction holder/victim
-  gestures, preserving existing indices (smashcraft:docs/fighter-animation-work.md).
+  gestures or reauthors their existing indices. `--character` limits reauthoring
+  to one expansion fighter (smashcraft:docs/fighter-animation-work.md).
   `bun tools/animations/grab-pads.ts` generates the #180 mirror capture batch:
   ten expansion heroes, four throws, both facings, with ordinary catch/pummel
   inputs and contact-frame captures in smashcraft:ts/test/native/pads/180/.

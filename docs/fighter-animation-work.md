@@ -1273,12 +1273,20 @@ attack state so they play the climbing attack rather than the get-up clip.
 ## Paired expansion-hero grabs
 
 From the repository root, `bun tools/animations/grab-clips.ts PRIVATE_ASSETS
-PRIVATE_OUTPUT` appends thirteen grab-family gestures to each expansion hero:
+PRIVATE_OUTPUT [--character ID]` appends thirteen grab-family gestures to each expansion hero:
 reach, holder/captive hold, both pummel roles, and both roles in four throw
 directions. Original Archer, Rifleman and Illidan authoring stays in
 smashcraft:tools/animations/grab_animations.py. Output models and the motion
 report are private; smashcraft:ts/src/game/presentation/grabClipInfo.ts is
 generated from their sequence indices.
+
+When paired sequences already exist, the generator replaces their local keys
+inside the same intervals and keeps their sequence indices. `--character ID`
+limits that replacement to one expansion fighter; the other fighters retain
+their existing paired motion. For example, `--character 12` reauthors the
+Lich King's paired family. Publish only the model families whose bytes changed,
+then refresh the pooled clips and measure the changed fighter with
+`bun wisp view reach --assets PRIVATE_ASSETS --character 12` from smashcraft:ts/.
 
 The grip arm reaches while the weapon arm stays separated. Pummels coil then
 strike locally; forward throws push, back throws sweep overhead and behind,
