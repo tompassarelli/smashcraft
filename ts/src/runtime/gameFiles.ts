@@ -5,6 +5,8 @@ export const nativeChatFile = (build: string, slot: number) => `smashcraft-chat-
 export const MELEE_READY_FILE = "wc3-melee-ready.txt";
 export const INPUT_START_FILE = "wc3-melee-input-start.txt";
 export const INPUT_TRACE_FILE = "wc3-melee-input-trace.txt";
+/** Item captures include the latest first spawn (60 s), its buff (10 s), and a replay export. */
+export const RESPONSE_TRACE_CALLBACKS = 4500;
 export const traceStartLine = (build: string) => `TRACE START ${build}`;
 export const traceEndLines = (dropped: number, ticks: number, seconds: string) => [`dropped ${dropped}`, `${ticks} ${seconds} end`];
 

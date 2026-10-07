@@ -146,10 +146,17 @@ for(const [ordinal,action]of [...actions,...damageActions].entries()){
  const translations:mdx.AnimKeyframe[]=[];
  for(const {frame}of phases){const triangle=drawn.triangles(index,frame/60,1);let lowest=Infinity;for(let i=1;i<triangle.length;i+=2)lowest=Math.min(lowest,triangle[i]!);const old=center.Translation.Keys.find(k=>k.Frame===start+Math.round(frame*1000/60));translations.push({Frame:start+Math.round(frame*1000/60),Vector:new Float32Array([old?.Vector[0]??0,old?.Vector[1]??0,(old?.Vector[2]??0)-(action.air?0:lowest)]),...(center.Translation.LineType>1?{InTan:new Float32Array([0,0,0]),OutTan:new Float32Array([0,0,0])}:{})});}
  center.Translation.Keys=[...beforeKeys,...translations];
- const pairedContact=/^(pummel|throw|victimPummel|victimThrow)/.test(action.pose)?`, contact: ${seconds(action.contact/60)}`:"";
- const binding=`{ index: ${index}, seconds: ${seconds((end-start)/1000)}, aligned: true${pairedContact} }`;
+ const victimContact=/^victim(Pummel|Throw)/.test(action.pose);
+ const pairedContact=/^(pummel|throw|victimPummel|victimThrow)/.test(action.pose)?`, contact: ${seconds(victimContact?0.5:action.contact/60)}`:"";
+ const binding=`{ index: ${index}, seconds: ${seconds(victimContact?1:(end-start)/1000)}, aligned: true${pairedContact} }`;
  if(ordinal<actions.length)bindings.push(`  ${action.pose}: ${binding},`);else damageBindings.push(`  ${binding},`);
- records.push({pose:name,index,frames:action.frames,contact:action.contact});
+ records.push({pose:name,index,frames:victimContact?60:action.frames,contact:victimContact?30:action.contact});
+}
+// Paired victims share a half-second contact; separate intervals preserve every other clip's keys.
+for(const [ordinal,action]of actions.entries())if(/^victim(Pummel|Throw)/.test(action.pose)){
+ const sequence=model.Sequences[source.Sequences.length+ordinal]!,[first,last]=sequence.Interval,contact=first!+Math.round(action.contact*1000/60),start=cursor;cursor=start+1100;
+ tracks(model,track=>{if(onGlobalClock(track))return;for(const key of track.Keys)if(key.Frame>=first!&&key.Frame<=last!)key.Frame=start+(key.Frame<=contact?Math.round((key.Frame-first!)/(contact-first!)*500):500+Math.round((key.Frame-contact)/(last!-contact)*500));track.Keys.sort((a,b)=>a.Frame-b.Frame);});
+ sequence.Interval=new Uint32Array([start,start+1000]);
 }
 const bytes=encodeVerified(parseSource(generateMDX(model)));mkdirSync(output,{recursive:true});await Bun.write(join(output,"jaina.mdx"),bytes);
 await Bun.write(join(project,"ts/src/game/presentation/heroes/jainaClips.ts"),[
