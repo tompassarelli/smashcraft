@@ -16,4 +16,5 @@ export const DRAWN_STRIDES: { readonly [character: number]: { readonly walk: { r
   11: { walk: { clip: 0, model: "units\\creeps\\BeastMaster\\BeastMaster.mdl", speed: f32(203.181) }, run: { clip: 0, model: "units\\creeps\\BeastMaster\\BeastMaster.mdl", speed: f32(203.181) } },
   12: { walk: { clip: 2, model: "war3mapImported\\LichKing2.mdx", speed: f32(129.361) }, run: { clip: 10, model: "war3mapImported\\LichKing2.mdx", speed: f32(265.067) } },
   13: { walk: { clip: 2, model: "units\\orc\\Thrall\\Thrall.mdl", speed: f32(213.345) }, run: { clip: 2, model: "units\\orc\\Thrall\\Thrall.mdl", speed: f32(213.345) } },
+  15: { walk: { clip: 8, model: "Units\\Undead\\EvilSylvanas\\EvilSylvanas.mdl", speed: f32(165.056) }, run: { clip: 8, model: "Units\\Undead\\EvilSylvanas\\EvilSylvanas.mdl", speed: f32(165.056) } },
 };
