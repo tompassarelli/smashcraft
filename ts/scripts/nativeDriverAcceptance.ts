@@ -9,16 +9,19 @@ import { withAutopsy } from "wisp/scripts/wisp/engine/autopsy";
 import { publishDriverCommand, readDriverStatus, waitDriverCommand, type DriverClient } from "wisp/scripts/wisp/engine/drive";
 import { prefixOfDocuments } from "wisp/scripts/wisp/engine/memory";
 import { dataDirectory } from "wisp/scripts/wisp/gameFiles";
+import { parsePadScript } from "./integrity/padScript";
 import { replayRepro } from "../src/game/replay/moment";
 
 const { values } = parseArgs({ options: {
   "clients-file": { type: "string" }, client: { type: "string" }, script: { type: "string" },
+  "game-start-ms": { type: "string" },
   frames: { type: "string" }, runs: { type: "string", default: "50" }, out: { type: "string" },
 } });
 const { script, out } = values;
 const clientsFile = values["clients-file"];
 const frames = Number(values.frames);
 const runs = Number(values.runs);
+const gameStartedMs = values["game-start-ms"] === undefined ? undefined : Number(values["game-start-ms"]);
 if (script === undefined || out === undefined || clientsFile === undefined || values.client === undefined
   || !Number.isInteger(frames) || frames < 1 || !Number.isInteger(runs) || runs < 1) {
   throw new Error("usage: bun scripts/nativeDriverAcceptance.ts --clients-file FILE --client lan0a,lan0b --script FILE.pad --frames N --runs 50 --out DIR");
@@ -32,6 +35,7 @@ const send = (clients: readonly DriverClient[], text: string, frame?: number) =>
   return { status, milliseconds: performance.now() - started };
 });
 const program = Effect.gen(function*() {
+  const harnessStartedMs = Date.now();
   const selected = yield* selectClients(yield* watchedClients(clientsFile), values.client?.split(",") ?? []);
   if (selected.length !== 2) return yield* new EngineFailure({ problem: "native acceptance requires exactly one offline pair" });
   const clients = selected.map(client => ({ ...client, prefix: prefixOfDocuments(client.documents) }));
@@ -42,7 +46,7 @@ const program = Effect.gen(function*() {
     while (performance.now() < deadline) {
       try {
         const statuses = clients.map(client => readDriverStatus(client, "smashcraft"));
-        if (statuses.every(status => status.frame === 0 && status.paused && !status.refused)) return;
+        if (statuses.every((status, index) => status.frame === 0 && status.paused && !status.refused && (gameStartedMs === undefined || statSync(join(dataDirectory(clients[index]?.documents ?? ""), "smashcraft-hot/driver-status.txt")).mtimeMs >= gameStartedMs))) return;
         observed = JSON.stringify(statuses);
       } catch (cause) { observed = String(cause); }
       await Bun.sleep(10);
@@ -50,23 +54,26 @@ const program = Effect.gen(function*() {
     throw new Error(`driver startup timed out: ${observed}; create smashcraft-hot on both clients before starting the map`);
   }, catch: cause => new EngineFailure({ problem: String(cause) }) });
   const payload = yield* attempt("read pad script", () => readFileSync(script, "utf8"));
+  if (parsePadScript(payload).some(step => step.frame > frames)) return yield* new EngineFailure({ problem: `--frames ${frames} truncates the pad script` });
   yield* attempt("create result folder", () => mkdirSync(out, { recursive: true }));
   const errorsBefore = clients.map(client => {
     const errors = join(client.documents, "Errors");
     return new Set(existsSync(errors) ? readdirSync(errors) : []);
   });
-  const results: { run: number; checksum: string; setupMs: readonly number[]; freeMs: number; steppedMs: number; replays: number }[] = [];
+  const results: { run: number; checksum: string; setupMs: readonly number[]; freeMs: number; steppedMs: number | undefined; replays: number }[] = [];
+  let firstCheckMs: number | undefined;
   for (let run = 1; run <= runs; run++) {
     const checksums: string[] = [];
     const setupMs: number[] = [];
     const elapsed: number[] = [];
     let replays = 0;
-    for (const mode of ["free", "stepped"] as const) {
+    for (const mode of (run === 1 ? ["free", "stepped"] : ["free"]) as readonly ("free" | "stepped")[]) {
       const setup = yield* send(clients, payload, 0);
       setupMs.push(setup.milliseconds);
       const startedMs = Date.now();
-      const ended = yield* send(clients, mode === "free" ? `resume ${frames}` : `step ${frames}`, frames);
-      elapsed.push(ended.milliseconds);
+      const held = mode === "stepped" && frames > 10 ? yield* send(clients, "step 10", 10) : undefined;
+      const ended = yield* send(clients, mode === "free" ? `resume ${frames}` : `step ${held === undefined ? frames : frames - 10}`, frames);
+      elapsed.push(ended.milliseconds + (held?.milliseconds ?? 0));
       const checksum = ended.status[0]?.checksum ?? "";
       checksums.push(checksum);
       for (const [index, client] of clients.entries()) {
@@ -85,16 +92,18 @@ const program = Effect.gen(function*() {
         yield* attempt("retain native moment", () => copyFileSync(file, join(out, `run-${run}-${mode}-${client.name}.txt`)));
         replays++;
       }
+      firstCheckMs ??= Date.now();
     }
-    if (checksums[0] !== checksums[1]) return yield* new EngineFailure({ problem: `run ${run}: free ${checksums[0]} differs from stepped ${checksums[1]}` });
-    results.push({ run, checksum: checksums[0] ?? "", setupMs, freeMs: elapsed[0] ?? 0, steppedMs: elapsed[1] ?? 0, replays });
+    if (checksums.length > 1 && checksums[0] !== checksums[1]) return yield* new EngineFailure({ problem: `run ${run}: free ${checksums[0]} differs from stepped ${checksums[1]}` });
+    results.push({ run, checksum: checksums[0] ?? "", setupMs, freeMs: elapsed[0] ?? 0, steppedMs: elapsed[1], replays });
     yield* attempt("write progress", () => writeFileSync(join(out, "result.json"), `${JSON.stringify({ script, frames, runs: results }, null, 2)}\n`));
-    console.log(`run ${run}/${runs}: frame ${frames}, checksum ${checksums[0]}, 4 native moments replayed`);
+    console.log(`run ${run}/${runs}: frame ${frames}, checksum ${checksums[0]}, ${replays} native moments replayed`);
   }
   const percentile = (numbers: readonly number[], quantile: number) => [...numbers].sort((a, b) => a - b)[Math.ceil(numbers.length * quantile) - 1] ?? 0;
   const setup = results.flatMap(result => result.setupMs);
-  const summary = { passed: true, runs: results.length, frames, nativeMatches: results.length * 2, replays: results.reduce((total, result) => total + result.replays, 0), setupP50Ms: percentile(setup, 0.5), setupP95Ms: percentile(setup, 0.95), results };
+  const elapsedMs = Date.now() - harnessStartedMs;
+  const summary = { gameStartedMs, firstCheckMs, gameStartToFirstCheckMs: (firstCheckMs ?? Date.now()) - (gameStartedMs ?? harnessStartedMs), elapsedMs, checksPerHour: (results.length + 1) * 3600000 / elapsedMs, passed: true, runs: results.length, frames, nativeMatches: results.length + 1, replays: results.reduce((total, result) => total + result.replays, 0), setupP50Ms: percentile(setup, 0.5), setupP95Ms: percentile(setup, 0.95), results };
   yield* attempt("write final result", () => writeFileSync(join(out, "result.json"), `${JSON.stringify(summary, null, 2)}\n`));
-  console.log(`PASS: ${summary.runs} paired runs, ${summary.replays} native moments match headless; setup p50 ${summary.setupP50Ms.toFixed(1)} ms, p95 ${summary.setupP95Ms.toFixed(1)} ms`);
+  console.log(`PASS: ${summary.runs} full pad runs plus one stepped control, ${summary.replays} native moments match headless; setup p50 ${summary.setupP50Ms.toFixed(1)} ms, p95 ${summary.setupP95Ms.toFixed(1)} ms`);
 });
 await Effect.runPromise(withAutopsy({ clientsFile }, program));

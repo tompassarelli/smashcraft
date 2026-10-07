@@ -43,6 +43,7 @@ import type { EditboxIngress } from "../editboxJournal";
 import { type ResponseProbe, createResponseProbe } from "./responseProbe";
 import { type InputTrace, inputTrace } from "./trace";
 import type { UiObjects } from "./ui";
+import { nativePadCapture, type NativePadCapture } from "./analogPad";
 
 /** The unit a fighter animates when no pool presents it, and its dizzy mark. */
 export interface FighterBody {
@@ -220,6 +221,7 @@ interface KeyEvents {
 }
 
 export interface ShellState {
+  readonly pad: NativePadCapture | undefined;
   /** Synchronized menu callbacks salt the random stage draw; retained across reloads. */
   menuFrames?: number;
   readonly camera: MatchCamera;
@@ -336,6 +338,7 @@ export function createShellState(build: MapBuild, setup: ShellSetup): ShellState
   const { input } = build;
   const { persistence } = setup;
   const state: ShellState = {
+    pad: build.analogPad === undefined ? undefined : nativePadCapture(),
     camera: createMatchCamera(),
     build, origin: setup.origin, game: createMatchState(), world: createRoster(0), controls: createBufferedFrameControls(),
     produced: createFrameControls(), runtime: createPacingAndPresentation(), session: createMatchControls(),

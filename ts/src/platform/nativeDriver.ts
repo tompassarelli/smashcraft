@@ -33,6 +33,7 @@ interface Edge {
 interface Driver {
   edges: readonly Edge[];
   next: number;
+  captures: number[];
   paused: boolean;
   target: number | undefined;
   readonly pads: readonly Pad[];
@@ -40,7 +41,7 @@ interface Driver {
 declare global { var __smashcraftNativeDriver: Driver | undefined; }
 
 const neutralPad = (): Pad => ({ buttons: 0, x: 0.0, z: 0.0, cx: 0.0, cz: 0.0, shield: 0.0, capture: keyboardCapture() });
-const state = (): Driver => globalThis.__smashcraftNativeDriver ??= { edges: [], next: 0, paused: true, target: undefined, pads: PARTICIPANT_SLOTS.map(() => neutralPad()) };
+const state = (): Driver => globalThis.__smashcraftNativeDriver ??= { edges: [], next: 0, captures: [], paused: true, target: undefined, pads: PARTICIPANT_SLOTS.map(() => neutralPad()) };
 const BUTTONS: Readonly<Record<string, number>> = { A: 1, B: 2, X: 4, Y: 8, LB: 16, TL: 16, RB: 32, TR: 32, START: 64, VIEW: 128 };
 
 function whole(text: string): number {
@@ -70,7 +71,7 @@ function parseScript(text: string): { readonly setup: string; readonly edges: re
     if (frame < previous) throw new Error("native driver: pad frames must be ordered");
     previous = frame;
     const slot = player === "a" ? 0 : 1;
-    if (action === "capture") continue;
+    if (action === "capture") { edges.push({ order: edges.length, frame, slot, action, args }); continue; }
     if (action === "press" || action === "release" || action === "tap") {
       if (BUTTONS[(args[0] ?? "").toUpperCase()] === undefined) throw new Error("native driver: unknown pad button");
       const held = action === "tap" ? args[1] === undefined ? 1 : whole(args[1]) : 0;
@@ -128,6 +129,13 @@ function applyEdge(pad: Pad, edge: Edge): void {
   else pad.shield = real(edge.args[0], 0.0, 1.0);
   padSample(pad);
 }
+function saveFrame(s: ShellState): void {
+  if (s.runtime.simulationFrame === 0) return;
+  if (!beginMomentSave(s.moment.recorder, momentInput(s.build), s.world, s.game, s.controls, s.runtime)) throw new Error("native driver: could not save held frame");
+  let saved = continueMomentSave(s.moment.recorder, s.diagnostic);
+  while (saved === undefined) saved = continueMomentSave(s.moment.recorder, s.diagnostic);
+  writeRepro(reproFile(localSlot(), saved.frame, ++s.moment.saved, "smashcraft"), { build: s.build.id, frame: saved.frame, checksum: saved.checksum }, saved.lines);
+}
 function publish(s: ShellState): void {
   publishNativeDriverStatus(s.runtime.simulationFrame, confirmedChecksum(s), state().paused);
 }
@@ -137,6 +145,13 @@ export function nativeDriverCommand(text: string): void {
   const s = shell();
   const driver = state();
   const command = text.trim();
+  if (command === "reset") {
+    applyDeveloperCommand(s, 0, "-dev reset");
+    globalThis.__smashcraftNativeDriver = { edges: [], next: 0, captures: [], paused: true, target: undefined, pads: PARTICIPANT_SLOTS.map(() => neutralPad()) };
+    publish(s);
+    return;
+  }
+  if (command === "capture") { driver.paused = true; driver.target = undefined; saveFrame(s); publish(s); return; }
   if (command === "pause") { driver.paused = true; driver.target = undefined; publish(s); return; }
   if (command === "resume" || command.startsWith("resume ") || command.startsWith("step ")) {
     const stepping = command.startsWith("step ");
@@ -151,7 +166,7 @@ export function nativeDriverCommand(text: string): void {
   applyDeveloperCommand(s, 0, "-dev reset");
   applyDeveloperCommand(s, 0, script.setup);
   if (s.game.phase !== Phase.match || s.runtime.simulationFrame !== 0) throw new Error("native driver: pad setup did not start a new match");
-  globalThis.__smashcraftNativeDriver = { edges: script.edges, next: 0, paused: true, target: undefined, pads: PARTICIPANT_SLOTS.map(() => neutralPad()) };
+  globalThis.__smashcraftNativeDriver = { edges: script.edges, next: 0, captures: [], paused: true, target: undefined, pads: PARTICIPANT_SLOTS.map(() => neutralPad()) };
   publish(s);
 }
 
@@ -172,7 +187,8 @@ export function captureNativeDriverInputs(s: ShellState): void {
     const edge = driver.edges[driver.next];
     if (edge === undefined || edge.frame > frame) break;
     const pad = driver.pads[edge.slot];
-    if (pad !== undefined) applyEdge(pad, edge);
+    if (edge.action === "capture") driver.captures.push(edge.slot);
+    else if (pad !== undefined) applyEdge(pad, edge);
     driver.next++;
   }
   for (const slot of PARTICIPANT_SLOTS) {
@@ -187,15 +203,12 @@ export function captureNativeDriverInputs(s: ShellState): void {
 export function afterNativeDriverTick(s: ShellState): void {
   if (s.build.inputProfile !== "native-driver") return;
   const driver = state();
+  if (driver.captures.includes(localSlot())) saveFrame(s);
+  driver.captures = [];
   if (driver.target !== undefined && s.runtime.simulationFrame >= driver.target || s.game.phase !== Phase.match) {
     driver.paused = true;
     driver.target = undefined;
-    if (s.runtime.simulationFrame > 0) {
-      if (!beginMomentSave(s.moment.recorder, momentInput(s.build), s.world, s.game, s.controls, s.runtime)) throw new Error("native driver: could not save held frame");
-      let saved = continueMomentSave(s.moment.recorder, s.diagnostic);
-      while (saved === undefined) saved = continueMomentSave(s.moment.recorder, s.diagnostic);
-      if (saved !== undefined) writeRepro(reproFile(localSlot(), saved.frame, ++s.moment.saved, "smashcraft"), { build: s.build.id, frame: saved.frame, checksum: saved.checksum }, saved.lines);
-    }
+    saveFrame(s);
     publish(s);
   }
 }

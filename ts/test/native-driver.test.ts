@@ -47,5 +47,11 @@ test("native driver sets up pad rows, holds the whole callback, and stepped and 
     expect(client.errors).toEqual([]);
   }
   expect(stepped[0]).toBe(stepped[1]);
+  command("capture");
+  clients.frames(5);
+  for (const client of clients.clients) expect(value(client, () => shell().runtime.simulationFrame)).toBe(120);
+  command("reset");
+  clients.frames(5);
+  for (const client of clients.clients) expect(value(client, () => shell().runtime.simulationFrame)).toBe(0);
   expect(clients.firstDivergence()).toBeUndefined();
 });
