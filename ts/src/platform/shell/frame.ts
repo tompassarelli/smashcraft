@@ -124,6 +124,7 @@ export function applyFrame(s: ShellState, recorded = false): void {
       traceInput(s.trace, `model sound rejected confirmed frame ${runtime.simulationFrame} slot ${slot}`);
     }
     ui.combat.presentConfirmed(runtime.simulationFrame, slot, runtime.frameImpacts[slot]);
+    ui.combat.confirmContacts(runtime.simulationFrame, runtime.frameImpacts[slot]);
     renderFighter(s, slot, runtime.poses[slot], participant.before.out);
     ui.special.presentConfirmedAnimated(runtime.simulationFrame, fighter, slot);
   }

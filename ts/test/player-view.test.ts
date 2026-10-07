@@ -342,7 +342,7 @@ test("a dust slot reused while shown is a new stay each use; a standing spark an
       const s = shell();
       if (dustPool === undefined) throw new Error("missing dust pool");
       if (frame < 208) emitImpacts(impacts, dust, frame);
-      dustPool.present(impacts, impacts, true);
+      dustPool.present(impacts, 0, impacts, true);
       const pool = (dustPool as unknown as { impacts: readonly effect[] }).impacts;
       for (let use = 0; use < IMPACTS_PER_KIND; use++) {
         const slot = IMPACT_DUST * IMPACTS_PER_KIND + use;

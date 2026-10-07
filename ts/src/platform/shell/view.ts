@@ -201,7 +201,7 @@ export function renderPersistentPresentation(s: ShellState): void {
     BlzSetSpecialEffectColor(s.stageCannon, 255, firing ? 70 : 255, firing ? 40 : 255);
   }
   const ui = views(s);
-  ui.combat.present(runtime.impacts, s.runtime.impacts, playing);
+  ui.combat.present(runtime.impacts, runtime.simulationFrame, s.runtime.impacts, playing);
   for (const slot of PARTICIPANT_SLOTS) {
     const fighter = isActive(world, slot) ? fighterAt(world, slot) : undefined;
     const renderers = ui.fighters[slot];

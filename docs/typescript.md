@@ -165,6 +165,16 @@ integrity and playable builds' predicted presentation local, for the
 integrity capture and the tests of a player whose controller input is
 missing (missing-input) or stops (input-stall).
 
+Predicted presentation draws hit, pummel and shield-hit sparks from the
+prediction, and a spark lasts 9 frames. When the prediction misses a hit and
+the correction comes more than 9 frames later, the spark would never show.
+On 7 October 2026, the A+B batch's archer-aerials run had 200-350 ms of own-echo
+latency, and its up air hits showed no StampedeMissileDeath natively.
+smashcraft:ts/src/game/render/combatEffects.ts now shows such a spark from its
+start when the hit is confirmed, unless it already drew a spark of that kind
+emitted within 2 frames of the hit. The hit's sound already plays from the
+confirmed frame.
+
 A player who sees something wrong saves the moment
 ([Wisp repros](https://github.com/tompassarelli/wisp/blob/main/docs/repro.md)):
 K in every build, or View held for a second on a controller, which the

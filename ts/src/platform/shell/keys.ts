@@ -244,7 +244,7 @@ export function onDevCommand(s: ShellState): void {
     const ui = views(s);
     emitImpacts(s.runtime.impacts, events, 8);
     ui.combat.presentConfirmed(s.devReceipts + 1, 4, events);
-    ui.combat.present(s.runtime.impacts, s.runtime.impacts, true);
+    ui.combat.present(s.runtime.impacts, s.runtime.simulationFrame, s.runtime.impacts, true);
     receipt = `dev: effects ${index} ${scenario.model} ${scenario.sound}`;
   } else if (message === "-dev frame-cost-clock") {
     receipt = "dev: frame cost clock probe";

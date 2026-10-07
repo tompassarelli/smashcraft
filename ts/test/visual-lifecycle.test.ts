@@ -52,7 +52,7 @@ test("hit event language: 26 event cases reach stock effects and confirmed sound
       emitImpacts(impacts, events, 8);
       const before = client.log.length;
       renderer.presentConfirmed(index + 1, 0, events);
-      renderer.present(impacts, impacts, true);
+      renderer.present(impacts, 0, impacts, true);
       const calls = client.log.slice(before);
       // A sound by script path is named in the case by its file name.
       expect(calls.filter(call => call.name === "CreateSoundFromLabel" || call.name === "CreateSound")
@@ -72,6 +72,56 @@ test("hit event language: 26 event cases reach stock effects and confirmed sound
     expect(shownScale[4]).toBeGreaterThanOrEqual(5 * (shownScale[0] ?? 0));
     // An electric hit's flash draws at least as large as an electric shield hit's.
     expect(shownScale[2]).toBeGreaterThanOrEqual(shownScale[7] ?? 0);
+    renderer.destroy();
+  });
+  expect(client.errors).toEqual([]);
+});
+
+test("combat effects: a hit corrected in after its spark's window still shows its spark once, from the start", () => {
+  const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install });
+  clients.start();
+  const client = clients.clients[0];
+  if (client === undefined) throw new Error("missing host client");
+  client.run(() => {
+    const renderer = new CombatEffects({ x: 0, y: 0, z: FLOOR_HEIGHT });
+    const sparks = () => client.effectPoses().filter((pose) => pose.model.includes("StampedeMissileDeath") && pose.scale > 0 && pose.z > -FLOOR_HEIGHT);
+    const hit = { ...createImpactEvents(), hit: true, x: 40.0, z: 100.0 };
+    const empty = createImpactState();
+    // Prediction missed the hit on frame 10; its correction confirms 20 frames later, past the 9-frame spark.
+    for (let frame = 10; frame < 30; frame++) renderer.present(empty, frame, empty, true);
+    expect(sparks()).toHaveLength(0);
+    renderer.confirmContacts(10, hit);
+    const shown: number[] = [];
+    for (let frame = 30; frame < 45; frame++) {
+      renderer.present(empty, frame, empty, true);
+      shown.push(sparks().length);
+    }
+    // Shown at once, for a whole spark's window, then parked.
+    expect(shown).toEqual([1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0]);
+    // A pause holds a late spark where it is.
+    renderer.confirmContacts(50, hit);
+    for (let n = 0; n < 20; n++) renderer.present(empty, 60, empty, true);
+    expect(sparks()).toHaveLength(1);
+    renderer.clear();
+
+    // Prediction drew the hit on frame 70: its confirmation shows no second spark.
+    const predicted = createImpactState();
+    emitImpacts(predicted, hit, 70);
+    renderer.present(predicted, 70, empty, true);
+    expect(sparks()).toHaveLength(1);
+    const later = createImpactState();
+    for (let frame = 71; frame < 90; frame++) renderer.present(later, frame, empty, true);
+    renderer.confirmContacts(70, hit);
+    for (let frame = 90; frame < 95; frame++) {
+      renderer.present(later, frame, empty, true);
+      expect(sparks()).toHaveLength(0);
+    }
+    // Without prediction, state is the confirmed match: its own spark is the only one.
+    const confirmed = createImpactState();
+    emitImpacts(confirmed, hit, 100);
+    renderer.confirmContacts(100, hit);
+    renderer.present(confirmed, 100, confirmed, true);
+    expect(sparks()).toHaveLength(1);
     renderer.destroy();
   });
   expect(client.errors).toEqual([]);

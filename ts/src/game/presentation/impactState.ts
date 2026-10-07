@@ -173,6 +173,9 @@ export function clearImpactState(state: ImpactState): void {
   for (let kind = 0; kind < IMPACT_KIND_COUNT; kind++) state.nextSlot[kind] = 0;
 }
 
+/** Frames a contact spark (a hit, pummel or shield hit) stays in the pool. */
+const CONTACT_FRAMES = 9;
+
 /** Frames an impact of this kind stays in the pool. */
 export function impactLifetime(kind: number): number {
   switch (kind) {
@@ -185,13 +188,16 @@ export function impactLifetime(kind: number): number {
     case IMPACT_ICE_HIT:
     case IMPACT_ELECTRIC_SHIELD:
     case IMPACT_PUMMEL:
-    case IMPACT_SHIELD_HIT: return 9;
+    case IMPACT_SHIELD_HIT: return CONTACT_FRAMES;
     case IMPACT_TECH: return 15;
     case IMPACT_DUST: return 32;
     case IMPACT_SIDE_KO: return 24;
     default: return 12;
   }
 }
+
+/** Hits, pummels and shield hits: the sparks a player must see for every hit that lands. */
+export const isContactImpact = (kind: number): boolean => impactLifetime(kind) === CONTACT_FRAMES;
 
 /** Ages every live impact by one executed frame. */
 export function advanceImpacts(state: ImpactState): void {
