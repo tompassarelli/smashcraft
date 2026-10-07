@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.map.json",
+  "include": ["node_modules/wisp/src/natives/warcraft.d.ts", "src/platform/damageBlendProbeMain.ts"],
+  "exclude": [],
+  "tstl": {
+    "luaBundle": "damage-blend-probe.lua",
+    "luaBundleEntry": "src/platform/damageBlendProbeMain.ts"
+  }
+}

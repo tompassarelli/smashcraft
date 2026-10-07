@@ -1276,3 +1276,32 @@ and every pre-existing sequence retains its drawn body at start/middle/end.
 Its private output contains smashcraft-build-inputs:damage-grid.json. Refresh
 the pool with smashcraft:tools/animations/export-original-clips.ts using
 `--keep-unchanged`; the exact stripped-source hash preserves cached old clips.
+
+### Native pain blending diagnostic
+
+`bun tools/animations/damage-blend-probe.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
+packages Archer's combat-ready and forward-tilt donor clips with a second
+`Stand Hit` sequence held at the middle-medium first pain pose. It verifies
+the interrupted clip at start/mid/end, the unchanged target pose and its hold.
+An identity-only recovery parent absent from the cached donor is removed
+through the existing node renumberer, with drawn-pose preservation checked.
+The command writes the private models and generates
+smashcraft:ts/src/platform/damageBlendProbeModels.ts with their hashed names.
+
+The `damage-blend-probe` profile is an isolated eight-body comparison, one
+body per case: ready frozen/running, then tilt frozen/running from left to
+right; upper row faces right and lower row left. It freezes the donor at its
+middle, sets a 0.05-second blend and selects `Stand Hit` without resetting
+the source pose. One copy keeps time scale zero; the other advances only
+the native presentation clock, then freezes after six callbacks. The cycle
+repeats every three seconds. No match simulation runs in this diagnostic.
+Its developer receipt is the client's smashcraft-damage-blend-probe.txt.
+
+Prepare a private copy of a matching full map and its adjacent .base.lua
+sidecar, import both generated models
+with `smashcraft:build/tools/map-pack replace MAP FILE ARCHIVE_NAME`, then
+`bun wisp map rebuild MAP --profile damage-blend-probe` from smashcraft:ts/.
+Extract the two imported files afterward and compare their hashes with the
+generator output. Native inspection decides whether either clock setting
+actually blends from the interrupted pose and reaches the held target;
+successful compilation alone establishes no native interpolation claim.

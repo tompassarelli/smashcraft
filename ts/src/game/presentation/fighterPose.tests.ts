@@ -8,6 +8,7 @@ import { firstPoseDifference, firstStateDifference } from "../replay/difference"
 import { ReplayHistory } from "../replay/history";
 import { type ReplayState, captureReplaySnapshot, copyReplayState, createReplaySnapshot } from "../replay/snapshot";
 import { AttackStyle, Character, DownState, GrabAction, PlatformMove, SpecialAction, SurfaceContact } from "../sim/codes";
+import { beginFighterAttack } from "../sim/attacks";
 import type { HeroPose } from "../sim/heroes/hero";
 import { DOWN_ROLL_FRAMES, TECH_IN_PLACE_FRAMES, TECH_ROLL_FRAMES } from "../sim/down";
 import { beginDownState } from "../sim/transitions";
@@ -171,7 +172,7 @@ test("all 117 contact reactions interrupt the current attack on contact and hold
     for (let height = 0; height < 3; height++) for (let strength = 0; strength < 3; strength++) {
       const f = createFighter(character, 0.0, facing);
       const world = soloWorld(f), input = neutralControls(), pose = createFighterPose();
-      f.attack.style = AttackStyle.forwardTilt;
+      beginFighterAttack(world, 0, AttackStyle.forwardTilt, false);
       f.attack.frame = 3;
       advanceFighterPose(pose, f, world, input, false, false, true, false);
       const interrupted = pose.clipIndex;

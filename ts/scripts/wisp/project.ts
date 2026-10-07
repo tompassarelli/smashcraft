@@ -12,7 +12,7 @@ export const clientState = join(homedir(), ".local/state/smashcraft/clients.json
 export const sourceMapDirectory = join(tsDirectory, "build/source-maps");
 
 /** Every compile of the map: normal gameplay, and each diagnostic with its own entry and TypeScriptToLua configuration. */
-const profiles = ["main", "integrity", "playable", "native-perf", "physics-probe", "frame-cost", "stack-trace"] as const;
+const profiles = ["main", "integrity", "playable", "native-perf", "physics-probe", "frame-cost", "stack-trace", "damage-blend-probe"] as const;
 type Profile = (typeof profiles)[number];
 /** Profiles whose entry starts the scene recorder (src/platform/sceneReport.ts). */
 export const sceneProfiles: ReadonlySet<Profile> = new Set<Profile>(["main", "integrity"]);
@@ -24,6 +24,7 @@ const profileConfigs: Readonly<Record<Profile, string>> = {
   "physics-probe": "tsconfig.physics-probe.json",
   "frame-cost": "tsconfig.frame-cost.json",
   "stack-trace": "tsconfig.stack-trace.json",
+  "damage-blend-probe": "tsconfig.damage-blend-probe.json",
 };
 const profileConfig = (profile: Profile) => join(tsDirectory, profileConfigs[profile]);
 

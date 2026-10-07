@@ -107,6 +107,10 @@ code. From smashcraft:ts/:
   appends all 13 fighters' nine articulated contact reactions, checks their
   drawn first poses, and preserves old sequences. Store changed model families
   and refresh the clip pool (smashcraft:docs/fighter-animation-work.md).
+  The native blend diagnostic is `bun tools/animations/damage-blend-probe.ts
+  PRIVATE_ASSETS PRIVATE_OUTPUT`; its `damage-blend-probe` map profile compares
+  frozen/running presentation clocks inside one interrupted Archer model
+  (smashcraft:docs/fighter-animation-work.md, "Native pain blending diagnostic").
 - Fresh match: `bun wisp fresh MAP.w3x [--rebuild]` starts a new game, sends
   `-dev quick`, and waits until every signed-in client writes its receipt.
   `--rebuild` replaces the map script first. Other quick starts for `--chat`

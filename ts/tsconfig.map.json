@@ -34,7 +34,9 @@
     "src/platform/playableMain.ts",
     "src/platform/nativePerfMain.ts",
     "src/platform/stackDemo.ts",
-    "src/platform/stackTraceMain.ts"
+    "src/platform/stackTraceMain.ts",
+    "src/platform/damageBlendProbeMain.ts",
+    "src/platform/damageBlendProbeModels.ts"
   ],
   "tstl": {
     "luaTarget": "5.3",
