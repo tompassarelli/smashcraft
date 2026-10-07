@@ -1,7 +1,7 @@
 # #133 Shadow Hunter's native check by parity: Hex refuses b's attacks, grabs and specials while b
 # mashes, which shortens it but never below its floor; immunity and a shield stop the next Hex; a hexed
-# b still jumps and uses up special; unmashed Hex outlasts the floor; Spirit Glaive's return strikes b
-# toward him. Shadow Hunter a against Shadow Hunter b; syntax and checks: smashcraft:docs/native-bot-session.md.
+# b still jumps and uses up special; exhausted mana refuses the final Hex; Spirit Glaive hits b
+# after its dodge ends. Shadow Hunter a against Shadow Hunter b; syntax and checks: smashcraft:docs/native-bot-session.md.
 #! chat -dev quick hero shadow hunter
 # Both dash in, close.
 40 a stick 1 0
@@ -62,13 +62,15 @@
 530 b stick 1 0
 532 b stick 0 0
 570 a release VIEW
-# Spirit Glaive: b spot-dodges it going out, so its return strikes b, toward him.
+# Spirit Glaive: b's dodge protects frames 663-676; the outgoing 6% hit lands at 677,
+# before the projectile's return at age 22 (frame 679).
 640 a tap X 2
 661 b shield 1
 662 b stick 0 -1
 663 b stick 0 0
 665 b shield 0
-# Hex unmashed: b waits through all 50 frames before attacking.
+# Four 25-mana Hexes and the 1/sec floor leave 7 mana: the final Hex is refused.
+# b waits until the same original attack frame.
 700 a stick 0 -1
 700 a tap X 2
 701 a stick 0 0
@@ -89,10 +91,10 @@
 #! expect b 449 applied jump 1 double 0
 #! expect b 452 special 15 form 0
 #! expect a 640 special 13 form 0
-#! absent b 641-683 damage
-#! expect b 684 damage 11.000
-#! expect a 700 special 16 form 0
-#! expect b 738 damage 13.000
+#! absent b 641-676 damage
+#! expect b 677 damage 12.000
+#! absent a 700-701 special
+#! absent b 700-792 damage
 #! absent b 739-792 applied attack
 #! expect b 793 applied attack 6 style 0
 #! scene a PolymorphTarget
