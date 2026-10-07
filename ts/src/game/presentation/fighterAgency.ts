@@ -81,6 +81,10 @@ export class FighterAgencyForecast {
     const started = observedActions.started;
     let buttons = false;
     let nextCheck = 0;
+    // A locked-out tech press cannot change contact. Still grow the forecast
+    // through hitlag so exact motion caches warm a few new frames at a time
+    // before a fresh press can matter on the first unfrozen frame.
+    const lockedHorizon = Math.max(bufferFrames, TECH_WINDOW_FRAMES - f.launch.hitlag - 1);
     try {
       for (let offset = 0; offset < TECH_WINDOW_FRAMES; offset++) {
         const before = this.fighter.down.state;
@@ -103,7 +107,7 @@ export class FighterAgencyForecast {
         // Past the buffer only a tumbling fighter's contact can tech, and motion
         // alone never starts a tumble (only a hit does), so the answer is known.
         if (offset >= bufferFrames && (this.fighter.motion.grounded || this.fighter.down.state !== DownState.tumble)) break;
-        if (offset >= bufferFrames && this.bounded && !mayTechWithoutFreshPress(this.pressedTech) && !mayTechWithoutFreshPress(this.fighter.tech)) break;
+        if (offset >= lockedHorizon && this.bounded && !mayTechWithoutFreshPress(this.pressedTech) && !mayTechWithoutFreshPress(this.fighter.tech)) break;
         // A tumble that surely touches nothing for the rest of the window can't tech in it either (#168).
         if (offset >= bufferFrames && offset >= nextCheck && this.bounded && clearFlight(this.fighter)) {
           if (surelyClear(this.fighter, stage, frame + offset + 1, TECH_WINDOW_FRAMES - 1 - offset)) break;
