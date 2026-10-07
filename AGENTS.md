@@ -234,7 +234,7 @@ code. From smashcraft:ts/:
   clips and rewrites their foot cadence and audit (smashcraft:docs/fighter-motion.md);
   `view reach --assets DIR [--character ID]` rewrites how far fighters' swings
   draw toward their strikes (smashcraft:docs/hurtboxes.md).
-- Repro: `bun wisp repro FILE [--test NAME] [--frame N --out FILE] [--diff-frame N|previous]` replays a moment a player saved
+- Repro: `bun wisp repro FILE [--view] [--test NAME] [--shrink [--out FILE]] [--frame N --out FILE] [--diff-frame N|previous]` replays a moment a player saved
   with K (or View held on a controller) in simulated clients, to the checksum
   the game recorded; `--test NAME` writes a test that replays it. `--frame N
   --out FILE` saves its exact canonical state after N; `--diff-frame previous`
