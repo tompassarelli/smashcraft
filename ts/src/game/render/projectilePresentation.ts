@@ -114,7 +114,11 @@ export class ProjectilePresentation {
       placeEffect(model, this.origin.x + pose.x, this.origin.y, this.origin.z + pose.z);
       BlzSetSpecialEffectScale(model, this.scale * pose.modelScale);
       BlzSetSpecialEffectAlpha(model, 255);
-      BlzSetSpecialEffectTimeScale(model, paused ? 0.0 : 1.0);
+      if (pose.animationSeconds !== undefined) {
+        if (!this.visible[slot] && pose.animationSequence !== undefined) BlzSetSpecialEffectAnimation(model, pose.animationSequence);
+        BlzSetSpecialEffectTime(model, pose.animationSeconds);
+      }
+      BlzSetSpecialEffectTimeScale(model, paused || pose.animationSeconds !== undefined ? 0.0 : 1.0);
       const boundarySlot = pool?.boundaries[pool.effects.indexOf(slot)];
       const boundary = boundarySlot === undefined ? undefined : this.models[boundarySlot];
       if (boundary !== undefined && boundarySlot !== undefined && pose.poolRadius > 0.0) {

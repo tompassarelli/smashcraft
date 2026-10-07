@@ -135,6 +135,8 @@ export interface SpecialProjectile {
    * missile it draws, its own spell's (presentation/projectileArt.ts).
    */
   readonly model?: string | undefined;
+  /** Stock effect poses for a delayed projectile's warning and first damaging frame. Presentation only. */
+  readonly modelAnimation?: { readonly sequence: string; readonly warningSeconds: number; readonly activeSeconds: number } | undefined;
   /**
    * From this age it flies back to its owner's body at `speed` a frame and
    * ends when it gets there (Storm Bolt's hammer); a hit on the way back

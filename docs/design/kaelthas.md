@@ -53,7 +53,7 @@ Every ordinary contact is one hit per target and action.
 | Back air | Turned rear flame sweep; longer spacing | 12/3/24, land 16; 11%; −135 | [Verdant Spheres][wc] | [Mewtwo back air][mw] |
 | Up air | Raised hands and sphere; juggle | 10/4/21, land 14; 9%; height 155 | [Verdant Spheres][wc] | [Mewtwo up air][mw] |
 | Down air | Downward flame thrust; air spike, ground lift | 15/3/29, land 20; 12%; −92 | [Flame Strike][wc] | [Mewtwo down air][mw] |
-| Grab / pummel | Hand reaches to a suspended enemy; local sphere squeeze | Grab 8/2/26, reach 70; shared pummel timing, 2% | [Banish][wc] | [Mewtwo grab/pummel][mw] |
+| Grab / pummel | Hand reaches to a suspended enemy; local sphere squeeze | Grab 8/2/26, reach 70; shared pummel timing, 3% | [Banish][wc] | [Mewtwo grab/pummel][mw] |
 | Forward throw | Palm pushes enemy toward flame spacing | release 14, recover 22; 7%, 35° | [Verdant Spheres][wc] | [Mewtwo forward throw][mw] |
 | Back throw | Sweep behind; edge-position reward | release 17, recover 25; 9%, 40° back | [Banish][wc] | [Mewtwo back throw][mw] |
 | Up throw | Lift then burst; short juggle | release 16, recover 15; 7%, 90° | [Banish][wc] | [Mewtwo up throw][mw] |

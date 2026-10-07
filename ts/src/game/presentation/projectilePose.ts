@@ -14,6 +14,8 @@ interface ProjectilePose {
   poolRadius: number;
   armed: boolean;
   modelScale: number;
+  animationSequence?: string | undefined;
+  animationSeconds?: number | undefined;
 }
 
 // Shared and never changed: renderers project every pooled effect on every callback.
@@ -28,6 +30,13 @@ export function projectedProjectile(fighter: Readonly<Fighter> | undefined, inde
   const { velocityX, velocityZ } = projectile;
   const spec = projectile.kind === ProjectileKind.hero ? projectile.spec : undefined;
   const radius = spec?.pool === undefined ? 0.0 : heroProjectileRadius(projectile, spec);
+  const age = spec === undefined ? 0 : spec.life - projectile.life;
+  const first = spec?.activeFrom ?? 0;
+  const armed = spec !== undefined && age >= first;
+  const animation = spec?.modelAnimation;
+  const animationSeconds = animation === undefined ? undefined : armed
+    ? f32(animation.activeSeconds + f32((age - first) / 60))
+    : f32(animation.warningSeconds + f32(Math.max(0, age - 1) / 60));
   return {
     visible: true,
     x: projectile.x,
@@ -35,7 +44,9 @@ export function projectedProjectile(fighter: Readonly<Fighter> | undefined, inde
     yaw: velocityX >= 0.0 ? 0.0 : f32(3.141592654),
     pitch: -meleeAtan2(velocityZ, Math.abs(velocityX)),
     poolRadius: radius,
-    armed: spec !== undefined && spec.life - projectile.life >= (spec.activeFrom ?? 0),
+    armed,
     modelScale: spec?.modelRadius === undefined ? 1.0 : f32(radius / spec.modelRadius),
+    animationSequence: animation?.sequence,
+    animationSeconds,
   };
 }
