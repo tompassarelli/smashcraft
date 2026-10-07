@@ -1,0 +1,88 @@
+{
+  "gameBuild": "3.0.1.24342",
+  "bodyHeight": 132.1235883580379,
+  "stockSequences": 28,
+  "authoredActions": 81,
+  "preservedSamples": 84,
+  "painPoses": 9,
+  "contacts": [
+    {
+      "pose": "neutralSpecial",
+      "headVertices": 32,
+      "contacts": [
+        {
+          "frame": 14,
+          "head": [
+            85.77719116210938,
+            0.6690231561660767,
+            97.34784698486328
+          ]
+        },
+        {
+          "frame": 15,
+          "head": [
+            84.53374481201172,
+            2.7260313034057617,
+            77.8377685546875
+          ]
+        },
+        {
+          "frame": 16,
+          "head": [
+            71.38333129882812,
+            4.999339580535889,
+            40.88795471191406
+          ]
+        }
+      ]
+    },
+    {
+      "pose": "sideSpecial",
+      "headVertices": 32,
+      "contacts": [
+        {
+          "frame": 15,
+          "head": [
+            81.5008544921875,
+            2.7920875549316406,
+            69.21067810058594
+          ]
+        }
+      ]
+    },
+    {
+      "pose": "upSpecial",
+      "headVertices": 32,
+      "contacts": [
+        {
+          "frame": 10,
+          "head": [
+            13.212940216064453,
+            -17.097787857055664,
+            166.08995056152344
+          ]
+        }
+      ]
+    },
+    {
+      "pose": "downSpecial",
+      "headVertices": 32,
+      "contacts": [
+        {
+          "frame": 16,
+          "head": [
+            49.87297821044922,
+            1.4002538919448853,
+            33.42271041870117
+          ]
+        }
+      ]
+    }
+  ],
+  "downHammerFloor": 0.04317911858570369,
+  "fixHistory": [
+    "Two capped hammer candidates missed the neutral and side contact reach.",
+    "The parent accepted restoring the classic hammer size and aligning its broad head to the Forsaken weapon direction.",
+    "Final both-facing startup/contact/recovery sheets passed the coordinator review; body height and gameplay stayed fixed."
+  ]
+}
