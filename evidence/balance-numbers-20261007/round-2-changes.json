@@ -1,0 +1,1769 @@
+{
+  "base": "682ae4a9d5e4ae297dfd8350ce0ca9284ad1a634",
+  "round": 2,
+  "requestedFactors": {
+    "rifleman": 0.93,
+    "blademaster": 0.955,
+    "mountainKing": 1.105,
+    "dreadlord": 0.905,
+    "beastmaster": 1.06
+  },
+  "maximumChange": 0.15,
+  "changes": [
+    {
+      "file": "src/game/sim/heroes/blademasterMoves.ts",
+      "line": 22,
+      "fighter": "blademaster",
+      "field": "growth",
+      "before": 55,
+      "after": 52.525001525878906,
+      "multiplier": 0.9550000277432529
+    },
+    {
+      "file": "src/game/sim/heroes/blademasterMoves.ts",
+      "line": 23,
+      "fighter": "blademaster",
+      "field": "growth",
+      "before": 75,
+      "after": 71.625,
+      "multiplier": 0.955
+    },
+    {
+      "file": "src/game/sim/heroes/blademasterMoves.ts",
+      "line": 24,
+      "fighter": "blademaster",
+      "field": "growth",
+      "before": 95,
+      "after": 90.72500610351562,
+      "multiplier": 0.9550000642475329
+    },
+    {
+      "file": "src/game/sim/heroes/blademasterMoves.ts",
+      "line": 25,
+      "fighter": "blademaster",
+      "field": "growth",
+      "before": 100,
+      "after": 95.5,
+      "multiplier": 0.955
+    },
+    {
+      "file": "src/game/sim/heroes/blademasterMoves.ts",
+      "line": 26,
+      "fighter": "blademaster",
+      "field": "growth",
+      "before": 110,
+      "after": 105.05000305175781,
+      "multiplier": 0.9550000277432529
+    },
+    {
+      "file": "src/game/sim/heroes/blademasterMoves.ts",
+      "line": 27,
+      "fighter": "blademaster",
+      "field": "growth",
+      "before": 100,
+      "after": 95.5,
+      "multiplier": 0.955
+    },
+    {
+      "file": "src/game/sim/heroes/blademasterMoves.ts",
+      "line": 29,
+      "fighter": "blademaster",
+      "field": "growth",
+      "before": 55,
+      "after": 52.525001525878906,
+      "multiplier": 0.9550000277432529
+    },
+    {
+      "file": "src/game/sim/heroes/blademasterMoves.ts",
+      "line": 30,
+      "fighter": "blademaster",
+      "field": "growth",
+      "before": 40,
+      "after": 38.20000076293945,
+      "multiplier": 0.9550000190734863
+    },
+    {
+      "file": "src/game/sim/heroes/blademasterMoves.ts",
+      "line": 88,
+      "fighter": "blademaster",
+      "field": "damage",
+      "before": 14,
+      "after": 13.370000839233398,
+      "multiplier": 0.9550000599452427
+    },
+    {
+      "file": "src/game/sim/heroes/blademasterMoves.ts",
+      "line": 161,
+      "fighter": "blademaster",
+      "field": "damage",
+      "before": 15,
+      "after": 14.325000762939453,
+      "multiplier": 0.9550000508626302
+    },
+    {
+      "file": "src/game/sim/heroes/blademasterMoves.ts",
+      "line": 161,
+      "fighter": "blademaster",
+      "field": "damage",
+      "before": 19,
+      "after": 18.145000457763672,
+      "multiplier": 0.9550000240928248
+    },
+    {
+      "file": "src/game/sim/heroes/blademasterMoves.ts",
+      "line": 167,
+      "fighter": "blademaster",
+      "field": "damage",
+      "before": 16,
+      "after": 15.280000686645508,
+      "multiplier": 0.9550000429153442
+    },
+    {
+      "file": "src/game/sim/heroes/blademasterMoves.ts",
+      "line": 179,
+      "fighter": "blademaster",
+      "field": "damage",
+      "before": 6,
+      "after": 5.730000019073486,
+      "multiplier": 0.9550000031789144
+    },
+    {
+      "file": "src/game/sim/heroes/blademasterMoves.ts",
+      "line": 180,
+      "fighter": "blademaster",
+      "field": "damage",
+      "before": 6,
+      "after": 5.730000019073486,
+      "multiplier": 0.9550000031789144
+    },
+    {
+      "file": "src/game/sim/heroes/blademasterMoves.ts",
+      "line": 181,
+      "fighter": "blademaster",
+      "field": "damage",
+      "before": 6,
+      "after": 5.730000019073486,
+      "multiplier": 0.9550000031789144
+    },
+    {
+      "file": "src/game/sim/heroes/blademasterMoves.ts",
+      "line": 184,
+      "fighter": "blademaster",
+      "field": "damage",
+      "before": 11,
+      "after": 10.505000114440918,
+      "multiplier": 0.9550000104037198
+    },
+    {
+      "file": "src/game/sim/heroes/blademasterMoves.ts",
+      "line": 184,
+      "fighter": "blademaster",
+      "field": "damage",
+      "before": 14,
+      "after": 13.370000839233398,
+      "multiplier": 0.9550000599452427
+    },
+    {
+      "file": "src/game/sim/heroes/blademasterMoves.ts",
+      "line": 185,
+      "fighter": "blademaster",
+      "field": "damage",
+      "before": 12,
+      "after": 11.460000038146973,
+      "multiplier": 0.9550000031789144
+    },
+    {
+      "file": "src/game/sim/heroes/blademasterMoves.ts",
+      "line": 190,
+      "fighter": "blademaster",
+      "field": "damage",
+      "before": 8,
+      "after": 7.640000343322754,
+      "multiplier": 0.9550000429153442
+    },
+    {
+      "file": "src/game/sim/heroes/blademasterMoves.ts",
+      "line": 198,
+      "fighter": "blademaster",
+      "field": "damage",
+      "before": 3,
+      "after": 2.865000009536743,
+      "multiplier": 0.9550000031789144
+    },
+    {
+      "file": "src/game/sim/heroes/blademasterMoves.ts",
+      "line": 199,
+      "fighter": "blademaster",
+      "field": "throw damage",
+      "before": 7,
+      "after": 6.685000419616699,
+      "multiplier": 0.9550000599452427
+    },
+    {
+      "file": "src/game/sim/heroes/blademasterMoves.ts",
+      "line": 200,
+      "fighter": "blademaster",
+      "field": "throw damage",
+      "before": 8,
+      "after": 7.640000343322754,
+      "multiplier": 0.9550000429153442
+    },
+    {
+      "file": "src/game/sim/heroes/blademasterMoves.ts",
+      "line": 201,
+      "fighter": "blademaster",
+      "field": "throw damage",
+      "before": 6,
+      "after": 5.730000019073486,
+      "multiplier": 0.9550000031789144
+    },
+    {
+      "file": "src/game/sim/heroes/blademasterMoves.ts",
+      "line": 202,
+      "fighter": "blademaster",
+      "field": "throw damage",
+      "before": 5,
+      "after": 4.775000095367432,
+      "multiplier": 0.9550000190734863
+    },
+    {
+      "file": "src/game/sim/heroes/blademasterSpecials.ts",
+      "line": 30,
+      "fighter": "blademaster",
+      "field": "damage",
+      "before": 6,
+      "after": 5.730000019073486,
+      "multiplier": 0.9550000031789144
+    },
+    {
+      "file": "src/game/sim/heroes/blademasterSpecials.ts",
+      "line": 48,
+      "fighter": "blademaster",
+      "field": "damage",
+      "before": 12,
+      "after": 11.460000038146973,
+      "multiplier": 0.9550000031789144
+    },
+    {
+      "file": "src/game/sim/heroes/blademasterSpecials.ts",
+      "line": 88,
+      "fighter": "blademaster",
+      "field": "damage",
+      "before": 9,
+      "after": 8.595000267028809,
+      "multiplier": 0.9550000296698676
+    },
+    {
+      "file": "src/game/sim/heroes/blademasterSpecials.ts",
+      "line": 130,
+      "fighter": "blademaster",
+      "field": "damage",
+      "before": 10,
+      "after": 9.550000190734863,
+      "multiplier": 0.9550000190734863
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingMoves.ts",
+      "line": 19,
+      "fighter": "mountainKing",
+      "field": "growth",
+      "before": 65,
+      "after": 71.82499694824219,
+      "multiplier": 1.1049999530498797
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingMoves.ts",
+      "line": 20,
+      "fighter": "mountainKing",
+      "field": "growth",
+      "before": 80,
+      "after": 88.39999389648438,
+      "multiplier": 1.1049999237060546
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingMoves.ts",
+      "line": 21,
+      "fighter": "mountainKing",
+      "field": "growth",
+      "before": 95,
+      "after": 104.9749984741211,
+      "multiplier": 1.1049999839381168
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingMoves.ts",
+      "line": 22,
+      "fighter": "mountainKing",
+      "field": "growth",
+      "before": 100,
+      "after": 110.5,
+      "multiplier": 1.105
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingMoves.ts",
+      "line": 23,
+      "fighter": "mountainKing",
+      "field": "growth",
+      "before": 110,
+      "after": 121.54999542236328,
+      "multiplier": 1.1049999583851207
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingMoves.ts",
+      "line": 24,
+      "fighter": "mountainKing",
+      "field": "growth",
+      "before": 100,
+      "after": 110.5,
+      "multiplier": 1.105
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingMoves.ts",
+      "line": 26,
+      "fighter": "mountainKing",
+      "field": "growth",
+      "before": 55,
+      "after": 60.77499771118164,
+      "multiplier": 1.1049999583851207
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingMoves.ts",
+      "line": 27,
+      "fighter": "mountainKing",
+      "field": "growth",
+      "before": 40,
+      "after": 44.19999694824219,
+      "multiplier": 1.1049999237060546
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingMoves.ts",
+      "line": 57,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 4,
+      "after": 4.419999599456787,
+      "multiplier": 1.1049998998641968
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingMoves.ts",
+      "line": 58,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 10,
+      "after": 11.049999237060547,
+      "multiplier": 1.1049999237060546
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingMoves.ts",
+      "line": 59,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 9,
+      "after": 9.944999694824219,
+      "multiplier": 1.10499996609158
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingMoves.ts",
+      "line": 60,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 7,
+      "after": 7.734999656677246,
+      "multiplier": 1.1049999509538924
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingMoves.ts",
+      "line": 61,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 12,
+      "after": 13.25999927520752,
+      "multiplier": 1.1049999396006267
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingMoves.ts",
+      "line": 62,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 21,
+      "after": 23.204999923706055,
+      "multiplier": 1.104999996366955
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingMoves.ts",
+      "line": 63,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 16,
+      "after": 17.67999839782715,
+      "multiplier": 1.1049998998641968
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingMoves.ts",
+      "line": 64,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 17,
+      "after": 18.78499984741211,
+      "multiplier": 1.1049999910242416
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingMoves.ts",
+      "line": 65,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 16,
+      "after": 17.67999839782715,
+      "multiplier": 1.1049998998641968
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingMoves.ts",
+      "line": 66,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 16,
+      "after": 17.67999839782715,
+      "multiplier": 1.1049998998641968
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingMoves.ts",
+      "line": 67,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 10,
+      "after": 11.049999237060547,
+      "multiplier": 1.1049999237060546
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingMoves.ts",
+      "line": 68,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 10,
+      "after": 11.049999237060547,
+      "multiplier": 1.1049999237060546
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingMoves.ts",
+      "line": 69,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 16,
+      "after": 17.67999839782715,
+      "multiplier": 1.1049998998641968
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingMoves.ts",
+      "line": 70,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 16,
+      "after": 17.67999839782715,
+      "multiplier": 1.1049998998641968
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingMoves.ts",
+      "line": 71,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 11,
+      "after": 12.154999732971191,
+      "multiplier": 1.1049999757246538
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingMoves.ts",
+      "line": 72,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 13,
+      "after": 14.364999771118164,
+      "multiplier": 1.104999982393705
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingMoves.ts",
+      "line": 73,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 10,
+      "after": 11.049999237060547,
+      "multiplier": 1.1049999237060546
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingMoves.ts",
+      "line": 74,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 13,
+      "after": 14.364999771118164,
+      "multiplier": 1.104999982393705
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingMoves.ts",
+      "line": 75,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 13,
+      "after": 14.364999771118164,
+      "multiplier": 1.104999982393705
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingMoves.ts",
+      "line": 165,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 3,
+      "after": 3.31499981880188,
+      "multiplier": 1.1049999396006267
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingMoves.ts",
+      "line": 166,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 9,
+      "after": 9.944999694824219,
+      "multiplier": 1.10499996609158
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingMoves.ts",
+      "line": 167,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 10,
+      "after": 11.049999237060547,
+      "multiplier": 1.1049999237060546
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingMoves.ts",
+      "line": 168,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 8,
+      "after": 8.839999198913574,
+      "multiplier": 1.1049998998641968
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingMoves.ts",
+      "line": 169,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 7,
+      "after": 7.734999656677246,
+      "multiplier": 1.1049999509538924
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingSpecials.ts",
+      "line": 23,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 5,
+      "after": 5.524999618530273,
+      "multiplier": 1.1049999237060546
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingSpecials.ts",
+      "line": 28,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 12,
+      "after": 13.25999927520752,
+      "multiplier": 1.1049999396006267
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingSpecials.ts",
+      "line": 44,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 8,
+      "after": 8.839999198913574,
+      "multiplier": 1.1049998998641968
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingSpecials.ts",
+      "line": 57,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 12,
+      "after": 13.25999927520752,
+      "multiplier": 1.1049999396006267
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingSpecials.ts",
+      "line": 57,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 10,
+      "after": 11.049999237060547,
+      "multiplier": 1.1049999237060546
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingSpecials.ts",
+      "line": 77,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 7,
+      "after": 7.734999656677246,
+      "multiplier": 1.1049999509538924
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingSpecials.ts",
+      "line": 81,
+      "fighter": "mountainKing",
+      "field": "clap damage",
+      "before": 9,
+      "after": 9.944999694824219,
+      "multiplier": 1.10499996609158
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingSpecials.ts",
+      "line": 83,
+      "fighter": "mountainKing",
+      "field": "clap damage",
+      "before": 12,
+      "after": 13.25999927520752,
+      "multiplier": 1.1049999396006267
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingSpecials.ts",
+      "line": 89,
+      "fighter": "mountainKing",
+      "field": "clap damage",
+      "before": 12,
+      "after": 13.25999927520752,
+      "multiplier": 1.1049999396006267
+    },
+    {
+      "file": "src/game/sim/heroes/mountainKingSpecials.ts",
+      "line": 98,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 10,
+      "after": 11.049999237060547,
+      "multiplier": 1.1049999237060546
+    },
+    {
+      "file": "src/game/sim/heroes/dreadlordMoves.ts",
+      "line": 21,
+      "fighter": "dreadlord",
+      "field": "growth",
+      "before": 55,
+      "after": 49.775001525878906,
+      "multiplier": 0.9050000277432528
+    },
+    {
+      "file": "src/game/sim/heroes/dreadlordMoves.ts",
+      "line": 22,
+      "fighter": "dreadlord",
+      "field": "growth",
+      "before": 75,
+      "after": 67.875,
+      "multiplier": 0.905
+    },
+    {
+      "file": "src/game/sim/heroes/dreadlordMoves.ts",
+      "line": 23,
+      "fighter": "dreadlord",
+      "field": "growth",
+      "before": 105,
+      "after": 95.0250015258789,
+      "multiplier": 0.90500001453218
+    },
+    {
+      "file": "src/game/sim/heroes/dreadlordMoves.ts",
+      "line": 24,
+      "fighter": "dreadlord",
+      "field": "growth",
+      "before": 110,
+      "after": 99.55000305175781,
+      "multiplier": 0.9050000277432528
+    },
+    {
+      "file": "src/game/sim/heroes/dreadlordMoves.ts",
+      "line": 25,
+      "fighter": "dreadlord",
+      "field": "growth",
+      "before": 128,
+      "after": 115.84000396728516,
+      "multiplier": 0.9050000309944153
+    },
+    {
+      "file": "src/game/sim/heroes/dreadlordMoves.ts",
+      "line": 26,
+      "fighter": "dreadlord",
+      "field": "growth",
+      "before": 100,
+      "after": 90.5,
+      "multiplier": 0.905
+    },
+    {
+      "file": "src/game/sim/heroes/dreadlordMoves.ts",
+      "line": 28,
+      "fighter": "dreadlord",
+      "field": "growth",
+      "before": 62,
+      "after": 56.11000061035156,
+      "multiplier": 0.90500000984438
+    },
+    {
+      "file": "src/game/sim/heroes/dreadlordMoves.ts",
+      "line": 29,
+      "fighter": "dreadlord",
+      "field": "growth",
+      "before": 40,
+      "after": 36.20000076293945,
+      "multiplier": 0.9050000190734864
+    },
+    {
+      "file": "src/game/sim/heroes/dreadlordMoves.ts",
+      "line": 73,
+      "fighter": "dreadlord",
+      "field": "damage",
+      "before": 14,
+      "after": 12.670000076293945,
+      "multiplier": 0.9050000054495675
+    },
+    {
+      "file": "src/game/sim/heroes/dreadlordMoves.ts",
+      "line": 81,
+      "fighter": "dreadlord",
+      "field": "damage",
+      "before": 18,
+      "after": 16.290000915527344,
+      "multiplier": 0.9050000508626302
+    },
+    {
+      "file": "src/game/sim/heroes/dreadlordMoves.ts",
+      "line": 82,
+      "fighter": "dreadlord",
+      "field": "damage",
+      "before": 18,
+      "after": 16.290000915527344,
+      "multiplier": 0.9050000508626302
+    },
+    {
+      "file": "src/game/sim/heroes/dreadlordMoves.ts",
+      "line": 90,
+      "fighter": "dreadlord",
+      "field": "damage",
+      "before": 16,
+      "after": 14.480000495910645,
+      "multiplier": 0.9050000309944153
+    },
+    {
+      "file": "src/game/sim/heroes/dreadlordMoves.ts",
+      "line": 98,
+      "fighter": "dreadlord",
+      "field": "damage",
+      "before": 7,
+      "after": 6.335000038146973,
+      "multiplier": 0.9050000054495675
+    },
+    {
+      "file": "src/game/sim/heroes/dreadlordMoves.ts",
+      "line": 99,
+      "fighter": "dreadlord",
+      "field": "damage",
+      "before": 7,
+      "after": 6.335000038146973,
+      "multiplier": 0.9050000054495675
+    },
+    {
+      "file": "src/game/sim/heroes/dreadlordMoves.ts",
+      "line": 100,
+      "fighter": "dreadlord",
+      "field": "damage",
+      "before": 7,
+      "after": 6.335000038146973,
+      "multiplier": 0.9050000054495675
+    },
+    {
+      "file": "src/game/sim/heroes/dreadlordMoves.ts",
+      "line": 103,
+      "fighter": "dreadlord",
+      "field": "damage",
+      "before": 14,
+      "after": 12.670000076293945,
+      "multiplier": 0.9050000054495675
+    },
+    {
+      "file": "src/game/sim/heroes/dreadlordMoves.ts",
+      "line": 109,
+      "fighter": "dreadlord",
+      "field": "damage",
+      "before": 15,
+      "after": 13.575000762939453,
+      "multiplier": 0.9050000508626302
+    },
+    {
+      "file": "src/game/sim/heroes/dreadlordMoves.ts",
+      "line": 114,
+      "fighter": "dreadlord",
+      "field": "damage",
+      "before": 8,
+      "after": 7.240000247955322,
+      "multiplier": 0.9050000309944153
+    },
+    {
+      "file": "src/game/sim/heroes/dreadlordMoves.ts",
+      "line": 120,
+      "fighter": "dreadlord",
+      "field": "damage",
+      "before": 12,
+      "after": 10.860000610351562,
+      "multiplier": 0.9050000508626302
+    },
+    {
+      "file": "src/game/sim/heroes/dreadlordMoves.ts",
+      "line": 120,
+      "fighter": "dreadlord",
+      "field": "damage",
+      "before": 12,
+      "after": 10.860000610351562,
+      "multiplier": 0.9050000508626302
+    },
+    {
+      "file": "src/game/sim/heroes/dreadlordMoves.ts",
+      "line": 228,
+      "fighter": "dreadlord",
+      "field": "damage",
+      "before": 3,
+      "after": 2.7150001525878906,
+      "multiplier": 0.9050000508626302
+    },
+    {
+      "file": "src/game/sim/heroes/dreadlordMoves.ts",
+      "line": 229,
+      "fighter": "dreadlord",
+      "field": "damage",
+      "before": 10,
+      "after": 9.050000190734863,
+      "multiplier": 0.9050000190734864
+    },
+    {
+      "file": "src/game/sim/heroes/dreadlordMoves.ts",
+      "line": 230,
+      "fighter": "dreadlord",
+      "field": "damage",
+      "before": 12,
+      "after": 10.860000610351562,
+      "multiplier": 0.9050000508626302
+    },
+    {
+      "file": "src/game/sim/heroes/dreadlordMoves.ts",
+      "line": 231,
+      "fighter": "dreadlord",
+      "field": "damage",
+      "before": 9,
+      "after": 8.145000457763672,
+      "multiplier": 0.9050000508626302
+    },
+    {
+      "file": "src/game/sim/heroes/dreadlordMoves.ts",
+      "line": 232,
+      "fighter": "dreadlord",
+      "field": "damage",
+      "before": 8,
+      "after": 7.240000247955322,
+      "multiplier": 0.9050000309944153
+    },
+    {
+      "file": "src/game/sim/heroes/dreadlordSpecials.ts",
+      "line": 23,
+      "fighter": "dreadlord",
+      "field": "damage",
+      "before": 7,
+      "after": 6.335000038146973,
+      "multiplier": 0.9050000054495675
+    },
+    {
+      "file": "src/game/sim/heroes/dreadlordSpecials.ts",
+      "line": 37,
+      "fighter": "dreadlord",
+      "field": "damage",
+      "before": 2,
+      "after": 1.8100000619888306,
+      "multiplier": 0.9050000309944153
+    },
+    {
+      "file": "src/game/sim/heroes/dreadlordSpecials.ts",
+      "line": 50,
+      "fighter": "dreadlord",
+      "field": "damage",
+      "before": 13,
+      "after": 11.765000343322754,
+      "multiplier": 0.9050000264094427
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterMoves.ts",
+      "line": 17,
+      "fighter": "beastmaster",
+      "field": "growth",
+      "before": 55,
+      "after": 58.29999923706055,
+      "multiplier": 1.0599999861283735
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterMoves.ts",
+      "line": 18,
+      "fighter": "beastmaster",
+      "field": "growth",
+      "before": 75,
+      "after": 79.5,
+      "multiplier": 1.06
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterMoves.ts",
+      "line": 19,
+      "fighter": "beastmaster",
+      "field": "growth",
+      "before": 105,
+      "after": 111.29999542236328,
+      "multiplier": 1.05999995640346
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterMoves.ts",
+      "line": 20,
+      "fighter": "beastmaster",
+      "field": "growth",
+      "before": 110,
+      "after": 116.5999984741211,
+      "multiplier": 1.0599999861283735
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterMoves.ts",
+      "line": 21,
+      "fighter": "beastmaster",
+      "field": "growth",
+      "before": 120,
+      "after": 127.19999694824219,
+      "multiplier": 1.059999974568685
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterMoves.ts",
+      "line": 22,
+      "fighter": "beastmaster",
+      "field": "growth",
+      "before": 100,
+      "after": 106,
+      "multiplier": 1.06
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterMoves.ts",
+      "line": 24,
+      "fighter": "beastmaster",
+      "field": "growth",
+      "before": 55,
+      "after": 58.29999923706055,
+      "multiplier": 1.0599999861283735
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterMoves.ts",
+      "line": 25,
+      "fighter": "beastmaster",
+      "field": "growth",
+      "before": 40,
+      "after": 42.39999771118164,
+      "multiplier": 1.059999942779541
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterMoves.ts",
+      "line": 122,
+      "fighter": "beastmaster",
+      "field": "damage",
+      "before": 4,
+      "after": 4.239999771118164,
+      "multiplier": 1.059999942779541
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterMoves.ts",
+      "line": 127,
+      "fighter": "beastmaster",
+      "field": "damage",
+      "before": 3,
+      "after": 3.179999828338623,
+      "multiplier": 1.059999942779541
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterMoves.ts",
+      "line": 132,
+      "fighter": "beastmaster",
+      "field": "damage",
+      "before": 6,
+      "after": 6.359999656677246,
+      "multiplier": 1.059999942779541
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterMoves.ts",
+      "line": 134,
+      "fighter": "beastmaster",
+      "field": "damage",
+      "before": 11,
+      "after": 11.65999984741211,
+      "multiplier": 1.0599999861283735
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterMoves.ts",
+      "line": 135,
+      "fighter": "beastmaster",
+      "field": "damage",
+      "before": 11,
+      "after": 11.65999984741211,
+      "multiplier": 1.0599999861283735
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterMoves.ts",
+      "line": 136,
+      "fighter": "beastmaster",
+      "field": "damage",
+      "before": 11,
+      "after": 11.65999984741211,
+      "multiplier": 1.0599999861283735
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterMoves.ts",
+      "line": 143,
+      "fighter": "beastmaster",
+      "field": "damage",
+      "before": 9,
+      "after": 9.539999961853027,
+      "multiplier": 1.0599999957614474
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterMoves.ts",
+      "line": 150,
+      "fighter": "beastmaster",
+      "field": "damage",
+      "before": 7,
+      "after": 7.419999599456787,
+      "multiplier": 1.059999942779541
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterMoves.ts",
+      "line": 159,
+      "fighter": "beastmaster",
+      "field": "damage",
+      "before": 12,
+      "after": 12.719999313354492,
+      "multiplier": 1.059999942779541
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterMoves.ts",
+      "line": 161,
+      "fighter": "beastmaster",
+      "field": "damage",
+      "before": 20,
+      "after": 21.19999885559082,
+      "multiplier": 1.059999942779541
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterMoves.ts",
+      "line": 169,
+      "fighter": "beastmaster",
+      "field": "damage",
+      "before": 17,
+      "after": 18.01999855041504,
+      "multiplier": 1.0599999147302963
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterMoves.ts",
+      "line": 176,
+      "fighter": "beastmaster",
+      "field": "damage",
+      "before": 15,
+      "after": 15.899999618530273,
+      "multiplier": 1.059999974568685
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterMoves.ts",
+      "line": 181,
+      "fighter": "beastmaster",
+      "field": "damage",
+      "before": 15,
+      "after": 15.899999618530273,
+      "multiplier": 1.059999974568685
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterMoves.ts",
+      "line": 189,
+      "fighter": "beastmaster",
+      "field": "damage",
+      "before": 10,
+      "after": 10.59999942779541,
+      "multiplier": 1.059999942779541
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterMoves.ts",
+      "line": 194,
+      "fighter": "beastmaster",
+      "field": "damage",
+      "before": 10,
+      "after": 10.59999942779541,
+      "multiplier": 1.059999942779541
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterMoves.ts",
+      "line": 197,
+      "fighter": "beastmaster",
+      "field": "damage",
+      "before": 14,
+      "after": 14.839999198913574,
+      "multiplier": 1.059999942779541
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterMoves.ts",
+      "line": 203,
+      "fighter": "beastmaster",
+      "field": "damage",
+      "before": 11,
+      "after": 11.65999984741211,
+      "multiplier": 1.0599999861283735
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterMoves.ts",
+      "line": 210,
+      "fighter": "beastmaster",
+      "field": "damage",
+      "before": 9,
+      "after": 9.539999961853027,
+      "multiplier": 1.0599999957614474
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterMoves.ts",
+      "line": 217,
+      "fighter": "beastmaster",
+      "field": "damage",
+      "before": 13,
+      "after": 13.779999732971191,
+      "multiplier": 1.0599999794593225
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterMoves.ts",
+      "line": 217,
+      "fighter": "beastmaster",
+      "field": "damage",
+      "before": 13,
+      "after": 13.779999732971191,
+      "multiplier": 1.0599999794593225
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterMoves.ts",
+      "line": 224,
+      "fighter": "beastmaster",
+      "field": "damage",
+      "before": 3,
+      "after": 3.179999828338623,
+      "multiplier": 1.059999942779541
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterMoves.ts",
+      "line": 225,
+      "fighter": "beastmaster",
+      "field": "damage",
+      "before": 8,
+      "after": 8.479999542236328,
+      "multiplier": 1.059999942779541
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterMoves.ts",
+      "line": 226,
+      "fighter": "beastmaster",
+      "field": "damage",
+      "before": 9,
+      "after": 9.539999961853027,
+      "multiplier": 1.0599999957614474
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterMoves.ts",
+      "line": 227,
+      "fighter": "beastmaster",
+      "field": "damage",
+      "before": 7,
+      "after": 7.419999599456787,
+      "multiplier": 1.059999942779541
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterMoves.ts",
+      "line": 228,
+      "fighter": "beastmaster",
+      "field": "damage",
+      "before": 6,
+      "after": 6.359999656677246,
+      "multiplier": 1.059999942779541
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterSpecials.ts",
+      "line": 23,
+      "fighter": "beastmaster",
+      "field": "damage",
+      "before": 9,
+      "after": 9.539999961853027,
+      "multiplier": 1.0599999957614474
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterSpecials.ts",
+      "line": 41,
+      "fighter": "beastmaster",
+      "field": "damage",
+      "before": 16,
+      "after": 16.959999084472656,
+      "multiplier": 1.059999942779541
+    },
+    {
+      "file": "src/game/sim/heroes/beastmasterSpecials.ts",
+      "line": 74,
+      "fighter": "beastmaster",
+      "field": "damage",
+      "before": 4,
+      "after": 4.239999771118164,
+      "multiplier": 1.059999942779541
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 117,
+      "fighter": "blademaster",
+      "field": "damage",
+      "before": 4,
+      "after": 3.820000171661377,
+      "multiplier": 0.9550000429153442
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 117,
+      "fighter": "blademaster",
+      "field": "growth",
+      "before": 55,
+      "after": 52.525001525878906,
+      "multiplier": 0.9550000277432529
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 118,
+      "fighter": "blademaster",
+      "field": "damage",
+      "before": 5,
+      "after": 4.775000095367432,
+      "multiplier": 0.9550000190734863
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 118,
+      "fighter": "blademaster",
+      "field": "growth",
+      "before": 90,
+      "after": 85.95000457763672,
+      "multiplier": 0.9550000508626302
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 120,
+      "fighter": "blademaster",
+      "field": "damage",
+      "before": 11,
+      "after": 10.505000114440918,
+      "multiplier": 0.9550000104037198
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 120,
+      "fighter": "blademaster",
+      "field": "growth",
+      "before": 100,
+      "after": 95.5,
+      "multiplier": 0.955
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 120,
+      "fighter": "blademaster",
+      "field": "damage",
+      "before": 8,
+      "after": 7.640000343322754,
+      "multiplier": 0.9550000429153442
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 120,
+      "fighter": "blademaster",
+      "field": "growth",
+      "before": 75,
+      "after": 71.625,
+      "multiplier": 0.955
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 123,
+      "fighter": "blademaster",
+      "field": "damage",
+      "before": 7,
+      "after": 6.685000419616699,
+      "multiplier": 0.9550000599452427
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 123,
+      "fighter": "blademaster",
+      "field": "growth",
+      "before": 70,
+      "after": 66.85000610351562,
+      "multiplier": 0.9550000871930804
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 125,
+      "fighter": "blademaster",
+      "field": "damage",
+      "before": 8,
+      "after": 7.640000343322754,
+      "multiplier": 0.9550000429153442
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 125,
+      "fighter": "blademaster",
+      "field": "growth",
+      "before": 60,
+      "after": 57.30000305175781,
+      "multiplier": 0.9550000508626302
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 125,
+      "fighter": "blademaster",
+      "field": "damage",
+      "before": 5,
+      "after": 4.775000095367432,
+      "multiplier": 0.9550000190734863
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 125,
+      "fighter": "blademaster",
+      "field": "growth",
+      "before": 60,
+      "after": 57.30000305175781,
+      "multiplier": 0.9550000508626302
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 127,
+      "fighter": "blademaster",
+      "field": "damage",
+      "before": 10,
+      "after": 9.550000190734863,
+      "multiplier": 0.9550000190734863
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 127,
+      "fighter": "blademaster",
+      "field": "growth",
+      "before": 100,
+      "after": 95.5,
+      "multiplier": 0.955
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 127,
+      "fighter": "blademaster",
+      "field": "damage",
+      "before": 8,
+      "after": 7.640000343322754,
+      "multiplier": 0.9550000429153442
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 127,
+      "fighter": "blademaster",
+      "field": "growth",
+      "before": 75,
+      "after": 71.625,
+      "multiplier": 0.955
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 139,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 12,
+      "after": 13.25999927520752,
+      "multiplier": 1.1049999396006267
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 139,
+      "fighter": "mountainKing",
+      "field": "growth",
+      "before": 100,
+      "after": 110.5,
+      "multiplier": 1.105
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 142,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 5,
+      "after": 5.524999618530273,
+      "multiplier": 1.1049999237060546
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 142,
+      "fighter": "mountainKing",
+      "field": "growth",
+      "before": 55,
+      "after": 60.77499771118164,
+      "multiplier": 1.1049999583851207
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 143,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 6,
+      "after": 6.62999963760376,
+      "multiplier": 1.1049999396006267
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 143,
+      "fighter": "mountainKing",
+      "field": "growth",
+      "before": 95,
+      "after": 104.9749984741211,
+      "multiplier": 1.1049999839381168
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 148,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 10,
+      "after": 11.049999237060547,
+      "multiplier": 1.1049999237060546
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 148,
+      "fighter": "mountainKing",
+      "field": "growth",
+      "before": 95,
+      "after": 104.9749984741211,
+      "multiplier": 1.1049999839381168
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 150,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 10,
+      "after": 11.049999237060547,
+      "multiplier": 1.1049999237060546
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 150,
+      "fighter": "mountainKing",
+      "field": "growth",
+      "before": 70,
+      "after": 77.3499984741211,
+      "multiplier": 1.10499997820173
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 152,
+      "fighter": "mountainKing",
+      "field": "damage",
+      "before": 12,
+      "after": 13.25999927520752,
+      "multiplier": 1.1049999396006267
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 152,
+      "fighter": "mountainKing",
+      "field": "growth",
+      "before": 95,
+      "after": 104.9749984741211,
+      "multiplier": 1.1049999839381168
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 232,
+      "fighter": "dreadlord",
+      "field": "damage",
+      "before": 12,
+      "after": 10.860000610351562,
+      "multiplier": 0.9050000508626302
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 232,
+      "fighter": "dreadlord",
+      "field": "growth",
+      "before": 100,
+      "after": 90.5,
+      "multiplier": 0.905
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 235,
+      "fighter": "dreadlord",
+      "field": "damage",
+      "before": 4,
+      "after": 3.620000123977661,
+      "multiplier": 0.9050000309944153
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 235,
+      "fighter": "dreadlord",
+      "field": "growth",
+      "before": 50,
+      "after": 45.25,
+      "multiplier": 0.905
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 236,
+      "fighter": "dreadlord",
+      "field": "damage",
+      "before": 3,
+      "after": 2.7150001525878906,
+      "multiplier": 0.9050000508626302
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 236,
+      "fighter": "dreadlord",
+      "field": "growth",
+      "before": 30,
+      "after": 27.150001525878906,
+      "multiplier": 0.9050000508626302
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 237,
+      "fighter": "dreadlord",
+      "field": "damage",
+      "before": 6,
+      "after": 5.430000305175781,
+      "multiplier": 0.9050000508626302
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 237,
+      "fighter": "dreadlord",
+      "field": "growth",
+      "before": 100,
+      "after": 90.5,
+      "multiplier": 0.905
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 242,
+      "fighter": "dreadlord",
+      "field": "damage",
+      "before": 9,
+      "after": 8.145000457763672,
+      "multiplier": 0.9050000508626302
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 242,
+      "fighter": "dreadlord",
+      "field": "growth",
+      "before": 90,
+      "after": 81.45000457763672,
+      "multiplier": 0.9050000508626302
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 243,
+      "fighter": "dreadlord",
+      "field": "damage",
+      "before": 6,
+      "after": 5.430000305175781,
+      "multiplier": 0.9050000508626302
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 243,
+      "fighter": "dreadlord",
+      "field": "growth",
+      "before": 30,
+      "after": 27.150001525878906,
+      "multiplier": 0.9050000508626302
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 246,
+      "fighter": "dreadlord",
+      "field": "damage",
+      "before": 9,
+      "after": 8.145000457763672,
+      "multiplier": 0.9050000508626302
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 246,
+      "fighter": "dreadlord",
+      "field": "growth",
+      "before": 90,
+      "after": 81.45000457763672,
+      "multiplier": 0.9050000508626302
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 247,
+      "fighter": "dreadlord",
+      "field": "damage",
+      "before": 9,
+      "after": 8.145000457763672,
+      "multiplier": 0.9050000508626302
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 247,
+      "fighter": "dreadlord",
+      "field": "growth",
+      "before": 90,
+      "after": 81.45000457763672,
+      "multiplier": 0.9050000508626302
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 300,
+      "fighter": "rifleman",
+      "field": "damage",
+      "before": 10,
+      "after": 9.300000190734863,
+      "multiplier": 0.9300000190734863
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 300,
+      "fighter": "rifleman",
+      "field": "growth",
+      "before": 90,
+      "after": 83.70000457763672,
+      "multiplier": 0.9300000508626302
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 303,
+      "fighter": "rifleman",
+      "field": "damage",
+      "before": 4,
+      "after": 3.7200000286102295,
+      "multiplier": 0.9300000071525574
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 303,
+      "fighter": "rifleman",
+      "field": "growth",
+      "before": 45,
+      "after": 41.85000228881836,
+      "multiplier": 0.9300000508626302
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 304,
+      "fighter": "rifleman",
+      "field": "damage",
+      "before": 5,
+      "after": 4.650000095367432,
+      "multiplier": 0.9300000190734863
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 304,
+      "fighter": "rifleman",
+      "field": "growth",
+      "before": 90,
+      "after": 83.70000457763672,
+      "multiplier": 0.9300000508626302
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 309,
+      "fighter": "rifleman",
+      "field": "damage",
+      "before": 8,
+      "after": 7.440000057220459,
+      "multiplier": 0.9300000071525574
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 309,
+      "fighter": "rifleman",
+      "field": "growth",
+      "before": 80,
+      "after": 74.4000015258789,
+      "multiplier": 0.9300000190734863
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 311,
+      "fighter": "rifleman",
+      "field": "damage",
+      "before": 10,
+      "after": 9.300000190734863,
+      "multiplier": 0.9300000190734863
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 311,
+      "fighter": "rifleman",
+      "field": "growth",
+      "before": 45,
+      "after": 41.85000228881836,
+      "multiplier": 0.9300000508626302
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 313,
+      "fighter": "rifleman",
+      "field": "damage",
+      "before": 11,
+      "after": 10.230000495910645,
+      "multiplier": 0.9300000450827859
+    },
+    {
+      "file": "src/game/sim/heroes/groundNormals.ts",
+      "line": 313,
+      "fighter": "rifleman",
+      "field": "growth",
+      "before": 95,
+      "after": 88.35000610351562,
+      "multiplier": 0.9300000642475329
+    },
+    {
+      "file": "src/game/sim/moves.ts",
+      "line": 139,
+      "fighter": "rifleman",
+      "field": "blaster damage",
+      "before": 3,
+      "after": 2.7900002002716064,
+      "multiplier": 0.9300000667572021
+    },
+    {
+      "file": "src/game/sim/summons.ts",
+      "line": 25,
+      "fighter": "rifleman",
+      "field": "bear damage",
+      "before": 10,
+      "after": 9.300000190734863,
+      "multiplier": 0.9300000190734863
+    },
+    {
+      "file": "src/game/sim/summons.ts",
+      "line": 25,
+      "fighter": "rifleman",
+      "field": "bear growth",
+      "before": 90,
+      "after": 83.70000457763672,
+      "multiplier": 0.9300000508626302
+    }
+  ]
+}
