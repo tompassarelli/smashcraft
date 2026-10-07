@@ -54,6 +54,9 @@ export function createBotStrategy(): BotStrategy {
   return { history: [], observedFrame: -1, opponent: -1, lastChoice: HabitChoice.none, lastContext: 0, lastSerial: -1, events: 0, read: undefined, lastOption: -1 };
 }
 
+type BotReadStorage = { -readonly [Field in keyof BotRead]: BotRead[Field] };
+const copiedReads = new WeakMap<Readonly<BotStrategy>, BotReadStorage>();
+
 export function copyBotStrategy(target: BotStrategy, source: Readonly<BotStrategy>): void {
   target.history = source.history;
   target.observedFrame = source.observedFrame;
@@ -64,7 +67,25 @@ export function copyBotStrategy(target: BotStrategy, source: Readonly<BotStrateg
   target.events = source.events;
   target.lastOption = source.lastOption;
   const read = source.read;
-  target.read = read === undefined ? undefined : { ...read };
+  if (read === undefined) target.read = undefined;
+  else {
+    let into = copiedReads.get(target);
+    if (into === undefined) {
+      into = { ...read };
+      copiedReads.set(target, into);
+    }
+    into.choice = read.choice;
+    into.context = read.context;
+    into.expectedFrame = read.expectedFrame;
+    into.expires = read.expires;
+    into.confidence = read.confidence;
+    into.acted = read.acted;
+    into.actionFrame = read.actionFrame;
+    into.actionSerial = read.actionSerial;
+    into.actionStyle = read.actionStyle;
+    into.actionFacing = read.actionFacing;
+    target.read = into;
+  }
 }
 
 export function clearBotStrategy(state: BotStrategy): void {
