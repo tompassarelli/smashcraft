@@ -58,9 +58,10 @@ const NIGHT_POUNCE_AIR: AuthoredSpecial = {
   landingLag: AIR_LANDING_LAG,
 };
 
-// Up B, Bat Ascension: a steerable rise with no hitbox, wings spread as part
+// Up B, Bat Ascension, a guided rise (#189): steered by the held stick,
+// with no hitbox, wings spread as part
 // of his body throughout and no intangibility; helpless after. The free form
-// rises 1.4H and steers 0.3H instead of 2.0H and 0.8H.
+// rises 2.0H and steers 0.6H instead of 2.8H and 1.0H.
 const SPREAD_WINGS = [hurtPose(9, 32, [
   ...DREADLORD_STAND,
   hurtPart(-14.0, 85.0, -60.0, 125.0, 16.0),
@@ -80,6 +81,6 @@ function batAscension(cost: number, rise: number, across: number): AuthoredSpeci
 export const DREADLORD_SPECIALS: FighterSpecials = {
   neutral: { name: "Carrion Swarm", description: "A short, slow cloud of bats.", ground: CARRION_SWARM, air: { ...CARRION_SWARM, landingLag: AIR_LANDING_LAG } },
   side: { name: "Vampiric Pounce", description: "Corkscrew forward with trailing bats; bite and heal on a catch, recover on a miss.", ground: NIGHT_POUNCE, air: NIGHT_POUNCE_AIR },
-  up: { name: "Bat Ascension", description: "A steerable rise on bat wings, then a helpless fall.", ground: batAscension(15, 2.0, f32(0.8)), free: batAscension(0, f32(1.4), f32(0.3)) },
+  up: { name: "Bat Ascension", description: "A steerable rise on bat wings, then a helpless fall.", ground: batAscension(15, f32(2.8), 1.0), free: batAscension(0, 2.0, f32(0.6)) },
   down: { name: "Sleep", description: "A slow orb that puts a grounded target to sleep until it mashes out or is hit.", ground: SLEEP_ORB, air: { ...SLEEP_ORB, landingLag: AIR_LANDING_LAG } },
 };

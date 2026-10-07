@@ -1,6 +1,6 @@
 // Uther's four specials through the production special, contact, projectile
 // and mana functions (smashcraft:docs/design/uther.md).
-import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
+import { assertEquals, assertNear, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { copyFighterState } from "../../replay/fighterState";
 import { firstFighterDifference } from "../../replay/difference";
@@ -29,7 +29,7 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), strike?: A
   for (let slot = 0; slot < 2; slot++) startFighterSpecial(world.fighters[slot]!, 0, 0, inputs[slot] ?? controls());
   beginFighterAttack(world, 1, strike, false);
   resolveAttacks(world);
-  advanceSpecials(world, 0, 0);
+  advanceSpecials(world, 0, 0, inputs);
   updateProjectiles(world);
   finishDamageContacts(world);
   for (let slot = 0; slot < 2; slot++) {
@@ -165,8 +165,8 @@ test("air Holy Radiance has no armor, spends its one airborne use and ends helpl
   assertEquals(air.owner.special.action, SpecialAction.none);
 });
 
-test("Ascension rises 1.9H with one hit, its free form 1.3H without one, both drifting 0.45H into a helpless fall", () => {
-  for (const [mana, rise, damage] of [[100, f32(1.9), 8.0], [14, f32(1.3), 0.0]] as const) {
+test("Ascension rises 2.9H with one hit, its free form 2.0H without one, both drifting 0.2H forward plus up to 1.6H steered into a helpless fall", () => {
+  for (const [mana, rise, damage] of [[100, f32(2.9), 8.0], [14, f32(2.0), 0.0]] as const) {
     const { world, owner } = pair(900.0);
     owner.mana.points = mana;
     const x = owner.motion.x;
@@ -179,8 +179,14 @@ test("Ascension rises 1.9H with one hit, its free form 1.3H without one, both dr
       top = Math.max(top, owner.motion.z);
     }
     near(f32(top - z) / H, rise, f32(0.03));
-    near(f32(owner.motion.x - x) / H, f32(0.45), f32(0.03));
+    near(f32(owner.motion.x - x) / H, f32(0.2), f32(0.03));
     assertTrue(owner.special.fall);
+    const steered = pair(900.0);
+    steered.owner.mana.points = mana;
+    const steerX = steered.owner.motion.x;
+    frame(steered.world, up);
+    for (let f = 2; f <= 30; f++) frame(steered.world, controls({ direction: -1 }));
+    assertNear(f32(steered.owner.motion.x - steerX) / H, f32(-1.4), f32(0.03));
     const close = pair(40.0);
     close.owner.mana.points = mana;
     frame(close.world, up);
