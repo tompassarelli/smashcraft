@@ -1,0 +1,81 @@
+{
+  "baselineSource": "6da945c034f51541b4b0fd264a2449b47b024318",
+  "candidateSource": "e7e5d4c167e3c41a20619fa38328552033c137a8",
+  "candidateRun": "https://github.com/tompassarelli/smashcraft/actions/runs/37678641335",
+  "candidateHostedSeconds": 141.218,
+  "options": {
+    "variants": 1,
+    "seeds": 100,
+    "stocks": 3,
+    "minutes": 4,
+    "tiers": [
+      "expert",
+      "expert"
+    ],
+    "opponents": [
+      "wren",
+      "wren"
+    ],
+    "perPair": 100
+  },
+  "matchedSetups": 360,
+  "pairs": [
+    {
+      "opponent": "lich",
+      "baseline": {
+        "matches": 120,
+        "wins": 18,
+        "ties": 0,
+        "timeOuts": 0
+      },
+      "candidate": {
+        "matches": 120,
+        "wins": 25,
+        "ties": 0,
+        "timeOuts": 0
+      },
+      "winsAdded": 7
+    },
+    {
+      "opponent": "lich-king",
+      "baseline": {
+        "matches": 120,
+        "wins": 9,
+        "ties": 0,
+        "timeOuts": 0
+      },
+      "candidate": {
+        "matches": 120,
+        "wins": 15,
+        "ties": 0,
+        "timeOuts": 0
+      },
+      "winsAdded": 6
+    },
+    {
+      "opponent": "peon",
+      "baseline": {
+        "matches": 120,
+        "wins": 38,
+        "ties": 0,
+        "timeOuts": 0
+      },
+      "candidate": {
+        "matches": 120,
+        "wins": 45,
+        "ties": 0,
+        "timeOuts": 0
+      },
+      "winsAdded": 7
+    }
+  ],
+  "total": {
+    "matches": 360,
+    "baselineWins": 65,
+    "candidateWins": 85,
+    "winsAdded": 20,
+    "baselineWinRate": 0.18055555555555555,
+    "candidateWinRate": 0.2361111111111111,
+    "percentagePointsAdded": 5.555555555555555
+  }
+}

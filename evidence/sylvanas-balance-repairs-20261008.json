@@ -1,0 +1,4891 @@
+{
+  "issue": 224,
+  "date": "2026-10-08",
+  "baseline": "c6b7a226af528052292bed89e84ec7b6193cb16d",
+  "closeApproach": "676e4a401ad87856d8b9bd862b6ba18d39765383",
+  "arrowDamage": "f7fcf669",
+  "cause": "The old run/jump plan kept 110 units from the target despite a 60-unit grab and 80-unit Life Drain. Removing avoid:close lets those approaches reach their tools; shooting still keeps 190 units.",
+  "secondAdjustment": "Black Arrow supplies the largest share of starts. Its damage rises from 6 to 12, matching the current Thrall bolt, with mana, timing, geometry, speed and knockback parameters unchanged.",
+  "execution": "Root authorized the small local comparison after hosted runs 37676012849 and 37676103400 remained queued. Those two runs were cancelled after the local arms began. Every local batch used an admitted heavy scope.",
+  "command": "bun scripts/cpuField.ts --pairs OPPONENT:sylvanas-windrunner --opponents wren,wren --tiers expert,expert --per-pair 100 --seeds 100 --json FILE",
+  "opponents": [
+    "archer",
+    "illidan",
+    "lich"
+  ],
+  "options": {
+    "variants": 1,
+    "stocks": 3,
+    "minutes": 4,
+    "seeds": 100,
+    "perPair": 100,
+    "actualPerPair": 120
+  },
+  "closeComparison": {
+    "overall": {
+      "baseline": {
+        "matches": 360,
+        "wins": 75,
+        "winPercent": 20.833333333333332,
+        "hits": 13238,
+        "damage": 105323.80521774292,
+        "moves": {
+          "0": 185,
+          "2": 135,
+          "3": 432,
+          "4": 3026,
+          "5": 322,
+          "6": 1844,
+          "7": 124,
+          "8": 2348,
+          "9": 492,
+          "10": 486,
+          "11": 80,
+          "12": 336,
+          "13": 802,
+          "14": 998,
+          "15": 114,
+          "16": 412,
+          "17": 432,
+          "19": 1052,
+          "30": 11980,
+          "31": 1426,
+          "32": 1042,
+          "33": 339
+        }
+      },
+      "candidate": {
+        "matches": 360,
+        "wins": 86,
+        "winPercent": 23.88888888888889,
+        "hits": 13401,
+        "damage": 107614.971824646,
+        "moves": {
+          "0": 180,
+          "2": 124,
+          "3": 489,
+          "4": 2949,
+          "5": 336,
+          "6": 1806,
+          "7": 147,
+          "8": 2676,
+          "9": 443,
+          "10": 430,
+          "11": 88,
+          "12": 384,
+          "13": 832,
+          "14": 1064,
+          "15": 116,
+          "16": 385,
+          "17": 425,
+          "19": 1452,
+          "30": 11659,
+          "31": 1422,
+          "32": 1022,
+          "33": 436
+        }
+      },
+      "gainedWins": 66,
+      "lostWins": 55,
+      "unchangedOutcomes": 239
+    },
+    "opponents": {
+      "archer": {
+        "baseline": {
+          "matches": 120,
+          "wins": 40,
+          "winPercent": 33.333333333333336,
+          "hits": 5290,
+          "damage": 41181.44435310364,
+          "moves": {
+            "0": 82,
+            "2": 58,
+            "3": 161,
+            "4": 798,
+            "5": 176,
+            "6": 669,
+            "7": 36,
+            "8": 1230,
+            "9": 193,
+            "10": 234,
+            "11": 44,
+            "12": 120,
+            "13": 252,
+            "14": 376,
+            "15": 33,
+            "16": 160,
+            "17": 157,
+            "19": 445,
+            "30": 4598,
+            "31": 654,
+            "32": 382,
+            "33": 222
+          }
+        },
+        "candidate": {
+          "matches": 120,
+          "wins": 32,
+          "winPercent": 26.666666666666668,
+          "hits": 5050,
+          "damage": 39555.583278656006,
+          "moves": {
+            "0": 53,
+            "2": 50,
+            "3": 177,
+            "4": 817,
+            "5": 157,
+            "6": 640,
+            "7": 49,
+            "8": 1324,
+            "9": 170,
+            "10": 201,
+            "11": 41,
+            "12": 136,
+            "13": 283,
+            "14": 373,
+            "15": 41,
+            "16": 158,
+            "17": 128,
+            "19": 584,
+            "30": 4285,
+            "31": 623,
+            "32": 365,
+            "33": 247
+          }
+        },
+        "gainedWins": 23,
+        "lostWins": 31,
+        "unchangedOutcomes": 66
+      },
+      "illidan": {
+        "baseline": {
+          "matches": 120,
+          "wins": 12,
+          "winPercent": 10,
+          "hits": 4080,
+          "damage": 34096.38879394531,
+          "moves": {
+            "0": 84,
+            "2": 69,
+            "3": 194,
+            "4": 1442,
+            "5": 104,
+            "6": 727,
+            "7": 68,
+            "8": 796,
+            "9": 225,
+            "10": 183,
+            "11": 26,
+            "12": 174,
+            "13": 386,
+            "14": 450,
+            "15": 57,
+            "16": 160,
+            "17": 198,
+            "19": 444,
+            "30": 3375,
+            "31": 454,
+            "32": 424,
+            "33": 54
+          }
+        },
+        "candidate": {
+          "matches": 120,
+          "wins": 23,
+          "winPercent": 19.166666666666668,
+          "hits": 4266,
+          "damage": 36180.13873672485,
+          "moves": {
+            "0": 107,
+            "2": 58,
+            "3": 226,
+            "4": 1387,
+            "5": 126,
+            "6": 659,
+            "7": 76,
+            "8": 938,
+            "9": 202,
+            "10": 156,
+            "11": 28,
+            "12": 179,
+            "13": 362,
+            "14": 469,
+            "15": 52,
+            "16": 163,
+            "17": 204,
+            "19": 601,
+            "30": 3346,
+            "31": 457,
+            "32": 425,
+            "33": 107
+          }
+        },
+        "gainedWins": 17,
+        "lostWins": 6,
+        "unchangedOutcomes": 97
+      },
+      "lich": {
+        "baseline": {
+          "matches": 120,
+          "wins": 23,
+          "winPercent": 19.166666666666668,
+          "hits": 3868,
+          "damage": 30045.97207069397,
+          "moves": {
+            "0": 19,
+            "2": 8,
+            "3": 77,
+            "4": 786,
+            "5": 42,
+            "6": 448,
+            "7": 20,
+            "8": 322,
+            "9": 74,
+            "10": 69,
+            "11": 10,
+            "12": 42,
+            "13": 164,
+            "14": 172,
+            "15": 24,
+            "16": 92,
+            "17": 77,
+            "19": 163,
+            "30": 4007,
+            "31": 318,
+            "32": 236,
+            "33": 63
+          }
+        },
+        "candidate": {
+          "matches": 120,
+          "wins": 31,
+          "winPercent": 25.833333333333332,
+          "hits": 4085,
+          "damage": 31879.249809265137,
+          "moves": {
+            "0": 20,
+            "2": 16,
+            "3": 86,
+            "4": 745,
+            "5": 53,
+            "6": 507,
+            "7": 22,
+            "8": 414,
+            "9": 71,
+            "10": 73,
+            "11": 19,
+            "12": 69,
+            "13": 187,
+            "14": 222,
+            "15": 23,
+            "16": 64,
+            "17": 93,
+            "19": 267,
+            "30": 4028,
+            "31": 342,
+            "32": 232,
+            "33": 82
+          }
+        },
+        "gainedWins": 26,
+        "lostWins": 18,
+        "unchangedOutcomes": 76
+      }
+    }
+  },
+  "arrowComparison": {
+    "overall": {
+      "baseline": {
+        "matches": 360,
+        "wins": 86,
+        "winPercent": 23.88888888888889,
+        "hits": 13401,
+        "damage": 107614.971824646,
+        "moves": {
+          "0": 180,
+          "2": 124,
+          "3": 489,
+          "4": 2949,
+          "5": 336,
+          "6": 1806,
+          "7": 147,
+          "8": 2676,
+          "9": 443,
+          "10": 430,
+          "11": 88,
+          "12": 384,
+          "13": 832,
+          "14": 1064,
+          "15": 116,
+          "16": 385,
+          "17": 425,
+          "19": 1452,
+          "30": 11659,
+          "31": 1422,
+          "32": 1022,
+          "33": 436
+        }
+      },
+      "candidate": {
+        "matches": 360,
+        "wins": 226,
+        "winPercent": 62.77777777777778,
+        "hits": 12206,
+        "damage": 130206.41633224487,
+        "moves": {
+          "0": 155,
+          "2": 111,
+          "3": 524,
+          "4": 2808,
+          "5": 372,
+          "6": 1639,
+          "7": 144,
+          "8": 2224,
+          "9": 426,
+          "10": 416,
+          "11": 90,
+          "12": 352,
+          "13": 802,
+          "14": 1079,
+          "15": 140,
+          "16": 429,
+          "17": 335,
+          "19": 1381,
+          "30": 11383,
+          "31": 1352,
+          "32": 858,
+          "33": 391
+        }
+      },
+      "gainedWins": 163,
+      "lostWins": 23,
+      "unchangedOutcomes": 174
+    },
+    "opponents": {
+      "archer": {
+        "baseline": {
+          "matches": 120,
+          "wins": 32,
+          "winPercent": 26.666666666666668,
+          "hits": 5050,
+          "damage": 39555.583278656006,
+          "moves": {
+            "0": 53,
+            "2": 50,
+            "3": 177,
+            "4": 817,
+            "5": 157,
+            "6": 640,
+            "7": 49,
+            "8": 1324,
+            "9": 170,
+            "10": 201,
+            "11": 41,
+            "12": 136,
+            "13": 283,
+            "14": 373,
+            "15": 41,
+            "16": 158,
+            "17": 128,
+            "19": 584,
+            "30": 4285,
+            "31": 623,
+            "32": 365,
+            "33": 247
+          }
+        },
+        "candidate": {
+          "matches": 120,
+          "wins": 81,
+          "winPercent": 67.5,
+          "hits": 4606,
+          "damage": 47158.44435119629,
+          "moves": {
+            "0": 73,
+            "2": 34,
+            "3": 183,
+            "4": 716,
+            "5": 187,
+            "6": 547,
+            "7": 44,
+            "8": 1081,
+            "9": 173,
+            "10": 157,
+            "11": 52,
+            "12": 106,
+            "13": 242,
+            "14": 337,
+            "15": 39,
+            "16": 165,
+            "17": 122,
+            "19": 571,
+            "30": 4153,
+            "31": 595,
+            "32": 317,
+            "33": 239
+          }
+        },
+        "gainedWins": 55,
+        "lostWins": 6,
+        "unchangedOutcomes": 59
+      },
+      "illidan": {
+        "baseline": {
+          "matches": 120,
+          "wins": 23,
+          "winPercent": 19.166666666666668,
+          "hits": 4266,
+          "damage": 36180.13873672485,
+          "moves": {
+            "0": 107,
+            "2": 58,
+            "3": 226,
+            "4": 1387,
+            "5": 126,
+            "6": 659,
+            "7": 76,
+            "8": 938,
+            "9": 202,
+            "10": 156,
+            "11": 28,
+            "12": 179,
+            "13": 362,
+            "14": 469,
+            "15": 52,
+            "16": 163,
+            "17": 204,
+            "19": 601,
+            "30": 3346,
+            "31": 457,
+            "32": 425,
+            "33": 107
+          }
+        },
+        "candidate": {
+          "matches": 120,
+          "wins": 52,
+          "winPercent": 43.333333333333336,
+          "hits": 4167,
+          "damage": 44103.694316864014,
+          "moves": {
+            "0": 70,
+            "2": 61,
+            "3": 257,
+            "4": 1450,
+            "5": 124,
+            "6": 680,
+            "7": 83,
+            "8": 753,
+            "9": 184,
+            "10": 184,
+            "11": 30,
+            "12": 192,
+            "13": 384,
+            "14": 506,
+            "15": 74,
+            "16": 172,
+            "17": 156,
+            "19": 585,
+            "30": 3621,
+            "31": 430,
+            "32": 344,
+            "33": 82
+          }
+        },
+        "gainedWins": 41,
+        "lostWins": 12,
+        "unchangedOutcomes": 67
+      },
+      "lich": {
+        "baseline": {
+          "matches": 120,
+          "wins": 31,
+          "winPercent": 25.833333333333332,
+          "hits": 4085,
+          "damage": 31879.249809265137,
+          "moves": {
+            "0": 20,
+            "2": 16,
+            "3": 86,
+            "4": 745,
+            "5": 53,
+            "6": 507,
+            "7": 22,
+            "8": 414,
+            "9": 71,
+            "10": 73,
+            "11": 19,
+            "12": 69,
+            "13": 187,
+            "14": 222,
+            "15": 23,
+            "16": 64,
+            "17": 93,
+            "19": 267,
+            "30": 4028,
+            "31": 342,
+            "32": 232,
+            "33": 82
+          }
+        },
+        "candidate": {
+          "matches": 120,
+          "wins": 93,
+          "winPercent": 77.5,
+          "hits": 3433,
+          "damage": 38944.27766418457,
+          "moves": {
+            "0": 12,
+            "2": 16,
+            "3": 84,
+            "4": 642,
+            "5": 61,
+            "6": 412,
+            "7": 17,
+            "8": 390,
+            "9": 69,
+            "10": 75,
+            "11": 8,
+            "12": 54,
+            "13": 176,
+            "14": 236,
+            "15": 27,
+            "16": 92,
+            "17": 57,
+            "19": 225,
+            "30": 3609,
+            "31": 327,
+            "32": 197,
+            "33": 70
+          }
+        },
+        "gainedWins": 67,
+        "lostWins": 5,
+        "unchangedOutcomes": 48
+      }
+    }
+  },
+  "fullFieldGate": "Still required: unchanged 40–60% across all 21 fighters on integrated source.",
+  "matches": [
+    {
+      "stage": "sky-deck",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "sky-deck",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "three-bridges",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "three-bridges",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "frozen-throne",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "frozen-throne",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "drifting-deck",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "drifting-deck",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "patterned-decks",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "patterned-decks",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "wind",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "wind",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "carried",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "carried",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "cannon",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "cannon",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "timed-lift",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "timed-lift",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "hellfire",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "hellfire",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "stratholme",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "stratholme",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "tomb-of-sargeras",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "tomb-of-sargeras",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "sky-deck",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "sky-deck",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "three-bridges",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "three-bridges",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "frozen-throne",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "frozen-throne",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "drifting-deck",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "drifting-deck",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "patterned-decks",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "patterned-decks",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "wind",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "wind",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "carried",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "carried",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "cannon",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "cannon",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "timed-lift",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "timed-lift",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "hellfire",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "hellfire",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "stratholme",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "stratholme",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "tomb-of-sargeras",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "tomb-of-sargeras",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "sky-deck",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "sky-deck",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "three-bridges",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "three-bridges",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "frozen-throne",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "frozen-throne",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "drifting-deck",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "drifting-deck",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "patterned-decks",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "patterned-decks",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "wind",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "wind",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "carried",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "carried",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "cannon",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "cannon",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "timed-lift",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "timed-lift",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "hellfire",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "hellfire",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "stratholme",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "stratholme",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "tomb-of-sargeras",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "tomb-of-sargeras",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "sky-deck",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "sky-deck",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "three-bridges",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "three-bridges",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "frozen-throne",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "frozen-throne",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "drifting-deck",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "drifting-deck",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "patterned-decks",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "patterned-decks",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "wind",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "wind",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "carried",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "carried",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "cannon",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "cannon",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "timed-lift",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "timed-lift",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "hellfire",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "hellfire",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "stratholme",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "stratholme",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "tomb-of-sargeras",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "tomb-of-sargeras",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "sky-deck",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "sky-deck",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "three-bridges",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "three-bridges",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "frozen-throne",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "frozen-throne",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "drifting-deck",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "drifting-deck",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "patterned-decks",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "patterned-decks",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "wind",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "wind",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "carried",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "carried",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "cannon",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "cannon",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "timed-lift",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "timed-lift",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "hellfire",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "hellfire",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "stratholme",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "stratholme",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "tomb-of-sargeras",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "archer",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "tomb-of-sargeras",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "archer"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "sky-deck",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "sky-deck",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "three-bridges",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "three-bridges",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "frozen-throne",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "frozen-throne",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "drifting-deck",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "drifting-deck",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "patterned-decks",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "patterned-decks",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "wind",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "wind",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "carried",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "carried",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "cannon",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "cannon",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "timed-lift",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "timed-lift",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "hellfire",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "hellfire",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "stratholme",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "stratholme",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "tomb-of-sargeras",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "tomb-of-sargeras",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "sky-deck",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "sky-deck",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "three-bridges",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "three-bridges",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "frozen-throne",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "frozen-throne",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "drifting-deck",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "drifting-deck",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "patterned-decks",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "patterned-decks",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "wind",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "wind",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "carried",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "carried",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "cannon",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "cannon",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "timed-lift",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "timed-lift",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "hellfire",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "hellfire",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "stratholme",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "stratholme",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "tomb-of-sargeras",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "tomb-of-sargeras",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "sky-deck",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "sky-deck",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "three-bridges",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "three-bridges",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "frozen-throne",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "frozen-throne",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "drifting-deck",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "drifting-deck",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "patterned-decks",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "patterned-decks",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "wind",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "wind",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "carried",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "carried",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "cannon",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "cannon",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "timed-lift",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "timed-lift",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "hellfire",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "hellfire",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "stratholme",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "stratholme",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "tomb-of-sargeras",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "tomb-of-sargeras",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "sky-deck",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "sky-deck",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "three-bridges",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "three-bridges",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "frozen-throne",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "frozen-throne",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "drifting-deck",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "drifting-deck",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "patterned-decks",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "patterned-decks",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "wind",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "wind",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "carried",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "carried",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "cannon",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "cannon",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "timed-lift",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "timed-lift",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "hellfire",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "hellfire",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "stratholme",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "stratholme",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "tomb-of-sargeras",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "tomb-of-sargeras",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "sky-deck",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "sky-deck",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "three-bridges",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "three-bridges",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "frozen-throne",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "frozen-throne",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "drifting-deck",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "drifting-deck",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "patterned-decks",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "patterned-decks",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "wind",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "wind",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "carried",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "carried",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "cannon",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "cannon",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "timed-lift",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "timed-lift",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "hellfire",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "hellfire",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "stratholme",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "stratholme",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "tomb-of-sargeras",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "illidan",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "tomb-of-sargeras",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "illidan"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "sky-deck",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "sky-deck",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "three-bridges",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "three-bridges",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "frozen-throne",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "frozen-throne",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "drifting-deck",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "drifting-deck",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "patterned-decks",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "patterned-decks",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "wind",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "wind",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "carried",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "carried",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "cannon",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "cannon",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "timed-lift",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "timed-lift",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "hellfire",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "hellfire",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "stratholme",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "stratholme",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "tomb-of-sargeras",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "tomb-of-sargeras",
+      "variant": 0,
+      "seed": 0,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "sky-deck",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "sky-deck",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "three-bridges",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "three-bridges",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "frozen-throne",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "frozen-throne",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "drifting-deck",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "drifting-deck",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "patterned-decks",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "patterned-decks",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "wind",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "wind",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "carried",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "carried",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "cannon",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "cannon",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "timed-lift",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "timed-lift",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "hellfire",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "hellfire",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "stratholme",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "stratholme",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "tomb-of-sargeras",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "tomb-of-sargeras",
+      "variant": 0,
+      "seed": 1,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "sky-deck",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "sky-deck",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "three-bridges",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "three-bridges",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "frozen-throne",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "frozen-throne",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "drifting-deck",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "drifting-deck",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "patterned-decks",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "patterned-decks",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "wind",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "wind",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "carried",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "carried",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "cannon",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "cannon",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "timed-lift",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "timed-lift",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "hellfire",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "hellfire",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "stratholme",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "stratholme",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "tomb-of-sargeras",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "tomb-of-sargeras",
+      "variant": 0,
+      "seed": 2,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "sky-deck",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "sky-deck",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "three-bridges",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "three-bridges",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "frozen-throne",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "frozen-throne",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "drifting-deck",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "drifting-deck",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "patterned-decks",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "patterned-decks",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "wind",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "wind",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "carried",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "carried",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "cannon",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "cannon",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "timed-lift",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "timed-lift",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "hellfire",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "hellfire",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "stratholme",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "stratholme",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "tomb-of-sargeras",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "tomb-of-sargeras",
+      "variant": 0,
+      "seed": 3,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "sky-deck",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "sky-deck",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "three-bridges",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "three-bridges",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "frozen-throne",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "frozen-throne",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "drifting-deck",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "drifting-deck",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "patterned-decks",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "patterned-decks",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "wind",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "wind",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "carried",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "carried",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "cannon",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "cannon",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "timed-lift",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "timed-lift",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "hellfire",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "hellfire",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "stratholme",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "stratholme",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    },
+    {
+      "stage": "tomb-of-sargeras",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "lich",
+        "sylvanas-windrunner"
+      ],
+      "baselineWinner": 0,
+      "closeWinner": 0,
+      "arrowWinner": 1
+    },
+    {
+      "stage": "tomb-of-sargeras",
+      "variant": 0,
+      "seed": 4,
+      "fighters": [
+        "sylvanas-windrunner",
+        "lich"
+      ],
+      "baselineWinner": 1,
+      "closeWinner": 1,
+      "arrowWinner": 0
+    }
+  ]
+}
