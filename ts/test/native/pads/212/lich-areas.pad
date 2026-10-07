@@ -1,0 +1,31 @@
+# #212 remote Lich hit areas and a forward smash beside the left ledge.
+#! chat -dev quick hero lich
+20 a stick -0.5 0
+22 a stick 0 0
+40 a tap X 2
+58 a capture
+80 a tap X 2
+90 a capture
+180 a stick 1 0
+180 a tap X 2
+181 a stick 0 0
+210 a capture
+280 a stick 0 1
+280 a tap X 2
+281 a stick 0 0
+290 a capture
+370 a stick 0 -1
+370 a tap X 2
+371 a stick 0 0
+391 a capture
+430 a stick 0 -1
+430 a tap X 2
+431 a stick 0 0
+435 a capture
+490 a stick -1 0
+510 a stick 0 0
+540 a cstick -1 0
+541 a cstick 0 0
+557 a capture
+620 a press VIEW
+690 a release VIEW
