@@ -9,8 +9,10 @@ import { integerHitPower } from "./knockback";
 import { shieldCenterX, shieldCenterZ } from "./shieldTilt";
 import { AIR_RECOIL_DECAY, AIR_RECOIL_SQUARED_CUTOFF, decayedAirMotion, retainedOriginal, setMeleeRecoil } from "./motion";
 import type { Controls } from "./roster";
+import { floorTraction } from "./stage";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
 import { squareRoot } from "./warcraftMath";
+import { ROSTER_MANA, gainMana } from "./mana";
 
 export const SHIELD_REFLECTOR_ACTIVE_FRAMES = 2;
 export const SHIELD_PERFECT_ACTIVE_FRAMES = 4;
@@ -146,6 +148,7 @@ export function clearPowershield(f: Fighter): void {
  */
 export function grantParry(f: Fighter): void {
   const { shield } = f;
+  if (shield.reflectFrames > 0 || shield.perfectFrames > 0) gainMana(f, ROSTER_MANA.parryGain);
   shield.reflectFrames = 0;
   shield.perfectFrames = 0;
   shield.stun = 0;
@@ -172,11 +175,11 @@ export function clearShieldBreak(f: Fighter): void {
   f.shield.breakRemaining = 0.0;
 }
 
-/** Ground pushback and recoil slide against traction; airborne recoil is a vector that decays by the common amount. */
-export function decayShieldMotion(f: Fighter): void {
+/** Ground pushback and recoil slide against traction, scaled by the floor's `friction`; airborne recoil is a vector that decays by the common amount. */
+export function decayShieldMotion(f: Fighter, friction = 1.0): void {
   const { shield } = f;
   if (f.motion.grounded) {
-    const defenderDecay = divideFloat32(f.tuning.physics.traction, WORLD_UNITS_PER_MELEE_UNIT);
+    const defenderDecay = divideFloat32(floorTraction(f.tuning.physics.traction, friction), WORLD_UNITS_PER_MELEE_UNIT);
     const defenderSpeed = divideFloat32(shield.pushbackX, WORLD_UNITS_PER_MELEE_UNIT);
     const pushback = defenderSpeed > 0 ? max(0.0, subtractFloat32(defenderSpeed, defenderDecay)) : min(0.0, addFloat32(defenderSpeed, defenderDecay));
     shield.pushbackX = multiplyFloat32(pushback, WORLD_UNITS_PER_MELEE_UNIT);

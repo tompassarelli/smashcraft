@@ -1,7 +1,7 @@
 // The stage decks' palettes: one texel per material of the deck models that
 // tools/stage/package.ts authors. The frame probe looks for these colours.
 // Themes and value rules: smashcraft:docs/design/stage-art.md, rule 10.
-import { CANNON_TEST_STAGE, CARRIED_TEST_STAGE, DRIFTING_DECK_STAGE, FROZEN_THRONE_STAGE, HELLFIRE_STAGE, PATTERNED_DECKS_STAGE, TIMED_TEST_STAGE, WIND_TEST_STAGE } from "../sim/stage";
+import { CANNON_TEST_STAGE, CARRIED_TEST_STAGE, DRIFTING_DECK_STAGE, FROZEN_THRONE_STAGE, HELLFIRE_STAGE, PATTERNED_DECKS_STAGE, STRATHOLME_STAGE, TIMED_TEST_STAGE, TOMB_OF_SARGERAS_STAGE, WIND_TEST_STAGE } from "../sim/stage";
 
 type Rgb = readonly [red: number, green: number, blue: number];
 
@@ -42,6 +42,10 @@ export const STAGE_DECK_PALETTES: readonly { readonly stage: number; readonly th
   // Basalt over black rock, molten lip.
   { stage: CANNON_TEST_STAGE, theme: "Blackrock", palette: { top: [132, 126, 122], lip: [210, 112, 40], body: [72, 64, 60], underside: [90, 80, 74] } },
   // Pale sandstone, scarab-gold lip.
+  // Lordaeron cobbles over scorched brick, Alliance-blue lip.
+  { stage: STRATHOLME_STAGE, theme: "Stratholme", palette: { top: [168, 160, 150], lip: [70, 110, 180], body: [96, 62, 52], underside: [120, 82, 68] } },
+  // Shallow tide over sunken stone, Naga coral-gold lip.
+  { stage: TOMB_OF_SARGERAS_STAGE, theme: "Sargeras", palette: { top: [104, 170, 168], lip: [196, 120, 90], body: [58, 76, 74], underside: [80, 98, 94] } },
   { stage: TIMED_TEST_STAGE, theme: "Qiraji", palette: { top: [224, 204, 160], lip: [170, 130, 50], body: [110, 84, 56], underside: [138, 108, 74] } },
 ];
 

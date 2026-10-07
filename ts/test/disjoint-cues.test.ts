@@ -64,7 +64,7 @@ test("headless renderer places one visible effect at every live disjoint normal 
   console.log(`disjoint presentation: ${measured} active region frames checked, 0 missing or misplaced`);
 });
 
-test("headless renderer places each hero special strike on its active collision frame", () => {
+test("headless renderer places special strikes and Warden's outward knife spray on their authored paths", () => {
   const clients = headless.clients({ start: () => {}, install: () => {} });
   clients.start();
   const client = clients.clients[0];
@@ -84,16 +84,29 @@ test("headless renderer places each hero special strike on its active collision 
         const move = specialForm(specialKit(specials, slot), form);
         for (let frame = 1; frame <= move.endFrame; frame++) {
           fighter.special.frame = frame;
-          const regions = (move.regions ?? []).filter(region => frame - 1 >= region.firstFrame && frame - 1 <= region.lastFrame && region.hit.effect.damage > 0);
+          const fan = character === Character.warden && slot === 3;
+          const regions = (move.regions ?? []).filter(region => fan ? frame >= 9 && frame <= 14
+            : frame - 1 >= region.firstFrame && frame - 1 <= region.lastFrame && region.hit.effect.damage > 0);
           renderer.present(fighter, true);
           const actual = client.effectPoses().filter(effect => effect.scale > 0 && effect.z > 0);
           expect(actual).toHaveLength(regions.length);
           for (const [index, effect] of actual.entries()) {
             const region = regions[index]?.hit;
             if (region === undefined) throw new Error("missing expected region");
-            expect(effect.x).toBeCloseTo(417 + facing * (region.minX + region.maxX) * 0.5, 3);
-            expect(effect.z).toBeCloseTo(193 + (region.minZ + region.maxZ) * 0.5, 3);
-            expect(effect.alpha).toBe(255);
+            if (fan) {
+              const ray = region.strike;
+              if (ray === undefined) throw new Error("missing expected knife ray");
+              const travel = Math.fround(Math.min(1, Math.fround((frame - 8) / 3)));
+              expect(effect.x).toBeCloseTo(417 + facing * Math.fround(ray.x2 * travel), 3);
+              expect(effect.z).toBeCloseTo(193 + Math.fround(48 + Math.fround((ray.z2 - 48) * travel)), 3);
+              expect(effect.yaw).toBe(ray.x2 * facing < 0 ? Math.fround(Math.PI) : 0);
+              expect(effect.pitch).toBeCloseTo(-Math.atan2(ray.z2 - 48, Math.abs(ray.x2)), 6);
+              expect(effect.alpha).toBe(frame <= 11 ? 255 : (15 - frame) * 64);
+            } else {
+              expect(effect.x).toBeCloseTo(417 + facing * (region.minX + region.maxX) * 0.5, 3);
+              expect(effect.z).toBeCloseTo(193 + (region.minZ + region.maxZ) * 0.5, 3);
+              expect(effect.alpha).toBe(255);
+            }
             measured++;
           }
         }
@@ -182,12 +195,14 @@ test("existing bear, hippogryph and freeze trap art follows the remote contact c
       if (frame === 100) fighter.hippogryph.kind = HippogryphKind.released;
       advanceSummons(summons, fighter, 0);
       renderer.presentSummons(summons, fighter, 0);
+      renderer.presentHippogryph(fighter, 0, frame);
       renderer.presentConfirmedAnimated(frame, fighter, 0);
       frost.present(fighter, 0);
       const actual = client.effectPoses().filter(effect => effect.scale > 0 && effect.z > 0);
       expect(actual).toHaveLength(3);
       expect(actual.some(effect => effect.x === fighter.bear.x && effect.z === fighter.bear.z)).toBe(true);
-      expect(actual.some(effect => effect.x === fighter.hippogryph.x && effect.z === fighter.hippogryph.z)).toBe(true);
+      const birdZ = fighter.hippogryph.z - (fighter.hippogryph.kind === HippogryphKind.released ? 60 : 0);
+      expect(actual.some(effect => effect.x === fighter.hippogryph.x && effect.z === birdZ)).toBe(true);
       expect(actual.some(effect => effect.x === fighter.freezeTrap.x && effect.z === fighter.freezeTrap.z)).toBe(true);
     }
     renderer.destroy();

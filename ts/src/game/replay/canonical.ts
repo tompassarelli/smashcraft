@@ -129,6 +129,7 @@ export function fighterMovesCanonical(moves: FighterMoves | undefined, prefix = 
     int(`${name}.electric`, hit.electric ? 1 : 0);
     int(`${name}.element`, hit.element ?? 0);
     if (hit.carry === true) int(`${name}.carry`, 1);
+    if (hit.manaSteal !== undefined) int(`${name}.manaSteal`, hit.manaSteal);
   };
   int("chargeFrames", moves.smashMaxChargeFrames);
   int("maxPummels", moves.maxPummels ?? -1);
@@ -320,7 +321,8 @@ function hitEffectCanonical(hit: Readonly<HitEffect>, prefix: string): string {
   return canonicalRealField(`${prefix}.damage`, hit.damage) + canonicalRealField(`${prefix}.growth`, hit.growth)
     + canonicalRealField(`${prefix}.base`, hit.base) + canonicalRealField(`${prefix}.launchX`, hit.launchX)
     + canonicalRealField(`${prefix}.launchZ`, hit.launchZ) + canonicalInt(`${prefix}.electric`, hit.electric ? 1 : 0)
-    + canonicalInt(`${prefix}.element`, hit.element ?? 0) + (hit.carry === true ? canonicalInt(`${prefix}.carry`, 1) : "");
+    + canonicalInt(`${prefix}.element`, hit.element ?? 0) + (hit.carry === true ? canonicalInt(`${prefix}.carry`, 1) : "")
+    + (hit.manaSteal === undefined ? "" : canonicalInt(`${prefix}.manaSteal`, hit.manaSteal));
 }
 
 /** A hero's authored specials; empty for fighters without them. */
@@ -626,6 +628,8 @@ export function writeObservations(writer: ObservationWriter, opponents: Slots<Re
     writer.number(f.attack.serial);
     writer.number(f.attack.cooldown);
     writer.number(f.special.action);
+    if (f.special.ex) writer.number(197);
+    if (f.special.exArmorUsed) writer.number(198);
     writer.number(f.special.frame);
     writer.number(f.special.duration);
     writer.number(f.special.lockFrames);
@@ -848,6 +852,8 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   if (ps.lastKey !== -1) int("passiveLastKey", ps.lastKey);
   if (ps.lastTarget !== -1) int("passiveLastTarget", ps.lastTarget);
   int("specialAction", sp.action);
+  if (sp.ex) bool("specialEx", true);
+  if (sp.exArmorUsed) bool("specialExArmorUsed", true);
   int("specialFrame", sp.frame);
   int("specialDuration", sp.duration);
   int("specialLockFrames", sp.lockFrames);
@@ -1109,6 +1115,8 @@ function writeState(emit: Emit, state: Readonly<ReplayState>): void {
   bool("match.stagePool.only", match.stagePool.only);
   int("match.stagePool.selectedMask", match.stagePool.selectedMask);
   int("match.stagePool.remainingMask", match.stagePool.remainingMask);
+  bool("match.hazards", match.hazards);
+
   int("match.winner", match.winner ?? -1);
   int("match.humanCount", match.humanCount);
   int("match.humanMask", match.humanMask);

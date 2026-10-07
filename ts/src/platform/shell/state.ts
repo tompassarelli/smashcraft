@@ -5,6 +5,7 @@
 // recreates them (ui.ts).
 import type { CryGate } from "../../game/presentation/hurtVoice";
 import type { StageLoad } from "../../game/shell/stageLoad";
+import type { CameraExtreme } from "../../game/presentation/arenaCamera";
 import type { Action } from "../../game/input/actions";
 import { type KeyboardCapture, keyboardCapture } from "../../game/input/keyboardCapture";
 import { PARTICIPANT_SLOTS, type ParticipantInputs, type ParticipantSlot, type Slots, participantActive, participantInputs } from "../../game/input/participants";
@@ -249,6 +250,8 @@ export interface ShellState {
   drawnStage: number;
   stageCannon: effect | undefined;
   stageScenery: effect[] | undefined;
+  /** `-dev view near|far` holds the local camera at a stage's camera extreme for captures; never in replay state. */
+  viewExtreme: CameraExtreme | undefined;
   /** Menus, HUD and renderers; retained and rebound on hot reload. */
   ui: UiObjects | undefined;
   readonly sounds: ModelSoundCursor;
@@ -355,7 +358,7 @@ export function createShellState(build: MapBuild, setup: ShellSetup): ShellState
     produced: createFrameControls(), runtime: createPacingAndPresentation(), session: createMatchControls(),
     frameInput: createMatchFrameInput(),
     participants: [participant(0, persistence), participant(1, persistence), participant(2, persistence), participant(3, persistence)],
-    status: { text: "", seconds: 0.0 }, frames: setup.frames, stageDecks: [], drawnStage: 0, stageCannon: undefined, stageScenery: undefined, ui: undefined,
+    status: { text: "", seconds: 0.0 }, frames: setup.frames, stageDecks: [], drawnStage: 0, stageCannon: undefined, stageScenery: undefined, viewExtreme: undefined, ui: undefined,
     sounds: createModelSoundCursor(ORIGINAL_MODEL_SOUNDS),
     dev: { rollback: isShadow(input) ? input.rollback : 6, delay: isShadow(input) ? input.delay : 3, batch: DEFAULT_BATCH, rematchSeconds: REMATCH_COUNTDOWN_SECONDS }, devReceipts: 0,
     trace: inputTrace(build.responseProbe || build.inputProfile === "native-driver" ? 2048 : 256),

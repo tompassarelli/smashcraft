@@ -53,7 +53,7 @@ Every ordinary contact is one hit per target and action.
 | Back air | Turned rear flame sweep; longer spacing | 12/3/24, land 16; 11%; −135 | [Verdant Spheres][wc] | [Mewtwo back air][mw] |
 | Up air | Raised hands and sphere; juggle | 10/4/21, land 14; 9%; height 155 | [Verdant Spheres][wc] | [Mewtwo up air][mw] |
 | Down air | Downward flame thrust; air spike, ground lift | 15/3/29, land 20; 12%; −92 | [Flame Strike][wc] | [Mewtwo down air][mw] |
-| Grab / pummel | Hand reaches to a suspended enemy; local sphere squeeze | Grab 8/2/26, reach 70; shared pummel timing, 2% | [Banish][wc] | [Mewtwo grab/pummel][mw] |
+| Grab / pummel | Hand reaches to a suspended enemy; local sphere squeeze | Grab 8/2/26, reach 70; shared pummel timing, 3% | [Banish][wc] | [Mewtwo grab/pummel][mw] |
 | Forward throw | Palm pushes enemy toward flame spacing | release 14, recover 22; 7%, 35° | [Verdant Spheres][wc] | [Mewtwo forward throw][mw] |
 | Back throw | Sweep behind; edge-position reward | release 17, recover 25; 9%, 40° back | [Banish][wc] | [Mewtwo back throw][mw] |
 | Up throw | Lift then burst; short juggle | release 16, recover 15; 7%, 90° | [Banish][wc] | [Mewtwo up throw][mw] |
@@ -82,6 +82,10 @@ aerial jump and ends helpless. Walking off a ledge retains the aerial jump.
 The computer jumps first and aims Phoenix Flight at the ledge when needed.
 The stock Blood Mage and Phoenix/effect models and existing Warcraft sounds
 supply all presentation; no downloaded art or recordings are needed.
+The Flame Strike model's birth sequence draws its warning before its fire:
+presentation samples 0.5 seconds at placement and 1.5 seconds at the first
+active frame, then advances from each sample with the projectile clock.
+Playing the stock sequence from zero would leave this short attack invisible.
 
 ## Position in the roster
 

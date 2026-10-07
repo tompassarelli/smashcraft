@@ -124,8 +124,12 @@ export class ProjectilePresentation {
       BlzSetSpecialEffectScale(model, this.scale * pose.modelScale * (frostOrb ? 0.25 : 1.0));
       BlzSetSpecialEffectAlpha(model, 255);
       BlzSetSpecialEffectTimeScale(model, paused ? 0.0 : 1.0);
-      // Stationary spell areas hold their visible contact pose while armed.
-      if (projectile?.spec !== undefined && projectile.velocityX === 0.0 && projectile.velocityZ === 0.0) {
+      if (pose.animationSeconds !== undefined) {
+        if (!this.visible[slot] && pose.animationSequence !== undefined) BlzSetSpecialEffectAnimation(model, pose.animationSequence);
+        BlzSetSpecialEffectTime(model, pose.animationSeconds);
+        BlzSetSpecialEffectTimeScale(model, 0.0);
+      } else if (projectile?.spec !== undefined && projectile.velocityX === 0.0 && projectile.velocityZ === 0.0) {
+        // Stationary spell areas hold their visible contact pose while armed.
         BlzSetSpecialEffectTime(model, f32(0.3));
         BlzSetSpecialEffectTimeScale(model, 0.0);
       }

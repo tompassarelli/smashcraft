@@ -100,6 +100,8 @@ export function cancelSpecialState(f: Fighter): void {
     }
   }
   special.fall = false;
+  special.ex = false;
+  special.exArmorUsed = false;
   special.action = SpecialAction.none;
   special.frame = 0;
   special.duration = 0;

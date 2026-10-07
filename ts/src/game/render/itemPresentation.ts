@@ -8,7 +8,7 @@ import { centreItemText, itemName, itemSeconds, nextItemText } from "../presenta
 import { ItemKind } from "../sim/codes";
 import type { MatchCamera } from "../sim/matchCamera";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
-import { mainDeckZ } from "../sim/stage";
+import { mainDeckZAt } from "../sim/stage";
 import { createText, consoleUi } from "../ui/frames";
 import { MENU_FONT } from "../ui/hudLayout";
 import { hideEffect, STOCK_MODELS, type WorldOrigin } from "./effects";
@@ -28,6 +28,8 @@ export class ItemPresentation {
   private readonly clock = label("NextItem", f32(0.15));
   private readonly buffs = PARTICIPANT_SLOTS.map(slot => label(`ItemBuff${slot}`, f32(0.16)));
   private readonly pickup: effect;
+  private shownKind: number = ItemKind.none;
+  private shownStage = -1;
 
   constructor(private readonly origin: Readonly<WorldOrigin>) {
     this.pickup = AddSpecialEffect(STOCK_MODELS.immolationTarget, origin.x, origin.y);
@@ -47,13 +49,16 @@ export class ItemPresentation {
   present(game: Readonly<MatchState>, world: Readonly<Roster>, camera: Readonly<MatchCamera>, aspect: number): void {
     const playing = game.phase === Phase.match;
     const { items, matchFrame } = game;
-    const z = mainDeckZ(game.stageChoice);
+    const z = mainDeckZAt(game.stageChoice, 0.0);
     this.project(this.centre, playing ? centreItemText(items, matchFrame) : "", camera, aspect, 0.0, z + 90.0);
-    if (playing && items.kind !== ItemKind.none) {
+    const kind = playing ? items.kind : ItemKind.none;
+    if (kind !== ItemKind.none && (kind !== this.shownKind || game.stageChoice !== this.shownStage)) {
       BlzSetSpecialEffectPosition(this.pickup, this.origin.x, this.origin.y, this.origin.z + z + ITEM_HEIGHT);
       BlzSetSpecialEffectScale(this.pickup, 0.5);
       BlzSetSpecialEffectColor(this.pickup, items.kind === ItemKind.speed ? 80 : 220, items.kind === ItemKind.heavy ? 160 : 255, items.kind === ItemKind.speed ? 100 : 255);
-    } else hideEffect(this.pickup, this.origin);
+    } else if (kind === ItemKind.none && this.shownKind !== ItemKind.none) hideEffect(this.pickup, this.origin);
+    this.shownKind = kind;
+    this.shownStage = game.stageChoice;
     for (const slot of PARTICIPANT_SLOTS) {
       const f = isActive(world, slot) ? fighterAt(world, slot) : undefined;
       const text = playing && f !== undefined && !f.status.out && f.status.buffFrames > 0 ? `${itemName(f.status.buff)} ${itemSeconds(f.status.buffFrames)}s` : "";

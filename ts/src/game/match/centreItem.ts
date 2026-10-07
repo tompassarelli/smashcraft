@@ -14,7 +14,7 @@ import { canStartAttackStyle, inGrabContext } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
 import { applyItemBuff } from "../sim/itemBuffs";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
-import { mainDeckZ } from "../sim/stage";
+import { mainDeckZAt } from "../sim/stage";
 import { bodyTop } from "../sim/surfaces";
 import { melee } from "../sim/tuning";
 import type { FrameControls } from "./controls";
@@ -125,7 +125,7 @@ export function advanceItems(game: MatchState, world: Roster, controls: FrameCon
     scheduleNext(items, game.matchSeed, game.matchFrame);
   }
   if (items.kind === ItemKind.none) return;
-  const deckZ = mainDeckZ(game.stageChoice);
+  const deckZ = mainDeckZAt(game.stageChoice, 0.0);
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) continue;
     const f = fighterAt(world, slot);

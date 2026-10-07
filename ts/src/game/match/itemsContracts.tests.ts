@@ -9,11 +9,10 @@ import { prepareQuickMatch } from "../shell/devSettings";
 import { AttackStyle, Character, GroundAction, HeroStatusKind, ItemKind, LedgeState, itemBit } from "../sim/codes";
 import { createFighter } from "../sim/fighter";
 import { advanceGroundMovement } from "../sim/groundMovement";
-import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
-import { applyItemBuff } from "../sim/itemBuffs";
+import { applyItemBuff, knockbackWeight } from "../sim/itemBuffs";
 import { beginJump } from "../sim/jumpsAndDodges";
 import { advanceLedge } from "../sim/ledge";
-import { applyMeleeGravity, retainedOriginal, termsOfPhysics } from "../sim/motion";
+import { airDriftVelocity, applyMeleeGravity, retainedOriginal, termsOfPhysics } from "../sim/motion";
 import { controls, hitEffect, soloWorld, testWorld, contactBatch } from "../sim/testWorld";
 import { fighterAt } from "../sim/roster";
 import { advanceFighter } from "../sim/step";
@@ -75,7 +74,7 @@ test("centre items spawn 30–60 seconds after GO and warn exactly ten seconds a
 });
 
 test("every fighter takes every item with a normal attack or grab; expiry includes the pickup frame", () => {
-  for (const character of SELECTABLE_CHARACTERS) for (const kind of [ItemKind.speed, ItemKind.extraJump, ItemKind.heavy]) for (const style of [AttackStyle.jab, AttackStyle.grab]) {
+  for (const character of Object.values(Character)) for (const kind of [ItemKind.speed, ItemKind.extraJump, ItemKind.heavy]) for (const style of [AttackStyle.jab, AttackStyle.grab]) {
     const { game, first, world, input } = pickup(character, kind, style);
     assertEquals(first.status.buffFrames, 599);
     for (let frame = 2; frame < 600; frame++) stepMatch(game, world, input, frame);
@@ -95,7 +94,7 @@ test("every fighter takes every item with a normal attack or grab; expiry includ
 });
 
 test("Speed raises every fighter's walk dash run and ledge/air/ground jump, without scaling its cap twice", () => {
-  for (const character of SELECTABLE_CHARACTERS) {
+  for (const character of Object.values(Character)) {
     for (const walking of [true, false]) {
       const plain = createFighter(character, 0.0, 1);
       const buffed = createFighter(character, 0.0, 1);
@@ -116,6 +115,12 @@ test("Speed raises every fighter's walk dash run and ledge/air/ground jump, with
       advanceGroundMovement(buffed, 1, walking);
       assertNear(buffed.motion.vx, f32(1.3), f32(0.0001));
     }
+    const air = createFighter(character, 0.0, 1);
+    applyItemBuff(air, ItemKind.speed);
+    assertEquals(airDriftVelocity(air, 1000.0, 1), f32(air.tuning.physics.airCap * f32(1.3)));
+    let airSpeed = 0.0;
+    for (let frame = 0; frame < 300; frame++) airSpeed = airDriftVelocity(air, airSpeed, 1);
+    assertEquals(airSpeed, Math.min(f32(air.tuning.physics.airSpeed * f32(1.3)), f32(air.tuning.physics.airCap * f32(1.3))));
     const dash = createFighter(character, 0.0, 1);
     applyItemBuff(dash, ItemKind.speed);
     advanceGroundMovement(dash, 1, false);
@@ -145,7 +150,7 @@ test("Speed raises every fighter's walk dash run and ledge/air/ground jump, with
 });
 
 test("Extra Jump grants one immediately, refills on landing and never stacks beyond one", () => {
-  for (const character of SELECTABLE_CHARACTERS) {
+  for (const character of Object.values(Character)) {
     const { first, world, game, input } = pickup(character, ItemKind.extraJump);
     assertEquals(first.jump.remaining, 3);
     beginJump(first, 0);
@@ -168,10 +173,11 @@ test("Extra Jump grants one immediately, refills on landing and never stacks bey
 });
 
 test("Heavy gives every fighter 1.5 weight and 1.3 gravity terminal and fast-fall speeds", () => {
-  for (const character of SELECTABLE_CHARACTERS) {
+  for (const character of Object.values(Character)) {
     const plain = createFighter(character, 0.0, 1);
     const heavy = createFighter(character, 0.0, 1);
     applyItemBuff(heavy, ItemKind.heavy);
+    assertEquals(knockbackWeight(heavy), f32(heavy.tuning.physics.weight * 1.5));
     applyMeleeGravity(heavy);
     const terms = termsOfPhysics(heavy.tuning.physics);
     assertEquals(retainedOriginal(heavy.motion.meleeVelocityZ, heavy.motion.vz), -f32(terms.gravity * f32(1.3)));
