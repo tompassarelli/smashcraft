@@ -3,7 +3,7 @@ import { Phase, createMatchState, fighterMask, selectCharacter, setParticipants 
 import { Character } from "../sim/codes";
 import { MAX_BATCH } from "../netcode/journal/transport";
 import { REPLAY_MAX_CORRECTION_FRAMES } from "../replay/limits";
-import { type DevSettings, QUICK_CPU_STOCKS, applyDevCommand, prepareQuickCpu, prepareQuickMatch, quickMatchCpuHero, quickMatchCpuProfile, quickMatchHero, quickRecoveryHero } from "./devSettings";
+import { type DevSettings, QUICK_CPU_STOCKS, applyDevCommand, prepareQuickCpu, prepareQuickMatch, quickMatchCpuHero, quickMatchCpuProfile, quickMatchHero, quickRecoveryHero, quickOffstageHero } from "./devSettings";
 import { SELECTABLE_CHARACTERS, fighterName } from "../sim/heroes/registry";
 
 const settings = (): DevSettings => ({ rollback: 24, delay: 0, batch: 2, rematchSeconds: 5 });
@@ -83,6 +83,7 @@ test("recovery capture commands select every fighter by name without changing or
   for (const character of SELECTABLE_CHARACTERS) {
     const name = fighterName(character);
     assertEquals(quickRecoveryHero(`-dev quick recovery hero ${name.toUpperCase()}`), character);
+    assertEquals(quickOffstageHero(`-dev quick offstage hero ${name.toUpperCase()}`), character);
     assertEquals(quickMatchHero(`-dev quick recovery hero ${name}`), undefined);
     assertEquals(quickRecoveryHero(`-dev quick hero ${name}`), undefined);
   }

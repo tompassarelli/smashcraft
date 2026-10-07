@@ -5,6 +5,7 @@
 // keys): a charged-angle up special flies any of eight directions picked in
 // its startup, and a guided one steers while it travels.
 import { assertDefined, assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
+import { f32 } from "wisp/src/sim/f32";
 import { Action, bit } from "../input/actions";
 import { copyInput } from "../input/inputRow";
 import { type KeyboardCapture, commitEdges, keyboardCapture, sampleKeys } from "../input/keyboardCapture";
@@ -186,7 +187,7 @@ test("a charged-angle up special flies any of eight directions held in its start
 test("a stick a little off a direction still picks that direction's aim", () => {
   for (const character of CHARGED_ANGLE) {
     // About 17 degrees above level and 17 degrees off vertical.
-    for (const [x, z, aimX, aimZ] of [[0.95, 0.3, 1, 0], [0.3, 0.95, 0, 1], [0.95, -0.3, 1, 0]] as const) {
+    for (const [x, z, aimX, aimZ] of [[f32(0.95), f32(0.3), 1, 0], [f32(0.3), f32(0.95), 0, 1], [f32(0.95), f32(-0.3), 1, 0]] as const) {
       const step = launchStep(stickDriver(character, 100), x, z);
       const length = Math.sqrt(step.x * step.x + step.z * step.z);
       check(component(step.x, length) === aimX && component(step.z, length) === aimZ, `${fighterName(character)} ${x},${z} flew ${step.x},${step.z}`);
