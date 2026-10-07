@@ -158,17 +158,17 @@ export const HitElement = { normal: 0, fire: 1, electric: 2, slash: 3, ice: 5, d
 export type HitElement = (typeof HitElement)[keyof typeof HitElement];
 
 /** Hero statuses (sim/heroStatus.ts) a body hit applies. Append only: the code is in replay text. */
-export const HeroStatusKind = { none: 0, sleep: 1, poison: 2, hex: 3, stun: 4, chill: 5, terror: 6, carried: 7 } as const;
+export const HeroStatusKind = { none: 0, sleep: 1, poison: 2, hex: 3, stun: 4, chill: 5, carried: 7 } as const;
 export type HeroStatusKind = (typeof HeroStatusKind)[keyof typeof HeroStatusKind];
 
 /**
  * Hero status immunity groups: a status ending in a group makes its fighter
  * immune to every status of that group for the authored frames. Hex and
- * silence are meant to share one group; Terror has its own.
+ * silence share one group.
  */
-export const HeroStatusGroup = { sleep: 0, silence: 1, chill: 2, terror: 3 } as const;
+export const HeroStatusGroup = { sleep: 0, silence: 1, chill: 2 } as const;
 export type HeroStatusGroup = (typeof HeroStatusGroup)[keyof typeof HeroStatusGroup];
-export const HERO_STATUS_GROUPS = 4;
+export const HERO_STATUS_GROUPS = 3;
 
 /** Competitive pickups (#196, match/items.ts, sim/itemBuffs.ts). Append only: the code is in replay text. */
 export const ItemKind = { none: 0, speed: 1, extraJump: 2, heavy: 3 } as const;

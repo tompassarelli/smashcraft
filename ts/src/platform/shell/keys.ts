@@ -28,6 +28,7 @@ import { clearCapturedInputs } from "./inputs";
 import { journalEpoch, journalIdentity } from "./journal";
 import { chatBusy, requestPause } from "./journalPause";
 import { Key } from "./keyEvents";
+import { cancelPendingPlaytest } from "./playtest";
 import { startBodyFit } from "./bodyFit";
 import { startAgencyFixture } from "./agencyFixture";
 import { clearVisualCapture, configureVisualCapture } from "../../game/shell/visualCapture";
@@ -82,6 +83,7 @@ function journalMenuKey(s: ShellState, slot: ParticipantSlot, key: number): bool
   else if (key === Key.n) {
     if (s.game.phase !== Phase.characterMenu) confirm(s, slot);
     else {
+      cancelPendingPlaytest();
       selectCharacter(s.game, slot, characterFor(s.game, slot) ?? 0);
       makePreview(s);
     }
@@ -293,6 +295,9 @@ export function applyDeveloperCommand(s: ShellState, actor: number, original: st
     receipt = `dev: lighting ${authored ? "stage" : "stock"}`;
   } else if (message === "-dev smooth-draw") {
     receipt = startDrawingBetweenFrames() ? "dev: smooth draw on" : "dev: smooth draw already on";
+  } else if (message === "-dev camera-smooth on" || message === "-dev camera-smooth off") {
+    s.cameraTween = message === "-dev camera-smooth on";
+    receipt = `dev: camera smooth ${s.cameraTween ? "on" : "off"}`;
   } else if (message === "-dev render-clock") {
     receipt = "dev: render clock probe";
     probeRenderClock();

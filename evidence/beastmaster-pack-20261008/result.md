@@ -1,6 +1,7 @@
 # Beastmaster pack: issue 215
 
-Four of five issue checks pass. Tom's fun verdict remains pending.
+All four current issue checks pass. Bear readability is checked automatically
+below.
 
 The design landed first in `8423ac38`. The pack implementation is `fa500819`,
 and `777b659f` records companion CPU activity and pauses Quilbeast's automatic
@@ -42,6 +43,28 @@ worker owns that tuning. Beastmaster's issue requires his own field result.
 - Final run: [37657370014](https://github.com/tompassarelli/smashcraft/actions/runs/37657370014), [field report](field-r2.md).
 
 The whole Bun suite reached pre-existing numeric expectation failures before
-its 300-second stop. The accepted-number cleanup has a separate owner; all
-new Beastmaster contracts above pass. Tom still needs to play Beastmaster and
-judge whether commanding this pack is fun.
+its 300-second stop. The accepted-number cleanup subsequently landed as `267eb68c`; all
+new Beastmaster contracts above pass.
+
+## Bear readability follow-up
+
+Design `9dc18f3e` precedes the feedback implementation. Every command rears Bear
+48.7 degrees, enlarges its windup silhouette by 25%, shows the stock Battle Roar
+crest and plays BattleRoar once. A marker over Bear reads FOLLOWING, CHARGING,
+ATTACKING or RESTING. The attack starts from its contact pose and completes
+one swipe; connected bites play MetalHeavySliceFlesh and a short impact burst.
+No simulation values changed after the passing field.
+
+- Bun and Lua32: two feedback contracts pass, measuring 10 charging / 4 attacking
+  / 30 resting frames, three roars in three commands, and two hit cues for two
+  connected bites. Repeated confirmed frames emit no duplicate cue.
+- Renderer contract: the rear-up exceeds 0.8 radians and 20% scale increase;
+  all four labels sit above Bear, one roar and one connected-hit sound play,
+  and the expired animal and marker hide. The match/rematch check also passes
+  with zero repeated updates of parked effects.
+- Updated real-helper script: eight form expectations, seven model checks
+  including the roar crest, 50 input edges and zero off-frame or late writes.
+  Its first input moved from frame 60 to 180 after one busy-machine run began
+  observing at frame 76; all action intervals and expectations are preserved.
+- BattleRoar and MetalHeavySliceFlesh are present in the stock sound tables;
+  their `.ogg` files were extracted successfully into private storage.

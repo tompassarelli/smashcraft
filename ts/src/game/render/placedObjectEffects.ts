@@ -8,6 +8,9 @@ import { type Fighter, type PlacedObject, placedObject } from "../sim/fighter";
 import { CompanionMode } from "../sim/heroSpecials";
 import { heroDefinition } from "../sim/heroes/registry";
 import { type ParkedFlags, type WorldOrigin, parkOnce, placeEffect } from "./effects";
+import { bearState } from "../presentation/bearFeedback";
+import { BearFeedback } from "./bearFeedback";
+import { bindPrototype } from "../../platform/rebind";
 
 /** Serpent Ward, the default placed object: the classic model stands about 300 units tall. */
 const PLACED_OBJECT_MODEL = "Units\\Orc\\SerpentWard\\SerpentWard.mdx";
@@ -22,8 +25,10 @@ export class PlacedObjectEffects {
   private attackStarts: number[] | undefined;
   private readonly lastX: number[] = [];
   private parked: ParkedFlags | undefined;
+  private feedback: BearFeedback;
 
   constructor(private readonly origin: WorldOrigin) {
+    this.feedback = new BearFeedback(origin);
     this.models = [];
     this.paths = [];
     for (const slot of PARTICIPANT_SLOTS) for (let animal = 0; animal < 3; animal++) {
@@ -49,10 +54,19 @@ export class PlacedObjectEffects {
 
   clear(): void {
     for (let slot = 0; slot < this.models.length; slot++) this.hideModel(slot);
+    this.feedback.clear();
   }
+
+  bindNestedCode(): void {
+    this.feedback ??= new BearFeedback(this.origin);
+    bindPrototype(this.feedback, BearFeedback.prototype);
+  }
+
+  presentConfirmed(frame: number, fighter: Readonly<Fighter>, slot: number): void { this.feedback.confirm(frame, fighter, slot); }
 
   hideSlot(slot: number): void {
     for (let animal = 0; animal < 3; animal++) this.hideModel(slot * 3 + animal);
+    this.feedback.hide(slot);
   }
 
   private hideModel(slot: number): void {
@@ -66,6 +80,7 @@ export class PlacedObjectEffects {
       if (animal > fighter.pack.length) this.hideModel(slot * 3 + animal);
       else this.presentAnimal(fighter, placedObject(fighter, animal), slot * 3 + animal);
     }
+    this.feedback.present(fighter, slot);
   }
 
   private presentAnimal(fighter: Readonly<Fighter>, placed: Readonly<PlacedObject>, slot: number): void {
@@ -82,8 +97,9 @@ export class PlacedObjectEffects {
     const { x, y, z } = this.origin;
     placeEffect(model, x + placed.x, y, z + placed.z);
     BlzSetSpecialEffectYaw(model, placed.direction > 0 ? 0.0 : f32(3.14159274));
-    if (spec.companion !== undefined) this.animate(model, slot, placed);
-    BlzSetSpecialEffectScale(model, f32(spec.height / look.height));
+    const bear = placed === fighter.placed ? bearState(fighter) : undefined;
+    if (spec.companion !== undefined) this.animate(model, slot, placed, bear);
+    BlzSetSpecialEffectScale(model, f32(spec.height / look.height * (bear === "CHARGING" ? 1.25 : 1.0)));
     // A damaged object fades toward half its opacity as its durability runs out.
     const left = f32(Math.max(0.0, placed.durability) / spec.durability);
     const half = idiv(look.alpha, 2);
@@ -91,7 +107,7 @@ export class PlacedObjectEffects {
   }
 
   /** Keep the attack's windup and follow-through visible; the contact window alone cuts off the stock animation. */
-  private animate(model: effect, slot: number, placed: Readonly<PlacedObject>): void {
+  private animate(model: effect, slot: number, placed: Readonly<PlacedObject>, bear: ReturnType<typeof bearState>): void {
     const { x, mode } = placed;
     const partner = placed.spec?.companion;
     let attackStart = -1;
@@ -120,6 +136,8 @@ export class PlacedObjectEffects {
         }
       }
     }
+    if (bear === "CHARGING") { attackStart = -1; pitch = f32(-0.85); speed = 0.0; }
+    else if (bear === "ATTACKING" || bear === "RESTING" && mode === CompanionMode.lunge) speed = 1.5;
     BlzSetSpecialEffectPitch(model, pitch);
     BlzSetSpecialEffectTimeScale(model, speed);
     const moved = this.lastX[slot] !== undefined && this.lastX[slot] !== x;
@@ -130,9 +148,11 @@ export class PlacedObjectEffects {
     this.anims[slot] = anim;
     attackStarts[slot] = attackStart;
     BlzPlaySpecialEffect(model, anim === 2 ? ANIM_TYPE_ATTACK : anim === 1 ? ANIM_TYPE_WALK : ANIM_TYPE_STAND);
+    if (bear === "ATTACKING") BlzSetSpecialEffectTime(model, f32(0.5));
   }
 
   destroy(): void {
     for (const model of this.models) DestroyEffect(model);
+    this.feedback.destroy();
   }
 }
