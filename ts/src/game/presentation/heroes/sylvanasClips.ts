@@ -58,7 +58,7 @@ export const SYLVANAS_CLIPS = {
   grabHold: { index: 57, seconds: 1.0, aligned: true },
   grabbed: { index: 58, seconds: 1.0, aligned: true },
   pummel: { index: 59, seconds: f32(1.133), aligned: true, contact: 1.0 },
-  victimPummel: { index: 60, seconds: f32(1.133), aligned: true, contact: 1.0 },
+  victimPummel: { index: 60, seconds: 1.0, aligned: true, contact: 0.5 },
   throwForward: { index: 61, seconds: 1.0, aligned: true, contact: 0.5 },
   victimThrowForward: { index: 62, seconds: 1.0, aligned: true, contact: 0.5 },
   throwBack: { index: 63, seconds: 1.0, aligned: true, contact: 0.5 },
