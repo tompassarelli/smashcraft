@@ -46,15 +46,15 @@ const frostNovaBurst = (landingLag: number | undefined): AuthoredSpecial => ({
 });
 
 /**
- * Death and Decay: a field placed on frame 8, 1.5H ahead or 0.9H when pressed
- * backward (Lich keeps facing), only with a clear line from Lich. It strikes
+ * Death and Decay: a field placed on frame 8, 1.5H ahead (a backward press turns Lich
+ * first), only with a clear line from Lich. It strikes
  * the first body or shield in it from frame 30 (age 23, a projectile counts
  * its spawn frame as age one) and again from frame 70, and is gone after
  * frame 97. Interrupting Lich before the first strike removes both.
  */
 const decayStrike = (activeFrom: number, life: number, damage: number, kind: "POKE" | "LAUNCH", angle: 70 | 80): SpecialProjectile => ({
   model: "Abilities\\Spells\\Undead\\DeathAndDecay\\DeathAndDecayTarget.mdx",
-  spawnFrame: 8, offsetX: h(f32(1.5)), backOffsetX: h(f32(0.9)), offsetZ: CHEST, velocityX: 0.0, velocityZ: 0.0,
+  spawnFrame: 8, offsetX: h(f32(1.5)), offsetZ: CHEST, velocityX: 0.0, velocityZ: 0.0,
   life, activeFrom, radius: h(f32(0.75)), effect: hit(damage, kind, angle, false, HitElement.dark),
   reflectable: false, limit: 1, cancelOnInterrupt: true, needsLineOfSight: true,
 });

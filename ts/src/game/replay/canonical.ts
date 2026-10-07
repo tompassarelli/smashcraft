@@ -259,7 +259,6 @@ export function specialProjectileCanonical(spec: Readonly<SpecialProjectile>, pr
       real("status.tick.damage", spec.status.tick.damage);
     }
   }
-  real("backOffsetX", spec.backOffsetX ?? -1.0);
   int("needsLineOfSight", spec.needsLineOfSight === true ? 1 : 0);
   if (spec.returns !== undefined) {
     int("returns.age", spec.returns.age);
@@ -749,7 +748,8 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   real("physics.aerialJumpHorizontalSpeed", t.physics.aerialJumpHorizontalSpeed);
   real("physics.shieldBreakSpeed", t.physics.shieldBreakSpeed);
   int("facing", fighter.facing);
-  int("lastAerialTapDirection", m.lastAerialTapDirection);
+  int("turnaroundSide", m.turnaroundSide);
+  int("turnaroundAge", m.turnaroundAge);
   int("dashFrame", g.dashFrame);
   int("dashDirection", g.dashDirection);
   real("x", m.x);

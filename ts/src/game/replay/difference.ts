@@ -83,7 +83,8 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("wallTechAnimationEndFrame", expectedTuning.tech.wallAnimationEndFrame, actualTuning.tech.wallAnimationEndFrame);
   add("wallJumpTechAnimationEndFrame", expectedTuning.tech.wallJumpAnimationEndFrame, actualTuning.tech.wallJumpAnimationEndFrame);
   add("facing", e.facing, a.facing);
-  add("lastAerialTapDirection", e.motion.lastAerialTapDirection, a.motion.lastAerialTapDirection);
+  add("turnaroundSide", e.motion.turnaroundSide, a.motion.turnaroundSide);
+  add("turnaroundAge", e.motion.turnaroundAge, a.motion.turnaroundAge);
   add("dashFrame", e.ground.dashFrame, a.ground.dashFrame);
   add("dashDirection", e.ground.dashDirection, a.ground.dashDirection);
   record("groundRules", expectedTuning.ground, actualTuning.ground, GROUND_RULE_KEYS);

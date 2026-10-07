@@ -1,7 +1,7 @@
 // Losing a stock past the blast zone, and respawning.
 import { max } from "../../runtime/numbers";
 import { GrabAction, SurfaceContact } from "./codes";
-import { PLATFORM_DROP_INPUT_WINDOW, SHIELD_MAX, SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES, WALL_JUMP_FLICK_FRAMES, WALL_TECH_JUMP_INPUT_WINDOW_FRAMES } from "./fighter";
+import { PLATFORM_DROP_INPUT_WINDOW, SHIELD_MAX, SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES, TURNAROUND_SPECIAL_WINDOW_FRAMES, WALL_JUMP_FLICK_FRAMES, WALL_TECH_JUMP_INPUT_WINDOW_FRAMES } from "./fighter";
 import { clearDash } from "./groundMovement";
 import { TOP_KO_MINIMUM_UPWARD_KNOCKBACK } from "./knockback";
 import { clearMotionValue, setWorldMotionValue } from "./motion";
@@ -96,7 +96,8 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   f.status.armorChills = false;
   f.status.divineFrames = 0;
   clearHeroStatus(f);
-  motion.lastAerialTapDirection = 0;
+  motion.turnaroundSide = 0;
+  motion.turnaroundAge = TURNAROUND_SPECIAL_WINDOW_FRAMES + 1;
   hits.lastAttacker = undefined;
   hits.lastAttackSerial = undefined;
   hits.lastWindow = 0;

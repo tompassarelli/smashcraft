@@ -34,6 +34,7 @@ import {
   type Fighter,
   PLATFORM_DROP_INPUT_WINDOW,
   SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES,
+  TURNAROUND_SPECIAL_WINDOW_FRAMES,
   WALL_JUMP_FLICK_FRAMES,
   WALL_TECH_JUMP_INPUT_WINDOW_FRAMES,
 } from "./fighter";
@@ -373,6 +374,12 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   motion.stickSideAge = stickSide === 0 ? WALL_JUMP_FLICK_FRAMES : stickSide === motion.previousStickSide ? min(WALL_JUMP_FLICK_FRAMES, motion.stickSideAge + 1) : 0;
   trackWrapMotion(f, stickSide, stickSide !== motion.previousStickSide, input.down);
   motion.previousStickSide = stickSide;
+  if (input.direction !== 0) {
+    motion.turnaroundSide = input.direction < 0 ? -1 : 1;
+    motion.turnaroundAge = 0;
+  } else {
+    motion.turnaroundAge = min(TURNAROUND_SPECIAL_WINDOW_FRAMES + 1, motion.turnaroundAge + 1);
+  }
   // Expiry resumes this frame, including input gates and state countdowns.
   const hitlagBefore = launch.hitlag;
   launch.hitlag = max(0, launch.hitlag - 1);
@@ -515,7 +522,6 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
     && (!motion.grounded || attack.cooldown <= 0) && f.surfaceRecovery.state !== SurfaceContact.techWall;
   motion.crouching = input.down && input.direction === 0 && motion.grounded && canSteer && !wantsShield
     && attack.style === undefined && f.special.action === SpecialAction.none;
-  if (canSteer && !motion.grounded && direction !== 0) motion.lastAerialTapDirection = direction;
   if (!canSteer || wantsShield || !motion.grounded) clearDash(f);
   if (canSteer) {
     if (!wantsShield) {

@@ -37,6 +37,8 @@ export const PLATFORM_DROP_INPUT_WINDOW = 6;
 export const WALL_TECH_JUMP_INPUT_WINDOW_FRAMES = 20;
 /** PlCo +0x770: a wall jump needs the stick to have crossed the horizontal smash deadzone fewer input frames ago than this. */
 export const WALL_JUMP_FLICK_FRAMES = 3;
+/** A neutral special faces the side the stick last pressed at most this many input frames before it (smashcraft:docs/gameplay-design.md, "Turnaround specials"). */
+export const TURNAROUND_SPECIAL_WINDOW_FRAMES = 8;
 const STARTING_STOCKS = 3;
 /** A tech press age that is never inside a window; the input driver saturates at 255. */
 
@@ -73,8 +75,10 @@ interface Motion {
   previousStickSide: number;
   /** Input frames since the stick crossed that deadzone to its current side (Melee's stick-x timer); ages past the wall-jump flick window are equivalent. */
   stickSideAge: number;
-  /** The last air-steering direction; a neutral aerial special turns to it. */
-  lastAerialTapDirection: number;
+  /** The side the stick last pressed: -1, 0 or 1. */
+  turnaroundSide: number;
+  /** Input frames since then; ages past the turnaround special window are equivalent. */
+  turnaroundAge: number;
 }
 
 interface GroundMovement {
@@ -593,7 +597,8 @@ export function createFighter(character: Character, startX: number, facing: numb
       fastFallInputAge: PLATFORM_DROP_INPUT_WINDOW,
       previousStickSide: 0,
       stickSideAge: WALL_JUMP_FLICK_FRAMES,
-      lastAerialTapDirection: 0,
+      turnaroundSide: 0,
+      turnaroundAge: TURNAROUND_SPECIAL_WINDOW_FRAMES + 1,
     },
     ground: {
       dashFrame: 0,

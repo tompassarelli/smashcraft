@@ -91,6 +91,12 @@ function recallHolds(f: Readonly<Fighter>, kit: Readonly<SpecialKit>): boolean {
   return f.placed.life > 0;
 }
 
+/** Why a press was refused: below its cost without a free form, or a ground-only form in the air. */
+export interface SpecialRefusal {
+  manaShort: boolean;
+  groundOnly: boolean;
+}
+
 export interface HeroSpecialChoice {
   slot: SpecialSlot;
   form: SpecialForm;
@@ -104,8 +110,9 @@ const choice: HeroSpecialChoice = { slot: SpecialSlot.neutral, form: SpecialForm
  * the air, already used this airtime, or past an entity limit. Below the full
  * cost, a kit with a free form chooses it; one without refuses (`manaShort`).
  */
-export function chooseHeroSpecial(f: Readonly<Fighter>, specials: Readonly<FighterSpecials>, input: Readonly<Controls>, out: { manaShort: boolean }, world?: Roster): HeroSpecialChoice | undefined {
+export function chooseHeroSpecial(f: Readonly<Fighter>, specials: Readonly<FighterSpecials>, input: Readonly<Controls>, out: SpecialRefusal, world?: Roster): HeroSpecialChoice | undefined {
   out.manaShort = false;
+  out.groundOnly = false;
   const slot = requestedSlot(input);
   if ((f.special.cooldowns[SpecialAction.heroNeutral + slot] ?? 0) > 0) return undefined;
   const kit = specialKit(specials, slot);
@@ -115,7 +122,10 @@ export function chooseHeroSpecial(f: Readonly<Fighter>, specials: Readonly<Fight
   const souls = kit.soul !== undefined && heldSouls(f) > 0;
   let form: SpecialForm = recalls ? SpecialForm.recall : marks ? SpecialForm.marked : souls ? SpecialForm.soul : airborne && kit.air !== undefined ? SpecialForm.air : SpecialForm.ground;
   let move = specialForm(kit, form);
-  if (move.groundOnly === true && airborne) return undefined;
+  if (move.groundOnly === true && airborne) {
+    out.groundOnly = true;
+    return undefined;
+  }
   if (move.armor?.shell === true && f.status.armorFrames > 0) return undefined;
   if (move.cost > f.mana.points) {
     if (kit.free === undefined) {
@@ -221,12 +231,8 @@ function clearLine(stage: number, fromX: number, fromZ: number, toX: number, toZ
   return true;
 }
 
-/** Whether the special was pressed toward the fighter's back, which keeps its facing. */
-const pressedBackward = (f: Readonly<Fighter>): boolean => f.special.aimX !== 0 && f.special.aimX === -f.facing;
-
 function spawnHeroProjectile(owner: Fighter, spec: Readonly<SpecialProjectile>, serial: number, stage: number): void {
-  const offsetX = spec.backOffsetX !== undefined && pressedBackward(owner) ? spec.backOffsetX : spec.offsetX;
-  const x = f32(owner.motion.x + f32(owner.facing * offsetX));
+  const x = f32(owner.motion.x + f32(owner.facing * spec.offsetX));
   const z = f32(owner.motion.z + spec.offsetZ);
   if (spec.needsLineOfSight === true && !clearLine(stage, owner.motion.x, z, x, z)) return;
   const up = owner.special.aimZ > 0 && spec.upVelocityX !== undefined;

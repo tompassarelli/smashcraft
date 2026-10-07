@@ -380,6 +380,35 @@ checks that every oracle departure names a row here.
 | Platform descent | A fresh down falls through at once | Ultimate drops through at once ([SmashWiki](https://www.ssbwiki.com/Soft_platform)); Rivals 2 not sourced | A vulnerable descent over the jump squat; a half-circle onto a platform from above wraps under it ([Platforms](#platforms)) | Leaving a platform is a commitment, so sitting on one is slightly disadvantaged | #103 |
 | Platform shield drop | Down while shielding drops through a platform | Removed in Ultimate ([SmashWiki](https://www.ssbwiki.com/Shield_drop)); Project+ keeps it | Removed: down while shielding stays on the platform | Owner (6 Oct): no safe retaliation from a platform; leaving one goes through a descent | #103 |
 
+## Turnaround specials
+
+Tom decided, 7 Oct (delegated) (#187). Reference: Melee's turnaround special
+(the stick held back as B is pressed) and B-reverse (a back flick in the
+special's first frames turns it and reverses momentum;
+[SmashWiki](https://www.ssbwiki.com/B-reverse)); Ultimate and Rivals of Aether 2
+keep both, Ultimate with a more lenient B-reverse.
+
+One rule for every fighter, applied before any neutral or side special starts,
+airborne or grounded (smashcraft:ts/src/game/sim/specials.ts, `turnForSpecial`):
+
+- A side special faces the side pressed with it, always. No kit keeps its
+  facing on a backward press (Lich's Death and Decay lost its 0.9H near
+  placement for this).
+- A neutral special faces the side the stick last pressed, when that press
+  was at most 8 input frames before B (`TURNAROUND_SPECIAL_WINDOW_FRAMES`).
+  A flick back, release, then B fires backward; an older press leaves the
+  facing alone. Deviation from Melee: the window sits before B rather than in
+  the special's first frames, because our controllers read any sideways stick
+  on the B press as a side special, so "flick, then B" is how a player asks
+  for a turned neutral special. It adds no input delay: nothing waits on it.
+- In the air, a side press whose side special is ground-only (Shadow Hunter's
+  Serpent Ward, Beastmaster's bear) starts the neutral special, turned to the
+  stick, instead of nothing.
+
+Up and down specials keep their own aiming. Momentum is unchanged: no
+wavebounce. smashcraft:ts/src/game/sim/turnaroundSpecials.tests.ts holds the
+rule over all 13 selectable fighters.
+
 ## Controls
 
 - **Tap-jump** (owner, 6 Oct, #49): stick-up and Space are just "up"; jump is

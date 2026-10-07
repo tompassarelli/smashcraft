@@ -119,7 +119,6 @@ export function finishLanding(f: Fighter, stage: number, matchFrame: number, inp
   if (!wasGrounded) landRiflemanBlaster(f);
   f.special.fall = false;
   if (!isHeroSpecialAction(f.special.action)) f.special.airtimeUses = 0;
-  motion.lastAerialTapDirection = 0;
   if (f.jump.squat <= 0) f.jump.remaining = 2;
   if (isTumbling(f)) {
     const launchDirection = totalVelocityX(f) < 0 ? -1 : 1;

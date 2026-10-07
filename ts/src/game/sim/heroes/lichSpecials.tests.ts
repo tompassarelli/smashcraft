@@ -153,17 +153,17 @@ test("Death and Decay costs 25 and strikes a fighter standing in it on frame 30 
   assertEquals(live(lich).length, 0);
 });
 
-test("a shield spends one Death and Decay strike, and pressing toward Lich's back places it 0.9H ahead", () => {
+test("a shield spends one Death and Decay strike, and pressing toward Lich's back turns him and places it 1.5H ahead", () => {
   const { world, lich, target } = lichPair(f32(H * f32(1.5)));
   frame(world, sideForward, shield);
   for (let f = 2; f <= 31; f++) frame(world, controls(), shield);
   assertEquals(target.status.damage, 0.0);
   assertEquals(live(lich).length, 1);
-  const near = lichPair(1200.0);
-  frame(near.world, sideBack);
-  assertEquals(near.lich.facing, 1);
-  for (let f = 2; f <= 8; f++) frame(near.world);
-  assertNear(live(near.lich)[0]!.x, f32(near.lich.motion.x + f32(H * f32(0.9))), 1.0);
+  const turned = lichPair(1200.0);
+  frame(turned.world, sideBack);
+  assertEquals(turned.lich.facing, -1);
+  for (let f = 2; f <= 8; f++) frame(turned.world);
+  assertNear(live(turned.lich)[0]!.x, f32(turned.lich.motion.x - f32(H * f32(1.5))), 1.0);
 });
 
 test("interrupting Lich before Death and Decay's first strike removes the field", () => {

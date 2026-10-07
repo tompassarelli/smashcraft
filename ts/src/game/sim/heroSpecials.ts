@@ -126,11 +126,6 @@ export interface SpecialProjectile {
   readonly returnEffect?: Readonly<HitEffect> | undefined;
   /** Damage percent a returning projectile restores when it reaches its owner, within the per-stock heal cap. */
   readonly catchHeal?: { readonly heal: number; readonly capPerStock: number } | undefined;
-  /**
-   * The offset used when the special was pressed toward the fighter's back;
-   * the fighter then keeps its facing instead of turning (Frost Nova's near placement).
-   */
-  readonly backOffsetX?: number | undefined;
   /** Not placed when solid stage geometry lies between the owner's offsetZ height and the spawn point. */
   readonly needsLineOfSight?: boolean | undefined;
   /** Presentation only: a pool model's unscaled horizontal extent, including its particles. */

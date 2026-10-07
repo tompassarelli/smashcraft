@@ -48,7 +48,8 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   motion.fastFallInputAge = sourceMotion.fastFallInputAge;
   motion.previousStickSide = sourceMotion.previousStickSide;
   motion.stickSideAge = sourceMotion.stickSideAge;
-  motion.lastAerialTapDirection = sourceMotion.lastAerialTapDirection;
+  motion.turnaroundSide = sourceMotion.turnaroundSide;
+  motion.turnaroundAge = sourceMotion.turnaroundAge;
 
   const ground = target.ground;
   const sourceGround = source.ground;

@@ -94,7 +94,8 @@ test("special releases preserve press direction and leave neutral turnaround to 
   const rifleman = fixture(Character.rifleman);
   rifleman.adapt(downSpecial, 2);
   assertTrue(rifleman.input.getupAttackPressed);
-  f.fighter.motion.lastAerialTapDirection = -1;
+  f.fighter.motion.turnaroundSide = -1;
+  f.fighter.motion.turnaroundAge = 0;
   f.adapt({ pressed: maskOf(Action.special) }, 3);
   assertEquals(f.input.specialX, 0);
   assertEquals(f.input.specialZ, 0);
