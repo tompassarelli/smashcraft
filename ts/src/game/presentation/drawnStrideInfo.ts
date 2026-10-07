@@ -20,4 +20,5 @@ export const DRAWN_STRIDES: { readonly [character: number]: { readonly walk: { r
   15: { walk: { clip: 8, model: "Units\\Undead\\EvilSylvanas\\EvilSylvanas.mdl", speed: f32(165.056) }, run: { clip: 8, model: "Units\\Undead\\EvilSylvanas\\EvilSylvanas.mdl", speed: f32(165.056) } },
   16: { walk: { clip: 3, model: "units\\orc\\HeroTaurenChieftain\\HeroTaurenChieftain.mdl", speed: f32(205.421) }, run: { clip: 3, model: "units\\orc\\HeroTaurenChieftain\\HeroTaurenChieftain.mdl", speed: f32(205.421) } },
   17: { walk: { clip: 0, model: "units\\creeps\\PandarenBrewmaster\\PandarenBrewmaster.mdl", speed: f32(267.430) }, run: { clip: 0, model: "units\\creeps\\PandarenBrewmaster\\PandarenBrewmaster.mdl", speed: f32(267.430) } },
+  18: { walk: { clip: 1, model: "units\\orc\\Peon\\Peon.mdl", speed: f32(208.167) }, run: { clip: 1, model: "units\\orc\\Peon\\Peon.mdl", speed: f32(208.167) } },
 };
