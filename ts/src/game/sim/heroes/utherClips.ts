@@ -20,6 +20,7 @@ const STAND_1 = clip(0, f32(3.334));
 const STAND_READY = clip(3, 1.0);
 const ATTACK_SWEEP = clip(4, 1.0);
 const ATTACK_SLAM = clip(5, f32(1.166));
+const JUSTICE_SLAM: HeroClip = { index: 5, seconds: f32(f32(f32(0.52) * 38.0) / 13.0), aligned: true };
 const DEATH = clip(6, 1.5);
 const SPELL = clip(8, f32(2.167));
 const STAND_CHANNEL = clip(9, f32(1.667));
@@ -86,8 +87,8 @@ export const UTHER_CLIPS: HeroClipTable = {
   victimThrowBack: STAND_HIT,
   victimThrowUp: STAND_HIT,
   victimThrowDown: STAND_HIT,
-  neutralSpecial: SPELL,
-  neutralSpecialAir: SPELL,
+  neutralSpecial: JUSTICE_SLAM,
+  neutralSpecialAir: JUSTICE_SLAM,
   sideSpecial: ATTACK_SWEEP,
   sideSpecialAir: ATTACK_SWEEP,
   upSpecial: SPELL,
