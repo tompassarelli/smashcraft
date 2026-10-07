@@ -37,7 +37,7 @@ import { placeFighterBody, renderDizzy } from "./fighterBody";
 import { type ShellState, type StatusFrames, activeRollback, localSlot, playsOnKeyboard } from "./state";
 import { pauseEffects, views } from "./ui";
 import { drawStageScenery } from "./stageScenery";
-import { probeCamera } from "./responseProbe";
+import { probeCamera, probeWaiting } from "./responseProbe";
 
 /** Text that waits for the players stays this long. */
 export const LASTING = 3600.0;
@@ -340,6 +340,7 @@ export function renderUi(s: ShellState): void {
   if (!selecting) {
     BlzFrameSetText(help, matchHelp(game, s.session.paused, startControl(s), localFighter, game.phase === Phase.match));
     const waiting = game.phase === Phase.match ? activeRollback(s)?.waitingFor ?? 0 : 0;
+    probeWaiting(s.probe, waiting, localSlot());
     BlzFrameSetText(notice, waiting !== 0 ? waitingMessage(waiting)
       : localFighter?.attack.smashCharging === true ? "Charging smash: release Attack to strike."
       : s.moment.notice > 0 ? MOMENT_SAVED_MESSAGE : resultNotice(game, s.status.seconds > 0 ? s.status.text : stageWarning(game, s.world)));

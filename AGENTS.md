@@ -174,6 +174,7 @@ code. From smashcraft:ts/:
   and pad scripts: `-dev quick hero NAME`, `-dev quick recovery hero NAME`
   (starts tumbling above the floor for recovery captures), and `-dev quick cpu OPPONENT DIFFICULTY [hero NAME]`,
   a quick match against a named computer at the selected difficulty over three stocks.
+  `-dev quick offstage hero NAME` starts the #189 recovery check at x=700, z=300 on Frozen Throne with jumps spent.
   The named variant uses the normal CPU selection rule.
   `-dev pain HEIGHT STRENGTH FIGHTER` starts the #181 mirror capture fixture:
   low/middle/high and small/medium/large, with ordinary projectile contacts at
@@ -469,6 +470,7 @@ code. From smashcraft:ts/:
   script); `--fresh-each` exists only to measure that. `bun wisp pad
   SCRIPT|DIR... --headless ...` plays the same batch in one headless session
   (smashcraft:docs/native-bot-session.md, "Many scripts in one game").
+- Pad cut (#233): `bun scripts/nativePadCut233.ts --pair N --clients-file FILE --helper WC3_CONTROLLER --map MAP --out DIR --app-id NAME=ID --app-id NAME=ID` uses one existing offline LAN pair, stops its own controller producer for 1 s, and checks the HUD waiting count and normal match results.
 - Native acceptance: `bun wisp accept [--only ID...] [--pair K... | --pairs N] [--map MAP.w3x] [--dry-run]` runs every
   open native check declared in smashcraft:ts/scripts/wisp/acceptChecks.ts in
   as few fresh matches as their maps allow and prints pass, fail or

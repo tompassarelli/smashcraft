@@ -1,0 +1,67 @@
+{
+  "script": "test/native/pads/cpu-roster-mountain-king.pad",
+  "build": "typescript-integrity",
+  "frame_one_ns": [
+    177193189227,
+    177194548401
+  ],
+  "match_starts": [
+    {
+      "epoch": 1,
+      "epochNs": 177226522560,
+      "firstFrame": 3,
+      "frameOneNs": 177193189227
+    },
+    {
+      "epoch": 1,
+      "epochNs": 177227881734,
+      "firstFrame": 3,
+      "frameOneNs": 177194548401
+    }
+  ],
+  "edges": [
+    {
+      "line": 6,
+      "text": "900 a press VIEW",
+      "slot": 0,
+      "planned": 900,
+      "injectedNs": 192180025000,
+      "frame": 900,
+      "confirmedBy": "frame rule",
+      "written": 900
+    },
+    {
+      "line": 7,
+      "text": "970 a release VIEW",
+      "slot": 0,
+      "planned": 970,
+      "injectedNs": 193346560000,
+      "frame": 970,
+      "confirmedBy": "frame rule",
+      "written": 970
+    },
+    {
+      "line": 8,
+      "text": "1000 b stick 0 0",
+      "slot": 1,
+      "planned": 1000,
+      "injectedNs": 193847885000,
+      "frame": 1000,
+      "confirmedBy": "frame rule",
+      "written": 1000
+    },
+    {
+      "line": 8,
+      "text": "1000 b stick 0 0",
+      "slot": 1,
+      "planned": 1000,
+      "injectedNs": 193847952000,
+      "frame": 1000,
+      "confirmedBy": "frame rule",
+      "written": 1000
+    }
+  ],
+  "off_frame": 0,
+  "written_late": 0,
+  "helpers_stopped": []
+}
