@@ -3,8 +3,9 @@
 import { STAGE_LIGHT_MODELS, STAGE_SNOW_MODEL } from "../assets/stageAssetInfo";
 import { STAGE_SKY_MODELS } from "../assets/stageSkyInfo";
 import { AHNQIRAJ_SCENERY, BLACKROCK_SCENERY, GRYPHON_SCENERY, NORDRASSIL_SCENERY } from "./hazardStageScenery";
+import { STRATHOLME_SCENERY, TOMB_OF_SARGERAS_SCENERY } from "./homeStageScenery";
 import { DUROTAR_SCENERY, HELLFIRE_SCENERY, NAXXRAMAS_SCENERY } from "./patrolStageScenery";
-import { CANNON_TEST_STAGE, CARRIED_TEST_STAGE, DRIFTING_DECK_STAGE, FROZEN_THRONE_STAGE, HELLFIRE_STAGE, PATTERNED_DECKS_STAGE, TIMED_TEST_STAGE, WIND_TEST_STAGE } from "../sim/stage";
+import { CANNON_TEST_STAGE, CARRIED_TEST_STAGE, DRIFTING_DECK_STAGE, FROZEN_THRONE_STAGE, HELLFIRE_STAGE, PATTERNED_DECKS_STAGE, STRATHOLME_STAGE, TIMED_TEST_STAGE, TOMB_OF_SARGERAS_STAGE, WIND_TEST_STAGE } from "../sim/stage";
 
 export interface SceneryPiece {
   readonly model: string;
@@ -59,5 +60,7 @@ export function stageScenery(stage: number): StageScenery {
   if (stage === HELLFIRE_STAGE) return HELLFIRE_SCENERY;
   if (stage === CANNON_TEST_STAGE) return BLACKROCK_SCENERY;
   if (stage === TIMED_TEST_STAGE) return AHNQIRAJ_SCENERY;
+  if (stage === STRATHOLME_STAGE) return STRATHOLME_SCENERY;
+  if (stage === TOMB_OF_SARGERAS_STAGE) return TOMB_OF_SARGERAS_SCENERY;
   return SUMMER;
 }
