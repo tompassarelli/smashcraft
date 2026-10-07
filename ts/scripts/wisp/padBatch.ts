@@ -324,6 +324,7 @@ export const padBatch = (options: NativeBatchOptions) => Effect.gen(function*() 
         made.run += seconds(at);
         // An edge off its frame or a stopped helper still leaves a match the next script can reset; anything else may not.
         outcome = ran._tag === "Success" ? ran.value : Cause.pretty(ran.cause).includes("edges off their frame") ? "failed" : "broken";
+        if (outcome === "broken" && ran._tag === "Failure") made.summary = Cause.pretty(ran.cause);
         previous = outcome;
         // Edges written late are the harness's slip on a loaded host, not the game's: reset and play the script again.
         if (outcome === "failed" && slipped(padOptions.out) && attempt < retries) continue;
