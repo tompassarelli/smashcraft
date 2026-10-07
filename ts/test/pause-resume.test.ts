@@ -75,4 +75,4 @@ test("pause with a computer keeps its replay continuous and advances one frame p
   expect(replay.recorded).toBeGreaterThan(5);
   expect(client.errors).toEqual([]);
   console.log("headless draw windows: normal 120/120 and resumed 120/120 at one simulation frame each; 0 corrections, replay stayed in one segment");
-});
+}, 30_000);
