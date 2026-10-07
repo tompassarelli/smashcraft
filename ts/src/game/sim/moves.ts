@@ -81,14 +81,16 @@ export function isJab(style: AttackStyle | undefined): boolean {
 /**
  * The attack frame (entry is frame one) from which a fresh jab press
  * continues a jab to the chain's next step; undefined where the chain ends.
- * A kit's steps say it (AuthoredMove.chainsFrom); Illidan's shared-table jab
- * and second jab open the frame after their last active frame.
+ * A kit's steps say it (AuthoredMove.chainsFrom); a shared-table jab (Archer's,
+ * Illidan's) opens the frame after its last active frame.
  */
 export function jabChainFrom(character: Character, style: AttackStyle, moves?: FighterMoves): number | undefined {
   const next = nextJab(style);
   if (next === undefined) return undefined;
-  if (moves !== undefined) return moves.normals[next] === undefined ? undefined : moves.normals[style]?.chainsFrom;
-  return character === Character.demonHunter ? attackStartupFrames(style) + attackActiveFrames(style) + 1 : undefined;
+  const shared = attackStartupFrames(style) + attackActiveFrames(style) + 1;
+  // A kit whose jab is the shared table's (Archer's) opens the shared window.
+  if (moves !== undefined) return moves.normals[next] === undefined ? undefined : moves.normals[style]?.chainsFrom ?? (moves.normals[style] === undefined ? shared : undefined);
+  return character === Character.demonHunter ? shared : undefined;
 }
 
 export function isSmashAttack(style: AttackStyle | undefined): boolean {
@@ -165,6 +167,9 @@ export function smashDamageMultiplier(chargeFrames: number, moves?: FighterMoves
 
 export function attackReach(style: AttackStyle): number {
   switch (style) {
+    // The shared jab, Archer's and the engine tests' reference attack, reaches short of her forward tilt (#163).
+    case AttackStyle.jab:
+      return 120.0;
     case AttackStyle.demonHunterDashAttack:
       return 155.0;
     case AttackStyle.shot:

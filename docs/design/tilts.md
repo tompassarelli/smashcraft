@@ -263,17 +263,17 @@ the victim over his shoulder and behind him.
 
 ### Archer: the original tables
 
-Archer keeps the shared tables' tilts (smashcraft:ts/src/game/sim/moves.ts,
+Archer keeps the shared tables' jab and tilts (smashcraft:ts/src/game/sim/moves.ts,
 smashcraft:ts/src/game/sim/hitRegions.ts). They are her own now: no other
 fighter uses those timings, and the engine's shared-mechanics tests use them as
-their reference attack. Her jab left the shared table for her jab chain (#163):
-the shared jab reached as far as her forward tilt. Her forward tilt has an early tip (10 on its first
+their reference attack. The shared jab reached as far as her forward tilt, so
+it now stops at 120 units (#163); her chain adds an authored low kick. Her forward tilt has an early tip (10 on its first
 active frame, 8 after) and angles. Her forward air outreaches her tilts,
 because spacing from the air is her plan. Her one new move is the sliding kick.
 
 | Normal | F/A/R | Damage | Reach | Launch | Angled | Inspired by |
 | --- | --- | --- | --- | --- | --- | --- |
-| Jab | 5/2/15 | 3 | 0.71H | 60, 40/28 | | Bow strike (#163) |
+| Jab | 5/2/15 | 5 | 0.91H | 45, 100/20 | | Original table, shortened (#163) |
 | Forward tilt | 6/2/21 | 10 tip early, 8 late, 5–7 inner | 1.10H | 37, 110/24 tip | up 55, down 20 | Fox forward tilt (angled kick) |
 | Up tilt | 7/2/21 | 8 | 1.10H | 45, 100/20 | | Original table |
 | Down tilt | 6/2/21 | 8 | 1.10H | 45, 100/20 | | Original table |
