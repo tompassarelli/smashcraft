@@ -38,6 +38,7 @@ import {
   chipX,
   chipY,
   clearSelectionDrag,
+  decodeCpuPlacement,
   placeHovered,
   selectionDrag,
   updateSelectionDrag,
@@ -516,13 +517,11 @@ export class SelectionPanel {
     if (this.choosing() !== undefined && tile !== undefined) this.actions.selectChoice(this.participantId, characterOfTile(tile));
   }
 
-  /** Data is the computer's slot digit, then the tile digit. */
+  /** Data is the computer's slot digit, then the full tile number. */
   private acceptCpuDrop(data: string): void {
     const game = this.choosing();
-    if (game === undefined || data.length !== 2) return;
-    const cpu = decodeSlot(data.charAt(0));
-    const tile = decodeTile(data.charAt(1));
-    if (cpu !== undefined && tile !== undefined && canChooseComputer(game, this.participantId, cpu)) this.actions.selectCpuChoice(this.participantId, cpu, characterOfTile(tile));
+    const placement = decodeCpuPlacement(data, PLAYABLE_CHARACTERS.length);
+    if (game !== undefined && placement !== undefined && canChooseComputer(game, this.participantId, placement.slot)) this.actions.selectCpuChoice(this.participantId, placement.slot, characterOfTile(placement.tile));
   }
 
   private acceptRecall(data: string): void {

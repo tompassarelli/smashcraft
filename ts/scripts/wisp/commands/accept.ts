@@ -8,13 +8,14 @@ import { existsSync, mkdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { Clock, Effect, Layer } from "effect";
-import { AcceptFailure, type AcceptSuite } from "wisp/scripts/wisp/accept";
+import { AcceptDriver, AcceptFailure, type AcceptSuite } from "wisp/scripts/wisp/accept";
 import { liveAcceptDriver } from "wisp/scripts/wisp/acceptLive";
 import { Clients } from "wisp/scripts/wisp/clients";
 import { type Command, UsageFailure, flagValues, describeCause } from "wisp/scripts/wisp/command";
 import { makeAccept } from "wisp/scripts/wisp/commands/accept";
 import { lan } from "wisp/scripts/wisp/commands/lan";
 import { step } from "wisp/scripts/wisp/timings";
+import { GameFiles } from "wisp/scripts/wisp/gameFiles";
 import { MAP_PROFILES, SMASHCRAFT_ACCEPT, type SmashcraftMapProfile } from "../acceptChecks";
 import { rebuildMap } from "../mapInputs";
 import { clientState, gameFilesLayer } from "../project";
@@ -130,10 +131,18 @@ export const accept: Command = (args) => Effect.gen(function*() {
       yield* sendDevCommand(profile.quick).pipe(step(profile.quick));
     }).pipe(Effect.provide(Layer.merge(options.services.pipe(Layer.provideMerge(Clients.layer(selectedClients))), smashcraftWatch())));
   });
-  const driver = liveAcceptDriver({
+  const liveDriver = liveAcceptDriver({
     start,
     receipt: (name) => name.startsWith("smashcraft-dev-") || name.startsWith("smashcraft-stage-") || name.startsWith("smashcraft-error-") || name.startsWith("smashcraft-render-clock-") || name.startsWith("smashcraft-replay-"),
   }).pipe(Layer.provide(Layer.mergeAll(Clients.layer(selectedClients), gameFilesLayer, smashcraftWatch())));
+  const driver = Layer.effect(AcceptDriver, Effect.gen(function*() {
+    const live = yield* AcceptDriver;
+    const context = yield* Effect.context<Clients | GameFiles>();
+    return AcceptDriver.of({
+      ...live,
+      chat: (name, text) => sendDevCommand(text, name).pipe(Effect.mapError((cause) => new AcceptFailure({ operation: `chat ${name}`, problem: describeCause(cause) })), Effect.provide(context)),
+    });
+  })).pipe(Layer.provide(liveDriver), Layer.provide(Layer.mergeAll(Clients.layer(selectedClients), gameFilesLayer, smashcraftWatch())));
   const shards = {
     flags: ["--pair", "--pairs"],
     select: () => Effect.succeed(requested),

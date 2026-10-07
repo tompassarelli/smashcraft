@@ -1,0 +1,14 @@
+# #207: dreadlord forward shield roll at frame 76; frame 121 shows recovery.
+#! chat -dev quick hero dreadlord
+60 a shield 1
+61 a stick 1 0
+76 a capture
+81 a stick 0 0
+96 a shield 0
+105 a shield 1
+106 a stick -1 0
+121 a capture
+126 a stick 0 0
+141 a shield 0
+150 a press VIEW
+220 a release VIEW
