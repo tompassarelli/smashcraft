@@ -63,3 +63,5 @@ map) and survives Warcraft restarts and pad replugs. `play` and
 when it changed; without the unit, `bun wisp controller` runs the service in
 the foreground. Its state is in ~/.local/state/smashcraft/controller-service.txt;
 its log is `journalctl --user -u smashcraft-controller`.
+
+Controller layouts: `bun wisp controller layout standard` uses B to jump and RB to grab; `bun wisp controller layout zjump` swaps them. Both triggers shield by default. The client Controller page also chooses the layout, tap jump and full or light shield for each trigger. These choices stay in the controller service settings across restarts. A running service changes immediately; a stopped service reads the saved choice at its next start.

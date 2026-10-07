@@ -481,7 +481,7 @@ the tables:
 
 ## Uther
 
-**Identity:** a defensive paladin with a substantial hammer, deliberate protection, and limited healing. He wins by holding space and reading approaches, not by infinitely stalling with invulnerability. Divine Shield must be a short defensive action in a fighter.
+**Identity:** a defensive paladin with a substantial hammer, deliberate protection, and a strong close hit backed by weaker ranged light. The current kit and sources are in [Uther](uther.md). He wins by holding space and reading approaches, not by infinitely stalling with invulnerability. Divine Shield must be a short defensive action in a fighter.
 
 ### Normals
 
@@ -505,8 +505,8 @@ the tables:
 
 | Input | Proposed move and behavior | Timing and cost |
 | --- | --- | --- |
-| Neutral B | **Holy Light** (#131, [kit review 2](kit-review-2.md#uther-131)): aimed straight or 30 degrees up by holding up on entry; speed 0.11H/frame out for 26 frames, then back toward Uther's chest at the same speed; life 80, radius 0.17H, one active. Outbound 5 damage, POKE at 40 degrees; returning 5 damage, POKE toward Uther. Reaching Uther untouched restores 3 percent, at most 9 a stock. A reflected orb flies straight. | Spawn f20, end f56; 10 mana |
-| Side B | **Crusader Rush:** advance 0.9H with a hammer check, 11 damage at 45 degrees, LAUNCH. Armor against one hit of at most 5 damage only on f12–15; grabs ignore it. Air version has no armor, no rise, and ends helpless. | Active/movement f12–17, R30; 20 mana |
+| Neutral B | **Hammer of Justice** (#216): overhead hammer launcher, 13 damage at 80°, growth 70/base 42. One hit, 140-unit reach; air keeps drift with 18 landing frames. | Active f14–16, end f38; 10 mana |
+| Side B | **Holy Radiance** (#216): 0.75H hammer lunge, 14 damage at 40°; on f21 a 6-damage holy wave travels straight beyond the head. Ground armor for one ≤5-damage hit f15–18. Air has no armor, one use and helpless finish. | Hammer/travel f15–20, wave f21, end f69; 20 mana |
 | Up B | **Ascension:** rising hammer leap, 1.9H rise and 0.45H horizontal drift; one 8-damage hit, LAUNCH at 80 degrees. Free version 1.3H without hitbox. | Hit f10–15, travel through f29, then helpless; 15 mana |
 | Down B | **Divine Shield** (#131): ground-only timed stance, intangible f6–9, vulnerable otherwise, no automatic counter. A damaging melee or projectile hit overlapping it on those frames raises Divine Shield: 45 frames in which strikes and projectiles pass through Uther; starting an attack, special or grab ends it. Grabs beat both the guard and the shield. No healing. | End f36; 25 mana. Air version fails without spending |
 
@@ -523,7 +523,7 @@ Standing grab 8/2/25, reach 0.55H. Pummel: hammer-hilt tap.
 
 **Ultimate — Guardian of the Light:** f30 vulnerable activation, R15, then 360 frames of +10 percent damage and three visible protective charges. A charge absorbs one hit reaction up to 6 damage while still taking damage; at most one charge consumed per 30 frames. Grabs and larger hits bypass the protection. No resurrection, extra stocks, unlimited heal, or prolonged invulnerability.
 
-**Required counterplay test:** Uther can be grabbed or baited during Divine Shield and punished afterward. Optimal healing cannot outpace plausible damage indefinitely because the stock cap is absolute.
+**Required counterplay test:** Uther can be grabbed or baited during Divine Shield and punished afterward. The hammer launcher can be shielded and its recovery punished.
 
 ### Uther as built
 
@@ -538,15 +538,14 @@ use provisional coefficients. Deliberate differences:
   strikes with the torso and reaches 0.8H by travelling during startup.
 - Grab contact sits at hand height (about 24-56 above the feet), not at the
   shins.
-- Crusader Rush in the air holds its height during the rush (no rise, no
-  fall) and lands with 20 frames of lag; Holy Light cast in the air does too.
+- Holy Radiance in the air holds its height during the lunge and lands with
+  20 frames of lag; Hammer of Justice keeps drift with 18 landing frames.
 - Ascension travels on f8-28 and stops on f29, so its helpless fall starts
   at the 1.9H (free form 1.3H) apex; both forms drift 0.45H.
 - Divine Shield's success is the special's `guard` window: an opponent's
   damaging strike or projectile overlapping Uther on f6-9 raises the shield
   (`status.divineFrames`, sim/transitions.ts `endDivineShield`). The
-  strike that triggered it passes through him. Holy Light's heal and the cap
-  share `status.guardHealed`.
+  strike that triggered it passes through him.
 
 Presentation uses the stock classic Paladin model, which has thirteen
 sequences and no punch, kick, jump, roll, ledge or grab clip. Hammer Sweep's
@@ -556,7 +555,7 @@ while the gauntlet strikes. Down smash's back half and Rearward Boot have no
 matching clip ("Attack - 2" and "Stand Hit" play). utherClips.ts lists the
 sequence table and every pose's clip.
 
-**Gameplan** (smashcraft:ts/src/game/sim/heroes/utherGameplan.ts, #105): he holds 0.9-1.3H, at Hammer Sweep's tip, spacing with Hammer Sweep and Low Judgment and making the target come to him with Holy Light from 1.7H out; he shoots, or walks in only for Hammer Sweep or a grab. He answers an attack with Divine Shield as often as with his shield and spot dodge together. Low Judgment, Guiding Light and the up throw start his strings; Final Judgment, Holy Hammer and Beacon Strike finish. His weak chase is the weakness he plays around: he never follows a target overhead, keeps off the edge and returns to the ledge with his jump before Ascension.
+**Gameplan** (smashcraft:ts/src/game/sim/heroes/utherGameplan.ts): he holds hammer spacing, lifts close opponents with Hammer of Justice and sends Holy Radiance at a retreating opponent. Divine Shield reads incoming strikes; Low Judgment, Guiding Light and up throw start other follow-ups. He returns toward the ledge before spending Ascension.
 
 ## Dreadlord
 

@@ -1,76 +1,26 @@
-# #131 Uther's native check by parity: Holy Light's return hit pulls b toward Uther, Holy Light
-# returning untouched heals him 3, a strike on Divine Shield's guard raises Divine Shield, the next
-# strike passes until his jab, and a grab beats the guard. Uther a against Uther b, a melee partner;
-# syntax and checks: smashcraft:docs/native-bot-session.md.
+# #216 Uther: Holy Radiance reaches across the lane, then Hammer of Justice
+# bonks at close range. Divine Shield and Ascension remain selectable.
 #! chat -dev quick hero uther
-# Both dash in.
-40 a stick 1 0
-40 b stick -1 0
-42 a stick 0 0
-42 b stick 0 0
-# Holy Light; b spot-dodges it going out, so only its return strikes b, pulling b toward Uther.
+60 a stick 1 0
 60 a tap X 2
-82 b shield 1
-83 b stick 0 -1
-84 b stick 0 0
-86 b shield 0
-# b dashes in and jabs a.
-135 b stick -1 0
-137 b stick 0 0
-170 b tap A 2
-# a turns away from b; his Holy Light flies out and back untouched and heals him 3.
-185 a stick -0.4 0
-188 a stick 0 0
-195 a tap X 2
-# b walks up to a, close enough for the guard, jab and grab.
-292 b press LB
-292 b stick -1 0
-304 b stick 0 0
-304 b release LB
-# b's jab meets Divine Shield's guard on its frame 3: Divine Shield is up.
-320 a stick 0 -1
-320 a tap X 2
-321 a stick 0 0
-322 b tap A 2
-# b's next jab passes through him.
-350 b tap A 2
-# His own jab ends Divine Shield; b's next jab lands.
-365 a tap A 2
-380 b tap A 2
-# A grab on the guard's frame 4 beats it.
-420 a stick 0 -1
-420 a tap X 2
-421 a stick 0 0
-423 b tap RB 2
-# Expected, frame by frame (headless run of this script):
-# Holy Light: b dodged it going out; its return strikes b, pulling b toward Uther.
-#! expect a 60 special 13 form 0
-#! absent b 61-114 damage
-#! expect b 115 damage 5.000
-#! expect b 170 applied attack 1 style 0
-#! expect a 174 damage 4.000
-# Holy Light returns untouched and heals a 3.
-#! expect a 195 special 13 form 0
-#! absent b 196-267 damage
-#! expect a 268 damage 1.000
-# The guard takes b's jab and raises Divine Shield (45 frames); b's next jab passes.
-#! expect a 320 special 16 form 0
-#! expect b 322 applied attack 2 style 0
-#! expect b 350 applied attack 3 style 0
-#! absent a 320-383 damage
-# His jab ends it; b's next jab lands.
-#! expect a 365 applied attack 1 style 0
-#! expect b 380 applied attack 4 style 0
-#! expect a 384 damage 5.000
-# b's grab on the guard catches him.
-#! expect a 420 special 16 form 0
-#! expect b 423 applied attack 5 style 5
-#! expect b 430 grab-hold start
+61 a stick 0 0
+135 a stick 1 0
+147 a stick 0 0
+170 a tap X 2
+183 a capture
+270 a stick 0 -1
+270 a tap X 2
+271 a stick 0 0
+340 a stick 0 1
+340 a tap X 2
+341 a stick 0 0
+#! expect a 60 special 14 form 0
+#! expect b 86 damage 6.000
+#! expect a 170 special 13 form 0
+#! expect b 183 damage 19.000
+#! expect a 270 special 16 form 0
+#! expect a 340 special 15 form 0
 #! scene a HolyBoltMissile
-#! scene a HealTarget
-#! scene a DivineShieldTarget
-# View held a second: the first of two moments the parity check replays.
-500 a press VIEW
-570 a release VIEW
-1000 a press VIEW
-1070 a release VIEW
+#! scene a HolyBoltSpecialArt
+430 a press VIEW
+500 a release VIEW

@@ -101,8 +101,8 @@ Normals, inspired by:
 
 | Input | Name | What it does |
 | --- | --- | --- |
-| Neutral special | Holy Light | An orb of light that flies out and back; it heals Uther if it returns untouched. |
-| Side special | Crusader Rush | An armored hammer charge on the ground; in the air it ends helpless. |
+| Neutral special | Hammer of Justice | A heavy overhead bonk that lifts the opponent for a follow-up. |
+| Side special | Holy Radiance | Drive the hammer forward, then send light beyond it. Strong up close; unsafe if blocked. |
 | Up special | Ascension | A rising hammer strike, then a helpless fall. |
 | Down special | Divine Shield | A guard: read an attack and become untouchable until you act. Grabs still catch him. |
 | Jab, repeated | Hammer and Haft | A hammer check, then a shove of the haft on a second jab. |
@@ -162,7 +162,7 @@ Normals, inspired by:
 | Neutral special | Howling Blast | A wide frost gust that travels; spending a soul makes it wider and chills. |
 | Side special | Val'kyr Shadowguard | A Val'kyr seizes the first foe she reaches and carries them toward the edge; mash to break free. |
 | Up special | Ascension of the Damned | An ice column lifts him in a frost vortex, then a helpless fall. |
-| Down special | Defile | A short-lived shadow pool that grows when it hurts a grounded foe. Jump out; another cast must wait. |
+| Down special | Defile | Plant Frostmourne to spread a shadow pool; hurting a grounded foe grows it and flashes the edge. Jump out; recasts must wait. |
 | Jab, repeated | Pommel and Rake | A gauntlet check, a rake of the blade, then a Frostmourne thrust on repeated jabs. |
 | Passive | Frostmourne Hungers | Each Frostmourne hit that lands, and Harvest Soul, stores a soul (up to 3); Howling Blast and Val'kyr Shadowguard spend one to grow stronger. |
 | Ultimate | Fury of Frostmourne | Every foe at high damage who isn't shielding or dodging is launched. |
