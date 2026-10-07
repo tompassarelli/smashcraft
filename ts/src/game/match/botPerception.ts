@@ -339,7 +339,7 @@ function digestSignedDecimal(value: number): void {
 interface CachedNumberDigest extends ObservationDigest { value: number | undefined }
 // A repair revisits recent coordinates; reuse exact digests without retaining a match's numbers indefinitely.
 const NUMBER_DIGEST_CAPACITY = 1024;
-const numberDigests: Record<number, CachedNumberDigest | undefined> = {};
+const numberDigests = new Map<number, CachedNumberDigest>();
 const numberDigestRing: CachedNumberDigest[] = [];
 for (let index = 0; index < NUMBER_DIGEST_CAPACITY; index++) {
   numberDigestRing.push({ value: undefined, first: 0, second: 0, firstPower: 1, secondPower: 1 });
@@ -347,10 +347,10 @@ for (let index = 0; index < NUMBER_DIGEST_CAPACITY; index++) {
 let nextNumberDigest = 0;
 
 function numberDigest(value: number, integer: number): Readonly<ObservationDigest> {
-  const cached = numberDigests[value];
+  const cached = numberDigests.get(value);
   if (cached !== undefined) return cached;
   const digest = at(numberDigestRing, nextNumberDigest);
-  if (digest.value !== undefined) delete numberDigests[digest.value];
+  if (digest.value !== undefined) numberDigests.delete(digest.value);
   nextNumberDigest = floorMod(nextNumberDigest + 1, NUMBER_DIGEST_CAPACITY);
   digest.value = value;
   digest.first = 0;
@@ -372,7 +372,7 @@ function numberDigest(value: number, integer: number): Readonly<ObservationDiges
     digestByte(44);
     writeCanonicalNumber(digestByte, value);
   }
-  numberDigests[value] = digest;
+  numberDigests.set(value, digest);
   return digest;
 }
 
