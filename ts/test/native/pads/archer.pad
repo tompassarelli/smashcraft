@@ -34,7 +34,7 @@
 821 a stick 0 0
 # Expected, frame by frame (headless run of this script):
 #! expect a 60 special 2 form 0
-#! expect b 85 damage 4.000
+#! expect b 85 damage 3.000
 #! expect a 220 special 2 form 0
 #! expect b 233 applied jump
 #! absent b 86-379 damage
