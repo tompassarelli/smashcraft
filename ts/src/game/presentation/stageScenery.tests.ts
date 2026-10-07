@@ -3,9 +3,11 @@ import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { stageScenery } from "./stageScenery";
 
 // smashcraft:docs/design/stage-art.md, rules 2 and 7.
-/** The one unit model allowed as a prop: Blackrock's parked mine cart. */
-const STATIC_UNIT_PROPS = ["Units\\Other\\DwarfCar\\DwarfCar.mdx"];
-/** A statue is still a figure (the Obsidian Statue reads as a winged creature with a staff), so doodads named for one fail too. */
+/**
+ * Every unit model is a figure, even posed or parked: the Obsidian Statue
+ * reads as a winged creature with a staff and the Dwarf Car carries a dwarf.
+ * A doodad named for a figure fails too.
+ */
 const FIGURE_WORDS = ["statue", "totem", "idol", "effigy", "corpse", "skeleton"];
 
 test("no stage's scenery pairs a piece with its mirror twin", () => {
@@ -25,7 +27,7 @@ test("no stage's scenery pairs a piece with its mirror twin", () => {
 test("stage scenery shows no creatures", () => {
   for (const { id, name } of STAGE_CATALOG) {
     for (const { model } of stageScenery(id).pieces) {
-      const creature = (model.toLowerCase().startsWith("units\\") && !STATIC_UNIT_PROPS.includes(model)) || FIGURE_WORDS.some((word) => model.toLowerCase().includes(word));
+      const creature = model.toLowerCase().startsWith("units\\") || FIGURE_WORDS.some((word) => model.toLowerCase().includes(word));
       assertEquals(creature, false, `${name}: ${model} is a creature`);
     }
   }

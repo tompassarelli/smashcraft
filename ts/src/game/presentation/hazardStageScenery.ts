@@ -31,7 +31,7 @@ export const BLACKROCK_SCENERY: StageScenery = {
     { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: 1300.0, y: 5200.0, z: -1900.0, scale: 7.0, yaw: 200.0 },
     { model: "Doodads\\Cinematic\\FireTrapUp\\FireTrapUp.mdx", x: 1250.0, y: 5200.0, z: -1350.0, scale: 3.5, yaw: 0.0 },
     { model: "Doodads\\Cinematic\\FirePillarMedium\\FirePillarMedium.mdx", x: -1800.0, y: 3300.0, z: -1250.0, scale: 4.25, yaw: 0.0 },
-    { model: "Units\\Other\\DwarfCar\\DwarfCar.mdx", x: -1500.0, y: 2200.0, z: -950.0, scale: 2.0, yaw: 20.0 },
+    { model: "Doodads\\Dungeon\\Props\\MineCart\\MineCart.mdx", x: -1500.0, y: 2200.0, z: -950.0, scale: 3.5, yaw: 20.0 },
   ],
 };
 

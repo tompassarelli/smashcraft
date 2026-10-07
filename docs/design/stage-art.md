@@ -83,11 +83,11 @@ from the floor (smashcraft:ts/src/game/presentation/stageScenery.ts).
 7. **No creatures in the background.** Owner decision (6 Oct): background
    creatures distract. Scenery is buildings, terrain and props only: no units,
    critters, flyers or vehicles that move, and no statues of figures: a
-   posed unit still reads as a creature (the Obsidian Statue looked like a
-   winged creature holding a staff), so no unit model appears except
-   Blackrock's parked mine cart, and no doodad named for a figure (statue,
-   totem, idol). Use ruins, obelisks and walls. The scenery test enforces
-   both. This also keeps every fighter-shaped thing on screen a fighter.
+   posed or parked unit still reads as a creature (the Obsidian Statue
+   looked like a winged creature holding a staff; the Dwarf Car carries a
+   dwarf), so no unit model appears, and no doodad named for a figure
+   (statue, totem, idol). Use ruins, obelisks, walls and doodad props such
+   as the dungeon mine cart. The scenery test enforces both. This also keeps every fighter-shaped thing on screen a fighter.
 8. **Motion budget.** Ambient motion only: fire, water, glow and weather that
    loop in place, never flashing and never crossing the fighting area.
    Gameplay motion (moving platforms, cannon, wind cues) stays the most
