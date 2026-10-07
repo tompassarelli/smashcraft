@@ -19,9 +19,9 @@ test("a hidden fighter is skipped by selection stepping and never preselected; m
     expect(at).not.toBe(Character.rifleman);
   }
   expect(playableCharactersOf(SELECTABLE_CHARACTERS, SELECTABLE_CHARACTERS.map(() => "archer")).length).toBe(SELECTABLE_CHARACTERS.length - 1);
-  // This build hides no one: selection and measurement see all 13 fighters.
+  // This build hides no one: selection and measurement see all 21 fighters.
   expect(HIDDEN_FIGHTERS).toEqual([]);
-  expect(SELECTABLE_CHARACTERS.length).toBe(13);
+  expect(SELECTABLE_CHARACTERS.length).toBe(21);
   expect(PLAYABLE_CHARACTERS).toEqual(SELECTABLE_CHARACTERS);
   for (const choice of createMatchState().characterChoices) expect(PLAYABLE_CHARACTERS).toContain(choice);
 });
