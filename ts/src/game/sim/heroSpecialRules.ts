@@ -18,7 +18,7 @@ import { fillMana, gainMana, spendMana } from "./mana";
 import { heldSouls, spendSoul } from "./passives";
 import { endDivineShield } from "./transitions";
 import { capsuleCircleIntersects, shieldSizeMultiplier } from "./shield";
-import { attackCapsule, emptyCapsule, placeCapsule } from "../physics/contactGeometry";
+import { attackCapsule, emptyCapsule, placeCapsule, segmentBoxesOverlap } from "../physics/contactGeometry";
 import { HurtContact, strikeHurtContact } from "./hurtboxes";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { solidSurfaceAt, solidSurfaceCount } from "./stage";
@@ -202,6 +202,7 @@ function applyWindows(f: Fighter, move: Readonly<AuthoredSpecial>, frame: number
 
 /** Whether segment a-b properly crosses segment c-d. */
 function segmentsCross(ax: number, az: number, bx: number, bz: number, cx: number, cz: number, dx: number, dz: number): boolean {
+  if (!segmentBoxesOverlap(ax, az, bx, bz, cx, cz, dx, dz)) return false;
   const side = (px: number, pz: number, qx: number, qz: number, rx: number, rz: number): number =>
     f32(f32(f32(qx - px) * f32(rz - pz)) - f32(f32(qz - pz) * f32(rx - px)));
   const c = side(ax, az, bx, bz, cx, cz);

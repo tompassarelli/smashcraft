@@ -11,7 +11,7 @@ import { collectDamageContact, finishDamageContacts, openDamageContacts } from "
 import { type Fighter, PROJECTILE_CAPACITY, type Projectile } from "./fighter";
 import { type HitEffect, HitElement, copyHitEffect, emptyHitEffect } from "./hitRegions";
 import type { SpecialProjectile } from "./heroSpecials";
-import { hurtCapsule } from "../physics/contactGeometry";
+import { hurtCapsule, segmentBoxesOverlap } from "../physics/contactGeometry";
 import { RIFLEMAN_BLASTER_GROUND_DAMAGE_MULTIPLIER, attackDamage } from "./moves";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type Roster, fighterAt, isActive } from "./roster";
@@ -391,6 +391,7 @@ function side(ax: number, az: number, bx: number, bz: number, cx: number, cz: nu
 
 /** Whether segments p1-p2 and q1-q2 cross or touch. */
 function segmentsMeet(p1x: number, p1z: number, p2x: number, p2z: number, q1x: number, q1z: number, q2x: number, q2z: number): boolean {
+  if (!segmentBoxesOverlap(p1x, p1z, p2x, p2z, q1x, q1z, q2x, q2z)) return false;
   const d1 = side(q1x, q1z, q2x, q2z, p1x, p1z);
   const d2 = side(q1x, q1z, q2x, q2z, p2x, p2z);
   // Most steps lie wholly on one side of a surface's line; p's own line isn't needed then.

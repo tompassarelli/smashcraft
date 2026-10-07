@@ -50,6 +50,12 @@ function orientation(ax: number, az: number, bx: number, bz: number, cx: number,
 const between = (a: number, b: number, value: number) => value >= Math.min(a, b) && value <= Math.max(a, b);
 const straddles = (first: number, second: number) => (first < 0 && second > 0) || (first > 0 && second < 0);
 
+/** Whether two segments' coordinate bounds overlap, including touching endpoints. */
+export function segmentBoxesOverlap(ax: number, az: number, bx: number, bz: number, cx: number, cz: number, dx: number, dz: number): boolean {
+  return Math.max(ax, bx) >= Math.min(cx, dx) && Math.max(cx, dx) >= Math.min(ax, bx)
+    && Math.max(az, bz) >= Math.min(cz, dz) && Math.max(cz, dz) >= Math.min(az, bz);
+}
+
 function segmentsIntersect(a: Readonly<Capsule>, b: Readonly<Capsule>): boolean {
   const abC = orientation(a.x1, a.z1, a.x2, a.z2, b.x1, b.z1);
   const abD = orientation(a.x1, a.z1, a.x2, a.z2, b.x2, b.z2);
