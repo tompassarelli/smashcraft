@@ -346,6 +346,8 @@ function capture(state: ReplayState): ReplayState {
 
 test("lobby computers replay from corrected humans without network senders", () => {
   // One human with three computers, and sparse two-human, one-computer occupancy.
+  // Long enough for a computer to act on its delayed observation (docs/design/cpu-levels.md), inside the 24-frame window.
+  const frames = 20;
   for (const variant of [0, 1]) {
     const humans = variant === 0 ? 8 : 9;
     const computers = variant === 0 ? 7 : 4;
@@ -366,22 +368,22 @@ test("lobby computers replay from corrected humans without network senders", () 
     assertTrue(playback.beginEpoch(epoch));
     assertTrue(history.beginEpoch(epoch, 1, 24));
     assertTrue(confirmedHistory.beginEpoch(epoch, 1));
-    for (let frame = 1; frame <= 8; frame++) {
+    for (let frame = 1; frame <= frames; frame++) {
       assertEquals(schedule.captureLocal(epoch, NEUTRAL), Capture.captured);
       assertTrue(playback.advanceSpeculative(schedule, epoch, 3, live, history));
     }
     // Neither computers nor empty slots submit a packet.
-    for (let frame = 1; frame <= 8; frame++) {
+    for (let frame = 1; frame <= frames; frame++) {
       for (const slot of PARTICIPANT_SLOTS) if (humanActive(game, slot)) deliver(schedule, slot, epoch, frame, slot === 0 ? WALK_RIGHT : NEUTRAL);
     }
-    assertEquals(schedule.knownThrough(), 8);
+    assertEquals(schedule.knownThrough(), frames);
     assertEquals(playback.reconcile(schedule, epoch, 3, live, history), variant === 0 ? "unchanged" : 1);
     confirmAll(schedule, playback, epoch, confirmed, confirmedHistory);
     const expected = capture(confirmed);
     assertEquals(firstStateDifference(capture(live), expected), undefined);
     const computer = fighterAt(live.world, 2);
     assertTrue(computer.motion.x !== matchSpawnX(2) || computer.attack.serial > 0);
-    assertTrue(history.replay(epoch, 1, 8, live));
+    assertTrue(history.replay(epoch, 1, frames, live));
     assertEquals(firstStateDifference(capture(live), expected), undefined);
   }
 });
