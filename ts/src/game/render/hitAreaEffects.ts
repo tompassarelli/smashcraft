@@ -6,6 +6,9 @@ import { runningHeroSpecial } from "../sim/heroSpecialRules";
 import { DISJOINT_MODELS, disjointNormals, hitAreaPose, specialAreaRegion, type HitAreaPose } from "../presentation/disjointCues";
 import { type ParkedFlags, type WorldOrigin, facingYaw, parkOnce } from "./effects";
 
+/** Lich's twelve-segment halo is the largest simultaneous strike set. */
+export const HIT_AREA_EFFECT_CAPACITY = 12;
+
 /** Contact accents are separate from cast cues: simultaneous regions each get one. */
 export class HitAreaEffects {
   private readonly models: effect[] = [];
@@ -16,8 +19,7 @@ export class HitAreaEffects {
 
   constructor(character: Character, private readonly origin: WorldOrigin) {
     this.styles = disjointNormals(createFighter(character, 0.0, 1));
-    // Twelve is the largest simultaneous strike set: Lich's twelve-segment halo.
-    for (let index = 0; index < 12; index++) this.models.push(AddSpecialEffect(DISJOINT_MODELS[character] ?? DISJOINT_MODELS[0] ?? "", origin.x, origin.y));
+    for (let index = 0; index < HIT_AREA_EFFECT_CAPACITY; index++) this.models.push(AddSpecialEffect(DISJOINT_MODELS[character] ?? DISJOINT_MODELS[0] ?? "", origin.x, origin.y));
     this.clear();
   }
 
