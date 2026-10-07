@@ -1,0 +1,55 @@
+{
+  "base": "5fc28926",
+  "changes": {
+    "kaelAir": 1.25,
+    "thrallAir": 0.75,
+    "kaelBanishDefensiveUse": true
+  },
+  "choices": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+  ],
+  "coverage": {
+    "fighter": "Kael'thas Sunstrider",
+    "matches": 8,
+    "movement": 8927,
+    "attacks": 124,
+    "kit": 78,
+    "specials": {
+      "neutral": 50,
+      "side": 10,
+      "up": 9,
+      "down": 9
+    },
+    "defense": 175,
+    "recovery": 1120,
+    "manaDenied": 0,
+    "defenseDecisions": 13,
+    "recoveryDecisions": 2,
+    "companions": {
+      "bear": 0,
+      "quilbeast": 0,
+      "hawk": 0
+    },
+    "missing": []
+  }
+}
