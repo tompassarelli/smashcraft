@@ -20,6 +20,7 @@ interface PassiveSpec {
 
 const NONE: PassiveSpec = { kind: PassiveKind.none, stacks: 0, window: 0 };
 const WINDFURY: PassiveSpec = { kind: PassiveKind.criticalStrike, stacks: 2, window: 180 };
+const ENDURANCE: PassiveSpec = { kind: PassiveKind.endurance, stacks: 2, window: 180 };
 
 /** By Character code. Illidan has none: his attacks drain mana on hit (his kit data). */
 const SPECS: readonly PassiveSpec[] = [
@@ -38,9 +39,13 @@ const SPECS: readonly PassiveSpec[] = [
   { kind: PassiveKind.souls, stacks: 3, window: 0 }, // lichKing
 ];
 
+const DRUNKEN_BRAWLER: PassiveSpec = { kind: PassiveKind.criticalStrike, stacks: 3, window: 180 };
+
 export function passiveSpec(character: Character): PassiveSpec {
   if (character === Character.sylvanas) return SPECS[Character.shadowHunter] ?? NONE;
   if (character === Character.thrall) return WINDFURY;
+  if (character === Character.cairne) return ENDURANCE;
+  if (character === Character.chen) return DRUNKEN_BRAWLER;
   return SPECS[character] ?? NONE;
 }
 
@@ -78,7 +83,10 @@ export function advancePassive(f: Fighter): void {
   const { passive } = f;
   if (passive.window > 0) {
     passive.window--;
-    if (passive.window === 0) passive.stacks = 0;
+    if (passive.window === 0) {
+      passive.stacks = 0;
+      if (f.character === Character.cairne) passive.used = false;
+    }
   }
   if (f.character === Character.warden && (f.motion.grounded || f.ledge.state !== LedgeState.none)) passive.used = false;
 }
@@ -106,6 +114,7 @@ function counts(source: Readonly<Fighter>, kind: PassiveKind, origin: HitOrigin,
     case PassiveKind.voodoo: return origin === HitOrigin.voodoo || origin === HitOrigin.melee;
     case PassiveKind.blink: return origin === HitOrigin.melee && direct && isAerialAttack(source.attack.style);
     case PassiveKind.cleave: return origin === HitOrigin.melee;
+    case PassiveKind.endurance: return origin === HitOrigin.melee;
     case PassiveKind.packHunt: return origin === HitOrigin.melee || origin === HitOrigin.summon;
     // Frostmourne Hungers: a landed normal or aerial, or Harvest Soul (his down throw).
     case PassiveKind.souls: return (origin === HitOrigin.melee && source.attack.style !== undefined)
@@ -126,12 +135,23 @@ export function sourcePassiveContact(
   const spec = passiveSpec(source.character);
   const { passive } = source;
   if (!counts(source, spec.kind, origin, direct)) return PassiveProc.none;
+  if (spec.kind === PassiveKind.endurance && key >= 0 && key === passive.lastKey) return PassiveProc.none;
   if (key >= 0 && key === passive.lastKey && targetSlot === passive.lastTarget) return PassiveProc.none;
   const previousTarget = passive.lastTarget;
   passive.lastKey = key;
   passive.lastTarget = targetSlot;
   const ready = passive.stacks >= spec.stacks;
   switch (spec.kind) {
+    case PassiveKind.endurance: {
+      if (blocked || passive.used) return PassiveProc.none;
+      addStack(source, spec);
+      if (passive.stacks >= spec.stacks) {
+        passive.used = true;
+        passive.window = 120;
+        passive.serial++;
+      }
+      return PassiveProc.none;
+    }
     case PassiveKind.voodoo: {
       if (origin === HitOrigin.voodoo) {
         if (!blocked) addStack(source, spec);
@@ -303,4 +323,9 @@ export function spendSoul(f: Fighter): void {
   if (heldSouls(f) <= 0) return;
   f.passive.stacks--;
   f.passive.serial++;
+}
+
+/** Endurance Aura changes ground speed only; its window lives in the replayed passive record. */
+export function enduranceGroundSpeed(f: Readonly<Fighter>, speed: number): number {
+  return f.character === Character.cairne && f.passive.used && f.passive.window > 0 ? f32(speed * f32(1.1)) : speed;
 }

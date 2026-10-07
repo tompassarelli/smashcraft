@@ -4,6 +4,7 @@ import { floorMod } from "wisp/src/sim/intMath";
 import { Character } from "../codes";
 import type { HeroDefinition } from "./hero";
 import { BEASTMASTER_HERO } from "./beastmasterHero";
+import { CAIRNE_HERO } from "./cairneHero";
 import { BLADEMASTER_HERO } from "./blademasterHero";
 import { DREADLORD_HERO } from "./dreadlordHero";
 import { LICH_HERO } from "./lichHero";
@@ -16,13 +17,16 @@ import { UTHER_HERO } from "./utherHero";
 import { WARDEN_HERO } from "./wardenHero";
 import { SYLVANAS_HERO } from "./sylvanasHero";
 import { THRALL_HERO } from "./thrallHero";
+import { CHEN_HERO } from "./chenHero";
 import { HIDDEN_FIGHTERS } from "./releaseRoster";
 
 export const HERO_ROSTER: readonly HeroDefinition[] = [
   BLADEMASTER_HERO, MOUNTAIN_KING_HERO, WARDEN_HERO, LICH_HERO, UTHER_HERO, DREADLORD_HERO, SHADOW_HUNTER_HERO, PIT_LORD_HERO, BEASTMASTER_HERO, LICH_KING_HERO, THRALL_HERO, JAINA_HERO, SYLVANAS_HERO,
+  CAIRNE_HERO, CHEN_HERO,
 ];
 
 const BY_CHARACTER: { readonly [character: number]: HeroDefinition | undefined } = {
+  [Character.chen]: CHEN_HERO,
   [Character.blademaster]: BLADEMASTER_HERO,
   [Character.mountainKing]: MOUNTAIN_KING_HERO,
   [Character.warden]: WARDEN_HERO,
@@ -36,6 +40,7 @@ const BY_CHARACTER: { readonly [character: number]: HeroDefinition | undefined }
   [Character.thrall]: THRALL_HERO,
   [Character.jaina]: JAINA_HERO,
   [Character.sylvanas]: SYLVANAS_HERO,
+  [Character.cairne]: CAIRNE_HERO,
 };
 
 export function heroDefinition(character: number): HeroDefinition | undefined {

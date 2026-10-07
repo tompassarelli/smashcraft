@@ -45,6 +45,7 @@ export const FIGHTER_OBJECTS: Readonly<Record<Character, FighterObject>> = {
   [Character.archer]: { ...fighterFields, base: "earc", id: 0x6d666172, name: "Archer", model: ARCHER_MODEL_FILE, scale: characterModelScale(Character.archer) },
   [Character.rifleman]: { ...fighterFields, base: "hrif", id: 0x6d667266, name: "Rifleman", model: RIFLEMAN_MODEL_FILE, scale: characterModelScale(Character.rifleman) },
   [Character.demonHunter]: { ...fighterFields, base: "earc", id: 0x6d666468, name: "Illidan", model: DEMON_HUNTER_MODEL_FILE, scale: characterModelScale(Character.demonHunter) },
+  [Character.chen]: heroObject(Character.chen),
   [Character.blademaster]: heroObject(Character.blademaster),
   [Character.mountainKing]: heroObject(Character.mountainKing),
   [Character.warden]: heroObject(Character.warden),
@@ -58,6 +59,7 @@ export const FIGHTER_OBJECTS: Readonly<Record<Character, FighterObject>> = {
   [Character.thrall]: heroObject(Character.thrall),
   [Character.jaina]: heroObject(Character.jaina),
   [Character.sylvanas]: heroObject(Character.sylvanas),
+  [Character.cairne]: heroObject(Character.cairne),
 };
 
 /** Explicit order for archive emission and synchronized native application: the selectable fighters. */

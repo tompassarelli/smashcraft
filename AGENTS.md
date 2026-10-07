@@ -109,10 +109,16 @@ code. From smashcraft:ts/:
   clips and writing both-facing silhouette sheets for the native review.
   `bun tools/animations/down-air-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends
   downward contact poses for the seven stock heroes whose casts/swings pointed forward.
+  `bun tools/animations/attack-gesture-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT [--character ID]`
+  appends distinct roster attack gestures without changing combat data or old clips;
+  `--character` regenerates one fighter while retaining other generated bindings.
   `bun tools/animations/dreadlord-pounce-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` authors Dreadlord’s horizontal corkscrew, bite and recovery; `bun tools/animations/dreadlord-pounce-captures.ts PRIVATE_ASSETS PRIVATE_OUTPUT` captures their production phase selection in both facings.
   `bun tools/animations/jump-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends
   movement-only jump gestures, including Blademaster's front flip
   (smashcraft:docs/fighter-animation-work.md).
+  `bun tools/animations/blademaster-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
+  appends a distinct gesture for each Blademaster normal and his back throw,
+  preserving the shipped plunge and double-jump flip.
   `bun tools/animations/warden-fan-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` authors
   Warden's ground and air Fan of Knives casts, preserving other clips
   (smashcraft:docs/design/warden-fan-of-knives.md).
@@ -159,6 +165,15 @@ code. From smashcraft:ts/:
   `bun tools/animations/sylvanas-clips.ts STOCK_SYLVANAS.mdx PRIVATE_OUTPUT`
   appends bow attacks, casts, recovery, paired grabs and nine damage reactions
   to the classic undead Sylvanas rig, preserving its stock sequences.
+- Cairne animation authoring (from the repository root):
+  `bun tools/animations/cairne-clips.ts STOCK_TAUREN.mdx PRIVATE_OUTPUT`
+  appends the complete totem kit, recovery, paired grabs and nine pain clips
+  to the private classic Tauren Chieftain model, preserving its stock clips.
+- Chen animation authoring (from the repository root):
+  `bun tools/animations/chen-clips.ts STOCK_CHEN.mdx PRIVATE_OUTPUT` authors
+  Chen's staff, footwork, special, recovery, paired throw and nine pain clips
+  from his private stock model and regenerates his clip table
+  (smashcraft:docs/design/chen.md).
 - Damage reactions (from the repository root):
   `bun tools/animations/damage-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
   appends all 13 fighters' nine articulated contact reactions, checks their
