@@ -10,6 +10,8 @@ import { ABS_X, EV_ABS, PAD_BUTTONS, decodeEvents, edgePacket, padCapabilities, 
 import { type Slot, capturePair, integrityResult, integrityTable, summaryJson } from "../scripts/integrity/reconcile";
 import { integritySchedule } from "../scripts/integrity/schedule";
 import { frameCostOverlay } from "../scripts/integrity/botFiles";
+import { RULE_BUTTONS } from "../src/game/ui/ruleButtons";
+import { pointerX, pointerY } from "../src/game/menu/pointer";
 import { createMatchState, setParticipants } from "../src/game/match/rules";
 import { type DevSettings, applyDevCommand } from "../src/game/shell/devSettings";
 import { devReceiptFile, stageDrawnFile } from "../src/game/shell/journalFiles";
@@ -296,7 +298,15 @@ test("a playable journey plays one-stock matches that end when Player 1, then Pl
     `send 1 ${EV_ABS} ${ABS_X} 32767 match-2-stock-loss`, `send 1 ${EV_ABS} ${ABS_X} 0 match-2-stock-loss`,
   ]);
   expect(sends.filter((line) => line.includes("-combat"))).toHaveLength(32);
-  expect(playable.trace.filter((line) => line === "ui b click 428 445")).toHaveLength(4);
+  const stocks = RULE_BUTTONS.fewerStocks;
+  const stockClicks = playable.trace.filter((line) => {
+    const click = /^ui b click (-?\d+) (-?\d+)$/.exec(line);
+    if (click === null) return false;
+    const x = pointerX(Number(click[1]), 2560, 1440);
+    const y = pointerY(Number(click[2]), 1440);
+    return x >= stocks.x && x <= stocks.x + stocks.width && y <= stocks.y && y >= stocks.y - stocks.height;
+  });
+  expect(stockClicks).toHaveLength(4);
   expect(playable.trace.filter((line) => line.startsWith("key "))).toEqual(["key a ctrl+t", "key a ctrl+t"]);
   expect(playable.trace.some((line) => line.startsWith("stop ") || line.includes("-integrity-") || line.includes("ui a click"))).toBe(false);
   expect(playable.events.filter((event) => event.event !== "menu").map((event) => [event.event, "epoch" in event ? event.epoch : undefined]))

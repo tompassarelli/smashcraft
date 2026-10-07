@@ -2,6 +2,8 @@
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/src/headless/syncChannel";
+import { nextMatchSeed } from "../src/game/match/botRandom";
+import { randomStage } from "../src/game/menu/stageCatalog";
 import { Phase } from "../src/game/match/rules";
 import { RULE_BUTTONS } from "../src/game/ui/ruleButtons";
 import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
@@ -47,10 +49,15 @@ function session(endless = false) {
   until("match", () => read(() => shell().game.phase) === Phase.match, 120);
   return { clients, frames, read, until };
 }
-test("rules agree on both clients and the visible countdown restarts the same match on its last frame", () => {
+test("rules agree on both clients and the last countdown frame starts the next seeded pool stage", () => {
   const { clients, frames, read, until } = session();
-  const rules = () => [shell().game.characterChoices.join(), shell().game.stageChoice, shell().game.stockCount, shell().game.timeLimitMinutes];
+  const rules = () => [shell().game.characterChoices.join(), shell().game.stockCount, shell().game.timeLimitMinutes, shell().game.automaticRematch, shell().game.endless];
   const before = read(rules);
+  const previousStage = read(() => shell().game.stageChoice);
+  const pool = read(() => ({ ...shell().game.stagePool }));
+  const nextSeed = nextMatchSeed(read(() => shell().game.matchSeed));
+  expect(pool.remainingMask).toBeGreaterThan(0);
+  const nextStage = randomStage(nextSeed, pool.remainingMask);
   until("result", () => read(() => shell().game.phase) === Phase.result);
   until("helpers stopped", () => read(() => shell().rollback?.journal?.lifecycle?.quiescent() === true), 120);
   const remaining = read(() => shell().game.rematchCountdown);
@@ -63,6 +70,10 @@ test("rules agree on both clients and the visible countdown restarts the same ma
   expect(read(() => shell().game.phase)).toBe(Phase.match);
   expect(read(() => shell().rollback?.epoch)).toBe(2);
   expect(read(rules)).toEqual(before);
+  expect(read(() => shell().game.matchSeed)).toBe(nextSeed);
+  expect(read(() => shell().game.stageChoice)).toBe(nextStage);
+  expect(nextStage).not.toBe(previousStage);
+  expect(read(() => shell().game.stagePool)).toEqual({ ...pool, remainingMask: pool.remainingMask & ~(1 << nextStage) });
   expectSynchronized(clients);
 });
 // About 1.5 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
