@@ -17,6 +17,12 @@ import type { CpuDecisionPolicy } from "./cpuDecisionPolicy";
 import { HabitChoice, habitContext } from "./botHabits";
 
 const HISTORY_LIMIT = 128;
+const READ_CHOICES = [HabitChoice.attack, HabitChoice.shield, HabitChoice.jump, HabitChoice.retreat, HabitChoice.approach, HabitChoice.landing, HabitChoice.ledge] as const;
+// Preallocated scratch: confirmed and rollback decisions reuse it without retaining it.
+const readCounts = [0, 0, 0, 0, 0, 0, 0, 0];
+const readIntervals = [0, 0, 0, 0, 0, 0, 0, 0];
+const readTimed = [0, 0, 0, 0, 0, 0, 0, 0];
+const readLatest = [0, 0, 0, 0, 0, 0, 0, 0];
 
 export interface BotHabit {
   readonly frame: number;
@@ -155,10 +161,13 @@ export function prepareBotRead(state: BotStrategy, own: Readonly<Fighter>, targe
   if (state.read !== undefined && frame <= state.read.expires) return;
   state.read = undefined;
   const context = habitContext(own, target);
-  const counts = [0, 0, 0, 0, 0, 0, 0, 0];
-  const intervals = [0, 0, 0, 0, 0, 0, 0, 0];
-  const timed = [0, 0, 0, 0, 0, 0, 0, 0];
-  const latest = [0, 0, 0, 0, 0, 0, 0, 0];
+  const counts = readCounts, intervals = readIntervals, timed = readTimed, latest = readLatest;
+  for (let index = 0; index < counts.length; index++) {
+    counts[index] = 0;
+    intervals[index] = 0;
+    timed[index] = 0;
+    latest[index] = 0;
+  }
   let total = 0;
   for (const habit of state.history) {
     if (habit.context !== context) continue;
@@ -171,7 +180,7 @@ export function prepareBotRead(state: BotStrategy, own: Readonly<Fighter>, targe
     total++;
   }
   let choice: HabitChoice = HabitChoice.none;
-  for (const candidate of [HabitChoice.attack, HabitChoice.shield, HabitChoice.jump, HabitChoice.retreat, HabitChoice.approach, HabitChoice.landing, HabitChoice.ledge]) {
+  for (const candidate of READ_CHOICES) {
     if (at(counts, candidate) > at(counts, choice)) choice = candidate;
   }
   const count = at(counts, choice);
