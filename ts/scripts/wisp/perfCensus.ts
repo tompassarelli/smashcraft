@@ -13,7 +13,7 @@ import { join } from "node:path";
 import { Console, Effect } from "effect";
 import { mapCompiler, report } from "wisp/scripts/compiler";
 import { type Command, UsageFailure, describeCause, flagValues } from "wisp/scripts/wisp/command";
-import { PerfFailure } from "wisp/scripts/wisp/commands/perf";
+import { PerfFailure, type PerfProject, measureRun } from "wisp/scripts/wisp/commands/perf";
 import { WARCRAFT_COST, nativeFrameCost } from "wisp/src/headless/nativeCost";
 import { SELECTABLE_CHARACTERS, fighterSlug } from "../../src/game/sim/heroes/registry";
 import { STAGE_CATALOG } from "../../src/game/menu/stageCatalog";
@@ -55,7 +55,8 @@ const predictedMs = (frame: FrameSample) => nativeFrameCost(WARCRAFT_COST, { ...
 function median(values: readonly number[]): number {
   const order = [...values].sort((a, b) => a - b);
   const middle = Math.floor(order.length / 2);
-  return order.length === 0 ? 0 : order.length % 2 === 1 ? order[middle]! : (order[middle - 1]! + order[middle]!) / 2;
+  const upper = order[middle] ?? 0;
+  return order.length % 2 === 1 ? upper : ((order[middle - 1] ?? upper) + upper) / 2;
 }
 
 /** The census entries a census run printed: its `census` lines read against its p0 frame samples. */
@@ -81,11 +82,15 @@ export function censusEntries(output: string): CensusEntry[] {
     const move = range(Number(moveFirst), Number(moveLast));
     const baselineMs = median(base.map(predictedMs));
     let worstAt = 0;
+    let worst: FrameSample = { instructions: 0, natives: 0, allocatedKb: 0 };
+    let worstMs = Number.NEGATIVE_INFINITY;
     move.forEach((frame, index) => {
-      if (predictedMs(frame) > predictedMs(move[worstAt]!)) worstAt = index;
+      const ms = predictedMs(frame);
+      if (ms <= worstMs) return;
+      worstAt = index;
+      worst = frame;
+      worstMs = ms;
     });
-    const worst = move[worstAt]!;
-    const worstMs = predictedMs(worst);
     return {
       group, name, baselineMs, worstMs, worstAt, spikeMs: worstMs - baselineMs,
       worstFrame: Number(moveFirst) + worstAt, baseFrames: [Number(baseFirst), Number(baseLast)],
@@ -112,14 +117,15 @@ export function functionNamer(bundle: string): (line: number) => string {
   const modules: [number, string][] = [];
   lines.forEach((text, index) => {
     const module = /^\["([^"]+)"\] = function/.exec(text);
-    if (module !== null) modules.push([index + 1, module[1]!]);
+    const moduleName = module?.[1];
+    if (moduleName !== undefined) modules.push([index + 1, moduleName]);
   });
   return (line) => {
     let module = "?";
     for (const [start, name] of modules) if (start <= line) module = name;
     const text = lines[line - 1] ?? "";
     const named = /function ([\w.:]+)\s*\(/.exec(text) ?? /([\w.\]["]+)\s*=\s*function/.exec(text);
-    const name = named === null ? `line ${line}` : named[1]!.replace(/____exports\.?/, "").replace(/\["?|"?\]/g, "");
+    const name = (named?.[1] ?? `line ${line}`).replace(/____exports\.?/, "").replace(/\["?|"?\]/g, "");
     return `${module.replace(/^game\.|^lua_modules\.wisp\.src\./, "")} ${name}`;
   };
 }
@@ -129,30 +135,34 @@ function profileOf(output: string, frames: ReadonlySet<number>): Map<number, [nu
   const totals = new Map<number, [number, number]>();
   for (const text of output.split("\n")) {
     if (!text.startsWith("prof\t")) continue;
-    const [, frame, line, self, inclusive] = text.split("\t").map(Number);
-    if (!frames.has(frame!)) continue;
-    const entry = totals.get(line!) ?? [0, 0];
-    entry[0] += self!;
-    entry[1] += inclusive!;
-    totals.set(line!, entry);
+    const [, frame = 0, line = 0, self = 0, inclusive = 0] = text.split("\t").map(Number);
+    if (!frames.has(frame)) continue;
+    const entry = totals.get(line) ?? [0, 0];
+    entry[0] += self;
+    entry[1] += inclusive;
+    totals.set(line, entry);
   }
   return totals;
 }
 
-/** The functions the worst frame spent most beyond a mean baseline frame, in thousands of instructions. */
-export function profileLines(entry: CensusEntry, output: string, name: (line: number) => string, top = 12): string[] {
-  const [first, last] = entry.baseFrames;
-  const baseFrames = new Set<number>();
-  for (let frame = first; frame <= last; frame++) baseFrames.add(frame);
+/** The functions frame `worstFrame` spent most in beyond a mean frame of `baseFrames`, in thousands of instructions. */
+export function frameProfileLines(heading: string, worstFrame: number, baseFrames: ReadonlySet<number>, output: string, name: (line: number) => string, top = 12): string[] {
   const base = profileOf(output, baseFrames);
-  const worst = profileOf(output, new Set([entry.worstFrame]));
+  const worst = profileOf(output, new Set([worstFrame]));
   const rows = [...worst].map(([line, [self, inclusive]]) => {
     const [baseSelf, baseInclusive] = base.get(line) ?? [0, 0];
     return { line, self: self - baseSelf / baseFrames.size, inclusive: inclusive - baseInclusive / baseFrames.size };
   });
-  const lines = [`profile ${entry.group} ${entry.name} (frame +${entry.worstAt}, ${entry.spikeMs.toFixed(2)} ms over baseline): k-instructions above a baseline frame, inclusive / self`];
+  const lines = [`${heading}: k-instructions above a baseline frame, inclusive / self`];
   for (const row of rows.sort((a, b) => b.inclusive - a.inclusive).slice(0, top)) lines.push(`  ${row.inclusive.toFixed(0).padStart(5)} ${row.self.toFixed(0).padStart(5)}  ${name(row.line)}`);
   return lines;
+}
+
+/** A census entry's worst frame against its standing baseline. */
+export function profileLines(entry: CensusEntry, output: string, name: (line: number) => string): string[] {
+  const baseFrames = new Set<number>();
+  for (let frame = entry.baseFrames[0]; frame <= entry.baseFrames[1]; frame++) baseFrames.add(frame);
+  return frameProfileLines(`profile ${entry.group} ${entry.name} (frame +${entry.worstAt}, ${entry.spikeMs.toFixed(2)} ms over baseline)`, entry.worstFrame, baseFrames, output, name);
 }
 
 const compile = (config: string) => Effect.try({
@@ -168,17 +178,20 @@ export interface CensusProject {
 /** The run that played an entry. */
 const runOf = (entry: CensusEntry) => (entry.group === "stage" ? `census-stage-${entry.name}` : `census-${entry.group}`);
 
-const runOne = (project: CensusProject, run: string, profileFrames?: readonly number[]) => Effect.tryPromise({
+/** Plays `run` of the perf program in 32-bit Lua with `bundle`'s map; with `profileFrames`, sampled on those frames instead of measured (censusProfile.ts). */
+export const runLua = (program: string, bundle: string, run: string, frames: number, profileFrames?: readonly number[]) => Effect.tryPromise({
   try: async () => {
     const lua = process.env.LUA ?? "lua";
-    const env = profileFrames === undefined ? process.env : { ...process.env, CENSUS_PROFILE_FRAMES: profileFrames.join(",") };
-    const child = Bun.spawn([lua, project.program.bundle, project.map.bundle, join(tsDirectory, "node_modules/wisp/src/natives/warcraft.d.ts"), run, "0", "samples"], { stdout: "pipe", stderr: "pipe", env });
+    const env = profileFrames === undefined ? process.env : { ...process.env, PERF_PROFILE_FRAMES: profileFrames.join(",") };
+    const child = Bun.spawn([lua, program, bundle, join(tsDirectory, "node_modules/wisp/src/natives/warcraft.d.ts"), run, String(frames), "samples"], { stdout: "pipe", stderr: "pipe", env });
     const [out, err, code] = await Promise.all([new Response(child.stdout).text(), new Response(child.stderr).text(), child.exited]);
     if (code !== 0) throw new Error(`${run}: ${lua} exited ${code}: ${err}${out.split("\n").filter((line) => !line.startsWith("frame ")).join("\n")}`);
     return out;
   },
   catch: (cause) => new PerfFailure({ problem: describeCause(cause) }),
 });
+
+const runOne = (project: CensusProject, run: string, profileFrames?: readonly number[]) => runLua(project.program.bundle, project.map.bundle, run, 0, profileFrames);
 
 export const census = (project: CensusProject): Command => (args) => Effect.gen(function*() {
   const [limitText = String(CENSUS_LIMIT_MS)] = flagValues(args, "limit");
@@ -217,11 +230,40 @@ export const census = (project: CensusProject): Command => (args) => Effect.gen(
         for (let frame = entry.baseFrames[0]; frame <= entry.baseFrames[1]; frame++) listed.push(frame);
         return listed;
       });
-      const profiled = yield* runOne(project, run.replace(/^census-/, "census-profile-"), frames);
+      const profiled = yield* runOne(project, run, frames);
       for (const entry of items) yield* Console.log(profileLines(entry, profiled, name).join("\n"));
     }
   }
   if (errors.length > 0) return yield* new PerfFailure({ problem: `the census found problems: ${errors.join("; ")}` });
   const over = entries.filter((entry) => entry.spikeMs > limit);
   if (over.length > 0) return yield* new PerfFailure({ problem: `${over.length} census entries rise more than ${limit} ms: ${over.map((entry) => `${entry.group} ${entry.name} ${entry.spikeMs.toFixed(2)} ms`).join(", ")}` });
+});
+
+/**
+ * `perf profile RUN [--worst N] [--frames N]`: plays a perf run measured, then
+ * again sampled on its N worst frames of p0 (3 by default) and on the 30
+ * frames nearest its median, and prints what each worst frame spent beyond a
+ * median frame.
+ */
+export const profile = (project: PerfProject): Command => (args) => Effect.gen(function*() {
+  const [worstText = "3"] = flagValues(args, "worst");
+  const [framesText = "1800"] = flagValues(args, "frames");
+  const named = args.filter((arg, index) => !arg.startsWith("--") && !["--worst", "--frames", "--out"].includes(args[index - 1] ?? ""));
+  const [name = project.defaultRun ?? "journey"] = named;
+  const map = name === (project.defaultRun ?? "journey") ? project.map : project.runs?.[name];
+  const worstCount = Number(worstText);
+  const frames = Number(framesText);
+  if (map === undefined || named.length > 1 || !(worstCount >= 1) || !(frames >= 1)) return yield* new UsageFailure({ problem: "perf profile takes one run, --worst N and --frames N" });
+  const { output } = yield* measureRun(project, name, frames, true);
+  const costs: (readonly [frame: number, ms: number, natives: number])[] = [];
+  for (const line of output.split("\n")) {
+    const sample = SAMPLE.exec(line);
+    if (sample !== null) costs.push([Number(sample[1]), predictedMs({ instructions: Number(sample[2]), natives: Number(sample[3]), allocatedKb: Number(sample[4]) / 1024 }), Number(sample[3])]);
+  }
+  const middle = median(costs.map(([, ms]) => ms));
+  const worst = [...costs].sort((a, b) => b[1] - a[1]).slice(0, worstCount);
+  const base = new Set([...costs].sort((a, b) => Math.abs(a[1] - middle) - Math.abs(b[1] - middle)).slice(0, 30).map(([frame]) => frame));
+  const profiled = yield* runLua(project.program.bundle, map.bundle, name, frames, [...worst.map(([frame]) => frame), ...base]);
+  const namer = functionNamer(yield* Effect.promise(() => Bun.file(map.bundle).text()));
+  for (const [frame, ms, natives] of worst) yield* Console.log(frameProfileLines(`profile ${name} frame ${frame} (${ms.toFixed(2)} ms, ${natives} natives; median frame ${middle.toFixed(2)} ms)`, frame, base, profiled, namer).join("\n"));
 });
