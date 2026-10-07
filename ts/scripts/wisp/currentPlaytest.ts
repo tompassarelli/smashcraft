@@ -111,19 +111,21 @@ const removeLane = (mainCheckout: string, revision: string) => Effect.sync(() =>
 });
 
 const helperPath = (companion: string) => join(inputsRoot, "play-helpers", companion, "wc3-journal");
+const helperTarget = join(inputsRoot, "play-helper-target");
 
-const buildHelper = (lane: string, helper: string) => Effect.gen(function*() {
+// Keep the shared binary unchanged until copied to this companion tree's delivery path.
+const buildHelper = (lane: string, helper: string) => withLock(join(locks, "play-helper-target.lock"), "Waiting for another controller helper build", Effect.gen(function*() {
   const capacity = join(homedir(), "code/nixos-config/main/dotfiles/agents/skills/machine-capacity/scripts/machine-capacity.mjs");
   yield* run(join(lane, "companion"), ["nix-shell", "-p", "stdenv.cc", "cmake", "pkg-config", "libxkbcommon", "udev", "--run",
-    `PATH=${join(homedir(), ".rustup/toolchains/1.96.1-x86_64-unknown-linux-gnu/bin")}:$PATH bun '${capacity}' run --class moderate --owner smashcraft:play-helper --timeout-seconds 900 -- cargo build --release --locked --jobs 2 --bin wc3-journal`]);
+    `PATH=${join(homedir(), ".rustup/toolchains/1.96.1-x86_64-unknown-linux-gnu/bin")}:$PATH bun '${capacity}' run --class moderate --owner smashcraft:play-helper --timeout-seconds 900 -- cargo build --release --locked --jobs 2 --target-dir '${helperTarget}' --bin wc3-journal`]);
   // A helper another run installed meanwhile may be running: replace it by rename, never write over it (ETXTBSY).
   yield* tryPlay(() => {
     mkdirSync(dirname(helper), { recursive: true });
     const staged = `${helper}.${process.pid}.tmp`;
-    copyFileSync(join(lane, "companion/target/release/wc3-journal"), staged);
+    copyFileSync(join(helperTarget, "release/wc3-journal"), staged);
     renameSync(staged, helper);
   });
-});
+}));
 
 /** Main's controller helper, built on first use. */
 export const currentHelper = Effect.gen(function*() {

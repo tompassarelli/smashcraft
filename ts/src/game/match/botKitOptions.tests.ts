@@ -209,10 +209,10 @@ test("computer Lich bursts Frost Nova, places Death and Decay, arms Frost Armor 
   usesEvery(Character.lich, ["recall0", "special1", "special3", "recall3"]);
 });
 
-test("computer Uther shoots Holy Light and attacks out of Divine Shield", () => {
+test("computer Uther sends Holy Radiance and attacks out of Divine Shield", () => {
   // Divine Shield succeeds only against a strike timed into its window, about once in 30 mirror matches, so
   // the usual matches add two seeds of the same series (indices 37 and 55 at 110%) where it does.
-  usesEvery(Character.uther, ["special0", "divineAttack"], Character.uther, 2 * MATCHES, [[11 + 37 * 12, 110.0], [11 + 55 * 12, 110.0]]);
+  usesEvery(Character.uther, ["special1", "divineAttack"], Character.uther, 2 * MATCHES, [[11 + 37 * 12, 110.0], [11 + 55 * 12, 110.0]]);
 });
 
 test("computer Dreadlord feints Vampiric Pounce, sleeps a target, mashes out of Sleep and hits a sleeper", () => {
