@@ -39,9 +39,10 @@ export const AHNQIRAJ_SCENERY: StageScenery = {
   sky: "Environment\\Sky\\LordaeronSummerSky\\LordaeronSummerSky.mdl",
   fog: { start: 5000.0, end: 10000.0, red: 0.75, green: 0.625, blue: 0.375 },
   pieces: [
-    // A colossal statue on the left third; a smaller one and fallen stone on the right.
-    { model: "Units\\Undead\\ObsidianStatue\\ObsidianStatue.mdx", x: -1300.0, y: 5300.0, z: -1300.0, scale: 7.0, yaw: 300.0 },
-    { model: "Units\\Undead\\ObsidianStatue\\ObsidianStatue.mdx", x: 2400.0, y: 3600.0, z: -900.0, scale: 4.25, yaw: 220.0 },
+    // A colossal obelisk on the left third; a broken arch, a fallen wall and stone on the right.
+    { model: "Doodads\\Ruins\\Props\\RuinsObelisk\\RuinsObelisk1.mdx", x: -1300.0, y: 5300.0, z: -1300.0, scale: 11.0, yaw: 300.0 },
+    { model: "Doodads\\Barrens\\Structures\\RuinedArch\\RuinedArch2.mdx", x: 2400.0, y: 3600.0, z: -1100.0, scale: 9.0, yaw: 220.0 },
+    { model: "Doodads\\Barrens\\Structures\\RuinedCurvedWall\\RuinedCurvedWall.mdx", x: 1500.0, y: 4600.0, z: -1300.0, scale: 6.0, yaw: 160.0 },
     { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: 2000.0, y: 2400.0, z: -1300.0, scale: 3.5, yaw: 45.0 },
     { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: -2200.0, y: 3000.0, z: -1400.0, scale: 4.5, yaw: 300.0 },
   ],

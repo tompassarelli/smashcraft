@@ -17,11 +17,11 @@ export const NAXXRAMAS_SCENERY: StageScenery = {
   sky: "Environment\\Sky\\LordaeronWinterSky\\LordaeronWinterSky.mdx",
   fog: { start: 5000.0, end: 11000.0, red: 0.25, green: 0.5, blue: 0.625 },
   pieces: [
-    // The necropolis on the right third; a near ziggurat and a watching statue weigh the left.
+    // The necropolis on the right third; a near ziggurat and a Scourge obelisk weigh the left.
     { model: "buildings\\undead\\Necropolis\\Necropolis.mdx", x: 1200.0, y: 5800.0, z: -1100.0, scale: 3.0, yaw: 250.0 },
     { model: "buildings\\undead\\Ziggurat\\Ziggurat.mdx", x: -1700.0, y: 3000.0, z: -1050.0, scale: 3.25, yaw: 20.0 },
     { model: "buildings\\undead\\Ziggurat\\Ziggurat.mdx", x: 2600.0, y: 3700.0, z: -1150.0, scale: 2.25, yaw: 160.0 },
-    { model: "Units\\Undead\\ObsidianStatue\\ObsidianStatue.mdx", x: -950.0, y: 2300.0, z: -1000.0, scale: 2.5, yaw: 290.0 },
+    { model: "Doodads\\Icecrown\\Props\\IceCrownObelisk\\IceCrownObelisk1.mdx", x: -950.0, y: 2300.0, z: -1000.0, scale: 5.0, yaw: 290.0 },
   ],
 };
 

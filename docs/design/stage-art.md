@@ -82,9 +82,12 @@ from the floor (smashcraft:ts/src/game/presentation/stageScenery.ts).
    colours.
 7. **No creatures in the background.** Owner decision (6 Oct): background
    creatures distract. Scenery is buildings, terrain and props only: no units,
-   critters, flyers or vehicles that move. A unit model may appear only as an
-   inanimate prop (a stone statue, a parked mine cart); the scenery test lists
-   those. This also keeps every fighter-shaped thing on screen a fighter.
+   critters, flyers or vehicles that move, and no statues of figures: a
+   posed unit still reads as a creature (the Obsidian Statue looked like a
+   winged creature holding a staff), so no unit model appears except
+   Blackrock's parked mine cart, and no doodad named for a figure (statue,
+   totem, idol). Use ruins, obelisks and walls. The scenery test enforces
+   both. This also keeps every fighter-shaped thing on screen a fighter.
 8. **Motion budget.** Ambient motion only: fire, water, glow and weather that
    loop in place, never flashing and never crossing the fighting area.
    Gameplay motion (moving platforms, cannon, wind cues) stays the most
@@ -100,6 +103,12 @@ from the floor (smashcraft:ts/src/game/presentation/stageScenery.ts).
     neutral slate. Whatever the theme, the walking surface reads at least 40
     luma from the stage's fog and the body sits at least 50 luma below it, so
     the walking line and ledges read in grayscale as Ultimate checks them.
+    Below the lip, the body and underside differ by at least ΔE 15
+    (CIEDE2000) from the near-black lower half of the sky that the arena
+    camera shows beneath every deck (lightness about 4 in the 7 Oct native
+    captures): CIEDE2000 rather than plain Lab distance because it counts how
+    little a step among dark values shows, which is why Nordrassil's and
+    Hellfire's bodies at lightness 19 and 15 read as faint.
     The lip carries the theme's accent.
     smashcraft:ts/src/game/assets/stagePalette.tests.ts enforces the values;
     smashcraft:ts/src/game/assets/stagePalette.ts declares the palettes.
