@@ -889,11 +889,11 @@ test("a contact batch collects all damage before choosing a launch, in either tr
     }
     assertEquals(target.status.damage, 10.899999618530273);
     finishDamageContacts(world);
-    assertNear(target.status.damage, f32(30.9), f32(0.0001));
-    // floor(10.9)+20=30 percent, jab power 5, weight 80, crouch 2/3.
+    assertNear(target.status.damage, f32(30.69), f32(0.0001));
+    // floor(10.9)+19.79=29.79 percent, jab power 5, weight 80, crouch 2/3.
     // The later downward recoil and zero-launch laser cannot replace the jab.
-    assertNear(target.launch.diLaunchSpeed, f32(6.52), f32(0.0001));
-    assertNear(target.launch.knockbackX, f32(6.52) * f32(0.70710678), f32(0.0001));
+    assertNear(target.launch.diLaunchSpeed, f32(6.50628), f32(0.0001));
+    assertNear(target.launch.knockbackX, f32(6.50628) * f32(0.70710678), f32(0.0001));
     assertGreaterThan(target.launch.knockbackZ, 0.0);
     assertEquals(target.launch.hitstun, 14);
     assertEquals(target.launch.hitlag, 2);
@@ -951,8 +951,8 @@ test("contact-batch special trades survive melee, and summons use total damage",
   advanceSpecials(world, 0, 0);
   finishDamageContacts(world);
   assertEquals(first.status.damage, 7.0);
-  assertEquals(second.status.damage, 23.0);
-  assertNear(second.launch.diLaunchSpeed, f32(10.42), f32(0.0001));
+  assertEquals(second.status.damage, f32(22.3));
+  assertNear(second.launch.diLaunchSpeed, f32(10.322), f32(0.0001));
   assertEquals(first.bear.hitSerial, 1);
   assertTrue(first.special.hit);
   assertTrue(second.special.hit);

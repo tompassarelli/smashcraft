@@ -1,0 +1,42 @@
+# #167 Lich King Defile: a shadow pool ahead of him on frame 20 that strikes b standing in it and
+# grows with each hit; b jumps out. lich-king-defile.pad covers the recast wait and facings.
+# Lich King a against Lich King b. Syntax and checks: smashcraft:docs/native-bot-session.md.
+#! chat -dev quick hero lich king
+# Input starts after frame 500: on a loaded host the helpers first see a quick match up to ~400 frames in.
+# b dashes in, then walks 22 frames toward a, to where the pool lands.
+540 b stick -1 0
+560 b stick 0 0
+590 b press LB
+590 b stick -1 0
+612 b stick 0 0
+612 b release LB
+660 a stick 0 -1
+660 a tap X 2
+661 a stick 0 0
+669 a capture
+674 a capture
+679 a capture
+696 a capture
+697 a capture
+702 a capture
+708 a capture
+732 a capture
+733 a capture
+744 a capture
+768 a capture
+769 a capture
+780 a capture
+# b presses jump while still in hitstun, so it dashes out of the pool instead.
+780 b tap B 8
+780 b stick 1 0
+800 b stick 0 0
+1000 a press VIEW
+1070 a release VIEW
+#! scene a ImpactDefile
+# Expected: the pool strikes b every 36 frames from its age 18; b's dash out ends the hits.
+#! expect a 660 special 16 form 0
+#! expect b 696 damage 2.000
+#! expect b 732 damage 4.000
+#! expect b 768 damage 6.000
+#! expect b 781 ground action 1 facing 1
+#! absent b 769-860 damage

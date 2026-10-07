@@ -20,7 +20,7 @@ export const UTHER_GAMEPLAN: FighterGameplan = {
     { via: "shoot", moves: [GameplanSpecial.side], weight: 2 },
     { via: "run", moves: [AttackStyle.forwardTilt, AttackStyle.grab], weight: 2 },
   ],
-  defense: ["shield", "stance", "stance", "spotDodge"],
+  defense: ["stance", "stance", "stance", "spotDodge"],
   combos: [
     { starter: GameplanSpecial.neutral, followUps: [AttackStyle.upAir, AttackStyle.upTilt] },
     { starter: AttackStyle.downTilt, followUps: [AttackStyle.upTilt, AttackStyle.forwardTilt] },
