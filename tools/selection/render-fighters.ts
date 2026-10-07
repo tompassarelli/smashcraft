@@ -208,7 +208,7 @@ if (check !== undefined) {
     const result = teamColourPixels(readRgba(join(work, `${name}.png`)), readRgba(join(check, `${name}.png`)));
     const found = Object.entries(result.found).map(([color, count]) => `${color} ${count}`).join(', ');
     // A model without a team-colour texture shows none; one with it must show some, or the check saw nothing.
-    const teamColoured = /ReplaceableId 1\b/.test(await Bun.file(join(work, `${name}.mdl`)).text());
+    const teamColoured = /ReplaceableId 1\b/.test(await Bun.file(join(models, `${name}.mdl`)).text());
     const samePose = result.silhouetteMismatch <= result.silhouette / 100;
     if (found !== '' || (teamColoured && result.masked === 0) || !samePose) failed++;
     console.log(`${name}: ${result.masked} team-colour pixels, player colours: ${found === '' ? 'none' : found}${samePose ? '' : `; the renders differ in ${result.silhouetteMismatch} silhouette pixels`}`);
