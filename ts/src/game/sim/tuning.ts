@@ -3,6 +3,7 @@
 // reference rigs can substitute retail values without retuning the roster.
 import { multiplyFloat32 } from "wisp/src/sim/binary32";
 import { f32 } from "wisp/src/sim/f32";
+import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { AttackStyle, Character } from "./codes";
 import { attackDurationFramesForGrounding, attackStartupFrames } from "./moves";
 import type { Roster } from "./roster";
@@ -351,7 +352,11 @@ export const AUTHORED_SHIELD_BREAK_TIMING: ShieldBreakTiming = { landFrames: SHI
  * fighters already playing this way, on the frame every client installs it.
  */
 export function applyAuthoredTuning(world: Roster): void {
-  for (const fighter of world.fighters) if (fighter !== undefined) fighter.tuning = authoredTuning(fighter.character);
+  // By slot: in Lua a roster's empty slot is a nil that would end a for-of over its fighters.
+  for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
+    const fighter = world.fighters[slot];
+    if (fighter !== undefined) fighter.tuning = authoredTuning(fighter.character);
+  }
 }
 
 /**

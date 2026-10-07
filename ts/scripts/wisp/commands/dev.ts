@@ -19,6 +19,7 @@ const SMASHCRAFT_DEV: DevProject = {
     preload: ["test/host-natives.ts"],
     reads: {
       "test/source-shapes.test.ts": ["src/**/*.ts", "scripts/**/*.ts"],
+      "test/lua-holes.test.ts": ["src/**/*.ts", "scripts/**/*.ts", "tsconfig.game.json"],
       "test/wisp.test.ts": ["test/fixtures/wisp/**"],
       "test/command-list.test.ts": ["scripts/wisp.ts", "../AGENTS.md"],
       "test/move-list.test.ts": ["../docs/move-list.md"],

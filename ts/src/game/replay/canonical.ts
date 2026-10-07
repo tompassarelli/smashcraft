@@ -977,9 +977,15 @@ export function prepareKitDigests(): void {
     const specials = hero.specials;
     if (specials === undefined) continue;
     for (const kit of [specials.neutral, specials.side, specials.up, specials.down]) {
-      for (const form of [kit.ground, kit.air, kit.free, kit.recall, kit.marked?.special, ...(kit.ground.followUps ?? []).map(branch => branch.special), ...(kit.air?.followUps ?? []).map(branch => branch.special)]) {
-        kitDigestField("placedSpec", form?.placement, PLACEMENT_DIGESTS, placedSpecCanonical);
-      }
+      // Only the forms a kit has: in Lua a list holding a missing form (nil) would end there.
+      const forms: AuthoredSpecial[] = [kit.ground];
+      if (kit.air !== undefined) forms.push(kit.air);
+      if (kit.free !== undefined) forms.push(kit.free);
+      if (kit.recall !== undefined) forms.push(kit.recall);
+      if (kit.marked !== undefined) forms.push(kit.marked.special);
+      for (const branch of kit.ground.followUps ?? []) forms.push(branch.special);
+      for (const branch of kit.air?.followUps ?? []) forms.push(branch.special);
+      for (const form of forms) kitDigestField("placedSpec", form.placement, PLACEMENT_DIGESTS, placedSpecCanonical);
     }
   }
 }

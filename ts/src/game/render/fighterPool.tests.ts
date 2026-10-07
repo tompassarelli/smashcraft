@@ -1,6 +1,6 @@
 import { assertEquals, test } from "wisp/src/runtime/testing";
 import { originalClip, originalClipCount, originalClipNamed } from "../assets/fighterOriginalClipInfo";
-import { characterClips } from "../presentation/fighterClips";
+import { characterClips, namedClips } from "../presentation/fighterClips";
 import { Character } from "../sim/codes";
 import { SELECTABLE_CHARACTERS, fighterName, heroDefinition } from "../sim/heroes/registry";
 
@@ -15,9 +15,9 @@ test("every selectable fighter has a clip pool covering its clip table", () => {
     for (let index = 0; index < count; index++) assertEquals(originalClip(character, index) !== undefined, true, `${name} clip ${index} is missing`);
     const table = characterClips(character);
     const fallback = heroDefinition(character)?.presentation.fallback;
-    for (const clip of fallback === undefined ? Object.values(table) : [...Object.values(table), fallback]) {
-      if (clip !== undefined) assertEquals(clip.index >= 0 && clip.index < count, true, `${name}'s clip table names sequence ${clip.index}, which its pool lacks`);
-    }
+    const clips = namedClips(table);
+    if (fallback !== undefined) clips.push(fallback);
+    for (const clip of clips) assertEquals(clip.index >= 0 && clip.index < count, true, `${name}'s clip table names sequence ${clip.index}, which its pool lacks`);
     // Poses that select a clip by name when the table leaves the state out;
     // Illidan has his own grab escape and shield break clips.
     const own = character === Character.demonHunter;

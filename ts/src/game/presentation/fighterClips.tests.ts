@@ -6,7 +6,7 @@ import { HERO_ROSTER } from "../sim/heroes/registry";
 import { WARDEN_HERO } from "../sim/heroes/wardenHero";
 import * as dh from "./demonHunterAssetInfo";
 import * as assets from "./fighterAssetInfo";
-import { attackPose, characterClips, clipFor, grabActionPoses, ownAttackClip, specialClip } from "./fighterClips";
+import { attackPose, characterClips, clipFor, grabActionPoses, namedClips, ownAttackClip, specialClip } from "./fighterClips";
 import { WARDEN_MODEL_FILE, WARDEN_SEQUENCES } from "./heroes/wardenClips";
 import { characterModelScale } from "./modelScale";
 import { type FighterPose, advanceFighterPose, createFighterPose } from "./fighterPose";
@@ -45,7 +45,7 @@ test("a hero plays its registered sequences and its fallback for any pose it lea
   assertEquals(specialClip(warden, SpecialAction.heroDown, true, false).index, WARDEN_SEQUENCES.spell.index);
   assertEquals(characterClips(warden).idle?.index, WARDEN_SEQUENCES.standReady.index);
   // The classic model has twelve sequences; every mapped pose names one of them.
-  for (const clip of Object.values(characterClips(warden))) assertTrue(clip !== undefined && clip.index >= 0 && clip.index < 12);
+  for (const clip of namedClips(characterClips(warden))) assertTrue(clip.index >= 0 && clip.index < 12);
   // A hero plays its fallback for a pose its table leaves out; a character no hero registers plays the stock first sequence.
   for (const hero of HERO_ROSTER) assertEquals(clipFor(hero.character, "upAir"), hero.presentation.clips.upAir ?? hero.presentation.fallback);
   assertEquals(clipFor(99, "upAir"), STOCK_FALLBACK_CLIP);

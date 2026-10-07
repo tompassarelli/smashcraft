@@ -99,7 +99,8 @@ const EMPTY: Readonly<ImpactState> = {
 
 export function createImpactState(): ImpactState {
   return {
-    ages: EMPTY.ages.slice(),
+    // Every slot free: read by slot, and in Lua a list of nils is the empty table anyway.
+    ages: [],
     nextSlot: EMPTY.nextSlot.slice(),
     originX: EMPTY.originX.slice(),
     originZ: EMPTY.originZ.slice(),

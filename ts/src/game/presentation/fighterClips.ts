@@ -187,6 +187,14 @@ const ORIGINAL_CLIPS: { readonly [character: number]: HeroClipTable | undefined 
 };
 const NO_CLIPS: HeroClipTable = {};
 
+/** The clips a table names, without the poses it leaves to the fallback. */
+export function namedClips(table: HeroClipTable): HeroClip[] {
+  const clips: HeroClip[] = [];
+  // Object.values is dense in Lua too: TypeScriptToLua builds it with pairs, which skips nil.
+  for (const clip of Object.values(table)) if (clip !== undefined) clips.push(clip);
+  return clips;
+}
+
 /** The character's clip table: an original fighter's, or a hero's registered one. */
 export function characterClips(character: number): HeroClipTable {
   return ORIGINAL_CLIPS[character] ?? heroDefinition(character)?.presentation.clips ?? NO_CLIPS;
