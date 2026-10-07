@@ -9,7 +9,7 @@
 import { expect, test } from "bun:test";
 import { Action } from "../src/game/input/actions";
 import { Character } from "../src/game/sim/codes";
-import type { Fighter } from "../src/game/sim/fighter";
+import { type Fighter, SHIELD_MAX } from "../src/game/sim/fighter";
 import { HERO_ROSTER } from "../src/game/sim/heroes/registry";
 import { SHIELD_REFLECTOR_ACTIVE_FRAMES } from "../src/game/sim/shield";
 import { fighter, frame, projectileShieldActions, scene } from "./frameScene";
@@ -61,6 +61,8 @@ function shoot(character: Character, special: Special, distance: number, raise: 
     const slots = slotsOf(shooter);
     const owned = slotsOf(defender);
     const before = { reflect: defender.visuals.shieldReflect, shield: defender.visuals.shield, hit: defender.visuals.hit, damage: defender.status.damage };
+    // Keep bubble size fixed: shield drain can otherwise skip an arrival timing between neighboring presses.
+    defender.shield.energy = SHIELD_MAX;
     frame(s, n === FIRE ? special.held(shooter) : [], raise !== undefined && n >= raise ? projectileShieldActions(shooter) : []);
     if (raisedAt === undefined && defender.shield.raised) raisedAt = n;
     // Spent this frame: live before and gone, or spawned and spent at once.
