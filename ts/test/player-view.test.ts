@@ -15,7 +15,7 @@ import { FLOOR_HEIGHT } from "../src/game/presentation/arenaCamera";
 import { CANNON_MODEL } from "../src/game/presentation/stageHazards";
 import { deckModel } from "../src/game/presentation/stagePreload";
 import { STAGE_CATALOG } from "../src/game/menu/stageCatalog";
-import { stageScenery } from "../src/game/presentation/stageScenery";
+import { stageScenery, terrainPieces } from "../src/game/presentation/stageScenery";
 import { modelReach } from "wisp/scripts/wisp/models";
 import { boxSeen } from "wisp/scripts/wisp/visibility";
 import { MODEL_FACTS } from "../scripts/wisp/modelFacts";
@@ -280,7 +280,7 @@ test("the two shipped defects fail the scene check from the match's first report
   // Match-start lines of the development build with 05266a3's parking reverted (evidence/render-visibility-20261006):
   // the rifleman's collapsed GyroCopterMissile pool waits at the floor and keeps smoking.
   expect(sceneProblems(read(["scene 1 frame 0 effects 267", deck, "model 16 16 0 0 0 0 0 Abilities/Weapons/GyroCopter/GyroCopterMissile.mdx"]), SMASHCRAFT_SCENE)).toEqual([{
-    seen: "16 hidden projectiles in view still show particles",
+    seen: "16 hidden projectile, special cues in view still show particles",
     evidence: "model Abilities/Weapons/GyroCopter/GyroCopterMissile.mdx: 16 in view, 0 drawn; BlizParticle02 emits 30/s, each for 0.5 s",
   }]);
   // And with 168e08c's empty stage deck model.
@@ -372,7 +372,7 @@ test("a dust slot reused while shown is a new stay each use; a standing spark an
   expect(report.models.find(({ model }) => model === reportedModel(impactModel(IMPACT_DUST)))?.longest).toBe(impactLifetime(IMPACT_DUST));
   expect(sceneProblems(report, SMASHCRAFT_SCENE).map(({ seen }) => seen)).toEqual([
     "a hit spark stayed in view for 4.00 s; it should be gone within 3.00 s",
-    "1 hidden projectile in view still show particles",
+    "1 hidden projectile, special cue in view still show particles",
   ]);
   expect(client.errors).toEqual([]);
 });
@@ -658,9 +658,9 @@ test("in the underside scenario's match, a fighter rising into the main deck's u
   });
 });
 
-test("ranked stage lineup: both clients choose all eight stages and draw their decks and themed scenery", () => {
+test("ranked stage lineup: both clients choose all ten stages and draw their decks and themed scenery", () => {
   const stages = STAGE_CATALOG.filter(({ id }) => id !== 0);
-  expect(stages).toHaveLength(8);
+  expect(stages).toHaveLength(10);
   for (const stage of stages) {
     const clients = headless.clients({ start: startDevelopment, install: installDevelopment });
     clients.start();
@@ -680,7 +680,7 @@ test("ranked stage lineup: both clients choose all eight stages and draw their d
       client.run(() => {
         const s = shell();
         expect(s.stageDecks).toHaveLength(surfaceCount(stage.id));
-        expect(s.stageScenery).toHaveLength(stageScenery(stage.id).pieces.length);
+        expect(s.stageScenery).toHaveLength(stageScenery(stage.id).pieces.length + terrainPieces(stage.id, s.game.hazards).length);
         expect(s.stageScenery?.length).toBeGreaterThan(0);
         trampoline("scene.report")();
       });

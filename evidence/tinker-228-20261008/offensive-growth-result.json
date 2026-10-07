@@ -1,0 +1,20 @@
+{
+  "baseline": "d8fbd06ef5df55965d9cba91691dfb159ea8edb5",
+  "candidate": "384d6124ced721eecdf53dba6e1cec3d09ec7b9f",
+  "hostedRun": "https://github.com/tompassarelli/smashcraft/actions/runs/37675295293",
+  "execution": "Root-authorized local exception after the hosted shard remained queued. The owned hosted run was cancelled after local work began.",
+  "scope": "c2b21a01-9a79-48d4-a230-89078f912c5b",
+  "scopeResult": "RELEASED",
+  "elapsedSeconds": 206,
+  "commandPerPair": "bun scripts/cpuField.ts --pairs PAIR --opponents wren,wren --tiers expert,expert --per-pair 400 --seeds 100 --json OUTPUT",
+  "matchedBy": ["stage", "variant", "seed", "fighters", "opponents", "tiers"],
+  "wins": 557,
+  "matches": 1224,
+  "winRate": 0.4550653594771242,
+  "fullTwentyOpponentGate": "pending",
+  "pairs": [
+    {"opponent": "archer", "matches": 408, "winsBefore": 382, "winsAfter": 269, "winToLoss": 131, "lossToWin": 18},
+    {"opponent": "cairne-bloodhoof", "matches": 408, "winsBefore": 340, "winsAfter": 155, "winToLoss": 217, "lossToWin": 32},
+    {"opponent": "lich", "matches": 408, "winsBefore": 276, "winsAfter": 133, "winToLoss": 181, "lossToWin": 38}
+  ]
+}

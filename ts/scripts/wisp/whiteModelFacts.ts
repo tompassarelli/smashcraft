@@ -127,9 +127,9 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
     },
     "emitters": []
   },
-  "war3mapimported/utherwhite-17fedf67ad50e46572e49111aa4256f42efb407b5be472e3320de61d288f9eca.mdx": {
-    "geosets": 3,
-    "triangles": 454,
+  "war3mapimported/utherwhite-44a99c90fcd6259e71c5edd14c9e58544a7e09e665a4696e3665dbe700c3d5f7.mdx": {
+    "geosets": 5,
+    "triangles": 3217,
     "lights": 0,
     "bounds": {
       "min": [
@@ -140,7 +140,7 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
       "max": [
         167.3679962158203,
         167.92300415039062,
-        531.0700073242188
+        516.6019897460938
       ]
     },
     "emitters": []
@@ -235,7 +235,7 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
     },
     "emitters": []
   },
-  "war3mapimported/thrallwhite-5b51149c546a1f7e240a7b94a17e5b3cd2965b9be59bf50983a82fbf450d1aa2.mdx": {
+  "war3mapimported/thrallwhite-aa6292679669bc6da0b414fe0c726ce3f72bb451e96215ee544781d92c5cbd02.mdx": {
     "geosets": 3,
     "triangles": 557,
     "lights": 0,
@@ -271,7 +271,7 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
     },
     "emitters": []
   },
-  "war3mapimported/sylvanaswindrunnerwhite-b5203dedbb2070f58e5d7a657e6e9540f17bbf3e4695d18e97a90720c6e87173.mdx": {
+  "war3mapimported/sylvanaswindrunnerwhite-330bdba5e9a9c81d2c49b88f9794e933bd8ef227da1a686bdb7aaaf64328ee89.mdx": {
     "geosets": 7,
     "triangles": 489,
     "lights": 0,
@@ -289,7 +289,7 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
     },
     "emitters": []
   },
-  "war3mapimported/cairnebloodhoofwhite-180359fcc637bef08008931a149a059f0f1ebb04f5397d34d099494dc72df2b2.mdx": {
+  "war3mapimported/cairnebloodhoofwhite-e8a79cabd0728cbc06aef7b51118aaba130dc890aa094e98f46badbd3c41b849.mdx": {
     "geosets": 6,
     "triangles": 481,
     "lights": 0,
@@ -307,7 +307,7 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
     },
     "emitters": []
   },
-  "war3mapimported/chenstormstoutwhite-b9ae87d40e12f75023d35919e9187a42c4ccff76ad6efb804db37f2807367da9.mdx": {
+  "war3mapimported/chenstormstoutwhite-7616242edaf863fe849fdb2da1bd2a09807009c7e572560cecb954c56951cffe.mdx": {
     "geosets": 7,
     "triangles": 607,
     "lights": 0,
@@ -325,7 +325,7 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
     },
     "emitters": []
   },
-  "war3mapimported/peonwhite-918dc0891bbea500512f30c07e75b1106d39d9b892a45ba5b0de23c62a7f495d.mdx": {
+  "war3mapimported/peonwhite-ae510e6141b40f49d6ab2ffd7807a2c0ebdb4dbe5df93f9314e03925f38dbe0d.mdx": {
     "geosets": 5,
     "triangles": 372,
     "lights": 0,
@@ -343,7 +343,7 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
     },
     "emitters": []
   },
-  "war3mapimported/goblintinkerwhite-70a3f8005e4aacc977cea8a37a9026325ba208b2991aad1408b34e95b88d00af.mdx": {
+  "war3mapimported/goblintinkerwhite-c1e74366b9b47e8bead377281384cc12c7ff633841a2ea7ba5eb2f47aee48f30.mdx": {
     "geosets": 24,
     "triangles": 2412,
     "lights": 0,
@@ -361,7 +361,7 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
     },
     "emitters": []
   },
-  "war3mapimported/kaelthassunstriderwhite-c4366eadabb8fe8e438970d01c3f5d7a6cb4c944cf06fd1b442722faeca78b25.mdx": {
+  "war3mapimported/kaelthassunstriderwhite-f6edaa2f85003681305d8fa5ac6174e0e67eee464da7a2a5d9cf9fc3ef238e1c.mdx": {
     "geosets": 9,
     "triangles": 603,
     "lights": 0,

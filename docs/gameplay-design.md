@@ -1186,6 +1186,9 @@ reason. Current departures:
 - **Mountain King's down air (Double Boot), rule 6.** The boots are the
   strike, so the leg volume follows the whole downward strike, about 70 units
   below his feet, past a limb's reach. It is body, not weapon, and can be hit.
+- **Chen's down air (downward boot), rule 6.** The boot is the strike, so
+  the extended leg stays hittable through its full 71-unit downward reach.
+  The staff remains disjoint.
 - **Uther's back air (boot kick), rule 6.** The extended leg is the strike,
   about 0.78 of his height behind him, and stays hittable to its full length.
 - **Dreadlord's wings and claws, rule 6** (down smash, forward smash, forward

@@ -7,8 +7,8 @@ Consecration lets him contest a landing while his slow feet and committed
 swings leave room for a jump, shield or whiff punish.
 
 This is the #216 rework after Tom's 0.0.90 playtest. All new numbers below are
-original, provisional Smashcraft tuning. Source games supply identities and
-trade-offs, never copied hitboxes, animation or implementation.
+original, provisional Smashcraft tuning. Smash references supply identities
+and trade-offs, not copied hitboxes, animation or implementation.
 
 ## Forsaken revision, 8 October
 
@@ -47,7 +47,11 @@ mana for its existing six-frame one-hit armor. There are no ultimates.
 
 The CPU approaches into 50–150 hammer spacing, charges from 170–270, lays
 Consecration near a grounded opponent, shields/dodges threats and recovers
-with Ascension. The original 0.85 damage multiplier, three extra hammer hitlag
+with Ascension. Its four primary spacing tools remain forward tilt (6),
+neutral special (30), side special (31) and down tilt (8), the original
+gameplan's four keys. Consecration is a supporting patch with a 150-frame
+cooldown: the computer uses it without making it a fifth primary attack.
+The original 0.85 damage multiplier, three extra hammer hitlag
 frames, volume 127 heavy bash and readable contact/white-body flash remain.
 The new model needs its own flash and contact review. The old 47.6875% field
 is historical.
@@ -115,9 +119,11 @@ shared contact display; Holy Bolt's classic gold-white burst identifies holy
 power without hiding the fighter. Effects and sound use the existing event
 serials and do not replay on rollback.
 
-The actual Forsaken model supplies the hammer and body. Its new rig and all
-28 stock clips are inspected before binding or authoring each action. Both
-facings must keep the weapon attached and the body clear at contact.
+The actual Forsaken model supplies the body and rig. Its stock sword is
+replaced with the classic Paladin's hammer faces on the Forsaken weapon joint.
+Its new rig and all 28 stock clips are inspected before binding or authoring
+each action. Both facings must keep the hammer attached and the body clear
+at contact.
 
 ## Place in the roster
 

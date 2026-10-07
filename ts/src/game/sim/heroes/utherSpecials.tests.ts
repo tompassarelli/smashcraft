@@ -4,6 +4,7 @@ import { assertEquals, assertNear, assertFalse, assertGreaterThan, assertLessTha
 import { f32 } from "wisp/src/sim/f32";
 import { copyFighterState } from "../../replay/fighterState";
 import { firstFighterDifference } from "../../replay/difference";
+import { fighterSpecialsCanonical } from "../../replay/canonical";
 import { captureImpactEventsBefore, createImpactEvents, finishImpactEventsAfter } from "../../presentation/impactEvents";
 import { presentImpactSounds } from "../../presentation/hitPresentation";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
@@ -54,6 +55,11 @@ const down = controls({ specialPressed: true, specialZ: -1 });
 
 
 const near = (actual: number, expected: number, tolerance: number) => assertTrue(Math.abs(actual - expected) <= tolerance);
+
+test("Uther's replay kit identity records the frame of Cleansing Hammer's dispel", () => {
+  const changed = { ...UTHER_SPECIALS, neutral: { ...UTHER_SPECIALS.neutral, ground: { ...UTHER_SPECIALS.neutral.ground, cleanseFrame: 15 } } };
+  assertTrue(fighterSpecialsCanonical(changed) !== fighterSpecialsCanonical(UTHER_SPECIALS));
+});
 
 test("Uther's specials spend their listed mana once and end on their listed frames", () => {
   for (const [input, action, cost, end] of [

@@ -46,22 +46,22 @@
 644 a capture
 656 a tap X 2
 # Expected, frame by frame (headless run of this script):
-# #148: three blaster shots of 4; the fourth is the Long Rifle (its bolt shows on Rifleman).
+# #148: three blaster shots of 3.72; the fourth is the Long Rifle (its bolt shows on Rifleman).
 #! expect a 60 special 7 form 0
-#! expect b 79 damage 4.000
+#! expect b 79 damage 3.720
 #! expect a 110 special 7 form 0
-#! expect b 129 damage 8.000
+#! expect b 129 damage 7.440
 #! expect a 160 special 7 form 0
-#! expect b 179 damage 12.000
+#! expect b 179 damage 11.160
 #! expect a 210 special 7 form 0
-#! expect b 229 damage 16.000
+#! expect b 229 damage 14.880
 #! scene a BoltImpact
 # #144: each special starts on its frame, and its cues and missiles show.
 #! expect a 275 applied jump
 #! expect a 275 special 7 form 0 action-frame 1 x -240.000 z 11.400
-#! expect b 300 damage 19.000
+#! expect b 300 damage 17.670
 #! expect a 330 special 5 form 0
-#! expect b 372 damage 29.000
+#! expect b 372 damage 26.970
 #! expect a 420 special 8 form 0
 #! expect a 640 special 6 form 0
 #! expect a 656 special-form 1 action 6

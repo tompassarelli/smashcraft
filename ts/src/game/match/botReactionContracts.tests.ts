@@ -221,7 +221,7 @@ test("rapid grounded and airborne requests, including neutral braking, have zero
   assertEquals(early, 0);
 });
 
-test("all 13 fighters' approach, retreat, air steering and recovery traces have zero early direction reversals", () => {
+test("all 21 fighters' approach, retreat, air steering and recovery traces have zero early direction reversals", () => {
   let frames = 0;
   let reversals = 0;
   let early = 0;
@@ -249,7 +249,7 @@ test("all 13 fighters' approach, retreat, air steering and recovery traces have 
       frames++;
     }
   }
-  assertEquals(frames, 4680);
+  assertEquals(frames, 7560);
   assertTrue(reversals > 13);
   assertEquals(early, 0);
 });

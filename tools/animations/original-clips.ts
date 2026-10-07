@@ -51,8 +51,7 @@ export function bounds(items: mdx.GeosetAnimInfo[]) {
 }
 
 export function removeBodyEffects(model: mdx.Model) {
-    ensure(!model.ParticleEmitterPopcorns?.length, 'Unsupported ParticleEmitterPopcorns: no body-effect dependency policy');
-    const removed = [...model.EventObjects, ...model.ParticleEmitters, ...model.ParticleEmitters2, ...model.RibbonEmitters];
+    const removed = [...model.EventObjects, ...model.ParticleEmitters, ...model.ParticleEmitters2, ...(model.ParticleEmitterPopcorns ?? []), ...model.RibbonEmitters];
     const ids = new Set(removed.map(n => n.ObjectId));
     for (const node of model.Nodes) if (node && !ids.has(node.ObjectId)) {
         ensure(node.Parent == null || !ids.has(node.Parent), `${node.Name}: body depends on removed effect node ${node.Parent}`);
@@ -65,6 +64,7 @@ export function removeBodyEffects(model: mdx.Model) {
     model.EventObjects = [];
     model.ParticleEmitters = [];
     model.ParticleEmitters2 = [];
+    model.ParticleEmitterPopcorns = [];
     model.RibbonEmitters = [];
     // Keep object IDs and pivot indices and only clear the removed aliases; originalBodyClip renumbers.
     for (const id of ids) delete model.Nodes[id];

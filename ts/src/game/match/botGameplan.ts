@@ -85,10 +85,13 @@ export function keptGap(plan: Readonly<FighterGameplan>, f: Readonly<Fighter>, t
 /**
  * Whether the target stands on a deck above or below the fighter's, out of
  * its moves' reach until it goes there (#160): the computer then jumps up or
- * drops down to that deck instead of keeping its spacing.
+ * drops down to that deck instead of keeping its spacing. A jump onto a
+ * raised deck keeps approaching until it lands, even at the target's height.
  */
 export function onAnotherDeck(f: Readonly<Fighter>, target: Readonly<Fighter>): boolean {
-  return target.motion.grounded && target.motion.surface !== f.motion.surface && Math.abs(f32(target.motion.z - f.motion.z)) > ABOVE;
+  return target.motion.grounded && target.motion.surface !== f.motion.surface
+    && (Math.abs(f32(target.motion.z - f.motion.z)) > ABOVE
+      || (!f.motion.grounded && target.motion.surface !== undefined && target.motion.surface > 0));
 }
 
 /** Where the fighter heads: its kept gap on its own side of the target, inside the deck when it avoids the edge. */
