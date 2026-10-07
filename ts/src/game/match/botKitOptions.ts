@@ -30,7 +30,7 @@ import {
 import { mainDeckLeft, mainDeckRight, mainDeckZ } from "../sim/stage";
 import { safeAt, steerOnGround } from "./botFooting";
 import { startableForm, strikeMeets } from "./botHeroKit";
-import { botChance, botChoice } from "./botMoves";
+import { botChance, botChoice } from "./botRandom";
 import type { CpuSkill } from "./cpuLevel";
 
 /** A feint steps out of Wind Walk once the target is this close. */

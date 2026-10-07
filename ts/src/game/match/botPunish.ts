@@ -23,7 +23,8 @@ import type { FighterGameplan } from "../sim/gameplan";
 import { safeAt, slideStaysOnDeck } from "./botFooting";
 import { gameplanOf, passiveLandingMove } from "./botGameplan";
 import { passivePips, passiveSpec } from "../sim/passives";
-import { aheadX, aheadZ, botChance, moveReachAhead, moveReaches } from "./botMoves";
+import { aheadX, aheadZ, moveReachAhead, moveReaches } from "./botMoves";
+import { botChance } from "./botRandom";
 import type { CpuSkill } from "./cpuLevel";
 
 /** What holds the opponent: the committal states a punish answers. */

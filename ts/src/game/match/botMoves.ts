@@ -5,7 +5,8 @@ import { specialCooldownReady } from "../sim/heroSpecialRules";
 import { originalSpecialAffordable } from "../sim/mana";
 import { at } from "wisp/src/runtime/lookup";
 import { f32 } from "wisp/src/sim/f32";
-import { floorDiv, floorMod } from "wisp/src/sim/intMath";
+import { floorDiv } from "wisp/src/sim/intMath";
+import { botChance, botChoice } from "./botRandom";
 import { type AttackBuffer, queueAttack } from "../input/attackBuffer";
 import { attackCapsule, emptyCapsule, hurtCapsule } from "../physics/contactGeometry";
 import { AttackStyle, Character, PassiveKind, SpecialAction } from "../sim/codes";
@@ -23,38 +24,7 @@ import { SPACE_PLAN, avoids, gameplanOf, moveWeight, passiveLandingMove, spacedA
 import { passivePips, passiveSpec } from "../sim/passives";
 import type { FighterGameplan, GameplanMove } from "../sim/gameplan";
 import { type CpuSkill, FULL_SKILL } from "./cpuLevel";
-
-/** A prime whose square stays inside a 32-bit integer, so squaring is exact in Bun and Warcraft's Lua. */
-const HASH_PRIME = 46337;
-/** Seeds step their salt by this prime: far apart against the small numbers choices already add. */
-const SEED_STEP = 7919;
-
-/** Squares and folds a value below HASH_PRIME into another: nonlinear, so choices drawn from related numbers don't follow each other. */
-function scramble(value: number): number {
-  const square = floorMod(value * value + 12345, HASH_PRIME);
-  return floorMod(square ^ floorDiv(square, 32), HASH_PRIME);
-}
-
-// The match seed's salt, set for the length of one computer's decision
-// (botPlay.ts produceComputerInput): botChoice reaches the gameplan's
-// choices as a callback, so the salt can't travel as an argument. 0 outside
-// a decision.
-let seedSalt = 0;
-
-/** Draws every following botChoice under the match seed; seed 0 draws as before seeds existed. */
-export function useMatchSeed(seed: number): void {
-  seedSalt = floorMod(floorMod(seed, HASH_PRIME) * SEED_STEP, HASH_PRIME);
-}
-
-/** A deterministic choice in [0, count) from two whole numbers and the match seed, alike in every runtime. */
-export function botChoice(first: number, second: number, count: number): number {
-  const mixed = scramble(floorMod(scramble(floorMod(first, HASH_PRIME)) + floorMod(second + seedSalt, HASH_PRIME), HASH_PRIME));
-  return floorMod(floorDiv(scramble(mixed), 3), count);
-}
-
-/** Whether a draw of `numerator` in `denominator` comes up, by botChoice; always at or past the whole, never at 0. */
-export const botChance = (first: number, second: number, numerator: number, denominator: number): boolean =>
-  numerator >= denominator || (numerator > 0 && botChoice(first, second, denominator) < numerator);
+import { type AttackDecision, familiarOption, moveValueMultiplier } from "./botMoveValue";
 
 const GROUND_MOVES = [
   AttackStyle.jab, AttackStyle.forwardTilt, AttackStyle.forwardTiltUp, AttackStyle.forwardTiltDown, AttackStyle.upTilt,
@@ -346,11 +316,12 @@ const PASSIVE_WEIGHT = 8;
  * One of the first `count` options, each as likely as its gameplan weight;
  * with `cashing` set, the move that cashes the ready passive weighs more.
  */
-function weightedOption(gameplan: Readonly<FighterGameplan>, planIndex: number, f: Readonly<Fighter>, slot: number, target: Readonly<Fighter>, count: number, frame: number, cashing: PassiveKind): number {
+function weightedOption(gameplan: Readonly<FighterGameplan> | undefined, planIndex: number, f: Readonly<Fighter>, slot: number, target: Readonly<Fighter>, count: number, frame: number, cashing: PassiveKind, decision?: AttackDecision): number {
   let total = 0;
   for (let index = 0; index < count; index++) {
     const move = gameplanMoveOf(f, at(options, index));
-    const weight = moveWeight(gameplan, planIndex, f, slot, target, move) * (passiveLandingMove(gameplan, cashing, move) ? PASSIVE_WEIGHT : 1);
+    const base = gameplan === undefined ? 1 : moveWeight(gameplan, planIndex, f, slot, target, move) * (passiveLandingMove(gameplan, cashing, move) ? PASSIVE_WEIGHT : 1);
+    const weight = base * (decision === undefined ? 1 : moveValueMultiplier(f, target, at(options, index), decision));
     weights[index] = weight;
     total += weight;
   }
@@ -367,7 +338,7 @@ function weightedOption(gameplan: Readonly<FighterGameplan>, planIndex: number, 
  * distance, and enters it in input and commands. `ranged` lets a decision
  * with nothing in reach but a special take it. False when it chose nothing.
  */
-export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, matchFrame: number, frame: number, ranged: boolean, input: Controls, commands: AttackBuffer, slot = -1, planIndex: number = SPACE_PLAN, skill: CpuSkill = FULL_SKILL, observationAge = 0): boolean {
+export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, matchFrame: number, frame: number, ranged: boolean, input: Controls, commands: AttackBuffer, slot = -1, planIndex: number = SPACE_PLAN, skill: CpuSkill = FULL_SKILL, observationAge = 0, decision?: AttackDecision): boolean {
   const gameplan = gameplanOf(f.character);
   const dx = f32(target.motion.x - f.motion.x);
   const gap = Math.abs(dx);
@@ -428,10 +399,11 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
   const kit = botChance(frame, f.attack.serial * 13 + f.character + 3, skill.kitTenths, 10);
   const cashing = kit && !target.shield.raised && passivePips(f).ready ? passiveSpec(f.character).kind : PassiveKind.none;
   const dashIn = kit && dashing && f.motion.grounded && !target.shield.raised && dashReaches && cashing === PassiveKind.none && botChoice(frame, f.attack.serial * 5 + f.character, 2) === 0;
+  const familiar = decision === undefined ? undefined : familiarOption(options, count, f, frame, decision);
   const option = grabbing ? AttackStyle.grab
     : dashIn ? AttackStyle.jab
-    : gameplan === undefined || !skill.gameplanWeights ? at(options, botChoice(frame, f.attack.serial * 7 + f.character, count))
-    : weightedOption(gameplan, planIndex, f, slot, target, count, frame, cashing);
+    : familiar ?? weightedOption(skill.gameplanWeights ? gameplan : undefined, planIndex, f, slot, target, count, frame, cashing, decision);
+  if (decision !== undefined) decision.strategy.lastOption = option;
   perform(f, target, option, frame, input, commands);
   return true;
 }

@@ -17,6 +17,7 @@ import { HERO_STATUS_GROUPS } from "../sim/codes";
 import { PROJECTILE_CAPACITY, type Fighter } from "../sim/fighter";
 import { fighterAt, isActive } from "../sim/roster";
 import { writeTrainingState } from "../match/trainingState";
+import { botStrategyValues } from "../match/botStrategy";
 import type { ReplayState } from "./snapshot";
 import { HERO_ROSTER } from "../sim/heroes/registry";
 import { ARCHER_MOVES, RIFLEMAN_MOVES } from "../sim/originalMoves";
@@ -1069,6 +1070,13 @@ function writeState(emit: Emit, state: Readonly<ReplayState>): void {
   int("runtime.simulationFrame", runtime.simulationFrame);
   for (const slot of PARTICIPANT_SLOTS) emit(canonicalRealField(`runtime.botAttackDelays[${slot}]`, runtime.botAttackDelays[slot]));
   const memory = runtime.botMemory;
+  for (const slot of PARTICIPANT_SLOTS) {
+    const strategy = runtime.botStrategies[slot];
+    if (strategy.observedFrame >= 0) {
+      const values = botStrategyValues(strategy);
+      for (let index = 0; index < values.length; index++) int(`runtime.botStrategies[${slot}].values[${index}]`, at(values, index));
+    }
+  }
   if (memory.history.length > 0) {
     for (let index = 0; index < memory.history.length; index++) {
       const observation = at(memory.history, index);

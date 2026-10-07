@@ -13,7 +13,8 @@ import { DEMONHUNTER_IMMOLATE_ACTIVE, DEMONHUNTER_IMMOLATE_STARTUP } from "../si
 import { SpecialSlot } from "../sim/heroSpecials";
 import { safeAt } from "./botFooting";
 import { heroStanceLater, heroStanceSlot } from "./botHeroKit";
-import { botChance, botChoice, moveReaches } from "./botMoves";
+import { moveReaches } from "./botMoves";
+import { botChance, botChoice } from "./botRandom";
 import { passivePips, passiveSpec } from "../sim/passives";
 import { defenseOption, gameplanOf } from "./botGameplan";
 import type { DefenseOption } from "../sim/gameplan";

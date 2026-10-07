@@ -14,7 +14,7 @@ import { type Fighter, createFighter } from "../sim/fighter";
 import { type Controls, type Roster, createRoster, fighterAt, isActive, neutralControls } from "../sim/roster";
 import { advanceFighterMotion } from "../sim/step";
 import { respawnFighter } from "../sim/stocks";
-import { botChoice } from "./botMoves";
+import { botChoice } from "./botRandom";
 import { Advantage, LATCH_FIELDS, type LatchedPresses, PartnerBehaviour, PartnerEscape, PartnerTech, type TrainingState, clearTrainingReadout } from "./trainingState";
 
 /** A measurement that waits longer than this for both fighters is dropped. */

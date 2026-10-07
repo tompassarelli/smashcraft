@@ -262,6 +262,10 @@ code. From smashcraft:ts/:
   kit use, defense and recovery for all 13 selectable fighters over eight
   seeded level-9 matches each; `GAME_TESTS=botCoverage bun test test/game.test.ts`
   checks the same report, also included in the emitted-Lua32 suite.
+- CPU reads and move value: smashcraft:docs/design/cpu-levels.md describes
+  bounded contextual habits, anticipatory commitments and risk-aware move
+  choice; smashcraft:ts/src/game/match/botStrategyContracts.tests.ts checks
+  adaptation, punishable reads, buffering and seeded decision variety.
 - Difficulty report: `gh workflow run cpu-levels.yml -f ref=COMMIT` measures every level pair with the existing `cpuLevels` report on a hosted runner (20 matches per pair, 100 level-9-vs-1 matches). The run summary and `cpu-levels` artifact hold its table.
 - Compute farm: `bun wisp farm balance [--ref REF] [--wait]` plays the
   balance gate's computer field (level 9, 400 a pair; `--level`,

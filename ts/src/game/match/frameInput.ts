@@ -16,6 +16,7 @@ import { observedFrameLegalActions, observedFrameStartedActions, stepMatch } fro
 import { latchPresses, releasePresses } from "./training";
 import { type ReplayState, copyReplayState } from "../replay/snapshot";
 import { type BotMemory, copyBotMemory, createBotMemory, firstBotMemoryDifference } from "./botPerception";
+import { type BotStrategy, copyBotStrategy, createBotStrategy, botStrategyValues } from "./botStrategy";
 
 /** Detached source rows. Every execution adapts again from the world being replayed. */
 export interface MatchFrameInput {
@@ -27,6 +28,7 @@ export interface MatchFrameInput {
   readonly network: ParticipantInputs;
   readonly botDelaysAfterInput: Slots<number>;
   readonly botMemoryAfterInput: BotMemory;
+  readonly botStrategiesAfterInput: Slots<BotStrategy>;
   readonly scratch: FrameControls;
 }
 
@@ -35,6 +37,7 @@ export function createMatchFrameInput(): MatchFrameInput {
     frame: undefined, mask: 0, networkMask: 0, source: "adapted",
     values: createFrameControls(), network: participantInputs(), botDelaysAfterInput: [0.0, 0.0, 0.0, 0.0], scratch: createFrameControls(),
     botMemoryAfterInput: createBotMemory(),
+    botStrategiesAfterInput: [createBotStrategy(), createBotStrategy(), createBotStrategy(), createBotStrategy()],
   };
 }
 
@@ -50,6 +53,7 @@ export function captureFrame(row: MatchFrameInput, frame: number, mask: number, 
   row.mask = mask;
   copyBotMemory(row.botMemoryAfterInput, runtime.botMemory);
   for (const slot of PARTICIPANT_SLOTS) {
+    copyBotStrategy(row.botStrategiesAfterInput[slot], runtime.botStrategies[slot]);
     if (participantActive(mask, slot)) {
       copyControls(row.values.inputs[slot], controls.inputs[slot]);
       copyAttackBuffer(row.values.commands[slot], controls.commands[slot]);
@@ -99,6 +103,7 @@ export function copyMatchFrameInput(target: MatchFrameInput, source: Readonly<Ma
   copyBotMemory(target.botMemoryAfterInput, source.botMemoryAfterInput);
   const adapted = source.source !== "network";
   for (const slot of PARTICIPANT_SLOTS) {
+    copyBotStrategy(target.botStrategiesAfterInput[slot], source.botStrategiesAfterInput[slot]);
     if (adapted && participantActive(source.mask, slot)) {
       copyControls(target.values.inputs[slot], source.values.inputs[slot]);
       copyAttackBuffer(target.values.commands[slot], source.values.commands[slot]);
@@ -117,6 +122,7 @@ export function copyExecutedInput(row: Readonly<MatchFrameInput>, slot: number, 
 export function sameMatchFrameInput(a: Readonly<MatchFrameInput>, b: Readonly<MatchFrameInput>): boolean {
   if (a.frame !== b.frame || a.mask !== b.mask || a.networkMask !== b.networkMask || a.source !== b.source) return false;
   if (a.source !== "network" && firstBotMemoryDifference(a.botMemoryAfterInput, b.botMemoryAfterInput) !== undefined) return false;
+  if (a.source !== "network" && PARTICIPANT_SLOTS.some(slot => botStrategyValues(a.botStrategiesAfterInput[slot]).join(",") !== botStrategyValues(b.botStrategiesAfterInput[slot]).join(","))) return false;
   for (const slot of PARTICIPANT_SLOTS) {
     if (a.source === "network") {
       if (participantActive(a.networkMask, slot) && !sameInput(a.network[slot], b.network[slot])) return false;
@@ -138,6 +144,7 @@ const beforeShield: Slots<number> = [0.0, 0.0, 0.0, 0.0];
 function prepareMatchFrame(row: MatchFrameInput, game: MatchState, world: Roster, controls: FrameControls, runtime: PacingAndPresentation, frame: number): boolean {
   if (row.frame !== frame || frame !== runtime.simulationFrame + 1 || row.mask !== world.mask) return false;
   if (row.source !== "network") copyBotMemory(runtime.botMemory, row.botMemoryAfterInput);
+  if (row.source !== "network") for (const slot of PARTICIPANT_SLOTS) copyBotStrategy(runtime.botStrategies[slot], row.botStrategiesAfterInput[slot]);
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) continue;
     if (row.source === "network") {

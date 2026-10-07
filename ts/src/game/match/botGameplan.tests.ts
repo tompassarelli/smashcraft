@@ -4,7 +4,7 @@ import { createFighter } from "../sim/fighter";
 import { type FighterGameplan, GameplanSpecial, GameplanThrow, gameplanKeyMoves } from "../sim/gameplan";
 import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
 import { SPACE_PLAN, aimsLedge, defenseOption, gameplanGoal, gameplanOf, gameplanPlan, gameplanThrow, keptGap, moveWeight, toGameplanMove, upSpecialFirst } from "./botGameplan";
-import { botChoice } from "./botMoves";
+import { botChoice } from "./botRandom";
 
 /** A spacing fighter built around a back air, in the manner #105 describes. */
 const SPACER: FighterGameplan = {

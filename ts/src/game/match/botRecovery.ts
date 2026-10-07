@@ -13,7 +13,7 @@ import type { Fighter } from "../sim/fighter";
 import { totalVelocityZ } from "../sim/motion";
 import type { Controls } from "../sim/roster";
 import { mainDeckLeft, mainDeckRight, mainDeckZ, surfaceCount, surfaceLeft, surfaceRight, surfaceZ } from "../sim/stage";
-import { botChance, botChoice } from "./botMoves";
+import { botChance, botChoice } from "./botRandom";
 import { type CpuSkill, FULL_SKILL } from "./cpuLevel";
 import { aimsLedge, gameplanOf, upSpecialFirst } from "./botGameplan";
 

@@ -8,7 +8,8 @@
 // computer at full strength. Each probability is a whole numerator over a
 // whole denominator, drawn with botChoice, so every runtime agrees.
 import { at } from "wisp/src/runtime/lookup";
-import { floorMod } from "wisp/src/sim/intMath";
+import { floorDiv, floorMod } from "wisp/src/sim/intMath";
+import { GENERAL_DECISION_POLICIES, type CpuDecisionPolicy } from "./cpuDecisionPolicy";
 
 export const CPU_LEVEL_MIN = 1;
 export const CPU_LEVEL_MAX = 9;
@@ -16,6 +17,7 @@ export const CPU_LEVEL_MAX = 9;
 export const CPU_LEVEL_DEFAULT = 9;
 
 export interface CpuSkill {
+  readonly decision: CpuDecisionPolicy;
   readonly level: number;
   /** Age of the opponent observation used for decisions, in input frames. */
   readonly reactionFrames: number;
@@ -54,6 +56,7 @@ export interface CpuSkill {
 const skill = (level: number, reactionFrames: number, defendTenths: number, attackPause: number, attackSpread: number, misplay: number, idle: number,
   diTenths: number, techMiss: number, techOutOf: number, grabMashFrames: number, freezeMashFrames: number, kitTenths: number, punishTenths: number, punishMisjudge: number): CpuSkill => ({
   level, reactionFrames, defendTenths, attackPause, attackSpread, misplay, idle, gameplanWeights: level >= 4, diTenths, techMiss, techOutOf,
+  decision: at(GENERAL_DECISION_POLICIES, floorDiv(level - 1, 2)),
   grabMashFrames, freezeMashFrames, mixesUp: level >= 4, grabsShields: level >= 5, kitTenths,
   punishTenths, punishMisjudge,
 });

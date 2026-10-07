@@ -7,6 +7,7 @@ import { clearFighterPose, copyFighterPoseInto, createFighterPose, type FighterP
 import type { Roster } from "../sim/roster";
 import { isActive } from "../sim/roster";
 import { type BotMemory, clearBotMemory, copyBotMemory, createBotMemory } from "./botPerception";
+import { type BotStrategy, createBotStrategy, copyBotStrategy, clearBotStrategy } from "./botStrategy";
 
 /**
  * What a match carries beside its world, game rules and controls: the frame pacing
@@ -17,6 +18,7 @@ export interface PacingAndPresentation {
   simulationFrame: number;
   botAttackDelays: Slots<number>;
   readonly botMemory: BotMemory;
+  readonly botStrategies: Slots<BotStrategy>;
   impacts: ImpactState;
   specials: SpecialEffectState;
   summons: SummonState;
@@ -33,6 +35,7 @@ export function createPacingAndPresentation(): PacingAndPresentation {
     simulationFrame: 0,
     botAttackDelays: [0.0, 0.0, 0.0, 0.0],
     botMemory: createBotMemory(),
+    botStrategies: [createBotStrategy(), createBotStrategy(), createBotStrategy(), createBotStrategy()],
     impacts: createImpactState(),
     specials: createSpecialEffectState(),
     summons: createSummonState(),
@@ -60,6 +63,7 @@ export function copyPacingAndPresentation(target: PacingAndPresentation, source:
   copySummonStateInto(target.summons, source.summons);
   for (const slot of PARTICIPANT_SLOTS) {
     target.botAttackDelays[slot] = source.botAttackDelays[slot];
+    copyBotStrategy(target.botStrategies[slot], source.botStrategies[slot]);
     target.observedLegal[slot] = source.observedLegal[slot];
     target.observedStarted[slot] = source.observedStarted[slot];
     if (isActive(sourceWorld, slot)) copyFighterPoseInto(target.poses[slot], source.poses[slot], sourceWorld);
@@ -76,6 +80,7 @@ export function resetPacingAndPresentation(runtime: PacingAndPresentation): void
   clearPresentationHistory(runtime);
   runtime.botAttackDelays.fill(0.0);
   clearBotMemory(runtime.botMemory);
+  for (const strategy of runtime.botStrategies) clearBotStrategy(strategy);
   runtime.observedLegal.fill(0);
   runtime.observedStarted.fill(0);
 }

@@ -25,6 +25,7 @@ import { isScenario } from "../shell/build";
 import { Character } from "../sim/codes";
 import { type Fighter } from "../sim/fighter";
 import { authoredTuning } from "../sim/tuning";
+import { botStrategyValues } from "../match/botStrategy";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
 import {
   type FrameRows, type FrameScratch, KEYED_BY_ACTION, type MomentInput, type MomentRecorder, ROW_FRAMES, SNAPSHOT_FRAMES,
@@ -176,6 +177,11 @@ function foldMatchAndFrame(lanes: Lanes, match: Readonly<MatchState>, runtime: R
     foldNumber(lanes, base, runtime.botAttackDelays[slot]);
     foldInteger(lanes, base + 1, memory.directions[slot]);
     foldInteger(lanes, base + 2, memory.directionFrames[slot]);
+    const strategy = runtime.botStrategies[slot];
+    if (strategy.observedFrame >= 0) {
+      const values = botStrategyValues(strategy);
+      for (let index = 0; index < values.length; index++) foldInteger(lanes, floorMod(base + 3 + index * 31, MODULUS), at(values, index));
+    }
   }
   return `${lanes.first}:${lanes.second}`;
 }

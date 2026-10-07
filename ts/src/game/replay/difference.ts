@@ -16,6 +16,7 @@ import { at } from "wisp/src/runtime/lookup";
 import { canonicalSlot, fighterMovesCanonical, fighterSpecialsCanonical } from "./canonical";
 import { firstTrainingDifference } from "../match/trainingState";
 import { firstBotMemoryDifference } from "../match/botPerception";
+import { botStrategyValues } from "../match/botStrategy";
 import type { ReplayState } from "./snapshot";
 
 type Value = number | boolean | undefined;
@@ -429,6 +430,12 @@ export function firstStateDifference(expected: Readonly<ReplayState>, actual: Re
   }
   const botMemory = firstBotMemoryDifference(expected.runtime.botMemory, actual.runtime.botMemory);
   if (botMemory !== undefined) return `runtime.botMemory.${botMemory}`;
+  for (const slot of PARTICIPANT_SLOTS) {
+    const e = botStrategyValues(expected.runtime.botStrategies[slot]);
+    const a = botStrategyValues(actual.runtime.botStrategies[slot]);
+    if (e.length !== a.length) return `runtime.botStrategies[${slot}].values.length`;
+    for (let index = 0; index < e.length; index++) if (e[index] !== a[index]) return `runtime.botStrategies[${slot}].values[${index}]`;
+  }
   return undefined;
 }
 

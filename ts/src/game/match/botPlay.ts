@@ -6,7 +6,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { at } from "wisp/src/runtime/lookup";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { type AttackBuffer, clearAttackBuffer } from "../input/attackBuffer";
-import { type ParticipantSlot, type Slots } from "../input/participants";
+import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots } from "../input/participants";
 import { DownState, GrabAction, ShieldBreak } from "../sim/codes";
 import { heroStatusBlocksActions, heroStatusMashes } from "../sim/heroStatus";
 import type { Fighter } from "../sim/fighter";
@@ -16,7 +16,8 @@ import { surfacePass } from "../sim/stage";
 import { type FighterGameplan, GameplanThrow } from "../sim/gameplan";
 import { SPACE_PLAN, avoids, gameplanGoal, gameplanOf, gameplanPlan, gameplanThrow, jumpsIn, keptGap, onAnotherDeck, plansRanged, spacingAerialAt } from "./botGameplan";
 import { steerInAir, steerOnGround } from "./botFooting";
-import { botChance, botChoice, chooseAttack, smashChargeGoal, useMatchSeed } from "./botMoves";
+import { chooseAttack, smashChargeGoal } from "./botMoves";
+import { botChance, botChoice, useMatchSeed } from "./botRandom";
 import { CPU_SKILLS, type CpuSkill, cpuSkill } from "./cpuLevel";
 import { type BotMemory, observeOpponents, perceivedOpponent, perceivedHeldFighter, commitBotDirection } from "./botPerception";
 import { chooseDefense } from "./botDefense";
@@ -26,6 +27,7 @@ import { pressHeroFollowUp } from "./botHeroKit";
 import { dashIn, kitChargeGoal, pressKitOption, steerHeroBranches, steerRunningSpecial } from "./botKitOptions";
 import { MATCH_TICKS_PER_SECOND, type MatchState } from "./rules";
 import { trainingPartnerInput } from "./training";
+import { type BotStrategy, learnBotHabit, prepareBotRead, pressBotRead } from "./botStrategy";
 
 const COMPUTER_NEUTRAL = neutralControls();
 const TICK = f32(1.0 / MATCH_TICKS_PER_SECOND);
@@ -41,7 +43,7 @@ const ABOVE = 110.0;
 // Perception already waited: defense and punish must not impose the delay again.
 const PERCEIVED_SKILLS = CPU_SKILLS.map(skill => ({ ...skill, reactionFrames: 0 }));
 
-interface BotRuntime { botAttackDelays: Slots<number>; readonly botMemory: BotMemory }
+interface BotRuntime { botAttackDelays: Slots<number>; readonly botMemory: BotMemory; readonly botStrategies: Slots<BotStrategy> }
 
 function planFor(f: Readonly<Fighter>, slot: number, frame: number): Plan {
   const choice = botChoice(floorDiv(frame, PLAN_FRAMES), slot * 13 + f.character, 6);
@@ -139,6 +141,13 @@ export function produceComputerInput(game: Readonly<MatchState>, world: Roster, 
   const fighter = fighterAt(world, slot);
   const target = fighter.grab.target === undefined ? perceivedOpponent(runtime.botMemory, fighter, slot, frame, skill.reactionFrames)
     : perceivedHeldFighter(runtime.botMemory, fighter.grab.target, frame, skill.reactionFrames);
+  const strategy = runtime.botStrategies[slot];
+  if (target !== undefined) {
+    const ownObserved = perceivedHeldFighter(runtime.botMemory, slot, frame, skill.reactionFrames);
+    const opponent = PARTICIPANT_SLOTS.find(candidate => candidate !== slot && perceivedHeldFighter(runtime.botMemory, candidate, frame, skill.reactionFrames) === target);
+    if (ownObserved !== undefined && opponent !== undefined) learnBotHabit(strategy, ownObserved, target, opponent, frame - skill.reactionFrames, skill.decision);
+    prepareBotRead(strategy, fighter, target, frame, skill.reactionFrames, skill.decision);
+  }
   decide(game, world, runtime, slot, frame, input, commands, at(PERCEIVED_SKILLS, skill.level - 1), target, skill.reactionFrames);
   // DI and escape mashing are reactions to the fighter's own state, not steering.
   if (fighter.launch.hitlag <= 0 && fighter.grab.owner === undefined) commitBotDirection(runtime.botMemory, slot, frame, input);
@@ -193,6 +202,7 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, 
     runtime.botAttackDelays[slot] = f32(f32(skill.attackPause + botChoice(frame, fighter.attack.serial, skill.attackSpread)) * TICK);
     return;
   }
+  if (pressBotRead(runtime.botStrategies[slot], fighter, target, stage, game.matchFrame, frame, input, commands)) return;
   // An idle stretch stands where it is: no approach, no attack.
   if (botChance(floorDiv(frame, IDLE_FRAMES), slot * 17 + fighter.character, skill.idle, 100)) return;
   if (pressKitOption(fighter, target, stage, skill, frame, delay <= 0, input, commands)) {
@@ -201,7 +211,7 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, 
   }
   if (gameplan === undefined) {
     const plan = planFor(fighter, slot, frame);
-    if (delay <= 0 && chooseAttack(fighter, target, stage, game.matchFrame, frame, plan === Plan.range, input, commands, slot, SPACE_PLAN, skill, observationAge)) {
+    if (delay <= 0 && chooseAttack(fighter, target, stage, game.matchFrame, frame, plan === Plan.range, input, commands, slot, SPACE_PLAN, skill, observationAge, { strategy: runtime.botStrategies[slot], policy: skill.decision, game })) {
       runtime.botAttackDelays[slot] = f32(f32(skill.attackPause + botChoice(frame, fighter.attack.serial, skill.attackSpread)) * TICK);
       if (!fighter.motion.grounded) steerInAir(fighter, stage, target.motion.x, input);
       return;
@@ -210,7 +220,7 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, 
     return;
   }
   const planIndex = gameplanPlan(gameplan, fighter, slot, frame, botChoice);
-  if (delay <= 0 && chooseAttack(fighter, target, stage, game.matchFrame, frame, plansRanged(gameplan, planIndex), input, commands, slot, planIndex, skill, observationAge)) {
+  if (delay <= 0 && chooseAttack(fighter, target, stage, game.matchFrame, frame, plansRanged(gameplan, planIndex), input, commands, slot, planIndex, skill, observationAge, { strategy: runtime.botStrategies[slot], policy: skill.decision, game })) {
     runtime.botAttackDelays[slot] = f32(f32(skill.attackPause + botChoice(frame, fighter.attack.serial, skill.attackSpread)) * TICK);
     if (!fighter.motion.grounded) steerInAir(fighter, stage, gameplanGoal(gameplan, fighter, target, stage, 0.0), input);
     return;

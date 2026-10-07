@@ -6,6 +6,7 @@ import { type FrameControls, createFrameControls } from "../match/controls";
 import { captureFrame, createMatchFrameInput, executeMatchFrame, resetMatchFrameInput, type MatchFrameInput } from "../match/frameInput";
 import { produceComputerInput } from "../match/botPlay";
 import { clearBotMemory } from "../match/botPerception";
+import { clearBotStrategy } from "../match/botStrategy";
 import {
   computerActive, confirmRematch, createMatchState, fighterMask, requestStageSelect, requestStart, selectCharacter, selectStage,
   setParticipants, setStocks, setTimeLimit, updateConnectedHumans,
@@ -84,6 +85,7 @@ function startMatch(session: TapeSession): boolean {
   }
   runtime.simulationFrame = 0;
   clearBotMemory(runtime.botMemory);
+  for (const strategy of runtime.botStrategies) clearBotStrategy(strategy);
   clearPresentationHistory(runtime);
   initializeMatchFighters(match, world);
   session.epoch++;

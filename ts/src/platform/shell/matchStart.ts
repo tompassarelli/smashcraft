@@ -5,6 +5,7 @@ import { PARTICIPANT_SLOTS } from "../../game/input/participants";
 import { resetMatchFrameInput } from "../../game/match/frameInput";
 import { clearPresentationHistory } from "../../game/match/pacingAndPresentation";
 import { clearBotMemory } from "../../game/match/botPerception";
+import { clearBotStrategy } from "../../game/match/botStrategy";
 import { initializeMatchFighters } from "../../game/match/step";
 import { beginModelSoundEpoch, confirmModelSounds } from "../../game/render/modelSounds";
 import { stageMusic } from "../../game/presentation/matchAudio";
@@ -38,6 +39,7 @@ export function startMatch(s: ShellState, scenario: Scenario = s.build.scenario)
   resetMatchFrameInput(s.frameInput);
   s.runtime.botAttackDelays.fill(0.0);
   clearBotMemory(s.runtime.botMemory);
+  for (const strategy of s.runtime.botStrategies) clearBotStrategy(strategy);
   makePreview(s);
   initializeMatchFighters(s.game, s.world);
   // Keep the scene prepared behind the loading screen, including on rematch.
