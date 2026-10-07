@@ -119,6 +119,7 @@ export const SMASHCRAFT_SCENE: SceneExpectations & { readonly settledFrame: numb
     // Stock game models (render/effects.ts STOCK_MODELS, shell/fighterBody.ts); the host can't load those modules' natives.
     { name: "hippogryph", lifetime: seconds(3), models: ["Units\\NightElf\\HippoGryph\\HippoGryph.mdx"] },
     { name: "Illidan's flames", lifetime: seconds(3), models: ["Abilities\\Spells\\NightElf\\Immolation\\ImmolationTarget.mdx", "Abilities\\Spells\\NightElf\\ManaBurn\\ManaBurnTarget.mdx"] },
+    { name: "silence mark", lifetime: seconds(2), models: ["Abilities\\Spells\\Other\\Silence\\SilenceTarget.mdx"] },
     { name: "bear", lifetime: seconds(3), models: range(summonClipCount(SUMMON_BEAR)).map((index) => summonClip(SUMMON_BEAR, index).modelPath) },
     // A shield break stuns for at most about eight seconds.
     { name: "dizzy mark", lifetime: seconds(10), models: ["Abilities\\Spells\\Human\\Thunderclap\\ThunderclapTarget.mdx"] },

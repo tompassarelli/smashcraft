@@ -44,9 +44,9 @@ Generated from the packaged models by `bun wisp view motion --assets DIR` (#171)
 | Rifleman | ledge-get-up | 28: Ledge Climb | 64.7 | 7.9 | up; 27.7/64.2 |
 | Rifleman | ledge-roll | 32: Roll Forward | 116.8 | 45.4 | forward; 72.0/116.4 |
 | Rifleman | ledge-attack | 22: Get Up Attack | 113.1 | 39.4 | both; 112.9/61.4 |
-| Illidan | walk | 109: Walk Forward | 48.2 | 10.5 | forward; 45.8/40.6 |
-| Illidan | dash | 17: Dash Start | 113.0 | 18.3 | forward; 56.5/100.9 |
-| Illidan | run | 64: Run Forward | 87.0 | 14.3 | forward; 84.6/78.6 |
+| Illidan | walk | 119: Locomotion Walk | 76.7 | 18.0 | forward; 76.4/75.9 |
+| Illidan | dash | 121: Locomotion Initial Dash Burst | 81.1 | 19.7 | forward; 72.9/57.8 |
+| Illidan | run | 120: Locomotion Run | 111.4 | 23.8 | forward; 108.7/95.1 |
 | Illidan | turn | 97: Turnaround | 95.2 | 23.1 | back; 77.5/83.4 |
 | Illidan | brake | 89: Stop | 22.3 | 9.4 | in place; 22.3/10.4 |
 | Illidan | jump-squat | 47: Jump Squat | 73.7 | 11.1 | down; 36.1/26.9 |
@@ -264,5 +264,25 @@ Generated from the packaged models by `bun wisp view motion --assets DIR` (#171)
 | Lich King | ledge-get-up | 57: Ledge Climb | 249.9 | 43.8 | up; 248.9/72.8 |
 | Lich King | ledge-roll | 58: Ledge Roll | 244.7 | 53.5 | forward; 79.4/80.3 |
 | Lich King | ledge-attack | 59: Ledge Attack | 283.7 | 51.2 | both; 150.1/170.1 |
+| Cairne Bloodhoof | walk | 3: Walk | 109.3 | 40.8 | forward; 100.9/109.1 |
+| Cairne Bloodhoof | dash | 3: Walk | 105.1 | 35.3 | forward; 100.3/75.0 |
+| Cairne Bloodhoof | run | 3: Walk | 118.4 | 35.9 | forward; 116.8/96.4 |
+| Cairne Bloodhoof | turn | 34: Cairne turn | 289.4 | 78.0 | back; 163.5/289.3 |
+| Cairne Bloodhoof | brake | 35: Cairne stop | 121.0 | 43.2 | in place; 28.8/15.2 |
+| Cairne Bloodhoof | jump-squat | 36: Cairne jumpSquat | 64.3 | 17.5 | down; 26.1/43.2 |
+| Cairne Bloodhoof | roll-forward | 69: Cairne rollForward | 284.7 | 130.8 | forward; 275.2/193.7 |
+| Cairne Bloodhoof | roll-back | 70: Cairne rollBackward | 285.2 | 131.2 | back; 193.9/275.2 |
+| Cairne Bloodhoof | spot-dodge | 50: Cairne spotDodge | 134.8 | 53.5 | in place; 31.5/17.0 |
+| Cairne Bloodhoof | air-dodge | 32: Cairne airDodge | 88.1 | 17.5 | in place; 33.5/18.8 |
+| Cairne Bloodhoof | tech | 51: Cairne tech | 135.2 | 53.5 | in place; 88.2/98.0 |
+| Cairne Bloodhoof | tech-forward | 71: Cairne techForward | 285.3 | 131.4 | forward; 274.8/193.9 |
+| Cairne Bloodhoof | tech-back | 72: Cairne techBackward | 285.3 | 131.4 | back; 193.9/274.8 |
+| Cairne Bloodhoof | get-up | 48: Cairne getUp | 199.0 | 87.8 | up; 166.6/199.0 |
+| Cairne Bloodhoof | get-up-forward | 73: Cairne getUpRollForward | 285.3 | 131.4 | forward; 275.3/193.8 |
+| Cairne Bloodhoof | get-up-back | 74: Cairne getUpRollBackward | 285.6 | 131.1 | back; 193.7/275.3 |
+| Cairne Bloodhoof | get-up-attack | 49: Cairne getUpAttack | 338.4 | 134.2 | both; 294.0/119.2 |
+| Cairne Bloodhoof | ledge-get-up | 44: Cairne ledgeClimb | 113.1 | 45.4 | up; 110.9/59.8 |
+| Cairne Bloodhoof | ledge-roll | 75: Cairne ledgeRoll | 285.5 | 131.1 | forward; 275.0/193.8 |
+| Cairne Bloodhoof | ledge-attack | 45: Cairne ledgeAttack | 96.2 | 50.3 | both; 95.3/10.7 |
 
 Walking/running cadence uses grounded vertices' horizontal excursion twice per cycle. The Lich floats and uses the stock sequence's movement speed. Both measurements use the fighter's displayed model scale.

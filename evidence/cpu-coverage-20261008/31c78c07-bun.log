@@ -1,0 +1,106 @@
+bun test v1.3.13 (bf2e2cec)
+
+test/game.test.ts:
+(pass) game/match/botCoverage > CPU drop roster coverage: Pit Lord moves, attacks and uses specials against Archer for 1800 frames [1004.02ms]
+(pass) game/match/botCoverage > CPU drop roster coverage: Beastmaster moves, attacks and uses specials against Archer for 1800 frames [786.01ms]
+(pass) game/match/botCoverage > CPU drop roster coverage: Lich King moves, attacks and uses specials against Archer for 1800 frames [984.02ms]
+(pass) game/match/botCoverage > roster AI coverage: Archer moves, attacks and uses its kit in eight Wren Expert matches [671.01ms]
+(pass) game/match/botCoverage > roster AI coverage: Rifleman moves, attacks and uses its kit in eight Wren Expert matches [636.01ms]
+(pass) game/match/botCoverage > roster AI coverage: Illidan moves, attacks and uses its kit in eight Wren Expert matches [653.01ms]
+(pass) game/match/botCoverage > roster AI coverage: Blademaster moves, attacks and uses its kit in eight Wren Expert matches [821.01ms]
+(pass) game/match/botCoverage > roster AI coverage: Mountain King moves, attacks and uses its kit in eight Wren Expert matches [649.01ms]
+(pass) game/match/botCoverage > roster AI coverage: Warden moves, attacks and uses its kit in eight Wren Expert matches [933.01ms]
+(pass) game/match/botCoverage > roster AI coverage: Lich moves, attacks and uses its kit in eight Wren Expert matches [582.01ms]
+(pass) game/match/botCoverage > roster AI coverage: Uther moves, attacks and uses its kit in eight Wren Expert matches [654.01ms]
+(pass) game/match/botCoverage > roster AI coverage: Dreadlord moves, attacks and uses its kit in eight Wren Expert matches [614.01ms]
+(pass) game/match/botCoverage > roster AI coverage: Shadow Hunter moves, attacks and uses its kit in eight Wren Expert matches [693.01ms]
+(pass) game/match/botCoverage > roster AI coverage: Pit Lord moves, attacks and uses its kit in eight Wren Expert matches [796.01ms]
+(pass) game/match/botCoverage > roster AI coverage: Beastmaster moves, attacks and uses its kit in eight Wren Expert matches [700.01ms]
+(pass) game/match/botCoverage > roster AI coverage: Lich King moves, attacks and uses its kit in eight Wren Expert matches [564.01ms]
+(pass) game/match/botDefenseForecast > Mountain King defends the observed Carrion Swarm windup before its bats enter delayed vision [1.00ms]
+(pass) game/match/botDefenseForecast > Dreadlord recognizes a blaster launched during the observation delay from its visible windup
+(pass) game/match/botDefenseForecast > a falling projectile windup that lands before firing does not cause a false defense
+(pass) game/match/botDefenseForecast > a delayed visible shot is defended at its predicted position without seeing a newer sample
+(pass) game/match/botDefenseForecast > a visible shot expected to have expired or passed does not keep the computer defending
+(pass) game/match/botDefenseForecast > Uther times his guard for his own approach to a delayed shot and waits only for later arrivals
+(pass) game/match/botGameplan > every declared gameplan names key moves and an ordered range band [1.00ms]
+(pass) game/match/botGameplan > a gameplan's plan stretch is fixed for 40 frames and spreads by weight
+(pass) game/match/botGameplan > the kept gap follows the plan and the avoided situations [1.00ms]
+(pass) game/match/botGameplan > spacing tools, approach moves, follow-ups and finishers outweigh unnamed moves
+(pass) game/match/botGameplan > a held grab throws for the kill in its window, else into a combo
+(pass) game/match/botGameplan > defense and recovery follow the declared answers and route
+(pass) game/match/botGameplan > computer options map onto gameplan moves
+(pass) game/match/botHorizontalForecast > a delayed horizontal attack forecast advances the observed target without advancing the attacker
+(pass) game/match/botHorizontalForecast > twenty attack choices from a delayed moving target match its current-position reference [1.00ms]
+(pass) game/match/botHorizontalForecast > hero special reach from a delayed moving target matches its current-position reference [11.00ms]
+(pass) game/match/botKitOptions > every named profile can take legal kit options, with greater reliability as execution grows
+(pass) game/match/botKitOptions > computer Blademaster backstabs from Wind Walk in front and crossed up, feints, and swaps onto Mirror Image [771.01ms]
+(pass) game/match/botKitOptions > computer Mountain King claps small, full and as bait, recalls Storm Bolt and spikes with Hammerfall [668.01ms]
+(pass) game/match/botKitOptions > computer Warden marks and follows with Shadow Pursuit [750.01ms]
+(pass) game/match/botKitOptions > computer Lich bursts Frost Nova, places Death and Decay, arms Frost Armor and cashes Dark Ritual [626.01ms]
+(pass) game/match/botKitOptions > computer Uther sends Holy Radiance and attacks out of Divine Shield [1271.02ms]
+(pass) game/match/botKitOptions > computer Dreadlord corkscrews with Vampiric Pounce, sleeps a target, mashes out of Sleep and hits a sleeper [634.01ms]
+(pass) game/match/botKitOptions > computer Shadow Hunter throws Spirit Glaive, hexes, presses a hexed target and mashes out of a Hex [792.01ms]
+(pass) game/match/botKitOptions > computer Pit Lord roars, charges, leaps and calls Rain of Fire [623.01ms]
+(pass) game/match/botKitOptions > computer Beastmaster summons the pack, commands Stampede, Hawk Dive and Quill Volley [690.01ms]
+(pass) game/match/botKitOptions > computer Rifleman flies level and diagonal recoil routes with a second shot, short-hops and grounds the blaster, calls the bear [663.01ms]
+(pass) game/match/botKitOptions > computer Illidan jump-cancels Immolate, glides out of Wing Ascent, runs behind Mana Burn and Fel Rushes into Chaos Strike or Vengeful Retreat [1298.02ms]
+(pass) game/match/botKitOptions > computer Archer shoots the homing arrow, rides the low line, leaps off and dives from the perch [608.01ms]
+(pass) game/match/botNewMoves > computer Blademaster throws Bladestorm, Blade Wheel, his down tilt and dash attack, and cashes Critical Strike [1215.02ms]
+(pass) game/match/botNewMoves > computer Mountain King angles his forward tilt, throws his down tilt and dash attack, and cashes Bash [661.01ms]
+(pass) game/match/botNewMoves > computer Warden throws Falling Knives, Sky Crescent, angled forward tilts, her down tilt and dash attack [841.01ms]
+(pass) game/match/botNewMoves > computer Lich throws Frost Halo, angled forward tilts, his down tilt and dash attack [1164.02ms]
+(pass) game/match/botNewMoves > computer Dreadlord throws Batwing Turn, angled forward tilts, his down tilt and dash attack, and cashes Vampiric Aura [635.01ms]
+(pass) game/match/botNewMoves > computer Shadow Hunter throws the glaive drill, angled forward tilts, his down tilt and dash attack, and cashes Voodoo [785.01ms]
+(pass) game/match/botNewMoves > computer Uther throws his down tilt and dash attack [622.01ms]
+(pass) game/match/botNewMoves > computer Illidan charges Eye Blast and throws Shear, Flames of Azzinoth and the two-hit forward air [598.01ms]
+(pass) game/match/botNewMoves > computer Archer and Rifleman never press a special their mana can't pay, and cash Trueshot and Long Rifles [1241.02ms]
+(pass) game/match/botPlayContracts > computerChasesToTheEdgeWithoutLeavingTheStage [80.00ms]
+(pass) game/match/botPlayContracts > computerGetsUpUnderJabResets [24.00ms]
+(pass) game/match/botPlayContracts > computerMatchesRepeatFromTheSameStart [105.00ms]
+(pass) game/match/botPlayContracts > computer Uther sends Holy Radiance at a level target in range and never presses what its mana can't pay [41.00ms]
+(pass) game/match/botPlayContracts > computer Uther raises Divine Shield against a strike timed into its guard window, and grabs a shield [19.00ms]
+(pass) game/match/botPlayContracts > protected Uther uses an affordable Holy Radiance at range without reserving a second guard [1.00ms]
+(pass) game/match/botPlayContracts > Blademaster's computer uses its specials and grabs in a match against another computer, the same each time [274.00ms]
+(pass) game/match/botPlayContracts > Mountain King's computer uses its specials and grabs in a match against another computer, the same each time [279.00ms]
+(pass) game/match/botPlayContracts > Warden's computer uses its specials and grabs in a match against another computer, the same each time [277.00ms]
+(pass) game/match/botPlayContracts > Lich's computer uses its specials and grabs in a match against another computer, the same each time [265.00ms]
+(pass) game/match/botPlayContracts > Uther's computer uses its specials and grabs in a match against another computer, the same each time [268.00ms]
+(pass) game/match/botPlayContracts > Dreadlord's computer uses its specials and grabs in a match against another computer, the same each time [261.00ms]
+(pass) game/match/botPlayContracts > Shadow Hunter's computer uses its specials and grabs in a match against another computer, the same each time [266.00ms]
+(pass) game/match/botPlayContracts > Pit Lord's computer uses its specials and grabs in a match against another computer, the same each time [268.00ms]
+(pass) game/match/botPlayContracts > Beastmaster's computer uses its specials and grabs in a match against another computer, the same each time [273.00ms]
+(pass) game/match/botPlayContracts > Lich King's computer uses its specials and grabs in a match against another computer, the same each time [275.00ms]
+(pass) game/match/botPlayContracts > a computer hero's recovery counts its up special spent once used this airtime, and free below its cost
+(pass) game/match/botPlayContracts > a frozen computer mashes out of the freeze at a human pace [9.00ms]
+(pass) game/match/botPunishContracts > a delayed punish forecast follows an attack through its observed hitlag into recovery [1.00ms]
+(pass) game/match/botPunishContracts > a delayed punish forecast recognizes an observed aerial's landing recovery [1.00ms]
+(pass) game/match/botPunishContracts > a Wren Expert computer of every fighter punishes Pit Lord's whiffed forward smash within the window; a Wren Rookie computer usually doesn't [220.00ms]
+(pass) game/match/botPunishContracts > a Wren Expert computer of every fighter punishes Pit Lord's missed grab within the window; a Wren Rookie computer usually doesn't [154.00ms]
+(pass) game/match/botPunishContracts > a Wren Expert computer of every fighter punishes Pit Lord's landing lag within the window; a Wren Rookie computer usually doesn't [80.00ms]
+(pass) game/match/botPunishContracts > computers punish in ordinary Wren Expert matches: they attack into open windows and land in more of them than without the punish [1636.03ms]
+(pass) game/match/botPunishContracts > a grounded sleeper is a punish window for its frames left, and a Wren Expert Dreadlord beside it hits it before it wakes (#105) [3.00ms]
+(pass) game/match/botReachContracts > jab-chain reach queries preserve adjacent fighters' cached jab and shot reach
+(pass) game/match/botReachContracts > computerApproachesAnOpponentOutOfReachInsteadOfAttacking [474.01ms]
+(pass) game/match/botReactionContracts > retained observations survive storage reuse, restored plain history and rollback [14.00ms]
+(pass) game/match/botReactionContracts > cached observation chunks fold the exact text across kits, fractional values and integer boundaries [7.00ms]
+(pass) game/match/botReactionContracts > observation number digests remain exact after recent values are evicted and revisited [8.00ms]
+(pass) game/match/botReactionContracts > replay state checks detect delayed observations and direction commitment independently of current fighters [5.00ms]
+(pass) game/match/botReactionContracts > 150 surprise-action traces: no computer input responds before its authored observation delay [309.00ms]
+(pass) game/match/botReactionContracts > Wren Expert first responds on frame 12 after a surprise side change [2.00ms]
+(pass) game/match/botReactionContracts > rapid grounded and airborne requests, including neutral braking, have zero reversals before five frames
+(pass) game/match/botReactionContracts > all 13 fighters' approach, retreat, air steering and recovery traces have zero early direction reversals [166.00ms]
+(pass) game/match/botRecoveryContracts > computerRecoversFromBothSidesWithAndWithoutJump [19.00ms]
+(pass) game/match/botRecoveryContracts > computerPreservesJumpDuringAscentAndClimbsLedge
+(pass) game/match/botStrategyContracts > delayed habit history is bounded by context, switches opponents and adapts to a changed repeated pattern [1.00ms]
+(pass) game/match/botStrategyContracts > bot habit snapshots retain owned scalar storage and exact replay values through learning and restore [1.00ms]
+(pass) game/match/botStrategyContracts > a learned shield read positions and buffers a grab before the next shield is observable
+(pass) game/match/botStrategyContracts > an anticipatory grab remains buffered through four frames of own recovery [1.00ms]
+(pass) game/match/botStrategyContracts > an anticipatory guard blocks the learned strike; an unexpected grab punishes the committed wrong read [3.00ms]
+(pass) game/match/botStrategyContracts > seeded read mix-ups sometimes decline a reliable pattern, and detached replay retains its commitment [13.00ms]
+(pass) game/match/botStrategyContracts > move value distinguishes percent, punishment and stage position; stock/clock deficit favors a comeback read
+(pass) game/match/botStrategyContracts > independent decision profiles change observed smash repetition and variety without changing reaction timing [17.00ms]
+
+ 99 pass
+ 0 fail
+Ran 99 tests across 1 file. [35.27s]

@@ -51,7 +51,7 @@ export const THRALL_CLIPS = { idle: THRALL_FALLBACK, walk: { index: 2, seconds: 
   grab: { index: 51, seconds: f32(0.55), aligned: true },
   grabHold: { index: 52, seconds: 0.5, aligned: true },
   grabbed: { index: 53, seconds: 0.5, aligned: true },
-  pummel: { index: 54, seconds: f32(0.2), aligned: true },
+  pummel: { index: 54, seconds: f32(1.133), aligned: true },
   throwForward: { index: 55, seconds: f32(0.567), aligned: true },
   throwBack: { index: 56, seconds: f32(0.667), aligned: true },
   throwUp: { index: 57, seconds: f32(0.467), aligned: true },

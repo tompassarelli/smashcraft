@@ -31,6 +31,9 @@ const HERO_BODIES: { readonly [character: number]: HeroBody | undefined } = {
   [Character.chen]: body(f32(1.3733333333333333), f32(0.7272727272727273), f32(1.12), f32(1.18), f32(1.04)),
   [Character.lichKing]: body(f32(1.12), f32(0.84), f32(0.86), f32(1.12), f32(1.26)),
   [Character.thrall]: { ...body(f32(1.6933333333333334), f32(0.68), f32(0.735), 1.25, f32(1.15)), shield: f32(1.15) },
+  [Character.jaina]: body(f32(1.2), 0.5, f32(0.95), f32(0.9), f32(1.05)),
+  [Character.sylvanas]: body(f32(96.0 / 75.0), f32(f32(1.828) / f32(2.2)), f32(0.935), f32(0.90), 1.0),
+  [Character.cairne]: { ...body(f32(133.0 / 75.0), f32(f32(1.485) / f32(2.2)), f32(0.945), f32(1.75), f32(1.45)), shield: f32(1.45) },
 };
 
 /** An expansion hero's body multipliers; undefined for the original three fighters. */

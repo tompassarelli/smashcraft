@@ -24,6 +24,7 @@ import { HERO_STRIKE_MOMENTS } from "./heroStrikeMomentInfo";
 import { SPECIAL_KEY } from "./heroStrikeMomentKeys";
 import { heroCueWindows } from "./specialCues";
 import { runningHeroSpecial } from "../sim/heroSpecialRules";
+import { DREADLORD_POUNCE_CLIPS } from "./dreadlordPounceClipInfo";
 import {
   ESCAPE_FRAMES, IllidanLocomotion, LEDGE_CATCH_FRAMES, RESPAWN_FRAMES, TRANSITION_FRAMES, type IllidanMotion,
   advanceIllidanMotion, clearIllidanMotion, copyIllidanMotion, createIllidanMotion, firstIllidanMotionDifference,
@@ -203,6 +204,16 @@ function selectClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly<Ros
   const { character } = f;
   const illidan = character === Character.demonHunter;
   const table = clips.characterClips(character);
+  if (f.character === Character.dreadlord && f.special.action === SpecialAction.heroSide && f.grab.owner === undefined && f.launch.hitstun === 0) {
+    const caught = f.special.grabFrame;
+    const biting = caught > 0 && f.special.frame < caught + 16;
+    const recovering = !biting && (caught > 0 || f.special.frame > 17);
+    const clip = biting ? DREADLORD_POUNCE_CLIPS.bite : recovering ? DREADLORD_POUNCE_CLIPS.recovery : DREADLORD_POUNCE_CLIPS.travel;
+    const first = biting ? caught : recovering ? caught > 0 ? caught + 16 : 18 : 1;
+    playIndex(pose, `pounce-${biting ? "bite" : recovering ? "recovery" : "travel"}`, clip.index);
+    pose.clipTime = f32(Math.max(0, f.special.frame - first) * FRAME_SECONDS);
+    return 1.0;
+  }
   if (inGrabContext(f)) return selectGrabClip(pose, f, world);
   if (f.ledge.state !== LedgeState.none) {
     const catching = illidan && f.ledge.state === LedgeState.hang && pose.motion.ledgeCatchRemaining > 0;
@@ -644,7 +655,7 @@ function locomotionClipIndex(motion: IllidanLocomotion): number {
   switch (motion) {
     case IllidanLocomotion.walk: return dh.DEMON_HUNTER_WALK_FORWARD_INDEX;
     case IllidanLocomotion.run: return dh.DEMON_HUNTER_RUN_FORWARD_INDEX;
-    case IllidanLocomotion.dash: return dh.DEMON_HUNTER_DASH_START_INDEX;
+    case IllidanLocomotion.dash: return dh.DEMON_HUNTER_INITIAL_DASH_BURST_INDEX;
     case IllidanLocomotion.turn: return dh.DEMON_HUNTER_TURNAROUND_INDEX;
     case IllidanLocomotion.stop: return dh.DEMON_HUNTER_STOP_INDEX;
     case IllidanLocomotion.crouch: return dh.DEMON_HUNTER_CROUCH_INDEX;
@@ -665,7 +676,7 @@ function tableLocomotionRate(clip: HeroClip, motion: IllidanLocomotion): number 
 /** Walking and running follow ground speed, never slower than a fifth of the clip. */
 function locomotionRate(f: Readonly<Fighter>, motion: IllidanLocomotion): number {
   switch (motion) {
-    case IllidanLocomotion.dash: return clipRate(dh.DEMON_HUNTER_DASH_START_SECONDS, INITIAL_DASH_FRAMES);
+    case IllidanLocomotion.dash: return clipRate(dh.DEMON_HUNTER_INITIAL_DASH_BURST_SECONDS, INITIAL_DASH_FRAMES);
     case IllidanLocomotion.turn: return clipRate(dh.DEMON_HUNTER_TURNAROUND_SECONDS, TRANSITION_FRAMES);
     case IllidanLocomotion.stop: return clipRate(dh.DEMON_HUNTER_STOP_SECONDS, TRANSITION_FRAMES);
     case IllidanLocomotion.crouch: return clipRate(dh.DEMON_HUNTER_CROUCH_SECONDS, CROUCH_CLIP_FRAMES);
