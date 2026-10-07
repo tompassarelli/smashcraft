@@ -12,8 +12,10 @@ export function installLatest(documents: string, map: string): void {
   for (const dir of [root, older, tests]) mkdirSync(dir, { recursive: true });
   const name = basename(map);
   if (!PLAYABLE.test(name)) throw new Error(`not a playable map: ${name}`);
-  copyFileSync(map, join(root, `${name}.next`));
-  renameSync(join(root, `${name}.next`), join(root, name));
+  // A copy of this process's own, renamed in: a running game may read the old file, and two installs never share a copy.
+  const staged = join(root, `${name}.${process.pid}.next`);
+  copyFileSync(map, staged);
+  renameSync(staged, join(root, name));
   const versions = readdirSync(root).filter((entry) => PLAYABLE.test(entry) && entry !== name);
   versions.sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
   for (const entry of versions.slice(2)) {

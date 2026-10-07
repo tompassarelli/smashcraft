@@ -47,7 +47,8 @@ export function pointLauncher(helper: string, launcher = CONTROLLER_LAUNCHER): b
     // No launcher yet.
   }
   mkdirSync(dirname(launcher), { recursive: true });
-  const next = `${launcher}.next`;
+  // A link of this process's own: two plays pointing the launcher at once never share one.
+  const next = `${launcher}.${process.pid}.next`;
   rmSync(next, { force: true });
   symlinkSync(helper, next);
   renameSync(next, launcher);

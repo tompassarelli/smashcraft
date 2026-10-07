@@ -69,6 +69,10 @@ that regenerates the family.
 - The LAN pool's ~/.local/state/wisp/lan/ and each client's CustomMapData
   belong to the agent running those clients; Wisp writes game files through
   per-process temporaries.
+- The controller launcher link and the owner's Maps/00-Smashcraft are replaced
+  through per-process temporaries (`NAME.PID.next`), renamed in.
+- The LAN pool's pool.json and clients.json have one writer, the running
+  `wisp lan pool`.
 - ts/build/ and build/ are per checkout: run one build at a time in a lane.
 - Dated folders under ~/.local/share/smashcraft-build-inputs/ are lanes'
   scratch and evidence inputs. A build reads only the store.
