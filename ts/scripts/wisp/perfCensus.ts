@@ -61,43 +61,53 @@ function median(values: readonly number[]): number {
 
 /** The census entries a census run printed: its `census` lines read against its p0 frame samples. */
 export function censusEntries(output: string): CensusEntry[] {
-  const frames = new Map<number, FrameSample>();
-  const marks: string[][] = [];
+  let current: { frames: Map<number, FrameSample>; marks: string[][] } = { frames: new Map(), marks: [] };
+  const runs = [current];
   for (const line of output.split(/\r?\n/)) {
     const sample = SAMPLE.exec(line);
-    if (sample !== null) frames.set(Number(sample[1]), { instructions: Number(sample[2]), natives: Number(sample[3]), allocatedKb: Number(sample[4]) / 1024 });
-    else if (line.startsWith("census\t")) marks.push(line.split("\t"));
-  }
-  const range = (first: number, last: number) => {
-    const picked: FrameSample[] = [];
-    for (let frame = first; frame <= last; frame++) {
-      const sample = frames.get(frame);
-      if (sample === undefined) throw new Error(`the census has no sample of frame ${frame}`);
-      picked.push(sample);
+    if (sample !== null) current.frames.set(Number(sample[1]), { instructions: Number(sample[2]), natives: Number(sample[3]), allocatedKb: Number(sample[4]) / 1024 });
+    else if (line.startsWith("census\t")) {
+      // Each Lua run prints its marks, then its samples. The next run starts
+      // its frame numbers over; those samples belong only to its own marks.
+      if (current.frames.size > 0) {
+        current = { frames: new Map<number, FrameSample>(), marks: [] };
+        runs.push(current);
+      }
+      current.marks.push(line.split("\t"));
     }
-    return picked;
-  };
-  return marks.map(([, group = "", name = "", baseFirst, baseLast, moveFirst, moveLast]) => {
-    const base = range(Number(baseFirst), Number(baseLast));
-    const move = range(Number(moveFirst), Number(moveLast));
-    const baselineMs = median(base.map(predictedMs));
-    let worstAt = 0;
-    let worst: FrameSample = { instructions: 0, natives: 0, allocatedKb: 0 };
-    let worstMs = Number.NEGATIVE_INFINITY;
-    move.forEach((frame, index) => {
-      const ms = predictedMs(frame);
-      if (ms <= worstMs) return;
-      worstAt = index;
-      worst = frame;
-      worstMs = ms;
-    });
-    return {
-      group, name, baselineMs, worstMs, worstAt, spikeMs: worstMs - baselineMs,
-      worstFrame: Number(moveFirst) + worstAt, baseFrames: [Number(baseFirst), Number(baseLast)],
-      instructions: worst.instructions - median(base.map((frame) => frame.instructions)),
-      natives: worst.natives - median(base.map((frame) => frame.natives)),
-      allocatedKb: worst.allocatedKb - median(base.map((frame) => frame.allocatedKb)),
+  }
+  return runs.flatMap(({ frames, marks }) => {
+    const range = (first: number, last: number) => {
+      const picked: FrameSample[] = [];
+      for (let frame = first; frame <= last; frame++) {
+        const sample = frames.get(frame);
+        if (sample === undefined) throw new Error(`the census has no sample of frame ${frame}`);
+        picked.push(sample);
+      }
+      return picked;
     };
+    return marks.map(([, group = "", name = "", baseFirst, baseLast, moveFirst, moveLast]) => {
+      const base = range(Number(baseFirst), Number(baseLast));
+      const move = range(Number(moveFirst), Number(moveLast));
+      const baselineMs = median(base.map(predictedMs));
+      let worstAt = 0;
+      let worst: FrameSample = { instructions: 0, natives: 0, allocatedKb: 0 };
+      let worstMs = Number.NEGATIVE_INFINITY;
+      move.forEach((frame, index) => {
+        const ms = predictedMs(frame);
+        if (ms <= worstMs) return;
+        worstAt = index;
+        worst = frame;
+        worstMs = ms;
+      });
+      return {
+        group, name, baselineMs, worstMs, worstAt, spikeMs: worstMs - baselineMs,
+        worstFrame: Number(moveFirst) + worstAt, baseFrames: [Number(baseFirst), Number(baseLast)],
+        instructions: worst.instructions - median(base.map((frame) => frame.instructions)),
+        natives: worst.natives - median(base.map((frame) => frame.natives)),
+        allocatedKb: worst.allocatedKb - median(base.map((frame) => frame.allocatedKb)),
+      };
+    });
   });
 }
 
