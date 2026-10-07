@@ -406,6 +406,11 @@ No Smashcraft server is involved, and players are their Battle.net names.
   (the client's Start now) or starts it in Warcraft III. Readiness sends no
   Battle.net chat. A start the game ignores (a guest still downloading the map)
   is sent again for up to five minutes.
+- **Test passwords.** `online host --password VALUE` uses an explicit password
+  while keeping the lobby private. The guest supplies the same value with
+  `online join CODE --password VALUE`; the printed code still names the game.
+  Omitting the flag uses the password carried by the code. Empty passwords
+  are rejected.
 - **Guest** (`bun wisp online join CODE`). Joins by name and password,
   retried twice 2 s apart as fresh does, then waits for the host to start
   and the loading screen to appear.

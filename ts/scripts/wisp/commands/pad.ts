@@ -43,7 +43,7 @@ import { type PadStep, type SentEdge, deadlineOrder, frameWriteNs, landEdges, ma
 import { SLOTS } from "../../integrity/reconcile";
 import { captureWhenDrawn, drawnFrom, visualCaptureCommand, visualCaptureToken } from "../../integrity/drawnCapture";
 import { visualReleaseFile } from "../../../src/game/shell/visualCapture";
-import { drawnFrameFile, nativeChatFile } from "../../../src/runtime/gameFiles";
+import { drawnFrameFile, nativeChatFile, RESPONSE_TRACE_CALLBACKS } from "../../../src/runtime/gameFiles";
 import { PREDICTED_HEADLESS, SMASHCRAFT_HEADLESS } from "../headless";
 type HeadlessClient = ReturnType<HeadlessRuntime["clients"]>["clients"][number];
 import { sceneFile } from "wisp/src/runtime/scene";
@@ -86,8 +86,8 @@ const USAGE = "pad SCRIPT --helper BINARY --build BUILD --out DIR --app-id a=ID 
 /** How long a capture waits for its client to draw its frame: about 3 s behind the helper's clock, past #156's worst lag (88 frames). */
 const CAPTURE_WAIT_MS = 10_000;
 
-/** The integrity build writes its input trace 1200 callbacks after the first journal row: about 20 s after the match starts. */
-const TRACE_WAIT_MS = 45_000;
+/** A short script can finish before the integrity trace, so collection allows its full recording plus delivery time. */
+const TRACE_WAIT_MS = RESPONSE_TRACE_CALLBACKS * 1000 / 60 + 25_000;
 
 const fromDesktop = (failure: DesktopFailure) => new IntegrityFailure({ operation: failure.operation, path: failure.client, cause: failure.cause });
 
@@ -140,7 +140,7 @@ const finish = (out: string, scriptPath: string, build: string, epochs: readonly
 /**
  * Copies each client's input trace (trace-a.txt, trace-b.txt) and the moments
  * it saved since `sinceMs` beside the result, waiting for the traces the
- * integrity build writes about 20 s into the match.
+ * integrity build writes after its complete recording.
  */
 const collect = (data: readonly [string, string], out: string, sinceMs: number) => Effect.gen(function*() {
   const fresh = (path: string) => existsSync(path) && statSync(path).mtimeMs >= sinceMs;
