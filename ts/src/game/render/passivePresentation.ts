@@ -75,10 +75,15 @@ export class PassivePresentation {
   }
 
   destroy(): void {
-    for (const model of [this.ready, this.proc]) {
-      if (model === undefined) continue;
-      hideEffect(model, this.origin);
-      DestroyEffect(model);
-    }
+    // Each by name: in Lua a list whose first element is nil ends there, so
+    // a fighter with only a proc effect would leave it behind every match.
+    this.destroyModel(this.ready);
+    this.destroyModel(this.proc);
+  }
+
+  private destroyModel(model: effect | undefined): void {
+    if (model === undefined) return;
+    hideEffect(model, this.origin);
+    DestroyEffect(model);
   }
 }
