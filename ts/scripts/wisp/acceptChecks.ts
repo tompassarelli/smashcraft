@@ -148,7 +148,8 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
       id: "161-slot-outfits", closes: "smashcraft#161 box 4", map: "outfits",
       setup: [{ waitMs: 3000 }],
       capture: [{ kind: "frames", name: "stage-and-hud", client: "a" }, { kind: "frames", name: "stage-and-hud", client: "b" }],
-      pass: [DEV_RECEIPT, NO_IMPORT_FAILURES, NO_ERRORS],
+      // The session start already waits for both clients' -dev quick receipts; this check sends no command of its own.
+      pass: [NO_IMPORT_FAILURES, NO_ERRORS],
       look: "In the same frame, Archer's red clothing and Rifleman's blue hood on stage match their HUD busts and stock icons; frames alone are insufficient.",
     },
     {
@@ -171,7 +172,10 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
     },
     {
       id: "161-neutral-grid-picked-outfits", closes: "smashcraft#161 box 4", map: "outfits",
-      setup: [{ chat: "-dev reset" }, { keys: ["n"], client: "a" }, { keys: ["n"], client: "b" }, { waitMs: 500 }],
+      setup: [
+        { chat: "-dev reset" }, { chat: "-dev fighter 1 Archer", client: "a" }, { chat: "-dev fighter 2 Rifleman", client: "b" },
+        { waitMs: 1500 },
+      ],
       capture: [{ kind: "frames", name: "grid-and-picked-cards", client: "a" }],
       pass: [NO_IMPORT_FAILURES, NO_ERRORS],
       look: "The roster grid stays neutral; picked player cards show red Archer and blue Rifleman clothing.",
