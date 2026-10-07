@@ -12,7 +12,7 @@ import { stageBounds } from "../sim/stageBounds";
 import type { MatchState } from "./rules";
 import { botChance, botChoice } from "./botRandom";
 import { startableForm } from "./botHeroKit";
-import type { BotStrategy } from "./botStrategy";
+import { HABIT_FIELDS, type BotStrategy } from "./botStrategy";
 import { HabitChoice, habitContext } from "./botHabits";
 import type { CpuDecisionPolicy } from "./cpuDecisionPolicy";
 
@@ -116,11 +116,13 @@ function successEstimate(own: Readonly<Fighter>, target: Readonly<Fighter>, opti
   let samples = 0;
   let shields = 0;
   let jumps = 0;
-  for (const habit of decision.strategy.history) {
-    if (habit.context !== context) continue;
+  const history = decision.strategy.history;
+  for (let index = 0; index < history.length; index += HABIT_FIELDS) {
+    if (at(history, index + 1) !== context) continue;
+    const choice = at(history, index + 2);
     samples++;
-    if (habit.choice === HabitChoice.shield) shields++;
-    if (habit.choice === HabitChoice.jump) jumps++;
+    if (choice === HabitChoice.shield) shields++;
+    if (choice === HabitChoice.jump) jumps++;
   }
   const shieldShare = target.shield.raised ? 100 : samples === 0 ? 0 : floorDiv(shields * 100, samples);
   const jumpShare = samples === 0 ? 0 : floorDiv(jumps * 100, samples);
