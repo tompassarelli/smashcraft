@@ -145,14 +145,15 @@ export function ageKnockback(f: Fighter): void {
   if (age !== undefined) f.launch.knockbackAge = min(KNOCKBACK_STACKING_FRAMES, age + 1);
 }
 
-/** Ground launch slides against traction; air launch decays along its angle until the retail cutoff. */
-export function decayKnockback(f: Fighter): void {
+/** Ground launch slides against traction, scaled by the floor's `friction`; air launch decays along its angle until the retail cutoff. */
+export function decayKnockback(f: Fighter, friction = 1.0): void {
   const { launch } = f;
   if (f.motion.grounded) {
     if (launch.groundKnockbackX === 0) launch.groundKnockbackX = launch.knockbackX;
-    const friction = termsOfPhysics(f.tuning.physics).knockbackFriction;
+    const ordinary = termsOfPhysics(f.tuning.physics).knockbackFriction;
+    const decay = friction === 1.0 ? ordinary : roundMeleeWorldValue(f32(ordinary * friction));
     const sliding = launch.groundKnockbackX;
-    launch.groundKnockbackX = roundMeleeWorldValue(sliding > 0 ? max(0.0, f32(sliding - friction)) : min(0.0, f32(sliding + friction)));
+    launch.groundKnockbackX = roundMeleeWorldValue(sliding > 0 ? max(0.0, f32(sliding - decay)) : min(0.0, f32(sliding + decay)));
     launch.knockbackX = launch.groundKnockbackX;
     launch.knockbackZ = 0.0;
     return;

@@ -71,8 +71,10 @@ export const stockSetting = (count: number) => (count === 1 ? "1 Stock" : `${cou
 export const timeSetting = (minutes: number) => (minutes === 0 ? "No time limit" : `${minutes}:00`);
 export const endlessSetting = (endless: boolean) => `Endless: ${endless ? "On" : "Off"}`;
 export const automaticRematchSetting = (automatic: boolean) => `Automatic rematch: ${automatic ? "On" : "Off"}`;
+export const hazardsSetting = (on: boolean) => `Hazards: ${on ? "On" : "Off"}`;
 export const itemsSetting = (on: boolean) => `Items: ${on ? "On" : "Off"}`;
 export const itemKindSetting = (kind: ItemKind, on: boolean) => `${kind === ItemKind.speed ? "Speed" : kind === ItemKind.extraJump ? "Extra jump" : "Heavy"}: ${on ? "On" : "Off"}`;
+
 export const trainingSetting = (training: boolean) => `Training: ${training ? "On" : "Off"}`;
 const BEHAVIOUR_NAMES = ["Stand", "Shield", "Crouch", "Jump", "Attack", "Fight"];
 const ESCAPE_NAMES = ["None", "Toward you", "Away", "Random"];

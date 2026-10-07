@@ -5,6 +5,7 @@ import { PARTICIPANT_SLOTS, type Slots, participantActive } from "../input/parti
 import { beginFighterAttack, resolveAttacks } from "../sim/attacks";
 import { AttackStyle, DASH_GRAB_REQUEST } from "../sim/codes";
 import { canStartAttackStyle, inGrabContext } from "../sim/conditions";
+import { collectLavaContacts } from "../sim/lava";
 import { beginDamageContacts, finishDamageContacts } from "../sim/contacts";
 import { advanceGrabs, captureGrabPauses, resolveGrabs } from "../sim/grabs";
 import { resolveLedges } from "../sim/ledge";
@@ -22,13 +23,16 @@ import { advanceFighterMotion } from "../sim/step";
 import { maskHeroStatusControls } from "../sim/heroStatus";
 import { platformSpecialInput } from "../sim/platformMoves";
 import { advanceStageCannon } from "../sim/stageHazards";
+import { surfaceCount, surfaceLine, surfaceZAt } from "../sim/stage";
+import { setWorldMotionValue } from "../sim/motion";
 import { advanceFreezeTraps } from "../sim/summons";
 import { advanceMatchCamera } from "../sim/matchCamera";
 import { nextJab } from "../sim/moves";
 import { advanceOffscreenDamage } from "../sim/offscreenDamage";
 import type { FrameControls } from "./controls";
-import { type MatchState, Phase, advanceClock, holdingStart, humanFighterActive, keepsStocks, resolveStocks } from "./rules";
+import { type MatchState, Phase, advanceClock, holdingStart, humanFighterActive, keepsStocks, resolveStocks, stageClock } from "./rules";
 import { advanceItems } from "./centreItem";
+
 import { advanceTrainingReadout, captureTrainingBefore, resetTrainingPositions } from "./training";
 
 export const observedFrameLegalActions: Slots<number> = [0, 0, 0, 0];
@@ -55,6 +59,13 @@ export function initializeMatchFighters(game: Readonly<MatchState>, world: Roste
     fighter.status.stocks = absent ? 0 : game.stockCount;
     fighter.status.out = absent;
     if (game.training && participantActive(game.computerMask, slot)) fighter.status.damage = f32(game.trainer.damage);
+    // Fighters start standing at the main deck's height; a sloped deck's line puts them on it.
+    const { motion } = fighter;
+    if (motion.grounded && surfaceCount(game.stageChoice) > 0 && surfaceLine(game.stageChoice, 0) !== undefined) {
+      motion.surface = 0;
+      motion.z = surfaceZAt(game.stageChoice, 0, game.matchFrame, motion.x);
+      setWorldMotionValue(motion.meleeZ, motion.z);
+    }
   }
 }
 
@@ -85,7 +96,8 @@ function requestedStyle(style: number | undefined): AttackStyle | undefined {
 export function stepMatch(game: MatchState, world: Roster, controls: FrameControls, frame: number): void {
   if (game.phase !== Phase.match) return;
   game.matchFrame++;
-  const { stageChoice: stage, matchFrame } = game;
+  const stage = game.stageChoice;
+  const stageFrame = stageClock(game);
   // Through the countdown every fighter stands still; a press made during it is dropped, so GO! needs a fresh one.
   if (holdingStart(game)) {
     for (const slot of PARTICIPANT_SLOTS) {
@@ -101,7 +113,7 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
     }
     captureTrainingBefore(world);
   }
-  carryOnMovingDecks(world, stage, matchFrame);
+  carryOnMovingDecks(world, stage, stageFrame);
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) continue;
     const f = fighterAt(world, slot);
@@ -118,21 +130,23 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) continue;
     resetObservedActions();
-    advanceFighterMotion(world, slot, stage, matchFrame, controls.inputs[slot], matchSpawnX(slot));
+    advanceFighterMotion(world, slot, stage, stageFrame, controls.inputs[slot], matchSpawnX(slot));
     observedFrameLegalActions[slot] = observedActions.legal;
     observedFrameStartedActions[slot] = observedActions.started;
   }
   advanceItems(game, world, controls, frame);
-  advanceStageCannon(world, stage, matchFrame, controls.inputs);
+  advanceStageCannon(world, stage, stageFrame, controls.inputs);
+
   captureGrabPauses(world);
   resolveGrabs(world);
   beginDamageContacts();
+  collectLavaContacts(world, stage, game.hazards);
   advanceGrabs(world, controls.inputs);
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot) || wasGrabbed[slot]) continue;
     resetObservedActions();
     const special = fighterAt(world, slot);
-    const started = startFighterSpecial(special, stage, matchFrame, platformSpecialInput(special, controls.inputs[slot]), world);
+    const started = startFighterSpecial(special, stage, stageFrame, platformSpecialInput(special, controls.inputs[slot]), world);
     observedFrameLegalActions[slot] |= observedActions.legal;
     if (started) observedFrameStartedActions[slot] |= 64;
   }
@@ -160,8 +174,8 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
     if (hadDashGrabWindow[slot] && f.ground.dashGrabWindow > 0 && !f.attack.dashGrab) f.ground.dashGrabWindow = Math.max(0, f.ground.dashGrabWindow - 1);
   }
   resolveAttacks(world);
-  advanceSpecials(world, stage, matchFrame, controls.inputs);
-  updateProjectiles(world, stage, matchFrame);
+  advanceSpecials(world, stage, stageFrame, controls.inputs);
+  updateProjectiles(world, stage, stageFrame);
   advancePlacedObjects(world);
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) continue;

@@ -7,7 +7,7 @@ import { inGrabContext } from "./conditions";
 import { finishLanding } from "./down";
 import type { Fighter } from "./fighter";
 import { DIAGONAL_UNIT } from "./knockback";
-import { landingAlongShift } from "./motion";
+import { keepToSlope, landingAlongShift } from "./motion";
 import { type Controls, type Roster, fighterAt } from "./roster";
 import { checkBlastZone } from "./stocks";
 import { leaveMainDeckBody, resolveSolidSurfaceContacts } from "./surfaces";
@@ -94,7 +94,10 @@ function applyHitlagShift(
   motion.z = newZ;
   resolveSolidSurfaceContacts(f, stage, oldX, oldZ, input);
   if (landing !== undefined) finishLanding(f, stage, matchFrame, input, landing, fromAsdi);
-  else leaveMainDeckBody(f, stage);
+  else {
+    leaveMainDeckBody(f, stage);
+    keepToSlope(f, stage);
+  }
   if (motion.x !== oldX || motion.z !== oldZ) {
     if (fromAsdi) launch.asdiSerial++;
     else launch.sdiSerial++;

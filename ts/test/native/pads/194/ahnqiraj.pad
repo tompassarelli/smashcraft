@@ -1,0 +1,9 @@
+# #194: Ahn'Qiraj's lift timetable.
+#! chat -dev quick stage 13
+15 a stick 1 0
+20 a stick 0 0
+90 a capture
+210 a capture
+410 a capture
+450 a press VIEW
+520 a release VIEW

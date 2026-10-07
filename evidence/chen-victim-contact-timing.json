@@ -1,0 +1,49 @@
+{
+  "modelSha256": "60bde2af94920f76a749f23f3114a52da9652157b27176f2c345b9c93bc97a6f",
+  "totalSequences": 97,
+  "unchangedSequences": 92,
+  "unchangedTrackIntervals": 11224,
+  "retimedVictimContacts": [
+    {
+      "index": 67,
+      "pose": "Chen victimPummel",
+      "seconds": 1,
+      "contact": 0.5,
+      "maxContactVertexDifference": 0
+    },
+    {
+      "index": 69,
+      "pose": "Chen victimThrowForward",
+      "seconds": 1,
+      "contact": 0.5,
+      "maxContactVertexDifference": 0
+    },
+    {
+      "index": 71,
+      "pose": "Chen victimThrowBack",
+      "seconds": 1,
+      "contact": 0.5,
+      "maxContactVertexDifference": 0
+    },
+    {
+      "index": 73,
+      "pose": "Chen victimThrowUp",
+      "seconds": 1,
+      "contact": 0.5,
+      "maxContactVertexDifference": 0
+    },
+    {
+      "index": 75,
+      "pose": "Chen victimThrowDown",
+      "seconds": 1,
+      "contact": 0.5,
+      "maxContactVertexDifference": 0
+    }
+  ],
+  "pairingContract": {
+    "test": "paired hero throws reach contact on the actual holder's frame across every roster pairing",
+    "scope": "Chen victim; 18 holders; two facings; five actions",
+    "pairings": 180,
+    "failures": 0
+  }
+}

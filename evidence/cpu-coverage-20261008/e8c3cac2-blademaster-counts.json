@@ -1,0 +1,41 @@
+{
+  "source": "e8c3cac2ad93519c240d083d5333d4ed65296770",
+  "matches": 16,
+  "framesPerMatch": 1800,
+  "firstSeed": 11,
+  "seedStep": 12,
+  "counts": {
+    "idleMoves": 614,
+    "idleThreats": 512,
+    "style8": 163,
+    "style0": 38,
+    "idleShielded": 36,
+    "style4": 97,
+    "idleLanding": 102,
+    "style7": 11,
+    "readyMoves": 95,
+    "readyLanding": 33,
+    "readyThreats": 81,
+    "style19": 77,
+    "readyShielded": 8,
+    "proc": 55,
+    "style17": 8,
+    "style10": 14,
+    "style14": 20,
+    "style2": 18,
+    "style6": 54,
+    "manaDenied": 0,
+    "style3": 11,
+    "style5": 30,
+    "style13": 17,
+    "style16": 17,
+    "style11": 3,
+    "style9": 11,
+    "style15": 2,
+    "style12": 2
+  },
+  "shieldComparison": {
+    "readyProduct": 4096,
+    "chargingProduct": 2916
+  }
+}

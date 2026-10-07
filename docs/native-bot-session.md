@@ -311,9 +311,12 @@ capture so existing action and capture frames stay unchanged:
 
 This checks that the script requests an export; the existing comparison still
 requires readable saved moments and matching checksums from the actual runs.
-A single headless run without `--compare` checks only its expectations and
-does not require an export. Native batches and headless comparison batches
-always require one.
+
+Headless pad checks replay every exported moment to its saved checksum, including
+each recorded intermediate checkpoint. Missing or unreadable moments fail the
+run. The result reports the number of moments and replayed frames. Standalone
+headless runs, native batches and headless comparison batches all need an
+authored export.
 
 ### Many scripts in one game
 

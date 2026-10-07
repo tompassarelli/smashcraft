@@ -32,3 +32,9 @@ several fighters, as Smash's do; Durotar Skies hosts the Horde's three.
 
 Stratholme (6) and Tomb of Sargeras (7) were added for this table: Uther,
 Dreadlord and Warden had no stage from their campaigns.
+
+Both stages are selectable. Stratholme uses cobbled slopes and three rooftop
+platforms before a ruined cathedral, city gate and distant fires. Tomb of
+Sargeras uses two overhanging end platforms, a shallow tide floor, distant
+Naga temple and waterfall. Each has its own quiet sky, light and deck palette;
+background pieces remain behind the fight and the lower sky stays a void.

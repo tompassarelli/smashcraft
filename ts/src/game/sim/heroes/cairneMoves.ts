@@ -29,7 +29,19 @@ const strike = (first: number, last: number, shape: StrikeCapsule, damage: numbe
 const sweep = (first: number, reach: number, heights: readonly number[], damage: number, strength: keyof typeof STRENGTH, direction = 1): MoveRegion[] =>
   heights.map((z, i) => strike(first + i, first + i, c(34.0 * direction, 95.0, (reach - 14.0) * direction, z), damage, strength, 40, direction));
 const BODY = hurtCapsule(Character.cairne);
-const pose = (first: number, last: number, part: HurtPart) => [heroHurtPose(first, last, [BODY, part])];
+const half = (part: HurtPart): HurtPart => ({ ...part, x2: f32(f32(part.x1 + part.x2) * 0.5), z2: f32(f32(part.z1 + part.z2) * 0.5) });
+const pose = (first: number, last: number, part: HurtPart) => [
+  heroHurtPose(first - 3, first - 1, [BODY, half(part)]),
+  heroHurtPose(first, last, [BODY, part]),
+  heroHurtPose(last + 1, last + 3, [BODY, half(part)]),
+];
+const pairedPose = (first: number, turn: number, last: number, front: HurtPart, back: HurtPart) => [
+  heroHurtPose(first - 3, first - 1, [BODY, half(front)]),
+  heroHurtPose(first, turn - 1, [BODY, front]),
+  heroHurtPose(turn, turn + 2, [BODY, half(front), half(back)]),
+  heroHurtPose(turn + 3, last, [BODY, back]),
+  heroHurtPose(last + 1, last + 3, [BODY, half(back)]),
+];
 const arm = (x: number, z: number) => hurtPart(20.0, 90.0, x, z, 18.0);
 const FORWARD_TILT = heroMove(14, 4, 29, 0, sweep(14, 170.0, [170.0, 115.0, 60.0, 12.0], 13.0, "edge"));
 const NO_LAUNCH = { growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } as const;
@@ -49,11 +61,11 @@ export const CAIRNE_MOVES: FighterMoves = {
       [AttackStyle.dashAttack]: pose(14, 23, hurtPart(15.0, 60.0, 95.0, 75.0, 34.0)),
       [AttackStyle.forwardSmash]: pose(26, 34, arm(95.0, 100.0)),
       [AttackStyle.upSmash]: pose(23, 32, arm(15.0, 178.0)),
-      [AttackStyle.downSmash]: [...pose(21, 26, arm(85.0, 25.0)), ...pose(25, 32, arm(-85.0, 25.0))],
-      [AttackStyle.neutralAir]: [...pose(10, 15, arm(82.0, 100.0)), ...pose(15, 21, arm(-82.0, 100.0))],
+      [AttackStyle.downSmash]: pairedPose(21, 24, 32, arm(85.0, 25.0), arm(-85.0, 25.0)),
+      [AttackStyle.neutralAir]: pairedPose(10, 13, 21, arm(82.0, 100.0), arm(-82.0, 100.0)),
       [AttackStyle.forwardAir]: pose(18, 26, arm(90.0, 90.0)),
       [AttackStyle.backAir]: pose(13, 20, arm(-86.0, 80.0)),
-      [AttackStyle.upAir]: pose(10, 18, hurtPart(0.0, 120.0, 0.0, 198.0, 22.0)),
+      [AttackStyle.upAir]: pose(10, 18, hurtPart(0.0, 120.0, 0.0, 188.0, 22.0)),
       [AttackStyle.downAir]: pose(19, 28, arm(10.0, 15.0)),
       [AttackStyle.grab]: pose(9, 16, arm(96.0, 62.0)),
     },

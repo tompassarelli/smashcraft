@@ -62,11 +62,11 @@ export const TINKER_AUTHORED_CLIPS = {
   wallJump: { index: 80, seconds: f32(0.333), aligned: true },
   wallTech: { index: 81, seconds: f32(0.433), aligned: true },
   dizzy: { index: 82, seconds: 1.0, aligned: true },
-  victimPummel: { index: 92, seconds: f32(0.217), aligned: true },
-  victimThrowForward: { index: 93, seconds: f32(0.6), aligned: true },
-  victimThrowBack: { index: 94, seconds: f32(0.717), aligned: true },
-  victimThrowUp: { index: 95, seconds: f32(0.4), aligned: true },
-  victimThrowDown: { index: 96, seconds: f32(0.733), aligned: true },
+  victimPummel: { index: 92, seconds: 1.0, aligned: true, contact: 0.5 },
+  victimThrowForward: { index: 93, seconds: 1.0, aligned: true, contact: 0.5 },
+  victimThrowBack: { index: 94, seconds: 1.0, aligned: true, contact: 0.5 },
+  victimThrowUp: { index: 95, seconds: 1.0, aligned: true, contact: 0.5 },
+  victimThrowDown: { index: 96, seconds: 1.0, aligned: true, contact: 0.5 },
   damageShield: { index: 97, seconds: f32(0.3), aligned: true },
 } as const satisfies HeroClipTable;
 export const TINKER_DAMAGE_CLIPS: readonly HeroClip[] = [
