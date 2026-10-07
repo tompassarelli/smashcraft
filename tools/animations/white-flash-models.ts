@@ -1,8 +1,12 @@
 import { join, relative, resolve } from "node:path";
 import { isDeepStrictEqual } from "node:util";
-import { generateMDX, parseMDX, model as mdx } from "war3-model";
+import { decodeBLP, getBLPImageData, generateMDX, parseMDX, model as mdx } from "war3-model";
+import { PNG } from "pngjs";
 import { fighters, onGlobalClock, removeBodyEffects, tracks } from "./original-clips";
 import { modelFacts } from "../../ts/node_modules/wisp/scripts/wisp/models";
+import { headlessRender } from "../../ts/scripts/wisp/headlessRender";
+import { IMPORTED_MODEL_FILES } from "../../ts/src/game/assets/importedModelInfo";
+import { renumberNodes } from "../../ts/scripts/clipNodes";
 
 const [assetsArg, outputArg] = process.argv.slice(2);
 if (assetsArg === undefined || outputArg === undefined) throw new Error("usage: bun tools/animations/white-flash-models.ts PRIVATE_ASSETS PRIVATE_OUTPUT");
@@ -15,6 +19,37 @@ texture.fill(255, 18);
 const textureName = `FighterWhite-${hash(texture)}.tga`;
 await Bun.write(join(output, textureName), texture);
 const paths: string[] = [], imports = [textureName];
+const sourceAssets = headlessRender({ assets, imports: IMPORTED_MODEL_FILES.map(({ entry, file }) => ({ entry, source: join(assets, "imported-models", file) })) });
+const whiteTextures = new Map<string, string>();
+async function whiteTexture(path: string): Promise<string> {
+  const known = whiteTextures.get(path);
+  if (known !== undefined) return known;
+  const bytes = await sourceAssets.readAsset(path);
+  if (bytes === undefined) throw new Error(`Missing body texture ${path}`);
+  let pixels: { width: number; height: number; data: Uint8Array | Uint8ClampedArray };
+  if (String.fromCharCode(...bytes.subarray(0, 3)) === "BLP") pixels = getBLPImageData(decodeBLP(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)), 0);
+  else if (bytes[0] === 137 && bytes[1] === 80) pixels = PNG.sync.read(Buffer.from(bytes));
+  else {
+    const convert = Bun.spawn(["magick", "-", "png:-"], { stdin: bytes, stdout: "pipe", stderr: "pipe" });
+    const converted = await new Response(convert.stdout).arrayBuffer();
+    if (await convert.exited !== 0) throw new Error(`Cannot read ${path}: ${await new Response(convert.stderr).text()}`);
+    pixels = PNG.sync.read(Buffer.from(converted));
+  }
+  const white = new Uint8Array(18 + pixels.width * pixels.height * 4);
+  white[2] = 2; white[16] = 32; white[17] = 0x28;
+  const header = new DataView(white.buffer);
+  header.setUint16(12, pixels.width, true); header.setUint16(14, pixels.height, true);
+  for (let pixel = 0; pixel < pixels.width * pixels.height; pixel++) {
+    white.fill(255, 18 + pixel * 4, 21 + pixel * 4);
+    white[21 + pixel * 4] = pixels.data[pixel * 4 + 3];
+  }
+  const name = `FighterWhite-${hash(white)}.tga`;
+  await Bun.write(join(output, name), white);
+  if (!imports.includes(name)) imports.push(name);
+  const imported = `war3mapImported\\${name}`;
+  whiteTextures.set(path, imported);
+  return imported;
+}
 const facts: Record<string, ReturnType<typeof modelFacts>> = {};
 for (const fighter of fighters) {
   const source = await Bun.file(join(assets, fighter.source)).arrayBuffer();
@@ -26,9 +61,11 @@ for (const fighter of fighters) {
   const sequences = model.Sequences;
   // A combined timeline must keep each clip's missing channels at their static defaults.
   tracks(model, (track, path) => {
-    if (onGlobalClock(track) || !/^\.(Bones|Helpers)\.\d+\.(Translation|Rotation|Scaling)$/.test(path)) return;
+    const transform = /^\.(Bones|Helpers|Attachments|CollisionShapes)\.\d+\.(Translation|Rotation|Scaling)$/.test(path);
+    const alpha = /^\.(GeosetAnims\.\d+|Materials\.\d+\.Layers\.\d+)\.Alpha$/.test(path);
+    if (onGlobalClock(track) || (!transform && !alpha)) return;
     const keys = track.Keys;
-    const defaults = path.endsWith("Rotation") ? [0, 0, 0, 1] : path.endsWith("Scaling") ? [1, 1, 1] : [0, 0, 0];
+    const defaults = alpha ? [1] : path.endsWith("Rotation") ? [0, 0, 0, 1] : path.endsWith("Scaling") ? [1, 1, 1] : [0, 0, 0];
     const added: mdx.AnimKeyframe[] = [];
     for (const clip of sequences) {
       const [start, end] = clip.Interval;
@@ -48,9 +85,12 @@ for (const fighter of fighters) {
       || material.Layers.some(layer => typeof layer.TextureID === "number" && model.Textures[layer.TextureID]?.ReplaceableId === 2)
       ? [index] : []));
   for (const material of model.Materials) {
-    material.Layers = [{ FilterMode: mdx.FilterMode.Transparent, Shading: mdx.LayerShading.Unshaded | mdx.LayerShading.TwoSided, TextureID: 0, TVertexAnimId: -1, CoordId: 0, Alpha: 1 }];
+    for (const layer of material.Layers) layer.Shading = (layer.Shading | mdx.LayerShading.Unshaded) & ~mdx.LayerShading.NoDepthSet;
   }
-  model.Textures = [{ Image: `war3mapImported\\${textureName}` }];
+  for (const texture of model.Textures) {
+    texture.Image = texture.Image ? await whiteTexture(texture.Image) : `war3mapImported\\${textureName}`;
+    texture.ReplaceableId = 0;
+  }
   for (const geoset of model.GeosetAnims) { geoset.Color = new Float32Array([1, 1, 1]); geoset.Flags &= ~mdx.GeosetAnimFlags.Color; }
   // Material alpha is ignored by the headless SD renderer; hide glow cards at the geoset.
   model.Geosets.forEach((geoset, GeosetId) => {
@@ -59,6 +99,10 @@ for (const fighter of fighters) {
     if (animation !== undefined) animation.Alpha = 0;
     else model.GeosetAnims.push({ GeosetId, Alpha: 0, Color: new Float32Array([1, 1, 1]), Flags: 0 });
   });
+  removeBodyEffects(original);
+  original.Lights = [];
+  renumberNodes(model);
+  renumberNodes(original);
   const bytes = new Uint8Array(generateMDX(model));
   const decoded = parseMDX(bytes.buffer);
   if (decoded.Sequences.length !== 1 || decoded.Geosets.length !== model.Geosets.length) throw new Error(`${fighter.name}: white overlay changed geometry`);
