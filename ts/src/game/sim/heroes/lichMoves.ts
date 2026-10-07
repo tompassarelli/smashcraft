@@ -1,3 +1,4 @@
+import { downSmashHit } from "../downMoveValues";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
 import { hurtCapsule } from "../../physics/contactGeometry";
@@ -147,9 +148,9 @@ export const LICH_MOVES: FighterMoves = {
     [AttackStyle.upSmash]: heroMove(20, 5, 34, 0, [
       heroRegion(20, 24, capsule(0.0, 8.0, 0.0, f32(L - 10.0), 10.0), hit(17.0, "KILL", 90)),
     ]),
-    [AttackStyle.downSmash]: heroMove(19, 5, 35, 0, [
-      heroRegion(19, 23, capsule(24.0, 8.0, f32(L - 10.0), 8.0, 10.0), hit(14.0, "EDGE", 25)),
-      heroRegion(19, 23, capsule(-24.0, 8.0, -f32(L - 10.0), 8.0, 10.0), hit(14.0, "EDGE", 25, true)),
+    [AttackStyle.downSmash]: heroMove(19, 5, 23, 0, [
+      heroRegion(19, 23, capsule(24.0, 8.0, f32(L - 10.0), 8.0, 10.0), downSmashHit(hit(14.0, "EDGE", 25))),
+      heroRegion(19, 23, capsule(-24.0, 8.0, -f32(L - 10.0), 8.0, 10.0), downSmashHit(hit(14.0, "EDGE", 25, true))),
     ]),
     [AttackStyle.neutralAir]: heroMove(9, 14, 17, 16, halo()),
     [AttackStyle.forwardAir]: heroMove(12, 3, 27, 17, fan()),
