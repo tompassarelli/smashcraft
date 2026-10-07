@@ -113,6 +113,14 @@ alone record every rendered frame. `SetCameraField` currently requests zero
 duration; a timed transition experiment also needs to change the camera bounds
 that currently constrain x to the newly requested target on every callback.
 
+`-dev camera-smooth on` enables that experiment in a development map:
+`PanCameraToTimed` and the changing camera fields request a one-match-frame
+transition, while the engine's x bounds encompass the stage's camera range.
+The canonical camera and its local aspect/corner limits stay unchanged.
+`-dev camera-smooth off` restores the default instantaneous requests. Pausing
+applies the last camera immediately. Compare both modes on the same native
+map and rendered-frame capture before choosing the playable default.
+
 Renderers place moving effects (fighters, their lights, projectiles and pooled
 effects) through `placeEffect` (smashcraft:ts/src/game/render/effects.ts). By
 default it only sets the position. `-dev smooth-draw` starts a zero-period

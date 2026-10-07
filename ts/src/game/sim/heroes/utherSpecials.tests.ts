@@ -86,14 +86,24 @@ test("Hammer of Justice bonks once, launches upward and holds both fighters thre
     for (let f = 2; f <= 13; f++) frame(world);
     assertEquals(target.status.damage, 0.0);
     for (let f = 14; f <= 16 && target.status.damage === 0.0; f++) frame(world);
-    assertEquals(target.status.damage, 13.0);
+    assertEquals(target.status.damage, f32(13.0 * f32(0.85)));
     assertEquals(owner.launch.hitlag, ordinaryHitlagFrames(13.0) + 3);
     assertEquals(target.launch.hitlag, ordinaryHitlagFrames(13.0) + 3);
     assertGreaterThan(target.launch.knockbackZ, Math.abs(target.launch.knockbackX));
     for (let f = 0; f < 60; f++) frame(world);
-    assertEquals(target.status.damage, 13.0);
+    assertEquals(target.status.damage, f32(13.0 * f32(0.85)));
     assertEquals(owner.projectiles.filter((p) => p.life > 0).length, 0);
   }
+});
+
+test("Uther's balanced hammer normal keeps its original hitlag while dealing 85 percent damage", () => {
+  const { world, owner, target } = pair(100.0);
+  beginFighterAttack(world, 0, AttackStyle.forwardTilt, false);
+  owner.attack.frame = 11;
+  resolveAttacks(world);
+  assertEquals(target.status.damage, f32(12.0 * f32(0.85)));
+  assertEquals(owner.launch.hitlag, ordinaryHitlagFrames(12.0) + 3);
+  assertEquals(target.launch.hitlag, ordinaryHitlagFrames(12.0) + 3);
 });
 
 test("Holy Radiance advances with the hammer, hits once up close and sends weaker light beyond it", () => {
@@ -108,11 +118,11 @@ test("Holy Radiance advances with the hammer, hits once up close and sends weake
   const close = pair(100.0);
   frame(close.world, side);
   for (let f = 2; f <= 75; f++) frame(close.world);
-  assertEquals(close.target.status.damage, 14.0);
+  assertEquals(close.target.status.damage, f32(14.0 * f32(0.85)));
   const ranged = pair(400.0);
   frame(ranged.world, side);
   for (let f = 2; f <= 65; f++) frame(ranged.world);
-  assertEquals(ranged.target.status.damage, 6.0);
+  assertEquals(ranged.target.status.damage, f32(6.0 * f32(0.85)));
 });
 
 test("Uther's hammer makes one loud heavy bash and holds a shield contact three extra frames", () => {
@@ -175,7 +185,7 @@ test("Ascension rises 1.9H with one hit, its free form 1.3H without one, both dr
     close.owner.mana.points = mana;
     frame(close.world, up);
     for (let f = 2; f <= 30; f++) frame(close.world);
-    assertEquals(close.target.status.damage, damage);
+    assertEquals(close.target.status.damage, f32(damage * f32(0.85)));
   }
 });
 
@@ -199,7 +209,7 @@ test("Divine Shield fails in the air without spending, and only a strike on f6-9
     assertEquals(raised, press <= 5);
     assertEquals(owner.status.guardHealed, 0.0);
     // Guarded, the whole jab passes through the shield; pressed later it lands.
-    assertEquals(owner.status.damage, press <= 5 ? 20.0 : 24.0);
+    assertEquals(owner.status.damage, press <= 5 ? 20.0 : f32(20.0 + f32(4.0 * f32(0.85))));
   }
 });
 
