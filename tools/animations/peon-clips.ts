@@ -205,5 +205,11 @@ await Bun.write(join(project,"ts/src/game/presentation/heroes/peonClips.ts"),[
   ...Object.entries(aliases).map(([name,donor])=>`  ${name}: ${literal(bindings.get(donor)!)},`),
   "} as const satisfies HeroClipTable;", "export const PEON_PAIN_CLIPS: readonly HeroClip[] = [", ...actions.filter(a=>a.pain).map(a=>`  ${literal(bindings.get(a.name)!)},`), "];", "",
 ].join("\n"));
+const damagePath = join(project, "ts/src/game/presentation/damageClipInfo.ts");
+const damageModule = await Bun.file(damagePath).text();
+const retainedDamage = damageModule.replace(/^  18: \[\n[\s\S]*?^  \],\n/m, "");
+ensure(retainedDamage.endsWith("};\n"), "Damage table must end with its record literal");
+const peonDamage = ["  18: [", ...actions.filter(a=>a.pain).map(a=>`    ${literal(bindings.get(a.name)!)},`), "  ],", ""].join("\n");
+await Bun.write(damagePath, retainedDamage.slice(0, -3) + peonDamage + "};\n");
 await Bun.write(join(output,"peon-clips.json"),JSON.stringify({sourceBytes:(await Bun.file(input).arrayBuffer()).byteLength,stockSequences:22,actions:evidence},null,2)+"\n");
 console.log(`PEON_CLIPS_PASS: ${actions.length} authored clips; 22 stock sequences preserved; 9 distinct pain cells; ${bytes.byteLength} model bytes`);
