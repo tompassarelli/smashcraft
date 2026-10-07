@@ -8,6 +8,7 @@
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { Phase } from "../src/game/match/rules";
+import { clearObservedActions } from "../src/game/match/step";
 import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
 import { QUICK_MATCH_COMMAND, RESET_COMMAND } from "../src/game/shell/devSettings";
 import { install, startBuild } from "../src/platform/main";
@@ -46,6 +47,8 @@ test("a match after -dev reset equals the first match of the game: same trace ch
     });
     return { traces, moment };
   };
+  // A new game loads the map's modules afresh; tests share them, so an earlier test's match must not leave its steps' observations here.
+  clearObservedActions();
   clients.start();
   frames(30);
   const boot = value(clients.client(0), () => structuredClone({ game: shell().game, controls: shell().controls }));
