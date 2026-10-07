@@ -263,10 +263,11 @@ the victim over his shoulder and behind him.
 
 ### Archer: the original tables
 
-Archer keeps the shared tables' jab and tilts (smashcraft:ts/src/game/sim/moves.ts,
+Archer keeps the shared tables' tilts (smashcraft:ts/src/game/sim/moves.ts,
 smashcraft:ts/src/game/sim/hitRegions.ts). They are her own now: no other
 fighter uses those timings, and the engine's shared-mechanics tests use them as
-their reference attack. Her forward tilt has an early tip (10 on its first
+their reference attack. Her jab left the shared table for her jab chain (#163):
+the shared jab reached as far as her forward tilt. Her forward tilt has an early tip (10 on its first
 active frame, 8 after) and angles. Her forward air outreaches her tilts,
 because spacing from the air is her plan. Her one new move is the sliding kick.
 
@@ -289,6 +290,128 @@ over the old shared down tilt (10 damage) and pops straight up at low percent.
 | Forward tilt | 7/3/21 | 10 | 1.25H | 30, 90/22 | up 50, down 15 | Falco forward tilt (angled) |
 | Up tilt | 6/3/22 | 8 | 0.85H, above | 90, 80/26 | | Falco up tilt |
 | Down tilt | 7/3/22 | 10 | 0.90H, below 0.15H | 80, 45/50 | | Falco down tilt (vertical pop-up) |
+
+## Jab chains
+
+Every fighter's jab is a two- or three-hit chain on repeated presses (#163).
+Repeatability is the jab's identity; a tilt never chains.
+
+**Melee's mechanism** (melee:src/melee/ft/kinds/ftCommon/ftCo_Attack1.c):
+- A chain step needs a fresh A press, never a held button:
+  `ftCo_Attack1_CheckInput` and `checkAttack12`/`checkAttack13` read
+  `pressed_buttons`.
+- A press is latched (`mv.co.attack1.x0`) while a per-fighter input window
+  counts down (`co_attrs.jab_2_input_window` and `jab_3_input_window`,
+  melee:src/melee/ft/types.h:793-794). The next jab starts only once the
+  animation script's "set jab combo" event allows it (`ftAction_80071AE8`,
+  melee:src/melee/ft/ftaction.c:557), so an early press waits.
+- With no press, the jab plays out and returns to Wait.
+- Rapid jab (`ftCo_Attack100.c`) counts A press and release edges across the
+  chain (`x1A54` against `rapid_jab_window`). Its loop ends after one
+  animation cycle without an edge, so it needs mashing.
+- Melee's jab rows (smashcraft:references/melee-frame-data/records.jsonl,
+  start/damage):
+  - Fox: 2/4, then 2/4.
+  - Marth: 4/6, then 4/6.
+  - Captain Falcon: 3/2, 4/3, 5/8.
+  - Mario: 2/3, 2/2, 4/5.
+  - Link: 6/5, 6/3, 6/6.
+  - Kirby, Link, Mewtwo, Sheik and Young Link have rapid jabs.
+
+**Smashcraft's version.**
+- A jab step names the frame its window opens (`AuthoredMove.chainsFrom`):
+  the frame after its last active frame.
+- From then until its last frame, a fresh jab press starts the next step
+  (`jabChainStep`, smashcraft:ts/src/game/sim/conditions.ts).
+- An earlier press waits in the attack buffer. A press during the jab's
+  hitlag is held through it, as Melee latches it.
+- The chain's last jab has no window, so a later press starts a new chain.
+- Smashcraft has no rapid jab. A loop that needs no recovery could hold a
+  victim in place, which the lock-loop rules (#68) forbid.
+- The steps are AttackStyle `jab2` and `jab3`, Melee's Attack12 and Attack13.
+
+smashcraft:ts/src/game/match/jabChainContracts.tests.ts pins two relations:
+- Each jab reaches less, covers a smaller area and starts no later than the
+  fighter's forward tilt.
+- Every step of a chain connects on a standing target.
+
+Each chain's name is in the kit data and on the move list. In the table below,
+each jab cell gives F/A/R, damage, reach and launch (angle, growth/base).
+
+| Fighter | Chain | Second jab | Third jab |
+| --- | --- | --- | --- |
+| Archer | Bow and Boot | 4/3/16, 5, 0.83H, 40 95/22 (a low kick) | |
+| Rifleman | Rifle Butt | 4/2/18, 5, 0.83H, 30 90/22 | |
+| Illidan | Warglaive Flurry | 5/2/16, 4, 0.73H, 70 30/22 | 6/3/20, 6, 0.83H, 40 95/22 |
+| Blademaster | Swift Cuts | 3/2/16, 5, 0.65H, 40 90/22 | |
+| Mountain King | Tavern Brawl | 6/3/18, 6, 0.67H, 35 95/24 | |
+| Warden | Crescent Flurry | 2/2/12, 3, 0.56H, 70 30/26 | 4/3/16, 4, 0.73H, 40 90/22 |
+| Lich | Chilling Touch | 6/3/17, 4 ice, 0.55H, 30 85/22 | |
+| Uther | Hammer and Haft | 6/3/18, 6, 0.62H, 30 90/26 | |
+| Dreadlord | Vampiric Claws | 4/2/14, 3, 0.61H, 60 30/28 | 6/3/20, 6, 0.74H, 35 100/22 |
+| Shadow Hunter | Glaive Handle | 4/2/13, 3, 0.72H, 60 30/26 | 6/3/18, 5, 0.84H, 40 90/22 |
+| Pit Lord | Haft and Chop | 8/3/22, 7, 0.85H, 40 75/18 | |
+| Beastmaster | Twin Axes | 4/2/14, 3, 0.57H, 70 55/12 | 6/3/19, 6, 0.72H, 40 75/18 |
+
+An opener that chains carries less knockback than a lone jab did, so the next
+step still reaches the target. The per-fighter tables above list each
+opener's launch.
+
+## Sound tiers
+
+A swing's whoosh, its hit sound and its hit spark come in three sizes by move
+class, so a jab never sounds like a tilt (#163,
+smashcraft:ts/src/game/presentation/moveTiers.ts).
+
+- **Melee** stores a hit-sound kind and a severity (0-2) on every hitbox
+  (`HitCapsule.sfx_kind`, `sfx_severity`, melee:src/melee/lb/types.h:46-47).
+  - `lbColl_80005BB0` plays `lbColl_803B9880[sfx_kind * 3 + sfx_severity]`
+    (melee:src/melee/lb/lbcollision.c:232-249).
+  - Shield hits pick one of three sounds by severity
+    (melee:src/melee/ft/ftcoll.c:70).
+  - The tier is authored per hitbox, not computed from damage.
+  - Swing sounds are plain script sound commands with no size rule
+    (melee:src/melee/ft/ftaction.c:570-620).
+- **Ultimate**'s attack scripts give every hitbox `ATTACK_SOUND_LEVEL_S`,
+  `_M` or `_L`.
+  - Mario's jabs 1 and 2 are S and his jab 3 is M. His tilts are M and his
+    smashes L.
+  - Swing sounds are sized too: Ryu's jabs play `se_ryu_swing_punch_m`,
+    `se_ryu_swing_kick_s` and `se_ryu_swing_kick_l`.
+  - Sources: the game's ACMD scripts as HewDraw Remix carries them
+    ([mario ground.rs](https://github.com/HDR-Development/HewDraw-Remix/blob/dev/fighters/mario/src/acmd/ground.rs),
+    [tilts.rs](https://github.com/HDR-Development/HewDraw-Remix/blob/dev/fighters/mario/src/acmd/tilts.rs),
+    [smashes.rs](https://github.com/HDR-Development/HewDraw-Remix/blob/dev/fighters/mario/src/acmd/smashes.rs),
+    [ryu ground.rs](https://github.com/HDR-Development/HewDraw-Remix/blob/dev/fighters/ryu/src/acmd/ground.rs)).
+- **Warcraft III** sizes its own weapon sounds the same way.
+  UI\SoundInfo\UnitCombatSounds.slk lists light, medium and heavy slice, chop
+  and bash sounds against each armor.
+
+**Smashcraft's tiers.**
+- Jabs and shots are small, smashes are large, and every other normal is
+  medium.
+- `TIER_DEPARTURES` names two exceptions: Warden's chain-poke down tilt is
+  small, and Pit Lord's Demonic Bulk dash attack is large.
+- A hit takes the tier of the attack that landed it. A throw, or a projectile
+  without an attack, keeps its launch strength (0-2).
+
+| Tier | Swing (whoosh) | Cut | Other physical hit | Hit volume | Spark |
+| --- | --- | --- | --- | --- | --- |
+| Small | Pitch 1.5, volume 45 | MetalLightSliceFlesh | WoodLightBashFlesh | 110 | 0.75 |
+| Medium | Pitch 1.25, volume 65 | MetalMediumSliceFlesh | WoodMediumBashFlesh | 118 | 1.0 |
+| Large | Pitch 1.0, volume 90 | MetalHeavySliceFlesh | WoodHeavyBashFlesh | 127 | 1.25 |
+
+- **Whoosh.** The whoosh is Sound\Interface\BattleNetWooshStereo1, the
+  game's only stored whoosh. AnimSounds.slk also names the Demoness whip-swing
+  files, but the storage doesn't hold them.
+- **Hit volume.** An element hit plays its own sound at its own pitch and at
+  the tier's volume. Native capture for #82 picked element sounds out only
+  from volume 110, so no tier plays a hit below that.
+- **Playback.** The weapon sounds and the whoosh play by path. Each weapon
+  sound rotates through the game's three variants.
+- **Checked against the game.** smashcraft:tools/presentation/stock-sounds.ts
+  checks every path against the installed game and records it in
+  smashcraft:ts/src/game/assets/stockSoundInfo.ts.
 
 ## Dash attacks
 

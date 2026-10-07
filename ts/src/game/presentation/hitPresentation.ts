@@ -3,7 +3,7 @@ import { SurfaceContact } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 import { HitElement } from "../sim/hitRegions";
 import { elementLook } from "./elementLooks";
-import { SWING_SOUND, TIER_HIT_PITCH, TIER_HIT_VOLUME, TIER_SWING_PITCH, TIER_SWING_VOLUME, tierHitPath } from "./moveTiers";
+import { SWING_SOUND, TIER_HIT_VOLUME, TIER_SWING_PITCH, TIER_SWING_VOLUME, tierHitPath } from "./moveTiers";
 import { at } from "wisp/src/runtime/lookup";
 import { type ImpactEvents, ImpactLanding, JumpCue } from "./impactEvents";
 import { IMPACT_FIRE_HIT, IMPACT_SLASH_HIT, IMPACT_ICE_HIT, IMPACT_ELECTRIC_SHIELD, IMPACT_PUMMEL } from "./impactState";
@@ -81,12 +81,12 @@ export function presentImpactSounds(events: Readonly<ImpactEvents>, sink: Impact
   if (events.throwRelease) play("BlinkTarget");
   else if (events.pummel) play("Defend", 75, 1.5);
   else if (events.hit) {
-    // A cut or a blunt hit plays the game's own weapon sound of its tier; an element plays its own sound, pitched by tier.
+    // A cut or a blunt hit plays the game's own weapon sound of its tier; an element plays its own sound, louder by tier.
     const electric = events.element !== HitElement.fire && events.electric;
     const file = electric ? undefined : tierHitPath(events.element, events.tier, events.variant);
     const volume = at(TIER_HIT_VOLUME, events.tier);
     if (file !== undefined) sink(file, events.x, events.z, volume, 1.0, true);
-    else play(electric ? "LightningBolt" : elementLook(events.element).sound ?? "LightningBolt", volume, at(TIER_HIT_PITCH, events.tier));
+    else play(electric ? "LightningBolt" : elementLook(events.element).sound ?? "LightningBolt", volume);
   }
   if (events.shieldHit || events.shieldReflect) play(events.shieldElectric ? "LightningBolt" : "Defend", 90, events.shieldReflect ? 1.5 : 1.0);
   if (events.shieldBreak) play("ThunderClap");

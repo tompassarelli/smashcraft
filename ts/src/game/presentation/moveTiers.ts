@@ -59,9 +59,13 @@ export function tierHitPath(element: HitElement, tier: number, variant: number):
   return at(files, imod(variant, files.length));
 }
 
-/** Volume (0-127) and pitch of a hit and of a swing, by tier. */
-export const TIER_HIT_VOLUME: readonly number[] = [85, 105, 127];
-export const TIER_HIT_PITCH: readonly number[] = [1.25, 1.0, 0.75];
+/**
+ * A hit's volume (0-127) by tier. Native capture (#82) picked element sounds
+ * out only from 110 at their own pitch, so the tier never lowers or repitches a
+ * hit: the weapon sound's weight carries it.
+ */
+export const TIER_HIT_VOLUME: readonly number[] = [110, 118, 127];
+/** A swing's volume and pitch by tier. */
 export const TIER_SWING_VOLUME: readonly number[] = [45, 65, 90];
 export const TIER_SWING_PITCH: readonly number[] = [1.5, 1.25, 1.0];
 /** The hit spark's scale. */
