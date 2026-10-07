@@ -1,41 +1,61 @@
 // Training's readout (#120) in the top-left corner: the last move's frames,
-// the advantage after the last hit or shielded hit, and the combo.
+// the advantage after the last hit or shielded hit, and the combo, on a dark
+// panel so the text stays legible over bright sky.
 import { f32 } from "wisp/src/sim/f32";
 import { type TrainingState, copyTrainingState, createTrainingState } from "../match/trainingState";
 import { trainingReadout } from "../shell/messages";
-import { MENU_FONT, createText, gameUi, placeTopLeft } from "./frames";
-import { TRAINING_READOUT_BOX } from "./hudLayout";
+import { MENU_FONT, createBackdrop, createText, gameUi, placeTopLeft } from "./frames";
+import { TRAINING_READOUT_BOX, TRAINING_READOUT_PANEL, TRAINING_READOUT_PANEL_ALPHA } from "./hudLayout";
+
+/** The dark tooltip texture the results panel and meters draw behind their text. */
+const PANEL_TEXTURE = "UI\\Widgets\\ToolTips\\Human\\human-tooltip-background.blp";
 
 export class TrainingReadout {
+  private readonly panel: framehandle;
   private readonly label: framehandle;
   /** The state its text was last built from; the text changes only with it. */
   private readonly shown = createTrainingState();
   private built = false;
+  /** Whether the last built text was empty; the panel hides with no text on it. */
+  private empty = true;
 
   constructor() {
-    this.label = createText("TrainingReadout", gameUi(), 891);
+    this.panel = createBackdrop("TrainingReadoutPanel", gameUi(), 892);
+    BlzFrameSetTexture(this.panel, PANEL_TEXTURE, 0, true);
+    BlzFrameSetAlpha(this.panel, TRAINING_READOUT_PANEL_ALPHA);
+    placeTopLeft(this.panel, TRAINING_READOUT_PANEL.left, TRAINING_READOUT_PANEL.top);
+    BlzFrameSetSize(this.panel, TRAINING_READOUT_PANEL.width, TRAINING_READOUT_PANEL.height);
+    BlzFrameSetEnable(this.panel, false);
+    BlzFrameSetVisible(this.panel, false);
+    this.label = createText("TrainingReadout", this.panel, 891);
     placeTopLeft(this.label, TRAINING_READOUT_BOX.left, TRAINING_READOUT_BOX.top);
     BlzFrameSetSize(this.label, TRAINING_READOUT_BOX.width, TRAINING_READOUT_BOX.height);
     BlzFrameSetFont(this.label, MENU_FONT, f32(0.011), 1);
     BlzFrameSetTextAlignment(this.label, TEXT_JUSTIFY_TOP, TEXT_JUSTIFY_LEFT);
     BlzFrameSetEnable(this.label, false);
-    BlzFrameSetVisible(this.label, false);
   }
 
   destroy(): void {
     BlzDestroyFrame(this.label);
+    BlzDestroyFrame(this.panel);
   }
 
   update(visible: boolean, state: Readonly<TrainingState>): void {
-    BlzFrameSetVisible(this.label, visible);
-    if (!visible) return;
+    if (!visible) {
+      BlzFrameSetVisible(this.panel, false);
+      return;
+    }
     const last = this.shown;
-    if (this.built && last.moveStyle === state.moveStyle && last.moveSpecial === state.moveSpecial && last.moveForm === state.moveForm
+    if (!(this.built && last.moveStyle === state.moveStyle && last.moveSpecial === state.moveSpecial && last.moveForm === state.moveForm
       && last.moveCharacter === state.moveCharacter && last.moveStartup === state.moveStartup && last.moveActive === state.moveActive
       && last.moveTotal === state.moveTotal && last.advantageKind === state.advantageKind && last.advantage === state.advantage
-      && last.comboHits === state.comboHits && last.comboDamage === state.comboDamage) return;
-    copyTrainingState(last, state);
-    this.built = true;
-    BlzFrameSetText(this.label, trainingReadout(state));
+      && last.comboHits === state.comboHits && last.comboDamage === state.comboDamage)) {
+      copyTrainingState(last, state);
+      this.built = true;
+      const text = trainingReadout(state);
+      this.empty = text === "";
+      BlzFrameSetText(this.label, text);
+    }
+    BlzFrameSetVisible(this.panel, !this.empty);
   }
 }
