@@ -35,6 +35,7 @@ const SMASHCRAFT_DEV: DevProject = {
       // It copies src/, the tunables' files included, to load the map with tuned values.
       "test/tune.test.ts": ["src/**"],
       "test/repro.test.ts": [],
+      "test/standalone.test.ts": ["test/native/pads/cpu-expert.pad"],
       "scripts/meleeOracle.tests.ts": ["../docs/gameplay-design.md"],
       // The case study's pages and the reference data its numbers come from.
       "scripts/meleeCaseStudy.tests.ts": ["../docs/design/melee/**", "../references/melee-frame-data/**", "../docs/smash-melee-reference/retail-roster.json"],
@@ -43,7 +44,7 @@ const SMASHCRAFT_DEV: DevProject = {
     journeys: [
       "test/desync-guard.test.ts", "test/desync-guard-integrity.test.ts",
       "test/visual-lifecycle.test.ts", "test/player-view.test.ts", "test/selection-load.test.ts", "test/player-text.test.ts",
-      "test/stage-render.test.ts",
+      "test/stage-render.test.ts", "test/standalone.test.ts",
       "test/stack-trace.test.ts", "test/rematch-load.test.ts", "test/match-settings.test.ts", "test/missing-input.test.ts", "test/input-stall.test.ts", "test/tune.test.ts", "test/repro.test.ts",
       "test/lag-recovery.test.ts", "test/local-start.test.ts", "test/bot-selection.test.ts", "test/cpu-settings.test.ts", "test/session-setup.test.ts",
     ],

@@ -155,7 +155,7 @@ test("Blademaster throw data preserves the adopted releases damage and direction
     [GrabAction.throwForward, 12, 18, 7.0, f32(0.819152044), f32(0.573576436)],
     [GrabAction.throwBack, 15, 22, 8.0, -f32(0.766044443), f32(0.642787610)],
     [GrabAction.throwUp, 13, 10, 6.0, f32(0.087155743), f32(0.996194698)],
-    [GrabAction.throwDown, 16, 20, 5.0, f32(0.422618262), f32(0.906307787)],
+    [GrabAction.throwDown, 16, 20, 5.0, f32(0.906307787), f32(0.422618262)],
   ] as const) {
     assertEquals(grabContactFrame(action, BLADEMASTER_MOVES), release);
     assertEquals(grabActionDuration(action, BLADEMASTER_MOVES), release + recovery);

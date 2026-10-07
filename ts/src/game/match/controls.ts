@@ -26,13 +26,21 @@ export function createBufferedFrameControls(): FrameControls {
 /** Session controls are outside replay state: rollback must not undo a pause. */
 export interface MatchControls {
   paused: boolean;
+  resumePending: boolean;
   readonly startHeld: Slots<boolean>;
 }
 
 type StartAction = "confirm" | "togglePause" | undefined;
 
 export function createMatchControls(): MatchControls {
-  return { paused: false, startHeld: [false, false, false, false] };
+  return { paused: false, resumePending: false, startHeld: [false, false, false, false] };
+}
+
+/** The first unpaused callback presents the held positions before simulation resumes. */
+export function consumeResumeFrame(controls: MatchControls): boolean {
+  const pending = controls.resumePending;
+  controls.resumePending = false;
+  return pending;
 }
 
 /** Deferred journal callers commit the pause only after the helper acknowledges its boundary. */
@@ -42,7 +50,10 @@ export function startKeyDown(controls: MatchControls, slot: number, phase: Phase
   if (phase !== Phase.result && PARTICIPANT_SLOTS.some(other => other !== slot && controls.startHeld[other])) return undefined;
   if (settingsOpen) return undefined;
   if (phase === Phase.match) {
-    if (!deferred) controls.paused = !controls.paused;
+    if (!deferred) {
+      controls.paused = !controls.paused;
+      controls.resumePending = !controls.paused;
+    }
     return "togglePause";
   }
   return "confirm";

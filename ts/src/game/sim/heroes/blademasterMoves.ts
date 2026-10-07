@@ -199,7 +199,7 @@ export const BLADEMASTER_MOVES: FighterMoves = {
     [GrabAction.throwForward]: authoredThrow(12, 18, 7.0, "EDGE", 35),
     [GrabAction.throwBack]: authoredThrow(15, 22, 8.0, "EDGE", 40, -1.0),
     [GrabAction.throwUp]: authoredThrow(13, 10, 6.0, "JUGGLE", 85),
-    [GrabAction.throwDown]: authoredThrow(16, 20, 5.0, "CHASE", 65),
+    [GrabAction.throwDown]: authoredThrow(16, 20, 5.0, "CHASE", 25),
   },
   dashAttack: AttackStyle.dashAttack,
   smashMaxChargeFrames: 45,

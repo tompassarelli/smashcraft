@@ -30,7 +30,10 @@ test("both pad carriers decode all 4624 quantized axis and trigger combinations 
 
 test("pad capture leaves keyboard sampling intact when inactive or malformed", () => {
   const capture = keyboardCapture();
-  for (const packet of [undefined, -1, 31, 16384]) {
+  assertTrue(samplePad(capture, 2, undefined));
+  assertEquals(capture.row.axisX, 127);
+  assertEquals(capture.row.triggerLeft, 0);
+  for (const packet of [-1, 31, 16384]) {
     assertTrue(samplePad(capture, 2, packet));
     assertEquals(capture.row.axisX, 127);
     assertEquals(capture.row.triggerLeft, 0);
