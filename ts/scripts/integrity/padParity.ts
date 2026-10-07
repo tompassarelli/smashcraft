@@ -17,6 +17,8 @@ import { preloadLines } from "wisp/scripts/wisp/boundary";
 import { readSceneLines } from "wisp/scripts/wisp/scene";
 import { type Repro, parseRepro } from "wisp/src/runtime/repro";
 import { parseMoment, replayRepro } from "../../src/game/replay/moment";
+import { replayMatch } from "../../src/game/replay/matchReplay";
+import { readReplay } from "../wisp/replayFiles";
 import { BTN_SELECT, EV_KEY } from "./linuxInput";
 import { parsePadScript, type PadStep } from "./padScript";
 
@@ -41,6 +43,7 @@ export function comparisonSteps(script: string, path = "pad script"): readonly P
 
 export const TRACE_FILE = "wc3-melee-input-trace.txt";
 export const REPRO_NAME = /^smashcraft-repro-p(\d)-f(\d+)-\d+\.txt$/;
+export const MATCH_REPLAY_NAME = /^smashcraft-replay-p[01]-\d+\.txt$/;
 
 interface TraceEvent {
   readonly slot: number;
@@ -251,7 +254,7 @@ export function compareRuns(nativeDir: string, headlessDir: string, script: stri
  * A headless pad run alone, with no native run to compare (`bun wisp farm
  * pads`): its edges landed on their frames and the script's `#! expect`,
  * `#! absent` and `#! scene` lines hold in its trace and scene reports,
- * and every saved moment replays to its recorded checksums.
+ * and every saved moment and completed match replays to its recorded checksums.
  */
 export function checkHeadlessRun(headlessDir: string, script: string): ParityReport {
   const lines: string[] = [];
@@ -268,7 +271,8 @@ export function checkHeadlessRun(headlessDir: string, script: string): ParityRep
     lines.push(`expectations: ${expectations.length} checked`);
   }
   const exports = readdirSync(headlessDir).filter(name => REPRO_NAME.test(name));
-  if (exports.length === 0) problems.push("headless: no moment saved (hold View a second in the script)");
+  const matches = readdirSync(headlessDir).filter(name => MATCH_REPLAY_NAME.test(name));
+  if (exports.length === 0 && matches.length === 0) problems.push("headless: no moment saved (hold View a second in the script)");
   let replayed = 0;
   let frames = 0;
   for (const name of exports) {
@@ -285,6 +289,22 @@ export function checkHeadlessRun(headlessDir: string, script: string): ParityRep
     frames += replay.frames;
   }
   lines.push(`checksums: ${replayed}/${exports.length} exported moments replay equal (${frames} frames)`);
+  let replayedMatches = 0;
+  let matchFrames = 0;
+  for (const name of matches) {
+    const saved = readReplay(join(headlessDir, name));
+    if (typeof saved === "string") {
+      problems.push(`checksum replay ${name}: ${saved}`);
+      continue;
+    }
+    const replay = replayMatch(saved);
+    const failures = [...replay.problems];
+    if (replay.reached !== replay.recorded) failures.push(`${replay.reached}/${replay.recorded} recorded checksums reached`);
+    problems.push(...failures.map(problem => `checksum replay ${name}: ${problem}`));
+    if (failures.length === 0) replayedMatches++;
+    matchFrames += replay.frames;
+  }
+  if (matches.length > 0) lines.push(`checksums: ${replayedMatches}/${matches.length} exported full matches replay equal (${matchFrames} frames)`);
   const scenes = parseSceneExpectations(script);
   if (scenes.length > 0) {
     problems.push(...unmetSceneExpectations([readLines(join(headlessDir, "scene-a.txt")), readLines(join(headlessDir, "scene-b.txt"))], scenes, "headless"));
