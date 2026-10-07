@@ -12,10 +12,11 @@ import type { PacingAndPresentation } from "../../game/match/pacingAndPresentati
 import { type MatchState, Phase, remainingSeconds, timedMatch } from "../../game/match/rules";
 import { ARENA_CAMERA, FLOOR_HEIGHT, cameraFieldOfView, cameraPoint, localCamera } from "../../game/presentation/arenaCamera";
 import { advanceMatchCamera } from "../../game/sim/matchCamera";
+import { stageBounds } from "../../game/sim/stageBounds";
 import { damageTint } from "../../game/presentation/hitPresentation";
 import { DamagePose, damagePose } from "../../game/presentation/damagePose";
 import { hideEffect } from "../../game/render/effects";
-import type { FighterPose } from "../../game/presentation/fighterPose";
+import { FRAME_SECONDS, type FighterPose } from "../../game/presentation/fighterPose";
 import { CANNON_MODEL, PLATFORM_CUE_FRAMES, framesUntilPlatformMoves, stageWarning } from "../../game/presentation/stageHazards";
 import { escapeMeterView, overheadAnchorZ, readEscapeMeter } from "../../game/presentation/escapeMeter";
 import { OVERHEAD_MANA_BORDER, OVERHEAD_MANA_HEIGHT, OVERHEAD_MANA_WIDTH, overheadManaLift } from "../../game/presentation/manaBar";
@@ -268,15 +269,23 @@ export function lockArenaCamera(s: ShellState): void {
   const framing = s.camera;
   probeCamera(s.probe, game.camera, framing, centerX, FLOOR_HEIGHT);
   const targetX = centerX + framing.x;
-  SetCameraBounds(targetX, centerY, targetX, centerY, targetX, centerY, targetX, centerY);
+  const duration = s.cameraTween === true && game.phase === Phase.match && !s.session.paused ? FRAME_SECONDS : 0.0;
+  if (duration > 0.0) {
+    // A bound at the new target would snap the pan before its timed movement.
+    const bounds = stageBounds(game.stageChoice).camera;
+    const left = centerX + bounds.left;
+    const right = centerX + bounds.right;
+    SetCameraBounds(left, centerY, right, centerY, left, centerY, right, centerY);
+  } else SetCameraBounds(targetX, centerY, targetX, centerY, targetX, centerY, targetX, centerY);
   SetCameraField(CAMERA_FIELD_ROTATION, ARENA_CAMERA.rotation, 0.0);
   SetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK, ARENA_CAMERA.angleOfAttack, 0.0);
-  SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, framing.distance, 0.0);
-  SetCameraField(CAMERA_FIELD_ZOFFSET, FLOOR_HEIGHT + framing.z, 0.0);
+  SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, framing.distance, duration);
+  SetCameraField(CAMERA_FIELD_ZOFFSET, FLOOR_HEIGHT + framing.z, duration);
   SetCameraField(CAMERA_FIELD_ROLL, 0.0, 0.0);
-  SetCameraField(CAMERA_FIELD_FIELD_OF_VIEW, cameraFieldOfView(framing, aspect), 0.0);
+  SetCameraField(CAMERA_FIELD_FIELD_OF_VIEW, cameraFieldOfView(framing, aspect), duration);
   SetCameraField(CAMERA_FIELD_FARZ, ARENA_CAMERA.farZ, 0.0);
-  SetCameraPosition(targetX, centerY);
+  if (duration > 0.0) PanCameraToTimed(targetX, centerY, duration);
+  else SetCameraPosition(targetX, centerY);
   if (s.build.analogPadDiagnostic === true) {
     // Calibration stays valid throughout both candidate ingress measurements.
     SetCameraBounds(centerX, centerY, centerX, centerY, centerX, centerY, centerX, centerY);
