@@ -3,12 +3,12 @@
 // staging folder and publishes the finished folder by one rename, so
 // concurrent plays of one revision wait and reuse one build
 // (smashcraft:docs/build-inputs.md).
-import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, dirname } from "node:path";
 import { Effect } from "effect";
 import { PlayProblem } from "wisp/scripts/wisp/play";
-import { publish, removeTree } from "./buildInputs";
+import { buildOnce } from "./buildInputs";
 import { withLock } from "./fileLock";
 import { projectRoot } from "./project";
 
@@ -41,7 +41,7 @@ export function playVersion(directory: string, library: string, revision: string
     return match === null ? [] : [[Number(match[1]), Number(match[2]), Number(match[3])] as const];
   };
   const numbered = (folder: string): (readonly [number, number, number])[] => {
-    if (!existsSync(folder)) return [];
+    if (statSync(folder, { throwIfNoEntry: false })?.isDirectory() !== true) return [];
     return readdirSync(folder).flatMap((entry) => {
       const match = /^Smashcraft (\d+\.\d+\.\d+)\.w3x$/.exec(entry);
       return match === null ? [] : parse(match[1]!);
@@ -87,9 +87,8 @@ const resolveMain = Effect.tryPromise({
   catch: (cause) => new PlayProblem({ problem: String(cause) }),
 });
 
-/** Runs `effect` as the only user of `revision`'s build lane and output. */
-const holdingRevision = <A, E, R>(revision: string, effect: Effect.Effect<A, E, R>) =>
-  withLock(join(locks, `play-${revision}.lock`), `Waiting for another build of ${revision.slice(0, 12)}`, effect);
+/** The lock held by whoever uses `revision`'s build lane or builds its map. */
+const revisionLock = (revision: string) => join(locks, `play-${revision}.lock`);
 
 /**
  * The revision's build lane, outside main. Only the holder of the
@@ -131,19 +130,21 @@ export const currentHelper = Effect.gen(function*() {
   const { revision, companion, mainCheckout } = yield* resolveMain;
   const helper = helperPath(companion);
   if (existsSync(helper)) return helper;
-  return yield* holdingRevision(revision, Effect.gen(function*() {
+  return yield* withLock(revisionLock(revision), `Waiting for another build of ${revision.slice(0, 12)}`, Effect.gen(function*() {
     if (existsSync(helper)) return helper;
     console.log("Building the controller helper");
     yield* buildHelper(yield* buildLane(mainCheckout, revision), helper);
+    yield* removeLane(mainCheckout, revision);
     return helper;
   }));
 });
 
 /**
- * Main's playable map, built on first use into play-current/REVISION from the
- * build inputs main's build-inputs.json names; `library` is the owner's
- * Smashcraft maps folder. The controller helper is optional (#166): play
- * builds it after the map, and a failed helper build leaves the keyboard.
+ * Main's playable map, built once per revision into play-current/REVISION
+ * from the inputs main's build-inputs.json names; `library` is the owner's
+ * Smashcraft maps folder. The controller helper is optional (#166): a new
+ * build tries it after the map, and a failed helper build leaves the keyboard
+ * (`bun wisp controller` builds it on demand).
  */
 export const currentPlaytest = (library: string) => Effect.gen(function*() {
   const { revision, companion, mainCheckout } = yield* resolveMain;
@@ -151,26 +152,15 @@ export const currentPlaytest = (library: string) => Effect.gen(function*() {
   const final = join(builds, revision);
   const map = { folder: "00-Smashcraft", file: `${title}.w3x`, title, source: join(final, `${title}.w3x`) };
   const helper = helperPath(companion);
-  const result = () => ({ map, helper: existsSync(helper) ? helper : undefined });
-  if (existsSync(map.source) && existsSync(helper)) return result();
-  return yield* holdingRevision(revision, Effect.gen(function*() {
-    const lane = existsSync(map.source) && existsSync(helper) ? undefined : yield* buildLane(mainCheckout, revision);
-    if (!existsSync(map.source) && lane !== undefined) {
-      console.log(`Building ${title}`);
-      yield* run(join(lane, "ts"), ["bun", "install", "--frozen-lockfile"]);
-      // A folder of an interrupted older run holds no finished map: replace it.
-      if (existsSync(final)) yield* tryPlay(() => removeTree(final));
-      mkdirSync(builds, { recursive: true });
-      const staging = yield* tryPlay(() => mkdtempSync(join(builds, `.${revision.slice(0, 12)}-`)));
-      yield* run(join(lane, "ts"), ["bun", "wisp", "build", "--profile", "playable", "--name", title, "--out", join(staging, `${title}.w3x`)]).pipe(
-        Effect.tapError(() => tryPlay(() => removeTree(staging)).pipe(Effect.ignore)),
-      );
-      yield* tryPlay(() => publish(staging, final));
-    }
-    if (!existsSync(helper) && lane !== undefined) {
-      yield* buildHelper(lane, helper).pipe(Effect.catch((problem) => Effect.sync(() => console.log(`No controller helper this time (${problem.problem}); the keyboard plays`))));
+  yield* buildOnce(revisionLock(revision), final, (folder) => existsSync(join(folder, map.file)), `Waiting for another build of ${title}`, (staging) => Effect.gen(function*() {
+    console.log(`Building ${title}`);
+    const lane = yield* buildLane(mainCheckout, revision);
+    yield* run(join(lane, "ts"), ["bun", "install", "--frozen-lockfile"]);
+    yield* run(join(lane, "ts"), ["bun", "wisp", "build", "--profile", "playable", "--name", title, "--out", join(staging, map.file)]);
+    if (!existsSync(helper)) {
+      yield* buildHelper(lane, helper).pipe(Effect.catch((problem) => Effect.sync(() => console.log(`No controller helper for this build (${problem.problem}); the keyboard plays`))));
     }
     yield* removeLane(mainCheckout, revision);
-    return result();
-  }));
+  })).pipe(Effect.mapError((cause) => cause instanceof PlayProblem ? cause : new PlayProblem({ problem: cause.message })));
+  return { map, helper: existsSync(helper) ? helper : undefined };
 });

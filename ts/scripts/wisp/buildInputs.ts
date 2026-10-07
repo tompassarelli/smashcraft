@@ -4,9 +4,10 @@
 // revision builds with. New art is a new hash and a manifest commit.
 import { chmodSync, constants, copyFileSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, renameSync, rmSync, statSync, symlinkSync } from "node:fs";
 import { homedir } from "node:os";
-import { dirname, join, relative } from "node:path";
+import { basename, dirname, join, relative } from "node:path";
 import { Effect, Schema } from "effect";
 import { MapBuildFailure } from "wisp/scripts/wisp/mapBuild";
+import { withLock } from "./fileLock";
 import { projectRoot } from "./project";
 
 export const INPUTS_STORE = join(homedir(), ".local/share/smashcraft-build-inputs/store");
@@ -114,6 +115,27 @@ export function publish(staging: string, final: string): "published" | "reused" 
     throw cause;
   }
 }
+
+/**
+ * Builds the folder `final` once. Builders of one key share the lock at
+ * `lock`: the first builds into a private staging folder beside `final` and
+ * publishes it by one rename; the others wait, then reuse it. A folder that
+ * isn't `complete` (left by an interrupted run of older tooling) is rebuilt.
+ */
+export const buildOnce = <E, R>(lock: string, final: string, complete: (final: string) => boolean, waiting: string, build: (staging: string) => Effect.Effect<void, E, R>) =>
+  withLock(lock, waiting, Effect.gen(function*() {
+    if (existsSync(final) && complete(final)) return "reused" as const;
+    const staging = yield* Effect.try({
+      try: () => {
+        removeTree(final);
+        mkdirSync(dirname(final), { recursive: true });
+        return mkdtempSync(join(dirname(final), `.${basename(final).slice(0, 12)}-`));
+      },
+      catch: (cause) => failure("stage build", final, String(cause)),
+    });
+    yield* build(staging).pipe(Effect.onError(() => Effect.sync(() => removeTree(staging))));
+    return yield* Effect.try({ try: () => publish(staging, final), catch: (cause) => failure("publish build", final, String(cause)) });
+  }));
 
 /**
  * Stores `source` (a folder, or the file of a single-file family) as

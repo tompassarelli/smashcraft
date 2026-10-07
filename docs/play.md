@@ -14,13 +14,15 @@ one-off build is named after the version it tests, `Smashcraft 0.0.N test K`,
 and lives in tests/. Experimental builds use `wisp fresh`, captures or `wisp accept` and
 install under tests/; they do not change what `play` launches.
 
-The private inputs are declared in
-~/.local/share/smashcraft-build-inputs/play-inputs.json: base map, container,
-assets and summon clips. Map builds check every imported file against the
-script and archive. Build outputs and proprietary assets stay outside source
-trees; dependency installation and compilation happen in a dedicated worktree.
-The controller helper is cached by its companion source tree, so gameplay edits
-do not recompile an unchanged helper. A new source revision builds a new map;
+Main's smashcraft:build-inputs.json names the private inputs: base map,
+container, assets and summon clips, each by the hash of its contents in the
+store (smashcraft:docs/build-inputs.md). Map builds check every input against
+its hash and every imported file against the script and archive. Build outputs
+and proprietary assets stay outside source trees; dependency installation and
+compilation happen in the revision's own worktree, under the revision's lock,
+so plays started together build one map and share it. The controller helper is
+optional and cached by its companion source tree; a failed helper build leaves
+the keyboard and never blocks the map. A new source revision builds a new map;
 repeated runs reuse its map and helper.
 
 ## Controller without play

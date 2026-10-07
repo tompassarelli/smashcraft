@@ -602,14 +602,16 @@ From smashcraft:ts/:
 
 ## Build the map
 
-From the repository root, `./build.sh BASE.w3m ASSET_CONTAINER.w3x` invokes
-Wisp's map build with the private assets and packager. The equivalent direct
-command from `ts/` is:
+From `ts/`:
 
 ```sh
-bun wisp build --base BASE.w3m --container ASSET_CONTAINER.w3x --assets DIR \
-  --summon DIR --name NAME --out OUT.w3x
+bun wisp build [--profile NAME] --name NAME --out OUT.w3x
 ```
+
+builds with the private inputs the checkout's smashcraft:build-inputs.json
+names, after checking each against its hash (smashcraft:docs/build-inputs.md).
+`--base BASE.w3m`, `--container ASSET_CONTAINER.w3x`, `--assets DIR` and
+`--summon DIR` override one input for an experiment.
 
 The map's script is
 the base map's script plus the TSTL bundle, whose entry is

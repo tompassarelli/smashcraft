@@ -80,9 +80,15 @@ code. From smashcraft:ts/:
 - Running game: `bun wisp hot --data <client A CustomMapData> --data <client
   B CustomMapData> --watch` hot-reloads every save into both clients and prints
   in-game errors with TypeScript lines.
-- Map commands: `bun wisp build --base BASE.w3m --container MAP.w3x --assets
-  DIR --summon DIR --name NAME --out OUT.w3x` builds the TypeScript map;
+- Map commands: `bun wisp build [--profile NAME] --name NAME --out OUT.w3x`
+  builds the TypeScript map from the private inputs smashcraft:build-inputs.json
+  names (`--base`, `--container`, `--assets`, `--summon` override one);
   `bun wisp rebuild MAP.w3x` replaces only its script.
+- Build inputs: each private asset family is stored once under the hash of
+  its contents and never edited; build-inputs.json names each family's hash,
+  so changing art is `bun wisp inputs add FAMILY DIR` plus a commit, landed
+  like code. `bun wisp inputs check` verifies them, `bun wisp inputs path
+  [assets]` prints them for tools (smashcraft:docs/build-inputs.md).
 - Fresh match: `bun wisp fresh MAP.w3x [--rebuild]` starts a new game, sends
   `-dev quick`, and waits until every signed-in client writes its receipt.
   `--rebuild` replaces the map script first. Other quick starts for `--chat`
@@ -141,8 +147,8 @@ code. From smashcraft:ts/:
   selection. `online setup` installs the menu page and Allow Local Files after
   the owner agrees. The client's Online page runs them
   (smashcraft:docs/design/client.md, "Direct play").
-- Playtest: `bun wisp play` builds current main with its current controller
-  helper and goes from Tom's desktop to a match against a computer
+- Playtest: `bun wisp play` builds current main (once per revision, however
+  many plays start together) and goes from Tom's desktop to a match against a computer
   (smashcraft:docs/play.md). Experiments use `fresh`, captures or `accept`,
   with maps under Maps/00-Smashcraft/tests; play preserves two prior versions
   beside the latest correctly titled build and archives the rest under older/.
