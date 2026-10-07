@@ -19,15 +19,15 @@ export const BLADE_RADIUS = 6.0;
 // Provisional class hypotheses, consumed by the existing knockback formula;
 // the roster's displacement bands are calibration targets, not measured results.
 const CLASS = {
-  LINK: { growth: 55.0, base: 12.0 },
-  POKE: { growth: 75.0, base: 18.0 },
-  LAUNCH: { growth: 95.0, base: 20.0 },
-  EDGE: { growth: 100.0, base: 22.0 },
-  KILL: { growth: 110.0, base: 26.0 },
-  SPIKE: { growth: 100.0, base: 22.0 },
+  LINK: { growth: 52.525001525878906, base: 12.0 },
+  POKE: { growth: 71.625, base: 18.0 },
+  LAUNCH: { growth: 90.72500610351562, base: 20.0 },
+  EDGE: { growth: 95.5, base: 22.0 },
+  KILL: { growth: 105.05000305175781, base: 26.0 },
+  SPIKE: { growth: 95.5, base: 22.0 },
   // Throw roles (#107): an up throw's guaranteed short juggle and a down throw's tech chase.
-  JUGGLE: { growth: 55.0, base: 50.0 },
-  CHASE: { growth: 40.0, base: 75.0 },
+  JUGGLE: { growth: 52.525001525878906, base: 50.0 },
+  CHASE: { growth: 38.20000076293945, base: 75.0 },
 } as const;
 const ANGLE = {
   25: { x: f32(0.906307787), z: f32(0.422618262) },
@@ -85,7 +85,7 @@ function lowSweep(firstFrame: number, facing: number): readonly MoveRegion[] {
     capsule(f32(18.0 * facing), 14.0, f32(f32(L - BLADE_RADIUS) * facing), 14.0),
     capsule(f32(18.0 * facing), 8.0, f32(f32(L - BLADE_RADIUS) * facing), 8.0),
     capsule(f32(18.0 * facing), 2.0, f32(f32(L - BLADE_RADIUS) * facing), 2.0),
-  ], hit(14.0, "EDGE", 25, facing));
+  ], hit(13.370000839233398, "EDGE", 25, facing));
 }
 
 // Bladestorm (down air, #152): the longest drill. Six spinning hits that
@@ -158,13 +158,13 @@ const BODY: FighterHurtboxes = {
 export const BLADEMASTER_MOVES: FighterMoves = {
   normals: {
     ...BLADEMASTER_GROUND.normals,
-    [AttackStyle.forwardSmash]: heroMove(17, 3, 32, 0, cut(17, [58.0, 45.0, 32.0], XL, hit(15.0, "KILL", 40), hit(19.0, "KILL", 40))),
+    [AttackStyle.forwardSmash]: heroMove(17, 3, 32, 0, cut(17, [58.0, 45.0, 32.0], XL, hit(14.325000762939453, "KILL", 40), hit(18.145000457763672, "KILL", 40))),
     [AttackStyle.upSmash]: heroMove(15, 4, 30, 0, path(15, [
       capsule(16.0, 38.0, 24.0, f32(L - BLADE_RADIUS)),
       capsule(8.0, 38.0, 12.0, f32(L - BLADE_RADIUS)),
       capsule(0.0, 38.0, 0.0, f32(L - BLADE_RADIUS)),
       capsule(-8.0, 38.0, -12.0, f32(L - BLADE_RADIUS)),
-    ], hit(16.0, "KILL", 90))),
+    ], hit(15.280000686645508, "KILL", 90))),
     [AttackStyle.downSmash]: heroMove(14, 6, 31, 0, [...lowSweep(14, 1.0), ...lowSweep(17, -1.0)]),
     // Blade Wheel (#152): two turns of the sword, after Falcon's and Marth's
     // n-airs. The wide first turn pulls toward him at any percent; the tighter
@@ -176,18 +176,18 @@ export const BLADEMASTER_MOVES: FighterMoves = {
         [capsule(-20.0, 35.0, -f32(M - BLADE_RADIUS), 50.0), linkAt(3.0, 30.0, 80)],
       ] },
       { first: 13, last: 15, strikes: [
-        [capsule(20.0, 45.0, BLADE_WHEEL_INNER, 45.0, 10.0), hit(6.0, "POKE", 50)],
-        [capsule(0.0, 55.0, 0.0, f32(BLADE_WHEEL_INNER + 45.0), 10.0), hit(6.0, "POKE", 50)],
-        [capsule(-20.0, 45.0, -BLADE_WHEEL_INNER, 45.0, 10.0), hit(6.0, "POKE", 50, -1.0)],
+        [capsule(20.0, 45.0, BLADE_WHEEL_INNER, 45.0, 10.0), hit(5.730000019073486, "POKE", 50)],
+        [capsule(0.0, 55.0, 0.0, f32(BLADE_WHEEL_INNER + 45.0), 10.0), hit(5.730000019073486, "POKE", 50)],
+        [capsule(-20.0, 45.0, -BLADE_WHEEL_INNER, 45.0, 10.0), hit(5.730000019073486, "POKE", 50, -1.0)],
       ] },
     ])),
-    [AttackStyle.forwardAir]: heroMove(10, 3, 22, 14, cut(10, [60.0, 45.0, 30.0], L, hit(11.0, "EDGE", 40), hit(14.0, "EDGE", 40))),
-    [AttackStyle.backAir]: heroMove(8, 3, 23, 13, cut(8, [34.0, 45.0, 56.0], L, hit(12.0, "KILL", 35, -1.0), undefined, -1.0)),
+    [AttackStyle.forwardAir]: heroMove(10, 3, 22, 14, cut(10, [60.0, 45.0, 30.0], L, hit(10.505000114440918, "EDGE", 40), hit(13.370000839233398, "EDGE", 40))),
+    [AttackStyle.backAir]: heroMove(8, 3, 23, 13, cut(8, [34.0, 45.0, 56.0], L, hit(11.460000038146973, "KILL", 35, -1.0), undefined, -1.0)),
     [AttackStyle.upAir]: heroMove(6, 3, 19, 11, path(6, [
       capsule(0.0, 45.0, 0.0, f32(M - BLADE_RADIUS)),
       capsule(3.0, 45.0, 3.0, f32(M - BLADE_RADIUS)),
       capsule(6.0, 45.0, 6.0, f32(M - BLADE_RADIUS)),
-    ], hit(8.0, "LAUNCH", 85))),
+    ], hit(7.640000343322754, "LAUNCH", 85))),
     [AttackStyle.downAir]: bladestorm,
     [AttackStyle.grab]: heroMove(7, 2, 22, 0, path(7, [
       capsule(18.0, 45.0, f32(S - 10.0), 45.0, 10.0),
@@ -195,11 +195,11 @@ export const BLADEMASTER_MOVES: FighterMoves = {
     ], hit(0.0, "POKE", 35))),
   },
   throws: {
-    [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: { damage: 3.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } },
-    [GrabAction.throwForward]: authoredThrow(12, 18, 7.0, "EDGE", 35),
-    [GrabAction.throwBack]: authoredThrow(15, 22, 8.0, "EDGE", 40, -1.0),
-    [GrabAction.throwUp]: authoredThrow(13, 10, 6.0, "JUGGLE", 85),
-    [GrabAction.throwDown]: authoredThrow(16, 20, 5.0, "CHASE", 65),
+    [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: { damage: 2.865000009536743, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } },
+    [GrabAction.throwForward]: authoredThrow(12, 18, 6.685000419616699, "EDGE", 35),
+    [GrabAction.throwBack]: authoredThrow(15, 22, 7.640000343322754, "EDGE", 40, -1.0),
+    [GrabAction.throwUp]: authoredThrow(13, 10, 5.730000019073486, "JUGGLE", 85),
+    [GrabAction.throwDown]: authoredThrow(16, 20, 4.775000095367432, "CHASE", 25),
   },
   dashAttack: AttackStyle.dashAttack,
   smashMaxChargeFrames: 45,

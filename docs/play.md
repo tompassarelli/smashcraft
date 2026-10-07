@@ -1,5 +1,21 @@
 # Play current Smashcraft
 
+`bun wisp play --standalone` opens Smashcraft in the Wisp browser player,
+with Archer against a Wren Expert Rifleman over the normal three stocks and
+seven-minute clock. Keyboard controls and the browser's gamepad controls enter
+the playable map's keyboard sampling. The browser draws the map's models,
+camera, effects and HUD from the headless client and plays its sound cues.
+
+`bun wisp play --standalone --script test/native/pads/cpu-expert.pad --headless
+--frames 1070 --out build/standalone-cpu --capture-frames 200,600,1000` runs
+the existing native pad driver and saves each frame's checksum plus captures.
+`cpu-expert.pad` is the original `cpu-level-9.pad`: commit `c0424f66` renamed
+it, and `775bf730` changed its setup to `-dev quick cpu wren expert`. Every
+authored pad input and its frame through 1070 stayed the same; `c2ad9697`
+updated the expected damage after the CPU changes. This is the CPU fixture for
+standalone/native comparisons. Map assets are read from the existing private
+inputs, with stock assets cached outside the repository.
+
 From ~/code/smashcraft/main/ts, run `bun wisp play`. It builds current main,
 points the always-on controller service at the matching helper, and hosts a match on Tom's main display
 against a computer. The match plays on the keyboard; a pad the service finds

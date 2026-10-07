@@ -16,15 +16,15 @@ const GRAB = f32(HERO_REFERENCE_HEIGHT * 0.5);
 // Named class hypotheses in the existing growth/base formula, not calibrated
 // displacement bands or promises of guaranteed follow-ups.
 const CLASS_HYPOTHESES = {
-  LINK: { growth: 65.0, base: 12.0 },
-  POKE: { growth: 80.0, base: 16.0 },
-  LAUNCH: { growth: 95.0, base: 22.0 },
-  EDGE: { growth: 100.0, base: 25.0 },
-  KILL: { growth: 110.0, base: 30.0 },
-  SPIKE: { growth: 100.0, base: 24.0 },
+  LINK: { growth: 71.82499694824219, base: 12.0 },
+  POKE: { growth: 88.39999389648438, base: 16.0 },
+  LAUNCH: { growth: 104.9749984741211, base: 22.0 },
+  EDGE: { growth: 110.5, base: 25.0 },
+  KILL: { growth: 121.54999542236328, base: 30.0 },
+  SPIKE: { growth: 110.5, base: 24.0 },
   // Throw roles (#107): an up throw's guaranteed short juggle and a down throw's tech chase.
-  JUGGLE: { growth: 55.0, base: 50.0 },
-  CHASE: { growth: 40.0, base: 75.0 },
+  JUGGLE: { growth: 60.77499771118164, base: 50.0 },
+  CHASE: { growth: 44.19999694824219, base: 75.0 },
 } as const;
 type LaunchClass = keyof typeof CLASS_HYPOTHESES;
 
@@ -54,25 +54,25 @@ export const capsule = (x1: number, z1: number, x2: number, z2: number, radius: 
 const circle = (x: number, z: number, radius: number): StrikeCapsule => capsule(x, z, x, z, radius);
 const frame = (active: number, strike: StrikeCapsule, effect: Readonly<HitEffect>, groundedEffect?: Readonly<HitEffect>) => heroRegion(active, active, strike, effect, groundedEffect);
 
-const JAB = hit(4.0, "POKE", 35);
-const FORWARD_TILT = hit(10.0, "EDGE", 35, false, HitElement.slash);
-const UP_TILT = hit(9.0, "LAUNCH", 90);
-const DOWN_TILT = hit(7.0, "LINK", 70);
-const DASH = hit(12.0, "LAUNCH", 40);
-const FORWARD_SMASH_HEAD = hit(21.0, "KILL", 40);
-const FORWARD_SMASH_HANDLE = hit(16.0, "KILL", 40);
-const UP_SMASH = hit(17.0, "KILL", 85);
-const DOWN_SMASH_FRONT = hit(16.0, "EDGE", 25);
-const DOWN_SMASH_BACK = hit(16.0, "EDGE", 25, true);
-const NEUTRAL_AIR_FRONT = hit(10.0, "POKE", 50);
-const NEUTRAL_AIR_BACK = hit(10.0, "POKE", 50, true);
-const FORWARD_AIR_HEAD = hit(16.0, "SPIKE", 270);
-const FORWARD_AIR_GROUNDED_HEAD = hit(16.0, "LAUNCH", 55);
-const FORWARD_AIR_HANDLE = hit(11.0, "LAUNCH", 45);
-const BACK_AIR = hit(13.0, "KILL", 35, true, HitElement.slash);
-const UP_AIR = hit(10.0, "LAUNCH", 85);
-const DOWN_AIR = hit(13.0, "SPIKE", 270);
-const DOWN_AIR_GROUNDED = hit(13.0, "LAUNCH", 55);
+const JAB = hit(4.419999599456787, "POKE", 35);
+const FORWARD_TILT = hit(11.049999237060547, "EDGE", 35, false, HitElement.slash);
+const UP_TILT = hit(9.944999694824219, "LAUNCH", 90);
+const DOWN_TILT = hit(7.734999656677246, "LINK", 70);
+const DASH = hit(13.25999927520752, "LAUNCH", 40);
+const FORWARD_SMASH_HEAD = hit(23.204999923706055, "KILL", 40);
+const FORWARD_SMASH_HANDLE = hit(17.67999839782715, "KILL", 40);
+const UP_SMASH = hit(18.78499984741211, "KILL", 85);
+const DOWN_SMASH_FRONT = hit(17.67999839782715, "EDGE", 25);
+const DOWN_SMASH_BACK = hit(17.67999839782715, "EDGE", 25, true);
+const NEUTRAL_AIR_FRONT = hit(11.049999237060547, "POKE", 50);
+const NEUTRAL_AIR_BACK = hit(11.049999237060547, "POKE", 50, true);
+const FORWARD_AIR_HEAD = hit(17.67999839782715, "SPIKE", 270);
+const FORWARD_AIR_GROUNDED_HEAD = hit(17.67999839782715, "LAUNCH", 55);
+const FORWARD_AIR_HANDLE = hit(12.154999732971191, "LAUNCH", 45);
+const BACK_AIR = hit(14.364999771118164, "KILL", 35, true, HitElement.slash);
+const UP_AIR = hit(11.049999237060547, "LAUNCH", 85);
+const DOWN_AIR = hit(14.364999771118164, "SPIKE", 270);
+const DOWN_AIR_GROUNDED = hit(14.364999771118164, "LAUNCH", 55);
 const GRAB_CONTACT = { damage: 0.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } as const;
 
 // Bodies that follow the swings: the torso plus the arm, leg or head that
@@ -162,10 +162,10 @@ export const MOUNTAIN_KING_MOVES: FighterMoves = {
     ]),
   },
   throws: {
-    [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: { damage: 3.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } },
-    [GrabAction.throwForward]: { contactFrame: 14, totalFrames: 36, effect: hit(9.0, "EDGE", 35) },
-    [GrabAction.throwBack]: { contactFrame: 18, totalFrames: 45, effect: hit(10.0, "KILL", 40, true) },
-    [GrabAction.throwUp]: { contactFrame: 16, totalFrames: 29, effect: hit(8.0, "JUGGLE", 90) },
-    [GrabAction.throwDown]: { contactFrame: 20, totalFrames: 46, effect: hit(7.0, "CHASE", 75) },
+    [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: { damage: 3.31499981880188, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } },
+    [GrabAction.throwForward]: { contactFrame: 14, totalFrames: 36, effect: hit(9.944999694824219, "EDGE", 35) },
+    [GrabAction.throwBack]: { contactFrame: 18, totalFrames: 45, effect: hit(11.049999237060547, "KILL", 40, true) },
+    [GrabAction.throwUp]: { contactFrame: 16, totalFrames: 29, effect: hit(8.839999198913574, "JUGGLE", 90) },
+    [GrabAction.throwDown]: { contactFrame: 20, totalFrames: 46, effect: hit(7.734999656677246, "CHASE", 25) },
   },
 };

@@ -253,7 +253,7 @@ const THROW_ROWS = [
   [GrabAction.throwForward, 14, 23, 8.0, 40],
   [GrabAction.throwBack, 18, 26, 9.0, 40],
   [GrabAction.throwUp, 16, 9, 7.0, 90],
-  [GrabAction.throwDown, 20, 26, 6.0, 70],
+  [GrabAction.throwDown, 20, 26, 6.0, 25],
 ] as const;
 
 test("Uther throws hold until release and launch once in the adopted facing-relative direction", () => {
