@@ -23,7 +23,7 @@ All move designs and numbers below are proposals, not existing implementation fa
 | 3 | Warden | Precision mobility and edge pressure | Light body and punishable teleport endpoints |
 | 4 | Pandaren Brewmaster | Staff brawler with brew and fire combinations | Slow commitments and limited ranged reach |
 | 5 | Lich | Deliberate projectile placement | Frail body and slow attacks at close range |
-| 6 | Uther | Defensive hammer fighter | Weak chase and punishable defensive reads |
+| 6 | Uther | Forsaken hammer fighter holding holy ground | Slow feet and committed recovery |
 | 7 | Dreadlord | Air movement, grabs, and close pressure | Large hurtbox and no safe long-range approach |
 | 8 | Shadow Hunter | Totem placement and angles | Setup can be destroyed or bypassed |
 | 9 | Pit Lord | Extreme heavy with long cleaves | Very large target and slow recovery |
@@ -481,81 +481,39 @@ the tables:
 
 ## Uther
 
-**Identity:** a defensive paladin with a substantial hammer, deliberate protection, and a strong close hit backed by weaker ranged light. The current kit and sources are in [Uther](uther.md). He wins by holding space and reading approaches, not by infinitely stalling with invulnerability. Divine Shield must be a short defensive action in a fighter.
+**Identity:** a Forsaken Paladin with a substantial hammer, a short slowing
+charge and a small holy patch that contests grounded landings. His slow feet
+and deliberate recovery reward spacing and permit a shield or whiff punish.
+The current move identities, sources, contracts and roster distinctions are
+in [Uther](uther.md); production frame data lives in utherMoves.ts.
 
-### Normals
-
-| Input and move | F/A/R and landing | Damage | Reach and launch | Behavior |
-| --- | --- | --- | --- | --- |
-| Jab — Gauntlet Check | 5/2/15 | 4 | S, 35, POKE | Short front punch |
-| Forward tilt — Hammer Sweep | 10/3/23 | 11 | L, 35, EDGE | Good spacing, exposed recovery |
-| Up tilt — Guiding Light | 9/4/22 | 9 | M, 85, LAUNCH | Hammer rises above head |
-| Down tilt — Low Judgment | 8/3/20 | 7 | M, 70, LINK | Low hammer handle sweep |
-| Dash attack — Shoulder of Justice | 12/5/29 | 12 | M, 45, LAUNCH | Body charge, no armor |
-| Forward smash — Final Judgment | 21/3/36 | 20 | L, 40, KILL | Overhead hammer, head 20 and handle 15 damage |
-| Up smash — Beacon Strike | 18/4/33 | 17 | L, 90, KILL | Tall narrow swing |
-| Down smash — Consecrated Sweep | 17/6/34 | 15 | M, 25, EDGE | Front then back hammer arc |
-| Neutral air — Hammer Guard | 8/5/23; L15 | 9 | M, 50, POKE | One surrounding swing, no block property |
-| Forward air — Holy Hammer | 13/4/28; L18 | 14 | L, 40, KILL | Slow spacing aerial |
-| Back air — Rearward Boot | 9/3/24; L14 | 11 | M, 35, EDGE | Exposed leg |
-| Up air — Radiant Lift | 8/4/23; L14 | 9 | M, 85, LAUNCH | Hammer-head hit above |
-| Down air — Falling Judgment | 15/4/31; L22 | 13 | M, 270, SPIKE | Narrow downward hammer, no forced dive |
-
-### B specials
-
-| Input | Proposed move and behavior | Timing and cost |
+| Input | Move and behavior | Timing and cost |
 | --- | --- | --- |
-| Neutral B | **Hammer of Justice** (#216): overhead hammer launcher, 11.05 damage at 80°, growth 70/base 42. One hit, 140-unit reach; air keeps drift with 18 landing frames. | Active f14–16, end f38; 10 mana |
-| Side B | **Holy Radiance** (#216): 0.75H hammer lunge, 11.9 damage at 40°; on f21 a 5.1-damage holy wave travels straight beyond the head. Ground armor for one ≤5-damage hit f15–18. Air has no armor, one use and helpless finish. | Hammer/travel f15–20, wave f21, end f69; 50 mana |
-| Up B | **Ascension:** rising hammer leap, 1.9H rise and 0.45H horizontal drift; one 6.8-damage hit, LAUNCH at 80 degrees. Free version 1.3H without hitbox. | Hit f10–15, travel through f29, then helpless; 15 mana |
-| Down B | **Divine Shield** (#131): ground-only timed stance, intangible f6–9, vulnerable otherwise, no automatic counter. A damaging melee or projectile hit overlapping it on those frames raises Divine Shield: 45 frames in which strikes and projectiles pass through Uther; starting an attack, special or grab ends it. Grabs beat both the guard and the shield. No healing. | End f36; 25 mana. Air version fails without spending |
+| Neutral B | **Cleansing Hammer:** overhead launcher, 11.05 damage at 80°, growth 70/base 42. Removes his poison and movement slow on contact frame, even on a miss. Air drifts with 18 landing frames. | Active f14–16, end f38; 10 mana |
+| Side B | **Righteous Fury:** held-hammer charge, 0.75H travel, 11.9 damage at 40°. Body hit slows movement 40% for 75 frames, then 120 immunity. Ground armor absorbs one hit up to 5 damage on f15–18. Air has no armor, one use, 20 landing frames and helpless finish. | Hammer/travel f15–20, end f49; 25 mana |
+| Up B | **Ascension:** steerable hammer rise, 2.9H paid or 2.0H free; 0.2H forward and up to 1.6H steering. Paid form hits once for 6.8 damage at 80°. Jump spent, one use per airtime, helpless finish. | Hit f10–15, travel f8–28, stop/end f29; 15 mana or free |
+| Down B | **Consecration:** fixed, jumpable holy patch, radius 60, 70 units ahead. Life 120 frames, 1.7 damage at most every 45 frames; one patch and 150-frame recast interval. Ground only. | Pool f16, end f42; 20 mana |
 
-### Grab and throws
+**Sacred Aura:** three blocked hits make the next non-throw launch 20% weaker.
+Shared EX neutral/side costs 25 extra mana for six startup frames of one-hit
+armor. There are no ultimates in the adopted mana system.
 
-Standing grab 8/2/25, reach 0.55H. Pummel: hammer-hilt tap.
+Direct hammer hits retain three extra hitlag frames and the volume-127 heavy
+bash. The 0.85 damage multiplier applies after passive bonuses and preserves
+original hitlag strength. Normal hit regions, hurt capsules and throws remain
+in utherMoves.ts; this revision changes Uther specials and their computer use.
 
-| Throw | Animation and release | Damage | Release and recovery | Launch |
-| --- | --- | --- | --- | --- |
-| Forward | Palm of judgment | 8 | f14, R23 | 40, EDGE |
-| Back | Shoulder turn and toss | 9 | f18, R26 | 40, EDGE |
-| Up | Lift with a shaft of light | 7 | f16, R9 | 90, JUGGLE |
-| Down | Kneeling hammer slam beside target | 6 | f20, R26 | 70, CHASE |
+Presentation uses the actual 3.0.1 Forsaken body and rig, replacing its stock
+sword with the classic Paladin hammer mesh. All action clips are authored on
+that rig; the obsolete thirteen-clip Human Paladin table is not reused.
 
-**Ultimate — Guardian of the Light:** f30 vulnerable activation, R15, then 360 frames of +10 percent damage and three visible protective charges. A charge absorbs one hit reaction up to 6 damage while still taking damage; at most one charge consumed per 30 frames. Grabs and larger hits bypass the protection. No resurrection, extra stocks, unlimited heal, or prolonged invulnerability.
+**Counterplay:** shield the bonk or charge and punish recovery; jump or step
+out of Consecration; edge-guard Ascension from its exposed sides. Cleansing
+Hammer cannot remove silence, sleep, stun or a forced carry.
 
-**Required counterplay test:** Uther can be grabbed or baited during Divine Shield and punished afterward. The hammer launcher can be shielded and its recovery punished.
-
-### Uther as built
-
-Source: smashcraft:ts/src/game/sim/heroes/utherMoves.ts (normals, grabs,
-throws, body), utherSpecials.ts and utherClips.ts. Every row above is
-implemented with its listed timing, damage, angle and reach; launch classes
-use provisional coefficients. Deliberate differences:
-
-- Unarmed strikes are limbs, not disjoints: the jab's gauntlet and the grab's
-  hand reach 0.55H and Rearward Boot reaches 0.8H behind, each with a matching
-  hurt part from late startup through early recovery. Shoulder of Justice
-  strikes with the torso and reaches 0.8H by travelling during startup.
-- Grab contact sits at hand height (about 24-56 above the feet), not at the
-  shins.
-- Holy Radiance in the air holds its height during the lunge and lands with
-  20 frames of lag; Hammer of Justice keeps drift with 18 landing frames.
-- Ascension travels on f8-28 and stops on f29, so its helpless fall starts
-  at the 1.9H (free form 1.3H) apex; both forms drift 0.45H.
-- Divine Shield's success is the special's `guard` window: an opponent's
-  damaging strike or projectile overlapping Uther on f6-9 raises the shield
-  (`status.divineFrames`, sim/transitions.ts `endDivineShield`). The
-  strike that triggered it passes through him.
-
-Presentation uses the stock classic Paladin model, which has thirteen
-sequences and no punch, kick, jump, roll, ledge or grab clip. Hammer Sweep's
-path follows "Attack - 1" and Final Judgment's follows "Attack - 2"; the jab,
-grab, pummel and side special reuse "Attack - 1", so the drawn hammer swings
-while the gauntlet strikes. Down smash's back half and Rearward Boot have no
-matching clip ("Attack - 2" and "Stand Hit" play). utherClips.ts lists the
-sequence table and every pose's clip.
-
-**Gameplan** (smashcraft:ts/src/game/sim/heroes/utherGameplan.ts): he holds hammer spacing, lifts close opponents with Hammer of Justice and sends Holy Radiance at a retreating opponent. Divine Shield reads incoming strikes; Low Judgment, Guiding Light and up throw start other follow-ups. He returns toward the ledge before spending Ascension.
+**Computer:** close hammer spacing, Righteous Fury for an approach,
+Consecration near grounded opponents, ordinary shield/dodge for defense,
+then ledge-oriented Ascension for recovery. Coverage counts all four specials.
 
 ## Dreadlord
 

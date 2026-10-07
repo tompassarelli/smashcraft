@@ -19,4 +19,12 @@ export const HOME_STAGES: readonly { readonly character: Character; readonly sta
   { character: Character.pitLord, stage: 14 },
   { character: Character.beastmaster, stage: 3 },
   { character: Character.lichKing, stage: 2 },
+  { character: Character.thrall, stage: 3 },
+  { character: Character.jaina, stage: 11 },
+  { character: Character.sylvanas, stage: 4 },
+  { character: Character.cairne, stage: 3 },
+  { character: Character.chen, stage: 3 },
+  { character: Character.peon, stage: 3 },
+  { character: Character.tinker, stage: 3 },
+  { character: Character.kaelthas, stage: 14 },
 ];

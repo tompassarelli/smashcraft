@@ -7,6 +7,8 @@ const DOWNWARD_CLIPS: readonly string[] = [
   "Aerial Down", "Aerial Down", "Aerial Down", "Down Air Sword Plunge", "Down Air Boot Stomp", "Drill Down Air",
   "Down Air Frost Press", "Down Air Hammer Drop", "Down Air Claw Dive", "Drill Down Air", "Down Air Four Hooves",
   "Down Air Twin Axe Drop", "Aerial Down",
+  "Thrall downAir", "Jaina downAir", "Sylvanas downAir", "Cairne downAir", "Chen downAir",
+  "Peon downAir", "Tinker downAir", "Kaelthas downAir",
 ];
 for(const character of SELECTABLE_CHARACTERS){
   const name=DOWNWARD_CLIPS[character]??"missing downward clip";

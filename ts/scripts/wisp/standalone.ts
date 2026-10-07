@@ -8,7 +8,7 @@ import { installHeadless } from "wisp/scripts/wisp/headless";
 import { Action } from "../../src/game/input/actions";
 import { keyFor, presetBindings } from "../../src/game/input/keyBindings";
 import { Phase } from "../../src/game/match/rules";
-import { PLAYABLE_BUILD } from "../../src/game/shell/currentBuild";
+import { NATIVE_DRIVER_BUILD, PLAYABLE_BUILD } from "../../src/game/shell/currentBuild";
 import type { MapBuild } from "../../src/game/shell/build";
 import { PREDICTED_HEADLESS, SMASHCRAFT_HEADLESS } from "./headless";
 import { headlessRender } from "./headlessRender";
@@ -39,9 +39,9 @@ function keys(input: StandaloneInput): Set<number> {
 }
 
 /** One map callback per step; scripts share the native driver's exact pad rows. */
-export async function createStandaloneSession(options: { readonly script?: string } = {}): Promise<StandaloneSession & { frame(): number; finished(): boolean }> {
-  const { script } = options;
-  const runtime = installHeadless(script === undefined ? PREDICTED_HEADLESS : SMASHCRAFT_HEADLESS);
+export async function createStandaloneSession(options: { readonly script?: string; readonly presentation?: MapBuild["presentation"] } = {}): Promise<StandaloneSession & { frame(): number; finished(): boolean }> {
+  const { script, presentation } = options;
+  const runtime = installHeadless(script === undefined || presentation === "pool-confirmed" || presentation === "pool-predicted" ? PREDICTED_HEADLESS : SMASHCRAFT_HEADLESS);
   try {
     // Map modules are checked by tsconfig.game.json, with Warcraft's native types.
     const platform = join(import.meta.dir, "../../src/platform");
@@ -49,10 +49,15 @@ export async function createStandaloneSession(options: { readonly script?: strin
     const { shell }: { shell(): State } = await import(join(platform, "shell/state.ts"));
     const { confirmedChecksum }: { confirmedChecksum(state: State): string } = await import(join(platform, "shell/diagnostics.ts"));
     const { applyDeveloperCommand }: { applyDeveloperCommand(state: State, slot: number, text: string): void } = await import(join(platform, "shell/keys.ts"));
-    const build = { ...PLAYABLE_BUILD, devConsole: true };
+    const { drawnFrame }: { drawnFrame(state: State): { readonly frame: number } } = await import(join(platform, "shell/drawnFrame.ts"));
+    const build = { ...PLAYABLE_BUILD, devConsole: true, ...(presentation === undefined ? {} : { presentation }) };
     const main: { install(build: MapBuild): void; startBuild(build: MapBuild): void } = await import(join(platform, "main.ts"));
-    const driver: MapEntry | undefined = script === undefined ? undefined : await import(join(platform, "nativeDriverMain.ts"));
-    const driverApi: { nativeDriverCommand(text: string): void } | undefined = script === undefined ? undefined : await import(join(platform, "nativeDriver.ts"));
+    const driverApi: { nativeDriverCommand(text: string): void; installSmashcraftNativeDriver(): void; startSmashcraftNativeDriver(): void } | undefined = script === undefined ? undefined : await import(join(platform, "nativeDriver.ts"));
+    const driverBuild = { ...NATIVE_DRIVER_BUILD, ...(presentation === undefined ? {} : { presentation }) };
+    const driver: MapEntry | undefined = script === undefined ? undefined : presentation === undefined ? await import(join(platform, "nativeDriverMain.ts")) : {
+      install() { main.install(driverBuild); driverApi?.installSmashcraftNativeDriver(); },
+      start() { main.startBuild(driverBuild); driverApi?.installSmashcraftNativeDriver(); driverApi?.startSmashcraftNativeDriver(); },
+    };
     const driverCommand = driverApi?.nativeDriverCommand;
     const clients = runtime.clients(driver ?? { install: () => main.install(build), start: () => main.startBuild(build) }, script === undefined ? [0] : [0, 1], { keepCalls: 0 });
     clients.start();
@@ -84,7 +89,7 @@ export async function createStandaloneSession(options: { readonly script?: strin
         for (const current of clients.clients) if (current.errors.length > 0) throw new Error(current.errors.join("\n"));
       },
       checksum: () => value(() => confirmedChecksum(shell())),
-      frame: () => value(() => shell().runtime.simulationFrame),
+      frame: () => value(() => presentation === "pool-predicted" ? drawnFrame(shell()).frame : shell().runtime.simulationFrame),
       finished: () => value(() => shell().game.phase === Phase.result),
       close() { if (!closed) { closed = true; runtime.restore(); } },
     };
@@ -102,16 +107,20 @@ export const SMASHCRAFT_STANDALONE: StandaloneGame = {
 
 export function standaloneArguments(args: readonly string[]) {
   let script: string | undefined, out: string | undefined, frames: number | undefined;
+  let presentation: MapBuild["presentation"] | undefined;
   let headless = false;
   const captureFrames: number[] = [];
   for (let index = 0; index < args.length; index++) {
     const arg = args[index];
     if (arg === "--standalone") continue;
     if (arg === "--headless") { headless = true; continue; }
-    if (arg === "--script" || arg === "--out" || arg === "--frames" || arg === "--capture-frames") {
+    if (arg === "--script" || arg === "--out" || arg === "--frames" || arg === "--capture-frames" || arg === "--presentation") {
       const value = args[++index];
       if (value === undefined || value.startsWith("--")) throw new Error(`${arg} needs a value`);
-      if (arg === "--script") script = value;
+      if (arg === "--presentation") {
+        if (value !== "native" && value !== "pool-confirmed" && value !== "pool-predicted") throw new Error("--presentation needs native, pool-confirmed or pool-predicted");
+        presentation = value;
+      } else if (arg === "--script") script = value;
       else if (arg === "--out") out = value;
       else if (arg === "--frames") {
         if (!/^\d+$/.test(value) || Number(value) < 1) throw new Error("--frames needs a positive frame count");
@@ -123,11 +132,11 @@ export function standaloneArguments(args: readonly string[]) {
     } else throw new Error(`unknown standalone option: ${arg}`);
   }
   if (headless && (frames === undefined || out === undefined)) throw new Error("--headless needs --frames N and --out DIR");
-  return { ...(script === undefined ? {} : { script }), ...(out === undefined ? {} : { out }), ...(frames === undefined ? {} : { frames }), headless, ...(captureFrames.length === 0 ? {} : { captureFrames }) };
+  return { ...(script === undefined ? {} : { script }), ...(presentation === undefined ? {} : { presentation }), ...(out === undefined ? {} : { out }), ...(frames === undefined ? {} : { frames }), headless, ...(captureFrames.length === 0 ? {} : { captureFrames }) };
 }
 
 export const standalonePlay: Command = (args) => Effect.gen(function*() {
   const options = yield* Effect.try({ try: () => standaloneArguments(args), catch: (cause) => new UsageFailure({ problem: String(cause) }) });
   const { runStandalone } = yield* Effect.tryPromise({ try: () => import("wisp/scripts/wisp/standalone"), catch: (cause) => new RenderFailure({ cause }) });
-  return yield* runStandalone(SMASHCRAFT_STANDALONE, options);
+  return yield* runStandalone({ ...SMASHCRAFT_STANDALONE, create: (session) => createStandaloneSession({ ...session, ...(options.presentation === undefined ? {} : { presentation: options.presentation }) }) }, options);
 });

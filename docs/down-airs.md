@@ -26,6 +26,15 @@ downward contact and recovery poses, fitted to the existing move frames.
 | Beastmaster | -7.5…15 | -35.3…-32.8 / 59.56 | Down Air Twin Axe Drop #49 | Melee Link thrust, adapted to axes | Fail → Pass: axe heads below torso |
 | Lich King | 4…8 | -20…-15 / 60.28 | Aerial Down #40 | Melee Link downward sword | Pass → Pass: authored downward blade |
 
+| Thrall | 75 | 24.5 / 49.9 | Thrall downAir #22 | Hammer driven below the torso | Pass: authored downward contact reviewed in both facings |
+| Jaina Proudmoore | 0 | -50 / 51.7 | Jaina downAir #24 | Staff and frost cast directed downward | Pass: authored downward contact reviewed in both facings |
+| Sylvanas Windrunner | 4 | -33 / 48.4 | Sylvanas downAir #27 | Inverted vertical bow strike | Pass: authored downward contact reviewed in both facings |
+| Cairne Bloodhoof | 0 | -25 / 57.7 | Cairne downAir #27 | Totem driven downward | Pass: authored downward contact reviewed in both facings |
+| Chen Stormstout | 12 | -27 / 44.32 | Chen downAir #27 | Staff strike below the waist | Pass: authored downward contact reviewed in both facings |
+| Peon | 10 | -31 / 35.68 | Peon downAir #37 | Axe head driven downward | Pass: authored downward contact reviewed in both facings |
+| Goblin Tinker | 0 | -44 / 39.82 | Tinker downAir #39 | Mechanical claws pointed below the goblin | Pass: authored downward contact reviewed in both facings |
+| Kael'thas Sunstrider | 0 | -28 / 54.88 | Kaelthas downAir #26 | Fire sphere cast below the torso | Pass: authored downward contact reviewed in both facings |
+
 Sources: [Link in Melee](https://www.ssbwiki.com/Link_(SSBM)),
 [Ganondorf in Melee](https://www.ssbwiki.com/Ganondorf_(SSBM)),
 [Fox's Melee down air](https://www.ssbwiki.com/Fox_(SSBM)/Down_aerial),
