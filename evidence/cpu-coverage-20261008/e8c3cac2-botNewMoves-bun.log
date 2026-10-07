@@ -1,0 +1,16 @@
+bun test v1.3.13 (bf2e2cec)
+
+test/game.test.ts:
+(pass) game/match/botNewMoves > computer Blademaster throws Bladestorm, Blade Wheel, his down tilt and dash attack, and cashes Critical Strike [2194.03ms]
+(pass) game/match/botNewMoves > computer Mountain King angles his forward tilt, throws his down tilt and dash attack, and cashes Bash [984.01ms]
+(pass) game/match/botNewMoves > computer Warden throws Falling Knives, Sky Crescent, angled forward tilts, her down tilt and dash attack [815.01ms]
+(pass) game/match/botNewMoves > computer Lich throws Frost Halo, angled forward tilts, his down tilt and dash attack [1319.02ms]
+(pass) game/match/botNewMoves > computer Dreadlord throws Batwing Turn, angled forward tilts, his down tilt and dash attack, and cashes Vampiric Aura [732.01ms]
+(pass) game/match/botNewMoves > computer Shadow Hunter throws the glaive drill, angled forward tilts, his down tilt and dash attack, and cashes Voodoo [893.01ms]
+(pass) game/match/botNewMoves > computer Uther throws his down tilt and dash attack [679.01ms]
+(pass) game/match/botNewMoves > computer Illidan charges Eye Blast and throws Shear, Flames of Azzinoth and the two-hit forward air [887.01ms]
+(pass) game/match/botNewMoves > computer Archer and Rifleman never press a special their mana can't pay, and cash Trueshot and Long Rifles [1569.02ms]
+
+ 9 pass
+ 0 fail
+Ran 9 tests across 1 file. [10.28s]
