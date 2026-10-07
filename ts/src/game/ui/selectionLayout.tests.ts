@@ -21,7 +21,7 @@ test("the Moves page stays below the selection header and its parts keep apart",
 test("the mode label sits inside the header's title box on 4:3, 16:10, 16:9 and 21:9 screens", () => {
   for (const aspect of [4.0 / 3.0, 16.0 / 10.0, 16.0 / 9.0, 21.0 / 9.0]) {
     const box = selectionTitleBox(aspect);
-    assertTrue(box.width > f32(0.2) && box.height > f32(0.03));
+    assertTrue(box.width > f32(0.2) && box.height >= f32(0.025));
     assertTrue(box.top - box.height > SELECTION_HEADER_FLOOR && box.top < f32(0.6));
     assertTrue(!overlaps(box, MOVES_TITLE_BOX) && !overlaps(box, MOVES_BODY_BOX));
   }

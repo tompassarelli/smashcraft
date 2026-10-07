@@ -73,8 +73,8 @@ export const DEMONHUNTER_GLIDE_FRAMES = 90;
 export const DEMONHUNTER_GLIDE_FORM = 1;
 export const DEMONHUNTER_GLIDE_SLASH_FORM = 2;
 const DEMONHUNTER_GLIDE_SLASH_FRAMES = 20;
-const DEMONHUNTER_GLIDE_SLASH_FIRST = 4;
-const DEMONHUNTER_GLIDE_SLASH_LAST = 7;
+export const DEMONHUNTER_GLIDE_SLASH_FIRST = 4;
+export const DEMONHUNTER_GLIDE_SLASH_LAST = 7;
 const DEMONHUNTER_GLIDE_LANDING_LAG = 10;
 const GLIDE_LEVEL = { speed: 9.0, sink: 1.5 };
 const GLIDE_HIGH = { speed: 7.0, sink: 0.5 };
@@ -809,6 +809,8 @@ const GLIDE_SLASH: Readonly<HitRegion> = {
   effect: { damage: 8.0, growth: 100.0, base: 24.0, launchX: 0.7071067690849304, launchZ: 0.7071067690849304, electric: false, manaDrain: 5 },
   window: 1,
 };
+
+export const glideSlashRegion = (): Readonly<HitRegion> => GLIDE_SLASH;
 
 /** The glide's wing slash strikes each target in front of Illidan once on its frames 4-7. */
 function glideSlashContact(owner: Fighter, targetSlot: number, target: Fighter): Readonly<HitRegion> {
