@@ -1,3 +1,4 @@
+import { downSmashHit } from "../downMoveValues";
 import { f32 } from "wisp/src/sim/f32";
 import { hurtCapsule } from "../../physics/contactGeometry";
 import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
@@ -62,8 +63,8 @@ const DASH = hit(13.25999927520752, "LAUNCH", 40);
 const FORWARD_SMASH_HEAD = hit(23.204999923706055, "KILL", 40);
 const FORWARD_SMASH_HANDLE = hit(17.67999839782715, "KILL", 40);
 const UP_SMASH = hit(18.78499984741211, "KILL", 85);
-const DOWN_SMASH_FRONT = hit(17.67999839782715, "EDGE", 25);
-const DOWN_SMASH_BACK = hit(17.67999839782715, "EDGE", 25, true);
+const DOWN_SMASH_FRONT = downSmashHit(hit(17.67999839782715, "EDGE", 25));
+const DOWN_SMASH_BACK = downSmashHit(hit(17.67999839782715, "EDGE", 25, true));
 const NEUTRAL_AIR_FRONT = hit(11.049999237060547, "POKE", 50);
 const NEUTRAL_AIR_BACK = hit(11.049999237060547, "POKE", 50, true);
 const FORWARD_AIR_HEAD = hit(17.67999839782715, "SPIKE", 270);
@@ -126,7 +127,7 @@ export const MOUNTAIN_KING_MOVES: FighterMoves = {
       frame(20, capsule(-20.0, 72.0, -40.0, 85.0, 16.0), UP_SMASH),
       frame(21, capsule(-24.0, 65.0, -50.0, 72.0, 16.0), UP_SMASH),
     ]),
-    [AttackStyle.downSmash]: heroMove(16, 6, 34, 0, [
+    [AttackStyle.downSmash]: heroMove(16, 6, 22, 0, [
       frame(16, capsule(18.0, 12.0, f32(MEDIUM - 14.0), 24.0, 14.0), DOWN_SMASH_FRONT),
       frame(17, capsule(18.0, 10.0, f32(MEDIUM - 14.0), 8.0, 14.0), DOWN_SMASH_FRONT),
       frame(18, capsule(18.0, 10.0, 70.0, -2.0, 14.0), DOWN_SMASH_FRONT),
