@@ -102,8 +102,8 @@ test("Tinker body preserves the named Ultimate ROB weight, run and air speed", (
   const f = createFighter(Character.tinker, 0.0, 1);
   const archer = createFighter(Character.archer, 0.0, 1);
   assertNear(f.tuning.physics.weight, 106.0, f32(0.001));
-  assertNear(f.tuning.physics.runSpeed / archer.tuning.physics.runSpeed, f32(1.725 / 2.2), f32(0.00001));
-  assertNear(f.tuning.physics.airSpeed / archer.tuning.physics.airSpeed, f32(1.134 / 0.83), f32(0.00001));
+  assertNear(f.tuning.physics.runSpeed / archer.tuning.physics.runSpeed, f32(f32(1.725) / f32(2.2)), f32(0.00001));
+  assertNear(f.tuning.physics.airSpeed / archer.tuning.physics.airSpeed, f32(f32(1.134) / f32(0.83)), f32(0.00001));
 });
 
 test("Tinker specials spend once, complete their frames and use rockets for an airborne side press", () => {

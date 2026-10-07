@@ -1,8 +1,9 @@
-import { DownState, LedgeState, ShieldBreak } from "../sim/codes";
+import { Character, DownState, LedgeState, ShieldBreak } from "../sim/codes";
 import { isTumbling } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
 import { at } from "wisp/src/runtime/lookup";
 import type { HeroClip } from "../sim/heroes/hero";
+import { TINKER_DAMAGE_CLIPS } from "./heroes/tinkerClipInfo";
 import { DAMAGE_CLIPS } from "./damageClipInfo";
 
 /** A fighter's hit reaction clip; the numbers are the Wurst codes pose keys record. */
@@ -11,7 +12,7 @@ export type DamagePose = (typeof DamagePose)[keyof typeof DamagePose];
 
 /** Low/middle/high rows, small/medium/large columns; presentation only. */
 export function contactDamageClip(fighter: Readonly<Fighter>): HeroClip {
-  const row = DAMAGE_CLIPS[fighter.character];
+  const row = fighter.character === Character.tinker ? TINKER_DAMAGE_CLIPS : DAMAGE_CLIPS[fighter.character];
   if (row === undefined) throw new Error("Missing fighter damage grid");
   return at(row, fighter.visuals.hitHeight * 3 + fighter.visuals.hitStrength);
 }
