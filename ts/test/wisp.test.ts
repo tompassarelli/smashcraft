@@ -9,27 +9,9 @@ import {
   InputTraceStart,
   MeleeReady,
 } from "../scripts/wisp/boundary";
-import {
-  BACK,
-  CREATE,
-  CREATE_GAME,
-  CREATE_TITLE,
-  CUSTOM_GAMES,
-  FIRST_MAP,
-  GAME_MENU,
-  JOIN,
-  JOIN_NAME,
-  LOBBY,
-  MAP_TITLE,
-  PASSWORD_CANCEL,
-  PASSWORD_PROMPT,
-  RESULTS,
-  START,
-  freshMatch,
-  sendQuickMatchCommand,
-} from "../scripts/wisp/commands/fresh";
+import { sendQuickMatchCommand } from "../scripts/wisp/commands/fresh";
 import { Clients, type Client } from "wisp/scripts/wisp/clients";
-import { dataDirectory, GameFiles, type StoredFile } from "wisp/scripts/wisp/gameFiles";
+import { GameFiles, type StoredFile } from "wisp/scripts/wisp/gameFiles";
 import { HotReload } from "wisp/scripts/wisp/hotReload";
 import { MapBuild } from "wisp/scripts/wisp/mapBuild";
 import { SourceErrors } from "wisp/scripts/wisp/sourceErrors";
@@ -119,132 +101,45 @@ test("hot reload publishes payloads before manifests and waits for each fake cli
   }
 });
 
-test.each([{ fromGame: false, prompt: false }, { fromGame: true, prompt: true }])("fresh-match flow drives two fake clients and waits on the Effect clock for both ready files (fromGame=$fromGame, password prompt=$prompt)", async ({ fromGame, prompt }) => {
+test("the quick-match command is one chat line from the host, acknowledged by every client's new receipt", async () => {
   const clients: readonly [Client, Client] = [
     { name: "a", documents: "/a/Documents/Warcraft III" },
     { name: "b", documents: "/b/Documents/Warcraft III" },
   ];
-  const states = new Map(clients.map(({ name }) => [name, "game"]));
-  const selected = new Set<string>();
-  const clicks: string[] = [];
-  const keyEvents: string[] = [];
-  let readyAt: number | undefined;
   let quickAt: number | undefined;
-  let joinedAt: number | undefined;
-  let hostedAt: number | undefined;
-  let chatSubmissions = 0;
-  // Files the host had written when it started the match.
-  const written: string[] = [];
-  let writtenAtStart: string[] | undefined;
-  const messages: string[] = [];
+  const removed: string[] = [];
+  const sent: string[] = [];
   const gameFiles = GameFiles.of({
     read: (path): Effect.Effect<StoredFile | undefined> => Effect.gen(function*() {
-      const now = yield* Clock.currentTimeMillis;
-      if (readyAt !== undefined && now >= readyAt && clients.some(({ documents }) => path === `${dataDirectory(documents)}/wc3-melee-ready.txt`)) {
-        return { text: fixture("melee-ready.pld"), modified: readyAt };
-      }
-      if (quickAt !== undefined && now >= quickAt && path.includes("smashcraft-dev-")) {
-        return { text: fixture("dev-command-receipt.pld"), modified: quickAt };
-      }
-      return undefined;
+      if (path.endsWith("/wc3-melee-ready.txt")) return { text: fixture("melee-ready.pld"), modified: 0 };
+      if (quickAt !== undefined && (yield* Clock.currentTimeMillis) >= quickAt && path.includes("smashcraft-dev-")) return { text: fixture("dev-command-receipt.pld"), modified: quickAt };
+      // An earlier command's receipt, removed before this one is sent.
+      return path.includes("smashcraft-dev-") && quickAt === undefined ? { text: fixture("dev-command-receipt.pld"), modified: 0 } : undefined;
     }),
-    write: (path) => Effect.sync(() => {
-      written.push(path);
+    write: () => Effect.void, replace: () => Effect.void, list: () => Effect.succeed([]), installMap: () => Effect.void,
+    remove: (path) => Effect.sync(() => {
+      removed.push(path);
     }),
-    replace: () => Effect.void,
-    list: () => Effect.succeed([]),
-    remove: () => Effect.void,
-    installMap: () => Effect.void,
   });
   const fakeClients: typeof Clients.Service = Clients.of({
     all: clients,
-    read: (client, region) => Effect.gen(function*() {
-      if (client.name === "a" && hostedAt !== undefined && (yield* Clock.currentTimeMillis) >= hostedAt) states.set("a", "lobby");
-      if (client.name === "b" && joinedAt !== undefined && (yield* Clock.currentTimeMillis) >= joinedAt) {
-        // Battle.net's stray password prompt covers the lobby the guest has joined.
-        states.set("b", prompt ? "prompt" : "lobby");
-        joinedAt = undefined;
-      }
-      const state = states.get(client.name);
-      if (region === CUSTOM_GAMES) return state === "custom" ? "CREATE GAME" : "";
-      if (region === RESULTS) return state === "results" ? "RESULTS" : "";
-      // A browser column can say PLAYERS while hosting/joining has not completed.
-      // The lobby count can already include a computer before B arrives.
-      if (region === LOBBY) return state === "lobby" ? "PLAYERS: 2/4" : "PLAYERS";
-      if (region === CREATE_TITLE) return state === "create" ? "REATE GAME" : "";
-      if (region === GAME_MENU) return state === "menu" ? "Game Menu" : state === "end-menu" ? "End Game" : "";
-      if (region === MAP_TITLE) return selected.has(client.name) ? "SMASHCRAFT" : "";
-      if (region === PASSWORD_PROMPT) return state === "prompt" ? "CANCEL CONFIRM" : "";
-      return "";
+    read: () => Effect.succeed(""), words: () => Effect.succeed([]), capture: () => Effect.die("no capture"),
+    click: () => Effect.die("no clicks"), keys: () => Effect.die("one batch"), typeText: () => Effect.die("one batch"),
+    batch: (client, actions) => Effect.gen(function*() {
+      sent.push(`${client.name}: ${actions.map((action) => action.kind === "keys" ? action.keys.join("+") : action.kind === "text" ? action.text : action.kind).join(" | ")}`);
+      quickAt = (yield* Clock.currentTimeMillis) + 100;
     }),
-    words: () => Effect.succeed([]),
-    click: (client, x, y) => Effect.gen(function*() {
-      clicks.push(`${client.name}:${x},${y}`);
-      const before = states.get(client.name);
-      if (x === BACK.x && y === BACK.y) states.set(client.name, "custom");
-      if (x === CREATE_GAME.x && y === CREATE_GAME.y) states.set(client.name, "create");
-      if (x === FIRST_MAP.x && y === FIRST_MAP.y) selected.add(client.name);
-      if (x === PASSWORD_CANCEL.x && y === PASSWORD_CANCEL.y && before === "prompt") states.set(client.name, "lobby");
-      if (x === CREATE.x && y === CREATE.y && before === "create") {
-        states.set(client.name, "hosting");
-        hostedAt = (yield* Clock.currentTimeMillis) + 100;
-      }
-      if (x === JOIN.x && y === JOIN.y) {
-        expect(states.get("a")).toBe("lobby");
-        joinedAt = (yield* Clock.currentTimeMillis) + 100;
-      }
-      if (x === START.x && y === START.y && before === "lobby") {
-        writtenAtStart = [...written];
-        expect(states.get("b")).toBe("lobby");
-        hostedAt = undefined;
-        joinedAt = undefined;
-        readyAt = (yield* Clock.currentTimeMillis) + 100;
-        for (const { name } of clients) states.set(name, "playing");
-      }
-    }),
-    keys: (client, ...names) => Effect.gen(function*() {
-      keyEvents.push(...names.map((name) => `${client.name}:${name}`));
-      const state = states.get(client.name);
-      if (names.includes("F10")) states.set(client.name, "menu");
-      else if (names.includes("e") && state === "menu") states.set(client.name, "end-menu");
-      else if (names.includes("q") && state === "end-menu") states.set(client.name, "results");
-      else if (names.includes("Return")) {
-        chatSubmissions++;
-        if (chatSubmissions === 2) quickAt = (yield* Clock.currentTimeMillis) + 100;
-      }
-    }),
-    typeText: (_client, value) => Effect.sync(() => messages.push(value)),
-    batch: (client, actions) => Effect.forEach(actions, (action) => {
-      switch (action.kind) {
-        case "click": return fakeClients.click(client, action.x, action.y);
-        case "keys": return fakeClients.keys(client, ...action.keys);
-        case "text": return fakeClients.typeText(client, action.text);
-        case "wait": return Effect.sleep(action.millis);
-      }
-    }, { discard: true }),
   });
-  const services = Layer.merge(Layer.succeed(Clients, fakeClients), Layer.succeed(GameFiles, gameFiles));
-  const program = Effect.gen(function*() {
-    yield* freshMatch("/maps/test.w3x", fromGame);
-    yield* sendQuickMatchCommand;
-  }).pipe(Effect.provide(services));
   const run = Effect.gen(function*() {
-    const fiber = yield* Effect.forkChild(program);
-    for (let advance = 0; advance < 20; advance++) {
+    const fiber = yield* Effect.forkChild(sendQuickMatchCommand.pipe(Effect.provide(Layer.merge(Layer.succeed(Clients, fakeClients), Layer.succeed(GameFiles, gameFiles)))));
+    for (let advance = 0; advance < 10; advance++) {
       yield* Effect.yieldNow;
-      yield* TestClock.adjust("250 millis");
+      yield* TestClock.adjust("100 millis");
     }
     yield* Fiber.join(fiber);
   }).pipe(Effect.provide(TestClock.layer()));
-
   await Effect.runPromise(run);
-  expect([...states.values()]).toEqual(["playing", "playing"]);
-  expect(selected).toEqual(new Set(["a"]));
-  expect(keyEvents.indexOf("a:Escape")).toBeLessThan(keyEvents.indexOf("a:F10"));
-  expect(clicks).toContain(`a:${START.x},${START.y}`);
-  // Each client's hot folder holds its marker before the match starts.
-  expect(writtenAtStart).toEqual(clients.map(({ documents }) => `${dataDirectory(documents)}/smashcraft-hot/host.pld`));
-  expect(messages.at(-1)).toBe("-dev quick");
-  expect(chatSubmissions).toBe(2);
-  expect(clicks.filter((click) => click === `b:${PASSWORD_CANCEL.x},${PASSWORD_CANCEL.y}`)).toHaveLength(prompt ? 1 : 0);
+  // One batch, so Wisp checks once that the host is in its match before Return (wisp:docs/watch.md).
+  expect(sent).toEqual(["a: Return | -dev quick | Return"]);
+  expect(removed).toHaveLength(2);
 });

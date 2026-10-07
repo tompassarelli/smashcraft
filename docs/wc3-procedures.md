@@ -39,11 +39,14 @@ tools/wc3-procedure --validate match-running export-ui-service
 
 `tools/test-wc3-procedure.sh` runs the runner against a stub `xdotool` and a
 scratch run directory; it checks the batched chain and that a mismatched state
-label or another focused window is refused.
+label, another focused window or a recipe pressing Return is refused.
 
 Recipe files in `tools/wc3-procedures/*.chain` support `tap KEY MS`,
 `hold KEY MS`, `chord KEY+KEY MS`, and `wait MS`. Each file starts with exactly
 one `# caller-state LABEL` matching the state label passed on the command line.
+No recipe presses Return, KP_Enter, ISO_Enter or Linefeed: the caller's label
+proves no match, and outside one Return sends chat to Battle.net's channel or a
+lobby.
 Add a recipe only when its starting state and sequence have a concrete source
 or a native trial. Mark untried recipes as candidates in their comments and
 keep result verification as a separate explicit step. Do not chain across an

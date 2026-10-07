@@ -8,7 +8,8 @@ cleanup() {
   if [[ -n "$socket_pid" ]]; then kill "$socket_pid" 2>/dev/null || true; wait "$socket_pid" 2>/dev/null || true; fi
   rm -rf -- "$fixture" "$run_dir"
 }
-trap cleanup EXIT
+chat_recipe="$root/tools/wc3-procedures/test-chat-$$.chain"
+trap 'cleanup; rm -f -- "$chat_recipe"' EXIT
 mkdir -p "$run_dir/runtime" "$fixture/bin"
 printf ':991\n' > "$run_dir/display"
 : > "$run_dir/xauthority"
@@ -32,4 +33,6 @@ if "$root/tools/wc3-procedure" "$run_dir" character-select export-ui-service > /
 export WC3_PROCEDURE_TITLE='Battle.net'
 if "$root/tools/wc3-procedure" "$run_dir" match-running export-ui-service > /dev/null 2>&1; then echo 'Non-game focus was accepted.' >&2; exit 1; fi
 [[ $(wc -l < "$WC3_PROCEDURE_CALLS") == 1 ]]
-echo 'Passed: one batched input invocation, state mismatch rejection, non-game focus rejection.'
+printf '# caller-state match-running\ntap Return 50\n' > "$chat_recipe"
+if "$root/tools/wc3-procedure" --validate match-running "test-chat-$$" > /dev/null 2>&1; then echo 'A recipe pressing Return was accepted.' >&2; exit 1; fi
+echo 'Passed: one batched input invocation, state mismatch rejection, non-game focus rejection, Return refused.'

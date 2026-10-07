@@ -45,7 +45,7 @@ export const accept: Command = (args) => {
         yield* rebuildMap(profile.path).pipe(step("map rebuilt"));
         rebuilt.add(profile.path);
       }
-      yield* freshMatch(profile.path, false);
+      yield* freshMatch(profile.path);
       yield* sendDevCommand(profile.quick).pipe(step(profile.quick));
     }).pipe(Effect.provide(Layer.merge(options.services.pipe(Layer.provideMerge(Clients.layer(clientState))), smashcraftWatch())));
   });

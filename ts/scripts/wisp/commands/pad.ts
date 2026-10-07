@@ -18,7 +18,8 @@ import { parseArgs } from "node:util";
 import { Effect } from "effect";
 import { at } from "wisp/src/runtime/lookup";
 import { type Command, UsageFailure, describeCause } from "wisp/scripts/wisp/command";
-import { type DesktopFailure, capture, keys, loadClients, typeText } from "wisp/scripts/warcraft/desktop";
+import { type DesktopFailure, batch, capture, loadClients } from "wisp/scripts/warcraft/desktop";
+import { ClientWatch } from "wisp/scripts/wisp/watch";
 import { encodePpm } from "wisp/scripts/wisp/frameProbe";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { RealtimeClients, type TypedInput, customMapData, typedFile } from "wisp/scripts/wisp/headlessInput";
@@ -153,7 +154,11 @@ const native = (options: PadOptions, appIds: ReadonlyMap<string, string>) => Eff
   const logs = (): [string, string] => [log(SLOTS[0]), log(SLOTS[1])];
   if (chat !== undefined) {
     yield* Effect.sleep("1 second");
-    yield* keys(clients[0], "Return").pipe(Effect.andThen(typeText(clients[0], chat, 35)), Effect.andThen(keys(clients[0], "Return")), Effect.mapError(fromDesktop));
+    // Typed only into the match (wisp:docs/watch.md, "Typing only into a match").
+    yield* batch(clients[0], [{ kind: "keys", keys: ["Return"] }, { kind: "text", text: chat, delayMillis: 35 }, { kind: "keys", keys: ["Return"] }]).pipe(
+      Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })),
+      Effect.mapError(fromDesktop),
+    );
   }
   const epochs = yield* matchEpochs(logs, startedNs, out);
   yield* checkFirstEdge(steps, epochs, scriptPath);

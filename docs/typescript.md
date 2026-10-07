@@ -105,14 +105,14 @@ four at a time. `wisp parity numeric` compares the numeric corpus against
 Lua32; `wisp parity capture` and `wisp parity result` run and reconcile
 the native issue #26 input-integrity check through the same CLI; `wisp parity
 capture --bot` plays the native bot session (smashcraft:docs/native-bot-session.md). `wisp fresh
-MAP.w3x [--rebuild] [--from-game]` rebuilds the map script when requested,
-starts a new match, sends `-dev quick`, and waits for every client's typed
-receipt. Use `--from-game` when every client is already in a running map:
-it skips menu discovery, opens and checks Game Menu, then runs the recorded
-End Game / Quit Mission sequence. The ordinary mode also accepts results,
-lobby, Create Game and Custom Games screens. Both modes verify results and
-Custom Games after leaving, actual lobby player counts after hosting/joining,
-and fresh ready files after loading. It then checks what each player sees
+MAP.w3x [--rebuild]` rebuilds the map script when requested, starts a new
+match through every client's menu page, sends `-dev quick`, and waits for
+every client's typed receipt. Each client leaves its lobby or match through
+the page (the score screen with Escape), the first hosts a private game and
+the others join it by name and password; a client without a reporting page
+stops it first, since a game created by clicks is listed publicly. It waits
+for fresh ready files after loading. `-dev quick` is typed only once the host
+is in the match (wisp:docs/watch.md, "Typing only into a match"). It then checks what each player sees
 (smashcraft:docs/player-view.md).
 
 `bun wisp hot --data A --data B --watch` also prints each native desync:

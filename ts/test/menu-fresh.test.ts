@@ -1,13 +1,13 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { Effect, Layer } from "effect";
+import { Effect, Exit, Layer } from "effect";
 import { expect, test } from "bun:test";
 import { Clients, type Client } from "wisp/scripts/wisp/clients";
 import { GameFiles } from "wisp/scripts/wisp/gameFiles";
 import { ClientWatch, type ClientView } from "wisp/scripts/wisp/watch";
-import { CREATE, CREATE_GAME, CREATE_TITLE, CUSTOM_GAMES, FIRST_MAP, JOIN, LOBBY, MAP_TITLE, START, freshMatch } from "../scripts/wisp/commands/fresh";
+import { freshMatch } from "../scripts/wisp/commands/fresh";
 
-test.each([[true, false], [false, true], [true, true]])("fresh uses each client's page independently (host=%s, guest=%s)", async (hostPage, guestPage) => {
+test.each([[true, false], [false, true], [true, true]])("fresh hosts only a private game through every client's page, and refuses before hosting when one has none (host=%s, guest=%s)", async (hostPage, guestPage) => {
   const state = new Map([["a", "custom"], ["b", "custom"]]);
   const commands: string[] = [];
   const passwords: { host?: unknown; privateGame?: unknown; guest?: unknown } = {};
@@ -78,27 +78,16 @@ test.each([[true, false], [false, true], [true, true]])("fresh uses each client'
       { name: "a", documents: "/a", ...page("a", hostPage) },
       { name: "b", documents: "/b", ...page("b", guestPage) },
     ];
-    const click = (client: Client, x: number, y: number) => Effect.sync(() => {
-      clicks.push(`${client.name}:${x},${y}`);
-      if (x === CREATE_GAME.x && y === CREATE_GAME.y) state.set(client.name, "create");
-      if (x === FIRST_MAP.x && y === FIRST_MAP.y) state.set(client.name, "selected");
-      if (x === CREATE.x && y === CREATE.y) state.set(client.name, "lobby");
-      if (x === START.x && y === START.y) start();
-      if (x === JOIN.x && y === JOIN.y) state.set(client.name, "lobby");
+    // Nothing is clicked, typed or read from the screen.
+    const input = (client: Client, what: string) => Effect.sync(() => {
+      clicks.push(`${client.name}:${what}`);
     });
     const driver = Clients.of({
       all: clients,
-      read: (client, region) => Effect.sync(() => {
-        const screen = state.get(client.name);
-        if (region === CUSTOM_GAMES) return screen === "custom" ? "CREATE" : "";
-        if (region === CREATE_TITLE) return screen === "create" ? "REATE GAME" : "";
-        if (region === MAP_TITLE) return screen === "selected" ? "SMASHCRAFT" : "";
-        if (region === LOBBY) return screen === "lobby" ? `PLAYERS: ${state.get("b") === "lobby" ? 2 : 1}/4` : "";
-        return "";
-      }),
+      read: (client) => input(client, "read").pipe(Effect.as("")),
       capture: () => Effect.die("no capture needed"), words: () => Effect.succeed([]),
-      click, keys: () => Effect.void, typeText: () => Effect.void,
-      batch: (client, actions) => Effect.forEach(actions, (action) => action.kind === "click" ? click(client, action.x, action.y) : Effect.void, { discard: true }),
+      click: (client) => input(client, "click"), keys: (client) => input(client, "keys"), typeText: (client) => input(client, "type"),
+      batch: (client) => input(client, "batch"),
     });
     const ready = readFileSync(join(import.meta.dir, "fixtures/wisp/melee-ready.pld"), "utf8");
     const files = GameFiles.of({
@@ -108,22 +97,21 @@ test.each([[true, false], [false, true], [true, true]])("fresh uses each client'
     });
     // Both clients sit in their menus, as the watch reports them.
     const watch = ClientWatch.of({ view: () => Effect.succeed({ state: { kind: "menus" } } as unknown as ClientView) });
-    await Effect.runPromise(freshMatch("/maps/test.w3x").pipe(Effect.provide(Layer.mergeAll(Layer.succeed(Clients, driver), Layer.succeed(GameFiles, files), Layer.succeed(ClientWatch, watch)))));
-    expect([...state.values()]).toEqual(["playing", "playing"]);
-    if (hostPage) {
-      expect(commands).toContain("a:CreateLobby");
-      expect(commands).toContain("a:LobbyStart");
-      expect(clicks.some((entry) => entry.startsWith("a:"))).toBe(false);
-    }
+    const exit = await Effect.runPromiseExit(freshMatch("/maps/test.w3x").pipe(Effect.provide(Layer.mergeAll(Layer.succeed(Clients, driver), Layer.succeed(GameFiles, files), Layer.succeed(ClientWatch, watch)))));
+    expect(clicks).toEqual([]);
     if (hostPage && guestPage) {
-      // Both pages: a private game, joined with its own non-empty password.
+      expect(Exit.isSuccess(exit)).toBe(true);
+      expect([...state.values()]).toEqual(["playing", "playing"]);
+      expect(commands).toContain("a:LobbyStart");
+      expect(commands).toContain("b:JoinGameByGameName");
+      // A private game, joined with its own non-empty password.
       expect(passwords.privateGame).toBe(true);
       expect(passwords.host).toMatch(/^[0-9a-z]{6}$/);
       expect(passwords.guest).toBe(passwords.host);
-    } else if (hostPage) expect(passwords).toEqual({ host: "", privateGame: false });
-    if (guestPage) {
-      expect(commands).toContain("b:JoinGameByGameName");
-      expect(clicks.some((entry) => entry.startsWith("b:"))).toBe(false);
+    } else {
+      // A game created by clicks is listed publicly, so a client without a page stops fresh before anything is hosted.
+      expect(Exit.isFailure(exit) && String(exit.cause)).toContain(`none reported for ${hostPage ? "b" : "a"}`);
+      expect(commands.filter((command) => command.endsWith("CreateLobby"))).toEqual([]);
     }
   } finally {
     for (const interval of intervals) clearInterval(interval);

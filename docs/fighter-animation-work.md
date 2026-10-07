@@ -866,14 +866,6 @@ The adapter uses each fighter's generated metadata, scales duration to the
 logical move duration, and pauses playback in hitlag. These remain first-pass
 combat animations rather than a final polish claim.
 
-For the native sequence, build with WC3_SCENARIO=knockdown through
-smashcraft:loop.sh reload, then run smashcraft:tools/probe-fighter-clips.sh rifleman
-from default character selection with the custom preset. The fixture keeps the
-bot idle. The script records recovery, jab, three tilts, jump/double-jump,
-forward/backward roll and spot dodge. Its successful exit means the input and
-recording sequence ran; inspect the recording for the visual verdict. Restore
-normal play with smashcraft:loop.sh reload without WC3_SCENARIO afterward.
-
 The final Rifleman model hash is
 6f56de2c8b70c3b18192317024ce69abac54ee3c3832bb2d8f92da55e12c96a3.
 Exported checks cover twelve non-looping clips, absent root translation keys,

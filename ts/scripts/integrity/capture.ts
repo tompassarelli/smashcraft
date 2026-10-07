@@ -144,7 +144,8 @@ export const startHelper = (command: readonly string[], env: Record<string, stri
 /**
  * Watches both clients from their events (wisp:docs/watch.md) for the
  * capture's length: a crash or a lost Battle.net fails the capture at the
- * rig's next check, instead of when its wait runs out.
+ * rig's next check, instead of when its wait runs out. The journey gets the
+ * same watch, so its chat goes only into a match (wisp:docs/watch.md).
  */
 const watchClients = (clients: readonly Client[]) => Effect.gen(function*() {
   const watch = Context.get(yield* Layer.build(ClientWatch.layer({ filePrefix: "smashcraft" })), ClientWatch);
@@ -158,7 +159,7 @@ const watchClients = (clients: readonly Client[]) => Effect.gen(function*() {
     }
     yield* Effect.sleep("500 millis");
   })));
-  return () => lost;
+  return { gameFailure: () => lost, watch };
 });
 
 export const captureMatches = (options: CaptureOptions) =>
@@ -198,7 +199,7 @@ export const captureMatches = (options: CaptureOptions) =>
       }
       const producerPath = join(out, "producer.jsonl");
       const producerLog = yield* Effect.acquireRelease(tryIntegrity("open producer log", producerPath, () => openSync(producerPath, "w")), (fd) => Effect.sync(() => closeSync(fd)));
-      const gameFailure = yield* watchClients(clients);
+      const { gameFailure, watch } = yield* watchClients(clients);
       const rig = liveRig({
         clients,
         clientsFile: options.clients ?? clientState,
@@ -215,7 +216,7 @@ export const captureMatches = (options: CaptureOptions) =>
         gameFailure,
       });
       const epochs = options.epochs ?? captureEpochs(options.sweep.length, yield* nextMatchEpoch(build).pipe(Effect.provideService(Rig, rig)));
-      yield* runJourney({ ...options, epochs }).pipe(Effect.provideService(Rig, rig));
+      yield* runJourney({ ...options, epochs }).pipe(Effect.provideService(Rig, rig), Effect.provideService(ClientWatch, watch));
       const helperSha256 = new Bun.CryptoHasher("sha256").update(yield* tryIntegrityPromise("hash helper", options.helper, () => Bun.file(options.helper).bytes())).digest("hex");
       yield* tryIntegrity("write capture.json", out, () => writeFileSync(join(out, "capture.json"), json({
         settings: {

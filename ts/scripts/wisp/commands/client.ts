@@ -1,3 +1,4 @@
 import { makeClient } from "wisp/scripts/wisp/commands/client";
 import { clientState } from "../project";
-export const client = makeClient(clientState);
+// Match receipts let `client chat` and Return reach a running match (wisp:docs/watch.md, "Typing only into a match").
+export const client = makeClient(clientState, { filePrefix: "smashcraft" });
