@@ -15,7 +15,6 @@ export const WARDEN_GAMEPLAN: FighterGameplan = {
   range: { near: h(f32(0.7)), far: h(f32(1.4)) },
   spacing: [
     { move: AttackStyle.forwardTilt, near: h(f32(0.4)), far: h(f32(1.0)) },
-    { move: AttackStyle.forwardAir, near: h(f32(0.3)), far: h(f32(1.0)) },
     // Pursuit Lunge travels 1.0H into a 0.8H slash.
     { move: GameplanSpecial.side, near: h(f32(0.9)), far: h(f32(1.8)) },
   ],

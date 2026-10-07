@@ -171,8 +171,9 @@ test("computer Warden throws Falling Knives, Sky Crescent, angled forward tilts,
 });
 
 test("computer Lich throws Frost Halo, angled forward tilts, his down tilt and dash attack", () => {
-  // A Lich mirror keeps its range; Warden, who jumps and runs in, brings his close moves out.
-  throws(played(Character.lich, Character.warden), [neutralAir, forwardTiltUp, forwardTiltDown, downTilt, dashAttack]);
+  // A Lich mirror keeps its range; Warden, who jumps and runs in, brings his close moves out. Frost Halo
+  // answers her jump-ins only, a few a match since she stopped spacing with forward air (#160): 16 matches give it a sample.
+  throws(played(Character.lich, Character.warden, 2 * MATCHES), [neutralAir, forwardTiltUp, forwardTiltDown, downTilt, dashAttack]);
 });
 
 test("computer Dreadlord throws Batwing Turn, angled forward tilts, his down tilt and dash attack, and cashes Vampiric Aura", () => {
