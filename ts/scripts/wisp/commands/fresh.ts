@@ -57,12 +57,21 @@ export const freshMatch = (map: string) => Effect.scoped(Effect.gen(function*() 
   const [first, ...others] = clients.all;
   const game = `scdev ${(yield* Clock.currentTimeMillis).toString(36)}`;
   const connections = yield* Effect.forEach(clients.all, (client) => reportedMenus(client.menuReportPort), { concurrency: clients.all.length });
-  const missing = clients.all.filter((_, index) => connections[index] === undefined).map((client) => client.name);
+  const reported = clients.all.flatMap((client, index) => {
+    const socket = connections[index];
+    return socket === undefined ? [] : [[client.name, socket] as const];
+  });
+  const menus = new Map(reported);
+  const missing = clients.all.filter((client) => !menus.has(client.name)).map((client) => client.name);
   if (missing.length > 0) {
     return yield* new UsageFailure({ problem: `fresh hosts only private games, through every client's menu page; none reported for ${missing.join(", ")} (\`bun wisp online setup\`, smashcraft:docs/wisp.md "Menu control")` });
   }
-  const menus = new Map(clients.all.map((client, index) => [client.name, connections[index]!]));
-  const page = (client: Client) => menus.get(client.name)!;
+  const page = (client: Client) => {
+    const socket = menus.get(client.name);
+    // Every client reported before fresh reaches this point.
+    if (socket === undefined) throw new Error(`no menu page for ${client.name}`);
+    return socket;
+  };
   // A page join of a game without a password lands the guest in Battle.net's password prompt; a private game joined with its password does not.
   const password = gamePassword();
 
