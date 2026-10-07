@@ -8,8 +8,6 @@ import { f32 } from "wisp/src/sim/f32";
 /** The controls a build's menus accept, which their help text names. */
 export type MenuControls = "journal" | "keyboard";
 
-export const MENU_FONT = "Fonts\\FRIZQT__.TTF";
-
 export function gameUi(): framehandle {
   return BlzGetOriginFrame(ORIGIN_FRAME_GAME_UI, 0);
 }

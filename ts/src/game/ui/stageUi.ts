@@ -10,7 +10,8 @@ import { pointerX, pointerY } from "../menu/pointer";
 import { type StageChoice, clearStageDrag, stageDrag, stageTileLeft, stageTileTop, updateStageDrag } from "../menu/stageSelection";
 import { STAGE_CHOICES, selectableStageChoice, stageInfo } from "../menu/stageCatalog";
 import { rulesSummary } from "../shell/messages";
-import { ButtonClicks, MENU_FONT, type MenuControls, bindSyncHandler, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, placeTopLeft } from "./frames";
+import { ButtonClicks, type MenuControls, bindSyncHandler, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, placeTopLeft } from "./frames";
+import { MENU_FONT } from "./hudLayout";
 
 /** What the stage panel asks the game to do; each call comes from a synchronized event. */
 export interface StageActions {

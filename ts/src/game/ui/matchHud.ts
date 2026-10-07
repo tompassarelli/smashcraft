@@ -9,7 +9,8 @@ import {
   TENTHS_BOX, type PlateBox, boxLeft, boxTop, damageTenths, damageWhole, plateLeft, shakeStrength, shakeX, shakeY,
 } from "./plateLayout";
 import { unitsForPixels } from "./portraitFrames";
-import { MENU_FONT, createBackdrop, createText, gameUi, placeTopLeft } from "./frames";
+import { createBackdrop, createText, gameUi, placeTopLeft } from "./frames";
+import { MENU_FONT } from "./hudLayout";
 
 const STOCK_ICONS = STOCK_ICONS_SHOWN;
 

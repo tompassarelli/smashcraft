@@ -1,0 +1,99 @@
+Frame "FRAME" "OpponentSettings" {
+    Width 0.56,
+    Height 0.34,
+    Frame "BACKDROP" "OpponentSettingsBackdrop" {
+        Width 0.56,
+        Height 0.34,
+        SetPoint TOPLEFT, "OpponentSettings", TOPLEFT, 0, 0,
+        BackdropBackground "UI\Widgets\ToolTips\Human\human-tooltip-background.blp",
+        BackdropBlendAll,
+    }
+    Frame "TEXT" "OpponentSettingsTitle" {
+        Width 0.42,
+        Height 0.03,
+        SetPoint TOPLEFT, "OpponentSettings", TOPLEFT, 0.03, -0.009,
+        FrameFont "Fonts\FRIZQT__.TTF", 0.014, "",
+        FontJustificationH JUSTIFYCENTER,
+        FontJustificationV JUSTIFYMIDDLE,
+    }
+    Frame "GLUETEXTBUTTON" "OpponentSettingsClose" INHERITS WITHCHILDREN "ScriptDialogButton" {
+        Width 0.075,
+        Height 0.027,
+        SetPoint TOPLEFT, "OpponentSettings", TOPLEFT, 0.455, -0.009,
+    }
+    Frame "TEXT" "OpponentSettingsOpponentCaption" {
+        Width 0.16,
+        Height 0.027,
+        SetPoint TOPLEFT, "OpponentSettings", TOPLEFT, 0.03, -0.063,
+        FrameFont "Fonts\FRIZQT__.TTF", 0.012, "",
+        FontJustificationH JUSTIFYCENTER,
+        FontJustificationV JUSTIFYMIDDLE,
+        Text "Opponent",
+    }
+    Frame "GLUETEXTBUTTON" "OpponentSettingsOpponentPrevious" INHERITS WITHCHILDREN "ScriptDialogButton" {
+        Width 0.04,
+        Height 0.027,
+        SetPoint TOPLEFT, "OpponentSettings", TOPLEFT, 0.205, -0.063,
+    }
+    Frame "GLUETEXTBUTTON" "OpponentSettingsOpponentNext" INHERITS WITHCHILDREN "ScriptDialogButton" {
+        Width 0.04,
+        Height 0.027,
+        SetPoint TOPLEFT, "OpponentSettings", TOPLEFT, 0.485, -0.063,
+    }
+    Frame "TEXT" "OpponentSettingsOpponentValue" {
+        Width 0.23,
+        Height 0.027,
+        SetPoint TOPLEFT, "OpponentSettings", TOPLEFT, 0.25, -0.063,
+        FrameFont "Fonts\FRIZQT__.TTF", 0.012, "",
+        FontJustificationH JUSTIFYCENTER,
+        FontJustificationV JUSTIFYMIDDLE,
+    }
+    Frame "TEXT" "OpponentSettingsDifficultyCaption" {
+        Width 0.16,
+        Height 0.027,
+        SetPoint TOPLEFT, "OpponentSettings", TOPLEFT, 0.03, -0.107,
+        FrameFont "Fonts\FRIZQT__.TTF", 0.012, "",
+        FontJustificationH JUSTIFYCENTER,
+        FontJustificationV JUSTIFYMIDDLE,
+        Text "Difficulty",
+    }
+    Frame "GLUETEXTBUTTON" "OpponentSettingsDifficultyPrevious" INHERITS WITHCHILDREN "ScriptDialogButton" {
+        Width 0.04,
+        Height 0.027,
+        SetPoint TOPLEFT, "OpponentSettings", TOPLEFT, 0.205, -0.107,
+    }
+    Frame "GLUETEXTBUTTON" "OpponentSettingsDifficultyNext" INHERITS WITHCHILDREN "ScriptDialogButton" {
+        Width 0.04,
+        Height 0.027,
+        SetPoint TOPLEFT, "OpponentSettings", TOPLEFT, 0.485, -0.107,
+    }
+    Frame "TEXT" "OpponentSettingsDifficultyValue" {
+        Width 0.23,
+        Height 0.027,
+        SetPoint TOPLEFT, "OpponentSettings", TOPLEFT, 0.25, -0.107,
+        FrameFont "Fonts\FRIZQT__.TTF", 0.012, "",
+        FontJustificationH JUSTIFYCENTER,
+        FontJustificationV JUSTIFYMIDDLE,
+    }
+    Frame "TEXT" "OpponentSettingsPreview" {
+        Width 0.5,
+        Height 0.127,
+        SetPoint TOPLEFT, "OpponentSettings", TOPLEFT, 0.03, -0.153,
+        FrameFont "Fonts\FRIZQT__.TTF", 0.012, "",
+        FontJustificationH JUSTIFYLEFT,
+        FontJustificationV JUSTIFYTOP,
+    }
+    Frame "GLUETEXTBUTTON" "OpponentSettingsDone" INHERITS WITHCHILDREN "ScriptDialogButton" {
+        Width 0.14,
+        Height 0.027,
+        SetPoint TOPLEFT, "OpponentSettings", TOPLEFT, 0.21, -0.289,
+    }
+    Frame "TEXT" "OpponentSettingsPrompt" {
+        Width 0.54,
+        Height 0.018,
+        SetPoint TOPLEFT, "OpponentSettings", TOPLEFT, 0.01, -0.321,
+        FrameFont "Fonts\FRIZQT__.TTF", 0.01, "",
+        FontJustificationH JUSTIFYCENTER,
+        FontJustificationV JUSTIFYMIDDLE,
+    }
+}

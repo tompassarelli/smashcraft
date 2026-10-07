@@ -9,7 +9,7 @@ import { floorMod } from "wisp/src/sim/intMath";
 import { Action } from "../input/actions";
 import { type KeyBindings, keyFor, keyLabel } from "../input/keyBindings";
 import { CPU_OPPONENT_COPY } from "./cpuOpponentCopy";
-import { CPU_SETTINGS_PANEL, CPU_SETTINGS_ROWS, CPU_SETTINGS_PREVIEW, CPU_SETTINGS_DONE, CPU_SETTINGS_PROMPT } from "./cpuSettingsLayout";
+import { createOpponentSettings } from "./opponentSettingsFrames";
 import { CPU_OPPONENT_DEFAULT, CPU_TIER_DEFAULT } from "../match/cpuProfiles";
 import { bindPrototype } from "../../platform/rebind";
 import { PARTICIPANT_CAPACITY, PARTICIPANT_SLOTS } from "../input/participants";
@@ -43,7 +43,7 @@ import {
   updateSelectionDrag,
 } from "../menu/selectionDrag";
 import { cellRect, rosterGrid } from "../menu/selectionGrid";
-import type { TextBox } from "./hudLayout";
+import { MENU_FONT, type TextBox } from "./hudLayout";
 import { MOVES_BODY_BOX, MOVES_BUTTON_HEIGHT, MOVES_BUTTON_TOP, MOVES_TITLE_BOX, selectionTitleBox } from "./selectionLayout";
 import { PLAYABLE_CHARACTERS, fighterName, fighterPortrait, nextSelectableCharacter } from "../sim/heroes/registry";
 import {
@@ -53,7 +53,7 @@ import {
 import { Character } from "../sim/codes";
 import { CARD_PORTRAIT, TILE_PORTRAIT_SLOT, tilePortrait } from "./portraitFrames";
 import { slotColor } from "./slotColors";
-import { ButtonClicks, MENU_FONT, type MenuControls, bindSyncHandler, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, placeTopLeft } from "./frames";
+import { ButtonClicks, type MenuControls, bindSyncHandler, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, placeTopLeft } from "./frames";
 
 /** What a participant's panel asks the game to do; each call comes from a synchronized event. */
 export interface SelectionActions {
@@ -282,35 +282,24 @@ export class SelectionPanel {
       pageButton(`MeleeMovesBack${suffix}`, f32(0.33), f32(0.14), "Back", { kind: "movesBack" }),
       pageButton(`MeleeMovesNext${suffix}`, f32(0.5), f32(0.1), ">", { kind: "movesStep", direction: 1 }),
     ];
-    this.cpuRoot = BlzCreateFrameByType("FRAME", `CpuSettingsRoot${suffix}`, gameUi(), "", 0);
-    BlzFrameSetLevel(this.cpuRoot, 100);
-    const panel = CPU_SETTINGS_PANEL;
-    art(this.cpuRoot, `CpuSettingsBackdrop${suffix}`, "UI\\Widgets\\ToolTips\\Human\\human-tooltip-background.blp", panel.left, panel.top, panel.width, panel.height);
-    this.cpuTitle = label(this.cpuRoot, `CpuTitle${suffix}`, f32(0.15), f32(0.431), f32(0.42), f32(0.03), f32(0.014));
-    const cpuButton = (x: number, y: number, width: number, text: string, button: SelectionButton) => {
-      const frame = BlzCreateFrame("ScriptDialogButton", this.cpuRoot, 0, 0);
-      placeTopLeft(frame, x, y);
-      BlzFrameSetSize(frame, width, f32(0.027));
-      BlzFrameSetText(frame, text);
+    // Generated from scripts/wisp/uiFrames.ts (wisp:docs/ui.md); the participant is its context.
+    const cpu = createOpponentSettings(gameUi(), participantId);
+    if (cpu === undefined) throw new Error("the Opponent settings frames did not load");
+    this.cpuRoot = cpu.root;
+    this.cpuTitle = cpu.title;
+    const cpuButton = (frame: framehandle, button: SelectionButton) => {
       if (button.kind === "cpuStep") this.cpuSteps.push(frame);
       return this.clicks.add(frame, button);
     };
-    cpuButton(f32(0.575), f32(0.431), f32(0.075), "Close", { kind: "cpuClose" });
-    this.cpuValues = CPU_SETTINGS_ROWS.map((y, row) => {
-      const field = row === 0 ? 0 : 1;
-      const caption = label(this.cpuRoot, `CpuRow${suffix}${row}`, f32(0.15), y, f32(0.16), f32(0.027), f32(0.012));
-      BlzFrameSetText(caption, row === 0 ? "Opponent" : "Difficulty");
-      cpuButton(f32(0.325), y, f32(0.04), "<", { kind: "cpuStep", row: field, direction: -1 });
-      cpuButton(f32(0.605), y, f32(0.04), ">", { kind: "cpuStep", row: field, direction: 1 });
-      return label(this.cpuRoot, `CpuValue${suffix}${row}`, f32(0.37), y, f32(0.23), f32(0.027), f32(0.012));
-    });
-    const preview = CPU_SETTINGS_PREVIEW;
-    this.cpuPreview = label(this.cpuRoot, `CpuPreview${suffix}`, preview.left, preview.top, preview.width, preview.height, f32(0.012));
-    BlzFrameSetTextAlignment(this.cpuPreview, TEXT_JUSTIFY_TOP, TEXT_JUSTIFY_LEFT);
-    const done = CPU_SETTINGS_DONE;
-    this.cpuDone = cpuButton(done.left, done.top, done.width, "Done", { kind: "cpuClose" });
-    const prompt = CPU_SETTINGS_PROMPT;
-    this.cpuPrompt = label(this.cpuRoot, `CpuPrompt${suffix}`, prompt.left, prompt.top, prompt.width, prompt.height, f32(0.01));
+    cpuButton(cpu.close, { kind: "cpuClose" });
+    cpuButton(cpu.opponentPrevious, { kind: "cpuStep", row: 0, direction: -1 });
+    cpuButton(cpu.opponentNext, { kind: "cpuStep", row: 0, direction: 1 });
+    cpuButton(cpu.difficultyPrevious, { kind: "cpuStep", row: 1, direction: -1 });
+    cpuButton(cpu.difficultyNext, { kind: "cpuStep", row: 1, direction: 1 });
+    this.cpuValues = [cpu.opponentValue, cpu.difficultyValue];
+    this.cpuPreview = cpu.preview;
+    this.cpuDone = cpuButton(cpu.done, { kind: "cpuClose" });
+    this.cpuPrompt = cpu.prompt;
     BlzFrameSetVisible(this.cpuRoot, false);
     const caption = label(root, `MeleeRulesCaption${suffix}`, f32(0.03), f32(0.566), f32(0.22), f32(0.02), f32(0.011));
     BlzFrameSetText(caption, "MATCH RULES");

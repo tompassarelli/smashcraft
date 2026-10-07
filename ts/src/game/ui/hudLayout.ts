@@ -3,6 +3,9 @@
 // none draws over another (hudLayout.tests.ts).
 import { f32 } from "wisp/src/sim/f32";
 
+/** The menus' and HUD's font file. */
+export const MENU_FONT = "Fonts\\FRIZQT__.TTF";
+
 export interface TextBox {
   readonly left: number;
   readonly top: number;

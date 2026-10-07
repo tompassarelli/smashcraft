@@ -25,6 +25,7 @@ const SMASHCRAFT_DEV: DevProject = {
       "test/stage-render.test.ts": [],
       "test/contrast-tool.test.ts": ["../tools/stage/contrast.ts"],
       "test/move-list.test.ts": ["../docs/move-list.md"],
+      "test/ui-frames.test.ts": ["../tools/selection/art/*.fdf", "../tools/selection/art/*.toc"],
       "test/menu-fresh.test.ts": ["test/fixtures/wisp/**"],
       // Dated evidence records, never edited.
       "test/integrity.test.ts": ["../evidence/**"],

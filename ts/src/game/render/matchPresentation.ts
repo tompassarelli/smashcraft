@@ -15,7 +15,8 @@ import {
 } from "../presentation/matchCues";
 import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
 import { STAGE_CATALOG } from "../menu/stageCatalog";
-import { MENU_FONT, coverScreen, createBackdrop, createText, gameUi } from "../ui/frames";
+import { coverScreen, createBackdrop, createText, gameUi } from "../ui/frames";
+import { MENU_FONT } from "../ui/hudLayout";
 import type { WorldOrigin } from "./effects";
 import { fighterModel } from "./combatEffects";
 
