@@ -345,6 +345,8 @@ code. From smashcraft:ts/:
   captures require the requested frame in both drawn receipts, otherwise the
   run is INVALID with retained captures and the first failed boundary in its report
   (smashcraft:docs/native-bot-session.md, "Native checks by parity");
+  a scripted quick match holds each requested pose locally through the capture
+  while inputs and simulation continue; `held visual` images are not timing evidence;
   a desynced, crashed or early-ended run is INVALID and, with --map, rerun.
   `bun wisp pad SCRIPT --headless --helper BINARY --out DIR [--chat=TEXT]
   [--compare NATIVE_DIR]` plays the same script through the same helper into

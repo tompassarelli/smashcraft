@@ -30,10 +30,11 @@ import { chatBusy, requestPause } from "./journalPause";
 import { Key } from "./keyEvents";
 import { startBodyFit } from "./bodyFit";
 import { startAgencyFixture } from "./agencyFixture";
+import { clearVisualCapture, configureVisualCapture } from "../../game/shell/visualCapture";
 import { back, choose, confirm, openSettingsScreen, resetToStartingSelection, startQuickMatch } from "./menus";
 import { makePreview } from "./preview";
 import { exportProbe, probeIntegrity, probeRecording, startProbe } from "./responseProbe";
-import { type ShellState, activeRollback, playsOnKeyboard } from "./state";
+import { type ShellState, activeRollback, localSlot, playsOnKeyboard } from "./state";
 import { views } from "./ui";
 import { LASTING, pauseMatchPresentation, setStatus } from "./view";
 
@@ -219,7 +220,9 @@ export function onProbeExport(s: ShellState): void {
  * automation confirm every client holds the setting before the next match.
  */
 export function onDevCommand(s: ShellState): void {
-  const message = GetEventPlayerChatString();
+  const original = GetEventPlayerChatString();
+  if (original === RESET_COMMAND) clearVisualCapture(localSlot());
+  const message = s.build.responseProbe ? configureVisualCapture(original, localSlot()) : original;
   let receipt: string | undefined;
   const quickStage = quickMatchStage(message);
   const quickHero = quickMatchHero(message);
