@@ -13,12 +13,15 @@
 // (tools/animations/extract.sh builds CASC_EXTRACT into build/animation-assets/.)
 import { existsSync, mkdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
+import { parseMDL, generateMDL } from 'war3-model';
+import { originalBodyClip } from '../animations/original-clips';
+import { PARTICIPANT_SLOTS } from '../../ts/src/game/input/participants';
 import { Character } from '../../ts/src/game/sim/codes';
-import { RENDERED_FIGHTERS, fighterRenderName, heroDefinition } from '../../ts/src/game/sim/heroes/registry';
+import { PORTRAIT_KINDS, RENDERED_FIGHTERS, fighterRenderName, heroDefinition } from '../../ts/src/game/sim/heroes/registry';
 import { heroModelSource, importedModelFile } from '../../ts/scripts/heroModelSource';
 import { CARD_TEXTURE_PX, TILE_TEXTURE_PX } from '../../ts/src/game/ui/portraitFrames';
 import { STOCK_ICON_PX } from '../../ts/src/game/ui/plateLayout';
-import { NEUTRAL_TEAM_COLOR } from '../../ts/src/game/ui/slotColors';
+import { NEUTRAL_TEAM_COLOR, slotColor } from '../../ts/src/game/ui/slotColors';
 import { readRgba, teamColourPixels, teamLayerPixels } from './team-colour-check';
 
 const option = (name: string) => { const index = process.argv.indexOf(name); return index < 0 ? undefined : process.argv[index + 1]; };
@@ -29,6 +32,7 @@ const storage = option('--storage') ?? `${process.env.HOME}/.local/share/Steam/s
 const only = option('--only')?.split(',');
 /** Recrop the renders already in the work folder instead of rendering again. */
 const reuse = process.argv.includes('--reuse');
+const slots = process.argv.includes('--slots');
 const team = Number(option('--team') ?? NEUTRAL_TEAM_COLOR);
 const check = option('--check');
 const addon = option('--addon') ?? '/home/tom/code/mdl-exporter4/worktrees/blender5';
@@ -47,7 +51,8 @@ const ORIGINAL_MODELS: { readonly [character: number]: string | undefined } = {
 /** Behind every grid tile, so the tiles read as one set. */
 const TILE_BACKGROUND = ['-size', `${TILE_TEXTURE_PX}x${TILE_TEXTURE_PX}`, 'radial-gradient:#3a5378-#0c1422'];
 const teamIndex = String(team).padStart(2, '0');
-const TEAM_TEXTURES = [`ReplaceableTextures\\TeamColor\\TeamColor${teamIndex}.blp`, `ReplaceableTextures\\TeamGlow\\TeamGlow${teamIndex}.blp`];
+const TEAM_TEXTURES = (slots ? PARTICIPANT_SLOTS.map((slot) => String(slot).padStart(2, '0')) : [teamIndex])
+  .flatMap((index) => [`ReplaceableTextures\\TeamColor\\TeamColor${index}.blp`, `ReplaceableTextures\\TeamGlow\\TeamGlow${index}.blp`]);
 
 /** Fades the bust out at its bottom and sides, where the crop cuts through the fighter. */
 const BUST_FADE = 'min(min(1, (1 - j / h) / 0.3), min(i / (w * 0.1), (w - i) / (w * 0.1)))';
@@ -156,50 +161,78 @@ async function modelFor(character: Character, name: string): Promise<string> {
   return mdl;
 }
 
+/** Use the existing clip extractor so Blender imports only the standing pose. */
+async function standingModel(path: string): Promise<void> {
+  const model = parseMDL(await Bun.file(path).text());
+  const sequence = POSES.map((name) => model.Sequences.findIndex((candidate) => candidate.Name === name || candidate.Name.startsWith(`${name} `))).find((index) => index >= 0) ?? 0;
+  const clip = originalBodyClip(model, sequence);
+  clip.model.Sequences[0]!.Name = clip.name;
+  await Bun.write(path, generateMDL(clip.model));
+}
+
 for (const character of RENDERED_FIGHTERS) {
   const name = fighterRenderName(character);
   if (only !== undefined && !only.includes(name)) continue;
-  const raw = join(work, `${name}.png`);
-  const logFile = join(work, `${name}.log`);
-  if (!reuse || !existsSync(raw) || !existsSync(logFile)) {
+  const variants = slots ? PARTICIPANT_SLOTS.map((slot) => ({ suffix: `P${slot + 1}`, slot })) : [{ suffix: '', slot: undefined }];
+  const logFile = join(work, `${name}${slots ? '-slots' : ''}.log`);
+  if (!reuse || !variants.every(({ suffix }) => existsSync(join(work, `${name}${suffix}.png`))) || !existsSync(logFile)) {
     const model = await modelFor(character, name);
+    if (slots && !/ReplaceableId 1\b/.test(await Bun.file(model).text())) {
+      for (const { suffix } of variants) {
+        for (const kind of PORTRAIT_KINDS) {
+          await Bun.write(join(output, `Fighter${kind}${name}${suffix}.tga`), Bun.file(join(output, `Fighter${kind}${name}.tga`)));
+        }
+      }
+      console.log(`${name}: 4 slot outfits retain the painted costume (no team-colour layer)`);
+      continue;
+    }
+    await standingModel(model);
     const images = [...(await Bun.file(model).text()).matchAll(/Image "([^"]+)"/g)].map((match) => match[1]!);
     for (const texture of [...images, ...TEAM_TEXTURES]) if (!texture.toLowerCase().startsWith('war3mapimported')) extractTexture(texture);
-    await Bun.write(logFile, run(['blender', '--background', '--threads', '4', '--python-exit-code', '1', '--python', join(project, 'tools/selection/render-fighter.py'), '--', model, resources, raw, addon, String(team)]));
+    await Bun.write(logFile, run(['blender', '--background', '--threads', '4', '--python-exit-code', '1', '--python', join(project, 'tools/selection/render-fighter.py'), '--', model, resources, join(work, `${name}.png`), addon, String(slots ? 0 : team), ...(slots ? ['--slots'] : []), ...(reuse ? ['--reuse'] : [])]));
   }
-  const log = await Bun.file(logFile).text();
-  const pose = log.match(/RENDER_POSE (.*)/)?.[1];
-  const head = log.match(/RENDER_HEAD (-?\d+) (-?\d+)/);
-  // The fighter's extent, ignoring faint antialiasing and haze at the edges.
-  const silhouette = run(['magick', raw, '-alpha', 'extract', '-threshold', '10%', '-format', '%@', 'info:']).trim();
-  // The card: the whole fighter, its height filling the frame.
-  const card = join(output, `FighterCard${name}.tga`);
-  const inner = Math.round(CARD_TEXTURE_PX * 0.94);
-  run(['magick', raw, '-crop', silhouette, '+repage', '-resize', `${inner}x${inner}`, '-background', 'none', '-gravity', 'center', '-extent', `${CARD_TEXTURE_PX}x${CARD_TEXTURE_PX}`, '-depth', '8', '-compress', 'none', card]);
-  // The tile: head and shoulders, centered on the head bone where the model has one.
-  const box = silhouette.match(/(\d+)x(\d+)\+(\d+)\+(\d+)/);
-  const silhouetteHeight = box ? Number(box[2]) : 1024;
-  const silhouetteTop = box ? Number(box[4]) : 0;
-  const silhouetteBottom = silhouetteTop + silhouetteHeight;
-  const headX = head ? Number(head[1]) : 512;
-  const headY = head ? Number(head[2]) : silhouetteTop + silhouetteHeight / 5;
-  // Head to waist whatever the fighter's build: the crop follows the head's height above the feet.
-  // A crouching fighter (Shadow Hunter) keeps at least half its height in frame.
-  const crop = Math.round(Math.max(256, 0.55 * silhouetteHeight, Math.min(1024, 0.8 * (silhouetteBottom - headY))));
-  const left = Math.max(0, Math.min(1024 - crop, Math.round(headX - crop / 2)));
-  const cropTop = Math.max(0, Math.min(1024 - crop, Math.round(headY - crop * 0.38)));
-  const tile = join(output, `FighterTile${name}.tga`);
-  run(['magick', ...TILE_BACKGROUND, '(', raw, '-crop', `${crop}x${crop}+${left}+${cropTop}`, '+repage', '-resize', `${TILE_TEXTURE_PX}x${TILE_TEXTURE_PX}`, ')', '-composite', '-alpha', 'off', '-depth', '8', '-compress', 'none', tile]);
-  // The HUD bust: the tile's crop on a clear background, breaking out of the plate.
-  const bust = join(output, `FighterBust${name}.tga`);
-  run(['magick', raw, '-crop', `${crop}x${crop}+${left}+${cropTop}`, '+repage', '-resize', `${TILE_TEXTURE_PX}x${TILE_TEXTURE_PX}`, ...fadeAlpha(BUST_FADE), '-depth', '8', '-compress', 'none', bust]);
-  // The stock icon: the head alone.
-  const head64 = Math.round(Math.max(64, Math.min(1024, 0.3 * (silhouetteBottom - headY))));
-  const stockLeft = Math.max(0, Math.min(1024 - head64, Math.round(headX - head64 / 2)));
-  const stockTop = Math.max(0, Math.min(1024 - head64, Math.round(headY - head64 * 0.62)));
-  const stock = join(output, `FighterStock${name}.tga`);
-  run(['magick', raw, '-crop', `${head64}x${head64}+${stockLeft}+${stockTop}`, '+repage', '-resize', `${STOCK_ICON_PX}x${STOCK_ICON_PX}`, ...fadeAlpha(STOCK_FADE), '-depth', '8', '-compress', 'none', stock]);
-  console.log(`${name}: ${pose ?? '?'}; head ${head ? `${head[1]},${head[2]}` : 'none'}; ${card}, ${tile}, ${bust}, ${stock}`);
+  for (const { suffix, slot } of variants) {
+    const raw = join(work, `${name}${suffix}.png`);
+    const log = await Bun.file(logFile).text();
+    const pose = log.match(/RENDER_POSE (.*)/)?.[1];
+    const head = log.match(/RENDER_HEAD (-?\d+) (-?\d+)/);
+    // The fighter's extent, ignoring faint antialiasing and haze at the edges.
+    const silhouette = run(['magick', raw, '-alpha', 'extract', '-threshold', '10%', '-format', '%@', 'info:']).trim();
+    // The card: the whole fighter, its height filling the frame.
+    const card = join(output, `FighterCard${name}${suffix}.tga`);
+    const inner = Math.round(CARD_TEXTURE_PX * 0.94);
+    run(['magick', raw, '-crop', silhouette, '+repage', '-resize', `${inner}x${inner}`, '-background', 'none', '-gravity', 'center', '-extent', `${CARD_TEXTURE_PX}x${CARD_TEXTURE_PX}`, '-depth', '8', '-compress', 'none', card]);
+    // The tile: head and shoulders, centered on the head bone where the model has one.
+    const box = silhouette.match(/(\d+)x(\d+)\+(\d+)\+(\d+)/);
+    const silhouetteHeight = box ? Number(box[2]) : 1024;
+    const silhouetteTop = box ? Number(box[4]) : 0;
+    const silhouetteBottom = silhouetteTop + silhouetteHeight;
+    const headX = head ? Number(head[1]) : 512;
+    const headY = head ? Number(head[2]) : silhouetteTop + silhouetteHeight / 5;
+    // Head to waist whatever the fighter's build: the crop follows the head's height above the feet.
+    // A crouching fighter (Shadow Hunter) keeps at least half its height in frame.
+    const crop = Math.round(Math.max(256, 0.55 * silhouetteHeight, Math.min(1024, 0.8 * (silhouetteBottom - headY))));
+    const left = Math.max(0, Math.min(1024 - crop, Math.round(headX - crop / 2)));
+    const cropTop = Math.max(0, Math.min(1024 - crop, Math.round(headY - crop * 0.38)));
+    const tile = join(output, `FighterTile${name}${suffix}.tga`);
+    run(['magick', ...TILE_BACKGROUND, '(', raw, '-crop', `${crop}x${crop}+${left}+${cropTop}`, '+repage', '-resize', `${TILE_TEXTURE_PX}x${TILE_TEXTURE_PX}`, ')', '-composite', '-alpha', 'off', '-depth', '8', '-compress', 'none', tile]);
+    // The HUD bust: the tile's crop on a clear background, breaking out of the plate.
+    const bust = join(output, `FighterBust${name}${suffix}.tga`);
+    run(['magick', raw, '-crop', `${crop}x${crop}+${left}+${cropTop}`, '+repage', '-resize', `${TILE_TEXTURE_PX}x${TILE_TEXTURE_PX}`, ...fadeAlpha(BUST_FADE), '-depth', '8', '-compress', 'none', bust]);
+    // The stock icon: the head alone.
+    const head64 = Math.round(Math.max(64, Math.min(1024, 0.3 * (silhouetteBottom - headY))));
+    const stockLeft = Math.max(0, Math.min(1024 - head64, Math.round(headX - head64 / 2)));
+    const stockTop = Math.max(0, Math.min(1024 - head64, Math.round(headY - head64 * 0.62)));
+    const stock = join(output, `FighterStock${name}${suffix}.tga`);
+    run(['magick', raw, '-crop', `${head64}x${head64}+${stockLeft}+${stockTop}`, '+repage', '-resize', `${STOCK_ICON_PX}x${STOCK_ICON_PX}`, ...fadeAlpha(STOCK_FADE), '-depth', '8', '-compress', 'none', stock]);
+    console.log(`${name}: ${pose ?? '?'}; head ${head ? `${head[1]},${head[2]}` : 'none'}; ${card}, ${tile}, ${bust}, ${stock}`);
+    if (slot !== undefined) {
+      const result = teamLayerPixels(readRgba(join(work, `${name}${suffix}-team.png`)), slotColor(slot).name);
+      const hasTeam = /ReplaceableId 1\b/.test(await Bun.file(join(models, `${name}.mdl`)).text());
+      if (Object.keys(result.found).length > 0 || (hasTeam && result.masked === 0)) throw new Error(`${name}${suffix}: wrong outfit colour ${JSON.stringify(result)}`);
+      console.log(`${name}${suffix}: ${result.masked} team pixels match ${slotColor(slot).name}`);
+    }
+  }
 }
 
 if (check !== undefined) {

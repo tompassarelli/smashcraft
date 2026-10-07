@@ -2,6 +2,7 @@ import { assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
 import { rosterGrid } from "../menu/selectionGrid";
 import { RENDERED_FIGHTERS, SELECTABLE_CHARACTERS, fighterIcon, fighterPortrait } from "../sim/heroes/registry";
 import { CARD_PORTRAIT, CARD_TEXTURE_PX, HUD_PORTRAIT, OFFSCREEN_PORTRAIT, TILE_TEXTURE_PX, pixelsForUnits, tilePortrait } from "./portraitFrames";
+import { PARTICIPANT_SLOTS } from "../input/participants";
 
 // Frames are square (BlzFrameSetSize takes one size for both sides), so a portrait
 // is never stretched; this pins that each is drawn at or below its texture's pixels.
@@ -26,5 +27,21 @@ test("every rendered fighter shows its render; any other fighter shows its comma
     const card = fighterPortrait(character, "Card");
     assertTrue(rendered ? card.startsWith("war3mapImported\\FighterCard") : card === fighterIcon(character));
     assertTrue(!rendered || fighterPortrait(character, "Tile").startsWith("war3mapImported\\FighterTile"));
+  }
+});
+
+test("picked and match portraits select each slot's costume while grid portraits remain neutral", () => {
+  for (const character of RENDERED_FIGHTERS) {
+    for (const kind of ["Card", "Bust", "Stock", "Tile"] as const) {
+      const neutral = fighterPortrait(character, kind);
+      const variants = new Set<string>();
+      for (const slot of PARTICIPANT_SLOTS) {
+        const path = fighterPortrait(character, kind, slot);
+        assertEquals(path, neutral.replace(".tga", `P${slot + 1}.tga`));
+        variants.add(path);
+      }
+      assertEquals(variants.size, PARTICIPANT_SLOTS.length);
+      assertTrue(!variants.has(neutral));
+    }
   }
 });

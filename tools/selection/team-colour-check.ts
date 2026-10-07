@@ -51,21 +51,43 @@ export function playerHue(r: number, g: number, b: number): string | undefined {
 
 /** Coal's source texture RGB; the isolated pass is unlit, with zero exposure. */
 const COAL = [79, 79, 85] as const;
-const teamPalette = [...PLAYER_COLORS.map((color) => ({ name: color.name, rgb: [(color.rgb >> 16) & 255, (color.rgb >> 8) & 255, color.rgb & 255] })), { name: 'Coal', rgb: COAL }];
+/** Blender blends colours in scene-linear space, then writes sRGB PNG bytes. */
+const linear = (byte: number): number => {
+  const value = byte / 255;
+  return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+};
+const teamPalette = [...PLAYER_COLORS.map((color) => ({ name: color.name, rgb: [(color.rgb >> 16) & 255, (color.rgb >> 8) & 255, color.rgb & 255] })), { name: 'Coal', rgb: COAL }]
+  .map((color) => ({ name: color.name, rgb: color.rgb.map(linear) }));
+
+/** Whether one contribution can round to these bytes in all three channels. */
+function quantizedContribution(encoded: readonly number[], source: readonly number[]): boolean {
+  let low = 0;
+  let high = Infinity;
+  for (let channel = 0; channel < 3; channel++) {
+    const value = encoded[channel]!;
+    const color = source[channel]!;
+    if (color === 0) { if (value > 0) return false; continue; }
+    low = Math.max(low, linear(Math.max(0, value - 0.5)) / color);
+    high = Math.min(high, linear(Math.min(255, value + 0.5)) / color);
+  }
+  return low <= high;
+}
 
 /**
  * Checks the renderer's isolated team layer, including partial contributions
  * beneath painted skin. Match RGB proportions so alpha blends to black keep
  * their source colour; Gray remains distinct from Coal's blue-grey proportions.
  */
-export function teamLayerPixels(layer: Rgba): Pick<TeamColourResult, 'masked' | 'found'> {
+export function teamLayerPixels(layer: Rgba, expected = 'Coal'): Pick<TeamColourResult, 'masked' | 'found'> {
+  const expectedColor = teamPalette.find((color) => color.name === expected);
   let masked = 0;
   const found: { [name: string]: number } = {};
   for (let index = 0; index < layer.length; index += 4) {
-    const rgb = [layer[index]!, layer[index + 1]!, layer[index + 2]!];
-    const max = Math.max(...rgb);
+    const encoded = [layer[index]!, layer[index + 1]!, layer[index + 2]!];
     // Below 16, byte quantization cannot distinguish Coal from Gray reliably.
-    if (max < 16 || layer[index + 3]! === 0) continue;
+    if (Math.max(...encoded) < 16 || layer[index + 3]! === 0) continue;
+    const rgb = encoded.map(linear);
+    const max = Math.max(...rgb);
     masked++;
     let best = 'unknown';
     let distance = Infinity;
@@ -74,7 +96,8 @@ export function teamLayerPixels(layer: Rgba): Pick<TeamColourResult, 'masked' | 
       const apart = rgb.reduce((sum, value, channel) => sum + (value / max - color.rgb[channel]! / top) ** 2, 0);
       if (apart < distance) { best = color.name; distance = apart; }
     }
-    if (best !== 'Coal') found[best] = (found[best] ?? 0) + 1;
+    // Faint Coal can round nearer Gray; retain only the actual byte-rounding interval.
+    if (best !== expected && !(expectedColor !== undefined && quantizedContribution(encoded, expectedColor.rgb))) found[best] = (found[best] ?? 0) + 1;
   }
   return { masked, found };
 }

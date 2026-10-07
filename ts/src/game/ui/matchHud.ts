@@ -70,7 +70,7 @@ export class FighterHud {
   private shakeStrength = 0.0;
 
   /** `count` plates share the bottom of the screen; this one starts at its slot's position. */
-  constructor(slot: number, count: number) {
+  constructor(private readonly slot: number, count: number) {
     const suffix = I2S(slot);
     const context = 800 + slot * 20;
     const parent = gameUi();
@@ -147,9 +147,9 @@ export class FighterHud {
     }
     if (this.shownCharacter !== character) {
       this.shownCharacter = character;
-      BlzFrameSetTexture(this.portrait, fighterPortrait(character, "Bust"), 0, true);
+      BlzFrameSetTexture(this.portrait, fighterPortrait(character, "Bust", this.slot), 0, true);
       BlzFrameSetText(this.name, fighterName(character).toUpperCase());
-      for (const icon of this.stocks) BlzFrameSetTexture(icon, fighterPortrait(character, "Stock"), 0, true);
+      for (const icon of this.stocks) BlzFrameSetTexture(icon, fighterPortrait(character, "Stock", this.slot), 0, true);
     }
     this.shake(visible, damage);
     const shownDamage = damageWhole(damage);

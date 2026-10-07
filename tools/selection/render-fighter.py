@@ -17,7 +17,10 @@ import bpy
 from bpy_extras.object_utils import world_to_camera_view
 from mathutils import Matrix, Vector
 
-model, resources, output, addon, team = sys.argv[sys.argv.index("--") + 1:]
+args = sys.argv[sys.argv.index("--") + 1:]
+model, resources, output, addon, team = args[:5]
+slots = "--slots" in args[5:]
+reuse = "--reuse" in args[5:]
 sys.path.insert(0, addon)
 addon_utils.enable("export_mdl", default_set=True)
 prefs = bpy.context.preferences.addons["export_mdl"].preferences
@@ -129,9 +132,27 @@ if head is not None:
     print("RENDER_HEAD", round(at.x * RESOLUTION), round((1 - at.y) * RESOLUTION))
 scene.render.image_settings.file_format = "PNG"
 scene.render.image_settings.color_mode = "RGBA"
-scene.render.filepath = output
-bpy.ops.render.render(write_still=True)
-print("RENDER_DONE", output)
+team_nodes = [node for material in bpy.data.materials if material.use_nodes
+              for node in material.node_tree.nodes
+              if node.type == "TEX_IMAGE" and node.image is not None and "TeamColor" in node.image.filepath]
+
+
+def team_texture(index):
+    path = str(Path(resources) / "ReplaceableTextures" / "TeamColor" / ("TeamColor%02d.png" % index))
+    for node in team_nodes:
+        node.image = bpy.data.images.load(path, check_existing=True)
+
+
+variants = [(index, str(Path(output).with_name(Path(output).stem + "P%d.png" % (index + 1))))
+            for index in range(4)] if slots else [(int(team), output)]
+# Retain the beauty scene before the diagnostic changes its material graph.
+bpy.ops.wm.save_as_mainfile(filepath=str(Path(output).with_suffix(".blend")))
+for index, path in variants:
+    team_texture(index)
+    scene.render.filepath = path
+    if not reuse or not Path(path).exists():
+        bpy.ops.render.render(write_still=True)
+    print("RENDER_DONE", path)
 
 # Isolate the team-colour contribution using the same material blend graph.
 # Painted skin and trim retain their alpha but contribute no RGB. Checking a
@@ -172,9 +193,14 @@ for material in bpy.data.materials:
         tree.links.new(blend.outputs[0], link.to_socket)
 scene.render.engine = "CYCLES"
 scene.cycles.use_denoising = False
+scene.cycles.samples = 8
+scene.render.dither_intensity = 0
 scene.view_settings.exposure = 0
-scene.render.filepath = str(Path(output).with_name(Path(output).stem + "-team.png"))
-# Keep this exact pass available without importing the fighter's clip pool again.
-bpy.ops.wm.save_as_mainfile(filepath=str(Path(output).with_name(Path(output).stem + "-team.blend")))
-bpy.ops.render.render(write_still=True)
-print("RENDER_TEAM", scene.render.filepath)
+for index, path in variants:
+    team_texture(index)
+    scene.render.filepath = str(Path(path).with_name(Path(path).stem + "-team.png"))
+    # Keep this exact pass available without importing the fighter's clip pool again.
+    bpy.ops.wm.save_as_mainfile(filepath=str(Path(path).with_name(Path(path).stem + "-team.blend")))
+    if not reuse or not Path(scene.render.filepath).exists():
+        bpy.ops.render.render(write_still=True)
+    print("RENDER_TEAM", scene.render.filepath)

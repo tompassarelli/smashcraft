@@ -87,9 +87,9 @@ export type PortraitKind = "Tile" | "Card" | "Bust" | "Stock";
 export const PORTRAIT_KINDS: readonly PortraitKind[] = ["Tile", "Card", "Bust", "Stock"];
 
 /** The fighter's portrait texture of `kind`, or its hero's command icon. */
-export function fighterPortrait(character: number, kind: PortraitKind): string {
+export function fighterPortrait(character: number, kind: PortraitKind, slot?: number): string {
   for (const rendered of RENDERED_FIGHTERS) {
-    if (rendered === character) return `war3mapImported\\Fighter${kind}${fighterRenderName(character)}.tga`;
+    if (rendered === character) return `war3mapImported\\Fighter${kind}${fighterRenderName(character)}${slot === undefined ? "" : `P${slot + 1}`}.tga`;
   }
   return fighterIcon(character);
 }

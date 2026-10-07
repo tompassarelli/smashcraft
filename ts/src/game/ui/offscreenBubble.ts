@@ -22,7 +22,7 @@ export class OffscreenBubble {
   private visible = false;
   private character: Character | undefined;
 
-  constructor(slot: number) {
+  constructor(private readonly slot: number) {
     // GameUI clips BACKDROP/TEXT frames outside its central 4:3 area.
     const parent = consoleUi();
     this.portrait = createBackdrop(`OffscreenPortrait${I2S(slot)}`, parent, 920 + slot * 2);
@@ -46,7 +46,7 @@ export class OffscreenBubble {
     if (!visible) return;
     if (this.character !== character) {
       this.character = character;
-      BlzFrameSetTexture(this.portrait, fighterPortrait(character, "Tile"), 0, true);
+      BlzFrameSetTexture(this.portrait, fighterPortrait(character, "Tile", this.slot), 0, true);
     }
     const position = bubblePosition(column, row);
     const x = f32(0.4) + (position.column - 0.5) * aspect * f32(0.6);

@@ -331,6 +331,12 @@ code. From smashcraft:ts/:
 
 ## Verify the changed behavior
 
+Portrait outfits: `bun tools/selection/render-fighters.ts --extract EXTRACTOR --assets PRIVATE_ASSETS --slots --reuse`
+renders and checks the four slot outfits; omit `--slots` for the neutral grid.
+The renderer extracts only the standing sequence with the existing clip tool
+(Rifleman: 427,224 animation keys to 881), avoiding full-pool Blender imports.
+See smashcraft:docs/design/fighter-portraits.md.
+
 Every push runs the pre-push gate (smashcraft:.githooks/pre-push, enabled for
 the repository with `git config core.hooksPath .githooks`; safe-push runs it):
 `bun run check` and the type-escape audit (smashcraft:ts/test/source-shapes.test.ts)

@@ -2,7 +2,7 @@ import { at } from "wisp/src/runtime/lookup";
 // Warcraft's player colours. A fighter's model shows its slot's colour
 // (BlzSetSpecialEffectColorByPlayer with Player(slot)), so the selection card
 // and HUD plate of slot N use player N's colour, the same on every client.
-// Portrait renders use NEUTRAL_TEAM_COLOR, which no slot uses.
+// Grid portraits use NEUTRAL_TEAM_COLOR; picked portraits use the slot's colour.
 
 export interface PlayerColor {
   /** The texture-name suffix of the slot's card art (SelectionCard<name>.tga). */

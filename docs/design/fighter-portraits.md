@@ -57,6 +57,19 @@ the map build imports them from there. A fighter missing from
 `RENDERED_FIGHTERS` shows its command icon. Add it there after its renders
 exist.
 
+`--slots` renders red, blue, teal and purple outfits in one imported scene,
+changing only the team's texture. Files append `P1` through `P4` before the
+extension. Picked cards, HUD busts, stock icons and off-screen portraits use
+the fighter slot's variant; the roster grid keeps its neutral portrait. A model
+without team-colour layers retains its painted costume in all four slots.
+Each variant's isolated contribution must contain only the expected player
+colour. `--reuse --slots` resumes existing renders and checks all four variants.
+
+The renderer uses smashcraft:tools/animations/original-clips.ts to extract
+only the standing sequence before Blender imports it. Rifleman's full source
+had 427,224 keys; its standing pose needs 881. The beauty scene is retained as
+`work/NAME.blend`, so subsequent inspection does not need the full clip pool.
+
 ## Match HUD plate
 
 The plate follows the damage HUDs of Melee, Ultimate and Rivals 2 in the

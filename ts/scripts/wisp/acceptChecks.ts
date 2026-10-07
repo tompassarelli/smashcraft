@@ -31,6 +31,7 @@ const stageProfile = (name: string) => `stage-${name.toLowerCase().replace(/[^a-
 const heroProfile = (name: string) => `hero-${name.toLowerCase().replace(/\s+/g, "-")}`;
 
 export const MAP_PROFILES: Readonly<Record<string, SmashcraftMapProfile>> = {
+  outfits: { describe: "four-colour portrait candidate, red Archer and blue Rifleman", path: join(inputs, "slot-outfits-161-20261007/Smashcraft diagnostic slot portrait outfits.w3x"), quick: "-dev quick" },
   presentation: { describe: "development map rebuilt from this checkout, `-dev quick` (Archer and Rifleman idle on the default stage)", path: PRESENTATION, rebuild: "main", quick: "-dev quick" },
   // smashcraft:docs/player-view.md: CURRENT_BUILD's scenario set to underside, built as a development map.
   underside: { describe: "development map built with scenario underside (smashcraft:docs/player-view.md), `-dev quick`", path: join(inputs, "stage-model-20261006/Smashcraft diagnostic underside.w3x"), quick: "-dev quick" },
@@ -141,6 +142,20 @@ const effectChecks: NativeCheck[] = [12, 13, 14, 15, 24, 2, 7, 5, 6, 4, 9, 11, 2
 export const SMASHCRAFT_ACCEPT: AcceptSuite = {
   maps: MAP_PROFILES,
   checks: [
+    {
+      id: "161-slot-outfits", closes: "smashcraft#161 box 4", map: "outfits",
+      setup: [{ waitMs: 3000 }],
+      capture: [{ kind: "frames", name: "stage-and-hud", client: "a" }, { kind: "frames", name: "stage-and-hud", client: "b" }],
+      pass: [DEV_RECEIPT, NO_IMPORT_FAILURES, NO_ERRORS],
+      look: "In the same frame, Archer's red clothing and Rifleman's blue hood on stage match their HUD busts and stock icons; frames alone are insufficient.",
+    },
+    {
+      id: "161-neutral-grid-picked-outfits", closes: "smashcraft#161 box 4", map: "outfits",
+      setup: [{ chat: "-dev reset" }, { keys: ["n"], client: "a" }, { keys: ["n"], client: "b" }, { waitMs: 500 }],
+      capture: [{ kind: "frames", name: "grid-and-picked-cards", client: "a" }],
+      pass: [NO_IMPORT_FAILURES, NO_ERRORS],
+      look: "The roster grid stays neutral; picked player cards show red Archer and blue Rifleman clothing.",
+    },
     ...(["a", "b"] as const).map((client): NativeCheck => ({
       id: `174-defile-${client}`,
       closes: "smashcraft#174 box 2",
