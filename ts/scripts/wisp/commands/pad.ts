@@ -187,17 +187,25 @@ const selectionChat = (session: NativeSession, text: string) => Effect.gen(funct
   const receipt = () => existsSync(path) ? nativeChatEntryReceipt(readFileSync(path, "latin1")) : undefined;
   const before = receipt();
   if (before === undefined || before.available !== "1") return yield* new IntegrityFailure({ operation: "open selection chat", path, cause: "no native chat entry receipt; rebuild the integrity map" });
-  if (before.open !== "1") {
-    // The native client missed Return immediately after focus; 250 ms after focus opened it.
+  let opened = false;
+  for (let attempt = 0; attempt < 2 && !opened; attempt++) {
+    // A new game can leave the prior game's open receipt on disk. Observe
+    // this Return's publication before choosing whether to type or reopen.
+    const previousWrite = statSync(path).mtimeMs;
     yield* batch(session.clients[0], [{ kind: "wait", millis: 250 }, { kind: "keys", keys: ["Return"] }]).pipe(Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })), Effect.mapError(fromDesktop));
     const deadline = Date.now() + 8000;
     for (;;) {
       const current = receipt();
-      if (current !== undefined && current.revision > before.revision && current.available === "1" && current.open === "1") break;
-      if (Date.now() > deadline) return yield* new IntegrityFailure({ operation: "open selection chat", path, cause: "no open-chat receipt within 8 s of Return; no command text sent" });
+      if (current !== undefined && statSync(path).mtimeMs > previousWrite && current.available === "1") {
+        opened = current.open === "1";
+        console.log(`selection chat: fresh receipt revision=${current.revision} open=${current.open} after Return ${attempt + 1}`);
+        break;
+      }
+      if (Date.now() > deadline) return yield* new IntegrityFailure({ operation: "open selection chat", path, cause: "no fresh chat receipt within 8 s of Return; no command text sent" });
       yield* Effect.sleep("20 millis");
     }
   }
+  if (!opened) return yield* new IntegrityFailure({ operation: "open selection chat", path, cause: "chat stayed closed after two observed Return transitions; no command text sent" });
   yield* batch(session.clients[0], [{ kind: "text", text, delayMillis: 35 }, { kind: "keys", keys: ["Return"] }]).pipe(Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })), Effect.mapError(fromDesktop));
 });
 
