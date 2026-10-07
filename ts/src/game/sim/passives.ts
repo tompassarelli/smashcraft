@@ -38,6 +38,7 @@ const SPECS: readonly PassiveSpec[] = [
 ];
 
 export function passiveSpec(character: Character): PassiveSpec {
+  if (character === Character.tinker) return { kind: PassiveKind.voodoo, stacks: 2, window: 240 };
   return SPECS[character] ?? NONE;
 }
 
