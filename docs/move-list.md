@@ -137,10 +137,10 @@ Normals, inspired by:
 
 | Input | Name | What it does |
 | --- | --- | --- |
-| Neutral special | Fel Spit | A heavy glob that arcs up and falls onto an approaching target. |
+| Neutral special | Howl of Terror | A close roar pushes enemies away on both sides; a shield stops it. |
 | Side special | Ruin Charge | A slow charge whose armor shrugs off one light hit; it stops at a shield. |
 | Up special | Abyssal Leap | A slow arcing leap with a hoof strike, then a helpless fall. |
-| Down special | Howl of Terror | A roar around him; anyone it hits deals less damage for three seconds. |
+| Down special | Rain of Fire | Three waves of falling fire cover the ground ahead; rush underneath or shield them. |
 | Jab, repeated | Haft and Chop | A haft check, then a short cleaver chop on a second jab. |
 | Passive | Cleaving Attack | His cleaver strikes every opponent in its path, and the blade itself can't be hit. |
 

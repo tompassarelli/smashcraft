@@ -13,6 +13,7 @@ for (let index = 0; index < SELECTABLE_CHARACTERS.length; index++) {
     assertGreaterThan(report.movement, 0);
     assertGreaterThan(report.attacks, 0);
     assertGreaterThan(report.kit, 0);
+    if (character === Character.pitLord) for (let slot = 0; slot < 4; slot++) assertGreaterThan(report.specials[slot] ?? 0, 0);
   });
 }
 

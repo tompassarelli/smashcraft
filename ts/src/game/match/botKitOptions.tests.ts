@@ -223,8 +223,8 @@ test("computer Shadow Hunter throws Spirit Glaive, hexes, presses a hexed target
   usesEvery(Character.shadowHunter, ["special0", "special3", "hexedHit", "hexMash"]);
 });
 
-test("computer Pit Lord spits Fel Spit, charges with Ruin Charge and howls Howl of Terror", () => {
-  usesEvery(Character.pitLord, ["special0", "special1", "special3"]);
+test("computer Pit Lord roars, charges, leaps and calls Rain of Fire", () => {
+  usesEvery(Character.pitLord, ["special0", "special1", "special2", "special3"]);
 });
 
 test("computer Beastmaster summons the bear, orders its lunge and calls it back", () => {
