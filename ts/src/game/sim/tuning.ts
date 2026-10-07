@@ -226,15 +226,19 @@ const REFERENCE_WEIGHT = 75.0;
 /** What a hero's 1.00 air multiplier means: Ultimate's median air speed (#190; smashcraft:docs/gameplay-design.md, "Air drift and jump momentum"). */
 export const REFERENCE_AIR_SPEED = melee(1.0);
 
+const heroPhysicsRecords: (FighterPhysics | undefined)[] = [];
+
 /**
  * An expansion hero's physics: Archer's, with the roster's weight (of REFERENCE_WEIGHT), run and
  * air-speed (of REFERENCE_AIR_SPEED) multipliers. Jumps and gravity stay the reference's.
  */
 function heroPhysics(character: Character): FighterPhysics {
+  const cached = heroPhysicsRecords[character];
+  if (cached !== undefined) return cached;
   const reference = AUTHORED_PHYSICS.archer;
   const body = heroBody(character);
   if (body === undefined) return reference;
-  return {
+  const physics: FighterPhysics = {
     ...reference,
     weight: f32(REFERENCE_WEIGHT * body.weight),
     dashSpeed: f32(reference.dashSpeed * body.run),
@@ -242,6 +246,8 @@ function heroPhysics(character: Character): FighterPhysics {
     walkSpeed: f32(reference.walkSpeed * body.run),
     airSpeed: f32(REFERENCE_AIR_SPEED * body.air),
   };
+  heroPhysicsRecords[character] = physics;
+  return physics;
 }
 
 /**
