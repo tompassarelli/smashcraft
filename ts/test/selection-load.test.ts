@@ -11,8 +11,7 @@ import { PLAYABLE_BUILD } from "../src/game/shell/currentBuild";
 import { Character } from "../src/game/sim/codes";
 import { PROJECTILE_CAPACITY } from "../src/game/sim/fighter";
 import { fighterRenderedCues } from "../src/game/presentation/attackCues";
-import { stageScenery } from "../src/game/presentation/stageScenery";
-import { surfaceCount } from "../src/game/sim/stage";
+import { stageModels } from "../src/game/presentation/stagePreload";
 import { install, startBuild } from "../src/platform/main";
 import { Key } from "../src/platform/shell/keyEvents";
 import { panelActions } from "../src/platform/shell/menus";
@@ -116,8 +115,12 @@ test("playable: selection creates no effect and reads no file; match start creat
   // The press draws the stage behind its loading screen; the match starts once every client has reported it.
   const loading = work(() => clients.press(0, Key.y));
   expect(loading.fileReads).toBe(0);
+  let loadingCreated = loading.created;
   let start = work(() => clients.frames(1));
-  for (let frame = 0; frame < 120 && value(host, () => shell().game.phase) !== Phase.match; frame++) start = work(() => clients.frames(1));
+  for (let frame = 0; frame < 120 && value(host, () => shell().game.phase) !== Phase.match; frame++) {
+    loadingCreated += start.created;
+    start = work(() => clients.frames(1));
+  }
   let stage = 0;
   host.run(() => {
     const s = shell();
@@ -125,9 +128,11 @@ test("playable: selection creates no effect and reads no file; match start creat
     expect(s.participants.map(({ pooled }) => pooled)).toEqual([true, true, true, true]);
     stage = s.game.stageChoice;
   });
-  // Each fighter's clip pool, shield, projectile pool, special cues and agency halo, and the stage's decks and scenery; nothing more.
+  // Stage handles are prepared once under the cover, then retained at match start.
+  expect(loadingCreated).toBe(stageModels(stage).length);
+  // Each fighter's clip pool, shield, projectile pool, special cues and agency halo; nothing more.
   expect(start.poolCreated).toBe(4 * poolEffects(Character.demonHunter));
-  expect(start.created).toBe(start.poolCreated + 4 * (1 + PROJECTILE_CAPACITY + fighterRenderedCues(Character.demonHunter).length + 1) + surfaceCount(stage) + stageScenery(stage).pieces.length);
+  expect(start.created).toBe(start.poolCreated + 4 * (1 + PROJECTILE_CAPACITY + fighterRenderedCues(Character.demonHunter).length + 1));
   expect(start.fileReads).toBe(0);
 
   const match: Work[] = [];
