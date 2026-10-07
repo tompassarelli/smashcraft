@@ -321,6 +321,9 @@ differences, or no export fail the run. The result reports moments and complete
 matches separately, with their replayed frame counts. Native comparison still
 requires the authored View export.
 
+The hosted `203/tap-jump.pad` case enables `WC3_TAP_JUMP=on`, as its original
+header requires; the other pad cases use the helper's normal off setting.
+
 ### Many scripts in one game
 
 Native acceptance also selects an offline pair with
