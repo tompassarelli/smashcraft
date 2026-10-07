@@ -272,9 +272,24 @@ for (const [ordinal, action] of [...actions, ...damage].entries()) {
     }
     root.Translation.Keys.sort((a,b) => a.Frame-b.Frame);
   }
-  const binding = `{ index: ${index}, seconds: ${seconds((end-start)/1000)}, aligned: true${action.paired ? `, contact: ${seconds(action.contact/60)}` : ""} }`;
+  const victimContact = /^victim(Pummel|Throw)/.test(action.pose);
+  const binding = `{ index: ${index}, seconds: ${seconds(victimContact ? 1 : (end-start)/1000)}, aligned: true${action.paired ? `, contact: ${seconds(victimContact ? 0.5 : action.contact/60)}` : ""} }`;
   if (ordinal < actions.length) bindings.push(`  ${action.pose}: ${binding},`); else damageBindings.push(`  ${binding},`);
-  records.push({pose: name, index, frames: action.frames, contact: action.contact});
+  records.push({pose: name, index, frames: victimContact ? 60 : action.frames, contact: victimContact ? 30 : action.contact});
+}
+// Victim playback shares a half-second contact while holders retain their move timing.
+for (const [ordinal, action] of actions.entries()) if (/^victim(Pummel|Throw)/.test(action.pose)) {
+  const sequence = model.Sequences[source.Sequences.length + ordinal]!, [first, last] = sequence.Interval;
+  const contact = first! + Math.round(action.contact * 1000 / 60), start = cursor;
+  cursor = start + 1100;
+  tracks(model, track => {
+    if (globalClock(track)) return;
+    for (const key of track.Keys) if (key.Frame >= first! && key.Frame <= last!)
+      key.Frame = start + (key.Frame <= contact ? Math.round((key.Frame - first!) / (contact - first!) * 500)
+        : 500 + Math.round((key.Frame - contact) / (last! - contact) * 500));
+    track.Keys.sort((a, b) => a.Frame - b.Frame);
+  });
+  sequence.Interval = new Uint32Array([start, start + 1000]);
 }
 const bytes = generateMDX(model), drawn = new DrawnModel(bytes, 1), before = new DrawnModel(generateMDX(source), 1);
 for (const [index, sequence] of source.Sequences.entries()) for (const at of [0, 0.5, 1]) {
@@ -282,10 +297,10 @@ for (const [index, sequence] of source.Sequences.entries()) for (const at of [0,
   ensure(a.length === b.length && a.every((v,i) => Math.abs(v-b[i]!) < 0.001), `${sequence.Name}: original geometry changed`);
 }
 for (const [ordinal, action] of [...actions, ...damage].entries()) {
-  const record = records[ordinal]!, first = drawn.triangles(record.index,0,1), contact = drawn.triangles(record.index,action.contact/60,1);
+  const record = records[ordinal]!, first = drawn.triangles(record.index,0,1), contact = drawn.triangles(record.index,record.contact/60,1);
   ensure(first.length > 0 && first.length === contact.length, `${record.pose}: model body missing`);
   let motion = 0;
-  for (let frame=0; frame<=action.frames; frame++) {
+  for (let frame=0; frame<=record.frames; frame++) {
     const triangles = drawn.triangles(record.index,frame/60,1);
     ensure(triangles.length === first.length, `${record.pose}: body disappears`);
     for (let i=0;i<first.length;i+=2) motion=Math.max(motion,Math.hypot(triangles[i]!-first[i]!,triangles[i+1]!-first[i+1]!));

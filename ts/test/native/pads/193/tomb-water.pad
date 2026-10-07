@@ -1,0 +1,8 @@
+# #193/#195: Tomb tide floor, longer run brake, waterfall capture.
+#! chat -dev quick stage 7
+15 a stick 1 0
+45 a stick 0 0
+80 a tap X 2
+125 a capture
+150 a press VIEW
+220 a release VIEW

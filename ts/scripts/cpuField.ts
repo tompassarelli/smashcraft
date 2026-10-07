@@ -32,7 +32,7 @@ import soak from "./wisp/soak";
 /** The soak's stages by the game's stage numbers (test/soak/game.ts). */
 export const FIELD_STAGES: Readonly<Record<string, number>> = {
   "sky-deck": 0, "three-bridges": 1, "frozen-throne": 2, "drifting-deck": 3, "patterned-decks": 4,
-  "wind": 10, "carried": 11, "cannon": 12, "timed-lift": 13, "hellfire": 14,
+  "wind": 10, "carried": 11, "cannon": 12, "timed-lift": 13, "hellfire": 14, "stratholme": 6, "tomb-of-sargeras": 7,
 };
 /** A stock lost this long after the last hit taken, or with none, was lost without the opponent (#105 box 3). */
 const NO_HIT_FRAMES = 3 * MATCH_TICKS_PER_SECOND;

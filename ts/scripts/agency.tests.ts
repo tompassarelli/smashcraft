@@ -2,6 +2,7 @@ import { expect, test } from "bun:test";
 import { emptyInput } from "../src/game/input/inputRow";
 import type { ReplayState } from "../src/game/replay/snapshot";
 import { Character } from "../src/game/sim/codes";
+import { canBeGrabbed } from "../src/game/sim/conditions";
 import { fighterAt } from "../src/game/sim/roster";
 import { INPUT_CLASSES, agencyLetters, analyzeAgency, runFrame, snapshotOf } from "./agency";
 import { attackerPlan, standingMatch } from "./agencySweep";
@@ -57,7 +58,12 @@ test("mashing out of a hold the attacker keeps is acting", () => {
 test("the soak's detector flags a loop the victim can't act out of, and passes one it can", () => {
   // Uther regrabs Rifleman after each up throw at 50%: only buttons get the victim out of the cycle.
   const start = standingMatch(Character.uther, Character.rifleman, 50, 40);
-  const attacker = attackerPlan("up throw", start.runtime.simulationFrame + 1, 80);
+  const regrab = attackerPlan("up throw", start.runtime.simulationFrame + 1, 80);
+  const attacker = (state: Readonly<ReplayState>, frame: number) => {
+    const victim = fighterAt(state.world, VICTIM);
+    // A throw protects its hitstun from regrabs; a whiff there would add a recovery window to this fixture.
+    return victim.grab.owner === undefined && !canBeGrabbed(victim) ? emptyInput() : regrab(state, frame);
+  };
   const watch = (classes: typeof INPUT_CLASSES) => {
     const lockWatch = new LockWatch(classes);
     const state = snapshotOf(start);

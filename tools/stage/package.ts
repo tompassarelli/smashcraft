@@ -6,6 +6,7 @@ import { STAGE_PALETTE_TEXTURE, mainDeckFaces, mainDeckMdl, mainDeckModelFile, m
 import { STAGE_DECK_PALETTES } from "../../ts/src/game/assets/stagePalette";
 import { STAGE_LIGHTS } from "../../ts/src/game/assets/stageLighting";
 import { stageLightMdl, stageLightModelFile } from "../../ts/scripts/stageLight";
+import { packageLiquids } from "./liquids";
 import { packageSkies } from "./skies";
 
 const output = join(import.meta.dir, "../../build/stage-assets");
@@ -149,5 +150,6 @@ for (const { stage, theme, light } of STAGE_LIGHTS) {
 }
 await Bun.write(infoPath, `${await Bun.file(infoPath).text()}/** Each selectable stage's day/night lighting model, from its light in stageLighting.ts. */\nexport const STAGE_LIGHT_MODELS: Readonly<Record<number, string>> = {\n${lights.join("\n")}\n};\n`);
 const skyNames = await packageSkies(output);
-await Bun.write(join(output, "imports.txt"), `${[...imports, snowName, ...lightNames, ...skyNames].join("\n")}\n`);
+const liquidNames = await packageLiquids(output);
+await Bun.write(join(output, "imports.txt"), `${[...imports, snowName, ...lightNames, ...skyNames, ...liquidNames].join("\n")}\n`);
 console.log(`Stage lights: ${STAGE_LIGHTS.length} lighting models`);

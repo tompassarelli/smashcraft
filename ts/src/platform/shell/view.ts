@@ -10,8 +10,9 @@ import { f32 } from "wisp/src/sim/f32";
 import { at } from "wisp/src/runtime/lookup";
 import { PARTICIPANT_SLOTS, type ParticipantSlot } from "../../game/input/participants";
 import type { PacingAndPresentation } from "../../game/match/pacingAndPresentation";
-import { type MatchState, Phase, remainingSeconds, timedMatch } from "../../game/match/rules";
+import { type MatchState, Phase, remainingSeconds, stageClock, timedMatch } from "../../game/match/rules";
 import { ARENA_CAMERA, FLOOR_HEIGHT, cameraFieldOfView, cameraPoint, extremeCamera, localCamera } from "../../game/presentation/arenaCamera";
+
 import { advanceMatchCamera } from "../../game/sim/matchCamera";
 import { stageBounds } from "../../game/sim/stageBounds";
 import { damageTint } from "../../game/presentation/hitPresentation";
@@ -32,7 +33,7 @@ import { MOMENT_SAVED_MESSAGE, type StartControl, matchHelp, resultNotice, stock
 import { isIntangible } from "../../game/sim/conditions";
 import { type Roster, fighterAt, isActive } from "../../game/sim/roster";
 import { surfaceCount, surfaceLeft, surfaceMoves, surfacePass, surfaceRight, surfaceZ } from "../../game/sim/stage";
-import { CANNON_Z, cannonAim, cannonX, hasCannon } from "../../game/sim/stageHazards";
+import { CANNON_Z, cannonAim, cannonOn, cannonX, hasCannon } from "../../game/sim/stageHazards";
 import { localParticipantSlot, traceParticipant } from "./diagnostics";
 import { placeFighterBody, renderDizzy } from "./fighterBody";
 import { type ShellState, type StatusFrames, activeRollback, localSlot, playsOnKeyboard } from "./state";
@@ -92,20 +93,21 @@ export function drawStage(s: ShellState): void {
   drawStageScenery(s);
   const { origin } = s;
   const stage = s.game.stageChoice;
+  const stageFrame = stageClock(s.game);
   for (let index = 0; index < surfaceCount(stage); index++) {
-    const left = surfaceLeft(stage, index, s.game.matchFrame);
-    const right = surfaceRight(stage, index, s.game.matchFrame);
+    const left = surfaceLeft(stage, index, stageFrame);
+    const right = surfaceRight(stage, index, stageFrame);
     const pass = surfacePass(stage, index);
     const x = origin.x + (left + right) / 2;
     const deck = AddSpecialEffect(deckModel(stage, index), x, origin.y);
-    BlzSetSpecialEffectPosition(deck, x, origin.y, origin.z + surfaceZ(stage, index, s.game.matchFrame));
+    BlzSetSpecialEffectPosition(deck, x, origin.y, origin.z + surfaceZ(stage, index, stageFrame));
     // The slab's walking plane spans [-50, 50] at z = 0; the body stays below it.
     if (index > 0 || hasCannon(stage)) BlzSetSpecialEffectMatrixScale(deck, (right - left) / 100, pass ? f32(0.65) : 1.0, pass || hasCannon(stage) ? f32(0.45) : 1.0);
     s.stageDecks.push(deck);
   }
-  if (hasCannon(stage)) {
-    s.stageCannon = AddSpecialEffect(CANNON_MODEL, origin.x + cannonX(s.game.matchFrame), origin.y);
-    BlzSetSpecialEffectPosition(s.stageCannon, origin.x + cannonX(s.game.matchFrame), origin.y, origin.z + CANNON_Z);
+  if (cannonOn(stage, stageFrame)) {
+    s.stageCannon = AddSpecialEffect(CANNON_MODEL, origin.x + cannonX(stageFrame), origin.y);
+    BlzSetSpecialEffectPosition(s.stageCannon, origin.x + cannonX(stageFrame), origin.y, origin.z + CANNON_Z);
     BlzSetSpecialEffectScale(s.stageCannon, 1.5);
   }
   s.drawnStage = stage;
@@ -188,7 +190,8 @@ function presentedMatch(s: ShellState): PresentedMatch {
 /** Runs once per callback, after confirmed catch-up and any replay. */
 export function renderPersistentPresentation(s: ShellState): void {
   const { game, world, runtime, playing } = presentedMatch(s);
-  const { stageChoice: stage, matchFrame } = game;
+  const stage = game.stageChoice;
+  const matchFrame = stageClock(game);
   // The decks drawn are the drawn stage's: the stage menu changes the choice before the match draws it.
   const drawn = s.drawnStage;
   const beforePlatform = framesUntilPlatformMoves(drawn, matchFrame);
@@ -199,7 +202,7 @@ export function renderPersistentPresentation(s: ShellState): void {
     const warns = beforePlatform !== undefined && beforePlatform <= PLATFORM_CUE_FRAMES;
     BlzSetSpecialEffectColor(at(s.stageDecks, index), 255, warns ? 170 : 255, warns ? 40 : 255);
   }
-  if (s.stageCannon !== undefined && hasCannon(drawn)) {
+  if (s.stageCannon !== undefined && cannonOn(drawn, matchFrame)) {
     BlzSetSpecialEffectPosition(s.stageCannon, s.origin.x + cannonX(matchFrame), s.origin.y, s.origin.z + CANNON_Z);
     BlzSetSpecialEffectPitch(s.stageCannon, cannonAim(matchFrame));
     let firing = false;
