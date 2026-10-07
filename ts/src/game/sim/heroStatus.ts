@@ -27,8 +27,6 @@ interface StatusRules {
   readonly blocksAttacks?: boolean | undefined;
   /** The fighter mashes out with the grab and freeze rule (sim/mash.ts), never before this many frames. */
   readonly mashMinimum?: number | undefined;
-  /** Scales the damage of every hit the fighter deals; 1 when absent. */
-  readonly damageDealt?: number | undefined;
   /**
    * Carried away (Val'kyr Shadowguard): each frame the fighter moves `speed`
    * toward its back and rises `rise`, with no gravity or drift; it faces the
@@ -46,8 +44,6 @@ const RULES: { readonly [kind: number]: StatusRules | undefined } = {
   // Chill only lowers top speeds (sim/chill.ts).
   [HeroStatusKind.chill]: { blocksActions: false, blocksSpecials: false, endsOnDamage: false },
   [HeroStatusKind.stun]: { blocksActions: true, blocksSpecials: true, endsOnDamage: true },
-  // Howl of Terror: every hit the fighter deals does 10 percent less damage; nothing else changes.
-  [HeroStatusKind.terror]: { blocksActions: false, blocksSpecials: false, endsOnDamage: false, damageDealt: f32(0.9) },
   // Val'kyr Shadowguard (#167): carried toward the ledge behind the victim; mashed out never before frame 20, and any
   // damaging hit, the Lich King's included, drops it, so the carry can't be extended into a combo.
   [HeroStatusKind.carried]: { blocksActions: true, blocksSpecials: true, endsOnDamage: true, mashMinimum: 20, carry: { speed: 3.0, rise: 0.5 } },
@@ -90,11 +86,6 @@ export function heroStatusMashes(f: Readonly<Fighter>): boolean {
 /** Whether the fighter's status stops every action: no input changes anything while it lasts. */
 export function heroStatusBlocksActions(f: Readonly<Fighter>): boolean {
   return rules(f)?.blocksActions === true;
-}
-
-/** The factor the fighter's status applies to the damage of each hit it deals (Terror's 0.9). */
-export function heroStatusDamageDealt(f: Readonly<Fighter>): number {
-  return rules(f)?.damageDealt ?? 1.0;
 }
 
 /** Applies the status unless the fighter is immune to its group; a reapplication refreshes it. */
