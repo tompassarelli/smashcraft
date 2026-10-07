@@ -83,7 +83,7 @@ is no scripted follow-up or command-grab loop through throw hitstun.
 
 | Input | Contract and player decision | Warcraft source | Smash reference |
 | --- | --- | --- | --- |
-| Neutral: **Black Arrow** | 8 mana, fires f16, end f40. One reflectable arrow, speed 17, life 36, radius 10; 6 damage, 35°, growth 70/base 16. Starts 44 ahead and 60 high; up aim adds 5 upward speed. Limit one live arrow. Air landing lag 16. Jump over, shield or reflect it; her recovery gives time to advance. | [Black Arrow][ranger] | [Pit][pitbow] / [Link][linkbow], aim and commitment |
+| Neutral: **Black Arrow** | 8 mana, fires f16, end f40. One reflectable arrow, speed 17, life 36, radius 10; 11 damage, 35°, growth 70/base 16. Starts 44 ahead and 60 high; up aim adds 5 upward speed. Limit one live arrow. Air landing lag 16. Jump over, shield or reflect it; her recovery gives time to advance. | [Black Arrow][ranger] | [Pit][pitbow] / [Link][linkbow], aim and commitment |
 | Side: **Silence** | 20 mana; f18–20 spectral strike reaches 155, end f48. 4 damage, 60°, growth 45/base 20. Body contact silences for 90 frames, then grants 180 frames of silence immunity. Shields stop it. Movement, normals, grabs, defense and up-special remain available. Air landing lag 20. | [Silence][ranger] | [Disable][disable], bait a short-range status cast; [Palutena control][flame] |
 | Up: **Banshee Flight** | 15 mana; f8–31 rises 2H and live-stick drifts up to 0.9H. No hitbox or intangibility. Once per airtime, spends aerial jump, ends helpless. Under 15 mana: free 1.4H rise and 0.45H drift. Challenge the exposed ascent or punish landing. | [Banshee spirit][banshee] | [Pit Power of Flight][flight], vulnerable aimed recovery |
 | Down: **Life Drain** | Ground only, 20 mana; command grab f16–18, reach 80; whiff ends f52. Holds 16 frames, releases for 9 damage at 50°, growth 90/base 24, then 28 recovery. Heals 3 damage, capped at 9 per stock. Shield loses, jump/dodge or an outside hit wins. | [Life Drain][ranger] | [Mewtwo Confusion][confusion], deliberate close catch |
@@ -116,8 +116,9 @@ clips show the actual bow direction at contact. Rolls tuck, throws separate
 holder and captive, and damage has nine articulated height/intensity poses.
 Private derived models and pooled clips stay in the private input store.
 
-The bot keeps 110–190 units, fires arrows outside melee, uses Silence from
-its near range, reads shield with Life Drain and saves flight for returning.
+The bot spaces at 110–190 units and fires arrows outside melee, then closes
+for running and jumping attacks. It uses Silence from its near range,
+reads shield with Life Drain and saves flight for returning.
 The issue owns the move contracts, bot coverage, unchanged 40–60% field
 measurement and completed roster presentation.
 
