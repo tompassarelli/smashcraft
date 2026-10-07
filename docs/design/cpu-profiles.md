@@ -131,6 +131,11 @@ until that window can meet the strike. Protected approaches hand over to attack
 selection at the fighter's projected authored reach. These forecasts use no
 newer opponent sample.
 
+Attack and punish reach also advance the delayed target's horizontal position
+through the observation delay using its last observed velocity. The attacker's
+own slide starts at the decision frame, so the delay is counted only for the
+target. The forecast remains fallible when that target changes direction.
+
 An active Divine Shield can also fund a ranged attack when the opponent remains
 outside melee reach. Its mana is available for that attack instead of being held
 for a second guard; without active protection, the guard reserve still applies.
