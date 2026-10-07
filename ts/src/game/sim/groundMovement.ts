@@ -132,7 +132,9 @@ export function advanceGroundMovement(f: Fighter, direction: number, walking: bo
   const { ground, motion } = f;
   const physics = f.tuning.physics;
   const changingDirection = direction !== 0 && direction !== ground.dashDirection;
-  const freshFlick = motion.stickSideAge < DASH_FLICK_SAMPLES;
+  // Flick freshness qualifies an active dash's reversal. A full direction
+  // held through landing/recovery starts a normal dash when steering resumes.
+  const freshFlick = ground.action !== GroundAction.dash || motion.stickSideAge < DASH_FLICK_SAMPLES;
   const strongStick = Math.abs(horizontalStick) >= DASH_STICK_THRESHOLD;
   if (!walking && changingDirection && ground.action !== GroundAction.run && ground.action !== GroundAction.turnRun && ground.action !== GroundAction.runBrake) {
     if (ground.action === GroundAction.dash && motion.stickSideAge === 0 && !strongStick) {
