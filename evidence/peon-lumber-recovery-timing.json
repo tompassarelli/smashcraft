@@ -1,0 +1,26 @@
+{
+  "modelPath": "/home/tom/.local/share/smashcraft-animation-reference/peon227/pummel-and-lumber-retimed/hero-models/peon.mdx",
+  "baselineSha256": "f8c01d75ae34e4ff9d8e0a7ac689ccc18314f6b5cfbb84019304c62d72385caa",
+  "modelSha256": "3f11df44ef6688cad93263b2177d883c1d98c75828b5a04962c1beba1a332ce9",
+  "totalSequences": 88,
+  "unchangedSequences": 87,
+  "unchangedTrackIntervals": 3567,
+  "sampledPoses": 870,
+  "maxVertexDifference": 0,
+  "lumberToss": {
+    "index": 38,
+    "oldFrames": 42,
+    "newFrames": 48,
+    "contactFrame": 18,
+    "first42FramesMaxVertexDifference": 0,
+    "tailFrames": 6,
+    "tailMaxVertexDifference": 0
+  },
+  "pairingContract": {
+    "test": "paired hero throws reach contact on the actual holder's frame across every roster pairing",
+    "scope": "Peon victim; original assertions; 21 selectable holders; 2 facings; 5 actions",
+    "pairings": 210,
+    "passed": 210,
+    "failures": 0
+  }
+}

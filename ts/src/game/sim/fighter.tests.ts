@@ -17,6 +17,7 @@ test("fighters own their state and share only immutable tuning", () => {
     assertEquals(second.projectiles[0]?.life, 0);
     assertEquals(first.tuning.dashGrab, AUTHORED_DASH_GRAB_RULES);
     assertEquals(first.tuning.physics, second.tuning.physics);
+    assertEquals(first.tuning.shield, second.tuning.shield);
     assertEquals(termsOfPhysics(first.tuning.physics), termsOfPhysics(second.tuning.physics));
     first.tuning.physics = { ...first.tuning.physics, gravity: 0.0 };
     assertEquals(second.tuning.physics, authoredPhysics(character));
