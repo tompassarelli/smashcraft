@@ -99,5 +99,5 @@ from this Bear signal.
 
 The headless contract checks the four state windows, one roar per command and
 one impact per connected bite; the existing pack script still exercises the
-whole kit. Tom's next match supplies the final observation: he describes
-Bear's job in one sentence, and judges the whole pack fun.
+whole kit. The automated script checks that the roar crest is visible during the windup;
+all special and companion gameplay contracts remain in Bun and emitted Lua.
