@@ -22,9 +22,7 @@
 185 a stick -0.4 0
 188 a stick 0 0
 195 a tap X 2
-# b dashes and walks up to a.
-275 b stick -1 0
-277 b stick 0 0
+# b walks up to a, close enough for the guard, jab and grab.
 292 b press LB
 292 b stick -1 0
 304 b stick 0 0
