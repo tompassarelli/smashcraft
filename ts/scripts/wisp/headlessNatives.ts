@@ -17,6 +17,8 @@ export const SMASHCRAFT_NOOPS: IntentionalNoops = {
   FogMaskEnable: "visibility is decided by the map's stage and effect state; terrain fog mask is not simulated",
   BlzSetSpecialEffectAnimationBlendTime: "quick-match records selected clips and times without Warcraft animation blending",
   GetSoundFileDuration: "cue presence and start frames are inspected; audio decoding and duration are not simulated",
+  SetSoundDistances: "item cue starts and world positions are inspected; engine audio attenuation is not simulated",
+  SetSoundDistanceCutoff: "item cue starts and world positions are inspected; engine audio attenuation is not simulated",
   SetSoundDuration: "cue presence and start frames are inspected; audio completion is not simulated",
   SetSkyModel: "the sky is scenery outside quick-match's gameplay and scene assertions",
   SetDayNightModels: "quick-match uses map scene state without Warcraft's day-night lighting",

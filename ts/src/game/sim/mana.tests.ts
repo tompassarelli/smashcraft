@@ -160,3 +160,15 @@ test("each original special pays its own cost: Illidan's Wing Ascent is free and
   assertEquals(originalSpecialCost(SpecialAction.demonHunterWingAscent), 0);
   assertEquals(originalSpecialCost(SpecialAction.demonHunterImmolate), 15);
 });
+
+test("mana transfer takes only available enemy mana, respects shields and caps its receiver", () => {
+  for (const [available, blocked, received, retained] of [[12, false, 62, 0], [0, false, 50, 0], [40, false, 75, 15], [40, true, 50, 40]] as const) {
+    const { world, source, target } = pair(); target.mana.points = available;
+    const effect = { ...hitEffect(0.0, 0.0, 0.0, 0.0, 0.0), manaSteal: 25 };
+    contactBatch(world, () => collectDamageContact(world, 0, 1, effect, 1, ContactKind.launch, false, undefined, blocked));
+    assertEquals(source.mana.points, received); assertEquals(target.mana.points, retained);
+  }
+  const { world, source, target } = pair(); source.mana.points = 95;
+  contactBatch(world, () => collectDamageContact(world, 0, 1, { ...hitEffect(0.0, 0.0, 0.0, 0.0, 0.0), manaSteal: 25 }, 1, ContactKind.launch, false, undefined, false));
+  assertEquals(source.mana.points, 100); assertEquals(target.mana.points, 25);
+});

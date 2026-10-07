@@ -1190,6 +1190,10 @@ reason. Current departures:
 - **Pit Lord's back air (Tail Lash), rule 6.** The tail is the strike and the
   roster lengthens his tail hurtbox with it, so the tail volume reaches about
   0.97 of his height behind him and stays hittable to its full length.
+- **Thrall's low wolf strikes, rule 6** (forward tilt down, down tilt, down
+  smash and down air). The mounted wolf's attacking paws reach 116 units
+  sideways, about 0.764 of the standing height. Their measured body volumes
+  stay hittable to the end of each paw; only Doomhammer is disjoint.
 
 ## Aerials on shield
 

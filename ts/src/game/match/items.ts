@@ -67,7 +67,7 @@ export function firstItemsDifference(e: Readonly<MatchItems>, a: Readonly<MatchI
 
 /**
  * Canonical fields. Written only when they differ from a fresh standard match,
- * so a match that never reaches its first item keeps its old checksum.
+ * so an unscheduled standard match contributes no extra fields.
  */
 export function writeMatchItems(items: Readonly<MatchItems>, int: (name: string, value: number) => void, bool: (name: string, value: boolean) => void): void {
   if (!items.on) bool("match.items.on", false);

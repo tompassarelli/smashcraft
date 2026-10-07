@@ -90,6 +90,7 @@ import { advanceMash } from "./mash";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
 import { at } from "wisp/src/runtime/lookup";
 import { advancePassive } from "./passives";
+import { aerialJumps, heavyFall, jumpBuffed, speedBuffed } from "./itemBuffs";
 
 const FAST_FALL_DOWN_THRESHOLD = 0.6625000238418579;
 /** Melee common +0x008: the stick crosses this sideways to count as a fresh flick. */
@@ -210,7 +211,7 @@ function advanceJumpSquat(f: Fighter, input: Readonly<Controls>, squatBeforeInpu
   motion.grounded = false;
   const jumpX = f32(f32(motion.vx * physics.jumpMomentum) + f32(input.direction * physics.jumpHorizontalSpeed));
   motion.vx = max(-physics.jumpHorizontalCap, min(physics.jumpHorizontalCap, jumpX));
-  motion.vz = jump.held ? physics.fullJumpSpeed : physics.shortJumpSpeed;
+  motion.vz = jumpBuffed(f, jump.held ? physics.fullJumpSpeed : physics.shortJumpSpeed);
   jump.ascent = 1;
   jump.serial++;
   jump.isDouble = false;
@@ -520,7 +521,8 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   let direction = input.direction;
   if (isTumbling(f) && !motion.grounded && launch.hitstun <= 0 && launch.hitlag <= 0 && tumbleExitFlick) {
     clearDownState(f);
-    motion.vx = max(-physics.airSpeed, min(physics.airSpeed, motion.vx));
+    const airSpeed = speedBuffed(f, physics.airSpeed);
+    motion.vx = max(-airSpeed, min(airSpeed, motion.vx));
   }
   let dashEntryDisplacementAdjustment = 0.0;
   // Archer's hippogryph ride and Illidan's glide set the velocity each frame (specials.ts).
@@ -590,7 +592,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
       motion.fastFallInputAge = PLATFORM_DROP_INPUT_WINDOW;
     }
     if (drill?.speedZ !== undefined) motion.vz = drill.speedZ;
-    else if (motion.fastFalling) motion.vz = -physics.fastFallSpeed;
+    else if (motion.fastFalling) motion.vz = -heavyFall(f, physics.fastFallSpeed);
     else applyMeleeGravity(f);
   }
   moveMeleeVerticalVelocity(f);
@@ -612,7 +614,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
     // Melee's collision reports it. One leaving a ledge's corner is not.
     const bodySide = leaveMainDeckBody(f, stage);
     if (wallSide === 0 && f32(bodySide * frameDeltaX) > 0) wallSide = bodySide;
-    if (motion.grounded) jump.remaining = min(jump.remaining, 1);
+    if (motion.grounded) jump.remaining = min(jump.remaining, aerialJumps(f));
     motion.grounded = false;
     motion.surface = undefined;
     clearDash(f);
