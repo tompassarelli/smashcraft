@@ -37,6 +37,10 @@ const DEPARTURES: { readonly [key: string]: string | undefined } = {
   "Mountain King downAir rule 6": "Double Boot strikes with the boots themselves, so the leg volume follows the whole downward strike past a limb's reach",
   "Uther backAir rule 6": "a boot kick: the extended leg is the strike and stays hittable to its full length",
   "Pit Lord backAir rule 6": "Tail Lash strikes with the tail itself, which the roster makes body: it stays hittable to its full length",
+  "Thrall forwardTiltDown rule 6": "the mounted wolf's paw is the strike and stays hittable to its measured 116-unit reach",
+  "Thrall downTilt rule 6": "the mounted wolf's paw is the strike and stays hittable to its measured 116-unit reach",
+  "Thrall downSmash rule 6": "the mounted wolf's paws are the strikes and stay hittable to their measured 116-unit reach",
+  "Thrall downAir rule 6": "the mounted wolf's paw is the strike and stays hittable to its measured 116-unit reach",
   ...wings(["forwardTilt", "forwardTiltDown", "downSmash", "forwardSmash", "forwardAir", "backAir", "downAir"]),
 };
 

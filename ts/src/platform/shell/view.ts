@@ -11,7 +11,7 @@ import { at } from "wisp/src/runtime/lookup";
 import { PARTICIPANT_SLOTS, type ParticipantSlot } from "../../game/input/participants";
 import type { PacingAndPresentation } from "../../game/match/pacingAndPresentation";
 import { type MatchState, Phase, remainingSeconds, timedMatch } from "../../game/match/rules";
-import { ARENA_CAMERA, FLOOR_HEIGHT, cameraFieldOfView, cameraPoint, localCamera } from "../../game/presentation/arenaCamera";
+import { ARENA_CAMERA, FLOOR_HEIGHT, cameraFieldOfView, cameraPoint, extremeCamera, localCamera } from "../../game/presentation/arenaCamera";
 import { advanceMatchCamera } from "../../game/sim/matchCamera";
 import { stageBounds } from "../../game/sim/stageBounds";
 import { damageTint } from "../../game/presentation/hitPresentation";
@@ -267,6 +267,7 @@ export function lockArenaCamera(s: ShellState): void {
   const height = BlzGetLocalClientHeight();
   const aspect = height > 0 ? I2R(BlzGetLocalClientWidth()) / I2R(height) : 16.0 / 9.0;
   localCamera(s.camera, game.camera.initialized ? game.camera : s.camera, game.stageChoice, aspect);
+  if (s.viewExtreme !== undefined) extremeCamera(s.camera, game.stageChoice, aspect, s.viewExtreme);
   const { x: centerX, y: centerY } = s.origin;
   const framing = s.camera;
   probeCamera(s.probe, game.camera, framing, centerX, FLOOR_HEIGHT);
@@ -297,6 +298,7 @@ export function lockArenaCamera(s: ShellState): void {
     SetCameraField(CAMERA_FIELD_FIELD_OF_VIEW, 70.0, 0.0);
     SetCameraPosition(centerX, centerY);
   }
+  views(s).items.present(game, world, framing, aspect);
   for (const slot of PARTICIPANT_SLOTS) {
     const fighter = isActive(world, slot) ? fighterAt(world, slot) : undefined;
     const point = cameraPoint(framing, aspect, fighter?.motion.x ?? 0.0, (fighter?.motion.z ?? 0.0) + 60.0);
@@ -332,6 +334,7 @@ export function renderUi(s: ShellState): void {
     ui.settings[slot].update();
   }
   ui.clock.update(showMatch && timedMatch(game), remainingSeconds(game));
+  ui.items.hud(game, showMatch);
   ui.training.update(showMatch && game.training && game.phase === Phase.match, game.trainer);
   const { help, notice, developer } = s.frames;
   BlzFrameSetVisible(help, showMatch);

@@ -29,7 +29,7 @@ test("a match after -dev reset equals the first match of the game: same trace ch
   const errors = () => clients.clients.flatMap(client => client.errors.map(error => `p${client.slot}: ${error}`));
   const trace = (slot: number) => clients.client(slot).files.get(TRACE_FILE);
   const saved = () => [...clients.client(0).files.keys()].filter(name => name.startsWith("smashcraft-repro-"));
-  /** One quick match until both clients wrote its trace (1200 callbacks after its first row). */
+  /** One quick match until both clients wrote its trace (4500 callbacks after its first row). */
   const play = (label: string, command = QUICK_MATCH_COMMAND) => {
     for (const client of clients.clients) client.files.delete(TRACE_FILE);
     clients.chat(0, command);
@@ -37,7 +37,7 @@ test("a match after -dev reset equals the first match of the game: same trace ch
     frames(1000);
     // Native parity also compares a moment's whole starting state, inactive slots included.
     helpers.requestMoment(0);
-    for (let i = 0; i < 1500 && !(trace(0) !== undefined && trace(1) !== undefined); i++) frames(1);
+    for (let i = 0; i < 4500 && !(trace(0) !== undefined && trace(1) !== undefined); i++) frames(1);
     expect(errors(), label).toEqual([]);
     const moment = saved().filter(name => !moments.has(name)).map(name => clients.client(0).files.get(name));
     if (command === QUICK_MATCH_COMMAND) expect(moment.length, label).toBe(1);

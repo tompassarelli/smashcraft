@@ -1063,6 +1063,8 @@ const SPECIAL_INPUTS = [
   { name: "down special", held: (): Held => [Action.moveDown, Action.special] },
 ] as const;
 type SpecialInput = (typeof SPECIAL_INPUTS)[number];
+/** Feral Spirit follows the roster's summon rule even while its wolves run. */
+export const isProjectileSummon = (character: Character, source: string): boolean => character === Character.thrall && source === "side special";
 export const PROJECTILE_SPACINGS = [60, 240, 480] as const;
 /** The shooter fires on this frame, so a shield held from frame 1 has left its powershield frames. */
 const FIRE = 10;
@@ -1127,7 +1129,7 @@ function projectileFlight(character: Character, input: SpecialInput): { readonly
     const live = liveProjectiles(a);
     if (born === undefined && live > 0) {
       born = n;
-      traveling = a.projectiles.some((projectile) => projectile.life > 0 && (projectile.velocityX !== 0 || projectile.velocityZ !== 0));
+      traveling = !isProjectileSummon(character, input.name) && a.projectiles.some((projectile) => projectile.life > 0 && (projectile.velocityX !== 0 || projectile.velocityZ !== 0));
     }
     if (born !== undefined && live === 0) died = n;
     return died !== undefined;
@@ -1410,7 +1412,7 @@ function projectileSection(entry: FighterEntry, rows: readonly Row[]): string[] 
       + "Flight and most out are measured firing away from everyone, the most out with the special pressed every other frame. "
       + "Punish start frames are out-of-shield options that land before the shooter can act. Powershield and answer frames are presses, from frame 0, of a standing defender that leave it unhit.", "",
     ...table(["Source", "Distance", "Flight", "Most out", "Arrives", "Hits a standing defender", "Advantage", "Punished by (start frames)", "Powershield", "Answers (press frames)"], own.map((row) => [
-      row.source, String(row.distance), `${row.flight}${row.traveling ? "" : " (stays)"}`, String(row.mostOut), show(row.arrives), row.hitsIdle ? "yes" : "no", signed(row.advantage),
+      row.source, String(row.distance), `${row.flight}${row.traveling ? "" : " (object)"}`, String(row.mostOut), show(row.arrives), row.hitsIdle ? "yes" : "no", signed(row.advantage),
       row.arrives === undefined ? "-" : row.pokes ? "pokes the shield" : windowsText(row.punishes, "safe"), row.arrives === undefined ? "-" : spans(row.powershield) || "never",
       row.arrives === undefined ? "-" : row.answers.filter((answer) => answer.starts.length > 0).map((answer) => `${answer.option} ${spans(answer.starts)}`).join("; ") || "none",
     ])), "",

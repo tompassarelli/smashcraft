@@ -1,3 +1,4 @@
+import { downSmashHit } from "../downMoveValues";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
 import { hurtCapsule } from "../../physics/contactGeometry";
@@ -61,8 +62,8 @@ const DASH = hit(12.0, "LAUNCH", 45);
 const FORWARD_SMASH_HEAD = hit(20.0, "KILL", 40);
 const FORWARD_SMASH_HANDLE = hit(15.0, "KILL", 40);
 const UP_SMASH = hit(17.0, "KILL", 90);
-const DOWN_SMASH_FRONT = hit(15.0, "EDGE", 25);
-const DOWN_SMASH_BACK = hit(15.0, "EDGE", 25, true);
+const DOWN_SMASH_FRONT = downSmashHit(hit(15.0, "EDGE", 25));
+const DOWN_SMASH_BACK = downSmashHit(hit(15.0, "EDGE", 25, true));
 const NEUTRAL_AIR_FRONT = hit(9.0, "POKE", 50);
 const NEUTRAL_AIR_BACK = hit(9.0, "POKE", 50, true);
 const FORWARD_AIR = hit(14.0, "KILL", 40);
@@ -131,7 +132,7 @@ export const UTHER_MOVES: FighterMoves = {
       frame(20, capsule(4.0, 78.0, -12.0, f32(LONG - 14.0), 14.0), UP_SMASH),
       frame(21, capsule(-4.0, 68.0, -32.0, 112.0, 14.0), UP_SMASH),
     ]),
-    [AttackStyle.downSmash]: heroMove(17, 6, 34, 0, [
+    [AttackStyle.downSmash]: heroMove(17, 6, 22, 0, [
       frame(17, capsule(18.0, 18.0, 78.0, 32.0, 12.0), DOWN_SMASH_FRONT),
       frame(18, capsule(18.0, 12.0, f32(MEDIUM - 12.0), 10.0, 12.0), DOWN_SMASH_FRONT),
       frame(19, capsule(18.0, 10.0, 78.0, -4.0, 12.0), DOWN_SMASH_FRONT),

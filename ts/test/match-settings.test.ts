@@ -2,9 +2,12 @@
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/src/headless/syncChannel";
+import { nextMatchSeed } from "../src/game/match/botRandom";
+import { randomStage } from "../src/game/menu/stageCatalog";
 import { Phase } from "../src/game/match/rules";
 import { RULE_BUTTONS } from "../src/game/ui/ruleButtons";
 import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
+import { ALL_ITEMS_MASK, ItemKind, itemBit } from "../src/game/sim/codes";
 import { fighterAt } from "../src/game/sim/roster";
 import { install, startBuild } from "../src/platform/main";
 import { Key } from "../src/platform/shell/keyEvents";
@@ -46,10 +49,15 @@ function session(endless = false) {
   until("match", () => read(() => shell().game.phase) === Phase.match, 120);
   return { clients, frames, read, until };
 }
-test("rules agree on both clients and the visible countdown restarts the same match on its last frame", () => {
+test("rules agree on both clients and the last countdown frame starts the next seeded pool stage", () => {
   const { clients, frames, read, until } = session();
-  const rules = () => [shell().game.characterChoices.join(), shell().game.stageChoice, shell().game.stockCount, shell().game.timeLimitMinutes];
+  const rules = () => [shell().game.characterChoices.join(), shell().game.stockCount, shell().game.timeLimitMinutes, shell().game.automaticRematch, shell().game.endless];
   const before = read(rules);
+  const previousStage = read(() => shell().game.stageChoice);
+  const pool = read(() => ({ ...shell().game.stagePool }));
+  const nextSeed = nextMatchSeed(read(() => shell().game.matchSeed));
+  expect(pool.remainingMask).toBeGreaterThan(0);
+  const nextStage = randomStage(nextSeed, pool.remainingMask);
   until("result", () => read(() => shell().game.phase) === Phase.result);
   until("helpers stopped", () => read(() => shell().rollback?.journal?.lifecycle?.quiescent() === true), 120);
   const remaining = read(() => shell().game.rematchCountdown);
@@ -62,6 +70,10 @@ test("rules agree on both clients and the visible countdown restarts the same ma
   expect(read(() => shell().game.phase)).toBe(Phase.match);
   expect(read(() => shell().rollback?.epoch)).toBe(2);
   expect(read(rules)).toEqual(before);
+  expect(read(() => shell().game.matchSeed)).toBe(nextSeed);
+  expect(read(() => shell().game.stageChoice)).toBe(nextStage);
+  expect(nextStage).not.toBe(previousStage);
+  expect(read(() => shell().game.stagePool)).toEqual({ ...pool, remainingMask: pool.remainingMask & ~(1 << nextStage) });
   expectSynchronized(clients);
 });
 // About 1.5 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
@@ -96,3 +108,34 @@ test("endless survives repeated knockouts past the selected time limit", () => {
   expect(read(() => shell().game.timedOut)).toBe(false);
   expectSynchronized(clients);
 }, 30_000);
+
+
+test("item switches sync between players and keep their choices at match start", () => {
+  const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1], { delivery: syncDelivery(MEASURED_BATTLE_NET, 196), keepCalls: 64 });
+  clients.start(); clients.frames(30);
+  const settings = () => [shell().game.items.on, shell().game.items.enabledMask];
+  const expectSettings = (on: boolean, mask: number) => {
+    for (const client of clients.clients) expect(value(client, settings)).toEqual([on, mask]);
+  };
+  const click = (name: keyof typeof RULE_BUTTONS, actor: number) => {
+    const box = RULE_BUTTONS[name];
+    expect(clients.click(actor, box.x + box.width / 2, box.y - box.height / 2)).toBe(true);
+    clients.frames(30);
+  };
+  expectSettings(true, ALL_ITEMS_MASK);
+  for (const client of clients.clients) for (const label of ["Items: On", "Speed: On", "Extra jump: On", "Heavy: On"]) expect(shows(client, label)).toBe(true);
+  click("items", 1); expectSettings(false, ALL_ITEMS_MASK);
+  click("itemSpeed", 0); expectSettings(false, ALL_ITEMS_MASK ^ itemBit(ItemKind.speed));
+  click("itemExtraJump", 1); expectSettings(false, itemBit(ItemKind.heavy));
+  click("itemHeavy", 0); expectSettings(false, 0);
+  for (const client of clients.clients) for (const label of ["Items: Off", "Speed: Off", "Extra jump: Off", "Heavy: Off"]) expect(shows(client, label)).toBe(true);
+  click("items", 0); click("itemExtraJump", 1);
+  expectSettings(true, itemBit(ItemKind.extraJump));
+  for (const actor of [0, 1]) clients.press(actor, Key.n);
+  clients.frames(30); clients.press(0, Key.y); clients.frames(30);
+  expect(value(clients.client(0), () => shell().game.phase)).toBe(Phase.stageMenu);
+  clients.press(0, Key.y); clients.frames(120);
+  expect(value(clients.client(0), () => shell().game.phase)).toBe(Phase.match);
+  expectSettings(true, itemBit(ItemKind.extraJump));
+  expectSynchronized(clients);
+});
