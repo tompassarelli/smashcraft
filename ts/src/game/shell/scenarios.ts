@@ -66,6 +66,16 @@ export function initializeScenario(scenario: Scenario, game: Readonly<MatchState
   const second = fighterAt(world, otherSlot);
   const tech = scenario === "tech";
   switch (scenario) {
+    case "up-special-recovery":
+      first.motion.x = 700.0;
+      first.motion.z = 300.0;
+      first.motion.grounded = false;
+      first.motion.surface = undefined;
+      first.facing = 1;
+      first.jump.remaining = 0;
+      first.launch.hitlag = 14;
+      second.motion.x = -400.0;
+      return;
     case "agency-none":
     case "agency-thaw":
     case "agency-di":
@@ -177,6 +187,7 @@ const COMPUTER_PLAYS: Readonly<Record<Scenario, boolean>> = {
   "agency-di": false,
   "agency-act": false,
   "agency-thaw": false,
+  "up-special-recovery": false,
   normal: true, ko: true, knockdown: false, tech: false, "shield-break": false, ledge: false, spike: false, underside: false, camera: false,
   "body-ceiling": false, "body-wall": false,
 };

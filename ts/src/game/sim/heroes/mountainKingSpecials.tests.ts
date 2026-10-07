@@ -302,7 +302,7 @@ test("Storm Rush carries 1.2H, hits for 13.26 and its air form ends helpless", (
   assertTrue(air.owner.special.fall);
 });
 
-test("Thunder Leap peaks at about 1.8H and strikes; below 15 mana the free leap rises less, spends nothing and cannot strike", () => {
+test("Thunder Leap rises 2.7H straight up and strikes; below 15 mana the free leap rises less, spends nothing and cannot strike", () => {
   const rise = (mana: number, target: boolean): { height: number; damage: number; owner: Fighter } => {
     const { world, owner, target: victim } = pair(target ? 40.0 : 1200.0);
     owner.mana.points = mana;
@@ -324,10 +324,10 @@ test("Thunder Leap peaks at about 1.8H and strikes; below 15 mana the free leap 
   };
   const full = rise(100, false);
   const free = rise(10, false);
-  assertGreaterThan(full.height, f32(H * f32(1.7)));
-  assertLessThan(full.height, f32(H * f32(1.85)));
-  assertGreaterThan(free.height, f32(H * f32(1.2)));
-  assertLessThan(free.height, f32(H * f32(1.35)));
+  assertGreaterThan(full.height, f32(H * f32(2.65)));
+  assertLessThan(full.height, f32(H * f32(2.75)));
+  assertGreaterThan(free.height, f32(H * f32(1.85)));
+  assertLessThan(free.height, f32(H * f32(1.95)));
   assertLessThan(free.height, full.height);
   assertTrue(full.owner.special.fall);
   assertTrue(free.owner.special.fall);

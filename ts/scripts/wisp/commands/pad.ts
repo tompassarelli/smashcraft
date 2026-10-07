@@ -52,7 +52,7 @@ import { onHealthyClients } from "../doctor";
 import { DevCommandReceipt } from "../boundary";
 import { devCommandReceiptFile } from "../../../src/runtime/gameFiles";
 import { Phase } from "../../../src/game/match/rules";
-import { quickMatchHero, quickMatchStage, quickPainHero, quickRecoveryHero } from "../../../src/game/shell/devSettings";
+import { quickMatchHero, quickMatchStage, quickPainHero, quickRecoveryHero, quickOffstageHero } from "../../../src/game/shell/devSettings";
 
 type DevReceipt = Effect.Success<ReturnType<typeof DevCommandReceipt.decode>>;
 
@@ -60,7 +60,7 @@ type DevReceipt = Effect.Success<ReturnType<typeof DevCommandReceipt.decode>>;
 export function requestedSetup(command: string, receipt: DevReceipt): boolean {
   const original = command.split(" |capture ")[0] ?? command;
   if (original === "-dev reset") return receipt.phase === Phase.characterMenu;
-  const hero = quickMatchHero(original) ?? quickRecoveryHero(original) ?? quickPainHero(original)?.character;
+  const hero = quickMatchHero(original) ?? quickRecoveryHero(original) ?? quickOffstageHero(original) ?? quickPainHero(original)?.character;
   if (hero !== undefined) return receipt.phase === Phase.match && receipt.characters.split(",").every((value, slot) => (receipt.humanFighters & (1 << slot)) === 0 || Number(value) === hero);
   const stage = quickMatchStage(original);
   return stage === undefined || receipt.phase === Phase.match && receipt.stage === stage;
