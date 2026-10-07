@@ -21,7 +21,7 @@ import type { Fighter } from "../sim/fighter";
 const SIDE_MARGIN = 60.0;
 const BELOW_MARGIN = 10.0;
 const ABOVE_MARGIN = 200.0;
-/** World units a frame's bounds widen by beyond the terms they follow, for rounding and unmodelled nudges. */
+/** World units a frame's bounds widen by beyond the terms they follow, for raw-arithmetic rounding and unmodelled nudges. */
 const CLEAR_SLACK = 2.0;
 const KNOCKBACK_DECAY = f32(AIR_KNOCKBACK_DECAY * WORLD_UNITS_PER_MELEE_UNIT);
 
@@ -35,7 +35,10 @@ const overlaps = (lowA: number, highA: number, lowB: number, highB: number) => l
 export function surelyClear(f: Readonly<Fighter>, stage: number, frame: number, frames: number): boolean {
   const { motion, launch, shield } = f;
   const { gravity, terminalSpeed } = f.tuning.physics;
-  const extra = f32(abs(shield.recoilX) + abs(shield.recoilZ) + CLEAR_SLACK);
+  // This rejection bound uses raw arithmetic, like surfaces.ts's roughDistance.
+  // Its two-unit expansion on every frame dwarfs raw binary32 rounding within
+  // the stage's blast bounds; actual contact still uses the exact simulation.
+  const extra = abs(shield.recoilX) + abs(shield.recoilZ) + CLEAR_SLACK;
   const wind = hasWind(stage) ? abs(WIND_SPEED) : 0.0;
   const { blast } = stageBounds(stage);
   const decks = surfaceCount(stage);
@@ -47,17 +50,17 @@ export function surelyClear(f: Readonly<Fighter>, stage: number, frame: number, 
   // Gravity only lowers vertical speed, to terminal speed; drag only slows horizontal speed.
   const highVz = motion.vz > -terminalSpeed ? motion.vz : -terminalSpeed;
   for (let step = 1; step <= frames; step++) {
-    const spread = f32(step * KNOCKBACK_DECAY);
-    const falling = f32(motion.vz - step * gravity);
+    const spread = step * KNOCKBACK_DECAY;
+    const falling = motion.vz - step * gravity;
     const lowVz = motion.vz < -terminalSpeed ? motion.vz : falling > -terminalSpeed ? falling : -terminalSpeed;
-    lowZ = f32(lowZ + lowVz + launch.knockbackZ - spread - extra);
-    highZ = f32(highZ + highVz + launch.knockbackZ + spread + extra);
-    lowX = f32(lowX + (motion.vx < 0 ? motion.vx : 0.0) + launch.knockbackX - spread - wind - extra);
-    highX = f32(highX + (motion.vx > 0 ? motion.vx : 0.0) + launch.knockbackX + spread + wind + extra);
-    const left = f32(lowX - SIDE_MARGIN);
-    const right = f32(highX + SIDE_MARGIN);
-    const bottom = f32(lowZ - BELOW_MARGIN);
-    const top = f32(highZ + ABOVE_MARGIN);
+    lowZ = lowZ + lowVz + launch.knockbackZ - spread - extra;
+    highZ = highZ + highVz + launch.knockbackZ + spread + extra;
+    lowX = lowX + (motion.vx < 0 ? motion.vx : 0.0) + launch.knockbackX - spread - wind - extra;
+    highX = highX + (motion.vx > 0 ? motion.vx : 0.0) + launch.knockbackX + spread + wind + extra;
+    const left = lowX - SIDE_MARGIN;
+    const right = highX + SIDE_MARGIN;
+    const bottom = lowZ - BELOW_MARGIN;
+    const top = highZ + ABOVE_MARGIN;
     if (left < blast.left || right > blast.right || bottom < blast.bottom || top > blast.top) return false;
     for (let index = 0; index < decks; index++) {
       const z = surfaceZ(stage, index, frame + step);
