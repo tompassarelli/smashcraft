@@ -36,6 +36,7 @@ import { placeFighterBody, renderDizzy } from "./fighterBody";
 import { type ShellState, type StatusFrames, activeRollback, localSlot, playsOnKeyboard } from "./state";
 import { pauseEffects, views } from "./ui";
 import { drawStageScenery } from "./stageScenery";
+import { probeCamera } from "./responseProbe";
 
 /** Text that waits for the players stays this long. */
 export const LASTING = 3600.0;
@@ -267,6 +268,7 @@ export function lockArenaCamera(s: ShellState): void {
   localCamera(s.camera, game.camera.initialized ? game.camera : s.camera, game.stageChoice, aspect);
   const { x: centerX, y: centerY } = s.origin;
   const framing = s.camera;
+  probeCamera(s.probe, game.camera, framing, centerX, FLOOR_HEIGHT);
   const targetX = centerX + framing.x;
   SetCameraBounds(targetX, centerY, targetX, centerY, targetX, centerY, targetX, centerY);
   SetCameraField(CAMERA_FIELD_ROTATION, ARENA_CAMERA.rotation, 0.0);

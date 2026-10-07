@@ -11,6 +11,7 @@ import { trampoline } from "wisp/src/platform/dispatch";
 import { writeLines } from "wisp/src/platform/fileio";
 import { edgeStampFile, responsePageFile } from "../../runtime/gameFiles";
 import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots } from "../../game/input/participants";
+import type { MatchCamera } from "../../game/sim/matchCamera";
 
 const ROW_LIMIT = 7200;
 const PAGE_ROWS = 150;
@@ -46,6 +47,8 @@ interface ServiceRow {
   presentedFrame: number;
   readonly positionX: Slots<number>;
   readonly positionZ: Slots<number>;
+  cameraRecorded: boolean;
+  readonly camera: number[];
   fileReadMs: number;
   fileReads: number;
   fileBytes: number;
@@ -101,6 +104,7 @@ function serviceRow(): ServiceRow {
     phase: 0, confirmedShield: 0, predictedShield: 0, poseSerial: 0, correction: 0, fileReadMs: 0.0, fileReads: 0,
     fileBytes: 0, sendCallMs: 0.0, sendCalls: 0,
     positionMask: 0, presentedFrame: 0, positionX: [0.0, 0.0, 0.0, 0.0], positionZ: [0.0, 0.0, 0.0, 0.0],
+    cameraRecorded: false, camera: Array.from({ length: 12 }, () => 0.0),
   };
 }
 
@@ -210,6 +214,7 @@ export function probeBegin(probe: ResponseProbe | undefined, frame: number, spec
   row.poseSerial = undefined;
   row.correction = undefined;
   row.positionMask = 0;
+  row.cameraRecorded = false;
   row.fileReadMs = 0.0;
   row.fileReads = 0;
   row.fileBytes = 0;
@@ -322,6 +327,26 @@ export function probeFighterPosition(probe: ResponseProbe | undefined, slot: Par
   row.positionZ[slot] = z;
 }
 
+/** Native fields are sampled before this callback requests its next camera position. */
+export function probeCamera(probe: ResponseProbe | undefined, simulated: Readonly<MatchCamera>, projected: Readonly<MatchCamera>, originX: number, floor: number): void {
+  const row = currentRow(probe);
+  if (row === undefined) return;
+  row.cameraRecorded = true;
+  const values = row.camera;
+  values[0] = simulated.x;
+  values[1] = simulated.z;
+  values[2] = simulated.distance;
+  values[3] = simulated.tangent;
+  values[4] = projected.x;
+  values[5] = projected.z;
+  values[6] = projected.distance;
+  values[7] = projected.tangent;
+  values[8] = GetCameraTargetPositionX() - originX;
+  values[9] = GetCameraField(CAMERA_FIELD_ZOFFSET) - floor;
+  values[10] = GetCameraField(CAMERA_FIELD_TARGET_DISTANCE);
+  values[11] = GetCameraField(CAMERA_FIELD_FIELD_OF_VIEW);
+}
+
 export function probePresent(probe: ResponseProbe | undefined, confirmedShield: boolean, predictedShield: boolean, poseSerial: number): void {
   const row = currentRow(probe);
   if (probe === undefined || row === undefined || probe.row === undefined) return;
@@ -356,6 +381,7 @@ export function exportProbePage(probe: ResponseProbe): void {
     "C row journal_read_count journal_read_bytes journal_read_ms sync_send_count sync_send_ms",
     "D epoch frame sync_send_ms local_echo_ms echo_age_ms; echo=-1 means not observed before export",
     "P row slot presented_frame x z; correlate row with actual framebuffer marker, not callback count",
+    "Q row sim_x sim_z sim_distance sim_tangent local_x local_z local_distance local_tangent native_x native_z native_distance native_fov_radians; native sampled before camera request, not per drawn frame",
   ];
   for (const entry of probe.integrity.slice(first, last)) lines.push(`I ${entry}`);
   for (let index = first; index < Math.min(probe.rows, last); index++) {
@@ -364,6 +390,7 @@ export function exportProbePage(probe: ResponseProbe): void {
     lines.push(`A ${index} ${R2S(r.entryMs)} ${R2S(r.pollMs ?? -1)} ${R2S(r.captureMs ?? -1)} ${R2S(r.advanceMs ?? -1)} ${R2S(r.presentMs ?? -1)} ${r.frameBefore} ${r.frameAfter ?? -1} ${r.speculativeBefore} ${r.speculativeAfter ?? -1} ${r.known} ${r.target ?? -1}`);
     lines.push(`B ${index} ${r.held ?? -1} ${r.pressed ?? -1} ${r.released ?? -1} ${r.captureResult ?? -1} ${r.phase} ${r.confirmedShield ?? -1} ${r.predictedShield ?? -1} ${r.poseSerial ?? -1} ${r.correction ?? -1}`);
     lines.push(`C ${index} ${r.fileReads} ${r.fileBytes} ${R2S(r.fileReadMs)} ${r.sendCalls} ${R2S(r.sendCallMs)}`);
+    if (r.cameraRecorded) lines.push(`Q ${index} ${r.camera.map(value => R2S(value)).join(" ")}`);
     for (const fighter of PARTICIPANT_SLOTS) {
       if ((r.positionMask & (1 << fighter)) !== 0) lines.push(`P ${index} ${fighter} ${r.presentedFrame} ${R2S(r.positionX[fighter])} ${R2S(r.positionZ[fighter])}`);
     }
