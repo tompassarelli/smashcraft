@@ -101,13 +101,12 @@ Normals, inspired by:
 
 | Input | Name | What it does |
 | --- | --- | --- |
-| Neutral special | Hammer of Justice | A heavy overhead bonk that lifts the opponent for a follow-up. |
-| Side special | Holy Radiance | Drive the hammer forward, then send light beyond it. Strong up close; unsafe if blocked. |
+| Neutral special | Cleansing Hammer | Bonk upward with the hammer; its holy impact cleanses your poison and movement slow. |
+| Side special | Righteous Fury | Charge hammer-first. A body hit briefly slows movement; a blocked charge leaves you exposed. |
 | Up special | Ascension | A rising hammer strike you steer, then a helpless fall. |
-| Down special | Divine Shield | A guard: read an attack and become untouchable until you act. Grabs still catch him. |
+| Down special | Consecration | Plant the hammer to bless a small patch of ground. It pulses beneath grounded foes; jumping clears it. |
 | Jab, repeated | Hammer and Haft | A hammer check, then a shove of the haft on a second jab. |
-| Passive | Devotion Aura | After he blocks three hits with his shield, the next launch he takes is weaker. |
-| Ultimate | Guardian of the Light | He hits harder and carries three charges that each soften one light hit. |
+| Passive | Sacred Aura | After he blocks three hits with his shield, the next launch he takes is 20% weaker. |
 
 ## Dreadlord
 
