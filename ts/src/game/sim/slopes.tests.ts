@@ -23,6 +23,8 @@ function standing(character: Character, x: number, facing: number): Fighter {
   return fighter;
 }
 
+function currentDownState(fighter: Fighter): DownState { return fighter.down.state; }
+
 function onLine(fighter: Fighter): void {
   assertTrue(fighter.motion.grounded);
   assertEquals(fighter.motion.surface, 0);
@@ -152,7 +154,7 @@ test("a missed tech on a slope knocks down on the line, and the get-up stands th
   advanceSolo(fighter, STAGE, controls(), 0.0);
   assertEquals(fighter.down.state, DownState.bound);
   onLine(fighter);
-  for (let frame = 0; frame < 200 && fighter.down.state !== DownState.none; frame++) {
+  for (let frame = 0; frame < 200 && currentDownState(fighter) !== DownState.none; frame++) {
     advanceSolo(fighter, STAGE, controls({ getupStandPressed: frame > 40 }), 0.0);
     onLine(fighter);
   }

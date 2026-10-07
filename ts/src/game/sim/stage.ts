@@ -202,7 +202,7 @@ const GRYPHON_DECKS = [MAIN_DECK,
  */
 const BLACKROCK_DECKS = [MAIN_DECK, fixed(-180.0, 180.0, melee(25.0), true)];
 const HELLFIRE_DECKS = [MAIN_DECK, fixed(-450.0, -270.0, melee(25.0), true), fixed(270.0, 450.0, melee(25.0), true)];
-const STRATHOLME_DECKS = [MAIN_DECK,
+const STRATHOLME_DECKS = [SLOPED_MAIN_DECK,
   fixed(-510.0, -360.0, melee(18.0), true),
   fixed(360.0, 510.0, melee(18.0), true),
   fixed(-120.0, 120.0, melee(46.0), true),
