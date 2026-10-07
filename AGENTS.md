@@ -123,6 +123,10 @@ code. From smashcraft:ts/:
   ten expansion heroes, four throws, both facings, with ordinary catch/pummel
   inputs and contact-frame captures in smashcraft:ts/test/native/pads/180/.
   `-dev quick pair FIRST / SECOND` selects different named fighters in the two human slots.
+- Original strike authoring (from the repository root):
+  `blender --background --python tools/animations/strikes.py -- archer|rifleman|illidan`.
+  `SMASHCRAFT_ANIMATION_ASSETS=PRIVATE_DIR` selects Archer's editable inputs;
+  `SMASHCRAFT_STRIKE_CLIP='Attack Jab'` reauthors only the fist punch.
 - Lich King animation authoring (from the repository root):
   `tools/animations/build-lichking.sh [PRIVATE_INPUTS] [IMMUTABLE_EXISTING_MODEL] [--replace NAME]`
   authors clips through Blender; the optional existing model preserves shipped
