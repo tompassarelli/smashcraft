@@ -9,6 +9,7 @@ import { matchRecordLines, nextSerial } from "../../game/shell/matchRecord";
 import { MATCH_RECORD_INDEX_FILE, matchRecordFile } from "../../runtime/gameFiles";
 import { type ShellState, localSlot } from "./state";
 import { views } from "./ui";
+import { exportPad } from "./analogPad";
 
 declare global {
   /** The next record's serial once this session read the index; kept across hot reloads. */
@@ -33,6 +34,7 @@ export function takeMatchSerial(): number {
 
 /** Writes the record of the match that just reached its result, under the serial its replay took at its start. */
 export function writeMatchRecord(s: ShellState): void {
+  exportPad(s);
   const serial = s.replay.recordSerial ?? takeMatchSerial();
   s.replay.recordSerial = undefined;
   const players: Slots<string | undefined> = [undefined, undefined, undefined, undefined];

@@ -41,6 +41,8 @@ export interface MapBuild {
   readonly presentation: PresentationProfile;
   readonly scenario: Scenario;
   readonly responseProbe: boolean;
+  /** Candidate pad ingress used only by analog diagnostic builds. */
+  readonly analogPad?: "keys" | "cursor";
   /** The `-dev` chat commands and the developer status line; players of a playable build see neither. */
   readonly devConsole: boolean;
   /**
