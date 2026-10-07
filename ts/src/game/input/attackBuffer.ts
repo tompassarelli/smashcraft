@@ -65,6 +65,12 @@ function storeCommand(buffer: AttackBuffer, command: Readonly<AttackCommand>): v
 
 /** Explicitly reset both the queued request and its last-consume observation. */
 export function clearAttackBuffer(buffer: AttackBuffer): void {
+  for (const command of [buffer.queued, buffer.previous]) {
+    command.style = 0;
+    command.facing = 0;
+    command.frame = 0;
+    command.mayCharge = false;
+  }
   buffer.pending = undefined;
   buffer.previousRequest = undefined;
   buffer.consumedFacing = 0;

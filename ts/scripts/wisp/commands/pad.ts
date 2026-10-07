@@ -19,7 +19,8 @@
 import { copyFileSync, existsSync, mkdirSync, openSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync, writeSync, closeSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
-import { Effect, Fiber } from "effect";
+import { Effect, Fiber, Option, Schema } from "effect";
+import { preloadLines } from "wisp/scripts/wisp/boundary";
 import { at } from "wisp/src/runtime/lookup";
 import { type Command, UsageFailure, describeCause } from "wisp/scripts/wisp/command";
 import { type DesktopFailure, batch, capture, loadClients } from "wisp/scripts/warcraft/desktop";
@@ -135,20 +136,13 @@ export interface PadOptions {
   readonly chat: string | undefined;
 }
 
-/** One native run of a script in the match the clients in `clientsFile` are at (fighter selection, or a match a reset ended). */
-export const native = (options: PadOptions, appIds: ReadonlyMap<string, string>, clientsFile: string = clientState) => Effect.scoped(Effect.gen(function*() {
-  const { scriptPath, steps, helper, build, out, chat } = options;
+/** Helpers and virtual pads belong to one game, across all of its scripted matches. */
+export const nativeSession = (out: string, helper: string, build: string, appIds: ReadonlyMap<string, string>, clientsFile: string = clientState) => Effect.gen(function*() {
   const loaded = yield* loadClients(clientsFile).pipe(Effect.mapError(fromDesktop));
   if (loaded.length !== 2) return yield* new IntegrityFailure({ operation: "load clients", path: clientsFile, cause: `${loaded.length} clients, need 2` });
   const clients = [at(loaded, 0), at(loaded, 1)] as const;
-  yield* tryIntegrity("create pad directory", out, () => {
-    mkdirSync(out, { recursive: true });
-    // A rerun leaves nothing of the attempt before it.
-    for (const name of readdirSync(out)) if (/^(trace-[ab]\.txt|scene-[ab]\.txt|result\.json|captures\.json|frame-\d+-\w+(-drawn-\d+)?\.ppm)$/.test(name) || REPRO_NAME.test(name)) rmSync(join(out, name));
-  });
+  yield* tryIntegrity("create session directory", out, () => mkdirSync(out, { recursive: true }));
   const data = [join(clients[0].documents, "CustomMapData"), join(clients[1].documents, "CustomMapData")] as const;
-  const startedMs = Date.now();
-  const startedNs = monotonicNs();
   const pads = [];
   for (const slot of SLOTS) {
     const client = clients[slot];
@@ -164,6 +158,55 @@ export const native = (options: PadOptions, appIds: ReadonlyMap<string, string>,
   }
   const log = (slot: number) => readFileSync(join(out, `helper-${slot}.log`), "utf8");
   const logs = (): [string, string] => [log(SLOTS[0]), log(SLOTS[1])];
+  return { clients, data, pads, build, logs };
+});
+
+export type NativeSession = Effect.Success<ReturnType<typeof nativeSession>>;
+
+const ChatReceipt = Schema.Struct({ epoch: Schema.FiniteFromString, revision: Schema.FiniteFromString, chat: Schema.FiniteFromString, chatState: Schema.FiniteFromString });
+
+/** Only complete game receipts may advance a keyboard hand-off. */
+export function nativeChatReceipt(text: string) {
+  const line = preloadLines(text)?.find((line) => line.startsWith("SMASHCRAFT TEXT ACK v=1 "));
+  if (line === undefined) return undefined;
+  return Option.getOrUndefined(Schema.decodeUnknownOption(ChatReceipt)(Object.fromEntries(line.split(" ").map((field) => field.split("=")))));
+}
+
+/** Return requests chat in the journal box; the helper opens chat after its quiescence handshake. */
+export const nativeChat = (session: NativeSession, text: string) => Effect.gen(function*() {
+  const host = session.clients[0];
+  const epoch = matchStart(session.logs()[0])?.epoch;
+  if (epoch === undefined) return yield* new IntegrityFailure({ operation: "open chat", path: host.name, cause: "no current journal match" });
+  const path = join(session.data[0], `smashcraft-journal-text-ack-${session.build}-e${epoch}-p0.txt`);
+  const receipt = () => existsSync(path) ? nativeChatReceipt(readFileSync(path, "latin1")) : undefined;
+  const before = receipt();
+  if (before === undefined || before.epoch !== epoch || before.chatState !== 0) return yield* new IntegrityFailure({ operation: "open chat", path, cause: "journal is not receiving input" });
+  yield* batch(host, [{ kind: "keys", keys: ["Return"] }]).pipe(Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })), Effect.mapError(fromDesktop));
+  const deadline = Date.now() + 8000;
+  for (;;) {
+    const current = receipt();
+    if (current !== undefined && current.epoch === epoch && current.revision > before.revision && current.chat > before.chat && current.chatState === 3) break;
+    if (Date.now() > deadline) return yield* new IntegrityFailure({ operation: "open chat", path, cause: "no chatting receipt within 8 s of Return" });
+    yield* Effect.sleep("20 millis");
+  }
+  yield* batch(host, [{ kind: "text", text, delayMillis: 35 }, { kind: "keys", keys: ["Return"] }]).pipe(Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })), Effect.mapError(fromDesktop));
+});
+
+/** One script in the persistent native session's next match. */
+export const nativeScript = (session: NativeSession, options: PadOptions) => Effect.scoped(Effect.gen(function*() {
+  const { scriptPath, steps, build, out, chat } = options;
+  const { clients, data, pads } = session;
+  yield* tryIntegrity("create pad directory", out, () => {
+    mkdirSync(out, { recursive: true });
+    for (const name of readdirSync(out)) if (/^(trace-[ab]\.txt|scene-[ab]\.txt|result\.json|captures\.json|frame-\d+-\w+(-drawn-\d+)?\.ppm)$/.test(name) || REPRO_NAME.test(name)) rmSync(join(out, name));
+  });
+  const startedMs = Date.now();
+  const startedNs = monotonicNs();
+  const from = session.logs().map((text) => text.length);
+  const logs = (): [string, string] => {
+    const [a, b] = session.logs();
+    return [a.slice(from[0]), b.slice(from[1])];
+  };
   if (chat !== undefined) {
     yield* Effect.sleep("1 second");
     // Typed only into the match (wisp:docs/watch.md, "Typing only into a match").
@@ -210,6 +253,7 @@ export const native = (options: PadOptions, appIds: ReadonlyMap<string, string>,
   yield* Fiber.joinAll(shots);
   if (captures.length > 0) yield* tryIntegrity("write captures", out, () => writeFileSync(join(out, "captures.json"), json(captures)));
   const finished = yield* Effect.exit(finish(out, scriptPath, build, epochs, sent, logs()));
+  yield* tryIntegrity("save script helper logs", out, () => logs().forEach((text, slot) => writeFileSync(join(out, `helper-${slot}.log`), text)));
   yield* collect(data, out, startedMs);
   const invalid = invalidRun(clients.map((client) => client.name), clients.map((client) => client.documents), data, startedMs);
   if (invalid.length > 0) {
@@ -223,6 +267,12 @@ export const native = (options: PadOptions, appIds: ReadonlyMap<string, string>,
   }
   yield* finished;
   return "valid" as const;
+}));
+
+/** A standalone script owns and closes its one-game session. */
+export const native = (options: PadOptions, appIds: ReadonlyMap<string, string>, clientsFile: string = clientState) => Effect.scoped(Effect.gen(function*() {
+  const session = yield* nativeSession(join(options.out, "session"), options.helper, options.build, appIds, clientsFile);
+  return yield* nativeScript(session, options);
 }));
 
 /** A native run that proves nothing either way: the game desynced, a client crashed, or the match ended early. */

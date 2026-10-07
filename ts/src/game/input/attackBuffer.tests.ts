@@ -156,6 +156,10 @@ test("Replay2 command fields retain a consumed request and reset on expiry or cl
 
   queueAttack(buffer, attack(1, 1, 30));
   clearAttackBuffer(buffer);
+  assertEquals(buffer.queued.frame, 0);
+  assertEquals(buffer.previous.frame, 0);
+  assertEquals(buffer.queued.mayCharge, false);
+  assertEquals(buffer.previous.mayCharge, false);
   assertEquals(attackBufferCanonicalState(buffer).style, -1);
   assertEquals(attackBufferCanonicalState(buffer).targetFrame, -1);
   assertEquals(attackBufferCanonicalState(buffer).consumedFacing, 0);

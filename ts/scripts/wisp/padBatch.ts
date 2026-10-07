@@ -12,18 +12,16 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, join } from "node:path";
-import { Cause, Effect, Schema } from "effect";
+import { Cause, Effect, Exit, Schema, Scope } from "effect";
 import { preloadLines } from "wisp/scripts/wisp/boundary";
 import { UsageFailure, describeCause } from "wisp/scripts/wisp/command";
-import { type DesktopFailure, batch, loadClients } from "wisp/scripts/warcraft/desktop";
-import { ClientWatch } from "wisp/scripts/wisp/watch";
 import { RESET_COMMAND } from "../../src/game/shell/devSettings";
 import { devCommandReceiptFile } from "../../src/runtime/gameFiles";
 import { IntegrityFailure } from "../integrity/evidence";
 import { compareRuns, scriptChat } from "../integrity/padParity";
 import { parsePadScript } from "../integrity/padScript";
 import { onHealthyClients } from "./doctor";
-import { type PadOptions, headlessScript, headlessSession, native } from "./commands/pad";
+import { type PadOptions, type NativeSession, headlessScript, headlessSession, nativeChat, nativeScript, nativeSession } from "./commands/pad";
 
 /** A pair of clients one share of the batch plays on. */
 export interface PadPair {
@@ -138,18 +136,10 @@ const atSelection = (receipts: readonly string[], sinceMs: number) => Effect.gen
 });
 
 /** Types `-dev reset` into the pair's client A and waits for both clients' receipts. */
-const reset = (pair: PadPair, build: string) => Effect.gen(function*() {
-  const fromDesktop = (failure: DesktopFailure) => new IntegrityFailure({ operation: failure.operation, path: failure.client, cause: failure.cause });
-  const clients = yield* loadClients(pair.clients).pipe(Effect.mapError(fromDesktop));
-  const host = clients[0];
-  if (host === undefined) return yield* new IntegrityFailure({ operation: "reset", path: pair.clients, cause: "no client" });
+const reset = (session: NativeSession, build: string) => Effect.gen(function*() {
   const typedMs = Date.now();
-  // Typed only into the match (wisp:docs/watch.md, "Typing only into a match"), as pad types its chat.
-  yield* batch(host, [{ kind: "keys", keys: ["Return"] }, { kind: "text", text: RESET_COMMAND, delayMillis: 35 }, { kind: "keys", keys: ["Return"] }]).pipe(
-    Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })),
-    Effect.mapError(fromDesktop),
-  );
-  yield* atSelection(clients.map((client, slot) => join(client.documents, "CustomMapData", devCommandReceiptFile(build, slot))), typedMs);
+  yield* nativeChat(session, RESET_COMMAND);
+  yield* atSelection(session.data.map((dir, slot) => join(dir, devCommandReceiptFile(build, slot))), typedMs);
 });
 
 export interface BatchOptions {
@@ -290,8 +280,11 @@ export const padBatch = (options: NativeBatchOptions) => Effect.gen(function*() 
   mkdirSync(options.out, { recursive: true });
   const { runs, report, compareLater, reports, compares } = yield* prepare(options);
   let next = 0;
-  const worker = (pair: PadPair) => Effect.gen(function*() {
+  const worker = (pair: PadPair) => Effect.scoped(Effect.gen(function*() {
     let previous: Parameters<typeof needsNewGame>[0] = "none";
+    let session: NativeSession | undefined;
+    let gameScope: Scope.Closeable | undefined;
+    let gameNumber = 0;
     for (let index = next++; index < runs.length; index = next++) {
       const run = runs[index];
       if (run === undefined) break;
@@ -302,12 +295,15 @@ export const padBatch = (options: NativeBatchOptions) => Effect.gen(function*() 
         made.attempts = attempt + 1;
         if (!needsNewGame(previous, freshEach)) {
           const at = performance.now();
-          const done = yield* Effect.exit(reset(pair, build));
+          const done = yield* Effect.exit(session === undefined ? Effect.fail(new IntegrityFailure({ operation: "reset", path: pair.name, cause: "no native session" })) : reset(session, build));
           made.reset += seconds(at);
           // A pair that didn't reset gets a new game for the same attempt.
           if (done._tag === "Failure") previous = "broken";
         }
         if (needsNewGame(previous, freshEach)) {
+          if (gameScope !== undefined) yield* Scope.close(gameScope, Exit.void);
+          gameScope = undefined;
+          session = undefined;
           const at = performance.now();
           const log = join(run.dir, `game-${attempt}.log`);
           const made_ = yield* Effect.exit(newGame(pair, map, log));
@@ -317,9 +313,16 @@ export const padBatch = (options: NativeBatchOptions) => Effect.gen(function*() 
             made.summary = `no new game on ${pair.name}: ${log}.1`;
             break;
           }
+          gameScope = yield* Effect.acquireRelease(Scope.make(), (scope) => Scope.close(scope, Exit.void));
         }
         const at = performance.now();
-        const play = native(padOptions, pair.appIds, pair.clients);
+        const play = Effect.gen(function*() {
+          if (session === undefined) {
+            if (gameScope === undefined) return yield* new IntegrityFailure({ operation: "start native session", path: pair.name, cause: "no game scope" });
+            session = yield* nativeSession(join(options.out, `${pair.name}-session-${gameNumber++}`), options.helper, build, pair.appIds, pair.clients).pipe(Scope.provide(gameScope));
+          }
+          return yield* nativeScript(session, padOptions);
+        });
         const ran = yield* Effect.exit(pair.lan === undefined ? onHealthyClients(play, { retry: false }) : play);
         made.run += seconds(at);
         // An edge off its frame or a stopped helper still leaves a match the next script can reset; anything else may not.
@@ -336,7 +339,7 @@ export const padBatch = (options: NativeBatchOptions) => Effect.gen(function*() 
       }
       compareLater(run, made, join(run.dir, "native"), outcome === "valid");
     }
-  });
+  }));
   yield* Effect.forEach(pairs, worker, { concurrency: "unbounded", discard: true });
   yield* Effect.promise(() => Promise.all(compares));
   yield* summarize(options.out, runs, reports, pairs.map((pair) => pair.name), started, { fresh_each: freshEach });
