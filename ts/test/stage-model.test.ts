@@ -5,7 +5,7 @@ import { STAGE_DECK_MODELS, STAGE_LIGHT_MODELS, STAGE_MAIN_DECK_MODEL } from "..
 import { STAGE_LIGHTS } from "../src/game/assets/stageLighting";
 import { stageLightMdl, stageLightModelFile } from "../scripts/stageLight";
 import { STAGE_DECK_PALETTES } from "../src/game/assets/stagePalette";
-import { MAIN_DECK_BODY_SURFACES, mainDeckLeft, mainDeckRight, mainDeckZ, solidSurfaceAt, solidSurfaceCount } from "../src/game/sim/stage";
+import { MAIN_DECK_BODY_SURFACES, mainDeckLeft, mainDeckRight, mainDeckZ, solidSurfaceAt, solidSurfaceCount, surfaceLine } from "../src/game/sim/stage";
 
 /** The stages whose main deck has walls and an underside, each drawn from its own outline. */
 const SHIPPED_STAGES = [1, ...STAGE_DECK_PALETTES.map(({ stage }) => stage).filter((stage) => solidSurfaceCount(stage) > 0)];
@@ -19,7 +19,10 @@ function collisionCorners(stage: number): OutlinePoint[] {
   const left = mainDeckLeft(stage);
   const center = (left + mainDeckRight(stage)) / 2;
   const floor = mainDeckZ(stage);
-  const corners: OutlinePoint[] = [[left - center, 0]];
+  const walkingLine = surfaceLine(stage, 0);
+  const corners: OutlinePoint[] = walkingLine === undefined
+    ? [[left - center, 0]]
+    : walkingLine.xs.slice(0, -1).map((x, index) => [x - center, (walkingLine.zs[index] ?? Number.NaN) - floor]);
   for (let index = 0; index < MAIN_DECK_BODY_SURFACES; index++) {
     const line = solidSurfaceAt(stage, index);
     corners.push([line.startX - center, line.startZ - floor]);
