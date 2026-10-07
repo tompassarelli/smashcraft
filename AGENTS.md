@@ -159,7 +159,8 @@ code. From smashcraft:ts/:
   `engine drive FILE` accepts a pad script with its `#! chat` setup, starts at
   frame 0 paused, and uses the normal input-row adapter. A command file containing
   `capture` holds and saves the current frame, and pad `capture` lines save the
-  named client's moment at their frame. `resume N` runs until frame N, while `step N` advances N frames from the current
+  named client's moment at their frame. VIEW held 60 frames saves its normal moment;
+  START uses the normal pause action, and a driver resume continues that pause. `resume N` runs until frame N, while `step N` advances N frames from the current
   frame. Holds write the canonical checksum and saved moments for `bun wisp repro`.
   `bun scripts/nativeDriverAcceptance.ts --clients-file FILE --client lan0a,lan0b
   --script test/native/pads/archer-neutral.pad --frames 460 --runs 50 --out DIR`

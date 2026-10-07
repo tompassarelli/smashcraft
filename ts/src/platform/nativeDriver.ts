@@ -1,7 +1,8 @@
 import { Action, bit } from "../game/input/actions";
 import { sampleKeys, commitEdges, keyboardCapture, type KeyboardCapture } from "../game/input/keyboardCapture";
-import { PARTICIPANT_SLOTS } from "../game/input/participants";
+import { PARTICIPANT_SLOTS, isParticipantSlot } from "../game/input/participants";
 import { copyInput } from "../game/input/inputRow";
+import { startKeyUp } from "../game/match/controls";
 import { Phase } from "../game/match/rules";
 import { parseDecimal } from "../game/netcode/journal/decimal";
 import { beginMomentSave, continueMomentSave, momentInput } from "../game/replay/moment";
@@ -11,7 +12,8 @@ import { installNativeDriver, startNativeDriver, serviceNativeDriver, publishNat
 import { squareRootFloat32 } from "wisp/src/sim/binary32";
 import { f32 } from "wisp/src/sim/f32";
 import { confirmedChecksum } from "./shell/diagnostics";
-import { applyDeveloperCommand } from "./shell/keys";
+import { pauseMatchPresentation } from "./shell/view";
+import { applyDeveloperCommand, startDown } from "./shell/keys";
 import { shell, type ShellState, localSlot } from "./shell/state";
 
 interface Pad {
@@ -21,6 +23,8 @@ interface Pad {
   cx: number;
   cz: number;
   shield: number;
+  viewSince: number | undefined;
+  viewSaved: boolean;
   readonly capture: KeyboardCapture;
 }
 interface Edge {
@@ -40,7 +44,7 @@ interface Driver {
 }
 declare global { var __smashcraftNativeDriver: Driver | undefined; }
 
-const neutralPad = (): Pad => ({ buttons: 0, x: 0.0, z: 0.0, cx: 0.0, cz: 0.0, shield: 0.0, capture: keyboardCapture() });
+const neutralPad = (): Pad => ({ buttons: 0, x: 0.0, z: 0.0, cx: 0.0, cz: 0.0, shield: 0.0, viewSince: undefined, viewSaved: false, capture: keyboardCapture() });
 const state = (): Driver => globalThis.__smashcraftNativeDriver ??= { edges: [], next: 0, captures: [], paused: true, target: undefined, pads: PARTICIPANT_SLOTS.map(() => neutralPad()) };
 const BUTTONS: Readonly<Record<string, number>> = { A: 1, B: 2, X: 4, Y: 8, LB: 16, TL: 16, RB: 32, TR: 32, START: 64, VIEW: 128 };
 
@@ -120,8 +124,14 @@ function padSample(pad: Pad): void {
   row.axisZ = Math.trunc(f32(z * 127.0));
   row.triggerLeft = (held & bit(Action.leftTrigger)) !== 0 ? 77 : 0;
 }
-function applyEdge(pad: Pad, edge: Edge): void {
+function applyEdge(s: ShellState, pad: Pad, edge: Edge): void {
   const button = BUTTONS[(edge.args[0] ?? "").toUpperCase()] ?? 0;
+  if ((edge.action === "press" || edge.action === "release") && button === 64 && isParticipantSlot(edge.slot)) {
+    if (edge.action === "press") startDown(s, edge.slot);
+    else startKeyUp(s.session, edge.slot);
+  }
+  if (button === 128 && edge.action === "press" && (pad.buttons & button) === 0) { pad.viewSince = edge.frame; pad.viewSaved = false; }
+  if (button === 128 && edge.action === "release") { pad.viewSince = undefined; pad.viewSaved = false; }
   if (edge.action === "press") pad.buttons |= button;
   else if (edge.action === "release") pad.buttons &= ~button;
   else if (edge.action === "stick") { pad.x = real(edge.args[0], -1.0, 1.0); pad.z = real(edge.args[1], -1.0, 1.0); }
@@ -154,6 +164,7 @@ export function nativeDriverCommand(text: string): void {
   if (command === "capture") { driver.paused = true; driver.target = undefined; saveFrame(s); publish(s); return; }
   if (command === "pause") { driver.paused = true; driver.target = undefined; publish(s); return; }
   if (command === "resume" || command.startsWith("resume ") || command.startsWith("step ")) {
+    if (s.session.paused) { s.session.paused = false; pauseMatchPresentation(s, false); }
     const stepping = command.startsWith("step ");
     const count = command === "resume" ? undefined : whole(command.substring(command.indexOf(" ") + 1));
     driver.target = count === undefined ? undefined : stepping ? s.runtime.simulationFrame + count : count;
@@ -188,7 +199,7 @@ export function captureNativeDriverInputs(s: ShellState): void {
     if (edge === undefined || edge.frame > frame) break;
     const pad = driver.pads[edge.slot];
     if (edge.action === "capture") driver.captures.push(edge.slot);
-    else if (pad !== undefined) applyEdge(pad, edge);
+    else if (pad !== undefined) applyEdge(s, pad, edge);
     driver.next++;
   }
   for (const slot of PARTICIPANT_SLOTS) {
@@ -203,9 +214,16 @@ export function captureNativeDriverInputs(s: ShellState): void {
 export function afterNativeDriverTick(s: ShellState): void {
   if (s.build.inputProfile !== "native-driver") return;
   const driver = state();
+  for (const slot of PARTICIPANT_SLOTS) {
+    const pad = driver.pads[slot];
+    if (pad !== undefined && pad.viewSince !== undefined && !pad.viewSaved && s.runtime.simulationFrame - pad.viewSince >= 60) {
+      pad.viewSaved = true;
+      driver.captures.push(slot);
+    }
+  }
   if (driver.captures.includes(localSlot())) saveFrame(s);
   driver.captures = [];
-  if (driver.target !== undefined && s.runtime.simulationFrame >= driver.target || s.game.phase !== Phase.match) {
+  if (driver.target !== undefined && s.runtime.simulationFrame >= driver.target || s.game.phase !== Phase.match || s.session.paused) {
     driver.paused = true;
     driver.target = undefined;
     saveFrame(s);

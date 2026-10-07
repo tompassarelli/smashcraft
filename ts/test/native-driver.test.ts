@@ -18,7 +18,7 @@ test("native driver sets up pad rows, holds the whole callback, and stepped and 
   const command = (text: string) => clients.everywhere(() => nativeDriverCommand(text));
   clients.start();
   clients.frames(3);
-  const script = "#! chat -dev quick hero archer\n1 a stick 0.6 0\n10 a tap A 2\n20 a stick 0 0\n40 b tap B 8\n70 a cstick 0 1\n75 a cstick 0 0\n120 a capture\n";
+  const script = "#! chat -dev quick hero archer\n1 a stick 0.6 0\n10 a tap A 2\n20 a press VIEW\n20 a stick 0 0\n40 b tap B 8\n70 a cstick 0 1\n75 a cstick 0 0\n90 a release VIEW\n120 a capture\n";
   command(script);
   clients.frames(20);
   for (const client of clients.clients) expect(value(client, () => shell().runtime.simulationFrame)).toBe(0);
@@ -46,6 +46,7 @@ test("native driver sets up pad rows, holds the whole callback, and stepped and 
     expect(value(client, () => confirmedChecksum(shell()))).toBe(stepped[index]);
     expect(client.errors).toEqual([]);
   }
+  expect([...clients.client(0).files.keys()].some(name => name.startsWith("smashcraft-repro-") && name.includes("-f80-"))).toBe(true);
   expect(stepped[0]).toBe(stepped[1]);
   command("capture");
   clients.frames(5);
@@ -53,5 +54,12 @@ test("native driver sets up pad rows, holds the whole callback, and stepped and 
   command("reset");
   clients.frames(5);
   for (const client of clients.clients) expect(value(client, () => shell().runtime.simulationFrame)).toBe(0);
+  command("#! chat -dev quick\n1 a tap START 1\n");
+  command("step 1");
+  clients.frames(5);
+  for (const client of clients.clients) expect(value(client, () => shell().session.paused)).toBe(true);
+  command("resume 2");
+  clients.frames(5);
+  for (const client of clients.clients) expect(value(client, () => shell().runtime.simulationFrame)).toBe(2);
   expect(clients.firstDivergence()).toBeUndefined();
 });

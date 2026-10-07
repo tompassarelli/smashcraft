@@ -52,7 +52,7 @@ function journalOwnsKey(s: ShellState, slot: ParticipantSlot, key: number): bool
 }
 
 /** Start: confirms in menus; in a match, pauses at once, or through the helpers' barrier for a journal. */
-function startDown(s: ShellState, slot: ParticipantSlot): void {
+export function startDown(s: ShellState, slot: ParticipantSlot): void {
   const epoch = journalEpoch(s);
   const playing = s.game.phase === Phase.match;
   if (epoch?.journal.editbox !== undefined && chatBusy(epoch.journal)) return;

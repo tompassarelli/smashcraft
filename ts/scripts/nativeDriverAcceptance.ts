@@ -67,7 +67,8 @@ const program = Effect.gen(function*() {
     const setupMs: number[] = [];
     const elapsed: number[] = [];
     let replays = 0;
-    for (const mode of (run === 1 ? ["free", "stepped"] : ["free"]) as readonly ("free" | "stepped")[]) {
+    const modes: readonly ("free" | "stepped")[] = run === 1 ? ["free", "stepped"] : ["free"];
+    for (const mode of modes) {
       const setup = yield* send(clients, payload, 0);
       setupMs.push(setup.milliseconds);
       const startedMs = Date.now();
