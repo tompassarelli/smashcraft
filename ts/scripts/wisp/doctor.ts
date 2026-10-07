@@ -1,7 +1,8 @@
 // Smashcraft's native clients for `wisp client doctor` (wisp:docs/doctor.md): how
 // each client's Battle.net starts on its own private desktop, as clients A and
-// B were started on 6 Oct, and the watch doctor reads them through.
-import { readFileSync } from "node:fs";
+// B were started on 6 Oct, the Battle.net account each signs in with, and the
+// watch doctor reads them through.
+import { existsSync, readFileSync } from "node:fs";
 import { homedir, userInfo } from "node:os";
 import { join } from "node:path";
 import { Effect, Schema } from "effect";
@@ -19,6 +20,26 @@ const capacity = join(homedir(), "code/nixos-config/main/dotfiles/agents/skills/
 const CLIENTS: Readonly<Record<string, { readonly compatData: string; readonly appId: number; readonly gameId: string }>> = {
   a: { compatData: join(homedir(), ".local/share/wc3-melee/client-a"), appId: 3516115573, gameId: "16213922543717842946" },
   b: { compatData: join(homedir(), ".local/share/wc3-melee/client-b"), appId: 3516115572, gameId: "16213922543717842945" },
+};
+
+/**
+ * The account each client signs in with (nixos-config:secrets/bnet.yaml; Tom
+ * authorized autonomous sign-in for a, b and c on 7 Oct). Account a is Tom's
+ * own, on his main-desktop install, so no test client uses it.
+ */
+const ACCOUNTS: Readonly<Record<string, string>> = { a: "c", b: "b" };
+const SECRETS = join(homedir(), "code/nixos-config/main/secrets/bnet.yaml");
+
+/**
+ * Commands that print one account field on stdout for doctor to type: the
+ * sops-nix file /run/secrets/bnet-ACCOUNT-FIELD when the system declares it,
+ * else a decryption with the machine's sops key through passwordless sudo.
+ */
+const accountField = (account: string, field: "username" | "password") => {
+  const runtime = `/run/secrets/bnet-${account}-${field}`;
+  return existsSync(runtime)
+    ? ["cat", runtime]
+    : ["sudo", "-n", "env", "SOPS_AGE_KEY_FILE=/var/lib/sops-nix/key.txt", "sops", "--decrypt", "--extract", `["${account}"]["${field}"]`, SECRETS];
 };
 
 /** The clients file's fields doctor and accept read: each client's name and private desktop run folder. */
@@ -52,14 +73,17 @@ const launcherCommand = (name: string, run: string, client: { readonly compatDat
 export const smashcraftDoctor = (clientsFile = clientState): DoctorDeclaration => {
   const file = readClientsFile(clientsFile);
   const start: Record<string, DoctorDeclaration["start"][string]> = {};
+  const accounts: Record<string, NonNullable<DoctorDeclaration["accounts"]>[string]> = {};
   for (const { name, run, offline } of file.clients) {
     if (offline === true) continue;
     const client = CLIENTS[name];
     if (client !== undefined) {
       start[name] = { kind: "command", command: launcherCommand(name, run, client), log: join(homedir(), `.local/state/smashcraft/client-${name}-launcher.log`) };
     }
+    const account = ACCOUNTS[name];
+    if (account !== undefined) accounts[name] = { username: accountField(account, "username"), password: accountField(account, "password") };
   }
-  return { clientsFile, start };
+  return { clientsFile, start, accounts };
 };
 
 /** What the watch counts as a match: the map's start receipts under its runtime prefix. */

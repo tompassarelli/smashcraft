@@ -161,7 +161,10 @@ code. From smashcraft:ts/:
   ready state: it recovers a client that dropped from Battle.net, crashed
   with its error dialog up, sits at the empty login shell, a stale lobby or
   a stuck loading screen, or shares its prefix with a second runtime, and
-  stops with one line when Tom must sign in (wisp:docs/doctor.md). `fresh`,
+  signs a launcher at its Battle.net sign-in form in with the client's account
+  (A: account c, B: account b; smashcraft:ts/scripts/wisp/doctor.ts), so Tom
+  never signs in by hand (wisp:docs/doctor.md). `bun wisp client sign-out
+  CLIENT...` signs a client out; the next doctor run signs it in. `fresh`,
   `integrity capture` (bot sessions included), `play` and `accept` run it before
   they start and once after a failure; run it instead of driving a client by
   hand.
