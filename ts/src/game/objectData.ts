@@ -57,6 +57,7 @@ export const FIGHTER_OBJECTS: Readonly<Record<Character, FighterObject>> = {
   [Character.lichKing]: heroObject(Character.lichKing),
   [Character.thrall]: heroObject(Character.thrall),
   [Character.jaina]: heroObject(Character.jaina),
+  [Character.sylvanas]: heroObject(Character.sylvanas),
 };
 
 /** Explicit order for archive emission and synchronized native application: the selectable fighters. */

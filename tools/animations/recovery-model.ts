@@ -3,6 +3,18 @@
 import { model as mdx } from "war3-model";
 import { ensure, onGlobalClock, tracks } from "./original-clips";
 
+/** Illidan locomotion appends three clips without changing the retained rig. */
+export function locomotionBaseModel(source: mdx.Model): mdx.Model | undefined {
+  const first = source.Sequences.findIndex(s => s.Name === "Locomotion Walk");
+  if (first < 0) return undefined;
+  ensure(source.Sequences.slice(first).map(s => s.Name).join("/") === "Locomotion Walk/Locomotion Run/Locomotion Initial Dash Burst", "Locomotion must be a three-clip suffix");
+  const model = structuredClone(source), cutoff = source.Sequences[first]?.Interval[0];
+  ensure(cutoff !== undefined, "Locomotion suffix has no start");
+  model.Sequences = model.Sequences.slice(0, first);
+  tracks(model, track => { if (!onGlobalClock(track)) track.Keys = track.Keys.filter(k => k.Frame < cutoff); });
+  return model;
+}
+
 export function wardenFanBaseModel(source: mdx.Model): mdx.Model | undefined {
   const first = source.Sequences.findIndex(s => s.Name.startsWith("Fan of Knives "));
   if (first < 0) return undefined;

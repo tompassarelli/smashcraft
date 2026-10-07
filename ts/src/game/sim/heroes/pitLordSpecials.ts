@@ -57,19 +57,23 @@ const RUIN_CHARGE_AIR: AuthoredSpecial = {
   helpless: true,
 };
 
-// Abyssal Leap: a slow arcing leap through f32, half of its rise in the f13-18
-// hoof window, then easing so the peak stays at the listed height. Full form
-// 1.7H up and 0.7H across; the free form 1.2H and 0.4H with no hit.
-const leap = (rise: number, drift: number): SpecialMotion[] => {
+// Abyssal Leap, a guided rise (#189): a slow arcing leap through f32, half of its rise in the f13-18
+// hoof window, then easing so the peak stays at the listed height; the held
+// stick steers it up to the listed steer. The slow start costs height. Full form
+// 3.5H up, 0.5H across and 1.15H steer; the free form 2.6H, 0.3H and 0.6H with no hit.
+const leap = (rise: number, drift: number, steer: number): SpecialMotion[] => {
   const segment = (first: number, last: number, share: number): SpecialMotion =>
-    ({ ...frames(first, last), velocityX: f32(f32(drift * share) / (last - first + 1)), velocityZ: f32(f32(rise * share) / (last - first + 1)) });
+    ({
+      ...frames(first, last), velocityX: f32(f32(drift * share) / (last - first + 1)), velocityZ: f32(f32(rise * share) / (last - first + 1)),
+      driftSpeed: f32(f32(steer * share) / (last - first + 1)),
+    });
   return [segment(13, 18, 0.5), segment(19, 28, f32(0.46)), segment(29, 32, f32(0.04))];
 };
 const LEAP_HOOF = capsule(10.0, 0.0, 40.0, 40.0, 22.0);
-const abyssalLeap = (cost: number, rise: number, drift: number, strikes: boolean): AuthoredSpecial => ({
+const abyssalLeap = (cost: number, rise: number, drift: number, steer: number, strikes: boolean): AuthoredSpecial => ({
   cost, endFrame: 32,
   regions: strikes ? [heroRegion(13, 18, LEAP_HOOF, hit(10.0, "LAUNCH", 80, 1.0, HitElement.normal))] : undefined,
-  motion: leap(rise, drift),
+  motion: leap(rise, drift, steer),
   facesStick: true, oncePerAirtime: true, helpless: true,
 });
 
@@ -90,6 +94,6 @@ const howl = (air: boolean): AuthoredSpecial => ({
 export const PIT_LORD_SPECIALS: FighterSpecials = {
   neutral: { name: "Howl of Terror", description: "A close roar pushes enemies away on both sides; a shield stops it.", ground: howl(false), air: howl(true) },
   side: { name: "Ruin Charge", description: "A slow charge whose armor shrugs off one light hit; it stops at a shield.", ground: RUIN_CHARGE, air: RUIN_CHARGE_AIR },
-  up: { name: "Abyssal Leap", description: "A slow arcing leap with a hoof strike, then a helpless fall.", ground: abyssalLeap(15, h(f32(1.7)), h(f32(0.7)), true), free: abyssalLeap(0, h(f32(1.2)), h(f32(0.4)), false) },
+  up: { name: "Abyssal Leap", description: "A slow arcing leap you steer, with a hoof strike, then a helpless fall.", ground: abyssalLeap(15, h(f32(3.5)), h(f32(0.5)), h(f32(1.15)), true), free: abyssalLeap(0, h(f32(2.6)), h(f32(0.3)), h(f32(0.6)), false) },
   down: { name: "Rain of Fire", description: "Three waves of fire fall ahead; rush underneath or tilt your shield up.", ground: rain(false), air: rain(true) },
 };
