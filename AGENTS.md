@@ -123,6 +123,13 @@ code. From smashcraft:ts/:
   ten expansion heroes, four throws, both facings, with ordinary catch/pummel
   inputs and contact-frame captures in smashcraft:ts/test/native/pads/180/.
   `-dev quick pair FIRST / SECOND` selects different named fighters in the two human slots.
+- Tinker animation authoring (from the repository root):
+  `bun tools/animations/tinker-clips.ts PRIVATE_CLASSIC_HEROTINKER.mdx PRIVATE_OUTPUT [--no-pool]`
+  preserves the 23 classic sequences and authors the claw-pack, Robo-Goblin,
+  recovery, paired throws and nine pain reactions. It writes the private
+  model, both-facing silhouette sheets, clip metadata and measured stride;
+  `--no-pool` leaves pooled export to the combined roster pass
+  (smashcraft:docs/fighter-animation-work.md, "Goblin Tinker").
 - Lich King animation authoring (from the repository root):
   `tools/animations/build-lichking.sh [PRIVATE_INPUTS] [IMMUTABLE_EXISTING_MODEL] [--replace NAME]`
   authors clips through Blender; the optional existing model preserves shipped
