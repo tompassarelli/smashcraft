@@ -7,7 +7,7 @@ import { tierHitPath } from "./moveTiers";
 import { contactBatch, hitEffect, testWorld } from "../sim/testWorld";
 import { copyFighterState } from "../replay/fighterState";
 import { captureImpactEventsBefore, createImpactEvents, finishImpactEventsAfter } from "./impactEvents";
-import { hitlagShake, hitlagTint, presentImpactSounds } from "./hitPresentation";
+import { hitlagShake, damageTint, presentImpactSounds } from "./hitPresentation";
 
 test("contact element and pummel survive snapshots and produce one distinct sound", () => {
   for (const element of [HitElement.normal, HitElement.electric, HitElement.fire, HitElement.slash, HitElement.ice]) {
@@ -37,11 +37,14 @@ test("contact element and pummel survive snapshots and produce one distinct soun
       assertEquals(events.tier, victim.visuals.hitStrength);
       assertEquals(labels[0], pummel ? "Defend" : element === HitElement.electric ? "LightningBolt" : element === HitElement.fire ? "Fireball"
         : element === HitElement.normal || element === HitElement.slash ? tierHitPath(element, events.tier, events.variant) : "FrostNova");
-      assertTrue(hitlagTint(victim) !== undefined);
+      assertTrue(damageTint(victim) !== undefined);
       assertEquals(Math.abs(hitlagShake(victim)), element === HitElement.electric ? 3.0 : 2.0);
       victim.launch.hitlag = 0;
       assertEquals(hitlagShake(victim), 0.0);
-      assertEquals(hitlagTint(victim), undefined);
+      assertEquals(damageTint(victim) !== undefined, !pummel, "launch damage remains readable after contact freeze");
+      victim.launch.hitstun = 0;
+      victim.grab.owner = undefined;
+      assertEquals(damageTint(victim), undefined);
     }
   }
 });

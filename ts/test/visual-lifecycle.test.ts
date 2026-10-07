@@ -15,7 +15,7 @@ import { applyFrame } from "../src/platform/shell/frame";
 import { startMatch } from "../src/platform/shell/matchStart";
 import { confirm } from "../src/platform/shell/menus";
 import { shell } from "../src/platform/shell/state";
-import { pauseMatchPresentation, renderPersistentPresentation } from "../src/platform/shell/view";
+import { pauseMatchPresentation, renderFighter, renderPersistentPresentation } from "../src/platform/shell/view";
 import { views } from "../src/platform/shell/ui";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import type { EffectPose, HeadlessClient } from "wisp/src/headless/client";
@@ -101,6 +101,51 @@ test("hit event language: 26 event cases reach stock effects and confirmed sound
     // An electric hit's flash draws at least as large as an electric shield hit's.
     expect(shownScale[2]).toBeGreaterThanOrEqual(shownScale[7] ?? 0);
     renderer.destroy();
+  });
+  expect(client.errors).toEqual([]);
+});
+
+test("damage hue and shield recoil reach the renderer through freeze, stun and recovery without allocating effects", () => {
+  const clients = headless.clients({ start, install });
+  clients.start();
+  clients.frames(30);
+  const client = clients.clients[0];
+  if (client === undefined) throw new Error("missing host client");
+  client.run(() => {
+    const s = shell();
+    selectCharacter(s.game, 0, Character.archer);
+    selectCharacter(s.game, 1, Character.rifleman);
+    expect(requestStageSelect(s.game, 0)).toBe(true);
+    expect(startAtGo(s.game, 0)).toBe(true);
+    startMatch(s);
+    const victim = fighterAt(s.world, 0);
+    const initialAllocations = client.log.filter(({ name }) => name === "AddSpecialEffect").length;
+    const draw = () => {
+      const before = client.log.length;
+      renderFighter(s, 0, s.runtime.poses[0], false);
+      renderPersistentPresentation(s);
+      return client.log.slice(before);
+    };
+    victim.launch.hitstun = 12;
+    for (const lag of [5, 0]) {
+      victim.launch.hitlag = lag;
+      const colours = draw().filter(({ name }) => name === "BlzSetSpecialEffectColor" || name === "SetUnitVertexColor");
+      expect(colours.some(({ args }) => args[1] === 255 && args[2] === 185 && args[3] === 150)).toBe(true);
+    }
+    victim.launch.hitstun = 0;
+    expect(draw().some(({ name, args }) => (name === "BlzSetSpecialEffectColor" || name === "SetUnitVertexColor") && args[2] === 185)).toBe(false);
+    victim.shield.raised = true;
+    victim.shield.stun = 5;
+    victim.shield.pushbackX = -10;
+    for (const lag of [4, 0]) {
+      victim.launch.hitlag = lag;
+      const calls = draw();
+      expect(calls.some(({ name, args }) => name === "BlzSetSpecialEffectColor" && args[1] === 255 && args[2] === 225 && args[3] === 150)).toBe(true);
+      expect(calls.some(({ name, args }) => name === "BlzSetSpecialEffectPosition" && args[1] === s.origin.x + victim.motion.x - 6)).toBe(true);
+    }
+    victim.shield.stun = 0;
+    expect(draw().some(({ name, args }) => name === "BlzSetSpecialEffectColor" && args[2] === 225)).toBe(false);
+    expect(client.log.filter(({ name }) => name === "AddSpecialEffect")).toHaveLength(initialAllocations);
   });
   expect(client.errors).toEqual([]);
 });

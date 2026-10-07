@@ -67,3 +67,28 @@ test("a corrected shield projects the restored state of a sparse participant", (
   assertEquals(fighter.shield.energy, SHIELD_MAX);
   assertEquals(world.mask, 9);
 });
+
+test("shield contact pulses through freeze and stun and returns to its held bubble", () => {
+  const fighter = createFighter(Character.archer, 83.0, 1);
+  fighter.shield.raised = true;
+  const held = projectedShield(fighter, true);
+  fighter.shield.stun = 5;
+  fighter.shield.pushbackX = -10.0;
+  fighter.launch.hitlag = 4;
+  const contact = projectedShield(fighter, true);
+  assertTrue(contact.scale > held.scale);
+  assertEquals(contact.x, held.x - 6.0);
+  assertTrue(contact.blue < held.blue);
+  fighter.launch.hitlag = 2;
+  assertTrue(projectedShield(fighter, true).scale < held.scale);
+  fighter.launch.hitlag = 0;
+  const stunned = projectedShield(fighter, true);
+  assertTrue(stunned.scale > held.scale);
+  assertEquals(projectedShield(fighter, true).scale, stunned.scale);
+  assertEquals(fighter.shield.stun, 5);
+  fighter.shield.stun = 0;
+  const recovered = projectedShield(fighter, true);
+  assertEquals(recovered.scale, held.scale);
+  assertEquals(recovered.x, held.x);
+  assertEquals(recovered.blue, held.blue);
+});

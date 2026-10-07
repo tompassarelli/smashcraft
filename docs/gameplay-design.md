@@ -812,8 +812,11 @@ recommended work (#82), rather than recorded as independently chosen by Tom:
 - Strength has three sizes (0.75, 1.0, 1.25), at knockback 80 and 180.
   The upper threshold follows Melee's strong normal spark; 80 and the sizes
   are authored readability defaults. No random extra spark obscures strength.
-- Hitlag lightly colours the victim by element and vibrates its body by
-  2 world units, 3 for electric; the camera stays steady. Freeze retains blue.
+- Damage lightly colours the victim by element through hitlag and hitstun;
+  hitlag vibrates its body by 2 world units, 3 for electric; the camera stays
+  steady. Freeze retains blue. Shield contact compresses and rebounds the
+  bubble through hitlag and shieldstun, with a warm hue and a 6-unit recoil
+  away from contact; the held bubble returns as soon as shieldstun ends.
   These are bounded Warcraft approximations, not Melee's colour programs.
 - Walk steps are quiet at a 16-frame cadence; run steps are louder at 8;
   dash has one louder start cue. Combat and landing cues take priority in

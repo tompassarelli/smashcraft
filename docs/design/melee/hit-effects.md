@@ -114,6 +114,16 @@ subroutines and effect commands, rather than one constant tint or the
 fighter's stock colour. These selected numerical facts do not reproduce the
 original programs, textures, models or sound banks.
 
+The colour program starts on damage entry, before the hit freeze, rather
+than waiting until launch. `Fighter_procAnim` advances `ftCo_800C0408` outside
+the gate that freezes the fighter's animation during hitlag; the colour
+program can therefore run through both hitlag and the following hitstun.
+This timing was checked in doldecomp/melee revision
+`f0cb9a02e95d52123fdea418fe2b1b08d38b32c2`, in
+melee:src/melee/ft/kinds/ftCommon/ftCo_Damage.c and
+melee:src/melee/ft/fighter.c. Only these independently stated timing facts
+are used; none of the decompiled implementation is copied.
+
 ## Shield, recovery, ledge and KO events
 
 | Event | Effect IDs | Sound IDs and timing | Source |
@@ -167,7 +177,7 @@ not claims that Warcraft renders Melee's artwork or exact animation programs.
 | Ordinary hit / pummel | Stampede missile impact | StampedeHit; pummel uses higher, quieter Defend |
 | Fire hit | Incinerate / Fire Lord explosion | Fireball |
 | Electric hit / electric shield | Forked Lightning target | LightningBolt |
-| Slash hit | Cleave target, drawn six times larger | Sound\Units\Combat\MetalHeavySliceFlesh1 (heavy sword on flesh, by path) |
+| Slash hit | Cleave target, drawn 7.5 times larger | Sound\Units\Combat\MetalHeavySliceFlesh1 (heavy sword on flesh, by path) |
 | Ice / freeze begins | Frost Nova target | FrostNova |
 | Shield / powershield | Defend caster | Defend, powershield higher |
 | Missed floor/wall/ceiling tech | War Stomp impact and dust | Warstomp |
@@ -214,7 +224,8 @@ keys (`impactStartSeconds` in hitPresentation.ts):
   0 s (2,233 px as the shield-hit control).
 - Cleave target emits only for its first 0.17 s, and its sparks are 0-12
   units across at scale 1 (the side camera recorded 2 pixels); at four times
-  larger it showed 440 px over five frames, so slash draws it six times larger.
+  larger it showed 440 px over five frames. Slash now draws at 7.5x and
+  normal contact at 1.5x to keep both readable at gameplay zoom.
 
 The diagnostic's ledge cues spawn at the stage centre (ledge point 0, 50),
 not at a ledge, so a stage-centre capture covers them.

@@ -59,12 +59,13 @@ export function impactStartSeconds(kind: number): number {
 
 /**
  * Cleave target's sparks are a few units across at scale 1, too small to read
- * as a hit; slash draws them six times larger. An electric hit draws Forked
+ * as a hit; slash draws them 7.5 times larger. Normal contact draws at 1.5
+ * so even the small tier reads at gameplay zoom. An electric hit draws Forked
  * Lightning at least as large as an electric shield hit's (scale 1), which
  * showed natively where a hit's 0.75 lasted one frame.
  */
 export function impactModelScale(kind: number): number {
-  return kind === IMPACT_SLASH_HIT ? 6.0 : kind === 5 ? 1.5 : 1.0;
+  return kind === IMPACT_SLASH_HIT ? 7.5 : kind === 0 || kind === IMPACT_PUMMEL || kind === 5 ? 1.5 : 1.0;
 }
 
 /** Plays a sound label, or with `file` a sound file by path, at a position. */
@@ -107,7 +108,8 @@ export function hitlagShake(fighter: Readonly<Fighter>): number {
   return imod(fighter.launch.hitlag, 2) === 0 ? magnitude : -magnitude;
 }
 
-export function hitlagTint(fighter: Readonly<Fighter>): Readonly<{ red: number; green: number; blue: number }> | undefined {
-  if (fighter.launch.hitlag <= 0 || fighter.shield.stun > 0 || fighter.launch.hitstun <= 0 && !(fighter.visuals.hitPummel && fighter.grab.owner !== undefined)) return undefined;
+/** A damage hue follows the contact freeze and reeling, ending when control returns. */
+export function damageTint(fighter: Readonly<Fighter>): Readonly<{ red: number; green: number; blue: number }> | undefined {
+  if (fighter.status.out || fighter.shield.stun > 0 || fighter.launch.hitstun <= 0 && !(fighter.launch.hitlag > 0 && fighter.visuals.hitPummel && fighter.grab.owner !== undefined)) return undefined;
   return elementLook(fighter.visuals.hitElement).tint;
 }

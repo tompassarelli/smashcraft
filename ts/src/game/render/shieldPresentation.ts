@@ -39,6 +39,7 @@ export class ShieldPresentation {
     (this.parked ??= [])[0] = false;
     BlzSetSpecialEffectPosition(this.model, this.origin.x + pose.x, this.origin.y, this.origin.z + pose.z);
     BlzSetSpecialEffectScale(this.model, pose.scale);
+    BlzSetSpecialEffectColor(this.model, pose.red, pose.green, pose.blue);
     BlzSetSpecialEffectAlpha(this.model, 255);
   }
 

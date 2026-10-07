@@ -12,7 +12,7 @@ import type { PacingAndPresentation } from "../../game/match/pacingAndPresentati
 import { type MatchState, Phase, remainingSeconds, timedMatch } from "../../game/match/rules";
 import { ARENA_CAMERA, FLOOR_HEIGHT, cameraFieldOfView, cameraPoint, localCamera } from "../../game/presentation/arenaCamera";
 import { advanceMatchCamera } from "../../game/sim/matchCamera";
-import { hitlagTint } from "../../game/presentation/hitPresentation";
+import { damageTint } from "../../game/presentation/hitPresentation";
 import { DamagePose, damagePose } from "../../game/presentation/damagePose";
 import { hideEffect } from "../../game/render/effects";
 import type { FighterPose } from "../../game/presentation/fighterPose";
@@ -143,8 +143,8 @@ export function renderFighter(s: ShellState, slot: ParticipantSlot, pose: Readon
   if (fighter.status.out) return;
   placeFighterBody(body, fighter, s.origin, s.game.stageChoice);
   if (fighter.status.frozenFrames > 0) SetUnitVertexColor(body.unit, 155, 210, 255, 255);
-  else if (hitlagTint(fighter) !== undefined) {
-    const tint = hitlagTint(fighter);
+  else if (damageTint(fighter) !== undefined) {
+    const tint = damageTint(fighter);
     if (tint !== undefined) SetUnitVertexColor(body.unit, tint.red, tint.green, tint.blue, 255);
   } else {
     const shielded = fighter.shield.raised;

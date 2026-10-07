@@ -20,13 +20,13 @@ export interface ElementLook {
    * tier (presentation/moveTiers.ts).
    */
   readonly sound: string | undefined;
-  /** The victim's hitlag tint. */
+  /** The victim's damage hue during contact freeze and reeling. */
   readonly tint: { readonly red: number; readonly green: number; readonly blue: number };
 }
 
 export const ELEMENT_LOOKS: { readonly [element in HitElement]: ElementLook } = {
-  [HitElement.normal]: { victim: undefined, victimScale: 1.0, sound: undefined, tint: { red: 255, green: 230, blue: 180 } },
-  [HitElement.slash]: { victim: undefined, victimScale: 1.0, sound: undefined, tint: { red: 255, green: 200, blue: 200 } },
+  [HitElement.normal]: { victim: undefined, victimScale: 1.0, sound: undefined, tint: { red: 255, green: 185, blue: 150 } },
+  [HitElement.slash]: { victim: undefined, victimScale: 1.0, sound: undefined, tint: { red: 255, green: 165, blue: 180 } },
   // Illidan's Immolation burn: the green fel flames Warcraft puts on its victims.
   [HitElement.fire]: { victim: "Abilities\\Spells\\NightElf\\Immolation\\ImmolationDamage.mdx", victimScale: f32(1.2), sound: "Fireball", tint: { red: 255, green: 150, blue: 80 } },
   [HitElement.electric]: { victim: "Abilities\\Spells\\Orc\\Purge\\PurgeBuffTarget.mdx", victimScale: f32(0.8), sound: "LightningBolt", tint: { red: 180, green: 220, blue: 255 } },
