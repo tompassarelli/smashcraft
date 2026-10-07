@@ -15,6 +15,7 @@ import type { DashGrabRules, FighterPhysics, GroundMovementRules, ShieldGeometry
 import { at } from "wisp/src/runtime/lookup";
 import { canonicalSlot, fighterMovesCanonical, fighterSpecialsCanonical } from "./canonical";
 import { firstTrainingDifference } from "../match/trainingState";
+import { firstItemsDifference } from "../match/items";
 import { firstBotMemoryDifference } from "../match/botPerception";
 import { botStrategyValues } from "../match/botStrategy";
 import type { ReplayState } from "./snapshot";
@@ -221,6 +222,8 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("specialGuarded", e.special.guarded, a.special.guarded);
   add("guardHealed", e.status.guardHealed, a.status.guardHealed);
   add("divineFrames", e.status.divineFrames, a.status.divineFrames);
+  add("buff", e.status.buff, a.status.buff);
+  add("buffFrames", e.status.buffFrames, a.status.buffFrames);
   add("passiveStacks", e.passive.stacks, a.passive.stacks);
   add("passiveWindow", e.passive.window, a.passive.window);
   add("passiveSerial", e.passive.serial, a.passive.serial);
@@ -423,6 +426,8 @@ export function firstStateDifference(expected: Readonly<ReplayState>, actual: Re
   if (e.matchSeed !== a.matchSeed) return "match.matchSeed";
   if (e.matchFrame !== a.matchFrame) return "match.matchFrame";
   if (e.startHold !== a.startHold) return "match.startHold";
+  const items = firstItemsDifference(e.items, a.items);
+  if (items !== undefined) return items;
   if (e.timedOut !== a.timedOut) return "match.timedOut";
   if (expected.runtime.simulationFrame !== actual.runtime.simulationFrame) return "runtime.simulationFrame";
   for (const slot of PARTICIPANT_SLOTS) {

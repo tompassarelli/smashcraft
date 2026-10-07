@@ -360,6 +360,8 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   status.poisonDamage = sourceStatus.poisonDamage;
   status.guardHealed = sourceStatus.guardHealed;
   status.divineFrames = sourceStatus.divineFrames;
+  status.buff = sourceStatus.buff;
+  status.buffFrames = sourceStatus.buffFrames;
 
   const mana = target.mana;
   const sourceMana = source.mana;

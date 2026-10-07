@@ -7,6 +7,7 @@ import { Character } from "../sim/codes";
 import { CPU_LEVEL_DEFAULT, isCpuLevel, nextMatchSeed } from "./cpuLevel";
 import { CPU_OPPONENT_DEFAULT, CPU_TIER_DEFAULT, type CpuOpponentChoice, type CpuOpponentId, type CpuTier, isCpuOpponentChoice, isCpuTier, resolveCpuOpponent } from "./cpuProfiles";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
+import { type MatchItems, copyMatchItems, createMatchItems } from "./items";
 import { PARTNER_BEHAVIOURS, PARTNER_DAMAGE_MAX, PARTNER_DAMAGE_STEP, PARTNER_ESCAPES, PARTNER_TECHS, TRAINING_SPEEDS, type TrainingState, clearTrainingReadout, copyTrainingState, createTrainingState } from "./trainingState";
 
 /** Phase numbers are part of the canonical replay checksum. */
@@ -55,6 +56,8 @@ export interface MatchState {
   /** Training (#120): no clock or lost stocks, computers play the partner set in trainer. */
   training: boolean;
   readonly trainer: TrainingState;
+  /** Competitive pickups: the two settings and the centre item (match/items.ts, #196). */
+  readonly items: MatchItems;
 }
 
 /** The opening fighter of slot `index`: the release roster's tiles in order, so a hidden fighter is never preselected. */
@@ -71,7 +74,7 @@ export function createMatchState(): MatchState {
     departedMask: 0, interrupted: false, humanMask: 1, humanFighterMask: 1, humanCount: 1, computerMask: 0,
     stageChoice: 2, winner: undefined, stockCount: 3, timeLimitMinutes: 7, endless: false, automaticRematch: false, rematchCountdown: 0,
     remainingFrames: 7 * 60 * MATCH_TICKS_PER_SECOND, startHold: 0, matchFrame: 0, timedOut: false, practice: false,
-    training: false, trainer: createTrainingState(),
+    training: false, trainer: createTrainingState(), items: createMatchItems(),
   };
 }
 
@@ -172,6 +175,7 @@ export function copyMatchState(target: MatchState, source: Readonly<MatchState>)
   target.practice = source.practice;
   target.training = source.training;
   copyTrainingState(target.trainer, source.trainer);
+  copyMatchItems(target.items, source.items);
   for (const slot of PARTICIPANT_SLOTS) {
     target.characterChoices[slot] = source.characterChoices[slot];
     target.cpuLevels[slot] = source.cpuLevels[slot];

@@ -14,6 +14,7 @@ import type { AuthoredSpecial, FighterSpecials, SpecialPlacement, SpecialProject
 import type { HitEffect } from "../sim/hitRegions";
 import { type HurtPart, HurtState } from "../sim/hurtboxes";
 import { HERO_STATUS_GROUPS } from "../sim/codes";
+import { writeMatchItems } from "../match/items";
 import { PROJECTILE_CAPACITY, type Fighter } from "../sim/fighter";
 import { fighterAt, isActive } from "../sim/roster";
 import { writeTrainingState } from "../match/trainingState";
@@ -1038,6 +1039,11 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
     real("guardHealed", st.guardHealed);
     if (st.divineFrames !== 0) int("divineFrames", st.divineFrames);
   }
+  // An item's buff (#196), written only while one runs.
+  if (st.buff !== 0 || st.buffFrames !== 0) {
+    int("buff", st.buff);
+    int("buffFrames", st.buffFrames);
+  }
   // Any fighter can carry a hero status; it is written only while one or its immunity is live.
   if (st.condition !== 0 || st.conditionImmunity.some(frames => frames !== 0)) {
     int("condition", st.condition);
@@ -1104,6 +1110,7 @@ function writeState(emit: Emit, state: Readonly<ReplayState>): void {
   int("match.matchFrame", match.matchFrame);
   // Only matches with a countdown carry it, so test and practice matches keep their checksums.
   if (match.startHold !== 0) int("match.startHold", match.startHold);
+  writeMatchItems(match.items, int, bool);
   bool("match.timedOut", match.timedOut);
   bool("match.practice", match.practice);
   // Only training matches carry training state, so every other match keeps its checksum.

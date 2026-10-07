@@ -170,6 +170,14 @@ export const HeroStatusGroup = { sleep: 0, silence: 1, chill: 2, terror: 3 } as 
 export type HeroStatusGroup = (typeof HeroStatusGroup)[keyof typeof HeroStatusGroup];
 export const HERO_STATUS_GROUPS = 4;
 
+/** Competitive pickups (#196, match/items.ts, sim/itemBuffs.ts). Append only: the code is in replay text. */
+export const ItemKind = { none: 0, speed: 1, extraJump: 2, heavy: 3 } as const;
+export type ItemKind = (typeof ItemKind)[keyof typeof ItemKind];
+export const ITEM_KINDS: readonly ItemKind[] = [ItemKind.speed, ItemKind.extraJump, ItemKind.heavy];
+/** Each kind's bit in a match's enabled-items mask. */
+export const itemBit = (kind: ItemKind): number => kind === ItemKind.none ? 0 : 1 << (kind - 1);
+export const ALL_ITEMS_MASK = 7;
+
 /** Each fighter's one passive (sim/passives.ts, #148). */
 export const PassiveKind = {
   none: 0, criticalStrike: 1, bash: 2, blink: 3, trueshot: 4, longRifles: 5, frostArmor: 6, devotion: 7, vampiric: 8, voodoo: 9, cleave: 10, packHunt: 11, souls: 12,
