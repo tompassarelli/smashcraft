@@ -57,7 +57,7 @@ function mechanics(profile: CpuProfile): CpuSkill {
   };
 }
 
-const SKILLS: readonly CpuSkill[] = CPU_PROFILES.map(mechanics);
+const SKILLS: readonly CpuSkill[] = CPU_PROFILES.map(profile => mechanics(profile));
 const PERCEIVED_SKILLS: readonly CpuSkill[] = SKILLS.map(skill => ({ ...skill, reactionFrames: 0 }));
 
 export function cpuSkill(opponent: CpuOpponentId = CPU_OPPONENT_DEFAULT, tier: CpuTier = CPU_TIER_DEFAULT): CpuSkill {
