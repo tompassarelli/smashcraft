@@ -1,7 +1,7 @@
 import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { Capture } from "../netcode/capture";
 import { FixedInputSchedule } from "../netcode/fixedSchedule";
-import { Action, bit, has, maskOf } from "./actions";
+import { ALL_ACTIONS, Action, bit, has, maskOf } from "./actions";
 import { type InputRow, copyInput, emptyInput, inputRow, sameInput } from "./inputRow";
 import { type KeyboardCapture, captureKeys, keyboardCapture, resetKeys, sampleKeys } from "./keyboardCapture";
 import { participantInputs } from "./participants";
@@ -67,7 +67,7 @@ test("rejected masks and a refused capture leave a pending tap untouched", () =>
   const capture = sampled(bit(Action.special), 0);
   const before = emptyInput();
   copyInput(before, row(capture));
-  for (const mask of [-1, 32768]) {
+  for (const mask of [-1, ALL_ACTIONS + 1]) {
     assertFalse(sampleKeys(capture, mask));
     assertFalse(resetKeys(capture, mask));
   }

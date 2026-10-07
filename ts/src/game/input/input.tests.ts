@@ -31,13 +31,14 @@ test("action bits are the I4 wire positions", () => {
   assertEquals(bit(Action.moveLeft), 1);
   assertEquals(bit(Action.attack), 32);
   assertEquals(bit(Action.walk), 16384);
-  assertEquals(ALL_ACTIONS, 32767);
+  assertEquals(bit(Action.lightShield), 32768);
+  assertEquals(ALL_ACTIONS, 65535);
 });
 
 test("rows reject what a controller cannot send", () => {
   assertDefined(inputRow({ held: ALL_ACTIONS, pressed: ALL_ACTIONS, released: ALL_ACTIONS, axisX: -127, axisZ: 127, triggerLeft: 255, triggerRight: 0 }));
   const invalid: RowFields[] = [
-    { held: 32768 }, { pressed: -1 }, { released: 32768 }, { axisX: -128 }, { axisZ: 128 }, { triggerLeft: -1 }, { triggerRight: 256 },
+    { held: ALL_ACTIONS + 1 }, { pressed: -1 }, { released: ALL_ACTIONS + 1 }, { axisX: -128 }, { axisZ: 128 }, { triggerLeft: -1 }, { triggerRight: 256 },
     { specialX: 1 },
     { pressed: bit(Action.special), specialZ: 2 },
     { dodgeX: 1 },
@@ -106,7 +107,7 @@ test("decoding rejects truncation, trailing text, unknown characters and bad hea
 test("decoding rejects zero, out-of-range and pressless groups", () => {
   const header = "I4101";
   // A zero group must be omitted, never spelled out.
-  for (const record of ["1000", "2000000", "4000", "8000", "G00", "W000", "1800", "2800000", "2000800", "4___", "8G00", "G__", "W___"]) {
+  for (const record of ["1000", "2000000", "4000", "8000", "G00", "W000", "1G00", "2G00000", "2000G00", "4___", "8G00", "G__", "W___"]) {
     reject(header + record);
   }
   // Press metadata needs the press that sets it, even if the key is no longer held.

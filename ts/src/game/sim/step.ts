@@ -532,7 +532,8 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
       if (advanceGroundMovement(f, direction, input.walking, horizontalStick)) dashEntryDisplacementAdjustment = f32(previousGroundVelocity - motion.vx);
     } else if (direction !== 0 && !groundTakeoff) {
       // Air steering changes velocity, not facing; back aerials rely on a stable orientation.
-      motion.vx = airDriftVelocity(f, motion.vx, direction);
+      const driftStick = input.driftStickX ?? direction;
+      motion.vx = airDriftVelocity(f, motion.vx, driftStick === 0 ? direction : driftStick);
     }
   }
   if (isGroundDodging(f) && dodge.groundDirection !== 0) {

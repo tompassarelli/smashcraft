@@ -2109,6 +2109,16 @@ so Illidan's authored immediate drift cap does not apply on that frame: with
 his own friction his 2.0 becomes 1.98. From the next frame his ordinary drift,
 capped at 0.88, applies again.
 
+Analog rows retain their raw horizontal axis for air drift, before the
+directional-influence stick is normalized diagonally. Per
+`ftCommon_CalcSelfAccel_DriftFrom`, the target air speed scales by the
+horizontal stick magnitude, while acceleration adds the signed base to the
+stick times the multiplier. The shared retail base for Fox, Falco and Captain
+Falcon is 0.02 Melee units/frame (+0x068); Smashcraft's authored full-stick
+acceleration stores base plus multiplier. Full horizontal keyboard rows,
+including keyboard diagonals, keep the existing full-rate drift. The
+input-row fixture is `ts/src/game/sim/analogAirDrift.tests.ts`.
+
 A wall jump follows `ftWallJump_8008169C` (melee:src/melee/ft/ftwalljump.c).
 After the frame's collision, a fighter that is falling, jumping, tumbling
 past hitstun, or in a wall or ceiling recovery past its hang checks it;

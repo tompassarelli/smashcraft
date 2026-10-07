@@ -13,6 +13,7 @@ import { type AttackBuffer, clearAttackBuffer } from "../input/attackBuffer";
 import { INPUT_ROW_NUMBERS, type InputRow, emptyInput, loadInputNumbers, storeInputNumbers } from "../input/inputRow";
 import { PARTICIPANT_SLOTS, type ParticipantInputs, type Slots, participantActive } from "../input/participants";
 import { type FrameControls, createFrameControls } from "../match/controls";
+import { type SavedBotStrategy, restoredBotStrategy, savedBotStrategy } from "../match/botStrategy";
 import { padDecimal } from "../netcode/journal/decimal";
 import { type MatchFrameInput, captureFrame, captureNetworkFrame, createMatchFrameInput, executeMatchFrame } from "../match/frameInput";
 import type { PacingAndPresentation } from "../match/pacingAndPresentation";
@@ -189,10 +190,17 @@ export function checksumOf(scratch: ReplayState, state: Readonly<ReplayState>): 
 export const KEYED_BY_ACTION = ["attacks", "normals", "throws"];
 
 /** What a snapshot saves: the active fighters, the match, the command buffers and the pacing and presentation. */
+type SavedRuntime = Omit<PacingAndPresentation, "botStrategies"> & { readonly botStrategies: Slots<SavedBotStrategy> };
+
+export function savedRuntime(runtime: Readonly<PacingAndPresentation>): SavedRuntime {
+  const strategies = runtime.botStrategies;
+  return { ...runtime, botStrategies: [savedBotStrategy(strategies[0]), savedBotStrategy(strategies[1]), savedBotStrategy(strategies[2]), savedBotStrategy(strategies[3])] };
+}
+
 function savedView(state: Readonly<ReplayState>): object {
   const fighters: (Fighter | undefined)[] = [];
   for (const slot of PARTICIPANT_SLOTS) if (isActive(state.world, slot)) fighters[slot] = fighterAt(state.world, slot);
-  return { mask: state.world.mask, fighters, match: state.match, commands: state.controls.commands, runtime: state.runtime };
+  return { mask: state.world.mask, fighters, match: state.match, commands: state.controls.commands, runtime: savedRuntime(state.runtime) };
 }
 
 /** Reused for each row's numbers, so a full-match replay's rows allocate only their text. */
@@ -346,7 +354,7 @@ const isObject = (value: unknown): value is object => typeof value === "object" 
 const isList = (value: unknown): value is readonly unknown[] => isObject(value);
 const isFighter = (value: unknown): value is Fighter => isObject(value) && "character" in value && typeof value.character === "number" && "motion" in value && isObject(value.motion);
 const isMatch = (value: unknown): value is MatchState => isObject(value) && "phase" in value && typeof value.phase === "number" && "characterChoices" in value && isObject(value.characterChoices);
-const isRuntime = (value: unknown): value is PacingAndPresentation => isObject(value) && "simulationFrame" in value && typeof value.simulationFrame === "number" && "poses" in value && isObject(value.poses);
+const isRuntime = (value: unknown): value is SavedRuntime => isObject(value) && "simulationFrame" in value && typeof value.simulationFrame === "number" && "poses" in value && isObject(value.poses);
 
 function isCommands(value: unknown): value is Slots<AttackBuffer> {
   if (!isList(value)) return false;
@@ -416,7 +424,10 @@ export function savedState(record: Readonly<Record<string, unknown>>): ReplaySta
     rebindAuthoredKit(fighter);
     world.fighters[slot] = fighter;
   }
-  return { world, match, controls: { inputs: createFrameControls().inputs, commands }, runtime };
+  const strategies = runtime.botStrategies;
+  return { world, match, controls: { inputs: createFrameControls().inputs, commands }, runtime: { ...runtime,
+    botStrategies: [restoredBotStrategy(strategies[0]), restoredBotStrategy(strategies[1]), restoredBotStrategy(strategies[2]), restoredBotStrategy(strategies[3])],
+  } };
 }
 
 export const wholeNumber = (text: string | undefined) => {
