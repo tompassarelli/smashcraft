@@ -1194,7 +1194,9 @@ run --class moderate`).
 
 Defile's cast (#174) gathers the free hand above his shoulder, presses it
 toward the pool on frame 20, holds the downward pose for three more frames,
-and settles back into the guard by frame 46. Frostmourne stays raised beside
+and settles back into the guard by frame 46, held through frame 50's recovery.
+The frame-20 push stays at its authored frame as the recovery lengthens.
+Frostmourne stays raised beside
 the body. The non-skeleton tracks retain Spell Channel as their donor.
 
 Movement transitions and floor recovery (#171) append at indices 66–73,

@@ -65,7 +65,7 @@ export const LICH_KING_SEQUENCES = {
   "Wall Jump": { index: 60, frames: 45 },
   "Wall Tech": { index: 61, frames: 31 },
   "Special Neutral": { index: 62, frames: 44 },
-  "Special Down": { index: 63, frames: 46 },
+  "Special Down": { index: 63, frames: 50 },
   "Special Side": { index: 64, frames: 40 },
   "Special Up": { index: 65, frames: 46 },
   "Turn": { index: 66, frames: 8 },
