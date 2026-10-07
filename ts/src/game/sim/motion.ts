@@ -6,6 +6,7 @@ import { addFloat32, divideFloat32, fusedMultiplyAddFloat32, multiplyFloat32, ro
 import { f32 } from "wisp/src/sim/f32";
 import { floorMod } from "wisp/src/sim/intMath";
 import { meleeAtan2, meleeCos, meleeSin } from "../../sim/meleeScalarMath";
+import { heavyFall, speedBuffed } from "./itemBuffs";
 import { chillScaled } from "./chill";
 import type { Fighter, MeleeMotionValue } from "./fighter";
 import { surfaceCount, surfaceLeft, surfaceMoves, surfaceRight, surfaceShiftX, surfaceShiftZ, surfaceZ } from "./stage";
@@ -139,7 +140,7 @@ const GROUND_KNOCKBACK_FRICTION_MULTIPLIER = 1.0;
 export function applyMeleeGravity(f: Fighter): void {
   const velocity = retainedOriginal(f.motion.meleeVelocityZ, f.motion.vz);
   const { gravity, terminalSpeed: terminal } = termsOfPhysics(f.tuning.physics);
-  setMeleeVerticalVelocity(f, max(-terminal, subtractFloat32(velocity, gravity)));
+  setMeleeVerticalVelocity(f, max(-heavyFall(f, terminal), subtractFloat32(velocity, heavyFall(f, gravity))));
 }
 
 export function moveMeleeVerticalVelocity(f: Fighter): void {
@@ -183,7 +184,7 @@ function retailAirDriftVelocity(f: Fighter, velocity: number, stick: number, cap
   // full-stick acceleration stores that base plus +0x064's multiplier.
   const base = f32(0.019999999552965164 * WORLD_UNITS_PER_MELEE_UNIT);
   const acceleration = magnitude === 1 ? airAcceleration : f32(base + f32(f32(airAcceleration - base) * magnitude));
-  const target = f32(chillScaled(f, f.tuning.physics.airSpeed) * magnitude);
+  const target = f32(speedBuffed(f, chillScaled(f, f.tuning.physics.airSpeed)) * magnitude);
   const alongInput = f32(velocity * direction);
   const next = alongInput > target ? max(target, f32(alongInput - airFriction)) : min(target, f32(alongInput + acceleration));
   return f32(max(-cap, min(cap, next)) * direction);
@@ -191,7 +192,7 @@ function retailAirDriftVelocity(f: Fighter, velocity: number, stick: number, cap
 
 /** Every fighter's air drift, a ceiling tech's impulse frame included (ftCo_PassiveCeil_Phys runs the same drift). */
 export function airDriftVelocity(f: Fighter, velocity: number, stick: number): number {
-  return retailAirDriftVelocity(f, velocity, stick, f.tuning.physics.airCap);
+  return retailAirDriftVelocity(f, velocity, stick, speedBuffed(f, f.tuning.physics.airCap));
 }
 
 function retailAirDecaySquaredCutoff(decay: number): number {

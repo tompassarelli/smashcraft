@@ -6,6 +6,7 @@
  * group runs in a process of its own; every other test file may share one.
  */
 export const ISOLATED_TEST_GROUPS: readonly (readonly string[])[] = [
+  ["test/standalone.test.ts"],
   ["test/game.test.ts"],
   ["test/desync-guard.test.ts", "test/desync-guard-integrity.test.ts", "test/input-stall.test.ts", "test/bot-selection.test.ts", "test/session-setup.test.ts"],
   ["test/visual-lifecycle.test.ts", "test/player-view.test.ts", "test/selection-load.test.ts", "test/player-text.test.ts", "test/stack-trace.test.ts"],
@@ -28,3 +29,7 @@ export const TEST_WORKER_ENV: Readonly<Record<string, string>> = {
   BUN_JSC_numberOfGCMarkers: "1",
   BUN_JSC_useConcurrentGC: "false",
 };
+
+/** Full matches amortize the production runtime's optimizing tiers. */
+export const testWorkerEnvironment = (files: readonly string[]): Readonly<Record<string, string>> =>
+  files.some((file) => file.endsWith("test/standalone.test.ts")) ? {} : TEST_WORKER_ENV;

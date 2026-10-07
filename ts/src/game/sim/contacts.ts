@@ -35,6 +35,7 @@ import { beginDownDamage, cancelAttack, cancelSpecialState, clearDownState, clea
 import { at } from "wisp/src/runtime/lookup";
 import { CHILL } from "./chill";
 import { fighterHurtParts } from "./hurtboxes";
+import { knockbackWeight } from "./itemBuffs";
 import { type AppliedStatus, applyHeroStatus, damageEndsHeroStatus } from "./heroStatus";
 import { contactEarnsMana, dealtManaGain, gainMana, takenManaGain } from "./mana";
 import { PassiveProc, devotionBlocked, devotionLaunchScale, frostArmorStruck, sourcePassiveContact, vampiricHeal, BASH_HITSTUN_FRAMES } from "./passives";
@@ -279,7 +280,7 @@ function resolveDamageContacts(world: Roster, slot: number): void {
     }
     if (contact.kind === ContactKind.flinch) flinch ??= index;
     if (contact.kind === ContactKind.launch || contact.kind === ContactKind.throw) {
-      const magnitude = contactKnockback(postHitPercent, damage, target.tuning.physics.weight, contact.effect.growth, contact.effect.base, 1.0);
+      const magnitude = contactKnockback(postHitPercent, damage, knockbackWeight(target), contact.effect.growth, contact.effect.base, 1.0);
       const knockback = contact.kind === ContactKind.throw ? magnitude : hitContextKnockback(magnitude, contact.crouching, contact.smashCharging);
       // Equal-strength contacts retain the first contact's direction.
       if (knockback > strongest) {

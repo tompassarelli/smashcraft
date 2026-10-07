@@ -24,6 +24,7 @@ import { stageBounds } from "./stageBounds";
 import { refillMana } from "./heroSpecialRules";
 import { resetPassive } from "./passives";
 import { clearHeroStatus } from "./heroStatus";
+import { endItemBuff, groundedJumps } from "./itemBuffs";
 const RESPAWN_FRAMES = 60;
 const RESPAWN_HEIGHT = 280.0;
 const RESPAWN_INVINCIBLE_FRAMES = 90;
@@ -56,6 +57,7 @@ export function checkBlastZone(world: Roster, slot: number, stage: number = 0): 
   launch.groundKnockbackX = 0.0;
   launch.knockbackZ = 0.0;
   clearTech(f);
+  endItemBuff(f);
   status.stocks = max(0, status.stocks - 1);
   status.respawn = status.stocks > 0 ? RESPAWN_FRAMES : 0;
   attack.style = undefined;
@@ -96,6 +98,7 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   f.status.armorChills = false;
   f.status.divineFrames = 0;
   clearHeroStatus(f);
+  endItemBuff(f);
   motion.turnaroundSide = 0;
   motion.turnaroundAge = TURNAROUND_SPECIAL_WINDOW_FRAMES + 1;
   hits.lastAttacker = undefined;
@@ -200,7 +203,7 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   jump.held = false;
   status.out = false;
   motion.grounded = false;
-  jump.remaining = 2;
+  jump.remaining = groundedJumps(f);
   clearPlatformMove(f);
   dodge.airMotionFrames = 0;
   landing.lag = 0;
