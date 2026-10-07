@@ -4,7 +4,7 @@
 // all clients take the same path.
 import { PARTICIPANT_SLOTS, type ParticipantSlot, isParticipantSlot } from "../../game/input/participants";
 import {
-  Phase, canChooseComputer, cancelRematchCountdown, firstHumanSlot, characterFor, confirmRematch, cycleSlotMode, humanActive, recallCharacter,
+  Phase, changeStagePoolMode, changeStagePoolStage, canChooseComputer, cancelRematchCountdown, firstHumanSlot, characterFor, confirmRematch, cycleSlotMode, humanActive, recallCharacter,
   requestStageSelect, requestStart, setAutomaticRematch, setCpuOpponent, setCpuTier, setEndless, setHitAreas, setPartnerDamage, setTraining, stepPartnerBehaviour,
   stepPartnerEscape, stepPartnerTech, stepTrainingSpeed, tickRematchCountdown,
   returnToCharacters, selectCharacter, selectCpuCharacter, selectStage, setStocks, setTimeLimit, updateConnectedHumans,
@@ -194,6 +194,12 @@ export function panelActions(): PanelActions {
       }),
     },
     stage: {
+      togglePoolMode: participant => withSlot(participant, (s, slot) => {
+        if (!stageLoading(s)) changeStagePoolMode(s.game, slot);
+      }),
+      togglePoolStage: (participant, choice) => withSlot(participant, (s, slot) => {
+        if (!stageLoading(s)) changeStagePoolStage(s.game, slot, choice);
+      }),
       selectStage: (participant, choice) => withSlot(participant, (s, slot) => {
         if (!stageLoading(s)) selectStage(s.game, slot, choice);
       }),
