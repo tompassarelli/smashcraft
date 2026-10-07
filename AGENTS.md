@@ -326,6 +326,10 @@ code. From smashcraft:ts/:
   compare replay results across Bun, that Lua32 and a Lua32 whose raw float
   `+ - *` round toward zero (`TOWARD_ZERO_LUA`, or built with nix on first use).
 - Parity: `bun wisp parity numeric` compares the numeric corpus with both Lua32s;
+  `bun wisp integrity capture --screen --clients-file FILE --client NAME --out PRIVATE_DIR [--count N] [--region X,Y,WIDTH,HEIGHT]`
+  measures serial framebuffer acquisition on the input stimulus clock and saves
+  actual pixels privately (smashcraft:docs/native-bot-session.md). Its cadence
+  sample is preparation for response measurements, with no latency pass result.
   `bun wisp integrity capture ...` runs native input-integrity capture and
   `bun wisp integrity result DIR` reconciles its output. `bun wisp parity
   headless --helper BIN --out DIR` runs the same capture through the real

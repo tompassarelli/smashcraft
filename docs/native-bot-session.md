@@ -502,6 +502,23 @@ the exported game clock alone cannot establish press-to-screen latency.
 The probe adds diagnostic work, so report its overhead separately from the
 ordinary release's cost. Use the integrity profile for journal diagnostics.
 
+Before a pixel-response trial, measure the acquisition cadence on its selected
+private desktop from smashcraft:ts/:
+
+```sh
+bun wisp integrity capture --screen --clients-file PRIVATE_CLIENTS.json --client lan3a --out /absolute/private/screen-trial --count 30
+```
+
+`--region X,Y,WIDTH,HEIGHT` keeps a known fighter's rectangle instead of the
+whole screen. The command saves actual RGB as PPM files and
+`screen-capture.json`, with each acquisition's `CLOCK_MONOTONIC` nanosecond
+bracket and interval distributions. Match state is read before capture; the
+command sends no input. Its output is a cadence sample, not a latency verdict.
+For a stimulus trial use the same clock as the injector and the acquisition
+end as a conservative response bound. Neither a bracket midpoint nor the
+probe marker is evidence that a fighter responded. Preserve pixels and input
+timestamps so the action's visible onset can be checked independently.
+
 Build or rebuild with `--profile native-perf` for script-cost trials of the
 playable build. The diagnostic uses the playable build's local keyboard rows
 and predicted pooled fighters, with developer setup commands and the frame meter;
