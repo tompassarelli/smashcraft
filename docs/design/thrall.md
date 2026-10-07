@@ -18,8 +18,9 @@ facts are reused; no outside implementation, prose or animation is copied.
 
 The body counterpart is [Ultimate King Dedede](https://www.ssbwiki.com/King_Dedede_(SSBU)):
 weight 127, run speed 1.496, air speed 0.735. Smashcraft applies weight
-127/75, run 1.496/2.2 and air 0.735 to its reference table, with the same
-world-unit conversion as other fighters. His authored mounted silhouette is
+127/75 and run 1.496/2.2 to its reference table, and raises air speed to the
+shared 0.75 floor, with the same world-unit conversion as other fighters.
+His authored mounted silhouette is
 1.25 times the reference width and 1.15 times its height. He retains the
 shared one aerial jump, gravity and dodge windows. Unlike Dedede, he has no
 extra jumps or armored recovery.
