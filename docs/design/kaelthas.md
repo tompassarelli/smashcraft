@@ -16,9 +16,11 @@ normals turn his sphere attacks into hand and flame gestures.
 
 The named body counterpart is
 [Mewtwo in Ultimate](https://www.ssbwiki.com/Mewtwo_(SSBU)#Stats): weight **79**,
-run **2.255**, air speed **1.313**. Smashcraft uses six world units per Smash
-unit; this gives run **13.53** and air **7.878** per frame. The hero-body
-multipliers are 79/75 weight, 2.255/2.2 run, and 1.313 air. Width 0.96 and
+run **2.255**, air speed **1.313**. Kael intentionally caps that air reference
+at the roster's **1.25** maximum while retaining Mewtwo's weight and run.
+Smashcraft uses six world units per Smash unit; his actual run is **13.53**
+and air speed **7.5** per frame. The hero-body multipliers are 79/75 weight,
+2.255/2.2 run, and 1.25 air. Width 0.96 and
 height 1.12 are original Blood Mage silhouette choices. Shared gravity,
 jumps and dodge timing stay the roster's. Unlike Mewtwo's tail, his disjoint
 flames are not part of his hurt body; his extended casting arm is.
