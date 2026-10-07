@@ -371,8 +371,10 @@ code. From smashcraft:ts/:
   while inputs and simulation continue; `held visual` images are not timing evidence;
   a desynced, crashed or early-ended run is INVALID and, with --map, rerun.
   `bun wisp pad SCRIPT --headless --helper BINARY --out DIR [--chat=TEXT]
-  [--compare NATIVE_DIR]` plays the same script through the same helper into
-  headless integrity clients. It passes a native run when checksums, fighter
+  [--compare NATIVE_DIR] [--render DIR --frames N...]` plays the same script through the same helper into
+  headless integrity clients. `--render` draws the script captures after the
+  session stops; `--frames` selects their comma-separated frame numbers.
+  It passes a native run when checksums, fighter
   lines and the script's `#!` expectations match (smashcraft:docs/native-bot-session.md,
   "Native checks by parity"; issue scripts in smashcraft:ts/test/native/pads/).
   Comparisons preflight the existing View replay export before starting helpers

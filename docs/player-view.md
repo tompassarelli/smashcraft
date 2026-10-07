@@ -20,6 +20,16 @@ scripts supply strike, special and passive examples. Illidan has no passive;
 his Immolation is a special example. These names alone are capture locations,
 not measured renderer agreement.
 
+For the native pad path, run `bun wisp pad SCRIPT --headless --helper BINARY
+--out PRIVATE_RUN --render PRIVATE_FRAMES --frames 132,169`. It uses the
+same real helper and analog pad inputs as the native parity run, captures
+each requested frame using the native capture's held-pose schedule, then renders after
+the helpers stop. Without `--frames`, it draws every `capture` in the script.
+Each selected frame must name a script capture; a missing drawn frame fails
+the command. `--compare NATIVE_RUN` also compares the normal parity records.
+`sound-cues.json` records the sounds each client created, started and stopped,
+with their label or source path, callback frame and observed match frame.
+
 Logic tests, type checks, the desync guard and the native match gate can all
 pass while a player sees no stage or an effect that never leaves. Smashcraft
 uses Wisp's player-view checks (wisp:docs/player-view.md) to fail on those:

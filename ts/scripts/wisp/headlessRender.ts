@@ -3,6 +3,7 @@ import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { Effect } from "effect";
 import { HERO_ROSTER } from "../../src/game/sim/heroes/registry";
+import { FIGHTER_OBJECTS } from "../../src/game/objectData";
 import { heroModelSource } from "../heroModelSource";
 import { INPUTS_STORE, assetsView, readManifest } from "./buildInputs";
 import { importedAssets } from "./mapInputs";
@@ -78,6 +79,7 @@ export function headlessRender(options: RenderAssetOptions = {}) {
     return read(png);
   };
   return {
+    unitModels: Object.fromEntries(Object.values(FIGHTER_OBJECTS).map(({ id, model }) => [id, model])),
     readAsset(path: string): Promise<Uint8Array | undefined> {
       const normalized = key(path);
       let promise = pending.get(normalized);
