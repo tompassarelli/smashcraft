@@ -40,21 +40,26 @@ export interface DrawnShot<A> {
   readonly waitedMs: number;
 }
 
-/** Waits until `read` names `frame` or later in match `epoch`, polling every 2 ms, then runs `shoot`. */
+/** Both receipts must identify the requested frame; a later frame or absent completion is invalid. */
 export const captureWhenDrawn = <A, E>(read: () => Drawn | undefined, epoch: number, frame: number, timeoutMs: number, shoot: Effect.Effect<A, E>, where: string) =>
   Effect.gen(function*() {
     const started = performance.now();
     for (;;) {
       const drawn = read();
       if (drawn !== undefined && drawn.epoch === epoch && drawn.frame >= frame) {
+        if (drawn.frame !== frame) return yield* new IntegrityFailure({ operation: `capture frame ${frame}`, path: where, cause: `INVALID: request boundary missed match ${epoch} frame ${frame}; observed frame ${drawn.frame}` });
         const waitedMs = performance.now() - started;
         const shot = yield* shoot;
         const after = read();
-        return { shot, before: drawn.frame, after: after !== undefined && after.epoch === epoch ? after.frame : drawn.frame, waitedMs } satisfies DrawnShot<A>;
+        if (after === undefined || after.epoch !== epoch || after.frame !== frame) {
+          const seen = after === undefined ? "no drawn-frame receipt" : `match ${after.epoch} frame ${after.frame}`;
+          return yield* new IntegrityFailure({ operation: `capture frame ${frame}`, path: where, cause: `INVALID: completion boundary expected match ${epoch} frame ${frame}; observed ${seen}` });
+        }
+        return { shot, before: drawn.frame, after: after.frame, waitedMs } satisfies DrawnShot<A>;
       }
       if (performance.now() - started > timeoutMs) {
         const seen = drawn === undefined ? "no drawn frame" : `epoch ${drawn.epoch} frame ${drawn.frame}`;
-        return yield* new IntegrityFailure({ operation: `capture frame ${frame}`, path: where, cause: `the client hadn't drawn match ${epoch} frame ${frame} within ${timeoutMs} ms (${seen})` });
+        return yield* new IntegrityFailure({ operation: `capture frame ${frame}`, path: where, cause: `INVALID: drawn-clock boundary: the client hadn't drawn match ${epoch} frame ${frame} within ${timeoutMs} ms (${seen})` });
       }
       yield* Effect.sleep("2 millis");
     }

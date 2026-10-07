@@ -17,8 +17,17 @@ export function clientArguments(args: readonly string[]): { readonly clientsFile
   };
 }
 
-// Match receipts let `client chat` and Return reach a running match (wisp:docs/watch.md, "Typing only into a match").
-export const client: Command = (args) => Effect.gen(function*() {
+interface ClientFactories {
+  readonly make: typeof makeClient;
+  readonly doctor: typeof doctorForClients;
+  readonly signOut: typeof signOutForClients;
+}
+
+/** Bind observation, input and recovery to one selected clients file before any driver runs. */
+export const clientWith = (factories: ClientFactories): Command => (args) => Effect.gen(function*() {
   const selected = yield* Effect.try({ try: () => clientArguments(args), catch: cause => cause instanceof UsageFailure ? cause : new UsageFailure({ problem: String(cause) }) });
-  return yield* makeClient(selected.clientsFile, { filePrefix: "smashcraft" }, doctorForClients(selected.clientsFile), signOutForClients(selected.clientsFile))(selected.args);
+  return yield* factories.make(selected.clientsFile, { filePrefix: "smashcraft" }, factories.doctor(selected.clientsFile), factories.signOut(selected.clientsFile))(selected.args);
 });
+
+// Match receipts let `client chat` and Return reach a running match (wisp:docs/watch.md, "Typing only into a match").
+export const client = clientWith({ make: makeClient, doctor: doctorForClients, signOut: signOutForClients });
