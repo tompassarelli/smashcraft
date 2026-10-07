@@ -12,8 +12,8 @@ import { stageBounds } from "../sim/stageBounds";
 import type { MatchState } from "./rules";
 import { botChance, botChoice } from "./botRandom";
 import { startableForm } from "./botHeroKit";
-import { HABIT_FIELDS, type BotStrategy } from "./botStrategy";
-import { HabitChoice, habitContext } from "./botHabits";
+import type { BotStrategy } from "./botStrategy";
+import { HABIT_FIELDS, HabitChoice, habitContext } from "./botHabits";
 import type { CpuDecisionPolicy } from "./cpuDecisionPolicy";
 
 export interface AttackDecision {

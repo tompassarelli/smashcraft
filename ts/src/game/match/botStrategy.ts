@@ -14,10 +14,9 @@ import { moveReachAhead, moveReaches } from "./botMoves";
 import { botChance } from "./botRandom";
 import { steerOnGround, slideStaysOnDeck } from "./botFooting";
 import type { CpuDecisionPolicy } from "./cpuDecisionPolicy";
-import { HabitChoice, habitContext } from "./botHabits";
+import { HABIT_FIELDS, HabitChoice, habitContext } from "./botHabits";
 
 const HISTORY_LIMIT = 128;
-export const HABIT_FIELDS = 4;
 const READ_CHOICES = [HabitChoice.attack, HabitChoice.shield, HabitChoice.jump, HabitChoice.retreat, HabitChoice.approach, HabitChoice.landing, HabitChoice.ledge] as const;
 // Preallocated scratch: confirmed and rollback decisions reuse it without retaining it.
 const readCounts = [0, 0, 0, 0, 0, 0, 0, 0];

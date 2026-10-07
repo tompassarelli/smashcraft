@@ -37,6 +37,7 @@ export function adaptInput(row: Readonly<InputRow>, fighter: Readonly<Fighter>, 
   destination.verticalDirection = movementAxis(row, Action.moveDown, Action.moveUp, row.axisZ);
   destination.diStickValid = true;
   destination.diStickX = f32(row.axisX / 127.0);
+  destination.driftStickX = destination.diStickX;
   destination.diStickZ = f32(row.axisZ / 127.0);
   const length = squareRoot(f32(f32(destination.diStickX * destination.diStickX) + f32(destination.diStickZ * destination.diStickZ)));
   if (length > 1) {
