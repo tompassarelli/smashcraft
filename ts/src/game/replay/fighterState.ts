@@ -1,3 +1,4 @@
+import { createPlacedObject, placedObject } from "../sim/fighter";
 import { at } from "wisp/src/runtime/lookup";
 import { PARTICIPANT_CAPACITY, participantActive } from "../input/participants";
 import type { Fighter } from "../sim/fighter";
@@ -48,7 +49,8 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   motion.fastFallInputAge = sourceMotion.fastFallInputAge;
   motion.previousStickSide = sourceMotion.previousStickSide;
   motion.stickSideAge = sourceMotion.stickSideAge;
-  motion.lastAerialTapDirection = sourceMotion.lastAerialTapDirection;
+  motion.turnaroundSide = sourceMotion.turnaroundSide;
+  motion.turnaroundAge = sourceMotion.turnaroundAge;
 
   const ground = target.ground;
   const sourceGround = source.ground;
@@ -109,6 +111,8 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   const shield = target.shield;
   const sourceShield = source.shield;
   shield.raised = sourceShield.raised;
+  shield.tiltX = sourceShield.tiltX;
+  shield.tiltZ = sourceShield.tiltZ;
   shield.strength = sourceShield.strength;
   shield.energy = sourceShield.energy;
   shield.stun = sourceShield.stun;
@@ -360,6 +364,8 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   status.poisonDamage = sourceStatus.poisonDamage;
   status.guardHealed = sourceStatus.guardHealed;
   status.divineFrames = sourceStatus.divineFrames;
+  status.buff = sourceStatus.buff;
+  status.buffFrames = sourceStatus.buffFrames;
 
   const mana = target.mana;
   const sourceMana = source.mana;
@@ -376,21 +382,25 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   passive.lastKey = sourcePassive.lastKey;
   passive.lastTarget = sourcePassive.lastTarget;
 
-  const placed = target.placed;
-  const sourcePlaced = source.placed;
-  placed.life = sourcePlaced.life;
-  placed.age = sourcePlaced.age;
-  placed.x = sourcePlaced.x;
-  placed.z = sourcePlaced.z;
-  placed.direction = sourcePlaced.direction;
-  placed.durability = sourcePlaced.durability;
-  placed.serial = sourcePlaced.serial;
-  placed.spec = sourcePlaced.spec;
-  for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) placed.struck[slot] = sourcePlaced.struck[slot];
-  placed.specialStruck = sourcePlaced.specialStruck;
-  placed.mode = sourcePlaced.mode;
-  placed.modeFrame = sourcePlaced.modeFrame;
-  placed.apart = sourcePlaced.apart;
-  placed.bitten = sourcePlaced.bitten;
-  placed.surface = sourcePlaced.surface;
+  while (target.pack.length < source.pack.length) target.pack.push(createPlacedObject());
+  target.pack.length = source.pack.length;
+  for (let animal = 0; animal <= source.pack.length; animal++) {
+    const placed = placedObject(target, animal);
+    const sourcePlaced = placedObject(source, animal);
+    placed.life = sourcePlaced.life;
+    placed.age = sourcePlaced.age;
+    placed.x = sourcePlaced.x;
+    placed.z = sourcePlaced.z;
+    placed.direction = sourcePlaced.direction;
+    placed.durability = sourcePlaced.durability;
+    placed.serial = sourcePlaced.serial;
+    placed.spec = sourcePlaced.spec;
+    for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) placed.struck[slot] = sourcePlaced.struck[slot];
+    placed.specialStruck = sourcePlaced.specialStruck;
+    placed.mode = sourcePlaced.mode;
+    placed.modeFrame = sourcePlaced.modeFrame;
+    placed.apart = sourcePlaced.apart;
+    placed.bitten = sourcePlaced.bitten;
+    placed.surface = sourcePlaced.surface;
+  }
 }

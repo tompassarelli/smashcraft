@@ -1,10 +1,9 @@
 import { ACTION_ORDER, Action } from "./actions";
 import { type DirectionalInput, clearDirections, directionOf, neutralDirections, updateDirections } from "./directionalInput";
 import type { Direction } from "./inputRow";
-import { KEY_SLOT_COUNT, type KeyBindings, actionFor, keyFor, slotIndex } from "./keyBindings";
+import { type KeyBindings, actionFor, keyFor, slotIndex } from "./keyBindings";
 
 const KEY_CODES = 256;
-const ALL_SLOTS = (1 << KEY_SLOT_COUNT) - 1;
 
 /**
  * One participant's keys, from synchronized key events and that player's own
@@ -55,7 +54,7 @@ function holdSlot(keys: PlayerKeys, key: number, bindings: Readonly<KeyBindings>
   const action = actionFor(bindings, key);
   if (action === undefined) return undefined;
   const slot = 1 << slotIndex(action, keyFor(bindings, action, 0) === key ? 0 : 1);
-  keys.heldSlots = held ? keys.heldSlots | slot : keys.heldSlots & (ALL_SLOTS ^ slot);
+  keys.heldSlots = held ? keys.heldSlots | slot : keys.heldSlots & ~slot;
   updateDirections(keys.directions, directionX(keys), directionZ(keys));
   return action;
 }

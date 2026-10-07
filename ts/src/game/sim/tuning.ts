@@ -117,6 +117,8 @@ export const INITIAL_DASH_SPEED = melee(1.899999976158142);
 const GROUND_ACCELERATION_MULTIPLIER = 0.10000000149011612;
 const GROUND_ACCELERATION_BASE = 0.019999999552965164;
 const GROUND_SPEED_CAP = melee(3.0);
+/** ftCo_DatAttrs +0x078 air_max_horizontal_velocity: 3.0 for every Melee fighter but Falco (retail-roster.json). */
+const AIR_MAX_HORIZONTAL_VELOCITY = melee(3.0);
 
 const ORIGINAL_ACCELERATION = {
   walkAccelerationMultiplier: GROUND_ACCELERATION_MULTIPLIER,
@@ -139,7 +141,7 @@ export const AUTHORED_PHYSICS: { readonly [name in OriginalFighter]: FighterPhys
     airAcceleration: melee(f32(0.019999999552965164 + 0.05999999865889549)),
     airSpeed: melee(0.8299999833106995),
     airFriction: melee(0.019999999552965164),
-    airCap: melee(3.0),
+    airCap: AIR_MAX_HORIZONTAL_VELOCITY,
     traction: GROUND_TRACTION,
     dashSpeed: INITIAL_DASH_SPEED,
     runSpeed: melee(2.200000047683716),
@@ -187,7 +189,7 @@ export const AUTHORED_PHYSICS: { readonly [name in OriginalFighter]: FighterPhys
     airAcceleration: melee(0.07500000298023224),
     airSpeed: melee(0.8799999952316284),
     airFriction: melee(0.019999999552965164),
-    airCap: melee(0.8799999952316284),
+    airCap: AIR_MAX_HORIZONTAL_VELOCITY,
     traction: GROUND_TRACTION,
     dashSpeed: INITIAL_DASH_SPEED,
     runSpeed: melee(1.850000023841858),
@@ -196,9 +198,10 @@ export const AUTHORED_PHYSICS: { readonly [name in OriginalFighter]: FighterPhys
     fullJumpSpeed: 24.200000762939453,
     shortJumpSpeed: 13.199999809265137,
     aerialJumpSpeed: 25.5,
+    // Preserve his standing-hop trajectory while the shared rule carries dash speed.
     jumpMomentum: 1.0,
     jumpHorizontalSpeed: 0.0,
-    jumpHorizontalCap: 0.0,
+    jumpHorizontalCap: melee(1.7000000476837158),
     aerialJumpHorizontalSpeed: 0.0,
     shieldBreakSpeed: 24.0,
     ...ORIGINAL_ACCELERATION,
@@ -220,10 +223,12 @@ export function authoredPhysics(character: Character): FighterPhysics {
 
 /** The reference body's weight, 1.00 in the roster's table; Archer herself is lighter (#105). */
 const REFERENCE_WEIGHT = 75.0;
+/** What a hero's 1.00 air multiplier means: Ultimate's median air speed (#190; smashcraft:docs/gameplay-design.md, "Air drift and jump momentum"). */
+export const REFERENCE_AIR_SPEED = melee(1.0);
 
 /**
  * An expansion hero's physics: Archer's, with the roster's weight (of REFERENCE_WEIGHT), run and
- * air-speed multipliers. Jumps and gravity stay the reference's.
+ * air-speed (of REFERENCE_AIR_SPEED) multipliers. Jumps and gravity stay the reference's.
  */
 function heroPhysics(character: Character): FighterPhysics {
   const reference = AUTHORED_PHYSICS.archer;
@@ -235,7 +240,7 @@ function heroPhysics(character: Character): FighterPhysics {
     dashSpeed: f32(reference.dashSpeed * body.run),
     runSpeed: f32(reference.runSpeed * body.run),
     walkSpeed: f32(reference.walkSpeed * body.run),
-    airSpeed: f32(reference.airSpeed * body.air),
+    airSpeed: f32(REFERENCE_AIR_SPEED * body.air),
   };
 }
 

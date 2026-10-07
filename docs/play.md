@@ -1,5 +1,21 @@
 # Play current Smashcraft
 
+`bun wisp play --standalone` opens Smashcraft in the Wisp browser player,
+with Archer against a Wren Expert Rifleman over the normal three stocks and
+seven-minute clock. Keyboard controls and the browser's gamepad controls enter
+the playable map's keyboard sampling. The browser draws the map's models,
+camera, effects and HUD from the headless client and plays its sound cues.
+
+`bun wisp play --standalone --script test/native/pads/cpu-expert.pad --headless
+--frames 1070 --out build/standalone-cpu --capture-frames 200,600,1000` runs
+the existing native pad driver and saves each frame's checksum plus captures.
+`cpu-expert.pad` is the original `cpu-level-9.pad`: commit `c0424f66` renamed
+it, and `775bf730` changed its setup to `-dev quick cpu wren expert`. Every
+authored pad input and its frame through 1070 stayed the same; `c2ad9697`
+updated the expected damage after the CPU changes. This is the CPU fixture for
+standalone/native comparisons. Map assets are read from the existing private
+inputs, with stock assets cached outside the repository.
+
 From ~/code/smashcraft/main/ts, run `bun wisp play`. It builds current main,
 points the always-on controller service at the matching helper, and hosts a match on Tom's main display
 against a computer. The match plays on the keyboard; a pad the service finds
@@ -25,6 +41,15 @@ optional and cached by its companion source tree; a failed helper build leaves
 the keyboard and never blocks the map. A new source revision builds a new map;
 repeated runs reuse its map and helper.
 
+Helper compilation uses one Cargo target directory at
+`~/.local/share/smashcraft-build-inputs/play-helper-target`, shared across
+temporary play-build worktrees. Cargo locks its build output; the play launcher
+also holds a lock through copying the finished binary into the companion
+source tree's `play-helpers/` directory, so concurrent revisions deliver their
+own helper. On 8 October 2026 the old fresh-worktree build took 4m46s;
+the first shared-cache fill took 4m32s and a second worktree reused it in
+0.15s of Cargo time (2.147s including Nix and capacity setup).
+
 ## Controller without play
 
 The controller service (`wc3-journal --service`, smashcraft:companion/README.md)
@@ -38,3 +63,5 @@ map) and survives Warcraft restarts and pad replugs. `play` and
 when it changed; without the unit, `bun wisp controller` runs the service in
 the foreground. Its state is in ~/.local/state/smashcraft/controller-service.txt;
 its log is `journalctl --user -u smashcraft-controller`.
+
+Controller layouts: `bun wisp controller layout standard` uses B to jump and RB to grab; `bun wisp controller layout zjump` swaps them. Both triggers shield by default. The client Controller page also chooses the layout, tap jump and full or light shield for each trigger. These choices stay in the controller service settings across restarts. A running service changes immediately; a stopped service reads the saved choice at its next start.

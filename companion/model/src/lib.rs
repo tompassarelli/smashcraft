@@ -4,6 +4,7 @@
 #![forbid(unsafe_code)]
 
 pub mod any_map;
+pub mod pad;
 
 use serde::{Deserialize, Serialize};
 
@@ -23,6 +24,7 @@ pub struct Snapshot {
     pub output: Output,
     /// One plain-language sentence for the player, when something needs them.
     pub problem: Option<String>,
+    pub settings: ControllerSettings,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -181,6 +183,9 @@ pub enum ServiceMessage {
 #[serde(rename_all = "snake_case")]
 pub enum ClientMessage {
     Profile(ProfileChoice),
+    PadPreset(PadPreset),
+    TapJump(bool),
+    TriggerShields(TriggerShields),
     /// Replaces the Any map profile's bindings.
     Bindings(Vec<Binding>),
 }
@@ -266,16 +271,89 @@ fn key(name: &str) -> Press {
 
 /// Smashcraft's fixed layout (Xbox labels), as the README's mapping table.
 pub fn smashcraft_bindings() -> Vec<Binding> {
+    smashcraft_bindings_for(PadPreset::Standard)
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum PadPreset {
+    #[default]
+    Standard,
+    ZJump,
+}
+
+impl PadPreset {
+    pub fn name(self) -> &'static str {
+        match self { Self::Standard => "standard", Self::ZJump => "z-jump" }
+    }
+
+    pub fn parse(name: &str) -> Result<Self, String> {
+        match name { "standard" => Ok(Self::Standard), "z-jump" => Ok(Self::ZJump), _ => Err(format!("unknown pad preset {name:?}: standard or z-jump")) }
+    }
+}
+
+pub fn smashcraft_bindings_for(preset: PadPreset) -> Vec<Binding> {
+    smashcraft_bindings_with(preset, TriggerShields::default())
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TriggerShield {
+    #[default]
+    Full,
+    Light,
+}
+
+impl TriggerShield {
+    pub fn name(self) -> &'static str { match self { Self::Full => "full", Self::Light => "light" } }
+    pub fn parse(name: &str) -> Result<Self, String> {
+        match name { "full" => Ok(Self::Full), "light" => Ok(Self::Light), _ => Err("trigger shield needs full or light".into()) }
+    }
+    pub fn pressure(self) -> u16 { match self { Self::Full => 255, Self::Light => 77 } }
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TriggerShields {
+    pub left: TriggerShield,
+    pub right: TriggerShield,
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct ControllerSettings {
+    pub pad_preset: PadPreset,
+    pub tap_jump: bool,
+    pub triggers: TriggerShields,
+}
+
+impl ControllerSettings {
+    pub fn apply(&mut self, message: &ClientMessage) -> bool {
+        let before = *self;
+        match message {
+            ClientMessage::PadPreset(preset) => self.pad_preset = *preset,
+            ClientMessage::TapJump(on) => self.tap_jump = *on,
+            ClientMessage::TriggerShields(triggers) => self.triggers = *triggers,
+            _ => {}
+        }
+        *self != before
+    }
+}
+
+pub fn smashcraft_bindings_with(preset: PadPreset, triggers: TriggerShields) -> Vec<Binding> {
     use Control::*;
+    let shield = |control, mode| match mode {
+        TriggerShield::Full => bind(control, "Shield", key("q")),
+        TriggerShield::Light => bind(control, "Light shield", key("t")),
+    };
     vec![
         bind(A, "Attack", key("n")),
         bind(X, "Special", key("u")),
-        bind(B, "Jump", key("i")),
+        bind(B, if preset == PadPreset::ZJump { "Grab" } else { "Jump" }, key(if preset == PadPreset::ZJump { "o" } else { "i" })),
         bind(Y, "Jump", key("i")),
-        bind(Rb, "Grab", key("o")),
-        bind(Lb, "Walk", key("p")),
-        bind(Lt, "Shield", key("q")),
-        bind(Rt, "Shield", key("q")),
+        bind(Rb, if preset == PadPreset::ZJump { "Jump" } else { "Grab" }, key(if preset == PadPreset::ZJump { "i" } else { "o" })),
+        bind(Lb, "Tilt", key("p")),
+        shield(Lt, triggers.left),
+        shield(Rt, triggers.right),
         bind(Start, "Pause", key("y")),
         bind(LeftLeft, "Move left", key("w")),
         bind(LeftRight, "Move right", key("r")),
@@ -462,10 +540,26 @@ pub fn view(link: Link, s: &Snapshot) -> View {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn standard_and_z_jump_presets_keep_their_bindings() {
+        let standard = smashcraft_bindings();
+        let z_jump = smashcraft_bindings_for(PadPreset::ZJump);
+        for (standard, z_jump) in standard.iter().zip(&z_jump) {
+            match standard.control {
+                Control::B => { assert_eq!(standard.action, "Jump"); assert_eq!(z_jump.action, "Grab"); assert_eq!(z_jump.press, key("o")); }
+                Control::Rb => { assert_eq!(standard.action, "Grab"); assert_eq!(z_jump.action, "Jump"); assert_eq!(z_jump.press, key("i")); }
+                _ => assert_eq!(standard, z_jump),
+            }
+        }
+        assert_eq!(z_jump.iter().find(|binding| binding.control == Control::Y).unwrap().action, "Jump");
+        assert_eq!(ClientMessage::PadPreset(PadPreset::ZJump).line(), "{\"pad_preset\":\"z-jump\"}\n");
+        assert_eq!(ClientMessage::TapJump(true).line(), "{\"tap_jump\":true}\n");
+    }
     use super::*;
 
     fn playing() -> Snapshot {
         Snapshot {
+            settings: ControllerSettings::default(),
             pad: Some(Pad {
                 name: "Xbox One S pad".into(),
                 id: "usb-Microsoft_Controller-event-joystick".into(),

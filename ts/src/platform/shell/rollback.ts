@@ -5,7 +5,7 @@
 // when accepted rows differ from what it ran.
 import { clearAttackBuffer } from "../../game/input/attackBuffer";
 import { type InputRow, copyInput, emptyInput } from "../../game/input/inputRow";
-import { commitEdges, resetKeys, sampleKeys } from "../../game/input/keyboardCapture";
+import { commitEdges, resetKeys } from "../../game/input/keyboardCapture";
 import { PARTICIPANT_SLOTS, isParticipantSlot } from "../../game/input/participants";
 import { type InputPacket, encodePacket, packetSizeInRange } from "../../game/input/wire";
 import { startKeyUp } from "../../game/match/controls";
@@ -13,6 +13,9 @@ import { captureNetworkFrame, resetMatchFrameInput } from "../../game/match/fram
 import { Phase, humanActive } from "../../game/match/rules";
 import { observedFrameLegalActions, observedFrameStartedActions } from "../../game/match/step";
 import { Capture } from "../../game/netcode/capture";
+import { PENDING_CAPACITY } from "../../game/netcode/shadowSchedule";
+import { floorMod } from "wisp/src/sim/intMath";
+import { at } from "wisp/src/runtime/lookup";
 import { InputBatch } from "../../game/netcode/inputBatch";
 import { KeyboardMailbox } from "../../game/netcode/journal/keyboard";
 import { MatchLifecycle } from "../../game/netcode/journal/lifecycle";
@@ -21,6 +24,7 @@ import { decodeTransport } from "../../game/netcode/journal/transport";
 import { captureReplaySnapshot, restoreReplaySnapshot } from "../../game/replay/snapshot";
 import { resetPauseBarrier, agreedFrame } from "../../game/shell/pauseBarrier";
 import { REPAIR_FRAMES, confirmedBudget, speculativeBudget } from "../../game/shell/playback";
+import { queueLocalRows } from "../../game/shell/localInput";
 import { applyFrame } from "./frame";
 import { pollLocalKeys } from "./inputs";
 import { INPUT_PREFIX, failJournal, flushTransport, receiveLifecycle, serviceJournalInput } from "./journal";
@@ -28,6 +32,9 @@ import { probeAdvance, probeCapture, probeClockMs, probeInput, probeIntegrity, p
 import { type KeyboardRollback, type Rollback, type ShellState, localSlot, shell } from "./state";
 import { recordBatchWait, recordEcho, recordSend, resetEchoRing, traceSeconds } from "./trace";
 import { LASTING, setStatus } from "./view";
+import { holdPresentedCapture } from "./visualCapture";
+import { samplePad } from "../../game/input/padCapture";
+import { pollPad, recordPadRow } from "./analogPad";
 
 /** Callbacks without a new predicted frame before every client names the players a running match waits for. */
 const STALL_NOTICE_CALLBACKS = 20;
@@ -39,6 +46,13 @@ const failControls = (s: ShellState) => setStatus(s, "Controls stopped respondin
 
 /** Starts a match epoch with the dev settings, seeded from the confirmed match; false when the schedule refuses them. */
 export function beginRollbackEpoch(s: ShellState, rollback: Rollback): boolean {
+  if (s.pad !== undefined) {
+    s.pad.rows.length = 0;
+    s.pad.mouse.length = 0;
+    s.pad.mouseEvents = 0;
+    s.pad.syncEvents = 0;
+    s.pad.startedAt = s.trace.clockPeriods * 1000.0 + TimerGetElapsed(s.trace.clock);
+  }
   const { schedule, speculative } = rollback;
   rollback.epoch++;
   rollback.delay = s.dev.delay;
@@ -64,6 +78,7 @@ export function beginRollbackEpoch(s: ShellState, rollback: Rollback): boolean {
   if (keyboard !== undefined) {
     keyboard.lastTarget = undefined;
     keyboard.outgoing = new InputBatch(rollback.epoch);
+    keyboard.nextSend = rollback.delay + 1;
     resetKeys(keyboard.capture, pollLocalKeys(s));
   }
   if (journal !== undefined) {
@@ -97,25 +112,22 @@ export function beginRollbackEpoch(s: ShellState, rollback: Rollback): boolean {
   return true;
 }
 
-/** Sends the batched local rows; a failed send stops local input for the epoch. */
-function sendBatch(s: ShellState, rollback: Rollback, keyboard: KeyboardRollback): void {
+/** A refused send keeps the original rows for the next callback. */
+function sendBatch(s: ShellState, rollback: Rollback, keyboard: KeyboardRollback): boolean {
   const count = keyboard.outgoing.size();
-  if (count === 0 || rollback.sendFailed) return;
+  if (count === 0) return true;
+  if (rollback.sendFailed) return false;
   const packet = keyboard.outgoing.packet();
   const wire = packet === undefined ? undefined : encodePacket(packet);
   if (packet === undefined || wire === undefined || !packetSizeInRange(wire.length, count)) {
     rollback.sendFailed = true;
     failControls(s);
-    return;
+    return false;
   }
   const started = probeClockMs(s.probe);
   const sent = BlzSendSyncData(INPUT_PREFIX, wire);
   probeSendFinished(s.probe, started);
-  if (!sent) {
-    rollback.sendFailed = true;
-    failControls(s);
-    return;
-  }
+  if (!sent) return false;
   for (let row = 0; row < count; row++) probeTransportSend(s.probe, rollback.epoch, packet.firstFrame + row);
   const { trace } = s;
   if (trace.active) {
@@ -124,11 +136,13 @@ function sendBatch(s: ShellState, rollback: Rollback, keyboard: KeyboardRollback
     if (count === 1) trace.window.singletons++;
     for (let row = 0; row < count; row++) {
       recordSend(trace, rollback.epoch, packet.firstFrame + row);
-      const stamp = keyboard.stamps[row === 0 ? 0 : 1];
+      const stamp = at(keyboard.stamps, floorMod(packet.firstFrame + row, PENDING_CAPACITY));
       if (stamp.traced) recordBatchWait(trace, trace.ticks - stamp.callback, traceSeconds(trace) - stamp.seconds);
     }
   }
+  keyboard.nextSend = packet.firstFrame + count;
   keyboard.outgoing.sent();
+  return true;
 }
 
 /**
@@ -141,7 +155,7 @@ function captureKeyboard(s: ShellState, rollback: Rollback, keyboard: KeyboardRo
   const { schedule, epoch } = rollback;
   if (trace.active) trace.window.localPolls++;
   const held = s.session.paused ? 0 : pollLocalKeys(s);
-  sampleKeys(keyboard.capture, held);
+  samplePad(keyboard.capture, held, pollPad(s));
   if (probeRecording(probe)) probePoll(probe, held, keyboard.capture.row.pressed, keyboard.capture.row.released, schedule.captureTarget());
   const target = schedule.captureTarget();
   if (s.session.paused || rollback.sendFailed || target === undefined) {
@@ -151,7 +165,7 @@ function captureKeyboard(s: ShellState, rollback: Rollback, keyboard: KeyboardRo
   if (target === keyboard.lastTarget) {
     if (trace.active) trace.window.sameTargetSkips++;
     // A stalled cursor must never strand the row needed to unblock it.
-    sendBatch(s, rollback, keyboard);
+    queueKeyboardRows(s, rollback, keyboard, true);
     return;
   }
   const result = schedule.captureLocal(epoch, keyboard.capture.row);
@@ -164,23 +178,34 @@ function captureKeyboard(s: ShellState, rollback: Rollback, keyboard: KeyboardRo
     failControls(s);
     return;
   }
+  recordPadRow(s, epoch, target, keyboard.capture.row);
+  if (probeRecording(probe)) {
+    const row = keyboard.capture.row;
+    const slot = localSlot();
+    probeInput(probe, "capture", epoch, slot, target, row.held, row.pressed, row.released, schedule.speculativeFrame());
+    if (rollback.predictionHeld && row.pressed !== 0) probeIntegrity(probe, `held ${epoch} ${slot} ${target}`);
+  }
   if (trace.active) trace.window.localCaptures++;
   commitEdges(keyboard.capture);
   keyboard.lastTarget = target;
-  const index = keyboard.outgoing.size() === 0 ? 0 : 1;
-  const pending = schedule.pending(epoch, target);
-  if (pending === undefined || !keyboard.outgoing.append(epoch, target, pending)) {
-    rollback.sendFailed = true;
-    failControls(s);
-    return;
-  }
-  const stamp = keyboard.stamps[index];
+  const stamp = at(keyboard.stamps, floorMod(target, PENDING_CAPACITY));
   stamp.traced = trace.active;
   if (trace.active) {
     stamp.callback = trace.ticks;
     stamp.seconds = traceSeconds(trace);
   }
-  if (!keyboard.pairedSends || keyboard.outgoing.size() === 2) sendBatch(s, rollback, keyboard);
+  queueKeyboardRows(s, rollback, keyboard, false);
+}
+
+function queueKeyboardRows(s: ShellState, rollback: Rollback, keyboard: KeyboardRollback, flush: boolean): void {
+  const { schedule, epoch } = rollback;
+  const added = queueLocalRows(keyboard.outgoing, schedule, epoch, keyboard.nextSend);
+  if (added === false) {
+    rollback.sendFailed = true;
+    failControls(s);
+    return;
+  }
+  if (flush || !keyboard.pairedSends || keyboard.outgoing.size() === 2) sendBatch(s, rollback, keyboard);
 }
 
 /** Runs the next confirmed frame on every human's accepted row. */
@@ -204,6 +229,7 @@ function stepConfirmed(s: ShellState, rollback: Rollback): boolean {
 /** The response probe's view of each speculative frame, before the schedule completes it. */
 function observeSpeculativeFrame(frame: number, local: Readonly<InputRow>): void {
   const s = shell();
+  holdPresentedCapture(s);
   const rollback = s.rollback;
   const slot = localSlot();
   if (rollback === undefined || !isParticipantSlot(slot) || !probeRecording(s.probe)) return;
@@ -241,18 +267,6 @@ export function rollbackTick(s: ShellState, rollback: Rollback): void {
     return;
   }
   const stopAt = journal === undefined ? undefined : agreedFrame(journal.barrier);
-  let steps = 0;
-  const confirmSteps = confirmedBudget(schedule.confirmedFrame() - schedule.nextConfirmedFrame() + 1);
-  while (s.game.phase === Phase.match && schedule.mayAdvanceConfirmed() && steps < confirmSteps && (stopAt === undefined || schedule.nextConfirmedFrame() < stopAt)) {
-    if (!stepConfirmed(s, rollback)) {
-      setStatus(s, "The match could not advance. Restart the match.", LASTING);
-      return;
-    }
-    steps++;
-    if (trace.active) trace.window.confirmedSteps++;
-  }
-  if (s.game.phase !== Phase.match && keyboard !== undefined) sendBatch(s, rollback, keyboard);
-  if (trace.active && steps === 0 && s.game.phase === Phase.match) trace.window.waitTicks++;
   const slot = localSlot();
   const reconciled = rollback.playback.reconcile(schedule, epoch, slot, speculative);
   if (reconciled === "rejected") {
@@ -274,6 +288,19 @@ export function rollbackTick(s: ShellState, rollback: Rollback): void {
     setStatus(s, "The match could not catch up. Restart the match.", LASTING);
     return;
   }
+  // Confirmation can reuse history only after accepted corrections have repaired it.
+  let steps = 0;
+  const confirmSteps = confirmedBudget(schedule.confirmedFrame() - schedule.nextConfirmedFrame() + 1);
+  while (s.game.phase === Phase.match && schedule.mayAdvanceConfirmed() && steps < confirmSteps && (stopAt === undefined || schedule.nextConfirmedFrame() < stopAt)) {
+    if (!stepConfirmed(s, rollback)) {
+      setStatus(s, "The match could not advance. Restart the match.", LASTING);
+      return;
+    }
+    steps++;
+    if (trace.active) trace.window.confirmedSteps++;
+  }
+  if (s.game.phase !== Phase.match && keyboard !== undefined) sendBatch(s, rollback, keyboard);
+  if (trace.active && steps === 0 && s.game.phase === Phase.match) trace.window.waitTicks++;
   // Replay stays numerical: persistent visuals show only the completed state;
   // event effects, audio, results and HUD stay confirmed. A deep correction
   // replays over several callbacks while local rows keep running.
@@ -284,7 +311,9 @@ export function rollbackTick(s: ShellState, rollback: Rollback): void {
     const halted = schedule.windowHalted(slot);
     const blocked = halted && after === before;
     if (halted) rollback.predictionHeld = true;
-    else if (!schedule.hasLocalRow(slot)) rollback.predictionHeld = false;
+    // The keyboard always queues D future rows. Only uncommitted presses can
+    // still belong to its stall; journal rows must drain their own backlog.
+    else if (keyboard !== undefined ? keyboard.capture.row.pressed === 0 : !schedule.hasLocalRow(slot)) rollback.predictionHeld = false;
     if (trace.active) {
       trace.window.speculativeSteps += after - before;
       if (!advanced) trace.window.speculativeFailures++;
@@ -326,6 +355,7 @@ function receivePacket(s: ShellState, rollback: Rollback, sender: number, packet
 
 /** A synchronized input message: helper lifecycle, or a run of one sender's consecutive rows. */
 export function receiveInput(s: ShellState): void {
+  if (s.pad !== undefined) s.pad.syncEvents++;
   const rollback = s.rollback;
   s.trace.rawSyncEvents++;
   if (rollback === undefined) return;

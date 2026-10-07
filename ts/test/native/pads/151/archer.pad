@@ -1,0 +1,60 @@
+# #151 Archer: jab, forward tilt (plain, up- and down-angled), up tilt, down tilt and dash
+# attack on client a, each captured on its first active frame (kit startup) and the next.
+# Syntax and checks: smashcraft:docs/native-bot-session.md.
+#! chat -dev quick hero archer
+# Input starts after frame 500: on a loaded host the helpers first see a quick match up to ~400 frames in.
+540 a tap A 2
+544 a capture
+545 a capture
+546 a stick 0 0
+616 a press LB
+617 a stick 1 0
+620 a tap A 2
+625 a capture
+626 a capture
+626 a stick 0 0
+626 a release LB
+696 a press LB
+697 a stick 0.7 0.7
+700 a tap A 2
+705 a capture
+706 a capture
+706 a stick 0 0
+706 a release LB
+776 a press LB
+777 a stick 0.7 -0.7
+780 a tap A 2
+785 a capture
+786 a capture
+786 a stick 0 0
+786 a release LB
+856 a press LB
+857 a stick 0 1
+860 a tap A 2
+866 a capture
+866 a stick 0 0
+866 a release LB
+867 a capture
+936 a press LB
+937 a stick 0 -1
+940 a tap A 2
+945 a capture
+946 a capture
+946 a stick 0 0
+946 a release LB
+1016 a stick 1 0
+1019 a stick 0 0
+1020 a tap A 2
+1025 a capture
+1026 a capture
+# View held a second: a moment the parity check replays.
+1080 a press VIEW
+1150 a release VIEW
+# Expected (headless run of this script): jab 0, forward tilt 6, up-angled 9, down-angled 10, up tilt 7, down tilt 8, dash attack 19.
+#! expect a 540 applied attack 1 style 0
+#! expect a 620 applied attack 2 style 6
+#! expect a 700 applied attack 3 style 9
+#! expect a 780 applied attack 4 style 10
+#! expect a 860 applied attack 5 style 7
+#! expect a 940 applied attack 6 style 8
+#! expect a 1020 applied attack 7 style 19

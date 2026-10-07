@@ -25,7 +25,8 @@ export type ShadowInputMode = Exclude<InputMode, { kind: "callback" }>;
 /** native: the fighter unit animates; pool: clip models, from confirmed or predicted state. */
 type PresentationProfile = "native" | "pool-confirmed" | "pool-predicted";
 
-const SCENARIOS = ["normal", "knockdown", "tech", "shield-break", "ledge", "spike", "ko", "underside", "camera", "body-ceiling", "body-wall", "agency-none", "agency-di", "agency-act", "agency-thaw"] as const;
+const SCENARIOS = ["normal", "knockdown", "tech", "shield-break", "ledge", "spike", "ko", "underside", "camera", "body-ceiling", "body-wall", "agency-none", "agency-di", "agency-act", "agency-thaw",
+  "pain-low-small", "pain-low-medium", "pain-low-large", "pain-middle-small", "pain-middle-medium", "pain-middle-large", "pain-high-small", "pain-high-medium", "pain-high-large"] as const;
 
 export type Scenario = (typeof SCENARIOS)[number];
 
@@ -40,6 +41,10 @@ export interface MapBuild {
   readonly presentation: PresentationProfile;
   readonly scenario: Scenario;
   readonly responseProbe: boolean;
+  /** How the controller supplies analog axes and trigger pressure. */
+  readonly analogPad?: "keys" | "cursor";
+  /** Fixed comparison camera, calibration receipts and recorded pad rows. */
+  readonly analogPadDiagnostic?: boolean;
   /** The `-dev` chat commands and the developer status line; players of a playable build see neither. */
   readonly devConsole: boolean;
   /**

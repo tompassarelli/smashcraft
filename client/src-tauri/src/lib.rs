@@ -25,7 +25,7 @@ use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Emitter, Manager, State, WindowEvent};
 use tauri_plugin_autostart::MacosLauncher;
-use wc3_controller_model::{Binding, ClientMessage, InputView, Light, ProfileChoice};
+use wc3_controller_model::{Binding, ClientMessage, InputView, Light, PadPreset, ProfileChoice, TriggerShields};
 
 use link::{ControllerState, Shared};
 use settings::{Settings, Store};
@@ -113,8 +113,30 @@ fn turn_on_controller(state: State<AppState>) -> Result<ControllerState, String>
 #[tauri::command]
 fn set_profile(state: State<AppState>, choice: ProfileChoice) -> Result<bool, String> {
     state.update(|s| s.profile = choice)?;
-    state.link.greet(vec![ClientMessage::Profile(choice)]);
+    state.link.greet(state.settings.lock().unwrap().greeting());
     Ok(state.link.send(&ClientMessage::Profile(choice)))
+}
+
+#[tauri::command]
+fn set_pad_preset(state: State<AppState>, preset: PadPreset) -> Result<bool, String> {
+    Ok(state.link.send(&ClientMessage::PadPreset(preset)))
+}
+
+#[tauri::command]
+fn set_tap_jump(state: State<AppState>, on: bool) -> Result<bool, String> {
+    Ok(state.link.send(&ClientMessage::TapJump(on)))
+}
+
+#[tauri::command]
+fn set_trigger_shields(state: State<AppState>, triggers: TriggerShields) -> bool {
+    state.link.send(&ClientMessage::TriggerShields(triggers))
+}
+
+#[derive(Serialize)]
+struct PadPresetBindings {
+    preset: PadPreset,
+    label: &'static str,
+    bindings: Vec<Binding>,
 }
 
 #[derive(Serialize)]
@@ -124,13 +146,18 @@ struct Bindings {
     any_map: Vec<Binding>,
     any_map_defaults: Vec<Binding>,
     profile: ProfileChoice,
+    pad_preset: PadPreset,
+    tap_jump: bool,
+    triggers: TriggerShields,
+    pad_presets: Vec<PadPresetBindings>,
 }
 
 #[tauri::command]
 fn bindings(state: State<AppState>) -> Bindings {
     let settings = state.settings.lock().unwrap();
+    let controller = state.link.snapshot.lock().unwrap().settings.clone();
     Bindings {
-        smashcraft: wc3_controller_model::smashcraft_bindings(),
+        smashcraft: wc3_controller_model::smashcraft_bindings_with(controller.pad_preset, controller.triggers),
         smashcraft_menus: wc3_controller_model::smashcraft_menu_bindings(),
         any_map: if settings.any_map_bindings.is_empty() {
             wc3_controller_model::any_map_bindings()
@@ -139,6 +166,17 @@ fn bindings(state: State<AppState>) -> Bindings {
         },
         any_map_defaults: wc3_controller_model::any_map_bindings(),
         profile: settings.profile,
+        pad_preset: controller.pad_preset,
+        tap_jump: controller.tap_jump,
+        triggers: controller.triggers,
+        pad_presets: [(PadPreset::Standard, "Standard"), (PadPreset::ZJump, "Z-jump")]
+            .into_iter()
+            .map(|(preset, label)| PadPresetBindings {
+                preset,
+                label,
+                bindings: wc3_controller_model::smashcraft_bindings_with(preset, controller.triggers),
+            })
+            .collect(),
     }
 }
 
@@ -340,7 +378,7 @@ pub fn run() {
             let warcraft = warcraft_replays::Library::new(&app.path().app_data_dir()?);
             let settings = store.load();
             let shared = Shared::new(settings.controller_on);
-            shared.greet(vec![ClientMessage::Profile(settings.profile)]);
+            shared.greet(settings.greeting());
 
             let open = MenuItem::with_id(app, "open", "Open Smashcraft", true, None::<&str>)?;
             let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
@@ -402,6 +440,9 @@ pub fn run() {
             controller_state,
             turn_on_controller,
             set_profile,
+            set_pad_preset,
+            set_tap_jump,
+            set_trigger_shields,
             bindings,
             set_any_map_bindings,
             start_with_computer,

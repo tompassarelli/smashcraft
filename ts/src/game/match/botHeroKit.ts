@@ -21,7 +21,7 @@ export type HeroSpecialUse = (typeof HeroSpecialUse)[keyof typeof HeroSpecialUse
 
 // Preallocated: the computer weighs every special each frame, rollback replays included.
 const press = neutralControls();
-const refusal = { manaShort: false };
+const refusal = { manaShort: false, groundOnly: false };
 
 /** The form a press of `slot` would start now, or undefined when the rules refuse it. */
 export function startableForm(f: Readonly<Fighter>, specials: Readonly<FighterSpecials>, slot: SpecialSlot): AuthoredSpecial | undefined {
@@ -42,8 +42,13 @@ function projectileMeets(spec: Readonly<SpecialProjectile>, target: Readonly<Fig
     const frames = f32(f32(localX - spec.offsetX) / speed);
     if (frames < 0 || frames > spec.life) return false;
     z = f32(spec.offsetZ + f32(spec.velocityZ * frames));
-  } else if (Math.abs(f32(localX - spec.offsetX)) > reach) {
-    return false;
+  } else {
+    if (Math.abs(f32(localX - spec.offsetX)) > reach) return false;
+    if (spec.velocityZ !== 0.0) {
+      const end = f32(spec.offsetZ + f32(spec.velocityZ * spec.life));
+      return Math.max(z, end) >= f32(f32(localZ + body.z1) - reach)
+        && Math.min(z, end) <= f32(f32(localZ + body.z2) + reach);
+    }
   }
   return z >= f32(f32(localZ + body.z1) - reach) && z <= f32(f32(localZ + body.z2) + reach);
 }
@@ -126,14 +131,20 @@ export function heroSpecialUse(f: Readonly<Fighter>, target: Readonly<Fighter>, 
   const move = startableForm(f, specials, slot);
   // The free up special is kept for recovery (botRecovery.ts).
   if (move === undefined || (slot === SpecialSlot.up && move.cost === 0 && specials.up.ground.cost > 0)) return HeroSpecialUse.none;
-  const dx = f32(target.motion.x - f.motion.x);
+  const observedNowX = f32(target.motion.x + f32(target.motion.deltaX * observationAge));
+  const dx = f32(observedNowX - f.motion.x);
   const localX = f32(dx * f.facing);
   const localZ = f32(target.motion.z - f.motion.z);
-  // Stances answer a threat (heroStanceSlot, from botDefense.ts), and a guard's cost is kept for one.
-  if (isStance(move) || relocates(move) || f32(f.mana.points - move.cost) < guardReserve(specials, move)) return HeroSpecialUse.none;
+  // Active protection can be spent on offense; it need not reserve the cost of another guard.
+  const reserve = f.status.divineFrames > 0 ? 0 : guardReserve(specials, move);
+  if (isStance(move) || relocates(move) || f32(f.mana.points - move.cost) < reserve) return HeroSpecialUse.none;
   if (!travelStaysOnDeck(f, move, stage)) return HeroSpecialUse.none;
   let firstStrike: number | undefined;
   for (const region of move.regions ?? []) if (firstStrike === undefined || region.firstFrame < firstStrike) firstStrike = region.firstFrame;
+  if (move.commandGrab !== undefined && (firstStrike === undefined || move.commandGrab.first < firstStrike)) firstStrike = move.commandGrab.first;
+  // A special that strikes only through a follow-up strikes once its own travel ends, the travel strikeMeets carries;
+  // by then a falling target may have dropped out of its height.
+  if (firstStrike === undefined && !target.motion.grounded) for (const segment of move.motion ?? []) if (firstStrike === undefined || segment.last > firstStrike) firstStrike = segment.last;
   // A falling opponent may leave the special's height before its first strike.
   const strikeZ = firstStrike === undefined ? localZ : f32(heightAhead(target, observationAge + firstStrike + 1, stage, 0) - f.motion.z);
   if (strikeMeets(move, target, localX, strikeZ)) return HeroSpecialUse.close;
@@ -170,7 +181,7 @@ export function heroStanceLater(f: Readonly<Fighter>, arrival: number): boolean 
     const move = startableForm(f, specials, slot);
     if (move === undefined || !isStance(move)) continue;
     const window = move.guard ?? move.intangible ?? move.armor;
-    if (window !== undefined && arrival + 1 < window.first) return true;
+    if (window !== undefined && arrival + 1 > window.last) return true;
   }
   return false;
 }

@@ -14,7 +14,7 @@ import { toInt } from "../../runtime/numbers";
 import { hurtCapsule } from "../physics/contactGeometry";
 import { AttackStyle, Character, DownState, HeroStatusKind, PassiveKind, HippogryphKind, ProjectileKind, SpecialAction } from "../sim/codes";
 import { canAttack } from "../sim/conditions";
-import type { Fighter } from "../sim/fighter";
+import { type Fighter, placedObject } from "../sim/fighter";
 import { type AttackBuffer, queueAttack } from "../input/attackBuffer";
 import { EYE_BLAST_CHARGE_FRAMES, attackStartupFrames, characterAttackActiveFrames } from "../sim/moves";
 import { passivePips, passiveSpec } from "../sim/passives";
@@ -29,9 +29,10 @@ import {
 } from "../sim/specials";
 import { mainDeckLeft, mainDeckRight, mainDeckZ } from "../sim/stage";
 import { safeAt, steerOnGround } from "./botFooting";
-import { startableForm, strikeMeets } from "./botHeroKit";
+import { HeroSpecialUse, heroSpecialUse, startableForm, strikeMeets } from "./botHeroKit";
+import { aheadX, moveReachAhead } from "./botMoves";
 import { botChance, botChoice } from "./botRandom";
-import type { CpuSkill } from "./cpuLevel";
+import type { CpuSkill } from "./cpuSkill";
 
 /** A feint steps out of Wind Walk once the target is this close. */
 const FEINT_GAP = 110.0;
@@ -150,7 +151,7 @@ export function steerHeroBranches(f: Readonly<Fighter>, target: Readonly<Fighter
     return true;
   }
   if (stepOut !== undefined && backstab === undefined) {
-    // A lone quiet branch (Vampiric Pounce's hop back): taken when the target answers the approach, or as a planned feint.
+    // A lone quiet branch is taken when the target answers the approach, or as a planned feint.
     if (next < stepOut.window.first || next > stepOut.window.last) return false;
     const answered = target.attack.style !== undefined || !target.motion.grounded || target.shield.raised;
     const planned = botChoice(seed, f.character * 7 + 19, 3) === 0 && next >= stepOut.window.last - 2;
@@ -221,18 +222,22 @@ function pressRecall(f: Readonly<Fighter>, target: Readonly<Fighter>, move: Read
     return true;
   }
   const order = move.command?.order;
-  const partner = f.placed.spec?.companion;
-  if (order !== undefined && partner !== undefined && f.placed.life > 0) {
-    const fromPartner = f32(motion.x - f.placed.x);
+  const animal = placedObject(f, move.command?.slot);
+  const partner = animal.spec?.companion;
+  if (order !== undefined && partner !== undefined && animal.life > 0) {
+    const fromPartner = f32(motion.x - animal.x);
     if (order === CompanionOrder.lunge) {
       // The partner lunges the way its owner turns: at a target in reach of its front.
-      const reach = f32(f32(partner.lungeTravel + body.radius) + PARTNER_BITE_REACH);
-      if (!companionReady(f) || Math.abs(fromPartner) > reach || Math.abs(f32(motion.z - f.placed.z)) > 60.0 || !takes(skill, floorDiv(frame, 20), f.character * 7 + 22)) return false;
+      const shot = animal.spec?.shot;
+      const reach = partner.behavior === "sentry" && shot !== undefined ? f32(shot.velocityX * shot.life) : f32(f32(partner.lungeTravel + body.radius) + PARTNER_BITE_REACH);
+      const height = f32(animal.z - motion.z);
+      const withinHeight = partner.behavior === "flying" ? height >= -body.z2 && height <= f32((partner.lungeDrop ?? 0.0) + body.z2) : Math.abs(height) <= 60.0;
+      if (!companionReady(f, move.command?.slot) || Math.abs(fromPartner) > reach || !withinHeight || !takes(skill, floorDiv(frame, 20), f.character * 7 + 22 + slot)) return false;
       pressSlot(input, slot, fromPartner < 0 ? -1 : 1);
       return true;
     }
     // Called back when it strays far from its owner.
-    if (Math.abs(f32(f.placed.x - f.motion.x)) < f32(partner.leash * PARTNER_STRAY) || !takes(skill, floorDiv(frame, 30), f.character * 7 + 23)) return false;
+    if (Math.abs(f32(animal.x - f.motion.x)) < f32(partner.leash * PARTNER_STRAY) || !takes(skill, floorDiv(frame, 30), f.character * 7 + 23)) return false;
     pressSlot(input, slot, 0);
     return true;
   }
@@ -254,10 +259,18 @@ function pressHeroOption(f: Readonly<Fighter>, target: Readonly<Fighter>, stage:
   const gap = Math.abs(dx);
   const toward = towardOf(f, target.motion.x);
   const level = Math.abs(f32(target.motion.z - f.motion.z)) <= 60.0;
-  // Divine Shield lasts until his next attack: he walks in under it and the attack comes from close.
-  // So does any hero on a target asleep, stunned, frozen or hexed.
+  // Approach until the hammer's forecasted reach can cash Divine Shield before it expires.
+  // The same approach gives sleeping, stunned, frozen or hexed targets to the attack chooser.
   const open = f.status.divineFrames > 0 || heroStatusBlocksActions(target) || target.status.frozenFrames > 0 || target.status.condition === HeroStatusKind.hex;
-  if (open && f.motion.grounded && gap > 50.0 && takes(skill, floorDiv(frame, 45), f.character * 7 + 18)) {
+  const closeReach = open ? Math.max(50.0, moveReachAhead(f.character, AttackStyle.forwardTilt, target, f.tuning.moves)) : 50.0;
+  const closeGap = open ? Math.abs(aheadX(f, target, attackStartupFrames(AttackStyle.forwardTilt, f.tuning.moves), AttackStyle.forwardTilt)) : gap;
+  if (open && f.motion.grounded && closeGap > closeReach && takes(skill, floorDiv(frame, 45), f.character * 7 + 18)) {
+    // A reachable shot can use the protection while the opponent stays outside melee range.
+    if (f.status.divineFrames > 0 && ready) for (const slot of HERO_SLOTS) {
+      if (heroSpecialUse(f, target, stage, slot) !== HeroSpecialUse.ranged) continue;
+      pressSlot(input, slot, toward);
+      return true;
+    }
     steerOnGround(f, stage, target.motion.x, input);
     return true;
   }
@@ -287,7 +300,7 @@ function pressHeroOption(f: Readonly<Fighter>, target: Readonly<Fighter>, stage:
     }
     if (!ready || !f.motion.grounded) continue;
     // An image or a partner that strikes nothing, set between the fighter and the target (Mirror Image steps back from it).
-    if (move.placement !== undefined && move.placement.shot === undefined && (move.regions ?? []).length === 0 && f.placed.life <= 0
+    if (move.placement !== undefined && move.placement.shot === undefined && (move.regions ?? []).length === 0 && placedObject(f, move.placement.slot).life <= 0
       && gap >= IMAGE_NEAR && gap <= IMAGE_FAR && level && safeAt(stage, f32(f.motion.x - f32(toward * IMAGE_ROOM)), 0.0)
       && botChoice(floorDiv(frame, 45), f.character * 7 + 9, 3) === 0 && takes(skill, floorDiv(frame, 45), f.character * 7 + 10)) {
       pressSlot(input, slot, toward);

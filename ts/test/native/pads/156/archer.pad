@@ -1,7 +1,8 @@
 # #156 Archer: jab, forward tilts (level, up, down) and up tilt facing right,
+#! chat -dev quick hero archer
 # then jab and forward tilts facing left; B stands idle. Each capture is the
 # move's first active frame (tap frame + startup).
-20 a tap A 2
+150 a tap A 2
 +4 a capture
 +36 a press LB
 +0 a stick 0.6 0
@@ -35,3 +36,6 @@
 +2 a release LB
 +40 a tap A 2
 +4 a capture
+# Save the action sequence for the batch's native/headless replay comparison.
++30 a press VIEW
++70 a release VIEW

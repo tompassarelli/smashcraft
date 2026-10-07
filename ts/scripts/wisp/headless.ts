@@ -4,11 +4,16 @@
 // types, so each test process stays fast.
 import type { HeadlessMap } from "wisp/scripts/wisp/headless";
 import { PREDICTED_LOCAL_NATIVES, SMASHCRAFT_LOCAL_NATIVES } from "./localNatives";
+import { UI_FRAMES } from "./uiFrames";
+import { SMASHCRAFT_NOOPS, smashcraftNativeBehavior } from "./headlessNatives";
 
 export const SMASHCRAFT_HEADLESS: HeadlessMap = {
   filePrefix: "smashcraft",
   globalPrefixes: ["__smashcraft"],
   localNatives: SMASHCRAFT_LOCAL_NATIVES,
+  intentionalNoops: SMASHCRAFT_NOOPS,
+  natives: smashcraftNativeBehavior,
+  frames: UI_FRAMES.map(({ definition }) => definition),
 };
 
 /** Smashcraft's map with predicted presentation, whose confirmed state and handle lifetimes still match on every client. */

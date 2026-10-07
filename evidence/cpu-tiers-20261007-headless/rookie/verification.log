@@ -1,0 +1,22 @@
+line 5 a planned 200 written 200 landed 200 (helper event): 200 a shield 1
+line 6 a planned 320 written 320 landed 320 (helper event): 320 a shield 0
+line 7 b planned 400 written 400 landed 400 (helper event): 400 b tap B 8
+line 7 b planned 408 written 408 l  22.445 s  headless pad script (22.438 s)
+  22.460 s  pad (22.460 s)
+50 landed 450 (helper event): 450 b stick 1 0
+line 8 b planned 450 written 450 landed 450 (frame rule): 450 b stick 1 0
+line 9 b planned 452 written 452 landed 452 (helper event): 452 b stick 0 0
+line 9 b planned 452 written 452 landed 452 (frame rule): 452 b stick 0 0
+line 10 a planned 500 written 500 landed 500 (frame rule): 500 a press VIEW
+line 11 a planned 570 written 570 landed 570 (frame rule): 570 a release VIEW
+line 12 a planned 600 written 600 landed 600 (helper event): 600 a tap B 8
+line 12 a planned 608 written 608 landed 608 (helper event): 600 a tap B 8
+line 13 a planned 700 written 700 landed 700 (helper event): 700 a stick -1 0
+line 13 a planned 700 written 700 landed 700 (frame rule): 700 a stick -1 0
+line 14 a planned 702 written 702 landed 702 (helper event): 702 a stick 0 0
+line 14 a planned 702 written 702 landed 702 (frame rule): 702 a stick 0 0
+line 28 a planned 1000 written 1000 landed 1000 (frame rule): 1000 a press VIEW
+line 29 a planned 1070 written 1070 landed 1070 (frame rule): 1070 a release VIEW
+18 edges, 0 off their frame (0 of them written late); /home/tom/.local/state/smashcraft/cpu134-golden-r3/rookie-verified-cf7be04b/result.json
+expectations: 10 checked
+PASS: the script's expectations hold headless

@@ -7,12 +7,15 @@ import { writeLine } from "wisp/src/platform/fileio";
 import { Phase } from "../../game/match/rules";
 import { drawnFrameFile, drawnFrameLine } from "../../runtime/gameFiles";
 import { type ShellState, activeRollback, localSlot } from "./state";
+import { heldVisualFrame } from "../../game/shell/visualCapture";
 
 /** The last line written, per local slot: simulated clients can share this module. */
 const written = new Map<number, string>();
 
 /** The frame the match on screen shows: the predicted match's in a rollback match, else the match's own. */
 export function drawnFrame(s: Readonly<ShellState>): { readonly epoch: number; readonly frame: number } {
+  const held = heldVisualFrame(localSlot());
+  if (held !== undefined) return held;
   const rollback = activeRollback(s);
   return rollback === undefined ? { epoch: 0, frame: s.runtime.simulationFrame } : { epoch: rollback.epoch, frame: rollback.speculative.runtime.simulationFrame };
 }

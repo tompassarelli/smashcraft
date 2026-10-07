@@ -2,14 +2,20 @@
 // drawn match runs behind the helper's clock (#156: 6 to 88 frames under
 // load). The integrity build writes the frame it drew; the capture waits for it.
 import { afterAll, expect, test } from "bun:test";
+import { readFileSync, readdirSync } from "node:fs";
 import { Effect, Exit } from "effect";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
-import { QUICK_MATCH_COMMAND } from "../src/game/shell/devSettings";
+import { QUICK_MATCH_COMMAND, RESET_COMMAND, quickMatchHero } from "../src/game/shell/devSettings";
+import { Phase } from "../src/game/match/rules";
 import { install, startBuild } from "../src/platform/main";
-import { activeRollback, shell } from "../src/platform/shell/state";
+import { activeRollback, shell, shellState } from "../src/platform/shell/state";
 import { drawnFrameFile } from "../src/runtime/gameFiles";
-import { type Drawn, captureWhenDrawn, parseDrawn } from "../scripts/integrity/drawnCapture";
+import { type Drawn, captureWhenDrawn, parseDrawn, visualCaptureCommand, visualCaptureToken } from "../scripts/integrity/drawnCapture";
+import { parsePadScript } from "../scripts/integrity/padScript";
+import { scriptChat } from "../scripts/integrity/padParity";
+import { clearVisualCapture, configureVisualCapture, heldVisualFrame, holdVisualFrame, releaseVisualFrame, visualCapture } from "../src/game/shell/visualCapture";
+import { confirmedChecksum } from "../src/platform/shell/diagnostics";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
 import { JournalHelpers } from "./rematch/journalHelper";
 import { value } from "./rematch/playableMatch";
@@ -24,24 +30,127 @@ function laggingClient(epoch: number, lag: number, ahead: number) {
   return { clockFrame, read: (): Drawn => ({ epoch, frame: Math.max(0, clockFrame() - lag) }) };
 }
 
-test("a capture waits until the lagging client has drawn its frame, and records the frame it showed", async () => {
-  // The helper's clock is already at frame 40; the client draws 30 frames behind it.
-  const client = laggingClient(2, 30, 40);
-  let shotAtDrawn = -1;
-  let shotAtClock = -1;
-  const shoot = Effect.sync(() => {
-    shotAtDrawn = client.read().frame;
-    shotAtClock = client.clockFrame();
-    return "frame";
-  });
-  const result = await Effect.runPromise(captureWhenDrawn(client.read, 2, 40, 2000, shoot, "test"));
-  // On the clock alone the capture would show frame 10; it waited for 40.
-  expect(result.before).toBeGreaterThanOrEqual(40);
-  expect(result.before).toBeLessThanOrEqual(42);
-  expect(shotAtDrawn).toBeGreaterThanOrEqual(40);
-  expect(shotAtClock - shotAtDrawn).toBeGreaterThanOrEqual(29);
-  expect(result.after).toBeGreaterThanOrEqual(result.before);
-  expect(result.waitedMs).toBeGreaterThan(400);
+test("a capture waits for the requested held frame and identifies both receipts exactly", async () => {
+  let frame = 10;
+  const advance = setTimeout(() => { frame = 40; }, 20);
+  const result = await Effect.runPromise(captureWhenDrawn(() => ({ epoch: 2, frame }), 2, 40, 2000, Effect.succeed("frame"), "test"));
+  clearTimeout(advance);
+  expect(result.before).toBe(40);
+  expect(result.after).toBe(40);
+  expect(result.shot).toBe("frame");
+});
+
+test("a missed requested frame fails before reading an unrelated framebuffer", async () => {
+  let shots = 0;
+  const exit = await Effect.runPromiseExit(captureWhenDrawn(() => ({ epoch: 2, frame: 164 }), 2, 154, 100, Effect.sync(() => ++shots), "test"));
+  expect(Exit.isFailure(exit)).toBe(true);
+  expect(String(exit)).toContain("request boundary missed match 2 frame 154; observed frame 164");
+  expect(shots).toBe(0);
+});
+
+test("the retained 154 to 164 completion and absent or replaced receipts are INVALID", async () => {
+  for (const completion of [{ epoch: 2, frame: 164 }, undefined, { epoch: 3, frame: 154 }]) {
+    let receipt: Drawn | undefined = { epoch: 2, frame: 154 };
+    const exit = await Effect.runPromiseExit(captureWhenDrawn(() => receipt, 2, 154, 100, Effect.sync(() => { receipt = completion; return "later framebuffer"; }), "test"));
+    expect(Exit.isFailure(exit)).toBe(true);
+    expect(String(exit)).toContain("INVALID: completion boundary expected match 2 frame 154");
+  }
+});
+
+test("a clock stalled at 220 cannot satisfy frame 242", async () => {
+  const exit = await Effect.runPromiseExit(captureWhenDrawn(() => ({ epoch: 2, frame: 220 }), 2, 242, 10, Effect.succeed("frame"), "test"));
+  expect(Exit.isFailure(exit)).toBe(true);
+  expect(String(exit)).toContain("INVALID: drawn-clock boundary");
+  expect(String(exit)).toContain("epoch 2 frame 220");
+});
+
+test("the original Illidan capture schedule preserves all eight authored frames", () => {
+  const steps = parsePadScript(readFileSync(new URL("native/pads/156/illidan.pad", import.meta.url), "utf8"));
+  const frames = steps.filter(step => step.kind === "capture").map(step => step.frame);
+  expect(frames).toEqual([154, 197, 247, 297, 347, 402, 462, 512]);
+  const command = visualCaptureCommand("-dev quick hero illidan", "test", steps);
+  expect(configureVisualCapture(command, 0)).toBe("-dev quick hero illidan");
+  for (const frame of frames) {
+    expect(holdVisualFrame(0, 1, frame)).toBe(true);
+    expect(heldVisualFrame(0)).toEqual({ epoch: 1, frame });
+    releaseVisualFrame(0);
+  }
+  clearVisualCapture(0);
+});
+
+test("Warcraft's 127-character chat limit preserves all 13 original cue schedules and starts both clients", () => {
+  const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1]);
+  const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);
+  const frames = (n: number) => { for (let i = 0; i < n; i++) { clients.frames(1); helpers.service(clients); } };
+  clients.start();
+  frames(30);
+  const original = "-dev quick hero archer |capture 1791371747161-3316068 62,76,91,102,116,131,142,150,156,171,222,232,312,326,402,405,642,646,702,706 -";
+  expect(original.slice(0, 127)).toEndWith("702,");
+  clients.chat(0, original.slice(0, 127));
+  for (const client of clients.clients) expect(value(client, () => shell().game.phase)).toBe(Phase.characterMenu);
+
+  const directory = new URL("native/pads/", import.meta.url);
+  const scripts = readdirSync(directory).filter(name => name.endsWith("-cues.pad")).sort();
+  expect(scripts).toHaveLength(13);
+  const token = visualCaptureToken(1791371747161, 3316068);
+  for (const name of scripts) {
+    clients.chat(0, RESET_COMMAND);
+    const script = readFileSync(new URL(name, directory), "utf8");
+    const steps = parsePadScript(script);
+    const chat = scriptChat(script);
+    if (chat === undefined) throw new Error(`${name} has no setup command`);
+    const command = visualCaptureCommand(chat, token, steps);
+    expect(command.length, name).toBeLessThanOrEqual(127);
+    clients.chat(0, command.slice(0, 127));
+    for (const client of clients.clients) {
+      expect(value(client, () => shell().game.phase), name).toBe(Phase.match);
+      expect(value(client, () => shell().game.characterChoices[client.slot]), name).toBe(quickMatchHero(chat));
+      const wanted = [...new Set(steps.filter(step => step.kind === "capture" && step.slot === client.slot).map(step => step.frame))].sort((a, b) => a - b);
+      expect(visualCapture(client.slot)?.frames ?? [], `${name} client ${client.slot}`).toEqual(wanted);
+      if (wanted.length > 0) expect(visualCapture(client.slot)?.token).toBe(token);
+      expect(client.errors, name).toEqual([]);
+    }
+  }
+  clients.chat(0, RESET_COMMAND);
+  expect(() => visualCaptureCommand("x".repeat(127), token, [])).toThrow("127-character");
+});
+
+test("a visual hold captures inside a catch-up callback while the unchanged match keeps advancing", () => {
+  const run = (hold: boolean) => {
+    for (const slot of [0, 1]) clearVisualCapture(slot);
+    const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1]);
+    const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);
+    helpers.clock = clients => clients.frame * 3;
+    let crossedTarget = false;
+    const predicted = () => value(clients.client(0), () => {
+      const current = shellState();
+      return current === undefined ? 0 : activeRollback(current)?.speculative.runtime.simulationFrame ?? 0;
+    });
+    const frames = (n: number) => { for (let i = 0; i < n; i++) {
+      const before = predicted();
+      clients.frames(1);
+      if (before < 19 && predicted() > 19) crossedTarget = true;
+      helpers.service(clients);
+    } };
+    clients.start();
+    frames(30);
+    clients.chat(0, hold ? `${QUICK_MATCH_COMMAND} |capture held 19 -` : QUICK_MATCH_COMMAND);
+    frames(120);
+    const checksum = value(clients.client(0), () => confirmedChecksum(shell()));
+    const actual = value(clients.client(0), () => activeRollback(shell())?.speculative.runtime.simulationFrame ?? 0);
+    if (hold) {
+      expect(crossedTarget).toBe(true);
+      expect(heldVisualFrame(0)).toEqual({ epoch: 1, frame: 19 });
+      expect(actual).toBeGreaterThan(60);
+      const receipt = clients.client(0).files.get(drawnFrameFile(INTEGRITY_BUILD.id, 0)) ?? [];
+      expect(receipt[0]).toContain("epoch=1 frame=19");
+      clients.chat(0, RESET_COMMAND);
+      expect(heldVisualFrame(0)).toBeUndefined();
+    }
+    for (const slot of [0, 1]) clearVisualCapture(slot);
+    return checksum;
+  };
+  expect(run(true)).toEqual(run(false));
 });
 
 test("a capture ignores another match's drawn frames and fails after its wait", async () => {

@@ -19,7 +19,9 @@ Dated trial records live in [evidence](../evidence/README.md).
 - [Modern platform-fighter mechanics](design/modern-platform-fighters.md): sourced inventory of mechanics later games added or changed relative to Melee.
 - [Execution and reaction windows](design/execution-windows.md): windows other games use, human limits, and proposed bounds.
 - [Stages](design/stages.md): what Melee and Ultimate players pick and why, accepted variance and hazards, Warcraft places and built-in assets per race, and an evaluation of the draft stage list.
-- [Stage art](design/stage-art.md): research-based rules for stage backgrounds, skies and scenery: readable fight plane, symmetric decks with asymmetric dressing, depth bands, fog, motion budget.
+- [Home stages](design/home-stages.md): every fighter's home stage from their Warcraft campaign, with the lore reason.
+- [Stage art](design/stage-art.md): research-based rules for stage backgrounds, skies and scenery: readable fight plane, symmetric decks with asymmetric dressing, depth bands, fog, motion budget, floating stages with no ground below, and the per-stage art checklist.
+- [Warcraft features since Reforged](design/warcraft-features.md): index of every lighting, fog, sky, water, particle, material, terrain and camera feature from 1.32 through 3.0 Forsaken Kingdom, with natives, script access, graphics modes and cost.
 - [Move legibility](design/move-legibility.md): how platform fighters make specials readable (effect restraint, colour per element, victim element effects) and the startup cue, active spell, missile and element each Smashcraft special shows.
 - [Animation reference library](design/animation-reference.md): sourced references for silhouettes, anticipation/contact/recovery, drills, dodges and techs, grabs and throws, and the nine damage reactions, with verified timestamps, rights and the private-pixel rule.
 - [Hurtbox legibility](design/hurtbox-legibility.md): why Ultimate players report losing with correct spacing (hurtbox shapes per animation, interpolation, hit-pose shifts, glancing blows, randomness) and Melee's comparable cases, with sources.
@@ -30,7 +32,6 @@ Dated trial records live in [evidence](../evidence/README.md).
 - [Tilts and dash attacks](design/tilts.md): each fighter's jab, forward/up/down tilt and dash attack by identity, Melee's timing distribution, Ultimate's angled forward-tilt rule (straight strikes angle, vertical swings do not) and the down-tilt and dash-attack roles.
 - [Interaction graph](design/interaction-graph.md): for each situation, Smashcraft's options, what beats what by how many frames, and the punish windows, computed per fighter from its move data.
 - [Match flow](design/match-flow.md): match rules, endless play and automatic rematch, with Slippi and other platform-fighter prior art.
-- [Computer levels](design/cpu-levels.md): levels 1-9 (reaction, answers, pace, misplays, DI, tech, mashing, mixups) from Melee, Ultimate and fighting-game AI prior art, and the deterministic match seed.
 - [Computer opponent profiles](design/cpu-profiles.md): six named opponents with individually authored five-tier growth, blended competencies and persistent openings; Opponent + Difficulty selection and deterministic calibration contract.
 - [Smashcraft client](design/client.md): the Slippi-style companion app: Slippi, Rivals, Ultimate and W3Champions prior art, the match record format the map writes, full-match replay design and the phased roadmap.
 - [Delivery goal](delivery-goal.md): what the finished game contains.

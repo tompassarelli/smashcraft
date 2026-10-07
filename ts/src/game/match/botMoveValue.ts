@@ -13,7 +13,7 @@ import type { MatchState } from "./rules";
 import { botChance, botChoice } from "./botRandom";
 import { startableForm } from "./botHeroKit";
 import type { BotStrategy } from "./botStrategy";
-import { HabitChoice, habitContext } from "./botHabits";
+import { HABIT_FIELDS, HabitChoice, habitContext } from "./botHabits";
 import type { CpuDecisionPolicy } from "./cpuDecisionPolicy";
 
 export interface AttackDecision {
@@ -106,7 +106,8 @@ export function estimatedMoveValue(move: MoveEstimate, own: Readonly<Fighter>, t
   const risk = floorDiv(punish * policy.punishWeight, 100);
   const endX = f32(own.motion.x + f32(move.travel * facing));
   const position = Math.min(20, Math.floor(f32(f32(Math.abs(own.motion.x) - Math.abs(endX)) * f32(0.1))));
-  const varianceReward = floorDiv((pressure + policy.variancePercent) * (kill + move.startup), 100);
+  // Higher-variance comeback appetite applies only under a stock or clock deficit; the authored variance scales it.
+  const varianceReward = floorDiv(floorDiv(pressure * (100 + policy.variancePercent), 100) * (kill + move.startup), 100);
   return floorDiv(success * reward, 100) - floorDiv((100 - success) * risk, 100) + position + varianceReward;
 }
 
@@ -115,11 +116,13 @@ function successEstimate(own: Readonly<Fighter>, target: Readonly<Fighter>, opti
   let samples = 0;
   let shields = 0;
   let jumps = 0;
-  for (const habit of decision.strategy.history) {
-    if (habit.context !== context) continue;
+  const history = decision.strategy.history;
+  for (let index = 0; index < history.length; index += HABIT_FIELDS) {
+    if (at(history, index + 1) !== context) continue;
+    const choice = at(history, index + 2);
     samples++;
-    if (habit.choice === HabitChoice.shield) shields++;
-    if (habit.choice === HabitChoice.jump) jumps++;
+    if (choice === HabitChoice.shield) shields++;
+    if (choice === HabitChoice.jump) jumps++;
   }
   const shieldShare = target.shield.raised ? 100 : samples === 0 ? 0 : floorDiv(shields * 100, samples);
   const jumpShare = samples === 0 ? 0 : floorDiv(jumps * 100, samples);

@@ -17,6 +17,27 @@ import { preloadLines } from "wisp/scripts/wisp/boundary";
 import { readSceneLines } from "wisp/scripts/wisp/scene";
 import { type Repro, parseRepro } from "wisp/src/runtime/repro";
 import { parseMoment, replayRepro } from "../../src/game/replay/moment";
+import { BTN_SELECT, EV_KEY } from "./linuxInput";
+import { parsePadScript, type PadStep } from "./padScript";
+
+/** Comparison needs the consumer's existing View-hold export before either session starts. */
+export function comparisonSteps(script: string, path = "pad script"): readonly PadStep[] {
+  const steps = parsePadScript(script);
+  const held: [number | undefined, number | undefined] = [undefined, undefined];
+  for (const step of steps) {
+    if (step.kind !== "edge") continue;
+    for (const edge of step.edges) {
+      if (edge.type !== EV_KEY || edge.code !== BTN_SELECT) continue;
+      if (edge.value === 1 && held[step.slot] === undefined) held[step.slot] = step.frame;
+      if (edge.value === 0) {
+        const start = held[step.slot];
+        if (start !== undefined && step.frame - start >= 60) return steps;
+        held[step.slot] = undefined;
+      }
+    }
+  }
+  throw new Error(`${path}: pad replay comparison requires a replay export: hold VIEW for at least 60 frames (normally 70) and release it; append the hold after the last capture to preserve action frames`);
+}
 
 export const TRACE_FILE = "wc3-melee-input-trace.txt";
 export const REPRO_NAME = /^smashcraft-repro-p(\d)-f(\d+)-\d+\.txt$/;
@@ -34,7 +55,7 @@ interface Trace {
 }
 
 /** Confirmed-state changes the shell traces the same way on every client; presentation lines are left out. */
-const COMPARED = /^phase \d+ (special |special-form |applied attack |applied jump |damage \d|recovery |grab action |grab-hold |shield-break |ledge |di |ground action )/;
+const COMPARED = /^phase \d+ (special |special-form |applied attack |applied jump |damage \d|recovery |grab action |grab-hold |shield-break |shield tilt |ledge |di |ground action )/;
 
 export function parseTrace(lines: readonly string[]): Trace {
   const checksums = new Map<number, string>();

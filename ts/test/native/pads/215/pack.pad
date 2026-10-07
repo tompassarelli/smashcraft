@@ -1,0 +1,52 @@
+# #215: all three animals coexist; every command and airborne recovery uses player inputs.
+#! chat -dev quick hero beastmaster
+#! expect a 180 special 14 form 0
+#! expect a 250 special 16 form 0
+#! expect a 320 special 15 form 0
+#! expect a 390 special 13 form 0
+#! expect a 460 special 14 form 3
+#! expect a 530 special 16 form 3
+#! expect a 600 special 15 form 3
+#! expect a 670 special 15 form 1
+#! scene a GrizzlyBear
+#! scene a QuillBeast
+#! scene a WarEagle
+#! scene a AxeMissile
+#! scene a StampedeMissile
+#! scene a QuillSprayMissile
+#! scene a RoarTarget
+180 a stick 1 0
+180 a tap X 2
+181 a stick 0 0
+220 a capture
+250 a stick 0 -1
+250 a tap X 2
+251 a stick 0 0
+290 a capture
+320 a stick 0 1
+320 a tap X 2
+321 a stick 0 0
+350 a capture
+390 a tap X 2
+415 a capture
+460 a stick 1 0
+460 a tap X 2
+461 a stick 0 0
+468 a capture
+480 a capture
+530 a stick 0 -1
+530 a tap X 2
+531 a stick 0 0
+560 a capture
+600 a stick 0 1
+600 a tap X 2
+601 a stick 0 0
+616 a capture
+660 a tap B 8
+670 a stick 0 1
+670 a tap X 2
+671 a stick 0 0
+685 a capture
+740 a press VIEW
+810 a release VIEW
+820 b stick 0 0

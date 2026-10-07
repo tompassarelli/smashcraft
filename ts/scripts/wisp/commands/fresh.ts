@@ -105,22 +105,6 @@ export const freshMatch = (map: string) => Effect.scoped(Effect.gen(function*() 
     step(`${client.name} joined`),
   );
 
-  /** Waits for a ready file written after `time`; a malformed one is read again until the wait ends. */
-  const readyAfter = (client: Client, time: number) => Effect.gen(function*() {
-    let problem: MalformedGameFile | undefined;
-    const path = join(dataDirectory(client.documents), MELEE_READY_FILE);
-    const ready = readGameFile(path, MeleeReady).pipe(
-      Effect.map((file) => (file !== undefined && file.modified > time ? file.value : undefined)),
-      Effect.catchTag("MalformedGameFile", (malformed) => Effect.sync(() => {
-        problem = malformed;
-        return undefined;
-      })),
-    );
-    return yield* waitFor(client, "character selection", 60, ready).pipe(
-      Effect.catchTag("DesktopFailure", (timeout): Effect.Effect<never, DesktopFailure | MalformedGameFile> => (problem === undefined ? Effect.fail(timeout) : Effect.fail(problem))),
-    );
-  });
-
   yield* Effect.all([install, ...clients.all.map(leave)], { concurrency: "unbounded", discard: true });
   yield* unlessLost(first, host(first));
   yield* Effect.forEach(others, (client) => unlessLost(client, joinByName(client)), { discard: true });
@@ -131,11 +115,27 @@ export const freshMatch = (map: string) => Effect.scoped(Effect.gen(function*() 
   return yield* Effect.forEach(clients.all, (client) => unlessLost(client, readyAfter(client, start)), { concurrency: "unbounded" }).pipe(step("every client at character selection"));
 }));
 
+/** Waits for this game's binding-ready receipt, rather than a previous game's file. */
+export const readyAfter = (client: Client, time: number) => Effect.gen(function*() {
+  let problem: MalformedGameFile | undefined;
+  const path = join(dataDirectory(client.documents), MELEE_READY_FILE);
+  const ready = readGameFile(path, MeleeReady).pipe(
+    Effect.map((file) => (file !== undefined && file.modified > time ? file.value : undefined)),
+    Effect.catchTag("MalformedGameFile", (malformed) => Effect.sync(() => {
+      problem = malformed;
+      return undefined;
+    })),
+  );
+  return yield* waitFor(client, "character selection", 60, ready).pipe(
+    Effect.catchTag("DesktopFailure", (timeout): Effect.Effect<never, DesktopFailure | MalformedGameFile> => (problem === undefined ? Effect.fail(timeout) : Effect.fail(problem))),
+  );
+});
+
 /** Sends a developer chat command, such as `-dev quick`, from the host client and waits until every player's new receipt arrives. */
-export const sendDevCommand = (command: string) => Effect.gen(function*() {
+export const sendDevCommand = (command: string, clientName?: string) => Effect.gen(function*() {
   const clients = yield* Clients;
   const files = yield* GameFiles;
-  const [host] = clients.all;
+  const host = clientName === undefined ? clients.all[0] : clients.all.find((client) => client.name === clientName);
   const mapReady = yield* Effect.forEach(clients.all, (client) => {
     const path = join(dataDirectory(client.documents), MELEE_READY_FILE);
     return readGameFile(path, MeleeReady);
@@ -149,7 +149,7 @@ export const sendDevCommand = (command: string) => Effect.gen(function*() {
   ), { concurrency: "unbounded", discard: true }).pipe(step("clear old quick-match receipts"));
 
   yield* clients.batch(host, [
-    { kind: "keys", keys: ["Return"] },
+    { kind: "keys", keys: ["Escape", "Return"] },
     { kind: "text", text: command },
     { kind: "keys", keys: ["Return"] },
   ]).pipe(step(`send ${command}`));

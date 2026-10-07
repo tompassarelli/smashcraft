@@ -218,6 +218,22 @@ test("Fan of Knives strikes front and back once each for 7 at 45 degrees outward
   }
 });
 
+test("Fan of Knives reaches 1.30H on the ground and in the air in both directions", () => {
+  for (const height of [0.0, 600.0]) for (const facing of [-1, 1]) for (const side of [-1, 1]) {
+    const distance = f32(H * f32(1.27));
+    const { world, warden, target } = pair(0.0, f32(distance * side), facing);
+    place(warden, 0.0, height);
+    place(target, f32(distance * side), height);
+    frame(world, downB);
+    assertEquals(warden.special.form, height === 0.0 ? SpecialForm.ground : SpecialForm.air);
+    for (let f = 2; f <= 12; f++) frame(world);
+    assertEquals(target.status.damage, 7.0);
+    assertGreaterThan(target.status.poisonFrames, 0);
+    assertGreaterThan(f32(target.launch.knockbackX * side), 0.0);
+    assertEquals(warden.mana.points, 82);
+  }
+});
+
 test("Shadow Strike is reflected by a powershield back at Warden, owned by the reflector", () => {
   const { world, warden, target } = pair(0.0, 300.0);
   frame(world, neutralB);

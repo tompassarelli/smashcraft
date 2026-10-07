@@ -3,17 +3,39 @@
 // one an invalid or broken run left, never between valid scripts, unless
 // --fresh-each asks for the old loop.
 import { expect, test } from "bun:test";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { batchScripts, lanPairs, needsNewGame } from "../scripts/wisp/padBatch";
-import { nativeChatReceipt } from "../scripts/wisp/commands/pad";
+import { Effect } from "effect";
+import { batchScripts, lanPairs, needsNewGame, padBatch } from "../scripts/wisp/padBatch";
+import { nativeChatReceipt, pad } from "../scripts/wisp/commands/pad";
+
+test("a native comparison batch rejects missing export before starting references or clients", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "pad-preflight-"));
+  const script = join(dir, "no-export.pad");
+  writeFileSync(script, "#! chat -dev quick hero archer\n150 a tap A 2\n154 a capture\n");
+  const out = join(dir, "out");
+  await expect(Effect.runPromise(padBatch({ scripts: [script], pairs: [], helper: "/missing-helper", build: "typescript-integrity", out, map: "/missing-map.w3x", retries: 0, freshEach: false, headlessJobs: 1 }))).rejects.toThrow("comparison requires a replay export");
+  await expect(Effect.runPromise(pad([script, "--headless", "--helper", "/missing-helper", "--out", out, "--compare", "/missing-native"]))).rejects.toThrow("comparison requires a replay export");
+  expect(existsSync(join(out, "no-export", "headless.log"))).toBe(false);
+});
 
 test("native reset reads complete chat hand-off receipts, never a partially written file", () => {
   const prefix = 'function PreloadFiles takes nothing returns nothing\ncall Preload( "SMASHCRAFT TEXT ACK v=1 build=test epoch=4 slot=0 received=100 consumed=100 revision=12 chat=2 chatState=3 chatFrame=1" )\n';
   expect(nativeChatReceipt(prefix)).toBeUndefined();
   expect(nativeChatReceipt(`${prefix}endfunction\n`)).toEqual({ epoch: 4, revision: 12, chat: 2, chatState: 3 });
   expect(nativeChatReceipt(`${prefix.replace("revision=12", "revision=NaN")}endfunction\n`)).toBeUndefined();
+});
+
+test("a single script with a selected LAN pair uses batch preflight", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "pad-single-lan-"));
+  const script = join(dir, "no-export.pad");
+  const clients = join(dir, "clients.json");
+  const pool = join(dir, "pool.json");
+  writeFileSync(script, "#! chat -dev quick hero archer\n150 a tap A 2\n");
+  writeFileSync(clients, JSON.stringify({ clients: [], tools: {} }));
+  writeFileSync(pool, JSON.stringify({ pairs: [{ id: 1, clients }] }));
+  await expect(Effect.runPromise(pad([script, "--pair", "1", "--pool", pool, "--map", "/missing-map.w3x", "--helper", "/missing-helper", "--out", join(dir, "out")]))).rejects.toThrow("comparison requires a replay export");
 });
 
 test("a batch session starts one game and resets between valid or failed scripts", () => {

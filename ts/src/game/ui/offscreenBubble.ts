@@ -1,7 +1,8 @@
 // Every client creates the same handles; only their drawn position and
 // visibility depend on the local camera. No frame receives input focus.
 import { f32 } from "wisp/src/sim/f32";
-import { createBackdrop, createText, consoleUi, MENU_FONT } from "./frames";
+import { createBackdrop, createText, consoleUi } from "./frames";
+import { MENU_FONT } from "./hudLayout";
 import { Character } from "../sim/codes";
 import { fighterPortrait } from "../sim/heroes/registry";
 import { OFFSCREEN_PORTRAIT } from "./portraitFrames";

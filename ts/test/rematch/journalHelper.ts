@@ -1,6 +1,6 @@
 // The companion helper as headless clients need it: per client, the journal
 // text it types into the integrity build's edit box while the box is shown
-// (readiness, I4 rows of one frame, or of two as the companion's are, pause
+// (readiness, I4 rows or an I5 backlog as the companion's are, pause
 // acknowledgments, the end marker) and its quiescence file. It types as
 // wc3-journal does: at most TEXT_WINDOW records past what the map's receipt has
 // consumed, and with pairs at most TYPED_AHEAD_CHARACTERS past what it
@@ -10,8 +10,8 @@
 import type { Lockstep } from "wisp/src/headless/lockstep";
 import { Action, bit } from "../../src/game/input/actions";
 import { type InputRow, inputRow } from "../../src/game/input/inputRow";
-import { encodePacket, inputPacket } from "../../src/game/input/wire";
-import { RECORD_PACKETS } from "../../src/game/netcode/journal/source";
+import { encodeInputMessage, encodePacket, inputPacket } from "../../src/game/input/wire";
+import { decodeTransport } from "../../src/game/netcode/journal/transport";
 import { TEXT_WINDOW, TYPED_AHEAD_CHARACTERS, textEnvelope } from "../../src/game/netcode/journal/text";
 import { momentRequest } from "../../src/game/replay/moment";
 import { quiescentFile } from "../../src/game/shell/journalFiles";
@@ -153,10 +153,13 @@ export class JournalHelpers {
         helper.queue.push(`JR1${next}`);
       }
       const { epoch } = helper;
-      if (helper.state === "ready" && client.files.has(journalLifecycleFile(this.build, epoch, client.slot, "start"))) {
+      const start = client.files.get(journalLifecycleFile(this.build, epoch, client.slot, "start"));
+      if (helper.state === "ready" && start !== undefined) {
+        const first = Number(wordAfter(start.join(""), " frame="));
+        if (!Number.isInteger(first) || first < 1) throw new Error("invalid journal start frame");
         helper.state = "journaling";
-        helper.journaled = 0;
-        helper.started = now;
+        helper.journaled = first - 1;
+        helper.started = now - helper.journaled;
       }
       if (helper.state === "journaling" && client.files.has(journalLifecycleFile(this.build, epoch, client.slot, "end"))) {
         helper.state = "ended";
@@ -217,14 +220,29 @@ export class JournalHelpers {
         if (this.pairs && first < due) rows.push(this.rows(client.slot, first + 1));
         const packet = inputPacket(epoch, first, rows);
         if (packet === undefined) throw new Error("no packet");
-        // As the companion does, a packet joins the untyped record before it, while the record stays a typing
-        // the window allows at once.
         const last = helper.queue.length - 1;
         const untyped = helper.queue[last];
-        const joined = `${untyped ?? ""}|${encodePacket(packet)}`;
-        if (this.pairs && !this.bursts && untyped?.startsWith("I4") === true && untyped.split("|").length < RECORD_PACKETS
-          && (textEnvelope(epoch, helper.sequence + 1, joined) ?? "").length <= TYPED_AHEAD_CHARACTERS) helper.queue[last] = joined;
-        else helper.queue.push(encodePacket(packet));
+        let joined: string | undefined;
+        if (this.pairs && !this.bursts && untyped !== undefined) {
+          const previous = decodeTransport(untyped);
+          const start = previous?.[0];
+          if (start !== undefined && start.epoch === epoch) {
+            const waiting = previous?.flatMap(part => part.rows) ?? [];
+            if (start.firstFrame + waiting.length === first) {
+              const combined = [...waiting, ...rows];
+              const through = first + rows.length - 1;
+              const message = encodeInputMessage(epoch, start.firstFrame, through, frame => {
+                const row = combined[frame - start.firstFrame];
+                if (row === undefined) throw new Error("no queued journal row");
+                return row;
+              });
+              const envelope = textEnvelope(epoch, helper.sequence + 1, message.wire);
+              if (message.lastFrame === through && envelope !== undefined && envelope.length <= TYPED_AHEAD_CHARACTERS) joined = message.wire;
+            }
+          }
+        }
+        if (joined === undefined) helper.queue.push(encodePacket(packet));
+        else helper.queue[last] = joined;
         helper.journaled += rows.length;
         type();
       }

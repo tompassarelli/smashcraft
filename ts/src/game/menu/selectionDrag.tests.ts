@@ -1,11 +1,14 @@
 import { assertEquals, assertNear, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { floorMod } from "wisp/src/sim/intMath";
+import { at as lookup } from "wisp/src/runtime/lookup";
+import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
+import { createMatchState, selectCpuCharacter, setParticipants } from "../match/rules";
 import { pointerX, pointerY } from "./pointer";
 import { cellRect, rosterGrid, tileAt } from "./selectionGrid";
 import {
   type Placement, type Roster, type RosterChip, type SelectionDrag, cardSlot, cardX, chipX, chipY, clearSelectionDrag, placeHovered,
-  selectionDrag, updateSelectionDrag,
+  decodeCpuPlacement, selectionDrag, updateSelectionDrag,
 } from "./selectionDrag";
 
 /** UI frame units from thousandths, the same binary32 value in both runtimes. */
@@ -27,6 +30,27 @@ function press(drag: SelectionDrag, roster: Roster, x: number, y: number): void 
 }
 
 const release = (drag: SelectionDrag, roster: Roster, x: number, y: number) => updateSelectionDrag(drag, roster, false, x, y);
+
+test("a dragged computer token selects every fighter through the synchronized drop", () => {
+  const grid = rosterGrid(SELECTABLE_CHARACTERS.length);
+  for (let slot = 1; slot < 4; slot++) {
+    for (let tile = 0; tile < SELECTABLE_CHARACTERS.length; tile++) {
+      const game = createMatchState();
+      setParticipants(game, 1, 14);
+      const drag = selectionDrag();
+      const roster: Roster = { grid, selectable: 15, chips: [UNPLACED, UNPLACED, UNPLACED, UNPLACED] };
+      press(drag, roster, cardX(slot) + at(80), at(180));
+      const rect = cellRect(grid, tile);
+      const placement = release(drag, roster, (rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2);
+      assertPlacement(placement, slot, tile);
+      const received = decodeCpuPlacement(`${slot}${tile}`, grid.count);
+      assertPlacement(received, slot, tile);
+      if (received !== undefined) selectCpuCharacter(game, 0, received.slot, lookup(SELECTABLE_CHARACTERS, received.tile));
+      assertEquals(game.characterChoices[slot], lookup(SELECTABLE_CHARACTERS, tile));
+      assertEquals(game.characterReadiness[slot], true);
+    }
+  }
+});
 
 function assertPlacement(placement: Placement | undefined, slot: number, tile: number): void {
   assertEquals(placement?.slot, slot, "placed slot");
@@ -152,4 +176,23 @@ test("the third and fourth cards and chips keep their own slots", () => {
     assertPlacement(release(drag, roster, tx(2), at(400)), slot, 2);
   }
   assertEquals(drag.held, 3);
+});
+
+
+test("every tile edge and name drop snaps all four chips inside its picture", () => {
+  const grid = rosterGrid(SELECTABLE_CHARACTERS.length);
+  const roster: Roster = { grid, selectable: 15, chips: [UNPLACED, UNPLACED, UNPLACED, UNPLACED] };
+  for (let slot = 0; slot < 4; slot++) for (let tile = 0; tile < grid.count; tile++) {
+    const rect = cellRect(grid, tile);
+    for (const x of [rect.left + at(1), rect.right - at(1)]) for (const y of [rect.top - at(1), rect.bottom + at(1)]) {
+      const drag = selectionDrag();
+      press(drag, roster, cardX(slot) + at(80), at(180));
+      assertPlacement(release(drag, roster, x, y), slot, tile);
+      const width = at(32) * grid.scale;
+      assertEquals(chipX(grid, slot, tile) >= rect.left + at(12) * grid.scale, true);
+      assertEquals(chipX(grid, slot, tile) + width <= rect.left + at(100) * grid.scale, true);
+      assertEquals(chipY(grid, slot, tile) <= rect.top - at(13) * grid.scale, true);
+      assertEquals(chipY(grid, slot, tile) - width >= rect.top - at(100) * grid.scale, true);
+    }
+  }
 });

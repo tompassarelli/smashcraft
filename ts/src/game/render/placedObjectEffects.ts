@@ -1,13 +1,16 @@
-// Placed objects (sim/placedObjects.ts), one model per participant slot,
+// Placed objects (sim/placedObjects.ts), three models per participant slot,
 // created with the match. Presentation follows numerical state, so it can be
 // reapplied after a restore without spawning another object.
 import { f32 } from "wisp/src/sim/f32";
 import { idiv } from "wisp/src/sim/intMath";
 import { PARTICIPANT_SLOTS } from "../input/participants";
-import type { Fighter } from "../sim/fighter";
+import { type Fighter, type PlacedObject, placedObject } from "../sim/fighter";
 import { CompanionMode } from "../sim/heroSpecials";
 import { heroDefinition } from "../sim/heroes/registry";
 import { type ParkedFlags, type WorldOrigin, parkOnce, placeEffect } from "./effects";
+import { bearState } from "../presentation/bearFeedback";
+import { BearFeedback } from "./bearFeedback";
+import { bindPrototype } from "../../platform/rebind";
 
 /** Serpent Ward, the default placed object: the classic model stands about 300 units tall. */
 const PLACED_OBJECT_MODEL = "Units\\Orc\\SerpentWard\\SerpentWard.mdx";
@@ -19,12 +22,19 @@ export class PlacedObjectEffects {
   private readonly paths: string[];
   /** A partner's playing animation (0 stand, 1 walk, 2 attack) and its last x, by slot. */
   private readonly anims: number[] = [];
+  private attackStarts: number[] | undefined;
   private readonly lastX: number[] = [];
   private parked: ParkedFlags | undefined;
+  private feedback: BearFeedback;
 
   constructor(private readonly origin: WorldOrigin) {
-    this.models = PARTICIPANT_SLOTS.map(() => AddSpecialEffect(PLACED_OBJECT_MODEL, origin.x, origin.y));
-    this.paths = PARTICIPANT_SLOTS.map(() => PLACED_OBJECT_MODEL);
+    this.feedback = new BearFeedback(origin);
+    this.models = [];
+    this.paths = [];
+    for (const slot of PARTICIPANT_SLOTS) for (let animal = 0; animal < 3; animal++) {
+      this.models.push(AddSpecialEffect(PLACED_OBJECT_MODEL, origin.x, origin.y));
+      this.paths.push(PLACED_OBJECT_MODEL);
+    }
     this.clear();
   }
 
@@ -34,6 +44,7 @@ export class PlacedObjectEffects {
     if (current === undefined || this.paths[slot] === path) return current;
     DestroyEffect(current);
     const model = AddSpecialEffect(path, this.origin.x, this.origin.y);
+    BlzSetSpecialEffectAnimationBlendTime(model, 0.0);
     this.models[slot] = model;
     this.paths[slot] = path;
     // Created at the origin: the next hide must park it.
@@ -42,23 +53,43 @@ export class PlacedObjectEffects {
   }
 
   clear(): void {
-    for (let slot = 0; slot < this.models.length; slot++) this.hideSlot(slot);
+    for (let slot = 0; slot < this.models.length; slot++) this.hideModel(slot);
+    this.feedback.clear();
   }
 
+  bindNestedCode(): void {
+    this.feedback ??= new BearFeedback(this.origin);
+    bindPrototype(this.feedback, BearFeedback.prototype);
+  }
+
+  presentConfirmed(frame: number, fighter: Readonly<Fighter>, slot: number): void { this.feedback.confirm(frame, fighter, slot); }
+
   hideSlot(slot: number): void {
+    for (let animal = 0; animal < 3; animal++) this.hideModel(slot * 3 + animal);
+    this.feedback.hide(slot);
+  }
+
+  private hideModel(slot: number): void {
     const model = this.models[slot];
     if (model === undefined) return;
     parkOnce(model, this.origin, (this.parked ??= []), slot);
   }
 
   present(fighter: Readonly<Fighter>, slot: number): void {
-    const look = heroDefinition(fighter.character)?.presentation.placedModel ?? DEFAULT_LOOK;
+    for (let animal = 0; animal < 3; animal++) {
+      if (animal > fighter.pack.length) this.hideModel(slot * 3 + animal);
+      else this.presentAnimal(fighter, placedObject(fighter, animal), slot * 3 + animal);
+    }
+    this.feedback.present(fighter, slot);
+  }
+
+  private presentAnimal(fighter: Readonly<Fighter>, placed: Readonly<PlacedObject>, slot: number): void {
+    const look = placed.spec?.model ?? heroDefinition(fighter.character)?.presentation.placedModel ?? DEFAULT_LOOK;
     const model = this.modelFor(slot, look.path);
-    const { placed } = fighter;
     const spec = placed.spec;
     if (model === undefined) return;
     if (placed.life <= 0 || spec === undefined || fighter.status.out) {
-      this.hideSlot(slot);
+      this.hideModel(slot);
       return;
     }
     const parked = (this.parked ??= []);
@@ -66,25 +97,62 @@ export class PlacedObjectEffects {
     const { x, y, z } = this.origin;
     placeEffect(model, x + placed.x, y, z + placed.z);
     BlzSetSpecialEffectYaw(model, placed.direction > 0 ? 0.0 : f32(3.14159274));
-    if (spec.companion !== undefined) this.animate(model, slot, placed.mode, placed.x);
-    BlzSetSpecialEffectScale(model, f32(spec.height / look.height));
+    const bear = placed === fighter.placed ? bearState(fighter) : undefined;
+    if (spec.companion !== undefined) this.animate(model, slot, placed, bear);
+    BlzSetSpecialEffectScale(model, f32(spec.height / look.height * (bear === "CHARGING" ? 1.25 : 1.0)));
     // A damaged object fades toward half its opacity as its durability runs out.
     const left = f32(Math.max(0.0, placed.durability) / spec.durability);
     const half = idiv(look.alpha, 2);
     BlzSetSpecialEffectAlpha(model, half + Math.floor(f32((look.alpha - half) * left)));
   }
 
-  /** A partner walks while it moves, bites while it lunges and otherwise stands; changed only when its state does. */
-  private animate(model: effect, slot: number, mode: number, x: number): void {
+  /** Keep the attack's windup and follow-through visible; the contact window alone cuts off the stock animation. */
+  private animate(model: effect, slot: number, placed: Readonly<PlacedObject>, bear: ReturnType<typeof bearState>): void {
+    const { x, mode } = placed;
+    const partner = placed.spec?.companion;
+    let attackStart = -1;
+    let pitch = 0.0;
+    let speed = 1.0;
+    if (partner !== undefined && mode === CompanionMode.lunge) {
+      if (partner.behavior === "sentry") {
+        for (const fire of partner.volleyFrames ?? []) {
+          if (placed.modeFrame >= fire - 4 && placed.modeFrame < fire + 4) {
+            attackStart = placed.age - placed.modeFrame + fire;
+            pitch = placed.modeFrame < fire ? f32(-0.2) : 0.0;
+            speed = 4.0;
+          }
+        }
+      } else {
+        attackStart = placed.age - placed.modeFrame;
+        speed = f32(80.0 / (partner.lungeStartup + partner.lungeActive + partner.lungeRecovery));
+        if (placed.modeFrame <= partner.lungeStartup) pitch = f32(-0.25);
+        else if (placed.modeFrame <= partner.lungeStartup + partner.lungeActive) pitch = partner.behavior === "flying" ? f32(0.7) : f32(0.15);
+      }
+    } else if (mode === CompanionMode.follow) {
+      for (const fire of placed.spec?.fireAges ?? []) {
+        if (placed.age >= fire && placed.age < fire + 8) {
+          attackStart = fire;
+          speed = 4.0;
+        }
+      }
+    }
+    if (bear === "CHARGING") { attackStart = -1; pitch = f32(-0.85); speed = 0.0; }
+    else if (bear === "ATTACKING" || bear === "RESTING" && mode === CompanionMode.lunge) speed = 1.5;
+    BlzSetSpecialEffectPitch(model, pitch);
+    BlzSetSpecialEffectTimeScale(model, speed);
     const moved = this.lastX[slot] !== undefined && this.lastX[slot] !== x;
     this.lastX[slot] = x;
-    const anim = mode === CompanionMode.lunge ? 2 : moved ? 1 : 0;
-    if (this.anims[slot] === anim) return;
+    const anim = attackStart >= 0 ? 2 : moved ? 1 : 0;
+    const attackStarts = (this.attackStarts ??= []);
+    if (this.anims[slot] === anim && attackStarts[slot] === attackStart) return;
     this.anims[slot] = anim;
+    attackStarts[slot] = attackStart;
     BlzPlaySpecialEffect(model, anim === 2 ? ANIM_TYPE_ATTACK : anim === 1 ? ANIM_TYPE_WALK : ANIM_TYPE_STAND);
+    if (bear === "ATTACKING") BlzSetSpecialEffectTime(model, f32(0.5));
   }
 
   destroy(): void {
     for (const model of this.models) DestroyEffect(model);
+    this.feedback.destroy();
   }
 }

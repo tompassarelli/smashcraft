@@ -1,5 +1,5 @@
-# #179: Mountain King selected as a level-9 CPU through the normal menu selection rule.
-#! chat -dev quick cpu 9 hero Mountain King
+# #179: Mountain King selected as a Wren Expert CPU through the normal menu selection rule.
+#! chat -dev quick cpu wren expert hero Mountain King
 #! expect c 1-800 ground action
 #! expect c 1-800 applied attack
 #! expect c 1-800 special

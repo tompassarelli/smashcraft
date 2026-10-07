@@ -12,7 +12,7 @@ import { Character } from "../sim/codes";
 import { fighterAt, neutralControls } from "../sim/roster";
 import { createFrameControls } from "./controls";
 import {
-  captureFrame, captureNetworkFrame, copyExecutedInput, copyMatchFrameInput, copyNetworkRow, createMatchFrameInput,
+  captureFrame, captureNetworkFrame, copyMatchFrameInput, copyNetworkRow, createMatchFrameInput,
   executeMatchFrame, hasNetworkRows, networkRowsMatch, replaceNetworkRows, resetMatchFrameInput, sameMatchFrameInput,
 } from "./frameInput";
 import { createPacingAndPresentation } from "./pacingAndPresentation";
@@ -145,10 +145,7 @@ test("a network row adapts again from the world it replays into", () => {
   captureReplaySnapshot(before, match.world, match.game, match.inputs, match.runtime);
   assertTrue(captureNetworkFrame(match.row, 1, source, match.world, 3));
   assertTrue(executeMatchFrame(match.row, match.game, match.world, match.inputs, match.runtime, 1));
-  const executed = neutralControls();
-  assertTrue(copyExecutedInput(match.row, 0, executed));
-  assertEquals(executed.direction, 1);
-  assertFalse(copyExecutedInput(match.row, 2, executed));
+  assertEquals(match.row.scratch.inputs[0].direction, 1);
   assertTrue(fighterAt(match.world, 1).shield.raised);
   captureReplaySnapshot(after, match.world, match.game, match.inputs, match.runtime);
   restoreReplaySnapshot(before, match.world, match.game, match.inputs, match.runtime);

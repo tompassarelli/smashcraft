@@ -2,7 +2,7 @@
 // script (`integrity capture --bot --pad49`) against the rows slot 0's helper
 // typed into its client, which the client's receipts show it consumed. Each
 // scripted step's frames come from the edges' injection times on the helper's
-// frame rule (frame = 1 + floor((t - match start) * 60 / 1e9)); a step's first
+// frame rule (including the match start's first_frame); a step's first
 // two frames and its last are left to the transition.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -10,6 +10,7 @@ import { Action, bit } from "../../src/game/input/actions";
 import type { InputRow } from "../../src/game/input/inputRow";
 import { decodePacket } from "../../src/game/input/wire";
 import { readEdges } from "./botFiles";
+import { matchStart, ruleFrame } from "./padScript";
 
 const [directory, epochText = "1"] = process.argv.slice(2);
 if (directory === undefined) throw new Error("usage: bun scripts/integrity/pad49Result.ts CAPTURE_DIR [EPOCH]");
@@ -25,10 +26,10 @@ let emitted = 0;
 let consumed = 0;
 const focus: string[] = [];
 for (const line of readFileSync(join(directory, "helper-0.log"), "utf8").split("\n")) {
-  const start = /^match_start epoch=(\d+) epoch_ns=(\d+)/.exec(line);
-  if (start !== null) {
-    inEpoch = Number(start[1]) === epoch;
-    if (inEpoch) epochNs = Number(start[2]);
+  const start = matchStart(line);
+  if (start !== undefined) {
+    inEpoch = start.epoch === epoch;
+    if (inEpoch) epochNs = start.frameOneNs;
     continue;
   }
   if (!inEpoch) continue;
@@ -46,7 +47,7 @@ for (const line of readFileSync(join(directory, "helper-0.log"), "utf8").split("
 }
 if (epochNs === undefined) throw new Error(`no match_start for epoch ${epoch} in helper-0.log`);
 const startNs = epochNs;
-const frameAt = (ns: number) => 1 + Math.floor(((ns - startNs) * 60) / 1e9);
+const frameAt = (ns: number) => ruleFrame(startNs, ns);
 
 /** Each pad49 phase's first edge, in order. */
 const phases: { readonly phase: string; readonly frame: number }[] = [];

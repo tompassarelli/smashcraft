@@ -13,9 +13,11 @@ import { PIT_LORD_HERO } from "./pitLordHero";
 import { SHADOW_HUNTER_HERO } from "./shadowHunterHero";
 import { UTHER_HERO } from "./utherHero";
 import { WARDEN_HERO } from "./wardenHero";
+import { THRALL_HERO } from "./thrallHero";
+import { HIDDEN_FIGHTERS } from "./releaseRoster";
 
 export const HERO_ROSTER: readonly HeroDefinition[] = [
-  BLADEMASTER_HERO, MOUNTAIN_KING_HERO, WARDEN_HERO, LICH_HERO, UTHER_HERO, DREADLORD_HERO, SHADOW_HUNTER_HERO, PIT_LORD_HERO, BEASTMASTER_HERO, LICH_KING_HERO,
+  BLADEMASTER_HERO, MOUNTAIN_KING_HERO, WARDEN_HERO, LICH_HERO, UTHER_HERO, DREADLORD_HERO, SHADOW_HUNTER_HERO, PIT_LORD_HERO, BEASTMASTER_HERO, LICH_KING_HERO, THRALL_HERO,
 ];
 
 const BY_CHARACTER: { readonly [character: number]: HeroDefinition | undefined } = {
@@ -29,6 +31,7 @@ const BY_CHARACTER: { readonly [character: number]: HeroDefinition | undefined }
   [Character.pitLord]: PIT_LORD_HERO,
   [Character.beastmaster]: BEASTMASTER_HERO,
   [Character.lichKing]: LICH_KING_HERO,
+  [Character.thrall]: THRALL_HERO,
 };
 
 export function heroDefinition(character: number): HeroDefinition | undefined {
@@ -42,7 +45,7 @@ export function selectableCharactersOf(roster: readonly HeroDefinition[]): reado
   return choices;
 }
 
-/** The fighters players may choose, in roster-tile order. */
+/** Every finished fighter, in roster-tile order: measurement tools and named dev commands use all of them; selection uses PLAYABLE_CHARACTERS. */
 export const SELECTABLE_CHARACTERS: readonly Character[] = selectableCharactersOf(HERO_ROSTER);
 
 export function isSelectableCharacter(choice: number): choice is Character {
@@ -57,12 +60,18 @@ export function fighterName(character: number): string {
   return heroDefinition(character)?.name ?? ORIGINAL_NAMES[character] ?? "Archer";
 }
 
-/** The selectable fighter `direction` steps from `current` in tile order, wrapping. */
+/** The fighter in `choices` that `direction` steps from `current`, wrapping; from a fighter not in `choices`, the first or last. */
+export function nextCharacterIn(choices: readonly Character[], current: number | undefined, direction: number): Character {
+  const count = choices.length;
+  let index = -1;
+  for (let i = 0; i < count; i++) if (choices[i] === current) index = i;
+  if (index < 0) return choices[direction < 0 ? count - 1 : 0] ?? Character.archer;
+  return choices[floorMod(index + direction, count)] ?? Character.archer;
+}
+
+/** The playable fighter `direction` steps from `current` in tile order, wrapping. */
 export function nextSelectableCharacter(current: number | undefined, direction: number): Character {
-  const count = SELECTABLE_CHARACTERS.length;
-  let index = 0;
-  for (let i = 0; i < count; i++) if (SELECTABLE_CHARACTERS[i] === current) index = i;
-  return SELECTABLE_CHARACTERS[floorMod(index + direction, count)] ?? Character.archer;
+  return nextCharacterIn(PLAYABLE_CHARACTERS, current, direction);
 }
 
 /**
@@ -114,3 +123,17 @@ export function selectableCharacterBySlug(slug: string): Character | undefined {
   for (const character of SELECTABLE_CHARACTERS) if (fighterSlug(character) === slug) return character;
   return undefined;
 }
+
+/** `selectable` without the fighters whose slugs `hidden` names; never empty. */
+export function playableCharactersOf(selectable: readonly Character[], hidden: readonly string[]): readonly Character[] {
+  const choices: Character[] = [];
+  for (const character of selectable) {
+    let shown = true;
+    for (const slug of hidden) if (fighterSlug(character) === slug) shown = false;
+    if (shown) choices.push(character);
+  }
+  return choices.length === 0 ? selectable.slice(0, 1) : choices;
+}
+
+/** The fighters players and computers choose from on the selection screen: the release roster (releaseRoster.ts). */
+export const PLAYABLE_CHARACTERS: readonly Character[] = playableCharactersOf(SELECTABLE_CHARACTERS, HIDDEN_FIGHTERS);

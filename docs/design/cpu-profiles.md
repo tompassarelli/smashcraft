@@ -83,10 +83,10 @@ exceed 100. Initiative and variance weight preferences, not capability ceilings.
 | Ember | Intermediate | 21 | 84 | 65/72 | 12/2 | 3/60 | 45 | 60 | 90/60 | 20 |
 | Ember | Advanced | 15 | 93 | 82/86 | 20/1 | 4/65 | 32 | 75 | 90/55 | 12 |
 | Ember | Expert | 12 | 97 | 94/95 | 28/1 | 5/75 | 22 | 90 | 88/50 | 8 |
-| Flint | Rookie | 30 | 65 | 25/35 | 4/4 | 2/45 | 80 | 50 | 60/20 | 20 |
-| Flint | Beginner | 27 | 78 | 40/58 | 8/3 | 3/55 | 68 | 65 | 62/22 | 15 |
-| Flint | Intermediate | 21 | 88 | 65/78 | 12/2 | 3/65 | 52 | 80 | 65/25 | 10 |
-| Flint | Advanced | 15 | 95 | 84/90 | 20/1 | 4/70 | 38 | 90 | 70/30 | 7 |
+| Flint | Rookie | 30 | 65 | 25/35 | 4/16 | 2/45 | 80 | 50 | 60/20 | 20 |
+| Flint | Beginner | 27 | 78 | 40/58 | 8/12 | 3/55 | 68 | 65 | 62/22 | 15 |
+| Flint | Intermediate | 21 | 88 | 65/78 | 12/4 | 3/65 | 52 | 80 | 65/25 | 10 |
+| Flint | Advanced | 15 | 95 | 84/90 | 20/2 | 4/70 | 38 | 90 | 70/30 | 7 |
 | Flint | Expert | 12 | 98 | 95/96 | 28/1 | 5/75 | 28 | 100 | 75/35 | 4 |
 | Vale | Rookie | 36 | 50 | 30/45 | 6/4 | 2/65 | 75 | 90 | 15/10 | 10 |
 | Vale | Beginner | 30 | 65 | 50/62 | 10/3 | 3/70 | 60 | 100 | 25/12 | 8 |
@@ -122,6 +122,29 @@ new unexpected information waits for the authored reaction delay (never below
 Prepared sequences and fallible reads can act before a predicted action occurs.
 Delayed observations, bounded history and move-value logic are owned by
 [#182](https://github.com/tompassarelli/smashcraft/issues/182).
+
+Defense forecasts an observed strike's clock and position through the
+observation delay. Visible shots follow their last observed velocity; arrival
+uses the defender's own approach speed, and shots expected to have passed or
+expired are discarded. A guard with a later authored protection window waits
+until that window can meet the strike. Protected approaches hand over to attack
+selection at the fighter's projected authored reach. These forecasts use no
+newer opponent sample.
+
+A visible projectile-special windup also forecasts its authored launch and
+flight through the delay, so the computer can defend before the shot itself
+enters the delayed sample. A falling cast that lands and cancels before its
+launch contributes no shot. The same chance to miss a defense and the same
+fighter-specific shield, dodge, jump or stance choices still apply.
+
+Normal attacks, hero-special reach and punishes advance the delayed target's horizontal position
+through the observation delay using its last observed velocity. The attacker's
+own slide starts at the decision frame, so the delay is counted only for the
+target. The forecast remains fallible when that target changes direction.
+
+An active Divine Shield can also fund a ranged attack when the opponent remains
+outside melee reach. Its mana is available for that attack instead of being held
+for a second guard; without active protection, the guard reserve still applies.
 
 ## CPU-slot selection
 
@@ -216,3 +239,136 @@ tie every matchup. Keep existing difficulty, whole-roster kit coverage and
 fighter-balance gates; never lower their thresholds. Hosted sweeps use explicit
 revision/seed sets. Fairness, five-frame commitment and replay determinism
 remain hard checks.
+
+## Calibration report
+
+From ts/, `bun scripts/cpuCalibration.ts --out build/cpu-calibration/report.md
+--json build/cpu-calibration/report.json` collects all 30 authored rows using
+the same ten seeds (0–9). The default supplies ten eligible decisions per seed
+for each measure. `--trials-per-seed N` changes the sample count; fewer than
+100 decisions per measure fails collection. `--revision SHA` records the
+revision explicitly; otherwise the command records Git HEAD. The hosted route
+is `gh workflow run cpu-calibration.yml -f ref=COMMIT`; its summary and
+cpu-calibration artifact contain the numerical report.
+
+Controlled situations call the real shared policy: an unexpected side change,
+shield, jump, smash or shot; a legal tumbling tech; neutral move selection at
+two distances; a close whiff-punish opportunity; learned strikes followed by
+shield events; the same move's value ahead and behind; a visible incoming
+strike; and Rifleman's ready short-hop blaster. Reaction distributions include
+the cases with no changed input within the observation delay plus 30 frames.
+The same seeded decision sequence is restored and replayed in each sample.
+Direction requests include neutral braking and measure actual reversals.
+
+The command fails insufficient collection, an early reaction, a direction
+reversal inside five frames or any restored-state difference. Close conversions
+play the chosen punish for 60 simulation frames and count actual connections.
+Developmental checks require each named primary/secondary outcome to improve
+from Rookie to Expert without falling between adjacent tiers; Flint's pattern
+switch must improve at every tier. Each identity also faces its named bait:
+Rook's brief speculative opening, Ember's extra pressure attack, Flint's
+conditioned forward tilt, Vale's feinted reset, Kite's guarded ledge escape
+and Wren's chased uncertain retreat. Each counter plays for 60 frames and must
+catch at least one eligible commitment at every tier, counting damage or a
+grab. Counts and distributions remain visible when a check fails. Difficulty,
+whole-roster kit use, balance and native parity retain their separate gates.
+
+Use the existing hosted difficulty and field commands for their original
+thresholds (Expert wins at least 95/100 against Rookie; every fighter lies
+within 40–60% against the Wren Expert field at 400 matches per pair), and the
+existing kit/recovery/gameplan contracts for whole-roster coverage. Reuse a
+passing result only while its covered policy is unchanged. Calibration rows
+change one measured behavior at a time; never retune fighter stats or relax a
+coverage/rank assertion to make an AI report pass. These are authored
+Smashcraft measurements, with no human rating or imitation claim.
+
+## Reads and move value
+
+smashcraft:ts/src/game/match/botStrategy.ts records transitions in delayed
+opponent observations, partitioned by close, middle and far spacing and by
+ground, air, knockdown and ledge situations. Each context retains the policy's
+bounded number of events, with a total ceiling of 128. Update stride, evidence
+count and confidence are independent policy fields. An opponent change clears
+the history. Match start and rematch clear history and outstanding reads.
+
+A read forecasts the next recurrence of the common observed choice. The
+computer may walk toward a grab position, hold a guard before a predicted
+strike, or queue a strike before the expected jump, landing or movement.
+The normal six-frame attack buffer can carry that commitment through the
+fighter's own recovery. A committed guard can lose to an unexpected grab;
+the forecast does not inspect new opponent inputs. Seeded choices sometimes
+decline reliable patterns and sometimes guess from weak evidence.
+
+smashcraft:ts/src/game/match/botMoveValue.ts weights eligible moves by observed
+shield/jump frequency, authored damage and startup, an approximate kill reward,
+recovery exposure at the computer's own percent, and resulting distance from
+stage centre. A stock deficit or a short clock while trailing increases the
+reward for risky comeback choices. The prediction is approximate: recovery,
+directional influence and changed opponent behavior can invalidate it.
+Every eligible move keeps a positive weight alongside its fighter's gameplan.
+Lower judgment favors familiar answers and smashes; higher judgment uses the
+value comparison more often.
+
+smashcraft:ts/src/game/match/cpuDecisionPolicy.ts defines the independent policy
+dimensions consumed by reads and move choice. The named opponent/tier design
+is in smashcraft:docs/design/cpu-profiles.md. Mechanical reaction, execution
+and spacing remain separate from judgment, memory and risk preference.
+History and mutable read commitments are copied in detached snapshots,
+restored with input rows and included in exact and periodic replay checksums.
+smashcraft:ts/src/game/match/botStrategyContracts.tests.ts exercises adaptation,
+successful and punishable reads, buffering, seeded variety and move value;
+smashcraft:ts/test/native/pads/cpu-reads.pad is the native comparison script.
+
+## Whiff punish
+
+Without it, the computer answered threats but never attacked into an
+opponent's end lag, so slow, committal fighters (Pit Lord) got away with
+whiffs and overperformed in #105's matrix. smashcraft:ts/src/game/match/botPunish.ts
+reads the window from the delayed opponent observation, the frames until it
+can act: a ground move past its active frames (`attack.cooldown`), a missed
+grab, a hero special past its last strike with nothing still to come (no
+shot, partner, guard, armor or branch), landing lag, a dropped shield's
+release lag, a dodge after its intangibility, and a grounded opponent
+asleep or stunned (a status that blocks every action; its frames left,
+shortened by any mashing; #105 found Dreadlord converted only a quarter of
+his Sleeps before it). Attack clocks advance through the observation's age,
+excluding the frozen frames of observed hitlag. A falling attack whose
+trajectory reaches a deck during that delay supplies its authored landing lag,
+less the frames already spent on the deck. A hit, a grab, a knockdown,
+the ledge or a target still expected in the air is not a window. The computer then takes a ground move whose
+first active frame lands inside the window and whose strike reaches where
+the opponent will be (the bot's cached first-active-frame reach): its
+gameplan's spacing tool when one fits, so punishes keep each fighter's identity, else its fastest. A grab
+is thrown only when the opponent's position, not just its body's edge, is in
+reach, since grabs catch a narrower body and a missed grab is punished in
+turn. With nothing in reach it runs in when a move would arrive in time
+(a jab out of a run is the dash attack), and a shield lets go only for a
+grab. It runs after defense and before the attack pause and idle
+stretches, so a profile's pause doesn't eat the window; the profile gates it
+with its delayed perception, the punish share and the misjudgment, each drawn
+on the window's key under the match seed. Scripted checks:
+smashcraft:ts/src/game/match/botPunishContracts.tests.ts.
+
+## Determinism and the match seed
+
+Every computer decision is a function of the match state, its bounded
+opponent-observation history, its direction commitment and the frame,
+drawn with `botChoice` (a scramble of 32-bit-safe integers), so each client
+and every rollback re-simulation derives the same input. Selected identities, resolved identities and tiers live in
+`MatchState.cpuOpponents`, `MatchState.cpuResolvedOpponents` and `MatchState.cpuTiers` and the seed in `MatchState.matchSeed`, both in the
+snapshot, canonical state and first-difference, so restoring a snapshot
+restores them. Observation records are immutable and shared by detached
+snapshots; canonical state includes every observed scalar, and replay
+restores the last horizontal choice and its first frame. Match start and
+rematch clear both. The seed salts every `botChoice` for the length of one
+computer's decision (`useMatchSeed`); the salt is `seed mod 46337 × 7919 mod
+46337`, products below 2^31, so Warcraft's 32-bit Lua agrees with Bun. Seed 0
+salts nothing. The first match after the map loads plays seed 0; each later
+match (rematch or back to fighter selection) plays the next seed, so
+rematches differ without any clock or client-local randomness.
+
+The seed is what makes win rates measurable: before it, a computer-against-
+computer setup was one fixed match, so a matchup's rate was 0% or 100% per
+setup. `bun scripts/cpuField.ts --seeds N` plays N seeds of each setup and
+`bun scripts/cpuTiers.ts` measures Wren at the five tiers against each other
+(smashcraft:docs/typescript.md).

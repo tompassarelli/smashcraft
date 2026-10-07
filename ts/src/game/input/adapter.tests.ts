@@ -2,10 +2,15 @@ import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "wisp
 import { Character } from "../sim/codes";
 import { createFighter } from "../sim/fighter";
 import { neutralControls } from "../sim/roster";
+import { analogShieldActive, analogShieldStrength, shieldContactDamage, shieldSizeMultiplier, shieldstunFrames } from "../sim/shield";
+import { advanceSolo } from "../sim/testWorld";
 import { Action, maskOf } from "./actions";
 import { adaptInput } from "./adapter";
 import { attackBuffer, hasPendingAttack, takeAttack } from "./attackBuffer";
 import { emptyInput, inputRow, type RowFields } from "./inputRow";
+import { actionFor, decodeBindings, encodeBindings, presetBindings, rebind } from "./keyBindings";
+import { keyboardCapture, sampleKeys } from "./keyboardCapture";
+import { heldActions, playerKeys, pressKey } from "./playerKeys";
 
 function fixture(character: Character = Character.archer, graceFrames = 0) {
   const fighter = createFighter(character, 0, 1);
@@ -19,6 +24,56 @@ function fixture(character: Character = Character.archer, graceFrames = 0) {
     take(frame: number) { return assertDefined(takeAttack(attacks, frame, true)); },
   };
 }
+
+test("LT and keyboard 9 or custom 0 raise the lightest shield, larger and weaker than RT", () => {
+  const lightRows = [assertDefined(inputRow({ held: maskOf(Action.leftTrigger), pressed: maskOf(Action.leftTrigger), triggerLeft: 77 }))];
+  for (const preset of ["standard", "custom"] as const) {
+    const action = assertDefined(actionFor(presetBindings(preset), preset === "standard" ? 57 : 48));
+    assertEquals(action, Action.lightShield);
+    const capture = keyboardCapture();
+    assertTrue(sampleKeys(capture, maskOf(action)));
+    assertEquals(capture.row.triggerLeft, 77);
+    lightRows.push(assertDefined(inputRow(capture.row)));
+  }
+  assertFalse(analogShieldActive(76));
+  const full = fixture();
+  full.adapt({ held: maskOf(Action.rightTrigger), pressed: maskOf(Action.rightTrigger), triggerRight: 255 }, 1);
+  advanceSolo(full.fighter, 0, full.input, 0.0);
+  assertTrue(full.fighter.shield.raised);
+  assertEquals(full.fighter.shield.strength, 1.0);
+  for (const row of lightRows) {
+    const light = fixture();
+    light.adapt(row, 1);
+    advanceSolo(light.fighter, 0, light.input, 0.0);
+    assertTrue(light.fighter.shield.raised);
+    assertEquals(light.fighter.shield.strength, analogShieldStrength(77));
+    assertTrue(shieldSizeMultiplier(60.0, light.fighter.shield.strength) > shieldSizeMultiplier(60.0, full.fighter.shield.strength));
+    assertTrue(shieldContactDamage(10.0, light.fighter.shield.strength) > shieldContactDamage(10.0, full.fighter.shield.strength));
+    assertTrue(shieldstunFrames(10.0, light.fighter.shield.strength) > shieldstunFrames(10.0, full.fighter.shield.strength));
+    assertTrue(light.input.techPressed);
+  }
+  const q = keyboardCapture();
+  assertTrue(sampleKeys(q, maskOf(assertDefined(actionFor(presetBindings("standard"), 81)))));
+  assertEquals(q.row.triggerLeft, 255);
+});
+
+test("the helper's left trigger key raises light shield with the saved custom profile, not jump", () => {
+  const old = presetBindings("custom");
+  assertTrue(rebind(old, Action.lightShield, 1, undefined));
+  const bindings = assertDefined(decodeBindings(`K4${encodeBindings(old).slice(2)}`));
+  const keys = playerKeys();
+  assertEquals(pressKey(keys, 84, bindings), Action.lightShield);
+  const capture = keyboardCapture();
+  assertTrue(sampleKeys(capture, heldActions(keys)));
+  assertEquals(capture.row.triggerLeft, 77);
+  const light = fixture();
+  light.adapt(capture.row, 1);
+  assertFalse(light.input.jumpHeld);
+  assertFalse(light.input.jumpPressed);
+  advanceSolo(light.fighter, 0, light.input, 0.0);
+  assertTrue(light.fighter.shield.raised);
+  assertEquals(light.fighter.shield.strength, analogShieldStrength(77));
+});
 
 test("a neutral row clears reused frame scratch without repeating an attack", () => {
   const f = fixture(Character.archer, 6);
@@ -94,7 +149,8 @@ test("special releases preserve press direction and leave neutral turnaround to 
   const rifleman = fixture(Character.rifleman);
   rifleman.adapt(downSpecial, 2);
   assertTrue(rifleman.input.getupAttackPressed);
-  f.fighter.motion.lastAerialTapDirection = -1;
+  f.fighter.motion.turnaroundSide = -1;
+  f.fighter.motion.turnaroundAge = 0;
   f.adapt({ pressed: maskOf(Action.special) }, 3);
   assertEquals(f.input.specialX, 0);
   assertEquals(f.input.specialZ, 0);

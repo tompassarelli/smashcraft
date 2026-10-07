@@ -1,5 +1,6 @@
 import { at } from "wisp/src/runtime/lookup";
 import { floorMod } from "wisp/src/sim/intMath";
+import type { CpuDecisionPolicy } from "./cpuDecisionPolicy";
 
 export const CPU_OPPONENT_IDS = ["rook", "ember", "flint", "vale", "kite", "wren"] as const;
 export type CpuOpponentId = (typeof CPU_OPPONENT_IDS)[number];
@@ -11,22 +12,10 @@ export const CPU_OPPONENT_DEFAULT: CpuOpponentId = "wren";
 export const CPU_TIER_DEFAULT: CpuTier = "intermediate";
 
 /** Independent authored settings consumed by the shared decision policy. */
-export interface CpuProfile {
+export interface CpuProfile extends CpuDecisionPolicy {
   readonly opponent: CpuOpponentId;
   readonly tier: CpuTier;
   readonly reactionFrames: number;
-  readonly executionPercent: number;
-  readonly judgmentPercent: number;
-  readonly spacingPercent: number;
-  readonly historyCapacity: number;
-  readonly historyStride: number;
-  readonly readEvidence: number;
-  readonly readConfidence: number;
-  readonly repeatPercent: number;
-  readonly punishWeight: number;
-  readonly pressurePercent: number;
-  readonly variancePercent: number;
-  readonly guessPercent: number;
 }
 
 export const isCpuOpponent = (value: string): value is CpuOpponentId => CPU_OPPONENT_IDS.some(id => id === value);
@@ -61,10 +50,10 @@ export const CPU_PROFILES: readonly CpuProfile[] = [
   { opponent: "ember", tier: "intermediate", reactionFrames: 21, executionPercent: 84, judgmentPercent: 65, spacingPercent: 72, historyCapacity: 12, historyStride: 2, readEvidence: 3, readConfidence: 60, repeatPercent: 45, punishWeight: 60, pressurePercent: 90, variancePercent: 60, guessPercent: 20 },
   { opponent: "ember", tier: "advanced", reactionFrames: 15, executionPercent: 93, judgmentPercent: 82, spacingPercent: 86, historyCapacity: 20, historyStride: 1, readEvidence: 4, readConfidence: 65, repeatPercent: 32, punishWeight: 75, pressurePercent: 90, variancePercent: 55, guessPercent: 12 },
   { opponent: "ember", tier: "expert", reactionFrames: 12, executionPercent: 97, judgmentPercent: 94, spacingPercent: 95, historyCapacity: 28, historyStride: 1, readEvidence: 5, readConfidence: 75, repeatPercent: 22, punishWeight: 90, pressurePercent: 88, variancePercent: 50, guessPercent: 8 },
-  { opponent: "flint", tier: "rookie", reactionFrames: 30, executionPercent: 65, judgmentPercent: 25, spacingPercent: 35, historyCapacity: 4, historyStride: 4, readEvidence: 2, readConfidence: 45, repeatPercent: 80, punishWeight: 50, pressurePercent: 60, variancePercent: 20, guessPercent: 20 },
-  { opponent: "flint", tier: "beginner", reactionFrames: 27, executionPercent: 78, judgmentPercent: 40, spacingPercent: 58, historyCapacity: 8, historyStride: 3, readEvidence: 3, readConfidence: 55, repeatPercent: 68, punishWeight: 65, pressurePercent: 62, variancePercent: 22, guessPercent: 15 },
-  { opponent: "flint", tier: "intermediate", reactionFrames: 21, executionPercent: 88, judgmentPercent: 65, spacingPercent: 78, historyCapacity: 12, historyStride: 2, readEvidence: 3, readConfidence: 65, repeatPercent: 52, punishWeight: 80, pressurePercent: 65, variancePercent: 25, guessPercent: 10 },
-  { opponent: "flint", tier: "advanced", reactionFrames: 15, executionPercent: 95, judgmentPercent: 84, spacingPercent: 90, historyCapacity: 20, historyStride: 1, readEvidence: 4, readConfidence: 70, repeatPercent: 38, punishWeight: 90, pressurePercent: 70, variancePercent: 30, guessPercent: 7 },
+  { opponent: "flint", tier: "rookie", reactionFrames: 30, executionPercent: 65, judgmentPercent: 25, spacingPercent: 35, historyCapacity: 4, historyStride: 16, readEvidence: 2, readConfidence: 45, repeatPercent: 80, punishWeight: 50, pressurePercent: 60, variancePercent: 20, guessPercent: 20 },
+  { opponent: "flint", tier: "beginner", reactionFrames: 27, executionPercent: 78, judgmentPercent: 40, spacingPercent: 58, historyCapacity: 8, historyStride: 12, readEvidence: 3, readConfidence: 55, repeatPercent: 68, punishWeight: 65, pressurePercent: 62, variancePercent: 22, guessPercent: 15 },
+  { opponent: "flint", tier: "intermediate", reactionFrames: 21, executionPercent: 88, judgmentPercent: 65, spacingPercent: 78, historyCapacity: 12, historyStride: 4, readEvidence: 3, readConfidence: 65, repeatPercent: 52, punishWeight: 80, pressurePercent: 65, variancePercent: 25, guessPercent: 10 },
+  { opponent: "flint", tier: "advanced", reactionFrames: 15, executionPercent: 95, judgmentPercent: 84, spacingPercent: 90, historyCapacity: 20, historyStride: 2, readEvidence: 4, readConfidence: 70, repeatPercent: 38, punishWeight: 90, pressurePercent: 70, variancePercent: 30, guessPercent: 7 },
   { opponent: "flint", tier: "expert", reactionFrames: 12, executionPercent: 98, judgmentPercent: 95, spacingPercent: 96, historyCapacity: 28, historyStride: 1, readEvidence: 5, readConfidence: 75, repeatPercent: 28, punishWeight: 100, pressurePercent: 75, variancePercent: 35, guessPercent: 4 },
   { opponent: "vale", tier: "rookie", reactionFrames: 36, executionPercent: 50, judgmentPercent: 30, spacingPercent: 45, historyCapacity: 6, historyStride: 4, readEvidence: 2, readConfidence: 65, repeatPercent: 75, punishWeight: 90, pressurePercent: 15, variancePercent: 10, guessPercent: 10 },
   { opponent: "vale", tier: "beginner", reactionFrames: 30, executionPercent: 65, judgmentPercent: 50, spacingPercent: 62, historyCapacity: 10, historyStride: 3, readEvidence: 3, readConfidence: 70, repeatPercent: 60, punishWeight: 100, pressurePercent: 25, variancePercent: 12, guessPercent: 8 },

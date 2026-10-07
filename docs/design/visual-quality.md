@@ -4,7 +4,8 @@ What Warcraft III 3.0 lets a map change about how the game looks, what each
 lever does and costs on the native clients, and which ones Smashcraft uses.
 Stage composition (scenery, depth bands, deck palettes) is in
 [stage art](stage-art.md); this page is about light, atmosphere and
-materials.
+materials. Every feature added since Reforged, by patch, is indexed in
+[Warcraft features since Reforged](warcraft-features.md).
 
 ## The renderer is fixed
 

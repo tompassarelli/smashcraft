@@ -34,6 +34,7 @@ const ANGLE = {
   50: { x: f32(0.642787610), z: f32(0.766044443) },
   55: { x: f32(0.573576436), z: f32(0.819152044) },
   65: { x: f32(0.422618262), z: f32(0.906307787) },
+  70: { x: f32(0.342020143), z: f32(0.939692621) },
   80: { x: f32(0.173648178), z: f32(0.984807753) },
   85: { x: f32(0.087155743), z: f32(0.996194698) },
   270: { x: 0.0, z: -1.0 },
@@ -244,6 +245,6 @@ export const PIT_LORD_MOVES: FighterMoves = {
     [GrabAction.throwForward]: { contactFrame: 17, totalFrames: 44, effect: hit(11.0, "EDGE", 35, 1.0, HitElement.normal) },
     [GrabAction.throwBack]: { contactFrame: 22, totalFrames: 54, effect: hit(12.0, "KILL", 40, -1.0, HitElement.normal) },
     [GrabAction.throwUp]: { contactFrame: 20, totalFrames: 30, effect: hit(10.0, "JUGGLE", 85, 1.0, HitElement.normal) },
-    [GrabAction.throwDown]: { contactFrame: 23, totalFrames: 50, effect: hit(8.0, "CHASE", 65, 1.0, HitElement.normal) },
+    [GrabAction.throwDown]: { contactFrame: 23, totalFrames: 50, effect: hit(8.0, "CHASE", 25, 1.0, HitElement.normal) },
   },
 };

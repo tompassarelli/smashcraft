@@ -76,7 +76,7 @@ function startMatch(session: TapeSession): boolean {
   world.mask = fighterMask(match);
   for (const slot of PARTICIPANT_SLOTS) {
     if (isActive(world, slot)) {
-      const x = matchSpawnX(slot);
+      const x = matchSpawnX(slot, world.mask);
       world.fighters[slot] = createFighter(match.characterChoices[slot], x, x < 0 ? 1 : -1);
     }
     copyControls(controls.inputs[slot], NEUTRAL);

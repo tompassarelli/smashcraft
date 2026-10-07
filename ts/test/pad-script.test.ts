@@ -4,7 +4,29 @@ import { deadlineOrder, frameWriteNs, landEdges, matchStart, parsePadScript, pub
 import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { checkHeadlessRun, compareRuns, parseExpectations, parseTrace, scriptChat, unmetExpectations } from "../scripts/integrity/padParity";
+import { checkHeadlessRun, compareRuns, comparisonSteps, parseExpectations, parseTrace, scriptChat, unmetExpectations } from "../scripts/integrity/padParity";
+
+test("comparison preflight requires the consumer's View export without changing action or capture steps", () => {
+  const actions = "150 a tap A 2\n154 a capture\n";
+  for (const missing of [actions, `${actions}160 a tap VIEW 59`, `${actions}160 a press VIEW\n230 b release VIEW`, `${actions}160 a press VIEW\n180 a release VIEW\n190 a press VIEW\n230 a release VIEW`]) {
+    expect(() => comparisonSteps(missing)).toThrow("comparison requires a replay export");
+  }
+  for (const exportHold of ["180 a tap VIEW 70", "180 b press VIEW\n250 b release VIEW", "180 a press VIEW\n200 a press VIEW\n250 a release VIEW"]) {
+    const steps = comparisonSteps(`${actions}${exportHold}`);
+    expect(steps.slice(0, 3)).toEqual(parsePadScript(actions));
+  }
+  const pads = join(import.meta.dir, "native", "pads");
+  const scripts = [
+    ...["archer", "illidan", "rifleman"].map((name) => join(pads, "156", `${name}.pad`)),
+    ...readdirSync(join(pads, "163")).filter((name) => name.endsWith(".pad")).map((name) => join(pads, "163", name)),
+  ];
+  for (const path of scripts) {
+    const script = readFileSync(path, "utf8");
+    const steps = comparisonSteps(script);
+    expect(steps).toEqual(parsePadScript(script));
+    expect(steps.at(-2)?.frame).toBeGreaterThan(Math.max(...steps.filter((step) => step.kind === "capture").map((step) => step.frame)));
+  }
+});
 
 test("a pad script becomes frame-ordered edges, a tap a press and its release", () => {
   const steps = parsePadScript(`
@@ -41,12 +63,12 @@ test("two-client pad steps follow actual deadlines when B starts 58.678 ms befor
 test("edges land on the frames a fake helper journaled them on", () => {
   // The helper's log lines as wc3-journal writes them (bot-four capture, 7 Oct).
   const log = [
-    "match_start epoch=1 epoch_ns=34282443282605 read_ns=34282443762949 uncertainty_ns=1100090",
+    "match_start epoch=1 epoch_ns=34282443282605 first_frame=1 read_ns=34282443762949 uncertainty_ns=1100090",
     "event mono_ns=34285446238000 frame=181 held=32 pressed=32 released=0",
     "published_frame=181",
   ].join("\n");
   const start = matchStart(log);
-  expect(start).toEqual({ epoch: 1, epochNs: 34282443282605 });
+  expect(start).toEqual({ epoch: 1, epochNs: 34282443282605, firstFrame: 1, frameOneNs: 34282443282605 });
   expect(publishedFrame(log)).toBe(181);
   const epochNs = start?.epochNs ?? 0;
   // The write time of a frame falls on that frame by the helper's rule.
@@ -56,6 +78,24 @@ test("edges land on the frames a fake helper journaled them on", () => {
     { line: 2, text: "190 a stick 1 0", slot: 0, planned: 190, injectedNs: 34285600000000 },
   ], [log, ""]);
   expect(landed.map((edge) => edge.landed)).toEqual([181, undefined]);
+});
+
+test("D2 pad deadlines retain the helper publication's frame-three clock and exact-frame gate", () => {
+  const epochNs = 34282443282605;
+  const start = matchStart(`match_start epoch=1 epoch_ns=${epochNs} first_frame=3 read_ns=34282443762949 uncertainty_ns=1100090`);
+  expect(start?.epochNs).toBe(epochNs);
+  expect(start?.firstFrame).toBe(3);
+  if (start === undefined) throw new Error("missing match start");
+  for (const planned of [15, 200, 1309]) {
+    const injectedNs = frameWriteNs(start.frameOneNs, planned);
+    const actual = start.firstFrame + Math.floor((injectedNs - start.epochNs) * 60 / 1e9);
+    expect(actual).toBe(planned);
+    expect(ruleFrame(start.frameOneNs, injectedNs)).toBe(planned);
+  }
+  // The old origin injects two frames late; correcting an observation cannot
+  // make that late stimulus pass the original planned-frame comparison.
+  expect(start.firstFrame + Math.floor((frameWriteNs(epochNs, 200) - epochNs) * 60 / 1e9)).toBe(202);
+  expect(matchStart(`match_start epoch=1 epoch_ns=${epochNs} read_ns=34282443762949 uncertainty_ns=1100090`)).toBeUndefined();
 });
 
 test("a pad parity check reads the input trace's checksums and fighter lines and holds the script's expectations", () => {
@@ -75,6 +115,13 @@ test("a pad parity check reads the input trace's checksums and fighter lines and
     "native script line 4 (expect b 118 special): no such line; nearby: 118 phase 2 recovery down 0 actionable 0 hitlag 5 hitstun 13 damage 6.000",
   ]);
   expect(() => parseExpectations("#! expects a 1 x")).toThrow("line 1");
+});
+
+test("shield tilt is a compared fighter event and can satisfy cardinal pad expectations", () => {
+  const trace = parseTrace(["80 1.333 participant 0 frame 70 phase 2 shield tilt x 0.000 z 0.650 raised 1 grounded 1 roll 0 jump 0"]);
+  const expectations = parseExpectations("#! expect a 70 shield tilt x 0.000 z 0.650 raised 1 grounded 1 roll 0 jump 0");
+  expect(unmetExpectations(trace, expectations, "headless")).toEqual([]);
+  expect(trace.events).toHaveLength(1);
 });
 
 test("a native pad run that desynced, crashed or ended early is invalid, neither pass nor fail", () => {

@@ -139,12 +139,13 @@ function placeWard(world: Roster): void {
   for (let f = 2; f <= 26; f++) frame(world);
 }
 
-test("Serpent Ward is ground-only, costs 20, stands 0.65H ahead from frame 26 and fires straight at ages 45, 85, 125, 165 and 205", () => {
+test("Serpent Ward is ground-only (an airborne side press throws Spirit Glaive), costs 20, stands 0.65H ahead from frame 26 and fires straight at ages 45, 85, 125, 165 and 205", () => {
   const { world, owner, target } = pair(300.0);
   owner.motion.grounded = false;
   owner.motion.z = 200.0;
   frame(world, side);
-  assertEquals(owner.special.action, SpecialAction.none);
+  assertEquals(owner.special.action, SpecialAction.heroNeutral);
+  assertEquals(owner.placed.life, 0);
   assertEquals(owner.mana.points, 100);
   for (let f = 0; f < 240 && !owner.motion.grounded; f++) frame(world);
   for (let f = 0; f < 30; f++) frame(world);

@@ -10,7 +10,7 @@
 // the receive event, not the packet.
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { ALL_ACTIONS } from "./actions";
-import { type Direction, type InputRow, emptyInput, inputRow, predictInto, sameInput } from "./inputRow";
+import { type Direction, type InputRow, type RowFields, emptyInput, isInputRow, predictInto, sameInput } from "./inputRow";
 
 export const ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_";
 
@@ -176,14 +176,15 @@ function decodeRecord(reader: Reader): InputRow | undefined {
   const sdiX = direction(81);
   const sdiZ = direction(243);
   // Absent throw totals are explicit zeros, never the taps implied by presses.
-  return inputRow({
+  const row: Required<RowFields> = {
     held, pressed, released,
     axisX: signedValue(floorDiv(axes, 255)), axisZ: signedValue(floorMod(axes, 255)),
     triggerLeft: floorDiv(triggers, 256), triggerRight: floorMod(triggers, 256),
     specialX: direction(1), specialZ: direction(3), dodgeX: direction(9), dodgeZ: direction(27),
     sdi: sdiX !== 0 || sdiZ !== 0, sdiX, sdiZ, ledgeVertical: direction(729),
     throwX: signedValue(floorDiv(throws, 255)), throwZ: signedValue(floorMod(throws, 255)),
-  });
+  };
+  return isInputRow(row) ? row : undefined;
 }
 
 /** Decodes one canonical packet, or undefined for any malformed, truncated or out-of-range text. */

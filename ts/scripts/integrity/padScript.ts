@@ -104,16 +104,21 @@ export function landEdges(sent: readonly SentEdge[], logs: readonly [string, str
 }
 
 /**
- * The helper's newest match start: the helper places an event on frame
- * `1 + floor((t - epochNs) * 60 / 1e9)` (its log's frame_rule, first=1) until a stall opens a new segment.
+ * The helper's newest match start. Its publication names firstFrame, which
+ * is 3 for D2. frameOneNs converts simulation-frame deadlines without
+ * replacing the original publication timestamp retained in epochNs.
  */
-export function matchStart(log: string): { readonly epoch: number; readonly epochNs: number } | undefined {
-  const starts = [...log.matchAll(/^match_start epoch=(\d+) epoch_ns=(\d+)/gm)];
+export function matchStart(log: string): { readonly epoch: number; readonly epochNs: number; readonly firstFrame: number; readonly frameOneNs: number } | undefined {
+  const starts = [...log.matchAll(/^match_start epoch=(\d+) epoch_ns=(\d+) first_frame=(\d+)/gm)];
   const last = starts.at(-1);
-  return last === undefined ? undefined : { epoch: Number(last[1]), epochNs: Number(last[2]) };
+  if (last === undefined) return undefined;
+  const epochNs = Number(last[2]);
+  const firstFrame = Number(last[3]);
+  if (firstFrame < 1) return undefined;
+  return { epoch: Number(last[1]), epochNs, firstFrame, frameOneNs: epochNs - Math.round((firstFrame - 1) * 1e9 / 60) };
 }
 
-/** When to write an edge meant for `frame`: a fifth into that frame on the helper's clock, clear of its start and leaving 13 ms for a late wake on a loaded host. */
+/** When to write an edge meant for `frame`: a fifth into that frame, using the clock's frame-one origin, clear of its start and leaving 13 ms for a late wake on a loaded host. */
 export const frameWriteNs = (epochNs: number, frame: number): number => epochNs + Math.round(((frame - 1) * 1e9 + 0.2e9) / 60);
 
 /** Each client's frame starts on its own clock; source order cannot order deadlines across clients. */

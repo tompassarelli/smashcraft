@@ -16,25 +16,136 @@ with the sampling tolerance of Slippi/UCF. The authored roster has thirteen
 initial-dash frames, then enters Run on frame fourteen. Thirteen is Melee's
 median initial-dash duration ([movement reference](design/melee/movement.md));
 it replaces the provisional ten-frame window. Reference test rigs keep their
-own actor timing. A reversal started on the last dash frame can finish on
-its second input sample even when that sample falls on the Run boundary.
+own actor timing.
 
-A horizontal stick flick reaching 0.8 on either of its first two samples
-starts dashback. A first opposite sample below 0.8 keeps the current dash
-until the next sample decides: reaching 0.8 reverses, remaining below it
-selects walking. Full digital directions count as full-strength flicks.
-Small same-direction stick variation keeps an existing dash; the walk
-modifier explicitly selects walking. Reversals after Run has begun use
-the ordinary turnaround, and an expired dash cannot be held open with
-neutral input.
+Tom decided, 7 Oct (delegated) (#188): the dash-back window is the initial
+dash plus a three-sample stick travel. A reversal whose first stick sample
+past the centre (beyond the controller's 0.28 deadzone, on the opposite
+side) arrives on dash frames 1-13 dashes back when any of its first three
+opposite samples reaches 0.8, including samples past frame 13. Up to two
+opposite samples below 0.8 keep the current dash, clock and facing; a third
+selects walking. Weak travel that begins after frame 13 walks at once, as
+from standing. A dash whose input went neutral is still a dash after frame
+13 (its dash attack, dash grab and Dash-to-Guard timing are unchanged); only
+Run turns with TurnRun, so a full opposite flick out of that neutral tail
+starts a fresh dash, as Melee's Wait-to-Dash does. Holding forward through
+frame 14 enters Run, whose reversal is the ordinary TurnRun. Full digital
+directions, including keyboard keys, count as full-strength flicks; opposite
+keys held together cancel to neutral. Small same-direction stick variation
+keeps an existing dash; the walk modifier explicitly selects walking.
+
+Why three samples: a linear 4-frame flick spends about 1.04 frames between
+0.28 and 0.8, so at some sample phases it shows two weak samples before the
+gate. UCF's two samples misread those as tilt turns; #188's scripted dance
+(13 fighters, both facings, stick at ten sample phases and keyboard with
+overlapping or gapped keys, 1-4 frame flicks: 9,984 dash-backs) measured 208
+misreads under #175's rule and 0 under this one. 936 dash-backs released to
+neutral late in the window also read 0 misreads; #175 ran any reversal from
+that tail past frame 13 as a run turn. The cost is one
+more frame before a deliberately weak opposite stick walks out of a dash.
 
 [UCF's technical description](https://www.20xx.me/ucf.html) allows the first
 tilt-turn frame to cancel into dashback, increasing its one-sample opportunity
 to two. Its [v0.65 changelog](https://www.20xx.me/ucf-changelog.html) names a
 0.95 second-frame requirement; Smashcraft deliberately uses the same 0.8
-threshold on both samples for small stick variation. This is an authored
+threshold on all three samples for small stick variation. This is an authored
 tolerance policy, not exact UCF emulation. It uses independently described
 behavior and numerical facts; no external implementation was copied.
+
+## Air drift and jump momentum
+
+Tom decided, 7 Oct (delegated) (#190), after his playtest found too little
+horizontal air drift on many fighters: a dash, a jump at the dash's speed and a
+long aerial that crosses up a shield should feel good.
+
+**Melee's rules.** Values come from smashcraft:docs/smash-melee-reference/retail-roster.json
+(NTSC 1.02 PlXx.dat attributes, `ftCo_DatAttrs` field names from the
+decompilation); the per-fighter air table is in the
+[movement reference](design/melee/movement.md#falling-and-air-control).
+
+- A ground jump's horizontal speed on takeoff is the ground speed × the
+  fighter's `ground_to_air_jump_momentum_multiplier`, plus the stick ×
+  `jump_h_initial_velocity`, capped at `jump_h_max_velocity`; traction
+  keeps braking through the jump squat (smashcraft:docs/physics.md, jump
+  checkpoint). Across the 26 fighters the multiplier runs 0.70 (Mewtwo, Peach,
+  Yoshi, Zelda) to 1.00 (Falco, Jigglypuff), mostly 0.80; the initial speed
+  0.60 (Ice Climbers) to 1.00; the cap 0.75 (Luigi) to 2.10 (Captain
+  Falcon), with Fox and Falco at 1.70. A run jump keeps most of the run up to
+  the cap: Fox's 2.2 run gives 2.55, capped to 1.70.
+- In the air the held stick accelerates by a base plus a stick-scaled amount
+  up to the air speed. Above the air speed, holding forward loses only the
+  air friction each frame, never dropping below the air speed, under the
+  common 3.0 cap (Falco 4.0); with no stick the fighter loses its air
+  friction (`ftCommon_CalcSelfAccel`). So jump momentum fades at 0.005 to
+  0.05 a frame (Fox 0.02), which is what carries a dash-jump aerial across a
+  shield. An aerial jump replaces the horizontal speed with the stick ×
+  `air_jump_h_multiplier`.
+- Air speed runs 0.68 (Luigi) to 1.35 (Jigglypuff), median 0.90; maximum air
+  acceleration from 0.0325 (Samus) to 0.08 (Fox), with Jigglypuff an outlier
+  at 0.28 ([SmashWiki: Air speed](https://www.ssbwiki.com/Air_speed),
+  [Air acceleration](https://www.ssbwiki.com/Air_acceleration)).
+- Aerial attacks never set air velocity: AttackAir runs the ordinary air
+  physics, so drift continues and a fast fall persists
+  (melee:src/melee/ft/kinds/ftCommon/ftCo_AttackAir.c). Specials do:
+  [B-reversing](https://www.ssbwiki.com/B-reverse) and
+  [wavebouncing](https://www.ssbwiki.com/Wavebounce) flip momentum on many
+  specials. Horizontal recoveries set the velocity outright (Fox's Illusion,
+  Falco's Phantasm), and some specials stall or lift (Mario's Cape, Marth's
+  Dancing Blade, Peach's float).
+
+**Ultimate and Rivals 2.** Ultimate's air speed runs 0.735 (King Dedede) to
+1.344 (Yoshi), median about 1.00; air acceleration 0.03 to 0.13, with aerials
+likewise leaving velocity alone (SmashWiki pages above). Rivals 2 drifts much
+further relative to its ground speed. Zetterburn's air speed is 13 against a
+run of 18 and a horizontal jump speed of 15; Kragg's 11.33, 16.3 and 12.5
+([Dragdown: Zetterburn](https://dragdown.wiki/wiki/RoA2/Zetterburn),
+[Kragg](https://dragdown.wiki/wiki/RoA2/Kragg)). That is about 70% of run speed
+in the air, against Melee Fox's 38%.
+
+**Decision.**
+
+- **One momentum rule for everyone.** Every fighter jumps by Melee's
+  ground-jump rule and drifts by its air rule. Illidan used to keep his full
+  ground speed and then snap to his 0.88 air speed on his first steer, which
+  threw away his dash. He now uses the shared rule with his retained
+  momentum multiplier of 1.00 and no extra jump impulse, a 1.70 jump cap,
+  and Melee's common 3.0 air cap. This preserves his standing-hop cross-ups
+  while his dash carries and fades by air friction like everyone else's.
+  Aerial jumps are unchanged. Tom delegated, 7 Oct.
+- **Air bands.** Air speed is 0.75–1.25 and maximum air acceleration
+  0.04–0.10 Melee units a frame. The floor comes from Ultimate (0.735) rather
+  than Melee (0.68), as deviations start from Ultimate. Rivals 2's much
+  larger drift is a different game's feel, so it is not the starting point.
+  A hero's air multiplier now multiplies 1.00 (Ultimate's median) instead of
+  Archer's 0.83. That lifts every hero by a fifth, and Pit Lord rises from
+  0.70 to 0.75, still the lowest. Archer and Rifleman keep Fox's and Falco's
+  0.83: their reach comes from the jump and, for Rifleman, the hang time.
+- **Aerials leave air velocity alone**, as in Melee and Ultimate. Specials
+  keep their authored motion.
+- Gravity, fall speed, the 1.70 jump cap and the air dodge are unchanged.
+
+smashcraft:ts/scripts/airDrift.tests.ts holds every fighter to the band and
+the rule. Its cross-up test dashes 8 frames from 40 Melee units in front of
+a shielding mirror, jumps holding forward and throws an aerial, which must
+meet the shield from behind. `bun scripts/airDrift.ts` prints the roster
+table (Melee units a frame; takeoffs after 8 dash frames and 24 run frames):
+
+| Fighter | Air speed | Air acceleration | Air friction | Jump momentum × | Jump initial | Jump cap | Dash-jump takeoff | Run-jump takeoff | Cross-up from 40 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| Archer | 0.83 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 24 |
+| Rifleman | 0.83 | 0.070 | 0.020 | 1.00 | 0.70 | 1.70 | 1.70 | 1.70 | short hop back air, press 30 |
+| Illidan | 0.88 | 0.075 | 0.020 | 1.00 | 0.00 | 1.70 | 1.68 | 1.68 | short hop back air, press 27 |
+| Blademaster | 1.00 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 20 |
+| Mountain King | 0.82 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 14 |
+| Warden | 1.10 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 22 |
+| Lich | 0.95 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 19 |
+| Uther | 0.88 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 18 |
+| Dreadlord | 1.22 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 20 |
+| Shadow Hunter | 1.00 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 16 |
+| Pit Lord | 0.75 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 13 |
+| Beastmaster | 0.88 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 16 |
+| Lich King | 0.86 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 20 |
+
 
 ## Principles
 
@@ -75,6 +186,23 @@ Owner decisions, 6 Oct 2026 (#62):
   raising its signature strengths or making its weakness more avoidable
   through its gameplan, measured, not by making its kit like the others. See
   "Fighter gameplans" under "Computer opponent".
+
+## Online input timing
+
+Tom decided, 7 Oct 2026 (#60): online play uses a fixed two-frame input
+delay with rollback, and press-to-screen response must stay within three
+frames in ordinary play. The delay stays fixed throughout a match; it does
+not increase to hide network jitter. The playable keyboard build captures
+local keys into rows for two simulation frames later, sends each row without
+waiting for another sample, and draws the local prediction. The correction
+window is 24 frames. Keyboard play needs no helper; an optional controller
+maps to the same keys.
+
+The journal integrity diagnostic also defaults to delay 2 and rollback 24.
+Its capture-to-first-prediction check measures map admission, which does not
+establish press-to-screen time. Native acceptance retains the stimulus clock
+and reports the response distribution, separately from intentional action
+startup, recovery, and prediction held at the correction limit.
 
 ## Bounded SDI
 
@@ -364,6 +492,35 @@ checks that every oracle departure names a row here.
 | Platform descent | A fresh down falls through at once | Ultimate drops through at once ([SmashWiki](https://www.ssbwiki.com/Soft_platform)); Rivals 2 not sourced | A vulnerable descent over the jump squat; a half-circle onto a platform from above wraps under it ([Platforms](#platforms)) | Leaving a platform is a commitment, so sitting on one is slightly disadvantaged | #103 |
 | Platform shield drop | Down while shielding drops through a platform | Removed in Ultimate ([SmashWiki](https://www.ssbwiki.com/Shield_drop)); Project+ keeps it | Removed: down while shielding stays on the platform | Owner (6 Oct): no safe retaliation from a platform; leaving one goes through a descent | #103 |
 
+## Turnaround specials
+
+Tom decided, 7 Oct (delegated) (#187). Reference: Melee's turnaround special
+(the stick held back as B is pressed) and B-reverse (a back flick in the
+special's first frames turns it and reverses momentum;
+[SmashWiki](https://www.ssbwiki.com/B-reverse)); Ultimate and Rivals of Aether 2
+keep both, Ultimate with a more lenient B-reverse.
+
+One rule for every fighter, applied before any neutral or side special starts,
+airborne or grounded (smashcraft:ts/src/game/sim/specials.ts, `turnForSpecial`):
+
+- A side special faces the side pressed with it, always. No kit keeps its
+  facing on a backward press (Lich's Death and Decay lost its 0.9H near
+  placement for this).
+- A neutral special faces the side the stick last pressed, when that press
+  was at most 8 input frames before B (`TURNAROUND_SPECIAL_WINDOW_FRAMES`).
+  A flick back, release, then B fires backward; an older press leaves the
+  facing alone. Deviation from Melee: the window sits before B rather than in
+  the special's first frames, because our controllers read any sideways stick
+  on the B press as a side special, so "flick, then B" is how a player asks
+  for a turned neutral special. It adds no input delay: nothing waits on it.
+- In the air, a side press whose side special is ground-only (Shadow Hunter's
+  Serpent Ward, Beastmaster's bear) starts the neutral special, turned to the
+  stick, instead of nothing.
+
+Up and down specials keep their own aiming. Momentum is unchanged: no
+wavebounce. smashcraft:ts/src/game/sim/turnaroundSpecials.tests.ts holds the
+rule over all 13 selectable fighters.
+
 ## Controls
 
 - **Tap-jump** (owner, 6 Oct, #49): stick-up and Space are just "up"; jump is
@@ -399,7 +556,7 @@ The specification answers these design questions for the expansion:
 
 | Question | Adopted default |
 | --- | --- |
-| Physical differences | Use each hero's relative weight, run and air-speed table as initial tuning. The complete candidate table spans weight 0.85–1.28, run 0.80–1.14 and air 0.70–1.12. Jump velocity and gravity initially inherit the reference. |
+| Physical differences | Use each hero's relative weight, run and air-speed table as initial tuning. The complete candidate table spans weight 0.85–1.28, run 0.80–1.14 and air 0.75–1.22 (of 1.00 Melee units a frame since #190). Jump velocity and gravity initially inherit the reference. |
 | Archetypes | State each fighter's purpose and exploitable weakness before building its moves. |
 | Meter | 100 mana, full on spawn; ground regeneration at 6/second after 120 frames without spending, while actionable. Specials use their listed costs; normals and grabs are free. Every up special has a weaker free recovery. |
 | Cooldowns | Only optional ultimates use cooldowns; ultimates are off in competitive play. |
@@ -602,8 +759,8 @@ match and writes its fighter's controls and attack commands, as a player's
 input row would, so every client and every rollback replay derives the same
 decisions. The replayed runtime keeps attack pauses, a bounded history of
 visible opponent observations and horizontal direction commitments. Level 9
-uses observations from 12 frames earlier (200 ms); lower levels wait longer
-(smashcraft:docs/design/cpu-levels.md). It holds a horizontal choice for five
+uses observations from 12 frames earlier (200 ms); lower tiers wait longer
+(smashcraft:docs/design/cpu-profiles.md). It holds a horizontal choice for five
 frames before reversing, while its own legality, damage and recovery remain
 immediate. Each choice that looks random is
 `botChoice`, a nonlinear hash of whole numbers from the match (the frame,
@@ -1142,3 +1299,120 @@ One move-specific projectile clash exists (#116). Illidan's Mana Burn orb
 and any opposing traveling projectile it meets cancel each other. Other
 projectiles pass through each other
 ([Mana Burn](design/roster.md#mana-burn-neutral-special)).
+
+## Items (#196)
+
+Owner direction, 7 Oct 2026: items are welcome when they are temporary,
+balanced and predictable, so players fight over them instead of being swung by
+luck. They are meant to be a defining competitive part of Smashcraft, the way
+timed pickups are in Quake and the economy is in Counter-Strike.
+
+### Precedent
+
+**Arena-shooter item timing.** In Quake duels the strong pickups respawn on a
+fixed timer after they are taken, so a player who knows when an item was taken
+knows when it returns. In Quake Live armour returns 25 s and Mega Health 35 s
+after pickup, and players practise counting them on the match clock
+([lutro.me beginner guide](https://www.lutro.me/quake-live-beginner-guide));
+in Quake Champions, Quad Damage first spawns 90 s into the match, returns
+every 120 s and lasts 30 s
+([Church of Quake](https://churchofquake.com/wiki/items/)).
+Coaching material treats this as the core skill: "Controlling key items is the
+fundamental skill of any arena shooter", denying the opponent "a fair fight"
+([Dignitas](https://dignitas.gg/articles/blogs/Quake/11424/how-to-master-quake-spawn-timers-controlling-mega-and-armor)).
+Because the timer is deterministic, an item is contestable: both players can
+be there when it spawns, and arriving first, holding the approach or trading
+the item for position are decisions, not luck. QuakeCon banned external
+timers in 1v1 because timing by memory "is a highly valued skill in 1v1"
+([The great timer debate](https://dondeq2.com/2017/05/26/the-great-timer-debate/)).
+Quake Champions moved the other way and announces each powerup 15 s before
+it spawns (Church of Quake, above), so the fight gathers at the spawn instead
+of rewarding camping
+([Steam discussion](https://steamcommunity.com/app/611500/discussions/0/1495615865209189281)).
+
+**Counter-Strike economy.** Winning a round gives money and losing gives a
+loss bonus that grows with consecutive losses ($1,400 up to $3,400 in CS2), a
+catch-up rule that stops one side snowballing
+([Refrag](https://refrag.gg/blog/cs2-economy-crash-course-what-are-kill-rewards-and-loss-bonus),
+[csdb.gg](https://csdb.gg/economy-guide)). Players accept it as skill because
+every consequence follows a published rule from visible events: a team can
+deduce what its opponent can afford and choose to save, force or counter-buy.
+Smashcraft borrows the shape: a buff is earned by controlling the centre at a
+known time, ends on a knockout, and when and what arrives is public.
+
+**Why competitive Smash bans items.** Items were contested in early Melee
+tournaments; the community settled on items off "due to the element of
+randomness", especially unpredictable spawns of explosives such as Bob-ombs
+and Capsules ([SmashWiki: SSBM rulesets](https://ssbwiki.com/Tournament_rulesets_(SSBM))).
+Containers have a one-in-eight chance to explode instead of releasing an item
+([SmashWiki: Items](https://www.ssbwiki.com/Items),
+[Capsule](https://ssbwiki.com/Capsule)). The Ultimate standard ruleset keeps
+items off because random items like Smash Balls and Poké Balls can make the
+better player lose to luck
+([esports.net](https://www.esports.net/news/super-smash-bros/ultimate-tournament-rules/),
+[SmashWiki: rulesets](https://ssbwiki.com/Ruleset)); Project M events ran
+items off too. Rivals of Aether has no item pool; its small team folded
+item-like effects into fighters' moves instead
+([Game Developer](https://gamedeveloper.com/design/a-i-super-smash-bros-i--inspired-design-designed-backwards)).
+No source found shows a mainstream ruleset that legalised individual items;
+the community objection is to random spawns, random places and swingy power,
+which are exactly what Smashcraft removes. Pro-item players argued items
+"required skill and did not reduce the depth of the game" (SmashWiki, above).
+
+**Bunny Hood and Metal Box in Melee.** They change how a fighter moves rather
+than dealing damage, which is why they are the model. Melee's Bunny Hood makes
+a fighter quicker, jump much higher (midair jumps included) and fall faster,
+for about 12 s, and a strong hit can knock it off; SmashWiki gives no Melee
+multipliers, while Ultimate's are 2x walk, run and jump and 1.5x fall speed and
+gravity ([SmashWiki: Bunny Hood](https://www.ssbwiki.com/Bunny_Hood)).
+Melee's Metal Box lasts 12 s, shortened by damage taken, and sets weight 3.0x,
+fall speed and gravity 2.0x, jump force 1.55x and walk speed 0.7x, and
+subtracts 30 units from all knockback, so weak hits cause no flinch
+([SmashWiki: Metal Box](https://www.ssbwiki.com/Metal_Box)). Those values
+were tuned for casual random play; Smashcraft guarantees an item every 30–60 s
+in its standard ruleset, so its buffs keep the same shapes at a fraction of
+the size, with no flinch immunity, and last at most 10 s.
+
+### Rules
+
+Tom decided, 7 Oct:
+
+- Items always appear at centre stage.
+- Each item arrives a seeded, deterministic 30–60 s after the previous one,
+  never less than 30 s apart, identical in replays and on every client.
+- A visible and audible 10 s warning plays at the spawn point before each
+  item.
+- Items are on in the standard ruleset; a match setting turns them off and
+  picks which items are enabled.
+- Every effect lasts at most 10 s. The items are Speed, Extra Jump and Heavy.
+
+Tom decided, 7 Oct (delegated):
+
+- The first item arrives 30–60 s after GO. Intervals are whole seconds drawn
+  from the match seed and the draw count.
+- The warning names the coming item and counts down 10 to 1 at the centre,
+  with a sound when it starts and when the item appears, so both players can
+  decide whether to contest it: public information, as in Counter-Strike.
+- When an item appears, the match HUD shows when the next one arrives ("Next
+  item 0:42"). A seeded interval cannot be counted from memory like Quake's
+  fixed timers, so the skill is positioning and centre control around a known
+  time rather than bookkeeping.
+- An untaken item stays at the centre until taken and is replaced when the
+  next one arrives.
+- Pickup is touching the item and pressing attack or grab, grounded or
+  airborne, on a frame where that attack could start. The press is spent on
+  the pickup.
+- A fighter holds one buff at a time; a new pickup replaces the old one. A
+  knockout ends it. Every buff lasts 10 s (600 frames).
+- Items appear in matches and practice when enabled, never in training.
+  Computer players do not chase items yet.
+
+Effects, Tom decided, 7 Oct (delegated), scaled down from the Melee shapes
+above:
+
+- **Speed** (Bunny Hood): walk, dash, run and air-drift top speeds x1.3; jump
+  launch speeds x1.1, about x1.2 jump height.
+- **Extra Jump:** one additional midair jump while it runs; one midair jump is
+  granted immediately on pickup.
+- **Heavy** (Metal Box): weight x1.5 against knockback; gravity and fall speed
+  x1.3; nothing else changes.

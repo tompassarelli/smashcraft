@@ -71,9 +71,7 @@ acts again on N+1. It may author:
   stick on entry;
 - `projectiles`: spawn frame, offset, velocity (and an up-held velocity),
   life, radius, `activeFrom` (the spawn frame is age one), effect,
-  `reflectable`, `limit`, `cancelOnInterrupt`, `backOffsetX` (used when
-  the special is pressed toward the back, which then keeps the facing) and
-  `needsLineOfSight` (not placed through solid stage surfaces), `gravity` (subtracted from
+  `reflectable`, `limit`, `cancelOnInterrupt`, `needsLineOfSight` (not placed through solid stage surfaces), `gravity` (subtracted from
   the vertical velocity before each move: Fel Spit's arc); a cast that
   would exceed a limit or the three-projectile cap fails before spending; in a
   match a hero projectile ends on a wall, an underside or a solid deck's top,

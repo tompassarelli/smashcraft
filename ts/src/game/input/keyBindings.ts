@@ -27,8 +27,8 @@ const SLASH = 191;
 const code = (character: string) => character.charCodeAt(0);
 
 // Menu and developer controls stay available whatever the bindings: Escape,
-// Y (start/pause), F1, F5, F6, F7 and K (save a moment).
-const RESERVED_KEYS: readonly number[] = [27, 75, 89, 112, 116, 117, 118];
+// Return (Warcraft's chat), Y (start/pause), F1, F5, F6, F7 and K (save a moment).
+const RESERVED_KEYS: readonly number[] = [13, 27, 75, 89, 112, 116, 117, 118];
 
 export function slotIndex(action: Action, slot: KeySlot): number {
   return action * 2 + slot;
@@ -56,6 +56,7 @@ export function presetBindings(preset: BindingPreset): KeyBindings {
   bind(Action.smashUp, code("J"));
   bind(Action.smashDown, code("H"));
   bind(Action.walk, code("P"));
+  bind(Action.lightShield, code(custom ? "0" : "9"), code("T"));
   return { keys };
 }
 
@@ -87,10 +88,10 @@ export function rebind(bindings: KeyBindings, action: Action, slot: KeySlot, key
 
 // ---------------------------------------------------------------- saves
 
-// A version, then each slot's key code as three decimal digits. K2 saves have
-// the current shape with older defaults; K1 saves predate the walk slots.
-const CURRENT_SAVE = "K3";
-const SAVED_SLOTS: Readonly<Record<string, number>> = { K1: KEY_SLOT_COUNT - 2, K2: KEY_SLOT_COUNT, [CURRENT_SAVE]: KEY_SLOT_COUNT };
+// A version, then each slot's key code as three decimal digits. K2/K3 saves
+// predate light shield; K1 saves also predate the tilt slots. K4 predates its T key.
+const CURRENT_SAVE = "K5";
+const SAVED_SLOTS: Readonly<Record<string, number>> = { K1: 28, K2: 30, K3: 30, K4: KEY_SLOT_COUNT, [CURRENT_SAVE]: KEY_SLOT_COUNT };
 const DIGITS = "0123456789";
 
 export function encodeBindings({ keys }: Readonly<KeyBindings>): string {
@@ -112,6 +113,7 @@ function upgradeDefaults(bindings: KeyBindings, version: string): void {
   const { keys } = bindings;
   const free = (...candidates: number[]) => candidates.every((key) => !keys.includes(key));
   const first = (action: Action) => keyFor(bindings, action, 0);
+  if (keyFor(bindings, Action.lightShield, 1) === undefined && free(code("T"))) rebind(bindings, Action.lightShield, 1, code("T"));
   if (version === "K1" && free(code("P"))) rebind(bindings, Action.walk, 0, code("P"));
   // Grab moved from L to O, walk from ; to P.
   if (first(Action.grab) === code("L") && free(code("O"))) rebind(bindings, Action.grab, 0, code("O"));
@@ -161,7 +163,8 @@ export const ACTION_LABELS: Readonly<Record<Action, string>> = {
   [Action.smashRight]: "C-stick right",
   [Action.smashUp]: "C-stick up",
   [Action.smashDown]: "C-stick down",
-  [Action.walk]: "Walk / tilts",
+  [Action.walk]: "Tilt",
+  [Action.lightShield]: "Light shield",
 };
 
 export function keyLabel(key: number | undefined): string {

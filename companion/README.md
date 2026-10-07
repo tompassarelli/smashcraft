@@ -65,25 +65,56 @@ intended simulation frame.
 | --- | --- |
 | A / X | Attack N / special U |
 | B or Y | Jump I |
-| RB / LB | Grab O / walk P |
-| LT or RT | Shield Q |
+| RB / LB | Grab O / Tilt P |
+| LT / RT | Full shield Q / full shield Q |
 | Start | Y |
 | Left stick left / right / down | W / R / E |
 | Left stick up | Space (up only; no tap jump) |
 | Right stick up / right / down / left | J / M / H / B |
 
-In the map's fighter, stage and results menus, the controller service makes
+The standard pad preset keeps B and Y as jump and RB as grab. Select **Z-jump**
+on the Controller page to make RB and Y jump and B grab; the other controls stay
+the same. Both `wc3-controller` and `wc3-journal` accept `--preset standard|z-jump`.
+The journal also accepts `WC3_PAD_PRESET`. Both triggers shield fully by default.
+Either trigger can instead light shield: choose Full shield or Light shield for
+each trigger on the Controller page, or use `--left-trigger full|light` and
+`--right-trigger full|light` on either helper. Light shield presses T and requests
+pressure 77; full shield presses Q and requests 255.
+
+The service saves the layout, tap jump and trigger choices together in
+`$XDG_CONFIG_HOME/smashcraft/controller.json`, or `~/.config/smashcraft/controller.json`.
+It restores them at startup; a connected Controller page follows these choices
+instead of replacing them with its own defaults. `wc3-journal --service --settings FILE`
+uses another file for an isolated service.
+
+Tap jump is off by default. The Controller page can enable it, or either helper
+accepts `--tap-jump on|off` (the journal also reads `WC3_TAP_JUMP`). When enabled,
+stick up past 0.6625 requests jump. Holding Tilt plus shield caps the effective
+stick at 0.65 before tap jump, so the shield can tilt up without jumping.
+Jump buttons keep working while tilting the shield.
+
+In the map's fighter, opponent settings, stage and results menus, the controller service makes
 the left stick a pointer, as the hand cursor is in Smash: it moves the desktop
 pointer over the game (the compositor's virtual pointer), A left-clicks to
 choose a tile, chip or button, B right-clicks, and Start still sends Y (stage
 selection, start). The pointer rests inside 0.12 of full deflection, speeds up
-with deflection to the power 1.7, and at full tilt moves 1.15 game-window
-heights a second, so it crosses the fighter grid (0.8 of the window's height)
-in about 0.7 s. It runs only while the map keeps publishing an open menu
-(CHARACTER, STAGE or RESULT, refreshed every 250 ms) and the helper reports no
+with deflection to the power 1.7, and at full tilt crosses the game window
+in one second. It runs only while the map keeps publishing an open menu
+(CHARACTER, CPU, STAGE or RESULT, refreshed every 250 ms) and the helper reports no
 match, and stops within 100 ms of the map publishing BLOCKED for play, where
 the table above applies unchanged (smashcraft:companion/src/service/any_map.rs,
 `MenuCurve`; model::smashcraft_menu_bindings).
+
+The assigned offline client's menu check uses
+`cargo test --locked --test service a_private_pad_script -- --ignored --nocapture`.
+Set `WC3_MENU_DISPLAY`, `WC3_MENU_XID`, `WC3_MENU_PID`, `WC3_MENU_APP_ID`,
+`WC3_MENU_DATA` (CustomMapData), `WC3_MENU_WIDTH` (logical pixels), and
+`WC3_MENU_SCRIPT`, alongside that private desktop's `XDG_RUNTIME_DIR`,
+`WAYLAND_DISPLAY` and `XAUTHORITY`. The script's rows are milliseconds,
+left-stick X and Y (-32768..32767), A (0/1), and Start (0/1); `#` lines are
+comments. Start with a neutral row. Menu changes use the same driver as the
+service and match phases return to the standard fighter keys. The native
+executor checks the selected fighter and match receipt after the script.
 
 Both sticks use Melee's conversion on every pad (smashcraft:companion/src/stick.rs,
 shared by wc3-controller and wc3-journal). The stick is first clamped radially
@@ -302,11 +333,11 @@ of the pad's state (read without grabbing it), and from the window
 `auto` (the default) runs Smashcraft while this game has published a
 Smashcraft menu since it started, and Any map otherwise.
 
-A build that reads Warcraft's own key events (the playable build, #166)
-publishes no menu: its ready file `CustomMapData/wc3-melee-ready.txt` names
-the build and `INPUT callback`. Newer than the game's start and than any menu,
+A build that reads keyboard input (the playable build, #166)
+publishes menu phases too: its ready file `CustomMapData/wc3-melee-ready.txt` names
+the build and `INPUT keyboard-d2-r24` (the development build uses `INPUT callback`). Newer than the game's start and any different build's menu,
 it is a Smashcraft session on keys (`session=BUILD/keys/N`): the service
-runs no helper and presses the pad's keys itself through the same mapper as
+runs no helper, uses the pointer in fighter, stage and results menus, and presses the pad's keys during matches through the same mapper as
 `--emit` (the table above: A n, X u, B/Y i, RB o, LB p, either trigger q,
 Start y, left stick w/r/e/space, right stick b/m/j/h), into the game's window
 while niri focuses it. Focus loss releases them, and nothing presses again
@@ -361,8 +392,7 @@ Done, A advances or chooses Done, X goes back, and Start closes without starting
 a match. One stick deflection or button press produces one menu action; release before
 the next action. The controller service starts the helper with `--menu-keys
 start`: then only Start reaches the outer menus, and the service's menu pointer
-does the rest. The CPU panel suspends that pointer and accepts the focused menu
-controls. Held controls require neutral after startup, a menu phase
+does the rest, including in the CPU opponent settings panel. Held controls require neutral after startup, a menu phase
 change, focus loss, and entering gameplay.
 
 The map publishes `smashcraft-journal-menu-BUILD-sSLOT.txt`, containing
@@ -422,13 +452,14 @@ with how much it takes at once: in 0.0.48's native bot session, the 16 records
 (608 characters) typed after a 2 s stop held the client about 180 ms, and its
 input stayed 15–25 frames late for 5 s
 (smashcraft:evidence/bot-session-0048-native-20261006/). So the helper types
-at most 160 characters past the record the receipt says arrived, and while a
-record waits untyped, the next row packets join it with `|` (at most 16
-packets, the map's `RECORD_PACKETS`, and only while the record's envelope stays
-within those 160 characters): a backlog takes 5–8 characters a frame instead
-of 19. Without that last bound, 16 joined packets of moving sticks made a
-record of about 480 characters, typed at once after a receipt; 0.0.49's
-native bot session, with pad beats, typed records of up to 268.
+at most 160 characters past the record the receipt says arrived. While a
+row packet waits untyped, consecutive packets from the same epoch combine
+using the existing `I5` message encoding, up to 64 frames and only while the
+whole envelope stays within those 160 characters. Holds keep buttons, axes
+and triggers; every press, release and other edge retains its original frame.
+Already typed packets and control records stay separate. The native #86
+capture's 28 neutral frames used 155 characters as joined `I4` packets;
+the same frames use 37 characters in one `I5` envelope.
 The map writes a dirty text receipt every two ticks (at most 30 per client
 per second), so the smaller window can drain promptly. The typing cost
 model bounds 160 characters at 12.8 ms; native receipt-write cost remains
@@ -549,3 +580,46 @@ without SDL, so windows such as smashcraft:client depend on it alone.
 smashcraft:companion is a self-contained Cargo workspace (`cargo test --workspace`)
 so it can move to its own repository; consumers then switch their path
 dependency on `wc3-controller-model` to a git one.
+
+
+## Analog comparison candidates (#204)
+
+The production default stays digital until the native comparison chooses a
+channel. The Linux service can opt into either candidate with
+`WC3_PAD_INGRESS=keys` or `WC3_PAD_INGRESS=cursor`; cursor also needs
+`WC3_PAD_CURSOR_GRID=X,Y,W,H,SCREEN_W,SCREEN_H`. The numbers are a rectangle and
+compositor output extent in logical pixels. Use the same output containing the
+game window and choose a rectangle inside its flat-ground diagnostic view.
+Restart the service after changing these variables.
+
+For a bounded native test, `wc3-controller --emit --watch-seconds N` accepts
+`--pad-ingress keys|cursor` and `--cursor-grid X,Y,W,H,SCREEN_W,SCREEN_H`, with the
+usual exact game-window and foreground arguments. Add `--virtual-pad` to feed
+SDL acquisition from stdin, for example `axis leftx 16384`, `axis leftx 32767`,
+`axis lefttrigger -7068` (SDL normalizes trigger joystick units to 0..32767),
+`button a 1`, `button a 0`, and `quit`. Keep stdin open between commands. A
+physical pad uses the same SDL capture path; the service uses evdev InputView.
+
+Both candidates first apply `melee_stick` radial clamp/deadzone and then use
+17 signed stick levels and four trigger levels from `model::pad`. The 14-bit
+payload packs X index in bits 0..4, Z index in 5..9, LT in 10..11 and RT in
+12..13. Key output holds F13..F24, Insert and Delete for those bits. Home stays held while the pad
+is armed and focused; End marks a complete payload. Payload changes release End, change the bits, then press
+End. Cursor output sends low seven bits as the horizontal cell and high seven
+bits as the vertical cell across a 128 by 128 grid, with Home and End active.
+The map keeps the previous complete payload while Home is held and End is
+released during a write, and clears it when Home is released. Existing
+action keys are still emitted. Focus loss and disconnect release the carrier;
+controls must return to neutral before it becomes active again. Experimental
+output logs each submitted `pad_ingress payload=... x=... z=... left=... right=...`
+record to stderr alongside the ordinary timestamped action history on stdout.
+
+Cursor calibration is a separate bounded operation, requiring no controller:
+run `wc3-controller --emit --watch-seconds N --cursor-calibrate start` with
+`--cursor-grid` and the usual foreground arguments after the diagnostic map's
+camera is fixed. It holds Home, End and PageUp and moves to cell (0,0). Wait for the
+map's calibration observation, then allow the helper to exit. Repeat with
+`--cursor-calibrate end` for PageDown and cell (127,127). Each operation releases
+its markers when it exits or loses focus. The native runner must observe both
+calibration callbacks before starting cursor playback; the duration alone is
+not a calibration acknowledgment.

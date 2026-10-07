@@ -20,7 +20,7 @@ import { installHeadless, readNativeDeclarations } from "wisp/scripts/wisp/headl
 import { WARCRAFT_COST } from "wisp/src/headless/nativeCost";
 import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/src/headless/syncChannel";
 import type { HeadlessClient } from "wisp/src/headless/client";
-import { type InputRow, sameInput } from "../src/game/input/inputRow";
+import { type InputRow, emptyInput, sameInput } from "../src/game/input/inputRow";
 import type { ParticipantInputs } from "../src/game/input/participants";
 import { Phase } from "../src/game/match/rules";
 import { ShadowInputSchedule } from "../src/game/netcode/shadowSchedule";
@@ -88,7 +88,9 @@ ShadowInputSchedule.prototype.readConfirmed = function (this: ShadowInputSchedul
     for (const slot of [0, 1]) {
       applied.rows++;
       const row: Readonly<InputRow> | undefined = inputs[slot];
-      if (row === undefined || !sameInput(row, rowFor(slot, frame, helpers.workload))) applied.wrong.push(`client ${GetPlayerId(GetLocalPlayer())} slot ${slot} frame ${frame}`);
+      const delay = shell().rollback?.delay ?? 0;
+      const expected = frame <= delay ? emptyInput() : rowFor(slot, frame, helpers.workload);
+      if (row === undefined || !sameInput(row, expected)) applied.wrong.push(`client ${GetPlayerId(GetLocalPlayer())} slot ${slot} frame ${frame}`);
     }
   }
   return read;

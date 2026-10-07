@@ -6,7 +6,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, HippogryphKind, ProjectileKind, SPECIAL_ACTION_CAPACITY, SpecialAction, SurfaceContact } from "./codes";
 import { canAttack, isIntangible } from "./conditions";
 import { finishDamageContacts, openDamageContacts } from "./contacts";
-import type { Fighter } from "./fighter";
+import { type Fighter, TURNAROUND_SPECIAL_WINDOW_FRAMES } from "./fighter";
 import {
   RIFLEMAN_BLASTER_AIR_FRAMES, RIFLEMAN_BLASTER_AIR_SHOT_FRAME, RIFLEMAN_BLASTER_GROUND_FRAMES,
   RIFLEMAN_BLASTER_GROUND_SHOT_FRAME,
@@ -20,7 +20,7 @@ import { meleeHitIntersectsShield } from "./attacks";
 import { observeActionDecision } from "./observations";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { spawnArcherArrow, spawnBlasterShot, spawnHomingArrow, spawnProjectileMotion } from "./projectiles";
-import { type Controls, type Roster, fighterAt, isActive } from "./roster";
+import { type Controls, type Roster, copyControls, fighterAt, isActive, neutralControls } from "./roster";
 import { surfaceZ } from "./stage";
 import { advanceCompanion } from "./companions";
 import { HIPPOGRYPH_DIVE_ARRIVAL, HIPPOGRYPH_DIVE_OVERSHOOT, RIFLEMAN_BEAR_LIFETIME, advanceBear, advanceHippogryph, recordSpecialHit, specialAlreadyHit, startFreezeTrap } from "./summons";
@@ -73,8 +73,8 @@ export const DEMONHUNTER_GLIDE_FRAMES = 90;
 export const DEMONHUNTER_GLIDE_FORM = 1;
 export const DEMONHUNTER_GLIDE_SLASH_FORM = 2;
 const DEMONHUNTER_GLIDE_SLASH_FRAMES = 20;
-const DEMONHUNTER_GLIDE_SLASH_FIRST = 4;
-const DEMONHUNTER_GLIDE_SLASH_LAST = 7;
+export const DEMONHUNTER_GLIDE_SLASH_FIRST = 4;
+export const DEMONHUNTER_GLIDE_SLASH_LAST = 7;
 const DEMONHUNTER_GLIDE_LANDING_LAG = 10;
 const GLIDE_LEVEL = { speed: 9.0, sink: 1.5 };
 const GLIDE_HIGH = { speed: 7.0, sink: 0.5 };
@@ -547,8 +547,22 @@ function startDemonHunterSpecial(owner: Fighter, action: SpecialAction, moveX: n
   return true;
 }
 
-// Preallocated: a refused hero press reports why.
-const heroRefusal = { manaShort: false };
+// Preallocated: a refused hero press reports why, and an airborne side press retries as neutral.
+const heroRefusal = { manaShort: false, groundOnly: false };
+const neutralPress = neutralControls();
+
+/**
+ * Turnaround specials, one rule for every fighter before any neutral or side
+ * special starts, airborne or grounded: a side special faces the pressed side;
+ * a neutral special faces the side the stick last pressed within the
+ * turnaround window (smashcraft:docs/gameplay-design.md, "Turnaround specials").
+ */
+function turnForSpecial(owner: Fighter, input: Readonly<Controls>): void {
+  if (input.specialZ !== 0) return;
+  const { motion } = owner;
+  if (input.specialX !== 0) owner.facing = input.specialX < 0 ? -1 : 1;
+  else if (motion.turnaroundSide !== 0 && motion.turnaroundAge <= TURNAROUND_SPECIAL_WINDOW_FRAMES) owner.facing = motion.turnaroundSide;
+}
 
 /**
  * Starts an expansion hero's special through its authored kit. A press it
@@ -558,25 +572,28 @@ function startHeroFighterSpecial(owner: Fighter, input: Readonly<Controls>, worl
   const specials = owner.tuning.specials;
   const { special } = owner;
   if (specials === undefined || special.lockFrames > 0 || special.action !== SpecialAction.none || !canAttack(owner)) return false;
-  const chosen = chooseHeroSpecial(owner, specials, input, heroRefusal, world);
+  let chosen = chooseHeroSpecial(owner, specials, input, heroRefusal, world);
+  // A side special that only starts on the ground fires the neutral one in the air, turned to the stick.
+  if (chosen === undefined && heroRefusal.groundOnly && input.specialX !== 0 && input.specialZ === 0) {
+    copyControls(neutralPress, input);
+    neutralPress.specialX = 0;
+    chosen = chooseHeroSpecial(owner, specials, neutralPress, heroRefusal, world);
+  }
   if (chosen === undefined) {
     if (heroRefusal.manaShort) owner.visuals.manaDenied++;
     return false;
   }
   observeActionDecision(SPECIAL_ACTION_BIT);
-  const lastTap = owner.motion.lastAerialTapDirection;
-  if (!owner.motion.grounded && input.specialX === 0 && input.specialZ === 0 && lastTap !== 0) owner.facing = lastTap;
+  turnForSpecial(owner, input);
   const move = heroSpecialMove(specials, chosen);
-  // A placement with a near form keeps the facing when pressed backward.
-  const keepsFacing = (move.projectiles ?? []).some(spec => spec.backOffsetX !== undefined) && input.specialX * owner.facing < 0;
-  if (input.specialX !== 0 && (input.specialZ === 0 || move.facesStick === true) && !keepsFacing) owner.facing = input.specialX < 0 ? -1 : 1;
+  if (input.specialX !== 0 && input.specialZ !== 0 && move.facesStick === true) owner.facing = input.specialX < 0 ? -1 : 1;
   const action = SpecialAction.heroNeutral + chosen.slot;
   startSpecialAction(owner, heroAction(action), move.endFrame, specialDirection(input, owner.facing));
   enterHeroSpecial(owner, chosen, input);
   return true;
 }
 
-/** Starts the special the input asks for if it may; a neutral aerial special turns to the last air steering. */
+/** Starts the special the input asks for if it may, turned by the turnaround rule. */
 export function startFighterSpecial(owner: Fighter, stage: number, matchFrame: number, input: Readonly<Controls>, world?: Roster): boolean {
   steerHeroSpecial(owner, input);
   if (owner.tuning.specials !== undefined && isHeroSpecialAction(owner.special.action)) return followUpHeroSpecial(owner, input);
@@ -592,11 +609,12 @@ export function startFighterSpecial(owner: Fighter, stage: number, matchFrame: n
     return false;
   }
   observeActionDecision(SPECIAL_ACTION_BIT);
-  const lastTap = owner.motion.lastAerialTapDirection;
-  if (!owner.motion.grounded && input.specialX === 0 && input.specialZ === 0 && lastTap !== 0) owner.facing = lastTap;
+  const facing = owner.facing;
+  turnForSpecial(owner, input);
   const moveX = specialDirection(input, owner.facing);
   const started = startOriginalSpecial(owner, stage, matchFrame, requested, moveX);
   if (started) spendMana(owner, cost);
+  else owner.facing = facing;
   return started;
 }
 
@@ -790,6 +808,8 @@ const GLIDE_SLASH: Readonly<HitRegion> = {
   effect: { damage: 8.0, growth: 100.0, base: 24.0, launchX: 0.7071067690849304, launchZ: 0.7071067690849304, electric: false, manaDrain: 5 },
   window: 1,
 };
+
+export const glideSlashRegion = (): Readonly<HitRegion> => GLIDE_SLASH;
 
 /** The glide's wing slash strikes each target in front of Illidan once on its frames 4-7. */
 function glideSlashContact(owner: Fighter, targetSlot: number, target: Fighter): Readonly<HitRegion> {

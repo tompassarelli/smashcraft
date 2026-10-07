@@ -1,0 +1,127 @@
+# #148 Critical Strike and #144 special cues: Blademaster's three melee hits ready the crit and the fourth lands it; every special form shows its Warcraft spell.
+# Blademaster a against Blademaster b; syntax and checks: smashcraft:docs/native-bot-session.md.
+#! chat -dev quick hero blademaster
+# Both dash in; a walks up to jab range.
+40 b stick -1 0
+42 b stick 0 0
+50 a stick 1 0
+52 a stick 0 0
+80 a press LB
+80 a stick 1 0
+90 a stick 0 0
+90 a release LB
+# #148: two jabs, a step in and a third jab fill the counter; the Backstab below is the fourth hit and crits.
+100 a tap A 2
+103 a capture
+120 a tap A 2
+123 a capture
+135 a press LB
+135 a stick 1 0
+160 a stick 0 0
+160 a release LB
+165 a tap A 2
+168 a capture
+# #144: Wind Walk through b, then Backstab turned back toward it on its 11th frame: the fourth hit, a critical strike.
+195 a stick 1 0
+195 a tap X 2
+196 a stick 0 0
+197 a capture
+203 a capture
+205 a stick -1 0
+205 a tap A 2
+206 a stick 0 0
+207 a capture
+211 a capture
+# #144: Wind Cutter on the ground.
+260 a tap X 2
+262 a capture
+278 a capture
+# #144: Wind Walk back, Step Out on its 16th frame.
+300 a stick -1 0
+300 a tap X 2
+301 a stick 0 0
+302 a capture
+308 a capture
+315 a tap X 2
+317 a capture
+# #144: Mirror Image, then the swap with its slash.
+360 a stick 0 -1
+360 a tap X 2
+361 a stick 0 0
+362 a capture
+368 a capture
+400 a stick 0 -1
+400 a tap X 2
+401 a stick 0 0
+402 a capture
+406 a capture
+# #144: Rising Blade from the ground.
+450 a stick 0 1
+450 a tap X 2
+451 a stick 0 0
+452 a capture
+457 a capture
+# View held a second: the first of two moments the parity check replays.
+500 a press VIEW
+# #144: Mirror Image from the air.
+540 a tap B 8
+552 a stick 0 -1
+552 a tap X 2
+553 a stick 0 0
+554 a capture
+560 a capture
+570 a release VIEW
+# #144: Wind Walk from the air.
+600 a tap B 8
+612 a stick -1 0
+612 a tap X 2
+613 a stick 0 0
+614 a capture
+620 a capture
+# #144: Rising Blade with too little mana left: the free form.
+680 a stick 0 1
+680 a tap X 2
+681 a stick 0 0
+682 a capture
+687 a capture
+# #144: Wind Cutter from the air.
+760 a tap B 8
+772 a tap X 2
+# Expected, frame by frame (headless run of this script):
+# #148: three jabs of 4 ready Critical Strike; the Backstab (12) lands as a crit of 18 and its cleave shows on b.
+#! expect a 100 applied attack 1 style 0
+#! expect b 102 damage 4.000
+#! expect b 122 damage 8.000
+#! expect a 165 applied attack 3 style 0
+#! expect b 167 damage 12.000
+#! expect a 195 special 14 form 0
+#! expect a 205 special-form 6 action 14
+#! expect b 210 damage 30.000
+#! scene a CleaveDamageTarget
+# #144: every form starts on its frame (ground 0, air 1, free 2, swap 3, Backstab 5, Step Out 10), and its cues and missile show.
+#! expect a 260 special 13 form 0
+#! expect a 300 special 14 form 0
+#! expect a 315 special-form 12 action 14
+#! expect a 360 special 16 form 0
+#! expect a 400 special 16 form 3
+#! expect b 407 damage 46.000
+#! expect a 450 special 15 form 0
+#! expect a 552 special 16 form 1
+#! expect a 612 special 14 form 1
+#! expect a 680 special 15 form 2
+#! expect a 772 special 13 form 1
+#! scene a BloodlustSpecial
+#! scene a Tornado_Target
+#! scene a WingedSerpentMissile
+#! scene a InvisibilityTarget
+#! scene a SunderingBlades
+#! scene a MarkOfChaosTarget
+#! scene a SpiritWalkerChange
+#! scene a CycloneTarget
+#! scene a MirrorImageCaster
+#! scene a MirrorImageDeathCaster
+#! scene a MirrorImageMissile
+774 a capture
+790 a capture
+1000 a press VIEW
+1070 a release VIEW

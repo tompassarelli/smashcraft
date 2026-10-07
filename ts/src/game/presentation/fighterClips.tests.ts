@@ -3,18 +3,41 @@ import { FIGHTER_OBJECTS } from "../objectData";
 import { originalClipCount } from "../assets/fighterOriginalClipInfo";
 import { AttackStyle, Character, GrabAction, SpecialAction } from "../sim/codes";
 import { STOCK_FALLBACK_CLIP } from "../sim/heroes/hero";
-import { HERO_ROSTER } from "../sim/heroes/registry";
+import { HERO_ROSTER, SELECTABLE_CHARACTERS, fighterName } from "../sim/heroes/registry";
 import { WARDEN_HERO } from "../sim/heroes/wardenHero";
 import * as dh from "./demonHunterAssetInfo";
 import * as assets from "./fighterAssetInfo";
 import { attackPose, characterClips, clipFor, grabActionPoses, namedClips, ownAttackClip, specialClip } from "./fighterClips";
 import { WARDEN_MODEL_FILE, WARDEN_SEQUENCES } from "./heroes/wardenClips";
+import { WARDEN_FAN_CLIPS } from "./wardenFanClipInfo";
 import { characterModelScale } from "./modelScale";
 import { type FighterPose, advanceFighterPose, createFighterPose } from "./fighterPose";
 import { RECOVERY_CLIPS } from "./recoveryClipInfo";
 import { type Fighter, createFighter } from "../sim/fighter";
 import { neutralControls } from "../sim/roster";
 import { soloWorld } from "../sim/testWorld";
+
+for (const character of SELECTABLE_CHARACTERS) {
+  const forward = clipFor(character, "rollForward");
+  const backward = clipFor(character, "rollBackward");
+  test(`${fighterName(character)} rolls with Roll Forward #${forward.index} / Roll Backward #${backward.index}`, () => {
+    for (const facing of [-1, 1]) {
+      for (const direction of [-1, 1]) {
+        const fighter = createFighter(character, 0.0, facing);
+        fighter.dodge.groundFrame = 16;
+        fighter.dodge.groundEntryFacing = facing;
+        fighter.dodge.groundDirection = direction;
+        const pose = createFighterPose();
+        advanceFighterPose(pose, fighter, soloWorld(fighter), neutralControls(), false, false, false, false);
+        const roll = direction === facing ? forward : backward;
+        assertEquals(pose.clipIndex, roll.index);
+        assertTrue(roll.index !== clipFor(character, "getUp").index);
+        assertTrue(roll.index !== clipFor(character, "idle").index);
+        assertTrue(roll.index >= 0 && roll.index < originalClipCount(character));
+      }
+    }
+  });
+}
 
 test("the original fighters' tables play their packaged clips", () => {
   assertEquals(clipFor(Character.archer, "jab").index, assets.ARCHER_JAB_INDEX);
@@ -37,6 +60,12 @@ test("the original fighters' tables play their packaged clips", () => {
   assertEquals(grabActionPoses(GrabAction.escape), undefined);
 });
 
+test("Archer Fist and Boot plays Attack Jab's quick punch then Down Tilt's low kick", () => {
+  assertEquals(clipFor(Character.archer, "jab").index, assets.ARCHER_JAB_INDEX);
+  assertEquals(clipFor(Character.archer, "jab").seconds, assets.ARCHER_JAB_SECONDS);
+  assertEquals(clipFor(Character.archer, "jab2").index, assets.ARCHER_DOWN_TILT_INDEX);
+});
+
 test("a hero plays its registered sequences and its fallback for any pose it leaves out", () => {
   const warden = Character.warden;
   assertEquals(clipFor(warden, "forwardAir").index, WARDEN_SEQUENCES.attack2.index);
@@ -44,7 +73,8 @@ test("a hero plays its registered sequences and its fallback for any pose it lea
   assertEquals(ownAttackClip(warden, AttackStyle.forwardSmash)?.index, WARDEN_SEQUENCES.spellSlam.index);
   assertEquals(ownAttackClip(warden, AttackStyle.dashAttack)?.index, WARDEN_SEQUENCES.attack2.index);
   assertEquals(specialClip(warden, SpecialAction.heroUp, false, false).index, WARDEN_SEQUENCES.dissipate.index);
-  assertEquals(specialClip(warden, SpecialAction.heroDown, true, false).index, WARDEN_SEQUENCES.spell.index);
+  assertEquals(specialClip(warden, SpecialAction.heroDown, true, false).index, WARDEN_FAN_CLIPS.ground.index);
+  assertEquals(specialClip(warden, SpecialAction.heroDown, false, false).index, WARDEN_FAN_CLIPS.air.index);
   assertEquals(characterClips(warden).idle?.index, WARDEN_SEQUENCES.standReady.index);
   // Every original or appended action must be present in the packaged pool.
   for (const clip of namedClips(characterClips(warden))) assertTrue(clip.index >= 0 && clip.index < originalClipCount(warden));

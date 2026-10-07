@@ -1,5 +1,5 @@
 // Developer chat commands ("-dev rb 12", "-dev delay 2", "-dev batch 6",
-// "-dev rematch 20", "-dev show", "-dev quick", "-dev quick hero NAME", "-dev quick cpu N") arrive as synchronized
+// "-dev rematch 20", "-dev show", "-dev quick", "-dev quick hero NAME", "-dev quick cpu OPPONENT DIFFICULTY") arrive as synchronized
 // player-chat events. A match reads the settings once at its start, so a
 // command typed during a match applies from the next match on every client;
 // "-dev quick" starts one at once. The receipts are read by the integrity
@@ -10,14 +10,15 @@ import { MAX_BATCH } from "../netcode/journal/transport";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import {
   type MatchState, Phase, createMatchState, firstHumanSlot, humanFighterActive, humanPresent, requestStageSelect, requestStart, returnToCharacters,
-  selectCharacter, selectCpuCharacter, selectStage, setStocks, computerActive, cycleSlotMode, setCpuLevel, setHitAreas, setPartnerDamage, setTraining, stepPartnerBehaviour,
+  selectCharacter, selectCpuCharacter, selectStage, setStocks, computerActive, cycleSlotMode, setCpuOpponent, setCpuTier, setHitAreas, setPartnerDamage, setTraining, stepPartnerBehaviour,
 } from "../match/rules";
-import { isCpuLevel } from "../match/cpuLevel";
+import { isCpuOpponentChoice, isCpuTier, type CpuOpponentChoice, type CpuTier } from "../match/cpuProfiles";
 import { PartnerBehaviour } from "../match/trainingState";
 import { selectableStage } from "../menu/stageCatalog";
 import { REPLAY_MAX_CORRECTION_FRAMES } from "../replay/limits";
 import type { Character } from "../sim/codes";
 import { SELECTABLE_CHARACTERS, fighterName } from "../sim/heroes/registry";
+import { isScenario, type Scenario } from "./build";
 
 export interface DevSettings {
   /** An explicit setup choice made before the stage menu opens. */
@@ -98,11 +99,30 @@ export function quickMatchHero(message: string): Character | undefined {
   return heroAfter(message, QUICK_HERO_COMMAND);
 }
 
+export function quickMatchPair(message: string): readonly [Character, Character] | undefined {
+  const prefix = "-dev quick pair ";
+  if (!message.startsWith(prefix)) return undefined;
+  const names = message.substring(prefix.length).split(" / ");
+  if (names.length !== 2) return undefined;
+  const first = heroAfter(`${QUICK_HERO_COMMAND}${names[0]}`, QUICK_HERO_COMMAND);
+  const second = heroAfter(`${QUICK_HERO_COMMAND}${names[1]}`, QUICK_HERO_COMMAND);
+  return first === undefined || second === undefined ? undefined : [first, second];
+}
+
 /** Starts a named fighter tumbling above the floor, for recovery captures. */
 export const QUICK_RECOVERY_HERO_COMMAND = "-dev quick recovery hero ";
 
 export function quickRecoveryHero(message: string): Character | undefined {
   return heroAfter(message, QUICK_RECOVERY_HERO_COMMAND);
+}
+
+export function quickPainHero(message: string): { readonly character: Character; readonly scenario: Scenario } | undefined {
+  const words = message.split(" ");
+  if (words[0] !== "-dev" || words[1] !== "pain") return undefined;
+  const scenario = `pain-${words[2]}-${words[3]}`;
+  if (!isScenario(scenario)) return undefined;
+  const character = heroAfter(`${QUICK_HERO_COMMAND}${words.slice(4).join(" ")}`, QUICK_HERO_COMMAND);
+  return character === undefined ? undefined : { character, scenario };
 }
 
 function heroAfter(message: string, prefix: string): Character | undefined {
@@ -129,13 +149,13 @@ export const DESYNC_COMMAND = "-dev desync";
  * a one-stock match on the default stage, from either menu. False, with no match
  * started, when the menus could not start one.
  */
-export function prepareQuickMatch(game: MatchState, stage = 0, character?: Character, stocks = 1): boolean {
+export function prepareQuickMatch(game: MatchState, stage = 0, character?: Character | readonly Character[], stocks = 1): boolean {
   const first = firstHumanSlot(game);
   if (first === undefined || (game.phase !== Phase.characterMenu && game.phase !== Phase.stageMenu)) return false;
   returnToCharacters(game, first);
   const defaults = createMatchState().characterChoices;
   for (const slot of PARTICIPANT_SLOTS) {
-    if (humanFighterActive(game, slot) && humanPresent(game, slot)) selectCharacter(game, slot, character ?? defaults[slot]);
+    if (humanFighterActive(game, slot) && humanPresent(game, slot)) selectCharacter(game, slot, typeof character === "number" ? character : character?.[slot] ?? defaults[slot]);
   }
   setStocks(game, first, stocks);
   if (!requestStageSelect(game, first)) return false;
@@ -160,21 +180,23 @@ export function prepareQuickTraining(game: MatchState): void {
   while (game.trainer.behaviour !== PartnerBehaviour.shield) stepPartnerBehaviour(game, first, 1);
 }
 
-/**
- * `-dev quick cpu N`: the quick match with a computer at level N (1-9) in the
- * first free slot, over QUICK_CPU_STOCKS stocks so a knockout doesn't end
- * it; the CPU levels' native check (#134) plays it.
- */
+/** A named computer in the first free slot, over three stocks for native captures. */
 export const QUICK_CPU_COMMAND = "-dev quick cpu ";
 export const QUICK_CPU_STOCKS = 3;
 
-export function quickMatchCpuLevel(message: string): number | undefined {
+export interface QuickCpuProfile { readonly opponent: CpuOpponentChoice; readonly tier: CpuTier }
+
+export function quickMatchCpuProfile(message: string): QuickCpuProfile | undefined {
   if (!message.startsWith(QUICK_CPU_COMMAND)) return undefined;
   const rest = message.substring(QUICK_CPU_COMMAND.length);
   const marker = rest.indexOf(" hero ");
   if (marker >= 0 && quickMatchCpuHero(message) === undefined) return undefined;
-  const level = commandInteger(marker < 0 ? rest : rest.substring(0, marker));
-  return level !== undefined && isCpuLevel(level) ? level : undefined;
+  const settings = marker < 0 ? rest : rest.substring(0, marker);
+  const split = settings.indexOf(" ");
+  if (split < 0) return undefined;
+  const opponent = settings.substring(0, split);
+  const tier = settings.substring(split + 1);
+  return isCpuOpponentChoice(opponent) && isCpuTier(tier) ? { opponent, tier } : undefined;
 }
 
 /** A named CPU uses the menu's own selection rule, for roster parity batches. */
@@ -183,14 +205,15 @@ export function quickMatchCpuHero(message: string): Character | undefined {
   return message.startsWith(QUICK_CPU_COMMAND) && marker >= 0 ? heroAfter(message, message.substring(0, marker + 6)) : undefined;
 }
 
-/** Fills the first free slot with a computer at `level`, from fighter selection; the quick match follows. */
-export function prepareQuickCpu(game: MatchState, level: number, character?: Character): void {
+/** Fills the first free slot with a computer with `profile`, from fighter selection; the quick match follows. */
+export function prepareQuickCpu(game: MatchState, profile: QuickCpuProfile, character?: Character): void {
   const first = firstHumanSlot(game);
   if (first === undefined || game.phase !== Phase.characterMenu) return;
   const computer = PARTICIPANT_SLOTS.find(slot => !humanFighterActive(game, slot) && !computerActive(game, slot));
   if (computer === undefined) return;
   // An empty slot becomes a human fighter, then a computer.
   for (let step = 0; step < 2; step++) cycleSlotMode(game, first, computer);
-  setCpuLevel(game, first, computer, level);
+  setCpuOpponent(game, first, computer, profile.opponent);
+  setCpuTier(game, first, computer, profile.tier);
   if (character !== undefined) selectCpuCharacter(game, first, computer, character);
 }

@@ -741,6 +741,18 @@ pose tuning. Correct export/playback is not a claim of finished animation art.
 
 ## Jump and double jump
 
+`bun tools/animations/jump-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends
+movement-only sequences where stock jumps borrowed an attack or special:
+Blademaster and Warden double-jump somersaults, Lich's airborne contraction,
+and Dreadlord/Shadow Hunter spring gestures. The flip coils chest, arms and
+legs before a full stage-plane rotation, then opens into recovery. It uses
+the existing 30 presentation frames; ground jumps retain 24. The tool checks
+every previous sequence at start/middle/end, including Blademaster's
+Bladestorm, and saves a private both-facing Blademaster silhouette sheet.
+Publish the hero-models and original-clips-static-lights families after pool
+export. `jumpClips.tests.ts` checks all selectable fighters' jump/double-jump/
+fall indices against attacks and grounded/aerial specials in Bun and Lua.
+
 Archer Jump lasts 24 source frames at 24fps; Double Jump lasts 30. Both are
 authored by smashcraft:tools/animations/dodges.py in the final fighter scene.
 Jump tucks the legs; Double Jump uses the established stage-plane somersault
@@ -1097,9 +1109,11 @@ three-startup/16-active/37-total timing. Rifleman's Back Air is unchanged.
 ## Hero swing alignment
 
 Hero normals play classic stock sequences whose strike rarely sits where the
-move's hitbox does. `bun wisp view strikes --extractor CASC_EXTRACT --storage
-WARCRAFT_DIR [--assets DIR]` (from smashcraft:ts/) skins each hero's stock model
-(a community model such as the Lich King's from DIR's imported-models) and
+move's hitbox does. `bun wisp view strikes --assets DIR` (from smashcraft:ts/)
+skins every hero's packaged model, including authored clips, from DIR's
+hero-models or imported-models. Without packaged assets,
+`--extractor CASC_EXTRACT --storage WARCRAFT_DIR` reads the stock archives;
+imported heroes require `--assets DIR`. The command
 records, per normal and per special that strikes, shoots or places, the clip second where the silhouette reaches farthest
 toward the move's first hit region, into
 smashcraft:ts/src/game/presentation/heroStrikeMomentInfo.ts. Pose selection
@@ -1243,12 +1257,14 @@ smashcraft:ts/src/game/presentation/heroes/lichKingClipInfo.ts (sequence name
 to index and frames). Run Blender inside the capacity scope (`machine-capacity
 run --class moderate`).
 
-Defile's cast (#174) gathers the free hand above his shoulder, presses it
-toward the pool on frame 20, holds the downward pose for three more frames,
-and settles back into the guard by frame 46, held through frame 50's recovery.
-The frame-20 push stays at its authored frame as the recovery lengthens.
-Frostmourne stays raised beside
-the body. The non-skeleton tracks retain Spell Channel as their donor.
+Defile's cast (#174) lifts Frostmourne above his shoulder, plants its point in
+the ground on frame 20, holds the planted silhouette through frame 26, then
+pulls it back into the guard by frame 46, held through frame 50's recovery.
+The frame-20 strike stays at the pool placement frame. The pool has a dark
+fill and a narrow glowing edge; each body hit flashes that edge for 12 frames.
+The non-skeleton tracks retain Spell Channel as their donor. To reauthor only
+this shipped sequence while retaining every other clip, pass
+`--replace 'Special Down'` after the immutable existing model argument.
 
 Movement transitions and floor recovery (#171) append at indices 66–73,
 preserving every combat and stock index. Turn and stop each last eight frames,
@@ -1273,12 +1289,20 @@ attack state so they play the climbing attack rather than the get-up clip.
 ## Paired expansion-hero grabs
 
 From the repository root, `bun tools/animations/grab-clips.ts PRIVATE_ASSETS
-PRIVATE_OUTPUT` appends thirteen grab-family gestures to each expansion hero:
+PRIVATE_OUTPUT [--character ID]` appends thirteen grab-family gestures to each expansion hero:
 reach, holder/captive hold, both pummel roles, and both roles in four throw
 directions. Original Archer, Rifleman and Illidan authoring stays in
 smashcraft:tools/animations/grab_animations.py. Output models and the motion
 report are private; smashcraft:ts/src/game/presentation/grabClipInfo.ts is
 generated from their sequence indices.
+
+When paired sequences already exist, the generator replaces their local keys
+inside the same intervals and keeps their sequence indices. `--character ID`
+limits that replacement to one expansion fighter; the other fighters retain
+their existing paired motion. For example, `--character 12` reauthors the
+Lich King's paired family. Publish only the model families whose bytes changed,
+then refresh the pooled clips and measure the changed fighter with
+`bun wisp view reach --assets PRIVATE_ASSETS --character 12` from smashcraft:ts/.
 
 The grip arm reaches while the weapon arm stays separated. Pummels coil then
 strike locally; forward throws push, back throws sweep overhead and behind,
@@ -1311,14 +1335,15 @@ smashcraft:tools/animations/export-original-clips.ts and `--keep-unchanged`.
 Stripping only the appended paired suffix must recover the exact input hash
 before old pool clips may be reused.
 
-`bun tools/animations/grab-pads.ts` generates eighty mirror scripts in
+`bun tools/animations/grab-pads.ts` generates eighty mirror and eighty unlike-height scripts in
 smashcraft:ts/test/native/pads/180/: each expansion hero, four throw directions,
 and both holder facings. Its production-simulation pass selects an ordinary
 approach duration, requires the catch/pummel/requested release, and places
 captures around accepted damage and completion. Run the directory as one
 native pad batch, with headless references alongside it; matching trace
 expectations establishes input/selection and the captures establish readability.
-Unlike-height pairs are an additional native visual sample.
+Unlike-height captures pair each holder with Mountain King, or Mountain King
+with Pit Lord, through `-dev quick pair FIRST / SECOND`.
 
 ## Contact pain poses
 
@@ -1330,11 +1355,27 @@ chest for a low hit. The floating Lich expresses low hits through its neck
 and body. Weapons inherit their attached arm transforms.
 
 The contact frame immediately selects the clip's already recoiling first
-pose. The pool's clip swap has zero animation blending; this cuts from the
-current pose, including an interrupted move, on the first presented contact
-frame. It holds time zero during hitstop. After hitstop, non-tumbling damage
-continues the recoil; a tumble enters the existing tumble clip. No damage,
-hitstop, hitstun or launch timing is changed for these visuals.
+pose and holds its time zero during hitstop. After hitstop, non-tumbling
+damage continues the recoil; a tumble enters the existing tumble clip. No
+damage, hitstop, hitstun or launch timing is changed for these visuals.
+
+### Pain pose blending
+
+Every pool clip is its own model, so native in-model blending cannot cross a
+clip swap. Instead smashcraft:ts/src/game/presentation/damageBlend.ts dissolves:
+the pain clip is drawn fully opaque from the contact frame, and the previous
+clip stays frozen at its last drawn pose and yaw, following the body, with
+opacity falling 255·(n−k)/(n+1) over n presented simulation frames. Entry takes
+3/2/1 frames for small/medium/large hits (heavier hits snap harder), capped at
+hitlag − 1 so the first pain pose is always shown alone before hitstop ends
+(minimum victim hitlag is 3, or 2 crouching). Leaving a pain pose for tumble,
+the end of hitstun or recovery dissolves over 4 frames. Other clip changes
+still cut. The timing follows fighting-game practice of showing the hit pose
+at once and holding it through hitlag, as Melee and Ultimate do, with a short
+17–67 ms softening; Tom delegated the exact durations on 7 October 2026.
+The dissolve is timed by the presented simulation frame, so a pause holds it
+and a rollback to an earlier frame ends it. Readability and frame cost at
+gameplay zoom need native captures.
 
 Height uses the authored strike segment's midpoint or a projectile's actual
 height relative to the victim's current hurt-body bounds: below 3/8 is low,
@@ -1352,6 +1393,17 @@ the pool with smashcraft:tools/animations/export-original-clips.ts using
 `--keep-unchanged`; the exact stripped-source hash preserves cached old clips.
 
 ### Native pain blending diagnostic
+
+The gameplay-zoom reaction batch for #181 is generated by
+`bun tools/animations/pain-pads.ts` into `ts/test/native/pads/181/`.
+Its 117 scripts start `-dev pain HEIGHT STRENGTH FIGHTER`, interrupt both
+players' ordinary jab with ordinary projectile contacts on frame 150, and
+capture the entry dissolve, held reaction and release in both facings.
+The contact uses each fighter's hurt-body height and the production damage
+resolver; native damage receipts identify height, strength and selected clip.
+Run the directory with `bun wisp pad`, the integrity map and its matching
+journal helper. The generator checks all 234 hits select the intended clips;
+native captures and the existing frame budget remain the issue's closing box.
 
 `bun tools/animations/damage-blend-probe.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
 packages Archer's combat-ready and forward-tilt donor clips with a second

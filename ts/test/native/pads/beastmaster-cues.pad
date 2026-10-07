@@ -1,0 +1,133 @@
+# Beastmaster's native check by parity for #148 (Pack Hunt) and #144 (every special form shows its Warcraft spell).
+# Beastmaster a against Beastmaster b; syntax and checks: smashcraft:docs/native-bot-session.md.
+# A side special from standing starts a dash too, so each one slides its caster about 120.
+#! chat -dev quick hero beastmaster
+# b dashes right and summons its bear, then commands it right and left.
+40 b stick 1 0
+42 b stick 0 0
+# a: Quillbeast Dart on the ground and in the air.
+50 a stick 0 -1
+50 a tap X 2
+51 a stick 0 0
+52 a capture
+60 b stick 1 0
+60 b tap X 2
+61 b stick 0 0
+68 a capture
+100 a tap B 8
+106 a stick 0 -1
+106 a tap X 2
+107 a stick 0 0
+108 a capture
+124 a capture
+130 b stick 1 0
+130 b tap X 2
+131 b stick 0 0
+# a summons its bear, then runs up to b with the bear following.
+165 a stick 1 0
+165 a tap X 2
+166 a stick 0 0
+167 a capture
+185 b stick -1 0
+185 b tap X 2
+186 b stick 0 0
+195 a capture
+225 a stick 1 0
+250 a stick 0 0
+# #148 Pack Hunt: a jabs b, then orders its bear's lunge (stick held through the jab, so no dash): the bite lands 3 harder.
+310 a tap A 2
+314 a capture
+315 a stick 1 0
+330 a tap X 2
+334 a tap X 2
+336 a stick 0 0
+336 a capture
+338 a capture
+349 a capture
+# Bear Recall.
+360 a stick 0 -1
+360 a tap X 2
+361 a stick 0 0
+362 a capture
+364 a capture
+# a runs back left, then throws the Throwing Axe on the ground and in the air.
+390 a stick -1 0
+# b climbs back from the ledge, then Hawk Lifts until its mana runs out and the free form rises.
+400 b stick 0 1
+402 b stick 0 0
+415 a stick 0 0
+430 a tap X 2
+432 a capture
+440 b stick -0.4 1
+440 b tap X 2
+441 b stick 0 0
+450 a capture
+480 a tap B 8
+486 a tap X 2
+488 a capture
+# View held a second: the first of two moments the parity check replays.
+500 a press VIEW
+506 a capture
+530 b stick -0.4 1
+530 b tap X 2
+531 b stick 0 0
+# a: Hawk Lift.
+550 a stick 0 1
+550 a tap X 2
+551 a stick 0 0
+552 a capture
+560 a capture
+570 a release VIEW
+620 b stick -0.4 1
+620 b tap X 2
+621 b stick 0 0
+710 b stick -0.4 1
+710 b tap X 2
+711 b stick 0 0
+800 b stick -0.4 1
+800 b tap X 2
+801 b stick 0 0
+890 b stick -0.4 1
+890 b tap X 2
+891 b stick 0 0
+980 b stick -0.4 1
+980 b tap X 2
+981 b stick 0 0
+982 b capture
+990 b capture
+1000 a press VIEW
+1070 a release VIEW
+1070 b stick -0.4 1
+1070 b tap X 2
+1071 b stick 0 0
+# Expected, frame by frame (headless run of this script): every special form starts on its frame,
+# and the bear lunge after a jab lands with Pack Hunt (19 on top of the jab's 4).
+#! expect a 50 special 16 form 0
+#! expect b 60 special 14 form 0
+#! expect a 106 special 16 form 1
+#! expect b 130 special 14 form 3
+#! expect a 165 special 14 form 0
+#! expect b 185 special 14 form 3
+#! expect b 313 damage 4.000 hitlag 4 hitstun 9
+#! expect a 334 special 14 form 3
+#! expect b 348 damage 23.000 hitlag 9 hitstun 33
+#! expect a 360 special 16 form 3
+#! expect a 430 special 13 form 0
+#! expect a 486 special 13 form 1
+#! expect a 550 special 15 form 0
+#! expect b 440 special 15 form 0
+#! expect b 530 special 15 form 0
+#! expect b 620 special 15 form 0
+#! expect b 710 special 15 form 0
+#! expect b 800 special 15 form 0
+#! expect b 890 special 15 form 0
+#! expect b 980 special 15 form 2
+#! scene a BloodlustTarget
+#! scene a AxeMissile
+#! scene a RejuvenationTarget
+#! scene a HarpyMissile
+#! scene a EnsnareMissile
+#! scene a StampedeMissile
+#! scene a CommandAuraTarget
+#! scene a StampedeMissileDeath
+#! scene a QuillSprayMissile

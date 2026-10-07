@@ -1,4 +1,4 @@
-// The computer takes the redesigned kits' options (#146): at level 9, in
+// The computer takes the redesigned kits' options (#146): as Wren Expert, in
 // seeded computer-against-computer mirror matches, each fighter uses every
 // new option at least once, and a seed replays the same counts. Half the
 // matches start both fighters at a high percent, so launches send them off
@@ -15,7 +15,8 @@ import { RIFLEMAN_BLASTER_AIR_FRAMES, RIFLEMAN_BLASTER_GROUND_FRAMES } from "../
 import { copyControls, createRoster, fighterAt, isActive, neutralControls } from "../sim/roster";
 import { CHAOS_STRIKE_AIR_FORM, CHAOS_STRIKE_FORM, VENGEFUL_RETREAT_FORM, DEMONHUNTER_GLIDE_FORM, DEMONHUNTER_IMMOLATE_DURATION, RIFLEMAN_RECOVERY_STARTUP_FRAMES, RIFLEMAN_SECOND_SHOT_FORM } from "../sim/specials";
 import { produceComputerInput } from "./botPlay";
-import { cpuSkill } from "./cpuLevel";
+import { cpuSkill } from "./cpuSkill";
+import { CPU_PROFILES } from "./cpuProfiles";
 import { createFrameControls } from "./controls";
 import { captureFrame, createMatchFrameInput, executeMatchFrame } from "./frameInput";
 import { createPacingAndPresentation } from "./pacingAndPresentation";
@@ -131,7 +132,7 @@ function observe(f: Readonly<Fighter>, watch: Watch, down: boolean, grabMash: bo
   watch.divine = f.status.divineFrames;
 }
 
-/** A level-9 match of `character` against `opponent` under `seed`, both at `damage`, counting the options of each computer playing `character`. */
+/** A Wren Expert match of `character` against `opponent` under `seed`, both at `damage`, counting the options of each computer playing `character`. */
 function computerMatch(character: Character, opponent: Character, seed: number, damage: number, counts: Counts): void {
   const world = createRoster(3, [createFighter(character, -240.0, 1), createFighter(opponent, 240.0, -1)]);
   const match = createMatchState();
@@ -144,7 +145,10 @@ function computerMatch(character: Character, opponent: Character, seed: number, 
   const runtime = createPacingAndPresentation();
   const row = createMatchFrameInput();
   const watches: Watch[] = [];
-  for (const slot of [0, 1]) {
+  for (const slot of [0, 1] as const) {
+    match.cpuOpponents[slot] = "wren";
+    match.cpuResolvedOpponents[slot] = "wren";
+    match.cpuTiers[slot] = "expert";
     fighterAt(world, slot).status.damage = damage;
     watches.push({ action: 0, form: 0, frame: 0, entryFacing: 1, bird: 0, divine: 0, asleep: false, hexed: false });
   }
@@ -172,7 +176,10 @@ function usesEvery(character: Character, options: readonly string[], opponent: C
   for (let index = 0; index < matches; index++) computerMatch(character, opponent, 11 + index * 12, index < floorDiv(matches, 2) ? 0.0 : 110.0, counts);
   for (const [seed, damage] of extra) computerMatch(character, opponent, seed, damage, counts);
   // "a|b": either option counts.
-  for (const option of options) assertGreaterThan(option.split("|").reduce((sum, name) => sum + (counts[name] ?? 0), 0), 0);
+  for (const option of options) {
+    const uses = option.split("|").reduce((sum, name) => sum + (counts[name] ?? 0), 0);
+    if (uses <= 0) throw new Error(`inactive kit option ${option}: ${Object.keys(counts).map(name => `${name}=${counts[name] ?? 0}`).join(", ")}`);
+  }
   const first: Counts = {};
   const again: Counts = {};
   computerMatch(character, opponent, 11, 0.0, first);
@@ -181,9 +188,9 @@ function usesEvery(character: Character, options: readonly string[], opponent: C
   for (const option of Object.keys(again)) assertEquals(again[option], first[option], option);
 }
 
-test("kit options are a level's share: none below level 4, all at level 9", () => {
-  for (let level = 1; level <= 3; level++) assertEquals(cpuSkill(level).kitTenths, 0);
-  assertEquals(cpuSkill(9).kitTenths, 10);
+test("every named profile can take legal kit options, with greater reliability as execution grows", () => {
+  for (const profile of CPU_PROFILES) assertTrue(cpuSkill(profile.opponent, profile.tier).kitTenths > 0);
+  assertTrue(cpuSkill("wren", "expert").kitTenths > cpuSkill("wren", "rookie").kitTenths);
 });
 
 test("computer Blademaster backstabs from Wind Walk in front and crossed up, feints, and swaps onto Mirror Image", () => {
@@ -202,26 +209,26 @@ test("computer Lich bursts Frost Nova, places Death and Decay, arms Frost Armor 
   usesEvery(Character.lich, ["recall0", "special1", "special3", "recall3"]);
 });
 
-test("computer Uther shoots Holy Light and attacks out of Divine Shield", () => {
+test("computer Uther sends Holy Radiance and attacks out of Divine Shield", () => {
   // Divine Shield succeeds only against a strike timed into its window, about once in 30 mirror matches, so
   // the usual matches add two seeds of the same series (indices 37 and 55 at 110%) where it does.
-  usesEvery(Character.uther, ["special0", "divineAttack"], Character.uther, 2 * MATCHES, [[11 + 37 * 12, 110.0], [11 + 55 * 12, 110.0]]);
+  usesEvery(Character.uther, ["special1", "divineAttack"], Character.uther, 2 * MATCHES, [[11 + 37 * 12, 110.0], [11 + 55 * 12, 110.0]]);
 });
 
-test("computer Dreadlord feints Vampiric Pounce, sleeps a target, mashes out of Sleep and hits a sleeper", () => {
-  usesEvery(Character.dreadlord, ["followUp1.0", "special3", "sleepMash", "sleptHit"]);
+test("computer Dreadlord corkscrews with Vampiric Pounce, sleeps a target, mashes out of Sleep and hits a sleeper", () => {
+  usesEvery(Character.dreadlord, ["special1", "special3", "sleepMash", "sleptHit"]);
 });
 
 test("computer Shadow Hunter throws Spirit Glaive, hexes, presses a hexed target and mashes out of a Hex", () => {
   usesEvery(Character.shadowHunter, ["special0", "special3", "hexedHit", "hexMash"]);
 });
 
-test("computer Pit Lord spits Fel Spit, charges with Ruin Charge and howls Howl of Terror", () => {
-  usesEvery(Character.pitLord, ["special0", "special1", "special3"]);
+test("computer Pit Lord roars, charges, leaps and calls Rain of Fire", () => {
+  usesEvery(Character.pitLord, ["special0", "special1", "special2", "special3"]);
 });
 
-test("computer Beastmaster summons the bear, orders its lunge and calls it back", () => {
-  usesEvery(Character.beastmaster, ["special1", "recall1", "recall3"]);
+test("computer Beastmaster summons the pack, commands Stampede, Hawk Dive and Quill Volley", () => {
+  usesEvery(Character.beastmaster, ["special0", "special1", "special2", "special3", "recall1", "recall2", "recall3"]);
 });
 
 test("computer Rifleman flies level and diagonal recoil routes with a second shot, short-hops and grounds the blaster, calls the bear", () => {

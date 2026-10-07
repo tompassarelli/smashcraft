@@ -35,9 +35,10 @@ import { beginDownDamage, cancelAttack, cancelSpecialState, clearDownState, clea
 import { at } from "wisp/src/runtime/lookup";
 import { CHILL } from "./chill";
 import { fighterHurtParts } from "./hurtboxes";
-import { type AppliedStatus, applyHeroStatus, damageEndsHeroStatus, heroStatusDamageDealt } from "./heroStatus";
+import { type AppliedStatus, applyHeroStatus, damageEndsHeroStatus } from "./heroStatus";
 import { contactEarnsMana, dealtManaGain, gainMana, takenManaGain } from "./mana";
 import { PassiveProc, devotionBlocked, devotionLaunchScale, frostArmorStruck, sourcePassiveContact, vampiricHeal, BASH_HITSTUN_FRAMES } from "./passives";
+import { utherHammerContact } from "./heroes/utherHammer";
 
 /** One contact, with the source's and target's state sampled when it was collected. */
 interface DamageContact {
@@ -47,6 +48,7 @@ interface DamageContact {
   facing: number;
   kind: ContactKind;
   direct: boolean;
+  hammerHitlag: number;
   blocked: boolean;
   crouching: boolean;
   grounded: boolean;
@@ -77,7 +79,7 @@ interface DamageContact {
 
 function emptyContact(): DamageContact {
   return {
-    source: 0, target: 0, effect: emptyHitEffect(), facing: 0, kind: ContactKind.launch, direct: false, blocked: false,
+    source: 0, target: 0, effect: emptyHitEffect(), facing: 0, kind: ContactKind.launch, direct: false, hammerHitlag: 0, blocked: false,
     crouching: false, grounded: false, sourceGrounded: false, sourceAerial: false, sourceDeltaX: 0.0, sourceDeltaZ: 0.0, sourceVelocityX: 0.0, sourceVelocityZ: 0.0, targetDeltaX: 0.0,
     targetDeltaZ: 0.0, down: false, smashCharging: false, throwInput: undefined, status: undefined, earnsMana: false,
     origin: HitOrigin.melee, key: -1, proc: PassiveProc.none, height: 1,
@@ -135,12 +137,10 @@ export function collectDamageContact(
   contact.source = sourceSlot;
   contact.target = targetSlot;
   copyHitEffect(contact.effect, effect);
-  // A status on the source (Terror) scales the damage of everything it deals, launch and hitlag included.
-  const dealt = heroStatusDamageDealt(source);
-  if (dealt !== 1.0) contact.effect.damage = multiplyFloat32(contact.effect.damage, dealt);
   contact.facing = facing;
   contact.kind = kind;
   contact.direct = direct;
+  contact.hammerHitlag = kind === ContactKind.launch && utherHammerContact(source, effect.damage, direct) ? 3 : 0;
   contact.blocked = !unblockable && shieldContact;
   contact.crouching = target.motion.crouching;
   contact.grounded = target.motion.grounded;
@@ -220,6 +220,7 @@ function resolveDamageContacts(world: Roster, slot: number): void {
   let blockedContact = false;
   let shieldElectric = false;
   let hitlagDamage = 0.0;
+  let hammerHitlag = 0;
   let shieldPushback = 0.0;
   let shieldDirection = 1;
   const perfectShield = shield.perfectFrames > 0;
@@ -241,12 +242,12 @@ function resolveDamageContacts(world: Roster, slot: number): void {
     if (contact.target !== slot) continue;
     const source = fighterAt(world, contact.source);
     const { damage } = contact.effect;
-    if (contact.direct) source.launch.hitlag = max(source.launch.hitlag, ordinaryHitlagFrames(damage));
+    if (contact.direct) source.launch.hitlag = max(source.launch.hitlag, ordinaryHitlagFrames(damage) + contact.hammerHitlag);
     if (contact.blocked) {
       devotionBlocked(target);
       if (contact.kind === ContactKind.damageOnly) continue;
       if (!perfectShield) shield.stun = max(shield.stun, shieldstunFrames(damage, shield.strength, contact.sourceAerial));
-      launch.hitlag = max(launch.hitlag, ordinaryHitlagFrames(damage));
+      launch.hitlag = max(launch.hitlag, ordinaryHitlagFrames(damage) + contact.hammerHitlag);
       const pushback = shieldContactPushback(damage, shield.strength, perfectShield);
       shieldPushback = max(shieldPushback, pushback);
       if (pushback === shieldPushback) shieldDirection = contact.facing;
@@ -267,6 +268,7 @@ function resolveDamageContacts(world: Roster, slot: number): void {
     }
     if (contact.kind !== ContactKind.damageOnly && contact.kind !== ContactKind.throw) {
       hitlagDamage = max(hitlagDamage, damage);
+      hammerHitlag = max(hammerHitlag, contact.hammerHitlag);
       hurtContact ??= index;
     }
     if (contact.kind === ContactKind.flinch) flinch ??= index;
@@ -285,11 +287,11 @@ function resolveDamageContacts(world: Roster, slot: number): void {
     target.visuals.hit++;
     target.visuals.hitElectric = effectContact.effect.electric;
     target.visuals.hitElement = effectContact.effect.element ?? (effectContact.effect.electric ? HitElement.electric : HitElement.normal);
-    target.visuals.hitStrength = strongest >= 180.0 ? 2 : strongest >= 80.0 ? 1 : 0;
+    target.visuals.hitStrength = effectContact.hammerHitlag > 0 || strongest >= 180.0 ? 2 : strongest >= 80.0 ? 1 : 0;
     target.visuals.hitHeight = effectContact.height;
     target.visuals.hitPummel = effectContact.kind === ContactKind.pummel;
     // The strongest launch supplies the effect; the largest damage supplies hitlag power.
-    if (hurtContact !== undefined) launch.hitlag = max(launch.hitlag, victimHitlagFrames(hitlagDamage, effectContact.effect.electric, effectContact.crouching));
+    if (hurtContact !== undefined) launch.hitlag = max(launch.hitlag, victimHitlagFrames(hitlagDamage, effectContact.effect.electric, effectContact.crouching) + hammerHitlag);
   }
   status.damage = addFloat32(roundToFloat32(status.damage), totalDamage);
   if (blockedContact) {

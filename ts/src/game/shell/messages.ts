@@ -63,7 +63,8 @@ export function resultNotice(game: Readonly<MatchState>, result: string): string
   const notice = game.rematchCountdown > 0 ? `${result}\nRematch in ${floorDiv(game.rematchCountdown + MATCH_TICKS_PER_SECOND - 1, MATCH_TICKS_PER_SECOND)}` : result;
   if (game.phase !== Phase.match || game.startHold <= 0) return notice;
   const opponents = PARTICIPANT_SLOTS.filter(slot => computerActive(game, slot)).map(slot => cpuOpponentSummary(game, slot));
-  return opponents.length === 0 ? notice : opponents.join("\n");
+  // A status such as the keyboard fallback stays above the opponent summary.
+  return opponents.length === 0 ? notice : notice === "" ? opponents.join("\n") : `${notice}\n${opponents.join("\n")}`;
 }
 
 export const stockSetting = (count: number) => (count === 1 ? "1 Stock" : `${count} Stocks`);

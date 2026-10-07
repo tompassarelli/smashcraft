@@ -34,6 +34,7 @@ import {
   type Fighter,
   PLATFORM_DROP_INPUT_WINDOW,
   SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES,
+  TURNAROUND_SPECIAL_WINDOW_FRAMES,
   WALL_JUMP_FLICK_FRAMES,
   WALL_TECH_JUMP_INPUT_WINDOW_FRAMES,
 } from "./fighter";
@@ -48,7 +49,6 @@ import { DOWN_ATTACK_FRAMES, EARLY_ASCENT_GRAB_FRAMES, SMASH_MAX_CHARGE_FRAMES, 
 import {
   addMeleeWorldValues,
   airDriftVelocity,
-  ceilingImpulseDriftVelocity,
   applyMeleeGravity,
   moveMeleeVerticalVelocity,
   moveMeleeX,
@@ -74,6 +74,7 @@ import {
   shieldDrainShouldResume,
 } from "./shield";
 import { advanceShieldBreak, beginShieldBreak } from "./shieldBreak";
+import { advanceShieldTilt } from "./shieldTilt";
 import { applyAutomaticSmashDirectionalInfluence, applySmashDirectionalInfluence, discardPendingSmashDirectionalInfluence, renewSmashDirectionalInfluenceString } from "./smashDirectionalInfluence";
 import { surfaceCount, surfaceLeft, surfaceMoves, surfacePass, surfaceRight, surfaceShiftX, surfaceShiftZ, surfaceZ } from "./stage";
 import { inStageCannon, windPush } from "./stageHazards";
@@ -205,10 +206,8 @@ function advanceJumpSquat(f: Fighter, input: Readonly<Controls>, squatBeforeInpu
   jump.squat--;
   if (jump.squat !== 0) return false;
   motion.grounded = false;
-  if (!illidan) {
-    const jumpX = f32(f32(motion.vx * physics.jumpMomentum) + f32(input.direction * physics.jumpHorizontalSpeed));
-    motion.vx = max(-physics.jumpHorizontalCap, min(physics.jumpHorizontalCap, jumpX));
-  }
+  const jumpX = f32(f32(motion.vx * physics.jumpMomentum) + f32(input.direction * physics.jumpHorizontalSpeed));
+  motion.vx = max(-physics.jumpHorizontalCap, min(physics.jumpHorizontalCap, jumpX));
   motion.vz = jump.held ? physics.fullJumpSpeed : physics.shortJumpSpeed;
   jump.ascent = 1;
   jump.serial++;
@@ -267,6 +266,7 @@ function advanceGuard(f: Fighter, input: Readonly<Controls>, forcedShield: boole
   else if (wantsShield && !forcedShield && shield.perfectActionFrames > 0) shield.perfectActionFrames--;
   else if (!wantsShield && shield.releaseLag <= 0) shield.perfectActionFrames = 0;
   shield.raised = wantsShield;
+  advanceShieldTilt(f, input);
   if (shieldCanStart && shield.raised) observeActionStart(GUARD_BITS);
   const fullPress = wantsShield && input.shieldPressed && input.shieldStrength >= 1;
   if (fullPress && !forcedShield && shield.triggerAge < SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES
@@ -373,6 +373,12 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   motion.stickSideAge = stickSide === 0 ? WALL_JUMP_FLICK_FRAMES : stickSide === motion.previousStickSide ? min(WALL_JUMP_FLICK_FRAMES, motion.stickSideAge + 1) : 0;
   trackWrapMotion(f, stickSide, stickSide !== motion.previousStickSide, input.down);
   motion.previousStickSide = stickSide;
+  if (input.direction !== 0) {
+    motion.turnaroundSide = input.direction < 0 ? -1 : 1;
+    motion.turnaroundAge = 0;
+  } else {
+    motion.turnaroundAge = min(TURNAROUND_SPECIAL_WINDOW_FRAMES + 1, motion.turnaroundAge + 1);
+  }
   // Expiry resumes this frame, including input gates and state countdowns.
   const hitlagBefore = launch.hitlag;
   launch.hitlag = max(0, launch.hitlag - 1);
@@ -515,7 +521,6 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
     && (!motion.grounded || attack.cooldown <= 0) && f.surfaceRecovery.state !== SurfaceContact.techWall;
   motion.crouching = input.down && input.direction === 0 && motion.grounded && canSteer && !wantsShield
     && attack.style === undefined && f.special.action === SpecialAction.none;
-  if (canSteer && !motion.grounded && direction !== 0) motion.lastAerialTapDirection = direction;
   if (!canSteer || wantsShield || !motion.grounded) clearDash(f);
   if (canSteer) {
     if (!wantsShield) {
@@ -529,8 +534,8 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
       if (advanceGroundMovement(f, direction, input.walking, horizontalStick)) dashEntryDisplacementAdjustment = f32(previousGroundVelocity - motion.vx);
     } else if (direction !== 0 && !groundTakeoff) {
       // Air steering changes velocity, not facing; back aerials rely on a stable orientation.
-      const ceilingImpulse = f.surfaceRecovery.state === SurfaceContact.techCeiling && f.surfaceRecovery.frame === f.tuning.tech.ceilingImpulseFrame;
-      motion.vx = ceilingImpulse ? ceilingImpulseDriftVelocity(f, motion.vx, direction) : airDriftVelocity(f, motion.vx, direction);
+      const driftStick = input.driftStickX ?? direction;
+      motion.vx = airDriftVelocity(f, motion.vx, driftStick === 0 ? direction : driftStick);
     }
   }
   if (isGroundDodging(f) && dodge.groundDirection !== 0) {
@@ -575,7 +580,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
       motion.fastFalling = true;
       motion.fastFallInputAge = PLATFORM_DROP_INPUT_WINDOW;
     }
-    if (drill !== undefined) motion.vz = drill.speedZ;
+    if (drill?.speedZ !== undefined) motion.vz = drill.speedZ;
     else if (motion.fastFalling) motion.vz = -physics.fastFallSpeed;
     else applyMeleeGravity(f);
   }

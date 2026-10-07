@@ -5,6 +5,7 @@
 // copy and code can be replaced while state is kept. Replay checksums write
 // an absent slot or surface as -1 at that boundary.
 import { type TechInput, emptyTechInput } from "../physics/techInput";
+import { at } from "wisp/src/runtime/lookup";
 import {
   type AttackStyle,
   Character,
@@ -37,6 +38,8 @@ export const PLATFORM_DROP_INPUT_WINDOW = 6;
 export const WALL_TECH_JUMP_INPUT_WINDOW_FRAMES = 20;
 /** PlCo +0x770: a wall jump needs the stick to have crossed the horizontal smash deadzone fewer input frames ago than this. */
 export const WALL_JUMP_FLICK_FRAMES = 3;
+/** A neutral special faces the side the stick last pressed at most this many input frames before it (smashcraft:docs/gameplay-design.md, "Turnaround specials"). */
+export const TURNAROUND_SPECIAL_WINDOW_FRAMES = 8;
 const STARTING_STOCKS = 3;
 /** A tech press age that is never inside a window; the input driver saturates at 255. */
 
@@ -73,8 +76,10 @@ interface Motion {
   previousStickSide: number;
   /** Input frames since the stick crossed that deadzone to its current side (Melee's stick-x timer); ages past the wall-jump flick window are equivalent. */
   stickSideAge: number;
-  /** The last air-steering direction; a neutral aerial special turns to it. */
-  lastAerialTapDirection: number;
+  /** The side the stick last pressed: -1, 0 or 1. */
+  turnaroundSide: number;
+  /** Input frames since then; ages past the turnaround special window are equivalent. */
+  turnaroundAge: number;
 }
 
 interface GroundMovement {
@@ -140,6 +145,8 @@ interface Launch {
 
 interface Shield {
   raised: boolean;
+  tiltX: number;
+  tiltZ: number;
   /** Analog pressure scale in [0, 1]; digital is 1. */
   strength: number;
   energy: number;
@@ -456,6 +463,9 @@ interface Status {
   divineFrames: number;
   /** Damage percent hero guards and returning projectiles restored this stock. */
   guardHealed: number;
+  /** The item buff running (ItemKind, sim/itemBuffs.ts, #196) and its frames left; a knockout ends it. */
+  buff: number;
+  buffFrames: number;
 }
 
 /** Every fighter's resource for specials (sim/mana.ts). */
@@ -482,8 +492,8 @@ interface Passive {
   lastTarget: number;
 }
 
-/** A hero's one placed object (sim/placedObjects.ts); `life` 0 when none stands. */
-interface PlacedObject {
+/** A placed object or animal (sim/placedObjects.ts); `life` 0 when absent. */
+export interface PlacedObject {
   life: number;
   /** Frames since placement. */
   age: number;
@@ -540,6 +550,8 @@ export interface Fighter {
   readonly status: Status;
   readonly mana: Mana;
   readonly placed: PlacedObject;
+  /** Beastmaster's additional animals: Quilbeast and Hawk. */
+  readonly pack: PlacedObject[];
   readonly passive: Passive;
 }
 
@@ -590,7 +602,8 @@ export function createFighter(character: Character, startX: number, facing: numb
       fastFallInputAge: PLATFORM_DROP_INPUT_WINDOW,
       previousStickSide: 0,
       stickSideAge: WALL_JUMP_FLICK_FRAMES,
-      lastAerialTapDirection: 0,
+      turnaroundSide: 0,
+      turnaroundAge: TURNAROUND_SPECIAL_WINDOW_FRAMES + 1,
     },
     ground: {
       dashFrame: 0,
@@ -645,6 +658,8 @@ export function createFighter(character: Character, startX: number, facing: numb
     },
     shield: {
       raised: false,
+      tiltX: 0.0,
+      tiltZ: 0.0,
       strength: 1.0,
       energy: SHIELD_MAX,
       stun: 0,
@@ -739,9 +754,18 @@ export function createFighter(character: Character, startX: number, facing: numb
       stand: false, shield: false, wrapLeft: 0, wrapLeftAge: 0, wrapRight: 0, wrapRightAge: 0, dodgeQueued: false, dodgeX: 0, dodgeZ: 0, specialQueued: false, specialX: 0, specialZ: 0,
     },
     cannon: { held: undefined, firing: undefined, cooldown: 0 },
-    status: { offscreenFrames: 0, damage: 0.0, stocks: STARTING_STOCKS, respawn: 0, out: false, invincible: 0, frozenFrames: 0, freezeImmunityFrames: 0, armorFrames: 0, armorMaxDamage: 0.0, armorChills: false, condition: 0, conditionFrames: 0, conditionGroup: 0, conditionImmunityFrames: 0, conditionImmunity: [0, 0, 0, 0], guardHealed: 0.0, divineFrames: 0, poisonFrames: 0, poisonEvery: 0, poisonDamage: 0.0 },
+    status: { offscreenFrames: 0, damage: 0.0, stocks: STARTING_STOCKS, respawn: 0, out: false, invincible: 0, frozenFrames: 0, freezeImmunityFrames: 0, armorFrames: 0, armorMaxDamage: 0.0, armorChills: false, condition: 0, conditionFrames: 0, conditionGroup: 0, conditionImmunityFrames: 0, conditionImmunity: [0, 0, 0, 0], guardHealed: 0.0, divineFrames: 0, poisonFrames: 0, poisonEvery: 0, poisonDamage: 0.0, buff: 0, buffFrames: 0 },
     mana: { points: ROSTER_MANA.max, progress: 0 },
-    placed: { life: 0, age: 0, x: 0.0, z: 0.0, direction: 1, durability: 0.0, serial: 0, spec: undefined, struck: repeat<number | undefined>(PARTICIPANT_CAPACITY, () => undefined), specialStruck: 0, mode: 0, modeFrame: 0, apart: 0, bitten: 0, surface: undefined },
+    placed: createPlacedObject(),
+    pack: character === Character.beastmaster ? [createPlacedObject(), createPlacedObject()] : [],
     passive: { stacks: 0, window: 0, serial: 0, spent: 0.0, used: false, lastKey: -1, lastTarget: -1 },
   };
+}
+
+export function createPlacedObject(): PlacedObject {
+  return { life: 0, age: 0, x: 0.0, z: 0.0, direction: 1, durability: 0.0, serial: 0, spec: undefined, struck: repeat<number | undefined>(PARTICIPANT_CAPACITY, () => undefined), specialStruck: 0, mode: 0, modeFrame: 0, apart: 0, bitten: 0, surface: undefined };
+}
+
+export function placedObject(fighter: Readonly<Fighter>, slot = 0): PlacedObject {
+  return slot === 0 ? fighter.placed : at(fighter.pack, slot - 1);
 }

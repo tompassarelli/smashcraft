@@ -66,7 +66,7 @@ function pressedThrows(pressed: number): Pick<InputRow, "throwX" | "throwZ"> {
 }
 
 /** Everything a controller can send: values in range, press vectors only with the press that sets them. */
-function isInputRow(row: Required<RowFields>): row is InputRow {
+export function isInputRow(row: Required<RowFields>): row is InputRow {
   return isMask(row.held) && isMask(row.pressed) && isMask(row.released)
     && inRange(row.axisX, -127, 127) && inRange(row.axisZ, -127, 127)
     && inRange(row.triggerLeft, 0, 255) && inRange(row.triggerRight, 0, 255)
@@ -75,7 +75,7 @@ function isInputRow(row: Required<RowFields>): row is InputRow {
     && inRange(row.throwX, -THROW_CONTRIBUTION_LIMIT, THROW_CONTRIBUTION_LIMIT)
     && inRange(row.throwZ, -THROW_CONTRIBUTION_LIMIT, THROW_CONTRIBUTION_LIMIT)
     && (has(row.pressed, Action.special) || (row.specialX === 0 && row.specialZ === 0))
-    && (has(row.pressed, Action.leftTrigger) || has(row.pressed, Action.rightTrigger) || (row.dodgeX === 0 && row.dodgeZ === 0))
+    && (has(row.pressed, Action.leftTrigger) || has(row.pressed, Action.rightTrigger) || has(row.pressed, Action.lightShield) || (row.dodgeX === 0 && row.dodgeZ === 0))
     && row.sdi === (row.sdiX !== 0 || row.sdiZ !== 0)
     && (row.ledgeVertical === 0 || has(row.pressed, Action.moveUp) || has(row.pressed, Action.moveDown));
 }

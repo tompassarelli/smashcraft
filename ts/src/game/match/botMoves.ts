@@ -9,7 +9,7 @@ import { floorDiv } from "wisp/src/sim/intMath";
 import { botChance, botChoice } from "./botRandom";
 import { type AttackBuffer, queueAttack } from "../input/attackBuffer";
 import { attackCapsule, emptyCapsule, hurtCapsule } from "../physics/contactGeometry";
-import { AttackStyle, Character, PassiveKind, SpecialAction } from "../sim/codes";
+import { AttackStyle, Character, LAST_ATTACK_STYLE, PassiveKind, SpecialAction } from "../sim/codes";
 import { canAttack } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../sim/hitRegions";
@@ -23,7 +23,7 @@ import { SpecialSlot } from "../sim/heroSpecials";
 import { SPACE_PLAN, avoids, gameplanOf, moveWeight, passiveLandingMove, spacedAt, toGameplanMove } from "./botGameplan";
 import { passivePips, passiveSpec } from "../sim/passives";
 import type { FighterGameplan, GameplanMove } from "../sim/gameplan";
-import { type CpuSkill, FULL_SKILL } from "./cpuLevel";
+import { type CpuSkill, FULL_SKILL } from "./cpuSkill";
 import { type AttackDecision, familiarOption, moveValueMultiplier } from "./botMoveValue";
 
 const GROUND_MOVES = [
@@ -48,7 +48,7 @@ const DISENGAGE_ROOM = 420.0;
 /** A spacing tool is thrown as a wall at most this far past its reach: a step the target takes into it. */
 const SPACING_STEP = 30.0;
 
-const STYLE_SLOTS = 20;
+const STYLE_SLOTS = LAST_ATTACK_STYLE + 1;
 // Preallocated: strike bounds filled the first time a move is asked about, four per character and style.
 const strikeBounds: number[] = [];
 const strikeFilled: boolean[] = [];
@@ -123,13 +123,14 @@ export function moveReachAhead(character: Character, style: AttackStyle, target:
   return style === AttackStyle.grab && moves?.normals[AttackStyle.grab] === undefined ? maxX : f32(maxX + hurtCapsule(target.character).radius);
 }
 
-/** The target's offset from the attacker after `frames` more frames: the target moving as it did last frame, the attacker sliding (travelOver). */
-export function aheadX(f: Readonly<Fighter>, target: Readonly<Fighter>, frames: number, style?: AttackStyle): number {
+/** The delayed target keeps its observed velocity; the attacker starts sliding now. */
+export function aheadX(f: Readonly<Fighter>, target: Readonly<Fighter>, frames: number, style?: AttackStyle, observationAge = 0): number {
   const startupTravel = style === undefined ? undefined : f.tuning.moves?.normals[style]?.startupTravelX;
-  const toward = target.motion.x < f.motion.x ? -1 : 1;
+  const observedNow = f32(target.motion.x + f32(target.motion.deltaX * observationAge));
+  const toward = observedNow < f.motion.x ? -1 : 1;
   // Authored startup travel clears ground velocity when the attack begins.
   const travel = f.motion.grounded && startupTravel !== undefined ? f32(startupTravel * toward) : travelOver(f, frames);
-  return f32(f32(f32(target.motion.x + f32(target.motion.deltaX * frames)) - f.motion.x) - travel);
+  return f32(f32(f32(target.motion.x + f32(target.motion.deltaX * (observationAge + frames))) - f.motion.x) - travel);
 }
 
 /**
@@ -209,7 +210,7 @@ function addHeroSpecials(f: Readonly<Fighter>, target: Readonly<Fighter>, stage:
 function addShots(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, count: number, observationAge: number): number {
   if (f.tuning.specials !== undefined) return addHeroSpecials(f, target, stage, HeroSpecialUse.ranged, count, observationAge);
   const { motion } = f;
-  const dx = f32(target.motion.x - motion.x);
+  const dx = aheadX(f, target, 0, undefined, observationAge);
   const dz = f32(target.motion.z - motion.z);
   const distance = Math.abs(dx);
   const facing = dx === 0 ? f.facing : dx > 0 ? 1 : -1;
@@ -227,7 +228,7 @@ function addShots(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number
 function addCloseSpecials(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, count: number, observationAge: number): number {
   if (f.tuning.specials !== undefined) return addHeroSpecials(f, target, stage, HeroSpecialUse.close, count, observationAge);
   const { motion } = f;
-  const dx = f32(target.motion.x - motion.x);
+  const dx = aheadX(f, target, 0, undefined, observationAge);
   const dz = f32(target.motion.z - motion.z);
   const distance = Math.abs(dx);
   const facing = dx === 0 ? f.facing : dx > 0 ? 1 : -1;
@@ -249,7 +250,7 @@ function addCloseSpecials(f: Readonly<Fighter>, target: Readonly<Fighter>, stage
       // The recoil shot drops from just ahead of him as his up special lifts him: in the air or on a raised deck, over a target below.
       const raised = motion.grounded && motion.surface !== undefined && motion.surface > 0;
       if ((!motion.grounded || raised) && safeAt(stage, motion.x, 60.0) && specialReady(f, UP_SPECIAL)) {
-        const ahead = f32(aheadX(f, target, 4) * f.facing);
+        const ahead = f32(aheadX(f, target, 4, undefined, observationAge) * f.facing);
         const below = aheadZ(f, target, 4);
         // The recoil shot reaches only a target right below: when it does, it is most of the choice.
         if (ahead >= 5 && ahead <= 75 && below <= -10 && below >= -230) {
@@ -262,7 +263,7 @@ function addCloseSpecials(f: Readonly<Fighter>, target: Readonly<Fighter>, stage
     }
     case Character.demonHunter: {
       const region = immolationRegion(motion.grounded);
-      const localX = f32(aheadX(f, target, 4) * f.facing);
+      const localX = f32(aheadX(f, target, 4, undefined, observationAge) * f.facing);
       const localZ = aheadZ(f, target, 4);
       // In the air down special is Flame Crash, a plunge: only over the deck.
       if (localX >= region.minX && localX <= region.maxX && localZ >= region.minZ && localZ <= region.maxZ && (motion.grounded || safeAt(stage, motion.x, 0.0)) && specialReady(f, DOWN_SPECIAL)) options[added++] = DOWN_SPECIAL;
@@ -278,8 +279,8 @@ export function smashChargeGoal(f: Readonly<Fighter>): number {
   return choice === 0 ? 0 : choice === 1 ? 10 : choice === 2 ? 25 : 45;
 }
 
-function perform(f: Readonly<Fighter>, target: Readonly<Fighter>, option: number, frame: number, input: Controls, commands: AttackBuffer): void {
-  const dx = f32(target.motion.x - f.motion.x);
+function perform(f: Readonly<Fighter>, target: Readonly<Fighter>, option: number, frame: number, input: Controls, commands: AttackBuffer, observationAge: number): void {
+  const dx = aheadX(f, target, 0, undefined, observationAge);
   const facing = f.facing < 0 ? -1 : 1;
   const toward = dx === 0 ? facing : dx > 0 ? 1 : -1;
   if (option >= NEUTRAL_SPECIAL) {
@@ -340,7 +341,7 @@ function weightedOption(gameplan: Readonly<FighterGameplan> | undefined, planInd
  */
 export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, matchFrame: number, frame: number, ranged: boolean, input: Controls, commands: AttackBuffer, slot = -1, planIndex: number = SPACE_PLAN, skill: CpuSkill = FULL_SKILL, observationAge = 0, decision?: AttackDecision): boolean {
   const gameplan = gameplanOf(f.character);
-  const dx = f32(target.motion.x - f.motion.x);
+  const dx = aheadX(f, target, 0, undefined, observationAge);
   const gap = Math.abs(dx);
   const toward = dx === 0 ? f.facing : dx > 0 ? 1 : -1;
   if (!canAttack(f) && !(f.shield.raised && f.motion.grounded)) return false;
@@ -357,7 +358,7 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
         const style = dashing && move === AttackStyle.jab ? f.tuning.moves?.dashAttack ?? AttackStyle.demonHunterDashAttack : move;
         const frames = attackStartupFrames(style, f.tuning.moves);
         // A slide may carry the attacker past its target; the queued facing stays fixed.
-        const x = f32(aheadX(f, target, frames, style) * toward);
+        const x = f32(aheadX(f, target, frames, style, observationAge) * toward);
         const z = aheadZ(f, target, frames + 1, stage, matchFrame, observationAge);
         // Grabs need the target's centre inside their reach, as the punish chooser requires.
         if (move === AttackStyle.grab && Math.abs(x) > f32(moveReachAhead(f.character, style, target, f.tuning.moves) - hurtCapsule(target.character).radius)) continue;
@@ -374,7 +375,7 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
         const frames = attackStartupFrames(aerial, f.tuning.moves);
         // The input frame also falls: landing by the first strike cancels the aerial.
         if (landsWithin(f, frames + 1, stage, matchFrame)) continue;
-        if (moveReaches(f.character, aerial, target, f32(aheadX(f, target, frames) * f.facing), aheadZ(f, target, frames + 1, stage, matchFrame, observationAge), f.tuning.moves)) options[count++] = aerial;
+        if (moveReaches(f.character, aerial, target, f32(aheadX(f, target, frames, undefined, observationAge) * f.facing), aheadZ(f, target, frames + 1, stage, matchFrame, observationAge), f.tuning.moves)) options[count++] = aerial;
       }
     }
   }
@@ -387,7 +388,7 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
   // A misplay throws any normal near the target, in reach or not.
   if (canAttack(f) && gap <= MISPLAY_GAP && botChance(frame, f.attack.serial * 11 + f.character + 5, skill.misplay, 100)) {
     const moves = f.motion.grounded ? GROUND_MOVES : AERIALS;
-    perform(f, target, at(moves, botChoice(frame, f.attack.serial * 3 + f.character, moves.length)), frame, input, commands);
+    perform(f, target, at(moves, botChoice(frame, f.attack.serial * 3 + f.character, moves.length)), frame, input, commands, observationAge);
     return true;
   }
   if (canAttack(f)) count = addCloseSpecials(f, target, stage, count, observationAge);
@@ -404,6 +405,6 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
     : dashIn ? AttackStyle.jab
     : familiar ?? weightedOption(skill.gameplanWeights ? gameplan : undefined, planIndex, f, slot, target, count, frame, cashing, decision);
   if (decision !== undefined) decision.strategy.lastOption = option;
-  perform(f, target, option, frame, input, commands);
+  perform(f, target, option, frame, input, commands, observationAge);
   return true;
 }

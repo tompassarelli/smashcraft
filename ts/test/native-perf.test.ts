@@ -18,7 +18,7 @@ test("playable presentation exports a diagnostic capture on both clients without
   clients.chat(0, "-dev capture 240");
   clients.frames(241);
   for (const client of clients.clients) {
-    client.run(() => expect(shellState()?.build).toMatchObject({ input: { kind: "callback" }, presentation: "pool-confirmed", hotReload: false }));
+    client.run(() => expect(shellState()?.build).toMatchObject({ input: { kind: "keyboard", pairedSends: false, delay: 2, rollback: 24 }, inputProfile: "keyboard-d2-r24", presentation: "pool-predicted", hotReload: false }));
     expect(client.errors).toEqual([]);
     const lines = client.files.get(frameCostCaptureFile(client.slot, 1, "smashcraft"));
     expect(lines?.[0]).toMatch(/^frame capture run=1 frames=240 /);

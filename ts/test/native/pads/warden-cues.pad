@@ -1,0 +1,115 @@
+# Warden's native check by parity for #148 (Shadow Step) and #144 (every special form shows its Warcraft spell).
+# Warden a against Warden b; syntax and checks: smashcraft:docs/native-bot-session.md.
+#! chat -dev quick hero warden
+# Both dash in, close.
+40 b stick -1 0
+42 b stick 0 0
+50 a stick 1 0
+52 a stick 0 0
+# #148 Shadow Step: both jump and double-jump; a's forward air strikes b in the air, and a jumps a third time.
+100 a tap B 4
+100 b tap B 4
+101 a stick 0.3 0
+104 a stick 0 0
+106 a tap B 4
+106 b tap B 4
+110 a cstick 1 0
+114 a cstick 0 0
+118 a capture
+140 a tap B 4
+150 a tap B 4
+151 a capture
+# a runs back left, then turns to face b again.
+200 a stick -1 0
+215 a stick 0 0
+# b spends its mana on five Fans of Knives, then Blink's free form.
+# a: Blink straight up, Pursuit Lunge with no mark, Pursuit Lunge in the air.
+230 b stick 0 -1
+230 b tap X 2
+231 b stick 0 0
+235 a stick 1 0
+236 a stick 0 0
+250 a stick 0 1
+250 a tap X 2
+251 a stick 0 0
+252 a capture
+258 a capture
+270 b stick 0 -1
+270 b tap X 2
+271 b stick 0 0
+310 b stick 0 -1
+310 b tap X 2
+311 b stick 0 0
+320 a stick 1 0
+320 a tap X 2
+321 a stick 0 0
+322 a capture
+325 a capture
+350 b stick 0 -1
+350 b tap X 2
+351 b stick 0 0
+390 b stick 0 -1
+390 b tap X 2
+391 b stick 0 0
+400 a tap B 8
+406 a stick 1 0
+406 a tap X 2
+407 a stick 0 0
+408 a capture
+411 a capture
+435 b stick 0 1
+435 b tap X 2
+436 b stick 0 0
+# View held a second: the first of two moments the parity check replays.
+500 a press VIEW
+570 a release VIEW
+# Shadow Strike marks b; Shadow Pursuit appears behind it.
+600 a tap X 2
+602 a capture
+616 a capture
+690 a stick 1 0
+690 a tap X 2
+691 a stick 0 0
+692 a capture
+705 a capture
+# Fan of Knives; Shadow Strike thrown in the air.
+780 a stick 0 -1
+780 a tap X 2
+781 a stick 0 0
+782 a capture
+789 a capture
+860 a tap B 8
+866 a tap X 2
+# Expected, frame by frame (headless run of this script): every form of every special starts,
+# b's five Fans empty its bar and its Blink is the free form (2).
+#! expect a 250 special 15 form 0
+#! expect a 320 special 14 form 0
+#! expect a 406 special 14 form 1
+#! expect a 600 special 13 form 0
+#! expect b 629 damage 15.000
+#! expect a 690 special 14 form 4
+#! expect b 707 damage 26.000
+#! expect a 780 special 16 form 0
+#! expect a 866 special 13 form 0
+#! expect b 230 special 16 form 0
+#! expect b 390 special 16 form 0
+#! expect b 435 special 15 form 2
+# Shadow Step: a's double jump is spent, the forward air lands in the air, and a jumps again.
+#! expect a 106 applied jump 2 double 1
+#! expect a 110 applied attack 1 style 13
+#! expect b 117 damage 10.000 hitlag 6 hitstun 20
+#! expect a 150 applied jump 3 double 1
+# Startup and active cues of each special and the marked branch, Shadow Strike's missile, and Shadow Step's proc.
+#! scene a CrippleTarget
+#! scene a ShadowStrike.mdx
+#! scene a PoisonStingTarget
+#! scene a ShadowStrikeMissile
+#! scene a GlaiveMissileTarget
+#! scene a PossessionTarget
+#! scene a BlinkCaster
+#! scene a FanOfKnivesCaster
+#! scene a BlinkTarget
+868 a capture
+882 a capture
+1000 a press VIEW
+1070 a release VIEW

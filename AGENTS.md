@@ -92,6 +92,10 @@ code. From smashcraft:ts/:
   builds the TypeScript map from the private inputs smashcraft:build-inputs.json
   names (`--base`, `--container`, `--assets`, `--summon` override one);
   `bun wisp map rebuild MAP.w3x` replaces only its script.
+  `--profile native-input` measures the playable keyboard path with developer
+  setup and the response probe (Ctrl+G records, Ctrl+H exports); its rendered
+  marker identifies the callback actually captured in pixels. Report that
+  diagnostic overhead; journal integrity is a separate input path.
 - Build inputs: each private asset family is stored once under the hash of
   its contents and never edited; build-inputs.json names each family's hash,
   so changing art is `bun wisp inputs add FAMILY DIR` plus a commit, landed
@@ -103,16 +107,45 @@ code. From smashcraft:ts/:
   `bun tools/animations/drill-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends
   Blademaster, Warden and Shadow Hunter down-air drills, preserving earlier
   clips and writing both-facing silhouette sheets for the native review.
-  `bun tools/animations/grab-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends
+  `bun tools/animations/down-air-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends
+  downward contact poses for the seven stock heroes whose casts/swings pointed forward.
+  `bun tools/animations/dreadlord-pounce-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` authors Dreadlord’s horizontal corkscrew, bite and recovery; `bun tools/animations/dreadlord-pounce-captures.ts PRIVATE_ASSETS PRIVATE_OUTPUT` captures their production phase selection in both facings.
+  `bun tools/animations/jump-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends
+  movement-only jump gestures, including Blademaster's front flip
+  (smashcraft:docs/fighter-animation-work.md).
+  `bun tools/animations/warden-fan-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` authors
+  Warden's ground and air Fan of Knives casts, preserving other clips
+  (smashcraft:docs/design/warden-fan-of-knives.md).
+  `bun tools/animations/down-air-captures.ts PRIVATE_ASSETS PRIVATE_OUTPUT` writes
+  both-facing down-air sheets from production pose selection and the roster's
+  strike-height inventory (smashcraft:docs/down-airs.md).
+  `bun tools/animations/grab-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT [--character ID]` appends
   coordinated expansion-hero reach, hold, pummel and four-direction holder/victim
-  gestures, preserving existing indices (smashcraft:docs/fighter-animation-work.md).
-  `bun tools/animations/grab-pads.ts` generates the #180 mirror capture batch:
+  gestures or reauthors their existing indices. `--character` limits reauthoring
+  to one expansion fighter (smashcraft:docs/fighter-animation-work.md).
+  `bun tools/animations/pit-lord-specials.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
+  authors Pit Lord's four special gestures while preserving all earlier clips.
+  `bun tools/animations/grab-pads.ts` generates the #180 mirror and unlike-height capture batch:
   ten expansion heroes, four throws, both facings, with ordinary catch/pummel
   inputs and contact-frame captures in smashcraft:ts/test/native/pads/180/.
+  `-dev quick pair FIRST / SECOND` selects different named fighters in the two human slots.
+- Original strike authoring (from the repository root):
+  `blender --background --python tools/animations/strikes.py -- archer|rifleman|illidan`.
+  `SMASHCRAFT_ANIMATION_ASSETS=PRIVATE_DIR` selects Archer's editable inputs;
+  `SMASHCRAFT_STRIKE_CLIP='Attack Jab'` reauthors only the fist punch.
+- Thrall stock-rig animation authoring (from the repository root):
+  `bun tools/animations/thrall-clips.ts STOCK_THRALL.mdx PRIVATE_OUTPUT` appends
+  mounted hammer, casting, recovery, grab and nine contact-reaction clips,
+  writes both-facing side-view sheets, and refreshes Thrall clip and stride
+  metadata. Store the generated model in `hero-models` and refresh the
+  original clip pool before building.
 - Lich King animation authoring (from the repository root):
-  `tools/animations/build-lichking.sh [PRIVATE_INPUTS] [IMMUTABLE_EXISTING_MODEL]`
+  `tools/animations/build-lichking.sh [PRIVATE_INPUTS] [IMMUTABLE_EXISTING_MODEL] [--replace NAME]`
   authors clips through Blender; the optional existing model preserves shipped
-  sequences and appends only new clips (smashcraft:docs/fighter-animation-work.md).
+  sequences and appends only new clips; `--replace NAME` reauthors one existing clip at its same index and length (smashcraft:docs/fighter-animation-work.md).
+- White body flashes (from the repository root):
+  `bun tools/animations/white-flash-models.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
+  authors white body-only copies with the original meshes and animation keys for charge and heavy-hit flashes; store PRIVATE_OUTPUT as `impact-assets`.
 - Damage reactions (from the repository root):
   `bun tools/animations/damage-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
   appends all 13 fighters' nine articulated contact reactions, checks their
@@ -126,15 +159,42 @@ code. From smashcraft:ts/:
   `-dev quick`, and waits until every signed-in client writes its receipt.
   `--rebuild` replaces the map script first. Other quick starts for `--chat`
   and pad scripts: `-dev quick hero NAME`, `-dev quick recovery hero NAME`
-  (starts tumbling above the floor for recovery captures), and `-dev quick cpu N [hero NAME]`,
-  a quick match against a selectable computer at level N (1-9) over three stocks.
+  (starts tumbling above the floor for recovery captures), and `-dev quick cpu OPPONENT DIFFICULTY [hero NAME]`,
+  a quick match against a named computer at the selected difficulty over three stocks.
   The named variant uses the normal CPU selection rule.
+  `-dev pain HEIGHT STRENGTH FIGHTER` starts the #181 mirror capture fixture:
+  low/middle/high and small/medium/large, with ordinary projectile contacts at
+  frame 150 after both players' scripted jab. `bun tools/animations/pain-pads.ts`
+  from the repository root generates its 117 native parity scripts.
+- Generated menus: smashcraft:ts/scripts/wisp/uiFrames.ts defines menu panels as Wisp
+  frame definitions (wisp:docs/ui.md); after changing one or its layout, `bun
+  scripts/wisp/uiFrames.ts` rewrites its FDF/TOC in smashcraft:tools/selection/art/
+  and its bindings in smashcraft:ts/src/game/ui/ (test/ui-frames.test.ts holds them current).
+- Client actions accept `--clients-file FILE`, including watch, doctor and
+  keys; use the exact offline pair's file. `WISP_CLIENTS` does not select
+  clients. Pixel/input actions need the pair's file with desktop tools
+  (the acceptance and integrity runners prepare it through `withTools`).
 - Client state: `bun wisp client watch [CLIENT...] [--once]` prints what each client
   is doing (signed in, menu screen, lobby, loading, in match, results,
   disconnected, crashed, its map's load errors, the ladder scan) from its menus,
   log, crash reports, match receipts and processes, never its screen. Run it
   before clicking or reading a client; `bun wisp client watch CLIENT --once` and
   `bun wisp client wait CLIENT STATE...` read or wait on one (wisp:docs/watch.md).
+- Native script driver: `bun wisp map build --profile native-driver --name NAME --out MAP.w3x`
+  packages a callback match driven by `bun wisp engine drive SCRIPT --client lan0a,lan0b`.
+  `engine drive reset`, `capture`, `pause`, `step N`, and `resume` control the whole map callback;
+  `engine drive FILE` accepts a pad script with its `#! chat` setup, starts at
+  frame 0 paused, and uses the normal input-row adapter. A command file containing
+  `capture` holds and saves the current frame, and pad `capture` lines save the
+  named client's moment at their frame. VIEW held 60 frames saves its normal moment;
+  START uses the normal pause action, and a driver resume continues that pause. `resume N` runs until frame N, while `step N` advances N frames from the current
+  frame. Holds write the canonical checksum and saved moments for `bun wisp repro`.
+  `bun scripts/nativeDriverAcceptance.ts --clients-file FILE --client lan0a,lan0b
+  --script test/native/pads/archer-neutral.pad --frames 460 --runs 50 --out DIR`
+  measures 50 full pad runs plus one stepped control, compares both clients and
+  replays each hold. `--game-start-ms N` records launch-to-first-check time from the
+  timestamp before hosting the map.
+  This diagnostic path measures native script delivery, not hardware pad timing.
 - Engine debugger: a native desync? `bun wisp engine desync A B` names the
   first differing turn and checksum section of the clients' Desync.log
   dumps; `bun wisp engine poll --client a,b` during a repro and `bun wisp
@@ -161,7 +221,10 @@ code. From smashcraft:ts/:
   ready state: it recovers a client that dropped from Battle.net, crashed
   with its error dialog up, sits at the empty login shell, a stale lobby or
   a stuck loading screen, or shares its prefix with a second runtime, and
-  stops with one line when Tom must sign in (wisp:docs/doctor.md). `fresh`,
+  signs a launcher at its Battle.net sign-in form in with the client's account
+  (A: account c, B: account b; smashcraft:ts/scripts/wisp/doctor.ts), so Tom
+  never signs in by hand (wisp:docs/doctor.md). `bun wisp client sign-out
+  CLIENT...` signs a client out; the next doctor run signs it in. `fresh`,
   `integrity capture` (bot sessions included), `play` and `accept` run it before
   they start and once after a failure; run it instead of driving a client by
   hand.
@@ -189,8 +252,15 @@ code. From smashcraft:ts/:
   with maps under Maps/00-Smashcraft/tests; play preserves two prior versions
   beside the latest correctly titled build and archives the rest under older/.
   The playable build plays on the keyboard alone, through Warcraft's own
-  synchronized key events (#166); play starts no helper and never needs one.
+  local keyboard sampling with two-frame delay and rollback (#60/#166);
+  play starts no helper and never needs one.
   When the always-on controller service has a pad, the pad presses the same keys.
+- Standalone play: `bun wisp play --standalone` opens the Wisp browser player
+  with a full three-stock Archer against Wren Expert Rifleman. `--script FILE`
+  runs the native driver's exact pad inputs; `--headless --frames N --out DIR`
+  saves frame checksums and captures (`--capture-frames N,N` picks their frames).
+  Private map and Warcraft assets stay in the existing local asset store.
+- Controller layout: `bun wisp controller layout standard|zjump` changes the running service live, or saves the choice for its next start. Layout, tap jump and left/right full or light shield are kept in `~/.config/smashcraft/controller.json` (or `$XDG_CONFIG_HOME/smashcraft/controller.json`) and editable on the client Controller page.
 - Controller: `bun wisp controller` points the always-on controller service
   (`wc3-journal --service`, the login unit smashcraft-controller.service) at
   main's helper and restarts it, or runs the service in the foreground when
@@ -205,14 +275,14 @@ code. From smashcraft:ts/:
   match and writes kept ones back (smashcraft:docs/typescript.md).
 - Player view: `bun wisp view scene DATA_DIR...` and `bun wisp view frame
   FRAME.ppm...` report what a player would see wrong; `view models` rewrites
-  the model facts they read (smashcraft:docs/player-view.md); `view strikes`
+  the model facts they read (smashcraft:docs/player-view.md); `view strikes --assets DIR`
   rewrites the hero strike moments swings and specials align to
   (smashcraft:docs/fighter-animation-work.md, "Hero swing alignment");
   `view motion --assets DIR` measures every fighter's movement and recovery
   clips and rewrites their foot cadence and audit (smashcraft:docs/fighter-motion.md);
   `view reach --assets DIR [--character ID]` rewrites how far fighters' swings
   draw toward their strikes (smashcraft:docs/hurtboxes.md).
-- Repro: `bun wisp repro FILE [--test NAME] [--frame N --out FILE] [--diff-frame N|previous]` replays a moment a player saved
+- Repro: `bun wisp repro FILE [--view] [--test NAME] [--shrink [--out FILE]] [--frame N --out FILE] [--diff-frame N|previous]` replays a moment a player saved
   with K (or View held on a controller) in simulated clients, to the checksum
   the game recorded; `--test NAME` writes a test that replays it. `--frame N
   --out FILE` saves its exact canonical state after N; `--diff-frame previous`
@@ -223,10 +293,14 @@ code. From smashcraft:ts/:
   manifest with its parts, or a joined replay, in Bun and 32-bit Lua to every
   recorded checksum; `--out` writes the joined replay to share
   (smashcraft:docs/design/client.md, "Full-match replays").
-- Headless match: `bun wisp headless [quick-match|desync] [--clients N]` plays
+- Headless match: `bun wisp headless [quick-match|desync] [--clients N] [--journey FILE] [--render DIR --frames N...]` plays
   the dev build's quick match in simulated clients in about a second and prints
   desyncs, error reports and scene problems; `--cost` adds its predicted
-  Warcraft cost per frame.
+  Warcraft cost per frame. `--render` draws requested frames using the map's
+  immutable imports and classic Warcraft assets; `--journey FILE` supplies
+  capture inputs as journey JSON. Stock extraction uses `CASC_EXTRACTOR`
+  and `WC3_STORAGE`; `WC3_TEXTURES` reuses extracted PNGs
+  (smashcraft:docs/player-view.md).
 - Frame cost: `LUA=<32-bit lua> bun wisp perf [quick-match|bot|bot-four|playable-bot-four]`
   plays a run in 32-bit Lua and prints each client's predicted Warcraft cost
   per frame (p50, p95, worst, typing stall); `bun wisp perf compare A B` fails
@@ -261,25 +335,58 @@ code. From smashcraft:ts/:
   prints the stretches the victim can't act in and the loops follow-ups make
   (smashcraft:docs/typescript.md); 11-28 minutes an attacker, inside the
   capacity scope.
+- Air drift: `bun scripts/airDrift.ts` prints every fighter's air speed,
+  air acceleration, dash/run-jump takeoff speed and dash-jump cross-up;
+  smashcraft:ts/scripts/airDrift.tests.ts holds them to the bands in
+  smashcraft:docs/gameplay-design.md ("Air drift and jump momentum").
+  Analog ingress diagnostics use `bun wisp map build --profile analog-keys`
+  or `--profile analog-cursor`; both keep one fixed top-down camera and the
+  keyboard rollback input path. Cursor calibration holds PageUp at grid cell
+  (0,0), then PageDown at (127,127), with Home and End held, before match measurements.
+  Each corner writes `smashcraft-pad-calibration-pSLOT.txt`; finished matches
+  export `smashcraft-pad-ROUTE-eEPOCH-pSLOT.txt` with captured axes, pressures,
+  payloads and mouse/input-sync event counts. The candidates are opt-in;
+  the playable build still samples its usual keys.
+  Home marks an armed pad; End commits a complete payload. While Home stays
+  held and End is released for an update, capture retains the last complete
+  pad row's axes and pressures. Focus loss or Home release clears that packet.
+  `bun scripts/analogNative.ts --pair N --clients-file FILE --helper WC3_CONTROLLER
+  --map MAP --route keys|cursor --out DIR --app-id NAME=ID --app-id NAME=ID`
+  runs 20 normal one-stock matches on an already admitted LAN pair; `--plan`
+  prints the setup without touching clients. It saves calibration clock anchors,
+  helper submissions, injected command times and each match's complete input
+  rows and event counts for the physical route comparison.
 - Roster AI coverage: `bun scripts/cpuCoverage.ts` prints movement, attacks,
   kit use, defense and recovery for all 13 selectable fighters over eight
-  seeded level-9 matches each; `GAME_TESTS=botCoverage bun test test/game.test.ts`
+  seeded Wren Expert matches each; `GAME_TESTS=botCoverage bun test test/game.test.ts`
   checks the same report, also included in the emitted-Lua32 suite.
-- CPU reads and move value: smashcraft:docs/design/cpu-levels.md describes
+- CPU reads and move value: smashcraft:docs/design/cpu-profiles.md describes
   bounded contextual habits, anticipatory commitments and risk-aware move
   choice; smashcraft:ts/src/game/match/botStrategyContracts.tests.ts checks
   adaptation, punishable reads, buffering and seeded decision variety.
-- Difficulty report: `gh workflow run cpu-levels.yml -f ref=COMMIT` measures every level pair with the existing `cpuLevels` report on a hosted runner (20 matches per pair, 100 level-9-vs-1 matches). The run summary and `cpu-levels` artifact hold its table.
+- Named-opponent calibration: `bun scripts/cpuCalibration.ts [--revision SHA]
+  [--out FILE] [--json FILE]` from ts/ measures all 30 identity/tier rows over
+  seeds 0–9, with 100 eligible decisions per measure, distributions and hard
+  collection/fairness/replay failures. `gh workflow run cpu-calibration.yml
+  -f ref=COMMIT` runs the same report hosted. Procedure and remaining behavior
+  gates: smashcraft:docs/design/cpu-profiles.md, "Calibration report".
+- Difficulty report: `gh workflow run cpu-tiers.yml -f ref=COMMIT` measures Wren at every tier pair with `cpuTiers` (20 matches per pair, 100 Expert-vs-Rookie matches). The run summary and `cpu-tiers` artifact hold its table.
+- Release roster: `bun scripts/releaseRoster.ts FIELD.json` (from ts/) writes
+  smashcraft:ts/src/game/sim/heroes/releaseRoster.ts from a gate run's
+  `cpuField --json` file: fighters outside the field band are hidden from
+  selection (grid, stepping, opening picks) for players and computers, while
+  measurement tools and named `-dev` commands keep every fighter. Empty
+  unless the balance owner cuts a release build (smashcraft:docs/design/roster.md, "Balance gate").
 - Compute farm: `bun wisp farm balance [--ref REF] [--wait]` plays the
-  balance gate's computer field (level 9, 400 a pair; `--level`,
+  balance gate's computer field (Wren Expert, 400 a pair; `--opponent`, `--tier`,
   `--per-pair`, `--seeds`) on GitHub's free hosted runners, a `cpuField
   --pairs` process a core over about 17 jobs, and with `--wait` prints the
-  verdict and field table. A level-9 run with at least 400 matches per pair
+  verdict and field table. A Wren Expert run with at least 400 matches per pair
   fails when the balance gate fails, after publishing the report artifact;
-  lower-level or smaller exploratory fields remain reports.
-  `bun wisp farm pads [--ref REF] [--dirs "DIR..."] [--wait]` plays
+  lower-tier or smaller exploratory fields remain reports.
+  `bun wisp farm pads [--ref REF] [--only DIR]... [--wait]` plays
   every top-level smashcraft:ts/test/native/pads/ script (or each issue
-  folder named in `--dirs`, such as `--dirs "151 167"`) headless through the
+  folder named by `--only`, such as `--only 151 --only 167`) headless through the
   real helper against its own `#!` expectations, for a change that moves hit
   timing or a new issue script on a loaded host; each job uploads its traces
   (`gh run download RUN`), the source of a new script's `#! expect` lines;
@@ -299,6 +406,10 @@ code. From smashcraft:ts/:
   compare replay results across Bun, that Lua32 and a Lua32 whose raw float
   `+ - *` round toward zero (`TOWARD_ZERO_LUA`, or built with nix on first use).
 - Parity: `bun wisp parity numeric` compares the numeric corpus with both Lua32s;
+  `bun wisp integrity capture --screen --clients-file FILE --client NAME --out PRIVATE_DIR [--count N] [--region X,Y,WIDTH,HEIGHT]`
+  measures serial framebuffer acquisition on the input stimulus clock and saves
+  actual pixels privately (smashcraft:docs/native-bot-session.md). Its cadence
+  sample is preparation for response measurements, with no latency pass result.
   `bun wisp integrity capture ...` runs native input-integrity capture and
   `bun wisp integrity result DIR` reconciles its output. `bun wisp parity
   headless --helper BIN --out DIR` runs the same capture through the real
@@ -314,13 +425,27 @@ code. From smashcraft:ts/:
   --app-id a=ID --app-id b=ID [--chat=TEXT] [--map MAP.w3x [--retries N]]` plays timed virtual-pad input
   through each client's real helper and reports the frame each edge landed on
   (script syntax: smashcraft:ts/scripts/integrity/padScript.ts). It copies
+  fresh selected-pair setup receipts to `DIR/setup.json` before the first edge;
+  missing chat entry or requested setup is INVALID at that client and boundary,
+  with no input timeline started (Wisp's observed chat/command receipt helpers).
   the clients' input traces, scene reports and moments beside the result;
+  captures require the requested frame in both drawn receipts, otherwise the
+  run is INVALID with retained captures and the first failed boundary in its report
+  (smashcraft:docs/native-bot-session.md, "Native checks by parity");
+  a scripted quick match holds each requested pose locally through the capture
+  while inputs and simulation continue; `held visual` images are not timing evidence;
   a desynced, crashed or early-ended run is INVALID and, with --map, rerun.
   `bun wisp pad SCRIPT --headless --helper BINARY --out DIR [--chat=TEXT]
-  [--compare NATIVE_DIR]` plays the same script through the same helper into
-  headless integrity clients. It passes a native run when checksums, fighter
+  [--compare NATIVE_DIR] [--render DIR --frames N...]` plays the same script through the same helper into
+  headless integrity clients. `--render` draws the script captures after the
+  session stops; `--frames` selects their comma-separated frame numbers.
+  It passes a native run when checksums, fighter
   lines and the script's `#!` expectations match (smashcraft:docs/native-bot-session.md,
   "Native checks by parity"; issue scripts in smashcraft:ts/test/native/pads/).
+  Comparisons preflight the existing View replay export before starting helpers
+  or native sessions: hold at least 60 frames and release (normally 70), after
+  the last capture to preserve authored action frames. Missing exports fail
+  early; actual moments and checksum parity remain required.
   Several scripts are one batch, and the batch is how native parity runs:
   `bun wisp pad SCRIPT|DIR... --helper BINARY --out DIR --map MAP.w3x
   [--pairs N | --pair K... | --app-id a=ID --app-id b=ID]` starts ONE game per client pair,
@@ -331,16 +456,25 @@ code. From smashcraft:ts/:
   script); `--fresh-each` exists only to measure that. `bun wisp pad
   SCRIPT|DIR... --headless ...` plays the same batch in one headless session
   (smashcraft:docs/native-bot-session.md, "Many scripts in one game").
-- Native acceptance: `bun wisp accept [--only ID...] [--pair K] [--dry-run]` runs every
+- Native acceptance: `bun wisp accept [--only ID...] [--pair K... | --pairs N] [--map MAP.w3x] [--dry-run]` runs every
   open native check declared in smashcraft:ts/scripts/wisp/acceptChecks.ts in
   as few fresh matches as their maps allow and prints pass, fail or
   needs-look per check with its evidence folder (wisp:docs/accept.md). `--pair K`
   selects the offline pool pair; every check, capture and receipt follows its
-  two clients, and sessions start through `lan fresh`. Declare
+  two clients, and sessions start through `lan fresh`. Several pairs
+  (`--pair K` repeated, or `--pairs N`) split the sessions over every pair at
+  once, one process per pair, with each map built once; the merged report and
+  each `shard-K/` are under the run's evidence folder. Declare
   a new native box there, next to the issue it closes, instead of a hand procedure.
+  `--map MAP.w3x` uses that already-built candidate for the selected checks
+  without rebuilding it; select checks needing the same build profile. Each
+  shard receives the same immutable map. Use revision-specific private paths.
   Render cadence: `-dev render-clock` in a development map records timer
   callback bursts and cost; `bun wisp accept --only 169-render-clock --dry-run`
   prints its native plan (smashcraft:docs/high-refresh.md).
+  `-dev camera-smooth on|off` compares native one-frame camera transitions
+  with the normal camera in the same development map; it keeps the simulated
+  camera unchanged (smashcraft:docs/high-refresh.md).
   Script-cost capture: `bun wisp build --profile native-perf ...` uses playable
   key input and pooled presentation with developer setup commands. In a match,
   `-dev capture 18000` writes every client's raw callback samples; read full-run

@@ -3,6 +3,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { Effect, Schema } from "effect";
+import { WHITE_FIGHTER_MODELS } from "../../src/game/assets/whiteFighterModels";
 import { STAGE_SKY_MODELS } from "../../src/game/assets/stageSkyInfo";
 import { MapBuild, MapBuildFailure, runProcess, type ArchiveEntry } from "wisp/scripts/wisp/mapBuild";
 import { UsageFailure } from "wisp/scripts/wisp/command";
@@ -22,6 +23,7 @@ import { HERO_ROSTER, PORTRAIT_KINDS, RENDERED_FIGHTERS, fighterPortrait } from 
 import { PARTICIPANT_SLOTS } from "../../src/game/input/participants";
 import { importedModelFile } from "../heroModelSource";
 import { buildProject, projectRoot as PROJECT } from "./project";
+import { UI_FRAMES } from "./uiFrames";
 const tryMapPromise = <A>(operation: string, path: string, run: () => PromiseLike<A>) => Effect.tryPromise({ try: run, catch: (cause) => new MapBuildFailure({ operation, path, cause }) });
 const tryMapSync = <A>(operation: string, path: string, run: () => A) => Effect.try({ try: run, catch: (cause) => new MapBuildFailure({ operation, path, cause }) });
 const EMPTY_MODEL = "the map script names an empty model path";
@@ -78,6 +80,7 @@ const importLines = (path: string) =>
  * under --assets must hold them, and its generator writes both.
  */
 export const GENERATED_MODELS: readonly { readonly list: string; readonly generator: string; readonly models: readonly string[] }[] = [
+  { list: "impact-assets/white-flash-imports.txt", generator: "tools/animations/white-flash-models.ts", models: WHITE_FIGHTER_MODELS },
   { list: "stage-assets/imports.txt", generator: "tools/stage/package.ts", models: [...Object.values(STAGE_DECK_MODELS).flatMap(({ main, slab }) => [main, slab]), STAGE_SNOW_MODEL, ...Object.values(STAGE_LIGHT_MODELS), ...Object.values(STAGE_SKY_MODELS)] },
   { list: "impact-assets/imports.txt", generator: "tools/effects/package.ts", models: Object.values(impactModels) },
   { list: "impact-assets/frost-imports.txt", generator: "tools/effects/trap.ts", models: Object.values(frostModels) },
@@ -172,9 +175,25 @@ const carriedModels = (map: string, packager: string, models: readonly string[] 
   }
 }));
 
-/** Replaces only the map's script, after checking the map carries every model that script names. */
-export const rebuildMap = (map: string) =>
-  carriedModels(map, buildProject().packager).pipe(step("script models carried"), Effect.andThen(MapBuild.use((maps) => maps.rebuild(map))));
+/** The generated menu frames' FDF and TOC files, which the script's create functions load by name. */
+const UI_FRAME_FILES = UI_FRAMES.flatMap(({ definition }) => [`${definition.name}.fdf`, `${definition.name}.toc`]);
+
+/**
+ * Replaces the map's script, after checking the map carries every model that
+ * script names, and the generated menu frames the script creates by name.
+ */
+export const rebuildMap = (map: string) => {
+  const packager = buildProject().packager;
+  return carriedModels(map, packager).pipe(
+    step("script models carried"),
+    Effect.andThen(MapBuild.use((maps) => maps.rebuild(map))),
+    Effect.andThen(Effect.forEach(UI_FRAME_FILES, (file) => {
+      const { entry, source } = imported(join(PROJECT, "tools/selection/art"), file);
+      return runProcess(`replace ${entry}`, map, [packager, "replace", map, source, entry]);
+    }, { discard: true })),
+    step("menu frames replaced"),
+  );
+};
 
 const imported = (directory: string, file: string): ArchiveEntry => ({ entry: `war3mapImported\\${file}`, source: join(directory, file) });
 
@@ -214,7 +233,7 @@ export const importedAssets = (assets: string, summon: string) => Effect.gen(fun
       entry: fighterPortrait(character, kind, slot),
       source: join(assets, "fighter-renders", fighterPortrait(character, kind, slot).replace("war3mapImported\\", "")),
     })))),
-    ...["SmashcraftHUD.fdf", "SmashcraftHUD.toc"].map((file) => imported(join(PROJECT, "tools/selection/art"), file)),
+    ...["SmashcraftHUD.fdf", "SmashcraftHUD.toc", ...UI_FRAME_FILES].map((file) => imported(join(PROJECT, "tools/selection/art"), file)),
     // Community models, textures and icons at the archive paths their authors' readmes name.
     ...IMPORTED_MODEL_FILES.map(({ entry, file }) => ({ entry, source: join(assets, "imported-models", file) })),
     ...generated.flat(),

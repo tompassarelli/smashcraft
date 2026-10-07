@@ -1,7 +1,7 @@
 import { h, svg } from "../dom";
 import {
-  PROFILE_CHOICES, PROFILE_LABEL, controlLabel, pressFromValue, pressLabel, pressOptions, pressValue, pressed, stickDot,
-  type Binding, type Bindings, type Button, type ControllerState, type InputView, type ProfileChoice,
+  PROFILE_CHOICES, PROFILE_LABEL, controlLabel, pressFromValue, pressLabel, pressOptions, pressValue, pressed, stickDot, smashcraftActionLabel,
+  type Binding, type Bindings, type Button, type ControllerState, type ControllerSettings, type InputView, type ProfileChoice,
 } from "../model";
 import { api } from "../tauri";
 
@@ -125,6 +125,37 @@ function profileCard(onChoice: (choice: ProfileChoice) => void) {
 
 function mappingCard() {
   const smashcraftTable = h("table.mapping");
+  const presetSelect = h("select", { "aria-label": "Smashcraft pad preset" });
+  const triggerSelects = { left: h("select", { "aria-label": "Left trigger shield" }), right: h("select", { "aria-label": "Right trigger shield" }) };
+  for (const [side, select] of Object.entries(triggerSelects)) {
+    select.append(h("option", { value: "full" }, "Full shield"), h("option", { value: "light" }, "Light shield"));
+    select.addEventListener("change", async () => {
+      select.disabled = true;
+      try {
+        await api.setTriggerShields({ left: triggerSelects.left.value as "full" | "light", right: triggerSelects.right.value as "full" | "light" });
+      } finally { select.disabled = false; }
+    });
+  }
+  const tapJump = h("input", { type: "checkbox", "aria-label": "Tap jump" });
+  tapJump.addEventListener("change", async () => {
+    tapJump.disabled = true;
+    try {
+      await api.setTapJump(tapJump.checked);
+    } finally {
+      tapJump.disabled = false;
+    }
+  });
+  let presetBindings: Bindings["pad_presets"] = [];
+  presetSelect.addEventListener("change", async () => {
+    const preset = presetBindings.find((p) => p.preset === presetSelect.value);
+    if (!preset) return;
+    presetSelect.disabled = true;
+    try {
+      await api.setPadPreset(preset.preset);
+    } finally {
+      presetSelect.disabled = false;
+    }
+  });
   const menusTable = h("table.mapping");
   const anyMapTable = h("table.mapping");
   const reset = h("button.quiet", { type: "button" }, "Back to the default keys");
@@ -132,7 +163,7 @@ function mappingCard() {
   const save = async () => {
     await api.setAnyMapBindings(anyMap);
   };
-  const rows = (bindings: Binding[]) => {
+  const rows = (bindings: Binding[], smashcraft = false) => {
     // A stick's four directions doing the same thing read as one row.
     const seen = new Set<string>();
     return bindings.flatMap((b) => {
@@ -140,11 +171,11 @@ function mappingCard() {
       const label = stick !== undefined && b.press === "pointer" ? `${stick === "left" ? "Left" : "Right"} stick` : controlLabel(b.control);
       if (seen.has(label)) return [];
       seen.add(label);
-      return [h("tr", {}, h("th", {}, label), h("td", {}, b.action))];
+      return [h("tr", {}, h("th", {}, label), h("td", {}, smashcraft ? smashcraftActionLabel(b) : b.action))];
     });
   };
   const renderSmashcraft = (bindings: Binding[], menus: Binding[]) => {
-    smashcraftTable.replaceChildren(...rows(bindings));
+    smashcraftTable.replaceChildren(...rows(bindings, true));
     menusTable.replaceChildren(...rows(menus));
   };
   const renderAnyMap = () => {
@@ -162,8 +193,24 @@ function mappingCard() {
       }),
     );
   };
+  let currentSettings: ControllerSettings | undefined;
+  const renderSettings = (settings: ControllerSettings) => {
+    currentSettings = settings;
+    tapJump.checked = settings.tap_jump;
+    presetSelect.value = settings.pad_preset;
+    triggerSelects.left.value = settings.triggers.left;
+    triggerSelects.right.value = settings.triggers.right;
+    const selected = presetBindings.find((p) => p.preset === settings.pad_preset);
+    if (selected) smashcraftTable.replaceChildren(...rows(selected.bindings.map((b) => {
+      const side = b.control === "lt" ? "left" : b.control === "rt" ? "right" : undefined;
+      return side ? { ...b, action: settings.triggers[side] === "light" ? "Light shield" : "Shield" } : b;
+    }), true));
+  };
   const load = (bindings: Bindings, defaults?: Binding[]) => {
+    presetBindings = bindings.pad_presets;
+    presetSelect.replaceChildren(...presetBindings.map((p) => h("option", { value: p.preset }, p.label)));
     renderSmashcraft(bindings.smashcraft, bindings.smashcraft_menus);
+    renderSettings(currentSettings ?? bindings);
     anyMap = (defaults ?? bindings.any_map).map((b) => ({ ...b }));
     renderAnyMap();
   };
@@ -179,12 +226,16 @@ function mappingCard() {
     {},
     h("h2", {}, "Buttons"),
     h("div.columns", {},
-      h("div", {}, h("h3", {}, "Smashcraft"), smashcraftTable, h("h3", {}, "Smashcraft menus"), menusTable),
+      h("div", {}, h("h3", {}, "Smashcraft"), h("label", {}, "Layout ", presetSelect),
+        h("label.switch", {}, tapJump, h("span", {}, "Tap jump"), h("small", {}, "Push the left stick up to jump.")),
+        h("label", {}, "Left trigger ", triggerSelects.left), h("label", {}, "Right trigger ", triggerSelects.right),
+        smashcraftTable, h("h3", {}, "Smashcraft menus"), menusTable),
       h("div", {}, h("h3", {}, "Any map"), anyMapTable, reset),
     ),
   );
   return {
     el,
+    renderSettings,
     load: (bindings: Bindings, anyMapDefaults: Binding[]) => {
       defaults = anyMapDefaults;
       load(bindings);
@@ -224,6 +275,7 @@ export function controllerPage(root: HTMLElement): () => void {
     link = s.link;
     status.render(s);
     profile.render(s);
+    if (s.link === "connected") mapping.renderSettings(s.snapshot.settings);
     if (s.link !== "connected") pad.render(NEUTRAL);
   };
   void api.controllerState().then(onState);

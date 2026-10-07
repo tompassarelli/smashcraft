@@ -32,6 +32,12 @@ function computerMatch(characters: readonly [Character, Character], xs: readonly
   match.phase = Phase.match;
   match.stageChoice = stage;
   match.timeLimitMinutes = 0;
+  // Strongest-play contracts select Wren Expert explicitly rather than the Intermediate default.
+  for (const slot of PARTICIPANT_SLOTS) {
+    match.cpuOpponents[slot] = "wren";
+    match.cpuResolvedOpponents[slot] = "wren";
+    match.cpuTiers[slot] = "expert";
+  }
   const produced = createFrameControls();
   const controls = createFrameControls();
   const runtime = createPacingAndPresentation();
@@ -122,10 +128,10 @@ function heroUsage(game: ReturnType<typeof computerMatch>, slot: number, frames:
   return { specials, grabs, computer };
 }
 
-test("computer Uther shoots Holy Light at a level target in range and never presses what its mana can't pay", () => {
+test("computer Uther sends Holy Radiance at a level target in range and never presses what its mana can't pay", () => {
   const game = computerMatch([Character.archer, Character.uther], [-200.0, 200.0], 0, 2);
   const { specials } = heroUsage(game, 1, 900);
-  assertGreaterThan(specials[0] ?? 0, 0);
+  assertGreaterThan(specials[1] ?? 0, 0);
   const broke = computerMatch([Character.archer, Character.uther], [-200.0, 200.0], 0, 2);
   const uther = fighterAt(broke.world, 1);
   let pressedWithoutMana = 0;
@@ -161,6 +167,22 @@ test("computer Uther raises Divine Shield against a strike timed into its guard 
     input.shieldStrength = 1.0;
   });
   assertGreaterThan(grabbed.grabs, 0);
+});
+
+test("protected Uther uses an affordable Holy Radiance at range without reserving a second guard", () => {
+  for (const protectedNow of [false, true]) {
+    const game = computerMatch([Character.archer, Character.uther], [440.0, 0.0], 0, 2);
+    for (let frame = 0; frame < 12; frame++) game.step();
+    const uther = fighterAt(game.world, 1);
+    uther.mana.points = 60;
+    uther.status.divineFrames = protectedNow ? 14 : 0;
+    game.step();
+    assertEquals(uther.special.action, protectedNow ? SpecialAction.heroSide : SpecialAction.none);
+    if (protectedNow) {
+      assertEquals(uther.mana.points, 10);
+      assertEquals(uther.status.divineFrames, 0);
+    }
+  }
 });
 
 // One test a hero: the roster grows, and each hero's two 3600-frame matches take 0.3-0.5 s alone.

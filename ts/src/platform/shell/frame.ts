@@ -5,7 +5,7 @@ import { hasPendingAttack, clearAttackBuffer } from "../../game/input/attackBuff
 import { adaptInput } from "../../game/input/adapter";
 import { commitEdges } from "../../game/input/keyboardCapture";
 import { PARTICIPANT_SLOTS, type ParticipantSlot, participantActive } from "../../game/input/participants";
-import { captureFrame, copyExecutedInput, executeMatchFrame, hasNetworkRows, restoreMatchFrame } from "../../game/match/frameInput";
+import { captureFrame, executeMatchFrame, hasNetworkRows, restoreMatchFrame } from "../../game/match/frameInput";
 import { beginMomentFrame, keepMomentEnd, momentFrameRan, recordMomentRow } from "../../game/replay/moment";
 import { Phase, beginRematchCountdown, computerActive, humanFighterActive } from "../../game/match/rules";
 import { resultMessage, aerialName, fighterLabel } from "../../game/shell/messages";
@@ -19,7 +19,8 @@ import { isAerialAttack } from "../../game/sim/moves";
 import { fighterAt, isActive } from "../../game/sim/roster";
 import { traceFrameInput, traceParticipant } from "./diagnostics";
 import { confirmModelSounds } from "../../game/render/modelSounds";
-import { type FrameObservation, type ShellState, activeRollback } from "./state";
+import { type FrameObservation, type ShellState, activeRollback, localSlot } from "./state";
+import { heldVisualFrame } from "../../game/shell/visualCapture";
 import { clearMatchEffects, views } from "./ui";
 import { traceInput } from "./trace";
 import { probeRecording } from "./responseProbe";
@@ -47,12 +48,18 @@ function observe(before: FrameObservation, fighter: Readonly<Fighter>): void {
   before.form = fighter.special.form;
   before.ground = fighter.ground.action;
   before.facing = fighter.facing;
+  before.shieldRaised = fighter.shield.raised;
+  before.shieldTiltX = fighter.shield.tiltX;
+  before.shieldTiltZ = fighter.shield.tiltZ;
 }
 
 const bit = (value: boolean) => (value ? "1" : "0");
 
 /** Announcements and trace lines for what the frame changed. */
 function reportChanges(s: ShellState, slot: ParticipantSlot, before: Readonly<FrameObservation>, f: Readonly<Fighter>): void {
+  if (s.trace.active && (before.shieldRaised !== f.shield.raised || before.shieldTiltX !== f.shield.tiltX || before.shieldTiltZ !== f.shield.tiltZ)) {
+    traceParticipant(s, slot, `shield tilt x ${R2S(f.shield.tiltX)} z ${R2S(f.shield.tiltZ)} raised ${bit(f.shield.raised)} grounded ${bit(f.motion.grounded)} roll ${f.dodge.groundFrame} jump ${f.jump.squat}`);
+  }
   if (s.trace.active && (before.ground !== f.ground.action || before.facing !== f.facing)) {
     traceParticipant(s, slot, `ground action ${f.ground.action} facing ${f.facing} dash-frame ${f.ground.dashFrame}`);
   }
@@ -69,7 +76,7 @@ function reportChanges(s: ShellState, slot: ParticipantSlot, before: Readonly<Fr
   if (before.breakState !== f.shield.breakState) traceParticipant(s, slot, `shield-break ${f.shield.breakState} z ${R2S(f.motion.z)} remaining ${R2S(f.shield.breakRemaining)}`);
   if (before.ledge !== f.ledge.state) traceParticipant(s, slot, `ledge ${f.ledge.state} x ${R2S(f.motion.x)} z ${R2S(f.motion.z)}`);
   if (before.jump !== f.jump.serial) traceParticipant(s, slot, `applied jump ${f.jump.serial} double ${bit(f.jump.isDouble)} z ${R2S(f.motion.z)}`);
-  if (before.damage !== f.status.damage) traceParticipant(s, slot, `damage ${R2S(f.status.damage)} hitlag ${f.launch.hitlag} hitstun ${f.launch.hitstun}`);
+  if (before.damage !== f.status.damage) traceParticipant(s, slot, `damage ${R2S(f.status.damage)} hitlag ${f.launch.hitlag} hitstun ${f.launch.hitstun} height ${f.visuals.hitHeight} strength ${f.visuals.hitStrength} clip ${s.runtime.poses[slot].clipIndex ?? -1}`);
   const influence = s.trace.active && before.di !== f.launch.diSerial ? influenceOperands(f) : undefined;
   if (influence !== undefined) {
     // Exact x, z, stick x, stick z, degrees, radians and angle, so a replay can repeat the DI operation by operation.
@@ -123,15 +130,20 @@ export function applyFrame(s: ShellState, recorded = false): void {
     if (!isActive(world, slot)) continue;
     const participant = s.participants[slot];
     const fighter = fighterAt(world, slot);
-    if (rollback !== undefined) copyExecutedInput(s.frameInput, slot, s.produced.inputs[slot]);
     reportChanges(s, slot, participant.before, fighter);
     if (participant.pooled && !confirmModelSounds(s.sounds, s.sounds.epoch ?? 0, runtime.simulationFrame, slot, fighter, runtime.poses[slot], ui.sounds)) {
       traceInput(s.trace, `model sound rejected confirmed frame ${runtime.simulationFrame} slot ${slot}`);
     }
-    ui.combat.presentConfirmed(runtime.simulationFrame, slot, runtime.frameImpacts[slot]);
+    const held = heldVisualFrame(localSlot()) !== undefined;
+    if (!held) ui.combat.presentConfirmed(runtime.simulationFrame, slot, runtime.frameImpacts[slot], s.trace.active
+      ? (sound, volume, pitch) => traceInput(s.trace, `participant ${slot} frame ${runtime.simulationFrame} sound ${sound} volume ${volume} pitch ${canonicalReal(pitch)}`)
+      : undefined);
     ui.combat.confirmContacts(runtime.simulationFrame, runtime.frameImpacts[slot]);
-    renderFighter(s, slot, runtime.poses[slot], participant.before.out);
-    ui.special.presentConfirmedAnimated(runtime.simulationFrame, fighter, slot);
+    if (!held) {
+      renderFighter(s, slot, runtime.poses[slot], participant.before.out);
+      ui.special.presentConfirmedAnimated(runtime.simulationFrame, fighter, slot);
+      ui.placed.presentConfirmed(runtime.simulationFrame, fighter, slot);
+    }
   }
   const cues = ui.match.presentConfirmed(s.game, world);
   if (s.game.phase !== Phase.result) return;

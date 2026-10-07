@@ -25,6 +25,10 @@ interface TierDeparture {
 }
 
 export const TIER_DEPARTURES: readonly TierDeparture[] = [
+  ...[AttackStyle.forwardTilt, AttackStyle.forwardTiltUp, AttackStyle.forwardTiltDown, AttackStyle.upTilt, AttackStyle.downTilt,
+    AttackStyle.dashAttack, AttackStyle.neutralAir, AttackStyle.forwardAir, AttackStyle.upAir, AttackStyle.downAir].map((style) => ({
+    character: Character.uther, style, tier: SoundTier.large, why: "Uther's committed hammer blows use the heavy bash (#216)",
+  })),
   { character: Character.warden, style: AttackStyle.downTilt, tier: SoundTier.small, why: "her chain poke repeats like a jab (Ness's foot jab)" },
   { character: Character.pitLord, style: AttackStyle.dashAttack, tier: SoundTier.large, why: "Demonic Bulk, the roster's strongest dash attack, hits like a smash" },
 ];
@@ -54,7 +58,7 @@ export function tierSoundPaths(): string[] {
 
 /** A tiered hit's own sound file, varied by its hit serial; elemental hits keep their element's label. */
 export function tierHitPath(element: HitElement, tier: number, variant: number): string | undefined {
-  if (element !== HitElement.normal && element !== HitElement.slash) return undefined;
+  if (element !== HitElement.normal && element !== HitElement.slash && !(element === HitElement.holy && tier === SoundTier.large)) return undefined;
   const files = at(element === HitElement.slash ? SLICE : BASH, tier);
   return at(files, imod(variant, files.length));
 }

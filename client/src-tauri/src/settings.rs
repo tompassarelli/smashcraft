@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
-use wc3_controller_model::{Binding, ProfileChoice};
+use wc3_controller_model::{Binding, ClientMessage, ProfileChoice};
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
@@ -16,6 +16,12 @@ pub struct Settings {
     pub record_folders: Option<Vec<String>>,
     /// Whether the player agreed to add Smashcraft's page to Warcraft III's menus (online play); none until asked.
     pub menu_page: Option<bool>,
+}
+
+impl Settings {
+    pub fn greeting(&self) -> Vec<ClientMessage> {
+        vec![ClientMessage::Profile(self.profile)]
+    }
 }
 
 pub struct Store {
@@ -62,6 +68,12 @@ mod tests {
             record_folders: Some(vec!["/games/CustomMapData".into()]),
             menu_page: Some(true),
         };
+        assert!(matches!(
+            settings.greeting().as_slice(),
+            [
+                ClientMessage::Profile(ProfileChoice::AnyMap)
+            ]
+        ));
         store.save(&settings).unwrap();
         assert_eq!(store.load(), settings);
         std::fs::remove_dir_all(dir).unwrap();

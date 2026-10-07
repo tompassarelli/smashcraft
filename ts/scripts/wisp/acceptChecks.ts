@@ -5,11 +5,11 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
 import type { AcceptSuite, NativeCheck, Rule } from "wisp/scripts/wisp/accept";
-import { QUICK_HERO_COMMAND, QUICK_TRAINING_COMMAND } from "../../src/game/shell/devSettings";
+import { QUICK_CPU_COMMAND, QUICK_HERO_COMMAND, QUICK_TRAINING_COMMAND } from "../../src/game/shell/devSettings";
 import { HIT_PRESENTATION_CASES } from "../../src/game/shell/hitPresentationCases";
 import { HERO_ROSTER } from "../../src/game/sim/heroes/registry";
 import { STAGE_CATALOG } from "../../src/game/menu/stageCatalog";
-import { STAGE_COMPOSITION_CHECKS, STAGE_COMPOSITION_MAPS } from "./stageCompositionChecks";
+import { STAGE_COMPOSITION_CHECKS, STAGE_COMPOSITION_MAPS, STAGE_ENTRY_CHECKS, STAGE_ENTRY_MAPS } from "./stageCompositionChecks";
 
 const inputs = join(homedir(), ".local/share/smashcraft-build-inputs");
 
@@ -34,8 +34,11 @@ const heroProfile = (name: string) => `hero-${name.toLowerCase().replace(/\s+/g,
 export const MAP_PROFILES: Readonly<Record<string, SmashcraftMapProfile>> = {
   outfits: { describe: "four-colour portrait candidate, red Archer and blue Rifleman", path: join(inputs, "slot-outfits-161-20261007/Smashcraft diagnostic slot portrait outfits.w3x"), quick: "-dev quick" },
   ...STAGE_COMPOSITION_MAPS,
+  ...STAGE_ENTRY_MAPS,
   presentation: { describe: "development map rebuilt from this checkout, `-dev quick` (Archer and Rifleman idle on the default stage)", path: PRESENTATION, rebuild: "main", quick: "-dev quick" },
   // smashcraft:docs/player-view.md: CURRENT_BUILD's scenario set to underside, built as a development map.
+  // smashcraft#166: the playable build's keyboard input and pooled fighters (native-perf adds only developer setup and the frame meter).
+  keyboard: { describe: "playable input (native-perf profile) rebuilt from this checkout, `-dev quick cpu wren expert` (Wren Expert, three stocks)", path: join(inputs, "keyboard-native-166-20261007/keyboard-native.w3x"), rebuild: "native-perf", quick: `${QUICK_CPU_COMMAND}wren expert` },
   underside: { describe: "development map built with scenario underside (smashcraft:docs/player-view.md), `-dev quick`", path: join(inputs, "stage-model-20261006/Smashcraft diagnostic underside.w3x"), quick: "-dev quick" },
   training: { describe: "development map rebuilt from this checkout, `-dev quick training` (a computer partner shielding at 40%, hit areas on)", path: PRESENTATION, rebuild: "main", quick: QUICK_TRAINING_COMMAND },
   // A quick match starts only from fighter selection, so each stage is its own session.
@@ -57,12 +60,6 @@ export const MAP_PROFILES: Readonly<Record<string, SmashcraftMapProfile>> = {
     quick: `${QUICK_HERO_COMMAND}${name.toLowerCase()}`,
   }])),
 };
-
-// Positions in the 2560x1440 client frame.
-/** About 600x400 on the screen's centre, where the effects diagnostic places its cues. */
-const CENTRE = { x: 980, y: 520, width: 600, height: 400 };
-/** Where Warcraft prints a text message to the player, above the console. */
-const MESSAGES = { x: 0, y: 700, width: 1600, height: 500 };
 
 /** No runtime error report written during the check, on any client. */
 const NO_ERRORS: Rule = { kind: "receipt", pattern: "^error \\d+ in ", max: 0 };
@@ -132,8 +129,8 @@ const effectChecks: NativeCheck[] = [12, 13, 14, 15, 24, 2, 7, 5, 6, 4, 9, 11, 2
     map: "presentation",
     setup: [{ waitMs: 3000 }, { chat: `-dev effects ${index}` }, { receipt: "^SMASHCRAFT DEV v=1 ", seconds: 4 }],
     capture: [
-      { kind: "frames", name: "centre", region: CENTRE, count: 6, everyMs: 50 },
-      { kind: "reading", name: "label", region: MESSAGES, pattern: `dev: effects ${index} (\\S+ \\S+)` },
+      { kind: "frames", name: "centre", count: 6, everyMs: 50 },
+      { kind: "reading", name: "label", pattern: `dev: effects ${index} (\\S+ \\S+)` },
     ],
     // The label is written by the call that starts the sound: the right label is the sound's evidence.
     pass: [DEV_RECEIPT, NO_ERRORS, { kind: "reading", name: "label", pattern: `${model} ${sound}`, orLook: true }],
@@ -144,6 +141,31 @@ const effectChecks: NativeCheck[] = [12, 13, 14, 15, 24, 2, 7, 5, 6, 4, 9, 11, 2
 export const SMASHCRAFT_ACCEPT: AcceptSuite = {
   maps: MAP_PROFILES,
   checks: [
+    {
+      id: "123-selection", closes: "smashcraft#123 box 5", map: "presentation", session: "123-match-flow",
+      setup: [
+        { chat: "-dev reset" }, { chat: "-dev slots 1 2" }, { chat: "-dev stocks 1" },
+        { chat: "-dev fighter 2 Illidan" }, { chat: "-dev stage 2" }, { chat: "-dev auto-rematch off" },
+        { waitMs: 10000 }, { keys: ["r"], client: "a" }, { waitMs: 2000 },
+      ],
+      capture: [{ kind: "frames", name: "fighter-selection", client: "a" }],
+      pass: [NO_IMPORT_FAILURES, NO_ERRORS],
+      look: "Record the selected client's isolated audio sink with the checks pool profile (music muted). During the selection wait, move its private pointer across roster cells; match MouseOver1 and BigButtonClick above every rival by normalized cross-correlation. Retain #123's accepted earlier sound measurements.",
+    },
+    {
+      id: "123-countdown", closes: "smashcraft#123 box 5", map: "presentation", session: "123-match-flow",
+      setup: [{ keys: ["y"], client: "a" }, { waitMs: 600 }, { keys: ["y"], client: "a" }],
+      capture: [{ kind: "frames", name: "countdown", client: "a", count: 24, everyMs: 150 }],
+      pass: [NO_IMPORT_FAILURES, NO_ERRORS],
+      look: "OCR reads the normal match's 3, 2, 1 and GO! calls from the retained frames.",
+    },
+    {
+      id: "123-result", closes: "smashcraft#123 box 5", map: "presentation", session: "123-match-flow",
+      setup: [{ receipt: "^parts [0-9]+$", client: "a", seconds: 600 }],
+      capture: [{ kind: "frames", name: "game-and-results", client: "a", count: 16, everyMs: 150 }],
+      pass: [NO_ERRORS, { kind: "receipt", pattern: "^parts [0-9]+$", client: "a", min: 1 }],
+      look: "OCR reads GAME! and the results numbers; measure the winner's normally coloured pixels visible beside the panel. The one-stock match ends through ordinary combat against Illidan.",
+    },
     {
       id: "161-slot-outfits", closes: "smashcraft#161 box 4", map: "outfits",
       setup: [{ waitMs: 3000 }],
@@ -190,6 +212,30 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
       pass: [NO_IMPORT_FAILURES, NO_ERRORS],
       look: "His free hand presses down to plant the shadow pool ahead while Frostmourne stays raised; its low rim changes from dim to violet when armed, stays at the pool's horizontal danger edge, and faces the other way for player 2. The drawn-frame captures at 50/60, 65 and 77 in smashcraft:ts/test/native/pads/lich-king-defile.pad show the gathering/push, warning and armed edge; that script also checks repeated casts and an unhurt jump escape.",
     })),
+    // Keys: W R E move, I jump, N attack, U special, O grab (presetBindings standard).
+    // The quick CPU match has a seven-minute limit; allow its ordinary result plus catch-up after loading.
+    {
+      id: "166-keyboard-match",
+      closes: "smashcraft#166 box 3 (keyboard half)",
+      map: "keyboard",
+      setup: [
+        { waitMs: 4000 },
+        ...Array.from({ length: 60 }, (_, round) => [{ keys: round % 2 === 0 ? ["r", "n", "i", "n", "u"] : ["w", "n", "e", "o", "i"], client: "a" }, { waitMs: 500 }]).flat(),
+        { receipt: "^parts [0-9]+$", client: "a", seconds: 600 },
+      ],
+      pass: [NO_ERRORS, { kind: "receipt", pattern: "^parts [0-9]+$", min: 1 }],
+      look: "client A's replay (smashcraft-replay-N.txt with its parts) replays to its checksum with `LUA=<32-bit lua> bun wisp replay` and shows player 1's key presses",
+    },
+    {
+      id: "166-controller-match",
+      closes: "smashcraft#166 box 3 (controller half)",
+      map: "keyboard",
+      session: "166-controller",
+      // Client A's pad arrives as keys from `wc3-controller --emit --virtual-pad --gamepad 2` with its private-desktop target (smashcraft:companion/README.md, "Explicit Linux output"), started beside this check.
+      setup: [{ receipt: "^parts [0-9]+$", client: "a", seconds: 600 }],
+      pass: [NO_ERRORS, { kind: "receipt", pattern: "^parts [0-9]+$", min: 1 }],
+      look: "the controller log shows its key presses and client A's replay reaches its checksums with player 1's input",
+    },
     {
       id: "169-render-clock",
       closes: "smashcraft#169 box 1 (callback cadence and cost; compare 60/144 fps reports)",
@@ -212,6 +258,7 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
     ...stageChecks,
     ...lightingChecks,
     ...STAGE_COMPOSITION_CHECKS,
+    ...STAGE_ENTRY_CHECKS,
     {
       id: "57-underside",
       closes: "smashcraft#57 box 2",

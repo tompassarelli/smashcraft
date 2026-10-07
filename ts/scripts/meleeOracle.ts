@@ -1107,7 +1107,7 @@ const SURFACES: readonly Scenario[] = [
   },
   {
     area: "wall/ceiling", name: "ceiling tech: speed after the impulse frame with the stick fully left (Melee units/frame)",
-    cite: `${CEILING_IMPULSE}; that frame's drift uses each fighter's air speed, acceleration and friction, so Illidan's 2.0 loses his friction rather than meeting his authored cap`,
+    cite: `${CEILING_IMPULSE}; that frame's drift uses each fighter's air speed, acceleration and friction, so Illidan's 2.0 loses his friction`,
     run: (c) => {
       const { speed, frame: impulse, airMax } = referenceCeiling(c);
       const actual = ceilingTechSpeed(c, impulse);

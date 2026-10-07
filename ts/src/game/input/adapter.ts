@@ -4,14 +4,15 @@ import type { Fighter } from "../sim/fighter";
 import type { Controls } from "../sim/roster";
 import { analogShieldActive, analogShieldStrength } from "../sim/shield";
 import { squareRoot } from "../sim/warcraftMath";
+import { SHIELD_TILT_STICK_CAP, stickX, stickZ } from "../sim/stick";
 import { Action, has, maskOf } from "./actions";
 import { type AttackBuffer, clearAttackBuffer, queueAttack } from "./attackBuffer";
 import { groundDodgeIntent, normalAttackStyle } from "./combat";
 import type { Direction, InputRow } from "./inputRow";
 
-const GRAB_MASH_ACTIONS = maskOf(Action.attack, Action.special, Action.jump, Action.grab, Action.leftTrigger, Action.rightTrigger);
+const GRAB_MASH_ACTIONS = maskOf(Action.attack, Action.special, Action.jump, Action.grab, Action.leftTrigger, Action.rightTrigger, Action.lightShield);
 const MOVEMENT_ACTIONS = maskOf(Action.moveLeft, Action.moveRight, Action.moveDown, Action.moveUp);
-const TRIGGERS = maskOf(Action.leftTrigger, Action.rightTrigger);
+const TRIGGERS = maskOf(Action.leftTrigger, Action.rightTrigger, Action.lightShield);
 
 const sign = (value: number): Direction => value < 0 ? -1 : value > 0 ? 1 : 0;
 
@@ -37,6 +38,7 @@ export function adaptInput(row: Readonly<InputRow>, fighter: Readonly<Fighter>, 
   destination.verticalDirection = movementAxis(row, Action.moveDown, Action.moveUp, row.axisZ);
   destination.diStickValid = true;
   destination.diStickX = f32(row.axisX / 127.0);
+  destination.driftStickX = destination.diStickX;
   destination.diStickZ = f32(row.axisZ / 127.0);
   const length = squareRoot(f32(f32(destination.diStickX * destination.diStickX) + f32(destination.diStickZ * destination.diStickZ)));
   if (length > 1) {
@@ -53,10 +55,17 @@ export function adaptInput(row: Readonly<InputRow>, fighter: Readonly<Fighter>, 
   destination.specialZ = destination.specialPressed ? row.specialZ : 0;
   destination.down = has(held, Action.moveDown);
   destination.shieldPressed = (pressed & TRIGGERS) !== 0;
-  const digitalShield = (held & TRIGGERS) !== 0 || destination.shieldPressed;
-  destination.shieldTriggerActive = digitalShield || row.triggerLeft > 0 || row.triggerRight > 0;
-  destination.shield = digitalShield || analogShieldActive(row.triggerLeft) || analogShieldActive(row.triggerRight);
-  destination.shieldStrength = digitalShield ? 1.0 : analogShieldStrength(Math.max(row.triggerLeft, row.triggerRight));
+  const leftPressure = row.triggerLeft > 0 ? row.triggerLeft : has(held | pressed, Action.leftTrigger) ? 255 : has(held | pressed, Action.lightShield) ? 77 : 0;
+  const rightPressure = row.triggerRight > 0 ? row.triggerRight : has(held | pressed, Action.rightTrigger) ? 255 : 0;
+  const pressure = Math.max(leftPressure, rightPressure);
+  destination.shieldTriggerActive = pressure > 0;
+  destination.shield = pressure === 255 || analogShieldActive(pressure);
+  destination.shieldStrength = pressure === 255 ? 1.0 : analogShieldStrength(pressure);
+  destination.walking = has(held, Action.walk);
+  if (destination.walking && destination.shield) {
+    destination.diStickX = Math.max(-SHIELD_TILT_STICK_CAP, Math.min(SHIELD_TILT_STICK_CAP, destination.diStickX));
+    destination.diStickZ = Math.max(-SHIELD_TILT_STICK_CAP, Math.min(SHIELD_TILT_STICK_CAP, destination.diStickZ));
+  }
   destination.jumpPressed = has(pressed, Action.jump);
   destination.jumpHeld = has(held, Action.jump);
   destination.airDodgePressed = destination.shieldPressed;
@@ -75,12 +84,15 @@ export function adaptInput(row: Readonly<InputRow>, fighter: Readonly<Fighter>, 
   destination.getupDirectionPressed = destination.getupDirection !== 0;
   destination.cStickUpFlick = has(pressed, Action.smashUp);
   destination.cStickSideFlick = edgePair(pressed, Action.smashLeft, Action.smashRight);
-  destination.walking = has(held, Action.walk);
   destination.attackHeld = has(held, Action.attack);
   const leftShield = has(held, Action.leftTrigger) || analogShieldActive(row.triggerLeft);
   const rightShield = has(held, Action.rightTrigger) || analogShieldActive(row.triggerRight);
   destination.resetPressed = leftShield && rightShield && destination.attackPressed;
-  const dodge = groundDodgeIntent(destination.shield, has(pressed, Action.moveLeft), has(pressed, Action.moveRight), has(pressed, Action.moveDown));
+  // Melee's escape stick thresholds: common +0x31C/+0x314, ftCo_Escape.c.
+  const dodge = groundDodgeIntent(destination.shield,
+    has(pressed, Action.moveLeft) && stickX(destination) <= -0.699999988079071,
+    has(pressed, Action.moveRight) && stickX(destination) >= 0.699999988079071,
+    has(pressed, Action.moveDown) && stickZ(destination) <= -0.699999988079071);
   destination.groundDodgePressed = dodge !== undefined;
   destination.groundDodgeDirection = dodge ?? 0;
 

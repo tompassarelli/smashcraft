@@ -32,7 +32,7 @@ function customMapData(answer: "started" | "refused" | "none" = "started") {
     write: (path, contents) => Effect.gen(function*() {
       const modified = yield* Clock.currentTimeMillis;
       stored.set(path, { text: typeof contents === "string" ? contents : new TextDecoder().decode(contents), modified });
-      if (path === GO && answer !== "none") stored.set(RECEIPT, { text: preload(`PLAY v=2 computers=4 level=9 ${answer}`), modified: modified + 1 });
+      if (path === GO && answer !== "none") stored.set(RECEIPT, { text: preload(`PLAY v=3 computers=4 opponent=wren difficulty=intermediate ${answer}`), modified: modified + 1 });
     }),
     replace: () => Effect.void,
     list: () => Effect.succeed([]),
@@ -63,10 +63,10 @@ test("before Warcraft starts, the request for a computer as Player 3 replaces an
   const declared = playtest(PLAYTEST);
   const data = customMapData();
   data.stored.set(GO, { text: preload("GO"), modified: 1 });
-  data.stored.set(RECEIPT, { text: preload("PLAY v=2 computers=4 level=9 started"), modified: 1 });
+  data.stored.set(RECEIPT, { text: preload("PLAY v=3 computers=4 opponent=wren difficulty=intermediate started"), modified: 1 });
   expect(Exit.isSuccess(await simulate(declared.prepare(DOCUMENTS), data.files))).toBe(true);
   expect(data.removed).toEqual([GO, RECEIPT]);
-  expect(data.stored.get(REQUEST)?.text).toContain(`'$wsl', "PLAY v=2 computers=4 level=9", 0)`);
+  expect(data.stored.get(REQUEST)?.text).toContain(`'$wsl', "PLAY v=3 computers=4 opponent=wren difficulty=intermediate", 0)`);
 });
 
 test("a run that stops removes the request, the go-ahead and the receipt", async () => {
@@ -99,13 +99,13 @@ test("fighter selection is the build's ready file written after the launch; an o
 test("the go-ahead starts the match, and the request and go-ahead are removed for the next session", async () => {
   const declared = playtest(PLAYTEST);
   const data = customMapData();
-  data.stored.set(REQUEST, { text: preload("PLAY v=2 computers=4 level=9"), modified: 0 });
+  data.stored.set(REQUEST, { text: preload("PLAY v=3 computers=4 opponent=wren difficulty=intermediate"), modified: 0 });
   const matched = await simulate(declared.match(game), data.files);
-  expect(Exit.isSuccess(matched) && matched.value).toBe("level 9 computer as Player 3, match started");
+  expect(Exit.isSuccess(matched) && matched.value).toBe("wren intermediate computer as Player 3, match started");
   expect(data.stored.has(REQUEST)).toBe(false);
   expect(data.stored.has(GO)).toBe(false);
   const refused = customMapData("refused");
-  expect(failureText(await simulate(declared.match(game), refused.files))).toContain(`Smashcraft refused the playtest request "PLAY v=2 computers=4 level=9"`);
+  expect(failureText(await simulate(declared.match(game), refused.files))).toContain(`Smashcraft refused the playtest request "PLAY v=3 computers=4 opponent=wren difficulty=intermediate"`);
   const deaf = customMapData("none");
   expect(failureText(await simulate(declared.match(game), deaf.files))).toContain("Smashcraft didn't take the playtest request within 15 s");
 });

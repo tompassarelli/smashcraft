@@ -48,7 +48,7 @@ The session has a match and a rematch:
 
 - Slot C becomes a computer Illidan (Demon Hunter). `--bot-four` adds a
   computer Archer in slot D, for four fighters.
-- On fighter selection the match is set to one stock and one minute, with
+- On fighter selection the match is set to three stocks and one minute, with
   Automatic rematch on, on Sky Deck. The match and its automatic rematch play
   with the same fighters and settings, with no menu presses between matches.
   A development/integrity build uses `-dev rematch 20` so response export
@@ -67,15 +67,15 @@ The session has a match and a rematch:
   saves eight moment files (four moments, saved on both clients).
 - On a development or integrity build, each match exports its response
   pages after its trace, so its presses can be reconciled like #26's.
-- `--bot-four` leaves the rematch undisturbed and types `-dev perf` into
-  client A just after its automatic start, so the frame-cost overlay shows a four-fighter match
-  (development and integrity builds only).
+- `--bot-four` leaves the rematch undisturbed and types `-dev capture 1800`
+  just after its automatic start. Both clients write raw frame costs to
+  `smashcraft-perf-capture-pSLOT-runRUN.txt` (development and integrity builds only).
 - `--bot-perf` does the same with the three fighters of `--bot`, so a
   session measures both the matches `bun wisp perf bot` and `perf bot-four`
-  predict. In either, the capture reads A's overlay from its screen every
-  2 s through the rematch (a `perf-overlay` event each, one 120-frame
-  window). `bun wisp perf native RESULT RUN` then holds the headless
-  prediction of the same source to those readings (wisp:docs/frame-cost.md#checking-against-warcraft).
+  predict. `bun wisp perf native CAPTURE.txt RUN --samples HEADLESS.perf`
+  holds the headless prediction of the same source to those raw readings
+  (wisp:docs/frame-cost.md#checking-against-warcraft). No overlay screenshots
+  or OCR run during the measurement.
   Run it on a quiet machine: the meter's clock is likely wall
   time, so other work on the host inflates it.
 - `--pad49` opens the first match with #49's script on slot 0, and that
@@ -216,8 +216,8 @@ integrity and development builds give confirmed states.
 plays a script of timed pad states on both clients' virtual pads through
 the real helpers, as the captures do. `--chat=TEXT` types a developer command
 into client A once the helpers run (for example `-dev quick hero lich`, or
-`-dev quick cpu 9` for a level-9 computer opponent, or
-`-dev quick cpu 9 hero NAME` to select any roster fighter as that computer
+`-dev quick cpu wren expert` for a Wren Expert computer opponent, or
+`-dev quick cpu wren expert hero NAME` to select any roster fighter as that computer
 through the menu's selection rule). The `cpu-roster-*.pad` scripts cover the
 complete selectable roster in one batch.
 Each line is `FRAME CLIENT ACTION [ARGS]`: the match frame the edge is
@@ -229,9 +229,25 @@ frame: the integrity build writes the predicted frame it drew to
 `smashcraft-drawn-BUILD-pN.txt` in CustomMapData whenever it changes, and
 under load the drawn match runs well behind the helper's clock (#156 on
 7 Oct: 6 to 88 frames, so captures on the clock showed the moment before
-the move). It is saved as `frame-FRAME-CLIENT-drawn-D.ppm`, D the frame drawn
-when the capture began, and `captures.json` gives each capture's frames drawn
-before and after it (the screen grab itself takes about 50 ms, three frames).
+the move). A capture passes only when both the initial and completion receipts
+name the requested match and frame. A later frame, absent completion receipt,
+or clock that cannot reach the request within ten seconds makes the run INVALID.
+The framebuffer read itself is bounded to eight seconds and reaps its child on
+timeout. These are visual checks; a held scene cannot establish live input timing.
+Successful images retain their exact frame as `frame-FRAME-CLIENT-drawn-FRAME.ppm`.
+`captures.json` names each candidate, client, match, requested frame, both observed
+frames and PASS or INVALID result. The terminal report retains successful images
+and names the earliest failed capture boundary; a failed capture invalidates the
+run even when all input edges landed correctly.
+
+For scripts started by `#! chat` or `--chat`, capture rows install a finite
+local visual schedule on the existing quick-match command. After presenting an
+authored target frame, the client holds that pose through the framebuffer read;
+the runner releases it with a unique FileIO acknowledgement on success or failure.
+Simulation and helper input deadlines continue unchanged. A skipped target is
+INVALID. A lost runner releases the visual hold after 600 callbacks, and reset
+clears it immediately. `captures.json` marks these images `held visual`: they
+show the authored pose, and cannot be used to measure live input-to-screen time.
 A dash attack is A with the stick back at neutral while the fighter still
 dashes (a jab out of a dash); A with the stick held, even 12 frames into
 the dash, is a forward smash. A menu-started
@@ -280,6 +296,24 @@ the integrity build (`bun wisp map rebuild MAP.w3x --profile integrity`,
 `--build typescript-integrity`), since only that build writes the trace.
 Issue scripts live in smashcraft:ts/test/native/pads/, one folder per issue.
 
+Comparison preflight checks each script before any reference helper or native
+session starts. It requires the existing moment export: press and release
+View on the same client at least 60 frames apart; use the normal 70-frame
+hold. A tap with that duration also works. Missing or short exports fail with
+the script path and a repair instruction. Append the hold after the last
+capture so existing action and capture frames stay unchanged:
+
+```text
++30 a press VIEW
++70 a release VIEW
+```
+
+This checks that the script requests an export; the existing comparison still
+requires readable saved moments and matching checksums from the actual runs.
+A single headless run without `--compare` checks only its expectations and
+does not require an export. Native batches and headless comparison batches
+always require one.
+
 ### Many scripts in one game
 
 Native acceptance also selects an offline pair with
@@ -296,6 +330,16 @@ Native batch helpers and pads stay alive until their game ends. Before typing a
 selection command, the runner waits for the map's observed chat-open receipt in
 `smashcraft-chat-BUILD-pSLOT.txt`; a missed Return sends no command text. Between
 matches, reset waits for the journal's quiescence and chat handoff before typing.
+Fresh games also require the selected pair's new binding-ready files. The
+runner snapshots both developer receipts before a setup command and confirms
+new files with matching command counters and the requested quick-match fighter
+or reset state before any scripted edge. Successful setup saves its pair
+receipts and confirmation time in `DIR/setup.json`. Failure saves INVALID in
+`DIR/result.json`, with the first boundary, selected clients and no edges;
+the batch stops that setup attempt and does not compare absent gameplay.
+Journal chat leaves the match paused. The bot cost journey waits for chat to
+open and return focus around each diagnostic command, then explicitly resumes
+and waits for both helpers' new RESUME acknowledgements before its workload.
 Rebuild the integrity map's script when updating this handshake. Input deadlines
 use each client's own match-start clock; identical frame numbers can require
 different write times.
@@ -448,11 +492,46 @@ Player 2 drifted off the stage 19–21 s into the first match. That ended the
 match before the workload's scheduled Start pause, so the capture had no
 pause to check.
 
+Pad script frame numbers are simulation-frame deadlines. The helper's
+`match_start` record preserves its publication timestamp and `first_frame`
+(3 for D2); the injector derives a frame-one clock origin from both. Its
+result retains `frame_one_ns` and `match_starts`, and compares each actual
+helper event against the unchanged planned frame. Treating the publication
+as frame 1 injects D2 scripts two frames late.
+
 ## Raw playable cost captures
 
+For keyboard response measurements, build or rebuild with
+`--profile native-input`. It keeps the playable keyboard input, fixed
+two-frame delay, rollback and predicted pooled fighters, and adds only the
+developer setup commands and response probe. Ctrl+G begins recording;
+Ctrl+H exports the callback and input rows into CustomMapData. The magenta
+marker's position identifies the callback shown in a captured framebuffer.
+Record the original host input timestamps and the framebuffer timestamps;
+the exported game clock alone cannot establish press-to-screen latency.
+The probe adds diagnostic work, so report its overhead separately from the
+ordinary release's cost. Use the integrity profile for journal diagnostics.
+
+Before a pixel-response trial, measure the acquisition cadence on its selected
+private desktop from smashcraft:ts/:
+
+```sh
+bun wisp integrity capture --screen --clients-file PRIVATE_CLIENTS.json --client lan3a --out /absolute/private/screen-trial --count 30
+```
+
+`--region X,Y,WIDTH,HEIGHT` keeps a known fighter's rectangle instead of the
+whole screen. The command saves actual RGB as PPM files and
+`screen-capture.json`, with each acquisition's `CLOCK_MONOTONIC` nanosecond
+bracket and interval distributions. Match state is read before capture; the
+command sends no input. Its output is a cadence sample, not a latency verdict.
+For a stimulus trial use the same clock as the injector and the acquisition
+end as a conservative response bound. Neither a bracket midpoint nor the
+probe marker is evidence that a fighter responded. Preserve pixels and input
+timestamps so the action's visible onset can be checked independently.
+
 Build or rebuild with `--profile native-perf` for script-cost trials of the
-playable build. The diagnostic uses the playable build's callback keys and
-confirmed pooled fighters, with developer setup commands and the frame meter;
+playable build. The diagnostic uses the playable build's local keyboard rows
+and predicted pooled fighters, with developer setup commands and the frame meter;
 it has no hot reload or scene recorder. The ordinary playable entry contains
 no meter. Use the same diagnostic map bytes for each graphics-rate comparison.
 

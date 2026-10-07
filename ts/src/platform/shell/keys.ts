@@ -10,7 +10,7 @@ import { type ParticipantSlot, isParticipantSlot } from "../../game/input/partic
 import { heldActions, keyDown, pressKey, releaseKey } from "../../game/input/playerKeys";
 import { startKeyDown, startKeyUp } from "../../game/match/controls";
 import { Phase, cancelRematchCountdown, characterFor, firstHumanSlot, humanActive, leaveMatch, recallCharacter, selectCharacter } from "../../game/match/rules";
-import { DESYNC_COMMAND, QUICK_CPU_STOCKS, RESET_COMMAND, QUICK_TRAINING_COMMAND, applyDevCommand, prepareQuickCpu, prepareQuickTraining, quickMatchCpuHero, quickMatchCpuLevel, quickMatchHero, quickMatchStage, quickRecoveryHero } from "../../game/shell/devSettings";
+import { DESYNC_COMMAND, QUICK_CPU_STOCKS, RESET_COMMAND, QUICK_TRAINING_COMMAND, applyDevCommand, prepareQuickCpu, prepareQuickTraining, quickMatchCpuHero, quickMatchCpuProfile, quickMatchHero, quickMatchPair, quickMatchStage, quickPainHero, quickRecoveryHero } from "../../game/shell/devSettings";
 import { fighterName } from "../../game/sim/heroes/registry";
 import { keepMomentEnd } from "../../game/replay/moment";
 import { endReplaySegment } from "./replays";
@@ -24,16 +24,18 @@ import { probeFrameCostClock } from "./frameCost";
 import { probeRenderClock } from "./renderClock";
 import { startDrawingBetweenFrames } from "./betweenFrames";
 import { showBackdrop, showStageLighting } from "./stageScenery";
-import { clearAllInputs } from "./inputs";
+import { clearCapturedInputs } from "./inputs";
 import { journalEpoch, journalIdentity } from "./journal";
 import { chatBusy, requestPause } from "./journalPause";
 import { Key } from "./keyEvents";
+import { cancelPendingPlaytest } from "./playtest";
 import { startBodyFit } from "./bodyFit";
 import { startAgencyFixture } from "./agencyFixture";
+import { clearVisualCapture, configureVisualCapture } from "../../game/shell/visualCapture";
 import { back, choose, confirm, openSettingsScreen, resetToStartingSelection, startQuickMatch } from "./menus";
 import { makePreview } from "./preview";
 import { exportProbe, probeIntegrity, probeRecording, startProbe } from "./responseProbe";
-import { type ShellState, activeRollback, playsOnKeyboard } from "./state";
+import { type ShellState, activeRollback, localSlot, playsOnKeyboard } from "./state";
 import { views } from "./ui";
 import { LASTING, pauseMatchPresentation, setStatus } from "./view";
 
@@ -51,7 +53,7 @@ function journalOwnsKey(s: ShellState, slot: ParticipantSlot, key: number): bool
 }
 
 /** Start: confirms in menus; in a match, pauses at once, or through the helpers' barrier for a journal. */
-function startDown(s: ShellState, slot: ParticipantSlot): void {
+export function startDown(s: ShellState, slot: ParticipantSlot): void {
   const epoch = journalEpoch(s);
   const playing = s.game.phase === Phase.match;
   if (epoch?.journal.editbox !== undefined && chatBusy(epoch.journal)) return;
@@ -62,7 +64,7 @@ function startDown(s: ShellState, slot: ParticipantSlot): void {
   if (action === "togglePause") {
     if (epoch !== undefined && deferred) requestPause(s, epoch.rollback, epoch.journal, !s.session.paused);
     else {
-      clearAllInputs(s);
+      clearCapturedInputs(s);
       pauseMatchPresentation(s, s.session.paused);
       setStatus(s, s.session.paused ? pausedMessage("Y") : "Resumed.", s.session.paused ? LASTING : 1.0);
     }
@@ -81,6 +83,7 @@ function journalMenuKey(s: ShellState, slot: ParticipantSlot, key: number): bool
   else if (key === Key.n) {
     if (s.game.phase !== Phase.characterMenu) confirm(s, slot);
     else {
+      cancelPendingPlaytest();
       selectCharacter(s.game, slot, characterFor(s.game, slot) ?? 0);
       makePreview(s);
     }
@@ -219,14 +222,25 @@ export function onProbeExport(s: ShellState): void {
  * automation confirm every client holds the setting before the next match.
  */
 export function onDevCommand(s: ShellState): void {
-  const message = GetEventPlayerChatString();
+  applyDeveloperCommand(s, GetPlayerId(GetTriggerPlayer()), GetEventPlayerChatString());
+}
+
+/** Applies synchronized developer setup without requiring a chat event. */
+export function applyDeveloperCommand(s: ShellState, actor: number, original: string): void {
+  if (original === RESET_COMMAND) {
+    clearVisualCapture(localSlot());
+    pauseMatchPresentation(s, s.session.paused);
+  }
+  const message = s.build.responseProbe ? configureVisualCapture(original, localSlot()) : original;
   let receipt: string | undefined;
   const quickStage = quickMatchStage(message);
   const quickHero = quickMatchHero(message);
+  const quickPair = quickMatchPair(message);
   const recoveryHero = quickRecoveryHero(message);
-  const quickCpu = quickMatchCpuLevel(message);
+  const painHero = quickPainHero(message);
+  const quickCpu = quickMatchCpuProfile(message);
   // Session setup (sessionSetup.ts) changes the menus only for its own spellings.
-  const setup = applySetupCommand(s.game, GetPlayerId(GetTriggerPlayer()), message);
+  const setup = applySetupCommand(s.game, actor, message);
   if (setup === `dev: stage ${s.game.stageChoice}` && s.game.phase === Phase.characterMenu) s.dev.stageChoice = s.game.stageChoice;
   if (message === QUICK_TRAINING_COMMAND) {
     receipt = "dev: quick training";
@@ -248,6 +262,12 @@ export function onDevCommand(s: ShellState): void {
   } else if (recoveryHero !== undefined) {
     receipt = `dev: quick recovery ${fighterName(recoveryHero)}`;
     startQuickMatch(s, 0, "knockdown", recoveryHero);
+  } else if (painHero !== undefined) {
+    receipt = `dev: quick ${painHero.scenario} ${fighterName(painHero.character)}`;
+    startQuickMatch(s, 0, painHero.scenario, painHero.character);
+  } else if (quickPair !== undefined) {
+    receipt = `dev: quick match ${fighterName(quickPair[0])} / ${fighterName(quickPair[1])}`;
+    startQuickMatch(s, 0, s.build.scenario, quickPair);
   } else if (quickHero !== undefined) {
     receipt = `dev: quick match ${fighterName(quickHero)}`;
     startQuickMatch(s, 0, s.build.scenario, quickHero);
@@ -275,11 +295,14 @@ export function onDevCommand(s: ShellState): void {
     receipt = `dev: lighting ${authored ? "stage" : "stock"}`;
   } else if (message === "-dev smooth-draw") {
     receipt = startDrawingBetweenFrames() ? "dev: smooth draw on" : "dev: smooth draw already on";
+  } else if (message === "-dev camera-smooth on" || message === "-dev camera-smooth off") {
+    s.cameraTween = message === "-dev camera-smooth on";
+    receipt = `dev: camera smooth ${s.cameraTween ? "on" : "off"}`;
   } else if (message === "-dev render-clock") {
     receipt = "dev: render clock probe";
     probeRenderClock();
   } else if (message === DESYNC_COMMAND) {
-    const slot = GetPlayerId(GetTriggerPlayer());
+    const slot = actor;
     receipt = `dev: desync from player ${slot + 1}'s client`;
     // One more handle on one client: Warcraft's handle counter and tempest checksum diverge.
     if (slot === GetPlayerId(GetLocalPlayer())) CreateTimer();

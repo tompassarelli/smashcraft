@@ -4,7 +4,8 @@
 import { f32 } from "wisp/src/sim/f32";
 import { type TrainingState, copyTrainingState, createTrainingState } from "../match/trainingState";
 import { trainingReadout } from "../shell/messages";
-import { MENU_FONT, createBackdrop, createText, gameUi, placeTopLeft } from "./frames";
+import { createBackdrop, createText, gameUi, placeTopLeft } from "./frames";
+import { MENU_FONT } from "./hudLayout";
 import { TRAINING_READOUT_BOX, TRAINING_READOUT_PANEL, TRAINING_READOUT_PANEL_ALPHA } from "./hudLayout";
 
 /** The dark tooltip texture the results panel and meters draw behind their text. */

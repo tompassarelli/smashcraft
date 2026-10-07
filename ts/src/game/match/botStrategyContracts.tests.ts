@@ -13,16 +13,17 @@ import { createBufferedFrameControls, createFrameControls } from "./controls";
 import { captureFrame, createMatchFrameInput, executeMatchFrame } from "./frameInput";
 import { createPacingAndPresentation } from "./pacingAndPresentation";
 import { createMatchState, Phase } from "./rules";
-import { createBotStrategy, learnBotHabit, prepareBotRead, pressBotRead, botStrategyValues } from "./botStrategy";
-import { GENERAL_DECISION_POLICIES, type CpuDecisionPolicy } from "./cpuDecisionPolicy";
+import { createBotStrategy, copyBotStrategy, learnBotHabit, prepareBotRead, pressBotRead, botStrategyValues, restoredBotStrategy, savedBotStrategy } from "./botStrategy";
+import type { CpuDecisionPolicy } from "./cpuDecisionPolicy";
+import { cpuProfile } from "./cpuProfiles";
 import { chooseAttack } from "./botMoves";
 import { useMatchSeed } from "./botRandom";
-import { cpuSkill } from "./cpuLevel";
+import { cpuSkill } from "./cpuSkill";
 import { produceComputerInput } from "./botPlay";
 import { estimatedMoveValue, comebackPressure, type MoveEstimate } from "./botMoveValue";
 import { observeOpponents, perceivedOpponent } from "./botPerception";
 
-const EXPERT = at(GENERAL_DECISION_POLICIES, 4);
+const EXPERT = cpuProfile("wren", "expert");
 
 function trained(choice: number, policy: CpuDecisionPolicy = EXPERT, cycles = 8) {
   const own = createFighter(Character.rifleman, 0.0, 1);
@@ -56,19 +57,40 @@ function readyRead(choice: number) {
 
 test("delayed habit history is bounded by context, switches opponents and adapts to a changed repeated pattern", () => {
   const game = trained(HabitChoice.shield, { ...EXPERT, historyCapacity: 6 }, 20);
-  assertEquals(game.strategy.history.length, 6);
-  assertTrue(game.strategy.history.every(habit => habit.choice === HabitChoice.shield));
+  assertEquals(savedBotStrategy(game.strategy).history.length, 6);
+  assertTrue(savedBotStrategy(game.strategy).history.every(habit => habit.choice === HabitChoice.shield));
   for (let frame = 1200; frame < 1620; frame++) {
     const action = floorMod(frame, 60) < 8;
     game.target.attack.style = action ? AttackStyle.jab : undefined;
     if (action && floorMod(frame, 60) === 0) game.target.attack.serial++;
     learnBotHabit(game.strategy, game.own, game.target, 1, frame, { ...EXPERT, historyCapacity: 6 });
   }
-  assertEquals(game.strategy.history.length, 6);
-  assertTrue(game.strategy.history.every(habit => habit.choice === HabitChoice.attack));
+  assertEquals(savedBotStrategy(game.strategy).history.length, 6);
+  assertTrue(savedBotStrategy(game.strategy).history.every(habit => habit.choice === HabitChoice.attack));
   learnBotHabit(game.strategy, game.own, game.target, 2, 1621, EXPERT);
   assertEquals(game.strategy.opponent, 2);
-  assertLessThan(game.strategy.history.length, 2);
+  assertLessThan(savedBotStrategy(game.strategy).history.length, 2);
+});
+
+test("bot habit snapshots retain owned scalar storage and exact replay values through learning and restore", () => {
+  const game = trained(HabitChoice.shield);
+  const snapshot = createBotStrategy();
+  const storage = snapshot.history;
+  copyBotStrategy(snapshot, game.strategy);
+  const values = botStrategyValues(snapshot).join(",");
+  const saved = savedBotStrategy(snapshot);
+  const restored = restoredBotStrategy(saved);
+  assertEquals(botStrategyValues(restored).join(","), values);
+  game.target.attack.style = AttackStyle.jab;
+  game.target.attack.serial++;
+  learnBotHabit(game.strategy, game.own, game.target, 1, 501, EXPERT);
+  assertEquals(botStrategyValues(snapshot).join(","), values);
+  copyBotStrategy(snapshot, game.strategy);
+  assertTrue(snapshot.history === storage);
+  assertEquals(botStrategyValues(snapshot).join(","), botStrategyValues(game.strategy).join(","));
+  copyBotStrategy(snapshot, restored);
+  assertTrue(snapshot.history === storage);
+  assertEquals(botStrategyValues(snapshot).join(","), values);
 });
 
 test("a learned shield read positions and buffers a grab before the next shield is observable", () => {
@@ -91,7 +113,9 @@ test("an anticipatory grab remains buffered through four frames of own recovery"
   const world = createRoster(3, [game.own, game.target]);
   const match = createMatchState();
   match.phase = Phase.match;
-  match.cpuLevels[0] = 9;
+  match.cpuOpponents[0] = "wren";
+  match.cpuResolvedOpponents[0] = "wren";
+  match.cpuTiers[0] = "expert";
   const runtime = createPacingAndPresentation();
   runtime.simulationFrame = 533;
   runtime.botStrategies[0] = game.strategy;
@@ -213,7 +237,7 @@ test("independent decision profiles change observed smash repetition and variety
     let previous = -1;
     for (let frame = 1; frame <= 500; frame++) {
       clearAttackBuffer(commands);
-      assertTrue(chooseAttack(own, target, 0, frame, frame, true, input, commands, 0, -1, { ...cpuProfile(), decision: policy }, 12, { strategy, policy, game }));
+      assertTrue(chooseAttack(own, target, 0, frame, frame, true, input, commands, 0, -1, { ...cpuSkill("wren", "expert"), decision: policy }, 12, { strategy, policy, game }));
       const option = strategy.lastOption;
       if (option === previous) repeats++;
       previous = option;
@@ -221,11 +245,9 @@ test("independent decision profiles change observed smash repetition and variety
     }
     return { repeats, smashes: at(counts, AttackStyle.forwardSmash) + at(counts, AttackStyle.upSmash) + at(counts, AttackStyle.downSmash), variety: counts.filter(count => count > 0).length };
   };
-  const simple = report(at(GENERAL_DECISION_POLICIES, 0));
+  const simple = report(cpuProfile("wren", "rookie"));
   const thoughtful = report(EXPERT);
   assertGreaterThan(simple.repeats, thoughtful.repeats);
   assertGreaterThan(simple.smashes, thoughtful.smashes);
   assertGreaterThan(thoughtful.variety, 5);
 });
-
-const cpuProfile = () => cpuSkill(9);

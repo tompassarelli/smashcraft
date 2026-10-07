@@ -3,6 +3,11 @@
 //! the helper typing into a file. Needs a writable /dev/uinput.
 #![cfg(target_os = "linux")]
 
+#[path = "../src/focus.rs"]
+mod focus;
+#[path = "../src/wlr.rs"]
+mod wlr;
+
 use evdev::{AbsInfo, AbsoluteAxisCode as Abs, AttributeSet, KeyCode, UinputAbsSetup, uinput::VirtualDevice};
 use std::{
     fs,
@@ -69,6 +74,58 @@ fn serving(status: &Path) -> Option<String> {
 }
 
 #[test]
+fn layout_tap_jump_and_trigger_choices_take_effect_live_and_survive_service_restart() {
+    use std::{io::{BufRead, BufReader, Write}, net::{TcpListener, TcpStream}};
+    use wc3_controller::model::{ClientMessage, ControllerSettings, PadPreset, ServiceMessage, TriggerShield, TriggerShields};
+    let root = std::env::temp_dir().join(format!("wc3-controller-settings-{}", std::process::id()));
+    let documents = root.join("game");
+    let pads = root.join("pads");
+    fs::create_dir_all(&documents).unwrap();
+    fs::create_dir_all(&pads).unwrap();
+    let path = root.join("controller.json");
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let address = listener.local_addr().unwrap();
+    drop(listener);
+    let start = || Service(Command::new(env!("CARGO_BIN_EXE_wc3-journal"))
+        .args(["--service", "--pads", pads.to_str().unwrap(), "--headless", documents.to_str().unwrap(),
+            "--settings", path.to_str().unwrap(), "--status", root.join("status.txt").to_str().unwrap(),
+            "--interface", &address.to_string(), "--poll-ms", "10"])
+        .stdin(Stdio::null()).spawn().unwrap());
+    let connect = || {
+        let stream = until("isolated service interface", || TcpStream::connect(address).ok());
+        stream.set_read_timeout(Some(Duration::from_secs(5))).unwrap();
+        stream
+    };
+    let read = |stream: &TcpStream| {
+        let mut line = String::new();
+        BufReader::new(stream.try_clone().unwrap()).read_line(&mut line).unwrap();
+        let ServiceMessage::Status(snapshot) = ServiceMessage::parse(&line).unwrap() else { panic!("expected settings snapshot") };
+        snapshot.settings
+    };
+    let service = start();
+    let mut stream = connect();
+    assert_eq!(read(&stream), ControllerSettings::default());
+    let selected = ControllerSettings {
+        pad_preset: PadPreset::ZJump, tap_jump: true,
+        triggers: TriggerShields { left: TriggerShield::Light, right: TriggerShield::Full },
+    };
+    for message in [ClientMessage::PadPreset(selected.pad_preset), ClientMessage::TapJump(selected.tap_jump), ClientMessage::TriggerShields(selected.triggers)] {
+        stream.write_all(message.line().as_bytes()).unwrap();
+    }
+    until("all three settings saved in one file", || fs::read_to_string(&path).ok()
+        .and_then(|text| serde_json::from_str::<ControllerSettings>(&text).ok()).filter(|saved| *saved == selected));
+    assert_eq!(read(&stream), selected);
+    drop(stream);
+    drop(service);
+    let service = start();
+    let stream = connect();
+    assert_eq!(read(&stream), selected);
+    drop(stream);
+    drop(service);
+    fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
 fn the_service_follows_a_fake_session_through_new_sessions_and_game_restarts() {
     let Some((_pad, node)) = virtual_pad() else {
         eprintln!("skipped: /dev/uinput is not writable, so no virtual pad");
@@ -118,4 +175,58 @@ fn the_service_follows_a_fake_session_through_new_sessions_and_game_restarts() {
 
     drop(_service);
     let _ = fs::remove_dir_all(root);
+}
+
+#[test]
+#[ignore = "requires the assigned offline Warcraft client and its private desktop"]
+fn a_private_pad_script_drives_the_published_menu_pointer() {
+    use focus::{Foreground, Gate, Target};
+    use wc3_controller::{model::{Button, InputView, PadPreset}, service::{any_map::{DesktopOutput, Driver, MenuCurve}, smashcraft::newest_menu}};
+
+    let setting = |name| std::env::var(name).unwrap_or_else(|_| panic!("missing {name}"));
+    let display = setting("WC3_MENU_DISPLAY");
+    assert_ne!(display, ":0");
+    let mut gate = Gate::new(Target {
+        display: display.clone(), window: setting("WC3_MENU_XID").parse().unwrap(),
+        pid: setting("WC3_MENU_PID").parse().unwrap(), niri_window: None,
+        wlr_app_id: Some(setting("WC3_MENU_APP_ID")),
+    }).unwrap();
+    let data = PathBuf::from(setting("WC3_MENU_DATA"));
+    let curve = MenuCurve::for_window_width(setting("WC3_MENU_WIDTH").parse().unwrap());
+    let script = fs::read_to_string(setting("WC3_MENU_SCRIPT")).unwrap();
+    let mut out = DesktopOutput::new(&display).unwrap();
+    let mut driver = Driver::menu(curve, true);
+    let mut pointing = true;
+    assert!(gate.eligible().unwrap(), "assigned client is not focused");
+    driver.step(&InputView::default(), true, 0.0, &mut out).unwrap();
+    let result = (|| -> Result<(), String> {
+        for line in script.lines().filter(|line| !line.trim().is_empty() && !line.starts_with('#')) {
+            let row = line.split_whitespace().map(str::parse::<i32>).collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())?;
+            if row.len() != 5 || !(0..=10_000).contains(&row[0]) {
+                return Err("pad row needs milliseconds, left x, left y, A, Start (at most 10000 ms)".into());
+            }
+            let mut pad = InputView { left: [row[1].try_into().map_err(|_| "invalid x axis")?, row[2].try_into().map_err(|_| "invalid y axis")?], ..InputView::default() };
+            pad.press(Button::A, row[3] != 0);
+            pad.press(Button::Start, row[4] != 0);
+            let started = Instant::now();
+            let mut stepped = started;
+            while started.elapsed() < Duration::from_millis(row[0] as u64) {
+                let menu = newest_menu(&data).ok_or("assigned map has no complete menu publication")?;
+                let fresh = menu.modified.elapsed().is_ok_and(|age| age <= Duration::from_secs(1));
+                let next = fresh && matches!(menu.phase.as_str(), "CHARACTER" | "CPU" | "STAGE" | "RESULT");
+                if next != pointing {
+                    driver.release(&mut out)?;
+                    driver = if next { Driver::menu(curve, true) } else { Driver::keys(PadPreset::Standard) };
+                    pointing = next;
+                }
+                let now = Instant::now();
+                driver.step(&pad, gate.eligible()?, now.duration_since(stepped).as_secs_f32(), &mut out)?;
+                stepped = now;
+                thread::sleep(Duration::from_millis(10));
+            }
+        }
+        Ok(())
+    })();
+    driver.release(&mut out).unwrap();
+    result.unwrap();
 }

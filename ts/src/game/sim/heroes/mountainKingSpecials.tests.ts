@@ -78,7 +78,7 @@ test("Mountain King's specials spend their roster costs once and end on their ro
   assertEquals(owner.mana.points, 85);
 });
 
-test("Storm Bolt flies 0.12H a frame from frame 20, one at a time, and hits once for 5", () => {
+test("Storm Bolt flies 0.12H a frame from frame 20, one at a time, and hits once for 5.525", () => {
   for (const facing of [1, -1]) {
     const { world, owner, target } = pair(400.0, facing);
     frame(world, neutral);
@@ -99,10 +99,10 @@ test("Storm Bolt flies 0.12H a frame from frame 20, one at a time, and hits once
       assertEquals(owner.mana.points, before);
     }
     for (let f = 0; f < 40 && target.status.damage === 0.0; f++) frame(world);
-    assertEquals(target.status.damage, 5.0);
+    assertEquals(target.status.damage, 5.524999618530273);
     assertGreaterThan(target.launch.knockbackX * facing, 0.0);
     for (let f = 0; f < 40; f++) frame(world);
-    assertEquals(target.status.damage, 5.0);
+    assertEquals(target.status.damage, 5.524999618530273);
   }
 });
 
@@ -142,14 +142,14 @@ function clap(gap: number, release: number | undefined, facing = 1, ownerFacing 
   return match;
 }
 
-test("Thunder Clap charges: a release in f10-29 is the 9% Clap, f30-49 the 12% Thunder Clap, and running out slams on f53", () => {
+test("Thunder Clap charges: a release in f10-29 is the 9.945% Clap, f30-49 the 13.26% Thunder Clap, and running out slams on f53", () => {
   for (const facing of [1, -1]) {
     for (const behind of [false, true]) {
       const near = f32(H * f32(0.85));
       const early = clap(near, 15, behind ? -facing : facing, facing);
-      assertEquals(early.target.status.damage, 9.0);
+      assertEquals(early.target.status.damage, 9.944999694824219);
       assertGreaterThan(Math.abs(f32(early.target.motion.x - early.owner.motion.x)), near);
-      assertEquals(clap(near, 35, behind ? -facing : facing, facing).target.status.damage, 12.0);
+      assertEquals(clap(near, 35, behind ? -facing : facing, facing).target.status.damage, 13.25999927520752);
     }
   }
   const { world, owner, target } = pair(f32(H * f32(0.85)));
@@ -157,14 +157,14 @@ test("Thunder Clap charges: a release in f10-29 is the 9% Clap, f30-49 the 12% T
   run(world, 51);
   assertEquals(target.status.damage, 0.0);
   run(world, 4);
-  assertEquals(target.status.damage, 12.0);
+  assertEquals(target.status.damage, 13.25999927520752);
   assertEquals(owner.mana.points, 80);
 });
 
 test("Thunder Clap's ground waves reach about 2.4H past the ring on both sides; the small Clap sends none", () => {
   for (const behind of [false, true]) {
     const far = f32(H * f32(2.6));
-    assertEquals(clap(far, 35, behind ? -1 : 1).target.status.damage, 7.0);
+    assertEquals(clap(far, 35, behind ? -1 : 1).target.status.damage, 7.734999656677246);
     assertEquals(clap(far, 15, behind ? -1 : 1).target.status.damage, 0.0);
     assertEquals(clap(f32(H * f32(4.0)), 35).target.status.damage, 0.0);
   }
@@ -237,7 +237,7 @@ test("Storm Bolt recall: neutral special while it flies calls it back at once, a
   run(world, 1);
   assertLessThan(bolt.velocityX, 0.0);
   for (let f = 0; f < 30 && target.status.damage === 0.0; f++) frame(world);
-  assertEquals(target.status.damage, 5.0);
+  assertEquals(target.status.damage, 5.524999618530273);
   assertLessThan(target.launch.knockbackX, 0.0);
 });
 
@@ -271,21 +271,21 @@ test("Hammerfall: special in the leap's f16-28 plunges straight down, spikes an 
     return { owner, target, world, launchZ };
   };
   const spiked = plunge(true, false);
-  assertEquals(spiked.target.status.damage, 12.0);
+  assertEquals(spiked.target.status.damage, 13.25999927520752);
   assertLessThan(spiked.launchZ, 0.0);
   const grounded = plunge(false, false);
-  assertEquals(grounded.target.status.damage, 10.0);
+  assertEquals(grounded.target.status.damage, 11.049999237060547);
   assertGreaterThan(grounded.launchZ, 0.0);
   assertTrue(grounded.owner.landing.lag >= 23);
   assertEquals(plunge(false, true).target.status.damage, 0.0);
 });
 
-test("Storm Rush carries 1.2H, hits for 12 and its air form ends helpless", () => {
+test("Storm Rush carries 1.2H, hits for 13.26 and its air form ends helpless", () => {
   const { world, owner, target } = pair(f32(H * f32(1.4)));
   const startX = owner.motion.x;
   frame(world, side);
   for (let f = 2; f <= 18; f++) frame(world);
-  assertEquals(target.status.damage, 12.0);
+  assertEquals(target.status.damage, 13.25999927520752);
   const empty = pair(1200.0);
   const from = empty.owner.motion.x;
   for (let f = 1; f <= 46; f++) frame(empty.world, f === 1 ? side : controls());
@@ -331,7 +331,7 @@ test("Thunder Leap rises 2.7H straight up and strikes; below 15 mana the free le
   assertLessThan(free.height, full.height);
   assertTrue(full.owner.special.fall);
   assertTrue(free.owner.special.fall);
-  assertEquals(rise(100, true).damage, 8.0);
+  assertEquals(rise(100, true).damage, 8.839999198913574);
   assertEquals(rise(10, true).damage, 0.0);
 });
 
@@ -370,7 +370,7 @@ test("Storm Rush stops at a raised shield or a body instead of carrying through 
       frame(world, f === 1 ? side : controls(), guard);
       assertLessThan(owner.motion.x, target.motion.x);
     }
-    assertEquals(target.status.damage, shielding ? 0.0 : 12.0);
+    assertEquals(target.status.damage, shielding ? 0.0 : 13.25999927520752);
   }
 });
 

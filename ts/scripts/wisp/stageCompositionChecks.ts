@@ -32,3 +32,36 @@ export const STAGE_COMPOSITION_CHECKS: readonly NativeCheck[] = ARTIFACTS.flatMa
     look: `${name}: paused fighters alone, same pose and camera as ${phase} composition capture; measure contrast with smashcraft:tools/stage/contrast.ts and run existing player-view/frame checks.`,
   },
 ]));
+
+// smashcraft#177: the three stages that exposed a giant temporary object on entry.
+// Cold entry is the first stage load after a fresh game; the rematch follows a
+// one-minute timed match ending on its own, with the automatic rematch.
+const ENTRY_STAGES = STAGE_CATALOG.filter(({ id }) => id === 10 || id === 11 || id === 13);
+export const STAGE_ENTRY_MAPS = Object.fromEntries(ENTRY_STAGES.map(({ id, name }) => [`entry-${id}`, {
+  describe: `integrated stage art artifact; cold entry and rematch on ${name}`,
+  path: join(homedir(), ".local/share/smashcraft-stage-design-178/composition-integrated.w3x"),
+  quick: "-dev show",
+}]));
+
+const entryRules = (id: number) => [
+  { kind: "receipt", pattern: `^SMASHCRAFT STAGE v=1 .* stage=${id} `, min: 1 },
+  { kind: "log", pattern: "^model creation failed - war3mapImported", since: "session", max: 0 },
+  { kind: "receipt", pattern: "^error \\d+ in ", max: 0 },
+] as const;
+
+export const STAGE_ENTRY_CHECKS: readonly NativeCheck[] = ENTRY_STAGES.flatMap(({ id, name }): NativeCheck[] => [
+  {
+    id: `177-cold-${id}`, closes: "smashcraft#177 box 3", map: `entry-${id}`,
+    setup: [{ chat: `-dev quick stage ${id}` }],
+    capture: [{ kind: "frames", name: "entry", client: "a", count: 40, everyMs: 200 }],
+    pass: [...entryRules(id)],
+    look: `${name} cold entry: run \`bun wisp view frame\` on every frame; from the first frame with arena sky onward, 0 frames with a giant object over the arena.`,
+  },
+  {
+    id: `177-rematch-${id}`, closes: "smashcraft#177 box 3", map: `entry-${id}`,
+    setup: [{ chat: "-dev reset" }, { chat: "-dev time 1" }, { chat: "-dev auto-rematch on" }, { chat: "-dev rematch 1" }, { chat: `-dev quick stage ${id}` }, { waitMs: 56000 }],
+    capture: [{ kind: "frames", name: "rematch", client: "a", count: 60, everyMs: 200 }],
+    pass: [{ kind: "log", pattern: "^model creation failed - war3mapImported", since: "session", max: 0 }, { kind: "receipt", pattern: "^error \\d+ in ", max: 0 }],
+    look: `${name} rematch after the timed match ends: from the first rematch frame with arena sky onward, 0 frames with a giant object over the arena.`,
+  },
+]);

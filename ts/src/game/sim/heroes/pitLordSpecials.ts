@@ -3,10 +3,9 @@
 // frame of the action. Distances are in the hero reference height H.
 import { f32 } from "wisp/src/sim/f32";
 import { hurtCapsule } from "../../physics/contactGeometry";
-import { Character, HeroStatusGroup, HeroStatusKind, HitElement } from "../codes";
+import { Character, HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT, heroRegion } from "../heroMoves";
 import { type AuthoredSpecial, type FighterSpecials, type SpecialMotion, type SpecialProjectile, frames } from "../heroSpecials";
-import type { AppliedStatus } from "../heroStatus";
 import { hurtPart, hurtPose } from "../hurtboxes";
 import { capsule, hit } from "./pitLordMoves";
 
@@ -17,20 +16,17 @@ const perFrame = (distance: number, first: number, last: number): number => f32(
 /** Non-mobility specials used in the air end on landing with this lag (roster "Action defaults"). */
 const AIR_SPECIAL_LANDING_LAG = 24;
 
-/**
- * Fel Spit: a heavy arcing glob, (0.10H, 0.04H) a frame falling 0.003H a
- * frame each frame, 35 frames, radius 0.22H. One at a time, reflectable.
- */
-export const FEL_SPIT: SpecialProjectile = {
-  spawnFrame: 25, offsetX: h(f32(0.45)), offsetZ: h(f32(0.45)),
-  velocityX: h(f32(0.10)), velocityZ: h(f32(0.04)), gravity: h(f32(0.003)),
-  life: 35, radius: h(f32(0.22)),
-  effect: hit(8.0, "POKE", 40, 1.0, HitElement.fire), reflectable: true, limit: 1,
-  model: "Abilities\\Weapons\\ChimaeraAcidMissile\\ChimaeraAcidMissile.mdx",
-};
+const meteor = (spawnFrame: number, offset: number): SpecialProjectile => ({
+  spawnFrame, offsetX: h(offset), offsetZ: h(f32(2.8)),
+  velocityX: 0.0, velocityZ: -h(f32(0.16)),
+  life: 24, radius: h(f32(0.22)),
+  effect: hit(5.0, "POKE", 70, 1.0, HitElement.fire), reflectable: true, limit: 1,
+  model: "Abilities\\Weapons\\DemolisherFireMissile\\DemolisherFireMissile.mdx",
+});
 
-const felSpit = (air: boolean): AuthoredSpecial => ({
-  cost: 5, endFrame: 57, projectiles: [FEL_SPIT],
+export const RAIN_OF_FIRE = [meteor(25, f32(1.8)), meteor(31, f32(2.2)), meteor(37, f32(2.6))] as const;
+const rain = (air: boolean): AuthoredSpecial => ({
+  cost: 20, endFrame: 60, projectiles: RAIN_OF_FIRE,
   landingLag: air ? AIR_SPECIAL_LANDING_LAG : undefined,
 });
 
@@ -81,30 +77,23 @@ const abyssalLeap = (cost: number, rise: number, drift: number, steer: number, s
   facesStick: true, oncePerAirtime: true, helpless: true,
 });
 
-/**
- * Terror: for 180 frames every hit the target deals does 10 percent less
- * damage. No knockback or hitstun change, no silence; a shield stops it.
- */
-export const TERROR: AppliedStatus = { kind: HeroStatusKind.terror, frames: 180, group: HeroStatusGroup.terror, immunityFrames: 0 };
-
-// Howl of Terror: a 1.0H roar around the body on f23-26, R34. The airborne
+// Howl of Terror: a 1.0H roar around the body on f15-18, R28. The airborne
 // form has the same commitment and holds no height (no stall).
 const HOWL_REACH = h(1.0);
 const HOWL_RADIUS = h(f32(0.5));
 const HOWL_HEIGHT = h(f32(0.6));
 const howl = (air: boolean): AuthoredSpecial => ({
-  cost: 20, endFrame: 60,
+  cost: 12, endFrame: 46,
   regions: [
-    heroRegion(23, 26, capsule(0.0, HOWL_HEIGHT, f32(HOWL_REACH - HOWL_RADIUS), HOWL_HEIGHT, HOWL_RADIUS), hit(5.0, "POKE", 45, 1.0, HitElement.normal)),
-    heroRegion(23, 26, capsule(0.0, HOWL_HEIGHT, -f32(HOWL_REACH - HOWL_RADIUS), HOWL_HEIGHT, HOWL_RADIUS), hit(5.0, "POKE", 45, -1.0, HitElement.normal)),
+    heroRegion(15, 18, capsule(0.0, HOWL_HEIGHT, f32(HOWL_REACH - HOWL_RADIUS), HOWL_HEIGHT, HOWL_RADIUS), hit(7.0, "POKE", 35, 1.0, HitElement.normal)),
+    heroRegion(15, 18, capsule(0.0, HOWL_HEIGHT, -f32(HOWL_REACH - HOWL_RADIUS), HOWL_HEIGHT, HOWL_RADIUS), hit(7.0, "POKE", 35, -1.0, HitElement.normal)),
   ],
-  strikeStatus: TERROR,
   landingLag: air ? AIR_SPECIAL_LANDING_LAG : undefined,
 });
 
 export const PIT_LORD_SPECIALS: FighterSpecials = {
-  neutral: { name: "Fel Spit", description: "A heavy glob that arcs up and falls onto an approaching target.", ground: felSpit(false), air: felSpit(true) },
+  neutral: { name: "Howl of Terror", description: "A close roar pushes enemies away on both sides; a shield stops it.", ground: howl(false), air: howl(true) },
   side: { name: "Ruin Charge", description: "A slow charge whose armor shrugs off one light hit; it stops at a shield.", ground: RUIN_CHARGE, air: RUIN_CHARGE_AIR },
   up: { name: "Abyssal Leap", description: "A slow arcing leap you steer, with a hoof strike, then a helpless fall.", ground: abyssalLeap(15, h(f32(3.5)), h(f32(0.5)), h(f32(1.15)), true), free: abyssalLeap(0, h(f32(2.6)), h(f32(0.3)), h(f32(0.6)), false) },
-  down: { name: "Howl of Terror", description: "A roar around him; anyone it hits deals less damage for three seconds.", ground: howl(false), air: howl(true) },
+  down: { name: "Rain of Fire", description: "Three waves of fire fall ahead; rush underneath or tilt your shield up.", ground: rain(false), air: rain(true) },
 };

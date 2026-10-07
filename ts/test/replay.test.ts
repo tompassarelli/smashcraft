@@ -3,7 +3,7 @@
 // its match record's serial), and the replay plays the whole match back to
 // every checksum it recorded: in Bun always, and in 32-bit Lua when LUA names
 // one (CI's Lua step runs this file with it). The playable build's match is
-// played on the keyboard alone, through Warcraft's synchronized key events.
+// played on the keyboard alone, through locally sampled rollback rows.
 import { afterAll, expect, test } from "bun:test";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -81,8 +81,10 @@ test("a one-minute keyboard match in the playable build reaches its result and r
   until("match", () => read(() => shell().game.phase) === Phase.match, 120);
   until("GO!", () => read(() => !holdingStart(shell().game)), 240);
   for (const key of TAPS) {
-    for (const actor of [0, 1]) clients.press(actor, key);
-    frames(20);
+    for (const actor of [0, 1]) hold(actor, key, true);
+    frames(1);
+    for (const actor of [0, 1]) hold(actor, key, false);
+    frames(19);
   }
   frames(30);
   const [attacks, jumps] = [read(() => [0, 1].map((slot) => fighterAt(shell().world, slot).attack.serial)), read(() => [0, 1].map((slot) => fighterAt(shell().world, slot).jump.serial))];
@@ -147,7 +149,7 @@ test("a callback match against a computer replays to every recorded checksum", (
   const client = clients.client(0);
   clients.start();
   clients.frames(30);
-  clients.chat(0, "-dev quick cpu 9");
+  clients.chat(0, "-dev quick cpu wren expert");
   expect(value(client, () => shell().game.computerMask)).not.toBe(0);
   // The player walks into the computer every two-thirds of a second until the match ends.
   for (let frame = 0; frame < 6000 && value(client, () => shell().game.phase) === Phase.match; frame++) {

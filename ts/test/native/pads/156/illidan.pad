@@ -1,7 +1,8 @@
 # #156 Illidan: jab, forward tilts (level, up, down), down tilt and down smash
+#! chat -dev quick hero illidan
 # facing right, then forward tilt and down tilt facing left; B stands idle.
 # Each capture is the move's first active frame (tap frame + startup).
-20 a tap A 2
+150 a tap A 2
 +4 a capture
 +36 a press LB
 +0 a stick 0.6 0
@@ -35,3 +36,6 @@
 +5 a capture
 +3 a stick 0 0
 +2 a release LB
+# Save the action sequence for the batch's native/headless replay comparison.
++30 a press VIEW
++70 a release VIEW

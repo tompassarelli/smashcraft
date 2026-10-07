@@ -31,6 +31,15 @@ pub trait Output {
     fn click(&mut self, right: bool, down: bool) -> Result<(), String>;
     /// Relative motion in logical pixels.
     fn pointer(&mut self, dx: f64, dy: f64) -> Result<(), String>;
+    fn cursor(&mut self, _x: f64, _y: f64, _width: u32, _height: u32) -> Result<(), String> {
+        Err("output has no absolute pointer".into())
+    }
+}
+
+struct AnalogOutput<'a>(&'a mut dyn Output);
+impl crate::pad_ingress::Output for AnalogOutput<'_> {
+    fn key(&mut self, name: &str, down: bool) -> Result<(), String> { self.0.key(name, down) }
+    fn cursor(&mut self, x: f64, y: f64, width: u32, height: u32) -> Result<(), String> { self.0.cursor(x, y, width, height) }
 }
 
 /// The menu pointer's feel: a small radial deadzone, then speed rising with
@@ -44,14 +53,9 @@ pub struct MenuCurve {
 pub const MENU_DEADZONE: f64 = 0.12;
 /// Speed grows with deflection to this power: fine aim near the centre.
 pub const MENU_ACCELERATION: f64 = 1.7;
-/// Full-tilt speed in game-window heights a second. The fighter grid is 0.8
-/// of the window's height wide (selectionGrid.ts: 0.48 of the 0.6-high UI), so
-/// full tilt crosses it in 0.8 / 1.15 = 0.7 s.
-pub const MENU_HEIGHTS_PER_SECOND: f64 = 1.15;
-
 impl MenuCurve {
-    pub fn for_window_height(height: f64) -> Self {
-        Self { full_speed: height * MENU_HEIGHTS_PER_SECOND }
+    pub fn for_window_width(width: f64) -> Self {
+        Self { full_speed: width }
     }
 
     /// Pointer velocity for a stick position (SDL axes, y down positive).
@@ -67,11 +71,11 @@ impl MenuCurve {
     }
 }
 
-/// The menu pointer's clicks (model::smashcraft_menu_bindings); the stick is
-/// the curve's, and the helper keeps Start.
-pub fn menu_bindings() -> Vec<Binding> {
+/// Journal sessions send Start through their helper; keyboard sessions send it here.
+pub fn menu_bindings(start_on_keys: bool) -> Vec<Binding> {
     model::smashcraft_menu_bindings().into_iter()
-        .filter(|binding| matches!(binding.press, model::Press::LeftClick | model::Press::RightClick))
+        .filter(|binding| matches!(binding.press, model::Press::LeftClick | model::Press::RightClick)
+            || (start_on_keys && binding.control == model::Control::Start))
         .collect()
 }
 
@@ -82,22 +86,27 @@ pub struct Driver {
     menu: Option<MenuCurve>,
     /// Smashcraft on keys: this mapper replaces the bindings' one.
     keys: Option<crate::Mapper>,
+    analog: crate::pad_ingress::Ingress,
 }
 
 impl Driver {
     pub fn new(bindings: Vec<Binding>) -> Self {
-        Self { mapper: Mapper::new(bindings), focused: false, menu: None, keys: None }
+        Self { mapper: Mapper::new(bindings), focused: false, menu: None, keys: None, analog: crate::pad_ingress::Ingress::new(crate::pad_ingress::Route::Digital) }
     }
 
     /// The menu pointer: the left stick moves the pointer by `curve`, A and B click.
-    pub fn menu(curve: MenuCurve) -> Self {
-        Self { mapper: Mapper::new(menu_bindings()), focused: false, menu: Some(curve), keys: None }
+    pub fn menu(curve: MenuCurve, start_on_keys: bool) -> Self {
+        Self { mapper: Mapper::new(menu_bindings(start_on_keys)), focused: false, menu: Some(curve), keys: None, analog: crate::pad_ingress::Ingress::new(crate::pad_ingress::Route::Digital) }
     }
 
     /// Smashcraft on keys. Focus loss releases every key, and nothing presses
     /// again until the pad returns to neutral while focused.
-    pub fn keys() -> Self {
-        Self { mapper: Mapper::new(Vec::new()), focused: false, menu: None, keys: Some(crate::Mapper::default()) }
+    pub fn keys(preset: model::PadPreset) -> Self {
+        Self::keys_with_ingress(preset, crate::pad_ingress::Route::Digital)
+    }
+
+    pub fn keys_with_ingress(preset: model::PadPreset, route: crate::pad_ingress::Route) -> Self {
+        Self { mapper: Mapper::new(Vec::new()), focused: false, menu: None, keys: Some(crate::Mapper::new(preset)), analog: crate::pad_ingress::Ingress::new(route) }
     }
 
     fn deliver_keys(transitions: Vec<crate::Transition>, out: &mut dyn Output) -> Result<(), String> {
@@ -128,7 +137,9 @@ impl Driver {
     pub fn step(&mut self, input: &InputView, focused: bool, seconds: f32, out: &mut dyn Output) -> Result<(), String> {
         if let Some(keys) = &mut self.keys {
             self.focused = focused;
-            return Self::deliver_keys(keys.update(Some(&sample_of(input)), focused), out);
+            let sample = sample_of(input);
+            Self::deliver_keys(keys.update(Some(&sample), focused), out)?;
+            return self.analog.update(&sample, focused && keys.armed(), &mut AnalogOutput(out));
         }
         if !focused {
             if self.focused {
@@ -169,7 +180,8 @@ impl Driver {
 
     pub fn release(&mut self, out: &mut dyn Output) -> Result<(), String> {
         if let Some(keys) = &mut self.keys {
-            return Self::deliver_keys(keys.update(None, false), out);
+            Self::deliver_keys(keys.update(None, false), out)?;
+            return self.analog.release(&mut AnalogOutput(out));
         }
         Self::deliver(self.mapper.release_all(), out)
     }
@@ -211,6 +223,11 @@ pub fn key_of(name: &str) -> Option<enigo::Key> {
         "f1" => Key::F1, "f2" => Key::F2, "f3" => Key::F3, "f4" => Key::F4,
         "f5" => Key::F5, "f6" => Key::F6, "f7" => Key::F7, "f8" => Key::F8,
         "f9" => Key::F9, "f10" => Key::F10, "f11" => Key::F11, "f12" => Key::F12,
+        "f13" => Key::F13, "f14" => Key::F14, "f15" => Key::F15, "f16" => Key::F16,
+        "f17" => Key::F17, "f18" => Key::F18, "f19" => Key::F19, "f20" => Key::F20,
+        "f21" => Key::F21, "f22" => Key::F22, "f23" => Key::F23, "f24" => Key::F24,
+        "insert" => Key::Insert, "delete" => Key::Delete, "end" => Key::End, "home" => Key::Home,
+        "pageup" => Key::PageUp, "pagedown" => Key::PageDown,
         _ => return None,
     })
 }
@@ -229,10 +246,19 @@ impl Output for DesktopOutput {
     fn pointer(&mut self, dx: f64, dy: f64) -> Result<(), String> {
         self.pointer.motion(dx, dy)
     }
+
+    fn cursor(&mut self, x: f64, y: f64, width: u32, height: u32) -> Result<(), String> {
+        self.pointer.absolute(x, y, width, height)
+    }
 }
 
-/// The game window's height in logical pixels, as niri lays it out.
-pub fn niri_window_height(socket: &Path, window: u64) -> Option<f64> {
+impl crate::pad_ingress::Output for DesktopOutput {
+    fn key(&mut self, name: &str, down: bool) -> Result<(), String> { Output::key(self, name, down) }
+    fn cursor(&mut self, x: f64, y: f64, width: u32, height: u32) -> Result<(), String> { Output::cursor(self, x, y, width, height) }
+}
+
+/// The game window's width in logical pixels, as niri lays it out.
+pub fn niri_window_width(socket: &Path, window: u64) -> Option<f64> {
     let mut stream = UnixStream::connect(socket).ok()?;
     stream.set_read_timeout(Some(Duration::from_millis(200))).ok()?;
     writeln!(stream, "\"Windows\"").ok()?;
@@ -242,7 +268,7 @@ pub fn niri_window_height(socket: &Path, window: u64) -> Option<f64> {
     let parsed: Value = serde_json::from_str(&reply).ok()?;
     parsed.pointer("/Ok/Windows")?.as_array()?.iter()
         .find(|entry| entry.get("id").and_then(Value::as_u64) == Some(window))?
-        .pointer("/layout/window_size/1")?.as_f64()
+        .pointer("/layout/window_size/0")?.as_f64()
 }
 
 /// Whether niri's focused window is `window`; any failure reads as not focused.
@@ -266,11 +292,11 @@ pub fn niri_focused(socket: &Path, window: u64) -> bool {
 pub enum Mode {
     AnyMap(Vec<Binding>),
     /// Smashcraft's menus: pointer and clicks only.
-    Menu,
+    Menu { start_on_keys: bool },
     /// Smashcraft played on keys: the controller-as-keys mapper of
     /// `wc3-controller --emit` ([`crate::Mapper`]), whose keys are the map's
     /// standard key layout (README, "Xbox mapping").
-    Keys,
+    Keys(model::ControllerSettings),
 }
 
 /// Which output runs, for the service to compare and log.
@@ -343,11 +369,22 @@ pub fn spawn(window: Window, mode: Mode, feed: mpsc::Receiver<Feed>, stop: Arc<A
         };
         let mut driver = match mode {
             Mode::AnyMap(bindings) => Driver::new(bindings),
-            Mode::Menu => {
-                let height = niri_window_height(&window.niri_socket, window.niri_window).unwrap_or(1440.0);
-                Driver::menu(MenuCurve::for_window_height(height))
+            Mode::Menu { start_on_keys } => {
+                let width = niri_window_width(&window.niri_socket, window.niri_window).unwrap_or(2560.0);
+                Driver::menu(MenuCurve::for_window_width(width), start_on_keys)
             }
-            Mode::Keys => Driver::keys(),
+            Mode::Keys(settings) => {
+                let route = match crate::pad_ingress::Route::from_env() {
+                    Ok(route) => route,
+                    Err(error) => { eprintln!("service: {error}"); return; }
+                };
+                let mut driver = Driver::keys_with_ingress(settings.pad_preset, route);
+                if let Some(mapper) = &mut driver.keys {
+                    mapper.set_tap_jump(settings.tap_jump);
+                    mapper.set_trigger_shields(settings.triggers);
+                }
+                driver
+            },
         };
         let mut input = InputView::default();
         let (mut checked, mut is_focused) = (Instant::now() - FOCUS_EVERY, false);
@@ -429,7 +466,7 @@ mod tests {
 
     #[test]
     fn smashcraft_on_keys_presses_the_maps_standard_layout() {
-        let (mut driver, mut out) = (Driver::keys(), Recorded::default());
+        let (mut driver, mut out) = (Driver::keys(model::PadPreset::Standard), Recorded::default());
         let mut pad = InputView::default();
         // Arms on a neutral pad.
         driver.step(&pad, true, 0.0, &mut out).unwrap();
@@ -443,7 +480,7 @@ mod tests {
         pad.lt = 20000;
         pad.left = [-32767, 0];
         pad.right = [0, -32767];
-        driver.step(&pad, true, 0.0, &mut out).unwrap();
+        driver.step(&pad, true, 0.1, &mut out).unwrap();
         let mut pressed = take(&mut out);
         pressed.sort();
         assert_eq!(pressed, ["down j", "down q", "down w"]);
@@ -455,16 +492,47 @@ mod tests {
     }
 
     #[test]
+    fn analog_focus_loss_releases_marker_and_payload_and_waits_for_neutral() {
+        let (mut driver, mut out) = (Driver::keys_with_ingress(model::PadPreset::Standard, crate::pad_ingress::Route::Keys), Recorded::default());
+        driver.step(&InputView::default(), true, 0.0, &mut out).unwrap();
+        let pad = InputView { left: [16384, 0], rt: 32767, ..InputView::default() };
+        driver.step(&pad, true, 0.0, &mut out).unwrap();
+        take(&mut out);
+        driver.step(&pad, false, 0.0, &mut out).unwrap();
+        let released = take(&mut out);
+        assert!(released.contains(&"up end".to_owned()));
+        assert!(released.contains(&"up home".to_owned()));
+        assert!(released.iter().all(|event| event.starts_with("up ")));
+        driver.step(&pad, true, 0.0, &mut out).unwrap();
+        assert!(take(&mut out).is_empty());
+        driver.step(&InputView::default(), true, 0.0, &mut out).unwrap();
+        assert!(take(&mut out).contains(&"down end".to_owned()));
+        driver.release(&mut out).unwrap();
+        assert!(take(&mut out).contains(&"up end".to_owned()));
+        for key in crate::model::pad::KEY_NAMES.into_iter().chain(["end", "home", "pageup", "pagedown"]) {
+            assert!(key_of(key).is_some(), "{key}");
+        }
+    }
+
+    #[test]
     fn the_keys_mapper_and_the_shown_smashcraft_layout_agree() {
-        let shown: std::collections::BTreeSet<String> = model::smashcraft_bindings().into_iter()
-            .filter_map(|binding| match binding.press { Press::Key(key) => Some(key), _ => None })
-            .collect();
-        let pressed: std::collections::BTreeSet<String> = [
-            crate::Action::Attack, crate::Action::Special, crate::Action::Jump, crate::Action::Grab, crate::Action::Shield, crate::Action::Walk,
-            crate::Action::Start, crate::Action::Left, crate::Action::Right, crate::Action::Down, crate::Action::Up,
-            crate::Action::CLeft, crate::Action::CRight, crate::Action::CUp, crate::Action::CDown,
-        ].into_iter().map(|action| match action.key() { ' ' => "space".to_owned(), key => key.to_string() }).collect();
-        assert_eq!(pressed, shown);
+        for left in [model::TriggerShield::Full, model::TriggerShield::Light] {
+            for right in [model::TriggerShield::Full, model::TriggerShield::Light] {
+                let triggers = model::TriggerShields { left, right };
+                let shown: std::collections::BTreeSet<String> = model::smashcraft_bindings_with(model::PadPreset::Standard, triggers).into_iter()
+                    .filter_map(|binding| match binding.press { Press::Key(key) => Some(key), _ => None }).collect();
+                let pressed: std::collections::BTreeSet<String> = [
+                    crate::Action::Attack, crate::Action::Special, crate::Action::Jump, crate::Action::Grab, crate::Action::Shield, crate::Action::LightShield, crate::Action::Walk,
+                    crate::Action::Start, crate::Action::Left, crate::Action::Right, crate::Action::Down, crate::Action::Up,
+                    crate::Action::CLeft, crate::Action::CRight, crate::Action::CUp, crate::Action::CDown,
+                ].into_iter().filter(|action| match action {
+                    crate::Action::Shield => left == model::TriggerShield::Full || right == model::TriggerShield::Full,
+                    crate::Action::LightShield => left == model::TriggerShield::Light || right == model::TriggerShield::Light,
+                    _ => true,
+                }).map(|action| match action.key() { ' ' => "space".to_owned(), key => key.to_string() }).collect();
+                assert_eq!(pressed, shown);
+            }
+        }
     }
 
     #[test]
@@ -531,23 +599,22 @@ mod tests {
 
     #[test]
     fn in_smashcraft_menus_the_left_stick_moves_the_pointer_by_deflection_and_a_clicks() {
-        let curve = MenuCurve::for_window_height(1440.0);
-        let (mut driver, mut out) = (Driver::menu(curve), Recorded::default());
+        let curve = MenuCurve::for_window_width(2560.0);
+        let (mut driver, mut out) = (Driver::menu(curve, false), Recorded::default());
         let mut pad = InputView::default();
         driver.step(&pad, true, 0.0, &mut out).unwrap();
         // Inside the small deadzone: still.
         pad.left = [3900, 0];
         driver.step(&pad, true, 0.1, &mut out).unwrap();
         assert!(take(&mut out).is_empty());
-        // Half tilt is well under half speed; full tilt crosses the grid
-        // (0.8 of the height) in about 0.7 s.
+        // Half tilt is well under half speed; full tilt crosses the screen in one second.
         pad.left = [16384, 0];
         driver.step(&pad, true, 0.1, &mut out).unwrap();
         pad.left = [32767, 0];
         driver.step(&pad, true, 0.1, &mut out).unwrap();
-        assert_eq!(take(&mut out), ["move 40,0", "move 166,0"]);
-        let crossing = 0.8 * 1440.0 / curve.velocity([32767, 0]).0;
-        assert!((0.6..=0.8).contains(&crossing), "{crossing}");
+        assert_eq!(take(&mut out), ["move 61,0", "move 256,0"]);
+        let crossing = 2560.0 / curve.velocity([32767, 0]).0;
+        assert!((0.9..=1.1).contains(&crossing), "{crossing}");
         // Diagonals keep their direction; up is negative y.
         let (vx, vy) = curve.velocity([-23170, -23170]);
         assert!(vx < 0.0 && (vx - vy).abs() < 1e-9);
@@ -564,6 +631,15 @@ mod tests {
         pad.left = [32767, 0];
         driver.step(&pad, false, 0.1, &mut out).unwrap();
         assert_eq!(take(&mut out), ["up right-click"]);
+        // A keyboard build keeps its Start mapping without a journal helper.
+        let mut driver = Driver::menu(curve, true);
+        let mut pad = InputView::default();
+        driver.step(&pad, true, 0.0, &mut out).unwrap();
+        pad.press(Button::Start, true);
+        driver.step(&pad, true, 0.0, &mut out).unwrap();
+        pad.press(Button::Start, false);
+        driver.step(&pad, true, 0.0, &mut out).unwrap();
+        assert_eq!(take(&mut out), ["down y", "up y"]);
     }
 
     #[test]

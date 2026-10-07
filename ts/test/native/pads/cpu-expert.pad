@@ -1,0 +1,40 @@
+# #134 CPU tiers by parity: a Wren Expert computer (slot c, Illidan) against two humans, Archer a and
+# Rifleman b, over three stocks. a shields for two seconds, then both stand, jump and walk off,
+# so the computer must break a shield, chase and punish; syntax: smashcraft:docs/native-bot-session.md.
+#! chat -dev quick cpu wren expert
+200 a shield 1
+320 a shield 0
+400 b tap B 8
+450 b stick 1 0
+452 b stick 0 0
+500 a press VIEW
+570 a release VIEW
+600 a tap B 8
+700 a stick -1 0
+702 a stick 0 0
+# Exact references after 081025d3 (#182) move-value policy and named CPU integration.
+# Frames 1-1000: 19 hits on humans; the computer takes no hit.
+# Every hit and respawn on its frame; input timings are unchanged.
+#! expect a 64 damage 12.753
+#! expect a 152 damage 25.507
+#! expect a 245 damage 27.507
+#! expect a 251 damage 30.507
+#! expect a 324 damage 32.507
+#! expect a 330 damage 35.507
+#! expect a 361 damage 49.507
+#! expect a 515 damage 0.000
+#! expect b 517 damage 11.530
+#! expect a 634 damage 7.000
+#! expect a 689 damage 9.000
+#! expect a 695 damage 12.000
+#! expect a 755 damage 14.000
+#! expect a 761 damage 17.000
+#! expect a 794 damage 19.000
+#! expect a 800 damage 22.000
+#! expect a 829 damage 24.000
+#! expect a 835 damage 27.000
+#! expect a 882 damage 35.000
+#! expect a 961 damage 47.753
+#! absent c 1-1000 damage
+1000 a press VIEW
+1070 a release VIEW

@@ -1,64 +1,73 @@
-// Beastmaster's four specials as authored data (smashcraft:docs/design/roster.md,
-// "Beastmaster", B specials). The entry tick is frame 1 and "end fN" is the
-// last frame of the action. Distances are in the hero reference height H.
-// His bear is the placement's partner (sim/companions.ts): side special
-// summons it and then orders its lunge, and down special calls it back.
+// The pack's authored values: smashcraft:docs/design/beastmaster.md.
 import { f32 } from "wisp/src/sim/f32";
 import { HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { type AuthoredSpecial, CompanionOrder, type FighterSpecials, type SpecialCompanion, type SpecialMotion, type SpecialPlacement, type SpecialProjectile, frames } from "../heroSpecials";
 import { capsule, hit } from "./beastmasterMoves";
 
-const H = HERO_REFERENCE_HEIGHT;
-const h = (multiple: number): number => f32(H * f32(multiple));
-
-/** Non-mobility specials used in the air end on landing with this lag (roster "Action defaults"). */
+const h = (multiple: number): number => f32(HERO_REFERENCE_HEIGHT * f32(multiple));
 const AIR_SPECIAL_LANDING_LAG = 20;
-const CAST_HEIGHT = h(f32(0.5));
-
-/** Throwing Axe: straight, 0.11H a frame for 28 frames, one at a time, no return. */
-export const THROWING_AXE: SpecialProjectile = {
-  spawnFrame: 20, offsetX: h(f32(0.35)), offsetZ: CAST_HEIGHT,
-  velocityX: h(f32(0.11)), velocityZ: 0.0, life: 28, radius: h(f32(0.17)),
-  effect: hit(9.0, "POKE", 40), reflectable: true, limit: 1,
+const axe = (spawnFrame: number, height: number): SpecialProjectile => ({
+  spawnFrame, offsetX: h(f32(0.35)), offsetZ: h(height),
+  velocityX: h(f32(0.12)), velocityZ: 0.0, life: 80, radius: h(f32(0.12)),
+  effect: hit(5.0, "POKE", 40), returnEffect: hit(4.0, "LINK", 65),
+  returns: { age: 24, speed: h(f32(0.15)) }, reflectable: true, limit: 1,
   model: "Abilities\\Weapons\\Axe\\AxeMissile.mdx",
-};
-const throwingAxe = (air: boolean): AuthoredSpecial => ({
-  cost: 0, endFrame: 39, projectiles: [THROWING_AXE],
+});
+export const WILD_AXES = [axe(16, f32(0.35)), axe(20, f32(0.65))];
+const wildAxes = (air: boolean): AuthoredSpecial => ({
+  cost: 0, endFrame: 35, projectiles: WILD_AXES,
   landingLag: air ? AIR_SPECIAL_LANDING_LAG : undefined,
 });
-
-/**
- * The bear: follows 0.8H behind him at 0.035H a frame on its own deck, lunges
- * 1.2H only on his order (10 frames of warning, a 4-frame bite, 30 of
- * recovery), is stunned 18 frames by a hit mid-lunge, and leaves after 120
- * frames more than 6H from him.
- */
 export const BEAR: SpecialCompanion = {
   followSpeed: h(f32(0.035)), followBehind: h(f32(0.8)), returnSpeed: h(f32(0.06)),
   lungeStartup: 10, lungeActive: 4, lungeRecovery: 30, lungeTravel: h(f32(1.2)),
   bite: capsule(15.0, 30.0, f32(h(f32(0.45)) - 20.0), 40.0, 20.0),
-  biteEffect: hit(16.0, "EDGE", 40, 1.0, HitElement.normal),
+  biteEffect: hit(12.0, "EDGE", 40, 1.0, HitElement.normal),
   stunFrames: 18, leash: h(6.0), leashFrames: 120,
 };
-
-/** The bear's body: 22 durability, 600 frames, an upright capsule its drawn size. */
-const BEAR_PLACEMENT: SpecialPlacement = {
-  frame: 30, offsetX: h(f32(0.6)), radius: h(f32(0.3)), height: h(f32(0.8)),
+export const BEAR_PLACEMENT: SpecialPlacement = {
+  frame: 24, offsetX: h(f32(0.6)), radius: h(f32(0.3)), height: h(f32(0.8)),
   durability: 30.0, life: 600, fireAges: [], companion: BEAR,
 };
-
-/** Without a bear: a ground-only summon, the bear appearing f30, the action ending f56. */
-const SUMMON_BEAR: AuthoredSpecial = { cost: 25, endFrame: 56, groundOnly: true, placement: BEAR_PLACEMENT };
-/** With a bear: the command, f24 for him; it refuses while the bear is lunging or stunned. */
-const BEAR_COMMAND: AuthoredSpecial = { name: "Bear Command", cost: 8, endFrame: 24, command: { frame: 4, order: CompanionOrder.lunge } };
-
-/**
- * Hawk Lift, a guided rise (#189): a cosmetic hawk carries him over f10-32, half the rise by f15,
- * then easing so the peak stays at the listed height; the held stick steers
- * it sideways, up to the listed steer over the whole lift. Full form 3.2H up,
- * 0.3H across and 1.2H steer; the free form 2.3H, 0.2H and 0.8H.
- */
+const stampede = (spawnFrame: number): SpecialProjectile => ({
+  spawnFrame, offsetX: h(f32(0.4)), offsetZ: h(f32(0.15)),
+  velocityX: h(f32(0.14)), velocityZ: 0.0, life: 24, radius: h(f32(0.15)),
+  effect: hit(4.0, "POKE", 25, 1.0, HitElement.normal), reflectable: false, limit: 1,
+  model: "Abilities\\Spells\\Other\\Stampede\\StampedeMissile.mdx",
+});
+export const STAMPEDE = [stampede(12), stampede(20)];
+const SUMMON_BEAR: AuthoredSpecial = { cost: 20, endFrame: 44, groundOnly: true, placement: BEAR_PLACEMENT };
+const BEAR_COMMAND: AuthoredSpecial = { name: "Stampede", cost: 12, endFrame: 32, command: { frame: 4, order: CompanionOrder.lunge }, projectiles: STAMPEDE };
+export const QUILL: SpecialProjectile = {
+  spawnFrame: 0, offsetX: h(f32(0.25)), offsetZ: h(f32(0.3)),
+  velocityX: h(f32(0.14)), velocityZ: 0.0, life: 24, radius: h(f32(0.09)),
+  effect: hit(3.0, "LINK", 35, 1.0, HitElement.normal), reflectable: true, limit: 3,
+  model: "Abilities\\Weapons\\QuillSprayMissile\\QuillSprayMissile.mdx",
+};
+export const QUILBEAST: SpecialCompanion = {
+  ...BEAR, behavior: "sentry", followSpeed: 0.0, lungeStartup: 10, lungeActive: 17, lungeRecovery: 21, lungeTravel: 0.0,
+  volleyFrames: [11, 19, 27],
+};
+export const QUILBEAST_PLACEMENT: SpecialPlacement = {
+  slot: 1, frame: 18, offsetX: h(f32(0.65)), radius: h(f32(0.2)), height: h(f32(0.5)),
+  durability: 18.0, life: 600, fireAges: [18, 108, 198, 288, 378, 468, 558], shot: QUILL, companion: QUILBEAST,
+  model: { path: "units\\creeps\\QuillBeast\\QuillBeast.mdl", height: 120.0, alpha: 255 },
+};
+const SUMMON_QUILBEAST: AuthoredSpecial = { cost: 12, endFrame: 32, groundOnly: true, placement: QUILBEAST_PLACEMENT };
+const QUILL_VOLLEY: AuthoredSpecial = { name: "Quill Volley", cost: 6, endFrame: 24, facesStick: true, command: { frame: 3, order: CompanionOrder.lunge, slot: 1 } };
+export const HAWK: SpecialCompanion = {
+  ...BEAR, behavior: "flying", followSpeed: h(f32(0.07)), followBehind: -h(f32(0.6)), followHeight: h(f32(1.2)),
+  lungeStartup: 8, lungeActive: 8, lungeRecovery: 28, lungeTravel: h(f32(1.5)), lungeDrop: h(f32(1.6)),
+  bite: capsule(-12.0, 10.0, 18.0, 25.0, 20.0), biteEffect: hit(6.0, "LAUNCH", 80, 1.0, HitElement.normal),
+};
+export const HAWK_PLACEMENT: SpecialPlacement = {
+  slot: 2, frame: 12, offsetX: h(f32(0.6)), offsetZ: h(f32(1.2)), radius: 18.0, height: 45.0,
+  durability: 12.0, life: 600, fireAges: [], companion: HAWK, keepExisting: true,
+  model: { path: "units\\creeps\\WarEagle\\WarEagle.mdl", height: 80.0, alpha: 255 },
+};
+const SUMMON_HAWK: AuthoredSpecial = { cost: 10, endFrame: 26, groundOnly: true, placement: HAWK_PLACEMENT };
+const HAWK_DIVE: AuthoredSpecial = { name: "Hawk Dive", cost: 6, endFrame: 24, facesStick: true, command: { frame: 3, order: CompanionOrder.lunge, slot: 2 } };
 const lift = (rise: number, drift: number, steer: number): SpecialMotion[] => {
   const segment = (first: number, last: number, share: number): SpecialMotion =>
     ({
@@ -68,26 +77,12 @@ const lift = (rise: number, drift: number, steer: number): SpecialMotion[] => {
   return [segment(10, 15, 0.5), segment(16, 27, f32(0.46)), segment(28, 32, f32(0.04))];
 };
 const hawkLift = (cost: number, rise: number, drift: number, steer: number): AuthoredSpecial => ({
-  cost, endFrame: 32, motion: lift(rise, drift, steer), facesStick: true, oncePerAirtime: true, helpless: true,
+  name: "Hawk Lift", cost, endFrame: 32, motion: lift(rise, drift, steer), facesStick: true, oncePerAirtime: true, helpless: true,
+  placement: { ...HAWK_PLACEMENT, frame: 10 },
 });
-
-/** Quillbeast Dart: without a bear, one short quill, 0.14H a frame for 20 frames. */
-export const QUILL_DART: SpecialProjectile = {
-  spawnFrame: 18, offsetX: h(f32(0.3)), offsetZ: CAST_HEIGHT,
-  velocityX: h(f32(0.14)), velocityZ: 0.0, life: 20, radius: h(f32(0.10)),
-  effect: hit(4.0, "POKE", 35, 1.0, HitElement.normal), reflectable: true, limit: 1,
-  model: "Abilities\\Weapons\\QuillSprayMissile\\QuillSprayMissile.mdx",
-};
-const quillDart = (air: boolean): AuthoredSpecial => ({
-  cost: 3, endFrame: 40, projectiles: [QUILL_DART],
-  landingLag: air ? AIR_SPECIAL_LANDING_LAG : undefined,
-});
-/** With a bear: the bear walks back toward him at 0.06H a frame; no teleport, attack or repair. */
-const BEAR_RECALL: AuthoredSpecial = { name: "Bear Recall", cost: 0, endFrame: 20, command: { frame: 2, order: CompanionOrder.return } };
-
 export const BEASTMASTER_SPECIALS: FighterSpecials = {
-  neutral: { name: "Throwing Axe", description: "A straight thrown axe that costs nothing.", ground: throwingAxe(false), air: throwingAxe(true) },
-  side: { name: "Summon Bear", description: "Call a bear to his side; press again to send it lunging ahead.", ground: SUMMON_BEAR, recall: BEAR_COMMAND },
-  up: { name: "Hawk Lift", description: "A hawk lifts him high and you steer it, then a helpless fall.", ground: hawkLift(15, h(f32(3.2)), h(f32(0.3)), h(f32(1.2))), free: hawkLift(0, h(f32(2.3)), h(f32(0.2)), h(f32(0.8))) },
-  down: { name: "Quillbeast Dart", description: "A short quill; with a bear out, call the bear back to him instead.", ground: quillDart(false), air: quillDart(true), recall: BEAR_RECALL },
+  neutral: { name: "Wild Axes", description: "Throw two axes; move to guide their return through the enemy.", ground: wildAxes(false), air: wildAxes(true) },
+  side: { name: "Summon Bear", description: "Call Bear, then press again for its lunge and a Stampede.", ground: SUMMON_BEAR, recall: BEAR_COMMAND },
+  up: { name: "Summon Hawk", description: "Call Hawk, then command a dive. In the air, Hawk carries him up.", ground: SUMMON_HAWK, recall: HAWK_DIVE, recallGroundOnly: true, air: hawkLift(15, h(f32(3.2)), h(f32(0.3)), h(f32(1.2))), free: hawkLift(0, h(f32(2.3)), h(f32(0.2)), h(f32(0.8))) },
+  down: { name: "Summon Quilbeast", description: "Set a Quilbeast firing position; press again for a three-quill volley.", ground: SUMMON_QUILBEAST, recall: QUILL_VOLLEY },
 };

@@ -1,3 +1,4 @@
+import { placedObject } from "../sim/fighter";
 // The first field that differs between two replay states, by Wurst
 // ReplayState's diagnostic path and checked in its order, which is not the
 // canonical tape's order.
@@ -15,6 +16,7 @@ import type { DashGrabRules, FighterPhysics, GroundMovementRules, ShieldGeometry
 import { at } from "wisp/src/runtime/lookup";
 import { canonicalSlot, fighterMovesCanonical, fighterSpecialsCanonical } from "./canonical";
 import { firstTrainingDifference } from "../match/trainingState";
+import { firstItemsDifference } from "../match/items";
 import { firstBotMemoryDifference } from "../match/botPerception";
 import { botStrategyValues } from "../match/botStrategy";
 import type { ReplayState } from "./snapshot";
@@ -82,7 +84,8 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("wallTechAnimationEndFrame", expectedTuning.tech.wallAnimationEndFrame, actualTuning.tech.wallAnimationEndFrame);
   add("wallJumpTechAnimationEndFrame", expectedTuning.tech.wallJumpAnimationEndFrame, actualTuning.tech.wallJumpAnimationEndFrame);
   add("facing", e.facing, a.facing);
-  add("lastAerialTapDirection", e.motion.lastAerialTapDirection, a.motion.lastAerialTapDirection);
+  add("turnaroundSide", e.motion.turnaroundSide, a.motion.turnaroundSide);
+  add("turnaroundAge", e.motion.turnaroundAge, a.motion.turnaroundAge);
   add("dashFrame", e.ground.dashFrame, a.ground.dashFrame);
   add("dashDirection", e.ground.dashDirection, a.ground.dashDirection);
   record("groundRules", expectedTuning.ground, actualTuning.ground, GROUND_RULE_KEYS);
@@ -124,6 +127,7 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("hitVisualElectric", e.visuals.hitElectric, a.visuals.hitElectric);
   add("hitVisualElement", e.visuals.hitElement, a.visuals.hitElement);
   add("hitVisualStrength", e.visuals.hitStrength, a.visuals.hitStrength);
+  add("hitVisualHeight", e.visuals.hitHeight, a.visuals.hitHeight);
   add("hitVisualPummel", e.visuals.hitPummel, a.visuals.hitPummel);
   add("shieldVisualElectric", e.visuals.shieldElectric, a.visuals.shieldElectric);
   add("shieldVisualSerial", e.visuals.shield, a.visuals.shield);
@@ -221,6 +225,8 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("specialGuarded", e.special.guarded, a.special.guarded);
   add("guardHealed", e.status.guardHealed, a.status.guardHealed);
   add("divineFrames", e.status.divineFrames, a.status.divineFrames);
+  add("buff", e.status.buff, a.status.buff);
+  add("buffFrames", e.status.buffFrames, a.status.buffFrames);
   add("passiveStacks", e.passive.stacks, a.passive.stacks);
   add("passiveWindow", e.passive.window, a.passive.window);
   add("passiveSerial", e.passive.serial, a.passive.serial);
@@ -229,25 +235,33 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("passiveLastKey", e.passive.lastKey, a.passive.lastKey);
   add("passiveLastTarget", e.passive.lastTarget, a.passive.lastTarget);
   for (let i = 0; i < PROJECTILE_CAPACITY; i++) add(`projectileSpec[${i}]`, at(e.projectiles, i).spec === at(a.projectiles, i).spec, true);
-  add("placedLife", e.placed.life, a.placed.life);
-  add("placedAge", e.placed.age, a.placed.age);
-  add("placedX", e.placed.x, a.placed.x);
-  add("placedZ", e.placed.z, a.placed.z);
-  add("placedDirection", e.placed.direction, a.placed.direction);
-  add("placedDurability", e.placed.durability, a.placed.durability);
-  add("placedSerial", e.placed.serial, a.placed.serial);
-  add("placedSpec", e.placed.spec === a.placed.spec, true);
-  for (let i = 0; i < PARTICIPANT_CAPACITY; i++) add(`placedStruck[${i}]`, e.placed.struck[i], a.placed.struck[i]);
-  add("placedSpecialStruck", e.placed.specialStruck, a.placed.specialStruck);
-  add("placedMode", e.placed.mode, a.placed.mode);
-  add("placedModeFrame", e.placed.modeFrame, a.placed.modeFrame);
-  add("placedApart", e.placed.apart, a.placed.apart);
-  add("placedBitten", e.placed.bitten, a.placed.bitten);
-  add("placedSurface", e.placed.surface ?? -1, a.placed.surface ?? -1);
+  add("packLength", e.pack.length, a.pack.length);
+  for (let animal = 0; animal <= Math.min(e.pack.length, a.pack.length); animal++) {
+    const ep = placedObject(e, animal);
+    const ap = placedObject(a, animal);
+    const animalName = animal === 0 ? "placed" : `pack[${animal - 1}]`;
+    add(`${animalName}Life`, ep.life, ap.life);
+    add(`${animalName}Age`, ep.age, ap.age);
+    add(`${animalName}X`, ep.x, ap.x);
+    add(`${animalName}Z`, ep.z, ap.z);
+    add(`${animalName}Direction`, ep.direction, ap.direction);
+    add(`${animalName}Durability`, ep.durability, ap.durability);
+    add(`${animalName}Serial`, ep.serial, ap.serial);
+    add(`${animalName}Spec`, ep.spec === ap.spec, true);
+    for (let i = 0; i < PARTICIPANT_CAPACITY; i++) add(`${animalName}Struck[${i}]`, ep.struck[i], ap.struck[i]);
+    add(`${animalName}SpecialStruck`, ep.specialStruck, ap.specialStruck);
+    add(`${animalName}Mode`, ep.mode, ap.mode);
+    add(`${animalName}ModeFrame`, ep.modeFrame, ap.modeFrame);
+    add(`${animalName}Apart`, ep.apart, ap.apart);
+    add(`${animalName}Bitten`, ep.bitten, ap.bitten);
+    add(`${animalName}Surface`, ep.surface ?? -1, ap.surface ?? -1);
+  }
   add("freezeTrapCooldown", e.freezeTrap.cooldown, a.freezeTrap.cooldown);
   add("out", e.status.out, a.status.out);
   add("respawn", e.status.respawn, a.status.respawn);
   add("shield", e.shield.raised, a.shield.raised);
+  add("shieldTiltX", e.shield.tiltX, a.shield.tiltX);
+  add("shieldTiltZ", e.shield.tiltZ, a.shield.tiltZ);
   add("shieldTriggerWasActive", e.shield.triggerWasActive, a.shield.triggerWasActive);
   add("shieldTriggerAge", e.shield.triggerAge, a.shield.triggerAge);
   add("shieldReflectFrames", e.shield.reflectFrames, a.shield.reflectFrames);
@@ -407,7 +421,9 @@ export function firstStateDifference(expected: Readonly<ReplayState>, actual: Re
     if (e.characterChoices[slot] !== a.characterChoices[slot]) return `match.slot${slot}.character`;
     if (e.characterReadiness[slot] !== a.characterReadiness[slot]) return `match.slot${slot}.ready`;
     if (e.rematchReadiness[slot] !== a.rematchReadiness[slot]) return `match.slot${slot}.rematch`;
-    if (e.cpuLevels[slot] !== a.cpuLevels[slot]) return `match.slot${slot}.cpuLevel`;
+    if (e.cpuOpponents[slot] !== a.cpuOpponents[slot]) return `match.slot${slot}.cpuOpponent`;
+    if (e.cpuTiers[slot] !== a.cpuTiers[slot]) return `match.slot${slot}.cpuTier`;
+    if (e.cpuResolvedOpponents[slot] !== a.cpuResolvedOpponents[slot]) return `match.slot${slot}.cpuResolvedOpponent`;
   }
   if (e.humanCount !== a.humanCount) return "match.humanCount";
   if (e.practice !== a.practice) return "match.practice";
@@ -423,6 +439,8 @@ export function firstStateDifference(expected: Readonly<ReplayState>, actual: Re
   if (e.matchSeed !== a.matchSeed) return "match.matchSeed";
   if (e.matchFrame !== a.matchFrame) return "match.matchFrame";
   if (e.startHold !== a.startHold) return "match.startHold";
+  const items = firstItemsDifference(e.items, a.items);
+  if (items !== undefined) return items;
   if (e.timedOut !== a.timedOut) return "match.timedOut";
   if (expected.runtime.simulationFrame !== actual.runtime.simulationFrame) return "runtime.simulationFrame";
   for (const slot of PARTICIPANT_SLOTS) {

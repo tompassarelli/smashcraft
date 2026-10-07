@@ -557,7 +557,7 @@ check does not measure every collision frame or prove the numerical formulas.
 The corrections below retain the shared dodge durations, the 18-degree digital
 wavedash, neutral-horizontal fast-fall and the absence of stale moves
 (smashcraft:docs/gameplay-design.md).
-Illidan retains original jump/drift tuning and 128-unit roll paths.
+Illidan retains original jump tuning and 128-unit roll paths; his drift follows the shared rule since #190.
 
 Full Melee parity is not established. Archer/Rifleman forward-roll logical
 facing now changes at the observed frame-20 event, with entry-facing travel
@@ -827,7 +827,7 @@ ordering and the recorded overspeed-braking branch. The recording does not
 verify under-target acceleration, run transitions, turning, analog-stick
 scaling or the disc revision.
 
-The authored dash window and two-sample stick reversal policy are specified
+The authored dash window and three-sample stick reversal policy are specified
 in [gameplay design](gameplay-design.md#dash-dancing). Run-turn braking remains
 an explicit authored action rule. The authored phase
 no longer holds dash speed. The retail event facts in
@@ -1401,7 +1401,8 @@ three grounded ticks for Archer or five for Rifleman before takeoff, including
 the input tick. Release during those grounded ticks latches short hop; release
 on takeoff does not. Hitlag freezes that decision. Repeated presses during
 squat do not restart it or spend the aerial jump. Illidan retains its custom
-launch speeds, squat timing, and drift.
+launch speeds and squat timing; since #190 its takeoff momentum and drift follow
+the shared rules ([gameplay design](gameplay-design.md#air-drift-and-jump-momentum)).
 
 The focused checks assert the grounded startup ticks, first two airborne
 positions and velocities, aerial launch, takeoff release, and hitlag. The full
@@ -2107,6 +2108,16 @@ Falcon's 3 for Illidan). Captain Falcon's own drift turns his 2.0 into 1.99,
 so Illidan's authored immediate drift cap does not apply on that frame: with
 his own friction his 2.0 becomes 1.98. From the next frame his ordinary drift,
 capped at 0.88, applies again.
+
+Analog rows retain their raw horizontal axis for air drift, before the
+directional-influence stick is normalized diagonally. Per
+`ftCommon_CalcSelfAccel_DriftFrom`, the target air speed scales by the
+horizontal stick magnitude, while acceleration adds the signed base to the
+stick times the multiplier. The shared retail base for Fox, Falco and Captain
+Falcon is 0.02 Melee units/frame (+0x068); Smashcraft's authored full-stick
+acceleration stores base plus multiplier. Full horizontal keyboard rows,
+including keyboard diagonals, keep the existing full-rate drift. The
+input-row fixture is `ts/src/game/sim/analogAirDrift.tests.ts`.
 
 A wall jump follows `ftWallJump_8008169C` (melee:src/melee/ft/ftwalljump.c).
 After the frame's collision, a fighter that is falling, jumping, tumbling

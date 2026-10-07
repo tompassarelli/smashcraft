@@ -30,7 +30,7 @@ All move designs and numbers below are proposals, not existing implementation fa
 | 10 | Goblin Tinker | Gadgets, mechanical reach, and rockets | Long setup and exposed body |
 | 11 | Goblin Alchemist | Ogre brawler with potion preparation | Slow body and buffs that require commitment |
 | 12 | Naga Sea Witch | Ground control and arcing projectiles | Slow air movement and exposed recovery |
-| 13 | Beastmaster | Fighter and bear coordination | Shared resources and punishable pet commands |
+| 13 | Beastmaster | Three-animal pack coordination | Shared resources and punishable pet commands |
 | 14 | Dark Ranger | Marked targets and a single skeletal helper | Requires setup and cannot replace Archer’s neutral game |
 | 15 | Firelord | Fire zones and one short-lived summon | Zones have startup and can be escaped vertically |
 
@@ -100,7 +100,7 @@ Ultimates are optional and disabled in the default competitive preset until the 
 
 ## Baseline fighter properties
 
-Weight is relative to the current reference fighter at 1.00. Run and air speed are multipliers on the existing reference; hurtbox dimensions are relative width and height. All fighters start with the same two jumps, with jump velocity and gravity inherited from the reference unless later testing explicitly changes them. Air speed does not change jump height. Size must match the visible model; trim collision capsules rather than counting weapons or flames as torso.
+Weight is relative to the current reference fighter at 1.00. Run speed is a multiplier on the existing reference; air speed is a multiplier on 1.00 Melee units a frame, the air-drift reference ([Air drift and jump momentum](../gameplay-design.md#air-drift-and-jump-momentum), #190); hurtbox dimensions are relative width and height. All fighters start with the same two jumps, with jump velocity and gravity inherited from the reference unless later testing explicitly changes them. Air speed does not change jump height. Size must match the visible model; trim collision capsules rather than counting weapons or flames as torso.
 
 | Hero | Weight | Run speed | Air speed | Width | Height |
 | --- | --- | --- | --- | --- | --- |
@@ -112,7 +112,7 @@ Weight is relative to the current reference fighter at 1.00. Run and air speed a
 | Uther | 1.10 | 0.92 | 0.88 | 1.08 | 1.02 |
 | Dreadlord | 1.24 | 1.10 | 1.22 | 1.10 | 1.15 |
 | Shadow Hunter | 0.94 | 1.04 | 1.00 | 0.92 | 1.08 |
-| Pit Lord | 1.28 | 0.80 | 0.70 | 1.65 | 1.35 |
+| Pit Lord | 1.28 | 0.80 | 0.75 | 1.65 | 1.35 |
 | Tinker | 1.05 | 0.94 | 0.86 | 1.20 | 0.95 |
 | Alchemist | 1.20 | 0.86 | 0.80 | 1.35 | 1.25 |
 | Naga Sea Witch | 1.02 | 0.94 | 0.76 | 1.20 | 1.05 |
@@ -325,7 +325,7 @@ Standing grab 8/2/25, reach 0.50H. Pummel: helmet headbutt.
 | Neutral B | **Shadow Strike:** one slow thrown blade; 5 impact damage, POKE at 35 degrees, plus 3 damage over 180 frames in three 1-damage ticks; the poison is the **mark** for Shadow Pursuit (#126, smashcraft:docs/design/kit-review-1.md). Speed 0.11H/frame, life 30, radius 0.13H. Reflectable; poison never flinches and does not stack. | Spawn f16, end f37; 5 mana |
 | Side B | **Pursuit Lunge:** 1.0H dash slash, 10 damage, EDGE at 35 degrees. Against a marked opponent within 2.5H it is **Shadow Pursuit** (#126): a 14-frame tell, then on f15 she appears just behind the target facing it, spending the mark, and slashes f18–20 for 10, EDGE at 35 degrees; ends f40; no intangibility. Hold up/down on entry for a shallow +20/−20 degree air trajectory; no late steering. Air use once per airtime and ends helpless. No invulnerability. | f11–14 active, R26; 15 mana |
 | Up B | **Blink:** choose one of eight directions from held input at entry, travel up to 1.7H; f1–7 vulnerable, f8–10 intangible, endpoint vulnerable from f11. No hitbox. Sweep against terrain and stop at the last legal position, never cross solid stage. Free version is upward-only 1.1H, no intangibility. | Displacement f9; f11–30 endpoint recovery then helpless; 20 mana |
-| Down B | **Fan of Knives:** a single radial attack reaching 0.85H around Warden for 7 damage, POKE at 45 degrees outward; every body it hits is marked as Shadow Strike marks (#126). Knives are short-lived hit volumes attached to this move, not eight independent full-range projectiles. No invulnerability, reflect, or cancel. | f9–11 active, R27; 18 mana |
+| Down B | **Fan of Knives:** throw a wide outward burst reaching 1.30H around Warden, on ground or in air, for 7 damage, POKE at 45 degrees outward; every body hit is poisoned and marked for Shadow Pursuit. Seven knives spray outward from a coiled cast; immediate release, no stored charge ([design](warden-fan-of-knives.md), #239). | f9–11 active, R27; 18 mana |
 
 ### Grab and throws
 
@@ -350,7 +350,7 @@ Standing grab 6/2/22, reach 0.48H. Pummel: elbow to the ribs.
 - Blink reads its eight directions from the stick held through frame 8, because an up special is always entered holding up. A grounded endpoint keeps the full recovery to frame 30, and a displacement into the stage stops at its body or lands on the deck.
 - Shadow Pursuit is the side kit's `marked` form, chosen while a poisoned opponent is within 2.5H; its move to the target's back is a `relocate` motion that also spends the poison. Fan of Knives applies the poison through `strikeStatus`.
 - Shadow Strike's poison is its own status slot beside sleep-like conditions: it never replaces or blocks one, ignores immunity groups and refreshes rather than stacks.
-- Presentation uses the stock Warden model. It has twelve sequences and no hit, jump, roll or ledge animations: blade swings play Attack - 1 and Attack - 2, overhead strikes Spell Slam, rising strikes and Fan of Knives Spell, Shadow Strike Spell Throw, and Blink, spot dodge and air dodge Dissipate. Knockdowns and tumbles play Death.
+- Presentation uses the stock Warden model with authored motion clips. Fan of Knives has distinct ground and air casts, coiling then spreading both arms at release (#239). Shadow Strike plays Spell Throw, and Blink plays Dissipate.
 - Spirit of Vengeance is not implemented; ultimates stay off in competitive play.
 
 **Gameplan** (smashcraft:ts/src/game/sim/heroes/wardenGameplan.ts, #105): she keeps 0.7-1.4H, just past her blades, and spaces with Crescent Slice and Pursuit Lunge; she runs in with dash attack, lunge and grab or jumps in with aerials led by Pursuer, and never camps at long range. Up tilt, down tilt, up air and the up and down throws start her strings; Heel Blade, Judgment Edge, Moon Arc and the low outward Pursuer and Twin Crescent finish. She spends her jump before Blink, so its punishable endpoint is her last resort, and stays out from under a target.
@@ -428,7 +428,7 @@ Standing grab 8/3/25, reach 0.60H. Pummel: belly bump.
 | Input | Proposed move and behavior | Timing and cost |
 | --- | --- | --- |
 | Neutral B | **Frost Nova** (#130, [kit review 2](kit-review-2.md#lich-130)): a slow orb, speed 0.09H/frame, life 80, radius 0.16H; 9 damage, POKE at 35 degrees and Chill on a body. Neutral B again while it flies stops it on the gesture's frame 4; 6 frames later it bursts for 3 frames: radius 0.7H, 10 damage, LAUNCH at 70 degrees, Chill. One orb, reflectable until burst. **Chill:** 75 frames at 60% walk, dash, run and air-drift top speed; a shield stops it; 120 frames of immunity. | Orb f18, end f39; 10 mana. Burst gesture end f14, free |
-| Side B | **Death and Decay** (#130): a field placed 1.5H ahead, or 0.9H if pressed backward, only with line of sight; radius 0.75H. It strikes the first body or shield in it from f30 (5 damage, POKE at 80 degrees) and again from f70 (9 damage, LAUNCH at 70 degrees), and is gone after f97. Interrupting Lich before f30 removes it. | Field f8, end f50; 25 mana |
+| Side B | **Death and Decay** (#130): a field placed 1.5H ahead (a backward press turns Lich first, as every side special does), only with line of sight; radius 0.75H. It strikes the first body or shield in it from f30 (5 damage, POKE at 80 degrees) and again from f70 (9 damage, LAUNCH at 70 degrees), and is gone after f97. Interrupting Lich before f30 removes it. | Field f8, end f50; 25 mana |
 | Up B | **Spectral Ascent:** visible upward glide, 2.1H height and up to 0.4H lateral drift, no hitbox or intangibility. Free version 1.4H. | Movement f10–34, helpless afterward; 15 mana |
 | Down B | **Frost Armor** (#130): f22 cast grants a 240-frame shell that absorbs the hit reaction of one hit of at most 8 damage and chills the melee striker. Damage still applies; grabs bypass it. **Dark Ritual:** down B while the shell holds shatters it on f6 into a 0.6H burst around Lich (5 damage, POKE at 60 degrees) and restores 30 mana. | Cast f22, end f45; 20 mana. Ritual end f24, free |
 
@@ -454,9 +454,8 @@ lichSpecials.ts. Every normal, grab, pummel, throw and special above is
 implemented; the ultimate is not (there is no ultimate action). Changes from
 the tables:
 
-- **Death and Decay** "pressed backward" is a side special pressed toward
-  Lich's back: Lich keeps facing and places the field 0.9H ahead instead of
-  turning. A field whose line from Lich crosses solid stage geometry is not
+- **Death and Decay** pressed toward Lich's back turns him and places the
+  field 1.5H ahead of the new facing (gameplay-design "Turnaround specials"). A field whose line from Lich crosses solid stage geometry is not
   placed (the cast and its cost still happen). Its two strikes are two
   stationary zones, so with Frost Nova's orb Lich owns three projectiles.
 - **Frost Nova's burst** press is accepted once the 39-frame cast has ended,
@@ -482,7 +481,7 @@ the tables:
 
 ## Uther
 
-**Identity:** a defensive paladin with a substantial hammer, deliberate protection, and limited healing. He wins by holding space and reading approaches, not by infinitely stalling with invulnerability. Divine Shield must be a short defensive action in a fighter.
+**Identity:** a defensive paladin with a substantial hammer, deliberate protection, and a strong close hit backed by weaker ranged light. The current kit and sources are in [Uther](uther.md). He wins by holding space and reading approaches, not by infinitely stalling with invulnerability. Divine Shield must be a short defensive action in a fighter.
 
 ### Normals
 
@@ -506,8 +505,8 @@ the tables:
 
 | Input | Proposed move and behavior | Timing and cost |
 | --- | --- | --- |
-| Neutral B | **Holy Light** (#131, [kit review 2](kit-review-2.md#uther-131)): aimed straight or 30 degrees up by holding up on entry; speed 0.11H/frame out for 26 frames, then back toward Uther's chest at the same speed; life 80, radius 0.17H, one active. Outbound 5 damage, POKE at 40 degrees; returning 5 damage, POKE toward Uther. Reaching Uther untouched restores 3 percent, at most 9 a stock. A reflected orb flies straight. | Spawn f20, end f56; 10 mana |
-| Side B | **Crusader Rush:** advance 0.9H with a hammer check, 11 damage at 45 degrees, LAUNCH. Armor against one hit of at most 5 damage only on f12–15; grabs ignore it. Air version has no armor, no rise, and ends helpless. | Active/movement f12–17, R30; 20 mana |
+| Neutral B | **Hammer of Justice** (#216): overhead hammer launcher, 13 damage at 80°, growth 70/base 42. One hit, 140-unit reach; air keeps drift with 18 landing frames. | Active f14–16, end f38; 10 mana |
+| Side B | **Holy Radiance** (#216): 0.75H hammer lunge, 14 damage at 40°; on f21 a 6-damage holy wave travels straight beyond the head. Ground armor for one ≤5-damage hit f15–18. Air has no armor, one use and helpless finish. | Hammer/travel f15–20, wave f21, end f69; 50 mana |
 | Up B | **Ascension:** rising hammer leap, 1.9H rise and 0.45H horizontal drift; one 8-damage hit, LAUNCH at 80 degrees. Free version 1.3H without hitbox. | Hit f10–15, travel through f29, then helpless; 15 mana |
 | Down B | **Divine Shield** (#131): ground-only timed stance, intangible f6–9, vulnerable otherwise, no automatic counter. A damaging melee or projectile hit overlapping it on those frames raises Divine Shield: 45 frames in which strikes and projectiles pass through Uther; starting an attack, special or grab ends it. Grabs beat both the guard and the shield. No healing. | End f36; 25 mana. Air version fails without spending |
 
@@ -524,7 +523,7 @@ Standing grab 8/2/25, reach 0.55H. Pummel: hammer-hilt tap.
 
 **Ultimate — Guardian of the Light:** f30 vulnerable activation, R15, then 360 frames of +10 percent damage and three visible protective charges. A charge absorbs one hit reaction up to 6 damage while still taking damage; at most one charge consumed per 30 frames. Grabs and larger hits bypass the protection. No resurrection, extra stocks, unlimited heal, or prolonged invulnerability.
 
-**Required counterplay test:** Uther can be grabbed or baited during Divine Shield and punished afterward. Optimal healing cannot outpace plausible damage indefinitely because the stock cap is absolute.
+**Required counterplay test:** Uther can be grabbed or baited during Divine Shield and punished afterward. The hammer launcher can be shielded and its recovery punished.
 
 ### Uther as built
 
@@ -539,15 +538,14 @@ use provisional coefficients. Deliberate differences:
   strikes with the torso and reaches 0.8H by travelling during startup.
 - Grab contact sits at hand height (about 24-56 above the feet), not at the
   shins.
-- Crusader Rush in the air holds its height during the rush (no rise, no
-  fall) and lands with 20 frames of lag; Holy Light cast in the air does too.
+- Holy Radiance in the air holds its height during the lunge and lands with
+  20 frames of lag; Hammer of Justice keeps drift with 18 landing frames.
 - Ascension travels on f8-28 and stops on f29, so its helpless fall starts
   at the 1.9H (free form 1.3H) apex; both forms drift 0.45H.
 - Divine Shield's success is the special's `guard` window: an opponent's
   damaging strike or projectile overlapping Uther on f6-9 raises the shield
   (`status.divineFrames`, sim/transitions.ts `endDivineShield`). The
-  strike that triggered it passes through him. Holy Light's heal and the cap
-  share `status.guardHealed`.
+  strike that triggered it passes through him.
 
 Presentation uses the stock classic Paladin model, which has thirteen
 sequences and no punch, kick, jump, roll, ledge or grab clip. Hammer Sweep's
@@ -557,7 +555,7 @@ while the gauntlet strikes. Down smash's back half and Rearward Boot have no
 matching clip ("Attack - 2" and "Stand Hit" play). utherClips.ts lists the
 sequence table and every pose's clip.
 
-**Gameplan** (smashcraft:ts/src/game/sim/heroes/utherGameplan.ts, #105): he holds 0.9-1.3H, at Hammer Sweep's tip, spacing with Hammer Sweep and Low Judgment and making the target come to him with Holy Light from 1.7H out; he shoots, or walks in only for Hammer Sweep or a grab. He answers an attack with Divine Shield as often as with his shield and spot dodge together. Low Judgment, Guiding Light and the up throw start his strings; Final Judgment, Holy Hammer and Beacon Strike finish. His weak chase is the weakness he plays around: he never follows a target overhead, keeps off the edge and returns to the ledge with his jump before Ascension.
+**Gameplan** (smashcraft:ts/src/game/sim/heroes/utherGameplan.ts): he holds hammer spacing, lifts close opponents with Hammer of Justice and sends Holy Radiance at a retreating opponent. Divine Shield reads incoming strikes; Low Judgment, Guiding Light and up throw start other follow-ups. He returns toward the ledge before spending Ascension.
 
 ## Dreadlord
 
@@ -586,7 +584,7 @@ sequence table and every pose's clip.
 | Input | Proposed move and behavior | Timing and cost |
 | --- | --- | --- |
 | Neutral B | **Carrion Swarm:** a short bat cloud moving at 0.09H/frame for 32 frames, radius 0.25H. One hit for 7 damage, POKE at 40 degrees. Reflectable as one projectile, one cloud active. | Spawn f20, end f45; 5 mana |
-| Side B | **Vampiric Pounce** (#132, [kit review 2](kit-review-2.md#dreadlord-132)): grounded command grab with 0.8H approach; grab reach 0.45H. On catch, automatic bite-and-release at catch+16 frames, 13 damage, EDGE at 40 degrees, then 28 recovery. No heal, no carrying, shared regrab protection applies. Air version is a claw attack for 13 damage, not a grab, and ends helpless. | Catch/strike f17–19; whiff R34; 20 mana | The bite heals Dreadlord 4 percent, at most 12 a stock. **Feint:** side B again on approach frames 3–12 cancels into a free backward bat-hop, 0.7H over its frames 1–10, ending f18. |
+| Side B | **Vampiric Pounce** (#237): fast horizontal corkscrew with bats trailing, ground and air. Travels 2.24H across 16 frames, stopping short of bodies/shields; 0.45H bite catch f17–19. Catch releases after 16 frames for 11.765 damage, EDGE at 40 degrees, then 28 recovery. | Catch f17–19; whiff R34; 20 mana | Bite heals 4%, at most 12 a stock. Air form is once per airtime and ends helpless. |
 | Up B | **Bat Ascension:** steerable rising curve up to 2.0H high and 0.8H across, no hitbox. Visible bat-body hurtbox throughout; no intangibility. Free version 1.4H height and 0.3H across. | Movement f9–32, then helpless; 15 mana |
 | Down B | **Sleep** (#132): visibly slow projectile, speed 0.06H/frame, life 50, radius 0.18H, one active and reflectable. Body hit deals 2 damage and 100 frames of sleep (24 if the target is airborne); the sleeper keeps velocity/gravity, cannot act, mashes out with the grab and freeze rule (8 frames a press or new stick direction, never before frame 24) and wakes on the next damaging hit. Then 240-frame sleep immunity. Shield blocks it. No bonus damage on waking. | Spawn f26, end f58; 25 mana |
 
@@ -608,7 +606,7 @@ Standing grab 7/3/26, reach 0.65H. Pummel: claw squeeze. No automatic lifesteal.
 **As implemented (smashcraft:ts/src/game/sim/heroes/dreadlordMoves.ts, dreadlordSpecials.ts):** every row above is present; the departures are these.
 
 - Nothing Dreadlord swings is disjointed: each claw, wing, horn and elbow path is also his body, fully out from a frame before its first active frame to two after its last, drawn out and folded back through held 3-frame poses. His standing body adds folded wings behind the shoulders to the roster capsule.
-- Vampiric Pounce's grounded approach stops at a body or shield and holds his height while it runs. The air version has no approach travel; it is the claw strike alone, once per airtime, ending helpless.
+- Vampiric Pounce’s ground and air approaches stop at a body or shield and hold their height through the corkscrew. Both forms bite; the air form is once per airtime and ends helpless.
 - Bat Ascension steers with the live stick (`driftSpeed`): a full side held through the rise gives 0.8H (free form 0.3H), a neutral stick rises straight. His spread wings are part of his body throughout; it has no intangibility.
 - Sleep's 2-damage hit stops his target's momentum like any hit; the sleep that follows leaves velocity and gravity alone and discards the sleeper's inputs.
 - Presentation uses the classic HeroDreadLord model's eleven usable sequences: claws on Attack - 1/2, wings and horns on Spell and Stand - 3, the low sweep and down air on Spell Slam, jumps and Bat Ascension on the Stand - 2 wing spread. Dissipate draws no body and is not used.
@@ -687,10 +685,12 @@ Standing grab 8/2/24, reach 0.55H. Pummel: mask headbutt.
 
 | Input | Proposed move and behavior | Timing and cost |
 | --- | --- | --- |
-| Neutral B | **Fel Spit:** heavy arcing projectile, 8 damage, POKE at 40 degrees, velocity (0.10H, 0.04H)/frame, gravity 0.003H/frame squared, life 35, radius 0.22H. One active and reflectable. | Spawn f25, end f57; 5 mana |
+| Neutral B | **Howl of Terror:** visible two-sided roar, 7 damage at 35 degrees, radius 1.0H, no lingering status. | Active f15–18, end f46; 12 mana |
 | Side B | **Ruin Charge:** 1.5H grounded charge, 15 damage, EDGE at 35 degrees. One-hit armor up to 6 damage on f19–24; no armor on startup or recovery. Stops at shield. Air version travels 0.8H horizontally, no armor, helpless afterward. | Active/movement f19–26, R38; 22 mana |
 | Up B | **Abyssal Leap:** slow arcing leap, 1.7H rise and 0.7H horizontal reach, hoof hit for 10 damage at 80 degrees, LAUNCH. Free version 1.2H and 0.4H, no hit. | Hit f13–18, movement through f32, then helpless; 15 mana |
-| Down B | **Howl of Terror:** roar radius 1.0H, 5 damage, POKE at 45 degrees, body-hit targets deal 10 percent less damage for 180 frames. No knockback/hitstun modifier, silence, or shield application. Air use has identical commitment and no stall. | f23–26 active, R34; 20 mana |
+| Down B | **Rain of Fire:** three visible falling meteors, 5 damage each at 70 degrees; lanes 1.8H/2.2H/2.6H ahead. Reflectable and shieldable; jump out or rush underneath. | Spawn f25/31/37, end f60; 20 mana |
+
+The sourced redesign and visual gestures are in [Pit Lord](pit-lord.md).
 
 ### Grab and throws
 
@@ -725,13 +725,10 @@ classes use provisional coefficients. Deliberate differences:
 - His shield is the reference shield scaled by his 1.35 height (centre and
   radius). The reference shield would leave his 1.65-wide body outside it, and
   an arcing Fel Spit then struck him through it.
-- Fel Spit leaves at 0.45H and falls 0.003H a frame faster each frame
-  (`gravity` on the projectile). Its arc stays within a raised shield's reach
-  at 240 and 480 units, so a powershield reflects it.
-- Howl of Terror applies Terror (`HeroStatusKind.terror`, its own immunity
-  group, no immunity window): for 180 frames every hit the target deals does
-  0.9 of its damage, including its knockback and hitlag. Nothing else
-  changes. A shield stops it.
+- Rain of Fire falls from 2.8H above his feet at 0.16H per frame. Each meteor
+  has radius 0.22H and life 24; shielding upward covers the falling impacts.
+- Howl of Terror's whole effect is its immediate outward hit; no damage
+  reduction remains.
 - Ruin Charge's armor lapses during his own hitlag, like every special's
   armor window, so the charge's contact frame does not extend it.
 
@@ -743,7 +740,7 @@ every pose's clip.
 
 **Gameplan** (smashcraft:ts/src/game/sim/heroes/pitLordGameplan.ts, #105):
 he holds 120-190 units at Cleaving Sweep's tip. He makes the target act with
-Fel Spit from range and runs in behind Ruin Charge's armor. Down tilt and the
+Rain of Fire from range and runs in behind Ruin Charge's armor. Down tilt and the
 throws start his strings. Annihilating Cleave kills from 70%, then Abyssal
 Lift, Falling Cleaver and the back throw. Being caught inside a whiffed
 cleave is his weakness, so he backs out of close range and stays on the ground
@@ -889,7 +886,7 @@ Standing grab 9/2/27, reach 0.65H, short tail coil. No dragging or moving hold. 
 
 ## Beastmaster
 
-**Identity:** Rexxar-inspired axe fighter with one bear partner. The player still controls one fighter directly; the bear has a small deterministic command set rather than independent Warcraft AI. Bear timing is the primary complexity, so defer this hero until ordinary projectiles and rollback work.
+**Identity:** Rexxar-inspired axe fighter who directs Bear, Quilbeast and Hawk from three separate positions. [The pack design](beastmaster.md) owns his current specials, roles, commitments and references.
 
 ### Normals
 
@@ -911,14 +908,11 @@ Standing grab 9/2/27, reach 0.65H, short tail coil. No dragging or moving hold. 
 
 ### B specials
 
-| Input | Proposed move and behavior | Timing and cost |
-| --- | --- | --- |
-| Neutral B | **Throwing Axe:** straight thrown axe, 9 damage, POKE at 40 degrees, speed 0.11H/frame, life 28, radius 0.17H, one active and reflectable. No boomerang return. | Spawn f20, end f39; 0 mana |
-| Side B | **Bear Command:** without a bear, ground-only summon at 0.6H ahead, 30 durability and 600-frame life. With a bear, issue a lunge in owner-facing direction: travel 1.2H, bite for 16 damage, EDGE at 40 degrees. Owner commits to command animation; commands fail while bear is attacking or stunned. Bear cannot attack during owner hitstun and does not auto-counter a combo. | Summon f30, end f56, cost 25. Command end f24, cost 8; bear startup 10, active 4, recovery 30 |
-| Up B | **Hawk Lift:** a cosmetic hawk lifts Beastmaster 2.0H with 0.5H drift. No independent hawk AI or attack. Free version 1.4H. | Lift f10–32, then helpless; 15 mana |
-| Down B | **Bear Recall or Quilbeast Dart:** with a bear, recalls it along the ground toward the owner at 0.06H/frame, cancelling only its idle/follow state; no teleport, attack, invulnerability, or durability reset. Without a bear, throw one short quill at speed 0.14H/frame, life 20, radius 0.10H; 4 damage, POKE at 35 degrees, reflectable. | Recall action 20 frames, 0 mana. Dart spawn f18, end f40, 3 mana |
-
-**Bear movement:** when idle, follow to a point 0.8H behind the owner at 0.035H/frame; use the same deterministic stage collision as fighters, no pathfinding, no jumps. Stop at platform edges, never body-block, and despawn if outside a blast zone. If separated by more than 6H for 120 frames, despawn with no mana refund. Bear attacks are cancelled on taking a hit and use 18 frames of stun. On owner grab or hitstun, cancel pending bear attacks and suppress new attacks until the owner is actionable. No bear grab, stock, ledge snap, invulnerability, or autonomous attack.
+[The pack design](beastmaster.md) replaces the original single-Bear kit: Wild
+Axes return, side special calls Bear then Stampede, down special calls a
+Quilbeast then its volley, and grounded up special calls Hawk then its dive.
+Airborne up special remains Hawk Lift. Each animal owns a position, health,
+lifetime and command state, and all three may coexist.
 
 ### Grab and throws
 
@@ -931,45 +925,15 @@ Standing grab 8/2/25, reach 0.60H. Pummel: axe-hilt strike. Bear attacks are sup
 | Up | Twin-hilt launch | 7 | f15, R22 | 85, LAUNCH |
 | Down | Wrestling trip | 6 | f19, R25 | 70, LINK |
 
-**Ultimate — Stampede:** f36 ground startup, then six beasts emitted at 24-frame intervals, each moving at 0.10H/frame for 50 frames and stopping at terrain. One beast deals 6 damage, EDGE at 40 degrees; at most three hits per target per activation, with at least 24 frames between hits. Owner channels and is vulnerable until the last emission; R35 afterward. Interruption stops future spawns. No individual AI; use pooled projectiles with a special cap of six for this ultimate only.
+Stampede is the Bear command on side special; it needs no separate ultimate
+input. Normals and throws retain their current authored data, including the
+low down-throw chase from #208 and the accepted #186 numeric tuning.
 
-**Required counterplay test:** opponents can separate Beastmaster from bear and punish the command animation. No bear-plus-throw sequence bypasses regrab protection or produces a guaranteed infinite. Solo Beastmaster must remain playable while the bear is absent.
-
-### Beastmaster as built
-
-Source: smashcraft:ts/src/game/sim/heroes/beastmasterMoves.ts (normals, grabs,
-throws, body), beastmasterSpecials.ts, beastmasterHero.ts and the partner
-rules in smashcraft:ts/src/game/sim/companions.ts (#122). Every row above is
-implemented with its listed timing, damage, angle and reach. Launch classes
-use provisional coefficients. Deliberate differences:
-
-- The bear is his placed object with a `companion` record. Side special
-  summons it (25 mana, ground only). While it stands, side special is Bear
-  Command (8 mana): the bear lunges the way he faces after 10 frames of
-  warning, with a 4-frame bite. Down special is Bear Recall (free), and the
-  Quillbeast Dart only when no bear stands. A lunge order refuses, spending
-  nothing, while the bear is lunging or stunned.
-- The bear follows to 0.8H behind him on the deck it was set down on, and
-  stops at that deck's ends instead of falling. With no fall, it never
-  crosses a blast zone. It also leaves after 120 frames more than 6H from him
-  (or while he is out).
-- A lunge is cancelled while he is in hitstun, held, holding or throwing.
-  Any opponent's hit on the bear mid-lunge spends durability and stuns it for
-  18 frames. The bear never blocks a body or a strike meant for him.
-- The up throw is a JUGGLE and the down throw a CHASE (#107).
-- Hawk Lift's free form drifts 0.35H; the brief gives only its 1.4H rise.
-
-Presentation uses the stock classic BeastMaster model (Rexxar), scale 0.85,
-and the classic GrizzlyBear model for the bear. The bear walks while it moves,
-bites while it lunges and fades as its durability runs down. The model has
-ten sequences and no hit, jump or kick clip, so flinches play "Stand Ready".
-His voice is the game's Beastmaster set (OgreBeastMaster).
-
-**Gameplan** (smashcraft:ts/src/game/sim/heroes/beastmasterGameplan.ts, #105):
-he sets the bear down from range, then walks in behind it with Broad Axe and
-Low Chop and sends it lunging. The free Throwing Axe makes the target act.
-He keeps out of close brawls and off the edge, where being split from the
-bear costs him most.
+Source: smashcraft:ts/src/game/sim/heroes/beastmasterMoves.ts,
+beastmasterSpecials.ts, beastmasterHero.ts and sim/companions.ts. Stock classic
+BeastMaster, GrizzlyBear, QuillBeast and WarEagle models draw the formation;
+the Stampede missile draws its two thunder lizards. The computer uses the
+same four inputs and animal commands as the player.
 
 ## Dark Ranger
 
@@ -1497,7 +1461,7 @@ If the current source requires a different safe dependency order, retain the des
 
 Decided by Tom on 7 Oct 2026 (#105). The roster is balanced when **every
 fighter's win rate against the field is between 40% and 60%**, with both
-computers at **level 9** and at least **400 matches a pair**: every pair
+computers at **Wren Expert** and at least **400 matches a pair**: every pair
 of different fighters, both orders, on every soak stage, over seeded
 matches. The numbers live in one constant, `BALANCE_GATE` in
 smashcraft:ts/scripts/cpuField.ts. smashcraft:ts/scripts/cpuField.tests.ts
@@ -1532,6 +1496,12 @@ The merged table ends with "Balance gate (...): passes", "fails" or "not a
 gate run" (a different level or fewer matches a pair), and lists any fighter
 outside the band. Latest run:
 smashcraft:evidence/balance-105-20261007/n400-after-arrow-defile.md.
+
+A fighter failing the gate when a release build is cut is hidden from
+selection rather than holding the release (Tom, 7 Oct 2026): `bun
+scripts/releaseRoster.ts FIELD.json` writes the hidden slugs into
+smashcraft:ts/src/game/sim/heroes/releaseRoster.ts, compiled into the map so
+every client agrees. Measurement still plays the whole roster.
 
 ## Balance and feel measurement
 

@@ -1,5 +1,23 @@
 # TypeScript in Smashcraft
 
+## JSON soak results
+
+`bun wisp repro FILE --view` opens a local frame slider for a saved moment.
+It shows the canonical state tree, changes since the previous frame, both
+clients' values, and the first differing frame. State paths that match
+`ReplayState` link to their TypeScript declaration line. Stop the local server
+with Ctrl-C. The page uses the same inspector as `--frame`.
+
+`bun wisp soak --json` writes JSON Lines results and a final verdict with
+counts and elapsed milliseconds. Print failures with:
+
+```sh
+bun wisp soak --json | jq -c 'select(.kind != null) | {kind, frame, client, message, repro, source}'
+```
+
+Use `--matches N --workers N` to select a smaller run. The human-readable
+output remains the default; timings and command errors go to stderr.
+
 Smashcraft's TypeScript compiles to Warcraft's Lua through TypeScriptToLua
 (smashcraft:ts/). This page is the style contract for the game code. Behavior is
 checked by tests and recorded tapes
@@ -581,21 +599,21 @@ From smashcraft:ts/:
   live document or source names, and exits 1 if any remain. Map bundle entries'
   exports count as used; references from smashcraft:evidence/ do not. About 10 s.
 - `bun scripts/cpuField.ts [--variants N | --per-pair N] [--seeds N]
-  [--levels A,B] [--stocks N] [--minutes N] [--json FILE] [--fighters a,b]
+  [--opponents A,B] [--tiers A,B] [--stocks N] [--minutes N] [--json FILE] [--fighters a,b]
   [--pairs a:b,c:d] [--merge a.json,b.json]`: the computer against the
   field (#105); `--pairs` plays only the listed pairs, both orders.
   `--per-pair N` plays spawn variants and seeds until every pair has at
   least N matches; the matchup matrix shows each win rate with its match
   count. The table ends with the balance gate's verdict (`BALANCE_GATE`:
-  every fighter 40-60% against the field, level 9, 400 a pair;
+  every fighter 40-60% against the field, Wren Expert, 400 a pair;
   smashcraft:docs/design/roster.md, "Balance gate") and the matchup spread,
   reported but not gated.
   `--merge` summarizes earlier `--json` runs instead of playing, so a
   field can run as `--pairs` shards.
   Every ordered pair of different selectable fighters, both computers, on
   every soak stage, played in process through frame capture and execution
-  (3 stocks, 4-minute clock by default), both computers at `--levels`
-  (9,9 by default). Every computer choice draws under the match seed, so
+  (3 stocks, 4-minute clock by default), both computers selected by `--opponents` (wren,wren) and `--tiers`
+  (expert,expert by default). Every computer choice draws under the match seed, so
   each of `--seeds N` (1 by default) is another sample of a setup; each
   variant also shifts both spawn points sideways.
   Per fighter it prints win rate over decisive matches against the field and
@@ -610,13 +628,11 @@ From smashcraft:ts/:
   stage (3 stocks, 4 minutes, about a second), counting a throw as the
   grab, any dash attack as `dashAttack` and angled forward tilts as the
   forward tilt.
-- `bun scripts/cpuLevels.ts [--matches N] [--reference L] [--stocks N]
-  [--minutes N]`: computer levels measured (smashcraft:docs/design/cpu-levels.md).
-  Each level 1-9 plays N (100) seeded matches against the reference level
-  (5), then level 9 plays N against level 1, cycling every ordered fighter
-  pair and soak stage, the measured level on alternating sides; prints each
-  row's wins, losses, ties and win rate and whether it rises with the level.
-  About 0.2 s a match.
+- `bun scripts/cpuTiers.ts [--matches N] [--top N] [--stocks N]
+  [--minutes N]`: Wren at every pair of five difficulties plays N (20) seeded
+  matches; Expert plays `--top` (100) against Rookie. Fighter pairs and stages
+  cycle with alternating sides. Reports wins, losses, ties and whether aggregate
+  win rates rise through the five tiers. About 0.2 s a match.
 
 ## Build the map
 

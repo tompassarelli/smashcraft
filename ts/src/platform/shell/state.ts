@@ -24,7 +24,7 @@ import type { KeyboardMailbox } from "../../game/netcode/journal/keyboard";
 import type { MatchLifecycle } from "../../game/netcode/journal/lifecycle";
 import type { JournalInputSource } from "../../game/netcode/journal/source";
 import { DEFAULT_BATCH, OutgoingInput } from "../../game/netcode/journal/transport";
-import { ShadowInputSchedule } from "../../game/netcode/shadowSchedule";
+import { PENDING_CAPACITY, ShadowInputSchedule } from "../../game/netcode/shadowSchedule";
 import type { WorldOrigin } from "../../game/render/effects";
 import { type ModelSoundCursor, ORIGINAL_MODEL_SOUNDS, createModelSoundCursor } from "../../game/render/modelSounds";
 import { type MomentRecorder, createMomentRecorder } from "../../game/replay/moment";
@@ -43,6 +43,7 @@ import type { EditboxIngress } from "../editboxJournal";
 import { type ResponseProbe, createResponseProbe } from "./responseProbe";
 import { type InputTrace, inputTrace } from "./trace";
 import type { UiObjects } from "./ui";
+import type { NativePadCapture } from "./analogPad";
 
 /** The unit a fighter animates when no pool presents it, and its dizzy mark. */
 export interface FighterBody {
@@ -72,6 +73,9 @@ export interface FrameObservation {
   form: number;
   ground: number;
   facing: number;
+  shieldRaised: boolean;
+  shieldTiltX: number;
+  shieldTiltZ: number;
 }
 
 interface Participant {
@@ -92,7 +96,7 @@ interface Participant {
   readonly before: FrameObservation;
 }
 
-/** Stamps of the local rows waiting in a keyboard batch, for the trace. */
+/** Original capture times of retained local rows, for the trace. */
 interface CaptureStamp {
   traced: boolean;
   callback: number;
@@ -104,8 +108,9 @@ export interface KeyboardRollback {
   readonly capture: KeyboardCapture;
   /** Built per epoch. */
   outgoing: InputBatch;
+  nextSend: number;
   lastTarget: number | undefined;
-  readonly stamps: [CaptureStamp, CaptureStamp];
+  readonly stamps: CaptureStamp[];
   readonly pairedSends: boolean;
 }
 
@@ -140,9 +145,6 @@ export interface Journal {
   readonly chatRequested: Slots<boolean>;
   readonly chatSerial: Slots<number>;
   readonly barrier: PauseBarrier;
-  /** The menu phase last published to the helper; undefined before the first. */
-  menuPhase: MenuPhase | undefined;
-  menuTicks: number;
   readonly editbox: EditboxIngress | undefined;
   mailbox: KeyboardMailbox | undefined;
 }
@@ -171,9 +173,9 @@ export interface Rollback {
   /** Humans every client names while the match waits for their input; 0 while it runs. */
   waitingFor: number;
   /**
-   * Since prediction last stopped at a remote row R frames behind it, it hasn't
-   * yet run every local row: the response probe reports presses captured then
-   * apart (#60).
+   * Prediction stopped at a remote row R frames behind it, and a keyboard
+   * press still awaits capture or journal rows have not drained. The response
+   * probe reports presses captured then apart (#60).
    */
   predictionHeld: boolean;
 }
@@ -220,9 +222,12 @@ interface KeyEvents {
 }
 
 export interface ShellState {
+  menuPublication?: { phase: MenuPhase; ticks: number };
+  readonly pad: NativePadCapture | undefined;
   /** Synchronized menu callbacks salt the random stage draw; retained across reloads. */
   menuFrames?: number;
   readonly camera: MatchCamera;
+  cameraTween?: boolean;
   readonly build: MapBuild;
   /** The world point the simulation's origin maps to: stage center and floor height. */
   readonly origin: WorldOrigin;
@@ -280,7 +285,7 @@ export function shell(): ShellState {
 }
 
 function observation(): FrameObservation {
-  return { out: false, holding: false, actionable: false, attack: 0, jump: 0, down: 0, shieldBreak: 0, breakState: 0, ledge: 0, special: 0, grab: 0, di: 0, damage: 0, form: 0, ground: 0, facing: 0 };
+  return { out: false, holding: false, actionable: false, attack: 0, jump: 0, down: 0, shieldBreak: 0, breakState: 0, ledge: 0, special: 0, grab: 0, di: 0, damage: 0, form: 0, ground: 0, facing: 0, shieldRaised: false, shieldTiltX: 0.0, shieldTiltZ: 0.0 };
 }
 
 function participant(slot: ParticipantSlot, persistence: BindingPersistence): Participant {
@@ -301,7 +306,7 @@ function journal(ingress: JournalIngress, editbox: EditboxIngress | undefined): 
     ingress, source: undefined, failed: false, outgoing: new OutgoingInput(), readyMask: 0, keyboardMask: 0, readyWait: 0, keys,
     keyClock: 0, keyStop: undefined, keyAnswered: undefined, keyPacket: { epoch: 0, firstFrame: 1, rows: [keys.row] }, startSent: false, lifecycle: undefined,
     endSent: false, endReceived: false, quiescent: false, chatRequested: [false, false, false, false], chatSerial: [0, 0, 0, 0],
-    barrier: pauseBarrier(), menuPhase: undefined, menuTicks: 0, editbox, mailbox: undefined,
+    barrier: pauseBarrier(), editbox, mailbox: undefined,
   };
 }
 
@@ -313,8 +318,8 @@ function rollback(mode: ShadowInputMode, playback: RollbackPlayback, editbox: Ed
     seed: createReplaySnapshot(), accepted: participantInputs(), sendFailed: false,
     keyboard: mode.kind === "keyboard"
       ? {
-        capture: keyboardCapture(), outgoing: new InputBatch(0), lastTarget: undefined, pairedSends: mode.pairedSends,
-        stamps: [{ traced: false, callback: 0, seconds: 0.0 }, { traced: false, callback: 0, seconds: 0.0 }],
+        capture: keyboardCapture(), outgoing: new InputBatch(0), nextSend: 1, lastTarget: undefined, pairedSends: mode.pairedSends,
+        stamps: Array.from({ length: PENDING_CAPACITY }, () => ({ traced: false, callback: 0, seconds: 0.0 })),
       }
       : undefined,
     journal: mode.kind === "journal" ? journal(mode.ingress, editbox) : undefined,
@@ -336,6 +341,7 @@ export function createShellState(build: MapBuild, setup: ShellSetup): ShellState
   const { input } = build;
   const { persistence } = setup;
   const state: ShellState = {
+    pad: build.analogPad === undefined ? undefined : { calibration: { first: undefined, last: undefined }, packet: undefined, mouseEvents: 0, syncEvents: 0, startedAt: 0.0, rows: [], mouse: [] },
     camera: createMatchCamera(),
     build, origin: setup.origin, game: createMatchState(), world: createRoster(0), controls: createBufferedFrameControls(),
     produced: createFrameControls(), runtime: createPacingAndPresentation(), session: createMatchControls(),
@@ -344,7 +350,7 @@ export function createShellState(build: MapBuild, setup: ShellSetup): ShellState
     status: { text: "", seconds: 0.0 }, frames: setup.frames, stageDecks: [], drawnStage: 0, stageCannon: undefined, stageScenery: undefined, ui: undefined,
     sounds: createModelSoundCursor(ORIGINAL_MODEL_SOUNDS),
     dev: { rollback: isShadow(input) ? input.rollback : 6, delay: isShadow(input) ? input.delay : 3, batch: DEFAULT_BATCH, rematchSeconds: REMATCH_COUNTDOWN_SECONDS }, devReceipts: 0,
-    trace: inputTrace(build.responseProbe ? 2048 : 256),
+    trace: inputTrace(build.responseProbe || build.inputProfile === "native-driver" ? 2048 : 256),
     probe: build.responseProbe ? createResponseProbe(build.id) : undefined,
     rollback: isShadow(input) ? rollback(input, setup.playback, setup.editbox) : undefined,
     keyEvents: { down: undefined, up: undefined }, readyMarkerWritten: false, restartRequested: false,

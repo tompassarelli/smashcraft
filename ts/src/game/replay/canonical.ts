@@ -1,3 +1,4 @@
+import { placedObject } from "../sim/fighter";
 // Keep the whole canonical record together: field order and spelling are
 // shared with the retained replay oracle, including fields from every slot.
 // Replay2, Wurst ReplayState's canonical tape of gameplay state. Labels,
@@ -14,9 +15,11 @@ import type { AuthoredSpecial, FighterSpecials, SpecialPlacement, SpecialProject
 import type { HitEffect } from "../sim/hitRegions";
 import { type HurtPart, HurtState } from "../sim/hurtboxes";
 import { HERO_STATUS_GROUPS } from "../sim/codes";
+import { writeMatchItems } from "../match/items";
 import { PROJECTILE_CAPACITY, type Fighter } from "../sim/fighter";
 import { fighterAt, isActive } from "../sim/roster";
 import { writeTrainingState } from "../match/trainingState";
+import { CPU_OPPONENT_CHOICES, CPU_OPPONENT_IDS, CPU_TIERS } from "../match/cpuProfiles";
 import { botStrategyValues } from "../match/botStrategy";
 import type { ReplayState } from "./snapshot";
 import { HERO_ROSTER } from "../sim/heroes/registry";
@@ -49,9 +52,22 @@ export function writeCanonicalNumber(emit: (code: number) => void, value: number
   if (value !== value) { emit(110); emit(97); emit(110); return; }
   const negative = value < 0;
   if (!negative && !(value > 0)) { emit(48); return; }
-  let magnitude = negative ? -value : value;
   emit(negative ? 45 : 43);
-  if (magnitude * 2 === magnitude) { emit(105); emit(110); emit(102); return; }
+  if (!splitFiniteReal(negative ? -value : value)) { emit(105); emit(110); emit(102); return; }
+  writeIntegerBytes(emit, realParts.exponent);
+  emit(58);
+  writeIntegerBytes(emit, realParts.high);
+  emit(58);
+  writeIntegerBytes(emit, realParts.low);
+}
+
+/** The magnitude splitFiniteReal last split: binary exponent and 52 fraction bits as two 26-bit integers. */
+export const realParts = { exponent: 0, high: 0, low: 0 };
+
+/** Splits a positive magnitude into realParts without allocating; false when it is infinite. */
+export function splitFiniteReal(positive: number): boolean {
+  let magnitude = positive;
+  if (magnitude * 2 === magnitude) return false;
   let exponent = 0;
   while (magnitude >= 2) {
     magnitude /= 2;
@@ -63,12 +79,10 @@ export function writeCanonicalNumber(emit: (code: number) => void, value: number
   }
   const fraction = (magnitude - 1) * 67108864;
   const high = Math.floor(fraction);
-  const low = Math.floor((fraction - high) * 67108864);
-  writeIntegerBytes(emit, exponent);
-  emit(58);
-  writeIntegerBytes(emit, high);
-  emit(58);
-  writeIntegerBytes(emit, low);
+  realParts.exponent = exponent;
+  realParts.high = high;
+  realParts.low = Math.floor((fraction - high) * 67108864);
+  return true;
 }
 
 /** Exact finite binary representation: sign, binary exponent and 52 fraction bits as two 26-bit integers. */
@@ -137,7 +151,7 @@ export function fighterMovesCanonical(moves: FighterMoves | undefined, prefix = 
       const part = `${name}.fall[${index}]`;
       int(`${part}.first`, phase.firstFrame);
       int(`${part}.last`, phase.lastFrame);
-      real(`${part}.speedZ`, phase.speedZ);
+      if (phase.speedZ !== undefined) real(`${part}.speedZ`, phase.speedZ);
       if (phase.speedX !== undefined) real(`${part}.speedX`, phase.speedX);
     }
     if (move.landingHit !== undefined) {
@@ -247,7 +261,6 @@ export function specialProjectileCanonical(spec: Readonly<SpecialProjectile>, pr
       real("status.tick.damage", spec.status.tick.damage);
     }
   }
-  real("backOffsetX", spec.backOffsetX ?? -1.0);
   int("needsLineOfSight", spec.needsLineOfSight === true ? 1 : 0);
   if (spec.returns !== undefined) {
     int("returns.age", spec.returns.age);
@@ -267,6 +280,9 @@ export function specialPlacementCanonical(spec: Readonly<SpecialPlacement>, pref
   const int = (name: string, value: number) => { result.push(canonicalInt(`${prefix}.${name}`, value)); };
   const real = (name: string, value: number) => { result.push(canonicalRealField(`${prefix}.${name}`, value)); };
   int("frame", spec.frame);
+  if (spec.slot !== undefined) int("slot", spec.slot);
+  if (spec.offsetZ !== undefined) real("offsetZ", spec.offsetZ);
+  if (spec.keepExisting === true) int("keepExisting", 1);
   real("offsetX", spec.offsetX);
   real("radius", spec.radius);
   real("height", spec.height);
@@ -276,6 +292,10 @@ export function specialPlacementCanonical(spec: Readonly<SpecialPlacement>, pref
   if (spec.shot !== undefined) result.push(specialProjectileCanonical(spec.shot, `${prefix}.shot`));
   const partner = spec.companion;
   if (partner !== undefined) {
+    if (partner.behavior !== undefined) int("companion.behavior", partner.behavior === "sentry" ? 1 : 2);
+    if (partner.followHeight !== undefined) real("companion.followHeight", partner.followHeight);
+    if (partner.lungeDrop !== undefined) real("companion.lungeDrop", partner.lungeDrop);
+    for (let i = 0; i < (partner.volleyFrames?.length ?? 0); i++) int(`companion.volley[${i}]`, partner.volleyFrames?.[i] ?? 0);
     real("companion.followSpeed", partner.followSpeed);
     real("companion.followBehind", partner.followBehind);
     real("companion.returnSpeed", partner.returnSpeed);
@@ -310,6 +330,7 @@ export function fighterSpecialsCanonical(specials: Readonly<FighterSpecials> | u
   const kits = [specials.neutral, specials.side, specials.up, specials.down];
   for (let slot = 0; slot < kits.length; slot++) {
     const kit = at(kits, slot);
+    if (kit.recallGroundOnly === true) result.push(canonicalInt(`${prefix}.kit[${slot}].recallGroundOnly`, 1));
     if (kit.recallWhile !== undefined) result.push(canonicalInt(`${prefix}.kit[${slot}].recallWhile`, kit.recallWhile === "armor" ? 2 : 1));
     const forms = [kit.ground, kit.air, kit.free, kit.recall, kit.marked?.special];
     // A fixed count: the list holds undefined forms, which a Lua length would skip.
@@ -355,6 +376,7 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
   if (move.command !== undefined) {
     int("command.frame", move.command.frame);
     int("command.order", move.command.order);
+    if (move.command.slot !== undefined) int("command.slot", move.command.slot);
   }
   if (move.recallsProjectiles === true) int("recallsProjectiles", 1);
   if (move.strikeStatus !== undefined) {
@@ -530,20 +552,23 @@ export function observedOpponentKitCanonical(fighter: Readonly<Fighter>): string
     + kitDigestField("specials", fighter.tuning.specials, SPECIALS_DIGESTS, fighterSpecialsCanonical);
 }
 
-interface KitText { moves: Fighter["tuning"]["moves"]; specials: Fighter["tuning"]["specials"]; text: string }
-const kitTexts = new WeakMap<Readonly<Fighter>, KitText>();
+const absentKit = {};
+const kitTexts = new WeakMap<object, WeakMap<object, string>>();
 
 function kitText(f: Readonly<Fighter>): string {
-  let cached = kitTexts.get(f);
-  if (cached === undefined) {
-    cached = { moves: f.tuning.moves, specials: f.tuning.specials, text: observedOpponentKitCanonical(f).replaceAll("|", ";") };
-    kitTexts.set(f, cached);
-  } else if (cached.moves !== f.tuning.moves || cached.specials !== f.tuning.specials) {
-    cached.moves = f.tuning.moves;
-    cached.specials = f.tuning.specials;
-    cached.text = observedOpponentKitCanonical(f).replaceAll("|", ";");
+  const moves = f.tuning.moves ?? absentKit;
+  const specials = f.tuning.specials ?? absentKit;
+  let texts = kitTexts.get(moves);
+  if (texts === undefined) {
+    texts = new WeakMap<object, string>();
+    kitTexts.set(moves, texts);
   }
-  return cached.text;
+  let text = texts.get(specials);
+  if (text === undefined) {
+    text = observedOpponentKitCanonical(f).replaceAll("|", ";");
+    texts.set(specials, text);
+  }
+  return text;
 }
 
 export interface ObservationWriter {
@@ -553,23 +578,23 @@ export interface ObservationWriter {
   readonly text: (this: void, text: string) => void;
 }
 const PROJECTILE_OBSERVATION_FIELDS = ["life", "x", "z", "direction", "velocityX", "velocityZ", "serial"] as const;
-interface RepeatedProjectile { readonly values: readonly number[]; readonly text: string }
+interface RepeatedProjectile { readonly values: readonly [number, number, number, number, number, number, number]; readonly text: string }
 let repeatedProjectile: RepeatedProjectile | undefined;
 
 function repeatedProjectileText(p: Readonly<Fighter["projectiles"][number]>): string | undefined {
   if (p.life !== 0) return undefined;
   if (repeatedProjectile === undefined) {
-    const values: number[] = [];
+    const values: RepeatedProjectile["values"] = [p.life, p.x, p.z, p.direction, p.velocityX, p.velocityZ, p.serial];
     const parts: string[] = [];
     const emit = (code: number) => { parts.push(String.fromCharCode(code)); };
     for (const key of PROJECTILE_OBSERVATION_FIELDS) {
-      values.push(p[key]); emit(44); writeCanonicalNumber(emit, p[key]);
+      emit(44); writeCanonicalNumber(emit, p[key]);
     }
     repeatedProjectile = { values, text: parts.join("") };
   }
-  for (let index = 0; index < PROJECTILE_OBSERVATION_FIELDS.length; index++) {
-    if (p[at(PROJECTILE_OBSERVATION_FIELDS, index)] !== at(repeatedProjectile.values, index)) return undefined;
-  }
+  const values = repeatedProjectile.values;
+  if (p.life !== values[0] || p.x !== values[1] || p.z !== values[2] || p.direction !== values[3]
+    || p.velocityX !== values[4] || p.velocityZ !== values[5] || p.serial !== values[6]) return undefined;
   return repeatedProjectile.text;
 }
 
@@ -737,7 +762,8 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   real("physics.aerialJumpHorizontalSpeed", t.physics.aerialJumpHorizontalSpeed);
   real("physics.shieldBreakSpeed", t.physics.shieldBreakSpeed);
   int("facing", fighter.facing);
-  int("lastAerialTapDirection", m.lastAerialTapDirection);
+  int("turnaroundSide", m.turnaroundSide);
+  int("turnaroundAge", m.turnaroundAge);
   int("dashFrame", g.dashFrame);
   int("dashDirection", g.dashDirection);
   real("x", m.x);
@@ -859,6 +885,8 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   bool("out", st.out);
   int("respawn", st.respawn);
   bool("shield", s.raised);
+  real("shieldTiltX", s.tiltX);
+  real("shieldTiltZ", s.tiltZ);
   real("shieldEnergy", s.energy);
   int("shieldStun", s.stun);
   int("shieldHeldFrames", s.heldFrames);
@@ -1004,28 +1032,36 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
     int("armorFrames", st.armorFrames);
     real("armorMaxDamage", st.armorMaxDamage);
     if (st.armorChills) int("armorChills", 1);
-    const { placed } = fighter;
-    int("placedLife", placed.life);
-    int("placedAge", placed.age);
-    real("placedX", placed.x);
-    real("placedZ", placed.z);
-    int("placedDirection", placed.direction);
-    real("placedDurability", placed.durability);
-    int("placedSerial", placed.serial);
-    for (let i = 0; i < PARTICIPANT_CAPACITY; i++) int(`placedStruck[${i}]`, placed.struck[i] ?? -1);
-    int("placedSpecialStruck", placed.specialStruck);
-    // A partner's walk, lunge and leash; written only for one (Beastmaster's bear).
-    if (placed.spec?.companion !== undefined) {
-      int("placedMode", placed.mode);
-      int("placedModeFrame", placed.modeFrame);
-      int("placedApart", placed.apart);
-      int("placedBitten", placed.bitten);
-      int("placedSurface", placed.surface ?? -1);
+    for (let animal = 0; animal <= fighter.pack.length; animal++) {
+      const placed = placedObject(fighter, animal);
+      const animalName = animal === 0 ? "placed" : `pack[${animal - 1}]`;
+      int(`${animalName}Life`, placed.life);
+      int(`${animalName}Age`, placed.age);
+      real(`${animalName}X`, placed.x);
+      real(`${animalName}Z`, placed.z);
+      int(`${animalName}Direction`, placed.direction);
+      real(`${animalName}Durability`, placed.durability);
+      int(`${animalName}Serial`, placed.serial);
+      for (let i = 0; i < PARTICIPANT_CAPACITY; i++) int(`${animalName}Struck[${i}]`, placed.struck[i] ?? -1);
+      int(`${animalName}SpecialStruck`, placed.specialStruck);
+      // Command and movement state exists only for companion objects.
+      if (placed.spec?.companion !== undefined) {
+        int(`${animalName}Mode`, placed.mode);
+        int(`${animalName}ModeFrame`, placed.modeFrame);
+        int(`${animalName}Apart`, placed.apart);
+        int(`${animalName}Bitten`, placed.bitten);
+        int(`${animalName}Surface`, placed.surface ?? -1);
+      }
+      emit(kitDigestField(`${prefix}.${animalName}Spec`, placed.spec, PLACEMENT_DIGESTS, placedSpecCanonical));
     }
-    emit(kitDigestField(`${prefix}.placedSpec`, placed.spec, PLACEMENT_DIGESTS, placedSpecCanonical));
     int("specialGuarded", sp.guarded ? 1 : 0);
     real("guardHealed", st.guardHealed);
     if (st.divineFrames !== 0) int("divineFrames", st.divineFrames);
+  }
+  // An item's buff (#196), written only while one runs.
+  if (st.buff !== 0 || st.buffFrames !== 0) {
+    int("buff", st.buff);
+    int("buffFrames", st.buffFrames);
   }
   // Any fighter can carry a hero status; it is written only while one or its immunity is live.
   if (st.condition !== 0 || st.conditionImmunity.some(frames => frames !== 0)) {
@@ -1081,7 +1117,9 @@ function writeState(emit: Emit, state: Readonly<ReplayState>): void {
     int(`${prefix}.character`, match.characterChoices[slot]);
     bool(`${prefix}.ready`, match.characterReadiness[slot]);
     bool(`${prefix}.rematch`, match.rematchReadiness[slot]);
-    int(`${prefix}.cpuLevel`, match.cpuLevels[slot]);
+    int(`${prefix}.cpuOpponent`, CPU_OPPONENT_CHOICES.indexOf(match.cpuOpponents[slot]));
+    int(`${prefix}.cpuTier`, CPU_TIERS.indexOf(match.cpuTiers[slot]));
+    int(`${prefix}.cpuResolvedOpponent`, CPU_OPPONENT_IDS.indexOf(match.cpuResolvedOpponents[slot]));
   }
   int("match.stockCount", match.stockCount);
   int("match.timeLimitMinutes", match.timeLimitMinutes);
@@ -1093,6 +1131,7 @@ function writeState(emit: Emit, state: Readonly<ReplayState>): void {
   int("match.matchFrame", match.matchFrame);
   // Only matches with a countdown carry it, so test and practice matches keep their checksums.
   if (match.startHold !== 0) int("match.startHold", match.startHold);
+  writeMatchItems(match.items, int, bool);
   bool("match.timedOut", match.timedOut);
   bool("match.practice", match.practice);
   // Only training matches carry training state, so every other match keeps its checksum.

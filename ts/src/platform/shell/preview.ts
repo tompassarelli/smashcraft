@@ -43,7 +43,7 @@ export function makePreview(s: ShellState): void {
   layoutHuds(s);
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(s.world, slot)) continue;
-    const x = matchSpawnX(slot);
+    const x = matchSpawnX(slot, s.world.mask);
     const fighter = createFighter(characterFor(s.game, slot) ?? Character.archer, x, x < 0 ? 1 : -1);
     s.world.fighters[slot] = fighter;
     const body = createFighterBody(Player(slot), fighter, s.origin);

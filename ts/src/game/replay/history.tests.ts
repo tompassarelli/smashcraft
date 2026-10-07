@@ -1,7 +1,9 @@
 import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { type AttackBuffer, attackBuffer, clearAttackBuffer, queueAttack } from "../input/attackBuffer";
 import type { FrameControls } from "../match/controls";
-import { type MatchFrameInput, captureFrame, copyMatchFrameInput, createMatchFrameInput, resetMatchFrameInput, restoreMatchFrame, sameMatchFrameInput } from "../match/frameInput";
+import { type MatchFrameInput, captureFrame, captureNetworkFrame, copyMatchFrameInput, createMatchFrameInput, resetMatchFrameInput, restoreMatchFrame, sameMatchFrameInput } from "../match/frameInput";
+import { participantInputs } from "../input/participants";
+import { type ImpactEvents } from "../presentation/impactEvents";
 import { createPacingAndPresentation } from "../match/pacingAndPresentation";
 import { type Controls, fighterAt, neutralControls } from "../sim/roster";
 import { firstStateDifference } from "./difference";
@@ -362,4 +364,42 @@ test("a confirmed frame takes history's state after it only when history ran the
     assertEquals(tapeDifference(confirmed, restored), undefined);
   }
   assertEquals(history.stateAfter(1, 6, confirmedRow), undefined);
+});
+
+function assertSameFields<T>(expected: T, actual: T): void {
+  for (const key in expected) assertEquals(actual[key], expected[key], key);
+}
+
+test("restored network frames preserve CPU state and every confirmed impact event", () => {
+  const predicted = createTapeWorld({ stocks: 99 });
+  const restored = createTapeWorld({ stocks: 99 });
+  predicted.live.match.computerMask = 2;
+  restored.live.match.computerMask = 2;
+  const history = new ReplayHistory();
+  assertTrue(history.beginEpoch(1, 1, REPLAY_MAX_CORRECTION_FRAMES));
+  const inputs = participantInputs();
+  const row = createMatchFrameInput();
+  const restoredRow = createMatchFrameInput();
+  const impacts: ImpactEvents[][] = [];
+  let contacts = 0;
+  for (let frame = 1; frame <= 180; frame++) {
+    assertTrue(captureNetworkFrame(row, frame, inputs, predicted.live.world, 1));
+    assertTrue(history.save(1, row, predicted.live));
+    execute(predicted, row);
+    impacts.push(predicted.live.runtime.frameImpacts.map(events => ({ ...events })));
+    if (frame === 1) continue;
+    assertTrue(captureNetworkFrame(restoredRow, frame - 1, inputs, restored.live.world, 1));
+    const after = history.stateAfter(1, frame - 1, restoredRow);
+    if (after === undefined) throw new Error("confirmed network frame missing");
+    const { match, world, controls, runtime } = restored.live;
+    assertTrue(restoreMatchFrame(restoredRow, match, world, controls, runtime, frame - 1, after));
+    assertEquals(firstStateDifference(restored.live, after), undefined);
+    for (const slot of [0, 1] as const) {
+      const expected = impacts[frame - 2]?.[slot];
+      if (expected === undefined) throw new Error("confirmed impacts missing");
+      assertSameFields(expected, runtime.frameImpacts[slot]);
+      if (expected.hit || expected.shieldHit) contacts++;
+    }
+  }
+  assertGreaterThan(contacts, 0);
 });

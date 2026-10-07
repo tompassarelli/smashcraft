@@ -87,12 +87,12 @@ test("Mountain King authored contact paths exist only on their adopted active fr
 
 test("Mountain King hammer head wins overlaps and the close handle keeps its weaker hit", () => {
   for (const facing of [1, -1]) {
-    for (const [x, damage] of [[120.0, 21.0], [40.0, 16.0]] as const) {
+    for (const [x, damage] of [[120.0, 23.204999923706055], [40.0, 17.67999839782715]] as const) {
       const { target, world } = attackPair(AttackStyle.forwardSmash, 20, x, 0.0, facing);
       resolveAttacks(world);
       assertEquals(target.status.damage, damage);
     }
-    for (const [x, damage, spike] of [[85.0, 16.0, true], [20.0, 11.0, false]] as const) {
+    for (const [x, damage, spike] of [[85.0, 17.67999839782715, true], [20.0, 12.154999732971191, false]] as const) {
       const { target, world } = attackPair(AttackStyle.forwardAir, 16, x, 0.0, facing, false);
       resolveAttacks(world);
       assertEquals(target.status.damage, damage);
@@ -105,12 +105,12 @@ test("Mountain King hammer-drop and double-boot spikes launch grounded targets u
   for (const facing of [1, -1]) {
     const hammer = attackPair(AttackStyle.forwardAir, 16, 85.0, 0.0, facing, true);
     resolveAttacks(hammer.world);
-    assertEquals(hammer.target.status.damage, 16.0);
+    assertEquals(hammer.target.status.damage, 17.67999839782715);
     assertGreaterThan(hammer.target.launch.knockbackX * facing, 0.0);
     assertGreaterThan(hammer.target.launch.knockbackZ, 0.0);
     const boots = attackPair(AttackStyle.downAir, 11, 0.0, -45.0, facing, true);
     resolveAttacks(boots.world);
-    assertEquals(boots.target.status.damage, 13.0);
+    assertEquals(boots.target.status.damage, 14.364999771118164);
     assertGreaterThan(boots.target.launch.knockbackZ, 0.0);
   }
 });
@@ -119,15 +119,15 @@ test("Mountain King stone sweep contacts once across its front and back arcs", (
   for (const facing of [1, -1]) {
     const { owner, target, world } = attackPair(AttackStyle.downSmash, 15, 85.0, 0.0, facing);
     resolveAttacks(world);
-    assertEquals(target.status.damage, 16.0);
+    assertEquals(target.status.damage, 17.67999839782715);
     target.motion.x = f32(-85.0 * facing);
     owner.launch.hitlag = 0;
     owner.attack.frame = 18;
     resolveAttacks(world);
-    assertEquals(target.status.damage, 16.0);
+    assertEquals(target.status.damage, 17.67999839782715);
     const back = attackPair(AttackStyle.downSmash, 18, -85.0, 0.0, facing);
     resolveAttacks(back.world);
-    assertEquals(back.target.status.damage, 16.0);
+    assertEquals(back.target.status.damage, 17.67999839782715);
     assertLessThan(back.target.launch.knockbackX * facing, 0.0);
   }
 });
@@ -205,10 +205,10 @@ test("Mountain King dash grab keeps standing reach with three startup and eight 
 });
 
 const THROW_ROWS = [
-  [GrabAction.throwForward, 14, 22, 9.0, 35],
-  [GrabAction.throwBack, 18, 27, 10.0, 40],
-  [GrabAction.throwUp, 16, 13, 8.0, 90],
-  [GrabAction.throwDown, 20, 26, 7.0, 75],
+  [GrabAction.throwForward, 14, 22, 9.944999694824219, 35],
+  [GrabAction.throwBack, 18, 27, 11.049999237060547, 40],
+  [GrabAction.throwUp, 16, 13, 8.839999198913574, 90],
+  [GrabAction.throwDown, 20, 26, 7.734999656677246, 25],
 ] as const;
 
 test("Mountain King throws release once on their roster frame with facing-relative launch", () => {

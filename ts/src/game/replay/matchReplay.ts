@@ -3,7 +3,7 @@
 // each segment's starting state as record text, every frame's rows
 // run-length encoded from the moment's ring, and a replay checksum every two
 // seconds and at each segment's end. A segment ends wherever the shell
-// changes the match between frames (a pause, a player leaving); the next
+// changes the match between frames (a player leaving); the next
 // starts from the state the change left. The recorder only reads confirmed
 // state, and spreads its work so no callback writes a whole state's text:
 // each frame extends the rows' current run, and a checkpoint copies the match
@@ -21,6 +21,7 @@ import { type FrameControls, createFrameControls } from "../match/controls";
 import { createMatchFrameInput } from "../match/frameInput";
 import type { PacingAndPresentation } from "../match/pacingAndPresentation";
 import { type MatchState, Phase } from "../match/rules";
+import { CPU_OPPONENT_CHOICES, CPU_OPPONENT_IDS, CPU_TIERS } from "../match/cpuProfiles";
 import { isScenario } from "../shell/build";
 import { Character } from "../sim/codes";
 import { type Fighter } from "../sim/fighter";
@@ -29,7 +30,7 @@ import { botStrategyValues } from "../match/botStrategy";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
 import {
   type FrameRows, type FrameScratch, KEYED_BY_ACTION, type MomentInput, type MomentRecorder, ROW_FRAMES, SNAPSHOT_FRAMES,
-  readRun, runCallbackFrame, runToken, sameFrameRows, runNetworkFrame, savedState, section, wholeNumber,
+  readRun, runCallbackFrame, runToken, sameFrameRows, runNetworkFrame, savedRuntime, savedState, section, wholeNumber,
 } from "./moment";
 import { parseReplayHeader } from "./replayFormat";
 import { type ReplayState, captureReplaySnapshot, copyReplayState, createReplaySnapshot } from "./snapshot";
@@ -177,10 +178,13 @@ function foldMatchAndFrame(lanes: Lanes, match: Readonly<MatchState>, runtime: R
     foldNumber(lanes, base, runtime.botAttackDelays[slot]);
     foldInteger(lanes, base + 1, memory.directions[slot]);
     foldInteger(lanes, base + 2, memory.directionFrames[slot]);
+    foldInteger(lanes, base + 3, CPU_OPPONENT_CHOICES.indexOf(match.cpuOpponents[slot]));
+    foldInteger(lanes, base + 4, CPU_TIERS.indexOf(match.cpuTiers[slot]));
+    foldInteger(lanes, base + 5, CPU_OPPONENT_IDS.indexOf(match.cpuResolvedOpponents[slot]));
     const strategy = runtime.botStrategies[slot];
     if (strategy.observedFrame >= 0) {
       const values = botStrategyValues(strategy);
-      for (let index = 0; index < values.length; index++) foldInteger(lanes, floorMod(base + 3 + index * 31, MODULUS), at(values, index));
+      for (let index = 0; index < values.length; index++) foldInteger(lanes, floorMod(base + 6 + index * 31, MODULUS), at(values, index));
     }
   }
   return `${lanes.first}:${lanes.second}`;
@@ -253,7 +257,7 @@ function savedStatePieces(state: Readonly<ReplayState>): StatePiece[] {
   pieces.push("}");
   pieces.push({ record: { commands: state.controls.commands }, name: "commands" });
   pieces.push("runtime{");
-  statePieces(pieces, state.runtime, 1);
+  statePieces(pieces, savedRuntime(state.runtime), 1);
   pieces.push("}");
   return pieces;
 }
