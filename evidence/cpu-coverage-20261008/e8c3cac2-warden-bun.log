@@ -1,0 +1,8 @@
+bun test v1.3.13 (bf2e2cec)
+
+test/game.test.ts:
+(pass) game/match/wardenRecoveryContracts > the computer's Warden blinks back to the stage from every spot in reach [179.00ms]
+
+ 1 pass
+ 0 fail
+Ran 1 test across 1 file. [334.00ms]
