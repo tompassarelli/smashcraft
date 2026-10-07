@@ -4,6 +4,9 @@ import { mkdirSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { generateMDX, model as mdx } from "war3-model";
 import { DrawnModel, sheet, type PoseFrame } from "../../ts/scripts/wisp/hurtboxView";
+import { drawnStrideSource, type DrawnStride } from "../../ts/scripts/wisp/drawnMotion";
+import { DRAWN_STRIDES } from "../../ts/src/game/presentation/drawnStrideInfo";
+import { Character } from "../../ts/src/game/sim/codes";
 import { seconds } from "./asset-info";
 import { encodeVerified, ensure, hash, onGlobalClock, originalBodyClip, parseSource, tracks } from "./original-clips";
 
@@ -25,16 +28,16 @@ const actions: Action[] = [
   strike("forwardTilt",8,3,20,{right:64,left:36,chest:18,elbow:-35}),
   strike("forwardTiltUp",8,3,20,{right:94,left:62,chest:-12,elbow:-20}),
   strike("forwardTiltDown",8,3,20,{right:28,left:15,chest:32,legs:32,knees:45}),
-  strike("upTilt",7,4,22,{right:116,left:112,chest:-25,elbow:-20}),
+  strike("upTilt",7,4,22,{right:-90,left:-85,chest:-8,elbow:0}),
   strike("downTilt",6,3,19,{right:32,left:-28,chest:45,legs:45,knees:65,yaw:25}),
   strike("dashAttack",10,4,26,{right:50,left:46,chest:35,legs:22,knees:30}),
   strike("forwardSmash",20,4,34,{right:80,left:28,chest:30,elbow:-42},{right:-58,left:-28,chest:-20},16),
-  strike("upSmash",17,5,32,{right:118,left:118,chest:-32,legs:-12},{right:8,left:8,chest:32,legs:35,knees:55}),
+  strike("upSmash",17,5,32,{right:-90,left:-90,chest:-8,legs:-12},{right:8,left:8,chest:32,legs:35,knees:55}),
   strike("downSmash",16,6,32,{right:46,left:46,chest:32,yaw:155,legs:32,knees:45},{right:-24,left:20,chest:-15,yaw:-55}),
   strike("neutralAir",8,6,24,{right:90,left:-65,yaw:160,chest:10},{right:-35,left:30,yaw:-35,legs:25}),
   strike("forwardAir",10,3,24,{right:76,left:76,chest:22,elbow:-35,legs:20,knees:45}),
   strike("backAir",12,3,26,{right:-60,left:-45,chest:-32,legs:45,knees:55},{chest:25,right:22,left:20}),
-  strike("upAir",8,4,23,{right:122,left:84,chest:-30,legs:35,knees:45}),
+  strike("upAir",8,4,23,{right:-95,left:-75,chest:-8,legs:35,knees:45}),
   strike("downAir",16,4,31,{right:25,left:25,chest:-18,legs:-22,knees:-15},{right:82,left:82,chest:25,legs:55,knees:75}),
   strike("grab",8,2,25,{right:68,left:68,chest:20,elbow:-35}),
   {pose:"grabHold",frames:30,loop:true,phases:[{frame:0,right:58,left:58,chest:14,elbow:-28},{frame:30,right:58,left:58,chest:14,elbow:-28}]},
@@ -81,6 +84,16 @@ for (const [height, h] of ["low","mid","high"].entries()) for (const [strength,s
     : {chest:-25*amount,head:-48*amount,right:-35*amount,left:-30*amount,legs:-12*amount,knees:20*amount};
   actions.push({pose:`pain${h}${s}`,frames:24,phases:[{frame:0,...contact},{frame:3,...contact},{frame:24,...Object.fromEntries(Object.entries(contact).map(([k,v])=>[k,v*.75]))}]});
 }
+for (const [pose,frames,contact,shape] of [
+  ["victimPummel",13,4,{chest:48,head:-32,right:35,left:-20}],
+  ["victimThrowForward",36,14,{root:-35,chest:-30,legs:45,knees:60}],
+  ["victimThrowBack",43,18,{root:45,chest:35,legs:45,knees:60,yaw:180}],
+  ["victimThrowUp",24,15,{chest:-30,right:-35,left:-35,legs:-15}],
+  ["victimThrowDown",44,19,{root:90,chest:35,legs:40,knees:60}],
+  ["damageShield",18,4,{chest:-30,right:90,left:85,elbow:45}],
+] as const) actions.push({pose,frames,phases:[{frame:0,chest:25,right:55,left:55},
+  {frame:Math.max(1,contact-3),chest:35,right:65,left:65},{frame:contact,...shape},
+  {frame:frames,...shape}]});
 const [inputArg,outputArg] = process.argv.slice(2);
 ensure(inputArg&&outputArg,"usage: bun tools/animations/tinker-clips.ts SOURCE.mdx PRIVATE_OUTPUT");
 const input=resolve(inputArg), output=resolve(outputArg), project=resolve(import.meta.dir,"../..");
@@ -88,6 +101,13 @@ ensure(relative(project,output).startsWith(".."),"Derived Warcraft assets must b
 mkdirSync(join(output,"hero-models"),{recursive:true});
 const source=parseSource(await Bun.file(input).arrayBuffer()), model=structuredClone(source);
 ensure(source.Sequences.length===23,"Tinker authoring requires the unmodified classic 23-sequence model");
+const helperId=model.Nodes.length;
+const motion:mdx.Helper={Name:"Tinker Floor Motion",ObjectId:helperId,Parent:null,Flags:0,
+  PivotPoint:new Float32Array([0,0,0]),Translation:{LineType:1,GlobalSeqId:null,Keys:[]}};
+for(const node of [...model.Bones,...model.Helpers,...model.Attachments,...model.CollisionShapes])if(node.Parent==null)node.Parent=helperId;
+model.Helpers.push(motion);model.Nodes.push(motion);model.PivotPoints.push(motion.PivotPoint);
+for(const sequence of source.Sequences)for(const Frame of sequence.Interval)
+  motion.Translation!.Keys.push({Frame,Vector:new Float32Array([0,0,0])});
 const original=new Map<string,mdx.AnimVector>(); tracks(source,(t,p)=>original.set(p,t));
 function sample(track: mdx.AnimVector, sequence: number, progress=0): Float32Array | Int32Array {
   const seq=source.Sequences[sequence]!, keys=track.Keys.filter(k=>k.Frame>=seq.Interval[0]!&&k.Frame<=seq.Interval[1]!);
@@ -144,8 +164,22 @@ for(const action of actions) {
       track.Keys.push({Frame:start+Math.round(frame*1000/60),Vector:vector,...(old.LineType>=2?{InTan:vector.slice(),OutTan:vector.slice()}:{})});
     }
   });
+  for(const Frame of [start,end])motion.Translation!.Keys.push({Frame,Vector:new Float32Array([0,0,0])});
   bindings.push(`  ${action.pose}: { index: ${index}, seconds: ${seconds((end-start)/1000)}, aligned: true${action.contact===undefined?"":`, contact: ${seconds(action.contact/60)}`} },`);
   records.push({pose:action.pose,index,frames:action.frames});
+}
+// Local articulation can lift feet or rotate a shoulder below the stage.
+// A sequence-only parent plants the rendered support without changing physics.
+const unplanted=new DrawnModel(generateMDX(model),1);
+for(const [offset,action]of actions.entries()){
+  if (/Air$|^(jump|doubleJump|fall|airDodge|wallJump|wallTech|upSpecial|ledgeHang|ledgeClimb|ledgeAttack)/.test(action.pose))continue;
+  const sequence=model.Sequences[23+offset]!,start=sequence.Interval[0]!,end=sequence.Interval[1]!;
+  motion.Translation!.Keys=motion.Translation!.Keys.filter(k=>k.Frame<start||k.Frame>end);
+  for(let frame=0;frame<=action.frames;frame++){
+    const triangles=unplanted.triangles(23+offset,frame/60,1);let lowest=Infinity;
+    for(let i=1;i<triangles.length;i+=2)lowest=Math.min(lowest,triangles[i]!);
+    motion.Translation!.Keys.push({Frame:start+Math.round(frame*1000/60),Vector:new Float32Array([0,0,-lowest])});
+  }
 }
 const packaged=parseSource(generateMDX(model)),encoded=encodeVerified(packaged),drawn=new DrawnModel(encoded,1),before=new DrawnModel(generateMDX(source),1);
 for(const [index,s]of source.Sequences.entries())for(const progress of [0,.5,1]){
@@ -156,9 +190,22 @@ for(const record of records){
   const first=drawn.triangles(record.index,0,1);ensure(first.length>0,`${record.pose}: empty body`);
   let motion=0;for(let frame=1;frame<=record.frames;frame++){const next=drawn.triangles(record.index,frame/60,1);ensure(next.length>0,`${record.pose}: disappearing body`);if(next.length===first.length)for(let i=0;i<first.length;i++)motion=Math.max(motion,Math.abs(next[i]!-first[i]!));}
   record.motion=motion;
+  if (!/^(grabHold|grabbed|crouch|shield|ledgeHang|pain|victim)/.test(record.pose))
+    ensure(motion>=5,`${record.pose}: action lacks visible motion (${motion})`);
+}
+for(const pose of ["upTilt","upSmash","upAir"]){
+  const action=actions.find(a=>a.pose===pose)!,record=records.find(r=>r.pose===pose)!;
+  const contact=action.phases[2]!.frame,triangles=drawn.triangles(record.index,contact/60,1);
+  let highest=0;for(let i=1;i<triangles.length;i+=2)highest=Math.max(highest,triangles[i]!);
+  ensure(highest>160,`${pose}: overhead claw remains inside the body (${highest})`);
+}
+const pain=records.filter(r=>r.pose.startsWith("pain"));
+for(let a=0;a<pain.length;a++)for(let b=a+1;b<pain.length;b++){
+  const first=drawn.triangles(pain[a]!.index,0,1),second=drawn.triangles(pain[b]!.index,0,1);
+  ensure(first.length===second.length&&first.some((v,i)=>Math.abs(v-second[i]!)>2),`Pain cells ${a}/${b} share a silhouette`);
 }
 await Bun.write(join(output,"hero-models/herotinker.mdx"),encoded);
-for(let index=0;index<packaged.Sequences.length;index++){
+for(let index=0;!process.argv.includes("--no-pool")&&index<packaged.Sequences.length;index++){
   const clip=originalBodyClip(packaged,index),bytes=encodeVerified(clip.model),sha=hash(bytes);
   await Bun.write(join(output,`pooled/imports/war3mapImported/TinkerOriginalClip${index}-${sha}.mdx`),bytes);
 }
@@ -168,10 +215,22 @@ await Bun.write(join(project,"ts/src/game/presentation/heroes/tinkerClipInfo.ts"
   "export const TINKER_AUTHORED_CLIPS = {",...bindings.filter(b=>!b.includes("pain")),"} as const satisfies HeroClipTable;",
   "export const TINKER_DAMAGE_CLIPS: readonly HeroClip[] = [",...records.filter(r=>r.pose.startsWith("pain")).map(r=>`  { index: ${r.index}, seconds: ${seconds(.4)} },`),"];"] .join("\n")+"\n");
 await Bun.write(join(output,"tinker-clips.json"),JSON.stringify({source:input,stockSequences:23,sequences:packaged.Sequences.length,records,robotVisibilityFrames:[8,23]},null,2)+"\n");
+const strides:DrawnStride[]=Object.entries(DRAWN_STRIDES).filter(([key])=>Number(key)!==19).flatMap(([key,row])=>row?["walk","run"].map(motion=>({character:Number(key) as Character,motion:motion as "walk"|"run",...row[motion as "walk"|"run"]})):[]);
+const walkSamples=Array.from({length:61},(_,frame)=>drawn.triangles(0,frame/60,1)),walkFirst=walkSamples[0]!;
+let walkFloor=Infinity;for(let i=1;i<walkFirst.length;i+=2)walkFloor=Math.min(walkFloor,walkFirst[i]!);
+let strideSum=0,strideCount=0;
+for(let index=0;index<walkFirst.length;index+=2){
+  let low=0,left=Infinity,right=-Infinity;
+  for(const vertices of walkSamples){if(vertices[index+1]!<walkFloor+15)low++;left=Math.min(left,vertices[index]!);right=Math.max(right,vertices[index]!);}
+  if(low>10){strideSum+=2*(right-left);strideCount++;}
+}
+const strideSpeed=strideSum/Math.max(1,strideCount);ensure(strideSpeed>0,"Tinker Walk lacks a drawn stride");
+for(const gait of ["walk","run"]as const)strides.push({character:Character.tinker,motion:gait,clip:0,model:"units\\creeps\\HeroTinker\\HeroTinker.mdl",speed:strideSpeed});
+await Bun.write(join(project,"ts/src/game/presentation/drawnStrideInfo.ts"),drawnStrideSource(strides));
 const selected=["jab","upTilt","downTilt","neutralAir","grab","throwBack","upSpecial","downSpecial"];
 for(const pose of selected){const r=records.find(r=>r.pose===pose)!;
   const times=pose==="downSpecial"?[0,7,8,14,18,23,24,35,46]:[0,Math.round(r.frames*.2),Math.round(r.frames*.4),Math.round(r.frames*.7),r.frames];
   const frames:PoseFrame[]=[1,-1].flatMap(facing=>times.map(frame=>({frame,phase:0,x:0,z:0,facing,parts:[],strikes:[],clip:r.index,seconds:frame/60})));
   await Bun.write(join(output,`${pose}-both-facings.png`),sheet(pose,drawn,frames,times.length).png);
 }
-console.log(`TINKER_CLIPS_PASS ${records.length} authored actions, 23 stock sequences preserved, ${packaged.Sequences.length} pooled clips`);
+console.log(`TINKER_CLIPS_PASS ${records.length} authored actions, 23 stock sequences preserved, ${packaged.Sequences.length} model sequences`);
