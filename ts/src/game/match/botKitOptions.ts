@@ -307,7 +307,7 @@ function pressHeroOption(f: Readonly<Fighter>, target: Readonly<Fighter>, stage:
       return true;
     }
     // A shell of armor, cast while the target is far.
-    if (move.armor?.shell === true && f.status.armorFrames <= 0 && gap >= ARMOR_GAP && f.mana.points >= move.cost + ARMOR_SPARE
+    if (move.armor?.shell === true && (move.regions ?? []).length === 0 && f.status.armorFrames <= 0 && gap >= ARMOR_GAP && f.mana.points >= move.cost + ARMOR_SPARE
       && botChoice(floorDiv(frame, 45), f.character * 7 + 11, 3) === 0 && takes(skill, floorDiv(frame, 45), f.character * 7 + 12)) {
       pressSlot(input, slot, 0);
       return true;

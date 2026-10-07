@@ -1,0 +1,194 @@
+{
+  "source": "e7d96cf43769c3f8f04299de819d1a936cd4294f",
+  "run": 37678697036,
+  "limitMs": 2,
+  "fighters": 8,
+  "cases": 312,
+  "over": 0,
+  "worst": {
+    "group": "jaina-proudmoore",
+    "name": "side special, then attack",
+    "baselineMs": 4.508771395698064,
+    "worstMs": 5.64061562565221,
+    "worstAt": 21,
+    "spikeMs": 1.1318442299541465,
+    "worstFrame": 8243,
+    "baseFrames": [
+      8192,
+      8221
+    ],
+    "instructions": 44400,
+    "natives": 86,
+    "allocatedKb": 7.203125
+  },
+  "byFighter": [
+    {
+      "fighter": "cairne-bloodhoof",
+      "cases": 39,
+      "over": 0,
+      "worst": {
+        "group": "cairne-bloodhoof",
+        "name": "side special, again",
+        "baselineMs": 4.466172170486063,
+        "worstMs": 5.2861695240454605,
+        "worstAt": 20,
+        "spikeMs": 0.8199973535593976,
+        "worstFrame": 5776,
+        "baseFrames": [
+          5726,
+          5755
+        ],
+        "instructions": 31900,
+        "natives": 40,
+        "allocatedKb": 30.359375
+      }
+    },
+    {
+      "fighter": "chen-stormstout",
+      "cases": 39,
+      "over": 0,
+      "worst": {
+        "group": "chen-stormstout",
+        "name": "side special, again",
+        "baselineMs": 4.476564770530695,
+        "worstMs": 5.3166910741793565,
+        "worstAt": 20,
+        "spikeMs": 0.8401263036486615,
+        "worstFrame": 5773,
+        "baseFrames": [
+          5723,
+          5752
+        ],
+        "instructions": 32700,
+        "natives": 41,
+        "allocatedKb": 30.90625
+      }
+    },
+    {
+      "fighter": "goblin-tinker",
+      "cases": 39,
+      "over": 0,
+      "worst": {
+        "group": "goblin-tinker",
+        "name": "side special, again",
+        "baselineMs": 4.505907620686907,
+        "worstMs": 5.423843274882309,
+        "worstAt": 20,
+        "spikeMs": 0.9179356541954018,
+        "worstFrame": 5770,
+        "baseFrames": [
+          5720,
+          5749
+        ],
+        "instructions": 37600,
+        "natives": 29,
+        "allocatedKb": 29.640625
+      }
+    },
+    {
+      "fighter": "jaina-proudmoore",
+      "cases": 39,
+      "over": 0,
+      "worst": {
+        "group": "jaina-proudmoore",
+        "name": "side special, then attack",
+        "baselineMs": 4.508771395698064,
+        "worstMs": 5.64061562565221,
+        "worstAt": 21,
+        "spikeMs": 1.1318442299541465,
+        "worstFrame": 8243,
+        "baseFrames": [
+          8192,
+          8221
+        ],
+        "instructions": 44400,
+        "natives": 86,
+        "allocatedKb": 7.203125
+      }
+    },
+    {
+      "fighter": "kael'thas-sunstrider",
+      "cases": 39,
+      "over": 0,
+      "worst": {
+        "group": "kael'thas-sunstrider",
+        "name": "side special, again",
+        "baselineMs": 4.4910018206088,
+        "worstMs": 5.534222575685684,
+        "worstAt": 32,
+        "spikeMs": 1.0432207550768835,
+        "worstFrame": 5827,
+        "baseFrames": [
+          5765,
+          5794
+        ],
+        "instructions": 45500,
+        "natives": 33,
+        "allocatedKb": 4.171875
+      }
+    },
+    {
+      "fighter": "peon",
+      "cases": 39,
+      "over": 0,
+      "worst": {
+        "group": "peon",
+        "name": "side special, then attack",
+        "baselineMs": 4.498831920653433,
+        "worstMs": 5.307182274157039,
+        "worstAt": 11,
+        "spikeMs": 0.8083503535036067,
+        "worstFrame": 8285,
+        "baseFrames": [
+          8244,
+          8273
+        ],
+        "instructions": 31400,
+        "natives": 40,
+        "allocatedKb": 29.8671875
+      }
+    },
+    {
+      "fighter": "sylvanas-windrunner",
+      "cases": 39,
+      "over": 0,
+      "worst": {
+        "group": "sylvanas-windrunner",
+        "name": "dash attack",
+        "baselineMs": 4.467149720508377,
+        "worstMs": 5.327465674558728,
+        "worstAt": 29,
+        "spikeMs": 0.8603159540503507,
+        "worstFrame": 1987,
+        "baseFrames": [
+          1928,
+          1957
+        ],
+        "instructions": 36300,
+        "natives": 40,
+        "allocatedKb": 3.671875
+      }
+    },
+    {
+      "fighter": "thrall",
+      "cases": 39,
+      "over": 0,
+      "worst": {
+        "group": "thrall",
+        "name": "side special, again",
+        "baselineMs": 4.470462220508378,
+        "worstMs": 5.292620224078934,
+        "worstAt": 20,
+        "spikeMs": 0.8221580035705562,
+        "worstFrame": 5775,
+        "baseFrames": [
+          5725,
+          5754
+        ],
+        "instructions": 32000,
+        "natives": 40,
+        "allocatedKb": 30.375
+      }
+    }
+  ]
+}

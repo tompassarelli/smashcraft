@@ -42,7 +42,7 @@ Every row links both its Warcraft source and its Smash design reference.
 | Input | Worker action and decision | F/A/R; damage; reach | Sources |
 |---|---|---|---|
 | Jab 1, 2 | Haft tap, then short chop; quick interruption, little reach | 4/2/12, 3%; 6/2/18, 5%; 58/70 | [Harvest](https://liquipedia.net/warcraft/Peon), [Villager jab](https://www.ssbwiki.com/Villager_(SSBU)#Moveset) |
-| Forward tilt, up/down angles | Lumber chop; angle selects head, waist or shin | 8/3/19; 8%; 100 | [Harvest](https://liquipedia.net/warcraft/Peon), [Timber axe](https://www.ssbwiki.com/Timber) |
+| Forward tilt, up/down angles | Lumber chop; angle selects head, waist or shin | 8/3/19; 9%; 100 | [Harvest](https://liquipedia.net/warcraft/Peon), [Timber axe](https://www.ssbwiki.com/Timber) |
 | Up tilt | Lift the axe over one shoulder; juggle starter | 7/4/20; 7%; 126 high | [Harvest](https://liquipedia.net/warcraft/Peon), [G&W up tilt](https://www.ssbwiki.com/Mr._Game_%26_Watch_(SSBU)#Moveset) |
 | Down tilt | Dig under the feet; short launcher | 6/3/19; 6%; 82 | [Gold harvest](https://liquipedia.net/warcraft/Peon), [Villager down tilt](https://www.ssbwiki.com/Villager_(SSBU)#Moveset) |
 | Dash attack | Stumble forward behind the axe; punishable approach | 10/4/25; 10%; 88 | [Worker attack](https://liquipedia.net/warcraft/Peon), [Villager dash attack](https://www.ssbwiki.com/Villager_(SSBU)#Moveset) |

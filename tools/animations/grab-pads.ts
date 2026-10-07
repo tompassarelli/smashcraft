@@ -1,7 +1,7 @@
 // Native capture plans derived from production simulation, without forcing a
 // hold or release. Both players approach, grab, pummel and throw through input.
 import "../../ts/test/host-natives";
-import { mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { queueAttack } from "../../ts/src/game/input/attackBuffer";
 import { createBufferedFrameControls } from "../../ts/src/game/match/controls";
@@ -14,6 +14,7 @@ import { copyControls, createRoster, fighterAt, neutralControls } from "../../ts
 import { ensure } from "./original-clips";
 
 const output = resolve(import.meta.dir, "../../ts/test/native/pads/180");
+const expectationsOnly = process.argv.includes("--expectations-only");
 mkdirSync(output, { recursive: true });
 const throws = [GrabAction.throwForward, GrabAction.throwBack, GrabAction.throwUp, GrabAction.throwDown] as const;
 const names = ["forward", "back", "up", "down"] as const;
@@ -63,6 +64,23 @@ function play(character: number, targetCharacter: number, holder: number, runFra
 }
 let count = 0;
 for (const hero of HERO_ROSTER) for (const targetCharacter of [hero.character, hero.character === Character.mountainKing ? Character.pitLord : Character.mountainKing]) for (const holder of [0, 1]) {
+  if (expectationsOnly) {
+    for (const [index, action] of throws.entries()) {
+      const mirror = hero.character === targetCharacter;
+      const name = `${fighterSlug(hero.character)}${mirror ? "" : `-vs-${fighterSlug(targetCharacter)}`}-${names[index]}-${holder === 0 ? "right" : "left"}.pad`;
+      const path = join(output, name);
+      if (!existsSync(path)) continue;
+      const script = readFileSync(path, "utf8"), target = holder === 0 ? "b" : "a";
+      const stop = new RegExp(`^(\\d+) ${target} stick 0 0$`, "m").exec(script);
+      ensure(stop !== null, `${name}: missing approach stop`);
+      const { expectations } = play(hero.character, targetCharacter, holder, Number(stop[1]) - 40, action);
+      // Balance changes can shorten pummel hitlag. Keep the authored inputs and
+      // capture frames while deriving assertions from current gameplay rules.
+      await Bun.write(path, script.replace(/^#! expect .*\n/gm, "").trimEnd() + "\n" + expectations.join("\n") + "\n");
+      count++;
+    }
+    continue;
+  }
   let best = 0, error = Infinity;
   for (let runFrames = 1; runFrames <= 75; runFrames++) {
     const { gap } = play(hero.character, targetCharacter, holder, runFrames);

@@ -60,8 +60,8 @@ function flickThen(gap: number, press: Readonly<Controls>): Readonly<Controls>[]
   return script;
 }
 
-test("the roster is the 13 selectable fighters", () => {
-  assertEquals(SELECTABLE_CHARACTERS.length, 13);
+test("the roster is the 21 selectable fighters", () => {
+  assertEquals(SELECTABLE_CHARACTERS.length, 21);
 });
 
 test("every fighter's airborne neutral special turns to a flick back within the window, and only within it", () => {

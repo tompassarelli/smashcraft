@@ -37,8 +37,9 @@ const HORIZON = 260;
 /** The shield's frame on arrival: its first, the reflector's last, one late. */
 const TIMINGS = [1, SHIELD_REFLECTOR_ACTIVE_FRAMES, SHIELD_REFLECTOR_ACTIVE_FRAMES + 1] as const;
 
-/** Each projectile slot's life and position, to tell which changed over a frame. */
-const slotsOf = (f: Fighter): { readonly life: number; readonly x: number }[] => f.projectiles.map((projectile) => ({ life: projectile.life, x: projectile.x }));
+/** A pool's pulse resets its wait without spending the projectile slot. */
+const slotsOf = (f: Fighter): { readonly life: number; readonly x: number; readonly poolWait: number }[] =>
+  f.projectiles.map((projectile) => ({ life: projectile.life, x: projectile.x, poolWait: projectile.poolWait }));
 interface Arrival {
   readonly frame: number;
   /** The defender's shield frame on arrival, 1 = the frame it went up; undefined when it is down. */
@@ -65,12 +66,15 @@ function shoot(character: Character, special: Special, distance: number, raise: 
     defender.shield.energy = SHIELD_MAX;
     frame(s, n === FIRE ? special.held(shooter) : [], raise !== undefined && n >= raise ? projectileShieldActions(shooter) : []);
     if (raisedAt === undefined && defender.shield.raised) raisedAt = n;
-    // Spent this frame: live before and gone, or spawned and spent at once.
-    const spent = shooter.projectiles.filter((projectile, index) => {
+    // Traveling contacts spend their slot; persistent zones reset their pulse wait.
+    const contacts = shooter.projectiles.filter((projectile, index) => {
       const was = slots[index];
-      return was !== undefined && projectile.life === 0 && (was.life > 1 || (was.life === 0 && projectile.x !== was.x));
+      if (was === undefined) return false;
+      const spent = projectile.life === 0 && (was.life > 1 || (was.life === 0 && projectile.x !== was.x));
+      const pulsed = projectile.life > 0 && projectile.spec?.pool !== undefined && projectile.poolWait > was.poolWait;
+      return spent || pulsed;
     }).length;
-    if (spent === 0) continue;
+    if (contacts === 0) continue;
     // A reflection fills a free slot of the defender's, even when the reflected projectile is spent on the same frame.
     const reflected = defender.projectiles.filter((projectile, index) => {
       const was = owned[index];

@@ -20,7 +20,7 @@ import { produceComputerInput } from "./botPlay";
 import { choosePunish } from "./botPunish";
 import { useMatchSeed } from "./botRandom";
 import { chooseRecoveryInput } from "./botRecovery";
-import { createBotStrategy, learnBotHabit, prepareBotRead, pressBotRead } from "./botStrategy";
+import { createBotStrategy, copyBotStrategy, learnBotHabit, prepareBotRead, pressBotRead } from "./botStrategy";
 import { createFrameControls } from "./controls";
 import { type CpuProfile } from "./cpuProfiles";
 import { cpuSkill, perceivedCpuSkill } from "./cpuSkill";
@@ -120,11 +120,11 @@ function reads(profile: CpuProfile, seed: number, trial: number, into: Calibrati
   useMatchSeed(seed);
   const frame = 1200 + trial;
   prepareBotRead(strategy, game.own, game.target, frame, profile.reactionFrames, profile);
-  const read = strategy.read;
+  const expectedFrame = strategy.readExpectedFrame;
   const input = neutralControls();
   const commands = attackBuffer(6);
-  const acted = read !== undefined && pressBotRead(strategy, game.own, game.target, 0, frame, read.expectedFrame - 8, input, commands);
-  if (!acted || !input.shield || read === undefined) {
+  const acted = strategy.readActive && pressBotRead(strategy, game.own, game.target, 0, frame, expectedFrame - 8, input, commands);
+  if (!acted || !input.shield || !strategy.readActive) {
     record(into.samples.reads, "declined learned strike forecast");
     record(into.samples.reads, "declined switched grab forecast");
   } else for (const switched of [false, true]) {
@@ -133,16 +133,17 @@ function reads(profile: CpuProfile, seed: number, trial: number, into: Calibrati
     const controls = createFrameControls();
     const row = createMatchFrameInput();
     const commitment = createBotStrategy();
-    commitment.read = { ...read, acted: false };
-    runtime.simulationFrame = read.expectedFrame - profile.reactionFrames - 18;
+    copyBotStrategy(commitment, strategy);
+    commitment.readActed = false;
+    runtime.simulationFrame = expectedFrame - profile.reactionFrames - 18;
     let grabbed = false;
-    for (let frame = runtime.simulationFrame + 1; frame <= read.expectedFrame + 22; frame++) {
+    for (let frame = runtime.simulationFrame + 1; frame <= expectedFrame + 22; frame++) {
       copyControls(controls.inputs[0], neutralControls());
       clearAttackBuffer(controls.commands[0]); clearAttackBuffer(controls.commands[1]);
       observeOpponents(runtime.botMemory, played.state.world, frame);
       const target = perceivedOpponent(runtime.botMemory, played.own, 0, frame, profile.reactionFrames);
       if (target !== undefined) pressBotRead(commitment, played.own, target, 0, played.state.match.matchFrame, frame, controls.inputs[0], controls.commands[0]);
-      if (frame === read.expectedFrame) {
+      if (frame === expectedFrame) {
         queueAttack(controls.commands[1], { style: switched ? AttackStyle.grab : AttackStyle.jab, facing: -1, frame, mayCharge: false });
       }
       if (!captureFrame(row, frame, played.state.world.mask, controls, runtime)
@@ -162,7 +163,7 @@ function reads(profile: CpuProfile, seed: number, trial: number, into: Calibrati
     game.target.shield.raised = false;
     learnBotHabit(strategy, game.own, game.target, 1, observed + 8, profile);
     prepareBotRead(strategy, game.own, game.target, observed + profile.reactionFrames + 9, profile.reactionFrames, profile);
-    if (strategy.read?.choice === HabitChoice.shield) { adapted = event + 1; break; }
+    if (strategy.readActive && strategy.readChoice === HabitChoice.shield) { adapted = event + 1; break; }
   }
   record(into.samples.adaptation, adapted < 0 ? "no switch in 80 events" : `${adapted} observed events`);
   clearBotMemory(game.state.runtime.botMemory);

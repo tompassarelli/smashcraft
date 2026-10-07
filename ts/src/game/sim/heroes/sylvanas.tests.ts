@@ -123,7 +123,7 @@ test("Black Arrow deals damage and banks Black Quiver; the next melee spends it 
     const { world, owner, target } = pair(300.0, facing);
     frame(world, controls({ specialPressed: true }));
     for (let i = 0; i < 70; i++) frame(world);
-    assertEquals(target.status.damage, 6.0);
+    assertEquals(target.status.damage, 11.0);
     assertEquals(owner.passive.stacks, 1);
     target.motion.x = f32(owner.motion.x + 40.0 * facing);
     target.motion.z = 0.0;
@@ -133,7 +133,7 @@ test("Black Arrow deals damage and banks Black Quiver; the next melee spends it 
     beginFighterAttack(world, 0, AttackStyle.jab, false);
     owner.attack.frame = attackStartupFrames(AttackStyle.jab, SYLVANAS_MOVES);
     resolveAttacks(world);
-    assertEquals(target.status.damage, blocked ? 6.0 : 11.0);
+    assertEquals(target.status.damage, blocked ? 11.0 : 16.0);
     assertEquals(owner.passive.stacks, 0);
   }
 });
