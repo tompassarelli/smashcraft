@@ -1,6 +1,8 @@
 // Holding a grabbed fighter: mash-out escapes, pummels and throws.
 import { min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
+import { floorMod } from "wisp/src/sim/intMath";
+import { at } from "wisp/src/runtime/lookup";
 import { Character, ContactKind, GrabAction } from "./codes";
 import { finishDamageContacts, openDamageContacts, queueDamageContact } from "./contacts";
 import { DEMON_HUNTER_THROW_DRAIN, copyHitEffect, emptyHitEffect } from "./hitRegions";
@@ -16,22 +18,23 @@ const PUMMEL_HIT = { damage: PUMMEL_DAMAGE, growth: 0.0, base: 0.0, launchX: 0.0
 const throwHit = emptyHitEffect();
 
 interface HeldOffset {
-  readonly action: GrabAction;
-  readonly contact: number;
-  readonly facing: number;
-  readonly x: number;
-  readonly z: number;
+  frame: number;
+  action: GrabAction;
+  contact: number;
+  facing: number;
+  x: number;
+  z: number;
 }
 
 // Both hold resolution passes, rollback and agency forecasts repeat these
 // exact throw-frame offsets. Positions remain live; only the pure offset is kept.
-let heldOffsets: Record<number, HeldOffset> = {};
-let heldOffsetCount = 0;
 const HELD_OFFSET_LIMIT = 128;
+const heldOffsets: HeldOffset[] = [];
+for (let index = 0; index < HELD_OFFSET_LIMIT; index++) heldOffsets.push({ frame: -1, action: GrabAction.none, contact: 0, facing: 0, x: 0.0, z: 0.0 });
 
 function heldOffset(action: GrabAction, frame: number, contact: number, facing: number): Readonly<HeldOffset> {
-  const cached = heldOffsets[frame];
-  if (cached?.action === action && cached.contact === contact && cached.facing === facing) return cached;
+  const cached = at(heldOffsets, floorMod(frame, HELD_OFFSET_LIMIT));
+  if (cached.frame === frame && cached.action === action && cached.contact === contact && cached.facing === facing) return cached;
   let x = f32(facing * GRAB_HOLD_DISTANCE);
   let z = 0.0;
   if (action === GrabAction.throwBack || action === GrabAction.throwUp || action === GrabAction.throwDown) {
@@ -46,14 +49,13 @@ function heldOffset(action: GrabAction, frame: number, contact: number, facing: 
       } else z = f32(25 * arc);
     }
   }
-  if (heldOffsetCount === HELD_OFFSET_LIMIT) {
-    heldOffsets = {};
-    heldOffsetCount = 0;
-  }
-  if (heldOffsets[frame] === undefined) heldOffsetCount++;
-  const offset = { action, contact, facing, x, z };
-  heldOffsets[frame] = offset;
-  return offset;
+  cached.frame = frame;
+  cached.action = action;
+  cached.contact = contact;
+  cached.facing = facing;
+  cached.x = x;
+  cached.z = z;
+  return cached;
 }
 
 function escapeGrab(world: Roster, ownerSlot: number, targetSlot: number): void {
