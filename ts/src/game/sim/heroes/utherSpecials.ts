@@ -38,7 +38,7 @@ const radianceWave = [{
   reflectable: true, limit: 1,
 }];
 const HOLY_RADIANCE: AuthoredSpecial = {
-  cost: 20,
+  cost: 50,
   endFrame: 69,
   regions: radianceRegions,
   projectiles: radianceWave,

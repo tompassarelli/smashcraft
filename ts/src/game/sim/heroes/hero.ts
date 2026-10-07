@@ -95,6 +95,8 @@ export interface HeroPresentation {
    * variants ("Attack - 1", "Attack - 2").
    */
   readonly clips: HeroClipTable;
+  /** Low/middle/high rows, small/medium/large columns for authored contact reactions. */
+  readonly damageClips?: readonly HeroClip[] | undefined;
   readonly fallback: HeroClip;
 }
 

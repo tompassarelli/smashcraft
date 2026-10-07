@@ -506,7 +506,7 @@ the tables:
 | Input | Proposed move and behavior | Timing and cost |
 | --- | --- | --- |
 | Neutral B | **Hammer of Justice** (#216): overhead hammer launcher, 13 damage at 80°, growth 70/base 42. One hit, 140-unit reach; air keeps drift with 18 landing frames. | Active f14–16, end f38; 10 mana |
-| Side B | **Holy Radiance** (#216): 0.75H hammer lunge, 14 damage at 40°; on f21 a 6-damage holy wave travels straight beyond the head. Ground armor for one ≤5-damage hit f15–18. Air has no armor, one use and helpless finish. | Hammer/travel f15–20, wave f21, end f69; 20 mana |
+| Side B | **Holy Radiance** (#216): 0.75H hammer lunge, 14 damage at 40°; on f21 a 6-damage holy wave travels straight beyond the head. Ground armor for one ≤5-damage hit f15–18. Air has no armor, one use and helpless finish. | Hammer/travel f15–20, wave f21, end f69; 50 mana |
 | Up B | **Ascension:** rising hammer leap, 1.9H rise and 0.45H horizontal drift; one 8-damage hit, LAUNCH at 80 degrees. Free version 1.3H without hitbox. | Hit f10–15, travel through f29, then helpless; 15 mana |
 | Down B | **Divine Shield** (#131): ground-only timed stance, intangible f6–9, vulnerable otherwise, no automatic counter. A damaging melee or projectile hit overlapping it on those frames raises Divine Shield: 45 frames in which strikes and projectiles pass through Uther; starting an attack, special or grab ends it. Grabs beat both the guard and the shield. No healing. | End f36; 25 mana. Air version fails without spending |
 
@@ -685,10 +685,12 @@ Standing grab 8/2/24, reach 0.55H. Pummel: mask headbutt.
 
 | Input | Proposed move and behavior | Timing and cost |
 | --- | --- | --- |
-| Neutral B | **Fel Spit:** heavy arcing projectile, 8 damage, POKE at 40 degrees, velocity (0.10H, 0.04H)/frame, gravity 0.003H/frame squared, life 35, radius 0.22H. One active and reflectable. | Spawn f25, end f57; 5 mana |
+| Neutral B | **Howl of Terror:** visible two-sided roar, 7 damage at 35 degrees, radius 1.0H, no lingering status. | Active f15–18, end f46; 12 mana |
 | Side B | **Ruin Charge:** 1.5H grounded charge, 15 damage, EDGE at 35 degrees. One-hit armor up to 6 damage on f19–24; no armor on startup or recovery. Stops at shield. Air version travels 0.8H horizontally, no armor, helpless afterward. | Active/movement f19–26, R38; 22 mana |
 | Up B | **Abyssal Leap:** slow arcing leap, 1.7H rise and 0.7H horizontal reach, hoof hit for 10 damage at 80 degrees, LAUNCH. Free version 1.2H and 0.4H, no hit. | Hit f13–18, movement through f32, then helpless; 15 mana |
-| Down B | **Howl of Terror:** roar radius 1.0H, 5 damage, POKE at 45 degrees, body-hit targets deal 10 percent less damage for 180 frames. No knockback/hitstun modifier, silence, or shield application. Air use has identical commitment and no stall. | f23–26 active, R34; 20 mana |
+| Down B | **Rain of Fire:** three visible falling meteors, 5 damage each at 70 degrees; lanes 1.8H/2.2H/2.6H ahead. Reflectable and shieldable; jump out or rush underneath. | Spawn f25/31/37, end f60; 20 mana |
+
+The sourced redesign and visual gestures are in [Pit Lord](pit-lord.md).
 
 ### Grab and throws
 
@@ -723,13 +725,10 @@ classes use provisional coefficients. Deliberate differences:
 - His shield is the reference shield scaled by his 1.35 height (centre and
   radius). The reference shield would leave his 1.65-wide body outside it, and
   an arcing Fel Spit then struck him through it.
-- Fel Spit leaves at 0.45H and falls 0.003H a frame faster each frame
-  (`gravity` on the projectile). Its arc stays within a raised shield's reach
-  at 240 and 480 units, so a powershield reflects it.
-- Howl of Terror applies Terror (`HeroStatusKind.terror`, its own immunity
-  group, no immunity window): for 180 frames every hit the target deals does
-  0.9 of its damage, including its knockback and hitlag. Nothing else
-  changes. A shield stops it.
+- Rain of Fire falls from 2.8H above his feet at 0.16H per frame. Each meteor
+  has radius 0.22H and life 24; shielding upward covers the falling impacts.
+- Howl of Terror's whole effect is its immediate outward hit; no damage
+  reduction remains.
 - Ruin Charge's armor lapses during his own hitlag, like every special's
   armor window, so the charge's contact frame does not extend it.
 
@@ -741,7 +740,7 @@ every pose's clip.
 
 **Gameplan** (smashcraft:ts/src/game/sim/heroes/pitLordGameplan.ts, #105):
 he holds 120-190 units at Cleaving Sweep's tip. He makes the target act with
-Fel Spit from range and runs in behind Ruin Charge's armor. Down tilt and the
+Rain of Fire from range and runs in behind Ruin Charge's armor. Down tilt and the
 throws start his strings. Annihilating Cleave kills from 70%, then Abyssal
 Lift, Falling Cleaver and the back throw. Being caught inside a whiffed
 cleave is his weakness, so he backs out of close range and stays on the ground
