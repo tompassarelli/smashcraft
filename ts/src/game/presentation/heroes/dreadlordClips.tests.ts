@@ -7,7 +7,7 @@ import { clipFor } from "../fighterClips";
 import { DREADLORD_CLIP_TABLE, DREADLORD_SEQUENCES } from "./dreadlordClips";
 
 // Ground normals retime their sequence so its strike lands on the first active frame.
-const RETIMED = new Set(["jab", "forwardTilt", "forwardTiltUp", "forwardTiltDown", "upTilt", "downTilt", "dashAttack"]);
+const RETIMED = new Set(["jab", "jab2", "jab3", "forwardTilt", "forwardTiltUp", "forwardTiltDown", "upTilt", "downTilt", "dashAttack"]);
 
 test("every Dreadlord pose plays a classic-model sequence, at its own length unless retimed to a strike, never Dissipate", () => {
   const sequences = Object.values(DREADLORD_SEQUENCES);
