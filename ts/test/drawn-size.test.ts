@@ -28,6 +28,14 @@ const IDLE_TOPS: readonly { readonly character: Character; readonly idleClip: nu
   { character: Character.pitLord, idleClip: 2, top: 180 },
   { character: Character.beastmaster, idleClip: 9, top: 168 },
   { character: Character.lichKing, idleClip: 3, top: 192 },
+  { character: Character.thrall, idleClip: 0, top: 154 },
+  { character: Character.jaina, idleClip: 0, top: 116 },
+  { character: Character.sylvanas, idleClip: 9, top: 138 },
+  { character: Character.cairne, idleClip: 0, top: 202 },
+  { character: Character.chen, idleClip: 9, top: 150 },
+  { character: Character.peon, idleClip: 9, top: 89 },
+  { character: Character.tinker, idleClip: 6, top: 145 },
+  { character: Character.kaelthas, idleClip: 0, top: 140 },
 ];
 
 /** The hurt capsule's top may sit at most a tenth above the drawn head. */
@@ -38,6 +46,9 @@ const HIGHEST = 1.3;
 const DEPARTURES: { readonly [character: number]: string } = {
   [Character.blademaster]: "the banner on his back stands about 60 units over his head",
   [Character.lichKing]: "Frostmourne, raised in Stand Ready, stands about 50 units over his helm; the blade is never body",
+  [Character.cairne]: "the carried back totem rises above his head and chest",
+  [Character.chen]: "his hat rises about 12 units above his drawn head",
+  [Character.tinker]: "the raised backpack claw extends above the goblin and lower backpack body",
 };
 
 test("every fighter's drawn standing height meets its hurt capsule's top", () => {

@@ -348,7 +348,9 @@ code. From smashcraft:ts/:
   Warcraft cost per frame. `--render` draws requested frames using the map's
   immutable imports and classic Warcraft assets; `--journey FILE` supplies
   capture inputs as journey JSON. Stock extraction uses `CASC_EXTRACTOR`
-  and `WC3_STORAGE`; `WC3_TEXTURES` reuses extracted PNGs
+  and `WC3_STORAGE`; stock caches follow that installation's `.build.info`, so
+  updated game art is extracted again. `WC3_ASSET_MANIFEST=FILE` records the build
+  and SHA256 of every returned asset for a comparison. `WC3_TEXTURES` reuses extracted PNGs
   (smashcraft:docs/player-view.md).
 - Frame cost: `LUA=<32-bit lua> bun wisp perf [quick-match|bot|bot-four|playable-bot-four]`
   plays a run in 32-bit Lua and prints each client's predicted Warcraft cost
@@ -508,6 +510,7 @@ code. From smashcraft:ts/:
   SCRIPT|DIR... --headless ...` plays the same batch in one headless session
   (smashcraft:docs/native-bot-session.md, "Many scripts in one game").
 - Pad cut (#233): `bun scripts/nativePadCut233.ts --pair N --clients-file FILE --helper WC3_CONTROLLER --map MAP --out DIR --app-id NAME=ID --app-id NAME=ID` uses one existing offline LAN pair, stops its own controller producer for 1 s, and checks the HUD waiting count and normal match results.
+- Keyboard timing: `bun scripts/nativeKeyboardPad.ts --script FILE --helper WC3_CONTROLLER --out DIR --clients-file FILE --client NAME --app-id ID`; `--observe` validates the same SDL stimulus without keyboard output. It records the original physical 60 Hz deadlines on CLOCK_MONOTONIC, separately from native simulation frames; this is playable draw timing, while journal parity remains `bun wisp pad`. Export the response probe after capture.
 - Native acceptance: `bun wisp accept [--only ID...] [--pair K... | --pairs N] [--map MAP.w3x] [--dry-run]` runs every
   open native check declared in smashcraft:ts/scripts/wisp/acceptChecks.ts in
   as few fresh matches as their maps allow and prints pass, fail or
