@@ -3,6 +3,7 @@
 // roster brief (smashcraft:docs/design/roster.md): the entry tick is frame 1,
 // windows are inclusive, and "end fN" means the fighter acts again on N+1.
 import { idiv, imod } from "wisp/src/sim/intMath";
+import { f32 } from "wisp/src/sim/f32";
 import type { MoveRegion, StrikeCapsule } from "./heroMoves";
 import type { HitEffect } from "./hitRegions";
 import type { AppliedStatus } from "./heroStatus";
@@ -394,3 +395,26 @@ export function heroSpecialMove(specials: Readonly<FighterSpecials>, chosen: { r
 
 /** A frame window in the brief's numbering. */
 export const frames = (first: number, last: number): FrameWindow => ({ first, last });
+
+/** The roster's charged-angle startup (#189): frames the fighter hovers while the stick picks its aim. */
+export const CHARGED_AIM_FRAMES = 8;
+
+/**
+ * The roster's charged-angle recovery motion (#189, smashcraft:docs/gameplay-design.md,
+ * "Up specials"), shared by every charged-angle up special: the fighter
+ * hovers in place through CHARGED_AIM_FRAMES while a held stick or keys pick
+ * one of eight directions (the form sets `aimFrames: CHARGED_AIM_FRAMES`),
+ * then travels `distance` that way at an even speed over `travelFrames` and
+ * stops, so the helpless fall starts from rest. Up special is pressed with up,
+ * so the entry aim is straight up until the stick picks another.
+ */
+export function chargedAngleMotion(distance: number, travelFrames: number): readonly SpecialMotion[] {
+  const speed = f32(distance / travelFrames);
+  const launch = CHARGED_AIM_FRAMES + 1;
+  const stop = CHARGED_AIM_FRAMES + travelFrames + 1;
+  return [
+    { ...frames(1, CHARGED_AIM_FRAMES), velocityX: 0.0, velocityZ: 0.0 },
+    { ...frames(launch, stop - 1), velocityX: 0.0, velocityZ: speed, aimedSpeed: speed },
+    { ...frames(stop, stop), velocityX: 0.0, velocityZ: 0.0 },
+  ];
+}

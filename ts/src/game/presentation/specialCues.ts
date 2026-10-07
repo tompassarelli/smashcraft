@@ -42,13 +42,14 @@ import { SPECIAL_SLOTS, type SpecialSlot } from "./projectileArt";
 import { RIFLEMAN_MODEL_FILE } from "./fighterAssetInfo";
 
 /** Where a cue stands, facing-relative, in the fighter's model scale. */
-export type CueAnchor = "hand" | "body" | "feet" | "ahead" | "overhead" | "barrel";
+export type CueAnchor = "hand" | "body" | "feet" | "ahead" | "behind" | "overhead" | "barrel";
 
 export const CUE_ANCHORS: { readonly [anchor in CueAnchor]: { readonly x: number; readonly z: number } } = {
   hand: { x: 40.0, z: 70.0 },
   body: { x: 0.0, z: 50.0 },
   feet: { x: 0.0, z: 2.0 },
   ahead: { x: 70.0, z: 45.0 },
+  behind: { x: -55.0, z: 55.0 },
   overhead: { x: 0.0, z: 125.0 },
   barrel: { x: 75.0, z: 60.0 },
 };
@@ -87,8 +88,10 @@ const BLOODLUST = cue("Abilities\\Spells\\Orc\\Bloodlust\\BloodlustSpecial.mdx",
 const STORM = cue("Abilities\\Weapons\\Bolt\\BoltImpact.mdx", "hand", 1.0);
 const SHADOW = cue("Abilities\\Spells\\Undead\\Cripple\\CrippleTarget.mdx", "hand", f32(0.7));
 const FROST = cue("Abilities\\Spells\\Undead\\ReplenishMana\\SpiritTouchTarget.mdx", "hand", f32(0.8));
+const ARCANE = cue("Abilities\\Spells\\Human\\DispelMagic\\DispelMagicTarget.mdx", "hand", 0.5);
 const HOLY = cue("Abilities\\Spells\\Human\\Heal\\HealTarget.mdx", "hand", f32(0.7));
 const VAMPIRIC = cue("Abilities\\Spells\\Undead\\UnholyFrenzy\\UnholyFrenzyTarget.mdx", "hand", f32(0.8));
+const DREADLORD_BITE_CUES: MoveCues = { spell: "Healing bite", startup: VAMPIRIC, active: cue("Abilities\\Weapons\\Blood\\BloodImpact.mdx", "ahead", 1.0) };
 const VOODOO = cue("Abilities\\Spells\\Orc\\TrollBerserk\\TrollBeserkerTarget.mdx", "hand", f32(0.7));
 const FEL = cue("Abilities\\Spells\\Undead\\DeathCoil\\DeathCoilSpecialArt.mdx", "hand", f32(0.7));
 const BEAST = cue("Abilities\\Spells\\Orc\\Bloodlust\\BloodlustTarget.mdx", "hand", f32(0.6));
@@ -97,11 +100,47 @@ const RUNE = cue("Abilities\\Spells\\Undead\\DarkRitual\\DarkRitualCaster.mdx", 
 
 /** Every hero's four specials; every form of a special (air, free, follow-up, recall, marked) shows its special's cues. */
 export const HERO_CUES: { readonly [character: number]: { readonly [slot in SpecialSlot]: MoveCues } } = {
+  [Character.jaina]: {
+    neutral: { spell: "Frostbolt", startup: ARCANE, active: cue("Abilities\\Weapons\\SorceressMissile\\SorceressMissile.mdx", "hand", 0.5) },
+    side: { spell: "Blizzard", startup: ARCANE, active: cue("Abilities\\Weapons\\LichMissile\\LichMissile.mdx", "hand", f32(0.7)) },
+    up: { spell: "Blink", startup: ARCANE, active: cue("Abilities\\Spells\\Human\\MassTeleport\\MassTeleportTarget.mdx", "body", 0.5) },
+    down: { spell: "Summon Water Elemental", startup: ARCANE, active: cue("Abilities\\Weapons\\WaterElementalMissile\\WaterElementalMissile.mdx", "hand", f32(0.7)) },
+  },
+  [Character.cairne]: {
+    neutral: { spell: "Shockwave", startup: BEAST, active: drawn("Abilities\\Spells\\Other\\CrushingWave\\CrushingWaveMissile.mdx", "ahead") },
+    side: { spell: "War Stomp", startup: BEAST, active: cue("Objects\\Spawnmodels\\Other\\NeutralBuildingExplosion\\NeutralBuildingExplosion.mdx", "feet", f32(0.4)) },
+    up: { spell: "Spirit Lift", startup: BEAST, active: cue("Abilities\\Spells\\Orc\\CommandAura\\CommandAura.mdx", "feet", f32(0.7)) },
+    down: { spell: "Reincarnation", startup: BEAST, active: cue("Abilities\\Spells\\Orc\\Reincarnation\\ReincarnationTarget.mdx", "body", f32(0.6)) },
+  },
+  [Character.peon]: {
+    neutral: { spell: "Lumber Toss", startup: cue("Objects\\Spawnmodels\\Undead\\ImpaleTargetDust\\ImpaleTargetDust.mdx", "feet", f32(0.3)), active: drawn("Abilities\\Weapons\\AncientProtectorMissile\\AncientProtectorMissile.mdl", "hand") },
+    side: { spell: "Burrow", startup: cue("Objects\\Spawnmodels\\Undead\\ImpaleTargetDust\\ImpaleTargetDust.mdx", "ahead", f32(0.5)), active: drawn("buildings\\orc\\TrollBurrow\\TrollBurrow.mdl", "ahead") },
+    up: { spell: "Worksite Launch", startup: cue("Abilities\\Spells\\Human\\Defend\\DefendCaster.mdx", "feet", f32(0.4)), active: cue("Abilities\\Spells\\Human\\FlakCannons\\FlakTarget.mdx", "feet", f32(0.6)) },
+    down: { spell: "Repair", startup: cue("Abilities\\Spells\\Human\\Defend\\DefendCaster.mdx", "hand", f32(0.4)), active: HOLY },
+  },
   [Character.thrall]: {
     neutral: { spell: "Chain Lightning", startup: STORM, active: cue("Abilities\\Weapons\\FarseerMissile\\FarseerMissile.mdx", "hand", 1.0) },
     side: { spell: "Feral Spirit", startup: BEAST, active: cue("units\\orc\\SpiritWolf\\SpiritWolf.mdx", "ahead", 0.5) },
-    up: { spell: "Far Sight", startup: STORM, active: cue("Abilities\\Spells\\Orc\\FarSight\\FarSightTarget.mdx", "feet", 0.5) },
-    down: { spell: "Earthquake", startup: STORM, active: cue("Abilities\\Spells\\Orc\\EarthQuake\\EarthQuakeTarget.mdx", "feet", f32(0.3)) },
+    up: { spell: "Far Sight", startup: STORM, active: cue("Abilities\\Spells\\Orc\\Purge\\PurgeBuffTarget.mdx", "body", 0.5) },
+    down: { spell: "Earthquake", startup: STORM, active: cue("Abilities\\Spells\\Human\\Thunderclap\\ThunderclapTarget.mdx", "feet", f32(1.3)) },
+  },
+  [Character.sylvanas]: {
+    neutral: { spell: "Black Arrow", startup: SHADOW, active: cue("Abilities\\Spells\\Undead\\DeathCoil\\DeathCoilSpecialArt.mdx", "hand", f32(0.6)) },
+    side: { spell: "Silence", startup: SHADOW, active: cue("Abilities\\Spells\\Other\\Silence\\SilenceTarget.mdx", "ahead", f32(0.6)) },
+    up: { spell: "Banshee Flight", startup: SHADOW, active: cue("Abilities\\Spells\\Undead\\Possession\\PossessionCaster.mdx", "body", f32(0.7)) },
+    down: { spell: "Life Drain", startup: SHADOW, active: cue("Abilities\\Spells\\Other\\Drain\\DrainCaster.mdx", "hand", f32(0.6)) },
+  },
+  [Character.chen]: {
+    neutral: { spell: "Breath of Fire", startup: BEAST, active: cue("Abilities\\Weapons\\RedDragonBreath\\RedDragonMissile.mdx", "ahead", f32(0.6)) },
+    side: { spell: "Drunken Haze", startup: BEAST, active: cue("Abilities\\Spells\\Other\\StrongDrink\\BrewmasterTarget.mdx", "hand", f32(0.7)) },
+    up: { spell: "Storm Rise", startup: STORM, active: cue("Abilities\\Spells\\Other\\Tornado\\TornadoElementalSmall.mdx", "body", f32(0.6)) },
+    down: { spell: "Storm, Earth and Fire", startup: BEAST, active: cue("Abilities\\Spells\\Orc\\SpiritLink\\SpiritLinkTarget.mdx", "feet", f32(0.5)) },
+  },
+  [Character.tinker]: {
+    neutral: { spell: "Cluster Rockets", startup: drawn("units\\creeps\\HeroTinker\\HeroTinker.mdl", "body"), active: drawn("Abilities\\Weapons\\RocketMissile\\RocketMissile.mdl", "hand") },
+    side: { spell: "Pocket Factory", startup: drawn("units\\creeps\\HeroTinker\\HeroTinker.mdl", "body"), active: drawn("Units\\Creeps\\HeroTinkerFactory\\HeroTinkerFactory.mdl", "ahead") },
+    up: { spell: "Rocket Boots", startup: drawn("units\\creeps\\HeroTinker\\HeroTinker.mdl", "body"), active: cue("Doodads\\Cinematic\\FirePillarMedium\\FirePillarMedium.mdx", "feet", 0.25) },
+    down: { spell: "Robo-Goblin", startup: drawn("units\\creeps\\HeroTinker\\HeroTinker.mdl", "body"), active: drawn("units\\creeps\\HeroTinker\\HeroTinker.mdl", "body") },
   },
   [Character.kaelthas]: {
     neutral: { spell: "Flame Strike", startup: cue("Abilities\\Spells\\Human\\FlameStrike\\FlameStrikeEmbers.mdx", "hand", 0.5), active: cue("Abilities\\Weapons\\PhoenixMissile\\Phoenix_Missile.mdx", "hand", 0.5) },
@@ -112,7 +151,7 @@ export const HERO_CUES: { readonly [character: number]: { readonly [slot in Spec
   [Character.blademaster]: {
     neutral: { spell: "Wind Cutter", startup: BLOODLUST, active: cue("Abilities\\Spells\\Other\\Tornado\\Tornado_Target.mdx", "hand", f32(0.6)) },
     side: { spell: "Wind Walk", startup: cue("Abilities\\Spells\\Human\\Invisibility\\InvisibilityTarget.mdx", "body", f32(0.8)), active: cue("Abilities\\Spells\\Human\\SunderingBlades\\SunderingBlades.mdx", "ahead", f32(0.8)) },
-    up: { spell: "Bladestorm rise", startup: BLOODLUST, active: cue("Abilities\\Spells\\NightElf\\Cyclone\\CycloneTarget.mdx", "body", f32(0.6)) },
+    up: { spell: "Rising Whirlwind", startup: BLOODLUST, active: cue("Abilities\\Spells\\NightElf\\Cyclone\\CycloneTarget.mdx", "body", f32(0.6)) },
     down: { spell: "Mirror Image", startup: cue("Abilities\\Spells\\Orc\\MirrorImage\\MirrorImageCaster.mdx", "body", 1.0), active: cue("Abilities\\Spells\\Orc\\MirrorImage\\MirrorImageDeathCaster.mdx", "body", 1.0) },
   },
   [Character.mountainKing]: {
@@ -141,7 +180,7 @@ export const HERO_CUES: { readonly [character: number]: { readonly [slot in Spec
   },
   [Character.dreadlord]: {
     neutral: { spell: "Carrion Swarm", startup: VAMPIRIC, active: cue("Abilities\\Spells\\Undead\\CarrionSwarm\\CarrionSwarmDamage.mdx", "hand", f32(0.8)) },
-    side: { spell: "Night Pounce", startup: VAMPIRIC, active: cue("Abilities\\Weapons\\Blood\\BloodImpact.mdx", "ahead", 1.0) },
+    side: { spell: "Corkscrew Pounce", startup: VAMPIRIC, active: cue("Abilities\\Spells\\Undead\\CarrionSwarm\\CarrionSwarmMissile.mdx", "behind", f32(0.8)) },
     up: { spell: "Bat Ascension", startup: VAMPIRIC, active: cue("Abilities\\Spells\\Undead\\DarkSummoning\\DarkSummonTarget.mdx", "body", f32(0.6)) },
     down: { spell: "Sleep", startup: VAMPIRIC, active: cue("Abilities\\Spells\\Undead\\Sleep\\SleepSpecialArt.mdx", "hand", f32(0.8)) },
   },
@@ -152,10 +191,10 @@ export const HERO_CUES: { readonly [character: number]: { readonly [slot in Spec
     down: { spell: "Hex", startup: VOODOO, active: cue("Abilities\\Spells\\Human\\Polymorph\\PolymorphTarget.mdx", "hand", f32(0.6)) },
   },
   [Character.pitLord]: {
-    neutral: { spell: "Fel Spit", startup: FEL, active: cue("Abilities\\Spells\\NightElf\\CorrosiveBreath\\ChimaeraAcidTargetArt.mdx", "hand", f32(0.6)) },
+    neutral: { spell: "Howl of Terror", startup: FEL, active: cue("Abilities\\Spells\\Other\\HowlOfTerror\\HowlCaster.mdx", "body", 1.0) },
     side: { spell: "Ruin Charge", startup: FEL, active: cue("Abilities\\Spells\\Other\\BreathOfFire\\BreathOfFireDamage.mdx", "ahead", f32(0.8)) },
     up: { spell: "Abyssal Leap", startup: FEL, active: cue("Abilities\\Spells\\Human\\FlameStrike\\FlameStrikeEmbers.mdx", "feet", f32(0.6)) },
-    down: { spell: "Howl of Terror", startup: FEL, active: cue("Abilities\\Spells\\Other\\HowlOfTerror\\HowlCaster.mdx", "body", f32(0.8)) },
+    down: { spell: "Rain of Fire", startup: FEL, active: cue("Abilities\\Spells\\Human\\FlameStrike\\FlameStrike1.mdx", "overhead", f32(0.25)) },
   },
   [Character.lichKing]: {
     neutral: { spell: "Howling Blast", startup: RUNE, active: cue("Abilities\\Spells\\Undead\\FreezingBreath\\FreezingBreathMissile.mdx", "hand", 1.0) },
@@ -219,6 +258,19 @@ const branch = (spell: string, startup: Cue, active: Cue): MoveCues => ({ spell,
 
 /** Every hero branch names its cue; specialCues.tests.ts checks each authored branch has one. */
 export const HERO_BRANCH_CUES: { readonly [character: number]: { readonly [slot in SpecialSlot]?: HeroBranchCues } } = {
+  [Character.jaina]: {
+    down: { recall: branch("Recall Water Elemental", ARCANE, cue("Abilities\\Spells\\Human\\MassTeleport\\MassTeleportCaster.mdx", "body", 0.5)) },
+  },
+  [Character.chen]: {
+    down: { followUps: [
+      branch("Fire Palm", BEAST, cue("Abilities\\Weapons\\FireBallMissile\\FireBallMissile.mdx", "ahead", f32(0.8))),
+      branch("Storm Step", STORM, cue("Abilities\\Spells\\Other\\Monsoon\\MonsoonBoltTarget.mdx", "body", f32(0.5))),
+    ] },
+  },
+  [Character.peon]: {
+    side: { recall: branch("Pack Up", cue("Objects\\Spawnmodels\\Undead\\ImpaleTargetDust\\ImpaleTargetDust.mdx", "ahead", f32(0.3)), cue("UI\\Feedback\\GoldCredit\\GoldCredit.mdl", "hand", f32(0.7))) },
+  },
+  [Character.tinker]: { side: { recall: "slot" } },
   [Character.blademaster]: {
     side: { followUps: [
       branch("Backstab", BLOODLUST, cue("Abilities\\Spells\\Human\\MarkOfChaos\\MarkOfChaosTarget.mdx", "ahead", 0.5)),
@@ -238,9 +290,6 @@ export const HERO_BRANCH_CUES: { readonly [character: number]: { readonly [slot 
   [Character.lich]: {
     neutral: { recall: branch("Frost Nova burst", FROST, cue("Abilities\\Spells\\Other\\BreathOfFrost\\BreathOfFrostTarget.mdx", "hand", f32(0.6))) },
     down: { recall: branch("Dark Ritual", FROST, cue("Abilities\\Spells\\Undead\\DarkRitual\\DarkRitualTarget.mdx", "body", 1.0)) },
-  },
-  [Character.dreadlord]: {
-    side: { followUps: [branch("Pounce feint", VAMPIRIC, cue("Abilities\\Spells\\Undead\\DeathPact\\DeathPactCaster.mdx", "body", 0.5))] },
   },
   [Character.shadowHunter]: {
     side: { recall: branch("Ward recall", VOODOO, cue("Abilities\\Spells\\Orc\\AncestralSpirit\\AncestralSpiritCaster.mdx", "ahead", 0.5)) },
@@ -364,6 +413,9 @@ const NONE: CueState = { cues: undefined, phase: "none" };
 export function specialCueState(fighter: Readonly<Fighter>): CueState {
   const { action, frame } = fighter.special;
   if (action === SpecialAction.none || fighter.status.out) return NONE;
+  if (fighter.character === Character.dreadlord && action === SpecialAction.heroSide && fighter.special.grabFrame > 0) {
+    return frame <= fighter.special.grabFrame + 16 ? { cues: DREADLORD_BITE_CUES, phase: "active" } : NONE;
+  }
   let cues: MoveCues | undefined;
   let windows: CueWindows | undefined;
   if (action >= SpecialAction.heroNeutral && action <= SpecialAction.heroDown) {
@@ -400,7 +452,7 @@ export function fighterMoveCues(character: Character): readonly MoveCues[] {
 
 /** Every cue a fighter's specials and their branches can show, startup and active. */
 export function fighterCueList(character: Character): readonly Cue[] {
-  return [...fighterMoveCues(character), ...fighterBranchCues(character)].flatMap((cues) => [cues.startup, cues.active]);
+  return [...fighterMoveCues(character), ...fighterBranchCues(character), ...(character === Character.dreadlord ? [DREADLORD_BITE_CUES] : [])].flatMap((cues) => [cues.startup, cues.active]);
 }
 
 /** Every branch cue a fighter can show. */

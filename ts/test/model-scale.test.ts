@@ -13,7 +13,7 @@ import { SELECTABLE_CHARACTERS } from "../src/game/sim/heroes/registry";
  */
 const UNITSKIN_MODEL_SCALE: Readonly<Record<string, number>> = {
   earc: 1.0, hrif: 1.0, Edem: 1.0, Obla: 1.0, Hmkg: 1.0, Ewar: 1.0,
-  Ulic: 1.0, Hpal: 1.0, Udre: 1.0, Oshd: 1.0, Nplh: 1.0, Nbst: 1.0,
+  Ulic: 1.0, Hpal: 1.0, Udre: 1.0, Oshd: 1.0, Nplh: 1.0, Nbst: 1.0, Usyl: 1.0,
   // A community model has no unit behind it, so no unit scale: drawn at 1.0 (#167).
   LichKing2: 1.0,
 };

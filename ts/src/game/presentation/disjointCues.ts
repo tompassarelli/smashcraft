@@ -85,6 +85,26 @@ export function specialAreaRegion(fighter: Readonly<Fighter>, index: number): Re
 
 export interface HitAreaPose { visible: boolean; x: number; z: number; scale: number; }
 
+export interface FanKnifePose extends HitAreaPose { yaw: number; pitch: number; alpha: number; }
+
+/** Warden's seven outward knives follow the authored rays through the cast. */
+export function fanKnifePose(fighter: Readonly<Fighter>, index: number, out: FanKnifePose): FanKnifePose {
+  const frame = fighter.special.frame;
+  const ray = runningHeroSpecial(fighter)?.regions?.[index]?.hit.strike;
+  out.visible = fighter.character === Character.warden && fighter.special.action === SpecialAction.heroDown
+    && !fighter.status.out && frame >= 9 && frame <= 14 && ray !== undefined;
+  if (!out.visible || ray === undefined) return out;
+  const travel = f32(Math.min(1.0, f32(f32(frame - 8.0) / 3.0)));
+  out.x = f32(fighter.motion.x + f32(fighter.facing * f32(ray.x2 * travel)));
+  out.z = f32(fighter.motion.z + f32(48.0 + f32(f32(ray.z2 - 48.0) * travel)));
+  out.yaw = ray.x2 * fighter.facing < 0.0 ? f32(Math.PI) : 0.0;
+  const tilt = ray.x2 === 0.0 ? f32(Math.PI * 0.5) : f32(Math.PI * 0.25);
+  out.pitch = ray.z2 === 48.0 ? 0.0 : ray.z2 > 48.0 ? -tilt : tilt;
+  out.scale = f32(0.6);
+  out.alpha = frame <= 11 ? 255 : (15 - frame) * 64;
+  return out;
+}
+
 /** World centre, independent of fighter model scale, camera or facing. */
 export function hitAreaPose(fighter: Readonly<Fighter>, region: Readonly<HitRegion>, out: HitAreaPose): HitAreaPose {
   out.visible = region.effect.damage > 0.0 && !fighter.status.out;

@@ -13,6 +13,7 @@ for (let index = 0; index < SELECTABLE_CHARACTERS.length; index++) {
     assertGreaterThan(report.movement, 0);
     assertGreaterThan(report.attacks, 0);
     assertGreaterThan(report.kit, 0);
+    if (character === Character.pitLord) for (const count of Object.values(report.specials)) assertGreaterThan(count, 0);
   });
 }
 
@@ -25,7 +26,8 @@ for (let index = 0; index < SELECTABLE_CHARACTERS.length; index++) {
     assertGreaterThan(report.movement, 0);
     assertGreaterThan(report.attacks, 0);
     assertGreaterThan(report.kit, 0);
-    if (character === Character.uther) {
+    if (character === Character.warden) assertGreaterThan(report.specials.down, 0);
+    if (character === Character.uther || character === Character.tinker) {
       assertGreaterThan(report.specials.neutral, 0);
       assertGreaterThan(report.specials.side, 0);
       assertGreaterThan(report.specials.up, 0);

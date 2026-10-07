@@ -1,9 +1,11 @@
+import { type StagePool, createStagePool, copyStagePool, nextPoolStage, consumePoolStage, togglePoolMode, togglePoolStage } from "../menu/stagePool";
 import { PLAYABLE_CHARACTERS, isSelectableCharacter } from "../sim/heroes/registry";
-import { RANDOM_STAGE, randomStage, selectableStageChoice } from "../menu/stageCatalog";
+import { RANDOM_STAGE, selectableStageChoice } from "../menu/stageCatalog";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { type MatchCamera, createMatchCamera, copyMatchCamera } from "../sim/matchCamera";
 import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots, isParticipantMask, isParticipantSlot, participantActive } from "../input/participants";
-import { Character } from "../sim/codes";
+import { Character, ItemKind, itemBit } from "../sim/codes";
+import { scheduleMatchItems } from "./centreItem";
 import { nextMatchSeed } from "./botRandom";
 import { CPU_OPPONENT_DEFAULT, CPU_TIER_DEFAULT, type CpuOpponentChoice, type CpuOpponentId, type CpuTier, isCpuOpponentChoice, isCpuTier, resolveCpuOpponent } from "./cpuProfiles";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
@@ -33,12 +35,14 @@ export interface MatchState {
   humanCount: number;
   computerMask: number;
   stageChoice: number;
+  stageResolved: boolean;
+  readonly stagePool: StagePool;
   winner: ParticipantSlot | undefined;
   stockCount: number;
   timeLimitMinutes: number;
   /** Knockouts and the clock never end the match; a player leaves it from the pause. */
   endless: boolean;
-  /** After a result, the same fighters play again on the same stage once rematchCountdown runs out. */
+  /** After a result, the same fighters play again on the next pool stage once rematchCountdown runs out. */
   automaticRematch: boolean;
   /** Frames until the automatic rematch starts; 0 while none counts down. */
   rematchCountdown: number;
@@ -70,7 +74,7 @@ export function createMatchState(): MatchState {
     cpuResolvedOpponents: [CPU_OPPONENT_DEFAULT, CPU_OPPONENT_DEFAULT, CPU_OPPONENT_DEFAULT, CPU_OPPONENT_DEFAULT],
     characterReadiness: [false, false, false, false], rematchReadiness: [false, false, false, false],
     departedMask: 0, interrupted: false, humanMask: 1, humanFighterMask: 1, humanCount: 1, computerMask: 0,
-    stageChoice: 2, winner: undefined, stockCount: 3, timeLimitMinutes: 7, endless: false, automaticRematch: false, rematchCountdown: 0,
+    stageChoice: 2, stageResolved: false, stagePool: createStagePool(), winner: undefined, stockCount: 3, timeLimitMinutes: 7, endless: false, automaticRematch: false, rematchCountdown: 0,
     remainingFrames: 7 * 60 * MATCH_TICKS_PER_SECOND, startHold: 0, matchFrame: 0, timedOut: false, practice: false,
     training: false, trainer: createTrainingState(), items: createMatchItems(),
   };
@@ -159,6 +163,8 @@ export function copyMatchState(target: MatchState, source: Readonly<MatchState>)
   target.interrupted = source.interrupted;
   target.humanCount = source.humanCount;
   target.stageChoice = source.stageChoice;
+  target.stageResolved = source.stageResolved;
+  copyStagePool(target.stagePool, source.stagePool);
   target.winner = source.winner;
   target.stockCount = source.stockCount;
   target.timeLimitMinutes = source.timeLimitMinutes;
@@ -223,12 +229,23 @@ export function recallCharacter(game: MatchState, actor: number, chip: number): 
 }
 
 export function selectStage(game: MatchState, slot: number, choice: number): void {
-  if (game.phase === Phase.stageMenu && humanActive(game, slot) && selectableStageChoice(choice)) game.stageChoice = choice;
+  if (game.phase !== Phase.stageMenu || !humanActive(game, slot) || !selectableStageChoice(choice)) return;
+  game.stageChoice = choice;
+  game.stageResolved = false;
+}
+
+export function changeStagePoolMode(game: MatchState, slot: number): void {
+  if (game.phase === Phase.stageMenu && humanActive(game, slot)) togglePoolMode(game.stagePool);
+}
+
+export function changeStagePoolStage(game: MatchState, slot: number, choice: number): void {
+  if (game.phase === Phase.stageMenu && humanActive(game, slot)) togglePoolStage(game.stagePool, choice);
 }
 
 export function requestStageSelect(game: MatchState, slot: number): boolean {
   if (game.phase !== Phase.characterMenu || !humanActive(game, slot) || !allCharactersReady(game)) return false;
   game.stageChoice = RANDOM_STAGE;
+  game.stageResolved = false;
   game.phase = Phase.stageMenu;
   return true;
 }
@@ -298,6 +315,16 @@ export function setAutomaticRematch(game: MatchState, slot: number, automatic: b
   if (settingRules(game, slot)) game.automaticRematch = automatic;
 }
 
+/** Items appear in the match at all (#196). */
+export function setItemsOn(game: MatchState, slot: number, on: boolean): void {
+  if (settingRules(game, slot)) game.items.on = on;
+}
+
+/** Turns one item kind on or off for the match (#196). */
+export function toggleItemKind(game: MatchState, slot: number, kind: ItemKind): void {
+  if (settingRules(game, slot) && kind !== ItemKind.none) game.items.enabledMask ^= itemBit(kind);
+}
+
 /** Whether the match clock runs: practice, endless and training matches have none. */
 export const timedMatch = (game: Readonly<MatchState>): boolean => !game.practice && !game.endless && !game.training && game.timeLimitMinutes > 0;
 
@@ -323,10 +350,12 @@ function beginMatch(game: MatchState): void {
   game.remainingFrames = timedMatch(game) ? game.timeLimitMinutes * 60 * MATCH_TICKS_PER_SECOND : 0;
   // A match has run since the boot: this one plays the next seed.
   if (game.matchFrame > 0) game.matchSeed = nextMatchSeed(game.matchSeed);
+  resolveStageChoice(game, game.matchSeed);
   for (const slot of PARTICIPANT_SLOTS) game.cpuResolvedOpponents[slot] = resolveCpuOpponent(game.cpuOpponents[slot], game.matchSeed, slot);
   game.startHold = game.practice || game.training ? 0 : START_HOLD_FRAMES;
   game.matchFrame = 0;
   game.phase = Phase.match;
+  scheduleMatchItems(game);
 }
 
 /** Whether `slot`'s start press at stage selection may start the match. */
@@ -335,7 +364,10 @@ export const canRequestStart = (game: Readonly<MatchState>, slot: number): boole
 
 /** Loading and match start share the resolved stage. */
 export function resolveStageChoice(game: MatchState, seed = game.matchSeed): void {
-  if (game.stageChoice === RANDOM_STAGE) game.stageChoice = randomStage(seed);
+  if (game.stageResolved) return;
+  if (game.stageChoice === RANDOM_STAGE) game.stageChoice = nextPoolStage(game.stagePool, seed);
+  else consumePoolStage(game.stagePool, game.stageChoice);
+  game.stageResolved = true;
 }
 
 export function requestStart(game: MatchState, slot: number): boolean {
@@ -373,13 +405,15 @@ export function cancelRematchCountdown(game: MatchState, slot: number): boolean 
 
 /**
  * One callback of the countdown. When it runs out, the same fighters play
- * again on the same stage with the same rules; true when that match starts.
+ * again on the next pool stage with the same rules; true when that match starts.
  */
 export function tickRematchCountdown(game: MatchState): boolean {
   if (game.phase !== Phase.result || game.rematchCountdown === 0) return false;
   game.rematchCountdown--;
   if (game.rematchCountdown > 0 || !allCharactersReady(game)) return false;
   game.rematchReadiness.fill(false);
+  game.stageChoice = RANDOM_STAGE;
+  game.stageResolved = false;
   beginMatch(game);
   return true;
 }

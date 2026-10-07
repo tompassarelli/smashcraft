@@ -653,6 +653,23 @@ change. The full extraction command passed in about five seconds.
 
 ## Illidan, portraits and selection art
 
+The additive locomotion pass keeps every shipped sequence intact. From the
+repository root, run Blender with `--python tools/animations/illidan-locomotion.py
+-- PRIVATE_FIGHTER.blend PRIVATE_AUTHORED`, then `bun
+tools/animations/illidan-locomotion.ts PRIVATE_ASSETS PRIVATE_AUTHORED PRIVATE_OUTPUT`.
+The source is the existing private `demonhunter-fighter.blend`; output stays
+outside the checkout. `Locomotion Walk` alternates grounded steps with a short
+returning-foot lift. `Locomotion Run` leans forward, drives longer alternating
+steps and keeps the glaives beside the body. `Locomotion Initial Dash Burst`
+compresses into a push-off, then feeds the run. The ten authored burst frames
+are retimed over the simulation's thirteen dash frames; run starts on frame 14.
+The simulation still supplies all movement speeds and frame data.
+
+Run `bun tools/animations/package-illidan.ts PRIVATE_OUTPUT --metadata-only`,
+store `illidan-animation`, refresh the original clip pool, then regenerate
+stride and motion facts with `bun wisp view motion --assets PRIVATE_ASSETS`.
+Its pool exporter strips only this three-clip suffix to reuse exact older clips.
+
 Illidan's package is regenerated in order from the repository root. Run each
 Blender step as `blender --background --python-exit-code 1 --python FILE`:
 
@@ -1109,9 +1126,11 @@ three-startup/16-active/37-total timing. Rifleman's Back Air is unchanged.
 ## Hero swing alignment
 
 Hero normals play classic stock sequences whose strike rarely sits where the
-move's hitbox does. `bun wisp view strikes --extractor CASC_EXTRACT --storage
-WARCRAFT_DIR [--assets DIR]` (from smashcraft:ts/) skins each hero's stock model
-(a community model such as the Lich King's from DIR's imported-models) and
+move's hitbox does. `bun wisp view strikes --assets DIR` (from smashcraft:ts/)
+skins every hero's packaged model, including authored clips, from DIR's
+hero-models or imported-models. Without packaged assets,
+`--extractor CASC_EXTRACT --storage WARCRAFT_DIR` reads the stock archives;
+imported heroes require `--assets DIR`. The command
 records, per normal and per special that strikes, shoots or places, the clip second where the silhouette reaches farthest
 toward the move's first hit region, into
 smashcraft:ts/src/game/presentation/heroStrikeMomentInfo.ts. Pose selection
@@ -1429,3 +1448,45 @@ Extract the two imported files afterward and compare their hashes with the
 generator output. Native inspection decides whether either clock setting
 actually blends from the interrupted pose and reaches the held target;
 successful compilation alone establishes no native interpolation claim.
+
+## Goblin Tinker
+
+From the repository root:
+
+```sh
+bun tools/animations/tinker-clips.ts PRIVATE_CLASSIC_HEROTINKER.mdx PRIVATE_OUTPUT [--no-pool]
+```
+
+The source is the unmodified classic `war3.w3mod:units/creeps/herotinker/herotinker.mdx`
+from Tom's installed Warcraft archive, with 23 sequences. Both input and output
+stay in private storage outside Git. The generator writes
+`PRIVATE_OUTPUT/hero-models/herotinker.mdx`, `tinker-clips.json` and side-view
+sheets in both facings. Its 75 authored actions append after the stock indices:
+the nine low/mid/high and small/medium/large pain cells occupy 83–91; captive
+pummel and four directional throw releases occupy 92–96; shield recoil is 97.
+It regenerates `tinkerClipInfo.ts` and Tinker's row in `drawnStrideInfo.ts`.
+The claw-pack has a measured 142.838-world-unit stride at stock scale 1.
+
+Robo-Goblin keeps the tank rig visible on simulation frames 8–23 within its
+46-frame clip, including the 14–18 contact window. Normal and robot visibility
+use their own stock geoset channels. A sequence-local parent plants feet and
+floor recoveries while preserving all stock poses. Overhead claws must exceed
+160 model units at contact; nine pain silhouettes must differ pairwise by more
+than 2 units. The generator checks the original poses at start, middle and end.
+
+By default the generator also writes individual Tinker clips under
+`PRIVATE_OUTPUT/pooled/imports/war3mapImported`. `--no-pool` skips those files
+when the shared exporter will create them. For the combined build, first copy
+the current private assets' complete `hero-models` family to a writable private
+staging directory, replace only its `herotinker.mdx` with the generated model,
+and store that whole family with `bun wisp inputs add hero-models STAGED_HERO_MODELS`
+from `ts/`. Preserve the other fighters in that staging family.
+
+Once the roster is contiguous through Tinker (Character 19), seed a writable
+private pool from the current assets' `original-clips-static-lights` family and
+run `bun tools/animations/export-original-clips.ts --assets PRIVATE_ASSETS --out PRIVATE_POOL --keep-unchanged`
+from the root. This regenerates the full `fighterOriginalClipInfo.ts` and checks
+retained fighters against their source and clip hashes. Store that pool with
+`bun wisp inputs add original-clips-static-lights PRIVATE_POOL`, then run
+`bun wisp view motion --assets PRIVATE_ASSETS` from `ts/` for the assembled roster.
+Native launches remain a separate playtest.

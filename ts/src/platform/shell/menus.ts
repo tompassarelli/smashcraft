@@ -4,8 +4,8 @@
 // all clients take the same path.
 import { PARTICIPANT_SLOTS, type ParticipantSlot, isParticipantSlot } from "../../game/input/participants";
 import {
-  Phase, canChooseComputer, cancelRematchCountdown, firstHumanSlot, characterFor, confirmRematch, cycleSlotMode, humanActive, recallCharacter,
-  requestStageSelect, requestStart, setAutomaticRematch, setCpuOpponent, setCpuTier, setEndless, setHitAreas, setPartnerDamage, setTraining, stepPartnerBehaviour,
+  Phase, changeStagePoolMode, changeStagePoolStage, canChooseComputer, cancelRematchCountdown, firstHumanSlot, characterFor, confirmRematch, cycleSlotMode, humanActive, recallCharacter,
+  requestStageSelect, requestStart, setAutomaticRematch, setCpuOpponent, setCpuTier, setEndless, setHitAreas, setPartnerDamage, setTraining, setItemsOn, toggleItemKind, stepPartnerBehaviour,
   stepPartnerEscape, stepPartnerTech, stepTrainingSpeed, tickRematchCountdown,
   returnToCharacters, selectCharacter, selectCpuCharacter, selectStage, setStocks, setTimeLimit, updateConnectedHumans,
   type MatchState, copyMatchState, createMatchState, setParticipants,
@@ -30,7 +30,7 @@ import { startMatch } from "./matchStart";
 import { cancelStageLoad, requestStageLoad, stageLoading } from "./stageLoad";
 import { endReplaySegment } from "./replays";
 import { makePreview } from "./preview";
-import { type ShellState, shell } from "./state";
+import { type ShellState, cancelPendingPlaytest, shell } from "./state";
 import type { PanelActions } from "./ui";
 import { clearMatchEffects, views } from "./ui";
 import { announce, pauseMatchPresentation, setStatus } from "./view";
@@ -39,6 +39,7 @@ import { announce, pauseMatchPresentation, setStatus } from "./view";
 export function choose(s: ShellState, slot: ParticipantSlot, direction: -1 | 1): void {
   if (!controlsAvailable(s, slot) || stageLoading(s)) return;
   if (s.game.phase === Phase.characterMenu) {
+    cancelPendingPlaytest();
     selectCharacter(s.game, slot, nextSelectableCharacter(characterFor(s.game, slot), direction));
     makePreview(s);
   } else if (s.game.phase === Phase.stageMenu) selectStage(s.game, slot, nextStage(s.game.stageChoice, direction));
@@ -126,21 +127,25 @@ export function panelActions(): PanelActions {
     selection: {
       selectChoice: (participant, choice) => withSlot(participant, (s, slot) => {
         if (!controlsAvailable(s, slot) || s.game.phase !== Phase.characterMenu) return;
+        cancelPendingPlaytest();
         selectCharacter(s.game, slot, choice);
         makePreview(s);
       }),
       selectCpuChoice: (participant, computer, choice) => withSlot(participant, (s, slot) => {
         if (!controlsAvailable(s, slot) || s.game.phase !== Phase.characterMenu || !canChooseComputer(s.game, slot, computer)) return;
+        cancelPendingPlaytest();
         selectCpuCharacter(s.game, slot, computer, choice);
         makePreview(s);
       }),
       cycleMode: (actor, fighterSlot) => withSlot(actor, (s, slot) => {
         if (!controlsAvailable(s, slot) || !cycleSlotMode(s.game, slot, fighterSlot)) return;
+        cancelPendingPlaytest();
         makePreview(s);
         traceSelectionState(s, `cycle actor ${slot} slot ${fighterSlot}`);
       }),
       recallChoice: (actor, chipSlot) => withSlot(actor, (s, slot) => {
         if (!controlsAvailable(s, slot) || s.game.phase !== Phase.characterMenu) return;
+        cancelPendingPlaytest();
         recallCharacter(s.game, slot, chipSlot);
         makePreview(s);
       }),
@@ -159,14 +164,22 @@ export function panelActions(): PanelActions {
       }),
       changeCpuOpponent: (actor, computer, direction) => withSlot(actor, (s, slot) => {
         if (!controlsAvailable(s, slot) || !isParticipantSlot(computer)) return;
+        cancelPendingPlaytest();
         setCpuOpponent(s.game, slot, computer, stepCpuOpponent(s.game.cpuOpponents[computer], direction));
       }),
       changeCpuTier: (actor, computer, direction) => withSlot(actor, (s, slot) => {
         if (!controlsAvailable(s, slot) || !isParticipantSlot(computer)) return;
+        cancelPendingPlaytest();
         setCpuTier(s.game, slot, computer, stepCpuTier(s.game.cpuTiers[computer], direction));
       }),
       toggleAutomaticRematch: participant => withSlot(participant, (s, slot) => {
         if (controlsAvailable(s, slot)) setAutomaticRematch(s.game, slot, !s.game.automaticRematch);
+      }),
+      toggleItems: participant => withSlot(participant, (s, slot) => {
+        if (controlsAvailable(s, slot)) setItemsOn(s.game, slot, !s.game.items.on);
+      }),
+      toggleItemKind: (participant, kind) => withSlot(participant, (s, slot) => {
+        if (controlsAvailable(s, slot)) toggleItemKind(s.game, slot, kind);
       }),
       toggleTraining: participant => withSlot(participant, (s, slot) => {
         if (controlsAvailable(s, slot)) setTraining(s.game, slot, !s.game.training);
@@ -186,6 +199,12 @@ export function panelActions(): PanelActions {
       }),
     },
     stage: {
+      togglePoolMode: participant => withSlot(participant, (s, slot) => {
+        if (!stageLoading(s)) changeStagePoolMode(s.game, slot);
+      }),
+      togglePoolStage: (participant, choice) => withSlot(participant, (s, slot) => {
+        if (!stageLoading(s)) changeStagePoolStage(s.game, slot, choice);
+      }),
       selectStage: (participant, choice) => withSlot(participant, (s, slot) => {
         if (!stageLoading(s)) selectStage(s.game, slot, choice);
       }),

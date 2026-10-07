@@ -1,3 +1,4 @@
+import { scheduleMatchItems } from "../match/centreItem";
 // Developer chat commands ("-dev rb 12", "-dev delay 2", "-dev batch 6",
 // "-dev rematch 20", "-dev show", "-dev quick", "-dev quick hero NAME", "-dev quick cpu OPPONENT DIFFICULTY") arrive as synchronized
 // player-chat events. A match reads the settings once at its start, so a
@@ -116,6 +117,10 @@ export function quickRecoveryHero(message: string): Character | undefined {
   return heroAfter(message, QUICK_RECOVERY_HERO_COMMAND);
 }
 
+export function quickOffstageHero(message: string): Character | undefined {
+  return heroAfter(message, "-dev quick offstage hero ");
+}
+
 export function quickPainHero(message: string): { readonly character: Character; readonly scenario: Scenario } | undefined {
   const words = message.split(" ");
   if (words[0] !== "-dev" || words[1] !== "pain") return undefined;
@@ -163,6 +168,7 @@ export function prepareQuickMatch(game: MatchState, stage = 0, character?: Chara
   if (!requestStart(game, first)) return false;
   // A developer's quick match skips the countdown: tests and captures drive it from its first frame.
   game.startHold = 0;
+  scheduleMatchItems(game);
   return true;
 }
 

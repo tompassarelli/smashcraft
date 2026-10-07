@@ -142,6 +142,7 @@ export function applyFrame(s: ShellState, recorded = false): void {
     if (!held) {
       renderFighter(s, slot, runtime.poses[slot], participant.before.out);
       ui.special.presentConfirmedAnimated(runtime.simulationFrame, fighter, slot);
+      ui.placed.presentConfirmed(runtime.simulationFrame, fighter, slot);
     }
   }
   const cues = ui.match.presentConfirmed(s.game, world);

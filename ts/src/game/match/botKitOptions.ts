@@ -151,7 +151,7 @@ export function steerHeroBranches(f: Readonly<Fighter>, target: Readonly<Fighter
     return true;
   }
   if (stepOut !== undefined && backstab === undefined) {
-    // A lone quiet branch (Vampiric Pounce's hop back): taken when the target answers the approach, or as a planned feint.
+    // A lone quiet branch is taken when the target answers the approach, or as a planned feint.
     if (next < stepOut.window.first || next > stepOut.window.last) return false;
     const answered = target.attack.style !== undefined || !target.motion.grounded || target.shield.raised;
     const planned = botChoice(seed, f.character * 7 + 19, 3) === 0 && next >= stepOut.window.last - 2;
@@ -426,7 +426,7 @@ export function steerRunningSpecial(f: Readonly<Fighter>, target: Readonly<Fight
       if (next <= RIFLEMAN_RECOVERY_STARTUP_FRAMES) {
         // The stick on frame 4 picks the route: level from far out at the deck's height, diagonally up otherwise.
         input.direction = home;
-        input.verticalDirection = level ? -1 : 0;
+        input.verticalDirection = level ? 0 : 1;
         return true;
       }
       if (special.form === RIFLEMAN_SECOND_SHOT_FORM || next < RIFLEMAN_SECOND_SHOT_FIRST || next > RIFLEMAN_SECOND_SHOT_LAST) return false;
@@ -434,7 +434,7 @@ export function steerRunningSpecial(f: Readonly<Fighter>, target: Readonly<Fight
       if (motion.vz > 4.0 && next < RIFLEMAN_SECOND_SHOT_LAST) return false;
       input.specialPressed = true;
       input.specialX = home;
-      input.specialZ = level ? -1 : 1;
+      input.specialZ = level ? 0 : 1;
       input.direction = home;
       input.verticalDirection = input.specialZ;
       return true;

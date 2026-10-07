@@ -227,6 +227,7 @@ export interface ShellState {
   /** Synchronized menu callbacks salt the random stage draw; retained across reloads. */
   menuFrames?: number;
   readonly camera: MatchCamera;
+  cameraTween?: boolean;
   readonly build: MapBuild;
   /** The world point the simulation's origin maps to: stage center and floor height. */
   readonly origin: WorldOrigin;
@@ -271,6 +272,14 @@ export interface ShellState {
 
 declare global {
   var __smashcraftShell: ShellState | undefined;
+  var __smashcraftPlaytest: { request: string | undefined; looked: number; sent: boolean; cancelled: boolean } | undefined;
+}
+
+export const playtestProgress = () => (globalThis.__smashcraftPlaytest ??= { request: undefined, looked: 0, sent: false, cancelled: false });
+
+/** Manual selection takes over from an automatic request still waiting for its go-ahead. */
+export function cancelPendingPlaytest(): void {
+  playtestProgress().cancelled = true;
 }
 
 export function shellState(): ShellState | undefined {

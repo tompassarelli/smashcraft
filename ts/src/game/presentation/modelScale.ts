@@ -20,6 +20,7 @@ export const STOCK_MODEL_SCALES: Readonly<Record<Character, { readonly unit: str
   [Character.archer]: { unit: "earc", scale: 1.0 },
   [Character.rifleman]: { unit: "hrif", scale: 1.0 },
   [Character.demonHunter]: { unit: "Edem", scale: 1.0 },
+  [Character.chen]: { unit: "Npbm", scale: 1.0 },
   [Character.blademaster]: { unit: "Obla", scale: 1.0 },
   [Character.mountainKing]: { unit: "Hmkg", scale: 1.0 },
   [Character.warden]: { unit: "Ewar", scale: 1.0 },
@@ -31,6 +32,11 @@ export const STOCK_MODEL_SCALES: Readonly<Record<Character, { readonly unit: str
   [Character.beastmaster]: { unit: "Nbst", scale: 1.0 },
   [Character.lichKing]: LICH_KING_STOCK_SCALE,
   [Character.thrall]: { unit: "Othr", scale: 1.0 },
+  [Character.jaina]: { unit: "Hjai", scale: 1.0 },
+  [Character.sylvanas]: { unit: "Usyl", scale: 1.0 },
+  [Character.cairne]: { unit: "Otch", scale: 1.0 },
+  [Character.peon]: { unit: "opeo", scale: 1.0 },
+  [Character.tinker]: { unit: "Ntin", scale: 1.0 },
   [Character.kaelthas]: { unit: "Hblm", scale: 1.0 },
 };
 

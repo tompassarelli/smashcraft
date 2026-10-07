@@ -13,28 +13,22 @@ import { parsePlaytestRequest } from "../../game/shell/playtest";
 import { PLAYTEST_GO_FILE, PLAYTEST_REQUEST_FILE, playtestReceiptFile } from "../../runtime/gameFiles";
 import { readChunk, writeLine } from "wisp/src/platform/fileio";
 import { startPlaytest } from "./menus";
-import { type ShellState, localSlot } from "./state";
+import { type ShellState, localSlot, playtestProgress } from "./state";
 
 export const PLAYTEST = "shell.playtest";
 export const PLAYTEST_PREFIX = "SC_PLAY";
 const LOOK_FRAMES = 30;
 
-declare global {
-  var __smashcraftPlaytest: { request: string | undefined; looked: number; sent: boolean } | undefined;
-}
-
-const progress = () => (globalThis.__smashcraftPlaytest ??= { request: undefined, looked: 0, sent: false });
-
 /** At map start, on the first human's client: the host's request, if it left one. */
 export function readPlaytestRequest(s: ShellState): void {
   if (firstHumanSlot(s.game) !== localSlot()) return;
   const line = readChunk(PLAYTEST_REQUEST_FILE);
-  progress().request = line !== undefined && parsePlaytestRequest(line) !== undefined ? line : undefined;
+  playtestProgress().request = line !== undefined && parsePlaytestRequest(line) !== undefined ? line : undefined;
 }
 
 /** Every game callback: with a request, look for the go-ahead at fighter selection until the request is sent. */
 export function servicePlaytestRequest(s: ShellState): void {
-  const state = progress();
+  const state = playtestProgress();
   if (state.request === undefined || state.sent || s.game.phase !== Phase.characterMenu) return;
   if (++state.looked < LOOK_FRAMES) return;
   state.looked = 0;
@@ -48,7 +42,7 @@ export function playtestRequested(s: ShellState): void {
   if (GetPlayerId(GetTriggerPlayer()) !== firstHumanSlot(s.game)) return;
   const line = BlzGetTriggerSyncData();
   const request = parsePlaytestRequest(line);
-  const started = request !== undefined && startPlaytest(s, request);
+  const started = !playtestProgress().cancelled && request !== undefined && startPlaytest(s, request);
   const slot = localSlot();
   if (isParticipantSlot(slot)) writeLine(playtestReceiptFile(slot), `${line} ${started ? "started" : "refused"}`);
 }

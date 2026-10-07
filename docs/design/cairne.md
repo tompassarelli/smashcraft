@@ -19,7 +19,7 @@ platform-fighter decisions rather than Warcraft's long disables.
 is the named body counterpart: weight **133**, run speed **1.485**, air speed
 **0.945**. The implementation divides weight by the roster's reference 75,
 run speed by Archer's 2.2 and uses the air speed directly as the hero's air
-multiplier. Width **1.75H** and height **1.45H** are original body scales,
+multiplier. Width **1.75×** and height **1.45×** are original body scales,
 larger than Pit Lord's 1.65/1.35; shield scale is 1.45. Jumps, gravity and
 shared defensive actions retain the roster's common rules.
 
@@ -59,7 +59,7 @@ link names a relationship, not copied frame data or geometry.
 | Up air | 12/4/28/L20; 13 damage; narrow horn rise; horns are hittable. | [Tauren body][wc] | [Bowser's overhead head strike][bowser] |
 | Down air | 21/5/38/L28; 18 damage; totem downward, meteor in air and 55-degree launch on ground. | [War Stomp/totem][wc] | [K. Rool's deliberate downward strike][krool] |
 | Grab | 11/3/31; short free-hand reach; shared shield grab and escape. | [Tauren strength][wc] | [Bowser's close grab][bowser] |
-| Pummel | Contact f6, end f14; 3 damage; at most two pummels. | [Totem haft][wc] | [Heavyweight local pummel][bowser] |
+| Pummel | Shared contact f60, end f68; 3 damage; at most one pummel, escapable by mashing. | [Totem haft][wc] | [Heavyweight local pummel][bowser] |
 | Forward throw | Contact f19, end f45; 11 damage at 35 degrees; stage control. | [Tauren strength][wc] | [Bowser's outward toss][bowser] |
 | Back throw | Contact f23, end f54; 13 damage at 40 degrees backward; edge read. | [Tauren strength][wc] | [K. Rool's powerful back throw][krool] |
 | Up throw | Contact f21, end f32; 10 damage near vertical; juggle starter. | [Totem lift][wc] | [Heavyweight upward throw][bowser] |
@@ -97,7 +97,9 @@ projectile and armored charge. Compared with Beastmaster, he fights with one
 body. Compared with the Lich King, he has no soul resource or persistent pool.
 
 Use the base-game Tauren Chieftain model and command portrait, stock Warcraft
-impact sounds and Shockwave/War Stomp effects. His totem remains attached;
+impact sounds, a spirit-blue Crushing Wave missile and a small stock ground
+burst for War Stomp. The wave stays distinct from Mountain King's ground
+waves. His totem remains attached;
 the gesture plants his feet, moves the whole shoulder and follows through.
 Map or author the complete hero pose table, including both sides of throws,
 recovery, and nine pain poses. The computer seeks totem spacing, sends a wave
