@@ -7,8 +7,8 @@ Consecration lets him contest a landing while his slow feet and committed
 swings leave room for a jump, shield or whiff punish.
 
 This is the #216 rework after Tom's 0.0.90 playtest. All new numbers below are
-original, provisional Smashcraft tuning. Source games supply identities and
-trade-offs, never copied hitboxes, animation or implementation.
+original, provisional Smashcraft tuning. Smash references supply identities
+and trade-offs, not copied hitboxes, animation or implementation.
 
 ## Forsaken revision, 8 October
 
@@ -115,9 +115,11 @@ shared contact display; Holy Bolt's classic gold-white burst identifies holy
 power without hiding the fighter. Effects and sound use the existing event
 serials and do not replay on rollback.
 
-The actual Forsaken model supplies the hammer and body. Its new rig and all
-28 stock clips are inspected before binding or authoring each action. Both
-facings must keep the weapon attached and the body clear at contact.
+The actual Forsaken model supplies the body and rig. Its stock sword is
+replaced with the classic Paladin's hammer faces on the Forsaken weapon joint.
+Its new rig and all 28 stock clips are inspected before binding or authoring
+each action. Both facings must keep the hammer attached and the body clear
+at contact.
 
 ## Place in the roster
 
