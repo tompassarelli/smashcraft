@@ -27,6 +27,11 @@ const BLASTER_AIR_SHOT_HEIGHT = 30.0;
 const BLASTER_PROJECTILE_HALF_HEIGHT = 36.0;
 const BLASTER_PROJECTILE_RADIUS = 24.0;
 const BLASTER_PROJECTILE_SPAWN_OFFSET = 35.0;
+export const ARCHER_ARROW_DAMAGE = 5.0;
+export const ARCHER_ARROW_SPEED = 28.0;
+export const ARCHER_ARROW_LIFETIME = 45;
+/** A centered arrow meets a held shield instead of slipping above its shrinking edge. */
+const ARCHER_ARROW_HEIGHT = 45.0;
 /** Height of a target's body center above its position. */
 const TARGET_CENTER_HEIGHT = 45;
 /** Archer's homing arrow (side special): slower than his arrow, so a jump timed as it closes in leaves it behind. */
@@ -98,7 +103,7 @@ const facingOf = (owner: Fighter, direction: number): number => (direction === 0
 
 /** Archer's arrow, level toward direction, or the owner's facing for zero. */
 export function spawnArcherArrow(owner: Fighter, direction: number, serial: number): void {
-  spawnProjectileMotion(owner, ProjectileKind.arrow, f32(facingOf(owner, direction) * BLASTER_PROJECTILE_SPEED), 0.0, 75, serial);
+  spawnProjectileMotion(owner, ProjectileKind.arrow, f32(facingOf(owner, direction) * ARCHER_ARROW_SPEED), 0.0, ARCHER_ARROW_LIFETIME, serial, 1.0, ARCHER_ARROW_HEIGHT);
 }
 
 /** Archer's homing arrow, launched level toward direction, or the owner's facing for zero. */
@@ -147,7 +152,7 @@ export function projectileDamage(projectile: Readonly<Projectile>): number {
   const { kind, spec } = projectile;
   const damage = kind === ProjectileKind.hero && spec !== undefined ? heroProjectileEffect(projectile, spec).damage
     : kind === ProjectileKind.blaster ? attackDamage(AttackStyle.shot)
-      : kind === ProjectileKind.homingArrow ? 3.0 : kind === ProjectileKind.recoil || kind === ProjectileKind.manaBurn ? 5.0 : 7.0;
+      : kind === ProjectileKind.homingArrow ? 3.0 : kind === ProjectileKind.arrow ? ARCHER_ARROW_DAMAGE : kind === ProjectileKind.recoil || kind === ProjectileKind.manaBurn ? 5.0 : 7.0;
   return roundToFloat32(f32(damage * projectile.damageMultiplier));
 }
 

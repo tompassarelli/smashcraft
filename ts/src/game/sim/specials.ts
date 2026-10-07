@@ -140,7 +140,10 @@ export const RIFLEMAN_BEAR_CAST_FRAMES = 24;
 /** The cast, then 18 frames after the bear appears. */
 export const RIFLEMAN_BEAR_SUMMON_FRAMES = RIFLEMAN_BEAR_CAST_FRAMES + 18;
 const TRAP_SET_FRAMES = 20;
-const ARCHER_ARROW_FRAMES = 3;
+/** The bow release remains two-thirds through its clip; the longer draw is visible before the arrow leaves. */
+export const ARCHER_ARROW_SHOT_FRAME = 16;
+export const ARCHER_ARROW_FRAMES = 24;
+export const ARCHER_ARROW_REPEAT_FRAMES = 30;
 /** The special input bit in action observations. */
 const SPECIAL_ACTION_BIT = 64;
 
@@ -263,8 +266,7 @@ function startArcherSpecial(owner: Fighter, action: SpecialAction, moveX: number
     return true;
   }
   startSpecialAction(owner, action, ARCHER_ARROW_FRAMES, moveX);
-  owner.attack.cooldown = 0;
-  special.cooldowns[action] = 8;
+  special.cooldowns[action] = ARCHER_ARROW_REPEAT_FRAMES;
   return true;
 }
 
@@ -685,7 +687,7 @@ function advanceSpecialAction(owner: Fighter, stage: number, matchFrame: number,
     return;
   }
   const shotSerial = owner.attack.serial + 1;
-  if (special.action === SpecialAction.archerArrow && special.frame === 2) spawnArcherArrow(owner, owner.facing, shotSerial);
+  if (special.action === SpecialAction.archerArrow && special.frame === ARCHER_ARROW_SHOT_FRAME) spawnArcherArrow(owner, owner.facing, shotSerial);
   if (special.action === SpecialAction.riflemanBlaster) {
     const grounded = special.duration === RIFLEMAN_BLASTER_GROUND_FRAMES;
     if (special.frame === (grounded ? RIFLEMAN_BLASTER_GROUND_SHOT_FRAME : RIFLEMAN_BLASTER_AIR_SHOT_FRAME)) spawnBlasterShot(owner, shotSerial, grounded);

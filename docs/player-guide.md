@@ -83,7 +83,8 @@ ultimate are listed by name in the [move list](move-list.md). Archer steers her
 hippogryph ride with the stick (down for a low line) and can jump off it to
 act again. Her first down special sends the hippogryph swooping to a perch;
 the next makes it dive at her, through anyone in the way. Archer's neutral arrow
-can be jump-cancelled. The current summon presentation uses Warcraft bear and
+has a visible draw and recovery. Shield an arrow, then advance during the gap;
+up close, shielding leaves time to grab her before she recovers. The current summon presentation uses Warcraft bear and
 hippogryph models.
 
 Use Warcraft's ordinary Quit Mission to leave and recreate a custom game.

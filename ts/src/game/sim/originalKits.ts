@@ -31,7 +31,7 @@ export interface OriginalKit {
 export const ORIGINAL_KITS: readonly OriginalKit[] = [
   {
     specials: [
-      { action: SpecialAction.archerArrow, name: "Swift Arrow", description: "A quick arrow you can cancel with a jump." },
+      { action: SpecialAction.archerArrow, name: "Swift Arrow", description: "Draw and loose an arrow; recover before firing again." },
       { action: SpecialAction.archerHomingArrow, name: "Seeking Arrow", description: "An arrow that curves toward the nearest opponent." },
       { action: SpecialAction.archerRecovery, name: "Hippogryph Ride", description: "Ride a hippogryph and steer it; jump off to act again." },
       {

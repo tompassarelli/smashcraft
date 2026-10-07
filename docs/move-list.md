@@ -12,7 +12,7 @@ matches until the match rules turn them on.
 
 | Input | Name | What it does |
 | --- | --- | --- |
-| Neutral special | Swift Arrow | A quick arrow you can cancel with a jump. |
+| Neutral special | Swift Arrow | Draw and loose an arrow; recover before firing again. |
 | Side special | Seeking Arrow | An arrow that curves toward the nearest opponent. |
 | Up special | Hippogryph Ride | Ride a hippogryph and steer it; jump off to act again. |
 | Down special | Hippogryph Call (Hippogryph Dive) | Send the hippogryph swooping to a perch; press again and it dives at her through anyone in the way. |
