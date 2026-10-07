@@ -35,11 +35,11 @@
 #! expect a 376 grab-hold start
 #! expect a 392 grab-hold end
 #! expect a 392 damage 2.335
-#! expect b 392 damage 19.910
+#! expect b 392 damage 18.145
 #! scene a SleepSpecialArt
 #! scene a CarrionSwarmMissile
 #! scene a BloodImpact
-# Damage uses the current kit: Sleep 1.810, Swarm 6.335, bite 11.765; bite heals exactly 4.
+# Damage uses the current kit: Sleep 1.810, Swarm 6.335, bite 10.00025; bite heals exactly 4.
 # View held a second, twice: the moments the parity check replays.
 500 a press VIEW
 570 a release VIEW
