@@ -1,0 +1,72 @@
+# #148 Devotion Aura and #144 special cues: Uther's passive fills on three blocked hits and softens the next launch; every special form shows its Warcraft spell.
+# Uther a against Uther b; syntax and checks: smashcraft:docs/native-bot-session.md.
+#! chat -dev quick hero uther
+# #148: b walks in with forward tilts; a's shield blocks three, then a lowers it and the next lands softened. Then b walks away.
+40 b press LB
+40 b stick -1 0
+60 a shield 1
+95 b tap A 2
+112 a capture
+145 b tap A 2
+162 a capture
+195 b tap A 2
+212 a capture
+222 a shield 0
+250 b tap A 2
+263 a capture
+275 b stick 1 0
+# #144: Divine Shield.
+300 a stick 0 -1
+300 a tap X 2
+301 a stick 0 0
+320 b stick 0 0
+321 b release LB
+# #144: Holy Light, and Holy Light from the air.
+345 a tap X 2
+410 a tap B 8
+420 a tap X 2
+# #144: Crusader Rush.
+475 a stick 1 0
+475 a tap X 2
+476 a stick 0 0
+# View held a second: the first of two moments the parity check replays.
+500 a press VIEW
+570 a release VIEW
+# #144: Crusader Rush from the air, back toward the middle.
+600 a tap B 8
+610 a stick -1 0
+610 a tap X 2
+611 a stick 0 0
+# #144: Ascension, paid.
+700 a stick 0 1
+700 a tap X 2
+701 a stick 0 0
+# Spend the mana: Holy Light; then Ascension, free.
+780 a tap X 2
+845 a stick 0 1
+845 a tap X 2
+846 a stick 0 0
+# Expected, frame by frame (headless run of this script): a's shield takes three forward tilts unhurt,
+# the fourth lands with Devotion ready (hitstun 17; 22 without it), every special form starts on its frame,
+# and the Holy Light from 780 returns to heal a 3.
+#! absent a 60-260 damage
+#! expect a 261 damage 12.000 hitlag 7 hitstun 17
+#! expect a 300 special 16 form 0
+#! expect a 345 special 13 form 0
+#! expect a 420 special 13 form 1
+#! expect a 475 special 14 form 0
+#! expect a 610 special 14 form 1
+#! expect a 700 special 15 form 0
+#! expect a 780 special 13 form 0
+#! expect a 845 special 15 form 2
+#! expect a 853 damage 9.000
+#! scene a DevotionAura
+#! scene a HealTarget
+#! scene a HolyBoltSpecialArt
+#! scene a HolyBoltMissile
+#! scene a InnerFireTarget
+#! scene a StampedeMissileDeath
+#! scene a ResurrectTarget
+#! scene a DivineShieldTarget
+1000 a press VIEW
+1070 a release VIEW
