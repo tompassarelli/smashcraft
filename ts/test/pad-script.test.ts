@@ -41,12 +41,12 @@ test("two-client pad steps follow actual deadlines when B starts 58.678 ms befor
 test("edges land on the frames a fake helper journaled them on", () => {
   // The helper's log lines as wc3-journal writes them (bot-four capture, 7 Oct).
   const log = [
-    "match_start epoch=1 epoch_ns=34282443282605 read_ns=34282443762949 uncertainty_ns=1100090",
+    "match_start epoch=1 epoch_ns=34282443282605 first_frame=1 read_ns=34282443762949 uncertainty_ns=1100090",
     "event mono_ns=34285446238000 frame=181 held=32 pressed=32 released=0",
     "published_frame=181",
   ].join("\n");
   const start = matchStart(log);
-  expect(start).toEqual({ epoch: 1, epochNs: 34282443282605 });
+  expect(start).toEqual({ epoch: 1, epochNs: 34282443282605, firstFrame: 1, frameOneNs: 34282443282605 });
   expect(publishedFrame(log)).toBe(181);
   const epochNs = start?.epochNs ?? 0;
   // The write time of a frame falls on that frame by the helper's rule.
@@ -56,6 +56,24 @@ test("edges land on the frames a fake helper journaled them on", () => {
     { line: 2, text: "190 a stick 1 0", slot: 0, planned: 190, injectedNs: 34285600000000 },
   ], [log, ""]);
   expect(landed.map((edge) => edge.landed)).toEqual([181, undefined]);
+});
+
+test("D2 pad deadlines retain the helper publication's frame-three clock and exact-frame gate", () => {
+  const epochNs = 34282443282605;
+  const start = matchStart(`match_start epoch=1 epoch_ns=${epochNs} first_frame=3 read_ns=34282443762949 uncertainty_ns=1100090`);
+  expect(start?.epochNs).toBe(epochNs);
+  expect(start?.firstFrame).toBe(3);
+  if (start === undefined) throw new Error("missing match start");
+  for (const planned of [15, 200, 1309]) {
+    const injectedNs = frameWriteNs(start.frameOneNs, planned);
+    const actual = start.firstFrame + Math.floor((injectedNs - start.epochNs) * 60 / 1e9);
+    expect(actual).toBe(planned);
+    expect(ruleFrame(start.frameOneNs, injectedNs)).toBe(planned);
+  }
+  // The old origin injects two frames late; correcting an observation cannot
+  // make that late stimulus pass the original planned-frame comparison.
+  expect(start.firstFrame + Math.floor((frameWriteNs(epochNs, 200) - epochNs) * 60 / 1e9)).toBe(202);
+  expect(matchStart(`match_start epoch=1 epoch_ns=${epochNs} read_ns=34282443762949 uncertainty_ns=1100090`)).toBeUndefined();
 });
 
 test("a pad parity check reads the input trace's checksums and fighter lines and holds the script's expectations", () => {

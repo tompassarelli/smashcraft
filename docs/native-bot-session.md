@@ -448,6 +448,13 @@ Player 2 drifted off the stage 19–21 s into the first match. That ended the
 match before the workload's scheduled Start pause, so the capture had no
 pause to check.
 
+Pad script frame numbers are simulation-frame deadlines. The helper's
+`match_start` record preserves its publication timestamp and `first_frame`
+(3 for D2); the injector derives a frame-one clock origin from both. Its
+result retains `frame_one_ns` and `match_starts`, and compares each actual
+helper event against the unchanged planned frame. Treating the publication
+as frame 1 injects D2 scripts two frames late.
+
 ## Raw playable cost captures
 
 For keyboard response measurements, build or rebuild with

@@ -72,7 +72,7 @@ const matchEpochs = (logs: () => [string, string], startedNs: number, out: strin
   const deadline = Date.now() + 60_000;
   for (;;) {
     const starts = logs().map(matchStart);
-    if (starts.every((start) => start !== undefined && start.epochNs > startedNs)) return [starts[0]?.epochNs ?? 0, starts[1]?.epochNs ?? 0] as const;
+    if (starts.every((start) => start !== undefined && start.epochNs > startedNs)) return [starts[0]?.frameOneNs ?? 0, starts[1]?.frameOneNs ?? 0] as const;
     if (Date.now() > deadline) return yield* new IntegrityFailure({ operation: "wait for match start", path: out, cause: "a helper reported no match start within 60 s" });
     yield* Effect.sleep("20 millis");
   }
@@ -100,7 +100,7 @@ const finish = (out: string, scriptPath: string, build: string, epochs: readonly
   const stopped = final.flatMap((log, slot) => (/late kernel event|journal stopped/.test(log) ? [`helper ${slot}: ${/^wc3-journal: .*$/m.exec(log)?.[0] ?? "stopped"}`] : []));
   const off = results.filter((edge) => edge.frame !== edge.planned);
   const lateWrites = off.filter((edge) => edge.written !== edge.planned).length;
-  yield* tryIntegrity("write result", out, () => writeFileSync(join(out, "result.json"), json({ script: scriptPath, build, epochs_ns: epochs, edges: results, off_frame: off.length, written_late: lateWrites, helpers_stopped: stopped })));
+  yield* tryIntegrity("write result", out, () => writeFileSync(join(out, "result.json"), json({ script: scriptPath, build, frame_one_ns: epochs, match_starts: final.map(matchStart), edges: results, off_frame: off.length, written_late: lateWrites, helpers_stopped: stopped })));
   for (const edge of results) console.log(`line ${edge.line} ${edge.slot === 0 ? "a" : "b"} planned ${edge.planned} written ${edge.written} landed ${edge.frame} (${edge.confirmedBy}): ${edge.text}`);
   console.log(`${results.length} edges, ${off.length} off their frame (${lateWrites} of them written late)${stopped.length > 0 ? `; ${stopped.join("; ")}` : ""}; ${join(out, "result.json")}`);
   if (off.length > 0 || stopped.length > 0) return yield* new IntegrityFailure({ operation: "replay pad script", path: out, cause: `${off.length} edges off their frame, ${stopped.length} helpers stopped` });
