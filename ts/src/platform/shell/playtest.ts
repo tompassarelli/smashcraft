@@ -20,10 +20,15 @@ export const PLAYTEST_PREFIX = "SC_PLAY";
 const LOOK_FRAMES = 30;
 
 declare global {
-  var __smashcraftPlaytest: { request: string | undefined; looked: number; sent: boolean } | undefined;
+  var __smashcraftPlaytest: { request: string | undefined; looked: number; sent: boolean; cancelled: boolean } | undefined;
 }
 
-const progress = () => (globalThis.__smashcraftPlaytest ??= { request: undefined, looked: 0, sent: false });
+const progress = () => (globalThis.__smashcraftPlaytest ??= { request: undefined, looked: 0, sent: false, cancelled: false });
+
+/** Manual selection takes over from an automatic request still waiting for its go-ahead. */
+export function cancelPendingPlaytest(): void {
+  progress().cancelled = true;
+}
 
 /** At map start, on the first human's client: the host's request, if it left one. */
 export function readPlaytestRequest(s: ShellState): void {
@@ -48,7 +53,7 @@ export function playtestRequested(s: ShellState): void {
   if (GetPlayerId(GetTriggerPlayer()) !== firstHumanSlot(s.game)) return;
   const line = BlzGetTriggerSyncData();
   const request = parsePlaytestRequest(line);
-  const started = request !== undefined && startPlaytest(s, request);
+  const started = !progress().cancelled && request !== undefined && startPlaytest(s, request);
   const slot = localSlot();
   if (isParticipantSlot(slot)) writeLine(playtestReceiptFile(slot), `${line} ${started ? "started" : "refused"}`);
 }
