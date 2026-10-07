@@ -117,7 +117,7 @@ test("cached observation chunks fold the exact text across kits, fractional valu
 });
 
 test("observation number digests remain exact after recent values are evicted and revisited", () => {
-  const game = setup(9);
+  const game = setup("wren", "expert");
   for (let frame = 1; frame <= 1201; frame++) {
     const value = frame === 1201 ? 1 : frame;
     game.target.motion.x = value + 0.5;
