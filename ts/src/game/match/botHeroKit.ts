@@ -33,7 +33,7 @@ export function startableForm(f: Readonly<Fighter>, specials: Readonly<FighterSp
 }
 
 /** Whether a projectile's straight flight from the fighter meets the target's body. */
-function projectileMeets(spec: Readonly<SpecialProjectile>, target: Readonly<Fighter>, localX: number, localZ: number): boolean {
+function projectileMeets(spec: Readonly<SpecialProjectile>, target: Readonly<Fighter>, localX: number, localZ: number, facing: number): boolean {
   const body = hurtCapsule(target.character);
   const reach = f32(spec.radius + body.radius);
   const speed = Math.abs(spec.velocityX);
@@ -42,8 +42,19 @@ function projectileMeets(spec: Readonly<SpecialProjectile>, target: Readonly<Fig
     const frames = f32(f32(localX - spec.offsetX) / speed);
     if (frames < 0 || frames > spec.life) return false;
     z = f32(spec.offsetZ + f32(spec.velocityZ * frames));
-  } else if (Math.abs(f32(localX - spec.offsetX)) > reach) {
-    return false;
+  } else {
+    let arrivalX = localX;
+    if (spec.velocityZ < 0.0) {
+      const top = f32(f32(localZ + body.z2) + reach);
+      const fall = Math.max(0.0, f32(f32(spec.offsetZ - top) / -spec.velocityZ));
+      arrivalX = f32(localX + f32(f32(target.motion.deltaX * facing) * f32(spec.spawnFrame + fall)));
+    }
+    if (Math.abs(f32(arrivalX - spec.offsetX)) > reach) return false;
+    if (spec.velocityZ !== 0.0) {
+      const end = f32(spec.offsetZ + f32(spec.velocityZ * spec.life));
+      return Math.max(z, end) >= f32(f32(localZ + body.z1) - reach)
+        && Math.min(z, end) <= f32(f32(localZ + body.z2) + reach);
+    }
   }
   return z >= f32(f32(localZ + body.z1) - reach) && z <= f32(f32(localZ + body.z2) + reach);
 }
@@ -143,10 +154,10 @@ export function heroSpecialUse(f: Readonly<Fighter>, target: Readonly<Fighter>, 
   // A falling opponent may leave the special's height before its first strike.
   const strikeZ = firstStrike === undefined ? localZ : f32(heightAhead(target, observationAge + firstStrike + 1, stage, 0) - f.motion.z);
   if (strikeMeets(move, target, localX, strikeZ)) return HeroSpecialUse.close;
-  for (const spec of move.projectiles ?? []) if (projectileMeets(spec, target, localX, localZ)) return HeroSpecialUse.ranged;
+  for (const spec of move.projectiles ?? []) if (projectileMeets(spec, target, localX, localZ, f.facing)) return HeroSpecialUse.ranged;
   // A placed object fires from where it stands: set one when its shot would reach the target there.
   const placement = move.placement;
-  if (placement?.shot !== undefined && target.motion.grounded && projectileMeets(placement.shot, target, f32(localX - placement.offsetX), localZ)) return HeroSpecialUse.ranged;
+  if (placement?.shot !== undefined && target.motion.grounded && projectileMeets(placement.shot, target, f32(localX - placement.offsetX), localZ, f.facing)) return HeroSpecialUse.ranged;
   return HeroSpecialUse.none;
 }
 

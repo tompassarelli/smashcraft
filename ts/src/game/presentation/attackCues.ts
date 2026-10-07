@@ -27,7 +27,7 @@ const SHEAR: readonly AttackCue[] = [{ name: "Shear", fromActive: 0, cue: timed(
 
 export const ATTACK_CUES: { readonly [character: number]: { readonly [style: number]: readonly AttackCue[] } } = {
   [Character.blademaster]: {
-    [AttackStyle.downAir]: [{ name: "Bladestorm", fromActive: 0, cue: cue("Abilities\\Spells\\Other\\Tornado\\Tornado_Target.mdx", f32(0.45)) }],
+    [AttackStyle.downAir]: [{ name: "Sword Plunge", fromActive: 0, cue: cue("Abilities\\Spells\\Human\\SunderingBlades\\SunderingBlades.mdx", f32(0.45)) }],
     [AttackStyle.neutralAir]: [{ name: "Blade Wheel", fromActive: 0, cue: cue("Abilities\\Spells\\Human\\SunderingBlades\\SunderingBlades.mdx", f32(0.7)) }],
   },
   [Character.warden]: {

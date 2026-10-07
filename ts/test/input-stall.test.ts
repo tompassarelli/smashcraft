@@ -9,6 +9,9 @@ import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
 import { PREDICTED_HEADLESS } from "../scripts/wisp/headless";
 import { JournalHelpers } from "./rematch/journalHelper";
 import { WAITING, confirmedFrame, expectSynchronized, shows, startPlayableMatch } from "./rematch/playableMatch";
+import { shell } from "../src/platform/shell/state";
+import { startProbe } from "../src/platform/shell/responseProbe";
+import { value } from "./rematch/playableMatch";
 
 const headless = installHeadless(PREDICTED_HEADLESS);
 afterAll(headless.restore);
@@ -20,6 +23,11 @@ test("a helper that stops mid-match shows every client who the match waits for w
   frames(60);
   expect(confirmedFrame(a)).toBeGreaterThan(0);
   expect([shows(a, WAITING), shows(b, WAITING)]).toEqual([false, false]);
+  for (const client of [a, b]) client.run(() => {
+    const probe = shell().probe;
+    if (probe === undefined) throw new Error("integrity has no response probe");
+    startProbe(probe, false);
+  });
   // Player 2's helper types nothing for two seconds.
   const cut = clients.frame;
   helpers.silent.add(1);
@@ -30,6 +38,9 @@ test("a helper that stops mid-match shows every client who the match waits for w
   }
   // Within one second (60 frames) of player 2's input stopping, on both clients.
   expect([shown.get(a) ?? Infinity, shown.get(b) ?? Infinity].every(frames => frames <= 60)).toBe(true);
+  expect(value(a, () => shell().probe?.waitingCallbacks)).toBeGreaterThan(0);
+  expect(value(a, () => shell().probe?.waitingOwnCallbacks)).toBe(0);
+  expect(value(b, () => shell().probe?.waitingOwnCallbacks)).toBeGreaterThan(0);
   const stalled = confirmedFrame(a);
   helpers.silent.delete(1);
   const restored = clients.frame;

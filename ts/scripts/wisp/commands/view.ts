@@ -25,7 +25,7 @@ import { characterModelScale } from "../../../src/game/presentation/modelScale";
 import { type DrawnReachRow, REACH_CHECKED, drawnReachSource, measureDrawnReach } from "../drawnReach";
 import { DRAWN_REACH } from "../drawnReachInfo";
 import { measureStrikeMoments, strikeMomentSource } from "../strikeMoments";
-import { HERO_ROSTER, SELECTABLE_CHARACTERS, fighterName, fighterSlug } from "../../../src/game/sim/heroes/registry";
+import { HERO_ROSTER, fighterName, fighterSlug } from "../../../src/game/sim/heroes/registry";
 import { MOTION_STATES, drawnStrideSource, measureDrawnMotion, measureDrawnStride, type DrawnStride, type DrawnMotionRow } from "../drawnMotion";
 import { AttackPhase, AttackStyle, Character } from "../../../src/game/sim/codes";
 import { AUTHORED_SAMPLE_STYLES } from "../../../src/game/sim/hurtboxes";
@@ -147,15 +147,15 @@ const hurtboxes = (args: readonly string[]) => Effect.gen(function*() {
 const STRIKE_TABLE = join(import.meta.dir, "../../../src/game/presentation/heroStrikeMomentInfo.ts");
 
 /**
- * Measures every hero normal's strike moment on the classic stock model the
- * clients draw, extracted through the CascLib extractor, and rewrites the
- * strike moment table pose selection aligns swings with.
+ * Measures the models supplied by the build, or extracts stock models when
+ * no assets directory is supplied, and rewrites the strike moment table.
  */
 const strikes = (args: readonly string[]) => Effect.scoped(Effect.gen(function*() {
   const options = Object.fromEntries(args.flatMap((arg, index) => (arg.startsWith("--") && args[index + 1] !== undefined ? [[arg.slice(2), args[index + 1]]] : [])));
   const { extractor, storage, assets } = options;
-  if (extractor === undefined || storage === undefined || args.length !== (assets === undefined ? 4 : 6)) {
-    return yield* new UsageFailure({ problem: "view strikes takes --extractor CASC_EXTRACT --storage WARCRAFT_DIR [--assets DIR]" });
+  const extractStock = extractor !== undefined && storage !== undefined;
+  if (!(assets !== undefined && args.length === 2 || extractStock && args.length === (assets === undefined ? 4 : 6))) {
+    return yield* new UsageFailure({ problem: "view strikes takes --assets DIR or --extractor CASC_EXTRACT --storage WARCRAFT_DIR [--assets DIR]" });
   }
   const scratch = yield* Effect.acquireRelease(
     Effect.sync(() => mkdtempSync(join(tmpdir(), "smashcraft-strikes."))),
@@ -163,12 +163,12 @@ const strikes = (args: readonly string[]) => Effect.scoped(Effect.gen(function*(
   );
   const files = new Map<string, string>();
   for (const [index, model] of [...new Set(HERO_ROSTER.map(({ presentation }) => presentation.model))].entries()) {
-    // A community model is read from the build's imported models, not the game's archives.
-    if (importedModelFile(model) !== undefined) {
-      if (assets === undefined) return yield* new UsageFailure({ problem: `${model} is imported: pass --assets DIR` });
+    if (assets !== undefined) {
       files.set(model, join(assets, heroModelSource(model)));
       continue;
     }
+    if (importedModelFile(model) !== undefined) return yield* new UsageFailure({ problem: `${model} is imported: pass --assets DIR` });
+    if (extractor === undefined || storage === undefined) return yield* new UsageFailure({ problem: "stock models need --extractor CASC_EXTRACT --storage WARCRAFT_DIR" });
     const file = join(scratch, `hero-${index}.mdx`);
     yield* runProcess("extract stock model", model, [extractor, storage, stockModelPath(model), file]);
     files.set(model, file);
@@ -238,7 +238,8 @@ const motion = (args: readonly string[]) => Effect.gen(function*() {
       const strides: DrawnStride[] = [];
       const rows: DrawnMotionRow[] = [];
       const models: { character: Character; drawn: DrawnModel; model: string }[] = [];
-      for (const character of SELECTABLE_CHARACTERS) {
+      const characters = [Character.archer, Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map((hero) => hero.character)];
+      for (const character of characters) {
         const hero = HERO_ROSTER.find((candidate) => candidate.character === character);
         const relative = hero === undefined ? FIGHTER_MODELS[character] ?? "" : heroModelSource(hero.presentation.model);
         const bytes = await Bun.file(join(assets, relative)).arrayBuffer();

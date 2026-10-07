@@ -22,8 +22,8 @@
 # a runs back left.
 200 a stick -1 0
 230 a stick 0 0
-# b spends its mana on five Howls of Terror, then Abyssal Leap's free form.
-# a: Abyssal Leap turned toward b, then a Howl of Terror in the air.
+# b spends its mana on five Rains of Fire, then Abyssal Leap's free form.
+# a: Abyssal Leap turned toward b, then Rain of Fire in the air.
 240 b stick 0 -1
 240 b tap X 2
 240 a stick 0.3 1
@@ -40,7 +40,7 @@
 326 a tap X 2
 327 a stick 0 0
 328 a capture
-349 a capture
+351 a capture
 370 b stick 0 -1
 370 b tap X 2
 371 b stick 0 0
@@ -56,21 +56,21 @@
 565 b tap X 2
 566 b stick 0 0
 570 a release VIEW
-# Fel Spit on the ground and in the air.
+# Howl of Terror on the ground and in the air.
 600 a tap X 2
 602 a capture
-625 a capture
+615 a capture
 680 a tap B 8
 686 a tap X 2
 688 a capture
-711 a capture
+701 a capture
 # Ruin Charge in the air.
 860 a tap B 8
 866 a stick 1 0
 866 a tap X 2
 867 a stick 0 0
 # Expected, frame by frame (headless run of this script): every form of every special starts,
-# b's five Howls empty its bar and its Abyssal Leap is the free form (2).
+# b's five Rains empty its bar and its Abyssal Leap is the free form (2).
 #! expect a 45 special 14 form 0
 #! expect a 240 special 15 form 0
 #! expect a 326 special 16 form 1
@@ -83,10 +83,10 @@
 # Cleaving Attack: the Charge on b's shield counts first; the 6 jab second; the 7 chop cleaves for 10.
 #! expect b 151 damage 6.000 hitlag 5 hitstun 9
 #! expect b 172 damage 16.000 hitlag 6 hitstun 16
-# Startup and active cues of each special, Fel Spit's missile, and the cleave on b.
+# Startup and active cues of each special, falling fire, and the cleave on b.
 #! scene a DeathCoilSpecialArt
-#! scene a ChimaeraAcidTargetArt
-#! scene a ChimaeraAcidMissile
+#! scene a FlameStrike1
+#! scene a DemolisherFireMissile
 #! scene a BreathOfFireDamage
 #! scene a FlameStrikeEmbers
 #! scene a HowlCaster

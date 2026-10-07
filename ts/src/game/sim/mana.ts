@@ -4,7 +4,7 @@
 // points and an integer trickle remainder keep the host and Lua32 equal.
 import { max, min, toInt } from "../../runtime/numbers";
 import { idiv } from "wisp/src/sim/intMath";
-import { ContactKind, HeroStatusKind, SpecialAction } from "./codes";
+import { Character, ContactKind, HeroStatusKind, SpecialAction } from "./codes";
 import { inGrabContext } from "./conditions";
 import type { Fighter } from "./fighter";
 import { at } from "wisp/src/runtime/lookup";
@@ -94,7 +94,8 @@ export function regenerateMana(f: Fighter): void {
     return;
   }
   if (!trickles(f)) return;
-  mana.progress += f.motion.grounded ? ROSTER_MANA.groundProgress : ROSTER_MANA.airProgress;
+  mana.progress += f.character === Character.jaina ? (f.motion.grounded ? 12 : 4)
+    : f.motion.grounded ? ROSTER_MANA.groundProgress : ROSTER_MANA.airProgress;
   if (mana.progress >= ROSTER_MANA.progressPerPoint) {
     mana.progress -= ROSTER_MANA.progressPerPoint;
     mana.points = min(ROSTER_MANA.max, mana.points + 1);
