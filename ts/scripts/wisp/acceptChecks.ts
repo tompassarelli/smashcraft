@@ -5,7 +5,7 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
 import type { AcceptSuite, NativeCheck, Rule } from "wisp/scripts/wisp/accept";
-import { QUICK_HERO_COMMAND, QUICK_TRAINING_COMMAND } from "../../src/game/shell/devSettings";
+import { QUICK_CPU_COMMAND, QUICK_HERO_COMMAND, QUICK_TRAINING_COMMAND } from "../../src/game/shell/devSettings";
 import { HIT_PRESENTATION_CASES } from "../../src/game/shell/hitPresentationCases";
 import { HERO_ROSTER } from "../../src/game/sim/heroes/registry";
 import { STAGE_CATALOG } from "../../src/game/menu/stageCatalog";
@@ -36,6 +36,8 @@ export const MAP_PROFILES: Readonly<Record<string, SmashcraftMapProfile>> = {
   ...STAGE_COMPOSITION_MAPS,
   presentation: { describe: "development map rebuilt from this checkout, `-dev quick` (Archer and Rifleman idle on the default stage)", path: PRESENTATION, rebuild: "main", quick: "-dev quick" },
   // smashcraft:docs/player-view.md: CURRENT_BUILD's scenario set to underside, built as a development map.
+  // smashcraft#166: the playable build's key-event input and pooled fighters (native-perf adds only developer setup and the frame meter).
+  keyboard: { describe: "playable input (native-perf profile) rebuilt from this checkout, `-dev quick cpu 9` (a level-9 computer, three stocks)", path: join(inputs, "keyboard-native-166-20261007/keyboard-native.w3x"), rebuild: "native-perf", quick: `${QUICK_CPU_COMMAND}9` },
   underside: { describe: "development map built with scenario underside (smashcraft:docs/player-view.md), `-dev quick`", path: join(inputs, "stage-model-20261006/Smashcraft diagnostic underside.w3x"), quick: "-dev quick" },
   training: { describe: "development map rebuilt from this checkout, `-dev quick training` (a computer partner shielding at 40%, hit areas on)", path: PRESENTATION, rebuild: "main", quick: QUICK_TRAINING_COMMAND },
   // A quick match starts only from fighter selection, so each stage is its own session.
@@ -190,6 +192,19 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
       pass: [NO_IMPORT_FAILURES, NO_ERRORS],
       look: "His free hand presses down to plant the shadow pool ahead while Frostmourne stays raised; its low rim changes from dim to violet when armed, stays at the pool's horizontal danger edge, and faces the other way for player 2. The drawn-frame captures at 50/60, 65 and 77 in smashcraft:ts/test/native/pads/lich-king-defile.pad show the gathering/push, warning and armed edge; that script also checks repeated casts and an unhurt jump escape.",
     })),
+    // Keys: W R E move, I jump, N attack, U special, O grab (presetBindings standard).
+    {
+      id: "166-keyboard-match",
+      closes: "smashcraft#166 box 3 (keyboard half)",
+      map: "keyboard",
+      setup: [
+        { waitMs: 4000 },
+        ...Array.from({ length: 60 }, (_, round) => [{ keys: round % 2 === 0 ? ["r", "n", "i", "n", "u"] : ["w", "n", "e", "o", "i"], client: "a" }, { waitMs: 500 }]).flat(),
+        { receipt: "^parts [0-9]+$", client: "a", seconds: 300 },
+      ],
+      pass: [NO_ERRORS, { kind: "receipt", pattern: "^parts [0-9]+$", min: 1 }],
+      look: "client A's replay (smashcraft-replay-N.txt with its parts) replays to its checksum with `LUA=<32-bit lua> bun wisp replay` and shows player 1's key presses",
+    },
     {
       id: "169-render-clock",
       closes: "smashcraft#169 box 1 (callback cadence and cost; compare 60/144 fps reports)",

@@ -11,7 +11,7 @@ export const KEY_UP = "shell.keyUp";
 
 /** Warcraft OS key codes the shell reads by name. */
 export const Key = {
-  escape: 0x1b, g: 0x47, h: 0x48, j: 0x4a, k: 0x4b, n: 0x4e, r: 0x52, t: 0x54, u: 0x55, w: 0x57, y: 0x59, f1: 0x70,
+  enter: 0x0d, escape: 0x1b, g: 0x47, h: 0x48, j: 0x4a, k: 0x4b, n: 0x4e, r: 0x52, t: 0x54, u: 0x55, w: 0x57, y: 0x59, f1: 0x70,
 } as const;
 
 /** Registers the key, with no modifier, for every human. */
@@ -27,7 +27,8 @@ function registerAllKeys(s: ShellState): void {
   const down = CreateTrigger();
   const up = CreateTrigger();
   for (let key = 1; key <= 255; key++) {
-    if (key === Key.y) continue;
+    // A registered Return reaches the map instead of opening Warcraft's chat.
+    if (key === Key.y || key === Key.enter) continue;
     registerKey(s, down, key, true);
     registerKey(s, up, key, false);
   }
