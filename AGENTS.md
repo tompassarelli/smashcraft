@@ -331,12 +331,15 @@ code. From smashcraft:ts/:
   script); `--fresh-each` exists only to measure that. `bun wisp pad
   SCRIPT|DIR... --headless ...` plays the same batch in one headless session
   (smashcraft:docs/native-bot-session.md, "Many scripts in one game").
-- Native acceptance: `bun wisp accept [--only ID...] [--pair K] [--dry-run]` runs every
+- Native acceptance: `bun wisp accept [--only ID...] [--pair K... | --pairs N] [--dry-run]` runs every
   open native check declared in smashcraft:ts/scripts/wisp/acceptChecks.ts in
   as few fresh matches as their maps allow and prints pass, fail or
   needs-look per check with its evidence folder (wisp:docs/accept.md). `--pair K`
   selects the offline pool pair; every check, capture and receipt follows its
-  two clients, and sessions start through `lan fresh`. Declare
+  two clients, and sessions start through `lan fresh`. Several pairs
+  (`--pair K` repeated, or `--pairs N`) split the sessions over every pair at
+  once, one process per pair, with each map built once; the merged report and
+  each `shard-K/` are under the run's evidence folder. Declare
   a new native box there, next to the issue it closes, instead of a hand procedure.
   Render cadence: `-dev render-clock` in a development map records timer
   callback bursts and cost; `bun wisp accept --only 169-render-clock --dry-run`
