@@ -6,7 +6,7 @@ import { claw, tinkerHit } from "./tinkerMoves";
 
 const rocket = (spawnFrame: number): SpecialProjectile => ({
   model: "Abilities\\Weapons\\RocketMissile\\RocketMissile.mdl",
-  spawnFrame, offsetX: 35.0, offsetZ: 65.0, velocityX: 10.0, velocityZ: 2.0,
+  spawnFrame, offsetX: 35.0, offsetZ: 45.0, velocityX: 10.0, velocityZ: 2.0,
   gravity: f32(0.12), life: 44, radius: 15.0, effect: tinkerHit(4.0, "poke", 55, 1.0, HitElement.fire),
   reflectable: true, limit: 3, feedsPassive: true,
 });
@@ -31,7 +31,7 @@ export const TINKER_SPECIALS: FighterSpecials = {
       fireAges: [35, 80, 125, 170, 215], shot: {
         model: "Units\\Creeps\\HeroTinkerRobot\\HeroTinkerRobot.mdl",
         spawnFrame: 0, offsetX: 20.0, offsetZ: 16.0, velocityX: 7.0, velocityZ: 0.0,
-        life: 50, radius: 18.0, effect: tinkerHit(6.0, "poke", 35, 1.0, HitElement.fire), reflectable: true, limit: 3, feedsPassive: true,
+        life: 44, radius: 18.0, effect: tinkerHit(6.0, "poke", 35, 1.0, HitElement.fire), reflectable: true, limit: 3, feedsPassive: true,
       },
     } },
     recall: { cost: 0, endFrame: 36, groundOnly: true, recall: true },
