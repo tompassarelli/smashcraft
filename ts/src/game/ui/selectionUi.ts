@@ -46,6 +46,7 @@ import {
 } from "../shell/messages";
 import { Character } from "../sim/codes";
 import { CARD_PORTRAIT, TILE_PORTRAIT_SLOT, tilePortrait } from "./portraitFrames";
+import { slotColor } from "./slotColors";
 import { ButtonClicks, MENU_FONT, type MenuControls, bindSyncHandler, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, placeTopLeft } from "./frames";
 
 /** What a participant's panel asks the game to do; each call comes from a synchronized event. */
@@ -86,8 +87,6 @@ interface CardFrames {
   readonly lower: framehandle;
   readonly raise: framehandle;
 }
-
-const CARD_COLORS = ["Red", "Blue", "Yellow", "Green"] as const;
 
 const portraitTexture = (choice: number | undefined, tile: boolean) => fighterPortrait(choice ?? Character.archer, tile ? "Tile" : "Card");
 const nameText = (choice: number | undefined) => fighterName(choice ?? Character.archer).toUpperCase();
@@ -463,7 +462,7 @@ export class SelectionPanel {
       const ready = characterReady(game, slot);
       const human = humanFighterActive(game, slot);
       const choice = characterFor(game, slot);
-      BlzFrameSetTexture(frames.card, `war3mapImported\\SelectionCard${active ? CARD_COLORS[slot] ?? "Gray" : "Gray"}.tga`, 0, true);
+      BlzFrameSetTexture(frames.card, `war3mapImported\\SelectionCard${active ? slotColor(slot).name : "Gray"}.tga`, 0, true);
       BlzFrameSetText(frames.tag, active ? (human ? "HMN" : "CPU") : "EMPTY");
       BlzFrameSetEnable(frames.mode, canCycleSlotMode(game, participantId, slot));
       BlzFrameSetVisible(frames.portrait, active && ready);

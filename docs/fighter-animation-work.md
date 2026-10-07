@@ -671,8 +671,9 @@ Blender step as `blender --background --python-exit-code 1 --python FILE`:
 smashcraft:tools/selection/render-fighters.ts renders every fighter's grid tile
 and card portrait into `ASSETS/fighter-renders/`
 (smashcraft:docs/design/fighter-portraits.md), and
-smashcraft:tools/selection/build-art.sh renders the selection and HUD textures
-from smashcraft:tools/selection/art/ into smashcraft:build/selection-assets/.
+smashcraft:tools/selection/build-art.ts renders the selection and HUD textures
+from smashcraft:tools/selection/art/ into smashcraft:build/selection-assets/,
+with each slot's chip, card and HUD plate in its Warcraft player colour.
 The map build imports both from its `--assets` directory.
 
 ## Build and play the first authored jab

@@ -3,7 +3,10 @@
 // tile, card, HUD bust and stock icon textures the map imports (fighterPortrait). Models and textures
 // come from the installed game, the generated fighter assets and ASSETS/imported-models; the renders
 // stay outside the repository.
-// Usage: bun tools/selection/render-fighters.ts --extract CASC_EXTRACT --assets ASSETS [--storage WARCRAFT_DIR] [--only NAME,...] [--reuse]
+// Usage: bun tools/selection/render-fighters.ts --extract CASC_EXTRACT --assets ASSETS [--storage WARCRAFT_DIR] [--only NAME,...] [--reuse] [--team N] [--check RED_WORK]
+// Fighters render in the neutral team colour (NEUTRAL_TEAM_COLOR), so no portrait shows a player's colour;
+// --team renders another. --check RED_WORK compares each render with the same fighter rendered with
+// --team 0 (its work/NAME.png in RED_WORK) and fails if a team-colour pixel shows a player colour.
 // Writes ASSETS/fighter-renders/; the map build imports from there.
 // (tools/animations/extract.sh builds CASC_EXTRACT into build/animation-assets/.)
 import { existsSync, mkdirSync } from 'node:fs';
@@ -13,6 +16,8 @@ import { RENDERED_FIGHTERS, fighterRenderName, heroDefinition } from '../../ts/s
 import { heroModelSource, importedModelFile } from '../../ts/scripts/heroModelSource';
 import { CARD_TEXTURE_PX, TILE_TEXTURE_PX } from '../../ts/src/game/ui/portraitFrames';
 import { STOCK_ICON_PX } from '../../ts/src/game/ui/plateLayout';
+import { NEUTRAL_TEAM_COLOR } from '../../ts/src/game/ui/slotColors';
+import { readRgba, teamColourPixels } from './team-colour-check';
 
 const option = (name: string) => { const index = process.argv.indexOf(name); return index < 0 ? undefined : process.argv[index + 1]; };
 const extract = option('--extract');
@@ -22,6 +27,8 @@ const storage = option('--storage') ?? `${process.env.HOME}/.local/share/Steam/s
 const only = option('--only')?.split(',');
 /** Recrop the renders already in the work folder instead of rendering again. */
 const reuse = process.argv.includes('--reuse');
+const team = Number(option('--team') ?? NEUTRAL_TEAM_COLOR);
+const check = option('--check');
 const addon = option('--addon') ?? '/home/tom/code/mdl-exporter4/worktrees/blender5';
 const project = resolve(import.meta.dir, '../..');
 const output = join(assets, 'fighter-renders');
@@ -37,7 +44,8 @@ const ORIGINAL_MODELS: { readonly [character: number]: string | undefined } = {
 };
 /** Behind every grid tile, so the tiles read as one set. */
 const TILE_BACKGROUND = ['-size', `${TILE_TEXTURE_PX}x${TILE_TEXTURE_PX}`, 'radial-gradient:#3a5378-#0c1422'];
-const TEAM_TEXTURES = ['ReplaceableTextures\\TeamColor\\TeamColor00.blp', 'ReplaceableTextures\\TeamGlow\\TeamGlow00.blp'];
+const teamIndex = String(team).padStart(2, '0');
+const TEAM_TEXTURES = [`ReplaceableTextures\\TeamColor\\TeamColor${teamIndex}.blp`, `ReplaceableTextures\\TeamGlow\\TeamGlow${teamIndex}.blp`];
 
 /** Fades the bust out at its bottom and sides, where the crop cuts through the fighter. */
 const BUST_FADE = 'min(min(1, (1 - j / h) / 0.3), min(i / (w * 0.1), (w - i) / (w * 0.1)))';
@@ -155,7 +163,7 @@ for (const character of RENDERED_FIGHTERS) {
     const model = await modelFor(character, name);
     const images = [...(await Bun.file(model).text()).matchAll(/Image "([^"]+)"/g)].map((match) => match[1]!);
     for (const texture of [...images, ...TEAM_TEXTURES]) if (!texture.toLowerCase().startsWith('war3mapimported')) extractTexture(texture);
-    await Bun.write(logFile, run(['blender', '--background', '--threads', '4', '--python-exit-code', '1', '--python', join(project, 'tools/selection/render-fighter.py'), '--', model, resources, raw, addon]));
+    await Bun.write(logFile, run(['blender', '--background', '--threads', '4', '--python-exit-code', '1', '--python', join(project, 'tools/selection/render-fighter.py'), '--', model, resources, raw, addon, String(team)]));
   }
   const log = await Bun.file(logFile).text();
   const pose = log.match(/RENDER_POSE (.*)/)?.[1];
@@ -190,4 +198,20 @@ for (const character of RENDERED_FIGHTERS) {
   const stock = join(output, `FighterStock${name}.tga`);
   run(['magick', raw, '-crop', `${head64}x${head64}+${stockLeft}+${stockTop}`, '+repage', '-resize', `${STOCK_ICON_PX}x${STOCK_ICON_PX}`, ...fadeAlpha(STOCK_FADE), '-depth', '8', '-compress', 'none', stock]);
   console.log(`${name}: ${pose ?? '?'}; head ${head ? `${head[1]},${head[2]}` : 'none'}; ${card}, ${tile}, ${bust}, ${stock}`);
+}
+
+if (check !== undefined) {
+  let failed = 0;
+  for (const character of RENDERED_FIGHTERS) {
+    const name = fighterRenderName(character);
+    if (only !== undefined && !only.includes(name)) continue;
+    const result = teamColourPixels(readRgba(join(work, `${name}.png`)), readRgba(join(check, `${name}.png`)));
+    const found = Object.entries(result.found).map(([color, count]) => `${color} ${count}`).join(', ');
+    // A model without a team-colour texture shows none; one with it must show some, or the check saw nothing.
+    const teamColoured = /ReplaceableId 1\b/.test(await Bun.file(join(work, `${name}.mdl`)).text());
+    const samePose = result.silhouetteMismatch <= result.silhouette / 100;
+    if (found !== '' || (teamColoured && result.masked === 0) || !samePose) failed++;
+    console.log(`${name}: ${result.masked} team-colour pixels, player colours: ${found === '' ? 'none' : found}${samePose ? '' : `; the renders differ in ${result.silhouetteMismatch} silhouette pixels`}`);
+  }
+  if (failed > 0) throw new Error(`${failed} renders show a player colour`);
 }

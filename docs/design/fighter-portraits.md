@@ -40,7 +40,12 @@ renders every fighter in `RENDERED_FIGHTERS`
 (smashcraft:ts/src/game/sim/heroes/registry.ts) with
 smashcraft:tools/selection/render-fighter.py in Blender. Every fighter gets the
 same three-quarter camera, lights and background, framed to its silhouette at
-its first `Stand Ready` frame. Heroes come from the game's storage, and the
+its first `Stand Ready` frame. Fighters render in Warcraft's Coal team colour
+(`NEUTRAL_TEAM_COLOR`, a dark grey no slot uses), so the grid shows no
+player's colour. `--check RED_WORK` compares each render with the same fighter
+rendered with `--team 0`: where the red render reads as Red and the team-colour
+layer draws most of the pixel, the neutral render must show no player colour's
+hue. Heroes come from the game's storage, and the
 original fighters from their generated models. The renders are proprietary
 derived art: they go to `ASSETS/fighter-renders/` outside the repository, and
 the map build imports them from there. A fighter missing from
@@ -62,3 +67,13 @@ colour ramps continuously white → yellow → orange → red → dark red from 
 the plate: up to five, then one icon and the count. The mana bar fills the
 track under the percent. smashcraft:ts/src/game/ui/plateLayout.ts holds every
 box in plate pixels.
+
+## Slot colours
+
+A fighter's model shows its slot's Warcraft player colour in a match
+(`BlzSetSpecialEffectColorByPlayer` with `Player(slot)`): red, blue, teal and
+purple for slots 1 to 4. smashcraft:ts/src/game/ui/slotColors.ts holds those
+colours, and smashcraft:tools/selection/build-art.ts paints each slot's chip,
+selection card and HUD plate band from them. The portraits themselves are
+neutral, so a fighter's colour appears only on its own slot's card and plate,
+the same on every client.

@@ -4,7 +4,8 @@ Blender's only scripting interface is Python; tools/selection/render-fighters.ts
 drives this script once per fighter, so every fighter gets the same camera
 direction, lights and framing.
 
-Usage: blender --background --python render-fighter.py -- MODEL RESOURCES OUTPUT.png ADDON
+Usage: blender --background --python render-fighter.py -- MODEL RESOURCES OUTPUT.png ADDON TEAM
+TEAM is the Warcraft team colour index the model's team-colour layers show.
 Prints RENDER_HEAD x y (pixels from the top left) when the model has a head bone.
 """
 import math
@@ -16,7 +17,7 @@ import bpy
 from bpy_extras.object_utils import world_to_camera_view
 from mathutils import Matrix, Vector
 
-model, resources, output, addon = sys.argv[sys.argv.index("--") + 1:]
+model, resources, output, addon, team = sys.argv[sys.argv.index("--") + 1:]
 sys.path.insert(0, addon)
 addon_utils.enable("export_mdl", default_set=True)
 prefs = bpy.context.preferences.addons["export_mdl"].preferences
@@ -30,7 +31,7 @@ POSES = ("Stand Ready", "Stand Victory", "Stand")
 
 bpy.ops.object.select_all(action="SELECT")
 bpy.ops.object.delete(use_global=False)
-getattr(bpy.ops, "import").mdl_exporter(filepath=model, setTeamColor="0")
+getattr(bpy.ops, "import").mdl_exporter(filepath=model, setTeamColor=team)
 scene = bpy.context.scene
 rig = next(obj for obj in scene.objects if obj.type == "ARMATURE")
 

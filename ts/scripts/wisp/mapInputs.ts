@@ -48,7 +48,7 @@ export const decodeBuildOptions = (args: readonly string[]) => {
 
 const SELECTION_TEXTURES = [
   "SelectionBackdrop",
-  "SelectionTileFrame", "SelectionCardRed", "SelectionCardBlue", "SelectionCardYellow", "SelectionCardGreen",
+  "SelectionTileFrame", "SelectionCardRed", "SelectionCardBlue", "SelectionCardTeal", "SelectionCardPurple",
   "SelectionCardGray", "SelectionAction", "StageBackdrop", "StageChip", "SelectionSkyDeck", "SelectionThreeBridges", "SelectionFrozenThrone", "SelectionNordrassil", "SelectionGryphon", "SelectionDurotar", "SelectionNaxxramas", "SelectionHellfire", "SelectionBlackrock", "SelectionAhnQiraj",
   "SelectionChipP1", "SelectionChipP2", "SelectionChipP3", "SelectionChipP4", "SelectionChipCPU",
   "HudPlate0", "HudPlate1", "HudPlate2", "HudPlate3",
