@@ -15,8 +15,13 @@ test("comparison preflight requires the consumer's View export without changing 
     const steps = comparisonSteps(`${actions}${exportHold}`);
     expect(steps.slice(0, 3)).toEqual(parsePadScript(actions));
   }
-  for (const name of ["archer", "illidan", "rifleman"]) {
-    const script = readFileSync(join(import.meta.dir, "native", "pads", "156", `${name}.pad`), "utf8");
+  const pads = join(import.meta.dir, "native", "pads");
+  const scripts = [
+    ...["archer", "illidan", "rifleman"].map((name) => join(pads, "156", `${name}.pad`)),
+    ...readdirSync(join(pads, "163")).filter((name) => name.endsWith(".pad")).map((name) => join(pads, "163", name)),
+  ];
+  for (const path of scripts) {
+    const script = readFileSync(path, "utf8");
     const steps = comparisonSteps(script);
     expect(steps).toEqual(parsePadScript(script));
     expect(steps.at(-2)?.frame).toBeGreaterThan(Math.max(...steps.filter((step) => step.kind === "capture").map((step) => step.frame)));
