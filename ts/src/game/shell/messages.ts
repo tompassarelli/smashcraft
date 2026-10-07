@@ -110,7 +110,7 @@ export function matchHelp(game: Readonly<MatchState>, paused: boolean, start: St
   }
   if (!playing) return rematchStatus(game, start);
   if (paused) return `PAUSED — Press ${start} to resume. Combat is frozen.${game.practice || game.endless || game.training ? "\nEscape: back to fighter selection." : ""}`;
-  return `${start}: pause. Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\nHold Shield on the ground, then tap Left/Right to roll or Down to dodge.`;
+  return `${start}: pause. Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\nShield + neutral/side Special: EX, 25 extra mana. Shield then Left/Right: roll; Down: dodge.`;
 }
 
 /** Shown to the player who saved the last seconds of play for a bug report. */

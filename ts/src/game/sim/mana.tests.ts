@@ -30,17 +30,17 @@ function trickle(f: Fighter, frames: number): void {
   for (let frame = 0; frame < frames; frame++) regenerateMana(f);
 }
 
-test("mana trickles a point every 15 frames on the ground and every 40 in the air, with no wait after a spend", () => {
+test("mana trickles one point per second on the ground and in the air, with no wait after a spend", () => {
   const f = createFighter(Character.archer, 0.0, 1);
   f.motion.grounded = true;
   f.mana.points = 60;
   spendMana(f, 10);
-  trickle(f, 14);
+  trickle(f, 59);
   assertEquals(f.mana.points, 50);
   trickle(f, 1);
   assertEquals(f.mana.points, 51);
   f.motion.grounded = false;
-  trickle(f, 39);
+  trickle(f, 59);
   assertEquals(f.mana.points, 51);
   trickle(f, 1);
   assertEquals(f.mana.points, 52);

@@ -37,6 +37,7 @@ import { CHILL } from "./chill";
 import { fighterHurtParts } from "./hurtboxes";
 import { type AppliedStatus, applyHeroStatus, damageEndsHeroStatus } from "./heroStatus";
 import { contactEarnsMana, dealtManaGain, gainMana, takenManaGain } from "./mana";
+import { EX_ARMOR_DAMAGE, exArmorActive } from "./exSpecials";
 import { PassiveProc, devotionBlocked, devotionLaunchScale, frostArmorStruck, sourcePassiveContact, vampiricHeal, BASH_HITSTUN_FRAMES } from "./passives";
 import { UTHER_DAMAGE_MULTIPLIER, utherHammerContact } from "./heroes/utherHammer";
 
@@ -325,6 +326,10 @@ function resolveDamageContacts(world: Roster, slot: number): void {
   }
   const chosenIndex = winner ?? flinch;
   if (chosenIndex === undefined) return;
+  if (exArmorActive(target) && contactAt(chosenIndex).kind !== ContactKind.throw) {
+    target.special.exArmorUsed = true;
+    if (armorDamage <= EX_ARMOR_DAMAGE) return;
+  }
   // Hero armor takes one hit's reaction up to its limit; its damage stays applied. Throws ignore it.
   if (status.armorFrames > 0 && contactAt(chosenIndex).kind !== ContactKind.throw) {
     status.armorFrames = 0;

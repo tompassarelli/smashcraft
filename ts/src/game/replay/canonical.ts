@@ -626,6 +626,8 @@ export function writeObservations(writer: ObservationWriter, opponents: Slots<Re
     writer.number(f.attack.serial);
     writer.number(f.attack.cooldown);
     writer.number(f.special.action);
+    if (f.special.ex) writer.number(197);
+    if (f.special.exArmorUsed) writer.number(198);
     writer.number(f.special.frame);
     writer.number(f.special.duration);
     writer.number(f.special.lockFrames);
@@ -848,6 +850,8 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   if (ps.lastKey !== -1) int("passiveLastKey", ps.lastKey);
   if (ps.lastTarget !== -1) int("passiveLastTarget", ps.lastTarget);
   int("specialAction", sp.action);
+  if (sp.ex) bool("specialEx", true);
+  if (sp.exArmorUsed) bool("specialExArmorUsed", true);
   int("specialFrame", sp.frame);
   int("specialDuration", sp.duration);
   int("specialLockFrames", sp.lockFrames);

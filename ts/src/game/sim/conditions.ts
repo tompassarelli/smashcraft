@@ -91,7 +91,7 @@ export function isIntangible(f: Fighter): boolean {
     || (dodge.airDodging && dodge.airFrame >= AIR_DODGE_INTANGIBLE_START && dodge.airFrame <= AIR_DODGE_INTANGIBLE_END);
 }
 
-function canStartAttack(attacker: Fighter): boolean {
+export function canStartAttack(attacker: Fighter): boolean {
   if (inSurfaceTechStartup(attacker)) return false;
   const { grab, shield } = attacker;
   if (grab.target !== undefined || grab.action !== GrabAction.none) return false;

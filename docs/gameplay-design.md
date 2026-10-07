@@ -558,8 +558,86 @@ The specification answers these design questions for the expansion:
 | --- | --- |
 | Physical differences | Use each hero's relative weight, run and air-speed table as initial tuning. The complete candidate table spans weight 0.85–1.28, run 0.80–1.14 and air 0.75–1.22 (of 1.00 Melee units a frame since #190). Jump velocity and gravity initially inherit the reference. |
 | Archetypes | State each fighter's purpose and exploitable weakness before building its moves. |
-| Meter | 100 mana, full on spawn; ground regeneration at 6/second after 120 frames without spending, while actionable. Specials use their listed costs; normals and grabs are free. Every up special has a weaker free recovery. |
-| Cooldowns | Only optional ultimates use cooldowns; ultimates are off in competitive play. |
+| Meter | 100 mana, full on spawn; normal/throw hits earn 1 per whole percent (12 cap), hits taken earn 1 per 2 whole percent (6 cap), and a perfect shield/parry earns 8. Passive gain is 1/second while eligible. Specials pay their listed costs; normals/grabs are free; up specials retain free recovery. |
+| EX specials | Shield + neutral or side Special spends the normal cost plus 25 mana for one-hit startup armor. See the EX table below. There are no ultimates. Existing per-move cooldowns remain part of each kit. |
+
+### Build-and-spend mana and EX specials
+
+Mana rewards getting into exchanges. A normal or throw earns one point per
+whole percent dealt to the body, capped at 12 per contact. Any non-pummel
+body hit gives its victim one point per two whole percent actually taken,
+capped at 6. A perfect shield or reflected projectile gives eight points
+once per parry window. Ordinary shield contacts and pummels earn nothing;
+specials do not earn their caster mana. Every gain caps at 100. Stock loss
+and rematch restore 100 and clear the spending and armor state.
+
+The passive floor is one point every 60 eligible frames on both ground and
+air. It stops during shields, shieldstun, grabs, hitstun, freeze, sleep,
+stun and special casts. Its integer remainder advances by 2/120 per frame.
+There is no spending delay. Offense builds the budget faster than waiting;
+recovery remains available through the existing free up-special forms.
+
+Hold either Shield and press neutral or side Special to request EX, on the
+same frame as an ordinary special. The chord takes priority over a shield,
+roll or air dodge, and can leave an actionable shield. It cannot cancel
+hitstun, shieldstun, release lag, attacks or other action locks. Up/down
+specials and follow-up inputs retain their ordinary behavior. If the chosen
+form's cost plus 25 is unaffordable, the same press starts its ordinary
+version and pays its ordinary cost; if that is also unaffordable, the
+existing refusal applies. Recalls and alternate forms pay their own cost
+plus 25. The HUD shows **EX N**, **EX S**, or **EX N + S** beside the bar
+when that ground/air cast can be paid. The match help names the chord.
+
+Every EX neutral/side has one upgrade: one hit of at most 8% can deal its
+damage and hitlag without interrupting the first six action frames. The
+armor is consumed by that hit. A larger hit, a throw, a second hit or a hit
+after frame six interrupts normally. Existing authored armor is independent.
+Startup, contact windows, damage, launch, projectile limits, cooldowns,
+landing lag and recovery keep their ordinary values. Thus spacing, grabs
+and delayed attacks still punish the commitment; no move gains a cinematic
+pause or an invulnerable reversal. The shared upgrade makes the extra cost
+readable while the existing kits supply the different rewards and risks.
+
+Ground entry costs below include the extra 25; air, recall and marked
+forms use their authored normal cost plus 25. The shared rule applies to
+every newly registered fighter too.
+
+| Fighter | EX neutral (mana) | EX side (mana) | Upgrade on both |
+|---|---|---|---|
+| Archer | Swift Arrow (28) | Homing Arrow (37) | One 8% hit armored on frames 1–6 |
+| Rifleman | Blaster (28) | Bear (50) | One 8% hit armored on frames 1–6 |
+| Illidan | Mana Burn (35) | Fel Rush (37) | One 8% hit armored on frames 1–6 |
+| Blademaster | Wind Cutter (25) | Wind Walk (43) | One 8% hit armored on frames 1–6 |
+| Mountain King | Storm Bolt (33) | Storm Rush (43) | One 8% hit armored on frames 1–6 |
+| Warden | Shadow Strike (30) | Shadow Pursuit (40) | One 8% hit armored on frames 1–6 |
+| Lich | Frost Nova (35) | Death and Decay (50) | One 8% hit armored on frames 1–6 |
+| Uther | Hammer of Justice (35) | Holy Radiance (75) | One 8% hit armored on frames 1–6 |
+| Dreadlord | Carrion Swarm (30) | Vampiric Pounce (45) | One 8% hit armored on frames 1–6 |
+| Shadow Hunter | Spirit Glaive (25) | Serpent Ward (45) | One 8% hit armored on frames 1–6 |
+| Pit Lord | Howl of Terror (37) | Ruin Charge (47) | One 8% hit armored on frames 1–6 |
+| Beastmaster | Wild Axes (25) | Summon Bear (45) | One 8% hit armored on frames 1–6 |
+| Lich King | Howling Blast (40) | Val'kyr Shadowguard (45) | One 8% hit armored on frames 1–6 |
+| Thrall | Chain Lightning (35) | Feral Spirit (43) | One 8% hit armored on frames 1–6 |
+| Jaina Proudmoore | Frostbolt (31) | Blizzard (43) | One 8% hit armored on frames 1–6 |
+| Sylvanas Windrunner | Black Arrow (33) | Silence (45) | One 8% hit armored on frames 1–6 |
+| Cairne Bloodhoof | Shockwave (40) | War Stomp (45) | One 8% hit armored on frames 1–6 |
+
+Prior art informs the decision, not these original numbers:
+[Capcom's EX manual](https://game.capcom.com/manual/sfv/en-us/page.html?cat=2&subcat=2)
+establishes spending a gauge on a stronger ordinary special;
+[Capcom's EX Pac-Dash](https://game.capcom.com/manual/sfxtk/en-UK/page-44.html)
+is an explicit example of a one-hit armored EX. Street Fighter 6's Drive
+keeps the budget shared between offensive and defensive choices; Smashcraft
+uses its existing mana instead of adding another gauge.
+[Rivals' roster](https://rivalsofaether.com/characters/) shows different
+special decisions built from elemental setups, while its
+[Shovel Knight update](https://rivalsofaether.com/patch-1-4-0-for-shovelry/)
+illustrates authored armor windows rather than universal invulnerability.
+[Guilty Gear's official guide](https://www.arcsystemworks.jp/guiltygear/img/playguide-en.pdf)
+rewards Instant Block with extra Tension; that supports paying precise
+defense here. The rejected alternative was one-button ultimates with passive
+refill: saving for a single large event would replace the exchange-by-exchange
+choice between an ordinary special and an armored commitment.
 | Disjoints | Weapon extensions only; attached body parts keep hurtboxes. |
 | Throw escape | Mashing; retain the existing escape system and use the brief's fallback only where none exists. |
 | Simultaneous grabs | Both break, with symmetric separation and 12 frames of recovery. |
@@ -938,7 +1016,7 @@ The descriptive basis is [fighting-game language](design/fighting-games.md),
 | Tech chases and platforms | Preserve current floor-tech and tech-roll timing on the surface actually contacted; pass-through platforms catch from above and do not become walls or ceilings. Extensions can require reads; only call a response reaction-based when its visible cue meets #69's budget. | Gives platforms a real escape/landing role and supports the short-combo, chained-read direction without promising a guaranteed human reaction chase. |
 | Launchers and recovery routes | Each fighter has at least one deliberate launcher into a juggle, tech chase or ledge situation and at least two meaningfully different recovery choices through path, drift, ledge/stage destination or timing. A second recovery special is not required. | Makes follow-up reads and offstage counterplay part of each kit; the roster already requires a weaker free recovery. |
 | Physical spread and dash dancing | Keep existing per-fighter gravity, fall/air/run speed and weight; the authored dash window and stick tolerance follow [Dash dancing](#dash-dancing). Expansion fighters use the adopted relative-property table as starting tuning, with reference jump velocity/gravity until deliberately authored otherwise. | No forced common weight/speed profile and no heavy-must-be-slow rule; each strength needs its stated cost. |
-| Rage, meter and cooldowns | No percent-dependent rage bonus. Expansion mana and free recovery use the adopted roster contract; no new common meter or cooldown on ordinary specials. Optional ultimate cooldowns stay off in competitive play. | Predictable knockback and explicit resources, consistent with the removed stale/freshness layer and adopted expansion defaults. |
+| Rage, meter and cooldowns | No percent-dependent rage bonus. Build-and-spend mana, EX neutral/side specials and free recovery use the adopted roster contract. There are no ultimates or new common cooldowns. | Predictable knockback and explicit resources, consistent with the removed stale/freshness layer and adopted expansion defaults. |
 | Interaction-graph requirements | Use the existing contextual option-count, reachable-punish and reward/risk model above, plus #83's accepted combo targets. Keep distinct defensive answers in ordinary neutral; do not impose one payoff ratio or option count on every forced state. | A locked interval can be honest, while an ordinary neutral option needs a reachable counter. The measured sample is not a guarantee about every matchup. |
 
 ## Stage defaults

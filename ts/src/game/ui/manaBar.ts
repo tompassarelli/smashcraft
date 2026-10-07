@@ -7,7 +7,7 @@ import { f32 } from "wisp/src/sim/f32";
 import {
   MANA_BAR_SEGMENTS, type ManaFeedback, advanceManaFeedback, manaFeedback, manaFill, manaDrainLit, manaFlashLit, manaGlowLit,
 } from "../presentation/manaBar";
-import { createBackdrop } from "./frames";
+import { createBackdrop, createText } from "./frames";
 
 const LINE_WIDTH = f32(0.0006);
 const DARK = "UI\\Widgets\\ToolTips\\Human\\human-tooltip-background.blp";
@@ -24,6 +24,8 @@ export class ManaBar {
   private readonly lines: readonly framehandle[];
   private readonly flash: framehandle;
   private readonly drain: framehandle;
+  private readonly exLabel: framehandle;
+  private shownEx = "";
   private readonly feedback: ManaFeedback = manaFeedback();
   private width = -1.0;
   private left = -1.0;
@@ -45,6 +47,10 @@ export class ManaBar {
     this.lines = lines;
     this.flash = createBackdrop(`ManaBarFlash${suffix}`, parent, context + 2 + MANA_BAR_SEGMENTS);
     this.drain = createBackdrop(`ManaBarDrain${suffix}`, parent, context + 3 + MANA_BAR_SEGMENTS);
+    this.exLabel = createText(`ManaBarEx${suffix}`, parent, context + 4 + MANA_BAR_SEGMENTS);
+    BlzFrameSetPoint(this.exLabel, FRAMEPOINT_BOTTOMRIGHT, this.back, FRAMEPOINT_TOPRIGHT, 0.0, 0.0);
+    BlzFrameSetTextAlignment(this.exLabel, TEXT_JUSTIFY_BOTTOM, TEXT_JUSTIFY_RIGHT);
+    BlzFrameSetScale(this.exLabel, f32(0.6));
     BlzFrameSetTexture(this.back, DARK, 0, true);
     BlzFrameSetTexture(this.fill, FILL, 0, true);
     BlzFrameSetTexture(this.glow, GLOW, 0, true);
@@ -67,7 +73,7 @@ export class ManaBar {
   }
 
   private frames(): framehandle[] {
-    return [this.back, this.fill, this.glow, ...this.lines, this.flash, this.drain];
+    return [this.back, this.fill, this.glow, ...this.lines, this.flash, this.drain, this.exLabel];
   }
 
   /**
@@ -93,8 +99,14 @@ export class ManaBar {
   }
 
   /** One rendered update: `points` is the fighter's mana, `denials` its refusal count and `drains` how often hits drained it. */
-  update(shown: boolean, points: number, denials: number, drains: number): void {
+  update(shown: boolean, points: number, denials: number, drains: number, exCue = ""): void {
     advanceManaFeedback(this.feedback, points, denials, drains);
+    const ex = shown ? exCue : "";
+    if (ex !== this.shownEx) {
+      this.shownEx = ex;
+      BlzFrameSetText(this.exLabel, `|cffffdd55${ex}|r`);
+      BlzFrameSetVisible(this.exLabel, ex !== "");
+    }
     if (shown !== this.visible) {
       this.visible = shown;
       for (const frame of [this.back, this.fill, ...this.lines]) BlzFrameSetVisible(frame, shown);
