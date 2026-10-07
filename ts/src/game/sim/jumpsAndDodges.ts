@@ -4,6 +4,7 @@ import { Character, DownState, LedgeState, PlatformMove, ShieldBreak, SurfaceCon
 import { inGrabContext, inSurfaceTechStartup, isGroundDodging, isTumbling } from "./conditions";
 import type { Fighter } from "./fighter";
 import { clearDash } from "./groundMovement";
+import { jumpBuffed } from "./itemBuffs";
 import { DIAGONAL_UNIT } from "./knockback";
 import { observeActionDecision, observeActionStart } from "./observations";
 import { clearDownState } from "./transitions";
@@ -50,7 +51,7 @@ export function beginJump(f: Fighter, horizontal: number): void {
   } else {
     // Illidan keeps horizontal momentum on his aerial jump.
     if (f.character !== Character.demonHunter) motion.vx = f32(horizontal * f.tuning.physics.aerialJumpHorizontalSpeed);
-    motion.vz = f.tuning.physics.aerialJumpSpeed;
+    motion.vz = jumpBuffed(f, f.tuning.physics.aerialJumpSpeed);
     jump.serial++;
     jump.isDouble = true;
     clearDownState(f);

@@ -22,7 +22,7 @@ const NORMALS = [
   [AttackStyle.dashAttack, 9, 4, 22, 0],
   [AttackStyle.forwardSmash, 17, 3, 32, 0],
   [AttackStyle.upSmash, 15, 4, 30, 0],
-  [AttackStyle.downSmash, 14, 6, 31, 0],
+  [AttackStyle.downSmash, 14, 6, 19, 0],
   [AttackStyle.neutralAir, 7, 9, 17, 12],
   [AttackStyle.forwardAir, 10, 3, 22, 14],
   [AttackStyle.backAir, 8, 3, 23, 13],
@@ -37,7 +37,7 @@ function fighter(facing = 1): Fighter {
   return owner;
 }
 
-test("Bladestorm stops approach drift while startup keeps ordinary gravity", () => {
+test("Sword Plunge stops approach drift while startup keeps ordinary gravity", () => {
   for (const facing of [-1, 1]) {
     const owner = fighter(facing);
     owner.motion.grounded = false;

@@ -26,7 +26,8 @@ export const LICH_KING_CLIPS: HeroClipTable = {
   // Forward tilt is one overhead sweep at every angle.
   forwardTilt: clip("Forward Tilt"), forwardTiltUp: clip("Forward Tilt"), forwardTiltDown: clip("Forward Tilt"),
   upTilt: clip("Up Tilt"), downTilt: clip("Down Tilt"), dashAttack: clip("Dash Attack"),
-  forwardSmash: clip("Forward Smash"), upSmash: clip("Up Smash"), downSmash: clip("Down Smash"),
+  forwardSmash: clip("Forward Smash"), upSmash: clip("Up Smash"),
+  downSmash: { ...clip("Down Smash"), seconds: f32(50.0 / 60.0) },
   neutralAir: clip("Aerial Neutral"), forwardAir: clip("Aerial Forward"), backAir: clip("Aerial Back"),
   upAir: clip("Aerial Up"), downAir: clip("Aerial Down"), getUpAttack: clip("Get Up Attack"),
   ledgeHang: clip("Ledge Hang"), ledgeClimb: clip("Ledge Climb"), ledgeRoll: clip("Ledge Roll"), ledgeAttack: clip("Ledge Attack"),

@@ -1,3 +1,4 @@
+import { downSmashHit } from "../downMoveValues";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction, HitElement } from "../codes";
 import { type AuthoredMove, type AuthoredThrow, type FighterMoves, type MoveRegion, type StrikeCapsule, HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion } from "../heroMoves";
@@ -85,10 +86,10 @@ function lowSweep(firstFrame: number, facing: number): readonly MoveRegion[] {
     capsule(f32(18.0 * facing), 14.0, f32(f32(L - BLADE_RADIUS) * facing), 14.0),
     capsule(f32(18.0 * facing), 8.0, f32(f32(L - BLADE_RADIUS) * facing), 8.0),
     capsule(f32(18.0 * facing), 2.0, f32(f32(L - BLADE_RADIUS) * facing), 2.0),
-  ], hit(13.370000839233398, "EDGE", 25, facing));
+  ], downSmashHit(hit(13.370000839233398, "EDGE", 25, facing)));
 }
 
-// Bladestorm (down air, #152): the longest drill. Six spinning hits that
+// Sword Plunge (down air, #152): the longest drill. Six descending cuts that
 // pull a target toward the blade while he hangs in the air, then plunge;
 // landing during them spins out a landing hit that pops the target up for a
 // follow-up. Airborne targets are lifted against their gravity, grounded ones
@@ -165,7 +166,7 @@ export const BLADEMASTER_MOVES: FighterMoves = {
       capsule(0.0, 38.0, 0.0, f32(L - BLADE_RADIUS)),
       capsule(-8.0, 38.0, -12.0, f32(L - BLADE_RADIUS)),
     ], hit(15.280000686645508, "KILL", 90))),
-    [AttackStyle.downSmash]: heroMove(14, 6, 31, 0, [...lowSweep(14, 1.0), ...lowSweep(17, -1.0)]),
+    [AttackStyle.downSmash]: heroMove(14, 6, 19, 0, [...lowSweep(14, 1.0), ...lowSweep(17, -1.0)]),
     // Blade Wheel (#152): two turns of the sword, after Falcon's and Marth's
     // n-airs. The wide first turn pulls toward him at any percent; the tighter
     // second launches, so smash DI away from the first can clear it.

@@ -45,17 +45,17 @@ describes the three phases. Landing figures are the automatic final lag.
 | Jab, jab 2 | Hammer butt then short hook; close escape, not a ranged poke | 5/2/14; 7/3/18 | 4; 45°, then 6; 40° | — |
 | Forward tilt, angled up/down | Waist-height hammer hook; aim over or under a shield | 10/3/21 | 10; 35°/55°/20° | — |
 | Up tilt | Lift hammer over the rider; starts a juggle | 8/4/20 | 8; 85° | — |
-| Down tilt | Low hammer sweep; tech-chase starter | 8/3/19 | 7; 70° | — |
+| Down tilt | Wolf's low paw swipe; tech-chase starter | 8/3/19 | 7; 70° | — |
 | Dash attack | Wolf shoulder with rider braced; exposed body travels 65 units | 11/4/25 | 10; 55° | — |
-| Forward smash | Planted overhead Doomhammer; longest punish | 20/3/34 | 18; 40° | — |
+| Forward smash | Planted Doomhammer hook; strongest close punish | 20/3/34 | 18; 40° | — |
 | Up smash | Hammer crown sweep; catches a landing | 17/4/29 | 15; 85° | — |
-| Down smash | Sweep front then back; covers a roll with commitment | 16/6/30 | 13; 25° outward | — |
+| Down smash | Wolf swipes front then back; covers a roll with commitment | 16/6/30 | 13; 25° outward | — |
 | Neutral air | Compact hammer/body turn; stops a close approach | 8/5/20 | 8; 50° | 14 |
 | Forward air | Hammer across the front; spacing and edge guard | 13/3/25 | 12; 45° | 18 |
 | Back air | Reverse hammer hook; heavier rear finisher | 11/3/25 | 13; 35° backward | 17 |
 | Up air | Hammer held high; follows up tilt or up throw | 8/4/20 | 9; 85° | 13 |
-| Down air | Hammer drops under the wolf; meteor only in air | 14/4/28 | 13; down, grounded 55° | 20 |
-| Grab / pummel | Reach from saddle and one hammer-butt check | 8/2/24 | 0 / 2 | — |
+| Down air | Wolf's forward paw presses down; meteor only in air | 14/4/28 | 13; down, grounded 55° | 20 |
+| Grab / pummel | Reach from saddle and one hammer-butt check | 8/2/24 | 0 / shared 3 | — |
 | Forward throw | Shove into hammer | contact14/end34 | 8; 35° | — |
 | Back throw | Turn and toss over the saddle | contact18/end40 | 10; 40° backward | — |
 | Up throw | Lift with lightning spark | contact15/end28 | 7; 90° | — |
@@ -65,9 +65,22 @@ The throws use Dedede's four directional roles as the Smash reference and
 Thrall's gladiator training as the Warcraft reference. Up throw starts a
 juggle; down throw starts a tech chase. Neither promises a guaranteed chain.
 The shared grab escape, throw immunity and hitstun inputs remain active.
+The single shared pummel deals 3 damage at frame 60 and ends at frame 68.
 Get-up and ledge attacks use the same hammer sweep vocabulary and shared
 action rules. Only weapon reach is disjoint; shoulder and limb attacks expose
 matching hurt volumes. Smashes charge up to 45 frames for at most 1.25× damage.
+
+The mounted classic model keeps Doomhammer near the rider: measured hammer
+centres at contact are approximately (41,132) for the forward tilt, (39,133)
+for forward smash, (-2,189) for up tilt, (47,128) for forward air and
+(-40,127) for back air, in world units at stock scale. Head radii are 22–25.
+Grounded low attacks and down air use the wolf's visible paw, spanning x52–96
+at z20–34 with radius 20–24, rather than claiming the rider's hammer touches
+the floor. Their Warcraft source is Feral Spirit and their Smash reference
+is [Duck Hunt's animal strikes](https://www.ssbwiki.com/Duck_Hunt_(SSBU)#Moveset).
+Earthquake's low region is a spell pulse cast from the saddle. The wolf's
+body and attacking paws have exposed hurt volumes. This makes the hammer
+shorter than the initial design and the low paw his longer grounded poke.
 
 ## Specials, passive and ultimate
 
@@ -76,7 +89,7 @@ matching hurt volumes. Smashes charge up to 45 frames for at most 1.25× damage.
 | Neutral: Chain Lightning | [Far Seer](https://liquipedia.net/warcraft/Far_Seer) / [Pikachu's Thunder Jolt](https://www.ssbwiki.com/Thunder_Jolt) | A forward electrical cast travels from the hammer at frame14, 8 damage, 40° launch, end38, cost10. Reflect or jump the chest-height bolt; it is a spacing tool rather than a stun lock. Air landing lag18. |
 | Side: Feral Spirit | [Far Seer](https://liquipedia.net/warcraft/Far_Seer) / [Duck Hunt's dog](https://www.ssbwiki.com/Duck_Hunt_(SSBU)) | Two spectral wolves leave at frames16 and24, run low for 28 frames, each 4 damage/55°, cost18, end44, cooldown90. The second wolf makes a delayed jump or shield decision; each can hit only once. Air wolves descend and air landing lag20 applies. |
 | Up: Far Sight | [Far Seer](https://liquipedia.net/warcraft/Far_Seer) / [Duck Jump](https://www.ssbwiki.com/Duck_Jump) | Spirit sight points a safe way upward: after8 frames, rise2H with up to0.45H steering over24 frames, end40, cost12, no hitbox or armor. At low mana rise1.4H free. Uses the aerial jump and ends helpless; the broad body can be intercepted. This movement is an original adaptation of a vision spell. |
-| Down: Earthquake | [Far Seer](https://liquipedia.net/warcraft/Far_Seer) / [Donkey Kong's Hand Slap](https://www.ssbwiki.com/Hand_Slap) | Hammer hits low on both sides at frames18–21, 11 damage/75°, end50, cost20, cooldown90. Ground only, 135-unit reach; jump clears it. No extra shield damage, armor or repeating hold. |
+| Down: Earthquake | [Far Seer](https://liquipedia.net/warcraft/Far_Seer) / [Donkey Kong's Hand Slap](https://www.ssbwiki.com/Hand_Slap) | A low spell pulse hits both sides at frames18–21, 11 damage/75°, end50, cost20, cooldown90. Ground only, 135-unit reach; jump clears it. No extra shield damage, armor or repeating hold. |
 | Passive: Windfury | [Doomhammer](https://wowpedia.fandom.com/wiki/Doomhammer) / [Dedede's hammer](https://www.ssbwiki.com/King_Dedede_(SSBU)) | Two direct hammer contacts within180 frames prepare the third: +50% damage, capped at6. A shield spends the prepared bonus. The shared deterministic critical-hit counter supplies this mechanic; no random roll or action lock. |
 | Ultimate: Elemental Fury | [Far Seer's Earthquake](https://liquipedia.net/warcraft/Far_Seer) / [Pikachu's Volt Tackle](https://www.ssbwiki.com/Volt_Tackle) | Designed ultimate, matching today's hero template: a storm-assisted Earthquake that sends a broad final lightning wave. The current roster stores ultimate names/descriptions; its activation system is not yet implemented. |
 
@@ -90,6 +103,8 @@ listed in the gameplan and counted by the existing eight-seed coverage.
 Use the classic base-game `units\\orc\\Thrall\\Thrall.mdl`, its command icon,
 stock spirit wolves, Far Seer lightning and earthquake effects, and shared
 Warcraft impact sounds. Thrall remains on the wolf with Doomhammer attached.
+Far Sight has no stock target model, so its rising spirit cue uses the
+base-game Shaman's Purge glow around the body.
 Author deliberate preparation/contact/recovery poses, both facing directions,
 the shared recovery actions, paired grabs and nine pain poses. All extracted
 and authored Warcraft model data remains in the private build-input store.

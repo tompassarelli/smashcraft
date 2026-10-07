@@ -13,6 +13,8 @@ import {
   type ResultsView, clearMatchTally, confirmedFrameCues, createCueObservation, createMatchTally, createMenuCues, createMenuObservation,
   menuFrameCues, observeForCues,
 } from "../presentation/matchCues";
+import { mainDeckZ } from "../sim/stage";
+import { confirmedItemCues, createItemCueObservation, observeItemCues } from "../presentation/itemLook";
 import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
 import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { coverScreen, createBackdrop, createText, gameUi } from "../ui/frames";
@@ -38,11 +40,23 @@ function playFile(path: string, volume = 127): sound {
   return cue;
 }
 
+const createItemSounds = (): sound[] => [MatchCue.lastStock, MatchCue.go, MatchCue.confirm].map(cue => {
+    const path = cueSound(cue);
+    const sound = CreateSound(path, false, true, true, 10, 10, "DefaultEAXON");
+    SetSoundDuration(sound, GetSoundFileDuration(path));
+    SetSoundVolume(sound, 127);
+    SetSoundDistances(sound, 1500.0, 10000.0);
+    SetSoundDistanceCutoff(sound, 10000.0);
+    return sound;
+  });
+
 export class MatchPresentation {
   /** Confirmed state before the frame being presented, and the knockouts so far. */
+  itemObservation = createItemCueObservation();
   readonly observation = createCueObservation();
   readonly tally = createMatchTally();
   private readonly cues: MatchCue[] = [];
+  private itemSounds = createItemSounds();
   private readonly menu = createMenuObservation();
   private readonly menuCues = createMenuCues();
   // Hover differs by client; the handle is created by every client at shared startup.
@@ -140,17 +154,29 @@ export class MatchPresentation {
     this.hideResults();
     clearMatchTally(this.tally);
     observeForCues(this.observation, game, world);
+    this.itemSounds ??= createItemSounds();
+    observeItemCues(this.itemObservation ??= createItemCueObservation(), game.items, game.matchFrame);
     this.playMusic(stageMusic);
   }
 
   /** Captures the confirmed state a frame starts from. */
   observe(game: Readonly<MatchState>, world: Readonly<Roster>): void {
     observeForCues(this.observation, game, world);
+    this.itemSounds ??= createItemSounds();
+    observeItemCues(this.itemObservation ??= createItemCueObservation(), game.items, game.matchFrame);
   }
 
   /** Plays the cues of the confirmed frame that just ran, calling out the ones with words; returns them. */
   presentConfirmed(game: Readonly<MatchState>, world: Readonly<Roster>): readonly MatchCue[] {
     confirmedFrameCues(this.observation, game, world, this.tally, this.cues);
+    const itemCues = confirmedItemCues(this.itemObservation, game.items, game.matchFrame);
+    for (let index = 0; index < this.itemSounds.length; index++) {
+      if ((itemCues & (1 << index)) === 0) continue;
+      const sound = at(this.itemSounds, index);
+      StopSound(sound, false, false);
+      SetSoundPosition(sound, this.origin.x, this.origin.y, this.origin.z + mainDeckZ(game.stageChoice));
+      StartSound(sound);
+    }
     for (const cue of this.cues) {
       this.cue(cue);
       const text = cueText(cue);

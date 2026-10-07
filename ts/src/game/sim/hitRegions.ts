@@ -1,3 +1,4 @@
+import { downSmashHit } from "./downMoveValues";
 // Authored hit regions: provisional facing-relative reach envelopes for each
 // action, with the hit each one deals. Lower region indices win overlaps.
 // Window zero means no authored contact; increasing positive windows
@@ -37,6 +38,8 @@ export interface HitEffect {
    * smashcraft:docs/design/illidan.md); a shield stops it, and mana floors at 0.
    */
   manaDrain?: number | undefined;
+  /** Mana transferred from a body to the attacker, capped by what the target holds. */
+  manaSteal?: number | undefined;
   /** A link hit (#152): an airborne target struck directly also takes the attacker's own velocity, so it travels with the attacker to the next hit. */
   carry?: boolean | undefined;
 }
@@ -69,6 +72,7 @@ export function copyHitEffect(target: HitEffect, source: Readonly<HitEffect>): v
   target.electric = source.electric;
   target.element = source.element;
   target.manaDrain = source.manaDrain;
+  target.manaSteal = source.manaSteal;
   target.carry = source.carry;
 }
 
@@ -131,9 +135,9 @@ const DEMON_HUNTER_REGIONS: { readonly [style: number]: Readonly<HitRegion> } = 
 // launcher, Flames of Azzinoth's glaives then fire, and Eye Blast's beam.
 const FORWARD_AIR_LINK = draining(region(0.0, 175.0, -55.0, 115.0, 2.0, 10.0, 30.0, -0.258819043636322, 0.9659258127212524), 1);
 const FORWARD_AIR_LAUNCH = draining(region(0.0, 150.0, -40.0, 110.0, 3.0, 85.0, 18.0, 0.7660444378852844, 0.6427876353263855, 2), 4);
-const AZZINOTH_GLAIVES = draining(region(-190.0, 190.0, -60.0, 60.0, 14.0, 95.0, 22.0, 0.258819043636322, 0.9659258127212524), 8);
+const AZZINOTH_GLAIVES = { ...draining(region(-190.0, 190.0, -60.0, 60.0, 14.0, 95.0, 22.0, 0.258819043636322, 0.9659258127212524), 8), effect: downSmashHit(draining(region(-190.0, 190.0, -60.0, 60.0, 14.0, 95.0, 22.0, 0.258819043636322, 0.9659258127212524), 8).effect) };
 // The fire burns only a fighter the glaives missed: one contact window for both.
-const AZZINOTH_FLAMES = draining(region(-190.0, 190.0, -30.0, 170.0, 3.0, 20.0, 30.0, 0.08715574443340302, 0.9961947202682495), 2);
+const AZZINOTH_FLAMES = { ...draining(region(-190.0, 190.0, -30.0, 170.0, 3.0, 20.0, 30.0, 0.08715574443340302, 0.9961947202682495), 2), effect: downSmashHit(draining(region(-190.0, 190.0, -30.0, 170.0, 3.0, 20.0, 30.0, 0.08715574443340302, 0.9961947202682495), 2).effect) };
 /** Eye Blast's beam sweeps out along the floor: 195 on its first active frame, 50 further each frame. */
 function eyeBlastBeam(): readonly Readonly<HitRegion>[] {
   const beam: Readonly<HitRegion>[] = [];
@@ -167,6 +171,10 @@ function reachRegion(style: AttackStyle): Readonly<HitRegion> {
   const verticalOffset = style === AttackStyle.forwardTiltUp ? 65.0 : style === AttackStyle.forwardTiltDown ? -65.0 : 0.0;
   const [minZ, maxZ] = [f32(verticalOffset - 130), f32(verticalOffset + 130)];
   // An angled forward tilt launches along its angle (smashcraft:docs/design/tilts.md): 55 degrees up, 20 down.
+  if (style === AttackStyle.downSmash) {
+    const row = ordinary(0.0, attackReach(style), minZ, maxZ, attackDamage(style));
+    return { ...row, effect: downSmashHit(row.effect) };
+  }
   if (style === AttackStyle.forwardTiltUp) return region(0.0, attackReach(style), minZ, maxZ, attackDamage(style), ORDINARY_HIT_GROWTH_PERCENT, ORDINARY_HIT_BASE_KNOCKBACK, 0.5735764503479004, 0.8191520571708679);
   if (style === AttackStyle.forwardTiltDown) return region(0.0, attackReach(style), minZ, maxZ, attackDamage(style), ORDINARY_HIT_GROWTH_PERCENT, ORDINARY_HIT_BASE_KNOCKBACK, 0.9396926164627075, 0.3420201539993286);
   return ordinary(0.0, attackReach(style), minZ, maxZ, attackDamage(style));
