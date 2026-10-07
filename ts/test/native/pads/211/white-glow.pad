@@ -1,0 +1,27 @@
+# #211: white smash charge and heavy hitlag, Blademaster against Mountain King.
+#! chat -dev quick pair blademaster / mountain king
+40 b stick -1 0
+55 b stick 0 0
+149 a stick 1 0
+150 a press A
+151 a stick 0 0
+160 a capture
+164 a capture
+168 a capture
+172 a capture
+180 a capture
+198 a capture
+200 a release A
+201 a capture
+202 b capture
+203 b capture
+204 b capture
+205 b capture
+206 b capture
+207 b capture
+208 b capture
+209 b capture
+210 b capture
+220 b capture
+250 a press VIEW
+320 a release VIEW

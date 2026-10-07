@@ -56,7 +56,17 @@ export function initializeMatchFighters(game: Readonly<MatchState>, world: Roste
   }
 }
 
-export function matchSpawnX(slot: number): number {
+export function matchSpawnX(slot: number, participantMask = 0): number {
+  if (participantMask !== 0) {
+    let first = -1;
+    let count = 0;
+    for (const participant of PARTICIPANT_SLOTS) {
+      if (!participantActive(participantMask, participant)) continue;
+      if (first < 0) first = participant;
+      count++;
+    }
+    if (count === 2) return slot === first ? -240.0 : 240.0;
+  }
   if (slot === 0) return -240.0;
   if (slot === 1) return 240.0;
   return slot === 2 ? -80.0 : 80.0;

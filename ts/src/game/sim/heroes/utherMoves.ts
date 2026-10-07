@@ -178,6 +178,6 @@ export const UTHER_MOVES: FighterMoves = {
     [GrabAction.throwForward]: { contactFrame: 14, totalFrames: 37, effect: hit(8.0, "EDGE", 40) },
     [GrabAction.throwBack]: { contactFrame: 18, totalFrames: 44, effect: hit(9.0, "EDGE", 40, true) },
     [GrabAction.throwUp]: { contactFrame: 16, totalFrames: 25, effect: hit(7.0, "JUGGLE", 90) },
-    [GrabAction.throwDown]: { contactFrame: 20, totalFrames: 46, effect: hit(6.0, "CHASE", 70) },
+    [GrabAction.throwDown]: { contactFrame: 20, totalFrames: 46, effect: hit(6.0, "CHASE", 25) },
   },
 };

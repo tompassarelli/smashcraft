@@ -163,6 +163,10 @@ function clientTools(): Partial<PlayTools> {
 const tools = clientTools();
 // Doctor checks the prefix before play and once after a failure (wisp:docs/doctor.md).
 export const play: Command = (args) => Effect.gen(function*() {
+  if (args.includes("--standalone")) {
+    const { standalonePlay } = yield* Effect.tryPromise({ try: () => import("../standalone"), catch: (cause) => new PlayProblem({ problem: String(cause) }) });
+    return yield* standalonePlay(args);
+  }
   const current = yield* currentPlaytest(join(documentsFolder(PLAYTEST_PREFIX), "Maps/00-Smashcraft"));
   const declaration = playtest({ ...PLAYTEST, ...current });
   yield* Effect.try({ try: () => installLatest(documentsFolder(declaration.prefix), current.map.source), catch: (cause) => new PlayProblem({ problem: String(cause) }) });
