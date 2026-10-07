@@ -22,10 +22,12 @@ const CLIENTS: Readonly<Record<string, { readonly compatData: string; readonly a
 };
 
 /** The clients file's fields doctor and accept read: each client's name and private desktop run folder. */
-const ClientsFile = Schema.Struct({ clients: Schema.Array(Schema.Struct({ name: Schema.String, run: Schema.String })) });
+const ClientsFile = Schema.Struct({ clients: Schema.Array(Schema.Struct({ name: Schema.String, run: Schema.String,
+  documents: Schema.String, menuReportPort: Schema.optionalKey(Schema.Finite), offline: Schema.optionalKey(Schema.Boolean),
+})) });
 
 /** The clients file, decoded; throws when it is missing or malformed. */
-export const readClientsFile = () => Schema.decodeUnknownSync(ClientsFile)(JSON.parse(readFileSync(clientState, "utf8")));
+export const readClientsFile = (clientsFile = clientState) => Schema.decodeUnknownSync(ClientsFile)(JSON.parse(readFileSync(clientsFile, "utf8")));
 
 /**
  * Battle.net Launcher.exe in the client's prefix on its private desktop: the
@@ -47,8 +49,8 @@ const launcherCommand = (name: string, run: string, client: { readonly compatDat
 };
 
 /** The doctor declaration for the clients file as it stands now (its desktops' displays are read from their run folders). */
-export const smashcraftDoctor = (): DoctorDeclaration => {
-  const file = readClientsFile();
+export const smashcraftDoctor = (clientsFile = clientState): DoctorDeclaration => {
+  const file = readClientsFile(clientsFile);
   const start: Record<string, DoctorDeclaration["start"][string]> = {};
   for (const { name, run } of file.clients) {
     const client = CLIENTS[name];
@@ -56,16 +58,22 @@ export const smashcraftDoctor = (): DoctorDeclaration => {
       start[name] = { kind: "command", command: launcherCommand(name, run, client), log: join(homedir(), `.local/state/smashcraft/client-${name}-launcher.log`) };
     }
   }
-  return { clientsFile: clientState, start };
+  return { clientsFile, start };
 };
 
 /** What the watch counts as a match: the map's start receipts under its runtime prefix. */
 export const smashcraftWatch = () => ClientWatch.layer({ filePrefix: "smashcraft" });
 
 /** Doctor on every client, with its own watch, printing each step. */
-export const checkClients = (print: (line: string) => void = console.log) =>
-  Effect.try({ try: smashcraftDoctor, catch: (cause) => new DoctorStop({ problem: `can't read the clients from ${clientState}: ${String(cause)}` }) }).pipe(
-    Effect.flatMap((declaration) => clientsDoctor(declaration, [], print)),
+export const checkClients = (print: (line: string) => void = console.log, clientsFile = clientState) =>
+  Effect.try({ try: () => readClientsFile(clientsFile), catch: (cause) => new DoctorStop({ problem: `can't read the clients from ${clientsFile}: ${String(cause)}` }) }).pipe(
+    Effect.flatMap((file) => file.clients.length > 0 && file.clients.every(({ offline }) => offline === true)
+      ? Effect.forEach(file.clients, (client) => Effect.gen(function*() {
+        const view = yield* ClientWatch.use((watch) => watch.view(client));
+        if (["closed", "crashed", "disconnected"].includes(view.state.kind)) return yield* new DoctorStop({ problem: `${client.name}: ${view.state.kind}; restart its offline pool pair before retrying` });
+        return { client: client.name, state: view.state.kind, recovered: [] };
+      }))
+      : clientsDoctor(smashcraftDoctor(clientsFile), [], print)),
     Effect.provide(smashcraftWatch()),
   );
 
@@ -75,5 +83,5 @@ export const checkClients = (print: (line: string) => void = console.log) =>
  * every desync the clients report during it gets its first divergent birth
  * printed and its evidence saved.
  */
-export const onHealthyClients = <A, E, R>(run: Effect.Effect<A, E, R>, options: { readonly retry?: boolean } = {}) =>
-  withDoctor(checkClients(), console.log, run, { ...options, autopsy: { clientsFile: clientState } });
+export const onHealthyClients = <A, E, R>(run: Effect.Effect<A, E, R>, options: { readonly retry?: boolean; readonly clientsFile?: string } = {}) =>
+  withDoctor(checkClients(console.log, options.clientsFile), console.log, run, { ...(options.retry === undefined ? {} : { retry: options.retry }), autopsy: { clientsFile: options.clientsFile ?? clientState } });
