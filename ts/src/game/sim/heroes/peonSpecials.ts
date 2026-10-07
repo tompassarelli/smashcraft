@@ -2,7 +2,7 @@ import { type AuthoredSpecial, type FighterSpecials, frames } from "../heroSpeci
 import { peonHit } from "./peonMoves";
 
 const lumberToss = (air: boolean): AuthoredSpecial => ({
-  cost: 0, endFrame: 42, landingLag: air ? 20 : undefined,
+  cost: 0, endFrame: 48, landingLag: air ? 20 : undefined,
   projectiles: [{
     model: "Abilities\\Weapons\\AncientProtectorMissile\\AncientProtectorMissile.mdl",
     spawnFrame: 18, offsetX: 34.0, offsetZ: 48.0, velocityX: 9.0, velocityZ: 0.0,
