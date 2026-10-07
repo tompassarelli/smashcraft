@@ -83,15 +83,25 @@ function reportChanges(s: ShellState, slot: ParticipantSlot, before: Readonly<Fr
   }
 }
 
-/** Runs the frame the frame input captured, then presents its confirmed result. */
-export function applyFrame(s: ShellState): void {
+/**
+ * Before a confirmed frame's controls are made: the replay and the moment
+ * record start, or keep the match as the frame finds it. A callback match
+ * calls it before its computers choose their controls, which change the
+ * match (their attack delays); a rollback match's applyFrame calls it.
+ */
+function beginRecordedFrame(s: ShellState, frame: number): void {
+  beginReplayFrame(s, frame);
+  beginMomentFrame(s.moment.recorder, frame, s.world, s.game, s.controls, s.runtime);
+}
+
+/** Runs the frame the frame input captured, then presents its confirmed result; `recorded` when the caller began its record. */
+export function applyFrame(s: ShellState, recorded = false): void {
   const { world, runtime } = s;
   for (const slot of PARTICIPANT_SLOTS) if (isActive(world, slot)) observe(s.participants[slot].before, fighterAt(world, slot));
   const frame = s.frameInput.frame;
   if (frame === undefined) return;
   const { recorder } = s.moment;
-  beginReplayFrame(s, frame);
-  beginMomentFrame(recorder, frame, world, s.game, s.controls, runtime);
+  if (!recorded) beginRecordedFrame(s, frame);
   views(s).match.observe(s.game, world);
   // The speculative match usually ran this frame on this row already. The
   // response probe and the integrity trace read the step's own observations.
@@ -133,6 +143,9 @@ export function applyFrame(s: ShellState): void {
 /** A frame of a callback match: adapt each human's keys, choose the computers' controls, and run it. */
 export function callbackMatchTick(s: ShellState): void {
   const frame = s.runtime.simulationFrame + 1;
+  // A frame the input already captured isn't run again, so it starts no record.
+  const fresh = s.frameInput.frame !== frame;
+  if (fresh) beginRecordedFrame(s, frame);
   for (const slot of PARTICIPANT_SLOTS) {
     if (!humanFighterActive(s.game, slot) || !isActive(s.world, slot)) continue;
     const participant = s.participants[slot];
@@ -151,5 +164,5 @@ export function callbackMatchTick(s: ShellState): void {
     traceFrameInput(s, slot, s.produced.inputs[slot], s.produced.commands[slot], frame);
     clearAttackBuffer(s.produced.commands[slot]);
   }
-  applyFrame(s);
+  applyFrame(s, fresh);
 }

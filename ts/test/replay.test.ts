@@ -17,6 +17,7 @@ import { PLAYABLE_BUILD } from "../src/game/shell/currentBuild";
 import { RULE_BUTTONS } from "../src/game/ui/ruleButtons";
 import { matchRecordFile, replayFile, replayPartFile } from "../src/runtime/gameFiles";
 import { install, startBuild } from "../src/platform/main";
+import { install as installDev, start as startDev } from "../src/platform/devMain";
 import { Key } from "../src/platform/shell/keyEvents";
 import { shell } from "../src/platform/shell/state";
 import { PREDICTED_HEADLESS } from "../scripts/wisp/headless";
@@ -115,4 +116,30 @@ test("a one-minute rollback match leaves a replay on each client that replays to
   const inLua = await Effect.runPromise(replayInLua(file, lua));
   expect(inLua.problems).toEqual([]);
   expect(inLua).toMatchObject({ frames: bun.frames, reached: bun.recorded, recorded: bun.recorded, checksum: bun.checksum });
+}, 120_000);
+
+// Native match 76 (#141): a versus match against a computer in the development
+// build, whose computers choose their controls on the game callback, replayed
+// to 1 of 5 checksums: the record began after the computer had changed its
+// attack delay for the first frame, so the replay changed it twice.
+test("a callback match against a computer replays to every recorded checksum", () => {
+  const clients = headless.clients({ start: startDev, install: installDev }, [0]);
+  const client = clients.client(0);
+  clients.start();
+  clients.frames(30);
+  clients.chat(0, "-dev quick cpu 9");
+  expect(value(client, () => shell().game.computerMask)).not.toBe(0);
+  // The player walks into the computer every two-thirds of a second until the match ends.
+  for (let frame = 0; frame < 6000 && value(client, () => shell().game.phase) === Phase.match; frame++) {
+    if (frame % 40 < 20) client.key(0, Key.w, 0, frame % 40 === 0);
+    clients.frames(1);
+  }
+  expect(value(client, () => shell().game.phase)).toBe(Phase.result);
+  clients.frames(30);
+  expect(client.errors).toEqual([]);
+  const manifest = [...client.files.keys()].find((name) => /^smashcraft-replay-\d+\.txt$/.test(name)) ?? "";
+  const replay = replayMatch(joinedReplay(client, Number(/(\d+)/.exec(manifest)?.[1])));
+  expect(replay.problems).toEqual([]);
+  expect(replay.reached).toBe(replay.recorded);
+  expect(replay.recorded).toBeGreaterThan(5);
 }, 120_000);
