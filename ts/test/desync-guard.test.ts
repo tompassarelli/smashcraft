@@ -14,6 +14,7 @@ import { DESYNC_COMMAND } from "../src/game/shell/devSettings";
 import { install, start } from "../src/platform/main";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
 import { entryFor, expectNoDivergence, playThroughReload } from "./desync/journeys";
+import { type InputTrace, beginInputTrace, finishInputTrace, inputTrace, traceInput } from "../src/platform/shell/trace";
 
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
@@ -58,4 +59,24 @@ test("the playable build ignores -dev desync", () => {
   const clients = typeDesync(entryFor(PLAYABLE_BUILD));
   expectNoDivergence(clients);
   expect(devReceipts(clients)).toEqual([[], []]);
+});
+
+test("an input trace starts and finishes on one client only, as the helper's first row arrives there, without a synchronized native call", () => {
+  // A trace starts at this client's own first journal row (journal.ts), a turn the other client reaches at another time;
+  // a handle made then is born on different turns on each client, a native tempest-checksum desync (#158).
+  const clients = headless.clients({ start: () => {}, install: () => {} });
+  clients.start();
+  const traces: InputTrace[] = [];
+  clients.everywhere(() => void traces.push(inputTrace(2048)));
+  clients.frames(3);
+  const trace = traces[0];
+  if (trace === undefined) throw new Error("no trace");
+  clients.client(0).run(() => {
+    beginInputTrace(trace);
+    traceInput(trace, "first row");
+    finishInputTrace(trace);
+  });
+  clients.frames(3);
+  expectNoDivergence(clients);
+  expect(trace.lines).toEqual(["0 0.000 first row"]);
 });

@@ -69,8 +69,20 @@ interface EchoSend {
 }
 
 export interface InputTrace {
-  /** Native game seconds since the trace started. */
-  clock: timer | undefined;
+  /**
+   * Native game seconds since the shell started, in periods of CLOCK_PERIOD.
+   * Started with the shell on every client and never changed afterwards: a trace
+   * starts when this client's own first journal row arrives, a moment the other
+   * client reaches on another turn, so starting a timer or passing it code then
+   * makes a handle on one turn here and another there, which Warcraft reports as a
+   * tempest-checksum desync (#158).
+   */
+  readonly clock: timer;
+  /** Completed periods of the clock. */
+  clockPeriods: number;
+  /** Clock seconds when the trace started, and when it finished. */
+  startedAt: number | undefined;
+  finishedAt: number | undefined;
   active: boolean;
   /** Game callbacks since the trace started. */
   ticks: number;
@@ -101,21 +113,32 @@ function traceWindow(): TraceWindow {
   };
 }
 
-/** The probe build keeps a longer trace. */
+/** Seconds in one period of the trace clock; whole periods are counted, so elapsed seconds keep their precision. */
+const CLOCK_PERIOD = 1000.0;
+
+/** The probe build keeps a longer trace. Call once on every client at the same point, with the shell. */
 export function inputTrace(capacity: number): InputTrace {
-  return {
-    // Created with the shell on every client at once: a timer made when this client's own first journal row arrives
-    // is a handle the other client makes on another turn, which Warcraft reports as a tempest-checksum desync.
-    clock: CreateTimer(), active: false, ticks: 0, pausedTicks: 0, capacity, lines: [], dropped: 0,
+  const trace: InputTrace = {
+    clock: CreateTimer(), clockPeriods: 0, startedAt: undefined, finishedAt: undefined, active: false, ticks: 0, pausedTicks: 0, capacity, lines: [], dropped: 0,
     lastAxes: undefined, lastDodge: undefined, lastLandingLag: undefined, rawSyncEvents: 0, window: traceWindow(),
     echoes: Array.from({ length: ECHO_CAPACITY }, () => ({ epoch: -1, frame: undefined, callback: 0, seconds: 0.0 })),
     echoPending: 0,
     checksum: undefined,
   };
+  TimerStart(trace.clock, CLOCK_PERIOD, true, () => {
+    trace.clockPeriods++;
+  });
+  return trace;
 }
 
+function clockSeconds(trace: Readonly<InputTrace>): number {
+  return trace.clockPeriods * CLOCK_PERIOD + TimerGetElapsed(trace.clock);
+}
+
+/** Native game seconds since the trace started, held at its end once it finishes. */
 export function traceSeconds(trace: Readonly<InputTrace>): number {
-  return trace.clock === undefined ? 0.0 : TimerGetElapsed(trace.clock);
+  if (trace.startedAt === undefined) return 0.0;
+  return (trace.finishedAt ?? clockSeconds(trace)) - trace.startedAt;
 }
 
 export function traceInput(trace: InputTrace, entry: string): void {
@@ -132,9 +155,10 @@ function clearEchoRing(trace: InputTrace): void {
   }
 }
 
-/** Starts the clock and clears every count; the caller writes the opening lines. */
+/** Marks the clock and clears every count; the caller writes the opening lines. Reads local state only. */
 export function beginInputTrace(trace: InputTrace): void {
-  trace.clock ??= CreateTimer();
+  trace.startedAt = clockSeconds(trace);
+  trace.finishedAt = undefined;
   trace.ticks = 0;
   trace.pausedTicks = 0;
   trace.lines.length = 0;
@@ -147,7 +171,6 @@ export function beginInputTrace(trace: InputTrace): void {
   trace.window = traceWindow();
   clearEchoRing(trace);
   trace.active = true;
-  TimerStart(trace.clock, 1000.0, false, () => {});
 }
 
 /** Starts a new epoch's echo matching; rows sent in an earlier epoch never match. */
@@ -157,7 +180,7 @@ export function resetEchoRing(trace: InputTrace): void {
 
 export function finishInputTrace(trace: InputTrace): void {
   trace.active = false;
-  if (trace.clock !== undefined) PauseTimer(trace.clock);
+  trace.finishedAt = clockSeconds(trace);
   writeLines(INPUT_TRACE_FILE, [...trace.lines, ...traceEndLines(trace.dropped, trace.ticks, R2S(traceSeconds(trace)))]);
 }
 
