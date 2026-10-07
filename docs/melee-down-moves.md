@@ -54,17 +54,39 @@ copying its values: Smashcraft's longer authored recoveries need enough
 base knockback to tumble at low percent and enough hang time to keep the
 attacker's recovery from consuming the whole chase.
 
-Down throws use a 25° outward launch, with their existing base 75 and growth
-40. Their authored damage, contact and recovery remain per fighter. The
-down-throw tests run production contacts and movement at 20%, 40% and 60%,
-checking tech in place, both tech rolls and missed-tech stand, roll and
-attack getups, both facings, against Archer, Rifleman and Pit Lord.
+Down throws use a 25° outward launch, with their existing base and growth.
+Down smashes use 25°, base 75 and growth 40. Their front/back contacts keep
+their existing direction, damage and active windows. Nine slower down
+smashes recover 12 frames earlier (Pit Lord, 13 frames); the original three
+and Warden keep their timings. The stock clips already fit startup, contact
+and recovery separately; Lich King's authored clip uses the shorter action
+length at its existing rate to preserve the first strike's timing.
 
-Down smashes still use the pre-change values above. They need a separate
-growth curve: raising base knockback on their existing kill-move growth
-either leaves too little floor time before a slow attack recovers or keeps
-the victim airborne beyond hitstun, allowing a tumble-exit flick before
-landing. The intended down-smash outcome remains a tech chase.
+The tests run production contacts and movement at 20%, 40% and 60%, checking
+tech in place, both tech rolls and missed-tech stand, roll and attack getups,
+both facings, against Archer, Rifleman and Pit Lord.
+
+## Current Smashcraft values
+
+All rows are tech chase. Angle / base / growth are taken from production
+contact data. Timing is unchanged for throws; the down-smash recovery is the
+frames after its last active frame, excluding shared hitlag.
+
+| Fighter | Down throw angle / base / growth | Down smash angle / base / growth | Down-smash recovery |
+| --- | --- | --- | --- |
+| Archer | 25° / 75 / 40.00 | 25° / 75 / 40.00 | 31 |
+| Rifleman | 25° / 75 / 40.00 | 25° / 75 / 40.00 | 31 |
+| Illidan | 25° / 75 / 40.00 | 25° / 75 / 40.00 | 25 |
+| Blademaster | 25° / 75 / 38.20 | 25° / 75 / 40.00 | 19 |
+| Mountain King | 25° / 75 / 44.20 | 25° / 75 / 40.00 | 22 |
+| Warden | 25° / 75 / 40.00 | 25° / 75 / 40.00 | 28 |
+| Lich | 25° / 75 / 40.00 | 25° / 75 / 40.00 | 23 |
+| Uther | 25° / 75 / 40.00 | 25° / 75 / 40.00 | 22 |
+| Dreadlord | 25° / 75 / 36.20 | 25° / 75 / 40.00 | 20 |
+| Shadow Hunter | 25° / 75 / 40.00 | 25° / 75 / 40.00 | 21 |
+| Pit Lord | 25° / 75 / 40.00 | 25° / 75 / 40.00 | 28 |
+| Beastmaster | 25° / 75 / 42.40 | 25° / 75 / 40.00 | 22 |
+| Lich King | 25° / 75 / 40.00 | 25° / 75 / 40.00 | 28 |
 
 There are no down throws classified as DI mix-up: all thirteen take the
 tech-chase branch. DI still changes the landing point and tech timing.

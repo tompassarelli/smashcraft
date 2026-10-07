@@ -65,3 +65,25 @@ export const STAGE_ENTRY_CHECKS: readonly NativeCheck[] = ENTRY_STAGES.flatMap((
     look: `${name} rematch after the timed match ends: from the first rematch frame with arena sky onward, 0 frames with a giant object over the arena.`,
   },
 ]);
+
+/** The development map rebuilt from this checkout, every stage in one hosted game. */
+const FLOATING_MAP = join(homedir(), ".local/share/smashcraft-build-inputs/stage-art-191/Smashcraft diagnostic floating stages.w3x");
+export const FLOATING_STAGE_MAPS = {
+  "floating-stages": { describe: "development map rebuilt from this checkout; every stage in one hosted game, each at both camera extremes", path: FLOATING_MAP, rebuild: "main", quick: "-dev quick" },
+};
+
+/** smashcraft#191: every stage at its closest and widest camera (`-dev view near|far`), judged against the art checklist (smashcraft:docs/design/stage-art.md). */
+export const FLOATING_STAGE_CHECKS: readonly NativeCheck[] = STAGE_CATALOG.flatMap(({ id, name }): NativeCheck[] => (["near", "far"] as const).map((extreme): NativeCheck => ({
+  id: `191-${id}-${extreme}`, closes: "smashcraft#191 boxes 2-4", map: "floating-stages", session: "floating-stages",
+  setup: [
+    ...(extreme === "near" ? [{ chat: "-dev reset" }, { chat: `-dev quick stage ${id}` }, { waitMs: 5000 }] : []),
+    { chat: `-dev view ${extreme}` }, { waitMs: 1500 },
+  ],
+  capture: [{ kind: "frames", name: `${extreme}`, client: "a" }, { kind: "frames", name: `${extreme}`, client: "b" }],
+  pass: [
+    { kind: "receipt", pattern: `^SMASHCRAFT STAGE v=1 .* stage=${id} `, min: 1 },
+    { kind: "log", pattern: "^model creation failed - war3mapImported", since: "session", max: 0 },
+    { kind: "receipt", pattern: "^error \\d+ in ", max: 0 },
+  ],
+  look: `${name}, ${extreme} camera: art checklist A-E (smashcraft:docs/design/stage-art.md); no terrain, ground or cut-off prop base below the deck.`,
+})));

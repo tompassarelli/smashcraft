@@ -66,7 +66,10 @@ function reportChanges(s: ShellState, slot: ParticipantSlot, before: Readonly<Fr
   if (before.grab !== f.grab.action) traceParticipant(s, slot, `grab action ${f.grab.action} frame ${f.grab.frame} serial ${f.grab.serial}`);
   const holding = f.grab.target !== undefined;
   if (before.holding !== holding) traceParticipant(s, slot, `grab-hold ${holding ? "start" : "end"}`);
-  if (before.special !== f.special.action) traceParticipant(s, slot, `special ${f.special.action} form ${f.special.form} action-frame ${f.special.frame} x ${R2S(f.motion.x)} z ${R2S(f.motion.z)}`);
+  if (before.special !== f.special.action) {
+    traceParticipant(s, slot, `special ${f.special.action} form ${f.special.form} action-frame ${f.special.frame} x ${R2S(f.motion.x)} z ${R2S(f.motion.z)}`);
+    if (f.special.ex && f.special.action !== 0) traceParticipant(s, slot, `special EX ${f.special.action} mana ${f.mana.points}`);
+  }
   else if (before.form !== f.special.form) traceParticipant(s, slot, `special-form ${f.special.form} action ${f.special.action} action-frame ${f.special.frame} x ${R2S(f.motion.x)} z ${R2S(f.motion.z)}`);
   const actionable = canAttack(f);
   if (s.trace.active && (f.down.state !== before.down || actionable !== before.actionable)) {

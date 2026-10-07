@@ -1,3 +1,4 @@
+import { downSmashHit } from "../downMoveValues";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
 import { hurtCapsule } from "../../physics/contactGeometry";
@@ -168,17 +169,17 @@ export const BEASTMASTER_MOVES: FighterMoves = {
       capsule(-30.0, 80.0, -55.0, f32(L - 10.0)),
     ], hit(16.217998504638672, "KILL", 85))),
     // Clearing Sweep: front, then back.
-    [AttackStyle.downSmash]: heroMove(17, 6, 34, 0, [
+    [AttackStyle.downSmash]: heroMove(17, 6, 22, 0, [
       ...path(17, [
         capsule(22.0, 18.0, f32(L - AXE_RADIUS), 20.0),
         capsule(22.0, 12.0, f32(L - AXE_RADIUS), 10.0),
         capsule(22.0, 10.0, f32(L - AXE_RADIUS), 2.0),
-      ], hit(14.309999465942383, "EDGE", 25)),
+      ], downSmashHit(hit(14.309999465942383, "EDGE", 25))),
       ...path(20, [
         capsule(-22.0, 18.0, -f32(L - AXE_RADIUS), 20.0),
         capsule(-22.0, 12.0, -f32(L - AXE_RADIUS), 10.0),
         capsule(-22.0, 10.0, -f32(L - AXE_RADIUS), 2.0),
-      ], hit(14.309999465942383, "EDGE", 25, -1.0)),
+      ], downSmashHit(hit(14.309999465942383, "EDGE", 25, -1.0))),
     ]),
     // Axe Circle: one hit around the torso.
     [AttackStyle.neutralAir]: heroMove(8, 6, 23, 15, [

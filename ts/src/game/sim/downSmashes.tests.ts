@@ -1,18 +1,18 @@
 import { assertEquals, test } from "wisp/src/runtime/testing";
-import { Character, DownState, GrabAction } from "./codes";
+import { AttackStyle, Character, DownState } from "./codes";
 import { canAttack, isTumbling } from "./conditions";
 import { createFighter } from "./fighter";
 import { SELECTABLE_CHARACTERS, fighterName } from "./heroes/registry";
-import { resolveGrabs } from "./grabs";
-import { GRAB_HOLD_FRAMES, grabContactFrame } from "./moves";
+import { beginFighterAttack, resolveAttacks } from "./attacks";
+import { attackStartupFrames } from "./moves";
 import { totalVelocityZ } from "./motion";
 import { advanceFighter } from "./step";
-import { controls, testGrabFrame, testWorld } from "./testWorld";
+import { controls, testWorld } from "./testWorld";
 
 for (const character of SELECTABLE_CHARACTERS) {
   // #208 measures the original thirteen-fighter field.
   if (character > Character.lichKing) continue;
-  test(`${fighterName(character)} down throw gives floor defense at 20/40/60 percent`, () => {
+  test(`${fighterName(character)} down smash gives floor defense at 20/40/60 percent`, () => {
     for (const victim of [Character.archer, Character.rifleman, Character.pitLord]) {
       for (const percent of [20.0, 40.0, 60.0]) {
         for (const facing of [-1, 1]) {
@@ -23,11 +23,9 @@ for (const character of SELECTABLE_CHARACTERS) {
             target.status.damage = percent;
             owner.motion.surface = 0;
             target.motion.surface = 0;
-            owner.grab.action = GrabAction.throwDown;
-            owner.grab.frame = grabContactFrame(GrabAction.throwDown, owner.tuning.moves) - 1;
-            owner.grab.target = 1;
-            target.grab.owner = 0;
-            target.grab.grabbedFrames = GRAB_HOLD_FRAMES;
+            beginFighterAttack(world, 0, AttackStyle.downSmash, false);
+            owner.attack.frame = attackStartupFrames(AttackStyle.downSmash, owner.tuning.moves) - 1;
+            owner.attack.cooldown -= owner.attack.frame;
             const neutral = controls();
             const input = controls();
             let techPressed = false;
@@ -46,8 +44,7 @@ for (const character of SELECTABLE_CHARACTERS) {
               input.getupAttackPressed = defense === "getupAttack" && target.down.state === DownState.wait;
               advanceFighter(world, 0, 0, neutral, 0.0);
               advanceFighter(world, 1, 0, input, 0.0);
-              testGrabFrame(world, [neutral, input], owner.launch.hitlag > 0 || target.launch.hitlag > 0);
-              resolveGrabs(world);
+              resolveAttacks(world);
               landed = landed || target.down.state === DownState.bound || target.down.state === DownState.tech || target.down.state === DownState.techRoll;
               if (floorState === DownState.none && landed) floorState = target.down.state;
               if (ownerReady < 0 && canAttack(owner)) ownerReady = frame;
