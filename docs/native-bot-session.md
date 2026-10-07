@@ -282,6 +282,14 @@ Issue scripts live in smashcraft:ts/test/native/pads/, one folder per issue.
 
 ### Many scripts in one game
 
+Native batch helpers and pads stay alive until their game ends. Before typing a
+selection command, the runner waits for the map's observed chat-open receipt in
+`smashcraft-chat-BUILD-pSLOT.txt`; a missed Return sends no command text. Between
+matches, reset waits for the journal's quiescence and chat handoff before typing.
+Rebuild the integrity map's script when updating this handshake. Input deadlines
+use each client's own match-start clock; identical frame numbers can require
+different write times.
+
 Native parity runs as a batch: name several scripts, or a folder of them.
 
 ```sh

@@ -1,5 +1,7 @@
 // Files for Smashcraft's selection, developer commands and input capture.
 export const devCommandReceiptFile = (build: string, slot: number) => `smashcraft-dev-${build}-p${slot}.txt`;
+/** The developer capture driver's observed Warcraft chat entry; written when it opens or closes. */
+export const nativeChatFile = (build: string, slot: number) => `smashcraft-chat-${build}-p${slot}.txt`;
 export const MELEE_READY_FILE = "wc3-melee-ready.txt";
 export const INPUT_START_FILE = "wc3-melee-input-start.txt";
 export const INPUT_TRACE_FILE = "wc3-melee-input-trace.txt";

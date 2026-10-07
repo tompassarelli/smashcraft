@@ -41,7 +41,7 @@ import type { Schedule, ScheduleReply, ScheduledEdge } from "../../integrity/pad
 import { type PadStep, type SentEdge, deadlineOrder, frameWriteNs, landEdges, matchStart, parsePadScript, ruleFrame } from "../../integrity/padScript";
 import { SLOTS } from "../../integrity/reconcile";
 import { captureWhenDrawn, drawnFrom } from "../../integrity/drawnCapture";
-import { drawnFrameFile } from "../../../src/runtime/gameFiles";
+import { drawnFrameFile, nativeChatFile } from "../../../src/runtime/gameFiles";
 import { PREDICTED_HEADLESS, SMASHCRAFT_HEADLESS } from "../headless";
 import { sceneFile } from "wisp/src/runtime/scene";
 import { clientState } from "../project";
@@ -172,6 +172,34 @@ export function nativeChatReceipt(text: string) {
   return Option.getOrUndefined(Schema.decodeUnknownOption(ChatReceipt)(Object.fromEntries(line.split(" ").map((field) => field.split("=")))));
 }
 
+const ChatEntryReceipt = Schema.Struct({ revision: Schema.FiniteFromString, available: Schema.Literals(["0", "1"]), open: Schema.Literals(["0", "1"]) });
+
+export function nativeChatEntryReceipt(text: string) {
+  const line = preloadLines(text)?.find((line) => line.startsWith("SMASHCRAFT CHAT v=1 "));
+  if (line === undefined) return undefined;
+  return Option.getOrUndefined(Schema.decodeUnknownOption(ChatEntryReceipt)(Object.fromEntries(line.split(" ").map((field) => field.split("=")))));
+}
+
+/** Selection has no journal epoch: observe Warcraft's own chat entry before sending any text. */
+const selectionChat = (session: NativeSession, text: string) => Effect.gen(function*() {
+  const path = join(session.data[0], nativeChatFile(session.build, 0));
+  const receipt = () => existsSync(path) ? nativeChatEntryReceipt(readFileSync(path, "latin1")) : undefined;
+  const before = receipt();
+  if (before === undefined || before.available !== "1") return yield* new IntegrityFailure({ operation: "open selection chat", path, cause: "no native chat entry receipt; rebuild the integrity map" });
+  if (before.open !== "1") {
+    // The native client missed Return immediately after focus; 250 ms after focus opened it.
+    yield* batch(session.clients[0], [{ kind: "wait", millis: 250 }, { kind: "keys", keys: ["Return"] }]).pipe(Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })), Effect.mapError(fromDesktop));
+    const deadline = Date.now() + 8000;
+    for (;;) {
+      const current = receipt();
+      if (current !== undefined && current.revision > before.revision && current.available === "1" && current.open === "1") break;
+      if (Date.now() > deadline) return yield* new IntegrityFailure({ operation: "open selection chat", path, cause: "no open-chat receipt within 8 s of Return; no command text sent" });
+      yield* Effect.sleep("20 millis");
+    }
+  }
+  yield* batch(session.clients[0], [{ kind: "text", text, delayMillis: 35 }, { kind: "keys", keys: ["Return"] }]).pipe(Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })), Effect.mapError(fromDesktop));
+});
+
 /** Return requests chat in the journal box; the helper opens chat after its quiescence handshake. */
 export const nativeChat = (session: NativeSession, text: string) => Effect.gen(function*() {
   const host = session.clients[0];
@@ -181,7 +209,7 @@ export const nativeChat = (session: NativeSession, text: string) => Effect.gen(f
   const receipt = () => existsSync(path) ? nativeChatReceipt(readFileSync(path, "latin1")) : undefined;
   const before = receipt();
   if (before === undefined || before.epoch !== epoch || before.chatState !== 0) return yield* new IntegrityFailure({ operation: "open chat", path, cause: "journal is not receiving input" });
-  yield* batch(host, [{ kind: "keys", keys: ["Return"] }]).pipe(Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })), Effect.mapError(fromDesktop));
+  yield* batch(host, [{ kind: "wait", millis: 250 }, { kind: "keys", keys: ["Return"] }]).pipe(Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })), Effect.mapError(fromDesktop));
   const deadline = Date.now() + 8000;
   for (;;) {
     const current = receipt();
@@ -209,11 +237,7 @@ export const nativeScript = (session: NativeSession, options: PadOptions) => Eff
   };
   if (chat !== undefined) {
     yield* Effect.sleep("1 second");
-    // Typed only into the match (wisp:docs/watch.md, "Typing only into a match").
-    yield* batch(clients[0], [{ kind: "keys", keys: ["Return"] }, { kind: "text", text: chat, delayMillis: 35 }, { kind: "keys", keys: ["Return"] }]).pipe(
-      Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })),
-      Effect.mapError(fromDesktop),
-    );
+    yield* selectionChat(session, chat);
   }
   const epochs = yield* matchEpochs(logs, startedNs, out);
   const matchIds = logs().map((text) => matchStart(text)?.epoch ?? 0);

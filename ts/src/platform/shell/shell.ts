@@ -76,6 +76,8 @@ function gameTick(s: ShellState): void {
   const epoch = journalEpoch(s);
   const editbox = s.rollback?.journal?.editbox;
   editbox?.tick();
+  const chatSlot = s.build.devConsole ? localParticipantSlot(s) : undefined;
+  if (chatSlot !== undefined) editbox?.publishChat(s.build.id, chatSlot);
   if (epoch !== undefined) {
     serviceChat(s, epoch.rollback, epoch.journal);
     servicePauseRequest(s, epoch.rollback, epoch.journal);

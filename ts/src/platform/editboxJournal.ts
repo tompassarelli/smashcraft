@@ -4,6 +4,7 @@
 import { EDITBOX_CAPACITY, type EditboxFailure, EditboxSession, pauseLabel } from "../game/netcode/journal/editbox";
 import { trampoline } from "wisp/src/platform/dispatch";
 import { readChunk, writeLine } from "wisp/src/platform/fileio";
+import { nativeChatFile } from "../runtime/gameFiles";
 
 /** The dispatch name of Enter in the box, the local player's request to chat; register its handler with on(). */
 export const EDITBOX_ENTER = "journal.editboxEnter";
@@ -41,6 +42,8 @@ export class EditboxIngress {
   private readonly hint: framehandle;
   private readonly chat: framehandle | undefined;
   private session: EditboxSession | undefined;
+  private observedChat: boolean | undefined;
+  private chatRevision = 0;
 
   constructor() {
     const gameUi = BlzGetOriginFrame(ORIGIN_FRAME_GAME_UI, 0);
@@ -98,6 +101,15 @@ export class EditboxIngress {
   /** Whether Warcraft's chat entry is open on this client. */
   chatOpen(): boolean {
     return this.chat !== undefined && BlzFrameIsVisible(this.chat);
+  }
+
+  /** Developer capture drivers wait for this local observation before typing command text. */
+  publishChat(build: string, slot: number): void {
+    const open = this.chatOpen();
+    if (this.observedChat === open) return;
+    this.observedChat = open;
+    this.chatRevision++;
+    writeLine(nativeChatFile(build, slot), `SMASHCRAFT CHAT v=1 build=${build} slot=${slot} revision=${this.chatRevision} available=${this.chat !== undefined ? 1 : 0} open=${open ? 1 : 0}`);
   }
 
   /** The local player's latest chat request this epoch. */
