@@ -65,6 +65,27 @@ test("every fighter's mana shows as a segmented bar over its head and on its pla
   expect(clients.firstDivergence()).toBeUndefined();
 });
 
+test("both mana bars show a visible EX cue only for affordable neutral and side specials", () => {
+  const clients = quickMatch();
+  for (const [points, text] of [[27, ""], [28, "EX N"], [37, "EX N + S"]] as const) {
+    forBoth(clients, () => { fighterAt(shell().world, 0).mana.points = points; });
+    clients.frames(1);
+    for (const client of clients.clients) for (const label of [
+      overhead(client, "Ex", 0, 4 + MANA_BAR_SEGMENTS),
+      hud(client, "Ex", 0, 4 + MANA_BAR_SEGMENTS),
+    ]) {
+      expect(label).toBeDefined();
+      expect(client.frames.shown(label!)).toBe(text !== "");
+      expect(label!.text).toBe(`|cffffdd55${text}|r`);
+      if (text !== "") {
+        expect(label!.width).toBeGreaterThan(0);
+        expect(label!.height).toBeGreaterThan(0);
+      }
+    }
+  }
+  expect(clients.firstDivergence()).toBeUndefined();
+});
+
 test("a refused special flashes both of the fighter's bars; a paid hit makes them glow", () => {
   const clients = quickMatch();
   forBoth(clients, () => { fighterAt(shell().world, 0).visuals.manaDenied++; });
