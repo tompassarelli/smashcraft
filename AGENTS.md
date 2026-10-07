@@ -264,7 +264,10 @@ code. From smashcraft:ts/:
   balance gate's computer field (level 9, 400 a pair; `--level`,
   `--per-pair`, `--seeds`) on GitHub's free hosted runners, a `cpuField
   --pairs` process a core over about 17 jobs, and with `--wait` prints the
-  verdict and field table; `bun wisp farm pads [--ref REF] [--wait]` plays
+  verdict and field table. A level-9 run with at least 400 matches per pair
+  fails when the balance gate fails, after publishing the report artifact;
+  lower-level or smaller exploratory fields remain reports.
+  `bun wisp farm pads [--ref REF] [--wait]` plays
   every smashcraft:ts/test/native/pads/ script headless through the real
   helper against its own `#!` expectations, for a change that moves hit
   timing; `bun wisp farm perf ["RUN ARGS" ...] [--out DIR]` runs each
