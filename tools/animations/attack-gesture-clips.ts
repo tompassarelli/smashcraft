@@ -15,7 +15,7 @@ import { seconds } from "./asset-info";
 import { encodeVerified, ensure, fighters, onGlobalClock, parseSource, tracks } from "./original-clips";
 
 const PLAN: Readonly<Record<number, readonly HeroPose[]>> = {
-  0: ["dashAttack"], 2: ["jab3"],
+  2: ["jab3"],
   4: ["jab", "jab2", "upTilt", "upSmash", "neutralAir", "upAir", "backAir", "dashAttack", "forwardAir"],
   5: ["jab3", "forwardTiltDown", "downTilt", "neutralAir", "backAir", "downSmash", "dashAttack", "forwardAir", "upSmash", "upAir"],
   6: ["forwardTiltDown", "downTilt", "backAir", "downSpecial", "forwardTilt", "forwardTiltUp", "upTilt", "forwardSmash", "upSmash", "downSmash", "dashAttack", "forwardAir", "upAir"],
