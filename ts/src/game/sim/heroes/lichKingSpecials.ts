@@ -45,14 +45,14 @@ const CARRIED: AppliedStatus = { kind: HeroStatusKind.carried, frames: 80, group
 
 /**
  * Val'kyr Shadowguard: a Val'kyr flies out on frame 14 and seizes the first
- * body it reaches. A shield stops her, and she can't be reflected. With a
+ * body it reaches. A shield stops her, and a powershield sends her back. With a
  * soul she flies half again as fast, over the same time.
  */
 const valkyrProjectile = (speed: number): SpecialProjectile => ({
   model: "Units\\Undead\\Banshee\\Banshee.mdx",
   spawnFrame: 14, offsetX: 40.0, offsetZ: f32(CHEST + 10.0), velocityX: speed, velocityZ: 0.0,
   life: 40, radius: h(f32(0.2)), effect: { damage: 4.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false, element: HitElement.dark },
-  reflectable: false, limit: 1, status: CARRIED,
+  reflectable: true, limit: 1, status: CARRIED,
 });
 const VALKYR = valkyrProjectile(5.0);
 const SOUL_VALKYR = valkyrProjectile(7.5);
