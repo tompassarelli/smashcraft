@@ -2,7 +2,7 @@ import { mkdirSync, readFileSync, readdirSync, statSync, copyFileSync } from "no
 import { join } from "node:path";
 import { homedir } from "node:os";
 import { parseArgs } from "node:util";
-import { Effect, Schema } from "effect";
+import { Effect, Layer, Schema } from "effect";
 import { loadClients, readClientsFile, desktopSession, windowPid, keys, typeText, type Client, type ClientEntry } from "wisp/scripts/warcraft/desktop";
 import { preloadLines } from "wisp/scripts/wisp/boundary";
 import { Clients } from "wisp/scripts/wisp/clients";
@@ -71,7 +71,7 @@ await command(["client", "watch", "--once", "--clients-file", clientsFile]);
 const clients = await Effect.runPromise(loadClients(clientsFile));
 const hostedAt = Date.now();
 if (pair === "online") await Effect.runPromise(freshMatch(map).pipe(
-  Effect.provide(Clients.layer(clientsFile)), Effect.provide(gameFilesLayer), Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })),
+  Effect.provide(Layer.mergeAll(Clients.layer(clientsFile), gameFilesLayer, ClientWatch.layer({ filePrefix: "smashcraft" }))),
 ));
 else await command(["lan", "fresh", map, "--pair", pair]);
 const data = clients.map(client => join(client.documents, "CustomMapData"));
