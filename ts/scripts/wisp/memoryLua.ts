@@ -81,10 +81,11 @@ const frame = () => {
   for (const player of clients.clients) {
     if (hold !== held && held !== 0) for (const client of clients.clients) client.key(player.slot, held, 0, false);
     if (hold !== held && hold !== 0) for (const client of clients.clients) client.key(player.slot, hold, 0, true);
-    if (tap !== 0) clients.press(player.slot, tap);
+    if (tap !== 0) for (const client of clients.clients) client.key(player.slot, tap, 0, true);
   }
   held = hold;
   clients.frames(1);
+  if (tap !== 0) for (const player of clients.clients) for (const client of clients.clients) client.key(player.slot, tap, 0, false);
   // Each frame's logged calls fold into the checksum at once: a log kept for a minute would grow the heap by its own array.
   for (const client of clients.clients) client.forget(client.log.length);
   if (floorMod(clients.frame, FRAMES_PER_MINUTE) === 0) census(`kind=minute minute=${floorDiv(clients.frame, FRAMES_PER_MINUTE)}`);

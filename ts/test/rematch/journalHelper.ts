@@ -153,10 +153,13 @@ export class JournalHelpers {
         helper.queue.push(`JR1${next}`);
       }
       const { epoch } = helper;
-      if (helper.state === "ready" && client.files.has(journalLifecycleFile(this.build, epoch, client.slot, "start"))) {
+      const start = client.files.get(journalLifecycleFile(this.build, epoch, client.slot, "start"));
+      if (helper.state === "ready" && start !== undefined) {
+        const first = Number(wordAfter(start.join(""), " frame="));
+        if (!Number.isInteger(first) || first < 1) throw new Error("invalid journal start frame");
         helper.state = "journaling";
-        helper.journaled = 0;
-        helper.started = now;
+        helper.journaled = first - 1;
+        helper.started = now - helper.journaled;
       }
       if (helper.state === "journaling" && client.files.has(journalLifecycleFile(this.build, epoch, client.slot, "end"))) {
         helper.state = "ended";

@@ -110,11 +110,10 @@ export function gameOf(client: HeadlessClient): Game {
  */
 /**
  * Plays the match in the integrity build, or in `build`, such as the
- * playable one: a build on key events gets the beat as synchronized key
- * presses, every client's on the same turn.
+ * playable one: a keyboard build gets keys held through its sampling callback.
  */
 export function playBotMatch(clients: Lockstep, match: BotMatch, frames: number, measure: PerfMeasure, build: MapBuild = INTEGRITY_BUILD): { problems: number; lines: string[] } {
-  const keyboard = build.input.kind === "callback";
+  const keyboard = build.input.kind !== "journal";
   const helpers = new JournalHelpers(build.id, true);
   helpers.rows = (_slot, frame) => botBeatRow(frame);
   const host = clients.client(0);
@@ -122,19 +121,25 @@ export function playBotMatch(clients: Lockstep, match: BotMatch, frames: number,
   let beating = false;
   let beat = 0;
   let held = 0;
+  let tapped = 0;
   const pressBeat = () => {
     if (!keyboard || !beating || gameOf(host).phase !== Phase.match) return;
     const [tap, hold] = botBeatKeys(++beat);
+    tapped = tap;
     for (const player of clients.clients) {
       if (hold !== held && held !== 0) for (const client of clients.clients) client.key(player.slot, held, 0, false);
       if (hold !== held && hold !== 0) for (const client of clients.clients) client.key(player.slot, hold, 0, true);
-      if (tap !== 0) clients.press(player.slot, tap);
+      if (tap !== 0) for (const client of clients.clients) client.key(player.slot, tap, 0, true);
     }
     held = hold;
   };
   const frame = () => {
     pressBeat();
     clients.frames(1);
+    if (tapped !== 0) {
+      for (const player of clients.clients) for (const client of clients.clients) client.key(player.slot, tapped, 0, false);
+      tapped = 0;
+    }
     if (!keyboard) helpers.service(clients);
     helpers.typed.forEach((characters, slot) => {
       if (characters > 0) measure.typed(slot, characters);

@@ -92,6 +92,23 @@ Owner decisions, 6 Oct 2026 (#62):
   through its gameplan, measured, not by making its kit like the others. See
   "Fighter gameplans" under "Computer opponent".
 
+## Online input timing
+
+Tom decided, 7 Oct 2026 (#60): online play uses a fixed two-frame input
+delay with rollback, and press-to-screen response must stay within three
+frames in ordinary play. The delay stays fixed throughout a match; it does
+not increase to hide network jitter. The playable keyboard build captures
+local keys into rows for two simulation frames later, sends each row without
+waiting for another sample, and draws the local prediction. The correction
+window is 24 frames. Keyboard play needs no helper; an optional controller
+maps to the same keys.
+
+The journal integrity diagnostic also defaults to delay 2 and rollback 24.
+Its capture-to-first-prediction check measures map admission, which does not
+establish press-to-screen time. Native acceptance retains the stimulus clock
+and reports the response distribution, separately from intentional action
+startup, recovery, and prediction held at the correction limit.
+
 ## Bounded SDI
 
 Reversible default selected under the owner's authorization, 6 Oct 2026 (#70),

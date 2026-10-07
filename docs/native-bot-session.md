@@ -451,8 +451,8 @@ pause to check.
 ## Raw playable cost captures
 
 Build or rebuild with `--profile native-perf` for script-cost trials of the
-playable build. The diagnostic uses the playable build's callback keys and
-confirmed pooled fighters, with developer setup commands and the frame meter;
+playable build. The diagnostic uses the playable build's local keyboard rows
+and predicted pooled fighters, with developer setup commands and the frame meter;
 it has no hot reload or scene recorder. The ordinary playable entry contains
 no meter. Use the same diagnostic map bytes for each graphics-rate comparison.
 

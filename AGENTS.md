@@ -197,7 +197,8 @@ code. From smashcraft:ts/:
   with maps under Maps/00-Smashcraft/tests; play preserves two prior versions
   beside the latest correctly titled build and archives the rest under older/.
   The playable build plays on the keyboard alone, through Warcraft's own
-  synchronized key events (#166); play starts no helper and never needs one.
+  local keyboard sampling with two-frame delay and rollback (#60/#166);
+  play starts no helper and never needs one.
   When the always-on controller service has a pad, the pad presses the same keys.
 - Controller: `bun wisp controller` points the always-on controller service
   (`wc3-journal --service`, the login unit smashcraft-controller.service) at
