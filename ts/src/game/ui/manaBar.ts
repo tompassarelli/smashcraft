@@ -85,6 +85,7 @@ export class ManaBar {
       this.width = width;
       this.shownFill = -1.0;
       BlzFrameSetSize(this.back, width + 2 * this.border, this.height + 2 * this.border);
+      BlzFrameSetSize(this.exLabel, width, f32(0.01));
       BlzFrameSetSize(this.glow, width, this.height);
       BlzFrameSetSize(this.flash, width, this.height);
       BlzFrameSetSize(this.drain, width + 2 * this.border, this.height + 2 * this.border);
