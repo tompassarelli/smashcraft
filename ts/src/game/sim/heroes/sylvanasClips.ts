@@ -1,12 +1,12 @@
 import { f32 } from "wisp/src/sim/f32";
 import type { HeroClipTable } from "./hero";
 
-const STAND = { index: 12, seconds: f32(1.133) };
-const SHOT = { index: 5, seconds: f32(1.334) };
-const SPELL = { index: 7, seconds: f32(1.333) };
-const WALK = { index: 8, seconds: f32(0.833) };
-const HIT = { index: 10, seconds: f32(0.034) };
-const DEATH = { index: 4, seconds: f32(3.233) };
+const STAND = { index: 9, seconds: f32(1.134) };
+const SHOT = { index: 6, seconds: f32(1.334) };
+const SPELL = { index: 4, seconds: 1.0 };
+const WALK = { index: 8, seconds: f32(0.834) };
+const HIT = STAND;
+const DEATH = { index: 5, seconds: f32(3.233) };
 export const SYLVANAS_FALLBACK_CLIP = STAND;
 export const SYLVANAS_CLIPS: HeroClipTable = {
   idle: STAND, walk: WALK, dash: WALK, run: WALK,

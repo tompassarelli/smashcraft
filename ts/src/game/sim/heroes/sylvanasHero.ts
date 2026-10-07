@@ -14,8 +14,8 @@ export const SYLVANAS_HERO: HeroDefinition = {
   passive: { name: "Black Quiver", description: "Black Arrow hits charge her next melee strike. A shield spends the charges without a bonus." },
   ultimate: { name: "Charm", description: "Command a spectral echo to fire at the nearest foe." },
   presentation: {
-    model: "units\\creeps\\SylvanusWindrunner\\SylvanusWindrunner.mdl", objectId: 0x6d667379,
-    portrait: "ReplaceableTextures\\CommandButtons\\BTNSylvanusWindrunner.blp",
+    model: "Units\\Undead\\EvilSylvanas\\EvilSylvanas.mdl", objectId: 0x6d667379,
+    portrait: "ReplaceableTextures\\CommandButtons\\BTNBansheeRanger.blp",
     clips: SYLVANAS_CLIPS, fallback: SYLVANAS_FALLBACK_CLIP,
   },
 };
