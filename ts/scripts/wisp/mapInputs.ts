@@ -24,11 +24,12 @@ const tryMapPromise = <A>(operation: string, path: string, run: () => PromiseLik
 const tryMapSync = <A>(operation: string, path: string, run: () => A) => Effect.try({ try: run, catch: (cause) => new MapBuildFailure({ operation, path, cause }) });
 const EMPTY_MODEL = "the map script names an empty model path";
 const BuildOptions = Schema.Struct({
-  base: Schema.NonEmptyString,
-  container: Schema.NonEmptyString,
+  // Each input left out resolves from the checkout's build-inputs.json (buildInputs.ts).
+  base: Schema.optional(Schema.NonEmptyString),
+  container: Schema.optional(Schema.NonEmptyString),
   /** Holds animation-assets, illidan-animation, selection-assets, fighter-renders, stage-assets, impact-assets, imported-models and original-clips-static-lights. */
-  assets: Schema.NonEmptyString,
-  summon: Schema.NonEmptyString,
+  assets: Schema.optional(Schema.NonEmptyString),
+  summon: Schema.optional(Schema.NonEmptyString),
   name: Schema.String.check(Schema.isPattern(/^[\x20-\x7e]{1,200}$/)),
   out: Schema.String.check(Schema.isPattern(/\.w3x$/)),
   packager: Schema.optional(Schema.NonEmptyString),
@@ -193,10 +194,10 @@ export const importedAssets = (assets: string, summon: string) => Effect.gen(fun
   const clipFiles = clipEvidence.records.flatMap((record) => [...record.clips.map(({ filename }) => filename), ...(record.light === null ? [] : [record.light.filename])]);
   // A changed fighter clip (a re-authored original, a new hero) needs a new pool in the private inputs too.
   yield* requireListed(clipEvidencePath, clipFiles, ORIGINAL_CLIP_MODELS,
-    `this assets folder's clip pool predates the checkout's clips. From the repository root, export one into a copy NEW of ${assets} ` +
-    "whose animation-assets and illidan-animation hold the packaged models fighterAssetInfo.ts and demonHunterAssetInfo.ts name: " +
-    `bun tools/animations/export-original-clips.ts --assets NEW --out NEW/original-clips-static-lights --keep-unchanged; ` +
-    "then point play-inputs.json's assets at NEW (smashcraft:docs/fighter-animation-work.md, \"Refresh play's clip pools\")");
+    `this assets folder's clip pool predates the checkout's clips. From the repository root, export a new pool from ${assets} ` +
+    "with animation-assets and illidan-animation holding the packaged models fighterAssetInfo.ts and demonHunterAssetInfo.ts name: " +
+    `cp -rL ${clipDirectory} NEW && chmod -R u+w NEW && bun tools/animations/export-original-clips.ts --assets ${assets} --out NEW --keep-unchanged; ` +
+    "then `bun wisp inputs add original-clips-static-lights NEW` and commit build-inputs.json (smashcraft:docs/build-inputs.md)");
   const soundProblem = soundTableProblem(MODEL_SOUND_TABLE);
   if (soundProblem !== undefined) {
     return yield* new MapBuildFailure({ operation: "check model sounds", path: "ts/src/game/assets/modelSoundInfo.ts", cause: `${soundProblem}; export them with tools/animations/export-model-sounds.ts` });

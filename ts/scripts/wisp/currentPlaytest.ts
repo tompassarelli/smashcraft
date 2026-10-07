@@ -1,13 +1,20 @@
 // The owner's play command consumes main. Experiments use fresh/accept instead.
-import { copyFileSync, existsSync, mkdirSync, readdirSync, renameSync } from "node:fs";
+// Every builder of a revision takes that revision's lock, builds in a private
+// staging folder and publishes the finished folder by one rename, so
+// concurrent plays of one revision wait and reuse one build
+// (smashcraft:docs/build-inputs.md).
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, dirname } from "node:path";
-import { Effect, Schema } from "effect";
+import { Effect } from "effect";
 import { PlayProblem } from "wisp/scripts/wisp/play";
+import { publish, removeTree } from "./buildInputs";
+import { withLock } from "./fileLock";
 import { projectRoot } from "./project";
 
 const inputsRoot = join(homedir(), ".local/share/smashcraft-build-inputs");
-const Inputs = Schema.Struct({ base: Schema.String, container: Schema.String, assets: Schema.String, summon: Schema.String });
+const builds = join(inputsRoot, "play-current");
+const locks = join(inputsRoot, "locks");
 const run = (cwd: string, args: readonly string[]) => Effect.tryPromise({
   try: async () => {
     const child = Bun.spawn([...args], { cwd, stdout: "inherit", stderr: "inherit" });
@@ -15,22 +22,55 @@ const run = (cwd: string, args: readonly string[]) => Effect.tryPromise({
   },
   catch: (cause) => new PlayProblem({ problem: String(cause) }),
 });
+const capture = (cwd: string, args: readonly string[]) => {
+  const child = Bun.spawnSync([...args], { cwd, stdout: "pipe", stderr: "pipe" });
+  return child.exitCode === 0 ? child.stdout.toString().trim() : undefined;
+};
+const tryPlay = <A>(run: () => A) => Effect.try({ try: run, catch: (cause) => new PlayProblem({ problem: String(cause) }) });
 
-/** Main's build keeps its number; a new build of main takes the next number after every one built or in the owner's library. */
-export function playVersion(builds: string, library: string, revision: string): string {
-  const numbered = (directory: string): (readonly [number, number, number])[] => {
-    if (!existsSync(directory)) return [];
-    return readdirSync(directory).flatMap((entry) => {
-      const match = /^Smashcraft (\d+)\.(\d+)\.(\d+)\.w3x$/.exec(entry);
-      return match === null ? [] : [[Number(match[1]), Number(match[2]), Number(match[3])] as const];
+/** A revision's reserved version: `play-current/REVISION.version`. */
+const reservation = (directory: string, revision: string) => join(directory, `${revision}.version`);
+
+/**
+ * Main's build keeps its number; a new build of main takes the next number
+ * after every one built, reserved or in the owner's library.
+ */
+export function playVersion(directory: string, library: string, revision: string): string {
+  const parse = (text: string) => {
+    const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(text.trim());
+    return match === null ? [] : [[Number(match[1]), Number(match[2]), Number(match[3])] as const];
+  };
+  const numbered = (folder: string): (readonly [number, number, number])[] => {
+    if (!existsSync(folder)) return [];
+    return readdirSync(folder).flatMap((entry) => {
+      const match = /^Smashcraft (\d+\.\d+\.\d+)\.w3x$/.exec(entry);
+      return match === null ? [] : parse(match[1]!);
     });
   };
-  const [own] = numbered(join(builds, revision));
+  const reserved = (path: string) => existsSync(path) ? parse(readFileSync(path, "utf8")) : [];
+  const [own] = [...reserved(reservation(directory, revision)), ...numbered(join(directory, revision))];
   if (own !== undefined) return own.join(".");
-  const seen = [library, join(library, "older"), ...(existsSync(builds) ? readdirSync(builds).map((entry) => join(builds, entry)) : [])].flatMap(numbered);
+  const entries = existsSync(directory) ? readdirSync(directory).map((entry) => join(directory, entry)) : [];
+  const seen = [
+    ...[library, join(library, "older"), ...entries].flatMap(numbered),
+    ...entries.filter((entry) => entry.endsWith(".version")).flatMap(reserved),
+  ];
   const [major, minor, patch] = seen.reduce((best, next) => (next[0] - best[0] || next[1] - best[1] || next[2] - best[2]) > 0 ? next : best, [0, 0, 0] as const);
   return `${major}.${minor}.${patch + 1}`;
 }
+
+/** Reserves `revision`'s version under the numbering lock, so two revisions built at once never share a number. */
+const reserveVersion = (library: string, revision: string) => withLock(join(locks, "play-version.lock"), "Waiting for another play build to number its map",
+  tryPlay(() => {
+    const version = playVersion(builds, library, revision);
+    const path = reservation(builds, revision);
+    if (!existsSync(path)) {
+      mkdirSync(builds, { recursive: true });
+      writeFileSync(`${path}.${process.pid}.next`, `${version}\n`);
+      renameSync(`${path}.${process.pid}.next`, path);
+    }
+    return version;
+  }));
 
 /** Main's revision, its companion tree and the main checkout. */
 const resolveMain = Effect.tryPromise({
@@ -47,24 +87,43 @@ const resolveMain = Effect.tryPromise({
   catch: (cause) => new PlayProblem({ problem: String(cause) }),
 });
 
-/** Builds and dependency installs stay in a dedicated lane, never main. */
+/** Runs `effect` as the only user of `revision`'s build lane and output. */
+const holdingRevision = <A, E, R>(revision: string, effect: Effect.Effect<A, E, R>) =>
+  withLock(join(locks, `play-${revision}.lock`), `Waiting for another build of ${revision.slice(0, 12)}`, effect);
+
+/**
+ * The revision's build lane, outside main. Only the holder of the
+ * revision's lock uses it; one left half-made by an interrupted run is replaced.
+ */
 const buildLane = (mainCheckout: string, revision: string) => Effect.gen(function*() {
   const lane = join(dirname(mainCheckout), "worktrees", `play-build-${revision.slice(0, 12)}`);
+  if (existsSync(lane) && capture(lane, ["git", "rev-parse", "HEAD"]) !== revision) {
+    capture(projectRoot, ["git", "worktree", "remove", "--force", lane]);
+    yield* tryPlay(() => rmSync(lane, { recursive: true, force: true }));
+    capture(projectRoot, ["git", "worktree", "prune"]);
+  }
   if (!existsSync(lane)) yield* run(projectRoot, ["git", "worktree", "add", "--detach", lane, revision]);
   return lane;
+});
+
+/** The lane is scratch: a finished build removes it. */
+const removeLane = (mainCheckout: string, revision: string) => Effect.sync(() => {
+  capture(projectRoot, ["git", "worktree", "remove", "--force", join(dirname(mainCheckout), "worktrees", `play-build-${revision.slice(0, 12)}`)]);
 });
 
 const helperPath = (companion: string) => join(inputsRoot, "play-helpers", companion, "wc3-journal");
 
 const buildHelper = (lane: string, helper: string) => Effect.gen(function*() {
-  const capacity = join(homedir(), ".codex/skills/machine-capacity/scripts/machine-capacity.mjs");
+  const capacity = join(homedir(), "code/nixos-config/main/dotfiles/agents/skills/machine-capacity/scripts/machine-capacity.mjs");
   yield* run(join(lane, "companion"), ["nix-shell", "-p", "stdenv.cc", "cmake", "pkg-config", "libxkbcommon", "udev", "--run",
     `PATH=${join(homedir(), ".rustup/toolchains/1.96.1-x86_64-unknown-linux-gnu/bin")}:$PATH bun '${capacity}' run --class moderate --owner smashcraft:play-helper --timeout-seconds 900 -- cargo build --release --locked --jobs 2 --bin wc3-journal`]);
-  mkdirSync(dirname(helper), { recursive: true });
   // A helper another run installed meanwhile may be running: replace it by rename, never write over it (ETXTBSY).
-  const staged = `${helper}.${process.pid}.tmp`;
-  copyFileSync(join(lane, "companion/target/release/wc3-journal"), staged);
-  renameSync(staged, helper);
+  yield* tryPlay(() => {
+    mkdirSync(dirname(helper), { recursive: true });
+    const staged = `${helper}.${process.pid}.tmp`;
+    copyFileSync(join(lane, "companion/target/release/wc3-journal"), staged);
+    renameSync(staged, helper);
+  });
 });
 
 /** Main's controller helper, built on first use. */
@@ -72,29 +131,46 @@ export const currentHelper = Effect.gen(function*() {
   const { revision, companion, mainCheckout } = yield* resolveMain;
   const helper = helperPath(companion);
   if (existsSync(helper)) return helper;
-  console.log("Building the controller helper");
-  yield* buildHelper(yield* buildLane(mainCheckout, revision), helper);
-  return helper;
+  return yield* holdingRevision(revision, Effect.gen(function*() {
+    if (existsSync(helper)) return helper;
+    console.log("Building the controller helper");
+    yield* buildHelper(yield* buildLane(mainCheckout, revision), helper);
+    return helper;
+  }));
 });
 
-/** Main's playable map and helper, built on first use; `library` is the owner's Smashcraft maps folder. */
+/**
+ * Main's playable map, built on first use into play-current/REVISION from the
+ * build inputs main's build-inputs.json names; `library` is the owner's
+ * Smashcraft maps folder. The controller helper is optional (#166): play
+ * builds it after the map, and a failed helper build leaves the keyboard.
+ */
 export const currentPlaytest = (library: string) => Effect.gen(function*() {
   const { revision, companion, mainCheckout } = yield* resolveMain;
-  const builds = join(inputsRoot, "play-current");
-  const title = `Smashcraft ${playVersion(builds, library, revision)}`;
-  const directory = join(builds, revision);
-  const source = join(directory, `${title}.w3x`);
+  const title = `Smashcraft ${yield* reserveVersion(library, revision)}`;
+  const final = join(builds, revision);
+  const map = { folder: "00-Smashcraft", file: `${title}.w3x`, title, source: join(final, `${title}.w3x`) };
   const helper = helperPath(companion);
-  if (existsSync(source) && existsSync(helper)) return { map: { folder: "00-Smashcraft", file: `${title}.w3x`, title, source }, helper };
-  console.log(`Building ${title} for your controller`);
-  const input = yield* Effect.tryPromise({ try: () => Bun.file(join(inputsRoot, "play-inputs.json")).json(), catch: (cause) => new PlayProblem({ problem: `couldn't read play's private build inputs: ${String(cause)}` }) }).pipe(
-    Effect.flatMap(Schema.decodeUnknownEffect(Inputs)), Effect.mapError((cause) => new PlayProblem({ problem: String(cause) })),
-  );
-  const lane = yield* buildLane(mainCheckout, revision);
-  yield* run(join(lane, "ts"), ["bun", "install", "--frozen-lockfile"]);
-  mkdirSync(directory, { recursive: true });
-  yield* run(join(lane, "ts"), ["bun", "wisp", "build", "--profile", "playable", "--base", input.base, "--container", input.container,
-    "--assets", input.assets, "--summon", input.summon, "--name", title, "--out", source]);
-  if (!existsSync(helper)) yield* buildHelper(lane, helper);
-  return { map: { folder: "00-Smashcraft", file: `${title}.w3x`, title, source }, helper };
+  const result = () => ({ map, helper: existsSync(helper) ? helper : undefined });
+  if (existsSync(map.source) && existsSync(helper)) return result();
+  return yield* holdingRevision(revision, Effect.gen(function*() {
+    const lane = existsSync(map.source) && existsSync(helper) ? undefined : yield* buildLane(mainCheckout, revision);
+    if (!existsSync(map.source) && lane !== undefined) {
+      console.log(`Building ${title}`);
+      yield* run(join(lane, "ts"), ["bun", "install", "--frozen-lockfile"]);
+      // A folder of an interrupted older run holds no finished map: replace it.
+      if (existsSync(final)) yield* tryPlay(() => removeTree(final));
+      mkdirSync(builds, { recursive: true });
+      const staging = yield* tryPlay(() => mkdtempSync(join(builds, `.${revision.slice(0, 12)}-`)));
+      yield* run(join(lane, "ts"), ["bun", "wisp", "build", "--profile", "playable", "--name", title, "--out", join(staging, `${title}.w3x`)]).pipe(
+        Effect.tapError(() => tryPlay(() => removeTree(staging)).pipe(Effect.ignore)),
+      );
+      yield* tryPlay(() => publish(staging, final));
+    }
+    if (!existsSync(helper) && lane !== undefined) {
+      yield* buildHelper(lane, helper).pipe(Effect.catch((problem) => Effect.sync(() => console.log(`No controller helper this time (${problem.problem}); the keyboard plays`))));
+    }
+    yield* removeLane(mainCheckout, revision);
+    return result();
+  }));
 });

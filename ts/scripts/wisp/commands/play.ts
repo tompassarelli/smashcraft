@@ -30,8 +30,8 @@ interface Playtest {
   /** The map build's ID, which its ready file names. */
   readonly build: string;
   readonly map: PlayDeclaration["map"];
-  /** The Linux helper for the build; the always-on controller service runs it when a controller is plugged in. */
-  readonly helper: string;
+  /** The Linux helper for the build, when it built; the always-on controller service runs it when a controller is plugged in. */
+  readonly helper: string | undefined;
   /** The computer's slot from 0; Tom's own is 0. */
   readonly computerSlot: number;
   /** The computer's level, 1-9: 9 plays its fighter's gameplan at full strength. */
@@ -128,7 +128,7 @@ export function playtest({ build, map, helper, computerSlot, computerLevel, menu
     }),
     // The keyboard always plays. The always-on controller service finds this
     // game and a pad by itself; without one, play goes on.
-    helper: { service: (game) => optionalController(helper, game.pid, build) },
+    helper: { service: (game) => helper === undefined ? Effect.succeed("keyboard (this build has no controller helper)") : optionalController(helper, game.pid, build) },
   };
 }
 
