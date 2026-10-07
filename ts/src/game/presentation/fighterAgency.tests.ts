@@ -65,11 +65,12 @@ test("frozen tech press lockouts preserve the full forecast through hitlag expir
   const bounded = new FighterAgencyForecast();
   const full = new FighterAgencyForecast(false);
   const input = neutralControls();
-  for (const hitlag of [1, 2, 7, 12]) {
+  for (const hitlag of [1, 2, 3, 4, 7, 12]) {
     for (const pressAge of [0, 19, 20, 39, 40, 255]) {
       const fighter = createFighter(Character.archer, 240.0, 1);
       const world = createRoster(1, [fighter]);
       fighter.launch.hitlag = hitlag;
+      fighter.visuals.hit = 1;
       fighter.launch.hitstun = 35;
       fighter.launch.knockbackX = 1.3747365474700928;
       fighter.launch.knockbackZ = 15.713310241699219;

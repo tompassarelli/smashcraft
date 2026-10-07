@@ -71,6 +71,7 @@ export class FighterAgencyForecast {
       || f.down.state !== DownState.none || f.shield.breakState !== ShieldBreak.none || f.shield.stun > 0;
     if (!controlled) return "act";
 
+    const freshHit = this.fighter.visuals.hit !== f.visuals.hit;
     copyFighterState(this.fighter, f, world.mask);
     this.fighter.grab.owner = undefined;
     this.fighter.grab.target = undefined;
@@ -83,8 +84,9 @@ export class FighterAgencyForecast {
     let nextCheck = 0;
     // A locked-out tech press cannot change contact. Still grow the forecast
     // through hitlag so exact motion caches warm a few new frames at a time
-    // before a fresh press can matter on the first unfrozen frame.
-    const lockedHorizon = Math.max(bufferFrames, TECH_WINDOW_FRAMES - f.launch.hitlag - 1);
+    // before a fresh press can matter on the first unfrozen frame. The hit's
+    // own callback already resolves contact; defer its optional preparation.
+    const lockedHorizon = freshHit ? bufferFrames : Math.max(bufferFrames, TECH_WINDOW_FRAMES - f.launch.hitlag - 1);
     try {
       for (let offset = 0; offset < TECH_WINDOW_FRAMES; offset++) {
         const before = this.fighter.down.state;
