@@ -91,7 +91,7 @@ const NORMALS: { readonly [style: number]: AuthoredMove | undefined } = {
     [AttackStyle.downSmash]: heroMove(15, 6, 32, 0, [...wingSweep(15, 1.0), ...wingSweep(18, -1.0)]),
     // Batwing Turn (#152): three wing beats around him. The first two drag the
     // target along with him at any percent; the third launches it.
-    [AttackStyle.neutralAir]: heroMove(7, 10, 19, 14, multiHit([
+    [AttackStyle.neutralAir]: heroMove(7, 10, 19, 9, multiHit([
       { first: 7, last: 8, strikes: BATWING_DRAG },
       { first: 10, last: 11, strikes: BATWING_DRAG },
       { first: 14, last: 16, strikes: [
@@ -100,8 +100,8 @@ const NORMALS: { readonly [style: number]: AuthoredMove | undefined } = {
         [capsule(-16.0, 30.0, -f32(M - WING_RADIUS), 45.0, WING_RADIUS), dreadlordHit(7.0, "POKE", 50, -1.0)],
       ] },
     ])),
-    [AttackStyle.forwardAir]: heroMove(10, 4, 24, 15, rake(10, [64.0, 52.0, 40.0, 28.0], L, dreadlordHit(14.0, "EDGE", 40))),
-    [AttackStyle.backAir]: heroMove(9, 4, 25, 15, path(9, [
+    [AttackStyle.forwardAir]: heroMove(10, 4, 24, 10, rake(10, [64.0, 52.0, 40.0, 28.0], L, dreadlordHit(14.0, "EDGE", 40))),
+    [AttackStyle.backAir]: heroMove(9, 4, 25, 10, path(9, [
       capsule(-16.0, 54.0, -f32(L - WING_RADIUS), 68.0, WING_RADIUS),
       capsule(-16.0, 46.0, -f32(L - WING_RADIUS), 52.0, WING_RADIUS),
       capsule(-16.0, 38.0, -f32(L - WING_RADIUS), 36.0, WING_RADIUS),

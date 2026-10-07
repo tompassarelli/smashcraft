@@ -110,7 +110,7 @@ Weight is relative to the current reference fighter at 1.00. Run and air speed a
 | Brewmaster | 1.13 | 0.98 | 0.90 | 1.20 | 1.10 |
 | Lich | 0.85 | 0.90 | 0.95 | 0.90 | 1.05 |
 | Uther | 1.10 | 0.92 | 0.88 | 1.08 | 1.02 |
-| Dreadlord | 1.14 | 1.00 | 1.22 | 1.10 | 1.15 |
+| Dreadlord | 1.24 | 1.10 | 1.22 | 1.10 | 1.15 |
 | Shadow Hunter | 0.94 | 1.04 | 1.00 | 0.92 | 1.08 |
 | Pit Lord | 1.28 | 0.80 | 0.70 | 1.65 | 1.35 |
 | Tinker | 1.05 | 0.94 | 0.86 | 1.20 | 0.95 |
@@ -519,9 +519,9 @@ sequence table and every pose's clip.
 | Forward smash — Twin Talons | 18/4/34 | 18 | L, 40, KILL | Two claws act as a single hit |
 | Up smash — Night Ascendant | 16/5/31 | 16 | L, 85, KILL | Wings and claws overhead |
 | Down smash — Wing Sweep | 15/6/32 | 14 | L, 25, EDGE | Broad front/rear body attack |
-| Neutral air — Batwing Turn | 7/10/19; L14 | 3 + 3 + 7 | M, 50, POKE | Three wing beats ([multi-hit](aerials.md)); wide, tradeable |
-| Forward air — Talon Reach | 10/4/24; L15 | 14 | L, 40, EDGE | Forward reach at cost of exposing arm |
-| Back air — Wing Backhand | 9/4/25; L15 | 15 | L, 35, KILL | Wing hurtbox extends too |
+| Neutral air — Batwing Turn | 7/10/19; L9 | 3 + 3 + 7 | M, 50, POKE | Three wing beats ([multi-hit](aerials.md)); wide, tradeable |
+| Forward air — Talon Reach | 10/4/24; L10 | 14 | L, 40, EDGE | Forward reach at cost of exposing arm |
+| Back air — Wing Backhand | 9/4/25; L10 | 15 | L, 35, KILL | Wing hurtbox extends too |
 | Up air — Horn Lift | 7/3/21; L12 | 8 | M, 85, LAUNCH | Short upward head attack |
 | Down air — Talon Drop | 14/4/29; L20 | 12 | M, 270, SPIKE | Downward claw strike, no stall |
 
@@ -586,7 +586,7 @@ Standing grab 7/3/26, reach 0.65H. Pummel: claw squeeze. No automatic lifesteal.
 | Neutral B | **Spirit Glaive** (#133, [kit review 2](kit-review-2.md#shadow-hunter-133)): a returning glaive, speed 0.12H/frame out for 22 frames, then back toward Shadow Hunter at the same speed; life 70, radius 0.15H, one active, reflectable (a reflected glaive flies straight). Outbound 6 damage, POKE at 35 degrees; returning 5 damage, POKE toward him. Caught, it ends. | Spawn f18, end f40; 0 mana |
 | Side B | **Serpent Ward:** ground-only placement 0.65H ahead; one ward, 26 durability, 240-frame life. It fires straight in its placement-facing direction at age 45, 85, 125, 165 and 205, never auto-aiming. Shots: 6 damage, POKE at 35 degrees, speed 0.10H/frame, life 36, radius 0.12H, reflectable. Recasting with a ward active recalls it after the same vulnerable animation, costs 0, and grants no refund. | Ward appears f26, action ends f52; initial cast 20 mana |
 | Up B | **Loa Vault:** a spirit-assisted arc 2.0H high and 0.6H lateral, no hitbox or intangibility. Free version 1.4H and 0.3H lateral. | Movement f8–30, then helpless; 15 mana |
-| Down B | **Hex** (#133): short visible orb, speed 0.07H/frame, life 26, radius 0.18H. 2 damage, POKE at 40 degrees. For 50 frames the target cannot attack, grab or start neutral, side or down specials, but keeps movement, jump, shield, dodges, DI and up special (recovery). It mashes out with the grab and freeze rule, never before frame 20. No hurtbox change. 240-frame hex immunity after it ends. Reflectable; one active. | Spawn f24, end f53; 25 mana |
+| Down B | **Hex** (#133): short visible orb, speed 0.07H/frame, life 26, radius 0.18H. 2 damage, POKE at 40 degrees. For 50 frames the target cannot attack, grab or start neutral, side or down specials, but keeps movement, jump, shield, dodges, DI and up special (recovery). It mashes out with the grab and freeze rule, never before frame 36 (20 before #105 pass 4: a point-blank Hex ran out during his own cast). No hurtbox change. 240-frame hex immunity after it ends. Reflectable; one active. | Spawn f24, end f40 (f53 before #105 pass 4); 25 mana |
 
 ### Grab and throws
 
@@ -1023,7 +1023,7 @@ tilt is the exception), so physics and specials carry their identities.
 ### Archer
 
 **Identity:** a hit-and-run archer: the fastest run (13.20) and jump start
-(3 frames) on the lightest body (weight 68; the roster table's 1.00 is 75). Arrows and the homing arrow add damage
+(3 frames) on the lightest body (weight 62; the roster table's 1.00 is 75). Arrows and the homing arrow add damage
 from range without hitstun or interruption. Her spaced fade-back forward air
 is safe on shield. One hippogryph serves both remaining specials
 ([Archer's hippogryph specials](archer-specials.md)): her down special calls
@@ -1213,6 +1213,29 @@ overlapping, median 16.5 points; after pass 3 (before the Archer change)
 11, 27, 17.0. Field rates moved toward even (mean distance from 50%
 9.8 → 7.1 points) while the matchup median stayed put: at level 9 the
 computers turn a small edge in one matchup into a lopsided result.
+
+Pass 4 brings every fighter inside 40-60% against the field at 400 a pair
+(main 4776861a, after pass 3, → after pass 4). Dreadlord and Shadow Hunter
+were first checked for computer skill. Dreadlord's computer converted only a
+quarter of his Sleeps, because whiff punishing didn't count a sleeper as a
+window. It does now, for any grounded fighter asleep or stunned
+(smashcraft:ts/src/game/match/botPunish.ts), and conversion rose to 42%, but
+his rate barely moved. Both fighters lost on damage per hit (Dreadlord 6.8,
+Shadow Hunter 5.9, against 7.5-9 for their opponents), so the kit changes
+follow. Shadow Hunter's Hex had a kit defect: the target mashed out at frame
+20 while he was still in his 53-frame cast, so no one, human or computer,
+could cash it. The cast now ends on frame 40 and Hex holds at least 36
+frames, which leaves him at least 20 frames after a point-blank Hex.
+
+| Fighter | Lever (identity) | After pass 3 | After pass 4 |
+| --- | --- | --- | --- |
+| Dreadlord | close pressure and deceptive aerial approach: run 1.00→1.10, Raking Claw 10→12, Batwing Turn, Talon Reach and Wing Backhand landing lag 14/15/15 → 9/10/10; weight 1.14→1.24 | 33%, 3% | 49%, 3% |
+| Shadow Hunter | glaive angles: thrusts 9→11, Low Crescent 5→7; Hex cashable (cast end f53→f40, mash floor 20→36) | 33%, 1% | 45%, 2% (Hex fix: his row alone, 400 a pair; 44% before it) |
+| Archer | her weight is her weakness: 68→62; her dash attack, a speed tool, 8→6 | 67%, 1% | 56%, 1% |
+| The other nine | unchanged | 43-60% | Rifleman 57, Illidan 53, Blademaster 59, Mountain King 51, Warden 45, Lich 42, Uther 47, Pit Lord 53, Beastmaster 45% |
+
+Matchups after pass 4 (before the Hex fix): 14 of 66 inside 45-55%, 26
+intervals overlapping, median distance from 50% 12.9 points.
 
 ## Implementation details for the overnight agent
 

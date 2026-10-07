@@ -1,5 +1,6 @@
 // The computer's whiff punish: an opponent in a move's end lag, a missed
-// grab, a whiffed special, a landing, a dropped shield or a dodge's end can't
+// grab, a whiffed special, a landing, a dropped shield, a dodge's end, or
+// asleep or stunned (a status that blocks every action) can't
 // act for a number of frames its own counters already hold. The computer reads
 // that window, takes its gameplan spacing tool, or else its fastest ground move,
 // whose first active frame lands inside it, running in first when the gap needs
@@ -12,6 +13,7 @@ import { floorDiv } from "wisp/src/sim/intMath";
 import { type AttackBuffer, queueAttack } from "../input/attackBuffer";
 import { AttackStyle, Character, DownState, GrabAction, LedgeState } from "../sim/codes";
 import { GROUND_ROLL_FRAMES, SPOT_DODGE_FRAMES, SPOT_DODGE_INTANGIBLE_END, canAttack, canShieldGrab, isIntangible } from "../sim/conditions";
+import { heroStatusBlocksActions } from "../sim/heroStatus";
 import type { Fighter } from "../sim/fighter";
 import { heroSpecialEndFrame, runningHeroSpecial } from "../sim/heroSpecialRules";
 import { attackStartupFrames, characterAttackActiveFrames } from "../sim/moves";
@@ -24,7 +26,7 @@ import { botChance, moveReachAhead, moveReaches } from "./botMoves";
 import type { CpuSkill } from "./cpuLevel";
 
 /** What holds the opponent: the committal states a punish answers. */
-export const PunishKind = { none: 0, endLag: 1, grab: 2, special: 3, landing: 4, shieldDrop: 5, dodge: 6 } as const;
+export const PunishKind = { none: 0, endLag: 1, grab: 2, special: 3, landing: 4, shieldDrop: 5, dodge: 6, status: 7 } as const;
 export type PunishKind = (typeof PunishKind)[keyof typeof PunishKind];
 
 /** A roll is intangible through this frame (conditions.ts). */
@@ -77,7 +79,13 @@ export function punishWindow(t: Readonly<Fighter>, frame: number, window: Punish
     || t.down.state !== DownState.none || t.grab.owner !== undefined || t.grab.target !== undefined || t.grab.action !== GrabAction.none
     || t.ledge.state !== LedgeState.none || t.shield.raised || t.shield.stun > 0) return false;
   const { attack } = t;
-  if (t.landing.lag > 0) {
+  if (heroStatusBlocksActions(t)) {
+    // Asleep or stunned: the frames left unless it mashes out sooner. It shows from its first frame.
+    window.kind = PunishKind.status;
+    window.frames = t.status.conditionFrames;
+    window.elapsed = 255;
+    window.key = floorDiv(frame, 32) * 8 + PunishKind.status;
+  } else if (t.landing.lag > 0) {
     window.kind = PunishKind.landing;
     window.frames = t.landing.lag;
     // A landing shows from its first frame; its length is what a level misjudges.

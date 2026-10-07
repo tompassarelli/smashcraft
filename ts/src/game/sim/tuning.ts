@@ -131,7 +131,7 @@ type OriginalFighter = "archer" | "rifleman" | "demonHunter";
 /** Defaults for the original roster, never a reference-character selector. */
 export const AUTHORED_PHYSICS: { readonly [name in OriginalFighter]: FighterPhysics } = {
   archer: {
-    weight: 68.0,
+    weight: 62.0,
     gravity: melee(0.23000000417232513),
     terminalSpeed: melee(2.799999952316284),
     fastFallSpeed: melee(3.4000000953674316),

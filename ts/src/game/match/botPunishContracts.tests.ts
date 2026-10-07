@@ -8,7 +8,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { clearAttackBuffer, queueAttack } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS } from "../input/participants";
-import { AttackStyle, Character } from "../sim/codes";
+import { AttackStyle, Character, HeroStatusKind } from "../sim/codes";
 import { createFighter } from "../sim/fighter";
 import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
 import { attackLandingLag } from "../sim/moves";
@@ -177,4 +177,41 @@ test("computers punish in ordinary level-9 matches: they attack into open window
   // Measured over 1127 windows: 251 attacked into, 188 landed in (16.7%); without the punish 150 and 123 of 1038 (11.9%).
   assertGreaterThan(attempts, 200);
   assertGreaterThan(landed * 100, windowsSeen * 14);
+});
+
+test("a grounded sleeper is a punish window for its frames left, and a level-9 Dreadlord beside it hits it before it wakes (#105)", () => {
+  for (let seed = 0; seed < HARD_SEEDS; seed++) {
+    const world = createRoster(3, [createFighter(Character.pitLord, 0.0, 1), createFighter(Character.dreadlord, 140.0, -1)]);
+    const match = createMatchState();
+    match.phase = Phase.match;
+    match.stageChoice = 0;
+    match.timeLimitMinutes = 0;
+    match.cpuLevels[1] = 9;
+    match.matchSeed = seed;
+    const produced = createFrameControls();
+    const controls = createFrameControls();
+    const runtime = createPacingAndPresentation();
+    const row = createMatchFrameInput();
+    const sleeper = fighterAt(world, 0);
+    sleeper.status.condition = HeroStatusKind.sleep;
+    sleeper.status.conditionFrames = 40;
+    const window: PunishWindow = { frames: 0, kind: PunishKind.none, elapsed: 0, key: 0 };
+    assertTrue(punishWindow(sleeper, 1, window));
+    assertEquals(window.kind, PunishKind.status);
+    assertEquals(window.frames, 40);
+    let hit = false;
+    for (let n = 1; n <= 40 && !hit; n++) {
+      const frame = runtime.simulationFrame + 1;
+      for (const slot of PARTICIPANT_SLOTS) {
+        if (!isActive(world, slot)) continue;
+        copyControls(produced.inputs[slot], NEUTRAL);
+        clearAttackBuffer(produced.commands[slot]);
+      }
+      produceComputerInput(match, world, runtime, 1, frame, produced.inputs[1], produced.commands[1]);
+      assertTrue(captureFrame(row, frame, world.mask, produced, runtime));
+      assertTrue(executeMatchFrame(row, match, world, controls, runtime, frame));
+      hit = sleeper.status.damage > 0.0 || sleeper.grab.owner !== undefined;
+    }
+    assertTrue(hit);
+  }
 });

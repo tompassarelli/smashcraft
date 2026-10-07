@@ -6,6 +6,7 @@ import { floorMod } from "wisp/src/sim/intMath";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
 import { AttackStyle, Character, HeroStatusGroup, HeroStatusKind, ProjectileKind, SpecialAction } from "../codes";
 import { maskHeroStatusControls } from "../heroStatus";
+import { canAttack } from "../conditions";
 import { SpecialSlot } from "../heroSpecials";
 import { HeroSpecialUse, heroSpecialUse } from "../../match/botHeroKit";
 import { attackBuffer } from "../../input/attackBuffer";
@@ -274,11 +275,11 @@ test("Hex stops attacks, grabs and neutral, side and down specials for 50 frames
   assertEquals(fresh.target.status.conditionImmunity[HeroStatusGroup.silence], 240);
 });
 
-test("a hexed fighter mashes out sooner but never before frame 20, and immunity stops a second Hex", () => {
+test("a hexed fighter mashes out sooner but never before frame 36, and immunity stops a second Hex", () => {
   const { world, owner, target } = hexed();
   const woke = framesHexed(world, target, (f) => controls({ grabMashPressed: floorMod(f, 2) === 0, direction: floorMod(f, 4) < 2 ? 1 : -1 }));
-  assertLessThan(woke, 30);
-  assertGreaterThan(woke, 17);
+  assertLessThan(woke, 46);
+  assertGreaterThan(woke, 33);
   owner.mana.points = 100;
   target.motion.x = f32(owner.motion.x + f32(owner.facing * 150.0));
   frame(world, down);
@@ -318,5 +319,30 @@ test("Loa Vault turns to a stick held sideways on entry, so its drift heads back
     assertEquals(owner.facing, -facing);
     for (let f = 2; f <= 30; f++) frame(world);
     assertTrue(near(f32(f32(startX - owner.motion.x) * facing) / HERO_REFERENCE_HEIGHT, f32(0.6)));
+  }
+});
+
+test("Shadow Hunter cashes a Hex: a point-blank or spaced Hex leaves him time to walk in and thrust before a fast-mashing target wakes (#105, #133)", () => {
+  for (const gap of [90.0, 200.0]) {
+    const { world, owner, target } = pair(gap);
+    const commands = attackBuffer(0);
+    // The target mashes as fast as the rule rewards: a press every other frame and a new stick direction.
+    const mash = (f: number) => controls({ grabMashPressed: floorMod(f, 2) === 0, direction: floorMod(f, 4) < 2 ? 1 : -1 });
+    frame(world, down);
+    let f = 1;
+    for (; f <= 53 && target.status.condition !== HeroStatusKind.hex; f++) frame(world);
+    assertEquals(target.status.condition, HeroStatusKind.hex);
+    const before = target.status.damage;
+    let cashed = false;
+    for (let n = 1; n <= 60 && !cashed && target.status.condition === HeroStatusKind.hex; n++) {
+      const reach = Math.abs(f32(target.motion.x - owner.motion.x)) <= 130.0;
+      const free = owner.special.action === SpecialAction.none && canAttack(owner);
+      if (free && reach && owner.attack.style === undefined) beginFighterAttack(world, 0, AttackStyle.forwardTilt, false);
+      const input = { ...mash(n) };
+      maskHeroStatusControls(target, input, commands);
+      frame(world, free && !reach ? controls({ direction: owner.facing }) : controls(), input);
+      cashed = target.status.damage > before;
+    }
+    assertTrue(cashed);
   }
 });

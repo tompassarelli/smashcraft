@@ -223,7 +223,7 @@ export const UTHER_GROUND: GroundKit = {
 // and a wing dash that passes through to hit from behind.
 const DL = HitElement.slash;
 const rake = (ends: readonly (readonly [number, number, number])[], angle: Angle) =>
-  swing(8, ends.map(([z1, x, z]): Segment => [18.0, z1, x, z]), 10.0, groundHit(10.0, angle, 100.0, 22.0, DL));
+  swing(8, ends.map(([z1, x, z]): Segment => [18.0, z1, x, z]), 10.0, groundHit(12.0, angle, 100.0, 22.0, DL));
 export const DREADLORD_GROUND: GroundKit = {
   normals: {
     [AttackStyle.jab]: heroMove(4, 3, 14, 0, swing(4, [[18.0, 46.0, 69.0, 46.0], [18.0, 46.0, 69.0, 42.0], [18.0, 46.0, 64.0, 40.0]], 10.0, groundHit(4.0, 40, 50.0, 25.0, DL))),
@@ -246,7 +246,7 @@ export const DREADLORD_GROUND: GroundKit = {
 // below the stage, an edge poke under the lip, and a three-hit glaive spin.
 const SH = HitElement.slash;
 const thrust = (ends: readonly (readonly [number, number, number])[], angle: Angle) =>
-  swing(9, ends.map(([z1, x, z]): Segment => [20.0, z1, x, z]), 7.0, groundHit(9.0, angle, 75.0, 18.0, SH));
+  swing(9, ends.map(([z1, x, z]): Segment => [20.0, z1, x, z]), 7.0, groundHit(11.0, angle, 75.0, 18.0, SH));
 const spin = (damage: number, angle: Angle, growth: number, base: number) => groundHit(damage, angle, growth, base, SH);
 export const SHADOW_HUNTER_GROUND: GroundKit = {
   normals: {
@@ -257,7 +257,7 @@ export const SHADOW_HUNTER_GROUND: GroundKit = {
     [AttackStyle.upTilt]: heroMove(7, 5, 19, 0, swing(7, [
       [-40.0, 120.0, 60.0, 135.0], [-55.0, 128.0, 55.0, 128.0], [-60.0, 135.0, 40.0, 120.0], [-55.0, 128.0, 55.0, 128.0], [-40.0, 120.0, 60.0, 135.0],
     ], 9.0, groundHit(7.0, 80, 95.0, 20.0, SH))),
-    [AttackStyle.downTilt]: heroMove(7, 2, 16, 0, swing(7, [[18.0, 12.0, 145.0, -20.0], [18.0, 10.0, 145.0, -26.0]], 7.0, groundHit(5.0, 30, 70.0, 22.0, SH))),
+    [AttackStyle.downTilt]: heroMove(7, 2, 16, 0, swing(7, [[18.0, 12.0, 145.0, -20.0], [18.0, 10.0, 145.0, -26.0]], 7.0, groundHit(7.0, 30, 70.0, 22.0, SH))),
     [AttackStyle.dashAttack]: heroMove(8, 9, 20, 0, [
       held(8, 10, [20.0, 30.0, 100.0, 60.0], 7.0, spin(3.0, 0, 15.0, 25.0), 1),
       held(11, 13, [20.0, 60.0, 100.0, 30.0], 7.0, spin(3.0, 0, 15.0, 25.0), 2),
@@ -276,7 +276,7 @@ export const SHADOW_HUNTER_GROUND: GroundKit = {
 const ARCHER = HitElement.normal;
 export const ARCHER_GROUND: GroundKit = {
   normals: {
-    [AttackStyle.dashAttack]: heroMove(6, 4, 20, 0, [held(6, 9, [14.0, 14.0, 90.0, 10.0], 10.0, groundHit(8.0, 70, 55.0, 38.0, ARCHER))], 99.0, true),
+    [AttackStyle.dashAttack]: heroMove(6, 4, 20, 0, [held(6, 9, [14.0, 14.0, 90.0, 10.0], 10.0, groundHit(6.0, 70, 55.0, 38.0, ARCHER))], 99.0, true),
   },
   reaches: {},
 };

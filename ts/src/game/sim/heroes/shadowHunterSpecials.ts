@@ -49,7 +49,7 @@ const loaVault = (cost: number, riseVelocity: number, driftVelocity: number): Au
  * Hex (#133, docs/design/kit-review-2.md): for 50 frames the target cannot
  * attack, grab or start a neutral, side or down special; movement, jumps,
  * shield, dodges, DI and up special stay. It mashes out, never before frame
- * 20 (sim/heroStatus.ts). No hurtbox change. When it ends, 240 frames of
+ * 36 (sim/heroStatus.ts). No hurtbox change. When it ends, 240 frames of
  * immunity shared with silence.
  */
 const HEX: AppliedStatus = { kind: HeroStatusKind.hex, frames: 50, group: HeroStatusGroup.silence, immunityFrames: 240 };
@@ -62,7 +62,7 @@ const HEX_ORB: SpecialProjectile = {
 };
 
 const hex = (air: boolean): AuthoredSpecial => ({
-  cost: 25, endFrame: 53, projectiles: [HEX_ORB],
+  cost: 25, endFrame: 40, projectiles: [HEX_ORB],
   landingLag: air ? AIR_SPECIAL_LANDING_LAG : undefined,
 });
 

@@ -104,7 +104,10 @@ reads the window straight from the opponent's counters, the frames until it
 can act: a ground move past its active frames (`attack.cooldown`), a missed
 grab, a hero special past its last strike with nothing still to come (no
 shot, partner, guard, armor or branch), landing lag, a dropped shield's
-release lag and a dodge after its intangibility. A hit, a grab, a knockdown,
+release lag, a dodge after its intangibility, and a grounded opponent
+asleep or stunned (a status that blocks every action; its frames left,
+shortened by any mashing; #105 found Dreadlord converted only a quarter of
+his Sleeps before it). A hit, a grab, a knockdown,
 the ledge or the air is not a window. The computer then takes a ground move whose
 first active frame lands inside the window and whose strike reaches where
 the opponent will be (the bot's cached first-active-frame reach): its

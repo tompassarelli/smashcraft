@@ -75,7 +75,7 @@ test("Shadow Hunter glaive reach and heel direction are facing relative", () => 
     for (const [style, frame, x, damage] of [
       [AttackStyle.jab, 4, 60.0, 3.0],
       [AttackStyle.jab, 4, 120.0, 0.0],
-      [AttackStyle.forwardTilt, 8, 130.0, 9.0],
+      [AttackStyle.forwardTilt, 8, 130.0, 11.0],
       [AttackStyle.forwardTilt, 8, 185.0, 0.0],
       [AttackStyle.forwardSmash, 18, 130.0, 18.0],
       [AttackStyle.forwardAir, 9, 130.0, 11.0],
@@ -93,9 +93,9 @@ test("Shadow Hunter glaive reach and heel direction are facing relative", () => 
 test("Shadow Hunter tilted crescent and vertical outline leave gaps outside their paths", () => {
   for (const facing of [-1, 1]) {
     for (const [style, x, z, damage] of [
-      [AttackStyle.forwardTiltUp, 130.0, 90.0, 9.0],
+      [AttackStyle.forwardTiltUp, 130.0, 90.0, 11.0],
       [AttackStyle.forwardTiltDown, 130.0, 90.0, 0.0],
-      [AttackStyle.forwardTiltDown, 130.0, -100.0, 9.0],
+      [AttackStyle.forwardTiltDown, 130.0, -100.0, 11.0],
       [AttackStyle.forwardTiltUp, 130.0, -100.0, 0.0],
       [AttackStyle.upSmash, 90.0, 0.0, 0.0],
       [AttackStyle.upAir, 70.0, 0.0, 0.0],

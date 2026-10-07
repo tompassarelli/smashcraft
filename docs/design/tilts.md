@@ -215,7 +215,7 @@ victim in, onto the ground and toward his grab.
 | Normal | F/A/R | Damage | Reach | Launch | Angled | Inspired by |
 | --- | --- | --- | --- | --- | --- | --- |
 | Jab | 4/3/14 | 4 | 0.60H | 40, 50/25 | | Captain Falcon jab (sets up) |
-| Forward tilt | 8/3/21 | 10 | 0.95H | 35, 100/22 | up 55, down 20 | Captain Falcon forward tilt (angled) |
+| Forward tilt | 8/3/21 | 12 (10 before #105 pass 4) | 0.95H | 35, 100/22 | up 55, down 20 | Captain Falcon forward tilt (angled) |
 | Up tilt | 7/4/20 | 9 | 0.80H, farther behind | 90, 90/25 | | Mewtwo up tilt (arc behind) |
 | Down tilt | 6/3/18 | 6 | 0.80H, below 0.15H | toward him, 0, 30/30 | | Ultimate pull-in tilts (Ridley's tail, a reach-in rake) |
 
@@ -229,9 +229,9 @@ ledge-hanging fighter's body is.
 | Normal | F/A/R | Damage | Reach | Launch | Angled | Inspired by |
 | --- | --- | --- | --- | --- | --- | --- |
 | Jab | 4/2/12 | 3 | 0.70H | 35, 75/18 | | Glaive-handle check |
-| Forward tilt | 9/2/21 | 9 | 1.20H | 35, 75/18 | up 55, down 15 | Ike forward tilt (an angled sword) |
+| Forward tilt | 9/2/21 | 11 (9 before #105 pass 4) | 1.20H | 35, 75/18 | up 55, down 15 | Ike forward tilt (an angled sword) |
 | Up tilt | 7/5/19 | 7 | 0.80H, above | 80, 95/20 | | Glaive twirl overhead |
-| Down tilt | 7/2/16 | 5 | 1.15H, tip to −0.25H | 30, 70/22 | | Captain Falcon down tilt (an edge tool) |
+| Down tilt | 7/2/16 | 7 (5 before #105 pass 4) | 1.15H, tip to −0.25H | 30, 70/22 | | Captain Falcon down tilt (an edge tool) |
 
 ### Pit Lord: the super-heavy cleaver
 
@@ -311,7 +311,7 @@ Each now has one role:
 | Shadow Hunter | Multi-hit | 8/9/20 | 0.50H | 3 + 3 + 5 | last hit 45, 100/22 | Kirby's and Luigi's multi-hit dash attacks |
 | Uther | Heavy, pushes off shield | 12/3/20 | 0.35H | 12 | 30, 100/26 | Ganondorf dash attack |
 | Lich | Hovering low glide | 10/6/22 | 0.80H | 8 | 25, 90/30 | Mewtwo dash attack (slow, lingering) |
-| Archer | Sliding kick, pops up | 6/4/20 | 0.75H | 8 | 70, 55/38 | Fox dash attack (into up air) |
+| Archer | Sliding kick, pops up | 6/4/20 | 0.75H | 6 (8 before #105 pass 4) | 70, 55/38 | Fox dash attack (into up air) |
 | Rifleman | Rifle lunge | 9/3/25 | 0.50H | 11 | 40, 95/22 | Falco dash attack |
 | Pit Lord | Kill charge, no armor | 15/6/34 | 0.30H | 16 | 40, 110/26 | Ganondorf and Bowser dash attacks |
 | Beastmaster | Heaves the victim behind him | 11/5/28 | 0.50H | 12 | 135, 95/20 | Ultimate's reverse-launch dash attacks |

@@ -34,8 +34,9 @@ interface StatusRules {
 const RULES: { readonly [kind: number]: StatusRules | undefined } = {
   // Sleep (#132): mashed out as a freeze is, never before frame 24.
   [HeroStatusKind.sleep]: { blocksActions: true, blocksSpecials: true, endsOnDamage: true, mashMinimum: 24 },
-  // Hex (#133): a critter that cannot attack, grab or cast, mashed out never before frame 20.
-  [HeroStatusKind.hex]: { blocksActions: false, blocksSpecials: true, blocksAttacks: true, endsOnDamage: false, mashMinimum: 20 },
+  // Hex (#133): a critter that cannot attack, grab or cast, mashed out never before frame 36: past
+  // Shadow Hunter's own cast recovery after a point-blank hit, so he can cash it (#105).
+  [HeroStatusKind.hex]: { blocksActions: false, blocksSpecials: true, blocksAttacks: true, endsOnDamage: false, mashMinimum: 36 },
   // Chill only lowers top speeds (sim/chill.ts).
   [HeroStatusKind.chill]: { blocksActions: false, blocksSpecials: false, endsOnDamage: false },
   [HeroStatusKind.stun]: { blocksActions: true, blocksSpecials: true, endsOnDamage: true },
