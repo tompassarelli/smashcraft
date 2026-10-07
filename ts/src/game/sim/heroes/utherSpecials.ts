@@ -39,7 +39,7 @@ const radianceWave = [{
 }];
 const HOLY_RADIANCE: AuthoredSpecial = {
   cost: 20,
-  endFrame: 49,
+  endFrame: 69,
   regions: radianceRegions,
   projectiles: radianceWave,
   hurt: [hurtPose(12, 25, utherReach(48.0, 56.0))],
