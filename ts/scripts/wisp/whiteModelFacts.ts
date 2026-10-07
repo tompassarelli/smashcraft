@@ -55,7 +55,7 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
     },
     "emitters": []
   },
-  "war3mapimported/blademasterwhite-d00bf47934cf8f68d1b62d777cf68fd122dfac7a9188754e50cd4aefda778f88.mdx": {
+  "war3mapimported/blademasterwhite-56fba6dad67177de819bf65800788e9fd421b9bf3ff461901d56c95e7675e0d2.mdx": {
     "geosets": 9,
     "triangles": 550,
     "lights": 0,
@@ -91,7 +91,7 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
     },
     "emitters": []
   },
-  "war3mapimported/wardenwhite-5365221f4105e0a4edc1e64454493f2629d78c33d99f206c78923c64be43db8b.mdx": {
+  "war3mapimported/wardenwhite-827951155f021ff2cdcb154d0f2fded07b042cd1e9c04c2d03f5012fd23e42fd.mdx": {
     "geosets": 5,
     "triangles": 685,
     "lights": 0,
@@ -109,7 +109,7 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
     },
     "emitters": []
   },
-  "war3mapimported/lichwhite-3036be345c20ae0485967ad54bacbfe58d6abd7361281328e90f828189d27e31.mdx": {
+  "war3mapimported/lichwhite-1af5f483c0fb9c8c06c9b80acf00e3e299896d6db6d43d5cf0133ad4d63b3620.mdx": {
     "geosets": 12,
     "triangles": 596,
     "lights": 0,
@@ -145,7 +145,7 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
     },
     "emitters": []
   },
-  "war3mapimported/dreadlordwhite-51682259790a146ee4fe17c572e78cde64e602490fbc3cfbb1effb8bed32e424.mdx": {
+  "war3mapimported/dreadlordwhite-0ed4ab28a02f6caca283b13e65b2549ffab62b78a083a67db275c35b1b135a31.mdx": {
     "geosets": 12,
     "triangles": 806,
     "lights": 0,
@@ -163,7 +163,7 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
     },
     "emitters": []
   },
-  "war3mapimported/shadowhunterwhite-8215e02c7d3a3debed8c92593055a831d2c5ffd768ec3af249b173c910e66d8b.mdx": {
+  "war3mapimported/shadowhunterwhite-985db83ee1bc9cbf4907e337708b3aec0a23581723372298818c8e99b6697a61.mdx": {
     "geosets": 7,
     "triangles": 539,
     "lights": 0,
@@ -181,7 +181,7 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
     },
     "emitters": []
   },
-  "war3mapimported/pitlordwhite-b2b875da565c435c31594df24d69a08fd2d907274562eaaa2f533eb9eee9263c.mdx": {
+  "war3mapimported/pitlordwhite-1947945c40164c185596e35ab4e676db978225966f61afab6d3a3cd296ab18dd.mdx": {
     "geosets": 5,
     "triangles": 705,
     "lights": 0,
@@ -217,7 +217,7 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
     },
     "emitters": []
   },
-  "war3mapimported/lichkingwhite-8eff91fd9540ed157861b38334757daae59f25393fbf733b571494c46100bb99.mdx": {
+  "war3mapimported/lichkingwhite-9c6c318483342972ad65355b9dbe90e65fc2b86d4667790074fcbd0f6ac95c15.mdx": {
     "geosets": 7,
     "triangles": 1931,
     "lights": 0,
@@ -231,6 +231,24 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
         215.11300659179688,
         44.51449966430664,
         161.04100036621094
+      ]
+    },
+    "emitters": []
+  },
+  "war3mapimported/thrallwhite-ca629528805e2570f45ff937d45bf081445e4604d793258b0eef3454c8cff513.mdx": {
+    "geosets": 3,
+    "triangles": 557,
+    "lights": 0,
+    "bounds": {
+      "min": [
+        -207.31399536132812,
+        -210.51800537109375,
+        -74.03089904785156
+      ],
+      "max": [
+        208.11500549316406,
+        177.19700622558594,
+        633.6190185546875
       ]
     },
     "emitters": []

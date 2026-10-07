@@ -984,7 +984,7 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\ThrallOriginalClip51-13d37001907d8fe00c30b7a66d3d48f31fcade90de6fc0307bd43d0435719075.mdx", startSeconds: f32(81.831), endSeconds: f32(82.381), looping: false },
     { modelPath: "war3mapImported\\ThrallOriginalClip52-2adc31417122997d65200eceb4c08b3d11fe5d502f8fa9145c2d95b78e98748a.mdx", startSeconds: f32(82.481), endSeconds: f32(82.981), looping: false },
     { modelPath: "war3mapImported\\ThrallOriginalClip53-73215c2a8f9069135f59fcde03010b9a5b674dc6314da994f50c2dbe135a4c40.mdx", startSeconds: f32(83.081), endSeconds: f32(83.581), looping: false },
-    { modelPath: "war3mapImported\\ThrallOriginalClip54-118d855022d267b5329eba689814702b0645ada8c81042dbc5df037fab5aed17.mdx", startSeconds: f32(83.681), endSeconds: f32(83.881), looping: false },
+    { modelPath: "war3mapImported\\ThrallOriginalClip54-7bcfaca3a010f13b93312321ccb0582b2a70665c80049406b538f3cb284a07d6.mdx", startSeconds: f32(105.433), endSeconds: f32(106.566), looping: false },
     { modelPath: "war3mapImported\\ThrallOriginalClip55-f8af9ef6248330ef06d0117dca8345de0eab950cbd8a6f1bbe9542fce0b55ebf.mdx", startSeconds: f32(83.981), endSeconds: f32(84.548), looping: false },
     { modelPath: "war3mapImported\\ThrallOriginalClip56-3f2ad055cf7fd733e8010e38f2b7337d7e9032e29cb1e62ef5352dbcda2a5463.mdx", startSeconds: f32(84.648), endSeconds: f32(85.315), looping: false },
     { modelPath: "war3mapImported\\ThrallOriginalClip57-de7190ecd06fdfd27eaf101c1ebe1cdcf35917aa4c5611b7590662fb2b85a220.mdx", startSeconds: f32(85.415), endSeconds: f32(85.882), looping: false },
