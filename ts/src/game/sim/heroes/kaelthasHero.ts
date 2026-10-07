@@ -6,7 +6,7 @@ import { KAELTHAS_GAMEPLAN } from "./kaelthasGameplan";
 import { KAELTHAS_CLIPS, KAELTHAS_DAMAGE_CLIPS, KAELTHAS_FALLBACK, KAELTHAS_MODEL_FILE } from "./kaelthasClips";
 
 export const KAELTHAS_HERO: HeroDefinition = {
-  character: Character.kaelthas, name: "Kael'thas Sunstrider", purpose: "Mobile fire caster", weakness: "Exposed casting and committed recovery", complete: true,
+  character: Character.kaelthas, name: "Kael'thas Sunstrider", purpose: "Mobile fire caster", weakness: "Exposed casting and committed recovery", complete: false,
   moves: KAELTHAS_MOVES, specials: KAELTHAS_SPECIALS, gameplan: KAELTHAS_GAMEPLAN,
   passive: { name: "Verdant Spheres", description: "Ordinary attacks take a little mana from enemies they hit." },
   jab: { name: "Verdant Touch", description: "A palm check, then a sphere shove on a second tap." },

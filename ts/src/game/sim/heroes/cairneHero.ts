@@ -8,7 +8,7 @@ import { CAIRNE_CLIPS, CAIRNE_DAMAGE_CLIPS, CAIRNE_FALLBACK } from "../../presen
 
 export const CAIRNE_HERO: HeroDefinition = {
   character: Character.cairne, name: "Cairne Bloodhoof", purpose: "Super-heavyweight with sweeping totem strikes",
-  weakness: "A huge target with slow whiffs and exposed recovery", complete: true,
+  weakness: "A huge target with slow whiffs and exposed recovery", complete: false,
   passive: { name: "Endurance Aura", description: "Land two melee attacks to move 10% faster on the ground for two seconds." },
   jab: { name: "Haft and Totem", description: "Check with the haft, then press again for the totem's short finishing blow." },
   ultimate: { name: "Ancestral Reincarnation", description: "At high damage, risk a long ritual to regain some strength without restoring a stock." },

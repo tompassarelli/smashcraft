@@ -47,6 +47,7 @@ const DEPARTURES: { readonly [character: number]: string } = {
   [Character.blademaster]: "the banner on his back stands about 60 units over his head",
   [Character.lichKing]: "Frostmourne, raised in Stand Ready, stands about 50 units over his helm; the blade is never body",
   [Character.cairne]: "the carried back totem rises above his head and chest",
+  [Character.chen]: "his hat rises about 12 units above his drawn head",
   [Character.tinker]: "the raised backpack claw extends above the goblin and lower backpack body",
 };
 
