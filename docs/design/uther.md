@@ -2,13 +2,13 @@
 
 Uther wins by standing his ground, calling an approach and landing a loud,
 deliberate hammer blow. His new neutral special lifts an opponent into the
-next read; his side special drives the hammer forward and sends holy light
-beyond its head. Protection buys him a chance to take space. It does not win
-the exchange for him.
+next read; his side special drives the hammer forward and slows a retreat.
+Consecration lets him contest a landing while his slow feet and committed
+swings leave room for a jump, shield or whiff punish.
 
 This is the #216 rework after Tom's 0.0.90 playtest. All new numbers below are
-original, provisional Smashcraft tuning. Source games supply identities and
-trade-offs, never copied hitboxes, animation or implementation.
+original, provisional Smashcraft tuning. Smash references supply identities
+and trade-offs, not copied hitboxes, animation or implementation.
 
 ## Forsaken revision, 8 October
 
@@ -32,31 +32,32 @@ The source identities become these original, provisional Smashcraft moves:
 
 | Input | Reward and risk | Contract | Sources |
 | --- | --- | --- | --- |
-| Neutral: **Cleansing Hammer** | Raise the hammer and bonk upward; exposed startup and long recovery punish a miss. At contact time cleanse only Uther’s poison or movement slow. | 10 mana, f14–16, end f38, 11.05 damage, 80°, growth70/base42. Cleanse at f14 even on a miss; no heal, buff or removal of hard control. Air drift and 18 landing frames. | HotS Hammer of Justice and Forsaken Cleansing Fire’s dispel; Dedede’s weight and Ike’s one-stroke commitment. |
-| Side: **Righteous Fury** | Lead a short charge with the hammer. A body hit slows a retreat; shield blocks the slow and leaves a punish. | 25 mana, travel0.75H on f15–20, end f49, 11.9 damage,40°,growth100/base25. Body hit slows movement40% for75frames, then120 immunity. Ground one-hit armor up to5damage f15–18, stops at bodies; air no armor, once per airtime,20 landing and helpless. No wave. | Forsaken Righteous Fury and its final3.0.1 slow; Ike’s armored commitment. Shared attack speeds remain unchanged. |
-| Up: **Ascension** | Raise and follow the hammer, steer toward the ledge, then fall helplessly with exposed sides. |15mana, rise2.9H overf8–28, stopf29,0.2H forward plus1.6H steering. Hammerf10–15 deals6.8damage at80°. Free form rises2.0H without a hit. Jump spent, once per airtime. | Paladin resurrection and HotS Hammer of Justice; Ike’s weapon-led Aether without its descent. |
-| Down: **Consecration** | Plant the hammer and defend a small holy patch. Jump or retreat to leave it. | Ground only,20mana,endf42,poolf16 at70ahead,z6,radius60. Life120frames;1.7damage at most every45frames,growth30/base30,near-vertical launch. One patch,150frames between casts, no growth/heal. | Forsaken Consecration’s ground-only periodic damage, compressed from10seconds; Dedede’s placed threat and committed recovery. |
+| Neutral: **Cleansing Hammer** | Raise the hammer and bonk upward; exposed startup and long recovery punish a miss. At contact time cleanse only Uther’s poison or movement slow. | 10 mana; hammer f14–16; end f38; 11.05 damage, 80°, growth 70/base 42. Cleanse at f14 even on a miss. Air drift and 18 landing frames. | HotS Hammer of Justice and Forsaken Cleansing Fire’s dispel; Dedede’s weight and Ike’s single-stroke commitment. |
+| Side: **Righteous Fury** | Lead a short charge with the hammer. A body hit slows a retreat; shield blocks the slow and leaves a punish. | 25 mana; travel 0.75H on f15–20; end f49; 11.9 damage, 40°, growth 100/base 25. Movement slowed 40% for 75 frames, then 120 frames immunity. Ground armor absorbs one hit up to 5 damage on f15–18; stops at bodies. Air has no armor, one use per airtime, 20 landing frames and helpless finish. | Forsaken Righteous Fury and its final 3.0.1 slow; Ike’s armored commitment. Shared attack speeds remain unchanged. |
+| Up: **Ascension** | Raise and follow the hammer, steer toward the ledge, then fall helplessly with exposed sides. | 15 mana; rise 2.9H over f8–28; stop f29; 0.2H forward plus 1.6H steering. Hammer f10–15 deals 6.8 damage at 80°. Free form rises 2.0H without a hit. Jump spent, one use per airtime. | Paladin resurrection and HotS Hammer of Justice; Ike’s weapon-led Aether without its descent. |
+| Down: **Consecration** | Plant the hammer and defend a small holy patch. Jump or retreat to leave it. | Ground only; 20 mana; end f42; pool on f16, 70 units ahead at height 6, radius 60. Life 120 frames; 1.7 damage at most every 45 frames, growth 30/base 30, near-vertical launch. One patch; 150 frames between casts; no growth or healing. | Forsaken Consecration’s ground-only periodic damage, compressed from 10 seconds; Dedede’s placed threat and committed recovery. |
 
 Cleansing Hammer and Righteous Fury make the hammer central; Ascension
 carries it into a third special. Consecration does not follow Uther, grow or
 hit airborne opponents. Cleansing Hammer removes poison/chill only, leaving
 silence, sleep, stun and carries alone. **Sacred Aura** retains the existing
-three-block reward: the next non-throw launch is20% weaker, adapting the
-source’s middle-rank resistance to the launch system. Shared EX costs25extra
+three-block reward: the next non-throw launch is 20% weaker, adapting the
+source’s middle-rank resistance to the launch system. Shared EX costs 25 extra
 mana for its existing six-frame one-hit armor. There are no ultimates.
 
-The CPU approaches into50–150 hammer spacing, charges from170–270, lays
+The CPU approaches into 50–150 hammer spacing, charges from 170–270, lays
 Consecration near a grounded opponent, shields/dodges threats and recovers
-with Ascension. The original0.85damage multiplier, extra3hammer hitlag frames,
-volume127 heavy bash and readable contact/white-body flash remain. The new
-model needs its own flash and contact review. The old47.6875% field is historical.
+with Ascension. The original 0.85 damage multiplier, three extra hammer hitlag
+frames, volume 127 heavy bash and readable contact/white-body flash remain.
+The new model needs its own flash and contact review. The old 47.6875% field
+is historical.
 
 ## Sources
 
 - [Warcraft III Paladin](https://classic.battle.net/war3/human/units/paladin.shtml)
   supplies the warhammer, Holy Light, Divine Shield and Devotion Aura.
 - [Blizzard's Uther](https://heroes-site-production-eks-prod-apne1-01.heroesofthestorm.blizzard.com/en-us/heroes/uther/)
-  supplies Hammer of Justice's interruption, Righteous Fury's line of light,
+  supplies Hammer of Justice's interruption, Holy Radiance's line of light,
   Divine Storm's close burst and Eternal Devotion's protection.
 - [Nintendo's King Dedede](https://www.smashbros.com/wii/en_us/characters/kingdedede.html)
   supplies the hammer's weight and the risk of a committed strike. Uther does
@@ -97,13 +98,13 @@ they are not requests to copy Smash hitboxes or change another fighter.
 | Up throw | Warcraft shaft of resurrection light | Weapon-heavyweight lift; short juggle starter |
 | Down throw | Hammer pressed beside the opponent | Heavyweight ground throw; chase the escape |
 | Get-up and ledge attack | Paladin clearing room with his hammer | Dedede's weight; defend recovery to standing |
-| Sacred Aura | Forsaken Sacred Aura, middle-rank20% resistance | Heavyweight endurance; three blocked hits soften the next launch |
+| Sacred Aura | Forsaken Sacred Aura, middle-rank 20% resistance | Heavyweight endurance; three blocked hits soften the next launch |
 
 ## Weight, sound and pose
 
 Direct hammer strikes with at least 8 damage before the balance multiplier add **three frames of hitlag**
-to attacker and victim, including shield contacts. Boot, jab, throw and light
-wave keep their existing stop. The additional stop changes no hitstun or
+to attacker and victim, including shield contacts. Boot, jab, throw and
+Consecration keep their existing stop. The additional stop changes no hitstun or
 launch formula. It holds the visible hammer contact pose and the victim's
 reaction, and lets the shared heavy-hit glow read.
 
@@ -114,9 +115,11 @@ shared contact display; Holy Bolt's classic gold-white burst identifies holy
 power without hiding the fighter. Effects and sound use the existing event
 serials and do not replay on rollback.
 
-The actual Forsaken model supplies the hammer and body. Its new rig and all
-28 stock clips are inspected before binding or authoring each action. Both
-facings must keep the weapon attached and the body clear at contact.
+The actual Forsaken model supplies the body and rig. Its stock sword is
+replaced with the classic Paladin's hammer faces on the Forsaken weapon joint.
+Its new rig and all 28 stock clips are inspected before binding or authoring
+each action. Both facings must keep the hammer attached and the body clear
+at contact.
 
 ## Place in the roster
 
@@ -137,7 +140,6 @@ His reach is useful but his commitment and weak chase are exploitable.
 | Pit Lord | Uther's narrow hammer head and short holy patch replace a giant body, spit and broad cleaves. |
 | Beastmaster | Uther has no companion or summoned crossfire; the decisive contact is his own weapon. |
 | Lich King | His patch never grows or spends souls; a direct slow sets up hammer reads. |
-
 | Thrall | Held hammer and short holy patch instead of lightning and spirit crossfire. |
 | Jaina | Close weapon contact instead of aimed spell rain. |
 | Sylvanas | A hammer slow instead of ranged silence or possession. |

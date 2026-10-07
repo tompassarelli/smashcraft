@@ -109,9 +109,19 @@ for(const [ordinal,action]of [...actions,...damageActions].entries()){
  const translations:mdx.AnimKeyframe[]=[];
  for(const {frame}of phases){const triangle=drawn.triangles(index,frame/60,1);let lowest=Infinity;for(let i=1;i<triangle.length;i+=2)lowest=Math.min(lowest,triangle[i]!);const old=center.Translation.Keys.find(k=>k.Frame===start+Math.round(frame*1000/60));translations.push({Frame:start+Math.round(frame*1000/60),Vector:new Float32Array([old?.Vector[0]??0,old?.Vector[1]??0,(old?.Vector[2]??0)-(action.air?0:lowest)]),...(center.Translation.LineType>1?{InTan:new Float32Array([0,0,0]),OutTan:new Float32Array([0,0,0])}:{})});}
  center.Translation.Keys=[...beforeKeys,...translations];
- const binding=`{ index: ${index}, seconds: ${seconds((end-start)/1000)}, aligned: true }`;
+ const victimContact=/^victim(Pummel|Throw)/.test(action.pose);
+ const binding=`{ index: ${index}, seconds: ${seconds(victimContact?1:(end-start)/1000)}, aligned: true${victimContact?", contact: 0.5":""} }`;
  if(ordinal<actions.length)bindings.push(`  ${action.pose}: ${binding},`);else damageBindings.push(`  ${binding},`);
- records.push({pose:name,index,frames:action.frames,contact:action.contact});
+ records.push({pose:name,index,frames:victimContact?60:action.frames,contact:victimContact?30:action.contact});
+}
+// Victims share the holder's half-second contact; their other poses keep their original clocks.
+for(const [ordinal,action]of actions.entries())if(/^victim(Pummel|Throw)/.test(action.pose)){
+ const index=source.Sequences.length+ordinal,sequence=model.Sequences[index]!,[first,last]=sequence.Interval;
+ const contact=first!+Math.round(action.contact*1000/60),previous=retained?.Sequences[index];
+ const reuse=previous!==undefined&&previous.Interval[1]-previous.Interval[0]===1000;
+ const start=reuse?previous.Interval[0]:cursor;if(!reuse)cursor=start+1100;
+ tracks(model,track=>{if(onGlobalClock(track))return;for(const key of track.Keys)if(key.Frame>=first!&&key.Frame<=last!)key.Frame=start+(key.Frame<=contact?Math.round((key.Frame-first!)/(contact-first!)*500):500+Math.round((key.Frame-contact)/(last!-contact)*500));track.Keys.sort((a,b)=>a.Frame-b.Frame);});
+ sequence.Interval=new Uint32Array([start,start+1000]);
 }
 tracks(model,track=>{if(!onGlobalClock(track))track.Keys.sort((a,b)=>a.Frame-b.Frame);});
 const bytes=encodeVerified(parseSource(generateMDX(model)));mkdirSync(output,{recursive:true});await Bun.write(join(output,"thrall.mdx"),bytes);
@@ -125,6 +135,6 @@ await Bun.write(join(project,"ts/src/game/presentation/heroes/thrallClips.ts"),[
 const finalDrawn=new DrawnModel(bytes,1.0);
 const strides=Object.entries(DRAWN_STRIDES).flatMap(([character,data])=>data?(["walk","run"] as const).map(motion=>({character:Number(character) as Character,motion,...data[motion]})):[]).filter(row=>row.character!==Character.thrall);
 for(const motion of ["walk","run"] as const)strides.push(measureDrawnStride(bytes,finalDrawn,Character.thrall,motion,"units\\orc\\Thrall\\Thrall.mdl"));
-await Bun.write(join(project,"ts/src/game/presentation/drawnStrideInfo.ts"),drawnStrideSource(strides));
+await Bun.write(join(project,"ts/src/game/presentation/drawnStrideInfo.ts"),drawnStrideSource(strides.sort((a,b)=>a.character-b.character)));
 for(const pose of ["forwardTilt","upTilt","downTilt","backAir","downAir","neutralSpecial","sideSpecial","upSpecial","downSpecial","rollForward","throwForward","throwBack","throwUp","throwDown"]){const i=actions.findIndex(a=>a.pose===pose),action=actions[i]!;const sequence=source.Sequences.length+i;const panels:PoseFrame[]=[1,-1].flatMap(facing=>[0,Math.max(1,action.contact-3),action.contact,action.contact+4,action.frames].map(frame=>({frame,phase:frame<action.contact?AttackPhase.startup:frame<=action.contact+4?AttackPhase.active:AttackPhase.recovery,x:0,z:0,facing,parts:[],strikes:[],clip:sequence,seconds:Math.min(action.frames,frame)/60})));await Bun.write(join(output,`${pose}.png`),sheet(`Thrall ${pose}`,finalDrawn,panels,5).png);}
 await Bun.write(join(output,"thrall-clips.json"),JSON.stringify({stockSequences:source.Sequences.length,appended:records.length,records},null,2)+"\n");console.log(`THRALL_CLIPS_PASS ${records.length} authored clips; ${source.Sequences.length} stock sequences retained; private output ${output}`);

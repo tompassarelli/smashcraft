@@ -124,6 +124,14 @@ function endHeroStatus(f: Fighter): void {
   status.conditionFrames = 0;
 }
 
+/** Cleansing Fire removes poison and slow, preserving hard control and its immunity. */
+export function cleansePoisonAndSlow(f: Fighter): void {
+  f.status.poisonFrames = 0;
+  f.status.poisonEvery = 0;
+  f.status.poisonDamage = 0.0;
+  if (f.status.condition === HeroStatusKind.chill) endHeroStatus(f);
+}
+
 /** A damaging body hit ends a status that ends on damage; the hit that applies one is resolved first. */
 export function damageEndsHeroStatus(f: Fighter): void {
   if (rules(f)?.endsOnDamage === true) endHeroStatus(f);
