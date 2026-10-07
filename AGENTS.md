@@ -306,6 +306,8 @@ code. From smashcraft:ts/:
   with a full three-stock Archer against Wren Expert Rifleman. `--script FILE`
   runs the native driver's exact pad inputs; `--headless --frames N --out DIR`
   saves frame checksums and captures (`--capture-frames N,N` picks their frames).
+  `--presentation native|pool-confirmed|pool-predicted` selects fighter presentation;
+  live play defaults to `pool-predicted`, scripts to `native`.
   Private map and Warcraft assets stay in the existing local asset store.
 - Controller layout: `bun wisp controller layout standard|zjump` changes the running service live, or saves the choice for its next start. Layout, tap jump and left/right full or light shield are kept in `~/.config/smashcraft/controller.json` (or `$XDG_CONFIG_HOME/smashcraft/controller.json`) and editable on the client Controller page.
 - Controller: `bun wisp controller` points the always-on controller service
