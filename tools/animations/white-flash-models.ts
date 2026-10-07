@@ -1,4 +1,5 @@
 import { join, relative, resolve } from "node:path";
+import { isDeepStrictEqual } from "node:util";
 import { generateMDX, parseMDX, model as mdx } from "war3-model";
 import { fighters, removeBodyEffects } from "./original-clips";
 import { modelFacts } from "../../ts/node_modules/wisp/scripts/wisp/models";
@@ -18,6 +19,7 @@ const facts: Record<string, ReturnType<typeof modelFacts>> = {};
 for (const fighter of fighters) {
   const source = await Bun.file(join(assets, fighter.source)).arrayBuffer();
   const model = parseMDX(source);
+  const original = parseMDX(source);
   const sequence = model.Sequences[0];
   if (sequence === undefined) throw new Error(`${fighter.name}: no animation sequence`);
   const lastFrame = Math.max(...model.Sequences.map(item => item.Interval[1]));
@@ -33,6 +35,7 @@ for (const fighter of fighters) {
   const bytes = new Uint8Array(generateMDX(model));
   const decoded = parseMDX(bytes.buffer);
   if (decoded.Sequences.length !== 1 || decoded.Geosets.length !== model.Geosets.length) throw new Error(`${fighter.name}: white overlay changed geometry`);
+  for (const key of ["Geosets", "Bones", "Helpers", "PivotPoints"] as const) if (!isDeepStrictEqual(decoded[key], original[key])) throw new Error(`${fighter.name}: white overlay changed ${key}`);
   const filename = `${fighter.name}White-${hash(bytes)}.mdx`;
   await Bun.write(join(output, filename), bytes);
   imports.push(filename); paths.push(`war3mapImported\\${filename}`);
