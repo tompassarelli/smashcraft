@@ -100,7 +100,7 @@ Ultimates are optional and disabled in the default competitive preset until the 
 
 ## Baseline fighter properties
 
-Weight is relative to the current reference fighter at 1.00. Run and air speed are multipliers on the existing reference; hurtbox dimensions are relative width and height. All fighters start with the same two jumps, with jump velocity and gravity inherited from the reference unless later testing explicitly changes them. Air speed does not change jump height. Size must match the visible model; trim collision capsules rather than counting weapons or flames as torso.
+Weight is relative to the current reference fighter at 1.00. Run speed is a multiplier on the existing reference; air speed is a multiplier on 1.00 Melee units a frame, the air-drift reference ([Air drift and jump momentum](../gameplay-design.md#air-drift-and-jump-momentum), #190); hurtbox dimensions are relative width and height. All fighters start with the same two jumps, with jump velocity and gravity inherited from the reference unless later testing explicitly changes them. Air speed does not change jump height. Size must match the visible model; trim collision capsules rather than counting weapons or flames as torso.
 
 | Hero | Weight | Run speed | Air speed | Width | Height |
 | --- | --- | --- | --- | --- | --- |
@@ -112,7 +112,7 @@ Weight is relative to the current reference fighter at 1.00. Run and air speed a
 | Uther | 1.10 | 0.92 | 0.88 | 1.08 | 1.02 |
 | Dreadlord | 1.24 | 1.10 | 1.22 | 1.10 | 1.15 |
 | Shadow Hunter | 0.94 | 1.04 | 1.00 | 0.92 | 1.08 |
-| Pit Lord | 1.28 | 0.80 | 0.70 | 1.65 | 1.35 |
+| Pit Lord | 1.28 | 0.80 | 0.75 | 1.65 | 1.35 |
 | Tinker | 1.05 | 0.94 | 0.86 | 1.20 | 0.95 |
 | Alchemist | 1.20 | 0.86 | 0.80 | 1.35 | 1.25 |
 | Naga Sea Witch | 1.02 | 0.94 | 0.76 | 1.20 | 1.05 |

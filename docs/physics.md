@@ -557,7 +557,7 @@ check does not measure every collision frame or prove the numerical formulas.
 The corrections below retain the shared dodge durations, the 18-degree digital
 wavedash, neutral-horizontal fast-fall and the absence of stale moves
 (smashcraft:docs/gameplay-design.md).
-Illidan retains original jump/drift tuning and 128-unit roll paths.
+Illidan retains original jump tuning and 128-unit roll paths; his drift follows the shared rule since #190.
 
 Full Melee parity is not established. Archer/Rifleman forward-roll logical
 facing now changes at the observed frame-20 event, with entry-facing travel
@@ -1401,7 +1401,8 @@ three grounded ticks for Archer or five for Rifleman before takeoff, including
 the input tick. Release during those grounded ticks latches short hop; release
 on takeoff does not. Hitlag freezes that decision. Repeated presses during
 squat do not restart it or spend the aerial jump. Illidan retains its custom
-launch speeds, squat timing, and drift.
+launch speeds and squat timing; since #190 its takeoff momentum and drift follow
+the shared rules ([gameplay design](gameplay-design.md#air-drift-and-jump-momentum)).
 
 The focused checks assert the grounded startup ticks, first two airborne
 positions and velocities, aerial launch, takeoff release, and hitlag. The full

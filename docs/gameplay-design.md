@@ -52,6 +52,99 @@ threshold on all three samples for small stick variation. This is an authored
 tolerance policy, not exact UCF emulation. It uses independently described
 behavior and numerical facts; no external implementation was copied.
 
+## Air drift and jump momentum
+
+Tom decided, 7 Oct (delegated) (#190), after his playtest found too little
+horizontal air drift on many fighters: a dash, a jump at the dash's speed and a
+long aerial that crosses up a shield should feel good.
+
+**Melee's rules.** Values come from smashcraft:docs/smash-melee-reference/retail-roster.json
+(NTSC 1.02 PlXx.dat attributes, `ftCo_DatAttrs` field names from the
+decompilation); the per-fighter air table is in the
+[movement reference](design/melee/movement.md#falling-and-air-control).
+
+- A ground jump's horizontal speed on takeoff is the ground speed × the
+  fighter's `ground_to_air_jump_momentum_multiplier`, plus the stick ×
+  `jump_h_initial_velocity`, capped at `jump_h_max_velocity`; traction
+  keeps braking through the jump squat (smashcraft:docs/physics.md, jump
+  checkpoint). Across the 26 fighters the multiplier runs 0.70 (Mewtwo, Peach,
+  Yoshi, Zelda) to 1.00 (Falco, Jigglypuff), mostly 0.80; the initial speed
+  0.60 (Ice Climbers) to 1.00; the cap 0.75 (Luigi) to 2.10 (Captain
+  Falcon), with Fox and Falco at 1.70. A run jump keeps most of the run up to
+  the cap: Fox's 2.2 run gives 2.55, capped to 1.70.
+- In the air the held stick accelerates by a base plus a stick-scaled amount
+  up to the air speed. Above the air speed, holding forward loses only the
+  air friction each frame, never dropping below the air speed, under the
+  common 3.0 cap (Falco 4.0); with no stick the fighter loses its air
+  friction (`ftCommon_CalcSelfAccel`). So jump momentum fades at 0.005 to
+  0.05 a frame (Fox 0.02), which is what carries a dash-jump aerial across a
+  shield. An aerial jump replaces the horizontal speed with the stick ×
+  `air_jump_h_multiplier`.
+- Air speed runs 0.68 (Luigi) to 1.35 (Jigglypuff), median 0.90; maximum air
+  acceleration from 0.0325 (Samus) to 0.08 (Fox), with Jigglypuff an outlier
+  at 0.28 ([SmashWiki: Air speed](https://www.ssbwiki.com/Air_speed),
+  [Air acceleration](https://www.ssbwiki.com/Air_acceleration)).
+- Aerial attacks never set air velocity: AttackAir runs the ordinary air
+  physics, so drift continues and a fast fall persists
+  (melee:src/melee/ft/kinds/ftCommon/ftCo_AttackAir.c). Specials do:
+  [B-reversing](https://www.ssbwiki.com/B-reverse) and
+  [wavebouncing](https://www.ssbwiki.com/Wavebounce) flip momentum on many
+  specials. Horizontal recoveries set the velocity outright (Fox's Illusion,
+  Falco's Phantasm), and some specials stall or lift (Mario's Cape, Marth's
+  Dancing Blade, Peach's float).
+
+**Ultimate and Rivals 2.** Ultimate's air speed runs 0.735 (King Dedede) to
+1.344 (Yoshi), median about 1.00; air acceleration 0.03 to 0.13, with aerials
+likewise leaving velocity alone (SmashWiki pages above). Rivals 2 drifts much
+further relative to its ground speed. Zetterburn's air speed is 13 against a
+run of 18 and a horizontal jump speed of 15; Kragg's 11.33, 16.3 and 12.5
+([Dragdown: Zetterburn](https://dragdown.wiki/wiki/RoA2/Zetterburn),
+[Kragg](https://dragdown.wiki/wiki/RoA2/Kragg)). That is about 70% of run speed
+in the air, against Melee Fox's 38%.
+
+**Decision.**
+
+- **One momentum rule for everyone.** Every fighter jumps by Melee's
+  ground-jump rule and drifts by its air rule. Illidan used to keep his full
+  ground speed and then snap to his 0.88 air speed on his first steer, which
+  threw away his dash. He now uses the reference's jump values (× 0.83,
+  + 0.72, cap 1.70) and Melee's common 3.0 air cap. His dash carries and fades
+  by air friction like everyone else's. Aerial jumps are unchanged.
+- **Air bands.** Air speed is 0.75–1.25 and maximum air acceleration
+  0.04–0.10 Melee units a frame. The floor comes from Ultimate (0.735) rather
+  than Melee (0.68), as deviations start from Ultimate. Rivals 2's much
+  larger drift is a different game's feel, so it is not the starting point.
+  A hero's air multiplier now multiplies 1.00 (Ultimate's median) instead of
+  Archer's 0.83. That lifts every hero by a fifth, and Pit Lord rises from
+  0.70 to 0.75, still the lowest. Archer and Rifleman keep Fox's and Falco's
+  0.83: their reach comes from the jump and, for Rifleman, the hang time.
+- **Aerials leave air velocity alone**, as in Melee and Ultimate. Specials
+  keep their authored motion.
+- Gravity, fall speed, the 1.70 jump cap and the air dodge are unchanged.
+
+smashcraft:ts/scripts/airDrift.tests.ts holds every fighter to the band and
+the rule. Its cross-up test dashes 8 frames from 40 Melee units in front of
+a shielding mirror, jumps holding forward and throws an aerial, which must
+meet the shield from behind. `bun scripts/airDrift.ts` prints the roster
+table (Melee units a frame; takeoffs after 8 dash frames and 24 run frames):
+
+| Fighter | Air speed | Air acceleration | Air friction | Jump momentum × | Jump initial | Jump cap | Dash-jump takeoff | Run-jump takeoff | Cross-up from 40 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| Archer | 0.83 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 24 |
+| Rifleman | 0.83 | 0.070 | 0.020 | 1.00 | 0.70 | 1.70 | 1.70 | 1.70 | short hop back air, press 30 |
+| Illidan | 0.88 | 0.075 | 0.020 | 0.83 | 0.72 | 1.70 | 1.68 | 1.68 | short hop back air, press 27 |
+| Blademaster | 1.00 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 20 |
+| Mountain King | 0.82 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 14 |
+| Warden | 1.10 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 22 |
+| Lich | 0.95 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 19 |
+| Uther | 0.88 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 18 |
+| Dreadlord | 1.22 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 20 |
+| Shadow Hunter | 1.00 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 16 |
+| Pit Lord | 0.75 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 13 |
+| Beastmaster | 0.88 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 16 |
+| Lich King | 0.86 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 20 |
+
+
 ## Principles
 
 Owner decisions, 6 Oct 2026 (#62):
@@ -461,7 +554,7 @@ The specification answers these design questions for the expansion:
 
 | Question | Adopted default |
 | --- | --- |
-| Physical differences | Use each hero's relative weight, run and air-speed table as initial tuning. The complete candidate table spans weight 0.85–1.28, run 0.80–1.14 and air 0.70–1.12. Jump velocity and gravity initially inherit the reference. |
+| Physical differences | Use each hero's relative weight, run and air-speed table as initial tuning. The complete candidate table spans weight 0.85–1.28, run 0.80–1.14 and air 0.75–1.22 (of 1.00 Melee units a frame since #190). Jump velocity and gravity initially inherit the reference. |
 | Archetypes | State each fighter's purpose and exploitable weakness before building its moves. |
 | Meter | 100 mana, full on spawn; ground regeneration at 6/second after 120 frames without spending, while actionable. Specials use their listed costs; normals and grabs are free. Every up special has a weaker free recovery. |
 | Cooldowns | Only optional ultimates use cooldowns; ultimates are off in competitive play. |

@@ -49,7 +49,6 @@ import { DOWN_ATTACK_FRAMES, EARLY_ASCENT_GRAB_FRAMES, SMASH_MAX_CHARGE_FRAMES, 
 import {
   addMeleeWorldValues,
   airDriftVelocity,
-  ceilingImpulseDriftVelocity,
   applyMeleeGravity,
   moveMeleeVerticalVelocity,
   moveMeleeX,
@@ -206,10 +205,8 @@ function advanceJumpSquat(f: Fighter, input: Readonly<Controls>, squatBeforeInpu
   jump.squat--;
   if (jump.squat !== 0) return false;
   motion.grounded = false;
-  if (!illidan) {
-    const jumpX = f32(f32(motion.vx * physics.jumpMomentum) + f32(input.direction * physics.jumpHorizontalSpeed));
-    motion.vx = max(-physics.jumpHorizontalCap, min(physics.jumpHorizontalCap, jumpX));
-  }
+  const jumpX = f32(f32(motion.vx * physics.jumpMomentum) + f32(input.direction * physics.jumpHorizontalSpeed));
+  motion.vx = max(-physics.jumpHorizontalCap, min(physics.jumpHorizontalCap, jumpX));
   motion.vz = jump.held ? physics.fullJumpSpeed : physics.shortJumpSpeed;
   jump.ascent = 1;
   jump.serial++;
@@ -535,8 +532,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
       if (advanceGroundMovement(f, direction, input.walking, horizontalStick)) dashEntryDisplacementAdjustment = f32(previousGroundVelocity - motion.vx);
     } else if (direction !== 0 && !groundTakeoff) {
       // Air steering changes velocity, not facing; back aerials rely on a stable orientation.
-      const ceilingImpulse = f.surfaceRecovery.state === SurfaceContact.techCeiling && f.surfaceRecovery.frame === f.tuning.tech.ceilingImpulseFrame;
-      motion.vx = ceilingImpulse ? ceilingImpulseDriftVelocity(f, motion.vx, direction) : airDriftVelocity(f, motion.vx, direction);
+      motion.vx = airDriftVelocity(f, motion.vx, direction);
     }
   }
   if (isGroundDodging(f) && dodge.groundDirection !== 0) {

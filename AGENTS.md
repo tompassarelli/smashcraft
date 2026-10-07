@@ -278,6 +278,10 @@ code. From smashcraft:ts/:
   prints the stretches the victim can't act in and the loops follow-ups make
   (smashcraft:docs/typescript.md); 11-28 minutes an attacker, inside the
   capacity scope.
+- Air drift: `bun scripts/airDrift.ts` prints every fighter's air speed,
+  air acceleration, dash/run-jump takeoff speed and dash-jump cross-up;
+  smashcraft:ts/scripts/airDrift.tests.ts holds them to the bands in
+  smashcraft:docs/gameplay-design.md ("Air drift and jump momentum").
 - Roster AI coverage: `bun scripts/cpuCoverage.ts` prints movement, attacks,
   kit use, defense and recovery for all 13 selectable fighters over eight
   seeded level-9 matches each; `GAME_TESTS=botCoverage bun test test/game.test.ts`

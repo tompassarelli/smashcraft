@@ -7,10 +7,9 @@ import { f32 } from "wisp/src/sim/f32";
 import { floorMod } from "wisp/src/sim/intMath";
 import { meleeAtan2, meleeCos, meleeSin } from "../../sim/meleeScalarMath";
 import { chillScaled } from "./chill";
-import { Character } from "./codes";
 import type { Fighter, MeleeMotionValue } from "./fighter";
 import { surfaceCount, surfaceLeft, surfaceMoves, surfaceRight, surfaceShiftX, surfaceShiftZ, surfaceZ } from "./stage";
-import { type FighterPhysics, WORLD_UNITS_PER_MELEE_UNIT, melee } from "./tuning";
+import { type FighterPhysics, WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
 
 // Rollback and consecutive agency forecasts publish the same Melee-unit
 // values. Cache only the pure conversion; zero bypasses the key to retain its sign.
@@ -171,29 +170,9 @@ function retailAirDriftVelocity(f: Fighter, velocity: number, direction: number,
   return f32(max(-cap, min(cap, next)) * direction);
 }
 
+/** Every fighter's air drift, a ceiling tech's impulse frame included (ftCo_PassiveCeil_Phys runs the same drift). */
 export function airDriftVelocity(f: Fighter, velocity: number, direction: number): number {
-  const { airAcceleration: acceleration, airCap } = f.tuning.physics;
-  // Illidan retains his authored immediate drift cap.
-  if (f.character === Character.demonHunter) {
-    const cap = chillScaled(f, airCap);
-    return max(-cap, min(cap, f32(velocity + f32(direction * acceleration))));
-  }
-  return retailAirDriftVelocity(f, velocity, direction, airCap);
-}
-
-/** Captain Falcon's ftCo_DatAttrs +0x078 air_max_horizontal_velocity, 3.0 (retail PlCa.dat). */
-const CAPTAIN_FALCON_AIR_MAX_HORIZONTAL_VELOCITY = melee(3.0);
-
-/**
- * The drift on a ceiling tech's impulse frame, after the impulse
- * (ftCo_PassiveCeil_Phys runs ft_80084DB0's drift): Melee's rule for every
- * fighter. Illidan's Captain Falcon impulse of 2.0 loses a frame of his air
- * friction there instead of meeting his authored cap; the rule's cap is
- * Captain Falcon's.
- */
-export function ceilingImpulseDriftVelocity(f: Fighter, velocity: number, direction: number): number {
-  if (f.character !== Character.demonHunter) return airDriftVelocity(f, velocity, direction);
-  return retailAirDriftVelocity(f, velocity, direction, CAPTAIN_FALCON_AIR_MAX_HORIZONTAL_VELOCITY);
+  return retailAirDriftVelocity(f, velocity, direction, f.tuning.physics.airCap);
 }
 
 function retailAirDecaySquaredCutoff(decay: number): number {
