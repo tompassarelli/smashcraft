@@ -107,7 +107,16 @@ need.
   Smashcraft match should carry every input. This is inferred from the
   parser and not yet tried. Replays are saved under
   `Documents\Warcraft III\BattleNet\<account>\Replays`, and `LastReplay.w3g`
-  is rewritten after every game.
+  is rewritten after every game. Its header (subheader version 1, magic
+  `PX3W` at 0x30) holds the game's length in milliseconds at 0x3C; a
+  70-second game on build 3.0.0 read 70250.
+- **Watching a `.w3g`.** `-loadfile` opens a replay as it opens a map, but
+  on Reforged it has to go through Battle.net's launch options
+  (wisp:docs/driving-warcraft.md, "`-loadfile` through Battle.net"), which
+  means stopping the launcher, editing its settings and starting the game;
+  `wisp play` also refuses a `-loadfile` it didn't set. So the client (#159)
+  copies the replay into the account's `Replays` folder, which Warcraft's
+  Replays menu lists, and tells the player its name.
 - **Map file output.** Preload files land in `CustomMapData` (subfolders
   allowed; paths up to 259 characters). The map can write them but reads
   each name only once a session
