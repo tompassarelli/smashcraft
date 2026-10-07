@@ -27,6 +27,17 @@ test("native reset reads complete chat hand-off receipts, never a partially writ
   expect(nativeChatReceipt(`${prefix.replace("revision=12", "revision=NaN")}endfunction\n`)).toBeUndefined();
 });
 
+test("a single script with a selected LAN pair uses batch preflight", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "pad-single-lan-"));
+  const script = join(dir, "no-export.pad");
+  const clients = join(dir, "clients.json");
+  const pool = join(dir, "pool.json");
+  writeFileSync(script, "#! chat -dev quick hero archer\n150 a tap A 2\n");
+  writeFileSync(clients, JSON.stringify({ clients: [], tools: {} }));
+  writeFileSync(pool, JSON.stringify({ pairs: [{ id: 1, clients }] }));
+  await expect(Effect.runPromise(pad([script, "--pair", "1", "--pool", pool, "--map", "/missing-map.w3x", "--helper", "/missing-helper", "--out", join(dir, "out")]))).rejects.toThrow("comparison requires a replay export");
+});
+
 test("a batch session starts one game and resets between valid or failed scripts", () => {
   const outcomes = ["none", "valid", "failed", "valid"] as const;
   expect(outcomes.map((previous) => needsNewGame(previous, false))).toEqual([true, false, false, false]);

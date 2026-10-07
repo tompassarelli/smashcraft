@@ -467,7 +467,7 @@ export const pad: Command = (args) => Effect.gen(function*() {
   });
   const { helper, out, chat, compare } = parsed.values;
   // Several scripts, or a folder of them, are one batch: one game per pair (scripts/wisp/padBatch.ts).
-  if (parsed.positionals.length > 1 || (parsed.positionals[0] !== undefined && existsSync(parsed.positionals[0]) && statSync(parsed.positionals[0]).isDirectory())) return yield* scriptBatch(parsed.values, parsed.positionals);
+  if (parsed.values.pairs !== undefined || (parsed.values.pair?.length ?? 0) > 0 || parsed.positionals.length > 1 || (parsed.positionals[0] !== undefined && existsSync(parsed.positionals[0]) && statSync(parsed.positionals[0]).isDirectory())) return yield* scriptBatch(parsed.values, parsed.positionals);
   const isHeadless = parsed.values.headless === true;
   const build = parsed.values.build ?? (isHeadless ? INTEGRITY_BUILD.id : undefined);
   const [scriptPath] = parsed.positionals;
