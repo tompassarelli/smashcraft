@@ -4,7 +4,7 @@ import { CAIRNE_GAMEPLAN } from "./cairneGameplan";
 import { CAIRNE_MOVES } from "./cairneMoves";
 import { CAIRNE_SPECIALS } from "./cairneSpecials";
 
-import { CAIRNE_CLIPS, CAIRNE_FALLBACK } from "../../presentation/heroes/cairneClips";
+import { CAIRNE_CLIPS, CAIRNE_DAMAGE_CLIPS, CAIRNE_FALLBACK } from "../../presentation/heroes/cairneClips";
 
 export const CAIRNE_HERO: HeroDefinition = {
   character: Character.cairne, name: "Cairne Bloodhoof", purpose: "Super-heavyweight with sweeping totem strikes",
@@ -16,6 +16,6 @@ export const CAIRNE_HERO: HeroDefinition = {
   presentation: {
     model: "units\\orc\\HeroTaurenChieftain\\HeroTaurenChieftain.mdl", objectId: 0x6d666361,
     portrait: "ReplaceableTextures\\CommandButtons\\BTNHeroTaurenChieftain.blp", fallback: CAIRNE_FALLBACK,
-    clips: CAIRNE_CLIPS,
+    clips: CAIRNE_CLIPS, damageClips: CAIRNE_DAMAGE_CLIPS,
   },
 };

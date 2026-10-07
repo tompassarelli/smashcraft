@@ -8,7 +8,7 @@ export const CAIRNE_GAMEPLAN: FighterGameplan = {
     { move: GameplanSpecial.neutral, near: 210.0, far: 450.0 }],
   approach: [{ via: "shoot", moves: [GameplanSpecial.neutral, AttackStyle.forwardTilt], weight: 2 },
     { via: "run", moves: [GameplanSpecial.side, AttackStyle.grab, AttackStyle.downTilt], weight: 2 }],
-  defense: ["shield", "retreat", "shield", "jump"],
+  defense: ["stance", "shield", "stance", "retreat"],
   combos: [{ starter: AttackStyle.downTilt, followUps: [AttackStyle.upTilt, AttackStyle.upAir] },
     { starter: GameplanSpecial.side, followUps: [AttackStyle.upAir, AttackStyle.upTilt] },
     { starter: GameplanThrow.up, followUps: [AttackStyle.upAir] },
