@@ -81,7 +81,7 @@ function recordingRig(file: (client: Slot, name: string) => string, screenText =
   const dev: DevSettings = { rollback: 24, delay: 0, batch: 6, rematchSeconds: 5 };
   let receipts = 0;
   let typed = "";
-  const preload = (lines: readonly string[]) => `${lines.join("\n")}\nendfunction\n`;
+  const preload = (lines: readonly string[]) => `function PreloadFiles takes nothing returns nothing\n${lines.map((line) => `call Preload( "${line}" )`).join("\n")}\nendfunction\n`;
   const modeled = (client: Slot, name: string): GameFile | undefined => {
     if (name.startsWith("smashcraft-dev-")) return receipts === 0 ? undefined : { text: preload(devReceiptFile({ build: "b", epoch: 0, slot: client }, receipts, dev, game).lines), mtimeNs: BigInt(receipts + 1) };
     if (name.startsWith("smashcraft-stage-")) return { text: preload(stageDrawnFile({ build: "b", epoch: 1, slot: client }, game.stageChoice, 1).lines), mtimeNs: 1n };

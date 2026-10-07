@@ -223,7 +223,7 @@ const BOT_STAGE = 0;
 /** A bot session's computers by player number: an Illidan in C, and with --bot-four an Archer in D (scripts/wisp/botMatch.ts). */
 const BOT_COMPUTERS = [[3, Character.demonHunter], [4, Character.archer]] as const;
 /** A developer receipt's `name=value` fields, from both its lines (journalFiles.ts devReceiptFile). */
-export const receiptFields = (text: string): ReadonlyMap<string, string> => new Map([...text.matchAll(/([A-Za-z-]+)=(\S+)/g)].map(([, name, value]) => [name ?? "", value ?? ""]));
+export const receiptFields = (text: string): ReadonlyMap<string, string> => new Map([...text.matchAll(/([A-Za-z-]+)=([^\s"]+)/g)].map(([, name, value]) => [name ?? "", value ?? ""]));
 const both = <A, E>(each: (client: Slot) => Effect.Effect<A, E>) => Effect.forEach(SLOTS, each, { concurrency: 2 });
 
 /** The journey's steps over one Rig; `run` is the whole capture. */
