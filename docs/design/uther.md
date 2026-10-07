@@ -33,15 +33,15 @@ end fN allows another action on fN+1. Every strike hits each opponent once.
 
 | Input | Decision, reward and risk | Authored contract | Sources |
 | --- | --- | --- | --- |
-| Neutral: **Hammer of Justice** | Plant, raise the hammer, then bonk the opponent upward. A closer, faster launcher than a smash; shield or step out and punish its recovery. | 10 mana; hammer f14–16; end f38; 13 damage, 80° launch, growth 70/base 42; reaches 140 units forward. Air form keeps drift, 18 landing frames. No armor, invulnerability, cooldown or cancel. | HotS Hammer of Justice; Dedede's weight with Ike's single decisive hit. |
-| Side: **Holy Radiance** | Commit forward with the hammer. The close hit is the reward; light continues beyond the hammer to contest someone retreating. Jump over the line or shield the lunge and punish the stop. | 20 mana; travel 0.75H over f15–20; hammer f15–20; end f49. Hammer 14 damage at 40°, growth 100/base 25. One light wave on f21 starts 150 units ahead, speed 0.11H/frame, 24-frame life, 18 radius; 6 damage at 40°, growth 80/base 16. Ground armor absorbs one ≤5-damage hit on f15–18; stops at bodies. Air has no armor, once per airtime, 20 landing frames and helpless finish. | HotS Holy Radiance, channelled through the Warcraft warhammer; Lucario Force Palm's strong close hit and weaker reach, Ike's short armor. |
-| Up: **Ascension** | Lift the hammer and follow it upward; spend the jump and accept a helpless fall. Challenge its exposed sides or catch the landing. | 15 mana; rises 1.9H and travels 0.45H, f8–29; hammer f10–15, 8 damage at 80°. Below 15 mana, free recovery rises 1.3H without a hit. One use per airtime; helpless. | Warcraft resurrection/light and HotS Hammer of Justice; Ike's weapon-led Aether, without its descent. |
+| Neutral: **Hammer of Justice** | Plant, raise the hammer, then bonk the opponent upward. A closer, faster launcher than a smash; shield or step out and punish its recovery. | 10 mana; hammer f14–16; end f38; 11.05 damage, 80° launch, growth 70/base 42; reaches 140 units forward. Air form keeps drift, 18 landing frames. No armor, invulnerability, cooldown or cancel. | HotS Hammer of Justice; Dedede's weight with Ike's single decisive hit. |
+| Side: **Holy Radiance** | Commit forward with the hammer. The close hit is the reward; light continues beyond the hammer to contest someone retreating. Jump over the line or shield the lunge and punish the stop. | 50 mana; travel 0.75H over f15–20; hammer f15–20; end f69. Hammer 11.9 damage at 40°, growth 100/base 25. One light wave on f21 starts 150 units ahead, speed 0.11H/frame, 24-frame life, 18 radius; 5.1 damage at 40°, growth 80/base 16. Ground armor absorbs one ≤5-damage hit on f15–18; stops at bodies. Air has no armor, once per airtime, 20 landing frames and helpless finish. | HotS Holy Radiance, channelled through the Warcraft warhammer; Lucario Force Palm's strong close hit and weaker reach, Ike's short armor. |
+| Up: **Ascension** | Lift the hammer and follow it upward; spend the jump and accept a helpless fall. Challenge its exposed sides or catch the landing. | 15 mana; rises 1.9H and travels 0.45H, f8–29; hammer f10–15, 6.8 damage at 80°. Below 15 mana, free recovery rises 1.3H without a hit. One use per airtime; helpless. | Warcraft resurrection/light and HotS Hammer of Justice; Ike's weapon-led Aether, without its descent. |
 | Down: **Divine Shield** | Read a strike, then reposition for a hammer punish. The shield ends when Uther attacks; an opponent can wait or grab. | Ground only, 25 mana; intangible/guard f6–9; end f36. A strike overlapping the guard grants 45 frames of protection, ended by attack, special or grab. No healing, damage, automatic counter or air cast. | Warcraft/HotS Divine Shield; Lucario's Double Team read, with player-chosen retaliation. |
 
 H is the shared 132-unit design height. The light wave begins beyond the direct
 hammer rather than overlapping its head. It is reflectable and limited to one
 live wave. Ordinary shield damage uses actual damage; the stronger side strike
-pays 29 frames after its final active frame. Neutral pays 22. No special gains
+pays 49 frames after its final active frame. Neutral pays 22. No special gains
 a shield-damage multiplier.
 
 Hammer of Justice is a launcher, not a fixed stun: ordinary DI, SDI, hitstun,
@@ -49,10 +49,16 @@ air dodge and tech rules apply. Follow with an up air, chase a landing or wait
 for the defensive option. It has no scripted second hit or guaranteed loop.
 Low Judgment and the existing up throw remain other starters.
 
+The CPU favors Divine Shield on three of its four planned defensive reads;
+ordinary shield remains the fallback when the guard window would miss.
+
 ## The rest of his moves
 
-Existing frame data, normal geometry and throw outcomes stay in the fighter's
-move tables. These rows document their identities and reference relationships;
+Existing frame data and normal geometry stay in the fighter's move tables.
+A 0.85 multiplier scales all Uther damage after passive bonuses, including
+normal attacks, throws and specials. Hitlag still uses the original damage;
+the extra three hammer frames remain. The special rows above show final damage.
+These rows document their identities and reference relationships;
 they are not requests to copy Smash hitboxes or change another fighter.
 
 | Move | Warcraft/HotS identity | Smash reference and role |
@@ -81,7 +87,7 @@ they are not requests to copy Smash hitboxes or change another fighter.
 
 ## Weight, sound and pose
 
-Direct hammer strikes dealing at least 8 damage add **three frames of hitlag**
+Direct hammer strikes with at least 8 damage before the balance multiplier add **three frames of hitlag**
 to attacker and victim, including shield contacts. Boot, jab, throw and light
 wave keep their existing stop. The additional stop changes no hitstun or
 launch formula. It holds the visible hammer contact pose and the victim's

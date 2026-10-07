@@ -28,8 +28,12 @@ test("Defile's rim follows its danger radius and distinguishes its warning from 
   assertEquals(warning.poolRadius, heroProjectileRadius(projectile, spec));
   projectile.life -= spec.activeFrom ?? 0;
   projectile.poolHits = 3;
+  projectile.poolWait = (spec.pool?.every ?? 0) - 1;
   const grown = projectedProjectile(fighter, 0, true);
   assertTrue(grown.armed);
+  assertEquals(grown.poolPulse, 1.0);
+  projectile.poolWait -= 12;
+  assertEquals(projectedProjectile(fighter, 0, true).poolPulse, 0.0);
   assertEquals(grown.poolRadius, heroProjectileRadius(projectile, spec));
   assertNear(grown.modelScale * (spec.modelRadius ?? 1.0), grown.poolRadius, f32(0.001));
   projectile.life = spec.life;
@@ -37,6 +41,7 @@ test("Defile's rim follows its danger radius and distinguishes its warning from 
   const restored = projectedProjectile(fighter, 0, true);
   assertEquals(restored.poolRadius, warning.poolRadius);
   assertEquals(restored.armed, warning.armed);
+  assertEquals(restored.poolPulse, 0.0);
 });
 
 function projectileAt(projectiles: readonly Projectile[], index: number): Projectile {

@@ -115,7 +115,14 @@ function mirrorMatch(character: Character, opponent: Character, seed: number, da
       if (watch !== undefined && (slot === 0 || opponent === character)) observe(fighterAt(world, slot), fighterAt(world, 1 - slot), watch, counts);
     }
   }
-  for (const slot of [0, 1] as const) count(counts, "manaDenied", fighterAt(world, slot).visuals.manaDenied);
+  for (const slot of [0, 1] as const) {
+    const watch = watches[slot];
+    // The final attack has no next attack to record whether it was shielded.
+    if (watch !== undefined && watch.threat !== 0 && (slot === 0 || opponent === character)) {
+      count(counts, `${watch.threatReady ? "ready" : "idle"}Shielded`, watch.shielded ? 1 : 0);
+    }
+    count(counts, "manaDenied", fighterAt(world, slot).visuals.manaDenied);
+  }
 }
 
 /** The counts over the fighter's seeded matches; a seed replays its counts exactly. */

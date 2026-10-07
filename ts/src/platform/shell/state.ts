@@ -24,7 +24,7 @@ import type { KeyboardMailbox } from "../../game/netcode/journal/keyboard";
 import type { MatchLifecycle } from "../../game/netcode/journal/lifecycle";
 import type { JournalInputSource } from "../../game/netcode/journal/source";
 import { DEFAULT_BATCH, OutgoingInput } from "../../game/netcode/journal/transport";
-import { ShadowInputSchedule } from "../../game/netcode/shadowSchedule";
+import { PENDING_CAPACITY, ShadowInputSchedule } from "../../game/netcode/shadowSchedule";
 import type { WorldOrigin } from "../../game/render/effects";
 import { type ModelSoundCursor, ORIGINAL_MODEL_SOUNDS, createModelSoundCursor } from "../../game/render/modelSounds";
 import { type MomentRecorder, createMomentRecorder } from "../../game/replay/moment";
@@ -96,7 +96,7 @@ interface Participant {
   readonly before: FrameObservation;
 }
 
-/** Stamps of the local rows waiting in a keyboard batch, for the trace. */
+/** Original capture times of retained local rows, for the trace. */
 interface CaptureStamp {
   traced: boolean;
   callback: number;
@@ -108,8 +108,9 @@ export interface KeyboardRollback {
   readonly capture: KeyboardCapture;
   /** Built per epoch. */
   outgoing: InputBatch;
+  nextSend: number;
   lastTarget: number | undefined;
-  readonly stamps: [CaptureStamp, CaptureStamp];
+  readonly stamps: CaptureStamp[];
   readonly pairedSends: boolean;
 }
 
@@ -226,6 +227,7 @@ export interface ShellState {
   /** Synchronized menu callbacks salt the random stage draw; retained across reloads. */
   menuFrames?: number;
   readonly camera: MatchCamera;
+  cameraTween?: boolean;
   readonly build: MapBuild;
   /** The world point the simulation's origin maps to: stage center and floor height. */
   readonly origin: WorldOrigin;
@@ -316,8 +318,8 @@ function rollback(mode: ShadowInputMode, playback: RollbackPlayback, editbox: Ed
     seed: createReplaySnapshot(), accepted: participantInputs(), sendFailed: false,
     keyboard: mode.kind === "keyboard"
       ? {
-        capture: keyboardCapture(), outgoing: new InputBatch(0), lastTarget: undefined, pairedSends: mode.pairedSends,
-        stamps: [{ traced: false, callback: 0, seconds: 0.0 }, { traced: false, callback: 0, seconds: 0.0 }],
+        capture: keyboardCapture(), outgoing: new InputBatch(0), nextSend: 1, lastTarget: undefined, pairedSends: mode.pairedSends,
+        stamps: Array.from({ length: PENDING_CAPACITY }, () => ({ traced: false, callback: 0, seconds: 0.0 })),
       }
       : undefined,
     journal: mode.kind === "journal" ? journal(mode.ingress, editbox) : undefined,

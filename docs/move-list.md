@@ -137,10 +137,10 @@ Normals, inspired by:
 
 | Input | Name | What it does |
 | --- | --- | --- |
-| Neutral special | Fel Spit | A heavy glob that arcs up and falls onto an approaching target. |
+| Neutral special | Howl of Terror | A close roar pushes enemies away on both sides; a shield stops it. |
 | Side special | Ruin Charge | A slow charge whose armor shrugs off one light hit; it stops at a shield. |
 | Up special | Abyssal Leap | A slow arcing leap with a hoof strike, then a helpless fall. |
-| Down special | Howl of Terror | A roar around him; anyone it hits deals less damage for three seconds. |
+| Down special | Rain of Fire | Three waves of fire fall ahead; rush underneath or tilt your shield up. |
 | Jab, repeated | Haft and Chop | A haft check, then a short cleaver chop on a second jab. |
 | Passive | Cleaving Attack | His cleaver strikes every opponent in its path, and the blade itself can't be hit. |
 
@@ -162,7 +162,7 @@ Normals, inspired by:
 | Neutral special | Howling Blast | A wide frost gust that travels; spending a soul makes it wider and chills. |
 | Side special | Val'kyr Shadowguard | A Val'kyr seizes the first foe she reaches and carries them toward the edge; mash to break free. |
 | Up special | Ascension of the Damned | An ice column lifts him in a frost vortex, then a helpless fall. |
-| Down special | Defile | A short-lived shadow pool that grows when it hurts a grounded foe. Jump out; another cast must wait. |
+| Down special | Defile | Plant Frostmourne to spread a shadow pool; hurting a grounded foe grows it and flashes the edge. Jump out; recasts must wait. |
 | Jab, repeated | Pommel and Rake | A gauntlet check, a rake of the blade, then a Frostmourne thrust on repeated jabs. |
 | Passive | Frostmourne Hungers | Each Frostmourne hit that lands, and Harvest Soul, stores a soul (up to 3); Howling Blast and Val'kyr Shadowguard spend one to grow stronger. |
 | Ultimate | Fury of Frostmourne | Every foe at high damage who isn't shielding or dodging is launched. |

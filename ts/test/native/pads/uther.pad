@@ -7,6 +7,7 @@
 135 a stick 1 0
 147 a stick 0 0
 170 a tap X 2
+183 a capture
 270 a stick 0 -1
 270 a tap X 2
 271 a stick 0 0
@@ -14,9 +15,9 @@
 340 a tap X 2
 341 a stick 0 0
 #! expect a 60 special 14 form 0
-#! expect b 86 damage 6.000
+#! expect b 86 damage 5.100
 #! expect a 170 special 13 form 0
-#! expect b 183 damage 19.000
+#! expect b 183 damage 16.150
 #! expect a 270 special 16 form 0
 #! expect a 340 special 15 form 0
 #! scene a HolyBoltMissile

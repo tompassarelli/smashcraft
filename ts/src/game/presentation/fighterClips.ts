@@ -12,6 +12,7 @@ import * as assets from "./fighterAssetInfo";
 import { RECOVERY_CLIPS } from "./recoveryClipInfo";
 import { DRILL_CLIPS } from "./drillClipInfo";
 import { DOWN_AIR_CLIPS } from "./downAirClipInfo";
+import { JUMP_CLIPS } from "./jumpClipInfo";
 import { GRAB_CLIPS } from "./grabClipInfo";
 
 const clip = (index: number, seconds: number): HeroClip => ({ index, seconds });
@@ -27,8 +28,7 @@ const retimed = (index: number, seconds: number, startup: number, total: number,
 // Ledge options: Illidan has his own roll and attack; the others reuse their
 // roll and get-up attack. Only Illidan maps smashes and a dash attack.
 const ARCHER_CLIPS: HeroClipTable = {
-  // Jab slices (#163): the first part of each jab swing, short of the forward tilt's drawn reach.
-  jab: jabSlice({ index: assets.ARCHER_JAB_INDEX }, f32(0.109)),
+  jab: clip(assets.ARCHER_JAB_INDEX, assets.ARCHER_JAB_SECONDS),
   // The chain's low kick plays her sliding kick's sequence.
   jab2: jabSlice({ index: assets.ARCHER_DOWN_TILT_INDEX }, f32(0.185)),
   grab: clip(assets.ARCHER_GRAB_INDEX, assets.ARCHER_GRAB_SECONDS),
@@ -204,6 +204,10 @@ function recoveryTables(): Readonly<Record<number, HeroClipTable>> {
   for (const [character, downAir] of Object.entries(DOWN_AIR_CLIPS)) {
     const id = Number(character);
     tables[id] = { ...(tables[id] ?? ORIGINAL_CLIPS[id] ?? heroDefinition(id)?.presentation.clips ?? NO_CLIPS), ...downAir };
+  }
+  for (const [character, jumps] of Object.entries(JUMP_CLIPS)) {
+    const id = Number(character);
+    tables[id] = { ...(tables[id] ?? ORIGINAL_CLIPS[id] ?? heroDefinition(id)?.presentation.clips ?? NO_CLIPS), ...jumps };
   }
   return tables;
 }

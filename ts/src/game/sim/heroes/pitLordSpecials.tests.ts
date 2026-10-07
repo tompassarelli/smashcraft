@@ -64,9 +64,9 @@ function actionLength(world: Roster, owner: Fighter, press: Readonly<Controls>):
   return length;
 }
 
-test("Pit Lord's specials spend their roster costs once and end on their roster frames", () => {
+test("Pit Lord's specials spend their design costs once and end on their design frames", () => {
   assertTrue(PIT_LORD_HERO.specials !== undefined);
-  for (const [press, cost, end] of [[neutral, 5, 57], [side, 22, 64], [down, 20, 60]] as const) {
+  for (const [press, cost, end] of [[neutral, 12, 46], [side, 22, 64], [down, 20, 60]] as const) {
     const { world, owner } = pair(1000.0);
     assertEquals(actionLength(world, owner, press), end);
     assertEquals(owner.mana.points, 100 - cost);
@@ -77,35 +77,52 @@ test("Pit Lord's specials spend their roster costs once and end on their roster 
   assertEquals(owner.mana.points, 85);
 });
 
-test("Fel Spit arcs: it leaves rising at 0.04H, falls 0.003H faster each frame, one at a time, and hits for 8", () => {
+test("Rain of Fire falls through the chosen lane in both facings and each meteor hits once", () => {
   for (const facing of [1, -1]) {
-    const { world, owner, target } = pair(f32(H * f32(2.6)), facing);
-    frame(world, neutral);
+    const { world, owner, target } = pair(f32(H * f32(1.8)), facing);
+    frame(world, down);
     for (let f = 2; f <= 25; f++) frame(world);
-    const spit = owner.projectiles.find(p => p.life > 0 && p.kind === ProjectileKind.hero);
-    assertTrue(spit !== undefined);
-    if (spit === undefined) return;
-    const vz = spit.velocityZ;
-    frame(world);
-    assertNear(f32(vz - spit.velocityZ), f32(H * f32(0.003)), f32(0.0001));
-    assertNear(f32(spit.velocityX * facing), f32(H * f32(0.10)), f32(0.001));
-    let fell = false;
-    for (let f = 0; f < 40 && target.status.damage === 0.0; f++) {
-      frame(world);
-      if (spit.velocityZ < 0.0) fell = true;
-    }
-    assertTrue(fell);
-    assertEquals(target.status.damage, 8.0);
+    const meteor = owner.projectiles.find(p => p.life > 0 && p.kind === ProjectileKind.hero);
+    assertTrue(meteor !== undefined);
+    if (meteor === undefined) return;
+    assertEquals(target.status.damage, 0.0);
+    assertGreaterThan(meteor.z, target.motion.z + H);
+    assertEquals(meteor.velocityX, 0.0);
+    assertLessThan(meteor.velocityZ, 0.0);
+    for (let f = 0; f < 24 && target.status.damage === 0.0; f++) frame(world);
+    assertEquals(target.status.damage, 5.0);
+    assertEquals(meteor.life, 0);
     assertGreaterThan(target.launch.knockbackX * facing, 0.0);
   }
-  // A second press while the first is in flight starts nothing and spends nothing.
-  const { world, owner } = pair(1000.0);
-  for (let f = 1; f <= 57; f++) frame(world, f === 1 ? neutral : controls());
-  const before = owner.mana.points;
-  assertTrue(owner.projectiles.some(p => p.life > 0));
-  frame(world, neutral);
-  assertEquals(owner.special.action, SpecialAction.none);
-  assertEquals(owner.mana.points, before);
+});
+
+test("Rain of Fire releases three separate waves and leaves the space under the caster safe", () => {
+  const { world, owner, target } = pair(0.0);
+  const seen: number[] = [];
+  for (let f = 1; f <= 60; f++) {
+    frame(world, f === 1 ? down : controls());
+    for (const p of owner.projectiles) if (p.life === 23) seen.push(f);
+  }
+  assertEquals(seen.join(","), "25,31,37");
+  assertEquals(target.status.damage, 0.0);
+});
+
+test("Rain of Fire is shieldable and interrupting the caster cancels the remaining waves", () => {
+  const { world, owner, target } = pair(f32(H * f32(1.8)));
+  for (let f = 1; f <= 60; f++) frame(world, f === 1 ? down : controls(), controls({ shield: true, diStickValid: true, diStickZ: 1.0 }));
+  assertEquals(target.status.damage, 0.0);
+  assertLessThan(target.shield.energy, 60.0);
+  const interrupted = pair(1000.0);
+  for (let f = 1; f <= 25; f++) frame(interrupted.world, f === 1 ? down : controls());
+  interrupted.owner.special.action = SpecialAction.none;
+  interrupted.owner.special.frame = 0;
+  let laterWaves = 0;
+  for (let f = 26; f <= 60; f++) {
+    frame(interrupted.world);
+    for (const p of interrupted.owner.projectiles) if (p.life === 23) laterWaves++;
+  }
+  assertEquals(laterWaves, 0);
+  assertEquals(owner.mana.points, 80);
 });
 
 test("Ruin Charge travels 1.5H, armors one small hit on f19-24 only, and the air form goes 0.8H then helpless", () => {
@@ -169,51 +186,27 @@ test("Abyssal Leap peaks near 1.7H; on less than 15 mana the free leap peaks nea
   }
 });
 
-test("Howl of Terror makes a struck opponent deal 10 percent less for 180 frames; a shield stops it", () => {
+test("Howl of Terror pushes both sides once with no hidden status; a shield stops it", () => {
   for (const behind of [false, true]) {
     const { world, owner, target } = pair(f32(H * f32(0.8)), behind ? -1 : 1);
     owner.facing = 1;
-    for (let f = 1; f <= 26; f++) frame(world, f === 1 ? down : controls());
-    assertEquals(target.status.damage, 5.0);
-    assertEquals(target.status.condition, HeroStatusKind.terror);
+    for (let f = 1; f <= 18; f++) frame(world, f === 1 ? neutral : controls());
+    assertEquals(target.status.damage, 7.0);
+    assertEquals(target.status.condition, HeroStatusKind.none);
     // The roar pushes away on both sides.
     assertGreaterThan(f32(f32(target.motion.x - owner.motion.x) * target.launch.knockbackX), 0.0);
-    // The terrified Archer's jab deals 90 percent of its damage.
-    for (let f = 0; f < 60; f++) frame(world);
-    const before = owner.status.damage;
-    target.motion.x = f32(owner.motion.x + f32(40.0 * (behind ? -1 : 1)));
-    target.facing = behind ? 1 : -1;
-    beginFighterAttack(world, 1, AttackStyle.jab, false);
-    let dealt = 0.0;
-    for (let f = 0; f < 20 && dealt === 0.0; f++) {
-      frame(world);
-      dealt = f32(owner.status.damage - before);
-    }
-    assertGreaterThan(dealt, 0.0);
-    const control = pair(f32(H * f32(0.8)));
-    control.target.motion.x = f32(control.owner.motion.x + 40.0);
-    beginFighterAttack(control.world, 1, AttackStyle.jab, false);
-    let full = 0.0;
-    for (let f = 0; f < 20 && full === 0.0; f++) {
-      frame(control.world);
-      full = control.owner.status.damage;
-    }
-    assertNear(dealt, f32(full * f32(0.9)), f32(0.01));
-    for (let f = 0; f < 120; f++) frame(world);
-    assertEquals(target.status.condition, HeroStatusKind.none);
   }
   const shielded = pair(f32(H * f32(0.8)));
   shielded.target.shield.raised = true;
-  for (let f = 1; f <= 26; f++) frame(shielded.world, f === 1 ? down : controls(), controls({ shield: true }));
+  for (let f = 1; f <= 18; f++) frame(shielded.world, f === 1 ? neutral : controls(), controls({ shield: true }));
   assertEquals(shielded.target.status.condition, HeroStatusKind.none);
+  assertEquals(shielded.target.status.damage, 0.0);
 });
 
-test("rollback restores Pit Lord mid-arc, mid-charge and an opponent's Terror", () => {
-  const { world, owner, target } = pair(f32(H * f32(0.8)));
+test("rollback restores Pit Lord's falling fire and repeats the same contact", () => {
+  const { world, owner, target } = pair(f32(H * f32(1.8)));
   for (let f = 1; f <= 30; f++) frame(world, f === 1 ? down : controls());
-  assertEquals(target.status.condition, HeroStatusKind.terror);
-  frame(world, neutral);
-  for (let f = 0; f < 26; f++) frame(world);
+  assertTrue(owner.projectiles.some(p => p.life > 0));
   const savedOwner = createFighter(Character.pitLord, 0.0, 1);
   const savedTarget = createFighter(Character.archer, 0.0, 1);
   copyFighterState(savedOwner, owner, 3);
