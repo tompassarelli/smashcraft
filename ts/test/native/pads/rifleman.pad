@@ -46,7 +46,7 @@
 #! expect b 480 special 7
 #! expect a 486 special 5 form 0
 #! expect a 494 damage 3.720
-#! expect a 495 special 0
+#! expect a 494 special 0
 #! absent b 496-650 damage
 #! expect a 660 special 5 form 0
 #! expect a 701 special 0

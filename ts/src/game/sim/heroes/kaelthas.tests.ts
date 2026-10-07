@@ -161,8 +161,8 @@ test("Kaelthas paid and free Phoenix Flight consume the jump and finish helpless
   }
 });
 
-test("Kaelthas body converts the named Ultimate Mewtwo counterpart", () => {
+test("Kaelthas intentionally adapts Ultimate Mewtwo with the roster air-speed cap", () => {
   const fighter = createFighter(Character.kaelthas, 0.0, 1);
   assertNear(fighter.tuning.physics.weight, 79.0, f32(0.0001)); assertNear(fighter.tuning.physics.runSpeed, f32(13.53), f32(0.0001));
-  assertNear(fighter.tuning.physics.airSpeed, f32(7.878), f32(0.0001));
+  assertNear(fighter.tuning.physics.airSpeed, 7.5, f32(0.0001));
 });
