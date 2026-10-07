@@ -217,6 +217,9 @@ code. From smashcraft:ts/:
   match (every fighter and stage, rematches included) in 32-bit Lua and
   fails when the Lua heap, live Warcraft handles or what the map's globals
   reach grow after a 10-minute warm-up (#168); run it with `farm memory`.
+  Its saved samples include each menu's reachable table field shapes and
+  representative reference paths: compare the full shape union between a
+  warm-up high and a later rise to identify the retaining lifecycle.
 - Agency sweep: `bun wisp agency [--attacker NAME] [--starter NAME]`
   replays every fighter's throws, jab resets, normals and specials (or only
   the named starters) against every fighter with every victim input class and

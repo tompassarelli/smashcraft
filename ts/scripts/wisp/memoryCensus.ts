@@ -158,6 +158,8 @@ export interface Reach {
   readonly entries: number;
   readonly stringBytes: number;
   readonly byGlobal: (readonly [string, number])[];
+  /** Optional table field shapes, their counts and representative reference paths. */
+  readonly tableShapes: (readonly [string, number, readonly string[]])[];
 }
 
 /**
@@ -167,9 +169,9 @@ export interface Reach {
  * seen). A table's entries are its key-value pairs: an array that grows
  * holds no more tables, only more entries.
  */
-export function reach(environment: unknown, emulator: readonly unknown[]): Reach {
+export function reach(environment: unknown, emulator: readonly unknown[], traceTables = false): Reach {
   const seen = new LuaTable<AnyNotNil, boolean>();
-  if (!isLuaTable(environment)) return { tables: 0, functions: 0, entries: 0, stringBytes: 0, byGlobal: [] };
+  if (!isLuaTable(environment)) return { tables: 0, functions: 0, entries: 0, stringBytes: 0, byGlobal: [], tableShapes: [] };
   seen.set(environment, true);
   seen.set(_G, true);
   for (const item of emulator) if (isKey(item) && typeof item !== "string") seen.set(item, true);
@@ -184,7 +186,9 @@ export function reach(environment: unknown, emulator: readonly unknown[]): Reach
   let stringBytes = 0;
   const byGlobal: (readonly [string, number])[] = [];
   const stack: unknown[] = [];
-  const visit = (value: unknown) => {
+  const paths: string[] = [];
+  const shapes = new Map<string, { count: number; paths: string[] }>();
+  const visit = (value: unknown, path = "") => {
     if (!isKey(value) || seen.get(value) === true) return;
     if (typeof value === "string") {
       seen.set(value, true);
@@ -192,33 +196,55 @@ export function reach(environment: unknown, emulator: readonly unknown[]): Reach
     } else if (isLuaTable(value) || isNative(value)) {
       seen.set(value, true);
       stack.push(value);
+      if (traceTables) paths.push(path.slice(-512));
     }
   };
   for (const name of globals) {
     const before = entries;
-    visit(environment.get(name));
+    visit(environment.get(name), name);
     while (stack.length > 0) {
       const value = stack.pop();
+      const path = traceTables ? paths.pop() ?? "" : "";
       if (isLuaTable(value)) {
         tables++;
+        if (traceTables) {
+          const fields: string[] = [];
+          const otherKeys = new Set<string>();
+          for (const [key] of pairs(value)) {
+            if (typeof key === "string") fields.push(key);
+            else otherKeys.add(`<${type(key)}>`);
+          }
+          fields.push(...otherKeys);
+          fields.sort();
+          const shape = `${name}:{${fields.join(",")}}`;
+          const found = shapes.get(shape);
+          if (found === undefined) shapes.set(shape, { count: 1, paths: [path] });
+          else {
+            found.count++;
+            if (found.paths.length < 3) found.paths.push(path);
+          }
+        }
         for (const [key, item] of pairs(value)) {
           entries++;
-          visit(key);
-          visit(item);
+          visit(key, traceTables ? `${path}.<key>` : "");
+          visit(item, traceTables ? `${path}.${typeof key === "string" || typeof key === "number" ? key : `<${type(key)}>`}` : "");
         }
-        visit(getmetatable(value));
+        visit(getmetatable(value), traceTables ? `${path}.<metatable>` : "");
       } else if (isNative(value)) {
         functions++;
         for (let index = 1; ; index++) {
           const [upvalue, item] = debug.getupvalue(value, index);
           if (upvalue === undefined) break;
           entries++;
-          visit(item);
+          visit(item, traceTables ? `${path}.<upvalue:${upvalue}>` : "");
         }
       }
     }
     byGlobal.push([name, entries - before]);
   }
   byGlobal.sort((a, b) => b[1] - a[1]);
-  return { tables, functions, entries, stringBytes, byGlobal };
+  const tableShapes: (readonly [string, number, readonly string[]])[] = [];
+  for (const [shape, found] of shapes) tableShapes.push([shape, found.count, found.paths]);
+  tableShapes.sort((a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0);
+  return { tables, functions, entries, stringBytes, byGlobal, tableShapes };
 }
