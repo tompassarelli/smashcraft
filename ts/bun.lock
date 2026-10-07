@@ -13,7 +13,7 @@
         "typescript": "6.0.2",
         "typescript-native": "npm:typescript@7.0.2",
         "typescript-to-lua": "1.37.1",
-        "wisp": "file:vendor/wisp-6a9cd0810b1a7d20e90e731024911fb9565e0be5.tgz",
+        "wisp": "file:vendor/wisp-ee8b22c83118324770309fce0880d5b741daee1c.tgz",
       },
     },
   },
@@ -82,6 +82,8 @@
 
     "bun-types": ["bun-types@1.4.2", "", { "dependencies": { "@types/node": "*" } }, "sha512-bxV1FgK7yBIzjRe5zBozIM4Bem11ZJcCXSrjWRG3YWLt8yFDePu4cLjpebO8OvPeIE9trbyPF4fuj3Cia4Fj3w=="],
 
+    "dds-parser": ["dds-parser@1.0.1", "", {}, "sha512-T7/hvdtB96hZkm6vBkzXtyIR06kU4bHtpkn8S5v1d6cHkc4oJIgOLzWF/8XydXb27423H39q7CDbzLmOqJYmEQ=="],
+
     "effect": ["effect@4.0.1", "", {}, "sha512-b1VlQG9g8fwxE5QnIZuPoOP/0MsqHJSRKxUijjoM80E5q95FXrX5yWtY5XI8G+GJsBQAVSDbLS458z9a++uVvw=="],
 
     "enhanced-resolve": ["enhanced-resolve@5.8.2", "", { "dependencies": { "graceful-fs": "^4.2.4", "tapable": "^2.2.0" } }, "sha512-F27oB3WuHDzvR2DOGNTaYy0D5o0cnrv8TeI482VM4kYgQd/FT9lUQwuNsJ0oOHtBUq7eiW5ytqzp7nBFknL+GA=="],
@@ -126,8 +128,6 @@
 
     "w3gjs": ["w3gjs@4.3.0", "", { "dependencies": { "protobufjs": "^8.0.1" } }, "sha512-9MJYO674NXsQBS8XZ8ivAkyLv31OgnXv5/LnQaOPLt5eEW4tyUu3IbK2LvpAeVjww3vdxI9IPYKoO3Z2NkfQGQ=="],
 
-    "war3-model": ["war3-model@4.0.1", "", { "dependencies": { "gl-matrix": "3.3.0" } }, "sha512-1jzV2756ty16m9XO8bdXsPF4mxvMK/RGed8b9WZ3Slw76kYdrhty8OQ+UAykdIrhlqzEYwyON+pLbXI5a+yURg=="],
-
-    "wisp": ["wisp@vendor/wisp-6a9cd0810b1a7d20e90e731024911fb9565e0be5.tgz", { "dependencies": { "effect": "4.0.1", "source-map": "0.7.6", "typescript": "6.0.2", "typescript-native": "npm:typescript@7.0.2", "typescript-to-lua": "1.37.1", "w3gjs": "4.3.0", "war3-model": "4.0.1" } }, "sha512-8n++8N+FNbQZ1bbdL9YTYr1yyN5WeCtsrWN+eqkW0wRqun0XsJqcjURbQSBmNS/0nisNmFg+yGfDrkHZsViJnA=="],
+    "wisp": ["wisp@vendor/wisp-ee8b22c83118324770309fce0880d5b741daee1c.tgz", { "dependencies": { "dds-parser": "1.0.1", "effect": "4.0.1", "gl-matrix": "3.3.0", "source-map": "0.7.6", "typescript": "6.0.2", "typescript-native": "npm:typescript@7.0.2", "typescript-to-lua": "1.37.1", "w3gjs": "4.3.0" } }, "sha512-dY8aCOUlRFPHk9JGv/mLIwvRS3CTv4gqhjgH+9HzzPXtBXWrkRH87S4mi+P4u9rleqhd/CPUec6K6nCEgwAA5Q=="],
   }
 }
