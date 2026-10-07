@@ -52,7 +52,7 @@ function journalOwnsKey(s: ShellState, slot: ParticipantSlot, key: number): bool
 }
 
 /** Start: confirms in menus; in a match, pauses at once, or through the helpers' barrier for a journal. */
-function startDown(s: ShellState, slot: ParticipantSlot): void {
+export function startDown(s: ShellState, slot: ParticipantSlot): void {
   const epoch = journalEpoch(s);
   const playing = s.game.phase === Phase.match;
   if (epoch?.journal.editbox !== undefined && chatBusy(epoch.journal)) return;
@@ -220,7 +220,11 @@ export function onProbeExport(s: ShellState): void {
  * automation confirm every client holds the setting before the next match.
  */
 export function onDevCommand(s: ShellState): void {
-  const original = GetEventPlayerChatString();
+  applyDeveloperCommand(s, GetPlayerId(GetTriggerPlayer()), GetEventPlayerChatString());
+}
+
+/** Applies synchronized developer setup without requiring a chat event. */
+export function applyDeveloperCommand(s: ShellState, actor: number, original: string): void {
   if (original === RESET_COMMAND) {
     clearVisualCapture(localSlot());
     pauseMatchPresentation(s, s.session.paused);
@@ -234,7 +238,7 @@ export function onDevCommand(s: ShellState): void {
   const painHero = quickPainHero(message);
   const quickCpu = quickMatchCpuProfile(message);
   // Session setup (sessionSetup.ts) changes the menus only for its own spellings.
-  const setup = applySetupCommand(s.game, GetPlayerId(GetTriggerPlayer()), message);
+  const setup = applySetupCommand(s.game, actor, message);
   if (setup === `dev: stage ${s.game.stageChoice}` && s.game.phase === Phase.characterMenu) s.dev.stageChoice = s.game.stageChoice;
   if (message === QUICK_TRAINING_COMMAND) {
     receipt = "dev: quick training";
@@ -293,7 +297,7 @@ export function onDevCommand(s: ShellState): void {
     receipt = "dev: render clock probe";
     probeRenderClock();
   } else if (message === DESYNC_COMMAND) {
-    const slot = GetPlayerId(GetTriggerPlayer());
+    const slot = actor;
     receipt = `dev: desync from player ${slot + 1}'s client`;
     // One more handle on one client: Warcraft's handle counter and tempest checksum diverge.
     if (slot === GetPlayerId(GetLocalPlayer())) CreateTimer();

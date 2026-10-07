@@ -42,3 +42,6 @@ export const CURRENT_BUILD: MapBuild = {
   errorsOnScreen: true,
   hotReload: true,
 };
+
+/** Deterministic native engine scripts use the same row adapter as callback matches. */
+export const NATIVE_DRIVER_BUILD: MapBuild = { ...CURRENT_BUILD, id: "typescript-native-driver", inputProfile: "native-driver", hotReload: false };
