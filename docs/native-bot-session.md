@@ -221,7 +221,17 @@ Each line is `FRAME CLIENT ACTION [ARGS]`: the match frame the edge is
 meant for (or `+N` after the previous line), `a` or `b`, and
 `press|release|tap BUTTON [FRAMES]`, `stick X Y`, `cstick X Y`
 (-1..1, up positive), `shield AMOUNT` (0..1) or `capture` (that
-client's whole frame, saved as `frame-FRAME-CLIENT.ppm`). A menu-started
+client's whole frame). A capture waits until that client has drawn its
+frame: the integrity build writes the predicted frame it drew to
+`smashcraft-drawn-BUILD-pN.txt` in CustomMapData whenever it changes, and
+under load the drawn match runs well behind the helper's clock (#156 on
+7 Oct: 6 to 88 frames, so captures on the clock showed the moment before
+the move). It is saved as `frame-FRAME-CLIENT-drawn-D.ppm`, D the frame drawn
+when the capture began, and `captures.json` gives each capture's frames drawn
+before and after it (the screen grab itself takes about 50 ms, three frames).
+A dash attack is A with the stick back at neutral while the fighter still
+dashes (a jab out of a dash); A with the stick held, even 12 frames into
+the dash, is a forward smash. A menu-started
 match holds fighters until GO! on frame 181; `-dev quick` matches start at
 frame 1, and the helpers see it a few frames in, so start a script at frame 15
 or later. Each edge is written a fifth into its frame on the helper's own

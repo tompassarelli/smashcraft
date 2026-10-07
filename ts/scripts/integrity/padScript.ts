@@ -7,7 +7,7 @@
 //   CLIENT  a | b (pad slot 0 | 1)
 //   ACTION  press BUTTON | release BUTTON | tap BUTTON [FRAMES] | stick X Y | cstick X Y | shield AMOUNT | capture
 // BUTTON is A, B, X, Y, LB (or TL), RB (or TR), START or VIEW; X and Y run -1..1 with up positive;
-// AMOUNT runs 0..1. `capture` saves that client's whole frame. `#` starts a comment.
+// AMOUNT runs 0..1. `capture` saves that client's whole frame once it has drawn the line's frame (drawnCapture.ts). `#` starts a comment.
 import { ABS_RX, ABS_RY, ABS_X, ABS_Y, ABS_Z, BTN_A, BTN_B, BTN_SELECT, BTN_START, BTN_TL, BTN_TR, BTN_X, BTN_Y, EV_ABS, EV_KEY, type SourceEdge } from "./linuxInput";
 import type { Slot } from "./reconcile";
 

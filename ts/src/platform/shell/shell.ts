@@ -16,6 +16,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { on, trampoline } from "wisp/src/platform/dispatch";
 import { EDITBOX_ENTER, EditboxIngress } from "../editboxJournal";
 import { localParticipantSlot, traceTick, writeReadyMarker } from "./diagnostics";
+import { writeDrawnFrame } from "./drawnFrame";
 import { callbackMatchTick } from "./frame";
 import { clearAllInputs, clearParticipantInputs, currentHumanMask } from "./inputs";
 import { INPUT_PREFIX, journalEpoch, publishMenu, serviceJournalEnd } from "./journal";
@@ -109,6 +110,7 @@ function gameTick(s: ShellState): void {
   renderPersistentPresentation(s);
   lockArenaCamera(s);
   renderUi(s);
+  writeDrawnFrame(s);
   const journal = s.rollback?.journal;
   if (editbox !== undefined && journal !== undefined) {
     const { barrier } = journal;

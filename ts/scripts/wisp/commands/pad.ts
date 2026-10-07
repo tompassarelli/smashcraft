@@ -19,7 +19,7 @@
 import { copyFileSync, existsSync, mkdirSync, openSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync, writeSync, closeSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
-import { Effect } from "effect";
+import { Effect, Fiber } from "effect";
 import { at } from "wisp/src/runtime/lookup";
 import { type Command, UsageFailure, describeCause } from "wisp/scripts/wisp/command";
 import { type DesktopFailure, batch, capture, loadClients } from "wisp/scripts/warcraft/desktop";
@@ -39,6 +39,8 @@ import { REPRO_NAME, TRACE_FILE, checkHeadlessRun, compareRuns, scriptChat } fro
 import type { Schedule, ScheduleReply, ScheduledEdge } from "../../integrity/padScheduleWorker";
 import { type PadStep, type SentEdge, frameWriteNs, landEdges, matchStart, parsePadScript, ruleFrame } from "../../integrity/padScript";
 import { SLOTS } from "../../integrity/reconcile";
+import { captureWhenDrawn, drawnFrom } from "../../integrity/drawnCapture";
+import { drawnFrameFile } from "../../../src/runtime/gameFiles";
 import { PREDICTED_HEADLESS, SMASHCRAFT_HEADLESS } from "../headless";
 import { sceneFile } from "wisp/src/runtime/scene";
 import { clientState } from "../project";
@@ -48,6 +50,9 @@ const USAGE = "pad SCRIPT --helper BINARY --build BUILD --out DIR --app-id a=ID 
   + "       bun wisp pad SCRIPT --headless --helper BINARY --out DIR [--chat=TEXT] [--compare NATIVE_DIR]\n"
   + "       bun wisp pad SCRIPT|DIR... --helper BINARY --out DIR --map MAP.w3x [--pairs N | --pair K... | --app-id a=ID --app-id b=ID] [--headless-jobs N] [--fresh-each]\n"
   + "       bun wisp pad SCRIPT|DIR... --headless --helper BINARY --out DIR [--headless-jobs N]";
+
+/** How long a capture waits for its client to draw its frame: about 3 s behind the helper's clock, past #156's worst lag (88 frames). */
+const CAPTURE_WAIT_MS = 10_000;
 
 /** The integrity build writes its input trace 1200 callbacks after the first journal row: about 20 s after the match starts. */
 const TRACE_WAIT_MS = 45_000;
@@ -139,7 +144,7 @@ export const native = (options: PadOptions, appIds: ReadonlyMap<string, string>,
   yield* tryIntegrity("create pad directory", out, () => {
     mkdirSync(out, { recursive: true });
     // A rerun leaves nothing of the attempt before it.
-    for (const name of readdirSync(out)) if (/^(trace-[ab]\.txt|scene-[ab]\.txt|result\.json)$/.test(name) || REPRO_NAME.test(name)) rmSync(join(out, name));
+    for (const name of readdirSync(out)) if (/^(trace-[ab]\.txt|scene-[ab]\.txt|result\.json|captures\.json|frame-\d+-\w+(-drawn-\d+)?\.ppm)$/.test(name) || REPRO_NAME.test(name)) rmSync(join(out, name));
   });
   const data = [join(clients[0].documents, "CustomMapData"), join(clients[1].documents, "CustomMapData")] as const;
   const startedMs = Date.now();
@@ -168,6 +173,9 @@ export const native = (options: PadOptions, appIds: ReadonlyMap<string, string>,
     );
   }
   const epochs = yield* matchEpochs(logs, startedNs, out);
+  const matchIds = logs().map((text) => matchStart(text)?.epoch ?? 0);
+  const captures: Record<string, unknown>[] = [];
+  const shots: Fiber.Fiber<void>[] = [];
   yield* checkFirstEdge(steps, epochs, scriptPath);
   const producerPath = join(out, "producer.jsonl");
   const producer = yield* Effect.acquireRelease(tryIntegrity("open producer log", producerPath, () => openSync(producerPath, "w")), (fd) => Effect.sync(() => closeSync(fd)));
@@ -175,11 +183,20 @@ export const native = (options: PadOptions, appIds: ReadonlyMap<string, string>,
   for (const item of steps) {
     yield* until(frameWriteNs(at(epochs, item.slot), item.frame));
     if (item.kind === "capture") {
+      // Taken once the client has drawn the frame (scripts/integrity/drawnCapture.ts), named by the frame it showed.
       const client = clients[item.slot];
-      yield* Effect.forkScoped(capture(client).pipe(
-        Effect.flatMap((frame) => tryIntegrity("save frame", out, () => writeFileSync(join(out, `frame-${item.frame}-${client.name}.ppm`), encodePpm(frame)))),
-        Effect.catch((failure) => Effect.sync(() => console.error(`capture at frame ${item.frame}: ${failure.message}`))),
-      ));
+      const shot = captureWhenDrawn(drawnFrom(join(at(data, item.slot), drawnFrameFile(build, item.slot))), at(matchIds, item.slot), item.frame, CAPTURE_WAIT_MS, capture(client).pipe(Effect.mapError(fromDesktop)), out).pipe(
+        Effect.flatMap(({ shot: frame, before, after, waitedMs }) => tryIntegrity("save frame", out, () => {
+          const name = `frame-${item.frame}-${client.name}-drawn-${before}.ppm`;
+          writeFileSync(join(out, name), encodePpm(frame));
+          captures.push({ line: item.line, client: client.name, planned: item.frame, drawn_before: before, drawn_after: after, waited_ms: Math.round(waitedMs), file: name });
+        })),
+        Effect.catch((failure) => Effect.sync(() => {
+          console.error(`capture at frame ${item.frame}: ${failure.message}`);
+          captures.push({ line: item.line, client: client.name, planned: item.frame, failed: failure.message });
+        })),
+      );
+      shots.push(yield* Effect.forkScoped(shot));
       continue;
     }
     for (const edge of item.edges) {
@@ -190,6 +207,8 @@ export const native = (options: PadOptions, appIds: ReadonlyMap<string, string>,
   }
   const last = steps.at(-1)?.frame ?? 0;
   yield* until(frameWriteNs(Math.max(...epochs), last + 30));
+  yield* Fiber.joinAll(shots);
+  if (captures.length > 0) yield* tryIntegrity("write captures", out, () => writeFileSync(join(out, "captures.json"), json(captures)));
   const finished = yield* Effect.exit(finish(out, scriptPath, build, epochs, sent, logs()));
   yield* collect(data, out, startedMs);
   const invalid = invalidRun(clients.map((client) => client.name), clients.map((client) => client.documents), data, startedMs);
