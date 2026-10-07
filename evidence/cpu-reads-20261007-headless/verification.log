@@ -1,0 +1,4 @@
+pad (cpu-reads.pad)	Play cpu-reads.pad	2026-10-07T15:46:05.5398515Z 28 edges, 0 off their frame (0 of them written late); /dev/shm/pad/cpu-reads.pad/result.json
+pad (cpu-reads.pad)	Play cpu-reads.pad	2026-10-07T15:46:07.3403372Z   21.893 s  headless pad script (21.891 s)
+pad (cpu-reads.pad)	Play cpu-reads.pad	2026-10-07T15:46:07.3418556Z expectations: 2 checked
+pad (cpu-reads.pad)	Play cpu-reads.pad	2026-10-07T15:46:07.3418802Z PASS: the script's expectations hold headless

@@ -78,6 +78,12 @@ the same. Both `wc3-controller` and `wc3-journal` accept `--preset standard|z-ju
 The journal also accepts `WC3_PAD_PRESET`. LT requests trigger pressure 77,
 the lightest active shield, while RT requests 255 for full shield.
 
+Tap jump is off by default. The Controller page can enable it, or either helper
+accepts `--tap-jump on|off` (the journal also reads `WC3_TAP_JUMP`). When enabled,
+stick up past 0.6625 requests jump. Holding Tilt plus shield caps the effective
+stick at 0.65 before tap jump, so the shield can tilt up without jumping.
+Jump buttons keep working while tilting the shield.
+
 In the map's fighter, stage and results menus, the controller service makes
 the left stick a pointer, as the hand cursor is in Smash: it moves the desktop
 pointer over the game (the compositor's virtual pointer), A left-clicks to
@@ -428,13 +434,14 @@ with how much it takes at once: in 0.0.48's native bot session, the 16 records
 (608 characters) typed after a 2 s stop held the client about 180 ms, and its
 input stayed 15–25 frames late for 5 s
 (smashcraft:evidence/bot-session-0048-native-20261006/). So the helper types
-at most 160 characters past the record the receipt says arrived, and while a
-record waits untyped, the next row packets join it with `|` (at most 16
-packets, the map's `RECORD_PACKETS`, and only while the record's envelope stays
-within those 160 characters): a backlog takes 5–8 characters a frame instead
-of 19. Without that last bound, 16 joined packets of moving sticks made a
-record of about 480 characters, typed at once after a receipt; 0.0.49's
-native bot session, with pad beats, typed records of up to 268.
+at most 160 characters past the record the receipt says arrived. While a
+row packet waits untyped, consecutive packets from the same epoch combine
+using the existing `I5` message encoding, up to 64 frames and only while the
+whole envelope stays within those 160 characters. Holds keep buttons, axes
+and triggers; every press, release and other edge retains its original frame.
+Already typed packets and control records stay separate. The native #86
+capture's 28 neutral frames used 155 characters as joined `I4` packets;
+the same frames use 37 characters in one `I5` envelope.
 The map writes a dirty text receipt every two ticks (at most 30 per client
 per second), so the smaller window can drain promptly. The typing cost
 model bounds 160 characters at 12.8 ms; native receipt-write cost remains
@@ -555,3 +562,46 @@ without SDL, so windows such as smashcraft:client depend on it alone.
 smashcraft:companion is a self-contained Cargo workspace (`cargo test --workspace`)
 so it can move to its own repository; consumers then switch their path
 dependency on `wc3-controller-model` to a git one.
+
+
+## Analog comparison candidates (#204)
+
+The production default stays digital until the native comparison chooses a
+channel. The Linux service can opt into either candidate with
+`WC3_PAD_INGRESS=keys` or `WC3_PAD_INGRESS=cursor`; cursor also needs
+`WC3_PAD_CURSOR_GRID=X,Y,W,H,SCREEN_W,SCREEN_H`. The numbers are a rectangle and
+compositor output extent in logical pixels. Use the same output containing the
+game window and choose a rectangle inside its flat-ground diagnostic view.
+Restart the service after changing these variables.
+
+For a bounded native test, `wc3-controller --emit --watch-seconds N` accepts
+`--pad-ingress keys|cursor` and `--cursor-grid X,Y,W,H,SCREEN_W,SCREEN_H`, with the
+usual exact game-window and foreground arguments. Add `--virtual-pad` to feed
+SDL acquisition from stdin, for example `axis leftx 16384`, `axis leftx 32767`,
+`axis lefttrigger -7068` (SDL normalizes trigger joystick units to 0..32767),
+`button a 1`, `button a 0`, and `quit`. Keep stdin open between commands. A
+physical pad uses the same SDL capture path; the service uses evdev InputView.
+
+Both candidates first apply `melee_stick` radial clamp/deadzone and then use
+17 signed stick levels and four trigger levels from `model::pad`. The 14-bit
+payload packs X index in bits 0..4, Z index in 5..9, LT in 10..11 and RT in
+12..13. Key output holds F13..F24, Insert and Delete for those bits. Home stays held while the pad
+is armed and focused; End marks a complete payload. Payload changes release End, change the bits, then press
+End. Cursor output sends low seven bits as the horizontal cell and high seven
+bits as the vertical cell across a 128 by 128 grid, with Home and End active.
+The map keeps the previous complete payload while Home is held and End is
+released during a write, and clears it when Home is released. Existing
+action keys are still emitted. Focus loss and disconnect release the carrier;
+controls must return to neutral before it becomes active again. Experimental
+output logs each submitted `pad_ingress payload=... x=... z=... left=... right=...`
+record to stderr alongside the ordinary timestamped action history on stdout.
+
+Cursor calibration is a separate bounded operation, requiring no controller:
+run `wc3-controller --emit --watch-seconds N --cursor-calibrate start` with
+`--cursor-grid` and the usual foreground arguments after the diagnostic map's
+camera is fixed. It holds Home, End and PageUp and moves to cell (0,0). Wait for the
+map's calibration observation, then allow the helper to exit. Repeat with
+`--cursor-calibrate end` for PageDown and cell (127,127). Each operation releases
+its markers when it exits or loses focus. The native runner must observe both
+calibration callbacks before starting cursor playback; the duration alone is
+not a calibration acknowledgment.

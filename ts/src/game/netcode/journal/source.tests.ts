@@ -1,7 +1,7 @@
 import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { Action, bit } from "../../input/actions";
 import { type InputRow, type RowFields, inputRow, sameInput } from "../../input/inputRow";
-import { type InputPacket, encodePacket, inputPacket } from "../../input/wire";
+import { type InputPacket, encodeInputMessage, encodePacket, inputPacket } from "../../input/wire";
 import { type JournalRead, JournalInputSource, RECORD_PACKETS } from "./source";
 
 const row = (fields: RowFields = {}) => assertDefined(inputRow(fields), "row");
@@ -130,4 +130,43 @@ test("a joined record admitted in parts is read again from its first row not yet
   assertTrue(source.sent());
   assertEquals(source.bufferedPacket(), undefined);
   assertEquals(ready(source.read(wire(97, 6, NEUTRAL), 64)).firstFrame, 6);
+});
+
+test("an I5 backlog preserves 64 original frames and tap edges across admission budget splits", () => {
+  const source = open("candidate", 98, 0, 3);
+  const tap = row({ pressed: bit(Action.attack) | bit(Action.special), released: bit(Action.attack) | bit(Action.special), specialX: -1, throwX: 2 });
+  const held = row({ held: bit(Action.moveRight), axisX: 127, triggerLeft: 128 });
+  const release = row({ released: bit(Action.moveRight) });
+  const rows = Array.from({ length: 64 }, () => NEUTRAL);
+  rows[0] = tap;
+  rows[20] = held;
+  for (let index = 21; index < 40; index++) rows[index] = held;
+  rows[40] = release;
+  rows[63] = tap;
+  const message = encodeInputMessage(98, 4, 67, frame => assertDefined(rows[frame - 4]));
+  assertEquals(message.lastFrame, 67);
+  assertEquals(source.read(message.wire, 66).kind, "wait");
+  assertEquals(source.bufferedPacket(), message.wire);
+  let sent = 0;
+  while (sent < rows.length) {
+    const packet = ready(source.read(assertDefined(source.bufferedPacket()), 67));
+    assertEquals(packet.firstFrame, 4 + sent);
+    assertEquals(packet.rows.length, rows.length - sent);
+    for (let index = 0; index < packet.rows.length; index++) assertTrue(sameInput(assertDefined(packet.rows[index]), assertDefined(rows[sent + index])));
+    const count = Math.min(6, packet.rows.length);
+    assertTrue(source.sent(count));
+    sent += count;
+    assertEquals(source.expectedFrame(), 4 + sent);
+  }
+  assertEquals(source.bufferedPacket(), undefined);
+  assertEquals(source.sequenceNumber(), 65);
+  assertEquals(source.read(message.wire, 67).kind, "invalid");
+});
+
+test("an I5 backlog rejects another epoch, a skipped frame and malformed text", () => {
+  const source = open("candidate", 99, 0, 0);
+  assertEquals(source.read(encodeInputMessage(100, 1, 3, () => NEUTRAL).wire, 64).kind, "invalid");
+  assertEquals(source.read(encodeInputMessage(99, 2, 4, () => NEUTRAL).wire, 64).kind, "invalid");
+  assertEquals(source.read("I5 malformed", 64).kind, "invalid");
+  assertEquals(source.expectedFrame(), 1);
 });

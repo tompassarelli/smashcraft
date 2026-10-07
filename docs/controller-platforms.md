@@ -12,6 +12,11 @@ Implementation is tracked in [#18](https://github.com/tompassarelli/smashcraft/i
 
 The deciding evidence is broader than the C# example: SDL's device drivers; Microsoft's XInput/GameInput and SendInput contracts; Apple's foreground/Accessibility APIs; enigo's actual platform implementations; local W3Champions launch/input code; and local Slippi/Dolphin source snapshots plus Melee Unlocked. Each solves a different boundary. **XInput reads controllers; SendInput generates desktop input. Neither is an analog interface into a Warcraft map.** Cross-platform compilation and OS event submission are not native-game acceptance.
 
+Modern pads (Xbox and Switch Pro) set the defaults. GameCube pads remain
+bindable, but do not determine the default layout. The Controller page offers
+Standard (B/Y jump, RB grab) and Z-jump (RB/Y jump, B grab). Both keep A attack,
+X special, LB Tilt (also walks), LT light shield, RT shield and the stick controls.
+
 ## 1. Controller acquisition
 
 | Option | Evidence and tradeoff | Choice |
@@ -53,7 +58,7 @@ The real alternative is thin direct OS bindings: Microsoft's `windows` crate for
 
 Sources: [enigo Windows implementation](https://github.com/enigo-rs/enigo/blob/a88d9b7e2cec7043ab5f03e754500a091ea928d1/src/win/win_impl.rs), [macOS implementation](https://github.com/enigo-rs/enigo/blob/a88d9b7e2cec7043ab5f03e754500a091ea928d1/src/macos/macos_impl.rs), [backend/permission documentation](https://github.com/enigo-rs/enigo/blob/a88d9b7e2cec7043ab5f03e754500a091ea928d1/README.md), [SendInput contract](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendinput), [RemoteDesktop portal](https://flatpak.github.io/xdg-desktop-portal/docs/doc-org.freedesktop.portal.RemoteDesktop.html).
 
-Enigo tracks held keys and can release them on drop. This is useful cleanup, not focus-loss handling, not multi-source aggregation, and not crash-proof cleanup. Own the action-state policy once: LT and RT both hold shield; releasing one must retain shield until both are up. B and Y share jump semantics but need individually tracked sources; stick-up is only up. Disconnect/focus loss clears owned state; returning focus does not replay stale held actions. Physical keyboard/controller overlap and modifiers must be tested, not reset indiscriminately. No library can provide an atomic guarantee that foreground focus will remain unchanged between a user-space check and global injection; document this residual race and verify the ordinary focus transition.
+Enigo tracks held keys and can release them on drop. This is useful cleanup, not focus-loss handling, not multi-source aggregation, and not crash-proof cleanup. Own the action-state policy once: LT holds light shield and RT holds full shield; releasing one must retain the other shield input until both are up. In the standard preset, B and Y share jump semantics but need individually tracked sources; stick-up is only up. Disconnect/focus loss clears owned state; returning focus does not replay stale held actions. Physical keyboard/controller overlap and modifiers must be tested, not reset indiscriminately. No library can provide an atomic guarantee that foreground focus will remain unchanged between a user-space check and global injection; document this residual race and verify the ordinary focus transition.
 
 The locally inspected W3Champions launcher independently confirms these API choices: its native hotkey module uses SendInput on Windows, CGEvent on macOS and XTest on Linux. This is behavioral prior art only: no project license was found in the inspected root/package, and its presence does not establish correctness of those implementations or current platform support. No code was translated or copied.
 
@@ -118,6 +123,58 @@ detected and read in the background; Warcraft III itself accepting the keys
 and its real executable or app identity passing the foreground check;
 Battle.net launch; the macOS Accessibility prompt for the user's actual app;
 keyboard layouts other than the runner's US QWERTY; and an online match.
+
+## Analog values and quantization
+
+The input row keeps its existing signed-byte `axisX` and `axisZ` (−127 to
+127), and unsigned-byte `triggerLeft` and `triggerRight` (0 to 255). Both
+candidate pad transports use the same quantization: 17 readings per stick
+axis, neutral plus eight in either direction, and four readings per trigger.
+The helper applies the existing radial clamp and 0.28 axial dead zone before
+choosing the nearest active level. Values outside the dead zone keep their
+strength; the active range is not expanded to start from zero.
+
+| Field | Readings |
+| --- | --- |
+| Stick X and Z | −127, −114, −101, −88, −75, −62, −49, −36, 0, 36, 49, 62, 75, 88, 101, 114, 127 |
+| Each trigger | 0, 77, 166, 255 |
+
+Eight active magnitudes retain a distinction between a half push (62) and a
+full push (127), while keeping the transport smaller than a full-resolution
+pad. Trigger 77 retains the existing light-shield setting; 166 adds a middle
+pressure and 255 is full pressure. These counts are Smashcraft's coarse
+choice, informed by the following reference behavior.
+
+Melee clamps and scales its stick to 80 units and each analog trigger to 140
+units. Its controller code first retains integer stick and trigger readings,
+then converts them to normalized floats. The existing helper also retains
+Melee's 0.28 fighter-input dead zone. Sources: [Melee pad setup](https://github.com/doldecomp/melee/blob/4eb34e8ebe3421cb04d8e635aa29809183320421/src/melee/gm/gmmain.c#L38)
+and [pad clamp and scale](https://github.com/doldecomp/melee/blob/4eb34e8ebe3421cb04d8e635aa29809183320421/src/sysdolphin/baselib/controller.c#L160).
+
+For Ultimate's GameCube-adapter path, HDR's input research describes signed
+8-bit device axes, the Switch driver's 15–70 working range and remapping,
+and the game's additional 0.2 inner and 0.944 outer dead zones. Together
+these leave about 41 distinct active readings in each direction. This is a
+specific adapter path rather than a claim about every Ultimate controller.
+Source: [HDR's explanation](https://github.com/HDR-Development/hid-hdr/blob/d425dcebfe0cf5165d06e395573b6e8a5ef15197/README.md#curious-about-the-stick-changes).
+
+Ultimate uses a GameCube analog-trigger threshold of 79 as a digital press;
+Melee uses analog pressure for shield strength up to 140. Smashcraft keeps
+four pressure readings because its existing shield simulation uses pressure.
+Source: [OpenGCC's trigger measurements](https://github.com/ZadenRB/OpenGCC_Firmware/wiki/Analog-and-Digital-Trigger-Values).
+
+The packet carries two five-bit stick indices and two two-bit trigger
+indices, 14 bits in total. The key candidate holds these bits as F13–F24,
+Insert and Delete. Home identifies a present pad; End is held only after all
+bits of an update are ready. The map keeps the previous complete pad sample
+while End is released, and clears it when Home is released or focus is lost.
+The cursor candidate
+encodes the same bits as two seven-bit cursor-cell coordinates. Neither
+changes the row format, replay records or rollback packets. A keyboard
+sample continues to produce its existing full stick and trigger readings.
+
+The references above supply numerical behavior only; no external controller
+code is copied. The packet and its coarse levels are authored here.
 
 ## Source pins and reuse rights
 
