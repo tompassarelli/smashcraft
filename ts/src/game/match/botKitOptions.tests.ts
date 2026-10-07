@@ -227,8 +227,8 @@ test("computer Pit Lord spits Fel Spit, charges with Ruin Charge and howls Howl 
   usesEvery(Character.pitLord, ["special0", "special1", "special3"]);
 });
 
-test("computer Beastmaster summons the bear, orders its lunge and calls it back", () => {
-  usesEvery(Character.beastmaster, ["special1", "recall1", "recall3"]);
+test("computer Beastmaster summons the pack, commands Stampede, Hawk Dive and Quill Volley", () => {
+  usesEvery(Character.beastmaster, ["special0", "special1", "special2", "special3", "recall1", "recall2", "recall3"]);
 });
 
 test("computer Rifleman flies level and diagonal recoil routes with a second shot, short-hops and grounds the blaster, calls the bear", () => {

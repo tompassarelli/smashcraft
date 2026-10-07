@@ -20,7 +20,7 @@ const CARRION_SWARM: AuthoredSpecial = {
   projectiles: [{
     model: "Abilities\\Spells\\Undead\\CarrionSwarm\\CarrionSwarmMissile.mdx",
     spawnFrame: 20, offsetX: 40.0, offsetZ: 60.0, velocityX: h(f32(0.09)), velocityZ: 0.0, life: 32, radius: h(f32(0.25)),
-    effect: dreadlordHit(7.0, "POKE", 40, 1.0, HitElement.dark), reflectable: true, limit: 1,
+    effect: dreadlordHit(6.335000038146973, "POKE", 40, 1.0, HitElement.dark), reflectable: true, limit: 1,
   }],
 };
 
@@ -34,7 +34,7 @@ const SLEEP_ORB: AuthoredSpecial = {
   projectiles: [{
     model: "Abilities\\Weapons\\VoidWalkerMissile\\VoidWalkerMissile.mdx",
     spawnFrame: 26, offsetX: 40.0, offsetZ: 60.0, velocityX: h(f32(0.06)), velocityZ: 0.0, life: 50, radius: h(f32(0.18)),
-    effect: { damage: 2.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false, element: HitElement.dark },
+    effect: { damage: 1.8100000619888306, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false, element: HitElement.dark },
     reflectable: true, limit: 1,
     status: { kind: HeroStatusKind.sleep, frames: 100, airFrames: 24, group: HeroStatusGroup.sleep, immunityFrames: 240 },
   }],
@@ -47,7 +47,7 @@ const SLEEP_ORB: AuthoredSpecial = {
 // bat-hop 0.7H back over its frames 1-10, ending on frame 18. Airborne: a claw
 // strike, once per airtime, ending helpless.
 const POUNCE_GRAB: StrikeCapsule = { x1: 14.0, z1: 40.0, x2: f32(h(f32(0.45)) - 12.0), z2: 40.0, radius: 12.0 };
-const POUNCE_BITE = dreadlordHit(13.0, "EDGE", 40);
+const POUNCE_BITE = dreadlordHit(11.765000343322754, "EDGE", 40);
 const POUNCE_CLAW = [heroRegion(17, 19, { x1: 18.0, z1: 46.0, x2: f32(h(f32(0.8)) - 10.0), z2: 40.0, radius: 10.0 }, POUNCE_BITE)];
 /** The feint's hop spreads his wings, which stay his body. */
 const SPREAD_WINGS_FEINT = [hurtPose(1, 18, [
