@@ -105,6 +105,12 @@ code. From smashcraft:ts/:
 - Menus: `bun wisp menus host|join|start|leave` drives lobbies through Wisp's
   menu page instead of clicks (`install RETAIL_DIR --port N` once per prefix,
   with the account owner's agreement; smashcraft:docs/wisp.md, "Menu control").
+- Direct play: `bun wisp online host [--client NAME]` hosts the newest
+  Smashcraft map as a private Battle.net game and prints its join code;
+  `bun wisp online join CODE [--client NAME]` joins it; both return at fighter
+  selection. `online setup` installs the menu page and Allow Local Files after
+  the owner agrees. The client's Online page runs them
+  (smashcraft:docs/design/client.md, "Direct play").
 - Playtest: `bun wisp play` builds current main with its current controller
   helper and goes from Tom's desktop to a match against a computer
   (smashcraft:docs/play.md). Experiments use `fresh`, captures or `accept`,

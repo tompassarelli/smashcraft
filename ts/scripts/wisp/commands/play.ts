@@ -39,7 +39,7 @@ interface Playtest {
 }
 
 /** Tom's own Warcraft III install. */
-const PLAYTEST_PREFIX = join(homedir(), ".local/share/Steam/steamapps/compatdata/3516115571/pfx");
+export const PLAYTEST_PREFIX = join(homedir(), ".local/share/Steam/steamapps/compatdata/3516115571/pfx");
 
 /** Journal identity of the current playable profile; map and helper resolve from main at invocation. */
 export const PLAYTEST: Omit<Playtest, "map" | "helper"> = {

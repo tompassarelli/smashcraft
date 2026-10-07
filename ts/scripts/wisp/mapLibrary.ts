@@ -25,3 +25,10 @@ export function installLatest(documents: string, map: string): void {
     if (!existsSync(target)) renameSync(join(root, entry), target);
   }
 }
+
+/** The newest playable version in the owner's Smashcraft maps folder, as `install` keeps it. */
+export function newestPlayable(documents: string): string | undefined {
+  const root = join(documents, "Maps/00-Smashcraft");
+  if (!existsSync(root)) return undefined;
+  return readdirSync(root).filter((entry) => PLAYABLE.test(entry)).sort((a, b) => b.localeCompare(a, undefined, { numeric: true }))[0];
+}

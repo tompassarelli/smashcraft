@@ -356,6 +356,46 @@ and smashcraft:ts/src/platform/shell/replays.ts writes.
   callback, about 0.25 million at most, after the callback that starts the
   segment.
 
+## Direct play (Phase 4)
+
+Two players meet in a private Battle.net custom game, found by a join code.
+No Smashcraft server is involved, and players are their Battle.net names.
+
+- **The code.** Eight characters of Crockford's base 32, shown `ABCD-EFGH`
+  (smashcraft:ts/scripts/wisp/joinCode.ts). The first four name the game,
+  `Smashcraft ABCD`; the last four are its password. Typing ignores case,
+  spaces and dashes and reads O, I and L as 0, 1 and 1. When the game refuses to
+  create the lobby (a name in use, for example), the host takes a new code
+  (three tries). The game and password also work typed into Warcraft III's own
+  Join by name.
+- **Host** (`bun wisp online host`, smashcraft:ts/scripts/wisp/online.ts).
+  Through Wisp's menu page it creates a private lobby of the newest
+  `Smashcraft X.Y.Z.w3x` in Maps/00-Smashcraft, prints `Join code: …`
+  and waits. It starts the lobby when the guest's ready line
+  (`Smashcraft: ready (ABCD)`) arrives in lobby chat, when the player sends
+  `start` on stdin (the client's Start now) or when the player starts it in
+  Warcraft III. A start the game ignores (a guest still downloading the map)
+  is sent again for up to five minutes.
+- **Guest** (`bun wisp online join CODE`). Joins by name and password,
+  retried twice 2 s apart as fresh does, then sends its ready line twice
+  (after 1 s and 6 s) and waits for the loading screen.
+- **In the match.** Each side returns once its Smashcraft writes
+  `wc3-melee-ready.txt` after the loading screen: fighter selection.
+- **Lines.** Standard output is written for players and the client shows it;
+  the technical reason for a failure goes to standard error, which the
+  client keeps in its log folder as `online.log`.
+- **Setup** (`bun wisp online setup`, smashcraft:ts/scripts/wisp/menuPageSetup.ts).
+  Run by the client only after the player agrees, once. It writes Wisp's menu
+  page into `_retail_/webui` (refusing another program's page) and sets
+  Warcraft III's `Allow Local Files` in the prefix's `user.reg`, keeping
+  the old file as `user.reg.before-smashcraft`. `user.reg` is changed only
+  while no wineserver uses the prefix; otherwise the player is asked to close
+  Warcraft III and Battle.net. With the player's agreement remembered,
+  every host and join writes the page again first (`--repair`), so a
+  Warcraft III update that drops it is repaired at the next start.
+- **Which Warcraft III.** Tom's install (play's prefix, report port 47124), or
+  `--client NAME` for a client of ~/.local/state/smashcraft/clients.json.
+
 ## Phases
 
 | Phase | Issue | What it delivers | Feasibility | Owner decisions |
