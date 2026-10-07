@@ -114,7 +114,7 @@ const lightingChecks: NativeCheck[] = STAGE_CATALOG.flatMap(({ id, name }): Nati
     id: `170-${id}-stage`, closes: "smashcraft#170 box 4", map: `lighting-${id}`,
     setup: [{ chat: "-dev backdrop on" }, { chat: "-dev lighting stage" }, { waitMs: 1000 }],
     capture: [{ kind: "frames", name: "stage", client: "a" }, { kind: "frames", name: "stage", client: "b" }],
-    pass: [NO_IMPORT_FAILURES, NO_ERRORS], look: `${name}: same paused pose and camera; neither |ΔL| nor ΔE00 reduced against stock, native shadows preserved; run smashcraft:tools/stage/contrast.ts on this pair`,
+    pass: [NO_IMPORT_FAILURES, NO_ERRORS], look: `${name}: same paused pose and camera; neither |ΔL| nor ΔE00 reduced against stock; record any change to shadows; run smashcraft:tools/stage/contrast.ts on this pair`,
   },
 ]);
 
