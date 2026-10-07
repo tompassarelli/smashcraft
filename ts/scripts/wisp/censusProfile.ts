@@ -1,4 +1,4 @@
-// `bun wisp perf census --profile` and `perf profile`'s Lua side: replays a
+// `bun wisp perf census --functions` and `perf profile`'s Lua side: replays a
 // perf run with a sampling hook on the frames PERF_PROFILE_FRAMES names (a
 // run is deterministic, so its frame numbers repeat) and prints, per frame, the map
 // functions the samples landed in: `prof FRAME LINE SELF INCLUSIVE`, LINE

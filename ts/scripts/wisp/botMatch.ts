@@ -23,7 +23,7 @@ interface BotMatch {
   readonly computers: readonly (readonly [slot: number, character: Character])[];
 }
 
-/** `parity capture --bot`: a computer Illidan. */
+/** `integrity capture --bot`: a computer Illidan. */
 export const BOT_THREE: BotMatch = { computers: [[2, Character.demonHunter]] };
 /** `--bot-four`: a computer Illidan and a computer Archer. */
 export const BOT_FOUR: BotMatch = { computers: [[2, Character.demonHunter], [3, Character.archer]] };

@@ -148,7 +148,7 @@ map build needs. Built from ts/ with the private inputs:
 ```sh
 install -D -m 700 ~/.local/share/smashcraft-build-inputs/playable-0045/wc3-journal-0.0.45 \
   ~/.local/share/smashcraft-build-inputs/playable-0047/wc3-journal-0.0.47
-bun wisp build --profile playable --base ~/.local/share/smashcraft-build-inputs/physics-base.w3m \
+bun wisp map build --profile playable --base ~/.local/share/smashcraft-build-inputs/physics-base.w3m \
   --container ~/.local/share/smashcraft-build-inputs/native-delivery-20261005/'Smashcraft diagnostic four-fighters.w3x' \
   --assets ~/.local/share/smashcraft-build-inputs/build-port-20261005 \
   --summon ~/.local/share/smashcraft-build-inputs/build-port-20261005/summon-original-clips \
@@ -159,8 +159,8 @@ bun wisp build --profile playable --base ~/.local/share/smashcraft-build-inputs/
 
 To check a candidate on the two engineering clients, run
 `bun wisp fresh MAP.w3x --no-quick` to stop at fighter selection, then
-`bun wisp playable capture --helper HELPER --build playable-0047 --out DIR --app-id a=APP_ID --app-id b=APP_ID`
-and `bun wisp playable result DIR`.
+`bun wisp integrity capture --playable --helper HELPER --build playable-0047 --out DIR --app-id a=APP_ID --app-id b=APP_ID`
+and `bun wisp integrity result DIR`.
 
 The result gate takes each match's winner from the end receipts both clients
 write (`smashcraft-journal-end-BUILD-eN-sS.txt`, `winner=P1` to `P4` or

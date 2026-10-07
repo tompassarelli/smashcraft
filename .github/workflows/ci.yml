@@ -50,7 +50,7 @@ jobs:
           tar -xzf build/lua-5.3.6.tar.gz -C build/toward-zero-lua
           make -C build/lua-stock/lua-5.3.6 -j2 generic MYCFLAGS=-DLUA_32BITS
           make -C build/toward-zero-lua/lua-5.3.6 -j2 generic "MYCFLAGS=-DLUA_32BITS -include $PWD/node_modules/wisp/native/toward-zero.h"
-      - run: bun wisp tapes && bun wisp parity numeric
+      - run: bun wisp parity tapes && bun wisp parity numeric
         working-directory: ts
         env:
           LUA: ${{ github.workspace }}/ts/build/lua-stock/lua-5.3.6/src/lua

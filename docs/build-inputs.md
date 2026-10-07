@@ -20,7 +20,7 @@ with, so a commit fixes its art exactly as it fixes its code.
 - **Manifest.** smashcraft:build-inputs.json maps each family named in
   smashcraft:ts/scripts/wisp/buildInputs.ts (`FAMILIES`) to its hash. There is
   no global pointer: a lane's manifest is its own, and main's is main's.
-- **Resolve and verify.** `bun wisp build` without `--base`, `--container`,
+- **Resolve and verify.** `bun wisp map build` without `--base`, `--container`,
   `--assets` or `--summon` reads the checkout's manifest, rehashes every family
   (about 0.6 s for 290 MB) and fails before compiling when one is missing or
   differs, naming the command that produces it. `--assets` resolves to
@@ -55,7 +55,7 @@ code:
    then `bun tools/animations/export-original-clips.ts --assets "$(bun wisp inputs path assets)" --out NEW --keep-unchanged`.
 2. `bun wisp inputs add FAMILY DIR` (from smashcraft:ts/) stores it and writes
    its hash into your checkout's build-inputs.json.
-3. `bun wisp build --profile playable --name NAME --out OUT.w3x` from the lane
+3. `bun wisp map build --profile playable --name NAME --out OUT.w3x` from the lane
    checks the change; commit build-inputs.json with the code that needs it and
    land it. Lanes that changed different families merge like any JSON edit; two
    lanes that changed the same family conflict in Git, never on disk.

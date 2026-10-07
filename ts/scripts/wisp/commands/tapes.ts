@@ -1,4 +1,4 @@
-// `wisp tapes`, the replay acceptance oracle: recorded tapes must give
+// `wisp parity tapes`, the replay acceptance oracle: recorded tapes must give
 // identical canonical replay states, hence identical checksums, after every
 // frame in TypeScript under Bun and TypeScript under two 32-bit Luas: a
 // stock one, whose raw float + - * round to nearest, and one rounding them

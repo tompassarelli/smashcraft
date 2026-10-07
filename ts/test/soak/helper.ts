@@ -3,7 +3,7 @@
 // Each player's controller is a uinput pad that the soak's fuzzer drives at a
 // rate real time allows, read by a persistent wc3-journal helper typing into
 // its client's edit box (--text-out) and reading its client's CustomMapData,
-// as `wisp parity headless` runs them (scripts/integrity/headless.ts). The
+// as `wisp integrity headless` runs them (scripts/integrity/headless.ts). The
 // soak's detectors watch every frame. Loaded only by `bun wisp soak
 // --helper`, so the host type check never reads map code.
 import { mkdirSync, writeFileSync } from "node:fs";

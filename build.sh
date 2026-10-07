@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Canonical TypeScript-only map build. `wisp build`
+# Canonical TypeScript-only map build. `wisp map build`
 # (wisp:scripts/wisp/mapBuild.ts) does the work; this script
 # supplies its private asset inputs and map packager.
 set -euo pipefail
@@ -28,7 +28,7 @@ if [[ ! -x "$packager" ]]; then
 fi
 mkdir -p "$(dirname -- "$output")"
 
-exec "$bun" "$project_dir/ts/scripts/wisp.ts" build \
+exec "$bun" "$project_dir/ts/scripts/wisp.ts" map build \
     --base "$(realpath -- "$1")" --container "$(realpath -- "$2")" \
     --assets "$project_dir/build" --summon "$private_assets/summon-original-clips" \
     --name "$map_name" --out "$output" --packager "$packager"

@@ -102,7 +102,7 @@ function, including whitespace and line endings around the message.
 Map builds use staged outputs: interrupting a step stops its child process, a
 failed step leaves the previous map in place, and archive entries are verified
 four at a time. `wisp parity numeric` compares the numeric corpus against
-Lua32; `wisp parity capture` and `wisp parity result` run and reconcile
+Lua32; `wisp integrity capture` and `wisp integrity result` run and reconcile
 the native issue #26 input-integrity check through the same CLI; `wisp parity
 capture --bot` plays the native bot session (smashcraft:docs/native-bot-session.md). `wisp fresh
 MAP.w3x [--rebuild]` rebuilds the map script when requested, starts a new
@@ -341,7 +341,7 @@ On 2f29ab3 with Wisp 1fe6d71 the quick match's first client ran a median
 its mean instructions a frame, and the playable bundle is the same bytes as
 before the meter (smashcraft:ts/build/playable.lua SHA256 082a11b3).
 
-`bun wisp parity headless --helper BIN --out DIR` runs issue #26's capture
+`bun wisp integrity headless --helper BIN --out DIR` runs issue #26's capture
 without Warcraft (smashcraft:ts/scripts/integrity/headless.ts): the
 integrity build's TypeScript in two headless clients at 60 frames a second of
 wall time, with Battle.net's measured sync latency (Wisp's
@@ -567,7 +567,7 @@ From smashcraft:ts/:
 - `GAME_SOAK=1 bun test test/game.test.ts`: the long `*.soak.ts` scenarios,
   such as the 100000-frame replay tape, which the default suite leaves out.
   `GAME_SOAK=1` selects the same modules for `scripts/lua-tests.ts`.
-- Set `LUA=<32-bit lua>`, then run `bun wisp tapes` for replay acceptance
+- Set `LUA=<32-bit lua>`, then run `bun wisp parity tapes` for replay acceptance
   tapes. It records cases for every bound action, corrected predictions and a
   rematch, then compares canonical replay state and fighter poses after every
   frame in Bun and emitted Lua32, in the stock Lua32 and the toward-zero one
@@ -623,7 +623,7 @@ From smashcraft:ts/:
 From `ts/`:
 
 ```sh
-bun wisp build [--profile NAME] --name NAME --out OUT.w3x
+bun wisp map build [--profile NAME] --name NAME --out OUT.w3x
 ```
 
 builds with the private inputs the checkout's smashcraft:build-inputs.json
@@ -697,21 +697,21 @@ on a clip that does not.
 The build first checks the running Bun and the declared and installed packages
 against smashcraft:typescript-toolchain.lock.
 
-`bun wisp build --profile integrity` packages normal gameplay with the
+`bun wisp map build --profile integrity` packages normal gameplay with the
 persistent helper's journal/editbox input, predicted fighter presentation and
 native response export. Rebuild it with
-`bun wisp rebuild MAP.w3x --profile integrity`. Its build ID is
+`bun wisp map rebuild MAP.w3x --profile integrity`. Its build ID is
 `typescript-integrity`, as declared in smashcraft:ts/src/game/shell/currentBuild.ts;
 the entry in smashcraft:ts/src/platform/integrityMain.ts shares the normal shell
 and reload lifecycle. Use this profile for native input-integrity and
 four-fighter match/rematch captures.
 
-`bun wisp build --profile physics-probe` selects the production numerical
+`bun wisp map build --profile physics-probe` selects the production numerical
 fixture map instead of the playable entry; the remaining build arguments are
-the same. Rebuild it with `bun wisp rebuild MAP.w3x --profile physics-probe`.
+the same. Rebuild it with `bun wisp map rebuild MAP.w3x --profile physics-probe`.
 The report and required groups are in smashcraft:docs/native-physics-precision.md.
 
-`bun wisp build --profile frame-cost` packages the isolated 4096-frame
+`bun wisp map build --profile frame-cost` packages the isolated 4096-frame
 TypeScript workload. It writes its bundle key and complete replay state to
 `smashcraft-frame-cost-KEY-p0-typescript.txt` in the client's CustomMapData.
 smashcraft:ts/scripts/frameCost.ts retains `read CUSTOM_MAP_DATA RUN_ID` for
@@ -719,11 +719,11 @@ recorded paired results, including historical Wurst baselines. That reader
 still requires equal complete states and a TypeScript/Wurst time ratio at most
 one; new replay fields are never removed to fit an older baseline.
 
-`bun wisp build --profile stack-trace` compiles the development build with
+`bun wisp map build --profile stack-trace` compiles the development build with
 Wisp's stack plugin (smashcraft:ts/tsconfig.stack-trace.json), so an in-game
 error report lists each active TypeScript frame as `src/FILE.ts:LINE: in
 FUNCTION`, innermost first. Rebuild with
-`bun wisp rebuild MAP.w3x --profile stack-trace`; `bun wisp hot --profile
+`bun wisp map rebuild MAP.w3x --profile stack-trace`; `bun wisp hot --profile
 stack-trace --data DIR ... --watch` reloads and prints that bundle's reports.
 Its build ID is `typescript-stack-trace`, and its entry
 smashcraft:ts/src/platform/stackTraceMain.ts adds one command to the

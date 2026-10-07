@@ -1,5 +1,5 @@
 // `bun scripts/integrity/pressResult.ts OUT.json CAPTURE_DIR ...`: #60's claim
-// over integrity-build captures (#26's capture and `parity capture --bot` on a
+// over integrity-build captures (#26's capture and `integrity capture --bot` on a
 // diagnostic build): every scripted press counted against both clients'
 // confirmed rows, the share applied on the frame its injection time implies,
 // and each legal press's local start (callbacks from capture to the presser's

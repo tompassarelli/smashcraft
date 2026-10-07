@@ -122,14 +122,14 @@ seconds, and fresh saves each client's frame at match frame 30.
   receipts: the scene report once the match has run 30 frames (main and
   integrity profiles), and one frame saved to
   `~/.local/state/smashcraft/frames/CLIENT.ppm` (every profile).
-- The native journeys (`bun wisp four-fighters capture`, `integrity capture`)
+- The native journeys (`bun wisp integrity capture --four-fighters`, `integrity capture`)
   check both at each match start, about one second in, saving frames to
   `OUT/player-view-EPOCH/CLIENT.ppm`, and the scene again at each result,
   when every stay in view has ended. The playable journey's build has no
   recorder, so it gets the frame only. The four-fighter and playable journeys
   stop at a failed check. The #26 input-integrity capture records each
   check's result in capture.json (`player-view` events) and goes on, so every
-  match still exports its response pages; `bun wisp parity result` lists the
+  match still exports its response pages; `bun wisp integrity result` lists the
   failures beside the integrity table and in summary.json
   (`player_view_failures`), and only the integrity gates decide its exit.
 - `bun wisp view scene DATA_DIR...` checks each client's latest report, with

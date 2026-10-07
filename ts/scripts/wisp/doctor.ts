@@ -1,11 +1,11 @@
-// Smashcraft's native clients for `wisp doctor` (wisp:docs/doctor.md): how
+// Smashcraft's native clients for `wisp client doctor` (wisp:docs/doctor.md): how
 // each client's Battle.net starts on its own private desktop, as clients A and
 // B were started on 6 Oct, and the watch doctor reads them through.
 import { readFileSync } from "node:fs";
 import { homedir, userInfo } from "node:os";
 import { join } from "node:path";
 import { Effect, Schema } from "effect";
-import { type DoctorDeclaration, clientsDoctor } from "wisp/scripts/wisp/commands/doctor";
+import { type DoctorDeclaration, clientsDoctor } from "wisp/scripts/wisp/clientDoctorCommand";
 import { DoctorStop, withDoctor } from "wisp/scripts/wisp/doctor";
 import { ClientWatch } from "wisp/scripts/wisp/watch";
 import { clientState } from "./project";
