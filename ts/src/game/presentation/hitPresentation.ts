@@ -43,8 +43,8 @@ export function impactAnimation(kind: number): string {
  */
 export function impactStartSeconds(kind: number): number {
   switch (kind) {
-    case 5: case IMPACT_ELECTRIC_SHIELD: return 0.1;
-    case 11: case 15: return 0.6;
+    case 5: case IMPACT_ELECTRIC_SHIELD: return 0.10000000149011612;
+    case 11: case 15: return 0.6000000238418579;
     case 13: case 14: case 16: return 0.25;
     default: return 0.0;
   }
