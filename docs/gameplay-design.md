@@ -621,6 +621,10 @@ every newly registered fighter too.
 | Jaina Proudmoore | Frostbolt (31) | Blizzard (43) | One 8% hit armored on frames 1–6 |
 | Sylvanas Windrunner | Black Arrow (33) | Silence (45) | One 8% hit armored on frames 1–6 |
 | Cairne Bloodhoof | Shockwave (40) | War Stomp (45) | One 8% hit armored on frames 1–6 |
+| Chen Stormstout | Breath of Fire (35) | Drunken Haze (37) | One 8% hit armored on frames 1–6 |
+| Peon | Lumber Toss (25) | Burrow (45) | One 8% hit armored on frames 1–6 |
+| Goblin Tinker | Cluster Rockets (35) | Pocket Factory (45) | One 8% hit armored on frames 1–6 |
+| Kael'thas Sunstrider | Flame Strike (45) | Siphon Mana (30) | One 8% hit armored on frames 1–6 |
 
 Prior art informs the decision, not these original numbers:
 [Capcom's EX manual](https://game.capcom.com/manual/sfv/en-us/page.html?cat=2&subcat=2)
