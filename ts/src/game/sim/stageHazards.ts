@@ -15,6 +15,7 @@ import { type Controls, type Roster, fighterAt, isActive } from "./roster";
 import { CANNON_TEST_STAGE, WIND_TEST_STAGE, mainDeckLeft, mainDeckRight, mainDeckZ } from "./stage";
 import { cancelAttack, cancelSpecialState, clearDownState, clearGrabLinks, interruptJumpOrDodge } from "./transitions";
 import { melee } from "./tuning";
+import { knockbackWeight } from "./itemBuffs";
 
 // ---------------------------------------------------------------- wind
 
@@ -171,7 +172,7 @@ function fire(f: Fighter, frame: number): void {
   f.cannon.firing = undefined;
   f.cannon.cooldown = CANNON_RECATCH_FRAMES;
   const aim = cannonAim(frame);
-  const knockback = contactKnockback(f.status.damage, 0.0, f.tuning.physics.weight, 0.0, CANNON_BASE_KNOCKBACK, 1.0);
+  const knockback = contactKnockback(f.status.damage, 0.0, knockbackWeight(f), 0.0, CANNON_BASE_KNOCKBACK, 1.0);
   const { launch } = f;
   launch.hitstun = ordinaryHitstunFrames(knockback);
   launch.throwHitstun = false;

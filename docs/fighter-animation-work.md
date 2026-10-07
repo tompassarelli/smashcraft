@@ -1448,3 +1448,45 @@ Extract the two imported files afterward and compare their hashes with the
 generator output. Native inspection decides whether either clock setting
 actually blends from the interrupted pose and reaches the held target;
 successful compilation alone establishes no native interpolation claim.
+
+## Goblin Tinker
+
+From the repository root:
+
+```sh
+bun tools/animations/tinker-clips.ts PRIVATE_CLASSIC_HEROTINKER.mdx PRIVATE_OUTPUT [--no-pool]
+```
+
+The source is the unmodified classic `war3.w3mod:units/creeps/herotinker/herotinker.mdx`
+from Tom's installed Warcraft archive, with 23 sequences. Both input and output
+stay in private storage outside Git. The generator writes
+`PRIVATE_OUTPUT/hero-models/herotinker.mdx`, `tinker-clips.json` and side-view
+sheets in both facings. Its 75 authored actions append after the stock indices:
+the nine low/mid/high and small/medium/large pain cells occupy 83–91; captive
+pummel and four directional throw releases occupy 92–96; shield recoil is 97.
+It regenerates `tinkerClipInfo.ts` and Tinker's row in `drawnStrideInfo.ts`.
+The claw-pack has a measured 142.838-world-unit stride at stock scale 1.
+
+Robo-Goblin keeps the tank rig visible on simulation frames 8–23 within its
+46-frame clip, including the 14–18 contact window. Normal and robot visibility
+use their own stock geoset channels. A sequence-local parent plants feet and
+floor recoveries while preserving all stock poses. Overhead claws must exceed
+160 model units at contact; nine pain silhouettes must differ pairwise by more
+than 2 units. The generator checks the original poses at start, middle and end.
+
+By default the generator also writes individual Tinker clips under
+`PRIVATE_OUTPUT/pooled/imports/war3mapImported`. `--no-pool` skips those files
+when the shared exporter will create them. For the combined build, first copy
+the current private assets' complete `hero-models` family to a writable private
+staging directory, replace only its `herotinker.mdx` with the generated model,
+and store that whole family with `bun wisp inputs add hero-models STAGED_HERO_MODELS`
+from `ts/`. Preserve the other fighters in that staging family.
+
+Once the roster is contiguous through Tinker (Character 19), seed a writable
+private pool from the current assets' `original-clips-static-lights` family and
+run `bun tools/animations/export-original-clips.ts --assets PRIVATE_ASSETS --out PRIVATE_POOL --keep-unchanged`
+from the root. This regenerates the full `fighterOriginalClipInfo.ts` and checks
+retained fighters against their source and clip hashes. Store that pool with
+`bun wisp inputs add original-clips-static-lights PRIVATE_POOL`, then run
+`bun wisp view motion --assets PRIVATE_ASSETS` from `ts/` for the assembled roster.
+Native launches remain a separate playtest.

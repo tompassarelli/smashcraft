@@ -97,7 +97,9 @@ projectile and armored charge. Compared with Beastmaster, he fights with one
 body. Compared with the Lich King, he has no soul resource or persistent pool.
 
 Use the base-game Tauren Chieftain model and command portrait, stock Warcraft
-impact sounds and Shockwave/War Stomp effects. His totem remains attached;
+impact sounds, a spirit-blue Crushing Wave missile and a small stock ground
+burst for War Stomp. The wave stays distinct from Mountain King's ground
+waves. His totem remains attached;
 the gesture plants his feet, moves the whole shoulder and follows through.
 Map or author the complete hero pose table, including both sides of throws,
 recovery, and nine pain poses. The computer seeks totem spacing, sends a wave

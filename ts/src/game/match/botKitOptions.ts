@@ -426,7 +426,7 @@ export function steerRunningSpecial(f: Readonly<Fighter>, target: Readonly<Fight
       if (next <= RIFLEMAN_RECOVERY_STARTUP_FRAMES) {
         // The stick on frame 4 picks the route: level from far out at the deck's height, diagonally up otherwise.
         input.direction = home;
-        input.verticalDirection = level ? -1 : 0;
+        input.verticalDirection = level ? 0 : 1;
         return true;
       }
       if (special.form === RIFLEMAN_SECOND_SHOT_FORM || next < RIFLEMAN_SECOND_SHOT_FIRST || next > RIFLEMAN_SECOND_SHOT_LAST) return false;
@@ -434,7 +434,7 @@ export function steerRunningSpecial(f: Readonly<Fighter>, target: Readonly<Fight
       if (motion.vz > 4.0 && next < RIFLEMAN_SECOND_SHOT_LAST) return false;
       input.specialPressed = true;
       input.specialX = home;
-      input.specialZ = level ? -1 : 1;
+      input.specialZ = level ? 0 : 1;
       input.direction = home;
       input.verticalDirection = input.specialZ;
       return true;

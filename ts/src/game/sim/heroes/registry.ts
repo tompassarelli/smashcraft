@@ -17,14 +17,19 @@ import { UTHER_HERO } from "./utherHero";
 import { WARDEN_HERO } from "./wardenHero";
 import { SYLVANAS_HERO } from "./sylvanasHero";
 import { THRALL_HERO } from "./thrallHero";
+import { CHEN_HERO } from "./chenHero";
+import { PEON_HERO } from "./peonHero";
+import { TINKER_HERO } from "./tinkerHero";
+import { KAELTHAS_HERO } from "./kaelthasHero";
 import { HIDDEN_FIGHTERS } from "./releaseRoster";
 
 export const HERO_ROSTER: readonly HeroDefinition[] = [
   BLADEMASTER_HERO, MOUNTAIN_KING_HERO, WARDEN_HERO, LICH_HERO, UTHER_HERO, DREADLORD_HERO, SHADOW_HUNTER_HERO, PIT_LORD_HERO, BEASTMASTER_HERO, LICH_KING_HERO, THRALL_HERO, JAINA_HERO, SYLVANAS_HERO,
-  CAIRNE_HERO,
+  CAIRNE_HERO, CHEN_HERO, PEON_HERO, TINKER_HERO, KAELTHAS_HERO,
 ];
 
 const BY_CHARACTER: { readonly [character: number]: HeroDefinition | undefined } = {
+  [Character.chen]: CHEN_HERO,
   [Character.blademaster]: BLADEMASTER_HERO,
   [Character.mountainKing]: MOUNTAIN_KING_HERO,
   [Character.warden]: WARDEN_HERO,
@@ -39,6 +44,9 @@ const BY_CHARACTER: { readonly [character: number]: HeroDefinition | undefined }
   [Character.jaina]: JAINA_HERO,
   [Character.sylvanas]: SYLVANAS_HERO,
   [Character.cairne]: CAIRNE_HERO,
+  [Character.peon]: PEON_HERO,
+  [Character.tinker]: TINKER_HERO,
+  [Character.kaelthas]: KAELTHAS_HERO,
 };
 
 export function heroDefinition(character: number): HeroDefinition | undefined {

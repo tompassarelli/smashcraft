@@ -96,7 +96,9 @@ export function localParticipantSlot(s: Readonly<ShellState>): ParticipantSlot |
 
 /** Active play the trace observes before it ends; pauses don't count. */
 function traceLength(s: Readonly<ShellState>): number {
-  if (s.build.responseProbe || s.build.inputProfile === "native-driver") return 1200;
+  // Item capture includes the latest first spawn (60 s), its buff (10 s) and a replay export.
+  if (s.build.responseProbe) return 4500;
+  if (s.build.inputProfile === "native-driver") return 1200;
   return s.build.scenario === "shield-break" || s.build.scenario === "ledge" ? 600 : 300;
 }
 

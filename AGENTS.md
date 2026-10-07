@@ -119,6 +119,11 @@ code. From smashcraft:ts/:
   `bun tools/animations/blademaster-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
   appends a distinct gesture for each Blademaster normal and his back throw,
   preserving the shipped plunge and double-jump flip.
+  `bun tools/animations/peon-clips.ts STOCK_PEON.mdx PRIVATE_OUTPUT` appends
+  Peon's tool strikes, movement, recovery, paired grabs and nine pain poses,
+  preserves the 22 stock sequences and writes both-facing silhouette sheets.
+  `bun tools/animations/peon-pool.ts AUTHORED_PEON.mdx PRIVATE_OUTPUT` prepares
+  Peon's checked pooled clips and a retained record for the final roster export.
   `bun tools/animations/warden-fan-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` authors
   Warden's ground and air Fan of Knives casts, preserving other clips
   (smashcraft:docs/design/warden-fan-of-knives.md).
@@ -131,6 +136,9 @@ code. From smashcraft:ts/:
   to one expansion fighter (smashcraft:docs/fighter-animation-work.md).
   `bun tools/animations/pit-lord-specials.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
   authors Pit Lord's four special gestures while preserving all earlier clips.
+  `bun tools/animations/kaelthas-clips.ts STOCK_BLOOD_MAGE.mdx PRIVATE_OUTPUT`
+  appends Kael’thas’s normal, special, paired throw, recovery and nine pain
+  gestures, preserves all eleven stock sequences, and writes both-facing sheets.
   `bun tools/animations/grab-pads.ts` generates the #180 mirror and unlike-height capture batch:
   ten expansion heroes, four throws, both facings, with ordinary catch/pummel
   inputs and contact-frame captures in smashcraft:ts/test/native/pads/180/.
@@ -154,6 +162,13 @@ code. From smashcraft:ts/:
   `bun tools/animations/jaina-clips.ts STOCK_JAINA.mdx PRIVATE_OUTPUT`
   appends her staff strikes, spell gestures, movement and nine contact reactions;
   store the generated model in `hero-models` and refresh the original clip pool.
+- Tinker animation authoring (from the repository root):
+  `bun tools/animations/tinker-clips.ts PRIVATE_CLASSIC_HEROTINKER.mdx PRIVATE_OUTPUT [--no-pool]`
+  preserves the 23 classic sequences and authors the claw-pack, Robo-Goblin,
+  recovery, paired throws and nine pain reactions. It writes the private
+  model, both-facing silhouette sheets, clip metadata and measured stride;
+  `--no-pool` leaves pooled export to the combined roster pass
+  (smashcraft:docs/fighter-animation-work.md, "Goblin Tinker").
 - Lich King animation authoring (from the repository root):
   `tools/animations/build-lichking.sh [PRIVATE_INPUTS] [IMMUTABLE_EXISTING_MODEL] [--replace NAME]`
   authors clips through Blender; the optional existing model preserves shipped
@@ -169,6 +184,11 @@ code. From smashcraft:ts/:
   `bun tools/animations/cairne-clips.ts STOCK_TAUREN.mdx PRIVATE_OUTPUT`
   appends the complete totem kit, recovery, paired grabs and nine pain clips
   to the private classic Tauren Chieftain model, preserving its stock clips.
+- Chen animation authoring (from the repository root):
+  `bun tools/animations/chen-clips.ts STOCK_CHEN.mdx PRIVATE_OUTPUT` authors
+  Chen's staff, footwork, special, recovery, paired throw and nine pain clips
+  from his private stock model and regenerates his clip table
+  (smashcraft:docs/design/chen.md).
 - Damage reactions (from the repository root):
   `bun tools/animations/damage-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
   appends all 13 fighters' nine articulated contact reactions, checks their
@@ -190,6 +210,9 @@ code. From smashcraft:ts/:
   low/middle/high and small/medium/large, with ordinary projectile contacts at
   frame 150 after both players' scripted jab. `bun tools/animations/pain-pads.ts`
   from the repository root generates its 117 native parity scripts.
+- Item setup at fighter selection: `-dev items on|off` controls whether pickups appear;
+  `-dev item speed|jump|heavy on|off` controls each kind. The normal selection
+  buttons show Items, Speed, Extra jump and Heavy, all on by default.
 - Generated menus: smashcraft:ts/scripts/wisp/uiFrames.ts defines menu panels as Wisp
   frame definitions (wisp:docs/ui.md); after changing one or its layout, `bun
   scripts/wisp/uiFrames.ts` rewrites its FDF/TOC in smashcraft:tools/selection/art/

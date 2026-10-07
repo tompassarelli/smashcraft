@@ -4,7 +4,7 @@
 // hot-reloads the development build into those clients.
 import { join } from "node:path";
 import { type DevProject, makeDev } from "wisp/scripts/wisp/commands/dev";
-import { ISOLATED_TEST_GROUPS, TEST_WORKER_ENV } from "../../testWorkers";
+import { ISOLATED_TEST_GROUPS, TEST_WORKER_ENV, testWorkerEnvironment } from "../../testWorkers";
 import { buildProject, sourceMapDirectory, tsDirectory } from "../project";
 
 const SMASHCRAFT_DEV: DevProject = {
@@ -53,6 +53,7 @@ const SMASHCRAFT_DEV: DevProject = {
     warm: { "test/source-shapes.test.ts": ["typescript"] },
     isolated: ISOLATED_TEST_GROUPS,
     env: TEST_WORKER_ENV,
+    envForFiles: testWorkerEnvironment,
   },
   journey: { module: "scripts/wisp/journeys.ts", export: "SMASHCRAFT_JOURNEYS", name: "quick-match" },
   hot: { project: buildProject("main"), sourceDirectory: join(tsDirectory, "src"), sourceMapDirectory, filePrefix: "smashcraft" },
