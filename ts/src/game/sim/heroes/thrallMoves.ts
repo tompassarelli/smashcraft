@@ -18,8 +18,8 @@ export const THRALL_MOVES: FighterMoves = {
   hurtboxes: {
     stand: [body, wolf],
     attacks: {
-      [AttackStyle.jab]: [heroHurtPose(3, 9, [body, wolf, hurtPart(8.0, 118.0, 30.0, 125.0, 12.0)])],
-      [AttackStyle.jab2]: [heroHurtPose(5, 12, [body, wolf, hurtPart(8.0, 118.0, 30.0, 125.0, 12.0)])],
+      [AttackStyle.jab]: [heroHurtPose(3, 9, [body, wolf, hurtPart(8.0, 118.0, 38.0, 85.0, 12.0)])],
+      [AttackStyle.jab2]: [heroHurtPose(5, 12, [body, wolf, hurtPart(8.0, 118.0, 42.0, 87.0, 12.0)])],
       [AttackStyle.grab]: [heroHurtPose(6, 12, [body, wolf, hurtPart(8.0, 95.0, 55.0, 70.0, 12.0)])],
       [AttackStyle.downTilt]: [heroHurtPose(6, 13, [body, wolf, paw])],
       [AttackStyle.forwardTiltDown]: [heroHurtPose(8, 15, [body, wolf, paw])],
@@ -28,9 +28,9 @@ export const THRALL_MOVES: FighterMoves = {
     },
   },
   normals: {
-    [AttackStyle.jab]: jabStep(normal(5, 2, 14, 0, capsule(34.0, 128.0, 40.0, 130.0, 23.0), 4.0, 45, 55.0, 18.0)),
-    [AttackStyle.jab2]: normal(7, 3, 18, 0, capsule(34.0, 130.0, 41.0, 132.0, 23.0), 6.0, 40),
-    [AttackStyle.forwardTilt]: normal(10, 3, 21, 0, capsule(34.0, 130.0, 41.0, 132.0, 23.0), 10.0, 35),
+    [AttackStyle.jab]: jabStep(normal(5, 2, 14, 0, capsule(38.0, 65.0, 45.0, 70.0, 22.0), 4.0, 45, 55.0, 18.0)),
+    [AttackStyle.jab2]: normal(7, 3, 18, 0, capsule(42.0, 67.0, 50.0, 72.0, 22.0), 6.0, 40),
+    [AttackStyle.forwardTilt]: normal(10, 3, 21, 0, capsule(68.0, 70.0, 92.0, 75.0, 24.0), 10.0, 35),
     [AttackStyle.forwardTiltUp]: normal(10, 3, 21, 0, capsule(-2.0, 178.0, -2.0, 188.0, 22.0), 10.0, 55),
     [AttackStyle.forwardTiltDown]: normal(10, 3, 21, 0, capsule(52.0, 34.0, 96.0, 34.0, 20.0), 10.0, 20),
     [AttackStyle.upTilt]: normal(8, 4, 20, 0, capsule(-2.0, 178.0, -2.0, 189.0, 22.0), 8.0, 85, 70.0, 36.0),
