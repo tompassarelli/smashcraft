@@ -49,7 +49,8 @@ needed. Discovery/launcher automation and other operating systems remain #18 wor
 | --- | --- |
 | Fighter selection | Stick: choose; A: select; X: recall; Start: continue when everyone has selected |
 | Stage selection | Stick: choose; X: back; A or Start: begin |
-| Fight | Stick: move; A: attack; X: special; B/Y or stick-up: jump; RB: grab; LB: walk; either trigger: shield |
+| Fight (standard pad preset) | Stick: move; A: attack; X: special; B/Y or stick-up: jump; RB: grab; LB: Tilt (also walks); LT: light shield; RT: shield |
+| Fight (Z-jump pad preset) | As standard, with RB/Y: jump and B: grab. Select Z-jump on the client’s Controller page. |
 | Pause / results | Start: pause/resume; A or Start at results: confirm rematch |
 
 ## Evidence and limits
