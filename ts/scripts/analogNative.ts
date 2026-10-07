@@ -95,7 +95,7 @@ const startHelpers = (match: number) => targets.map((target, slot) => {
 });
 let helpers: ReturnType<typeof startHelpers> = [];
 const commands: { match: number; beat: number; slot: number; hostMs: number; lines: string[] }[] = [];
-const records: { match: number; slot: number; file: string; seconds: number; networkEvents: number }[] = [];
+const records: { match: number; slot: number; file: string; seconds: number; networkEvents: number; anchorNativeSeconds: number; anchorHostMs: number }[] = [];
 try {
   for (let match = 1; match <= matches; match++) {
     await command(["client", "watch", "--once", "--clients-file", clientsFile]);
@@ -133,13 +133,16 @@ try {
       const lines = preloadLines(readFileSync(source, "utf8")) ?? [];
       const header = lines[0] ?? "";
       const number = (field: string) => Number(header.match(new RegExp(`${field} ([\\d.]+)`))?.[1]);
-      const anchor = anchors.filter(anchor => anchor.match === match).at(-1);
+      const anchor = anchors.filter(anchor => anchor.match === match && anchor.slot === slot).at(-1);
       if (anchor === undefined) throw new Error(`No clock anchor for match ${match}, client ${slot}`);
-      const baseline = lines.find(line => line.startsWith(`mouse ${anchor.mouseEvents} `))?.split(" ");
+      // The event-rate window starts after both clients finished calibrating.
+      const finalCalibration = anchors.filter(anchor => anchor.match === match).at(-1);
+      if (finalCalibration === undefined) throw new Error(`No completed calibration for match ${match}`);
+      const baseline = lines.find(line => line.startsWith(`mouse ${finalCalibration.mouseEvents} `))?.split(" ");
       if (baseline === undefined) throw new Error(`No final calibration event in match ${match}, client ${slot}`);
       const seconds = number("finished") - Number(baseline[2]);
       copyFileSync(source, join(plan.out, `match-${match}-p${slot}.txt`));
-      records.push({ match, slot, file, seconds, networkEvents: number("mouse-events") + number("sync-events") - anchor.mouseEvents - Number(baseline[3]) });
+      records.push({ match, slot, file, seconds, networkEvents: number("mouse-events") + number("sync-events") - finalCalibration.mouseEvents - Number(baseline[3]), anchorNativeSeconds: anchor.nativeSeconds, anchorHostMs: anchor.hostPublicationMs });
     }
     await Bun.write(join(plan.out, "commands.json"), JSON.stringify(commands));
     await Bun.write(join(plan.out, "matches.json"), JSON.stringify(records, null, 2));
