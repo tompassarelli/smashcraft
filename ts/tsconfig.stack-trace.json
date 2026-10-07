@@ -17,6 +17,9 @@
       },
       {
         "name": "./node_modules/wisp/plugins/stack-traces.ts"
+      },
+      {
+        "name": "./plugins/source-version.ts"
       }
     ]
   }

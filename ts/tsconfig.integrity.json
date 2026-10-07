@@ -7,14 +7,6 @@
   "exclude": [],
   "tstl": {
     "luaBundle": "integrity.lua",
-    "luaBundleEntry": "src/platform/integrityMain.ts",
-    "luaPlugins": [
-      {
-        "name": "./node_modules/wisp/plugins/warcraft-numbers.ts"
-      },
-      {
-        "name": "./plugins/source-version.ts"
-      }
-    ]
+    "luaBundleEntry": "src/platform/integrityMain.ts"
   }
 }

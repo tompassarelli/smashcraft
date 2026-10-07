@@ -7,6 +7,9 @@ import { createHash } from "node:crypto";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
+/** The quoted placeholder a build replaces with the quoted version (smashcraft:ts/src/game/shell/sourceVersion.ts). */
+export const SOURCE_STAMP_TEXT = '"%%SOURCE%%%%"';
+
 const isSource = (path: string) => path.endsWith(".ts") && !/\.(tests|soak|test)\.ts$/.test(path);
 
 export function sourceVersion(tsDirectory: string): string {

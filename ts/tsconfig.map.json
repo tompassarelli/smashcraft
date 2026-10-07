@@ -44,6 +44,9 @@
     "luaPlugins": [
       {
         "name": "./node_modules/wisp/plugins/warcraft-numbers.ts"
+      },
+      {
+        "name": "./plugins/source-version.ts"
       }
     ]
   }

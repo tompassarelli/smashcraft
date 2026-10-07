@@ -7,14 +7,6 @@
   "exclude": [],
   "tstl": {
     "luaBundle": "playable.lua",
-    "luaBundleEntry": "src/platform/playableMain.ts",
-    "luaPlugins": [
-      {
-        "name": "./node_modules/wisp/plugins/warcraft-numbers.ts"
-      },
-      {
-        "name": "./plugins/source-version.ts"
-      }
-    ]
+    "luaBundleEntry": "src/platform/playableMain.ts"
   }
 }

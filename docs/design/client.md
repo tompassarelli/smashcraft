@@ -359,10 +359,11 @@ and smashcraft:ts/src/platform/shell/replays.ts writes.
   `checkpoint FRAME CHECKSUM` every 120 frames and at its end.
 - **Version.** `version` is the map's source version. It is the first 12
   hex digits of a SHA-256 over `ts/src` (tests left out) and the Wisp pin
-  (smashcraft:ts/scripts/sourceVersion.ts). The playable and integrity
-  map builds compile every read of the global `SMASHCRAFT_SOURCE` to it
-  (smashcraft:ts/plugins/source-version.ts). The development map stays
-  `development`. The client's `sim.js` gets the same value, so a client
+  (smashcraft:ts/scripts/sourceVersion.ts). Every map build replaces
+  the placeholder in smashcraft:ts/src/game/shell/sourceVersion.ts with it,
+  development maps included (smashcraft:ts/plugins/source-version.ts, in
+  `beforeEmit`, which Wisp's incremental compiler runs too). Tests, the
+  headless runtime and a module sent by a hot reload say `development`. The client's `sim.js` gets the same value, so a client
   knows which replays its simulation plays.
 - **Cost.** The replay checksum folds every number and boolean of each
   fighter, its projectiles and the match, in any order. In 32-bit Lua it is

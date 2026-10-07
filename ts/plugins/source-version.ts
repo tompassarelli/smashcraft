@@ -1,24 +1,17 @@
-// Stamps a player-facing map with its source version: every read of the
-// global SMASHCRAFT_SOURCE (smashcraft:ts/src/game/shell/sourceVersion.ts)
-// compiles to the version's string. A visitor, so Wisp's own compiler applies
-// it too. Only the playable and integrity profiles use it: each build compiles
-// afresh, while a long-running incremental compiler (the development map's)
-// would keep the stamp of its first compile.
+// Stamps a map bundle with its source version: the text of SOURCE_STAMP in
+// smashcraft:ts/src/game/shell/sourceVersion.ts becomes the version, in the
+// emitted bundle only. Wisp's incremental compiler runs beforeEmit on every
+// compile, so the development map is stamped as the playable one is, and a
+// full TypeScriptToLua compile gives the same bundle.
 import { join } from "node:path";
-import * as ts from "typescript";
-import * as tstl from "typescript-to-lua";
-import { sourceVersion } from "../scripts/sourceVersion";
+import type * as tstl from "typescript-to-lua";
+import { SOURCE_STAMP_TEXT, sourceVersion } from "../scripts/sourceVersion";
 
-const GLOBAL = "SMASHCRAFT_SOURCE";
-
-const plugin = (): tstl.Plugin => {
-  const version = sourceVersion(join(import.meta.dir, ".."));
-  return {
-    visitors: {
-      [ts.SyntaxKind.Identifier]: (node, context) =>
-        node.text === GLOBAL ? tstl.createStringLiteral(version, node) : context.superTransformExpression(node),
-    },
-  };
-};
+const plugin = (): tstl.Plugin => ({
+  beforeEmit(_program, _options, _host, files) {
+    const version = sourceVersion(join(import.meta.dir, ".."));
+    for (const file of files) file.code = file.code.replaceAll(SOURCE_STAMP_TEXT, `"${version}"`);
+  },
+});
 
 export default plugin;
