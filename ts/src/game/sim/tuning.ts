@@ -343,6 +343,7 @@ export const NTSC_FOX_DASH_GRAB_RULES: DashGrabRules = { startupFrames: 10, acti
 export const NTSC_CAPTAIN_FALCON_DASH_GRAB_RULES: DashGrabRules = { startupFrames: 9, activeFrames: 2, totalFrames: 40 };
 
 const AUTHORED_SHIELD_GEOMETRY: ShieldGeometry = { centerX: 0.0, centerZ: 45.0, radius: 60.0 };
+const heroShieldRecords: (ShieldGeometry | undefined)[] = [];
 
 export const AUTHORED_TECH_TIMING: TechTiming = {
   ceilingImpulseFrame: 14,
@@ -376,9 +377,13 @@ export function applyAuthoredTuning(world: Roster): void {
  * would otherwise stand outside its own shield.
  */
 function heroShieldGeometry(character: Character): ShieldGeometry {
+  const cached = heroShieldRecords[character];
+  if (cached !== undefined) return cached;
   const scale = heroBody(character)?.shield;
   if (scale === undefined) return AUTHORED_SHIELD_GEOMETRY;
-  return { centerX: 0.0, centerZ: f32(AUTHORED_SHIELD_GEOMETRY.centerZ * scale), radius: f32(AUTHORED_SHIELD_GEOMETRY.radius * scale) };
+  const geometry = { centerX: 0.0, centerZ: f32(AUTHORED_SHIELD_GEOMETRY.centerZ * scale), radius: f32(AUTHORED_SHIELD_GEOMETRY.radius * scale) };
+  heroShieldRecords[character] = geometry;
+  return geometry;
 }
 
 export function authoredTuning(character: Character): FighterTuning {

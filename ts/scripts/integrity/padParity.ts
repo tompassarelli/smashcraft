@@ -250,7 +250,8 @@ export function compareRuns(nativeDir: string, headlessDir: string, script: stri
 /**
  * A headless pad run alone, with no native run to compare (`bun wisp farm
  * pads`): its edges landed on their frames and the script's `#! expect`,
- * `#! absent` and `#! scene` lines hold in its trace and scene reports.
+ * `#! absent` and `#! scene` lines hold in its trace and scene reports,
+ * and every saved moment replays to its recorded checksums.
  */
 export function checkHeadlessRun(headlessDir: string, script: string): ParityReport {
   const lines: string[] = [];
@@ -266,6 +267,24 @@ export function checkHeadlessRun(headlessDir: string, script: string): ParityRep
     problems.push(...unmetExpectations(parseTrace(traceLines), expectations, "headless"));
     lines.push(`expectations: ${expectations.length} checked`);
   }
+  const exports = readdirSync(headlessDir).filter(name => REPRO_NAME.test(name));
+  if (exports.length === 0) problems.push("headless: no moment saved (hold View a second in the script)");
+  let replayed = 0;
+  let frames = 0;
+  for (const name of exports) {
+    const moment = parseRepro(readLines(join(headlessDir, name)) ?? []);
+    if (typeof moment === "string") {
+      problems.push(`checksum replay ${name}: ${moment}`);
+      continue;
+    }
+    const replay = replayRepro(moment);
+    const failures = [...replay.problems];
+    if (replay.checksum !== moment.checksum) failures.push(`frame ${moment.frame} replays to checksum ${replay.checksum}; the game recorded ${moment.checksum}`);
+    problems.push(...failures.map(problem => `checksum replay ${name}: ${problem}`));
+    if (failures.length === 0) replayed++;
+    frames += replay.frames;
+  }
+  lines.push(`checksums: ${replayed}/${exports.length} exported moments replay equal (${frames} frames)`);
   const scenes = parseSceneExpectations(script);
   if (scenes.length > 0) {
     problems.push(...unmetSceneExpectations([readLines(join(headlessDir, "scene-a.txt")), readLines(join(headlessDir, "scene-b.txt"))], scenes, "headless"));

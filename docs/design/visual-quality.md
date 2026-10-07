@@ -165,6 +165,21 @@ longest authored particle lifetime is 12 seconds. Restore with
 Use one mask for the stock/stage pair, keeping sky, fog, camera and pose fixed.
 An actual Classic and Reforged draw is needed for the asset fallback claim.
 
+The shared stage batch keeps the original `170-*` contrast checks and `191-*`
+camera extremes in one hosted game. `192-*-linear|height` retains the same
+paused far view before and after a 3.0 height-fog candidate; its values remain
+development-only until those native captures establish how the height range
+fades the prop bases. Run it in Classic and Reforged and record the per-stage
+result rather than inferring drawing from native calls.
+
+The authored tech-contact spark retains its additive SD geometry and adds a
+small blue omni light, radius 320, fading from intensity 0.55 to zero in 180 ms.
+It is part of the same pooled model, so parking the spark also parks its light.
+HD modes can draw that contact light through their point-light renderer;
+Classic retains the spark geometry. Compare `-dev effects 12` at the same
+50 ms capture intervals in the retained unlit and lit maps before claiming
+improved contact readability. The model adds no script calls per frame.
+
 The #168 gate is the measured predicted frame cost (p99 ≤10 ms, worst ≤14 ms)
 from a `--samples` run checked with `bun wisp perf budget RUN_FILE`. Run the
 matching workload on the hosted farm. GPU frame intervals and #165 profile
