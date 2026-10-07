@@ -1,4 +1,4 @@
-// The computer plays the newest moves (#155): at level 9, in seeded
+// The computer plays the newest moves (#155): as Wren Expert, in seeded
 // computer-against-computer mirror matches, each fighter throws its drills
 // and multi-hit aerials, Illidan's raid-boss normals, the heroes' angled
 // forward tilts, down tilts and dash attacks; with its passive ready it
@@ -80,7 +80,7 @@ function observe(f: Readonly<Fighter>, opponent: Readonly<Fighter>, watch: Watch
   if (opponent.attack.style !== undefined && f.shield.raised) watch.shielded = true;
 }
 
-/** A level-9 match of `character` against `opponent` under `seed`, both at `damage`, counting each computer playing `character`. */
+/** A Wren Expert match of `character` against `opponent` under `seed`, both at `damage`, counting each computer playing `character`. */
 function mirrorMatch(character: Character, opponent: Character, seed: number, damage: number, counts: Counts): void {
   const world = createRoster(3, [createFighter(character, -240.0, 1), createFighter(opponent, 240.0, -1)]);
   const match = createMatchState();
@@ -94,6 +94,9 @@ function mirrorMatch(character: Character, opponent: Character, seed: number, da
   const row = createMatchFrameInput();
   const watches: Watch[] = [];
   for (const slot of [0, 1] as const) {
+    match.cpuOpponents[slot] = "wren";
+    match.cpuResolvedOpponents[slot] = "wren";
+    match.cpuTiers[slot] = "expert";
     fighterAt(world, slot).status.damage = damage;
     watches.push({ attack: 0, special: 0, blast: 0, proc: 0, threat: 0, threatReady: false, shielded: false });
   }

@@ -131,8 +131,8 @@ code. From smashcraft:ts/:
   `-dev quick`, and waits until every signed-in client writes its receipt.
   `--rebuild` replaces the map script first. Other quick starts for `--chat`
   and pad scripts: `-dev quick hero NAME`, `-dev quick recovery hero NAME`
-  (starts tumbling above the floor for recovery captures), and `-dev quick cpu N [hero NAME]`,
-  a quick match against a selectable computer at level N (1-9) over three stocks.
+  (starts tumbling above the floor for recovery captures), and `-dev quick cpu OPPONENT DIFFICULTY [hero NAME]`,
+  a quick match against a named computer at the selected difficulty over three stocks.
   The named variant uses the normal CPU selection rule.
 - Generated menus: smashcraft:ts/scripts/wisp/uiFrames.ts defines menu panels as Wisp
   frame definitions (wisp:docs/ui.md); after changing one or its layout, `bun
@@ -284,13 +284,13 @@ code. From smashcraft:ts/:
   smashcraft:docs/gameplay-design.md ("Air drift and jump momentum").
 - Roster AI coverage: `bun scripts/cpuCoverage.ts` prints movement, attacks,
   kit use, defense and recovery for all 13 selectable fighters over eight
-  seeded level-9 matches each; `GAME_TESTS=botCoverage bun test test/game.test.ts`
+  seeded Wren Expert matches each; `GAME_TESTS=botCoverage bun test test/game.test.ts`
   checks the same report, also included in the emitted-Lua32 suite.
-- CPU reads and move value: smashcraft:docs/design/cpu-levels.md describes
+- CPU reads and move value: smashcraft:docs/design/cpu-profiles.md describes
   bounded contextual habits, anticipatory commitments and risk-aware move
   choice; smashcraft:ts/src/game/match/botStrategyContracts.tests.ts checks
   adaptation, punishable reads, buffering and seeded decision variety.
-- Difficulty report: `gh workflow run cpu-levels.yml -f ref=COMMIT` measures every level pair with the existing `cpuLevels` report on a hosted runner (20 matches per pair, 100 level-9-vs-1 matches). The run summary and `cpu-levels` artifact hold its table.
+- Difficulty report: `gh workflow run cpu-tiers.yml -f ref=COMMIT` measures Wren at every tier pair with `cpuTiers` (20 matches per pair, 100 Expert-vs-Rookie matches). The run summary and `cpu-tiers` artifact hold its table.
 - Release roster: `bun scripts/releaseRoster.ts FIELD.json` (from ts/) writes
   smashcraft:ts/src/game/sim/heroes/releaseRoster.ts from a gate run's
   `cpuField --json` file: fighters outside the field band are hidden from
@@ -298,12 +298,12 @@ code. From smashcraft:ts/:
   measurement tools and named `-dev` commands keep every fighter. Empty
   unless the balance owner cuts a release build (smashcraft:docs/design/roster.md, "Balance gate").
 - Compute farm: `bun wisp farm balance [--ref REF] [--wait]` plays the
-  balance gate's computer field (level 9, 400 a pair; `--level`,
+  balance gate's computer field (Wren Expert, 400 a pair; `--opponent`, `--tier`,
   `--per-pair`, `--seeds`) on GitHub's free hosted runners, a `cpuField
   --pairs` process a core over about 17 jobs, and with `--wait` prints the
-  verdict and field table. A level-9 run with at least 400 matches per pair
+  verdict and field table. A Wren Expert run with at least 400 matches per pair
   fails when the balance gate fails, after publishing the report artifact;
-  lower-level or smaller exploratory fields remain reports.
+  lower-tier or smaller exploratory fields remain reports.
   `bun wisp farm pads [--ref REF] [--only DIR]... [--wait]` plays
   every top-level smashcraft:ts/test/native/pads/ script (or each issue
   folder named by `--only`, such as `--only 151 --only 167`) headless through the
@@ -326,6 +326,10 @@ code. From smashcraft:ts/:
   compare replay results across Bun, that Lua32 and a Lua32 whose raw float
   `+ - *` round toward zero (`TOWARD_ZERO_LUA`, or built with nix on first use).
 - Parity: `bun wisp parity numeric` compares the numeric corpus with both Lua32s;
+  `bun wisp integrity capture --screen --clients-file FILE --client NAME --out PRIVATE_DIR [--count N] [--region X,Y,WIDTH,HEIGHT]`
+  measures serial framebuffer acquisition on the input stimulus clock and saves
+  actual pixels privately (smashcraft:docs/native-bot-session.md). Its cadence
+  sample is preparation for response measurements, with no latency pass result.
   `bun wisp integrity capture ...` runs native input-integrity capture and
   `bun wisp integrity result DIR` reconciles its output. `bun wisp parity
   headless --helper BIN --out DIR` runs the same capture through the real
@@ -341,6 +345,9 @@ code. From smashcraft:ts/:
   --app-id a=ID --app-id b=ID [--chat=TEXT] [--map MAP.w3x [--retries N]]` plays timed virtual-pad input
   through each client's real helper and reports the frame each edge landed on
   (script syntax: smashcraft:ts/scripts/integrity/padScript.ts). It copies
+  fresh selected-pair setup receipts to `DIR/setup.json` before the first edge;
+  missing chat entry or requested setup is INVALID at that client and boundary,
+  with no input timeline started (Wisp's observed chat/command receipt helpers).
   the clients' input traces, scene reports and moments beside the result;
   captures require the requested frame in both drawn receipts, otherwise the
   run is INVALID with retained captures and the first failed boundary in its report

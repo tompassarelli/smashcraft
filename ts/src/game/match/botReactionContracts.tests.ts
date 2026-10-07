@@ -7,7 +7,8 @@ import { createRoster, fighterAt, neutralControls, sameControls } from "../sim/r
 import { sameAttackBuffer } from "../input/attackBuffer";
 import { produceComputerInput } from "./botPlay";
 import { BOT_DIRECTION_FRAMES, type BotMemory, commitBotDirection, copyBotMemory, createBotMemory, observeOpponents, perceivedOpponent } from "./botPerception";
-import { cpuSkill } from "./cpuLevel";
+import { cpuSkill } from "./cpuSkill";
+import { CPU_PROFILES, type CpuOpponentId, type CpuTier } from "./cpuProfiles";
 import { createFrameControls } from "./controls";
 import { createPacingAndPresentation } from "./pacingAndPresentation";
 import { createMatchState, Phase } from "./rules";
@@ -18,13 +19,15 @@ import { botObservationCanonical, canonicalState } from "../replay/canonical";
 
 const SURPRISE_FRAME = 50;
 
-function setup(level: number) {
+function setup(opponent: CpuOpponentId = "wren", tier: CpuTier = "expert") {
   const own = createFighter(Character.archer, -150.0, 1);
   const target = createFighter(Character.rifleman, 150.0, -1);
   const world = createRoster(3, [own, target]);
   const game = createMatchState();
   game.phase = Phase.match;
-  game.cpuLevels[0] = level;
+  game.cpuOpponents[0] = opponent;
+  game.cpuResolvedOpponents[0] = opponent;
+  game.cpuTiers[0] = tier;
   return { own, target, world, game, runtime: createPacingAndPresentation(), controls: createFrameControls() };
 }
 
@@ -38,7 +41,7 @@ const surprises: readonly ((target: Fighter) => void)[] = [
 ];
 
 test("retained observations survive storage reuse, restored plain history and rollback", () => {
-  const game = setup(9);
+  const game = setup();
   const saved = createBotMemory();
   for (let frame = 1; frame <= 43; frame++) {
     game.target.motion.x = frame;
@@ -86,7 +89,7 @@ test("retained observations survive storage reuse, restored plain history and ro
 
 test("cached observation chunks fold the exact text across kits, fractional values and integer boundaries", () => {
   for (const character of SELECTABLE_CHARACTERS) {
-    const game = setup(9);
+    const game = setup();
     game.world.fighters[1] = createFighter(character, 100.0, -1);
     const target = fighterAt(game.world, 1);
     let frame = 0;
@@ -114,7 +117,7 @@ test("cached observation chunks fold the exact text across kits, fractional valu
 });
 
 test("observation number digests remain exact after recent values are evicted and revisited", () => {
-  const game = setup(9);
+  const game = setup("wren", "expert");
   for (let frame = 1; frame <= 1201; frame++) {
     const value = frame === 1201 ? 1 : frame;
     game.target.motion.x = value + 0.5;
@@ -136,8 +139,8 @@ test("observation number digests remain exact after recent values are evicted an
 });
 
 test("replay state checks detect delayed observations and direction commitment independently of current fighters", () => {
-  const expected = setup(9);
-  const changed = setup(9);
+  const expected = setup();
+  const changed = setup();
   observeOpponents(expected.runtime.botMemory, expected.world, 1);
   changed.target.motion.x = -300.0;
   observeOpponents(changed.runtime.botMemory, changed.world, 1);
@@ -155,14 +158,14 @@ test("replay state checks detect delayed observations and direction commitment i
   assertTrue(checksum(expected) !== checksum(changed));
 });
 
-test("45 surprise-action traces: no computer input responds before its level's observation delay", () => {
+test("150 surprise-action traces: no computer input responds before its authored observation delay", () => {
   let early = 0;
-  for (let level = 1; level <= 9; level++) {
-    const delay = cpuSkill(level).reactionFrames;
-    assertEquals(delay, 39 - 3 * level);
+  for (const profile of CPU_PROFILES) {
+    const delay = cpuSkill(profile.opponent, profile.tier).reactionFrames;
+    assertTrue(delay >= 12);
     for (const surprise of surprises) {
-      const changed = setup(level);
-      const quiet = setup(level);
+      const changed = setup(profile.opponent, profile.tier);
+      const quiet = setup(profile.opponent, profile.tier);
       for (let frame = 1; frame < SURPRISE_FRAME + delay; frame++) {
         if (frame === SURPRISE_FRAME) surprise(changed.target);
         for (const game of [changed, quiet]) produceComputerInput(game.game, game.world, game.runtime, 0, frame, game.controls.inputs[0], game.controls.commands[0]);
@@ -181,14 +184,19 @@ test("45 surprise-action traces: no computer input responds before its level's o
   assertEquals(early, 0);
 });
 
-test("level 9 changes its approach on frame 12 after a surprise side change", () => {
-  const changed = setup(9);
-  const quiet = setup(9);
+// Wren Expert's authored idle stretch for this slot and fighter covers frames 60-89, during
+// which it stands still whatever it perceives; this response window precedes it. Its spacing
+// gameplan keeps the same stick direction on either side, so any changed input counts.
+const RESPONSE_SURPRISE_FRAME = 35;
+
+test("Wren Expert first responds on frame 12 after a surprise side change", () => {
+  const changed = setup();
+  const quiet = setup();
   let first: number | undefined;
-  for (let frame = 1; frame <= SURPRISE_FRAME + 20; frame++) {
-    if (frame === SURPRISE_FRAME) at(surprises, 3)(changed.target);
+  for (let frame = 1; frame <= RESPONSE_SURPRISE_FRAME + 20; frame++) {
+    if (frame === RESPONSE_SURPRISE_FRAME) at(surprises, 3)(changed.target);
     for (const game of [changed, quiet]) produceComputerInput(game.game, game.world, game.runtime, 0, frame, game.controls.inputs[0], game.controls.commands[0]);
-    if (first === undefined && changed.controls.inputs[0].direction !== quiet.controls.inputs[0].direction) first = frame - SURPRISE_FRAME;
+    if (first === undefined && (!sameControls(changed.controls.inputs[0], quiet.controls.inputs[0]) || !sameAttackBuffer(changed.controls.commands[0], quiet.controls.commands[0]))) first = frame - RESPONSE_SURPRISE_FRAME;
   }
   assertEquals(first, 12);
 });
@@ -218,7 +226,7 @@ test("all 13 fighters' approach, retreat, air steering and recovery traces have 
   let reversals = 0;
   let early = 0;
   for (const character of SELECTABLE_CHARACTERS) {
-    const game = setup(9);
+    const game = setup();
     game.world.fighters[0] = createFighter(character, -150.0, 1);
     const own = fighterAt(game.world, 0);
     const row = createMatchFrameInput();

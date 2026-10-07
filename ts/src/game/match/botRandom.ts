@@ -32,3 +32,7 @@ export function botChoice(first: number, second: number, count: number): number 
 export const botChance = (first: number, second: number, numerator: number, denominator: number): boolean =>
   numerator >= denominator || (numerator > 0 && botChoice(first, second, denominator) < numerator);
 
+
+/** Seeds remain exact whole numbers in every game runtime. */
+export const MATCH_SEED_RANGE = 1 << 20;
+export const nextMatchSeed = (seed: number): number => floorMod(seed + 1, MATCH_SEED_RANGE);

@@ -29,8 +29,10 @@ test("a hidden fighter is skipped by selection stepping and never preselected; m
 test("a gate run's outside fighters become the hidden list", () => {
   const summary = (fighter: string, winRate: number, opponents: readonly string[]) =>
     ({ fighter, winRate, played: Object.fromEntries(opponents.map((o) => [o, 400])), against: Object.fromEntries(opponents.map((o) => [o, 0.5])), decisive: Object.fromEntries(opponents.map((o) => [o, 400])) }) as unknown as FighterSummary;
-  const field = { options: { levels: [9, 9] as const }, summaries: [summary("archer", 0.38, ["rifleman", "illidan"]), summary("rifleman", 0.71, ["illidan"]), summary("illidan", 0.5, [])] };
+  const field = { options: { opponents: ["wren", "wren"] as const, tiers: ["expert", "expert"] as const }, summaries: [summary("archer", 0.38, ["rifleman", "illidan"]), summary("rifleman", 0.71, ["illidan"]), summary("illidan", 0.5, [])] };
   expect(hiddenFighters(field)).toEqual(["archer", "rifleman"]);
-  expect(() => hiddenFighters({ ...field, options: { levels: [5, 5] as const } })).toThrow("not a gate run");
+  expect(() => hiddenFighters({ ...field, options: { ...field.options, tiers: ["intermediate", "intermediate"] } })).toThrow("not a gate run");
+  expect(() => hiddenFighters({ ...field, options: { ...field.options, opponents: ["ember", "ember"] } })).toThrow("not a gate run");
+  expect(() => hiddenFighters({ ...field, options: {} })).toThrow("not a gate run");
   expect(releaseRosterSource(["archer", "rifleman"])).toContain('HIDDEN_FIGHTERS: readonly string[] = ["archer", "rifleman"];');
 });

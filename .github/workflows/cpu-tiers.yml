@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 jobs:
-  levels:
+  tiers:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -25,14 +25,14 @@ jobs:
           bun-version: 1.3.13
       - run: bun install --frozen-lockfile
         working-directory: ts
-      - name: Compare all difficulty levels
+      - name: Compare all difficulty tiers
         working-directory: ts
         run: |
-          mkdir -p build/cpu-levels
-          bun scripts/cpuLevels.ts --matches 20 --top 100 --stocks 3 --minutes 4 > build/cpu-levels/report.md
-          cat build/cpu-levels/report.md >> "$GITHUB_STEP_SUMMARY"
+          mkdir -p build/cpu-tiers
+          bun scripts/cpuTiers.ts --matches 20 --top 100 --stocks 3 --minutes 4 > build/cpu-tiers/report.md
+          cat build/cpu-tiers/report.md >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         with:
-          name: cpu-levels
-          path: ts/build/cpu-levels/report.md
+          name: cpu-tiers
+          path: ts/build/cpu-tiers/report.md
           retention-days: 30

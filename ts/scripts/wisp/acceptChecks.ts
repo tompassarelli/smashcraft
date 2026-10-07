@@ -38,7 +38,7 @@ export const MAP_PROFILES: Readonly<Record<string, SmashcraftMapProfile>> = {
   presentation: { describe: "development map rebuilt from this checkout, `-dev quick` (Archer and Rifleman idle on the default stage)", path: PRESENTATION, rebuild: "main", quick: "-dev quick" },
   // smashcraft:docs/player-view.md: CURRENT_BUILD's scenario set to underside, built as a development map.
   // smashcraft#166: the playable build's keyboard input and pooled fighters (native-perf adds only developer setup and the frame meter).
-  keyboard: { describe: "playable input (native-perf profile) rebuilt from this checkout, `-dev quick cpu 9` (a level-9 computer, three stocks)", path: join(inputs, "keyboard-native-166-20261007/keyboard-native.w3x"), rebuild: "native-perf", quick: `${QUICK_CPU_COMMAND}9` },
+  keyboard: { describe: "playable input (native-perf profile) rebuilt from this checkout, `-dev quick cpu wren expert` (Wren Expert, three stocks)", path: join(inputs, "keyboard-native-166-20261007/keyboard-native.w3x"), rebuild: "native-perf", quick: `${QUICK_CPU_COMMAND}wren expert` },
   underside: { describe: "development map built with scenario underside (smashcraft:docs/player-view.md), `-dev quick`", path: join(inputs, "stage-model-20261006/Smashcraft diagnostic underside.w3x"), quick: "-dev quick" },
   training: { describe: "development map rebuilt from this checkout, `-dev quick training` (a computer partner shielding at 40%, hit areas on)", path: PRESENTATION, rebuild: "main", quick: QUICK_TRAINING_COMMAND },
   // A quick match starts only from fighter selection, so each stage is its own session.

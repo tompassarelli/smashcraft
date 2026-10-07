@@ -412,7 +412,9 @@ export function firstStateDifference(expected: Readonly<ReplayState>, actual: Re
     if (e.characterChoices[slot] !== a.characterChoices[slot]) return `match.slot${slot}.character`;
     if (e.characterReadiness[slot] !== a.characterReadiness[slot]) return `match.slot${slot}.ready`;
     if (e.rematchReadiness[slot] !== a.rematchReadiness[slot]) return `match.slot${slot}.rematch`;
-    if (e.cpuLevels[slot] !== a.cpuLevels[slot]) return `match.slot${slot}.cpuLevel`;
+    if (e.cpuOpponents[slot] !== a.cpuOpponents[slot]) return `match.slot${slot}.cpuOpponent`;
+    if (e.cpuTiers[slot] !== a.cpuTiers[slot]) return `match.slot${slot}.cpuTier`;
+    if (e.cpuResolvedOpponents[slot] !== a.cpuResolvedOpponents[slot]) return `match.slot${slot}.cpuResolvedOpponent`;
   }
   if (e.humanCount !== a.humanCount) return "match.humanCount";
   if (e.practice !== a.practice) return "match.practice";

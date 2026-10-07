@@ -3,7 +3,7 @@ import { Phase, createMatchState, fighterMask, selectCharacter, setParticipants 
 import { Character } from "../sim/codes";
 import { MAX_BATCH } from "../netcode/journal/transport";
 import { REPLAY_MAX_CORRECTION_FRAMES } from "../replay/limits";
-import { type DevSettings, QUICK_CPU_STOCKS, applyDevCommand, prepareQuickCpu, prepareQuickMatch, quickMatchCpuHero, quickMatchCpuLevel, quickMatchHero, quickRecoveryHero } from "./devSettings";
+import { type DevSettings, QUICK_CPU_STOCKS, applyDevCommand, prepareQuickCpu, prepareQuickMatch, quickMatchCpuHero, quickMatchCpuProfile, quickMatchHero, quickRecoveryHero } from "./devSettings";
 import { SELECTABLE_CHARACTERS, fighterName } from "../sim/heroes/registry";
 
 const settings = (): DevSettings => ({ rollback: 24, delay: 0, batch: 2, rematchSeconds: 5 });
@@ -89,36 +89,36 @@ test("recovery capture commands select every fighter by name without changing or
   assertEquals(quickRecoveryHero("-dev quick recovery hero nobody"), undefined);
 });
 
-test("a CPU quick match puts a computer at the named level in the first free slot, over three stocks", () => {
-  assertEquals(quickMatchCpuLevel("-dev quick cpu 9"), 9);
-  assertEquals(quickMatchCpuLevel("-dev quick cpu 0"), undefined);
-  assertEquals(quickMatchCpuLevel("-dev quick cpu 10"), undefined);
-  assertEquals(quickMatchCpuLevel("-dev quick"), undefined);
+test("a CPU quick match puts a computer at the named identity and difficulty in the first free slot, over three stocks", () => {
+  assertEquals(quickMatchCpuProfile("-dev quick cpu wren expert")?.tier, "expert");
+  assertEquals(quickMatchCpuProfile("-dev quick cpu nobody expert"), undefined);
+  assertEquals(quickMatchCpuProfile("-dev quick cpu wren impossible"), undefined);
+  assertEquals(quickMatchCpuProfile("-dev quick"), undefined);
   const game = createMatchState();
   setParticipants(game, 0b011, 0);
   game.phase = Phase.characterMenu;
-  prepareQuickCpu(game, 1);
+  prepareQuickCpu(game, { opponent: "wren", tier: "rookie" });
   assertTrue(prepareQuickMatch(game, 0, undefined, QUICK_CPU_STOCKS));
   assertEquals(game.phase, Phase.match);
   assertEquals(game.computerMask, 0b100);
-  assertEquals(game.cpuLevels[2], 1);
+  assertEquals(game.cpuTiers[2], "rookie");
   assertEquals(game.stockCount, 3);
 });
 
 test("every selectable fighter starts as a CPU through the menu's own selection path", () => {
-  assertEquals(quickMatchCpuLevel("-dev quick cpu 9 hero nobody"), undefined);
+  assertEquals(quickMatchCpuProfile("-dev quick cpu wren expert hero nobody"), undefined);
   for (const character of SELECTABLE_CHARACTERS) {
-    const command = `-dev quick cpu 9 hero ${fighterName(character)}`;
-    assertEquals(quickMatchCpuLevel(command), 9);
+    const command = `-dev quick cpu wren expert hero ${fighterName(character)}`;
+    assertEquals(quickMatchCpuProfile(command)?.tier, "expert");
     assertEquals(quickMatchCpuHero(command), character);
     const game = createMatchState();
     setParticipants(game, 0b011, 0);
-    prepareQuickCpu(game, 9, quickMatchCpuHero(command));
+    prepareQuickCpu(game, { opponent: "wren", tier: "expert" }, quickMatchCpuHero(command));
     assertEquals(game.characterChoices[2], character);
     assertTrue(game.characterReadiness[2]);
     assertTrue(prepareQuickMatch(game, 0, undefined, QUICK_CPU_STOCKS));
     assertEquals(game.computerMask, 0b100);
     assertEquals(game.characterChoices[2], character);
-    assertEquals(game.cpuLevels[2], 9);
+    assertEquals(game.cpuTiers[2], "expert");
   }
 });

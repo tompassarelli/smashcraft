@@ -346,7 +346,7 @@ function capture(state: ReplayState): ReplayState {
 
 test("lobby computers replay from corrected humans without network senders", () => {
   // One human with three computers, and sparse two-human, one-computer occupancy.
-  // Long enough for a computer to act on its delayed observation (docs/design/cpu-levels.md), inside the 24-frame window.
+  // Long enough for a computer to act on its delayed observation (smashcraft:docs/design/cpu-profiles.md), inside the 24-frame window.
   const frames = 20;
   for (const variant of [0, 1]) {
     const humans = variant === 0 ? 8 : 9;

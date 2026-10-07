@@ -29,10 +29,10 @@ import {
 } from "../sim/specials";
 import { mainDeckLeft, mainDeckRight, mainDeckZ } from "../sim/stage";
 import { safeAt, steerOnGround } from "./botFooting";
-import { startableForm, strikeMeets } from "./botHeroKit";
+import { HeroSpecialUse, heroSpecialUse, startableForm, strikeMeets } from "./botHeroKit";
 import { aheadX, moveReachAhead } from "./botMoves";
 import { botChance, botChoice } from "./botRandom";
-import type { CpuSkill } from "./cpuLevel";
+import type { CpuSkill } from "./cpuSkill";
 
 /** A feint steps out of Wind Walk once the target is this close. */
 const FEINT_GAP = 110.0;
@@ -261,6 +261,12 @@ function pressHeroOption(f: Readonly<Fighter>, target: Readonly<Fighter>, stage:
   const closeReach = open ? Math.max(50.0, moveReachAhead(f.character, AttackStyle.forwardTilt, target, f.tuning.moves)) : 50.0;
   const closeGap = open ? Math.abs(aheadX(f, target, attackStartupFrames(AttackStyle.forwardTilt, f.tuning.moves), AttackStyle.forwardTilt)) : gap;
   if (open && f.motion.grounded && closeGap > closeReach && takes(skill, floorDiv(frame, 45), f.character * 7 + 18)) {
+    // A reachable shot can use the protection while the opponent stays outside melee range.
+    if (f.status.divineFrames > 0 && ready) for (const slot of HERO_SLOTS) {
+      if (heroSpecialUse(f, target, stage, slot) !== HeroSpecialUse.ranged) continue;
+      pressSlot(input, slot, toward);
+      return true;
+    }
     steerOnGround(f, stage, target.motion.x, input);
     return true;
   }

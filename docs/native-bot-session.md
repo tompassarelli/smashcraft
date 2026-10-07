@@ -216,8 +216,8 @@ integrity and development builds give confirmed states.
 plays a script of timed pad states on both clients' virtual pads through
 the real helpers, as the captures do. `--chat=TEXT` types a developer command
 into client A once the helpers run (for example `-dev quick hero lich`, or
-`-dev quick cpu 9` for a level-9 computer opponent, or
-`-dev quick cpu 9 hero NAME` to select any roster fighter as that computer
+`-dev quick cpu wren expert` for a Wren Expert computer opponent, or
+`-dev quick cpu wren expert hero NAME` to select any roster fighter as that computer
 through the menu's selection rule). The `cpu-roster-*.pad` scripts cover the
 complete selectable roster in one batch.
 Each line is `FRAME CLIENT ACTION [ARGS]`: the match frame the edge is
@@ -330,6 +330,16 @@ Native batch helpers and pads stay alive until their game ends. Before typing a
 selection command, the runner waits for the map's observed chat-open receipt in
 `smashcraft-chat-BUILD-pSLOT.txt`; a missed Return sends no command text. Between
 matches, reset waits for the journal's quiescence and chat handoff before typing.
+Fresh games also require the selected pair's new binding-ready files. The
+runner snapshots both developer receipts before a setup command and confirms
+new files with matching command counters and the requested quick-match fighter
+or reset state before any scripted edge. Successful setup saves its pair
+receipts and confirmation time in `DIR/setup.json`. Failure saves INVALID in
+`DIR/result.json`, with the first boundary, selected clients and no edges;
+the batch stops that setup attempt and does not compare absent gameplay.
+Journal chat leaves the match paused. The bot cost journey waits for chat to
+open and return focus around each diagnostic command, then explicitly resumes
+and waits for both helpers' new RESUME acknowledgements before its workload.
 Rebuild the integrity map's script when updating this handshake. Input deadlines
 use each client's own match-start clock; identical frame numbers can require
 different write times.
@@ -501,6 +511,23 @@ Record the original host input timestamps and the framebuffer timestamps;
 the exported game clock alone cannot establish press-to-screen latency.
 The probe adds diagnostic work, so report its overhead separately from the
 ordinary release's cost. Use the integrity profile for journal diagnostics.
+
+Before a pixel-response trial, measure the acquisition cadence on its selected
+private desktop from smashcraft:ts/:
+
+```sh
+bun wisp integrity capture --screen --clients-file PRIVATE_CLIENTS.json --client lan3a --out /absolute/private/screen-trial --count 30
+```
+
+`--region X,Y,WIDTH,HEIGHT` keeps a known fighter's rectangle instead of the
+whole screen. The command saves actual RGB as PPM files and
+`screen-capture.json`, with each acquisition's `CLOCK_MONOTONIC` nanosecond
+bracket and interval distributions. Match state is read before capture; the
+command sends no input. Its output is a cadence sample, not a latency verdict.
+For a stimulus trial use the same clock as the injector and the acquisition
+end as a conservative response bound. Neither a bracket midpoint nor the
+probe marker is evidence that a fighter responded. Preserve pixels and input
+timestamps so the action's visible onset can be checked independently.
 
 Build or rebuild with `--profile native-perf` for script-cost trials of the
 playable build. The diagnostic uses the playable build's local keyboard rows

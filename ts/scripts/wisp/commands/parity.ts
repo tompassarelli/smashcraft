@@ -10,6 +10,7 @@ import { onHealthyClients } from "../doctor";
 import { captureMatches, parseCaptureArguments } from "../../integrity/capture";
 import { IntegrityFailure, reconcileCapture, tryIntegrityPromise } from "../../integrity/evidence";
 import { captureHeadless, parseHeadlessArguments } from "../../integrity/headless";
+import { captureScreen, screenCaptureArguments } from "../../integrity/screenCapture";
 import { type Command, UsageFailure, describeCause } from "wisp/scripts/wisp/command";
 import { step } from "wisp/scripts/wisp/timings";
 
@@ -59,6 +60,10 @@ export const parity: Command = ([mode, ...args]) => {
 export const integrity: Command = ([mode, ...args]) => {
   switch (mode) {
     case "capture":
+      if (args.includes("--screen")) return Effect.try({
+        try: () => screenCaptureArguments(args),
+        catch: cause => new IntegrityFailure({ operation: "parse screen capture arguments", path: "wisp integrity capture --screen", cause }),
+      }).pipe(Effect.flatMap(captureScreen), step("native screen acquisition sample"));
       return Effect.try({
         try: () => parseCaptureArguments(args),
         catch: (cause) => new IntegrityFailure({ operation: "parse capture arguments", path: "wisp integrity capture", cause: describeCause(cause) }),

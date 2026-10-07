@@ -18,6 +18,7 @@ import { writeMatchItems } from "../match/items";
 import { PROJECTILE_CAPACITY, type Fighter } from "../sim/fighter";
 import { fighterAt, isActive } from "../sim/roster";
 import { writeTrainingState } from "../match/trainingState";
+import { CPU_OPPONENT_CHOICES, CPU_OPPONENT_IDS, CPU_TIERS } from "../match/cpuProfiles";
 import { botStrategyValues } from "../match/botStrategy";
 import type { ReplayState } from "./snapshot";
 import { HERO_ROSTER } from "../sim/heroes/registry";
@@ -1098,7 +1099,9 @@ function writeState(emit: Emit, state: Readonly<ReplayState>): void {
     int(`${prefix}.character`, match.characterChoices[slot]);
     bool(`${prefix}.ready`, match.characterReadiness[slot]);
     bool(`${prefix}.rematch`, match.rematchReadiness[slot]);
-    int(`${prefix}.cpuLevel`, match.cpuLevels[slot]);
+    int(`${prefix}.cpuOpponent`, CPU_OPPONENT_CHOICES.indexOf(match.cpuOpponents[slot]));
+    int(`${prefix}.cpuTier`, CPU_TIERS.indexOf(match.cpuTiers[slot]));
+    int(`${prefix}.cpuResolvedOpponent`, CPU_OPPONENT_IDS.indexOf(match.cpuResolvedOpponents[slot]));
   }
   int("match.stockCount", match.stockCount);
   int("match.timeLimitMinutes", match.timeLimitMinutes);

@@ -1,5 +1,5 @@
-# #179: Pit Lord selected as a level-9 CPU through the normal menu selection rule.
-#! chat -dev quick cpu 9 hero Pit Lord
+# #179: Pit Lord selected as a Wren Expert CPU through the normal menu selection rule.
+#! chat -dev quick cpu wren expert hero Pit Lord
 #! expect c 1-800 ground action
 #! expect c 1-800 applied attack
 #! expect c 1-800 special

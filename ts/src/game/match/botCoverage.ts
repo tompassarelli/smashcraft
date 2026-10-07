@@ -65,6 +65,11 @@ export function fighterCoverage(index: number): BotCoverage {
   for (let seed = 0; seed < 8; seed++) {
     const world = createRoster(3, [createFighter(character, -240.0, 1), createFighter(at(SELECTABLE_CHARACTERS, floorMod(index + seed + 1, SELECTABLE_CHARACTERS.length)), 240.0, -1)]);
     const game = createMatchState();
+    for (const slot of PARTICIPANT_SLOTS) {
+      game.cpuOpponents[slot] = "wren";
+      game.cpuResolvedOpponents[slot] = "wren";
+      game.cpuTiers[slot] = "expert";
+    }
     game.phase = Phase.match;
     game.stageChoice = 0;
     game.timeLimitMinutes = 0;

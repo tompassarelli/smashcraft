@@ -23,7 +23,7 @@ import { SpecialSlot } from "../sim/heroSpecials";
 import { SPACE_PLAN, avoids, gameplanOf, moveWeight, passiveLandingMove, spacedAt, toGameplanMove } from "./botGameplan";
 import { passivePips, passiveSpec } from "../sim/passives";
 import type { FighterGameplan, GameplanMove } from "../sim/gameplan";
-import { type CpuSkill, FULL_SKILL } from "./cpuLevel";
+import { type CpuSkill, FULL_SKILL } from "./cpuSkill";
 import { type AttackDecision, familiarOption, moveValueMultiplier } from "./botMoveValue";
 
 const GROUND_MOVES = [

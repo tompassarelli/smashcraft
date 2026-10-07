@@ -32,6 +32,12 @@ function computerMatch(characters: readonly [Character, Character], xs: readonly
   match.phase = Phase.match;
   match.stageChoice = stage;
   match.timeLimitMinutes = 0;
+  // Strongest-play contracts select Wren Expert explicitly rather than the Intermediate default.
+  for (const slot of PARTICIPANT_SLOTS) {
+    match.cpuOpponents[slot] = "wren";
+    match.cpuResolvedOpponents[slot] = "wren";
+    match.cpuTiers[slot] = "expert";
+  }
   const produced = createFrameControls();
   const controls = createFrameControls();
   const runtime = createPacingAndPresentation();
@@ -161,6 +167,22 @@ test("computer Uther raises Divine Shield against a strike timed into its guard 
     input.shieldStrength = 1.0;
   });
   assertGreaterThan(grabbed.grabs, 0);
+});
+
+test("protected Uther uses an affordable Holy Light at range without reserving a second guard", () => {
+  for (const protectedNow of [false, true]) {
+    const game = computerMatch([Character.archer, Character.uther], [440.0, 0.0], 0, 2);
+    for (let frame = 0; frame < 12; frame++) game.step();
+    const uther = fighterAt(game.world, 1);
+    uther.mana.points = 30;
+    uther.status.divineFrames = protectedNow ? 14 : 0;
+    game.step();
+    assertEquals(uther.special.action, protectedNow ? SpecialAction.heroNeutral : SpecialAction.none);
+    if (protectedNow) {
+      assertEquals(uther.mana.points, 20);
+      assertEquals(uther.status.divineFrames, 0);
+    }
+  }
 });
 
 // One test a hero: the roster grows, and each hero's two 3600-frame matches take 0.3-0.5 s alone.

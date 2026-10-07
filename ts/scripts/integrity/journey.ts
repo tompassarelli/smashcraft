@@ -328,6 +328,41 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       yield* rig.record({ event: "dev-config", epoch, command: text, publications: yield* boundaries((client) => devCommandReceiptFile(build, client)) });
     });
 
+  /** A running journal match hands chat focus to Warcraft only after the helpers stop typing. */
+  const journalChat = (epoch: number, text: string) => Effect.gen(function*() {
+    const name = `smashcraft-journal-text-ack-${build}-e${epoch}-p0.txt`;
+    const read = rig.file(0, name);
+    const fields = (file: GameFile | undefined) => receiptFields(file?.text ?? "");
+    const before = fields(yield* read);
+    yield* rig.key(0, "Return");
+    yield* rig.until(`epoch ${epoch}: ${text} chat entry not open`, read.pipe(Effect.map((file) => {
+      const current = fields(file);
+      return complete(file) && current.get("epoch") === String(epoch) && Number(current.get("revision")) > Number(before.get("revision")) && Number(current.get("chat")) > Number(before.get("chat")) && current.get("chatState") === "3";
+    })), 8);
+    const opened = fields(yield* read);
+    yield* rig.type(0, text);
+    yield* rig.key(0, "Return");
+    yield* rig.until(`epoch ${epoch}: ${text} chat has not returned keyboard focus`, read.pipe(Effect.map((file) => {
+      const current = fields(file);
+      return complete(file) && current.get("epoch") === String(epoch) && Number(current.get("revision")) > Number(opened.get("revision")) && current.get("chat") === opened.get("chat") && current.get("chatState") === "0";
+    })), 8);
+  });
+
+  /** Closing chat leaves the player-requested pause intact; this measurement explicitly resumes it. */
+  const resumeAfterChat = (epoch: number) => Effect.gen(function*() {
+    const from = yield* Effect.forEach(SLOTS, (slot) => rig.helperLog(slot).pipe(Effect.map((text) => text.length)));
+    yield* menuButton(0, BTN_START, `match-${epoch}-chat-resume`);
+    yield* rig.until(`epoch ${epoch}: chat resume not acknowledged by both helpers`, Effect.forEach(SLOTS, (slot) => rig.helperLog(slot)).pipe(Effect.map((logs) => logs.every((log, slot) => / state=RESUME /.test(log.slice(from[slot]))))), 8);
+    yield* rig.record({ event: "integrity-resume", epoch, publications: yield* Effect.forEach(SLOTS, (slot) => Effect.gen(function*() {
+      const names = yield* rig.files(slot, journalControlFile(build, epoch, slot, "*"));
+      for (const name of names) {
+        const file = yield* rig.file(slot, name);
+        if (complete(file) && file.text.includes(" state=RESUME ")) return yield* rig.boundary(slot, name);
+      }
+      return yield* failed(`epoch ${epoch}: chat resume receipt`, `client ${slot} has no RESUME receipt`);
+    })) });
+  });
+
   /** Fighter selection: the menu receipts say each client's controller may drive it. */
   const characterScreen = Effect.gen(function*() {
     yield* menuPhase("CHARACTER");
@@ -724,12 +759,9 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       yield* rig.record({ event: "start", epoch, publications: started, observed_monotonic_ns: yield* rig.monotonicNs });
       if (bot && (options.botFour === true || options.botPerf === true) && !odd) {
         // The frame meter registers its toggle at the first match start; its overlay shows on A for the rematch.
-        yield* rig.key(0, "Return");
-        yield* rig.type(0, PERF_TOGGLE);
-        yield* rig.key(0, "Return");
-        yield* rig.key(0, "Return");
-        yield* rig.type(0, BOT_CAPTURE);
-        yield* rig.key(0, "Return");
+        yield* journalChat(epoch, PERF_TOGGLE);
+        yield* journalChat(epoch, BOT_CAPTURE);
+        yield* resumeAfterChat(epoch);
       }
       const deadline = Math.max(...started.map((publication) => publication.publication_monotonic_estimate_ns)) + 300_000_000;
       yield* rig.sleep(Math.max(0, (deadline - (yield* rig.monotonicNs)) / 1_000_000));

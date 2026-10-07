@@ -17,11 +17,11 @@ afterAll(headless.restore);
 
 const playable = { install, start: () => startBuild(PLAYABLE_BUILD) };
 
-test("a playtest request adds a level 3 computer as Player 3 and starts the match on every client once the go-ahead appears", () => {
+test("a playtest request adds a Wren Intermediate as Player 3 and starts the match on every client once the go-ahead appears", () => {
   const clients = headless.clients(playable, [0, 1]);
   const [host, guest] = clients.clients;
   if (host === undefined || guest === undefined) throw new Error("missing clients");
-  host.published.set(PLAYTEST_REQUEST_FILE, [playtestRequest(0b100, 3)]);
+  host.published.set(PLAYTEST_REQUEST_FILE, [playtestRequest(0b100, "wren", "intermediate")]);
   clients.start();
   clients.frames(120);
   // The helper isn't running yet: fighter selection waits.
@@ -33,12 +33,12 @@ test("a playtest request adds a level 3 computer as Player 3 and starts the matc
       const { game } = shell();
       expect(game.phase).toBe(Phase.match);
       expect(game.computerMask).toBe(0b100);
-      expect(game.cpuLevels[2]).toBe(3);
+      expect(game.cpuTiers[2]).toBe("intermediate");
       expect(game.humanFighterMask).toBe(0b011);
     });
   }
-  expect(host.files.get(playtestReceiptFile(0))).toEqual(["PLAY v=2 computers=4 level=3 started"]);
-  expect(guest.files.get(playtestReceiptFile(1))).toEqual(["PLAY v=2 computers=4 level=3 started"]);
+  expect(host.files.get(playtestReceiptFile(0))).toEqual(["PLAY v=3 computers=4 opponent=wren difficulty=intermediate started"]);
+  expect(guest.files.get(playtestReceiptFile(1))).toEqual(["PLAY v=3 computers=4 opponent=wren difficulty=intermediate started"]);
   expect([...host.errors, ...guest.errors]).toEqual([]);
   expect(clients.firstDivergence()).toBeUndefined();
 });

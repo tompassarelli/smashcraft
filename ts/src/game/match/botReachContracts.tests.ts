@@ -1,5 +1,5 @@
 // The computer attacks only what it can reach (#160): with its opponent idle
-// on another deck, every fighter's level-9 computer goes to that deck instead
+// on another deck, every fighter's Wren Expert computer goes to that deck instead
 // of swinging at nothing. An attack start counts as in reach when the move's
 // strike meets the opponent where it stands or will stand at the strike,
 // or when the move has a purpose at range: a projectile, a trap, a summon, a
@@ -103,7 +103,7 @@ interface ReachRun {
   arrival: number;
 }
 
-/** A level-9 computer at (cx, cz) on deck `surface` against an idle opponent at (ox, oz) on deck `opponentSurface`, on the raised stage. */
+/** A Wren Expert computer at (cx, cz) on deck `surface` against an idle opponent at (ox, oz) on deck `opponentSurface`, on the raised stage. */
 function playIdleOpponent(character: Character, cx: number, cz: number, surface: number, ox: number, oz: number, opponentSurface: number): ReachRun {
   const opponent = createFighter(character === Character.archer ? Character.rifleman : Character.archer, ox, cx > ox ? 1 : -1);
   opponent.motion.z = oz;
@@ -116,7 +116,9 @@ function playIdleOpponent(character: Character, cx: number, cz: number, surface:
   match.phase = Phase.match;
   match.stageChoice = RAISED_STAGE;
   match.timeLimitMinutes = 0;
-  match.cpuLevels[1] = 9;
+  match.cpuOpponents[1] = "wren";
+  match.cpuResolvedOpponents[1] = "wren";
+  match.cpuTiers[1] = "expert";
   const produced = createFrameControls();
   const controls = createFrameControls();
   const runtime = createPacingAndPresentation();

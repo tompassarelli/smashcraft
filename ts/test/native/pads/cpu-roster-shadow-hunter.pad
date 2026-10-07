@@ -1,5 +1,5 @@
-# #179: Shadow Hunter selected as a level-9 CPU through the normal menu selection rule.
-#! chat -dev quick cpu 9 hero Shadow Hunter
+# #179: Shadow Hunter selected as a Wren Expert CPU through the normal menu selection rule.
+#! chat -dev quick cpu wren expert hero Shadow Hunter
 #! expect c 1-800 ground action
 #! expect c 1-800 applied attack
 #! expect c 1-800 special
