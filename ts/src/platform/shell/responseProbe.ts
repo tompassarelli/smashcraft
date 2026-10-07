@@ -10,6 +10,7 @@ import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { trampoline } from "wisp/src/platform/dispatch";
 import { writeLines } from "wisp/src/platform/fileio";
 import { edgeStampFile, responsePageFile } from "../../runtime/gameFiles";
+import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots } from "../../game/input/participants";
 
 const ROW_LIMIT = 7200;
 const PAGE_ROWS = 150;
@@ -41,6 +42,10 @@ interface ServiceRow {
   predictedShield: number | undefined;
   poseSerial: number | undefined;
   correction: number | undefined;
+  positionMask: number;
+  presentedFrame: number;
+  readonly positionX: Slots<number>;
+  readonly positionZ: Slots<number>;
   fileReadMs: number;
   fileReads: number;
   fileBytes: number;
@@ -95,6 +100,7 @@ function serviceRow(): ServiceRow {
     speculativeBefore: 0, speculativeAfter: 0, known: 0, target: 0, held: 0, pressed: 0, released: 0, captureResult: 0,
     phase: 0, confirmedShield: 0, predictedShield: 0, poseSerial: 0, correction: 0, fileReadMs: 0.0, fileReads: 0,
     fileBytes: 0, sendCallMs: 0.0, sendCalls: 0,
+    positionMask: 0, presentedFrame: 0, positionX: [0.0, 0.0, 0.0, 0.0], positionZ: [0.0, 0.0, 0.0, 0.0],
   };
 }
 
@@ -203,6 +209,7 @@ export function probeBegin(probe: ResponseProbe | undefined, frame: number, spec
   row.predictedShield = undefined;
   row.poseSerial = undefined;
   row.correction = undefined;
+  row.positionMask = 0;
   row.fileReadMs = 0.0;
   row.fileReads = 0;
   row.fileBytes = 0;
@@ -306,6 +313,15 @@ export function probeAdvance(probe: ResponseProbe | undefined, frame: number, sp
   row.correction = correction;
 }
 
+export function probeFighterPosition(probe: ResponseProbe | undefined, slot: ParticipantSlot, frame: number, x: number, z: number): void {
+  const row = currentRow(probe);
+  if (row === undefined) return;
+  row.positionMask |= 1 << slot;
+  row.presentedFrame = frame;
+  row.positionX[slot] = x;
+  row.positionZ[slot] = z;
+}
+
 export function probePresent(probe: ResponseProbe | undefined, confirmedShield: boolean, predictedShield: boolean, poseSerial: number): void {
   const row = currentRow(probe);
   if (probe === undefined || row === undefined || probe.row === undefined) return;
@@ -339,6 +355,7 @@ export function exportProbePage(probe: ResponseProbe): void {
     "B row held pressed released capture_result phase confirmed_shield predicted_shield pose_serial correction",
     "C row journal_read_count journal_read_bytes journal_read_ms sync_send_count sync_send_ms",
     "D epoch frame sync_send_ms local_echo_ms echo_age_ms; echo=-1 means not observed before export",
+    "P row slot presented_frame x z; correlate row with actual framebuffer marker, not callback count",
   ];
   for (const entry of probe.integrity.slice(first, last)) lines.push(`I ${entry}`);
   for (let index = first; index < Math.min(probe.rows, last); index++) {
@@ -347,6 +364,9 @@ export function exportProbePage(probe: ResponseProbe): void {
     lines.push(`A ${index} ${R2S(r.entryMs)} ${R2S(r.pollMs ?? -1)} ${R2S(r.captureMs ?? -1)} ${R2S(r.advanceMs ?? -1)} ${R2S(r.presentMs ?? -1)} ${r.frameBefore} ${r.frameAfter ?? -1} ${r.speculativeBefore} ${r.speculativeAfter ?? -1} ${r.known} ${r.target ?? -1}`);
     lines.push(`B ${index} ${r.held ?? -1} ${r.pressed ?? -1} ${r.released ?? -1} ${r.captureResult ?? -1} ${r.phase} ${r.confirmedShield ?? -1} ${r.predictedShield ?? -1} ${r.poseSerial ?? -1} ${r.correction ?? -1}`);
     lines.push(`C ${index} ${r.fileReads} ${r.fileBytes} ${R2S(r.fileReadMs)} ${r.sendCalls} ${R2S(r.sendCallMs)}`);
+    for (const fighter of PARTICIPANT_SLOTS) {
+      if ((r.positionMask & (1 << fighter)) !== 0) lines.push(`P ${index} ${fighter} ${r.presentedFrame} ${R2S(r.positionX[fighter])} ${R2S(r.positionZ[fighter])}`);
+    }
   }
   for (const index of probe.transportOrder.slice(first, last)) {
     const stamp = probe.transport[index];

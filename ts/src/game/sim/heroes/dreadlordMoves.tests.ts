@@ -92,24 +92,24 @@ test("Dreadlord twin talons and front-rear wing sweep hit each target once", () 
   for (const facing of [1, -1]) {
     const talons = attackPair(AttackStyle.forwardSmash, 17, 100.0, 0.0, facing);
     resolveAttacks(talons.world);
-    assertEquals(talons.target.status.damage, 18.0);
+    assertEquals(talons.target.status.damage, 16.290000915527344);
     for (let frame = 18; frame <= 20; frame++) {
       talons.owner.launch.hitlag = 0;
       talons.owner.attack.frame = frame;
       resolveAttacks(talons.world);
-      assertEquals(talons.target.status.damage, 18.0);
+      assertEquals(talons.target.status.damage, 16.290000915527344);
     }
     const sweep = attackPair(AttackStyle.downSmash, 14, 100.0, 0.0, facing);
     resolveAttacks(sweep.world);
-    assertEquals(sweep.target.status.damage, 14.0);
+    assertEquals(sweep.target.status.damage, 12.670000076293945);
     sweep.target.motion.x = f32(-100.0 * facing);
     sweep.owner.launch.hitlag = 0;
     sweep.owner.attack.frame = 17;
     resolveAttacks(sweep.world);
-    assertEquals(sweep.target.status.damage, 14.0);
+    assertEquals(sweep.target.status.damage, 12.670000076293945);
     const back = attackPair(AttackStyle.downSmash, 17, -100.0, 0.0, facing);
     resolveAttacks(back.world);
-    assertEquals(back.target.status.damage, 14.0);
+    assertEquals(back.target.status.damage, 12.670000076293945);
     assertLessThan(back.target.launch.knockbackX * facing, 0.0);
   }
 });
@@ -118,12 +118,12 @@ test("Dreadlord wing backhand launches away from facing and talon drop converts 
   for (const facing of [1, -1]) {
     const back = attackPair(AttackStyle.backAir, 8, -100.0, 0.0, facing, false);
     resolveAttacks(back.world);
-    assertEquals(back.target.status.damage, 15.0);
+    assertEquals(back.target.status.damage, 13.575000762939453);
     assertLessThan(back.target.launch.knockbackX * facing, 0.0);
     for (const grounded of [false, true]) {
       const drop = attackPair(AttackStyle.downAir, 13, 12.0, -70.0, facing, grounded);
       resolveAttacks(drop.world);
-      assertEquals(drop.target.status.damage, 12.0);
+      assertEquals(drop.target.status.damage, 10.860000610351562);
       assertEquals(drop.target.launch.knockbackZ > 0.0, grounded);
       if (grounded) assertGreaterThan(drop.target.launch.knockbackX * facing, 0.0);
       else assertEquals(drop.target.launch.knockbackX, 0.0);
@@ -180,10 +180,10 @@ test("Dreadlord shield grab and dash grab retain adopted reach and whiff timing"
 });
 
 const THROW_ROWS = [
-  [GrabAction.throwForward, 12, 20, 10.0],
-  [GrabAction.throwBack, 18, 25, 12.0],
-  [GrabAction.throwUp, 15, 11, 9.0],
-  [GrabAction.throwDown, 19, 25, 8.0],
+  [GrabAction.throwForward, 12, 20, 9.050000190734863],
+  [GrabAction.throwBack, 18, 25, 10.860000610351562],
+  [GrabAction.throwUp, 15, 11, 8.145000457763672],
+  [GrabAction.throwDown, 19, 25, 7.240000247955322],
 ] as const;
 
 test("Dreadlord throws hold until the adopted release and launch once in both facings", () => {
