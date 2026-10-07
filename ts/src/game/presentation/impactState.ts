@@ -4,6 +4,7 @@ import { idiv, imod } from "wisp/src/sim/intMath";
 import { type Character, SurfaceContact } from "../sim/codes";
 import { HitElement } from "../sim/hitRegions";
 import { DodgeCue, type ImpactEvents, ImpactLanding, JumpCue } from "./impactEvents";
+import { TIER_SPARK_SCALE } from "./moveTiers";
 
 // Impact kinds. Each owns a ring of IMPACTS_PER_KIND pool slots, in kind order.
 export const IMPACT_HIT = 0;
@@ -238,7 +239,7 @@ export function emitImpacts(state: ImpactState, events: Readonly<ImpactEvents>, 
     const kind = events.pummel ? IMPACT_PUMMEL : events.element === HitElement.fire ? IMPACT_FIRE_HIT
       : events.element === HitElement.slash ? IMPACT_SLASH_HIT : events.element === HitElement.ice ? IMPACT_ICE_HIT
       : events.electric || events.element === HitElement.electric ? IMPACT_ELECTRIC_HIT : IMPACT_HIT;
-    spawn(state, kind, x, f32(z + 50.0), 0, f32(0.75 + f32(events.strength * 0.25)));
+    spawn(state, kind, x, f32(z + 50.0), 0, TIER_SPARK_SCALE[events.tier] ?? 1.0);
   }
   if (events.shieldHit || events.shieldReflect) spawn(state, events.shieldElectric ? IMPACT_ELECTRIC_SHIELD : IMPACT_SHIELD_HIT, x, f32(z + 50.0), 0, events.shieldReflect ? 1.5 : 1.0);
   if (events.shieldBreak) spawn(state, IMPACT_SHIELD_HIT, x, f32(z + 50.0), 0, 2.0);

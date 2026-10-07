@@ -1,12 +1,15 @@
 import { f32 } from "wisp/src/sim/f32";
 import { imod } from "wisp/src/sim/intMath";
 import { type Character, DownState, LedgeState, ShieldBreak, SurfaceContact } from "../sim/codes";
-import { isFloorTeching, isGroundDodging, isTumbling } from "../sim/conditions";
+import { attackStartup, isFloorTeching, isGroundDodging, isTumbling } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
 import { HitElement } from "../sim/hitRegions";
 import { LEDGE_HANG_DEPTH, LEDGE_HANG_OUTSET } from "../sim/ledge";
 import { SMASH_MAX_CHARGE_FRAMES } from "../sim/moves";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "../sim/tuning";
+import { type Roster, fighterAt, isActive } from "../sim/roster";
+import { AttackStyle } from "../sim/codes";
+import { moveTier } from "./moveTiers";
 
 /** How a down state was entered: a floor tech, or a missed one that bounced. */
 export const ImpactLanding = { none: 0, tech: 1, missedTech: 2 } as const;
@@ -52,6 +55,8 @@ export interface ImpactEvents {
   previousLedgeSerial: number;
   previousLedgeState: LedgeState;
   previousLedgeSide: number;
+  previousAttackSerial: number;
+  previousAttackFrame: number;
   grab: boolean;
   throwRelease: boolean;
   charge: boolean;
@@ -65,6 +70,12 @@ export interface ImpactEvents {
   electric: boolean;
   element: HitElement;
   strength: number;
+  /** The hit's sound tier (presentation/moveTiers.ts): its attacker's move class, else its launch strength. */
+  tier: number;
+  /** The tier of a swing reaching its first active frame this frame; -1 for none. */
+  swing: number;
+  /** The hit's serial, which picks among a tier sound's variants. */
+  variant: number;
   pummel: boolean;
   shieldElectric: boolean;
   footstep: "none" | "walk" | "run" | "dash";
@@ -109,9 +120,9 @@ export function createImpactEvents(): ImpactEvents {
     previousX: 0.0, previousZ: 0.0, previousVelocityX: 0.0, previousDownFrame: 0,
     previousGrabVisualSerial: 0, previousThrowVisualSerial: 0, previouslyCharging: false,
     previousChargeFrames: 0, previousLedgeSerial: 0, previousLedgeState: LedgeState.none,
-    previousLedgeSide: 0, grab: false, throwRelease: false, charge: false, ready: false,
+    previousLedgeSide: 0, previousAttackSerial: 0, previousAttackFrame: 0, grab: false, throwRelease: false, charge: false, ready: false,
     ledgeCatch: false, ledgeRecovery: false, ledgeX: 0.0, ledgeZ: 0.0, hit: false, electric: false,
-    element: HitElement.normal, strength: 0, pummel: false, shieldElectric: false, footstep: "none",
+    element: HitElement.normal, strength: 0, tier: 0, swing: -1, variant: 0, pummel: false, shieldElectric: false, footstep: "none",
     shieldHit: false, shieldReflect: false, shieldBreak: false, ordinaryLanding: false,
     movementDust: false, runningDust: false, launchTrail: false, dodgeTrail: false, airDodge: false,
     respawn: false, jump: JumpCue.none, jumpOriginX: 0.0, jumpOriginZ: 0.0, character: 0, facing: 1,
@@ -147,6 +158,8 @@ export function captureImpactEventsBefore(events: ImpactEvents, fighter: Readonl
   events.previousLedgeSerial = fighter.ledge.serial;
   events.previousLedgeState = fighter.ledge.state;
   events.previousLedgeSide = fighter.ledge.side;
+  events.previousAttackSerial = fighter.attack.serial;
+  events.previousAttackFrame = fighter.attack.frame;
   events.grab = false;
   events.throwRelease = false;
   events.charge = false;
@@ -167,6 +180,7 @@ export function captureImpactEventsBefore(events: ImpactEvents, fighter: Readonl
   events.dodgeTrail = false;
   events.airDodge = false;
   events.respawn = false;
+  events.swing = -1;
   events.jump = JumpCue.none;
   events.koDirectionX = 0;
   events.koDirectionZ = 0;
@@ -177,8 +191,21 @@ export function captureImpactEventsBefore(events: ImpactEvents, fighter: Readonl
   events.surfaceMissedTech = false;
 }
 
-/** Derives the cues of the frame that just executed. Out fighters, and the frame they return, raise none. */
-export function finishImpactEventsAfter(events: ImpactEvents, fighter: Readonly<Fighter>): void {
+/** The tier of the attack that last hit the fighter, while its attacker is still in it; undefined otherwise. */
+function hitTier(fighter: Readonly<Fighter>, world: Readonly<Roster> | undefined): number | undefined {
+  const { lastAttacker, lastAttackSerial } = fighter.hits;
+  if (world === undefined || lastAttacker === undefined || !isActive(world, lastAttacker)) return undefined;
+  const attacker = fighterAt(world, lastAttacker);
+  const { style, serial } = attacker.attack;
+  return style === undefined || serial !== lastAttackSerial ? undefined : moveTier(attacker.character, style);
+}
+
+/**
+ * Derives the cues of the frame that just executed. Out fighters, and the
+ * frame they return, raise none. The roster, when given, names each hit's
+ * attacker for its sound tier.
+ */
+export function finishImpactEventsAfter(events: ImpactEvents, fighter: Readonly<Fighter>, world?: Readonly<Roster>): void {
   const { motion, status, ground, surfaceRecovery, visuals, jump, launch, shield, down, attack, ledge, dodge } = fighter;
   events.character = fighter.character;
   events.facing = fighter.facing;
@@ -219,6 +246,8 @@ export function finishImpactEventsAfter(events: ImpactEvents, fighter: Readonly<
   events.electric = events.hit && visuals.hitElectric;
   events.element = visuals.hitElement;
   events.strength = visuals.hitStrength;
+  events.tier = events.hit ? hitTier(fighter, world) ?? visuals.hitStrength : events.tier;
+  events.variant = visuals.hit;
   events.pummel = events.hit && visuals.hitPummel;
   if (present && events.previousFrozenFrames === 0 && status.frozenFrames > 0) {
     events.hit = true;
@@ -226,6 +255,13 @@ export function finishImpactEventsAfter(events: ImpactEvents, fighter: Readonly<
     events.electric = false;
     events.pummel = false;
     events.strength = 0;
+    events.tier = 0;
+  }
+  // A swing sounds once, on its first active frame; a hitlag freeze holds that frame.
+  const { style } = attack;
+  if (present && style !== undefined && style !== AttackStyle.grab && style !== AttackStyle.shot && !attack.dashGrab
+    && (attack.serial !== events.previousAttackSerial || attack.frame !== events.previousAttackFrame) && attack.frame === attackStartup(fighter, style)) {
+    events.swing = moveTier(fighter.character, style);
   }
   events.shieldElectric = visuals.shieldElectric;
   events.shieldHit = present && visuals.shield !== events.previousShieldVisualSerial;

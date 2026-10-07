@@ -107,6 +107,8 @@ export const DEMON_HUNTER_THROW_DRAIN = 6;
 // before charge.
 const DEMON_HUNTER_REGIONS: { readonly [style: number]: Readonly<HitRegion> } = {
   [AttackStyle.jab]: draining(region(0.0, 92.0, -55.0, 105.0, 5.0, 100.0, 18.0, DIAGONAL_UNIT, DIAGONAL_UNIT), 3),
+  [AttackStyle.jab2]: draining(region(0.0, 96.0, -50.0, 100.0, 4.0, 30.0, 22.0, 0.3420201539993286, 0.9396926164627075), 2),
+  [AttackStyle.jab3]: draining(region(0.0, 110.0, -50.0, 110.0, 6.0, 95.0, 22.0, 0.7660444378852844, 0.6427876353263855), 4),
   [AttackStyle.upSmash]: draining(region(-105.0, 105.0, -30.0, 195.0, 15.0, 100.0, 20.0, DIAGONAL_UNIT, DIAGONAL_UNIT), 8),
   [AttackStyle.downSmash]: draining(region(-105.0, 105.0, -195.0, 45.0, 15.0, 100.0, 20.0, DIAGONAL_UNIT, DIAGONAL_UNIT), 8),
   [AttackStyle.forwardSmash]: draining(region(25.0, 195.0, -75.0, 105.0, 10.0, 85.0, 20.0, DIAGONAL_UNIT, DIAGONAL_UNIT), 10),

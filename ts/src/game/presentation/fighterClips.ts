@@ -188,7 +188,8 @@ export function characterClips(character: number): HeroClipTable {
 
 /** The character's clip for a pose, or the hero's fallback when its table leaves the pose out. */
 export function clipFor(character: number, pose: HeroPose): HeroClip {
-  return characterClips(character)[pose] ?? heroDefinition(character)?.presentation.fallback ?? STOCK_FALLBACK_CLIP;
+  const table = characterClips(character);
+  return table[pose] ?? (pose === "jab2" || pose === "jab3" ? table.jab : undefined) ?? heroDefinition(character)?.presentation.fallback ?? STOCK_FALLBACK_CLIP;
 }
 
 /**
@@ -246,6 +247,8 @@ export function attackPose(style: AttackStyle | undefined): HeroPose | undefined
     case AttackStyle.upAir: return "upAir";
     case AttackStyle.downAir: return "downAir";
     case AttackStyle.jab: return "jab";
+    case AttackStyle.jab2: return "jab2";
+    case AttackStyle.jab3: return "jab3";
     case AttackStyle.grab: return "grab";
     case AttackStyle.forwardTilt: return "forwardTilt";
     case AttackStyle.upTilt: return "upTilt";

@@ -1,5 +1,5 @@
 import { f32 } from "wisp/src/sim/f32";
-import { AttackStyle, GrabAction, HitElement } from "../codes";
+import { AttackStyle, GrabAction, HitElement, LAST_ATTACK_STYLE } from "../codes";
 import { HERO_REFERENCE_HEIGHT, heroMove, heroRegion, type AuthoredMove, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
 import { type FighterHurtboxes, type HurtPart, type HurtPose, hurtPart, hurtPose } from "../hurtboxes";
 import { DREADLORD_GROUND } from "./groundNormals";
@@ -210,7 +210,7 @@ export function dreadlordLimbPoses(regions: readonly MoveRegion[], totalFrames: 
 
 function attachedBodies(): FighterHurtboxes {
   const attacks: { [style: number]: readonly HurtPose[] | undefined } = {};
-  for (let style = AttackStyle.jab; style <= AttackStyle.dashAttack; style++) {
+  for (let style = AttackStyle.jab; style <= LAST_ATTACK_STYLE; style++) {
     const move = NORMALS[style];
     if (move !== undefined) attacks[style] = dreadlordLimbPoses(move.regions, move.totalFrames);
   }

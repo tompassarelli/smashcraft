@@ -39,6 +39,12 @@ export interface AuthoredMove {
   /** Facing-relative displacement distributed across startup frames. */
   readonly startupTravelX?: number | undefined;
   readonly startupStopsAtBody?: boolean | undefined;
+  /**
+   * A jab chain step (#163): from this attack frame (counting entry as frame
+   * one) to its last, a fresh jab press starts the chain's next jab, as
+   * Melee's Attack11 continues to Attack12 (melee:src/melee/ft/kinds/ftCommon/ftCo_Attack1.c).
+   */
+  readonly chainsFrom?: number | undefined;
   /** A drill's descent in phases: over each phase's attack frames its speeds are held, replacing gravity and fast fall. */
   readonly fall?: readonly AuthoredFall[] | undefined;
   /** Landing during the active frames continues into this grounded hit instead of landing lag. */
@@ -89,6 +95,11 @@ export interface FighterMoves {
 /** The roster brief counts the entry tick as frame one; the simulation counts it as zero. */
 export function heroMove(firstActive: number, active: number, recovery: number, landingLag: number, regions: readonly MoveRegion[], startupTravelX?: number, startupStopsAtBody?: boolean): AuthoredMove {
   return { startupFrames: firstActive - 1, activeFrames: active, totalFrames: firstActive - 1 + active + recovery, landingLag, regions, startupTravelX, startupStopsAtBody };
+}
+
+/** A jab chain step: a fresh jab press from the frame after its last active frame continues the chain. */
+export function jabStep(move: AuthoredMove): AuthoredMove {
+  return { ...move, chainsFrom: move.startupFrames + move.activeFrames + 1 };
 }
 
 /** A contact over the brief's attack frames; a multi-hit gives each later hit a higher window so it may strike again. */

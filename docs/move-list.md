@@ -2,8 +2,9 @@
 
 Generated from the fighters' kit data by `bun scripts/moveList.ts` (from
 smashcraft:ts/); edit the names there, never here. Specials, passives and
-ultimates have official names; normals are named by their input (jab,
-forward tilt, forward air, down smash, pummel, up throw). A normal's
+ultimates have official names, and so does each jab chain; the other
+normals are named by their input (forward tilt, forward air, down smash,
+pummel, up throw). A normal's
 "inspired by" note is a design reference, not a name. Ultimates are off in
 matches until the match rules turn them on.
 
@@ -15,6 +16,7 @@ matches until the match rules turn them on.
 | Side special | Seeking Arrow | An arrow that curves toward the nearest opponent. |
 | Up special | Hippogryph Ride | Ride a hippogryph and steer it; jump off to act again. |
 | Down special | Hippogryph Call (Hippogryph Dive) | Send the hippogryph swooping to a perch; press again and it dives at her through anyone in the way. |
+| Jab, repeated | Bow and Boot | A strike of her bow, then a low kick on a second jab. |
 | Passive | Trueshot Aura | Every third arrow that lands in a short time deals double damage; the ready arrow glows. |
 
 ## Rifleman
@@ -25,6 +27,7 @@ matches until the match rules turn them on.
 | Side special | Summon Bear | Call a bear that fights beside him until it is beaten. |
 | Up special | Recoil Shot (Second Shot) | Fire away from where you want to fly; press again for a second shot and a new direction. |
 | Down special | Frost Trap | Set a trap that freezes the first opponent to step on it; mash to break free. |
+| Jab, repeated | Rifle Butt | A push of the barrel, then the stock driven in on a second jab. |
 | Passive | Long Rifles | Every fourth blaster shot flies farther and launches. |
 
 ## Illidan
@@ -35,6 +38,7 @@ matches until the match rules turn them on.
 | Side special | Fel Rush (Vengeful Retreat, Chaos Strike, Aerial Chaos Strike) | Dash through anyone in your path; press special to flip back out, or attack to slash. |
 | Up special | Wing Ascent (Glide, Wing Slash) | Rise on his wings; jump near the top to glide, attack in the glide to slash. |
 | Down special | Immolate (Flame Crash) | A burst of flame around him that a jump can cancel; in the air, plunge down in a Flame Crash. |
+| Jab, repeated | Warglaive Flurry | Three quick glaive cuts on repeated jabs; the third launches. |
 | Passive | none | Every hit he lands drains the target's mana; bigger hits drain more. |
 | Ultimate | Metamorphosis | He becomes a demon for a while: heavier, with a fast bolt and a draining aura. |
 
@@ -53,6 +57,7 @@ Normals, inspired by:
 | Side special | Wind Walk (Backstab, Step Out) | Fade and walk through bodies; attack to Backstab on either side, special to step out. |
 | Up special | Rising Blade | A rising slash that drifts with the stick, then a helpless fall. |
 | Down special | Mirror Image (Image Swap) | Step back and leave an image; press again to swap to it with a slash. One hit breaks it. |
+| Jab, repeated | Swift Cuts | Two quick cuts close to his body on repeated jabs. |
 | Passive | Critical Strike | Every fourth sword hit in a row strikes harder; his blade glows when it is ready. |
 | Ultimate | Bladestorm | A long spinning flurry of cuts that ends in one strong finishing hit. |
 
@@ -64,6 +69,7 @@ Normals, inspired by:
 | Side special | Storm Rush | A shoulder charge that stops dead at a body or shield. |
 | Up special | Thunder Leap (Hammerfall) | A rising hammer leap; press special at the top to plunge down as Hammerfall. |
 | Down special | Thunder Clap (Small Clap) | Raise the hammer and slam: early for a small clap, late for a ring with shockwaves. Shield drops the charge. |
+| Jab, repeated | Tavern Brawl | A short punch, then a heavy hook on a second jab. |
 | Passive | Bash | Every third hit in a quick string stuns a little longer. |
 | Ultimate | Avatar | He turns to stone for a while: heavier and harder-hitting. |
 
@@ -75,6 +81,7 @@ Normals, inspired by:
 | Side special | Shadow Pursuit (Pursuit Lunge) | Appear behind a marked opponent and slash; with no mark nearby, a dashing Pursuit Lunge. |
 | Up special | Blink | Teleport in any of eight directions; the landing spot is open to a punish. |
 | Down special | Fan of Knives | A ring of knives that marks everyone it hits. |
+| Jab, repeated | Crescent Flurry | Three quick cuts of her crescent blade on repeated jabs. |
 | Passive | Shadow Step | Landing an aerial in the air gives back one air jump, once per jump. |
 | Ultimate | Spirit of Vengeance | For a while, each of her normals repeats as a ghostly copy a moment later. |
 
@@ -86,6 +93,7 @@ Normals, inspired by:
 | Side special | Death and Decay | A rotting field ahead that strikes twice, small then strong; walk or jump out. |
 | Up special | Spectral Ascent | A steerable rise, then a helpless fall. |
 | Down special | Frost Armor (Dark Ritual) | A shell that takes the knockback of one light hit and chills the attacker; press again for Dark Ritual: shatter it for mana. |
+| Jab, repeated | Chilling Touch | A slap, then a freezing palm on a second jab. |
 | Passive | Frost Aura | The third melee hit he takes in a short time chills the attacker. |
 | Ultimate | Frost Wyrm | He summons a frost wyrm. |
 
@@ -97,6 +105,7 @@ Normals, inspired by:
 | Side special | Crusader Rush | An armored hammer charge on the ground; in the air it ends helpless. |
 | Up special | Ascension | A rising hammer strike, then a helpless fall. |
 | Down special | Divine Shield | A guard: read an attack and become untouchable until you act. Grabs still catch him. |
+| Jab, repeated | Hammer and Haft | A hammer check, then a shove of the haft on a second jab. |
 | Passive | Devotion Aura | After he blocks three hits with his shield, the next launch he takes is weaker. |
 | Ultimate | Guardian of the Light | He hits harder and carries three charges that each soften one light hit. |
 
@@ -108,6 +117,7 @@ Normals, inspired by:
 | Side special | Vampiric Pounce | Lunge and grab with a healing bite; press again early to hop back instead. |
 | Up special | Bat Ascension | A steerable rise on bat wings, then a helpless fall. |
 | Down special | Sleep | A slow orb that puts a grounded target to sleep until it mashes out or is hit. |
+| Jab, repeated | Vampiric Claws | Two claw rakes and a wing strike on repeated jabs. |
 | Passive | Vampiric Aura | Every third melee hit or throw in a short time heals him a little. |
 | Ultimate | Infernal | An Infernal crashes down where he marks and swipes twice before it fades. |
 
@@ -119,6 +129,7 @@ Normals, inspired by:
 | Side special | Serpent Ward | Place a ward that fires on its own; press again to recall it. |
 | Up special | Loa Vault | A spirit-lifted vault, then a helpless fall. |
 | Down special | Hex | A short orb that stops its target attacking, grabbing or casting until it mashes out. |
+| Jab, repeated | Glaive Handle | Two jabs of the glaive handle, then a cut of its blade, on repeated jabs. |
 | Passive | Voodoo Crossfire | Glaive and ward hits charge his next melee hit with extra damage. |
 | Ultimate | Big Bad Voodoo | A ward zone that makes him take less damage while he stands in it. |
 
@@ -130,6 +141,7 @@ Normals, inspired by:
 | Side special | Ruin Charge | A slow charge whose armor shrugs off one light hit; it stops at a shield. |
 | Up special | Abyssal Leap | A slow arcing leap with a hoof strike, then a helpless fall. |
 | Down special | Howl of Terror | A roar around him; anyone it hits deals less damage for three seconds. |
+| Jab, repeated | Haft and Chop | A haft check, then a short cleaver chop on a second jab. |
 | Passive | Cleaving Attack | His cleaver strikes every opponent in its path, and the blade itself can't be hit. |
 
 ## Beastmaster
@@ -140,4 +152,5 @@ Normals, inspired by:
 | Side special | Summon Bear (Bear Command) | Call a bear to his side; press again to send it lunging ahead. |
 | Up special | Hawk Lift | A hawk lifts him high, then a helpless fall. |
 | Down special | Quillbeast Dart (Bear Recall) | A short quill; with a bear out, call the bear back to him instead. |
+| Jab, repeated | Twin Axes | Both axe hilts, then a shoulder that shoves, on repeated jabs. |
 | Passive | Pack Bond | His bear walks at his heel and bites only on his command; it never blocks for him. |

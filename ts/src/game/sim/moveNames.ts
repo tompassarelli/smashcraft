@@ -27,6 +27,8 @@ export interface FighterKitText {
   /** Undefined for a fighter the design gives no passive; `trait` then says what its hits do. */
   readonly passive: NamedMove | undefined;
   readonly trait: string | undefined;
+  /** The jab chain: every fighter's repeated jab (#163). */
+  readonly jab: NamedMove;
   readonly ultimate?: NamedMove | undefined;
   /** Docs only: normals and throws by input name, with what each draws on. */
   readonly inspiredBy: readonly { readonly move: string; readonly note: string }[];
@@ -36,6 +38,7 @@ export interface FighterKitText {
 export const NORMAL_NAMES: readonly string[] = [
   "Jab", "Shot", "Up smash", "Down smash", "Forward smash", "Grab", "Forward tilt", "Up tilt", "Down tilt", "Forward tilt (up)",
   "Forward tilt (down)", "Get-up attack", "Neutral air", "Forward air", "Back air", "Up air", "Down air", "Ledge attack", "Dash attack", "Dash attack",
+  "Second jab", "Third jab",
 ];
 
 /** Pummel and throws by GrabAction code. */
@@ -100,6 +103,7 @@ export function fighterKit(character: number): FighterKitText {
       }),
       passive: hero.passive,
       trait: undefined,
+      jab: hero.jab,
       ultimate: hero.ultimate,
       inspiredBy: heroInspirations(hero.moves),
     };
@@ -109,6 +113,7 @@ export function fighterKit(character: number): FighterKitText {
     specials: original.specials.map((special) => ({ name: special.name, description: special.description, forms: special.forms ?? [] })),
     passive: original.passive,
     trait: original.trait,
+    jab: original.jab,
     ultimate: original.ultimate,
     inspiredBy: notes(NORMAL_NAMES, original.inspiredBy ?? {}),
   };

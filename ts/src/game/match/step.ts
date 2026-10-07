@@ -23,6 +23,7 @@ import { platformSpecialInput } from "../sim/platformMoves";
 import { advanceStageCannon } from "../sim/stageHazards";
 import { advanceFreezeTraps } from "../sim/summons";
 import { advanceMatchCamera } from "../sim/matchCamera";
+import { nextJab } from "../sim/moves";
 import { advanceOffscreenDamage } from "../sim/offscreenDamage";
 import type { FrameControls } from "./controls";
 import { type MatchState, Phase, advanceClock, holdingStart, humanFighterActive, keepsStocks, resolveStocks } from "./rules";
@@ -124,6 +125,8 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
     if (f.status.frozenFrames > 0) clearAttackBuffer(commands);
     // An attack pressed during a parried hit's freeze waits for its first actionable frame.
     if (f.launch.hitlag > 0 && f.shield.perfectActionFrames > 0) holdAttack(commands, frame);
+    // A jab pressed during a chaining jab's hitlag waits for its window, as Melee latches it (#163).
+    if (f.launch.hitlag > 0 && commands.pending?.style === AttackStyle.jab && nextJab(f.attack.style) !== undefined) holdAttack(commands, frame);
     const command = takeAttack(commands, frame, canStartAttackStyle(f, requestedStyle(commands.pending?.style)));
     const dashGrabInput = f.motion.grounded && f.ground.dashFrame > 0 && f.tuning.dashGrab.startupFrames > 0 && command?.style === AttackStyle.grab;
     const catchDash = f.ground.dashGrabWindow > 0 && command?.style === AttackStyle.grab && f.tuning.dashGrab.startupFrames > 0;

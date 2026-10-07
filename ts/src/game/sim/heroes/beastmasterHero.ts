@@ -33,6 +33,7 @@ export const BEASTMASTER_HERO: HeroDefinition = {
   purpose: "Fighter and bear coordination",
   weakness: "Shared resources and punishable pet commands",
   passive: { name: "Pack Bond", description: "His bear walks at his heel and bites only on his command; it never blocks for him." },
+  jab: { name: "Twin Axes", description: "Both axe hilts, then a shoulder that shoves, on repeated jabs." },
   complete: true,
   moves: BEASTMASTER_MOVES,
   specials: BEASTMASTER_SPECIALS,

@@ -1,7 +1,7 @@
 import { assertEquals, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
-import { AttackPhase, AttackStyle, Character, DASH_GRAB_REQUEST, GrabAction } from "../codes";
+import { AttackPhase, AttackStyle, Character, DASH_GRAB_REQUEST, GrabAction, LAST_ATTACK_STYLE } from "../codes";
 import { attackPhase } from "../conditions";
 import { createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
@@ -251,7 +251,7 @@ test("Warden's blades are disjoint while the arm and Heel Blade leg stay hittabl
 });
 
 test("Warden's attack bodies are held at least 3 frames, never overlap and end within the move", () => {
-  for (let style = 0; style <= AttackStyle.dashAttack; style++) {
+  for (let style = 0; style <= LAST_ATTACK_STYLE; style++) {
     const move = WARDEN_MOVES.normals[style];
     const poses = WARDEN_MOVES.hurtboxes?.attacks[style];
     if (move === undefined) continue;

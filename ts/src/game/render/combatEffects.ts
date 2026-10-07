@@ -26,6 +26,7 @@ import { Character } from "../sim/codes";
 import { SELECTABLE_CHARACTERS, heroDefinition } from "../sim/heroes/registry";
 import { type ParkedFlags, type WorldOrigin, hideEffect, parkOnce } from "./effects";
 import { characterModelScale } from "../presentation/modelScale";
+import { tierSoundPaths } from "../presentation/moveTiers";
 
 /** A KO body per star-KO impact and selectable fighter, so any fighter can fly off as itself. */
 const KO_FIGHTERS = SELECTABLE_CHARACTERS.length;
@@ -61,6 +62,7 @@ export class CombatEffects {
     this.z = origin.z;
     const parked: ParkedFlags = [];
     this.parked = parked;
+    for (const path of tierSoundPaths()) Preload(path);
     for (let i = 0; i < IMPACT_COUNT; i++) {
       const model = AddSpecialEffect(impactModel(floorDiv(i, IMPACTS_PER_KIND)), origin.x, origin.y);
       parkOnce(model, this, parked, i);
@@ -90,11 +92,10 @@ export class CombatEffects {
     const previous = this.soundFrames[slot];
     if (previous !== undefined && frame <= previous) return;
     this.soundFrames[slot] = frame;
-    presentImpactSounds(events, (label, x, z, volume, pitch) => {
-      // A backslash names a script path; the rest are sound-table labels.
-      const path = label.includes("\\");
-      const cue = path ? CreateSound(label, false, true, true, 10, 10, "CombatSoundsEAX") : CreateSoundFromLabel(label, false, true, true, 10000, 10000);
-      if (path) {
+    presentImpactSounds(events, (sound, x, z, volume, pitch, file) => {
+      // A tier's weapon sound or swing plays its file at UnitCombatSounds.slk's distances; a label carries its own.
+      const cue = file ? CreateSound(sound, false, true, true, 10, 10, "CombatSoundsEAX") : CreateSoundFromLabel(sound, false, true, true, 10000, 10000);
+      if (file) {
         SetSoundDistances(cue, 600.0, 3500.0);
         SetSoundDistanceCutoff(cue, 3000.0);
       }

@@ -61,7 +61,8 @@ const COMBAT_STANCE = sequence("Stand Ready");
 const RECOIL = sequence("Death", f32(0.45));
 
 /** Every table pose; the stock model has no hit, jump, roll or ledge sequences, so those reuse the nearest readable one. */
-export const BLADEMASTER_CLIPS: { readonly [pose in Exclude<HeroPose, Exclude<HeroFollowUpPose, "sideSpecialFollowUp" | "sideSpecialFollowUpAir" | "downSpecialFollowUp" | "downSpecialFollowUpAir">>]: HeroClip } = {
+// His jab chain is two cuts: no third jab.
+export const BLADEMASTER_CLIPS: { readonly [pose in Exclude<HeroPose, Exclude<HeroFollowUpPose, "sideSpecialFollowUp" | "sideSpecialFollowUpAir" | "downSpecialFollowUp" | "downSpecialFollowUpAir"> | "jab3">]: HeroClip } = {
   idle: COMBAT_STANCE,
   walk: sequence("Walk"),
   dash: sequence("Walk"),
@@ -76,6 +77,7 @@ export const BLADEMASTER_CLIPS: { readonly [pose in Exclude<HeroPose, Exclude<He
   ko: sequence("Death"),
   dizzy: sequence("Stand - 2"),
   jab: ground("Attack 2", THRUST, AttackStyle.jab),
+  jab2: ground("Attack 2", THRUST, AttackStyle.jab2),
   grab: sequence("Attack 2", aligned(THRUST, 7, 2, 22)),
   // One descending cut for every angle (smashcraft:docs/design/tilts.md): its low cut lands on the last active frame.
   forwardTilt: ground("Attack", CUT, AttackStyle.forwardTilt, 9),

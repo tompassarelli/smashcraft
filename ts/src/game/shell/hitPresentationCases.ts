@@ -10,11 +10,11 @@ import { ELEMENTS } from "../presentation/elementLooks";
  * the floor origin, which buries them.
  */
 export const HIT_PRESENTATION_CASES = [
-      { cue: { hit: true }, sound: "StampedeHit", model: "StampedeMissileDeath" },
-      { cue: { hit: true, strength: 2 }, sound: "StampedeHit", model: "StampedeMissileDeath" },
+      { cue: { hit: true }, sound: "WoodLightBashFlesh1", model: "StampedeMissileDeath" },
+      { cue: { hit: true, strength: 2, tier: 2 }, sound: "WoodHeavyBashFlesh1", model: "StampedeMissileDeath" },
       { cue: { hit: true, element: HitElement.electric, electric: true }, sound: "LightningBolt", model: "ForkedLightningTarget" },
       { cue: { hit: true, element: HitElement.fire }, sound: "Fireball", model: "FireLordDeathExplode" },
-      { cue: { hit: true, element: HitElement.slash }, sound: "MetalHeavySliceFlesh1", model: "CleaveDamageTarget" },
+      { cue: { hit: true, element: HitElement.slash }, sound: "MetalLightSliceFlesh1", model: "CleaveDamageTarget" },
       { cue: { hit: true, element: HitElement.ice }, sound: "FrostNova", model: "FrostNovaTarget" },
       { cue: { shieldHit: true }, sound: "Defend", model: "DefendCaster" },
       { cue: { shieldHit: true, shieldElectric: true }, sound: "LightningBolt", model: "ForkedLightningTarget" },
@@ -43,6 +43,6 @@ export const HIT_PRESENTATION_CASES = [
 export function hitPresentationSoundLabels(): string[] {
   const labels = new Set<string>();
   const cues: Partial<ImpactEvents>[] = [...HIT_PRESENTATION_CASES.map(({ cue }) => cue), ...ELEMENTS.map((element) => ({ hit: true, element }))];
-  for (const cue of cues) presentImpactSounds({ ...createImpactEvents(), ...cue }, (label) => { labels.add(label); });
+  for (const cue of cues) presentImpactSounds({ ...createImpactEvents(), ...cue }, (label, _x, _z, _volume, _pitch, file) => { if (!file) labels.add(label); });
   return [...labels].sort();
 }

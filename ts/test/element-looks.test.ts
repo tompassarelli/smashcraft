@@ -8,6 +8,7 @@ import { AttackStyle } from "../src/game/sim/codes";
 import { HERO_ROSTER } from "../src/game/sim/heroes/registry";
 import { VERIFIED_STOCK_SOUNDS, VERIFIED_STOCK_SOUND_LABELS } from "../src/game/assets/stockSoundInfo";
 import { hitPresentationSoundLabels } from "../src/game/shell/hitPresentationCases";
+import { tierSoundPaths } from "../src/game/presentation/moveTiers";
 
 /**
  * The first column (SoundName) of the game's UI\SoundInfo\AnimSounds.slk and
@@ -44,8 +45,14 @@ test("every element shows a stock model on its victim and plays a stock sound", 
   expect(victims.length).toBe(7);
   expect(new Set(victims).size).toBe(victims.length);
   expect(victims.filter((model) => MODEL_FACTS[model] === undefined)).toEqual([]);
-  const sounds = [...ELEMENTS.map((element) => elementLook(element).sound), ...Object.values(IMMOLATE_SOUNDS)];
-  expect(sounds.filter((label) => !LABELS.has(label) && VERIFIED_STOCK_SOUNDS[label] === undefined)).toEqual([]);
+  const sounds = [...ELEMENTS.flatMap((element) => elementLook(element).sound ?? []), ...Object.values(IMMOLATE_SOUNDS)];
+  expect(sounds.length).toBe(7 + 3);
+  expect(sounds.filter((label) => !LABELS.has(label))).toEqual([]);
+});
+
+test("every tier sound file is in the installed game", () => {
+  // Swings and cut or blunt hits play the game's own weapon sounds by path (src/game/presentation/moveTiers.ts, #163).
+  expect(tierSoundPaths().filter((path) => VERIFIED_STOCK_SOUNDS[path] === undefined)).toEqual([]);
 });
 
 test("every sound hit presentation plays has its files in the installed game", () => {

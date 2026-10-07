@@ -3,7 +3,7 @@ import { Character, ContactKind } from "../sim/codes";
 import { queueDamageContact } from "../sim/contacts";
 import { createFighter } from "../sim/fighter";
 import { HitElement } from "../sim/hitRegions";
-import { SLASH_HIT_SOUND } from "./elementLooks";
+import { tierHitPath } from "./moveTiers";
 import { contactBatch, hitEffect, testWorld } from "../sim/testWorld";
 import { copyFighterState } from "../replay/fighterState";
 import { captureImpactEventsBefore, createImpactEvents, finishImpactEventsAfter } from "./impactEvents";
@@ -33,8 +33,10 @@ test("contact element and pummel survive snapshots and produce one distinct soun
       const labels: string[] = [];
       presentImpactSounds(events, label => { labels.push(label); });
       assertEquals(labels.length, 1);
-      assertEquals(labels[0], pummel ? "Defend" : element === HitElement.normal ? "StampedeHit" : element === HitElement.electric ? "LightningBolt"
-        : element === HitElement.fire ? "Fireball" : element === HitElement.slash ? SLASH_HIT_SOUND : "FrostNova");
+      // Without its attacker, a hit's tier is its launch strength (presentation/moveTiers.ts).
+      assertEquals(events.tier, victim.visuals.hitStrength);
+      assertEquals(labels[0], pummel ? "Defend" : element === HitElement.electric ? "LightningBolt" : element === HitElement.fire ? "Fireball"
+        : element === HitElement.normal || element === HitElement.slash ? tierHitPath(element, events.tier, events.variant) : "FrostNova");
       assertTrue(hitlagTint(victim) !== undefined);
       assertEquals(Math.abs(hitlagShake(victim)), element === HitElement.electric ? 3.0 : 2.0);
       victim.launch.hitlag = 0;

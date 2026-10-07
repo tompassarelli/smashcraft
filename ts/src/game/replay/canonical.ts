@@ -7,7 +7,7 @@ import { attackBufferCanonicalState } from "../input/attackBuffer";
 import { PARTICIPANT_CAPACITY, PARTICIPANT_SLOTS, participantActive } from "../input/participants";
 import { at } from "wisp/src/runtime/lookup";
 import { floorMod } from "wisp/src/sim/intMath";
-import { AttackStyle, GrabAction, SPECIAL_ACTION_CAPACITY } from "../sim/codes";
+import { AttackStyle, GrabAction, LAST_ATTACK_STYLE, SPECIAL_ACTION_CAPACITY } from "../sim/codes";
 import type { FighterMoves } from "../sim/heroMoves";
 import type { AuthoredSpecial, FighterSpecials, SpecialPlacement, SpecialProjectile } from "../sim/heroSpecials";
 import type { HitEffect } from "../sim/hitRegions";
@@ -101,7 +101,7 @@ export function fighterMovesCanonical(moves: FighterMoves | undefined, prefix = 
   int("chargeFrames", moves.smashMaxChargeFrames);
   int("maxPummels", moves.maxPummels ?? -1);
   real("chargeMultiplier", moves.smashMaxDamageMultiplier);
-  for (let style = 0; style <= AttackStyle.dashAttack; style++) {
+  for (let style = 0; style <= LAST_ATTACK_STYLE; style++) {
     const move = moves.normals[style];
     if (move === undefined) continue;
     const name = `normal[${style}]`;
@@ -111,6 +111,7 @@ export function fighterMovesCanonical(moves: FighterMoves | undefined, prefix = 
     int(`${name}.landingLag`, move.landingLag);
     real(`${name}.travel`, move.startupTravelX ?? 0.0);
     int(`${name}.stopsAtBody`, move.startupStopsAtBody ? 1 : 0);
+    if (move.chainsFrom !== undefined) int(`${name}.chainsFrom`, move.chainsFrom);
     // Optional fields enter the text only when present, so kits without them keep their checksum.
     const phases = move.fall ?? [];
     for (let index = 0; index < phases.length; index++) {
@@ -176,7 +177,7 @@ export function fighterMovesCanonical(moves: FighterMoves | undefined, prefix = 
   parts("hurt.stand", hurtboxes.stand);
   int("hurt.crouch", hurtboxes.crouch === undefined ? 0 : 1);
   if (hurtboxes.crouch !== undefined) parts("hurt.crouch", hurtboxes.crouch);
-  for (let style = 0; style <= AttackStyle.dashAttack; style++) {
+  for (let style = 0; style <= LAST_ATTACK_STYLE; style++) {
     const poses = hurtboxes.attacks[style];
     if (poses === undefined) continue;
     const name = `hurt.attack[${style}]`;

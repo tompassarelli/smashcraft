@@ -7,7 +7,7 @@
 // its own volume and launch.
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, HitElement } from "../codes";
-import { type AuthoredMove, type MoveRegion, type StrikeCapsule, heroHurtPose, heroMove, heroRegion } from "../heroMoves";
+import { type AuthoredMove, type MoveRegion, type StrikeCapsule, heroHurtPose, heroMove, heroRegion, jabStep } from "../heroMoves";
 import type { HitEffect } from "../hitRegions";
 import type { HurtPart, HurtPose } from "../hurtboxes";
 import type { HeroClip } from "./hero";
@@ -114,7 +114,8 @@ export function groundPoses(kit: GroundKit, limb: (x: number, z: number) => read
 const BM = HitElement.slash;
 export const BLADEMASTER_GROUND: GroundKit = {
   normals: {
-    [AttackStyle.jab]: heroMove(3, 2, 13, 0, swing(3, [[18.0, 46.0, 76.0, 46.0], [20.0, 48.0, 76.0, 48.0]], 6.0, groundHit(4.0, 50, 55.0, 22.0, BM))),
+    [AttackStyle.jab]: jabStep(heroMove(3, 2, 13, 0, swing(3, [[18.0, 46.0, 76.0, 46.0], [20.0, 48.0, 76.0, 48.0]], 6.0, groundHit(4.0, 50, 55.0, 22.0, BM)))),
+    [AttackStyle.jab2]: heroMove(3, 2, 16, 0, swing(3, [[18.0, 52.0, 80.0, 50.0], [20.0, 50.0, 80.0, 44.0]], 6.0, groundHit(5.0, 40, 90.0, 22.0, BM))),
     ...unangled(heroMove(7, 3, 20, 0, tipped(7, [[18.0, 80.0, 159.0, 110.0], [18.0, 60.0, 159.0, 58.0], [18.0, 40.0, 159.0, 6.0]], 6.0, 26.0,
       groundHit(11.0, 30, 100.0, 24.0, BM), groundHit(8.0, 40, 75.0, 18.0, BM)))),
     [AttackStyle.upTilt]: heroMove(6, 5, 18, 0, swing(6, [
@@ -126,7 +127,7 @@ export const BLADEMASTER_GROUND: GroundKit = {
       groundHit(10.0, 30, 100.0, 24.0, BM), groundHit(8.0, 40, 75.0, 18.0, BM)), 92.0, true),
   },
   reaches: {
-    [AttackStyle.jab]: [40.0, 72.0], [AttackStyle.forwardTilt]: [48.0, 66.0], [AttackStyle.forwardTiltUp]: [48.0, 66.0], [AttackStyle.forwardTiltDown]: [48.0, 66.0],
+    [AttackStyle.jab]: [40.0, 72.0], [AttackStyle.jab2]: [42.0, 70.0], [AttackStyle.forwardTilt]: [48.0, 66.0], [AttackStyle.forwardTiltUp]: [48.0, 66.0], [AttackStyle.forwardTiltDown]: [48.0, 66.0],
     [AttackStyle.upTilt]: [14.0, 136.0], [AttackStyle.downTilt]: [44.0, 30.0], [AttackStyle.dashAttack]: [46.0, 56.0],
   },
 };
@@ -138,7 +139,8 @@ const MK = HitElement.normal;
 const mkHook = (angle: Angle) => groundHit(12.0, angle, 100.0, 25.0, MK);
 export const MOUNTAIN_KING_GROUND: GroundKit = {
   normals: {
-    [AttackStyle.jab]: heroMove(5, 2, 16, 0, swing(5, [[18.0, 40.0, 70.0, 42.0], [18.0, 42.0, 70.0, 38.0]], 12.0, groundHit(5.0, 30, 80.0, 20.0, MK))),
+    [AttackStyle.jab]: jabStep(heroMove(5, 2, 16, 0, swing(5, [[18.0, 40.0, 70.0, 42.0], [18.0, 42.0, 70.0, 38.0]], 12.0, groundHit(5.0, 30, 55.0, 16.0, MK)))),
+    [AttackStyle.jab2]: heroMove(6, 3, 18, 0, swing(6, [[18.0, 46.0, 74.0, 48.0], [18.0, 46.0, 76.0, 44.0], [18.0, 44.0, 70.0, 40.0]], 12.0, groundHit(6.0, 35, 95.0, 24.0, MK))),
     [AttackStyle.forwardTilt]: heroMove(10, 3, 22, 0, swing(10, [[22.0, 58.0, 113.0, 62.0], [22.0, 52.0, 113.0, 52.0], [22.0, 46.0, 100.0, 44.0]], 12.0, mkHook(30))),
     [AttackStyle.forwardTiltUp]: heroMove(10, 3, 22, 0, swing(10, [[22.0, 62.0, 100.0, 100.0], [22.0, 60.0, 108.0, 90.0], [22.0, 56.0, 95.0, 80.0]], 12.0, mkHook(45))),
     [AttackStyle.forwardTiltDown]: heroMove(10, 3, 22, 0, swing(10, [[22.0, 44.0, 108.0, 14.0], [22.0, 40.0, 113.0, 4.0], [22.0, 36.0, 100.0, -8.0]], 12.0, mkHook(20))),
@@ -150,7 +152,7 @@ export const MOUNTAIN_KING_GROUND: GroundKit = {
     [AttackStyle.dashAttack]: heroMove(11, 5, 26, 0, [held(11, 15, [0.0, 12.0, 0.0, 65.0], 24.0, groundHit(12.0, 75, 95.0, 30.0, MK))], 79.0, true),
   },
   reaches: {
-    [AttackStyle.jab]: [40.0, 42.0], [AttackStyle.forwardTilt]: [46.0, 52.0], [AttackStyle.forwardTiltUp]: [42.0, 72.0], [AttackStyle.forwardTiltDown]: [44.0, 34.0],
+    [AttackStyle.jab]: [40.0, 42.0], [AttackStyle.jab2]: [42.0, 46.0], [AttackStyle.forwardTilt]: [46.0, 52.0], [AttackStyle.forwardTiltUp]: [42.0, 72.0], [AttackStyle.forwardTiltDown]: [44.0, 34.0],
     [AttackStyle.upTilt]: [22.0, 92.0],
   },
 };
@@ -161,7 +163,9 @@ const WD = HitElement.slash;
 const wardenThrust = (angle: Angle) => groundHit(8.0, angle, 75.0, 18.0, WD);
 export const WARDEN_GROUND: GroundKit = {
   normals: {
-    [AttackStyle.jab]: heroMove(2, 2, 11, 0, swing(2, [[18.0, 46.0, 66.0, 46.0], [18.0, 48.0, 66.0, 48.0]], 6.0, groundHit(3.0, 70, 40.0, 30.0, WD))),
+    [AttackStyle.jab]: jabStep(heroMove(2, 2, 11, 0, swing(2, [[18.0, 46.0, 66.0, 46.0], [18.0, 48.0, 66.0, 48.0]], 6.0, groundHit(3.0, 70, 40.0, 30.0, WD)))),
+    [AttackStyle.jab2]: jabStep(heroMove(2, 2, 12, 0, swing(2, [[18.0, 50.0, 68.0, 52.0], [18.0, 50.0, 68.0, 50.0]], 6.0, groundHit(3.0, 70, 30.0, 26.0, WD)))),
+    [AttackStyle.jab3]: heroMove(4, 3, 16, 0, swing(4, [[18.0, 46.0, 86.0, 50.0], [18.0, 46.0, 90.0, 46.0], [18.0, 44.0, 84.0, 42.0]], 6.0, groundHit(4.0, 40, 90.0, 22.0, WD))),
     [AttackStyle.forwardTilt]: heroMove(5, 3, 17, 0, swing(5, [[18.0, 50.0, 119.0, 52.0], [18.0, 50.0, 119.0, 50.0], [18.0, 48.0, 110.0, 46.0]], 6.0, wardenThrust(35))),
     [AttackStyle.forwardTiltUp]: heroMove(5, 3, 17, 0, swing(5, [[18.0, 58.0, 105.0, 100.0], [18.0, 60.0, 110.0, 95.0], [18.0, 58.0, 100.0, 88.0]], 6.0, wardenThrust(55))),
     [AttackStyle.forwardTiltDown]: heroMove(5, 3, 17, 0, swing(5, [[18.0, 40.0, 110.0, 10.0], [18.0, 38.0, 119.0, 4.0], [18.0, 36.0, 105.0, 0.0]], 6.0, wardenThrust(20))),
@@ -181,7 +185,8 @@ const palm = (ends: readonly (readonly [number, number])[], angle: Angle) =>
   swing(9, ends.map(([x, z]): Segment => [20.0, 45.0, x, z]), 8.0, groundHit(9.0, angle, 80.0, 20.0, LICH));
 export const LICH_GROUND: GroundKit = {
   normals: {
-    [AttackStyle.jab]: heroMove(6, 2, 15, 0, swing(6, [[18.0, 42.0, 58.0, 42.0], [18.0, 44.0, 58.0, 44.0]], 8.0, groundHit(3.0, 30, 75.0, 18.0, HitElement.normal))),
+    [AttackStyle.jab]: jabStep(heroMove(6, 2, 15, 0, swing(6, [[18.0, 42.0, 58.0, 42.0], [18.0, 44.0, 58.0, 44.0]], 8.0, groundHit(3.0, 30, 55.0, 16.0, HitElement.normal)))),
+    [AttackStyle.jab2]: heroMove(6, 3, 17, 0, swing(6, [[18.0, 44.0, 62.0, 44.0], [18.0, 44.0, 64.0, 46.0], [18.0, 42.0, 60.0, 44.0]], 8.0, groundHit(4.0, 30, 85.0, 22.0, LICH))),
     [AttackStyle.forwardTilt]: heroMove(9, 4, 22, 0, palm([[110.0, 43.0], [124.0, 45.0], [124.0, 47.0], [115.0, 46.0]], 30)),
     [AttackStyle.forwardTiltUp]: heroMove(9, 4, 22, 0, palm([[100.0, 80.0], [112.0, 90.0], [112.0, 96.0], [104.0, 92.0]], 55)),
     [AttackStyle.forwardTiltDown]: heroMove(9, 4, 22, 0, palm([[110.0, 18.0], [124.0, 8.0], [124.0, 2.0], [115.0, 6.0]], 15)),
@@ -194,7 +199,7 @@ export const LICH_GROUND: GroundKit = {
     [AttackStyle.dashAttack]: heroMove(10, 6, 22, 0, [held(10, 15, [18.0, 14.0, 96.0, 10.0], 10.0, groundHit(8.0, 25, 90.0, 30.0, LICH))], 105.0, true),
   },
   reaches: {
-    [AttackStyle.jab]: [50.0, 44.0], [AttackStyle.forwardTilt]: [26.0, 47.0], [AttackStyle.forwardTiltUp]: [26.0, 80.0], [AttackStyle.forwardTiltDown]: [26.0, 22.0],
+    [AttackStyle.jab]: [50.0, 44.0], [AttackStyle.jab2]: [52.0, 44.0], [AttackStyle.forwardTilt]: [26.0, 47.0], [AttackStyle.forwardTiltUp]: [26.0, 80.0], [AttackStyle.forwardTiltDown]: [26.0, 22.0],
     [AttackStyle.downTilt]: [26.0, 16.0], [AttackStyle.dashAttack]: [26.0, 30.0],
   },
 };
@@ -204,7 +209,8 @@ export const LICH_GROUND: GroundKit = {
 const UTHER = HitElement.normal;
 export const UTHER_GROUND: GroundKit = {
   normals: {
-    [AttackStyle.jab]: heroMove(5, 3, 15, 0, swing(5, [[24.0, 64.0, 62.0, 60.0], [24.0, 64.0, 62.0, 60.0], [24.0, 62.0, 58.0, 58.0]], 10.0, groundHit(4.0, 20, 60.0, 35.0, UTHER))),
+    [AttackStyle.jab]: jabStep(heroMove(5, 3, 15, 0, swing(5, [[24.0, 64.0, 62.0, 60.0], [24.0, 64.0, 62.0, 60.0], [24.0, 62.0, 58.0, 58.0]], 10.0, groundHit(4.0, 20, 40.0, 24.0, UTHER)))),
+    [AttackStyle.jab2]: heroMove(6, 3, 18, 0, swing(6, [[24.0, 60.0, 70.0, 58.0], [24.0, 58.0, 72.0, 54.0], [24.0, 56.0, 66.0, 50.0]], 10.0, groundHit(6.0, 30, 90.0, 26.0, UTHER))),
     ...unangled(heroMove(11, 3, 24, 0, swing(11, [[20.0, 100.0, 120.0, 140.0], [20.0, 70.0, 159.0, 60.0], [20.0, 40.0, 140.0, 8.0]], 12.0, groundHit(12.0, 35, 100.0, 25.0, UTHER)))),
     [AttackStyle.upTilt]: heroMove(10, 4, 22, 0, swing(10, [[20.0, 60.0, 70.0, 96.0], [12.0, 72.0, 30.0, 120.0], [4.0, 76.0, -10.0, 120.0], [-6.0, 70.0, -34.0, 98.0]], 14.0,
       groundHit(11.0, 85, 105.0, 28.0, UTHER))),
@@ -226,7 +232,9 @@ const rake = (ends: readonly (readonly [number, number, number])[], angle: Angle
   swing(8, ends.map(([z1, x, z]): Segment => [18.0, z1, x, z]), 10.0, groundHit(12.0, angle, 100.0, 22.0, DL));
 export const DREADLORD_GROUND: GroundKit = {
   normals: {
-    [AttackStyle.jab]: heroMove(4, 3, 14, 0, swing(4, [[18.0, 46.0, 69.0, 46.0], [18.0, 46.0, 69.0, 42.0], [18.0, 46.0, 64.0, 40.0]], 10.0, groundHit(4.0, 40, 50.0, 25.0, DL))),
+    [AttackStyle.jab]: jabStep(heroMove(4, 3, 14, 0, swing(4, [[18.0, 46.0, 69.0, 46.0], [18.0, 46.0, 69.0, 42.0], [18.0, 46.0, 64.0, 40.0]], 10.0, groundHit(4.0, 40, 50.0, 25.0, DL)))),
+    [AttackStyle.jab2]: jabStep(heroMove(4, 2, 14, 0, swing(4, [[18.0, 50.0, 70.0, 48.0], [18.0, 48.0, 70.0, 44.0]], 10.0, groundHit(3.0, 60, 30.0, 28.0, DL)))),
+    [AttackStyle.jab3]: heroMove(6, 3, 20, 0, swing(6, [[18.0, 40.0, 84.0, 44.0], [18.0, 40.0, 88.0, 40.0], [18.0, 40.0, 82.0, 36.0]], 10.0, groundHit(6.0, 35, 100.0, 22.0, DL))),
     [AttackStyle.forwardTilt]: heroMove(8, 3, 21, 0, rake([[46.0, 115.0, 60.0], [46.0, 115.0, 46.0], [46.0, 105.0, 32.0]], 35)),
     [AttackStyle.forwardTiltUp]: heroMove(8, 3, 21, 0, rake([[50.0, 100.0, 98.0], [50.0, 110.0, 88.0], [50.0, 100.0, 78.0]], 55)),
     [AttackStyle.forwardTiltDown]: heroMove(8, 3, 21, 0, rake([[40.0, 110.0, 16.0], [40.0, 115.0, 4.0], [36.0, 100.0, -6.0]], 20)),
@@ -250,7 +258,9 @@ const thrust = (ends: readonly (readonly [number, number, number])[], angle: Ang
 const spin = (damage: number, angle: Angle, growth: number, base: number) => groundHit(damage, angle, growth, base, SH);
 export const SHADOW_HUNTER_GROUND: GroundKit = {
   normals: {
-    [AttackStyle.jab]: heroMove(4, 2, 12, 0, swing(4, [[16.0, 44.0, 85.0, 44.0], [18.0, 46.0, 85.0, 46.0]], 7.0, groundHit(3.0, 35, 75.0, 18.0, HitElement.normal))),
+    [AttackStyle.jab]: jabStep(heroMove(4, 2, 12, 0, swing(4, [[16.0, 44.0, 85.0, 44.0], [18.0, 46.0, 85.0, 46.0]], 7.0, groundHit(3.0, 35, 50.0, 16.0, HitElement.normal)))),
+    [AttackStyle.jab2]: jabStep(heroMove(4, 2, 13, 0, swing(4, [[16.0, 48.0, 88.0, 48.0], [18.0, 48.0, 88.0, 44.0]], 7.0, groundHit(3.0, 60, 30.0, 26.0, HitElement.normal)))),
+    [AttackStyle.jab3]: heroMove(6, 3, 18, 0, swing(6, [[18.0, 40.0, 100.0, 52.0], [18.0, 46.0, 104.0, 46.0], [18.0, 40.0, 100.0, 40.0]], 7.0, groundHit(5.0, 40, 90.0, 22.0, SH))),
     [AttackStyle.forwardTilt]: heroMove(9, 2, 21, 0, thrust([[50.0, 151.0, 52.0], [50.0, 151.0, 48.0]], 35)),
     [AttackStyle.forwardTiltUp]: heroMove(9, 2, 21, 0, thrust([[56.0, 130.0, 120.0], [56.0, 138.0, 110.0]], 55)),
     [AttackStyle.forwardTiltDown]: heroMove(9, 2, 21, 0, thrust([[40.0, 145.0, -10.0], [38.0, 151.0, -20.0]], 15)),
@@ -265,7 +275,7 @@ export const SHADOW_HUNTER_GROUND: GroundKit = {
     ], 66.0, true),
   },
   reaches: {
-    [AttackStyle.jab]: [45.0, 52.0], [AttackStyle.forwardTilt]: [58.0, 55.0], [AttackStyle.forwardTiltUp]: [55.0, 80.0], [AttackStyle.forwardTiltDown]: [55.0, 35.0],
+    [AttackStyle.jab]: [45.0, 52.0], [AttackStyle.jab2]: [46.0, 50.0], [AttackStyle.jab3]: [52.0, 48.0], [AttackStyle.forwardTilt]: [58.0, 55.0], [AttackStyle.forwardTiltUp]: [55.0, 80.0], [AttackStyle.forwardTiltDown]: [55.0, 35.0],
     [AttackStyle.upTilt]: [5.0, 140.0], [AttackStyle.downTilt]: [50.0, 15.0], [AttackStyle.dashAttack]: [58.0, 55.0],
   },
 };
@@ -276,6 +286,8 @@ export const SHADOW_HUNTER_GROUND: GroundKit = {
 const ARCHER = HitElement.normal;
 export const ARCHER_GROUND: GroundKit = {
   normals: {
+    [AttackStyle.jab]: jabStep(heroMove(5, 2, 15, 0, swing(5, [[16.0, 50.0, 84.0, 52.0], [16.0, 50.0, 84.0, 50.0]], 10.0, groundHit(3.0, 60, 40.0, 28.0, ARCHER)))),
+    [AttackStyle.jab2]: heroMove(4, 3, 16, 0, swing(4, [[16.0, 30.0, 96.0, 26.0], [16.0, 28.0, 100.0, 22.0], [16.0, 26.0, 94.0, 20.0]], 10.0, groundHit(5.0, 40, 95.0, 22.0, ARCHER))),
     [AttackStyle.dashAttack]: heroMove(6, 4, 20, 0, [held(6, 9, [14.0, 14.0, 90.0, 10.0], 10.0, groundHit(6.0, 70, 55.0, 38.0, ARCHER))], 99.0, true),
   },
   reaches: {},
@@ -289,7 +301,8 @@ const bayonet = (ends: readonly (readonly [number, number, number])[], angle: An
   swing(7, ends.map(([z1, x, z]): Segment => [18.0, z1, x, z]), 10.0, groundHit(10.0, angle, 90.0, 22.0, RIFLE));
 export const RIFLEMAN_GROUND: GroundKit = {
   normals: {
-    [AttackStyle.jab]: heroMove(4, 3, 16, 0, swing(4, [[18.0, 50.0, 95.0, 52.0], [18.0, 50.0, 95.0, 50.0], [18.0, 50.0, 90.0, 48.0]], 10.0, groundHit(4.0, 20, 70.0, 24.0, RIFLE))),
+    [AttackStyle.jab]: jabStep(heroMove(4, 3, 16, 0, swing(4, [[18.0, 50.0, 95.0, 52.0], [18.0, 50.0, 95.0, 50.0], [18.0, 50.0, 90.0, 48.0]], 10.0, groundHit(4.0, 20, 45.0, 18.0, RIFLE)))),
+    [AttackStyle.jab2]: heroMove(4, 2, 18, 0, swing(4, [[18.0, 54.0, 100.0, 56.0], [18.0, 52.0, 100.0, 52.0]], 10.0, groundHit(5.0, 30, 90.0, 22.0, RIFLE))),
     [AttackStyle.forwardTilt]: heroMove(7, 3, 21, 0, bayonet([[52.0, 155.0, 54.0], [52.0, 155.0, 52.0], [50.0, 145.0, 50.0]], 30)),
     [AttackStyle.forwardTiltUp]: heroMove(7, 3, 21, 0, bayonet([[58.0, 125.0, 110.0], [60.0, 135.0, 104.0], [58.0, 125.0, 98.0]], 50)),
     [AttackStyle.forwardTiltDown]: heroMove(7, 3, 21, 0, bayonet([[40.0, 140.0, 12.0], [38.0, 150.0, 4.0], [36.0, 140.0, 0.0]], 15)),

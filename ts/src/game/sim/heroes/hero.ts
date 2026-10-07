@@ -38,6 +38,9 @@ export type HeroFollowUpPose =
   | "neutralSpecialFollowUp" | "sideSpecialFollowUp" | "upSpecialFollowUp" | "downSpecialFollowUp"
   | "neutralSpecialFollowUpAir" | "sideSpecialFollowUpAir" | "upSpecialFollowUpAir" | "downSpecialFollowUpAir";
 
+/** A jab chain's later jabs (#163); a table that leaves one out plays its jab clip. */
+export type JabChainPose = "jab2" | "jab3";
+
 /**
  * Every pose that selects a clip by table (presentation/fighterClips.ts); the
  * original fighters fill the same table. Poses a hero leaves unmapped play its
@@ -47,7 +50,7 @@ export type HeroFollowUpPose =
 export type HeroPose =
   | "idle" | "walk"
   | HeroStatePose
-  | "jab" | "grab" | "forwardTilt" | "upTilt" | "downTilt" | "forwardTiltUp" | "forwardTiltDown"
+  | "jab" | JabChainPose | "grab" | "forwardTilt" | "upTilt" | "downTilt" | "forwardTiltUp" | "forwardTiltDown"
   | "forwardSmash" | "upSmash" | "downSmash" | "dashAttack"
   | "neutralAir" | "forwardAir" | "backAir" | "upAir" | "downAir" | "getUpAttack"
   | "ledgeHang" | "ledgeClimb" | "ledgeRoll" | "ledgeAttack"
@@ -100,6 +103,8 @@ export interface HeroDefinition {
   readonly specials?: FighterSpecials | undefined;
   /** Its passive's official name and one line for players (smashcraft:docs/design/passives.md). */
   readonly passive: NamedMove;
+  /** Its jab chain's name and one line for players (#163, smashcraft:docs/design/tilts.md). */
+  readonly jab: NamedMove;
   /** Its designed ultimate; shown only while ultimates are on in the match rules. */
   readonly ultimate?: NamedMove | undefined;
   readonly presentation: HeroPresentation;

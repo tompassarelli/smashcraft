@@ -69,6 +69,28 @@ export function landsIntoAttack(style: AttackStyle | undefined, frame: number, m
   return move?.landingHit !== undefined && frame >= move.startupFrames && frame < move.startupFrames + move.activeFrames;
 }
 
+/** The jab chain's next step (#163): jab to jab2 to jab3; none after the last. */
+export function nextJab(style: AttackStyle | undefined): AttackStyle | undefined {
+  return style === AttackStyle.jab ? AttackStyle.jab2 : style === AttackStyle.jab2 ? AttackStyle.jab3 : undefined;
+}
+
+export function isJab(style: AttackStyle | undefined): boolean {
+  return style === AttackStyle.jab || style === AttackStyle.jab2 || style === AttackStyle.jab3;
+}
+
+/**
+ * The attack frame (entry is frame one) from which a fresh jab press
+ * continues a jab to the chain's next step; undefined where the chain ends.
+ * A kit's steps say it (AuthoredMove.chainsFrom); Illidan's shared-table jab
+ * and second jab open the frame after their last active frame.
+ */
+export function jabChainFrom(character: Character, style: AttackStyle, moves?: FighterMoves): number | undefined {
+  const next = nextJab(style);
+  if (next === undefined) return undefined;
+  if (moves !== undefined) return moves.normals[next] === undefined ? undefined : moves.normals[style]?.chainsFrom;
+  return character === Character.demonHunter ? attackStartupFrames(style) + attackActiveFrames(style) + 1 : undefined;
+}
+
 export function isSmashAttack(style: AttackStyle | undefined): boolean {
   return style !== undefined && style >= AttackStyle.upSmash && style <= AttackStyle.forwardSmash;
 }
@@ -126,6 +148,10 @@ export function attackDamage(style: AttackStyle): number {
       return 10.0;
     case AttackStyle.jab:
       return 5.0;
+    case AttackStyle.jab2:
+      return 4.0;
+    case AttackStyle.jab3:
+      return 6.0;
   }
 }
 
@@ -163,6 +189,7 @@ export function attackStartupFrames(style: AttackStyle, moves?: FighterMoves): n
     case AttackStyle.demonHunterDashAttack:
     case AttackStyle.dashAttack:
     case AttackStyle.jab:
+    case AttackStyle.jab2:
       return 4;
     case AttackStyle.neutralAir:
     case AttackStyle.backAir:
@@ -174,6 +201,7 @@ export function attackStartupFrames(style: AttackStyle, moves?: FighterMoves): n
     case AttackStyle.downTilt:
     case AttackStyle.forwardTiltUp:
     case AttackStyle.forwardTiltDown:
+    case AttackStyle.jab3:
       return 5;
     case AttackStyle.downAir:
       return 7;
@@ -198,6 +226,7 @@ export function attackActiveFrames(style: AttackStyle): number {
     case AttackStyle.upSmash:
     case AttackStyle.downSmash:
     case AttackStyle.forwardSmash:
+    case AttackStyle.jab3:
       return 3;
     case AttackStyle.neutralAir:
       return 28;
@@ -265,6 +294,10 @@ export function attackDurationFramesForGrounding(style: AttackStyle, grounded: b
       return 29;
     case AttackStyle.jab:
       return 21;
+    case AttackStyle.jab2:
+      return 22;
+    case AttackStyle.jab3:
+      return 28;
     default:
       return 36;
   }

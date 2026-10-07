@@ -1,6 +1,6 @@
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction, HitElement } from "../codes";
-import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
+import { HERO_REFERENCE_HEIGHT, jabStep, heroHurtPose, heroMove, heroRegion, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
 import type { HitEffect } from "../hitRegions";
 import { type FighterHurtboxes, type HurtPart, hurtPart } from "../hurtboxes";
 
@@ -75,6 +75,8 @@ const BEASTMASTER_BODY: FighterHurtboxes = {
   stand: [BODY],
   attacks: {
     [AttackStyle.jab]: reaching(4, 2, limb(12.0, 60.0, 48.0, 56.0)),
+    [AttackStyle.jab2]: reaching(4, 2, limb(12.0, 60.0, 50.0, 58.0)),
+    [AttackStyle.jab3]: reaching(6, 3, limb(10.0, 50.0, 46.0, 50.0, 16.0)),
     [AttackStyle.forwardTilt]: reaching(10, 3, FORWARD_ARM),
     [AttackStyle.forwardTiltUp]: reaching(10, 3, limb(12.0, 70.0, 58.0, 88.0)),
     [AttackStyle.forwardTiltDown]: reaching(10, 3, limb(12.0, 58.0, 58.0, 38.0)),
@@ -114,10 +116,20 @@ export const BEASTMASTER_MOVES: FighterMoves = {
   hurtboxes: BEASTMASTER_BODY,
   normals: {
     // Axe Hilt: a short hit.
-    [AttackStyle.jab]: heroMove(4, 2, 14, 0, path(4, [
+    [AttackStyle.jab]: jabStep(heroMove(4, 2, 14, 0, path(4, [
       capsule(18.0, 58.0, f32(S - 9.0), 56.0, 9.0),
       capsule(18.0, 56.0, f32(S - 9.0), 52.0, 9.0),
-    ], hit(4.0, "POKE", 35, 1.0, HitElement.normal))),
+    ], hit(4.0, "LINK", 35, 1.0, HitElement.normal)))),
+    // The other axe's hilt, then a shoulder that shoves.
+    [AttackStyle.jab2]: jabStep(heroMove(4, 2, 14, 0, path(4, [
+      capsule(18.0, 60.0, f32(S - 6.0), 58.0, 9.0),
+      capsule(18.0, 58.0, f32(S - 6.0), 54.0, 9.0),
+    ], hit(3.0, "LINK", 70, 1.0, HitElement.normal)))),
+    [AttackStyle.jab3]: heroMove(6, 3, 19, 0, path(6, [
+      capsule(10.0, 40.0, f32(S + 6.0), 50.0, 14.0),
+      capsule(10.0, 40.0, f32(S + 8.0), 48.0, 14.0),
+      capsule(10.0, 40.0, f32(S + 4.0), 46.0, 14.0),
+    ], hit(6.0, "POKE", 40, 1.0, HitElement.normal))),
     // Broad Axe: the axe head is the disjoint.
     [AttackStyle.forwardTilt]: heroMove(10, 3, 23, 0, chop(10, [75.0, 50.0, 28.0], L, hit(11.0, "EDGE", 35))),
     [AttackStyle.forwardTiltUp]: heroMove(10, 3, 23, 0, chop(10, [115.0, 135.0, 150.0], L, hit(11.0, "EDGE", 50))),

@@ -161,7 +161,7 @@ high percent.
 
 | Normal | F/A/R | Damage | Reach | Launch | Angled | Inspired by |
 | --- | --- | --- | --- | --- | --- | --- |
-| Jab | 5/2/16 | 5 | 0.62H | 30, 80/20 | | Bowser jab (slow, heavy) |
+| Jab | 5/2/16 | 5 | 0.62H | 30, 55/16 | | Bowser jab (slow, heavy) |
 | Forward tilt | 10/3/22 | 12 | 0.95H | 30, 100/25 | up 45, down 20 | Donkey Kong forward tilt (angled heavy) |
 | Up tilt | 8/4/22 | 10 | 0.85H | 80, 95/24 | | Bowser up tilt |
 | Down tilt | 8/3/21 | 10 | 0.75H, below 0.20H | 85, 70/10 | | Falco down tilt (vertical, scaled to kill late) |
@@ -188,7 +188,7 @@ frost.
 
 | Normal | F/A/R | Damage | Reach | Launch | Angled | Inspired by |
 | --- | --- | --- | --- | --- | --- | --- |
-| Jab | 6/2/15 | 3 | 0.50H | 30, 75/18 | | Zelda jab (slow) |
+| Jab | 6/2/15 | 3 | 0.50H | 30, 55/16 | | Zelda jab (slow) |
 | Forward tilt | 9/4/22 | 9 | 1.00H | 30, 80/20 | up 55, down 15 | Mewtwo forward tilt (angled palm) |
 | Up tilt | 8/8/20 | 9 | 0.50H wide, up to 1.55H | 90, 95/22 | | Zelda up tilt (long overhead arc) |
 | Down tilt | 10/4/19 | 6 | 1.15H, below 0.10H | 30, 70/25 | | Samus down tilt (slow, long) |
@@ -201,7 +201,7 @@ tilt sweeps the hammer handle along the floor and knocks the victim down.
 
 | Normal | F/A/R | Damage | Reach | Launch | Angled | Inspired by |
 | --- | --- | --- | --- | --- | --- | --- |
-| Jab | 5/3/15 | 4 | 0.55H | 20, 60/35 | | Ganondorf jab (pushes away) |
+| Jab | 5/3/15 | 4 | 0.55H | 20, 40/24 | | Ganondorf jab (pushes away) |
 | Forward tilt | 11/3/24 | 12 | 1.30H | 35, 100/25 | no | Byleth forward tilt (non-angled weapon arc) |
 | Up tilt | 10/4/22 | 11 | 0.85H overhead | 85, 105/28 | | Ganondorf up tilt (slow, strong) |
 | Down tilt | 9/3/20 | 8 | 1.00H, below 0.15H | 10, 40/72 | | Melee trip sweeps (knockdown) |
@@ -228,7 +228,7 @@ ledge-hanging fighter's body is.
 
 | Normal | F/A/R | Damage | Reach | Launch | Angled | Inspired by |
 | --- | --- | --- | --- | --- | --- | --- |
-| Jab | 4/2/12 | 3 | 0.70H | 35, 75/18 | | Glaive-handle check |
+| Jab | 4/2/12 | 3 | 0.70H | 35, 50/16 | | Glaive-handle check |
 | Forward tilt | 9/2/21 | 11 (9 before #105 pass 4) | 1.20H | 35, 75/18 | up 55, down 15 | Ike forward tilt (an angled sword) |
 | Up tilt | 7/5/19 | 7 | 0.80H, above | 80, 95/20 | | Glaive twirl overhead |
 | Down tilt | 7/2/16 | 7 (5 before #105 pass 4) | 1.15H, tip to −0.25H | 30, 70/22 | | Captain Falcon down tilt (an edge tool) |
@@ -242,7 +242,7 @@ horizontal. His dash attack is the roster's strongest.
 
 | Normal | F/A/R | Damage | Reach | Launch | Angled | Inspired by |
 | --- | --- | --- | --- | --- | --- | --- |
-| Jab | 7/3/19 | 6 | 0.80H | 35, 75/18 | | Slow haft check |
+| Jab | 7/3/19 | 6 | 0.80H | 35, 55/12 | | Slow haft check |
 | Forward tilt | 13/4/29 | 14 | 1.40H | 35, 100/22 | no | Ganondorf-weight cleave (non-angled arc) |
 | Up tilt | 12/5/27 | 12 | 1.10H arc, up to 1.5H | 85, 95/20 | | Broad overhead arc |
 | Down tilt | 10/3/24 | 10 | 0.80H, below 0.20H | −20, 100/22 | | Captain Falcon down tilt (semi-spike) |
@@ -256,7 +256,7 @@ the victim over his shoulder and behind him.
 
 | Normal | F/A/R | Damage | Reach | Launch | Angled | Inspired by |
 | --- | --- | --- | --- | --- | --- | --- |
-| Jab | 4/2/14 | 4 | 0.55H | 35, 75/18 | | Axe hilt |
+| Jab | 4/2/14 | 4 | 0.55H | 35, 55/12 | | Axe hilt |
 | Forward tilt | 10/3/23 | 11 | 1.10H | 35, 100/22 | up 50, down 20 | Broad axe |
 | Up tilt | 9/4/23 | 9 | 0.80H, up to 1.3H | 85, 95/20 | | Axe over the shoulder |
 | Down tilt | 8/3/22 | 7 | 0.80H, below 0.15H | 80, fixed 45 | | Melee Mario's set-knockback down angle |
@@ -272,7 +272,7 @@ because spacing from the air is her plan. Her one new move is the sliding kick.
 
 | Normal | F/A/R | Damage | Reach | Launch | Angled | Inspired by |
 | --- | --- | --- | --- | --- | --- | --- |
-| Jab | 5/2/15 | 5 | 1.10H | 45, 100/20 | | Original table |
+| Jab | 5/2/15 | 3 | 0.71H | 60, 40/28 | | Bow strike (#163) |
 | Forward tilt | 6/2/21 | 10 tip early, 8 late, 5–7 inner | 1.10H | 37, 110/24 tip | up 55, down 20 | Fox forward tilt (angled kick) |
 | Up tilt | 7/2/21 | 8 | 1.10H | 45, 100/20 | | Original table |
 | Down tilt | 6/2/21 | 8 | 1.10H | 45, 100/20 | | Original table |
@@ -285,7 +285,7 @@ over the old shared down tilt (10 damage) and pops straight up at low percent.
 
 | Normal | F/A/R | Damage | Reach | Launch | Angled | Inspired by |
 | --- | --- | --- | --- | --- | --- | --- |
-| Jab | 4/3/16 | 4 | 0.80H | 20, 70/24 | | Falco jab (pushes) |
+| Jab | 4/3/16 | 4 | 0.80H | 20, 45/18 | | Falco jab (pushes) |
 | Forward tilt | 7/3/21 | 10 | 1.25H | 30, 90/22 | up 50, down 15 | Falco forward tilt (angled) |
 | Up tilt | 6/3/22 | 8 | 0.85H, above | 90, 80/26 | | Falco up tilt |
 | Down tilt | 7/3/22 | 10 | 0.90H, below 0.15H | 80, 45/50 | | Falco down tilt (vertical pop-up) |

@@ -1,6 +1,6 @@
 import { f32 } from "wisp/src/sim/f32";
 import { floorDiv } from "wisp/src/sim/intMath";
-import { AttackStyle, GrabAction, HitElement } from "../codes";
+import { AttackStyle, GrabAction, HitElement, LAST_ATTACK_STYLE } from "../codes";
 import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion, type AuthoredMove, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
 import { WARDEN_GROUND } from "./groundNormals";
 import type { HitEffect } from "../hitRegions";
@@ -214,7 +214,7 @@ function limbPoses(move: AuthoredMove | undefined, reachEnd: boolean): readonly 
 
 function wardenHurtboxes(): FighterHurtboxes {
   const attacks: { [style: number]: readonly HurtPose[] | undefined } = {};
-  for (let style = 0; style <= AttackStyle.dashAttack; style++) {
+  for (let style = 0; style <= LAST_ATTACK_STYLE; style++) {
     if (NORMALS[style] === undefined) continue;
     // Heel Blade's leg is exposed before and after the heel strikes.
     attacks[style] = style === AttackStyle.backAir

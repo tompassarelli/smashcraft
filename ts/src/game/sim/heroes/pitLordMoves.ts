@@ -1,6 +1,6 @@
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction, HitElement } from "../codes";
-import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
+import { HERO_REFERENCE_HEIGHT, jabStep, heroHurtPose, heroMove, heroRegion, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
 import type { HitEffect } from "../hitRegions";
 import { type FighterHurtboxes, type HurtPart, hurtPart } from "../hurtboxes";
 
@@ -81,6 +81,7 @@ const PIT_LORD_BODY: FighterHurtboxes = {
   stand: [BODY],
   attacks: {
     [AttackStyle.jab]: reaching(7, 3, limb(20.0, 70.0, 60.0, 65.0)),
+    [AttackStyle.jab2]: reaching(8, 3, limb(20.0, 80.0, 62.0, 66.0)),
     [AttackStyle.forwardTilt]: reaching(13, 4, FORWARD_ARMS),
     [AttackStyle.forwardTiltUp]: reaching(13, 4, FORWARD_ARMS),
     [AttackStyle.forwardTiltDown]: reaching(13, 4, FORWARD_ARMS),
@@ -127,11 +128,17 @@ export const PIT_LORD_MOVES: FighterMoves = {
   hurtboxes: PIT_LORD_BODY,
   normals: {
     // Haft Check: a slow close jab, not a long-range wall.
-    [AttackStyle.jab]: heroMove(7, 3, 19, 0, path(7, [
+    [AttackStyle.jab]: jabStep(heroMove(7, 3, 19, 0, path(7, [
       capsule(30.0, 64.0, f32(M - 12.0), 64.0, 12.0),
       capsule(30.0, 60.0, f32(M - 12.0), 58.0, 12.0),
       capsule(30.0, 56.0, f32(M - 16.0), 52.0, 12.0),
-    ], hit(6.0, "POKE", 35, 1.0, HitElement.normal))),
+    ], hit(6.0, "LINK", 35, 1.0, HitElement.normal)))),
+    // Cleaver Chop: the chain's close finisher.
+    [AttackStyle.jab2]: heroMove(8, 3, 22, 0, path(8, [
+      capsule(30.0, 90.0, f32(M - 4.0), 70.0),
+      capsule(30.0, 70.0, f32(M - 4.0), 50.0),
+      capsule(30.0, 56.0, f32(M - 8.0), 36.0),
+    ], hit(7.0, "POKE", 40))),
     // Cleaving Sweep: the main space claim; only the blade is disjoint. It falls
     // from over his horns to the floor, so every stick angle plays it
     // (smashcraft:docs/design/tilts.md, Ultimate's angling rule).

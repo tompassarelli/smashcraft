@@ -3,7 +3,7 @@
 // attacker; mutual catches clash and competing catches take the nearest victim.
 import { f32 } from "wisp/src/sim/f32";
 import { AttackPhase, AttackStyle, Character, DASH_GRAB_REQUEST } from "./codes";
-import { attackPhase, canBeGrabbed, canStartAttackStyle, inEarlyAscent, inGrabContext, isIntangible } from "./conditions";
+import { attackPhase, canBeGrabbed, canStartAttackStyle, inEarlyAscent, inGrabContext, isIntangible, jabChainStep } from "./conditions";
 import { finishDamageContacts, openDamageContacts } from "./contacts";
 import type { Fighter } from "./fighter";
 import { type HitRegion, NO_HIT_REGION, authoredHitRegion, authoredHitRegionCount, copyHitEffect, copyHitRegion, emptyHitRegion } from "./hitRegions";
@@ -155,11 +155,19 @@ function selectHitRegion(world: Roster, attackerSlot: number, targetSlot: number
   return false;
 }
 
-/** Starts a requested action if the fighter may; a dashing Demon Hunter's jab is his dash attack. */
+/**
+ * Starts a requested action if the fighter may; a dashing Demon Hunter's jab
+ * is his dash attack, and a jab pressed in a jab chain's window is its next jab.
+ */
 export function beginFighterAttack(world: Roster, slot: number, style: AttackStyle | undefined, mayCharge: boolean): void {
   if (style === undefined) return;
   const fighter = fighterAt(world, slot);
   const { grounded } = fighter.motion;
+  const chained = style === AttackStyle.jab ? jabChainStep(fighter) : undefined;
+  if (chained !== undefined) {
+    beginAttack(fighter, chained, false);
+    return;
+  }
   const action = fighter.tuning.moves !== undefined && style === AttackStyle.jab && grounded && fighter.ground.dashFrame > 0
     ? fighter.tuning.moves.dashAttack
     : fighter.character === Character.demonHunter && style === AttackStyle.jab && grounded && fighter.ground.dashFrame > 0

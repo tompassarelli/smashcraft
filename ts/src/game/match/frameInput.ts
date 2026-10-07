@@ -178,7 +178,7 @@ export function executeMatchFrame(row: MatchFrameInput, game: MatchState, world:
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) { advanceSummons(runtime.summons, undefined, slot); continue; }
     const f = fighterAt(world, slot);
-    finishImpactEventsAfter(runtime.frameImpacts[slot], f);
+    finishImpactEventsAfter(runtime.frameImpacts[slot], f, world);
     if (game.phase === Phase.match) {
       emitImpacts(runtime.impacts, runtime.frameImpacts[slot], frame);
       advanceSpecialEffect(runtime.specials, f, slot);
@@ -211,7 +211,7 @@ export function restoreMatchFrame(row: MatchFrameInput, game: MatchState, world:
     // The step's observations, as running it would leave them.
     observedFrameLegalActions[slot] = runtime.observedLegal[slot];
     observedFrameStartedActions[slot] = runtime.observedStarted[slot];
-    if (isActive(world, slot)) finishImpactEventsAfter(runtime.frameImpacts[slot], fighterAt(world, slot));
+    if (isActive(world, slot)) finishImpactEventsAfter(runtime.frameImpacts[slot], fighterAt(world, slot), world);
   }
   return runtime.simulationFrame === frame;
 }

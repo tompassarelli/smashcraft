@@ -20,6 +20,8 @@ export interface OriginalKit {
   /** Absent for a fighter the design gives no passive; `trait` then says what its hits do instead. */
   readonly passive?: NamedMove | undefined;
   readonly trait?: string | undefined;
+  /** Its jab chain's name and one line for players (#163). */
+  readonly jab: NamedMove;
   readonly ultimate?: NamedMove | undefined;
   /** Docs only: what a normal draws on, by AttackStyle (a hero's is AuthoredMove.inspiredBy). */
   readonly inspiredBy?: { readonly [style: number]: string | undefined } | undefined;
@@ -38,6 +40,7 @@ export const ORIGINAL_KITS: readonly OriginalKit[] = [
       },
     ],
     passive: { name: "Trueshot Aura", description: "Every third arrow that lands in a short time deals double damage; the ready arrow glows." },
+    jab: { name: "Bow and Boot", description: "A strike of her bow, then a low kick on a second jab." },
   },
   {
     specials: [
@@ -50,6 +53,7 @@ export const ORIGINAL_KITS: readonly OriginalKit[] = [
       { action: SpecialAction.riflemanTrap, name: "Frost Trap", description: "Set a trap that freezes the first opponent to step on it; mash to break free." },
     ],
     passive: { name: "Long Rifles", description: "Every fourth blaster shot flies farther and launches." },
+    jab: { name: "Rifle Butt", description: "A push of the barrel, then the stock driven in on a second jab." },
   },
   {
     specials: [
@@ -68,6 +72,7 @@ export const ORIGINAL_KITS: readonly OriginalKit[] = [
       },
     ],
     trait: "Every hit he lands drains the target's mana; bigger hits drain more.",
+    jab: { name: "Warglaive Flurry", description: "Three quick glaive cuts on repeated jabs; the third launches." },
     inspiredBy: {
       [AttackStyle.forwardTilt]: "Shear, from the Black Temple encounter",
       [AttackStyle.downSmash]: "Flames of Azzinoth, from the Black Temple encounter",

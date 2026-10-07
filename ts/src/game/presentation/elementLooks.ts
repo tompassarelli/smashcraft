@@ -2,9 +2,10 @@
 // element through the victim's hitlag (its spark, colour program and electric
 // shake; docs/design/melee/hit-effects.md); Smashcraft shows a stock Warcraft
 // spell effect on the victim's body through hitlag and hitstun, and the
-// element's own hit sound. Presentation only: the element never changes an
-// outcome. Every model is a classic model in the game's archives and every
-// sound a label of its sound tables (ts/test/element-looks.test.ts).
+// element's own hit sound (a normal or slash hit plays the weapon sound of its
+// tier instead, presentation/moveTiers.ts). Presentation only: the element
+// never changes an outcome. Every model is a classic model in the game's
+// archives and every sound a label of its sound tables (ts/test/element-looks.test.ts).
 import { f32 } from "wisp/src/sim/f32";
 import { HitElement } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
@@ -13,22 +14,19 @@ export interface ElementLook {
   /** The stock effect the victim shows on its body; none for normal hits, whose spark is enough. */
   readonly victim: string | undefined;
   readonly victimScale: number;
-  /** The sound label a hit of this element plays (CreateSoundFromLabel), or a script sound path (one with a backslash). */
-  readonly sound: string;
+  /**
+   * The sound label a hit of this element plays (CreateSoundFromLabel); none
+   * for normal and slash hits, which play the game's weapon sound of their
+   * tier (presentation/moveTiers.ts).
+   */
+  readonly sound: string | undefined;
   /** The victim's hitlag tint. */
   readonly tint: { readonly red: number; readonly green: number; readonly blue: number };
 }
 
-/**
- * Warcraft's own heavy sword-on-flesh impact (UnitCombatSounds.slk's
- * MetalHeavySliceFlesh, first variant), played by script path. CriticalStrike
- * was too quiet to pick out natively.
- */
-export const SLASH_HIT_SOUND = "Sound\\Units\\Combat\\MetalHeavySliceFlesh1.flac";
-
 export const ELEMENT_LOOKS: { readonly [element in HitElement]: ElementLook } = {
-  [HitElement.normal]: { victim: undefined, victimScale: 1.0, sound: "StampedeHit", tint: { red: 255, green: 230, blue: 180 } },
-  [HitElement.slash]: { victim: undefined, victimScale: 1.0, sound: SLASH_HIT_SOUND, tint: { red: 255, green: 200, blue: 200 } },
+  [HitElement.normal]: { victim: undefined, victimScale: 1.0, sound: undefined, tint: { red: 255, green: 230, blue: 180 } },
+  [HitElement.slash]: { victim: undefined, victimScale: 1.0, sound: undefined, tint: { red: 255, green: 200, blue: 200 } },
   // Illidan's Immolation burn: the green fel flames Warcraft puts on its victims.
   [HitElement.fire]: { victim: "Abilities\\Spells\\NightElf\\Immolation\\ImmolationDamage.mdx", victimScale: f32(1.2), sound: "Fireball", tint: { red: 255, green: 150, blue: 80 } },
   [HitElement.electric]: { victim: "Abilities\\Spells\\Orc\\Purge\\PurgeBuffTarget.mdx", victimScale: f32(0.8), sound: "LightningBolt", tint: { red: 180, green: 220, blue: 255 } },

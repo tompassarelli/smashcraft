@@ -16,6 +16,7 @@ export const UTHER_HERO: HeroDefinition = {
   moves: UTHER_MOVES,
   specials: UTHER_SPECIALS,
   passive: { name: "Devotion Aura", description: "After he blocks three hits with his shield, the next launch he takes is weaker." },
+  jab: { name: "Hammer and Haft", description: "A hammer check, then a shove of the haft on a second jab." },
   ultimate: { name: "Guardian of the Light", description: "He hits harder and carries three charges that each soften one light hit." },
   gameplan: UTHER_GAMEPLAN,
   presentation: {

@@ -95,6 +95,7 @@ const UTHER_HURTBOXES: FighterHurtboxes = {
   stand: [UTHER_TORSO],
   attacks: {
     [AttackStyle.jab]: [heroHurtPose(3, 9, [UTHER_TORSO, JAB_ARM])],
+    [AttackStyle.jab2]: [heroHurtPose(4, 11, [UTHER_TORSO, JAB_ARM])],
     [AttackStyle.grab]: [heroHurtPose(6, 14, [UTHER_TORSO, GRAB_ARM])],
     ...groundPoses(UTHER_GROUND, utherReach),
     [AttackStyle.forwardSmash]: [heroHurtPose(18, 26, utherReach(48.0, 60.0))],

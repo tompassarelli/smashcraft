@@ -42,6 +42,7 @@ export const PIT_LORD_HERO: HeroDefinition = {
   purpose: "Extreme heavy with long cleaves",
   weakness: "Very large target and slow recovery",
   passive: { name: "Cleaving Attack", description: "His cleaver strikes every opponent in its path, and the blade itself can't be hit." },
+  jab: { name: "Haft and Chop", description: "A haft check, then a short cleaver chop on a second jab." },
   complete: true,
   moves: PIT_LORD_MOVES,
   specials: PIT_LORD_SPECIALS,

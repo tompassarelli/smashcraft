@@ -84,6 +84,15 @@ export function shippedHurtboxes(character: Character, moves?: FighterMoves): Fi
     attacks: {
       // An arm reaching toward the strike.
       [AttackStyle.jab]: reaching(AttackStyle.jab, [torso(4.0), hurtPart(8.0, h(f32(0.68)), 40.0, h(f32(0.6)), 9.0)]),
+      // The chain's later jabs reach the same arm, or a kicking leg low.
+      ...(moves?.normals[AttackStyle.jab2] === undefined && character !== Character.demonHunter ? {} : {
+        [AttackStyle.jab2]: reaching(AttackStyle.jab2, character === Character.archer
+          ? [torso(4.0), hurtPart(8.0, h(f32(0.3)), 44.0, h(f32(0.2)), 10.0)]
+          : [torso(4.0), hurtPart(8.0, h(f32(0.68)), 42.0, h(f32(0.62)), 9.0)]),
+      }),
+      ...(moves?.normals[AttackStyle.jab3] === undefined && character !== Character.demonHunter ? {} : {
+        [AttackStyle.jab3]: reaching(AttackStyle.jab3, [torso(6.0), hurtPart(8.0, h(f32(0.66)), 46.0, h(f32(0.6)), 9.0)]),
+      }),
       // Ducked low: the torso drops and the front leg sweeps forward.
       [AttackStyle.downTilt]: reaching(AttackStyle.downTilt, [torso(8.0, 4.0, h(f32(0.62)), r), hurtPart(10.0, 10.0, 52.0, 6.0, 10.0)]),
       // Wound back through startup, then the torso and striking arm commit forward.

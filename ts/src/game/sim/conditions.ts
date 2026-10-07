@@ -2,7 +2,7 @@
 // is doing, whether it can be hit, and whether it may start an action.
 import { AttackPhase, AttackStyle, DASH_GRAB_REQUEST, DownState, GrabAction, LedgeState, PlatformMove, ShieldBreak, SurfaceContact } from "./codes";
 import type { Fighter } from "./fighter";
-import { attackStartupFrames, characterAttackActiveFrames } from "./moves";
+import { attackStartupFrames, characterAttackActiveFrames, jabChainFrom, nextJab } from "./moves";
 
 export const GROUND_ROLL_FRAMES = 31;
 export const GROUND_ROLL_INTANGIBLE_START = 4;
@@ -112,8 +112,23 @@ export function canShieldGrab(attacker: Fighter): boolean {
   return canStartAttack(attacker) && attacker.shield.raised && attacker.motion.grounded && !attacker.shield.drainResumePending;
 }
 
+/**
+ * The jab a fresh jab press starts now by continuing the fighter's jab chain
+ * (#163), or undefined: a grounded jab or second jab, out of hitlag, inside
+ * its chain window. A press during hitlag or earlier in the jab waits in the
+ * attack buffer for the window, as Melee latches it (ftCo_Attack1.c).
+ */
+export function jabChainStep(f: Readonly<Fighter>): AttackStyle | undefined {
+  const { attack } = f;
+  const next = nextJab(attack.style);
+  if (next === undefined || attack.style === undefined || attack.dashGrab || !f.motion.grounded || f.launch.hitlag > 0 || f.status.frozenFrames > 0) return undefined;
+  const from = jabChainFrom(f.character, attack.style, f.tuning.moves);
+  return from !== undefined && attack.frame >= from - 1 && attack.frame < attack.duration ? next : undefined;
+}
+
 /** Whether a requested action may start; DASH_GRAB_REQUEST asks for a dash or shield grab. */
 export function canStartAttackStyle(attacker: Fighter, style: AttackStyle | undefined): boolean {
+  if (style === AttackStyle.jab && jabChainStep(attacker) !== undefined) return true;
   const dashGrabs = attacker.tuning.dashGrab.startupFrames > 0;
   if (style === DASH_GRAB_REQUEST) {
     return attacker.motion.grounded && dashGrabs

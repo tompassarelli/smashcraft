@@ -134,8 +134,13 @@ export const AttackStyle = {
   ledgeAttack: 17,
   demonHunterDashAttack: 18,
   dashAttack: 19,
+  // The jab chain (#163): Melee's Attack12 and Attack13, each started by a fresh jab press in the previous jab's window.
+  jab2: 20,
+  jab3: 21,
 } as const;
 export type AttackStyle = (typeof AttackStyle)[keyof typeof AttackStyle];
+/** The highest AttackStyle code: loops over every style run through it. */
+export const LAST_ATTACK_STYLE = AttackStyle.jab3;
 
 export const DASH_GRAB_REQUEST = 11;
 
