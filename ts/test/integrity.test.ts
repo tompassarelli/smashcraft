@@ -71,7 +71,7 @@ const CLIENTS = "ab";
  * reach a model of the map's menus (sessionSetup.ts, devSettings.ts), which
  * writes both clients' developer receipts and the stage receipt as the map does.
  */
-function recordingRig(file: (client: Slot, name: string) => string, screenText = "1 Stock", lobby: { readonly humans: number; readonly computers: number } = { humans: 3, computers: 0 }) {
+function recordingRig(file: (client: Slot, name: string) => string, screenText = "1 Stock", lobby: { readonly humans: number; readonly computers: number } = { humans: 3, computers: 0 }, initialChatOpen = false) {
   const trace: string[] = [];
   const events: JourneyRecord[] = [];
   const game = createMatchState();
@@ -81,8 +81,11 @@ function recordingRig(file: (client: Slot, name: string) => string, screenText =
   const dev: DevSettings = { rollback: 24, delay: 0, batch: 6, rematchSeconds: 5 };
   let receipts = 0;
   let typed = "";
+  let chatOpen = initialChatOpen;
+  let chatRevision = 1;
   const preload = (lines: readonly string[]) => `${lines.join("\n")}\nendfunction\n`;
   const modeled = (client: Slot, name: string): GameFile | undefined => {
+    if (name.startsWith("smashcraft-chat-")) return { text: preload([`SMASHCRAFT CHAT v=1 available=1 open=${chatOpen ? 1 : 0}`]), mtimeNs: BigInt(chatRevision) };
     if (name.startsWith("smashcraft-dev-")) return receipts === 0 ? undefined : { text: preload(devReceiptFile({ build: "b", epoch: 0, slot: client }, receipts, dev, game).lines), mtimeNs: BigInt(receipts + 1) };
     if (name.startsWith("smashcraft-stage-")) return { text: preload(stageDrawnFile({ build: "b", epoch: 1, slot: client }, game.stageChoice, 1).lines), mtimeNs: 1n };
     return undefined;
@@ -105,7 +108,7 @@ function recordingRig(file: (client: Slot, name: string) => string, screenText =
     startedNs: 0n,
     until: (what) => log(`until ${what}`),
     healthy: Effect.void,
-    file: (client, name) => Effect.succeed(modeled(client, name) ?? { text: file(client, name), mtimeNs: 1n }),
+    file: (client, name) => Effect.sync(() => modeled(client, name) ?? { text: file(client, name), mtimeNs: 1n }),
     files: (_client, pattern) => Effect.succeed([pattern.replaceAll("*", "1")]),
     helperLog: () => Effect.succeed(""),
     boundary: (_client, name) => Effect.succeed(publication(name)),
@@ -115,7 +118,10 @@ function recordingRig(file: (client: Slot, name: string) => string, screenText =
     readText: (client, { x, y, width, height }) => log(`ui ${CLIENTS[client]} read ${x},${y} ${width}x${height}`).pipe(Effect.as(screenText)),
     click: (client, x, y) => log(`ui ${CLIENTS[client]} click ${x} ${y}`),
     key: (client, key) => log(`key ${CLIENTS[client]} ${key}`).pipe(Effect.tap(() => Effect.sync(() => {
-      if (client !== 0 || key !== "Return" || typed === "") return;
+      if (client !== 0 || key !== "Return") return;
+      chatOpen = !chatOpen;
+      chatRevision++;
+      if (typed === "") return;
       if ((applySetupCommand(game, 0, typed) ?? applyDevCommand(dev, typed)) !== undefined) receipts++;
       typed = "";
     }))),
@@ -346,7 +352,24 @@ test("xpad pads press X for special, Y for jump, and stick-up only as up", () =>
   expect(isolated("compass-tap-jump")).toMatchObject({ special: 0x134, "jump-y": 0x133, "jump-stick": 1 });
 });
 
- test("bot sessions enable automatic rematch and wait for the second game without selection or a Start press", async () => {
+test("setup observes chat open before typing when its first Return closes an already-open chat", async () => {
+  const capture = recordingRig(gameFiles, "1 Stock Player 2 wins!", { humans: 3, computers: 0 }, true);
+  const rig: RigShape = {
+    ...capture.rig,
+    type: (client, text) => Effect.gen(function*() {
+      const entry = yield* capture.rig.file(0, "smashcraft-chat-typescript-integrity-p0.txt");
+      expect(entry?.text).toContain("open=1");
+      yield* capture.rig.type(client, text);
+    }),
+  };
+  await Effect.runPromise(journey(rig, { ...R8, build: "typescript-integrity" }).run);
+  expect(capture.trace.filter(line => line.startsWith("key ") || line.startsWith("type ")).slice(0, 3)).toEqual([
+    "key a Return", "key a Return", "type a -dev slots 3 0",
+  ]);
+  expect(capture.trace).toContain("until dev command not confirmed: -dev slots 3 0");
+});
+
+test("bot sessions enable automatic rematch and wait for the second game without selection or a Start press", async () => {
   const bot = recordingRig(gameFiles, "3 Stock 7:00 Automatic rematch: Off Player 2 wins!");
   await Effect.runPromise(journey(bot.rig, { ...R8, build: "typescript-integrity", workload: "bot", botPerf: true }).run);
   expect(bot.trace).toContain("type a -dev rematch 20");

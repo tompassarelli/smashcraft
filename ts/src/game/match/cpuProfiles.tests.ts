@@ -1,8 +1,50 @@
 import { assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { at } from "wisp/src/runtime/lookup";
 import { PARTICIPANT_SLOTS } from "../input/participants";
+import { AttackStyle, Character } from "../sim/codes";
+import { createFighter } from "../sim/fighter";
+import { HabitChoice } from "./botHabits";
+import { useMatchSeed } from "./botRandom";
+import { createBotStrategy, learnBotHabit, prepareBotRead } from "./botStrategy";
 import { CPU_OPPONENT_DEFAULT, CPU_OPPONENT_IDS, CPU_PROFILES, CPU_TIER_DEFAULT, CPU_TIERS, cpuProfile, isCpuOpponentChoice, isCpuTier, resolveCpuOpponent, stepCpuOpponent, stepCpuTier } from "./cpuProfiles";
 import { Phase, copyMatchState, createMatchState, requestStart, setCpuOpponent, setCpuTier, setParticipants } from "./rules";
+
+test("Flint changes a practiced strike read after fewer new shield events at each tier", () => {
+  let earlier = 8001;
+  for (const tier of CPU_TIERS) {
+    const profile = cpuProfile("flint", tier);
+    let total = 0;
+    for (let seed = 0; seed < 10; seed++) for (let trial = 0; trial < 10; trial++) {
+      const own = createFighter(Character.rifleman, 0.0, 1);
+      const target = createFighter(Character.archer, 60.0, -1);
+      const strategy = createBotStrategy();
+      for (let event = 0; event < 20; event++) {
+        const frame = event * 60;
+        target.attack.style = AttackStyle.jab; target.attack.serial++;
+        learnBotHabit(strategy, own, target, 1, frame, profile);
+        target.attack.style = undefined;
+        learnBotHabit(strategy, own, target, 1, frame + 8, profile);
+      }
+      useMatchSeed(seed);
+      prepareBotRead(strategy, own, target, 1200 + trial, profile.reactionFrames, profile);
+      let switched = 0;
+      for (let event = 0; event < 80; event++) {
+        const frame = 1260 + event * 60;
+        target.shield.raised = true;
+        learnBotHabit(strategy, own, target, 1, frame, profile);
+        target.shield.raised = false;
+        learnBotHabit(strategy, own, target, 1, frame + 8, profile);
+        prepareBotRead(strategy, own, target, frame + profile.reactionFrames + 9, profile.reactionFrames, profile);
+        if (strategy.read?.choice === HabitChoice.shield) { switched = event + 1; break; }
+      }
+      assertTrue(switched > 0);
+      total += switched;
+    }
+    assertTrue(total < earlier);
+    earlier = total;
+  }
+  useMatchSeed(0);
+});
 
 test("named opponents grow primary and secondary skills at five tiers while retaining different habits", () => {
   assertEquals(CPU_PROFILES.length, 30);

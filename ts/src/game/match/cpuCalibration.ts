@@ -1,6 +1,6 @@
 import { at } from "wisp/src/runtime/lookup";
 import { floorMod } from "wisp/src/sim/intMath";
-import { attackBuffer, clearAttackBuffer, sameAttackBuffer } from "../input/attackBuffer";
+import { attackBuffer, clearAttackBuffer, queueAttack, sameAttackBuffer } from "../input/attackBuffer";
 import { firstStateDifference } from "../replay/difference";
 import { copyReplayState, createReplaySnapshot } from "../replay/snapshot";
 import { AttackStyle, Character, DownState } from "../sim/codes";
@@ -12,7 +12,7 @@ import { HabitChoice } from "./botHabits";
 import { pressKitOption } from "./botKitOptions";
 import { comebackPressure, estimatedMoveValue, familiarOption, type MoveEstimate } from "./botMoveValue";
 import { chooseAttack, moveReaches } from "./botMoves";
-import { BOT_DIRECTION_FRAMES, clearBotMemory, commitBotDirection } from "./botPerception";
+import { BOT_DIRECTION_FRAMES, clearBotMemory, commitBotDirection, observeOpponents, perceivedOpponent } from "./botPerception";
 import { produceComputerInput } from "./botPlay";
 import { choosePunish } from "./botPunish";
 import { useMatchSeed } from "./botRandom";
@@ -121,7 +121,35 @@ function reads(profile: CpuProfile, seed: number, trial: number, into: Calibrati
   const input = neutralControls();
   const commands = attackBuffer(6);
   const acted = read !== undefined && pressBotRead(strategy, game.own, game.target, 0, frame, read.expectedFrame - 8, input, commands);
-  record(into.samples.reads, acted && input.shield ? "correct guard forecast / wrong against switched grab" : "declined forecast");
+  if (!acted || !input.shield || read === undefined) {
+    record(into.samples.reads, "declined learned strike forecast");
+    record(into.samples.reads, "declined switched grab forecast");
+  } else for (const switched of [false, true]) {
+    const played = setup(profile, seed, Character.rifleman);
+    const runtime = played.state.runtime;
+    const controls = createFrameControls();
+    const row = createMatchFrameInput();
+    const commitment = createBotStrategy();
+    commitment.read = { ...read, acted: false };
+    runtime.simulationFrame = read.expectedFrame - profile.reactionFrames - 18;
+    let grabbed = false;
+    for (let frame = runtime.simulationFrame + 1; frame <= read.expectedFrame + 22; frame++) {
+      copyControls(controls.inputs[0], neutralControls());
+      clearAttackBuffer(controls.commands[0]); clearAttackBuffer(controls.commands[1]);
+      observeOpponents(runtime.botMemory, played.state.world, frame);
+      const target = perceivedOpponent(runtime.botMemory, played.own, 0, frame, profile.reactionFrames);
+      if (target !== undefined) pressBotRead(commitment, played.own, target, 0, played.state.match.matchFrame, frame, controls.inputs[0], controls.commands[0]);
+      if (frame === read.expectedFrame) {
+        queueAttack(controls.commands[1], { style: switched ? AttackStyle.grab : AttackStyle.jab, facing: -1, frame, mayCharge: false });
+      }
+      if (!captureFrame(row, frame, played.state.world.mask, controls, runtime)
+        || !executeMatchFrame(row, played.state.match, played.state.world, played.state.controls, runtime, frame)) throw new Error("calibration read frame rejected");
+      if (played.own.grab.owner !== undefined) grabbed = true;
+    }
+    record(into.samples.reads, switched ? grabbed ? "wrong read punished by grab" : "switch escaped guard exposure"
+      : played.own.visuals.shield > 0 ? "learned strike blocked" : played.own.status.damage > 0.0 ? "learned strike landed" : "learned strike missed");
+    clearBotMemory(runtime.botMemory);
+  }
   // Feed a real pattern switch; count observations until the committed read changes.
   let adapted = -1;
   for (let event = 0; event < 80; event++) {

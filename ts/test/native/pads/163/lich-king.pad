@@ -1,0 +1,25 @@
+# #163 Lich King: the existing #167 Pommel and Rake chain, then a forward tilt.
+#! chat -dev quick hero lich king
+540 b stick -1 0
+560 b stick 0 0
+590 b press LB
+590 b stick -1 0
+614 b stick 0 0
+614 b release LB
+650 a tap A 2
+659 a tap A 2
+668 a tap A 2
+730 a press LB
+730 a stick 0.6 0
+732 a tap A 2
+735 a stick 0 0
+737 a release LB
+1000 a press VIEW
+1070 a release VIEW
+#! expect a 650 applied attack 1 style 0
+#! expect b 655 damage 3.000
+#! expect a 661 applied attack 2 style 20
+#! expect b 667 damage 6.000
+#! expect a 673 applied attack 3 style 21
+#! expect b 681 damage 11.000
+#! expect a 732 applied attack 4 style 6

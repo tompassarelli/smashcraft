@@ -11,11 +11,12 @@ import { Character } from "../../src/game/sim/codes";
 import { fighterName } from "../../src/game/sim/heroes/registry";
 import { MATCH_TICKS_PER_SECOND, START_HOLD_FRAMES } from "../../src/game/match/rules";
 import type { Region } from "wisp/scripts/warcraft/desktop";
+import { openObservedChat } from "wisp/scripts/wisp/chatSetup";
 import { IntegrityFailure } from "./evidence";
 import { ABS_RX, ABS_RY, ABS_X, ABS_Y, ABS_Z, BTN_A, BTN_SELECT, BTN_START, BTN_X, BTN_Y, EV_ABS, EV_KEY, type SourceEdge } from "./linuxInput";
 import { SLOTS, type Slot } from "./reconcile";
 import { type PadLayout, PULSE_HOLD_MILLIS, STALL_MILLIS, type Pulse, type Send, type StallTarget, integritySchedule, pulseSends } from "./schedule";
-import { INPUT_TRACE_FILE, devCommandReceiptFile, journalControlFile, journalLifecycleFile, journalMenuFile, responsePageFile, stageReceiptFile } from "../../src/runtime/gameFiles";
+import { INPUT_TRACE_FILE, devCommandReceiptFile, journalControlFile, journalLifecycleFile, journalMenuFile, nativeChatFile, responsePageFile, stageReceiptFile } from "../../src/runtime/gameFiles";
 
 /** A game file's text and modification time. */
 export interface GameFile {
@@ -296,8 +297,14 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       const before = (yield* receipts).map((file) => ({ mtimeNs: file?.mtimeNs ?? -1n, count: complete(file) ? count(file) : -1 }));
       // Counts this capture saw bound the new one; a file from before it (perhaps an earlier game) only by its time.
       const floor = Math.max(...before.map((receipt) => receipt.count));
-      // The map hides Warcraft's chat box; both clients' receipts confirm the command.
-      yield* rig.key(0, "Return");
+      const entry = rig.file(0, nativeChatFile(build, 0)).pipe(Effect.map((file) => {
+        if (file === undefined || !file.text.trimEnd().endsWith("endfunction")) return undefined;
+        const fields = receiptFields(file.text);
+        return { available: fields.get("available") === "1", open: fields.get("open") === "1", modified: Number(file.mtimeNs) };
+      }));
+      yield* openObservedChat({ name: "client 0" }, entry, rig.key(0, "Return")).pipe(
+        Effect.mapError((failure) => failure instanceof IntegrityFailure ? failure : failed("open setup chat", failure.message)),
+      );
       yield* rig.type(0, text);
       yield* rig.key(0, "Return");
       yield* rig.until(`dev command not confirmed: ${text}`, receipts.pipe(Effect.map((files) => {

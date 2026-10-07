@@ -140,7 +140,7 @@ export class CombatEffects {
   }
 
   /** Only completed frames dispatch sounds; replay never calls this method. */
-  presentConfirmed(frame: number, slot: number, events: Readonly<ImpactEvents>): void {
+  presentConfirmed(frame: number, slot: number, events: Readonly<ImpactEvents>, soundPlayed?: (sound: string, volume: number, pitch: number) => void): void {
     const previous = this.soundFrames[slot];
     if (previous !== undefined && frame <= previous) return;
     this.soundFrames[slot] = frame;
@@ -155,6 +155,7 @@ export class CombatEffects {
       SetSoundVolume(cue, volume);
       SetSoundPitch(cue, pitch);
       StartSound(cue);
+      soundPlayed?.(sound, volume, pitch);
       KillSoundWhenDone(cue);
     });
   }
