@@ -7,6 +7,7 @@
 // sound a label of its sound tables (ts/test/element-looks.test.ts).
 import { f32 } from "wisp/src/sim/f32";
 import { HitElement } from "../sim/codes";
+import type { Fighter } from "../sim/fighter";
 
 export interface ElementLook {
   /** The stock effect the victim shows on its body; none for normal hits, whose spark is enough. */
@@ -49,3 +50,36 @@ export function elementLook(element: number): ElementLook {
  * while it burns and its decay when it goes out (render/specialEffects.ts).
  */
 export const IMMOLATE_SOUNDS = { start: "ImmolationTarget", loop: "LiquidFireLoop", end: "ImmolationDecay" } as const;
+
+/**
+ * A hit that drained its victim's mana (Illidan's kit, #147): Mana Burn's
+ * purple burst over the victim's head, any fighter. Its only sequence, Birth,
+ * draws nothing before 0.23 s and holds 0.3-0.8 s (read from its keys), so
+ * a drain starts it at 0.3 s.
+ */
+export const MANA_DRAIN_LOOK = {
+  model: "Abilities\\Spells\\NightElf\\ManaBurn\\ManaBurnTarget.mdx",
+  sequence: "birth",
+  seconds: f32(0.3),
+  scale: f32(0.6),
+  /** Over the head, in the fighter's model scale. */
+  z: 125.0,
+} as const;
+
+/** What a renderer last saw of one fighter's drains: its drain count and the hit serial the last drain came with (-1 for none). */
+export interface DrainSeen {
+  drains: number;
+  hit: number;
+}
+
+export const drainSeen = (): DrainSeen => ({ drains: 0, hit: -1 });
+
+/** Whether the fighter shows its drain this frame: it is reeling from the hit that drained it. */
+export function advanceDrainSeen(seen: DrainSeen, fighter: Readonly<Fighter>): boolean {
+  const { visuals, launch } = fighter;
+  if (visuals.manaDrained !== seen.drains) {
+    seen.drains = visuals.manaDrained;
+    seen.hit = visuals.hit;
+  }
+  return !fighter.status.out && (launch.hitlag > 0 || launch.hitstun > 0) && seen.hit === visuals.hit;
+}

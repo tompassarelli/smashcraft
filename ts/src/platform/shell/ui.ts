@@ -213,9 +213,13 @@ export function recreateUi(s: ShellState, actions: PanelActions): void {
   const retained: { readonly match?: MatchPresentation } = ui;
   if (retained.match === undefined) ui.match = new MatchPresentation(s.origin);
   else bindPrototype(ui.match, MatchPresentation.prototype);
-  const retainedElements: { readonly elements?: ElementEffects } = ui;
+  // A bundle from before the drain bursts keeps its element effects' old shape: replace it.
+  const retainedElements: { readonly elements?: { readonly drains?: readonly effect[] } } = ui;
   if (retainedElements.elements === undefined) ui.elements = new ElementEffects(s.origin);
-  else bindPrototype(ui.elements, ElementEffects.prototype);
+  else if (retainedElements.elements.drains === undefined) {
+    ui.elements.destroy();
+    ui.elements = new ElementEffects(s.origin);
+  } else bindPrototype(ui.elements, ElementEffects.prototype);
   for (const slot of PARTICIPANT_SLOTS) {
     const renderers = ui.fighters[slot];
     if (renderers === undefined) continue;

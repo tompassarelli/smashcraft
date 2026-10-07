@@ -333,12 +333,32 @@ back to shield and spot dodge.
 
 ## Presentation (stock Warcraft assets)
 
-- Tell: his fel aura effect, flared green on frames 1–5.
-- Rush: the fel trail effect along the path, frames 6–15.
-- Vengeful Retreat: the wing trail while he flips; Chaos Strike: the fel
-  flash on its active frames.
-- Drain: a mana-burn purple flash over the drained fighter's head for 12
-  frames (any fighter, not only Illidan).
+Each option shows a stock Warcraft effect (smashcraft:ts/src/game/presentation/specialCues.ts,
+attackCues.ts and elementLooks.ts):
+
+| Option | Effect |
+| --- | --- |
+| Fel Rush tell (frames 1–5), and every branch's startup | Death Coil special art |
+| Fel Rush (frames 6–15) | Illidan's Metamorphosis missile trail |
+| Vengeful Retreat | Possession missile trailing the vault |
+| Chaos Strike (ground and air) | Moon Glaive whirl |
+| Flame Crash hang and plunge / landing burst | Breath of Fire missile / Volcano death |
+| Shear (forward tilt, all angles) | Demon Bolt impact where the glaive cuts |
+| Eye Blast charge / beam | Drain caster over his eyes / green dragon fire |
+| Flames of Azzinoth glaives / fire wall | Demon Hunter glaive / Flame Strike |
+| Twin-glaive forward air | Illidan's missile trail |
+| Drain on hit (any victim) | Mana Burn target over the victim's head through that hit's hitlag and hitstun |
+
+Stock effects that a pool shows late draw nothing at their start, so each
+of these names the sequence it starts and starts where its model already
+draws, read from the model's keys (game archives, 7 Oct): Death Coil special
+art's only Stand bursts 0.3–0.6 s, so the tell starts at 0.3 s; Flame Strike's
+Birth reaches its full fire at 1.3 s and its Stand draws nothing, so the fire
+wall starts at 1.3 s into Birth; Demon Bolt impact and Mana Burn target draw
+nothing before 0.23 s and start at 0.3 s; Breath of Fire missile and Volcano
+death have only a Birth, drawn 0–0.5 s; the missiles and Moon Glaive draw
+from 0 s. smashcraft:ts/src/game/presentation/illidanCues.tests.ts holds the
+measured windows.
 
 Source: smashcraft:ts/src/game/sim/specials.ts (Fel Rush),
 smashcraft:ts/src/game/sim/hitRegions.ts (drain on hit), contract tests in

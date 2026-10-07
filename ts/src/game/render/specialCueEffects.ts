@@ -78,7 +78,10 @@ export class SpecialCueEffects {
         continue;
       }
       const { model } = entry;
-      if (this.shown !== cue || this.shownKey !== key) BlzSetSpecialEffectTime(model, 0.0);
+      if (this.shown !== cue || this.shownKey !== key) {
+        if (entry.cue.sequence !== undefined) BlzSetSpecialEffectAnimation(model, entry.cue.sequence);
+        BlzSetSpecialEffectTime(model, entry.cue.seconds ?? 0.0);
+      }
       parked[index] = false;
       BlzSetSpecialEffectPosition(model, this.origin.x + fighter.motion.x + fighter.facing * x, this.front, this.origin.z + fighter.motion.z + z);
       BlzSetSpecialEffectYaw(model, facingYaw(fighter.facing));

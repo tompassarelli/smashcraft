@@ -11,7 +11,7 @@ import type { Fighter } from "../sim/fighter";
 import { type HitRegion, authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../sim/hitRegions";
 import { EYE_BLAST_CHARGE_FRAMES, attackStartupFrames } from "../sim/moves";
 import { HERO_ROSTER } from "../sim/heroes/registry";
-import { type Cue, fighterOwnCues } from "./specialCues";
+import { type Cue, fighterOwnCues, timed } from "./specialCues";
 
 const cue = (model: string, scale: number): Cue => ({ model, anchor: "body", scale });
 
@@ -21,6 +21,8 @@ export interface AttackCue {
   readonly fromActive: number;
   readonly cue: Cue;
 }
+
+const SHEAR: readonly AttackCue[] = [{ name: "Shear", fromActive: 0, cue: timed(cue("Abilities\\Spells\\Demon\\DemonBoltImpact\\DemonBoltImpact.mdx", f32(0.8)), "stand", f32(0.3)) }];
 
 export const ATTACK_CUES: { readonly [character: number]: { readonly [style: number]: readonly AttackCue[] } } = {
   [Character.blademaster]: {
@@ -48,21 +50,30 @@ export const ATTACK_CUES: { readonly [character: number]: { readonly [style: num
     // Demonic Bulk, the strongest dash attack: the ground shakes under the heave.
     [AttackStyle.dashAttack]: [{ name: "Demonic Bulk", fromActive: 0, cue: cue("Abilities\\Spells\\Orc\\WarStomp\\WarStompCaster.mdx", f32(0.45)) }],
   },
+  // Illidan's raid-boss normals (#147) start where their models draw, read
+  // from each model's keys: Flame Strike's Birth builds from one shockwave to
+  // its full fire 1.3-2.0 s in (its Stand draws nothing), so the six-frame
+  // wall starts there; Demon Bolt impact draws nothing before 0.23 s; the
+  // missiles draw from 0 s.
   [Character.demonHunter]: {
     // Eye Blast: the fel breath of the green dragon along the floor beam.
-    [AttackStyle.forwardSmash]: [{ name: "Eye Blast", fromActive: 0, cue: cue("Abilities\\Weapons\\GreenDragonMissile\\GreenDragonMissile.mdx", f32(1.5)) }],
+    [AttackStyle.forwardSmash]: [{ name: "Eye Blast", fromActive: 0, cue: timed(cue("Abilities\\Weapons\\GreenDragonMissile\\GreenDragonMissile.mdx", f32(1.5)), "birth", 0.0) }],
     // Flames of Azzinoth: the planted glaives, then the fire wall.
     [AttackStyle.downSmash]: [
-      { name: "Azzinoth glaives", fromActive: 0, cue: cue("Abilities\\Weapons\\DemonHunterMissile\\DemonHunterMissile.mdx", f32(1.4)) },
-      { name: "Flames of Azzinoth", fromActive: 3, cue: cue("Abilities\\Spells\\Human\\FlameStrike\\FlameStrike1.mdx", f32(0.6)) },
+      { name: "Azzinoth glaives", fromActive: 0, cue: timed(cue("Abilities\\Weapons\\DemonHunterMissile\\DemonHunterMissile.mdx", f32(1.4)), "stand", 0.0) },
+      { name: "Flames of Azzinoth", fromActive: 3, cue: timed(cue("Abilities\\Spells\\Human\\FlameStrike\\FlameStrike1.mdx", f32(0.6)), "birth", f32(1.3)) },
     ],
     // Twin glaives: a crossing link, then the opening launcher.
-    [AttackStyle.forwardAir]: [{ name: "Twin glaives", fromActive: 0, cue: cue("Abilities\\Weapons\\IllidanMissile\\IllidanMissile.mdx", 1.0) }],
+    [AttackStyle.forwardAir]: [{ name: "Twin glaives", fromActive: 0, cue: timed(cue("Abilities\\Weapons\\IllidanMissile\\IllidanMissile.mdx", 1.0), "stand", 0.0) }],
+    // Shear, the mana cutter, at every angle: a fel bolt bursts where the glaive cuts.
+    [AttackStyle.forwardTilt]: SHEAR,
+    [AttackStyle.forwardTiltUp]: SHEAR,
+    [AttackStyle.forwardTiltDown]: SHEAR,
   },
 };
 
 /** Eye Blast's charge: his eyes burn once it has charged long enough to fire the beam. */
-export const EYE_BLAST_CHARGE_CUE: Cue = { model: "Abilities\\Spells\\Other\\Drain\\DrainCaster.mdx", anchor: "overhead", scale: f32(0.6) };
+export const EYE_BLAST_CHARGE_CUE: Cue = { model: "Abilities\\Spells\\Other\\Drain\\DrainCaster.mdx", anchor: "overhead", scale: f32(0.6), sequence: "stand", seconds: 0.0 };
 
 /** What a fighter's normal shows this frame: its cue, the live region's centre and a key that changes with each hit. */
 export interface AttackCueState {

@@ -56,7 +56,18 @@ export interface Cue {
   readonly scale: number;
   /** Already drawn by the fighter's own special effects (render/specialEffects.ts). */
   readonly drawn?: boolean | undefined;
+  /**
+   * The sequence a showing starts and the seconds into it, where its model
+   * already draws: a pooled effect has played past its birth by the time it
+   * shows, and some stock models draw nothing in their first tenths of a
+   * second. Unset, a showing restarts whatever sequence plays from 0 s.
+   */
+  readonly sequence?: string | undefined;
+  readonly seconds?: number | undefined;
 }
+
+/** `cue` started `seconds` into `sequence`. */
+export const timed = (cue: Cue, sequence: string, seconds: number): Cue => ({ ...cue, sequence, seconds });
 
 /** One special's cues: its Warcraft spell, what its startup shows and what its active frames show. */
 export interface MoveCues {
@@ -137,8 +148,13 @@ export const HERO_CUES: { readonly [character: number]: { readonly [slot in Spec
   },
 };
 
+// Illidan's cues (#147) start where their models draw, read from each model's
+// keys: Death Coil special art's only sequence (Stand, once) draws nothing for
+// 0.07 s and bursts 0.3-0.6 s, so the five-frame tell starts at 0.3 s; Breath
+// of Fire missile and Volcano death have only a Birth, drawn 0-0.5 s; the
+// missiles' and Moon Glaive's Stand draw from 0 s.
 /** Fel Rush's tell, and the start of each of its branches. */
-const FEL_TELL = cue("Abilities\\Spells\\Undead\\DeathCoil\\DeathCoilSpecialArt.mdx", "body", 0.5);
+const FEL_TELL = timed(cue("Abilities\\Spells\\Undead\\DeathCoil\\DeathCoilSpecialArt.mdx", "body", 0.5), "stand", f32(0.3));
 
 // Illidan's own effects (render/specialEffects.ts) already show his specials.
 const MANA_BURN_HAND = "Abilities\\Spells\\NightElf\\ManaBurn\\ManaBurnTarget.mdx";
@@ -156,7 +172,7 @@ export const ORIGINAL_CUES: { readonly [action: number]: MoveCues } = {
   [SpecialAction.riflemanTrap]: { spell: "Frost Trap", startup: cue("Abilities\\Spells\\Human\\Slow\\SlowCaster.mdx", "body", f32(0.6)), active: cue("Abilities\\Spells\\Human\\Blizzard\\BlizzardTarget.mdx", "feet", f32(0.4)) },
   [SpecialAction.demonHunterManaBurn]: { spell: "Mana Burn", startup: drawn(MANA_BURN_HAND, "hand"), active: cue("Abilities\\Spells\\Human\\Feedback\\SpellBreakerAttack.mdx", "hand", 1.0) },
   // The fel streak of his Metamorphosis missile trails the rush.
-  [SpecialAction.demonHunterFelRush]: { spell: "Fel Rush", startup: FEL_TELL, active: cue("Abilities\\Weapons\\IllidanMissile\\IllidanMissile.mdx", "body", 1.0) },
+  [SpecialAction.demonHunterFelRush]: { spell: "Fel Rush", startup: FEL_TELL, active: timed(cue("Abilities\\Weapons\\IllidanMissile\\IllidanMissile.mdx", "body", 1.0), "stand", 0.0) },
   [SpecialAction.demonHunterWingAscent]: { spell: "Metamorphosis wings", startup: cue("Abilities\\Spells\\NightElf\\Immolation\\ImmolationDamage.mdx", "feet", 1.0), active: cue("Abilities\\Spells\\Other\\Silence\\SilenceAreaBirth.mdx", "feet", f32(0.3)) },
   [SpecialAction.demonHunterImmolate]: { spell: "Immolation", startup: drawn(FEL_FLAMES, "body"), active: drawn(FEL_FLAMES, "body") },
 };
@@ -220,20 +236,20 @@ export interface OriginalBranch {
 }
 
 // Two glaives: the moon-glaive whirl across his strike frames, on the ground or in the air.
-const CHAOS_STRIKE_CUES: OriginalBranch = { cues: branch("Chaos Strike", FEL_TELL, cue("Abilities\\Spells\\NightElf\\MoonGlaive\\MoonGlaiveCaster.mdx", "ahead", 1.0)), first: CHAOS_STRIKE_FIRST, last: CHAOS_STRIKE_LAST };
+const CHAOS_STRIKE_CUES: OriginalBranch = { cues: branch("Chaos Strike", FEL_TELL, timed(cue("Abilities\\Spells\\NightElf\\MoonGlaive\\MoonGlaiveCaster.mdx", "ahead", 1.0), "stand", 0.0)), first: CHAOS_STRIKE_FIRST, last: CHAOS_STRIKE_LAST };
 
 /** The original fighters' branch forms, by action and form; form 0 keeps the action's own cues. */
 export const ORIGINAL_BRANCH_CUES: { readonly [action: number]: { readonly [form: number]: OriginalBranch } } = {
   [SpecialAction.demonHunterFelRush]: {
     // A fel backflip: the possession streak trails his vault.
-    [VENGEFUL_RETREAT_FORM]: { cues: branch("Vengeful Retreat", FEL_TELL, cue("Abilities\\Spells\\Undead\\Possession\\PossessionMissile.mdx", "body", 1.0)), first: 1, last: VENGEFUL_RETREAT_MOVE_LAST },
+    [VENGEFUL_RETREAT_FORM]: { cues: branch("Vengeful Retreat", FEL_TELL, timed(cue("Abilities\\Spells\\Undead\\Possession\\PossessionMissile.mdx", "body", 1.0), "stand", 0.0)), first: 1, last: VENGEFUL_RETREAT_MOVE_LAST },
     [CHAOS_STRIKE_FORM]: CHAOS_STRIKE_CUES,
     [CHAOS_STRIKE_AIR_FORM]: CHAOS_STRIKE_CUES,
   },
   // Flame Crash: a fire streak through its hang and plunge, then a volcanic burst where it lands.
   [SpecialAction.demonHunterImmolate]: {
-    [FLAME_CRASH_FORM]: { cues: branch("Flame Crash", FEL_TELL, cue("Abilities\\Spells\\Other\\BreathOfFire\\BreathOfFireMissile.mdx", "body", 1.0)), first: 1, last: FLAME_CRASH_FRAMES },
-    [FLAME_CRASH_LANDING_FORM]: { cues: branch("Flame Crash landing", FEL_TELL, cue("Abilities\\Spells\\Other\\Volcano\\VolcanoDeath.mdx", "feet", f32(0.6))), first: 1, last: FLAME_CRASH_BURST_LAST },
+    [FLAME_CRASH_FORM]: { cues: branch("Flame Crash", FEL_TELL, timed(cue("Abilities\\Spells\\Other\\BreathOfFire\\BreathOfFireMissile.mdx", "body", 1.0), "birth", 0.0)), first: 1, last: FLAME_CRASH_FRAMES },
+    [FLAME_CRASH_LANDING_FORM]: { cues: branch("Flame Crash landing", FEL_TELL, timed(cue("Abilities\\Spells\\Other\\Volcano\\VolcanoDeath.mdx", "feet", f32(0.6)), "birth", 0.0)), first: 1, last: FLAME_CRASH_BURST_LAST },
   },
   [SpecialAction.demonHunterWingAscent]: {
     [DEMONHUNTER_GLIDE_SLASH_FORM]: { cues: branch("Glide slash", FEL_TELL, cue("Abilities\\Spells\\Undead\\Impale\\ImpaleHitTarget.mdx", "ahead", f32(0.8))), first: 1, last: 1 },
