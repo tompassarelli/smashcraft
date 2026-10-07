@@ -253,6 +253,8 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("out", e.status.out, a.status.out);
   add("respawn", e.status.respawn, a.status.respawn);
   add("shield", e.shield.raised, a.shield.raised);
+  add("shieldTiltX", e.shield.tiltX, a.shield.tiltX);
+  add("shieldTiltZ", e.shield.tiltZ, a.shield.tiltZ);
   add("shieldTriggerWasActive", e.shield.triggerWasActive, a.shield.triggerWasActive);
   add("shieldTriggerAge", e.shield.triggerAge, a.shield.triggerAge);
   add("shieldReflectFrames", e.shield.reflectFrames, a.shield.reflectFrames);

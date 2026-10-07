@@ -110,6 +110,8 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   const shield = target.shield;
   const sourceShield = source.shield;
   shield.raised = sourceShield.raised;
+  shield.tiltX = sourceShield.tiltX;
+  shield.tiltZ = sourceShield.tiltZ;
   shield.strength = sourceShield.strength;
   shield.energy = sourceShield.energy;
   shield.stun = sourceShield.stun;

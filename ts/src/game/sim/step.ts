@@ -74,6 +74,7 @@ import {
   shieldDrainShouldResume,
 } from "./shield";
 import { advanceShieldBreak, beginShieldBreak } from "./shieldBreak";
+import { advanceShieldTilt } from "./shieldTilt";
 import { applyAutomaticSmashDirectionalInfluence, applySmashDirectionalInfluence, discardPendingSmashDirectionalInfluence, renewSmashDirectionalInfluenceString } from "./smashDirectionalInfluence";
 import { surfaceCount, surfaceLeft, surfaceMoves, surfacePass, surfaceRight, surfaceShiftX, surfaceShiftZ, surfaceZ } from "./stage";
 import { inStageCannon, windPush } from "./stageHazards";
@@ -265,6 +266,7 @@ function advanceGuard(f: Fighter, input: Readonly<Controls>, forcedShield: boole
   else if (wantsShield && !forcedShield && shield.perfectActionFrames > 0) shield.perfectActionFrames--;
   else if (!wantsShield && shield.releaseLag <= 0) shield.perfectActionFrames = 0;
   shield.raised = wantsShield;
+  advanceShieldTilt(f, input);
   if (shieldCanStart && shield.raised) observeActionStart(GUARD_BITS);
   const fullPress = wantsShield && input.shieldPressed && input.shieldStrength >= 1;
   if (fullPress && !forcedShield && shield.triggerAge < SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES
