@@ -7,7 +7,7 @@
 // asks for it) replays its rows to the native checksums, the confirmed
 // fighter lines of both traces are equal, and each `#! expect` line in the
 // script holds on both sides. Scripts state what must happen in comments:
-//   #! expect CLIENT FRAME TEXT    a line for that fighter on that frame starts with TEXT
+//   #! expect CLIENT FRAME TEXT    a line for that fighter on that frame starts with TEXT (CLIENT a-d: slots 0-3, so c is a computer)
 //   #! absent CLIENT FROM-TO TEXT  no line for that fighter in those frames starts with TEXT
 //   #! scene CLIENT MODEL         that client's scene report had an effect whose model path contains MODEL in view
 //   #! chat TEXT                  the developer command that starts the match, when --chat gives none
@@ -90,13 +90,13 @@ function unmetSceneExpectations(reports: readonly (readonly string[] | undefined
 export function parseExpectations(script: string): readonly Expectation[] {
   const found: Expectation[] = [];
   script.split("\n").forEach((raw, index) => {
-    const match = /^\s*#!\s*(expect|absent)\s+([ab])\s+(\d+)(?:-(\d+))?\s+(.+?)\s*$/.exec(raw);
+    const match = /^\s*#!\s*(expect|absent)\s+([abcd])\s+(\d+)(?:-(\d+))?\s+(.+?)\s*$/.exec(raw);
     if (match === null) {
       if (/^\s*#!/.test(raw) && !/^\s*#!\s*(scene|chat)\s/.test(raw)) throw new Error(`pad script line ${index + 1}: a #! line is "#! expect CLIENT FRAME TEXT", "#! absent CLIENT FROM-TO TEXT", "#! scene CLIENT MODEL" or "#! chat TEXT"`);
       return;
     }
     const from = Number(match[3]);
-    found.push({ kind: match[1] === "expect" ? "expect" : "absent", slot: match[2] === "a" ? 0 : 1, from, to: match[4] === undefined ? from : Number(match[4]), text: match[5] ?? "", line: index + 1 });
+    found.push({ kind: match[1] === "expect" ? "expect" : "absent", slot: "abcd".indexOf(match[2] ?? "a"), from, to: match[4] === undefined ? from : Number(match[4]), text: match[5] ?? "", line: index + 1 });
   });
   return found;
 }
@@ -108,7 +108,7 @@ export function unmetExpectations(trace: Trace, expectations: readonly Expectati
   for (const expectation of expectations) {
     const hits = trace.events.filter((event) => event.slot === expectation.slot && event.frame >= expectation.from && event.frame <= expectation.to
       && event.text.replace(/^phase \d+ /, "").startsWith(expectation.text));
-    const where = `${side} script line ${expectation.line} (${expectation.kind} ${"ab"[expectation.slot]} ${expectation.from}${expectation.to === expectation.from ? "" : `-${expectation.to}`} ${expectation.text})`;
+    const where = `${side} script line ${expectation.line} (${expectation.kind} ${"abcd"[expectation.slot]} ${expectation.from}${expectation.to === expectation.from ? "" : `-${expectation.to}`} ${expectation.text})`;
     if (expectation.to > last) problems.push(`${where}: the trace ends at frame ${last}`);
     else if (expectation.kind === "expect" && hits.length === 0) {
       const near = trace.events.filter((event) => event.slot === expectation.slot && Math.abs(event.frame - expectation.from) <= 30).map((event) => `${event.frame} ${event.text}`);

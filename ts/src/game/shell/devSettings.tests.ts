@@ -3,7 +3,7 @@ import { Phase, createMatchState, fighterMask, selectCharacter, setParticipants 
 import { Character } from "../sim/codes";
 import { MAX_BATCH } from "../netcode/journal/transport";
 import { REPLAY_MAX_CORRECTION_FRAMES } from "../replay/limits";
-import { type DevSettings, applyDevCommand, prepareQuickMatch, quickMatchHero } from "./devSettings";
+import { type DevSettings, QUICK_CPU_STOCKS, applyDevCommand, prepareQuickCpu, prepareQuickMatch, quickMatchCpuLevel, quickMatchHero } from "./devSettings";
 
 const settings = (): DevSettings => ({ rollback: 24, delay: 0, batch: 2, rematchSeconds: 5 });
 
@@ -76,4 +76,20 @@ test("a hero quick match gives every present human the named fighter", () => {
   assertEquals(game.phase, Phase.match);
   assertEquals(game.characterChoices[0], Character.demonHunter);
   assertEquals(game.characterChoices[1], Character.demonHunter);
+});
+
+test("a CPU quick match puts a computer at the named level in the first free slot, over three stocks", () => {
+  assertEquals(quickMatchCpuLevel("-dev quick cpu 9"), 9);
+  assertEquals(quickMatchCpuLevel("-dev quick cpu 0"), undefined);
+  assertEquals(quickMatchCpuLevel("-dev quick cpu 10"), undefined);
+  assertEquals(quickMatchCpuLevel("-dev quick"), undefined);
+  const game = createMatchState();
+  setParticipants(game, 0b011, 0);
+  game.phase = Phase.characterMenu;
+  prepareQuickCpu(game, 1);
+  assertTrue(prepareQuickMatch(game, 0, undefined, QUICK_CPU_STOCKS));
+  assertEquals(game.phase, Phase.match);
+  assertEquals(game.computerMask, 0b100);
+  assertEquals(game.cpuLevels[2], 1);
+  assertEquals(game.stockCount, 3);
 });

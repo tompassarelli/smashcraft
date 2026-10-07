@@ -87,8 +87,8 @@ export function openSettingsScreen(s: ShellState, slot: ParticipantSlot): void {
 }
 
 /** `-dev quick`: every human's default fighter on the default stage, past both menus. */
-export function startQuickMatch(s: ShellState, stage = 0, scenario: Scenario = s.build.scenario, character?: Character): void {
-  if (prepareQuickMatch(s.game, stage, character)) {
+export function startQuickMatch(s: ShellState, stage = 0, scenario: Scenario = s.build.scenario, character?: Character, stocks = 1): void {
+  if (prepareQuickMatch(s.game, stage, character, stocks)) {
     for (const panel of views(s).settings) panel.close();
     startMatch(s, scenario);
   }

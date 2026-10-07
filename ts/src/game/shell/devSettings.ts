@@ -1,5 +1,5 @@
 // Developer chat commands ("-dev rb 12", "-dev delay 2", "-dev batch 6",
-// "-dev rematch 20", "-dev show", "-dev quick", "-dev quick hero NAME") arrive as synchronized
+// "-dev rematch 20", "-dev show", "-dev quick", "-dev quick hero NAME", "-dev quick cpu N") arrive as synchronized
 // player-chat events. A match reads the settings once at its start, so a
 // command typed during a match applies from the next match on every client;
 // "-dev quick" starts one at once. The receipts are read by the integrity
@@ -10,8 +10,9 @@ import { MAX_BATCH } from "../netcode/journal/transport";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import {
   type MatchState, Phase, createMatchState, firstHumanSlot, humanFighterActive, humanPresent, requestStageSelect, requestStart, returnToCharacters,
-  selectCharacter, selectStage, setStocks, computerActive, cycleSlotMode, setHitAreas, setPartnerDamage, setTraining, stepPartnerBehaviour,
+  selectCharacter, selectStage, setStocks, computerActive, cycleSlotMode, setCpuLevel, setHitAreas, setPartnerDamage, setTraining, stepPartnerBehaviour,
 } from "../match/rules";
+import { isCpuLevel } from "../match/cpuLevel";
 import { PartnerBehaviour } from "../match/trainingState";
 import { selectableStage } from "../menu/stageCatalog";
 import { REPLAY_MAX_CORRECTION_FRAMES } from "../replay/limits";
@@ -107,7 +108,7 @@ export const DESYNC_COMMAND = "-dev desync";
  * a one-stock match on the default stage, from either menu. False, with no match
  * started, when the menus could not start one.
  */
-export function prepareQuickMatch(game: MatchState, stage = 0, character?: Character): boolean {
+export function prepareQuickMatch(game: MatchState, stage = 0, character?: Character, stocks = 1): boolean {
   const first = firstHumanSlot(game);
   if (first === undefined || (game.phase !== Phase.characterMenu && game.phase !== Phase.stageMenu)) return false;
   returnToCharacters(game, first);
@@ -115,7 +116,7 @@ export function prepareQuickMatch(game: MatchState, stage = 0, character?: Chara
   for (const slot of PARTICIPANT_SLOTS) {
     if (humanFighterActive(game, slot) && humanPresent(game, slot)) selectCharacter(game, slot, character ?? defaults[slot]);
   }
-  setStocks(game, first, 1);
+  setStocks(game, first, stocks);
   if (!requestStageSelect(game, first)) return false;
   selectStage(game, first, stage);
   if (!requestStart(game, first)) return false;
@@ -136,4 +137,29 @@ export function prepareQuickTraining(game: MatchState): void {
   setHitAreas(game, first, true);
   setPartnerDamage(game, first, 40);
   while (game.trainer.behaviour !== PartnerBehaviour.shield) stepPartnerBehaviour(game, first, 1);
+}
+
+/**
+ * `-dev quick cpu N`: the quick match with a computer at level N (1-9) in the
+ * first free slot, over QUICK_CPU_STOCKS stocks so a knockout doesn't end
+ * it; the CPU levels' native check (#134) plays it.
+ */
+export const QUICK_CPU_COMMAND = "-dev quick cpu ";
+export const QUICK_CPU_STOCKS = 3;
+
+export function quickMatchCpuLevel(message: string): number | undefined {
+  if (!message.startsWith(QUICK_CPU_COMMAND)) return undefined;
+  const level = commandInteger(message.substring(QUICK_CPU_COMMAND.length));
+  return level !== undefined && isCpuLevel(level) ? level : undefined;
+}
+
+/** Fills the first free slot with a computer at `level`, from fighter selection; the quick match follows. */
+export function prepareQuickCpu(game: MatchState, level: number): void {
+  const first = firstHumanSlot(game);
+  if (first === undefined || game.phase !== Phase.characterMenu) return;
+  const computer = PARTICIPANT_SLOTS.find(slot => !humanFighterActive(game, slot) && !computerActive(game, slot));
+  if (computer === undefined) return;
+  // An empty slot becomes a human fighter, then a computer.
+  for (let step = 0; step < 2; step++) cycleSlotMode(game, first, computer);
+  setCpuLevel(game, first, computer, level);
 }

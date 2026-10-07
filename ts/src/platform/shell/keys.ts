@@ -10,7 +10,7 @@ import { type ParticipantSlot, isParticipantSlot } from "../../game/input/partic
 import { heldActions, keyDown, pressKey, releaseKey } from "../../game/input/playerKeys";
 import { startKeyDown, startKeyUp } from "../../game/match/controls";
 import { Phase, cancelRematchCountdown, characterFor, firstHumanSlot, humanActive, leaveMatch, recallCharacter, selectCharacter } from "../../game/match/rules";
-import { DESYNC_COMMAND, QUICK_TRAINING_COMMAND, applyDevCommand, prepareQuickTraining, quickMatchHero, quickMatchStage } from "../../game/shell/devSettings";
+import { DESYNC_COMMAND, QUICK_CPU_STOCKS, QUICK_TRAINING_COMMAND, applyDevCommand, prepareQuickCpu, prepareQuickTraining, quickMatchCpuLevel, quickMatchHero, quickMatchStage } from "../../game/shell/devSettings";
 import { fighterName } from "../../game/sim/heroes/registry";
 import { keepMomentEnd } from "../../game/replay/moment";
 import { endReplaySegment } from "./replays";
@@ -211,6 +211,7 @@ export function onDevCommand(s: ShellState): void {
   let receipt: string | undefined;
   const quickStage = quickMatchStage(message);
   const quickHero = quickMatchHero(message);
+  const quickCpu = quickMatchCpuLevel(message);
   // Session setup (sessionSetup.ts) changes the menus only for its own spellings.
   const setup = applySetupCommand(s.game, GetPlayerId(GetTriggerPlayer()), message);
   if (message === QUICK_TRAINING_COMMAND) {
@@ -220,6 +221,10 @@ export function onDevCommand(s: ShellState): void {
   } else if (message === "-dev camera") {
     receipt = "dev: camera match";
     startQuickMatch(s, 0, "camera");
+  } else if (quickCpu !== undefined) {
+    receipt = `dev: quick match cpu ${quickCpu}`;
+    prepareQuickCpu(s.game, quickCpu);
+    startQuickMatch(s, 0, s.build.scenario, undefined, QUICK_CPU_STOCKS);
   } else if (quickStage !== undefined) {
     receipt = "dev: quick match";
     startQuickMatch(s, quickStage);
