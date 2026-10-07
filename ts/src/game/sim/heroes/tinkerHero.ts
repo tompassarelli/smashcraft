@@ -12,7 +12,7 @@ export const TINKER_HERO: HeroDefinition = {
   passive: { name: "Engineering Upgrade", description: "Gadget hits charge up to two upgrades; the next claw hit spends them for extra damage." },
   jab: { name: "Claw-Pack", description: "Two short claw taps and a wrench shove." },
   ultimate: { name: "Robo-Goblin Overdrive", description: "An extended armored hammer-tank advance." },
-  complete: false, moves: TINKER_MOVES, specials: TINKER_SPECIALS, gameplan: TINKER_GAMEPLAN,
+  complete: true, moves: TINKER_MOVES, specials: TINKER_SPECIALS, gameplan: TINKER_GAMEPLAN,
   presentation: {
     model: "units\\creeps\\HeroTinker\\HeroTinker.mdl", objectId: 0x6d667469,
     portrait: "ReplaceableTextures\\CommandButtons\\BTNHeroTinker.blp",
