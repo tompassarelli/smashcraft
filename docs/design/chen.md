@@ -82,7 +82,8 @@ follow-up is promised as guaranteed. DI, shield, jump and tech choices remain
 ordinary simulation inputs. Throws use the common hold, release, escape and
 one-pummel rules.
 
-The CPU advances behind Haze, checks with tilt/fire, jumps with kicks, uses
+The CPU favors running into short checks and jumping with kicks, uses Haze
+occasionally while approaching, checks with tilt/fire, uses
 Earth against an expected strike, branches its stance when a strike reaches,
 and reserves Storm Rise for recovery. Stock loss and rematch clear the
 shared mana, passive, projectiles and special state.
