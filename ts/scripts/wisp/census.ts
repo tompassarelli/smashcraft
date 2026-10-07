@@ -129,12 +129,17 @@ function startTraining(clients: Lockstep, measure: PerfMeasure, fighter: Charact
     game.characterReadiness[1] = true;
     game.training = true;
     game.trainer.behaviour = PartnerBehaviour.stand;
-    game.stageChoice = stage;
   }
   clients.press(0, 0x59);
   until("stage selection", () => shellOf(clients).game.phase === Phase.stageMenu);
+  for (const client of clients.clients) {
+    const shell = client.natives.__smashcraftShell;
+    if (!isShell(shell)) throw new Error(`p${client.slot} has no shell`);
+    shell.game.stageChoice = stage;
+  }
   clients.press(0, 0x59);
   until("the match", () => shellOf(clients).game.phase === Phase.match);
+  if (shellOf(clients).game.stageChoice !== stage) throw new Error(`the census did not start on stage ${stage}`);
   measure.begin();
 }
 
@@ -206,4 +211,3 @@ export function playStageCensus(clients: Lockstep, measure: PerfMeasure, stage: 
   print(`census\tstage\t${label}\t${first}\t${clients.frame}\t${first}\t${clients.frame}`);
   return problemsOf(clients);
 }
-
