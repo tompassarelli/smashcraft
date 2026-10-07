@@ -809,7 +809,7 @@ release ordering is still unverified.
 Grounded directional entry still assigns the authored initial dash speed of
 1.9 Melee units/frame (11.4 world units/frame). Each following held-direction
 tick now updates velocity instead of holding that value for the entire
-provisional ten-tick phase. Velocity above the fighter's run target brakes by
+authored thirteen-tick phase. Velocity above the fighter's run target brakes by
 that fighter's traction. Velocity below the target accelerates by the
 fighter-owned ground acceleration multiplier plus base, then clamps at the run
 target and ground speed cap. The original roster currently shares authored
@@ -827,8 +827,9 @@ ordering and the recorded overspeed-braking branch. The recording does not
 verify under-target acceleration, run transitions, turning, analog-stick
 scaling or the disc revision.
 
-Dash-window duration, early opposite-direction behavior, neutral handling and
-run-turn braking remain explicit provisional action rules. The ten-tick phase
+The authored dash window and two-sample stick reversal policy are specified
+in [gameplay design](gameplay-design.md#dash-dancing). Run-turn braking remains
+an explicit authored action rule. The authored phase
 no longer holds dash speed. The retail event facts in
 smashcraft:docs/smash-melee-reference/retail-ground-movement-events.json now
 contradict using that single cutoff for all transitions: Dash enables Run at
@@ -854,7 +855,7 @@ frame-9 command until velocity along its entry-facing direction is at most
 flips facing, then the remaining animation frames run before the action returns
 to Run. RunBrake's command check does not make forward input enter Run;
 opposite input can enter TurnRun at RunBrake's current animation frame. Original
-Smashcraft fighters keep authored timing (currently 11/9/20/15); this is not
+Smashcraft fighters keep authored timing (currently 14/9/20/15); this is not
 asserted as retail parity. NTSC RunBrake ends when its animation clip ends or
 its 30-frame fighter countdown expires, whichever comes first. The recorded
 clip lengths are 18 frames for Fox/Falco and 28 for Captain Falcon. TurnRun

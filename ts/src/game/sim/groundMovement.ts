@@ -13,6 +13,8 @@ const RUN_ACCEL_TAPER_GAIN = 0.4000000059604645;
 const RUN_DASH_TURN_FRICTION_MULTIPLIER = 1.0;
 // TurnRun's velocity test is encoded in Melee units; world velocity is scaled.
 const TURN_RUN_ZERO_VELOCITY_THRESHOLD = melee(0.009999999776482582);
+const DASH_STICK_THRESHOLD = 0.800000011920929;
+const DASH_FLICK_SAMPLES = 2;
 /** NTSC common +0x4c; only the Dash-to-Guard branch uses this early/late split. */
 export const DASH_GUARD_EARLY_FRAMES = 20;
 
@@ -126,9 +128,21 @@ function taperedAcceleration(f: Fighter, multiplier: number, base: number, direc
 }
 
 /** One grounded steering frame; true when it starts a dash, whose entry velocity applies after this frame's displacement. */
-export function advanceGroundMovement(f: Fighter, direction: number, walking: boolean): boolean {
+export function advanceGroundMovement(f: Fighter, direction: number, walking: boolean, horizontalStick = direction): boolean {
   const { ground, motion } = f;
   const physics = f.tuning.physics;
+  const changingDirection = direction !== 0 && direction !== ground.dashDirection;
+  const freshFlick = motion.stickSideAge < DASH_FLICK_SAMPLES;
+  const strongStick = Math.abs(horizontalStick) >= DASH_STICK_THRESHOLD;
+  if (!walking && changingDirection && ground.action !== GroundAction.run && ground.action !== GroundAction.turnRun && ground.action !== GroundAction.runBrake) {
+    if (ground.action === GroundAction.dash && motion.stickSideAge === 0 && !strongStick) {
+      // The first sample crossing the stick centre can precede its full flick.
+      // Keep the dash clock and facing until the second sample decides it.
+      direction = 0;
+    } else if (!strongStick || (!freshFlick && direction !== f.facing)) {
+      walking = true;
+    }
+  }
   if (walking) {
     clearDash(f);
     if (direction !== 0) {
@@ -167,7 +181,9 @@ export function advanceGroundMovement(f: Fighter, direction: number, walking: bo
     return false;
   }
   if (ground.dashFrame === 0 || direction !== ground.dashDirection) {
-    if (ground.action === GroundAction.run || ground.action === GroundAction.turnRun) {
+    const expiredDash = ground.action === GroundAction.dash && ground.actionFrame >= f.tuning.ground.dashRunEnableFrame;
+    const secondSampleDashback = expiredDash && ground.actionFrame === f.tuning.ground.dashRunEnableFrame && motion.stickSideAge === 1;
+    if (ground.action === GroundAction.run || ground.action === GroundAction.turnRun || (expiredDash && !secondSampleDashback)) {
       // Run turning uses the ordinary dash acceleration toward the new target.
       // The retail command at frame 9 delays facing until the velocity has
       // crossed zero; the timing is per actor.

@@ -43,7 +43,7 @@ test("an initial dash's entry transitions toward the actor's run speed", () => {
       advanceSolo(fighter, 0, input, 0.0);
       assertNear(fighter.motion.vx, f32(11.4) * direction, f32(0.001));
       let expectedSpeed = f32(11.4);
-      for (let tick = 2; tick <= 10; tick++) {
+      for (let tick = 2; tick <= INITIAL_DASH_FRAMES; tick++) {
         advanceSolo(fighter, 0, input, 0.0);
         expectedSpeed = character === Character.archer ? min(f32(13.2), expectedSpeed + f32(0.72)) : max(9.0, expectedSpeed - GROUND_TRACTION);
         assertNear(fighter.motion.vx, expectedSpeed * direction, f32(0.001));
@@ -246,7 +246,7 @@ test("a run turn uses the character's dash acceleration before changing facing",
     for (const firstDirection of [-1, 1]) {
       const fighter = createFighter(character, 0.0, firstDirection);
       const input = controls({ direction: firstDirection });
-      for (let tick = 1; tick <= 11; tick++) advanceSolo(fighter, 0, input, 0.0);
+      for (let tick = 1; tick <= fighter.tuning.ground.dashRunEnableFrame; tick++) advanceSolo(fighter, 0, input, 0.0);
       input.direction = -firstDirection;
       const speed = character === Character.archer ? f32(13.2) : 9.0;
       for (let tick = 1; tick <= 4; tick++) {
@@ -267,7 +267,7 @@ test("an initial dash's expiration prevents a late instant reversal", () => {
   for (const character of [Character.archer, Character.rifleman]) {
     const fighter = createFighter(character, 0.0, 1);
     const input = controls({ direction: 1 });
-    for (let tick = 1; tick <= 11; tick++) advanceSolo(fighter, 0, input, 0.0);
+    for (let tick = 1; tick <= fighter.tuning.ground.dashRunEnableFrame; tick++) advanceSolo(fighter, 0, input, 0.0);
     assertEquals(fighter.ground.action, GroundAction.run);
     input.direction = -1;
     advanceSolo(fighter, 0, input, 0.0);
@@ -278,6 +278,9 @@ test("an initial dash's expiration prevents a late instant reversal", () => {
 
 test("under-target ground velocity uses the actor's acceleration and run cap", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
+  // Keep this velocity fixture's run-entry timing independent of the roster's
+  // dash-dance window; its expected numbers include three tapered run ticks.
+  fighter.tuning.ground = { ...fighter.tuning.ground, dashRunEnableFrame: 11 };
   const input = controls({ direction: 1 });
   fighter.motion.vx = 6.0;
   fighter.ground.dashFrame = 1;

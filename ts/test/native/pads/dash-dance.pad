@@ -1,0 +1,37 @@
+# #175: quick reversals in both facings, two-sample stick travel, late turn and walking.
+# The helper reads analog values as its quantized journal rows; compare those
+# exact rows with headless, including the ground-action and facing receipts.
+#! chat -dev quick
+60 a stick 1 0
+60 b stick -1 0
+73 a stick -0.79 0
+73 b stick 0.79 0
+74 a stick -0.81 0
+74 b stick 0.81 0
+80 a stick 0 0
+80 b stick 0 0
+# Full-strength digital-equivalent reversals, once in each direction.
+120 a stick 1 0
+125 a stick -1 0
+130 a stick 1 0
+135 a stick 0 0
+# Fourteen held frames have entered Run: use its ordinary TurnRun.
+180 a stick -1 0
+194 a stick 1 0
+195 a stick 0 0
+# Explicit walk takes priority even at full stick.
+250 a press LB
+250 a stick -1 0
+255 a stick 0 0
+256 a release LB
+#! expect a 74 ground action 1 facing -1 dash-frame 1
+#! expect b 74 ground action 1 facing 1 dash-frame 1
+#! absent a 73-73 ground action 1 facing -1
+#! absent b 73-73 ground action 1 facing 1
+#! expect a 125 ground action 1 facing -1 dash-frame 1
+#! expect a 130 ground action 1 facing 1 dash-frame 1
+#! expect a 194 ground action 3 facing -1
+#! absent a 250-255 ground action 1
+# Save the completed timeline for checksum replay and parity.
+700 a press VIEW
+770 a release VIEW
