@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { parseRepro } from "wisp/src/runtime/repro";
@@ -7,6 +8,7 @@ import { install, start } from "../src/platform/nativeDriverMain";
 import { shell } from "../src/platform/shell/state";
 import { confirmedChecksum } from "../src/platform/shell/diagnostics";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
+import { TRACE_FILE, parseExpectations, parseTrace, unmetExpectations } from "../scripts/integrity/padParity";
 import { value } from "./rematch/playableMatch";
 
 const runtime = installHeadless(SMASHCRAFT_HEADLESS);
@@ -61,5 +63,24 @@ test("native driver sets up pad rows, holds the whole callback, and stepped and 
   command("resume 2");
   clients.frames(5);
   for (const client of clients.clients) expect(value(client, () => shell().runtime.simulationFrame)).toBe(2);
+  expect(clients.firstDivergence()).toBeUndefined();
+});
+
+test("native driver retains the complete 460-frame pad trace and its normal expectations", () => {
+  const clients = runtime.clients({ install, start }, [0, 1]);
+  clients.start();
+  clients.frames(3);
+  const script = readFileSync(new URL("./native/pads/archer-neutral.pad", import.meta.url), "utf8");
+  clients.everywhere(() => nativeDriverCommand(script));
+  clients.everywhere(() => nativeDriverCommand("resume 460"));
+  clients.frames(490);
+  clients.everywhere(() => nativeDriverCommand("capture"));
+  for (const client of clients.clients) {
+    const lines = client.files.get(TRACE_FILE) ?? [];
+    expect(lines).toContain("dropped 0");
+    expect(unmetExpectations(parseTrace(lines), parseExpectations(script), "native-driver")).toEqual([]);
+    expect(value(client, () => shell().runtime.simulationFrame)).toBe(460);
+    expect(client.errors).toEqual([]);
+  }
   expect(clients.firstDivergence()).toBeUndefined();
 });

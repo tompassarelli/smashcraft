@@ -11,7 +11,8 @@ import { reproFile } from "wisp/src/runtime/repro";
 import { installNativeDriver, startNativeDriver, serviceNativeDriver, publishNativeDriverStatus } from "wisp/src/platform/nativeDriver";
 import { squareRootFloat32 } from "wisp/src/sim/binary32";
 import { f32 } from "wisp/src/sim/f32";
-import { confirmedChecksum } from "./shell/diagnostics";
+import { finishInputTrace } from "./shell/trace";
+import { confirmedChecksum, startInputTrace } from "./shell/diagnostics";
 import { pauseMatchPresentation } from "./shell/view";
 import { applyDeveloperCommand, startDown } from "./shell/keys";
 import { shell, type ShellState, localSlot } from "./shell/state";
@@ -161,7 +162,7 @@ export function nativeDriverCommand(text: string): void {
     publish(s);
     return;
   }
-  if (command === "capture") { driver.paused = true; driver.target = undefined; saveFrame(s); publish(s); return; }
+  if (command === "capture") { driver.paused = true; driver.target = undefined; saveFrame(s); finishInputTrace(s.trace); publish(s); return; }
   if (command === "pause") { driver.paused = true; driver.target = undefined; publish(s); return; }
   if (command === "resume" || command.startsWith("resume ") || command.startsWith("step ")) {
     if (s.session.paused) { s.session.paused = false; pauseMatchPresentation(s, false); }
@@ -178,6 +179,7 @@ export function nativeDriverCommand(text: string): void {
   applyDeveloperCommand(s, 0, script.setup);
   if (s.game.phase !== Phase.match || s.runtime.simulationFrame !== 0) throw new Error("native driver: pad setup did not start a new match");
   globalThis.__smashcraftNativeDriver = { edges: script.edges, next: 0, captures: [], paused: true, target: undefined, pads: PARTICIPANT_SLOTS.map(() => neutralPad()) };
+  startInputTrace(s);
   publish(s);
 }
 

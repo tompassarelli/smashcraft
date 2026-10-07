@@ -3,6 +3,7 @@
 // Numerical data only; no LGPL library helper implementation is incorporated.
 import { f32 } from "wisp/src/sim/f32";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "../sim/tuning";
+import { heroBody } from "../sim/heroes/heroBodies";
 
 type RollKind = "roll" | "faceUpGetup" | "faceDownGetup" | "tech";
 type RollDirection = "forward" | "back";
@@ -171,11 +172,13 @@ const ROLL_TRAVEL: readonly RollCurves[] = [
 /**
  * World units a roll travels on a one-based frame. Frames past the data don't
  * move, which ends a forty-frame tech roll on the dataset's last frame, 39.
- * Characters without observed data have no travel here.
+ * Heroes use Archer's curve scaled by their body's run multiplier.
  */
 export function rollTravel(character: number, kind: RollKind, direction: RollDirection, frame: number): number {
-  const sample = ROLL_TRAVEL[character]?.[kind][direction][frame - 1];
-  return sample === undefined ? 0.0 : f32(sample * WORLD_UNITS_PER_MELEE_UNIT);
+  const curves = ROLL_TRAVEL[character] ?? ROLL_TRAVEL[0];
+  const sample = curves?.[kind][direction][frame - 1];
+  const scale = heroBody(character)?.run ?? 1.0;
+  return sample === undefined ? 0.0 : f32(f32(sample * WORLD_UNITS_PER_MELEE_UNIT) * scale);
 }
 
 /** The frame a forward roll turns the fighter around, or undefined to turn when it ends. */

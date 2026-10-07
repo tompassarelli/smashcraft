@@ -3,7 +3,7 @@ import { FIGHTER_OBJECTS } from "../objectData";
 import { originalClipCount } from "../assets/fighterOriginalClipInfo";
 import { AttackStyle, Character, GrabAction, SpecialAction } from "../sim/codes";
 import { STOCK_FALLBACK_CLIP } from "../sim/heroes/hero";
-import { HERO_ROSTER } from "../sim/heroes/registry";
+import { HERO_ROSTER, SELECTABLE_CHARACTERS, fighterName } from "../sim/heroes/registry";
 import { WARDEN_HERO } from "../sim/heroes/wardenHero";
 import * as dh from "./demonHunterAssetInfo";
 import * as assets from "./fighterAssetInfo";
@@ -15,6 +15,28 @@ import { RECOVERY_CLIPS } from "./recoveryClipInfo";
 import { type Fighter, createFighter } from "../sim/fighter";
 import { neutralControls } from "../sim/roster";
 import { soloWorld } from "../sim/testWorld";
+
+for (const character of SELECTABLE_CHARACTERS) {
+  const forward = clipFor(character, "rollForward");
+  const backward = clipFor(character, "rollBackward");
+  test(`${fighterName(character)} rolls with Roll Forward #${forward.index} / Roll Backward #${backward.index}`, () => {
+    for (const facing of [-1, 1]) {
+      for (const direction of [-1, 1]) {
+        const fighter = createFighter(character, 0.0, facing);
+        fighter.dodge.groundFrame = 16;
+        fighter.dodge.groundEntryFacing = facing;
+        fighter.dodge.groundDirection = direction;
+        const pose = createFighterPose();
+        advanceFighterPose(pose, fighter, soloWorld(fighter), neutralControls(), false, false, false, false);
+        const roll = direction === facing ? forward : backward;
+        assertEquals(pose.clipIndex, roll.index);
+        assertTrue(roll.index !== clipFor(character, "getUp").index);
+        assertTrue(roll.index !== clipFor(character, "idle").index);
+        assertTrue(roll.index >= 0 && roll.index < originalClipCount(character));
+      }
+    }
+  });
+}
 
 test("the original fighters' tables play their packaged clips", () => {
   assertEquals(clipFor(Character.archer, "jab").index, assets.ARCHER_JAB_INDEX);
