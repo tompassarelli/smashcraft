@@ -629,6 +629,9 @@ function groundDodgeClip(f: Readonly<Fighter>): HeroClip {
 }
 
 function fighterSpecialClip(f: Readonly<Fighter>): HeroClip {
+  if (f.character === Character.chen && f.special.action === SpecialAction.heroDown && f.special.form >= 2 * FOLLOW_UP_FORM) {
+    return clips.clipFor(f.character, f.motion.grounded ? "sideSpecialFollowUp" : "sideSpecialFollowUpAir");
+  }
   const aerialShot = f.special.duration === RIFLEMAN_BLASTER_AIR_FRAMES;
   return clips.specialClip(f.character, f.special.action, f.motion.grounded, aerialShot, playsFollowUpPose(f));
 }
@@ -652,7 +655,7 @@ function locomotionClipIndex(motion: IllidanLocomotion): number {
   switch (motion) {
     case IllidanLocomotion.walk: return dh.DEMON_HUNTER_WALK_FORWARD_INDEX;
     case IllidanLocomotion.run: return dh.DEMON_HUNTER_RUN_FORWARD_INDEX;
-    case IllidanLocomotion.dash: return dh.DEMON_HUNTER_DASH_START_INDEX;
+    case IllidanLocomotion.dash: return dh.DEMON_HUNTER_INITIAL_DASH_BURST_INDEX;
     case IllidanLocomotion.turn: return dh.DEMON_HUNTER_TURNAROUND_INDEX;
     case IllidanLocomotion.stop: return dh.DEMON_HUNTER_STOP_INDEX;
     case IllidanLocomotion.crouch: return dh.DEMON_HUNTER_CROUCH_INDEX;
@@ -673,7 +676,7 @@ function tableLocomotionRate(clip: HeroClip, motion: IllidanLocomotion): number 
 /** Walking and running follow ground speed, never slower than a fifth of the clip. */
 function locomotionRate(f: Readonly<Fighter>, motion: IllidanLocomotion): number {
   switch (motion) {
-    case IllidanLocomotion.dash: return clipRate(dh.DEMON_HUNTER_DASH_START_SECONDS, INITIAL_DASH_FRAMES);
+    case IllidanLocomotion.dash: return clipRate(dh.DEMON_HUNTER_INITIAL_DASH_BURST_SECONDS, INITIAL_DASH_FRAMES);
     case IllidanLocomotion.turn: return clipRate(dh.DEMON_HUNTER_TURNAROUND_SECONDS, TRANSITION_FRAMES);
     case IllidanLocomotion.stop: return clipRate(dh.DEMON_HUNTER_STOP_SECONDS, TRANSITION_FRAMES);
     case IllidanLocomotion.crouch: return clipRate(dh.DEMON_HUNTER_CROUCH_SECONDS, CROUCH_CLIP_FRAMES);

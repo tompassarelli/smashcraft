@@ -14,6 +14,7 @@ export const WARDEN_GAMEPLAN: FighterGameplan = {
   // Just past her medium reach: a step or a lunge from striking.
   range: { near: h(f32(0.7)), far: h(f32(1.4)) },
   spacing: [
+    { move: GameplanSpecial.down, near: h(f32(0.65)), far: h(f32(1.3)) },
     { move: AttackStyle.forwardTilt, near: h(f32(0.4)), far: h(f32(1.0)) },
     // Pursuit Lunge travels 1.0H into a 0.8H slash.
     { move: GameplanSpecial.side, near: h(f32(0.9)), far: h(f32(1.8)) },

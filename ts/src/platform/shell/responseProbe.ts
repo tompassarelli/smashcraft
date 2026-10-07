@@ -93,6 +93,8 @@ export interface ResponseProbe {
   transportReceived: number;
   transportUnmatched: number;
   transportDropped: number;
+  waitingCallbacks: number;
+  waitingOwnCallbacks: number;
   readonly transport: TransportStamp[];
   readonly transportOrder: number[];
 }
@@ -124,6 +126,7 @@ export function createResponseProbe(build: string): ResponseProbe {
     service: Array.from({ length: ROW_LIMIT }, () => serviceRow()),
     integrity: [], integrityDropped: 0, serviceSerial: 0,
     transportSent: 0, transportReceived: 0, transportUnmatched: 0, transportDropped: 0,
+    waitingCallbacks: 0, waitingOwnCallbacks: 0,
     transport: Array.from({ length: TRANSPORT_LIMIT }, () => vacantStamp()), transportOrder: [],
   };
 }
@@ -169,6 +172,8 @@ export function startProbe(probe: ResponseProbe, edgeStamps: boolean): void {
   probe.transportReceived = 0;
   probe.transportUnmatched = 0;
   probe.transportDropped = 0;
+  probe.waitingCallbacks = 0;
+  probe.waitingOwnCallbacks = 0;
   probe.transportOrder.length = 0;
   for (const stamp of probe.transport) Object.assign(stamp, vacantStamp());
   probe.run++;
@@ -327,6 +332,13 @@ export function probeFighterPosition(probe: ResponseProbe | undefined, slot: Par
   row.positionZ[slot] = z;
 }
 
+/** The same waiting mask the HUD renders, while the existing probe records. */
+export function probeWaiting(probe: ResponseProbe | undefined, waiting: number, slot: number): void {
+  if (!probeRecording(probe) || currentRow(probe) === undefined || waiting === 0) return;
+  probe.waitingCallbacks++;
+  if ((waiting & (1 << slot)) !== 0) probe.waitingOwnCallbacks++;
+}
+
 /** Native fields are sampled before this callback requests its next camera position. */
 export function probeCamera(probe: ResponseProbe | undefined, simulated: Readonly<MatchCamera>, projected: Readonly<MatchCamera>, originX: number, floor: number): void {
   const row = currentRow(probe);
@@ -374,6 +386,7 @@ export function exportProbePage(probe: ResponseProbe): void {
     `RS v=3 build=${probe.build} local=${slot} run=${probe.run} page=${probe.page} rows=${probe.rows} mode=${probe.edgeStamps ? "edge-stamp" : "clean"} edge_pairs=${probe.edgePairs} edge_limit=${EDGE_PAIR_LIMIT} edge_dropped=${probe.edgeDropped}`,
     `integrity retained=${probe.integrity.length} dropped=${probe.integrityDropped}`,
     `counts poll=${probe.polls} capture_attempt=${probe.captures} advance=${probe.advances} present=${probe.presentations}`,
+    `waiting callbacks=${probe.waitingCallbacks} own_callbacks=${probe.waitingOwnCallbacks}`,
     `transport sent_frames=${probe.transportSent} received_frames=${probe.transportReceived} unmatched_receipts=${probe.transportUnmatched} dropped_from_export=${probe.transportDropped} retained=${probe.transportOrder.length}`,
     "clock=native-game-ms not-host-wall; row=zero-based-service; marker_x=0.04+(row%32)*0.0032 y=0.595-((row/32)%4)*0.01",
     "A row entry_ms poll_ms capture_ms advance_ms present_ms frame_before frame_after F_before F_after K_before target",

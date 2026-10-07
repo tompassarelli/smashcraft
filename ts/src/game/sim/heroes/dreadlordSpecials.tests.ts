@@ -172,7 +172,7 @@ test("Vampiric Pounce grabs through a shield, bites 16 frames after the catch an
   for (let f = caught + 1; f < caught + 16; f++) frame(world);
   assertEquals(victim.status.damage, 0.0);
   frame(world);
-  assertEquals(victim.status.damage, 11.765000343322754);
+  assertEquals(victim.status.damage, 10.000250816345215);
   assertEquals(owner.grab.target, undefined);
   assertTrue(victim.launch.throwHitstun);
   assertGreaterThan(victim.launch.knockbackX, 0.0);
@@ -217,7 +217,7 @@ test("air Vampiric Pounce bites and heals once per airtime and ends helpless", (
   for(let f=2;f<=17;f++){victim.motion.z=owner.motion.z; victim.motion.vz=0.0; frame(world);}
   assertGreaterThan(owner.special.grabFrame,0);
   for (let f = 0; f < 120 && owner.special.action !== SpecialAction.none; f++) frame(world);
-  assertEquals(victim.status.damage, 11.765000343322754);
+  assertEquals(victim.status.damage, 10.000250816345215);
   assertEquals(owner.status.damage,26.0);
   assertTrue(owner.special.fall);
   frame(world, side);
@@ -241,20 +241,20 @@ function ascend(points: number, stickSide: number): { rise: number; across: numb
   return { rise: top - startZ, across: owner.motion.x - startX, owner };
 }
 
-test("Bat Ascension rises 2.0H and steers up to 0.8H; below 15 mana the free form rises 1.4H and steers 0.3H", () => {
+test("Bat Ascension rises 2.8H and steers up to 1.0H; below 15 mana the free form rises 2.0H and steers 0.6H", () => {
   const full = ascend(100, 1);
-  assertLessThan(Math.abs(full.rise - f32(2.0) * H), f32(0.12) * H);
-  assertLessThan(Math.abs(full.across - f32(0.8) * H), f32(0.1) * H);
+  assertLessThan(Math.abs(full.rise - f32(2.8) * H), f32(0.12) * H);
+  assertLessThan(Math.abs(full.across - f32(1.0) * H), f32(0.1) * H);
   assertTrue(full.owner.special.fall);
   assertEquals(full.owner.mana.points, 85);
   const straight = ascend(100, 0);
   assertLessThan(Math.abs(straight.across), 1.0);
   const back = ascend(100, -1);
-  assertLessThan(back.across, -f32(0.7) * H);
+  assertLessThan(back.across, -f32(0.9) * H);
   const free = ascend(10, 1);
   assertEquals(free.owner.mana.points, 10);
-  assertLessThan(Math.abs(free.rise - f32(1.4) * H), f32(0.12) * H);
-  assertLessThan(Math.abs(free.across - f32(0.3) * H), f32(0.1) * H);
+  assertLessThan(Math.abs(free.rise - f32(2.0) * H), f32(0.12) * H);
+  assertLessThan(Math.abs(free.across - f32(0.6) * H), f32(0.1) * H);
   assertFalse(free.owner.status.invincible > 0);
 });
 
@@ -273,7 +273,7 @@ test("replaying Vampiric Pounce from a restored snapshot reproduces both fighter
   const endVictim = createFighter(Character.archer, 0.0, 1);
   copyFighterState(endOwner, owner, 3);
   copyFighterState(endVictim, victim, 3);
-  assertEquals(victim.status.damage, 11.765000343322754);
+  assertEquals(victim.status.damage, 10.000250816345215);
   copyFighterState(owner, savedOwner, 3);
   copyFighterState(victim, savedVictim, 3);
   run();

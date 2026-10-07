@@ -225,7 +225,7 @@ test("replaying a hero special from a restored snapshot reproduces every fighter
 });
 
 test("incomplete heroes are registered but not selectable", () => {
-  assertEquals(HERO_ROSTER.length, 10);
+  assertEquals(HERO_ROSTER.length, Object.keys(Character).length - 3);
   assertEquals(SELECTABLE_CHARACTERS.join(","), HERO_ROSTER.filter(h => h.complete).reduce((list, h) => `${list},${h.character}`, "0,1,2"));
   for (const definition of HERO_ROSTER) {
     if (definition.complete) continue;

@@ -1,6 +1,6 @@
 // Uther's four specials through the production special, contact, projectile
 // and mana functions (smashcraft:docs/design/uther.md).
-import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
+import { assertEquals, assertNear, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { copyFighterState } from "../../replay/fighterState";
 import { firstFighterDifference } from "../../replay/difference";
@@ -29,7 +29,7 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), strike?: A
   for (let slot = 0; slot < 2; slot++) startFighterSpecial(world.fighters[slot]!, 0, 0, inputs[slot] ?? controls());
   beginFighterAttack(world, 1, strike, false);
   resolveAttacks(world);
-  advanceSpecials(world, 0, 0);
+  advanceSpecials(world, 0, 0, inputs);
   updateProjectiles(world);
   finishDamageContacts(world);
   for (let slot = 0; slot < 2; slot++) {
@@ -86,14 +86,24 @@ test("Hammer of Justice bonks once, launches upward and holds both fighters thre
     for (let f = 2; f <= 13; f++) frame(world);
     assertEquals(target.status.damage, 0.0);
     for (let f = 14; f <= 16 && target.status.damage === 0.0; f++) frame(world);
-    assertEquals(target.status.damage, 13.0);
+    assertEquals(target.status.damage, f32(13.0 * f32(0.85)));
     assertEquals(owner.launch.hitlag, ordinaryHitlagFrames(13.0) + 3);
     assertEquals(target.launch.hitlag, ordinaryHitlagFrames(13.0) + 3);
     assertGreaterThan(target.launch.knockbackZ, Math.abs(target.launch.knockbackX));
     for (let f = 0; f < 60; f++) frame(world);
-    assertEquals(target.status.damage, 13.0);
+    assertEquals(target.status.damage, f32(13.0 * f32(0.85)));
     assertEquals(owner.projectiles.filter((p) => p.life > 0).length, 0);
   }
+});
+
+test("Uther's balanced hammer normal keeps its original hitlag while dealing 85 percent damage", () => {
+  const { world, owner, target } = pair(100.0);
+  beginFighterAttack(world, 0, AttackStyle.forwardTilt, false);
+  owner.attack.frame = 11;
+  resolveAttacks(world);
+  assertEquals(target.status.damage, f32(12.0 * f32(0.85)));
+  assertEquals(owner.launch.hitlag, ordinaryHitlagFrames(12.0) + 3);
+  assertEquals(target.launch.hitlag, ordinaryHitlagFrames(12.0) + 3);
 });
 
 test("Holy Radiance advances with the hammer, hits once up close and sends weaker light beyond it", () => {
@@ -108,11 +118,11 @@ test("Holy Radiance advances with the hammer, hits once up close and sends weake
   const close = pair(100.0);
   frame(close.world, side);
   for (let f = 2; f <= 75; f++) frame(close.world);
-  assertEquals(close.target.status.damage, 14.0);
+  assertEquals(close.target.status.damage, f32(14.0 * f32(0.85)));
   const ranged = pair(400.0);
   frame(ranged.world, side);
   for (let f = 2; f <= 65; f++) frame(ranged.world);
-  assertEquals(ranged.target.status.damage, 6.0);
+  assertEquals(ranged.target.status.damage, f32(6.0 * f32(0.85)));
 });
 
 test("Uther's hammer makes one loud heavy bash and holds a shield contact three extra frames", () => {
@@ -155,8 +165,8 @@ test("air Holy Radiance has no armor, spends its one airborne use and ends helpl
   assertEquals(air.owner.special.action, SpecialAction.none);
 });
 
-test("Ascension rises 1.9H with one hit, its free form 1.3H without one, both drifting 0.45H into a helpless fall", () => {
-  for (const [mana, rise, damage] of [[100, f32(1.9), 8.0], [14, f32(1.3), 0.0]] as const) {
+test("Ascension rises 2.9H with one hit, its free form 2.0H without one, both drifting 0.2H forward plus up to 1.6H steered into a helpless fall", () => {
+  for (const [mana, rise, damage] of [[100, f32(2.9), 8.0], [14, f32(2.0), 0.0]] as const) {
     const { world, owner } = pair(900.0);
     owner.mana.points = mana;
     const x = owner.motion.x;
@@ -169,13 +179,19 @@ test("Ascension rises 1.9H with one hit, its free form 1.3H without one, both dr
       top = Math.max(top, owner.motion.z);
     }
     near(f32(top - z) / H, rise, f32(0.03));
-    near(f32(owner.motion.x - x) / H, f32(0.45), f32(0.03));
+    near(f32(owner.motion.x - x) / H, f32(0.2), f32(0.03));
     assertTrue(owner.special.fall);
+    const steered = pair(900.0);
+    steered.owner.mana.points = mana;
+    const steerX = steered.owner.motion.x;
+    frame(steered.world, up);
+    for (let f = 2; f <= 30; f++) frame(steered.world, controls({ direction: -1 }));
+    assertNear(f32(steered.owner.motion.x - steerX) / H, f32(-1.4), f32(0.03));
     const close = pair(40.0);
     close.owner.mana.points = mana;
     frame(close.world, up);
     for (let f = 2; f <= 30; f++) frame(close.world);
-    assertEquals(close.target.status.damage, damage);
+    assertEquals(close.target.status.damage, f32(damage * f32(0.85)));
   }
 });
 
@@ -199,7 +215,7 @@ test("Divine Shield fails in the air without spending, and only a strike on f6-9
     assertEquals(raised, press <= 5);
     assertEquals(owner.status.guardHealed, 0.0);
     // Guarded, the whole jab passes through the shield; pressed later it lands.
-    assertEquals(owner.status.damage, press <= 5 ? 20.0 : 24.0);
+    assertEquals(owner.status.damage, press <= 5 ? 20.0 : f32(20.0 + f32(4.0 * f32(0.85))));
   }
 });
 
