@@ -1,0 +1,40 @@
+{
+  "sha": "5af7b159928bbb8ada642b97544909e06b27a86c",
+  "pairs": [
+    "archer:kael'thas-sunstrider",
+    "rifleman:kael'thas-sunstrider",
+    "illidan:kael'thas-sunstrider",
+    "blademaster:kael'thas-sunstrider",
+    "mountain-king:kael'thas-sunstrider",
+    "warden:kael'thas-sunstrider",
+    "lich:kael'thas-sunstrider",
+    "uther:kael'thas-sunstrider",
+    "dreadlord:kael'thas-sunstrider",
+    "shadow-hunter:kael'thas-sunstrider",
+    "pit-lord:kael'thas-sunstrider",
+    "beastmaster:kael'thas-sunstrider",
+    "lich-king:kael'thas-sunstrider",
+    "thrall:kael'thas-sunstrider",
+    "jaina-proudmoore:kael'thas-sunstrider",
+    "sylvanas-windrunner:kael'thas-sunstrider",
+    "cairne-bloodhoof:kael'thas-sunstrider",
+    "chen-stormstout:kael'thas-sunstrider",
+    "peon:kael'thas-sunstrider",
+    "goblin-tinker:kael'thas-sunstrider"
+  ],
+  "opponents": [
+    "wren",
+    "wren"
+  ],
+  "tiers": [
+    "expert",
+    "expert"
+  ],
+  "perPair": 400,
+  "seeds": 100,
+  "stages": "cpuField defaults",
+  "variants": 1,
+  "stocks": 3,
+  "minutes": 4,
+  "started": "2026-10-07T20:36:44.099Z"
+}
