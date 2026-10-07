@@ -10,7 +10,7 @@ import {
   returnToCharacters, selectCharacter, selectCpuCharacter, selectStage, setStocks, setTimeLimit, updateConnectedHumans,
   type MatchState, copyMatchState, createMatchState, setParticipants,
 } from "../../game/match/rules";
-import { keepMomentEnd } from "../../game/replay/moment";
+import { keepMomentEnd, resetMomentRecorder } from "../../game/replay/moment";
 import { chooseScenarioCharacters } from "../../game/shell/scenarios";
 import { PARTNER_DAMAGE_STEP } from "../../game/match/trainingState";
 import { prepareQuickMatch } from "../../game/shell/devSettings";
@@ -212,6 +212,7 @@ export function resetToStartingSelection(s: ShellState): void {
   }
   for (const panel of views(s).settings) panel.close();
   copyMatchState(s.game, startingSelection(s.build.scenario));
+  resetMomentRecorder(s.moment.recorder);
   setStatus(s, "", 0.0);
   makePreview(s);
 }

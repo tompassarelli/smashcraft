@@ -27,33 +27,48 @@ test("a match after -dev reset equals the first match of the game: same trace ch
   const frames = (n: number) => { for (let i = 0; i < n; i++) { clients.frames(1); helpers.service(clients); } };
   const errors = () => clients.clients.flatMap(client => client.errors.map(error => `p${client.slot}: ${error}`));
   const trace = (slot: number) => clients.client(slot).files.get(TRACE_FILE);
+  const saved = () => [...clients.client(0).files.keys()].filter(name => name.startsWith("smashcraft-repro-"));
   /** One quick match until both clients wrote its trace (1200 callbacks after its first row). */
-  const play = (label: string) => {
+  const play = (label: string, command = QUICK_MATCH_COMMAND) => {
     for (const client of clients.clients) client.files.delete(TRACE_FILE);
-    clients.chat(0, QUICK_MATCH_COMMAND);
+    clients.chat(0, command);
+    const moments = new Set(saved());
+    frames(1000);
+    // Native parity also compares a moment's whole starting state, inactive slots included.
+    helpers.requestMoment(0);
     for (let i = 0; i < 1500 && !(trace(0) !== undefined && trace(1) !== undefined); i++) frames(1);
     expect(errors(), label).toEqual([]);
-    return [0, 1].map(slot => {
+    const moment = saved().filter(name => !moments.has(name)).map(name => clients.client(0).files.get(name));
+    if (command === QUICK_MATCH_COMMAND) expect(moment.length, label).toBe(1);
+    const traces = [0, 1].map(slot => {
       const { checksums, events } = parseTrace(trace(slot) ?? []);
       return { checksums: [...checksums], events };
     });
+    return { traces, moment };
   };
   clients.start();
   frames(30);
-  const boot = value(clients.client(0), () => structuredClone(shell().game));
+  const boot = value(clients.client(0), () => structuredClone({ game: shell().game, controls: shell().controls }));
   const first = play("first match");
-  expect(first[0]?.checksums.length).toBeGreaterThan(10);
-  expect(first[0]?.events.length).toBeGreaterThan(10);
-  expect(first[1]).toEqual(first[0]);
-  // The batch types the reset while the last script's match still runs.
-  frames(120);
-  clients.chat(0, RESET_COMMAND);
-  frames(30);
-  for (const client of clients.clients) {
-    expect(value(client, () => shell().game)).toEqual(boot);
-  }
+  expect(first.traces[0]?.checksums.length).toBeGreaterThan(10);
+  expect(first.traces[0]?.events.length).toBeGreaterThan(10);
+  expect(first.traces[1]).toEqual(first.traces[0]);
+  // The batch types the reset while the last script's match still runs; scripts between
+  // add a computer (slot C) and play the camera scenario, which must leave nothing behind.
+  const reset = () => {
+    frames(120);
+    clients.chat(0, RESET_COMMAND);
+    frames(30);
+    for (const client of clients.clients) {
+      expect(value(client, () => ({ game: shell().game, controls: shell().controls }))).toEqual(boot);
+    }
+  };
+  reset();
+  play("computer match", "-dev quick cpu 9");
+  reset();
+  play("camera match", "-dev camera");
+  reset();
   const second = play("match after the reset");
-  expect(second[0]).toEqual(first[0]);
-  expect(second[1]).toEqual(first[1]);
+  expect(second).toEqual(first);
   expect(value(clients.client(0), () => shell().game.phase)).toBe(Phase.match);
 }, 60_000);

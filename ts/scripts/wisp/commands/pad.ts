@@ -385,7 +385,7 @@ const batch = (values: { readonly [name: string]: string | boolean | readonly st
   const headlessJobs = Number(text("headless-jobs") ?? "3");
   if (values.headless === true && helper !== undefined && out !== undefined && positionals.length > 0) {
     const scripts = yield* Effect.try({ try: () => batchScripts(positionals), catch: (cause) => new UsageFailure({ problem: describeCause(cause) }) });
-    return yield* headlessBatch({ scripts, helper, build, out, headlessJobs });
+    return yield* headlessBatch({ scripts, helper, build, out, headlessJobs, retries: Number(text("retries") ?? "2") });
   }
   if (helper === undefined || out === undefined || map === undefined || positionals.length === 0) {
     return yield* new UsageFailure({ problem: "usage: bun wisp pad SCRIPT|DIR... --helper BINARY --out DIR (--map MAP.w3x | --headless) [--build BUILD] [--pairs N [--pool POOL.json] | --app-id a=ID --app-id b=ID] [--retries N] [--headless-jobs N] [--fresh-each]" });

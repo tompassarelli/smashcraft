@@ -129,12 +129,13 @@ export interface BatchOptions {
   readonly out: string;
   /** Headless runs at once; each is two real-time clients and two helpers. */
   readonly headlessJobs: number;
+  /** Reruns of a script whose run was invalid or slipped. */
+  readonly retries: number;
 }
 
 export interface NativeBatchOptions extends BatchOptions {
   readonly pairs: readonly PadPair[];
   readonly map: string;
-  readonly retries: number;
   readonly freshEach: boolean;
 }
 
@@ -294,6 +295,8 @@ export const padBatch = (options: NativeBatchOptions) => Effect.gen(function*() 
         // An edge off its frame or a stopped helper still leaves a match the next script can reset; anything else may not.
         outcome = ran._tag === "Success" ? ran.value : Cause.pretty(ran.cause).includes("edges off their frame") ? "failed" : "broken";
         previous = outcome;
+        // Edges written late are the harness's slip on a loaded host, not the game's: reset and play the script again.
+        if (outcome === "failed" && slipped(padOptions.out) && attempt < retries) continue;
         if (outcome !== "invalid") break;
       }
       if (outcome === "invalid" || outcome === "broken") {
@@ -314,30 +317,67 @@ export const padBatch = (options: NativeBatchOptions) => Effect.gen(function*() 
  * script, with `-dev reset` between them, and each script is compared with
  * its reference run in new clients, as a native run would be.
  */
-export const headlessBatch = (options: BatchOptions) => Effect.scoped(Effect.gen(function*() {
+export const headlessBatch = (options: BatchOptions) => Effect.gen(function*() {
   const started = performance.now();
   mkdirSync(options.out, { recursive: true });
   const { runs, report, compareLater, reports, compares } = yield* prepare(options);
-  const session = yield* headlessSession(join(options.out, "session"), options.helper, options.build);
-  for (const [index, run] of runs.entries()) {
-    const made = report(run, "session");
-    made.attempts = 1;
-    if (index > 0) {
+  const made = runs.map((run) => report(run, "session"));
+  /**
+   * One session from script `start`: its first script needs no reset. Returns
+   * the script the next session starts at, after a helper stopped (its journal
+   * ends for every later match) or a run broke the session.
+   */
+  const session = (start: number, number: number) => Effect.scoped(Effect.gen(function*() {
+    const clients = yield* headlessSession(join(options.out, `session-${number}`), options.helper, options.build);
+    for (let index = start; index < runs.length; index++) {
+      const run = runs[index];
+      const row = made[index];
+      if (run === undefined || row === undefined) break;
+      const out = join(run.dir, "session");
+      if (index > start || row.attempts > 0) {
+        const at = performance.now();
+        const typedMs = Date.now();
+        clients.clients.chat(0, RESET_COMMAND);
+        yield* atSelection(clients.data.map((dir, slot) => join(dir, devCommandReceiptFile(options.build, slot))), typedMs);
+        row.reset += seconds(at);
+      }
+      row.attempts++;
       const at = performance.now();
-      const typedMs = Date.now();
-      session.clients.chat(0, RESET_COMMAND);
-      yield* atSelection(session.data.map((dir, slot) => join(dir, devCommandReceiptFile(options.build, slot))), typedMs);
-      made.reset = seconds(at);
+      const ran = yield* Effect.exit(headlessScript(clients, { scriptPath: run.script, steps: run.steps, helper: options.helper, build: options.build, out, chat: run.chat }));
+      row.run += seconds(at);
+      const offFrame = ran._tag === "Failure" && Cause.pretty(ran.cause).includes("edges off their frame");
+      const again = row.attempts <= options.retries;
+      if (ran._tag === "Failure" && !offFrame) {
+        row.summary = `the session run broke: ${Cause.pretty(ran.cause).split("\n")[0]}`;
+        return again ? index : index + 1;
+      }
+      if (helperStopped(out)) return again ? index : (compareLater(run, row, out, false), index + 1);
+      if (offFrame && slipped(out) && again) {
+        index--;
+        continue;
+      }
+      compareLater(run, row, out, ran._tag === "Success");
     }
-    const at = performance.now();
-    const ran = yield* Effect.exit(headlessScript(session, { scriptPath: run.script, steps: run.steps, helper: options.helper, build: options.build, out: join(run.dir, "session"), chat: run.chat }));
-    made.run = seconds(at);
-    if (ran._tag === "Failure" && !Cause.pretty(ran.cause).includes("edges off their frame")) {
-      made.summary = `the session run broke: ${Cause.pretty(ran.cause).split("\n")[0]}`;
-      break;
-    }
-    compareLater(run, made, join(run.dir, "session"), ran._tag === "Success");
-  }
+    return runs.length;
+  }));
+  for (let next = 0, number = 0; next < runs.length; number++) next = yield* session(next, number);
   yield* Effect.promise(() => Promise.all(compares));
   yield* summarize(options.out, runs, reports, ["session"], started, { headless_session: true });
-}));
+});
+
+/** Whether a helper's journal stopped during the run (result.json helpers_stopped): it plays no later match. */
+function helperStopped(dir: string): boolean {
+  const path = join(dir, "result.json");
+  if (!existsSync(path)) return false;
+  const result: unknown = JSON.parse(readFileSync(path, "utf8"));
+  return typeof result === "object" && result !== null && "helpers_stopped" in result && Array.isArray(result.helpers_stopped) && result.helpers_stopped.length > 0;
+}
+
+/** Whether a run's off-frame edges were all written late: the producer slipped on a loaded host, not the game. */
+function slipped(dir: string): boolean {
+  const path = join(dir, "result.json");
+  if (!existsSync(path)) return false;
+  const result: unknown = JSON.parse(readFileSync(path, "utf8"));
+  return typeof result === "object" && result !== null && "written_late" in result && "off_frame" in result
+    && typeof result.written_late === "number" && result.written_late > 0 && result.written_late === result.off_frame;
+}

@@ -67,7 +67,7 @@ interface MomentSave {
 
 export interface MomentRecorder {
   /** Preallocated: the match keeps one every two seconds. */
-  readonly snapshots: readonly ReplayState[];
+  readonly snapshots: ReplayState[];
   /** The frame after which each snapshot holds the match; -1 for none since the record started. */
   readonly snapshotFrames: number[];
   nextSnapshot: number;
@@ -83,11 +83,11 @@ export interface MomentRecorder {
    * frames (a pause or a match end clears the attack buffers): the moment ends
    * there, and the next frame starts the record again.
    */
-  readonly end: ReplayState;
+  end: ReplayState;
   ended: boolean;
   /** Preallocated: a save's starting snapshot and final match, copied when it begins. */
-  readonly saveStart: ReplayState;
-  readonly saveEnd: ReplayState;
+  saveStart: ReplayState;
+  saveEnd: ReplayState;
   save: MomentSave | undefined;
 }
 
@@ -106,6 +106,26 @@ export function createMomentRecorder(): MomentRecorder {
     rows: [ring(), ring(), ring(), ring()], rowFrames: filled(ROW_FRAMES, -1), rowMasks: filled(ROW_FRAMES, 0), last: undefined,
     end: createReplaySnapshot(), ended: false, saveStart: createReplaySnapshot(), saveEnd: createReplaySnapshot(), save: undefined,
   };
+}
+
+/**
+ * Back to createMomentRecorder's state. Snapshots keep only the slots a match
+ * plays, so a slot an earlier match used (a computer) would stay in later
+ * moments' starting states; `-dev reset` starts from new storage instead.
+ */
+export function resetMomentRecorder(recorder: MomentRecorder): void {
+  for (let index = 0; index < SNAPSHOTS; index++) recorder.snapshots[index] = createReplaySnapshot();
+  recorder.snapshotFrames.fill(-1);
+  recorder.nextSnapshot = 0;
+  for (const ring of recorder.rows) ring.fill(0);
+  recorder.rowFrames.fill(-1);
+  recorder.rowMasks.fill(0);
+  recorder.last = undefined;
+  recorder.end = createReplaySnapshot();
+  recorder.ended = false;
+  recorder.saveStart = createReplaySnapshot();
+  recorder.saveEnd = createReplaySnapshot();
+  recorder.save = undefined;
 }
 
 /**
