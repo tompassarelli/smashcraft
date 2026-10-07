@@ -11,6 +11,8 @@ import * as dh from "./demonHunterAssetInfo";
 import * as assets from "./fighterAssetInfo";
 import { RECOVERY_CLIPS } from "./recoveryClipInfo";
 import { DRILL_CLIPS } from "./drillClipInfo";
+import { DOWN_AIR_CLIPS } from "./downAirClipInfo";
+import { JUMP_CLIPS } from "./jumpClipInfo";
 import { GRAB_CLIPS } from "./grabClipInfo";
 
 const clip = (index: number, seconds: number): HeroClip => ({ index, seconds });
@@ -199,6 +201,14 @@ function recoveryTables(): Readonly<Record<number, HeroClipTable>> {
   for (const [character, grabs] of Object.entries(GRAB_CLIPS)) {
     const id = Number(character);
     tables[id] = { ...(tables[id] ?? ORIGINAL_CLIPS[id] ?? heroDefinition(id)?.presentation.clips ?? NO_CLIPS), ...grabs };
+  }
+  for (const [character, downAir] of Object.entries(DOWN_AIR_CLIPS)) {
+    const id = Number(character);
+    tables[id] = { ...(tables[id] ?? ORIGINAL_CLIPS[id] ?? heroDefinition(id)?.presentation.clips ?? NO_CLIPS), ...downAir };
+  }
+  for (const [character, jumps] of Object.entries(JUMP_CLIPS)) {
+    const id = Number(character);
+    tables[id] = { ...(tables[id] ?? ORIGINAL_CLIPS[id] ?? heroDefinition(id)?.presentation.clips ?? NO_CLIPS), ...jumps };
   }
   return tables;
 }
