@@ -58,9 +58,10 @@ const HOLY_RADIANCE_AIR: AuthoredSpecial = {
   landingLag: 20,
 };
 
-// Ascension: travel f8-29, then helpless. The full form rises 1.9H with one
-// hammer hit on f10-15; the free form rises 1.3H with no hit; both drift
-// 0.45H, and stop on f29 so the helpless fall starts at the apex.
+// Ascension, a guided rise (#189): travel f8-29, then helpless. The full form rises 2.9H with one
+// hammer hit on f10-15; the free form rises 2.0H with no hit; both drift
+// 0.2H forward plus up to 1.6H steered by the held stick, and stop on f29
+// so the helpless fall starts at the apex.
 const ASCENT_FIRST = 8;
 const ASCENT_LAST = 29;
 const ascension = (cost: number, rise: number, struck: boolean): AuthoredSpecial => ({
@@ -68,7 +69,7 @@ const ascension = (cost: number, rise: number, struck: boolean): AuthoredSpecial
   endFrame: ASCENT_LAST,
   regions: struck ? [heroRegion(10, 15, capsule(10.0, 70.0, 24.0, f32(MEDIUM + 20.0), 16.0), hit(8.0, "LAUNCH", 80, false, HitElement.holy))] : undefined,
   motion: [
-    { ...frames(ASCENT_FIRST, ASCENT_LAST - 1), velocityX: perFrame(heights(f32(0.45)), ASCENT_FIRST, ASCENT_LAST - 1), velocityZ: perFrame(heights(rise), ASCENT_FIRST, ASCENT_LAST - 1) },
+    { ...frames(ASCENT_FIRST, ASCENT_LAST - 1), velocityX: perFrame(heights(f32(0.2)), ASCENT_FIRST, ASCENT_LAST - 1), velocityZ: perFrame(heights(rise), ASCENT_FIRST, ASCENT_LAST - 1), driftSpeed: perFrame(heights(f32(1.6)), ASCENT_FIRST, ASCENT_LAST - 1) },
     { ...frames(ASCENT_LAST, ASCENT_LAST), velocityX: 0.0, velocityZ: 0.0 },
   ],
   hurt: [hurtPose(7, 18, utherReach(10.0, 136.0))],
@@ -92,6 +93,6 @@ const DIVINE_SHIELD: AuthoredSpecial = {
 export const UTHER_SPECIALS: FighterSpecials = {
   neutral: { name: "Hammer of Justice", description: "A heavy overhead bonk that lifts the opponent for a follow-up.", ground: hammerOfJustice(undefined), air: hammerOfJustice(18) },
   side: { name: "Holy Radiance", description: "Drive the hammer forward, then send light beyond it. Strong up close; unsafe if blocked.", ground: HOLY_RADIANCE, air: HOLY_RADIANCE_AIR },
-  up: { name: "Ascension", description: "A rising hammer strike, then a helpless fall.", ground: ascension(15, f32(1.9), true), free: ascension(0, f32(1.3), false) },
+  up: { name: "Ascension", description: "A rising hammer strike you steer, then a helpless fall.", ground: ascension(15, f32(2.9), true), free: ascension(0, f32(2.0), false) },
   down: { name: "Divine Shield", description: "A guard: read an attack and become untouchable until you act. Grabs still catch him.", ground: DIVINE_SHIELD },
 };

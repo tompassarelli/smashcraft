@@ -1416,3 +1416,45 @@ above:
   granted immediately on pickup.
 - **Heavy** (Metal Box): weight x1.5 against knockback; gravity and fall speed
   x1.3; nothing else changes.
+
+## Up specials
+
+Tom decided, 7 Oct (delegated in #189): each fighter uses guided steering or a
+charged angle. Guided moves answer the held stick or keys during travel.
+Charged-angle moves pick one of eight directions during startup, then commit
+to that direction. Rifleman charges for four frames; the other charged-angle
+fighters charge for eight. A neutral aim launches upward.
+
+Recovery bands are 320–480 world units vertically and 320–900 horizontally at
+full mana. The zero-mana form reaches at least 200 units on either axis. Original
+fighters do not spend mana, so their full and free distances are identical.
+These bands cover each up special's full route, including Illidan's glide jump;
+they do not require every possible aim to reach both limits.
+
+`GAME_TESTS=upSpecialRecovery bun test test/game.test.ts` measures the entire
+13-fighter roster from x=700, z=300 on Frozen Throne, facing away from the stage,
+with jumps spent. Vertical distance holds up; horizontal distance takes the
+best of level, diagonal-up, and a glide jump at frame 20, counting travel while
+within 10 units below the starting height. Startup below is the number of game
+frames from the press to the first upward step, including the movement update
+following the launch callback. Distances are rounded to one world unit.
+
+| Fighter | Style | Startup (frames) | Full up / across | Free up / across |
+|---|---|---:|---:|---:|
+| Archer | Guided | 2 | 473 / 756 | 473 / 756 |
+| Rifleman | Charged angle | 5 | 416 / 753 | 416 / 753 |
+| Illidan | Guided | 2 | 435 / 871 | 435 / 871 |
+| Blademaster | Charged angle | 10 | 368 / 372 | 249 / 254 |
+| Mountain King | Charged angle | 10 | 355 / 359 | 249 / 254 |
+| Warden | Charged angle | 10 | 342 / 346 | 223 / 227 |
+| Lich | Guided | 11 | 369 / 371 | 229 / 261 |
+| Uther | Guided | 9 | 333 / 362 | 214 / 320 |
+| Dreadlord | Guided | 10 | 370 / 427 | 229 / 276 |
+| Shadow Hunter | Charged angle | 10 | 381 / 386 | 263 / 267 |
+| Pit Lord | Guided | 14 | 339 / 377 | 218 / 237 |
+| Beastmaster | Guided | 11 | 346 / 359 | 226 / 247 |
+| Lich King | Guided | 9 | 386 / 380 | 256 / 269 |
+
+The same headless test checks both keyboard and stick: all five charged-angle
+fighters in all eight directions (80 cases), fifteen off-axis stick aims, and
+steering left and right for all eight guided fighters with both input methods.
