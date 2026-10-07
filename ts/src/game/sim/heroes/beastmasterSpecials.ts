@@ -20,7 +20,7 @@ const CAST_HEIGHT = h(f32(0.5));
 export const THROWING_AXE: SpecialProjectile = {
   spawnFrame: 20, offsetX: h(f32(0.35)), offsetZ: CAST_HEIGHT,
   velocityX: h(f32(0.11)), velocityZ: 0.0, life: 28, radius: h(f32(0.17)),
-  effect: hit(9.0, "POKE", 40), reflectable: true, limit: 1,
+  effect: hit(9.539999961853027, "POKE", 40), reflectable: true, limit: 1,
   model: "Abilities\\Weapons\\Axe\\AxeMissile.mdx",
 };
 const throwingAxe = (air: boolean): AuthoredSpecial => ({
@@ -38,7 +38,7 @@ export const BEAR: SpecialCompanion = {
   followSpeed: h(f32(0.035)), followBehind: h(f32(0.8)), returnSpeed: h(f32(0.06)),
   lungeStartup: 10, lungeActive: 4, lungeRecovery: 30, lungeTravel: h(f32(1.2)),
   bite: capsule(15.0, 30.0, f32(h(f32(0.45)) - 20.0), 40.0, 20.0),
-  biteEffect: hit(16.0, "EDGE", 40, 1.0, HitElement.normal),
+  biteEffect: hit(16.959999084472656, "EDGE", 40, 1.0, HitElement.normal),
   stunFrames: 18, leash: h(6.0), leashFrames: 120,
 };
 
@@ -71,7 +71,7 @@ const hawkLift = (cost: number, rise: number, drift: number): AuthoredSpecial =>
 export const QUILL_DART: SpecialProjectile = {
   spawnFrame: 18, offsetX: h(f32(0.3)), offsetZ: CAST_HEIGHT,
   velocityX: h(f32(0.14)), velocityZ: 0.0, life: 20, radius: h(f32(0.10)),
-  effect: hit(4.0, "POKE", 35, 1.0, HitElement.normal), reflectable: true, limit: 1,
+  effect: hit(4.239999771118164, "POKE", 35, 1.0, HitElement.normal), reflectable: true, limit: 1,
   model: "Abilities\\Weapons\\QuillSprayMissile\\QuillSprayMissile.mdx",
 };
 const quillDart = (air: boolean): AuthoredSpecial => ({

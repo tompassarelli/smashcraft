@@ -136,7 +136,7 @@ export function attackDamage(style: AttackStyle): number {
     case AttackStyle.downTilt:
       return 8.0;
     case AttackStyle.shot:
-      return 3.0;
+      return 2.7900002002716064;
     case AttackStyle.upSmash:
     case AttackStyle.downSmash:
       return 16.0;
