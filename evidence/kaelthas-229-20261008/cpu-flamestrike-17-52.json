@@ -1,0 +1,52 @@
+{
+  "base": "5493f858",
+  "tuning": {
+    "spawnFrame": 8,
+    "activeFrom": 10,
+    "life": 45,
+    "firstActive": 17,
+    "lastActive": 52,
+    "damage": 10,
+    "endFrame": 43
+  },
+  "choices": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    20
+  ],
+  "coverage": {
+    "fighter": "Kael'thas Sunstrider",
+    "matches": 8,
+    "movement": 8718,
+    "attacks": 134,
+    "kit": 78,
+    "specials": {
+      "neutral": 52,
+      "side": 8,
+      "up": 7,
+      "down": 11
+    },
+    "defense": 200,
+    "recovery": 877,
+    "manaDenied": 0,
+    "defenseDecisions": 13,
+    "recoveryDecisions": 2,
+    "companions": {
+      "bear": 0,
+      "quilbeast": 0,
+      "hawk": 0
+    },
+    "missing": []
+  }
+}

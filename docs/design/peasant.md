@@ -42,7 +42,7 @@ Every row links both its Warcraft source and its Smash design reference.
 | Input | Worker action and decision | F/A/R; damage; reach | Sources |
 |---|---|---|---|
 | Jab 1, 2 | Haft tap, then short chop; quick interruption, little reach | 4/2/12, 3%; 6/2/18, 5%; 58/70 | [Harvest](https://liquipedia.net/warcraft/Peon), [Villager jab](https://www.ssbwiki.com/Villager_(SSBU)#Moveset) |
-| Forward tilt, up/down angles | Lumber chop; angle selects head, waist or shin | 8/3/19; 8%; 100 | [Harvest](https://liquipedia.net/warcraft/Peon), [Timber axe](https://www.ssbwiki.com/Timber) |
+| Forward tilt, up/down angles | Lumber chop; angle selects head, waist or shin | 8/3/19; 9%; 100 | [Harvest](https://liquipedia.net/warcraft/Peon), [Timber axe](https://www.ssbwiki.com/Timber) |
 | Up tilt | Lift the axe over one shoulder; juggle starter | 7/4/20; 7%; 126 high | [Harvest](https://liquipedia.net/warcraft/Peon), [G&W up tilt](https://www.ssbwiki.com/Mr._Game_%26_Watch_(SSBU)#Moveset) |
 | Down tilt | Dig under the feet; short launcher | 6/3/19; 6%; 82 | [Gold harvest](https://liquipedia.net/warcraft/Peon), [Villager down tilt](https://www.ssbwiki.com/Villager_(SSBU)#Moveset) |
 | Dash attack | Stumble forward behind the axe; punishable approach | 10/4/25; 10%; 88 | [Worker attack](https://liquipedia.net/warcraft/Peon), [Villager dash attack](https://www.ssbwiki.com/Villager_(SSBU)#Moveset) |
@@ -70,7 +70,7 @@ rules refuse immediate regrabs.
 
 | Input | Behavior, reward and cost | Sources |
 |---|---|---|
-| Neutral: Lumber Toss | Throw a visible lumber bundle on f18; 7%, speed9, life70, radius18, at most1. End42; cost0. Ground and air share the shot; air landing lag20. Slow pressure buys setup time and is reflectable. | [Harvest lumber](https://liquipedia.net/warcraft/Peon), [Lloid Rocket](https://www.ssbwiki.com/Lloid_Rocket) |
+| Neutral: Lumber Toss | Throw a visible lumber bundle on f18; 7%, speed9, life70, radius18, at most1. End48; cost0. Ground and air share the shot; air landing lag20. Slow pressure buys setup time and is reflectable; its recovery lets the defender punish a point-blank shielded toss with the original out-of-shield options. | [Harvest lumber](https://liquipedia.net/warcraft/Peon), [Lloid Rocket](https://www.ssbwiki.com/Lloid_Rocket) |
 | Side: Burrow | Ground-only placement on f26, end52, cost20. One 24-durability Burrow, 240-frame life, fires 5% spears at ages45/85/125/165/205. A second press packs it up on end52 for no refund. Attacks break it, and shots stop while Peon is held or stunned. | [Burrow shelter](https://liquipedia.net/warcraft/Peon), [Timber setup](https://www.ssbwiki.com/Timber) |
 | Up: Worksite Launch | A frantic tool-assisted vault: f8–28 moves 4 sideways/12 upward per frame, cost15, then helpless. Free form moves 2/9. Consumes aerial jump and once-per-airtime use. A straight, vulnerable return whose limited drift rewards early stageward steering. | [Burrow exit](https://classic.battle.net/war3/orc/basics.shtml), [Lloid ride](https://www.ssbwiki.com/Lloid_Rocket) |
 | Down: Repair | Duck behind the tools on f4–7; one correctly timed incoming contact restores4 damage, capped12 per stock. Those four frames are intangible. Cost20, end38, air landing lag20. A whiff grants nothing and leaves a long punish; no idle healing. | [Repair](https://liquipedia.net/warcraft/Peon), [Pocket's defensive window](https://www.ssbwiki.com/Pocket) |

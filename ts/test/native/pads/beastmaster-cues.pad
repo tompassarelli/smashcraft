@@ -1,11 +1,12 @@
-# Beastmaster's native check by parity for #148 (Pack Hunt) and #144 (every special form shows its Warcraft spell).
+# Beastmaster's native cue check, updated for the accepted #215 pack kit.
+# Design 8423ac38, kit fa500819, damage a7fdfa77; full pack forms: 215/pack.pad.
 # Beastmaster a against Beastmaster b; syntax and checks: smashcraft:docs/native-bot-session.md.
 # A side special from standing starts a dash too, so each one slides its caster about 120.
 #! chat -dev quick hero beastmaster
 # b dashes right and summons its bear, then commands it right and left.
 40 b stick 1 0
 42 b stick 0 0
-# a: Quillbeast Dart on the ground and in the air.
+# a summons Quilbeast, then commands its volley from the air.
 50 a stick 0 -1
 50 a tap X 2
 51 a stick 0 0
@@ -34,7 +35,7 @@
 195 a capture
 225 a stick 1 0
 250 a stick 0 0
-# #148 Pack Hunt: a jabs b, then orders its bear's lunge (stick held through the jab, so no dash): the bite lands 3 harder.
+# a jabs, then commands Stampede: the two lizards spawn on command frames 12 and 20.
 310 a tap A 2
 314 a capture
 315 a stick 1 0
@@ -44,15 +45,15 @@
 336 a capture
 338 a capture
 349 a capture
-# Bear Recall.
+# This volley press is early: Stampede still runs through frame 361.
 360 a stick 0 -1
 360 a tap X 2
 361 a stick 0 0
 362 a capture
 364 a capture
-# a runs back left, then throws the Throwing Axe on the ground and in the air.
+# a runs left and throws Wild Axes; the second press cannot replace live axes.
 390 a stick -1 0
-# b climbs back from the ledge, then Hawk Lifts until its mana runs out and the free form rises.
+# b climbs back from the ledge, summons Hawk, then commands its grounded dives.
 400 b stick 0 1
 402 b stick 0 0
 415 a stick 0 0
@@ -71,7 +72,7 @@
 530 b stick -0.4 1
 530 b tap X 2
 531 b stick 0 0
-# a: Hawk Lift.
+# a: Summon Hawk on the ground; the airborne lift is covered by 215/pack.pad.
 550 a stick 0 1
 550 a tap X 2
 551 a stick 0 0
@@ -100,28 +101,32 @@
 1070 b stick -0.4 1
 1070 b tap X 2
 1071 b stick 0 0
-# Expected, frame by frame (headless run of this script): every special form starts on its frame,
-# and the bear lunge after a jab lands with Pack Hunt (19 on top of the jab's 4).
+# Authored expectations: recall form 3 commands a living animal; Hawk requires ground.
+# Stampede starts on 330, so its frame-12/20 lizards contact on 341/349.
+# Each deals f32(4 * 0.9): 3.600, then 7.200 total, with hitlag 4 and hitstun 13.
+# Stampede ends on 330+32-1=361; Wild Axes ends on 430+35-1=464.
 #! expect a 50 special 16 form 0
 #! expect b 60 special 14 form 0
-#! expect a 106 special 16 form 1
+#! expect a 106 special 16 form 3
 #! expect b 130 special 14 form 3
 #! expect a 165 special 14 form 0
 #! expect b 185 special 14 form 3
-#! expect b 313 damage 4.000 hitlag 4 hitstun 9
-#! expect a 334 special 14 form 3
-#! expect b 348 damage 23.000 hitlag 9 hitstun 33
-#! expect a 360 special 16 form 3
+#! expect a 330 special 14 form 3
+#! expect b 341 damage 3.600 hitlag 4 hitstun 13
+#! expect b 349 damage 7.200 hitlag 4 hitstun 13
+#! absent a 360-361 special 16
+#! expect a 361 special 0 form 3
 #! expect a 430 special 13 form 0
-#! expect a 486 special 13 form 1
+#! expect a 464 special 0 form 0
+#! absent a 486-487 special 13
 #! expect a 550 special 15 form 0
 #! expect b 440 special 15 form 0
-#! expect b 530 special 15 form 0
-#! expect b 620 special 15 form 0
-#! expect b 710 special 15 form 0
-#! expect b 800 special 15 form 0
-#! expect b 890 special 15 form 0
-#! expect b 980 special 15 form 2
+#! expect b 530 special 15 form 3
+#! expect b 620 special 15 form 3
+#! expect b 710 special 15 form 3
+#! expect b 800 special 15 form 3
+#! expect b 890 special 15 form 3
+#! expect b 980 special 15 form 3
 #! scene a BloodlustTarget
 #! scene a AxeMissile
 #! scene a RejuvenationTarget

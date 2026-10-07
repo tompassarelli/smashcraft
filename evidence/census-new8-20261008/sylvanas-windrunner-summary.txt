@@ -1,0 +1,108 @@
+$ bun scripts/wisp.ts perf census --fighter sylvanas-windrunner --functions --out perf-out/run.txt
+group         entry                              base ms  worst ms  spike ms  at   +instructions  +natives  +KB
+sylvanas-windrunner jab                                   5.00      5.14      0.14  149           8050       -38   25
+sylvanas-windrunner jab chain                             4.46      5.02      0.56  149          23500         0   29
+sylvanas-windrunner forward tilt                          4.48      4.89      0.41    2          15600        12   28
+sylvanas-windrunner up tilt                               4.48      4.86      0.39   64          18100         0    0
+sylvanas-windrunner down tilt                             4.49      4.87      0.38   81          17900         0    1
+sylvanas-windrunner forward smash                         4.61      4.87      0.26   98          12100         0    1
+sylvanas-windrunner up smash                              4.50      4.88      0.38   11          17900         0    1
+sylvanas-windrunner down smash                            4.49      4.88      0.39   12          18100         0    1
+sylvanas-windrunner dash attack                           4.47      5.33      0.86   29          36300        40    4
+sylvanas-windrunner neutral air                           4.45      4.85      0.40   46          16900         0   18
+sylvanas-windrunner forward air                           4.44      4.84      0.39   79          18400         0    1
+sylvanas-windrunner back air                              4.46      4.85      0.39   96          18100         0    1
+sylvanas-windrunner up air                                4.57      4.84      0.27   97          12600         0    1
+sylvanas-windrunner down air                              4.46      4.92      0.46    5          18900         0   27
+sylvanas-windrunner grab                                  4.45      4.85      0.40   27          18600         0    1
+sylvanas-windrunner pummel                                4.47      4.91      0.44  149          18300         0   28
+sylvanas-windrunner forward throw                         4.45      4.86      0.40   61          18800         0    1
+sylvanas-windrunner back throw                            4.48      4.87      0.39   78          18400         0    1
+sylvanas-windrunner up throw                              4.46      4.83      0.37   95          17400         0    1
+sylvanas-windrunner down throw                            4.61      4.88      0.27  112          12400         0    2
+sylvanas-windrunner neutral special                       4.46      4.88      0.42    9          19300         0    2
+sylvanas-windrunner neutral special, again                4.48      4.92      0.44   19          18100         0   27
+sylvanas-windrunner air neutral special                   4.46      4.88      0.42   43          19600         0    2
+sylvanas-windrunner air neutral special, again            4.49      4.89      0.41   60          18900         0    2
+sylvanas-windrunner side special                          4.47      5.24      0.77   29          32600        35    3
+sylvanas-windrunner side special, again                   4.87      5.46      0.59   22          27750        -2    1
+sylvanas-windrunner air side special                      4.52      5.26      0.74   55          30900        36    4
+sylvanas-windrunner air side special, again               4.52      5.30      0.78   26          30100        40   30
+sylvanas-windrunner up special                            4.92      5.28      0.36  149          17750       -38   27
+sylvanas-windrunner up special, again                     4.50      5.04      0.54  149          22800         0   29
+sylvanas-windrunner air up special                        4.54      4.98      0.44   63          20400         0    2
+sylvanas-windrunner air up special, again                 4.50      4.98      0.47   80          22000         0    2
+sylvanas-windrunner down special                          4.54      4.98      0.44   97          20500         0    2
+sylvanas-windrunner down special, again                   4.64      4.99      0.35  114          16300         0    2
+sylvanas-windrunner air down special                      4.55      5.04      0.49   11          22700         0    3
+sylvanas-windrunner air down special, again               4.51      5.16      0.65  148          24900        53    5
+sylvanas-windrunner side special, then attack             4.55      5.39      0.84   45          35200        38    5
+sylvanas-windrunner up special, then jump                 4.56      5.01      0.46   62          21000         0    4
+sylvanas-windrunner up special, then attack               4.52      5.01      0.50   79          23000         0    4
+39 entries; worst spike 0.86 ms (sylvanas-windrunner dash attack); 0 over 2 ms
+profile sylvanas-windrunner dash attack (frame +29, 0.86 ms over baseline): k-instructions above a baseline frame, inclusive / self
+    207     0  platform.shell.shell line 99450
+    207     0  platform.dispatch run
+    207    -0  platform.shell.shell gameTick
+    156     0  platform.shell.rollback rollbackTick
+    136     0  platform.shell.rollback stepConfirmed
+    135    -0  platform.shell.frame applyFrame
+    119     0  replay.snapshot captureReplaySnapshot
+    119     0  replay.moment beginMomentFrame
+    119     0  platform.shell.frame beginRecordedFrame
+    118     0  replay.snapshot copyReplayState
+     82     1  match.pacingAndPresentation copyPacingAndPresentation
+     65    65  presentation.impactState copyImpactStateInto
+profile sylvanas-windrunner side special, then attack (frame +45, 0.84 ms over baseline): k-instructions above a baseline frame, inclusive / self
+    102    -1  platform.shell.shell gameTick
+    102     0  platform.shell.shell line 99450
+    102     0  platform.dispatch run
+     89    13  replay.matchReplay foldMatchAndFrame
+     89     0  replay.matchReplay stepCheckpoint
+     89     0  replay.matchReplay continueMatchReplay
+     89     0  platform.shell.replays serviceReplay
+     47    10  replay.matchReplay foldFields
+     43     8  replay.matchReplay foldValue
+     35     2  render.combatEffects CombatEffects.prototype.present
+     33     1  platform.shell.view renderPersistentPresentation
+     33    33  replay.matchReplay foldInteger
+profile sylvanas-windrunner air side special, again (frame +26, 0.78 ms over baseline): k-instructions above a baseline frame, inclusive / self
+     40     0  platform.shell.shell line 99450
+     40     0  platform.dispatch run
+     35     0  platform.shell.shell gameTick
+     30    11  sim.f32 slowFloat32
+     30     7  sim.matchCamera advanceMatchCamera
+     28    -4  match.step stepMatch
+     27     1  platform.shell.view renderPersistentPresentation
+     26     3  render.combatEffects CombatEffects.prototype.present
+     24    -0  replay.shadowPlayback ShadowInputPlayback.prototype.advanceSpeculative
+     23     0  shell.rollbackPlayback ReplayHistoryPlayback.prototype.catchUp
+     21     3  presentation.impactState projectImpact
+     16     1  match.frameInput executeMatchFrame
+profile sylvanas-windrunner side special (frame +29, 0.77 ms over baseline): k-instructions above a baseline frame, inclusive / self
+     88    -0  platform.shell.shell gameTick
+     86     0  platform.shell.shell line 99450
+     86     0  platform.dispatch run
+     61    -0  platform.shell.rollback rollbackTick
+     52    26  sim.f32 slowFloat32
+     47     3  match.step stepMatch
+     47     0  shell.rollbackPlayback ReplayHistoryPlayback.prototype.catchUp
+     46    -1  replay.shadowPlayback ShadowInputPlayback.prototype.advanceSpeculative
+     43     0  match.frameInput executeMatchFrame
+     39    -2  sim.matchCamera advanceMatchCamera
+     36    -1  platform.shell.view renderPersistentPresentation
+     30    -1  render.combatEffects CombatEffects.prototype.present
+profile sylvanas-windrunner air side special (frame +55, 0.74 ms over baseline): k-instructions above a baseline frame, inclusive / self
+     91     0  platform.shell.shell line 99450
+     91     0  platform.dispatch run
+     91     1  platform.shell.shell gameTick
+     84    12  replay.matchReplay foldMatchAndFrame
+     84     0  replay.matchReplay stepCheckpoint
+     84     0  replay.matchReplay continueMatchReplay
+     84     0  platform.shell.replays serviceReplay
+     47    10  replay.matchReplay foldFields
+     43     8  replay.matchReplay foldValue
+     29    29  replay.matchReplay foldInteger
+     27    -4  match.step stepMatch
+     24     7  sim.f32 slowFloat32
+  79.121 s  perf (79.121 s)

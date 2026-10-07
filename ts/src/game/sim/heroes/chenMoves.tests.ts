@@ -8,12 +8,12 @@ import { controls, testGrabFrame, testWorld } from "../testWorld";
 import { authoredPhysics, melee } from "../tuning";
 
 const CASES = [
-  [AttackStyle.jab, 45.0, 0.0, 3.0], [AttackStyle.jab2, 55.0, 0.0, 3.0], [AttackStyle.jab3, 50.0, 0.0, 5.0],
-  [AttackStyle.forwardTilt, 90.0, 0.0, 9.0], [AttackStyle.forwardTiltUp, 80.0, 0.0, 9.0], [AttackStyle.forwardTiltDown, 80.0, 0.0, 9.0],
-  [AttackStyle.upTilt, 26.0, 60.0, 7.0], [AttackStyle.downTilt, 65.0, 0.0, 6.0], [AttackStyle.dashAttack, 55.0, 0.0, 10.0],
-  [AttackStyle.forwardSmash, 95.0, 0.0, 18.0], [AttackStyle.upSmash, 10.0, 80.0, 16.0], [AttackStyle.downSmash, 80.0, 0.0, 14.0],
-  [AttackStyle.neutralAir, 45.0, 0.0, 8.0], [AttackStyle.forwardAir, 72.0, 0.0, 12.0], [AttackStyle.backAir, -70.0, 0.0, 11.0],
-  [AttackStyle.upAir, 10.0, 80.0, 8.0], [AttackStyle.downAir, 12.0, -95.0, 12.0],
+  [AttackStyle.jab, 45.0, 0.0, 3.75], [AttackStyle.jab2, 55.0, 0.0, 3.75], [AttackStyle.jab3, 50.0, 0.0, 6.25],
+  [AttackStyle.forwardTilt, 90.0, 0.0, 11.25], [AttackStyle.forwardTiltUp, 80.0, 0.0, 11.25], [AttackStyle.forwardTiltDown, 80.0, 0.0, 11.25],
+  [AttackStyle.upTilt, 26.0, 60.0, 8.75], [AttackStyle.downTilt, 65.0, 0.0, 7.5], [AttackStyle.dashAttack, 55.0, 0.0, 12.5],
+  [AttackStyle.forwardSmash, 95.0, 0.0, 22.5], [AttackStyle.upSmash, 10.0, 80.0, 20.0], [AttackStyle.downSmash, 80.0, 0.0, 17.5],
+  [AttackStyle.neutralAir, 45.0, 0.0, 10.0], [AttackStyle.forwardAir, 72.0, 0.0, 15.0], [AttackStyle.backAir, -70.0, 0.0, 13.75],
+  [AttackStyle.upAir, 10.0, 80.0, 10.0], [AttackStyle.downAir, 12.0, -95.0, 15.0],
 ] as const;
 
 test("Chen's authored normals connect once in both facings and miss outside their reach", () => {
@@ -40,8 +40,8 @@ test("Chen's authored normals connect once in both facings and miss outside thei
 
 test("Chen's grab and all four throws release with their authored damage and direction", () => {
   for (const facing of [-1, 1]) for (const [action, x, z, damage] of [
-    [GrabAction.throwForward, facing, 0, 8.0], [GrabAction.throwBack, -facing, 0, 9.0],
-    [GrabAction.throwUp, 0, 1, 7.0], [GrabAction.throwDown, 0, -1, 6.0],
+    [GrabAction.throwForward, facing, 0, 10.0], [GrabAction.throwBack, -facing, 0, 11.25],
+    [GrabAction.throwUp, 0, 1, 8.75], [GrabAction.throwDown, 0, -1, 7.5],
   ] as const) {
     const owner = createFighter(Character.chen, 0.0, facing);
     const target = createFighter(Character.archer, 50.0 * facing, -facing);

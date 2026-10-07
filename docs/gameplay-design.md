@@ -611,7 +611,7 @@ every newly registered fighter too.
 | Mountain King | Storm Bolt (33) | Storm Rush (43) | One 8% hit armored on frames 1–6 |
 | Warden | Shadow Strike (30) | Shadow Pursuit (40) | One 8% hit armored on frames 1–6 |
 | Lich | Frost Nova (35) | Death and Decay (50) | One 8% hit armored on frames 1–6 |
-| Uther | Hammer of Justice (35) | Holy Radiance (75) | One 8% hit armored on frames 1–6 |
+| Uther | Cleansing Hammer (35) | Righteous Fury (50) | One 8% hit armored on frames 1–6 |
 | Dreadlord | Carrion Swarm (30) | Vampiric Pounce (45) | One 8% hit armored on frames 1–6 |
 | Shadow Hunter | Spirit Glaive (25) | Serpent Ward (45) | One 8% hit armored on frames 1–6 |
 | Pit Lord | Howl of Terror (37) | Ruin Charge (47) | One 8% hit armored on frames 1–6 |
@@ -1186,6 +1186,9 @@ reason. Current departures:
 - **Mountain King's down air (Double Boot), rule 6.** The boots are the
   strike, so the leg volume follows the whole downward strike, about 70 units
   below his feet, past a limb's reach. It is body, not weapon, and can be hit.
+- **Chen's down air (downward boot), rule 6.** The boot is the strike, so
+  the extended leg stays hittable through its full 71-unit downward reach.
+  The staff remains disjoint.
 - **Uther's back air (boot kick), rule 6.** The extended leg is the strike,
   about 0.78 of his height behind him, and stays hittable to its full length.
 - **Dreadlord's wings and claws, rule 6** (down smash, forward smash, forward

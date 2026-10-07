@@ -1,0 +1,108 @@
+$ bun scripts/wisp.ts perf census --fighter thrall --functions --out perf-out/run.txt
+group         entry                              base ms  worst ms  spike ms  at   +instructions  +natives  +KB
+thrall        jab                                   5.02      4.96     -0.06    7            150       -32    1
+thrall        jab chain                             4.49      5.00      0.50  149          20900         0   28
+thrall        forward tilt                          4.50      4.93      0.43    2          16400        12   27
+thrall        up tilt                               4.51      4.87      0.37   74          17100         0    1
+thrall        down tilt                             4.51      4.88      0.37   91          17500         0    1
+thrall        forward smash                         4.64      4.89      0.25  108          11600         0    1
+thrall        up smash                              4.48      4.89      0.41  125          19000         0    1
+thrall        down smash                            4.52      4.90      0.37   22          17400         0    1
+thrall        dash attack                           4.52      5.27      0.76   23          30900        46    4
+thrall        neutral air                           4.53      4.91      0.38   56          17800         0    1
+thrall        forward air                           4.52      4.88      0.35   73          16500         0    1
+thrall        back air                              4.54      4.92      0.39   90          18000         0    1
+thrall        up air                                4.65      4.88      0.23  107          10900         0    1
+thrall        down air                              4.55      4.95      0.40    4          18700         0    1
+thrall        grab                                  4.53      4.93      0.40   21          18700         0    1
+thrall        pummel                                4.55      4.97      0.42  149          17100         0   28
+thrall        forward throw                         4.53      4.89      0.36   55          16700         0    1
+thrall        back throw                            4.56      4.95      0.39   72          18400         0    1
+thrall        up throw                              4.54      4.89      0.36   89          16700         0    1
+thrall        down throw                            4.68      4.98      0.30  106          12850         0   16
+thrall        neutral special                       4.54      4.96      0.42    3          19300         0    2
+thrall        neutral special, again                4.56      4.98      0.41   19          16900         0   27
+thrall        air neutral special                   4.54      4.96      0.42   37          19600         0    2
+thrall        air neutral special, again            4.57      4.97      0.40   54          18800         0    2
+thrall        side special                          4.54      5.07      0.53   13          20100        48    2
+thrall        side special, again                   4.47      5.29      0.82   20          32000        40   30
+thrall        air side special                      4.88      5.32      0.44   42          20500         0    2
+thrall        air side special, again               4.57      5.36      0.78   43          32500        40    4
+thrall        up special                            4.48      4.94      0.46   76          21500         0    2
+thrall        up special, again                     4.51      4.94      0.43   93          19900         0    2
+thrall        air up special                        4.61      4.94      0.34  110          15500         0    3
+thrall        air up special, again                 4.52      5.14      0.62    7          27800         0   16
+thrall        down special                          4.49      4.95      0.46   24          21600         0    2
+thrall        down special, again                   4.52      4.96      0.44   41          20300         0    2
+thrall        air down special                      4.49      4.96      0.47   58          21700         0    2
+thrall        air down special, again               4.53      4.97      0.44   75          20600         0    2
+thrall        side special, then attack             4.50      5.30      0.80   11          31000        40   30
+thrall        up special, then jump                 4.60      4.96      0.36  109          16500         0    2
+thrall        up special, then attack               4.52      5.04      0.52    0          21700         0   28
+39 entries; worst spike 0.82 ms (thrall side special, again); 0 over 2 ms
+profile thrall side special, again (frame +20, 0.82 ms over baseline): k-instructions above a baseline frame, inclusive / self
+    123     0  platform.shell.shell line 99450
+    123     0  platform.dispatch run
+    118     1  platform.shell.shell gameTick
+     90     1  platform.shell.rollback rollbackTick
+     83     0  match.frameInput executeMatchFrame
+     58    -0  replay.shadowPlayback ShadowInputPlayback.prototype.advanceSpeculative
+     56     0  shell.rollbackPlayback ReplayHistoryPlayback.prototype.catchUp
+     40    -1  match.botPlay produceComputerInput
+     35    -1  match.frameInput prepareMatchFrame
+     35     2  platform.shell.frame applyFrame
+     34     0  platform.shell.rollback stepConfirmed
+     33     1  match.step stepMatch
+profile thrall side special, then attack (frame +11, 0.80 ms over baseline): k-instructions above a baseline frame, inclusive / self
+     56     0  platform.shell.shell line 99450
+     56     0  platform.dispatch run
+     54    -0  platform.shell.shell gameTick
+     38     1  match.frameInput executeMatchFrame
+     37    -0  platform.shell.rollback rollbackTick
+     36    -3  match.step stepMatch
+     32    12  sim.f32 slowFloat32
+     27    -1  render.combatEffects CombatEffects.prototype.present
+     25    -1  sim.matchCamera advanceMatchCamera
+     25    -0  shell.rollbackPlayback ReplayHistoryPlayback.prototype.catchUp
+     25     1  replay.shadowPlayback ShadowInputPlayback.prototype.advanceSpeculative
+     25     1  platform.shell.view renderPersistentPresentation
+profile thrall air side special, again (frame +43, 0.78 ms over baseline): k-instructions above a baseline frame, inclusive / self
+    183     0  platform.shell.shell line 99450
+    183     0  platform.dispatch run
+    183     0  platform.shell.shell gameTick
+    136    -1  platform.shell.rollback rollbackTick
+    125     1  replay.snapshot captureReplaySnapshot
+    125     0  replay.moment beginMomentFrame
+    125     0  platform.shell.frame beginRecordedFrame
+    116     1  replay.snapshot copyReplayState
+    115    -0  platform.shell.rollback stepConfirmed
+    115    -3  platform.shell.frame applyFrame
+     72     2  match.pacingAndPresentation copyPacingAndPresentation
+     63    63  presentation.impactState copyImpactStateInto
+profile thrall dash attack (frame +23, 0.76 ms over baseline): k-instructions above a baseline frame, inclusive / self
+    220     0  platform.shell.shell line 99450
+    220     0  platform.dispatch run
+    220     1  platform.shell.shell gameTick
+    174     1  platform.shell.rollback rollbackTick
+    139     0  platform.shell.frame applyFrame
+    138     0  platform.shell.rollback stepConfirmed
+    129     1  replay.snapshot copyReplayState
+    123     1  replay.snapshot captureReplaySnapshot
+    123     0  replay.moment beginMomentFrame
+    123     0  platform.shell.frame beginRecordedFrame
+     83     2  match.pacingAndPresentation copyPacingAndPresentation
+     63    63  presentation.impactState copyImpactStateInto
+profile thrall air up special, again (frame +7, 0.62 ms over baseline): k-instructions above a baseline frame, inclusive / self
+    139     0  platform.shell.shell line 99450
+    139     0  platform.dispatch run
+    138    -0  platform.shell.shell gameTick
+     87    11  replay.matchReplay foldMatchAndFrame
+     80    -1  replay.matchReplay stepCheckpoint
+     80     0  replay.matchReplay continueMatchReplay
+     79     0  platform.shell.replays serviceReplay
+     59    -0  platform.shell.rollback rollbackTick
+     52     1  match.frameInput executeMatchFrame
+     41     6  replay.matchReplay foldFields
+     38     6  replay.matchReplay foldValue
+     37    -4  match.step stepMatch
+  94.265 s  perf (94.265 s)

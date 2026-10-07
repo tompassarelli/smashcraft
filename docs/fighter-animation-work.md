@@ -1463,7 +1463,8 @@ stay in private storage outside Git. The generator writes
 `PRIVATE_OUTPUT/hero-models/herotinker.mdx`, `tinker-clips.json` and side-view
 sheets in both facings. Its 75 authored actions append after the stock indices:
 the nine low/mid/high and small/medium/large pain cells occupy 83–91; captive
-pummel and four directional throw releases occupy 92–96; shield recoil is 97.
+pummel and four directional throw releases occupy 92–96; each spans one second
+with its authored contact mesh at 500 ms. Shield recoil is 97.
 It regenerates `tinkerClipInfo.ts` and Tinker's row in `drawnStrideInfo.ts`.
 The claw-pack has a measured 142.838-world-unit stride at stock scale 1.
 

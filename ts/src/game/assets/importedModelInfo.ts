@@ -6,6 +6,8 @@
 
 /** The Lich King's body, by Kwaliti (Hive Workshop). */
 export const LICH_KING_MODEL = "war3mapImported\\LichKing2.mdx";
+/** The Forsaken Paladin rig with Uther's authored hammer actions. */
+export const UTHER_FORSAKEN_MODEL = "war3mapImported\\UtherForsakenPaladin.mdx";
 /** His command icon, by Kwaliti. */
 export const LICH_KING_ICON = "ReplaceableTextures\\CommandButtons\\BTNLichKing.blp";
 /**
@@ -23,6 +25,7 @@ export const DEFILE_MODEL = "Abilities\\Spells\\Demon\\DarkPortal\\DarkPortalTar
 
 /** Every imported file: its archive path and the file under imported-models. */
 export const IMPORTED_MODEL_FILES: readonly { readonly entry: string; readonly file: string }[] = [
+  { entry: UTHER_FORSAKEN_MODEL, file: "UtherForsakenPaladin.mdx" },
   { entry: LICH_KING_MODEL, file: "LichKing2.mdx" },
   // Warcraft draws a unit's portrait from the model path with "_Portrait".
   { entry: "war3mapImported\\LichKing2_Portrait.mdx", file: "LichKing2_Portrait.mdx" },

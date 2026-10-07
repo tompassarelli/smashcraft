@@ -373,6 +373,7 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
     int("ritual.frame", move.ritual.frame);
     int("ritual.mana", move.ritual.mana);
   }
+  if (move.cleanseFrame !== undefined) int("cleanseFrame", move.cleanseFrame);
   if (move.placement !== undefined) result.push(specialPlacementCanonical(move.placement, `${name}.placement`));
   if (move.recall === true) int("recall", 1);
   if (move.command !== undefined) {
@@ -577,7 +578,7 @@ export interface ObservationWriter {
   readonly byte: (this: void, code: number) => void;
   /** Writes the separator before the scalar as well as its canonical number. */
   readonly number: (this: void, value: number) => void;
-  readonly text: (this: void, text: string) => void;
+  readonly text: (this: void, text: string, repetitions: number) => void;
 }
 const PROJECTILE_OBSERVATION_FIELDS = ["life", "x", "z", "direction", "velocityX", "velocityZ", "serial"] as const;
 interface RepeatedProjectile { readonly values: readonly [number, number, number, number, number, number, number]; readonly text: string }
@@ -608,7 +609,7 @@ export function writeObservations(writer: ObservationWriter, opponents: Slots<Re
     if (f === undefined) continue;
     writer.byte(44);
     const kit = kitText(f);
-    writer.text(kit);
+    writer.text(kit, 1);
     writer.number(f.tuning.physics.gravity);
     writer.number(f.tuning.physics.terminalSpeed);
     writer.number(f.tuning.tech.ceilingImpulseFrame);
@@ -676,9 +677,12 @@ export function writeObservations(writer: ObservationWriter, opponents: Slots<Re
     writer.number(f.bear.x);
     writer.number(f.bear.z);
     writer.number(f.bear.hitSerial);
+    let repeatedCount = 0;
+    let repeatedText = "";
     for (const p of f.projectiles) {
       const repeated = repeatedProjectileText(p);
-      if (repeated !== undefined) { writer.text(repeated); continue; }
+      if (repeated !== undefined) { repeatedText = repeated; repeatedCount++; continue; }
+      if (repeatedCount > 0) { writer.text(repeatedText, repeatedCount); repeatedCount = 0; }
       writer.number(p.life);
       writer.number(p.x);
       writer.number(p.z);
@@ -687,6 +691,7 @@ export function writeObservations(writer: ObservationWriter, opponents: Slots<Re
       writer.number(p.velocityZ);
       writer.number(p.serial);
     }
+    if (repeatedCount > 0) writer.text(repeatedText, repeatedCount);
   }
 }
 
@@ -696,7 +701,7 @@ export function botObservationCanonical(sample: Readonly<BotObservationFrame>): 
   const byte = (code: number) => { parts.push(String.fromCharCode(code)); };
   writeObservations({ byte,
     number: value => { byte(44); writeCanonicalNumber(byte, value); },
-    text: text => { parts.push(text); },
+    text: (text, repetitions) => { parts.push(text.repeat(repetitions)); },
   }, sample.opponents);
   return parts.join("");
 }

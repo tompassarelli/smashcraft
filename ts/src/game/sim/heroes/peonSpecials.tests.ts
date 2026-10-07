@@ -41,7 +41,7 @@ const down = controls({ specialPressed: true, specialZ: -1 });
 
 test("Peon four special inputs spend once and finish on the authored frame", () => {
   for (const [input, action, cost, end] of [
-    [neutral, SpecialAction.heroNeutral, 0, 42], [side, SpecialAction.heroSide, 20, 52],
+    [neutral, SpecialAction.heroNeutral, 0, 48], [side, SpecialAction.heroSide, 20, 52],
     [up, SpecialAction.heroUp, 15, 28], [down, SpecialAction.heroDown, 20, 38],
   ] as const) {
     const { world, owner } = pair(900.0);
@@ -59,7 +59,7 @@ test("Peon Lumber Toss strikes once in both facings and never creates a second l
     const { world, owner, target } = pair(280.0, facing);
     frame(world, neutral);
     for (let tick = 2; tick <= 110; tick++) {
-      frame(world, tick === 45 ? neutral : controls());
+      frame(world, tick === 51 ? neutral : controls());
       assertTrue(owner.projectiles.filter(p => p.life > 0).length <= 1);
     }
     assertEquals(target.status.damage, 14.0);

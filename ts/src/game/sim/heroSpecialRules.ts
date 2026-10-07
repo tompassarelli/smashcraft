@@ -6,7 +6,7 @@
 import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { at } from "wisp/src/runtime/lookup";
-import { advanceHeroConditions } from "./heroStatus";
+import { advanceHeroConditions, cleansePoisonAndSlow } from "./heroStatus";
 import { AttackStyle, ProjectileKind, SpecialAction } from "./codes";
 import { canAttack, inGrabContext, isIntangible } from "./conditions";
 import { type Fighter, placedObject } from "./fighter";
@@ -399,6 +399,7 @@ export function advanceHeroSpecial(f: Fighter, stage = 0, input?: Readonly<Contr
   const move = runningHeroSpecial(f);
   if (move === undefined) return;
   const frame = f.special.frame;
+  if (move.cleanseFrame === frame) cleansePoisonAndSlow(f);
   applyMotion(f, move, frame, input);
   for (const spec of move.projectiles ?? []) if (spec.spawnFrame === frame) spawnHeroProjectile(f, spec, f.attack.serial + 1, stage);
   if (move.placement?.frame === frame) placeObject(f, move.placement);

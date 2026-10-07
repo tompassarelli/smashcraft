@@ -1,0 +1,108 @@
+$ bun scripts/wisp.ts perf census --fighter chen-stormstout --functions --out perf-out/run.txt
+group         entry                              base ms  worst ms  spike ms  at   +instructions  +natives  +KB
+chen-stormstout jab                                   5.02      4.98     -0.04    9           1000       -32   -0
+chen-stormstout jab chain                             4.49      4.93      0.44  149          18200         0   28
+chen-stormstout forward tilt                          4.50      4.93      0.43    2          16600        13   28
+chen-stormstout up tilt                               4.50      4.90      0.40   76          17100         0   18
+chen-stormstout down tilt                             4.50      4.87      0.38   93          17600         0    1
+chen-stormstout forward smash                         4.63      4.88      0.25  110          12000         0    1
+chen-stormstout up smash                              4.48      4.88      0.41  127          18900         0    1
+chen-stormstout down smash                            4.52      4.89      0.37   24          17400         0    1
+chen-stormstout dash attack                           4.51      5.27      0.75   25          31200        41    4
+chen-stormstout neutral air                           4.50      4.86      0.36   58          16700         0    1
+chen-stormstout forward air                           4.49      4.88      0.39   75          18300         0    1
+chen-stormstout back air                              4.50      4.89      0.39   92          18000         0    1
+chen-stormstout up air                                4.60      4.89      0.28  109          13200         0    1
+chen-stormstout down air                              4.51      4.95      0.43    5          17800         0   27
+chen-stormstout grab                                  4.50      4.90      0.40   23          18700         0    1
+chen-stormstout pummel                                4.51      5.00      0.48  149          20000         0   27
+chen-stormstout forward throw                         4.50      4.91      0.41   57          19000         0    1
+chen-stormstout back throw                            4.53      4.95      0.42   74          18500         0   14
+chen-stormstout up throw                              4.50      4.88      0.37   91          17300         0    1
+chen-stormstout down throw                            4.64      4.92      0.29  108          13300         0    2
+chen-stormstout neutral special                       4.51      4.92      0.42    5          19400         0    2
+chen-stormstout neutral special, again                4.53      5.01      0.48   19          19800         0   27
+chen-stormstout air neutral special                   4.51      4.96      0.45  149          18500         0   27
+chen-stormstout air neutral special, again            4.53      4.94      0.40   56          18800         0    2
+chen-stormstout side special                          4.51      5.05      0.54   14          20600        47    2
+chen-stormstout side special, again                   4.48      5.32      0.84   20          32700        41   31
+chen-stormstout air side special                      4.61      4.90      0.30  149          10050        13   28
+chen-stormstout air side special, again               4.90      5.31      0.40   26          16200         2   28
+chen-stormstout up special                            4.53      4.98      0.45  102          22400         0    2
+chen-stormstout up special, again                     4.63      4.97      0.34  119          16300         0    2
+chen-stormstout air up special                        4.55      5.07      0.53    6          22000         0   29
+chen-stormstout air up special, again                 4.52      5.07      0.56  149          23500         0   27
+chen-stormstout down special                          4.55      4.99      0.43   50          20100         0    2
+chen-stormstout down special, again                   4.52      4.99      0.47   67          21600         0    3
+chen-stormstout air down special                      4.56      4.99      0.43   84          20200         0    2
+chen-stormstout air down special, again               4.53      4.99      0.47  101          21800         0    2
+chen-stormstout side special, then attack             4.68      5.33      0.65   11          24000        41   30
+chen-stormstout up special, then jump                 4.54      5.02      0.48   15          22300         0    2
+chen-stormstout up special, then attack               4.50      4.98      0.48   32          22100         0    2
+39 entries; worst spike 0.84 ms (chen-stormstout side special, again); 0 over 2 ms
+profile chen-stormstout side special, again (frame +20, 0.84 ms over baseline): k-instructions above a baseline frame, inclusive / self
+     74     0  platform.shell.shell line 99450
+     74     0  platform.dispatch run
+     71    -0  platform.shell.shell gameTick
+     59    -1  match.frameInput executeMatchFrame
+     55     1  platform.shell.rollback rollbackTick
+     44    -1  match.step stepMatch
+     44    -2  platform.shell.rollback stepConfirmed
+     43     1  platform.shell.frame applyFrame
+     33     2  sim.matchCamera advanceMatchCamera
+     28    14  sim.f32 slowFloat32
+     16    -1  render.combatEffects CombatEffects.prototype.present
+     16     1  platform.shell.view renderPersistentPresentation
+profile chen-stormstout dash attack (frame +25, 0.75 ms over baseline): k-instructions above a baseline frame, inclusive / self
+    193     0  platform.shell.shell line 99450
+    193     0  platform.dispatch run
+    192    -0  platform.shell.shell gameTick
+    153     2  platform.shell.rollback rollbackTick
+    144     2  platform.shell.frame applyFrame
+    144    -1  platform.shell.rollback stepConfirmed
+    117     1  replay.snapshot captureReplaySnapshot
+    117     0  replay.moment beginMomentFrame
+    116     0  platform.shell.frame beginRecordedFrame
+    115    -0  replay.snapshot copyReplayState
+     77    -1  match.pacingAndPresentation copyPacingAndPresentation
+     65    65  presentation.impactState copyImpactStateInto
+profile chen-stormstout side special, then attack (frame +11, 0.65 ms over baseline): k-instructions above a baseline frame, inclusive / self
+     63     0  shell.rollbackPlayback ReplayHistoryPlayback.prototype.catchUp
+     63    -0  replay.shadowPlayback ShadowInputPlayback.prototype.advanceSpeculative
+     54     0  platform.shell.shell line 99450
+     54     0  platform.dispatch run
+     53    -0  platform.shell.shell gameTick
+     47    -0  platform.shell.rollback rollbackTick
+     45    -1  match.frameInput executeMatchFrame
+     28    -1  platform.shell.view renderPersistentPresentation
+     26     8  render.combatEffects CombatEffects.prototype.present
+     25     2  match.botPerception observeOpponents
+     23    -0  match.botPlay produceComputerInput
+     23    23  runtime.lookup at
+profile chen-stormstout air up special, again (frame +149, 0.56 ms over baseline): k-instructions above a baseline frame, inclusive / self
+     39     2  replay.matchReplay stepCheckpoint
+     39     0  replay.matchReplay continueMatchReplay
+     38     0  platform.shell.replays serviceReplay
+     36     4  replay.matchReplay foldValue
+     35     6  replay.matchReplay foldFields
+     13     6  replay.matchReplay foldNumber
+     11     9  replay.matchReplay fieldName
+      8     8  replay.matchReplay foldInteger
+      8    -1  platform.shell.shell gameTick
+      7     3  sim.binary32 subtractFloat32
+      6     0  platform.shell.shell line 99450
+      6     0  platform.dispatch run
+profile chen-stormstout side special (frame +14, 0.54 ms over baseline): k-instructions above a baseline frame, inclusive / self
+    103     0  platform.shell.shell line 99450
+    103     0  platform.dispatch run
+    102     0  platform.shell.shell gameTick
+     77    -0  platform.shell.rollback rollbackTick
+     76     2  match.frameInput executeMatchFrame
+     75     0  shell.rollbackPlayback ReplayHistoryPlayback.prototype.catchUp
+     75     0  replay.shadowPlayback ShadowInputPlayback.prototype.advanceSpeculative
+     48     1  match.step stepMatch
+     48    15  sim.f32 slowFloat32
+     39     4  sim.matchCamera advanceMatchCamera
+     31     7  replay.canonical writeObservations
+     27    -0  platform.shell.view renderPersistentPresentation
+  90.842 s  perf (90.842 s)

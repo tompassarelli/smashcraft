@@ -24,12 +24,13 @@ import { ARCHER_MODEL_FILE, RIFLEMAN_MODEL_FILE } from "../../src/game/presentat
 import { ARENA_CAMERA, FLOOR_HEIGHT, arenaFraming } from "../../src/game/presentation/arenaCamera";
 import { SUMMON_BEAR, summonClip, summonClipCount } from "../../src/game/presentation/summonClipInfo";
 import { CANNON_MODEL } from "../../src/game/presentation/stageHazards";
-import { allProjectileModels } from "../../src/game/presentation/projectileArt";
+import { allProjectileModels, SPECIAL_SLOTS } from "../../src/game/presentation/projectileArt";
 import { ELEMENTS, elementLook } from "../../src/game/presentation/elementLooks";
 import { allCueModels } from "../../src/game/presentation/specialCues";
 import { allAttackCueModels } from "../../src/game/presentation/attackCues";
 import { PASSIVE_MODELS } from "../../src/game/presentation/passiveLook";
 import { Character } from "../../src/game/sim/codes";
+import type { AuthoredSpecial } from "../../src/game/sim/heroSpecials";
 import { HERO_ROSTER } from "../../src/game/sim/heroes/registry";
 import { STAGE_CATALOG } from "../../src/game/menu/stageCatalog";
 import { stageBounds } from "../../src/game/sim/stageBounds";
@@ -49,6 +50,26 @@ const fighterModels = CHARACTERS.flatMap((character) => [
   ...range(originalClipCount(character)).flatMap((index) => originalClip(character, index)?.modelPath ?? []),
   ...[originalLightPath(character) ?? []].flat(),
 ]);
+
+const WARD_MODEL = "Units\\Orc\\SerpentWard\\SerpentWard.mdx";
+const placedModels = new Map<string, number>([[WARD_MODEL, 240]]);
+function recordPlacement(special: AuthoredSpecial | undefined, fallback: string): void {
+  const placement = special?.placement;
+  if (placement !== undefined) {
+    const path = placement.model?.path ?? fallback;
+    placedModels.set(path, Math.max(placedModels.get(path) ?? 0, placement.life));
+  }
+  for (const followUp of special?.followUps ?? []) recordPlacement(followUp.special, fallback);
+}
+for (const hero of HERO_ROSTER) {
+  if (hero.specials === undefined) continue;
+  for (const slot of SPECIAL_SLOTS) {
+    const kit = hero.specials[slot];
+    for (const form of [kit.ground, kit.air, kit.free, kit.recall, kit.marked?.special]) {
+      recordPlacement(form, hero.presentation.placedModel?.path ?? WARD_MODEL);
+    }
+  }
+}
 
 /** Every value from `low` to `high` in quarters, each paired with every one at or above it. */
 const spans = (low: number, high: number) => {
@@ -105,8 +126,10 @@ export const SMASHCRAFT_SCENE: SceneExpectations & { readonly settledFrame: numb
     // An unsprung trap waits 30 s; a frozen fighter thaws within 5 s.
     { name: "freeze trap", lifetime: seconds(31), models: [FROST_TRAP_MODEL] },
     { name: "ice shell", lifetime: seconds(6), models: [FROST_ICE_MODEL] },
-    // A Serpent Ward stands at most 240 frames.
-    { name: "placed ward", lifetime: seconds(5), models: ["Units\\Orc\\SerpentWard\\SerpentWard.mdx"] },
+    ...[...placedModels].map(([model, lifetime]) => ({
+      name: model === WARD_MODEL ? "placed ward" : `placed ${model.split("\\").at(-1)}`,
+      lifetime: lifetime + seconds(1), models: [model],
+    })),
     { name: "agency marker", models: ["Abilities\\Spells\\Other\\GeneralAuraTarget\\GeneralAuraTarget.mdl"] },
     // Every move's stock missile (presentation/projectileArt.ts).
     {
@@ -117,7 +140,7 @@ export const SMASHCRAFT_SCENE: SceneExpectations & { readonly settledFrame: numb
     // A hit's element on its victim through hitlag and hitstun, a few seconds at most (presentation/elementLooks.ts).
     { name: "hit element", lifetime: seconds(5), models: ELEMENTS.flatMap((element) => elementLook(element).victim ?? []) },
     // Stock game models (render/effects.ts STOCK_MODELS, shell/fighterBody.ts); the host can't load those modules' natives.
-    { name: "hippogryph", lifetime: seconds(3), models: ["Units\\NightElf\\HippoGryph\\HippoGryph.mdx"] },
+    { name: "hippogryph", lifetime: seconds(3), models: ["Units\\NightElf\\HippoGryph\\HippoGryph.mdx", "Units\\NightElf\\RiddenHippoGryph\\RiddenHippoGryph.mdx"] },
     { name: "Illidan's flames", lifetime: seconds(3), models: ["Abilities\\Spells\\NightElf\\Immolation\\ImmolationTarget.mdx", "Abilities\\Spells\\NightElf\\ManaBurn\\ManaBurnTarget.mdx"] },
     { name: "silence mark", lifetime: seconds(2), models: ["Abilities\\Spells\\Other\\Silence\\SilenceTarget.mdx"] },
     { name: "bear", lifetime: seconds(3), models: range(summonClipCount(SUMMON_BEAR)).map((index) => summonClip(SUMMON_BEAR, index).modelPath) },

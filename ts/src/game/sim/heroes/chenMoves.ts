@@ -7,7 +7,7 @@ import type { HitEffect } from "../hitRegions";
 
 export const chenCapsule = (x1: number, z1: number, x2: number, z2: number, radius: number): StrikeCapsule => ({ x1, z1, x2, z2, radius });
 export const chenHit = (damage: number, growth: number, base: number, x: number, z: number, element: HitElement = HitElement.normal): Readonly<HitEffect> =>
-  ({ damage, growth, base, launchX: f32(x), launchZ: f32(z), electric: false, element });
+  ({ damage: growth === 0.0 ? damage : f32(damage * 1.25), growth, base, launchX: f32(x), launchZ: f32(z), electric: false, element });
 const poke = (damage: number) => chenHit(damage, 78.0, 18.0, f32(0.819152), f32(0.573576));
 const lift = (damage: number) => chenHit(damage, 83.0, 28.0, f32(0.173648), f32(0.984808));
 const finish = (damage: number, back = false) => chenHit(damage, 108.0, 28.0, back ? -f32(0.766044) : f32(0.766044), f32(0.642788));
@@ -29,7 +29,7 @@ export const CHEN_MOVES: FighterMoves = {
       [AttackStyle.dashAttack]: reach(8, 17, 54.0, 50.0), [AttackStyle.forwardSmash]: reach(16, 26, 58.0, 60.0),
       [AttackStyle.upSmash]: reach(12, 22, 14.0, 116.0), [AttackStyle.downSmash]: [...reach(12, 17, 46.0, 24.0), ...reach(18, 24, -46.0, 24.0)],
       [AttackStyle.neutralAir]: [heroHurtPose(5, 14, [body, hurtPart(-56.0, 44.0, 58.0, 48.0, 12.0)])],
-      [AttackStyle.forwardAir]: reach(9, 17, 78.0, 48.0), [AttackStyle.backAir]: reach(6, 14, -76.0, 44.0),
+      [AttackStyle.forwardAir]: [...reach(6, 8, 40.0, 48.0), ...reach(9, 17, 78.0, 48.0), ...reach(18, 20, 40.0, 48.0)], [AttackStyle.backAir]: reach(6, 14, -76.0, 44.0),
       [AttackStyle.upAir]: reach(5, 13, 12.0, 106.0), [AttackStyle.downAir]: reach(11, 21, 12.0, -60.0),
       [AttackStyle.grab]: reach(5, 12, 52.0, 48.0),
     },

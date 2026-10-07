@@ -1,0 +1,77 @@
+{
+  "control": {
+    "commit": "5ad5cb886ddcca001fa48b71ab8589778f477647",
+    "wins": 456,
+    "losses": 1176,
+    "ties": 0,
+    "matches": 1632,
+    "winRate": 0.27941176470588236
+  },
+  "candidate": {
+    "commit": "89b8e4578ead34cff009f42d0632a8d7595ab35e",
+    "wins": 498,
+    "losses": 1134,
+    "ties": 0,
+    "matches": 1632,
+    "winRate": 0.30514705882352944
+  },
+  "pairedOutcomes": {
+    "improved": 292,
+    "regressed": 250,
+    "unchanged": 1090
+  },
+  "rows": [
+    {
+      "pair": "blademaster_peon",
+      "control": {
+        "wins": 119,
+        "matches": 408,
+        "winRate": 0.2916666666666667
+      },
+      "candidate": {
+        "wins": 105,
+        "matches": 408,
+        "winRate": 0.25735294117647056
+      }
+    },
+    {
+      "pair": "lich_peon",
+      "control": {
+        "wins": 163,
+        "matches": 408,
+        "winRate": 0.39950980392156865
+      },
+      "candidate": {
+        "wins": 181,
+        "matches": 408,
+        "winRate": 0.44362745098039214
+      }
+    },
+    {
+      "pair": "pit-lord_peon",
+      "control": {
+        "wins": 93,
+        "matches": 408,
+        "winRate": 0.22794117647058823
+      },
+      "candidate": {
+        "wins": 121,
+        "matches": 408,
+        "winRate": 0.2965686274509804
+      }
+    },
+    {
+      "pair": "beastmaster_peon",
+      "control": {
+        "wins": 81,
+        "matches": 408,
+        "winRate": 0.19852941176470587
+      },
+      "candidate": {
+        "wins": 91,
+        "matches": 408,
+        "winRate": 0.22303921568627452
+      }
+    }
+  ]
+}

@@ -37,5 +37,5 @@
 340 b press VIEW
 410 b release VIEW
 #! expect b 157 grab-hold start
-#! expect a 239 damage 3.000
-#! expect a 269 damage 9.000
+#! expect a 239 damage 2.862
+#! expect a 268 damage 8.586
