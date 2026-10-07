@@ -40,5 +40,5 @@ export const CHEN_SPECIALS: FighterSpecials = {
   neutral: { name: "Breath of Fire", description: "Breathe a short cone of flame; a jump clears it.", ground: breath(false), air: breath(true) },
   side: { name: "Drunken Haze", description: "Lob a flask that briefly slows an enemy's movement.", ground: haze(false), air: haze(true) },
   up: { name: "Storm Rise", description: "Rise with a spinning staff, steer toward safety, then fall helplessly.", ground: stormRise(15, f32(2.1), f32(0.45)), free: stormRise(0, f32(1.45), f32(0.3)) },
-  down: { name: "Storm, Earth and Fire", description: "Brace as Earth; press Attack for Fire Palm or Special for Storm Step.", ground: earth(false), air: earth(true) },
+  down: { name: "Threefold Stance", description: "Brace as Earth; press Attack for Fire Palm or Special for Storm Step.", ground: earth(false), air: earth(true) },
 };

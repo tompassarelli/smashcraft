@@ -233,7 +233,7 @@ Normals, inspired by:
 | Neutral special | Breath of Fire | Breathe a short cone of flame; a jump clears it. |
 | Side special | Drunken Haze | Lob a flask that briefly slows an enemy's movement. |
 | Up special | Storm Rise | Rise with a spinning staff, steer toward safety, then fall helplessly. |
-| Down special | Storm, Earth and Fire (Earth Stance, Fire Palm, Storm Step) | Brace as Earth; press Attack for Fire Palm or Special for Storm Step. |
+| Down special | Threefold Stance (Earth Stance, Fire Palm, Storm Step) | Brace as Earth; press Attack for Fire Palm or Special for Storm Step. |
 | Jab, repeated | Staggering Three | A palm, a staff butt and a belly check on repeated jabs. |
 | Passive | Drunken Brawler | After three melee hits in a short time, the next deals extra damage. |
 | Ultimate | Storm, Earth and Fire | Three spirits divide defense, movement and striking roles. |
