@@ -124,6 +124,9 @@ code. From smashcraft:ts/:
   `tools/animations/build-lichking.sh [PRIVATE_INPUTS] [IMMUTABLE_EXISTING_MODEL] [--replace NAME]`
   authors clips through Blender; the optional existing model preserves shipped
   sequences and appends only new clips; `--replace NAME` reauthors one existing clip at its same index and length (smashcraft:docs/fighter-animation-work.md).
+- White body flashes (from the repository root):
+  `bun tools/animations/white-flash-models.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
+  authors white body-only copies with the original meshes and animation keys for charge and heavy-hit flashes; store PRIVATE_OUTPUT as `impact-assets`.
 - Damage reactions (from the repository root):
   `bun tools/animations/damage-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
   appends all 13 fighters' nine articulated contact reactions, checks their
@@ -238,6 +241,7 @@ code. From smashcraft:ts/:
   runs the native driver's exact pad inputs; `--headless --frames N --out DIR`
   saves frame checksums and captures (`--capture-frames N,N` picks their frames).
   Private map and Warcraft assets stay in the existing local asset store.
+- Controller layout: `bun wisp controller layout standard|zjump` changes the running service live, or saves the choice for its next start. Layout, tap jump and left/right full or light shield are kept in `~/.config/smashcraft/controller.json` (or `$XDG_CONFIG_HOME/smashcraft/controller.json`) and editable on the client Controller page.
 - Controller: `bun wisp controller` points the always-on controller service
   (`wc3-journal --service`, the login unit smashcraft-controller.service) at
   main's helper and restarts it, or runs the service in the foreground when

@@ -165,6 +165,12 @@ test("Beastmaster Quilbeast fires from its own location, then a command gives th
     }
   }
   assertEquals(shots, 3);
+  for (const p of owner.projectiles) p.life = 0;
+  quil.mode = CompanionMode.stunned;
+  quil.modeFrame = 0;
+  quil.age = 107;
+  frame(world);
+  assertEquals(owner.projectiles.filter(p => p.life > 0).length, 0);
 });
 
 test("Beastmaster Hawk Dive leaves its perch and launches a target upward in both facings", () => {

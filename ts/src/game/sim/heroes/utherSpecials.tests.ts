@@ -1,16 +1,18 @@
 // Uther's four specials through the production special, contact, projectile
-// and mana functions (smashcraft:docs/design/roster.md, "Uther"; Holy Light and
-// Divine Shield, #131).
+// and mana functions (smashcraft:docs/design/uther.md).
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { copyFighterState } from "../../replay/fighterState";
 import { firstFighterDifference } from "../../replay/difference";
+import { captureImpactEventsBefore, createImpactEvents, finishImpactEventsAfter } from "../../presentation/impactEvents";
+import { presentImpactSounds } from "../../presentation/hitPresentation";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
-import { AttackStyle, Character, ProjectileKind, SpecialAction } from "../codes";
+import { AttackStyle, Character, SpecialAction } from "../codes";
 import { beginDamageContacts, finishDamageContacts } from "../contacts";
 import { type Fighter, createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
-import { advanceHeroStatus, refillMana } from "../heroSpecialRules";
+import { advanceHeroStatus } from "../heroSpecialRules";
+import { ordinaryHitlagFrames } from "../knockback";
 import { regenerateMana } from "../mana";
 import { updateProjectiles } from "../projectiles";
 import { type Controls, type Roster, createRoster } from "../roster";
@@ -20,8 +22,8 @@ import { controls } from "../testWorld";
 import { UTHER_SPECIALS } from "./utherSpecials";
 
 /** One match-ordered frame; `strike` starts the second fighter's attack before contacts. */
-function frame(world: Roster, first: Readonly<Controls> = controls(), strike?: AttackStyle): void {
-  const inputs = [first, controls()];
+function frame(world: Roster, first: Readonly<Controls> = controls(), strike?: AttackStyle, second: Readonly<Controls> = controls()): void {
+  const inputs = [first, second];
   for (let slot = 0; slot < 2; slot++) advanceFighter(world, slot, 0, inputs[slot] ?? controls(), slot === 0 ? -240.0 : 240.0);
   beginDamageContacts();
   for (let slot = 0; slot < 2; slot++) startFighterSpecial(world.fighters[slot]!, 0, 0, inputs[slot] ?? controls());
@@ -55,8 +57,8 @@ const near = (actual: number, expected: number, tolerance: number) => assertTrue
 
 test("Uther's specials spend their listed mana once and end on their listed frames", () => {
   for (const [input, action, cost, end] of [
-    [neutral, SpecialAction.heroNeutral, 10, 50],
-    [side, SpecialAction.heroSide, 20, 47],
+    [neutral, SpecialAction.heroNeutral, 10, 38],
+    [side, SpecialAction.heroSide, 20, 49],
     [up, SpecialAction.heroUp, 15, 29],
     [down, SpecialAction.heroDown, 25, 36],
   ] as const) {
@@ -74,43 +76,76 @@ test("Uther's specials spend their listed mana once and end on their listed fram
   assertEquals(UTHER_SPECIALS.up.free?.cost, 0);
 });
 
-test("Holy Light leaves on frame 20, flies straight or 30 degrees up when up is held, and strikes once for 5", () => {
-  for (const vertical of [0, 1]) {
-    const { world, owner, target } = pair(300.0);
-    frame(world, controls({ specialPressed: true, verticalDirection: vertical }));
-    assertEquals(owner.special.action, SpecialAction.heroNeutral);
-    for (let f = 2; f <= 19; f++) frame(world);
+test("Hammer of Justice bonks once, launches upward and holds both fighters three extra frames", () => {
+  for (const facing of [-1, 1]) {
+    const { world, owner, target } = pair(110.0);
+    owner.facing = facing;
+    owner.motion.x = -55.0 * facing;
+    target.motion.x = 55.0 * facing;
+    frame(world, neutral);
+    for (let f = 2; f <= 13; f++) frame(world);
+    assertEquals(target.status.damage, 0.0);
+    for (let f = 14; f <= 16 && target.status.damage === 0.0; f++) frame(world);
+    assertEquals(target.status.damage, 13.0);
+    assertEquals(owner.launch.hitlag, ordinaryHitlagFrames(13.0) + 3);
+    assertEquals(target.launch.hitlag, ordinaryHitlagFrames(13.0) + 3);
+    assertGreaterThan(target.launch.knockbackZ, Math.abs(target.launch.knockbackX));
+    for (let f = 0; f < 60; f++) frame(world);
+    assertEquals(target.status.damage, 13.0);
     assertEquals(owner.projectiles.filter((p) => p.life > 0).length, 0);
-    frame(world);
-    const bolt = owner.projectiles.find((p) => p.life > 0 && p.kind === ProjectileKind.hero);
-    assertTrue(bolt !== undefined);
-    if (bolt === undefined) continue;
-    if (vertical === 0) assertEquals(bolt.velocityZ, 0.0);
-    else near(bolt.velocityZ / bolt.velocityX, Math.tan(Math.PI / 6), f32(0.001));
-    for (let f = 0; f < 40; f++) frame(world);
-    assertEquals(target.status.damage, vertical === 0 ? 5.0 : 0.0);
   }
 });
 
-test("Crusader Rush advances 0.9H, strikes once for 11, and only the grounded rush carries armor", () => {
+test("Holy Radiance advances with the hammer, hits once up close and sends weaker light beyond it", () => {
   const far = pair(900.0);
   const start = far.owner.motion.x;
   frame(far.world, side);
-  for (let f = 2; f <= 48; f++) {
+  for (let f = 2; f <= 50; f++) {
     frame(far.world);
-    // Armor set after frame f covers the hits resolved on frame f + 1: f12-15.
-    assertEquals(far.owner.status.armorFrames > 0, f >= 11 && f <= 14);
+    assertEquals(far.owner.status.armorFrames > 0, f >= 14 && f <= 17);
   }
-  near(f32(far.owner.motion.x - start) / H, f32(0.9), f32(0.02));
-  const close = pair(150.0);
+  near(f32(far.owner.motion.x - start) / H, f32(0.75), f32(0.02));
+  const close = pair(100.0);
   frame(close.world, side);
-  for (let f = 2; f <= 48; f++) frame(close.world);
-  assertEquals(close.target.status.damage, 11.0);
+  for (let f = 2; f <= 75; f++) frame(close.world);
+  assertEquals(close.target.status.damage, 14.0);
+  const ranged = pair(400.0);
+  frame(ranged.world, side);
+  for (let f = 2; f <= 65; f++) frame(ranged.world);
+  assertEquals(ranged.target.status.damage, 6.0);
+});
+
+test("Uther's hammer makes one loud heavy bash and holds a shield contact three extra frames", () => {
+  const sound = pair(110.0);
+  const events = createImpactEvents();
+  const played: string[] = [];
+  for (let f = 1; f <= 65; f++) {
+    captureImpactEventsBefore(events, sound.target);
+    frame(sound.world, f === 1 ? neutral : controls());
+    finishImpactEventsAfter(events, sound.target, sound.world);
+    presentImpactSounds(events, (path, _x, _z, volume, _pitch, file) => {
+      if (events.hit && file) played.push(`${path}:${volume}`);
+    });
+  }
+  assertEquals(played.length, 1);
+  assertTrue((played[0] ?? "").includes("WoodHeavyBashFlesh"));
+  assertTrue((played[0] ?? "").endsWith(":127"));
+  const shield = pair(110.0);
+  shield.target.shield.raised = true;
+  for (let f = 1; f <= 20 && shield.owner.launch.hitlag === 0; f++) {
+    frame(shield.world, f === 1 ? neutral : controls(), undefined, controls({ shield: true, shieldStrength: 1.0 }));
+  }
+  assertEquals(shield.target.status.damage, 0.0);
+  assertEquals(shield.owner.launch.hitlag, ordinaryHitlagFrames(13.0) + 3);
+  assertEquals(shield.target.launch.hitlag, ordinaryHitlagFrames(13.0) + 3);
+});
+
+test("air Holy Radiance has no armor, spends its one airborne use and ends helpless", () => {
   const air = pair(900.0);
   air.owner.motion.grounded = false;
   air.owner.motion.z = 1200.0;
   frame(air.world, side);
-  for (let f = 2; f <= 47; f++) {
+  for (let f = 2; f <= 49; f++) {
     assertEquals(air.owner.status.armorFrames, 0);
     frame(air.world);
   }
@@ -142,51 +177,6 @@ test("Ascension rises 1.9H with one hit, its free form 1.3H without one, both dr
     for (let f = 2; f <= 30; f++) frame(close.world);
     assertEquals(close.target.status.damage, damage);
   }
-});
-
-const live = (f: Readonly<Fighter>) => f.projectiles.filter((p) => p.life > 0 && p.kind === ProjectileKind.hero);
-
-test("Holy Light turns back on its age 26 and, reaching Uther untouched, restores 3 percent up to 9 a stock", () => {
-  const { world, owner } = pair(900.0);
-  owner.status.damage = 30.0;
-  for (let cast = 0; cast < 4; cast++) {
-    owner.mana.points = 100;
-    frame(world, neutral);
-    for (let f = 2; f <= 22; f++) frame(world);
-    const orb = live(owner)[0]!;
-    assertGreaterThan(orb.velocityX, 0.0);
-    for (let f = 0; f < 26; f++) frame(world);
-    assertLessThan(orb.velocityX, 0.0);
-    for (let f = 0; f < 40; f++) frame(world);
-    assertEquals(live(owner).length, 0);
-    assertEquals(owner.status.damage, f32(30.0 - Math.min(9.0, 3.0 * (cast + 1))));
-  }
-  assertEquals(owner.status.guardHealed, 9.0);
-  refillMana(owner);
-  assertEquals(owner.status.guardHealed, 0.0);
-});
-
-test("returning Holy Light strikes a fighter between it and Uther for 5, knocking it toward Uther", () => {
-  const { world, owner, target } = pair(900.0);
-  frame(world, neutral);
-  for (let f = 2; f <= 50; f++) frame(world);
-  const orb = live(owner)[0]!;
-  assertLessThan(orb.velocityX, 0.0);
-  target.motion.x = f32(orb.x - 60.0);
-  for (let f = 0; f < 10 && target.status.damage === 0.0; f++) frame(world);
-  assertEquals(target.status.damage, 5.0);
-  assertLessThan(target.launch.knockbackX, 0.0);
-  assertEquals(owner.status.guardHealed, 0.0);
-});
-
-test("a reflected Holy Light flies straight on instead of returning", () => {
-  const { world, owner } = pair(900.0);
-  frame(world, neutral);
-  for (let f = 2; f <= 30; f++) frame(world);
-  const orb = live(owner)[0]!;
-  orb.damageMultiplier = f32(0.5);
-  for (let f = 0; f < 30; f++) frame(world);
-  assertGreaterThan(orb.velocityX, 0.0);
 });
 
 test("Divine Shield fails in the air without spending, and only a strike on f6-9 raises it", () => {
@@ -261,7 +251,7 @@ test("a grab beats Divine Shield's guard once its intangible frames end", () => 
   assertEquals(owner.status.divineFrames, 0);
 });
 
-test("replaying Uther's guard and rush from a restored snapshot reproduces every fighter field", () => {
+test("replaying Uther's guard and Radiance from a restored snapshot reproduces every fighter field", () => {
   const { world, owner, target } = pair(60.0, Character.uther);
   owner.status.damage = 20.0;
   const savedOwner = createFighter(Character.uther, 0.0, 1);
