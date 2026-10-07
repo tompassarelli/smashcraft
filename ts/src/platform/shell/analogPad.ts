@@ -17,10 +17,11 @@ export interface NativePadCapture {
   syncEvents: number;
   startedAt: number;
   readonly rows: string[];
+  readonly mouse: string[];
 }
 
 export function nativePadCapture(): NativePadCapture {
-  return { calibration: { first: undefined, last: undefined }, packet: undefined, mouseEvents: 0, syncEvents: 0, startedAt: 0.0, rows: [] };
+  return { calibration: { first: undefined, last: undefined }, packet: undefined, mouseEvents: 0, syncEvents: 0, startedAt: 0.0, rows: [], mouse: [] };
 }
 
 const pressed = (key: number) => BlzIsKeyPressed(ConvertOsKeyType(key));
@@ -39,6 +40,7 @@ export function padMouse(s: ShellState): void {
   const pad = s.pad;
   if (pad === undefined) return;
   pad.mouseEvents++;
+  pad.mouse.push(`mouse ${pad.mouseEvents} ${s.trace.clockPeriods * 1000.0 + TimerGetElapsed(s.trace.clock)} ${pad.syncEvents}`);
   // Calibration and capture are local; only the resulting input rows are sent.
   if (GetTriggerPlayer() !== GetLocalPlayer() || !pressed(PAD_ACTIVE_KEY)) return;
   const point = { x: f32(BlzGetTriggerPlayerMouseX()), y: f32(BlzGetTriggerPlayerMouseY()) };
@@ -46,11 +48,11 @@ export function padMouse(s: ShellState): void {
     pad.calibration.first = point;
     pad.calibration.last = undefined;
     pad.packet = undefined;
-    writeLines(`smashcraft-pad-calibration-p${localSlot()}.txt`, [`corner start ${point.x} ${point.y} native-seconds ${s.trace.clockPeriods * 1000.0 + TimerGetElapsed(s.trace.clock)}`]);
+    writeLines(`smashcraft-pad-calibration-p${localSlot()}.txt`, [`corner start ${point.x} ${point.y} native-seconds ${s.trace.clockPeriods * 1000.0 + TimerGetElapsed(s.trace.clock)} mouse-events ${pad.mouseEvents} sync-events ${pad.syncEvents}`]);
   } else if (pressed(0x22)) {
     pad.calibration.last = point;
     pad.packet = undefined;
-    writeLines(`smashcraft-pad-calibration-p${localSlot()}.txt`, [`corner end ${point.x} ${point.y} native-seconds ${s.trace.clockPeriods * 1000.0 + TimerGetElapsed(s.trace.clock)}`]);
+    writeLines(`smashcraft-pad-calibration-p${localSlot()}.txt`, [`corner end ${point.x} ${point.y} native-seconds ${s.trace.clockPeriods * 1000.0 + TimerGetElapsed(s.trace.clock)} mouse-events ${pad.mouseEvents} sync-events ${pad.syncEvents}`]);
   } else if (s.build.analogPad === "cursor") {
     pad.packet = cursorWorldPacket(pad.calibration, point.x, point.y);
   }
@@ -88,5 +90,6 @@ export function exportPad(s: ShellState): void {
   writeLines(`smashcraft-pad-${s.build.analogPad}-e${epoch}-p${localSlot()}.txt`, [
     `pad ${s.build.id} epoch ${epoch} mouse-events ${pad.mouseEvents} sync-events ${pad.syncEvents} rows ${pad.rows.length} started ${pad.startedAt} finished ${s.trace.clockPeriods * 1000.0 + TimerGetElapsed(s.trace.clock)}`,
     ...pad.rows,
+    ...pad.mouse,
   ]);
 }

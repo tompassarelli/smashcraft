@@ -28,7 +28,7 @@ if (values.plan) {
   process.exit(0);
 }
 mkdirSync(out, { recursive: true });
-await Bun.write(join(out, "plan.json"), JSON.stringify(plan, null, 2));
+await Bun.write(join(plan.out, "plan.json"), JSON.stringify(plan, null, 2));
 
 async function command(args: readonly string[]): Promise<void> {
   const child = Bun.spawn([process.execPath, "scripts/wisp.ts", ...args], { cwd: join(import.meta.dir, ".."), stdout: "inherit", stderr: "inherit" });
@@ -50,13 +50,14 @@ const targets = await Promise.all(clients.map(async client => {
 }));
 
 // Receipts anchor each client's native clock to its own file publication time.
-const anchors: { slot: number; nativeSeconds: number; hostPublicationMs: number }[] = [];
-for (const [slot, target] of targets.entries()) {
+const anchors: { match: number; slot: number; nativeSeconds: number; hostPublicationMs: number; mouseEvents: number; syncEvents: number }[] = [];
+async function calibrate(match: number): Promise<void> {
+ for (const [slot, target] of targets.entries()) {
   for (const corner of ["start", "end"]) {
     const path = join(data[slot] ?? "", `smashcraft-pad-calibration-p${slot}.txt`);
     const before = Date.now();
     const calibration = Bun.spawn([...target.args, "--cursor-calibrate", corner], {
-      env: { ...Bun.env, ...target.client.x11, ...target.client.wayland }, stdout: "ignore", stderr: Bun.file(join(out, `calibration-${slot}-${corner}.log`)),
+      env: { ...Bun.env, ...target.client.x11, ...target.client.wayland }, stdout: "ignore", stderr: Bun.file(join(plan.out, `calibration-${slot}-${corner}.log`)),
     });
     try {
       const deadline = before + 15000;
@@ -67,7 +68,8 @@ for (const [slot, target] of targets.entries()) {
           const line = preloadLines(readFileSync(path, "utf8"))?.find(line => line.startsWith(`corner ${corner} `));
           const clock = line?.match(/native-seconds ([\d.]+)/)?.[1];
           if (stat.mtimeMs >= before && clock !== undefined) {
-            anchors.push({ slot, nativeSeconds: Number(clock), hostPublicationMs: stat.mtimeMs });
+            const count = (field: string) => Number(line?.match(new RegExp(`${field} ([\\d.]+)`))?.[1]);
+            anchors.push({ match, slot, nativeSeconds: Number(clock), hostPublicationMs: stat.mtimeMs, mouseEvents: count("mouse-events"), syncEvents: count("sync-events") });
             observed = true;
             break;
           }
@@ -80,13 +82,14 @@ for (const [slot, target] of targets.entries()) {
       await calibration.exited;
     }
   }
+ }
+ await Bun.write(join(plan.out, "clock-anchors.json"), JSON.stringify(anchors, null, 2));
 }
-await Bun.write(join(out, "clock-anchors.json"), JSON.stringify(anchors, null, 2));
 
 const startHelpers = (match: number) => targets.map((target, slot) => {
   const child = Bun.spawn([...target.args, "--virtual-pad", "--pad-ingress", route], {
     env: { ...Bun.env, ...target.client.x11, ...target.client.wayland }, stdin: "pipe",
-    stdout: Bun.file(join(out, `helper-match-${match}-p${slot}.tsv`)), stderr: Bun.file(join(out, `helper-match-${match}-p${slot}.log`)),
+    stdout: Bun.file(join(plan.out, `helper-match-${match}-p${slot}.tsv`)), stderr: Bun.file(join(plan.out, `helper-match-${match}-p${slot}.log`)),
   });
   return { child, async write(line: string) { child.stdin.write(`${line}\n`); await child.stdin.flush(); } };
 });
@@ -99,6 +102,7 @@ try {
     if (match > 1) await command(["client", "chat", clients[0]?.name ?? "", "-dev reset", "--clients-file", clientsFile]);
     const started = Date.now();
     await command(["client", "chat", clients[0]?.name ?? "", "-dev quick", "--clients-file", clientsFile]);
+    await calibrate(match);
     helpers = startHelpers(match);
     await Bun.sleep(500);
     const found = new Map<number, string>();
@@ -129,12 +133,16 @@ try {
       const lines = preloadLines(readFileSync(source, "utf8")) ?? [];
       const header = lines[0] ?? "";
       const number = (field: string) => Number(header.match(new RegExp(`${field} ([\\d.]+)`))?.[1]);
-      const seconds = number("finished") - number("started");
-      copyFileSync(source, join(out, `match-${match}-p${slot}.txt`));
-      records.push({ match, slot, file, seconds, networkEvents: number("mouse-events") + number("sync-events") });
+      const anchor = anchors.filter(anchor => anchor.match === match).at(-1);
+      if (anchor === undefined) throw new Error(`No clock anchor for match ${match}, client ${slot}`);
+      const baseline = lines.find(line => line.startsWith(`mouse ${anchor.mouseEvents} `))?.split(" ");
+      if (baseline === undefined) throw new Error(`No final calibration event in match ${match}, client ${slot}`);
+      const seconds = number("finished") - Number(baseline[2]);
+      copyFileSync(source, join(plan.out, `match-${match}-p${slot}.txt`));
+      records.push({ match, slot, file, seconds, networkEvents: number("mouse-events") + number("sync-events") - anchor.mouseEvents - Number(baseline[3]) });
     }
-    await Bun.write(join(out, "commands.json"), JSON.stringify(commands));
-    await Bun.write(join(out, "matches.json"), JSON.stringify(records, null, 2));
+    await Bun.write(join(plan.out, "commands.json"), JSON.stringify(commands));
+    await Bun.write(join(plan.out, "matches.json"), JSON.stringify(records, null, 2));
     for (const producer of helpers) producer.child.kill("SIGTERM");
     await Promise.all(helpers.map(producer => producer.child.exited));
     helpers = [];
@@ -143,7 +151,7 @@ try {
 } finally {
   for (const producer of helpers) producer.child.kill("SIGTERM");
   await Promise.all(helpers.map(producer => producer.child.exited));
-  await Bun.write(join(out, "commands.json"), JSON.stringify(commands));
+  await Bun.write(join(plan.out, "commands.json"), JSON.stringify(commands));
 }
 await command(["client", "watch", "--once", "--clients-file", clientsFile]);
 console.log(`Raw comparison records: ${out}. Reconcile helper submissions, captured rows and native desync reports before choosing a route.`);

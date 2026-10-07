@@ -44,6 +44,7 @@ const failControls = (s: ShellState) => setStatus(s, "Controls stopped respondin
 export function beginRollbackEpoch(s: ShellState, rollback: Rollback): boolean {
   if (s.pad !== undefined) {
     s.pad.rows.length = 0;
+    s.pad.mouse.length = 0;
     s.pad.mouseEvents = 0;
     s.pad.syncEvents = 0;
     s.pad.startedAt = s.trace.clockPeriods * 1000.0 + TimerGetElapsed(s.trace.clock);
