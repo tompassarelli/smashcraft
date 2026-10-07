@@ -165,6 +165,12 @@ function captureKeyboard(s: ShellState, rollback: Rollback, keyboard: KeyboardRo
     failControls(s);
     return;
   }
+  if (probeRecording(probe)) {
+    const row = keyboard.capture.row;
+    const slot = localSlot();
+    probeInput(probe, "capture", epoch, slot, target, row.held, row.pressed, row.released, schedule.speculativeFrame());
+    if (rollback.predictionHeld && row.pressed !== 0) probeIntegrity(probe, `held ${epoch} ${slot} ${target}`);
+  }
   if (trace.active) trace.window.localCaptures++;
   commitEdges(keyboard.capture);
   keyboard.lastTarget = target;
