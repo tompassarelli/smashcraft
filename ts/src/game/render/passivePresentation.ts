@@ -6,7 +6,7 @@ import { PASSIVE_PROC_UPDATES, type ProcCursor, newPassiveProc, passiveLook, pas
 import type { Character } from "../sim/codes";
 import { passivePips } from "../sim/passives";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
-import { type WorldOrigin, hideEffect } from "./effects";
+import { type WorldOrigin, hideEffect, placeEffect } from "./effects";
 
 export class PassivePresentation {
   private readonly ready: effect | undefined;
@@ -43,7 +43,7 @@ export class PassivePresentation {
         if (!this.readyShown || fighter.motion.x !== this.readyX || fighter.motion.z !== this.readyZ) {
           this.readyX = fighter.motion.x;
           this.readyZ = fighter.motion.z;
-          BlzSetSpecialEffectPosition(this.ready, origin.x + fighter.motion.x, origin.y, origin.z + fighter.motion.z);
+          placeEffect(this.ready, origin.x + fighter.motion.x, origin.y, origin.z + fighter.motion.z);
         }
         this.readyShown = true;
       } else this.hideReady();
@@ -58,7 +58,7 @@ export class PassivePresentation {
     this.procShown = true;
     const at = this.onVictim ? passiveVictim(world, slot) : fighter;
     BlzSetSpecialEffectScale(this.proc, 1.0);
-    BlzSetSpecialEffectPosition(this.proc, origin.x + at.motion.x, origin.y - 8.0, origin.z + at.motion.z + 60.0);
+    placeEffect(this.proc, origin.x + at.motion.x, origin.y - 8.0, origin.z + at.motion.z + 60.0);
   }
 
   private hideReady(): void {

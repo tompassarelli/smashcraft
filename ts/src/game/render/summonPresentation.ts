@@ -2,7 +2,7 @@
 // pool is allocated once; presenting only projects completed summon state.
 import { summonClip, summonClipCount } from "../presentation/summonClipInfo";
 import type { SummonProjection } from "../presentation/summonState";
-import { type WorldOrigin, hideEffect } from "./effects";
+import { type WorldOrigin, hideEffect, placeEffect } from "./effects";
 
 export class SummonPresentation {
   private readonly clips: effect[] = [];
@@ -40,7 +40,7 @@ export class SummonPresentation {
       this.hide();
       this.visible = pose.clipIndex;
     }
-    BlzSetSpecialEffectPosition(model, this.origin.x + pose.x, this.origin.y, this.origin.z + pose.z);
+    placeEffect(model, this.origin.x + pose.x, this.origin.y, this.origin.z + pose.z);
     BlzSetSpecialEffectYaw(model, pose.yaw);
     BlzSetSpecialEffectScale(model, pose.scale);
     BlzSetSpecialEffectTime(model, pose.seconds);

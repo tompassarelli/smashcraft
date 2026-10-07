@@ -8,7 +8,7 @@ import { PARTICIPANT_SLOTS } from "../input/participants";
 import { type DrainSeen, ELEMENTS, MANA_DRAIN_LOOK, advanceDrainSeen, drainSeen, elementLook } from "../presentation/elementLooks";
 import { characterModelScale } from "../presentation/modelScale";
 import type { Fighter } from "../sim/fighter";
-import { type ParkedFlags, type WorldOrigin, parkOnce } from "./effects";
+import { type ParkedFlags, type WorldOrigin, parkOnce, placeEffect } from "./effects";
 
 /** Elements with a victim look, in table order; their effects sit at this index within a slot. */
 const SHOWN = ELEMENTS.filter((element) => elementLook(element).victim !== undefined);
@@ -68,7 +68,7 @@ export class ElementEffects {
       }
       parked[at] = false;
       if (this.hitSerials[slot] !== visuals.hit) BlzSetSpecialEffectTime(model, 0.0);
-      BlzSetSpecialEffectPosition(model, this.origin.x + fighter.motion.x, this.front, this.origin.z + fighter.motion.z + 45.0 * scale);
+      placeEffect(model, this.origin.x + fighter.motion.x, this.front, this.origin.z + fighter.motion.z + 45.0 * scale);
       BlzSetSpecialEffectScale(model, elementLook(visuals.hitElement).victimScale * scale);
       BlzSetSpecialEffectAlpha(model, 255);
     }
@@ -86,7 +86,7 @@ export class ElementEffects {
       BlzSetSpecialEffectTime(drain, MANA_DRAIN_LOOK.seconds);
       this.drainShown[slot] = visuals.hit;
     }
-    BlzSetSpecialEffectPosition(drain, this.origin.x + fighter.motion.x, this.front, this.origin.z + fighter.motion.z + MANA_DRAIN_LOOK.z * scale);
+    placeEffect(drain, this.origin.x + fighter.motion.x, this.front, this.origin.z + fighter.motion.z + MANA_DRAIN_LOOK.z * scale);
     BlzSetSpecialEffectScale(drain, MANA_DRAIN_LOOK.scale * scale);
     BlzSetSpecialEffectAlpha(drain, 255);
   }

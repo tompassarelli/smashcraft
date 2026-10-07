@@ -14,6 +14,7 @@ import type { RollbackPlayback } from "../../game/shell/playback";
 import { cancelBindingCapture, initializeBindingSettings, useDefaultBindings } from "../../game/ui/bindingSettings";
 import { f32 } from "wisp/src/sim/f32";
 import { on, trampoline } from "wisp/src/platform/dispatch";
+import { DRAW_EVENT, beginPresentedFrame, drawBetweenFrames, startFrameClock } from "./betweenFrames";
 import { EDITBOX_ENTER, EditboxIngress } from "../editboxJournal";
 import { localParticipantSlot, traceTick, writeReadyMarker } from "./diagnostics";
 import { writeDrawnFrame } from "./drawnFrame";
@@ -109,6 +110,7 @@ function gameTick(s: ShellState): void {
   if (s.game.phase !== Phase.match) clearAllInputs(s);
   else for (const slot of PARTICIPANT_SLOTS) clearPulse(s.participants[slot].keys.directions);
   syncKeyEvents(s);
+  beginPresentedFrame(s.game.phase === Phase.match && !s.session.paused);
   renderPersistentPresentation(s);
   lockArenaCamera(s);
   renderUi(s);
@@ -236,7 +238,9 @@ function createTriggers(s: ShellState): void {
   const leave = CreateTrigger();
   for (const slot of PARTICIPANT_SLOTS) TriggerRegisterPlayerEvent(leave, Player(slot), EVENT_PLAYER_LEAVE);
   TriggerAddAction(leave, trampoline(PLAYER_LEFT));
-  TimerStart(CreateTimer(), FRAME_SECONDS, true, trampoline(TICK));
+  const tick = CreateTimer();
+  TimerStart(tick, FRAME_SECONDS, true, trampoline(TICK));
+  startFrameClock(tick);
 }
 
 /** The playable map's center, with the floor FLOOR_HEIGHT above the ground there. */
@@ -298,6 +302,7 @@ function withShell(handler: (s: ShellState) => void): () => void {
 export function installShell(): void {
   on(INIT, initialize);
   on(TICK, withShell(gameTick));
+  on(DRAW_EVENT, drawBetweenFrames);
   on(KEY_DOWN, withShell(onKeyDown));
   on(KEY_UP, withShell(onKeyUp));
   on(INPUT, withShell(receiveInput));

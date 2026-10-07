@@ -69,3 +69,17 @@ interpolation cannot provide fresh positions for those additional frames. If a
 candidate tracks the renderer instead, compare its callback cost with the frame
 budget before enabling interpolation. Issue #169's native result, rather than
 the API names or synthetic tests, decides between these outcomes.
+
+## Presentation interpolation
+
+Renderers place moving effects (fighters, their lights, projectiles and pooled
+effects) through `placeEffect` (smashcraft:ts/src/game/render/effects.ts). By
+default it only sets the position. `-dev smooth-draw` starts a zero-period
+draw timer (smashcraft:ts/src/platform/shell/betweenFrames.ts); while it fires
+at least 1.5 times per simulation frame, each effect is drawn between where the
+last two simulation frames put it (smashcraft:ts/src/game/render/motion.ts),
+trailing the simulation by one frame and snapping on teleports. It never reads
+or writes simulation state: smashcraft:ts/test/high-refresh.test.ts checks
+that every confirmed checksum of a quick match matches with and without three
+draws per frame. Players' builds keep it off until the native cadence result
+above shows the draw timer tracks the renderer within the frame budget.

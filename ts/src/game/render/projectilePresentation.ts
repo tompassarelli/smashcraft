@@ -7,7 +7,7 @@ import { PROJECTILE_CAPACITY, type Fighter } from "../sim/fighter";
 import { heroDefinition } from "../sim/heroes/registry";
 import { HERO_PROJECTILE_CAP } from "../sim/heroSpecialRules";
 import { f32 } from "wisp/src/sim/f32";
-import { type ParkedFlags, type WorldOrigin, parkOnce } from "./effects";
+import { type ParkedFlags, type WorldOrigin, parkOnce, placeEffect } from "./effects";
 import { fighterProjectileModels, projectileModelOf } from "../presentation/projectileArt";
 import { projectedProjectile } from "../presentation/projectilePose";
 import { IMPACT_DEFILE_MODEL } from "../assets/impactAssetInfo";
@@ -111,7 +111,7 @@ export class ProjectilePresentation {
       parked[slot] = false;
       BlzSetSpecialEffectYaw(model, pose.yaw);
       BlzSetSpecialEffectPitch(model, pose.pitch);
-      BlzSetSpecialEffectPosition(model, this.origin.x + pose.x, this.origin.y, this.origin.z + pose.z);
+      placeEffect(model, this.origin.x + pose.x, this.origin.y, this.origin.z + pose.z);
       BlzSetSpecialEffectScale(model, this.scale * pose.modelScale);
       BlzSetSpecialEffectAlpha(model, 255);
       BlzSetSpecialEffectTimeScale(model, paused ? 0.0 : 1.0);

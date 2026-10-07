@@ -19,7 +19,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { Character, HeroStatusKind, HippogryphKind, SpecialAction } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 import { DEMONHUNTER_IMMOLATE_ACTIVE, DEMONHUNTER_IMMOLATE_STARTUP, DEMONHUNTER_MANA_BURN_STARTUP, FLAME_CRASH_BURST_LAST, FLAME_CRASH_LANDING_FORM } from "../sim/specials";
-import { type ParkedFlags, STOCK_MODELS, type WorldOrigin, facingYaw, parkOnce } from "./effects";
+import { type ParkedFlags, STOCK_MODELS, type WorldOrigin, facingYaw, parkOnce, placeEffect } from "./effects";
 import { characterModelScale } from "../presentation/modelScale";
 import { IMMOLATE_SOUNDS } from "../presentation/elementLooks";
 import { SummonPresentation } from "./summonPresentation";
@@ -134,7 +134,7 @@ export class SpecialEffects {
   private show(model: effect, slot: number, effect: number, fighter: Readonly<Fighter>, x: number, z: number, size: number): void {
     this.placed(slot, effect);
     const scale = characterModelScale(fighter.character);
-    BlzSetSpecialEffectPosition(model, this.origin.x + fighter.motion.x + x * scale, this.front, this.origin.z + fighter.motion.z + z * scale);
+    placeEffect(model, this.origin.x + fighter.motion.x + x * scale, this.front, this.origin.z + fighter.motion.z + z * scale);
     BlzSetSpecialEffectScale(model, size * scale);
     BlzSetSpecialEffectAlpha(model, 255);
     BlzSetSpecialEffectTimeScale(model, fighter.launch.hitlag > 0 || fighter.status.frozenFrames > 0 ? 0.0 : 1.0);
@@ -202,7 +202,7 @@ export class SpecialEffects {
       return;
     }
     this.placed(slot, effect);
-    BlzSetSpecialEffectPosition(model, this.origin.x + pose.x, this.front, this.origin.z + pose.z);
+    placeEffect(model, this.origin.x + pose.x, this.front, this.origin.z + pose.z);
     BlzSetSpecialEffectColor(model, pose.red, pose.green, pose.blue);
     BlzSetSpecialEffectScale(model, pose.scale);
     BlzSetSpecialEffectAlpha(model, pose.alpha);
@@ -236,7 +236,7 @@ export class SpecialEffects {
     const mount = fighter.hippogryph;
     if (mount.life > 0 && !fighter.status.out) {
       this.placed(slot, HIPPOGRYPH);
-      BlzSetSpecialEffectPosition(hippogryph, this.origin.x + mount.x, this.origin.y, this.origin.z + mount.z);
+      placeEffect(hippogryph, this.origin.x + mount.x, this.origin.y, this.origin.z + mount.z);
       BlzSetSpecialEffectYaw(hippogryph, facingYaw(mount.velocityX === 0 ? fighter.facing : mount.velocityX));
       BlzSetSpecialEffectScale(hippogryph, f32(0.7));
       BlzSetSpecialEffectAlpha(hippogryph, 255);

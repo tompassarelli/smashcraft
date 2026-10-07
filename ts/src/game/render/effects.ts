@@ -4,6 +4,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { FLOOR_HEIGHT } from "../presentation/arenaCamera";
 import { Character } from "../sim/codes";
+import { EffectMotion } from "./motion";
 
 /** The world point the simulation's origin maps to: stage center and floor height. */
 export interface WorldOrigin {
@@ -35,6 +36,7 @@ export function facingYaw(facing: number): number {
  * their pivot; the extra depth keeps those particles below every arena camera.
  */
 export function hideEffect(model: effect, origin: Readonly<WorldOrigin>): void {
+  effectMotion().release(model);
   BlzSetSpecialEffectScale(model, 0.0);
   BlzSetSpecialEffectPosition(model, origin.x, origin.y, origin.z - FLOOR_HEIGHT - 4096.0);
 }
@@ -56,4 +58,19 @@ export function parkOnce(model: effect, origin: Readonly<WorldOrigin>, parked: P
   hideEffect(model, origin);
   parked[index] = true;
   return true;
+}
+
+declare global {
+  /** Draws placed effects between simulation frames on fast displays (motion.ts); kept across hot reloads. */
+  var __smashcraftEffectMotion: EffectMotion<effect> | undefined;
+}
+
+/** The match's effect motion, created on first use. */
+export function effectMotion(): EffectMotion<effect> {
+  return (globalThis.__smashcraftEffectMotion ??= new EffectMotion<effect>(BlzSetSpecialEffectPosition));
+}
+
+/** Puts a moving effect at this simulation frame's position; on fast displays it glides there from the last one (motion.ts). */
+export function placeEffect(model: effect, x: number, y: number, z: number): void {
+  effectMotion().place(model, x, y, z);
 }

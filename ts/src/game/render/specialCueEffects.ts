@@ -9,7 +9,7 @@ import type { Fighter } from "../sim/fighter";
 import { type AttackCueState, attackCueState, fighterRenderedCues } from "../presentation/attackCues";
 import { characterModelScale } from "../presentation/modelScale";
 import { CUE_ANCHORS, type Cue, specialCueState } from "../presentation/specialCues";
-import { type ParkedFlags, type WorldOrigin, facingYaw, parkOnce } from "./effects";
+import { type ParkedFlags, type WorldOrigin, facingYaw, parkOnce, placeEffect } from "./effects";
 
 interface CueModel {
   readonly cue: Cue;
@@ -83,7 +83,7 @@ export class SpecialCueEffects {
         BlzSetSpecialEffectTime(model, entry.cue.seconds ?? 0.0);
       }
       parked[index] = false;
-      BlzSetSpecialEffectPosition(model, this.origin.x + fighter.motion.x + fighter.facing * x, this.front, this.origin.z + fighter.motion.z + z);
+      placeEffect(model, this.origin.x + fighter.motion.x + fighter.facing * x, this.front, this.origin.z + fighter.motion.z + z);
       BlzSetSpecialEffectYaw(model, facingYaw(fighter.facing));
       BlzSetSpecialEffectScale(model, entry.cue.scale * this.scale);
       BlzSetSpecialEffectAlpha(model, 255);

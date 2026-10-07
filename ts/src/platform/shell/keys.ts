@@ -22,6 +22,7 @@ import { writeLines } from "wisp/src/platform/fileio";
 import { confirmedChecksum, startInputTrace, traceParticipant } from "./diagnostics";
 import { probeFrameCostClock } from "./frameCost";
 import { probeRenderClock } from "./renderClock";
+import { startDrawingBetweenFrames } from "./betweenFrames";
 import { showBackdrop, showStageLighting } from "./stageScenery";
 import { clearAllInputs } from "./inputs";
 import { journalEpoch, journalIdentity } from "./journal";
@@ -272,6 +273,8 @@ export function onDevCommand(s: ShellState): void {
     const authored = message === "-dev lighting stage";
     showStageLighting(s, authored);
     receipt = `dev: lighting ${authored ? "stage" : "stock"}`;
+  } else if (message === "-dev smooth-draw") {
+    receipt = startDrawingBetweenFrames() ? "dev: smooth draw on" : "dev: smooth draw already on";
   } else if (message === "-dev render-clock") {
     receipt = "dev: render clock probe";
     probeRenderClock();

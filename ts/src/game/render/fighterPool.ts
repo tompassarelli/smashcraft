@@ -15,7 +15,7 @@ import type { FighterPose } from "../presentation/fighterPose";
 import type { Character } from "../sim/codes";
 import { fighterPoseFacing, isIntangible } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
-import { type WorldOrigin, facingYaw, hideEffect } from "./effects";
+import { type WorldOrigin, facingYaw, hideEffect, placeEffect } from "./effects";
 import { damageTint } from "../presentation/hitPresentation";
 import { characterModelScale } from "../presentation/modelScale";
 import { fitFighterPlacement } from "../presentation/fighterPlacement";
@@ -107,12 +107,12 @@ export class FighterPoolPresentation {
     const y = this.origin.y;
     const z = this.origin.z + this.placement.z;
     const yaw = facingYaw(fighterPoseFacing(fighter));
-    BlzSetSpecialEffectPosition(model, x, y, z);
+    placeEffect(model, x, y, z);
     BlzSetSpecialEffectYaw(model, yaw);
     BlzSetSpecialEffectScale(model, this.scale);
     BlzSetSpecialEffectTime(model, seconds);
     if (this.light !== undefined) {
-      BlzSetSpecialEffectPosition(this.light, x, y, z);
+      placeEffect(this.light, x, y, z);
       BlzSetSpecialEffectYaw(this.light, yaw);
       BlzSetSpecialEffectScale(this.light, this.scale);
       if (!this.lightVisible) {

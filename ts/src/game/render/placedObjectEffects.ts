@@ -7,7 +7,7 @@ import { PARTICIPANT_SLOTS } from "../input/participants";
 import type { Fighter } from "../sim/fighter";
 import { CompanionMode } from "../sim/heroSpecials";
 import { heroDefinition } from "../sim/heroes/registry";
-import { type ParkedFlags, type WorldOrigin, parkOnce } from "./effects";
+import { type ParkedFlags, type WorldOrigin, parkOnce, placeEffect } from "./effects";
 
 /** Serpent Ward, the default placed object: the classic model stands about 300 units tall. */
 const PLACED_OBJECT_MODEL = "Units\\Orc\\SerpentWard\\SerpentWard.mdx";
@@ -64,7 +64,7 @@ export class PlacedObjectEffects {
     const parked = (this.parked ??= []);
     parked[slot] = false;
     const { x, y, z } = this.origin;
-    BlzSetSpecialEffectPosition(model, x + placed.x, y, z + placed.z);
+    placeEffect(model, x + placed.x, y, z + placed.z);
     BlzSetSpecialEffectYaw(model, placed.direction > 0 ? 0.0 : f32(3.14159274));
     if (spec.companion !== undefined) this.animate(model, slot, placed.mode, placed.x);
     BlzSetSpecialEffectScale(model, f32(spec.height / look.height));

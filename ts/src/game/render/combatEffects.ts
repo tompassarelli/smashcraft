@@ -29,7 +29,7 @@ import { impactAnimation, impactModel, impactModelScale, impactStartSeconds, pre
 import type { ImpactEvents } from "../presentation/impactEvents";
 import { Character } from "../sim/codes";
 import { SELECTABLE_CHARACTERS, heroDefinition } from "../sim/heroes/registry";
-import { type ParkedFlags, type WorldOrigin, hideEffect, parkOnce } from "./effects";
+import { type ParkedFlags, type WorldOrigin, hideEffect, parkOnce, placeEffect } from "./effects";
 import { characterModelScale } from "../presentation/modelScale";
 import { tierSoundPaths } from "../presentation/moveTiers";
 
@@ -204,7 +204,7 @@ export class CombatEffects {
         continue;
       }
       parked[IMPACT_COUNT + i] = false;
-      BlzSetSpecialEffectPosition(model, this.x + pose.x, this.y + pose.y, this.z + pose.z);
+      placeEffect(model, this.x + pose.x, this.y + pose.y, this.z + pose.z);
       BlzSetSpecialEffectScale(model, characterModelScale(pose.character) * pose.scale);
       BlzSetSpecialEffectPitch(model, pose.pitch);
       BlzSetSpecialEffectYaw(model, pose.yaw);
@@ -220,7 +220,7 @@ export class CombatEffects {
     BlzSetSpecialEffectAlpha(model, pose.alpha);
     BlzSetSpecialEffectScale(model, pose.scale * impactModelScale(kind));
     BlzSetSpecialEffectPitch(model, pose.pitch);
-    BlzSetSpecialEffectPosition(model, this.x + pose.x, this.y + depth, this.z + pose.z);
+    placeEffect(model, this.x + pose.x, this.y + depth, this.z + pose.z);
   }
 
   /** Records a contact spark drawn from `state`, once per emission. */

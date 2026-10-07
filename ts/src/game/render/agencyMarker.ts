@@ -1,6 +1,6 @@
 import { FighterAgencyForecast, type FighterAgency } from "../presentation/fighterAgency";
 import type { Fighter } from "../sim/fighter";
-import { hideEffect, type WorldOrigin } from "./effects";
+import { hideEffect, type WorldOrigin, placeEffect } from "./effects";
 import { f32 } from "wisp/src/sim/f32";
 
 /** A separate halo preserves the victim's elemental hitlag and ice colours. */
@@ -27,7 +27,7 @@ export class AgencyMarker {
     }
     this.shown = true;
     // Keep the glow behind the body and clear of the floor, so hit colours stay readable.
-    BlzSetSpecialEffectPosition(this.halo, this.origin.x + fighter.motion.x, this.origin.y + 40.0, this.origin.z + fighter.motion.z + 90.0);
+    placeEffect(this.halo, this.origin.x + fighter.motion.x, this.origin.y + 40.0, this.origin.z + fighter.motion.z + 90.0);
     BlzSetSpecialEffectScale(this.halo, 1.75);
     BlzSetSpecialEffectAlpha(this.halo, 255);
     BlzSetSpecialEffectColor(this.halo, agency === "none" ? 255 : 0, agency === "none" ? 100 : 255, agency === "none" ? 40 : 0);

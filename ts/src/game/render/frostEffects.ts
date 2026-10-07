@@ -4,7 +4,7 @@
 import { FROST_ICE_MODEL, FROST_TRAP_MODEL } from "../assets/frostAssetInfo";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import type { Fighter } from "../sim/fighter";
-import { type ParkedFlags, type WorldOrigin, parkOnce } from "./effects";
+import { type ParkedFlags, type WorldOrigin, parkOnce, placeEffect } from "./effects";
 
 interface FrostSlot {
   readonly trap: effect;
@@ -45,7 +45,7 @@ export class FrostEffects {
     const parked = (this.parked ??= []);
     if (trap.life > 0 && !out) {
       parked[2 * slot] = false;
-      BlzSetSpecialEffectPosition(frost.trap, x + trap.x, y, z + trap.z);
+      placeEffect(frost.trap, x + trap.x, y, z + trap.z);
       BlzSetSpecialEffectScale(frost.trap, 1.0);
       BlzSetSpecialEffectAlpha(frost.trap, trap.arming > 0 ? 100 : 255);
     } else {
@@ -53,7 +53,7 @@ export class FrostEffects {
     }
     if (fighter.status.frozenFrames > 0 && !out) {
       parked[2 * slot + 1] = false;
-      BlzSetSpecialEffectPosition(frost.ice, x + fighter.motion.x, y, z + fighter.motion.z);
+      placeEffect(frost.ice, x + fighter.motion.x, y, z + fighter.motion.z);
       BlzSetSpecialEffectScale(frost.ice, 1.0);
       BlzSetSpecialEffectAlpha(frost.ice, 255);
     } else {
