@@ -50,7 +50,7 @@ export const CUE_ANCHORS: { readonly [anchor in CueAnchor]: { readonly x: number
   feet: { x: 0.0, z: 2.0 },
   ahead: { x: 70.0, z: 45.0 },
   overhead: { x: 0.0, z: 125.0 },
-  barrel: { x: 105.0, z: 75.0 },
+  barrel: { x: 75.0, z: 45.0 },
 };
 
 export interface Cue {
