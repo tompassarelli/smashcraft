@@ -1,7 +1,7 @@
 import { mkdirSync, readFileSync, readdirSync, statSync, copyFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
-import { Effect } from "effect";
+import { Effect, Schema } from "effect";
 import { loadClients, windowPid, keys, typeText } from "wisp/scripts/warcraft/desktop";
 import { preloadLines } from "wisp/scripts/wisp/boundary";
 import { Phase } from "../src/game/match/rules";
@@ -15,10 +15,11 @@ const clientsFile = values["clients-file"];
 if (pair === undefined || helper === undefined || map === undefined || clientsFile === undefined || out === undefined) {
   throw new Error("Use --pair N --clients-file FILE --helper WC3_CONTROLLER --map MAP --out DIR --app-id NAME=ID twice [--plan]");
 }
-const script = JSON.parse(readFileSync(join(import.meta.dir, "../test/native/pads/233/pad-cut.json"), "utf8")) as {
-  setup: string; cut: { client: string; afterMilliseconds: number; milliseconds: number };
-  combat: { beatMilliseconds: number; deadlineMilliseconds: number };
-};
+const script = Schema.decodeUnknownSync(Schema.Struct({
+  setup: Schema.String,
+  cut: Schema.Struct({ client: Schema.String, afterMilliseconds: Schema.Finite, milliseconds: Schema.Finite }),
+  combat: Schema.Struct({ beatMilliseconds: Schema.Finite, deadlineMilliseconds: Schema.Finite }),
+}))(JSON.parse(readFileSync(join(import.meta.dir, "../test/native/pads/233/pad-cut.json"), "utf8")));
 const appIds = new Map(values["app-id"]?.map(entry => {
   const split = entry.indexOf("=");
   if (split < 1) throw new Error("--app-id takes NAME=ID");
