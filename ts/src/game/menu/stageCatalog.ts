@@ -32,15 +32,16 @@ export function stageTileIndex(choice: number): number {
 
 /** Random is a menu choice, never part of the playable stage roster. */
 export const STAGE_CHOICES: readonly StageInfo<StageChoice>[] = [
-  { id: RANDOM_STAGE, name: "Random Stage", texture: "ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp", description: "Let fate choose the arena.\nAny available stage can be chosen." },
+  { id: RANDOM_STAGE, name: "Random Stage", texture: "ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp", description: "Choose from your stage pool.\nEach stage plays once before repeating." },
   ...STAGE_CATALOG,
 ];
 
 /** A seeded integer draw, exact in Bun and Warcraft's Lua32. */
-export function randomStage(seed: number): StageTile {
+export function randomStage(seed: number, mask?: number): StageTile {
   const value = floorMod(seed, 46337);
   const mixed = floorMod(value * value + 12345, 46337);
-  return at(STAGE_CATALOG, floorMod(mixed ^ floorMod(mixed * 31, 46337), STAGE_CATALOG.length)).id;
+  const stages = mask === undefined ? STAGE_CATALOG : STAGE_CATALOG.filter(stage => (mask & (1 << stage.id)) !== 0);
+  return at(stages, floorMod(mixed ^ floorMod(mixed * 31, 46337), stages.length)).id;
 }
 
 export const stageInfo = (choice: number): StageInfo<StageChoice> => choice === RANDOM_STAGE ? at(STAGE_CHOICES, 0) : at(STAGE_CATALOG, stageTileIndex(choice));

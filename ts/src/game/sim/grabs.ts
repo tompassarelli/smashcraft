@@ -86,6 +86,7 @@ function releaseThrow(world: Roster, ownerSlot: number, targetSlot: number, targ
   throwHit.carry = undefined;
   throwHit.electric = false;
   throwHit.manaDrain = owner.character === Character.demonHunter ? DEMON_HUNTER_THROW_DRAIN : undefined;
+  throwHit.manaSteal = undefined;
   const authored = owner.tuning.moves?.throws[action];
   if (authored !== undefined) copyHitEffect(throwHit, authored.effect);
   const direction = authored !== undefined ? owner.facing : action === GrabAction.throwBack ? -owner.facing : owner.facing;

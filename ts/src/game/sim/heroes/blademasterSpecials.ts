@@ -63,7 +63,7 @@ const windWalk = (air: boolean): AuthoredSpecial => {
   });
 };
 
-// Rising Blade, the roster's charged-angle rule (#189): he hovers through f8
+// Rising Whirlwind, the roster's charged-angle rule (#189): he hovers through f8
 // while the stick picks one of eight directions (straight up when neutral),
 // dashes that way evenly over f9-22 and stops on f23, so the helpless fall
 // starts from rest. The hover is the exposed moment his gameplan accepts.
@@ -71,7 +71,7 @@ const RISE_FRAMES = 14;
 const rise = (distance: number) => chargedAngleMotion(length(distance), RISE_FRAMES);
 const BLADE_TOP = f32(M - BLADE_RADIUS);
 
-/** Rising Blade: a 2.8H charged-angle dash, one 9-damage hit f9-14, then helpless; 15 mana; no intangibility. */
+/** Rising Whirlwind: a 2.8H charged-angle dash, one 9-damage hit f9-14, then helpless; 15 mana; no intangibility. */
 const risingBlade: AuthoredSpecial = {
   cost: 15,
   endFrame: 24,
@@ -135,7 +135,6 @@ const inAir = (special: AuthoredSpecial): AuthoredSpecial => ({ ...special, land
 export const BLADEMASTER_SPECIALS: FighterSpecials = {
   neutral: { name: "Wind Cutter", description: "A short blade wave that costs no mana.", ground: windCutter, air: inAir(windCutter) },
   side: { name: "Wind Walk", description: "Fade and walk through bodies; attack to Backstab on either side, special to step out.", ground: windWalk(false), air: windWalk(true) },
-  up: { name: "Rising Blade", description: "Hold a direction as he gathers, then a slashing dash that way and a helpless fall.", ground: risingBlade, free: risingBladeFree },
+  up: { name: "Rising Whirlwind", description: "Hold a direction as he gathers, then a slashing dash that way and a helpless fall.", ground: risingBlade, free: risingBladeFree },
   down: { name: "Mirror Image", description: "Step back and leave an image; press again to swap to it with a slash. One hit breaks it.", ground: mirrorImage, air: inAir(mirrorImage), recall: imageSwap },
 };
-

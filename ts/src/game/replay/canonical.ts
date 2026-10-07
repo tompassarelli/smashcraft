@@ -129,6 +129,7 @@ export function fighterMovesCanonical(moves: FighterMoves | undefined, prefix = 
     int(`${name}.electric`, hit.electric ? 1 : 0);
     int(`${name}.element`, hit.element ?? 0);
     if (hit.carry === true) int(`${name}.carry`, 1);
+    if (hit.manaSteal !== undefined) int(`${name}.manaSteal`, hit.manaSteal);
   };
   int("chargeFrames", moves.smashMaxChargeFrames);
   int("maxPummels", moves.maxPummels ?? -1);
@@ -320,7 +321,8 @@ function hitEffectCanonical(hit: Readonly<HitEffect>, prefix: string): string {
   return canonicalRealField(`${prefix}.damage`, hit.damage) + canonicalRealField(`${prefix}.growth`, hit.growth)
     + canonicalRealField(`${prefix}.base`, hit.base) + canonicalRealField(`${prefix}.launchX`, hit.launchX)
     + canonicalRealField(`${prefix}.launchZ`, hit.launchZ) + canonicalInt(`${prefix}.electric`, hit.electric ? 1 : 0)
-    + canonicalInt(`${prefix}.element`, hit.element ?? 0) + (hit.carry === true ? canonicalInt(`${prefix}.carry`, 1) : "");
+    + canonicalInt(`${prefix}.element`, hit.element ?? 0) + (hit.carry === true ? canonicalInt(`${prefix}.carry`, 1) : "")
+    + (hit.manaSteal === undefined ? "" : canonicalInt(`${prefix}.manaSteal`, hit.manaSteal));
 }
 
 /** A hero's authored specials; empty for fighters without them. */
@@ -1105,6 +1107,10 @@ function writeState(emit: Emit, state: Readonly<ReplayState>): void {
   for (const key of ["x", "z", "distance", "tangent", "left", "right", "bottom", "top"] as const) emit(canonicalRealField(`match.camera.${key}`, match.camera[key]));
   for (const slot of PARTICIPANT_SLOTS) for (const key of ["left", "right", "bottom", "top"] as const) emit(canonicalRealField(`match.camera.box${slot}.${key}`, match.camera.boxes[slot][key]));
   int("match.stageChoice", match.stageChoice);
+  bool("match.stageResolved", match.stageResolved);
+  bool("match.stagePool.only", match.stagePool.only);
+  int("match.stagePool.selectedMask", match.stagePool.selectedMask);
+  int("match.stagePool.remainingMask", match.stagePool.remainingMask);
   int("match.winner", match.winner ?? -1);
   int("match.humanCount", match.humanCount);
   int("match.humanMask", match.humanMask);

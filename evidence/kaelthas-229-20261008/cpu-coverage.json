@@ -1,0 +1,42 @@
+{
+  "choices": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    20
+  ],
+  "coverage": {
+    "fighter": "Kael'thas Sunstrider",
+    "matches": 8,
+    "movement": 8957,
+    "attacks": 106,
+    "kit": 70,
+    "specials": {
+      "neutral": 44,
+      "side": 9,
+      "up": 9,
+      "down": 8
+    },
+    "defense": 151,
+    "recovery": 1626,
+    "manaDenied": 0,
+    "defenseDecisions": 13,
+    "recoveryDecisions": 2,
+    "companions": {
+      "bear": 0,
+      "quilbeast": 0,
+      "hawk": 0
+    },
+    "missing": []
+  }
+}
