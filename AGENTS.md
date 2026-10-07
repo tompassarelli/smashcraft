@@ -153,6 +153,17 @@ code. From smashcraft:ts/:
   log, crash reports, match receipts and processes, never its screen. Run it
   before clicking or reading a client; `bun wisp client watch CLIENT --once` and
   `bun wisp client wait CLIENT STATE...` read or wait on one (wisp:docs/watch.md).
+- Native script driver: `bun wisp map build --profile native-driver --name NAME --out MAP.w3x`
+  packages a callback match driven by `bun wisp engine drive SCRIPT --client lan0a,lan0b`.
+  `engine drive pause`, `step N`, and `resume` control the whole map callback;
+  `engine drive FILE` accepts a pad script with its `#! chat` setup, starts at
+  frame 0 paused, and uses the normal input-row adapter. A command file containing
+  `resume N` runs until frame N, while `step N` advances N frames from the current
+  frame. Holds write the canonical checksum and saved moments for `bun wisp repro`.
+  `bun scripts/nativeDriverAcceptance.ts --clients-file FILE --client lan0a,lan0b
+  --script test/native/pads/archer-aerials.pad --frames 120 --runs 50 --out DIR`
+  measures paired free and stepped runs, compares both clients and replays each hold.
+  This diagnostic path measures native script delivery, not hardware pad timing.
 - Engine debugger: a native desync? `bun wisp engine desync A B` names the
   first differing turn and checksum section of the clients' Desync.log
   dumps; `bun wisp engine poll --client a,b` during a repro and `bun wisp
