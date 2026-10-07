@@ -19,9 +19,11 @@ import type { PacingAndPresentation } from "../match/pacingAndPresentation";
 import { type MatchState, computerActive } from "../match/rules";
 import { type MapBuild, type Scenario, isScenario, isShadow } from "../shell/build";
 import { produceScenarioComputerInput } from "../shell/scenarios";
-import type { Fighter } from "../sim/fighter";
+import { type Fighter, PROJECTILE_CAPACITY } from "../sim/fighter";
+import type { AuthoredSpecial, FighterSpecials, SpecialPlacement, SpecialProjectile } from "../sim/heroSpecials";
 import { type Roster, createRoster, fighterAt, isActive } from "../sim/roster";
-import { stateChecksum } from "./canonical";
+import { authoredTuning } from "../sim/tuning";
+import { fighterSpecialsCanonical, specialPlacementCanonical, specialProjectileCanonical, stateChecksum } from "./canonical";
 import { type ReplayState, captureReplaySnapshot, copyReplayState, createReplaySnapshot } from "./snapshot";
 
 /** Frames between snapshots: two seconds. */
@@ -332,6 +334,53 @@ function isCommands(value: unknown): value is Slots<AttackBuffer> {
   return true;
 }
 
+/** Every projectile and placement a hero kit authors, by its canonical text. */
+function authoredParts(specials: Readonly<FighterSpecials>, projectiles: Map<string, SpecialProjectile>, placements: Map<string, SpecialPlacement>): void {
+  const projectile = (spec: SpecialProjectile | undefined) => {
+    if (spec !== undefined) projectiles.set(specialProjectileCanonical(spec, ""), spec);
+  };
+  const move = (special: AuthoredSpecial | undefined): void => {
+    if (special === undefined) return;
+    for (const spec of special.projectiles ?? []) projectile(spec);
+    projectile(special.burst?.from);
+    projectile(special.burst?.into);
+    if (special.placement !== undefined) {
+      placements.set(specialPlacementCanonical(special.placement, ""), special.placement);
+      projectile(special.placement.shot);
+    }
+    for (const followUp of special.followUps ?? []) move(followUp.special);
+  };
+  for (const kit of [specials.neutral, specials.side, specials.up, specials.down]) {
+    move(kit.ground);
+    move(kit.air);
+    move(kit.free);
+    move(kit.recall);
+    move(kit.marked?.special);
+  }
+}
+
+/**
+ * Decoded text holds a copy of a fighter's kit, in which a burst's `from` and
+ * the orb it bursts are different objects, and the rules match a projectile
+ * to its kit by identity (Frost Nova's burst, projectile limits). A fighter
+ * whose kit equals its authored kit gets that kit back, and each live
+ * projectile and placement its authored part.
+ */
+function rebindAuthoredKit(fighter: Fighter): void {
+  const authored = authoredTuning(fighter.character).specials;
+  if (authored === undefined || fighterSpecialsCanonical(fighter.tuning.specials) !== fighterSpecialsCanonical(authored)) return;
+  fighter.tuning.specials = authored;
+  const projectiles = new Map<string, SpecialProjectile>();
+  const placements = new Map<string, SpecialPlacement>();
+  authoredParts(authored, projectiles, placements);
+  for (let i = 0; i < PROJECTILE_CAPACITY; i++) {
+    const live = at(fighter.projectiles, i);
+    if (live.spec !== undefined) live.spec = projectiles.get(specialProjectileCanonical(live.spec, "")) ?? live.spec;
+  }
+  const placed = fighter.placed.spec;
+  if (placed !== undefined) fighter.placed.spec = placements.get(specialPlacementCanonical(placed, "")) ?? placed;
+}
+
 /** The snapshot's state, in records copyReplayState reads; undefined when a part is missing. */
 export function savedState(record: Readonly<Record<string, unknown>>): ReplayState | undefined {
   const { mask, fighters, match, commands, runtime } = record;
@@ -341,6 +390,7 @@ export function savedState(record: Readonly<Record<string, unknown>>): ReplaySta
     if (!isActive(world, slot)) continue;
     const fighter = fighters[slot];
     if (!isFighter(fighter)) return undefined;
+    rebindAuthoredKit(fighter);
     world.fighters[slot] = fighter;
   }
   return { world, match, controls: { inputs: createFrameControls().inputs, commands }, runtime };

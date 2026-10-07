@@ -194,7 +194,7 @@ export function fighterMovesCanonical(moves: FighterMoves | undefined, prefix = 
 
 /** Wurst's slotOf: -1 for no fighter, -2 for a fighter the roster doesn't seat. */
 /** An authored hero projectile, field by field. */
-function specialProjectileCanonical(spec: Readonly<SpecialProjectile>, prefix: string): string {
+export function specialProjectileCanonical(spec: Readonly<SpecialProjectile>, prefix: string): string {
   const result: string[] = [];
   const int = (name: string, value: number) => { result.push(canonicalInt(`${prefix}.${name}`, value)); };
   const real = (name: string, value: number) => { result.push(canonicalRealField(`${prefix}.${name}`, value)); };
@@ -239,7 +239,7 @@ function specialProjectileCanonical(spec: Readonly<SpecialProjectile>, prefix: s
 }
 
 /** An authored placed object, field by field. */
-function specialPlacementCanonical(spec: Readonly<SpecialPlacement>, prefix: string): string {
+export function specialPlacementCanonical(spec: Readonly<SpecialPlacement>, prefix: string): string {
   const result: string[] = [];
   const int = (name: string, value: number) => { result.push(canonicalInt(`${prefix}.${name}`, value)); };
   const real = (name: string, value: number) => { result.push(canonicalRealField(`${prefix}.${name}`, value)); };

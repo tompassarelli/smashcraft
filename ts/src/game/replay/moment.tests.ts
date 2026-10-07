@@ -13,7 +13,7 @@ import { captureFrame, captureNetworkFrame, createMatchFrameInput, executeMatchF
 import { computerActive, humanFighterActive, setParticipants } from "../match/rules";
 import { produceScenarioComputerInput } from "../shell/scenarios";
 import { Character } from "../sim/codes";
-import { createFighter } from "../sim/fighter";
+import { type Fighter, createFighter } from "../sim/fighter";
 import { fighterAt, isActive } from "../sim/roster";
 import { stateChecksum } from "./canonical";
 import { MOMENT_FRAMES, beginMomentFrame, beginMomentSave, continueMomentSave, createMomentRecorder, momentFrameRan, recordMomentRow, replayRepro } from "./moment";
@@ -33,10 +33,10 @@ function scriptedRow(slot: number, frame: number): InputRow {
  * a save step a frame, and replays it: it must reach the match's checksum at
  * its end. A callback match pits a human Illidan against a computer archer.
  */
-function roundTrip(callback: boolean, frames: number): void {
+function roundTrip(callback: boolean, frames: number, row = scriptedRow, fighters?: { first: Fighter; second: Fighter }): void {
   const tape = callback
     ? createTapeWorld({ stocks: 3, humans: 1, first: createFighter(Character.demonHunter, 0.0, 1), second: createFighter(Character.archer, 100.0, -1) })
-    : createTapeWorld({ stocks: 3, humans: 2 });
+    : createTapeWorld({ stocks: 3, humans: 2, ...fighters });
   const { world, match, controls, runtime } = tape.live;
   if (callback) setParticipants(match, 1, 2);
   const recorder = createMomentRecorder();
@@ -44,7 +44,7 @@ function roundTrip(callback: boolean, frames: number): void {
   const produced = createFrameControls();
   const rows: Slots<InputRow> = [emptyInput(), emptyInput(), emptyInput(), emptyInput()];
   const run = (frame: number) => {
-    for (const slot of PARTICIPANT_SLOTS) rows[slot] = scriptedRow(slot, frame);
+    for (const slot of PARTICIPANT_SLOTS) rows[slot] = row(slot, frame);
     if (callback) {
       // As the shell's callbackMatchTick: humans adapt their rows, the computer chooses.
       for (const slot of PARTICIPANT_SLOTS) {
@@ -87,3 +87,13 @@ function roundTrip(callback: boolean, frames: number): void {
 test("moment: a rollback match's last ten seconds replay from their snapshot to the match's checksum", () => roundTrip(false, 839));
 
 test("moment: a callback match against a computer replays from frame 0 to the match's checksum", () => roundTrip(true, 300));
+
+/** Lich a casts Frost Nova on frame 10 and presses again on frame 60, bursting the orb; nobody else moves. */
+function frostNovaRow(slot: number, frame: number): InputRow {
+  const special = slot === 0 && (frame === 10 || frame === 60) ? bit(Action.special) : 0;
+  return assertDefined(inputRow({ held: 0, pressed: special, released: special, axisX: 0 }), "row");
+}
+
+// A decoded moment holds a copy of each kit; the burst finds its orb by the kit's own object.
+test("moment: a Frost Nova burst replays from the moment's snapshot to the match's checksum", () =>
+  roundTrip(false, 120, frostNovaRow, { first: createFighter(Character.lich, -240.0, 1), second: createFighter(Character.lich, 600.0, -1) }));
