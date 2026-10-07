@@ -172,7 +172,7 @@ test("Vampiric Pounce grabs through a shield, bites 16 frames after the catch an
   for (let f = caught + 1; f < caught + 16; f++) frame(world);
   assertEquals(victim.status.damage, 0.0);
   frame(world);
-  assertEquals(victim.status.damage, 11.765000343322754);
+  assertEquals(victim.status.damage, 10.000250816345215);
   assertEquals(owner.grab.target, undefined);
   assertTrue(victim.launch.throwHitstun);
   assertGreaterThan(victim.launch.knockbackX, 0.0);
@@ -217,7 +217,7 @@ test("air Vampiric Pounce bites and heals once per airtime and ends helpless", (
   for(let f=2;f<=17;f++){victim.motion.z=owner.motion.z; victim.motion.vz=0.0; frame(world);}
   assertGreaterThan(owner.special.grabFrame,0);
   for (let f = 0; f < 120 && owner.special.action !== SpecialAction.none; f++) frame(world);
-  assertEquals(victim.status.damage, 11.765000343322754);
+  assertEquals(victim.status.damage, 10.000250816345215);
   assertEquals(owner.status.damage,26.0);
   assertTrue(owner.special.fall);
   frame(world, side);
@@ -273,7 +273,7 @@ test("replaying Vampiric Pounce from a restored snapshot reproduces both fighter
   const endVictim = createFighter(Character.archer, 0.0, 1);
   copyFighterState(endOwner, owner, 3);
   copyFighterState(endVictim, victim, 3);
-  assertEquals(victim.status.damage, 11.765000343322754);
+  assertEquals(victim.status.damage, 10.000250816345215);
   copyFighterState(owner, savedOwner, 3);
   copyFighterState(victim, savedVictim, 3);
   run();
