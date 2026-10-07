@@ -107,7 +107,6 @@ Normals, inspired by:
 | Down special | Consecration | Plant the hammer to bless a small patch of ground. It pulses beneath grounded foes; jumping clears it. |
 | Jab, repeated | Hammer and Haft | A hammer check, then a shove of the haft on a second jab. |
 | Passive | Sacred Aura | After he blocks three hits with his shield, the next launch he takes is 20% weaker. |
-| Ultimate | Guardian of the Light | He hits harder and carries three charges that each soften one light hit. |
 
 ## Dreadlord
 
