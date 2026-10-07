@@ -17,7 +17,7 @@ import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type Roster, fighterAt, isActive } from "./roster";
 import { SHIELD_PROJECTILE_DAMAGE_MULTIPLIER, SHIELD_PROJECTILE_SPEED_MULTIPLIER, grantParry, shieldCircleIntersects } from "./shield";
 import { at } from "wisp/src/runtime/lookup";
-import { solidSurfaceAt, solidSurfaceCount, surfaceCount, surfaceLeft, surfacePass, surfaceRight, surfaceZ } from "./stage";
+import { solidSurfaceAt, solidSurfaceCount, surfaceCount, surfaceLeft, surfaceLine, surfacePass, surfaceRight, surfaceZ } from "./stage";
 import { LONG_RIFLE_LIFE, longRifleShot, projectileOrigin } from "./passives";
 
 export const BLASTER_PROJECTILE_SPEED = 36.0;
@@ -418,6 +418,15 @@ function projectileMeetsStage(stage: number, matchFrame: number, oldX: number, o
   }
   for (let i = 0; i < surfaceCount(stage); i++) {
     if (surfacePass(stage, i)) continue;
+    const line = surfaceLine(stage, i);
+    if (line !== undefined) {
+      for (let k = 0; k < line.grades.length; k++) {
+        const fromX = line.xs[k] ?? 0.0;
+        const toX = line.xs[k + 1] ?? 0.0;
+        if (segmentsMeet(oldX, oldZ, x, z, fromX, line.zs[k] ?? 0.0, toX, line.zs[k + 1] ?? 0.0)) return true;
+      }
+      continue;
+    }
     const top = surfaceZ(stage, i, matchFrame);
     if (!(oldZ >= top && z < top)) continue;
     const fraction = f32(f32(oldZ - top) / f32(oldZ - z));

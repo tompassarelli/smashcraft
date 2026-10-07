@@ -8,7 +8,7 @@ import { clearDash } from "./groundMovement";
 import { LEDGE_ATTACK_FRAMES } from "./moves";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type Controls, type Roster, controlsAt, fighterAt, isActive } from "./roster";
-import { mainDeckLeft, mainDeckRight, mainDeckZ } from "./stage";
+import { mainDeckLeft, mainDeckRight, mainDeckZ, mainDeckZAt } from "./stage";
 import { BODY_HALF_WIDTH } from "./surfaces";
 import { checkBlastZone } from "./stocks";
 import { beginAttack, cancelAttack, clearDownState, clearLedge, clearPlatformMove, clearTech, leaveLedge, refreshOriginalAirtime } from "./transitions";
@@ -252,7 +252,7 @@ export function advanceLedge(world: Roster, slot: number, stage: number, input: 
   const inset = ledge.state === LedgeState.roll ? 140.0 : ledge.state === LedgeState.attack ? 64.0 : LEDGE_CLIMB_INSET;
   const remaining = f32(1 - progress);
   motion.x = f32(ledgeX(stage, ledge.side) + f32(ledge.side * f32(f32(LEDGE_HANG_OUTSET * remaining) - f32(inset * progress))));
-  motion.z = f32(mainDeckZ(stage) - f32(LEDGE_HANG_DEPTH * remaining));
+  motion.z = f32(mainDeckZAt(stage, motion.x) - f32(LEDGE_HANG_DEPTH * remaining));
   motion.grounded = ledge.frame >= LEDGE_MOUNT_FRAMES;
   motion.surface = motion.grounded ? 0 : undefined;
   if (ledge.state === LedgeState.attack) {

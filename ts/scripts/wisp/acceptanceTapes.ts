@@ -457,6 +457,18 @@ export function generateTapes(): Map<string, string> {
       holds: [[[1, 10, JUMP], [140, 3, DOWN], [220, 10, JUMP]], [[1, 10, JUMP], [100, 3, DOWN], [180, 10, JUMP]]],
       approaches: [[], []], rollbacks: [[147, 210], [437, 500]], predictions: [[240, 250]],
     }])],
+    ["slopes", recordTape("Running, walking, jumping and landing on Yoshi's Story's sloped main deck, a tech and a fight on the slope, with predictions and rollback.", [{
+      characters: [Character.archer, Character.rifleman], stage: 16, stocks: 3, minutes: 0, frames: 760,
+      holds: [[
+        [185, 40, LEFT, WALK], [228, 3, JUMP], [260, 36, RIGHT, WALK], [300, 3, JUMP], [330, 20, LEFT, WALK], [360, 2, ATTACK],
+        [400, 18, RIGHT], [430, 2, ATTACK], [470, 2, GRAB], [520, 3, JUMP], [526, 2, C_DOWN], [600, 2, DOWN, ATTACK],
+      ], [
+        [185, 60, RIGHT, WALK], [250, 3, JUMP], [256, 6, LEFT], [290, 24, LEFT], [330, 2, ATTACK], [380, 14, SHIELD_LEFT],
+        [440, 2, ATTACK], [500, 2, SPECIAL],
+      ]],
+      approaches: [[[560, 45], [640, 45]], [[420, 45], [540, 45], [660, 45]]],
+      rollbacks: [[195, 240], [300, 360], [420, 480], [560, 620], [700, 750]], predictions: [[205, 217], [330, 342]],
+    }])],
     ...[
       ["wind", 10, 1900, undefined],
       ["carried", 11, 940, "test-air 0 -420 125"],

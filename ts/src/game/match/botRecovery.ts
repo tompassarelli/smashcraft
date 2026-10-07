@@ -12,7 +12,7 @@ import { isTumbling } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
 import { totalVelocityZ } from "../sim/motion";
 import type { Controls } from "../sim/roster";
-import { mainDeckLeft, mainDeckRight, mainDeckZ, surfaceCount, surfaceLeft, surfaceRight, surfaceZ } from "../sim/stage";
+import { mainDeckLeft, mainDeckRight, mainDeckZ, surfaceCount, surfaceLeft, surfaceRight, surfaceZAt } from "../sim/stage";
 import { botChance, botChoice } from "./botRandom";
 import { type CpuSkill, FULL_SKILL } from "./cpuSkill";
 import { aimsLedge, gameplanOf, upSpecialFirst } from "./botGameplan";
@@ -114,7 +114,7 @@ function techLanding(f: Readonly<Fighter>, stage: number, matchFrame: number, in
     || botChance(f.visuals.hit + toInt(f.status.damage), f.character * 5 + 1, skill.techMiss, skill.techOutOf)) return;
   const lead = f32(f32(-motion.deltaZ) * TECH_LEAD_FRAMES);
   for (let deck = 0; deck < surfaceCount(stage); deck++) {
-    const height = f32(motion.z - surfaceZ(stage, deck, matchFrame));
+    const height = f32(motion.z - surfaceZAt(stage, deck, matchFrame, motion.x));
     if (height < 0 || height > lead || motion.x < surfaceLeft(stage, deck, matchFrame) || motion.x > surfaceRight(stage, deck, matchFrame)) continue;
     input.direction = botChoice(f.visuals.hit, f.character, 2) === 0 ? 0 : motion.x < 0 ? 1 : -1;
     input.techPressed = f.tech.pressAge >= TECH_REPEAT_MINIMUM_AGE_FRAMES;

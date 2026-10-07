@@ -21,6 +21,8 @@ import { advanceFighterMotion } from "../sim/step";
 import { maskHeroStatusControls } from "../sim/heroStatus";
 import { platformSpecialInput } from "../sim/platformMoves";
 import { advanceStageCannon } from "../sim/stageHazards";
+import { surfaceCount, surfaceLine, surfaceZAt } from "../sim/stage";
+import { setWorldMotionValue } from "../sim/motion";
 import { advanceFreezeTraps } from "../sim/summons";
 import { advanceMatchCamera } from "../sim/matchCamera";
 import { nextJab } from "../sim/moves";
@@ -53,6 +55,13 @@ export function initializeMatchFighters(game: Readonly<MatchState>, world: Roste
     fighter.status.stocks = absent ? 0 : game.stockCount;
     fighter.status.out = absent;
     if (game.training && participantActive(game.computerMask, slot)) fighter.status.damage = f32(game.trainer.damage);
+    // Fighters start standing at the main deck's height; a sloped deck's line puts them on it.
+    const { motion } = fighter;
+    if (motion.grounded && surfaceCount(game.stageChoice) > 0 && surfaceLine(game.stageChoice, 0) !== undefined) {
+      motion.surface = 0;
+      motion.z = surfaceZAt(game.stageChoice, 0, game.matchFrame, motion.x);
+      setWorldMotionValue(motion.meleeZ, motion.z);
+    }
   }
 }
 

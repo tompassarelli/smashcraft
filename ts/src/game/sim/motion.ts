@@ -8,7 +8,7 @@ import { floorMod } from "wisp/src/sim/intMath";
 import { meleeAtan2, meleeCos, meleeSin } from "../../sim/meleeScalarMath";
 import { chillScaled } from "./chill";
 import type { Fighter, MeleeMotionValue } from "./fighter";
-import { surfaceCount, surfaceLeft, surfaceMoves, surfaceRight, surfaceShiftX, surfaceShiftZ, surfaceZ } from "./stage";
+import { type GroundLine, groundLineZ, surfaceCount, surfaceLeft, surfaceLine, surfaceMoves, surfaceRight, surfaceShiftX, surfaceShiftZ, surfaceZ } from "./stage";
 import { type FighterPhysics, WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
 
 // Rollback and consecutive agency forecasts publish the same Melee-unit
@@ -274,6 +274,40 @@ export function decayedAirMotion(horizontal: number, vertical: number, decay: nu
 }
 
 /**
+ * Where a step from (fromX, fromZ) to (newX, newZ) meets a sloped deck's
+ * walking line from above, as its height at newX, or undefined. A fighter
+ * already standing on the deck keeps to it anywhere over its span, as Melee's
+ * grounded collision follows its floor line down a slope; one arriving must
+ * have been on or above the line, and cross it within its span.
+ */
+export function slopedLandingZ(line: GroundLine, standing: boolean, fromX: number, fromZ: number, newX: number, newZ: number): number | undefined {
+  const left = line.xs[0] ?? 0.0;
+  const right = line.xs[line.xs.length - 1] ?? 0.0;
+  if (newX < left || newX > right) return undefined;
+  const groundZ = groundLineZ(line, newX);
+  if (standing) return groundZ;
+  const below = f32(newZ - groundZ);
+  if (below > 0) return undefined;
+  const above = f32(fromZ - groundLineZ(line, fromX));
+  if (above < 0) return undefined;
+  const fraction = above === below ? 1.0 : f32(above / f32(above - below));
+  const crossingX = f32(fromX + f32(f32(newX - fromX) * fraction));
+  return crossingX >= left && crossingX <= right ? groundZ : undefined;
+}
+
+/** Keeps a fighter standing on a sloped deck on its line after a shift along the ground. */
+export function keepToSlope(f: Fighter, stage: number): void {
+  const { motion } = f;
+  if (!motion.grounded || motion.surface === undefined) return;
+  const line = surfaceLine(stage, motion.surface);
+  if (line === undefined) return;
+  const z = slopedLandingZ(line, true, motion.x, motion.z, motion.x, motion.z);
+  if (z === undefined) return;
+  motion.z = z;
+  setWorldMotionValue(motion.meleeZ, z);
+}
+
+/**
  * The highest deck whose top the step from old to new crosses downward,
  * within its span at both crossing and end, on match frame `matchFrame`. A
  * shift within the frame meets every deck where it is; a step `overFrame`
@@ -288,6 +322,15 @@ export function landingAlongShift(f: Fighter, stage: number, matchFrame: number,
     const fromX = follows ? f32(oldX + surfaceShiftX(stage, i, matchFrame)) : oldX;
     const fromZ = follows ? f32(oldZ + surfaceShiftZ(stage, i, matchFrame)) : oldZ;
     if (newZ >= fromZ) continue;
+    const line = surfaceLine(stage, i);
+    if (line !== undefined) {
+      const lineZ = slopedLandingZ(line, f.motion.grounded && f.motion.surface === i, fromX, fromZ, newX, newZ);
+      if (lineZ !== undefined && (landing === undefined || lineZ > landingZ)) {
+        landing = i;
+        landingZ = lineZ;
+      }
+      continue;
+    }
     const platformZ = surfaceZ(stage, i, matchFrame);
     if (fromZ >= platformZ && newZ <= platformZ) {
       const fraction = f32(f32(fromZ - platformZ) / f32(fromZ - newZ));
