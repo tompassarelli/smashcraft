@@ -57,7 +57,7 @@ export const PEON_CLIPS = {
   grabHold: { index: 67, seconds: 1.0, aligned: true },
   grabbed: { index: 68, seconds: 1.0, aligned: true },
   pummel: { index: 69, seconds: f32(1.133), aligned: true, contact: 1.0 },
-  victimPummel: { index: 70, seconds: f32(1.133), aligned: true, contact: 1.0 },
+  victimPummel: { index: 70, seconds: 1.0, aligned: true, contact: 0.5 },
   throwForward: { index: 71, seconds: 1.0, aligned: true, contact: 0.5 },
   victimThrowForward: { index: 72, seconds: 1.0, aligned: true, contact: 0.5 },
   throwBack: { index: 73, seconds: 1.0, aligned: true, contact: 0.5 },
