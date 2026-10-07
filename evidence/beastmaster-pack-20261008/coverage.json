@@ -1,0 +1,27 @@
+{
+  "revision": "777b659fa828084c05387910a59dc7eeb27effcc",
+  "report": {
+    "fighter": "Beastmaster",
+    "matches": 8,
+    "movement": 7846,
+    "attacks": 99,
+    "kit": 134,
+    "specials": {
+      "neutral": 44,
+      "side": 36,
+      "up": 13,
+      "down": 41
+    },
+    "defense": 290,
+    "recovery": 1244,
+    "manaDenied": 0,
+    "defenseDecisions": 12,
+    "recoveryDecisions": 2,
+    "companions": {
+      "bear": 3068,
+      "quilbeast": 4158,
+      "hawk": 1616
+    },
+    "missing": []
+  }
+}

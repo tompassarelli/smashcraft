@@ -6,7 +6,7 @@ import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "wisp
 import { imod } from "wisp/src/sim/intMath";
 import { createFighter } from "../sim/fighter";
 import { createRoster, fighterAt } from "../sim/roster";
-import { Phase, advanceClock, allCharactersReady, canChooseComputer, characterFor, characterReady, computerActive, confirmRematch, copyMatchState, cpuSlot, createMatchState, cycleSlotMode, fighterActive, fighterMask, firstHumanSlot, forfeit, hasUnassignedHuman, humanFighterActive, humanPresent, participantLeft, practiceSelected, recallCharacter, remainingSeconds, requestStageSelect, requestStart, resolveStocks, returnToCharacters, selectCharacter, selectCpuCharacter, selectStage, setHumanCount, setHumanMask, setParticipants, setStocks, setTimeLimit, unreadyCharacter, updateConnectedHumans } from "./rules";
+import { Phase, advanceClock, allCharactersReady, canChooseComputer, characterFor, characterReady, computerActive, confirmRematch, copyMatchState, cpuSlot, createMatchState, cycleSlotMode, fighterActive, fighterMask, firstHumanSlot, forfeit, hasUnassignedHuman, humanFighterActive, humanPresent, participantLeft, practiceSelected, recallCharacter, remainingSeconds, requestStageSelect, requestStart, resolveStocks, returnToCharacters, selectCharacter, selectCpuCharacter, selectStage, setCpuOpponent, setCpuTier, setHumanCount, setHumanMask, setParticipants, setStocks, setTimeLimit, unreadyCharacter, updateConnectedHumans } from "./rules";
 
 function testSoloMatch() {
   const game = createMatchState();
@@ -603,4 +603,27 @@ test("slotModeUnconnectedHumansAndEmptyMatchesCannotStart", () => {
   assertFalse(allCharactersReady(game));
   assertFalse(requestStageSelect(game, 3));
 
+});
+
+
+test("CPU mode, fighter, opponent and difficulty changes wait for Start and the human fighter choice", () => {
+  const game = createMatchState();
+  const waiting = () => {
+    assertEquals(game.phase, Phase.characterMenu);
+    assertFalse(requestStart(game, 0));
+  };
+  cycleSlotMode(game, 0, 2); waiting();
+  cycleSlotMode(game, 0, 2); waiting();
+  selectCpuCharacter(game, 0, 2, 2); waiting();
+  setCpuOpponent(game, 0, 2, "flint"); waiting();
+  setCpuTier(game, 0, 2, "expert"); waiting();
+  assertFalse(requestStageSelect(game, 0));
+  selectCharacter(game, 0, 1); waiting();
+  selectCpuCharacter(game, 0, 2, 0); waiting();
+  setCpuOpponent(game, 0, 2, "random"); waiting();
+  setCpuTier(game, 0, 2, "rookie"); waiting();
+  assertTrue(requestStageSelect(game, 0));
+  assertEquals(game.phase, Phase.stageMenu);
+  assertTrue(requestStart(game, 0));
+  assertEquals(game.phase, Phase.match);
 });

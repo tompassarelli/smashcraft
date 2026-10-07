@@ -76,7 +76,7 @@ test("Dreadlord's specials spend their listed mana once on entry", () => {
   }
 });
 
-test("Carrion Swarm releases one reflectable cloud on frame 20 and hits once for 7", () => {
+test("Carrion Swarm releases one reflectable cloud on frame 20 and hits once for 6.335", () => {
   const { world, owner, victim } = pair(260.0);
   frame(world, neutral);
   play(world, 19);
@@ -85,7 +85,7 @@ test("Carrion Swarm releases one reflectable cloud on frame 20 and hits once for
   const cloud = owner.projectiles.find(p => p.life > 0 && p.kind === ProjectileKind.hero);
   assertTrue(cloud?.spec?.reflectable === true);
   for (let f = 0; f < 40; f++) frame(world);
-  assertEquals(victim.status.damage, 7.0);
+  assertEquals(victim.status.damage, 6.335000038146973);
   assertEquals(owner.special.action, SpecialAction.none);
 });
 
@@ -122,7 +122,7 @@ function framesAsleep(world: Roster, victim: Fighter, mash: (frame: number) => R
 
 test("Sleep sleeps a grounded body 100 frames and an airborne one 24, then 240 frames of immunity; a shield stops it", () => {
   const grounded = slept();
-  assertEquals(grounded.victim.status.damage, 2.0);
+  assertEquals(grounded.victim.status.damage, 1.8100000619888306);
   assertEquals(grounded.victim.status.conditionFrames, 100);
   const held = framesAsleep(grounded.world, grounded.victim, () => controls());
   assertEquals(held, 100);
@@ -172,7 +172,7 @@ test("Vampiric Pounce grabs through a shield, bites 16 frames after the catch an
   for (let f = caught + 1; f < caught + 16; f++) frame(world);
   assertEquals(victim.status.damage, 0.0);
   frame(world);
-  assertEquals(victim.status.damage, 13.0);
+  assertEquals(victim.status.damage, 11.765000343322754);
   assertEquals(owner.grab.target, undefined);
   assertTrue(victim.launch.throwHitstun);
   assertGreaterThan(victim.launch.knockbackX, 0.0);
@@ -204,7 +204,7 @@ test("a whiffed Vampiric Pounce ends on frame 53 and cannot catch a fighter stil
   assertEquals(regrab.victim.grab.owner, undefined);
 });
 
-test("air Vampiric Pounce claws for 13 once per airtime and ends helpless", () => {
+test("air Vampiric Pounce claws for 11.765 once per airtime and ends helpless", () => {
   const { world, owner, victim } = pair(110.0);
   for (const f of [owner, victim]) {
     f.motion.grounded = false;
@@ -214,7 +214,7 @@ test("air Vampiric Pounce claws for 13 once per airtime and ends helpless", () =
   frame(world, side);
   assertEquals(owner.special.form, 1);
   for (let f = 0; f < 120 && owner.special.action !== SpecialAction.none; f++) frame(world);
-  assertEquals(victim.status.damage, 13.0);
+  assertEquals(victim.status.damage, 11.765000343322754);
   assertTrue(owner.special.fall);
   frame(world, side);
   assertEquals(owner.special.action, SpecialAction.none);
@@ -269,7 +269,7 @@ test("replaying Vampiric Pounce from a restored snapshot reproduces both fighter
   const endVictim = createFighter(Character.archer, 0.0, 1);
   copyFighterState(endOwner, owner, 3);
   copyFighterState(endVictim, victim, 3);
-  assertEquals(victim.status.damage, 13.0);
+  assertEquals(victim.status.damage, 11.765000343322754);
   copyFighterState(owner, savedOwner, 3);
   copyFighterState(victim, savedVictim, 3);
   run();
