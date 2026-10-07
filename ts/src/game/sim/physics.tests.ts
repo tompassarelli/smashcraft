@@ -876,9 +876,10 @@ test("a contact batch collects all damage before choosing a launch, in either tr
     testBeginAttacks(world, AttackStyle.jab, undefined);
     owner.attack.frame = attackStartupFrames(AttackStyle.jab);
     contactProjectile(owner, target, 0, ProjectileKind.recoil);
-    contactProjectile(owner, target, 1, ProjectileKind.arrow);
     contactProjectile(owner, target, 2, ProjectileKind.blaster);
     beginDamageContacts();
+    // Fixed detached damage keeps the batching reference independent of fighter balance.
+    queueDamageContact(world, 0, 1, hitEffect(7.0, 0.0, 0.0, 0.0, 0.0), 1, ContactKind.damageOnly, false, undefined);
     if (reversed) {
       updateProjectiles(world);
       resolveAttacks(world);
@@ -974,8 +975,8 @@ test("a contact batch's throws and pummels include detached damage", () => {
     const world = testWorld(owner, target);
     const input = controls();
     holdBeforeContact(world, owner, target, pummel ? GrabAction.pummel : GrabAction.throwForward);
-    contactProjectile(owner, target, 0, ProjectileKind.arrow);
     beginDamageContacts();
+    queueDamageContact(world, 0, 1, hitEffect(7.0, 0.0, 0.0, 0.0, 0.0), 1, ContactKind.damageOnly, false, undefined);
     testGrabFrame(world, [input, input], false);
     updateProjectiles(world);
     finishDamageContacts(world);
