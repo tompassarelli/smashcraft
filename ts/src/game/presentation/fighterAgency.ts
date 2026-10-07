@@ -1,5 +1,5 @@
 import { ATTACK_BUFFER_FRAMES } from "../input/attackBuffer";
-import { advanceTechInput, techInputEligible, TECH_WINDOW_FRAMES } from "../physics/techInput";
+import { advanceTechInput, techInputEligible, TECH_REPEAT_MINIMUM_AGE_FRAMES, TECH_WINDOW_FRAMES, type TechInput } from "../physics/techInput";
 import { copyFighterState } from "../replay/fighterState";
 import { Character, DownState, GrabAction, LedgeState, PlatformMove, ShieldBreak, SurfaceContact } from "../sim/codes";
 import { inStageCannon } from "../sim/stageHazards";
@@ -23,6 +23,11 @@ export type FighterAgency = "none" | "di" | "act";
  */
 /** Forecast frames between clearance checks while a tumble is still near something. */
 const CLEARANCE_RECHECK = 3;
+
+/** With no later fresh press, ages only increase; an accumulated frozen press is the only reset. */
+function mayTechWithoutFreshPress(tech: Readonly<TechInput>): boolean {
+  return techInputEligible(tech) || (tech.accumulatedPress && tech.pressAge >= TECH_REPEAT_MINIMUM_AGE_FRAMES);
+}
 
 /** A tumble whose next frames only gravity, decay and drag move: no hitlag, freeze, ledge, wall or platform state, out or in the cannon. */
 function clearFlight(f: Readonly<Fighter>): boolean {
@@ -98,6 +103,7 @@ export class FighterAgencyForecast {
         // Past the buffer only a tumbling fighter's contact can tech, and motion
         // alone never starts a tumble (only a hit does), so the answer is known.
         if (offset >= bufferFrames && (this.fighter.motion.grounded || this.fighter.down.state !== DownState.tumble)) break;
+        if (offset >= bufferFrames && this.bounded && !mayTechWithoutFreshPress(this.pressedTech) && !mayTechWithoutFreshPress(this.fighter.tech)) break;
         // A tumble that surely touches nothing for the rest of the window can't tech in it either (#168).
         if (offset >= bufferFrames && offset >= nextCheck && this.bounded && clearFlight(this.fighter)) {
           if (surelyClear(this.fighter, stage, frame + offset + 1, TECH_WINDOW_FRAMES - 1 - offset)) break;

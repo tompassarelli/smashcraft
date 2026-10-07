@@ -60,3 +60,27 @@ test("clearance shortcuts preserve full contact forecasts near stage geometry in
     }
   }
 });
+
+test("frozen tech press lockouts preserve the full forecast through hitlag expiry", () => {
+  const bounded = new FighterAgencyForecast();
+  const full = new FighterAgencyForecast(false);
+  const input = neutralControls();
+  for (const hitlag of [1, 2, 7, 12]) {
+    for (const pressAge of [0, 19, 20, 39, 40, 255]) {
+      const fighter = createFighter(Character.archer, 240.0, 1);
+      const world = createRoster(1, [fighter]);
+      fighter.launch.hitlag = hitlag;
+      fighter.launch.hitstun = 35;
+      fighter.launch.knockbackX = 1.3747365474700928;
+      fighter.launch.knockbackZ = 15.713310241699219;
+      fighter.motion.grounded = false;
+      fighter.motion.surface = undefined;
+      fighter.down.state = DownState.tumble;
+      fighter.tech.pressAge = pressAge;
+      for (let frame = 0; frame < 24; frame++) {
+        assertEquals(bounded.classify(world, 0, 0, frame), full.classify(world, 0, 0, frame), `hitlag ${hitlag}, press age ${pressAge}, frame ${frame}`);
+        advanceFighterMotion(world, 0, 0, frame + 1, input, 0.0);
+      }
+    }
+  }
+});
