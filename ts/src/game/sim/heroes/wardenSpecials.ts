@@ -67,8 +67,9 @@ const blink = (cost: number, distance: number, aimed: boolean, intangible: boole
 const BLINK = blink(20, f32(H * f32(1.70)), true, true);
 const BLINK_FREE = blink(0, f32(H * f32(1.10)), false, false);
 
-// Fan of Knives: one radial attack reaching 0.85H, launching 45 degrees outward.
-const FAN = f32(f32(H * f32(0.85)) - KNIFE_RADIUS);
+// Fan of Knives reaches 1.30H; shield or bait the committed cast to punish it.
+export const WARDEN_FAN_REACH = f32(H * f32(1.30));
+const FAN = f32(WARDEN_FAN_REACH - KNIFE_RADIUS);
 const FAN_DIAGONAL = f32(FAN * f32(0.707106781));
 const FAN_CENTER = 48.0;
 const fanRegions = (): readonly MoveRegion[] => {
@@ -90,5 +91,5 @@ export const WARDEN_SPECIALS: FighterSpecials = {
   neutral: { name: "Shadow Strike", description: "A slow dagger that marks and poisons its target.", ground: SHADOW_STRIKE },
   side: { name: "Shadow Pursuit", description: "Appear behind a marked opponent and slash; with no mark nearby, a dashing Pursuit Lunge.", ground: PURSUIT_LUNGE, air: PURSUIT_LUNGE_AIR, marked: { special: SHADOW_PURSUIT, range: PURSUIT_REACH } },
   up: { name: "Blink", description: "Teleport in any of eight directions; the landing spot is open to a punish.", ground: BLINK, free: BLINK_FREE },
-  down: { name: "Fan of Knives", description: "A ring of knives that marks everyone it hits.", ground: FAN_OF_KNIVES },
+  down: { name: "Fan of Knives", description: "Throw knives outward in a wide burst, marking and poisoning everyone hit.", ground: FAN_OF_KNIVES, air: FAN_OF_KNIVES },
 };

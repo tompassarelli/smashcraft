@@ -19,9 +19,11 @@ import bpy
 from mathutils import Matrix, Quaternion, Vector
 
 project = Path(__file__).resolve().parents[2]
+private_assets = Path(os.environ.get('SMASHCRAFT_ANIMATION_ASSETS', project / 'build/animation-assets'))
+selected_clip = os.environ.get('SMASHCRAFT_STRIKE_CLIP')
 fighter = sys.argv[sys.argv.index('--') + 1] if '--' in sys.argv else ''
 SCENES = {
-    'archer': project / 'build/animation-assets/archer-fighter',
+    'archer': private_assets / 'archer-fighter',
     'rifleman': project / 'build/animation-assets/rifleman-fighter',
     'illidan': project / 'build/illidan-animation/demonhunter-fighter',
 }
@@ -30,7 +32,7 @@ if fighter not in SCENES:
 sys.path.insert(0, os.environ.get('WC3_MDL_ADDON', '/home/tom/code/mdl-exporter4/worktrees/blender5'))
 addon_utils.enable('export_mdl', default_set=True)
 preferences = bpy.context.preferences.addons['export_mdl'].preferences
-preferences.resourceFolder = str(project / 'build/animation-assets/textures')
+preferences.resourceFolder = str(private_assets / 'textures')
 preferences.textureExtension = 'png'
 bpy.ops.wm.open_mainfile(filepath=str(SCENES[fighter].with_suffix('.blend')))
 scene = bpy.context.scene
@@ -229,6 +231,8 @@ def retime(action, slot, old_last, last):
 
 
 def author(name, keys, plant=True, base_from=None, standing_from=None):
+    if selected_clip and name != selected_clip:
+        return bpy.data.actions.get(name)
     action = bpy.data.actions.get(name)
     if action is None:
         source = bpy.data.actions[base_from]
@@ -276,13 +280,13 @@ def swing(startup, active, total, wind, strike, follow, wind_at=None, follow_at=
 if fighter == 'archer':
     sample(bpy.data.actions['Stand Ready'], 0)
     cloth_rest = bones['Object08'].matrix.to_quaternion()
-    # Jab (4/2/21): the bow arm drives the upper limb forward like a short spear.
+    # The free right fist strikes while the bow stays behind the shoulder.
     author('Attack Jab', swing(4, 2, 21,
-        wind={'step': (-3, 0), 'lean': -6, 'hand_L': (14, 2, 64), 'hand_R': (-14, -18, 60), 'aim_L': (20, 0, 110), 'cloth': .5},
-        strike={'step': (12, -2), 'lean': 16, 'hand_L': (52, -2, 64), 'hand_R': (-10, -16, 58), 'aim_L': (140, -4, 66),
-                'foot_L': (40, 8, 1), 'cloth': 1},
-        follow={'step': (8, -1), 'lean': 10, 'hand_L': (44, -2, 63), 'aim_L': (130, -4, 72), 'foot_L': (36, 8, 1), 'cloth': .7},
-        settle=(14, {'step': (2, 0), 'lean': 3, 'hand_L': (38, -4, 64), 'aim_L': (60, 0, 130), 'cloth': .2})))
+        wind={'step': (-2, 0), 'lean': -4, 'hand_R': (4, -20, 65), 'hand_L': (-18, 12, 56), 'aim_L': (-24, 12, 120), 'cloth': .4},
+        strike={'step': (8, 0), 'lean': 12, 'hand_R': (66, -18, 64), 'hand_L': (-20, 12, 58), 'aim_L': (-28, 12, 124),
+                'foot_L': (34, 8, 1), 'cloth': 1},
+        follow={'step': (5, 0), 'lean': 6, 'hand_R': (40, -18, 62), 'hand_L': (-18, 12, 58), 'aim_L': (-24, 12, 120), 'cloth': .7},
+        settle=(14, {'step': (1, 0), 'hand_R': (14, -18, 62), 'cloth': .2})))
     # Forward tilts (5/2/28): a lunging side kick with the camera-side leg,
     # level, rising to head height, or skimming the floor.
     chamber = {'step': (-4, -4), 'foot_R': (8, -12, 34), 'hand_L': (10, 6, 58), 'cloth': .5}
