@@ -45,8 +45,8 @@
 630 b shield 0
 # b runs off; Frost Nova again, and the second press bursts it in place on b and chills b.
 640 b stick 1 0
-656 b stick 0 0
 660 a tap X 2
+664 b stick 0 0
 699 a tap X 2
 # Expected, frame by frame (headless run of this script):
 # Death and Decay strikes b twice: 5% from its frame 30, 9% from its frame 70.
@@ -68,7 +68,7 @@
 # Frost Nova into the shield: no hit.
 #! expect a 520 special 13 form 0
 #! absent b 521-707 damage
-# Frost Nova's second press (recall form) bursts the orb: b takes the burst's 10, not the orb's 8, and is chilled.
+# Frost Nova's second press (recall form) bursts the orb: b takes the burst's 10, not the orb's 9, and is chilled.
 #! expect a 660 special 13 form 0
 #! expect a 699 special 13 form 3
 #! expect b 708 damage 34.000
