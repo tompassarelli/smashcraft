@@ -8,48 +8,30 @@ Smashcraft is an in-development platform fighter for Warcraft III, inspired by
 Super Smash Bros. Melee. Warcraft heroes fight on floating stages with jumps,
 air dodges, shields, hitstun, knockback and stocks, over rollback netcode.
 
-There is no public release yet. [Player guide](docs/player-guide.md) · status
-and next work: [roadmap #16](https://github.com/tompassarelli/smashcraft/issues/16).
+There is no public release yet. How to play: [player guide](docs/player-guide.md).
+Status and next work: [roadmap #16](https://github.com/tompassarelli/smashcraft/issues/16).
 
-## Build and test
+## Develop
 
-Smashcraft is written in TypeScript and runs on [Wisp](https://github.com/tompassarelli/wisp),
-the framework for Warcraft III maps. smashcraft:ts/wisp.lock pins its source
-revision; `bun install --frozen-lockfile` installs the generated package from
-the checkout. TypeScriptToLua compiles the game to Warcraft's Lua. Code
-changes reach running multiplayer clients without re-hosting, in-game errors
-point at TypeScript lines, and logic tests run in Bun and in 32-bit Lua. The
-source tree doesn't include Warcraft III's models, textures, terrain map or the
-generated game map; building needs a locally configured Warcraft III and the
-private assets.
+Smashcraft is written in TypeScript on [Wisp](https://github.com/tompassarelli/wisp),
+which compiles it to Warcraft III's Lua. From [smashcraft:ts/](ts/):
 
-From [smashcraft:ts/](ts/):
+```sh
+bun install --frozen-lockfile
+bun wisp dev
+```
 
-- `bun test` runs the logic tests, and `LUA=<32-bit lua> bun scripts/lua-tests.ts`
-  runs them in 32-bit Lua. `bun run check` type-checks.
-- `bun wisp hot --data <client CustomMapData> ... --watch` reloads every
-  save into the running clients.
-- `../build.sh BASE_MAP ASSET_CONTAINER` builds the map.
+Keep `bun wisp dev` running: every save reports type errors, affected tests
+and simulated matches. Building the playable map also needs a locally
+installed Warcraft III and private game assets, which are not in this
+repository.
 
-[smashcraft:docs/typescript.md](docs/typescript.md) has the code rules and the
-full command list.
+Where to look next:
 
-## Project notes
-
-Pre-release maps are named **Smashcraft 0.0.N** in both Warcraft and the filename.
-Increment only the last number in `smashcraft:map-version` for the next pre-release.
-Artifacts stay under the private `WC3_PRIVATE_ASSETS` directory, outside the
-repository. The current artifact and matching helper are named in
-smashcraft:docs/playable-0041.md. Install one current map in Warcraft's flat
-`Maps/00-Smashcraft` folder; retain old maps privately outside the map browser.
-
-- [Gameplay and controls](docs/player-guide.md)
-- [Delivery goal](docs/delivery-goal.md)
-- [Physics references and implementation](docs/physics.md)
-- [Fighter animation authoring and validation](docs/fighter-animation-work.md)
-- [Netcode design](docs/netcode-proposal.md)
-- [Gameplay design decisions](docs/gameplay-design.md)
-- [Documentation index](docs/README.md) · [Trial evidence records](evidence/README.md)
+- [AGENTS.md](AGENTS.md): workflow rules and the full command list.
+- [Documentation index](docs/README.md): how the game and its systems work.
+- [Wisp feature index](https://github.com/tompassarelli/wisp/blob/main/docs/index.md):
+  framework capabilities and opt-in diagnostics.
 
 ## License
 
