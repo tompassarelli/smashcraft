@@ -88,7 +88,7 @@ import { advanceMash } from "./mash";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
 import { at } from "wisp/src/runtime/lookup";
 import { advancePassive } from "./passives";
-import { aerialJumps, heavyFall, jumpBuffed } from "./itemBuffs";
+import { aerialJumps, heavyFall, jumpBuffed, speedBuffed } from "./itemBuffs";
 
 const FAST_FALL_DOWN_THRESHOLD = 0.6625000238418579;
 /** Melee common +0x008: the stick crosses this sideways to count as a fresh flick. */
@@ -512,7 +512,8 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   let direction = input.direction;
   if (isTumbling(f) && !motion.grounded && launch.hitstun <= 0 && launch.hitlag <= 0 && tumbleExitFlick) {
     clearDownState(f);
-    motion.vx = max(-physics.airSpeed, min(physics.airSpeed, motion.vx));
+    const airSpeed = speedBuffed(f, physics.airSpeed);
+    motion.vx = max(-airSpeed, min(airSpeed, motion.vx));
   }
   let dashEntryDisplacementAdjustment = 0.0;
   // Archer's hippogryph ride and Illidan's glide set the velocity each frame (specials.ts).

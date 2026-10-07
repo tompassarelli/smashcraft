@@ -157,7 +157,7 @@ export function advanceGroundMovement(f: Fighter, direction: number, walking: bo
       const walkTargetVelocity = f32(speedBuffed(f, chillScaled(f, enduranceGroundSpeed(f, physics.walkSpeed))) * direction);
       const walkTargetSpeed = Math.abs(walkTargetVelocity);
       const acceleration = taperedAcceleration(f, physics.walkAccelerationMultiplier, physics.walkAccelerationBase, direction, walkTargetSpeed, WALK_ACCEL_TAPER_GAIN, walkTargetSpeed > 0);
-      motion.vx = groundMovementVelocity(motion.vx, acceleration, walkTargetVelocity, physics.traction, speedBuffed(f, speedBuffed(f, physics.groundSpeedCap)));
+      motion.vx = groundMovementVelocity(motion.vx, acceleration, walkTargetVelocity, physics.traction, speedBuffed(f, physics.groundSpeedCap));
     }
     return false;
   }
@@ -221,7 +221,7 @@ export function advanceGroundMovement(f: Fighter, direction: number, walking: bo
     f, physics.groundAccelerationMultiplier, physics.groundAccelerationBase, direction, runTarget, RUN_ACCEL_TAPER_GAIN,
     ground.action === GroundAction.run && targetVelocity !== 0,
   );
-  motion.vx = groundMovementVelocity(motion.vx, acceleration, targetVelocity, f32(physics.traction * RUN_DASH_TURN_FRICTION_MULTIPLIER), speedBuffed(f, speedBuffed(f, physics.groundSpeedCap)));
+  motion.vx = groundMovementVelocity(motion.vx, acceleration, targetVelocity, f32(physics.traction * RUN_DASH_TURN_FRICTION_MULTIPLIER), speedBuffed(f, physics.groundSpeedCap));
   if (ground.action !== GroundAction.turnRun && f32(motion.vx * direction) > 0) {
     f.facing = direction;
     ground.dashDirection = direction;

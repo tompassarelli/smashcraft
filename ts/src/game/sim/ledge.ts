@@ -11,7 +11,7 @@ import { type Controls, type Roster, controlsAt, fighterAt, isActive } from "./r
 import { mainDeckLeft, mainDeckRight, mainDeckZ } from "./stage";
 import { BODY_HALF_WIDTH } from "./surfaces";
 import { checkBlastZone } from "./stocks";
-import { aerialJumps, groundedJumps } from "./itemBuffs";
+import { aerialJumps, groundedJumps, jumpBuffed, speedBuffed } from "./itemBuffs";
 import { beginAttack, cancelAttack, clearDownState, clearLedge, clearPlatformMove, clearTech, leaveLedge, refreshOriginalAirtime } from "./transitions";
 import { melee } from "./tuning";
 
@@ -219,8 +219,8 @@ export function advanceLedge(world: Roster, slot: number, stage: number, input: 
       const intoStage = input.getupDirectionPressed && input.getupDirection === -ledge.side;
       const away = input.getupDirectionPressed && input.getupDirection === ledge.side;
       if (input.jumpPressed) {
-        motion.vx = f32(-ledge.side * f.tuning.physics.airSpeed);
-        motion.vz = f.tuning.physics.fullJumpSpeed;
+        motion.vx = f32(-ledge.side * speedBuffed(f, f.tuning.physics.airSpeed));
+        motion.vz = jumpBuffed(f, f.tuning.physics.fullJumpSpeed);
         f.jump.serial++;
         f.jump.isDouble = false;
         clearLedge(f);
