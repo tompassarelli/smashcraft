@@ -69,6 +69,11 @@ export const checkClients = (print: (line: string) => void = console.log) =>
     Effect.provide(smashcraftWatch()),
   );
 
-/** `run` on healed clients: doctor before it and once after a failure (wisp:docs/doctor.md). */
+/**
+ * `run` on healed clients: doctor before it and once after a failure
+ * (wisp:docs/doctor.md), inside the desync autopsy (wisp:docs/autopsy.md):
+ * every desync the clients report during it gets its first divergent birth
+ * printed and its evidence saved.
+ */
 export const onHealthyClients = <A, E, R>(run: Effect.Effect<A, E, R>, options: { readonly retry?: boolean } = {}) =>
-  withDoctor(checkClients(), console.log, run, options);
+  withDoctor(checkClients(), console.log, run, { ...options, autopsy: { clientsFile: clientState } });

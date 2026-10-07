@@ -108,6 +108,12 @@ code. From smashcraft:ts/:
   `parity capture` (bot sessions included), `play` and `accept` run it before
   they start and once after a failure; run it instead of driving a client by
   hand.
+- Desync autopsy: `doctor`, `watch`, `pad`, `parity capture` (bot sessions
+  included), `fresh` and `accept` run inside Wisp's desync autopsy. On a new
+  desync report they print "first divergent birth #N Class at turn T on
+  client X" and save the evidence under ~/.local/state/wisp/autopsy/
+  (wisp:docs/autopsy.md). The class needs memory reads
+  (`kernel.yama.ptrace_scope`); without them, one line says so.
 - Client driver: `bun wisp client look|read|click|keys CLIENT ...` reads and
   drives a client. Session values live in ~/.local/state/smashcraft/clients.json.
 - Menus: `bun wisp menus host|join|start|leave` drives lobbies through Wisp's
