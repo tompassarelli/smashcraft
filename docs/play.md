@@ -16,6 +16,12 @@ updated the expected damage after the CPU changes. This is the CPU fixture for
 standalone/native comparisons. Map assets are read from the existing private
 inputs, with stock assets cached outside the repository.
 
+Add `--presentation native|pool-confirmed|pool-predicted` to select the map's
+fighter presentation. Live play defaults to `pool-predicted`; scripted play
+defaults to `native` and keeps the same authored pad driver in every profile.
+Capture requests name logical match frames. Scene JSON also records the raw
+headless callback frame, which includes the 30 startup callbacks.
+
 From ~/code/smashcraft/main/ts, run `bun wisp play`. It builds current main,
 points the always-on controller service at the matching helper, and hosts a match on Tom's main display
 against a computer. The match plays on the keyboard; a pad the service finds

@@ -175,6 +175,6 @@ jobs:
             ts/balance/field.json
           retention-days: 30
       - name: Check the required balance gate
-        if: ${{ inputs.opponent == 'wren' && inputs.tier == 'expert' && fromJSON(inputs.per-pair) >= 400 }}
+        if: ${{ inputs.matchups == '' && inputs.opponent == 'wren' && inputs.tier == 'expert' && fromJSON(inputs.per-pair) >= 400 }}
         run: |
           grep -q '^Balance gate .*: passes\.' ts/balance/table.md

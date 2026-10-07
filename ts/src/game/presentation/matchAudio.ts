@@ -71,6 +71,7 @@ const RACES: readonly Race[] = [
   Race.orc,
   // The Lich King: the Scourge.
   Race.undead,
+  Race.orc,
 ];
 
 export const characterRace = (character: Character): Race => at(RACES, character);
@@ -103,6 +104,7 @@ const VOICES: readonly (readonly [string, string, string?])[] = [
   ["Units\\Creeps\\BeastMaster\\", "OgreBeastMaster"],
   // Evil Arthas, the Lich King's own voice; a campaign hero with no Ready line.
   ["Units\\Undead\\EvilArthas\\", "EvilArthas", "What"],
+  ["Units\\Orc\\Thrall\\", "Thrall"],
 ];
 
 function voice(character: Character, line: string): string {
