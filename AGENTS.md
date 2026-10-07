@@ -136,6 +136,9 @@ code. From smashcraft:ts/:
   to one expansion fighter (smashcraft:docs/fighter-animation-work.md).
   `bun tools/animations/pit-lord-specials.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
   authors Pit Lord's four special gestures while preserving all earlier clips.
+  `bun tools/animations/kaelthas-clips.ts STOCK_BLOOD_MAGE.mdx PRIVATE_OUTPUT`
+  appends Kael’thas’s normal, special, paired throw, recovery and nine pain
+  gestures, preserves all eleven stock sequences, and writes both-facing sheets.
   `bun tools/animations/grab-pads.ts` generates the #180 mirror and unlike-height capture batch:
   ten expansion heroes, four throws, both facings, with ordinary catch/pummel
   inputs and contact-frame captures in smashcraft:ts/test/native/pads/180/.

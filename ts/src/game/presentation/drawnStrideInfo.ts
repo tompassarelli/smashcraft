@@ -22,4 +22,5 @@ export const DRAWN_STRIDES: { readonly [character: number]: { readonly walk: { r
   17: { walk: { clip: 0, model: "units\\creeps\\PandarenBrewmaster\\PandarenBrewmaster.mdl", speed: f32(267.430) }, run: { clip: 0, model: "units\\creeps\\PandarenBrewmaster\\PandarenBrewmaster.mdl", speed: f32(267.430) } },
   18: { walk: { clip: 1, model: "units\\orc\\Peon\\Peon.mdl", speed: f32(208.167) }, run: { clip: 1, model: "units\\orc\\Peon\\Peon.mdl", speed: f32(208.167) } },
   19: { walk: { clip: 0, model: "units\\creeps\\HeroTinker\\HeroTinker.mdl", speed: f32(142.838) }, run: { clip: 0, model: "units\\creeps\\HeroTinker\\HeroTinker.mdl", speed: f32(142.838) } },
+  20: { walk: { clip: 2, model: "units\\human\\HeroBloodElf\\HeroBloodElf.mdl", speed: f32(176.784) }, run: { clip: 2, model: "units\\human\\HeroBloodElf\\HeroBloodElf.mdl", speed: f32(176.784) } },
 };

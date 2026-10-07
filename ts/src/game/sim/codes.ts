@@ -5,7 +5,7 @@
 export const Character = {
   archer: 0, rifleman: 1, demonHunter: 2,
   blademaster: 3, mountainKing: 4, warden: 5, lich: 6, uther: 7, dreadlord: 8, shadowHunter: 9,
-  pitLord: 10, beastmaster: 11, lichKing: 12, thrall: 13, jaina: 14, sylvanas: 15, cairne: 16, chen: 17, peon: 18, tinker: 19,
+  pitLord: 10, beastmaster: 11, lichKing: 12, thrall: 13, jaina: 14, sylvanas: 15, cairne: 16, chen: 17, peon: 18, tinker: 19, kaelthas: 20,
 } as const;
 export type Character = (typeof Character)[keyof typeof Character];
 
