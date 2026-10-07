@@ -7,7 +7,7 @@
 import { existsSync, mkdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { Effect, Layer } from "effect";
+import { Clock, Effect, Layer } from "effect";
 import { AcceptFailure, type AcceptSuite } from "wisp/scripts/wisp/accept";
 import { liveAcceptDriver } from "wisp/scripts/wisp/acceptLive";
 import { Clients } from "wisp/scripts/wisp/clients";
@@ -18,7 +18,7 @@ import { step } from "wisp/scripts/wisp/timings";
 import { MAP_PROFILES, SMASHCRAFT_ACCEPT, type SmashcraftMapProfile } from "../acceptChecks";
 import { rebuildMap } from "../mapInputs";
 import { clientState, gameFilesLayer } from "../project";
-import { freshMatch, sendDevCommand } from "./fresh";
+import { freshMatch, readyAfter, sendDevCommand } from "./fresh";
 import { profileOptions } from "./map";
 import { onHealthyClients, readClientsFile, smashcraftWatch } from "../doctor";
 import { LAN_POOL_FILE, lanPairs, withTools } from "../padBatch";
@@ -121,7 +121,12 @@ export const accept: Command = (args) => Effect.gen(function*() {
         rebuilt.add(profile.path);
       }
       if (pair?.lan === undefined) yield* freshMatch(profile.path);
-      else yield* lan(["fresh", profile.path, "--pair", String(pair.lan)]);
+      else {
+        const started = yield* Clock.currentTimeMillis;
+        yield* lan(["fresh", profile.path, "--pair", String(pair.lan)]);
+        const clients = yield* Clients;
+        yield* Effect.forEach(clients.all, client => readyAfter(client, started), { concurrency: "unbounded" });
+      }
       yield* sendDevCommand(profile.quick).pipe(step(profile.quick));
     }).pipe(Effect.provide(Layer.merge(options.services.pipe(Layer.provideMerge(Clients.layer(selectedClients))), smashcraftWatch())));
   });
