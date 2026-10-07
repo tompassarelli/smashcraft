@@ -20,6 +20,8 @@ export const THRALL_MOVES: FighterMoves = {
     attacks: {
       [AttackStyle.jab]: [heroHurtPose(3, 9, [body, wolf, hurtPart(8.0, 118.0, 38.0, 85.0, 12.0)])],
       [AttackStyle.jab2]: [heroHurtPose(5, 12, [body, wolf, hurtPart(8.0, 118.0, 42.0, 87.0, 12.0)])],
+      [AttackStyle.forwardTilt]: [heroHurtPose(8, 15, [body, wolf, hurtPart(8.0, 118.0, 85.0, 90.0, 12.0)])],
+      [AttackStyle.dashAttack]: [heroHurtPose(9, 16, [body, wolf, hurtPart(52.0, 60.0, 84.0, 60.0, 20.0)])],
       [AttackStyle.grab]: [heroHurtPose(6, 12, [body, wolf, hurtPart(8.0, 95.0, 55.0, 70.0, 12.0)])],
       [AttackStyle.downTilt]: [heroHurtPose(6, 13, [body, wolf, paw])],
       [AttackStyle.forwardTiltDown]: [heroHurtPose(8, 15, [body, wolf, paw])],
@@ -35,7 +37,7 @@ export const THRALL_MOVES: FighterMoves = {
     [AttackStyle.forwardTiltDown]: normal(10, 3, 21, 0, capsule(52.0, 34.0, 96.0, 34.0, 20.0), 10.0, 20),
     [AttackStyle.upTilt]: normal(8, 4, 20, 0, capsule(-2.0, 178.0, -2.0, 189.0, 22.0), 8.0, 85, 70.0, 36.0),
     [AttackStyle.downTilt]: normal(8, 3, 19, 0, capsule(52.0, 34.0, 96.0, 34.0, 20.0), 7.0, 70, 65.0, 20.0),
-    [AttackStyle.dashAttack]: heroMove(11, 4, 25, 0, [heroRegion(11, 14, capsule(0.0, 16.0, 15.0, 70.0, 28.0), thrallHit(10.0, 55, 90.0, 28.0))], 65.0, true),
+    [AttackStyle.dashAttack]: heroMove(11, 4, 25, 0, [heroRegion(11, 14, capsule(24.0, 45.0, 65.0, 60.0, 28.0), thrallHit(10.0, 55, 90.0, 28.0))], 65.0, true),
     [AttackStyle.forwardSmash]: heroMove(20, 3, 34, 0, [
       heroRegion(20, 22, capsule(34.0, 130.0, 39.0, 133.0, 23.0), thrallHit(18.0, 40, 110.0, 30.0)),
     ]),
