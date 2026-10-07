@@ -20,7 +20,7 @@ import { surfaceCount, surfaceLeft, surfaceRight, surfaceZ } from "../sim/stage"
 import { safeAt, slideStaysOnDeck } from "./botFooting";
 import { HeroSpecialUse, heroSpecialUse } from "./botHeroKit";
 import { SpecialSlot } from "../sim/heroSpecials";
-import { SPACE_PLAN, gameplanOf, moveWeight, passiveLandingMove, spacedAt, toGameplanMove } from "./botGameplan";
+import { SPACE_PLAN, avoids, gameplanOf, moveWeight, passiveLandingMove, spacedAt, toGameplanMove } from "./botGameplan";
 import { passivePips, passiveSpec } from "../sim/passives";
 import type { FighterGameplan, GameplanMove } from "../sim/gameplan";
 import { type CpuSkill, FULL_SKILL } from "./cpuLevel";
@@ -415,6 +415,8 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
         const frames = attackStartupFrames(style, f.tuning.moves);
         const x = aheadX(f, target, frames, style);
         const z = aheadZ(f, target, frames, stage, matchFrame);
+        // Grabs need the target's centre inside their reach, as the punish chooser requires.
+        if (move === AttackStyle.grab && Math.abs(x) > f32(moveReachAhead(f.character, style, target, f.tuning.moves) - hurtCapsule(target.character).radius)) continue;
         // Every attack waits for its reach (#160), or for a ground spacing tool, its spacing level with the target.
         const spaced = gameplan !== undefined && spacedAt(gameplan, dashing && move === AttackStyle.jab ? AttackStyle.dashAttack : move, gap) && wallsOff(f, style, target, Math.abs(x), z);
         if (!spaced && !moveReaches(f.character, style, target, Math.abs(x), z, f.tuning.moves)) continue;
@@ -433,6 +435,11 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
     }
   }
   const strikes = count;
+  const wantsGrab = skill.grabsShields && target.shield.raised && target.motion.grounded && f.motion.grounded
+    && (gameplan === undefined || !avoids(gameplan, "close"));
+  const grabReaches = strikes > 0 && at(options, strikes - 1) === AttackStyle.grab;
+  // Let the shield walk-in reach grab range instead of stopping it with repeated long normals.
+  if (wantsGrab && !grabReaches) return false;
   // A misplay throws any normal near the target, in reach or not.
   if (canAttack(f) && gap <= MISPLAY_GAP && botChance(frame, f.attack.serial * 11 + f.character + 5, skill.misplay, 100)) {
     const moves = f.motion.grounded ? GROUND_MOVES : AERIALS;
@@ -443,7 +450,7 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
   const close = count;
   if (canAttack(f)) count = addShots(f, target, stage, count);
   if (count === 0 || (close === 0 && !ranged)) return false;
-  const grabbing = skill.grabsShields && target.shield.raised && f.motion.grounded && strikes > 0 && at(options, strikes - 1) === AttackStyle.grab;
+  const grabbing = skill.grabsShields && target.shield.raised && f.motion.grounded && grabReaches;
   // Running in, the dash attack when it reaches; a ready passive's landing move, never into a shield, which spends it.
   const kit = botChance(frame, f.attack.serial * 13 + f.character + 3, skill.kitTenths, 10);
   const cashing = kit && !target.shield.raised && passivePips(f).ready ? passiveSpec(f.character).kind : PassiveKind.none;

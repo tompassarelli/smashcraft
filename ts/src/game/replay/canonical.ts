@@ -506,6 +506,12 @@ function kitDigestField<K>(name: string, kit: K | undefined, digests: Map<K, str
   return `|${name}.digest=${digest}`;
 }
 
+/** Immutable authored kit identity used by delayed opponent observations. */
+export function observedOpponentKitCanonical(fighter: Readonly<Fighter>): string {
+  return kitDigestField("moves", fighter.tuning.moves, MOVES_DIGESTS, fighterMovesCanonical)
+    + kitDigestField("specials", fighter.tuning.specials, SPECIALS_DIGESTS, fighterSpecialsCanonical);
+}
+
 function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, participantMask: number): void {
   const int = (name: string, value: number) => emit(canonicalInt(`${prefix}.${name}`, value));
   const bool = (name: string, value: boolean) => emit(canonicalBoolean(`${prefix}.${name}`, value));
@@ -935,6 +941,18 @@ function writeState(emit: Emit, state: Readonly<ReplayState>): void {
   }
   int("runtime.simulationFrame", runtime.simulationFrame);
   for (const slot of PARTICIPANT_SLOTS) emit(canonicalRealField(`runtime.botAttackDelays[${slot}]`, runtime.botAttackDelays[slot]));
+  const memory = runtime.botMemory;
+  if (memory.history.length > 0) {
+    for (let index = 0; index < memory.history.length; index++) {
+      const observation = at(memory.history, index);
+      int(`runtime.botMemory.history[${index}].frame`, observation.frame);
+      emit(`|runtime.botMemory.history[${index}].values=${observation.canonical}`);
+    }
+    for (const slot of PARTICIPANT_SLOTS) {
+      int(`runtime.botMemory.directions[${slot}]`, memory.directions[slot]);
+      int(`runtime.botMemory.directionFrames[${slot}]`, memory.directionFrames[slot]);
+    }
+  }
 }
 
 /** The Replay2 text of a state; capture live state into a snapshot first, as Wurst does. */

@@ -162,6 +162,21 @@ function foldFighter(lanes: Lanes, slot: number, fighter: Readonly<Fighter>): vo
 function foldMatchAndFrame(lanes: Lanes, match: Readonly<MatchState>, runtime: Readonly<PacingAndPresentation>): string {
   foldFields(lanes, 3, match, 1);
   foldInteger(lanes, 5, runtime.simulationFrame);
+  const memory = runtime.botMemory;
+  foldInteger(lanes, 7, memory.history.length);
+  for (let index = 0; index < memory.history.length; index++) {
+    const sample = at(memory.history, index);
+    const base = floorMod(11 + index * 977, MODULUS);
+    foldInteger(lanes, base, sample.frame);
+    foldInteger(lanes, base + 1, sample.checksumFirst);
+    foldInteger(lanes, base + 2, sample.checksumSecond);
+  }
+  for (const slot of PARTICIPANT_SLOTS) {
+    const base = 19 + slot * 977;
+    foldNumber(lanes, base, runtime.botAttackDelays[slot]);
+    foldInteger(lanes, base + 1, memory.directions[slot]);
+    foldInteger(lanes, base + 2, memory.directionFrames[slot]);
+  }
   return `${lanes.first}:${lanes.second}`;
 }
 

@@ -6,15 +6,17 @@ import { clearSummonState, copySummonStateInto, createSummonState, type SummonSt
 import { clearFighterPose, copyFighterPoseInto, createFighterPose, type FighterPose } from "../presentation/fighterPose";
 import type { Roster } from "../sim/roster";
 import { isActive } from "../sim/roster";
+import { type BotMemory, clearBotMemory, copyBotMemory, createBotMemory } from "./botPerception";
 
 /**
  * What a match carries beside its world, game rules and controls: the frame pacing
- * (simulationFrame, botAttackDelays) and the presentation history (impacts, special
+ * (simulationFrame, botAttackDelays, botMemory) and the presentation history (impacts, special
  * effects, summons, poses). Only the pacing feeds the simulation.
  */
 export interface PacingAndPresentation {
   simulationFrame: number;
   botAttackDelays: Slots<number>;
+  readonly botMemory: BotMemory;
   impacts: ImpactState;
   specials: SpecialEffectState;
   summons: SummonState;
@@ -30,6 +32,7 @@ export function createPacingAndPresentation(): PacingAndPresentation {
   return {
     simulationFrame: 0,
     botAttackDelays: [0.0, 0.0, 0.0, 0.0],
+    botMemory: createBotMemory(),
     impacts: createImpactState(),
     specials: createSpecialEffectState(),
     summons: createSummonState(),
@@ -51,6 +54,7 @@ export function clearPresentationHistory(runtime: PacingAndPresentation): void {
 /** Copies between worlds: poses of the source world's participants, with their slot references. */
 export function copyPacingAndPresentation(target: PacingAndPresentation, source: Readonly<PacingAndPresentation>, sourceWorld: Readonly<Roster>): void {
   target.simulationFrame = source.simulationFrame;
+  copyBotMemory(target.botMemory, source.botMemory);
   copyImpactStateInto(target.impacts, source.impacts);
   copySpecialEffectStateInto(target.specials, source.specials);
   copySummonStateInto(target.summons, source.summons);
@@ -71,6 +75,7 @@ export function resetPacingAndPresentation(runtime: PacingAndPresentation): void
   runtime.simulationFrame = 0;
   clearPresentationHistory(runtime);
   runtime.botAttackDelays.fill(0.0);
+  clearBotMemory(runtime.botMemory);
   runtime.observedLegal.fill(0);
   runtime.observedStarted.fill(0);
 }

@@ -5,6 +5,7 @@ import { PARTICIPANT_SLOTS } from "../input/participants";
 import { type FrameControls, createFrameControls } from "../match/controls";
 import { captureFrame, createMatchFrameInput, executeMatchFrame, resetMatchFrameInput, type MatchFrameInput } from "../match/frameInput";
 import { produceComputerInput } from "../match/botPlay";
+import { clearBotMemory } from "../match/botPerception";
 import {
   computerActive, confirmRematch, createMatchState, fighterMask, requestStageSelect, requestStart, selectCharacter, selectStage,
   setParticipants, setStocks, setTimeLimit, updateConnectedHumans,
@@ -82,6 +83,7 @@ function startMatch(session: TapeSession): boolean {
     runtime.botAttackDelays[slot] = 0.0;
   }
   runtime.simulationFrame = 0;
+  clearBotMemory(runtime.botMemory);
   clearPresentationHistory(runtime);
   initializeMatchFighters(match, world);
   session.epoch++;

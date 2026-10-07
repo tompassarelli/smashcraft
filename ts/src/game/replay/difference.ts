@@ -15,6 +15,7 @@ import type { DashGrabRules, FighterPhysics, GroundMovementRules, ShieldGeometry
 import { at } from "wisp/src/runtime/lookup";
 import { canonicalSlot, fighterMovesCanonical, fighterSpecialsCanonical } from "./canonical";
 import { firstTrainingDifference } from "../match/trainingState";
+import { firstBotMemoryDifference } from "../match/botPerception";
 import type { ReplayState } from "./snapshot";
 
 type Value = number | boolean | undefined;
@@ -426,6 +427,8 @@ export function firstStateDifference(expected: Readonly<ReplayState>, actual: Re
   for (const slot of PARTICIPANT_SLOTS) {
     if (expected.runtime.botAttackDelays[slot] !== actual.runtime.botAttackDelays[slot]) return `runtime.botAttackDelays[${slot}]`;
   }
+  const botMemory = firstBotMemoryDifference(expected.runtime.botMemory, actual.runtime.botMemory);
+  if (botMemory !== undefined) return `runtime.botMemory.${botMemory}`;
   return undefined;
 }
 

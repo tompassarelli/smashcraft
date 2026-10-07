@@ -600,8 +600,12 @@ The computer (smashcraft:ts/src/game/match/botPlay.ts and its bot*.ts
 siblings) plays inside the synchronized simulation: each frame it reads the
 match and writes its fighter's controls and attack commands, as a player's
 input row would, so every client and every rollback replay derives the same
-decisions. It keeps no state of its own beyond the attack delay in the
-replayed runtime (`botAttackDelays`). Each choice that looks random is
+decisions. The replayed runtime keeps attack pauses, a bounded history of
+visible opponent observations and horizontal direction commitments. Level 9
+uses observations from 12 frames earlier (200 ms); lower levels wait longer
+(smashcraft:docs/design/cpu-levels.md). It holds a horizontal choice for five
+frames before reversing, while its own legality, damage and recovery remain
+immediate. Each choice that looks random is
 `botChoice`, a nonlinear hash of whole numbers from the match (the frame,
 attack and grab serials, hits taken, the truncated percent) whose squares
 stay inside 32-bit integers, so Bun and Warcraft's Lua compute it alike.
@@ -669,8 +673,8 @@ attack as `dashAttack`), `GameplanSpecial` or `GameplanThrow`.
   ledge, always for the deck or either, and spends its up special before or
   after its jump.
 
-The gameplan is static kit data and the computer keeps no new state, so
-snapshots and replays are unchanged.
+The gameplan is static kit data. Snapshots and replays also retain the
+computer's delayed observations and direction commitments.
 
 The 540-match `--policy cpu` soak checks this behaviour: departures,
 self-destructs, time-outs and the moves that landed
