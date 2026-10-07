@@ -1,0 +1,77 @@
+[
+  {
+    "frame": 62,
+    "archerVisible": false,
+    "models": [
+      {
+        "model": "Units\\NightElf\\RiddenHippoGryph\\RiddenHippoGryph.mdx",
+        "clip": "Stand",
+        "x": -240,
+        "z": 1774,
+        "yaw": 0,
+        "pitch": 0,
+        "roll": 0
+      }
+    ]
+  },
+  {
+    "frame": 70,
+    "archerVisible": false,
+    "models": [
+      {
+        "model": "Units\\NightElf\\RiddenHippoGryph\\RiddenHippoGryph.mdx",
+        "clip": "Walk",
+        "x": -225,
+        "z": 1850,
+        "yaw": 0,
+        "pitch": -0.10000000149011612,
+        "roll": 0.15000000596046448
+      }
+    ]
+  },
+  {
+    "frame": 80,
+    "archerVisible": false,
+    "models": [
+      {
+        "model": "Units\\NightElf\\RiddenHippoGryph\\RiddenHippoGryph.mdx",
+        "clip": "Walk",
+        "x": -191.99998474121094,
+        "z": 1970.000015258789,
+        "yaw": 3.1415927410125732,
+        "pitch": -0.03333333507180214,
+        "roll": -0.05000000447034836
+      }
+    ]
+  },
+  {
+    "frame": 84,
+    "archerVisible": true,
+    "models": [
+      {
+        "model": "Units\\NightElf\\HippoGryph\\HippoGryph.mdx",
+        "clip": "Attack",
+        "x": -206,
+        "z": 2048,
+        "yaw": 3.1415927410125732,
+        "pitch": 0,
+        "roll": 0
+      }
+    ]
+  },
+  {
+    "frame": 88,
+    "archerVisible": true,
+    "models": [
+      {
+        "model": "Units\\NightElf\\HippoGryph\\HippoGryph.mdx",
+        "clip": "Attack",
+        "x": -218,
+        "z": 2120,
+        "yaw": 3.1415927410125732,
+        "pitch": 0,
+        "roll": 0
+      }
+    ]
+  }
+]
