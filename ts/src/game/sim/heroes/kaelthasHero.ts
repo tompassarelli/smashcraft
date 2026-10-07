@@ -3,7 +3,7 @@ import type { HeroDefinition } from "./hero";
 import { KAELTHAS_MOVES } from "./kaelthasMoves";
 import { KAELTHAS_SPECIALS } from "./kaelthasSpecials";
 import { KAELTHAS_GAMEPLAN } from "./kaelthasGameplan";
-import { KAELTHAS_CLIPS, KAELTHAS_FALLBACK, KAELTHAS_MODEL_FILE } from "./kaelthasClips";
+import { KAELTHAS_CLIPS, KAELTHAS_DAMAGE_CLIPS, KAELTHAS_FALLBACK, KAELTHAS_MODEL_FILE } from "./kaelthasClips";
 
 export const KAELTHAS_HERO: HeroDefinition = {
   character: Character.kaelthas, name: "Kael'thas Sunstrider", purpose: "Mobile fire caster", weakness: "Exposed casting and committed recovery", complete: false,
@@ -14,6 +14,6 @@ export const KAELTHAS_HERO: HeroDefinition = {
   presentation: {
     model: KAELTHAS_MODEL_FILE, objectId: 0x6d666b74,
     portrait: "ReplaceableTextures\\CommandButtons\\BTNHeroBloodElfPrince.blp",
-    clips: KAELTHAS_CLIPS, fallback: KAELTHAS_FALLBACK,
+    clips: KAELTHAS_CLIPS, damageClips: KAELTHAS_DAMAGE_CLIPS, fallback: KAELTHAS_FALLBACK,
   },
 };
