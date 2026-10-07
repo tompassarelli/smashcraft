@@ -116,6 +116,10 @@ export function quickRecoveryHero(message: string): Character | undefined {
   return heroAfter(message, QUICK_RECOVERY_HERO_COMMAND);
 }
 
+export function quickOffstageHero(message: string): Character | undefined {
+  return heroAfter(message, "-dev quick offstage hero ");
+}
+
 export function quickPainHero(message: string): { readonly character: Character; readonly scenario: Scenario } | undefined {
   const words = message.split(" ");
   if (words[0] !== "-dev" || words[1] !== "pain") return undefined;

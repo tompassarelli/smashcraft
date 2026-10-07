@@ -17,7 +17,9 @@ import { controls, testGrabFrame } from "../testWorld";
 import { authoredPhysics, melee } from "../tuning";
 import { copyFighterState } from "../../replay/fighterState";
 import { firstFighterDifference } from "../../replay/difference";
+import { fighterCoverage } from "../../match/botCoverage";
 import { JAINA_MOVES } from "./jainaMoves";
+import { SELECTABLE_CHARACTERS } from "./registry";
 
 test("Jaina body takes weight, run speed and air speed from Melee Zelda", () => {
   const body = authoredPhysics(Character.jaina);
@@ -211,4 +213,19 @@ test("Jaina Brilliance regenerates six grounded and two aerial mana per second b
     for (let tick = 0; tick < 60; tick++) regenerateMana(jaina);
     assertEquals(jaina.mana.points, grounded ? 46 : 42);
   }
+});
+
+test("Jaina computer uses all four spells in eight Wren Expert matches before roster publication", () => {
+  const choices: Character[] = SELECTABLE_CHARACTERS.filter(character => character !== Character.jaina);
+  choices.push(Character.jaina);
+  const report = fighterCoverage(choices.length - 1, undefined, choices);
+  assertEquals(report.matches, 8);
+  assertEquals(report.missing.join(", "), "", report.fighter);
+  assertGreaterThan(report.movement, 0);
+  assertGreaterThan(report.attacks, 0);
+  assertGreaterThan(report.specials.neutral, 0);
+  assertGreaterThan(report.specials.side, 0);
+  assertGreaterThan(report.specials.up, 0);
+  assertGreaterThan(report.specials.down, 0);
+  assertEquals(report.manaDenied, 0);
 });

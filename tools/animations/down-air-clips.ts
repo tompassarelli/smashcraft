@@ -7,7 +7,10 @@ import { Character, AttackStyle } from "../../ts/src/game/sim/codes";
 import { heroDefinition } from "../../ts/src/game/sim/heroes/registry";
 import { seconds } from "./asset-info";
 import { encodeVerified, ensure, fighters, onGlobalClock, parseSource, tracks } from "./original-clips";
-const [input, output] = process.argv.slice(2).map(p => resolve(p));
+const [input, output] = process.argv.slice(2, 4).map(p => resolve(p));
+const characterAt = process.argv.indexOf("--character");
+const selected = characterAt < 0 ? undefined : Number(process.argv[characterAt + 1]);
+ensure(selected === undefined || selected === Character.lich, "--character supports Lich's contact repair (6)");
 const project = resolve(import.meta.dir, "../..");
 ensure(input && output && relative(project, output).startsWith(".."), "usage: bun tools/animations/down-air-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT");
 mkdirSync(output, {recursive:true});
@@ -31,6 +34,7 @@ function joint(name:string,g:typeof gestures[number],coil:boolean):number {
   if (/^(Bone_Chest|Chest|Bone NECK)$/.test(name)) return coil?-20:g.chest;
   if (name === "Bone_Head" && g.character!==Character.lich) return coil?-10:20;
   if (g.character===Character.lich) {
+    if(name==="Recovery Motion")return coil?-10:60;
     if(name==="Mesh01")return coil?-18:5;
     if(/^(Cylinder06|Cylinder07)$/.test(name))return coil?-115:-15;
     if(/^(Mesh04|Mesh05)$/.test(name))return coil?30:15;
@@ -53,8 +57,14 @@ for(const g of gestures){
   const source=parseSource(await Bun.file(join(input,f.source)).arrayBuffer()),model=structuredClone(source);
   const stand=source.Sequences.find(s=>/^stand(?:\s*-?\s*1)?$/i.test(s.Name))??source.Sequences.find(s=>/^stand ready$/i.test(s.Name));ensure(stand,"missing stand");
   const name=`Down Air ${g.name}`,existing=source.Sequences.findIndex(s=>s.Name===name);
+  if (selected !== undefined && g.character !== selected) {
+    ensure(existing >= 0, `${f.name}: retained down air missing`);
+    const sequence = source.Sequences[existing]!;
+    bindings.push(`  ${g.character}: { downAir: { index: ${existing}, seconds: ${seconds((sequence.Interval[1]-sequence.Interval[0])/1000)}, aligned: true } },`);
+    continue;
+  }
   const index=existing<0?source.Sequences.length:existing,start=existing<0?Math.max(...source.Sequences.map(s=>s.Interval[1]))+100:source.Sequences[index]!.Interval[0];
-  const end=start+Math.round(move.totalFrames*1000/60);
+  const end=existing<0?start+Math.round(move.totalFrames*1000/60):source.Sequences[existing]!.Interval[1];
   model.Sequences[index]={...stand,Name:name,Interval:new Uint32Array([start,end]),NonLooping:true,MoveSpeed:0,Rarity:0,
     MinimumExtent:new Float32Array([-300,-300,-200]),MaximumExtent:new Float32Array([300,300,350]),BoundsRadius:400};
   const originals=new Map<string,mdx.AnimVector>();tracks(source,(t,p)=>originals.set(p,t));
@@ -72,6 +82,7 @@ for(const g of gestures){
       const tangent=()=>match||track.LineType===mdx.LineType.Bezier?Vector.slice():new Float32Array(Vector.length);
       track.Keys.push({...first,Frame:start+Math.round(frame*1000/60),Vector,...first.InTan?{InTan:tangent(),OutTan:tangent()}: {}});
     }
+    track.Keys.sort((a,b)=>a.Frame-b.Frame);
   });
   ensure(joints>=4,`${f.name}: insufficient articulated joints`);
   const bytes=encodeVerified(parseSource(generateMDX(model)));
