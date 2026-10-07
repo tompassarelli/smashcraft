@@ -1,6 +1,7 @@
 import { FLOOR_HEIGHT } from "../../game/presentation/arenaCamera";
 import { preloadLights, preloadModels, preloadSkies } from "../../game/presentation/stagePreload";
 import { stageLightModel, stageScenery } from "../../game/presentation/stageScenery";
+import { hideEffect } from "../../game/render/effects";
 import type { ShellState } from "./state";
 
 /** Shared handle lifetimes, with purely visual sky, light, fog and backdrop settings. */
@@ -47,10 +48,29 @@ export function preloadStageAssets(s: ShellState): void {
 export function showBackdrop(s: ShellState, visible: boolean): void {
   BlzShowSkyBox(visible);
   const alpha = visible ? 255 : 0;
-  for (const effect of s.stageScenery ?? []) BlzSetSpecialEffectAlpha(effect, alpha);
+  const scenery = stageScenery(s.game.stageChoice);
+  for (const [index, effect] of (s.stageScenery ?? []).entries()) {
+    const piece = scenery.pieces[index];
+    if (!visible || piece === undefined) hideEffect(effect, s.origin);
+    else {
+      BlzSetSpecialEffectPosition(effect, s.origin.x + piece.x, s.origin.y + piece.y, s.origin.z + piece.z);
+      BlzSetSpecialEffectScale(effect, piece.scale);
+    }
+  }
   for (const deck of s.stageDecks) BlzSetSpecialEffectAlpha(deck, alpha);
   const fog = stageScenery(s.game.stageChoice).fog;
   if (visible && fog !== undefined) SetTerrainFogEx(0, fog.start, fog.end, 0.0, fog.red, fog.green, fog.blue);
   else if (visible) ResetTerrainFog();
   else SetTerrainFogEx(0, 100000.0, 200000.0, 0.0, 0.0, 0.0, 0.0);
+}
+
+/** Same paused scene, old stock lighting versus the stage's authored lighting. */
+export function showStageLighting(s: ShellState, authored: boolean): void {
+  if (authored) {
+    const light = stageLightModel(s.game.stageChoice);
+    SetDayNightModels(light, light);
+  } else SetDayNightModels(
+    "Environment\\DNC\\DNCLordaeron\\DNCLordaeronTerrain\\DNCLordaeronTerrain.mdl",
+    "Environment\\DNC\\DNCLordaeron\\DNCLordaeronUnit\\DNCLordaeronUnit.mdl",
+  );
 }

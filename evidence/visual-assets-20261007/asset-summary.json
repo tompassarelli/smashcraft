@@ -1,0 +1,841 @@
+{
+  "build": "3.0.0.24268",
+  "date": "2026-10-07",
+  "scope": "Installed CASC asset availability, not native draw evidence",
+  "paths": [
+    {
+      "model": "Environment\\Sky\\LordaeronWinterSky\\LordaeronWinterSky.mdx",
+      "modes": [
+        {
+          "mode": "classic",
+          "present": true,
+          "bytes": 4250,
+          "modelInspection": "Current war3-model parser cannot decode this file; availability and byte count still observed"
+        },
+        {
+          "mode": "reforged",
+          "present": true,
+          "bytes": 38860,
+          "textureSlots": [
+            "Environment/Sky/LordaeronWinterSky/LordaeronWinterSky.tif",
+            "Textures/normal.blp",
+            "Textures/ORM.blp",
+            "Textures/Black32.blp",
+            "",
+            "ReplaceableTextures/EnvironmentMap.blp"
+          ]
+        },
+        {
+          "mode": "definitive",
+          "present": true,
+          "bytes": 38860,
+          "textureSlots": [
+            "Environment/Sky/LordaeronWinterSky/LordaeronWinterSky.tif",
+            "Textures/normal.blp",
+            "Textures/ORM.blp",
+            "Textures/Black32.blp",
+            "",
+            "ReplaceableTextures/EnvironmentMap.blp"
+          ]
+        }
+      ]
+    },
+    {
+      "model": "Doodads\\Cinematic\\FrozenThrone\\FrozenThrone.mdx",
+      "modes": [
+        {
+          "mode": "classic",
+          "present": true,
+          "bytes": 80057,
+          "modelInspection": "Current war3-model parser cannot decode this file; availability and byte count still observed"
+        },
+        {
+          "mode": "reforged",
+          "present": true,
+          "bytes": 8074270,
+          "modelInspection": "Current war3-model parser cannot decode this file; availability and byte count still observed"
+        },
+        {
+          "mode": "definitive",
+          "present": true,
+          "bytes": 8074270,
+          "modelInspection": "Current war3-model parser cannot decode this file; availability and byte count still observed"
+        }
+      ]
+    },
+    {
+      "model": "Doodads\\Icecrown\\Rocks\\Glacier\\Glacier0.mdx",
+      "modes": [
+        {
+          "mode": "classic",
+          "present": true,
+          "bytes": 6685,
+          "textureSlots": [
+            "Textures\\Ice_Natural01.blp"
+          ]
+        },
+        {
+          "mode": "reforged",
+          "present": true,
+          "bytes": 390556,
+          "textureSlots": [
+            "Doodads/Icecrown/Rocks/Glacier/ICG_Environment_Glacier_V1_V5_Diffuse.tif",
+            "Doodads/Icecrown/Rocks/Glacier/ICG_Environment_Glacier_V1_V5_Normal.tif",
+            "Doodads/Icecrown/Rocks/Glacier/ICG_Environment_Glacier_V1_V5_ORM.tif",
+            "Doodads/Icecrown/Rocks/Glacier/ICG_Environment_Glacier_V1_V5_Emissive.tif",
+            "",
+            "ReplaceableTextures/EnvironmentMap.blp"
+          ]
+        },
+        {
+          "mode": "definitive",
+          "present": true,
+          "bytes": 390556,
+          "textureSlots": [
+            "Doodads/Icecrown/Rocks/Glacier/ICG_Environment_Glacier_V1_V5_Diffuse.tif",
+            "Doodads/Icecrown/Rocks/Glacier/ICG_Environment_Glacier_V1_V5_Normal.tif",
+            "Doodads/Icecrown/Rocks/Glacier/ICG_Environment_Glacier_V1_V5_ORM.tif",
+            "Doodads/Icecrown/Rocks/Glacier/ICG_Environment_Glacier_V1_V5_Emissive.tif",
+            "",
+            "ReplaceableTextures/EnvironmentMap.blp"
+          ]
+        }
+      ]
+    },
+    {
+      "model": "Doodads\\Icecrown\\Rocks\\Glacier\\Glacier5.mdx",
+      "modes": [
+        {
+          "mode": "classic",
+          "present": true,
+          "bytes": 3625,
+          "textureSlots": [
+            "Textures\\Ice_Natural01.blp"
+          ]
+        },
+        {
+          "mode": "reforged",
+          "present": true,
+          "bytes": 283470,
+          "textureSlots": [
+            "Doodads/Icecrown/Rocks/Glacier/ICG_Environment_Glacier_V6_V10_Diffuse.tif",
+            "Doodads/Icecrown/Rocks/Glacier/ICG_Environment_Glacier_V6_V10_Normal.tif",
+            "Doodads/Icecrown/Rocks/Glacier/ICG_Environment_Glacier_V6_V10_ORM.tif",
+            "Doodads/Icecrown/Rocks/Glacier/ICG_Environment_Glacier_V6_V10_Emissive.tif",
+            "",
+            "ReplaceableTextures/EnvironmentMap.blp"
+          ]
+        },
+        {
+          "mode": "definitive",
+          "present": true,
+          "bytes": 283470,
+          "textureSlots": [
+            "Doodads/Icecrown/Rocks/Glacier/ICG_Environment_Glacier_V6_V10_Diffuse.tif",
+            "Doodads/Icecrown/Rocks/Glacier/ICG_Environment_Glacier_V6_V10_Normal.tif",
+            "Doodads/Icecrown/Rocks/Glacier/ICG_Environment_Glacier_V6_V10_ORM.tif",
+            "Doodads/Icecrown/Rocks/Glacier/ICG_Environment_Glacier_V6_V10_Emissive.tif",
+            "",
+            "ReplaceableTextures/EnvironmentMap.blp"
+          ]
+        }
+      ]
+    },
+    {
+      "model": "Doodads\\Icecrown\\Rocks\\Icecrown_Crystal\\Icecrown_Crystal0.mdx",
+      "modes": [
+        {
+          "mode": "classic",
+          "present": true,
+          "bytes": 6316,
+          "textureSlots": [
+            "Doodads\\Icecrown\\Rocks\\Icecrown_Crystal\\crystal.blp"
+          ]
+        },
+        {
+          "mode": "reforged",
+          "present": true,
+          "bytes": 994616,
+          "textureSlots": [
+            "Doodads/Icecrown/Rocks/Icecrown_Crystal/ICG_Environment_Crystal_V1_V9_Diffuse.tif",
+            "Doodads/Icecrown/Rocks/Icecrown_Crystal/ICG_Environment_Crystal_V1_V9_Normal.tif",
+            "Doodads/Icecrown/Rocks/Icecrown_Crystal/ICG_Environment_Crystal_V1_V9_ORM.tif",
+            "Doodads/Icecrown/Rocks/Icecrown_Crystal/ICG_Environment_Crystal_V1_V9_Emissive.tif",
+            "",
+            "ReplaceableTextures/EnvironmentMap.blp"
+          ]
+        },
+        {
+          "mode": "definitive",
+          "present": true,
+          "bytes": 994616,
+          "textureSlots": [
+            "Doodads/Icecrown/Rocks/Icecrown_Crystal/ICG_Environment_Crystal_V1_V9_Diffuse.tif",
+            "Doodads/Icecrown/Rocks/Icecrown_Crystal/ICG_Environment_Crystal_V1_V9_Normal.tif",
+            "Doodads/Icecrown/Rocks/Icecrown_Crystal/ICG_Environment_Crystal_V1_V9_ORM.tif",
+            "Doodads/Icecrown/Rocks/Icecrown_Crystal/ICG_Environment_Crystal_V1_V9_Emissive.tif",
+            "",
+            "ReplaceableTextures/EnvironmentMap.blp"
+          ]
+        }
+      ]
+    },
+    {
+      "model": "Doodads\\Icecrown\\Rocks\\Icecrown_Crystal\\Icecrown_Crystal3.mdx",
+      "modes": [
+        {
+          "mode": "classic",
+          "present": true,
+          "bytes": 6316,
+          "textureSlots": [
+            "Doodads\\Icecrown\\Rocks\\Icecrown_Crystal\\crystal.blp"
+          ]
+        },
+        {
+          "mode": "reforged",
+          "present": true,
+          "bytes": 994616,
+          "textureSlots": [
+            "Doodads/Icecrown/Rocks/Icecrown_Crystal/ICG_Environment_Crystal_V1_V9_Diffuse.tif",
+            "Doodads/Icecrown/Rocks/Icecrown_Crystal/ICG_Environment_Crystal_V1_V9_Normal.tif",
+            "Doodads/Icecrown/Rocks/Icecrown_Crystal/ICG_Environment_Crystal_V1_V9_ORM.tif",
+            "Doodads/Icecrown/Rocks/Icecrown_Crystal/ICG_Environment_Crystal_V1_V9_Emissive.tif",
+            "",
+            "ReplaceableTextures/EnvironmentMap.blp"
+          ]
+        },
+        {
+          "mode": "definitive",
+          "present": true,
+          "bytes": 994616,
+          "textureSlots": [
+            "Doodads/Icecrown/Rocks/Icecrown_Crystal/ICG_Environment_Crystal_V1_V9_Diffuse.tif",
+            "Doodads/Icecrown/Rocks/Icecrown_Crystal/ICG_Environment_Crystal_V1_V9_Normal.tif",
+            "Doodads/Icecrown/Rocks/Icecrown_Crystal/ICG_Environment_Crystal_V1_V9_ORM.tif",
+            "Doodads/Icecrown/Rocks/Icecrown_Crystal/ICG_Environment_Crystal_V1_V9_Emissive.tif",
+            "",
+            "ReplaceableTextures/EnvironmentMap.blp"
+          ]
+        }
+      ]
+    },
+    {
+      "model": "Doodads\\Icecrown\\Props\\IceTorch\\IceTorch.mdx",
+      "modes": [
+        {
+          "mode": "classic",
+          "present": true,
+          "bytes": 8337,
+          "textureSlots": [
+            "Textures\\IceCrownDoodads0.blp",
+            "Textures\\Smoke.blp",
+            "ReplaceableTextures\\Weather\\Clouds8x8.blp",
+            "Textures\\GenericGlow1.blp"
+          ]
+        },
+        {
+          "mode": "reforged",
+          "present": true,
+          "bytes": 422398,
+          "textureSlots": [
+            "Doodads/Icecrown/Props/IceTorch/ICG_Props_SkullTorch_Diffuse.tif",
+            "Doodads/Icecrown/Props/IceTorch/ICG_Props_SkullTorch_Normal.tif",
+            "Doodads/Icecrown/Props/IceTorch/ICG_Props_SkullTorch_ORM.tif",
+            "Doodads/Icecrown/Props/IceTorch/ICG_Props_SkullTorch_Emissive.tif",
+            "",
+            "ReplaceableTextures/EnvironmentMap.blp"
+          ]
+        },
+        {
+          "mode": "definitive",
+          "present": true,
+          "bytes": 422398,
+          "textureSlots": [
+            "Doodads/Icecrown/Props/IceTorch/ICG_Props_SkullTorch_Diffuse.tif",
+            "Doodads/Icecrown/Props/IceTorch/ICG_Props_SkullTorch_Normal.tif",
+            "Doodads/Icecrown/Props/IceTorch/ICG_Props_SkullTorch_ORM.tif",
+            "Doodads/Icecrown/Props/IceTorch/ICG_Props_SkullTorch_Emissive.tif",
+            "",
+            "ReplaceableTextures/EnvironmentMap.blp"
+          ]
+        }
+      ]
+    },
+    {
+      "model": "Environment\\Sky\\FelwoodSky\\FelwoodSky.mdx",
+      "modes": [
+        {
+          "mode": "classic",
+          "present": true,
+          "bytes": 4214,
+          "modelInspection": "Current war3-model parser cannot decode this file; availability and byte count still observed"
+        },
+        {
+          "mode": "reforged",
+          "present": true,
+          "bytes": 39926,
+          "textureSlots": [
+            "ReplaceableTextures/Weather/RaysOfLight.tif",
+            "Environment/Sky/FelwoodSky/FelwoodSky.tif",
+            "Textures/normal.blp",
+            "Textures/ORM.blp",
+            "Textures/Black32.blp",
+            "",
+            "ReplaceableTextures/EnvironmentMap.blp"
+          ]
+        },
+        {
+          "mode": "definitive",
+          "present": true,
+          "bytes": 39926,
+          "textureSlots": [
+            "ReplaceableTextures/Weather/RaysOfLight.tif",
+            "Environment/Sky/FelwoodSky/FelwoodSky.tif",
+            "Textures/normal.blp",
+            "Textures/ORM.blp",
+            "Textures/Black32.blp",
+            "",
+            "ReplaceableTextures/EnvironmentMap.blp"
+          ]
+        }
+      ]
+    },
+    {
+      "model": "Doodads\\Ashenvale\\Structures\\Worldtree\\Worldtree.mdx",
+      "modes": [
+        {
+          "mode": "classic",
+          "present": true,
+          "bytes": 74449,
+          "textureSlots": [
+            "Doodads\\Ashenvale\\Structures\\Worldtree\\WorldTree256.blp"
+          ]
+        },
+        {
+          "mode": "reforged",
+          "present": true,
+          "bytes": 528548,
+          "textureSlots": [
+            "Doodads/Ashenvale/Structures/Worldtree/Worldtree_Diffuse.tif",
+            "Doodads/Ashenvale/Structures/Worldtree/Worldtree_Normal.tif",
+            "Doodads/Ashenvale/Structures/Worldtree/Worldtree_ORM.tif",
+            "Textures/Black32.blp",
+            "",
+            "ReplaceableTextures/EnvironmentMap.blp"
+          ]
+        },
+        {
+          "mode": "definitive",
+          "present": true,
+          "bytes": 528548,
+          "textureSlots": [
+            "Doodads/Ashenvale/Structures/Worldtree/Worldtree_Diffuse.tif",
+            "Doodads/Ashenvale/Structures/Worldtree/Worldtree_Normal.tif",
+            "Doodads/Ashenvale/Structures/Worldtree/Worldtree_ORM.tif",
+            "Textures/Black32.blp",
+            "",
+            "ReplaceableTextures/EnvironmentMap.blp"
+          ]
+        }
+      ]
+    },
+    {
+      "model": "Buildings\\NightElf\\MoonWell\\MoonWell.mdx",
+      "modes": [
+        {
+          "mode": "classic",
+          "present": true,
+          "bytes": 23736,
+          "modelInspection": "Current war3-model parser cannot decode this file; availability and byte count still observed"
+        },
+        {
+          "mode": "reforged",
+          "present": true,
+          "bytes": 1500158,
+          "modelInspection": "Current war3-model parser cannot decode this file; availability and byte count still observed"
+        },
+        {
+          "mode": "definitive",
+          "present": true,
+          "bytes": 248552,
+          "modelInspection": "Current war3-model parser cannot decode this file; availability and byte count still observed"
+        }
+      ]
+    },
+    {
+      "model": "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx",
+      "modes": [
+        {
+          "mode": "classic",
+          "present": true,
+          "bytes": 3724,
+          "textureSlots": [
+            "Textures\\BarrensNatural02.blp"
+          ]
+        },
+        {
+          "mode": "reforged",
+          "present": true,
+          "bytes": 185348,
+          "textureSlots": [
+            "Doodads/Barrens/Rocks/Barrens_Rocks/BR_Environment_Rocks_Diffuse.tif",
+            "Doodads/Barrens/Rocks/Barrens_Rocks/BR_Environment_Rocks_Normal.tif",
+            "Doodads/Barrens/Rocks/Barrens_Rocks/BR_Environment_Rocks_ORM.tif",
+            "Textures/Black32.blp",
+            "",
+            "ReplaceableTextures/EnvironmentMap.blp"
+          ]
+        },
+        {
+          "mode": "definitive",
+          "present": true,
+          "bytes": 185348,
+          "textureSlots": [
+            "Doodads/Barrens/Rocks/Barrens_Rocks/BR_Environment_Rocks_Diffuse.tif",
+            "Doodads/Barrens/Rocks/Barrens_Rocks/BR_Environment_Rocks_Normal.tif",
+            "Doodads/Barrens/Rocks/Barrens_Rocks/BR_Environment_Rocks_ORM.tif",
+            "Textures/Black32.blp",
+            "",
+            "ReplaceableTextures/EnvironmentMap.blp"
+          ]
+        }
+      ]
+    },
+    {
+      "model": "Environment\\Sky\\LordaeronSummerSky\\LordaeronSummerSky.mdx",
+      "modes": [
+        {
+          "mode": "classic",
+          "present": true,
+          "bytes": 4214,
+          "modelInspection": "Current war3-model parser cannot decode this file; availability and byte count still observed"
+        },
+        {
+          "mode": "reforged",
+          "present": true,
+          "bytes": 38860,
+          "textureSlots": [
+            "Environment/Sky/LordaeronSummerSky/LordaeronSummerSky.tif",
+            "Textures/normal.blp",
+            "Textures/ORM.blp",
+            "Textures/Black32.blp",
+            "",
+            "ReplaceableTextures/EnvironmentMap.blp"
+          ]
+        },
+        {
+          "mode": "definitive",
+          "present": true,
+          "bytes": 38860,
+          "textureSlots": [
+            "Environment/Sky/LordaeronSummerSky/LordaeronSummerSky.tif",
+            "Textures/normal.blp",
+            "Textures/ORM.blp",
+            "Textures/Black32.blp",
+            "",
+            "ReplaceableTextures/EnvironmentMap.blp"
+          ]
+        }
+      ]
+    },
+    {
+      "model": "Buildings\\Human\\GryphonAviary\\GryphonAviary.mdx",
+      "modes": [
+        {
+          "mode": "classic",
+          "present": true,
+          "bytes": 111937,
+          "modelInspection": "Current war3-model parser cannot decode this file; availability and byte count still observed"
+        },
+        {
+          "mode": "reforged",
+          "present": true,
+          "bytes": 2716966,
+          "modelInspection": "Current war3-model parser cannot decode this file; availability and byte count still observed"
+        },
+        {
+          "mode": "definitive",
+          "present": true,
+          "bytes": 492506,
+          "modelInspection": "Current war3-model parser cannot decode this file; availability and byte count still observed"
+        }
+      ]
+    },
+    {
+      "model": "buildings\\orc\\WatchTower\\WatchTower.mdx",
+      "modes": [
+        {
+          "mode": "classic",
+          "present": true,
+          "bytes": 78304,
+          "modelInspection": "Current war3-model parser cannot decode this file; availability and byte count still observed"
+        },
+        {
+          "mode": "reforged",
+          "present": true,
+          "bytes": 5752308,
+          "modelInspection": "Current war3-model parser cannot decode this file; availability and byte count still observed"
+        },
+        {
+          "mode": "definitive",
+          "present": true,
+          "bytes": 475356,
+          "modelInspection": "Current war3-model parser cannot decode this file; availability and byte count still observed"
+        }
+      ]
+    },
+    {
+      "model": "buildings\\undead\\Necropolis\\Necropolis.mdx",
+      "modes": [
+        {
+          "mode": "classic",
+          "present": true,
+          "bytes": 96497,
+          "modelInspection": "Current war3-model parser cannot decode this file; availability and byte count still observed"
+        },
+        {
+          "mode": "reforged",
+          "present": true,
+          "bytes": 12471716,
+          "modelInspection": "Current war3-model parser cannot decode this file; availability and byte count still observed"
+        },
+        {
+          "mode": "definitive",
+          "present": true,
+          "bytes": 3480372,
+          "modelInspection": "Current war3-model parser cannot decode this file; availability and byte count still observed"
+        }
+      ]
+    },
+    {
+      "model": "buildings\\undead\\Ziggurat\\Ziggurat.mdx",
+      "modes": [
+        {
+          "mode": "classic",
+          "present": true,
+          "bytes": 72243,
+          "modelInspection": "Current war3-model parser cannot decode this file; availability and byte count still observed"
+        },
+        {
+          "mode": "reforged",
+          "present": true,
+          "bytes": 11091540,
+          "modelInspection": "Current war3-model parser cannot decode this file; availability and byte count still observed"
+        },
+        {
+          "mode": "definitive",
+          "present": true,
+          "bytes": 4592468,
+          "modelInspection": "Current war3-model parser cannot decode this file; availability and byte count still observed"
+        }
+      ]
+    },
+    {
+      "model": "Doodads\\Icecrown\\Props\\IceCrownObelisk\\IceCrownObelisk1.mdx",
+      "modes": [
+        {
+          "mode": "classic",
+          "present": true,
+          "bytes": 2941,
+          "textureSlots": [
+            "Textures\\IceCrownDoodads1.blp"
+          ]
+        },
+        {
+          "mode": "reforged",
+          "present": true,
+          "bytes": 291922,
+          "textureSlots": [
+            "Doodads/Icecrown/Props/IceCrownObelisk/ICG_Props_Obelisk_V2_Diffuse.tif",
+            "Doodads/Icecrown/Props/IceCrownObelisk/ICG_Props_Obelisk_V2_Normal.tif",
+            "Doodads/Icecrown/Props/IceCrownObelisk/ICG_Props_Obelisk_V2_ORM.tif",
+            "Textures/Black32.blp",
+            "",
+            "ReplaceableTextures/EnvironmentMap.blp"
+          ]
+        },
+        {
+          "mode": "definitive",
+          "present": true,
+          "bytes": 291922,
+          "textureSlots": [
+            "Doodads/Icecrown/Props/IceCrownObelisk/ICG_Props_Obelisk_V2_Diffuse.tif",
+            "Doodads/Icecrown/Props/IceCrownObelisk/ICG_Props_Obelisk_V2_Normal.tif",
+            "Doodads/Icecrown/Props/IceCrownObelisk/ICG_Props_Obelisk_V2_ORM.tif",
+            "Textures/Black32.blp",
+            "",
+            "ReplaceableTextures/EnvironmentMap.blp"
+          ]
+        }
+      ]
+    },
+    {
+      "model": "buildings\\demon\\DemonGate\\DemonGate.mdx",
+      "modes": [
+        {
+          "mode": "classic",
+          "present": true,
+          "bytes": 38453,
+          "modelInspection": "Current war3-model parser cannot decode this file; availability and byte count still observed"
+        },
+        {
+          "mode": "reforged",
+          "present": true,
+          "bytes": 3184518,
+          "modelInspection": "Current war3-model parser cannot decode this file; availability and byte count still observed"
+        },
+        {
+          "mode": "definitive",
+          "present": true,
+          "bytes": 3184518,
+          "modelInspection": "Current war3-model parser cannot decode this file; availability and byte count still observed"
+        }
+      ]
+    },
+    {
+      "model": "Doodads\\Cinematic\\FireTrapUp\\FireTrapUp.mdx",
+      "modes": [
+        {
+          "mode": "classic",
+          "present": true,
+          "bytes": 4021,
+          "modelInspection": "Current war3-model parser cannot decode this file; availability and byte count still observed"
+        },
+        {
+          "mode": "reforged",
+          "present": true,
+          "bytes": 1456,
+          "textureSlots": []
+        },
+        {
+          "mode": "definitive",
+          "present": true,
+          "bytes": 1456,
+          "textureSlots": []
+        }
+      ]
+    },
+    {
+      "model": "Environment\\Sky\\LordaeronWinterSkyRed\\LordaeronWinterSkyRed.mdl",
+      "modes": [
+        {
+          "mode": "classic",
+          "present": true,
+          "bytes": 4250,
+          "modelInspection": "Current war3-model parser cannot decode this file; availability and byte count still observed"
+        },
+        {
+          "mode": "reforged",
+          "present": true,
+          "bytes": 38860,
+          "textureSlots": [
+            "Environment/Sky/LordaeronWinterSkyRed/LordaeronWinterSkyRed.tif",
+            "Textures/normal.blp",
+            "Textures/ORM.blp",
+            "Textures/Black32.blp",
+            "",
+            "ReplaceableTextures/EnvironmentMap.blp"
+          ]
+        },
+        {
+          "mode": "definitive",
+          "present": true,
+          "bytes": 38860,
+          "textureSlots": [
+            "Environment/Sky/LordaeronWinterSkyRed/LordaeronWinterSkyRed.tif",
+            "Textures/normal.blp",
+            "Textures/ORM.blp",
+            "Textures/Black32.blp",
+            "",
+            "ReplaceableTextures/EnvironmentMap.blp"
+          ]
+        }
+      ]
+    },
+    {
+      "model": "Doodads\\Cinematic\\FirePillarMedium\\FirePillarMedium.mdx",
+      "modes": [
+        {
+          "mode": "classic",
+          "present": true,
+          "bytes": 2932,
+          "textureSlots": [
+            "ReplaceableTextures\\Weather\\Clouds8x8.blp",
+            "Textures\\Flame4.blp"
+          ]
+        },
+        {
+          "mode": "reforged",
+          "present": true,
+          "bytes": 1604,
+          "textureSlots": []
+        },
+        {
+          "mode": "definitive",
+          "present": true,
+          "bytes": 1604,
+          "textureSlots": []
+        }
+      ]
+    },
+    {
+      "model": "Doodads\\Dungeon\\Props\\MineCart\\MineCart.mdx",
+      "modes": [
+        {
+          "mode": "classic",
+          "present": true,
+          "bytes": 10340,
+          "textureSlots": [
+            "Textures\\Minecart.blp",
+            "Textures\\Yellow_Star.blp",
+            "Textures\\GenericGlow1.blp"
+          ]
+        },
+        {
+          "mode": "reforged",
+          "present": true,
+          "bytes": 563726,
+          "textureSlots": [
+            "Doodads/Dungeon/Props/MineCart/DG_Props_MineCart_Main_Diffuse.tif",
+            "Doodads/Dungeon/Props/MineCart/DG_Props_MineCart_Main_Normal.tif",
+            "Doodads/Dungeon/Props/MineCart/DG_Props_MineCart_Main_ORM.tif",
+            "Doodads/Dungeon/Props/MineCart/DG_Props_MineCart_Main_Emissive.tif",
+            "",
+            "ReplaceableTextures/EnvironmentMap.blp"
+          ]
+        },
+        {
+          "mode": "definitive",
+          "present": true,
+          "bytes": 563726,
+          "textureSlots": [
+            "Doodads/Dungeon/Props/MineCart/DG_Props_MineCart_Main_Diffuse.tif",
+            "Doodads/Dungeon/Props/MineCart/DG_Props_MineCart_Main_Normal.tif",
+            "Doodads/Dungeon/Props/MineCart/DG_Props_MineCart_Main_ORM.tif",
+            "Doodads/Dungeon/Props/MineCart/DG_Props_MineCart_Main_Emissive.tif",
+            "",
+            "ReplaceableTextures/EnvironmentMap.blp"
+          ]
+        }
+      ]
+    },
+    {
+      "model": "Doodads\\Ruins\\Props\\RuinsObelisk\\RuinsObelisk1.mdx",
+      "modes": [
+        {
+          "mode": "classic",
+          "present": true,
+          "bytes": 4066,
+          "textureSlots": [
+            "Textures\\RuinsDoodads1.blp",
+            "Textures\\RuinsVines.blp"
+          ]
+        },
+        {
+          "mode": "reforged",
+          "present": true,
+          "bytes": 483692,
+          "textureSlots": [
+            "Doodads/Ruins/Props/RuinsObelisk/SR_Props_RuinsObelisk_V1-V2_Diffuse.tif",
+            "Doodads/Ruins/Props/RuinsObelisk/SR_Props_RuinsObelisk_V1-V2_Normal.tif",
+            "Doodads/Ruins/Props/RuinsObelisk/SR_Props_RuinsObelisk_V1-V2_ORM.tif",
+            "Doodads/Ruins/Props/RuinsObelisk/SR_Props_RuinsObelisk_V1-V2_Emissive.tif",
+            "",
+            "ReplaceableTextures/EnvironmentMap.blp"
+          ]
+        },
+        {
+          "mode": "definitive",
+          "present": true,
+          "bytes": 483692,
+          "textureSlots": [
+            "Doodads/Ruins/Props/RuinsObelisk/SR_Props_RuinsObelisk_V1-V2_Diffuse.tif",
+            "Doodads/Ruins/Props/RuinsObelisk/SR_Props_RuinsObelisk_V1-V2_Normal.tif",
+            "Doodads/Ruins/Props/RuinsObelisk/SR_Props_RuinsObelisk_V1-V2_ORM.tif",
+            "Doodads/Ruins/Props/RuinsObelisk/SR_Props_RuinsObelisk_V1-V2_Emissive.tif",
+            "",
+            "ReplaceableTextures/EnvironmentMap.blp"
+          ]
+        }
+      ]
+    },
+    {
+      "model": "Doodads\\Barrens\\Structures\\RuinedArch\\RuinedArch2.mdx",
+      "modes": [
+        {
+          "mode": "classic",
+          "present": true,
+          "bytes": 6484,
+          "textureSlots": [
+            "Textures\\BarrensNatural.blp"
+          ]
+        },
+        {
+          "mode": "reforged",
+          "present": true,
+          "bytes": 243844,
+          "textureSlots": [
+            "Doodads/Barrens/Structures/RuinedArch/BR_Structures_RuinedArch_V3_Diffuse.tif",
+            "Doodads/Barrens/Structures/RuinedArch/BR_Structures_RuinedArch_V3_Normal.tif",
+            "Doodads/Barrens/Structures/RuinedArch/BR_Structures_RuinedArch_V3_ORM.tif",
+            "Textures/Black32.blp",
+            "",
+            "ReplaceableTextures/EnvironmentMap.blp"
+          ]
+        },
+        {
+          "mode": "definitive",
+          "present": true,
+          "bytes": 243844,
+          "textureSlots": [
+            "Doodads/Barrens/Structures/RuinedArch/BR_Structures_RuinedArch_V3_Diffuse.tif",
+            "Doodads/Barrens/Structures/RuinedArch/BR_Structures_RuinedArch_V3_Normal.tif",
+            "Doodads/Barrens/Structures/RuinedArch/BR_Structures_RuinedArch_V3_ORM.tif",
+            "Textures/Black32.blp",
+            "",
+            "ReplaceableTextures/EnvironmentMap.blp"
+          ]
+        }
+      ]
+    },
+    {
+      "model": "Doodads\\Barrens\\Structures\\RuinedCurvedWall\\RuinedCurvedWall.mdx",
+      "modes": [
+        {
+          "mode": "classic",
+          "present": true,
+          "bytes": 7864,
+          "textureSlots": [
+            "Textures\\BarrensNatural.blp"
+          ]
+        },
+        {
+          "mode": "reforged",
+          "present": true,
+          "bytes": 75076,
+          "textureSlots": [
+            "Doodads/Barrens/Structures/RuinedCurvedWall/BR_Structures_RuinedCurvedWall_Diffuse.tif",
+            "Doodads/Barrens/Structures/RuinedCurvedWall/BR_Structures_RuinedCurvedWall_Normal.tif",
+            "Doodads/Barrens/Structures/RuinedCurvedWall/BR_Structures_RuinedCurvedWall_ORM.tif",
+            "Textures/Black32.blp",
+            "",
+            "ReplaceableTextures/EnvironmentMap.blp"
+          ]
+        },
+        {
+          "mode": "definitive",
+          "present": true,
+          "bytes": 75076,
+          "textureSlots": [
+            "Doodads/Barrens/Structures/RuinedCurvedWall/BR_Structures_RuinedCurvedWall_Diffuse.tif",
+            "Doodads/Barrens/Structures/RuinedCurvedWall/BR_Structures_RuinedCurvedWall_Normal.tif",
+            "Doodads/Barrens/Structures/RuinedCurvedWall/BR_Structures_RuinedCurvedWall_ORM.tif",
+            "Textures/Black32.blp",
+            "",
+            "ReplaceableTextures/EnvironmentMap.blp"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -5,7 +5,7 @@ import { $ } from "bun";
 
 type Image = { width: number; height: number; rgb: Uint8Array };
 async function load(path: string): Promise<Image> {
-  const ppm = new Uint8Array(await $`magick ${path} -alpha off ppm:-`.arrayBuffer());
+  const ppm = new Uint8Array(await $`magick ${path} -alpha off -depth 8 ppm:-`.arrayBuffer());
   let offset = 0; const fields: string[] = [];
   while (fields.length < 4) {
     let token = "";
@@ -13,8 +13,12 @@ async function load(path: string): Promise<Image> {
     while (offset < ppm.length && ppm[offset] !== 0x20 && ppm[offset] !== 0x0a && ppm[offset] !== 0x0d && ppm[offset] !== 0x09) token += String.fromCharCode(ppm[offset++]!);
     fields.push(token);
   }
+  if (fields[0] !== "P6" || fields[3] !== "255") throw new Error(`${path}: expected an 8-bit binary RGB image`);
   offset++;
-  return { width: Number(fields[1]), height: Number(fields[2]), rgb: ppm.subarray(offset) };
+  const width = Number(fields[1]), height = Number(fields[2]);
+  const rgb = ppm.subarray(offset);
+  if (!Number.isInteger(width) || !Number.isInteger(height) || width <= 0 || height <= 0 || rgb.length !== width * height * 3) throw new Error(`${path}: malformed RGB image`);
+  return { width, height, rgb };
 }
 
 const linear = (c: number) => { const v = c / 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
@@ -45,7 +49,7 @@ function de2000([l1, a1, b1]: Lab, [l2, a2, b2]: Lab): number {
 }
 
 const [maskPath, ...frames] = Bun.argv.slice(2);
-if (maskPath === undefined) throw new Error("usage: bun tools/stage/contrast.ts MASK.png FRAME.png...");
+if (maskPath === undefined || frames.length === 0) throw new Error("usage: bun tools/stage/contrast.ts MASK.png FRAME.png...");
 const mask = await load(maskPath);
 const { width, height } = mask;
 // The mask frame's commonest colour is its empty background.
@@ -68,6 +72,7 @@ for (let i = 0; i < on.length; i++) {
     for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) { const nx = px + dx, ny = py + dy; if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue; const n = ny * width + nx; if (on[n] && label[n] === -1) { label[n] = id; stack.push(n); } } }
   sizes.push(size);
 }
+if (sizes.length === 0) throw new Error(`${maskPath}: no fighter silhouette found`);
 const minimum = Math.max(...sizes) * 0.25;
 const fighter = new Uint8Array(width * height);
 for (let i = 0; i < on.length; i++) if (label[i]! >= 0 && sizes[label[i]!]! >= minimum) fighter[i] = 1;
@@ -75,14 +80,14 @@ const dilate = (src: Uint8Array, r: number) => { const out = new Uint8Array(src.
 const inner = dilate(fighter, 4), outer = dilate(fighter, 18);
 let fighterCount = 0; for (const v of fighter) fighterCount += v;
 console.log(`mask ${maskPath}: empty rgb(${er},${eg},${eb}), fighters ${fighterCount} px in ${sizes.filter(s => s >= minimum).length} blobs`);
-console.log("frame\tfighterL\tringL\tdL\tdE00\tframeL\tlocalDL");
+console.log("frame\tfighterL\tringL\tabsDL\tdE00\tframeL\tlocalDL");
 for (const path of frames) {
   const image = await load(path);
-  if (image.width !== width || image.height !== height) { console.log(`${path}\tsize mismatch`); continue; }
+  if (image.width !== width || image.height !== height) throw new Error(`${path}: mask and frame dimensions differ`);
   const sum = (sel: (i: number) => boolean) => { let r = 0, g = 0, b = 0, n = 0; for (let i = 0; i < width * height; i++) if (sel(i)) { r += image.rgb[i * 3]!; g += image.rgb[i * 3 + 1]!; b += image.rgb[i * 3 + 2]!; n++; } return lab(r / n, g / n, b / n); };
   const f = sum(i => fighter[i] === 1), ring = sum(i => outer[i] === 1 && inner[i] === 0), all = sum(() => true);
   // Mean absolute lightness step between each fighter pixel and the ring mean.
   let local = 0; for (let i = 0; i < width * height; i++) if (fighter[i]) local += Math.abs(lab(image.rgb[i * 3]!, image.rgb[i * 3 + 1]!, image.rgb[i * 3 + 2]!)[0] - ring[0]);
   const name = path.split("/").pop();
-  console.log(`${name}\t${f[0].toFixed(1)}\t${ring[0].toFixed(1)}\t${(f[0] - ring[0]).toFixed(1)}\t${de2000(f, ring).toFixed(1)}\t${all[0].toFixed(1)}\t${(local / fighterCount).toFixed(1)}`);
+  console.log(`${name}\t${f[0].toFixed(1)}\t${ring[0].toFixed(1)}\t${Math.abs(f[0] - ring[0]).toFixed(1)}\t${de2000(f, ring).toFixed(1)}\t${all[0].toFixed(1)}\t${(local / fighterCount).toFixed(1)}`);
 }

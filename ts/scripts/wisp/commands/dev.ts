@@ -22,6 +22,8 @@ const SMASHCRAFT_DEV: DevProject = {
       "test/lua-holes.test.ts": ["src/**/*.ts", "scripts/**/*.ts", "tsconfig.game.json"],
       "test/wisp.test.ts": ["test/fixtures/wisp/**"],
       "test/command-list.test.ts": ["scripts/wisp.ts", "../AGENTS.md"],
+      "test/stage-render.test.ts": [],
+      "test/contrast-tool.test.ts": ["../tools/stage/contrast.ts"],
       "test/move-list.test.ts": ["../docs/move-list.md"],
       "test/menu-fresh.test.ts": ["test/fixtures/wisp/**"],
       // Dated evidence records, never edited.
@@ -40,6 +42,7 @@ const SMASHCRAFT_DEV: DevProject = {
     journeys: [
       "test/desync-guard.test.ts", "test/desync-guard-integrity.test.ts",
       "test/visual-lifecycle.test.ts", "test/player-view.test.ts", "test/selection-load.test.ts", "test/player-text.test.ts",
+      "test/stage-render.test.ts",
       "test/stack-trace.test.ts", "test/rematch-load.test.ts", "test/match-settings.test.ts", "test/missing-input.test.ts", "test/input-stall.test.ts", "test/tune.test.ts", "test/repro.test.ts",
       "test/lag-recovery.test.ts", "test/local-start.test.ts", "test/bot-selection.test.ts", "test/session-setup.test.ts",
     ],

@@ -22,7 +22,7 @@ import { writeLines } from "wisp/src/platform/fileio";
 import { confirmedChecksum, startInputTrace, traceParticipant } from "./diagnostics";
 import { probeFrameCostClock } from "./frameCost";
 import { probeRenderClock } from "./renderClock";
-import { showBackdrop } from "./stageScenery";
+import { showBackdrop, showStageLighting } from "./stageScenery";
 import { clearAllInputs } from "./inputs";
 import { journalEpoch, journalIdentity } from "./journal";
 import { chatBusy, requestPause } from "./journalPause";
@@ -254,6 +254,10 @@ export function onDevCommand(s: ShellState): void {
     const visible = message === "-dev backdrop on";
     receipt = `dev: backdrop ${visible ? "on" : "off"}`;
     showBackdrop(s, visible);
+  } else if (message === "-dev lighting stock" || message === "-dev lighting stage") {
+    const authored = message === "-dev lighting stage";
+    showStageLighting(s, authored);
+    receipt = `dev: lighting ${authored ? "stage" : "stock"}`;
   } else if (message === "-dev render-clock") {
     receipt = "dev: render clock probe";
     probeRenderClock();

@@ -24,6 +24,7 @@ export interface StageScenery {
 /** The practice stage keeps a plain sky as the neutral baseline. */
 const SUMMER: StageScenery = {
   sky: "Environment\\Sky\\LordaeronSummerSky\\LordaeronSummerSky.mdl",
+  fog: { start: 6000.0, end: 12000.0, red: 0.625, green: 0.75, blue: 0.875 },
   pieces: [],
 };
 

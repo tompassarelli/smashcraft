@@ -279,6 +279,12 @@ code. From smashcraft:ts/:
   Render cadence: `-dev render-clock` in a development map records timer
   callback bursts and cost; `bun wisp accept --only 169-render-clock --dry-run`
   prints its native plan (smashcraft:docs/high-refresh.md).
+- Stage lighting: `bun wisp accept --only '170-*'` captures stock lighting, a
+  fighter mask and stage lighting in one paused scene per stage. From the
+  repository root, `bun tools/stage/contrast.ts MASK.png STOCK.png STAGE.png`
+  measures fighter/background lightness and colour distance. The native
+  owner records the graphics profile and checks #168's budget; procedure:
+  smashcraft:docs/design/visual-quality.md.
 - Melee oracle: `bun wisp oracle` plays Melee situations for every fighter
   and prints each outcome beside the value cited from the decompilation; the
   test suite fails on any mismatch it doesn't list as known
