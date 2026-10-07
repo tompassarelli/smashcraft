@@ -167,7 +167,7 @@ not claims that Warcraft renders Melee's artwork or exact animation programs.
 | Ordinary hit / pummel | Stampede missile impact | StampedeHit; pummel uses higher, quieter Defend |
 | Fire hit | Incinerate / Fire Lord explosion | Fireball |
 | Electric hit / electric shield | Forked Lightning target | LightningBolt |
-| Slash hit | Cleave target, drawn six times larger | RelentlessCleave |
+| Slash hit | Cleave target, drawn six times larger | CriticalStrike (the Blademaster's critical strike) |
 | Ice / freeze begins | Frost Nova target | FrostNova |
 | Shield / powershield | Defend caster | Defend, powershield higher |
 | Missed floor/wall/ceiling tech | War Stomp impact and dust | Warstomp |

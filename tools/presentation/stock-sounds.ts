@@ -1,7 +1,8 @@
-// Checks every sound and track the match presentation names against the
-// installed game's storage and records the verified paths, so headless tests
-// can hold the presentation to sounds that exist. Only paths are written; the
-// audio stays in the game.
+// Checks every sound and track the match presentation names, and every sound
+// label hit presentation plays (resolved through the game's AnimSounds.slk and
+// AbilitySounds.slk to its files), against the installed game's storage and
+// records the verified paths, so headless tests can hold the presentation to
+// sounds that exist. Only paths are written; the audio stays in the game.
 // Usage: bun tools/presentation/stock-sounds.ts --extract CASC_EXTRACT [--storage WARCRAFT_DIR]
 // (tools/animations/extract.sh builds CASC_EXTRACT into build/animation-assets/.)
 import {mkdtempSync, rmSync} from 'node:fs';
@@ -10,6 +11,7 @@ import {join, resolve} from 'node:path';
 import {presentationSoundPaths} from '../../ts/src/game/presentation/matchAudio';
 import {SELECTABLE_CHARACTERS} from '../../ts/src/game/sim/heroes/registry';
 import {STAGE_CATALOG} from '../../ts/src/game/menu/stageCatalog';
+import {hitPresentationSoundLabels} from '../../ts/src/game/shell/hitPresentationCases';
 
 const option = (name: string) => { const index = process.argv.indexOf(name); return index < 0 ? undefined : process.argv[index + 1]; };
 const extract = option('--extract');
@@ -37,7 +39,43 @@ async function stored(path: string, index: number): Promise<string | undefined> 
   return undefined;
 }
 
-const paths = presentationSoundPaths(SELECTABLE_CHARACTERS, STAGE_CATALOG.map(stage => stage.id));
+/** SoundName to FileNames (script paths) in one of the game's SoundInfo tables (SYLK). */
+function soundTable(text: string): Map<string, string[]> {
+  const rows = new Map<number, Map<number, string>>();
+  let y = 0;
+  for (const line of text.split(/\r?\n/)) {
+    if (!line.startsWith('C;')) continue;
+    const column = /;X(\d+)/.exec(line), row = /;Y(\d+)/.exec(line), value = /;K(.*)$/.exec(line);
+    if (row !== null) y = Number(row[1]);
+    if (column === null || value === null) continue;
+    const cells = rows.get(y) ?? new Map<number, string>();
+    rows.set(y, cells);
+    cells.set(Number(column[1]), value[1].replace(/^"(.*)"$/, '$1'));
+  }
+  const header = [...(rows.get(1) ?? new Map<number, string>())];
+  const nameColumn = header.find(([, name]) => name === 'SoundName')?.[0];
+  const fileColumn = header.find(([, name]) => name === 'FileNames')?.[0];
+  if (nameColumn === undefined || fileColumn === undefined) throw new Error('sound table without SoundName and FileNames');
+  const table = new Map<string, string[]>();
+  for (const [row, cells] of rows) {
+    const name = cells.get(nameColumn), files = cells.get(fileColumn);
+    if (row > 1 && name !== undefined && files !== undefined) table.set(name, files.split(',').map(file => file.replaceAll('/', '\\')));
+  }
+  return table;
+}
+
+const labelFiles = new Map<string, string[]>();
+for (const table of ['AnimSounds', 'AbilitySounds']) {
+  const output = join(scratch, `${table}.slk`);
+  const child = Bun.spawn([extract, storage, `war3.w3mod:ui\\soundinfo\\${table.toLowerCase()}.slk`, output], {stdout: 'ignore', stderr: 'inherit'});
+  if (await child.exited !== 0) throw new Error(`cannot read ${table}.slk from the installed game`);
+  for (const [label, files] of soundTable(await Bun.file(output).text())) if (!labelFiles.has(label)) labelFiles.set(label, files);
+}
+const labels = hitPresentationSoundLabels();
+const unknownLabels = labels.filter(label => !labelFiles.has(label));
+if (unknownLabels.length > 0) throw new Error(`not in the game's sound tables: ${unknownLabels.join(', ')}`);
+
+const paths = [...new Set([...presentationSoundPaths(SELECTABLE_CHARACTERS, STAGE_CATALOG.map(stage => stage.id)), ...labels.flatMap(label => labelFiles.get(label) ?? [])])];
 const found: (string | undefined)[] = new Array(paths.length);
 try {
   let next = 0;
@@ -56,7 +94,12 @@ const lines = [
   ...paths.map((path, index) => `  ${JSON.stringify(path)}: ${JSON.stringify(found[index])},`),
   '};',
   '',
+  '/** Sound labels hit presentation plays, with the script paths the game\'s sound tables give each; every path is in VERIFIED_STOCK_SOUNDS. */',
+  'export const VERIFIED_STOCK_SOUND_LABELS: Readonly<Record<string, readonly string[]>> = {',
+  ...labels.map(label => `  ${JSON.stringify(label)}: ${JSON.stringify(labelFiles.get(label))},`),
+  '};',
+  '',
 ];
 const out = join(project, 'ts/src/game/assets/stockSoundInfo.ts');
 await Bun.write(out, lines.join('\n'));
-console.log(`${paths.length} paths verified: ${out}`);
+console.log(`${paths.length} paths and ${labels.length} labels verified: ${out}`);

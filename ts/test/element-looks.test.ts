@@ -6,6 +6,8 @@ import { MODEL_FACTS } from "../scripts/wisp/modelFacts";
 import { ELEMENTS, IMMOLATE_SOUNDS, elementLook } from "../src/game/presentation/elementLooks";
 import { AttackStyle } from "../src/game/sim/codes";
 import { HERO_ROSTER } from "../src/game/sim/heroes/registry";
+import { VERIFIED_STOCK_SOUNDS, VERIFIED_STOCK_SOUND_LABELS } from "../src/game/assets/stockSoundInfo";
+import { hitPresentationSoundLabels } from "../src/game/shell/hitPresentationCases";
 
 /**
  * The first column (SoundName) of the game's UI\SoundInfo\AnimSounds.slk and
@@ -44,4 +46,12 @@ test("every element shows a stock model on its victim and plays a stock sound", 
   expect(victims.filter((model) => MODEL_FACTS[model] === undefined)).toEqual([]);
   const sounds = [...ELEMENTS.map((element) => elementLook(element).sound), ...Object.values(IMMOLATE_SOUNDS)];
   expect(sounds.filter((label) => !LABELS.has(label))).toEqual([]);
+});
+
+test("every sound hit presentation plays has its files in the installed game", () => {
+  const labels = hitPresentationSoundLabels();
+  expect(labels.length).toBeGreaterThan(10);
+  // tools/presentation/stock-sounds.ts resolves each label through the game's sound tables and checks each file in its storage.
+  expect(labels.filter((label) => VERIFIED_STOCK_SOUND_LABELS[label] === undefined)).toEqual([]);
+  expect(labels.flatMap((label) => VERIFIED_STOCK_SOUND_LABELS[label] ?? []).filter((path) => VERIFIED_STOCK_SOUNDS[path] === undefined)).toEqual([]);
 });

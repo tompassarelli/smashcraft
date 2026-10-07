@@ -1,6 +1,8 @@
 import { HitElement } from "../sim/hitRegions";
 import { SurfaceContact } from "../sim/codes";
-import { ImpactLanding, JumpCue } from "../presentation/impactEvents";
+import { type ImpactEvents, ImpactLanding, JumpCue, createImpactEvents } from "../presentation/impactEvents";
+import { presentImpactSounds } from "../presentation/hitPresentation";
+import { ELEMENTS } from "../presentation/elementLooks";
 
 /**
  * Native mapping inspection: each case names an observable effect and sound.
@@ -12,7 +14,7 @@ export const HIT_PRESENTATION_CASES = [
       { cue: { hit: true, strength: 2 }, sound: "StampedeHit", model: "StampedeMissileDeath" },
       { cue: { hit: true, element: HitElement.electric, electric: true }, sound: "LightningBolt", model: "ForkedLightningTarget" },
       { cue: { hit: true, element: HitElement.fire }, sound: "Fireball", model: "FireLordDeathExplode" },
-      { cue: { hit: true, element: HitElement.slash }, sound: "RelentlessCleave", model: "CleaveDamageTarget" },
+      { cue: { hit: true, element: HitElement.slash }, sound: "CriticalStrike", model: "CleaveDamageTarget" },
       { cue: { hit: true, element: HitElement.ice }, sound: "FrostNova", model: "FrostNovaTarget" },
       { cue: { shieldHit: true }, sound: "Defend", model: "DefendCaster" },
       { cue: { shieldHit: true, shieldElectric: true }, sound: "LightningBolt", model: "ForkedLightningTarget" },
@@ -36,3 +38,11 @@ export const HIT_PRESENTATION_CASES = [
       { cue: { jump: JumpCue.wall, contactX: 0.0, contactZ: 50.0, normalX: 1.0 }, sound: "BlinkTarget", model: "ImpactJump-" },
       { cue: { ordinaryLanding: true }, sound: "DeepFootstep", model: "ImpactDust-" },
 ] as const;
+
+/** Every sound label hit presentation plays: the cases above and a hit of each element. */
+export function hitPresentationSoundLabels(): string[] {
+  const labels = new Set<string>();
+  const cues: Partial<ImpactEvents>[] = [...HIT_PRESENTATION_CASES.map(({ cue }) => cue), ...ELEMENTS.map((element) => ({ hit: true, element }))];
+  for (const cue of cues) presentImpactSounds({ ...createImpactEvents(), ...cue }, (label) => { labels.add(label); });
+  return [...labels].sort();
+}

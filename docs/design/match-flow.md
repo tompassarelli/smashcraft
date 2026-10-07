@@ -122,7 +122,11 @@ simulation. Every path is a script path into the installed game:
 `bun tools/presentation/stock-sounds.ts --extract CASC_EXTRACT` checks each
 against the game's storage through CascLib and records it in
 smashcraft:ts/src/game/assets/stockSoundInfo.ts, and a test holds the
-presentation to that table. No audio is copied.
+presentation to that table. It also resolves every sound label hit
+presentation plays through the game's AnimSounds.slk and AbilitySounds.slk and
+checks each file: a label can name a file the game doesn't store
+(RelentlessCleave names a missing RelentlessCleave.ogg and plays nothing).
+No audio is copied.
 
 ### Stage loading
 

@@ -33,7 +33,7 @@ test("contact element and pummel survive snapshots and produce one distinct soun
       presentImpactSounds(events, label => { labels.push(label); });
       assertEquals(labels.length, 1);
       assertEquals(labels[0], pummel ? "Defend" : element === HitElement.normal ? "StampedeHit" : element === HitElement.electric ? "LightningBolt"
-        : element === HitElement.fire ? "Fireball" : element === HitElement.slash ? "RelentlessCleave" : "FrostNova");
+        : element === HitElement.fire ? "Fireball" : element === HitElement.slash ? "CriticalStrike" : "FrostNova");
       assertTrue(hitlagTint(victim) !== undefined);
       assertEquals(Math.abs(hitlagShake(victim)), element === HitElement.electric ? 3.0 : 2.0);
       victim.launch.hitlag = 0;

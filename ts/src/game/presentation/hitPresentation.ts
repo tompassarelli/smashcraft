@@ -67,21 +67,28 @@ export function impactModelScale(kind: number): number {
 
 type ImpactSoundSink = (label: string, x: number, z: number, volume: number, pitch: number) => void;
 
-/** Confirmed event audio; the renderer's frame cursor suppresses repeats. */
+/**
+ * Confirmed event audio; the renderer's frame cursor suppresses repeats.
+ * Element, floor-tech and run/dash cues play near full volume: at the volume
+ * of an ordinary hit (70) or walk, native capture didn't pick them out.
+ */
 export function presentImpactSounds(events: Readonly<ImpactEvents>, sink: ImpactSoundSink): void {
   const play = (label: string, volume = 100, pitch = 1.0) => sink(label, events.x, events.z, volume, pitch);
   if (events.throwRelease) play("BlinkTarget");
   else if (events.pummel) play("Defend", 75, 1.5);
-  else if (events.hit) play(events.element !== HitElement.fire && events.electric ? "LightningBolt" : elementLook(events.element).sound, 70 + events.strength * 15, events.strength === 2 ? 0.75 : 1.0);
+  else if (events.hit) {
+    const label = events.element !== HitElement.fire && events.electric ? "LightningBolt" : elementLook(events.element).sound;
+    play(label, (label === "StampedeHit" ? 70 : 110) + events.strength * (label === "StampedeHit" ? 15 : 8), events.strength === 2 ? 0.75 : 1.0);
+  }
   if (events.shieldHit || events.shieldReflect) play(events.shieldElectric ? "LightningBolt" : "Defend", 90, events.shieldReflect ? 1.5 : 1.0);
   if (events.shieldBreak) play("ThunderClap");
   if (events.grab) play("EntanglingRoots", 70);
-  if (events.landing === ImpactLanding.tech || events.surface === SurfaceContact.techWall || events.surface === SurfaceContact.techCeiling) play("DispelMagic", 80);
+  if (events.landing === ImpactLanding.tech || events.surface === SurfaceContact.techWall || events.surface === SurfaceContact.techCeiling) play("DispelMagic", 120);
   else if (events.landing === ImpactLanding.missedTech || events.surfaceMissedTech) play("Warstomp", 90);
   else if (events.ordinaryLanding) play("DeepFootstep", 65, 0.75);
   if (events.ledgeCatch || events.ledgeRecovery) play("BlinkTarget", 55, 1.5);
   if (events.jump !== JumpCue.none) play("BlinkTarget", events.jump === JumpCue.ground ? 45 : 60, 1.5);
-  if (events.footstep !== "none") play(events.footstep === "walk" ? "DeepFootstep" : "DeepFootstep2", events.footstep === "walk" ? 35 : events.footstep === "dash" ? 65 : 50, events.footstep === "walk" ? 1.0 : 1.25);
+  if (events.footstep !== "none") play(events.footstep === "walk" ? "DeepFootstep" : "DeepFootstep2", events.footstep === "walk" ? 35 : events.footstep === "dash" ? 115 : 90, events.footstep === "walk" ? 1.0 : 1.25);
   if (events.koDirectionX !== 0 || events.koDirectionZ !== 0) play("ThunderClap");
 }
 

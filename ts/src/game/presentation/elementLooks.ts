@@ -21,7 +21,7 @@ export interface ElementLook {
 
 export const ELEMENT_LOOKS: { readonly [element in HitElement]: ElementLook } = {
   [HitElement.normal]: { victim: undefined, victimScale: 1.0, sound: "StampedeHit", tint: { red: 255, green: 230, blue: 180 } },
-  [HitElement.slash]: { victim: undefined, victimScale: 1.0, sound: "RelentlessCleave", tint: { red: 255, green: 200, blue: 200 } },
+  [HitElement.slash]: { victim: undefined, victimScale: 1.0, sound: "CriticalStrike", tint: { red: 255, green: 200, blue: 200 } },
   // Illidan's Immolation burn: the green fel flames Warcraft puts on its victims.
   [HitElement.fire]: { victim: "Abilities\\Spells\\NightElf\\Immolation\\ImmolationDamage.mdx", victimScale: f32(1.2), sound: "Fireball", tint: { red: 255, green: 150, blue: 80 } },
   [HitElement.electric]: { victim: "Abilities\\Spells\\Orc\\Purge\\PurgeBuffTarget.mdx", victimScale: f32(0.8), sound: "LightningBolt", tint: { red: 180, green: 220, blue: 255 } },
