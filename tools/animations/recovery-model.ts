@@ -3,6 +3,48 @@
 import { model as mdx } from "war3-model";
 import { ensure, onGlobalClock, tracks } from "./original-clips";
 
+/** Remove the additive drill and its identity parent for exact pool reuse. */
+export function drillBaseModel(source: mdx.Model): mdx.Model | undefined {
+  const helper = source.Helpers.find(n => n.Name === "Drill Motion");
+  if (!helper) return undefined;
+  const first = source.Sequences.findIndex(s => s.Name === "Drill Down Air");
+  ensure(first > 0 && first === source.Sequences.length - 1, "Drill must be the final sequence");
+  ensure(helper.ObjectId === source.Nodes.length - 1 && helper.Parent == null && helper.Flags === 0,
+    "Drill helper must be the final ordinary root");
+  const rotation = helper.Rotation;
+  ensure(rotation && !onGlobalClock(rotation) && !helper.Translation && !helper.Scaling, "Drill parent must only rotate locally");
+  for (const sequence of source.Sequences.slice(0, first)) {
+    const from = sequence.Interval[0], to = sequence.Interval[1];
+    ensure(from !== undefined && to !== undefined, `${sequence.Name}: missing interval`);
+    const keys = rotation.Keys.filter(k => k.Frame >= from && k.Frame <= to);
+    ensure(keys.length === 2 && keys[0]?.Frame === from && keys[1]?.Frame === to
+      && keys.every(k => k.Vector.every((v, i) => v === (i === 3 ? 1 : 0))), `${sequence.Name}: drill changes the old parent`);
+  }
+  const cutoff = source.Sequences[first]?.Interval[0];
+  ensure(cutoff !== undefined, "Drill has no start");
+  const model = structuredClone(source);
+  model.Sequences = model.Sequences.slice(0, first);
+  model.Helpers = model.Helpers.filter(n => n.ObjectId !== helper.ObjectId);
+  model.Nodes = model.Nodes.filter(n => n.ObjectId !== helper.ObjectId);
+  model.PivotPoints = model.PivotPoints.slice(0, helper.ObjectId);
+  for (const node of model.Nodes) if (node.Parent === helper.ObjectId) node.Parent = null;
+  tracks(model, track => { if (!onGlobalClock(track)) track.Keys = track.Keys.filter(k => k.Frame < cutoff); });
+  return model;
+}
+
+/** Paired gestures only append keys; stripping them recovers the exact input. */
+export function grabBaseModel(source: mdx.Model): mdx.Model | undefined {
+  const first = source.Sequences.findIndex(s => s.Name.startsWith("Paired Grab "));
+  if (first < 0) return undefined;
+  ensure(first > 0 && source.Sequences.slice(first).every(s => s.Name.startsWith("Paired Grab ")), "Paired grabs must be a sequence suffix");
+  const cutoff = source.Sequences[first]?.Interval[0];
+  ensure(cutoff !== undefined, "Paired grabs have no start");
+  const model = structuredClone(source);
+  model.Sequences = model.Sequences.slice(0, first);
+  tracks(model, track => { if (!onGlobalClock(track)) track.Keys = track.Keys.filter(k => k.Frame < cutoff); });
+  return model;
+}
+
 /** Removing the additive damage suffix must reproduce its exact input bytes. */
 export function damageBaseModel(source: mdx.Model): mdx.Model | undefined {
   const first = source.Sequences.findIndex(s => s.Name.startsWith("Damage Grid "));

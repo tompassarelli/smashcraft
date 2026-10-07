@@ -139,7 +139,7 @@ export function produceComputerInput(game: Readonly<MatchState>, world: Roster, 
   const fighter = fighterAt(world, slot);
   const target = fighter.grab.target === undefined ? perceivedOpponent(runtime.botMemory, fighter, slot, frame, skill.reactionFrames)
     : perceivedHeldFighter(runtime.botMemory, fighter.grab.target, frame, skill.reactionFrames);
-  decide(game, world, runtime, slot, frame, input, commands, at(PERCEIVED_SKILLS, skill.level - 1), target);
+  decide(game, world, runtime, slot, frame, input, commands, at(PERCEIVED_SKILLS, skill.level - 1), target, skill.reactionFrames);
   // DI and escape mashing are reactions to the fighter's own state, not steering.
   if (fighter.launch.hitlag <= 0 && fighter.grab.owner === undefined) commitBotDirection(runtime.botMemory, slot, frame, input);
   useMatchSeed(0);
@@ -148,7 +148,7 @@ export function produceComputerInput(game: Readonly<MatchState>, world: Roster, 
 /** Half a second: a computer that idles stands still this long. */
 const IDLE_FRAMES = 30;
 
-function decide(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, slot: ParticipantSlot, frame: number, input: Controls, commands: AttackBuffer, skill: CpuSkill, target: Readonly<Fighter> | undefined): void {
+function decide(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, slot: ParticipantSlot, frame: number, input: Controls, commands: AttackBuffer, skill: CpuSkill, target: Readonly<Fighter> | undefined, observationAge: number): void {
   const fighter = fighterAt(world, slot);
   copyControls(input, COMPUTER_NEUTRAL);
   clearAttackBuffer(commands);
@@ -201,7 +201,7 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, 
   }
   if (gameplan === undefined) {
     const plan = planFor(fighter, slot, frame);
-    if (delay <= 0 && chooseAttack(fighter, target, stage, game.matchFrame, frame, plan === Plan.range, input, commands, slot, SPACE_PLAN, skill)) {
+    if (delay <= 0 && chooseAttack(fighter, target, stage, game.matchFrame, frame, plan === Plan.range, input, commands, slot, SPACE_PLAN, skill, observationAge)) {
       runtime.botAttackDelays[slot] = f32(f32(skill.attackPause + botChoice(frame, fighter.attack.serial, skill.attackSpread)) * TICK);
       if (!fighter.motion.grounded) steerInAir(fighter, stage, target.motion.x, input);
       return;
@@ -210,7 +210,7 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, 
     return;
   }
   const planIndex = gameplanPlan(gameplan, fighter, slot, frame, botChoice);
-  if (delay <= 0 && chooseAttack(fighter, target, stage, game.matchFrame, frame, plansRanged(gameplan, planIndex), input, commands, slot, planIndex, skill)) {
+  if (delay <= 0 && chooseAttack(fighter, target, stage, game.matchFrame, frame, plansRanged(gameplan, planIndex), input, commands, slot, planIndex, skill, observationAge)) {
     runtime.botAttackDelays[slot] = f32(f32(skill.attackPause + botChoice(frame, fighter.attack.serial, skill.attackSpread)) * TICK);
     if (!fighter.motion.grounded) steerInAir(fighter, stage, gameplanGoal(gameplan, fighter, target, stage, 0.0), input);
     return;

@@ -10,7 +10,7 @@
 // close gets the full simulation. Ledges and the cannon catch fighters in the
 // match step, which the forecast doesn't run, so they are no contact here.
 import { f32 } from "wisp/src/sim/f32";
-import { solidSurfaceAt, solidSurfaceCount, surfaceCount, surfaceLeft, surfaceRight, surfaceZ } from "../sim/stage";
+import { MAIN_DECK_BODY_SURFACES, mainDeckZ, solidSurfaceAt, solidSurfaceCount, surfaceCount, surfaceLeft, surfaceRight, surfaceZ } from "../sim/stage";
 import { stageBounds } from "../sim/stageBounds";
 import { WIND_SPEED, hasWind } from "../sim/stageHazards";
 import { AIR_KNOCKBACK_DECAY } from "../sim/motion";
@@ -66,7 +66,8 @@ export function surelyClear(f: Readonly<Fighter>, stage: number, frame: number, 
       const z = surfaceZ(stage, index, frame + step);
       if (z >= bottom && z <= top && overlaps(left, right, surfaceLeft(stage, index, frame + step), surfaceRight(stage, index, frame + step))) return false;
     }
-    for (let index = 0; index < solids; index++) {
+    const firstSolid = bottom > mainDeckZ(stage) ? MAIN_DECK_BODY_SURFACES : 0;
+    for (let index = firstSolid; index < solids; index++) {
       const solid = solidSurfaceAt(stage, index);
       const solidLeft = solid.startX < solid.endX ? solid.startX : solid.endX;
       const solidRight = solid.startX < solid.endX ? solid.endX : solid.startX;

@@ -22,8 +22,8 @@ import { bodyTop } from "../sim/surfaces";
 import { melee } from "../sim/tuning";
 import { f32 } from "wisp/src/sim/f32";
 import * as assets from "./fighterAssetInfo";
-import { characterClips, platformClip, specialClip } from "./fighterClips";
-import { attackDurationFramesForGrounding } from "../sim/moves";
+import { characterClips, clipFor, grabActionPoses, platformClip, specialClip } from "./fighterClips";
+import { attackDurationFramesForGrounding, grabActionDuration, grabContactFrame } from "../sim/moves";
 import { type Controls, fighterAt, neutralControls } from "../sim/roster";
 import { soloWorld, testWorld } from "../sim/testWorld";
 import * as dh from "./demonHunterAssetInfo";
@@ -257,6 +257,57 @@ test("a snapshot's pose escapes from its own copy of the previous holder", () =>
   advanceFighterPose(pose, victim, snapshot.world, input, false, false, false, false);
   assertEquals(pose.clipIndex, dh.DEMON_HUNTER_GRAB_ESCAPE_INDEX);
   assertEquals(pose.motion.escapeRemaining, 10);
+});
+
+test("paired hero throws reach contact on the actual holder's frame across every roster pairing", () => {
+  for (const character of SELECTABLE_CHARACTERS) for (const hero of HERO_ROSTER) for (const facing of [-1, 1]) {
+    const owner = createFighter(character, 0.0, facing);
+    const victim = createFighter(hero.character, 50.0, -facing);
+    const world = testWorld(owner, victim);
+    owner.grab.target = 1;
+    victim.grab.owner = 0;
+    victim.grab.grabbedFrames = 120;
+    for (const action of [GrabAction.pummel, GrabAction.throwForward, GrabAction.throwBack, GrabAction.throwUp, GrabAction.throwDown]) {
+      owner.grab.action = action;
+      owner.grab.serial++;
+      const poses = grabActionPoses(action);
+      assertTrue(poses !== undefined);
+      if (poses === undefined) continue;
+      const clip = clipFor(hero.character, poses.victim);
+      assertEquals(clip.contact, f32(0.5));
+      const pose = createFighterPose();
+      owner.grab.frame = grabContactFrame(action, owner.tuning.moves) - 1;
+      advanceFighterPose(pose, victim, world, neutralControls(), false, false, false, false);
+      assertTrue(pose.clipTime < f32(0.5));
+      owner.grab.frame++;
+      advanceFighterPose(pose, victim, world, neutralControls(), false, false, false, false);
+      assertEquals(pose.clipIndex, clip.index);
+      assertEquals(pose.clipTime, f32(0.5));
+      // A holder-only stop freezes both clocks at their coordinated pose.
+      owner.launch.hitlag = 3;
+      advanceFighterPose(pose, victim, world, neutralControls(), false, false, false, false);
+      assertEquals(pose.rate, 0.0);
+      assertEquals(pose.clipTime, f32(0.5));
+      owner.launch.hitlag = 0;
+      owner.grab.frame = grabActionDuration(action, owner.tuning.moves);
+      advanceFighterPose(pose, victim, world, neutralControls(), false, false, false, false);
+      assertTrue(Math.abs(pose.clipTime - clip.seconds) < f32(0.00001));
+    }
+  }
+});
+
+test("a hero holder's contact gesture also freezes when only the held fighter stops", () => {
+  const owner = createFighter(Character.uther, 0.0, 1), victim = createFighter(Character.mountainKing, 50.0, -1);
+  const world = testWorld(owner, victim), pose = createFighterPose();
+  owner.grab.target = 1;
+  owner.grab.action = GrabAction.throwUp;
+  owner.grab.frame = grabContactFrame(owner.grab.action, owner.tuning.moves);
+  victim.grab.owner = 0;
+  victim.grab.grabbedFrames = 120;
+  victim.launch.hitlag = 4;
+  advanceFighterPose(pose, owner, world, neutralControls(), false, false, false, false);
+  assertEquals(pose.clipTime, f32(0.5));
+  assertEquals(pose.rate, 0.0);
 });
 
 test("an attack restart and a smash release keep their authored clips", () => {

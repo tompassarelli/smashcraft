@@ -4,7 +4,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import type { Fighter } from "../sim/fighter";
 import type { Controls } from "../sim/roster";
-import { mainDeckLeft, mainDeckRight, surfaceLeft, surfaceRight } from "../sim/stage";
+import { mainDeckLeft, mainDeckRight, surfaceCount, surfaceLeft, surfaceRight, surfaceZ } from "../sim/stage";
 
 /** How far inside the main deck's edges the computer keeps its resting point. */
 const EDGE_MARGIN = 40.0;
@@ -95,4 +95,34 @@ export function steerInAir(f: Readonly<Fighter>, stage: number, goal: number, in
   const along = Math.min(airSpeed, f32(Math.max(0.0, f32(vx * direction)) + airAcceleration));
   const pressed = restingX(x, f32(direction * along), airAcceleration);
   if (pressed <= high && pressed >= low) input.direction = direction;
+}
+
+/**
+ * A fighter's height after `frames` more frames: its last frame's rise,
+ * slowed each frame by gravity while airborne down to its fall speed, so a
+ * rising jump isn't taken to keep rising into a target overhead, and held
+ * by the deck under it when it falls that far (#160).
+ */
+export function heightAhead(f: Readonly<Fighter>, frames: number, stage: number, matchFrame: number): number {
+  const { z, deltaZ } = f.motion;
+  if (f.motion.grounded) return f32(z + f32(deltaZ * frames));
+  const { gravity, terminalSpeed } = f.tuning.physics;
+  const floor = Math.min(deltaZ, -terminalSpeed);
+  // Frames whose fall gravity still speeds up before the floor holds it.
+  const slowing = Math.min(frames, Math.max(0, Math.floor(f32(f32(deltaZ - floor) / gravity))));
+  const curve = f32(f32(deltaZ * slowing) - f32(gravity * ((slowing * (slowing + 1)) / 2)));
+  const ahead = f32(z + f32(curve + f32(floor * (frames - slowing))));
+  const deck = deckUnder(stage, matchFrame, f.motion.x, z);
+  return deck !== undefined && ahead < deck ? deck : ahead;
+}
+
+/** The highest deck of `stage` under (x, z) on match frame `matchFrame`, or undefined over the void. */
+export function deckUnder(stage: number, matchFrame: number, x: number, z: number): number | undefined {
+  let top: number | undefined;
+  for (let index = 0; index < surfaceCount(stage); index++) {
+    const deck = surfaceZ(stage, index, matchFrame);
+    if (deck > z || x < surfaceLeft(stage, index, matchFrame) || x > surfaceRight(stage, index, matchFrame)) continue;
+    if (top === undefined || deck > top) top = deck;
+  }
+  return top;
 }

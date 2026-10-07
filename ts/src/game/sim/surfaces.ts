@@ -246,7 +246,11 @@ export function resolveSolidSurfaceContacts(f: Fighter, stage: number, oldX: num
   let touched = false;
   let wallSide = 0;
   const surfaces = solidSurfacesOf(stage);
-  for (let i = 0; i < surfaces.length; i++) {
+  // Every main-deck face is at or below its walking plane, and ceiling
+  // contact lowers it by the fighter's height. A step wholly above that
+  // plane cannot cross one; retain a unit of room for contact rounding.
+  const first = oldZ > mainDeckZ(stage) + 1 && f.motion.z > mainDeckZ(stage) + 1 ? MAIN_DECK_BODY_SURFACES : 0;
+  for (let i = first; i < surfaces.length; i++) {
     const surface = at(surfaces, i);
     if (!resolveSolidSurfaceContact(f, surface, i, oldX, oldZ, input)) continue;
     touched = true;

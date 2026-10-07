@@ -65,7 +65,7 @@ export const integrity: Command = ([mode, ...args]) => {
       }).pipe(
         // Doctor heals the clients before a capture (bot sessions included) and once after a
         // failure; a capture writes its own folder, so its failure stands (wisp:docs/doctor.md).
-        Effect.flatMap((options) => onHealthyClients(captureMatches(options), { retry: false })),
+        Effect.flatMap((options) => onHealthyClients(captureMatches(options), { retry: false, ...(options.clients === undefined ? {} : { clientsFile: options.clients }) })),
         step("native input-integrity capture"),
       );
     case "result": {

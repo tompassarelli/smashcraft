@@ -1,0 +1,42 @@
+{"decision":"RESERVED","reason":"RUN","profile":"attended","mode":"auto","idleSeconds":81,"class":"moderate","requestedCpus":2,"requestedMemoryMiB":2048,"leasedCpuCeilings":24,"aggregateCpuLimit":20,"leasedNativeCpus":8,"leasedMemoryMiB":42240,"protectedCpuSomeAvg10":9.08,"cpuSomeAvg10":12.88,"memoryFullAvg10":0,"memoryAvailableMiB":60364,"reclaimed":0,"lease":"1ea2c9ee-7c25-4c83-9141-1ceae0168282","expiresAt":1791355056190}
+pass Swift Arrow repeats no sooner than 30 frames and cannot jump out of its draw or recovery
+pass a held shield stops six repeated Swift Arrows at 240 without shieldstun or body damage
+pass Swift Arrow deals 5 percent without interrupting the defender; a jump during the draw clears it
+pass at 60 units a shield grab after blocking Swift Arrow catches Archer during her recovery
+pass archerRideHoversThenRisesSteeredByTheStickAndEndsHelpless
+pass archerRideLowRouteFliesFlatterThanTheHighRoute
+pass archerLeapsOffActionableWithoutASecondRideUntilSheLands
+pass archerLeapOffLeavesTheHippogryphStrikingUpward
+pass archerHitDuringTheRideHoverKnocksHerOffTheMount
+pass archerCallSwoopsThroughTheGapThenPerches
+pass archerCallWithASideFacesItAndHopsBackFromIt
+pass archerDiveStrikesAFighterBetweenThePerchAndHer
+pass archerDiveMissesAFighterOffItsLine
+pass archerDiveIsBlockedByAShield
+pass archerHitScaresTheHippogryphOffItsPerch
+pass archerRideSpendsThePerch
+pass Frost Nova costs 10, its slow orb leaves the hand on frame 18 and chills a body it reaches
+pass a second Frost Nova press stops the orb on its frame 4 and bursts it 6 frames later, chilling what it catches
+pass Chill lowers run and air drift speed, stops at a shield and cannot chain inside its immunity
+pass Death and Decay costs 25 and strikes a fighter standing in it on frame 30 and again from frame 70
+pass a shield spends one Death and Decay strike, and pressing toward Lich's back places it 0.9H ahead
+pass interrupting Lich before Death and Decay's first strike removes the field
+pass Death and Decay is not placed through solid stage geometry
+pass Frost Armor costs 20, its shell lasts 240 frames, takes one small hit's reaction and chills the striker
+pass a grab ignores Frost Armor and leaves the shell
+pass Dark Ritual: down special while the shell holds shatters it on frame 6 into a 5% burst and restores 30 mana
+pass Frost Nova and Death and Decay casts extend Lich's hittable casting arm only while casting
+pass Spectral Ascent rises 2.1H and steers at most 0.4H; the zero-mana form rises 1.4H for free
+pass replaying Lich's nova, armor and ascent from a restored snapshot reproduces both fighters
+pass an Archer inside forward-tilt range challenges Frost Nova's startup and no orb is thrown
+pass the Lich King's specials spend their costs once and end on their authored frames
+pass Frostmourne Hungers banks a soul for each landed normal, none on a shield, at most three
+pass Harvest Soul, his down throw, banks a soul; the pummel and other throws don't
+pass a banked soul makes Howling Blast wider and chilling, and is spent; without one the blast doesn't chill
+pass Val'kyr Shadowguard carries its catch toward the edge it flew at for 80 frames, rising, with no control
+pass a carried fighter mashes free, never before frame 20, and any hit drops the carry
+pass a shielded Val'kyr catches nothing
+pass Defile offers a jump escape and at least 120 empty frames before another pool; refused casts spend nothing
+pass Defile stays through five 2-damage pulses spaced 36 frames; body hits grow the pool but shields do not
+39 of 39 passed
+{"decision":"RELEASED","lease":"1ea2c9ee-7c25-4c83-9141-1ceae0168282"}

@@ -174,7 +174,11 @@ function advanceActionClocks(f: Fighter, input: Readonly<Controls>): boolean {
   if (smashChargePaused) return true;
   attack.cooldown = max(0, attack.cooldown - 1);
   if (special.lockFrames > 0) special.lockFrames--;
-  for (let action = 1; action < special.cooldowns.length; action++) special.cooldowns[action] = max(0, at(special.cooldowns, action) - 1);
+  const cooldowns = special.cooldowns;
+  for (let action = 1; action < cooldowns.length; action++) {
+    const remaining = at(cooldowns, action);
+    if (remaining !== 0) cooldowns[action] = max(0, remaining - 1);
+  }
   if (attack.style !== undefined) {
     attack.frame++;
     if (attack.frame >= attack.duration) {

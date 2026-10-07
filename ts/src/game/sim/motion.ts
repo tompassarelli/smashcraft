@@ -4,6 +4,7 @@
 import { max, min } from "../../runtime/numbers";
 import { addFloat32, divideFloat32, fusedMultiplyAddFloat32, multiplyFloat32, roundToFloat32, subtractFloat32 } from "wisp/src/sim/binary32";
 import { f32 } from "wisp/src/sim/f32";
+import { floorMod } from "wisp/src/sim/intMath";
 import { meleeAtan2, meleeCos, meleeSin } from "../../sim/meleeScalarMath";
 import { chillScaled } from "./chill";
 import { Character } from "./codes";
@@ -11,9 +12,27 @@ import type { Fighter, MeleeMotionValue } from "./fighter";
 import { surfaceCount, surfaceLeft, surfaceMoves, surfaceRight, surfaceShiftX, surfaceShiftZ, surfaceZ } from "./stage";
 import { type FighterPhysics, WORLD_UNITS_PER_MELEE_UNIT, melee } from "./tuning";
 
+// Rollback and consecutive agency forecasts publish the same Melee-unit
+// values. Cache only the pure conversion; zero bypasses the key to retain its sign.
+const WORLD_VALUE_MEMO_LIMIT = 512;
+const worldValueInput: Record<number, number> = {};
+const worldValueResult: Record<number, number> = {};
+
+function worldValue(original: number): number {
+  // Slot arithmetic only picks a candidate; the original value must match.
+  // Reusing slots also avoids replacing tables as new positions arrive.
+  const slot = floorMod(Math.floor(original * 4093), WORLD_VALUE_MEMO_LIMIT);
+  if (original === 0 || slot !== slot) return multiplyFloat32(original, WORLD_UNITS_PER_MELEE_UNIT);
+  if (worldValueInput[slot] === original) return worldValueResult[slot] ?? 0.0;
+  const converted = multiplyFloat32(original, WORLD_UNITS_PER_MELEE_UNIT);
+  worldValueInput[slot] = original;
+  worldValueResult[slot] = converted;
+  return converted;
+}
+
 function setOriginal(value: MeleeMotionValue, original: number): void {
   value.original = original;
-  value.published = multiplyFloat32(original, WORLD_UNITS_PER_MELEE_UNIT);
+  value.published = worldValue(original);
 }
 
 /** Restarts accumulation from a world value written outside Melee-unit motion. */

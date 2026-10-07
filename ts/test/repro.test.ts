@@ -46,6 +46,8 @@ test("K in the development build's match saves its last ten seconds on that play
   clients.frames(30);
   clients.chat(0, QUICK_MATCH_COMMAND);
   // Player 2 steps one way and back while player 1 attacks and jumps, for twelve seconds.
+  // The walk modifier keeps these short turns near their starting point for the saved interval.
+  hold(1, 0x50, true);
   for (let beat = 0; beat < 24; beat++) {
     clients.press(0, beat % 2 === 0 ? 0x4e : 0x49);
     for (const walk of [Key.r, Key.w]) {
@@ -55,6 +57,7 @@ test("K in the development build's match saves its last ten seconds on that play
       clients.frames(5);
     }
   }
+  hold(1, 0x50, false);
   const [a, b] = clients.clients;
   if (a === undefined || b === undefined) throw new Error("two clients");
   expect(value(a, () => shell().game.phase)).toBe(Phase.match);

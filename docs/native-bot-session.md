@@ -282,6 +282,16 @@ Issue scripts live in smashcraft:ts/test/native/pads/, one folder per issue.
 
 ### Many scripts in one game
 
+Native acceptance also selects an offline pair with
+`bun wisp accept --pair K --only ID...`. Its captures, player-position labels,
+receipts and new LAN matches all follow that pair. `--dry-run` prints the same
+plan without starting a match.
+
+For `bun wisp integrity capture`, `--clients-file FILE` selects the clients for
+the health check, desync autopsy and capture together. An offline pair's health
+check reads its current state; a closed, crashed or disconnected pool client
+stops the run so the pool owner can restart that pair.
+
 Native batch helpers and pads stay alive until their game ends. Before typing a
 selection command, the runner waits for the map's observed chat-open receipt in
 `smashcraft-chat-BUILD-pSLOT.txt`; a missed Return sends no command text. Between

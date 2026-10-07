@@ -10,6 +10,8 @@ import { ARCHER_GROUND, RIFLEMAN_GROUND, type GroundKit, jabSlice, strikeClip } 
 import * as dh from "./demonHunterAssetInfo";
 import * as assets from "./fighterAssetInfo";
 import { RECOVERY_CLIPS } from "./recoveryClipInfo";
+import { DRILL_CLIPS } from "./drillClipInfo";
+import { GRAB_CLIPS } from "./grabClipInfo";
 
 const clip = (index: number, seconds: number): HeroClip => ({ index, seconds });
 
@@ -189,9 +191,14 @@ const ORIGINAL_CLIPS: { readonly [character: number]: HeroClipTable | undefined 
 const NO_CLIPS: HeroClipTable = {};
 function recoveryTables(): Readonly<Record<number, HeroClipTable>> {
   const tables: Record<number, HeroClipTable> = {};
+  const drills: Readonly<Record<number, HeroClipTable | undefined>> = DRILL_CLIPS;
   for (const [character, recovery] of Object.entries(RECOVERY_CLIPS)) {
     const id = Number(character);
-    tables[id] = { ...(ORIGINAL_CLIPS[id] ?? heroDefinition(id)?.presentation.clips ?? NO_CLIPS), ...recovery };
+    tables[id] = { ...(ORIGINAL_CLIPS[id] ?? heroDefinition(id)?.presentation.clips ?? NO_CLIPS), ...recovery, ...drills[id] };
+  }
+  for (const [character, grabs] of Object.entries(GRAB_CLIPS)) {
+    const id = Number(character);
+    tables[id] = { ...(tables[id] ?? ORIGINAL_CLIPS[id] ?? heroDefinition(id)?.presentation.clips ?? NO_CLIPS), ...grabs };
   }
   return tables;
 }

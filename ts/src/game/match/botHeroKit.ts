@@ -12,7 +12,7 @@ import type { Fighter } from "../sim/fighter";
 import { chooseHeroSpecial, isHeroSpecialAction, runningHeroSpecial } from "../sim/heroSpecialRules";
 import { type AuthoredSpecial, type FighterSpecials, type SpecialProjectile, FOLLOW_UP_FORM, FollowUpInput, SpecialSlot, specialForm, specialKit } from "../sim/heroSpecials";
 import { type Controls, neutralControls } from "../sim/roster";
-import { safeAt } from "./botFooting";
+import { heightAhead, safeAt } from "./botFooting";
 
 /** How the computer may use a special this frame. */
 export const HeroSpecialUse = { none: 0, close: 1, ranged: 2 } as const;
@@ -120,7 +120,7 @@ function travelStaysOnDeck(f: Readonly<Fighter>, move: Readonly<AuthoredSpecial>
  * How a hero may use the special in `slot` against the target this frame:
  * close for a strike or stance, ranged for a projectile, or none.
  */
-export function heroSpecialUse(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, slot: SpecialSlot): HeroSpecialUse {
+export function heroSpecialUse(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, slot: SpecialSlot, observationAge = 0): HeroSpecialUse {
   const specials = f.tuning.specials;
   if (specials === undefined || !canAttack(f)) return HeroSpecialUse.none;
   const move = startableForm(f, specials, slot);
@@ -132,7 +132,11 @@ export function heroSpecialUse(f: Readonly<Fighter>, target: Readonly<Fighter>, 
   // Stances answer a threat (heroStanceSlot, from botDefense.ts), and a guard's cost is kept for one.
   if (isStance(move) || relocates(move) || f32(f.mana.points - move.cost) < guardReserve(specials, move)) return HeroSpecialUse.none;
   if (!travelStaysOnDeck(f, move, stage)) return HeroSpecialUse.none;
-  if (strikeMeets(move, target, localX, localZ)) return HeroSpecialUse.close;
+  let firstStrike: number | undefined;
+  for (const region of move.regions ?? []) if (firstStrike === undefined || region.firstFrame < firstStrike) firstStrike = region.firstFrame;
+  // A falling opponent may leave the special's height before its first strike.
+  const strikeZ = firstStrike === undefined ? localZ : f32(heightAhead(target, observationAge + firstStrike + 1, stage, 0) - f.motion.z);
+  if (strikeMeets(move, target, localX, strikeZ)) return HeroSpecialUse.close;
   for (const spec of move.projectiles ?? []) if (projectileMeets(spec, target, localX, localZ)) return HeroSpecialUse.ranged;
   // A placed object fires from where it stands: set one when its shot would reach the target there.
   const placement = move.placement;

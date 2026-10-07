@@ -98,6 +98,12 @@ code. From smashcraft:ts/:
   `bun tools/animations/recovery-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` from
   the repository root appends fighter recovery and transition clips before
   storing their families and refreshing the clip pool (smashcraft:docs/fighter-animation-work.md).
+  `bun tools/animations/drill-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends
+  Blademaster, Warden and Shadow Hunter down-air drills, preserving earlier
+  clips and writing both-facing silhouette sheets for the native review.
+  `bun tools/animations/grab-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends
+  coordinated expansion-hero reach, hold, pummel and four-direction holder/victim
+  gestures, preserving existing indices (smashcraft:docs/fighter-animation-work.md).
 - Lich King animation authoring (from the repository root):
   `tools/animations/build-lichking.sh [PRIVATE_INPUTS] [IMMUTABLE_EXISTING_MODEL]`
   authors clips through Blender; the optional existing model preserves shipped
@@ -253,6 +259,7 @@ code. From smashcraft:ts/:
   kit use, defense and recovery for all 13 selectable fighters over eight
   seeded level-9 matches each; `GAME_TESTS=botCoverage bun test test/game.test.ts`
   checks the same report, also included in the emitted-Lua32 suite.
+- Difficulty report: `gh workflow run cpu-levels.yml -f ref=COMMIT` measures every level pair with the existing `cpuLevels` report on a hosted runner (20 matches per pair, 100 level-9-vs-1 matches). The run summary and `cpu-levels` artifact hold its table.
 - Compute farm: `bun wisp farm balance [--ref REF] [--wait]` plays the
   balance gate's computer field (level 9, 400 a pair; `--level`,
   `--per-pair`, `--seeds`) on GitHub's free hosted runners, a `cpuField
@@ -308,10 +315,12 @@ code. From smashcraft:ts/:
   script); `--fresh-each` exists only to measure that. `bun wisp pad
   SCRIPT|DIR... --headless ...` plays the same batch in one headless session
   (smashcraft:docs/native-bot-session.md, "Many scripts in one game").
-- Native acceptance: `bun wisp accept [--only ID...] [--dry-run]` runs every
+- Native acceptance: `bun wisp accept [--only ID...] [--pair K] [--dry-run]` runs every
   open native check declared in smashcraft:ts/scripts/wisp/acceptChecks.ts in
   as few fresh matches as their maps allow and prints pass, fail or
-  needs-look per check with its evidence folder (wisp:docs/accept.md). Declare
+  needs-look per check with its evidence folder (wisp:docs/accept.md). `--pair K`
+  selects the offline pool pair; every check, capture and receipt follows its
+  two clients, and sessions start through `lan fresh`. Declare
   a new native box there, next to the issue it closes, instead of a hand procedure.
   Render cadence: `-dev render-clock` in a development map records timer
   callback bursts and cost; `bun wisp accept --only 169-render-clock --dry-run`

@@ -16,8 +16,7 @@ import { attackStartupFrames } from "../sim/moves";
 import type { FighterMoves } from "../sim/heroMoves";
 import type { Controls } from "../sim/roster";
 import { immolationRegion } from "../sim/specials";
-import { surfaceCount, surfaceLeft, surfaceRight, surfaceZ } from "../sim/stage";
-import { safeAt, slideStaysOnDeck } from "./botFooting";
+import { deckUnder, heightAhead, safeAt, slideStaysOnDeck } from "./botFooting";
 import { HeroSpecialUse, heroSpecialUse } from "./botHeroKit";
 import { SpecialSlot } from "../sim/heroSpecials";
 import { SPACE_PLAN, avoids, gameplanOf, moveWeight, passiveLandingMove, spacedAt, toGameplanMove } from "./botGameplan";
@@ -169,8 +168,9 @@ export function aheadX(f: Readonly<Fighter>, target: Readonly<Fighter>, frames: 
  * its steering, so a run doesn't carry a slow smash into reach (#160).
  */
 function travelOver(f: Readonly<Fighter>, frames: number): number {
-  const straight = f32(f.motion.deltaX * frames);
-  if (!f.motion.grounded) return straight;
+  if (!f.motion.grounded) return f32(f.motion.deltaX * frames);
+  // A dash reversal changes velocity before the last frame's travel catches up.
+  const straight = f32(f.motion.vx * frames);
   const speed = Math.abs(f.motion.vx);
   // Counted a little short, as if braking at 1.25 times its traction: a reach overestimated is a swing at nothing.
   const slide = f32(f32(f32(speed * speed) / f32(2.5 * f.tuning.physics.traction)) + speed);
@@ -178,38 +178,8 @@ function travelOver(f: Readonly<Fighter>, frames: number): number {
 }
 
 /** The target's height over the attacker after `frames` more frames, each landing on a deck of `stage` it falls onto (none for stage -1). */
-export const aheadZ = (f: Readonly<Fighter>, target: Readonly<Fighter>, frames: number, stage = -1, matchFrame = 0) =>
-  f32(heightAhead(target, frames, stage, matchFrame) - heightAhead(f, frames, stage, matchFrame));
-
-/**
- * A fighter's height after `frames` more frames: its last frame's rise,
- * slowed each frame by gravity while airborne down to its fall speed, so a
- * rising jump isn't taken to keep rising into a target overhead, and held
- * by the deck under it when it falls that far (#160).
- */
-function heightAhead(f: Readonly<Fighter>, frames: number, stage: number, matchFrame: number): number {
-  const { z, deltaZ } = f.motion;
-  if (f.motion.grounded) return f32(z + f32(deltaZ * frames));
-  const { gravity, terminalSpeed } = f.tuning.physics;
-  const floor = Math.min(deltaZ, -terminalSpeed);
-  // Frames whose fall gravity still speeds up before the floor holds it.
-  const slowing = Math.min(frames, Math.max(0, Math.floor(f32(f32(deltaZ - floor) / gravity))));
-  const curve = f32(f32(deltaZ * slowing) - f32(gravity * ((slowing * (slowing + 1)) / 2)));
-  const ahead = f32(z + f32(curve + f32(floor * (frames - slowing))));
-  const deck = deckUnder(stage, matchFrame, f.motion.x, z);
-  return deck !== undefined && ahead < deck ? deck : ahead;
-}
-
-/** The highest deck of `stage` under (x, z) on match frame `matchFrame`, or undefined over the void. */
-function deckUnder(stage: number, matchFrame: number, x: number, z: number): number | undefined {
-  let top: number | undefined;
-  for (let index = 0; index < surfaceCount(stage); index++) {
-    const deck = surfaceZ(stage, index, matchFrame);
-    if (deck > z || x < surfaceLeft(stage, index, matchFrame) || x > surfaceRight(stage, index, matchFrame)) continue;
-    if (top === undefined || deck > top) top = deck;
-  }
-  return top;
-}
+export const aheadZ = (f: Readonly<Fighter>, target: Readonly<Fighter>, frames: number, stage = -1, matchFrame = 0, observationAge = 0) =>
+  f32(heightAhead(target, observationAge + frames, stage, matchFrame) - heightAhead(f, frames, stage, matchFrame));
 
 /**
  * Whether a spacing tool thrown now walls off the target localX ahead and
@@ -255,10 +225,10 @@ const HERO_SLOTS = [SpecialSlot.neutral, SpecialSlot.side, SpecialSlot.up, Speci
 const SLOT_OPTIONS = [NEUTRAL_SPECIAL, SIDE_SPECIAL, UP_SPECIAL, DOWN_SPECIAL] as const;
 
 /** Appends, twice each so a kit's specials compete with its many normals, the hero specials that suit this frame as `use`. */
-function addHeroSpecials(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, use: HeroSpecialUse, count: number): number {
+function addHeroSpecials(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, use: HeroSpecialUse, count: number, observationAge: number): number {
   let added = count;
   for (let index = 0; index < HERO_SLOTS.length; index++) {
-    if (heroSpecialUse(f, target, stage, at(HERO_SLOTS, index)) !== use) continue;
+    if (heroSpecialUse(f, target, stage, at(HERO_SLOTS, index), observationAge) !== use) continue;
     options[added++] = at(SLOT_OPTIONS, index);
     options[added++] = at(SLOT_OPTIONS, index);
   }
@@ -266,8 +236,8 @@ function addHeroSpecials(f: Readonly<Fighter>, target: Readonly<Fighter>, stage:
 }
 
 /** Appends the specials that strike from range: shots, Archer's homing arrow, the Rifleman's bear, a hero's projectiles. */
-function addShots(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, count: number): number {
-  if (f.tuning.specials !== undefined) return addHeroSpecials(f, target, stage, HeroSpecialUse.ranged, count);
+function addShots(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, count: number, observationAge: number): number {
+  if (f.tuning.specials !== undefined) return addHeroSpecials(f, target, stage, HeroSpecialUse.ranged, count, observationAge);
   const { motion } = f;
   const dx = f32(target.motion.x - motion.x);
   const dz = f32(target.motion.z - motion.z);
@@ -284,8 +254,8 @@ function addShots(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number
 }
 
 /** Appends the specials that suit a target close by: each fighter's own, a hero's strikes and stances. */
-function addCloseSpecials(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, count: number): number {
-  if (f.tuning.specials !== undefined) return addHeroSpecials(f, target, stage, HeroSpecialUse.close, count);
+function addCloseSpecials(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, count: number, observationAge: number): number {
+  if (f.tuning.specials !== undefined) return addHeroSpecials(f, target, stage, HeroSpecialUse.close, count, observationAge);
   const { motion } = f;
   const dx = f32(target.motion.x - motion.x);
   const dz = f32(target.motion.z - motion.z);
@@ -397,9 +367,11 @@ function weightedOption(gameplan: Readonly<FighterGameplan>, planIndex: number, 
  * distance, and enters it in input and commands. `ranged` lets a decision
  * with nothing in reach but a special take it. False when it chose nothing.
  */
-export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, matchFrame: number, frame: number, ranged: boolean, input: Controls, commands: AttackBuffer, slot = -1, planIndex: number = SPACE_PLAN, skill: CpuSkill = FULL_SKILL): boolean {
+export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, matchFrame: number, frame: number, ranged: boolean, input: Controls, commands: AttackBuffer, slot = -1, planIndex: number = SPACE_PLAN, skill: CpuSkill = FULL_SKILL, observationAge = 0): boolean {
   const gameplan = gameplanOf(f.character);
-  const gap = Math.abs(f32(target.motion.x - f.motion.x));
+  const dx = f32(target.motion.x - f.motion.x);
+  const gap = Math.abs(dx);
+  const toward = dx === 0 ? f.facing : dx > 0 ? 1 : -1;
   if (!canAttack(f) && !(f.shield.raised && f.motion.grounded)) return false;
   // A ground attack stops the steering: its slide must end on the deck.
   if (f.motion.grounded && !slideStaysOnDeck(f, stage, matchFrame)) return false;
@@ -413,13 +385,14 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
         if (f.shield.raised && move !== AttackStyle.grab) continue;
         const style = dashing && move === AttackStyle.jab ? f.tuning.moves?.dashAttack ?? AttackStyle.demonHunterDashAttack : move;
         const frames = attackStartupFrames(style, f.tuning.moves);
-        const x = aheadX(f, target, frames, style);
-        const z = aheadZ(f, target, frames, stage, matchFrame);
+        // A slide may carry the attacker past its target; the queued facing stays fixed.
+        const x = f32(aheadX(f, target, frames, style) * toward);
+        const z = aheadZ(f, target, frames + 1, stage, matchFrame, observationAge);
         // Grabs need the target's centre inside their reach, as the punish chooser requires.
         if (move === AttackStyle.grab && Math.abs(x) > f32(moveReachAhead(f.character, style, target, f.tuning.moves) - hurtCapsule(target.character).radius)) continue;
         // Every attack waits for its reach (#160), or for a ground spacing tool, its spacing level with the target.
-        const spaced = gameplan !== undefined && spacedAt(gameplan, dashing && move === AttackStyle.jab ? AttackStyle.dashAttack : move, gap) && wallsOff(f, style, target, Math.abs(x), z);
-        if (!spaced && !moveReaches(f.character, style, target, Math.abs(x), z, f.tuning.moves)) continue;
+        const spaced = gameplan !== undefined && spacedAt(gameplan, dashing && move === AttackStyle.jab ? AttackStyle.dashAttack : move, gap) && wallsOff(f, style, target, x, z);
+        if (!spaced && !moveReaches(f.character, style, target, x, z, f.tuning.moves)) continue;
         if (dashing && move === AttackStyle.jab) dashReaches = true;
         options[count++] = move;
         // A grab counts twice: one of ten moves in reach would rarely be it.
@@ -430,7 +403,7 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
         const frames = attackStartupFrames(aerial, f.tuning.moves);
         // The input frame also falls: landing by the first strike cancels the aerial.
         if (landsWithin(f, frames + 1, stage, matchFrame)) continue;
-        if (moveReaches(f.character, aerial, target, f32(aheadX(f, target, frames) * f.facing), aheadZ(f, target, frames, stage, matchFrame), f.tuning.moves)) options[count++] = aerial;
+        if (moveReaches(f.character, aerial, target, f32(aheadX(f, target, frames) * f.facing), aheadZ(f, target, frames + 1, stage, matchFrame, observationAge), f.tuning.moves)) options[count++] = aerial;
       }
     }
   }
@@ -446,9 +419,9 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
     perform(f, target, at(moves, botChoice(frame, f.attack.serial * 3 + f.character, moves.length)), frame, input, commands);
     return true;
   }
-  if (canAttack(f)) count = addCloseSpecials(f, target, stage, count);
+  if (canAttack(f)) count = addCloseSpecials(f, target, stage, count, observationAge);
   const close = count;
-  if (canAttack(f)) count = addShots(f, target, stage, count);
+  if (canAttack(f)) count = addShots(f, target, stage, count, observationAge);
   if (count === 0 || (close === 0 && !ranged)) return false;
   const grabbing = skill.grabsShields && target.shield.raised && f.motion.grounded && grabReaches;
   // Running in, the dash attack when it reaches; a ready passive's landing move, never into a shield, which spends it.
