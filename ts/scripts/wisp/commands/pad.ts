@@ -28,6 +28,7 @@ import { ClientWatch } from "wisp/scripts/wisp/watch";
 import { confirmedCommand, openObservedChat } from "wisp/scripts/wisp/chatSetup";
 import { encodePpm } from "wisp/scripts/wisp/frameProbe";
 import { installHeadless, type HeadlessRuntime } from "wisp/scripts/wisp/headless";
+import { readReplay } from "../replayFiles";
 import { RealtimeClients, type TypedInput, customMapData, typedFile } from "wisp/scripts/wisp/headlessInput";
 import { step } from "wisp/scripts/wisp/timings";
 import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/src/headless/syncChannel";
@@ -37,7 +38,7 @@ import { IntegrityFailure, producerLine, tryIntegrity } from "../../integrity/ev
 import { loadEntry } from "../../integrity/headless";
 import { type Pad, inject, monotonicNs, openPad } from "../../integrity/linux";
 import { BTN_SELECT, PAD_BUTTONS } from "../../integrity/linuxInput";
-import { REPRO_NAME, TRACE_FILE, checkHeadlessRun, compareRuns, comparisonSteps, scriptChat } from "../../integrity/padParity";
+import { MATCH_REPLAY_NAME, REPRO_NAME, TRACE_FILE, checkHeadlessRun, compareRuns, comparisonSteps, scriptChat } from "../../integrity/padParity";
 import type { Schedule, ScheduleReply, ScheduledEdge } from "../../integrity/padScheduleWorker";
 import { type PadStep, type SentEdge, deadlineOrder, frameWriteNs, landEdges, matchStart, parsePadScript, ruleFrame } from "../../integrity/padScript";
 import { SLOTS } from "../../integrity/reconcile";
@@ -147,13 +148,23 @@ const collect = (data: readonly [string, string], out: string, sinceMs: number) 
   const deadline = Date.now() + TRACE_WAIT_MS;
   while (!data.every((dir) => fresh(join(dir, TRACE_FILE))) && Date.now() < deadline) yield* Effect.sleep("250 millis");
   yield* tryIntegrity("collect traces and moments", out, () => {
+    for (const name of readdirSync(out)) if (MATCH_REPLAY_NAME.test(name)) rmSync(join(out, name));
     data.forEach((dir, slot) => {
       const trace = join(dir, TRACE_FILE);
       if (fresh(trace)) copyFileSync(trace, join(out, `trace-${"ab"[slot]}.txt`));
       else console.error(`client ${"ab"[slot]}: no input trace written since the run began (${trace})`);
       const scene = join(dir, sceneFile(slot, SMASHCRAFT_HEADLESS.filePrefix));
       if (fresh(scene)) copyFileSync(scene, join(out, `scene-${"ab"[slot]}.txt`));
-      for (const name of readdirSync(dir)) if (REPRO_NAME.test(name) && fresh(join(dir, name))) copyFileSync(join(dir, name), join(out, name));
+      for (const name of readdirSync(dir)) {
+        if (!fresh(join(dir, name))) continue;
+        if (REPRO_NAME.test(name)) copyFileSync(join(dir, name), join(out, name));
+        const match = /^smashcraft-replay-(\d+)\.txt$/.exec(name);
+        if (match !== null) {
+          const lines = readReplay(join(dir, name));
+          if (typeof lines === "string") throw new Error(lines);
+          writeFileSync(join(out, `smashcraft-replay-p${slot}-${match[1]}.txt`), `${lines.join("\n")}\n`);
+        }
+      }
     });
   });
 });
