@@ -119,35 +119,35 @@ export const BEASTMASTER_MOVES: FighterMoves = {
     [AttackStyle.jab]: jabStep(heroMove(4, 2, 14, 0, path(4, [
       capsule(18.0, 58.0, f32(S - 9.0), 56.0, 9.0),
       capsule(18.0, 56.0, f32(S - 9.0), 52.0, 9.0),
-    ], hit(4.239999771118164, "LINK", 35, 1.0, HitElement.normal)))),
+    ], hit(3.815999746322632, "LINK", 35, 1.0, HitElement.normal)))),
     // The other axe's hilt, then a shoulder that shoves.
     [AttackStyle.jab2]: jabStep(heroMove(4, 2, 14, 0, path(4, [
       capsule(18.0, 60.0, f32(S - 6.0), 58.0, 9.0),
       capsule(18.0, 58.0, f32(S - 6.0), 54.0, 9.0),
-    ], hit(3.179999828338623, "LINK", 70, 1.0, HitElement.normal)))),
+    ], hit(2.861999750137329, "LINK", 70, 1.0, HitElement.normal)))),
     [AttackStyle.jab3]: heroMove(6, 3, 19, 0, path(6, [
       capsule(10.0, 40.0, f32(S + 6.0), 50.0, 14.0),
       capsule(10.0, 40.0, f32(S + 8.0), 48.0, 14.0),
       capsule(10.0, 40.0, f32(S + 4.0), 46.0, 14.0),
-    ], hit(6.359999656677246, "POKE", 40, 1.0, HitElement.normal))),
+    ], hit(5.723999500274658, "POKE", 40, 1.0, HitElement.normal))),
     // Broad Axe: the axe head is the disjoint.
-    [AttackStyle.forwardTilt]: heroMove(10, 3, 23, 0, chop(10, [75.0, 50.0, 28.0], L, hit(11.65999984741211, "EDGE", 35))),
-    [AttackStyle.forwardTiltUp]: heroMove(10, 3, 23, 0, chop(10, [115.0, 135.0, 150.0], L, hit(11.65999984741211, "EDGE", 50))),
-    [AttackStyle.forwardTiltDown]: heroMove(10, 3, 23, 0, chop(10, [10.0, -10.0, -30.0], L, hit(11.65999984741211, "EDGE", 20))),
+    [AttackStyle.forwardTilt]: heroMove(10, 3, 23, 0, chop(10, [75.0, 50.0, 28.0], L, hit(10.493999481201172, "EDGE", 35))),
+    [AttackStyle.forwardTiltUp]: heroMove(10, 3, 23, 0, chop(10, [115.0, 135.0, 150.0], L, hit(10.493999481201172, "EDGE", 50))),
+    [AttackStyle.forwardTiltDown]: heroMove(10, 3, 23, 0, chop(10, [10.0, -10.0, -30.0], L, hit(10.493999481201172, "EDGE", 20))),
     // Antler Lift: the axe rises above the shoulder.
     [AttackStyle.upTilt]: heroMove(9, 4, 23, 0, path(9, [
       capsule(25.0, 70.0, 55.0, 105.0),
       capsule(15.0, 80.0, 22.0, f32(M + 40.0)),
       capsule(0.0, 80.0, 0.0, f32(M + 45.0)),
       capsule(-15.0, 80.0, -28.0, f32(M + 35.0)),
-    ], hit(9.539999961853027, "LAUNCH", 85))),
+    ], hit(8.585999488830566, "LAUNCH", 85))),
     // Low Chop: a short axe sweep at the shins that pops the victim the same
     // height at every percent (no growth), so the bear's follow-up holds.
     [AttackStyle.downTilt]: heroMove(8, 3, 22, 0, path(8, [
       capsule(20.0, 16.0, f32(M - AXE_RADIUS), 14.0),
       capsule(20.0, 12.0, f32(M - AXE_RADIUS), 8.0),
       capsule(20.0, 10.0, f32(M - AXE_RADIUS), 4.0),
-    ], { ...hit(7.419999599456787, "LINK", 80), growth: 0.0, base: 45.0 })),
+    ], { ...hit(6.677999496459961, "LINK", 80), growth: 0.0, base: 45.0 })),
     // Hunter's Shoulder: the body advances 0.5H behind the shoulder and heaves
     // the victim over it, launching it behind him: the chase turns toward his bear.
     [AttackStyle.dashAttack]: heroMove(11, 5, 28, 0, path(11, [
@@ -156,9 +156,9 @@ export const BEASTMASTER_MOVES: FighterMoves = {
       capsule(10.0, 54.0, f32(M - 22.0), 56.0, 22.0),
       capsule(10.0, 52.0, f32(M - 24.0), 54.0, 20.0),
       capsule(10.0, 50.0, f32(M - 26.0), 52.0, 18.0),
-    ], hit(12.719999313354492, "LAUNCH", 45, -1.0, HitElement.normal)), f32(HERO_REFERENCE_HEIGHT * f32(0.5))),
+    ], hit(11.447999000549316, "LAUNCH", 45, -1.0, HitElement.normal)), f32(HERO_REFERENCE_HEIGHT * f32(0.5))),
     // Twin Axe Hew: both axes strike as one action.
-    [AttackStyle.forwardSmash]: heroMove(21, 4, 36, 0, chop(21, [120.0, 85.0, 50.0, 20.0], L, hit(21.19999885559082, "KILL", 40))),
+    [AttackStyle.forwardSmash]: heroMove(21, 4, 36, 0, chop(21, [120.0, 85.0, 50.0, 20.0], L, hit(19.079998016357422, "KILL", 40))),
     // Hunting Horns: twin upward arcs.
     [AttackStyle.upSmash]: heroMove(18, 5, 33, 0, path(18, [
       capsule(30.0, 80.0, 55.0, f32(L - 10.0)),
@@ -166,19 +166,19 @@ export const BEASTMASTER_MOVES: FighterMoves = {
       capsule(0.0, 85.0, 0.0, f32(L + 25.0)),
       capsule(-15.0, 85.0, -22.0, f32(L + 20.0)),
       capsule(-30.0, 80.0, -55.0, f32(L - 10.0)),
-    ], hit(18.01999855041504, "KILL", 85))),
+    ], hit(16.217998504638672, "KILL", 85))),
     // Clearing Sweep: front, then back.
     [AttackStyle.downSmash]: heroMove(17, 6, 34, 0, [
       ...path(17, [
         capsule(22.0, 18.0, f32(L - AXE_RADIUS), 20.0),
         capsule(22.0, 12.0, f32(L - AXE_RADIUS), 10.0),
         capsule(22.0, 10.0, f32(L - AXE_RADIUS), 2.0),
-      ], hit(15.899999618530273, "EDGE", 25)),
+      ], hit(14.309999465942383, "EDGE", 25)),
       ...path(20, [
         capsule(-22.0, 18.0, -f32(L - AXE_RADIUS), 20.0),
         capsule(-22.0, 12.0, -f32(L - AXE_RADIUS), 10.0),
         capsule(-22.0, 10.0, -f32(L - AXE_RADIUS), 2.0),
-      ], hit(15.899999618530273, "EDGE", 25, -1.0)),
+      ], hit(14.309999465942383, "EDGE", 25, -1.0)),
     ]),
     // Axe Circle: one hit around the torso.
     [AttackStyle.neutralAir]: heroMove(8, 6, 23, 15, [
@@ -186,45 +186,45 @@ export const BEASTMASTER_MOVES: FighterMoves = {
         capsule(20.0, 40.0, f32(M - AXE_RADIUS), 40.0),
         capsule(15.0, 60.0, 65.0, 95.0),
         capsule(0.0, 65.0, 0.0, f32(M + 20.0)),
-      ], hit(10.59999942779541, "POKE", 50)),
+      ], hit(9.539999008178711, "POKE", 50)),
       ...path(11, [
         capsule(-15.0, 60.0, -65.0, 95.0),
         capsule(-20.0, 40.0, -f32(M - AXE_RADIUS), 40.0),
         capsule(-15.0, 20.0, -60.0, 0.0),
-      ], hit(10.59999942779541, "POKE", 50, -1.0)),
+      ], hit(9.539999008178711, "POKE", 50, -1.0)),
     ]),
     // Overhand Chop: a slow weapon arc.
-    [AttackStyle.forwardAir]: heroMove(13, 4, 28, 18, chop(13, [110.0, 75.0, 40.0, 10.0], L, hit(14.839999198913574, "KILL", 40))),
+    [AttackStyle.forwardAir]: heroMove(13, 4, 28, 18, chop(13, [110.0, 75.0, 40.0, 10.0], L, hit(13.355998992919922, "KILL", 40))),
     // Hunter's Boot: an exposed leg, so BEASTMASTER_BODY extends it along this path.
     [AttackStyle.backAir]: heroMove(9, 3, 24, 14, path(9, [
       capsule(-12.0, 28.0, -f32(M - 12.0), 30.0, 12.0),
       capsule(-12.0, 32.0, -f32(M - 12.0), 40.0, 12.0),
       capsule(-12.0, 34.0, -f32(M - 12.0), 50.0, 12.0),
-    ], hit(11.65999984741211, "EDGE", 35, -1.0, HitElement.normal))),
+    ], hit(10.493999481201172, "EDGE", 35, -1.0, HitElement.normal))),
     // Axe Lift: narrow, above.
     [AttackStyle.upAir]: heroMove(8, 4, 23, 14, path(8, [
       capsule(8.0, 80.0, 14.0, f32(M + 45.0)),
       capsule(0.0, 80.0, 0.0, f32(M + 50.0)),
       capsule(-8.0, 80.0, -14.0, f32(M + 45.0)),
       capsule(-12.0, 75.0, -30.0, f32(M + 30.0)),
-    ], hit(9.539999961853027, "LAUNCH", 85))),
+    ], hit(8.585999488830566, "LAUNCH", 85))),
     // Downward Hew: a spike against an airborne target, 55 degrees against a grounded one; no forced descent.
     [AttackStyle.downAir]: heroMove(16, 4, 32, 22, path(16, [
       capsule(10.0, 10.0, 20.0, -f32(M - 30.0)),
       capsule(5.0, 10.0, 10.0, -f32(M - 25.0)),
       capsule(0.0, 10.0, 0.0, -f32(M - 25.0)),
       capsule(-5.0, 10.0, -10.0, -f32(M - 30.0)),
-    ], hit(13.779999732971191, "SPIKE", 270), hit(13.779999732971191, "SPIKE", 55))),
+    ], hit(12.401999473571777, "SPIKE", 270), hit(12.401999473571777, "SPIKE", 55))),
     [AttackStyle.grab]: heroMove(8, 2, 25, 0, [heroRegion(8, 9,
       capsule(18.0, 52.0, f32(f32(HERO_REFERENCE_HEIGHT * f32(0.60)) - 10.0), 50.0, 10.0),
       { damage: 0.0, ...NO_LAUNCH })]),
   },
   throws: {
-    // Axe-hilt strike: the shared 3 percent.
-    [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: { damage: 3.179999828338623, ...NO_LAUNCH } },
-    [GrabAction.throwForward]: { contactFrame: 13, totalFrames: 35, effect: hit(8.479999542236328, "EDGE", 35, 1.0, HitElement.normal) },
-    [GrabAction.throwBack]: { contactFrame: 17, totalFrames: 43, effect: hit(9.539999961853027, "EDGE", 40, -1.0, HitElement.normal) },
-    [GrabAction.throwUp]: { contactFrame: 15, totalFrames: 24, effect: hit(7.419999599456787, "JUGGLE", 85, 1.0, HitElement.normal) },
-    [GrabAction.throwDown]: { contactFrame: 19, totalFrames: 44, effect: hit(6.359999656677246, "CHASE", 25, 1.0, HitElement.normal) },
+    // Axe-hilt strike.
+    [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: { damage: 2.861999750137329, ...NO_LAUNCH } },
+    [GrabAction.throwForward]: { contactFrame: 13, totalFrames: 35, effect: hit(7.631999492645264, "EDGE", 35, 1.0, HitElement.normal) },
+    [GrabAction.throwBack]: { contactFrame: 17, totalFrames: 43, effect: hit(8.585999488830566, "EDGE", 40, -1.0, HitElement.normal) },
+    [GrabAction.throwUp]: { contactFrame: 15, totalFrames: 24, effect: hit(6.677999496459961, "JUGGLE", 85, 1.0, HitElement.normal) },
+    [GrabAction.throwDown]: { contactFrame: 19, totalFrames: 44, effect: hit(5.723999500274658, "CHASE", 25, 1.0, HitElement.normal) },
   },
 };
