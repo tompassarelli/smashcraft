@@ -44,3 +44,9 @@ the waterfall and terrain appearance batch, and the shared performance gate.
 The final combined stage artifact belongs to the stage-art worker and native
 captures to `native_r3`; full Lua/tape/performance jobs belong to the shared CI
 worker. Issues #193, #194 and #195 stay open for those checks.
+
+The later #194 helper batch on the integrated source delivered its View
+inputs on frame, but its comparison could not collect a fresh input trace.
+Adding normal movement at frames 15/20 reproduced the same failure. The
+input worker has the two runs; this comparison remains pending. The four
+complete-cycle/replay contracts pass in both Bun and Lua32.
