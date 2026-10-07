@@ -372,6 +372,7 @@ test("setup observes chat open before typing when its first Return closes an alr
 test("bot sessions enable automatic rematch and wait for the second game without selection or a Start press", async () => {
   const bot = recordingRig(gameFiles, "3 Stock 7:00 Automatic rematch: Off Player 2 wins!");
   await Effect.runPromise(journey(bot.rig, { ...R8, build: "typescript-integrity", workload: "bot", botPerf: true }).run);
+  expect(bot.game.stockCount).toBe(3);
   expect(bot.trace).toContain("type a -dev rematch 20");
   expect(bot.trace).toContain("type a -dev auto-rematch on");
   expect(bot.game.automaticRematch).toBe(true);

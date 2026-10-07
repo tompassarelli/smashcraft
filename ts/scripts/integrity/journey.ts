@@ -847,7 +847,8 @@ export function journey(rig: RigShape, options: JourneyOptions) {
     if (bot) yield* botSetup;
     if (matchOnly || playable || bot) yield* characterScreen;
     if (matchOnly || bot) yield* oneMinute;
-    if (matchOnly || playable || bot) yield* reduceStocks;
+    if (matchOnly || playable) yield* reduceStocks;
+    if (bot) yield* stockCount(3);
     if (bot && commands) {
       yield* command("-dev auto-rematch on", { "automatic-rematch": 1 });
       yield* devCommand(firstEpoch, "-dev rematch 20", { rematchSeconds: 20 });
