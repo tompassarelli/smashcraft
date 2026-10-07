@@ -101,7 +101,7 @@ const RUNE = cue("Abilities\\Spells\\Undead\\DarkRitual\\DarkRitualCaster.mdx", 
 /** Every hero's four specials; every form of a special (air, free, follow-up, recall, marked) shows its special's cues. */
 export const HERO_CUES: { readonly [character: number]: { readonly [slot in SpecialSlot]: MoveCues } } = {
   [Character.jaina]: {
-    neutral: { spell: "Frostbolt", startup: ARCANE, active: cue("Abilities\\Weapons\\FrostWyrmMissile\\FrostWyrmMissile.mdx", "hand", 0.5) },
+    neutral: { spell: "Frostbolt", startup: ARCANE, active: cue("Abilities\\Weapons\\SorceressMissile\\SorceressMissile.mdx", "hand", 0.5) },
     side: { spell: "Blizzard", startup: ARCANE, active: cue("Abilities\\Weapons\\LichMissile\\LichMissile.mdx", "hand", f32(0.7)) },
     up: { spell: "Blink", startup: ARCANE, active: cue("Abilities\\Spells\\Human\\MassTeleport\\MassTeleportTarget.mdx", "body", 0.5) },
     down: { spell: "Summon Water Elemental", startup: ARCANE, active: cue("Abilities\\Weapons\\WaterElementalMissile\\WaterElementalMissile.mdx", "hand", f32(0.7)) },
