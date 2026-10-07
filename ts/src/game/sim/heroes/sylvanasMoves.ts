@@ -50,12 +50,14 @@ for (const key in NORMALS) {
   const style = Number(key);
   const move = NORMALS[style];
   if (move === undefined) continue;
-  limbPoses[style] = move.regions.map(region => {
+  limbPoses[style] = move.regions.map((region, index) => {
     const strike = region.hit.strike;
     if (strike === undefined) return heroHurtPose(1, move.totalFrames, SYLVANAS_STAND);
     const x = f32(Math.max(-48.0, Math.min(48.0, strike.x2)));
     const z = f32(Math.max(20.0, Math.min(112.0, strike.z2)));
-    return heroHurtPose(Math.max(1, region.firstFrame - 1), Math.min(move.totalFrames, region.lastFrame + 3), sylvanasReach(x, z));
+    const next = move.regions[index + 1];
+    const last = Math.min(move.totalFrames, region.lastFrame + 3, next === undefined ? move.totalFrames : Math.max(1, next.firstFrame - 1) - 1);
+    return heroHurtPose(Math.max(1, region.firstFrame - 1), last, sylvanasReach(x, z));
   });
 }
 

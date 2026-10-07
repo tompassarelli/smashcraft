@@ -1,0 +1,21 @@
+{
+  "modelSha256": "64a76e88ca5323e6d79b1464ce17e9848a7c79217f75e03a9b1192f2fe7e4091",
+  "totalSequences": 78,
+  "index": 60,
+  "seconds": 1,
+  "contact": 0.5,
+  "unchangedSequences": 77,
+  "contactPosePreserved": true,
+  "pairingContract": {
+    "test": "paired hero throws reach contact on the actual holder's frame across every roster pairing",
+    "scope": "Sylvanas victim; all 21 holders including hidden fighters; two facings; five actions",
+    "pairings": 210,
+    "passed": 210,
+    "failures": 0
+  },
+  "hurtboxLegibility": "No Sylvanas violations; shared remaining failures name Chen and Peon.",
+  "gameplayContracts": {
+    "bunPassed": 26,
+    "bunFailed": 0
+  }
+}

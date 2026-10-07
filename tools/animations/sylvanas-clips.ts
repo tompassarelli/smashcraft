@@ -171,7 +171,41 @@ for(const action of actions) {
   }
   bindings.set(action.name,{index,seconds:(end-start)/1000,...(action.contact?{contact:action.contact}:{})});
 }
+const beforeRetime = new DrawnModel(generateMDX(model), 1);
+const victimPummel = bindings.get("victimPummel")!;
+const victimSequence = model.Sequences[victimPummel.index]!;
+const [victimFirst, victimLast] = victimSequence.Interval;
+const victimContact = victimFirst! + 1000;
+const retimedStart = cursor;
+// Victims meet every holder at 0.5 s; preserve this pose and all other sequence keys.
+tracks(model, track => {
+  if (onGlobalClock(track)) return;
+  for (const key of track.Keys) if (key.Frame >= victimFirst! && key.Frame <= victimLast!) {
+    key.Frame = retimedStart + (key.Frame <= victimContact
+      ? Math.round((key.Frame - victimFirst!) / 2)
+      : 500 + Math.round((key.Frame - victimContact) / (victimLast! - victimContact) * 500));
+  }
+  track.Keys.sort((a, b) => a.Frame - b.Frame);
+});
+victimSequence.Interval = new Uint32Array([retimedStart, retimedStart + 1000]);
+bindings.set("victimPummel", { index: victimPummel.index, seconds: 1, contact: 0.5 });
+const sampleSeconds = (action: Action, frame: number) => action.name === "victimPummel"
+  ? frame <= 60 ? frame / 120 : 0.5 + (frame - 60) / 16 : frame / 60;
 const bytes=encodeVerified(parseSource(generateMDX(model))),before=new DrawnModel(generateMDX(source),1),after=new DrawnModel(bytes,1);
+let unchangedSequences = 0;
+for (const [index, sequence] of model.Sequences.entries()) {
+  if (index === victimPummel.index) continue;
+  for (const facing of [-1, 1]) for (const fraction of [0, 0.25, 0.5, 0.75, 1]) {
+    const time = (sequence.Interval[1] - sequence.Interval[0]) * fraction / 1000;
+    const a = beforeRetime.triangles(index, time, facing), b = after.triangles(index, time, facing);
+    ensure(a.length === b.length && a.every((v, i) => Math.abs(v - b[i]!) < 0.001), `${sequence.Name}: retiming changed another pose`);
+  }
+  unchangedSequences++;
+}
+for (const facing of [-1, 1]) {
+  const a = beforeRetime.triangles(victimPummel.index, 1, facing), b = after.triangles(victimPummel.index, 0.5, facing);
+  ensure(a.length === b.length && a.every((v, i) => Math.abs(v - b[i]!) < 0.001), "Victim pummel contact pose changed");
+}
 for(const [index,s] of source.Sequences.entries())for(const t of [0,0.5,1]) {
   const a=before.triangles(index,(s.Interval[1]-s.Interval[0])*t/1000,1),b=after.triangles(index,(s.Interval[1]-s.Interval[0])*t/1000,1);
   ensure(a.length===b.length && a.every((v,i)=>Math.abs(v-b[i]!)<0.001),`Stock ${s.Name}: pose changed`);
@@ -181,13 +215,13 @@ for(const action of actions) {
   const binding=bindings.get(action.name)!;let travel=0,drift=0;
   const initial=after.triangles(binding.index,0,1);
   for(let f=1;f<=action.frames;f++) {
-    const next=after.triangles(binding.index,f/60,1);ensure(next.length===initial.length && next.length>0,`${action.name}: body disappears`);
+    const next=after.triangles(binding.index,sampleSeconds(action,f),1);ensure(next.length===initial.length && next.length>0,`${action.name}: body disappears`);
     for(let i=0;i<initial.length;i+=2) {const shift=Math.hypot(next[i]!-initial[i]!,next[i+1]!-initial[i+1]!);travel=Math.max(travel,shift);drift=Math.max(drift,shift);}
   }
   if(action.hold)ensure(drift<0.001,`${action.name}: held pose drifts ${drift}`);
   else if(!action.pain)ensure(travel>=5,`${action.name}: dead pose ${travel}`);
   const moments=action.phases.map(p=>Math.round(p.at));
-  const capture=sheet(`Sylvanas ${action.name}`,new DrawnModel(bytes,1.0),[1,-1].flatMap(facing=>moments.map(frame=>({frame,facing,clip:binding.index,seconds:frame/60,phase:AttackPhase.active,x:0,z:0,parts:[],strikes:[]}))),moments.length);
+  const capture=sheet(`Sylvanas ${action.name}`,new DrawnModel(bytes,1.0),[1,-1].flatMap(facing=>moments.map(frame=>({frame:Math.round(sampleSeconds(action,frame)*60),facing,clip:binding.index,seconds:sampleSeconds(action,frame),phase:AttackPhase.active,x:0,z:0,parts:[],strikes:[]}))),moments.length);
   await Bun.write(join(output,`${action.name}.png`),capture.png);
   evidence.push({name:action.name,...binding,travel});
 }
@@ -210,5 +244,5 @@ await Bun.write(join(project,"ts/src/game/presentation/heroes/sylvanasClips.ts")
 const strides = Object.entries(DRAWN_STRIDES).flatMap(([character, data]) => data ? (["walk", "run"] as const).map(motion => ({ character: Number(character) as Character, motion, ...data[motion] })) : []).filter(row => row.character !== Character.sylvanas);
 for (const motion of ["walk", "run"] as const) strides.push(measureDrawnStride(bytes, after, Character.sylvanas, motion, "Units\\Undead\\EvilSylvanas\\EvilSylvanas.mdl"));
 await Bun.write(join(project, "ts/src/game/presentation/drawnStrideInfo.ts"), drawnStrideSource(strides));
-await Bun.write(join(output,"sylvanas-clips.json"),JSON.stringify({sourceBytes:(await Bun.file(input).arrayBuffer()).byteLength,stockSequences:11,actions:evidence},null,2)+"\n");
+await Bun.write(join(output,"sylvanas-clips.json"),JSON.stringify({sourceBytes:(await Bun.file(input).arrayBuffer()).byteLength,stockSequences:11,victimPummel:{index:victimPummel.index,seconds:1,contact:0.5,unchangedSequences,contactPosePreserved:true},actions:evidence},null,2)+"\n");
 console.log(`SYLVANAS_CLIPS_PASS: ${actions.length} authored clips; 11 stock sequences preserved; 9 distinct pain cells; ${bytes.byteLength} model bytes`);
