@@ -133,6 +133,8 @@ export interface SpecialProjectile {
   readonly backOffsetX?: number | undefined;
   /** Not placed when solid stage geometry lies between the owner's offsetZ height and the spawn point. */
   readonly needsLineOfSight?: boolean | undefined;
+  /** Presentation only: a pool model's unscaled horizontal extent, including its particles. */
+  readonly modelRadius?: number | undefined;
   /**
    * Presentation only, never read by the simulation: the stock Warcraft
    * missile it draws, its own spell's (presentation/projectileArt.ts).
@@ -252,6 +254,8 @@ export interface AuthoredSpecial {
   readonly cost: number;
   /** The last frame of the action. */
   readonly endFrame: number;
+  /** Minimum frames between entries of this special input, counted from entry; replayed with the fighter's cooldowns. */
+  readonly cooldownFrames?: number | undefined;
   /** Strike paths in brief frames (heroRegion); each target is struck once per action. */
   readonly regions?: readonly MoveRegion[] | undefined;
   readonly motion?: readonly SpecialMotion[] | undefined;

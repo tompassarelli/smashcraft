@@ -10,12 +10,15 @@ import { f32 } from "wisp/src/sim/f32";
 import { type ParkedFlags, type WorldOrigin, parkOnce } from "./effects";
 import { fighterProjectileModels, projectileModelOf } from "../presentation/projectileArt";
 import { projectedProjectile } from "../presentation/projectilePose";
+import { IMPACT_DEFILE_MODEL } from "../assets/impactAssetInfo";
+import { heroProjectileArt } from "../presentation/projectileArt";
 
 /** One missile model's effects. */
 interface Pool {
   readonly path: string;
   /** Global effect indices, into `models`. */
   readonly effects: readonly number[];
+  readonly boundaries: readonly number[];
 }
 
 export class ProjectilePresentation {
@@ -39,12 +42,20 @@ export class ProjectilePresentation {
       // A hero owns at most three projectiles; one more for a reflected one. The original fighters' main missile can fill every slot.
       const size = hero ? HERO_PROJECTILE_CAP + 1 : index === 0 ? PROJECTILE_CAPACITY : 4;
       const effects: number[] = [];
+      const boundaries: number[] = [];
+      const specials = heroDefinition(character)?.specials;
+      const groundPool = specials !== undefined && heroProjectileArt(specials).some(({ spec }) => spec.model === path && spec.pool !== undefined);
       for (let slot = 0; slot < size; slot++) {
         effects.push(this.models.length);
         this.models.push(AddSpecialEffect(path, origin.x, origin.y));
         this.visible.push(false);
+        if (groundPool) {
+          boundaries.push(this.models.length);
+          this.models.push(AddSpecialEffect(IMPACT_DEFILE_MODEL, origin.x, origin.y));
+          this.visible.push(false);
+        }
       }
-      this.pools.push({ path, effects });
+      this.pools.push({ path, effects, boundaries });
     });
     for (let index = 0; index < PROJECTILE_CAPACITY; index++) this.assigned.push(-1);
     this.clear();
@@ -101,9 +112,20 @@ export class ProjectilePresentation {
       BlzSetSpecialEffectYaw(model, pose.yaw);
       BlzSetSpecialEffectPitch(model, pose.pitch);
       BlzSetSpecialEffectPosition(model, this.origin.x + pose.x, this.origin.y, this.origin.z + pose.z);
-      BlzSetSpecialEffectScale(model, this.scale);
+      BlzSetSpecialEffectScale(model, this.scale * pose.modelScale);
       BlzSetSpecialEffectAlpha(model, 255);
       BlzSetSpecialEffectTimeScale(model, paused ? 0.0 : 1.0);
+      const boundarySlot = pool?.boundaries[pool.effects.indexOf(slot)];
+      const boundary = boundarySlot === undefined ? undefined : this.models[boundarySlot];
+      if (boundary !== undefined && boundarySlot !== undefined && pose.poolRadius > 0.0) {
+        taken[boundarySlot] = true;
+        parked[boundarySlot] = false;
+        BlzSetSpecialEffectPosition(boundary, this.origin.x + pose.x, this.origin.y - 8.0, this.origin.z + pose.z);
+        BlzSetSpecialEffectScale(boundary, pose.poolRadius);
+        BlzSetSpecialEffectColor(boundary, pose.armed ? 170 : 70, pose.armed ? 75 : 65, pose.armed ? 255 : 100);
+        BlzSetSpecialEffectAlpha(boundary, pose.armed ? 255 : 160);
+        BlzSetSpecialEffectTimeScale(boundary, 0.0);
+      }
     }
     for (let index = 0; index < this.models.length; index++) {
       const model = this.models[index];

@@ -7,7 +7,7 @@ import { attackBufferCanonicalState } from "../input/attackBuffer";
 import { PARTICIPANT_CAPACITY, PARTICIPANT_SLOTS, participantActive } from "../input/participants";
 import { at } from "wisp/src/runtime/lookup";
 import { floorMod } from "wisp/src/sim/intMath";
-import { AttackStyle, GrabAction, LAST_ATTACK_STYLE, SPECIAL_ACTION_CAPACITY } from "../sim/codes";
+import { AttackStyle, GrabAction, LAST_ATTACK_STYLE, SPECIAL_ACTION_CAPACITY, SpecialAction } from "../sim/codes";
 import type { FighterMoves } from "../sim/heroMoves";
 import type { AuthoredSpecial, FighterSpecials, SpecialPlacement, SpecialProjectile } from "../sim/heroSpecials";
 import type { HitEffect } from "../sim/hitRegions";
@@ -660,7 +660,10 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   int("specialDuration", sp.duration);
   int("specialLockFrames", sp.lockFrames);
   bool("specialFall", sp.fall);
-  for (let i = 0; i < SPECIAL_ACTION_CAPACITY; i++) int(`specialCooldowns[${i}]`, at(sp.cooldowns, i));
+  for (let i = 0; i < SPECIAL_ACTION_CAPACITY; i++) {
+    const cooldown = at(sp.cooldowns, i);
+    if (i < SpecialAction.heroNeutral || cooldown !== 0) int(`specialCooldowns[${i}]`, cooldown);
+  }
   int("specialDirection", sp.direction);
   bool("specialHit", sp.hit);
   int("bearLife", fighter.bear.life);

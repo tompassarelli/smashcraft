@@ -197,7 +197,28 @@ test("a shielded Val'kyr catches nothing", () => {
   assertEquals(target.status.damage, 0.0);
 });
 
-test("Defile stays through its hits, strikes every 24 frames and widens 10 a body hit up to 0.9H; ground only", () => {
+test("Defile offers a jump escape and at least 120 empty frames before another pool; refused casts spend nothing", () => {
+  for (const facing of [1, -1]) {
+    const { world, owner, target } = pair(f32(H * f32(0.6)), facing);
+    frame(world, down);
+    for (let f = 2; f <= 25; f++) frame(world);
+    frame(world, controls(), controls({ jumpPressed: true, jumpHeld: true, direction: facing }));
+    for (let f = 27; f <= 60; f++) frame(world, controls(), controls({ jumpHeld: true, direction: facing }));
+    assertEquals(target.status.damage, 0.0);
+    assertTrue(!target.motion.grounded);
+    for (let f = 61; f <= 200; f++) frame(world);
+    assertEquals(liveHero(owner), undefined);
+    const mana = owner.mana.points;
+    frame(world, down);
+    assertEquals(owner.special.action, SpecialAction.none);
+    assertEquals(owner.mana.points, mana);
+    for (let f = 202; f <= 320; f++) frame(world);
+    frame(world, down);
+    assertEquals(owner.special.action, SpecialAction.heroDown);
+  }
+});
+
+test("Defile stays through five 2-damage pulses spaced 36 frames; body hits grow the pool but shields do not", () => {
   const { world, owner, target } = pair(f32(H * f32(0.6)));
   frame(world, down);
   for (let f = 2; f <= 30 && liveHero(owner) === undefined; f++) frame(world);
@@ -206,23 +227,40 @@ test("Defile stays through its hits, strikes every 24 frames and widens 10 a bod
   if (pool === undefined || pool.spec === undefined) return;
   const strikes: number[] = [];
   let last = 0.0;
-  for (let f = 0; f < 200 && pool.life > 0; f++) {
+  let widest = heroProjectileRadius(pool, pool.spec);
+  for (let f = 0; f < 300 && pool.life > 0; f++) {
     // Keep the target standing in the pool's middle.
     target.motion.x = pool.x;
     target.motion.vx = 0.0;
-    frame(world);
+    target.motion.z = 0.0;
+    target.motion.grounded = true;
+    target.launch.hitlag = 0;
+    target.launch.hitstun = 0;
+    beginDamageContacts();
+    updateProjectiles(world);
+    finishDamageContacts(world);
     if (target.status.damage !== last) {
       strikes.push(f);
       last = target.status.damage;
+      widest = Math.max(widest, heroProjectileRadius(pool, pool.spec));
     }
   }
-  assertGreaterThan(strikes.length, 3);
-  for (let i = 1; i < strikes.length; i++) assertGreaterThan(strikes[i]! - strikes[i - 1]!, 23);
-  assertNear(heroProjectileRadius(pool, pool.spec), f32(Math.min(f32(H * f32(0.9)), f32(f32(H * f32(0.3)) + f32(10.0 * strikes.length)))), f32(0.01));
+  assertEquals(strikes.length, 5);
+  assertEquals(target.status.damage, 10.0);
+  for (let i = 1; i < strikes.length; i++) assertEquals(strikes[i]! - strikes[i - 1]!, 36);
+  assertNear(widest, f32(f32(H * f32(0.3)) + 30.0), f32(0.01));
+  pool.life = 10;
+  pool.poolHits = 100;
+  assertNear(heroProjectileRadius(pool, pool.spec), f32(H * f32(0.6)), f32(0.01));
   // A pool's growth and wait are rollback state.
   const copy = lichKing(0.0, 1);
   copyFighterState(copy, owner, 3);
   assertEquals(firstFighterDifference(owner, copy, 3, 3), undefined);
+  const shielded = pair(f32(H * f32(0.6)));
+  frame(shielded.world, down, controls({ shield: true }));
+  for (let f = 2; f <= 150; f++) frame(shielded.world, controls(), controls({ shield: true }));
+  assertEquals(shielded.target.status.damage, 0.0);
+  assertEquals(liveHero(shielded.owner)?.poolHits, 0);
   // In the air Defile doesn't start.
   const air = pair(1000.0);
   air.owner.motion.grounded = false;

@@ -86,8 +86,8 @@ export const SpecialAction = {
 } as const;
 export type SpecialAction = (typeof SpecialAction)[keyof typeof SpecialAction];
 
-/** One cooldown per original special action, indexed by its code, beside its mana cost (sim/mana.ts); hero actions have none. */
-export const SPECIAL_ACTION_CAPACITY = 13;
+/** One cooldown per special input, indexed by its code; hero kits author their own costs and waits. */
+export const SPECIAL_ACTION_CAPACITY = 17;
 
 /** A hero projectile carries its authored record in Projectile.spec. */
 export const ProjectileKind = { blaster: 0, arrow: 1, homingArrow: 2, recoil: 3, manaBurn: 4, hero: 5 } as const;

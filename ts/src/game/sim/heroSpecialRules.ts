@@ -107,6 +107,7 @@ const choice: HeroSpecialChoice = { slot: SpecialSlot.neutral, form: SpecialForm
 export function chooseHeroSpecial(f: Readonly<Fighter>, specials: Readonly<FighterSpecials>, input: Readonly<Controls>, out: { manaShort: boolean }, world?: Roster): HeroSpecialChoice | undefined {
   out.manaShort = false;
   const slot = requestedSlot(input);
+  if ((f.special.cooldowns[SpecialAction.heroNeutral + slot] ?? 0) > 0) return undefined;
   const kit = specialKit(specials, slot);
   const airborne = !f.motion.grounded;
   const recalls = kit.recall !== undefined && recallHolds(f, kit);
@@ -166,6 +167,7 @@ export function enterHeroSpecial(f: Fighter, chosen: Readonly<HeroSpecialChoice>
   special.guarded = false;
   if (chosen.form === SpecialForm.soul) spendSoul(f);
   spendMana(f, move.cost);
+  special.cooldowns[SpecialAction.heroNeutral + chosen.slot] = move.cooldownFrames ?? 0;
   if (move.oncePerAirtime === true) special.airtimeUses |= 1 << chosen.slot;
   if (move.recallsProjectiles === true) recallProjectiles(f);
   applyWindows(f, move, 0);
@@ -512,9 +514,9 @@ export function advanceHeroStatus(f: Fighter): void {
   advanceHeroConditions(f);
 }
 
-/** Whether a special action is off cooldown; hero actions have none. */
+/** Whether a special input is off its authored cooldown. */
 export function specialCooldownReady(f: Readonly<Fighter>, action: number): boolean {
-  return isHeroSpecialAction(action) || (f.special.cooldowns[action] ?? 0) <= 0;
+  return (f.special.cooldowns[action] ?? 0) <= 0;
 }
 
 /**

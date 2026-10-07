@@ -1,5 +1,16 @@
 # Contextual contact comparisons
 
+Defile's ground denial (#174) is bounded by a 180-frame pool, five possible
+2-damage pulses at 36-frame intervals, growth of 6 per body hit up to 0.6H,
+and 320 frames between cast entries. Compared with the original 300-frame
+pool's twelve possible 3-damage pulses, it rewards keeping an opponent on the
+deck for a shorter time. Jumping leaves its danger; shielding blocks without
+growing it. The cast still costs 20 mana and commits through frame 46. Its
+warning lasts 18 pool frames, and the bright rim follows the current radius.
+The bounded pressure sample is
+smashcraft:evidence/defile-pressure-20261007/pressure.jsonl; roster balance is
+measured separately by the field gate.
+
 Run `~/code/smashcraft/worktrees/playable-integration-20261005/tools/move-data/compare.sh`
 from the current owned checkout. It runs the pinned Bun TypeScript comparison
 fixtures and writes smashcraft:build/move-comparisons/comparisons.jsonl. The

@@ -84,21 +84,24 @@ function ascension(cost: number, height: number, vortex: boolean): AuthoredSpeci
 
 /**
  * Defile: a shadow pool 0.6H ahead of him on frame 20, where he can see. From
- * age 10 it strikes a grounded body inside it every 24 frames, and each hit
- * that reaches a body widens it by 10, up to 0.9H; it lasts 300 frames. One at
- * a time; on the ground only. Jump over it or stay out.
+ * age 18 it strikes a grounded body inside it every 36 frames, and each hit
+ * that reaches a body widens it by 6, up to 0.6H; it lasts 180 frames. One at
+ * a time, at least 320 frames between casts. Jump over it or stay out.
  */
 const DEFILE_POOL: SpecialProjectile = {
   model: "Abilities\\Spells\\Demon\\DarkPortal\\DarkPortalTarget.mdx",
+  // The stock particles extend to 1222.223 (scripts/wisp/modelFacts.ts); keep them inside the rim.
+  modelRadius: 1223.0,
   spawnFrame: 20, offsetX: h(f32(0.6)), offsetZ: 6.0, velocityX: 0.0, velocityZ: 0.0,
-  life: 300, activeFrom: 10, radius: h(f32(0.3)),
-  effect: { damage: 3.0, growth: 30.0, base: 30.0, launchX: f32(0.173648178), launchZ: f32(0.984807753), electric: false, element: HitElement.dark },
+  life: 180, activeFrom: 18, radius: h(f32(0.3)),
+  effect: { damage: 2.0, growth: 30.0, base: 30.0, launchX: f32(0.173648178), launchZ: f32(0.984807753), electric: false, element: HitElement.dark },
   reflectable: false, limit: 1, needsLineOfSight: true,
-  pool: { every: 24, growth: 10.0, maxRadius: h(f32(0.9)) },
+  pool: { every: 36, growth: 6.0, maxRadius: h(f32(0.6)) },
 };
 const DEFILE: AuthoredSpecial = {
   cost: 20,
   endFrame: 46,
+  cooldownFrames: 320,
   groundOnly: true,
   projectiles: [DEFILE_POOL],
 };
@@ -126,7 +129,7 @@ export const LICH_KING_SPECIALS: FighterSpecials = {
   },
   down: {
     name: "Defile",
-    description: "A shadow pool on the ground that grows each time it hurts someone. One at a time.",
+    description: "A short-lived shadow pool that grows when it hurts a grounded foe. Jump out; another cast must wait.",
     ground: DEFILE,
   },
 };

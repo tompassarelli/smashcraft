@@ -364,6 +364,8 @@ function flyHeroProjectile(world: Roster, ownerSlot: number, projectile: Project
     const body = hurtCapsule(target.character);
     const targetX = at(targets.x, targetSlot);
     const targetZ = at(targets.z, targetSlot);
+    // Ground pools deny the deck, so jumping leaves their danger even while above the pool.
+    if (spec.pool !== undefined && !target.motion.grounded) continue;
     const reach = f32(radius + body.radius);
     const crossed = f32(f32(targetX - oldX) * direction) >= 0 && f32(f32(targetX - projectile.x) * direction) <= 0;
     const near = Math.abs(f32(targetX - projectile.x)) <= reach;
@@ -491,7 +493,7 @@ export function updateProjectiles(world: Roster, stage?: number, matchFrame = 0)
       if (nearest !== undefined && pool !== undefined) {
         // A pool stays: it waits before striking again and widens on a body.
         applyProjectileHit(world, ownerSlot, nearest, projectile, selected.shield);
-        projectile.poolWait = pool.every;
+        projectile.poolWait = pool.every - 1;
         if (!selected.shield) projectile.poolHits++;
       } else if (nearest !== undefined) {
         if (!(selected.reflector && reflectProjectile(fighterAt(world, nearest), projectile))) {

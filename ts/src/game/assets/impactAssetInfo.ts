@@ -9,3 +9,4 @@ export const IMPACT_SHIELD_MODEL = "war3mapImported\\ImpactShield-45ee2244518462
 export const IMPACT_JUMP_MODEL = "war3mapImported\\ImpactJump-2819c9b61c83f2dd214fa7ece4262c69abfb4cd90d7efaf8687544253577869f.mdx";
 export const IMPACT_KO_MODEL = "war3mapImported\\ImpactKO-3f455594c218cda43d93f025b3997bced37c0e224cc1cd1ec40b8806899f5bf4.mdx";
 export const IMPACT_RESPAWN_MODEL = "war3mapImported\\ImpactRespawn-8948249a993a5287433c1123220cbaec68c6cb111bd6ef748b2c4f02bfa5dd20.mdx";
+export const IMPACT_DEFILE_MODEL = "war3mapImported\\ImpactDefile-56757f54efcdc08ae71b6a530ca59fe7c1016741718a5f4212d8e16b805ad696.mdx";

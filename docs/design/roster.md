@@ -1127,9 +1127,14 @@ his normals, and respect the empowered special the pips announce.
   frames 8-30, steered 0.35H, inside a frost vortex that strikes once (9),
   then a helpless fall. The free form rises 1.3H with no vortex.
 - **Defile** (down, 20 mana, ground only): a shadow pool 0.6H ahead on frame
-  20, where he can see, for 300 frames. From age 10 it strikes a grounded body
-  in it every 24 frames (3) and widens 10 per body hit, up to 0.9H. One at a
-  time. Jump over it or stay out.
+  20, where he can see, for 180 frames. Its rim warns for 18 pool frames,
+  then turns bright violet: each 2-damage strike is at least 36 frames apart
+  and grows the radius by 6, from 0.3H to at most 0.6H. Airborne foes are safe;
+  shields block without growing it. One at a time, 320 frames between casts,
+  leaving at least 120 frames with no pool. He commits through frame 46:
+  jump away, roll out, shield, or punish the cast. The rim follows the actual
+  radius, including growth; an overlapping grounded body can touch it from
+  outside its centre. Delegated rework, 7 Oct (#174).
 
 ### Ultimate (designed, not built)
 

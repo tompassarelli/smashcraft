@@ -113,6 +113,16 @@ const effectChecks: NativeCheck[] = [12, 13, 14, 15, 24, 2, 7, 5, 6, 4, 9, 11, 2
 export const SMASHCRAFT_ACCEPT: AcceptSuite = {
   maps: MAP_PROFILES,
   checks: [
+    ...(["a", "b"] as const).map((client): NativeCheck => ({
+      id: `174-defile-${client}`,
+      closes: "smashcraft#174 box 2",
+      map: heroProfile("Lich King"),
+      session: "174-defile",
+      setup: [{ waitMs: 3000 }, { keys: ["e+u"], client }],
+      capture: [{ kind: "frames", name: "cast-and-pool", client, count: 16, everyMs: 50 }],
+      pass: [NO_IMPORT_FAILURES, NO_ERRORS],
+      look: "Frostmourne's downward cast plants the shadow pool ahead; its low rim changes from dim to violet when armed, stays at the pool's horizontal danger edge, and faces the other way for player 2. Scripted repeated casts and the jump escape are smashcraft:ts/test/native/pads/lich-king-defile.pad.",
+    })),
     // First in its session, so its frames show the map as it loaded.
     {
       id: "73-map-load",

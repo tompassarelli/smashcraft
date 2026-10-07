@@ -1,4 +1,4 @@
-import { assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
+import { assertEquals, assertFalse, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { createFrameControls } from "../match/controls";
 import { createPacingAndPresentation } from "../match/pacingAndPresentation";
@@ -8,6 +8,36 @@ import { Character, ProjectileKind } from "../sim/codes";
 import { PROJECTILE_CAPACITY, type Projectile, createFighter } from "../sim/fighter";
 import { createRoster } from "../sim/roster";
 import { projectedProjectile } from "./projectilePose";
+import { LICH_KING_SPECIALS } from "../sim/heroes/lichKingSpecials";
+import { heroProjectileRadius } from "../sim/projectiles";
+
+test("Defile's rim follows its danger radius and distinguishes its warning from its armed pool across rollback", () => {
+  const fighter = createFighter(Character.lichKing, 0.0, 1);
+  const projectile = projectileAt(fighter.projectiles, 0);
+  const spec = LICH_KING_SPECIALS.down.ground.projectiles?.[0];
+  assertTrue(spec !== undefined);
+  if (spec === undefined) return;
+  projectile.kind = ProjectileKind.hero;
+  projectile.spec = spec;
+  projectile.life = spec.life;
+  projectile.x = 79.0;
+  projectile.z = 6.0;
+  const warning = projectedProjectile(fighter, 0, true);
+  assertTrue(warning.visible);
+  assertFalse(warning.armed);
+  assertEquals(warning.poolRadius, heroProjectileRadius(projectile, spec));
+  projectile.life -= spec.activeFrom ?? 0;
+  projectile.poolHits = 3;
+  const grown = projectedProjectile(fighter, 0, true);
+  assertTrue(grown.armed);
+  assertEquals(grown.poolRadius, heroProjectileRadius(projectile, spec));
+  assertNear(grown.modelScale * (spec.modelRadius ?? 1.0), grown.poolRadius, f32(0.001));
+  projectile.life = spec.life;
+  projectile.poolHits = 0;
+  const restored = projectedProjectile(fighter, 0, true);
+  assertEquals(restored.poolRadius, warning.poolRadius);
+  assertEquals(restored.armed, warning.armed);
+});
 
 function projectileAt(projectiles: readonly Projectile[], index: number): Projectile {
   const projectile = projectiles[index];
