@@ -4,6 +4,8 @@ import { parseMDL, generateMDX, parseMDX } from "../animations/node_modules/war3
 import { join } from "node:path";
 import { STAGE_PALETTE_TEXTURE, mainDeckFaces, mainDeckMdl, mainDeckModelFile, mainDeckOutlineStage, paletteTexture } from "../../ts/scripts/stageDeck";
 import { STAGE_DECK_PALETTES } from "../../ts/src/game/assets/stagePalette";
+import { STAGE_LIGHTS } from "../../ts/src/game/assets/stageLighting";
+import { stageLightMdl, stageLightModelFile } from "../../ts/scripts/stageLight";
 
 const output = join(import.meta.dir, "../../build/stage-assets");
 const { coordinate } = STAGE_PALETTE_TEXTURE;
@@ -128,5 +130,22 @@ await Bun.write(join(output, snowName), snowBytes);
 await Bun.write(join(output, "StageSnow.mdl"), snowMdl);
 const infoPath = join(import.meta.dir, "../../ts/src/game/assets/stageAssetInfo.ts");
 await Bun.write(infoPath, `${await Bun.file(infoPath).text()}/** Drifting snow behind the fighting plane, using the stock snowflake texture. */\nexport const STAGE_SNOW_MODEL = ${JSON.stringify(`war3mapImported\\${snowName}`)};\n`);
-await Bun.write(join(output, "imports.txt"), `${[...imports, snowName].join("\n")}\n`);
 console.log(`Stage snow: three emitters, stock snowflake texture; ${snowName}`);
+
+// Each stage's lighting model: one directional light with constant colours (ts/scripts/stageLight.ts).
+const lights: string[] = [];
+const lightNames: string[] = [];
+for (const { stage, theme, light } of STAGE_LIGHTS) {
+    const mdl = stageLightMdl(light);
+    const name = stageLightModelFile(mdl);
+    const bytes = new Uint8Array(generateMDX(parseMDL(mdl)));
+    const lite = parseMDX(bytes.buffer).Lights[0];
+    if (lite === undefined || lite.LightType !== 1) throw new Error(`${theme}: the lighting model has no directional light`);
+    await Bun.write(join(output, name), bytes);
+    await Bun.write(join(output, `StageLight${theme}.mdl`), mdl);
+    lightNames.push(name);
+    lights.push(`  ${stage}: ${JSON.stringify(`war3mapImported\\${name}`)},`);
+}
+await Bun.write(infoPath, `${await Bun.file(infoPath).text()}/** Each selectable stage's day/night lighting model, from its light in stageLighting.ts. */\nexport const STAGE_LIGHT_MODELS: Readonly<Record<number, string>> = {\n${lights.join("\n")}\n};\n`);
+await Bun.write(join(output, "imports.txt"), `${[...imports, snowName, ...lightNames].join("\n")}\n`);
+console.log(`Stage lights: ${STAGE_LIGHTS.length} lighting models`);

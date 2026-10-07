@@ -1,6 +1,6 @@
 // Stage scenery is presentation only: arena coordinates never become collision.
 // Composition rules (asymmetric dressing, depth bands, motion budget): smashcraft:docs/design/stage-art.md.
-import { STAGE_SNOW_MODEL } from "../assets/stageAssetInfo";
+import { STAGE_LIGHT_MODELS, STAGE_SNOW_MODEL } from "../assets/stageAssetInfo";
 import { AHNQIRAJ_SCENERY, BLACKROCK_SCENERY, GRYPHON_SCENERY, NORDRASSIL_SCENERY } from "./hazardStageScenery";
 import { DUROTAR_SCENERY, HELLFIRE_SCENERY, NAXXRAMAS_SCENERY } from "./patrolStageScenery";
 import { CANNON_TEST_STAGE, CARRIED_TEST_STAGE, DRIFTING_DECK_STAGE, FROZEN_THRONE_STAGE, HELLFIRE_STAGE, PATTERNED_DECKS_STAGE, TIMED_TEST_STAGE, WIND_TEST_STAGE } from "../sim/stage";
@@ -42,6 +42,11 @@ const FROZEN_THRONE: StageScenery = {
     { model: STAGE_SNOW_MODEL, x: 0.0, y: 4000.0, z: 0.0, scale: 1.0, yaw: 0.0 },
   ],
 };
+
+/** The stage's day/night lighting model (stageLighting.ts); a stage without its own takes the neutral one. */
+export function stageLightModel(stage: number): string {
+  return STAGE_LIGHT_MODELS[stage] ?? STAGE_LIGHT_MODELS[0] ?? "";
+}
 
 export function stageScenery(stage: number): StageScenery {
   if (stage === FROZEN_THRONE_STAGE) return FROZEN_THRONE;
