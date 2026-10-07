@@ -1,0 +1,182 @@
+[
+  {
+    "file": "match-2.json",
+    "kind": "scene",
+    "before": 947,
+    "after": 4,
+    "reduction": 99.57761351636748,
+    "seconds": 197.791025487,
+    "same": true
+  },
+  {
+    "file": "match-30.json",
+    "kind": "invisible",
+    "before": 346,
+    "after": 0,
+    "reduction": 100,
+    "seconds": 2.7005396649999893,
+    "same": true
+  },
+  {
+    "file": "match-31.json",
+    "kind": "invisible",
+    "before": 745,
+    "after": 0,
+    "reduction": 100,
+    "seconds": 2.9200296979999987,
+    "same": true
+  },
+  {
+    "file": "match-32.json",
+    "kind": "invisible",
+    "before": 972,
+    "after": 0,
+    "reduction": 100,
+    "seconds": 3.2278355649999866,
+    "same": true
+  },
+  {
+    "file": "match-33.json",
+    "kind": "invisible",
+    "before": 390,
+    "after": 0,
+    "reduction": 100,
+    "seconds": 1.5224573699999893,
+    "same": true
+  },
+  {
+    "file": "match-34.json",
+    "kind": "invisible",
+    "before": 332,
+    "after": 0,
+    "reduction": 100,
+    "seconds": 1.5957865409999794,
+    "same": true
+  },
+  {
+    "file": "match-35.json",
+    "kind": "invisible",
+    "before": 665,
+    "after": 0,
+    "reduction": 100,
+    "seconds": 1.4915485259999988,
+    "same": true
+  },
+  {
+    "file": "match-36.json",
+    "kind": "invisible",
+    "before": 899,
+    "after": 0,
+    "reduction": 100,
+    "seconds": 2.4809029269999883,
+    "same": true
+  },
+  {
+    "file": "match-37.json",
+    "kind": "invisible",
+    "before": 353,
+    "after": 0,
+    "reduction": 100,
+    "seconds": 1.708820413999987,
+    "same": true
+  },
+  {
+    "file": "match-38.json",
+    "kind": "invisible",
+    "before": 277,
+    "after": 0,
+    "reduction": 100,
+    "seconds": 1.3431255349999993,
+    "same": true
+  },
+  {
+    "file": "match-39.json",
+    "kind": "invisible",
+    "before": 689,
+    "after": 0,
+    "reduction": 100,
+    "seconds": 2.0100950409999934,
+    "same": true
+  },
+  {
+    "file": "match-40.json",
+    "kind": "invisible",
+    "before": 1104,
+    "after": 0,
+    "reduction": 100,
+    "seconds": 2.2996890060000004,
+    "same": true
+  },
+  {
+    "file": "match-41.json",
+    "kind": "invisible",
+    "before": 1004,
+    "after": 0,
+    "reduction": 100,
+    "seconds": 2.235990296999982,
+    "same": true
+  },
+  {
+    "file": "match-42.json",
+    "kind": "invisible",
+    "before": 1053,
+    "after": 0,
+    "reduction": 100,
+    "seconds": 2.272392899999977,
+    "same": true
+  },
+  {
+    "file": "match-43.json",
+    "kind": "invisible",
+    "before": 468,
+    "after": 0,
+    "reduction": 100,
+    "seconds": 1.555289608000021,
+    "same": true
+  },
+  {
+    "file": "match-44.json",
+    "kind": "invisible",
+    "before": 1124,
+    "after": 0,
+    "reduction": 100,
+    "seconds": 2.604289695000014,
+    "same": true
+  },
+  {
+    "file": "match-45.json",
+    "kind": "invisible",
+    "before": 749,
+    "after": 0,
+    "reduction": 100,
+    "seconds": 2.072549077999982,
+    "same": true
+  },
+  {
+    "file": "match-46.json",
+    "kind": "invisible",
+    "before": 604,
+    "after": 0,
+    "reduction": 100,
+    "seconds": 1.7809550800000142,
+    "same": true
+  },
+  {
+    "file": "match-47.json",
+    "kind": "invisible",
+    "before": 528,
+    "after": 0,
+    "reduction": 100,
+    "seconds": 2.0333048830000044,
+    "same": true
+  },
+  {
+    "file": "match-48.json",
+    "kind": "invisible",
+    "before": 830,
+    "after": 0,
+    "reduction": 100,
+    "seconds": 2.3357946010000012,
+    "same": true
+  }
+]
