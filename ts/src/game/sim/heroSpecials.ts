@@ -179,6 +179,12 @@ interface ProjectilePool {
  * facing, never aimed, unless its owner is held or in hitstun.
  */
 export interface SpecialPlacement {
+  /** Zero is the ordinary placed object; Beastmaster's 1 and 2 are Quilbeast and Hawk. */
+  readonly slot?: number | undefined;
+  readonly offsetZ?: number | undefined;
+  /** Recovery may call a missing animal without repairing an existing one. */
+  readonly keepExisting?: boolean | undefined;
+  readonly model?: { readonly path: string; readonly height: number; readonly alpha: number } | undefined;
   /** The action frame the object appears on. */
   readonly frame: number;
   readonly offsetX: number;
@@ -198,6 +204,12 @@ export interface SpecialPlacement {
  * owner orders it. Speeds and distances are per frame and in world units.
  */
 export interface SpecialCompanion {
+  /** A perched ranged companion holds its position; a flying one follows above the owner. */
+  readonly behavior?: "sentry" | "flying" | undefined;
+  readonly followHeight?: number | undefined;
+  readonly lungeDrop?: number | undefined;
+  /** Fires the placement's shot at these command frames instead of biting. */
+  readonly volleyFrames?: readonly number[] | undefined;
   /** Following: it walks toward a point `followBehind` behind its owner at this speed. */
   readonly followSpeed: number;
   readonly followBehind: number;
@@ -280,7 +292,7 @@ export interface AuthoredSpecial {
   /** Completing the action removes the fighter's placed object. */
   readonly recall?: boolean | undefined;
   /** On `frame`, orders the fighter's partner; a lunge order refuses to start while the partner is lunging or stunned. */
-  readonly command?: { readonly frame: number; readonly order: CompanionOrder } | undefined;
+  readonly command?: { readonly frame: number; readonly order: CompanionOrder; readonly slot?: number | undefined } | undefined;
   /** Entering it turns the fighter's returning projectiles back toward it at once. */
   readonly recallsProjectiles?: boolean | undefined;
   readonly commandGrab?: CommandGrab | undefined;
@@ -334,6 +346,8 @@ export interface SpecialKit {
    * (Frost Nova's burst), or the fighter's armor shell holding (Dark Ritual).
    */
   readonly recallWhile?: "projectile" | "armor" | undefined;
+  /** The airborne up-special still recovers when a grounded companion command exists. */
+  readonly recallGroundOnly?: boolean | undefined;
   /**
    * Chosen instead of the ground and air forms while an opponent within
    * `range` is marked: poisoned (Warden's Shadow Pursuit).

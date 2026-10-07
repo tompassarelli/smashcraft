@@ -7,7 +7,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, ProjectileKind } from "./codes";
 import { inGrabContext } from "./conditions";
 import { staggerCompanion } from "./companions";
-import type { Fighter } from "./fighter";
+import { type Fighter, type PlacedObject, placedObject } from "./fighter";
 import { HERO_PROJECTILE_CAP, runningHeroSpecial, spawnHeroProjectileAt } from "./heroSpecialRules";
 import type { SpecialPlacement } from "./heroSpecials";
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "./hitRegions";
@@ -24,8 +24,7 @@ const body = emptyCapsule();
 const strike = emptyCapsule();
 const region = emptyHitRegion();
 
-function placeBody(f: Readonly<Fighter>, spec: Readonly<SpecialPlacement>): void {
-  const { placed } = f;
+function placeBody(placed: Readonly<PlacedObject>, spec: Readonly<SpecialPlacement>): void {
   body.x1 = placed.x;
   body.x2 = placed.x;
   body.z1 = f32(placed.z + spec.radius);
@@ -34,10 +33,10 @@ function placeBody(f: Readonly<Fighter>, spec: Readonly<SpecialPlacement>): void
 }
 
 /** The damage the source's running normal deals the object this frame, once per attack; 0 for none. */
-function normalStrike(owner: Fighter, sourceSlot: number, source: Readonly<Fighter>): number {
+function normalStrike(placed: PlacedObject, sourceSlot: number, source: Readonly<Fighter>): number {
   const { attack } = source;
   const style = attack.style;
-  if (style === undefined || style === AttackStyle.grab || attack.dashGrab || owner.placed.struck[sourceSlot] === attack.serial) return 0.0;
+  if (style === undefined || style === AttackStyle.grab || attack.dashGrab || placed.struck[sourceSlot] === attack.serial) return 0.0;
   const moves = source.tuning.moves;
   for (let index = 0; index < authoredHitRegionCount(style, moves); index++) {
     authoredHitRegion(region, source.character, style, attack.frame, attack.smashChargeFrames, index, moves);
@@ -45,24 +44,24 @@ function normalStrike(owner: Fighter, sourceSlot: number, source: Readonly<Fight
     attackCapsule(strike, style, region);
     placeCapsule(strike, strike, source.motion.x, source.motion.z, source.facing);
     if (!capsulesIntersect(strike, body)) continue;
-    owner.placed.struck[sourceSlot] = attack.serial;
+    placed.struck[sourceSlot] = attack.serial;
     return region.effect.damage;
   }
   return 0.0;
 }
 
 /** The damage the source's running hero special deals the object this frame, once per action; 0 for none. */
-function specialStrike(owner: Fighter, sourceSlot: number, source: Readonly<Fighter>): number {
+function specialStrike(placed: PlacedObject, sourceSlot: number, source: Readonly<Fighter>): number {
   const bit = 1 << sourceSlot;
   const move = runningHeroSpecial(source);
-  if (move === undefined || source.special.frame <= 1) owner.placed.specialStruck &= ~bit;
-  if (move === undefined || (owner.placed.specialStruck & bit) !== 0) return 0.0;
+  if (move === undefined || source.special.frame <= 1) placed.specialStruck &= ~bit;
+  if (move === undefined || (placed.specialStruck & bit) !== 0) return 0.0;
   const frame = source.special.frame - 1;
   for (const path of move.regions ?? []) {
     if (frame < path.firstFrame || frame > path.lastFrame || path.hit.strike === undefined) continue;
     placeCapsule(strike, path.hit.strike, source.motion.x, source.motion.z, source.facing);
     if (!capsulesIntersect(strike, body)) continue;
-    owner.placed.specialStruck |= bit;
+    placed.specialStruck |= bit;
     return path.hit.effect.damage;
   }
   return 0.0;
@@ -96,29 +95,31 @@ export function advancePlacedObjects(world: Roster): void {
   for (let ownerSlot = 0; ownerSlot < PARTICIPANT_CAPACITY; ownerSlot++) {
     if (!isActive(world, ownerSlot)) continue;
     const owner = fighterAt(world, ownerSlot);
-    const { placed } = owner;
-    const spec = placed.spec;
-    if (placed.life <= 0 || spec === undefined) continue;
-    placeBody(owner, spec);
-    for (let sourceSlot = 0; sourceSlot < PARTICIPANT_CAPACITY; sourceSlot++) {
-      if (sourceSlot === ownerSlot || !isActive(world, sourceSlot)) continue;
-      const source = fighterAt(world, sourceSlot);
-      if (source.status.out) continue;
-      const damage = f32(f32(normalStrike(owner, sourceSlot, source) + specialStrike(owner, sourceSlot, source)) + projectileStrikes(source));
-      placed.durability = f32(placed.durability - damage);
-      if (damage > 0.0) staggerCompanion(owner);
-    }
-    placed.age++;
-    placed.life--;
-    if (placed.durability <= 0.0) placed.life = 0;
-    if (placed.life <= 0) continue;
-    let scheduled = false;
-    for (const age of spec.fireAges) if (age === placed.age) scheduled = true;
-    const fires = scheduled && !inGrabContext(owner) && owner.launch.hitstun <= 0 && !owner.status.out;
-    const { shot } = spec;
-    if (fires && shot !== undefined && ownedProjectiles(owner) < HERO_PROJECTILE_CAP) {
-      const x = f32(placed.x + f32(placed.direction * shot.offsetX));
-      spawnHeroProjectileAt(owner, shot, x, f32(placed.z + shot.offsetZ), placed.direction, false, owner.attack.serial + 1);
+    for (let animal = 0; animal <= owner.pack.length; animal++) {
+      const placed = placedObject(owner, animal);
+      const spec = placed.spec;
+      if (placed.life <= 0 || spec === undefined) continue;
+      placeBody(placed, spec);
+      for (let sourceSlot = 0; sourceSlot < PARTICIPANT_CAPACITY; sourceSlot++) {
+        if (sourceSlot === ownerSlot || !isActive(world, sourceSlot)) continue;
+        const source = fighterAt(world, sourceSlot);
+        if (source.status.out) continue;
+        const damage = f32(f32(normalStrike(placed, sourceSlot, source) + specialStrike(placed, sourceSlot, source)) + projectileStrikes(source));
+        placed.durability = f32(placed.durability - damage);
+        if (damage > 0.0) staggerCompanion(placed);
+      }
+      placed.age++;
+      placed.life--;
+      if (placed.durability <= 0.0) placed.life = 0;
+      if (placed.life <= 0) continue;
+      let scheduled = false;
+      for (const age of spec.fireAges) if (age === placed.age) scheduled = true;
+      const fires = scheduled && !inGrabContext(owner) && owner.launch.hitstun <= 0 && !owner.status.out;
+      const { shot } = spec;
+      if (fires && shot !== undefined && ownedProjectiles(owner) < HERO_PROJECTILE_CAP) {
+        const x = f32(placed.x + f32(placed.direction * shot.offsetX));
+        spawnHeroProjectileAt(owner, shot, x, f32(placed.z + shot.offsetZ), placed.direction, false, owner.attack.serial + 1);
+      }
     }
   }
 }
