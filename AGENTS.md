@@ -348,6 +348,10 @@ code. From smashcraft:ts/:
   headless integrity clients. It passes a native run when checksums, fighter
   lines and the script's `#!` expectations match (smashcraft:docs/native-bot-session.md,
   "Native checks by parity"; issue scripts in smashcraft:ts/test/native/pads/).
+  Comparisons preflight the existing View replay export before starting helpers
+  or native sessions: hold at least 60 frames and release (normally 70), after
+  the last capture to preserve authored action frames. Missing exports fail
+  early; actual moments and checksum parity remain required.
   Several scripts are one batch, and the batch is how native parity runs:
   `bun wisp pad SCRIPT|DIR... --helper BINARY --out DIR --map MAP.w3x
   [--pairs N | --pair K... | --app-id a=ID --app-id b=ID]` starts ONE game per client pair,

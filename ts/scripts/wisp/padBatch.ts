@@ -18,7 +18,7 @@ import { UsageFailure, describeCause } from "wisp/scripts/wisp/command";
 import { RESET_COMMAND } from "../../src/game/shell/devSettings";
 import { devCommandReceiptFile } from "../../src/runtime/gameFiles";
 import { IntegrityFailure } from "../integrity/evidence";
-import { compareRuns, scriptChat } from "../integrity/padParity";
+import { compareRuns, comparisonSteps, scriptChat } from "../integrity/padParity";
 import { parsePadScript } from "../integrity/padScript";
 import { onHealthyClients } from "./doctor";
 import { type PadOptions, type NativeSession, headlessScript, headlessSession, nativeChat, nativeScript, nativeSession } from "./commands/pad";
@@ -206,10 +206,11 @@ const prepare = (options: BatchOptions) => Effect.gen(function*() {
       const text = readFileSync(script, "utf8");
       const chat = scriptChat(text);
       if (chat === undefined) throw new Error(`${script} has no \`#! chat\` line: a batch starts each match with its script's command`);
+      const steps = comparisonSteps(text, script);
       const name = label(script, taken);
       const dir = join(options.out, name);
       mkdirSync(dir, { recursive: true });
-      return { script, text, steps: parsePadScript(text), chat, label: name, dir };
+      return { script, text, steps, chat, label: name, dir };
     }),
     catch: (cause) => new UsageFailure({ problem: describeCause(cause) }),
   });

@@ -280,6 +280,24 @@ the integrity build (`bun wisp map rebuild MAP.w3x --profile integrity`,
 `--build typescript-integrity`), since only that build writes the trace.
 Issue scripts live in smashcraft:ts/test/native/pads/, one folder per issue.
 
+Comparison preflight checks each script before any reference helper or native
+session starts. It requires the existing moment export: press and release
+View on the same client at least 60 frames apart; use the normal 70-frame
+hold. A tap with that duration also works. Missing or short exports fail with
+the script path and a repair instruction. Append the hold after the last
+capture so existing action and capture frames stay unchanged:
+
+```text
++30 a press VIEW
++70 a release VIEW
+```
+
+This checks that the script requests an export; the existing comparison still
+requires readable saved moments and matching checksums from the actual runs.
+A single headless run without `--compare` checks only its expectations and
+does not require an export. Native batches and headless comparison batches
+always require one.
+
 ### Many scripts in one game
 
 Native acceptance also selects an offline pair with
