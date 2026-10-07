@@ -21,6 +21,9 @@ export type FighterAgency = "none" | "di" | "act";
  * rules for the button buffer and tech window. It runs no attacks, opponent
  * plan or alternative input replays, and never advances the live match.
  */
+/** Forecast frames between clearance checks while a tumble is still near something. */
+const CLEARANCE_RECHECK = 3;
+
 /** A tumble whose next frames only gravity, decay and drag move: no hitlag, freeze, ledge, wall or platform state, out or in the cannon. */
 function clearFlight(f: Readonly<Fighter>): boolean {
   return f.down.state === DownState.tumble && !f.motion.grounded && f.launch.hitlag === 0 && f.status.frozenFrames === 0 && !f.status.out
@@ -72,7 +75,7 @@ export class FighterAgencyForecast {
     const legal = observedActions.legal;
     const started = observedActions.started;
     let buttons = false;
-    let cleared = false;
+    let nextCheck = 0;
     try {
       for (let offset = 0; offset < TECH_WINDOW_FRAMES; offset++) {
         const before = this.fighter.down.state;
@@ -96,9 +99,9 @@ export class FighterAgencyForecast {
         // alone never starts a tumble (only a hit does), so the answer is known.
         if (offset >= bufferFrames && (this.fighter.motion.grounded || this.fighter.down.state !== DownState.tumble)) break;
         // A tumble that surely touches nothing for the rest of the window can't tech in it either (#168).
-        if (offset >= bufferFrames && !cleared && this.bounded && clearFlight(this.fighter)) {
-          cleared = true;
+        if (offset >= bufferFrames && offset >= nextCheck && this.bounded && clearFlight(this.fighter)) {
           if (surelyClear(this.fighter, stage, frame + offset + 1, TECH_WINDOW_FRAMES - 1 - offset)) break;
+          nextCheck = offset + CLEARANCE_RECHECK;
         }
       }
     } finally {
@@ -120,7 +123,7 @@ export class FighterAgencyForecast {
     this.pressedTech.accumulatedPress = thrown.tech.accumulatedPress;
     const legal = observedActions.legal;
     const started = observedActions.started;
-    let cleared = false;
+    let nextCheck = 0;
     try {
       for (let offset = 0; offset < TECH_WINDOW_FRAMES; offset++) {
         const before = this.thrown.down.state;
@@ -136,9 +139,9 @@ export class FighterAgencyForecast {
         if (floorContact || solidContact) return techInputEligible(this.pressedTech) !== techInputEligible(this.thrown.tech);
         if (this.thrown.grab.owner === undefined && this.thrown.down.state !== DownState.tumble) return false;
         // Released and tumbling clear of everything for the rest of the window: no contact to tech (#168).
-        if (!cleared && this.bounded && this.thrown.grab.owner === undefined && this.holder.grab.target === undefined && !this.thrown.motion.grounded && clearFlight(this.thrown)) {
-          cleared = true;
+        if (offset >= nextCheck && this.bounded && this.thrown.grab.owner === undefined && this.holder.grab.target === undefined && clearFlight(this.thrown)) {
           if (surelyClear(this.thrown, stage, frame + offset + 1, TECH_WINDOW_FRAMES - 1 - offset)) return false;
+          nextCheck = offset + CLEARANCE_RECHECK;
         }
       }
     } finally {
