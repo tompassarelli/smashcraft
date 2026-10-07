@@ -9,10 +9,11 @@ on:
 permissions:
   contents: read
 
-# Lanes land on main every few minutes: a newer push supersedes an unfinished run.
+# Lanes land on main every few minutes. One run per ref finishes; a newer push
+# replaces only the queued run, so the newest commit is always the next verified.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   development-loop:
