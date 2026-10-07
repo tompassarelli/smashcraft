@@ -1,0 +1,24 @@
+{
+  "fighter": "Goblin Tinker",
+  "matches": 8,
+  "movement": 8134,
+  "attacks": 87,
+  "kit": 105,
+  "specials": {
+    "neutral": 32,
+    "side": 17,
+    "up": 5,
+    "down": 51
+  },
+  "defense": 234,
+  "recovery": 865,
+  "manaDenied": 0,
+  "defenseDecisions": 13,
+  "recoveryDecisions": 2,
+  "companions": {
+    "bear": 0,
+    "quilbeast": 0,
+    "hawk": 0
+  },
+  "missing": []
+}
