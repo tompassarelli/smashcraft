@@ -630,7 +630,8 @@ Prior art informs the decision, not these original numbers:
 [Capcom's EX manual](https://game.capcom.com/manual/sfv/en-us/page.html?cat=2&subcat=2)
 establishes spending a gauge on a stronger ordinary special;
 [Capcom's EX Pac-Dash](https://game.capcom.com/manual/sfxtk/en-UK/page-44.html)
-is an explicit example of a one-hit armored EX. Street Fighter 6's Drive
+is an explicit example of a one-hit armored EX.
+[Street Fighter 6's Drive](https://news.capcomusa.com/2022/06/02/street-fighter-6-redefines-the-genre-in-2023/)
 keeps the budget shared between offensive and defensive choices; Smashcraft
 uses its existing mana instead of adding another gauge.
 [Rivals' roster](https://rivalsofaether.com/characters/) shows different
