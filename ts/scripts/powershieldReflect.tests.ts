@@ -4,15 +4,16 @@
 // raises the shield so the projectile meets it on the shield's first frame,
 // on the reflector's last frame and one frame late. A traveling projectile
 // reflects inside the reflector's frames and not after them (a later frame of
-// the 4-frame hit parry may still parry it); a marker or zone is never
+// the 4-frame hit parry may still parry it); a marker, zone or summon is never
 // reflected. `bun test ./scripts/powershieldReflect.tests.ts` prints the table.
 import { expect, test } from "bun:test";
 import { Action } from "../src/game/input/actions";
 import { Character } from "../src/game/sim/codes";
-import type { Fighter } from "../src/game/sim/fighter";
+import { type Fighter, SHIELD_MAX } from "../src/game/sim/fighter";
 import { HERO_ROSTER } from "../src/game/sim/heroes/registry";
 import { SHIELD_REFLECTOR_ACTIVE_FRAMES } from "../src/game/sim/shield";
 import { fighter, frame, projectileShieldActions, scene } from "./frameScene";
+import { isProjectileSummon } from "./interactions";
 
 type Held = readonly Action[];
 type Outcome = "reflected" | "parried" | "blocked" | "hit";
@@ -60,6 +61,8 @@ function shoot(character: Character, special: Special, distance: number, raise: 
     const slots = slotsOf(shooter);
     const owned = slotsOf(defender);
     const before = { reflect: defender.visuals.shieldReflect, shield: defender.visuals.shield, hit: defender.visuals.hit, damage: defender.status.damage };
+    // Keep bubble size fixed: shield drain can otherwise skip an arrival timing between neighboring presses.
+    defender.shield.energy = SHIELD_MAX;
     frame(s, n === FIRE ? special.held(shooter) : [], raise !== undefined && n >= raise ? projectileShieldActions(shooter) : []);
     if (raisedAt === undefined && defender.shield.raised) raisedAt = n;
     // Spent this frame: live before and gone, or spawned and spent at once.
@@ -86,7 +89,7 @@ function shoot(character: Character, special: Special, distance: number, raise: 
   return undefined;
 }
 
-/** Fired away from everyone: undefined when the special makes no projectile, else whether one moves. */
+/** Fired away from everyone: undefined without a projectile, otherwise its authored traveling/zone class. */
 function travels(character: Character, special: Special): boolean | undefined {
   const s = scene(0, [{ character, x: 0.0, facing: 1 }, { character, x: -500.0, facing: 1 }]);
   const shooter = fighter(s, 0);
@@ -100,7 +103,7 @@ function travels(character: Character, special: Special): boolean | undefined {
       moving ||= projectile.velocityX !== 0 || projectile.velocityZ !== 0;
     }
   }
-  return made ? moving : undefined;
+  return made ? moving && !isProjectileSummon(character, special.name) : undefined;
 }
 
 interface Result {
@@ -161,7 +164,7 @@ function table(all: readonly Row[]): string {
   ];
   for (const row of all) {
     const ok = row.results.every((result) => meets(row, result));
-    lines.push(`| ${row.fighter} | ${row.source} | ${row.distance} | ${row.traveling ? "traveling" : "zone/marker"} | ${row.results.map(cell).join(" | ")} | `
+    lines.push(`| ${row.fighter} | ${row.source} | ${row.distance} | ${row.traveling ? "traveling" : "zone/marker/summon"} | ${row.results.map(cell).join(" | ")} | `
       + `${TIMINGS.map((timing) => expected(row.traveling, timing)).join(", ")} | ${ok ? "as designed" : "DIFFERS"} |`);
   }
   return lines.join("\n");

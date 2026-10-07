@@ -228,6 +228,8 @@ interface VisualSerials {
 
 interface Special {
   action: SpecialAction;
+  ex: boolean;
+  exArmorUsed: boolean;
   frame: number;
   duration: number;
   lockFrames: number;
@@ -705,6 +707,8 @@ export function createFighter(character: Character, startX: number, facing: numb
     visuals: { grab: 0, throw: 0, hit: 0, hitElectric: false, hitElement: HitElement.normal, hitStrength: 0, hitHeight: 1, hitPummel: false, shieldElectric: false, shield: 0, shieldReflect: 0, manaDrained: 0, manaDenied: 0 },
     special: {
       action: SpecialAction.none,
+      ex: false,
+      exArmorUsed: false,
       frame: 0,
       duration: 0,
       lockFrames: 0,
