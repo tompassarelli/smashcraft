@@ -42,8 +42,13 @@ function projectileMeets(spec: Readonly<SpecialProjectile>, target: Readonly<Fig
     const frames = f32(f32(localX - spec.offsetX) / speed);
     if (frames < 0 || frames > spec.life) return false;
     z = f32(spec.offsetZ + f32(spec.velocityZ * frames));
-  } else if (Math.abs(f32(localX - spec.offsetX)) > reach) {
-    return false;
+  } else {
+    if (Math.abs(f32(localX - spec.offsetX)) > reach) return false;
+    if (spec.velocityZ !== 0.0) {
+      const end = f32(spec.offsetZ + f32(spec.velocityZ * spec.life));
+      return Math.max(z, end) >= f32(f32(localZ + body.z1) - reach)
+        && Math.min(z, end) <= f32(f32(localZ + body.z2) + reach);
+    }
   }
   return z >= f32(f32(localZ + body.z1) - reach) && z <= f32(f32(localZ + body.z2) + reach);
 }

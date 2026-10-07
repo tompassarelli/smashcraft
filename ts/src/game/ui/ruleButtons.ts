@@ -12,32 +12,26 @@ export interface RuleBox {
 const STEP_WIDTH = f32(0.03);
 export const RULE_HEIGHT = f32(0.027);
 const stepBox = (x: number, y: number): RuleBox => ({ x, y, width: STEP_WIDTH, height: RULE_HEIGHT });
-const toggleBox = (y: number): RuleBox => ({ x: f32(0.03), y, width: f32(0.22), height: RULE_HEIGHT });
+const toggleBox = (x: number, y: number): RuleBox => ({ x, y, width: f32(0.178), height: RULE_HEIGHT });
 
-/**
- * The match rules beside the roster, which every player sees and any player
- * changes. The native capture journey clicks their centers
- * (smashcraft:ts/scripts/integrity/journey.ts).
- */
 export const RULE_BUTTONS = {
-  fewerStocks: stepBox(f32(0.03), f32(0.428)),
-  moreStocks: stepBox(f32(0.22), f32(0.428)),
-  lessTime: stepBox(f32(0.03), f32(0.394)),
-  moreTime: stepBox(f32(0.22), f32(0.394)),
-  endless: toggleBox(f32(0.36)),
-  automaticRematch: toggleBox(f32(0.326)),
-  /** Training and, while it is on, the partner's choices in place of the rules it has no use for. */
-  training: toggleBox(f32(0.53)),
-  lessBehaviour: stepBox(f32(0.03), f32(0.496)),
-  moreBehaviour: stepBox(f32(0.22), f32(0.496)),
-  lessEscape: stepBox(f32(0.03), f32(0.462)),
-  moreEscape: stepBox(f32(0.22), f32(0.462)),
-  lessTech: stepBox(f32(0.03), f32(0.428)),
-  moreTech: stepBox(f32(0.22), f32(0.428)),
-  lessDamage: stepBox(f32(0.03), f32(0.394)),
-  moreDamage: stepBox(f32(0.22), f32(0.394)),
-  hitAreas: toggleBox(f32(0.36)),
-  speed: toggleBox(f32(0.326)),
+  fewerStocks: stepBox(f32(0.38), f32(0.585)),
+  moreStocks: stepBox(f32(0.528), f32(0.585)),
+  lessTime: stepBox(f32(0.572), f32(0.585)),
+  moreTime: stepBox(f32(0.72), f32(0.585)),
+  endless: toggleBox(f32(0.38), f32(0.551)),
+  automaticRematch: toggleBox(f32(0.572), f32(0.551)),
+  training: toggleBox(f32(0.572), f32(0.517)),
+  lessBehaviour: stepBox(f32(0.38), f32(0.585)),
+  moreBehaviour: stepBox(f32(0.528), f32(0.585)),
+  lessEscape: stepBox(f32(0.572), f32(0.585)),
+  moreEscape: stepBox(f32(0.72), f32(0.585)),
+  lessTech: stepBox(f32(0.38), f32(0.551)),
+  moreTech: stepBox(f32(0.528), f32(0.551)),
+  lessDamage: stepBox(f32(0.572), f32(0.551)),
+  moreDamage: stepBox(f32(0.72), f32(0.551)),
+  hitAreas: toggleBox(f32(0.38), f32(0.517)),
+  speed: toggleBox(f32(0.055), f32(0.519)),
 } as const;
 
 /** The partner choices training steps through. */
@@ -45,5 +39,5 @@ export type TrainingSetting = "behaviour" | "escape" | "tech" | "damage";
 
 /** Below the chip drag area (cardSlot), so opening settings cannot pick up a chip. */
 export function cpuSettingsBox(slot: number): RuleBox {
-  return { x: f32(f32(cardX(slot)) + f32(0.007)), y: f32(0.072), width: f32(0.146), height: f32(0.022) };
+  return { x: f32(f32(cardX(slot)) + f32(0.007)), y: f32(0.078), width: f32(0.146), height: f32(0.019) };
 }

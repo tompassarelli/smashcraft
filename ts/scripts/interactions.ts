@@ -15,7 +15,7 @@ import { attackStartupFrames } from "../src/game/sim/moves";
 import { mainDeckRight, mainDeckZ } from "../src/game/sim/stage";
 import { resetMatchFrameInput } from "../src/game/match/frameInput";
 import { type ReplayState, captureReplaySnapshot, createReplaySnapshot, restoreReplaySnapshot } from "../src/game/replay/snapshot";
-import { type Placement, type Scene, airborne, fighter, frameRows, scene, tumbling } from "./frameScene";
+import { type Placement, type Scene, airborne, fighter, frameRows, projectileShieldActions, scene, tumbling } from "./frameScene";
 
 // ------------------------------------------------------------------ playing a situation
 
@@ -1148,7 +1148,8 @@ function projectileFlight(character: Character, input: SpecialInput): { readonly
 function projectileRow(character: Character, name: string, input: SpecialInput, distance: number, flight: { readonly flight: number; readonly traveling: boolean; readonly mostOut: number }): ProjectileRow {
   const placements: Situation["placements"] = [{ character, x: -distance / 2, facing: 1 }, { character, x: distance / 2, facing: -1 }];
   const last = FIRE + PROJECTILE_HORIZON;
-  const shielded = new Timeline({ placements, policies: [shooterPolicy(input, FIRE), () => [Action.rightTrigger]] }, last);
+  const projectileShield: Option = { name: "shield", kind: "shield", input: (_i, _self, shooter) => projectileShieldActions(shooter) };
+  const shielded = new Timeline({ placements, policies: [shooterPolicy(input, FIRE), (_n, _self, shooter) => projectileShieldActions(shooter)] }, last);
   let contact: number | undefined;
   let pokes = false;
   shielded.play(NONE, last, (n, _a, b) => {
@@ -1186,7 +1187,7 @@ function projectileRow(character: Character, name: string, input: SpecialInput, 
   const presses = Array.from({ length: zero - FIRE + 1 }, (_, index) => FIRE + index);
   const powershield = presses.filter((start) => {
     let reflected = false;
-    standing.play(sideOf(1, [{ option: SHIELD, start }]), last, (n, a, b) => {
+    standing.play(sideOf(1, [{ option: projectileShield, start }]), last, (n, a, b) => {
       reflected = b.visuals.shieldReflect > 0;
       return reflected || b.status.damage > 0 || (n > zero && liveProjectiles(a) === 0);
     }, true);
