@@ -4,12 +4,14 @@
 #! chat -dev quick hero shadow hunter
 # b dashes left past a and stops behind it.
 440 b stick -1 0
-510 b stick 0 0
+475 b stick 0 0
 # a jumps; in the air flicks back, releases, then presses Special (turned neutral).
 550 a tap B 3
 562 a stick -1 0
 564 a stick 0 0
 566 a tap X 2
+#! expect a 568 special 13 form 1
+#! expect a 568 ground action 0 facing -1
 # a jumps again; Special with the stick still held back (side press, turned).
 730 a tap B 3
 742 a stick -1 0
