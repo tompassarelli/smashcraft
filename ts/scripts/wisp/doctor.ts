@@ -83,7 +83,7 @@ export const smashcraftDoctor = (clientsFile = clientState): DoctorDeclaration =
     const account = ACCOUNTS[name];
     if (account !== undefined) accounts[name] = { username: accountField(account, "username"), password: accountField(account, "password") };
   }
-  return { clientsFile, start, accounts };
+  return { clientsFile, start, ...(Object.keys(accounts).length === 0 ? {} : { accounts }) };
 };
 
 /** What the watch counts as a match: the map's start receipts under its runtime prefix. */
