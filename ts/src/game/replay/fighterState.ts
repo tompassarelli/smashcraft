@@ -1,3 +1,4 @@
+import { createPlacedObject, placedObject } from "../sim/fighter";
 import { at } from "wisp/src/runtime/lookup";
 import { PARTICIPANT_CAPACITY, participantActive } from "../input/participants";
 import type { Fighter } from "../sim/fighter";
@@ -381,21 +382,25 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   passive.lastKey = sourcePassive.lastKey;
   passive.lastTarget = sourcePassive.lastTarget;
 
-  const placed = target.placed;
-  const sourcePlaced = source.placed;
-  placed.life = sourcePlaced.life;
-  placed.age = sourcePlaced.age;
-  placed.x = sourcePlaced.x;
-  placed.z = sourcePlaced.z;
-  placed.direction = sourcePlaced.direction;
-  placed.durability = sourcePlaced.durability;
-  placed.serial = sourcePlaced.serial;
-  placed.spec = sourcePlaced.spec;
-  for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) placed.struck[slot] = sourcePlaced.struck[slot];
-  placed.specialStruck = sourcePlaced.specialStruck;
-  placed.mode = sourcePlaced.mode;
-  placed.modeFrame = sourcePlaced.modeFrame;
-  placed.apart = sourcePlaced.apart;
-  placed.bitten = sourcePlaced.bitten;
-  placed.surface = sourcePlaced.surface;
+  while (target.pack.length < source.pack.length) target.pack.push(createPlacedObject());
+  target.pack.length = source.pack.length;
+  for (let animal = 0; animal <= source.pack.length; animal++) {
+    const placed = placedObject(target, animal);
+    const sourcePlaced = placedObject(source, animal);
+    placed.life = sourcePlaced.life;
+    placed.age = sourcePlaced.age;
+    placed.x = sourcePlaced.x;
+    placed.z = sourcePlaced.z;
+    placed.direction = sourcePlaced.direction;
+    placed.durability = sourcePlaced.durability;
+    placed.serial = sourcePlaced.serial;
+    placed.spec = sourcePlaced.spec;
+    for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) placed.struck[slot] = sourcePlaced.struck[slot];
+    placed.specialStruck = sourcePlaced.specialStruck;
+    placed.mode = sourcePlaced.mode;
+    placed.modeFrame = sourcePlaced.modeFrame;
+    placed.apart = sourcePlaced.apart;
+    placed.bitten = sourcePlaced.bitten;
+    placed.surface = sourcePlaced.surface;
+  }
 }
