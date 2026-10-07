@@ -1145,6 +1145,27 @@ re-export changed no other sequence. `bun wisp view reach --assets DIR`
 
 ## Refresh play's clip pools
 
+### Hero drill clips
+
+`bun tools/animations/drill-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends
+one down-air clip for Blademaster, Warden and Shadow Hunter. It uses each
+move's existing startup, active and recovery frames, turning the body during
+the active span while articulating shoulders, upper legs and knees. The sword
+spin extends its cutting shoulder; the downward drills keep a straight leading
+leg and fold the opposite knee. Bone and helper nodes both carry joints in
+the stock rigs. Model visibility follows the standing sequence, avoiding a
+borrowed cast's cloak flare during the drill.
+
+The output remains private. Eight preparation, quarter-turn and recovery
+moments in each facing are written as silhouette sheets beside the models.
+The generator checks previous poses at three times per sequence, all active
+frames for visible body motion, and exact reconstruction of the source model
+after stripping the appended clip and identity parent. Store `hero-models`,
+refresh the pool below, and commit the generated
+smashcraft:ts/src/game/presentation/drillClipInfo.ts with its pins. The pool
+exporter reuses the exact retained source prefix and exports just the three
+new sequences. Native playback decides their final appearance.
+
 ### Movement and recovery clips
 
 `bun tools/animations/recovery-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends

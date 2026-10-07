@@ -98,6 +98,9 @@ code. From smashcraft:ts/:
   `bun tools/animations/recovery-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` from
   the repository root appends fighter recovery and transition clips before
   storing their families and refreshing the clip pool (smashcraft:docs/fighter-animation-work.md).
+  `bun tools/animations/drill-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends
+  Blademaster, Warden and Shadow Hunter down-air drills, preserving earlier
+  clips and writing both-facing silhouette sheets for the native review.
 - Lich King animation authoring (from the repository root):
   `tools/animations/build-lichking.sh [PRIVATE_INPUTS] [IMMUTABLE_EXISTING_MODEL]`
   authors clips through Blender; the optional existing model preserves shipped

@@ -335,6 +335,7 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\BlademasterOriginalClip37-8a48b4b254a2c691de5312266422e2654baa404c6a1eb80a67edbbfd4d15ae28.mdx", startSeconds: f32(70.368), endSeconds: f32(70.768), looping: false },
     { modelPath: "war3mapImported\\BlademasterOriginalClip38-330c525c1ec7883c1ec0ac6f697bbcb5743fd354b4741ab61722a4ade93b38ae.mdx", startSeconds: f32(70.868), endSeconds: f32(71.268), looping: false },
     { modelPath: "war3mapImported\\BlademasterOriginalClip39-60cfd3ad716c8e225954a5e7a99d12907475793a5c3c50df74bc5ee59652e258.mdx", startSeconds: f32(71.368), endSeconds: f32(71.768), looping: false },
+    { modelPath: "war3mapImported\\BlademasterOriginalClip40-a27a732827e0818c55b8788b83ff74c3630ec451ca41835c11039eb7885cab88.mdx", startSeconds: f32(71.868), endSeconds: f32(72.635), looping: false },
   ],
   // MountainKing
   [
@@ -432,6 +433,7 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\WardenOriginalClip35-4aa474d6305eb936cee04ded4ef0a6371dd614d53a16faeb98024faecee28391.mdx", startSeconds: f32(215.268), endSeconds: f32(215.668), looping: false },
     { modelPath: "war3mapImported\\WardenOriginalClip36-469918ce94dd12c183e835e7d6f79f3f1222e95ac947d7de45a6010a1ca09cad.mdx", startSeconds: f32(215.768), endSeconds: f32(216.168), looping: false },
     { modelPath: "war3mapImported\\WardenOriginalClip37-381262e8dfba4a08cd67f1368211998c537f9a175492f7133c4151717486695a.mdx", startSeconds: f32(216.268), endSeconds: f32(216.668), looping: false },
+    { modelPath: "war3mapImported\\WardenOriginalClip38-e1b37ce23e0bff47e4b48540197312702c46be513a8fdcd84e9a5d579441c504.mdx", startSeconds: f32(216.768), endSeconds: f32(217.218), looping: false },
   ],
   // Lich
   [
@@ -597,6 +599,7 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\ShadowHunterOriginalClip37-85947f9f7dc910d573bac507ae5d5e619c3180b8fee184817991b209acf2b2c3.mdx", startSeconds: f32(102.635), endSeconds: f32(103.035), looping: false },
     { modelPath: "war3mapImported\\ShadowHunterOriginalClip38-e53387a2cc0a95517adf60599459201d986df2e076094e541533e5db95620054.mdx", startSeconds: f32(103.135), endSeconds: f32(103.535), looping: false },
     { modelPath: "war3mapImported\\ShadowHunterOriginalClip39-3ea77467e83ca809df8ea7e357830184b98574e2ba56388d51cbcba5d79bf1c7.mdx", startSeconds: f32(103.635), endSeconds: f32(104.035), looping: false },
+    { modelPath: "war3mapImported\\ShadowHunterOriginalClip40-fa0c4ac4032c8cf57eb964bdae0424937817e1f6490fba8ddcb90bbe41081013.mdx", startSeconds: f32(104.135), endSeconds: f32(104.752), looping: false },
   ],
   // PitLord
   [
@@ -1093,6 +1096,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["damage grid high small", 37],
     ["damage grid high medium", 38],
     ["damage grid high large", 39],
+    ["drill down air", 40],
     ["portrait", 12],
   ]),
   // MountainKing
@@ -1195,6 +1199,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["damage grid high small", 35],
     ["damage grid high medium", 36],
     ["damage grid high large", 37],
+    ["drill down air", 38],
     ["stand", 0],
     ["attack", 5],
   ]),
@@ -1365,6 +1370,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["damage grid high small", 37],
     ["damage grid high medium", 38],
     ["damage grid high large", 39],
+    ["drill down air", 40],
     ["stand", 1],
   ]),
   // PitLord
