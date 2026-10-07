@@ -620,12 +620,19 @@ attack as `dashAttack`), `GameplanSpecial` or `GameplanThrow`.
   into one; avoiding `edge`, its spot stays 160 units inside the deck; avoiding
   `air`, it never plans to jump in; avoiding `above`, it never jumps in over a
   grounded target. A grounded target's raised shield draws it in to grab it,
-  unless it avoids `close` (then its spacing tools pressure the shield).
+  unless it avoids `close` (then its spacing tools pressure the shield). A
+  target standing on another deck, more than 110 units above or below, is out
+  of reach from anywhere else: every plan heads under or over it and jumps up
+  or drops through to that deck, whatever it avoids (#160).
 - **Moves.** Of the moves in reach, an unnamed one weighs 1. A spacing tool
-  at its spacing weighs 4 and is thrown there even out of reach; a move of
-  the approach in force 3; a combo starter 2 in neutral; a follow-up 4 while
-  the fighter's own hit stuns the target; a finisher 6 inside its percent
-  window. The factors multiply.
+  at its spacing weighs 4; a move of the approach in force 3; a combo starter
+  2 in neutral; a follow-up 4 while the fighter's own hit stuns the target;
+  a finisher 6 inside its percent window. The factors multiply. Every attack
+  waits for its reach, read where both fighters will be on its first active
+  frame: a fall or jump slowed by gravity and held by the deck it lands on,
+  the attacker's run cut to a short slide, an aerial that would land first
+  left out (#160). Specials with a purpose at range (projectiles, traps,
+  summons) are the exception.
 - **Defense, grabs, recovery.** A threat it answers (7 in 10, as before) gets
   one of its listed answers: shield, spot dodge, roll, its stance special,
   jump or retreat; at the edge a roll, shield or retreat becomes a spot

@@ -13,7 +13,7 @@ import { isSmashAttack } from "../sim/moves";
 import { type Controls, type Roster, copyControls, fighterAt, isActive, neutralControls } from "../sim/roster";
 import { surfacePass } from "../sim/stage";
 import { type FighterGameplan, GameplanThrow } from "../sim/gameplan";
-import { SPACE_PLAN, avoids, gameplanGoal, gameplanOf, gameplanPlan, gameplanThrow, jumpsIn, keptGap, plansRanged, spacingAerialAt } from "./botGameplan";
+import { SPACE_PLAN, avoids, gameplanGoal, gameplanOf, gameplanPlan, gameplanThrow, jumpsIn, keptGap, onAnotherDeck, plansRanged, spacingAerialAt } from "./botGameplan";
 import { steerInAir, steerOnGround } from "./botFooting";
 import { botChance, botChoice, chooseAttack, smashChargeGoal, useMatchSeed } from "./botMoves";
 import { type CpuSkill, cpuSkill } from "./cpuLevel";
@@ -79,7 +79,7 @@ function approach(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number
   const dx = f32(target.motion.x - motion.x);
   const dz = f32(target.motion.z - motion.z);
   const toward = dx < 0 ? -1 : 1;
-  const goal = plan === Plan.range ? f32(target.motion.x - f32(toward * RANGE_SPACING)) : target.motion.x;
+  const goal = plan === Plan.range && !onAnotherDeck(f, target) ? f32(target.motion.x - f32(toward * RANGE_SPACING)) : target.motion.x;
   if (!motion.grounded) {
     // Tumbling, it lets itself land and techs or gets up there, steering only to stay over the deck.
     steerInAir(f, stage, f.down.state === DownState.tumble ? motion.x : goal, input);
@@ -114,7 +114,7 @@ function approachByGameplan(f: Readonly<Fighter>, target: Readonly<Fighter>, sta
   const goal = gameplanGoal(gameplan, f, target, stage, keptGap(gameplan, f, target, slot, planIndex, frame, botChoice));
   if (!motion.grounded) {
     steerInAir(f, stage, f.down.state === DownState.tumble ? motion.x : goal, input);
-    if (jumpsIn(gameplan, planIndex, target, dx, dz) && dz > ABOVE && motion.vz < 0 && f.jump.remaining > 0) {
+    if (jumpsIn(gameplan, planIndex, f, target, dx, dz) && dz > ABOVE && motion.vz < 0 && f.jump.remaining > 0) {
       input.jumpPressed = true;
       input.jumpHeld = true;
     }
@@ -132,7 +132,7 @@ function approachByGameplan(f: Readonly<Fighter>, target: Readonly<Fighter>, sta
   }
   // Under the spacing plan a spacing aerial at its gap is a short hop away, one frame in four.
   const hop = planIndex === SPACE_PLAN && spacingAerialAt(gameplan, Math.abs(dx)) && botChoice(frame, slot * 5 + f.character, 4) === 0;
-  if (hop || jumpsIn(gameplan, planIndex, target, dx, dz)) {
+  if (hop || jumpsIn(gameplan, planIndex, f, target, dx, dz)) {
     input.jumpPressed = true;
     input.jumpHeld = dz > ABOVE;
   }

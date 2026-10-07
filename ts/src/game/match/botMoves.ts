@@ -16,10 +16,11 @@ import { attackStartupFrames } from "../sim/moves";
 import type { FighterMoves } from "../sim/heroMoves";
 import type { Controls } from "../sim/roster";
 import { immolationRegion } from "../sim/specials";
+import { surfaceCount, surfaceLeft, surfaceRight, surfaceZ } from "../sim/stage";
 import { safeAt, slideStaysOnDeck } from "./botFooting";
 import { HeroSpecialUse, heroSpecialUse } from "./botHeroKit";
 import { SpecialSlot } from "../sim/heroSpecials";
-import { SPACE_PLAN, gameplanOf, moveWeight, passiveLandingMove, spacedAt, toGameplanMove } from "./botGameplan";
+import { SPACE_PLAN, gameplanOf, moveWeight, passiveLandingMove, toGameplanMove } from "./botGameplan";
 import { passivePips, passiveSpec } from "../sim/passives";
 import type { FighterGameplan, GameplanMove } from "../sim/gameplan";
 import { type CpuSkill, FULL_SKILL } from "./cpuLevel";
@@ -151,11 +152,64 @@ export function moveReachAhead(character: Character, style: AttackStyle, target:
   return style === AttackStyle.grab && moves?.normals[AttackStyle.grab] === undefined ? maxX : f32(maxX + hurtCapsule(target.character).radius);
 }
 
-/** The target's offset from the attacker after `frames` more frames of both moving as they did last frame. */
+/** The target's offset from the attacker after `frames` more frames: the target moving as it did last frame, the attacker sliding (travelOver). */
 const aheadX = (f: Readonly<Fighter>, target: Readonly<Fighter>, frames: number) =>
-  f32(f32(target.motion.x - f.motion.x) + f32(f32(target.motion.deltaX - f.motion.deltaX) * frames));
-const aheadZ = (f: Readonly<Fighter>, target: Readonly<Fighter>, frames: number) =>
-  f32(f32(target.motion.z - f.motion.z) + f32(f32(target.motion.deltaZ - f.motion.deltaZ) * frames));
+  f32(f32(f32(target.motion.x + f32(target.motion.deltaX * frames)) - f.motion.x) - travelOver(f, frames));
+
+/**
+ * How far the attacker travels over `frames` more frames: its last frame's
+ * travel, but on the ground no further than its slide once the attack stops
+ * its steering, so a run doesn't carry a slow smash into reach (#160).
+ */
+function travelOver(f: Readonly<Fighter>, frames: number): number {
+  const straight = f32(f.motion.deltaX * frames);
+  if (!f.motion.grounded) return straight;
+  const speed = Math.abs(f.motion.vx);
+  // Counted a little short, as if braking at 1.25 times its traction: a reach overestimated is a swing at nothing.
+  const slide = f32(f32(f32(speed * speed) / f32(2.5 * f.tuning.physics.traction)) + speed);
+  return Math.abs(straight) <= slide ? straight : straight < 0 ? f32(-slide) : slide;
+}
+
+/** The target's height over the attacker after `frames` more frames, each landing on a deck of `stage` it falls onto (none for stage -1). */
+const aheadZ = (f: Readonly<Fighter>, target: Readonly<Fighter>, frames: number, stage = -1, matchFrame = 0) =>
+  f32(heightAhead(target, frames, stage, matchFrame) - heightAhead(f, frames, stage, matchFrame));
+
+/**
+ * A fighter's height after `frames` more frames: its last frame's rise,
+ * slowed each frame by gravity while airborne down to its fall speed, so a
+ * rising jump isn't taken to keep rising into a target overhead, and held
+ * by the deck under it when it falls that far (#160).
+ */
+function heightAhead(f: Readonly<Fighter>, frames: number, stage: number, matchFrame: number): number {
+  const { z, deltaZ } = f.motion;
+  if (f.motion.grounded) return f32(z + f32(deltaZ * frames));
+  const { gravity, terminalSpeed } = f.tuning.physics;
+  const floor = Math.min(deltaZ, -terminalSpeed);
+  // Frames whose fall gravity still speeds up before the floor holds it.
+  const slowing = Math.min(frames, Math.max(0, Math.floor(f32(f32(deltaZ - floor) / gravity))));
+  const curve = f32(f32(deltaZ * slowing) - f32(gravity * ((slowing * (slowing + 1)) / 2)));
+  const ahead = f32(z + f32(curve + f32(floor * (frames - slowing))));
+  const deck = deckUnder(stage, matchFrame, f.motion.x, z);
+  return deck !== undefined && ahead < deck ? deck : ahead;
+}
+
+/** The highest deck of `stage` under (x, z) on match frame `matchFrame`, or undefined over the void. */
+function deckUnder(stage: number, matchFrame: number, x: number, z: number): number | undefined {
+  let top: number | undefined;
+  for (let index = 0; index < surfaceCount(stage); index++) {
+    const deck = surfaceZ(stage, index, matchFrame);
+    if (deck > z || x < surfaceLeft(stage, index, matchFrame) || x > surfaceRight(stage, index, matchFrame)) continue;
+    if (top === undefined || deck > top) top = deck;
+  }
+  return top;
+}
+
+/** Whether an airborne fighter lands on a deck within `frames` frames, cancelling an aerial started now before it strikes. */
+function landsWithin(f: Readonly<Fighter>, frames: number, stage: number, matchFrame: number): boolean {
+  if (f.motion.grounded) return false;
+  const deck = deckUnder(stage, matchFrame, f.motion.x, f.motion.z);
+  return deck !== undefined && heightAhead(f, frames, -1, matchFrame) <= deck;
+}
 
 function specialReady(f: Readonly<Fighter>, option: number): boolean {
   const { special } = f;
@@ -343,9 +397,8 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
         const style = dashing && move === AttackStyle.jab ? f.tuning.moves?.dashAttack ?? AttackStyle.demonHunterDashAttack : move;
         const frames = attackStartupFrames(style, f.tuning.moves);
         const x = aheadX(f, target, frames);
-        // A gameplan's spacing tool is thrown at its spacing, in reach or not.
-        const spaced = gameplan !== undefined && spacedAt(gameplan, dashing && move === AttackStyle.jab ? AttackStyle.dashAttack : move, gap);
-        if (!spaced && !moveReaches(f.character, style, target, Math.abs(x), aheadZ(f, target, frames), f.tuning.moves)) continue;
+        // Every attack waits for its reach (#160); a spacing tool weighs more once it reaches (moveWeight).
+        if (!moveReaches(f.character, style, target, Math.abs(x), aheadZ(f, target, frames, stage, matchFrame), f.tuning.moves)) continue;
         if (dashing && move === AttackStyle.jab) dashReaches = true;
         options[count++] = move;
         // A grab counts twice: one of ten moves in reach would rarely be it.
@@ -354,8 +407,9 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
     } else {
       for (const aerial of AERIALS) {
         const frames = attackStartupFrames(aerial, f.tuning.moves);
-        const spaced = gameplan !== undefined && spacedAt(gameplan, aerial, gap);
-        if (spaced || moveReaches(f.character, aerial, target, f32(aheadX(f, target, frames) * f.facing), aheadZ(f, target, frames), f.tuning.moves)) options[count++] = aerial;
+        // An aerial that lands before it strikes never comes out.
+        if (landsWithin(f, frames, stage, matchFrame)) continue;
+        if (moveReaches(f.character, aerial, target, f32(aheadX(f, target, frames) * f.facing), aheadZ(f, target, frames, stage, matchFrame), f.tuning.moves)) options[count++] = aerial;
       }
     }
   }

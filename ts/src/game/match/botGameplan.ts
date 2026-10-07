@@ -77,7 +77,18 @@ export function keptGap(plan: Readonly<FighterGameplan>, f: Readonly<Fighter>, t
   // A shield on the ground is a grab away: a plan walks in to take it, unless
   // it avoids close range and pressures the shield with its spacing tools.
   if (target.shield.raised && target.motion.grounded && !avoids(plan, "close")) gap = 0.0;
+  // A target standing on another deck is out of reach from here: every plan heads for that deck.
+  if (onAnotherDeck(f, target)) gap = 0.0;
   return gap;
+}
+
+/**
+ * Whether the target stands on a deck above or below the fighter's, out of
+ * its moves' reach until it goes there (#160): the computer then jumps up or
+ * drops down to that deck instead of keeping its spacing.
+ */
+export function onAnotherDeck(f: Readonly<Fighter>, target: Readonly<Fighter>): boolean {
+  return target.motion.grounded && target.motion.surface !== f.motion.surface && Math.abs(f32(target.motion.z - f.motion.z)) > ABOVE;
 }
 
 /** Where the fighter heads: its kept gap on its own side of the target, inside the deck when it avoids the edge. */
@@ -89,10 +100,10 @@ export function gameplanGoal(plan: Readonly<FighterGameplan>, f: Readonly<Fighte
   return goal;
 }
 
-/** Whether the plan in force jumps in at a target this far ahead and above. */
-export function jumpsIn(plan: Readonly<FighterGameplan>, planIndex: number, target: Readonly<Fighter>, dx: number, dz: number): boolean {
+/** Whether the plan in force jumps in at a target this far ahead and above; any plan climbs to a target standing on a deck above. */
+export function jumpsIn(plan: Readonly<FighterGameplan>, planIndex: number, f: Readonly<Fighter>, target: Readonly<Fighter>, dx: number, dz: number): boolean {
   const gap = Math.abs(dx);
-  if (dz > ABOVE) return gap < 300 && !avoids(plan, "below") && !avoids(plan, "air");
+  if (dz > ABOVE) return gap < 300 && (onAnotherDeck(f, target) || (!avoids(plan, "below") && !avoids(plan, "air")));
   if (avoids(plan, "above") && target.motion.grounded) return false;
   return plan.approach[planIndex]?.via === "jump" && gap >= 60 && gap <= 240 && Math.abs(dz) <= 120;
 }
