@@ -1,0 +1,4994 @@
+[
+  {
+    "group": "thrall",
+    "name": "jab",
+    "baselineMs": 5.023705860468715,
+    "worstMs": 4.963064022985452,
+    "worstAt": 7,
+    "spikeMs": -0.060641837483262684,
+    "worstFrame": 187,
+    "baseFrames": [
+      150,
+      179
+    ],
+    "instructions": 150,
+    "natives": -32,
+    "allocatedKb": 0.59375
+  },
+  {
+    "group": "thrall",
+    "name": "jab chain",
+    "baselineMs": 4.4938231206311166,
+    "worstMs": 4.995148972963135,
+    "worstAt": 149,
+    "spikeMs": 0.5013258523320188,
+    "worstFrame": 552,
+    "baseFrames": [
+      373,
+      402
+    ],
+    "instructions": 20900,
+    "natives": 0,
+    "allocatedKb": 28.14453125
+  },
+  {
+    "group": "thrall",
+    "name": "forward tilt",
+    "baselineMs": 4.504595120686907,
+    "worstMs": 4.932785472516816,
+    "worstAt": 2,
+    "spikeMs": 0.42819035182990905,
+    "worstFrame": 628,
+    "baseFrames": [
+      596,
+      625
+    ],
+    "instructions": 16400,
+    "natives": 12,
+    "allocatedKb": 27.484375
+  },
+  {
+    "group": "thrall",
+    "name": "up tilt",
+    "baselineMs": 4.508978920709223,
+    "worstMs": 4.874528197617238,
+    "worstAt": 74,
+    "spikeMs": 0.3655492769080153,
+    "worstFrame": 923,
+    "baseFrames": [
+      819,
+      848
+    ],
+    "instructions": 17100,
+    "natives": 0,
+    "allocatedKb": 0.7109375
+  },
+  {
+    "group": "thrall",
+    "name": "down tilt",
+    "baselineMs": 4.506599520698064,
+    "worstMs": 4.880963272650712,
+    "worstAt": 91,
+    "spikeMs": 0.37436375195264837,
+    "worstFrame": 1163,
+    "baseFrames": [
+      1042,
+      1071
+    ],
+    "instructions": 17500,
+    "natives": 0,
+    "allocatedKb": 0.859375
+  },
+  {
+    "group": "thrall",
+    "name": "forward smash",
+    "baselineMs": 4.642927996412176,
+    "worstMs": 4.890480872695344,
+    "worstAt": 108,
+    "spikeMs": 0.24755287628316758,
+    "worstFrame": 1403,
+    "baseFrames": [
+      1265,
+      1294
+    ],
+    "instructions": 11600,
+    "natives": 0,
+    "allocatedKb": 1.3359375
+  },
+  {
+    "group": "thrall",
+    "name": "up smash",
+    "baselineMs": 4.483246433075326,
+    "worstMs": 4.890418372695343,
+    "worstAt": 125,
+    "spikeMs": 0.4071719396200173,
+    "worstFrame": 1643,
+    "baseFrames": [
+      1488,
+      1517
+    ],
+    "instructions": 19000,
+    "natives": 0,
+    "allocatedKb": 1.30078125
+  },
+  {
+    "group": "thrall",
+    "name": "down smash",
+    "baselineMs": 4.5241815957873275,
+    "worstMs": 4.896869072728818,
+    "worstAt": 22,
+    "spikeMs": 0.37268747694149074,
+    "worstFrame": 1763,
+    "baseFrames": [
+      1711,
+      1740
+    ],
+    "instructions": 17400,
+    "natives": 0,
+    "allocatedKb": 1.0859375
+  },
+  {
+    "group": "thrall",
+    "name": "dash attack",
+    "baselineMs": 4.515163995742696,
+    "worstMs": 5.272742349190515,
+    "worstAt": 23,
+    "spikeMs": 0.7575783534478191,
+    "worstFrame": 1987,
+    "baseFrames": [
+      1934,
+      1963
+    ],
+    "instructions": 30900,
+    "natives": 46,
+    "allocatedKb": 3.796875
+  },
+  {
+    "group": "thrall",
+    "name": "neutral air",
+    "baselineMs": 4.53219919583196,
+    "worstMs": 4.913966772818082,
+    "worstAt": 56,
+    "spikeMs": 0.38176757698612196,
+    "worstFrame": 2243,
+    "baseFrames": [
+      2157,
+      2186
+    ],
+    "instructions": 17800,
+    "natives": 0,
+    "allocatedKb": 1.3671875
+  },
+  {
+    "group": "thrall",
+    "name": "forward air",
+    "baselineMs": 4.52155219577617,
+    "worstMs": 4.875575072617238,
+    "worstAt": 73,
+    "spikeMs": 0.3540228768410678,
+    "worstFrame": 2483,
+    "baseFrames": [
+      2380,
+      2409
+    ],
+    "instructions": 16500,
+    "natives": 0,
+    "allocatedKb": 1.3359375
+  },
+  {
+    "group": "thrall",
+    "name": "back air",
+    "baselineMs": 4.536457995854276,
+    "worstMs": 4.922421872862714,
+    "worstAt": 90,
+    "spikeMs": 0.3859638770084377,
+    "worstFrame": 2723,
+    "baseFrames": [
+      2603,
+      2632
+    ],
+    "instructions": 18000,
+    "natives": 0,
+    "allocatedKb": 1.3359375
+  },
+  {
+    "group": "thrall",
+    "name": "up air",
+    "baselineMs": 4.64932400894565,
+    "worstMs": 4.88407704766187,
+    "worstAt": 107,
+    "spikeMs": 0.23475303871622,
+    "worstFrame": 2963,
+    "baseFrames": [
+      2826,
+      2855
+    ],
+    "instructions": 10900,
+    "natives": 0,
+    "allocatedKb": 1.328125
+  },
+  {
+    "group": "thrall",
+    "name": "down air",
+    "baselineMs": 4.545983408398908,
+    "worstMs": 4.946876522985452,
+    "worstAt": 4,
+    "spikeMs": 0.40089311458654375,
+    "worstFrame": 3083,
+    "baseFrames": [
+      3049,
+      3078
+    ],
+    "instructions": 18700,
+    "natives": 0,
+    "allocatedKb": 1.3515625
+  },
+  {
+    "group": "thrall",
+    "name": "grab",
+    "baselineMs": 4.527940395809645,
+    "worstMs": 4.928810072896188,
+    "worstAt": 21,
+    "spikeMs": 0.4008696770865434,
+    "worstFrame": 3323,
+    "baseFrames": [
+      3272,
+      3301
+    ],
+    "instructions": 18700,
+    "natives": 0,
+    "allocatedKb": 1.3359375
+  },
+  {
+    "group": "thrall",
+    "name": "pummel",
+    "baselineMs": 4.547104995910066,
+    "worstMs": 4.966279272818082,
+    "worstAt": 149,
+    "spikeMs": 0.41917427690801645,
+    "worstFrame": 3674,
+    "baseFrames": [
+      3495,
+      3524
+    ],
+    "instructions": 17100,
+    "natives": 0,
+    "allocatedKb": 27.5234375
+  },
+  {
+    "group": "thrall",
+    "name": "forward throw",
+    "baselineMs": 4.53219919583196,
+    "worstMs": 4.890480872695344,
+    "worstAt": 55,
+    "spikeMs": 0.35828167686338386,
+    "worstFrame": 3803,
+    "baseFrames": [
+      3718,
+      3747
+    ],
+    "instructions": 16700,
+    "natives": 0,
+    "allocatedKb": 1.3359375
+  },
+  {
+    "group": "thrall",
+    "name": "back throw",
+    "baselineMs": 4.5556225959546985,
+    "worstMs": 4.950104073007768,
+    "worstAt": 72,
+    "spikeMs": 0.3944814770530698,
+    "worstFrame": 4043,
+    "baseFrames": [
+      3941,
+      3970
+    ],
+    "instructions": 18400,
+    "natives": 0,
+    "allocatedKb": 1.3359375
+  },
+  {
+    "group": "thrall",
+    "name": "up throw",
+    "baselineMs": 4.536465808354276,
+    "worstMs": 4.8947084227176605,
+    "worstAt": 89,
+    "spikeMs": 0.3582426143633848,
+    "worstFrame": 4283,
+    "baseFrames": [
+      4164,
+      4193
+    ],
+    "instructions": 16700,
+    "natives": 0,
+    "allocatedKb": 1.31640625
+  },
+  {
+    "group": "thrall",
+    "name": "down throw",
+    "baselineMs": 4.6780787215962825,
+    "worstMs": 4.982815998030083,
+    "worstAt": 106,
+    "spikeMs": 0.30473727643380055,
+    "worstFrame": 4523,
+    "baseFrames": [
+      4387,
+      4416
+    ],
+    "instructions": 12850,
+    "natives": 0,
+    "allocatedKb": 15.5546875
+  },
+  {
+    "group": "thrall",
+    "name": "neutral special",
+    "baselineMs": 4.540748045876592,
+    "worstMs": 4.956394123030083,
+    "worstAt": 3,
+    "spikeMs": 0.41564607715349133,
+    "worstFrame": 4643,
+    "baseFrames": [
+      4610,
+      4639
+    ],
+    "instructions": 19300,
+    "natives": 0,
+    "allocatedKb": 2.34375
+  },
+  {
+    "group": "thrall",
+    "name": "neutral special, again",
+    "baselineMs": 4.562026420988173,
+    "worstMs": 4.976770022873872,
+    "worstAt": 19,
+    "spikeMs": 0.41474360188569914,
+    "worstFrame": 4882,
+    "baseFrames": [
+      4833,
+      4862
+    ],
+    "instructions": 16900,
+    "natives": 0,
+    "allocatedKb": 27.453125
+  },
+  {
+    "group": "thrall",
+    "name": "air neutral special",
+    "baselineMs": 4.542846195887751,
+    "worstMs": 4.964880473074715,
+    "worstAt": 37,
+    "spikeMs": 0.42203427718696407,
+    "worstFrame": 5123,
+    "baseFrames": [
+      5056,
+      5085
+    ],
+    "instructions": 19600,
+    "natives": 0,
+    "allocatedKb": 2.3359375
+  },
+  {
+    "group": "thrall",
+    "name": "air neutral special, again",
+    "baselineMs": 4.566285221010489,
+    "worstMs": 4.97126867310819,
+    "worstAt": 54,
+    "spikeMs": 0.40498345209770115,
+    "worstFrame": 5363,
+    "baseFrames": [
+      5279,
+      5308
+    ],
+    "instructions": 18800,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  },
+  {
+    "group": "thrall",
+    "name": "side special",
+    "baselineMs": 4.5449912208989085,
+    "worstMs": 5.073844373141663,
+    "worstAt": 13,
+    "spikeMs": 0.5288531522427542,
+    "worstFrame": 5545,
+    "baseFrames": [
+      5502,
+      5531
+    ],
+    "instructions": 20100,
+    "natives": 48,
+    "allocatedKb": 2.421875
+  },
+  {
+    "group": "thrall",
+    "name": "side special, again",
+    "baselineMs": 4.470462220508378,
+    "worstMs": 5.292620224078934,
+    "worstAt": 20,
+    "spikeMs": 0.8221580035705562,
+    "worstFrame": 5775,
+    "baseFrames": [
+      5725,
+      5754
+    ],
+    "instructions": 32000,
+    "natives": 40,
+    "allocatedKb": 30.375
+  },
+  {
+    "group": "thrall",
+    "name": "air side special",
+    "baselineMs": 4.8835079972490245,
+    "worstMs": 5.320479324514095,
+    "worstAt": 42,
+    "spikeMs": 0.4369713272650708,
+    "worstFrame": 6083,
+    "baseFrames": [
+      6011,
+      6040
+    ],
+    "instructions": 20500,
+    "natives": 0,
+    "allocatedKb": 2.34375
+  },
+  {
+    "group": "thrall",
+    "name": "air side special, again",
+    "baselineMs": 4.57477157105512,
+    "worstMs": 5.355139074681466,
+    "worstAt": 43,
+    "spikeMs": 0.780367503626346,
+    "worstFrame": 6307,
+    "baseFrames": [
+      6234,
+      6263
+    ],
+    "instructions": 32500,
+    "natives": 40,
+    "allocatedKb": 4.140625
+  },
+  {
+    "group": "thrall",
+    "name": "up special",
+    "baselineMs": 4.4789641955530115,
+    "worstMs": 4.941425822951978,
+    "worstAt": 76,
+    "spikeMs": 0.4624616273989668,
+    "worstFrame": 6563,
+    "baseFrames": [
+      6457,
+      6486
+    ],
+    "instructions": 21500,
+    "natives": 0,
+    "allocatedKb": 2.3203125
+  },
+  {
+    "group": "thrall",
+    "name": "up special, again",
+    "baselineMs": 4.513050220731539,
+    "worstMs": 4.9414570729519784,
+    "worstAt": 93,
+    "spikeMs": 0.42840685222043984,
+    "worstFrame": 6803,
+    "baseFrames": [
+      6680,
+      6709
+    ],
+    "instructions": 19900,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  },
+  {
+    "group": "thrall",
+    "name": "air up special",
+    "baselineMs": 4.606728196222489,
+    "worstMs": 4.941988322951978,
+    "worstAt": 110,
+    "spikeMs": 0.335260126729489,
+    "worstFrame": 7043,
+    "baseFrames": [
+      6903,
+      6932
+    ],
+    "instructions": 15500,
+    "natives": 0,
+    "allocatedKb": 2.59375
+  },
+  {
+    "group": "thrall",
+    "name": "air up special, again",
+    "baselineMs": 4.517309020753855,
+    "worstMs": 5.141532223855775,
+    "worstAt": 7,
+    "spikeMs": 0.6242232031019199,
+    "worstFrame": 7163,
+    "baseFrames": [
+      7126,
+      7155
+    ],
+    "instructions": 27800,
+    "natives": 0,
+    "allocatedKb": 16.140625
+  },
+  {
+    "group": "thrall",
+    "name": "down special",
+    "baselineMs": 4.485368020586484,
+    "worstMs": 4.949974672996609,
+    "worstAt": 24,
+    "spikeMs": 0.4646066524101249,
+    "worstFrame": 7403,
+    "baseFrames": [
+      7349,
+      7378
+    ],
+    "instructions": 21600,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  },
+  {
+    "group": "thrall",
+    "name": "down special, again",
+    "baselineMs": 4.521567820776171,
+    "worstMs": 4.958429773041241,
+    "worstAt": 41,
+    "spikeMs": 0.43686195226507074,
+    "worstFrame": 7643,
+    "baseFrames": [
+      7572,
+      7601
+    ],
+    "instructions": 20300,
+    "natives": 0,
+    "allocatedKb": 2.3046875
+  },
+  {
+    "group": "thrall",
+    "name": "air down special",
+    "baselineMs": 4.491709345619958,
+    "worstMs": 4.958523523041242,
+    "worstAt": 58,
+    "spikeMs": 0.46681417742128417,
+    "worstFrame": 7883,
+    "baseFrames": [
+      7795,
+      7824
+    ],
+    "instructions": 21700,
+    "natives": 0,
+    "allocatedKb": 2.359375
+  },
+  {
+    "group": "thrall",
+    "name": "air down special, again",
+    "baselineMs": 4.530085420820802,
+    "worstMs": 4.9733980731193475,
+    "worstAt": 75,
+    "spikeMs": 0.44331265229854555,
+    "worstFrame": 8123,
+    "baseFrames": [
+      8018,
+      8047
+    ],
+    "instructions": 20600,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  },
+  {
+    "group": "thrall",
+    "name": "side special, then attack",
+    "baselineMs": 4.496015020642275,
+    "worstMs": 5.29587902410125,
+    "worstAt": 11,
+    "spikeMs": 0.7998640034589748,
+    "worstFrame": 8282,
+    "baseFrames": [
+      8241,
+      8270
+    ],
+    "instructions": 31000,
+    "natives": 40,
+    "allocatedKb": 29.875
+  },
+  {
+    "group": "thrall",
+    "name": "up special, then jump",
+    "baselineMs": 4.604614421211332,
+    "worstMs": 4.960621673052399,
+    "worstAt": 109,
+    "spikeMs": 0.3560072518410671,
+    "worstFrame": 8603,
+    "baseFrames": [
+      8464,
+      8493
+    ],
+    "instructions": 16500,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  },
+  {
+    "group": "thrall",
+    "name": "up special, then attack",
+    "baselineMs": 4.52159907077617,
+    "worstMs": 5.040616373197453,
+    "worstAt": 0,
+    "spikeMs": 0.5190173024212834,
+    "worstFrame": 8717,
+    "baseFrames": [
+      8687,
+      8716
+    ],
+    "instructions": 21700,
+    "natives": 0,
+    "allocatedKb": 28.484375
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "jab",
+    "baselineMs": 5.021120147929661,
+    "worstMs": 4.977586023041241,
+    "worstAt": 9,
+    "spikeMs": -0.04353412488841979,
+    "worstFrame": 187,
+    "baseFrames": [
+      148,
+      177
+    ],
+    "instructions": 1000,
+    "natives": -32,
+    "allocatedKb": -0.3984375
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "jab chain",
+    "baselineMs": 4.489278670597643,
+    "worstMs": 4.9331107226283955,
+    "worstAt": 149,
+    "spikeMs": 0.4438320520307526,
+    "worstFrame": 550,
+    "baseFrames": [
+      371,
+      400
+    ],
+    "instructions": 18200,
+    "natives": 0,
+    "allocatedKb": 28.140625
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "forward tilt",
+    "baselineMs": 4.500058483153433,
+    "worstMs": 4.934749822505659,
+    "worstAt": 2,
+    "spikeMs": 0.43469133935222626,
+    "worstFrame": 626,
+    "baseFrames": [
+      594,
+      623
+    ],
+    "instructions": 16600,
+    "natives": 13,
+    "allocatedKb": 27.60546875
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "up tilt",
+    "baselineMs": 4.504520408175749,
+    "worstMs": 4.904483747583764,
+    "worstAt": 76,
+    "spikeMs": 0.3999633394080151,
+    "worstFrame": 923,
+    "baseFrames": [
+      817,
+      846
+    ],
+    "instructions": 17100,
+    "natives": 0,
+    "allocatedKb": 17.91796875
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "down tilt",
+    "baselineMs": 4.497811895642275,
+    "worstMs": 4.87432067260608,
+    "worstAt": 93,
+    "spikeMs": 0.3765087769638056,
+    "worstFrame": 1163,
+    "baseFrames": [
+      1040,
+      1069
+    ],
+    "instructions": 17600,
+    "natives": 0,
+    "allocatedKb": 0.8671875
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "forward smash",
+    "baselineMs": 4.633083483850807,
+    "worstMs": 4.883838272650713,
+    "worstAt": 110,
+    "spikeMs": 0.250754788799906,
+    "worstFrame": 1403,
+    "baseFrames": [
+      1263,
+      1292
+    ],
+    "instructions": 12000,
+    "natives": 0,
+    "allocatedKb": 1.34375
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "up smash",
+    "baselineMs": 4.478709795541852,
+    "worstMs": 4.883760147650713,
+    "worstAt": 127,
+    "spikeMs": 0.4050503521088604,
+    "worstFrame": 1643,
+    "baseFrames": [
+      1486,
+      1515
+    ],
+    "instructions": 18900,
+    "natives": 0,
+    "allocatedKb": 1.3046875
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "down smash",
+    "baselineMs": 4.519652770753854,
+    "worstMs": 4.892340247695343,
+    "worstAt": 24,
+    "spikeMs": 0.37268747694148896,
+    "worstFrame": 1763,
+    "baseFrames": [
+      1709,
+      1738
+    ],
+    "instructions": 17400,
+    "natives": 0,
+    "allocatedKb": 1.0859375
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "dash attack",
+    "baselineMs": 4.512764570720381,
+    "worstMs": 5.266481124201672,
+    "worstAt": 25,
+    "spikeMs": 0.7537165534812909,
+    "worstFrame": 1987,
+    "baseFrames": [
+      1932,
+      1961
+    ],
+    "instructions": 31200,
+    "natives": 41,
+    "allocatedKb": 3.671875
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "neutral air",
+    "baselineMs": 4.497858770642275,
+    "worstMs": 4.8562029475056585,
+    "worstAt": 58,
+    "spikeMs": 0.35834417686338327,
+    "worstFrame": 2243,
+    "baseFrames": [
+      2155,
+      2184
+    ],
+    "instructions": 16700,
+    "natives": 0,
+    "allocatedKb": 1.3671875
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "forward air",
+    "baselineMs": 4.487211770586484,
+    "worstMs": 4.879563847628396,
+    "worstAt": 75,
+    "spikeMs": 0.3923520770419122,
+    "worstFrame": 2483,
+    "baseFrames": [
+      2378,
+      2407
+    ],
+    "instructions": 18300,
+    "natives": 0,
+    "allocatedKb": 1.3359375
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "back air",
+    "baselineMs": 4.502117570664591,
+    "worstMs": 4.888050197673028,
+    "worstAt": 92,
+    "spikeMs": 0.38593262700843667,
+    "worstFrame": 2723,
+    "baseFrames": [
+      2601,
+      2630
+    ],
+    "instructions": 18000,
+    "natives": 0,
+    "allocatedKb": 1.3203125
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "up air",
+    "baselineMs": 4.604328771200174,
+    "worstMs": 4.888081447673028,
+    "worstAt": 109,
+    "spikeMs": 0.2837526764728544,
+    "worstFrame": 2963,
+    "baseFrames": [
+      2824,
+      2853
+    ],
+    "instructions": 13200,
+    "natives": 0,
+    "allocatedKb": 1.3359375
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "down air",
+    "baselineMs": 4.511635170709223,
+    "worstMs": 4.945574622695343,
+    "worstAt": 5,
+    "spikeMs": 0.43393945198612016,
+    "worstFrame": 3082,
+    "baseFrames": [
+      3047,
+      3076
+    ],
+    "instructions": 17800,
+    "natives": 0,
+    "allocatedKb": 27.453125
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "grab",
+    "baselineMs": 4.495729370631117,
+    "worstMs": 4.89661467271766,
+    "worstAt": 23,
+    "spikeMs": 0.40088530208654305,
+    "worstFrame": 3323,
+    "baseFrames": [
+      3270,
+      3299
+    ],
+    "instructions": 18700,
+    "natives": 0,
+    "allocatedKb": 1.34375
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "pummel",
+    "baselineMs": 4.5148939707315385,
+    "worstMs": 4.995680222963136,
+    "worstAt": 149,
+    "spikeMs": 0.48078625223159754,
+    "worstFrame": 3672,
+    "baseFrames": [
+      3493,
+      3522
+    ],
+    "instructions": 20000,
+    "natives": 0,
+    "allocatedKb": 27.453125
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "forward throw",
+    "baselineMs": 4.499988170653433,
+    "worstMs": 4.9072616727734495,
+    "worstAt": 57,
+    "spikeMs": 0.4072735021200167,
+    "worstFrame": 3803,
+    "baseFrames": [
+      3716,
+      3745
+    ],
+    "instructions": 19000,
+    "natives": 0,
+    "allocatedKb": 1.34375
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "back throw",
+    "baselineMs": 4.525540970787327,
+    "worstMs": 4.9484487228515555,
+    "worstAt": 74,
+    "spikeMs": 0.42290775206422815,
+    "worstFrame": 4043,
+    "baseFrames": [
+      3939,
+      3968
+    ],
+    "instructions": 18500,
+    "natives": 0,
+    "allocatedKb": 14.484375
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "up throw",
+    "baselineMs": 4.504246970675748,
+    "worstMs": 4.87532067260608,
+    "worstAt": 91,
+    "spikeMs": 0.3710737019303316,
+    "worstFrame": 4283,
+    "baseFrames": [
+      4162,
+      4191
+    ],
+    "instructions": 17300,
+    "natives": 0,
+    "allocatedKb": 1.34375
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "down throw",
+    "baselineMs": 4.6362697713675445,
+    "worstMs": 4.924229972851555,
+    "worstAt": 108,
+    "spikeMs": 0.2879602014840108,
+    "worstFrame": 4523,
+    "baseFrames": [
+      4385,
+      4414
+    ],
+    "instructions": 13300,
+    "natives": 0,
+    "allocatedKb": 2.375
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "neutral special",
+    "baselineMs": 4.506399808186907,
+    "worstMs": 4.924136222851556,
+    "worstAt": 5,
+    "spikeMs": 0.41773641466464895,
+    "worstFrame": 4643,
+    "baseFrames": [
+      4608,
+      4637
+    ],
+    "instructions": 19400,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "neutral special, again",
+    "baselineMs": 4.529799770809644,
+    "worstMs": 5.006358473018926,
+    "worstAt": 19,
+    "spikeMs": 0.47655870220928165,
+    "worstFrame": 4880,
+    "baseFrames": [
+      4831,
+      4860
+    ],
+    "instructions": 19800,
+    "natives": 0,
+    "allocatedKb": 27.46875
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "air neutral special",
+    "baselineMs": 4.5106351707092225,
+    "worstMs": 4.959511672773449,
+    "worstAt": 149,
+    "spikeMs": 0.4488765020642269,
+    "worstFrame": 5233,
+    "baseFrames": [
+      5054,
+      5083
+    ],
+    "instructions": 18500,
+    "natives": 0,
+    "allocatedKb": 27.46875
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "air neutral special, again",
+    "baselineMs": 4.534058570831959,
+    "worstMs": 4.939042022929661,
+    "worstAt": 56,
+    "spikeMs": 0.40498345209770203,
+    "worstFrame": 5363,
+    "baseFrames": [
+      5277,
+      5306
+    ],
+    "instructions": 18800,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "side special",
+    "baselineMs": 4.512764570720381,
+    "worstMs": 5.050264723018926,
+    "worstAt": 14,
+    "spikeMs": 0.537500152298545,
+    "worstFrame": 5544,
+    "baseFrames": [
+      5500,
+      5529
+    ],
+    "instructions": 20600,
+    "natives": 47,
+    "allocatedKb": 2.421875
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "side special, again",
+    "baselineMs": 4.476564770530695,
+    "worstMs": 5.3166910741793565,
+    "worstAt": 20,
+    "spikeMs": 0.8401263036486615,
+    "worstFrame": 5773,
+    "baseFrames": [
+      5723,
+      5752
+    ],
+    "instructions": 32700,
+    "natives": 41,
+    "allocatedKb": 30.90625
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "air side special",
+    "baselineMs": 4.605409096205753,
+    "worstMs": 4.9007731723271295,
+    "worstAt": 149,
+    "spikeMs": 0.29536407612137694,
+    "worstFrame": 6125,
+    "baseFrames": [
+      5946,
+      5975
+    ],
+    "instructions": 10050,
+    "natives": 13,
+    "allocatedKb": 27.6875
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "air side special, again",
+    "baselineMs": 4.903337872332709,
+    "worstMs": 5.307110974134725,
+    "worstAt": 26,
+    "spikeMs": 0.40377310180201587,
+    "worstFrame": 6264,
+    "baseFrames": [
+      6208,
+      6237
+    ],
+    "instructions": 16200,
+    "natives": 2,
+    "allocatedKb": 27.9375
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "up special",
+    "baselineMs": 4.526369995631116,
+    "worstMs": 4.977371223130505,
+    "worstAt": 102,
+    "spikeMs": 0.45100122749938887,
+    "worstFrame": 6563,
+    "baseFrames": [
+      6431,
+      6460
+    ],
+    "instructions": 22400,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "up special, again",
+    "baselineMs": 4.63245332127828,
+    "worstMs": 4.971045523097032,
+    "worstAt": 119,
+    "spikeMs": 0.33859220181875127,
+    "worstFrame": 6803,
+    "baseFrames": [
+      6654,
+      6683
+    ],
+    "instructions": 16300,
+    "natives": 0,
+    "allocatedKb": 2.359375
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "air up special",
+    "baselineMs": 4.548964370910065,
+    "worstMs": 5.074588623364822,
+    "worstAt": 6,
+    "spikeMs": 0.5256242524547572,
+    "worstFrame": 6913,
+    "baseFrames": [
+      6877,
+      6906
+    ],
+    "instructions": 22000,
+    "natives": 0,
+    "allocatedKb": 28.578125
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "air up special, again",
+    "baselineMs": 4.517023370742696,
+    "worstMs": 5.072369873364822,
+    "worstAt": 149,
+    "spikeMs": 0.5553465026221263,
+    "worstFrame": 7279,
+    "baseFrames": [
+      7100,
+      7129
+    ],
+    "instructions": 23500,
+    "natives": 0,
+    "allocatedKb": 27.46875
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "down special",
+    "baselineMs": 4.553223170932382,
+    "worstMs": 4.985888823175137,
+    "worstAt": 50,
+    "spikeMs": 0.432665652242755,
+    "worstFrame": 7403,
+    "baseFrames": [
+      7323,
+      7352
+    ],
+    "instructions": 20100,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "down special, again",
+    "baselineMs": 4.521282170765013,
+    "worstMs": 4.986888823175137,
+    "worstAt": 67,
+    "spikeMs": 0.46560665241012433,
+    "worstFrame": 7643,
+    "baseFrames": [
+      7546,
+      7575
+    ],
+    "instructions": 21600,
+    "natives": 0,
+    "allocatedKb": 2.828125
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "air down special",
+    "baselineMs": 4.559611370965857,
+    "worstMs": 4.994437673219769,
+    "worstAt": 84,
+    "spikeMs": 0.4348263022539127,
+    "worstFrame": 7883,
+    "baseFrames": [
+      7769,
+      7798
+    ],
+    "instructions": 20200,
+    "natives": 0,
+    "allocatedKb": 2.34375
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "air down special, again",
+    "baselineMs": 4.525556595787327,
+    "worstMs": 4.994437673219769,
+    "worstAt": 101,
+    "spikeMs": 0.46888107743244234,
+    "worstFrame": 8123,
+    "baseFrames": [
+      7992,
+      8021
+    ],
+    "instructions": 21800,
+    "natives": 0,
+    "allocatedKb": 2.34375
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "side special, then attack",
+    "baselineMs": 4.676728371579546,
+    "worstMs": 5.329534374257462,
+    "worstAt": 11,
+    "spikeMs": 0.6528060026779166,
+    "worstFrame": 8256,
+    "baseFrames": [
+      8215,
+      8244
+    ],
+    "instructions": 24000,
+    "natives": 41,
+    "allocatedKb": 29.875
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "up special, then jump",
+    "baselineMs": 4.536187970843119,
+    "worstMs": 5.015700423331349,
+    "worstAt": 15,
+    "spikeMs": 0.4795124524882306,
+    "worstFrame": 8483,
+    "baseFrames": [
+      8438,
+      8467
+    ],
+    "instructions": 22300,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  },
+  {
+    "group": "chen-stormstout",
+    "name": "up special, then attack",
+    "baselineMs": 4.502117570664591,
+    "worstMs": 4.977371223130505,
+    "worstAt": 32,
+    "spikeMs": 0.47525365246591367,
+    "worstFrame": 8723,
+    "baseFrames": [
+      8661,
+      8690
+    ],
+    "instructions": 22100,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "jab",
+    "baselineMs": 5.002309085373872,
+    "worstMs": 5.144695748755352,
+    "worstAt": 149,
+    "spikeMs": 0.14238666338148054,
+    "worstFrame": 323,
+    "baseFrames": [
+      144,
+      173
+    ],
+    "instructions": 8050,
+    "natives": -38,
+    "allocatedKb": 24.56640625
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "jab chain",
+    "baselineMs": 4.4586946204637465,
+    "worstMs": 5.016650498085873,
+    "worstAt": 149,
+    "spikeMs": 0.5579558776221267,
+    "worstFrame": 546,
+    "baseFrames": [
+      367,
+      396
+    ],
+    "instructions": 23500,
+    "natives": 0,
+    "allocatedKb": 28.7734375
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "forward tilt",
+    "baselineMs": 4.479863620575326,
+    "worstMs": 4.891175022315973,
+    "worstAt": 2,
+    "spikeMs": 0.4113114017406465,
+    "worstFrame": 622,
+    "baseFrames": [
+      590,
+      619
+    ],
+    "instructions": 15600,
+    "natives": 12,
+    "allocatedKb": 27.55859375
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "up tilt",
+    "baselineMs": 4.479109220564169,
+    "worstMs": 4.864999372583764,
+    "worstAt": 64,
+    "spikeMs": 0.385890152019595,
+    "worstFrame": 907,
+    "baseFrames": [
+      813,
+      842
+    ],
+    "instructions": 18100,
+    "natives": 0,
+    "allocatedKb": 0.234375
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "down tilt",
+    "baselineMs": 4.488396845619958,
+    "worstMs": 4.8713094476172385,
+    "worstAt": 81,
+    "spikeMs": 0.3829126019972806,
+    "worstFrame": 1147,
+    "baseFrames": [
+      1036,
+      1065
+    ],
+    "instructions": 17900,
+    "natives": 0,
+    "allocatedKb": 0.87890625
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "forward smash",
+    "baselineMs": 4.611948921267121,
+    "worstMs": 4.871168822617238,
+    "worstAt": 98,
+    "spikeMs": 0.2592199013501171,
+    "worstFrame": 1387,
+    "baseFrames": [
+      1259,
+      1288
+    ],
+    "instructions": 12100,
+    "natives": 0,
+    "allocatedKb": 0.78125
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "up smash",
+    "baselineMs": 4.497469133164591,
+    "worstMs": 4.88129579766187,
+    "worstAt": 11,
+    "spikeMs": 0.38382666449727854,
+    "worstFrame": 1523,
+    "baseFrames": [
+      1482,
+      1511
+    ],
+    "instructions": 17900,
+    "natives": 0,
+    "allocatedKb": 1.3359375
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "down smash",
+    "baselineMs": 4.490573120631117,
+    "worstMs": 4.877963272650712,
+    "worstAt": 12,
+    "spikeMs": 0.38739015201959504,
+    "worstFrame": 1747,
+    "baseFrames": [
+      1705,
+      1734
+    ],
+    "instructions": 18100,
+    "natives": 0,
+    "allocatedKb": 0.984375
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "dash attack",
+    "baselineMs": 4.467149720508377,
+    "worstMs": 5.327465674558728,
+    "worstAt": 29,
+    "spikeMs": 0.8603159540503507,
+    "worstFrame": 1987,
+    "baseFrames": [
+      1928,
+      1957
+    ],
+    "instructions": 36300,
+    "natives": 40,
+    "allocatedKb": 3.671875
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "neutral air",
+    "baselineMs": 4.452243920430273,
+    "worstMs": 4.848081272315972,
+    "worstAt": 46,
+    "spikeMs": 0.39583735188569946,
+    "worstFrame": 2227,
+    "baseFrames": [
+      2151,
+      2180
+    ],
+    "instructions": 16900,
+    "natives": 0,
+    "allocatedKb": 17.984375
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "forward air",
+    "baselineMs": 4.441596920374483,
+    "worstMs": 4.836078397427553,
+    "worstAt": 79,
+    "spikeMs": 0.3944814770530698,
+    "worstFrame": 2483,
+    "baseFrames": [
+      2374,
+      2403
+    ],
+    "instructions": 18400,
+    "natives": 0,
+    "allocatedKb": 1.3359375
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "back air",
+    "baselineMs": 4.458632120463746,
+    "worstMs": 4.846725397483342,
+    "worstAt": 96,
+    "spikeMs": 0.3880932770195962,
+    "worstFrame": 2723,
+    "baseFrames": [
+      2597,
+      2626
+    ],
+    "instructions": 18100,
+    "natives": 0,
+    "allocatedKb": 1.3359375
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "up air",
+    "baselineMs": 4.573619721066278,
+    "worstMs": 4.843564747472184,
+    "worstAt": 97,
+    "spikeMs": 0.2699450264059067,
+    "worstFrame": 2947,
+    "baseFrames": [
+      2820,
+      2849
+    ],
+    "instructions": 12600,
+    "natives": 0,
+    "allocatedKb": 0.8203125
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "down air",
+    "baselineMs": 4.463890920486063,
+    "worstMs": 4.921253772594922,
+    "worstAt": 5,
+    "spikeMs": 0.45736285210885974,
+    "worstFrame": 3078,
+    "baseFrames": [
+      3043,
+      3072
+    ],
+    "instructions": 18900,
+    "natives": 0,
+    "allocatedKb": 27.453125
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "grab",
+    "baselineMs": 4.450114520419114,
+    "worstMs": 4.8488391724944995,
+    "worstAt": 27,
+    "spikeMs": 0.3987246520753853,
+    "worstFrame": 3323,
+    "baseFrames": [
+      3266,
+      3295
+    ],
+    "instructions": 18600,
+    "natives": 0,
+    "allocatedKb": 1.328125
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "pummel",
+    "baselineMs": 4.467149720508377,
+    "worstMs": 4.911876797550289,
+    "worstAt": 149,
+    "spikeMs": 0.44472707704191183,
+    "worstFrame": 3668,
+    "baseFrames": [
+      3489,
+      3518
+    ],
+    "instructions": 18300,
+    "natives": 0,
+    "allocatedKb": 27.5234375
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "forward throw",
+    "baselineMs": 4.454373320441431,
+    "worstMs": 4.857372397539132,
+    "worstAt": 61,
+    "spikeMs": 0.402999077097701,
+    "worstFrame": 3803,
+    "baseFrames": [
+      3712,
+      3741
+    ],
+    "instructions": 18800,
+    "natives": 0,
+    "allocatedKb": 1.3359375
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "back throw",
+    "baselineMs": 4.475667320553011,
+    "worstMs": 4.87014879760608,
+    "worstAt": 78,
+    "spikeMs": 0.3944814770530689,
+    "worstFrame": 4043,
+    "baseFrames": [
+      3935,
+      3964
+    ],
+    "instructions": 18400,
+    "natives": 0,
+    "allocatedKb": 1.3359375
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "up throw",
+    "baselineMs": 4.456502720452589,
+    "worstMs": 4.829705822394079,
+    "worstAt": 95,
+    "spikeMs": 0.3732031019414901,
+    "worstFrame": 4283,
+    "baseFrames": [
+      4158,
+      4187
+    ],
+    "instructions": 17400,
+    "natives": 0,
+    "allocatedKb": 1.34375
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "down throw",
+    "baselineMs": 4.6077057462448066,
+    "worstMs": 4.876485722628396,
+    "worstAt": 112,
+    "spikeMs": 0.2687799763835894,
+    "worstFrame": 4523,
+    "baseFrames": [
+      4381,
+      4410
+    ],
+    "instructions": 12400,
+    "natives": 0,
+    "allocatedKb": 2.375
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "neutral special",
+    "baselineMs": 4.460761520474905,
+    "worstMs": 4.8763919726283955,
+    "worstAt": 9,
+    "spikeMs": 0.4156304521534908,
+    "worstFrame": 4643,
+    "baseFrames": [
+      4604,
+      4633
+    ],
+    "instructions": 19300,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "neutral special, again",
+    "baselineMs": 4.482055520586484,
+    "worstMs": 4.92241442260608,
+    "worstAt": 19,
+    "spikeMs": 0.4403589020195957,
+    "worstFrame": 4876,
+    "baseFrames": [
+      4827,
+      4856
+    ],
+    "instructions": 18100,
+    "natives": 0,
+    "allocatedKb": 27.46875
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "air neutral special",
+    "baselineMs": 4.462890920486063,
+    "worstMs": 4.8849095726730285,
+    "worstAt": 43,
+    "spikeMs": 0.4220186521869653,
+    "worstFrame": 5123,
+    "baseFrames": [
+      5050,
+      5079
+    ],
+    "instructions": 19600,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "air neutral special, again",
+    "baselineMs": 4.486314320608801,
+    "worstMs": 4.89345842271766,
+    "worstAt": 60,
+    "spikeMs": 0.4071441021088589,
+    "worstFrame": 5363,
+    "baseFrames": [
+      5273,
+      5302
+    ],
+    "instructions": 18900,
+    "natives": 0,
+    "allocatedKb": 2.34375
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "side special",
+    "baselineMs": 4.467149720508377,
+    "worstMs": 5.237709124145882,
+    "worstAt": 29,
+    "spikeMs": 0.7705594036375043,
+    "worstFrame": 5555,
+    "baseFrames": [
+      5496,
+      5525
+    ],
+    "instructions": 32600,
+    "natives": 35,
+    "allocatedKb": 3.1875
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "side special, again",
+    "baselineMs": 4.866271872165339,
+    "worstMs": 5.456055375261681,
+    "worstAt": 22,
+    "spikeMs": 0.5897835030963421,
+    "worstFrame": 5827,
+    "baseFrames": [
+      5775,
+      5804
+    ],
+    "instructions": 27750,
+    "natives": -2,
+    "allocatedKb": 1.453125
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "air side special",
+    "baselineMs": 4.522514120798486,
+    "worstMs": 5.260904974246305,
+    "worstAt": 55,
+    "spikeMs": 0.738390853447819,
+    "worstFrame": 6083,
+    "baseFrames": [
+      5998,
+      6027
+    ],
+    "instructions": 30900,
+    "natives": 36,
+    "allocatedKb": 4.203125
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "air side special, again",
+    "baselineMs": 4.51825532077617,
+    "worstMs": 5.299923474134724,
+    "worstAt": 26,
+    "spikeMs": 0.7816681533585541,
+    "worstFrame": 6277,
+    "baseFrames": [
+      6221,
+      6250
+    ],
+    "instructions": 30100,
+    "natives": 40,
+    "allocatedKb": 30.359375
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "up special",
+    "baselineMs": 4.9238481974777635,
+    "worstMs": 5.280488574458306,
+    "worstAt": 149,
+    "spikeMs": 0.3566403769805424,
+    "worstFrame": 6683,
+    "baseFrames": [
+      6504,
+      6533
+    ],
+    "instructions": 17750,
+    "natives": -38,
+    "allocatedKb": 27.328125
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "up special, again",
+    "baselineMs": 4.499090720675748,
+    "worstMs": 5.042218923219769,
+    "worstAt": 149,
+    "spikeMs": 0.5431282025440209,
+    "worstFrame": 6906,
+    "baseFrames": [
+      6727,
+      6756
+    ],
+    "instructions": 22800,
+    "natives": 0,
+    "allocatedKb": 28.8125
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "air up special",
+    "baselineMs": 4.53954932088775,
+    "worstMs": 4.97863442316398,
+    "worstAt": 63,
+    "spikeMs": 0.43908510227622966,
+    "worstFrame": 7043,
+    "baseFrames": [
+      6950,
+      6979
+    ],
+    "instructions": 20400,
+    "natives": 0,
+    "allocatedKb": 2.34375
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "air up special, again",
+    "baselineMs": 4.503349520698064,
+    "worstMs": 4.976473773152822,
+    "worstAt": 80,
+    "spikeMs": 0.47312425245475787,
+    "worstFrame": 7283,
+    "baseFrames": [
+      7173,
+      7202
+    ],
+    "instructions": 22000,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "down special",
+    "baselineMs": 4.543808120910065,
+    "worstMs": 4.984991373197453,
+    "worstAt": 97,
+    "spikeMs": 0.441183252287388,
+    "worstFrame": 7523,
+    "baseFrames": [
+      7396,
+      7425
+    ],
+    "instructions": 20500,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "down special, again",
+    "baselineMs": 4.635372321389859,
+    "worstMs": 4.987120773208611,
+    "worstAt": 114,
+    "spikeMs": 0.3517484518187519,
+    "worstFrame": 7763,
+    "baseFrames": [
+      7619,
+      7648
+    ],
+    "instructions": 16300,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "air down special",
+    "baselineMs": 4.55019632094354,
+    "worstMs": 5.038820123476403,
+    "worstAt": 11,
+    "spikeMs": 0.48862380253286286,
+    "worstFrame": 7883,
+    "baseFrames": [
+      7842,
+      7871
+    ],
+    "instructions": 22700,
+    "natives": 0,
+    "allocatedKb": 2.625
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "air down special, again",
+    "baselineMs": 4.511867120742696,
+    "worstMs": 5.157712723521035,
+    "worstAt": 148,
+    "spikeMs": 0.6458456027783388,
+    "worstFrame": 8243,
+    "baseFrames": [
+      8065,
+      8094
+    ],
+    "instructions": 24900,
+    "natives": 53,
+    "allocatedKb": 4.8125
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "side special, then attack",
+    "baselineMs": 4.554455120965857,
+    "worstMs": 5.389566424893468,
+    "worstAt": 45,
+    "spikeMs": 0.8351113039276115,
+    "worstFrame": 8363,
+    "baseFrames": [
+      8288,
+      8317
+    ],
+    "instructions": 35200,
+    "natives": 38,
+    "allocatedKb": 4.78125
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "up special, then jump",
+    "baselineMs": 4.558713920988173,
+    "worstMs": 5.0146066733313495,
+    "worstAt": 62,
+    "spikeMs": 0.4558927523431766,
+    "worstFrame": 8603,
+    "baseFrames": [
+      8511,
+      8540
+    ],
+    "instructions": 21000,
+    "natives": 0,
+    "allocatedKb": 4.359375
+  },
+  {
+    "group": "sylvanas-windrunner",
+    "name": "up special, then attack",
+    "baselineMs": 4.516125920765012,
+    "worstMs": 5.014512923331349,
+    "worstAt": 79,
+    "spikeMs": 0.4983870025663366,
+    "worstFrame": 8843,
+    "baseFrames": [
+      8734,
+      8763
+    ],
+    "instructions": 23000,
+    "natives": 0,
+    "allocatedKb": 4.3125
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "jab",
+    "baselineMs": 5.020762972935241,
+    "worstMs": 5.043532498420612,
+    "worstAt": 19,
+    "spikeMs": 0.022769525485371034,
+    "worstFrame": 187,
+    "baseFrames": [
+      138,
+      167
+    ],
+    "instructions": 4200,
+    "natives": -32,
+    "allocatedKb": -0.4453125
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "jab chain",
+    "baselineMs": 4.480417320553012,
+    "worstMs": 4.865274247527974,
+    "worstAt": 36,
+    "spikeMs": 0.38485692697496265,
+    "worstFrame": 427,
+    "baseFrames": [
+      361,
+      390
+    ],
+    "instructions": 17700,
+    "natives": 0,
+    "allocatedKb": 3.9765625
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "forward tilt",
+    "baselineMs": 4.497343145642275,
+    "worstMs": 4.902368897371763,
+    "worstAt": 2,
+    "spikeMs": 0.40502575172948774,
+    "worstFrame": 616,
+    "baseFrames": [
+      584,
+      613
+    ],
+    "instructions": 15500,
+    "natives": 10,
+    "allocatedKb": 27.484375
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "up tilt",
+    "baselineMs": 4.500847545653432,
+    "worstMs": 4.880349497639553,
+    "worstAt": 70,
+    "spikeMs": 0.37950195198612136,
+    "worstFrame": 907,
+    "baseFrames": [
+      807,
+      836
+    ],
+    "instructions": 17800,
+    "natives": 0,
+    "allocatedKb": 0.2421875
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "down tilt",
+    "baselineMs": 4.559158245965857,
+    "worstMs": 4.8887889726841856,
+    "worstAt": 87,
+    "spikeMs": 0.32963072671832894,
+    "worstFrame": 1147,
+    "baseFrames": [
+      1030,
+      1059
+    ],
+    "instructions": 15400,
+    "natives": 0,
+    "allocatedKb": 0.8828125
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "forward smash",
+    "baselineMs": 4.612377621244805,
+    "worstMs": 4.890621497695343,
+    "worstAt": 104,
+    "spikeMs": 0.2782438764505377,
+    "worstFrame": 1387,
+    "baseFrames": [
+      1253,
+      1282
+    ],
+    "instructions": 13000,
+    "natives": 0,
+    "allocatedKb": 0.7109375
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "up smash",
+    "baselineMs": 4.519184020753855,
+    "worstMs": 4.904444772762292,
+    "worstAt": 1,
+    "spikeMs": 0.38526075200843746,
+    "worstFrame": 1507,
+    "baseFrames": [
+      1476,
+      1505
+    ],
+    "instructions": 18000,
+    "natives": 0,
+    "allocatedKb": 0.984375
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "down smash",
+    "baselineMs": 4.510166420709223,
+    "worstMs": 4.935603897650712,
+    "worstAt": 149,
+    "spikeMs": 0.4254374769414895,
+    "worstFrame": 1878,
+    "baseFrames": [
+      1699,
+      1728
+    ],
+    "instructions": 17400,
+    "natives": 0,
+    "allocatedKb": 27.4609375
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "dash attack",
+    "baselineMs": 4.488872420597644,
+    "worstMs": 5.520446175618735,
+    "worstAt": 35,
+    "spikeMs": 1.0315737550210917,
+    "worstFrame": 1987,
+    "baseFrames": [
+      1922,
+      1951
+    ],
+    "instructions": 45000,
+    "natives": 33,
+    "allocatedKb": 3.671875
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "neutral air",
+    "baselineMs": 4.921300334955447,
+    "worstMs": 5.487613749815361,
+    "worstAt": 0,
+    "spikeMs": 0.5663134148599145,
+    "worstFrame": 2227,
+    "baseFrames": [
+      2197,
+      2226
+    ],
+    "instructions": 21150,
+    "natives": 54,
+    "allocatedKb": 4.22265625
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "forward air",
+    "baselineMs": 4.505907620686907,
+    "worstMs": 4.971803697840398,
+    "worstAt": 149,
+    "spikeMs": 0.46589607715349146,
+    "worstFrame": 2599,
+    "baseFrames": [
+      2420,
+      2449
+    ],
+    "instructions": 19300,
+    "natives": 0,
+    "allocatedKb": 27.4609375
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "back air",
+    "baselineMs": 4.525072220787328,
+    "worstMs": 4.915279272818082,
+    "worstAt": 50,
+    "spikeMs": 0.3902070520307541,
+    "worstFrame": 2723,
+    "baseFrames": [
+      2643,
+      2672
+    ],
+    "instructions": 18200,
+    "natives": 0,
+    "allocatedKb": 1.328125
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "up air",
+    "baselineMs": 4.512295820720381,
+    "worstMs": 4.9195536978403975,
+    "worstAt": 67,
+    "spikeMs": 0.40725787712001615,
+    "worstFrame": 2963,
+    "baseFrames": [
+      2866,
+      2895
+    ],
+    "instructions": 19000,
+    "natives": 0,
+    "allocatedKb": 1.3359375
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "down air",
+    "baselineMs": 4.529331020809645,
+    "worstMs": 4.9216674728515555,
+    "worstAt": 84,
+    "spikeMs": 0.3923364520419108,
+    "worstFrame": 3203,
+    "baseFrames": [
+      3089,
+      3118
+    ],
+    "instructions": 18300,
+    "natives": 0,
+    "allocatedKb": 1.328125
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "grab",
+    "baselineMs": 4.514425220731538,
+    "worstMs": 4.923828122862714,
+    "worstAt": 101,
+    "spikeMs": 0.409402902131176,
+    "worstFrame": 3443,
+    "baseFrames": [
+      3312,
+      3341
+    ],
+    "instructions": 19100,
+    "natives": 0,
+    "allocatedKb": 1.34375
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "pummel",
+    "baselineMs": 4.607054121216911,
+    "worstMs": 4.932185072896188,
+    "worstAt": 118,
+    "spikeMs": 0.3251309516792773,
+    "worstFrame": 3683,
+    "baseFrames": [
+      3535,
+      3564
+    ],
+    "instructions": 15050,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "forward throw",
+    "baselineMs": 4.516554620742696,
+    "worstMs": 4.976078122862714,
+    "worstAt": 11,
+    "spikeMs": 0.45952350212001836,
+    "worstFrame": 3799,
+    "baseFrames": [
+      3758,
+      3787
+    ],
+    "instructions": 19000,
+    "natives": 0,
+    "allocatedKb": 27.46875
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "back throw",
+    "baselineMs": 4.488872420597644,
+    "worstMs": 5.020764273097032,
+    "worstAt": 149,
+    "spikeMs": 0.5318918524993883,
+    "worstFrame": 4160,
+    "baseFrames": [
+      3981,
+      4010
+    ],
+    "instructions": 22400,
+    "natives": 0,
+    "allocatedKb": 27.453125
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "up throw",
+    "baselineMs": 4.520813420765013,
+    "worstMs": 4.948591772818082,
+    "worstAt": 33,
+    "spikeMs": 0.42777835205306936,
+    "worstFrame": 4267,
+    "baseFrames": [
+      4204,
+      4233
+    ],
+    "instructions": 18400,
+    "natives": 0,
+    "allocatedKb": 17.984375
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "down throw",
+    "baselineMs": 4.488872420597644,
+    "worstMs": 4.951380922996609,
+    "worstAt": 66,
+    "spikeMs": 0.4625085023989657,
+    "worstFrame": 4523,
+    "baseFrames": [
+      4427,
+      4456
+    ],
+    "instructions": 21500,
+    "natives": 0,
+    "allocatedKb": 2.34375
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "neutral special",
+    "baselineMs": 4.52294282077617,
+    "worstMs": 4.9514434229966096,
+    "worstAt": 83,
+    "spikeMs": 0.4285006022204394,
+    "worstFrame": 4763,
+    "baseFrames": [
+      4650,
+      4679
+    ],
+    "instructions": 19900,
+    "natives": 0,
+    "allocatedKb": 2.375
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "neutral special, again",
+    "baselineMs": 4.493131220619958,
+    "worstMs": 4.957769123030084,
+    "worstAt": 100,
+    "spikeMs": 0.4646379024101259,
+    "worstFrame": 5003,
+    "baseFrames": [
+      4873,
+      4902
+    ],
+    "instructions": 21600,
+    "natives": 0,
+    "allocatedKb": 2.34375
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "air neutral special",
+    "baselineMs": 4.6496421214400705,
+    "worstMs": 4.957737873030084,
+    "worstAt": 117,
+    "spikeMs": 0.3080957515900131,
+    "worstFrame": 5243,
+    "baseFrames": [
+      5096,
+      5125
+    ],
+    "instructions": 14250,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "air neutral special, again",
+    "baselineMs": 4.4910018206088,
+    "worstMs": 4.964094823063558,
+    "worstAt": 134,
+    "spikeMs": 0.4730930024547577,
+    "worstFrame": 5483,
+    "baseFrames": [
+      5319,
+      5348
+    ],
+    "instructions": 22000,
+    "natives": 0,
+    "allocatedKb": 2.3125
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "side special",
+    "baselineMs": 4.531460420820802,
+    "worstMs": 5.435721325127785,
+    "worstAt": 15,
+    "spikeMs": 0.9042609043069829,
+    "worstFrame": 5587,
+    "baseFrames": [
+      5542,
+      5571
+    ],
+    "instructions": 38600,
+    "natives": 38,
+    "allocatedKb": 3.15625
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "side special, again",
+    "baselineMs": 4.4910018206088,
+    "worstMs": 5.534222575685684,
+    "worstAt": 32,
+    "spikeMs": 1.0432207550768835,
+    "worstFrame": 5827,
+    "baseFrames": [
+      5765,
+      5794
+    ],
+    "instructions": 45500,
+    "natives": 33,
+    "allocatedKb": 4.171875
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "air side special",
+    "baselineMs": 4.954362922633974,
+    "worstMs": 5.499197525384418,
+    "worstAt": 20,
+    "spikeMs": 0.544834602750444,
+    "worstFrame": 6067,
+    "baseFrames": [
+      6017,
+      6046
+    ],
+    "instructions": 24650,
+    "natives": 8,
+    "allocatedKb": 1.96875
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "air side special, again",
+    "baselineMs": 4.505907620686907,
+    "worstMs": 5.540579525719158,
+    "worstAt": 37,
+    "spikeMs": 1.0346719050322513,
+    "worstFrame": 6307,
+    "baseFrames": [
+      6240,
+      6269
+    ],
+    "instructions": 45100,
+    "natives": 33,
+    "allocatedKb": 4.15625
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "up special",
+    "baselineMs": 4.967139322700922,
+    "worstMs": 5.350031674726098,
+    "worstAt": 3,
+    "spikeMs": 0.38289235202517524,
+    "worstFrame": 6547,
+    "baseFrames": [
+      6514,
+      6543
+    ],
+    "instructions": 18250,
+    "natives": -2,
+    "allocatedKb": 0.203125
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "up special, again",
+    "baselineMs": 4.503778220675748,
+    "worstMs": 5.389470974413674,
+    "worstAt": 20,
+    "spikeMs": 0.885692753737926,
+    "worstFrame": 6787,
+    "baseFrames": [
+      6737,
+      6766
+    ],
+    "instructions": 33500,
+    "natives": 55,
+    "allocatedKb": 31.171875
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "air up special",
+    "baselineMs": 4.542107420876592,
+    "worstMs": 5.023749273375982,
+    "worstAt": 53,
+    "spikeMs": 0.48164185249938996,
+    "worstFrame": 7043,
+    "baseFrames": [
+      6960,
+      6989
+    ],
+    "instructions": 22400,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "air up special, again",
+    "baselineMs": 4.582566021088595,
+    "worstMs": 5.0216198733648225,
+    "worstAt": 70,
+    "spikeMs": 0.43905385227622773,
+    "worstFrame": 7283,
+    "baseFrames": [
+      7183,
+      7212
+    ],
+    "instructions": 20400,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "down special",
+    "baselineMs": 4.546366220898908,
+    "worstMs": 5.023780523375982,
+    "worstAt": 87,
+    "spikeMs": 0.47741430247707406,
+    "worstFrame": 7523,
+    "baseFrames": [
+      7406,
+      7435
+    ],
+    "instructions": 22200,
+    "natives": 0,
+    "allocatedKb": 2.34375
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "down special, again",
+    "baselineMs": 4.689036021646493,
+    "worstMs": 5.0258786733871395,
+    "worstAt": 104,
+    "spikeMs": 0.3368426517406462,
+    "worstFrame": 7763,
+    "baseFrames": [
+      7629,
+      7658
+    ],
+    "instructions": 15600,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "air down special",
+    "baselineMs": 4.642189221401018,
+    "worstMs": 5.02590992338714,
+    "worstAt": 1,
+    "spikeMs": 0.38372070198612196,
+    "worstFrame": 7883,
+    "baseFrames": [
+      7852,
+      7881
+    ],
+    "instructions": 17800,
+    "natives": 0,
+    "allocatedKb": 2.34375
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "air down special, again",
+    "baselineMs": 4.582566021088595,
+    "worstMs": 5.076155523375982,
+    "worstAt": 6,
+    "spikeMs": 0.49358950228738685,
+    "worstFrame": 8111,
+    "baseFrames": [
+      8075,
+      8104
+    ],
+    "instructions": 20500,
+    "natives": 0,
+    "allocatedKb": 28.53125
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "side special, then attack",
+    "baselineMs": 4.545317145893329,
+    "worstMs": 5.458868325183575,
+    "worstAt": 19,
+    "spikeMs": 0.9135511792902458,
+    "worstFrame": 8347,
+    "baseFrames": [
+      8298,
+      8327
+    ],
+    "instructions": 38500,
+    "natives": 44,
+    "allocatedKb": 3.40625
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "up special, then jump",
+    "baselineMs": 4.4803548205530115,
+    "worstMs": 5.063130922996609,
+    "worstAt": 36,
+    "spikeMs": 0.5827761024435976,
+    "worstFrame": 8587,
+    "baseFrames": [
+      8521,
+      8550
+    ],
+    "instructions": 21900,
+    "natives": 55,
+    "allocatedKb": 3.21875
+  },
+  {
+    "group": "kael'thas-sunstrider",
+    "name": "up special, then attack",
+    "baselineMs": 4.520813420765013,
+    "worstMs": 4.976871223130505,
+    "worstAt": 69,
+    "spikeMs": 0.45605780236549265,
+    "worstFrame": 8843,
+    "baseFrames": [
+      8744,
+      8773
+    ],
+    "instructions": 21200,
+    "natives": 0,
+    "allocatedKb": 2.3125
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "jab",
+    "baselineMs": 5.013009785407346,
+    "worstMs": 4.9758247980523995,
+    "worstAt": 6,
+    "spikeMs": -0.03718498735494613,
+    "worstFrame": 187,
+    "baseFrames": [
+      151,
+      180
+    ],
+    "instructions": 1300,
+    "natives": -32,
+    "allocatedKb": 0.59765625
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "jab chain",
+    "baselineMs": 4.481031095564169,
+    "worstMs": 4.982341322896188,
+    "worstAt": 149,
+    "spikeMs": 0.5013102273320191,
+    "worstFrame": 553,
+    "baseFrames": [
+      374,
+      403
+    ],
+    "instructions": 20900,
+    "natives": 0,
+    "allocatedKb": 28.1328125
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "forward tilt",
+    "baselineMs": 4.489665883108801,
+    "worstMs": 4.922263472461026,
+    "worstAt": 2,
+    "spikeMs": 0.43259758935222514,
+    "worstFrame": 629,
+    "baseFrames": [
+      597,
+      626
+    ],
+    "instructions": 16600,
+    "natives": 12,
+    "allocatedKb": 27.55859375
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "up tilt",
+    "baselineMs": 4.496186895642275,
+    "worstMs": 4.863849947561448,
+    "worstAt": 73,
+    "spikeMs": 0.36766305191917326,
+    "worstFrame": 923,
+    "baseFrames": [
+      820,
+      849
+    ],
+    "instructions": 17200,
+    "natives": 0,
+    "allocatedKb": 0.703125
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "down tilt",
+    "baselineMs": 4.4916780956199585,
+    "worstMs": 4.866182472572606,
+    "worstAt": 90,
+    "spikeMs": 0.3745043769526477,
+    "worstFrame": 1163,
+    "baseFrames": [
+      1043,
+      1072
+    ],
+    "instructions": 17500,
+    "natives": 0,
+    "allocatedKb": 0.9375
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "forward smash",
+    "baselineMs": 4.6312084838508065,
+    "worstMs": 4.8798182476395535,
+    "worstAt": 107,
+    "spikeMs": 0.248609763788747,
+    "worstFrame": 1403,
+    "baseFrames": [
+      1266,
+      1295
+    ],
+    "instructions": 11600,
+    "natives": 0,
+    "allocatedKb": 1.3359375
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "up smash",
+    "baselineMs": 4.477883870547432,
+    "worstMs": 4.877626347628396,
+    "worstAt": 124,
+    "spikeMs": 0.3997424770809639,
+    "worstFrame": 1643,
+    "baseFrames": [
+      1489,
+      1518
+    ],
+    "instructions": 18650,
+    "natives": 0,
+    "allocatedKb": 1.3046875
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "down smash",
+    "baselineMs": 4.511389570720381,
+    "worstMs": 4.88409267266187,
+    "worstAt": 21,
+    "spikeMs": 0.3727031019414895,
+    "worstFrame": 1763,
+    "baseFrames": [
+      1712,
+      1741
+    ],
+    "instructions": 17400,
+    "natives": 0,
+    "allocatedKb": 1.09375
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "dash attack",
+    "baselineMs": 4.502371970675748,
+    "worstMs": 5.293824424279778,
+    "worstAt": 22,
+    "spikeMs": 0.7914524536040304,
+    "worstFrame": 1987,
+    "baseFrames": [
+      1935,
+      1964
+    ],
+    "instructions": 32300,
+    "natives": 48,
+    "allocatedKb": 3.828125
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "neutral air",
+    "baselineMs": 4.519407170765013,
+    "worstMs": 4.899060972739976,
+    "worstAt": 55,
+    "spikeMs": 0.3796538019749631,
+    "worstFrame": 2243,
+    "baseFrames": [
+      2158,
+      2187
+    ],
+    "instructions": 17700,
+    "natives": 0,
+    "allocatedKb": 1.375
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "forward air",
+    "baselineMs": 4.508760170709222,
+    "worstMs": 4.862783047550289,
+    "worstAt": 72,
+    "spikeMs": 0.3540228768410669,
+    "worstFrame": 2483,
+    "baseFrames": [
+      2381,
+      2410
+    ],
+    "instructions": 16500,
+    "natives": 0,
+    "allocatedKb": 1.3359375
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "back air",
+    "baselineMs": 4.523665970787328,
+    "worstMs": 4.90537104777345,
+    "worstAt": 89,
+    "spikeMs": 0.38170507698612166,
+    "worstFrame": 2723,
+    "baseFrames": [
+      2604,
+      2633
+    ],
+    "instructions": 17800,
+    "natives": 0,
+    "allocatedKb": 1.3359375
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "up air",
+    "baselineMs": 4.636524171378702,
+    "worstMs": 4.867057472572607,
+    "worstAt": 106,
+    "spikeMs": 0.2305333011939048,
+    "worstFrame": 2963,
+    "baseFrames": [
+      2827,
+      2856
+    ],
+    "instructions": 10700,
+    "natives": 0,
+    "allocatedKb": 1.34375
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "down air",
+    "baselineMs": 4.535320783343119,
+    "worstMs": 4.9298100728961884,
+    "worstAt": 3,
+    "spikeMs": 0.3944892895530696,
+    "worstFrame": 3083,
+    "baseFrames": [
+      3050,
+      3079
+    ],
+    "instructions": 18400,
+    "natives": 0,
+    "allocatedKb": 1.34375
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "grab",
+    "baselineMs": 4.515148370742696,
+    "worstMs": 4.913888647818082,
+    "worstAt": 20,
+    "spikeMs": 0.39874027707538584,
+    "worstFrame": 3323,
+    "baseFrames": [
+      3273,
+      3302
+    ],
+    "instructions": 18600,
+    "natives": 0,
+    "allocatedKb": 1.3359375
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "pummel",
+    "baselineMs": 4.536442370854276,
+    "worstMs": 4.933100122918503,
+    "worstAt": 37,
+    "spikeMs": 0.39665775206422715,
+    "worstFrame": 3563,
+    "baseFrames": [
+      3496,
+      3525
+    ],
+    "instructions": 18500,
+    "natives": 0,
+    "allocatedKb": 1.359375
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "forward throw",
+    "baselineMs": 4.519407170765013,
+    "worstMs": 4.875575072617238,
+    "worstAt": 54,
+    "spikeMs": 0.356167901852225,
+    "worstFrame": 3803,
+    "baseFrames": [
+      3719,
+      3748
+    ],
+    "instructions": 16600,
+    "natives": 0,
+    "allocatedKb": 1.34375
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "back throw",
+    "baselineMs": 4.540701170876592,
+    "worstMs": 4.935229522929662,
+    "worstAt": 71,
+    "spikeMs": 0.3945283520530696,
+    "worstFrame": 4043,
+    "baseFrames": [
+      3942,
+      3971
+    ],
+    "instructions": 18400,
+    "natives": 0,
+    "allocatedKb": 1.359375
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "up throw",
+    "baselineMs": 4.5215365707761705,
+    "worstMs": 4.879833872639553,
+    "worstAt": 88,
+    "spikeMs": 0.3582973018633826,
+    "worstFrame": 4283,
+    "baseFrames": [
+      4165,
+      4194
+    ],
+    "instructions": 16700,
+    "natives": 0,
+    "allocatedKb": 1.34375
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "down throw",
+    "baselineMs": 4.6663357715349125,
+    "worstMs": 4.967878947951978,
+    "worstAt": 105,
+    "spikeMs": 0.3015431764170655,
+    "worstFrame": 4523,
+    "baseFrames": [
+      4388,
+      4417
+    ],
+    "instructions": 12700,
+    "natives": 0,
+    "allocatedKb": 15.5546875
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "neutral special",
+    "baselineMs": 4.577463471066277,
+    "worstMs": 4.9414570729519784,
+    "worstAt": 2,
+    "spikeMs": 0.36399360188570107,
+    "worstFrame": 4643,
+    "baseFrames": [
+      4611,
+      4640
+    ],
+    "instructions": 16900,
+    "natives": 0,
+    "allocatedKb": 2.34375
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "neutral special, again",
+    "baselineMs": 4.547089370910066,
+    "worstMs": 5.256118874313253,
+    "worstAt": 19,
+    "spikeMs": 0.7090295034031868,
+    "worstFrame": 4883,
+    "baseFrames": [
+      4834,
+      4863
+    ],
+    "instructions": 30500,
+    "natives": 0,
+    "allocatedKb": 29.78125
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "air neutral special",
+    "baselineMs": 4.527924770809644,
+    "worstMs": 4.956362873030083,
+    "worstAt": 36,
+    "spikeMs": 0.4284381022204391,
+    "worstFrame": 5123,
+    "baseFrames": [
+      5057,
+      5086
+    ],
+    "instructions": 19900,
+    "natives": 0,
+    "allocatedKb": 2.34375
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "air neutral special, again",
+    "baselineMs": 4.551363795932382,
+    "worstMs": 4.958492273041242,
+    "worstAt": 53,
+    "spikeMs": 0.40712847710886013,
+    "worstFrame": 5363,
+    "baseFrames": [
+      5280,
+      5309
+    ],
+    "instructions": 18900,
+    "natives": 0,
+    "allocatedKb": 2.34375
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "side special",
+    "baselineMs": 4.532183570831959,
+    "worstMs": 5.057036723074715,
+    "worstAt": 14,
+    "spikeMs": 0.5248531522427555,
+    "worstFrame": 5547,
+    "baseFrames": [
+      5503,
+      5532
+    ],
+    "instructions": 20100,
+    "natives": 46,
+    "allocatedKb": 2.421875
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "side special, again",
+    "baselineMs": 4.466172170486063,
+    "worstMs": 5.2861695240454605,
+    "worstAt": 20,
+    "spikeMs": 0.8199973535593976,
+    "worstFrame": 5776,
+    "baseFrames": [
+      5726,
+      5755
+    ],
+    "instructions": 31900,
+    "natives": 40,
+    "allocatedKb": 30.359375
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "air side special",
+    "baselineMs": 4.870715972182076,
+    "worstMs": 5.303412874424832,
+    "worstAt": 43,
+    "spikeMs": 0.43269690224275603,
+    "worstFrame": 6083,
+    "baseFrames": [
+      6010,
+      6039
+    ],
+    "instructions": 20250,
+    "natives": 0,
+    "allocatedKb": 2.34375
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "air side special, again",
+    "baselineMs": 4.559865770977014,
+    "worstMs": 5.357268474692623,
+    "worstAt": 44,
+    "spikeMs": 0.7974027037156093,
+    "worstFrame": 6307,
+    "baseFrames": [
+      6233,
+      6262
+    ],
+    "instructions": 33300,
+    "natives": 40,
+    "allocatedKb": 4.15625
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "up special",
+    "baselineMs": 4.487466170597643,
+    "worstMs": 4.9456846229742935,
+    "worstAt": 77,
+    "spikeMs": 0.4582184523766504,
+    "worstFrame": 6563,
+    "baseFrames": [
+      6456,
+      6485
+    ],
+    "instructions": 21300,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "up special, again",
+    "baselineMs": 4.519407170765013,
+    "worstMs": 4.947814022985452,
+    "worstAt": 94,
+    "spikeMs": 0.42840685222043895,
+    "worstFrame": 6803,
+    "baseFrames": [
+      6679,
+      6708
+    ],
+    "instructions": 19900,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "air up special",
+    "baselineMs": 4.615230171267122,
+    "worstMs": 4.948314022985452,
+    "worstAt": 111,
+    "spikeMs": 0.3330838517183299,
+    "worstFrame": 7043,
+    "baseFrames": [
+      6902,
+      6931
+    ],
+    "instructions": 15400,
+    "natives": 0,
+    "allocatedKb": 2.578125
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "air up special, again",
+    "baselineMs": 4.523665970787328,
+    "worstMs": 5.050825873253243,
+    "worstAt": 6,
+    "spikeMs": 0.5271599024659146,
+    "worstFrame": 7161,
+    "baseFrames": [
+      7125,
+      7154
+    ],
+    "instructions": 22100,
+    "natives": 0,
+    "allocatedKb": 28.28125
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "down special",
+    "baselineMs": 4.491724970619958,
+    "worstMs": 4.956362873030083,
+    "worstAt": 25,
+    "spikeMs": 0.46463790241012504,
+    "worstFrame": 7403,
+    "baseFrames": [
+      7348,
+      7377
+    ],
+    "instructions": 21600,
+    "natives": 0,
+    "allocatedKb": 2.34375
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "down special, again",
+    "baselineMs": 4.530054170820802,
+    "worstMs": 4.993773972963136,
+    "worstAt": 149,
+    "spikeMs": 0.4637198021423341,
+    "worstFrame": 7750,
+    "baseFrames": [
+      7571,
+      7600
+    ],
+    "instructions": 19200,
+    "natives": 0,
+    "allocatedKb": 27.4375
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "air down special",
+    "baselineMs": 4.495999395642276,
+    "worstMs": 4.964880473074715,
+    "worstAt": 59,
+    "spikeMs": 0.4688810774324397,
+    "worstFrame": 7883,
+    "baseFrames": [
+      7794,
+      7823
+    ],
+    "instructions": 21800,
+    "natives": 0,
+    "allocatedKb": 2.34375
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "air down special, again",
+    "baselineMs": 4.536442370854276,
+    "worstMs": 4.975496223130505,
+    "worstAt": 76,
+    "spikeMs": 0.4390538522762286,
+    "worstFrame": 8123,
+    "baseFrames": [
+      8017,
+      8046
+    ],
+    "instructions": 20400,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "side special, then attack",
+    "baselineMs": 4.502371970675748,
+    "worstMs": 5.283071374034303,
+    "worstAt": 11,
+    "spikeMs": 0.7806994033585548,
+    "worstFrame": 8281,
+    "baseFrames": [
+      8240,
+      8269
+    ],
+    "instructions": 30100,
+    "natives": 40,
+    "allocatedKb": 29.875
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "up special, then jump",
+    "baselineMs": 4.5705908960328046,
+    "worstMs": 4.926582522873872,
+    "worstAt": 110,
+    "spikeMs": 0.35599162684106744,
+    "worstFrame": 8603,
+    "baseFrames": [
+      8463,
+      8492
+    ],
+    "instructions": 16500,
+    "natives": 0,
+    "allocatedKb": 2.359375
+  },
+  {
+    "group": "cairne-bloodhoof",
+    "name": "up special, then attack",
+    "baselineMs": 4.487466170597643,
+    "worstMs": 4.969139273097032,
+    "worstAt": 7,
+    "spikeMs": 0.4816731024993892,
+    "worstFrame": 8723,
+    "baseFrames": [
+      8686,
+      8715
+    ],
+    "instructions": 22400,
+    "natives": 0,
+    "allocatedKb": 2.34375
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "jab",
+    "baselineMs": 5.049783085624926,
+    "worstMs": 4.888126347628396,
+    "worstAt": 9,
+    "spikeMs": -0.16165673799653035,
+    "worstFrame": 203,
+    "baseFrames": [
+      164,
+      193
+    ],
+    "instructions": -4400,
+    "natives": -32,
+    "allocatedKb": -1.109375
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "jab chain",
+    "baselineMs": 4.504442283175749,
+    "worstMs": 5.0036152979966095,
+    "worstAt": 15,
+    "spikeMs": 0.49917301482086085,
+    "worstFrame": 432,
+    "baseFrames": [
+      387,
+      416
+    ],
+    "instructions": 20800,
+    "natives": 0,
+    "allocatedKb": 28.12890625
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "forward tilt",
+    "baselineMs": 4.515206470731538,
+    "worstMs": 4.967446747806924,
+    "worstAt": 149,
+    "spikeMs": 0.4522402770753855,
+    "worstFrame": 789,
+    "baseFrames": [
+      610,
+      639
+    ],
+    "instructions": 18600,
+    "natives": 0,
+    "allocatedKb": 28.0859375
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "up tilt",
+    "baselineMs": 4.5196058957538545,
+    "worstMs": 4.889413972684186,
+    "worstAt": 60,
+    "spikeMs": 0.36980807693033135,
+    "worstFrame": 923,
+    "baseFrames": [
+      833,
+      862
+    ],
+    "instructions": 17300,
+    "natives": 0,
+    "allocatedKb": 0.71484375
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "down tilt",
+    "baselineMs": 4.517210870742696,
+    "worstMs": 4.887331447673028,
+    "worstAt": 77,
+    "spikeMs": 0.37012057693033196,
+    "worstFrame": 1163,
+    "baseFrames": [
+      1056,
+      1085
+    ],
+    "instructions": 17300,
+    "natives": 0,
+    "allocatedKb": 0.8671875
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "forward smash",
+    "baselineMs": 4.527920370798486,
+    "worstMs": 4.898978447728819,
+    "worstAt": 94,
+    "spikeMs": 0.3710580769303329,
+    "worstFrame": 1403,
+    "baseFrames": [
+      1279,
+      1308
+    ],
+    "instructions": 17300,
+    "natives": 0,
+    "allocatedKb": 1.3359375
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "up smash",
+    "baselineMs": 4.6194923837782795,
+    "worstMs": 4.898915947728819,
+    "worstAt": 111,
+    "spikeMs": 0.27942356395053913,
+    "worstFrame": 1643,
+    "baseFrames": [
+      1502,
+      1531
+    ],
+    "instructions": 13000,
+    "natives": 0,
+    "allocatedKb": 1.3046875
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "down smash",
+    "baselineMs": 4.53482419583196,
+    "worstMs": 4.916513647818082,
+    "worstAt": 8,
+    "spikeMs": 0.38168945198612203,
+    "worstFrame": 1763,
+    "baseFrames": [
+      1725,
+      1754
+    ],
+    "instructions": 17800,
+    "natives": 0,
+    "allocatedKb": 1.3359375
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "dash attack",
+    "baselineMs": 4.525775345787327,
+    "worstMs": 5.359185949681466,
+    "worstAt": 9,
+    "spikeMs": 0.8334106038941389,
+    "worstFrame": 1987,
+    "baseFrames": [
+      1948,
+      1977
+    ],
+    "instructions": 34900,
+    "natives": 12,
+    "allocatedKb": 33.1171875
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "neutral air",
+    "baselineMs": 4.547084970898908,
+    "worstMs": 5.0346830978515555,
+    "worstAt": 26,
+    "spikeMs": 0.4875981269526477,
+    "worstFrame": 2227,
+    "baseFrames": [
+      2171,
+      2200
+    ],
+    "instructions": 17500,
+    "natives": 54,
+    "allocatedKb": 3.4765625
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "forward air",
+    "baselineMs": 4.536437970843119,
+    "worstMs": 4.890460847684186,
+    "worstAt": 59,
+    "spikeMs": 0.3540228768410669,
+    "worstFrame": 2483,
+    "baseFrames": [
+      2394,
+      2423
+    ],
+    "instructions": 16500,
+    "natives": 0,
+    "allocatedKb": 1.3359375
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "back air",
+    "baselineMs": 4.551343770921225,
+    "worstMs": 4.933064472907345,
+    "worstAt": 76,
+    "spikeMs": 0.3817207019861204,
+    "worstFrame": 2723,
+    "baseFrames": [
+      2617,
+      2646
+    ],
+    "instructions": 17800,
+    "natives": 0,
+    "allocatedKb": 1.34375
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "up air",
+    "baselineMs": 4.542826170876592,
+    "worstMs": 4.8968490477176605,
+    "worstAt": 93,
+    "spikeMs": 0.3540228768410687,
+    "worstFrame": 2963,
+    "baseFrames": [
+      2840,
+      2869
+    ],
+    "instructions": 16500,
+    "natives": 0,
+    "allocatedKb": 1.3359375
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "down air",
+    "baselineMs": 4.684374384113019,
+    "worstMs": 4.943711472963136,
+    "worstAt": 110,
+    "spikeMs": 0.25933708885011697,
+    "worstFrame": 3203,
+    "baseFrames": [
+      3063,
+      3092
+    ],
+    "instructions": 12100,
+    "natives": 0,
+    "allocatedKb": 0.84375
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "grab",
+    "baselineMs": 4.542826170876592,
+    "worstMs": 4.941550822951978,
+    "worstAt": 7,
+    "spikeMs": 0.3987246520753862,
+    "worstFrame": 3323,
+    "baseFrames": [
+      3286,
+      3315
+    ],
+    "instructions": 18600,
+    "natives": 0,
+    "allocatedKb": 1.328125
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "pummel",
+    "baselineMs": 4.561990770977014,
+    "worstMs": 5.03422817316398,
+    "worstAt": 11,
+    "spikeMs": 0.4722374021869653,
+    "worstFrame": 3550,
+    "baseFrames": [
+      3509,
+      3538
+    ],
+    "instructions": 19600,
+    "natives": 0,
+    "allocatedKb": 27.4375
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "forward throw",
+    "baselineMs": 4.547084970898908,
+    "worstMs": 4.951181572728818,
+    "worstAt": 149,
+    "spikeMs": 0.40409660182991036,
+    "worstFrame": 3911,
+    "baseFrames": [
+      3732,
+      3761
+    ],
+    "instructions": 16400,
+    "natives": 0,
+    "allocatedKb": 27.4375
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "back throw",
+    "baselineMs": 4.568378971010488,
+    "worstMs": 4.960715423052399,
+    "worstAt": 58,
+    "spikeMs": 0.3923364520419108,
+    "worstFrame": 4043,
+    "baseFrames": [
+      3955,
+      3984
+    ],
+    "instructions": 18300,
+    "natives": 0,
+    "allocatedKb": 1.328125
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "up throw",
+    "baselineMs": 4.549214370910065,
+    "worstMs": 4.909641072784607,
+    "worstAt": 75,
+    "spikeMs": 0.36042670187454195,
+    "worstFrame": 4283,
+    "baseFrames": [
+      4178,
+      4207
+    ],
+    "instructions": 16800,
+    "natives": 0,
+    "allocatedKb": 1.34375
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "down throw",
+    "baselineMs": 4.570508371021646,
+    "worstMs": 5.053461472963136,
+    "worstAt": 76,
+    "spikeMs": 0.4829531019414901,
+    "worstFrame": 4507,
+    "baseFrames": [
+      4401,
+      4430
+    ],
+    "instructions": 17400,
+    "natives": 53,
+    "allocatedKb": 3.21875
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "neutral special",
+    "baselineMs": 4.683382196613019,
+    "worstMs": 4.915899872806924,
+    "worstAt": 109,
+    "spikeMs": 0.23251767619390495,
+    "worstFrame": 4763,
+    "baseFrames": [
+      4624,
+      4653
+    ],
+    "instructions": 10700,
+    "natives": 0,
+    "allocatedKb": 2.34375
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "neutral special, again",
+    "baselineMs": 4.579025971066278,
+    "worstMs": 4.997035823230927,
+    "worstAt": 6,
+    "spikeMs": 0.4180098521646496,
+    "worstFrame": 4883,
+    "baseFrames": [
+      4847,
+      4876
+    ],
+    "instructions": 19400,
+    "natives": 0,
+    "allocatedKb": 2.453125
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "air neutral special",
+    "baselineMs": 4.55560257094354,
+    "worstMs": 4.977652473130505,
+    "worstAt": 23,
+    "spikeMs": 0.4220499021869655,
+    "worstFrame": 5123,
+    "baseFrames": [
+      5070,
+      5099
+    ],
+    "instructions": 19600,
+    "natives": 0,
+    "allocatedKb": 2.34375
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "air neutral special, again",
+    "baselineMs": 4.581155371077436,
+    "worstMs": 5.055522173275559,
+    "worstAt": 149,
+    "spikeMs": 0.4743668021981229,
+    "worstFrame": 5472,
+    "baseFrames": [
+      5293,
+      5322
+    ],
+    "instructions": 19700,
+    "natives": 0,
+    "allocatedKb": 27.4375
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "side special",
+    "baselineMs": 4.559861370965857,
+    "worstMs": 5.248882974190515,
+    "worstAt": 41,
+    "spikeMs": 0.6890216032246581,
+    "worstFrame": 5587,
+    "baseFrames": [
+      5516,
+      5545
+    ],
+    "instructions": 28900,
+    "natives": 34,
+    "allocatedKb": 2.8125
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "side special, again",
+    "baselineMs": 4.561990770977014,
+    "worstMs": 5.309528624480622,
+    "worstAt": 58,
+    "spikeMs": 0.7475378535036077,
+    "worstFrame": 5827,
+    "baseFrames": [
+      5739,
+      5768
+    ],
+    "instructions": 31400,
+    "natives": 36,
+    "allocatedKb": 3.453125
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "air side special",
+    "baselineMs": 4.540567370854276,
+    "worstMs": 5.032926272873873,
+    "worstAt": 20,
+    "spikeMs": 0.4923589020195962,
+    "worstFrame": 6012,
+    "baseFrames": [
+      5962,
+      5991
+    ],
+    "instructions": 18100,
+    "natives": 44,
+    "allocatedKb": 9.46875
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "air side special, again",
+    "baselineMs": 4.668476396534913,
+    "worstMs": 5.191087273599141,
+    "worstAt": 26,
+    "spikeMs": 0.5226108770642277,
+    "worstFrame": 6241,
+    "baseFrames": [
+      6185,
+      6214
+    ],
+    "instructions": 18500,
+    "natives": 34,
+    "allocatedKb": 30.34375
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "up special",
+    "baselineMs": 4.493865595619958,
+    "worstMs": 5.110415223242086,
+    "worstAt": 5,
+    "spikeMs": 0.6165496276221276,
+    "worstFrame": 6443,
+    "baseFrames": [
+      6408,
+      6437
+    ],
+    "instructions": 23500,
+    "natives": 53,
+    "allocatedKb": 5.078125
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "up special, again",
+    "baselineMs": 4.527920370798486,
+    "worstMs": 5.02570617310819,
+    "worstAt": 20,
+    "spikeMs": 0.4977858023097035,
+    "worstFrame": 6681,
+    "baseFrames": [
+      6631,
+      6660
+    ],
+    "instructions": 20700,
+    "natives": 0,
+    "allocatedKb": 28.5
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "air up special",
+    "baselineMs": 4.455520770419114,
+    "worstMs": 4.995898972963135,
+    "worstAt": 149,
+    "spikeMs": 0.5403782025440211,
+    "worstFrame": 7033,
+    "baseFrames": [
+      6854,
+      6883
+    ],
+    "instructions": 22800,
+    "natives": 0,
+    "allocatedKb": 27.4375
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "air up special, again",
+    "baselineMs": 4.532179170820802,
+    "worstMs": 4.960586023041242,
+    "worstAt": 56,
+    "spikeMs": 0.42840685222043984,
+    "worstFrame": 7163,
+    "baseFrames": [
+      7077,
+      7106
+    ],
+    "instructions": 19900,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "down special",
+    "baselineMs": 4.502367570664591,
+    "worstMs": 4.915899872806924,
+    "worstAt": 73,
+    "spikeMs": 0.4135323021423334,
+    "worstFrame": 7403,
+    "baseFrames": [
+      7300,
+      7329
+    ],
+    "instructions": 19200,
+    "natives": 0,
+    "allocatedKb": 2.34375
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "down special, again",
+    "baselineMs": 4.536437970843119,
+    "worstMs": 4.966974223074716,
+    "worstAt": 90,
+    "spikeMs": 0.43053625223159653,
+    "worstFrame": 7643,
+    "baseFrames": [
+      7523,
+      7552
+    ],
+    "instructions": 20000,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "air down special",
+    "baselineMs": 4.634390371356386,
+    "worstMs": 4.92012742282924,
+    "worstAt": 107,
+    "spikeMs": 0.28573705147285366,
+    "worstFrame": 7883,
+    "baseFrames": [
+      7746,
+      7775
+    ],
+    "instructions": 13200,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "air down special, again",
+    "baselineMs": 4.541777095871012,
+    "worstMs": 5.011691623309034,
+    "worstAt": 4,
+    "spikeMs": 0.4699145274380214,
+    "worstFrame": 8003,
+    "baseFrames": [
+      7969,
+      7998
+    ],
+    "instructions": 21850,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "side special, then attack",
+    "baselineMs": 4.508771395698064,
+    "worstMs": 5.64061562565221,
+    "worstAt": 21,
+    "spikeMs": 1.1318442299541465,
+    "worstFrame": 8243,
+    "baseFrames": [
+      8192,
+      8221
+    ],
+    "instructions": 44400,
+    "natives": 86,
+    "allocatedKb": 7.203125
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "up special, then jump",
+    "baselineMs": 4.940160247555869,
+    "worstMs": 4.985652473130505,
+    "worstAt": 84,
+    "spikeMs": 0.04549222557463661,
+    "worstFrame": 8603,
+    "baseFrames": [
+      8489,
+      8518
+    ],
+    "instructions": 5300,
+    "natives": -32,
+    "allocatedKb": -0.078125
+  },
+  {
+    "group": "jaina-proudmoore",
+    "name": "up special, then attack",
+    "baselineMs": 4.611378071166699,
+    "worstMs": 5.045730773487561,
+    "worstAt": 101,
+    "spikeMs": 0.43435270232086154,
+    "worstFrame": 8843,
+    "baseFrames": [
+      8712,
+      8741
+    ],
+    "instructions": 20800,
+    "natives": 0,
+    "allocatedKb": 2.3125
+  },
+  {
+    "group": "peon",
+    "name": "jab",
+    "baselineMs": 5.024359910463136,
+    "worstMs": 5.057476373476403,
+    "worstAt": 4,
+    "spikeMs": 0.03311646301326743,
+    "worstFrame": 187,
+    "baseFrames": [
+      153,
+      182
+    ],
+    "instructions": 4600,
+    "natives": -32,
+    "allocatedKb": 0.6171875
+  },
+  {
+    "group": "peon",
+    "name": "jab chain",
+    "baselineMs": 4.490251820608801,
+    "worstMs": 4.9650048477957665,
+    "worstAt": 149,
+    "spikeMs": 0.4747530271869653,
+    "worstFrame": 555,
+    "baseFrames": [
+      376,
+      405
+    ],
+    "instructions": 19600,
+    "natives": 0,
+    "allocatedKb": 28.6953125
+  },
+  {
+    "group": "peon",
+    "name": "forward tilt",
+    "baselineMs": 4.498886608153432,
+    "worstMs": 4.9292141724945,
+    "worstAt": 2,
+    "spikeMs": 0.43032756434106734,
+    "worstFrame": 631,
+    "baseFrames": [
+      599,
+      628
+    ],
+    "instructions": 16500,
+    "natives": 12,
+    "allocatedKb": 27.4921875
+  },
+  {
+    "group": "peon",
+    "name": "up tilt",
+    "baselineMs": 4.503278220675749,
+    "worstMs": 4.8817757726507125,
+    "worstAt": 55,
+    "spikeMs": 0.3784975519749638,
+    "worstFrame": 907,
+    "baseFrames": [
+      822,
+      851
+    ],
+    "instructions": 17700,
+    "natives": 0,
+    "allocatedKb": 0.796875
+  },
+  {
+    "group": "peon",
+    "name": "down tilt",
+    "baselineMs": 4.498769420653432,
+    "worstMs": 4.886081447673028,
+    "worstAt": 72,
+    "spikeMs": 0.387312027019596,
+    "worstFrame": 1147,
+    "baseFrames": [
+      1045,
+      1074
+    ],
+    "instructions": 18100,
+    "natives": 0,
+    "allocatedKb": 0.9453125
+  },
+  {
+    "group": "peon",
+    "name": "forward smash",
+    "baselineMs": 4.630823471345227,
+    "worstMs": 4.89441154771766,
+    "worstAt": 89,
+    "spikeMs": 0.2635880763724332,
+    "worstFrame": 1387,
+    "baseFrames": [
+      1268,
+      1297
+    ],
+    "instructions": 12300,
+    "natives": 0,
+    "allocatedKb": 0.828125
+  },
+  {
+    "group": "peon",
+    "name": "up smash",
+    "baselineMs": 4.538210195859856,
+    "worstMs": 4.892094647706502,
+    "worstAt": 106,
+    "spikeMs": 0.3538844518466462,
+    "worstFrame": 1627,
+    "baseFrames": [
+      1491,
+      1520
+    ],
+    "instructions": 16550,
+    "natives": 0,
+    "allocatedKb": 0.734375
+  },
+  {
+    "group": "peon",
+    "name": "down smash",
+    "baselineMs": 4.5184808957538545,
+    "worstMs": 4.9058710477734495,
+    "worstAt": 3,
+    "spikeMs": 0.38739015201959504,
+    "worstFrame": 1747,
+    "baseFrames": [
+      1714,
+      1743
+    ],
+    "instructions": 18100,
+    "natives": 0,
+    "allocatedKb": 0.984375
+  },
+  {
+    "group": "peon",
+    "name": "dash attack",
+    "baselineMs": 4.513706470731538,
+    "worstMs": 5.312535449458307,
+    "worstAt": 20,
+    "spikeMs": 0.7988289787267684,
+    "worstFrame": 1987,
+    "baseFrames": [
+      1937,
+      1966
+    ],
+    "instructions": 33400,
+    "natives": 40,
+    "allocatedKb": 3.796875
+  },
+  {
+    "group": "peon",
+    "name": "neutral air",
+    "baselineMs": 4.541404295876593,
+    "worstMs": 4.921042472851555,
+    "worstAt": 53,
+    "spikeMs": 0.3796381769749626,
+    "worstFrame": 2243,
+    "baseFrames": [
+      2160,
+      2189
+    ],
+    "instructions": 17700,
+    "natives": 0,
+    "allocatedKb": 1.3671875
+  },
+  {
+    "group": "peon",
+    "name": "forward air",
+    "baselineMs": 4.530757295820802,
+    "worstMs": 4.882666397650713,
+    "worstAt": 70,
+    "spikeMs": 0.35190910182991075,
+    "worstFrame": 2483,
+    "baseFrames": [
+      2383,
+      2412
+    ],
+    "instructions": 16400,
+    "natives": 0,
+    "allocatedKb": 1.34375
+  },
+  {
+    "group": "peon",
+    "name": "back air",
+    "baselineMs": 4.545663095898908,
+    "worstMs": 4.928450697896188,
+    "worstAt": 71,
+    "spikeMs": 0.38278760199728,
+    "worstFrame": 2707,
+    "baseFrames": [
+      2606,
+      2635
+    ],
+    "instructions": 17900,
+    "natives": 0,
+    "allocatedKb": 0.8125
+  },
+  {
+    "group": "peon",
+    "name": "up air",
+    "baselineMs": 4.645698021423334,
+    "worstMs": 4.889023347684186,
+    "worstAt": 104,
+    "spikeMs": 0.24332532626085257,
+    "worstFrame": 2963,
+    "baseFrames": [
+      2829,
+      2858
+    ],
+    "instructions": 11300,
+    "natives": 0,
+    "allocatedKb": 1.328125
+  },
+  {
+    "group": "peon",
+    "name": "down air",
+    "baselineMs": 4.663787909012597,
+    "worstMs": 4.951791573007768,
+    "worstAt": 1,
+    "spikeMs": 0.2880036639951715,
+    "worstFrame": 3083,
+    "baseFrames": [
+      3052,
+      3081
+    ],
+    "instructions": 13400,
+    "natives": 0,
+    "allocatedKb": 1.3359375
+  },
+  {
+    "group": "peon",
+    "name": "grab",
+    "baselineMs": 4.5371454958542765,
+    "worstMs": 4.9358857729296615,
+    "worstAt": 18,
+    "spikeMs": 0.39874027707538495,
+    "worstFrame": 3323,
+    "baseFrames": [
+      3275,
+      3304
+    ],
+    "instructions": 18600,
+    "natives": 0,
+    "allocatedKb": 1.3359375
+  },
+  {
+    "group": "peon",
+    "name": "pummel",
+    "baselineMs": 4.55418069594354,
+    "worstMs": 4.966841772818082,
+    "worstAt": 149,
+    "spikeMs": 0.41266107687454223,
+    "worstFrame": 3677,
+    "baseFrames": [
+      3498,
+      3527
+    ],
+    "instructions": 16800,
+    "natives": 0,
+    "allocatedKb": 27.4609375
+  },
+  {
+    "group": "peon",
+    "name": "forward throw",
+    "baselineMs": 4.539274895865434,
+    "worstMs": 4.899685972739976,
+    "worstAt": 52,
+    "spikeMs": 0.3604110768745423,
+    "worstFrame": 3803,
+    "baseFrames": [
+      3721,
+      3750
+    ],
+    "instructions": 16800,
+    "natives": 0,
+    "allocatedKb": 1.3359375
+  },
+  {
+    "group": "peon",
+    "name": "back throw",
+    "baselineMs": 4.566957096010489,
+    "worstMs": 4.957179773041242,
+    "worstAt": 69,
+    "spikeMs": 0.39022267703075286,
+    "worstFrame": 4043,
+    "baseFrames": [
+      3944,
+      3973
+    ],
+    "instructions": 18200,
+    "natives": 0,
+    "allocatedKb": 1.3359375
+  },
+  {
+    "group": "peon",
+    "name": "up throw",
+    "baselineMs": 4.543533695887751,
+    "worstMs": 4.901815372751133,
+    "worstAt": 86,
+    "spikeMs": 0.3582816768633821,
+    "worstFrame": 4283,
+    "baseFrames": [
+      4167,
+      4196
+    ],
+    "instructions": 16700,
+    "natives": 0,
+    "allocatedKb": 1.3359375
+  },
+  {
+    "group": "peon",
+    "name": "down throw",
+    "baselineMs": 4.622329308800596,
+    "worstMs": 4.963469823063558,
+    "worstAt": 103,
+    "spikeMs": 0.3411405142629613,
+    "worstFrame": 4523,
+    "baseFrames": [
+      4390,
+      4419
+    ],
+    "instructions": 15800,
+    "natives": 0,
+    "allocatedKb": 2.34765625
+  },
+  {
+    "group": "peon",
+    "name": "neutral special",
+    "baselineMs": 4.663829171518176,
+    "worstMs": 4.963563573063558,
+    "worstAt": 0,
+    "spikeMs": 0.2997344015453818,
+    "worstFrame": 4643,
+    "baseFrames": [
+      4613,
+      4642
+    ],
+    "instructions": 13850,
+    "natives": 0,
+    "allocatedKb": 2.390625
+  },
+  {
+    "group": "peon",
+    "name": "neutral special, again",
+    "baselineMs": 4.569070871021646,
+    "worstMs": 4.991120773208611,
+    "worstAt": 17,
+    "spikeMs": 0.4220499021869655,
+    "worstFrame": 4883,
+    "baseFrames": [
+      4836,
+      4865
+    ],
+    "instructions": 19600,
+    "natives": 0,
+    "allocatedKb": 2.34375
+  },
+  {
+    "group": "peon",
+    "name": "air neutral special",
+    "baselineMs": 4.549906270921225,
+    "worstMs": 4.97198742310819,
+    "worstAt": 34,
+    "spikeMs": 0.42208115218696474,
+    "worstFrame": 5123,
+    "baseFrames": [
+      5059,
+      5088
+    ],
+    "instructions": 19600,
+    "natives": 0,
+    "allocatedKb": 2.359375
+  },
+  {
+    "group": "peon",
+    "name": "air neutral special, again",
+    "baselineMs": 4.5733452960439624,
+    "worstMs": 4.980473773152822,
+    "worstAt": 51,
+    "spikeMs": 0.40712847710885924,
+    "worstFrame": 5363,
+    "baseFrames": [
+      5282,
+      5311
+    ],
+    "instructions": 18900,
+    "natives": 0,
+    "allocatedKb": 2.3359375
+  },
+  {
+    "group": "peon",
+    "name": "side special",
+    "baselineMs": 4.554196320943539,
+    "worstMs": 5.06817492310819,
+    "worstAt": 13,
+    "spikeMs": 0.5139786021646504,
+    "worstFrame": 5548,
+    "baseFrames": [
+      5505,
+      5534
+    ],
+    "instructions": 19400,
+    "natives": 48,
+    "allocatedKb": 2.4453125
+  },
+  {
+    "group": "peon",
+    "name": "side special, again",
+    "baselineMs": 4.464730270474904,
+    "worstMs": 5.221331973744196,
+    "worstAt": 20,
+    "spikeMs": 0.7566017032692915,
+    "worstFrame": 5778,
+    "baseFrames": [
+      5728,
+      5757
+    ],
+    "instructions": 29300,
+    "natives": 36,
+    "allocatedKb": 30.34375
+  },
+  {
+    "group": "peon",
+    "name": "air side special",
+    "baselineMs": 4.451886970396799,
+    "worstMs": 5.047990923275559,
+    "worstAt": 34,
+    "spikeMs": 0.5961039528787593,
+    "worstFrame": 6015,
+    "baseFrames": [
+      5951,
+      5980
+    ],
+    "instructions": 25800,
+    "natives": 23,
+    "allocatedKb": 0.375
+  },
+  {
+    "group": "peon",
+    "name": "air side special, again",
+    "baselineMs": 4.950222522594922,
+    "worstMs": 5.5145945254402085,
+    "worstAt": 40,
+    "spikeMs": 0.5643720028452863,
+    "worstFrame": 6307,
+    "baseFrames": [
+      6237,
+      6266
+    ],
+    "instructions": 25550,
+    "natives": 8,
+    "allocatedKb": 2.703125
+  },
+  {
+    "group": "peon",
+    "name": "up special",
+    "baselineMs": 4.573329671043963,
+    "worstMs": 5.012477273320192,
+    "worstAt": 73,
+    "spikeMs": 0.43914760227622907,
+    "worstFrame": 6563,
+    "baseFrames": [
+      6460,
+      6489
+    ],
+    "instructions": 20400,
+    "natives": 0,
+    "allocatedKb": 2.359375
+  },
+  {
+    "group": "peon",
+    "name": "up special, again",
+    "baselineMs": 4.541388670876592,
+    "worstMs": 5.005995323286717,
+    "worstAt": 90,
+    "spikeMs": 0.4646066524101249,
+    "worstFrame": 6803,
+    "baseFrames": [
+      6683,
+      6712
+    ],
+    "instructions": 21700,
+    "natives": 0,
+    "allocatedKb": 2.3125
+  },
+  {
+    "group": "peon",
+    "name": "air up special",
+    "baselineMs": 4.620192096289438,
+    "worstMs": 5.006057823286716,
+    "worstAt": 107,
+    "spikeMs": 0.3858657269972783,
+    "worstFrame": 7043,
+    "baseFrames": [
+      6906,
+      6935
+    ],
+    "instructions": 17900,
+    "natives": 0,
+    "allocatedKb": 2.34375
+  },
+  {
+    "group": "peon",
+    "name": "air up special, again",
+    "baselineMs": 4.541451170876592,
+    "worstMs": 5.006026573286716,
+    "worstAt": 4,
+    "spikeMs": 0.46457540241012385,
+    "worstFrame": 7163,
+    "baseFrames": [
+      7129,
+      7158
+    ],
+    "instructions": 21600,
+    "natives": 0,
+    "allocatedKb": 2.34375
+  },
+  {
+    "group": "peon",
+    "name": "down special",
+    "baselineMs": 4.498816295653432,
+    "worstMs": 5.006057823286716,
+    "worstAt": 141,
+    "spikeMs": 0.5072415276332842,
+    "worstFrame": 7523,
+    "baseFrames": [
+      7352,
+      7381
+    ],
+    "instructions": 23600,
+    "natives": 0,
+    "allocatedKb": 2.3515625
+  },
+  {
+    "group": "peon",
+    "name": "down special, again",
+    "baselineMs": 4.541419920876592,
+    "worstMs": 5.006057823286716,
+    "worstAt": 38,
+    "spikeMs": 0.46463790241012415,
+    "worstFrame": 7643,
+    "baseFrames": [
+      7575,
+      7604
+    ],
+    "instructions": 21600,
+    "natives": 0,
+    "allocatedKb": 2.359375
+  },
+  {
+    "group": "peon",
+    "name": "air down special",
+    "baselineMs": 4.4988006706534325,
+    "worstMs": 5.003897173275559,
+    "worstAt": 55,
+    "spikeMs": 0.5050965026221261,
+    "worstFrame": 7883,
+    "baseFrames": [
+      7798,
+      7827
+    ],
+    "instructions": 23500,
+    "natives": 0,
+    "allocatedKb": 2.34375
+  },
+  {
+    "group": "peon",
+    "name": "air down special, again",
+    "baselineMs": 4.543533695887751,
+    "worstMs": 5.006026573286716,
+    "worstAt": 72,
+    "spikeMs": 0.46249287739896516,
+    "worstFrame": 8123,
+    "baseFrames": [
+      8021,
+      8050
+    ],
+    "instructions": 21500,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  },
+  {
+    "group": "peon",
+    "name": "side special, then attack",
+    "baselineMs": 4.498831920653433,
+    "worstMs": 5.307182274157039,
+    "worstAt": 11,
+    "spikeMs": 0.8083503535036067,
+    "worstFrame": 8285,
+    "baseFrames": [
+      8244,
+      8273
+    ],
+    "instructions": 31400,
+    "natives": 40,
+    "allocatedKb": 29.8671875
+  },
+  {
+    "group": "peon",
+    "name": "up special, then jump",
+    "baselineMs": 4.660619446501439,
+    "worstMs": 4.988991373197453,
+    "worstAt": 106,
+    "spikeMs": 0.3283719266960139,
+    "worstFrame": 8603,
+    "baseFrames": [
+      8467,
+      8496
+    ],
+    "instructions": 15200,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  },
+  {
+    "group": "peon",
+    "name": "up special, then attack",
+    "baselineMs": 4.51268864572596,
+    "worstMs": 5.032411273152822,
+    "worstAt": 0,
+    "spikeMs": 0.5197226274268623,
+    "worstFrame": 8720,
+    "baseFrames": [
+      8690,
+      8719
+    ],
+    "instructions": 21750,
+    "natives": 0,
+    "allocatedKb": 28.296875
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "jab",
+    "baselineMs": 5.021868935446399,
+    "worstMs": 5.002783848186295,
+    "worstAt": 12,
+    "spikeMs": -0.019085087260103606,
+    "worstFrame": 187,
+    "baseFrames": [
+      145,
+      174
+    ],
+    "instructions": 2100,
+    "natives": -32,
+    "allocatedKb": -0.4296875
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "jab chain",
+    "baselineMs": 4.4952137456311165,
+    "worstMs": 5.120234723576825,
+    "worstAt": 149,
+    "spikeMs": 0.6250209779457085,
+    "worstFrame": 547,
+    "baseFrames": [
+      368,
+      397
+    ],
+    "instructions": 26400,
+    "natives": 0,
+    "allocatedKb": 31.4296875
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "forward tilt",
+    "baselineMs": 4.503840720675749,
+    "worstMs": 4.938434897539132,
+    "worstAt": 2,
+    "spikeMs": 0.4345941768633832,
+    "worstFrame": 623,
+    "baseFrames": [
+      591,
+      620
+    ],
+    "instructions": 16700,
+    "natives": 12,
+    "allocatedKb": 27.4921875
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "up tilt",
+    "baselineMs": 4.509638583198065,
+    "worstMs": 4.875903197617238,
+    "worstAt": 79,
+    "spikeMs": 0.36626461441917346,
+    "worstFrame": 923,
+    "baseFrames": [
+      814,
+      843
+    ],
+    "instructions": 17200,
+    "natives": 0,
+    "allocatedKb": 0.0234375
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "down tilt",
+    "baselineMs": 4.507990145698065,
+    "worstMs": 4.882353897650712,
+    "worstAt": 96,
+    "spikeMs": 0.3743637519526475,
+    "worstFrame": 1163,
+    "baseFrames": [
+      1037,
+      1066
+    ],
+    "instructions": 17500,
+    "natives": 0,
+    "allocatedKb": 0.859375
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "forward smash",
+    "baselineMs": 4.6496421214400705,
+    "worstMs": 4.894000897706502,
+    "worstAt": 113,
+    "spikeMs": 0.24435877626643165,
+    "worstFrame": 1403,
+    "baseFrames": [
+      1260,
+      1289
+    ],
+    "instructions": 11350,
+    "natives": 0,
+    "allocatedKb": 1.3359375
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "up smash",
+    "baselineMs": 4.482484220564169,
+    "worstMs": 4.889695222684185,
+    "worstAt": 130,
+    "spikeMs": 0.4072110021200164,
+    "worstFrame": 1643,
+    "baseFrames": [
+      1483,
+      1512
+    ],
+    "instructions": 19000,
+    "natives": 0,
+    "allocatedKb": 1.3125
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "down smash",
+    "baselineMs": 4.52344282077617,
+    "worstMs": 4.898259697728818,
+    "worstAt": 27,
+    "spikeMs": 0.3748168769526483,
+    "worstFrame": 1763,
+    "baseFrames": [
+      1706,
+      1735
+    ],
+    "instructions": 17500,
+    "natives": 0,
+    "allocatedKb": 1.0859375
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "dash attack",
+    "baselineMs": 4.516554620742696,
+    "worstMs": 5.307850374424832,
+    "worstAt": 28,
+    "spikeMs": 0.7912957536821361,
+    "worstFrame": 1987,
+    "baseFrames": [
+      1929,
+      1958
+    ],
+    "instructions": 33000,
+    "natives": 40,
+    "allocatedKb": 4.296875
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "neutral air",
+    "baselineMs": 4.471837220508378,
+    "worstMs": 4.862122397539133,
+    "worstAt": 61,
+    "spikeMs": 0.39028517703075494,
+    "worstFrame": 2243,
+    "baseFrames": [
+      2152,
+      2181
+    ],
+    "instructions": 18200,
+    "natives": 0,
+    "allocatedKb": 1.3671875
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "forward air",
+    "baselineMs": 4.465449020474905,
+    "worstMs": 4.8471540974610265,
+    "worstAt": 78,
+    "spikeMs": 0.38170507698612166,
+    "worstFrame": 2483,
+    "baseFrames": [
+      2375,
+      2404
+    ],
+    "instructions": 17800,
+    "natives": 0,
+    "allocatedKb": 1.3359375
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "back air",
+    "baselineMs": 4.478225420541852,
+    "worstMs": 4.870577497583764,
+    "worstAt": 95,
+    "spikeMs": 0.3923520770419122,
+    "worstFrame": 2723,
+    "baseFrames": [
+      2598,
+      2627
+    ],
+    "instructions": 18300,
+    "natives": 0,
+    "allocatedKb": 1.3359375
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "up air",
+    "baselineMs": 4.6208483462894385,
+    "worstMs": 4.876965697617238,
+    "worstAt": 112,
+    "spikeMs": 0.25611735132779945,
+    "worstFrame": 2963,
+    "baseFrames": [
+      2821,
+      2850
+    ],
+    "instructions": 11900,
+    "natives": 0,
+    "allocatedKb": 1.3359375
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "down air",
+    "baselineMs": 4.484613620575327,
+    "worstMs": 4.9100354725168165,
+    "worstAt": 5,
+    "spikeMs": 0.42542185194148985,
+    "worstFrame": 3079,
+    "baseFrames": [
+      3044,
+      3073
+    ],
+    "instructions": 17400,
+    "natives": 0,
+    "allocatedKb": 27.453125
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "grab",
+    "baselineMs": 4.500519420653433,
+    "worstMs": 4.887628322673028,
+    "worstAt": 26,
+    "spikeMs": 0.38710890201959547,
+    "worstFrame": 3323,
+    "baseFrames": [
+      3267,
+      3296
+    ],
+    "instructions": 18100,
+    "natives": 0,
+    "allocatedKb": 0.84375
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "pummel",
+    "baselineMs": 4.486743020586484,
+    "worstMs": 4.89516092243871,
+    "worstAt": 149,
+    "spikeMs": 0.4084179018522258,
+    "worstFrame": 3669,
+    "baseFrames": [
+      3490,
+      3519
+    ],
+    "instructions": 16600,
+    "natives": 0,
+    "allocatedKb": 27.46875
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "forward throw",
+    "baselineMs": 4.503778220675748,
+    "worstMs": 4.89614592271766,
+    "worstAt": 60,
+    "spikeMs": 0.39236770204191185,
+    "worstFrame": 3803,
+    "baseFrames": [
+      3713,
+      3742
+    ],
+    "instructions": 18300,
+    "natives": 0,
+    "allocatedKb": 1.34375
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "back throw",
+    "baselineMs": 4.493131220619958,
+    "worstMs": 4.864173672550289,
+    "worstAt": 77,
+    "spikeMs": 0.3710424519303315,
+    "worstFrame": 4043,
+    "baseFrames": [
+      3936,
+      3965
+    ],
+    "instructions": 17300,
+    "natives": 0,
+    "allocatedKb": 1.328125
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "up throw",
+    "baselineMs": 4.5101820457092225,
+    "worstMs": 4.904647897762292,
+    "worstAt": 94,
+    "spikeMs": 0.3944658520530693,
+    "worstFrame": 4283,
+    "baseFrames": [
+      4159,
+      4188
+    ],
+    "instructions": 18400,
+    "natives": 0,
+    "allocatedKb": 1.3359375
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "down throw",
+    "baselineMs": 4.621959921295017,
+    "worstMs": 4.86423617255029,
+    "worstAt": 111,
+    "spikeMs": 0.24227625125527297,
+    "worstFrame": 4523,
+    "baseFrames": [
+      4382,
+      4411
+    ],
+    "instructions": 11250,
+    "natives": 0,
+    "allocatedKb": 1.359375
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "neutral special",
+    "baselineMs": 4.512327070720381,
+    "worstMs": 4.932185072896188,
+    "worstAt": 8,
+    "spikeMs": 0.4198580021758076,
+    "worstFrame": 4643,
+    "baseFrames": [
+      4605,
+      4634
+    ],
+    "instructions": 19500,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "neutral special, again",
+    "baselineMs": 4.497390020642275,
+    "worstMs": 4.93768642266187,
+    "worstAt": 19,
+    "spikeMs": 0.4402964020195954,
+    "worstFrame": 4877,
+    "baseFrames": [
+      4828,
+      4857
+    ],
+    "instructions": 18100,
+    "natives": 0,
+    "allocatedKb": 27.4375
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "air neutral special",
+    "baselineMs": 4.518684020753854,
+    "worstMs": 4.952654722739976,
+    "worstAt": 149,
+    "spikeMs": 0.4339707019861221,
+    "worstFrame": 5230,
+    "baseFrames": [
+      5051,
+      5080
+    ],
+    "instructions": 17800,
+    "natives": 0,
+    "allocatedKb": 27.46875
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "air neutral special, again",
+    "baselineMs": 4.503778220675748,
+    "worstMs": 4.925796872862714,
+    "worstAt": 59,
+    "spikeMs": 0.4220186521869653,
+    "worstFrame": 5363,
+    "baseFrames": [
+      5274,
+      5303
+    ],
+    "instructions": 19600,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "side special",
+    "baselineMs": 4.525072220787328,
+    "worstMs": 5.062505473074715,
+    "worstAt": 13,
+    "spikeMs": 0.5374332522873875,
+    "worstFrame": 5540,
+    "baseFrames": [
+      5497,
+      5526
+    ],
+    "instructions": 20500,
+    "natives": 48,
+    "allocatedKb": 2.453125
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "side special, again",
+    "baselineMs": 4.505907620686907,
+    "worstMs": 5.423843274882309,
+    "worstAt": 20,
+    "spikeMs": 0.9179356541954018,
+    "worstFrame": 5770,
+    "baseFrames": [
+      5720,
+      5749
+    ],
+    "instructions": 37600,
+    "natives": 29,
+    "allocatedKb": 29.640625
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "air side special",
+    "baselineMs": 4.915904322421974,
+    "worstMs": 5.007078572784608,
+    "worstAt": 19,
+    "spikeMs": 0.09117425036263427,
+    "worstFrame": 6028,
+    "baseFrames": [
+      5979,
+      6008
+    ],
+    "instructions": 3700,
+    "natives": 10,
+    "allocatedKb": -1
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "air side special, again",
+    "baselineMs": 4.518684020753854,
+    "worstMs": 5.31948552421283,
+    "worstAt": 26,
+    "spikeMs": 0.8008015034589757,
+    "worstFrame": 6258,
+    "baseFrames": [
+      6202,
+      6231
+    ],
+    "instructions": 31000,
+    "natives": 40,
+    "allocatedKb": 30.34375
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "up special",
+    "baselineMs": 4.537848620854276,
+    "worstMs": 4.921538072840398,
+    "worstAt": 108,
+    "spikeMs": 0.3836894519861218,
+    "worstFrame": 6563,
+    "baseFrames": [
+      6425,
+      6454
+    ],
+    "instructions": 17850,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "up special, again",
+    "baselineMs": 4.501648820664591,
+    "worstMs": 4.98196192288503,
+    "worstAt": 0,
+    "spikeMs": 0.480313102220439,
+    "worstFrame": 6678,
+    "baseFrames": [
+      6648,
+      6677
+    ],
+    "instructions": 19900,
+    "natives": 0,
+    "allocatedKb": 28.28125
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "air up special",
+    "baselineMs": 4.471837220508378,
+    "worstMs": 5.1601708738111425,
+    "worstAt": 6,
+    "spikeMs": 0.6883336533027649,
+    "worstFrame": 6907,
+    "baseFrames": [
+      6871,
+      6900
+    ],
+    "instructions": 29600,
+    "natives": 0,
+    "allocatedKb": 29.015625
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "air up special, again",
+    "baselineMs": 4.442041245352167,
+    "worstMs": 4.998100572840398,
+    "worstAt": 149,
+    "spikeMs": 0.5560593274882315,
+    "worstFrame": 7273,
+    "baseFrames": [
+      7094,
+      7123
+    ],
+    "instructions": 22300,
+    "natives": 0,
+    "allocatedKb": 40.609375
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "down special",
+    "baselineMs": 4.4760960205306946,
+    "worstMs": 4.934345722907346,
+    "worstAt": 56,
+    "spikeMs": 0.4582497023766514,
+    "worstFrame": 7403,
+    "baseFrames": [
+      7317,
+      7346
+    ],
+    "instructions": 21300,
+    "natives": 0,
+    "allocatedKb": 2.34375
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "down special, again",
+    "baselineMs": 4.442056870352166,
+    "worstMs": 4.942832072951978,
+    "worstAt": 73,
+    "spikeMs": 0.5007752025998116,
+    "worstFrame": 7643,
+    "baseFrames": [
+      7540,
+      7569
+    ],
+    "instructions": 23300,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "air down special",
+    "baselineMs": 4.478225420541852,
+    "worstMs": 4.874722522594922,
+    "worstAt": 90,
+    "spikeMs": 0.3964971020530701,
+    "worstFrame": 7883,
+    "baseFrames": [
+      7763,
+      7792
+    ],
+    "instructions": 18400,
+    "natives": 0,
+    "allocatedKb": 2.34375
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "air down special, again",
+    "baselineMs": 4.5750974960495405,
+    "worstMs": 5.115522173275559,
+    "worstAt": 107,
+    "spikeMs": 0.5404246772260182,
+    "worstFrame": 8123,
+    "baseFrames": [
+      7986,
+      8015
+    ],
+    "instructions": 19950,
+    "natives": 53,
+    "allocatedKb": 4.796875
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "side special, then attack",
+    "baselineMs": 4.484613620575327,
+    "worstMs": 5.310092924168199,
+    "worstAt": 11,
+    "spikeMs": 0.8254793035928722,
+    "worstFrame": 8250,
+    "baseFrames": [
+      8209,
+      8238
+    ],
+    "instructions": 32200,
+    "natives": 40,
+    "allocatedKb": 29.90625
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "up special, then jump",
+    "baselineMs": 4.482484220564169,
+    "worstMs": 4.959898523041241,
+    "worstAt": 141,
+    "spikeMs": 0.4774143024770723,
+    "worstFrame": 8603,
+    "baseFrames": [
+      8432,
+      8461
+    ],
+    "instructions": 22200,
+    "natives": 0,
+    "allocatedKb": 2.34375
+  },
+  {
+    "group": "goblin-tinker",
+    "name": "up special, then attack",
+    "baselineMs": 4.52294282077617,
+    "worstMs": 4.964126073063557,
+    "worstAt": 38,
+    "spikeMs": 0.4411832522873871,
+    "worstFrame": 8723,
+    "baseFrames": [
+      8655,
+      8684
+    ],
+    "instructions": 20500,
+    "natives": 0,
+    "allocatedKb": 2.328125
+  }
+]
