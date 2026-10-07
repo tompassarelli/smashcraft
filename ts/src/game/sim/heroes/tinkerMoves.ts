@@ -8,7 +8,7 @@ import { hurtPart } from "../hurtboxes";
 const STRENGTH = {
   link: { growth: 50.0, base: 12.0 }, poke: { growth: 75.0, base: 20.0 },
   launch: { growth: 90.0, base: 32.0 }, edge: { growth: 105.0, base: 25.0 },
-  kill: { growth: 90.0, base: 28.0 }, spike: { growth: 95.0, base: 22.0 },
+  kill: { growth: 118.0, base: 28.0 }, spike: { growth: 95.0, base: 22.0 },
   juggle: { growth: 55.0, base: 50.0 }, chase: { growth: 40.0, base: 75.0 },
 } as const;
 const ANGLES = {
@@ -18,7 +18,9 @@ const ANGLES = {
 } as const;
 export function tinkerHit(damage: number, kind: keyof typeof STRENGTH, angle: keyof typeof ANGLES, facing = 1.0, element: HitElement = HitElement.normal): Readonly<HitEffect> {
   const direction = ANGLES[angle];
-  return { damage, ...STRENGTH[kind], launchX: f32(direction[0] * facing), launchZ: direction[1], electric: false, element };
+  const strength = STRENGTH[kind];
+  const growth = kind === "link" || kind === "juggle" || kind === "chase" ? strength.growth : f32(strength.growth * f32(0.65));
+  return { damage, ...strength, growth, launchX: f32(direction[0] * facing), launchZ: direction[1], electric: false, element };
 }
 export const claw = (x1: number, z1: number, x2: number, z2: number, radius = 10.0): StrikeCapsule => ({ x1, z1, x2, z2, radius });
 const region = (first: number, last: number, strike: StrikeCapsule, effect: Readonly<HitEffect>, grounded?: Readonly<HitEffect>): MoveRegion => heroRegion(first, last, strike, effect, grounded);

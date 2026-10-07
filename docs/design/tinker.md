@@ -70,9 +70,11 @@ start juggles; down throw starts a tech chase. There is no bury or forced
 follow-up. DI, SDI, jump, air dodge and the shared floor-tech options remain
 the defender's responses. Grabs use the common mash escape and one-pummel rule.
 
-Forward smash, up smash and Robo-Goblin share launch growth 90 and base 28.
-The lower growth makes these finishers require more accumulated damage after
-Tinker establishes his machinery.
+Offensive launch growth uses 65% of its original authored strength, with
+jab links, up-throw juggles and down-throw chases retaining their distinct
+setup values. Forward smash, up smash and Robo-Goblin share effective launch
+growth 76.7 and base 28. Their launch angles, damage and base knockback retain
+their authored values.
 
 ## Specials, passive and ultimate
 
