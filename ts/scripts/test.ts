@@ -43,11 +43,9 @@ function usableCpus(): number {
   return Math.max(1, Math.floor(cpus));
 }
 
-// More processes than CPUs only time-slice them: a test then takes several
-// times its own CPU time and passes Bun's 5 s limit (6 processes in a 2-CPU
-// capacity scope took 1-3 s tests to 5-13 s). Run at most one process per
-// usable CPU; the shared group, the longest, starts first.
-const slots = Math.min(groups.length, usableCpus());
+// JSC's compiler threads share the quota with test bodies. Leave one CPU
+// for them: six processes under six CPUs took the 10 s bot selection to 18 s.
+const slots = Math.min(groups.length, Math.max(1, usableCpus() - 1));
 const queue = [...groups].reverse();
 const started = performance.now();
 const codes: number[] = [];
