@@ -30,11 +30,11 @@ The named Smash moves are visual references, not copied animation assets or shar
 | Mountain King | Thunder Leap, Thunder Clap, Small Clap, Storm Bolt (traveling spell), Thunder Clap (traveling spell) | Ultimate Hero Kazap |
 | Warden | Pursuit Lunge, Shadow Pursuit, Fan of Knives, Shadow Strike (traveling spell) | Melee Link forward smash |
 | Lich | Dark Ritual, Frost Nova (traveling spell), Frost Nova (placed field / burst), Death and Decay (placed field / burst) | Melee Zelda magic aerials / Din’s Fire |
-| Uther | Crusader Rush, Holy Light (traveling spell) | Ultimate Hero Flame Slash |
+| Uther | Hammer of Justice, Holy Radiance, Holy Radiance (traveling spell) | Ultimate Hero Flame Slash |
 | Dreadlord | Carrion Swarm (traveling spell), Sleep (traveling spell) | Melee Ness PK Fire |
 | Shadow Hunter | Spirit Glaive (traveling spell), Serpent Ward (traveling spell), Hex (traveling spell) | Melee Link boomerang |
 | Pit Lord | Howl of Terror, Fel Spit (traveling spell) | Ultimate Hero Flame Slash |
-| Beastmaster | Throwing Axe (traveling spell), Quillbeast Dart (traveling spell) | Melee Link forward smash |
+| Beastmaster | Wild Axes (traveling spell), Summon Bear (traveling spell), Summon Quilbeast (traveling spell) | Melee Link forward smash |
 | Lich King | Ascension of the Damned, Howling Blast (traveling spell), Val'kyr Shadowguard (traveling spell), Defile (placed field / burst) | Ultimate Hero Flame Slash / Kacrackle Slash |
 | Archer | Arrow, Homing Arrow, Hippogryph swoop / dive / released flight | Melee Link arrow; Ness PK Thunder |
 | Rifleman | Blaster, recoil recovery shot, Summon Bear swipe, Freeze Trap | Melee Ness PK Fire; Ultimate Robin Arcfire |
