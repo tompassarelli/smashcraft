@@ -4,6 +4,7 @@
 import { max, min } from "../../runtime/numbers";
 import { addFloat32, divideFloat32, fusedMultiplyAddFloat32, multiplyFloat32, roundToFloat32, subtractFloat32 } from "wisp/src/sim/binary32";
 import { f32 } from "wisp/src/sim/f32";
+import { floorMod } from "wisp/src/sim/intMath";
 import { meleeAtan2, meleeCos, meleeSin } from "../../sim/meleeScalarMath";
 import { chillScaled } from "./chill";
 import { Character } from "./codes";
@@ -14,20 +15,18 @@ import { type FighterPhysics, WORLD_UNITS_PER_MELEE_UNIT, melee } from "./tuning
 // Rollback and consecutive agency forecasts publish the same Melee-unit
 // values. Cache only the pure conversion; zero bypasses the key to retain its sign.
 const WORLD_VALUE_MEMO_LIMIT = 512;
-let worldValueMemo: Record<number, number> = {};
-let worldValueMemoSize = 0;
+const worldValueInput: Record<number, number> = {};
+const worldValueResult: Record<number, number> = {};
 
 function worldValue(original: number): number {
-  if (original === 0 || original !== original) return multiplyFloat32(original, WORLD_UNITS_PER_MELEE_UNIT);
-  const cached = worldValueMemo[original];
-  if (cached !== undefined) return cached;
+  // Slot arithmetic only picks a candidate; the original value must match.
+  // Reusing slots also avoids replacing tables as new positions arrive.
+  const slot = floorMod(Math.floor(original * 4093), WORLD_VALUE_MEMO_LIMIT);
+  if (original === 0 || slot !== slot) return multiplyFloat32(original, WORLD_UNITS_PER_MELEE_UNIT);
+  if (worldValueInput[slot] === original) return worldValueResult[slot] ?? 0.0;
   const converted = multiplyFloat32(original, WORLD_UNITS_PER_MELEE_UNIT);
-  if (worldValueMemoSize === WORLD_VALUE_MEMO_LIMIT) {
-    worldValueMemo = {};
-    worldValueMemoSize = 0;
-  }
-  worldValueMemo[original] = converted;
-  worldValueMemoSize++;
+  worldValueInput[slot] = original;
+  worldValueResult[slot] = converted;
   return converted;
 }
 
