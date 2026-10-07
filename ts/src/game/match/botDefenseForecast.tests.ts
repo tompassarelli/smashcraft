@@ -1,11 +1,15 @@
 import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { at } from "wisp/src/runtime/lookup";
-import { Character, SpecialAction } from "../sim/codes";
+import { AttackStyle, Character, SpecialAction } from "../sim/codes";
 import { createFighter } from "../sim/fighter";
 import { neutralControls } from "../sim/roster";
 import { chooseDefense } from "./botDefense";
 import { cpuSkill } from "./cpuSkill";
-import { heroStanceLater } from "./botHeroKit";
+import { HeroSpecialUse, heroSpecialUse, heroStanceLater, heroStanceSlot } from "./botHeroKit";
+import { SpecialSlot } from "../sim/heroSpecials";
+import { beginFighterAttack } from "../sim/attacks";
+import { testWorld } from "../sim/testWorld";
+import { cancelAttack } from "../sim/transitions";
 
 test("Mountain King defends the observed Carrion Swarm windup before its bats enter delayed vision", () => {
   const own = createFighter(Character.mountainKing, 0.0, 1);
@@ -129,4 +133,39 @@ test("Uther defends his approach to a delayed shot without treating Consecration
   assertEquals(projectile.x, 355.0);
   assertFalse(heroStanceLater(own, 20));
   assertFalse(heroStanceLater(own, 1));
+});
+
+test("Kaelthas uses Banish against the same shot only when its protection covers arrival and mana allows it", () => {
+  const own = createFighter(Character.kaelthas, 0.0, 1);
+  const target = createFighter(Character.archer, -500.0, 1);
+  own.motion.grounded = true; target.motion.grounded = true;
+  const shot = at(target.projectiles, 0);
+  shot.life = 60; shot.direction = 1; shot.velocityX = 10.0; shot.z = 45.0;
+  const skill = { ...cpuSkill("wren", "expert"), reactionFrames: 0, defendTenths: 10 };
+  for (const mana of [14, 15]) for (const arrival of [3, 4, 7, 11, 12]) {
+    own.mana.points = mana; shot.x = -arrival * 10.0;
+    const fits = mana >= 15 && arrival >= 4 && arrival <= 11;
+    assertEquals(heroStanceSlot(own, arrival), fits ? SpecialSlot.down : undefined);
+    assertEquals(heroStanceLater(own, arrival), mana >= 15 && arrival > 11);
+    let banishes = 0;
+    for (let serial = 0; serial < 30; serial++) {
+      shot.serial = serial;
+      const input = neutralControls();
+      chooseDefense(own, target, 0, input, skill);
+      if (input.specialPressed) {
+        banishes++;
+        assertEquals(input.specialX, 0); assertEquals(input.specialZ, -1); assertFalse(input.shield);
+      }
+    }
+    if (fits) assertGreaterThan(banishes, 0);
+    else assertEquals(banishes, 0);
+  }
+  own.mana.points = 15; shot.x = -70.0;
+  beginFighterAttack(testWorld(own, target), 0, AttackStyle.jab, false);
+  assertEquals(own.attack.style, AttackStyle.jab);
+  assertEquals(heroStanceSlot(own, 7), undefined); assertFalse(heroStanceLater(own, 12));
+  assertFalse(chooseDefense(own, target, 0, neutralControls(), skill));
+  cancelAttack(own);
+  target.motion.x = 45.0;
+  assertEquals(heroSpecialUse(own, target, 0, SpecialSlot.down), HeroSpecialUse.close);
 });

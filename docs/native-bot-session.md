@@ -312,11 +312,17 @@ capture so existing action and capture frames stay unchanged:
 This checks that the script requests an export; the existing comparison still
 requires readable saved moments and matching checksums from the actual runs.
 
-Headless pad checks replay every exported moment to its saved checksum, including
-each recorded intermediate checkpoint. Missing or unreadable moments fail the
-run. The result reports the number of moments and replayed frames. Standalone
-headless runs, native batches and headless comparison batches all need an
-authored export.
+Headless pad checks replay every exported moment and completed match to its
+saved checksum, including every recorded intermediate checkpoint. A match that
+ends before its authored View hold finishes uses its complete match replay.
+The collector joins that replay's manifest and parts as
+`smashcraft-replay-pSLOT-SERIAL.txt`. Missing parts, unreadable exports, checksum
+differences, or no export fail the run. The result reports moments and complete
+matches separately, with their replayed frame counts. Native comparison still
+requires the authored View export.
+
+The hosted `203/tap-jump.pad` case enables `WC3_TAP_JUMP=on`, as its original
+header requires; the other pad cases use the helper's normal off setting.
 
 ### Many scripts in one game
 

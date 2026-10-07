@@ -1,4 +1,4 @@
-# #148 Vampiric Aura and #144 special cues: Dreadlord's passive fills on two melee hits and heals on the third; every special form shows its Warcraft spell.
+# #237 Vampiric Pounce and #144 special cues: the caught bite heals Dreadlord up to 4 percent; every special form shows its Warcraft spell.
 # Dreadlord a against Dreadlord b; syntax and checks: smashcraft:docs/native-bot-session.md.
 #! chat -dev quick hero dreadlord
 # #144: Bat Ascension, paid.
@@ -13,7 +13,7 @@
 126 b stick 0 0
 127 b release LB
 135 b tap A 2
-# #148: a walks in with forward tilts; the third melee hit heals a.
+# a walks in with forward tilts before Sleep and Vampiric Pounce.
 170 a press LB
 170 a stick 1 0
 180 a tap A 2
@@ -80,7 +80,7 @@
 910 a tap X 2
 911 a stick 0 0
 # Expected, frame by frame (headless run of this script): every special form starts on its frame,
-# and the third melee hit to land (b 437) heals a 2 (Vampiric Aura).
+# and the caught Pounce releases 16 frames after its catch, healing the 3.62 damage on a (#237).
 #! expect a 40 special 15 form 0
 #! expect a 138 damage 3.620
 #! expect b 187 damage 10.860
@@ -88,8 +88,8 @@
 #! expect a 300 special 16 form 0
 #! expect b 336 damage 23.530
 #! expect a 360 special 14 form 0
-#! expect b 437 damage 38.000
-#! expect a 437 damage 2.000
+#! expect b 392 damage 33.530
+#! expect a 392 damage 0.000
 #! expect a 600 special 14 form 0
 #! absent a 600-650 special-form
 #! expect a 660 special 13 form 0

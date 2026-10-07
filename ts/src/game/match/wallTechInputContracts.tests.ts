@@ -19,6 +19,9 @@ import { AttackStyle } from "../sim/codes";
 import { resolveAttacks } from "../sim/attacks";
 import { attackStartupFrames } from "../sim/moves";
 import { SURFACE_TECH_WALL_COLLISION_GRACE_FRAMES } from "../sim/surfaces";
+import { multiplyFloat32 } from "wisp/src/sim/binary32";
+import { authoredHitRegion, emptyHitRegion } from "../sim/hitRegions";
+import { ordinaryHitKnockback } from "../sim/knockback";
 
 /**
  * Each fighter's Melee reference, in Melee units a frame: ftCo_DatAttrs
@@ -93,7 +96,7 @@ function launch(run: Run, victimPadAt: (frame: number) => Pad, strike: Pad = STR
   for (let frame = 1; frame <= 40; frame++) {
     playPads(run, frame === 1 ? strike : {}, victimPadAt(frame));
     const { victim } = run;
-    if (free === undefined && isTumbling(victim) && victim.launch.hitlag === 0) free = frame;
+    if (free === undefined && victim.launch.hitstun > 0 && victim.launch.hitlag === 0) free = frame;
     if (victim.surfaceRecovery.contactSerial > 0) return { free: assertDefined(free, "launch"), contact: frame };
   }
   throw new Error("the victim never met a solid surface");
@@ -102,6 +105,26 @@ function launch(run: Run, victimPadAt: (frame: number) => Pad, strike: Pad = STR
 /** Every selectable fighter; heroes take Archer's reference (Fox) wall values (sim/tuning.ts). */
 const VICTIMS = SELECTABLE_CHARACTERS;
 const NEUTRAL = (): Pad => ({});
+
+/** Melee common +0x154/+0x160: DamageFly begins at knockback times 0.4 >= 32. */
+function strikeTumbles(run: Run, percent: number): boolean {
+  const effect = authoredHitRegion(emptyHitRegion(), Character.archer, AttackStyle.forwardAir, attackStartupFrames(AttackStyle.forwardAir), 0, 0).effect;
+  const knockback = ordinaryHitKnockback(percent, effect.damage, run.victim.tuning.physics.weight, effect.growth, effect.base, 1.0);
+  return multiplyFloat32(knockback, 0.4000000059604645) >= 32.0;
+}
+
+function assertWeakWallContact(victim: Fighter): void {
+  assertTrue(victim.character === Character.thrall || victim.character === Character.cairne || victim.character === Character.chen || victim.character === Character.tinker);
+  assertEquals(victim.status.damage, 67.0);
+  assertEquals(victim.surfaceRecovery.contactKind, SurfaceContact.wall);
+  assertEquals(victim.surfaceRecovery.state, SurfaceContact.none);
+  assertFalse(isTumbling(victim));
+  assertGreaterThan(victim.launch.hitstun, 0);
+  assertLessThan(victim.launch.hitstun, 32);
+  assertEquals(victim.status.invincible, 0);
+  const { contactNormalX: nx, contactNormalZ: nz } = victim.surfaceRecovery;
+  assertNear(f32(f32(victim.launch.knockbackX * nx) + f32(victim.launch.knockbackZ * nz)), 0.0, 0.00009999999747378752);
+}
 
 function assertMetSide(victim: Fighter): void {
   const { contactX, contactNormalX } = victim.surfaceRecovery;
@@ -113,9 +136,14 @@ test("a launch into the main deck's side bounces off it without a press", () => 
   for (const character of VICTIMS) {
     for (const percent of [60.0, 120.0]) {
       const run = startRun(character, percent);
+      const tumbles = strikeTumbles(run, percent);
       launch(run, NEUTRAL);
       const { victim } = run;
       assertMetSide(victim);
+      if (!tumbles) {
+        assertWeakWallContact(victim);
+        continue;
+      }
       assertEquals(victim.surfaceRecovery.contactKind, SurfaceContact.wall);
       assertTrue(isTumbling(victim));
       assertGreaterThan(victim.launch.knockbackX, 0.0);
@@ -130,10 +158,15 @@ test("a trigger pressed after the hit's hitlag wall techs off the main deck's si
       // Inside the 20-frame window (common +0x250; ftCo_PassiveWall.c ftCo_800C1D38 uses the floor's gate).
       assertLessThan(missed.contact - missed.free, 20);
       const run = startRun(character, percent);
+      const tumbles = strikeTumbles(run, percent);
       const teched = launch(run, (frame) => ({ trigger: frame === missed.free }));
       assertEquals(teched.contact, missed.contact);
       const { victim } = run;
       assertMetSide(victim);
+      if (!tumbles) {
+        assertWeakWallContact(victim);
+        continue;
+      }
       assertEquals(victim.surfaceRecovery.contactKind, SurfaceContact.techWall);
       assertEquals(victim.surfaceRecovery.state, SurfaceContact.techWall);
       assertEquals(victim.launch.hitstun, 0);
