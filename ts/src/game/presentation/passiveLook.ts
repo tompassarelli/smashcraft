@@ -27,12 +27,14 @@ export const PASSIVE_MODELS = {
   longRifle: "Abilities\\Weapons\\Bolt\\BoltImpact.mdx",
   cleave: "Abilities\\Spells\\Other\\Incinerate\\FireLordDeathExplode.mdx",
   packHunt: "Abilities\\Spells\\Other\\Stampede\\StampedeMissileDeath.mdx",
+  endurance: "Abilities\\Spells\\Orc\\CommandAura\\CommandAura.mdx",
 } as const;
 
 const NONE: PassiveLook = { onVictim: false };
 
 export function passiveLook(character: Character): PassiveLook {
   switch (character) {
+    case Character.cairne: return { ready: PASSIVE_MODELS.endurance, onVictim: false };
     case Character.thrall: return { proc: PASSIVE_MODELS.longRifle, onVictim: true };
     case Character.blademaster: return { proc: PASSIVE_MODELS.critical, onVictim: true };
     case Character.mountainKing: return { proc: PASSIVE_MODELS.bash, onVictim: true };
