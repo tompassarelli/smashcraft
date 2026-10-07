@@ -144,9 +144,6 @@ export interface Journal {
   readonly chatRequested: Slots<boolean>;
   readonly chatSerial: Slots<number>;
   readonly barrier: PauseBarrier;
-  /** The menu phase last published to the helper; undefined before the first. */
-  menuPhase: MenuPhase | undefined;
-  menuTicks: number;
   readonly editbox: EditboxIngress | undefined;
   mailbox: KeyboardMailbox | undefined;
 }
@@ -224,6 +221,7 @@ interface KeyEvents {
 }
 
 export interface ShellState {
+  menuPublication?: { phase: MenuPhase; ticks: number };
   readonly pad: NativePadCapture | undefined;
   /** Synchronized menu callbacks salt the random stage draw; retained across reloads. */
   menuFrames?: number;
@@ -306,7 +304,7 @@ function journal(ingress: JournalIngress, editbox: EditboxIngress | undefined): 
     ingress, source: undefined, failed: false, outgoing: new OutgoingInput(), readyMask: 0, keyboardMask: 0, readyWait: 0, keys,
     keyClock: 0, keyStop: undefined, keyAnswered: undefined, keyPacket: { epoch: 0, firstFrame: 1, rows: [keys.row] }, startSent: false, lifecycle: undefined,
     endSent: false, endReceived: false, quiescent: false, chatRequested: [false, false, false, false], chatSerial: [0, 0, 0, 0],
-    barrier: pauseBarrier(), menuPhase: undefined, menuTicks: 0, editbox, mailbox: undefined,
+    barrier: pauseBarrier(), editbox, mailbox: undefined,
   };
 }
 
