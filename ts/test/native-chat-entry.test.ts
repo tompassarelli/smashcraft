@@ -3,7 +3,13 @@ import { installHeadless } from "wisp/scripts/wisp/headless";
 import { EditboxIngress } from "../src/platform/editboxJournal";
 import { nativeChatFile } from "../src/runtime/gameFiles";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
-import { nativeChatEntryReceipt } from "../scripts/wisp/commands/pad";
+import { nativeChatEntryReceipt, nativeScript, type NativeSession } from "../scripts/wisp/commands/pad";
+import { Effect, Fiber } from "effect";
+import { TestClock } from "effect/testing";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { parsePadScript } from "../scripts/integrity/padScript";
 
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
@@ -45,4 +51,30 @@ test("selection chat receipt stays closed after a missed Return and opens only w
       globalThis.BlzFrameGetChildrenCount = countChildren;
     }
   });
+});
+
+test("native setup failure retains INVALID at the selected chat boundary without starting the pad timeline", async () => {
+  const root = mkdtempSync(join(tmpdir(), "smashcraft-setup-"));
+  const data = [join(root, "a"), join(root, "b")] as const;
+  data.forEach(dir => mkdirSync(dir));
+  const client = (name: string) => ({ name, documents: root, window: "0", x11: {}, wayland: {}, tools: { grim: "/unreachable", xdotool: "/unreachable", wlrctl: "/unreachable", tesseract: "/unreachable" } });
+  const session = { clients: [client("lan2a"), client("lan2b")], data, pads: [], build: "test", logs: () => ["", ""] } satisfies NativeSession;
+  const out = join(root, "out");
+  writeFileSync(join(data[0], nativeChatFile("test", 0)), 'function PreloadFiles takes nothing returns nothing\ncall Preload( "SMASHCRAFT CHAT v=1 revision=1 available=0 open=0" )\nendfunction\n');
+  try {
+    const result = await Effect.runPromise(Effect.gen(function*() {
+      const fiber = yield* Effect.forkChild(nativeScript(session, { scriptPath: "unreached.pad", steps: parsePadScript("150 a press A"), helper: "/unreachable", build: "test", out, chat: "-dev quick hero archer" }), { startImmediately: true });
+      yield* TestClock.adjust("2 seconds");
+      return yield* Fiber.join(fiber);
+    }).pipe(Effect.provide(TestClock.layer())));
+    expect(result).toBe("invalid");
+    const recorded = JSON.parse(readFileSync(join(out, "result.json"), "utf8"));
+    expect(recorded.status).toBe("INVALID");
+    expect(recorded.invalid[0]).toContain("open chat entry");
+    expect(recorded.invalid[0]).toContain("lan2a");
+    expect(recorded.edges).toEqual([]);
+    expect(existsSync(join(out, "producer.jsonl"))).toBe(false);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
 });

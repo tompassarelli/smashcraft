@@ -361,6 +361,13 @@ test("xpad pads press X for special, Y for jump, and stick-up only as up", () =>
   const firstEnd = bot.trace.indexOf("event end");
   const secondStart = bot.trace.indexOf("event start", bot.trace.indexOf("event start") + 1);
   expect(bot.trace.indexOf("type a -dev perf")).toBeGreaterThan(secondStart);
+  const perfTyped = bot.trace.indexOf("type a -dev perf");
+  const captureTyped = bot.trace.indexOf("type a -dev capture 1800");
+  const resumed = bot.trace.findIndex(line => line.includes("match-2-chat-resume"));
+  expect(bot.trace.indexOf("until epoch 2: -dev perf chat entry not open")).toBeLessThan(perfTyped);
+  expect(bot.trace.indexOf("until epoch 2: -dev perf chat has not returned keyboard focus")).toBeLessThan(captureTyped);
+  expect(resumed).toBeGreaterThan(captureTyped);
+  expect(bot.trace.indexOf("until epoch 2: chat resume not acknowledged by both helpers")).toBeGreaterThan(resumed);
   expect(bot.trace.slice(firstEnd, secondStart).some(line => line.includes("menu-results-confirm") || line.includes("menu-character"))).toBe(false);
   expect(bot.events.filter(event => event.event === "start" || event.event === "end").map(event => [event.event, event.epoch])).toEqual([["start", 1], ["end", 1], ["start", 2], ["end", 2]]);
   // The overlay is read from A's screen during the rematch that shows it, and only then.

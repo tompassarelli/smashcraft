@@ -345,6 +345,9 @@ code. From smashcraft:ts/:
   --app-id a=ID --app-id b=ID [--chat=TEXT] [--map MAP.w3x [--retries N]]` plays timed virtual-pad input
   through each client's real helper and reports the frame each edge landed on
   (script syntax: smashcraft:ts/scripts/integrity/padScript.ts). It copies
+  fresh selected-pair setup receipts to `DIR/setup.json` before the first edge;
+  missing chat entry or requested setup is INVALID at that client and boundary,
+  with no input timeline started (Wisp's observed chat/command receipt helpers).
   the clients' input traces, scene reports and moments beside the result;
   captures require the requested frame in both drawn receipts, otherwise the
   run is INVALID with retained captures and the first failed boundary in its report

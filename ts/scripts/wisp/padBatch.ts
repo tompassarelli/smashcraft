@@ -12,12 +12,16 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, join } from "node:path";
-import { Cause, Effect, Exit, Schema, Scope } from "effect";
+import { Cause, Effect, Exit, Option, Schema, Scope } from "effect";
 import { preloadLines } from "wisp/scripts/wisp/boundary";
 import { UsageFailure, describeCause } from "wisp/scripts/wisp/command";
+import { loadClients } from "wisp/scripts/warcraft/desktop";
+import { readyAfter } from "./commands/fresh";
+import { gameFilesLayer } from "./project";
 import { RESET_COMMAND } from "../../src/game/shell/devSettings";
 import { devCommandReceiptFile } from "../../src/runtime/gameFiles";
 import { IntegrityFailure } from "../integrity/evidence";
+import { monotonicNs } from "../integrity/linux";
 import { compareRuns, comparisonSteps, scriptChat } from "../integrity/padParity";
 import { parsePadScript } from "../integrity/padScript";
 import { onHealthyClients } from "./doctor";
@@ -118,7 +122,12 @@ async function wisp(args: readonly string[], log: string): Promise<number> {
 const newGame = (pair: PadPair, map: string, log: string) => Effect.gen(function*() {
   const args = pair.lan === undefined ? ["fresh", map, "--no-quick"] : ["lan", "fresh", map, "--pair", String(pair.lan)];
   for (let attempt = 0; attempt < 2; attempt++) {
-    if ((yield* Effect.promise(() => wisp(args, `${log}.${attempt}`))) === 0) return;
+    const started = Date.now();
+    if ((yield* Effect.promise(() => wisp(args, `${log}.${attempt}`))) === 0) {
+      const clients = yield* loadClients(pair.clients).pipe(Effect.mapError((cause) => new IntegrityFailure({ operation: "binding-ready clients", path: pair.name, cause })));
+      yield* Effect.forEach(clients, (client) => readyAfter(client, started), { concurrency: "unbounded" }).pipe(Effect.provide(gameFilesLayer), Effect.mapError((cause) => new IntegrityFailure({ operation: "binding-ready receipt", path: pair.name, cause })));
+      return;
+    }
   }
   return yield* new IntegrityFailure({ operation: "start a new game", path: map, cause: `bun wisp ${args.join(" ")} failed twice on ${pair.name} (${log}.1)` });
 });
@@ -138,8 +147,9 @@ const atSelection = (receipts: readonly string[], sinceMs: number) => Effect.gen
 /** Types `-dev reset` into the pair's client A and waits for both clients' receipts. */
 const reset = (session: NativeSession, build: string) => Effect.gen(function*() {
   const typedMs = Date.now();
-  yield* nativeChat(session, RESET_COMMAND);
+  const received = yield* nativeChat(session, RESET_COMMAND);
   yield* atSelection(session.data.map((dir, slot) => join(dir, devCommandReceiptFile(build, slot))), typedMs);
+  return { command: RESET_COMMAND, clients: received, confirmed_monotonic_ns: monotonicNs() };
 });
 
 export interface BatchOptions {
@@ -300,6 +310,7 @@ export const padBatch = (options: NativeBatchOptions) => Effect.gen(function*() 
           made.reset += seconds(at);
           // A pair that didn't reset gets a new game for the same attempt.
           if (done._tag === "Failure") previous = "broken";
+          else writeFileSync(join(run.dir, "reset.json"), `${JSON.stringify(done.value, null, 2)}\n`);
         }
         if (needsNewGame(previous, freshEach)) {
           if (gameScope !== undefined) yield* Scope.close(gameScope, Exit.void);
@@ -330,6 +341,14 @@ export const padBatch = (options: NativeBatchOptions) => Effect.gen(function*() 
         outcome = ran._tag === "Success" ? ran.value : Cause.pretty(ran.cause).includes("edges off their frame") ? "failed" : "broken";
         if (outcome === "broken" && ran._tag === "Failure") made.summary = Cause.pretty(ran.cause);
         previous = outcome;
+        if (outcome === "invalid") {
+          const resultPath = join(padOptions.out, "result.json");
+          const setup = existsSync(resultPath) ? Option.getOrUndefined(Schema.decodeUnknownOption(Schema.Struct({ setup: Schema.Struct({ boundary: Schema.String }) }))(JSON.parse(readFileSync(resultPath, "utf8")))) : undefined;
+          if (setup !== undefined) {
+            made.summary = `INVALID setup: ${setup.setup.boundary}`;
+            break;
+          }
+        }
         // Edges written late are the harness's slip on a loaded host, not the game's: reset and play the script again.
         if (outcome === "failed" && slipped(padOptions.out) && attempt < retries) continue;
         if (outcome !== "invalid") break;
