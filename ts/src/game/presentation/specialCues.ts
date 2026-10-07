@@ -105,6 +105,12 @@ export const HERO_CUES: { readonly [character: number]: { readonly [slot in Spec
     up: { spell: "Far Sight", startup: STORM, active: cue("Abilities\\Spells\\Orc\\FarSight\\FarSightTarget.mdx", "feet", 0.5) },
     down: { spell: "Earthquake", startup: STORM, active: cue("Abilities\\Spells\\Orc\\EarthQuake\\EarthQuakeTarget.mdx", "feet", f32(0.3)) },
   },
+  [Character.sylvanas]: {
+    neutral: { spell: "Black Arrow", startup: SHADOW, active: cue("Abilities\\Spells\\Undead\\DeathCoil\\DeathCoilSpecialArt.mdx", "hand", f32(0.6)) },
+    side: { spell: "Silence", startup: SHADOW, active: cue("Abilities\\Spells\\Other\\Silence\\SilenceAreaBirth.mdx", "ahead", f32(0.6)) },
+    up: { spell: "Banshee Flight", startup: SHADOW, active: cue("Abilities\\Spells\\Undead\\Possession\\PossessionTarget.mdx", "body", f32(0.7)) },
+    down: { spell: "Life Drain", startup: SHADOW, active: cue("Abilities\\Spells\\Undead\\DarkRitual\\DarkRitualCaster.mdx", "hand", f32(0.6)) },
+  },
   [Character.blademaster]: {
     neutral: { spell: "Wind Cutter", startup: BLOODLUST, active: cue("Abilities\\Spells\\Other\\Tornado\\Tornado_Target.mdx", "hand", f32(0.6)) },
     side: { spell: "Wind Walk", startup: cue("Abilities\\Spells\\Human\\Invisibility\\InvisibilityTarget.mdx", "body", f32(0.8)), active: cue("Abilities\\Spells\\Human\\SunderingBlades\\SunderingBlades.mdx", "ahead", f32(0.8)) },
