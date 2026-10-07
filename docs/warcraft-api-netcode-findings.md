@@ -439,9 +439,11 @@ stalls followed. The pre-#48 map took at most two rows a callback, so the
 helper typed at most about six records at once.
 
 So the helper types at most 160 characters past the record the map's receipt
-says arrived, and while a record waits untyped, the next row packets join it
-with `|` (at most `RECORD_PACKETS`, 16): a backlog costs 5–8 characters a
-frame instead of 19 (smashcraft:companion/README.md). Dirty text receipts
+says arrived, and while a record waits untyped, contiguous row packets pack
+into the existing I5 message format (at most 64 frames). Holds omit repeated
+rows; every press and release remains on its original frame. A message joins
+the waiting record only when its complete envelope still fits 160 characters
+(smashcraft:companion/README.md). Dirty text receipts
 are written every two map ticks, at most 30 per client per second, so the
 smaller typing window drains within the recovery budget. The map admits a joined
 record's rows within the same per-callback budget, over as many callbacks as

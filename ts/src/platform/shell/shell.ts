@@ -48,7 +48,9 @@ import { resultsView } from "../../game/presentation/matchCues";
 import { LASTING, announce, createStatusFrames, drawStage, lockArenaCamera, pauseMatchPresentation, renderPersistentPresentation, renderUi, setStatus } from "./view";
 import { keepMomentEnd } from "../../game/replay/moment";
 import { resultMessage } from "../../game/shell/messages";
+import { beforeNativeDriverTick, afterNativeDriverTick, captureNativeDriverInputs } from "../nativeDriver";
 import { fighterAt, isActive } from "../../game/sim/roster";
+import { PAD_MOUSE, createPadTriggers, padMouse } from "./analogPad";
 
 const INIT = "shell.init";
 const TICK = "shell.tick";
@@ -76,6 +78,7 @@ declare global {
 
 /** One game callback. */
 function gameTick(s: ShellState): void {
+  if (!beforeNativeDriverTick(s)) return;
   serviceVisualCapture(s);
   const epoch = journalEpoch(s);
   const editbox = s.rollback?.journal?.editbox;
@@ -101,6 +104,7 @@ function gameTick(s: ShellState): void {
   s.moment.notice = Math.max(0.0, f32(s.moment.notice - FRAME_SECONDS));
   serviceMomentSave(s);
   serviceReplay(s);
+  captureNativeDriverInputs(s);
   if (rollback !== undefined && s.game.phase === Phase.match) {
     const { journal } = rollback;
     if (journal !== undefined) serviceControlAck(s, rollback, journal);
@@ -141,6 +145,7 @@ function gameTick(s: ShellState): void {
     probePresent(s.probe, confirmed, predicted && fighterAt(predictedWorld, local).shield.raised, predicted ? rollback?.speculative.runtime.poses[local].selectionSerial ?? -1 : -1);
   }
   writeReadyMarker(s);
+  afterNativeDriverTick(s);
 }
 
 /** Menu sounds and music, and the results screen once "GAME!" has had its moment. */
@@ -211,6 +216,7 @@ function syncTrigger(s: ShellState, prefix: string, handler: string, humansOnly:
 
 /** Every trigger and timer, created once. */
 function createTriggers(s: ShellState): void {
+  createPadTriggers(s);
   if (s.probe !== undefined) {
     developerChord(s, Key.g, PROBE_START);
     developerChord(s, Key.j, PROBE_EDGES);
@@ -307,6 +313,7 @@ function withShell(handler: (s: ShellState) => void): () => void {
 
 /** Registers every shell callback; after a hot reload, also rebinds retained UI objects. */
 export function installShell(): void {
+  on(PAD_MOUSE, withShell(padMouse));
   on(INIT, initialize);
   on(TICK, withShell(gameTick));
   on(DRAW_EVENT, drawBetweenFrames);

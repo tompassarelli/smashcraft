@@ -1,0 +1,329 @@
+{
+  "script": "test/native/pads/cpu-reads.pad",
+  "build": "typescript-integrity",
+  "frame_one_ns": [
+    35190634771,
+    35191463275
+  ],
+  "match_starts": [
+    {
+      "epoch": 1,
+      "epochNs": 35223968104,
+      "firstFrame": 3,
+      "frameOneNs": 35190634771
+    },
+    {
+      "epoch": 1,
+      "epochNs": 35224796608,
+      "firstFrame": 3,
+      "frameOneNs": 35191463275
+    }
+  ],
+  "edges": [
+    {
+      "line": 9,
+      "text": "60 a stick 1 0",
+      "slot": 0,
+      "planned": 60,
+      "injectedNs": 36177474000,
+      "landed": 60,
+      "frame": 60,
+      "confirmedBy": "helper event",
+      "written": 60
+    },
+    {
+      "line": 9,
+      "text": "60 a stick 1 0",
+      "slot": 0,
+      "planned": 60,
+      "injectedNs": 36177885000,
+      "frame": 60,
+      "confirmedBy": "frame rule",
+      "written": 60
+    },
+    {
+      "line": 10,
+      "text": "100 a stick 0 0",
+      "slot": 0,
+      "planned": 100,
+      "injectedNs": 36843970000,
+      "landed": 100,
+      "frame": 100,
+      "confirmedBy": "helper event",
+      "written": 100
+    },
+    {
+      "line": 10,
+      "text": "100 a stick 0 0",
+      "slot": 0,
+      "planned": 100,
+      "injectedNs": 36844050000,
+      "frame": 100,
+      "confirmedBy": "frame rule",
+      "written": 100
+    },
+    {
+      "line": 11,
+      "text": "120 a press LB",
+      "slot": 0,
+      "planned": 120,
+      "injectedNs": 37177303000,
+      "landed": 120,
+      "frame": 120,
+      "confirmedBy": "helper event",
+      "written": 120
+    },
+    {
+      "line": 12,
+      "text": "128 a release LB",
+      "slot": 0,
+      "planned": 128,
+      "injectedNs": 37310638000,
+      "landed": 128,
+      "frame": 128,
+      "confirmedBy": "helper event",
+      "written": 128
+    },
+    {
+      "line": 13,
+      "text": "210 a press LB",
+      "slot": 0,
+      "planned": 210,
+      "injectedNs": 38677305000,
+      "landed": 210,
+      "frame": 210,
+      "confirmedBy": "helper event",
+      "written": 210
+    },
+    {
+      "line": 14,
+      "text": "218 a release LB",
+      "slot": 0,
+      "planned": 218,
+      "injectedNs": 38810636000,
+      "landed": 218,
+      "frame": 218,
+      "confirmedBy": "helper event",
+      "written": 218
+    },
+    {
+      "line": 15,
+      "text": "300 a press LB",
+      "slot": 0,
+      "planned": 300,
+      "injectedNs": 40177303000,
+      "landed": 300,
+      "frame": 300,
+      "confirmedBy": "helper event",
+      "written": 300
+    },
+    {
+      "line": 16,
+      "text": "308 a release LB",
+      "slot": 0,
+      "planned": 308,
+      "injectedNs": 40310636000,
+      "landed": 308,
+      "frame": 308,
+      "confirmedBy": "helper event",
+      "written": 308
+    },
+    {
+      "line": 17,
+      "text": "390 a press LB",
+      "slot": 0,
+      "planned": 390,
+      "injectedNs": 41677302000,
+      "landed": 390,
+      "frame": 390,
+      "confirmedBy": "helper event",
+      "written": 390
+    },
+    {
+      "line": 18,
+      "text": "398 a release LB",
+      "slot": 0,
+      "planned": 398,
+      "injectedNs": 41810636000,
+      "landed": 398,
+      "frame": 398,
+      "confirmedBy": "helper event",
+      "written": 398
+    },
+    {
+      "line": 19,
+      "text": "480 a press LB",
+      "slot": 0,
+      "planned": 480,
+      "injectedNs": 43177303000,
+      "landed": 480,
+      "frame": 480,
+      "confirmedBy": "helper event",
+      "written": 480
+    },
+    {
+      "line": 20,
+      "text": "488 a release LB",
+      "slot": 0,
+      "planned": 488,
+      "injectedNs": 43310637000,
+      "landed": 488,
+      "frame": 488,
+      "confirmedBy": "helper event",
+      "written": 488
+    },
+    {
+      "line": 21,
+      "text": "570 a press LB",
+      "slot": 0,
+      "planned": 570,
+      "injectedNs": 44677303000,
+      "landed": 570,
+      "frame": 570,
+      "confirmedBy": "helper event",
+      "written": 570
+    },
+    {
+      "line": 22,
+      "text": "578 a release LB",
+      "slot": 0,
+      "planned": 578,
+      "injectedNs": 44810636000,
+      "landed": 578,
+      "frame": 578,
+      "confirmedBy": "helper event",
+      "written": 578
+    },
+    {
+      "line": 23,
+      "text": "660 a press LB",
+      "slot": 0,
+      "planned": 660,
+      "injectedNs": 46177302000,
+      "landed": 660,
+      "frame": 660,
+      "confirmedBy": "helper event",
+      "written": 660
+    },
+    {
+      "line": 24,
+      "text": "668 a release LB",
+      "slot": 0,
+      "planned": 668,
+      "injectedNs": 46310637000,
+      "landed": 668,
+      "frame": 668,
+      "confirmedBy": "helper event",
+      "written": 668
+    },
+    {
+      "line": 25,
+      "text": "750 a tap RB 1",
+      "slot": 0,
+      "planned": 750,
+      "injectedNs": 47677304000,
+      "landed": 750,
+      "frame": 750,
+      "confirmedBy": "helper event",
+      "written": 750
+    },
+    {
+      "line": 25,
+      "text": "750 a tap RB 1",
+      "slot": 0,
+      "planned": 751,
+      "injectedNs": 47693969000,
+      "landed": 751,
+      "frame": 751,
+      "confirmedBy": "helper event",
+      "written": 751
+    },
+    {
+      "line": 26,
+      "text": "840 a tap B 1",
+      "slot": 0,
+      "planned": 840,
+      "injectedNs": 49177304000,
+      "landed": 840,
+      "frame": 840,
+      "confirmedBy": "helper event",
+      "written": 840
+    },
+    {
+      "line": 26,
+      "text": "840 a tap B 1",
+      "slot": 0,
+      "planned": 841,
+      "injectedNs": 49193974000,
+      "landed": 841,
+      "frame": 841,
+      "confirmedBy": "helper event",
+      "written": 841
+    },
+    {
+      "line": 27,
+      "text": "845 a stick -1 0",
+      "slot": 0,
+      "planned": 845,
+      "injectedNs": 49260637000,
+      "landed": 845,
+      "frame": 845,
+      "confirmedBy": "helper event",
+      "written": 845
+    },
+    {
+      "line": 27,
+      "text": "845 a stick -1 0",
+      "slot": 0,
+      "planned": 845,
+      "injectedNs": 49260716000,
+      "frame": 845,
+      "confirmedBy": "frame rule",
+      "written": 845
+    },
+    {
+      "line": 28,
+      "text": "900 a stick 0 0",
+      "slot": 0,
+      "planned": 900,
+      "injectedNs": 50177304000,
+      "landed": 900,
+      "frame": 900,
+      "confirmedBy": "helper event",
+      "written": 900
+    },
+    {
+      "line": 28,
+      "text": "900 a stick 0 0",
+      "slot": 0,
+      "planned": 900,
+      "injectedNs": 50177368000,
+      "frame": 900,
+      "confirmedBy": "frame rule",
+      "written": 900
+    },
+    {
+      "line": 29,
+      "text": "1000 a press VIEW",
+      "slot": 0,
+      "planned": 1000,
+      "injectedNs": 51843970000,
+      "frame": 1000,
+      "confirmedBy": "frame rule",
+      "written": 1000
+    },
+    {
+      "line": 30,
+      "text": "1070 a release VIEW",
+      "slot": 0,
+      "planned": 1070,
+      "injectedNs": 53010637000,
+      "frame": 1070,
+      "confirmedBy": "frame rule",
+      "written": 1070
+    }
+  ],
+  "off_frame": 0,
+  "written_late": 0,
+  "helpers_stopped": []
+}

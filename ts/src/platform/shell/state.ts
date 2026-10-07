@@ -43,6 +43,7 @@ import type { EditboxIngress } from "../editboxJournal";
 import { type ResponseProbe, createResponseProbe } from "./responseProbe";
 import { type InputTrace, inputTrace } from "./trace";
 import type { UiObjects } from "./ui";
+import { nativePadCapture, type NativePadCapture } from "./analogPad";
 
 /** The unit a fighter animates when no pool presents it, and its dizzy mark. */
 export interface FighterBody {
@@ -72,6 +73,9 @@ export interface FrameObservation {
   form: number;
   ground: number;
   facing: number;
+  shieldRaised: boolean;
+  shieldTiltX: number;
+  shieldTiltZ: number;
 }
 
 interface Participant {
@@ -220,6 +224,7 @@ interface KeyEvents {
 }
 
 export interface ShellState {
+  readonly pad: NativePadCapture | undefined;
   /** Synchronized menu callbacks salt the random stage draw; retained across reloads. */
   menuFrames?: number;
   readonly camera: MatchCamera;
@@ -280,7 +285,7 @@ export function shell(): ShellState {
 }
 
 function observation(): FrameObservation {
-  return { out: false, holding: false, actionable: false, attack: 0, jump: 0, down: 0, shieldBreak: 0, breakState: 0, ledge: 0, special: 0, grab: 0, di: 0, damage: 0, form: 0, ground: 0, facing: 0 };
+  return { out: false, holding: false, actionable: false, attack: 0, jump: 0, down: 0, shieldBreak: 0, breakState: 0, ledge: 0, special: 0, grab: 0, di: 0, damage: 0, form: 0, ground: 0, facing: 0, shieldRaised: false, shieldTiltX: 0.0, shieldTiltZ: 0.0 };
 }
 
 function participant(slot: ParticipantSlot, persistence: BindingPersistence): Participant {
@@ -336,6 +341,7 @@ export function createShellState(build: MapBuild, setup: ShellSetup): ShellState
   const { input } = build;
   const { persistence } = setup;
   const state: ShellState = {
+    pad: build.analogPad === undefined ? undefined : nativePadCapture(),
     camera: createMatchCamera(),
     build, origin: setup.origin, game: createMatchState(), world: createRoster(0), controls: createBufferedFrameControls(),
     produced: createFrameControls(), runtime: createPacingAndPresentation(), session: createMatchControls(),

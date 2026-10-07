@@ -6,6 +6,7 @@ import { addFloat32, divideFloat32, fusedMultiplyAddFloat32, multiplyFloat32, ro
 import { ParryBuffer, ShieldBreak } from "./codes";
 import { type Fighter, SHIELD_MAX, SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES } from "./fighter";
 import { integerHitPower } from "./knockback";
+import { shieldCenterX, shieldCenterZ } from "./shieldTilt";
 import { AIR_RECOIL_DECAY, AIR_RECOIL_SQUARED_CUTOFF, decayedAirMotion, retainedOriginal, setMeleeRecoil } from "./motion";
 import type { Controls } from "./roster";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
@@ -273,8 +274,8 @@ export function capsuleCircleIntersects(
 /** Whether a projectile path, swept by `projectileRadius`, meets the target's shield bubble. */
 export function shieldCircleIntersects(target: Fighter, oldX: number, oldZ: number, newX: number, newZ: number, radiusFactor: number, projectileRadius = 0.0): boolean {
   const geometry = target.tuning.shield;
-  const centerX = addFloat32(target.motion.x, multiplyFloat32(target.facing, geometry.centerX));
-  const centerZ = addFloat32(target.motion.z, geometry.centerZ);
+  const centerX = shieldCenterX(target);
+  const centerZ = shieldCenterZ(target);
   const radius = multiplyFloat32(geometry.radius, radiusFactor);
   const scale = shieldSizeMultiplier(target.shield.energy, target.shield.strength);
   return capsuleCircleIntersects(oldX, oldZ, newX, newZ, projectileRadius, centerX, centerZ, radius, scale);

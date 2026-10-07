@@ -12,7 +12,7 @@ export const clientState = join(homedir(), ".local/state/smashcraft/clients.json
 export const sourceMapDirectory = join(tsDirectory, "build/source-maps");
 
 /** Every compile of the map: normal gameplay, and each diagnostic with its own entry and TypeScriptToLua configuration. */
-const profiles = ["main", "integrity", "playable", "native-input", "native-perf", "physics-probe", "frame-cost", "stack-trace", "damage-blend-probe"] as const;
+const profiles = ["main", "integrity", "playable", "native-input", "analog-keys", "analog-cursor", "native-perf", "physics-probe", "frame-cost", "stack-trace", "damage-blend-probe", "native-driver"] as const;
 type Profile = (typeof profiles)[number];
 /** Profiles whose entry starts the scene recorder (src/platform/sceneReport.ts). */
 export const sceneProfiles: ReadonlySet<Profile> = new Set<Profile>(["main", "integrity"]);
@@ -21,6 +21,9 @@ const profileConfigs: Readonly<Record<Profile, string>> = {
   integrity: "tsconfig.integrity.json",
   playable: "tsconfig.playable.json",
   "native-input": "tsconfig.native-input.json",
+  "native-driver": "tsconfig.native-driver.json",
+  "analog-keys": "tsconfig.analog-keys.json",
+  "analog-cursor": "tsconfig.analog-cursor.json",
   "native-perf": "tsconfig.native-perf.json",
   "physics-probe": "tsconfig.physics-probe.json",
   "frame-cost": "tsconfig.frame-cost.json",
