@@ -109,6 +109,9 @@ code. From smashcraft:ts/:
   clips and writing both-facing silhouette sheets for the native review.
   `bun tools/animations/down-air-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends
   downward contact poses for the seven stock heroes whose casts/swings pointed forward.
+  `bun tools/animations/jump-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends
+  movement-only jump gestures, including Blademaster's front flip
+  (smashcraft:docs/fighter-animation-work.md).
   `bun tools/animations/down-air-captures.ts PRIVATE_ASSETS PRIVATE_OUTPUT` writes
   both-facing down-air sheets from production pose selection and the roster's
   strike-height inventory (smashcraft:docs/down-airs.md).
