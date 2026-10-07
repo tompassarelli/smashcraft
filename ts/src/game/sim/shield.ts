@@ -12,6 +12,7 @@ import type { Controls } from "./roster";
 import { floorTraction } from "./stage";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
 import { squareRoot } from "./warcraftMath";
+import { ROSTER_MANA, gainMana } from "./mana";
 
 export const SHIELD_REFLECTOR_ACTIVE_FRAMES = 2;
 export const SHIELD_PERFECT_ACTIVE_FRAMES = 4;
@@ -147,6 +148,7 @@ export function clearPowershield(f: Fighter): void {
  */
 export function grantParry(f: Fighter): void {
   const { shield } = f;
+  if (shield.reflectFrames > 0 || shield.perfectFrames > 0) gainMana(f, ROSTER_MANA.parryGain);
   shield.reflectFrames = 0;
   shield.perfectFrames = 0;
   shield.stun = 0;

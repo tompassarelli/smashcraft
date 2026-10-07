@@ -19,6 +19,7 @@ import { squareRoot } from "./warcraftMath";
 import { meleeAtan2 } from "../../sim/meleeScalarMath";
 import { stickX, stickZ } from "./stick";
 import { isHeroSpecialAction, landHeroSpecial } from "./heroSpecialRules";
+import { aerialJumps, groundedJumps } from "./itemBuffs";
 
 export const AIR_DODGE_LANDING_LAG = 10;
 const EMPTY_LANDING_LAG = 4;
@@ -120,7 +121,7 @@ export function finishLanding(f: Fighter, stage: number, matchFrame: number, inp
   if (!wasGrounded) landRiflemanBlaster(f);
   f.special.fall = false;
   if (!isHeroSpecialAction(f.special.action)) f.special.airtimeUses = 0;
-  if (f.jump.squat <= 0) f.jump.remaining = 2;
+  if (f.jump.squat <= 0) f.jump.remaining = groundedJumps(f);
   if (isTumbling(f)) {
     const launchDirection = totalVelocityX(f) < 0 ? -1 : 1;
     launch.hitstun = 0;
@@ -214,7 +215,7 @@ export function resolveDownGroundContact(f: Fighter, stage: number, matchFrame: 
   clearDownState(f);
   motion.grounded = false;
   motion.surface = undefined;
-  f.jump.remaining = min(f.jump.remaining, 1);
+  f.jump.remaining = min(f.jump.remaining, aerialJumps(f));
   const { airSpeed } = f.tuning.physics;
   motion.vx = max(-airSpeed, min(airSpeed, motion.vx));
   f.launch.groundKnockbackX = 0.0;

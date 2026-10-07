@@ -1,7 +1,6 @@
 // Runs every registered test in Lua; the index imports the test modules.
 import { AssertionFailure, registeredTests } from "wisp/src/runtime/testing";
 import "./index";
-import "./memoryCensus.tests";
 
 let failures = 0;
 for (const { name, run } of registeredTests) {

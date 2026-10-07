@@ -96,7 +96,7 @@ export async function createStandaloneSession(options: { readonly script?: strin
 
 export const SMASHCRAFT_STANDALONE: StandaloneGame = {
   title: "Smashcraft",
-  render: headlessRender(),
+  render: { ...headlessRender(), preloadModels: ["Abilities\\Spells\\Human\\Thunderclap\\ThunderclapTarget.mdx"] },
   create: createStandaloneSession,
 };
 

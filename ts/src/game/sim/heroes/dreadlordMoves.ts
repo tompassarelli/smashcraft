@@ -1,3 +1,4 @@
+import { downSmashHit } from "../downMoveValues";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction, HitElement, LAST_ATTACK_STYLE } from "../codes";
 import { HERO_REFERENCE_HEIGHT, heroMove, heroRegion, type AuthoredMove, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
@@ -70,7 +71,7 @@ function wingSweep(first: number, facing: number): readonly MoveRegion[] {
     capsule(f32(16.0 * facing), 24.0, f32(f32(L - WING_RADIUS) * facing), 22.0, WING_RADIUS),
     capsule(f32(16.0 * facing), 20.0, f32(f32(L - WING_RADIUS) * facing), 12.0, WING_RADIUS),
     capsule(f32(16.0 * facing), 16.0, f32(f32(L - WING_RADIUS) * facing), 2.0, WING_RADIUS),
-  ], dreadlordHit(12.670000076293945, "EDGE", 25, facing));
+  ], downSmashHit(dreadlordHit(12.670000076293945, "EDGE", 25, facing)));
 }
 
 const NO_LAUNCH = { growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } as const;
@@ -88,7 +89,7 @@ const NORMALS: { readonly [style: number]: AuthoredMove | undefined } = {
       capsule(-12.0, 68.0, -38.0, 125.0, WING_RADIUS),
       capsule(-20.0, 58.0, -70.0, 95.0, WING_RADIUS),
     ], dreadlordHit(14.480000495910645, "KILL", 85))),
-    [AttackStyle.downSmash]: heroMove(15, 6, 32, 0, [...wingSweep(15, 1.0), ...wingSweep(18, -1.0)]),
+    [AttackStyle.downSmash]: heroMove(15, 6, 20, 0, [...wingSweep(15, 1.0), ...wingSweep(18, -1.0)]),
     // Batwing Turn (#152): three wing beats around him. The first two drag the
     // target along with him at any percent; the third launches it.
     [AttackStyle.neutralAir]: heroMove(7, 10, 19, 9, multiHit([

@@ -48,10 +48,10 @@ import { MENU_FONT, type TextBox } from "./hudLayout";
 import { MOVES_BODY_BOX, MOVES_BUTTON_HEIGHT, MOVES_BUTTON_TOP, MOVES_TITLE_BOX, selectionTitleBox } from "./selectionLayout";
 import { PLAYABLE_CHARACTERS, fighterName, fighterPortrait, nextSelectableCharacter } from "../sim/heroes/registry";
 import {
-  MOVES_HEADER, automaticRematchSetting, movesPage, selectionModeLabel, endlessSetting, hitAreasSetting, partnerBehaviourSetting, partnerDamageSetting, partnerEscapeSetting,
+  MOVES_HEADER, itemsSetting, itemKindSetting, automaticRematchSetting, movesPage, selectionModeLabel, endlessSetting, hitAreasSetting, partnerBehaviourSetting, partnerDamageSetting, partnerEscapeSetting,
   partnerTechSetting, stockSetting, timeSetting, trainingSetting, trainingSpeedSetting,
 } from "../shell/messages";
-import { Character } from "../sim/codes";
+import { Character, ItemKind, itemBit } from "../sim/codes";
 import { TILE_PORTRAIT_SLOT, tilePortrait } from "./portraitFrames";
 import { slotColor } from "./slotColors";
 import { ButtonClicks, type MenuControls, bindSyncHandler, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, placeTopLeft } from "./frames";
@@ -68,6 +68,8 @@ export interface SelectionActions {
   changeTime(participantId: number, direction: -1 | 1): void;
   toggleEndless(participantId: number): void;
   toggleAutomaticRematch(participantId: number): void;
+  toggleItems(participantId: number): void;
+  toggleItemKind(participantId: number, kind: ItemKind): void;
   toggleTraining(participantId: number): void;
   stepTraining(participantId: number, setting: TrainingSetting, direction: -1 | 1): void;
   toggleHitAreas(participantId: number): void;
@@ -77,7 +79,7 @@ export interface SelectionActions {
 }
 
 type RuleButton = { kind: "stocks"; direction: -1 | 1 } | { kind: "time"; direction: -1 | 1 } | { kind: "endless" } | { kind: "automaticRematch" }
-  | { kind: "training" } | { kind: "partner"; setting: TrainingSetting; direction: -1 | 1 } | { kind: "hitAreas" } | { kind: "speed" };
+  | { kind: "items" } | { kind: "itemKind"; item: ItemKind } | { kind: "training" } | { kind: "partner"; setting: TrainingSetting; direction: -1 | 1 } | { kind: "hitAreas" } | { kind: "speed" };
 type SelectionButton = { kind: "mode"; slot: number } | { kind: "cpuSettings"; slot: number } | { kind: "cpuStep"; row: 0 | 1; direction: -1 | 1 } | { kind: "cpuClose" } | { kind: "start" } | { kind: "settings" } | RuleButton
   | { kind: "moves" } | { kind: "movesBack" } | { kind: "movesStep"; direction: -1 | 1 };
 
@@ -172,6 +174,8 @@ export class SelectionPanel {
   private readonly timeValue: framehandle;
   private readonly endlessToggle: framehandle;
   private readonly rematchToggle: framehandle;
+  private readonly itemsToggle: framehandle;
+  private readonly itemToggles: readonly framehandle[];
   private readonly trainingToggle: framehandle;
   private readonly hitAreasToggle: framehandle;
   private readonly speedToggle: framehandle;
@@ -324,6 +328,12 @@ export class SelectionPanel {
     this.timeValue = label(root, `MeleeRulesTime${suffix}`, lessTime.x + lessTime.width, lessTime.y, moreTime.x - lessTime.x - lessTime.width, RULE_HEIGHT, f32(0.011));
     this.endlessToggle = ruleButton(endless, { kind: "endless" }, "");
     this.rematchToggle = ruleButton(automaticRematch, { kind: "automaticRematch" }, "");
+    this.itemsToggle = ruleButton(RULE_BUTTONS.items, { kind: "items" }, "");
+    this.itemToggles = [
+      ruleButton(RULE_BUTTONS.itemSpeed, { kind: "itemKind", item: ItemKind.speed }, ""),
+      ruleButton(RULE_BUTTONS.itemExtraJump, { kind: "itemKind", item: ItemKind.extraJump }, ""),
+      ruleButton(RULE_BUTTONS.itemHeavy, { kind: "itemKind", item: ItemKind.heavy }, ""),
+    ];
     this.trainingToggle = ruleButton(RULE_BUTTONS.training, { kind: "training" }, "");
     this.hitAreasToggle = ruleButton(RULE_BUTTONS.hitAreas, { kind: "hitAreas" }, "");
     this.speedToggle = ruleButton(RULE_BUTTONS.speed, { kind: "speed" }, "");
@@ -341,7 +351,7 @@ export class SelectionPanel {
       return value;
     });
     this.trainingFrames = partnerFrames;
-    this.matchRuleFrames = [...this.steps, this.stockValue, this.timeValue, this.endlessToggle, this.rematchToggle];
+    this.matchRuleFrames = [...this.steps, this.stockValue, this.timeValue, this.endlessToggle, this.rematchToggle, this.itemsToggle, ...this.itemToggles];
     const owner = [participantId];
     this.syncTriggers = [
       createSyncTrigger(`ui.selection.${suffix}.drop`, "fighter-drop", owner, (_, data) => this.acceptDrop(data)),
@@ -384,6 +394,8 @@ export class SelectionPanel {
     else if (button.kind === "stocks") this.actions.changeStocks(this.participantId, button.direction);
     else if (button.kind === "time") this.actions.changeTime(this.participantId, button.direction);
     else if (button.kind === "endless") this.actions.toggleEndless(this.participantId);
+    else if (button.kind === "items") this.actions.toggleItems(this.participantId);
+    else if (button.kind === "itemKind") this.actions.toggleItemKind(this.participantId, button.item);
     else if (button.kind === "training") this.actions.toggleTraining(this.participantId);
     else if (button.kind === "partner") this.actions.stepTraining(this.participantId, button.setting, button.direction);
     else if (button.kind === "hitAreas") this.actions.toggleHitAreas(this.participantId);
@@ -672,8 +684,8 @@ export class SelectionPanel {
   }
 
   private showRules(game: Readonly<MatchState>): void {
-    const { stockCount, timeLimitMinutes, endless, automaticRematch, training, trainer } = game;
-    const rules = `${I2S(stockCount)} ${I2S(timeLimitMinutes)} ${endless ? "1" : "0"} ${automaticRematch ? "1" : "0"} ${training ? "1" : "0"} ${I2S(trainer.behaviour)} ${I2S(trainer.escape)} ${I2S(trainer.tech)} ${I2S(trainer.damage)} ${trainer.showHitAreas ? "1" : "0"} ${I2S(trainer.speed)}`;
+    const { stockCount, timeLimitMinutes, endless, automaticRematch, training, trainer, items } = game;
+    const rules = `${I2S(stockCount)} ${I2S(timeLimitMinutes)} ${endless ? "1" : "0"} ${automaticRematch ? "1" : "0"} ${training ? "1" : "0"} ${I2S(trainer.behaviour)} ${I2S(trainer.escape)} ${I2S(trainer.tech)} ${I2S(trainer.damage)} ${trainer.showHitAreas ? "1" : "0"} ${I2S(trainer.speed)} ${items.on ? "1" : "0"} ${I2S(items.enabledMask)}`;
     if (rules === this.shownRules) return;
     this.shownRules = rules;
     BlzFrameSetText(this.stockValue, stockSetting(stockCount));
@@ -681,6 +693,13 @@ export class SelectionPanel {
     BlzFrameSetText(this.endlessToggle, endlessSetting(endless));
     BlzFrameSetText(this.rematchToggle, automaticRematchSetting(automaticRematch));
     for (const step of this.steps) BlzFrameSetEnable(step, !endless);
+    BlzFrameSetText(this.itemsToggle, itemsSetting(items.on));
+    for (let index = 0; index < this.itemToggles.length; index++) {
+      const frame = this.itemToggles[index];
+      if (frame === undefined) continue;
+      const kind = index === 0 ? ItemKind.speed : index === 1 ? ItemKind.extraJump : ItemKind.heavy;
+      BlzFrameSetText(frame, itemKindSetting(kind, (items.enabledMask & itemBit(kind)) !== 0));
+    }
     BlzFrameSetText(this.trainingToggle, trainingSetting(training));
     BlzFrameSetText(this.hitAreasToggle, hitAreasSetting(trainer.showHitAreas));
     BlzFrameSetText(this.speedToggle, trainingSpeedSetting(trainer.speed));

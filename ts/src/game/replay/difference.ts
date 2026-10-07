@@ -179,6 +179,8 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("specialFall", e.special.fall, a.special.fall);
   for (let i = 0; i < SPECIAL_ACTION_CAPACITY; i++) add(`specialCooldowns[${i}]`, at(e.special.cooldowns, i), at(a.special.cooldowns, i));
   add("specialDirection", e.special.direction, a.special.direction);
+  add("specialEx", e.special.ex, a.special.ex);
+  add("specialExArmorUsed", e.special.exArmorUsed, a.special.exArmorUsed);
   add("specialHit", e.special.hit, a.special.hit);
   add("bearLife", e.bear.life, a.bear.life);
   add("bearX", e.bear.x, a.bear.x);

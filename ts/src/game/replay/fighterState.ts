@@ -184,6 +184,8 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   const special = target.special;
   const sourceSpecial = source.special;
   special.action = sourceSpecial.action;
+  special.ex = sourceSpecial.ex;
+  special.exArmorUsed = sourceSpecial.exArmorUsed;
   special.frame = sourceSpecial.frame;
   special.duration = sourceSpecial.duration;
   special.lockFrames = sourceSpecial.lockFrames;

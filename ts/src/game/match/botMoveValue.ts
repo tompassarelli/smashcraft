@@ -15,6 +15,7 @@ import { startableForm } from "./botHeroKit";
 import type { BotStrategy } from "./botStrategy";
 import { HABIT_FIELDS, HabitChoice, habitContext } from "./botHabits";
 import type { CpuDecisionPolicy } from "./cpuDecisionPolicy";
+import { knockbackWeight } from "../sim/itemBuffs";
 
 export interface AttackDecision {
   readonly strategy: BotStrategy;
@@ -91,7 +92,7 @@ export function comebackPressure(own: Readonly<Fighter>, target: Readonly<Fighte
 /** Reward, punish exposure and stage position are compared at the observed percent. */
 export function estimatedMoveValue(move: MoveEstimate, own: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, success: number, policy: CpuDecisionPolicy, pressure: number): number {
   const afterDamage = f32(target.status.damage + move.damage);
-  const knockback = contactKnockback(afterDamage, move.damage, target.tuning.physics.weight, move.effect.growth, move.effect.base, 1.0);
+  const knockback = contactKnockback(afterDamage, move.damage, knockbackWeight(target), move.effect.growth, move.effect.base, 1.0);
   const blast = stageBounds(stage).blast;
   const outward = target.motion.x >= 0.0 ? 1 : -1;
   const facing = target.motion.x >= own.motion.x ? 1 : -1;

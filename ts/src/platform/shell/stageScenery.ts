@@ -11,6 +11,8 @@ export function drawStageScenery(s: ShellState): void {
     DestroyEffect(effect);
   }
   const scenery = stageScenery(s.game.stageChoice);
+  // Stages float: no ground shows beneath the deck (smashcraft:docs/design/stage-art.md, rule 11).
+  BlzShowTerrain(false);
   SetSkyModel(scenery.sky);
   const light = stageLightModel(s.game.stageChoice);
   SetDayNightModels(light, light);

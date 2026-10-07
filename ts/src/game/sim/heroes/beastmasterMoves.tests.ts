@@ -20,7 +20,7 @@ const NORMALS = [
   [AttackStyle.dashAttack, 11, 5, 28, 0],
   [AttackStyle.forwardSmash, 21, 4, 36, 0],
   [AttackStyle.upSmash, 18, 5, 33, 0],
-  [AttackStyle.downSmash, 17, 6, 34, 0],
+  [AttackStyle.downSmash, 17, 6, 22, 0],
   [AttackStyle.neutralAir, 8, 6, 23, 15],
   [AttackStyle.forwardAir, 13, 4, 28, 18],
   [AttackStyle.backAir, 9, 3, 24, 14],
@@ -62,12 +62,12 @@ test("Beastmaster's adopted phases and landings reach production, a live strike 
 test("Beastmaster's axe reaches L and his boot kicks behind, facing relative", () => {
   for (const facing of [-1, 1]) {
     for (const [style, frame, x, damage] of [
-      [AttackStyle.forwardTilt, 10, 150.0, 11.65999984741211],
+      [AttackStyle.forwardTilt, 10, 150.0, 10.493999481201172],
       [AttackStyle.forwardTilt, 10, 190.0, 0.0],
-      [AttackStyle.jab, 4, 60.0, 4.239999771118164],
+      [AttackStyle.jab, 4, 60.0, 3.815999746322632],
       [AttackStyle.jab, 4, 110.0, 0.0],
-      [AttackStyle.forwardSmash, 21, 140.0, 21.19999885559082],
-      [AttackStyle.backAir, 9, -100.0, 11.65999984741211],
+      [AttackStyle.forwardSmash, 21, 140.0, 19.079998016357422],
+      [AttackStyle.backAir, 9, -100.0, 10.493999481201172],
       [AttackStyle.backAir, 9, 100.0, 0.0],
     ] as const) {
       const { target, world } = pair(style, frame, x, facing);

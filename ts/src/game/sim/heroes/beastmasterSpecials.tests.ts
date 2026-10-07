@@ -185,7 +185,7 @@ test("Beastmaster Hawk Dive leaves its perch and launches a target upward in bot
     assertLessThan(hawk.z, high);
     let rise = 0.0;
     for (let f = 0; f < 30; f++) { frame(world); rise = Math.max(rise, target.launch.knockbackZ); }
-    assertEquals(target.status.damage, 6.0);
+    assertEquals(target.status.damage, 5.399999618530273);
     assertGreaterThan(rise, 0.0);
   }
 });

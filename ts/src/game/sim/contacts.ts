@@ -35,8 +35,10 @@ import { beginDownDamage, cancelAttack, cancelSpecialState, clearDownState, clea
 import { at } from "wisp/src/runtime/lookup";
 import { CHILL } from "./chill";
 import { fighterHurtParts } from "./hurtboxes";
+import { knockbackWeight } from "./itemBuffs";
 import { type AppliedStatus, applyHeroStatus, damageEndsHeroStatus } from "./heroStatus";
 import { contactEarnsMana, dealtManaGain, gainMana, takenManaGain } from "./mana";
+import { EX_ARMOR_DAMAGE, exArmorActive } from "./exSpecials";
 import { PassiveProc, devotionBlocked, devotionLaunchScale, frostArmorStruck, sourcePassiveContact, vampiricHeal, BASH_HITSTUN_FRAMES } from "./passives";
 import { UTHER_DAMAGE_MULTIPLIER, utherHammerContact } from "./heroes/utherHammer";
 
@@ -270,6 +272,11 @@ function resolveDamageContacts(world: Roster, slot: number): void {
     if (contact.kind === ContactKind.throw) target.visuals.throw++;
     visualContact ??= index;
     drainMana(target, contact.effect.manaDrain);
+    const stolen = min(target.mana.points, contact.effect.manaSteal ?? 0);
+    if (stolen > 0) {
+      drainMana(target, stolen);
+      gainMana(source, stolen);
+    }
     if (damage > 0 && contact.kind !== ContactKind.pummel) {
       thawFighter(target);
       damageEndsHeroStatus(target);
@@ -284,7 +291,7 @@ function resolveDamageContacts(world: Roster, slot: number): void {
     }
     if (contact.kind === ContactKind.flinch) flinch ??= index;
     if (contact.kind === ContactKind.launch || contact.kind === ContactKind.throw) {
-      const magnitude = contactKnockback(postHitPercent, damage, target.tuning.physics.weight, contact.effect.growth, contact.effect.base, 1.0);
+      const magnitude = contactKnockback(postHitPercent, damage, knockbackWeight(target), contact.effect.growth, contact.effect.base, 1.0);
       const knockback = contact.kind === ContactKind.throw ? magnitude : hitContextKnockback(magnitude, contact.crouching, contact.smashCharging);
       // Equal-strength contacts retain the first contact's direction.
       if (knockback > strongest) {
@@ -330,6 +337,10 @@ function resolveDamageContacts(world: Roster, slot: number): void {
   }
   const chosenIndex = winner ?? flinch;
   if (chosenIndex === undefined) return;
+  if (exArmorActive(target) && contactAt(chosenIndex).kind !== ContactKind.throw) {
+    target.special.exArmorUsed = true;
+    if (armorDamage <= EX_ARMOR_DAMAGE) return;
+  }
   // Hero armor takes one hit's reaction up to its limit; its damage stays applied. Throws ignore it.
   if (status.armorFrames > 0 && contactAt(chosenIndex).kind !== ContactKind.throw) {
     status.armorFrames = 0;
