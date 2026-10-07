@@ -20,6 +20,8 @@ import type { Character } from "../sim/codes";
 import { SELECTABLE_CHARACTERS, fighterName } from "../sim/heroes/registry";
 
 export interface DevSettings {
+  /** An explicit setup choice made before the stage menu opens. */
+  stageChoice?: number | undefined;
   rollback: number;
   delay: FixedDelay;
   /** Callbacks per synchronized input message, 1 to MAX_BATCH. */

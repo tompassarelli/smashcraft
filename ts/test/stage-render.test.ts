@@ -6,10 +6,36 @@ import { FLOOR_HEIGHT } from "../src/game/presentation/arenaCamera";
 import { stageLightModel, stageScenery } from "../src/game/presentation/stageScenery";
 import { start, install } from "../src/platform/main";
 import { shell } from "../src/platform/shell/state";
-import { drawStageScenery, showBackdrop } from "../src/platform/shell/stageScenery";
+import { drawStageScenery, preloadStageAssets, showBackdrop } from "../src/platform/shell/stageScenery";
 
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
+
+test("stage preloads and replaced landmarks are parked below the arena before their death sequences start", () => {
+  const clients = headless.clients({ start, install });
+  clients.start(); clients.frames(30);
+  const client = clients.client(0);
+  client.run(() => {
+    const s = shell();
+    const destroy = client.natives.DestroyEffect as (model: effect) => void;
+    const retired: effect[] = [];
+    client.natives.DestroyEffect = (model: effect) => {
+      expect(BlzGetLocalSpecialEffectZ(model)).toBeLessThanOrEqual(s.origin.z - FLOOR_HEIGHT - 4096);
+      retired.push(model);
+      destroy(model);
+    };
+    try {
+      preloadStageAssets(s);
+      for (const stage of [10, 11, 13]) {
+        s.game.stageChoice = stage;
+        drawStageScenery(s);
+      }
+      expect(retired.length).toBeGreaterThan(10);
+    } finally {
+      client.natives.DestroyEffect = destroy;
+    }
+  });
+});
 
 test("each stage applies its light, sky and fog beyond the fighters", () => {
   const clients = headless.clients({ start, install });

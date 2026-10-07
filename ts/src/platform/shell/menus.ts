@@ -52,7 +52,11 @@ export function confirm(s: ShellState, slot: ParticipantSlot): void {
   const { game } = s;
   if (stageLoading(s)) return;
   if (game.phase === Phase.characterMenu) {
-    if (requestStageSelect(game, slot)) for (const panel of views(s).settings) panel.close();
+    if (requestStageSelect(game, slot)) {
+      if (s.dev.stageChoice !== undefined) selectStage(game, slot, s.dev.stageChoice);
+      s.dev.stageChoice = undefined;
+      for (const panel of views(s).settings) panel.close();
+    }
   } else if (game.phase === Phase.stageMenu) {
     requestStageLoad(s, slot);
   } else if (game.phase === Phase.result) {
@@ -216,6 +220,7 @@ export function resetToStartingSelection(s: ShellState): void {
   }
   for (const panel of views(s).settings) panel.close();
   copyMatchState(s.game, startingSelection(s.build.scenario));
+  s.dev.stageChoice = undefined;
   resetMomentRecorder(s.moment.recorder);
   resetPacingAndPresentation(s.runtime);
   clearObservedActions();

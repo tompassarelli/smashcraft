@@ -217,6 +217,7 @@ export function onDevCommand(s: ShellState): void {
   const quickCpu = quickMatchCpuLevel(message);
   // Session setup (sessionSetup.ts) changes the menus only for its own spellings.
   const setup = applySetupCommand(s.game, GetPlayerId(GetTriggerPlayer()), message);
+  if (setup === `dev: stage ${s.game.stageChoice}` && s.game.phase === Phase.characterMenu) s.dev.stageChoice = s.game.stageChoice;
   if (message === QUICK_TRAINING_COMMAND) {
     receipt = "dev: quick training";
     prepareQuickTraining(s.game);

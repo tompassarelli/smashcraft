@@ -17,9 +17,9 @@ export function requestStageLoad(s: ShellState, slot: ParticipantSlot): boolean 
   if (s.stageLoad !== undefined || !canRequestStart(s.game, slot)) return false;
   resolveStageChoice(s.game, (s.menuFrames ?? 0) + s.game.matchSeed);
   s.stageLoad = beginStageLoad(s.game, slot);
-  drawStage(s);
   const { name, texture } = stageInfo(s.game.stageChoice);
   views(s).match.showLoading(name, texture);
+  drawStage(s);
   return true;
 }
 
@@ -28,8 +28,8 @@ export const stageLoading = (s: Readonly<ShellState>): boolean => s.stageLoad !=
 function finishStageLoad(s: ShellState): void {
   const load = s.stageLoad;
   s.stageLoad = undefined;
-  views(s).match.hideLoading();
   if (load !== undefined && requestStart(s.game, load.starter)) startMatch(s);
+  views(s).match.hideLoading();
 }
 
 /** A player left or the menus moved on: no match starts from this load. */

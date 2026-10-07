@@ -1,4 +1,3 @@
-import { FLOOR_HEIGHT } from "../../game/presentation/arenaCamera";
 import { preloadLights, preloadModels, preloadSkies } from "../../game/presentation/stagePreload";
 import { stageLightModel, stageScenery } from "../../game/presentation/stageScenery";
 import { hideEffect } from "../../game/render/effects";
@@ -7,7 +6,8 @@ import type { ShellState } from "./state";
 /** Shared handle lifetimes, with purely visual sky, light, fog and backdrop settings. */
 export function drawStageScenery(s: ShellState): void {
   for (const effect of s.stageScenery ?? []) {
-    BlzSetSpecialEffectPosition(effect, s.origin.x, s.origin.y, s.origin.z - FLOOR_HEIGHT);
+    // DestroyEffect plays the model's death sequence before disposal.
+    hideEffect(effect, s.origin);
     DestroyEffect(effect);
   }
   const scenery = stageScenery(s.game.stageChoice);
@@ -35,7 +35,11 @@ export function drawStageScenery(s: ShellState): void {
 /** Loads every stage's models and skies while the map starts, so no match frame waits on a first load. */
 export function preloadStageAssets(s: ShellState): void {
   const { x, y } = s.origin;
-  for (const model of preloadModels()) DestroyEffect(AddSpecialEffect(model, x, y));
+  for (const model of preloadModels()) {
+    const effect = AddSpecialEffect(model, x, y);
+    hideEffect(effect, s.origin);
+    DestroyEffect(effect);
+  }
   for (const sky of preloadSkies()) SetSkyModel(sky);
   for (const light of preloadLights()) SetDayNightModels(light, light);
 }
