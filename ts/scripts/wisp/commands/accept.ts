@@ -4,7 +4,7 @@
 // offline pool pair (--pair K), or split over several pairs at once (--pair K
 // repeated, or --pairs N for the first N pairs the pool lists).
 // Evidence goes to ~/.local/state/smashcraft/accept/RUN/ (wisp:docs/accept.md).
-import { mkdirSync } from "node:fs";
+import { existsSync, mkdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { Effect, Layer } from "effect";
@@ -15,7 +15,7 @@ import { type Command, UsageFailure, flagValues, describeCause } from "wisp/scri
 import { makeAccept } from "wisp/scripts/wisp/commands/accept";
 import { lan } from "wisp/scripts/wisp/commands/lan";
 import { step } from "wisp/scripts/wisp/timings";
-import { MAP_PROFILES, SMASHCRAFT_ACCEPT } from "../acceptChecks";
+import { MAP_PROFILES, SMASHCRAFT_ACCEPT, type SmashcraftMapProfile } from "../acceptChecks";
 import { rebuildMap } from "../mapInputs";
 import { clientState, gameFilesLayer } from "../project";
 import { freshMatch, sendDevCommand } from "./fresh";
@@ -71,8 +71,8 @@ const selectedPairs = (args: readonly string[]) => Effect.try({
 const withoutPairFlags = (args: readonly string[]) => args.filter((arg, index) => !["--pair", "--pairs"].includes(arg) && !arg.startsWith("--pair=") && !arg.startsWith("--pairs=") && !["--pair", "--pairs"].includes(args[index - 1] ?? ""));
 
 /** Rebuilds each map profile's development map once, for every shard. */
-const prebuild = (maps: readonly string[]) => Effect.forEach([...new Map(maps.flatMap((map) => {
-  const profile = MAP_PROFILES[map];
+const prebuild = (maps: readonly string[], profiles: Readonly<Record<string, SmashcraftMapProfile>>) => Effect.forEach([...new Map(maps.flatMap((map) => {
+  const profile = profiles[map];
   return profile?.rebuild === undefined ? [] : [[profile.path, profile.rebuild] as const];
 }))], ([path, rebuild]) => Effect.gen(function*() {
   const options = yield* profileOptions(["--profile", rebuild]);
@@ -80,10 +80,10 @@ const prebuild = (maps: readonly string[]) => Effect.forEach([...new Map(maps.fl
 }), { discard: true });
 
 /** One shard: this command on pool pair `pair`, as its own process, so every pair keeps its own clients and driver. */
-const runShard = (pair: string, ids: readonly string[], directory: string) => Effect.tryPromise({
+const runShard = (pair: string, ids: readonly string[], directory: string, map?: string) => Effect.tryPromise({
   try: async () => {
     mkdirSync(directory, { recursive: true });
-    const child = Bun.spawn([process.execPath, join(import.meta.dir, "../../wisp.ts"), "accept", "--only", ids.join(","), "--pair", pair, "--out", directory], {
+    const child = Bun.spawn([process.execPath, join(import.meta.dir, "../../wisp.ts"), "accept", "--only", ids.join(","), "--pair", pair, "--out", directory, ...(map === undefined ? [] : ["--map", map])], {
       env: { ...process.env, [PREBUILT]: "1" }, stdout: Bun.file(`${directory}.log`), stderr: Bun.file(`${directory}.err`),
     });
     await child.exited;
@@ -92,6 +92,10 @@ const runShard = (pair: string, ids: readonly string[], directory: string) => Ef
 });
 
 export const accept: Command = (args) => Effect.gen(function*() {
+  const [candidate] = flagValues(args, "map");
+  if (candidate !== undefined && !existsSync(candidate)) return yield* new UsageFailure({ problem: `no built map ${candidate}` });
+  const profiles: Readonly<Record<string, SmashcraftMapProfile>> = candidate === undefined ? MAP_PROFILES : Object.fromEntries(Object.entries(MAP_PROFILES).map(([name, { rebuild: _rebuild, ...profile }]) => [name, { ...profile, path: candidate }]));
+  const suite = { ...SMASHCRAFT_ACCEPT, maps: profiles };
   const requested = yield* selectedPairs(args);
   const id = requested.length === 1 ? Number(requested[0]) : undefined;
   const pair = id === undefined ? undefined : yield* Effect.try({
@@ -104,10 +108,11 @@ export const accept: Command = (args) => Effect.gen(function*() {
   });
   const selectedClients = pair?.clients ?? clientState;
   const names = clientNames(selectedClients);
-  const forwarded = requested.length > 1 ? args : withoutPairFlags(args);
+  const withoutMap = args.filter((arg, index) => arg !== "--map" && !arg.startsWith("--map=") && args[index - 1] !== "--map");
+  const forwarded = requested.length > 1 ? withoutMap : withoutPairFlags(withoutMap);
   const rebuilt = new Set<string>();
   const start = (map: string) => Effect.gen(function*() {
-    const profile = MAP_PROFILES[map];
+    const profile = profiles[map];
     if (profile === undefined) return yield* new AcceptFailure({ operation: "start", problem: `unknown map profile ${map}` });
     const options = yield* profileOptions(profile.rebuild === undefined ? [] : ["--profile", profile.rebuild]);
     yield* Effect.gen(function*() {
@@ -127,10 +132,10 @@ export const accept: Command = (args) => Effect.gen(function*() {
   const shards = {
     flags: ["--pair", "--pairs"],
     select: () => Effect.succeed(requested),
-    prepare: (sessions: readonly { readonly map: string }[]) => prebuild(sessions.map(({ map }) => map)),
-    run: runShard,
+    prepare: (sessions: readonly { readonly map: string }[]) => prebuild(sessions.map(({ map }) => map), profiles),
+    run: (pair: string, ids: readonly string[], directory: string) => runShard(pair, ids, directory, candidate),
   };
-  const run = makeAccept({ suite: acceptForClients(SMASHCRAFT_ACCEPT, names), evidenceRoot: join(homedir(), ".local/state/smashcraft/accept"), driver, clients: names, shards })(forwarded);
+  const run = makeAccept({ suite: acceptForClients(suite, names), evidenceRoot: join(homedir(), ".local/state/smashcraft/accept"), driver, clients: names, shards })(forwarded);
   // A dry run touches no client; each shard heals its own pair.
   return yield* (args.includes("--dry-run") || requested.length > 1 ? run : onHealthyClients(run, { retry: false, clientsFile: selectedClients }));
 });

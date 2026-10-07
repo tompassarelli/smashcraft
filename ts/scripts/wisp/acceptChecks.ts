@@ -61,12 +61,6 @@ export const MAP_PROFILES: Readonly<Record<string, SmashcraftMapProfile>> = {
   }])),
 };
 
-// Positions in the 2560x1440 client frame.
-/** About 600x400 on the screen's centre, where the effects diagnostic places its cues. */
-const CENTRE = { x: 980, y: 520, width: 600, height: 400 };
-/** Where Warcraft prints a text message to the player, above the console. */
-const MESSAGES = { x: 0, y: 700, width: 1600, height: 500 };
-
 /** No runtime error report written during the check, on any client. */
 const NO_ERRORS: Rule = { kind: "receipt", pattern: "^error \\d+ in ", max: 0 };
 /** Every client's receipt for the developer command. */
@@ -135,8 +129,8 @@ const effectChecks: NativeCheck[] = [12, 13, 14, 15, 24, 2, 7, 5, 6, 4, 9, 11, 2
     map: "presentation",
     setup: [{ waitMs: 3000 }, { chat: `-dev effects ${index}` }, { receipt: "^SMASHCRAFT DEV v=1 ", seconds: 4 }],
     capture: [
-      { kind: "frames", name: "centre", region: CENTRE, count: 6, everyMs: 50 },
-      { kind: "reading", name: "label", region: MESSAGES, pattern: `dev: effects ${index} (\\S+ \\S+)` },
+      { kind: "frames", name: "centre", count: 6, everyMs: 50 },
+      { kind: "reading", name: "label", pattern: `dev: effects ${index} (\\S+ \\S+)` },
     ],
     // The label is written by the call that starts the sound: the right label is the sound's evidence.
     pass: [DEV_RECEIPT, NO_ERRORS, { kind: "reading", name: "label", pattern: `${model} ${sound}`, orLook: true }],
