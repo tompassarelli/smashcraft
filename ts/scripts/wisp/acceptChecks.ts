@@ -207,6 +207,16 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
       look: "client A's replay (smashcraft-replay-N.txt with its parts) replays to its checksum with `LUA=<32-bit lua> bun wisp replay` and shows player 1's key presses",
     },
     {
+      id: "166-controller-match",
+      closes: "smashcraft#166 box 3 (controller half)",
+      map: "keyboard",
+      session: "166-controller",
+      // Client A's pad arrives as keys from `wc3-controller --emit --virtual-pad --gamepad 2` with its private-desktop target (smashcraft:companion/README.md, "Explicit Linux output"), started beside this check.
+      setup: [{ receipt: "^parts [0-9]+$", client: "a", seconds: 400 }],
+      pass: [NO_ERRORS, { kind: "receipt", pattern: "^parts [0-9]+$", min: 1 }],
+      look: "the controller log shows its key presses and client A's replay reaches its checksums with player 1's input",
+    },
+    {
       id: "169-render-clock",
       closes: "smashcraft#169 box 1 (callback cadence and cost; compare 60/144 fps reports)",
       map: "presentation",
