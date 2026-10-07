@@ -103,6 +103,9 @@ jobs:
       - name: Play ${{ matrix.pad }}
         working-directory: ts
         run: bun wisp pad "test/native/pads/${{ matrix.pad }}" --headless --helper "$GITHUB_WORKSPACE/helper/wc3-journal" --out "/dev/shm/pad/${{ matrix.pad }}"
+        env:
+          WC3_TAP_JUMP: ${{ matrix.pad == '203/tap-jump.pad' && 'on' || 'off' }}
+          WC3_PAD_PRESET: ${{ matrix.pad == 'controls/z-jump.pad' && 'z-jump' || 'standard' }}
       - if: ${{ !cancelled() }}
         run: |
           mkdir -p "pad-out/${{ matrix.pad }}"
