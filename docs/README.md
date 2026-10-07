@@ -19,6 +19,7 @@ Dated trial records live in [evidence](../evidence/README.md).
 - [Modern platform-fighter mechanics](design/modern-platform-fighters.md): sourced inventory of mechanics later games added or changed relative to Melee.
 - [Execution and reaction windows](design/execution-windows.md): windows other games use, human limits, and proposed bounds.
 - [Stages](design/stages.md): what Melee and Ultimate players pick and why, accepted variance and hazards, Warcraft places and built-in assets per race, and an evaluation of the draft stage list.
+- [Home stages](design/home-stages.md): every fighter's home stage from their Warcraft campaign, with the lore reason.
 - [Stage art](design/stage-art.md): research-based rules for stage backgrounds, skies and scenery: readable fight plane, symmetric decks with asymmetric dressing, depth bands, fog, motion budget.
 - [Move legibility](design/move-legibility.md): how platform fighters make specials readable (effect restraint, colour per element, victim element effects) and the startup cue, active spell, missile and element each Smashcraft special shows.
 - [Animation reference library](design/animation-reference.md): sourced references for silhouettes, anticipation/contact/recovery, drills, dodges and techs, grabs and throws, and the nine damage reactions, with verified timestamps, rights and the private-pixel rule.
