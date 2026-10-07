@@ -176,6 +176,6 @@ export const SHADOW_HUNTER_MOVES: FighterMoves = {
     [GrabAction.throwForward]: { contactFrame: 12, totalFrames: 32, effect: hit(7.0, "EDGE", 35, 1.0, HitElement.normal) },
     [GrabAction.throwBack]: { contactFrame: 16, totalFrames: 40, effect: hit(8.0, "EDGE", 40, -1.0, HitElement.normal) },
     [GrabAction.throwUp]: { contactFrame: 14, totalFrames: 22, effect: hit(6.0, "JUGGLE", 85, 1.0, HitElement.normal) },
-    [GrabAction.throwDown]: { contactFrame: 17, totalFrames: 40, effect: hit(5.0, "CHASE", 70, 1.0, HitElement.normal) },
+    [GrabAction.throwDown]: { contactFrame: 17, totalFrames: 40, effect: hit(5.0, "CHASE", 25, 1.0, HitElement.normal) },
   },
 };

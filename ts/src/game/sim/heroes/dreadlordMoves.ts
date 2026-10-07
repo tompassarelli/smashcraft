@@ -229,6 +229,6 @@ export const DREADLORD_MOVES: FighterMoves = {
     [GrabAction.throwForward]: { contactFrame: 12, totalFrames: 32, effect: dreadlordHit(10.0, "EDGE", 35) },
     [GrabAction.throwBack]: { contactFrame: 18, totalFrames: 43, effect: dreadlordHit(12.0, "KILL", 40, -1.0) },
     [GrabAction.throwUp]: { contactFrame: 15, totalFrames: 26, effect: dreadlordHit(9.0, "JUGGLE", 85) },
-    [GrabAction.throwDown]: { contactFrame: 19, totalFrames: 44, effect: dreadlordHit(8.0, "CHASE", 65) },
+    [GrabAction.throwDown]: { contactFrame: 19, totalFrames: 44, effect: dreadlordHit(8.0, "CHASE", 25) },
   },
 };

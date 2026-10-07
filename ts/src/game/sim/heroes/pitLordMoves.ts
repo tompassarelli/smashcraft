@@ -244,6 +244,6 @@ export const PIT_LORD_MOVES: FighterMoves = {
     [GrabAction.throwForward]: { contactFrame: 17, totalFrames: 44, effect: hit(11.0, "EDGE", 35, 1.0, HitElement.normal) },
     [GrabAction.throwBack]: { contactFrame: 22, totalFrames: 54, effect: hit(12.0, "KILL", 40, -1.0, HitElement.normal) },
     [GrabAction.throwUp]: { contactFrame: 20, totalFrames: 30, effect: hit(10.0, "JUGGLE", 85, 1.0, HitElement.normal) },
-    [GrabAction.throwDown]: { contactFrame: 23, totalFrames: 50, effect: hit(8.0, "CHASE", 65, 1.0, HitElement.normal) },
+    [GrabAction.throwDown]: { contactFrame: 23, totalFrames: 50, effect: hit(8.0, "CHASE", 25, 1.0, HitElement.normal) },
   },
 };

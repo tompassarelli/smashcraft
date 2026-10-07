@@ -228,7 +228,7 @@ test("Lich throws release once on their adopted frames with facing-relative dire
       [GrabAction.throwForward, 14, 23, 7.0, f32(0.819152044), f32(0.573576436)],
       [GrabAction.throwBack, 18, 26, 8.0, -f32(0.766044443), f32(0.642787610)],
       [GrabAction.throwUp, 17, 13, 7.0, 0.0, 1.0],
-      [GrabAction.throwDown, 19, 26, 6.0, f32(0.258819045), f32(0.965925826)],
+      [GrabAction.throwDown, 19, 26, 6.0, f32(0.906307787), f32(0.422618262)],
     ] as const) {
       const { owner, target, world } = attackPair(AttackStyle.grab, 60.0, 0.0, facing);
       resolveAttacks(world);
