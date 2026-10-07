@@ -71,10 +71,15 @@ Get-up and ledge attacks use the same hammer sweep vocabulary and shared
 action rules. Only weapon reach is disjoint; shoulder and limb attacks expose
 matching hurt volumes. Smashes charge up to 45 frames for at most 1.25× damage.
 
-The mounted classic model keeps Doomhammer near the rider: measured hammer
-centres at contact are approximately (41,132) for the forward tilt, (39,133)
-for forward smash, (-2,189) for up tilt, (47,128) for forward air and
+The rider folds forward for grounded jabs and forward tilt. Measured active
+hammer bounds are x33–54/z49–96 for jab, x37–61/z51–97 for jab 2 and
+x75–109/z59–95 for forward tilt. The short jab stays inside the longer tilt.
+Other measured hammer centres at contact are approximately (39,133) for
+forward smash, (-2,189) for up tilt, (47,128) for forward air and
 (-40,127) for back air, in world units at stock scale. Head radii are 22–25.
+Dash attack places its shoulder/head capsule from (24,45) to (65,60), radius28:
+the drawn shoulder spans x24–31/z51–86 and the head x51–84/z42–81.
+The head remains vulnerable during the rush, with the root and feet planted.
 Grounded low attacks and down air use the wolf's visible paw, spanning x52–96
 at z20–34 with radius 20–24, rather than claiming the rider's hammer touches
 the floor. Their Warcraft source is Feral Spirit and their Smash reference
@@ -87,9 +92,9 @@ shorter than the initial design and the low paw his longer grounded poke.
 
 | Input | Warcraft source / Smash reference | Authored rule and counterplay |
 | --- | --- | --- |
-| Neutral: Chain Lightning | [Far Seer](https://liquipedia.net/warcraft/Far_Seer) / [Pikachu's Thunder Jolt](https://www.ssbwiki.com/Thunder_Jolt) | A forward electrical cast travels from the hammer at frame14, 12 damage, 40° launch, end38, cost10. Reflect or jump the chest-height bolt; it is a spacing tool rather than a stun lock. Air landing lag18. |
+| Neutral: Chain Lightning | [Far Seer](https://liquipedia.net/warcraft/Far_Seer) / [Pikachu's Thunder Jolt](https://www.ssbwiki.com/Thunder_Jolt) | A forward electrical cast travels from the hammer at frame14, 12 damage, 40° launch, end44, cost10. The longer recovery keeps a close blocked cast punishable after the damage increase. Reflect or jump the chest-height bolt; it is a spacing tool rather than a stun lock. Air landing lag18. |
 | Side: Feral Spirit | [Far Seer](https://liquipedia.net/warcraft/Far_Seer) / [Duck Hunt's dog](https://www.ssbwiki.com/Duck_Hunt_(SSBU)) | Two spectral wolves leave at frames16 and24, run low for 28 frames, each 4 damage/55°, cost18, end44, cooldown90. The second wolf makes a delayed jump or shield decision; each can hit only once. Summons can be blocked or parried but do not reflect. Air wolves descend and air landing lag20 applies. |
-| Up: Far Sight | [Far Seer](https://liquipedia.net/warcraft/Far_Seer) / [Duck Jump](https://www.ssbwiki.com/Duck_Jump) | Spirit sight points a safe way upward: after8 frames, rise2H with up to0.45H steering over24 frames, end40, cost12, no hitbox or armor. At low mana rise1.4H free. Uses the aerial jump and ends helpless; the broad body can be intercepted. This movement is an original adaptation of a vision spell. |
+| Up: Far Sight | [Far Seer](https://liquipedia.net/warcraft/Far_Seer) / [Duck Jump](https://www.ssbwiki.com/Duck_Jump) | Spirit sight points a safe way upward: after8 frames, rise2.25H with up to1.5H steering over24 frames, end40, cost12, no hitbox or armor. At low mana rise1.4H free. Both forms meet the shared recovery-distance band. Uses the aerial jump and ends helpless; the broad body can be intercepted. This movement is an original adaptation of a vision spell. |
 | Down: Earthquake | [Far Seer](https://liquipedia.net/warcraft/Far_Seer) / [Donkey Kong's Hand Slap](https://www.ssbwiki.com/Hand_Slap) | A low spell pulse hits both sides at frames18–21, 11 damage/75°, end50, cost20, cooldown90. Ground only, 135-unit reach; jump clears it. No extra shield damage, armor or repeating hold. |
 | Passive: Windfury | [Doomhammer](https://wowpedia.fandom.com/wiki/Doomhammer) / [Dedede's hammer](https://www.ssbwiki.com/King_Dedede_(SSBU)) | Two direct hammer contacts within180 frames prepare the third: +50% damage, capped at6. A shield spends the prepared bonus. The shared deterministic critical-hit counter supplies this mechanic; no random roll or action lock. |
 | Ultimate: Elemental Fury | [Far Seer's Earthquake](https://liquipedia.net/warcraft/Far_Seer) / [Pikachu's Volt Tackle](https://www.ssbwiki.com/Volt_Tackle) | Designed ultimate, matching today's hero template: a storm-assisted Earthquake that sends a broad final lightning wave. The current roster stores ultimate names/descriptions; its activation system is not yet implemented. |

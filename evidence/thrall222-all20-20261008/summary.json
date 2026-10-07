@@ -1,0 +1,172 @@
+{
+  "source": "895ddc6f864db5d37a62d0cc755d4d691a5de64f",
+  "run": 37684896843,
+  "opponents": 20,
+  "matches": 8160,
+  "wins": 4303,
+  "losses": 3857,
+  "ties": 0,
+  "winRate": 0.527328431372549,
+  "rows": [
+    {
+      "opponent": "archer",
+      "matches": 408,
+      "wins": 205,
+      "losses": 203,
+      "ties": 0,
+      "winRate": 0.5024509803921569
+    },
+    {
+      "opponent": "pit-lord",
+      "matches": 408,
+      "wins": 280,
+      "losses": 128,
+      "ties": 0,
+      "winRate": 0.6862745098039216
+    },
+    {
+      "opponent": "cairne-bloodhoof",
+      "matches": 408,
+      "wins": 253,
+      "losses": 155,
+      "ties": 0,
+      "winRate": 0.6200980392156863
+    },
+    {
+      "opponent": "warden",
+      "matches": 408,
+      "wins": 203,
+      "losses": 205,
+      "ties": 0,
+      "winRate": 0.49754901960784315
+    },
+    {
+      "opponent": "illidan",
+      "matches": 408,
+      "wins": 122,
+      "losses": 286,
+      "ties": 0,
+      "winRate": 0.29901960784313725
+    },
+    {
+      "opponent": "peon",
+      "matches": 408,
+      "wins": 318,
+      "losses": 90,
+      "ties": 0,
+      "winRate": 0.7794117647058824
+    },
+    {
+      "opponent": "lich-king",
+      "matches": 408,
+      "wins": 226,
+      "losses": 182,
+      "ties": 0,
+      "winRate": 0.553921568627451
+    },
+    {
+      "opponent": "uther",
+      "matches": 408,
+      "wins": 84,
+      "losses": 324,
+      "ties": 0,
+      "winRate": 0.20588235294117646
+    },
+    {
+      "opponent": "shadow-hunter",
+      "matches": 408,
+      "wins": 216,
+      "losses": 192,
+      "ties": 0,
+      "winRate": 0.5294117647058824
+    },
+    {
+      "opponent": "mountain-king",
+      "matches": 408,
+      "wins": 202,
+      "losses": 206,
+      "ties": 0,
+      "winRate": 0.4950980392156863
+    },
+    {
+      "opponent": "kael'thas-sunstrider",
+      "matches": 408,
+      "wins": 347,
+      "losses": 61,
+      "ties": 0,
+      "winRate": 0.8504901960784313
+    },
+    {
+      "opponent": "sylvanas-windrunner",
+      "matches": 408,
+      "wins": 241,
+      "losses": 167,
+      "ties": 0,
+      "winRate": 0.5906862745098039
+    },
+    {
+      "opponent": "dreadlord",
+      "matches": 408,
+      "wins": 169,
+      "losses": 239,
+      "ties": 0,
+      "winRate": 0.41421568627450983
+    },
+    {
+      "opponent": "goblin-tinker",
+      "matches": 408,
+      "wins": 186,
+      "losses": 222,
+      "ties": 0,
+      "winRate": 0.45588235294117646
+    },
+    {
+      "opponent": "blademaster",
+      "matches": 408,
+      "wins": 151,
+      "losses": 257,
+      "ties": 0,
+      "winRate": 0.3700980392156863
+    },
+    {
+      "opponent": "jaina-proudmoore",
+      "matches": 408,
+      "wins": 266,
+      "losses": 142,
+      "ties": 0,
+      "winRate": 0.6519607843137255
+    },
+    {
+      "opponent": "beastmaster",
+      "matches": 408,
+      "wins": 164,
+      "losses": 244,
+      "ties": 0,
+      "winRate": 0.4019607843137255
+    },
+    {
+      "opponent": "rifleman",
+      "matches": 408,
+      "wins": 313,
+      "losses": 95,
+      "ties": 0,
+      "winRate": 0.7671568627450981
+    },
+    {
+      "opponent": "lich",
+      "matches": 408,
+      "wins": 209,
+      "losses": 199,
+      "ties": 0,
+      "winRate": 0.5122549019607843
+    },
+    {
+      "opponent": "chen-stormstout",
+      "matches": 408,
+      "wins": 148,
+      "losses": 260,
+      "ties": 0,
+      "winRate": 0.3627450980392157
+    }
+  ]
+}

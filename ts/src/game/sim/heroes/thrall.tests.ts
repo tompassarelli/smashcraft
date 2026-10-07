@@ -94,7 +94,7 @@ const up = controls({ specialPressed: true, specialZ: 1 });
 const down = controls({ specialPressed: true, specialZ: -1 });
 
 for (const [name, input, action, cost, end] of [
-  ["lightning", neutral, SpecialAction.heroNeutral, 10, 38], ["wolves", side, SpecialAction.heroSide, 18, 44],
+  ["lightning", neutral, SpecialAction.heroNeutral, 10, 44], ["wolves", side, SpecialAction.heroSide, 18, 44],
   ["sight", up, SpecialAction.heroUp, 12, 40], ["earthquake", down, SpecialAction.heroDown, 20, 50],
 ] as const) test(`Thrall ${name} spends once and ends on its authored frame`, () => {
   const { world, owner } = pair(600.0);
