@@ -134,6 +134,10 @@ code. From smashcraft:ts/:
   (starts tumbling above the floor for recovery captures), and `-dev quick cpu OPPONENT DIFFICULTY [hero NAME]`,
   a quick match against a named computer at the selected difficulty over three stocks.
   The named variant uses the normal CPU selection rule.
+  `-dev pain HEIGHT STRENGTH FIGHTER` starts the #181 mirror capture fixture:
+  low/middle/high and small/medium/large, with ordinary projectile contacts at
+  frame 150 after both players' scripted jab. `bun tools/animations/pain-pads.ts`
+  from the repository root generates its 117 native parity scripts.
 - Generated menus: smashcraft:ts/scripts/wisp/uiFrames.ts defines menu panels as Wisp
   frame definitions (wisp:docs/ui.md); after changing one or its layout, `bun
   scripts/wisp/uiFrames.ts` rewrites its FDF/TOC in smashcraft:tools/selection/art/

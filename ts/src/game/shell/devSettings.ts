@@ -18,6 +18,7 @@ import { selectableStage } from "../menu/stageCatalog";
 import { REPLAY_MAX_CORRECTION_FRAMES } from "../replay/limits";
 import type { Character } from "../sim/codes";
 import { SELECTABLE_CHARACTERS, fighterName } from "../sim/heroes/registry";
+import { isScenario, type Scenario } from "./build";
 
 export interface DevSettings {
   /** An explicit setup choice made before the stage menu opens. */
@@ -103,6 +104,15 @@ export const QUICK_RECOVERY_HERO_COMMAND = "-dev quick recovery hero ";
 
 export function quickRecoveryHero(message: string): Character | undefined {
   return heroAfter(message, QUICK_RECOVERY_HERO_COMMAND);
+}
+
+export function quickPainHero(message: string): { readonly character: Character; readonly scenario: Scenario } | undefined {
+  const words = message.split(" ");
+  if (words[0] !== "-dev" || words[1] !== "pain") return undefined;
+  const scenario = `pain-${words[2]}-${words[3]}`;
+  if (!isScenario(scenario)) return undefined;
+  const character = heroAfter(`${QUICK_HERO_COMMAND}${words.slice(4).join(" ")}`, QUICK_HERO_COMMAND);
+  return character === undefined ? undefined : { character, scenario };
 }
 
 function heroAfter(message: string, prefix: string): Character | undefined {
