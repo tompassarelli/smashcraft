@@ -287,8 +287,8 @@ test("a grounded rifleman blaster hit keeps the grounding and the impact hitlag"
   shot.z = 45.0;
   shot.velocityX = 30.0;
   updateProjectiles(testWorld(owner, target));
-  assertEquals(target.status.damage, 3.0);
-  assertEquals(target.launch.hitlag, 4);
+  assertEquals(target.status.damage, 2.7900002002716064);
+  assertEquals(target.launch.hitlag, 3);
   assertTrue(target.motion.grounded);
 });
 

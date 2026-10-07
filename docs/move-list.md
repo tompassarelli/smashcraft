@@ -162,7 +162,7 @@ Normals, inspired by:
 | Neutral special | Howling Blast | A wide frost gust that travels; spending a soul makes it wider and chills. |
 | Side special | Val'kyr Shadowguard | A Val'kyr seizes the first foe she reaches and carries them toward the edge; mash to break free. |
 | Up special | Ascension of the Damned | An ice column lifts him in a frost vortex, then a helpless fall. |
-| Down special | Defile | A short-lived shadow pool that grows when it hurts a grounded foe. Jump out; another cast must wait. |
+| Down special | Defile | Plant Frostmourne to spread a shadow pool; hurting a grounded foe grows it and flashes the edge. Jump out; recasts must wait. |
 | Jab, repeated | Pommel and Rake | A gauntlet check, a rake of the blade, then a Frostmourne thrust on repeated jabs. |
 | Passive | Frostmourne Hungers | Each Frostmourne hit that lands, and Harvest Soul, stores a soul (up to 3); Howling Blast and Val'kyr Shadowguard spend one to grow stronger. |
 | Ultimate | Fury of Frostmourne | Every foe at high damage who isn't shielding or dodging is launched. |

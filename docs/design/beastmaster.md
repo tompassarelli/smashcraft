@@ -23,7 +23,7 @@ the call frame is one-based. H is the existing hero reference height.
 | Side: Summon Bear | Without Bear, call it on frame 24 for 20 mana. Bear follows 0.8H behind on its own deck and survives 600 frames or 30 damage. | Ends frame 44, ground only. Punish the call or attack the Bear. |
 | Side with Bear: Stampede | Order Bear's 10-frame warning, 4-frame 1.2H lunge and 30-frame recovery; its 12-damage bite launches outward. Two small thunder lizards run ahead from Beastmaster on frames 12 and 20, each 4 damage. Ground pressure and an edgeguard against low recoveries. | Costs 12 mana, ends frame 32, cannot repeat while Bear lunges or is stunned. Jump over the line, shield, strike Bear during warning, or hit Beastmaster to cancel the command. |
 | Down: Summon Quilbeast | Call a Quilbeast on frame 18 for 12 mana; it holds its ground position and fires one 3-damage quill after settling, then at 90-frame intervals. It survives 600 frames or 18 damage. Quills poke at horizontal approaches while Beastmaster advances. | Ends frame 32, ground only. The low animal can be struck; its straight shots can be jumped, shielded or reflected. No automatic targeting. |
-| Down with Quilbeast: Quill Volley | Turn Quilbeast toward the input facing and fire three quills after a 10-frame warning, 8 frames apart. Quilbeast shoots from its own position, setting up a crossfire with the returning axes or covering a Bear chase. | Costs 6 mana, ends frame 24; the animal cannot volley again until its 48-frame command completes. Hitting the animal stuns it; hitting Beastmaster cancels the remaining volley. |
+| Down with Quilbeast: Quill Volley | Turn Quilbeast toward the input facing and fire three quills after a 10-frame warning, 8 frames apart. Quilbeast shoots from its own position, setting up a crossfire with the returning axes or covering a Bear chase. | Costs 6 mana, ends frame 24; the animal cannot volley again until its 48-frame command completes. Automatic shots pause during commands and stun. Hitting the animal stuns it; hitting Beastmaster cancels the remaining volley. |
 | Up on ground: Summon Hawk / Hawk Dive | Call Hawk on frame 12 for 10 mana, ending frame 26. It follows 0.6H ahead and 1.2H above Beastmaster. Press again to send it diagonally down and forward after 8 warning frames; one 6-damage upward launch starts an aerial chase or catches a ledge departure. | Dive costs 6 mana, ends frame 24; 8 active frames and 28 recovery frames. Hawk has 12 durability and 600 life. Its descent is fixed on command, so sidestep or strike it; it does not home. |
 | Up in air: Hawk Lift | Hawk appears beside him if absent and carries him through the existing 2H rise and 0.5H drift for 15 mana; below that cost the free form rises 1.4H and drifts 0.35H. Hawk remains a separately moving companion afterward. | Frames 10–32 lift, once per airtime, consumes aerial jump and ends helpless. No attack while carrying; vulnerable from the side and above. |
 
@@ -46,8 +46,11 @@ grounded return. Offstage, Beastmaster gives up attacking to use Hawk Lift.
 
 The stock Warcraft animations supply each animal's stand, movement and attack;
 the fighter's forward cast signals a command, and his axe swing signals Wild
-Axes. Animal attack animation follows its warning/action/recovery state from
-its actual position. Hawk Lift draws the same Hawk, never an extra cosmetic
+Axes. Bear rears during its warning, lunges with its attack pose, then finishes the
+swipe. Quilbeast braces and recoils separately for each quill. Hawk pitches
+down through its dive and visibly travels from above to below the target.
+These poses play at each animal's actual position, with full windup and
+follow-through instead of cutting the animation to the short contact window. Hawk Lift draws the same Hawk, never an extra cosmetic
 copy. Stock Warcraft models remain private inputs.
 
 ## Sources and borrowing
@@ -73,3 +76,28 @@ copy. Stock Warcraft models remain private inputs.
 
 References checked 8 October 2026. These are gameplay ideas, not copied code,
 models, animation, exact frame data or hitboxes.
+
+## Bear readability: Tom's 8 October playtest
+
+A player should describe Bear as: **“It follows me, then I command a roaring
+lunge that knocks enemies away.”** The combat remains the measured 10-frame
+warning, 4-frame attack and 30-frame recovery, with the same movement and bite.
+
+Every command starts with a large rear-up silhouette and a roar at Bear's own
+position. The windup shows a stock Battle Roar crest over its head. One forward
+swipe follows; the animation holds its contact pose through the four attack
+frames, then visibly settles during recovery. The presentation never changes
+Bear's hurt region, damage, travel or timings.
+
+A compact marker above Bear names its state: **FOLLOWING** in pale blue,
+**CHARGING** in gold, **ATTACKING** in red and **RESTING** in grey. Stun also
+shows RESTING. The marker disappears with Bear. On a confirmed bite, a distinct
+heavy claw impact sound and a short impact burst play at its jaws; a miss
+plays neither. Each command roars once and each connected bite sounds once.
+Quilbeast's three firing recoils and Hawk's descending attack remain separate
+from this Bear signal.
+
+The headless contract checks the four state windows, one roar per command and
+one impact per connected bite; the existing pack script still exercises the
+whole kit. Tom's next match supplies the final observation: he describes
+Bear's job in one sentence, and judges the whole pack fun.

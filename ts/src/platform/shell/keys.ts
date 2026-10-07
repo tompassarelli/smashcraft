@@ -24,7 +24,7 @@ import { probeFrameCostClock } from "./frameCost";
 import { probeRenderClock } from "./renderClock";
 import { startDrawingBetweenFrames } from "./betweenFrames";
 import { showBackdrop, showStageLighting } from "./stageScenery";
-import { clearAllInputs } from "./inputs";
+import { clearCapturedInputs } from "./inputs";
 import { journalEpoch, journalIdentity } from "./journal";
 import { chatBusy, requestPause } from "./journalPause";
 import { Key } from "./keyEvents";
@@ -63,7 +63,7 @@ export function startDown(s: ShellState, slot: ParticipantSlot): void {
   if (action === "togglePause") {
     if (epoch !== undefined && deferred) requestPause(s, epoch.rollback, epoch.journal, !s.session.paused);
     else {
-      clearAllInputs(s);
+      clearCapturedInputs(s);
       pauseMatchPresentation(s, s.session.paused);
       setStatus(s, s.session.paused ? pausedMessage("Y") : "Resumed.", s.session.paused ? LASTING : 1.0);
     }
