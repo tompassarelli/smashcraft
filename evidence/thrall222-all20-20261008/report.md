@@ -6,7 +6,7 @@ Wren Expert, 100 seeds, requested 400 matches per pair. The unchanged stage/side
 
 The candidate includes the shared airborne platform approach correction, grounded jab and forward-tilt contact, the measured forward wolf shoulder capsule, the 0.75 air-speed floor, paid recovery height 2.25H with 1.5H steering, and Chain Lightning recovery through frame 44. Lightning remains 12 damage.
 
-Checks: 31 Thrall Bun contracts (including all four computer specials), 31 emitted Lua32 contracts on the corrected kit, four unchanged scoped original jab cases, original Thrall projectile rules, scoped original paid/free recovery distance and keyboard/stick steering assertions, TypeScript and source-shape pre-push gates. The new Wisp pin also passes the 31 Bun contracts.
+Checks: 31 Thrall Bun contracts (including all four computer specials), 31 emitted Lua32 contracts at the readiness source and Wisp pin, four unchanged scoped original jab cases, original Thrall projectile rules, scoped original paid/free recovery distance and keyboard/stick steering assertions, TypeScript and source-shape pre-push gates.
 
 Raw immutable pair records are in `raw-shards.json.gz`; totals are in `summary.json`.
 
