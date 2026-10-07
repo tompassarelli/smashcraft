@@ -2,13 +2,10 @@
 // Frostmourne, on Kwaliti's model (Hive Workshop, credited in the map and
 // smashcraft:docs/design/roster.md). Set `complete` only when the whole base
 // kit works (hero.ts).
-import { f32 } from "wisp/src/sim/f32";
-import { jabSlice } from "./groundNormals";
 import { LICH_KING_ICON, LICH_KING_MODEL } from "../../assets/importedModelInfo";
 import { Character } from "../codes";
 import type { HeroDefinition } from "./hero";
 import { LICH_KING_CLIPS, LICH_KING_FALLBACK } from "../../presentation/heroes/lichKingClips";
-import { LICH_KING_SEQUENCES } from "../../presentation/heroes/lichKingClipInfo";
 import { LICH_KING_GAMEPLAN } from "./lichKingGameplan";
 import { LICH_KING_MOVES } from "./lichKingMoves";
 import { LICH_KING_SPECIALS } from "./lichKingSpecials";
@@ -29,8 +26,7 @@ export const LICH_KING_HERO: HeroDefinition = {
     model: LICH_KING_MODEL,
     objectId: 0x6d666c6b,
     portrait: LICH_KING_ICON,
-    // The thrust is sliced short of its full lunge so the chain's finisher draws shorter than the forward tilt (#163).
-    clips: { ...LICH_KING_CLIPS, jab3: jabSlice(LICH_KING_SEQUENCES["Attack Jab 3"], f32(0.12)) },
+    clips: LICH_KING_CLIPS,
     fallback: LICH_KING_FALLBACK,
   },
 };

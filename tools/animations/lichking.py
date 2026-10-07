@@ -356,13 +356,13 @@ reuse('Attack Jab', 'Attack - 1', zero(6), 21)
 reuse('Attack Jab 2', 'Attack - 2', zero(7), 25)
 author('Attack Jab 3', swing(zero(9), 3, 34,
     wind={'step': (-6, -4), 'lean': -10, 'twist': 25, 'hand_R': (-18, -34, 98), 'aim': 5, 'hand_L': (24, 20, 100)},
-    strike={'step': (22, -6), 'lean': 22, 'twist': -15, 'hand_R': (44, -26, 92), 'aim': -2, 'hand_L': (-24, 26, 92), 'foot_R': (52, -16, 1)},
-    follow={'step': (16, -4), 'lean': 14, 'hand_R': (36, -26, 92), 'aim': 0, 'foot_R': (46, -16, 1)},
+    strike={'step': (12, -6), 'lean': 18, 'twist': -15, 'hand_R': (44, -26, 92), 'aim': -2, 'hand_L': (-24, 26, 92), 'foot_R': (52, -16, 1)},
+    follow={'step': (10, -4), 'lean': 12, 'hand_R': (36, -26, 92), 'aim': 0, 'foot_R': (46, -16, 1)},
     settle=(26, {'step': (4, 0), 'lean': 4, 'hand_R': (20, -30, 90), 'aim': 10})))
 # Forward tilt (all three angles): an overhead sweep that comes down in front.
 author('Forward Tilt', swing(zero(11), 4, 38,
     wind={'step': (-6, -2), 'lean': -14, 'twist': 20, 'hand_R': (-6, -30, 132), 'aim': 120, 'hand_L': (20, 16, 100)},
-    strike={'step': (18, -8), 'lean': 24, 'twist': -10, 'hand_R': (42, -28, 96), 'aim': 5, 'hand_L': (-20, 24, 92), 'foot_R': (46, -16, 1)},
+    strike={'step': (26, -8), 'lean': 24, 'twist': -10, 'hand_R': (42, -28, 96), 'aim': 5, 'hand_L': (-20, 24, 92), 'foot_R': (46, -16, 1)},
     follow={'step': (14, -10), 'lean': 22, 'hand_R': (38, -28, 70), 'aim': -40, 'foot_R': (42, -16, 1)},
     settle=(30, {'step': (4, -2), 'lean': 6, 'hand_R': (22, -30, 86), 'aim': 10})))
 # Up tilt: Frostmourne arcs from in front, over his head, to behind him.
@@ -396,7 +396,7 @@ author('Forward Smash', swing(zero(22), 4, 63, wind=FSMASH_WIND, strike=FSMASH_H
 USMASH_WIND = {'step': (0, -24), 'lean': 12, 'hand_R': (20, -30, 64), 'aim': -60, 'hand_L': (14, 24, 64)}
 USMASH_HIT = {'step': (0, 8), 'lean': -6, 'hand_R': (4, -26, 146), 'aim': 90, 'hand_L': (-2, 30, 146)}
 author('Up Smash', swing(zero(18), 8, 63, wind=USMASH_WIND, strike=USMASH_HIT,
-    follow={**USMASH_HIT, 'step': (0, 2), 'hand_R': (10, -28, 132), 'aim': 75},
+    follow={**USMASH_HIT, 'step': (0, -6), 'hand_R': (12, -28, 110), 'aim': 60, 'hand_L': (4, 30, 120)},
     wind_at=10, settle=(50, {'hand_R': (20, -30, 96), 'aim': 40})))
 # Quake: Frostmourne raised in both hands and slammed into the ground in front, the quake then spreading behind.
 DSMASH_WIND = {'step': (0, -6), 'lean': -16, 'hand_R': (10, -26, 146), 'aim': 100, 'hand_L': (8, -8, 144)}
@@ -467,9 +467,10 @@ author('Aerial Down', swing(zero(18), 5, 55, start=FALL,
     wind_at=10, follow_at=zero(22) + 10), base_from='Fall', plant=False)
 
 # ---------------------------------------------------------------- grabs and throws
-GRAB_HIT = {'step': (18, -12), 'lean': 26, 'twist': 20, 'hand_L': (56, 16, 96), 'hand_R': (-6, -32, 92), 'aim': 60}
-author('Grab', swing(zero(9), 2, 40, wind={'lean': -4, 'hand_L': (4, 26, 104), 'hand_R': (-6, -32, 92), 'aim': 60}, strike=GRAB_HIT,
-    follow={**GRAB_HIT, 'hand_L': (40, 16, 92)}, settle=(28, {'hand_L': (16, 20, 96), 'hand_R': (6, -32, 90), 'aim': 50})))
+# The free hand reaches with Frostmourne levelled beside it.
+GRAB_HIT = {'step': (18, -12), 'lean': 26, 'twist': 20, 'hand_L': (56, 16, 96), 'hand_R': (10, -30, 90), 'aim': 12}
+author('Grab', swing(zero(9), 2, 40, wind={'lean': -4, 'hand_L': (4, 26, 104), 'hand_R': (-6, -32, 96), 'aim': 85}, strike=GRAB_HIT,
+    follow={**GRAB_HIT, 'hand_L': (40, 16, 92), 'aim': 30}, settle=(28, {'hand_L': (16, 20, 96), 'hand_R': (6, -32, 90), 'aim': 50})))
 HOLD = {'step': (6, -4), 'lean': 10, 'hand_L': (40, 14, 104), 'hand_R': (-4, -32, 92), 'aim': 70}
 author('Grab Hold', {0: HOLD, 30: {**HOLD, 'hand_L': (40, 14, 106)}, 60: HOLD}, looping=True)
 author('Pummel', {0: HOLD, 52: {**HOLD, 'twist': 25, 'hand_R': (-14, -34, 110), 'aim': 120}, 59: {**HOLD, 'twist': -10, 'hand_R': (30, -26, 100), 'aim': 40}, 68: HOLD})
@@ -503,8 +504,8 @@ author('Down Damage', {0: {}, 3: {'step': (0, 4)}, 13: {}}, base_from='Death', b
 author('Get Up', {0: {'rise': 0}, 10: {'rise': .25, 'step': (0, 4)}, 22: {'rise': .85}, 30: {'rise': 1}},
        base_from='Death', base_frame=int(death.frame_range[0]) + lie, standing_from=('Stand Ready', 0), plant=False)
 author('Get Up Attack', {0: {'rise': 0}, 10: {'rise': .3, 'hand_R': (-10, -30, 80), 'aim': 170},
-                         16: {'rise': .45, 'hand_R': (40, -26, 70), 'aim': 0}, 18: {'rise': .45, 'hand_R': (40, -26, 68), 'aim': -4},
-                         28: {'rise': .7, 'hand_R': (30, -28, 80), 'aim': 10}, 49: {'rise': 1}},
+                         16: {'rise': .45, 'step': (24, 0), 'hand_R': (40, -26, 70), 'aim': 0}, 18: {'rise': .45, 'step': (24, 0), 'hand_R': (40, -26, 68), 'aim': -4},
+                         28: {'rise': .7, 'step': (10, 0), 'hand_R': (30, -28, 80), 'aim': 10}, 49: {'rise': 1}},
        base_from='Death', base_frame=int(death.frame_range[0]) + lie, standing_from=('Stand Ready', 0), plant=False)
 
 # Ledge: hanging by his free hand, Frostmourne lowered; climb, roll and attack.

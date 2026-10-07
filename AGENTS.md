@@ -172,7 +172,7 @@ code. From smashcraft:ts/:
   the model facts they read (smashcraft:docs/player-view.md); `view strikes`
   rewrites the hero strike moments swings and specials align to
   (smashcraft:docs/fighter-animation-work.md, "Hero swing alignment");
-  `view reach --assets DIR` rewrites how far fighters' swings
+  `view reach --assets DIR [--character ID]` rewrites how far fighters' swings
   draw toward their strikes (smashcraft:docs/hurtboxes.md).
 - Repro: `bun wisp repro FILE [--test NAME]` replays a moment a player saved
   with K (or View held on a controller) in simulated clients, to the checksum

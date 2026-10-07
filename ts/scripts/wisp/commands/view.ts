@@ -23,6 +23,7 @@ import { SMASHCRAFT_FRAME, SMASHCRAFT_SCENE } from "../playerView";
 import { CHARACTER_NAMES, DrawnModel, FIGHTER_MODELS, STYLE_NAMES, loadDrawnModel, sampleAttack, sampleState, sheet } from "../hurtboxView";
 import { characterModelScale } from "../../../src/game/presentation/modelScale";
 import { type DrawnReachRow, REACH_CHECKED, drawnReachSource, measureDrawnReach } from "../drawnReach";
+import { DRAWN_REACH } from "../drawnReachInfo";
 import { measureStrikeMoments, strikeMomentSource } from "../strikeMoments";
 import { HERO_ROSTER } from "../../../src/game/sim/heroes/registry";
 import { AttackPhase, AttackStyle, Character } from "../../../src/game/sim/codes";
@@ -188,31 +189,42 @@ const REACH_TABLE = join(import.meta.dir, "../drawnReachInfo.ts");
  */
 const reach = (args: readonly string[]) => Effect.gen(function*() {
   const assets = args[0] === "--assets" ? args[1] : undefined;
-  if (assets === undefined || args.length !== 2) return yield* new UsageFailure({ problem: "view reach takes --assets DIR" });
+  const character = args[2] === "--character" ? Number(args[3]) : undefined;
+  if (assets === undefined || !(args.length === 2 || args.length === 4 && character !== undefined && REACH_CHECKED.some((row) => row.character === character))) {
+    return yield* new UsageFailure({ problem: "view reach takes --assets DIR [--character ID]" });
+  }
   const rows = yield* Effect.tryPromise({
     try: async () => {
       const measured: DrawnReachRow[] = [];
-      for (const { character, styles } of REACH_CHECKED) {
-        const hero = HERO_ROSTER.find((candidate) => candidate.character === character);
+      for (const { character: fighter, styles } of REACH_CHECKED) {
+        if (character !== undefined && character !== fighter) {
+          for (const style of styles) {
+            const retained = DRAWN_REACH.find((row) => row.character === fighter && row.style === style);
+            if (retained === undefined) throw new Error(`${fighter}/${style}: no retained reach; measure every fighter`);
+            measured.push({ ...retained, character: fighter, style });
+          }
+          continue;
+        }
+        const hero = HERO_ROSTER.find((candidate) => candidate.character === fighter);
         let model: DrawnModel;
         let id: string;
         if (hero === undefined) {
-          const bytes = await Bun.file(join(assets, FIGHTER_MODELS[character] ?? "")).arrayBuffer();
-          const name = (FIGHTER_MODELS[character] ?? "").split("/").at(-1)?.replace(/\.mdx$/, "");
+          const bytes = await Bun.file(join(assets, FIGHTER_MODELS[fighter] ?? "")).arrayBuffer();
+          const name = (FIGHTER_MODELS[fighter] ?? "").split("/").at(-1)?.replace(/\.mdx$/, "");
           id = `war3mapImported\\${name}-${new Bun.CryptoHasher("sha256").update(new Uint8Array(bytes)).digest("hex")}.mdx`;
-          model = await loadDrawnModel(assets, character);
+          model = await loadDrawnModel(assets, fighter);
         } else {
           const file = join(assets, heroModelSource(hero.presentation.model));
-          model = new DrawnModel(await Bun.file(file).arrayBuffer(), characterModelScale(character));
+          model = new DrawnModel(await Bun.file(file).arrayBuffer(), characterModelScale(fighter));
           id = hero.presentation.model;
         }
-        for (const style of styles) measured.push({ character, style, model: id, ...measureDrawnReach(model, character, style) });
+        for (const style of styles) measured.push({ character: fighter, style, model: id, ...measureDrawnReach(model, fighter, style) });
       }
       return measured;
     },
     catch: (cause) => new MapBuildFailure({ operation: "measure drawn reach", path: assets, cause }),
   });
-  for (const row of rows) yield* Console.log(`${CHARACTER_NAMES[row.character] ?? row.character} ${row.style}: swing ${row.swing.toFixed(1)}, peak frame ${row.peakFrame}, active ${row.firstActive}-${row.lastActive}`);
+  for (const row of rows.filter((row) => character === undefined || row.character === character)) yield* Console.log(`${CHARACTER_NAMES[row.character] ?? row.character} ${row.style}: swing ${row.swing.toFixed(1)}, peak frame ${row.peakFrame}, active ${row.firstActive}-${row.lastActive}`);
   yield* Effect.tryPromise({ try: () => Bun.write(REACH_TABLE, drawnReachSource(rows)), catch: (cause) => new MapBuildFailure({ operation: "write drawn reach", path: REACH_TABLE, cause }) });
 });
 

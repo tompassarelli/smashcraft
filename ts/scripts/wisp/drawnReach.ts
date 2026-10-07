@@ -81,7 +81,9 @@ export const REACH_CHECKED: readonly { readonly character: Character; readonly s
   { character: Character.rifleman, styles: [AttackStyle.jab, AttackStyle.jab2, AttackStyle.forwardTilt, AttackStyle.forwardTiltUp, AttackStyle.forwardTiltDown, AttackStyle.upTilt, AttackStyle.downTilt, AttackStyle.dashAttack, AttackStyle.neutralAir, AttackStyle.upAir, AttackStyle.downAir] },
   { character: Character.demonHunter, styles: [AttackStyle.jab, AttackStyle.jab2, AttackStyle.jab3, AttackStyle.forwardTilt, AttackStyle.forwardTiltUp, AttackStyle.forwardTiltDown, AttackStyle.downTilt, AttackStyle.downSmash] },
   // A hero's chain has two or three jabs.
-  ...HERO_ROSTER.map((hero) => ({ character: hero.character, styles: HERO_GROUND.filter((style) => hero.moves.normals[style] !== undefined) })),
+  ...HERO_ROSTER.map((hero) => ({ character: hero.character, styles: hero.character === Character.lichKing
+    ? [...HERO_GROUND, ...AERIAL_STYLES, AttackStyle.forwardSmash, AttackStyle.upSmash, AttackStyle.downSmash, AttackStyle.grab, AttackStyle.getupAttack, AttackStyle.ledgeAttack]
+    : HERO_GROUND.filter((style) => hero.moves.normals[style] !== undefined) })),
 ];
 
 export interface DrawnReachRow extends DrawnReach {

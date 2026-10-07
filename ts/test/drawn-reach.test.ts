@@ -31,7 +31,7 @@ const JABS: readonly number[] = [AttackStyle.jab, AttackStyle.jab2, AttackStyle.
 
 test("every checked swing draws toward its strike on its active frames", () => {
   const off = DRAWN_REACH.flatMap((row) => {
-    const pose = attackPose(row.style);
+    const pose = row.style === AttackStyle.ledgeAttack ? "ledgeAttack" : attackPose(row.style);
     const clip = ownAttackClip(row.character, row.style) ?? (pose === undefined ? undefined : clipFor(row.character, pose));
     const name = `${row.character}/${row.style}`;
     const model = MODELS[row.character] ?? heroDefinition(row.character)?.presentation.model;

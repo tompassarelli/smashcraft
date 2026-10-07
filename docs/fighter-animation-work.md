@@ -1191,3 +1191,10 @@ war3mapImported\LichKing2.mdx, and regenerates
 smashcraft:ts/src/game/presentation/heroes/lichKingClipInfo.ts (sequence name
 to index and frames). Run Blender inside the capacity scope (`machine-capacity
 run --class moderate`).
+
+His third jab plays its full authored thrust, whose shorter hip step leaves
+its drawn reach below the forward tilt. `bun wisp view reach --assets DIR
+--character 12` measures his normals, aerials, smashes, grab, get-up and ledge
+attacks while preserving the other fighters' recorded rows. Omit
+`--character` to measure the whole roster. Ledge samples start in the ledge
+attack state so they play the climbing attack rather than the get-up clip.
