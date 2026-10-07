@@ -27,6 +27,7 @@ export const PASSIVE_MODELS = {
   longRifle: "Abilities\\Weapons\\Bolt\\BoltImpact.mdx",
   cleave: "Abilities\\Spells\\Other\\Incinerate\\FireLordDeathExplode.mdx",
   packHunt: "Abilities\\Spells\\Other\\Stampede\\StampedeMissileDeath.mdx",
+  pillage: "UI\\Feedback\\GoldCredit\\GoldCredit.mdl",
 } as const;
 
 const NONE: PassiveLook = { onVictim: false };
@@ -44,6 +45,7 @@ export function passiveLook(character: Character): PassiveLook {
     case Character.shadowHunter: return { ready: PASSIVE_MODELS.voodoo, onVictim: false };
     case Character.pitLord: return { proc: PASSIVE_MODELS.cleave, onVictim: true };
     case Character.beastmaster: return { proc: PASSIVE_MODELS.packHunt, onVictim: true };
+    case Character.peon: return { proc: PASSIVE_MODELS.pillage, onVictim: false };
     default: return NONE;
   }
 }
