@@ -177,3 +177,22 @@ test("the third and fourth cards and chips keep their own slots", () => {
   }
   assertEquals(drag.held, 3);
 });
+
+
+test("every tile edge and name drop snaps all four chips inside its picture", () => {
+  const grid = rosterGrid(SELECTABLE_CHARACTERS.length);
+  const roster: Roster = { grid, selectable: 15, chips: [UNPLACED, UNPLACED, UNPLACED, UNPLACED] };
+  for (let slot = 0; slot < 4; slot++) for (let tile = 0; tile < grid.count; tile++) {
+    const rect = cellRect(grid, tile);
+    for (const x of [rect.left + at(1), rect.right - at(1)]) for (const y of [rect.top - at(1), rect.bottom + at(1)]) {
+      const drag = selectionDrag();
+      press(drag, roster, cardX(slot) + at(80), at(180));
+      assertPlacement(release(drag, roster, x, y), slot, tile);
+      const width = at(32) * grid.scale;
+      assertEquals(chipX(grid, slot, tile) >= rect.left + at(12) * grid.scale, true);
+      assertEquals(chipX(grid, slot, tile) + width <= rect.left + at(100) * grid.scale, true);
+      assertEquals(chipY(grid, slot, tile) <= rect.top - at(13) * grid.scale, true);
+      assertEquals(chipY(grid, slot, tile) - width >= rect.top - at(100) * grid.scale, true);
+    }
+  }
+});

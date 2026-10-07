@@ -12,11 +12,11 @@ export type RosterTile = number;
 const CELL_WIDTH = f32(0.112);
 const CELL_HEIGHT = f32(0.132);
 /** The grid region: left edge, width, height above its bottom edge. */
-const REGION_X = f32(0.26);
-const REGION_WIDTH = f32(0.48);
+const REGION_X = f32(0.05);
+const REGION_WIDTH = f32(0.7);
 /** The grid sits on this bottom edge and grows upward. */
-const REGION_BOTTOM = f32(0.292);
-const REGION_HEIGHT = f32(0.268);
+const REGION_BOTTOM = f32(0.28);
+const REGION_HEIGHT = f32(0.2);
 
 export interface RosterGrid {
   readonly count: number;
@@ -45,7 +45,7 @@ export function rosterGrid(count: number): RosterGrid {
   for (let c = 1; c <= count; c++) {
     const rows = Math.ceil(count / c);
     const fit = Math.min(1, REGION_WIDTH / (c * CELL_WIDTH), REGION_HEIGHT / (rows * CELL_HEIGHT));
-    if (fit >= best) {
+    if (fit > best) {
       best = fit;
       columns = c;
     }
@@ -57,18 +57,22 @@ export function rosterGrid(count: number): RosterGrid {
 }
 
 export function cellRect(grid: RosterGrid, tile: number): CellRect {
-  const column = floorMod(tile, grid.columns);
-  const row = floorDiv(tile, grid.columns);
-  const left = grid.left + column * grid.cellWidth;
+  const shortRows = grid.rows * grid.columns - grid.count;
+  const longRows = grid.rows - shortRows;
+  const longCount = longRows * grid.columns;
+  const row = tile < longCount ? floorDiv(tile, grid.columns) : longRows + floorDiv(tile - longCount, grid.columns - 1);
+  const columns = row < longRows ? grid.columns : grid.columns - 1;
+  const column = tile < longCount ? floorMod(tile, grid.columns) : floorMod(tile - longCount, columns);
+  const left = grid.left + (grid.columns - columns) * grid.cellWidth / 2 + column * grid.cellWidth;
   const top = grid.top - row * grid.cellHeight;
   return { left, top, right: left + grid.cellWidth, bottom: top - grid.cellHeight };
 }
 
 /** The fighter cell under the pointer. */
 export function tileAt(grid: RosterGrid, x: number, y: number): RosterTile | undefined {
-  const column = floorDiv(x - grid.left, grid.cellWidth);
-  const row = floorDiv(grid.top - y, grid.cellHeight);
-  if (column < 0 || column >= grid.columns || row < 0 || row >= grid.rows) return undefined;
-  const tile = row * grid.columns + column;
-  return tile < grid.count ? tile : undefined;
+  for (let tile = 0; tile < grid.count; tile++) {
+    const rect = cellRect(grid, tile);
+    if (x >= rect.left && x < rect.right && y <= rect.top && y > rect.bottom) return tile;
+  }
+  return undefined;
 }
