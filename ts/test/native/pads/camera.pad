@@ -1,0 +1,44 @@
+# #110 camera by parity: the match camera is confirmed state (the canonical checksum holds its
+# position, distance and subject boxes), so a native run equal to the headless one moves the
+# camera exactly as the headless run that `bun scripts/cameraFeel.ts` measures. Archer a and
+# Rifleman b spread apart, jump, cross and close in; syntax: smashcraft:docs/native-bot-session.md.
+#! chat -dev quick
+# Spread apart: a dashes left, b right.
+60 a stick -1 0
+60 b stick 1 0
+62 a stick 0 0
+62 b stick 0 0
+# a full jumps and double jumps: the camera rises and widens.
+150 a tap B 8
+170 a tap B 8
+# b jumps while a lands.
+240 b tap B 8
+# Close in: both dash toward the centre.
+330 a stick 1 0
+330 b stick -1 0
+332 a stick 0 0
+332 b stick 0 0
+# View held a second: the first moment.
+500 a press VIEW
+570 a release VIEW
+# Apart again, with jumps on both sides.
+600 a stick -1 0
+602 a stick 0 0
+640 b tap B 8
+700 a tap B 8
+720 a tap B 8
+800 b stick 1 0
+802 b stick 0 0
+900 a stick 1 0
+902 a stick 0 0
+# Expected, frame by frame (headless run of this script):
+#! expect a 153 applied jump 1 double 0
+#! expect a 170 applied jump 2 double 1
+#! expect b 245 applied jump 1 double 0
+#! expect b 645 applied jump 2 double 0
+#! expect a 703 applied jump 3 double 0
+#! expect a 720 applied jump 4 double 1
+#! absent a 1-1000 damage
+#! absent b 1-1000 damage
+1000 a press VIEW
+1070 a release VIEW
