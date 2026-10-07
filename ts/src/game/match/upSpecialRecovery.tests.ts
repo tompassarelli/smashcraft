@@ -144,7 +144,7 @@ test("every fighter's up special recovers within the documented band, and its ze
   }
 });
 
-/** The largest single-frame step after the press: the direction the up special flew. */
+/** The first launch step, before gravity changes its direction. */
 function launchStep(driver: Driver, aimX: number, aimZ: number): { x: number; z: number } {
   const { fighter } = driver;
   driver.play({ x: 0, z: 1, special: true });
@@ -155,7 +155,7 @@ function launchStep(driver: Driver, aimX: number, aimZ: number): { x: number; z:
     driver.play(frame <= 10 ? { x: aimX, z: aimZ } : { x: 0, z: 0 });
     const x = fighter.motion.x - previousX;
     const z = fighter.motion.z - previousZ;
-    if (x * x + z * z > best.x * best.x + best.z * best.z) best = { x, z };
+    if (x * x + z * z > 225.0) return { x, z };
     previousX = fighter.motion.x;
     previousZ = fighter.motion.z;
   }
