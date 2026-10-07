@@ -122,7 +122,7 @@ export class ProjectilePresentation {
         parked[boundarySlot] = false;
         BlzSetSpecialEffectPosition(boundary, this.origin.x + pose.x, this.origin.y - 8.0, this.origin.z + pose.z);
         BlzSetSpecialEffectScale(boundary, pose.poolRadius);
-        BlzSetSpecialEffectColor(boundary, pose.armed ? 170 : 70, pose.armed ? 75 : 65, pose.armed ? 255 : 100);
+        BlzSetSpecialEffectColor(boundary, pose.armed ? 170 + 85 * pose.poolPulse : 70, pose.armed ? 75 + 180 * pose.poolPulse : 65, pose.armed ? 255 : 100);
         BlzSetSpecialEffectAlpha(boundary, pose.armed ? 255 : 160);
         BlzSetSpecialEffectTimeScale(boundary, 0.0);
       }

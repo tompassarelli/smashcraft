@@ -5,6 +5,7 @@
 // copy and code can be replaced while state is kept. Replay checksums write
 // an absent slot or surface as -1 at that boundary.
 import { type TechInput, emptyTechInput } from "../physics/techInput";
+import { at } from "wisp/src/runtime/lookup";
 import {
   type AttackStyle,
   Character,
@@ -491,8 +492,8 @@ interface Passive {
   lastTarget: number;
 }
 
-/** A hero's one placed object (sim/placedObjects.ts); `life` 0 when none stands. */
-interface PlacedObject {
+/** A placed object or animal (sim/placedObjects.ts); `life` 0 when absent. */
+export interface PlacedObject {
   life: number;
   /** Frames since placement. */
   age: number;
@@ -549,6 +550,8 @@ export interface Fighter {
   readonly status: Status;
   readonly mana: Mana;
   readonly placed: PlacedObject;
+  /** Beastmaster's additional animals: Quilbeast and Hawk. */
+  readonly pack: PlacedObject[];
   readonly passive: Passive;
 }
 
@@ -753,7 +756,16 @@ export function createFighter(character: Character, startX: number, facing: numb
     cannon: { held: undefined, firing: undefined, cooldown: 0 },
     status: { offscreenFrames: 0, damage: 0.0, stocks: STARTING_STOCKS, respawn: 0, out: false, invincible: 0, frozenFrames: 0, freezeImmunityFrames: 0, armorFrames: 0, armorMaxDamage: 0.0, armorChills: false, condition: 0, conditionFrames: 0, conditionGroup: 0, conditionImmunityFrames: 0, conditionImmunity: [0, 0, 0, 0], guardHealed: 0.0, divineFrames: 0, poisonFrames: 0, poisonEvery: 0, poisonDamage: 0.0, buff: 0, buffFrames: 0 },
     mana: { points: ROSTER_MANA.max, progress: 0 },
-    placed: { life: 0, age: 0, x: 0.0, z: 0.0, direction: 1, durability: 0.0, serial: 0, spec: undefined, struck: repeat<number | undefined>(PARTICIPANT_CAPACITY, () => undefined), specialStruck: 0, mode: 0, modeFrame: 0, apart: 0, bitten: 0, surface: undefined },
+    placed: createPlacedObject(),
+    pack: character === Character.beastmaster ? [createPlacedObject(), createPlacedObject()] : [],
     passive: { stacks: 0, window: 0, serial: 0, spent: 0.0, used: false, lastKey: -1, lastTarget: -1 },
   };
+}
+
+export function createPlacedObject(): PlacedObject {
+  return { life: 0, age: 0, x: 0.0, z: 0.0, direction: 1, durability: 0.0, serial: 0, spec: undefined, struck: repeat<number | undefined>(PARTICIPANT_CAPACITY, () => undefined), specialStruck: 0, mode: 0, modeFrame: 0, apart: 0, bitten: 0, surface: undefined };
+}
+
+export function placedObject(fighter: Readonly<Fighter>, slot = 0): PlacedObject {
+  return slot === 0 ? fighter.placed : at(fighter.pack, slot - 1);
 }

@@ -20,7 +20,7 @@ import type { PacingAndPresentation } from "../match/pacingAndPresentation";
 import { type MatchState, computerActive } from "../match/rules";
 import { type MapBuild, type Scenario, isScenario, isShadow } from "../shell/build";
 import { produceScenarioComputerInput } from "../shell/scenarios";
-import { type Fighter, PROJECTILE_CAPACITY } from "../sim/fighter";
+import { type Fighter, placedObject, PROJECTILE_CAPACITY } from "../sim/fighter";
 import type { AuthoredSpecial, FighterSpecials, SpecialPlacement, SpecialProjectile } from "../sim/heroSpecials";
 import { type Roster, createRoster, fighterAt, isActive } from "../sim/roster";
 import { authoredTuning } from "../sim/tuning";
@@ -408,8 +408,11 @@ function rebindAuthoredKit(fighter: Fighter): void {
     const live = at(fighter.projectiles, i);
     if (live.spec !== undefined) live.spec = projectiles.get(specialProjectileCanonical(live.spec, "")) ?? live.spec;
   }
-  const placed = fighter.placed.spec;
-  if (placed !== undefined) fighter.placed.spec = placements.get(specialPlacementCanonical(placed, "")) ?? placed;
+  for (let index = 0; index <= fighter.pack.length; index++) {
+    const animal = placedObject(fighter, index);
+    const placed = animal.spec;
+    if (placed !== undefined) animal.spec = placements.get(specialPlacementCanonical(placed, "")) ?? placed;
+  }
 }
 
 /** The snapshot's state, in records copyReplayState reads; undefined when a part is missing. */
