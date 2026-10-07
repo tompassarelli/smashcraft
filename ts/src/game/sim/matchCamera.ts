@@ -90,7 +90,11 @@ function termsOf(tangent: number): Readonly<typeof tangentTerms> {
   return terms;
 }
 
-/** limitCamera's terms that don't depend on the camera's position or distance, kept for the last arguments as tangentTerms is. */
+/**
+ * limitCamera's terms that don't depend on the camera's position or distance,
+ * kept for the last two argument sets as tangentTerms is: the match camera's
+ * and a client's local view, whose aspect may differ, alternate every frame.
+ */
 interface RangeTerms {
   tangent: number;
   bounds: Readonly<StageRegion> | undefined;
@@ -101,11 +105,19 @@ interface RangeTerms {
   tangentAspect: number;
   blastFloor: number;
 }
-const rangeTerms: RangeTerms = { tangent: -1.0, bounds: undefined, aspect: 0.0, blastBottom: 0.0, maxWidth: 0.0, maxHeight: 0.0, tangentAspect: 0.0, blastFloor: 0.0 };
+const emptyRange = (): RangeTerms => ({ tangent: -1.0, bounds: undefined, aspect: 0.0, blastBottom: 0.0, maxWidth: 0.0, maxHeight: 0.0, tangentAspect: 0.0, blastFloor: 0.0 });
+const rangeTerms = { first: emptyRange(), second: emptyRange(), firstNewer: false };
+
+const rangeFor = (range: Readonly<RangeTerms>, tangent: number, bounds: Readonly<StageRegion>, aspect: number, blastBottom: number): boolean =>
+  range.tangent === tangent && range.bounds === bounds && range.aspect === aspect && range.blastBottom === blastBottom;
 
 function rangeOf(tangent: number, bounds: Readonly<StageRegion>, aspect: number, blastBottom: number): Readonly<RangeTerms> {
-  const range = rangeTerms;
-  if (range.tangent === tangent && range.bounds === bounds && range.aspect === aspect && range.blastBottom === blastBottom) return range;
+  const cache = rangeTerms;
+  if (rangeFor(cache.first, tangent, bounds, aspect, blastBottom)) return cache.first;
+  if (rangeFor(cache.second, tangent, bounds, aspect, blastBottom)) return cache.second;
+  // Replace the older entry.
+  const range = cache.firstNewer ? cache.second : cache.first;
+  cache.firstNewer = !cache.firstNewer;
   const terms = termsOf(tangent);
   const unitAbove = cameraReach(1.0, tangent, terms.above);
   const unitBelow = cameraReach(1.0, tangent, terms.below);
@@ -126,14 +138,43 @@ function rangeOf(tangent: number, bounds: Readonly<StageRegion>, aspect: number,
   return range;
 }
 
+/** A camera's reaches above, below and to the HUD's edge at one distance and tangent. */
+interface Reaches {
+  distance: number;
+  tangent: number;
+  above: number;
+  below: number;
+  hudBelow: number;
+}
+
+/**
+ * limitCamera's reaches for its last two distances and tangents: the eased
+ * camera's, which a client's local view shares, and the goal's. Like
+ * tangentTerms, a pure function's cache.
+ */
+const emptyReaches = (): Reaches => ({ distance: 0.0, tangent: -1.0, above: 0.0, below: 0.0, hudBelow: 0.0 });
+const reachTerms = { first: emptyReaches(), second: emptyReaches(), firstNewer: false };
+
+function reachesOf(distance: number, tangent: number): Readonly<Reaches> {
+  const cache = reachTerms;
+  if (cache.first.distance === distance && cache.first.tangent === tangent) return cache.first;
+  if (cache.second.distance === distance && cache.second.tangent === tangent) return cache.second;
+  const reaches = cache.firstNewer ? cache.second : cache.first;
+  cache.firstNewer = !cache.firstNewer;
+  const terms = termsOf(tangent);
+  reaches.above = cameraReach(distance, tangent, terms.above);
+  reaches.below = cameraReach(distance, tangent, terms.below);
+  reaches.hudBelow = cameraReach(distance, terms.hudTangent, terms.hudBelow);
+  reaches.distance = distance;
+  reaches.tangent = tangent;
+  return reaches;
+}
+
 /** The whole frame stays in the stage's camera range, even during easing or an aspect change. */
 export function limitCamera(camera: MatchCamera, bounds: StageRegion, aspect: number, blastBottom: number = -840.0): void {
   const range = rangeOf(camera.tangent, bounds, aspect, blastBottom);
   camera.distance = Math.min(camera.distance, range.maxWidth, range.maxHeight);
-  const terms = termsOf(camera.tangent);
-  const reachAbove = cameraReach(camera.distance, camera.tangent, terms.above);
-  const reachBelow = cameraReach(camera.distance, camera.tangent, terms.below);
-  const hudBelow = cameraReach(camera.distance, terms.hudTangent, terms.hudBelow);
+  const { above: reachAbove, below: reachBelow, hudBelow } = reachesOf(camera.distance, camera.tangent);
   const halfWidth = f32(f32(camera.distance + f32(reachBelow * CAMERA_PITCH_SIN)) * range.tangentAspect);
   camera.x = clamp(camera.x, f32(bounds.left + halfWidth), f32(bounds.right - halfWidth));
   camera.z = clamp(camera.z, Math.max(f32(bounds.bottom + hudBelow), f32(range.blastFloor + reachBelow)), f32(bounds.top - reachAbove));

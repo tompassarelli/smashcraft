@@ -277,9 +277,11 @@ binary32 numbers. Integer arithmetic wraps silently past 2^31. Host Lua,
 JavaScript and the Wurst test interpreter differ from it: stock Lua and
 JavaScript use 64-bit integers and binary64 numbers.
 
-Its float arithmetic is not consistently IEEE round-to-nearest. Division and
-decimal parsing round to nearest, but multiplication and addition can land one
-ulp toward zero, and `1 + 3 * 2^-24` returns exactly 1. The exact rounding
+Its float arithmetic is not consistently IEEE round-to-nearest. Multiplication
+and addition can land one ulp toward zero, division one ulp away from nearest,
+and a decimal numeral that isn't exactly binary32 can read as the binary32
+below the nearest; `1 + 3 * 2^-24` returns exactly 1. (`1/3` and
+`tonumber("0.1")` did round to nearest in one probe.) The exact rounding
 model is unknown. Synchronized simulation therefore uses only exact operations:
 integer arithmetic below 2^31 (division as Lua `//`), scaling by powers of two,
 and the Binary32 helpers, whose integer-limb implementation matches host
@@ -298,6 +300,18 @@ checksum, which no round-to-nearest runtime did. It still diverged on the others
 so toward-zero is not the whole model. Wisp now compiles `f32(a + b)`,
 `f32(a - b)` and `f32(a * b)` to exact binary32 operations. Evidence:
 smashcraft:evidence/native-divergence-20261006/README.md.
+
+Raw division and literals still differed natively until Wisp 6c466bb. In the
+7 October Rifleman pad run (Wisp e74e784), every fighter line matched the
+headless run, but the camera and the pose rate did not. The native camera,
+recovered from the trace checksums, settled where Warcraft's quotient
+379.64484f / 0.49583164f was 765.6729126. The nearest binary32 is 765.6728516.
+The native pose rate 2.5005886554718018 is `1.417f / (34 * FRAME_SECONDS)`
+with the literal `0.016666667` read as 0x1.11111p-6, the binary32 below the
+nearest. Wisp now compiles `f32(a / b)` to the exact `divideFloat32` and
+prints literals as exact hexadecimal floats. Its toward-zero Lua32 also rounds
+`/` and decimal numerals toward zero, so tapes catch both. Evidence:
+smashcraft:evidence/native-camera-divergence-20261007/README.md.
 
 `string.pack`, `load` and `math.type` are available to map code. Evidence:
 smashcraft:evidence/warcraft-lua-numbers-20261005/README.md.

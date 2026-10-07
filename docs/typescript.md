@@ -52,15 +52,17 @@ Map Lua has 32-bit integers that wrap silently and binary32 numbers whose raw
   4294967295, which a 32-bit Lua integer can't hold.
 - Reals in synchronized code: wrap each real `+ - * /` in its own `f32()`.
   On the host it rounds to binary32. In Lua the compiler turns `f32(a + b)`,
-  `f32(a - b)` and `f32(a * b)` into exact binary32 operations (about 1 µs
-  each in Lua32), so Warcraft gets the host's result; an operation nested
-  inside one `f32()` stays raw. `f32(a / b)` and a product with a
-  power-of-two literal stay raw, which is exact. A hot loop can test a raw
+  `f32(a - b)`, `f32(a * b)` and `f32(a / b)` into exact binary32
+  operations (about 1 µs each in Lua32), so Warcraft gets the host's result;
+  an operation nested inside one `f32()` stays raw. A product with, or a
+  quotient by, a power-of-two literal stays raw, which is exact. A hot loop can test a raw
   estimate with a margin first (smashcraft:ts/src/game/sim/surfaces.ts,
   `roughDistance`). The `wisp/src/sim/binary32` helpers add fused
   multiply-add, square root and Melee's operations.
 - Decimal literals are exact binary32 values (`0.10000000149011612`, not `0.1`)
-  and keep a decimal point (`2.0`) so they stay Lua floats.
+  or `f32(0.1)`, and keep a decimal point (`2.0`) so they stay Lua floats.
+  The compiler prints every non-integer literal as an exact hexadecimal float,
+  because Warcraft reads an inexact decimal with its own rounding.
 
 ## Model the data
 
