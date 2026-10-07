@@ -101,8 +101,8 @@ Normals, inspired by:
 
 | Input | Name | What it does |
 | --- | --- | --- |
-| Neutral special | Holy Light | An orb of light that flies out and back; it heals Uther if it returns untouched. |
-| Side special | Crusader Rush | An armored hammer charge on the ground; in the air it ends helpless. |
+| Neutral special | Hammer of Justice | A heavy overhead bonk that lifts the opponent for a follow-up. |
+| Side special | Holy Radiance | Drive the hammer forward, then send light beyond it. Strong up close; unsafe if blocked. |
 | Up special | Ascension | A rising hammer strike, then a helpless fall. |
 | Down special | Divine Shield | A guard: read an attack and become untouchable until you act. Grabs still catch him. |
 | Jab, repeated | Hammer and Haft | A hammer check, then a shove of the haft on a second jab. |
