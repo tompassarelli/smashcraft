@@ -47,6 +47,46 @@ hazards and the asset inventory per race are in [stages](stages.md).
   ([WCAG 2.3.1](https://www.w3.org/WAI/WCAG21/Understanding/three-flashes-or-below-threshold.html),
   [Universal Design](https://universaldesign.ie/communications-digital/web-and-mobile-accessibility/web-accessibility-techniques/developers-introduction-and-index/ensure-images-video-and-audio-are-accessible-to-everyone/take-extreme-care-when-designing-for-video-audio-and-animation)).
 
+### Floating stages: what is under the deck
+
+Tom's 7 Oct playtest found terrain showing beneath most stages. The prior
+art (researched 7 Oct; inferences are marked):
+
+- **The island floats; its underside is a modelled mass.** Ultimate's
+  Battlefield, the template every Battlefield form copies, is a solid main
+  platform over "a giant, jagged piece of ice at the bottom, surrounded by
+  rock" that "does not collide with anything"
+  ([SmashWiki, Battlefield (SSBU)](https://www.ssbwiki.com/Battlefield_(SSBU))).
+  Final Destination floats over a void ([SmashWiki](https://www.ssbwiki.com/Final_Destination_(SSBU))).
+- **Ground, when shown, is far below and behind.** Town and City is "suspended
+  above the scenery below", Smashville above a town
+  ([SmashWiki, Town and City](https://www.ssbwiki.com/Town_and_City),
+  [Smashville](https://www.ssbwiki.com/Smashville)): the ground reads as a
+  distant layer, never a surface right under the playfield.
+  (Inference) Ground that looks near the deck reads as somewhere to land and
+  hides the bottom blast zone: the collision-readability problem of Sakurai's
+  "Emphasize Objects with Collision" ([YouTube](https://www.youtube.com/watch?v=FfPN4ZGgBpo),
+  [summary](https://gonintendo.com/contents/11538-sakurai-covers-object-collision-in-his-latest-video)).
+- **Layers by distance from the fighter line.** Ultimate splits backgrounds
+  into layers by distance from the characters' plane and gives each a
+  different strength of emphasis "to achieve both a sense of depth and
+  visibility"; it checks stages in greyscale; ledges carry conspicuous
+  light-emitting objects; fighters get reflector fill so their shaded side
+  reads when zoomed out; and the camera is a narrow 30° so ledge positions
+  read ([CEDEC 2019, CGWorld](https://cgworld.jp/feature/201912-cedec-smashbros.html)).
+- **Readability beats scenery, and players punish failures.** Competitive
+  rulesets ban stages for dark or distracting backgrounds (Kongo Jungle 64,
+  Miiverse, Umbra Clock Tower, Unova Pokémon League; [SmashWiki, Stage legality](https://www.ssbwiki.com/Stage_legality)).
+  Rivals of Aether 2 added a Stage Outlines setting in 1.7.1 (Sep 2026)
+  because geometry stopped reading under a flatter camera
+  ([Steam](https://store.steampowered.com/news/app/2217000/view/1842212951314215)),
+  and Rivals 1 shipped a "Basic" version of each stage, its developers
+  writing "we favor readability in gameplay"
+  ([Rivals dev update, Nov 2014](https://rivalsofaether.com/developer-update-november-2014/)).
+- **Light is controlled, not cycled.** Ultimate's Battlefield moves between
+  light and dark with an eclipse instead of a full day cycle, keeping the
+  stage's brightness range bounded ([SmashWiki](https://www.ssbwiki.com/Battlefield_(SSBU))).
+
 ## Rules
 
 Smashcraft's arena camera looks along +y, ten degrees down; scenery `x` is
@@ -112,6 +152,28 @@ from the floor (smashcraft:ts/src/game/presentation/stageScenery.ts).
     The lip carries the theme's accent.
     smashcraft:ts/src/game/assets/stagePalette.tests.ts enforces the values;
     smashcraft:ts/src/game/assets/stagePalette.ts declares the palettes.
+11. **No ground under the stage** (Tom decided, 7 Oct, delegated). Matches
+    draw no terrain: below the deck a player sees only the deck's underside,
+    the sky and the stage's low atmosphere. Background pieces that would
+    stand on the ground fade into that atmosphere before their bases show,
+    so nothing beneath the deck reads as a place to land, at either camera
+    extreme (`-dev view near|far`).
+12. **The sky is one smooth gradient; the horizon sits at or below the deck.**
+    The brightest region and the busiest clouds stay out of the deck's height
+    band; the lower sky is the abyss colour the atmosphere fades to.
+
+### Art checklist
+
+Every stage passes these, judged from one batch of native captures at both
+camera extremes (smashcraft:ts/scripts/wisp/stageCompositionChecks.ts):
+
+| | Check | Measured by |
+| --- | --- | --- |
+| A | **Sky**: the stage's sky draws; at least 50% of the top 40% of the frame is sky; no hotspot in the deck's band | `bun wisp view frame` sky feature; look |
+| B | **Nothing below**: no terrain or ground texture and no cut-off prop base below the deck, near and far | look at both extremes; rule 11 |
+| C | **Underside**: the deck's body and underside read against the lower sky (ΔE00 ≥ 15, rule 10) | smashcraft:ts/src/game/assets/stagePalette.tests.ts |
+| D | **Depth layers**: three bands, each farther one lower in contrast and closer to the fog colour (rules 4, 6) | look; fog test in smashcraft:ts/test/player-view.test.ts |
+| E | **Playfield vs background**: walking surface ≥ 40 luma from the fog (rule 10); fighter contrast not reduced by the stage's atmosphere | stagePalette tests; `bun tools/stage/contrast.ts` |
 
 ## Warcraft limits
 
