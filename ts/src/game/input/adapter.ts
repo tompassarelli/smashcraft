@@ -4,6 +4,7 @@ import type { Fighter } from "../sim/fighter";
 import type { Controls } from "../sim/roster";
 import { analogShieldActive, analogShieldStrength } from "../sim/shield";
 import { squareRoot } from "../sim/warcraftMath";
+import { SHIELD_TILT_STICK_CAP, stickX, stickZ } from "../sim/stick";
 import { Action, has, maskOf } from "./actions";
 import { type AttackBuffer, clearAttackBuffer, queueAttack } from "./attackBuffer";
 import { groundDodgeIntent, normalAttackStyle } from "./combat";
@@ -60,6 +61,11 @@ export function adaptInput(row: Readonly<InputRow>, fighter: Readonly<Fighter>, 
   destination.shieldTriggerActive = pressure > 0;
   destination.shield = pressure === 255 || analogShieldActive(pressure);
   destination.shieldStrength = pressure === 255 ? 1.0 : analogShieldStrength(pressure);
+  destination.walking = has(held, Action.walk);
+  if (destination.walking && destination.shield) {
+    destination.diStickX = Math.max(-SHIELD_TILT_STICK_CAP, Math.min(SHIELD_TILT_STICK_CAP, destination.diStickX));
+    destination.diStickZ = Math.max(-SHIELD_TILT_STICK_CAP, Math.min(SHIELD_TILT_STICK_CAP, destination.diStickZ));
+  }
   destination.jumpPressed = has(pressed, Action.jump);
   destination.jumpHeld = has(held, Action.jump);
   destination.airDodgePressed = destination.shieldPressed;
@@ -78,12 +84,15 @@ export function adaptInput(row: Readonly<InputRow>, fighter: Readonly<Fighter>, 
   destination.getupDirectionPressed = destination.getupDirection !== 0;
   destination.cStickUpFlick = has(pressed, Action.smashUp);
   destination.cStickSideFlick = edgePair(pressed, Action.smashLeft, Action.smashRight);
-  destination.walking = has(held, Action.walk);
   destination.attackHeld = has(held, Action.attack);
   const leftShield = has(held, Action.leftTrigger) || analogShieldActive(row.triggerLeft);
   const rightShield = has(held, Action.rightTrigger) || analogShieldActive(row.triggerRight);
   destination.resetPressed = leftShield && rightShield && destination.attackPressed;
-  const dodge = groundDodgeIntent(destination.shield, has(pressed, Action.moveLeft), has(pressed, Action.moveRight), has(pressed, Action.moveDown));
+  // Melee's escape stick thresholds: common +0x31C/+0x314, ftCo_Escape.c.
+  const dodge = groundDodgeIntent(destination.shield,
+    has(pressed, Action.moveLeft) && stickX(destination) <= -0.699999988079071,
+    has(pressed, Action.moveRight) && stickX(destination) >= 0.699999988079071,
+    has(pressed, Action.moveDown) && stickZ(destination) <= -0.699999988079071);
   destination.groundDodgePressed = dodge !== undefined;
   destination.groundDodgeDirection = dodge ?? 0;
 

@@ -48,12 +48,18 @@ function observe(before: FrameObservation, fighter: Readonly<Fighter>): void {
   before.form = fighter.special.form;
   before.ground = fighter.ground.action;
   before.facing = fighter.facing;
+  before.shieldRaised = fighter.shield.raised;
+  before.shieldTiltX = fighter.shield.tiltX;
+  before.shieldTiltZ = fighter.shield.tiltZ;
 }
 
 const bit = (value: boolean) => (value ? "1" : "0");
 
 /** Announcements and trace lines for what the frame changed. */
 function reportChanges(s: ShellState, slot: ParticipantSlot, before: Readonly<FrameObservation>, f: Readonly<Fighter>): void {
+  if (s.trace.active && (before.shieldRaised !== f.shield.raised || before.shieldTiltX !== f.shield.tiltX || before.shieldTiltZ !== f.shield.tiltZ)) {
+    traceParticipant(s, slot, `shield tilt x ${R2S(f.shield.tiltX)} z ${R2S(f.shield.tiltZ)} raised ${bit(f.shield.raised)} grounded ${bit(f.motion.grounded)} roll ${f.dodge.groundFrame} jump ${f.jump.squat}`);
+  }
   if (s.trace.active && (before.ground !== f.ground.action || before.facing !== f.facing)) {
     traceParticipant(s, slot, `ground action ${f.ground.action} facing ${f.facing} dash-frame ${f.ground.dashFrame}`);
   }
