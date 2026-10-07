@@ -11,7 +11,8 @@ import { seconds } from "./asset-info";
 import { measureDrawnStride, drawnStrideSource } from "../../ts/scripts/wisp/drawnMotion";
 import { DRAWN_STRIDES } from "../../ts/src/game/presentation/drawnStrideInfo";
 import { ensure, parseSource, tracks, onGlobalClock, encodeVerified } from "./original-clips";
-const [input, output] = process.argv.slice(2).map(p => resolve(p));
+const [input, output] = process.argv.slice(2,4).map(p => resolve(p));
+const replacements = process.argv.slice(4);
 const project = resolve(import.meta.dir, "../..");
 ensure(input && output && relative(project, output).startsWith(".."), "usage: bun tools/animations/thrall-clips.ts STOCK_THRALL.mdx PRIVATE_OUTPUT");
 const source = parseSource(await Bun.file(input).arrayBuffer()), model = structuredClone(source);
@@ -26,10 +27,11 @@ const low: Gesture = {chest:10,waist:5,arm:-25,wrist:0,leftArm:-35,head:-15,wolf
 const back: Gesture = {chest:-15,waist:-20,arm:55,wrist:35,leftArm:-40,head:15,yaw:150,neck:-10};
 const cast: Gesture = {chest:-20,waist:8,arm:-115,wrist:20,leftArm:-120,head:-20,neck:-10,front:-10};
 const brace: Gesture = {chest:35,waist:10,arm:-45,wrist:25,leftArm:-60,head:-20,wolf:6,front:35,back:35};
+const headAnticipation: Partial<Record<HeroPose, number>> = { forwardTilt: 15, forwardTiltDown: 45, downTilt: 45, dashAttack: 75 };
 const actions: Action[] = [];
 const normals: readonly [HeroPose, AttackStyle, Gesture][] = [
  ["jab",AttackStyle.jab,{...forward,arm:-60,chest:10}], ["jab2",AttackStyle.jab2,{...forward,arm:-80}],
- ["forwardTilt",AttackStyle.forwardTilt,forward], ["forwardTiltUp",AttackStyle.forwardTiltUp,{...overhead,arm:-130}], ["forwardTiltDown",AttackStyle.forwardTiltDown,{...low,arm:-70}],
+ ["forwardTilt",AttackStyle.forwardTilt,{...forward,chest:50,waist:-30}], ["forwardTiltUp",AttackStyle.forwardTiltUp,{...overhead,arm:-130}], ["forwardTiltDown",AttackStyle.forwardTiltDown,{...low,arm:-70}],
  ["upTilt",AttackStyle.upTilt,overhead], ["downTilt",AttackStyle.downTilt,low], ["dashAttack",AttackStyle.dashAttack,{...forward,lean:12,wolf:10}],
  ["forwardSmash",AttackStyle.forwardSmash,{...forward,chest:35,waist:-20,arm:-115,wrist:60}], ["upSmash",AttackStyle.upSmash,{...overhead,chest:-30,arm:-175}], ["downSmash",AttackStyle.downSmash,{...low,chest:70,yaw:45}],
  ["neutralAir",AttackStyle.neutralAir,{...forward,yaw:70}], ["forwardAir",AttackStyle.forwardAir,{...forward,wolf:12}], ["backAir",AttackStyle.backAir,back], ["upAir",AttackStyle.upAir,overhead], ["downAir",AttackStyle.downAir,{...low,front:-65,neck:15}],
@@ -60,6 +62,7 @@ function joint(name:string,g:Gesture):[number,number]{
 const originals=new Map<string,mdx.AnimVector>();tracks(source,(t,p)=>originals.set(p,t));
 const retainedFile=Bun.file(join(output,"thrall.mdx"));
 const retained=await retainedFile.exists()?parseSource(await retainedFile.arrayBuffer()):undefined;
+ensure(replacements.length === 0 || retained !== undefined, "Replacing clips needs the existing thrall.mdx in PRIVATE_OUTPUT");
 let cursor=Math.max(...(retained?.Sequences??source.Sequences).map(s=>s.Interval[1]))+100;
 const bindings:string[]=[],damageBindings:string[]=[], records:unknown[]=[];
 const damageActions:Action[]=[];
@@ -82,6 +85,7 @@ for(const [ordinal,action]of [...actions,...damageActions].entries()){
   if(!first)return;
   const match=/^\.(Bones|Helpers)\.(\d+)\.Rotation$/.exec(path),node=match?source[match[1] as "Bones"|"Helpers"][Number(match[2])]:undefined;
   for(const {frame,amount}of phases){let Vector=first.Vector.slice();if(node){let[y,z]=joint(node.Name,action.gesture);if(node.Name==="Bone Center"&&action.roll)y=frame/action.frames*360*action.roll;else y*=amount;z*=amount;Vector=rotated(first.Vector,y,z);}
+   if(node?.Name==="Bone Wolf Head"&&frame===phaseFrames[1]&&headAnticipation[action.pose]!==undefined)Vector=rotated(Vector,headAnticipation[action.pose]!);
    const tangent=()=>match||track.LineType===mdx.LineType.Bezier?Vector.slice():new Float32Array(Vector.length);
    track.Keys.push({...first,Frame:start+Math.round(frame*1000/60),Vector,...first.InTan?{InTan:tangent(),OutTan:tangent()}: {}});
   }
@@ -91,17 +95,28 @@ for(const [ordinal,action]of [...actions,...damageActions].entries()){
  const center=model.Nodes.find(b=>b.Name==="Bone Center");ensure(center,"No mount root");
  if(!center.Translation)center.Translation={LineType:1,GlobalSeqId:null,Keys:source.Sequences.flatMap(s=>Array.from(s.Interval).map(Frame=>({Frame,Vector:new Float32Array([0,0,0])})))};
  if (["jab","jab2","forwardTilt","forwardTiltUp","forwardTiltDown","upTilt","downTilt","dashAttack","forwardSmash","upSmash","downSmash","neutralAir","forwardAir","backAir","upAir","downAir","throwForward","throwBack","throwUp","throwDown"].includes(action.pose)) {
-  const target = action.pose.includes("Up") || action.pose.startsWith("up") ? [5,180] : action.pose==="downAir" ? [20,105] : action.pose.includes("Down") || action.pose.startsWith("down") ? [30,110] : action.pose.includes("Back") || action.pose.startsWith("back") ? [-65,135] : [60,130];
+  const headContact = ["jab","jab2","forwardTilt"].includes(action.pose);
+  const target = action.pose === "jab" ? [45,70] : action.pose === "jab2" ? [50,72] : action.pose === "forwardTilt" ? [92,75] : action.pose.includes("Up") || action.pose.startsWith("up") ? [5,180] : action.pose==="downAir" ? [20,105] : action.pose.includes("Down") || action.pose.startsWith("down") ? [30,110] : action.pose.includes("Back") || action.pose.startsWith("back") ? [-65,135] : [60,130];
 
   const renderer = new ModelRenderer(model), data = Reflect.get(renderer,"rendererData");renderer.setSequence(index);data.frame=start+Math.round(action.contact*1000/60);
   const arm=model.Nodes.find(n=>n.Name==="Bone Rider R Arm")!,wrist=model.Nodes.find(n=>n.Name==="Bone Rider R Wrist")!,weapon=model.Nodes.find(n=>n.Name==="Weapon Ref")!,pivot=model.PivotPoints[weapon.ObjectId]!;
   const donor=(n:mdx.Model["Nodes"][number])=>source.Nodes[n.ObjectId]!.Rotation!.Keys.find(k=>k.Frame>=stand.Interval[0]&&k.Frame<=stand.Interval[1])!.Vector;
   const armBase=donor(arm),wristBase=donor(wrist);
+  const hammer=model.Nodes.find(n=>n.Name==="Hammer")!;
+  const head=source.Geosets.filter(g=>source.Materials[g.MaterialID]!.Layers.some(layer=>Number(layer.FilterMode)<=2)).flatMap(g=>Array.from({length:g.Vertices.length/3},(_,i)=>i).filter(i=>g.Groups[g.VertexGroup[i]!]!.includes(hammer.ObjectId)&&g.Vertices[i*3]!>=0).map(i=>[g.Vertices[i*3]!,g.Vertices[i*3+1]!,g.Vertices[i*3+2]!]));
+  const contactPoint=headContact?head[0]!.map((_,i)=>(Math.min(...head.map(p=>p[i]!))+Math.max(...head.map(p=>p[i]!)))/2):pivot;
   const set=(n:mdx.Model["Nodes"][number],base:ArrayLike<number>,y:number,z:number)=>{ for(const {frame,amount}of phases) {const key=n.Rotation!.Keys.find(k=>k.Frame===start+Math.round(frame*1000/60))!;key.Vector=rotated(base,y*amount,z*amount);if(key.InTan){key.InTan=key.Vector.slice();key.OutTan=key.Vector.slice();}} };
   let angles=[0,0,0,0];
-  const loss=()=>{set(arm,armBase,angles[0]!,angles[1]!);set(wrist,wristBase,angles[2]!,angles[3]!);renderer.update(0);const mat=data.nodes[weapon.ObjectId].matrix;const x=mat[0]*pivot[0]+mat[4]*pivot[1]+mat[8]*pivot[2]+mat[12],z=mat[2]*pivot[0]+mat[6]*pivot[1]+mat[10]*pivot[2]+mat[14];return (x-target[0]!)**2+(z-target[1]!)**2;};
+  const loss=()=>{set(arm,armBase,angles[0]!,angles[1]!);set(wrist,wristBase,angles[2]!,angles[3]!);renderer.update(0);const mat=data.nodes[headContact?hammer.ObjectId:weapon.ObjectId].matrix;const x=mat[0]*contactPoint[0]!+mat[4]*contactPoint[1]!+mat[8]*contactPoint[2]!+mat[12],z=mat[2]*contactPoint[0]!+mat[6]*contactPoint[1]!+mat[10]*contactPoint[2]!+mat[14];return (x-target[0]!)**2+(z-target[1]!)**2;};
   for(let pass=0;pass<4;pass++)for(let dim=0;dim<4;dim++){let best=Infinity,bestAngle=0;for(let value=-180;value<=180;value+=pass<2?15:5){angles[dim]=value;const distance=loss();if(distance<best){best=distance;bestAngle=value;}}angles[dim]=bestAngle;}
   loss();
+  if(headContact){
+   const waist=model.Nodes.find(n=>n.Name==="Bone Rider Waist")!,parent=data.nodes[waist.Parent!].matrix,mat=data.nodes[hammer.ObjectId].matrix;
+   const x=mat[0]*contactPoint[0]!+mat[4]*contactPoint[1]!+mat[8]*contactPoint[2]!+mat[12],z=mat[2]*contactPoint[0]!+mat[6]*contactPoint[1]!+mat[10]*contactPoint[2]!+mat[14];
+   const dx=target[0]!-x,dz=target[1]!-z;
+   const local=[parent[0]*dx+parent[2]*dz,parent[4]*dx+parent[6]*dz,parent[8]*dx+parent[10]*dz];
+   for(const {frame,amount}of phases){const key=waist.Translation!.Keys.find(k=>k.Frame===start+Math.round(frame*1000/60))!;key.Vector=new Float32Array(Array.from(key.Vector,(v,i)=>v+local[i]!*amount));if(key.InTan){key.InTan=new Float32Array([0,0,0]);key.OutTan=new Float32Array([0,0,0]);}}
+  }
 
  }
  const beforeKeys=center.Translation.Keys.filter(k=>k.Frame<start||k.Frame>end);
@@ -124,7 +139,12 @@ for(const [ordinal,action]of actions.entries())if(/^victim(Pummel|Throw)/.test(a
  sequence.Interval=new Uint32Array([start,start+1000]);
 }
 tracks(model,track=>{if(!onGlobalClock(track))track.Keys.sort((a,b)=>a.Frame-b.Frame);});
-const bytes=encodeVerified(parseSource(generateMDX(model)));mkdirSync(output,{recursive:true});await Bun.write(join(output,"thrall.mdx"),bytes);
+if (retained && replacements.length > 0) {
+ const intervals = replacements.map(pose => { const ordinal = actions.findIndex(action => action.pose === pose); ensure(ordinal >= 0, `Unknown replacement: ${pose}`); const index=source.Sequences.length+ordinal,previous=retained.Sequences[index]!.Interval,sequence=model.Sequences[index]!;retained.Sequences[index]=sequence;return {previous,next:sequence.Interval}; });
+ const generated = new Map<string,mdx.AnimVector>(); tracks(model,(track,path)=>generated.set(path,track));
+ tracks(retained,(track,path)=>{ if(onGlobalClock(track))return; const replacement=generated.get(path); ensure(replacement, `Missing replacement track ${path}`); const inside=(frame:number,which:"previous"|"next")=>intervals.some(interval=>frame>=interval[which][0]!&&frame<=interval[which][1]!); track.Keys=[...track.Keys.filter(key=>!inside(key.Frame,"previous")),...replacement.Keys.filter(key=>inside(key.Frame,"next"))].sort((a,b)=>a.Frame-b.Frame); });
+}
+const bytes=encodeVerified(parseSource(generateMDX(replacements.length > 0 ? retained! : model)));mkdirSync(output,{recursive:true});await Bun.write(join(output,"thrall.mdx"),bytes);
 await Bun.write(join(project,"ts/src/game/presentation/heroes/thrallClips.ts"),[
  "// Generated by tools/animations/thrall-clips.ts from the stock classic Thrall rig.",'import { f32 } from "wisp/src/sim/f32";', 'import type { HeroClip, HeroClipTable } from "../../sim/heroes/hero";',
  'export const THRALL_MODEL_FILE = "units\\\\orc\\\\Thrall\\\\Thrall.mdl";',
@@ -136,5 +156,5 @@ const finalDrawn=new DrawnModel(bytes,1.0);
 const strides=Object.entries(DRAWN_STRIDES).flatMap(([character,data])=>data?(["walk","run"] as const).map(motion=>({character:Number(character) as Character,motion,...data[motion]})):[]).filter(row=>row.character!==Character.thrall);
 for(const motion of ["walk","run"] as const)strides.push(measureDrawnStride(bytes,finalDrawn,Character.thrall,motion,"units\\orc\\Thrall\\Thrall.mdl"));
 await Bun.write(join(project,"ts/src/game/presentation/drawnStrideInfo.ts"),drawnStrideSource(strides.sort((a,b)=>a.character-b.character)));
-for(const pose of ["forwardTilt","upTilt","downTilt","backAir","downAir","neutralSpecial","sideSpecial","upSpecial","downSpecial","rollForward","throwForward","throwBack","throwUp","throwDown"]){const i=actions.findIndex(a=>a.pose===pose),action=actions[i]!;const sequence=source.Sequences.length+i;const panels:PoseFrame[]=[1,-1].flatMap(facing=>[0,Math.max(1,action.contact-3),action.contact,action.contact+4,action.frames].map(frame=>({frame,phase:frame<action.contact?AttackPhase.startup:frame<=action.contact+4?AttackPhase.active:AttackPhase.recovery,x:0,z:0,facing,parts:[],strikes:[],clip:sequence,seconds:Math.min(action.frames,frame)/60})));await Bun.write(join(output,`${pose}.png`),sheet(`Thrall ${pose}`,finalDrawn,panels,5).png);}
+for(const pose of ["jab","jab2","forwardTilt","forwardTiltDown","upTilt","downTilt","dashAttack","backAir","downAir","neutralSpecial","sideSpecial","upSpecial","downSpecial","rollForward","throwForward","throwBack","throwUp","throwDown"]){const i=actions.findIndex(a=>a.pose===pose),action=actions[i]!;const sequence=source.Sequences.length+i;const panels:PoseFrame[]=[1,-1].flatMap(facing=>[0,Math.max(1,action.contact-3),action.contact,action.contact+4,action.frames].map(frame=>({frame,phase:frame<action.contact?AttackPhase.startup:frame<=action.contact+4?AttackPhase.active:AttackPhase.recovery,x:0,z:0,facing,parts:[],strikes:[],clip:sequence,seconds:Math.min(action.frames,frame)/60})));await Bun.write(join(output,`${pose}.png`),sheet(`Thrall ${pose}`,finalDrawn,panels,5).png);}
 await Bun.write(join(output,"thrall-clips.json"),JSON.stringify({stockSequences:source.Sequences.length,appended:records.length,records},null,2)+"\n");console.log(`THRALL_CLIPS_PASS ${records.length} authored clips; ${source.Sequences.length} stock sequences retained; private output ${output}`);

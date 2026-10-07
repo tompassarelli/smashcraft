@@ -148,11 +148,12 @@ code. From smashcraft:ts/:
   `SMASHCRAFT_ANIMATION_ASSETS=PRIVATE_DIR` selects Archer's editable inputs;
   `SMASHCRAFT_STRIKE_CLIP='Attack Jab'` reauthors only the fist punch.
 - Thrall stock-rig animation authoring (from the repository root):
-  `bun tools/animations/thrall-clips.ts STOCK_THRALL.mdx PRIVATE_OUTPUT` appends
+  `bun tools/animations/thrall-clips.ts STOCK_THRALL.mdx PRIVATE_OUTPUT [POSE...]` appends
   mounted hammer, casting, recovery, grab and nine contact-reaction clips,
   writes both-facing side-view sheets, and refreshes Thrall clip and stride
   metadata. Store the generated model in `hero-models` and refresh the
-  original clip pool before building.
+  original clip pool before building. With pose names, reauthor only those clips
+  from the existing `PRIVATE_OUTPUT/thrall.mdx`, preserving every other clip.
 - Illidan locomotion authoring (from the repository root): run Blender with
   `--python tools/animations/illidan-locomotion.py -- PRIVATE_FIGHTER.blend PRIVATE_AUTHORED`,
   then `bun tools/animations/illidan-locomotion.ts PRIVATE_ASSETS PRIVATE_AUTHORED PRIVATE_OUTPUT`.
