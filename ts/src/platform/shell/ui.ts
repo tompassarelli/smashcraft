@@ -36,6 +36,7 @@ import { type SettingsActions, SettingsPanel } from "../../game/ui/settingsUi";
 import { type StageActions, StagePanel } from "../../game/ui/stageUi";
 import type { ShellState } from "./state";
 import { bindPrototype } from "../rebind";
+import { ItemPresentation } from "../../game/render/itemPresentation";
 import { BodyFlash } from "../../game/render/bodyFlash";
 
 /** A fighter's renderers for one match; the pool only in pooled presentation. */
@@ -55,6 +56,7 @@ interface FighterRenderers {
 }
 
 export interface UiObjects {
+  items: ItemPresentation;
   readonly clock: MatchClock;
   readonly training: TrainingReadout;
   readonly huds: Slots<FighterHud>;
@@ -114,6 +116,7 @@ function menuControls(s: Readonly<ShellState>): MenuControls {
 export function createUi(s: ShellState, actions: PanelActions): UiObjects {
   const controls = menuControls(s);
   const ui: UiObjects = {
+    items: new ItemPresentation(s.origin),
     clock: new MatchClock(),
     training: new TrainingReadout(),
     huds: each(slot => new FighterHud(slot, 4)),
@@ -184,6 +187,9 @@ export function layoutHuds(s: ShellState): void {
 export function recreateUi(s: ShellState, actions: PanelActions): void {
   const ui = s.ui;
   if (ui === undefined) return;
+  const retainedItems: { readonly items?: ItemPresentation } = ui;
+  if (retainedItems.items === undefined) ui.items = new ItemPresentation(s.origin);
+  else bindPrototype(ui.items, ItemPresentation.prototype);
   bindPrototype(ui.clock, MatchClock.prototype);
   bindPrototype(ui.training, TrainingReadout.prototype);
   for (const slot of PARTICIPANT_SLOTS) {

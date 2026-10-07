@@ -159,6 +159,13 @@ code. From smashcraft:ts/:
   `bun tools/animations/jaina-clips.ts STOCK_JAINA.mdx PRIVATE_OUTPUT`
   appends her staff strikes, spell gestures, movement and nine contact reactions;
   store the generated model in `hero-models` and refresh the original clip pool.
+- Tinker animation authoring (from the repository root):
+  `bun tools/animations/tinker-clips.ts PRIVATE_CLASSIC_HEROTINKER.mdx PRIVATE_OUTPUT [--no-pool]`
+  preserves the 23 classic sequences and authors the claw-pack, Robo-Goblin,
+  recovery, paired throws and nine pain reactions. It writes the private
+  model, both-facing silhouette sheets, clip metadata and measured stride;
+  `--no-pool` leaves pooled export to the combined roster pass
+  (smashcraft:docs/fighter-animation-work.md, "Goblin Tinker").
 - Lich King animation authoring (from the repository root):
   `tools/animations/build-lichking.sh [PRIVATE_INPUTS] [IMMUTABLE_EXISTING_MODEL] [--replace NAME]`
   authors clips through Blender; the optional existing model preserves shipped
@@ -200,6 +207,9 @@ code. From smashcraft:ts/:
   low/middle/high and small/medium/large, with ordinary projectile contacts at
   frame 150 after both players' scripted jab. `bun tools/animations/pain-pads.ts`
   from the repository root generates its 117 native parity scripts.
+- Item setup at fighter selection: `-dev items on|off` controls whether pickups appear;
+  `-dev item speed|jump|heavy on|off` controls each kind. The normal selection
+  buttons show Items, Speed, Extra jump and Heavy, all on by default.
 - Generated menus: smashcraft:ts/scripts/wisp/uiFrames.ts defines menu panels as Wisp
   frame definitions (wisp:docs/ui.md); after changing one or its layout, `bun
   scripts/wisp/uiFrames.ts` rewrites its FDF/TOC in smashcraft:tools/selection/art/

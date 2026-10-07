@@ -297,6 +297,7 @@ export function lockArenaCamera(s: ShellState): void {
     SetCameraField(CAMERA_FIELD_FIELD_OF_VIEW, 70.0, 0.0);
     SetCameraPosition(centerX, centerY);
   }
+  views(s).items.present(game, world, framing, aspect);
   for (const slot of PARTICIPANT_SLOTS) {
     const fighter = isActive(world, slot) ? fighterAt(world, slot) : undefined;
     const point = cameraPoint(framing, aspect, fighter?.motion.x ?? 0.0, (fighter?.motion.z ?? 0.0) + 60.0);
@@ -332,6 +333,7 @@ export function renderUi(s: ShellState): void {
     ui.settings[slot].update();
   }
   ui.clock.update(showMatch && timedMatch(game), remainingSeconds(game));
+  ui.items.hud(game, showMatch);
   ui.training.update(showMatch && game.training && game.phase === Phase.match, game.trainer);
   const { help, notice, developer } = s.frames;
   BlzFrameSetVisible(help, showMatch);
