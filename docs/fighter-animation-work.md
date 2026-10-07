@@ -1267,6 +1267,41 @@ attacks while preserving the other fighters' recorded rows. Omit
 `--character` to measure the whole roster. Ledge samples start in the ledge
 attack state so they play the climbing attack rather than the get-up clip.
 
+## Paired expansion-hero grabs
+
+From the repository root, `bun tools/animations/grab-clips.ts PRIVATE_ASSETS
+PRIVATE_OUTPUT` appends thirteen grab-family gestures to each expansion hero:
+reach, holder/captive hold, both pummel roles, and both roles in four throw
+directions. Original Archer, Rifleman and Illidan authoring stays in
+smashcraft:tools/animations/grab_animations.py. Output models and the motion
+report are private; smashcraft:ts/src/game/presentation/grabClipInfo.ts is
+generated from their sequence indices.
+
+The grip arm reaches while the weapon arm stays separated. Pummels coil then
+strike locally; forward throws push, back throws sweep overhead and behind,
+up throws compress then extend overhead, and down throws lift then fold toward
+the floor. Chest, head, arms and knees move together. Dwarves use compact
+shoulders, agile fighters add chest twist, and heavy fighters commit more of
+their torso. The floating Lich articulates its existing neck/body rig.
+The simulation continues to own the pair's root positions, carry arcs, damage
+and release frames.
+
+An authored contact time in each action clip lets holder and victim independently
+reach their gesture on the actual holder's contact frame. This retains alignment
+for unlike kits, hitstop and restored grabs. The victim uses its own selected
+clip length and the holder's total action duration. A grab reach uses the kit's
+existing startup and active window, and holds remain deliberately still.
+
+The generator checks each unchanged sequence at start/middle/end, samples all
+sixty authored frames of each action, and rejects missing bodies or repeated
+directional contact poses. These checks establish local motion and preservation;
+gameplay-camera readability is checked by the native owner with unlike heights,
+a mirror pair, and both facings. Store `hero-models` and `imported-models` through
+`bun wisp inputs add`, then refresh `original-clips-static-lights` with
+smashcraft:tools/animations/export-original-clips.ts and `--keep-unchanged`.
+Stripping only the appended paired suffix must recover the exact input hash
+before old pool clips may be reused.
+
 ## Contact pain poses
 
 smashcraft:tools/animations/damage-clips.ts appends nine non-looping clips per

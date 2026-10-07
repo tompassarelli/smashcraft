@@ -11,7 +11,7 @@ import type { Fighter } from "../sim/fighter";
 import { AIR_DODGE_ANIMATION_FRAMES } from "../sim/jumpsAndDodges";
 import { LEDGE_CLIMB_FRAMES, LEDGE_ROLL_FRAMES } from "../sim/ledge";
 import { totalVelocityX } from "../sim/motion";
-import { LEDGE_ATTACK_FRAMES, RIFLEMAN_BLASTER_AIR_FRAMES, attackStartupFrames, characterAttackActiveFrames, grabActionDuration } from "../sim/moves";
+import { LEDGE_ATTACK_FRAMES, RIFLEMAN_BLASTER_AIR_FRAMES, attackStartupFrames, characterAttackActiveFrames, grabActionDuration, grabContactFrame } from "../sim/moves";
 import { type Controls, type Roster, fighterAt } from "../sim/roster";
 import { SHIELD_RELEASE_LAG_FRAMES } from "../sim/shield";
 import { INITIAL_DASH_FRAMES, SHIELD_BREAK_LAND_FRAMES, SHIELD_BREAK_STAND_FRAMES, authoredPhysics } from "../sim/tuning";
@@ -341,9 +341,24 @@ function selectGrabClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly
     pose.animation = key;
   }
   if (illidanEscape) return clipRate(dh.DEMON_HUNTER_GRAB_ESCAPE_SECONDS, grabActionDuration(action, f.tuning.moves));
-  // Both sides play at the holder clip's rate.
   const poses = clips.grabActionPoses(action);
-  return poses === undefined ? 0.0 : clipRate(clips.clipFor(f.character, poses.holder).seconds, grabActionDuration(action, f.tuning.moves));
+  if (poses === undefined) return 0.0;
+  const clip = clips.clipFor(f.character, victim ? poses.victim : poses.holder);
+  const duration = grabActionDuration(action, owner.tuning.moves);
+  if (clip.contact === undefined) return clipRate(clip.seconds, duration);
+  const contact = grabContactFrame(action, owner.tuning.moves);
+  const heldSlot = owner.grab.target;
+  const frozen = owner.launch.hitlag > 0 || (heldSlot !== undefined && fighterAt(world, heldSlot).launch.hitlag > 0);
+  // Both bodies reach their contact pose on the owner's actual action frame,
+  // including unlike kits and a restored or hitstop-paused grab.
+  if (owner.grab.frame < contact) {
+    const rate = clipRate(clip.contact, contact);
+    pose.clipTime = f32(f32(owner.grab.frame * FRAME_SECONDS) * rate);
+    return frozen ? 0.0 : rate;
+  }
+  const rate = clipRate(f32(clip.seconds - clip.contact), duration - contact);
+  pose.clipTime = f32(clip.contact + f32(f32((owner.grab.frame - contact) * FRAME_SECONDS) * rate));
+  return frozen ? 0.0 : rate;
 }
 
 /**

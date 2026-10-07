@@ -32,6 +32,19 @@ export function drillBaseModel(source: mdx.Model): mdx.Model | undefined {
   return model;
 }
 
+/** Paired gestures only append keys; stripping them recovers the exact input. */
+export function grabBaseModel(source: mdx.Model): mdx.Model | undefined {
+  const first = source.Sequences.findIndex(s => s.Name.startsWith("Paired Grab "));
+  if (first < 0) return undefined;
+  ensure(first > 0 && source.Sequences.slice(first).every(s => s.Name.startsWith("Paired Grab ")), "Paired grabs must be a sequence suffix");
+  const cutoff = source.Sequences[first]?.Interval[0];
+  ensure(cutoff !== undefined, "Paired grabs have no start");
+  const model = structuredClone(source);
+  model.Sequences = model.Sequences.slice(0, first);
+  tracks(model, track => { if (!onGlobalClock(track)) track.Keys = track.Keys.filter(k => k.Frame < cutoff); });
+  return model;
+}
+
 /** Removing the additive damage suffix must reproduce its exact input bytes. */
 export function damageBaseModel(source: mdx.Model): mdx.Model | undefined {
   const first = source.Sequences.findIndex(s => s.Name.startsWith("Damage Grid "));

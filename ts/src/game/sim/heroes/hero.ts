@@ -16,6 +16,8 @@ export interface NamedMove {
 export interface HeroClip {
   readonly index: number;
   readonly seconds: number;
+  /** Paired grab gesture's contact time, aligned to the current holder's contact frame. */
+  readonly contact?: number | undefined;
   /**
    * Its seconds were authored to put a hand-picked strike on the move's
    * chosen frame (groundNormals.ts strikeClip); pose selection then plays it
