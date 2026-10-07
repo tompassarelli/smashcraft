@@ -4,7 +4,7 @@
 // hero reference height H.
 import { f32 } from "wisp/src/sim/f32";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
-import { type AuthoredSpecial, type FighterSpecials, type SpecialPlacement, type SpecialProjectile, frames } from "../heroSpecials";
+import { type AuthoredSpecial, type FighterSpecials, type SpecialPlacement, type SpecialProjectile, CHARGED_AIM_FRAMES, chargedAngleMotion, frames } from "../heroSpecials";
 import { HeroStatusGroup, HeroStatusKind, HitElement } from "../codes";
 import type { AppliedStatus } from "../heroStatus";
 import { hit } from "./shadowHunterMoves";
@@ -33,16 +33,16 @@ const spiritGlaive = (air: boolean): AuthoredSpecial => ({
 });
 
 /**
- * Loa Vault: f8-30 travel, then helpless. Velocities are per frame in H,
- * calibrated in shadowHunterSpecials.tests.ts: the window sets velocity
- * exactly, and with the ballistic rise after it the peak reaches the listed
- * 2.0H rise and 0.6H drift (free form 1.4H and 0.3H). A stick held sideways
- * on entry turns him that way first, so the drift goes where he steers.
+ * Loa Vault, the roster's charged-angle rule (#189): the spirits hold him
+ * through f8 while the stick picks one of eight directions (straight up when
+ * neutral), vault him that way evenly over f9-24 and stop on f25; then
+ * helpless. Full form 2.9H, free form 2.0H: his recovery is an angle choice,
+ * like his wards.
  */
-const loaVault = (cost: number, riseVelocity: number, driftVelocity: number): AuthoredSpecial => ({
-  cost, endFrame: 30,
-  motion: [{ ...frames(8, 30), velocityX: h(driftVelocity), velocityZ: h(riseVelocity) }],
-  oncePerAirtime: true, helpless: true, facesStick: true,
+const loaVault = (cost: number, distance: number): AuthoredSpecial => ({
+  cost, endFrame: 26, aimFrames: CHARGED_AIM_FRAMES,
+  motion: chargedAngleMotion(h(distance), 16),
+  oncePerAirtime: true, helpless: true,
 });
 
 /**
@@ -94,6 +94,6 @@ const SERPENT_WARD_RECALL: AuthoredSpecial = { cost: 0, endFrame: 52, groundOnly
 export const SHADOW_HUNTER_SPECIALS: FighterSpecials = {
   neutral: { name: "Spirit Glaive", description: "A glaive that flies out and back, pulling its target toward him on the return.", ground: spiritGlaive(false), air: spiritGlaive(true) },
   side: { name: "Serpent Ward", description: "Place a ward that fires on its own; press again to recall it.", ground: SERPENT_WARD_CAST, recall: SERPENT_WARD_RECALL },
-  up: { name: "Loa Vault", description: "A spirit-lifted vault, then a helpless fall.", ground: loaVault(15, f32(0.0909), f32(0.0273)), free: loaVault(0, f32(0.0636), f32(0.0137)) },
+  up: { name: "Loa Vault", description: "Hold a direction as the spirits gather, then a vault that way and a helpless fall.", ground: loaVault(15, f32(2.9)), free: loaVault(0, f32(2.0)) },
   down: { name: "Hex", description: "A short orb that stops its target attacking, grabbing or casting until it mashes out.", ground: hex(false), air: hex(true) },
 };

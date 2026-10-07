@@ -4,7 +4,7 @@ import { ARCHER_MODEL_FILE, RIFLEMAN_MODEL_FILE } from "./presentation/fighterAs
 import { DEMON_HUNTER_MODEL_FILE } from "./presentation/demonHunterAssetInfo";
 import { characterModelScale } from "./presentation/modelScale";
 import { Character } from "./sim/codes";
-import { SELECTABLE_CHARACTERS, heroDefinition } from "./sim/heroes/registry";
+import { HERO_ROSTER, heroDefinition } from "./sim/heroes/registry";
 
 export interface FighterObject {
   readonly base: string;
@@ -45,6 +45,7 @@ export const FIGHTER_OBJECTS: Readonly<Record<Character, FighterObject>> = {
   [Character.archer]: { ...fighterFields, base: "earc", id: 0x6d666172, name: "Archer", model: ARCHER_MODEL_FILE, scale: characterModelScale(Character.archer) },
   [Character.rifleman]: { ...fighterFields, base: "hrif", id: 0x6d667266, name: "Rifleman", model: RIFLEMAN_MODEL_FILE, scale: characterModelScale(Character.rifleman) },
   [Character.demonHunter]: { ...fighterFields, base: "earc", id: 0x6d666468, name: "Illidan", model: DEMON_HUNTER_MODEL_FILE, scale: characterModelScale(Character.demonHunter) },
+  [Character.chen]: heroObject(Character.chen),
   [Character.blademaster]: heroObject(Character.blademaster),
   [Character.mountainKing]: heroObject(Character.mountainKing),
   [Character.warden]: heroObject(Character.warden),
@@ -56,11 +57,14 @@ export const FIGHTER_OBJECTS: Readonly<Record<Character, FighterObject>> = {
   [Character.beastmaster]: heroObject(Character.beastmaster),
   [Character.lichKing]: heroObject(Character.lichKing),
   [Character.thrall]: heroObject(Character.thrall),
+  [Character.jaina]: heroObject(Character.jaina),
+  [Character.sylvanas]: heroObject(Character.sylvanas),
+  [Character.cairne]: heroObject(Character.cairne),
+  [Character.peon]: heroObject(Character.peon),
   [Character.tinker]: heroObject(Character.tinker),
 };
 
-/** Explicit order for archive emission and synchronized native application: the selectable fighters. */
-export const FIGHTER_OBJECT_ORDER: readonly Character[] = SELECTABLE_CHARACTERS;
+export const FIGHTER_OBJECT_ORDER: readonly Character[] = [Character.archer, Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map((hero) => hero.character)];
 
 /** FileIO's channel ability uses one tooltip per file chunk. */
 export const FILE_IO_OBJECT = {

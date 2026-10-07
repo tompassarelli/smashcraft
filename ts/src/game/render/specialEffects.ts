@@ -16,46 +16,45 @@ import {
 import { SUMMON_BEAR } from "../presentation/summonClipInfo";
 import { type SummonState, projectBear } from "../presentation/summonState";
 import { f32 } from "wisp/src/sim/f32";
-import { Character, HeroStatusKind, HippogryphKind, SpecialAction } from "../sim/codes";
+import { Character, HeroStatusKind, SpecialAction } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 import { DEMONHUNTER_IMMOLATE_ACTIVE, DEMONHUNTER_IMMOLATE_STARTUP, DEMONHUNTER_MANA_BURN_STARTUP, FLAME_CRASH_BURST_LAST, FLAME_CRASH_LANDING_FORM } from "../sim/specials";
 import { type ParkedFlags, STOCK_MODELS, type WorldOrigin, facingYaw, parkOnce, placeEffect } from "./effects";
 import { characterModelScale } from "../presentation/modelScale";
 import { IMMOLATE_SOUNDS } from "../presentation/elementLooks";
 import { SummonPresentation } from "./summonPresentation";
+import { createHippogryphPresentationState, projectHippogryph, HIPPOGRYPH_MODEL, HIPPOGRYPH_RIDER_MODEL, type HippogryphPresentationState } from "../presentation/hippogryphPose";
 import { bindPrototype } from "../../platform/rebind";
 
 interface SpecialSlot {
   readonly bear: SummonPresentation;
   readonly hippogryph: effect;
+  readonly rider: effect;
+  readonly hippogryphState: HippogryphPresentationState;
   readonly aura: effect;
   readonly felFlames: effect;
   readonly manaHand: effect;
   readonly wingTrail: effect;
   readonly drainFlash: effect;
+  readonly silence: effect;
   /** Event identity is (match, completed frame, fighter, action); the cursor rejects replayed frames before any restart. */
   readonly cursor: ImpactPresentationCursor;
   previousSpecial: SpecialAction;
   previousSpecialFrame: number;
-  previousHippogryphLife: number;
-  previousHippogryphKind: HippogryphKind;
   /** Immolation's fire loop while it burns; made on first use, so a reloaded slot gains one. */
   immolationLoop?: sound | undefined;
 }
 
-/** The hippogryph flies while swooping or carrying, stands on its perch and attacks while diving or flying on. */
-function hippogryphAnimation(kind: HippogryphKind): string {
-  return kind === HippogryphKind.perch ? "stand" : kind === HippogryphKind.dive || kind === HippogryphKind.released ? "attack" : "walk";
-}
-
-/** A slot's effects in its parked flags, after six times the slot. */
+/** A slot's effects in its parked flags, after eight times the slot. */
 const HIPPOGRYPH = 0;
 const AURA = 1;
 const FEL_FLAMES = 2;
 const MANA_HAND = 3;
 const WING_TRAIL = 4;
 const DRAIN_FLASH = 5;
-const SLOT_EFFECTS = 6;
+const RIDER = 6;
+const SILENCE = 7;
+const SLOT_EFFECTS = 8;
 
 export class SpecialEffects {
   private readonly slots: readonly SpecialSlot[];
@@ -66,22 +65,29 @@ export class SpecialEffects {
   constructor(private readonly origin: WorldOrigin) {
     const { x, y } = origin;
     this.front = y - 8.0;
-    this.slots = PARTICIPANT_SLOTS.map(() => {
+    this.slots = PARTICIPANT_SLOTS.map((participant) => {
       const cursor = createImpactPresentationCursor();
       const bear = new SummonPresentation(SUMMON_BEAR, origin);
-      const hippogryph = AddSpecialEffect(STOCK_MODELS.hippogryph, x, y);
+      const hippogryph = AddSpecialEffect(HIPPOGRYPH_MODEL, x, y);
+      const rider = AddSpecialEffect(HIPPOGRYPH_RIDER_MODEL, x, y);
+      BlzSetSpecialEffectColorByPlayer(rider, Player(participant));
+      const hippogryphState = createHippogryphPresentationState();
+      BlzSetSpecialEffectAnimationBlendTime(rider, 0.0);
+      BlzSetSpecialEffectTimeScale(rider, 0.0);
+      BlzSetSpecialEffectTimeScale(hippogryph, 0.0);
       const aura = AddSpecialEffect(IMPACT_ROLL_MODEL, x, y);
       const felFlames = AddSpecialEffect(STOCK_MODELS.immolationTarget, x, y);
       const manaHand = AddSpecialEffect(STOCK_MODELS.manaBurnTarget, x, y);
       const wingTrail = AddSpecialEffect(IMPACT_DUST_MODEL, x, y);
       const drainFlash = AddSpecialEffect(IMPACT_TECH_MODEL, x, y);
+      const silence = AddSpecialEffect(STOCK_MODELS.silenceTarget, x, y);
       BlzSetSpecialEffectTimeScale(aura, 0.0);
       BlzSetSpecialEffectTimeScale(wingTrail, 0.0);
       BlzSetSpecialEffectTimeScale(drainFlash, 0.0);
       BlzSetSpecialEffectAnimationBlendTime(hippogryph, 0.0);
       return {
-        bear, hippogryph, aura, felFlames, manaHand, wingTrail, drainFlash, cursor,
-        previousSpecial: SpecialAction.none, previousSpecialFrame: 0, previousHippogryphLife: 0, previousHippogryphKind: HippogryphKind.none,
+        bear, hippogryph, rider, hippogryphState, aura, felFlames, manaHand, wingTrail, drainFlash, silence, cursor,
+        previousSpecial: SpecialAction.none, previousSpecialFrame: 0,
       };
     });
     this.clear();
@@ -97,12 +103,11 @@ export class SpecialEffects {
       resetImpactPresentationCursor(slot.cursor);
       slot.bear.hide();
       // In flag order.
-      [slot.hippogryph, slot.aura, slot.felFlames, slot.manaHand, slot.wingTrail, slot.drainFlash].forEach((model, effect) => this.park(model, index, effect));
+      [slot.hippogryph, slot.aura, slot.felFlames, slot.manaHand, slot.wingTrail, slot.drainFlash, slot.rider, slot.silence].forEach((model, effect) => this.park(model, index, effect));
       slot.previousSpecial = SpecialAction.none;
       slot.previousSpecialFrame = 0;
-      slot.previousHippogryphLife = 0;
+      projectHippogryph(slot.hippogryphState, undefined, 0);
       this.releaseImmolationLoop(slot);
-      slot.previousHippogryphKind = HippogryphKind.none;
     });
   }
 
@@ -123,10 +128,10 @@ export class SpecialEffects {
 
   setPaused(paused: boolean): void {
     const scale = paused ? 0.0 : 1.0;
-    for (const { hippogryph, felFlames, manaHand } of this.slots) {
-      BlzSetSpecialEffectTimeScale(hippogryph, scale);
+    for (const { felFlames, manaHand, silence } of this.slots) {
       BlzSetSpecialEffectTimeScale(felFlames, scale);
       BlzSetSpecialEffectTimeScale(manaHand, scale);
+      BlzSetSpecialEffectTimeScale(silence, scale);
     }
   }
 
@@ -173,6 +178,8 @@ export class SpecialEffects {
     const { action, frame } = fighter.special;
     const entered = action !== slot.previousSpecial || frame < slot.previousSpecialFrame;
     const { felFlames, manaHand } = slot;
+    if (!fighter.status.out && fighter.status.condition === HeroStatusKind.silence) this.show(slot.silence, index, SILENCE, fighter, 0.0, 150.0, f32(0.7));
+    else this.park(slot.silence, index, SILENCE);
     if (fighter.character === Character.demonHunter && !fighter.status.out) {
       if (entered && action === SpecialAction.demonHunterImmolate) BlzSetSpecialEffectTime(felFlames, 0.0);
       else if (entered && action === SpecialAction.demonHunterManaBurn) BlzSetSpecialEffectTime(manaHand, 0.0);
@@ -227,32 +234,41 @@ export class SpecialEffects {
     this.slots[slot]?.bear.present(projectBear(state, fighter, slot));
   }
 
+  /** Uses the same presented frame as the fighter body, including predicted ride entry and exit. */
+  presentHippogryph(fighter: Readonly<Fighter> | undefined, slot: number, frame: number): void {
+    const effects = this.slots[slot];
+    if (effects === undefined) return;
+    const pose = projectHippogryph(effects.hippogryphState, fighter, frame);
+    const model = pose.mounted ? effects.rider : effects.hippogryph;
+    const index = pose.mounted ? RIDER : HIPPOGRYPH;
+    this.park(pose.mounted ? effects.hippogryph : effects.rider, slot, pose.mounted ? HIPPOGRYPH : RIDER);
+    if (!pose.visible) {
+      this.park(model, slot, index);
+      return;
+    }
+    this.placed(slot, index);
+    placeEffect(model, this.origin.x + pose.x, this.origin.y, this.origin.z + pose.z);
+    BlzSetSpecialEffectYaw(model, facingYaw(pose.facing));
+    BlzSetSpecialEffectPitch(model, pose.pitch);
+    BlzSetSpecialEffectRoll(model, pose.roll);
+    BlzSetSpecialEffectScale(model, f32(0.7));
+    BlzSetSpecialEffectAlpha(model, 255);
+    BlzSetSpecialEffectAnimation(model, pose.clip);
+    BlzSetSpecialEffectTime(model, pose.seconds);
+  }
+
   /** Animated effects that restart on an event: once per confirmed frame, never from a speculative one. */
   presentConfirmedAnimated(frame: number, fighter: Readonly<Fighter>, slot: number): void {
     const effects = this.slots[slot];
     if (effects === undefined || !consumeImpactFrame(effects.cursor, frame)) return;
     this.presentConfirmedParticles(fighter, effects, slot);
-    const { hippogryph } = effects;
-    const mount = fighter.hippogryph;
-    if (mount.life > 0 && !fighter.status.out) {
-      this.placed(slot, HIPPOGRYPH);
-      placeEffect(hippogryph, this.origin.x + mount.x, this.origin.y, this.origin.z + mount.z);
-      BlzSetSpecialEffectYaw(hippogryph, facingYaw(mount.velocityX === 0 ? fighter.facing : mount.velocityX));
-      BlzSetSpecialEffectScale(hippogryph, f32(0.7));
-      BlzSetSpecialEffectAlpha(hippogryph, 255);
-      if (effects.previousHippogryphLife === 0 || effects.previousHippogryphKind !== mount.kind) BlzSetSpecialEffectAnimation(hippogryph, hippogryphAnimation(mount.kind));
-    } else {
-      this.park(hippogryph, slot, HIPPOGRYPH);
-    }
-    effects.previousHippogryphLife = mount.life;
-    effects.previousHippogryphKind = mount.kind;
   }
 
   destroy(): void {
     for (const slot of this.slots) {
       this.releaseImmolationLoop(slot);
       slot.bear.destroy();
-      for (const model of [slot.hippogryph, slot.aura, slot.felFlames, slot.manaHand, slot.wingTrail, slot.drainFlash]) DestroyEffect(model);
+      for (const model of [slot.hippogryph, slot.aura, slot.felFlames, slot.manaHand, slot.wingTrail, slot.drainFlash, slot.rider, slot.silence]) DestroyEffect(model);
     }
   }
 }

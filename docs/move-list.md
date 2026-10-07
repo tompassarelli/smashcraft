@@ -16,7 +16,7 @@ matches until the match rules turn them on.
 | Side special | Seeking Arrow | An arrow that curves toward the nearest opponent. |
 | Up special | Hippogryph Ride | Ride a hippogryph and steer it; jump off to act again. |
 | Down special | Hippogryph Call (Hippogryph Dive) | Send the hippogryph swooping to a perch; press again and it dives at her through anyone in the way. |
-| Jab, repeated | Bow and Boot | A strike of her bow, then a low kick on a second jab. |
+| Jab, repeated | Fist and Boot | A quick fist punch, then a low kick on a second jab. |
 | Passive | Trueshot Aura | Every third arrow that lands in a short time deals double damage; the ready arrow glows. |
 
 ## Rifleman
@@ -55,11 +55,11 @@ Normals, inspired by:
 | --- | --- | --- |
 | Neutral special | Wind Cutter | A short blade wave that costs no mana. |
 | Side special | Wind Walk (Backstab, Step Out) | Fade and walk through bodies; attack to Backstab on either side, special to step out. |
-| Up special | Rising Blade | A rising slash that drifts with the stick, then a helpless fall. |
+| Up special | Rising Whirlwind | Hold a direction as he gathers, then a slashing dash that way and a helpless fall. |
 | Down special | Mirror Image (Image Swap) | Step back and leave an image; press again to swap to it with a slash. One hit breaks it. |
 | Jab, repeated | Swift Cuts | Two quick cuts close to his body on repeated jabs. |
 | Passive | Critical Strike | Every fourth sword hit in a row strikes harder; his blade glows when it is ready. |
-| Ultimate | Bladestorm | A long spinning flurry of cuts that ends in one strong finishing hit. |
+| Ultimate | Bladestorm | A powered-up whirlwind: a long flurry of cuts with one strong finishing hit. |
 
 ## Mountain King
 
@@ -67,7 +67,7 @@ Normals, inspired by:
 | --- | --- | --- |
 | Neutral special | Storm Bolt | A hammer that flies out and back, hitting toward him on the return; press again to call it back. |
 | Side special | Storm Rush | A shoulder charge that stops dead at a body or shield. |
-| Up special | Thunder Leap (Hammerfall) | A rising hammer leap; press special at the top to plunge down as Hammerfall. |
+| Up special | Thunder Leap (Hammerfall) | Hold a direction as he crouches, then a hammer leap that way; press special at the top to plunge down as Hammerfall. |
 | Down special | Thunder Clap (Small Clap) | Raise the hammer and slam: early for a small clap, late for a ring with shockwaves. Shield drops the charge. |
 | Jab, repeated | Tavern Brawl | A short punch, then a heavy hook on a second jab. |
 | Passive | Bash | Every third hit in a quick string stuns a little longer. |
@@ -80,7 +80,7 @@ Normals, inspired by:
 | Neutral special | Shadow Strike | A slow dagger that marks and poisons its target. |
 | Side special | Shadow Pursuit (Pursuit Lunge) | Appear behind a marked opponent and slash; with no mark nearby, a dashing Pursuit Lunge. |
 | Up special | Blink | Teleport in any of eight directions; the landing spot is open to a punish. |
-| Down special | Fan of Knives | A ring of knives that marks everyone it hits. |
+| Down special | Fan of Knives | Throw knives outward in a wide burst, marking and poisoning everyone hit. |
 | Jab, repeated | Crescent Flurry | Three quick cuts of her crescent blade on repeated jabs. |
 | Passive | Shadow Step | Landing an aerial in the air gives back one air jump, once per jump. |
 | Ultimate | Spirit of Vengeance | For a while, each of her normals repeats as a ghostly copy a moment later. |
@@ -103,7 +103,7 @@ Normals, inspired by:
 | --- | --- | --- |
 | Neutral special | Hammer of Justice | A heavy overhead bonk that lifts the opponent for a follow-up. |
 | Side special | Holy Radiance | Drive the hammer forward, then send light beyond it. Strong up close; unsafe if blocked. |
-| Up special | Ascension | A rising hammer strike, then a helpless fall. |
+| Up special | Ascension | A rising hammer strike you steer, then a helpless fall. |
 | Down special | Divine Shield | A guard: read an attack and become untouchable until you act. Grabs still catch him. |
 | Jab, repeated | Hammer and Haft | A hammer check, then a shove of the haft on a second jab. |
 | Passive | Devotion Aura | After he blocks three hits with his shield, the next launch he takes is weaker. |
@@ -114,7 +114,7 @@ Normals, inspired by:
 | Input | Name | What it does |
 | --- | --- | --- |
 | Neutral special | Carrion Swarm | A short, slow cloud of bats. |
-| Side special | Vampiric Pounce | Lunge and grab with a healing bite; press again early to hop back instead. |
+| Side special | Vampiric Pounce | Corkscrew forward with trailing bats; bite and heal on a catch, recover on a miss. |
 | Up special | Bat Ascension | A steerable rise on bat wings, then a helpless fall. |
 | Down special | Sleep | A slow orb that puts a grounded target to sleep until it mashes out or is hit. |
 | Jab, repeated | Vampiric Claws | Two claw rakes and a wing strike on repeated jabs. |
@@ -127,7 +127,7 @@ Normals, inspired by:
 | --- | --- | --- |
 | Neutral special | Spirit Glaive | A glaive that flies out and back, pulling its target toward him on the return. |
 | Side special | Serpent Ward | Place a ward that fires on its own; press again to recall it. |
-| Up special | Loa Vault | A spirit-lifted vault, then a helpless fall. |
+| Up special | Loa Vault | Hold a direction as the spirits gather, then a vault that way and a helpless fall. |
 | Down special | Hex | A short orb that stops its target attacking, grabbing or casting until it mashes out. |
 | Jab, repeated | Glaive Handle | Two jabs of the glaive handle, then a cut of its blade, on repeated jabs. |
 | Passive | Voodoo Crossfire | Glaive and ward hits charge his next melee hit with extra damage. |
@@ -137,10 +137,10 @@ Normals, inspired by:
 
 | Input | Name | What it does |
 | --- | --- | --- |
-| Neutral special | Fel Spit | A heavy glob that arcs up and falls onto an approaching target. |
+| Neutral special | Howl of Terror | A close roar pushes enemies away on both sides; a shield stops it. |
 | Side special | Ruin Charge | A slow charge whose armor shrugs off one light hit; it stops at a shield. |
-| Up special | Abyssal Leap | A slow arcing leap with a hoof strike, then a helpless fall. |
-| Down special | Howl of Terror | A roar around him; anyone it hits deals less damage for three seconds. |
+| Up special | Abyssal Leap | A slow arcing leap you steer, with a hoof strike, then a helpless fall. |
+| Down special | Rain of Fire | Three waves of fire fall ahead; rush underneath or tilt your shield up. |
 | Jab, repeated | Haft and Chop | A haft check, then a short cleaver chop on a second jab. |
 | Passive | Cleaving Attack | His cleaver strikes every opponent in its path, and the blade itself can't be hit. |
 

@@ -119,7 +119,22 @@ Private derived models and pooled clips stay in the private input store.
 The bot keeps 110–190 units, fires arrows outside melee, uses Silence from
 its near range, reads shield with Life Drain and saves flight for returning.
 The issue owns the move contracts, bot coverage, unchanged 40–60% field
-measurement and Tom's fun check.
+measurement and completed roster presentation.
+
+## Implementation checks
+
+- `GAME_TESTS=sylvanas bun test test/game.test.ts`: 26 gameplay contracts pass.
+  The focused Lua32 entry imports the same module: 27/27 pass, including the
+  numeric runtime check.
+- Candidate `fighterCoverage` uses eight seeds, 1800 frames each. Black Arrow
+  89, Silence 21, Banshee Flight 5, Life Drain 1; 114 normal attacks, 303
+  defensive frames, 883 recovery frames and no missing coverage.
+- `tools/animations/sylvanas-clips.ts`: 67 authored clips, all 11 stock
+  sequences preserved, nine distinct pain poses. Held poses stay fixed;
+  moving actions move the visible body. Both-facing side-view sheets cover
+  each action. The down-air contact is a vertical inverted bow strike.
+- Private model: `~/.local/share/smashcraft-build-inputs/sylvanas224-20261008/authored/hero-models/evilsylvanas.mdx`.
+  The combined asset publication owns its clip pool, white flash and model facts.
 
 [ranger]: https://liquipedia.net/warcraft/Dark_Ranger
 [banshee]: https://classic.battle.net/war3/undead/units/banshee.shtml

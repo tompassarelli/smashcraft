@@ -1,0 +1,84 @@
+pad (cpu-roster-shadow-hunter.pad)	Run actions/checkout@v4	2026-10-07T17:56:46.0722849Z   ref: b7897ba6cee5596b4c553dd308a9d079206fa8c5
+pad (cpu-roster-shadow-hunter.pad)	Play cpu-roster-shadow-hunter.pad	2026-10-07T17:57:20.0493373Z 4 edges, 0 off their frame (0 of them written late); /dev/shm/pad/cpu-roster-shadow-hunter.pad/result.json
+pad (cpu-roster-shadow-hunter.pad)	Play cpu-roster-shadow-hunter.pad	2026-10-07T17:57:23.1296493Z expectations: 3 checked
+pad (cpu-roster-shadow-hunter.pad)	Play cpu-roster-shadow-hunter.pad	2026-10-07T17:57:23.1297053Z PASS: the script's expectations hold headless
+pad (cpu-roster-shadow-hunter.pad)	Run actions/upload-artifact@v4	2026-10-07T17:57:24.9654686Z Artifact pad-24.zip successfully finalized. Artifact ID 11500963112
+pad (cpu-roster-shadow-hunter.pad)	Run actions/upload-artifact@v4	2026-10-07T17:57:24.9656055Z Artifact pad-24 has been successfully uploaded! Final size is 863752 bytes. Artifact ID is 11500963112
+pad (cpu-roster-blademaster.pad)	Run actions/checkout@v4	2026-10-07T17:54:03.7775653Z   ref: b7897ba6cee5596b4c553dd308a9d079206fa8c5
+pad (cpu-roster-blademaster.pad)	Play cpu-roster-blademaster.pad	2026-10-07T17:54:31.0457602Z 4 edges, 0 off their frame (0 of them written late); /dev/shm/pad/cpu-roster-blademaster.pad/result.json
+pad (cpu-roster-blademaster.pad)	Play cpu-roster-blademaster.pad	2026-10-07T17:54:34.1190068Z expectations: 3 checked
+pad (cpu-roster-blademaster.pad)	Play cpu-roster-blademaster.pad	2026-10-07T17:54:34.1190509Z PASS: the script's expectations hold headless
+pad (cpu-roster-blademaster.pad)	Run actions/upload-artifact@v4	2026-10-07T17:54:35.3501243Z Artifact pad-16.zip successfully finalized. Artifact ID 11500932913
+pad (cpu-roster-blademaster.pad)	Run actions/upload-artifact@v4	2026-10-07T17:54:35.3502064Z Artifact pad-16 has been successfully uploaded! Final size is 1011900 bytes. Artifact ID is 11500932913
+pad (cpu-reads.pad)	Run actions/checkout@v4	2026-10-07T17:56:15.6873925Z   ref: b7897ba6cee5596b4c553dd308a9d079206fa8c5
+pad (cpu-reads.pad)	Play cpu-reads.pad	2026-10-07T17:56:42.8527728Z 28 edges, 0 off their frame (0 of them written late); /dev/shm/pad/cpu-reads.pad/result.json
+pad (cpu-reads.pad)	Play cpu-reads.pad	2026-10-07T17:56:44.9069931Z expectations: 2 checked
+pad (cpu-reads.pad)	Play cpu-reads.pad	2026-10-07T17:56:44.9070606Z PASS: the script's expectations hold headless
+pad (cpu-reads.pad)	Run actions/upload-artifact@v4	2026-10-07T17:56:45.8000133Z Artifact pad-12.zip successfully finalized. Artifact ID 11501367700
+pad (cpu-reads.pad)	Run actions/upload-artifact@v4	2026-10-07T17:56:45.8002095Z Artifact pad-12 has been successfully uploaded! Final size is 396905 bytes. Artifact ID is 11501367700
+pad (cpu-roster-beastmaster.pad)	Run actions/checkout@v4	2026-10-07T17:55:31.8213874Z   ref: b7897ba6cee5596b4c553dd308a9d079206fa8c5
+pad (cpu-roster-beastmaster.pad)	Play cpu-roster-beastmaster.pad	2026-10-07T17:56:00.9119207Z 4 edges, 0 off their frame (0 of them written late); /dev/shm/pad/cpu-roster-beastmaster.pad/result.json
+pad (cpu-roster-beastmaster.pad)	Play cpu-roster-beastmaster.pad	2026-10-07T17:56:03.9696276Z expectations: 3 checked
+pad (cpu-roster-beastmaster.pad)	Play cpu-roster-beastmaster.pad	2026-10-07T17:56:03.9696779Z PASS: the script's expectations hold headless
+pad (cpu-roster-beastmaster.pad)	Run actions/upload-artifact@v4	2026-10-07T17:56:05.6076374Z Artifact pad-15.zip successfully finalized. Artifact ID 11502140630
+pad (cpu-roster-beastmaster.pad)	Run actions/upload-artifact@v4	2026-10-07T17:56:05.6077860Z Artifact pad-15 has been successfully uploaded! Final size is 962320 bytes. Artifact ID is 11502140630
+pad (cpu-roster-pit-lord.pad)	Run actions/checkout@v4	2026-10-07T17:56:15.6018194Z   ref: b7897ba6cee5596b4c553dd308a9d079206fa8c5
+pad (cpu-roster-pit-lord.pad)	Play cpu-roster-pit-lord.pad	2026-10-07T17:56:43.3460466Z 4 edges, 0 off their frame (0 of them written late); /dev/shm/pad/cpu-roster-pit-lord.pad/result.json
+pad (cpu-roster-pit-lord.pad)	Play cpu-roster-pit-lord.pad	2026-10-07T17:56:46.4115601Z expectations: 3 checked
+pad (cpu-roster-pit-lord.pad)	Play cpu-roster-pit-lord.pad	2026-10-07T17:56:46.4116010Z PASS: the script's expectations hold headless
+pad (cpu-roster-pit-lord.pad)	Run actions/upload-artifact@v4	2026-10-07T17:56:48.2395393Z Artifact pad-22.zip successfully finalized. Artifact ID 11502150748
+pad (cpu-roster-pit-lord.pad)	Run actions/upload-artifact@v4	2026-10-07T17:56:48.2396186Z Artifact pad-22 has been successfully uploaded! Final size is 925237 bytes. Artifact ID is 11502150748
+pad (cpu-roster-dreadlord.pad)	Run actions/checkout@v4	2026-10-07T17:54:42.8086376Z   ref: b7897ba6cee5596b4c553dd308a9d079206fa8c5
+pad (cpu-roster-dreadlord.pad)	Play cpu-roster-dreadlord.pad	2026-10-07T17:55:16.8728919Z 4 edges, 0 off their frame (0 of them written late); /dev/shm/pad/cpu-roster-dreadlord.pad/result.json
+pad (cpu-roster-dreadlord.pad)	Play cpu-roster-dreadlord.pad	2026-10-07T17:55:19.9602364Z expectations: 3 checked
+pad (cpu-roster-dreadlord.pad)	Play cpu-roster-dreadlord.pad	2026-10-07T17:55:19.9603022Z PASS: the script's expectations hold headless
+pad (cpu-roster-dreadlord.pad)	Run actions/upload-artifact@v4	2026-10-07T17:55:21.9282539Z Artifact pad-17.zip successfully finalized. Artifact ID 11502265219
+pad (cpu-roster-dreadlord.pad)	Run actions/upload-artifact@v4	2026-10-07T17:55:21.9284286Z Artifact pad-17 has been successfully uploaded! Final size is 1033543 bytes. Artifact ID is 11502265219
+pad (cpu-roster-rifleman.pad)	Run actions/checkout@v4	2026-10-07T17:55:40.0777610Z   ref: b7897ba6cee5596b4c553dd308a9d079206fa8c5
+pad (cpu-roster-rifleman.pad)	Play cpu-roster-rifleman.pad	2026-10-07T17:56:06.1507341Z 4 edges, 0 off their frame (0 of them written late); /dev/shm/pad/cpu-roster-rifleman.pad/result.json
+pad (cpu-roster-rifleman.pad)	Play cpu-roster-rifleman.pad	2026-10-07T17:56:09.2173856Z expectations: 3 checked
+pad (cpu-roster-rifleman.pad)	Play cpu-roster-rifleman.pad	2026-10-07T17:56:09.2174493Z PASS: the script's expectations hold headless
+pad (cpu-roster-rifleman.pad)	Run actions/upload-artifact@v4	2026-10-07T17:56:10.0803612Z Artifact pad-23.zip successfully finalized. Artifact ID 11501817324
+pad (cpu-roster-rifleman.pad)	Run actions/upload-artifact@v4	2026-10-07T17:56:10.0804983Z Artifact pad-23 has been successfully uploaded! Final size is 292534 bytes. Artifact ID is 11501817324
+pad (cpu-roster-archer.pad)	Run actions/checkout@v4	2026-10-07T17:55:52.8392202Z   ref: b7897ba6cee5596b4c553dd308a9d079206fa8c5
+pad (cpu-roster-archer.pad)	Play cpu-roster-archer.pad	2026-10-07T17:56:19.2126121Z 4 edges, 0 off their frame (0 of them written late); /dev/shm/pad/cpu-roster-archer.pad/result.json
+pad (cpu-roster-archer.pad)	Play cpu-roster-archer.pad	2026-10-07T17:56:22.2791621Z expectations: 3 checked
+pad (cpu-roster-archer.pad)	Play cpu-roster-archer.pad	2026-10-07T17:56:22.2813899Z PASS: the script's expectations hold headless
+pad (cpu-roster-archer.pad)	Run actions/upload-artifact@v4	2026-10-07T17:56:23.4150883Z Artifact pad-14.zip successfully finalized. Artifact ID 11501337722
+pad (cpu-roster-archer.pad)	Run actions/upload-artifact@v4	2026-10-07T17:56:23.4151458Z Artifact pad-14 has been successfully uploaded! Final size is 349326 bytes. Artifact ID is 11501337722
+pad (cpu-roster-warden.pad)	Run actions/checkout@v4	2026-10-07T17:56:20.8113544Z   ref: b7897ba6cee5596b4c553dd308a9d079206fa8c5
+pad (cpu-roster-warden.pad)	Play cpu-roster-warden.pad	2026-10-07T17:56:52.5404270Z 4 edges, 0 off their frame (0 of them written late); /dev/shm/pad/cpu-roster-warden.pad/result.json
+pad (cpu-roster-warden.pad)	Play cpu-roster-warden.pad	2026-10-07T17:56:55.5970808Z expectations: 3 checked
+pad (cpu-roster-warden.pad)	Play cpu-roster-warden.pad	2026-10-07T17:56:55.5971259Z PASS: the script's expectations hold headless
+pad (cpu-roster-warden.pad)	Run actions/upload-artifact@v4	2026-10-07T17:56:57.2075860Z Artifact pad-26.zip successfully finalized. Artifact ID 11501277676
+pad (cpu-roster-warden.pad)	Run actions/upload-artifact@v4	2026-10-07T17:56:57.2076556Z Artifact pad-26 has been successfully uploaded! Final size is 927138 bytes. Artifact ID is 11501277676
+pad (cpu-roster-illidan.pad)	Run actions/checkout@v4	2026-10-07T17:55:45.1132214Z   ref: b7897ba6cee5596b4c553dd308a9d079206fa8c5
+pad (cpu-roster-illidan.pad)	Play cpu-roster-illidan.pad	2026-10-07T17:56:10.3322597Z 4 edges, 0 off their frame (0 of them written late); /dev/shm/pad/cpu-roster-illidan.pad/result.json
+pad (cpu-roster-illidan.pad)	Play cpu-roster-illidan.pad	2026-10-07T17:56:13.4024967Z expectations: 3 checked
+pad (cpu-roster-illidan.pad)	Play cpu-roster-illidan.pad	2026-10-07T17:56:13.4025457Z PASS: the script's expectations hold headless
+pad (cpu-roster-illidan.pad)	Run actions/upload-artifact@v4	2026-10-07T17:56:14.4914249Z Artifact pad-18.zip successfully finalized. Artifact ID 11502285251
+pad (cpu-roster-illidan.pad)	Run actions/upload-artifact@v4	2026-10-07T17:56:14.4915043Z Artifact pad-18 has been successfully uploaded! Final size is 375489 bytes. Artifact ID is 11502285251
+pad (cpu-roster-lich.pad)	Run actions/checkout@v4	2026-10-07T17:55:49.8510401Z   ref: b7897ba6cee5596b4c553dd308a9d079206fa8c5
+pad (cpu-roster-lich.pad)	Play cpu-roster-lich.pad	2026-10-07T17:56:25.3768842Z 4 edges, 0 off their frame (0 of them written late); /dev/shm/pad/cpu-roster-lich.pad/result.json
+pad (cpu-roster-lich.pad)	Play cpu-roster-lich.pad	2026-10-07T17:56:28.4577060Z expectations: 3 checked
+pad (cpu-roster-lich.pad)	Play cpu-roster-lich.pad	2026-10-07T17:56:28.4577648Z PASS: the script's expectations hold headless
+pad (cpu-roster-lich.pad)	Run actions/upload-artifact@v4	2026-10-07T17:56:30.3222307Z Artifact pad-20.zip successfully finalized. Artifact ID 11500628604
+pad (cpu-roster-lich.pad)	Run actions/upload-artifact@v4	2026-10-07T17:56:30.3224058Z Artifact pad-20 has been successfully uploaded! Final size is 911144 bytes. Artifact ID is 11500628604
+pad (cpu-roster-uther.pad)	Run actions/checkout@v4	2026-10-07T17:57:24.0979714Z   ref: b7897ba6cee5596b4c553dd308a9d079206fa8c5
+pad (cpu-roster-uther.pad)	Play cpu-roster-uther.pad	2026-10-07T17:57:52.8695234Z 4 edges, 0 off their frame (0 of them written late); /dev/shm/pad/cpu-roster-uther.pad/result.json
+pad (cpu-roster-uther.pad)	Play cpu-roster-uther.pad	2026-10-07T17:57:55.9698598Z expectations: 3 checked
+pad (cpu-roster-uther.pad)	Play cpu-roster-uther.pad	2026-10-07T17:57:55.9699970Z PASS: the script's expectations hold headless
+pad (cpu-roster-uther.pad)	Run actions/upload-artifact@v4	2026-10-07T17:57:57.5358122Z Artifact pad-25.zip successfully finalized. Artifact ID 11500764031
+pad (cpu-roster-uther.pad)	Run actions/upload-artifact@v4	2026-10-07T17:57:57.5359086Z Artifact pad-25 has been successfully uploaded! Final size is 861431 bytes. Artifact ID is 11500764031
+pad (cpu-roster-lich-king.pad)	Run actions/checkout@v4	2026-10-07T17:57:01.3718425Z   ref: b7897ba6cee5596b4c553dd308a9d079206fa8c5
+pad (cpu-roster-lich-king.pad)	Play cpu-roster-lich-king.pad	2026-10-07T17:57:28.6466665Z 4 edges, 0 off their frame (0 of them written late); /dev/shm/pad/cpu-roster-lich-king.pad/result.json
+pad (cpu-roster-lich-king.pad)	Play cpu-roster-lich-king.pad	2026-10-07T17:57:31.7336134Z expectations: 3 checked
+pad (cpu-roster-lich-king.pad)	Play cpu-roster-lich-king.pad	2026-10-07T17:57:31.7339111Z PASS: the script's expectations hold headless
+pad (cpu-roster-lich-king.pad)	Run actions/upload-artifact@v4	2026-10-07T17:57:33.1753447Z Artifact pad-19.zip successfully finalized. Artifact ID 11500903884
+pad (cpu-roster-lich-king.pad)	Run actions/upload-artifact@v4	2026-10-07T17:57:33.1754793Z Artifact pad-19 has been successfully uploaded! Final size is 955183 bytes. Artifact ID is 11500903884
+pad (cpu-roster-mountain-king.pad)	Run actions/checkout@v4	2026-10-07T17:56:26.9630540Z   ref: b7897ba6cee5596b4c553dd308a9d079206fa8c5
+pad (cpu-roster-mountain-king.pad)	Play cpu-roster-mountain-king.pad	2026-10-07T17:56:53.1120391Z 4 edges, 0 off their frame (0 of them written late); /dev/shm/pad/cpu-roster-mountain-king.pad/result.json
+pad (cpu-roster-mountain-king.pad)	Play cpu-roster-mountain-king.pad	2026-10-07T17:56:56.1746848Z expectations: 3 checked
+pad (cpu-roster-mountain-king.pad)	Play cpu-roster-mountain-king.pad	2026-10-07T17:56:56.1747178Z PASS: the script's expectations hold headless
+pad (cpu-roster-mountain-king.pad)	Run actions/upload-artifact@v4	2026-10-07T17:56:57.4118124Z Artifact pad-21.zip successfully finalized. Artifact ID 11501352805
+pad (cpu-roster-mountain-king.pad)	Run actions/upload-artifact@v4	2026-10-07T17:56:57.4118880Z Artifact pad-21 has been successfully uploaded! Final size is 893231 bytes. Artifact ID is 11501352805
