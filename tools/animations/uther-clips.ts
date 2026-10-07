@@ -53,7 +53,12 @@ const newHand=source.Nodes.find(n=>n.Name==="arm_R0_end_jnt")!,newHammer=source.
 const convert=mat4.create(),handLocal=mat4.create(),weaponLocal=mat4.create();
 const worldPoint=(rig:mdx.Model,data:typeof classicData,node:mdx.Node)=>{const point=vec3.clone(rig.PivotPoints[node.ObjectId]!);vec3.transformMat4(point,point,data.nodes[node.ObjectId].matrix);return point;};
 const oldGrip=worldPoint(paladin,classicData,oldHand),newGrip=worldPoint(source,forsakenData,newHand);
-const oldTip=worldPoint(paladin,classicData,paladin.Nodes.find(n=>n.Name==="Weapon Ref ")!),newTip=worldPoint(source,forsakenData,source.Nodes.find(n=>n.Name==="Weapon Ref")!);
+const classicHammerPoints:Array<vec3>=[];
+for(let vertex=0;vertex<paladin.Geosets[0]!.Vertices.length/3;vertex++)if(paladin.Geosets[0]!.Groups[paladin.Geosets[0]!.VertexGroup[vertex]!]!.every(id=>id===oldHammer.ObjectId)){
+  const point=vec3.fromValues(...Array.from(paladin.Geosets[0]!.Vertices.subarray(vertex*3,vertex*3+3)) as [number,number,number]);vec3.transformMat4(point,point,classicData.nodes[oldHammer.ObjectId].matrix);classicHammerPoints.push(point);}
+const crown=Math.max(...classicHammerPoints.map(point=>point[2]!)),classicHead=classicHammerPoints.filter(point=>point[2]!>=crown-12),oldTip=vec3.create();
+for(const point of classicHead)vec3.add(oldTip,oldTip,point);vec3.scale(oldTip,oldTip,1/classicHead.length);
+const newTip=worldPoint(source,forsakenData,source.Nodes.find(n=>n.Name==="Weapon Ref")!);
 const oldDirection=vec3.sub(vec3.create(),oldTip,oldGrip),newDirection=vec3.sub(vec3.create(),newTip,newGrip),ratio=Math.min(0.7,vec3.length(newDirection)/vec3.length(oldDirection));
 vec3.normalize(oldDirection,oldDirection);vec3.normalize(newDirection,newDirection);const align=quat.rotationTo(quat.create(),oldDirection,newDirection);
 mat4.fromRotationTranslationScale(handLocal,align,newGrip,vec3.fromValues(ratio,ratio,ratio));
@@ -160,8 +165,8 @@ for (let height=0;height<3;height++) for (let strength=0;strength<3;strength++) 
     : {head:-50*gain,chest:-28*gain,arm:42*gain,free:55*gain,hip:15*gain,knee:22*gain};
   damageActions.push({pose:"damageGround",frames:24,contact:0,gesture,hold:true,damage:true});
 }
-function rotation(base: ArrayLike<number>, pitch:number, yaw=0): Float32Array {
-  const q=quat.create(); quat.rotateY(q,q,pitch*Math.PI/180); quat.rotateZ(q,q,yaw*Math.PI/180);
+function rotation(base: ArrayLike<number>, pitch:number, yaw=0,roll=0): Float32Array {
+  const q=quat.create(); quat.rotateY(q,q,pitch*Math.PI/180); quat.rotateZ(q,q,yaw*Math.PI/180);quat.rotateX(q,q,roll*Math.PI/180);
   quat.multiply(q,q,Float32Array.from(base)); quat.normalize(q,q); return new Float32Array(q);
 }
 function joint(name:string,g:Gesture):[number,number] {
@@ -212,11 +217,11 @@ for (const [ordinal,action] of [...actions,...damageActions].entries()) {
   const baseline=(node:mdx.Node)=>source.Nodes[node.ObjectId]!.Rotation!.Keys.find(k=>k.Frame>=stand.Interval[0]&&k.Frame<=stand.Interval[1])!.Vector;
   for(const phase of phases)if(phase.target){
     const armKey=shoulder.Rotation!.Keys.find(k=>k.Frame===start+Math.round(phase.frame*1000/60))!,elbowKey=elbow.Rotation!.Keys.find(k=>k.Frame===start+Math.round(phase.frame*1000/60))!;
-    const angles=[phase.gesture.arm??0,0,phase.gesture.elbow??0,0];
-    const loss=()=>{armKey.Vector=rotation(baseline(shoulder),angles[0]!,angles[1]!);elbowKey.Vector=rotation(baseline(elbow),angles[2]!,angles[3]!);
+    const angles=[phase.gesture.arm??0,0,0,phase.gesture.elbow??0,0,0];
+    const loss=()=>{armKey.Vector=rotation(baseline(shoulder),angles[0]!,angles[1]!,angles[2]!);elbowKey.Vector=rotation(baseline(elbow),angles[3]!,angles[4]!,angles[5]!);
       evaluate(index,phase.frame);const point=vec3.create();vec3.transformMat4(point,weaponPoint,data.nodes[hand.ObjectId].matrix);
-      return (point[0]!-phase.target![0])**2+(point[2]!-phase.target![1])**2;};
-    for(let pass=0;pass<4;pass++)for(let axis=0;axis<4;axis++){let best=Infinity,bestAngle=angles[axis]!;for(let angle=-180;angle<=180;angle+=pass<2?15:5){angles[axis]=angle;const value=loss();if(value<best){best=value;bestAngle=angle;}}angles[axis]=bestAngle;}
+      return (point[0]!-phase.target![0])**2+(point[2]!-phase.target![1])**2+(point[1]!+12)**2;};
+    for(let pass=0;pass<4;pass++)for(let axis=0;axis<6;axis++){let best=Infinity,bestAngle=angles[axis]!;for(let angle=-180;angle<=180;angle+=pass<2?15:5){angles[axis]=angle;const value=loss();if(value<best){best=value;bestAngle=angle;}}angles[axis]=bestAngle;}
     loss();for(const key of [armKey,elbowKey])if(key.InTan){key.InTan=key.Vector.slice();key.OutTan=key.Vector.slice();}
   }
   // The stock axe has a separate root. Follow the right hand's complete
