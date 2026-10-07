@@ -38,6 +38,7 @@ interface StatusRules {
 }
 
 const RULES: { readonly [kind: number]: StatusRules | undefined } = {
+  [HeroStatusKind.silence]: { blocksActions: false, blocksSpecials: true, endsOnDamage: false },
   // Sleep (#132): mashed out as a freeze is, never before frame 24.
   [HeroStatusKind.sleep]: { blocksActions: true, blocksSpecials: true, endsOnDamage: true, mashMinimum: 24 },
   // Hex (#133): a critter that cannot attack, grab or cast, mashed out never before frame 36: past

@@ -38,6 +38,7 @@ const SPECS: readonly PassiveSpec[] = [
 ];
 
 export function passiveSpec(character: Character): PassiveSpec {
+  if (character === Character.sylvanas) return SPECS[Character.shadowHunter] ?? NONE;
   return SPECS[character] ?? NONE;
 }
 

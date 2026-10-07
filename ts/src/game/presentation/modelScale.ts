@@ -30,6 +30,7 @@ export const STOCK_MODEL_SCALES: Readonly<Record<Character, { readonly unit: str
   [Character.pitLord]: { unit: "Nplh", scale: 1.0 },
   [Character.beastmaster]: { unit: "Nbst", scale: 1.0 },
   [Character.lichKing]: LICH_KING_STOCK_SCALE,
+  [Character.sylvanas]: { unit: "Usyl", scale: 1.0 },
 };
 
 /** The scale each fighter model is drawn at; effects attached to it scale with it. */
