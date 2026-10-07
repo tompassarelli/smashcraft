@@ -109,7 +109,8 @@ export function playtest({ build, map, helper, computerSlot, computerOpponent, c
     map,
     gameName: "Smashcraft",
     menuReportPort,
-    displaySettings: TOM_DISPLAY,
+    displaySettings: { ...TOM_DISPLAY, assao: "0" },
+    graphicsMode: "reforged",
     recommendedSettings: RECOMMENDED_GRAPHICS,
     // The request, read once at map start; no go-ahead or receipt from an earlier run.
     prepare: (documents) => Effect.gen(function*() {

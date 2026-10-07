@@ -32,9 +32,10 @@ const screen = (event: MenuEvent) => (event.messageType === "SetGlueScreen" ? re
 const CREATE_TRIES = 3;
 
 /** Hosts a lobby of the map under a new code; a refused name (another game has it) gets a new code. */
-export const hostWithCode = (menus: MenuSocket, map: { readonly folder: string; readonly file: string }, makeCode: () => JoinCode = newJoinCode) => Effect.gen(function*() {
+export const hostWithCode = (menus: MenuSocket, map: { readonly folder: string; readonly file: string }, makeCode: () => JoinCode = newJoinCode, password?: string) => Effect.gen(function*() {
   for (let attempt = 1; ; attempt++) {
-    const code = makeCode();
+    const generated = makeCode();
+    const code = password === undefined ? generated : { ...generated, password };
     const hosted = yield* hostLobby(menus, { folder: map.folder, file: map.file, gameName: code.gameName, password: code.password }).pipe(
       Effect.as(true),
       Effect.catchTag("MenuFailure", (failure) => (attempt < CREATE_TRIES && failure.problem.includes("refused") ? Effect.succeed(false) : Effect.fail(failure))),
@@ -94,10 +95,11 @@ export const hostMatch = (options: {
   readonly startNow: Effect.Effect<void>;
   readonly times?: OnlineTimes;
   readonly makeCode?: () => JoinCode;
+  readonly password?: string;
 }) => Effect.gen(function*() {
   const { menus, say } = options;
   const times = options.times ?? ONLINE_TIMES;
-  const code = yield* hostWithCode(menus, options.map, options.makeCode);
+  const code = yield* hostWithCode(menus, options.map, options.makeCode, options.password);
   yield* say(`Join code: ${code.text}`);
   yield* say(`Waiting for your opponent; press Start now once they have joined (in Warcraft III they can also join "${code.gameName}" with password ${code.password})`);
   const arrival = yield* Effect.raceFirst(
