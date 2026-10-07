@@ -54,6 +54,7 @@ for (const width of [1920, 1620]) test(`both selection screens at ${width}: text
       if (phase === Phase.characterMenu) {
         for (const character of PLAYABLE_CHARACTERS) expect(text.some(frame => frame.name.startsWith("MeleeTileName") && frame.text === fighterName(character))).toBe(true);
         for (const label of ["Player", "CPU", "Empty", "Start (Y)", "Moves", "Controls (F1)"]) expect(text.some(frame => frame.text === label), label).toBe(true);
+        if (!training) for (const label of ["Items: On", "Speed: On", "Extra jump: On", "Heavy: On"]) expect(text.some(frame => frame.text === label), label).toBe(true);
         expect(text.some(frame => frame.text === "MATCH RULES" || frame.text === "HMN")).toBe(false);
         const title = text.find(frame => frame.name.startsWith("MeleeGameTitle"))!;
         const mode = text.find(frame => frame.name.startsWith("MeleeModeLabel"))!;

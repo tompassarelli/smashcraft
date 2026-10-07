@@ -207,6 +207,9 @@ code. From smashcraft:ts/:
   low/middle/high and small/medium/large, with ordinary projectile contacts at
   frame 150 after both players' scripted jab. `bun tools/animations/pain-pads.ts`
   from the repository root generates its 117 native parity scripts.
+- Item setup at fighter selection: `-dev items on|off` controls whether pickups appear;
+  `-dev item speed|jump|heavy on|off` controls each kind. The normal selection
+  buttons show Items, Speed, Extra jump and Heavy, all on by default.
 - Generated menus: smashcraft:ts/scripts/wisp/uiFrames.ts defines menu panels as Wisp
   frame definitions (wisp:docs/ui.md); after changing one or its layout, `bun
   scripts/wisp/uiFrames.ts` rewrites its FDF/TOC in smashcraft:tools/selection/art/
