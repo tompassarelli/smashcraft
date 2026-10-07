@@ -16,6 +16,7 @@ import { type Roster, copyControls, fighterAt, isActive, neutralControls } from 
 import { regenerateShield } from "../sim/shield";
 import { advanceSpecials, startFighterSpecial } from "../sim/specials";
 import { advanceHeroStatus } from "../sim/heroSpecialRules";
+import { advanceItemBuff } from "../sim/itemBuffs";
 import { regenerateMana } from "../sim/mana";
 import { advanceFighterMotion } from "../sim/step";
 import { maskHeroStatusControls } from "../sim/heroStatus";
@@ -166,6 +167,7 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
     regenerateShield(f);
     regenerateMana(f);
     advanceHeroStatus(f);
+    advanceItemBuff(f);
   }
   finishDamageContacts(world);
   resolveGrabs(world);

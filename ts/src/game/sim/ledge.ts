@@ -11,6 +11,7 @@ import { type Controls, type Roster, controlsAt, fighterAt, isActive } from "./r
 import { mainDeckLeft, mainDeckRight, mainDeckZ } from "./stage";
 import { BODY_HALF_WIDTH } from "./surfaces";
 import { checkBlastZone } from "./stocks";
+import { aerialJumps, groundedJumps } from "./itemBuffs";
 import { beginAttack, cancelAttack, clearDownState, clearLedge, clearPlatformMove, clearTech, leaveLedge, refreshOriginalAirtime } from "./transitions";
 import { melee } from "./tuning";
 
@@ -167,7 +168,7 @@ function catchLedge(f: Fighter, stage: number, side: number): void {
   f.dodge.airMotionFrames = 0;
   f.dodge.airUsed = false;
   refreshOriginalAirtime(f);
-  f.jump.remaining = 1;
+  f.jump.remaining = aerialJumps(f);
   clearPlatformMove(f);
   clearTech(f);
 }
@@ -262,7 +263,7 @@ export function advanceLedge(world: Roster, slot: number, stage: number, input: 
   const duration = ledge.state === LedgeState.climb ? LEDGE_CLIMB_FRAMES : ledge.state === LedgeState.roll ? LEDGE_ROLL_FRAMES : LEDGE_ATTACK_FRAMES;
   if (ledge.frame >= duration) {
     if (ledge.state === LedgeState.attack) cancelAttack(f);
-    f.jump.remaining = 2;
+    f.jump.remaining = groundedJumps(f);
     clearLedge(f);
   }
 }

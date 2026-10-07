@@ -4,7 +4,7 @@ import { RANDOM_STAGE, selectableStageChoice } from "../menu/stageCatalog";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { type MatchCamera, createMatchCamera, copyMatchCamera } from "../sim/matchCamera";
 import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots, isParticipantMask, isParticipantSlot, participantActive } from "../input/participants";
-import { Character } from "../sim/codes";
+import { Character, ItemKind, itemBit } from "../sim/codes";
 import { nextMatchSeed } from "./botRandom";
 import { CPU_OPPONENT_DEFAULT, CPU_TIER_DEFAULT, type CpuOpponentChoice, type CpuOpponentId, type CpuTier, isCpuOpponentChoice, isCpuTier, resolveCpuOpponent } from "./cpuProfiles";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
@@ -312,6 +312,16 @@ export function setCpuTier(game: MatchState, actor: number, computer: number, ti
 
 export function setAutomaticRematch(game: MatchState, slot: number, automatic: boolean): void {
   if (settingRules(game, slot)) game.automaticRematch = automatic;
+}
+
+/** Items appear in the match at all (#196). */
+export function setItemsOn(game: MatchState, slot: number, on: boolean): void {
+  if (settingRules(game, slot)) game.items.on = on;
+}
+
+/** Turns one item kind on or off for the match (#196). */
+export function toggleItemKind(game: MatchState, slot: number, kind: ItemKind): void {
+  if (settingRules(game, slot) && kind !== ItemKind.none) game.items.enabledMask ^= itemBit(kind);
 }
 
 /** Whether the match clock runs: practice, endless and training matches have none. */
