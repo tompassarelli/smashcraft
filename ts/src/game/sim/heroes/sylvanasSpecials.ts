@@ -8,7 +8,7 @@ import { sylvanasHit, sylvanasReach, sylvanasStrike } from "./sylvanasMoves";
 const BLACK_ARROW: AuthoredSpecial = {
   cost: 8, endFrame: 40,
   projectiles: [{
-    model: "Abilities\\Weapons\\BlackArrowMissile\\BlackArrowMissile.mdl",
+    model: "Abilities\\Spells\\Other\\BlackArrow\\BlackArrowMissile.mdl",
     spawnFrame: 16, offsetX: 44.0, offsetZ: 60.0, velocityX: 17.0, velocityZ: 0.0, upVelocityZ: 5.0,
     life: 36, radius: 10.0, effect: sylvanasHit(6.0, 35, 70.0, 16.0), reflectable: true, limit: 1, feedsPassive: true,
   }],
