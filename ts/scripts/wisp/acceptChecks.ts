@@ -142,6 +142,31 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
   maps: MAP_PROFILES,
   checks: [
     {
+      id: "123-selection", closes: "smashcraft#123 box 5", map: "presentation", session: "123-match-flow",
+      setup: [
+        { chat: "-dev reset" }, { chat: "-dev slots 1 2" }, { chat: "-dev stocks 1" },
+        { chat: "-dev fighter 2 Illidan" }, { chat: "-dev stage 2" }, { chat: "-dev auto-rematch off" },
+        { waitMs: 10000 }, { keys: ["r"], client: "a" }, { waitMs: 1000 },
+      ],
+      capture: [{ kind: "frames", name: "fighter-selection", client: "a" }],
+      pass: [NO_IMPORT_FAILURES, NO_ERRORS],
+      look: "Record the selected client's isolated audio sink with the checks pool profile (music muted). During the selection wait, move its private pointer across roster cells; match MouseOver1 and BigButtonClick above every rival by normalized cross-correlation. Retain #123's accepted earlier sound measurements.",
+    },
+    {
+      id: "123-countdown", closes: "smashcraft#123 box 5", map: "presentation", session: "123-match-flow",
+      setup: [{ keys: ["y"], client: "a" }, { waitMs: 300 }, { keys: ["y"], client: "a" }],
+      capture: [{ kind: "frames", name: "countdown", client: "a", count: 24, everyMs: 150 }],
+      pass: [NO_IMPORT_FAILURES, NO_ERRORS],
+      look: "OCR reads the normal match's 3, 2, 1 and GO! calls from the retained frames.",
+    },
+    {
+      id: "123-result", closes: "smashcraft#123 box 5", map: "presentation", session: "123-match-flow",
+      setup: [{ receipt: "^parts [0-9]+$", client: "a", seconds: 600 }],
+      capture: [{ kind: "frames", name: "game-and-results", client: "a", count: 16, everyMs: 150 }],
+      pass: [NO_ERRORS, { kind: "receipt", pattern: "^parts [0-9]+$", client: "a", min: 1 }],
+      look: "OCR reads GAME! and the results numbers; measure the winner's normally coloured pixels visible beside the panel. The one-stock match ends through ordinary combat against Illidan.",
+    },
+    {
       id: "161-slot-outfits", closes: "smashcraft#161 box 4", map: "outfits",
       setup: [{ waitMs: 3000 }],
       capture: [{ kind: "frames", name: "stage-and-hud", client: "a" }, { kind: "frames", name: "stage-and-hud", client: "b" }],
