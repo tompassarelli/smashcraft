@@ -88,7 +88,7 @@ function lowSweep(firstFrame: number, facing: number): readonly MoveRegion[] {
   ], hit(13.370000839233398, "EDGE", 25, facing));
 }
 
-// Bladestorm (down air, #152): the longest drill. Six spinning hits that
+// Sword Plunge (down air, #152): the longest drill. Six descending cuts that
 // pull a target toward the blade while he hangs in the air, then plunge;
 // landing during them spins out a landing hit that pops the target up for a
 // follow-up. Airborne targets are lifted against their gravity, grounded ones

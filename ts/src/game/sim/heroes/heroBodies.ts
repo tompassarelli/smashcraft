@@ -28,6 +28,7 @@ const HERO_BODIES: { readonly [character: number]: HeroBody | undefined } = {
   // His 1.65-wide body would stand outside the reference shield, so it grows with his height.
   [Character.pitLord]: { ...body(f32(1.28), f32(0.80), f32(0.75), f32(1.65), f32(1.35)), shield: f32(1.35) },
   [Character.beastmaster]: body(f32(1.10), f32(0.97), f32(0.88), f32(1.15), f32(1.26)),
+  [Character.chen]: body(f32(1.3733333333333333), f32(0.7272727272727273), f32(1.12), f32(1.18), f32(1.04)),
   [Character.lichKing]: body(f32(1.12), f32(0.84), f32(0.86), f32(1.12), f32(1.26)),
   [Character.thrall]: { ...body(f32(1.6933333333333334), f32(0.68), f32(0.735), 1.25, f32(1.15)), shield: f32(1.15) },
   [Character.jaina]: body(f32(1.2), 0.5, f32(0.95), f32(0.9), f32(1.05)),

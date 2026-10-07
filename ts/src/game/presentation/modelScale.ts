@@ -20,6 +20,7 @@ export const STOCK_MODEL_SCALES: Readonly<Record<Character, { readonly unit: str
   [Character.archer]: { unit: "earc", scale: 1.0 },
   [Character.rifleman]: { unit: "hrif", scale: 1.0 },
   [Character.demonHunter]: { unit: "Edem", scale: 1.0 },
+  [Character.chen]: { unit: "Npbm", scale: 1.0 },
   [Character.blademaster]: { unit: "Obla", scale: 1.0 },
   [Character.mountainKing]: { unit: "Hmkg", scale: 1.0 },
   [Character.warden]: { unit: "Ewar", scale: 1.0 },

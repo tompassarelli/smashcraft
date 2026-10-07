@@ -278,21 +278,23 @@ const integerDigests: ObservationDigest[] = [];
 for (let value = -1; value <= 255; value++) integerDigests.push(scalarDigest(value));
 
 // Neutral fields are consecutive in the canonical record; fold a whole run's unchanged bytes once.
-const zeroDigests: ObservationDigest[] = [{ first: 0, second: 0, firstPower: 1, secondPower: 1 }];
+const zeroFirst: number[] = [0];
+const zeroSecond: number[] = [0];
+const zeroFirstPower: number[] = [1];
+const zeroSecondPower: number[] = [1];
 let zeroNumbers = 0;
 function flushObservationZeroes(): void {
   if (zeroNumbers === 0) return;
   const zero = at(integerDigests, 1);
-  while (zeroDigests.length <= zeroNumbers) {
-    const previous = at(zeroDigests, zeroDigests.length - 1);
-    zeroDigests.push({
-      first: floorMod(previous.first * zero.firstPower + zero.first, 46337),
-      second: floorMod(previous.second * zero.secondPower + zero.second, 46337),
-      firstPower: floorMod(previous.firstPower * zero.firstPower, 46337),
-      secondPower: floorMod(previous.secondPower * zero.secondPower, 46337),
-    });
+  while (zeroFirst.length <= zeroNumbers) {
+    const previous = zeroFirst.length - 1;
+    zeroFirst.push(floorMod(at(zeroFirst, previous) * zero.firstPower + zero.first, 46337));
+    zeroSecond.push(floorMod(at(zeroSecond, previous) * zero.secondPower + zero.second, 46337));
+    zeroFirstPower.push(floorMod(at(zeroFirstPower, previous) * zero.firstPower, 46337));
+    zeroSecondPower.push(floorMod(at(zeroSecondPower, previous) * zero.secondPower, 46337));
   }
-  foldDigest(at(zeroDigests, zeroNumbers));
+  checksumFirst = floorMod(checksumFirst * at(zeroFirstPower, zeroNumbers) + at(zeroFirst, zeroNumbers), 46337);
+  checksumSecond = floorMod(checksumSecond * at(zeroSecondPower, zeroNumbers) + at(zeroSecond, zeroNumbers), 46337);
   zeroNumbers = 0;
 }
 
