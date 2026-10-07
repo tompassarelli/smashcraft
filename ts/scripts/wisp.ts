@@ -37,6 +37,7 @@ const COMMANDS: Record<string, { readonly usage: string; readonly load: () => Pr
   replay: { usage: "replay FILE [--out JOINED]   (LUA=<32-bit lua>)", load: async () => (await import("./wisp/commands/replay")).replay },
   pad: { usage: "pad SCRIPT --helper BINARY --build BUILD --out DIR --app-id a=ID --app-id b=ID [--chat=TEXT] [--map MAP.w3x [--retries N]] | pad SCRIPT --headless --helper BINARY --out DIR [--chat=TEXT] [--compare NATIVE_DIR]   (timed virtual-pad edges through the real helpers; native vs headless parity; scripts/integrity/padScript.ts)", load: async () => (await import("./wisp/commands/pad")).pad },
   accept: { usage: "accept [--only ID...] [--dry-run] [--out DIR]   (the declared native checks, batched: scripts/wisp/acceptChecks.ts)", load: async () => (await import("./wisp/commands/accept")).accept },
+  farm: { usage: "farm balance [--ref REF] [--level N] [--per-pair N] [--seeds N] [--wait] | farm pads [--ref REF] [--wait]   (headless work on GitHub's free runners: .github/workflows/balance.yml, headless-pads.yml)", load: async () => (await import("./wisp/commands/farm")).farm },
   perf: { usage: "perf [quick-match|bot|bot-four|playable-bot-four] [--frames N] [--samples] [--out FILE] | perf compare A B [--threshold SHARE]   (LUA=<32-bit lua>)", load: async () => (await import("./wisp/commands/perf")).perf },
 };
 

@@ -226,6 +226,35 @@ export function compareRuns(nativeDir: string, headlessDir: string, script: stri
   return { passed: problems.length === 0, lines };
 }
 
+/**
+ * A headless pad run alone, with no native run to compare (`bun wisp farm
+ * pads`): its edges landed on their frames and the script's `#! expect`,
+ * `#! absent` and `#! scene` lines hold in its trace and scene reports.
+ */
+export function checkHeadlessRun(headlessDir: string, script: string): ParityReport {
+  const lines: string[] = [];
+  const problems: string[] = [];
+  const parsed: unknown = JSON.parse(readFileSync(join(headlessDir, "result.json"), "utf8"));
+  if (!isRunResult(parsed)) throw new Error(`${headlessDir}/result.json is not a pad result`);
+  if (parsed.off_frame !== 0) problems.push(`headless: ${parsed.off_frame ?? "?"} edges landed off their planned frame`);
+  if ((parsed.helpers_stopped ?? []).length > 0) problems.push(`headless: ${(parsed.helpers_stopped ?? []).join("; ")}`);
+  const traceLines = readLines(join(headlessDir, "trace-a.txt"));
+  const expectations = parseExpectations(script);
+  if (traceLines === undefined) problems.push(`headless: no input trace in ${headlessDir}`);
+  else {
+    problems.push(...unmetExpectations(parseTrace(traceLines), expectations, "headless"));
+    lines.push(`expectations: ${expectations.length} checked`);
+  }
+  const scenes = parseSceneExpectations(script);
+  if (scenes.length > 0) {
+    problems.push(...unmetSceneExpectations([readLines(join(headlessDir, "scene-a.txt")), readLines(join(headlessDir, "scene-b.txt"))], scenes, "headless"));
+    lines.push(`scene: ${scenes.length} effect models checked in view`);
+  }
+  lines.push(...problems.map((problem) => `FAIL ${problem}`));
+  lines.push(problems.length === 0 ? "PASS: the script's expectations hold headless" : `FAIL: ${problems.length} problem${problems.length === 1 ? "" : "s"}`);
+  return { passed: problems.length === 0, lines };
+}
+
 /** The script's `#! chat TEXT` line: the developer command that starts its match, such as `-dev quick hero rifleman`. */
 export function scriptChat(script: string): string | undefined {
   return /^\s*#!\s*chat\s+(.+?)\s*$/m.exec(script)?.[1];

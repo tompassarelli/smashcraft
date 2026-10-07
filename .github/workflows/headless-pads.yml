@@ -1,0 +1,106 @@
+name: Headless pads
+
+# Every native check script (smashcraft:ts/test/native/pads/*.pad) played
+# through the real wc3-journal helper into headless clients on free hosted
+# runners, one job a script; each must land its edges on their frames and
+# hold its own `#!` expectations. `bun wisp farm pads` dispatches it, for a
+# change that moves hit timing.
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Commit, branch or tag to check
+        default: main
+      tag:
+        description: Names the run so `bun wisp farm` can find the one it dispatched
+        default: ""
+
+run-name: Headless pads ${{ inputs.ref }} ${{ inputs.tag }}
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      sha: ${{ steps.plan.outputs.sha }}
+      pads: ${{ steps.plan.outputs.pads }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - id: plan
+        run: |
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "pads=$(cd ts/test/native/pads && ls *.pad | jq -R . | jq -sc .)" >> "$GITHUB_OUTPUT"
+
+  helper:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
+      - run: sudo apt-get update -q && sudo apt-get install -y -q libudev-dev libxkbcommon-dev
+      - run: rustup toolchain install
+        working-directory: companion
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: companion
+      - run: cargo build --release --locked --bin wc3-journal
+        working-directory: companion
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wc3-journal
+          path: companion/target/release/wc3-journal
+          retention-days: 3
+
+  pad:
+    needs: [plan, helper]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        pad: ${{ fromJSON(needs.plan.outputs.pads) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+      - run: bun install --frozen-lockfile
+        working-directory: ts
+      - uses: actions/download-artifact@v4
+        with:
+          name: wc3-journal
+          path: helper
+      # The helper reads a uinput pad the script drives (as companion.yml's tests do).
+      - name: Virtual pads
+        run: |
+          chmod +x helper/wc3-journal
+          sudo modprobe uinput && sudo chmod 0666 /dev/uinput
+          echo 'SUBSYSTEM=="input", KERNEL=="event*", MODE="0666"' | sudo tee /etc/udev/rules.d/99-ci-pads.rules
+          sudo udevadm control --reload-rules
+      # The journal accepts control timestamps only from btrfs, XFS or tmpfs;
+      # the runner's disk is ext4, /dev/shm is tmpfs.
+      - name: Play ${{ matrix.pad }}
+        working-directory: ts
+        run: bun wisp pad "test/native/pads/${{ matrix.pad }}" --headless --helper "$GITHUB_WORKSPACE/helper/wc3-journal" --out "/dev/shm/pad/${{ matrix.pad }}"
+      - if: ${{ !cancelled() }}
+        run: |
+          mkdir -p pad-out
+          cp -r "/dev/shm/pad/${{ matrix.pad }}" pad-out/ 2>/dev/null || true
+      - if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pad-${{ matrix.pad }}
+          path: pad-out
+          retention-days: 7

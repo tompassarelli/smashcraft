@@ -10,7 +10,8 @@
 // `bun wisp pad SCRIPT --headless --helper BINARY --out DIR [--chat=TEXT] [--compare NATIVE_DIR]`
 // plays the same script through the same helper into two headless clients
 // of the integrity build, and with --compare checks a native run's folder
-// against it (smashcraft:ts/scripts/integrity/padParity.ts).
+// against it (smashcraft:ts/scripts/integrity/padParity.ts); without --compare
+// it checks the script's own `#!` expectations against the headless run.
 import { copyFileSync, existsSync, mkdirSync, openSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync, writeSync, closeSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
@@ -29,7 +30,7 @@ import { IntegrityFailure, producerLine, tryIntegrity } from "../../integrity/ev
 import { loadEntry } from "../../integrity/headless";
 import { type Pad, inject, monotonicNs, openPad } from "../../integrity/linux";
 import { BTN_SELECT, PAD_BUTTONS } from "../../integrity/linuxInput";
-import { REPRO_NAME, TRACE_FILE, compareRuns, scriptChat } from "../../integrity/padParity";
+import { REPRO_NAME, TRACE_FILE, checkHeadlessRun, compareRuns, scriptChat } from "../../integrity/padParity";
 import type { Schedule, ScheduleReply, ScheduledEdge } from "../../integrity/padScheduleWorker";
 import { type PadStep, type SentEdge, frameWriteNs, landEdges, matchStart, parsePadScript, ruleFrame } from "../../integrity/padScript";
 import { SLOTS } from "../../integrity/reconcile";
@@ -324,6 +325,11 @@ export const pad: Command = (args) => Effect.gen(function*() {
     const report = yield* tryIntegrity("compare with the native run", compare, () => compareRuns(compare, out, script));
     for (const line of report.lines) console.log(line);
     if (!report.passed) return yield* new IntegrityFailure({ operation: "pad parity", path: compare, cause: report.invalid === true ? "desynced, rerun the native run" : "the native run differs from the headless run" });
+    return yield* ran;
   }
-  return yield* ran;
+  yield* ran;
+  // Alone, the headless run holds the script's own expectations (bun wisp farm pads).
+  const report = yield* tryIntegrity("check the script's expectations", out, () => checkHeadlessRun(out, script));
+  for (const line of report.lines) console.log(line);
+  if (!report.passed) return yield* new IntegrityFailure({ operation: "pad expectations", path: out, cause: "the script's expectations don't hold headless" });
 });

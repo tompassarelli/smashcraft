@@ -4,7 +4,7 @@ import { frameWriteNs, landEdges, matchStart, parsePadScript, publishedFrame, ru
 import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { compareRuns, parseExpectations, parseTrace, scriptChat, unmetExpectations } from "../scripts/integrity/padParity";
+import { checkHeadlessRun, compareRuns, parseExpectations, parseTrace, scriptChat, unmetExpectations } from "../scripts/integrity/padParity";
 
 test("a pad script becomes frame-ordered edges, a tap a press and its release", () => {
   const steps = parsePadScript(`
@@ -80,6 +80,21 @@ test("a native pad run that desynced, crashed or ended early is invalid, neither
   rmSync(root, { recursive: true });
 });
 
+
+test("a headless pad run alone passes when its edges landed and the script's expectations hold in its trace", () => {
+  const root = mkdtempSync(join(tmpdir(), "pad-headless-"));
+  writeFileSync(join(root, "result.json"), JSON.stringify({ off_frame: 0, helpers_stopped: [] }));
+  // The trace is a Warcraft Preload file, as the integrity build writes it.
+  const preload = (lines: readonly string[]) => `function PreloadFiles takes nothing returns nothing\n${lines.map((line) => `\tcall Preload( "${line}" )\n`).join("")}endfunction\n`;
+  writeFileSync(join(root, "trace-a.txt"), preload([
+    "72 1.200 participant 0 frame 60 phase 2 special 13 action-frame 1 x -240.000 z 0.000",
+    "165 2.750 confirmed frame 110 state 196331:389408",
+  ]));
+  expect(checkHeadlessRun(root, "60 a tap X 2\n#! expect a 60 special 13").passed).toBe(true);
+  const failed = checkHeadlessRun(root, "60 a tap X 2\n#! expect b 60 special 13");
+  expect([failed.passed, failed.lines.at(-1)]).toEqual([false, "FAIL: 1 problem"]);
+  rmSync(root, { recursive: true });
+});
 test("every native check script parses, names its match, starts after the helpers see it and saves a moment", () => {
   const folder = join(import.meta.dir, "native", "pads");
   const scripts = readdirSync(folder).filter((name) => name.endsWith(".pad"));

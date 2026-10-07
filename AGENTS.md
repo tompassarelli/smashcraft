@@ -189,6 +189,17 @@ code. From smashcraft:ts/:
   prints the stretches the victim can't act in and the loops follow-ups make
   (smashcraft:docs/typescript.md); 11-28 minutes an attacker, inside the
   capacity scope.
+- Compute farm: `bun wisp farm balance [--ref REF] [--wait]` plays the
+  balance gate's computer field (level 9, 400 a pair; `--level`,
+  `--per-pair`, `--seeds`) on GitHub's free hosted runners, a `cpuField
+  --pairs` process a core over about 17 jobs, and with `--wait` prints the
+  verdict and field table; `bun wisp farm pads [--ref REF] [--wait]` plays
+  every smashcraft:ts/test/native/pads/ script headless through the real
+  helper against its own `#!` expectations, for a change that moves hit
+  timing. Without `--ref` it measures the checkout's HEAD (a commit not on
+  main goes to a scratch `farm/` branch, deleted after the run). Use it
+  instead of a local cpuField or pad run: the repository is public, so the
+  runners cost nothing, and this machine stays free.
 - Tapes: set `LUA` to the 32-bit Lua executable, then run `bun wisp tapes` to
   compare replay results across Bun, that Lua32 and a Lua32 whose raw float
   `+ - *` round toward zero (`TOWARD_ZERO_LUA`, or built with nix on first use).

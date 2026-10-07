@@ -1,0 +1,154 @@
+name: Balance
+
+# The balance gate's computer field (smashcraft:docs/design/roster.md, "Balance
+# gate") on free hosted runners: `bun wisp farm balance` dispatches it. Every
+# pair of selectable fighters at the commit is played by its own
+# `cpuField --pairs` process, one a core, then one job merges the shards and
+# writes the verdict and the field table to the run's summary.
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Commit, branch or tag to measure
+        default: main
+      level:
+        description: Both computers' level
+        default: "9"
+      per-pair:
+        description: Matches a pair
+        default: "400"
+      seeds:
+        description: Seeds a setup may draw on to reach the matches a pair
+        default: "100"
+      tag:
+        description: Names the run so `bun wisp farm` can find the one it dispatched
+        default: ""
+
+run-name: Balance ${{ inputs.ref }} level ${{ inputs.level }} ${{ inputs.per-pair }} a pair ${{ inputs.tag }}
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      sha: ${{ steps.plan.outputs.sha }}
+      shards: ${{ steps.plan.outputs.shards }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+      - run: bun install --frozen-lockfile
+        working-directory: ts
+      # Four pairs a job (a hosted runner's four cores), dealt round-robin so
+      # each fighter's pairs spread over the jobs.
+      - id: plan
+        working-directory: ts
+        run: |
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          bun -e '
+            import { SELECTABLE_CHARACTERS, fighterSlug } from "./src/game/sim/heroes/registry";
+            const slugs = SELECTABLE_CHARACTERS.map(fighterSlug);
+            const pairs = slugs.flatMap((a, index) => slugs.slice(index + 1).map((b) => `${a}:${b}`));
+            const jobs = Math.ceil(pairs.length / 4);
+            const shards = Array.from({ length: jobs }, (_, job) => pairs.filter((_, index) => index % jobs === job).join(","));
+            console.log(`shards=${JSON.stringify(shards)}`);
+            console.error(`${pairs.length} pairs of ${slugs.length} fighters in ${jobs} jobs`);
+          ' >> "$GITHUB_OUTPUT"
+
+  shard:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: true
+      matrix:
+        pairs: ${{ fromJSON(needs.plan.outputs.shards) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+      - run: bun install --frozen-lockfile
+        working-directory: ts
+      - name: Play the pairs, one process a core
+        working-directory: ts
+        env:
+          PAIRS: ${{ matrix.pairs }}
+          LEVEL: ${{ inputs.level }}
+          PER_PAIR: ${{ inputs.per-pair }}
+          SEEDS: ${{ inputs.seeds }}
+        run: |
+          mkdir -p shards
+          echo "$PAIRS" | tr ',' '\n' | xargs -P "$(nproc)" -I{} sh -c '
+            name=$(echo {} | tr : _)
+            bun scripts/cpuField.ts --pairs {} --levels "$LEVEL,$LEVEL" --per-pair "$PER_PAIR" --seeds "$SEEDS" --json "shards/$name.json" > "shards/$name.log" 2>&1 \
+              || { echo "::error::cpuField {} failed"; cat "shards/$name.log"; exit 1; }
+            grep -m1 "computer matches" "shards/$name.log" | cut -c1-90
+          '
+      - uses: actions/upload-artifact@v4
+        with:
+          name: balance-shard-${{ strategy.job-index }}
+          path: ts/shards/*.json
+          retention-days: 3
+
+  merge:
+    needs: [plan, shard]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+      - run: bun install --frozen-lockfile
+        working-directory: ts
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: balance-shard-*
+          merge-multiple: true
+          path: ts/shards
+      - name: Merge and print the verdict
+        working-directory: ts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LEVEL: ${{ inputs.level }}
+          PER_PAIR: ${{ inputs.per-pair }}
+          SEEDS: ${{ inputs.seeds }}
+          SHA: ${{ needs.plan.outputs.sha }}
+        run: |
+          mkdir -p balance
+          bun scripts/cpuField.ts --merge "$(ls shards/*.json | paste -sd,)" --levels "$LEVEL,$LEVEL" --per-pair "$PER_PAIR" --seeds "$SEEDS" --json balance/field.json > balance/table.md
+          started=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" --jq .run_started_at)
+          wall=$(( $(date +%s) - $(date -d "$started" +%s) ))
+          verdict=$(grep '^Balance gate' balance/table.md)
+          {
+            echo "# Balance at ${SHA:0:10}"
+            echo
+            echo "**${verdict}**"
+            echo
+            echo "Level $LEVEL, $PER_PAIR a pair, $(ls shards/*.json | wc -l) shards; $((wall / 60)) min $((wall % 60)) s from the run's start to the verdict."
+            echo
+            grep -v '^Merged from' balance/table.md
+          } > balance/field.md
+          cat balance/field.md >> "$GITHUB_STEP_SUMMARY"
+          echo "::notice title=Balance gate::$verdict"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: balance-field
+          path: |
+            ts/balance/field.md
+            ts/balance/field.json
+          retention-days: 30

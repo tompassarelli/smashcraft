@@ -3,6 +3,7 @@ name: Companion
 on:
   workflow_dispatch:
   push:
+    branches-ignore: ["farm/**"]
     paths:
       - "companion/**"
       - ".github/workflows/companion.yml"

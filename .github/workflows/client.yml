@@ -3,6 +3,7 @@ name: Client
 on:
   workflow_dispatch:
   push:
+    branches-ignore: ["farm/**"]
     paths:
       - "client/**"
       - "companion/model/**"
