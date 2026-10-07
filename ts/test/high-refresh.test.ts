@@ -19,10 +19,11 @@ afterAll(headless.restore);
 const MATCH_FRAMES = 300;
 
 /** Each client's confirmed checksum on every frame of a quick match, drawing `extraDraws` more frames between simulation frames. */
-function quickMatch(extraDraws: number): { checksums: string[][]; smoothed: number; drawnPositions: number } {
+function quickMatch(extraDraws: number, cameraTween = false): { checksums: string[][]; smoothed: number; drawnPositions: number } {
   const clients = headless.clients({ start, install });
   clients.start();
   clients.frames(30);
+  if (cameraTween) clients.chat(0, "-dev camera-smooth on");
   clients.chat(0, "-dev quick cpu wren expert");
   clients.everywhere(() => {
     effectMotion().tracking = extraDraws > 0;
@@ -53,6 +54,13 @@ test("drawing between simulation frames leaves every confirmed checksum unchange
   // Three drawn frames a simulation frame turn smoothing on once the average passes 1.5.
   expect(smooth.smoothed).toBeGreaterThan(MATCH_FRAMES);
   expect(smooth.drawnPositions).toBeGreaterThan(plain.drawnPositions);
+  expect(smooth.checksums[0]?.length).toBe(MATCH_FRAMES);
+  expect(smooth.checksums).toEqual(plain.checksums);
+}, 30000);
+
+test("native camera transitions leave every confirmed checksum unchanged", () => {
+  const plain = quickMatch(0);
+  const smooth = quickMatch(0, true);
   expect(smooth.checksums[0]?.length).toBe(MATCH_FRAMES);
   expect(smooth.checksums).toEqual(plain.checksums);
 }, 30000);

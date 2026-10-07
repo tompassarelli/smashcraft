@@ -477,6 +477,9 @@ code. From smashcraft:ts/:
   Render cadence: `-dev render-clock` in a development map records timer
   callback bursts and cost; `bun wisp accept --only 169-render-clock --dry-run`
   prints its native plan (smashcraft:docs/high-refresh.md).
+  `-dev camera-smooth on|off` compares native one-frame camera transitions
+  with the normal camera in the same development map; it keeps the simulated
+  camera unchanged (smashcraft:docs/high-refresh.md).
   Script-cost capture: `bun wisp build --profile native-perf ...` uses playable
   key input and pooled presentation with developer setup commands. In a match,
   `-dev capture 18000` writes every client's raw callback samples; read full-run

@@ -59,22 +59,29 @@ function firstShot(stick: Readonly<Controls>): { vx: number; vz: number; shotX: 
   return { vx: owner.motion.vx, vz: owner.motion.vz, shotX: shot?.velocityX ?? 0.0, shotZ: shot?.velocityZ ?? 0.0 };
 }
 
-test("Recoil shot: the stick through frame 4 picks up, diagonally up or level, and the shot fires the opposite way", () => {
+test("Recoil shot: the stick through frame 4 picks one of eight directions (up when neutral), and the shot fires the opposite way", () => {
   const up = firstShot(controls());
   assertEquals(up.vx, 0.0);
   assertGreaterThan(up.vz, 25.0);
   assertLessThan(up.shotZ, 0.0);
+  const down = firstShot(controls({ verticalDirection: -1, down: true }));
+  assertEquals(down.vx, 0.0);
+  assertLessThan(down.vz, -25.0);
+  assertGreaterThan(down.shotZ, 0.0);
   for (const side of [-1, 1]) {
-    const diagonal = firstShot(controls({ direction: side }));
-    assertGreaterThan(f32(diagonal.vx * side), 15.0);
-    assertGreaterThan(diagonal.vz, 15.0);
-    assertLessThan(f32(diagonal.shotX * side), 0.0);
-    assertLessThan(diagonal.shotZ, 0.0);
-    const level = firstShot(controls({ direction: side, verticalDirection: -1, down: true }));
-    assertGreaterThan(f32(level.vx * side), 25.0);
-    assertLessThan(Math.abs(level.vz), 3.0);
-    assertLessThan(f32(level.shotX * side), 0.0);
-    assertEquals(level.shotZ, 0.0);
+    for (const vertical of [1, 0, -1]) {
+      const shot = firstShot(controls({ direction: side, verticalDirection: vertical, down: vertical < 0 }));
+      assertGreaterThan(f32(shot.vx * side), 15.0);
+      assertLessThan(f32(shot.shotX * side), 0.0);
+      if (vertical === 0) {
+        assertGreaterThan(f32(shot.vx * side), 25.0);
+        assertLessThan(Math.abs(shot.vz), 3.0);
+        assertEquals(shot.shotZ, 0.0);
+      } else {
+        assertGreaterThan(f32(shot.vz * vertical), 15.0);
+        assertLessThan(f32(shot.shotZ * vertical), 0.0);
+      }
+    }
   }
 });
 
@@ -118,7 +125,7 @@ test("Recoil shot: the shot is the edge-guard answer, striking the fighter it is
   for (let f = 0; f < 12 && target.status.damage === 0.0; f++) {
     target.motion.z = 380.0;
     target.motion.vz = 0.0;
-    frame(world, controls({ direction: 1 }));
+    frame(world, controls({ direction: 1, verticalDirection: 1 }));
   }
   assertGreaterThan(owner.motion.x, 0.0);
   assertGreaterThan(target.status.damage, 0.0);

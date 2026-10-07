@@ -30,6 +30,7 @@ const HERO_BODIES: { readonly [character: number]: HeroBody | undefined } = {
   [Character.beastmaster]: body(f32(1.10), f32(0.97), f32(0.88), f32(1.15), f32(1.26)),
   [Character.lichKing]: body(f32(1.12), f32(0.84), f32(0.86), f32(1.12), f32(1.26)),
   [Character.thrall]: { ...body(f32(1.6933333333333334), f32(0.68), f32(0.735), 1.25, f32(1.15)), shield: f32(1.15) },
+  [Character.jaina]: body(f32(1.2), 0.5, f32(0.95), f32(0.9), f32(1.05)),
 };
 
 /** An expansion hero's body multipliers; undefined for the original three fighters. */

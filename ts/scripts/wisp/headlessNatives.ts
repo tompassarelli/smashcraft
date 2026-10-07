@@ -1,5 +1,7 @@
 import type { IntentionalNoops } from "wisp/src/headless/client";
 
+declare const SetCameraPosition: (x: number, y: number) => void;
+
 /** Assumptions shared by the Bun journey and emitted-Lua journey. */
 export const SMASHCRAFT_NOOPS: IntentionalNoops = {
   BlzFrameSetFont: "quick-match checks frame text and points; font rasterization is not part of its verdict",
@@ -39,6 +41,8 @@ export const SMASHCRAFT_NOOPS: IntentionalNoops = {
 };
 
 export const smashcraftNativeBehavior = () => ({
+  // Headless frames retain the requested target; only native capture measures the transition.
+  PanCameraToTimed: (x: number, y: number) => SetCameraPosition(x, y),
   // Smashcraft's authored stage origin is (0, 0, 0).
   GetLocationX: () => 0,
   GetLocationY: () => 0,
