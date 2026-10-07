@@ -249,10 +249,10 @@ test("a match and its three-fighter rematch show each pooled fighter whole where
   for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) expect(shownFrames.get(character) ?? 0).toBeGreaterThan(60);
   // Match frames create and destroy nothing; the result recreates the menu key triggers the match start removed.
   for (const played of [first, rematch]) expect(played.lifetimes).toEqual({ CreateTrigger: 2 });
-  // At its result the rematch also holds the computer Illidan's clip pool, shield, projectiles, special cues and agency halo; fighter
+  // At its result the rematch also holds the computer Illidan's clip pool, shield, projectiles, special cues, agency halo and body flash; fighter
   // selection ends every fighter's renderers, so it then holds exactly what it held after the first match.
   const illidan = originalClipCount(Character.demonHunter) + (originalLightPath(Character.demonHunter) === undefined ? 0 : 1);
-  expect(rematch.effectsAtResult - first.effectsAtResult).toBe(illidan + 1 + PROJECTILE_CAPACITY + fighterRenderedCues(Character.demonHunter).length + 1);
+  expect(rematch.effectsAtResult - first.effectsAtResult).toBe(illidan + 1 + PROJECTILE_CAPACITY + fighterRenderedCues(Character.demonHunter).length + 2);
   expect(host.effectPoses().length).toBe(selectionAfterFirst);
   for (const client of clients.clients) expect(client.errors).toEqual([]);
   // Each client wrote its own player's record of both matches for the Smashcraft client: two fighters, then three.

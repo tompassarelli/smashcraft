@@ -124,6 +124,9 @@ code. From smashcraft:ts/:
   `tools/animations/build-lichking.sh [PRIVATE_INPUTS] [IMMUTABLE_EXISTING_MODEL]`
   authors clips through Blender; the optional existing model preserves shipped
   sequences and appends only new clips (smashcraft:docs/fighter-animation-work.md).
+- White body flashes (from the repository root):
+  `bun tools/animations/white-flash-models.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
+  authors white body-only copies with the original meshes and animation keys for charge and heavy-hit flashes; store PRIVATE_OUTPUT as `impact-assets`.
 - Damage reactions (from the repository root):
   `bun tools/animations/damage-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
   appends all 13 fighters' nine articulated contact reactions, checks their
