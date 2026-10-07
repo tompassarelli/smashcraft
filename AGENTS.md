@@ -124,6 +124,10 @@ code. From smashcraft:ts/:
   `tools/animations/build-lichking.sh [PRIVATE_INPUTS] [IMMUTABLE_EXISTING_MODEL]`
   authors clips through Blender; the optional existing model preserves shipped
   sequences and appends only new clips (smashcraft:docs/fighter-animation-work.md).
+- Cairne animation authoring (from the repository root):
+  `bun tools/animations/cairne-clips.ts STOCK_TAUREN.mdx PRIVATE_OUTPUT`
+  appends the complete totem kit, recovery, paired grabs and nine pain clips
+  to the private classic Tauren Chieftain model, preserving its stock clips.
 - Damage reactions (from the repository root):
   `bun tools/animations/damage-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
   appends all 13 fighters' nine articulated contact reactions, checks their

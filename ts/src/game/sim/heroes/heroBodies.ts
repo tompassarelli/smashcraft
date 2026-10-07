@@ -29,6 +29,7 @@ const HERO_BODIES: { readonly [character: number]: HeroBody | undefined } = {
   [Character.pitLord]: { ...body(f32(1.28), f32(0.80), f32(0.75), f32(1.65), f32(1.35)), shield: f32(1.35) },
   [Character.beastmaster]: body(f32(1.10), f32(0.97), f32(0.88), f32(1.15), f32(1.26)),
   [Character.lichKing]: body(f32(1.12), f32(0.84), f32(0.86), f32(1.12), f32(1.26)),
+  [Character.cairne]: { ...body(f32(133.0 / 75.0), f32(f32(1.485) / f32(2.2)), f32(0.945), f32(1.75), f32(1.45)), shield: f32(1.45) },
 };
 
 /** An expansion hero's body multipliers; undefined for the original three fighters. */
