@@ -85,7 +85,9 @@ code. From smashcraft:ts/:
   `bun wisp rebuild MAP.w3x` replaces only its script.
 - Fresh match: `bun wisp fresh MAP.w3x [--rebuild]` starts a new game, sends
   `-dev quick`, and waits until every signed-in client writes its receipt.
-  `--rebuild` replaces the map script first.
+  `--rebuild` replaces the map script first. Other quick starts for `--chat`
+  and pad scripts: `-dev quick hero NAME`, and `-dev quick cpu N`, a quick
+  match against a computer at level N (1-9) over three stocks.
 - Client state: `bun wisp watch [CLIENT...] [--once]` prints what each client
   is doing (signed in, menu screen, lobby, loading, in match, results,
   disconnected, crashed, its map's load errors, the ladder scan) from its menus,
@@ -98,8 +100,17 @@ code. From smashcraft:ts/:
   engine diff A.log B.log` name the agent (handle, code callback) one client
   made on another turn; `engine watch` (offline clients) gives each birth's
   game stack, `engine locate` re-finds offsets after a Warcraft update. Dev
-  clients only, read-only; memory reads need the owner's ptrace_scope=0
+  clients from clients.json only, never Tom's install. Two tiers: passive
+  reads (`desync`, `poll`, `diff`, `locate`) may follow signed-in A/B;
+  anything that traps, stops or writes (`watch`, `locate --watch`) runs only on
+  verifiably offline clients and refuses otherwise. A read tries first; when
+  it fails it prints the ptrace_scope commands, which only Tom runs
   (wisp:docs/engine.md).
+- Offline LAN pool (landing in Wisp; until then use A/B): `bun wisp lan pool
+  --pairs N` runs pairs of throwaway offline clients, no account, each in its
+  own network namespace without internet, playing over LAN; its clients file
+  is ~/.local/state/wisp/lan/clients.json. It is the default for native
+  testing (see "Native testing and UI"), and the full engine tier runs there.
 - Client recovery: `bun wisp doctor [CLIENT...]` brings clients A and B to a
   ready state: it recovers a client that dropped from Battle.net, crashed
   with its error dialog up, sits at the empty login shell, a stale lobby or
@@ -245,8 +256,17 @@ may use more stocks or a longer timer only when its required sample needs it;
 record that reason beside the test (for example, #26's all-binding edge sample).
 Keep ordinary combat completion intact; do not force a win to shorten a test.
 
-Read warcraft3-development and its off-monitor dependency before
-controlling the game. Default automation off-monitor; use the primary display
+Pick the clients by what the test needs (Tom, 7 Oct). The offline LAN pool
+is the default for native testing: pad parity runs, captures, `accept`
+checks and desync hunts (landing; until `bun wisp lan pool` exists, use A/B).
+Signed-in A and B are only for tests that need Battle.net itself: real
+netplay or latency, direct play (#142), spectating. Tom's install (account a,
+display :0) is Tom's. A run during which a client wrote a desync report or
+crashed is invalid; read the autopsy line it printed
+(wisp:docs/autopsy.md), rerun, and debug the desync with `bun wisp engine`.
+
+Read warcraft-modding and its off-monitor dependency,
+private-desktop-development, before controlling the game. Default automation off-monitor; use the primary display
 for a requested hands-on trial. Preserve authenticated clients across map
 iterations. Never direct-launch Warcraft as assumed authentication recovery.
 Keep A/B in separate prefixes and use distinct online accounts. Credentials

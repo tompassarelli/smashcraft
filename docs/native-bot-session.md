@@ -15,6 +15,32 @@ events (wisp:docs/watch.md). `bun wisp client wait CLIENT STATE...` waits
 for one. A capture and `bun wisp fresh` stop at once when a client crashes or
 loses Battle.net, with the evidence the watch saw.
 
+## Which clients
+
+Native testing defaults to Wisp's offline LAN pool (landing; until
+`bun wisp lan pool --pairs N` exists, these captures run on A and B). The
+pool's throwaway clients have no account and no internet, each in its own
+network namespace, and play over LAN; their clients file is
+~/.local/state/wisp/lan/clients.json. Signed-in A and B are only for tests
+that need Battle.net itself: real netplay or latency, direct play (#142),
+spectating. Tom's install is Tom's.
+
+## When a run desyncs
+
+`fresh`, `parity capture`, `pad` and `accept` run inside Wisp's desync
+autopsy (wisp:docs/autopsy.md). On a new desync report they print
+
+```text
+desync autopsy: first divergent birth #N Class at turn T on client X
+```
+
+and save both clients' reports, poll logs and the comparison under
+~/.local/state/wisp/autopsy/<time>/. The run itself is invalid and reruns
+(below); the line names what to fix. `CScriptFunc` is a code callback made
+on a different turn in each client, as in #158. For a desync outside a
+session, `bun wisp engine desync`, `poll` and `diff` find the same
+(wisp:docs/engine.md).
+
 ## The session
 
 The session has a match and a rematch:
@@ -188,7 +214,8 @@ integrity and development builds give confirmed states.
 `bun wisp pad SCRIPT --helper HELPER --build BUILD --out DIR --app-id a=ID --app-id b=ID [--chat=TEXT]`
 plays a script of timed pad states on both clients' virtual pads through
 the real helpers, as the captures do. `--chat=TEXT` types a developer command
-into client A once the helpers run (for example `-dev quick hero lich`).
+into client A once the helpers run (for example `-dev quick hero lich`, or
+`-dev quick cpu 9` for a level-9 computer opponent).
 Each line is `FRAME CLIENT ACTION [ARGS]`: the match frame the edge is
 meant for (or `+N` after the previous line), `a` or `b`, and
 `press|release|tap BUTTON [FRAMES]`, `stick X Y`, `cstick X Y`
