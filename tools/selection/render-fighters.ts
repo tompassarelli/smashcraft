@@ -118,8 +118,19 @@ function posedLayers(text: string): string {
   return text.slice(0, materials) + posed + text.slice(geosets);
 }
 
+/** The importer swaps only a lowercase ".blp" for the PNG it reads; Kwaliti's Lich King names "LichKing.BLP". */
+const lowerTextureExtensions = (text: string) => text.replace(/(Image "[^"]*)\.blp"/gi, '$1.blp"');
+
+/**
+ * The importer looks for textures beside the model before the resource folder,
+ * so models sit apart from the renders: the Lich King's texture LichKing.blp
+ * would otherwise load his previous render, work/LichKing.png.
+ */
+const models = join(work, 'models');
+mkdirSync(models, { recursive: true });
+
 async function modelFor(character: Character, name: string): Promise<string> {
-  const mdl = join(work, `${name}.mdl`);
+  const mdl = join(models, `${name}.mdl`);
   const original = ORIGINAL_MODELS[character];
   if (original !== undefined) {
     await Bun.write(mdl, posedLayers(unlit(await Bun.file(join(assets!, original)).text())));
@@ -127,11 +138,11 @@ async function modelFor(character: Character, name: string): Promise<string> {
   }
   const hero = heroDefinition(character);
   if (hero === undefined) throw new Error(`no model for ${name}`);
-  const mdx = join(work, `${name}.mdx`);
+  const mdx = join(models, `${name}.mdx`);
   if (importedModelFile(hero.presentation.model) !== undefined) await Bun.write(mdx, Bun.file(join(assets!, heroModelSource(hero.presentation.model))));
   else run([extract, storage, stored(hero.presentation.model).replace(/\.mdl$/, '.mdx'), mdx]);
   run(['bun', join(project, 'tools/animations/convert.ts'), mdx, mdl]);
-  await Bun.write(mdl, posedLayers(unlit(await Bun.file(mdl).text())));
+  await Bun.write(mdl, lowerTextureExtensions(posedLayers(unlit(await Bun.file(mdl).text()))));
   return mdl;
 }
 
