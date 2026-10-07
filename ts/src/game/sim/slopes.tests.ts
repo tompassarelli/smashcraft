@@ -7,7 +7,7 @@ import { type Fighter, createFighter } from "./fighter";
 import { LEDGE_CLIMB_FRAMES, resolveLedges } from "./ledge";
 import { setWorldMotionValue } from "./motion";
 import type { Controls } from "./roster";
-import { SLOPE_TEST_STAGE, groundLineCosine, mainDeckLeft, mainDeckRight, mainDeckZ, mainDeckZAt, surfaceLine, surfaceZ, surfaceZAt } from "./stage";
+import { SLOPE_TEST_STAGE, STRATHOLME_STAGE, groundLineCosine, mainDeckLeft, mainDeckRight, mainDeckZ, mainDeckZAt, surfaceLine, surfaceZ, surfaceZAt } from "./stage";
 import { advanceSolo, controls, seedTechWindow, testWorld } from "./testWorld";
 import { melee } from "./tuning";
 
@@ -38,13 +38,13 @@ test("the slope stage's main deck is level in its middle 0.7 and falls 3.5 Melee
   assertEquals(surfaceZAt(STAGE, 0, 0, mainDeckLeft(STAGE)), mainDeckZ(STAGE));
   assertEquals(surfaceZAt(STAGE, 0, 0, mainDeckRight(STAGE)), mainDeckZ(STAGE));
   for (const x of [-420.0, -200.0, 0.0, 200.0, 420.0]) assertEquals(surfaceZAt(STAGE, 0, 0, x), RISE);
-  assertNear(surfaceZAt(STAGE, 0, 0, -510.0), f32(RISE / 2), 0.001);
-  assertNear(surfaceZAt(STAGE, 0, 0, 510.0), f32(RISE / 2), 0.001);
+  assertNear(surfaceZAt(STAGE, 0, 0, -510.0), f32(RISE / 2), f32(0.001));
+  assertNear(surfaceZAt(STAGE, 0, 0, 510.0), f32(RISE / 2), f32(0.001));
   const line = surfaceLine(STAGE, 0);
   assertTrue(line !== undefined);
   if (line === undefined) return;
   assertEquals(groundLineCosine(line, 0.0), 1.0);
-  assertNear(groundLineCosine(line, 500.0), f32(1 / Math.sqrt(1 + (RISE / 180) ** 2)), 0.0001);
+  assertNear(groundLineCosine(line, 500.0), 0.9932631254196167, f32(0.0001));
 });
 
 test("walking down and back up a slope keeps the fighter on the line, moving ground speed along it", () => {
@@ -101,7 +101,7 @@ test("a fighter falling onto a slope lands on the line under it", () => {
     fighter.motion.vz = -2.0;
     const input = controls();
     for (let frame = 0; frame < 120 && !fighter.motion.grounded; frame++) {
-      assertGreaterThan(fighter.motion.z, f32(surfaceZAt(STAGE, 0, 0, fighter.motion.x) - 0.001));
+      assertGreaterThan(fighter.motion.z, f32(surfaceZAt(STAGE, 0, 0, fighter.motion.x) - f32(0.001)));
       advanceSolo(fighter, STAGE, input, 0.0);
     }
     onLine(fighter);
@@ -181,12 +181,27 @@ test("the ledges at a slope's foot are grabbable corners, and the climb ends on 
     for (let tick = 1; tick <= LEDGE_CLIMB_FRAMES; tick++) {
       advanceSolo(fighter, STAGE, climb, 0.0);
       // The climb never passes into the deck.
-      assertTrue(fighter.motion.z <= f32(surfaceZAt(STAGE, 0, 0, fighter.motion.x) + 0.001));
+      assertTrue(fighter.motion.z <= f32(surfaceZAt(STAGE, 0, 0, fighter.motion.x) + f32(0.001)));
     }
     assertEquals(fighter.ledge.state, LedgeState.none);
     onLine(fighter);
     assertGreaterThan(fighter.motion.z, mainDeckZ(STAGE));
     for (let frame = 0; frame < 20; frame++) advanceSolo(fighter, STAGE, climb, 0.0);
     onLine(fighter);
+  }
+});
+
+test("selectable Stratholme's outer slope supports running and landing below its balconies", () => {
+  const fighter = createFighter(Character.archer, 550.0, -1);
+  fighter.motion.grounded = false;
+  fighter.motion.z = 80.0;
+  setWorldMotionValue(fighter.motion.meleeZ, fighter.motion.z);
+  for (let frame = 0; frame < 120 && !fighter.motion.grounded; frame++) advanceSolo(fighter, STRATHOLME_STAGE, controls(), 0.0);
+  assertEquals(fighter.motion.surface, 0);
+  assertEquals(fighter.motion.z, surfaceZAt(STRATHOLME_STAGE, 0, 0, fighter.motion.x));
+  for (let frame = 0; frame < 20; frame++) {
+    advanceSolo(fighter, STRATHOLME_STAGE, controls({ direction: -1 }), 0.0);
+    assertTrue(fighter.motion.grounded);
+    assertEquals(fighter.motion.z, surfaceZAt(STRATHOLME_STAGE, 0, 0, fighter.motion.x));
   }
 });

@@ -1,5 +1,7 @@
 // Stage scenery is presentation only: arena coordinates never become collision.
 // Composition rules (asymmetric dressing, depth bands, motion budget): smashcraft:docs/design/stage-art.md.
+import { STAGE_WATER_MODEL, STAGE_LAVA_MODEL } from "../assets/terrainAssetInfo";
+import { LAVA_INNER_X } from "../sim/lava";
 import { STAGE_LIGHT_MODELS, STAGE_SNOW_MODEL } from "../assets/stageAssetInfo";
 import { STAGE_SKY_MODELS } from "../assets/stageSkyInfo";
 import { AHNQIRAJ_SCENERY, BLACKROCK_SCENERY, GRYPHON_SCENERY, NORDRASSIL_SCENERY } from "./hazardStageScenery";
@@ -15,6 +17,7 @@ export interface SceneryPiece {
   readonly scale: number;
   /** Facing in degrees, counterclockwise from +x; the camera looks along +y, so 270 faces it. */
   readonly yaw: number;
+  readonly matrixScale?: readonly [number, number, number];
 }
 
 export interface StageScenery {
@@ -63,4 +66,13 @@ export function stageScenery(stage: number): StageScenery {
   if (stage === STRATHOLME_STAGE) return STRATHOLME_SCENERY;
   if (stage === TOMB_OF_SARGERAS_STAGE) return TOMB_OF_SARGERAS_SCENERY;
   return SUMMER;
+}
+
+/** Visible liquid sits within its contact surface; background pieces keep their own depth bands. */
+export function terrainPieces(stage: number, hazards: boolean): readonly SceneryPiece[] {
+  if (stage === TOMB_OF_SARGERAS_STAGE) return [{ model: STAGE_WATER_MODEL, x: 0.0, y: 0.0, z: 1.0, scale: 1.0, matrixScale: [12.0, 1.0, 1.0], yaw: 0.0 }];
+  if (stage !== CANNON_TEST_STAGE || !hazards) return [];
+  const width = 600.0 - LAVA_INNER_X;
+  const x = LAVA_INNER_X + width / 2;
+  return [-x, x].map(position => ({ model: STAGE_LAVA_MODEL, x: position, y: 0.0, z: 1.0, scale: 1.0, matrixScale: [width / 100, 1.0, 1.0] as const, yaw: 0.0 }));
 }

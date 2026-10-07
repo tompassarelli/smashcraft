@@ -1,0 +1,10 @@
+# #193/#195: Stratholme slope walk, run, jump and landing; native scene capture.
+#! chat -dev quick stage 6
+15 a stick -0.5 0
+65 a stick 0 0
+75 a stick 1 0
+95 a tap X 2
+125 a stick 0 0
+165 a capture
+190 a press VIEW
+260 a release VIEW

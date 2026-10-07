@@ -1,5 +1,5 @@
 import { preloadLights, preloadModels, preloadSkies } from "../../game/presentation/stagePreload";
-import { stageLightModel, stageScenery } from "../../game/presentation/stageScenery";
+import { stageLightModel, stageScenery, terrainPieces } from "../../game/presentation/stageScenery";
 import { hideEffect } from "../../game/render/effects";
 import type { ShellState } from "./state";
 
@@ -20,12 +20,13 @@ export function drawStageScenery(s: ShellState): void {
     SetTerrainFogEx(0, start, end, 0.0, red, green, blue);
   }
   const effects: effect[] = [];
-  for (const piece of scenery.pieces) {
+  for (const piece of [...scenery.pieces, ...terrainPieces(s.game.stageChoice, s.game.hazards)]) {
     const x = s.origin.x + piece.x;
     const y = s.origin.y + piece.y;
     const effect = AddSpecialEffect(piece.model, x, y);
     BlzSetSpecialEffectPosition(effect, x, y, s.origin.z + piece.z);
     BlzSetSpecialEffectScale(effect, piece.scale);
+    if (piece.matrixScale !== undefined) BlzSetSpecialEffectMatrixScale(effect, piece.matrixScale[0], piece.matrixScale[1], piece.matrixScale[2]);
     BlzSetSpecialEffectYaw(effect, piece.yaw * (Math.PI / 180.0));
     effects.push(effect);
   }
@@ -54,11 +55,12 @@ export function showBackdrop(s: ShellState, visible: boolean): void {
   const alpha = visible ? 255 : 0;
   const scenery = stageScenery(s.game.stageChoice);
   for (const [index, effect] of (s.stageScenery ?? []).entries()) {
-    const piece = scenery.pieces[index];
+    const piece = [...scenery.pieces, ...terrainPieces(s.game.stageChoice, s.game.hazards)][index];
     if (!visible || piece === undefined) hideEffect(effect, s.origin);
     else {
       BlzSetSpecialEffectPosition(effect, s.origin.x + piece.x, s.origin.y + piece.y, s.origin.z + piece.z);
       BlzSetSpecialEffectScale(effect, piece.scale);
+      if (piece.matrixScale !== undefined) BlzSetSpecialEffectMatrixScale(effect, piece.matrixScale[0], piece.matrixScale[1], piece.matrixScale[2]);
     }
   }
   for (const deck of s.stageDecks) BlzSetSpecialEffectAlpha(deck, alpha);

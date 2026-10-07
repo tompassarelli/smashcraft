@@ -36,7 +36,7 @@ const groundSpeed = (f: Fighter) => f.motion.vx !== 0;
 /** The water slide is about 1 / WATER_FRICTION times the ground slide: twice as long, give or take the last frames' rounding. */
 function assertTwiceAsLong(ground: number, water: number): void {
   assertTrue(ground > 0);
-  assertNear(f32(water / ground), f32(1.0 / WATER_FRICTION), 0.15);
+  assertNear(f32(water / ground), f32(1.0 / WATER_FRICTION), f32(0.15));
 }
 
 test("only Tomb of Sargeras's main deck has reduced friction", () => {

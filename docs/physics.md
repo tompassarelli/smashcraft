@@ -2693,3 +2693,14 @@ No new persistent fighter state is introduced. Movement, SDI and tilt capture
 keep their existing input rules. Original Warcraft characters retain authored
 statistics; stale moves and freshness bonuses stay omitted
 (smashcraft:docs/gameplay-design.md).
+
+Stratholme (6) uses a three-segment main floor: flat from x −420 to 420 at
+21 world units, sloping down to its ledges at x ±600, z 0. Ground speed is
+travel along the line, so the horizontal step takes the segment's cosine.
+Landing, techs, get-ups, projectiles and ledge climbs use the height at the
+fighter's x. The generated deck mesh follows those same line endpoints.
+
+Tomb of Sargeras (7) draws a translucent, slowly scrolling water sheet over
+its main deck. Water and lava use two triangles per surface, zero particles,
+and zero lights. Warcraft's HD water natives configure terrain water;
+these floating platforms instead use authored models that also draw in Classic.

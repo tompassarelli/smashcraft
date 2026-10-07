@@ -1,7 +1,7 @@
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import { collectTerrainContact } from "./contacts";
 import { HitElement, type HitEffect } from "./hitRegions";
-import { LedgeState } from "./codes";
+import { isIntangible } from "./conditions";
 import { type Roster, fighterAt, isActive } from "./roster";
 import { CANNON_TEST_STAGE, mainDeckRight, mainDeckZ } from "./stage";
 
@@ -18,7 +18,7 @@ export function collectLavaContacts(world: Roster, stage: number, enabled: boole
     if (!isActive(world, slot)) continue;
     const fighter = fighterAt(world, slot);
     const { motion, status, launch } = fighter;
-    if (status.out || status.invincible > 0 || launch.hitlag > 0 || fighter.ledge.state !== LedgeState.none) continue;
+    if (status.out || isIntangible(fighter) || launch.hitlag > 0) continue;
     const x = Math.abs(motion.x);
     if (x < LAVA_INNER_X || x > mainDeckRight(stage) || motion.z > mainDeckZ(stage) || motion.z < mainDeckZ(stage) - 8.0) continue;
     collectTerrainContact(world, slot, LAVA_HIT);

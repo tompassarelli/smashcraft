@@ -1,6 +1,7 @@
 // The computer's way back: off the stage it steers home, or to just outside a
 // free ledge it then falls onto, and spends its jump and up special; on the
 // ledge it takes a ledge option; knocked down it techs or gets up.
+import { LAVA_INNER_X } from "../sim/lava";
 import { runningHeroSpecial, specialCooldownReady } from "../sim/heroSpecialRules";
 import { upSpecialStartable } from "./botHeroKit";
 import { at } from "wisp/src/runtime/lookup";
@@ -13,7 +14,7 @@ import type { Fighter } from "../sim/fighter";
 import { totalVelocityZ } from "../sim/motion";
 import { RIFLEMAN_RECOVERY_STARTUP_FRAMES } from "../sim/specials";
 import type { Controls } from "../sim/roster";
-import { mainDeckLeft, mainDeckRight, mainDeckZ, surfaceCount, surfaceLeft, surfaceRight, surfaceZAt } from "../sim/stage";
+import { CANNON_TEST_STAGE, mainDeckLeft, mainDeckRight, mainDeckZ, surfaceCount, surfaceLeft, surfaceRight, surfaceZAt } from "../sim/stage";
 import { botChance, botChoice } from "./botRandom";
 import { type CpuSkill, FULL_SKILL } from "./cpuSkill";
 import { aimsLedge, gameplanOf, upSpecialFirst } from "./botGameplan";
@@ -226,6 +227,10 @@ export function chooseRecoveryInput(fighter: Readonly<Fighter>, stage: number, m
   const right = mainDeckRight(stage);
   const floor = mainDeckZ(stage);
   const { x, z, grounded } = fighter.motion;
+  if (!grounded && stage === CANNON_TEST_STAGE && Math.abs(x) >= LAVA_INNER_X && x >= left && x <= right && z >= floor) {
+    input.direction = x < 0 ? 1 : -1;
+    return true;
+  }
   if (grounded || (x >= left && x <= right && z >= floor)) return false;
   const side = x < 0 ? -1 : 1;
   const outside = f32(f32(x - (side < 0 ? left : right)) * side);

@@ -9,6 +9,8 @@ export const STAGE_DECK_MODELS: Readonly<Record<number, { readonly slab: string;
   4: { slab: "war3mapImported\\StageDeck-cd0892f60aeebced0159be4beceb75273860026f37bccfb131d961d699ac26e5.mdx", main: "war3mapImported\\StageMainDeck-6718c06e1ee85005365bff0985a2f25494c069cdc9196cd8d50b2f0489a47d28.mdx" },
   14: { slab: "war3mapImported\\StageDeck-d7087c4429a50b12e62b25e17cec5506e9070fd0db22fb7e51da7ec76c80d76f.mdx", main: "war3mapImported\\StageMainDeck-c062360c30d944bdad7035949dd321ddd7548bbf22612e7333f1ecad911bc424.mdx" },
   12: { slab: "war3mapImported\\StageDeck-697f09a1a69928c15b7ecc2646ef7c6ab7f1027a03a83bf825fba6dbd14e7f5b.mdx", main: "war3mapImported\\StageMainDeck-3caf6919d206847a90cffa1778dda3ad403df57507f0d88715f3b59fbc7dac8f.mdx" },
+  6: { slab: "war3mapImported\\StageDeck-19b6b240f048f561d06972b46d422e07e7e49607b6f5b0701bef78096845bfba.mdx", main: "war3mapImported\\StageMainDeck-8736fc4cd644e7cf63cdecae21905bd5c9a37576b06cd4ac434af905ef9c1f1d.mdx" },
+  7: { slab: "war3mapImported\\StageDeck-5289ac738a31985aba37505f8c56f163e49042d226c78173b17286fb6a0a8403.mdx", main: "war3mapImported\\StageMainDeck-8ad7f8c522b3a2017ac6f37b696062adee188f31e1e12dc6002446e12fab3f1a.mdx" },
   13: { slab: "war3mapImported\\StageDeck-d8845bd0c9c043cb18b8b1e4480bb112197019fb4ca5b7b25273ce503f1e63a9.mdx", main: "war3mapImported\\StageMainDeck-bc6293bb28debe8be5ae2a8128cb1e88f47628306d1800dc2611bc47cd6583d8.mdx" },
 };
 /** The neutral palette's slab. */
@@ -27,5 +29,7 @@ export const STAGE_LIGHT_MODELS: Readonly<Record<number, string>> = {
   4: "war3mapImported\\StageLight-a1cf0295f1d9682a4ecb95d75eefa97bea7d6ce9877241c9cfd424288b5b8586.mdx",
   14: "war3mapImported\\StageLight-e2e9386a7685323a61c636f8d97042435961a2254e369c4af27061e382c12990.mdx",
   12: "war3mapImported\\StageLight-3c7409d97ef755664704f86b7c2e8daeacc2ef10007ca72b4d6e1db843ddd733.mdx",
+  6: "war3mapImported\\StageLight-72c98875af85ebde417d827ee435f29e5151d6a7b93c13c1e3f7569005990f36.mdx",
+  7: "war3mapImported\\StageLight-edf3b5df8d80335a608fe64f09ae146f616bfd1e255338dcf59c73937403957a.mdx",
   13: "war3mapImported\\StageLight-945e30238c097b91655e082084690a0b0bb1fc180126749f83d67ca4d6829e27.mdx",
 };

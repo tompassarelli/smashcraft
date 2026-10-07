@@ -5,6 +5,7 @@ import { PARTICIPANT_SLOTS, type Slots, participantActive } from "../input/parti
 import { beginFighterAttack, resolveAttacks } from "../sim/attacks";
 import { AttackStyle, DASH_GRAB_REQUEST } from "../sim/codes";
 import { canStartAttackStyle, inGrabContext } from "../sim/conditions";
+import { collectLavaContacts } from "../sim/lava";
 import { beginDamageContacts, finishDamageContacts } from "../sim/contacts";
 import { advanceGrabs, captureGrabPauses, resolveGrabs } from "../sim/grabs";
 import { resolveLedges } from "../sim/ledge";
@@ -134,6 +135,7 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
   captureGrabPauses(world);
   resolveGrabs(world);
   beginDamageContacts();
+  collectLavaContacts(world, stage, game.hazards);
   advanceGrabs(world, controls.inputs);
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot) || wasGrabbed[slot]) continue;
