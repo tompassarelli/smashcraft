@@ -1,0 +1,29 @@
+{
+  "source": "6ebbd055e33dd42e4035fabd6b96edf1aa3aa421",
+  "wisp": "b919971c13845a5bc9058e7b2be0c7955457fd18",
+  "contracts": {
+    "modules": [
+      "game/sim/archerArrow.tests",
+      "game/sim/archerSpecials.tests",
+      "game/sim/heroes/lichSpecials.tests",
+      "game/sim/heroes/lichKingSpecials.tests"
+    ],
+    "passed": 39,
+    "failed": 0,
+    "runtimes": [
+      "stock Lua32",
+      "toward-zero Lua32"
+    ]
+  },
+  "replay": {
+    "command": "bun wisp parity tapes",
+    "tapes": 20,
+    "frames": 16330,
+    "divergentFrames": 0,
+    "runtimes": [
+      "Bun",
+      "stock Lua32",
+      "toward-zero Lua32"
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+{"decision":"RESERVED","reason":"RUN","profile":"attended","mode":"auto","idleSeconds":100,"class":"moderate","requestedCpus":2,"requestedMemoryMiB":2048,"leasedCpuCeilings":24,"aggregateCpuLimit":20,"leasedNativeCpus":8,"leasedMemoryMiB":41472,"protectedCpuSomeAvg10":7.14,"cpuSomeAvg10":9.13,"memoryFullAvg10":0,"memoryAvailableMiB":60569,"reclaimed":0,"lease":"874226c3-45bb-4c54-9483-ed06d44e492d","expiresAt":1791355224411}
+$ bun scripts/wisp.ts parity tapes
+   3.613 s  record tapes (3.595 s)
+  21.312 s  compile TypeScript Lua (17.697 s)
+  28.217 s  replay in bun (6.881 s)
+ 149.968 s  replay in ts-lua32 (128.653 s)
+ 150.956 s  replay in ts-lua32-toward-zero (129.626 s)
+20 tapes, 16330 frames (actions 590, rollback 400, rematch 610, blademaster 660, computer 1080, lich 660, dreadlord 820, mountain-king 780, shadow-hunter 720, pit-lord 780, lich-king 820, beastmaster 820, warden 720, uther 720, moving-platforms 800, patterned-platforms 700, wind 2080, carried 1120, cannon 830, timed-lift 620)
+bun/ts-lua32: 0 divergent frames
+bun/ts-lua32-toward-zero: 0 divergent frames
+ 172.976 s  parity (172.976 s)
+{"decision":"RELEASED","lease":"874226c3-45bb-4c54-9483-ed06d44e492d"}
