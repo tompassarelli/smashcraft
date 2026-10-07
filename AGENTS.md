@@ -386,6 +386,14 @@ use the native map and retain exact candidate, input path and measured evidence.
 Consume the physics agent's published changes without silently overwriting its
 work. Include all mutable gameplay state in deterministic snapshots/replay.
 
+CPU observation histories retain shared samples through `copyBotMemory` and
+release them through `clearBotMemory`; never assign one owner's history to
+another. Observation checks stream canonical bytes, while replay text is
+materialized on request. In Lua32, 100 warmed four-fighter observations plus
+history copies used 0.011 KB/frame versus the previous 97.14 KB/frame observation
+path. Keep this route allocation-free and use the unchanged
+`playable-bot-four` performance fixture for whole-frame acceptance.
+
 ## Native testing and UI
 
 Automated native match/rematch tests use one stock by default. A named workload

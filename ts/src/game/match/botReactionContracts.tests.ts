@@ -6,7 +6,7 @@ import { createFighter, type Fighter } from "../sim/fighter";
 import { createRoster, fighterAt, neutralControls, sameControls } from "../sim/roster";
 import { sameAttackBuffer } from "../input/attackBuffer";
 import { produceComputerInput } from "./botPlay";
-import { BOT_DIRECTION_FRAMES, commitBotDirection, createBotMemory, observeOpponents, perceivedOpponent } from "./botPerception";
+import { BOT_DIRECTION_FRAMES, type BotMemory, commitBotDirection, copyBotMemory, createBotMemory, observeOpponents, perceivedOpponent } from "./botPerception";
 import { cpuSkill } from "./cpuLevel";
 import { createFrameControls } from "./controls";
 import { createPacingAndPresentation } from "./pacingAndPresentation";
@@ -14,7 +14,7 @@ import { createMatchState, Phase } from "./rules";
 import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
 import { captureFrame, createMatchFrameInput, executeMatchFrame } from "./frameInput";
 import { replayChecksum } from "../replay/matchReplay";
-import { canonicalState } from "../replay/canonical";
+import { botObservationCanonical, canonicalState } from "../replay/canonical";
 
 const SURPRISE_FRAME = 50;
 
@@ -37,6 +37,53 @@ const surprises: readonly ((target: Fighter) => void)[] = [
     const p = at(target.projectiles, 0); p.life = 100; p.x = 0.0; p.z = 45.0; p.direction = -1; p.velocityX = -12.0; p.serial++; },
 ];
 
+test("retained observations survive storage reuse, restored plain history and rollback", () => {
+  const game = setup(9);
+  const saved = createBotMemory();
+  for (let frame = 1; frame <= 43; frame++) {
+    game.target.motion.x = frame;
+    game.target.attack.style = AttackStyle.forwardSmash;
+    const projectile = at(game.target.projectiles, 0);
+    projectile.life = frame;
+    projectile.x = frame;
+    observeOpponents(game.runtime.botMemory, game.world, frame);
+  }
+  copyBotMemory(saved, game.runtime.botMemory);
+  const original = saved.history.map(sample => botObservationCanonical(sample));
+  for (let frame = 44; frame <= 300; frame++) {
+    game.target.motion.x = frame;
+    game.target.attack.style = undefined;
+    at(game.target.projectiles, 0).life = 0;
+    observeOpponents(game.runtime.botMemory, game.world, frame);
+  }
+  for (let index = 0; index < saved.history.length; index++) {
+    assertEquals(botObservationCanonical(at(saved.history, index)), at(original, index));
+    assertEquals(at(saved.history, index).opponents[1]?.motion.x, index + 1);
+  }
+  assertEquals(game.runtime.botMemory.history.length, 43);
+  const latest = at(game.runtime.botMemory.history, 42);
+  assertEquals(latest.opponents[1]?.attack.style, undefined);
+  assertEquals(at(assertDefined(latest.opponents[1]).projectiles, 0).life, 0);
+  assertEquals(at(assertDefined(latest.opponents[1]).projectiles, 0).x, 0);
+  // Decoded moment records carry no private ownership metadata.
+  const plain: BotMemory = { history: saved.history, directions: [0, 0, 0, 0], directionFrames: [0, 0, 0, 0] };
+  copyBotMemory(game.runtime.botMemory, plain);
+  observeOpponents(game.runtime.botMemory, game.world, 44);
+  assertEquals(at(game.runtime.botMemory.history, 41).opponents[1]?.motion.x, 43);
+  assertEquals(botObservationCanonical(at(saved.history, 42)), at(original, 42));
+  const sample = at(game.runtime.botMemory.history, 42);
+  const text = botObservationCanonical(sample);
+  let first = 0;
+  let second = 0;
+  for (let index = 0; index < text.length; index++) {
+    const code = text.charCodeAt(index) + 1;
+    first = floorMod(first * 31 + code, 46337);
+    second = floorMod(second * 37 + code, 46337);
+  }
+  assertEquals(sample.checksumFirst, first);
+  assertEquals(sample.checksumSecond, second);
+});
+
 test("replay state checks detect delayed observations and direction commitment independently of current fighters", () => {
   const expected = setup(9);
   const changed = setup(9);
@@ -48,7 +95,7 @@ test("replay state checks detect delayed observations and direction commitment i
   const canonical = (game: ReturnType<typeof setup>) => canonicalState({ world: game.world, match: game.game, controls: game.controls, runtime: game.runtime });
   assertTrue(checksum(expected) !== checksum(changed));
   assertTrue(canonical(expected) !== canonical(changed));
-  changed.runtime.botMemory.history = expected.runtime.botMemory.history;
+  copyBotMemory(changed.runtime.botMemory, expected.runtime.botMemory);
   assertEquals(checksum(expected), checksum(changed));
   changed.runtime.botMemory.directions[0] = -1;
   assertTrue(checksum(expected) !== checksum(changed));

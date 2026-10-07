@@ -1,23 +1,22 @@
-// Opponent observations are immutable once published. Replay snapshots share
-// their bounded history; the live simulation never changes an earlier sample.
+// Histories retain shared observations. Storage is reused only after every
+// live input and replay snapshot has released that sample.
 import { at } from "wisp/src/runtime/lookup";
-import { canonicalInt, observedOpponentKitCanonical } from "../replay/canonical";
+import { botObservationCanonical, writeObservations } from "../replay/canonical";
 import { f32 } from "wisp/src/sim/f32";
 import { floorMod } from "wisp/src/sim/intMath";
 import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots } from "../input/participants";
 import { createFighter, type Fighter } from "../sim/fighter";
 import { fighterAt, isActive, type Controls, type Roster } from "../sim/roster";
-import { cpuSkill } from "./cpuLevel";
 
 export const BOT_DIRECTION_FRAMES = 5;
-const HISTORY_FRAMES = cpuSkill(1).reactionFrames + 1;
+// The slowest supported computer style sees events 42 frames later.
+const HISTORY_FRAMES = 43;
 // Unobserved input buffers, resource plans and hit registries stay neutral.
 const EMPTY = createFighter(0, 0.0, 1);
 
 export interface BotObservationFrame {
   readonly frame: number;
   readonly opponents: Slots<Readonly<Fighter> | undefined>;
-  readonly canonical: string;
   readonly checksumFirst: number;
   readonly checksumSecond: number;
 }
@@ -28,12 +27,67 @@ export interface BotMemory {
   readonly directionFrames: Slots<number>;
 }
 
+interface ObservationEntry {
+  readonly sample: { frame: number; opponents: Slots<Fighter | undefined>; checksumFirst: number; checksumSecond: number };
+  readonly bodies: Slots<Fighter>;
+  readonly arena: ObservationArena;
+  references: number;
+}
+interface ObservationArena { readonly free: ObservationEntry[] }
+interface MemoryStorage {
+  arena: ObservationArena;
+  readonly history: BotObservationFrame[];
+  readonly entries: ObservationEntry[];
+}
+const memoryStorage = new WeakMap<Readonly<BotMemory>, MemoryStorage>();
+
 export function createBotMemory(): BotMemory {
   return { history: [], directions: [0, 0, 0, 0], directionFrames: [0, 0, 0, 0] };
 }
 
+function storageFor(memory: Readonly<BotMemory>): MemoryStorage {
+  const existing = memoryStorage.get(memory);
+  if (existing !== undefined) return existing;
+  const arena: ObservationArena = { free: [] };
+  const storage: MemoryStorage = { arena, history: [], entries: [] };
+  // Saved moments restore plain records; adopt their samples before a live copy.
+  for (const sample of memory.history) {
+    const bodies: Slots<Fighter> = [createObservation(), createObservation(), createObservation(), createObservation()];
+    const entry: ObservationEntry = {
+      sample: { frame: sample.frame, opponents: [undefined, undefined, undefined, undefined],
+        checksumFirst: sample.checksumFirst, checksumSecond: sample.checksumSecond },
+      bodies, arena, references: 1,
+    };
+    for (const slot of PARTICIPANT_SLOTS) {
+      const body = sample.opponents[slot];
+      if (body !== undefined) { copyObservation(bodies[slot], body); entry.sample.opponents[slot] = bodies[slot]; }
+    }
+    storage.entries.push(entry);
+    storage.history.push(entry.sample);
+  }
+  memoryStorage.set(memory, storage);
+  return storage;
+}
+
+function release(entry: ObservationEntry): void {
+  entry.references--;
+  if (entry.references === 0) entry.arena.free.push(entry);
+}
+
 export function copyBotMemory(target: BotMemory, source: Readonly<BotMemory>): void {
-  target.history = source.history;
+  if (target === source) return;
+  const from = storageFor(source);
+  const into = storageFor(target);
+  for (const entry of into.entries) release(entry);
+  into.entries.length = 0;
+  into.history.length = 0;
+  into.arena = from.arena;
+  for (const entry of from.entries) {
+    entry.references++;
+    into.entries.push(entry);
+    into.history.push(entry.sample);
+  }
+  target.history = into.history;
   for (const slot of PARTICIPANT_SLOTS) {
     target.directions[slot] = source.directions[slot];
     target.directionFrames[slot] = source.directionFrames[slot];
@@ -41,7 +95,11 @@ export function copyBotMemory(target: BotMemory, source: Readonly<BotMemory>): v
 }
 
 export function clearBotMemory(memory: BotMemory): void {
-  memory.history = [];
+  const storage = storageFor(memory);
+  for (const entry of storage.entries) release(entry);
+  storage.entries.length = 0;
+  storage.history.length = 0;
+  memory.history = storage.history;
   memory.directions.fill(0);
   memory.directionFrames.fill(0);
 }
@@ -52,7 +110,8 @@ export function firstBotMemoryDifference(expected: Readonly<BotMemory>, actual: 
     const e = at(expected.history, index);
     const a = at(actual.history, index);
     if (e.frame !== a.frame) return `history[${index}].frame`;
-    if (e.canonical !== a.canonical) return `history[${index}].canonical`;
+    if (e === a) continue;
+    if (botObservationCanonical(e) !== botObservationCanonical(a)) return `history[${index}].canonical`;
   }
   for (const slot of PARTICIPANT_SLOTS) {
     if (expected.directions[slot] !== actual.directions[slot]) return `directions[${slot}]`;
@@ -62,7 +121,8 @@ export function firstBotMemoryDifference(expected: Readonly<BotMemory>, actual: 
 }
 
 /** Only the opponent's visible body, action, status and entities enter perception. */
-function observe(f: Readonly<Fighter>): Readonly<Fighter> {
+function createObservation(): Fighter {
+  const f = EMPTY;
   return {
     ...EMPTY, character: f.character, tuning: { ...f.tuning }, facing: f.facing,
     motion: { ...EMPTY.motion, x: f.motion.x, z: f.motion.z, deltaX: f.motion.deltaX, deltaZ: f.motion.deltaZ,
@@ -88,57 +148,140 @@ function observe(f: Readonly<Fighter>): Readonly<Fighter> {
     surfaceRecovery: { ...EMPTY.surfaceRecovery, state: f.surfaceRecovery.state, frame: f.surfaceRecovery.frame },
     cannon: { ...EMPTY.cannon, held: f.cannon.held },
     bear: { ...EMPTY.bear, life: f.bear.life, x: f.bear.x, z: f.bear.z, hitSerial: f.bear.hitSerial },
-    projectiles: f.projectiles.map(p => p.life <= 0 ? at(EMPTY.projectiles, 0) : { ...at(EMPTY.projectiles, 0),
-      life: p.life, x: p.x, z: p.z, direction: p.direction, velocityX: p.velocityX, velocityZ: p.velocityZ, serial: p.serial }),
+    projectiles: f.projectiles.map(p => ({ ...at(EMPTY.projectiles, 0),
+      life: p.life, x: p.x, z: p.z, direction: p.direction, velocityX: p.velocityX, velocityZ: p.velocityZ, serial: p.serial })),
   };
 }
 
-/** Exact scalar serialization is cached once per immutable observation. */
-function observationsCanonical(opponents: Slots<Readonly<Fighter> | undefined>): string {
-  const parts: string[] = [];
-  const fold = (value: number) => { parts.push(canonicalInt("", value).slice(2)); };
-  for (const slot of PARTICIPANT_SLOTS) {
-    const f = opponents[slot];
-    fold(f === undefined ? 0 : 1);
-    if (f === undefined) continue;
-    parts.push(observedOpponentKitCanonical(f).replaceAll("|", ";"));
-    for (const value of [f.tuning.physics.gravity, f.tuning.physics.terminalSpeed, f.tuning.tech.ceilingImpulseFrame, f.character, f.facing, f.motion.x, f.motion.z, f.motion.deltaX, f.motion.deltaZ,
-      f.motion.vx, f.motion.vz, f.motion.grounded ? 1 : 0, f.motion.surface ?? -1,
-      f.attack.style ?? -1, f.attack.frame, f.attack.duration, f.attack.serial, f.attack.cooldown,
-      f.special.action, f.special.frame, f.special.duration, f.special.lockFrames, f.special.form, f.special.grabFrame,
-      f.shield.raised ? 1 : 0, f.shield.stun, f.shield.releaseLag, f.launch.hitstun, f.launch.hitlag,
-      f.hits.lastAttacker ?? -1, f.status.out ? 1 : 0, f.status.stocks, f.status.damage, f.status.invincible,
-      f.status.frozenFrames, f.status.condition, f.status.conditionFrames, f.status.poisonFrames,
-      f.passive.stacks, f.passive.window, f.passive.serial, f.passive.spent, f.passive.used ? 1 : 0,
-      f.landing.lag, f.down.state, f.down.frame, f.down.direction, f.down.faceUp ? 1 : 0,
-      f.grab.owner ?? -1, f.grab.target ?? -1, f.grab.action, f.ledge.state, f.ledge.side, f.ledge.intangible,
-      f.dodge.groundFrame, f.dodge.groundDirection, f.dodge.airDodging ? 1 : 0, f.dodge.airFrame,
-      f.surfaceRecovery.state, f.surfaceRecovery.frame, f.cannon.held ?? -1,
-      f.bear.life, f.bear.x, f.bear.z, f.bear.hitSerial]) fold(value);
-    for (const p of f.projectiles) for (const value of [p.life, p.x, p.z, p.direction, p.velocityX, p.velocityZ, p.serial]) fold(value);
+function copyObservation(target: Fighter, source: Readonly<Fighter>): void {
+  target.character = source.character;
+  target.facing = source.facing;
+  target.tuning.moves = source.tuning.moves;
+  target.tuning.specials = source.tuning.specials;
+  target.tuning.physics = source.tuning.physics;
+  target.tuning.surface = source.tuning.surface;
+  target.tuning.ground = source.tuning.ground;
+  target.tuning.dashGrab = source.tuning.dashGrab;
+  target.tuning.shield = source.tuning.shield;
+  target.tuning.tech = source.tuning.tech;
+  target.tuning.shieldBreak = source.tuning.shieldBreak;
+  target.motion.x = source.motion.x;
+  target.motion.z = source.motion.z;
+  target.motion.deltaX = source.motion.deltaX;
+  target.motion.deltaZ = source.motion.deltaZ;
+  target.motion.vx = source.motion.vx;
+  target.motion.vz = source.motion.vz;
+  target.motion.grounded = source.motion.grounded;
+  target.motion.surface = source.motion.surface;
+  target.attack.style = source.attack.style;
+  target.attack.frame = source.attack.frame;
+  target.attack.duration = source.attack.duration;
+  target.attack.serial = source.attack.serial;
+  target.attack.cooldown = source.attack.cooldown;
+  target.special.action = source.special.action;
+  target.special.frame = source.special.frame;
+  target.special.duration = source.special.duration;
+  target.special.lockFrames = source.special.lockFrames;
+  target.special.form = source.special.form;
+  target.special.grabFrame = source.special.grabFrame;
+  target.shield.raised = source.shield.raised;
+  target.shield.stun = source.shield.stun;
+  target.shield.releaseLag = source.shield.releaseLag;
+  target.launch.hitstun = source.launch.hitstun;
+  target.launch.hitlag = source.launch.hitlag;
+  target.hits.lastAttacker = source.hits.lastAttacker;
+  target.status.out = source.status.out;
+  target.status.stocks = source.status.stocks;
+  target.status.damage = source.status.damage;
+  target.status.invincible = source.status.invincible;
+  target.status.frozenFrames = source.status.frozenFrames;
+  target.status.condition = source.status.condition;
+  target.status.conditionFrames = source.status.conditionFrames;
+  target.status.poisonFrames = source.status.poisonFrames;
+  target.passive.stacks = source.passive.stacks;
+  target.passive.window = source.passive.window;
+  target.passive.serial = source.passive.serial;
+  target.passive.spent = source.passive.spent;
+  target.passive.used = source.passive.used;
+  target.landing.lag = source.landing.lag;
+  target.down.state = source.down.state;
+  target.down.frame = source.down.frame;
+  target.down.direction = source.down.direction;
+  target.down.faceUp = source.down.faceUp;
+  target.grab.owner = source.grab.owner;
+  target.grab.target = source.grab.target;
+  target.grab.action = source.grab.action;
+  target.ledge.state = source.ledge.state;
+  target.ledge.side = source.ledge.side;
+  target.ledge.intangible = source.ledge.intangible;
+  target.dodge.groundFrame = source.dodge.groundFrame;
+  target.dodge.groundDirection = source.dodge.groundDirection;
+  target.dodge.airDodging = source.dodge.airDodging;
+  target.dodge.airFrame = source.dodge.airFrame;
+  target.surfaceRecovery.state = source.surfaceRecovery.state;
+  target.surfaceRecovery.frame = source.surfaceRecovery.frame;
+  target.cannon.held = source.cannon.held;
+  target.bear.life = source.bear.life;
+  target.bear.x = source.bear.x;
+  target.bear.z = source.bear.z;
+  target.bear.hitSerial = source.bear.hitSerial;
+  for (let index = 0; index < source.projectiles.length; index++) {
+    const from = at(source.projectiles, index);
+    const into = at(target.projectiles, index);
+    const p = from.life <= 0 ? at(EMPTY.projectiles, 0) : from;
+    into.life = p.life;
+    into.x = p.x;
+    into.z = p.z;
+    into.direction = p.direction;
+    into.velocityX = p.velocityX;
+    into.velocityZ = p.velocityZ;
+    into.serial = p.serial;
   }
-  return parts.join(",");
+}
+
+let checksumFirst = 0;
+let checksumSecond = 0;
+function foldObservationByte(byte: number): void {
+  const code = byte + 1;
+  checksumFirst = floorMod(checksumFirst * 31 + code, 46337);
+  checksumSecond = floorMod(checksumSecond * 37 + code, 46337);
 }
 
 /** Captures once per input frame even when several computer slots make decisions. */
 export function observeOpponents(memory: BotMemory, world: Roster, frame: number): void {
-  const previous = memory.history.length > 0 ? at(memory.history, memory.history.length - 1) : undefined;
+  const storage = storageFor(memory);
+  const previous = storage.history.length > 0 ? at(storage.history, storage.history.length - 1) : undefined;
   if (previous?.frame === frame) return;
-  const opponents: Slots<Readonly<Fighter> | undefined> = [undefined, undefined, undefined, undefined];
-  for (const slot of PARTICIPANT_SLOTS) if (isActive(world, slot)) opponents[slot] = observe(fighterAt(world, slot));
-  const canonical = observationsCanonical(opponents);
-  let checksumFirst = 0;
-  let checksumSecond = 0;
-  // Periodic replay checks fold these immutable samples without re-reading their text.
-  for (let index = 0; index < canonical.length; index++) {
-    const code = canonical.charCodeAt(index) + 1;
-    checksumFirst = floorMod(checksumFirst * 31 + code, 46337);
-    checksumSecond = floorMod(checksumSecond * 37 + code, 46337);
+  if (previous !== undefined && previous.frame >= frame) {
+    for (const old of storage.entries) release(old);
+    storage.entries.length = 0;
+    storage.history.length = 0;
   }
-  const sample: BotObservationFrame = { frame, opponents, canonical, checksumFirst, checksumSecond };
-  const history = previous !== undefined && previous.frame < frame ? memory.history.slice(-HISTORY_FRAMES + 1) : [];
-  history.push(sample);
-  memory.history = history;
+  if (storage.entries.length === HISTORY_FRAMES) {
+    release(at(storage.entries, 0));
+    storage.entries.shift();
+    storage.history.shift();
+  }
+  let entry = storage.arena.free.pop();
+  if (entry === undefined) {
+    entry = { sample: { frame, opponents: [undefined, undefined, undefined, undefined], checksumFirst: 0, checksumSecond: 0 },
+      bodies: [createObservation(), createObservation(), createObservation(), createObservation()], arena: storage.arena, references: 0 };
+  }
+  entry.references = 1;
+  entry.sample.frame = frame;
+  for (const slot of PARTICIPANT_SLOTS) {
+    const body = entry.bodies[slot];
+    if (isActive(world, slot)) { copyObservation(body, fighterAt(world, slot)); entry.sample.opponents[slot] = body; }
+    else entry.sample.opponents[slot] = undefined;
+  }
+  checksumFirst = 0;
+  checksumSecond = 0;
+  writeObservations(foldObservationByte, entry.sample.opponents);
+  entry.sample.checksumFirst = checksumFirst;
+  entry.sample.checksumSecond = checksumSecond;
+  storage.entries.push(entry);
+  storage.history.push(entry.sample);
+  memory.history = storage.history;
 }
 
 function perceivedFrame(memory: Readonly<BotMemory>, frame: number, delay: number): BotObservationFrame | undefined {

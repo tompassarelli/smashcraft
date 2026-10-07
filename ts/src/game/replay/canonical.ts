@@ -4,9 +4,10 @@
 // order and number formats are a cross-runtime contract: a tape compares
 // these strings and checksums between Wurst's Lua, Bun and 32-bit Lua.
 import { attackBufferCanonicalState } from "../input/attackBuffer";
-import { PARTICIPANT_CAPACITY, PARTICIPANT_SLOTS, participantActive } from "../input/participants";
+import { PARTICIPANT_CAPACITY, PARTICIPANT_SLOTS, participantActive, type Slots } from "../input/participants";
 import { at } from "wisp/src/runtime/lookup";
-import { floorMod } from "wisp/src/sim/intMath";
+import { floorDiv, floorMod } from "wisp/src/sim/intMath";
+import type { BotObservationFrame } from "../match/botPerception";
 import { AttackStyle, GrabAction, LAST_ATTACK_STYLE, SPECIAL_ACTION_CAPACITY, SpecialAction } from "../sim/codes";
 import type { FighterMoves } from "../sim/heroMoves";
 import type { AuthoredSpecial, FighterSpecials, SpecialPlacement, SpecialProjectile } from "../sim/heroSpecials";
@@ -22,13 +23,34 @@ import { ARCHER_MOVES, RIFLEMAN_MOVES } from "../sim/originalMoves";
 
 const REPLAY_CHECKSUM_MODULUS = 1_000_003;
 
-/** Exact finite binary representation: sign, binary exponent and 52 fraction bits as two 26-bit integers. */
-export function canonicalReal(value: number): string {
-  if (value !== value) return "nan";
+/** Decimal bytes use integer division, including the negative int32 endpoint. */
+function writeIntegerBytes(emit: (code: number) => void, value: number): void {
+  if (value < -2147483648 || value > 2147483647) {
+    const text = `${value}`;
+    for (let index = 0; index < text.length; index++) emit(text.charCodeAt(index));
+    return;
+  }
+  if (value < 0) emit(45);
+  let remaining = value > 0 ? -value : value;
+  let divisor = 1;
+  while (divisor < 1_000_000_000 && remaining <= -10 * divisor) divisor *= 10;
+  while (divisor > 0) {
+    const digit = -floorDiv(remaining, divisor) - (floorMod(remaining, divisor) === 0 ? 0 : 1);
+    emit(48 + digit);
+    remaining += digit * divisor;
+    divisor = floorDiv(divisor, 10);
+  }
+}
+
+/** The same exact numeric bytes feed replay text and allocation-free observation checks. */
+export function writeCanonicalNumber(emit: (code: number) => void, value: number, integer = true): void {
+  if (integer && Math.floor(value) === value) { writeIntegerBytes(emit, Math.floor(value)); return; }
+  if (value !== value) { emit(110); emit(97); emit(110); return; }
   const negative = value < 0;
-  if (!negative && !(value > 0)) return "0";
+  if (!negative && !(value > 0)) { emit(48); return; }
   let magnitude = negative ? -value : value;
-  if (magnitude * 2 === magnitude) return negative ? "-inf" : "+inf";
+  emit(negative ? 45 : 43);
+  if (magnitude * 2 === magnitude) { emit(105); emit(110); emit(102); return; }
   let exponent = 0;
   while (magnitude >= 2) {
     magnitude /= 2;
@@ -38,26 +60,21 @@ export function canonicalReal(value: number): string {
     magnitude *= 2;
     exponent--;
   }
-  let fraction = magnitude - 1;
-  let high = 0;
-  for (let i = 0; i < 26; i++) {
-    fraction *= 2;
-    high *= 2;
-    if (fraction >= 1) {
-      high++;
-      fraction--;
-    }
-  }
-  let low = 0;
-  for (let i = 0; i < 26; i++) {
-    fraction *= 2;
-    low *= 2;
-    if (fraction >= 1) {
-      low++;
-      fraction--;
-    }
-  }
-  return `${negative ? "-" : "+"}${exponent}:${high}:${low}`;
+  const fraction = (magnitude - 1) * 67108864;
+  const high = Math.floor(fraction);
+  const low = Math.floor((fraction - high) * 67108864);
+  writeIntegerBytes(emit, exponent);
+  emit(58);
+  writeIntegerBytes(emit, high);
+  emit(58);
+  writeIntegerBytes(emit, low);
+}
+
+/** Exact finite binary representation: sign, binary exponent and 52 fraction bits as two 26-bit integers. */
+export function canonicalReal(value: number): string {
+  const parts: string[] = [];
+  writeCanonicalNumber(code => { parts.push(String.fromCharCode(code)); }, value, false);
+  return parts.join("");
 }
 
 /**
@@ -512,6 +529,115 @@ export function observedOpponentKitCanonical(fighter: Readonly<Fighter>): string
     + kitDigestField("specials", fighter.tuning.specials, SPECIALS_DIGESTS, fighterSpecialsCanonical);
 }
 
+interface KitText { moves: Fighter["tuning"]["moves"]; specials: Fighter["tuning"]["specials"]; text: string }
+const kitTexts = new WeakMap<Readonly<Fighter>, KitText>();
+
+function kitText(f: Readonly<Fighter>): string {
+  let cached = kitTexts.get(f);
+  if (cached === undefined) {
+    cached = { moves: f.tuning.moves, specials: f.tuning.specials, text: observedOpponentKitCanonical(f).replaceAll("|", ";") };
+    kitTexts.set(f, cached);
+  } else if (cached.moves !== f.tuning.moves || cached.specials !== f.tuning.specials) {
+    cached.moves = f.tuning.moves;
+    cached.specials = f.tuning.specials;
+    cached.text = observedOpponentKitCanonical(f).replaceAll("|", ";");
+  }
+  return cached.text;
+}
+
+export function writeObservations(emit: (code: number) => void, opponents: Slots<Readonly<Fighter> | undefined>): void {
+  for (const slot of PARTICIPANT_SLOTS) {
+    if (slot !== 0) emit(44);
+    const f = opponents[slot];
+    writeCanonicalNumber(emit, f === undefined ? 0 : 1);
+    if (f === undefined) continue;
+    emit(44);
+    const kit = kitText(f);
+    for (let index = 0; index < kit.length; index++) emit(kit.charCodeAt(index));
+    emit(44); writeCanonicalNumber(emit, f.tuning.physics.gravity);
+    emit(44); writeCanonicalNumber(emit, f.tuning.physics.terminalSpeed);
+    emit(44); writeCanonicalNumber(emit, f.tuning.tech.ceilingImpulseFrame);
+    emit(44); writeCanonicalNumber(emit, f.character);
+    emit(44); writeCanonicalNumber(emit, f.facing);
+    emit(44); writeCanonicalNumber(emit, f.motion.x);
+    emit(44); writeCanonicalNumber(emit, f.motion.z);
+    emit(44); writeCanonicalNumber(emit, f.motion.deltaX);
+    emit(44); writeCanonicalNumber(emit, f.motion.deltaZ);
+    emit(44); writeCanonicalNumber(emit, f.motion.vx);
+    emit(44); writeCanonicalNumber(emit, f.motion.vz);
+    emit(44); writeCanonicalNumber(emit, f.motion.grounded ? 1 : 0);
+    emit(44); writeCanonicalNumber(emit, f.motion.surface ?? -1);
+    emit(44); writeCanonicalNumber(emit, f.attack.style ?? -1);
+    emit(44); writeCanonicalNumber(emit, f.attack.frame);
+    emit(44); writeCanonicalNumber(emit, f.attack.duration);
+    emit(44); writeCanonicalNumber(emit, f.attack.serial);
+    emit(44); writeCanonicalNumber(emit, f.attack.cooldown);
+    emit(44); writeCanonicalNumber(emit, f.special.action);
+    emit(44); writeCanonicalNumber(emit, f.special.frame);
+    emit(44); writeCanonicalNumber(emit, f.special.duration);
+    emit(44); writeCanonicalNumber(emit, f.special.lockFrames);
+    emit(44); writeCanonicalNumber(emit, f.special.form);
+    emit(44); writeCanonicalNumber(emit, f.special.grabFrame);
+    emit(44); writeCanonicalNumber(emit, f.shield.raised ? 1 : 0);
+    emit(44); writeCanonicalNumber(emit, f.shield.stun);
+    emit(44); writeCanonicalNumber(emit, f.shield.releaseLag);
+    emit(44); writeCanonicalNumber(emit, f.launch.hitstun);
+    emit(44); writeCanonicalNumber(emit, f.launch.hitlag);
+    emit(44); writeCanonicalNumber(emit, f.hits.lastAttacker ?? -1);
+    emit(44); writeCanonicalNumber(emit, f.status.out ? 1 : 0);
+    emit(44); writeCanonicalNumber(emit, f.status.stocks);
+    emit(44); writeCanonicalNumber(emit, f.status.damage);
+    emit(44); writeCanonicalNumber(emit, f.status.invincible);
+    emit(44); writeCanonicalNumber(emit, f.status.frozenFrames);
+    emit(44); writeCanonicalNumber(emit, f.status.condition);
+    emit(44); writeCanonicalNumber(emit, f.status.conditionFrames);
+    emit(44); writeCanonicalNumber(emit, f.status.poisonFrames);
+    emit(44); writeCanonicalNumber(emit, f.passive.stacks);
+    emit(44); writeCanonicalNumber(emit, f.passive.window);
+    emit(44); writeCanonicalNumber(emit, f.passive.serial);
+    emit(44); writeCanonicalNumber(emit, f.passive.spent);
+    emit(44); writeCanonicalNumber(emit, f.passive.used ? 1 : 0);
+    emit(44); writeCanonicalNumber(emit, f.landing.lag);
+    emit(44); writeCanonicalNumber(emit, f.down.state);
+    emit(44); writeCanonicalNumber(emit, f.down.frame);
+    emit(44); writeCanonicalNumber(emit, f.down.direction);
+    emit(44); writeCanonicalNumber(emit, f.down.faceUp ? 1 : 0);
+    emit(44); writeCanonicalNumber(emit, f.grab.owner ?? -1);
+    emit(44); writeCanonicalNumber(emit, f.grab.target ?? -1);
+    emit(44); writeCanonicalNumber(emit, f.grab.action);
+    emit(44); writeCanonicalNumber(emit, f.ledge.state);
+    emit(44); writeCanonicalNumber(emit, f.ledge.side);
+    emit(44); writeCanonicalNumber(emit, f.ledge.intangible);
+    emit(44); writeCanonicalNumber(emit, f.dodge.groundFrame);
+    emit(44); writeCanonicalNumber(emit, f.dodge.groundDirection);
+    emit(44); writeCanonicalNumber(emit, f.dodge.airDodging ? 1 : 0);
+    emit(44); writeCanonicalNumber(emit, f.dodge.airFrame);
+    emit(44); writeCanonicalNumber(emit, f.surfaceRecovery.state);
+    emit(44); writeCanonicalNumber(emit, f.surfaceRecovery.frame);
+    emit(44); writeCanonicalNumber(emit, f.cannon.held ?? -1);
+    emit(44); writeCanonicalNumber(emit, f.bear.life);
+    emit(44); writeCanonicalNumber(emit, f.bear.x);
+    emit(44); writeCanonicalNumber(emit, f.bear.z);
+    emit(44); writeCanonicalNumber(emit, f.bear.hitSerial);
+    for (const p of f.projectiles) {
+      emit(44); writeCanonicalNumber(emit, p.life);
+      emit(44); writeCanonicalNumber(emit, p.x);
+      emit(44); writeCanonicalNumber(emit, p.z);
+      emit(44); writeCanonicalNumber(emit, p.direction);
+      emit(44); writeCanonicalNumber(emit, p.velocityX);
+      emit(44); writeCanonicalNumber(emit, p.velocityZ);
+      emit(44); writeCanonicalNumber(emit, p.serial);
+    }
+  }
+}
+
+/** Text is materialized only for replay serialization and difference reporting. */
+export function botObservationCanonical(sample: Readonly<BotObservationFrame>): string {
+  const parts: string[] = [];
+  writeObservations(code => { parts.push(String.fromCharCode(code)); }, sample.opponents);
+  return parts.join("");
+}
+
 function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, participantMask: number): void {
   const int = (name: string, value: number) => emit(canonicalInt(`${prefix}.${name}`, value));
   const bool = (name: string, value: boolean) => emit(canonicalBoolean(`${prefix}.${name}`, value));
@@ -947,7 +1073,7 @@ function writeState(emit: Emit, state: Readonly<ReplayState>): void {
     for (let index = 0; index < memory.history.length; index++) {
       const observation = at(memory.history, index);
       int(`runtime.botMemory.history[${index}].frame`, observation.frame);
-      emit(`|runtime.botMemory.history[${index}].values=${observation.canonical}`);
+      emit(`|runtime.botMemory.history[${index}].values=${botObservationCanonical(observation)}`);
     }
     for (const slot of PARTICIPANT_SLOTS) {
       int(`runtime.botMemory.directions[${slot}]`, memory.directions[slot]);

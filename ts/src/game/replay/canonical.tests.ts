@@ -3,7 +3,7 @@ import { attackBuffer, queueAttack } from "../input/attackBuffer";
 import type { FrameControls } from "../match/controls";
 import { captureFrame, createMatchFrameInput } from "../match/frameInput";
 import { neutralControls } from "../sim/roster";
-import { beginStateChecksum, canonicalBoolean, canonicalChecksum, canonicalInt, canonicalReal, canonicalRealField, canonicalState, foldStateChecksum, stateChecksum } from "./canonical";
+import { beginStateChecksum, canonicalBoolean, canonicalChecksum, canonicalInt, canonicalReal, canonicalRealField, canonicalState, foldStateChecksum, stateChecksum, writeCanonicalNumber } from "./canonical";
 import { captureTape, createTapeWorld, executeTapeRow } from "./tapeWorld";
 
 test("canonical real fields retain Wurst's exact binary representation", () => {
@@ -33,6 +33,15 @@ test("canonical integers print as Wurst's I2S whichever Lua number type holds th
   assertEquals(canonicalInt("facing", -0), "|facing=0");
   assertEquals(canonicalInt("frame", 2147483647), "|frame=2147483647");
   assertEquals(canonicalInt("frame", -2147483648), "|frame=-2147483648");
+});
+
+test("streamed numbers preserve canonical bytes at decimal boundaries and signed integer endpoints", () => {
+  for (const value of [0, -0, 1, -1, 9, -9, 10, -10, 99, -99, 100, -100,
+    999, -999, 1000, -1000, 2147483647, -2147483648, 0.5, -0.5, 1.5, -1.5]) {
+    const bytes: string[] = [];
+    writeCanonicalNumber(code => { bytes.push(String.fromCharCode(code)); }, value);
+    assertEquals(bytes.join(""), canonicalInt("", value).slice(2));
+  }
 });
 
 test("a played state's checksum folds exactly its canonical text, in which every value is an integer or exact real", () => {
