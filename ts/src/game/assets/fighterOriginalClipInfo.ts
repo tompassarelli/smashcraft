@@ -644,6 +644,9 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\DreadlordOriginalClip51-e0ecb2c459058891dec06758cd517deb08b31faf5b8cc2f324bda57da8375650.mdx", startSeconds: f32(85.335), endSeconds: f32(86.102), looping: false },
     { modelPath: "war3mapImported\\DreadlordOriginalClip52-62f053c1136c13b203e18092d3b8ee592624be9e2d22e5d653cc5a3dfede1b96.mdx", startSeconds: f32(86.202), endSeconds: f32(86.602), looping: false },
     { modelPath: "war3mapImported\\DreadlordOriginalClip53-f3c0dc320c12bf30807bb92fe49674384a152b046cf8907ff27103fd033e7cfb.mdx", startSeconds: f32(86.702), endSeconds: f32(87.202), looping: false },
+    { modelPath: "war3mapImported\\DreadlordOriginalClip54-0005ff49f8826cb3894445039189ac4383774cb4091c1bd93cbcf3976afe80bc.mdx", startSeconds: f32(87.302), endSeconds: f32(87.569), looping: false },
+    { modelPath: "war3mapImported\\DreadlordOriginalClip55-9c92a2a2024946e0f1ac8f5108cc960b464754d75f47c6c7b9857898b7260bfc.mdx", startSeconds: f32(87.669), endSeconds: f32(87.936), looping: false },
+    { modelPath: "war3mapImported\\DreadlordOriginalClip56-327be8a4a44ff690f6091c6e362c9e85faa85dd98f335f049a6d6308c8a880b9.mdx", startSeconds: f32(88.036), endSeconds: f32(88.603), looping: false },
   ],
   // ShadowHunter
   [
@@ -1653,6 +1656,9 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["down air claw dive", 51],
     ["jump motion jump", 52],
     ["jump motion doublejump", 53],
+    ["pounce travel", 54],
+    ["pounce bite", 55],
+    ["pounce recovery", 56],
     ["attack", 9],
   ]),
   // ShadowHunter
