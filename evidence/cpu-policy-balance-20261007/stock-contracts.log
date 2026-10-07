@@ -1,0 +1,25 @@
+pass a delayed visible shot is defended at its predicted position without seeing a newer sample
+pass a visible shot expected to have expired or passed does not keep the computer defending
+pass replay state checks detect delayed observations and direction commitment independently of current fighters
+pass 45 surprise-action traces: no computer input responds before its level's observation delay
+pass level 9 changes its approach on frame 12 after a surprise side change
+pass rapid grounded and airborne requests, including neutral braking, have zero reversals before five frames
+pass all 13 fighters' approach, retreat, air steering and recovery traces have zero early direction reversals
+pass computerChasesToTheEdgeWithoutLeavingTheStage
+pass computerGetsUpUnderJabResets
+pass computerMatchesRepeatFromTheSameStart
+pass computer Uther shoots Holy Light at a level target in range and never presses what its mana can't pay
+pass computer Uther raises Divine Shield against a strike timed into its guard window, and grabs a shield
+pass Blademaster's computer uses its specials and grabs in a match against another computer, the same each time
+pass Mountain King's computer uses its specials and grabs in a match against another computer, the same each time
+pass Warden's computer uses its specials and grabs in a match against another computer, the same each time
+pass Lich's computer uses its specials and grabs in a match against another computer, the same each time
+pass Uther's computer uses its specials and grabs in a match against another computer, the same each time
+pass Dreadlord's computer uses its specials and grabs in a match against another computer, the same each time
+pass Shadow Hunter's computer uses its specials and grabs in a match against another computer, the same each time
+pass Pit Lord's computer uses its specials and grabs in a match against another computer, the same each time
+pass Beastmaster's computer uses its specials and grabs in a match against another computer, the same each time
+pass Lich King's computer uses its specials and grabs in a match against another computer, the same each time
+pass a computer hero's recovery counts its up special spent once used this airtime, and free below its cost
+pass a frozen computer mashes out of the freeze at a human pace
+24 of 24 passed

@@ -1,0 +1,112 @@
+[
+  {
+    "serial": 1,
+    "observedX": 500,
+    "observationAge": 12,
+    "predictedCurrentX": 68,
+    "past": false,
+    "now": true,
+    "shield": false,
+    "jump": false,
+    "dodge": false
+  },
+  {
+    "serial": 2,
+    "observedX": 500,
+    "observationAge": 12,
+    "predictedCurrentX": 68,
+    "past": false,
+    "now": true,
+    "shield": false,
+    "jump": false,
+    "dodge": false
+  },
+  {
+    "serial": 3,
+    "observedX": 500,
+    "observationAge": 12,
+    "predictedCurrentX": 68,
+    "past": false,
+    "now": true,
+    "shield": false,
+    "jump": false,
+    "dodge": false
+  },
+  {
+    "serial": 4,
+    "observedX": 500,
+    "observationAge": 12,
+    "predictedCurrentX": 68,
+    "past": false,
+    "now": true,
+    "shield": false,
+    "jump": false,
+    "dodge": false
+  },
+  {
+    "serial": 5,
+    "observedX": 500,
+    "observationAge": 12,
+    "predictedCurrentX": 68,
+    "past": false,
+    "now": true,
+    "shield": false,
+    "jump": false,
+    "dodge": false
+  },
+  {
+    "serial": 6,
+    "observedX": 500,
+    "observationAge": 12,
+    "predictedCurrentX": 68,
+    "past": false,
+    "now": true,
+    "shield": true,
+    "jump": false,
+    "dodge": true
+  },
+  {
+    "serial": 7,
+    "observedX": 500,
+    "observationAge": 12,
+    "predictedCurrentX": 68,
+    "past": false,
+    "now": true,
+    "shield": true,
+    "jump": false,
+    "dodge": true
+  },
+  {
+    "serial": 8,
+    "observedX": 500,
+    "observationAge": 12,
+    "predictedCurrentX": 68,
+    "past": false,
+    "now": true,
+    "shield": true,
+    "jump": false,
+    "dodge": true
+  },
+  {
+    "serial": 9,
+    "observedX": 500,
+    "observationAge": 12,
+    "predictedCurrentX": 68,
+    "past": false,
+    "now": false,
+    "shield": false,
+    "jump": false,
+    "dodge": false
+  },
+  {
+    "serial": 10,
+    "observedX": 500,
+    "observationAge": 12,
+    "predictedCurrentX": 68,
+    "past": false,
+    "now": true,
+    "shield": false,
+    "jump": false,
+    "dodge": false
+  }
+]

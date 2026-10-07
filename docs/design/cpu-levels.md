@@ -79,6 +79,9 @@ one with frame-1 reactions feels like input reading
 - *Reaction*: age of the visible opponent observation used for decisions,
   from 600 ms at level 1 to 200 ms at level 9, decreasing by 50 ms per level.
   Defense and punish do not wait a second time after that observation arrives.
+  Defense projects an observed shot along its last visible velocity for the
+  observation's age, and discards shots expected to have passed or expired.
+  It uses no newer opponent sample for that prediction.
 - *Direction commitment*: every level keeps a horizontal choice for at least
   five input frames before reversing, on the ground and in the air. Neutral
   braking may happen immediately, but does not reset that hold. Directional

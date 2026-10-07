@@ -1,0 +1,26 @@
+{"decision":"RESERVED","reason":"RUN","profile":"attended","mode":"auto","idleSeconds":250,"class":"moderate","requestedCpus":2,"requestedMemoryMiB":2048,"leasedCpuCeilings":26,"aggregateCpuLimit":20,"leasedNativeCpus":10,"leasedMemoryMiB":45568,"protectedCpuSomeAvg10":3.4,"cpuSomeAvg10":4.66,"memoryFullAvg10":0,"memoryAvailableMiB":60254,"reclaimed":0,"lease":"fa55523f-eeda-4695-ad3b-22cdd2853510","expiresAt":1791356843417}
+bun test v1.3.13 (bf2e2cec)
+
+test/game.test.ts:
+(pass) game/match/botPlayContracts > computerChasesToTheEdgeWithoutLeavingTheStage [869.01ms]
+(pass) game/match/botPlayContracts > computerGetsUpUnderJabResets [210.00ms]
+(pass) game/match/botPlayContracts > computerMatchesRepeatFromTheSameStart [464.01ms]
+(pass) game/match/botPlayContracts > computer Uther shoots Holy Light at a level target in range and never presses what its mana can't pay [302.00ms]
+(pass) game/match/botPlayContracts > computer Uther raises Divine Shield against a strike timed into its guard window, and grabs a shield [111.00ms]
+(pass) game/match/botPlayContracts > Blademaster's computer uses its specials and grabs in a match against another computer, the same each time [1279.02ms]
+(pass) game/match/botPlayContracts > Mountain King's computer uses its specials and grabs in a match against another computer, the same each time [975.01ms]
+(pass) game/match/botPlayContracts > Warden's computer uses its specials and grabs in a match against another computer, the same each time [1102.02ms]
+(pass) game/match/botPlayContracts > Lich's computer uses its specials and grabs in a match against another computer, the same each time [1156.02ms]
+(pass) game/match/botPlayContracts > Uther's computer uses its specials and grabs in a match against another computer, the same each time [912.01ms]
+(pass) game/match/botPlayContracts > Dreadlord's computer uses its specials and grabs in a match against another computer, the same each time [873.01ms]
+(pass) game/match/botPlayContracts > Shadow Hunter's computer uses its specials and grabs in a match against another computer, the same each time [863.01ms]
+(pass) game/match/botPlayContracts > Pit Lord's computer uses its specials and grabs in a match against another computer, the same each time [1018.01ms]
+(pass) game/match/botPlayContracts > Beastmaster's computer uses its specials and grabs in a match against another computer, the same each time [853.01ms]
+(pass) game/match/botPlayContracts > Lich King's computer uses its specials and grabs in a match against another computer, the same each time [799.01ms]
+(pass) game/match/botPlayContracts > a computer hero's recovery counts its up special spent once used this airtime, and free below its cost [1.00ms]
+(pass) game/match/botPlayContracts > a frozen computer mashes out of the freeze at a human pace [28.00ms]
+
+ 17 pass
+ 0 fail
+Ran 17 tests across 1 file. [12.03s]
+{"decision":"RELEASED","lease":"fa55523f-eeda-4695-ad3b-22cdd2853510"}

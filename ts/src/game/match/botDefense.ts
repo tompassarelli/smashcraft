@@ -52,7 +52,7 @@ function strikeComing(f: Readonly<Fighter>, target: Readonly<Fighter>, reaction:
 const threat = { serial: 0, arrival: -1.0 };
 
 /** Finds a strike, a projectile flying at f, Immolation or the bear close by; false for none. */
-function findThreat(f: Readonly<Fighter>, target: Readonly<Fighter>, reaction: number): boolean {
+function findThreat(f: Readonly<Fighter>, target: Readonly<Fighter>, reaction: number, observationAge: number): boolean {
   const strikeFrames = strikeComing(f, target, reaction);
   if (strikeFrames !== undefined) {
     threat.serial = target.attack.serial;
@@ -61,11 +61,13 @@ function findThreat(f: Readonly<Fighter>, target: Readonly<Fighter>, reaction: n
   }
   const { x, z } = f.motion;
   for (const projectile of target.projectiles) {
-    if (projectile.life <= 0) continue;
-    const ahead = f32(f32(x - projectile.x) * projectile.direction);
+    if (projectile.life <= observationAge) continue;
+    const predictedX = f32(projectile.x + f32(projectile.velocityX * observationAge));
+    const predictedZ = f32(projectile.z + f32(projectile.velocityZ * observationAge));
+    const ahead = f32(f32(x - predictedX) * projectile.direction);
     const speed = Math.abs(projectile.velocityX);
     // A shot is seen once it has flown `reaction` frames into sight.
-    if (ahead < 0 || ahead > f32(SHOT_SIGHT - f32(speed * reaction)) || Math.abs(f32(f32(z + 45.0) - projectile.z)) > 80) continue;
+    if (ahead < 0 || ahead > f32(SHOT_SIGHT - f32(speed * reaction)) || Math.abs(f32(f32(z + 45.0) - predictedZ)) > 80) continue;
     threat.serial = projectile.serial;
     threat.arrival = speed > 0 ? f32(ahead / speed) : -1.0;
     return true;
@@ -146,9 +148,9 @@ function respond(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number,
  * true when that took this frame's input. A shield is held while the threat
  * lasts, then dropped for the caller's next move.
  */
-export function chooseDefense(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, input: Controls, skill: CpuSkill = PERCEIVED_FULL_SKILL): boolean {
+export function chooseDefense(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, input: Controls, skill: CpuSkill = PERCEIVED_FULL_SKILL, observationAge = 0): boolean {
   if (!f.motion.grounded || target.status.out) return false;
-  if (!findThreat(f, target, skill.reactionFrames)) return false;
+  if (!findThreat(f, target, skill.reactionFrames, observationAge)) return false;
   if (f.shield.raised) {
     input.shield = f.shield.energy > SHIELD_RESERVE;
     return input.shield;

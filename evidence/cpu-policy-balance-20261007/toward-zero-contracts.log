@@ -1,0 +1,10 @@
+{"decision":"RESERVED","reason":"RUN","profile":"attended","mode":"auto","idleSeconds":87,"class":"moderate","requestedCpus":2,"requestedMemoryMiB":2048,"leasedCpuCeilings":22,"aggregateCpuLimit":20,"leasedNativeCpus":8,"leasedMemoryMiB":38656,"protectedCpuSomeAvg10":1.65,"cpuSomeAvg10":2.15,"memoryFullAvg10":0,"memoryAvailableMiB":60610,"reclaimed":0,"lease":"877ba49b-f1a1-4349-b0f0-cecdd1bdd482","expiresAt":1791357087444}
+pass a delayed visible shot is defended at its predicted position without seeing a newer sample
+pass a visible shot expected to have expired or passed does not keep the computer defending
+pass replay state checks detect delayed observations and direction commitment independently of current fighters
+pass 45 surprise-action traces: no computer input responds before its level's observation delay
+pass level 9 changes its approach on frame 12 after a surprise side change
+pass rapid grounded and airborne requests, including neutral braking, have zero reversals before five frames
+pass all 13 fighters' approach, retreat, air steering and recovery traces have zero early direction reversals
+7 of 7 passed
+{"decision":"RELEASED","lease":"877ba49b-f1a1-4349-b0f0-cecdd1bdd482"}
