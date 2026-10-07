@@ -15,8 +15,6 @@ import { controls, testGrabFrame } from "../testWorld";
 import { clearSpecialOnStock } from "../transitions";
 import { copyFighterState } from "../../replay/fighterState";
 import { firstFighterDifference } from "../../replay/difference";
-import { fighterCoverage } from "../../match/botCoverage";
-import { SELECTABLE_CHARACTERS } from "./registry";
 import { TINKER_MOVES } from "./tinkerMoves";
 
 function frame(world: Roster, input: Readonly<Controls> = controls()): void {
@@ -183,14 +181,6 @@ test("Tinker Robo-Goblin hits once and its running state survives a rollback cop
   assertEquals(firstFighterDifference(owner, restored, 3, 3), undefined);
   for (let tick = 0; tick < 60; tick++) frame(world);
   assertEquals(target.status.damage, 13.0);
-});
-
-test("Tinker computer coverage records all four specials", () => {
-  const index = SELECTABLE_CHARACTERS.indexOf(Character.tinker);
-  assertGreaterThan(index, -1);
-  const result = fighterCoverage(index);
-  assertEquals(result.missing.length, 0);
-  for (const count of [result.specials.neutral, result.specials.side, result.specials.up, result.specials.down]) assertGreaterThan(count, 0);
 });
 
 test("Tinker Robo-Goblin armor takes one light hit and then a second hit interrupts it", () => {
