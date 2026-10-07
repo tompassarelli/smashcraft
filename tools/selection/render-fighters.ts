@@ -7,6 +7,8 @@
 // Fighters render in the neutral team colour (NEUTRAL_TEAM_COLOR), so no portrait shows a player's colour;
 // --team renders another. --check RED_WORK compares each render with the same fighter rendered with
 // --team 0 (its work/NAME.png in RED_WORK) and fails if a team-colour pixel shows a player colour.
+// New renders isolate the team layer in work/NAME-team.png; its blend keeps painted texture alpha,
+// so a fighter's own pigment does not count as a team colour.
 // Writes ASSETS/fighter-renders/; the map build imports from there.
 // (tools/animations/extract.sh builds CASC_EXTRACT into build/animation-assets/.)
 import { existsSync, mkdirSync } from 'node:fs';
@@ -17,7 +19,7 @@ import { heroModelSource, importedModelFile } from '../../ts/scripts/heroModelSo
 import { CARD_TEXTURE_PX, TILE_TEXTURE_PX } from '../../ts/src/game/ui/portraitFrames';
 import { STOCK_ICON_PX } from '../../ts/src/game/ui/plateLayout';
 import { NEUTRAL_TEAM_COLOR } from '../../ts/src/game/ui/slotColors';
-import { readRgba, teamColourPixels } from './team-colour-check';
+import { readRgba, teamColourPixels, teamLayerPixels } from './team-colour-check';
 
 const option = (name: string) => { const index = process.argv.indexOf(name); return index < 0 ? undefined : process.argv[index + 1]; };
 const extract = option('--extract');
@@ -205,7 +207,9 @@ if (check !== undefined) {
   for (const character of RENDERED_FIGHTERS) {
     const name = fighterRenderName(character);
     if (only !== undefined && !only.includes(name)) continue;
-    const result = teamColourPixels(readRgba(join(work, `${name}.png`)), readRgba(join(check, `${name}.png`)));
+    const paired = teamColourPixels(readRgba(join(work, `${name}.png`)), readRgba(join(check, `${name}.png`)));
+    const layer = join(work, `${name}-team.png`);
+    const result = existsSync(layer) ? { ...paired, ...teamLayerPixels(readRgba(layer)) } : paired;
     const found = Object.entries(result.found).map(([color, count]) => `${color} ${count}`).join(', ');
     // A model without a team-colour texture shows none; one with it must show some, or the check saw nothing.
     const teamColoured = /ReplaceableId 1\b/.test(await Bun.file(join(models, `${name}.mdl`)).text());

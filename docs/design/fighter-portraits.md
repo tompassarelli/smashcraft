@@ -42,10 +42,15 @@ smashcraft:tools/selection/render-fighter.py in Blender. Every fighter gets the
 same three-quarter camera, lights and background, framed to its silhouette at
 its first `Stand Ready` frame. Fighters render in Warcraft's Coal team colour
 (`NEUTRAL_TEAM_COLOR`, a dark grey no slot uses), so the grid shows no
-player's colour. `--check RED_WORK` compares each render with the same fighter
-rendered with `--team 0`: where the red render reads as Red and the team-colour
-layer draws most of the pixel, the neutral render must show no player colour's
-hue. Heroes come from the game's storage, and the
+player's colour. Each new render also writes `work/NAME-team.png`: an unlit
+pass through the same material blend graph, with the painted textures' RGB
+removed and their alpha retained. This isolates the team layer even where it
+blends through skin or trim. The pass disables denoising, which otherwise
+changes faint edge colours, and retains `work/NAME-team.blend` for direct pixel
+diagnostics without importing the clip pool again. `--check RED_WORK` checks that pass for the twelve
+player colours (including Gray) and compares the render's silhouette with the
+same fighter rendered with `--team 0`. Cached renders without the isolated
+pass use their red comparison to find team-colour pixels. Heroes come from the game's storage, and the
 original fighters from their generated models. The renders are proprietary
 derived art: they go to `ASSETS/fighter-renders/` outside the repository, and
 the map build imports them from there. A fighter missing from

@@ -132,3 +132,49 @@ scene.render.image_settings.color_mode = "RGBA"
 scene.render.filepath = output
 bpy.ops.render.render(write_still=True)
 print("RENDER_DONE", output)
+
+# Isolate the team-colour contribution using the same material blend graph.
+# Painted skin and trim retain their alpha but contribute no RGB. Checking a
+# lit red comparison alone mistakes those pigments for team colour where the
+# team base shines through the Rifleman's partially transparent texture.
+for material in bpy.data.materials:
+    if not material.use_nodes:
+        continue
+    tree = material.node_tree
+    for node in list(tree.nodes):
+        if node.type != "TEX_IMAGE" or node.image is None:
+            continue
+        if "TeamColor" in node.image.filepath:
+            continue
+        black = tree.nodes.new("ShaderNodeRGB")
+        black.outputs[0].default_value = (0, 0, 0, 1)
+        for link in list(node.outputs["Color"].links):
+            tree.links.new(black.outputs[0], link.to_socket)
+    shader = next((node for node in tree.nodes if node.type == "BSDF_PRINCIPLED"), None)
+    if shader is None:
+        continue
+    emission = tree.nodes.new("ShaderNodeEmission")
+    color = shader.inputs["Base Color"]
+    if color.is_linked:
+        tree.links.new(color.links[0].from_socket, emission.inputs["Color"])
+    else:
+        emission.inputs["Color"].default_value = (0, 0, 0, 1)
+    transparent = tree.nodes.new("ShaderNodeBsdfTransparent")
+    blend = tree.nodes.new("ShaderNodeMixShader")
+    alpha = shader.inputs["Alpha"]
+    if alpha.is_linked:
+        tree.links.new(alpha.links[0].from_socket, blend.inputs[0])
+    else:
+        blend.inputs[0].default_value = alpha.default_value
+    tree.links.new(transparent.outputs[0], blend.inputs[1])
+    tree.links.new(emission.outputs[0], blend.inputs[2])
+    for link in list(shader.outputs[0].links):
+        tree.links.new(blend.outputs[0], link.to_socket)
+scene.render.engine = "CYCLES"
+scene.cycles.use_denoising = False
+scene.view_settings.exposure = 0
+scene.render.filepath = str(Path(output).with_name(Path(output).stem + "-team.png"))
+# Keep this exact pass available without importing the fighter's clip pool again.
+bpy.ops.wm.save_as_mainfile(filepath=str(Path(output).with_name(Path(output).stem + "-team.blend")))
+bpy.ops.render.render(write_still=True)
+print("RENDER_TEAM", scene.render.filepath)
