@@ -5,6 +5,7 @@ import { type MatchCamera, createMatchCamera, copyMatchCamera } from "../sim/mat
 import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots, isParticipantMask, isParticipantSlot, participantActive } from "../input/participants";
 import { Character } from "../sim/codes";
 import { CPU_LEVEL_DEFAULT, isCpuLevel, nextMatchSeed } from "./cpuLevel";
+import { CPU_OPPONENT_DEFAULT, CPU_TIER_DEFAULT, type CpuOpponentChoice, type CpuOpponentId, type CpuTier, isCpuOpponentChoice, isCpuTier, resolveCpuOpponent } from "./cpuProfiles";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
 import { PARTNER_BEHAVIOURS, PARTNER_DAMAGE_MAX, PARTNER_DAMAGE_STEP, PARTNER_ESCAPES, PARTNER_TECHS, TRAINING_SPEEDS, type TrainingState, clearTrainingReadout, copyTrainingState, createTrainingState } from "./trainingState";
 
@@ -19,6 +20,10 @@ export interface MatchState {
   readonly characterChoices: Slots<Character>;
   /** Each computer slot's difficulty, 1-9 (cpuLevel.ts). */
   readonly cpuLevels: Slots<number>;
+  readonly cpuOpponents: Slots<CpuOpponentChoice>;
+  readonly cpuTiers: Slots<CpuTier>;
+  /** The match-start draw, retained while Random remains selected for rematches. */
+  readonly cpuResolvedOpponents: Slots<CpuOpponentId>;
   readonly characterReadiness: Slots<boolean>;
   readonly rematchReadiness: Slots<boolean>;
   departedMask: number;
@@ -56,6 +61,9 @@ export function createMatchState(): MatchState {
   return {
     camera: createMatchCamera(),
     phase: Phase.characterMenu, characterChoices: [0, 1, 2, 0], cpuLevels: [CPU_LEVEL_DEFAULT, CPU_LEVEL_DEFAULT, CPU_LEVEL_DEFAULT, CPU_LEVEL_DEFAULT], matchSeed: 0,
+    cpuOpponents: [CPU_OPPONENT_DEFAULT, CPU_OPPONENT_DEFAULT, CPU_OPPONENT_DEFAULT, CPU_OPPONENT_DEFAULT],
+    cpuTiers: [CPU_TIER_DEFAULT, CPU_TIER_DEFAULT, CPU_TIER_DEFAULT, CPU_TIER_DEFAULT],
+    cpuResolvedOpponents: [CPU_OPPONENT_DEFAULT, CPU_OPPONENT_DEFAULT, CPU_OPPONENT_DEFAULT, CPU_OPPONENT_DEFAULT],
     characterReadiness: [false, false, false, false], rematchReadiness: [false, false, false, false],
     departedMask: 0, interrupted: false, humanMask: 1, humanFighterMask: 1, humanCount: 1, computerMask: 0,
     stageChoice: 2, winner: undefined, stockCount: 3, timeLimitMinutes: 7, endless: false, automaticRematch: false, rematchCountdown: 0,
@@ -164,6 +172,9 @@ export function copyMatchState(target: MatchState, source: Readonly<MatchState>)
   for (const slot of PARTICIPANT_SLOTS) {
     target.characterChoices[slot] = source.characterChoices[slot];
     target.cpuLevels[slot] = source.cpuLevels[slot];
+    target.cpuOpponents[slot] = source.cpuOpponents[slot];
+    target.cpuTiers[slot] = source.cpuTiers[slot];
+    target.cpuResolvedOpponents[slot] = source.cpuResolvedOpponents[slot];
     target.characterReadiness[slot] = source.characterReadiness[slot];
     target.rematchReadiness[slot] = source.rematchReadiness[slot];
   }
@@ -276,6 +287,14 @@ export function setCpuLevel(game: MatchState, actor: number, computer: number, l
   if (game.phase === Phase.characterMenu && isParticipantSlot(computer) && canChooseComputer(game, actor, computer) && isCpuLevel(level)) game.cpuLevels[computer] = level;
 }
 
+export function setCpuOpponent(game: MatchState, actor: number, computer: number, opponent: CpuOpponentChoice): void {
+  if (game.phase === Phase.characterMenu && isParticipantSlot(computer) && canChooseComputer(game, actor, computer) && isCpuOpponentChoice(opponent)) game.cpuOpponents[computer] = opponent;
+}
+
+export function setCpuTier(game: MatchState, actor: number, computer: number, tier: CpuTier): void {
+  if (game.phase === Phase.characterMenu && isParticipantSlot(computer) && canChooseComputer(game, actor, computer) && isCpuTier(tier)) game.cpuTiers[computer] = tier;
+}
+
 export function setAutomaticRematch(game: MatchState, slot: number, automatic: boolean): void {
   if (settingRules(game, slot)) game.automaticRematch = automatic;
 }
@@ -305,6 +324,7 @@ function beginMatch(game: MatchState): void {
   game.remainingFrames = timedMatch(game) ? game.timeLimitMinutes * 60 * MATCH_TICKS_PER_SECOND : 0;
   // A match has run since the boot: this one plays the next seed.
   if (game.matchFrame > 0) game.matchSeed = nextMatchSeed(game.matchSeed);
+  for (const slot of PARTICIPANT_SLOTS) game.cpuResolvedOpponents[slot] = resolveCpuOpponent(game.cpuOpponents[slot], game.matchSeed, slot);
   game.startHold = game.practice || game.training ? 0 : START_HOLD_FRAMES;
   game.matchFrame = 0;
   game.phase = Phase.match;
