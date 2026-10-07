@@ -47,7 +47,7 @@ function mechanics(profile: CpuProfile): CpuSkill {
     decision: profile, reactionFrames: profile.reactionFrames,
     defendTenths: Math.min(7, floorDiv(profile.judgmentPercent * 7 + 99, 100)),
     attackPause: 3 + floorDiv(missed, 2), attackSpread: 8 + floorDiv(missed, 2),
-    misplay: floorDiv(100 - profile.spacingPercent, 2), idle: floorDiv(100 - profile.pressurePercent, 4),
+    misplay: floorDiv(Math.max(0, 96 - profile.spacingPercent), 2), idle: floorDiv(Math.max(0, 80 - profile.pressurePercent), 4),
     gameplanWeights: true, diTenths: floorDiv(profile.executionPercent + 9, 10),
     techMiss: missed, techOutOf: 100, grabMashFrames: 2 + floorDiv(missed, 5),
     freezeMashFrames: 6 + floorDiv(missed, 5), mixesUp: true, grabsShields: true,

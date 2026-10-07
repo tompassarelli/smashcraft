@@ -206,10 +206,10 @@ test("computer Lich bursts Frost Nova, places Death and Decay, arms Frost Armor 
 });
 
 test("computer Uther shoots Holy Light and attacks out of Divine Shield", () => {
-  // Divine Shield succeeds only against a strike timed into its window: against Wren Expert opponents, about
-  // once in 80 matches (none in 400 mirrors, whose Expert Uther rarely strikes into it). The usual matches
-  // against Archer add one seed of the same series (index 15 at 0%) where it does.
-  usesEvery(Character.uther, ["special0", "divineAttack"], Character.archer, MATCHES, [[11 + 15 * 12, 0.0]]);
+  // Divine Shield succeeds only against a strike timed into its window: between Wren Expert computers, about
+  // once in 120 mirror matches (indices 0-59 at 0% and 110%), so the usual matches add the one seed of the
+  // same series (index 23 at 0%) where it does.
+  usesEvery(Character.uther, ["special0", "divineAttack"], Character.uther, MATCHES, [[11 + 23 * 12, 0.0]]);
 });
 
 test("computer Dreadlord feints Vampiric Pounce, sleeps a target, mashes out of Sleep and hits a sleeper", () => {

@@ -134,6 +134,10 @@ export function heroSpecialUse(f: Readonly<Fighter>, target: Readonly<Fighter>, 
   if (!travelStaysOnDeck(f, move, stage)) return HeroSpecialUse.none;
   let firstStrike: number | undefined;
   for (const region of move.regions ?? []) if (firstStrike === undefined || region.firstFrame < firstStrike) firstStrike = region.firstFrame;
+  if (move.commandGrab !== undefined && (firstStrike === undefined || move.commandGrab.first < firstStrike)) firstStrike = move.commandGrab.first;
+  // A special that strikes only through a follow-up strikes once its own travel ends, the travel strikeMeets carries;
+  // by then a falling target may have dropped out of its height.
+  if (firstStrike === undefined && !target.motion.grounded) for (const segment of move.motion ?? []) if (firstStrike === undefined || segment.last > firstStrike) firstStrike = segment.last;
   // A falling opponent may leave the special's height before its first strike.
   const strikeZ = firstStrike === undefined ? localZ : f32(heightAhead(target, observationAge + firstStrike + 1, stage, 0) - f.motion.z);
   if (strikeMeets(move, target, localX, strikeZ)) return HeroSpecialUse.close;
