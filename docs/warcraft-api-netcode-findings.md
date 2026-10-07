@@ -1147,13 +1147,20 @@ one-variable native experiments without engine visibility, against about
   `ipse` is Tempest/Ipse, records #1 and #2 are the presence head and births.
   Diff A against B by section and turn. One section differing names the
   subsystem.
-- `.text` is encrypted on disk and decrypted page by page at run time, after
-  a Battle.net launch. A copy launched without Battle.net never decrypts.
-  Static analysis needs the decrypted pages from a running client's image
-  (its shared image mapping, read through `/proc/PID/mem`). Pages a client
-  never ran stay encrypted, so the code that matters is always readable.
-- Reading `/proc/PID/mem` needs either an ancestor process or
-  `kernel.yama.ptrace_scope=0`, which is the owner's call. A read-only poller
+- `.text` is encrypted on disk and decrypted page by page at run time.
+  Battle.net isn't needed for that: on 7 October a client started directly
+  (`-launch -windowmode windowed -nowfpause`, fresh prefix, no account, a
+  network namespace with only loopback, with a display) had 3,940 of its 8,798
+  `.text` pages decrypted at the login screen. An earlier run without a
+  display and with only the x86_64 folder dumped nothing. Under Wine the image
+  is a shared memfd mapping (`/memfd:wine-mapping`) read through
+  `/proc/PID/mem`. Pages a client never ran stay encrypted, and a page can be
+  encrypted again later, so the code that matters is readable while it runs.
+- Reading `/proc/PID/mem` works without changing `ptrace_scope`: Steam's
+  runtime starts each game in a user namespace this user owns, and Yama lets
+  a process with `CAP_SYS_PTRACE` in the target's namespace read it. Failing
+  that, it needs an ancestor process or `kernel.yama.ptrace_scope=0`, which is
+  the owner's call. A read-only poller
   every 2 ms that logs header changes and each new object's RTTI class is
   enough to diff A against B.
 - Do not attach gdb (ptrace) to a signed-in client: client A exited with code 1
