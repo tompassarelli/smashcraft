@@ -144,26 +144,26 @@ Generated from the packaged models by `bun wisp view motion --assets DIR` (#171)
 | Lich | ledge-get-up | 24: Recovery ledgeClimb | 147.3 | 101.3 | up; 136.9/82.2 |
 | Lich | ledge-roll | 25: Recovery ledgeRoll | 179.3 | 121.3 | forward; 118.8/164.2 |
 | Lich | ledge-attack | 26: Recovery ledgeAttack | 175.6 | 125.6 | both; 110.6/108.8 |
-| Uther | walk | 12: Walk | 110.1 | 45.9 | forward; 98.7/109.9 |
-| Uther | dash | 12: Walk | 110.1 | 44.8 | forward; 98.3/110.0 |
-| Uther | run | 12: Walk | 100.5 | 35.2 | forward; 100.2/97.2 |
-| Uther | turn | 13: Recovery turn | 188.5 | 47.6 | back; 188.4/57.7 |
-| Uther | brake | 14: Recovery stop | 24.4 | 12.4 | in place; 10.9/14.5 |
-| Uther | jump-squat | 15: Recovery jumpSquat | 24.4 | 12.6 | down; 23.5/21.7 |
-| Uther | roll-forward | 22: Recovery rollForward | 211.3 | 85.9 | forward; 211.0/62.8 |
-| Uther | roll-back | 23: Recovery rollBackward | 211.3 | 86.0 | back; 62.7/211.2 |
-| Uther | spot-dodge | 24: Recovery spotDodge | 63.9 | 21.5 | in place; 35.6/19.5 |
-| Uther | air-dodge | 16: Recovery airDodge | 62.5 | 23.1 | in place; 31.0/17.6 |
-| Uther | tech | 17: Recovery tech | 142.0 | 51.8 | in place; 62.7/100.4 |
-| Uther | tech-forward | 18: Recovery techForward | 143.3 | 87.1 | forward; 109.3/125.9 |
-| Uther | tech-back | 19: Recovery techBackward | 164.6 | 79.0 | back; 107.8/124.4 |
-| Uther | get-up | 25: Recovery getUp | 133.1 | 53.3 | up; 57.9/107.8 |
-| Uther | get-up-forward | 20: Recovery getUpRollForward | 143.3 | 87.4 | forward; 109.4/125.7 |
-| Uther | get-up-back | 21: Recovery getUpRollBackward | 163.4 | 78.7 | back; 107.8/124.7 |
-| Uther | get-up-attack | 26: Recovery getUpAttack | 139.0 | 70.3 | both; 103.0/115.7 |
-| Uther | ledge-get-up | 27: Recovery ledgeClimb | 95.9 | 63.4 | up; 91.8/38.8 |
-| Uther | ledge-roll | 28: Recovery ledgeRoll | 143.9 | 87.2 | forward; 109.0/125.5 |
-| Uther | ledge-attack | 29: Recovery ledgeAttack | 186.6 | 83.1 | both; 186.2/62.5 |
+| Uther | walk | 12: Walk 1 | 85.8 | 20.9 | forward; 82.9/75.0 |
+| Uther | dash | 12: Walk 1 | 85.6 | 20.2 | forward; 82.7/74.3 |
+| Uther | run | 12: Walk 1 | 94.3 | 22.2 | forward; 81.3/93.4 |
+| Uther | turn | 13: test | 64.5 | 12.6 | back; 29.7/18.0 |
+| Uther | brake | 14: Cinematic Dialogue One | 4.6 | 0.4 | in place; 4.4/0.3 |
+| Uther | jump-squat | 15: Attack Slam | 20.3 | 1.5 | down; 15.4/7.5 |
+| Uther | roll-forward | 22: CInematic Surprised Two | 12.3 | 3.0 | forward; 5.4/11.5 |
+| Uther | roll-back | 23: CInematic Turn90Left One | 40.0 | 16.7 | back; 40.0/16.0 |
+| Uther | spot-dodge | 24: Cinematic Turn90Right One | 25.4 | 10.1 | in place; 17.5/24.6 |
+| Uther | air-dodge | 16: Spell | 117.9 | 28.1 | in place; 110.2/87.4 |
+| Uther | tech | 17: Spell Fast | 84.6 | 28.9 | in place; 84.0/66.4 |
+| Uther | tech-forward | 18: Cinematic Walk | 78.1 | 16.7 | forward; 65.1/76.8 |
+| Uther | tech-back | 19: Cinematic Salute Two | 210.8 | 20.5 | back; 95.4/193.9 |
+| Uther | get-up | 25: CInematicTurn180Left One | 79.8 | 29.5 | up; 22.2/14.3 |
+| Uther | get-up-forward | 20: Cinematic Dialogue Two | 60.1 | 10.8 | forward; 36.5/57.9 |
+| Uther | get-up-back | 21: Cinematic Surprised One | 33.3 | 10.4 | back; 30.8/8.0 |
+| Uther | get-up-attack | 26: Cinematic Turn180Right One | 100.9 | 24.0 | both; 36.2/100.9 |
+| Uther | ledge-get-up | 27: Spell Slam | 164.1 | 30.5 | up; 76.5/71.0 |
+| Uther | ledge-roll | 28: Uther jab | 33.3 | 6.8 | forward; 25.9/11.1 |
+| Uther | ledge-attack | 29: Uther jab2 | 29.8 | 8.4 | both; 27.0/19.1 |
 | Dreadlord | walk | 5: Walk | 115.4 | 38.3 | forward; 115.3/109.0 |
 | Dreadlord | dash | 5: Walk | 115.7 | 38.0 | forward; 115.7/107.5 |
 | Dreadlord | run | 5: Walk | 119.3 | 40.1 | forward; 110.1/107.2 |

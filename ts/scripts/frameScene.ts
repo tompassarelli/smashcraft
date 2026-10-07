@@ -3,7 +3,7 @@
 // interaction graph (interactions.ts) share it, so both measure the frame
 // order, input buffers and contacts that a match runs.
 import { Action, has } from "../src/game/input/actions";
-import { type InputRow, emptyInput } from "../src/game/input/inputRow";
+import { type InputRow, copyInput, emptyInput } from "../src/game/input/inputRow";
 import { type ParticipantInputs, participantInputs } from "../src/game/input/participants";
 import { type FrameControls, createBufferedFrameControls } from "../src/game/match/controls";
 import { type MatchFrameInput, captureNetworkFrame, createMatchFrameInput, executeMatchFrame } from "../src/game/match/frameInput";
@@ -59,11 +59,12 @@ export function projectileShieldActions(shooter: Readonly<Fighter>): readonly Ac
 const maskOf = (actions: readonly Action[]): number => actions.reduce<number>((mask, action) => mask | (1 << action), 0);
 
 const axis = (held: number, negative: Action, positive: Action): number => (has(held, positive) ? 127 : 0) - (has(held, negative) ? 127 : 0);
+const EMPTY_INPUT = emptyInput();
 
 /** A controller row holding `actions`; presses and releases come from the slot's previous row, as a pad reports them. */
 function padRow(target: InputRow, held: number, previous: number): void {
   const pressed = held & ~previous;
-  Object.assign(target, emptyInput());
+  copyInput(target, EMPTY_INPUT);
   target.held = held;
   target.pressed = pressed;
   target.released = previous & ~held;
@@ -85,13 +86,14 @@ function padRow(target: InputRow, held: number, previous: number): void {
 
 /** Runs controller rows, optionally adding the pulses and taps a pad reports beside held buttons. */
 export function frameRows(s: Scene, held: readonly (readonly Action[])[], amend?: (row: InputRow, slot: number) => void): void {
-  s.source.forEach((row, slot) => {
-    if (slot >= s.previous.length) return;
+  for (let slot = 0; slot < s.previous.length; slot++) {
+    const row = s.source[slot];
+    if (row === undefined) throw new Error(`slot ${slot} has no controller row`);
     const mask = maskOf(held[slot] ?? []);
     padRow(row, mask, s.previous[slot] ?? 0);
     amend?.(row, slot);
     s.previous[slot] = mask;
-  });
+  }
   const next = s.runtime.simulationFrame + 1;
   if (!captureNetworkFrame(s.row, next, s.source, s.world, s.world.mask)) throw new Error(`frame ${next} not captured`);
   if (!executeMatchFrame(s.row, s.game, s.world, s.controls, s.runtime, next)) throw new Error(`frame ${next} not executed`);
