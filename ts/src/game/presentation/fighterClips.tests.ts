@@ -9,6 +9,7 @@ import * as dh from "./demonHunterAssetInfo";
 import * as assets from "./fighterAssetInfo";
 import { attackPose, characterClips, clipFor, grabActionPoses, namedClips, ownAttackClip, specialClip } from "./fighterClips";
 import { WARDEN_MODEL_FILE, WARDEN_SEQUENCES } from "./heroes/wardenClips";
+import { WARDEN_FAN_CLIPS } from "./wardenFanClipInfo";
 import { characterModelScale } from "./modelScale";
 import { type FighterPose, advanceFighterPose, createFighterPose } from "./fighterPose";
 import { RECOVERY_CLIPS } from "./recoveryClipInfo";
@@ -72,7 +73,8 @@ test("a hero plays its registered sequences and its fallback for any pose it lea
   assertEquals(ownAttackClip(warden, AttackStyle.forwardSmash)?.index, WARDEN_SEQUENCES.spellSlam.index);
   assertEquals(ownAttackClip(warden, AttackStyle.dashAttack)?.index, WARDEN_SEQUENCES.attack2.index);
   assertEquals(specialClip(warden, SpecialAction.heroUp, false, false).index, WARDEN_SEQUENCES.dissipate.index);
-  assertEquals(specialClip(warden, SpecialAction.heroDown, true, false).index, WARDEN_SEQUENCES.spell.index);
+  assertEquals(specialClip(warden, SpecialAction.heroDown, true, false).index, WARDEN_FAN_CLIPS.ground.index);
+  assertEquals(specialClip(warden, SpecialAction.heroDown, false, false).index, WARDEN_FAN_CLIPS.air.index);
   assertEquals(characterClips(warden).idle?.index, WARDEN_SEQUENCES.standReady.index);
   // Every original or appended action must be present in the packaged pool.
   for (const clip of namedClips(characterClips(warden))) assertTrue(clip.index >= 0 && clip.index < originalClipCount(warden));

@@ -3,6 +3,17 @@
 import { model as mdx } from "war3-model";
 import { ensure, onGlobalClock, tracks } from "./original-clips";
 
+export function wardenFanBaseModel(source: mdx.Model): mdx.Model | undefined {
+  const first = source.Sequences.findIndex(s => s.Name.startsWith("Fan of Knives "));
+  if (first < 0) return undefined;
+  ensure(first > 0 && source.Sequences.slice(first).every(s => s.Name.startsWith("Fan of Knives ")), "Fan casts must be the sequence suffix");
+  const cutoff = source.Sequences[first]?.Interval[0]; ensure(cutoff !== undefined, "Fan cast has no start");
+  const model = structuredClone(source);
+  model.Sequences = model.Sequences.slice(0, first);
+  tracks(model, track => { if (!onGlobalClock(track)) track.Keys = track.Keys.filter(k => k.Frame < cutoff); });
+  return model;
+}
+
 export function pitLordSpecialBaseModel(source: mdx.Model): mdx.Model | undefined {
   const first = source.Sequences.findIndex(s => s.Name === "Special Howl of Terror");
   if (first < 0) return undefined;
@@ -11,6 +22,23 @@ export function pitLordSpecialBaseModel(source: mdx.Model): mdx.Model | undefine
   ensure(cutoff !== undefined, "Pit Lord specials have no start");
   const model = structuredClone(source);
   model.Sequences = model.Sequences.slice(0, first);
+  tracks(model, track => { if (!onGlobalClock(track)) track.Keys = track.Keys.filter(k => k.Frame < cutoff); });
+  return model;
+}
+
+export function pounceBaseModel(source: mdx.Model): mdx.Model | undefined {
+  const first = source.Sequences.findIndex(s => s.Name.startsWith("Pounce "));
+  if (first < 0) return undefined;
+  ensure(first > 0 && source.Sequences.slice(first).every(s => s.Name.startsWith("Pounce ")), "Pounce clips must be the suffix");
+  const helper = source.Helpers.find(n => n.Name === "Pounce Motion");
+  ensure(helper && helper.ObjectId === source.Nodes.length - 1 && helper.Parent == null, "Pounce helper must be final root");
+  const cutoff = source.Sequences[first]?.Interval[0]; ensure(cutoff !== undefined, "Pounce clip has no start");
+  const model = structuredClone(source);
+  model.Sequences = model.Sequences.slice(0, first);
+  model.Helpers = model.Helpers.filter(n => n.ObjectId !== helper.ObjectId);
+  model.Nodes = model.Nodes.filter(n => n.ObjectId !== helper.ObjectId);
+  model.PivotPoints = model.PivotPoints.slice(0, helper.ObjectId);
+  for (const node of model.Nodes) if (node.Parent === helper.ObjectId) node.Parent = null;
   tracks(model, track => { if (!onGlobalClock(track)) track.Keys = track.Keys.filter(k => k.Frame < cutoff); });
   return model;
 }
