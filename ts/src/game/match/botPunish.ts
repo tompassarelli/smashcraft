@@ -155,7 +155,7 @@ function spacingTool(plan: Readonly<FighterGameplan>, move: AttackStyle): boolea
  * else its fastest move, that reaches it before it can act, or a run in when a move would reach after it. True when that
  * took this frame's input. Ground only; a shield lets go only for a grab.
  */
-export function choosePunish(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, matchFrame: number, frame: number, skill: CpuSkill, input: Controls, commands: AttackBuffer): boolean {
+export function choosePunish(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, matchFrame: number, frame: number, skill: CpuSkill, input: Controls, commands: AttackBuffer, observationAge = 0): boolean {
   if (skill.punishTenths <= 0 || !f.motion.grounded) return false;
   const shielding = f.shield.raised;
   if (shielding ? !canShieldGrab(f) : !canAttack(f)) return false;
@@ -164,7 +164,8 @@ export function choosePunish(f: Readonly<Fighter>, target: Readonly<Fighter>, st
   if (!botChance(open.key, f.character * 29 + 7, skill.punishTenths, 10)) return false;
   if (Math.abs(f32(target.motion.z - f.motion.z)) > PUNISH_HEIGHT) return false;
   // The frames it believes it has; a misjudged window throws a move that comes out too late.
-  const believed = open.frames + skill.punishMisjudge - INPUT_FRAMES;
+  // A delayed observation already spent `observationAge` of those frames.
+  const believed = open.frames + skill.punishMisjudge - INPUT_FRAMES - observationAge;
   if (!slideStaysOnDeck(f, stage, matchFrame)) return false;
   const moves = f.tuning.moves;
   const plan = skill.gameplanWeights ? gameplanOf(f.character) : undefined;

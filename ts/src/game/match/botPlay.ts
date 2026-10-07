@@ -198,7 +198,7 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, 
   if (target === undefined) return;
   if (chooseDefense(fighter, target, stage, input, skill, observationAge)) return;
   // An opponent that can't act yet is punished before any pause or idle stretch.
-  if (choosePunish(fighter, target, stage, game.matchFrame, frame, skill, input, commands)) {
+  if (choosePunish(fighter, target, stage, game.matchFrame, frame, skill, input, commands, observationAge)) {
     runtime.botAttackDelays[slot] = f32(f32(skill.attackPause + botChoice(frame, fighter.attack.serial, skill.attackSpread)) * TICK);
     return;
   }

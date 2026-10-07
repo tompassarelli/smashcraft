@@ -29,8 +29,11 @@ const NEUTRAL = neutralControls();
 const Whiff = { forwardSmash: 0, grab: 1, landing: 2 } as const;
 type Whiff = (typeof Whiff)[keyof typeof Whiff];
 const WHIFFS = [Whiff.forwardSmash, Whiff.grab, Whiff.landing] as const;
-/** Where the computer stands: behind a forward smash (it swings away), just past the grab's reach, in front of a landing. */
-const COMPUTER_X = [-110.0, 150.0, 130.0] as const;
+/**
+ * Where the computer stands: behind a forward smash (it swings away), just past the grab's reach, in front of a landing.
+ * A level-9 computer sees a landing 12 frames late (#176), leaving 8 of its 20 frames: close enough for every fighter's run.
+ */
+const COMPUTER_X = [-110.0, 150.0, 90.0] as const;
 
 /**
  * Pit Lord at the middle of the first stage shows `whiff`; the computer in
