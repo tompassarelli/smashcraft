@@ -433,6 +433,8 @@ code. From smashcraft:ts/:
   verdict and field table. A Wren Expert run with at least 400 matches per pair
   fails when the balance gate fails, after publishing the report artifact;
   lower-tier or smaller exploratory fields remain reports.
+  `--matchups archer:chen-stormstout,lich:chen-stormstout` runs only those
+  named pairs for a repair comparison; its report is not a full-roster gate.
   `bun wisp farm pads [--ref REF] [--only DIR]... [--wait]` plays
   every top-level smashcraft:ts/test/native/pads/ script (or each issue
   folder named by `--only`, such as `--only 151 --only 167`) headless through the
