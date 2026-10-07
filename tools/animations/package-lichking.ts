@@ -5,7 +5,7 @@
 // (whose indices never move): skeleton keys from the authored export, and every
 // other track (emitter and geoset animation, events) from the clip's donor
 // built-in, scaled to the new length. Then it regenerates the clip metadata.
-//   bun tools/animations/package-lichking.ts SOURCE.mdx AUTHORED_DIR OUT.mdx [--append-to EXISTING.mdx]
+//   bun tools/animations/package-lichking.ts SOURCE.mdx AUTHORED_DIR OUT.mdx [--append-to EXISTING.mdx] [--replace NAME]
 import { generateMDX, parseMDL, parseMDX } from "war3-model";
 import { join } from "node:path";
 
@@ -16,6 +16,8 @@ if (!sourcePath || !authoredDir || !outPath) throw new Error("usage: package-lic
 const appendAt = process.argv.indexOf("--append-to");
 const appendTo = appendAt < 0 ? undefined : process.argv[appendAt + 1];
 if (appendAt >= 0 && appendTo === undefined) throw new Error("--append-to needs an existing model");
+const replaceAt = process.argv.indexOf("--replace");
+const replaceName = replaceAt < 0 ? undefined : process.argv[replaceAt + 1];
 const model = parseMDX(await Bun.file(appendTo ?? sourcePath).arrayBuffer());
 const authored = parseMDL(await Bun.file(join(authoredDir, "LichKingFighter.mdl")).text());
 const clips: { readonly authored: readonly { readonly name: string; readonly source: string }[] } = await Bun.file(join(authoredDir, "clips.json")).json();
@@ -31,15 +33,21 @@ const byName = (name: string) => {
   return sequence;
 };
 /** An authored sequence's place: its interval in the Blender export, in the shipped model, and its donor's. */
-const placed: { from: [number, number]; to: [number, number]; donor: [number, number] }[] = [];
+const placed: { from: [number, number]; to: [number, number]; donor: [number, number]; replace?: boolean }[] = [];
 const GAP = 100;
 let cursor = Math.max(...model.Sequences.map((sequence) => sequence.Interval[1])) + GAP;
 for (const clip of clips.authored) {
-  if (appendTo !== undefined && model.Sequences.some((sequence) => sequence.Name === clip.name)) continue;
+  const existing = model.Sequences.find((sequence) => sequence.Name === clip.name);
+  if (appendTo !== undefined && existing !== undefined && clip.name !== replaceName) continue;
   const sequence = authored.Sequences.find((candidate) => candidate.Name === clip.name);
   if (sequence === undefined) throw new Error(`authored export has no ${clip.name}`);
   const donor = byName(clip.source);
   const length = sequence.Interval[1] - sequence.Interval[0];
+  if (existing !== undefined && clip.name === replaceName) {
+    if (existing.Interval[1] - existing.Interval[0] !== length) throw new Error("replacement must preserve clip length");
+    placed.push({ from: [sequence.Interval[0], sequence.Interval[1]], to: [existing.Interval[0], existing.Interval[1]], donor: [donor.Interval[0], donor.Interval[1]], replace: true });
+    continue;
+  }
   const to: [number, number] = [cursor, cursor + length];
   cursor += length + GAP;
   placed.push({ from: [sequence.Interval[0], sequence.Interval[1]], to, donor: [donor.Interval[0], donor.Interval[1]] });
@@ -88,9 +96,11 @@ for (const node of [...model.Bones, ...model.Helpers]) {
     const keys = source[kind] as unknown as Track | undefined;
     if (track === undefined || keys === undefined) throw new Error(`${node.Name} ${kind} has no keyed track to extend`);
     skeleton.add(track);
-    for (const { from, to } of placed) {
+    for (const { from, to, replace } of placed) {
+      if (replace) track.Keys = track.Keys.filter((key) => !within(key.Frame, to));
       const run = keys.Keys.filter((key) => within(key.Frame, from)).map((key) => ({ ...key, Frame: to[0] + key.Frame - from[0] }));
       track.Keys.push(...thinned(run, kind === "Rotation" ? 0.002 : 0.05));
+      track.Keys.sort((a, b) => a.Frame - b.Frame);
     }
   }
   const scaling = source.Scaling as unknown as Track | undefined;
@@ -106,7 +116,7 @@ const extend = (value: unknown, seen: Set<unknown>): void => {
   if (isTrack(value)) {
     if (skeleton.has(value) || value.GlobalSeqId !== null && value.GlobalSeqId !== undefined && value.GlobalSeqId >= 0) return;
     const original = [...value.Keys];
-    for (const { to, donor } of placed) {
+    for (const { to, donor } of placed.filter((clip) => !clip.replace)) {
       for (const key of original) if (within(key.Frame, donor)) value.Keys.push({ ...key, Frame: scaled(key.Frame, donor, to) });
     }
     return;
@@ -116,7 +126,7 @@ const extend = (value: unknown, seen: Set<unknown>): void => {
 for (const [field, value] of Object.entries(model)) if (field !== "Sequences" && field !== "EventObjects") extend(value, new Set());
 for (const event of model.EventObjects) {
   const frames = Array.from(event.EventTrack ?? []);
-  for (const { to, donor } of placed) for (const frame of [...frames]) if (within(frame, donor)) frames.push(scaled(frame, donor, to));
+  for (const { to, donor } of placed.filter((clip) => !clip.replace)) for (const frame of [...frames]) if (within(frame, donor)) frames.push(scaled(frame, donor, to));
   event.EventTrack = new Uint32Array(frames);
 }
 

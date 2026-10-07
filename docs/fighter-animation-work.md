@@ -1243,12 +1243,14 @@ smashcraft:ts/src/game/presentation/heroes/lichKingClipInfo.ts (sequence name
 to index and frames). Run Blender inside the capacity scope (`machine-capacity
 run --class moderate`).
 
-Defile's cast (#174) gathers the free hand above his shoulder, presses it
-toward the pool on frame 20, holds the downward pose for three more frames,
-and settles back into the guard by frame 46, held through frame 50's recovery.
-The frame-20 push stays at its authored frame as the recovery lengthens.
-Frostmourne stays raised beside
-the body. The non-skeleton tracks retain Spell Channel as their donor.
+Defile's cast (#174) lifts Frostmourne above his shoulder, plants its point in
+the ground on frame 20, holds the planted silhouette through frame 26, then
+pulls it back into the guard by frame 46, held through frame 50's recovery.
+The frame-20 strike stays at the pool placement frame. The pool has a dark
+fill and a narrow glowing edge; each body hit flashes that edge for 12 frames.
+The non-skeleton tracks retain Spell Channel as their donor. To reauthor only
+this shipped sequence while retaining every other clip, pass
+`--replace 'Special Down'` after the immutable existing model argument.
 
 Movement transitions and floor recovery (#171) append at indices 66–73,
 preserving every combat and stock index. Turn and stop each last eight frames,

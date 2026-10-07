@@ -121,9 +121,9 @@ code. From smashcraft:ts/:
   inputs and contact-frame captures in smashcraft:ts/test/native/pads/180/.
   `-dev quick pair FIRST / SECOND` selects different named fighters in the two human slots.
 - Lich King animation authoring (from the repository root):
-  `tools/animations/build-lichking.sh [PRIVATE_INPUTS] [IMMUTABLE_EXISTING_MODEL]`
+  `tools/animations/build-lichking.sh [PRIVATE_INPUTS] [IMMUTABLE_EXISTING_MODEL] [--replace NAME]`
   authors clips through Blender; the optional existing model preserves shipped
-  sequences and appends only new clips (smashcraft:docs/fighter-animation-work.md).
+  sequences and appends only new clips; `--replace NAME` reauthors one existing clip at its same index and length (smashcraft:docs/fighter-animation-work.md).
 - Damage reactions (from the repository root):
   `bun tools/animations/damage-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
   appends all 13 fighters' nine articulated contact reactions, checks their
