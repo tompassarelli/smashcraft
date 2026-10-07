@@ -3,17 +3,17 @@
 // cursor; only a finished choice crosses the sync event.
 
 /** The playable stages' tiles, left to right. */
-import { STAGE_CATALOG, stageTileIndex, type StageTile } from "./stageCatalog";
+import { RANDOM_STAGE, STAGE_CHOICES, stageTileIndex, type StageChoice } from "./stageCatalog";
 import { f32 } from "wisp/src/sim/f32";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
-export type { StageTile } from "./stageCatalog";
+export type { StageChoice } from "./stageCatalog";
 
 /** What the button did when it went down. */
 type StageGesture =
   /** Picked up the stage chip; it lands on the tile where the button comes up. */
   | { kind: "carry" }
   /** Pressed a stage tile away from the chip; coming up on the same tile chooses it. */
-  | { kind: "click"; tile: StageTile };
+  | { kind: "click"; tile: StageChoice };
 
 interface StageDrag {
   /** The button state at the last update. */
@@ -25,15 +25,17 @@ interface StageDrag {
 const CARRY: StageGesture = { kind: "carry" };
 
 export function stageTileLeft(choice: number): number {
+  if (choice === RANDOM_STAGE) return f32(0.045);
   return f32(0.45399999618530273 + f32(floorMod(stageTileIndex(choice), 3) * 0.10199999809265137));
 }
 
 export function stageTileTop(choice: number): number {
+  if (choice === RANDOM_STAGE) return f32(0.555);
   return f32(0.4399999976158142 - f32(floorDiv(stageTileIndex(choice), 3) * 0.10300000011920929));
 }
 
-export function stageTileAt(x: number, y: number): StageTile | undefined {
-  for (const stage of STAGE_CATALOG) {
+export function stageTileAt(x: number, y: number): StageChoice | undefined {
+  for (const stage of STAGE_CHOICES) {
     const left = stageTileLeft(stage.id);
     const top = stageTileTop(stage.id);
     if (x >= left && x <= f32(left + 0.09399999678134918) && y <= top && y >= f32(top - 0.07800000160932541)) return stage.id;
@@ -59,8 +61,8 @@ export function clearStageDrag(drag: StageDrag): void {
 }
 
 /** One frame of the pointer while the panel is open, with the stage chosen now; returns a newly chosen stage. */
-export function updateStageDrag(drag: StageDrag, down: boolean, x: number, y: number, choice: number): StageTile | undefined {
-  let chosen: StageTile | undefined;
+export function updateStageDrag(drag: StageDrag, down: boolean, x: number, y: number, choice: number): StageChoice | undefined {
+  let chosen: StageChoice | undefined;
   if (down && !drag.down) {
     const tile = stageTileAt(x, y);
     drag.gesture = onStageChip(choice, x, y) ? CARRY : tile === undefined ? undefined : { kind: "click", tile };

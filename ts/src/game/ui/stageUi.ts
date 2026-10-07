@@ -7,14 +7,14 @@ import { bindPrototype } from "../../platform/rebind";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import { type MatchState, Phase, humanActive } from "../match/rules";
 import { pointerX, pointerY } from "../menu/pointer";
-import { type StageTile, clearStageDrag, stageDrag, stageTileLeft, stageTileTop, updateStageDrag } from "../menu/stageSelection";
-import { STAGE_CATALOG, selectableStage, stageInfo } from "../menu/stageCatalog";
+import { type StageChoice, clearStageDrag, stageDrag, stageTileLeft, stageTileTop, updateStageDrag } from "../menu/stageSelection";
+import { STAGE_CHOICES, selectableStageChoice, stageInfo } from "../menu/stageCatalog";
 import { rulesSummary } from "../shell/messages";
 import { ButtonClicks, MENU_FONT, type MenuControls, bindSyncHandler, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, placeTopLeft } from "./frames";
 
 /** What the stage panel asks the game to do; each call comes from a synchronized event. */
 export interface StageActions {
-  selectStage(participantId: number, choice: StageTile): void;
+  selectStage(participantId: number, choice: StageChoice): void;
   start(participantId: number): void;
   back(participantId: number): void;
 }
@@ -74,7 +74,7 @@ export class StagePanel {
     this.previewName = stageText(root, "MeleeStagePreviewName", f32(0.045), f32(0.19), f32(0.37), f32(0.036), f32(0.022), "");
     this.previewDescription = stageText(root, "MeleeStageDescription", f32(0.045), f32(0.148), f32(0.36), f32(0.05), f32(0.011), "");
     stageText(root, "MeleeStageGridTitle", f32(0.454), f32(0.48), f32(0.3), f32(0.022), f32(0.012), "CHOOSE A STAGE");
-    for (const stage of STAGE_CATALOG) {
+    for (const stage of STAGE_CHOICES) {
       const choice = stage.id;
       const tile = createBackdrop(`MeleeStageTile${I2S(choice)}`, root, choice);
       BlzFrameSetTexture(tile, stageInfo(choice).texture, 0, true);
@@ -95,7 +95,7 @@ export class StagePanel {
     this.clicks.add(stageButton(root, f32(0.045), f32(0.082), f32(0.17), f32(0.037), journal ? "BACK [X]" : "BACK TO FIGHTERS"), { kind: "back" });
     this.sync = createSyncTrigger("ui.stage.drop", "stage-drop", PARTICIPANT_SLOTS, (sender, data) => {
       const choice = S2I(data);
-      if (I2S(choice) === data && selectableStage(choice)) this.actions.selectStage(sender, choice);
+      if (I2S(choice) === data && selectableStageChoice(choice)) this.actions.selectStage(sender, choice);
     });
     BlzFrameSetVisible(root, false);
     BlzFrameSetVisible(this.backdrop, false);
@@ -107,7 +107,7 @@ export class StagePanel {
     this.clicks.bindHandler((button, clicker) => this.click(button, GetPlayerId(clicker)));
     bindSyncHandler("ui.stage.drop", (sender, data) => {
       const choice = S2I(data);
-      if (I2S(choice) === data && selectableStage(choice)) this.actions.selectStage(sender, choice);
+      if (I2S(choice) === data && selectableStageChoice(choice)) this.actions.selectStage(sender, choice);
     });
   }
 

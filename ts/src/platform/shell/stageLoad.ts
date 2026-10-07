@@ -2,7 +2,7 @@
 // (smashcraft:ts/src/game/shell/stageLoad.ts). Every step runs from a
 // synchronized event, so all clients start the match on the same callback.
 import type { ParticipantSlot } from "../../game/input/participants";
-import { canRequestStart, requestStart } from "../../game/match/rules";
+import { canRequestStart, requestStart, resolveStageChoice } from "../../game/match/rules";
 import { stageInfo } from "../../game/menu/stageCatalog";
 import { STAGE_READY_PREFIX, StageLoadStep, beginStageLoad, stageReported, tickStageLoad } from "../../game/shell/stageLoad";
 import { startMatch } from "./matchStart";
@@ -15,6 +15,7 @@ export const STAGE_READY = "shell.stageReady";
 /** The start press at stage selection: draw the stage behind its loading screen and wait for every client. */
 export function requestStageLoad(s: ShellState, slot: ParticipantSlot): boolean {
   if (s.stageLoad !== undefined || !canRequestStart(s.game, slot)) return false;
+  resolveStageChoice(s.game, (s.menuFrames ?? 0) + s.game.matchSeed);
   s.stageLoad = beginStageLoad(s.game, slot);
   drawStage(s);
   const { name, texture } = stageInfo(s.game.stageChoice);

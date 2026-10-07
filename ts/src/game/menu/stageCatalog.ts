@@ -1,10 +1,12 @@
 import { at } from "wisp/src/runtime/lookup";
 import { floorMod } from "wisp/src/sim/intMath";
 
+export const RANDOM_STAGE = 15;
 export type StageTile = 0 | 2 | 3 | 4 | 10 | 11 | 12 | 13 | 14;
+export type StageChoice = StageTile | typeof RANDOM_STAGE;
 
-export interface StageInfo {
-  readonly id: StageTile;
+export interface StageInfo<Choice extends StageChoice = StageTile> {
+  readonly id: Choice;
   readonly name: string;
   readonly texture: string;
   readonly description: string;
@@ -28,12 +30,30 @@ export function stageTileIndex(choice: number): number {
   return 0;
 }
 
-export const stageInfo = (choice: number): StageInfo => at(STAGE_CATALOG, stageTileIndex(choice));
+/** Random is a menu choice, never part of the playable stage roster. */
+export const STAGE_CHOICES: readonly StageInfo<StageChoice>[] = [
+  { id: RANDOM_STAGE, name: "Random Stage", texture: "ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp", description: "Let fate choose the arena.\nAny available stage can be chosen." },
+  ...STAGE_CATALOG,
+];
+
+/** A seeded integer draw, exact in Bun and Warcraft's Lua32. */
+export function randomStage(seed: number): StageTile {
+  const value = floorMod(seed, 46337);
+  const mixed = floorMod(value * value + 12345, 46337);
+  return at(STAGE_CATALOG, floorMod(mixed ^ floorMod(mixed * 31, 46337), STAGE_CATALOG.length)).id;
+}
+
+export const stageInfo = (choice: number): StageInfo<StageChoice> => choice === RANDOM_STAGE ? at(STAGE_CHOICES, 0) : at(STAGE_CATALOG, stageTileIndex(choice));
 
 export function selectableStage(choice: number): choice is StageTile {
   return STAGE_CATALOG.some(stage => stage.id === choice);
 }
 
-export function nextStage(choice: number, direction: -1 | 1): StageTile {
-  return at(STAGE_CATALOG, floorMod(stageTileIndex(choice) + direction, STAGE_CATALOG.length)).id;
+export function selectableStageChoice(choice: number): choice is StageChoice {
+  return choice === RANDOM_STAGE || selectableStage(choice);
+}
+
+export function nextStage(choice: number, direction: -1 | 1): StageChoice {
+  const index = STAGE_CHOICES.findIndex(stage => stage.id === choice);
+  return at(STAGE_CHOICES, floorMod(index + direction, STAGE_CHOICES.length)).id;
 }

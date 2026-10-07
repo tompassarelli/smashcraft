@@ -1,6 +1,7 @@
 // All match-phase transitions share this roster fixture, including sparse
 // humans, computers, selection, results and same-frame timeout decisions.
 import { startAtGo } from "./testMatch";
+import { RANDOM_STAGE } from "../menu/stageCatalog";
 import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { imod } from "wisp/src/sim/intMath";
 import { createFighter } from "../sim/fighter";
@@ -34,6 +35,7 @@ test("selectionMatchResultAndRematch", () => {
   assertFalse(requestStart(game, 0));
   assertTrue(requestStageSelect(game, 0));
   assertEquals(game.phase, Phase.stageMenu);
+  assertEquals(game.stageChoice, RANDOM_STAGE);
   selectCharacter(game, 0, 0);
   assertEquals(characterFor(game, 0), 1);
   selectStage(game, 0, 10);
@@ -152,7 +154,7 @@ test("backFromStagesPreservesChoicesAndAllowsUnready", () => {
   assertFalse(requestStageSelect(game, 0));
   selectCharacter(game, 1, 0);
   assertTrue(requestStageSelect(game, 1));
-
+  assertEquals(game.stageChoice, RANDOM_STAGE);
 });
 test("absentAndInvalidParticipantsCannotChooseOrStart", () => {
   const game = testSoloMatch();
@@ -168,7 +170,7 @@ test("absentAndInvalidParticipantsCannotChooseOrStart", () => {
   selectStage(game, 1, 10);
   selectStage(game, -1, 10);
   selectStage(game, 0, 1);
-  assertEquals(game.stageChoice, 2);
+  assertEquals(game.stageChoice, RANDOM_STAGE);
   returnToCharacters(game, 1);
   assertEquals(game.phase, Phase.stageMenu);
   setStocks(game, 1, 8);

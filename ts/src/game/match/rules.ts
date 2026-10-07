@@ -1,5 +1,5 @@
 import { isSelectableCharacter } from "../sim/heroes/registry";
-import { selectableStage } from "../menu/stageCatalog";
+import { RANDOM_STAGE, randomStage, selectableStageChoice } from "../menu/stageCatalog";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { type MatchCamera, createMatchCamera, copyMatchCamera } from "../sim/matchCamera";
 import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots, isParticipantMask, isParticipantSlot, participantActive } from "../input/participants";
@@ -208,11 +208,12 @@ export function recallCharacter(game: MatchState, actor: number, chip: number): 
 }
 
 export function selectStage(game: MatchState, slot: number, choice: number): void {
-  if (game.phase === Phase.stageMenu && humanActive(game, slot) && selectableStage(choice)) game.stageChoice = choice;
+  if (game.phase === Phase.stageMenu && humanActive(game, slot) && selectableStageChoice(choice)) game.stageChoice = choice;
 }
 
 export function requestStageSelect(game: MatchState, slot: number): boolean {
   if (game.phase !== Phase.characterMenu || !humanActive(game, slot) || !allCharactersReady(game)) return false;
+  game.stageChoice = RANDOM_STAGE;
   game.phase = Phase.stageMenu;
   return true;
 }
@@ -313,8 +314,14 @@ function beginMatch(game: MatchState): void {
 export const canRequestStart = (game: Readonly<MatchState>, slot: number): boolean =>
   game.phase === Phase.stageMenu && humanActive(game, slot) && allCharactersReady(game);
 
+/** Loading and match start share the resolved stage. */
+export function resolveStageChoice(game: MatchState, seed = game.matchSeed): void {
+  if (game.stageChoice === RANDOM_STAGE) game.stageChoice = randomStage(seed);
+}
+
 export function requestStart(game: MatchState, slot: number): boolean {
   if (!canRequestStart(game, slot)) return false;
+  resolveStageChoice(game);
   beginMatch(game);
   return true;
 }

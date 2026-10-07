@@ -1,17 +1,30 @@
 import { assertEquals, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { clearStageDrag, stageDrag, stageTileAt, updateStageDrag } from "./stageSelection";
+import { RANDOM_STAGE, STAGE_CATALOG, randomStage } from "./stageCatalog";
 
 /** UI frame units from thousandths, the same binary32 value in both runtimes. */
 const at = (thousandths: number) => f32(thousandths / 1000);
 
 test("the stage grid holds only the playable stages", () => {
+  assertEquals(stageTileAt(at(92), at(516)), RANDOM_STAGE);
   assertEquals(stageTileAt(at(480), at(401)), 2);
   assertEquals(stageTileAt(at(600), at(401)), 10);
   assertEquals(stageTileAt(at(700), at(401)), 11);
   assertEquals(stageTileAt(at(653), at(401)), undefined);
   assertEquals(stageTileAt(at(480), at(140)), undefined);
   assertEquals(stageTileAt(at(360), at(401)), undefined);
+});
+
+test("random stage draws are reproducible and reach every available stage", () => {
+  const drawn: number[] = [];
+  for (let seed = 0; seed < 500; seed++) {
+    const choice = randomStage(seed);
+    assertEquals(choice, randomStage(seed));
+    assertEquals(STAGE_CATALOG.some(stage => stage.id === choice), true);
+    if (!drawn.includes(choice)) drawn.push(choice);
+  }
+  assertEquals(drawn.length, STAGE_CATALOG.length);
 });
 
 test("the shared stage chip drops onto real tiles only", () => {

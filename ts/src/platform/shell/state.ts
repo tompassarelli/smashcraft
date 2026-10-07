@@ -216,6 +216,8 @@ interface KeyEvents {
 }
 
 export interface ShellState {
+  /** Synchronized menu callbacks salt the random stage draw; retained across reloads. */
+  menuFrames?: number;
   readonly camera: MatchCamera;
   readonly build: MapBuild;
   /** The world point the simulation's origin maps to: stage center and floor height. */

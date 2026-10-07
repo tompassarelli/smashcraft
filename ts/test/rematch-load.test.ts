@@ -203,6 +203,8 @@ test("a match and its three-fighter rematch show each pooled fighter whole where
     });
     clients.press(0, Key.y);
     until("stage menu", () => phase() === Phase.stageMenu, 30);
+    // Compare fighter resources on the same arena across both matches.
+    clients.everywhere(() => panelActions().stage.selectStage(0, 2));
     helpers.workload = workload;
     clients.press(0, Key.y);
     until("match", () => phase() === Phase.match, 120);

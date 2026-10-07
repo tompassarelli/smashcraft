@@ -116,6 +116,7 @@ function gameTick(s: ShellState): void {
     const { barrier } = journal;
     editbox.updatePauseHint(s.session.paused, barrier.request !== undefined, pausing(barrier));
   }
+  if (s.game.phase === Phase.characterMenu || s.game.phase === Phase.stageMenu) s.menuFrames = ((s.menuFrames ?? 0) + 1) & 1048575;
   servicePlaytestRequest(s);
   serviceStageLoad(s);
   if (s.game.phase === Phase.result) serviceAutomaticRematch(s);
