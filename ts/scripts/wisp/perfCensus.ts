@@ -277,5 +277,8 @@ export const profile = (project: PerfProject): Command => (args) => Effect.gen(f
   const base = new Set([...costs].sort((a, b) => Math.abs(a[1] - middle) - Math.abs(b[1] - middle)).slice(0, 30).map(([frame]) => frame));
   const profiled = yield* runLua(project.program.bundle, map.bundle, name, frames, [...worst.map(([frame]) => frame), ...base]);
   const namer = functionNamer(yield* Effect.promise(() => Bun.file(map.bundle).text()));
+  const baseline = [...profileOf(profiled, base)].sort((a, b) => b[1][1] - a[1][1]).slice(0, 30);
+  yield* Console.log(`profile ${name}: mean samples across ${base.size} median frames, inclusive / self\n${baseline.map(([line, [self, inclusive]]) =>
+    `  ${(inclusive / base.size).toFixed(0).padStart(5)} ${(self / base.size).toFixed(0).padStart(5)}  ${namer(line)}`).join("\n")}`);
   for (const [frame, ms, natives] of worst) yield* Console.log(frameProfileLines(`profile ${name} frame ${frame} (${ms.toFixed(2)} ms, ${natives} natives; median frame ${middle.toFixed(2)} ms)`, frame, base, profiled, namer).join("\n"));
 });
