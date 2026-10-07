@@ -127,7 +127,7 @@ function playIdleOpponent(character: Character, cx: number, cz: number, surface:
     assertTrue(executeMatchFrame(row, match, world, controls, runtime, frame));
     if (result.arrival < 0 && c.motion.grounded && o.motion.grounded && c.motion.surface === o.motion.surface) result.arrival = i;
     const style = c.attack.style;
-    const where = `frame ${i} at (${Math.round(o.motion.x - c.motion.x)}, ${Math.round(o.motion.z - c.motion.z)})`;
+    const where = `frame ${i} at (${Math.round(o.motion.x - c.motion.x)}, ${Math.round(o.motion.z - c.motion.z)}), facing ${c.facing}, travel (${c.motion.deltaX}, ${c.motion.deltaZ}), velocity (${c.motion.vx}, ${c.motion.vz}), dash ${c.ground.dashFrame}`;
     // An attack reached when it hit, or when its strike met the opponent on any frame from its first active one.
     if (attack !== undefined && (c.attack.serial !== attack.serial || style === undefined)) {
       if (!attack.reached) result.outOfReach.push(attack.where);

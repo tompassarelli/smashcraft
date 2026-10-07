@@ -130,7 +130,10 @@ function played(character: Character, opponent: Character = character, matches =
 
 /** Each named move started at least once. */
 function throws(counts: Counts, styles: readonly AttackStyle[]): void {
-  for (const style of styles) assertGreaterThan(counts[`style${style}`] ?? 0, 0);
+  for (const style of styles) {
+    const uses = counts[`style${style}`] ?? 0;
+    if (uses <= 0) throw new Error(`inactive attack style ${style}`);
+  }
 }
 
 /**
@@ -142,7 +145,7 @@ function playsPassives(counts: Counts): void {
   assertGreaterThan(counts.proc ?? 0, 0);
   const readyShare = (counts.readyLanding ?? 0) * (counts.idleMoves ?? 0);
   const idleShare = (counts.idleLanding ?? 0) * (counts.readyMoves ?? 0);
-  assertGreaterThan(readyShare, idleShare);
+  if (readyShare <= idleShare) throw new Error(`passive landing shares: ready ${counts.readyLanding ?? 0}/${counts.readyMoves ?? 0}, charging ${counts.idleLanding ?? 0}/${counts.idleMoves ?? 0}; ${Object.keys(counts).map(key => `${key}=${counts[key] ?? 0}`).join(", ")}`);
 }
 
 /** Shields a ready opponent's attacks more often than a charging one's (the counts are from both fighters' sides). */

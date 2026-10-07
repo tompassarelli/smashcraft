@@ -155,8 +155,13 @@ export function moveReachAhead(character: Character, style: AttackStyle, target:
 }
 
 /** The target's offset from the attacker after `frames` more frames: the target moving as it did last frame, the attacker sliding (travelOver). */
-const aheadX = (f: Readonly<Fighter>, target: Readonly<Fighter>, frames: number) =>
-  f32(f32(f32(target.motion.x + f32(target.motion.deltaX * frames)) - f.motion.x) - travelOver(f, frames));
+export function aheadX(f: Readonly<Fighter>, target: Readonly<Fighter>, frames: number, style?: AttackStyle): number {
+  const startupTravel = style === undefined ? undefined : f.tuning.moves?.normals[style]?.startupTravelX;
+  const toward = target.motion.x < f.motion.x ? -1 : 1;
+  // Authored startup travel clears ground velocity when the attack begins.
+  const travel = f.motion.grounded && startupTravel !== undefined ? f32(startupTravel * toward) : travelOver(f, frames);
+  return f32(f32(f32(target.motion.x + f32(target.motion.deltaX * frames)) - f.motion.x) - travel);
+}
 
 /**
  * How far the attacker travels over `frames` more frames: its last frame's
@@ -173,7 +178,7 @@ function travelOver(f: Readonly<Fighter>, frames: number): number {
 }
 
 /** The target's height over the attacker after `frames` more frames, each landing on a deck of `stage` it falls onto (none for stage -1). */
-const aheadZ = (f: Readonly<Fighter>, target: Readonly<Fighter>, frames: number, stage = -1, matchFrame = 0) =>
+export const aheadZ = (f: Readonly<Fighter>, target: Readonly<Fighter>, frames: number, stage = -1, matchFrame = 0) =>
   f32(heightAhead(target, frames, stage, matchFrame) - heightAhead(f, frames, stage, matchFrame));
 
 /**
@@ -365,7 +370,7 @@ function gameplanMoveOf(f: Readonly<Fighter>, option: number): GameplanMove {
 }
 
 /** A ready passive's landing move weighs this many times its gameplan weight. */
-const PASSIVE_WEIGHT = 4;
+const PASSIVE_WEIGHT = 8;
 
 /**
  * One of the first `count` options, each as likely as its gameplan weight;
@@ -408,7 +413,7 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
         if (f.shield.raised && move !== AttackStyle.grab) continue;
         const style = dashing && move === AttackStyle.jab ? f.tuning.moves?.dashAttack ?? AttackStyle.demonHunterDashAttack : move;
         const frames = attackStartupFrames(style, f.tuning.moves);
-        const x = aheadX(f, target, frames);
+        const x = aheadX(f, target, frames, style);
         const z = aheadZ(f, target, frames, stage, matchFrame);
         // Every attack waits for its reach (#160), or for a ground spacing tool, its spacing level with the target.
         const spaced = gameplan !== undefined && spacedAt(gameplan, dashing && move === AttackStyle.jab ? AttackStyle.dashAttack : move, gap) && wallsOff(f, style, target, Math.abs(x), z);
@@ -421,8 +426,8 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
     } else {
       for (const aerial of AERIALS) {
         const frames = attackStartupFrames(aerial, f.tuning.moves);
-        // An aerial that lands before it strikes never comes out.
-        if (landsWithin(f, frames, stage, matchFrame)) continue;
+        // The input frame also falls: landing by the first strike cancels the aerial.
+        if (landsWithin(f, frames + 1, stage, matchFrame)) continue;
         if (moveReaches(f.character, aerial, target, f32(aheadX(f, target, frames) * f.facing), aheadZ(f, target, frames, stage, matchFrame), f.tuning.moves)) options[count++] = aerial;
       }
     }

@@ -216,7 +216,10 @@ integrity and development builds give confirmed states.
 plays a script of timed pad states on both clients' virtual pads through
 the real helpers, as the captures do. `--chat=TEXT` types a developer command
 into client A once the helpers run (for example `-dev quick hero lich`, or
-`-dev quick cpu 9` for a level-9 computer opponent).
+`-dev quick cpu 9` for a level-9 computer opponent, or
+`-dev quick cpu 9 hero NAME` to select any roster fighter as that computer
+through the menu's selection rule). The `cpu-roster-*.pad` scripts cover the
+complete selectable roster in one batch.
 Each line is `FRAME CLIENT ACTION [ARGS]`: the match frame the edge is
 meant for (or `+N` after the previous line), `a` or `b`, and
 `press|release|tap BUTTON [FRAMES]`, `stick X Y`, `cstick X Y`

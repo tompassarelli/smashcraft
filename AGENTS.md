@@ -97,8 +97,9 @@ code. From smashcraft:ts/:
   `-dev quick`, and waits until every signed-in client writes its receipt.
   `--rebuild` replaces the map script first. Other quick starts for `--chat`
   and pad scripts: `-dev quick hero NAME`, `-dev quick recovery hero NAME`
-  (starts tumbling above the floor for recovery captures), and `-dev quick cpu N`, a quick
-  match against a computer at level N (1-9) over three stocks.
+  (starts tumbling above the floor for recovery captures), and `-dev quick cpu N [hero NAME]`,
+  a quick match against a selectable computer at level N (1-9) over three stocks.
+  The named variant uses the normal CPU selection rule.
 - Client state: `bun wisp watch [CLIENT...] [--once]` prints what each client
   is doing (signed in, menu screen, lobby, loading, in match, results,
   disconnected, crashed, its map's load errors, the ladder scan) from its menus,
@@ -226,6 +227,10 @@ code. From smashcraft:ts/:
   prints the stretches the victim can't act in and the loops follow-ups make
   (smashcraft:docs/typescript.md); 11-28 minutes an attacker, inside the
   capacity scope.
+- Roster AI coverage: `bun scripts/cpuCoverage.ts` prints movement, attacks,
+  kit use, defense and recovery for all 13 selectable fighters over eight
+  seeded level-9 matches each; `GAME_TESTS=botCoverage bun test test/game.test.ts`
+  checks the same report, also included in the emitted-Lua32 suite.
 - Compute farm: `bun wisp farm balance [--ref REF] [--wait]` plays the
   balance gate's computer field (level 9, 400 a pair; `--level`,
   `--per-pair`, `--seeds`) on GitHub's free hosted runners, a `cpuField

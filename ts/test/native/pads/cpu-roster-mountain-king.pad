@@ -1,0 +1,8 @@
+# #179: Mountain King selected as a level-9 CPU through the normal menu selection rule.
+#! chat -dev quick cpu 9 hero Mountain King
+#! expect c 1-800 ground action
+#! expect c 1-800 applied attack
+#! expect c 1-800 special
+900 a press VIEW
+970 a release VIEW
+1000 b stick 0 0
