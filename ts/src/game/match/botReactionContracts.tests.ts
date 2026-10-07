@@ -89,7 +89,7 @@ test("retained observations survive storage reuse, restored plain history and ro
 
 test("cached observation chunks fold the exact text across kits, fractional values and integer boundaries", () => {
   for (const character of SELECTABLE_CHARACTERS) {
-    const game = setup(9);
+    const game = setup();
     game.world.fighters[1] = createFighter(character, 100.0, -1);
     const target = fighterAt(game.world, 1);
     let frame = 0;
@@ -162,14 +162,19 @@ test("150 surprise-action traces: no computer input responds before its authored
   assertEquals(early, 0);
 });
 
-test("Wren Expert changes its approach on frame 12 after a surprise side change", () => {
+// Wren Expert's authored idle stretch for this slot and fighter covers frames 60-89, during
+// which it stands still whatever it perceives; this response window precedes it. Its spacing
+// gameplan keeps the same stick direction on either side, so any changed input counts.
+const RESPONSE_SURPRISE_FRAME = 35;
+
+test("Wren Expert first responds on frame 12 after a surprise side change", () => {
   const changed = setup();
   const quiet = setup();
   let first: number | undefined;
-  for (let frame = 1; frame <= SURPRISE_FRAME + 20; frame++) {
-    if (frame === SURPRISE_FRAME) at(surprises, 3)(changed.target);
+  for (let frame = 1; frame <= RESPONSE_SURPRISE_FRAME + 20; frame++) {
+    if (frame === RESPONSE_SURPRISE_FRAME) at(surprises, 3)(changed.target);
     for (const game of [changed, quiet]) produceComputerInput(game.game, game.world, game.runtime, 0, frame, game.controls.inputs[0], game.controls.commands[0]);
-    if (first === undefined && changed.controls.inputs[0].direction !== quiet.controls.inputs[0].direction) first = frame - SURPRISE_FRAME;
+    if (first === undefined && (!sameControls(changed.controls.inputs[0], quiet.controls.inputs[0]) || !sameAttackBuffer(changed.controls.commands[0], quiet.controls.commands[0]))) first = frame - RESPONSE_SURPRISE_FRAME;
   }
   assertEquals(first, 12);
 });
