@@ -45,6 +45,17 @@ test("effects left behind by each match fail, whatever the heap does", () => {
   ]);
 });
 
+test("one extra retained map table still fails the strict warm-up high-water gate", () => {
+  const text = output(30, () => 40000, () => 469).split("\n").map((line) => {
+    const frame = Number(/frame=(\d+)/.exec(line)?.[1]);
+    return frame >= 10 * MINUTE ? line.replaceAll("tables=17843", "tables=17844") : line;
+  }).join("\n");
+  expect(checkMemory(parseMemoryRun(text)).failures).toEqual([
+    "p0 tables at fighter selection rose from 17843 during warm-up to 17844 after",
+    "p1 tables at fighter selection rose from 17843 during warm-up to 17844 after",
+  ]);
+});
+
 test("a run's problems, such as a desync, fail it", () => {
   const verdict = checkMemory(parseMemoryRun(output(30, () => 40000, () => 469, ["desync: after frame 9000"])));
   expect(verdict.failures).toEqual(["problem: desync: after frame 9000"]);

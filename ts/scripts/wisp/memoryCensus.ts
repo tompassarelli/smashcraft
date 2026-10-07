@@ -109,6 +109,13 @@ export class HandleCensus {
     return counts;
   }
 
+  /** Native handles are opaque in Warcraft; their emulated records belong to the client. */
+  liveHandles(): readonly Handle[] {
+    const handles: Handle[] = [];
+    for (const [, kind] of this.live) for (const [, handle] of kind) handles.push(handle);
+    return handles;
+  }
+
   /** Ids of the handles destroyed since the last call. */
   takeReleased(): ReadonlySet<number> {
     const released = this.released;
@@ -165,8 +172,8 @@ export interface Reach {
 /**
  * Walks every table, function and string the client's environment reaches
  * through keys, values, metatables and upvalues, from the globals the map
- * set (not the emulator's natives in `emulator`, which the walk treats as
- * seen). A table's entries are its key-value pairs: an array that grows
+ * set (not the emulator's natives and opaque native handles in `emulator`,
+ * which the walk treats as seen by identity). A table's entries are its key-value pairs: an array that grows
  * holds no more tables, only more entries.
  */
 export function reach(environment: unknown, emulator: readonly unknown[], traceTables = false): Reach {

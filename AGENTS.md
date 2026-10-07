@@ -224,6 +224,8 @@ code. From smashcraft:ts/:
   Its saved samples include each menu's reachable table field shapes and
   representative reference paths: compare the full shape union between a
   warm-up high and a later rise to identify the retaining lifecycle.
+  Native handles are checked separately: their emulator-owned record identities
+  are excluded from map tables because Warcraft exposes them as opaque handles.
 - Agency sweep: `bun wisp agency [--attacker NAME] [--starter NAME]`
   replays every fighter's throws, jab resets, normals and specials (or only
   the named starters) against every fighter with every victim input class and

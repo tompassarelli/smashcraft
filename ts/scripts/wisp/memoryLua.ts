@@ -59,7 +59,7 @@ const census = (heading: string) => {
   const parts = [`sample ${heading} frame=${clients.frame} matches=${matches} heap-kb=${Math.floor(compactKb)} heap-before-compact-kb=${Math.floor(heapKb)} all-entries=${everything.entries} all-string-bytes=${everything.stringBytes}`];
   clients.clients.forEach((client, index) => {
     const handles = censuses[index];
-    const found = reach(client.natives, emulator[index] ?? [], heading.startsWith("kind=menu"));
+    const found = reach(client.natives, [...(emulator[index] ?? []), ...(handles?.liveHandles() ?? [])], heading.startsWith("kind=menu"));
     for (const [shape, count, paths] of found.tableShapes) {
       print(`graph ${heading} frame=${clients.frame} p${client.slot} count=${count} shape=${shape} paths=${paths.join(";")}`);
     }
