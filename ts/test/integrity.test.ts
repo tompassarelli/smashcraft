@@ -83,7 +83,7 @@ function recordingRig(file: (client: Slot, name: string) => string, screenText =
   let typed = "";
   let chatOpen = initialChatOpen;
   let chatRevision = 1;
-  const preload = (lines: readonly string[]) => `${lines.join("\n")}\nendfunction\n`;
+  const preload = (lines: readonly string[]) => `function PreloadFiles takes nothing returns nothing\n${lines.map((line) => `call Preload( "${line}" )`).join("\n")}\nendfunction\n`;
   const modeled = (client: Slot, name: string): GameFile | undefined => {
     if (name.startsWith("smashcraft-chat-")) return { text: preload([`SMASHCRAFT CHAT v=1 available=1 open=${chatOpen ? 1 : 0}`]), mtimeNs: BigInt(chatRevision) };
     if (name.startsWith("smashcraft-dev-")) return receipts === 0 ? undefined : { text: preload(devReceiptFile({ build: "b", epoch: 0, slot: client }, receipts, dev, game).lines), mtimeNs: BigInt(receipts + 1) };
