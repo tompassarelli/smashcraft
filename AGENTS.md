@@ -138,6 +138,10 @@ code. From smashcraft:ts/:
   frame definitions (wisp:docs/ui.md); after changing one or its layout, `bun
   scripts/wisp/uiFrames.ts` rewrites its FDF/TOC in smashcraft:tools/selection/art/
   and its bindings in smashcraft:ts/src/game/ui/ (test/ui-frames.test.ts holds them current).
+- Client actions accept `--clients-file FILE`, including watch, doctor and
+  keys; use the exact offline pair's file. `WISP_CLIENTS` does not select
+  clients. Pixel/input actions need the pair's file with desktop tools
+  (the acceptance and integrity runners prepare it through `withTools`).
 - Client state: `bun wisp client watch [CLIENT...] [--once]` prints what each client
   is doing (signed in, menu screen, lobby, loading, in match, results,
   disconnected, crashed, its map's load errors, the ladder scan) from its menus,
