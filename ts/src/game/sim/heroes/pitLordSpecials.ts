@@ -91,5 +91,5 @@ export const PIT_LORD_SPECIALS: FighterSpecials = {
   neutral: { name: "Howl of Terror", description: "A close roar pushes enemies away on both sides; a shield stops it.", ground: howl(false), air: howl(true) },
   side: { name: "Ruin Charge", description: "A slow charge whose armor shrugs off one light hit; it stops at a shield.", ground: RUIN_CHARGE, air: RUIN_CHARGE_AIR },
   up: { name: "Abyssal Leap", description: "A slow arcing leap with a hoof strike, then a helpless fall.", ground: abyssalLeap(15, h(f32(1.7)), h(f32(0.7)), true), free: abyssalLeap(0, h(f32(1.2)), h(f32(0.4)), false) },
-  down: { name: "Rain of Fire", description: "Three waves of falling fire cover the ground ahead; rush underneath or shield them.", ground: rain(false), air: rain(true) },
+  down: { name: "Rain of Fire", description: "Three waves of fire fall ahead; rush underneath or tilt your shield up.", ground: rain(false), air: rain(true) },
 };

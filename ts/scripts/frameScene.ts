@@ -50,6 +50,12 @@ export const solo = (stage: number, character: Character, x = 0.0, facing = 1): 
 
 export const fighter = (s: Scene, slot = 0): Fighter => fighterAt(s.world, slot);
 
+/** Aim the projectile fixture's guard upward when fire is falling vertically. */
+export function projectileShieldActions(shooter: Readonly<Fighter>): readonly Action[] {
+  return shooter.projectiles.some(p => p.life > 0 && p.velocityX === 0 && p.velocityZ < 0)
+    ? [Action.rightTrigger, Action.moveUp] : [Action.rightTrigger];
+}
+
 const maskOf = (actions: readonly Action[]): number => actions.reduce<number>((mask, action) => mask | (1 << action), 0);
 
 const axis = (held: number, negative: Action, positive: Action): number => (has(held, positive) ? 127 : 0) - (has(held, negative) ? 127 : 0);

@@ -140,7 +140,7 @@ Normals, inspired by:
 | Neutral special | Howl of Terror | A close roar pushes enemies away on both sides; a shield stops it. |
 | Side special | Ruin Charge | A slow charge whose armor shrugs off one light hit; it stops at a shield. |
 | Up special | Abyssal Leap | A slow arcing leap with a hoof strike, then a helpless fall. |
-| Down special | Rain of Fire | Three waves of falling fire cover the ground ahead; rush underneath or shield them. |
+| Down special | Rain of Fire | Three waves of fire fall ahead; rush underneath or tilt your shield up. |
 | Jab, repeated | Haft and Chop | A haft check, then a short cleaver chop on a second jab. |
 | Passive | Cleaving Attack | His cleaver strikes every opponent in its path, and the blade itself can't be hit. |
 

@@ -756,6 +756,10 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\PitLordOriginalClip54-f2a7d2c319890a8bef70385f87aa2deb6096f0ee5bc0901125cdb0765350986f.mdx", startSeconds: f32(375.035), endSeconds: f32(376.035), looping: false },
     { modelPath: "war3mapImported\\PitLordOriginalClip55-71a53638560e359cf0afc9e12a5d736068369fe106ac768d104e332dcc57a59e.mdx", startSeconds: f32(376.135), endSeconds: f32(377.135), looping: false },
     { modelPath: "war3mapImported\\PitLordOriginalClip56-39aeb8518c889a81b44b72482d7bfbc2ee37a42ce129ad6880dd62c24afab948.mdx", startSeconds: f32(377.235), endSeconds: f32(378.268), looping: false },
+    { modelPath: "war3mapImported\\PitLordOriginalClip57-7f317d35bbb494eddbdfbc141badce364cce21ca3f246bbc7f6ef743f60049b4.mdx", startSeconds: f32(378.368), endSeconds: f32(379.135), looping: false },
+    { modelPath: "war3mapImported\\PitLordOriginalClip58-7e27c01d4b6e545f520c007857635ebcc06e3dc04a55b7ef48033587a385ce43.mdx", startSeconds: f32(379.235), endSeconds: f32(380.302), looping: false },
+    { modelPath: "war3mapImported\\PitLordOriginalClip59-8096138554bb6192c83eb1604ab0715666e871350941b026517773171f17d297.mdx", startSeconds: f32(380.402), endSeconds: f32(380.935), looping: false },
+    { modelPath: "war3mapImported\\PitLordOriginalClip60-9708b4bd42c669ed3eb1bb6f8e67a749f444cddbf691bed7039377fbc1de1727.mdx", startSeconds: f32(381.035), endSeconds: f32(382.035), looping: false },
   ],
   // Beastmaster
   [
@@ -1665,6 +1669,10 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["paired grab throwdown", 54],
     ["paired grab victimthrowdown", 55],
     ["down air four hooves", 56],
+    ["special howl of terror", 57],
+    ["special ruin charge", 58],
+    ["special abyssal leap", 59],
+    ["special rain of fire", 60],
     ["attack slam", 5],
   ]),
   // Beastmaster
