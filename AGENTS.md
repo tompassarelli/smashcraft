@@ -136,6 +136,11 @@ code. From smashcraft:ts/:
 - White body flashes (from the repository root):
   `bun tools/animations/white-flash-models.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
   authors white body-only copies with the original meshes and animation keys for charge and heavy-hit flashes; store PRIVATE_OUTPUT as `impact-assets`.
+- Chen animation authoring (from the repository root):
+  `bun tools/animations/chen-clips.ts STOCK_CHEN.mdx PRIVATE_OUTPUT` authors
+  Chen's staff, footwork, special, recovery, paired throw and nine pain clips
+  from his private stock model and regenerates his clip table
+  (smashcraft:docs/design/chen.md).
 - Damage reactions (from the repository root):
   `bun tools/animations/damage-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
   appends all 13 fighters' nine articulated contact reactions, checks their

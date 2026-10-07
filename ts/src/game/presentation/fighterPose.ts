@@ -618,6 +618,9 @@ function groundDodgeClip(f: Readonly<Fighter>): HeroClip {
 }
 
 function fighterSpecialClip(f: Readonly<Fighter>): HeroClip {
+  if (f.character === Character.chen && f.special.action === SpecialAction.heroDown && f.special.form >= 2 * FOLLOW_UP_FORM) {
+    return clips.clipFor(f.character, f.motion.grounded ? "sideSpecialFollowUp" : "sideSpecialFollowUpAir");
+  }
   const aerialShot = f.special.duration === RIFLEMAN_BLASTER_AIR_FRAMES;
   return clips.specialClip(f.character, f.special.action, f.motion.grounded, aerialShot, playsFollowUpPose(f));
 }

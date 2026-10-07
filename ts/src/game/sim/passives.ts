@@ -38,8 +38,11 @@ const SPECS: readonly PassiveSpec[] = [
   { kind: PassiveKind.souls, stacks: 3, window: 0 }, // lichKing
 ];
 
+const DRUNKEN_BRAWLER: PassiveSpec = { kind: PassiveKind.criticalStrike, stacks: 3, window: 180 };
+
 export function passiveSpec(character: Character): PassiveSpec {
   if (character === Character.thrall) return WINDFURY;
+  if (character === Character.chen) return DRUNKEN_BRAWLER;
   return SPECS[character] ?? NONE;
 }
 

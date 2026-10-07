@@ -103,6 +103,12 @@ export const HERO_CUES: { readonly [character: number]: { readonly [slot in Spec
     up: { spell: "Far Sight", startup: STORM, active: cue("Abilities\\Spells\\Orc\\FarSight\\FarSightTarget.mdx", "feet", 0.5) },
     down: { spell: "Earthquake", startup: STORM, active: cue("Abilities\\Spells\\Orc\\EarthQuake\\EarthQuakeTarget.mdx", "feet", f32(0.3)) },
   },
+  [Character.chen]: {
+    neutral: { spell: "Breath of Fire", startup: BEAST, active: cue("Abilities\\Spells\\Other\\BreathOfFire\\BreathOfFireMissile.mdx", "ahead", f32(0.6)) },
+    side: { spell: "Drunken Haze", startup: BEAST, active: cue("Abilities\\Spells\\Other\\DrunkenHaze\\DrunkenHazeTarget.mdx", "hand", f32(0.7)) },
+    up: { spell: "Storm Rise", startup: STORM, active: cue("Abilities\\Spells\\NightElf\\Cyclone\\CycloneTarget.mdx", "body", f32(0.6)) },
+    down: { spell: "Storm, Earth and Fire", startup: BEAST, active: cue("Abilities\\Spells\\Orc\\WarStomp\\WarStompCaster.mdx", "feet", f32(0.5)) },
+  },
   [Character.blademaster]: {
     neutral: { spell: "Wind Cutter", startup: BLOODLUST, active: cue("Abilities\\Spells\\Other\\Tornado\\Tornado_Target.mdx", "hand", f32(0.6)) },
     side: { spell: "Wind Walk", startup: cue("Abilities\\Spells\\Human\\Invisibility\\InvisibilityTarget.mdx", "body", f32(0.8)), active: cue("Abilities\\Spells\\Human\\SunderingBlades\\SunderingBlades.mdx", "ahead", f32(0.8)) },
@@ -213,6 +219,12 @@ const branch = (spell: string, startup: Cue, active: Cue): MoveCues => ({ spell,
 
 /** Every hero branch names its cue; specialCues.tests.ts checks each authored branch has one. */
 export const HERO_BRANCH_CUES: { readonly [character: number]: { readonly [slot in SpecialSlot]?: HeroBranchCues } } = {
+  [Character.chen]: {
+    down: { followUps: [
+      branch("Fire Palm", BEAST, cue("Abilities\\Spells\\Other\\BreathOfFire\\BreathOfFireDamage.mdx", "ahead", f32(0.8))),
+      branch("Storm Step", STORM, cue("Abilities\\Spells\\NightElf\\Cyclone\\CycloneTarget.mdx", "body", f32(0.5))),
+    ] },
+  },
   [Character.blademaster]: {
     side: { followUps: [
       branch("Backstab", BLOODLUST, cue("Abilities\\Spells\\Human\\MarkOfChaos\\MarkOfChaosTarget.mdx", "ahead", 0.5)),
