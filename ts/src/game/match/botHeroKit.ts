@@ -170,7 +170,7 @@ export function heroStanceLater(f: Readonly<Fighter>, arrival: number): boolean 
     const move = startableForm(f, specials, slot);
     if (move === undefined || !isStance(move)) continue;
     const window = move.guard ?? move.intangible ?? move.armor;
-    if (window !== undefined && arrival + 1 < window.first) return true;
+    if (window !== undefined && arrival + 1 > window.last) return true;
   }
   return false;
 }

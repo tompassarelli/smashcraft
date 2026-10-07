@@ -172,7 +172,10 @@ function usesEvery(character: Character, options: readonly string[], opponent: C
   for (let index = 0; index < matches; index++) computerMatch(character, opponent, 11 + index * 12, index < floorDiv(matches, 2) ? 0.0 : 110.0, counts);
   for (const [seed, damage] of extra) computerMatch(character, opponent, seed, damage, counts);
   // "a|b": either option counts.
-  for (const option of options) assertGreaterThan(option.split("|").reduce((sum, name) => sum + (counts[name] ?? 0), 0), 0);
+  for (const option of options) {
+    const uses = option.split("|").reduce((sum, name) => sum + (counts[name] ?? 0), 0);
+    if (uses <= 0) throw new Error(`inactive kit option ${option}: ${Object.keys(counts).map(name => `${name}=${counts[name] ?? 0}`).join(", ")}`);
+  }
   const first: Counts = {};
   const again: Counts = {};
   computerMatch(character, opponent, 11, 0.0, first);

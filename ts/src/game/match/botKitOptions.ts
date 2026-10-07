@@ -30,6 +30,7 @@ import {
 import { mainDeckLeft, mainDeckRight, mainDeckZ } from "../sim/stage";
 import { safeAt, steerOnGround } from "./botFooting";
 import { startableForm, strikeMeets } from "./botHeroKit";
+import { aheadX, moveReachAhead } from "./botMoves";
 import { botChance, botChoice } from "./botRandom";
 import type { CpuSkill } from "./cpuLevel";
 
@@ -254,10 +255,12 @@ function pressHeroOption(f: Readonly<Fighter>, target: Readonly<Fighter>, stage:
   const gap = Math.abs(dx);
   const toward = towardOf(f, target.motion.x);
   const level = Math.abs(f32(target.motion.z - f.motion.z)) <= 60.0;
-  // Divine Shield lasts until his next attack: he walks in under it and the attack comes from close.
-  // So does any hero on a target asleep, stunned, frozen or hexed.
+  // Approach until the hammer's forecasted reach can cash Divine Shield before it expires.
+  // The same approach gives sleeping, stunned, frozen or hexed targets to the attack chooser.
   const open = f.status.divineFrames > 0 || heroStatusBlocksActions(target) || target.status.frozenFrames > 0 || target.status.condition === HeroStatusKind.hex;
-  if (open && f.motion.grounded && gap > 50.0 && takes(skill, floorDiv(frame, 45), f.character * 7 + 18)) {
+  const closeReach = open ? Math.max(50.0, moveReachAhead(f.character, AttackStyle.forwardTilt, target, f.tuning.moves)) : 50.0;
+  const closeGap = open ? Math.abs(aheadX(f, target, attackStartupFrames(AttackStyle.forwardTilt, f.tuning.moves), AttackStyle.forwardTilt)) : gap;
+  if (open && f.motion.grounded && closeGap > closeReach && takes(skill, floorDiv(frame, 45), f.character * 7 + 18)) {
     steerOnGround(f, stage, target.motion.x, input);
     return true;
   }

@@ -35,17 +35,19 @@ const Response = { none: 0, shield: 1, spotDodge: 2, roll: 3, stance: 5, jump: 6
 type Response = (typeof Response)[keyof typeof Response];
 
 /** Frames until the target's current strike reaches f, or undefined when it won't. */
-function strikeComing(f: Readonly<Fighter>, target: Readonly<Fighter>, reaction: number): number | undefined {
+function strikeComing(f: Readonly<Fighter>, target: Readonly<Fighter>, reaction: number, observationAge: number): number | undefined {
   const style = target.attack.style;
   if (style === undefined || style === AttackStyle.shot || style === AttackStyle.grab) return undefined;
   const startup = attackStartupFrames(style, target.tuning.moves);
-  const { frame } = target.attack;
-  if (frame < reaction) return undefined;
+  if (target.attack.frame < reaction) return undefined;
+  const frame = target.attack.frame + observationAge;
   if (frame >= startup + characterAttackActiveFrames(target.character, style, target.tuning.moves)) return undefined;
   const frames = Math.max(0, startup - frame);
   if (frames > STRIKE_LOOKAHEAD) return undefined;
-  const x = f32(f32(f.motion.x - target.motion.x) + f32(f32(f.motion.deltaX - target.motion.deltaX) * frames));
-  const z = f32(f32(f.motion.z - target.motion.z) + f32(f32(f.motion.deltaZ - target.motion.deltaZ) * frames));
+  const predictedX = f32(target.motion.x + f32(target.motion.deltaX * observationAge));
+  const predictedZ = f32(target.motion.z + f32(target.motion.deltaZ * observationAge));
+  const x = f32(f32(f.motion.x - predictedX) + f32(f32(f.motion.deltaX - target.motion.deltaX) * frames));
+  const z = f32(f32(f.motion.z - predictedZ) + f32(f32(f.motion.deltaZ - target.motion.deltaZ) * frames));
   return moveReaches(target.character, style, f, f32(x * target.facing), z, target.tuning.moves) ? frames : undefined;
 }
 
@@ -54,7 +56,7 @@ const threat = { serial: 0, arrival: -1.0 };
 
 /** Finds a strike, a projectile flying at f, Immolation or the bear close by; false for none. */
 function findThreat(f: Readonly<Fighter>, target: Readonly<Fighter>, reaction: number, observationAge: number): boolean {
-  const strikeFrames = strikeComing(f, target, reaction);
+  const strikeFrames = strikeComing(f, target, reaction, observationAge);
   if (strikeFrames !== undefined) {
     threat.serial = target.attack.serial;
     threat.arrival = strikeFrames;
@@ -70,7 +72,9 @@ function findThreat(f: Readonly<Fighter>, target: Readonly<Fighter>, reaction: n
     // A shot is seen once it has flown `reaction` frames into sight.
     if (ahead < 0 || ahead > f32(SHOT_SIGHT - f32(speed * reaction)) || Math.abs(f32(f32(z + 45.0) - predictedZ)) > 80) continue;
     threat.serial = projectile.serial;
-    threat.arrival = speed > 0 ? f32(ahead / speed) : -1.0;
+    // The defender's current approach also closes the gap; its own velocity is not delayed.
+    const closingSpeed = f32(speed - f32(f.motion.vx * projectile.direction));
+    threat.arrival = closingSpeed > 0 ? f32(ahead / closingSpeed) : -1.0;
     return true;
   }
   threat.arrival = -1.0;
