@@ -46,7 +46,7 @@ function match(gap: number, facing = 1): { world: Roster; owner: Fighter; target
 const press = (specialX: number, specialZ: number) => controls({ specialPressed: true, specialX, specialZ });
 
 /** Highest rise and the forward drift over a grounded up special. */
-function risingBlade(mana: number, gap = 60.0): { rise: number; drift: number; mana: number; damage: number } {
+function risingBlade(mana: number, gap = 60.0, aimX = 0, aimZ = 0): { rise: number; drift: number; mana: number; damage: number } {
   const { world, owner, target } = match(gap);
   owner.mana.points = mana;
   const startZ = owner.motion.z;
@@ -55,22 +55,24 @@ function risingBlade(mana: number, gap = 60.0): { rise: number; drift: number; m
   const spent = owner.mana.points;
   let drift = 0.0;
   for (let f = 2; f <= 80; f++) {
-    frame(world, controls({ direction: f >= 7 && f <= 25 ? 1 : 0 }));
+    frame(world, controls({ direction: f <= 8 ? aimX : 0, verticalDirection: f <= 8 ? aimZ : 0 }));
     top = Math.max(top, owner.motion.z);
-    if (f === 26) drift = owner.motion.x;
+    if (f === 23) drift = owner.motion.x;
   }
   return { rise: f32(top - startZ), drift, mana: spent, damage: target.status.damage };
 }
 
-test("Rising Blade peaks 2.0H up and 0.5H out at 15 mana; below 15 its free form reaches 1.4H and 0.35H without a hit", () => {
+test("Rising Blade dashes 2.8H the way the stick picks in its startup at 15 mana; below 15 its free form reaches 1.9H without a hit", () => {
   const near = (value: number, heights: number) => Math.abs(value - f32(heights * H)) <= f32(f32(0.02) * H);
   const full = risingBlade(100, 900.0);
   assertEquals(full.mana, 85);
-  assertTrue(near(full.rise, 2.0) && near(full.drift, 0.5));
+  assertTrue(near(full.rise, f32(2.8)) && near(full.drift, 0.0));
+  const diagonal = risingBlade(100, 900.0, 1, 1);
+  assertTrue(near(diagonal.rise, f32(f32(2.8) * f32(0.70710677))) && near(diagonal.drift, f32(f32(2.8) * f32(0.70710677))));
   assertGreaterThan(risingBlade(100).damage, 0.0);
   const free = risingBlade(14, 900.0);
   assertEquals(free.mana, 14);
-  assertTrue(near(free.rise, f32(1.4)) && near(free.drift, f32(0.35)));
+  assertTrue(near(free.rise, f32(1.9)) && near(free.drift, 0.0));
   assertEquals(risingBlade(14).damage, 0.0);
 });
 

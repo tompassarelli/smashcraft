@@ -8,6 +8,7 @@ import { BLADEMASTER_HERO } from "./blademasterHero";
 import { DREADLORD_HERO } from "./dreadlordHero";
 import { LICH_HERO } from "./lichHero";
 import { LICH_KING_HERO } from "./lichKingHero";
+import { JAINA_HERO } from "./jainaHero";
 import { MOUNTAIN_KING_HERO } from "./mountainKingHero";
 import { PIT_LORD_HERO } from "./pitLordHero";
 import { SHADOW_HUNTER_HERO } from "./shadowHunterHero";
@@ -18,7 +19,7 @@ import { PEON_HERO } from "./peonHero";
 import { HIDDEN_FIGHTERS } from "./releaseRoster";
 
 export const HERO_ROSTER: readonly HeroDefinition[] = [
-  BLADEMASTER_HERO, MOUNTAIN_KING_HERO, WARDEN_HERO, LICH_HERO, UTHER_HERO, DREADLORD_HERO, SHADOW_HUNTER_HERO, PIT_LORD_HERO, BEASTMASTER_HERO, LICH_KING_HERO, THRALL_HERO, PEON_HERO,
+  BLADEMASTER_HERO, MOUNTAIN_KING_HERO, WARDEN_HERO, LICH_HERO, UTHER_HERO, DREADLORD_HERO, SHADOW_HUNTER_HERO, PIT_LORD_HERO, BEASTMASTER_HERO, LICH_KING_HERO, THRALL_HERO, JAINA_HERO, PEON_HERO,
 ];
 
 const BY_CHARACTER: { readonly [character: number]: HeroDefinition | undefined } = {
@@ -33,6 +34,7 @@ const BY_CHARACTER: { readonly [character: number]: HeroDefinition | undefined }
   [Character.beastmaster]: BEASTMASTER_HERO,
   [Character.lichKing]: LICH_KING_HERO,
   [Character.thrall]: THRALL_HERO,
+  [Character.jaina]: JAINA_HERO,
   [Character.peon]: PEON_HERO,
 };
 

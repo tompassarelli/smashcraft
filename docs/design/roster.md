@@ -505,9 +505,9 @@ the tables:
 
 | Input | Proposed move and behavior | Timing and cost |
 | --- | --- | --- |
-| Neutral B | **Hammer of Justice** (#216): overhead hammer launcher, 13 damage at 80°, growth 70/base 42. One hit, 140-unit reach; air keeps drift with 18 landing frames. | Active f14–16, end f38; 10 mana |
-| Side B | **Holy Radiance** (#216): 0.75H hammer lunge, 14 damage at 40°; on f21 a 6-damage holy wave travels straight beyond the head. Ground armor for one ≤5-damage hit f15–18. Air has no armor, one use and helpless finish. | Hammer/travel f15–20, wave f21, end f69; 50 mana |
-| Up B | **Ascension:** rising hammer leap, 1.9H rise and 0.45H horizontal drift; one 8-damage hit, LAUNCH at 80 degrees. Free version 1.3H without hitbox. | Hit f10–15, travel through f29, then helpless; 15 mana |
+| Neutral B | **Hammer of Justice** (#216): overhead hammer launcher, 11.05 damage at 80°, growth 70/base 42. One hit, 140-unit reach; air keeps drift with 18 landing frames. | Active f14–16, end f38; 10 mana |
+| Side B | **Holy Radiance** (#216): 0.75H hammer lunge, 11.9 damage at 40°; on f21 a 5.1-damage holy wave travels straight beyond the head. Ground armor for one ≤5-damage hit f15–18. Air has no armor, one use and helpless finish. | Hammer/travel f15–20, wave f21, end f69; 50 mana |
+| Up B | **Ascension:** rising hammer leap, 1.9H rise and 0.45H horizontal drift; one 6.8-damage hit, LAUNCH at 80 degrees. Free version 1.3H without hitbox. | Hit f10–15, travel through f29, then helpless; 15 mana |
 | Down B | **Divine Shield** (#131): ground-only timed stance, intangible f6–9, vulnerable otherwise, no automatic counter. A damaging melee or projectile hit overlapping it on those frames raises Divine Shield: 45 frames in which strikes and projectiles pass through Uther; starting an attack, special or grab ends it. Grabs beat both the guard and the shield. No healing. | End f36; 25 mana. Air version fails without spending |
 
 ### Grab and throws

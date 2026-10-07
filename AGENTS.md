@@ -144,6 +144,11 @@ code. From smashcraft:ts/:
   writes both-facing side-view sheets, and refreshes Thrall clip and stride
   metadata. Store the generated model in `hero-models` and refresh the
   original clip pool before building.
+- Illidan locomotion authoring (from the repository root): run Blender with
+  `--python tools/animations/illidan-locomotion.py -- PRIVATE_FIGHTER.blend PRIVATE_AUTHORED`,
+  then `bun tools/animations/illidan-locomotion.ts PRIVATE_ASSETS PRIVATE_AUTHORED PRIVATE_OUTPUT`.
+  Package with `bun tools/animations/package-illidan.ts PRIVATE_OUTPUT --metadata-only`,
+  store `illidan-animation`, and refresh the original clip pool.
 - Lich King animation authoring (from the repository root):
   `tools/animations/build-lichking.sh [PRIVATE_INPUTS] [IMMUTABLE_EXISTING_MODEL] [--replace NAME]`
   authors clips through Blender; the optional existing model preserves shipped
