@@ -66,7 +66,7 @@ function pressedThrows(pressed: number): Pick<InputRow, "throwX" | "throwZ"> {
 }
 
 /** Everything a controller can send: values in range, press vectors only with the press that sets them. */
-function isInputRow(row: Required<RowFields>): row is InputRow {
+export function isInputRow(row: Required<RowFields>): row is InputRow {
   return isMask(row.held) && isMask(row.pressed) && isMask(row.released)
     && inRange(row.axisX, -127, 127) && inRange(row.axisZ, -127, 127)
     && inRange(row.triggerLeft, 0, 255) && inRange(row.triggerRight, 0, 255)
