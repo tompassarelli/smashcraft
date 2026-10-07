@@ -37,7 +37,7 @@ function fighter(facing = 1): Fighter {
   return owner;
 }
 
-test("Bladestorm stops approach drift while startup keeps ordinary gravity", () => {
+test("Sword Plunge stops approach drift while startup keeps ordinary gravity", () => {
   for (const facing of [-1, 1]) {
     const owner = fighter(facing);
     owner.motion.grounded = false;
@@ -100,15 +100,15 @@ test("Blademaster roster timings and final aerial landing lag reach production A
 
 test("Blademaster blade tips reward spacing in both facings", () => {
   for (const facing of [-1, 1]) {
-    assertEquals(contact(AttackStyle.jab, facing, 60.0).status.damage, 4.0);
+    assertEquals(contact(AttackStyle.jab, facing, 60.0).status.damage, 3.820000171661377);
     assertEquals(contact(AttackStyle.jab, facing, 110.0).status.damage, 0.0);
-    assertEquals(contact(AttackStyle.forwardTilt, facing, 60.0).status.damage, 8.0);
-    assertEquals(contact(AttackStyle.forwardTilt, facing, 140.0).status.damage, 11.0);
-    assertEquals(contact(AttackStyle.forwardSmash, facing, 80.0).status.damage, 15.0);
-    assertEquals(contact(AttackStyle.forwardSmash, facing, 170.0).status.damage, 19.0);
-    assertEquals(contact(AttackStyle.forwardAir, facing, 60.0, 0.0, true).status.damage, 11.0);
-    assertEquals(contact(AttackStyle.forwardAir, facing, 130.0, 0.0, true).status.damage, 14.0);
-    assertEquals(contact(AttackStyle.backAir, facing, -130.0, 0.0, true).status.damage, 12.0);
+    assertEquals(contact(AttackStyle.forwardTilt, facing, 60.0).status.damage, 7.640000343322754);
+    assertEquals(contact(AttackStyle.forwardTilt, facing, 140.0).status.damage, 10.505000114440918);
+    assertEquals(contact(AttackStyle.forwardSmash, facing, 80.0).status.damage, 14.325000762939453);
+    assertEquals(contact(AttackStyle.forwardSmash, facing, 170.0).status.damage, 18.145000457763672);
+    assertEquals(contact(AttackStyle.forwardAir, facing, 60.0, 0.0, true).status.damage, 10.505000114440918);
+    assertEquals(contact(AttackStyle.forwardAir, facing, 130.0, 0.0, true).status.damage, 13.370000839233398);
+    assertEquals(contact(AttackStyle.backAir, facing, -130.0, 0.0, true).status.damage, 11.460000038146973);
     assertEquals(contact(AttackStyle.backAir, facing, 130.0, 0.0, true).status.damage, 0.0);
   }
 });
@@ -117,10 +117,10 @@ test("Blademaster's descending cut is one move for every angle and narrow upward
   assertTrue(BLADEMASTER_MOVES.normals[AttackStyle.forwardTiltUp] === BLADEMASTER_MOVES.normals[AttackStyle.forwardTilt]);
   assertTrue(BLADEMASTER_MOVES.normals[AttackStyle.forwardTiltDown] === BLADEMASTER_MOVES.normals[AttackStyle.forwardTilt]);
   for (const facing of [-1, 1]) {
-    assertEquals(contact(AttackStyle.forwardTiltUp, facing, 140.0).status.damage, 11.0);
+    assertEquals(contact(AttackStyle.forwardTiltUp, facing, 140.0).status.damage, 10.505000114440918);
     assertEquals(contact(AttackStyle.upSmash, facing, 100.0).status.damage, 0.0);
     assertEquals(contact(AttackStyle.upAir, facing, 70.0, 0.0, true).status.damage, 0.0);
-    assertEquals(contact(AttackStyle.upAir, facing, 0.0, 30.0, true).status.damage, 8.0);
+    assertEquals(contact(AttackStyle.upAir, facing, 0.0, 30.0, true).status.damage, 7.640000343322754);
   }
 });
 
@@ -131,14 +131,14 @@ test("Blademaster down smash cannot rehit one target from its later back swing",
   beginFighterAttack(world, 0, AttackStyle.downSmash, false);
   owner.attack.frame = 13;
   resolveAttacks(world);
-  assertEquals(target.status.damage, 14.0);
+  assertEquals(target.status.damage, 13.370000839233398);
   owner.launch.hitlag = 0;
   target.launch.hitlag = 0;
   target.motion.x = -100.0;
   target.motion.z = 0.0;
   owner.attack.frame = 16;
   resolveAttacks(world);
-  assertEquals(target.status.damage, 14.0);
+  assertEquals(target.status.damage, 13.370000839233398);
 });
 
 test("Blademaster smash charge caps at the adopted 45 frames and 25 percent reward", () => {
@@ -147,15 +147,15 @@ test("Blademaster smash charge caps at the adopted 45 frames and 25 percent rewa
   assertEquals(smashDamageMultiplier(90, BLADEMASTER_MOVES), 1.25);
   const out = emptyHitRegion();
   authoredHitRegion(out, Character.archer, AttackStyle.forwardSmash, 16, 45, 0, BLADEMASTER_MOVES);
-  assertEquals(out.effect.damage, 23.75);
+  assertEquals(out.effect.damage, f32(18.145000457763672 * 1.25));
 });
 
 test("Blademaster throw data preserves the adopted releases damage and directions", () => {
   for (const [action, release, recovery, damage, x, z] of [
-    [GrabAction.throwForward, 12, 18, 7.0, f32(0.819152044), f32(0.573576436)],
-    [GrabAction.throwBack, 15, 22, 8.0, -f32(0.766044443), f32(0.642787610)],
-    [GrabAction.throwUp, 13, 10, 6.0, f32(0.087155743), f32(0.996194698)],
-    [GrabAction.throwDown, 16, 20, 5.0, f32(0.906307787), f32(0.422618262)],
+    [GrabAction.throwForward, 12, 18, 6.685000419616699, f32(0.819152044), f32(0.573576436)],
+    [GrabAction.throwBack, 15, 22, 7.640000343322754, -f32(0.766044443), f32(0.642787610)],
+    [GrabAction.throwUp, 13, 10, 5.730000019073486, f32(0.087155743), f32(0.996194698)],
+    [GrabAction.throwDown, 16, 20, 4.775000095367432, f32(0.906307787), f32(0.422618262)],
   ] as const) {
     assertEquals(grabContactFrame(action, BLADEMASTER_MOVES), release);
     assertEquals(grabActionDuration(action, BLADEMASTER_MOVES), release + recovery);
@@ -171,10 +171,10 @@ test("Blademaster throw data preserves the adopted releases damage and direction
 test("Blademaster catches shield and releases each throw once on its adopted frame", () => {
   for (const facing of [-1, 1]) {
     for (const [action, release, damage] of [
-      [GrabAction.throwForward, 12, 7.0],
-      [GrabAction.throwBack, 15, 8.0],
-      [GrabAction.throwUp, 13, 6.0],
-      [GrabAction.throwDown, 16, 5.0],
+      [GrabAction.throwForward, 12, 6.685000419616699],
+      [GrabAction.throwBack, 15, 7.640000343322754],
+      [GrabAction.throwUp, 13, 5.730000019073486],
+      [GrabAction.throwDown, 16, 4.775000095367432],
     ] as const) {
       const owner = fighter(facing);
       const target = createFighter(Character.archer, f32(60.0 * facing), -facing);

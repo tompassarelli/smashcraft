@@ -2,6 +2,7 @@
 // and the camera. Everything here is presentation; with predicted
 // presentation, persistent visuals follow the speculative match and event
 // effects, audio, results and HUD follow the confirmed one.
+import { archerMounted } from "../../game/presentation/hippogryphPose";
 import { MATCH_HELP_BOX, MATCH_NOTICE_BOX } from "../../game/ui/hudLayout";
 import { CryDecision, createCryGate, cryStandIn, gateCry } from "../../game/presentation/hurtVoice";
 import { deckModel } from "../../game/presentation/stagePreload";
@@ -12,10 +13,11 @@ import type { PacingAndPresentation } from "../../game/match/pacingAndPresentati
 import { type MatchState, Phase, remainingSeconds, timedMatch } from "../../game/match/rules";
 import { ARENA_CAMERA, FLOOR_HEIGHT, cameraFieldOfView, cameraPoint, localCamera } from "../../game/presentation/arenaCamera";
 import { advanceMatchCamera } from "../../game/sim/matchCamera";
+import { stageBounds } from "../../game/sim/stageBounds";
 import { damageTint } from "../../game/presentation/hitPresentation";
 import { DamagePose, damagePose } from "../../game/presentation/damagePose";
 import { hideEffect } from "../../game/render/effects";
-import type { FighterPose } from "../../game/presentation/fighterPose";
+import { FRAME_SECONDS, type FighterPose } from "../../game/presentation/fighterPose";
 import { CANNON_MODEL, PLATFORM_CUE_FRAMES, framesUntilPlatformMoves, stageWarning } from "../../game/presentation/stageHazards";
 import { escapeMeterView, overheadAnchorZ, readEscapeMeter } from "../../game/presentation/escapeMeter";
 import { OVERHEAD_MANA_BORDER, OVERHEAD_MANA_HEIGHT, OVERHEAD_MANA_WIDTH, overheadManaLift } from "../../game/presentation/manaBar";
@@ -35,6 +37,7 @@ import { placeFighterBody, renderDizzy } from "./fighterBody";
 import { type ShellState, type StatusFrames, activeRollback, localSlot, playsOnKeyboard } from "./state";
 import { pauseEffects, views } from "./ui";
 import { drawStageScenery } from "./stageScenery";
+import { probeCamera, probeWaiting } from "./responseProbe";
 
 /** Text that waits for the players stays this long. */
 export const LASTING = 3600.0;
@@ -120,7 +123,7 @@ export function renderFighter(s: ShellState, slot: ParticipantSlot, pose: Readon
     if (fighter.status.stocks > 0) announce(s, stockLossMessage(s.game, slot, fighter.status.stocks));
   }
   const { pooled } = participant;
-  if (pooled) ShowUnit(body.unit, false);
+  ShowUnit(body.unit, !pooled && !fighter.status.out && !archerMounted(fighter));
   if (body.renderedSelection !== pose.selectionSerial) {
     if (!pooled) {
       // Starting a hero's Death sequence plays its death cry: only strong hits and knockouts may.
@@ -212,11 +215,12 @@ export function renderPersistentPresentation(s: ShellState): void {
       else renderers.pool.hide();
     }
     const live = playing ? fighter : undefined;
-    renderers?.glow.present(ui.match.posing === slot ? undefined : live, stage, runtime.simulationFrame);
+    renderers?.flash.present(ui.match.posing === slot ? undefined : live, runtime.poses[slot], stage, runtime.simulationFrame);
     if (renderers !== undefined) {
       const agency = live === undefined ? "act" : renderers.agency.forecast.classify(world, slot, stage, matchFrame, s.controls.commands[slot].graceFrames);
       renderers.agency.present(live, agency);
     }
+    ui.special.presentHippogryph(live, slot, runtime.simulationFrame);
     ui.special.presentStatic(runtime.specials, live, slot);
     ui.special.presentSummons(runtime.summons, live, slot);
     if (live !== undefined) ui.frost.present(live, slot);
@@ -265,16 +269,25 @@ export function lockArenaCamera(s: ShellState): void {
   localCamera(s.camera, game.camera.initialized ? game.camera : s.camera, game.stageChoice, aspect);
   const { x: centerX, y: centerY } = s.origin;
   const framing = s.camera;
+  probeCamera(s.probe, game.camera, framing, centerX, FLOOR_HEIGHT);
   const targetX = centerX + framing.x;
-  SetCameraBounds(targetX, centerY, targetX, centerY, targetX, centerY, targetX, centerY);
+  const duration = s.cameraTween === true && game.phase === Phase.match && !s.session.paused ? FRAME_SECONDS : 0.0;
+  if (duration > 0.0) {
+    // A bound at the new target would snap the pan before its timed movement.
+    const bounds = stageBounds(game.stageChoice).camera;
+    const left = centerX + bounds.left;
+    const right = centerX + bounds.right;
+    SetCameraBounds(left, centerY, right, centerY, left, centerY, right, centerY);
+  } else SetCameraBounds(targetX, centerY, targetX, centerY, targetX, centerY, targetX, centerY);
   SetCameraField(CAMERA_FIELD_ROTATION, ARENA_CAMERA.rotation, 0.0);
   SetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK, ARENA_CAMERA.angleOfAttack, 0.0);
-  SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, framing.distance, 0.0);
-  SetCameraField(CAMERA_FIELD_ZOFFSET, FLOOR_HEIGHT + framing.z, 0.0);
+  SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, framing.distance, duration);
+  SetCameraField(CAMERA_FIELD_ZOFFSET, FLOOR_HEIGHT + framing.z, duration);
   SetCameraField(CAMERA_FIELD_ROLL, 0.0, 0.0);
-  SetCameraField(CAMERA_FIELD_FIELD_OF_VIEW, cameraFieldOfView(framing, aspect), 0.0);
+  SetCameraField(CAMERA_FIELD_FIELD_OF_VIEW, cameraFieldOfView(framing, aspect), duration);
   SetCameraField(CAMERA_FIELD_FARZ, ARENA_CAMERA.farZ, 0.0);
-  SetCameraPosition(targetX, centerY);
+  if (duration > 0.0) PanCameraToTimed(targetX, centerY, duration);
+  else SetCameraPosition(targetX, centerY);
   if (s.build.analogPadDiagnostic === true) {
     // Calibration stays valid throughout both candidate ingress measurements.
     SetCameraBounds(centerX, centerY, centerX, centerY, centerX, centerY, centerX, centerY);
@@ -327,6 +340,7 @@ export function renderUi(s: ShellState): void {
   if (!selecting) {
     BlzFrameSetText(help, matchHelp(game, s.session.paused, startControl(s), localFighter, game.phase === Phase.match));
     const waiting = game.phase === Phase.match ? activeRollback(s)?.waitingFor ?? 0 : 0;
+    probeWaiting(s.probe, waiting, localSlot());
     BlzFrameSetText(notice, waiting !== 0 ? waitingMessage(waiting)
       : localFighter?.attack.smashCharging === true ? "Charging smash: release Attack to strike."
       : s.moment.notice > 0 ? MOMENT_SAVED_MESSAGE : resultNotice(game, s.status.seconds > 0 ? s.status.text : stageWarning(game, s.world)));

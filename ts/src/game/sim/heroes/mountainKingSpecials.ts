@@ -3,7 +3,7 @@ import { hurtCapsule } from "../../physics/contactGeometry";
 import { Character, HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT, type MoveRegion, heroRegion } from "../heroMoves";
 import { hurtPart, hurtPose } from "../hurtboxes";
-import { type AuthoredSpecial, type FighterSpecials, type SpecialMotion, type SpecialProjectile, FollowUpInput, frames } from "../heroSpecials";
+import { type AuthoredSpecial, type FighterSpecials, type SpecialMotion, type SpecialProjectile, CHARGED_AIM_FRAMES, FollowUpInput, chargedAngleMotion, frames } from "../heroSpecials";
 import { MEDIUM, SHORT, capsule, hit } from "./mountainKingMoves";
 
 // smashcraft:docs/design/roster.md "Mountain King": costs, frames, damage,
@@ -31,16 +31,13 @@ const RUSH_BODY = capsule(0.0, 14.0, 12.0, 60.0, 26.0);
 // The lowered shoulder is body, so it carries its own hurt volume while it strikes.
 const RUSH_HURT = [hurtPose(13, 18, [hurtCapsule(Character.mountainKing), hurtPart(RUSH_BODY.x1, RUSH_BODY.z1, RUSH_BODY.x2, RUSH_BODY.z2, RUSH_BODY.radius)])];
 
-// Thunder Leap: exact rise over f9-28 (20 frames), half of it in the f9-14 hit
-// window, then easing so the peak stays at the listed height. Full form 1.8H up
-// and 0.7H forward; the free form 1.3H up and 0.5H forward, no attack.
-const leap = (rise: number, drift: number): SpecialMotion[] => {
-  const segment = (first: number, last: number, share: number): SpecialMotion =>
-    ({ ...frames(first, last), velocityX: f32(f32(drift * share) / (last - first + 1)), velocityZ: f32(f32(rise * share) / (last - first + 1)) });
-  return [segment(9, 14, 0.5), segment(15, 24, f32(0.46)), segment(25, 28, f32(0.04))];
-};
-const FULL_LEAP = leap(heights(f32(1.8)), heights(f32(0.7)));
-const FREE_LEAP = leap(heights(f32(1.3)), heights(0.5));
+// Thunder Leap, the roster's charged-angle rule (#189): he crouches through
+// f8 while the stick picks one of eight directions (straight up by default),
+// leaps that way evenly over f9-24 and stops on f25. Full form 2.7H, the free
+// form 1.9H with no attack; a committed angle suits his limited air drift.
+const leap = (distance: number): readonly SpecialMotion[] => chargedAngleMotion(distance, 16);
+const FULL_LEAP = leap(heights(f32(2.7)));
+const FREE_LEAP = leap(heights(f32(1.9)));
 const THUNDER_LEAP = hit(8.839999198913574, "LAUNCH", 80, false, HitElement.electric);
 const LEAP_HAMMER = capsule(10.0, 60.0, 30.0, f32(MEDIUM + 20.0), 16.0);
 
@@ -136,11 +133,12 @@ export const MOUNTAIN_KING_SPECIALS: FighterSpecials = {
   },
   up: {
     name: "Thunder Leap",
-    description: "A rising hammer leap; press special at the top to plunge down as Hammerfall.",
+    description: "Hold a direction as he crouches, then a hammer leap that way; press special at the top to plunge down as Hammerfall.",
     ground: {
       cost: 15,
       endFrame: 28,
       regions: [heroRegion(9, 14, LEAP_HAMMER, THUNDER_LEAP)],
+      aimFrames: CHARGED_AIM_FRAMES,
       motion: FULL_LEAP,
       facesStick: true,
       oncePerAirtime: true,
@@ -150,6 +148,7 @@ export const MOUNTAIN_KING_SPECIALS: FighterSpecials = {
     free: {
       cost: 0,
       endFrame: 28,
+      aimFrames: CHARGED_AIM_FRAMES,
       motion: FREE_LEAP,
       facesStick: true,
       oncePerAirtime: true,

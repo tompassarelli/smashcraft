@@ -10,7 +10,7 @@ import { type ParticipantSlot, isParticipantSlot } from "../../game/input/partic
 import { heldActions, keyDown, pressKey, releaseKey } from "../../game/input/playerKeys";
 import { startKeyDown, startKeyUp } from "../../game/match/controls";
 import { Phase, cancelRematchCountdown, characterFor, firstHumanSlot, humanActive, leaveMatch, recallCharacter, selectCharacter } from "../../game/match/rules";
-import { DESYNC_COMMAND, QUICK_CPU_STOCKS, RESET_COMMAND, QUICK_TRAINING_COMMAND, applyDevCommand, prepareQuickCpu, prepareQuickTraining, quickMatchCpuHero, quickMatchCpuProfile, quickMatchHero, quickMatchPair, quickMatchStage, quickPainHero, quickRecoveryHero } from "../../game/shell/devSettings";
+import { DESYNC_COMMAND, QUICK_CPU_STOCKS, RESET_COMMAND, QUICK_TRAINING_COMMAND, applyDevCommand, prepareQuickCpu, prepareQuickTraining, quickMatchCpuHero, quickMatchCpuProfile, quickMatchHero, quickMatchPair, quickMatchStage, quickPainHero, quickRecoveryHero, quickOffstageHero } from "../../game/shell/devSettings";
 import { fighterName } from "../../game/sim/heroes/registry";
 import { keepMomentEnd } from "../../game/replay/moment";
 import { endReplaySegment } from "./replays";
@@ -24,10 +24,11 @@ import { probeFrameCostClock } from "./frameCost";
 import { probeRenderClock } from "./renderClock";
 import { startDrawingBetweenFrames } from "./betweenFrames";
 import { showBackdrop, showStageLighting } from "./stageScenery";
-import { clearAllInputs } from "./inputs";
+import { clearCapturedInputs } from "./inputs";
 import { journalEpoch, journalIdentity } from "./journal";
 import { chatBusy, requestPause } from "./journalPause";
 import { Key } from "./keyEvents";
+import { cancelPendingPlaytest } from "./playtest";
 import { startBodyFit } from "./bodyFit";
 import { startAgencyFixture } from "./agencyFixture";
 import { clearVisualCapture, configureVisualCapture } from "../../game/shell/visualCapture";
@@ -63,7 +64,7 @@ export function startDown(s: ShellState, slot: ParticipantSlot): void {
   if (action === "togglePause") {
     if (epoch !== undefined && deferred) requestPause(s, epoch.rollback, epoch.journal, !s.session.paused);
     else {
-      clearAllInputs(s);
+      clearCapturedInputs(s);
       pauseMatchPresentation(s, s.session.paused);
       setStatus(s, s.session.paused ? pausedMessage("Y") : "Resumed.", s.session.paused ? LASTING : 1.0);
     }
@@ -82,6 +83,7 @@ function journalMenuKey(s: ShellState, slot: ParticipantSlot, key: number): bool
   else if (key === Key.n) {
     if (s.game.phase !== Phase.characterMenu) confirm(s, slot);
     else {
+      cancelPendingPlaytest();
       selectCharacter(s.game, slot, characterFor(s.game, slot) ?? 0);
       makePreview(s);
     }
@@ -235,6 +237,7 @@ export function applyDeveloperCommand(s: ShellState, actor: number, original: st
   const quickHero = quickMatchHero(message);
   const quickPair = quickMatchPair(message);
   const recoveryHero = quickRecoveryHero(message);
+  const offstageHero = quickOffstageHero(message);
   const painHero = quickPainHero(message);
   const quickCpu = quickMatchCpuProfile(message);
   // Session setup (sessionSetup.ts) changes the menus only for its own spellings.
@@ -257,6 +260,9 @@ export function applyDeveloperCommand(s: ShellState, actor: number, original: st
   } else if (quickStage !== undefined) {
     receipt = "dev: quick match";
     startQuickMatch(s, quickStage);
+  } else if (offstageHero !== undefined) {
+    receipt = `dev: quick offstage ${fighterName(offstageHero)}`;
+    startQuickMatch(s, 0, "up-special-recovery", offstageHero);
   } else if (recoveryHero !== undefined) {
     receipt = `dev: quick recovery ${fighterName(recoveryHero)}`;
     startQuickMatch(s, 0, "knockdown", recoveryHero);
@@ -293,6 +299,9 @@ export function applyDeveloperCommand(s: ShellState, actor: number, original: st
     receipt = `dev: lighting ${authored ? "stage" : "stock"}`;
   } else if (message === "-dev smooth-draw") {
     receipt = startDrawingBetweenFrames() ? "dev: smooth draw on" : "dev: smooth draw already on";
+  } else if (message === "-dev camera-smooth on" || message === "-dev camera-smooth off") {
+    s.cameraTween = message === "-dev camera-smooth on";
+    receipt = `dev: camera smooth ${s.cameraTween ? "on" : "off"}`;
   } else if (message === "-dev render-clock") {
     receipt = "dev: render clock probe";
     probeRenderClock();

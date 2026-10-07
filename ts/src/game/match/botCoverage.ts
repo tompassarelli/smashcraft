@@ -23,18 +23,20 @@ export interface BotCoverage {
   movement: number;
   attacks: number;
   kit: number;
+  readonly specials: { neutral: number; side: number; up: number; down: number };
   defense: number;
   recovery: number;
   manaDenied: number;
   defenseDecisions: number;
   recoveryDecisions: number;
+  readonly companions: { bear: number; quilbeast: number; hawk: number };
   readonly missing: string[];
 }
 
 /** Eight distinct seeds, 1800 frames each, half starting at launch-prone damage. */
-export function fighterCoverage(index: number, opponent?: Character): BotCoverage {
-  const character = at(SELECTABLE_CHARACTERS, index);
-  const result: BotCoverage = { fighter: fighterName(character), matches: 0, movement: 0, attacks: 0, kit: 0, defense: 0, recovery: 0, manaDenied: 0, defenseDecisions: 0, recoveryDecisions: 0, missing: [] };
+export function fighterCoverage(index: number, opponent?: Character, choices: readonly Character[] = SELECTABLE_CHARACTERS): BotCoverage {
+  const character = at(choices, index);
+  const result: BotCoverage = { fighter: fighterName(character), matches: 0, movement: 0, attacks: 0, kit: 0, specials: { neutral: 0, side: 0, up: 0, down: 0 }, defense: 0, recovery: 0, manaDenied: 0, defenseDecisions: 0, recoveryDecisions: 0, companions: { bear: 0, quilbeast: 0, hawk: 0 }, missing: [] };
   const plan = gameplanOf(character);
   if (plan === undefined) result.missing.push("character gameplan");
   else {
@@ -63,7 +65,7 @@ export function fighterCoverage(index: number, opponent?: Character): BotCoverag
     if (chooseRecoveryInput(returning, 0, 0, input) && input.direction === -side && (input.jumpPressed || input.specialPressed)) result.recoveryDecisions++;
   }
   for (let seed = 0; seed < 8; seed++) {
-    const world = createRoster(3, [createFighter(character, -240.0, 1), createFighter(opponent ?? at(SELECTABLE_CHARACTERS, floorMod(index + seed + 1, SELECTABLE_CHARACTERS.length)), 240.0, -1)]);
+    const world = createRoster(3, [createFighter(character, -240.0, 1), createFighter(opponent ?? at(choices, floorMod(index + seed + 1, choices.length)), 240.0, -1)]);
     const game = createMatchState();
     for (const slot of PARTICIPANT_SLOTS) {
       game.cpuOpponents[slot] = "wren";
@@ -93,9 +95,22 @@ export function fighterCoverage(index: number, opponent?: Character): BotCoverag
       }
       if (!captureFrame(row, frame, world.mask, produced, runtime) || !executeMatchFrame(row, game, world, controls, runtime, frame)) throw new Error("coverage frame refused");
       const f = fighterAt(world, 0);
+      if (character === Character.beastmaster) {
+        if (f.placed.life > 0) result.companions.bear++;
+        if ((f.pack[0]?.life ?? 0) > 0) result.companions.quilbeast++;
+        if ((f.pack[1]?.life ?? 0) > 0) result.companions.hawk++;
+      }
       if (f.motion.deltaX !== 0.0 || f.motion.deltaZ !== 0.0) result.movement++;
       if (f.attack.serial !== attack && f.attack.style !== undefined) result.attacks++;
-      if (f.special.action !== SpecialAction.none && (f.special.action !== special || f.special.frame < specialFrame || f.special.form !== specialForm)) result.kit++;
+      if (f.special.action !== SpecialAction.none && (f.special.action !== special || f.special.frame < specialFrame || f.special.form !== specialForm)) {
+        result.kit++;
+        switch (f.special.action) {
+          case SpecialAction.heroNeutral: result.specials.neutral++; break;
+          case SpecialAction.heroSide: result.specials.side++; break;
+          case SpecialAction.heroUp: result.specials.up++; break;
+          case SpecialAction.heroDown: result.specials.down++; break;
+        }
+      }
       if (f.shield.raised || f.dodge.groundFrame > 0 || f.dodge.airFrame > 0) result.defense++;
       if (!f.motion.grounded && (f.motion.x < -700.0 || f.motion.x > 700.0) && (produced.inputs[0].jumpPressed || produced.inputs[0].specialPressed || produced.inputs[0].direction !== 0)) result.recovery++;
       attack = f.attack.serial;
@@ -105,6 +120,15 @@ export function fighterCoverage(index: number, opponent?: Character): BotCoverag
     }
     result.manaDenied += fighterAt(world, 0).visuals.manaDenied;
     result.matches++;
+  }
+  if (character === Character.beastmaster) {
+    if (result.specials.neutral === 0) result.missing.push("Wild Axes");
+    if (result.specials.side === 0) result.missing.push("Bear and Stampede");
+    if (result.specials.up === 0) result.missing.push("Hawk");
+    if (result.specials.down === 0) result.missing.push("Quilbeast");
+    if (result.companions.bear === 0) result.missing.push("active Bear");
+    if (result.companions.quilbeast === 0) result.missing.push("active Quilbeast");
+    if (result.companions.hawk === 0) result.missing.push("active Hawk");
   }
   if (result.movement === 0) result.missing.push("movement");
   if (result.attacks === 0) result.missing.push("attacks");

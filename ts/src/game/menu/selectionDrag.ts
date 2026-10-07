@@ -55,28 +55,28 @@ export function decodeCpuPlacement(data: string, count: number): Placement | und
 
 /** The left edge of a placed chip; slots share a cell in two columns. */
 export function chipX(grid: RosterGrid, slot: number, choice: number): number {
-  return cellRect(grid, choice).left + (f32(0.012) + floorMod(slot, 2) * f32(0.051)) * grid.scale;
+  return cellRect(grid, choice).left + (f32(0.017) + floorMod(slot, 2) * f32(0.043)) * grid.scale;
 }
 
 /** The top edge of a placed chip; slots share a cell in two rows. */
 export function chipY(grid: RosterGrid, slot: number, choice: number): number {
-  return cellRect(grid, choice).top - (slot < 2 ? f32(0.05) : f32(0.088)) * grid.scale;
+  return cellRect(grid, choice).top - (slot < 2 ? f32(0.018) : f32(0.061)) * grid.scale;
 }
 
 export function cardX(slot: number): number {
   return 0.054999999701976776 + slot * 0.17499999701976776;
 }
 
-/** Chips are 0.04 square; a press within 0.02 of the center picks one up. */
+/** Placed chips scale with their portrait, including their pickup radius. */
 function onChip(grid: RosterGrid, slot: number, choice: number, x: number, y: number): boolean {
-  const dx = x - (chipX(grid, slot, choice) + 0.019999999552965164);
-  const dy = y - (chipY(grid, slot, choice) - 0.019999999552965164);
-  return dx * dx + dy * dy <= 0.00039999998989515007;
+  const dx = x - (chipX(grid, slot, choice) + f32(0.016) * grid.scale);
+  const dy = y - (chipY(grid, slot, choice) - f32(0.016) * grid.scale);
+  return dx * dx + dy * dy <= f32(0.000256) * grid.scale * grid.scale;
 }
 
 /** The selectable slot whose card is under the pointer; the slot-mode labels above the cards are not part of them. */
 export function cardSlot(x: number, y: number, selectable: number): number | undefined {
-  if (y < 0.07500000298023224 || y > 0.24199999868869781) return undefined;
+  if (y < f32(0.11) || y > 0.24199999868869781) return undefined;
   for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
     const left = cardX(slot);
     if (x >= left && x <= left + 0.1599999964237213 && participantActive(selectable, slot)) return slot;

@@ -10,9 +10,11 @@
 // (Attack Slam leaps about 130 units, Dissipate rises) stay off poses whose
 // body the simulation keeps still, so the drawn body stays over its hurtbox.
 import { f32 } from "wisp/src/sim/f32";
-import { AttackStyle, Character } from "../codes";
+import { Character } from "../codes";
 import { RECOVERY_CLIPS } from "../../presentation/recoveryClipInfo";
-import { BLADEMASTER_GROUND, jabSlice, strikeClip } from "./groundNormals";
+import { BLADEMASTER_AUTHORED_CLIPS } from "../../presentation/blademasterClipInfo";
+import { DOWN_AIR_CLIPS } from "../../presentation/downAirClipInfo";
+import { JUMP_CLIPS } from "../../presentation/jumpClipInfo";
 import type { HeroClip, HeroFollowUpPose, HeroPose } from "./hero";
 
 /** The model's sequences in index order, with their authored lengths in milliseconds. */
@@ -52,12 +54,6 @@ const SPIN_TURN = f32(0.433); // Attack Walk Stand Spin: one level full turn, lo
 const aligned = (strike: number, firstActive: number, active: number, recovery: number) =>
   f32(f32(strike * (firstActive - 1 + active + recovery)) / (firstActive - 1));
 
-// Attack's blade is farthest forward and low at 0.40 s (drawn silhouette).
-const LOW_CUT = f32(0.40);
-/** A ground normal's clip, its strike on the first active frame or `frame`. */
-const ground = (name: SequenceName, strike: number, style: AttackStyle, frame?: number): HeroClip =>
-  strikeClip(sequence(name), strike, BLADEMASTER_GROUND, style, frame);
-
 const COMBAT_STANCE = sequence("Stand Ready");
 const RECOIL = sequence("Death", f32(0.45));
 
@@ -76,35 +72,29 @@ export const BLADEMASTER_CLIPS: { readonly [pose in Exclude<HeroPose, Exclude<He
   smashCharge: COMBAT_STANCE,
   ko: sequence("Death"),
   dizzy: sequence("Stand - 2"),
-  jab: jabSlice(sequence("Attack 2"), f32(0.44)),
-  jab2: jabSlice(sequence("Attack 2"), f32(0.46)),
+  jab: BLADEMASTER_AUTHORED_CLIPS.jab,
+  jab2: BLADEMASTER_AUTHORED_CLIPS.jab2,
   grab: sequence("Attack 2", aligned(THRUST, 7, 2, 22)),
-  // One descending cut for every angle (smashcraft:docs/design/tilts.md): its low cut lands on the last active frame.
-  forwardTilt: ground("Attack", CUT, AttackStyle.forwardTilt, 9),
-  forwardTiltUp: ground("Attack", CUT, AttackStyle.forwardTilt, 9),
-  forwardTiltDown: ground("Attack", CUT, AttackStyle.forwardTilt, 9),
-  // The arc is overhead on its middle active frame.
-  // Attack 2's blade is highest and farthest toward the arc at 0.60 s (drawn reach, #156).
-  upTilt: ground("Attack 2", f32(0.60), AttackStyle.upTilt, 8),
-  downTilt: ground("Attack", LOW_CUT, AttackStyle.downTilt),
-  // The sliding thrust: Attack 2's level thrust.
-  dashAttack: ground("Attack 2", THRUST, AttackStyle.dashAttack),
-  forwardSmash: sequence("Attack 2", aligned(THRUST, 17, 3, 32)),
-  upSmash: sequence("Stand - 4", aligned(RISE, 15, 4, 30)),
-  downSmash: sequence("Attack Walk Stand Spin", f32(2.0 * SPIN_TURN)),
-  neutralAir: sequence("Attack Walk Stand Spin", f32(2.0 * SPIN_TURN)),
-  forwardAir: sequence("Attack", aligned(CUT, 10, 3, 22)),
-  // The spin's blade passes behind at three quarters of a turn.
-  backAir: sequence("Attack Walk Stand Spin", aligned(f32(0.75 * SPIN_TURN), 8, 3, 23)),
-  upAir: sequence("Stand - 4", aligned(RISE, 6, 3, 19)),
-  // Bladestorm: the hero's own Bladestorm spin.
-  downAir: sequence("Attack Walk Stand Spin", f32(2.0 * SPIN_TURN)),
+  forwardTilt: BLADEMASTER_AUTHORED_CLIPS.forwardTilt,
+  forwardTiltUp: BLADEMASTER_AUTHORED_CLIPS.forwardTiltUp,
+  forwardTiltDown: BLADEMASTER_AUTHORED_CLIPS.forwardTiltDown,
+  upTilt: BLADEMASTER_AUTHORED_CLIPS.upTilt,
+  downTilt: BLADEMASTER_AUTHORED_CLIPS.downTilt,
+  dashAttack: BLADEMASTER_AUTHORED_CLIPS.dashAttack,
+  forwardSmash: BLADEMASTER_AUTHORED_CLIPS.forwardSmash,
+  upSmash: BLADEMASTER_AUTHORED_CLIPS.upSmash,
+  downSmash: BLADEMASTER_AUTHORED_CLIPS.downSmash,
+  neutralAir: BLADEMASTER_AUTHORED_CLIPS.neutralAir,
+  forwardAir: BLADEMASTER_AUTHORED_CLIPS.forwardAir,
+  backAir: BLADEMASTER_AUTHORED_CLIPS.backAir,
+  upAir: BLADEMASTER_AUTHORED_CLIPS.upAir,
+  downAir: DOWN_AIR_CLIPS[Character.blademaster].downAir,
   ledgeHang: COMBAT_STANCE,
   // Death ends lying on the stage; Dissipate starts from that pose.
   knockdown: sequence("Death"),
   downDamage: sequence("Dissipate", f32(0.15)),
   jump: COMBAT_STANCE,
-  doubleJump: sequence("Attack Walk Stand Spin"),
+  doubleJump: JUMP_CLIPS[Character.blademaster].doubleJump,
   // Push off a wall: the Attack Slam leap, which travels away from it; spring off out of tumble with a blade spin.
   wallJump: sequence("Attack Slam"),
   wallTech: sequence("Stand - 4", f32(0.6)),
@@ -117,7 +107,7 @@ export const BLADEMASTER_CLIPS: { readonly [pose in Exclude<HeroPose, Exclude<He
   grabbed: sequence("Death", f32(0.25)),
   pummel: sequence("Attack", aligned(CUT, 5, 1, 7)),
   throwForward: sequence("Attack 2", aligned(THRUST, 12, 1, 18)),
-  throwBack: sequence("Attack Walk Stand Spin", aligned(f32(0.75 * SPIN_TURN), 15, 1, 22)),
+  throwBack: BLADEMASTER_AUTHORED_CLIPS.throwBack,
   throwUp: sequence("Stand - 4", aligned(RISE, 13, 1, 17)),
   throwDown: sequence("Attack", aligned(f32(0.39), 16, 1, 20)),
   victimPummel: RECOIL,

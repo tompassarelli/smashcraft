@@ -2,13 +2,15 @@
 // fighter selection. Its buttons are synchronized frame clicks any player may
 // press; dragging the stage chip is local cursor art until a finished choice
 // crosses the "stage-drop" sync event.
+import { floorDiv, floorMod } from "wisp/src/sim/intMath";
+import { stageInPool, stagePoolCount } from "../menu/stagePool";
 import { f32 } from "wisp/src/sim/f32";
 import { bindPrototype } from "../../platform/rebind";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import { type MatchState, Phase, humanActive } from "../match/rules";
 import { pointerX, pointerY } from "../menu/pointer";
 import { type StageChoice, clearStageDrag, stageDrag, stageTileLeft, stageTileTop, updateStageDrag } from "../menu/stageSelection";
-import { STAGE_CHOICES, selectableStageChoice, stageInfo } from "../menu/stageCatalog";
+import { STAGE_CATALOG, STAGE_CHOICES, selectableStageChoice, stageInfo } from "../menu/stageCatalog";
 import { rulesSummary } from "../shell/messages";
 import { ButtonClicks, type MenuControls, bindSyncHandler, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, placeTopLeft } from "./frames";
 import { MENU_FONT } from "./hudLayout";
@@ -16,11 +18,13 @@ import { MENU_FONT } from "./hudLayout";
 /** What the stage panel asks the game to do; each call comes from a synchronized event. */
 export interface StageActions {
   selectStage(participantId: number, choice: StageChoice): void;
+  togglePoolMode(participantId: number): void;
+  togglePoolStage(participantId: number, choice: number): void;
   start(participantId: number): void;
   back(participantId: number): void;
 }
 
-type StageButton = { kind: "start" } | { kind: "back" };
+type StageButton = { kind: "start" } | { kind: "back" } | { kind: "poolOpen" } | { kind: "poolClose" } | { kind: "poolMode" } | { kind: "poolStage"; choice: number };
 
 function stageText(parent: framehandle, name: string, x: number, y: number, width: number, height: number, fontSize: number, text: string): framehandle {
   const label = createText(name, parent, 0);
@@ -51,6 +55,11 @@ export class StagePanel {
   private readonly chip: framehandle;
   private readonly clicks: ButtonClicks<StageButton>;
   private readonly sync: trigger;
+  private readonly poolRoot: framehandle;
+  private readonly poolMode: framehandle;
+  private readonly poolSummary: framehandle;
+  private readonly poolStages: readonly framehandle[];
+  private poolOpen = false;
   private readonly drag = stageDrag();
   private lastPhase: Phase | undefined;
   private lastChoice: number | undefined;
@@ -67,7 +76,7 @@ export class StagePanel {
     this.backdrop = createBackdrop("MeleeStageBackdrop", consoleUi(), 800);
     BlzFrameSetTexture(this.backdrop, "war3mapImported\\StageBackdrop.tga", 0, false);
     coverScreen(this.backdrop);
-    this.ruleLabel = stageText(root, "MeleeStageRules", f32(0.41), f32(0.584), f32(0.35), f32(0.025), f32(0.016), "");
+    this.ruleLabel = stageText(root, "MeleeStageRules", f32(0.41), f32(0.575), f32(0.35), f32(0.025), f32(0.012), "");
     this.preview = createBackdrop("MeleeStagePreview", root, 0);
     placeTopLeft(this.preview, f32(0.042), f32(0.445));
     BlzFrameSetSize(this.preview, f32(0.372), 0.25);
@@ -80,10 +89,27 @@ export class StagePanel {
       const tile = createBackdrop(`MeleeStageTile${I2S(choice)}`, root, choice);
       BlzFrameSetTexture(tile, stageInfo(choice).texture, 0, true);
       placeTopLeft(tile, stageTileLeft(choice), stageTileTop(choice));
-      BlzFrameSetSize(tile, f32(0.094), f32(0.078));
+      BlzFrameSetSize(tile, f32(0.094), f32(0.059));
       BlzFrameSetEnable(tile, false);
-      stageText(root, `MeleeStageTileName${I2S(choice)}`, stageTileLeft(choice), f32(stageTileTop(choice) - f32(0.08)), f32(0.094), f32(0.022), f32(0.008), stageInfo(choice).name);
+      stageText(root, `MeleeStageTileName${I2S(choice)}`, stageTileLeft(choice), f32(stageTileTop(choice) - f32(0.06)), f32(0.094), f32(0.02), f32(0.0075), stageInfo(choice).name);
     }
+    this.clicks.add(stageButton(root, f32(0.454), f32(0.514), f32(0.3), f32(0.027), "Stage pool"), { kind: "poolOpen" });
+    this.poolRoot = BlzCreateFrameByType("FRAME", "MeleeStagePoolRoot", root, "", 0);
+    BlzFrameSetLevel(this.poolRoot, 30);
+    const poolBackdrop = createBackdrop("MeleeStagePoolBackdrop", this.poolRoot, 0);
+    BlzFrameSetTexture(poolBackdrop, "UI\\Widgets\\ToolTips\\Human\\human-tooltip-background.blp", 0, true);
+    placeTopLeft(poolBackdrop, f32(0.1), f32(0.49));
+    BlzFrameSetSize(poolBackdrop, f32(0.6), f32(0.35));
+    stageText(this.poolRoot, "MeleeStagePoolTitle", f32(0.14), f32(0.47), f32(0.4), f32(0.025), f32(0.016), "Stage pool");
+    this.clicks.add(stageButton(this.poolRoot, f32(0.575), f32(0.47), f32(0.085), f32(0.027), "Done"), { kind: "poolClose" });
+    this.poolMode = this.clicks.add(stageButton(this.poolRoot, f32(0.14), f32(0.425), f32(0.52), f32(0.027), ""), { kind: "poolMode" });
+    stageText(this.poolRoot, "MeleeStagePoolHelp", f32(0.14), f32(0.385), f32(0.52), f32(0.028), f32(0.009), "Choose stages for random matches.\nKeep at least one stage in the pool.");
+    this.poolStages = STAGE_CATALOG.map((stage, index) => this.clicks.add(
+      stageButton(this.poolRoot, f32(f32(0.14) + floorMod(index, 3) * f32(0.18)), f32(f32(0.34) - floorDiv(index, 3) * f32(0.045)), f32(0.16), f32(0.032), ""),
+      { kind: "poolStage", choice: stage.id },
+    ));
+    this.poolSummary = stageText(this.poolRoot, "MeleeStagePoolSummary", f32(0.14), f32(0.2), f32(0.52), f32(0.042), f32(0.009), "");
+    BlzFrameSetVisible(this.poolRoot, false);
     this.chip = createBackdrop("MeleeStageChip", root, 0);
     BlzFrameSetTexture(this.chip, "war3mapImported\\StageChip.tga", 0, true);
     BlzFrameSetSize(this.chip, f32(0.04), f32(0.04));
@@ -91,7 +117,7 @@ export class StagePanel {
     const help = journal
       ? "Click a stage or move the stick.\nAny player can choose.\nA or Start: start · X: back"
       : "Click a stage or move the chip.\nAny player can choose.\nLeft/Right: change stage · Y: start";
-    stageText(root, "MeleeStageHelp", f32(0.454), f32(0.132), f32(0.3), f32(0.036), f32(0.008), help);
+    stageText(root, "MeleeStageHelp", f32(0.454), f32(0.119), f32(0.3), f32(0.025), f32(0.008), help);
     this.clicks.add(stageButton(root, f32(0.545), f32(0.092), f32(0.21), f32(0.048), journal ? "START MATCH [A]" : "START MATCH"), { kind: "start" });
     this.clicks.add(stageButton(root, f32(0.045), f32(0.082), f32(0.17), f32(0.037), journal ? "BACK [X]" : "BACK TO FIGHTERS"), { kind: "back" });
     this.sync = createSyncTrigger("ui.stage.drop", "stage-drop", PARTICIPANT_SLOTS, (sender, data) => {
@@ -121,7 +147,11 @@ export class StagePanel {
 
   private click(button: StageButton, actor: number): void {
     if (button.kind === "start") this.actions.start(actor);
-    else this.actions.back(actor);
+    else if (button.kind === "back") this.actions.back(actor);
+    else if (button.kind === "poolOpen") this.poolOpen = true;
+    else if (button.kind === "poolClose") this.poolOpen = false;
+    else if (button.kind === "poolMode") this.actions.togglePoolMode(actor);
+    else this.actions.togglePoolStage(actor, button.choice);
   }
 
   /** Every rendered frame on every client. */
@@ -134,6 +164,8 @@ export class StagePanel {
     }
     if (!enabled) {
       clearStageDrag(this.drag);
+      this.poolOpen = false;
+      BlzFrameSetVisible(this.poolRoot, false);
       return;
     }
     if (this.lastChoice !== game.stageChoice) {
@@ -148,8 +180,26 @@ export class StagePanel {
       BlzFrameSetText(this.ruleLabel, rules);
       this.lastRules = rules;
     }
+    BlzFrameSetVisible(this.poolRoot, this.poolOpen);
+    BlzFrameSetVisible(this.chip, !this.poolOpen);
+    if (this.poolOpen) {
+      clearStageDrag(this.drag);
+      const pool = game.stagePool;
+      const count = stagePoolCount(pool);
+      BlzFrameSetText(this.poolMode, pool.only ? "Only these" : "All except these");
+      for (let index = 0; index < STAGE_CATALOG.length; index++) {
+        const stage = STAGE_CATALOG[index];
+        const frame = this.poolStages[index];
+        if (stage === undefined || frame === undefined) continue;
+        const selected = (pool.selectedMask & (1 << stage.id)) !== 0;
+        BlzFrameSetText(frame, `${selected ? "Yes" : "No"}: ${stage.name}`);
+        BlzFrameSetEnable(frame, count > 1 || !stageInPool(pool, stage.id));
+      }
+      BlzFrameSetText(this.poolSummary, `${I2S(count)} ${count === 1 ? "stage" : "stages"} in the pool.\nEach plays once before the pool repeats.`);
+      return;
+    }
     let x = stageTileLeft(game.stageChoice) + f32(0.047);
-    let y = f32(stageTileTop(game.stageChoice) - f32(0.039));
+    let y = f32(stageTileTop(game.stageChoice) - f32(0.0295));
     const width = I2R(BlzGetLocalClientWidth());
     const height = I2R(BlzGetLocalClientHeight());
     if (width > 0 && height > 0) {

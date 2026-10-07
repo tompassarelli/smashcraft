@@ -35,6 +35,8 @@ import { STAGE_CATALOG } from "../../src/game/menu/stageCatalog";
 import { stageBounds } from "../../src/game/sim/stageBounds";
 import { stageScenery } from "../../src/game/presentation/stageScenery";
 import { MODEL_FACTS } from "./modelFacts";
+import { WHITE_MODEL_FACTS } from "./whiteModelFacts";
+import { WHITE_FIGHTER_MODELS } from "../../src/game/assets/whiteFighterModels";
 import { STAGE_SKIES, stageSkyTexture } from "../stageSky";
 
 const FRAMES_PER_SECOND = 60;
@@ -77,7 +79,7 @@ export const SMASHCRAFT_SCENE: SceneExpectations & { readonly settledFrame: numb
   framesPerSecond: FRAMES_PER_SECOND,
   stage: { kind: "stage deck", pieces: 1 },
   // hideEffect keeps even tall stock emitters below every arena camera.
-  visibility: { models: MODEL_FACTS, cameras: ARENA_CAMERAS, parking: [[0, 0, -FLOOR_HEIGHT - 4096]] },
+  visibility: { models: { ...MODEL_FACTS, ...WHITE_MODEL_FACTS }, cameras: ARENA_CAMERAS, parking: [[0, 0, -FLOOR_HEIGHT - 4096]] },
   // Half a second into the match the decks are drawn and the camera has framed the fighters.
   settledFrame: 30,
   kinds: [
@@ -85,6 +87,7 @@ export const SMASHCRAFT_SCENE: SceneExpectations & { readonly settledFrame: numb
     { name: "stage cannon", models: [CANNON_MODEL] },
     { name: "stage scenery", models: [...new Set(STAGE_CATALOG.flatMap(({ id }) => stageScenery(id).pieces.map(({ model }) => model)))] },
     { name: "pooled fighter", models: fighterModels },
+    { name: "body flash", models: WHITE_FIGHTER_MODELS },
     // Heroes draw with their fighter unit, shown while the hero is in play.
     { name: "hero body", models: HERO_ROSTER.map(({ presentation }) => presentation.model) },
     // Sparks and dust last under half a second; a star-KO sparkle, about two.
@@ -116,6 +119,7 @@ export const SMASHCRAFT_SCENE: SceneExpectations & { readonly settledFrame: numb
     // Stock game models (render/effects.ts STOCK_MODELS, shell/fighterBody.ts); the host can't load those modules' natives.
     { name: "hippogryph", lifetime: seconds(3), models: ["Units\\NightElf\\HippoGryph\\HippoGryph.mdx"] },
     { name: "Illidan's flames", lifetime: seconds(3), models: ["Abilities\\Spells\\NightElf\\Immolation\\ImmolationTarget.mdx", "Abilities\\Spells\\NightElf\\ManaBurn\\ManaBurnTarget.mdx"] },
+    { name: "silence mark", lifetime: seconds(2), models: ["Abilities\\Spells\\Other\\Silence\\SilenceTarget.mdx"] },
     { name: "bear", lifetime: seconds(3), models: range(summonClipCount(SUMMON_BEAR)).map((index) => summonClip(SUMMON_BEAR, index).modelPath) },
     // A shield break stuns for at most about eight seconds.
     { name: "dizzy mark", lifetime: seconds(10), models: ["Abilities\\Spells\\Human\\Thunderclap\\ThunderclapTarget.mdx"] },

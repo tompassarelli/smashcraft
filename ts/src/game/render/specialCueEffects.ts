@@ -10,6 +10,7 @@ import { type AttackCueState, attackCueState, fighterRenderedCues } from "../pre
 import { characterModelScale } from "../presentation/modelScale";
 import { CUE_ANCHORS, type Cue, specialCueState } from "../presentation/specialCues";
 import { type ParkedFlags, type WorldOrigin, facingYaw, parkOnce, placeEffect } from "./effects";
+import { HitAreaEffects } from "./hitAreaEffects";
 
 interface CueModel {
   readonly cue: Cue;
@@ -17,6 +18,7 @@ interface CueModel {
 }
 
 export class SpecialCueEffects {
+  private readonly areas: HitAreaEffects;
   private readonly cues: CueModel[] = [];
   private parked: ParkedFlags | undefined;
   /** The cue and key shown last, so a new phase or hit restarts its effect from its first frame. */
@@ -27,6 +29,7 @@ export class SpecialCueEffects {
   private readonly attack: AttackCueState = { cue: undefined, x: 0.0, z: 0.0, key: 0 };
 
   constructor(character: Character, private readonly origin: WorldOrigin) {
+    this.areas = new HitAreaEffects(character, origin);
     this.front = origin.y - 12.0;
     this.scale = characterModelScale(character);
     for (const cue of fighterRenderedCues(character)) this.cues.push({ cue, model: AddSpecialEffect(cue.model, origin.x, origin.y) });
@@ -34,6 +37,7 @@ export class SpecialCueEffects {
   }
 
   clear(): void {
+    this.areas.clear();
     const parked = (this.parked ??= []);
     for (let index = 0; index < this.cues.length; index++) {
       const entry = this.cues[index];
@@ -44,6 +48,7 @@ export class SpecialCueEffects {
   }
 
   present(fighter: Readonly<Fighter> | undefined, playing: boolean, paused: boolean): void {
+    this.areas.present(fighter, playing);
     let cue: Cue | undefined;
     let x = 0.0;
     let z = 0.0;
@@ -99,6 +104,7 @@ export class SpecialCueEffects {
 
   destroy(): void {
     this.clear();
+    this.areas.destroy();
     for (const { model } of this.cues) DestroyEffect(model);
     this.cues.length = 0;
   }

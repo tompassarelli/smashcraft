@@ -66,7 +66,7 @@ intended simulation frame.
 | A / X | Attack N / special U |
 | B or Y | Jump I |
 | RB / LB | Grab O / Tilt P |
-| LT / RT | Light shield T / full shield Q |
+| LT / RT | Full shield Q / full shield Q |
 | Start | Y |
 | Left stick left / right / down | W / R / E |
 | Left stick up | Space (up only; no tap jump) |
@@ -75,8 +75,17 @@ intended simulation frame.
 The standard pad preset keeps B and Y as jump and RB as grab. Select **Z-jump**
 on the Controller page to make RB and Y jump and B grab; the other controls stay
 the same. Both `wc3-controller` and `wc3-journal` accept `--preset standard|z-jump`.
-The journal also accepts `WC3_PAD_PRESET`. LT requests trigger pressure 77,
-the lightest active shield, while RT requests 255 for full shield.
+The journal also accepts `WC3_PAD_PRESET`. Both triggers shield fully by default.
+Either trigger can instead light shield: choose Full shield or Light shield for
+each trigger on the Controller page, or use `--left-trigger full|light` and
+`--right-trigger full|light` on either helper. Light shield presses T and requests
+pressure 77; full shield presses Q and requests 255.
+
+The service saves the layout, tap jump and trigger choices together in
+`$XDG_CONFIG_HOME/smashcraft/controller.json`, or `~/.config/smashcraft/controller.json`.
+It restores them at startup; a connected Controller page follows these choices
+instead of replacing them with its own defaults. `wc3-journal --service --settings FILE`
+uses another file for an isolated service.
 
 Tap jump is off by default. The Controller page can enable it, or either helper
 accepts `--tap-jump on|off` (the journal also reads `WC3_TAP_JUMP`). When enabled,
@@ -84,14 +93,14 @@ stick up past 0.6625 requests jump. Holding Tilt plus shield caps the effective
 stick at 0.65 before tap jump, so the shield can tilt up without jumping.
 Jump buttons keep working while tilting the shield.
 
-In the map's fighter, stage and results menus, the controller service makes
+In the map's fighter, opponent settings, stage and results menus, the controller service makes
 the left stick a pointer, as the hand cursor is in Smash: it moves the desktop
 pointer over the game (the compositor's virtual pointer), A left-clicks to
 choose a tile, chip or button, B right-clicks, and Start still sends Y (stage
 selection, start). The pointer rests inside 0.12 of full deflection, speeds up
 with deflection to the power 1.7, and at full tilt crosses the game window
 in one second. It runs only while the map keeps publishing an open menu
-(CHARACTER, STAGE or RESULT, refreshed every 250 ms) and the helper reports no
+(CHARACTER, CPU, STAGE or RESULT, refreshed every 250 ms) and the helper reports no
 match, and stops within 100 ms of the map publishing BLOCKED for play, where
 the table above applies unchanged (smashcraft:companion/src/service/any_map.rs,
 `MenuCurve`; model::smashcraft_menu_bindings).
@@ -383,8 +392,7 @@ Done, A advances or chooses Done, X goes back, and Start closes without starting
 a match. One stick deflection or button press produces one menu action; release before
 the next action. The controller service starts the helper with `--menu-keys
 start`: then only Start reaches the outer menus, and the service's menu pointer
-does the rest. The CPU panel suspends that pointer and accepts the focused menu
-controls. Held controls require neutral after startup, a menu phase
+does the rest, including in the CPU opponent settings panel. Held controls require neutral after startup, a menu phase
 change, focus loss, and entering gameplay.
 
 The map publishes `smashcraft-journal-menu-BUILD-sSLOT.txt`, containing

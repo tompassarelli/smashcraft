@@ -653,6 +653,23 @@ change. The full extraction command passed in about five seconds.
 
 ## Illidan, portraits and selection art
 
+The additive locomotion pass keeps every shipped sequence intact. From the
+repository root, run Blender with `--python tools/animations/illidan-locomotion.py
+-- PRIVATE_FIGHTER.blend PRIVATE_AUTHORED`, then `bun
+tools/animations/illidan-locomotion.ts PRIVATE_ASSETS PRIVATE_AUTHORED PRIVATE_OUTPUT`.
+The source is the existing private `demonhunter-fighter.blend`; output stays
+outside the checkout. `Locomotion Walk` alternates grounded steps with a short
+returning-foot lift. `Locomotion Run` leans forward, drives longer alternating
+steps and keeps the glaives beside the body. `Locomotion Initial Dash Burst`
+compresses into a push-off, then feeds the run. The ten authored burst frames
+are retimed over the simulation's thirteen dash frames; run starts on frame 14.
+The simulation still supplies all movement speeds and frame data.
+
+Run `bun tools/animations/package-illidan.ts PRIVATE_OUTPUT --metadata-only`,
+store `illidan-animation`, refresh the original clip pool, then regenerate
+stride and motion facts with `bun wisp view motion --assets PRIVATE_ASSETS`.
+Its pool exporter strips only this three-clip suffix to reuse exact older clips.
+
 Illidan's package is regenerated in order from the repository root. Run each
 Blender step as `blender --background --python-exit-code 1 --python FILE`:
 
@@ -740,6 +757,18 @@ depth. Its visual cue is still subtle at the normal camera and needs stronger
 pose tuning. Correct export/playback is not a claim of finished animation art.
 
 ## Jump and double jump
+
+`bun tools/animations/jump-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends
+movement-only sequences where stock jumps borrowed an attack or special:
+Blademaster and Warden double-jump somersaults, Lich's airborne contraction,
+and Dreadlord/Shadow Hunter spring gestures. The flip coils chest, arms and
+legs before a full stage-plane rotation, then opens into recovery. It uses
+the existing 30 presentation frames; ground jumps retain 24. The tool checks
+every previous sequence at start/middle/end, including Blademaster's
+Bladestorm, and saves a private both-facing Blademaster silhouette sheet.
+Publish the hero-models and original-clips-static-lights families after pool
+export. `jumpClips.tests.ts` checks all selectable fighters' jump/double-jump/
+fall indices against attacks and grounded/aerial specials in Bun and Lua.
 
 Archer Jump lasts 24 source frames at 24fps; Double Jump lasts 30. Both are
 authored by smashcraft:tools/animations/dodges.py in the final fighter scene.
@@ -1097,9 +1126,11 @@ three-startup/16-active/37-total timing. Rifleman's Back Air is unchanged.
 ## Hero swing alignment
 
 Hero normals play classic stock sequences whose strike rarely sits where the
-move's hitbox does. `bun wisp view strikes --extractor CASC_EXTRACT --storage
-WARCRAFT_DIR [--assets DIR]` (from smashcraft:ts/) skins each hero's stock model
-(a community model such as the Lich King's from DIR's imported-models) and
+move's hitbox does. `bun wisp view strikes --assets DIR` (from smashcraft:ts/)
+skins every hero's packaged model, including authored clips, from DIR's
+hero-models or imported-models. Without packaged assets,
+`--extractor CASC_EXTRACT --storage WARCRAFT_DIR` reads the stock archives;
+imported heroes require `--assets DIR`. The command
 records, per normal and per special that strikes, shoots or places, the clip second where the silhouette reaches farthest
 toward the move's first hit region, into
 smashcraft:ts/src/game/presentation/heroStrikeMomentInfo.ts. Pose selection
@@ -1243,12 +1274,14 @@ smashcraft:ts/src/game/presentation/heroes/lichKingClipInfo.ts (sequence name
 to index and frames). Run Blender inside the capacity scope (`machine-capacity
 run --class moderate`).
 
-Defile's cast (#174) gathers the free hand above his shoulder, presses it
-toward the pool on frame 20, holds the downward pose for three more frames,
-and settles back into the guard by frame 46, held through frame 50's recovery.
-The frame-20 push stays at its authored frame as the recovery lengthens.
-Frostmourne stays raised beside
-the body. The non-skeleton tracks retain Spell Channel as their donor.
+Defile's cast (#174) lifts Frostmourne above his shoulder, plants its point in
+the ground on frame 20, holds the planted silhouette through frame 26, then
+pulls it back into the guard by frame 46, held through frame 50's recovery.
+The frame-20 strike stays at the pool placement frame. The pool has a dark
+fill and a narrow glowing edge; each body hit flashes that edge for 12 frames.
+The non-skeleton tracks retain Spell Channel as their donor. To reauthor only
+this shipped sequence while retaining every other clip, pass
+`--replace 'Special Down'` after the immutable existing model argument.
 
 Movement transitions and floor recovery (#171) append at indices 66–73,
 preserving every combat and stock index. Turn and stop each last eight frames,

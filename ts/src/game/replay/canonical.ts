@@ -1105,6 +1105,10 @@ function writeState(emit: Emit, state: Readonly<ReplayState>): void {
   for (const key of ["x", "z", "distance", "tangent", "left", "right", "bottom", "top"] as const) emit(canonicalRealField(`match.camera.${key}`, match.camera[key]));
   for (const slot of PARTICIPANT_SLOTS) for (const key of ["left", "right", "bottom", "top"] as const) emit(canonicalRealField(`match.camera.box${slot}.${key}`, match.camera.boxes[slot][key]));
   int("match.stageChoice", match.stageChoice);
+  bool("match.stageResolved", match.stageResolved);
+  bool("match.stagePool.only", match.stagePool.only);
+  int("match.stagePool.selectedMask", match.stagePool.selectedMask);
+  int("match.stagePool.remainingMask", match.stagePool.remainingMask);
   int("match.winner", match.winner ?? -1);
   int("match.humanCount", match.humanCount);
   int("match.humanMask", match.humanMask);

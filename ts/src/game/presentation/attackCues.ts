@@ -12,6 +12,7 @@ import { type HitRegion, authoredHitRegion, authoredHitRegionCount, emptyHitRegi
 import { EYE_BLAST_CHARGE_FRAMES, attackStartupFrames } from "../sim/moves";
 import { HERO_ROSTER } from "../sim/heroes/registry";
 import { type Cue, fighterOwnCues, timed } from "./specialCues";
+import { DISJOINT_MODELS } from "./disjointCues";
 
 const cue = (model: string, scale: number): Cue => ({ model, anchor: "body", scale });
 
@@ -26,7 +27,7 @@ const SHEAR: readonly AttackCue[] = [{ name: "Shear", fromActive: 0, cue: timed(
 
 export const ATTACK_CUES: { readonly [character: number]: { readonly [style: number]: readonly AttackCue[] } } = {
   [Character.blademaster]: {
-    [AttackStyle.downAir]: [{ name: "Bladestorm", fromActive: 0, cue: cue("Abilities\\Spells\\Other\\Tornado\\Tornado_Target.mdx", f32(0.45)) }],
+    [AttackStyle.downAir]: [{ name: "Sword Plunge", fromActive: 0, cue: cue("Abilities\\Spells\\Human\\SunderingBlades\\SunderingBlades.mdx", f32(0.45)) }],
     [AttackStyle.neutralAir]: [{ name: "Blade Wheel", fromActive: 0, cue: cue("Abilities\\Spells\\Human\\SunderingBlades\\SunderingBlades.mdx", f32(0.7)) }],
   },
   [Character.warden]: {
@@ -129,6 +130,7 @@ export function fighterAttackCues(character: Character): readonly Cue[] {
 /** Every model an attack cue draws, every fighter's. */
 export function allAttackCueModels(): readonly string[] {
   const models: string[] = [];
+  for (const model of Object.values(DISJOINT_MODELS)) if (!models.includes(model)) models.push(model);
   for (const character of [Character.archer, Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map((hero) => hero.character)]) {
     for (const { model } of fighterAttackCues(character)) if (!models.includes(model)) models.push(model);
   }
