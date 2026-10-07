@@ -148,8 +148,8 @@ export const sendDevCommand = (command: string, clientName?: string) => Effect.g
     Effect.flatMap((old) => old === undefined ? Effect.void : files.remove(path)),
   ), { concurrency: "unbounded", discard: true }).pipe(step("clear old quick-match receipts"));
 
-  yield* clients.keys(host, "Escape", "Return").pipe(step("open developer chat"));
   yield* clients.batch(host, [
+    { kind: "keys", keys: ["Escape", "Return"] },
     { kind: "text", text: command },
     { kind: "keys", keys: ["Return"] },
   ]).pipe(step(`send ${command}`));

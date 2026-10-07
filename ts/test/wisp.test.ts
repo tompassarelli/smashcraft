@@ -140,6 +140,6 @@ test("the quick-match command is one chat line from the host, acknowledged by ev
   }).pipe(Effect.provide(TestClock.layer()));
   await Effect.runPromise(run);
   // One batch, so Wisp checks once that the host is in its match before Return (wisp:docs/watch.md).
-  expect(sent).toEqual(["a: Return | -dev quick | Return"]);
+  expect(sent).toEqual(["a: Escape+Return | -dev quick | Return"]);
   expect(removed).toHaveLength(2);
 });
