@@ -21,6 +21,7 @@ import { captureBinding } from "../../game/ui/bindingSettings";
 import { writeLines } from "wisp/src/platform/fileio";
 import { confirmedChecksum, startInputTrace, traceParticipant } from "./diagnostics";
 import { probeFrameCostClock } from "./frameCost";
+import { probeRenderClock } from "./renderClock";
 import { clearAllInputs } from "./inputs";
 import { journalEpoch, journalIdentity } from "./journal";
 import { chatBusy, requestPause } from "./journalPause";
@@ -248,6 +249,9 @@ export function onDevCommand(s: ShellState): void {
   } else if (message === "-dev frame-cost-clock") {
     receipt = "dev: frame cost clock probe";
     probeFrameCostClock();
+  } else if (message === "-dev render-clock") {
+    receipt = "dev: render clock probe";
+    probeRenderClock();
   } else if (message === DESYNC_COMMAND) {
     const slot = GetPlayerId(GetTriggerPlayer());
     receipt = `dev: desync from player ${slot + 1}'s client`;

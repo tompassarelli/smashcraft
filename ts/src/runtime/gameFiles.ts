@@ -16,6 +16,7 @@ export const responsePageFile = (slot: number | "*", run: number | "*", page: nu
 export const edgeStampFile = (slot: number, run: number, row: number, stage: "poll" | "present") => `smashcraft-edge-p${slot}-run${run}-row${row}-${stage}.txt`;
 export const frameCostFile = (source: string, slot: number, language: "typescript" | "wurst") => `smashcraft-frame-cost-${source}-p${slot}-${language}.txt`;
 export const frameCostClockFile = (slot: number) => `smashcraft-frame-cost-clock-p${slot}.txt`;
+export const renderClockFile = (slot: number, run: number) => `smashcraft-render-clock-p${slot}-run${run}.txt`;
 export const PHYSICS_REPORT_FILE = "smashcraft-native-physics-precision.txt";
 export const objectDataReceiptFile = (slot: number) => `smashcraft-object-data-p${slot}.txt`;
 /** A playtest request the host leaves for the map, its go-ahead, and each client's receipt (smashcraft:ts/src/platform/shell/playtest.ts). */
