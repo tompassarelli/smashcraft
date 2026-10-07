@@ -1,4 +1,4 @@
-import { isSelectableCharacter } from "../sim/heroes/registry";
+import { PLAYABLE_CHARACTERS, isSelectableCharacter } from "../sim/heroes/registry";
 import { RANDOM_STAGE, randomStage, selectableStageChoice } from "../menu/stageCatalog";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { type MatchCamera, createMatchCamera, copyMatchCamera } from "../sim/matchCamera";
@@ -57,10 +57,13 @@ export interface MatchState {
   readonly trainer: TrainingState;
 }
 
+/** The opening fighter of slot `index`: the release roster's tiles in order, so a hidden fighter is never preselected. */
+const defaultChoice = (index: number): Character => PLAYABLE_CHARACTERS[floorMod(index, PLAYABLE_CHARACTERS.length)] ?? Character.archer;
+
 export function createMatchState(): MatchState {
   return {
     camera: createMatchCamera(),
-    phase: Phase.characterMenu, characterChoices: [0, 1, 2, 0], cpuLevels: [CPU_LEVEL_DEFAULT, CPU_LEVEL_DEFAULT, CPU_LEVEL_DEFAULT, CPU_LEVEL_DEFAULT], matchSeed: 0,
+    phase: Phase.characterMenu, characterChoices: [defaultChoice(0), defaultChoice(1), defaultChoice(2), defaultChoice(0)], cpuLevels: [CPU_LEVEL_DEFAULT, CPU_LEVEL_DEFAULT, CPU_LEVEL_DEFAULT, CPU_LEVEL_DEFAULT], matchSeed: 0,
     cpuOpponents: [CPU_OPPONENT_DEFAULT, CPU_OPPONENT_DEFAULT, CPU_OPPONENT_DEFAULT, CPU_OPPONENT_DEFAULT],
     cpuTiers: [CPU_TIER_DEFAULT, CPU_TIER_DEFAULT, CPU_TIER_DEFAULT, CPU_TIER_DEFAULT],
     cpuResolvedOpponents: [CPU_OPPONENT_DEFAULT, CPU_OPPONENT_DEFAULT, CPU_OPPONENT_DEFAULT, CPU_OPPONENT_DEFAULT],

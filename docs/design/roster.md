@@ -1533,6 +1533,12 @@ gate run" (a different level or fewer matches a pair), and lists any fighter
 outside the band. Latest run:
 smashcraft:evidence/balance-105-20261007/n400-after-arrow-defile.md.
 
+A fighter failing the gate when a release build is cut is hidden from
+selection rather than holding the release (Tom, 7 Oct 2026): `bun
+scripts/releaseRoster.ts FIELD.json` writes the hidden slugs into
+smashcraft:ts/src/game/sim/heroes/releaseRoster.ts, compiled into the map so
+every client agrees. Measurement still plays the whole roster.
+
 ## Balance and feel measurement
 
 ### Measure interactions rather than assign a power score

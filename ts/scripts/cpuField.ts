@@ -271,7 +271,7 @@ export interface MoveUse {
   readonly share: number;
 }
 
-interface FighterSummary {
+export interface FighterSummary {
   readonly fighter: string;
   readonly matches: number;
   readonly wins: number;

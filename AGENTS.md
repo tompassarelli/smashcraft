@@ -270,6 +270,12 @@ code. From smashcraft:ts/:
   choice; smashcraft:ts/src/game/match/botStrategyContracts.tests.ts checks
   adaptation, punishable reads, buffering and seeded decision variety.
 - Difficulty report: `gh workflow run cpu-levels.yml -f ref=COMMIT` measures every level pair with the existing `cpuLevels` report on a hosted runner (20 matches per pair, 100 level-9-vs-1 matches). The run summary and `cpu-levels` artifact hold its table.
+- Release roster: `bun scripts/releaseRoster.ts FIELD.json` (from ts/) writes
+  smashcraft:ts/src/game/sim/heroes/releaseRoster.ts from a gate run's
+  `cpuField --json` file: fighters outside the field band are hidden from
+  selection (grid, stepping, opening picks) for players and computers, while
+  measurement tools and named `-dev` commands keep every fighter. Empty
+  unless the balance owner cuts a release build (smashcraft:docs/design/roster.md, "Balance gate").
 - Compute farm: `bun wisp farm balance [--ref REF] [--wait]` plays the
   balance gate's computer field (level 9, 400 a pair; `--level`,
   `--per-pair`, `--seeds`) on GitHub's free hosted runners, a `cpuField

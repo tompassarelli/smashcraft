@@ -45,7 +45,7 @@ import {
 import { cellRect, rosterGrid } from "../menu/selectionGrid";
 import type { TextBox } from "./hudLayout";
 import { MOVES_BODY_BOX, MOVES_BUTTON_HEIGHT, MOVES_BUTTON_TOP, MOVES_TITLE_BOX, selectionTitleBox } from "./selectionLayout";
-import { SELECTABLE_CHARACTERS, fighterName, fighterPortrait, nextSelectableCharacter } from "../sim/heroes/registry";
+import { PLAYABLE_CHARACTERS, fighterName, fighterPortrait, nextSelectableCharacter } from "../sim/heroes/registry";
 import {
   MOVES_HEADER, automaticRematchSetting, movesPage, selectionModeLabel, endlessSetting, hitAreasSetting, partnerBehaviourSetting, partnerDamageSetting, partnerEscapeSetting,
   partnerTechSetting, stockSetting, timeSetting, trainingSetting, trainingSpeedSetting,
@@ -131,15 +131,15 @@ function hotspot(parent: framehandle, x: number, y: number, width: number, heigh
 }
 
 /** Roster tiles are positions in the selectable fighters; a fighter chosen by tile is that character. */
-const characterOfTile = (tile: RosterTile): number => SELECTABLE_CHARACTERS[tile] ?? Character.archer;
+const characterOfTile = (tile: RosterTile): number => PLAYABLE_CHARACTERS[tile] ?? Character.archer;
 function tileOfCharacter(character: number): RosterTile {
-  for (let tile = 0; tile < SELECTABLE_CHARACTERS.length; tile++) if (SELECTABLE_CHARACTERS[tile] === character) return tile;
+  for (let tile = 0; tile < PLAYABLE_CHARACTERS.length; tile++) if (PLAYABLE_CHARACTERS[tile] === character) return tile;
   return 0;
 }
 
 const decodeTile = (data: string): RosterTile | undefined => {
   const tile = S2I(data);
-  return I2S(tile) === data && tile >= 0 && tile < SELECTABLE_CHARACTERS.length ? tile : undefined;
+  return I2S(tile) === data && tile >= 0 && tile < PLAYABLE_CHARACTERS.length ? tile : undefined;
 };
 const decodeSlot = (data: string): number | undefined => (data === "0" ? 0 : data === "1" ? 1 : data === "2" ? 2 : data === "3" ? 3 : undefined);
 
@@ -153,7 +153,7 @@ export class SelectionPanel {
   private readonly drag = selectionDrag();
   // Preallocated: the owner's client reads the pointer every rendered frame.
   private readonly chips: RosterChip[] = PARTICIPANT_SLOTS.map(() => ({ choice: 0, placed: false }));
-  private readonly roster: Roster = { grid: rosterGrid(SELECTABLE_CHARACTERS.length), selectable: 0, chips: this.chips };
+  private readonly roster: Roster = { grid: rosterGrid(PLAYABLE_CHARACTERS.length), selectable: 0, chips: this.chips };
   /** The match the panel last showed; synchronized events check choices against it. */
   private game: Readonly<MatchState> | undefined;
   private settingsOpen = false;
@@ -217,8 +217,8 @@ export class SelectionPanel {
       art(root, `MeleeTile${name}`, "war3mapImported\\SelectionTileFrame.tga", x, y, f32(grid.cellWidth), f32(grid.cellHeight));
       const portrait = tilePortrait(scale);
       const inset = (TILE_PORTRAIT_SLOT * scale - portrait) / 2;
-      art(root, `MeleeTilePortrait${name}`, portraitTexture(SELECTABLE_CHARACTERS[choice], true), x + f32(0.0125) * scale + inset, y - f32(0.013) * scale - inset, portrait, portrait);
-      BlzFrameSetText(label(root, `MeleeTileName${name}`, x + f32(0.004) * scale, y - f32(0.108) * scale, f32(0.103) * scale, f32(0.018) * scale, f32(0.009) * scale), nameText(SELECTABLE_CHARACTERS[choice]));
+      art(root, `MeleeTilePortrait${name}`, portraitTexture(PLAYABLE_CHARACTERS[choice], true), x + f32(0.0125) * scale + inset, y - f32(0.013) * scale - inset, portrait, portrait);
+      BlzFrameSetText(label(root, `MeleeTileName${name}`, x + f32(0.004) * scale, y - f32(0.108) * scale, f32(0.103) * scale, f32(0.018) * scale, f32(0.009) * scale), nameText(PLAYABLE_CHARACTERS[choice]));
     }
     this.cards = PARTICIPANT_SLOTS.map((slot) => {
       const x = cardX(slot);
