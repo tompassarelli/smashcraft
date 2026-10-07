@@ -14,7 +14,7 @@ export const PEON_GAMEPLAN: FighterGameplan = {
     { via: "run", moves: [AttackStyle.downTilt, AttackStyle.forwardTilt, AttackStyle.grab], weight: 2 },
     { via: "jump", moves: [AttackStyle.neutralAir, AttackStyle.forwardAir], weight: 1 },
   ],
-  defense: ["shield", "stance", "stance", "retreat"],
+  defense: ["stance", "stance", "stance", "retreat"],
   combos: [
     { starter: AttackStyle.downTilt, followUps: [AttackStyle.upTilt, AttackStyle.forwardAir] },
     { starter: AttackStyle.upTilt, followUps: [AttackStyle.upAir] },
