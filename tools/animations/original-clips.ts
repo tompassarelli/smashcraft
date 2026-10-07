@@ -4,14 +4,13 @@ import {parseMDX, generateMDX, model as mdx} from 'war3-model';
 import {isDeepStrictEqual} from 'node:util';
 import {renumberNodes} from '../../ts/scripts/clipNodes';
 import {HERO_ROSTER} from '../../ts/src/game/sim/heroes/registry';
-
-/** A stock model as the clients draw it (classic graphics), in the game's archives. */
-export const stockModelPath = (model: string) => `war3.w3mod:${model.replaceAll('\\', '/').toLowerCase().replace(/\.mdl$/, '.mdx')}`;
+import {heroModelSource, importedModelFile, stockModelPath} from '../../ts/scripts/heroModelSource';
 
 /**
  * Each fighter's original model under the private assets directory, in
  * Character order: the original three, then every registered hero's stock
- * model, which `stock` names in the game's archives.
+ * model, which `stock` names in the game's archives, or its community model
+ * under imported-models.
  */
 export const fighters: readonly {readonly name: string, readonly source: string, readonly stock?: string}[] = [
     {name: 'Archer', source: 'animation-assets/ArcherFighter.mdx'},
@@ -19,8 +18,8 @@ export const fighters: readonly {readonly name: string, readonly source: string,
     {name: 'Illidan', source: 'illidan-animation/DemonHunterFighter.mdx'},
     ...HERO_ROSTER.toSorted((a, b) => a.character - b.character).map(hero => ({
         name: hero.name.replaceAll(/[^A-Za-z]/g, ''),
-        source: `hero-models/${stockModelPath(hero.presentation.model).split('/').at(-1)}`,
-        stock: stockModelPath(hero.presentation.model),
+        source: heroModelSource(hero.presentation.model),
+        ...(importedModelFile(hero.presentation.model) === undefined ? {stock: stockModelPath(hero.presentation.model)} : {}),
     })),
 ];
 fighters.forEach((fighter, index) => ensure(index < 3 || HERO_ROSTER.some(hero => hero.character === index),

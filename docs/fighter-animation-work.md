@@ -1094,7 +1094,8 @@ three-startup/16-active/37-total timing. Rifleman's Back Air is unchanged.
 
 Hero normals play classic stock sequences whose strike rarely sits where the
 move's hitbox does. `bun wisp view strikes --extractor CASC_EXTRACT --storage
-WARCRAFT_DIR` (from smashcraft:ts/) skins each hero's stock model and
+WARCRAFT_DIR [--assets DIR]` (from smashcraft:ts/) skins each hero's stock model
+(a community model such as the Lich King's from DIR's imported-models) and
 records, per normal and per special that strikes, shoots or places, the clip second where the silhouette reaches farthest
 toward the move's first hit region, into
 smashcraft:ts/src/game/presentation/heroStrikeMomentInfo.ts. Pose selection

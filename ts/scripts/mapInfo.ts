@@ -2,7 +2,8 @@ import type { MapDeclaration } from "wisp/scripts/mapInfo";
 
 export const SMASHCRAFT_MAP = {
   author: "Tompas",
-  description: "Archer, Rifleman, and Illidan platform fight.",
+  // Credits for the community models the map imports (docs/design/roster.md "Credits").
+  description: "Warcraft heroes in a platform fight for up to four. Credits: The Lich King model by Kwaliti (Hive Workshop).",
   suggestedPlayers: "1-4",
   players: [
     { id: 0, name: "Player 1" },

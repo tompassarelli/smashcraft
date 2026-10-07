@@ -1,7 +1,7 @@
 // Renders every fighter in RENDERED_FIGHTERS from the model the game draws, with
 // one camera direction, lighting and background for all of them, into the grid
 // tile, card, HUD bust and stock icon textures the map imports (fighterPortrait). Models and textures
-// come from the installed game and the generated fighter assets; the renders
+// come from the installed game, the generated fighter assets and ASSETS/imported-models; the renders
 // stay outside the repository.
 // Usage: bun tools/selection/render-fighters.ts --extract CASC_EXTRACT --assets ASSETS [--storage WARCRAFT_DIR] [--only NAME,...] [--reuse]
 // Writes ASSETS/fighter-renders/; the map build imports from there.
@@ -10,6 +10,7 @@ import { existsSync, mkdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { Character } from '../../ts/src/game/sim/codes';
 import { RENDERED_FIGHTERS, fighterRenderName, heroDefinition } from '../../ts/src/game/sim/heroes/registry';
+import { heroModelSource, importedModelFile } from '../../ts/scripts/heroModelSource';
 import { CARD_TEXTURE_PX, TILE_TEXTURE_PX } from '../../ts/src/game/ui/portraitFrames';
 import { STOCK_ICON_PX } from '../../ts/src/game/ui/plateLayout';
 
@@ -59,6 +60,12 @@ function extractTexture(path: string): void {
   const png = join(resources, `${path.replaceAll('\\', '/').replace(/\.[a-z]+$/i, '')}.png`);
   if (existsSync(png)) return;
   mkdirSync(dirname(png), { recursive: true });
+  // A community model's textures are imported from ASSETS/imported-models, not the game's archives.
+  const imported = importedModelFile(path);
+  if (imported !== undefined) {
+    run(['bun', join(project, 'tools/animations/convert.ts'), join(assets!, 'imported-models', imported), png]);
+    return;
+  }
   const dds = png.replace(/\.png$/, '.dds');
   const found = Bun.spawnSync([extract, storage, stored(path).replace(/\.[a-z]+$/, '.dds'), dds]).exitCode === 0
     || Bun.spawnSync([extract, storage, stored(path).replace(/\.[a-z]+$/, '.blp'), dds]).exitCode === 0;
@@ -121,7 +128,8 @@ async function modelFor(character: Character, name: string): Promise<string> {
   const hero = heroDefinition(character);
   if (hero === undefined) throw new Error(`no model for ${name}`);
   const mdx = join(work, `${name}.mdx`);
-  run([extract, storage, stored(hero.presentation.model).replace(/\.mdl$/, '.mdx'), mdx]);
+  if (importedModelFile(hero.presentation.model) !== undefined) await Bun.write(mdx, Bun.file(join(assets!, heroModelSource(hero.presentation.model))));
+  else run([extract, storage, stored(hero.presentation.model).replace(/\.mdl$/, '.mdx'), mdx]);
   run(['bun', join(project, 'tools/animations/convert.ts'), mdx, mdl]);
   await Bun.write(mdl, posedLayers(unlit(await Bun.file(mdl).text())));
   return mdl;

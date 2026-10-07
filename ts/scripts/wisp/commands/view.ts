@@ -17,6 +17,7 @@ import { type ModelFacts, modelFacts } from "wisp/scripts/wisp/models";
 import { PlayerViewFailure, SceneReportFile, readFrame } from "wisp/scripts/wisp/playerView";
 import { describeScene, sceneProblems } from "wisp/scripts/wisp/scene";
 import { importedAssets } from "../mapInputs";
+import { heroModelSource, importedModelFile, stockModelPath } from "../../heroModelSource";
 import { gameFilesLayer } from "../project";
 import { SMASHCRAFT_FRAME, SMASHCRAFT_SCENE } from "../playerView";
 import { CHARACTER_NAMES, DrawnModel, FIGHTER_MODELS, STYLE_NAMES, loadDrawnModel, sampleAttack, sampleState, sheet } from "../hurtboxView";
@@ -57,9 +58,6 @@ const frames = (paths: readonly string[]) => Effect.gen(function*() {
 
 const MODEL_TABLE = join(import.meta.dir, "../modelFacts.ts");
 
-/** The game's archive path of a stock model, as CascLib names it: the classic models the clients draw. */
-// Warcraft accepts .mdl model names; the archive stores their binary .mdx files.
-const stockPath = (model: string) => `war3.w3mod:${model.replaceAll("\\", "/").toLowerCase().replace(/\.mdl$/, ".mdx")}`;
 
 /** Facts rounded to thousandths, so a table changes only when a model does. */
 const tableLine = (model: string, facts: ModelFacts) =>
@@ -86,7 +84,7 @@ const models = (args: readonly string[]) => Effect.scoped(Effect.gen(function*()
     let file = imports.get(model.toLowerCase());
     if (file === undefined) {
       file = join(scratch, `stock-${index}.mdx`);
-      yield* runProcess("extract stock model", model, [extractor, storage, stockPath(model), file]);
+      yield* runProcess("extract stock model", model, [extractor, storage, stockModelPath(model), file]);
     }
     const path = file;
     const facts = yield* Effect.tryPromise({
@@ -153,9 +151,9 @@ const STRIKE_TABLE = join(import.meta.dir, "../../../src/game/presentation/heroS
  */
 const strikes = (args: readonly string[]) => Effect.scoped(Effect.gen(function*() {
   const options = Object.fromEntries(args.flatMap((arg, index) => (arg.startsWith("--") && args[index + 1] !== undefined ? [[arg.slice(2), args[index + 1]]] : [])));
-  const { extractor, storage } = options;
-  if (extractor === undefined || storage === undefined || args.length !== 4) {
-    return yield* new UsageFailure({ problem: "view strikes takes --extractor CASC_EXTRACT --storage WARCRAFT_DIR" });
+  const { extractor, storage, assets } = options;
+  if (extractor === undefined || storage === undefined || args.length !== (assets === undefined ? 4 : 6)) {
+    return yield* new UsageFailure({ problem: "view strikes takes --extractor CASC_EXTRACT --storage WARCRAFT_DIR [--assets DIR]" });
   }
   const scratch = yield* Effect.acquireRelease(
     Effect.sync(() => mkdtempSync(join(tmpdir(), "smashcraft-strikes."))),
@@ -163,8 +161,14 @@ const strikes = (args: readonly string[]) => Effect.scoped(Effect.gen(function*(
   );
   const files = new Map<string, string>();
   for (const [index, model] of [...new Set(HERO_ROSTER.map(({ presentation }) => presentation.model))].entries()) {
+    // A community model is read from the build's imported models, not the game's archives.
+    if (importedModelFile(model) !== undefined) {
+      if (assets === undefined) return yield* new UsageFailure({ problem: `${model} is imported: pass --assets DIR` });
+      files.set(model, join(assets, heroModelSource(model)));
+      continue;
+    }
     const file = join(scratch, `hero-${index}.mdx`);
-    yield* runProcess("extract stock model", model, [extractor, storage, stockPath(model), file]);
+    yield* runProcess("extract stock model", model, [extractor, storage, stockModelPath(model), file]);
     files.set(model, file);
   }
   const moments = yield* Effect.tryPromise({
@@ -198,7 +202,7 @@ const reach = (args: readonly string[]) => Effect.gen(function*() {
           id = `war3mapImported\\${name}-${new Bun.CryptoHasher("sha256").update(new Uint8Array(bytes)).digest("hex")}.mdx`;
           model = await loadDrawnModel(assets, character);
         } else {
-          const file = join(assets, "hero-models", stockPath(hero.presentation.model).split("/").at(-1) ?? "");
+          const file = join(assets, heroModelSource(hero.presentation.model));
           model = new DrawnModel(await Bun.file(file).arrayBuffer(), characterModelScale(character));
           id = hero.presentation.model;
         }

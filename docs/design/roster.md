@@ -149,6 +149,7 @@ its capsule's top.
 | Shadow Hunter | Oshd | 1.00 | 1.00 | 1.00 |
 | Pit Lord | Nplh | 1.00 | 1.00 | 0.95 |
 | Beastmaster | Nbst | 1.00 | 1.00 | 0.85 |
+| Lich King | none: Kwaliti's LichKing2 | 1.00 | 1.00 | new |
 
 Rifleman stands 87 units at scale 1, Shadow Hunter 138: the dwarf is drawn
 smaller because Warcraft draws him smaller. The fighters whose draw scale
@@ -158,6 +159,21 @@ ratio of drawn height to capsule top they had before: Rifleman's top is 87
 the heroes through Height above. Widths stay as authored: each kit's strikes
 and travel stops are spaced against them. Pit Lord's drawn height stays
 within the band, so his capsule is unchanged.
+
+The Lich King (#167) is a community model with no Warcraft unit behind it,
+so no unit model scale applies: he is drawn at 1.0 times the shared factor.
+
+### Credits
+
+Every fighter draws Warcraft III's own models except these community works,
+which the map imports from private build inputs (never Git) at the archive
+paths their authors' readmes name (smashcraft:ts/src/game/assets/importedModelInfo.ts).
+The map's description carries the same credits.
+
+- The Lich King model by Kwaliti (Hive Workshop): LichKing2, its portrait,
+  textures and command icons
+  (https://www.hiveworkshop.com/threads/the-lich-king.154837/,
+  https://www.hiveworkshop.com/threads/btnlichking.154846/).
 
 The individual hero sections below specify all attacks. Their counterplay descriptions are acceptance goals to test, not claims established by these numbers.
 
