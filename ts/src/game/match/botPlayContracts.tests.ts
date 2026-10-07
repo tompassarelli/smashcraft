@@ -32,6 +32,8 @@ function computerMatch(characters: readonly [Character, Character], xs: readonly
   match.phase = Phase.match;
   match.stageChoice = stage;
   match.timeLimitMinutes = 0;
+  // Strongest-play contracts select Wren Expert explicitly rather than the Intermediate default.
+  for (const slot of PARTICIPANT_SLOTS) match.cpuTiers[slot] = "expert";
   const produced = createFrameControls();
   const controls = createFrameControls();
   const runtime = createPacingAndPresentation();
