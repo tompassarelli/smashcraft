@@ -6,8 +6,12 @@
 42 b stick 0 0
 # #148: two Spirit Glaives on b charge voodoo; a walks in and its forward tilt spends them.
 60 a tap X 2
+62 a capture
+78 a capture
 93 a capture
 140 a tap X 2
+142 a capture
+158 a capture
 176 a capture
 200 a press LB
 200 a stick 1 0
@@ -19,14 +23,20 @@
 300 a stick 0 -1
 300 a tap X 2
 301 a stick 0 0
+302 a capture
+324 a capture
 # #144: Serpent Ward, placed facing away from b.
 380 a stick -1 0
 380 a tap X 2
 381 a stick 0 0
+382 a capture
+406 a capture
 # Spend mana: Hex again.
 450 a stick 0 -1
 450 a tap X 2
 451 a stick 0 0
+452 a capture
+474 a capture
 # View held a second: the first of two moments the parity check replays.
 500 a press VIEW
 570 a release VIEW
@@ -34,17 +44,25 @@
 600 a stick -1 0
 600 a tap X 2
 601 a stick 0 0
+602 a capture
+604 a capture
 # #144: Spirit Glaive and Hex from the air.
 680 a tap B 8
 690 a tap X 2
+692 a capture
+708 a capture
 750 a tap B 8
 760 a stick 0 -1
 760 a tap X 2
 761 a stick 0 0
+762 a capture
+784 a capture
 # #144: Loa Vault, paid, then free.
 830 a stick 0 1
 830 a tap X 2
 831 a stick 0 0
+832 a capture
+838 a capture
 930 a stick 0 1
 930 a tap X 2
 931 a stick 0 0
@@ -69,5 +87,7 @@
 #! scene a SpiritLinkTarget
 #! scene a FeralSpiritDone
 #! scene a PolymorphTarget
+932 a capture
+938 a capture
 1000 a press VIEW
 1070 a release VIEW

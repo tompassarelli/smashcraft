@@ -1,0 +1,124 @@
+# Mountain King's native check by parity for #148 (Bash) and #144 (every special form shows its Warcraft spell).
+# Mountain King a against Mountain King b; syntax and checks: smashcraft:docs/native-bot-session.md.
+#! chat -dev quick hero mountain king
+# b dashes in; a dashes in and attacks short of it, then runs back left and turns to face b.
+40 b stick -1 0
+42 b stick 0 0
+50 a stick 1 0
+52 a stick 0 0
+70 a tap A 2
+130 a stick -1 0
+160 a stick 0 0
+170 a stick 1 0
+171 a stick 0 0
+# b spends its mana: the small Clap (special on the charge's 16th frame), the full Thunder Clap (36th),
+# three charges dropped by shield, then Thunder Leap's free form.
+180 b stick 0 -1
+180 b tap X 2
+181 b stick 0 0
+195 b tap X 2
+225 b stick 0 -1
+225 b tap X 2
+226 b stick 0 0
+260 b tap X 2
+300 b stick 0 -1
+300 b tap X 2
+# a: Thunder Clap in the air.
+300 a tap B 8
+301 b stick 0 0
+306 a stick 0 -1
+306 a tap X 2
+307 a stick 0 0
+308 a capture
+312 b shield 1
+316 b shield 0
+324 a capture
+332 b stick 0 -1
+332 b tap X 2
+333 b stick 0 0
+344 b shield 1
+348 b shield 0
+364 b stick 0 -1
+364 b tap X 2
+365 b stick 0 0
+376 b shield 1
+# a: Storm Rush on the ground.
+380 a stick 1 0
+380 a tap X 2
+380 b shield 0
+381 a stick 0 0
+382 a capture
+393 a capture
+400 b stick 0 1
+400 b tap X 2
+401 b stick 0 0
+# a turns away and throws Storm Bolt, then calls it back while it flies.
+440 a stick -1 0
+441 a stick 0 0
+450 a tap X 2
+452 a capture
+470 a capture
+# View held a second: the first of two moments the parity check replays.
+500 a press VIEW
+510 a tap X 2
+512 a capture
+514 a capture
+560 a stick 1 0
+561 a stick 0 0
+570 a release VIEW
+# #148 Bash: three Storm Bolts strike b in a quick string; the third stuns longer.
+600 a tap X 2
+634 a capture
+660 a tap X 2
+695 a capture
+720 a tap X 2
+757 a capture
+# Storm Rush in the air.
+790 a tap B 8
+796 a stick 1 0
+796 a tap X 2
+797 a stick 0 0
+798 a capture
+809 a capture
+# Thunder Leap and Hammerfall on its 16th frame.
+880 a stick 0 1
+880 a tap X 2
+881 a stick 0 0
+882 a capture
+889 a capture
+895 a tap X 2
+# Expected, frame by frame (headless run of this script): every form of every special starts,
+# b's charge drops on the shield (form 15) and its Thunder Leap is the free form (2) on an empty bar.
+#! expect b 180 special 16 form 0
+#! expect b 195 special-form 6 action 16
+#! expect b 225 special 16 form 0
+#! expect b 260 special-form 12 action 16
+#! expect b 312 special 0 form 18
+#! expect b 400 special 15 form 2
+#! expect a 306 special 16 form 1
+#! expect a 380 special 14 form 0
+#! expect a 450 special 13 form 0
+#! expect a 510 special 13 form 3
+#! expect a 796 special 14 form 1
+#! expect a 880 special 15 form 0
+#! expect a 895 special-form 6 action 15
+# Bash: the first two bolts stun 16 and 17 frames, the third 28.
+#! expect b 633 damage 5.000 hitlag 4 hitstun 16
+#! expect b 694 damage 10.000 hitlag 4 hitstun 17
+#! expect b 756 damage 15.000 hitlag 4 hitstun 28
+# Startup and active cues of each special and branch, both missiles, and Bash's proc on b.
+#! scene a BoltImpact
+#! scene a ForkedLightningTarget
+#! scene a LightningShieldBuff
+#! scene a DefendCaster
+#! scene a ImpaleTargetDust
+#! scene a WarStompCaster
+#! scene a LightningShieldTarget
+#! scene a ThunderClapCaster
+#! scene a EarthquakeTarget
+#! scene a StormBoltMissile
+#! scene a ShockwaveMissile
+#! scene a ThunderclapTarget
+897 a capture
+1000 a press VIEW
+1070 a release VIEW

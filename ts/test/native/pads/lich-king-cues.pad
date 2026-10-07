@@ -1,0 +1,71 @@
+# #144 special cues: every Lich King special form shows its Warcraft spell (the Lich King has no #148 passive).
+# Lich King a against Lich King b; syntax and checks: smashcraft:docs/native-bot-session.md.
+#! chat -dev quick hero lich king
+# #144: Defile.
+40 a stick 0 -1
+40 a tap X 2
+41 a stick 0 0
+42 a capture
+60 a capture
+# #144: Val'kyr Shadowguard.
+120 a stick 1 0
+120 a tap X 2
+121 a stick 0 0
+122 a capture
+134 a capture
+# #144: Howling Blast, then from the air.
+200 a tap X 2
+202 a capture
+216 a capture
+280 a tap B 8
+290 a tap X 2
+292 a capture
+306 a capture
+# #144: Val'kyr Shadowguard from the air, back toward the middle.
+360 a tap B 8
+370 a stick -1 0
+370 a tap X 2
+371 a stick 0 0
+372 a capture
+384 a capture
+# #144: Ascension of the Damned.
+430 a stick 0 1
+430 a tap X 2
+431 a stick 0 0
+432 a capture
+438 a capture
+# View held a second: the first of two moments the parity check replays.
+500 a press VIEW
+570 a release VIEW
+# #144: Ascension of the Damned from the air (it has no air form).
+640 a tap B 8
+650 a stick 0 1
+650 a tap X 2
+651 a stick 0 0
+652 a capture
+658 a capture
+# #144: Ascension of the Damned, free (the mana is spent).
+800 a stick 0 1
+800 a tap X 2
+801 a stick 0 0
+# Expected, frame by frame (headless run of this script): every special form starts on its frame.
+#! expect a 40 special 16 form 0
+#! expect a 120 special 14 form 0
+#! expect a 200 special 13 form 0
+#! expect a 290 special 13 form 1
+#! expect a 370 special 14 form 1
+#! expect a 430 special 15 form 0
+#! expect a 650 special 15 form 0
+#! expect a 800 special 15 form 2
+#! scene a DarkRitualCaster
+#! scene a FreezingBreathMissile
+#! scene a CurseTarget
+#! scene a FrostNovaTarget
+#! scene a DeathAndDecayTarget
+#! scene a FrostWyrmMissile
+#! scene a Banshee
+#! scene a DarkPortalTarget
+802 a capture
+808 a capture
+1000 a press VIEW
+1070 a release VIEW

@@ -1,0 +1,80 @@
+# #148 Long Rifles and #144 special cues: Rifleman's fourth blaster shot is the Long Rifle; every special form shows its Warcraft spell.
+# Rifleman a against an idle Rifleman b; syntax and checks: smashcraft:docs/native-bot-session.md.
+#! chat -dev quick hero rifleman
+# #148: three blaster shots fill the counter; the fourth is the Long Rifle.
+60 a tap X 2
+62 a capture
+69 a capture
+80 a capture
+110 a tap X 2
+112 a capture
+119 a capture
+130 a capture
+160 a tap X 2
+162 a capture
+169 a capture
+180 a capture
+210 a tap X 2
+212 a capture
+219 a capture
+230 a capture
+# #144: a short-hop blaster.
+270 a tap B 1
+275 a tap X 2
+277 a capture
+284 a capture
+# #144: the bear toward b.
+330 a stick 1 0
+330 a tap X 2
+331 a stick 0 0
+332 a capture
+354 a capture
+# #144: Freeze Trap.
+420 a stick 0 -1
+420 a tap X 2
+421 a stick 0 0
+422 a capture
+424 a capture
+# View held a second: the first of two moments the parity check replays.
+500 a press VIEW
+570 a release VIEW
+# #144: Recoil Shot, second shot on its frame 17.
+640 a stick 0 1
+640 a tap X 2
+641 a stick 0 0
+642 a capture
+644 a capture
+656 a tap X 2
+# Expected, frame by frame (headless run of this script):
+# #148: three blaster shots of 4; the fourth is the Long Rifle (its bolt shows on Rifleman).
+#! expect a 60 special 7 form 0
+#! expect b 79 damage 4.000
+#! expect a 110 special 7 form 0
+#! expect b 129 damage 8.000
+#! expect a 160 special 7 form 0
+#! expect b 179 damage 12.000
+#! expect a 210 special 7 form 0
+#! expect b 229 damage 16.000
+#! scene a BoltImpact
+# #144: each special starts on its frame, and its cues and missiles show.
+#! expect a 275 applied jump
+#! expect a 275 special 7 form 0 action-frame 1 x -240.000 z 11.400
+#! expect b 300 damage 19.000
+#! expect a 330 special 5 form 0
+#! expect b 372 damage 29.000
+#! expect a 420 special 8 form 0
+#! expect a 640 special 6 form 0
+#! expect a 656 special-form 1 action 6
+#! scene a FlareCaster
+#! scene a GyroCopterImpact
+#! scene a GyroCopterMissile
+#! scene a RoarTarget
+#! scene a FeralSpiritTarget
+#! scene a BlizzardTarget
+#! scene a FrostTrap
+#! scene a FlakTarget
+#! scene a FireLordDeathExplode
+#! scene a SteamTankImpact
+658 a capture
+1000 a press VIEW
+1070 a release VIEW

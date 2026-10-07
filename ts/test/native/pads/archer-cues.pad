@@ -1,0 +1,77 @@
+# #148 Trueshot Aura and #144 special cues: Archer's passive fills on two arrow hits and doubles the third; every special form shows its Warcraft spell.
+# Archer a against Archer b; syntax and checks: smashcraft:docs/native-bot-session.md.
+#! chat -dev quick hero archer
+# #148: three arrows at a standing b; the third is the Trueshot arrow.
+60 a tap X 2
+62 a capture
+76 a capture
+91 a capture
+100 a tap X 2
+102 a capture
+116 a capture
+131 a capture
+140 a tap X 2
+142 a capture
+150 a capture
+156 a capture
+171 a capture
+# #144: the seeking arrow.
+220 a stick 1 0
+220 a tap X 2
+221 a stick 0 0
+222 a capture
+232 a capture
+# #144: an arrow from the air.
+300 a tap B 8
+310 a tap X 2
+312 a capture
+326 a capture
+# #144: the ride, steered back over the stage, and a leap off on its 21st frame.
+400 a stick 0 1
+400 a tap X 2
+401 a stick -0.6 0.6
+402 a capture
+405 a capture
+420 a tap B 2
+421 a stick 0 0
+# View held a second: the first of two moments the parity check replays.
+500 a press VIEW
+570 a release VIEW
+# #144: Hippogryph Call to a perch, then its dive.
+640 a stick 0 -1
+640 a tap X 2
+641 a stick 0 0
+642 a capture
+646 a capture
+700 a stick 0 -1
+700 a tap X 2
+701 a stick 0 0
+# Expected, frame by frame (headless run of this script):
+# #148: two arrow hits of 5 ready Trueshot (its aura shows), and the third deals double, 10.
+#! expect a 60 special 1 form 0
+#! expect b 90 damage 5.000
+#! expect a 100 special 1 form 0
+#! expect b 130 damage 10.000
+#! expect a 140 special 1 form 0
+#! expect b 170 damage 20.000
+#! scene a TrueshotAura
+# #144: each special starts on its frame, and its cues and missiles show.
+#! expect a 220 special 2 form 0
+#! expect b 245 damage 23.000
+#! expect a 303 applied jump
+#! expect a 310 special 1 form 0
+#! expect a 400 special 4 form 0
+#! expect a 640 special 3 form 0
+#! expect a 700 special 3 form 1
+#! scene a ArrowMissile
+#! scene a MoonWellCasterArt
+#! scene a StarfallTarget
+#! scene a MoonPriestessMissile
+#! scene a TauntCaster
+#! scene a TranquilityTarget
+#! scene a StarfallCaster
+#! scene a DruidOfTheTalonMissile
+702 a capture
+706 a capture
+1000 a press VIEW
+1070 a release VIEW

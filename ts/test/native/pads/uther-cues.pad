@@ -19,16 +19,24 @@
 300 a stick 0 -1
 300 a tap X 2
 301 a stick 0 0
+302 a capture
+306 a capture
 320 b stick 0 0
 321 b release LB
 # #144: Holy Light, and Holy Light from the air.
 345 a tap X 2
+347 a capture
+365 a capture
 410 a tap B 8
 420 a tap X 2
+422 a capture
+440 a capture
 # #144: Crusader Rush.
 475 a stick 1 0
 475 a tap X 2
 476 a stick 0 0
+477 a capture
+487 a capture
 # View held a second: the first of two moments the parity check replays.
 500 a press VIEW
 570 a release VIEW
@@ -37,12 +45,18 @@
 610 a stick -1 0
 610 a tap X 2
 611 a stick 0 0
+612 a capture
+622 a capture
 # #144: Ascension, paid.
 700 a stick 0 1
 700 a tap X 2
 701 a stick 0 0
+702 a capture
+708 a capture
 # Spend the mana: Holy Light; then Ascension, free.
 780 a tap X 2
+782 a capture
+800 a capture
 845 a stick 0 1
 845 a tap X 2
 846 a stick 0 0
@@ -68,5 +82,7 @@
 #! scene a StampedeMissileDeath
 #! scene a ResurrectTarget
 #! scene a DivineShieldTarget
+847 a capture
+853 a capture
 1000 a press VIEW
 1070 a release VIEW

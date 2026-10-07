@@ -5,6 +5,8 @@
 40 a stick 0 1
 40 a tap X 2
 41 a stick 0 0
+42 a capture
+49 a capture
 # b walks in and lands a jab on a.
 70 b press LB
 70 b stick -1 0
@@ -25,9 +27,13 @@
 300 a stick 0 -1
 300 a tap X 2
 301 a stick 0 0
+302 a capture
+326 a capture
 360 a stick 1 0
 360 a tap X 2
 361 a stick 0 0
+362 a capture
+364 a capture
 # Earn mana: two more forward tilts.
 420 a press LB
 420 a stick 1 0
@@ -43,21 +49,32 @@
 600 a stick 1 0
 600 a tap X 2
 601 a stick 0 0
+602 a capture
+604 a capture
 605 a stick 1 0
 605 a tap X 2
 606 a stick 0 0
+607 a capture
 # #144: Carrion Swarm, then from the air; Sleep from the air; Pounce from the air, back toward the middle.
 640 a tap X 2
+642 a capture
+660 a capture
 690 a tap B 8
 700 a tap X 2
+702 a capture
+720 a capture
 750 a tap B 8
 760 a stick 0 -1
 760 a tap X 2
 761 a stick 0 0
+762 a capture
+786 a capture
 820 a tap B 8
 830 a stick -1 0
 830 a tap X 2
 831 a stick 0 0
+832 a capture
+847 a capture
 # #144: Bat Ascension, free.
 910 a stick 0 1
 910 a tap X 2
@@ -89,5 +106,7 @@
 #! scene a DarkSummonTarget
 #! scene a SleepSpecialArt
 #! scene a VoidWalkerMissile
+912 a capture
+919 a capture
 1000 a press VIEW
 1070 a release VIEW

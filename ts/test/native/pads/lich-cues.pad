@@ -1,0 +1,111 @@
+# #148 Frost Armor and #144 special cues: Lich's passive fills on two melee hits taken and chills the third striker; every special form shows its Warcraft spell.
+# Lich a against Lich b; syntax and checks: smashcraft:docs/native-bot-session.md.
+#! chat -dev quick hero lich
+# #148: b walks in, jabs twice and forward tilts; the third to reach a is chilled by Frost Armor. Then b walks away.
+40 b press LB
+40 b stick -1 0
+108 b stick 0 0
+109 b release LB
+120 b tap A 2
+126 a capture
+140 b tap A 2
+146 a capture
+173 b press LB
+173 b stick -1 0
+175 b tap A 2
+178 b stick 0 0
+179 b release LB
+184 a capture
+190 a capture
+200 b press LB
+200 b stick 1 0
+245 b stick 0 0
+246 b release LB
+# #144: Frost Armor, then Dark Ritual shatters it.
+280 a stick 0 -1
+280 a tap X 2
+281 a stick 0 0
+282 a capture
+302 a capture
+340 a stick 0 -1
+340 a tap X 2
+341 a stick 0 0
+342 a capture
+346 a capture
+# #144: a turns away from b; Frost Nova, and its burst on the second press while the orb flies.
+365 a stick -0.5 0
+367 a stick 0 0
+370 a tap X 2
+372 a capture
+388 a capture
+416 a tap X 2
+418 a capture
+420 a capture
+# #144: Death and Decay.
+470 a stick 1 0
+470 a tap X 2
+471 a stick 0 0
+472 a capture
+478 a capture
+# View held a second: the first of two moments the parity check replays.
+500 a press VIEW
+570 a release VIEW
+# #144: Frost Nova from the air.
+590 a tap B 8
+598 a tap X 2
+600 a capture
+616 a capture
+# #144: Spectral Ascent, paid.
+650 a stick 0 1
+650 a tap X 2
+651 a stick 0 0
+652 a capture
+660 a capture
+# Spend the mana: Death and Decay, two Frost Novas.
+730 a stick 1 0
+730 a tap X 2
+731 a stick 0 0
+732 a capture
+738 a capture
+790 a tap X 2
+792 a capture
+808 a capture
+840 a tap X 2
+842 a capture
+858 a capture
+# #144: Spectral Ascent, free.
+882 a stick 0 1
+882 a tap X 2
+883 a stick 0 0
+# Expected, frame by frame (headless run of this script): every special form starts on its frame,
+# b's first two hits on a fill Frost Armor, and the third (a 183) is taken with it ready.
+#! expect a 125 damage 3.000 hitlag 4 hitstun 10
+#! expect a 145 damage 7.000 hitlag 4 hitstun 16
+#! expect a 183 damage 16.000 hitlag 6 hitstun 18
+#! expect a 280 special 16 form 0
+#! expect a 340 special 16 form 3
+#! expect a 370 special 13 form 0
+#! expect a 416 special 13 form 3
+#! expect a 470 special 14 form 0
+#! expect a 598 special 13 form 1
+#! expect a 650 special 15 form 0
+#! expect a 730 special 14 form 0
+#! expect a 790 special 13 form 0
+#! expect a 840 special 13 form 0
+#! expect a 882 special 15 form 2
+#! scene a FrostArmorTarget
+#! scene a SpiritTouchTarget
+#! scene a FreezingBreathTargetArt
+#! scene a AnimateDeadTarget
+#! scene a UnsummonTarget
+#! scene a DarkRitualCaster
+#! scene a FrostArmorDamage
+#! scene a BreathOfFrostTarget
+#! scene a DarkRitualTarget
+#! scene a FrostBoltMissile
+#! scene a FrostNovaTarget
+#! scene a DeathAndDecayTarget
+884 a capture
+892 a capture
+1000 a press VIEW
+1070 a release VIEW

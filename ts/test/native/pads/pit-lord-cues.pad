@@ -1,0 +1,97 @@
+# Pit Lord's native check by parity for #148 (Cleaving Attack) and #144 (every special form shows its Warcraft spell).
+# Pit Lord a against Pit Lord b; syntax and checks: smashcraft:docs/native-bot-session.md.
+#! chat -dev quick hero pit lord
+# b dashes in and raises its shield; a's Ruin Charge stops at it.
+40 b stick -1 0
+42 b stick 0 0
+45 a stick 1 0
+45 a tap X 2
+46 a stick 0 0
+47 a capture
+50 b shield 1
+64 a capture
+100 b shield 0
+# #148 Cleaving Attack: the Charge on the shield counted one; a dashes up to b, and its second jab cleaves for 3 more.
+116 a stick 1 0
+118 a stick 0 0
+145 a tap A 2
+152 a capture
+165 a tap A 2
+173 a capture
+185 a tap A 2
+# a runs back left.
+200 a stick -1 0
+230 a stick 0 0
+# b spends its mana on five Howls of Terror, then Abyssal Leap's free form.
+# a: Abyssal Leap turned toward b, then a Howl of Terror in the air.
+240 b stick 0 -1
+240 b tap X 2
+240 a stick 0.3 1
+240 a tap X 2
+241 b stick 0 0
+241 a stick 0 0
+242 a capture
+253 a capture
+305 b stick 0 -1
+305 b tap X 2
+306 b stick 0 0
+320 a tap B 8
+326 a stick 0 -1
+326 a tap X 2
+327 a stick 0 0
+328 a capture
+349 a capture
+370 b stick 0 -1
+370 b tap X 2
+371 b stick 0 0
+435 b stick 0 -1
+435 b tap X 2
+436 b stick 0 0
+# View held a second: the first of two moments the parity check replays.
+500 a press VIEW
+500 b stick 0 -1
+500 b tap X 2
+501 b stick 0 0
+565 b stick 0 1
+565 b tap X 2
+566 b stick 0 0
+570 a release VIEW
+# Fel Spit on the ground and in the air.
+600 a tap X 2
+602 a capture
+625 a capture
+680 a tap B 8
+686 a tap X 2
+688 a capture
+711 a capture
+# Ruin Charge in the air.
+860 a tap B 8
+866 a stick 1 0
+866 a tap X 2
+867 a stick 0 0
+# Expected, frame by frame (headless run of this script): every form of every special starts,
+# b's five Howls empty its bar and its Abyssal Leap is the free form (2).
+#! expect a 45 special 14 form 0
+#! expect a 240 special 15 form 0
+#! expect a 326 special 16 form 1
+#! expect a 600 special 13 form 0
+#! expect a 686 special 13 form 1
+#! expect a 866 special 14 form 1
+#! expect b 240 special 16 form 0
+#! expect b 500 special 16 form 0
+#! expect b 565 special 15 form 2
+# Cleaving Attack: the Charge on b's shield counts first; the 6 jab second; the 7 chop cleaves for 10.
+#! expect b 151 damage 6.000 hitlag 5 hitstun 9
+#! expect b 172 damage 16.000 hitlag 6 hitstun 16
+# Startup and active cues of each special, Fel Spit's missile, and the cleave on b.
+#! scene a DeathCoilSpecialArt
+#! scene a ChimaeraAcidTargetArt
+#! scene a ChimaeraAcidMissile
+#! scene a BreathOfFireDamage
+#! scene a FlameStrikeEmbers
+#! scene a HowlCaster
+#! scene a FireLordDeathExplode
+868 a capture
+885 a capture
+1000 a press VIEW
+1070 a release VIEW
