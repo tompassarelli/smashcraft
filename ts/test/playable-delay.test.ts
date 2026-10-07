@@ -14,6 +14,32 @@ import { startProbe } from "../src/platform/shell/responseProbe";
 const headless = installHeadless(PREDICTED_HEADLESS);
 afterAll(headless.restore);
 
+test("a refused local keyboard send retries the original row and keeps neutral capture running", () => {
+  const clients = headless.clients({ start: () => startBuild({ ...PLAYABLE_BUILD, devConsole: true }), install }, [0, 1]);
+  clients.start();
+  clients.frames(30);
+  clients.chat(0, "-dev quick");
+  clients.frames(30);
+  const first = clients.client(0);
+  const before = value(first, () => shell().runtime.simulationFrame);
+  const send = first.natives.BlzSendSyncData;
+  let refused = false;
+  first.natives.BlzSendSyncData = (...args: unknown[]) => {
+    if (!refused) {
+      refused = true;
+      return false;
+    }
+    if (typeof send !== "function") throw new Error("missing sync native");
+    return send(...args);
+  };
+  clients.frames(120);
+  expect(refused).toBe(true);
+  expect(value(first, () => shell().rollback?.sendFailed)).toBe(false);
+  expect(value(first, () => shell().runtime.simulationFrame)).toBeGreaterThan(before + 90);
+  for (const client of clients.clients) expect(client.errors).toEqual([]);
+  expect(clients.firstDivergence()).toBeUndefined();
+});
+
 test("release keyboard shields start exactly two frames after capture before the sender's echo", () => {
   const clients = headless.clients({ start: () => startBuild({ ...PLAYABLE_BUILD, devConsole: true }), install }, [0, 1], {
     delivery: syncDelivery({ latencyMs: 150, turnMs: 25, extraTurns: [1] }, 60),
