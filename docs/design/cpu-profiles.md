@@ -131,6 +131,11 @@ until that window can meet the strike. Protected approaches hand over to attack
 selection at the fighter's projected authored reach. These forecasts use no
 newer opponent sample.
 
+Attack and punish reach also advance the delayed target's horizontal position
+through the observation delay using its last observed velocity. The attacker's
+own slide starts at the decision frame, so the delay is counted only for the
+target. The forecast remains fallible when that target changes direction.
+
 An active Divine Shield can also fund a ranged attack when the opponent remains
 outside melee reach. Its mana is available for that attack instead of being held
 for a second guard; without active protection, the guard reserve still applies.
@@ -250,12 +255,17 @@ The same seeded decision sequence is restored and replayed in each sample.
 Direction requests include neutral braking and measure actual reversals.
 
 The command fails insufficient collection, an early reaction, a direction
-reversal inside five frames or any restored-state difference. Counts and
-distributions remain visible when collection fails. It also prints close
-conversions and exposed commitments at high own damage. These fixtures are
-measurements; the complete six developmental paths and identity-specific
-enduring-flaw fixtures remain #186's separate acceptance gate. Do not label a
-collection pass as completion of calibration.
+reversal inside five frames or any restored-state difference. Close conversions
+play the chosen punish for 60 simulation frames and count actual connections.
+Developmental checks require each named primary/secondary outcome to improve
+from Rookie to Expert without falling between adjacent tiers; Flint's pattern
+switch must improve at every tier. Each identity also faces its named bait:
+Rook's brief speculative opening, Ember's extra pressure attack, Flint's
+conditioned forward tilt, Vale's feinted reset, Kite's guarded ledge escape
+and Wren's chased uncertain retreat. Each counter plays for 60 frames and must
+catch at least one eligible commitment at every tier, counting damage or a
+grab. Counts and distributions remain visible when a check fails. Difficulty,
+whole-roster kit use, balance and native parity retain their separate gates.
 
 Use the existing hosted difficulty and field commands for their original
 thresholds (Expert wins at least 95/100 against Rookie; every fighter lies

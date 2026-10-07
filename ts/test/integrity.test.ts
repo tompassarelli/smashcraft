@@ -83,7 +83,7 @@ function recordingRig(file: (client: Slot, name: string) => string, screenText =
   let typed = "";
   let chatOpen = initialChatOpen;
   let chatRevision = 1;
-  const preload = (lines: readonly string[]) => `${lines.join("\n")}\nendfunction\n`;
+  const preload = (lines: readonly string[]) => `function PreloadFiles takes nothing returns nothing\n${lines.map((line) => `call Preload( "${line}" )`).join("\n")}\nendfunction\n`;
   const modeled = (client: Slot, name: string): GameFile | undefined => {
     if (name.startsWith("smashcraft-chat-")) return { text: preload([`SMASHCRAFT CHAT v=1 available=1 open=${chatOpen ? 1 : 0}`]), mtimeNs: BigInt(chatRevision) };
     if (name.startsWith("smashcraft-dev-")) return receipts === 0 ? undefined : { text: preload(devReceiptFile({ build: "b", epoch: 0, slot: client }, receipts, dev, game).lines), mtimeNs: BigInt(receipts + 1) };
@@ -372,6 +372,7 @@ test("setup observes chat open before typing when its first Return closes an alr
 test("bot sessions enable automatic rematch and wait for the second game without selection or a Start press", async () => {
   const bot = recordingRig(gameFiles, "3 Stock 7:00 Automatic rematch: Off Player 2 wins!");
   await Effect.runPromise(journey(bot.rig, { ...R8, build: "typescript-integrity", workload: "bot", botPerf: true }).run);
+  expect(bot.game.stockCount).toBe(3);
   expect(bot.trace).toContain("type a -dev rematch 20");
   expect(bot.trace).toContain("type a -dev auto-rematch on");
   expect(bot.game.automaticRematch).toBe(true);

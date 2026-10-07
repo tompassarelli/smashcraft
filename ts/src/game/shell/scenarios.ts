@@ -16,6 +16,7 @@ import { stageBounds } from "../sim/stageBounds";
 import { BODY_HALF_WIDTH, bodyTop } from "../sim/surfaces";
 import { melee } from "../sim/tuning";
 import type { Scenario } from "./build";
+import { initializePainScenario } from "./painFixture";
 
 /** Both fighters airborne past one edge, rising, close enough for a downward Immolate. */
 export function initializeSpikeScenario(first: Fighter, second: Fighter, stage: number, side: 1 | -1): void {
@@ -56,6 +57,7 @@ const UNDERSIDE_FROZEN_FRAMES = 600;
 
 /** Stages the scenario on a freshly initialized match. */
 export function initializeScenario(scenario: Scenario, game: Readonly<MatchState>, world: Roster): void {
+  if (initializePainScenario(scenario, world)) return;
   const firstSlot = firstHumanSlot(game);
   if (firstSlot === undefined || !isActive(world, firstSlot)) return;
   const otherSlot = opponentSlot(game, world, firstSlot);
@@ -168,6 +170,9 @@ export function initializeScenario(scenario: Scenario, game: Readonly<MatchState
 
 /** Staged scenarios keep the computer passive. */
 const COMPUTER_PLAYS: Readonly<Record<Scenario, boolean>> = {
+  "pain-low-small": false, "pain-low-medium": false, "pain-low-large": false,
+  "pain-middle-small": false, "pain-middle-medium": false, "pain-middle-large": false,
+  "pain-high-small": false, "pain-high-medium": false, "pain-high-large": false,
   "agency-none": false,
   "agency-di": false,
   "agency-act": false,

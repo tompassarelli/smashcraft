@@ -48,7 +48,7 @@ The session has a match and a rematch:
 
 - Slot C becomes a computer Illidan (Demon Hunter). `--bot-four` adds a
   computer Archer in slot D, for four fighters.
-- On fighter selection the match is set to one stock and one minute, with
+- On fighter selection the match is set to three stocks and one minute, with
   Automatic rematch on, on Sky Deck. The match and its automatic rematch play
   with the same fighters and settings, with no menu presses between matches.
   A development/integrity build uses `-dev rematch 20` so response export

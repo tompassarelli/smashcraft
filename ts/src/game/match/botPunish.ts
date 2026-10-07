@@ -216,7 +216,7 @@ export function choosePunish(f: Readonly<Fighter>, target: Readonly<Fighter>, st
     const tool = plan !== undefined && spacingTool(plan, style === move ? move : AttackStyle.dashAttack);
     const passive = cashing && plan !== undefined && passiveLandingMove(plan, passiveSpec(f.character).kind, style === move ? move : AttackStyle.dashAttack);
     const better = best === undefined || (passive && !bestPassive) || (passive === bestPassive && ((tool && !bestTool) || (tool === bestTool && startup < bestStartup)));
-    const x = Math.abs(aheadX(f, target, startup, style));
+    const x = Math.abs(aheadX(f, target, startup, style, observationAge));
     if (startup <= believed && better && moveReaches(f.character, style, target, x, aheadZ(f, target, startup, stage, matchFrame, observationAge), moves) && grabSure(f, style, target, x)) {
       best = move;
       bestStartup = startup;
@@ -227,10 +227,10 @@ export function choosePunish(f: Readonly<Fighter>, target: Readonly<Fighter>, st
     if (shielding || runFits) continue;
     const ran = runningStyle(f, move);
     const ranStartup = attackStartupFrames(ran, moves);
-    const short = f32(Math.abs(aheadX(f, target, ranStartup)) - moveReachAhead(f.character, ran, target, moves));
+    const short = f32(Math.abs(aheadX(f, target, ranStartup, undefined, observationAge)) - moveReachAhead(f.character, ran, target, moves));
     if (short > 0 && short <= RUN_FAR && Math.ceil(f32(short / speed)) + ranStartup <= believed) runFits = true;
   }
-  const dx = f32(target.motion.x - f.motion.x);
+  const dx = aheadX(f, target, 0, undefined, observationAge);
   const toward = dx === 0 ? (f.facing < 0 ? -1 : 1) : dx > 0 ? 1 : -1;
   if (best !== undefined) {
     queueAttack(commands, { style: best, facing: toward, frame, mayCharge: false });
@@ -238,7 +238,7 @@ export function choosePunish(f: Readonly<Fighter>, target: Readonly<Fighter>, st
     input.shield = false;
     return true;
   }
-  if (!runFits || !safeAt(stage, target.motion.x, 0.0)) return false;
+  if (!runFits || !safeAt(stage, f32(f.motion.x + dx), 0.0)) return false;
   input.walking = false;
   input.direction = toward;
   return true;
