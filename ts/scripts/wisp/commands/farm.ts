@@ -41,11 +41,12 @@ const run = (argv: readonly string[], inherit = false, cwd?: string) => Effect.t
 
 /** The commit to measure, and the scratch branch it was pushed to when main doesn't hold it. */
 const resolveRef = (given: string | undefined, repo: string) => Effect.gen(function*() {
-  if (given !== undefined) return { ref: given, scratch: undefined };
-  const sha = yield* run(["git", "rev-parse", "HEAD"]);
+  // actions/checkout needs a full commit id; a branch or short id resolves here.
+  const sha = yield* run(["git", "rev-parse", "--verify", `${given ?? "HEAD"}^{commit}`]);
   yield* run(["git", "fetch", "--quiet", "origin", "main"]);
   const onMain = yield* run(["git", "merge-base", "--is-ancestor", sha, "FETCH_HEAD"]).pipe(Effect.as(true), Effect.orElseSucceed(() => false));
   if (onMain) return { ref: sha, scratch: undefined };
+  if (sha !== (yield* run(["git", "rev-parse", "HEAD"]))) return yield* new FarmFailure({ problem: `${sha.slice(0, 12)} isn't on main: check it out to measure it, so safe-push pushes it` });
   const scratch = `farm/${sha.slice(0, 12)}`;
   console.error(`${sha.slice(0, 12)} isn't on main: pushing it to ${scratch} for the run (deleted afterwards)`);
   // The scratch branch starts at a commit origin already holds, so safe-push
