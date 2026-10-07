@@ -1312,6 +1312,46 @@ Every model needs a verified animation map: action, native clip/index if availab
 
 If the current source requires a different safe dependency order, retain the design priorities but explain the change. Commit or checkpoint complete units of work using the repository’s existing conventions. The deliverable is a playable, tested increment with honest gaps, not a roster count.
 
+## Balance gate
+
+Decided by Tom on 7 Oct 2026 (#105). The roster is balanced when **every
+fighter's win rate against the field is between 40% and 60%**, with both
+computers at **level 9** and at least **400 matches a pair**: every pair
+of different fighters, both orders, on every soak stage, over seeded
+matches. The numbers live in one constant, `BALANCE_GATE` in
+smashcraft:ts/scripts/cpuField.ts. smashcraft:ts/scripts/cpuField.tests.ts
+pins the constant and checks that this section states the same numbers, so
+changing the gate means changing the code, the test and this section
+together.
+
+Matchup parity is reported but not gated. Each matchup's win rate, the
+count inside 45-55%, the count whose 95% interval overlaps that band and
+the median distance from 50% are printed beside the verdict. The computers
+play nearly deterministically, so a small edge in one matchup becomes a
+lopsided result over hundreds of matches, and tuning one matchup moves
+others. At 100 matches a pair the 45-55% band is also within one standard
+error, so even an even matchup often lands outside it. A fighter's rate
+against the field averages over eleven opponents and reflects its
+strength, which is what tuning can move without making kits alike.
+
+A change that passes the gate must also keep each fighter's identity: it
+works the fighter's declared strength or weakness (its section above and
+its gameplan) and is recorded in the Balance record with its before and
+after numbers.
+
+Check (from ts/, in shards under the capacity helper; each shard is a
+`--pairs` list, about 0.15 s a match):
+
+```text
+bun scripts/cpuField.ts --per-pair 400 --seeds 100 --pairs <pairs> --json shard.N.json
+bun scripts/cpuField.ts --merge shard.0.json,shard.1.json,...
+```
+
+The merged table ends with "Balance gate (...): passes", "fails" or "not a
+gate run" (a different level or fewer matches a pair), and lists any fighter
+outside the band. Latest run:
+smashcraft:evidence/balance-105-20261007/n400-after-pass-4.md.
+
 ## Balance and feel measurement
 
 ### Measure interactions rather than assign a power score

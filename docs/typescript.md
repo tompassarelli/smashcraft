@@ -566,9 +566,10 @@ From smashcraft:ts/:
   field (#105); `--pairs` plays only the listed pairs, both orders.
   `--per-pair N` plays spawn variants and seeds until every pair has at
   least N matches; the matchup matrix shows each win rate with its match
-  count. #105 box 3's gate: every matchup's 95% interval overlaps 45-55%
-  and the median distance from 50% is at most 5 points, measured at 400 a
-  pair (tune at 100); the table prints both, plus the count inside 45-55%.
+  count. The table ends with the balance gate's verdict (`BALANCE_GATE`:
+  every fighter 40-60% against the field, level 9, 400 a pair;
+  smashcraft:docs/design/roster.md, "Balance gate") and the matchup spread,
+  reported but not gated.
   `--merge` summarizes earlier `--json` runs instead of playing, so a
   field can run as `--pairs` shards.
   Every ordered pair of different selectable fighters, both computers, on

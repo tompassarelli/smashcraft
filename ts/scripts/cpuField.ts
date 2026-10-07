@@ -38,11 +38,16 @@ export const FIELD_STAGES: Readonly<Record<string, number>> = {
 const NO_HIT_FRAMES = 3 * MATCH_TICKS_PER_SECOND;
 // A self-destruct (#105 box 3) is a stock lost with no hit taken since the fighter last stood on a deck or held the ledge.
 // The 3 s count above is kept as fall time: a far launch that takes longer than 3 s to finish counts there.
-/** Every matchup's win rate, both directions, belongs in this band (#105 box 3). */
+/**
+ * The balance gate (Tom, 7 Oct; smashcraft:docs/design/roster.md, "Balance
+ * gate"): every fighter's win rate against the field lies in [fieldLow,
+ * fieldHigh], with both computers at `level` and at least `perPair` matches
+ * a pair. The doc states these numbers; cpuField.tests.ts pins both together.
+ */
+export const BALANCE_GATE = { fieldLow: 0.40, fieldHigh: 0.60, level: 9, perPair: 400 } as const;
+/** The matchup band, reported but not gated (Balance gate). */
 const MATCHUP_LOW = 0.45;
 const MATCHUP_HIGH = 0.55;
-/** The gate's measured claim (#105): a matchup passes when its 95% interval overlaps the band; the field passes when the median distance from 50% is at most this. */
-const MEDIAN_DEVIATION_LIMIT = 0.05;
 /** Specials as gameplans and the computer's options number them: neutral, side, up, down. */
 export const SPECIAL_MOVE = GameplanSpecial;
 /** Spawn shifts, in order, for each variant of a setup. */
@@ -368,7 +373,7 @@ export function gameplanKeyMovesCheck(character: Character, { top = 8, key, opti
   return { ...result, missingNames: result.missing.map(moveName), usage };
 }
 
-export interface MatchupGate {
+export interface MatchupReport {
   readonly matchups: number;
   /** Matchups whose win rate lies inside 45-55%. */
   readonly inside: number;
@@ -379,12 +384,10 @@ export interface MatchupGate {
   readonly smallestPlayed: number;
   /** Matchups whose interval misses the band, as "row-column rate". */
   readonly missing: readonly string[];
-  /** Whether every interval overlaps the band and the median distance is at most 5 points. */
-  readonly passes: boolean;
 }
 
-/** #105 box 3's measured claim over each unordered pair once, from the earlier fighter's row. */
-export function matchupGate(summaries: readonly Pick<FighterSummary, "fighter" | "against" | "played" | "decisive">[]): MatchupGate {
+/** The matchup spread over each unordered pair once, from the earlier fighter's row: reported, not gated. */
+export function matchupReport(summaries: readonly Pick<FighterSummary, "fighter" | "against" | "played" | "decisive">[]): MatchupReport {
   const names = summaries.map((s) => s.fighter);
   const deviations: number[] = [];
   const missing: string[] = [];
@@ -406,10 +409,22 @@ export function matchupGate(summaries: readonly Pick<FighterSummary, "fighter" |
   deviations.sort((x, y) => x - y);
   const middle = deviations.length >> 1;
   const medianDeviation = deviations.length === 0 ? 0 : deviations.length % 2 === 1 ? deviations[middle] ?? 0 : ((deviations[middle - 1] ?? 0) + (deviations[middle] ?? 0)) / 2;
-  return {
-    matchups: deviations.length, inside, overlapping, medianDeviation, smallestPlayed, missing,
-    passes: deviations.length > 0 && overlapping === deviations.length && medianDeviation <= MEDIAN_DEVIATION_LIMIT,
-  };
+  return { matchups: deviations.length, inside, overlapping, medianDeviation, smallestPlayed, missing };
+}
+
+export interface BalanceVerdict {
+  /** Fighters whose win rate against the field lies outside the gate's band, as "fighter rate". */
+  readonly outside: readonly string[];
+  /** Whether the run measured what the gate names: its level for both computers and its matches a pair. */
+  readonly gateRun: boolean;
+  readonly passes: boolean;
+}
+
+/** The balance gate's verdict on a field: every fighter inside the band, on a run at the gate's level and matches a pair. */
+export function balanceVerdict(summaries: readonly Pick<FighterSummary, "fighter" | "winRate">[], levels: readonly number[], smallestPlayed: number): BalanceVerdict {
+  const outside = summaries.filter((s) => !(s.winRate >= BALANCE_GATE.fieldLow && s.winRate <= BALANCE_GATE.fieldHigh)).map((s) => `${s.fighter} ${percent(s.winRate)}`);
+  const gateRun = levels.length > 0 && levels.every((level) => level === BALANCE_GATE.level) && smallestPlayed >= BALANCE_GATE.perPair;
+  return { outside, gateRun, passes: gateRun && summaries.length > 0 && outside.length === 0 };
 }
 
 function summarizeField(records: readonly MatchRecord[]): FighterSummary[] {
@@ -471,7 +486,7 @@ function summarizeField(records: readonly MatchRecord[]): FighterSummary[] {
 
 const percent = (value: number) => (Number.isNaN(value) ? "-" : `${(100 * value).toFixed(0)}%`);
 
-function fieldTable(summaries: readonly FighterSummary[]): string {
+function fieldTable(summaries: readonly FighterSummary[], records: readonly MatchRecord[]): string {
   const lines = [
     "| Fighter | Matches | Wins | Losses | Ties | Time-outs | Win rate vs field | Stock losses | Self-destructs (share) | Lost over 3 s after a hit (share) | Damage per hit | Mana spent per stock | Specials refused for mana (share of presses) | Top moves (share of moves started) |",
     "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | ---: | ---: | ---: | --- |",
@@ -484,11 +499,14 @@ function fieldTable(summaries: readonly FighterSummary[]): string {
   lines.push("", `| Row's win rate vs (matches) | ${names.join(" | ")} |`, `| --- |${names.map(() => " ---: |").join("")}`);
   const cell = (s: FighterSummary, name: string) => (name === s.fighter ? "-" : `${percent(s.against[name] ?? Number.NaN)} (${s.played[name] ?? 0})`);
   for (const s of summaries) lines.push(`| ${s.fighter} | ${names.map((name) => cell(s, name)).join(" | ")} |`);
-  // #105 box 3: every matchup's 95% interval overlaps the band, and the median matchup is within 5 points of even.
-  const gate = matchupGate(summaries);
+  const report = matchupReport(summaries);
+  const verdict = balanceVerdict(summaries, [...new Set(records.flatMap((record) => record.levels))], report.smallestPlayed);
+  const { fieldLow, fieldHigh, level, perPair } = BALANCE_GATE;
   lines.push(
     "",
-    `Matchups inside ${percent(MATCHUP_LOW)}-${percent(MATCHUP_HIGH)}: ${gate.inside} of ${gate.matchups}, at least ${gate.smallestPlayed} matches each. 95% interval overlapping the band: ${gate.overlapping} of ${gate.matchups}. Median distance from 50%: ${(100 * gate.medianDeviation).toFixed(1)} points. Gate (every interval overlaps, median at most ${(100 * MEDIAN_DEVIATION_LIMIT).toFixed(0)} points): ${gate.passes ? "passes" : "fails"}.${gate.missing.length === 0 ? "" : ` Intervals missing the band: ${gate.missing.join(", ")}.`}`,
+    `Balance gate (every fighter ${percent(fieldLow)}-${percent(fieldHigh)} against the field, level ${level}, at least ${perPair} a pair): ${verdict.passes ? "passes" : verdict.gateRun ? "fails" : "not a gate run"}.${verdict.outside.length === 0 ? "" : ` Outside: ${verdict.outside.join(", ")}.`}`,
+    "",
+    `Matchups (reported, not gated): inside ${percent(MATCHUP_LOW)}-${percent(MATCHUP_HIGH)} ${report.inside} of ${report.matchups}, at least ${report.smallestPlayed} matches each; 95% interval overlapping that band ${report.overlapping} of ${report.matchups}; median distance from 50% ${(100 * report.medianDeviation).toFixed(1)} points.`,
   );
   return lines.join("\n");
 }
@@ -547,6 +565,6 @@ if (import.meta.main) {
   if (merged !== undefined) console.log(`Merged from ${values.merge}; the line below describes this command's options, not the shards'.`);
   console.log(`${records.length} computer matches (${options.stocks} stocks, ${options.minutes}-minute clock, ${options.perPair === undefined ? `${options.variants} spawn variant(s) of ${options.seeds} seed(s) per ordered pair and stage` : `spawn variants and ${options.seeds} seed(s) each until each pair has ${options.perPair} matches`}, computer levels ${(options.levels ?? [CPU_LEVEL_MAX, CPU_LEVEL_MAX]).join(" and ")}), ${((performance.now() - started) / 1000).toFixed(0)} s; win rate over decisive matches; a self-destruct is a stock lost with no hit taken since the fighter last stood on a deck or held the ledge; the fall-time column counts stocks lost over ${NO_HIT_FRAMES / MATCH_TICKS_PER_SECOND} s after the last hit.`);
   console.log("");
-  console.log(fieldTable(summaries));
+  console.log(fieldTable(summaries, records));
   if (values.json !== undefined) writeFileSync(values.json, `${JSON.stringify({ options, summaries, records }, null, 1)}\n`);
 }
