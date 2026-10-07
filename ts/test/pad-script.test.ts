@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { ABS_X, ABS_Y, ABS_Z, BTN_A, BTN_SELECT, EV_ABS, EV_KEY } from "../scripts/integrity/linuxInput";
-import { frameWriteNs, landEdges, matchStart, parsePadScript, publishedFrame, ruleFrame } from "../scripts/integrity/padScript";
+import { deadlineOrder, frameWriteNs, landEdges, matchStart, parsePadScript, publishedFrame, ruleFrame } from "../scripts/integrity/padScript";
 import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -27,6 +27,15 @@ test("a malformed pad script line names itself", () => {
   expect(() => parsePadScript("10 c press A")).toThrow("line 1");
   expect(() => parsePadScript("10 a press Q")).toThrow("unknown button Q");
   expect(() => parsePadScript("20 a press A\n10 a release A")).toThrow("comes before");
+});
+
+test("two-client pad steps follow actual deadlines when B starts 58.678 ms before A", () => {
+  const epochs = [75573308340758, 75573249662704] as const;
+  const steps = parsePadScript("60 a press A\n60 b press A\n61 a release A\n61 b release A\n62 a capture\n62 b capture");
+  const ordered = deadlineOrder(steps, epochs);
+  expect(ordered.map((item) => [item.frame, item.slot])).toEqual([[60, 1], [61, 1], [62, 1], [60, 0], [61, 0], [62, 0]]);
+  const deadlines = ordered.map((item) => frameWriteNs(epochs[item.slot], item.frame));
+  expect(deadlines).toEqual([...deadlines].sort((a, b) => a - b));
 });
 
 test("edges land on the frames a fake helper journaled them on", () => {

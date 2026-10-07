@@ -38,7 +38,7 @@ import { type Pad, inject, monotonicNs, openPad } from "../../integrity/linux";
 import { BTN_SELECT, PAD_BUTTONS } from "../../integrity/linuxInput";
 import { REPRO_NAME, TRACE_FILE, checkHeadlessRun, compareRuns, scriptChat } from "../../integrity/padParity";
 import type { Schedule, ScheduleReply, ScheduledEdge } from "../../integrity/padScheduleWorker";
-import { type PadStep, type SentEdge, frameWriteNs, landEdges, matchStart, parsePadScript, ruleFrame } from "../../integrity/padScript";
+import { type PadStep, type SentEdge, deadlineOrder, frameWriteNs, landEdges, matchStart, parsePadScript, ruleFrame } from "../../integrity/padScript";
 import { SLOTS } from "../../integrity/reconcile";
 import { captureWhenDrawn, drawnFrom } from "../../integrity/drawnCapture";
 import { drawnFrameFile } from "../../../src/runtime/gameFiles";
@@ -223,7 +223,7 @@ export const nativeScript = (session: NativeSession, options: PadOptions) => Eff
   const producerPath = join(out, "producer.jsonl");
   const producer = yield* Effect.acquireRelease(tryIntegrity("open producer log", producerPath, () => openSync(producerPath, "w")), (fd) => Effect.sync(() => closeSync(fd)));
   const sent: SentEdge[] = [];
-  for (const item of steps) {
+  for (const item of deadlineOrder(steps, epochs)) {
     yield* until(frameWriteNs(at(epochs, item.slot), item.frame));
     if (item.kind === "capture") {
       // Taken once the client has drawn the frame (scripts/integrity/drawnCapture.ts), named by the frame it showed.

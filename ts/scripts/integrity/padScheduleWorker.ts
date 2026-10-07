@@ -4,7 +4,7 @@
 // the main thread would hold their frames back.
 import { type Pad, inject, monotonicNs } from "./linux";
 import type { SourceEdge } from "./linuxInput";
-import { frameWriteNs } from "./padScript";
+import { deadlineOrder, frameWriteNs } from "./padScript";
 
 declare const self: Worker;
 
@@ -30,7 +30,7 @@ export type ScheduleReply =
 self.onmessage = (event: MessageEvent<Schedule>) => {
   const { pads, epochs, edges } = event.data;
   try {
-    for (const item of edges) {
+    for (const item of deadlineOrder(edges, epochs)) {
       const target = frameWriteNs(epochs[item.slot], item.frame);
       const coarse = (target - monotonicNs()) / 1e6 - 5;
       if (coarse > 0) Bun.sleepSync(coarse);

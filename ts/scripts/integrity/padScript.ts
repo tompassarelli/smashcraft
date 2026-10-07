@@ -116,5 +116,10 @@ export function matchStart(log: string): { readonly epoch: number; readonly epoc
 /** When to write an edge meant for `frame`: a fifth into that frame on the helper's clock, clear of its start and leaving 13 ms for a late wake on a loaded host. */
 export const frameWriteNs = (epochNs: number, frame: number): number => epochNs + Math.round(((frame - 1) * 1e9 + 0.2e9) / 60);
 
+/** Each client's frame starts on its own clock; source order cannot order deadlines across clients. */
+export function deadlineOrder<T extends { readonly slot: 0 | 1; readonly frame: number }>(items: readonly T[], epochs: readonly [number, number]): T[] {
+  return [...items].sort((a, b) => frameWriteNs(epochs[a.slot], a.frame) - frameWriteNs(epochs[b.slot], b.frame));
+}
+
 /** The frame the helper's rule gives a stamp (the helper's own event line confirms buttons). */
 export const ruleFrame = (epochNs: number, stampNs: number): number => 1 + Math.floor((stampNs - epochNs) * 60 / 1e9);
