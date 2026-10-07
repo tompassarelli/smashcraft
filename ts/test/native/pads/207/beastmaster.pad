@@ -1,4 +1,4 @@
-# #207: beastmaster forward and backward shield roll at its middle frame.
+# #207: beastmaster forward shield roll at frame 76; frame 121 shows recovery.
 #! chat -dev quick hero beastmaster
 60 a shield 1
 61 a stick 1 0
