@@ -42,6 +42,37 @@ test("emulator compaction drops sound event history while preserving live sounds
   assertEquals(client.checksum(), checksum);
 });
 
+test("1000 released sounds leave no retained client records or live handles", () => {
+  const functions: readonly (readonly [string, string, number])[] = [["CreateSound", "sound", 7], ["StartSound", "void", 1], ["KillSoundWhenDone", "void", 1]];
+  const client = new HeadlessClient({ slot: 0, filePrefix: "sound-release", humans: [0], declarations: { functions, constants: [], variables: [] }, localNatives: {}, network: [], screenWidth: 1280 });
+  const census = new HandleCensus(client, functions);
+  type Native = (this: void, ...args: unknown[]) => unknown;
+  const isNative = (value: unknown): value is Native => typeof value === "function";
+  const create = client.natives.CreateSound;
+  const start = client.natives.StartSound;
+  const release = client.natives.KillSoundWhenDone;
+  if (!isNative(create) || !isNative(start) || !isNative(release)) throw new Error("missing sound natives");
+  const warmup = create("sound.wav", false, false, false, 0, 0, "");
+  start(warmup);
+  release(warmup);
+  compactEmulator(client, census.takeReleased());
+  const environment = new LuaTable<AnyNotNil, unknown>();
+  environment.set("client", client);
+  const baseline = reach(environment, [], false).tables;
+  for (let index = 0; index < 1000; index++) {
+    const sound = create("sound.wav", false, false, false, 0, 0, "");
+    start(sound);
+    release(sound);
+  }
+  const checksum = client.checksum();
+  compactEmulator(client, census.takeReleased());
+  assertEquals(census.counts()[0]?.[1], 0);
+  assertEquals(client.soundLog.length, 0);
+  assertEquals(client.missingNatives.length, 0);
+  assertEquals(client.checksum(), checksum);
+  assertEquals(reach(environment, [], false).tables, baseline);
+});
+
 
 test("copied bot reads add no reachable tables when reads appear after warmup", () => {
   const source = createBotStrategy();

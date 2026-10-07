@@ -439,9 +439,9 @@ code. From smashcraft:ts/:
   lower-tier or smaller exploratory fields remain reports.
   `--matchups archer:chen-stormstout,lich:chen-stormstout` runs only those
   named pairs for a repair comparison; its report is not a full-roster gate.
-  `bun wisp farm pads [--ref REF] [--only DIR]... [--wait]` plays
+  `bun wisp farm pads [--ref REF] [--only PATH]... [--wait]` plays
   every top-level smashcraft:ts/test/native/pads/ script (or each issue
-  folder named by `--only`, such as `--only 151 --only 167`) headless through the
+  file or folder named by `--only`, such as `--only 151 --only archer-cues.pad`) headless through the
   real helper against its own `#!` expectations, for a change that moves hit
   timing or a new issue script on a loaded host; each job uploads its traces
   (`gh run download RUN`), the source of a new script's `#! expect` lines;
