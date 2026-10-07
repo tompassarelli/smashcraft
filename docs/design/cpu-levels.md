@@ -155,8 +155,11 @@ shot, partner, guard, armor or branch), landing lag, a dropped shield's
 release lag, a dodge after its intangibility, and a grounded opponent
 asleep or stunned (a status that blocks every action; its frames left,
 shortened by any mashing; #105 found Dreadlord converted only a quarter of
-his Sleeps before it). A hit, a grab, a knockdown,
-the ledge or the air is not a window. The computer then takes a ground move whose
+his Sleeps before it). Attack clocks advance through the observation's age,
+excluding the frozen frames of observed hitlag. A falling attack whose
+trajectory reaches a deck during that delay supplies its authored landing lag,
+less the frames already spent on the deck. A hit, a grab, a knockdown,
+the ledge or a target still expected in the air is not a window. The computer then takes a ground move whose
 first active frame lands inside the window and whose strike reaches where
 the opponent will be (the bot's cached first-active-frame reach): its
 gameplan's spacing tool when one fits (from level 4, with the gameplan

@@ -9,7 +9,8 @@ import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { clearAttackBuffer, queueAttack } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import { AttackStyle, Character, HeroStatusKind } from "../sim/codes";
-import { createFighter } from "../sim/fighter";
+import { createFighter, type Fighter } from "../sim/fighter";
+import { copyFighterState } from "../replay/fighterState";
 import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
 import { attackLandingLag } from "../sim/moves";
 import { copyControls, createRoster, fighterAt, isActive, neutralControls } from "../sim/roster";
@@ -24,6 +25,58 @@ import { MATCH_TICKS_PER_SECOND, Phase, createMatchState } from "./rules";
 const TICK = f32(1.0 / MATCH_TICKS_PER_SECOND);
 
 const NEUTRAL = neutralControls();
+
+/** Compare a delayed visible commitment with its actual twelve neutral frames. */
+function forecastRecovery(setup: (target: Fighter) => void): void {
+  const target = createFighter(Character.lich, 0.0, 1);
+  setup(target);
+  const world = createRoster(3, [target, createFighter(Character.archer, -500.0, 1)]);
+  const observed = createFighter(Character.lich, 0.0, 1);
+  copyFighterState(observed, target, world.mask);
+  const match = createMatchState();
+  match.phase = Phase.match;
+  match.stageChoice = 0;
+  match.timeLimitMinutes = 0;
+  const runtime = createPacingAndPresentation();
+  const produced = createFrameControls();
+  const controls = createFrameControls();
+  const row = createMatchFrameInput();
+  for (let frame = 1; frame <= 12; frame++) {
+    assertTrue(captureFrame(row, frame, world.mask, produced, runtime));
+    assertTrue(executeMatchFrame(row, match, world, controls, runtime, frame));
+  }
+  const actual: PunishWindow = { frames: 0, kind: PunishKind.none, elapsed: 0, key: 0 };
+  const forecast: PunishWindow = { frames: 0, kind: PunishKind.none, elapsed: 0, key: 0 };
+  assertTrue(punishWindow(target, 13, actual));
+  assertTrue(punishWindow(observed, 13, forecast, 12, 0, match.matchFrame));
+  assertEquals(forecast.kind, actual.kind);
+  assertEquals(forecast.frames, actual.frames);
+}
+
+test("a delayed punish forecast follows an attack through its observed hitlag into recovery", () => {
+  forecastRecovery(target => {
+    // Hitlag's expiry frame advances the action; the preceding five frames stay frozen.
+    target.attack.style = AttackStyle.forwardTiltDown;
+    target.attack.frame = 8;
+    target.attack.duration = 34;
+    target.attack.cooldown = 26;
+    target.launch.hitlag = 6;
+  });
+});
+
+test("a delayed punish forecast recognizes an observed aerial's landing recovery", () => {
+  forecastRecovery(target => {
+    target.motion.grounded = false;
+    target.motion.surface = undefined;
+    target.motion.z = 80.0;
+    target.motion.vz = -8.0;
+    target.motion.deltaZ = -8.0;
+    target.attack.style = AttackStyle.neutralAir;
+    target.attack.frame = 1;
+    target.attack.duration = 40;
+    target.attack.cooldown = 39;
+  });
+});
 
 /** The committal states a scripted Pit Lord shows, and where the computer stands for each. */
 const Whiff = { forwardSmash: 0, grab: 1, landing: 2 } as const;

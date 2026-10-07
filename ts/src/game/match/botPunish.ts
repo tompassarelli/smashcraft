@@ -16,11 +16,11 @@ import { GROUND_ROLL_FRAMES, SPOT_DODGE_FRAMES, SPOT_DODGE_INTANGIBLE_END, canAt
 import { heroStatusBlocksActions } from "../sim/heroStatus";
 import type { Fighter } from "../sim/fighter";
 import { heroSpecialEndFrame, runningHeroSpecial } from "../sim/heroSpecialRules";
-import { attackStartupFrames, characterAttackActiveFrames } from "../sim/moves";
+import { attackLandingLag, attackStartupFrames, characterAttackActiveFrames, landsIntoAttack } from "../sim/moves";
 import type { Controls } from "../sim/roster";
 import { SHIELD_RELEASE_LAG_FRAMES } from "../sim/shield";
 import type { FighterGameplan } from "../sim/gameplan";
-import { safeAt, slideStaysOnDeck } from "./botFooting";
+import { deckUnder, heightAhead, safeAt, slideStaysOnDeck } from "./botFooting";
 import { gameplanOf, passiveLandingMove } from "./botGameplan";
 import { passivePips, passiveSpec } from "../sim/passives";
 import { aheadX, aheadZ, moveReachAhead, moveReaches } from "./botMoves";
@@ -56,16 +56,42 @@ const open: PunishWindow = { frames: 0, kind: PunishKind.none, elapsed: 0, key: 
  * nothing still to come (no shot, partner, guard, armor, grab or branch),
  * filling the frames since its last strike; 0 for any other.
  */
-function specialSpent(t: Readonly<Fighter>, window: PunishWindow): number {
+function specialSpent(t: Readonly<Fighter>, window: PunishWindow, observationAge: number): number {
   const move = runningHeroSpecial(t);
   if (move === undefined || move.projectiles !== undefined || move.followUps !== undefined || move.guard !== undefined || move.armor !== undefined
     || move.command !== undefined || move.placement !== undefined || move.commandGrab !== undefined || move.burst !== undefined) return 0;
   let last = -1;
   for (const region of move.regions ?? []) last = Math.max(last, region.lastFrame);
-  if (last < 0 || t.special.frame <= last + 1) return 0;
-  if (move.intangible !== undefined && move.intangible.last >= t.special.frame) return 0;
-  window.elapsed = t.special.frame - last - 1;
+  const frame = t.special.frame + observationAge;
+  if (last < 0 || frame <= last + 1) return 0;
+  if (move.intangible !== undefined && move.intangible.last >= frame) return 0;
+  window.elapsed = frame - last - 1;
   return heroSpecialEndFrame(t, move) - t.special.frame;
+}
+
+/** A seen falling attack can already have landed during the observation delay. */
+function landingWindow(t: Readonly<Fighter>, stage: number, matchFrame: number, age: number, window: PunishWindow): boolean {
+  if (age <= 0 || t.motion.deltaZ >= 0.0 || t.launch.hitlag > 0) return false;
+  const move = runningHeroSpecial(t);
+  const lag = move?.landingLag ?? attackLandingLag(t.attack.style, t.tuning.moves);
+  if (lag <= 0) return false;
+  const deck = deckUnder(stage, matchFrame, t.motion.x, t.motion.z);
+  if (deck === undefined || heightAhead(t, age, stage, matchFrame) > deck) return false;
+  let first = 1;
+  let last = age;
+  while (first < last) {
+    const middle = floorDiv(first + last, 2);
+    if (heightAhead(t, middle, stage, matchFrame) <= deck) last = middle;
+    else first = middle + 1;
+  }
+  if (move === undefined) {
+    if (t.attack.frame + first >= t.attack.duration || landsIntoAttack(t.attack.style, t.attack.frame + first, t.tuning.moves)) return false;
+  } else if (t.special.frame + first >= heroSpecialEndFrame(t, move)) return false;
+  window.kind = PunishKind.landing;
+  window.elapsed = age - first;
+  window.frames = lag - window.elapsed;
+  window.key = t.attack.serial * 8 + PunishKind.landing;
+  return window.frames > 0;
 }
 
 /**
@@ -74,12 +100,15 @@ function specialSpent(t: Readonly<Fighter>, window: PunishWindow): number {
  * frames the counters already hold. A hit, a grab, a knockdown or the ledge is
  * not a punish window.
  */
-export function punishWindow(t: Readonly<Fighter>, frame: number, window: PunishWindow = open): boolean {
+export function punishWindow(t: Readonly<Fighter>, frame: number, window: PunishWindow = open, observationAge = 0, stage = -1, matchFrame = 0): boolean {
   window.kind = PunishKind.none;
   window.frames = 0;
-  if (t.status.out || !t.motion.grounded || t.launch.hitlag > 0 || t.launch.hitstun > 0 || t.status.frozenFrames > 0
+  if (t.status.out || t.launch.hitlag > observationAge || t.launch.hitstun > 0 || t.status.frozenFrames > 0
     || t.down.state !== DownState.none || t.grab.owner !== undefined || t.grab.target !== undefined || t.grab.action !== GrabAction.none
     || t.ledge.state !== LedgeState.none || t.shield.raised || t.shield.stun > 0) return false;
+  // Action clocks resume on hitlag's expiry frame; the preceding frozen frames do not spend recovery.
+  const age = Math.max(0, observationAge - Math.max(0, t.launch.hitlag - 1));
+  if (!t.motion.grounded) return landingWindow(t, stage, matchFrame, age, window);
   const { attack } = t;
   if (heroStatusBlocksActions(t)) {
     // Asleep or stunned: the frames left unless it mashes out sooner. It shows from its first frame.
@@ -95,13 +124,13 @@ export function punishWindow(t: Readonly<Fighter>, frame: number, window: Punish
     window.key = attack.serial * 8 + PunishKind.landing;
   } else if (attack.style !== undefined && attack.cooldown > 0) {
     const done = attackStartupFrames(attack.style, t.tuning.moves) + characterAttackActiveFrames(t.character, attack.style, t.tuning.moves);
-    if (attack.frame < done) return false;
+    if (attack.frame + age < done) return false;
     window.kind = attack.style === AttackStyle.grab ? PunishKind.grab : PunishKind.endLag;
     window.frames = attack.cooldown;
-    window.elapsed = attack.frame - done;
+    window.elapsed = attack.frame + age - done;
     window.key = attack.serial * 8 + window.kind;
   } else if (t.special.lockFrames > 0 || t.attack.cooldown > 0) {
-    const left = specialSpent(t, window);
+    const left = specialSpent(t, window, age);
     if (left <= 0) return false;
     window.kind = PunishKind.special;
     window.frames = Math.max(left, t.special.lockFrames, t.attack.cooldown);
@@ -120,6 +149,7 @@ export function punishWindow(t: Readonly<Fighter>, frame: number, window: Punish
     window.elapsed = t.dodge.groundFrame - end;
     window.key = floorDiv(frame, 32) * 8 + PunishKind.dodge;
   } else return false;
+  window.frames -= age;
   return window.frames > 0;
 }
 
@@ -159,13 +189,12 @@ export function choosePunish(f: Readonly<Fighter>, target: Readonly<Fighter>, st
   if (skill.punishTenths <= 0 || !f.motion.grounded) return false;
   const shielding = f.shield.raised;
   if (shielding ? !canShieldGrab(f) : !canAttack(f)) return false;
-  if (!punishWindow(target, frame)) return false;
+  if (!punishWindow(target, frame, open, observationAge, stage, matchFrame)) return false;
   if (open.elapsed < skill.reactionFrames) return false;
   if (!botChance(open.key, f.character * 29 + 7, skill.punishTenths, 10)) return false;
-  if (Math.abs(f32(target.motion.z - f.motion.z)) > PUNISH_HEIGHT) return false;
+  if (Math.abs(aheadZ(f, target, 0, stage, matchFrame, observationAge)) > PUNISH_HEIGHT) return false;
   // The frames it believes it has; a misjudged window throws a move that comes out too late.
-  // A delayed observation already spent `observationAge` of those frames.
-  const believed = open.frames + skill.punishMisjudge - INPUT_FRAMES - observationAge;
+  const believed = open.frames + skill.punishMisjudge - INPUT_FRAMES;
   if (!slideStaysOnDeck(f, stage, matchFrame)) return false;
   const moves = f.tuning.moves;
   const plan = skill.gameplanWeights ? gameplanOf(f.character) : undefined;
@@ -188,7 +217,7 @@ export function choosePunish(f: Readonly<Fighter>, target: Readonly<Fighter>, st
     const passive = cashing && plan !== undefined && passiveLandingMove(plan, passiveSpec(f.character).kind, style === move ? move : AttackStyle.dashAttack);
     const better = best === undefined || (passive && !bestPassive) || (passive === bestPassive && ((tool && !bestTool) || (tool === bestTool && startup < bestStartup)));
     const x = Math.abs(aheadX(f, target, startup, style));
-    if (startup <= believed && better && moveReaches(f.character, style, target, x, aheadZ(f, target, startup, stage, matchFrame), moves) && grabSure(f, style, target, x)) {
+    if (startup <= believed && better && moveReaches(f.character, style, target, x, aheadZ(f, target, startup, stage, matchFrame, observationAge), moves) && grabSure(f, style, target, x)) {
       best = move;
       bestStartup = startup;
       bestTool = tool;
