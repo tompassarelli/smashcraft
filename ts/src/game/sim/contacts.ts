@@ -263,6 +263,11 @@ function resolveDamageContacts(world: Roster, slot: number): void {
     if (contact.kind === ContactKind.throw) target.visuals.throw++;
     visualContact ??= index;
     drainMana(target, contact.effect.manaDrain);
+    const stolen = min(target.mana.points, contact.effect.manaSteal ?? 0);
+    if (stolen > 0) {
+      drainMana(target, stolen);
+      gainMana(source, stolen);
+    }
     if (damage > 0 && contact.kind !== ContactKind.pummel) {
       thawFighter(target);
       damageEndsHeroStatus(target);
