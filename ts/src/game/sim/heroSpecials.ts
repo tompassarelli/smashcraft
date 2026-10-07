@@ -301,6 +301,8 @@ export interface AuthoredSpecial {
   readonly commandGrab?: CommandGrab | undefined;
   /** Applied by each of its strikes that reaches a body, never through a shield (sim/heroStatus.ts). */
   readonly strikeStatus?: AppliedStatus | undefined;
+  /** Removes the caster's poison and movement slow on this action frame. */
+  readonly cleanseFrame?: number | undefined;
   /**
    * Branches after the press: the first whose `window` (brief frames) holds
    * the next frame and whose input was freshly pressed replaces the rest of

@@ -106,7 +106,7 @@ test("a visible shot expected to have expired or passed does not keep the comput
   assertFalse(chooseDefense(own, target, 0, neutralControls(), skill, 12));
 });
 
-test("Uther times his guard for his own approach to a delayed shot and waits only for later arrivals", () => {
+test("Uther defends his approach to a delayed shot without treating Consecration as a guard", () => {
   const own = createFighter(Character.uther, 0.0, 1);
   const target = createFighter(Character.uther, 500.0, -1);
   own.motion.vx = 10.0;
@@ -122,10 +122,11 @@ test("Uther times his guard for his own approach to a delayed shot and waits onl
     projectile.serial = serial;
     const input = neutralControls();
     chooseDefense(own, target, 0, input, skill, 12);
-    if (input.specialPressed && input.specialZ === -1) guards++;
+    assertFalse(input.specialPressed);
+    if (input.shield || input.groundDodgePressed) guards++;
   }
   assertGreaterThan(guards, 0);
   assertEquals(projectile.x, 355.0);
-  assertTrue(heroStanceLater(own, 20));
+  assertFalse(heroStanceLater(own, 20));
   assertFalse(heroStanceLater(own, 1));
 });
