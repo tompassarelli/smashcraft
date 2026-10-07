@@ -55,6 +55,7 @@ const fixtures = [
     name: "smashcraft-response-p0-run1-page0.txt", field: "rows", valid: "rows=2533", invalid: "rows=bad",
     lines: ["RS v=3 build=playable-0042 local=0 run=1 page=0 rows=2533 mode=clean edge_pairs=0 edge_limit=64 edge_dropped=0",
       "integrity retained=2388 dropped=0", "counts poll=1536 capture_attempt=0 advance=1700 present=2533",
+      "waiting callbacks=48 own_callbacks=20",
       "transport sent_frames=1536 received_frames=1536 unmatched_receipts=0 dropped_from_export=0 retained=1536",
       "clock=native-game-ms not-host-wall; row=zero-based-service; marker_x=0.04+(row%32)*0.0032 y=0.595-((row/32)%4)*0.01",
       "A row entry_ms poll_ms capture_ms advance_ms present_ms frame_before frame_after F_before F_after K_before target",
