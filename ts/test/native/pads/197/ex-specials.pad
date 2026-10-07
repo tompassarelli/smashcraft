@@ -1,0 +1,24 @@
+# #197: both human players spend mana on EX neutral and side specials.
+#! chat -dev quick hero archer
+60 a shield 1
+60 a tap X 2
+63 a shield 0
+100 b shield 1
+100 b tap X 2
+103 b shield 0
+140 a stick 1 0
+140 a shield 1
+140 a tap X 2
+143 a shield 0
+144 a stick 0 0
+200 b stick -1 0
+200 b shield 1
+200 b tap X 2
+203 b shield 0
+204 b stick 0 0
+300 a press VIEW
+370 a release VIEW
+#! expect a 60 special EX 1 mana 72
+#! expect b 100 special EX 1 mana 72
+#! expect a 140 special EX 2
+#! expect b 200 special EX 2

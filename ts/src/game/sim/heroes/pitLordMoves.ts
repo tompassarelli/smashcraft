@@ -1,3 +1,4 @@
+import { downSmashHit } from "../downMoveValues";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction, HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT, jabStep, heroHurtPose, heroMove, heroRegion, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
@@ -184,17 +185,17 @@ export const PIT_LORD_MOVES: FighterMoves = {
       capsule(-40.0, 90.0, -70.0, f32(XL - 10.0)),
     ], hit(22.0, "KILL", 85))),
     // Rear and Front Stomp: front f22-24, rear f26-28, one hit per target for the whole action.
-    [AttackStyle.downSmash]: heroMove(22, 7, 41, 0, [
+    [AttackStyle.downSmash]: heroMove(22, 7, 28, 0, [
       ...path(22, [
         capsule(30.0, 14.0, f32(L - 14.0), 14.0, 14.0),
         capsule(30.0, 10.0, f32(L - 14.0), 10.0, 14.0),
         capsule(30.0, 8.0, f32(L - 14.0), 6.0, 14.0),
-      ], hit(19.0, "EDGE", 25, 1.0, HitElement.normal)),
+      ], downSmashHit(hit(19.0, "EDGE", 25, 1.0, HitElement.normal))),
       ...path(26, [
         capsule(-30.0, 14.0, -f32(L - 14.0), 14.0, 14.0),
         capsule(-30.0, 10.0, -f32(L - 14.0), 10.0, 14.0),
         capsule(-30.0, 8.0, -f32(L - 14.0), 6.0, 14.0),
-      ], hit(19.0, "EDGE", 25, -1.0, HitElement.normal)),
+      ], downSmashHit(hit(19.0, "EDGE", 25, -1.0, HitElement.normal))),
     ]),
     // Hellish Turn: the cleaver comes round the huge torso, front then back.
     [AttackStyle.neutralAir]: heroMove(12, 7, 29, 20, [

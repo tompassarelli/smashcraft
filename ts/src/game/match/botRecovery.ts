@@ -1,6 +1,7 @@
 // The computer's way back: off the stage it steers home, or to just outside a
 // free ledge it then falls onto, and spends its jump and up special; on the
 // ledge it takes a ledge option; knocked down it techs or gets up.
+import { LAVA_INNER_X } from "../sim/lava";
 import { runningHeroSpecial, specialCooldownReady } from "../sim/heroSpecialRules";
 import { upSpecialStartable } from "./botHeroKit";
 import { at } from "wisp/src/runtime/lookup";
@@ -13,7 +14,7 @@ import type { Fighter } from "../sim/fighter";
 import { totalVelocityZ } from "../sim/motion";
 import { RIFLEMAN_RECOVERY_STARTUP_FRAMES } from "../sim/specials";
 import type { Controls } from "../sim/roster";
-import { mainDeckLeft, mainDeckRight, mainDeckZ, surfaceCount, surfaceLeft, surfaceRight, surfaceZ } from "../sim/stage";
+import { CANNON_TEST_STAGE, mainDeckLeft, mainDeckRight, mainDeckZ, surfaceCount, surfaceLeft, surfaceRight, surfaceZAt } from "../sim/stage";
 import { botChance, botChoice } from "./botRandom";
 import { type CpuSkill, FULL_SKILL } from "./cpuSkill";
 import { aimsLedge, gameplanOf, upSpecialFirst } from "./botGameplan";
@@ -115,7 +116,7 @@ function techLanding(f: Readonly<Fighter>, stage: number, matchFrame: number, in
     || botChance(f.visuals.hit + toInt(f.status.damage), f.character * 5 + 1, skill.techMiss, skill.techOutOf)) return;
   const lead = f32(f32(-motion.deltaZ) * TECH_LEAD_FRAMES);
   for (let deck = 0; deck < surfaceCount(stage); deck++) {
-    const height = f32(motion.z - surfaceZ(stage, deck, matchFrame));
+    const height = f32(motion.z - surfaceZAt(stage, deck, matchFrame, motion.x));
     if (height < 0 || height > lead || motion.x < surfaceLeft(stage, deck, matchFrame) || motion.x > surfaceRight(stage, deck, matchFrame)) continue;
     input.direction = botChoice(f.visuals.hit, f.character, 2) === 0 ? 0 : motion.x < 0 ? 1 : -1;
     input.techPressed = f.tech.pressAge >= TECH_REPEAT_MINIMUM_AGE_FRAMES;
@@ -226,6 +227,10 @@ export function chooseRecoveryInput(fighter: Readonly<Fighter>, stage: number, m
   const right = mainDeckRight(stage);
   const floor = mainDeckZ(stage);
   const { x, z, grounded } = fighter.motion;
+  if (!grounded && stage === CANNON_TEST_STAGE && Math.abs(x) >= LAVA_INNER_X && x >= left && x <= right && z >= floor) {
+    input.direction = x < 0 ? 1 : -1;
+    return true;
+  }
   if (grounded || (x >= left && x <= right && z >= floor)) return false;
   const side = x < 0 ? -1 : 1;
   const outside = f32(f32(x - (side < 0 ? left : right)) * side);

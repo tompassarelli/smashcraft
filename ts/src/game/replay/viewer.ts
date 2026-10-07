@@ -16,6 +16,7 @@ import { fighterPoseFacing } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../sim/hitRegions";
 import { HurtState, fighterHurtParts } from "../sim/hurtboxes";
+import { stageClock } from "../match/rules";
 import { fighterAt, isActive } from "../sim/roster";
 import { surfaceCount, surfaceLeft, surfaceRight, surfaceZ } from "../sim/stage";
 import { stageBounds } from "../sim/stageBounds";
@@ -112,7 +113,7 @@ export function replayScene(state: Readonly<ReplayState>, frame: number): Replay
   const stage = state.match.stageChoice;
   const surfaces: { left: number; right: number; z: number }[] = [];
   for (let index = 0; index < surfaceCount(stage); index++) {
-    const matchFrame = state.match.matchFrame;
+    const matchFrame = stageClock(state.match);
     surfaces.push({ left: surfaceLeft(stage, index, matchFrame), right: surfaceRight(stage, index, matchFrame), z: surfaceZ(stage, index, matchFrame) });
   }
   const fighters: SceneFighter[] = [];

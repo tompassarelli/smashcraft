@@ -1,3 +1,4 @@
+import { downSmashHit } from "../downMoveValues";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction, HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion, type AuthoredMove, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
@@ -132,16 +133,16 @@ export const SHADOW_HUNTER_MOVES: FighterMoves = {
       capsule(0.0, 36.0, 0.0, f32(L - BLADE_RADIUS)),
       capsule(-5.0, 36.0, -9.0, f32(L - BLADE_RADIUS)),
     ], hit(15.0, "KILL", 90, 1.0, HitElement.normal))),
-    [AttackStyle.downSmash]: heroMove(16, 5, 33, 0, [
+    [AttackStyle.downSmash]: heroMove(16, 5, 21, 0, [
       ...path(16, [
         capsule(20.0, 10.0, f32(M - 10.0), 22.0, 10.0),
         capsule(20.0, 10.0, f32(M - 10.0), 10.0, 10.0),
         capsule(20.0, 10.0, f32(M - 10.0), 0.0, 10.0),
-      ], hit(13.0, "EDGE", 25, 1.0, HitElement.normal)),
+      ], downSmashHit(hit(13.0, "EDGE", 25, 1.0, HitElement.normal))),
       ...path(19, [
         capsule(-20.0, 10.0, -f32(M - 10.0), 22.0, 10.0),
         capsule(-20.0, 10.0, -f32(M - 10.0), 0.0, 10.0),
-      ], hit(13.0, "EDGE", 25, -1.0, HitElement.normal)),
+      ], downSmashHit(hit(13.0, "EDGE", 25, -1.0, HitElement.normal))),
     ]),
     [AttackStyle.neutralAir]: heroMove(7, 5, 21, 13, [
       ...path(7, [

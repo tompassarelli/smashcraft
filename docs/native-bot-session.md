@@ -258,8 +258,9 @@ clock (its log's `match_start ... epoch_ns` and frame rule), and
 `result.json` gives the frame each landed on: from the helper's event line
 for buttons, from its frame rule for sticks and triggers. It exits 1 when an
 edge landed off its frame or a helper stopped. It also copies each client's
-input trace (`trace-a.txt`, `trace-b.txt`, written about 20 s into an
-integrity-build match), its scene report (`scene-a.txt`, `scene-b.txt`) and
+input trace (`trace-a.txt`, `trace-b.txt`, written about 75 s into an
+integrity-build match, covering the latest first item, its ten-second buff and
+a replay export), its scene report (`scene-a.txt`, `scene-b.txt`) and
 the moments it saved beside the result.
 
 ### Native checks by parity
@@ -310,9 +311,12 @@ capture so existing action and capture frames stay unchanged:
 
 This checks that the script requests an export; the existing comparison still
 requires readable saved moments and matching checksums from the actual runs.
-A single headless run without `--compare` checks only its expectations and
-does not require an export. Native batches and headless comparison batches
-always require one.
+
+Headless pad checks replay every exported moment to its saved checksum, including
+each recorded intermediate checkpoint. Missing or unreadable moments fail the
+run. The result reports the number of moments and replayed frames. Standalone
+headless runs, native batches and headless comparison batches all need an
+authored export.
 
 ### Many scripts in one game
 

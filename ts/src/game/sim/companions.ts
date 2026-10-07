@@ -11,7 +11,7 @@ import { applyAttackHit } from "./hits";
 import { HurtContact, strikeHurtContact } from "./hurtboxes";
 import { type Roster, fighterAt, isActive } from "./roster";
 import { shieldCircleIntersects } from "./shield";
-import { surfaceLeft, surfaceRight, surfaceZ } from "./stage";
+import { surfaceLeft, surfaceRight, surfaceZAt } from "./stage";
 import { emptyCapsule, placeCapsule } from "../physics/contactGeometry";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 
@@ -120,7 +120,7 @@ function advanceAnimal(world: Roster, ownerSlot: number, stage: number, matchFra
     const left = f32(surfaceLeft(stage, surface, matchFrame) + partner.bite.radius);
     const right = f32(surfaceRight(stage, surface, matchFrame) - partner.bite.radius);
     placed.x = min(right, max(left, placed.x));
-    placed.z = surfaceZ(stage, surface, matchFrame);
+    placed.z = surfaceZAt(stage, surface, matchFrame, placed.x);
   }
   placed.apart = owner.status.out || Math.abs(f32(owner.motion.x - placed.x)) > partner.leash ? placed.apart + 1 : 0;
   if (placed.apart >= partner.leashFrames) placed.life = 0;

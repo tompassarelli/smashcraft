@@ -1,0 +1,8 @@
+# #193: run from the safe centre into the right molten end, capture launch.
+#! chat -dev quick stage 12
+15 a stick 1 0
+43 a stick 0 0
+45 a capture
+110 a capture
+130 a press VIEW
+200 a release VIEW
