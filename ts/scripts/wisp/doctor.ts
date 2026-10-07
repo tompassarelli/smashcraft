@@ -52,7 +52,8 @@ const launcherCommand = (name: string, run: string, client: { readonly compatDat
 export const smashcraftDoctor = (clientsFile = clientState): DoctorDeclaration => {
   const file = readClientsFile(clientsFile);
   const start: Record<string, DoctorDeclaration["start"][string]> = {};
-  for (const { name, run } of file.clients) {
+  for (const { name, run, offline } of file.clients) {
+    if (offline === true) continue;
     const client = CLIENTS[name];
     if (client !== undefined) {
       start[name] = { kind: "command", command: launcherCommand(name, run, client), log: join(homedir(), `.local/state/smashcraft/client-${name}-launcher.log`) };
@@ -66,14 +67,8 @@ export const smashcraftWatch = () => ClientWatch.layer({ filePrefix: "smashcraft
 
 /** Doctor on every client, with its own watch, printing each step. */
 export const checkClients = (print: (line: string) => void = console.log, clientsFile = clientState) =>
-  Effect.try({ try: () => readClientsFile(clientsFile), catch: (cause) => new DoctorStop({ problem: `can't read the clients from ${clientsFile}: ${String(cause)}` }) }).pipe(
-    Effect.flatMap((file) => file.clients.length > 0 && file.clients.every(({ offline }) => offline === true)
-      ? Effect.forEach(file.clients, (client) => Effect.gen(function*() {
-        const view = yield* ClientWatch.use((watch) => watch.view(client));
-        if (["closed", "crashed", "disconnected"].includes(view.state.kind)) return yield* new DoctorStop({ problem: `${client.name}: ${view.state.kind}; restart its offline pool pair before retrying` });
-        return { client: client.name, state: view.state.kind, recovered: [] };
-      }))
-      : clientsDoctor(smashcraftDoctor(clientsFile), [], print)),
+  Effect.try({ try: () => smashcraftDoctor(clientsFile), catch: (cause) => new DoctorStop({ problem: `can't read the clients from ${clientsFile}: ${String(cause)}` }) }).pipe(
+    Effect.flatMap((declaration) => clientsDoctor(declaration, [], print)),
     Effect.provide(smashcraftWatch()),
   );
 
