@@ -24,7 +24,7 @@ export const TAPE_HEADER = "smashcraft-tape 1";
 
 type FieldOf<V> = { [K in keyof Controls]-?: Controls[K] extends V ? K : never }[keyof Controls];
 type FlagField = FieldOf<boolean>;
-type NumberField = FieldOf<number>;
+type NumberField = FieldOf<number | undefined>;
 
 const FLAG_FIELDS: Readonly<Record<FlagField, true>> = {
   diStickValid: true, sdiPulse: true, attackRequested: true, specialPressed: true, down: true, shield: true,
@@ -36,6 +36,7 @@ const FLAG_FIELDS: Readonly<Record<FlagField, true>> = {
 
 /** Reals are binary32 values in every runtime; the rest are integers. */
 const NUMBER_FIELDS: Readonly<Record<NumberField, "int" | "real">> = {
+  driftStickX: "real",
   direction: "int", verticalDirection: "int", diStickX: "real", diStickZ: "real", sdiX: "int", sdiZ: "int",
   cStickX: "int", cStickZ: "int", specialX: "int", specialZ: "int", shieldStrength: "real", grabThrowX: "int",
   grabThrowZ: "int", groundDodgeDirection: "int", ledgeVerticalPressed: "int", getupDirection: "int", cStickSideFlick: "int",

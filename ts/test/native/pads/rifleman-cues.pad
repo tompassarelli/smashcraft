@@ -65,7 +65,6 @@
 #! expect a 420 special 8 form 0
 #! expect a 640 special 6 form 0
 #! expect a 656 special-form 1 action 6
-#! scene a FlareCaster
 #! scene a GyroCopterImpact
 #! scene a GyroCopterMissile
 #! scene a RoarTarget
