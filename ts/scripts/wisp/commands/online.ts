@@ -3,7 +3,7 @@
 // written for players; the technical reason for a failure goes to stderr.
 //   setup [--client NAME]                 the menu page and Allow Local Files, after the player agrees
 //   host [--client NAME] [--repair]       hosts the newest Smashcraft map, prints "Join code: ABCD-EFGH",
-//                                         starts once the opponent is in (or on a "start" line on stdin)
+//                                         starts on a "start" line on stdin (the client's Start now)
 //   join CODE [--client NAME] [--repair]  joins by code and waits for the host to start
 // Without --client it is Tom's own install (play's prefix and report port);
 // with it, a client of ~/.local/state/smashcraft/clients.json.

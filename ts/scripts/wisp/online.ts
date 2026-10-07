@@ -9,7 +9,7 @@ import { dataDirectory, readGameFile } from "wisp/scripts/wisp/gameFiles";
 import { type MenuEvent, MenuFailure, type MenuSocket, type Outcome, hostLobby, joinLobby, startLobby } from "wisp/scripts/wisp/menus";
 import { MELEE_READY_FILE } from "../../src/runtime/gameFiles";
 import { MeleeReady } from "./boundary";
-import { type JoinCode, newJoinCode, readyLine } from "./joinCode";
+import { type JoinCode, newJoinCode } from "./joinCode";
 
 export interface OnlineTimes {
   /** How long a host waits for its opponent. */
@@ -44,12 +44,10 @@ export const hostWithCode = (menus: MenuSocket, map: { readonly folder: string; 
 });
 
 /**
- * The opponent is in when its ready line reaches the lobby chat. The host
- * starting the game in Warcraft III itself counts too; the lobby closing ends
- * the wait.
+ * Starting the game in Warcraft III itself counts too; the lobby closing
+ * ends the wait. Readiness never sends or depends on Battle.net chat.
  */
-export const opponentArrived = (code: JoinCode) => (event: MenuEvent): Outcome<"in lobby" | "loading"> => {
-  if (event.messageType === "ChatMessage" && JSON.stringify(event.payload ?? {}).includes(readyLine(code))) return { done: "in lobby" };
+export const hostLoading = (event: MenuEvent): Outcome<"loading"> => {
   if (screen(event) === "LOADING_SCREEN") return { done: "loading" };
   if (event.messageType === "MultiplayerGameLeave") return { failed: "the lobby closed" };
   return undefined;
@@ -85,14 +83,14 @@ export const reachMatch = (documents: string, since: number, seconds: number) =>
 
 /**
  * The host's whole flow: a lobby under a new code, the code shown, then the
- * match once the opponent is in or the player asks to start now.
+ * match when the player asks to start now or starts it in Warcraft III.
  */
 export const hostMatch = (options: {
   readonly menus: MenuSocket;
   readonly map: { readonly folder: string; readonly file: string };
   readonly documents: string;
   readonly say: Say;
-  /** Succeeds when the player asks to start without waiting for the opponent's ready line. */
+  /** Succeeds when the player asks to start after their opponent has joined. */
   readonly startNow: Effect.Effect<void>;
   readonly times?: OnlineTimes;
   readonly makeCode?: () => JoinCode;
@@ -101,14 +99,14 @@ export const hostMatch = (options: {
   const times = options.times ?? ONLINE_TIMES;
   const code = yield* hostWithCode(menus, options.map, options.makeCode);
   yield* say(`Join code: ${code.text}`);
-  yield* say(`Waiting for your opponent (in Warcraft III they can also join "${code.gameName}" with password ${code.password})`);
+  yield* say(`Waiting for your opponent; press Start now once they have joined (in Warcraft III they can also join "${code.gameName}" with password ${code.password})`);
   const arrival = yield* Effect.raceFirst(
-    menus.expect("wait for the opponent", times.opponentSeconds, opponentArrived(code)),
+    menus.expect("wait for the opponent", times.opponentSeconds, hostLoading),
     options.startNow.pipe(Effect.as("asked" as const)),
   );
   const since = yield* Clock.currentTimeMillis;
   if (arrival !== "loading") {
-    yield* say(arrival === "asked" ? "Starting the match" : "Your opponent is in; starting the match");
+    yield* say("Starting the match");
     yield* startWhenReady(menus, times.startSeconds, say);
   }
   yield* say("Loading the match");
@@ -117,7 +115,7 @@ export const hostMatch = (options: {
   return code;
 });
 
-/** The guest's whole flow: into the lobby by its code, the ready line, then the match the host starts. */
+/** The guest's whole flow: into the lobby by its code, then the match the host starts. */
 export const joinMatch = (options: {
   readonly menus: MenuSocket;
   readonly code: JoinCode;
@@ -127,23 +125,14 @@ export const joinMatch = (options: {
 }) => Effect.gen(function*() {
   const { menus, code, say } = options;
   const times = options.times ?? ONLINE_TIMES;
-  // A join sent as the host's lobby appeared went unanswered once (7 Oct, client B); the same join a second later entered it.
   yield* joinLobby(menus, code.gameName, code.password, 10).pipe(Effect.retry({ times: 2, schedule: Schedule.spaced("2 seconds") }));
   yield* say("In the lobby; waiting for the host to start");
-  // The ready line again a few seconds later, in case the lobby wasn't taking chat yet; the loading screen ends the wait.
-  const tell = Effect.gen(function*() {
-    yield* Effect.sleep("1 second");
-    yield* menus.send("SendGameChatMessage", { content: readyLine(code) });
-    yield* Effect.sleep("5 seconds");
-    yield* menus.send("SendGameChatMessage", { content: readyLine(code) });
-    return yield* Effect.never;
-  });
   const loading = menus.expect("wait for the host to start", times.hostStartSeconds, (event): Outcome<void> => {
     if (screen(event) === "LOADING_SCREEN") return { done: undefined };
     if (event.messageType === "MultiplayerGameLeave") return { failed: "the lobby closed" };
     return undefined;
   });
-  yield* Effect.raceFirst(loading, tell);
+  yield* loading;
   const since = yield* Clock.currentTimeMillis;
   yield* say("Loading the match");
   yield* reachMatch(options.documents, since, times.loadSeconds);

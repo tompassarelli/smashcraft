@@ -8,7 +8,7 @@ import { Deferred, Effect, Exit, Fiber } from "effect";
 import { GameFiles } from "wisp/scripts/wisp/gameFiles";
 import { MenuFailure, connectMenus } from "wisp/scripts/wisp/menus";
 import { playerProblem } from "../scripts/wisp/commands/online";
-import { newJoinCode, readJoinCode, readyLine } from "../scripts/wisp/joinCode";
+import { newJoinCode, readJoinCode } from "../scripts/wisp/joinCode";
 import { allowLocalFiles } from "../scripts/wisp/menuPageSetup";
 import { hostMatch, joinMatch } from "../scripts/wisp/online";
 
@@ -64,7 +64,7 @@ const READY = readFileSync(join(import.meta.dir, "fixtures/wisp/melee-ready.pld"
  * game's Smashcraft then writes its ready file. `refuse` names refused at
  * creation stand for games another host already has.
  */
-function battleNet(options: { readonly refuse?: readonly string[]; readonly chat?: boolean } = {}) {
+function battleNet(options: { readonly refuse?: readonly string[] } = {}) {
   const sent: string[] = [];
   const payloads: Sent[] = [];
   let lobby: { name: string; password: string; guest: boolean } | undefined;
@@ -110,9 +110,6 @@ function battleNet(options: { readonly refuse?: readonly string[]; readonly chat
             tell(player, "GameLobbySetup", { isHost: false });
             tell("host", "GameLobbySetup", { isHost: true });
             return;
-          case "SendGameChatMessage":
-            if (options.chat !== false) tell(player === "host" ? "guest" : "host", "ChatMessage", { message: { content: payload["content"], sender: "Guest#1234" } });
-            return;
           case "LeaveGame":
             lobby = undefined;
             tell("host", "MultiplayerGameLeave", {});
@@ -156,7 +153,9 @@ const playBoth = (net: ReturnType<typeof battleNet>, options: { readonly startNo
         const code = /^Join code: (\S+)$/.exec(line)?.[1];
         if (code !== undefined) yield* Deferred.succeed(shown, code);
       }),
-      startNow: options.startNow?.(guestLines) ?? Effect.never,
+      startNow: options.startNow?.(guestLines) ?? Effect.gen(function*() {
+        while (!guestLines.includes("In the lobby; waiting for the host to start")) yield* Effect.sleep("20 millis");
+      }),
       ...(options.makeCodes === undefined ? {} : { makeCode: options.makeCodes }),
     });
     const guest = Effect.gen(function*() {
@@ -174,8 +173,8 @@ test("the host shows a code, the guest joins by it, and both reach fighter selec
     expect(code.text).toBe("ABCD-EFGH");
     expect(hostLines).toEqual([
       "Join code: ABCD-EFGH",
-      "Waiting for your opponent (in Warcraft III they can also join \"Smashcraft ABCD\" with password EFGH)",
-      "Your opponent is in; starting the match",
+      "Waiting for your opponent; press Start now once they have joined (in Warcraft III they can also join \"Smashcraft ABCD\" with password EFGH)",
+      "Starting the match",
       "Loading the match",
       "In the match",
     ]);
@@ -183,10 +182,10 @@ test("the host shows a code, the guest joins by it, and both reach fighter selec
     const create = net.payloads.find(({ message }) => message === "host:CreateLobby")!.payload;
     expect(create).toMatchObject({ filename: `${MAPS}00-Smashcraft/${MAP}`, gameName: "Smashcraft ABCD", privateGame: true, password: "EFGH" });
     expect(net.payloads.filter(({ message }) => message === "guest:JoinGameByGameName").map(({ payload }) => payload["gamePass"])).toEqual(["EFGH", "EFGH"]);
-    expect(net.payloads.find(({ message }) => message === "guest:SendGameChatMessage")!.payload).toEqual({ content: readyLine(code) });
-    // One start, after the guest's ready line.
+    expect(net.sent.some((message) => message.endsWith(":SendGameChatMessage"))).toBe(false);
+    // One start, after the guest has joined and the host requests it.
     expect(net.sent.filter((message) => message === "host:LobbyStart")).toHaveLength(1);
-    expect(net.sent.indexOf("host:LobbyStart")).toBeGreaterThan(net.sent.indexOf("guest:SendGameChatMessage"));
+    expect(net.sent.indexOf("host:LobbyStart")).toBeGreaterThan(net.sent.lastIndexOf("guest:JoinGameByGameName"));
   } finally {
     net.stop();
   }
@@ -205,11 +204,14 @@ test("a name another game has gets a new code", async () => {
   }
 }, 20_000);
 
-test("Start now starts the match without the guest's ready line", async () => {
-  const net = battleNet({ chat: false });
+test("the lobby waits for Start now and sends no chat while waiting", async () => {
+  const net = battleNet();
   try {
     const startNow = (guestLines: string[]) => Effect.gen(function*() {
       while (!guestLines.includes("In the lobby; waiting for the host to start")) yield* Effect.sleep("20 millis");
+      yield* Effect.sleep("7 seconds");
+      expect(net.sent).not.toContain("host:LobbyStart");
+      expect(net.sent.some((message) => message.endsWith(":SendGameChatMessage"))).toBe(false);
     });
     const { hostLines, guestLines } = await Effect.runPromise(playBoth(net, { startNow }));
     expect(hostLines.slice(2)).toEqual(["Starting the match", "Loading the match", "In the match"]);

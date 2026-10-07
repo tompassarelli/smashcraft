@@ -33,6 +33,3 @@ export function readJoinCode(typed: string): JoinCode | undefined {
   if (characters.length !== HALF * 2 || [...characters].some((character) => !ALPHABET.includes(character))) return undefined;
   return fromCharacters(characters);
 }
-
-/** The lobby chat line a guest sends once it is in: the host starts the match when it hears it. */
-export const readyLine = (code: JoinCode) => `Smashcraft: ready (${code.text.slice(0, HALF)})`;

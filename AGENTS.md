@@ -177,7 +177,8 @@ code. From smashcraft:ts/:
 - Direct play: `bun wisp online host [--client NAME]` hosts the newest
   Smashcraft map as a private Battle.net game and prints its join code;
   `bun wisp online join CODE [--client NAME]` joins it; both return at fighter
-  selection. `online setup` installs the menu page and Allow Local Files after
+  selection. The host presses Start now once the guest has joined; no Battle.net chat is sent.
+  `online setup` installs the menu page and Allow Local Files after
   the owner agrees. The client's Online page runs them
   (smashcraft:docs/design/client.md, "Direct play").
 - Playtest: `bun wisp play` builds current main (once per revision, however

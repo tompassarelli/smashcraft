@@ -396,14 +396,13 @@ No Smashcraft server is involved, and players are their Battle.net names.
 - **Host** (`bun wisp online host`, smashcraft:ts/scripts/wisp/online.ts).
   Through Wisp's menu page it creates a private lobby of the newest
   `Smashcraft X.Y.Z.w3x` in Maps/00-Smashcraft, prints `Join code: …`
-  and waits. It starts the lobby when the guest's ready line
-  (`Smashcraft: ready (ABCD)`) arrives in lobby chat, when the player sends
-  `start` on stdin (the client's Start now) or when the player starts it in
-  Warcraft III. A start the game ignores (a guest still downloading the map)
+  and waits. Once the guest has joined, the host sends `start` on stdin
+  (the client's Start now) or starts it in Warcraft III. Readiness sends no
+  Battle.net chat. A start the game ignores (a guest still downloading the map)
   is sent again for up to five minutes.
 - **Guest** (`bun wisp online join CODE`). Joins by name and password,
-  retried twice 2 s apart as fresh does, then sends its ready line twice
-  (after 1 s and 6 s) and waits for the loading screen.
+  retried twice 2 s apart as fresh does, then waits for the host to start
+  and the loading screen to appear.
 - **In the match.** Each side returns once its Smashcraft writes
   `wc3-melee-ready.txt` after the loading screen: fighter selection.
 - **Lines.** Standard output is written for players and the client shows it;
