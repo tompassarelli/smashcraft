@@ -131,6 +131,12 @@ until that window can meet the strike. Protected approaches hand over to attack
 selection at the fighter's projected authored reach. These forecasts use no
 newer opponent sample.
 
+A visible projectile-special windup also forecasts its authored launch and
+flight through the delay, so the computer can defend before the shot itself
+enters the delayed sample. A falling cast that lands and cancels before its
+launch contributes no shot. The same chance to miss a defense and the same
+fighter-specific shield, dodge, jump or stance choices still apply.
+
 Normal attacks, hero-special reach and punishes advance the delayed target's horizontal position
 through the observation delay using its last observed velocity. The attacker's
 own slide starts at the decision frame, so the delay is counted only for the

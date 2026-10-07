@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.map.json",
+  "include": [
+    "node_modules/wisp/src/natives/warcraft.d.ts",
+    "src/platform/analogCursorMain.ts"
+  ],
+  "exclude": [],
+  "tstl": {
+    "luaBundle": "analog-cursor.lua",
+    "luaBundleEntry": "src/platform/analogCursorMain.ts"
+  }
+}

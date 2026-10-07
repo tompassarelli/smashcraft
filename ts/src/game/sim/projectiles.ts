@@ -20,18 +20,18 @@ import { at } from "wisp/src/runtime/lookup";
 import { solidSurfaceAt, solidSurfaceCount, surfaceCount, surfaceLeft, surfacePass, surfaceRight, surfaceZ } from "./stage";
 import { LONG_RIFLE_LIFE, longRifleShot, projectileOrigin } from "./passives";
 
-const BLASTER_PROJECTILE_SPEED = 36.0;
-const BLASTER_PROJECTILE_LIFETIME = 60;
-const BLASTER_PROJECTILE_HEIGHT = 75.0;
-const BLASTER_AIR_SHOT_HEIGHT = 30.0;
+export const BLASTER_PROJECTILE_SPEED = 36.0;
+export const BLASTER_PROJECTILE_LIFETIME = 60;
+export const BLASTER_PROJECTILE_HEIGHT = 75.0;
+export const BLASTER_AIR_SHOT_HEIGHT = 30.0;
 const BLASTER_PROJECTILE_HALF_HEIGHT = 36.0;
-const BLASTER_PROJECTILE_RADIUS = 24.0;
-const BLASTER_PROJECTILE_SPAWN_OFFSET = 35.0;
+export const BLASTER_PROJECTILE_RADIUS = 24.0;
+export const BLASTER_PROJECTILE_SPAWN_OFFSET = 35.0;
 export const ARCHER_ARROW_DAMAGE = 5.0;
 export const ARCHER_ARROW_SPEED = 28.0;
 export const ARCHER_ARROW_LIFETIME = 45;
 /** A centered arrow meets a held shield instead of slipping above its shrinking edge. */
-const ARCHER_ARROW_HEIGHT = 45.0;
+export const ARCHER_ARROW_HEIGHT = 45.0;
 /** Height of a target's body center above its position. */
 const TARGET_CENTER_HEIGHT = 45;
 /** Archer's homing arrow (side special): slower than his arrow, so a jump timed as it closes in leaves it behind. */
