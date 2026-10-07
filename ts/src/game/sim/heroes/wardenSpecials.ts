@@ -2,7 +2,7 @@
 // specials), in the brief's frame numbering. Starting values, not balance.
 import { f32 } from "wisp/src/sim/f32";
 import { HERO_REFERENCE_HEIGHT, heroRegion, type MoveRegion, type StrikeCapsule } from "../heroMoves";
-import { Relocation, frames, type AuthoredSpecial, type FighterSpecials } from "../heroSpecials";
+import { CHARGED_AIM_FRAMES, Relocation, frames, type AuthoredSpecial, type FighterSpecials } from "../heroSpecials";
 import { HeroStatusGroup, HeroStatusKind, HitElement } from "../codes";
 import type { AppliedStatus } from "../heroStatus";
 import { wardenHit } from "./wardenMoves";
@@ -53,22 +53,25 @@ const PURSUIT_LUNGE_AIR: AuthoredSpecial = {
   motion: [{ ...frames(5, 14), velocityX: LUNGE_SPEED, velocityZ: 0.0, aimedTilt: LUNGE_TILT }, { ...frames(15, 15), velocityX: 0.0, velocityZ: 0.0 }],
 };
 
-// Blink: one displacement on f9, aimed in eight directions by the stick held
-// through f8, intangible f8-10, then held still at its vulnerable endpoint
-// through f30 (on the ground as well) before a helpless fall in the air.
-const blink = (cost: number, distance: number, aimed: boolean, intangible: boolean): AuthoredSpecial => ({
-  cost, endFrame: 30, oncePerAirtime: true, helpless: true, aimFrames: aimed ? 8 : undefined,
+// Blink, the roster's charged-angle rule (#189) as a teleport: she hovers
+// through f8 while the stick picks one of eight directions, moves at once on
+// f9, intangible f8-10 (full form), then holds still at her vulnerable
+// endpoint through f30 (on the ground as well) before a helpless fall in the air.
+const blink = (cost: number, distance: number, intangible: boolean): AuthoredSpecial => ({
+  cost, endFrame: 30, oncePerAirtime: true, helpless: true, aimFrames: CHARGED_AIM_FRAMES,
   motion: [
-    { ...frames(9, 9), velocityX: 0.0, velocityZ: distance, aimedSpeed: aimed ? distance : undefined },
+    { ...frames(1, CHARGED_AIM_FRAMES), velocityX: 0.0, velocityZ: 0.0 },
+    { ...frames(9, 9), velocityX: 0.0, velocityZ: distance, aimedSpeed: distance },
     { ...frames(10, 30), velocityX: 0.0, velocityZ: 0.0 },
   ],
   intangible: intangible ? frames(8, 10) : undefined,
 });
-const BLINK = blink(20, f32(H * f32(1.70)), true, true);
-const BLINK_FREE = blink(0, f32(H * f32(1.10)), false, false);
+const BLINK = blink(20, f32(H * f32(2.6)), true);
+const BLINK_FREE = blink(0, f32(H * f32(1.7)), false);
 
-// Fan of Knives: one radial attack reaching 0.85H, launching 45 degrees outward.
-const FAN = f32(f32(H * f32(0.85)) - KNIFE_RADIUS);
+// Fan of Knives reaches 1.30H; shield or bait the committed cast to punish it.
+export const WARDEN_FAN_REACH = f32(H * f32(1.30));
+const FAN = f32(WARDEN_FAN_REACH - KNIFE_RADIUS);
 const FAN_DIAGONAL = f32(FAN * f32(0.707106781));
 const FAN_CENTER = 48.0;
 const fanRegions = (): readonly MoveRegion[] => {
@@ -90,5 +93,5 @@ export const WARDEN_SPECIALS: FighterSpecials = {
   neutral: { name: "Shadow Strike", description: "A slow dagger that marks and poisons its target.", ground: SHADOW_STRIKE },
   side: { name: "Shadow Pursuit", description: "Appear behind a marked opponent and slash; with no mark nearby, a dashing Pursuit Lunge.", ground: PURSUIT_LUNGE, air: PURSUIT_LUNGE_AIR, marked: { special: SHADOW_PURSUIT, range: PURSUIT_REACH } },
   up: { name: "Blink", description: "Teleport in any of eight directions; the landing spot is open to a punish.", ground: BLINK, free: BLINK_FREE },
-  down: { name: "Fan of Knives", description: "A ring of knives that marks everyone it hits.", ground: FAN_OF_KNIVES },
+  down: { name: "Fan of Knives", description: "Throw knives outward in a wide burst, marking and poisoning everyone hit.", ground: FAN_OF_KNIVES, air: FAN_OF_KNIVES },
 };

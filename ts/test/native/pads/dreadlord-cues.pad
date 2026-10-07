@@ -45,7 +45,7 @@
 # View held a second: the first of two moments the parity check replays.
 500 a press VIEW
 570 a release VIEW
-# #144: Vampiric Pounce feinted into the bat-hop.
+# #237: another press keeps the forward corkscrew and its trailing bats.
 600 a stick 1 0
 600 a tap X 2
 601 a stick 0 0
@@ -56,8 +56,8 @@
 606 a stick 0 0
 607 a capture
 # #144: Carrion Swarm, then from the air; Sleep from the air; Pounce from the air, back toward the middle.
-640 a tap X 2
-642 a capture
+660 a tap X 2
+662 a capture
 660 a capture
 690 a tap B 8
 700 a tap X 2
@@ -91,8 +91,8 @@
 #! expect b 437 damage 38.000
 #! expect a 437 damage 2.000
 #! expect a 600 special 14 form 0
-#! expect a 605 special-form 6 action 14
-#! expect a 640 special 13 form 0
+#! absent a 600-650 special-form
+#! expect a 660 special 13 form 0
 #! expect a 700 special 13 form 1
 #! expect a 760 special 16 form 1
 #! expect a 830 special 14 form 1
@@ -102,7 +102,6 @@
 #! scene a CarrionSwarmDamage
 #! scene a CarrionSwarmMissile
 #! scene a BloodImpact
-#! scene a DeathPactCaster
 #! scene a DarkSummonTarget
 #! scene a SleepSpecialArt
 #! scene a VoidWalkerMissile
