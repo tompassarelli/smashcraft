@@ -3,7 +3,8 @@
 // smashcraft:.github/workflows/balance.yml (the balance gate's computer
 // field, a `cpuField --pairs` process a core over about 17 jobs, merged in
 // one); `pads` dispatches smashcraft:.github/workflows/headless-pads.yml
-// (every native check script, headless, against its own expectations);
+// (every top-level native check script, or those in `--dirs "DIR..."`,
+// headless, against its own expectations);
 // `perf "RUN ARGS" ... [--out DIR]` dispatches smashcraft:.github/workflows/perf.yml,
 // one `bun wisp perf RUN ARGS` a job, and always waits: it prints each run's
 // summary and writes its output to DIR/<run>.txt.
@@ -161,7 +162,7 @@ const memoryResult = (repo: string, id: number, state: RunState) => Effect.gen(f
 export const farm: Command = (args) => Effect.gen(function*() {
   const parsed = yield* Effect.try({
     try: () => parseArgs({ args: [...args], allowPositionals: true, options: {
-      ref: { type: "string" }, wait: { type: "boolean" }, out: { type: "string" }, level: { type: "string" }, "per-pair": { type: "string" }, seeds: { type: "string" }, minutes: { type: "string" },
+      ref: { type: "string" }, wait: { type: "boolean" }, out: { type: "string" }, level: { type: "string" }, "per-pair": { type: "string" }, seeds: { type: "string" }, minutes: { type: "string" }, dirs: { type: "string" },
     } }),
     catch: (cause) => new UsageFailure({ problem: describeCause(cause) }),
   });
@@ -174,7 +175,7 @@ export const farm: Command = (args) => Effect.gen(function*() {
   const tag = randomBytes(4).toString("hex");
   const inputs = job === "balance"
     ? { ref, level: parsed.values.level ?? "9", "per-pair": parsed.values["per-pair"] ?? "400", seeds: parsed.values.seeds ?? "100", tag }
-    : job === "perf" ? { ref, runs: JSON.stringify(runs), tag } : job === "memory" ? { ref, minutes: parsed.values.minutes ?? "30", tag } : { ref, tag };
+    : job === "perf" ? { ref, runs: JSON.stringify(runs), tag } : job === "memory" ? { ref, minutes: parsed.values.minutes ?? "30", tag } : { ref, dirs: parsed.values.dirs ?? ".", tag };
   const started = performance.now();
   const work = Effect.gen(function*() {
     yield* run(["gh", "workflow", "run", workflow, "-R", repo, "--ref", "main", ...Object.entries(inputs).flatMap(([name, value]) => ["-f", `${name}=${value}`])]);

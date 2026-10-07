@@ -277,10 +277,13 @@ code. From smashcraft:ts/:
   verdict and field table. A level-9 run with at least 400 matches per pair
   fails when the balance gate fails, after publishing the report artifact;
   lower-level or smaller exploratory fields remain reports.
-  `bun wisp farm pads [--ref REF] [--wait]` plays
-  every smashcraft:ts/test/native/pads/ script headless through the real
-  helper against its own `#!` expectations, for a change that moves hit
-  timing; `bun wisp farm perf ["RUN ARGS" ...] [--out DIR]` runs each
+  `bun wisp farm pads [--ref REF] [--dirs "DIR..."] [--wait]` plays
+  every top-level smashcraft:ts/test/native/pads/ script (or each issue
+  folder named in `--dirs`, such as `--dirs "151 167"`) headless through the
+  real helper against its own `#!` expectations, for a change that moves hit
+  timing or a new issue script on a loaded host; each job uploads its traces
+  (`gh run download RUN`), the source of a new script's `#! expect` lines;
+  `bun wisp farm perf ["RUN ARGS" ...] [--out DIR]` runs each
   `bun wisp perf RUN ARGS` in its own job (default `playable-bot-four`),
   prints each summary and writes each run to DIR. Predictions come from
   counts, so a runner predicts what this machine would; use it instead of a

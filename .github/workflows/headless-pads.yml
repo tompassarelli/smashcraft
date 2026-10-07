@@ -11,6 +11,9 @@ on:
       ref:
         description: Commit, branch or tag to check
         default: main
+      dirs:
+        description: Script folders under ts/test/native/pads, space-separated (. is the top level)
+        default: "."
       tag:
         description: Names the run so `bun wisp farm` can find the one it dispatched
         default: ""
@@ -37,7 +40,9 @@ jobs:
       - id: plan
         run: |
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-          echo "pads=$(cd ts/test/native/pads && ls *.pad | jq -R . | jq -sc .)" >> "$GITHUB_OUTPUT"
+          echo "pads=$(cd ts/test/native/pads && for dir in $DIRS; do ls "$dir"/*.pad; done | sed "s#^\./##" | jq -R . | jq -sc .)" >> "$GITHUB_OUTPUT"
+        env:
+          DIRS: ${{ inputs.dirs }}
 
   helper:
     needs: plan
@@ -96,11 +101,12 @@ jobs:
         run: bun wisp pad "test/native/pads/${{ matrix.pad }}" --headless --helper "$GITHUB_WORKSPACE/helper/wc3-journal" --out "/dev/shm/pad/${{ matrix.pad }}"
       - if: ${{ !cancelled() }}
         run: |
-          mkdir -p pad-out
-          cp -r "/dev/shm/pad/${{ matrix.pad }}" pad-out/ 2>/dev/null || true
-      - if: ${{ failure() }}
+          mkdir -p "pad-out/${{ matrix.pad }}"
+          cp -r "/dev/shm/pad/${{ matrix.pad }}/." "pad-out/${{ matrix.pad }}/" 2>/dev/null || true
+      # Every run keeps its traces, so a new script can take its `#! expect` lines from them.
+      - if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
-          name: pad-${{ matrix.pad }}
+          name: pad-${{ strategy.job-index }}
           path: pad-out
           retention-days: 7
