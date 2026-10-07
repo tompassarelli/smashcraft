@@ -71,7 +71,7 @@ the roster's entry rules. Hold, escape and release use the shared grab link.
 
 | Input | Gesture and purpose | Contact / total | Damage | Warcraft source | Smash reference |
 |---|---|---:|---:|---|---|
-| Pummel | Small cold palm strike; at most two | 5 / 12 | 2 | [Blizzard cold][archmage] | [Zelda pummel][zelda] |
+| Pummel | Small cold palm strike; the shared one-pummel/mash-escape rule | 60 / 68 | 3 | [Blizzard cold][archmage] | [Zelda pummel][zelda] |
 | Forward throw | Water push; reclaim distance | 14 / 36 | 8 | [Water Elemental attack][water] | [Zelda levitation throw][zelda] |
 | Back throw | Turn and sweep the victim behind; edgeguard setup | 17 / 41 | 9 | [Water Elemental attack][water] | [Zelda reverse throw][zelda] |
 | Up throw | Lift on a water spout; short juggle launcher | 15 / 25 | 7 | [Water Elemental attack][water] | [Zelda up throw][zelda] |
