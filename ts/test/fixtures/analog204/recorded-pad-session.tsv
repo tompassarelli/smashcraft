@@ -1,0 +1,31 @@
+record	event_id	capture_ns	dequeue_ns	submit_ns	control	value	action	pressed	disposition
+# capture_ns is SDL's event timestamp since SDL initialization; dequeue_ns and submit_ns are process-monotonic since watch start
+# selected=2; discarded_startup_events=17; release all mapped controls to arm; transitions are previews only unless --emit
+event	1	645941710	140954		axis	LeftX=16384			observed
+transition	1	645941710	140954		axis	LeftX=16384	Right	true	preview
+event	2	650089018	4285661		axis	LeftX=32767			observed
+event	3	654184149	8380926		axis	LeftX=-16384			observed
+transition	3	654184149	8380926		axis	LeftX=-16384	Right	false	preview
+transition	3	654184149	8380926		axis	LeftX=-16384	Left	true	preview
+event	4	658282086	12478034		axis	LeftX=0			observed
+transition	4	658282086	12478034		axis	LeftX=0	Left	false	preview
+event	5	662372067	16571406		axis	LeftY=-16384			observed
+transition	5	662372067	16571406		axis	LeftY=-16384	Up	true	preview
+event	6	666467569	20663555		axis	LeftY=-32767			observed
+event	7	670554535	24808893		axis	LeftY=0			observed
+transition	7	670554535	24808893		axis	LeftY=0	Up	false	preview
+event	8	674758859	28976594		axis	TriggerLeft=12849			observed
+transition	8	674758859	28976594		axis	TriggerLeft=12849	LightShield	true	preview
+event	9	678899405	33120680		axis	TriggerLeft=21383			observed
+event	10	683035342	37237385		axis	TriggerLeft=32767			observed
+event	11	687150540	41369088		axis	TriggerLeft=0			observed
+transition	11	687150540	41369088		axis	TriggerLeft=0	LightShield	false	preview
+event	12	691283151	45479511		axis	TriggerRight=21383			observed
+transition	12	691283151	45479511		axis	TriggerRight=21383	Shield	true	preview
+event	13	695395274	49613799		axis	TriggerRight=32767			observed
+event	14	699527214	53730584		axis	TriggerRight=0			observed
+transition	14	699527214	53730584		axis	TriggerRight=0	Shield	false	preview
+event	15	703666657	57885220		button	South=true			observed
+transition	15	703666657	57885220		button	South=true	Attack	true	preview
+event	16	707798336	61995182		button	South=false			observed
+transition	16	707798336	61995182		button	South=false	Attack	false	preview

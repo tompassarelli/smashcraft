@@ -124,6 +124,58 @@ and its real executable or app identity passing the foreground check;
 Battle.net launch; the macOS Accessibility prompt for the user's actual app;
 keyboard layouts other than the runner's US QWERTY; and an online match.
 
+## Analog values and quantization
+
+The input row keeps its existing signed-byte `axisX` and `axisZ` (−127 to
+127), and unsigned-byte `triggerLeft` and `triggerRight` (0 to 255). Both
+candidate pad transports use the same quantization: 17 readings per stick
+axis, neutral plus eight in either direction, and four readings per trigger.
+The helper applies the existing radial clamp and 0.28 axial dead zone before
+choosing the nearest active level. Values outside the dead zone keep their
+strength; the active range is not expanded to start from zero.
+
+| Field | Readings |
+| --- | --- |
+| Stick X and Z | −127, −114, −101, −88, −75, −62, −49, −36, 0, 36, 49, 62, 75, 88, 101, 114, 127 |
+| Each trigger | 0, 77, 166, 255 |
+
+Eight active magnitudes retain a distinction between a half push (62) and a
+full push (127), while keeping the transport smaller than a full-resolution
+pad. Trigger 77 retains the existing light-shield setting; 166 adds a middle
+pressure and 255 is full pressure. These counts are Smashcraft's coarse
+choice, informed by the following reference behavior.
+
+Melee clamps and scales its stick to 80 units and each analog trigger to 140
+units. Its controller code first retains integer stick and trigger readings,
+then converts them to normalized floats. The existing helper also retains
+Melee's 0.28 fighter-input dead zone. Sources: [Melee pad setup](https://github.com/doldecomp/melee/blob/4eb34e8ebe3421cb04d8e635aa29809183320421/src/melee/gm/gmmain.c#L38)
+and [pad clamp and scale](https://github.com/doldecomp/melee/blob/4eb34e8ebe3421cb04d8e635aa29809183320421/src/sysdolphin/baselib/controller.c#L160).
+
+For Ultimate's GameCube-adapter path, HDR's input research describes signed
+8-bit device axes, the Switch driver's 15–70 working range and remapping,
+and the game's additional 0.2 inner and 0.944 outer dead zones. Together
+these leave about 41 distinct active readings in each direction. This is a
+specific adapter path rather than a claim about every Ultimate controller.
+Source: [HDR's explanation](https://github.com/HDR-Development/hid-hdr/blob/d425dcebfe0cf5165d06e395573b6e8a5ef15197/README.md#curious-about-the-stick-changes).
+
+Ultimate uses a GameCube analog-trigger threshold of 79 as a digital press;
+Melee uses analog pressure for shield strength up to 140. Smashcraft keeps
+four pressure readings because its existing shield simulation uses pressure.
+Source: [OpenGCC's trigger measurements](https://github.com/ZadenRB/OpenGCC_Firmware/wiki/Analog-and-Digital-Trigger-Values).
+
+The packet carries two five-bit stick indices and two two-bit trigger
+indices, 14 bits in total. The key candidate holds these bits as F13–F24,
+Insert and Delete. Home identifies a present pad; End is held only after all
+bits of an update are ready. The map keeps the previous complete pad sample
+while End is released, and clears it when Home is released or focus is lost.
+The cursor candidate
+encodes the same bits as two seven-bit cursor-cell coordinates. Neither
+changes the row format, replay records or rollback packets. A keyboard
+sample continues to produce its existing full stick and trigger readings.
+
+The references above supply numerical behavior only; no external controller
+code is copied. The packet and its coarse levels are authored here.
+
 ## Source pins and reuse rights
 
 Reference downloads and API-page snapshots are under smashcraft:build/two-clients/controller-reuse-20261003/sources. Documentation pages were retrieved on 3 October 2026 for API facts; examples were not copied. Source pins below are research evidence, not a dependency installation. The prior report retains exact pins/licenses for gilrs, evdev, hidapi, rusb, AntiMicroX and the mapping database.
