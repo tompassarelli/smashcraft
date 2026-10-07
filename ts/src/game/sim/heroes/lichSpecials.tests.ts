@@ -77,7 +77,6 @@ test("Frost Nova costs 10, its slow orb leaves the hand on frame 18 and chills a
 test("a second Frost Nova press stops the orb on its frame 4 and bursts it 6 frames later, chilling what it catches", () => {
   const { world, lich, target } = lichPair(1200.0);
   frame(world, neutral);
-  // The cast ends on frame 37; the orb is then about 1.9H ahead.
   for (let f = 2; f <= 45; f++) frame(world);
   const orb = live(lich)[0]!;
   frame(world, neutral);

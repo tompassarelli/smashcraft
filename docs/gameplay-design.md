@@ -1127,13 +1127,9 @@ from a held shield: each out-of-shield option must start. Rule 1 itself is
 smashcraft:ts/scripts/powershieldReflect.tests.ts: each of those projectiles,
 meeting the shield on its first frame, on the reflector's last frame and one
 frame late, must reflect on the first two and not on the third (it prints the
-table; a press that only parries does not count as a reflection). Named departures:
-
-- **Archer's arrow (neutral special), rules 2 and 3.** Arrows deal damage
-  without hitstun or shieldstun (see "Archer's arrows" above), so they hold no
-  shield and lock no fighter; the 3-frame shot is safe point blank and keeps
-  up to 10 arrows in flight. A powershield reflects each, and a jump, dodge or
-  roll avoids it from range.
+table; a press that only parries does not count as a reflection). Swift
+Arrow's visible draw and recovery (#172) leave it punishable by shield grab
+at 60 units, and its repeat interval keeps at most two arrows in flight.
 
 One move-specific projectile clash exists (#116). Illidan's Mana Burn orb
 and any opposing traveling projectile it meets cancel each other. Other

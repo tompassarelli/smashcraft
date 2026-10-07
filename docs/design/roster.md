@@ -427,7 +427,7 @@ Standing grab 8/3/25, reach 0.60H. Pummel: belly bump.
 
 | Input | Proposed move and behavior | Timing and cost |
 | --- | --- | --- |
-| Neutral B | **Frost Nova** (#130, [kit review 2](kit-review-2.md#lich-130)): a slow orb, speed 0.07H/frame, life 80, radius 0.16H; 8 damage, POKE at 35 degrees and Chill on a body. Neutral B again while it flies stops it on the gesture's frame 4; 6 frames later it bursts for 3 frames: radius 0.7H, 10 damage, LAUNCH at 70 degrees, Chill. One orb, reflectable until burst. **Chill:** 75 frames at 60% walk, dash, run and air-drift top speed; a shield stops it; 120 frames of immunity. | Orb f18, end f37; 10 mana. Burst gesture end f14, free |
+| Neutral B | **Frost Nova** (#130, [kit review 2](kit-review-2.md#lich-130)): a slow orb, speed 0.09H/frame, life 80, radius 0.16H; 9 damage, POKE at 35 degrees and Chill on a body. Neutral B again while it flies stops it on the gesture's frame 4; 6 frames later it bursts for 3 frames: radius 0.7H, 10 damage, LAUNCH at 70 degrees, Chill. One orb, reflectable until burst. **Chill:** 75 frames at 60% walk, dash, run and air-drift top speed; a shield stops it; 120 frames of immunity. | Orb f18, end f39; 10 mana. Burst gesture end f14, free |
 | Side B | **Death and Decay** (#130): a field placed 1.5H ahead, or 0.9H if pressed backward, only with line of sight; radius 0.75H. It strikes the first body or shield in it from f30 (5 damage, POKE at 80 degrees) and again from f70 (9 damage, LAUNCH at 70 degrees), and is gone after f97. Interrupting Lich before f30 removes it. | Field f8, end f50; 25 mana |
 | Up B | **Spectral Ascent:** visible upward glide, 2.1H height and up to 0.4H lateral drift, no hitbox or intangibility. Free version 1.4H. | Movement f10–34, helpless afterward; 15 mana |
 | Down B | **Frost Armor** (#130): f22 cast grants a 240-frame shell that absorbs the hit reaction of one hit of at most 8 damage and chills the melee striker. Damage still applies; grabs bypass it. **Dark Ritual:** down B while the shell holds shatters it on f6 into a 0.6H burst around Lich (5 damage, POKE at 60 degrees) and restores 30 mana. | Cast f22, end f45; 20 mana. Ritual end f24, free |
@@ -459,7 +459,7 @@ the tables:
   turning. A field whose line from Lich crosses solid stage geometry is not
   placed (the cast and its cost still happen). Its two strikes are two
   stationary zones, so with Frost Nova's orb Lich owns three projectiles.
-- **Frost Nova's burst** press is accepted once the 40-frame cast has ended,
+- **Frost Nova's burst** press is accepted once the 39-frame cast has ended,
   so the nearest burst is about 1.9H ahead.
 - **Spectral Ascent** steers with the live stick at up to 0.4H/25 per frame
   over its window, in place of air drift; with a neutral stick it rises
@@ -1131,7 +1131,7 @@ his normals, and respect the empowered special the pips announce.
   then turns bright violet: each 2-damage strike is at least 36 frames apart
   and grows the radius by 6, from 0.3H to at most 0.6H. Airborne foes are safe;
   shields block without growing it. One at a time, 320 frames between casts,
-  leaving at least 120 frames with no pool. He commits through frame 46:
+  leaving at least 120 frames with no pool. He commits through frame 50:
   jump away, roll out, shield, or punish the cast. The rim follows the actual
   radius, including growth; an overlapping grounded body can touch it from
   outside its centre. Delegated rework, 7 Oct (#174).
@@ -1378,6 +1378,46 @@ frames, which leaves him at least 20 frames after a point-blank Hex.
 Matchups after pass 4 (before the Hex fix): 14 of 66 inside 45-55%, 26
 intervals overlapping, median distance from 50% 12.9 points.
 
+After the model-scale and approach changes (#162, #160), the 13-fighter
+field at level 9, 400 matches per pair compares baseline 1c4400e6 with
+0484f7f6. Both contain the Lich King; each run plays 31,200 matches over
+100 seeds per pair. The bounded retune reduces the original fighters'
+forward air from 8 to 7, Illidan's forward smash from 10 to 9 and his
+two-hit forward air from 7 to 5. Lich's frost orb gains speed and damage,
+and his forward smash starts four frames earlier. Uther's Holy Light ends
+six frames earlier; Dreadlord's weight returns from 1.24 to 1.14; Shadow
+Hunter's down tilt gains one damage and his ward's shots gain one. Swift
+Arrow's visible draw and lower shieldable flight (#172), and Defile's
+shorter, weaker pool with a longer empty interval (#174), complete the
+candidate. Archer retains weight 62.
+
+| Fighter | Before | After | After self-destruct share |
+| --- | ---: | ---: | ---: |
+| Archer | 61.23% | 42.48% | 0.53% |
+| Rifleman | 57.19% | 54.58% | 6.63% |
+| Illidan | 67.04% | 58.02% | 1.14% |
+| Blademaster | 55.23% | 57.17% | 4.97% |
+| Mountain King | 47.15% | 46.04% | 2.98% |
+| Warden | 43.25% | 44.13% | 10.78% |
+| Lich | 29.53% | 45.79% | 2.61% |
+| Uther | 39.00% | 46.42% | 4.23% |
+| Dreadlord | 60.15% | 56.73% | 2.61% |
+| Shadow Hunter | 39.08% | 47.13% | 1.46% |
+| Pit Lord | 53.73% | 55.08% | 9.20% |
+| Beastmaster | 44.36% | 45.02% | 5.52% |
+| Lich King | 53.06% | 51.42% | 1.85% |
+
+All 13 pass the field gate. Matchups: 22/78 inside 45-55%, 39/78 confidence
+intervals overlapping it, median distance from 50% 10 points. Raw tables:
+smashcraft:evidence/balance-105-20261007/n400-before-arrow-defile.md and
+smashcraft:evidence/balance-105-20261007/n400-after-arrow-defile.md. These
+results measure the combined candidate, not each lever separately.
+
+The projectile contracts subsequently exposed the cost of the stronger
+Frost Nova's shieldstun and Defile's later arming: point-blank shield grabs
+could no longer land. Frost Nova's end moves from 37 to 39, and Defile's
+from 46 to 50, restoring shield grabs in their 60-unit mirror situations.
+
 ## Implementation details for the overnight agent
 
 ### Read the real project first
@@ -1491,7 +1531,7 @@ bun scripts/cpuField.ts --merge shard.0.json,shard.1.json,...
 The merged table ends with "Balance gate (...): passes", "fails" or "not a
 gate run" (a different level or fewer matches a pair), and lists any fighter
 outside the band. Latest run:
-smashcraft:evidence/balance-105-20261007/n400-after-pass-4.md.
+smashcraft:evidence/balance-105-20261007/n400-after-arrow-defile.md.
 
 ## Balance and feel measurement
 

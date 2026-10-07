@@ -100,7 +100,7 @@ const DEFILE_POOL: SpecialProjectile = {
 };
 const DEFILE: AuthoredSpecial = {
   cost: 20,
-  endFrame: 46,
+  endFrame: 50,
   cooldownFrames: 320,
   groundOnly: true,
   projectiles: [DEFILE_POOL],

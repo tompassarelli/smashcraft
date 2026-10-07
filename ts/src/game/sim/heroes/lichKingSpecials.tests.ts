@@ -75,7 +75,7 @@ function actionLength(world: Roster, owner: Fighter, press: Readonly<Controls>):
 const liveHero = (f: Readonly<Fighter>) => f.projectiles.find(p => p.life > 0 && p.kind === ProjectileKind.hero);
 
 test("the Lich King's specials spend their costs once and end on their authored frames", () => {
-  for (const [press, cost, end] of [[neutral, 15, 44], [side, 20, 40], [down, 20, 46]] as const) {
+  for (const [press, cost, end] of [[neutral, 15, 44], [side, 20, 40], [down, 20, 50]] as const) {
     const { world, owner } = pair(1000.0);
     assertEquals(actionLength(world, owner, press), end);
     assertEquals(owner.mana.points, 100 - cost);

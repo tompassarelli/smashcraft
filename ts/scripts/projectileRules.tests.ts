@@ -16,10 +16,7 @@ const MAX_PERSISTENT_OUT = 2;
 const MAX_FLIGHT = 90;
 
 /** "fighter source rule N" to its reason; each is also named in gameplay-design.md. A departure that no longer occurs fails. */
-const DEPARTURES: Readonly<Record<string, string>> = {
-  "Archer neutral special rule 2": "arrows deal damage without hitstun or shieldstun, so they hold no shield and lock no fighter",
-  "Archer neutral special rule 3": "a 3-frame shot that only adds damage; volume is its pressure",
-};
+const DEPARTURES: Readonly<Record<string, string>> = {};
 
 const FIGHTERS: readonly { readonly character: Character; readonly name: string }[] = [
   { character: Character.archer, name: "Archer" },
