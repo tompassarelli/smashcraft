@@ -1,5 +1,17 @@
 # TypeScript in Smashcraft
 
+## JSON soak results
+
+`bun wisp soak --json` writes JSON Lines results and a final verdict with
+counts and elapsed milliseconds. Print failures with:
+
+```sh
+bun wisp soak --json | jq -c 'select(.kind != null) | {kind, frame, client, message, repro, source}'
+```
+
+Use `--matches N --workers N` to select a smaller run. The human-readable
+output remains the default; timings and command errors go to stderr.
+
 Smashcraft's TypeScript compiles to Warcraft's Lua through TypeScriptToLua
 (smashcraft:ts/). This page is the style contract for the game code. Behavior is
 checked by tests and recorded tapes
