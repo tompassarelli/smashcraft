@@ -4,7 +4,7 @@
 // callback services one frame of menus, input, simulation and presentation.
 import { PARTICIPANT_SLOTS, isParticipantMask, isParticipantSlot } from "../../game/input/participants";
 import { clearPulse } from "../../game/input/directionalInput";
-import { startKeyUp } from "../../game/match/controls";
+import { consumeResumeFrame, startKeyUp } from "../../game/match/controls";
 import { Phase, copyMatchState, humanActive, humanPresent, participantLeft, updateConnectedHumans } from "../../game/match/rules";
 import { FRAME_SECONDS } from "../../game/presentation/fighterPose";
 import { FLOOR_HEIGHT } from "../../game/presentation/arenaCamera";
@@ -105,7 +105,8 @@ function gameTick(s: ShellState): void {
   serviceMomentSave(s);
   serviceReplay(s);
   captureNativeDriverInputs(s);
-  if (rollback !== undefined && s.game.phase === Phase.match) {
+  const resumeFrame = consumeResumeFrame(s.session);
+  if (!resumeFrame && rollback !== undefined && s.game.phase === Phase.match) {
     const { journal } = rollback;
     if (journal !== undefined) serviceControlAck(s, rollback, journal);
     rollbackTick(s, rollback);
@@ -113,7 +114,7 @@ function gameTick(s: ShellState): void {
       sendPauseCommit(s, rollback, journal);
       commitPauseAtFrame(s, rollback, journal);
     }
-  } else if (s.game.phase === Phase.match && !s.session.paused) callbackMatchTick(s);
+  } else if (!resumeFrame && s.game.phase === Phase.match && !s.session.paused) callbackMatchTick(s);
   if (s.game.phase !== Phase.match) clearAllInputs(s);
   else for (const slot of PARTICIPANT_SLOTS) clearPulse(s.participants[slot].keys.directions);
   syncKeyEvents(s);
