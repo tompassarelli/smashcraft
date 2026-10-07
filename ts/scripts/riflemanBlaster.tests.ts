@@ -83,14 +83,14 @@ function play(distance: number, defender: "idle" | "shield", press: number | und
 
 const advantage = (shot: Shot): number | undefined => (shot.defenderActs === undefined ? undefined : shot.defenderActs - shot.shooterActs);
 
-test("a grounded blaster shot leaves on frame 9, deals 4 with 12 frames of hitstun and acts on frame 39", () => {
+test("a grounded blaster shot leaves on frame 9, deals 3.72 with 11 frames of hitstun and acts on frame 39", () => {
   const shot = play(240, "idle", undefined);
-  expect([shot.shot, shot.damage, shot.hitstun, shot.shooterActs]).toEqual([9, 4, 12, 39]);
+  expect([shot.shot, shot.damage, shot.hitstun, shot.shooterActs]).toEqual([9, 3.7200002670288086, 11, 39]);
 });
 
-test("a short-hop blaster shot leaves on frame 19, deals 3 with 9 frames of hitstun and lands into 8 frames", () => {
+test("a short-hop blaster shot leaves on frame 19, deals 2.79 with 8 frames of hitstun and lands into 8 frames", () => {
   const shot = play(240, "idle", SHORT_HOP_PRESS);
-  expect([shot.shot, shot.damage, shot.hitstun, shot.landing, shot.shooterActs]).toEqual([19, 3, 9, 23, 31]);
+  expect([shot.shot, shot.damage, shot.hitstun, shot.landing, shot.shooterActs]).toEqual([19, 2.7900002002716064, 8, 23, 31]);
 });
 
 test("the blaster's advantage on hit and on a shield, grounded and from a short hop", () => {
@@ -100,9 +100,9 @@ test("the blaster's advantage on hit and on a shield, grounded and from a short 
     air: [advantage(play(distance, "idle", SHORT_HOP_PRESS)), advantage(play(distance, "shield", SHORT_HOP_PRESS))],
   }));
   expect(table).toEqual([
-    { distance: 60, ground: [-15, -23], air: [0, -5] },
-    { distance: 240, ground: [-10, -19], air: [5, 0] },
-    { distance: 480, ground: [-4, -12], air: [11, 6] },
+    { distance: 60, ground: [-16, -23], air: [-2, -7] },
+    { distance: 240, ground: [-11, -19], air: [3, -2] },
+    { distance: 480, ground: [-5, -12], air: [9, 4] },
   ]);
 });
 

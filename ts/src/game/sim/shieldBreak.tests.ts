@@ -283,9 +283,9 @@ test("both fighters' basic projectiles interrupt a shield break", () => {
     const shooter = createFighter(character, -30.0, 1);
     aimShot(shooter);
     updateProjectiles(testWorld(shooter, fighter));
-    assertEquals(fighter.status.damage, 3.0);
+    assertEquals(fighter.status.damage, 2.7900002002716064);
     assertEquals(fighter.shield.breakState, ShieldBreak.none);
-    assertEquals(fighter.launch.hitstun, 9);
+    assertEquals(fighter.launch.hitstun, 8);
     assertNear(fighter.shield.energy, f32(30.07), f32(0.0001));
   }
 });

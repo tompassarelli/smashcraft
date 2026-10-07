@@ -12,12 +12,14 @@ interface ProjectilePose {
   pitch: number;
   /** A ground pool's horizontal danger radius; zero for traveling missiles. */
   poolRadius: number;
+  dangerRadius: number;
   armed: boolean;
+  poolPulse: number;
   modelScale: number;
 }
 
 // Shared and never changed: renderers project every pooled effect on every callback.
-const HIDDEN: Readonly<ProjectilePose> = { visible: false, x: 0.0, z: 0.0, yaw: 0.0, pitch: 0.0, poolRadius: 0.0, armed: false, modelScale: 1.0 };
+const HIDDEN: Readonly<ProjectilePose> = { visible: false, x: 0.0, z: 0.0, yaw: 0.0, pitch: 0.0, poolRadius: 0.0, dangerRadius: 0.0, armed: false, poolPulse: 0.0, modelScale: 1.0 };
 
 /** A live projectile, facing its direction of travel and pitched along its path; hidden outside play. */
 export function projectedProjectile(fighter: Readonly<Fighter> | undefined, index: number, playing: boolean): Readonly<ProjectilePose> {
@@ -35,7 +37,10 @@ export function projectedProjectile(fighter: Readonly<Fighter> | undefined, inde
     yaw: velocityX >= 0.0 ? 0.0 : f32(3.141592654),
     pitch: -meleeAtan2(velocityZ, Math.abs(velocityX)),
     poolRadius: radius,
+    dangerRadius: spec === undefined ? 0.0 : heroProjectileRadius(projectile, spec),
     armed: spec !== undefined && spec.life - projectile.life >= (spec.activeFrom ?? 0),
+    poolPulse: spec?.pool === undefined || projectile.poolHits === 0 ? 0.0
+      : f32(Math.max(0.0, f32((projectile.poolWait - (spec.pool.every - 13)) / 12.0))),
     modelScale: spec?.modelRadius === undefined ? 1.0 : f32(radius / spec.modelRadius),
   };
 }
