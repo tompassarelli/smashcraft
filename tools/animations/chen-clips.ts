@@ -169,6 +169,8 @@ for (const [ordinal, action] of [...actions, ...damage].entries()) {
     MinimumExtent: new Float32Array([-300,-300,-200]), MaximumExtent: new Float32Array([300,300,350]), BoundsRadius: 400});
   const frameSet = action.hold ? [0, action.frames] : [0, Math.max(1, action.contact - 3), action.contact,
     Math.min(action.frames - 1, action.contact + (action.active ?? 4) - 1), action.frames];
+  const shortNormal=["jab","jab2","jab3","forwardTilt","forwardTiltUp","forwardTiltDown","upTilt","downTilt","dashAttack"].includes(action.pose);
+  if(shortNormal)frameSet.push(action.contact+(action.active??4));
   if (action.rear) frameSet.push(action.contact + 3);
   if (action.spin || action.roll) for (let f = 0; f < action.frames; f += 2) frameSet.push(f);
   const phaseFrames = [...new Set(frameSet)].sort((a,b) => a-b);
@@ -198,16 +200,29 @@ for (const [ordinal, action] of [...actions, ...damage].entries()) {
   // The staff belongs to the left hand; both legs and the keg hand need
   // their contact points visible in the side view, despite the bind axes.
   const staffTargets: Partial<Record<HeroPose, readonly [number, number]>> = {
-    jab2: [65,58], forwardTilt: [108,65], forwardTiltUp: [100,98], forwardTiltDown: [105,28],
+    jab: [-30,160], jab2: [112,58], jab3: [-30,160], upTilt: [-30,160], downTilt: [-30,160], dashAttack: [-30,160],
+    forwardTilt: [180,65], forwardTiltUp: [170,98], forwardTiltDown: [175,28],
     forwardSmash: [125,62], upAir: [15,160], downSmash: [115,26],
     getUpAttack: [105,40], ledgeAttack: [110,70],
   };
   const handTargets: Partial<Record<HeroPose, readonly [number, number]>> = {
-    jab: [60,80], upTilt: [25,132], grab: [62,72], grabHold: [62,72],
+    jab: [85,80], jab3: [90,65], dashAttack: [95,75], upTilt: [25,185], grab: [62,72], grabHold: [62,72],
     throwForward: [65,80], throwBack: [-70,85], throwUp: [15,140], throwDown: [65,35],
     neutralSpecial: [40,65], neutralSpecialAir: [40,65], sideSpecial: [65,105], sideSpecialAir: [65,105],
     downSpecialFollowUp: [70,75], downSpecialFollowUpAir: [70,75],
   };
+  const shortHand = ["jab", "jab3", "upTilt", "dashAttack"].includes(action.pose);
+  if (shortHand) {
+    const arm=model.Helpers.find(n=>n.Name==="Bone_Arm1_R");ensure(arm,"Chen keg arm missing");
+    if (!arm.Scaling) arm.Scaling={LineType:mdx.LineType.Linear,GlobalSeqId:null,
+      Keys:source.Sequences.flatMap(s=>Array.from(s.Interval).map(Frame=>({Frame,Vector:new Float32Array([1,1,1])})))};
+    for(const frame of phaseFrames){
+      const activeEnd=action.contact+(action.active??4)-1;
+      const amount=frame===0||frame===action.frames?0:frame<action.contact?0:frame<=activeEnd?1:Math.max(0,(action.frames-frame)/(action.frames-activeEnd));
+      const scale=1+amount*(action.pose==="upTilt"?0.9:0.5),Vector=new Float32Array([scale,scale,scale]);
+      arm.Scaling.Keys.push({Frame:start+Math.round(frame*1000/60),Vector,...arm.Scaling.LineType>1?{InTan:Vector.slice(),OutTan:Vector.slice()}: {}});
+    }
+  }
   const footTargets: Partial<Record<HeroPose, readonly [number, number]>> = {
     downTilt: [70,20], forwardAir: [75,65], backAir: [-75,60], downAir: [12,-8], neutralAir: [65,70], pummel: [60,60],
   };
@@ -223,19 +238,20 @@ for (const [ordinal, action] of [...actions, ...damage].entries()) {
         ...(extendedLeg.Scaling.LineType>1?{InTan:Vector.slice(),OutTan:Vector.slice()}:{})});
     }
   }
-  function fit(chain: readonly [string,string,string], target: readonly [number,number], afterFrame?: number) {
+  function fit(chain: readonly [string,string,string], target: readonly [number,number], afterFrame?: number, onlyFrame?: number) {
     const first=model.Helpers.find(n=>n.Name===chain[0]), second=model.Helpers.find(n=>n.Name===chain[1]), endpoint=model.Nodes.find(n=>n.Name===chain[2]);
     ensure(first?.Rotation && second?.Rotation && endpoint, `${action.pose}: missing contact chain`);
     const base=(n:mdx.Node)=>source.Nodes[n.ObjectId]!.Rotation!.Keys.find(k=>k.Frame>=stand.Interval[0]&&k.Frame<=stand.Interval[1])!.Vector;
     const bases=[base(first),base(second)];
     const renderer=new ModelRenderer(model), data=Reflect.get(renderer,"rendererData"), pivot=model.PivotPoints[endpoint.ObjectId]!;
-    renderer.setSequence(index); data.frame=start+Math.round((afterFrame??action.contact)*1000/60);
+    renderer.setSequence(index); data.frame=start+Math.round((onlyFrame??afterFrame??action.contact)*1000/60);
     const angles=[0,0,0,0];
     function set() {
       for(const [part,node] of [first,second].entries())for(const frame of phaseFrames){
+        if(onlyFrame!==undefined&&frame!==onlyFrame)continue;
         if(afterFrame!==undefined&&frame<afterFrame)continue;
         const activeEnd=action.contact+(action.active??4)-1;
-        const amount=action.hold?1:frame===0||frame===action.frames?0:frame<action.contact?-0.3:frame<=activeEnd?1:Math.max(0,(action.frames-frame)/(action.frames-activeEnd));
+        const amount=onlyFrame!==undefined||action.hold?1:frame===0||frame===action.frames?0:frame<action.contact?-0.3:frame<=activeEnd?1:Math.max(0,(action.frames-frame)/(action.frames-activeEnd));
         const key=node.Rotation!.Keys.find(k=>k.Frame===start+Math.round(frame*1000/60))!;
         key.Vector=rotated(bases[part]!,angles[part*2]!*amount,angles[part*2+1]!*amount);
         if(key.InTan){key.InTan=key.Vector.slice();key.OutTan=key.Vector.slice();}
@@ -253,6 +269,10 @@ for (const [ordinal, action] of [...actions, ...damage].entries()) {
     loss();
   }
   const staffTarget=staffTargets[action.pose]; if(staffTarget)fit(["Bone_Arm1_L","Bone_Arm2_L","Bone Rope"],staffTarget);
+  if(shortNormal) {
+    for(const frame of phaseFrames)if(frame<action.contact||frame>=action.contact+(action.active??4))
+      fit(["Bone_Arm1_L","Bone_Arm2_L","Bone Rope"],[-30,160],undefined,frame);
+  }
   const handTarget=handTargets[action.pose];if(handTarget)fit(["Bone_Arm1_R","Bone_Arm2_R","Bone_Hand_R"],handTarget);
   const footTarget=footTargets[action.pose];if(footTarget)fit(action.pose==="backAir"?["Bone_Leg1_R","Bone_Leg2_R","Bone_Foot_R"]:["Bone_Leg1_L","Bone_Leg2_L","Bone_Foot_L"],footTarget);
   if(action.rear)fit(["Bone_Arm1_L","Bone_Arm2_L","Bone Rope"],[-105,action.pose==="downSmash"?26:40],action.contact+3);
