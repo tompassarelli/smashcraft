@@ -216,7 +216,10 @@ it checks three things:
 
 - Each headless moment replays to every native confirmed-state checksum
   in its frames. A View hold of a second saves a moment of the last ten
-  seconds, so scripts hold View twice, near frames 500 and 1000.
+  seconds, so scripts hold View twice, near frames 500 and 1000. Native and
+  headless moments that start on the same frame must hold the same rows (the
+  native match ran the intended presses), and their starting states are
+  compared field by field, so a checksum difference names its fields.
 - The confirmed fighter lines in the traces are equal: specials, attacks,
   jumps, hits and recoveries, each with its frame.
 - Each `#! expect CLIENT FRAME TEXT`, `#! absent CLIENT FROM-TO TEXT` and

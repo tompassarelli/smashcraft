@@ -15,20 +15,20 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { preloadLines } from "wisp/scripts/wisp/boundary";
 import { readSceneLines } from "wisp/scripts/wisp/scene";
-import { parseRepro } from "wisp/src/runtime/repro";
-import { replayRepro } from "../../src/game/replay/moment";
+import { type Repro, parseRepro } from "wisp/src/runtime/repro";
+import { parseMoment, replayRepro } from "../../src/game/replay/moment";
 
 export const TRACE_FILE = "wc3-melee-input-trace.txt";
 export const REPRO_NAME = /^smashcraft-repro-p(\d)-f(\d+)-\d+\.txt$/;
 
-export interface TraceEvent {
+interface TraceEvent {
   readonly slot: number;
   readonly frame: number;
   /** The line after `frame F `: its phase and what happened. */
   readonly text: string;
 }
 
-export interface Trace {
+interface Trace {
   readonly checksums: ReadonlyMap<number, string>;
   readonly events: readonly TraceEvent[];
 }
@@ -48,7 +48,7 @@ export function parseTrace(lines: readonly string[]): Trace {
   return { checksums, events };
 }
 
-export interface Expectation {
+interface Expectation {
   readonly kind: "expect" | "absent";
   readonly slot: number;
   readonly from: number;
@@ -58,13 +58,13 @@ export interface Expectation {
 }
 
 /** A `#! scene CLIENT MODEL` line: that client's scene report shows an effect whose model path contains MODEL in view. */
-export interface SceneExpectation {
+interface SceneExpectation {
   readonly slot: number;
   readonly model: string;
   readonly line: number;
 }
 
-export function parseSceneExpectations(script: string): readonly SceneExpectation[] {
+function parseSceneExpectations(script: string): readonly SceneExpectation[] {
   const found: SceneExpectation[] = [];
   script.split("\n").forEach((raw, index) => {
     const match = /^\s*#!\s*scene\s+([ab])\s+(\S+)\s*$/.exec(raw);
@@ -74,7 +74,7 @@ export function parseSceneExpectations(script: string): readonly SceneExpectatio
 }
 
 /** What each scene expectation found wrong in a client's scene report (smashcraft:docs/player-view.md). */
-export function unmetSceneExpectations(reports: readonly (readonly string[] | undefined)[], expectations: readonly SceneExpectation[], side: string): string[] {
+function unmetSceneExpectations(reports: readonly (readonly string[] | undefined)[], expectations: readonly SceneExpectation[], side: string): string[] {
   return expectations.flatMap((expectation) => {
     const where = `${side} script line ${expectation.line} (scene ${"ab"[expectation.slot]} ${expectation.model})`;
     const lines = reports[expectation.slot];
@@ -119,7 +119,7 @@ export function unmetExpectations(trace: Trace, expectations: readonly Expectati
 }
 
 /** A pad run's folder: client-N/CustomMapData (headless) or the files `bun wisp pad` collected beside its result. */
-export function readLines(path: string): string[] | undefined {
+function readLines(path: string): string[] | undefined {
   try {
     return preloadLines(readFileSync(path, "latin1"));
   } catch {
@@ -127,7 +127,7 @@ export function readLines(path: string): string[] | undefined {
   }
 }
 
-export interface ParityReport {
+interface ParityReport {
   /** The native run proves nothing either way: rerun it. */
   readonly invalid?: boolean;
   readonly passed: boolean;
@@ -205,6 +205,9 @@ export function compareRuns(nativeDir: string, headlessDir: string, script: stri
       lines.push(`checksums: ${checkpoints.size} native confirmed-state checksums on frames ${[...checkpoints.keys()].sort((x, y) => x - y).join(", ")} replay ${replay.problems.length === 0 ? "equal" : "UNEQUAL"} in the headless moment of frames ${start + 1}-${moment.frame}`);
     }
     if (headlessMoments.length > 0 && checked.size < 2) problems.push(`checksum parity: only ${checked.size} native checksums fall in the headless moments`);
+    const compared = momentDifferences(nativeMoments, headlessMoments);
+    lines.push(...compared.lines);
+    problems.push(...compared.problems);
     const last = headlessMoments.at(-1)?.frame ?? 0;
     const through = Math.min(last, Math.max(0, ...nativeTrace.checksums.keys()), Math.max(0, ...headlessTrace.checksums.keys()));
     const difference = eventDifference(nativeTrace, headlessTrace, through);
@@ -226,4 +229,49 @@ export function compareRuns(nativeDir: string, headlessDir: string, script: stri
 /** The script's `#! chat TEXT` line: the developer command that starts its match, such as `-dev quick hero rifleman`. */
 export function scriptChat(script: string): string | undefined {
   return /^\s*#!\s*chat\s+(.+?)\s*$/m.exec(script)?.[1];
+}
+
+/** Fields where two decoded states differ, as `path: a vs b`, at most `limit`. */
+function stateDifferences(a: unknown, b: unknown, limit = 12): string[] {
+  const found: string[] = [];
+  const walk = (x: unknown, y: unknown, path: string) => {
+    if (found.length >= limit) return;
+    if (typeof x === "object" && x !== null && typeof y === "object" && y !== null) {
+      for (const key of new Set([...Object.keys(x), ...Object.keys(y)])) walk(Reflect.get(x, key), Reflect.get(y, key), `${path}.${key}`);
+    } else if (x !== y && !(Number.isNaN(x) && Number.isNaN(y))) found.push(`${path}: native ${String(x)} vs headless ${String(y)}`);
+  };
+  walk(a, b, "state");
+  return found;
+}
+
+/**
+ * Native moments against headless moments that start on the same frame: the
+ * rows each match ran on every frame both hold (the intended presses as the
+ * helper made them, against what the native match ran), and the starting
+ * states field by field, which names what a checksum difference is in.
+ */
+function momentDifferences(native: readonly Repro[], headless: readonly Repro[]): { lines: string[]; problems: string[] } {
+  const lines: string[] = [];
+  const problems: string[] = [];
+  for (const saved of native) {
+    const ours = parseMoment(saved.lines, saved.frame);
+    if (typeof ours === "string") {
+      problems.push(`native moment ending ${saved.frame}: ${ours}`);
+      continue;
+    }
+    for (const other of headless) {
+      const theirs = parseMoment(other.lines, other.frame);
+      if (typeof theirs === "string" || theirs.start !== ours.start) continue;
+      const frames = Math.min(ours.frames.length, theirs.frames.length);
+      const differing = [];
+      for (let index = 0; index < frames; index++) if (JSON.stringify(ours.frames[index]) !== JSON.stringify(theirs.frames[index])) differing.push(ours.start + index + 1);
+      if (differing.length > 0) problems.push(`rows: the native match ran other rows than the intended script on ${differing.length} of frames ${ours.start + 1}-${ours.start + frames}, first ${differing[0]}`);
+      else lines.push(`rows: the native match ran the intended script's rows on all ${frames} frames ${ours.start + 1}-${ours.start + frames}`);
+      if (ours.start > 0) {
+        const fields = stateDifferences(ours.state, theirs.state);
+        if (fields.length > 0) problems.push(`state at frame ${ours.start} differs: ${fields.join("; ")}`);
+      }
+    }
+  }
+  return { lines, problems };
 }

@@ -373,7 +373,8 @@ export function readRun(token: string, frames: FrameRows[]): boolean {
   return true;
 }
 
-function parseMoment(lines: readonly string[], last: number): Moment | string {
+/** A repro's moment: its input, start, checkpoints, starting state and rows. */
+export function parseMoment(lines: readonly string[], last: number): Moment | string {
   let input: MomentInput | undefined;
   let start: number | undefined;
   let startChecksum = "";
