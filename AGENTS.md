@@ -109,6 +109,9 @@ code. From smashcraft:ts/:
   clips and writing both-facing silhouette sheets for the native review.
   `bun tools/animations/down-air-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends
   downward contact poses for the seven stock heroes whose casts/swings pointed forward.
+  `bun tools/animations/jump-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends
+  movement-only jump gestures, including Blademaster's front flip
+  (smashcraft:docs/fighter-animation-work.md).
   `bun tools/animations/down-air-captures.ts PRIVATE_ASSETS PRIVATE_OUTPUT` writes
   both-facing down-air sheets from production pose selection and the roster's
   strike-height inventory (smashcraft:docs/down-airs.md).
@@ -121,9 +124,9 @@ code. From smashcraft:ts/:
   inputs and contact-frame captures in smashcraft:ts/test/native/pads/180/.
   `-dev quick pair FIRST / SECOND` selects different named fighters in the two human slots.
 - Lich King animation authoring (from the repository root):
-  `tools/animations/build-lichking.sh [PRIVATE_INPUTS] [IMMUTABLE_EXISTING_MODEL]`
+  `tools/animations/build-lichking.sh [PRIVATE_INPUTS] [IMMUTABLE_EXISTING_MODEL] [--replace NAME]`
   authors clips through Blender; the optional existing model preserves shipped
-  sequences and appends only new clips (smashcraft:docs/fighter-animation-work.md).
+  sequences and appends only new clips; `--replace NAME` reauthors one existing clip at its same index and length (smashcraft:docs/fighter-animation-work.md).
 - White body flashes (from the repository root):
   `bun tools/animations/white-flash-models.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
   authors white body-only copies with the original meshes and animation keys for charge and heavy-hit flashes; store PRIVATE_OUTPUT as `impact-assets`.
