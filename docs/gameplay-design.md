@@ -611,7 +611,7 @@ every newly registered fighter too.
 | Mountain King | Storm Bolt (33) | Storm Rush (43) | One 8% hit armored on frames 1–6 |
 | Warden | Shadow Strike (30) | Shadow Pursuit (40) | One 8% hit armored on frames 1–6 |
 | Lich | Frost Nova (35) | Death and Decay (50) | One 8% hit armored on frames 1–6 |
-| Uther | Hammer of Justice (35) | Holy Radiance (75) | One 8% hit armored on frames 1–6 |
+| Uther | Cleansing Hammer (35) | Righteous Fury (50) | One 8% hit armored on frames 1–6 |
 | Dreadlord | Carrion Swarm (30) | Vampiric Pounce (45) | One 8% hit armored on frames 1–6 |
 | Shadow Hunter | Spirit Glaive (25) | Serpent Ward (45) | One 8% hit armored on frames 1–6 |
 | Pit Lord | Howl of Terror (37) | Ruin Charge (47) | One 8% hit armored on frames 1–6 |
@@ -630,7 +630,8 @@ Prior art informs the decision, not these original numbers:
 [Capcom's EX manual](https://game.capcom.com/manual/sfv/en-us/page.html?cat=2&subcat=2)
 establishes spending a gauge on a stronger ordinary special;
 [Capcom's EX Pac-Dash](https://game.capcom.com/manual/sfxtk/en-UK/page-44.html)
-is an explicit example of a one-hit armored EX. Street Fighter 6's Drive
+is an explicit example of a one-hit armored EX.
+[Street Fighter 6's Drive](https://news.capcomusa.com/2022/06/02/street-fighter-6-redefines-the-genre-in-2023/)
 keeps the budget shared between offensive and defensive choices; Smashcraft
 uses its existing mana instead of adding another gauge.
 [Rivals' roster](https://rivalsofaether.com/characters/) shows different

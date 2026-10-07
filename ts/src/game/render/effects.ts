@@ -67,7 +67,7 @@ declare global {
 
 /** The match's effect motion, created on first use. */
 export function effectMotion(): EffectMotion<effect> {
-  return (globalThis.__smashcraftEffectMotion ??= new EffectMotion<effect>(BlzSetSpecialEffectPosition));
+  return (globalThis.__smashcraftEffectMotion ??= new EffectMotion<effect>((model, x, y, z) => BlzSetSpecialEffectPosition(model, x, y, z)));
 }
 
 /** Puts a moving effect at this simulation frame's position; on fast displays it glides there from the last one (motion.ts). */

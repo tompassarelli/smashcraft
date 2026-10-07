@@ -105,10 +105,18 @@ for (const [index,[name,shapes]] of models.entries()) {
         ${geometry}
         ${name === "Defile" ? 'GeosetAnim { static Alpha 1, static Color { 0.045, 0.025, 0.065 }, GeosetId 0, }' : ''}
         Bone "Impact" { ObjectId 0, GeosetId Multiple, GeosetAnimId None, }
-        PivotPoints 1 { { 0, 0, 0 }, }`;
+        ${name === "Tech" ? `Light "ContactFlash" {
+            ObjectId 1, Omnidirectional,
+            static AttenuationStart 0, static AttenuationEnd 320,
+            Intensity 3 { Linear, 0: 0.55, 90: 0.25, 180: 0, }
+            static Color { 0.65, 0.8, 1 },
+            static AmbIntensity 0, static AmbColor { 0, 0, 0 },
+        }` : ""}
+        PivotPoints ${name === "Tech" ? 2 : 1} { { 0, 0, 0 }, ${name === "Tech" ? "{ 0, -12, 20 }," : ""} }`;
     const bytes = new Uint8Array(generateMDX(parseMDL(mdl)));
     const decoded = parseMDX(bytes.buffer);
     if (decoded.Geosets.length !== shapes.length || decoded.Sequences.length !== 1) throw new Error(`${name}: lost effect geometry`);
+    if (decoded.Lights.length !== (name === "Tech" ? 1 : 0)) throw new Error(`${name}: lost contact light`);
     for (const geoset of decoded.Geosets) {
         if (!Array.from(geoset.Vertices).every(Number.isFinite)) throw new Error(`${name}: invalid vertex`);
     }

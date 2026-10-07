@@ -27,8 +27,17 @@ smashcraft:ts/src/game/menu/stageCatalog.ts.
 | Beastmaster | Durotar Skies | 3 | Rexxar is the hero of TFT's bonus campaign, "The Founding of Durotar". |
 | Lich King | Frozen Throne | 2 | TFT's final mission: Arthas climbs Icecrown and takes the Frozen Throne. |
 
+| Thrall | Durotar Skies | 3 | Thrall leads the founding of Durotar. |
+| Jaina Proudmoore | Gryphon Aerie | 11 | Jaina leads the Alliance expedition with its human forces. |
+| Sylvanas Windrunner | Naxxramas | 4 | The Dark Ranger fights the Scourge in Lordaeron. |
+| Cairne Bloodhoof | Durotar Skies | 3 | Cairne and the tauren help Thrall establish the Horde homeland. |
+| Chen Stormstout | Durotar Skies | 3 | Chen accompanies Rexxar in The Founding of Durotar. |
+| Peon | Durotar Skies | 3 | Orc peons build the Horde settlements. |
+| Goblin Tinker | Durotar Skies | 3 | Goblin engineers supply the Horde with machinery. |
+| Kael'thas Sunstrider | Hellfire Citadel | 14 | Kael follows Illidan into Outland. |
+
 Ahn'Qiraj and Sky Deck (test) are home to no fighter. A stage may host
-several fighters, as Smash's do; Durotar Skies hosts the Horde's three.
+several fighters, as Smash's do; Durotar Skies hosts several Horde fighters.
 
 Stratholme (6) and Tomb of Sargeras (7) were added for this table: Uther,
 Dreadlord and Warden had no stage from their campaigns.

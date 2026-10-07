@@ -10,7 +10,7 @@ export const PEON_HERO: HeroDefinition = {
   name: "Peon",
   purpose: "A stubborn worker who fights around his burrow",
   weakness: "Slow feet, short tools and a fragile worksite",
-  complete: false,
+  complete: true,
   moves: PEON_MOVES,
   specials: PEON_SPECIALS,
   passive: { name: "Pillage", description: "Every third tool hit restores a little mana." },

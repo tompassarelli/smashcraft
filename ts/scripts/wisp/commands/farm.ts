@@ -3,7 +3,7 @@
 // smashcraft:.github/workflows/balance.yml (the balance gate's computer
 // field, a `cpuField --pairs` process a core over about 17 jobs, merged in
 // one); `pads` dispatches smashcraft:.github/workflows/headless-pads.yml
-// (every top-level native check script, or the issue folders `--only DIR` names,
+// (every top-level native check script, or the files/folders `--only PATH` names,
 // headless, against its own expectations);
 // `perf "RUN ARGS" ... [--out DIR]` dispatches smashcraft:.github/workflows/perf.yml,
 // one `bun wisp perf RUN ARGS` a job, and always waits: it prints each run's
@@ -162,7 +162,7 @@ const memoryResult = (repo: string, id: number, state: RunState) => Effect.gen(f
 export const farm: Command = (args) => Effect.gen(function*() {
   const parsed = yield* Effect.try({
     try: () => parseArgs({ args: [...args], allowPositionals: true, options: {
-      ref: { type: "string" }, wait: { type: "boolean" }, out: { type: "string" }, opponent: { type: "string" }, tier: { type: "string" }, "per-pair": { type: "string" }, seeds: { type: "string" }, minutes: { type: "string" }, only: { type: "string", multiple: true },
+      ref: { type: "string" }, wait: { type: "boolean" }, out: { type: "string" }, opponent: { type: "string" }, tier: { type: "string" }, "per-pair": { type: "string" }, seeds: { type: "string" }, matchups: { type: "string" }, minutes: { type: "string" }, only: { type: "string", multiple: true },
     } }),
     catch: (cause) => new UsageFailure({ problem: describeCause(cause) }),
   });
@@ -174,7 +174,7 @@ export const farm: Command = (args) => Effect.gen(function*() {
   const { ref, scratch } = yield* resolveRef(parsed.values.ref, repo);
   const tag = randomBytes(4).toString("hex");
   const inputs = job === "balance"
-    ? { ref, opponent: parsed.values.opponent ?? "wren", tier: parsed.values.tier ?? "expert", "per-pair": parsed.values["per-pair"] ?? "400", seeds: parsed.values.seeds ?? "100", tag }
+    ? { ref, opponent: parsed.values.opponent ?? "wren", tier: parsed.values.tier ?? "expert", "per-pair": parsed.values["per-pair"] ?? "400", seeds: parsed.values.seeds ?? "100", matchups: parsed.values.matchups ?? "", tag }
     : job === "perf" ? { ref, runs: JSON.stringify(runs), tag } : job === "memory" ? { ref, minutes: parsed.values.minutes ?? "30", tag } : { ref, dirs: parsed.values.only?.join(" ") ?? ".", tag };
   const started = performance.now();
   const work = Effect.gen(function*() {
