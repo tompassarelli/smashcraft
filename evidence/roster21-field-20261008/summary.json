@@ -1,0 +1,152 @@
+{
+  "pairs": 210,
+  "rows": [
+    {
+      "fighter": "archer",
+      "pairs": 20,
+      "wins": 3668,
+      "losses": 4492,
+      "rate": 44.950980392156865
+    },
+    {
+      "fighter": "beastmaster",
+      "pairs": 20,
+      "wins": 4567,
+      "losses": 3593,
+      "rate": 55.96813725490196
+    },
+    {
+      "fighter": "blademaster",
+      "pairs": 20,
+      "wins": 4518,
+      "losses": 3642,
+      "rate": 55.36764705882353
+    },
+    {
+      "fighter": "cairne-bloodhoof",
+      "pairs": 20,
+      "wins": 4666,
+      "losses": 3494,
+      "rate": 57.181372549019606
+    },
+    {
+      "fighter": "chen-stormstout",
+      "pairs": 20,
+      "wins": 1809,
+      "losses": 6351,
+      "rate": 22.169117647058822
+    },
+    {
+      "fighter": "dreadlord",
+      "pairs": 20,
+      "wins": 5069,
+      "losses": 3091,
+      "rate": 62.120098039215684
+    },
+    {
+      "fighter": "goblin-tinker",
+      "pairs": 20,
+      "wins": 6798,
+      "losses": 1362,
+      "rate": 83.30882352941177
+    },
+    {
+      "fighter": "illidan",
+      "pairs": 20,
+      "wins": 5315,
+      "losses": 2845,
+      "rate": 65.13480392156863
+    },
+    {
+      "fighter": "jaina-proudmoore",
+      "pairs": 20,
+      "wins": 3736,
+      "losses": 4424,
+      "rate": 45.78431372549019
+    },
+    {
+      "fighter": "kael'thas-sunstrider",
+      "pairs": 20,
+      "wins": 1316,
+      "losses": 6844,
+      "rate": 16.127450980392158
+    },
+    {
+      "fighter": "lich",
+      "pairs": 20,
+      "wins": 4809,
+      "losses": 3351,
+      "rate": 58.93382352941177
+    },
+    {
+      "fighter": "lich-king",
+      "pairs": 20,
+      "wins": 5032,
+      "losses": 3128,
+      "rate": 61.666666666666664
+    },
+    {
+      "fighter": "mountain-king",
+      "pairs": 20,
+      "wins": 4986,
+      "losses": 3174,
+      "rate": 61.10294117647059
+    },
+    {
+      "fighter": "peon",
+      "pairs": 20,
+      "wins": 3247,
+      "losses": 4913,
+      "rate": 39.791666666666664
+    },
+    {
+      "fighter": "pit-lord",
+      "pairs": 20,
+      "wins": 4221,
+      "losses": 3939,
+      "rate": 51.72794117647059
+    },
+    {
+      "fighter": "rifleman",
+      "pairs": 20,
+      "wins": 3776,
+      "losses": 4384,
+      "rate": 46.27450980392157
+    },
+    {
+      "fighter": "shadow-hunter",
+      "pairs": 20,
+      "wins": 4952,
+      "losses": 3208,
+      "rate": 60.68627450980392
+    },
+    {
+      "fighter": "sylvanas-windrunner",
+      "pairs": 20,
+      "wins": 1948,
+      "losses": 6212,
+      "rate": 23.872549019607842
+    },
+    {
+      "fighter": "thrall",
+      "pairs": 20,
+      "wins": 2127,
+      "losses": 6033,
+      "rate": 26.066176470588236
+    },
+    {
+      "fighter": "uther",
+      "pairs": 20,
+      "wins": 4791,
+      "losses": 3369,
+      "rate": 58.713235294117645
+    },
+    {
+      "fighter": "warden",
+      "pairs": 20,
+      "wins": 4329,
+      "losses": 3831,
+      "rate": 53.0514705882353
+    }
+  ]
+}

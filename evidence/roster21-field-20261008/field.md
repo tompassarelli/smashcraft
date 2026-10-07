@@ -1,0 +1,59 @@
+# Balance at d8fbd06ef5
+
+**Balance gate (every fighter 40%-60% against the field, wren expert, at least 400 a pair): fails. Outside: illidan 65%, mountain-king 61%, dreadlord 62%, shadow-hunter 61%, lich-king 62%, thrall 26%, sylvanas-windrunner 24%, chen-stormstout 22%, peon 40%, goblin-tinker 83%, kael'thas-sunstrider 16%.**
+
+wren expert, 400 a pair, 210 pairs in 53 jobs; 21 min 33 s from the run's start to the verdict.
+
+85680 computer matches (3 stocks, 4-minute clock, spawn variants and 100 seed(s) each until each pair has 400 matches, computer tiers expert and expert), 1 s; win rate over decisive matches; a self-destruct is a stock lost with no hit taken since the fighter last stood on a deck or held the ledge; the fall-time column counts stocks lost over 3 s after the last hit.
+
+| Fighter | Matches | Wins | Losses | Ties | Time-outs | Win rate vs field | Stock losses | Self-destructs (share) | Lost over 3 s after a hit (share) | Damage per hit | Mana spent per stock | Specials refused for mana (share of presses) | Top moves (share of moves started) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | ---: | ---: | ---: | --- |
+| archer | 8160 | 3668 | 4492 | 0 | 0 | 45% | 19990 | 266 (1%) | 1252 (6%) | 6.99 | 121 | 0% | side-special 23%, dash-attack 12%, neutral-special 9%, forward-air 8%, up-tilt 7%, down-tilt 5% |
+| rifleman | 8160 | 3776 | 4384 | 0 | 0 | 46% | 19627 | 1137 (6%) | 2012 (10%) | 7.57 | 167 | 0% | neutral-special 35%, side-special 12%, dash-attack 12%, down-tilt 7%, forward-tilt 5%, up-special 5% |
+| illidan | 8160 | 5315 | 2845 | 0 | 0 | 65% | 17330 | 289 (2%) | 2052 (12%) | 6.69 | 52 | 0% | forward-air 17%, forward-smash 15%, down-smash 9%, neutral-special 8%, side-special 7%, up-special 7% |
+| blademaster | 8160 | 4518 | 3642 | 0 | 0 | 55% | 18397 | 2399 (13%) | 4075 (22%) | 8.41 | 136 | 0% | side-special 24%, down-tilt 15%, neutral-special 10%, forward-smash 9%, down-special 9%, forward-tilt 6% |
+| mountain-king | 8160 | 4986 | 3174 | 0 | 0 | 61% | 17762 | 1505 (8%) | 4393 (25%) | 9.89 | 152 | 0% | neutral-special 31%, down-tilt 15%, down-special 11%, forward-smash 7%, up-special 6%, forward-tilt 6% |
+| warden | 8160 | 4329 | 3831 | 0 | 0 | 53% | 18972 | 1586 (8%) | 4348 (23%) | 8.21 | 171 | 0% | side-special 23%, neutral-special 15%, forward-smash 12%, forward-tilt 12%, down-special 10%, down-smash 3% |
+| lich | 8160 | 4809 | 3351 | 0 | 0 | 59% | 17966 | 542 (3%) | 3765 (21%) | 9.68 | 164 | 0% | neutral-special 32%, forward-smash 18%, down-special 10%, dash-attack 8%, side-special 8%, up-special 4% |
+| uther | 8160 | 4791 | 3369 | 0 | 0 | 59% | 17930 | 736 (4%) | 4144 (23%) | 9.32 | 186 | 0% | down-tilt 19%, forward-tilt 14%, side-special 10%, forward-smash 10%, dash-attack 8%, neutral-special 8% |
+| dreadlord | 8160 | 5069 | 3091 | 0 | 0 | 62% | 17633 | 1574 (9%) | 3501 (20%) | 7.55 | 180 | 0% | side-special 15%, grab 11%, neutral-air 11%, down-special 10%, neutral-special 10%, forward-air 7% |
+| shadow-hunter | 8160 | 4952 | 3208 | 0 | 0 | 61% | 17795 | 654 (4%) | 3141 (18%) | 7.17 | 105 | 0% | neutral-special 31%, down-tilt 13%, forward-tilt 8%, side-special 8%, down-special 6%, forward-smash 5% |
+| pit-lord | 8160 | 4221 | 3939 | 0 | 0 | 52% | 19166 | 892 (5%) | 4210 (22%) | 11.76 | 159 | 0% | down-special 20%, forward-tilt 17%, side-special 13%, forward-smash 10%, up-special 6%, dash-attack 6% |
+| beastmaster | 8160 | 4567 | 3593 | 0 | 0 | 56% | 18426 | 1051 (6%) | 4381 (24%) | 5.97 | 134 | 0% | neutral-special 18%, down-special 14%, side-special 14%, up-special 13%, down-tilt 11%, forward-tilt 6% |
+| lich-king | 8160 | 5032 | 3128 | 0 | 0 | 62% | 17685 | 310 (2%) | 3712 (21%) | 8.68 | 175 | 0% | neutral-special 31%, down-tilt 12%, forward-tilt 10%, forward-smash 9%, side-special 8%, up-special 5% |
+| thrall | 8160 | 2127 | 6033 | 0 | 0 | 26% | 21998 | 683 (3%) | 7789 (35%) | 7.97 | 173 | 0% | neutral-special 33%, down-tilt 20%, side-special 10%, down-special 6%, down-smash 5%, dash-attack 4% |
+| jaina-proudmoore | 8160 | 3736 | 4424 | 0 | 0 | 46% | 19612 | 819 (4%) | 4609 (24%) | 7.55 | 171 | 0% | neutral-special 39%, forward-smash 11%, side-special 9%, down-special 8%, forward-tilt 7%, dash-attack 7% |
+| sylvanas-windrunner | 8160 | 1948 | 6212 | 0 | 0 | 24% | 22255 | 742 (3%) | 5650 (25%) | 7.87 | 153 | 0% | neutral-special 43%, forward-smash 9%, down-tilt 8%, forward-tilt 7%, side-special 6%, dash-attack 4% |
+| cairne-bloodhoof | 8160 | 4666 | 3494 | 0 | 0 | 57% | 18355 | 735 (4%) | 4015 (22%) | 12.02 | 157 | 0% | neutral-special 26%, forward-smash 13%, forward-tilt 12%, side-special 12%, dash-attack 7%, down-tilt 6% |
+| chen-stormstout | 8160 | 1809 | 6351 | 0 | 0 | 22% | 22349 | 520 (2%) | 5189 (23%) | 7.70 | 149 | 0% | side-special 30%, neutral-special 12%, down-tilt 11%, forward-smash 9%, forward-tilt 8%, up-special 5% |
+| peon | 8160 | 3247 | 4913 | 0 | 0 | 40% | 20427 | 697 (3%) | 5168 (25%) | 7.48 | 87 | 0% | neutral-special 42%, side-special 10%, down-tilt 9%, forward-tilt 7%, forward-smash 6%, up-special 3% |
+| goblin-tinker | 8160 | 6798 | 1362 | 0 | 0 | 83% | 13990 | 506 (4%) | 3060 (22%) | 7.34 | 178 | 0% | neutral-special 22%, down-special 17%, forward-smash 11%, down-tilt 9%, forward-tilt 8%, side-special 7% |
+| kael'thas-sunstrider | 8160 | 1316 | 6844 | 0 | 0 | 16% | 23000 | 1637 (7%) | 4255 (19%) | 9.31 | 154 | 0% | neutral-special 25%, forward-smash 18%, forward-tilt 11%, dash-attack 6%, down-special 5%, side-special 5% |
+
+| Row's win rate vs (matches) | archer | rifleman | illidan | blademaster | mountain-king | warden | lich | uther | dreadlord | shadow-hunter | pit-lord | beastmaster | lich-king | thrall | jaina-proudmoore | sylvanas-windrunner | cairne-bloodhoof | chen-stormstout | peon | goblin-tinker | kael'thas-sunstrider |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| archer | - | 31% (408) | 56% (408) | 55% (408) | 21% (408) | 49% (408) | 25% (408) | 52% (408) | 40% (408) | 42% (408) | 39% (408) | 48% (408) | 30% (408) | 75% (408) | 14% (408) | 65% (408) | 45% (408) | 78% (408) | 40% (408) | 6% (408) | 86% (408) |
+| rifleman | 69% (408) | - | 40% (408) | 52% (408) | 34% (408) | 52% (408) | 26% (408) | 67% (408) | 64% (408) | 19% (408) | 41% (408) | 32% (408) | 35% (408) | 65% (408) | 8% (408) | 52% (408) | 43% (408) | 92% (408) | 24% (408) | 21% (408) | 90% (408) |
+| illidan | 44% (408) | 60% (408) | - | 72% (408) | 55% (408) | 71% (408) | 70% (408) | 69% (408) | 46% (408) | 52% (408) | 65% (408) | 54% (408) | 49% (408) | 91% (408) | 80% (408) | 82% (408) | 61% (408) | 87% (408) | 69% (408) | 32% (408) | 93% (408) |
+| blademaster | 45% (408) | 48% (408) | 28% (408) | - | 28% (408) | 51% (408) | 56% (408) | 48% (408) | 23% (408) | 46% (408) | 58% (408) | 51% (408) | 55% (408) | 88% (408) | 81% (408) | 86% (408) | 54% (408) | 74% (408) | 78% (408) | 22% (408) | 88% (408) |
+| mountain-king | 79% (408) | 66% (408) | 45% (408) | 72% (408) | - | 73% (408) | 31% (408) | 60% (408) | 62% (408) | 51% (408) | 52% (408) | 64% (408) | 40% (408) | 79% (408) | 52% (408) | 82% (408) | 49% (408) | 82% (408) | 75% (408) | 21% (408) | 89% (408) |
+| warden | 51% (408) | 48% (408) | 29% (408) | 49% (408) | 27% (408) | - | 47% (408) | 42% (408) | 30% (408) | 55% (408) | 47% (408) | 55% (408) | 40% (408) | 87% (408) | 71% (408) | 88% (408) | 36% (408) | 78% (408) | 71% (408) | 16% (408) | 94% (408) |
+| lich | 75% (408) | 74% (408) | 30% (408) | 44% (408) | 69% (408) | 53% (408) | - | 59% (408) | 40% (408) | 36% (408) | 69% (408) | 52% (408) | 49% (408) | 77% (408) | 50% (408) | 78% (408) | 59% (408) | 95% (408) | 57% (408) | 32% (408) | 82% (408) |
+| uther | 48% (408) | 33% (408) | 31% (408) | 52% (408) | 40% (408) | 58% (408) | 41% (408) | - | 40% (408) | 48% (408) | 60% (408) | 57% (408) | 49% (408) | 97% (408) | 86% (408) | 88% (408) | 58% (408) | 82% (408) | 90% (408) | 31% (408) | 87% (408) |
+| dreadlord | 60% (408) | 36% (408) | 54% (408) | 77% (408) | 38% (408) | 70% (408) | 60% (408) | 60% (408) | - | 60% (408) | 59% (408) | 51% (408) | 56% (408) | 77% (408) | 75% (408) | 92% (408) | 42% (408) | 84% (408) | 74% (408) | 23% (408) | 94% (408) |
+| shadow-hunter | 58% (408) | 81% (408) | 48% (408) | 54% (408) | 49% (408) | 45% (408) | 64% (408) | 52% (408) | 40% (408) | - | 59% (408) | 40% (408) | 46% (408) | 80% (408) | 74% (408) | 87% (408) | 57% (408) | 89% (408) | 80% (408) | 22% (408) | 91% (408) |
+| pit-lord | 61% (408) | 59% (408) | 35% (408) | 42% (408) | 48% (408) | 53% (408) | 31% (408) | 40% (408) | 41% (408) | 41% (408) | - | 56% (408) | 45% (408) | 62% (408) | 64% (408) | 81% (408) | 36% (408) | 79% (408) | 59% (408) | 23% (408) | 79% (408) |
+| beastmaster | 52% (408) | 68% (408) | 46% (408) | 49% (408) | 36% (408) | 45% (408) | 48% (408) | 43% (408) | 49% (408) | 60% (408) | 44% (408) | - | 39% (408) | 83% (408) | 65% (408) | 88% (408) | 39% (408) | 82% (408) | 73% (408) | 20% (408) | 91% (408) |
+| lich-king | 70% (408) | 65% (408) | 51% (408) | 45% (408) | 60% (408) | 60% (408) | 51% (408) | 51% (408) | 44% (408) | 54% (408) | 55% (408) | 61% (408) | - | 88% (408) | 69% (408) | 85% (408) | 42% (408) | 92% (408) | 75% (408) | 21% (408) | 93% (408) |
+| thrall | 25% (408) | 35% (408) | 9% (408) | 12% (408) | 21% (408) | 13% (408) | 23% (408) | 3% (408) | 23% (408) | 20% (408) | 38% (408) | 17% (408) | 12% (408) | - | 36% (408) | 58% (408) | 28% (408) | 44% (408) | 39% (408) | 1% (408) | 65% (408) |
+| jaina-proudmoore | 86% (408) | 92% (408) | 20% (408) | 19% (408) | 48% (408) | 29% (408) | 50% (408) | 14% (408) | 25% (408) | 26% (408) | 36% (408) | 35% (408) | 31% (408) | 64% (408) | - | 76% (408) | 61% (408) | 80% (408) | 41% (408) | 17% (408) | 64% (408) |
+| sylvanas-windrunner | 35% (408) | 48% (408) | 18% (408) | 14% (408) | 18% (408) | 12% (408) | 22% (408) | 12% (408) | 8% (408) | 13% (408) | 19% (408) | 12% (408) | 15% (408) | 42% (408) | 24% (408) | - | 15% (408) | 54% (408) | 28% (408) | 4% (408) | 64% (408) |
+| cairne-bloodhoof | 55% (408) | 57% (408) | 39% (408) | 46% (408) | 51% (408) | 64% (408) | 41% (408) | 42% (408) | 58% (408) | 43% (408) | 64% (408) | 61% (408) | 58% (408) | 72% (408) | 39% (408) | 85% (408) | - | 92% (408) | 69% (408) | 17% (408) | 90% (408) |
+| chen-stormstout | 22% (408) | 8% (408) | 13% (408) | 26% (408) | 18% (408) | 22% (408) | 5% (408) | 18% (408) | 16% (408) | 11% (408) | 21% (408) | 18% (408) | 8% (408) | 56% (408) | 20% (408) | 46% (408) | 8% (408) | - | 35% (408) | 1% (408) | 71% (408) |
+| peon | 60% (408) | 76% (408) | 31% (408) | 22% (408) | 25% (408) | 29% (408) | 43% (408) | 10% (408) | 26% (408) | 20% (408) | 41% (408) | 27% (408) | 25% (408) | 61% (408) | 59% (408) | 72% (408) | 31% (408) | 65% (408) | - | 4% (408) | 68% (408) |
+| goblin-tinker | 94% (408) | 79% (408) | 68% (408) | 78% (408) | 79% (408) | 84% (408) | 68% (408) | 69% (408) | 77% (408) | 78% (408) | 77% (408) | 80% (408) | 79% (408) | 99% (408) | 83% (408) | 96% (408) | 83% (408) | 99% (408) | 96% (408) | - | 98% (408) |
+| kael'thas-sunstrider | 14% (408) | 10% (408) | 7% (408) | 12% (408) | 11% (408) | 6% (408) | 18% (408) | 13% (408) | 6% (408) | 9% (408) | 21% (408) | 9% (408) | 7% (408) | 35% (408) | 36% (408) | 36% (408) | 10% (408) | 29% (408) | 32% (408) | 2% (408) | - |
+
+Balance gate (every fighter 40%-60% against the field, wren expert, at least 400 a pair): fails. Outside: illidan 65%, mountain-king 61%, dreadlord 62%, shadow-hunter 61%, lich-king 62%, thrall 26%, sylvanas-windrunner 24%, chen-stormstout 22%, peon 40%, goblin-tinker 83%, kael'thas-sunstrider 16%.
+
+Matchups (reported, not gated): inside 45%-55% 34 of 210, at least 408 matches each; 95% interval overlapping that band 59 of 210; median distance from 50% 19.2 points.
