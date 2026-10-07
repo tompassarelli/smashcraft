@@ -26,9 +26,9 @@ const WORKFLOWS = { balance: "balance.yml", pads: "headless-pads.yml" } as const
 type Job = keyof typeof WORKFLOWS;
 
 /** Runs a program to completion; its trimmed stdout, or a failure naming its stderr. */
-const run = (argv: readonly string[], inherit = false) => Effect.tryPromise({
+const run = (argv: readonly string[], inherit = false, cwd?: string) => Effect.tryPromise({
   try: async () => {
-    const child = Bun.spawn([...argv], { stdout: inherit ? "inherit" : "pipe", stderr: inherit ? "inherit" : "pipe" });
+    const child = Bun.spawn([...argv], { ...(cwd === undefined ? {} : { cwd }), stdout: inherit ? "inherit" : "pipe", stderr: inherit ? "inherit" : "pipe" });
     const [out, err, code] = await Promise.all([inherit ? "" : new Response(child.stdout).text(), inherit ? "" : new Response(child.stderr).text(), child.exited]);
     if (code !== 0) throw new Error(`${argv.slice(0, 3).join(" ")} exited ${code}${err.trim() === "" ? "" : `: ${err.trim()}`}`);
     return out.trim();
@@ -37,7 +37,7 @@ const run = (argv: readonly string[], inherit = false) => Effect.tryPromise({
 });
 
 /** The commit to measure, and the scratch branch it was pushed to when main doesn't hold it. */
-const resolveRef = (given: string | undefined) => Effect.gen(function*() {
+const resolveRef = (given: string | undefined, repo: string) => Effect.gen(function*() {
   if (given !== undefined) return { ref: given, scratch: undefined };
   const sha = yield* run(["git", "rev-parse", "HEAD"]);
   yield* run(["git", "fetch", "--quiet", "origin", "main"]);
@@ -45,7 +45,13 @@ const resolveRef = (given: string | undefined) => Effect.gen(function*() {
   if (onMain) return { ref: sha, scratch: undefined };
   const scratch = `farm/${sha.slice(0, 12)}`;
   console.error(`${sha.slice(0, 12)} isn't on main: pushing it to ${scratch} for the run (deleted afterwards)`);
-  yield* run(["safe-push", "--to", scratch], true);
+  // The scratch branch starts at a commit origin already holds, so safe-push
+  // scans only the lane's own commits; from the root, which holds .gitleaksignore.
+  const base = yield* run(["git", "merge-base", sha, "FETCH_HEAD"]);
+  yield* run(["gh", "api", "-X", "DELETE", `repos/${repo}/git/refs/heads/${scratch}`]).pipe(Effect.ignore);
+  yield* run(["gh", "api", "-X", "POST", `repos/${repo}/git/refs`, "-f", `ref=refs/heads/${scratch}`, "-f", `sha=${base}`]);
+  yield* run(["git", "fetch", "--quiet", "origin", `+refs/heads/${scratch}:refs/remotes/origin/${scratch}`]);
+  yield* run(["safe-push", "--to", scratch], true, yield* run(["git", "rev-parse", "--show-toplevel"]));
   return { ref: sha, scratch };
 });
 
@@ -126,7 +132,7 @@ export const farm: Command = (args) => Effect.gen(function*() {
   if (job !== "balance" && job !== "pads") return yield* new UsageFailure({ problem: "farm balance or farm pads" });
   const workflow = WORKFLOWS[job satisfies Job];
   const repo = yield* run(["gh", "repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner"]);
-  const { ref, scratch } = yield* resolveRef(parsed.values.ref);
+  const { ref, scratch } = yield* resolveRef(parsed.values.ref, repo);
   const tag = randomBytes(4).toString("hex");
   const inputs = job === "balance"
     ? { ref, level: parsed.values.level ?? "9", "per-pair": parsed.values["per-pair"] ?? "400", seeds: parsed.values.seeds ?? "100", tag }
