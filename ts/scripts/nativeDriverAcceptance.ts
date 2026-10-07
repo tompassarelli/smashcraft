@@ -78,6 +78,7 @@ const program = Effect.gen(function*() {
       const ended = yield* send(clients, mode === "free" ? `resume ${frames}` : `step ${held === undefined ? frames : frames - 10}`, frames);
       yield* send(clients, "capture", frames);
       elapsed.push(ended.milliseconds + (held?.milliseconds ?? 0));
+      yield* attempt("retain completed native command", () => writeFileSync(join(out, `run-${run}-${mode}-command.json`), `${JSON.stringify({ run, mode, setupMs: setup.milliseconds, playMs: elapsed.at(-1), status: ended.status }, null, 2)}\n`));
       const checksum = ended.status[0]?.checksum ?? "";
       checksums.push(checksum);
       for (const [index, client] of clients.entries()) {
@@ -87,6 +88,7 @@ const program = Effect.gen(function*() {
         const data = dataDirectory(client.documents);
         const traceFile = join(data, TRACE_FILE);
         const trace = yield* attempt("read native pad trace", () => preloadLines(readFileSync(traceFile, "utf8")) ?? []);
+        if (!trace.includes("dropped 0")) return yield* new EngineFailure({ problem: `${client.name}: native trace dropped lines or has no completed footer` });
         const problems = unmetExpectations(parseTrace(trace), parseExpectations(payload), "native");
         if (problems.length > 0) return yield* new EngineFailure({ problem: problems.join("; ") });
         yield* attempt("retain native trace", () => copyFileSync(traceFile, join(out, `run-${run}-${mode}-${client.name}-trace.txt`)));
