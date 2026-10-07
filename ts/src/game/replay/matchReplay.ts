@@ -7,7 +7,7 @@
 // starts from the state the change left. The recorder only reads confirmed
 // state, and spreads its work so no callback writes a whole state's text:
 // each frame extends the rows' current run, and a checkpoint copies the match
-// on its frame and folds one fighter a callback after it (#168).
+// on its frame and folds a few fighter fields a callback after it (#168).
 //
 // The shell (smashcraft:ts/src/platform/shell/replays.ts) writes the lines in
 // part files while the match runs and a manifest at its end; joinReplay
@@ -277,7 +277,7 @@ export interface MatchReplayRecorder {
   readonly start: ReplayState;
   /** Preallocated: checksums copy the match here. */
   readonly scratch: ReplayState;
-  /** Preallocated: a checkpoint's match, folded a fighter a callback while `checkpoint` is set. */
+  /** Preallocated: a checkpoint's match, folded a few fields a callback while `checkpoint` is set. */
   readonly checkpointState: ReplayState;
   checkpoint: PendingCheckpoint | undefined;
   /** The last frame whose rows are in `runs` or the current run. */
@@ -296,11 +296,17 @@ export interface MatchReplayRecorder {
   failed: boolean;
 }
 
-/** A checkpoint whose checksum is being folded: its frame, the lanes so far, and the next fighter slot to fold. */
+/** Root fields or projectile records folded per callback; four fighters finish well before the next checkpoint. */
+const CHECKPOINT_FIELDS_PER_CALLBACK = 6;
+
+/** A checkpoint whose checksum is being folded, reading only its frozen snapshot. */
 interface PendingCheckpoint {
   readonly frame: number;
   readonly lanes: Lanes;
   slot: number;
+  fields: readonly string[] | undefined;
+  field: number;
+  projectile: number;
 }
 
 export function createMatchReplayRecorder(): MatchReplayRecorder {
@@ -423,15 +429,36 @@ function encodeRows(recorder: MatchReplayRecorder, moment: Readonly<MomentRecord
   return true;
 }
 
-/** Folds the pending checkpoint's next fighter, or its match and frame and writes its line; true while more remains. */
+/** Folds the pending checkpoint's next fields, or its match and frame and writes its line; true while more remains. */
 function stepCheckpoint(recorder: MatchReplayRecorder): boolean {
   const checkpoint = recorder.checkpoint;
   if (checkpoint === undefined) return false;
   const { world, match, runtime } = recorder.checkpointState;
   while (checkpoint.slot < PARTICIPANT_SLOTS.length && !isActive(world, checkpoint.slot)) checkpoint.slot++;
   if (checkpoint.slot < PARTICIPANT_SLOTS.length) {
-    foldFighter(checkpoint.lanes, checkpoint.slot, fighterAt(world, checkpoint.slot));
-    checkpoint.slot++;
+    const fighter = fighterAt(world, checkpoint.slot);
+    const base = floorMod(checkpoint.slot * 977 + 13, MODULUS);
+    const fields = checkpoint.fields ?? Object.keys(fighter);
+    checkpoint.fields = fields;
+    let remaining = CHECKPOINT_FIELDS_PER_CALLBACK;
+    if (isFields(fighter)) {
+      while (checkpoint.field < fields.length && remaining > 0) {
+        const key = at(fields, checkpoint.field++);
+        if (fieldName(key) && key !== "tuning") foldValue(checkpoint.lanes, floorMod(base * 31 + keyHash(key), MODULUS), fighter[key], 0);
+        remaining--;
+      }
+    }
+    while (checkpoint.field === fields.length && checkpoint.projectile < fighter.projectiles.length && remaining > 0) {
+      const index = checkpoint.projectile++;
+      foldFields(checkpoint.lanes, floorMod(base * 31 + index + 5, MODULUS), at(fighter.projectiles, index), 1);
+      remaining--;
+    }
+    if (checkpoint.field === fields.length && checkpoint.projectile === fighter.projectiles.length) {
+      checkpoint.slot++;
+      checkpoint.fields = undefined;
+      checkpoint.field = 0;
+      checkpoint.projectile = 0;
+    }
     return true;
   }
   recorder.checkpoint = undefined;
@@ -460,7 +487,7 @@ export function matchReplayFrameRan(recorder: MatchReplayRecorder, moment: Reado
   copyReplayState(recorder.checkpointState, { world, match, controls, runtime });
   const lanes: Lanes = { first: 0, second: 0 };
   foldInteger(lanes, 1, recorder.checkpointState.world.mask);
-  recorder.checkpoint = { frame, lanes, slot: 0 };
+  recorder.checkpoint = { frame, lanes, slot: 0, fields: undefined, field: 0, projectile: 0 };
 }
 
 /**
@@ -478,7 +505,7 @@ export function endMatchReplaySegment(recorder: MatchReplayRecorder, moment: Rea
   recorder.lines.push(`checkpoint ${recorder.last} ${recorder.checksum}`);
 }
 
-/** Every callback: the pending checkpoint's next fighter and the next tokens of a starting state's text. */
+/** Every callback: the pending checkpoint's next fields and the next tokens of a starting state's text. */
 export function continueMatchReplay(recorder: MatchReplayRecorder): void {
   stepCheckpoint(recorder);
   continueStateText(recorder, STATE_TOKENS_PER_CALLBACK);

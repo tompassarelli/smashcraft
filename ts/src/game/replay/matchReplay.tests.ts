@@ -48,3 +48,19 @@ test("match replay: a part cut short or from another replay is refused", () => {
   assertEquals(parseReplayPart(part.slice(0, part.length - 1), 3, 1), "part 1 is cut short");
   assertEquals(parseReplayPart(part, 4, 1), "part 1 isn't part 1 of replay 4");
 });
+
+test("match replay: a segment ending during a checkpoint keeps every saved checksum", () => {
+  const recorded = recordTapeReplay(250, 122);
+  const header = parseReplayHeader(recorded.manifest);
+  if (typeof header === "string") throw new Error(header);
+  const bodies = recorded.parts.map((part, index) => {
+    const body = parseReplayPart(part, TAPE_REPLAY_SERIAL, index + 1);
+    if (typeof body === "string") throw new Error(body);
+    return body;
+  });
+  const result = replayMatch(joinReplay(header, bodies));
+  assertEquals(result.problems.join("; "), "");
+  assertEquals(result.frames, 250);
+  assertEquals(result.recorded, 2 + 2 + 2 + 1);
+  assertEquals(result.reached, result.recorded);
+});
