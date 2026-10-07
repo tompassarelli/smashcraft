@@ -38,7 +38,7 @@ import { IntegrityFailure, producerLine, tryIntegrity } from "../../integrity/ev
 import { loadEntry } from "../../integrity/headless";
 import { type Pad, inject, monotonicNs, openPad } from "../../integrity/linux";
 import { BTN_SELECT, PAD_BUTTONS } from "../../integrity/linuxInput";
-import { REPRO_NAME, TRACE_FILE, checkHeadlessRun, compareRuns, comparisonSteps, scriptChat } from "../../integrity/padParity";
+import { MATCH_REPLAY_NAME, REPRO_NAME, TRACE_FILE, checkHeadlessRun, compareRuns, comparisonSteps, scriptChat } from "../../integrity/padParity";
 import type { Schedule, ScheduleReply, ScheduledEdge } from "../../integrity/padScheduleWorker";
 import { type PadStep, type SentEdge, deadlineOrder, frameWriteNs, landEdges, matchStart, parsePadScript, ruleFrame } from "../../integrity/padScript";
 import { SLOTS } from "../../integrity/reconcile";
@@ -148,6 +148,7 @@ const collect = (data: readonly [string, string], out: string, sinceMs: number) 
   const deadline = Date.now() + TRACE_WAIT_MS;
   while (!data.every((dir) => fresh(join(dir, TRACE_FILE))) && Date.now() < deadline) yield* Effect.sleep("250 millis");
   yield* tryIntegrity("collect traces and moments", out, () => {
+    for (const name of readdirSync(out)) if (MATCH_REPLAY_NAME.test(name)) rmSync(join(out, name));
     data.forEach((dir, slot) => {
       const trace = join(dir, TRACE_FILE);
       if (fresh(trace)) copyFileSync(trace, join(out, `trace-${"ab"[slot]}.txt`));
