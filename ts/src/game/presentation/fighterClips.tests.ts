@@ -1,5 +1,6 @@
 import { assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
 import { FIGHTER_OBJECTS } from "../objectData";
+import { originalClipCount } from "../assets/fighterOriginalClipInfo";
 import { AttackStyle, Character, GrabAction, SpecialAction } from "../sim/codes";
 import { STOCK_FALLBACK_CLIP } from "../sim/heroes/hero";
 import { HERO_ROSTER } from "../sim/heroes/registry";
@@ -10,6 +11,7 @@ import { attackPose, characterClips, clipFor, grabActionPoses, namedClips, ownAt
 import { WARDEN_MODEL_FILE, WARDEN_SEQUENCES } from "./heroes/wardenClips";
 import { characterModelScale } from "./modelScale";
 import { type FighterPose, advanceFighterPose, createFighterPose } from "./fighterPose";
+import { RECOVERY_CLIPS } from "./recoveryClipInfo";
 import { type Fighter, createFighter } from "../sim/fighter";
 import { neutralControls } from "../sim/roster";
 import { soloWorld } from "../sim/testWorld";
@@ -44,8 +46,8 @@ test("a hero plays its registered sequences and its fallback for any pose it lea
   assertEquals(specialClip(warden, SpecialAction.heroUp, false, false).index, WARDEN_SEQUENCES.dissipate.index);
   assertEquals(specialClip(warden, SpecialAction.heroDown, true, false).index, WARDEN_SEQUENCES.spell.index);
   assertEquals(characterClips(warden).idle?.index, WARDEN_SEQUENCES.standReady.index);
-  // The classic model has twelve sequences; every mapped pose names one of them.
-  for (const clip of namedClips(characterClips(warden))) assertTrue(clip.index >= 0 && clip.index < 12);
+  // Every original or appended action must be present in the packaged pool.
+  for (const clip of namedClips(characterClips(warden))) assertTrue(clip.index >= 0 && clip.index < originalClipCount(warden));
   // A hero plays its fallback for a pose its table leaves out; a character no hero registers plays the stock first sequence.
   for (const hero of HERO_ROSTER) assertEquals(clipFor(hero.character, "upAir"), hero.presentation.clips.upAir ?? hero.presentation.fallback);
   assertEquals(clipFor(99, "upAir"), STOCK_FALLBACK_CLIP);
@@ -68,7 +70,7 @@ test("a hero table's state poses take over the states only Illidan has clips for
   dodging.dodge.airDodging = true;
   const dodgePose = createFighterPose();
   step(dodging, dodgePose);
-  assertEquals(dodgePose.clipIndex, s.dissipate.index);
+  assertEquals(dodgePose.clipIndex, RECOVERY_CLIPS[Character.warden].airDodge.index);
   const falling = createFighter(Character.warden, 0.0, 1);
   falling.motion.grounded = false;
   const fallPose = createFighterPose();

@@ -56,6 +56,8 @@ export type JabChainPose = "jab2" | "jab3";
  */
 export type HeroPose =
   | "idle" | "walk"
+  | "turn" | "stop" | "jumpSquat"
+  | "tech" | "techForward" | "techBackward" | "getUpRollForward" | "getUpRollBackward"
   | HeroStatePose
   | "jab" | JabChainPose | "grab" | "forwardTilt" | "upTilt" | "downTilt" | "forwardTiltUp" | "forwardTiltDown"
   | "forwardSmash" | "upSmash" | "downSmash" | "dashAttack"

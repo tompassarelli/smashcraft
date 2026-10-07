@@ -10,7 +10,8 @@
 // (Attack Slam leaps about 130 units, Dissipate rises) stay off poses whose
 // body the simulation keeps still, so the drawn body stays over its hurtbox.
 import { f32 } from "wisp/src/sim/f32";
-import { AttackStyle } from "../codes";
+import { AttackStyle, Character } from "../codes";
+import { RECOVERY_CLIPS } from "../../presentation/recoveryClipInfo";
 import { BLADEMASTER_GROUND, jabSlice, strikeClip } from "./groundNormals";
 import type { HeroClip, HeroFollowUpPose, HeroPose } from "./hero";
 
@@ -60,7 +61,7 @@ const ground = (name: SequenceName, strike: number, style: AttackStyle, frame?: 
 const COMBAT_STANCE = sequence("Stand Ready");
 const RECOIL = sequence("Death", f32(0.45));
 
-/** Every table pose; the stock model has no hit, jump, roll or ledge sequences, so those reuse the nearest readable one. */
+/** Every table pose: original combat sequences and appended recovery actions. */
 // His jab chain is two cuts: no third jab.
 export const BLADEMASTER_CLIPS: { readonly [pose in Exclude<HeroPose, Exclude<HeroFollowUpPose, "sideSpecialFollowUp" | "sideSpecialFollowUpAir" | "downSpecialFollowUp" | "downSpecialFollowUpAir"> | "jab3">]: HeroClip } = {
   idle: COMBAT_STANCE,
@@ -72,7 +73,6 @@ export const BLADEMASTER_CLIPS: { readonly [pose in Exclude<HeroPose, Exclude<He
   fall: COMBAT_STANCE,
   landing: COMBAT_STANCE,
   shield: COMBAT_STANCE,
-  airDodge: sequence("Attack Walk Stand Spin"),
   smashCharge: COMBAT_STANCE,
   ko: sequence("Death"),
   dizzy: sequence("Stand - 2"),
@@ -99,19 +99,10 @@ export const BLADEMASTER_CLIPS: { readonly [pose in Exclude<HeroPose, Exclude<He
   upAir: sequence("Stand - 4", aligned(RISE, 6, 3, 19)),
   // Bladestorm: the hero's own Bladestorm spin.
   downAir: sequence("Attack Walk Stand Spin", f32(2.0 * SPIN_TURN)),
-  getUpAttack: sequence("Attack Walk Stand Spin", f32(2.0 * SPIN_TURN)),
   ledgeHang: COMBAT_STANCE,
-  ledgeClimb: COMBAT_STANCE,
-  ledgeRoll: sequence("Attack Walk Stand Spin"),
-  ledgeAttack: sequence("Attack Walk Stand Spin", f32(2.0 * SPIN_TURN)),
   // Death ends lying on the stage; Dissipate starts from that pose.
   knockdown: sequence("Death"),
-  getUp: COMBAT_STANCE,
   downDamage: sequence("Dissipate", f32(0.15)),
-  rollForward: sequence("Attack Walk Stand Spin"),
-  rollBackward: sequence("Attack Walk Stand Spin"),
-  // Stand cinematic's first two seconds are a crouch.
-  spotDodge: sequence("Stand cinematic", 2.0),
   jump: COMBAT_STANCE,
   doubleJump: sequence("Attack Walk Stand Spin"),
   // Push off a wall: the Attack Slam leap, which travels away from it; spring off out of tumble with a blade spin.
@@ -150,6 +141,7 @@ export const BLADEMASTER_CLIPS: { readonly [pose in Exclude<HeroPose, Exclude<He
   // The image swap's slash: the thrust lands on its first active frame (f8).
   downSpecialFollowUp: sequence("Attack 2", aligned(THRUST, 8, 3, 20)),
   downSpecialFollowUpAir: sequence("Attack 2", aligned(THRUST, 8, 3, 20)),
+  ...RECOVERY_CLIPS[Character.blademaster],
 };
 
 /** The idle a fighter without a mapped pose shows. */

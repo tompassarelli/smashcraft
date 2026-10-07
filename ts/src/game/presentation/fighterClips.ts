@@ -9,6 +9,7 @@ import { heroDefinition } from "../sim/heroes/registry";
 import { ARCHER_GROUND, RIFLEMAN_GROUND, type GroundKit, jabSlice, strikeClip } from "../sim/heroes/groundNormals";
 import * as dh from "./demonHunterAssetInfo";
 import * as assets from "./fighterAssetInfo";
+import { RECOVERY_CLIPS } from "./recoveryClipInfo";
 
 const clip = (index: number, seconds: number): HeroClip => ({ index, seconds });
 
@@ -186,6 +187,15 @@ const ORIGINAL_CLIPS: { readonly [character: number]: HeroClipTable | undefined 
   [Character.demonHunter]: DEMON_HUNTER_CLIPS,
 };
 const NO_CLIPS: HeroClipTable = {};
+function recoveryTables(): Readonly<Record<number, HeroClipTable>> {
+  const tables: Record<number, HeroClipTable> = {};
+  for (const [character, recovery] of Object.entries(RECOVERY_CLIPS)) {
+    const id = Number(character);
+    tables[id] = { ...(ORIGINAL_CLIPS[id] ?? heroDefinition(id)?.presentation.clips ?? NO_CLIPS), ...recovery };
+  }
+  return tables;
+}
+const COMBINED_CLIPS = recoveryTables();
 
 /** The clips a table names, without the poses it leaves to the fallback. */
 export function namedClips(table: HeroClipTable): HeroClip[] {
@@ -197,7 +207,7 @@ export function namedClips(table: HeroClipTable): HeroClip[] {
 
 /** The character's clip table: an original fighter's, or a hero's registered one. */
 export function characterClips(character: number): HeroClipTable {
-  return ORIGINAL_CLIPS[character] ?? heroDefinition(character)?.presentation.clips ?? NO_CLIPS;
+  return COMBINED_CLIPS[character] ?? ORIGINAL_CLIPS[character] ?? heroDefinition(character)?.presentation.clips ?? NO_CLIPS;
 }
 
 /** The character's clip for a pose, or the hero's fallback when its table leaves the pose out. */

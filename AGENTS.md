@@ -89,6 +89,9 @@ code. From smashcraft:ts/:
   so changing art is `bun wisp inputs add FAMILY DIR` plus a commit, landed
   like code. `bun wisp inputs check` verifies them, `bun wisp inputs path
   [assets]` prints them for tools (smashcraft:docs/build-inputs.md).
+  `bun tools/animations/recovery-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` from
+  the repository root appends fighter recovery and transition clips before
+  storing their families and refreshing the clip pool (smashcraft:docs/fighter-animation-work.md).
 - Fresh match: `bun wisp fresh MAP.w3x [--rebuild]` starts a new game, sends
   `-dev quick`, and waits until every signed-in client writes its receipt.
   `--rebuild` replaces the map script first. Other quick starts for `--chat`

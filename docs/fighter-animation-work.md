@@ -1145,6 +1145,33 @@ re-export changed no other sequence. `bun wisp view reach --assets DIR`
 
 ## Refresh play's clip pools
 
+### Movement and recovery clips
+
+`bun tools/animations/recovery-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends
+turn, brake, jump preparation, aerial evasion, tech and get-up rolls for Archer,
+Rifleman and the stock heroes. Stock heroes also gain standing rolls, a spot
+dodge, get-up and two-sided get-up attack, and ledge options. Illidan and the
+Lich King retain their separately authored rigs. Run it against the packaged
+models before this postprocessor has added its clips; rerun the original asset
+pipeline or use the prior immutable input view when changing its motion phases.
+
+The MDX boundary inserts an identity helper above the body and weapon roots,
+then authors stage-plane body rotation, compression, turning and foot grounding.
+Skeleton articulation comes from the fighter's standing or attacking sequence;
+shot visibility stays with the original shot. Game physics owns travel. The
+generator checks every existing sequence's skinned body at its start, midpoint
+and end (less than 0.001 units of change), and every new action's visible motion
+over all authored 60 Hz frames. Existing indices remain stable. The output is
+private and copied with links dereferenced; linked output families are rejected.
+
+Store the resulting `animation-assets` and `hero-models` with `bun wisp inputs
+add`, regenerate the Archer/Rifleman model filenames with `bun
+tools/animations/package.ts PRIVATE_OUTPUT/animation-assets --metadata-only`,
+then refresh the clip pool below. The generated
+smashcraft:ts/src/game/presentation/recoveryClipInfo.ts overlays each fighter's
+clip table. `bun wisp view motion --assets DIR` measures those clips through
+production pose selection, and the native lane checks their appearance.
+
 The playable build imports one clip model per sequence from its private
 `--assets` (`original-clips-static-lights/`), and
 smashcraft:ts/src/game/assets/fighterOriginalClipInfo.ts names each by hash.

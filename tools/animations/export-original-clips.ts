@@ -10,7 +10,8 @@
 // the game's archives (the CascLib extractor smashcraft:tools/animations/extract.sh builds).
 import {join, resolve, relative} from 'node:path';
 import {isDeepStrictEqual} from 'node:util';
-import {model as mdx} from 'war3-model';
+import {generateMDX, model as mdx} from 'war3-model';
+import {recoveryBaseModel} from './recovery-model';
 import {seconds} from './asset-info';
 import {mkdirSync} from 'node:fs';
 import {fighters, ensure, hash, parseSource, encodeVerified, tracks, verifyPreservedBody, removeBodyEffects,
@@ -47,6 +48,12 @@ for (const fighter of fighters) {
     const retainedRecord = retained?.records.find((record: {fighter: string}) => record.fighter === fighter.name);
     if (metadataOnly) ensure(retainedRecord?.sourceSha256 === sourceSha256, `${fighter.name}: retained clips have a different source`);
     const reuse = metadataOnly || (keepUnchanged && retainedRecord?.sourceSha256 === sourceSha256);
+    // An additive recovery pass leaves old clips unchanged. Admit the cache
+    // only when removing its identity helper/suffix reconstructs the exact
+    // previously exported input bytes; changed base art takes the full path.
+    const base = !reuse && keepUnchanged && retainedRecord ? recoveryBaseModel(source) : undefined;
+    const reusePrefix = base && hash(generateMDX(base)) === retainedRecord.sourceSha256 ? base.Sequences.length : 0;
+    if (reusePrefix) console.log(`${fighter.name}: exact base SHA retained, exporting ${source.Sequences.length - reusePrefix} added clips`);
     const components = splitStaticLights(source);
     let light: {filename: string, modelPath: string, sha256: string, bytes: number} | null = null;
     if (components.lights) {
@@ -54,12 +61,12 @@ for (const fighter of fighters) {
         const encoded = encodeVerified(components.lights), sha256 = hash(encoded);
         const filename = `${fighter.name}OriginalLight-${sha256}.mdx`;
         light = {filename, modelPath: `war3mapImported\\${filename}`, sha256, bytes: encoded.byteLength};
-        if (reuse) {
+        if (reuse || reusePrefix > 0) {
             ensure(isDeepStrictEqual(retainedRecord.light, light), `${fighter.name}: retained light metadata differs`);
             ensure(hash(await Bun.file(join(output, 'imports/war3mapImported', filename)).arrayBuffer()) === sha256,
                 `${fighter.name}: retained light bytes differ`);
         } else await Bun.write(join(output, 'imports/war3mapImported', filename), encoded);
-    } else if (reuse) ensure(retainedRecord.light === null, `${fighter.name}: unexpected retained light`);
+    } else if (reuse || reusePrefix > 0) ensure(retainedRecord.light === null, `${fighter.name}: unexpected retained light`);
     const bodySource = structuredClone(components.body);
     removeBodyEffects(bodySource);
     const sourceTracks = new Map<string, mdx.AnimVector>();
@@ -75,7 +82,7 @@ for (const fighter of fighters) {
     moduleClips.push(fighterClips);
     moduleLights.push(light?.modelPath ?? null);
     for (let index = 0; index < source.Sequences.length; index++) {
-        if (reuse) {
+        if (reuse || index < reusePrefix) {
             const clip = retainedRecord.clips[index];
             ensure(clip.sequenceIndex === index && clip.name === source.Sequences[index].Name,
                 `${fighter.name}/${index}: retained sequence metadata differs`);
