@@ -28,6 +28,7 @@ import { ClientWatch } from "wisp/scripts/wisp/watch";
 import { confirmedCommand, openObservedChat } from "wisp/scripts/wisp/chatSetup";
 import { encodePpm } from "wisp/scripts/wisp/frameProbe";
 import { installHeadless, type HeadlessRuntime } from "wisp/scripts/wisp/headless";
+import { readReplay } from "../replayFiles";
 import { RealtimeClients, type TypedInput, customMapData, typedFile } from "wisp/scripts/wisp/headlessInput";
 import { step } from "wisp/scripts/wisp/timings";
 import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/src/headless/syncChannel";
@@ -153,7 +154,16 @@ const collect = (data: readonly [string, string], out: string, sinceMs: number) 
       else console.error(`client ${"ab"[slot]}: no input trace written since the run began (${trace})`);
       const scene = join(dir, sceneFile(slot, SMASHCRAFT_HEADLESS.filePrefix));
       if (fresh(scene)) copyFileSync(scene, join(out, `scene-${"ab"[slot]}.txt`));
-      for (const name of readdirSync(dir)) if (REPRO_NAME.test(name) && fresh(join(dir, name))) copyFileSync(join(dir, name), join(out, name));
+      for (const name of readdirSync(dir)) {
+        if (!fresh(join(dir, name))) continue;
+        if (REPRO_NAME.test(name)) copyFileSync(join(dir, name), join(out, name));
+        const match = /^smashcraft-replay-(\d+)\.txt$/.exec(name);
+        if (match !== null) {
+          const lines = readReplay(join(dir, name));
+          if (typeof lines === "string") throw new Error(lines);
+          writeFileSync(join(out, `smashcraft-replay-p${slot}-${match[1]}.txt`), `${lines.join("\n")}\n`);
+        }
+      }
     });
   });
 });
