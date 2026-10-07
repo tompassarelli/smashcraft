@@ -1330,11 +1330,27 @@ chest for a low hit. The floating Lich expresses low hits through its neck
 and body. Weapons inherit their attached arm transforms.
 
 The contact frame immediately selects the clip's already recoiling first
-pose. The pool's clip swap has zero animation blending; this cuts from the
-current pose, including an interrupted move, on the first presented contact
-frame. It holds time zero during hitstop. After hitstop, non-tumbling damage
-continues the recoil; a tumble enters the existing tumble clip. No damage,
-hitstop, hitstun or launch timing is changed for these visuals.
+pose and holds its time zero during hitstop. After hitstop, non-tumbling
+damage continues the recoil; a tumble enters the existing tumble clip. No
+damage, hitstop, hitstun or launch timing is changed for these visuals.
+
+### Pain pose blending
+
+Every pool clip is its own model, so native in-model blending cannot cross a
+clip swap. Instead smashcraft:ts/src/game/presentation/damageBlend.ts dissolves:
+the pain clip is drawn fully opaque from the contact frame, and the previous
+clip stays frozen at its last drawn pose and yaw, following the body, with
+opacity falling 255·(n−k)/(n+1) over n presented simulation frames. Entry takes
+3/2/1 frames for small/medium/large hits (heavier hits snap harder), capped at
+hitlag − 1 so the first pain pose is always shown alone before hitstop ends
+(minimum victim hitlag is 3, or 2 crouching). Leaving a pain pose for tumble,
+the end of hitstun or recovery dissolves over 4 frames. Other clip changes
+still cut. The timing follows fighting-game practice of showing the hit pose
+at once and holding it through hitlag, as Melee and Ultimate do, with a short
+17–67 ms softening; Tom delegated the exact durations on 7 October 2026.
+The dissolve is timed by the presented simulation frame, so a pause holds it
+and a rollback to an earlier frame ends it. Readability and frame cost at
+gameplay zoom need native captures.
 
 Height uses the authored strike segment's midpoint or a projectile's actual
 height relative to the victim's current hurt-body bounds: below 3/8 is low,

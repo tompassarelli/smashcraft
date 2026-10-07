@@ -1,7 +1,9 @@
 // A fighter drawn from a pool of original-model clips: every clip has its own
 // effect, all frozen, and presenting shows the selected one at the pose's clip
 // time. Allocation and destruction belong to the synchronized character and
-// match lifecycle; present and hide change only these handles.
+// match lifecycle; present and hide change only these handles. Entering or
+// leaving a pain pose keeps the previous clip frozen over the new one while
+// it dissolves (presentation/damageBlend.ts).
 import {
   ORIGINAL_LIGHT_ACTIVE_ANIMATION,
   ORIGINAL_LIGHT_GATE_SECONDS,
@@ -19,6 +21,7 @@ import { type WorldOrigin, facingYaw, hideEffect, placeEffect } from "./effects"
 import { damageTint } from "../presentation/hitPresentation";
 import { characterModelScale } from "../presentation/modelScale";
 import { fitFighterPlacement } from "../presentation/fighterPlacement";
+import { outgoingPoseAlpha, poseBlendFrames } from "../presentation/damageBlend";
 
 export class FighterPoolPresentation {
   private readonly clips: effect[] = [];
@@ -26,6 +29,10 @@ export class FighterPoolPresentation {
   private readonly scale: number;
   private lightVisible = false;
   private visible: number | undefined;
+  /** The dissolving previous clip, the simulation frame it started and its length. */
+  private blendFrom: number | undefined;
+  private blendStart = 0;
+  private blendFrames = 0;
   private readonly placement = { x: 0.0, z: 0.0 };
   /** Frames whose pose selected a clip this pool doesn't have. */
   missingSelections = 0;
@@ -72,7 +79,14 @@ export class FighterPoolPresentation {
     BlzSetSpecialEffectTime(light, ORIGINAL_LIGHT_GATE_SECONDS);
   }
 
+  private endBlend(): void {
+    const from = this.blendFrom === undefined ? undefined : this.clips[this.blendFrom];
+    if (from !== undefined && this.blendFrom !== this.visible) hideEffect(from, this.origin);
+    this.blendFrom = undefined;
+  }
+
   hide(): void {
+    this.endBlend();
     const shown = this.visible === undefined ? undefined : this.clips[this.visible];
     if (shown !== undefined) hideEffect(shown, this.origin);
     this.visible = undefined;
@@ -82,7 +96,8 @@ export class FighterPoolPresentation {
     }
   }
 
-  present(fighter: Readonly<Fighter>, pose: Readonly<FighterPose>, stage = 0): void {
+  /** `frame` is the presented simulation frame, which times pose blends. */
+  present(fighter: Readonly<Fighter>, pose: Readonly<FighterPose>, stage: number, frame: number): void {
     if (this.clips.length === 0) return;
     const index = pose.clipIndex ?? originalClipNamed(this.character, pose.clipName);
     const model = index === undefined ? undefined : this.clips[index];
@@ -93,8 +108,18 @@ export class FighterPoolPresentation {
       return;
     }
     if (this.visible !== index) {
-      const shown = this.visible === undefined ? undefined : this.clips[this.visible];
-      if (shown !== undefined) hideEffect(shown, this.origin);
+      const previous = this.visible;
+      const frames = previous === undefined ? 0 : poseBlendFrames(fighter, previous, index);
+      // A clip returning while it dissolves is simply drawn again.
+      if (this.blendFrom === index) this.blendFrom = undefined;
+      this.endBlend();
+      const shown = previous === undefined ? undefined : this.clips[previous];
+      // The outgoing clip stays frozen at its last drawn pose and yaw.
+      if (frames > 0) {
+        this.blendFrom = previous;
+        this.blendStart = frame;
+        this.blendFrames = frames;
+      } else if (shown !== undefined) hideEffect(shown, this.origin);
       this.visible = index;
     }
     const duration = clip.endSeconds - clip.startSeconds;
@@ -122,17 +147,38 @@ export class FighterPoolPresentation {
       }
     }
     const tint = damageTint(fighter);
+    let red = 255;
+    let green = 255;
+    let blue = 255;
+    let alpha = 255;
     if (fighter.status.frozenFrames > 0) {
-      BlzSetSpecialEffectColor(model, 155, 210, 255);
-      BlzSetSpecialEffectAlpha(model, 255);
+      red = 155;
+      green = 210;
     } else if (tint !== undefined) {
-      BlzSetSpecialEffectColor(model, tint.red, tint.green, tint.blue);
-      BlzSetSpecialEffectAlpha(model, 255);
+      red = tint.red;
+      green = tint.green;
+      blue = tint.blue;
     } else {
       const shielded = fighter.shield.raised;
-      BlzSetSpecialEffectColor(model, shielded ? 100 : 255, shielded ? 160 : 255, 255);
-      BlzSetSpecialEffectAlpha(model, isIntangible(fighter) ? 140 : 255);
+      if (shielded) {
+        red = 100;
+        green = 160;
+      }
+      if (isIntangible(fighter)) alpha = 140;
     }
+    BlzSetSpecialEffectColor(model, red, green, blue);
+    BlzSetSpecialEffectAlpha(model, alpha);
+    const from = this.blendFrom === undefined ? undefined : this.clips[this.blendFrom];
+    if (from === undefined) return;
+    const fade = outgoingPoseAlpha(frame - this.blendStart, this.blendFrames);
+    if (fade <= 0) {
+      this.endBlend();
+      return;
+    }
+    BlzSetSpecialEffectPosition(from, x, y, z);
+    BlzSetSpecialEffectScale(from, this.scale);
+    BlzSetSpecialEffectColor(from, red, green, blue);
+    BlzSetSpecialEffectAlpha(from, fade);
   }
 
   destroy(): void {
@@ -142,6 +188,7 @@ export class FighterPoolPresentation {
       DestroyEffect(this.light);
     }
     // Every clip but the shown one is already parked, where its death animation plays out of view.
+    this.endBlend();
     const shown = this.visible === undefined ? undefined : this.clips[this.visible];
     if (shown !== undefined) hideEffect(shown, this.origin);
     for (const model of this.clips) DestroyEffect(model);
