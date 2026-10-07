@@ -245,10 +245,14 @@ code. From smashcraft:ts/:
   manifest with its parts, or a joined replay, in Bun and 32-bit Lua to every
   recorded checksum; `--out` writes the joined replay to share
   (smashcraft:docs/design/client.md, "Full-match replays").
-- Headless match: `bun wisp headless [quick-match|desync] [--clients N]` plays
+- Headless match: `bun wisp headless [quick-match|desync] [--clients N] [--journey FILE] [--render DIR --frames N...]` plays
   the dev build's quick match in simulated clients in about a second and prints
   desyncs, error reports and scene problems; `--cost` adds its predicted
-  Warcraft cost per frame.
+  Warcraft cost per frame. `--render` draws requested frames using the map's
+  immutable imports and classic Warcraft assets; `--journey FILE` supplies
+  capture inputs as journey JSON. Stock extraction uses `CASC_EXTRACTOR`
+  and `WC3_STORAGE`; `WC3_TEXTURES` reuses extracted PNGs
+  (smashcraft:docs/player-view.md).
 - Frame cost: `LUA=<32-bit lua> bun wisp perf [quick-match|bot|bot-four|playable-bot-four]`
   plays a run in 32-bit Lua and prints each client's predicted Warcraft cost
   per frame (p50, p95, worst, typing stall); `bun wisp perf compare A B` fails

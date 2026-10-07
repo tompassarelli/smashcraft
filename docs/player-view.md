@@ -1,5 +1,25 @@
 # What a player sees
 
+`bun wisp headless --render PRIVATE_DIR --frames 64,132,159,169,206`
+draws the requested frames at 1280×720 using the map's imported assets and
+classic Warcraft models. Asset paths come from this checkout's immutable
+`build-inputs.json`. Stock textures come from `WC3_TEXTURES`, or are extracted
+with `CASC_EXTRACTOR` and `WC3_STORAGE`. The extractor
+is built by `tools/animations/extract.sh`; DDS textures are converted with
+the existing ImageMagick tool. Extracted assets stay in
+`~/.local/share/smashcraft-render-assets/` outside the repository.
+
+`--journey FILE` replaces the default quick match with capture inputs:
+`{"frames":210,"events":[{"frame":30,"player":0,"chat":"-dev quick hero archer"}]}`.
+Events use Wisp journey chat, key and reload records, in frame order. Keys
+may include `down: true` or `down: false` to hold or release an input.
+Use the same source revision, fighter, inputs and camera as a native capture.
+The existing `test/native/pads/171/` scripts cover Archer, Rifleman, Illidan,
+Blademaster and Warden at frame 132 (walk) and 169 (run); their `*-cues.pad`
+scripts supply strike, special and passive examples. Illidan has no passive;
+his Immolation is a special example. These names alone are capture locations,
+not measured renderer agreement.
+
 Logic tests, type checks, the desync guard and the native match gate can all
 pass while a player sees no stage or an effect that never leaves. Smashcraft
 uses Wisp's player-view checks (wisp:docs/player-view.md) to fail on those:

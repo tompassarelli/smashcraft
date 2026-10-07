@@ -23,7 +23,7 @@ const COMMANDS: Record<string, { readonly usage: string; readonly load: () => Pr
   menus: { usage: "menus host|join|start|leave [OPTIONS]", load: async () => (await import("wisp/scripts/wisp/commands/menus")).makeMenus() },
   online: { usage: "online setup | host | join CODE [--client NAME] [--repair]   (direct play by join code, the client's Online page: scripts/wisp/online.ts)", load: async () => (await import("./wisp/commands/online")).online },
   view: { usage: "view scene DATA_DIR... | frame FRAME.ppm... | models --assets DIR --summon DIR --extractor CASC_EXTRACT --storage WARCRAFT_DIR | motion --assets DIR", load: async () => (await import("./wisp/commands/view")).view },
-  headless: { usage: "headless [quick-match|desync] [--clients N] [--cost]", load: async () => (await import("./wisp/commands/headless")).headless },
+  headless: { usage: "headless [quick-match|desync] [--clients N] [--cost] [--journey FILE] [--render DIR --frames N...]", load: async () => (await import("./wisp/commands/headless")).headless },
   soak: { usage: "soak memory [--minutes N] [--out FILE] | soak [--matches N] [--seed N] [--workers N<=4] [--minutes N<=30] [--fighter NAME]... [--stage NAME]... [--policy NAME]... [--out DIR] | --repro FILE | --helper BINARY [--matches N<=20] [--seconds S<=90] [--seed N] [--out DIR]", load: async () => (await import("./wisp/commands/soak")).soak },
   dev: { usage: "dev [--data DIR --data DIR]", load: async () => (await import("./wisp/commands/dev")).dev },
   play: { usage: "play   (Tom's desktop: Battle.net, Play, the map hosted after Warcraft's ladder scan, the controller helper, a match against a computer)", load: async () => (await import("./wisp/commands/play")).play },
