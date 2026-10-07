@@ -49,9 +49,22 @@ export function writeCanonicalNumber(emit: (code: number) => void, value: number
   if (value !== value) { emit(110); emit(97); emit(110); return; }
   const negative = value < 0;
   if (!negative && !(value > 0)) { emit(48); return; }
-  let magnitude = negative ? -value : value;
   emit(negative ? 45 : 43);
-  if (magnitude * 2 === magnitude) { emit(105); emit(110); emit(102); return; }
+  if (!splitFiniteReal(negative ? -value : value)) { emit(105); emit(110); emit(102); return; }
+  writeIntegerBytes(emit, realParts.exponent);
+  emit(58);
+  writeIntegerBytes(emit, realParts.high);
+  emit(58);
+  writeIntegerBytes(emit, realParts.low);
+}
+
+/** The magnitude splitFiniteReal last split: binary exponent and 52 fraction bits as two 26-bit integers. */
+export const realParts = { exponent: 0, high: 0, low: 0 };
+
+/** Splits a positive magnitude into realParts without allocating; false when it is infinite. */
+export function splitFiniteReal(positive: number): boolean {
+  let magnitude = positive;
+  if (magnitude * 2 === magnitude) return false;
   let exponent = 0;
   while (magnitude >= 2) {
     magnitude /= 2;
@@ -63,12 +76,10 @@ export function writeCanonicalNumber(emit: (code: number) => void, value: number
   }
   const fraction = (magnitude - 1) * 67108864;
   const high = Math.floor(fraction);
-  const low = Math.floor((fraction - high) * 67108864);
-  writeIntegerBytes(emit, exponent);
-  emit(58);
-  writeIntegerBytes(emit, high);
-  emit(58);
-  writeIntegerBytes(emit, low);
+  realParts.exponent = exponent;
+  realParts.high = high;
+  realParts.low = Math.floor((fraction - high) * 67108864);
+  return true;
 }
 
 /** Exact finite binary representation: sign, binary exponent and 52 fraction bits as two 26-bit integers. */

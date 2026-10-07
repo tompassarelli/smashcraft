@@ -1,9 +1,9 @@
 // Histories retain shared observations. Storage is reused only after every
 // live input and replay snapshot has released that sample.
 import { at } from "wisp/src/runtime/lookup";
-import { botObservationCanonical, writeCanonicalNumber, writeObservations } from "../replay/canonical";
+import { botObservationCanonical, realParts, splitFiniteReal, writeCanonicalNumber, writeObservations } from "../replay/canonical";
 import { f32 } from "wisp/src/sim/f32";
-import { floorMod } from "wisp/src/sim/intMath";
+import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots } from "../input/participants";
 import { createFighter, type Fighter } from "../sim/fighter";
 import { fighterAt, isActive, type Controls, type Roster } from "../sim/roster";
@@ -281,9 +281,47 @@ function foldDigest(digest: Readonly<ObservationDigest>): void {
   checksumFirst = floorMod(checksumFirst * digest.firstPower + digest.first, 46337);
   checksumSecond = floorMod(checksumSecond * digest.secondPower + digest.second, 46337);
 }
+function textDigest(text: string): ObservationDigest {
+  buildingDigest = { first: 0, second: 0, firstPower: 1, secondPower: 1 };
+  for (let index = 0; index < text.length; index++) digestByte(text.charCodeAt(index));
+  return buildingDigest;
+}
+// Decimal digits fold three at a time: the leading group unpadded, later groups zero-padded.
+const leadingGroupDigests: ObservationDigest[] = [];
+const paddedGroupDigests: ObservationDigest[] = [];
+for (let group = 0; group < 1000; group++) {
+  leadingGroupDigests.push(textDigest(`${group}`));
+  paddedGroupDigests.push(textDigest(group < 10 ? `00${group}` : group < 100 ? `0${group}` : `${group}`));
+}
+const separatorDigest = textDigest(",");
+const negativeSeparatorDigest = textDigest(",-");
+const positiveRealDigest = textDigest(",+");
+const colonDigest = textDigest(":");
+const minusDigest = textDigest("-");
+
+/** Folds a non-negative integer's decimal bytes, exactly as writeCanonicalNumber writes them. */
+function foldDecimal(value: number): void {
+  if (value < 1000) { foldDigest(at(leadingGroupDigests, value)); return; }
+  foldDecimal(floorDiv(value, 1000));
+  foldDigest(at(paddedGroupDigests, floorMod(value, 1000)));
+}
+function foldSignedDecimal(value: number): void {
+  if (value < 0) { foldDigest(minusDigest); foldDecimal(-value); } else foldDecimal(value);
+}
+
 function foldObservationNumber(value: number): void {
   if (value >= -1 && value <= 255 && Math.floor(value) === value) {
     foldDigest(at(integerDigests, value + 1));
+  } else if (Math.floor(value) === value && value >= -2147483647 && value <= 2147483647) {
+    const integer = Math.floor(value);
+    if (integer < 0) { foldDigest(negativeSeparatorDigest); foldDecimal(-integer); } else { foldDigest(separatorDigest); foldDecimal(integer); }
+  } else if (Math.floor(value) !== value && value === value && splitFiniteReal(value < 0 ? -value : value)) {
+    foldDigest(value < 0 ? negativeSeparatorDigest : positiveRealDigest);
+    foldSignedDecimal(realParts.exponent);
+    foldDigest(colonDigest);
+    foldDecimal(realParts.high);
+    foldDigest(colonDigest);
+    foldDecimal(realParts.low);
   } else {
     foldObservationByte(44);
     writeCanonicalNumber(foldObservationByte, value);
