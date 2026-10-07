@@ -174,7 +174,7 @@ test("protected Uther uses an affordable Holy Radiance at range without reservin
     const game = computerMatch([Character.archer, Character.uther], [440.0, 0.0], 0, 2);
     for (let frame = 0; frame < 12; frame++) game.step();
     const uther = fighterAt(game.world, 1);
-    uther.mana.points = 30;
+    uther.mana.points = 60;
     uther.status.divineFrames = protectedNow ? 14 : 0;
     game.step();
     assertEquals(uther.special.action, protectedNow ? SpecialAction.heroSide : SpecialAction.none);

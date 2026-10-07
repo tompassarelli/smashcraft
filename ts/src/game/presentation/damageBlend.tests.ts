@@ -3,7 +3,7 @@ import { Character } from "../sim/codes";
 import { createFighter } from "../sim/fighter";
 import { victimHitlagFrames } from "../sim/knockback";
 import { SELECTABLE_CHARACTERS, fighterName } from "../sim/heroes/registry";
-import { DAMAGE_CLIPS } from "./damageClipInfo";
+import { contactDamageClips } from "./damagePose";
 import {
   PAIN_ENTRY_BLEND_FRAMES, PAIN_EXIT_BLEND_FRAMES, isContactPainClip, outgoingPoseAlpha, painEntryBlendFrames, poseBlendFrames,
 } from "./damageBlend";
@@ -55,7 +55,7 @@ test("the previous pose fades monotonically to nothing", () => {
 
 test("only entering or leaving one of the nine pain poses blends", () => {
   for (const character of SELECTABLE_CHARACTERS) {
-    const row = DAMAGE_CLIPS[character];
+    const row = contactDamageClips(character);
     if (row === undefined) throw new Error(`${fighterName(character)} has no pain grid`);
     assertEquals(row.length, 9);
     const f = createFighter(character, 0.0, 1);

@@ -30,11 +30,20 @@ export function currentComputerMask(): number {
   return mask;
 }
 
-export function clearParticipantInputs(s: ShellState, slot: ParticipantSlot): void {
+function clearCapturedParticipantInputs(s: ShellState, slot: ParticipantSlot): void {
   const participant = s.participants[slot];
   clearKeys(participant.keys);
   resetKeys(participant.capture, 0);
   clearAttackBuffer(s.produced.commands[slot]);
+}
+
+/** Pausing changes transient input only; the frozen match remains one continuous replay. */
+export function clearCapturedInputs(s: ShellState): void {
+  for (const slot of PARTICIPANT_SLOTS) clearCapturedParticipantInputs(s, slot);
+}
+
+export function clearParticipantInputs(s: ShellState, slot: ParticipantSlot): void {
+  clearCapturedParticipantInputs(s, slot);
   keepMomentEnd(s.moment.recorder, s.world, s.game, s.controls, s.runtime);
   endReplaySegment(s);
   clearAttackBuffer(s.controls.commands[slot]);
