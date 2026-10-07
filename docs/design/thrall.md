@@ -71,10 +71,15 @@ Get-up and ledge attacks use the same hammer sweep vocabulary and shared
 action rules. Only weapon reach is disjoint; shoulder and limb attacks expose
 matching hurt volumes. Smashes charge up to 45 frames for at most 1.25× damage.
 
-The mounted classic model keeps Doomhammer near the rider: measured hammer
-centres at contact are approximately (41,132) for the forward tilt, (39,133)
-for forward smash, (-2,189) for up tilt, (47,128) for forward air and
+The rider folds forward for grounded jabs and forward tilt. Measured active
+hammer bounds are x33–54/z49–96 for jab, x37–61/z51–97 for jab 2 and
+x75–109/z59–95 for forward tilt. The short jab stays inside the longer tilt.
+Other measured hammer centres at contact are approximately (39,133) for
+forward smash, (-2,189) for up tilt, (47,128) for forward air and
 (-40,127) for back air, in world units at stock scale. Head radii are 22–25.
+Dash attack places its shoulder/head capsule from (24,45) to (65,60), radius28:
+the drawn shoulder spans x24–31/z51–86 and the head x51–84/z42–81.
+The head remains vulnerable during the rush, with the root and feet planted.
 Grounded low attacks and down air use the wolf's visible paw, spanning x52–96
 at z20–34 with radius 20–24, rather than claiming the rider's hammer touches
 the floor. Their Warcraft source is Feral Spirit and their Smash reference
