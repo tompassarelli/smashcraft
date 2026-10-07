@@ -33,6 +33,7 @@ interface SpecialSlot {
   readonly manaHand: effect;
   readonly wingTrail: effect;
   readonly drainFlash: effect;
+  readonly silence: effect;
   /** Event identity is (match, completed frame, fighter, action); the cursor rejects replayed frames before any restart. */
   readonly cursor: ImpactPresentationCursor;
   previousSpecial: SpecialAction;
@@ -48,14 +49,15 @@ function hippogryphAnimation(kind: HippogryphKind): string {
   return kind === HippogryphKind.perch ? "stand" : kind === HippogryphKind.dive || kind === HippogryphKind.released ? "attack" : "walk";
 }
 
-/** A slot's effects in its parked flags, after six times the slot. */
+/** A slot's effects in its parked flags. */
 const HIPPOGRYPH = 0;
 const AURA = 1;
 const FEL_FLAMES = 2;
 const MANA_HAND = 3;
 const WING_TRAIL = 4;
 const DRAIN_FLASH = 5;
-const SLOT_EFFECTS = 6;
+const SILENCE = 6;
+const SLOT_EFFECTS = 7;
 
 export class SpecialEffects {
   private readonly slots: readonly SpecialSlot[];
@@ -75,12 +77,13 @@ export class SpecialEffects {
       const manaHand = AddSpecialEffect(STOCK_MODELS.manaBurnTarget, x, y);
       const wingTrail = AddSpecialEffect(IMPACT_DUST_MODEL, x, y);
       const drainFlash = AddSpecialEffect(IMPACT_TECH_MODEL, x, y);
+      const silence = AddSpecialEffect(STOCK_MODELS.silenceTarget, x, y);
       BlzSetSpecialEffectTimeScale(aura, 0.0);
       BlzSetSpecialEffectTimeScale(wingTrail, 0.0);
       BlzSetSpecialEffectTimeScale(drainFlash, 0.0);
       BlzSetSpecialEffectAnimationBlendTime(hippogryph, 0.0);
       return {
-        bear, hippogryph, aura, felFlames, manaHand, wingTrail, drainFlash, cursor,
+        bear, hippogryph, aura, felFlames, manaHand, wingTrail, drainFlash, silence, cursor,
         previousSpecial: SpecialAction.none, previousSpecialFrame: 0, previousHippogryphLife: 0, previousHippogryphKind: HippogryphKind.none,
       };
     });
@@ -97,7 +100,7 @@ export class SpecialEffects {
       resetImpactPresentationCursor(slot.cursor);
       slot.bear.hide();
       // In flag order.
-      [slot.hippogryph, slot.aura, slot.felFlames, slot.manaHand, slot.wingTrail, slot.drainFlash].forEach((model, effect) => this.park(model, index, effect));
+      [slot.hippogryph, slot.aura, slot.felFlames, slot.manaHand, slot.wingTrail, slot.drainFlash, slot.silence].forEach((model, effect) => this.park(model, index, effect));
       slot.previousSpecial = SpecialAction.none;
       slot.previousSpecialFrame = 0;
       slot.previousHippogryphLife = 0;
@@ -123,10 +126,11 @@ export class SpecialEffects {
 
   setPaused(paused: boolean): void {
     const scale = paused ? 0.0 : 1.0;
-    for (const { hippogryph, felFlames, manaHand } of this.slots) {
+    for (const { hippogryph, felFlames, manaHand, silence } of this.slots) {
       BlzSetSpecialEffectTimeScale(hippogryph, scale);
       BlzSetSpecialEffectTimeScale(felFlames, scale);
       BlzSetSpecialEffectTimeScale(manaHand, scale);
+      BlzSetSpecialEffectTimeScale(silence, scale);
     }
   }
 
@@ -173,6 +177,8 @@ export class SpecialEffects {
     const { action, frame } = fighter.special;
     const entered = action !== slot.previousSpecial || frame < slot.previousSpecialFrame;
     const { felFlames, manaHand } = slot;
+    if (!fighter.status.out && fighter.status.condition === HeroStatusKind.silence) this.show(slot.silence, index, SILENCE, fighter, 0.0, 150.0, f32(0.7));
+    else this.park(slot.silence, index, SILENCE);
     if (fighter.character === Character.demonHunter && !fighter.status.out) {
       if (entered && action === SpecialAction.demonHunterImmolate) BlzSetSpecialEffectTime(felFlames, 0.0);
       else if (entered && action === SpecialAction.demonHunterManaBurn) BlzSetSpecialEffectTime(manaHand, 0.0);
@@ -252,7 +258,7 @@ export class SpecialEffects {
     for (const slot of this.slots) {
       this.releaseImmolationLoop(slot);
       slot.bear.destroy();
-      for (const model of [slot.hippogryph, slot.aura, slot.felFlames, slot.manaHand, slot.wingTrail, slot.drainFlash]) DestroyEffect(model);
+      for (const model of [slot.hippogryph, slot.aura, slot.felFlames, slot.manaHand, slot.wingTrail, slot.drainFlash, slot.silence]) DestroyEffect(model);
     }
   }
 }

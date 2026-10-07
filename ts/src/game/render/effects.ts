@@ -18,6 +18,7 @@ export const STOCK_MODELS = {
   gyroCopterMissile: "Abilities\\Weapons\\GyroCopter\\GyroCopterMissile.mdx",
   immolationTarget: "Abilities\\Spells\\NightElf\\Immolation\\ImmolationTarget.mdx",
   manaBurnTarget: "Abilities\\Spells\\NightElf\\ManaBurn\\ManaBurnTarget.mdx",
+  silenceTarget: "Abilities\\Spells\\Other\\Silence\\SilenceTarget.mdx",
   hippogryph: "Units\\NightElf\\HippoGryph\\HippoGryph.mdx",
 } as const;
 
