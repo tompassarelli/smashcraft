@@ -56,6 +56,7 @@ export function presetBindings(preset: BindingPreset): KeyBindings {
   bind(Action.smashUp, code("J"));
   bind(Action.smashDown, code("H"));
   bind(Action.walk, code("P"));
+  bind(Action.lightShield, code(custom ? "0" : "9"));
   return { keys };
 }
 
@@ -87,10 +88,10 @@ export function rebind(bindings: KeyBindings, action: Action, slot: KeySlot, key
 
 // ---------------------------------------------------------------- saves
 
-// A version, then each slot's key code as three decimal digits. K2 saves have
-// the current shape with older defaults; K1 saves predate the walk slots.
-const CURRENT_SAVE = "K3";
-const SAVED_SLOTS: Readonly<Record<string, number>> = { K1: KEY_SLOT_COUNT - 2, K2: KEY_SLOT_COUNT, [CURRENT_SAVE]: KEY_SLOT_COUNT };
+// A version, then each slot's key code as three decimal digits. K2/K3 saves
+// predate light shield; K1 saves also predate the tilt slots.
+const CURRENT_SAVE = "K4";
+const SAVED_SLOTS: Readonly<Record<string, number>> = { K1: 28, K2: 30, K3: 30, [CURRENT_SAVE]: KEY_SLOT_COUNT };
 const DIGITS = "0123456789";
 
 export function encodeBindings({ keys }: Readonly<KeyBindings>): string {
@@ -161,7 +162,8 @@ export const ACTION_LABELS: Readonly<Record<Action, string>> = {
   [Action.smashRight]: "C-stick right",
   [Action.smashUp]: "C-stick up",
   [Action.smashDown]: "C-stick down",
-  [Action.walk]: "Walk / tilts",
+  [Action.walk]: "Tilt",
+  [Action.lightShield]: "Light shield",
 };
 
 export function keyLabel(key: number | undefined): string {

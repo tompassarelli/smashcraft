@@ -9,9 +9,9 @@ import { type AttackBuffer, clearAttackBuffer, queueAttack } from "./attackBuffe
 import { groundDodgeIntent, normalAttackStyle } from "./combat";
 import type { Direction, InputRow } from "./inputRow";
 
-const GRAB_MASH_ACTIONS = maskOf(Action.attack, Action.special, Action.jump, Action.grab, Action.leftTrigger, Action.rightTrigger);
+const GRAB_MASH_ACTIONS = maskOf(Action.attack, Action.special, Action.jump, Action.grab, Action.leftTrigger, Action.rightTrigger, Action.lightShield);
 const MOVEMENT_ACTIONS = maskOf(Action.moveLeft, Action.moveRight, Action.moveDown, Action.moveUp);
-const TRIGGERS = maskOf(Action.leftTrigger, Action.rightTrigger);
+const TRIGGERS = maskOf(Action.leftTrigger, Action.rightTrigger, Action.lightShield);
 
 const sign = (value: number): Direction => value < 0 ? -1 : value > 0 ? 1 : 0;
 
@@ -37,6 +37,7 @@ export function adaptInput(row: Readonly<InputRow>, fighter: Readonly<Fighter>, 
   destination.verticalDirection = movementAxis(row, Action.moveDown, Action.moveUp, row.axisZ);
   destination.diStickValid = true;
   destination.diStickX = f32(row.axisX / 127.0);
+  destination.driftStickX = destination.diStickX;
   destination.diStickZ = f32(row.axisZ / 127.0);
   const length = squareRoot(f32(f32(destination.diStickX * destination.diStickX) + f32(destination.diStickZ * destination.diStickZ)));
   if (length > 1) {
@@ -53,10 +54,12 @@ export function adaptInput(row: Readonly<InputRow>, fighter: Readonly<Fighter>, 
   destination.specialZ = destination.specialPressed ? row.specialZ : 0;
   destination.down = has(held, Action.moveDown);
   destination.shieldPressed = (pressed & TRIGGERS) !== 0;
-  const digitalShield = (held & TRIGGERS) !== 0 || destination.shieldPressed;
-  destination.shieldTriggerActive = digitalShield || row.triggerLeft > 0 || row.triggerRight > 0;
-  destination.shield = digitalShield || analogShieldActive(row.triggerLeft) || analogShieldActive(row.triggerRight);
-  destination.shieldStrength = digitalShield ? 1.0 : analogShieldStrength(Math.max(row.triggerLeft, row.triggerRight));
+  const leftPressure = row.triggerLeft > 0 ? row.triggerLeft : has(held | pressed, Action.leftTrigger) ? 255 : has(held | pressed, Action.lightShield) ? 77 : 0;
+  const rightPressure = row.triggerRight > 0 ? row.triggerRight : has(held | pressed, Action.rightTrigger) ? 255 : 0;
+  const pressure = Math.max(leftPressure, rightPressure);
+  destination.shieldTriggerActive = pressure > 0;
+  destination.shield = pressure === 255 || analogShieldActive(pressure);
+  destination.shieldStrength = pressure === 255 ? 1.0 : analogShieldStrength(pressure);
   destination.jumpPressed = has(pressed, Action.jump);
   destination.jumpHeld = has(held, Action.jump);
   destination.airDodgePressed = destination.shieldPressed;

@@ -36,6 +36,8 @@ export function fighterAt(roster: Roster, slot: number): Fighter {
 export interface Controls {
   direction: number;
   verticalDirection: number;
+  /** Raw horizontal row axis, before directional influence normalizes diagonals. */
+  driftStickX: number | undefined;
   /** An analog stick for directional influence; otherwise the digital directions are used. */
   diStickValid: boolean;
   diStickX: number;
@@ -84,6 +86,7 @@ export interface Controls {
 
 export function neutralControls(): Controls {
   return {
+    driftStickX: undefined,
     direction: 0,
     verticalDirection: 0,
     diStickValid: false,
@@ -133,6 +136,7 @@ export function neutralControls(): Controls {
 export function copyControls(target: Controls, source: Readonly<Controls>): void {
   target.direction = source.direction;
   target.verticalDirection = source.verticalDirection;
+  target.driftStickX = source.driftStickX;
   target.diStickValid = source.diStickValid;
   target.diStickX = source.diStickX;
   target.diStickZ = source.diStickZ;
@@ -183,6 +187,7 @@ export function controlsAt(controls: readonly Readonly<Controls>[], slot: number
 }
 
 const CONTROL_FIELDS = [
+  "driftStickX",
   "direction", "verticalDirection", "diStickValid", "diStickX", "diStickZ", "sdiPulse", "sdiX", "sdiZ", "cStickX", "cStickZ", "attackRequested", "specialPressed", "specialX", "specialZ", "down", "shield", "shieldPressed", "shieldTriggerActive", "shieldStrength", "jumpPressed", "airDodgePressed", "techPressed", "mashPressed", "attackPressed", "grabMashPressed", "grabThrowX", "grabThrowZ", "groundDodgePressed", "groundDodgeDirection", "getupAttackPressed", "ledgeVerticalPressed", "getupStandPressed", "getupDirectionPressed", "getupDirection", "cStickUpFlick", "cStickSideFlick", "dodgeX", "dodgeZ", "jumpHeld", "walking", "attackHeld", "resetPressed"
 ] as const satisfies readonly (keyof Controls)[];
 

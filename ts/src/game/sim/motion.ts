@@ -175,17 +175,23 @@ export function totalVelocityZ(f: Fighter): number {
  * air speed it loses its air friction instead, never below the air speed,
  * and never past `cap` (ftCo_DatAttrs +0x078 air_max_horizontal_velocity).
  */
-function retailAirDriftVelocity(f: Fighter, velocity: number, direction: number, cap: number): number {
-  const { airAcceleration: acceleration, airFriction } = f.tuning.physics;
-  const target = chillScaled(f, f.tuning.physics.airSpeed);
+function retailAirDriftVelocity(f: Fighter, velocity: number, stick: number, cap: number): number {
+  const { airAcceleration, airFriction } = f.tuning.physics;
+  const direction = stick < 0 ? -1 : 1;
+  const magnitude = Math.abs(stick);
+  // Fox, Falco and Captain Falcon share +0x068's 0.02 base; the authored
+  // full-stick acceleration stores that base plus +0x064's multiplier.
+  const base = f32(0.019999999552965164 * WORLD_UNITS_PER_MELEE_UNIT);
+  const acceleration = magnitude === 1 ? airAcceleration : f32(base + f32(f32(airAcceleration - base) * magnitude));
+  const target = f32(chillScaled(f, f.tuning.physics.airSpeed) * magnitude);
   const alongInput = f32(velocity * direction);
   const next = alongInput > target ? max(target, f32(alongInput - airFriction)) : min(target, f32(alongInput + acceleration));
   return f32(max(-cap, min(cap, next)) * direction);
 }
 
 /** Every fighter's air drift, a ceiling tech's impulse frame included (ftCo_PassiveCeil_Phys runs the same drift). */
-export function airDriftVelocity(f: Fighter, velocity: number, direction: number): number {
-  return retailAirDriftVelocity(f, velocity, direction, f.tuning.physics.airCap);
+export function airDriftVelocity(f: Fighter, velocity: number, stick: number): number {
+  return retailAirDriftVelocity(f, velocity, stick, f.tuning.physics.airCap);
 }
 
 function retailAirDecaySquaredCutoff(decay: number): number {
