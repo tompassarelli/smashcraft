@@ -225,6 +225,6 @@ export const BEASTMASTER_MOVES: FighterMoves = {
     [GrabAction.throwForward]: { contactFrame: 13, totalFrames: 35, effect: hit(8.0, "EDGE", 35, 1.0, HitElement.normal) },
     [GrabAction.throwBack]: { contactFrame: 17, totalFrames: 43, effect: hit(9.0, "EDGE", 40, -1.0, HitElement.normal) },
     [GrabAction.throwUp]: { contactFrame: 15, totalFrames: 24, effect: hit(7.0, "JUGGLE", 85, 1.0, HitElement.normal) },
-    [GrabAction.throwDown]: { contactFrame: 19, totalFrames: 44, effect: hit(6.0, "CHASE", 70, 1.0, HitElement.normal) },
+    [GrabAction.throwDown]: { contactFrame: 19, totalFrames: 44, effect: hit(6.0, "CHASE", 25, 1.0, HitElement.normal) },
   },
 };
