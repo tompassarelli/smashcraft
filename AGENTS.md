@@ -165,6 +165,10 @@ code. From smashcraft:ts/:
   `bun tools/animations/sylvanas-clips.ts STOCK_SYLVANAS.mdx PRIVATE_OUTPUT`
   appends bow attacks, casts, recovery, paired grabs and nine damage reactions
   to the classic undead Sylvanas rig, preserving its stock sequences.
+- Cairne animation authoring (from the repository root):
+  `bun tools/animations/cairne-clips.ts STOCK_TAUREN.mdx PRIVATE_OUTPUT`
+  appends the complete totem kit, recovery, paired grabs and nine pain clips
+  to the private classic Tauren Chieftain model, preserving its stock clips.
 - Damage reactions (from the repository root):
   `bun tools/animations/damage-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
   appends all 13 fighters' nine articulated contact reactions, checks their
