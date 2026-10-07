@@ -1,11 +1,9 @@
-// Beastmaster's specials and his bear through the production special, partner,
-// placed-object, contact and resource path, against smashcraft:docs/design/roster.md.
 import { assertEquals, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
-import { AttackStyle, Character, ProjectileKind, SpecialAction } from "../codes";
+import { AttackStyle, Character, SpecialAction } from "../codes";
 import { beginDamageContacts, finishDamageContacts } from "../contacts";
-import { type Fighter, createFighter } from "../fighter";
+import { type Fighter, createFighter, placedObject } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { CompanionMode } from "../heroSpecials";
 import { advanceHeroStatus } from "../heroSpecialRules";
@@ -16,9 +14,10 @@ import { type Controls, type Roster, createRoster } from "../roster";
 import { advanceSpecials, startFighterSpecial } from "../specials";
 import { advanceFighter } from "../step";
 import { controls } from "../testWorld";
+import { clearSpecialOnStock } from "../transitions";
 import { copyFighterState } from "../../replay/fighterState";
 import { firstFighterDifference } from "../../replay/difference";
-import { BEAR } from "./beastmasterSpecials";
+import { BEAR, HAWK, QUILL, STAMPEDE, WILD_AXES } from "./beastmasterSpecials";
 
 const H = HERO_REFERENCE_HEIGHT;
 const neutral = controls({ specialPressed: true });
@@ -26,13 +25,6 @@ const side = controls({ specialPressed: true, specialX: 1 });
 const up = controls({ specialPressed: true, specialZ: 1 });
 const down = controls({ specialPressed: true, specialZ: -1 });
 
-function beastmaster(x: number, facing: number): Fighter {
-  const f = createFighter(Character.beastmaster, x, facing);
-  f.mana.points = 100;
-  return f;
-}
-
-/** One match-ordered frame: motion, special starts, contacts, specials and partners, projectiles, placed objects, resources. */
 function frame(world: Roster, first: Readonly<Controls> = controls(), second: Readonly<Controls> = controls()): void {
   const inputs = [first, second];
   for (let slot = 0; slot < 2; slot++) advanceFighter(world, slot, 0, inputs[slot] ?? controls(), slot === 0 ? -240.0 : 240.0);
@@ -49,184 +41,220 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), second: Re
   }
 }
 
-function pair(gap: number, facing = 1): { world: Roster; owner: Fighter; target: Fighter } {
-  const owner = beastmaster(f32(-gap * 0.5 * facing), facing);
+function pair(gap = 1000.0, facing = 1): { world: Roster; owner: Fighter; target: Fighter } {
+  const owner = createFighter(Character.beastmaster, f32(-gap * 0.5 * facing), facing);
   const target = createFighter(Character.archer, f32(gap * 0.5 * facing), -facing);
   const world = createRoster(3, [owner, target]);
   for (let i = 0; i < 3; i++) frame(world);
+  owner.mana.points = 100;
   return { world, owner, target };
 }
-
 function run(world: Roster, frames: number, press?: Readonly<Controls>): void {
   for (let f = 1; f <= frames; f++) frame(world, f === 1 && press !== undefined ? press : controls());
 }
-
-/** Summons the bear (56 frames) and lets it settle behind him. */
-function withBear(gap: number, facing = 1) {
+function withBear(gap = 1000.0, facing = 1) {
   const scene = pair(gap, facing);
-  run(scene.world, 56, side);
-  run(scene.world, 30);
+  run(scene.world, 74, controls({ specialPressed: true, specialX: facing }));
+  return scene;
+}
+function withPack() {
+  const scene = withBear();
+  run(scene.world, 40, down);
+  run(scene.world, 30, up);
   return scene;
 }
 
-test("Summon Bear costs 25, sets the bear down on f30 and ends on f56; the command and recall then replace side and down", () => {
-  const { world, owner } = pair(1000.0);
-  run(world, 29, side);
+test("Beastmaster summons Bear on frame 24, Quilbeast on 18 and Hawk on 12 without replacing another animal", () => {
+  const { world, owner } = pair();
+  run(world, 23, side);
+  assertEquals(owner.mana.points, 80);
   assertEquals(owner.placed.life, 0);
   frame(world);
-  assertGreaterThan(owner.placed.life, 0);
-  // Set down 0.6H ahead, it takes its first step toward his heel on the same frame.
-  assertNear(f32(owner.placed.x - owner.motion.x), f32(f32(H * f32(0.6)) - BEAR.followSpeed), 1.0);
   assertEquals(owner.placed.durability, 30.0);
-  for (let f = 31; f <= 56; f++) frame(world);
+  run(world, 20);
   assertEquals(owner.special.action, SpecialAction.none);
-  // The trickle refills a point or two over the cast; the summon spent 25.
-  assertLessThan(owner.mana.points, 80);
-  const before = owner.mana.points;
-  frame(world, side);
-  assertEquals(owner.special.action, SpecialAction.heroSide);
-  assertTrue(owner.mana.points <= before - 8 + 1);
-  run(world, 30);
-  owner.placed.x = f32(owner.motion.x + 300.0);
-  frame(world, down);
-  assertEquals(owner.special.action, SpecialAction.heroDown);
+  run(world, 17, down);
+  assertEquals(placedObject(owner, 1).life, 0);
   frame(world);
-  assertEquals(owner.placed.mode, CompanionMode.returning);
+  assertEquals(placedObject(owner, 1).durability, 18.0);
+  run(world, 14);
+  run(world, 11, up);
+  assertEquals(placedObject(owner, 2).life, 0);
+  frame(world);
+  assertEquals(placedObject(owner, 2).durability, 12.0);
+  assertGreaterThan(owner.placed.life, 0);
+  assertGreaterThan(placedObject(owner, 1).life, 0);
+  assertGreaterThan(placedObject(owner, 2).z, owner.motion.z);
 });
 
-test("the bear walks after him 0.8H behind at 0.035H a frame and never leaves its deck", () => {
-  const { world, owner } = withBear(600.0);
+test("Beastmaster's Bear follows, Quilbeast holds its firing position, and Hawk follows above independently", () => {
+  const { world, owner } = withPack();
+  const bearX = owner.placed.x;
+  const quilX = placedObject(owner, 1).x;
+  const hawkX = placedObject(owner, 2).x;
   owner.motion.x = f32(owner.motion.x + 200.0);
-  const start = owner.placed.x;
   frame(world);
-  assertNear(f32(owner.placed.x - start), BEAR.followSpeed, f32(0.01));
-  run(world, 120);
-  assertNear(f32(owner.motion.x - owner.placed.x) * owner.facing, BEAR.followBehind, 1.0);
-  // Ordered far past the deck's end, it stops at the edge instead of falling.
-  owner.motion.x = -5000.0;
-  run(world, 400);
-  assertGreaterThan(owner.placed.x, -2000.0);
+  assertNear(f32(owner.placed.x - bearX), BEAR.followSpeed, f32(0.01));
+  assertEquals(placedObject(owner, 1).x, quilX);
+  assertNear(f32(placedObject(owner, 2).x - hawkX), HAWK.followSpeed, f32(0.01));
+  run(world, 100);
+  assertNear(f32(owner.motion.x - owner.placed.x), BEAR.followBehind, 1.0);
+  assertNear(f32(placedObject(owner, 2).z - owner.motion.z), HAWK.followHeight ?? 0.0, 1.0);
 });
 
-test("Bear Command lunges the bear 1.2H for a 16 bite once, and a second command refuses while it lunges", () => {
+test("Beastmaster Stampede commands Bear and sends two thunder lizards; Bear bites once in both facings", () => {
   for (const facing of [1, -1]) {
     const { world, owner, target } = withBear(f32(H * f32(1.4)), facing);
-    owner.facing = facing;
-    // The player has walked the bear in front: it stands 0.9H short of the Archer.
     owner.placed.x = f32(target.motion.x - f32(facing * f32(H * f32(0.9))));
-    const start = owner.placed.x;
     frame(world, controls({ specialPressed: true, specialX: facing }));
-    const spent = owner.mana.points;
     run(world, 3);
     assertEquals(owner.placed.mode, CompanionMode.lunge);
-    frame(world, controls({ specialPressed: true, specialX: facing }));
-    assertEquals(owner.mana.points >= spent, true);
-    for (let f = 0; f < 40 && target.status.damage === 0.0; f++) frame(world);
-    assertEquals(target.status.damage, 16.0);
-    assertGreaterThan(f32(target.launch.knockbackX * facing), 0.0);
-    run(world, 60);
-    assertEquals(target.status.damage, 16.0);
+    let lizards = 0;
+    let serials = 0;
+    for (let f = 0; f < 55; f++) {
+      frame(world);
+      for (const p of owner.projectiles) if (p.life > 0 && (p.spec === STAMPEDE[0] || p.spec === STAMPEDE[1])) serials |= p.spec === STAMPEDE[0] ? 1 : 2;
+      if ((owner.placed.bitten & 2) !== 0) lizards++;
+    }
+    assertEquals(serials, 3);
+    assertGreaterThan(lizards, 0);
+    assertGreaterThan(target.status.damage, 11.0);
     assertEquals(owner.placed.mode, CompanionMode.follow);
-    assertTrue(Math.abs(f32(owner.placed.x - start)) > 0.0);
   }
 });
 
-test("a hit on the lunging bear stuns it 18 frames and cancels the bite", () => {
-  const { world, owner, target } = withBear(f32(H * f32(1.4)));
-  frame(world, side);
-  run(world, 3);
-  assertEquals(owner.placed.mode, CompanionMode.lunge);
-  // The Archer jabs the bear where it stands.
-  target.motion.x = f32(owner.placed.x + 45.0);
+test("striking Beastmaster's lunging animal stuns it and each animal can be destroyed separately", () => {
+  const { world, owner, target } = withPack();
+  const quil = placedObject(owner, 1);
+  owner.placed.x = -600.0;
+  quil.x = 0.0;
+  quil.durability = 1.0;
+  target.motion.x = 45.0;
   target.facing = -1;
   beginFighterAttack(world, 1, AttackStyle.jab, false);
+  run(world, 12);
+  assertEquals(quil.life, 0);
+  assertGreaterThan(owner.placed.life, 0);
+  assertGreaterThan(placedObject(owner, 2).life, 0);
+  owner.placed.x = f32(target.motion.x - 45.0);
+  owner.placed.mode = CompanionMode.lunge;
+  owner.placed.modeFrame = 0;
+  target.attack.cooldown = 0;
+  beginFighterAttack(world, 1, AttackStyle.jab, false);
   let stunned = false;
-  for (let f = 0; f < 10 && !stunned; f++) {
-    frame(world);
-    stunned = owner.placed.mode === CompanionMode.stunned;
-  }
+  for (let f = 0; f < 12; f++) { frame(world); if (owner.placed.mode === CompanionMode.stunned) stunned = true; }
   assertTrue(stunned);
-  assertLessThan(owner.placed.durability, 30.0);
-  run(world, 30);
-  assertEquals(owner.placed.mode, CompanionMode.follow);
 });
 
-test("the bear never bites while he is in hitstun", () => {
-  const { world, owner, target } = withBear(f32(H * f32(1.4)));
-  frame(world, side);
-  run(world, 4);
-  owner.launch.hitstun = 40;
+test("Beastmaster Quilbeast fires from its own location, then a command gives three separated quills", () => {
+  const { world, owner } = pair();
+  run(world, 40, down);
+  const quil = placedObject(owner, 1);
+  assertTrue(owner.projectiles.some(p => p.life > 0 && p.spec === QUILL));
   run(world, 30);
-  assertEquals(target.status.damage, 0.0);
-  assertEquals(owner.placed.mode, CompanionMode.follow);
-});
-
-test("Bear Recall walks it back at 0.06H a frame; past 6H for 120 frames it leaves", () => {
-  const { world, owner } = withBear(1000.0);
-  owner.placed.x = f32(owner.motion.x + 500.0);
+  owner.motion.x = f32(owner.motion.x - 80.0);
+  const before = owner.mana.points;
   frame(world, down);
-  frame(world);
-  const start = owner.placed.x;
-  frame(world);
-  assertNear(f32(start - owner.placed.x), BEAR.returnSpeed, f32(0.01));
-  run(world, 120);
-  assertEquals(owner.placed.mode, CompanionMode.follow);
-  assertGreaterThan(owner.placed.life, 0);
-  owner.placed.surface = undefined;
-  owner.placed.x = f32(owner.motion.x + f32(H * 11.0));
-  run(world, 119);
-  assertGreaterThan(owner.placed.life, 0);
-  // Following at 0.035H a frame from 11H out, it is still past 6H on the 120th frame.
-  frame(world);
-  assertEquals(owner.placed.life, 0);
+  assertEquals(owner.mana.points, before - 6);
+  let shots = 0;
+  for (let f = 0; f < 48; f++) {
+    frame(world);
+    for (const p of owner.projectiles) if (p.spec === QUILL && p.life === QUILL.life - 1) {
+      assertNear(p.x, f32(f32(quil.x + QUILL.offsetX) + QUILL.velocityX), 1.0);
+      shots++;
+    }
+  }
+  assertEquals(shots, 3);
 });
 
-test("without a bear: Throwing Axe is free, Quillbeast Dart costs 3, and Hawk Lift's free form peaks near 1.4H", () => {
-  const axe = pair(f32(H * 2.0));
-  frame(axe.world, neutral);
-  assertEquals(axe.owner.mana.points, 100);
-  for (let f = 0; f < 40 && axe.target.status.damage === 0.0; f++) frame(axe.world);
-  assertEquals(axe.target.status.damage, 9.0);
-  const dart = pair(f32(H * 1.5));
-  frame(dart.world, down);
-  assertEquals(dart.owner.special.action, SpecialAction.heroDown);
-  assertEquals(dart.owner.mana.points, 97);
-  for (let f = 0; f < 40 && dart.target.status.damage === 0.0; f++) frame(dart.world);
-  assertEquals(dart.target.status.damage, 4.0);
-  assertTrue(dart.owner.projectiles.every(p => p.life <= 0 || p.kind === ProjectileKind.hero));
+test("Beastmaster Hawk Dive leaves its perch and launches a target upward in both facings", () => {
+  for (const facing of [1, -1]) {
+    const { world, owner, target } = pair(1000.0, facing);
+    run(world, 30, up);
+    const hawk = placedObject(owner, 2);
+    target.motion.x = f32(hawk.x + f32(facing * H));
+    const high = hawk.z;
+    frame(world, controls({ specialPressed: true, specialZ: 1, specialX: 0, direction: facing }));
+    run(world, 12);
+    assertLessThan(hawk.z, high);
+    let rise = 0.0;
+    for (let f = 0; f < 30; f++) { frame(world); rise = Math.max(rise, target.launch.knockbackZ); }
+    assertEquals(target.status.damage, 6.0);
+    assertGreaterThan(rise, 0.0);
+  }
+});
+
+test("Beastmaster Wild Axes are free, throw twice and return toward the moving owner", () => {
+  const { world, owner, target } = pair();
+  frame(world, neutral);
+  assertEquals(owner.mana.points, 100);
+  run(world, 19);
+  assertEquals(owner.projectiles.filter(p => p.life > 0 && (p.spec === WILD_AXES[0] || p.spec === WILD_AXES[1])).length, 2);
+  run(world, 20);
+  owner.motion.x = -550.0;
+  target.motion.x = -200.0;
+  let returning = false;
+  let pulled = false;
+  for (let f = 0; f < 30; f++) {
+    frame(world);
+    if (owner.projectiles.some(p => p.life > 0 && p.velocityX < 0.0)) returning = true;
+    if (target.launch.knockbackX < 0.0) pulled = true;
+  }
+  assertTrue(returning);
+  assertGreaterThan(target.status.damage, 0.0);
+  assertTrue(pulled);
+});
+
+test("Beastmaster airborne Hawk Lift retains full and free recovery and leaves Hawk alive", () => {
   for (const [mana, rise] of [[100, f32(2.0)], [10, f32(1.4)]] as const) {
-    const { world, owner } = pair(1000.0);
+    const { world, owner } = pair();
+    owner.motion.grounded = false;
+    owner.motion.surface = undefined;
+    owner.motion.z = 100.0;
+    owner.motion.vz = 0.0;
     owner.mana.points = mana;
-    const ground = owner.motion.z;
-    let peak = ground;
+    let liftStart = owner.motion.z;
+    let peak = liftStart;
     frame(world, up);
     assertEquals(owner.mana.points, mana === 100 ? 85 : 10);
-    for (let f = 2; f <= 60; f++) {
-      frame(world);
-      peak = Math.max(peak, owner.motion.z);
-    }
-    assertNear(f32(peak - ground), f32(H * rise), f32(H * f32(0.1)));
+    for (let f = 2; f <= 33; f++) { frame(world); if (f === 10) liftStart = owner.motion.z; peak = Math.max(peak, owner.motion.z); }
+    assertTrue(owner.special.fall);
+    assertEquals(owner.jump.remaining, 0);
+    assertGreaterThan(placedObject(owner, 2).life, 0);
+    assertNear(f32(peak - liftStart), f32(H * rise), f32(H * f32(0.2)));
+    frame(world, up);
+    assertEquals(owner.special.action, SpecialAction.none);
   }
 });
 
-test("rollback restores the bear mid-lunge", () => {
-  const { world, owner, target } = withBear(f32(H * f32(1.4)));
-  owner.placed.x = f32(target.motion.x - f32(H * f32(0.9)));
-  frame(world, side);
-  run(world, 10);
+test("Beastmaster's hitstun cancels every companion command and a stock clears the whole pack", () => {
+  const { world, owner, target } = withPack();
+  for (let animal = 0; animal < 3; animal++) { placedObject(owner, animal).mode = CompanionMode.lunge; placedObject(owner, animal).modeFrame = 0; }
+  owner.launch.hitstun = 40;
+  const damage = target.status.damage;
+  run(world, 30);
+  for (let animal = 0; animal < 3; animal++) assertEquals(placedObject(owner, animal).mode, CompanionMode.follow);
+  assertEquals(target.status.damage, damage);
+  clearSpecialOnStock(owner);
+  for (let animal = 0; animal < 3; animal++) assertEquals(placedObject(owner, animal).life, 0);
+});
+
+test("rollback restores Beastmaster's three separate companion positions and commands", () => {
+  const { world, owner, target } = withPack();
+  frame(world, down);
+  run(world, 8);
   const savedOwner = createFighter(Character.beastmaster, 0.0, 1);
   const savedTarget = createFighter(Character.archer, 0.0, 1);
   copyFighterState(savedOwner, owner, 3);
   copyFighterState(savedTarget, target, 3);
-  run(world, 20);
+  run(world, 55);
   const expectedOwner = createFighter(Character.beastmaster, 0.0, 1);
   const expectedTarget = createFighter(Character.archer, 0.0, 1);
   copyFighterState(expectedOwner, owner, 3);
   copyFighterState(expectedTarget, target, 3);
-  assertEquals(target.status.damage, 16.0);
   copyFighterState(owner, savedOwner, 3);
   copyFighterState(target, savedTarget, 3);
-  run(world, 20);
+  run(world, 55);
   assertEquals(firstFighterDifference(expectedOwner, owner, 3, 3), undefined);
   assertEquals(firstFighterDifference(expectedTarget, target, 3, 3), undefined);
 });
