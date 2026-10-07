@@ -13,7 +13,7 @@ import { createBufferedFrameControls, createFrameControls } from "./controls";
 import { captureFrame, createMatchFrameInput, executeMatchFrame } from "./frameInput";
 import { createPacingAndPresentation } from "./pacingAndPresentation";
 import { createMatchState, Phase } from "./rules";
-import { createBotStrategy, learnBotHabit, prepareBotRead, pressBotRead, botStrategyValues } from "./botStrategy";
+import { createBotStrategy, copyBotStrategy, learnBotHabit, prepareBotRead, pressBotRead, botStrategyValues, restoredBotStrategy, savedBotStrategy } from "./botStrategy";
 import type { CpuDecisionPolicy } from "./cpuDecisionPolicy";
 import { cpuProfile } from "./cpuProfiles";
 import { chooseAttack } from "./botMoves";
@@ -57,19 +57,40 @@ function readyRead(choice: number) {
 
 test("delayed habit history is bounded by context, switches opponents and adapts to a changed repeated pattern", () => {
   const game = trained(HabitChoice.shield, { ...EXPERT, historyCapacity: 6 }, 20);
-  assertEquals(game.strategy.history.length, 6);
-  assertTrue(game.strategy.history.every(habit => habit.choice === HabitChoice.shield));
+  assertEquals(savedBotStrategy(game.strategy).history.length, 6);
+  assertTrue(savedBotStrategy(game.strategy).history.every(habit => habit.choice === HabitChoice.shield));
   for (let frame = 1200; frame < 1620; frame++) {
     const action = floorMod(frame, 60) < 8;
     game.target.attack.style = action ? AttackStyle.jab : undefined;
     if (action && floorMod(frame, 60) === 0) game.target.attack.serial++;
     learnBotHabit(game.strategy, game.own, game.target, 1, frame, { ...EXPERT, historyCapacity: 6 });
   }
-  assertEquals(game.strategy.history.length, 6);
-  assertTrue(game.strategy.history.every(habit => habit.choice === HabitChoice.attack));
+  assertEquals(savedBotStrategy(game.strategy).history.length, 6);
+  assertTrue(savedBotStrategy(game.strategy).history.every(habit => habit.choice === HabitChoice.attack));
   learnBotHabit(game.strategy, game.own, game.target, 2, 1621, EXPERT);
   assertEquals(game.strategy.opponent, 2);
-  assertLessThan(game.strategy.history.length, 2);
+  assertLessThan(savedBotStrategy(game.strategy).history.length, 2);
+});
+
+test("bot habit snapshots retain owned scalar storage and exact replay values through learning and restore", () => {
+  const game = trained(HabitChoice.shield);
+  const snapshot = createBotStrategy();
+  const storage = snapshot.history;
+  copyBotStrategy(snapshot, game.strategy);
+  const values = botStrategyValues(snapshot).join(",");
+  const saved = savedBotStrategy(snapshot);
+  const restored = restoredBotStrategy(saved);
+  assertEquals(botStrategyValues(restored).join(","), values);
+  game.target.attack.style = AttackStyle.jab;
+  game.target.attack.serial++;
+  learnBotHabit(game.strategy, game.own, game.target, 1, 501, EXPERT);
+  assertEquals(botStrategyValues(snapshot).join(","), values);
+  copyBotStrategy(snapshot, game.strategy);
+  assertTrue(snapshot.history === storage);
+  assertEquals(botStrategyValues(snapshot).join(","), botStrategyValues(game.strategy).join(","));
+  copyBotStrategy(snapshot, restored);
+  assertTrue(snapshot.history === storage);
+  assertEquals(botStrategyValues(snapshot).join(","), values);
 });
 
 test("a learned shield read positions and buffers a grab before the next shield is observable", () => {

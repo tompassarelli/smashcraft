@@ -30,7 +30,7 @@ import { botStrategyValues } from "../match/botStrategy";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
 import {
   type FrameRows, type FrameScratch, KEYED_BY_ACTION, type MomentInput, type MomentRecorder, ROW_FRAMES, SNAPSHOT_FRAMES,
-  readRun, runCallbackFrame, runToken, sameFrameRows, runNetworkFrame, savedState, section, wholeNumber,
+  readRun, runCallbackFrame, runToken, sameFrameRows, runNetworkFrame, savedRuntime, savedState, section, wholeNumber,
 } from "./moment";
 import { parseReplayHeader } from "./replayFormat";
 import { type ReplayState, captureReplaySnapshot, copyReplayState, createReplaySnapshot } from "./snapshot";
@@ -257,7 +257,7 @@ function savedStatePieces(state: Readonly<ReplayState>): StatePiece[] {
   pieces.push("}");
   pieces.push({ record: { commands: state.controls.commands }, name: "commands" });
   pieces.push("runtime{");
-  statePieces(pieces, state.runtime, 1);
+  statePieces(pieces, savedRuntime(state.runtime), 1);
   pieces.push("}");
   return pieces;
 }

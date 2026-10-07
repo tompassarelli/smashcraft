@@ -17,6 +17,7 @@ import type { CpuDecisionPolicy } from "./cpuDecisionPolicy";
 import { HabitChoice, habitContext } from "./botHabits";
 
 const HISTORY_LIMIT = 128;
+export const HABIT_FIELDS = 4;
 const READ_CHOICES = [HabitChoice.attack, HabitChoice.shield, HabitChoice.jump, HabitChoice.retreat, HabitChoice.approach, HabitChoice.landing, HabitChoice.ledge] as const;
 // Preallocated scratch: confirmed and rollback decisions reuse it without retaining it.
 const readCounts = [0, 0, 0, 0, 0, 0, 0, 0];
@@ -24,10 +25,10 @@ const readIntervals = [0, 0, 0, 0, 0, 0, 0, 0];
 const readTimed = [0, 0, 0, 0, 0, 0, 0, 0];
 const readLatest = [0, 0, 0, 0, 0, 0, 0, 0];
 
-export interface BotHabit {
+interface SavedBotHabit {
   readonly frame: number;
   readonly context: number;
-  readonly choice: HabitChoice;
+  readonly choice: number;
   readonly interval: number;
 }
 
@@ -45,7 +46,10 @@ export interface BotRead {
 }
 
 export interface BotStrategy {
-  history: readonly BotHabit[];
+  /** Owned scalar storage: frame, context, choice and interval for each habit. */
+  readonly history: number[];
+  /** Exact contents let snapshots reuse unchanged storage without copying it. */
+  historyKey: string;
   observedFrame: number;
   opponent: number;
   lastChoice: HabitChoice;
@@ -57,14 +61,36 @@ export interface BotStrategy {
 }
 
 export function createBotStrategy(): BotStrategy {
-  return { history: [], observedFrame: -1, opponent: -1, lastChoice: HabitChoice.none, lastContext: 0, lastSerial: -1, events: 0, read: undefined, lastOption: -1 };
+  return { history: [], historyKey: "", observedFrame: -1, opponent: -1, lastChoice: HabitChoice.none, lastContext: 0, lastSerial: -1, events: 0, read: undefined, lastOption: -1 };
+}
+
+export type SavedBotStrategy = Omit<BotStrategy, "history" | "historyKey"> & { readonly history: readonly SavedBotHabit[] };
+
+/** Replay text keeps the existing named habit records; live snapshots keep scalars. */
+export function savedBotStrategy(state: Readonly<BotStrategy>): SavedBotStrategy {
+  const { history: numbers, historyKey: _key, ...fields } = state;
+  const history: SavedBotHabit[] = [];
+  for (let index = 0; index < numbers.length; index += HABIT_FIELDS) {
+    history.push({ frame: at(numbers, index), context: at(numbers, index + 1), choice: at(numbers, index + 2), interval: at(numbers, index + 3) });
+  }
+  return { history, ...fields };
+}
+
+export function restoredBotStrategy(saved: Readonly<SavedBotStrategy>): BotStrategy {
+  const history: number[] = [];
+  for (const habit of saved.history) history.push(habit.frame, habit.context, habit.choice, habit.interval);
+  return { ...saved, history, historyKey: history.join(",") };
 }
 
 type BotReadStorage = { -readonly [Field in keyof BotRead]: BotRead[Field] };
 const copiedReads = new WeakMap<Readonly<BotStrategy>, BotReadStorage>();
 
 export function copyBotStrategy(target: BotStrategy, source: Readonly<BotStrategy>): void {
-  target.history = source.history;
+  if (target.historyKey !== source.historyKey) {
+    target.history.length = source.history.length;
+    for (let index = 0; index < source.history.length; index++) target.history[index] = at(source.history, index);
+    target.historyKey = source.historyKey;
+  }
   target.observedFrame = source.observedFrame;
   target.opponent = source.opponent;
   target.lastChoice = source.lastChoice;
@@ -103,8 +129,8 @@ export function botStrategyValues(state: Readonly<BotStrategy>): number[] {
   const read = state.read;
   const values = [state.observedFrame, state.opponent, state.lastChoice, state.lastContext, state.lastSerial, state.events, state.lastOption,
     read === undefined ? 0 : 1, read?.choice ?? 0, read?.context ?? 0, read?.expectedFrame ?? 0, read?.expires ?? 0, read?.confidence ?? 0, read?.acted ? 1 : 0,
-    read?.actionFrame ?? -1, read?.actionSerial ?? -1, read?.actionStyle ?? -1, read?.actionFacing ?? 0, state.history.length];
-  for (const habit of state.history) values.push(habit.frame, habit.context, habit.choice, habit.interval);
+    read?.actionFrame ?? -1, read?.actionSerial ?? -1, read?.actionStyle ?? -1, read?.actionFacing ?? 0, floorDiv(state.history.length, HABIT_FIELDS)];
+  for (const value of state.history) values.push(value);
   return values;
 }
 
@@ -134,20 +160,23 @@ export function learnBotHabit(state: BotStrategy, ownObserved: Readonly<Fighter>
     if (floorDiv(state.events, policy.historyStride) !== floorDiv(state.events - 1, policy.historyStride)) {
       const fromContext = state.observedFrame < 0 ? context : state.lastContext;
       let previous = -1;
-      for (let index = state.history.length - 1; index >= 0; index--) {
-        const habit = at(state.history, index);
-        if (habit.context === fromContext && habit.choice === choice) { previous = habit.frame; break; }
+      for (let index = state.history.length - HABIT_FIELDS; index >= 0; index -= HABIT_FIELDS) {
+        if (at(state.history, index + 1) === fromContext && at(state.history, index + 2) === choice) { previous = at(state.history, index); break; }
       }
       let kept = 0;
-      const history: BotHabit[] = [];
-      for (let index = state.history.length - 1; index >= 0 && history.length < HISTORY_LIMIT - 1; index--) {
-        const habit = at(state.history, index);
-        if (habit.context === fromContext && ++kept >= policy.historyCapacity) continue;
-        history.push(habit);
+      const retained: number[] = [];
+      for (let index = state.history.length - HABIT_FIELDS; index >= 0 && retained.length < HISTORY_LIMIT - 1; index -= HABIT_FIELDS) {
+        if (at(state.history, index + 1) === fromContext && ++kept >= policy.historyCapacity) continue;
+        retained.push(index);
       }
-      history.reverse();
-      history.push({ frame: observedFrame, context: fromContext, choice, interval: previous < 0 ? 0 : observedFrame - previous });
-      state.history = history;
+      let into = 0;
+      for (let index = retained.length - 1; index >= 0; index--) {
+        const from = at(retained, index);
+        for (let field = 0; field < HABIT_FIELDS; field++) state.history[into++] = at(state.history, from + field);
+      }
+      state.history.length = into;
+      state.history.push(observedFrame, fromContext, choice, previous < 0 ? 0 : observedFrame - previous);
+      state.historyKey = state.history.join(",");
     }
   }
   state.observedFrame = observedFrame;
@@ -169,14 +198,16 @@ export function prepareBotRead(state: BotStrategy, own: Readonly<Fighter>, targe
     latest[index] = 0;
   }
   let total = 0;
-  for (const habit of state.history) {
-    if (habit.context !== context) continue;
-    counts[habit.choice] = at(counts, habit.choice) + 1;
-    if (habit.interval > 0) {
-      intervals[habit.choice] = at(intervals, habit.choice) + habit.interval;
-      timed[habit.choice] = at(timed, habit.choice) + 1;
+  for (let index = 0; index < state.history.length; index += HABIT_FIELDS) {
+    if (at(state.history, index + 1) !== context) continue;
+    const choice = at(state.history, index + 2);
+    const interval = at(state.history, index + 3);
+    counts[choice] = at(counts, choice) + 1;
+    if (interval > 0) {
+      intervals[choice] = at(intervals, choice) + interval;
+      timed[choice] = at(timed, choice) + 1;
     }
-    latest[habit.choice] = habit.frame;
+    latest[choice] = at(state.history, index);
     total++;
   }
   let choice: HabitChoice = HabitChoice.none;
