@@ -51,7 +51,7 @@ test("Breath of Fire hits once facing either way and a shield stops body damage"
   for (const facing of [-1, 1]) for (const shielding of [false, true]) {
     const { world, owner, target } = pair(110.0, facing);
     for (let tick = 1; tick <= 65; tick++) frame(world, tick === 1 ? neutral : controls(), controls({ shield: shielding, shieldStrength: 1.0 }));
-    assertEquals(target.status.damage, shielding ? 0.0 : 10.0);
+    assertEquals(target.status.damage, shielding ? 0.0 : 12.5);
     assertEquals(owner.special.action, SpecialAction.none);
   }
 });
@@ -60,7 +60,7 @@ test("Drunken Haze reaches a distant body, slows its movement and respects shiel
   for (const shielding of [false, true]) {
     const { world, target } = pair(240.0);
     for (let tick = 1; tick <= 42; tick++) frame(world, tick === 1 ? side : controls(), controls({ shield: shielding, shieldStrength: 1.0 }));
-    assertEquals(target.status.damage, shielding ? 0.0 : 3.0);
+    assertEquals(target.status.damage, shielding ? 0.0 : 3.75);
     assertEquals(target.status.condition, shielding ? HeroStatusKind.none : HeroStatusKind.chill);
     assertEquals(chillScaled(target, 10.0), shielding ? 10.0 : 6.0);
   }
@@ -89,7 +89,7 @@ test("Earth braces and fresh attack or special chooses the Fire or Storm branch"
     frame(world, controls({ attackPressed: attack, specialPressed: !attack }));
     assertEquals(owner.special.form, FOLLOW_UP_FORM * (attack ? 1 : 2));
     for (let tick = 0; tick < 55; tick++) frame(world);
-    assertEquals(target.status.damage, attack ? 11.0 : 7.0);
+    assertEquals(target.status.damage, attack ? 13.75 : 8.75);
     assertEquals(owner.mana.points, 90);
   }
 });
