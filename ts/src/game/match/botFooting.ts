@@ -4,7 +4,8 @@
 import { f32 } from "wisp/src/sim/f32";
 import type { Fighter } from "../sim/fighter";
 import type { Controls } from "../sim/roster";
-import { mainDeckLeft, mainDeckRight, surfaceCount, surfaceLeft, surfaceRight, surfaceZ } from "../sim/stage";
+import { floorFriction, floorTraction, mainDeckLeft, mainDeckRight, surfaceCount, surfaceLeft, surfaceRight, surfaceZAt } from "../sim/stage";
+
 
 /** How far inside the main deck's edges the computer keeps its resting point. */
 const EDGE_MARGIN = 40.0;
@@ -35,7 +36,7 @@ function restingX(x: number, vx: number, deceleration: number): number {
  */
 export function slideStaysOnDeck(f: Readonly<Fighter>, stage: number, matchFrame: number): boolean {
   const { x, vx, surface } = f.motion;
-  const rest = restingX(x, vx, f.tuning.physics.traction);
+  const rest = restingX(x, vx, floorTraction(f.tuning.physics.traction, floorFriction(stage, f.motion)));
   if (surface === undefined || surface === 0) return rest >= safeLeft(stage) && rest <= safeRight(stage);
   return rest >= surfaceLeft(stage, surface, matchFrame) && rest <= surfaceRight(stage, surface, matchFrame);
 }
@@ -120,7 +121,7 @@ export function heightAhead(f: Readonly<Fighter>, frames: number, stage: number,
 export function deckUnder(stage: number, matchFrame: number, x: number, z: number): number | undefined {
   let top: number | undefined;
   for (let index = 0; index < surfaceCount(stage); index++) {
-    const deck = surfaceZ(stage, index, matchFrame);
+    const deck = surfaceZAt(stage, index, matchFrame, x);
     if (deck > z || x < surfaceLeft(stage, index, matchFrame) || x > surfaceRight(stage, index, matchFrame)) continue;
     if (top === undefined || deck > top) top = deck;
   }

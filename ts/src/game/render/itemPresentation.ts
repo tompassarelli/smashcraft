@@ -8,7 +8,7 @@ import { centreItemText, itemName, itemSeconds, nextItemText } from "../presenta
 import { ItemKind } from "../sim/codes";
 import type { MatchCamera } from "../sim/matchCamera";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
-import { mainDeckZ } from "../sim/stage";
+import { mainDeckZAt } from "../sim/stage";
 import { createText, consoleUi } from "../ui/frames";
 import { MENU_FONT } from "../ui/hudLayout";
 import { hideEffect, STOCK_MODELS, type WorldOrigin } from "./effects";
@@ -49,7 +49,7 @@ export class ItemPresentation {
   present(game: Readonly<MatchState>, world: Readonly<Roster>, camera: Readonly<MatchCamera>, aspect: number): void {
     const playing = game.phase === Phase.match;
     const { items, matchFrame } = game;
-    const z = mainDeckZ(game.stageChoice);
+    const z = mainDeckZAt(game.stageChoice, 0.0);
     this.project(this.centre, playing ? centreItemText(items, matchFrame) : "", camera, aspect, 0.0, z + 90.0);
     const kind = playing ? items.kind : ItemKind.none;
     if (kind !== ItemKind.none && (kind !== this.shownKind || game.stageChoice !== this.shownStage)) {

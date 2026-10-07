@@ -27,6 +27,19 @@ export const HELLFIRE_STAGE = 14;
 export const STRATHOLME_STAGE = 6;
 /** Warden's home: two platforms over the ends, overhanging the ledges, after Ultimate's Northern Cave. */
 export const TOMB_OF_SARGERAS_STAGE = 7;
+/** Sky Deck with a Yoshi's Story main deck: a level middle, ends sloping down to the ledges; tests only, never selectable. */
+export const SLOPE_TEST_STAGE = 16;
+
+
+/**
+ * The stage clock with hazards off: the match passes it in place of its frame,
+ * and every moving deck holds its rest pose while the wind and the cannon stay
+ * away. Forecasts that add a few frames to it remain stopped.
+ */
+export const STAGE_AT_REST = -1000000;
+
+/** Whether a stage clock reading is the stopped clock of a match with hazards off. */
+export const stageAtRest = (frame: number): boolean => frame <= STAGE_AT_REST / 2;
 
 const MAIN_DECK_LEFT = -600.0;
 const MAIN_DECK_RIGHT = 600.0;
@@ -79,15 +92,96 @@ interface DeckPose {
  * first began, and repeats. Match frame 0 is `phase` frames into the path.
  */
 type Deck =
-  | { readonly kind: "fixed"; readonly left: number; readonly right: number; readonly z: number; readonly pass: boolean }
-  | { readonly kind: "moving"; readonly halfWidth: number; readonly phase: number; readonly period: number; readonly legs: readonly RunLeg[]; readonly pose: DeckPose };
+  | { readonly kind: "fixed"; readonly left: number; readonly right: number; readonly z: number; readonly pass: boolean; readonly line: GroundLine | undefined }
+  | {
+    readonly kind: "moving"; readonly halfWidth: number; readonly phase: number; readonly period: number; readonly legs: readonly RunLeg[]; readonly pose: DeckPose;
+    /** Where its center holds with hazards off. */
+    readonly restX: number; readonly restZ: number;
+  };
 
-function fixed(left: number, right: number, z: number, pass: boolean): Deck {
-  return { kind: "fixed", left, right, z, pass };
+// Preallocated: every frame asks for each moving deck's center.
+const center = { x: 0.0, z: 0.0 };
+
+/** Places `center` `t` frames into a path's lap. */
+function pathCenter(legs: readonly RunLeg[], t: number): void {
+  for (const leg of legs) {
+    if (t < leg.frames) {
+      center.x = leg.stepX === 0 ? leg.fromX : f32(leg.fromX + f32(leg.stepX * t));
+      center.z = leg.stepZ === 0 ? leg.fromZ : f32(leg.fromZ + f32(leg.stepZ * t));
+      return;
+    }
+    t -= leg.frames;
+  }
 }
 
-/** A pass-through deck `halfWidth` to each side of a center that starts at (x, z) and follows `legs`. */
-function moving(halfWidth: number, x: number, z: number, phase: number, legs: readonly PathLeg[]): Deck {
+
+function fixed(left: number, right: number, z: number, pass: boolean): Deck {
+  return { kind: "fixed", left, right, z, pass, line: undefined };
+}
+
+/**
+ * A sloped deck's walking line, as Melee's floor lines run: points left to
+ * right, straight between them. A deck without one is level at its z.
+ */
+export interface GroundLine {
+  readonly xs: readonly number[];
+  readonly zs: readonly number[];
+  /** Each segment's rise per unit of x. */
+  readonly grades: readonly number[];
+  /** Each segment's horizontal share of travel along it: Melee moves ground speed along the floor line. */
+  readonly cosines: readonly number[];
+  /** The line's highest point. */
+  readonly top: number;
+}
+
+function groundLine(points: readonly { readonly x: number; readonly z: number }[]): GroundLine {
+  const xs: number[] = [];
+  const zs: number[] = [];
+  const grades: number[] = [];
+  const cosines: number[] = [];
+  let top = at(points, 0).z;
+  for (let i = 0; i < points.length; i++) {
+    const point = at(points, i);
+    xs.push(point.x);
+    zs.push(point.z);
+    if (point.z > top) top = point.z;
+    if (i === 0) continue;
+    const previous = at(points, i - 1);
+    const grade = f32(f32(point.z - previous.z) / f32(point.x - previous.x));
+    grades.push(grade);
+    cosines.push(grade === 0 ? 1.0 : f32(1.0 / squareRoot(f32(1.0 + f32(grade * grade)))));
+  }
+  return { xs, zs, grades, cosines, top };
+}
+
+/** The segment of `line` under `x`; the end segments extend past the line's ends. */
+function segmentAt(line: GroundLine, x: number): number {
+  const last = line.grades.length - 1;
+  for (let k = 0; k < last; k++) if (x < at(line.xs, k + 1)) return k;
+  return last;
+}
+
+/** The walking height of `line` at `x`, held at its end heights beyond them. */
+export function groundLineZ(line: GroundLine, x: number): number {
+  const { xs, zs } = line;
+  if (x <= at(xs, 0)) return at(zs, 0);
+  if (x >= at(xs, xs.length - 1)) return at(zs, zs.length - 1);
+  const k = segmentAt(line, x);
+  const grade = at(line.grades, k);
+  return grade === 0 ? at(zs, k) : f32(at(zs, k) + f32(grade * f32(x - at(xs, k))));
+}
+
+/** The horizontal share of ground travel at `x` on `line`. */
+export function groundLineCosine(line: GroundLine, x: number): number {
+  return at(line.cosines, segmentAt(line, x));
+}
+
+/**
+ * A pass-through deck `halfWidth` to each side of a center that starts at
+ * (x, z) and follows `legs`. With hazards off it rests at `rest`, by default
+ * where it is on match frame 0.
+ */
+function moving(halfWidth: number, x: number, z: number, phase: number, legs: readonly PathLeg[], rest?: { readonly x: number; readonly z: number }): Deck {
   const run: RunLeg[] = [];
   let fromX = x;
   let fromZ = z;
@@ -99,10 +193,29 @@ function moving(halfWidth: number, x: number, z: number, phase: number, legs: re
     period += leg.frames;
   }
   const pose: DeckPose = { frame: undefined, left: 0.0, right: 0.0, z: 0.0, shiftX: 0.0, shiftZ: 0.0 };
-  return { kind: "moving", halfWidth, phase, period, legs: run, pose };
+  if (rest !== undefined) return { kind: "moving", halfWidth, phase, period, legs: run, pose, restX: rest.x, restZ: rest.z };
+  pathCenter(run, floorMod(phase, period));
+  return { kind: "moving", halfWidth, phase, period, legs: run, pose, restX: center.x, restZ: center.z };
 }
 
 const MAIN_DECK = fixed(MAIN_DECK_LEFT, MAIN_DECK_RIGHT, MAIN_DECK_Z, false);
+/**
+ * Yoshi's Story's main deck (GrSt): level over the middle 0.7 of its width,
+ * then each end slopes 3.5 Melee units down to its ledge. The ledges keep the
+ * main deck's height, so its corners, walls and underside are every stage's;
+ * the middle stands 3.5 higher. Its z is the ledges' height.
+ */
+const SLOPE_LEVEL_HALF_WIDTH = 420.0;
+const SLOPE_RISE = melee(3.5);
+const SLOPED_MAIN_DECK: Deck = {
+  kind: "fixed", left: MAIN_DECK_LEFT, right: MAIN_DECK_RIGHT, z: MAIN_DECK_Z, pass: false,
+  line: groundLine([
+    { x: MAIN_DECK_LEFT, z: MAIN_DECK_Z },
+    { x: -SLOPE_LEVEL_HALF_WIDTH, z: f32(MAIN_DECK_Z + SLOPE_RISE) },
+    { x: SLOPE_LEVEL_HALF_WIDTH, z: f32(MAIN_DECK_Z + SLOPE_RISE) },
+    { x: MAIN_DECK_RIGHT, z: MAIN_DECK_Z },
+  ]),
+};
 const RAISED_DECKS = [MAIN_DECK, fixed(-420.0, -110.0, 170.0, true), fixed(110.0, 420.0, 170.0, true)];
 const FROZEN_THRONE_DECKS = [MAIN_DECK,
   fixed(-505.0, -175.0, melee(27.200000762939453), true),
@@ -125,7 +238,7 @@ const GRYPHON_DECKS = [MAIN_DECK,
  */
 const BLACKROCK_DECKS = [MAIN_DECK, fixed(-180.0, 180.0, melee(25.0), true)];
 const HELLFIRE_DECKS = [MAIN_DECK, fixed(-450.0, -270.0, melee(25.0), true), fixed(270.0, 450.0, melee(25.0), true)];
-const STRATHOLME_DECKS = [MAIN_DECK,
+const STRATHOLME_DECKS = [SLOPED_MAIN_DECK,
   fixed(-510.0, -360.0, melee(18.0), true),
   fixed(360.0, 510.0, melee(18.0), true),
   fixed(-120.0, 120.0, melee(46.0), true),
@@ -180,7 +293,7 @@ const CARRIED_DECK = moving(110.0, -420.0, 120.0, 0, [
   { frames: 280, x: -420.0, z: 300.0 },
   { frames: 60, x: -420.0, z: 300.0 },
   { frames: 60, x: -420.0, z: 120.0 },
-]);
+], { x: 0.0, z: 120.0 });
 const STAGE_DECKS: readonly (readonly Deck[])[] = [
   [MAIN_DECK],
   RAISED_DECKS,
@@ -198,10 +311,30 @@ function stageDecks(stage: number): readonly Deck[] {
   if (stage === TOMB_OF_SARGERAS_STAGE) return TOMB_OF_SARGERAS_DECKS;
   if (stage === CARRIED_TEST_STAGE) return CARRIED_DECKS;
   if (stage === TIMED_TEST_STAGE) return TIMED_DECKS;
+  if (stage === SLOPE_TEST_STAGE) return SLOPED_DECKS;
   return stage >= 0 && stage < STAGE_DECKS.length ? at(STAGE_DECKS, stage) : NO_DECKS;
 }
 const CARRIED_DECKS = [MAIN_DECK, CARRIED_DECK, at(GRYPHON_DECKS, 1), at(GRYPHON_DECKS, 2), at(GRYPHON_DECKS, 3)];
 const TIMED_DECKS = [MAIN_DECK, LIFT_DECK];
+const SLOPED_DECKS = [SLOPED_MAIN_DECK];
+
+/**
+ * Shallow water's floor friction: every traction a fighter slides against on
+ * it is scaled by this (smashcraft:docs/physics.md, "Slippery floors").
+ */
+export const WATER_FRICTION = 0.5;
+/** Main decks whose floor is not ordinary ground, with their friction. */
+const MAIN_DECK_FRICTION: Readonly<Record<number, number | undefined>> = { [TOMB_OF_SARGERAS_STAGE]: WATER_FRICTION };
+
+/** The friction of the floor a fighter stands on: 1 for ordinary ground and in the air. */
+export function floorFriction(stage: number, motion: { readonly grounded: boolean; readonly surface: number | undefined }): number {
+  return motion.grounded && motion.surface === 0 ? MAIN_DECK_FRICTION[stage] ?? 1.0 : 1.0;
+}
+
+/** A traction slid against on a floor of `friction`; ordinary ground keeps it exactly. */
+export function floorTraction(traction: number, friction: number): number {
+  return friction === 1.0 ? traction : f32(traction * friction);
+}
 
 // Each stage's tables, found on first ask: every fighter's motion, the
 // confirmed match, prediction and replays ask many times a frame. A pure
@@ -221,19 +354,13 @@ export function surfaceCount(stage: number): number {
   return decks(stage).length;
 }
 
-// Preallocated: every frame asks for each moving deck's center.
-const center = { x: 0.0, z: 0.0 };
-
 function placeCenter(deck: Extract<Deck, { kind: "moving" }>, frame: number): void {
-  let t = floorMod(frame + deck.phase, deck.period);
-  for (const leg of deck.legs) {
-    if (t < leg.frames) {
-      center.x = leg.stepX === 0 ? leg.fromX : f32(leg.fromX + f32(leg.stepX * t));
-      center.z = leg.stepZ === 0 ? leg.fromZ : f32(leg.fromZ + f32(leg.stepZ * t));
-      return;
-    }
-    t -= leg.frames;
+  if (stageAtRest(frame)) {
+    center.x = deck.restX;
+    center.z = deck.restZ;
+    return;
   }
+  pathCenter(deck.legs, floorMod(frame + deck.phase, deck.period));
 }
 
 /**
@@ -255,6 +382,35 @@ function poseAt(deck: Extract<Deck, { kind: "moving" }>, frame: number): Readonl
   pose.shiftX = f32(center.x - previousX);
   pose.shiftZ = f32(center.z - previousZ);
   return pose;
+}
+
+/** Deck `index`'s walking line when it slopes; a level deck has none. */
+export function surfaceLine(stage: number, index: number): GroundLine | undefined {
+  const found = decks(stage);
+  if (index >= found.length) return undefined;
+  const deck = at(found, index);
+  return deck.kind === "fixed" ? deck.line : undefined;
+}
+
+/** Deck `index`'s walking height at `x` on match frame `frame`: its z, or a sloped deck's line there. */
+export function surfaceZAt(stage: number, index: number, frame: number, x: number): number {
+  const deck = at(decks(stage), index);
+  if (deck.kind !== "fixed") return poseAt(deck, frame).z;
+  return deck.line === undefined ? deck.z : groundLineZ(deck.line, x);
+}
+
+/** Deck `index`'s highest walking height on match frame `frame`. */
+export function surfaceTopZ(stage: number, index: number, frame: number): number {
+  const deck = at(decks(stage), index);
+  if (deck.kind !== "fixed") return poseAt(deck, frame).z;
+  return deck.line === undefined ? deck.z : deck.line.top;
+}
+
+/** The main deck's walking height at `x`; its ledges are at mainDeckZ. */
+export function mainDeckZAt(stage: number, x: number): number {
+  const found = decks(stage);
+  const main = found.length > 0 ? at(found, 0) : undefined;
+  return main !== undefined && main.kind === "fixed" && main.line !== undefined ? groundLineZ(main.line, x) : MAIN_DECK_Z;
 }
 
 /** Deck `index`'s left end on match frame `frame`. */
@@ -283,7 +439,7 @@ export function surfaceMoves(stage: number, index: number): boolean {
 /** Frames left in a moving deck's authored wait; absent while it moves. */
 export function surfaceWaitFrames(stage: number, index: number, frame: number): number | undefined {
   const deck = at(decks(stage), index);
-  if (deck.kind === "fixed") return undefined;
+  if (deck.kind === "fixed" || stageAtRest(frame)) return undefined;
   let t = floorMod(frame + deck.phase, deck.period);
   for (const leg of deck.legs) {
     if (t < leg.frames) return leg.stepX === 0 && leg.stepZ === 0 ? leg.frames - t : undefined;
