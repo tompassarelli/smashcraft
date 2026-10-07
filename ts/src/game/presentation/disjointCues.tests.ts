@@ -108,3 +108,57 @@ test("every hero spell projectile marks its collision centre on every live frame
   }
   assertTrue(checked > 1000);
 });
+
+test("Illidan's original special hit areas follow each active form and facing", () => {
+  const cases = [
+    { action: SpecialAction.demonHunterFelRush, form: 0, grounded: true, first: 6, last: 15, duration: 30, x: 10, z: 60 },
+    { action: SpecialAction.demonHunterFelRush, form: 2, grounded: true, first: 5, last: 8, duration: 30, x: 75, z: 50 },
+    { action: SpecialAction.demonHunterFelRush, form: 3, grounded: false, first: 5, last: 8, duration: 30, x: 75, z: 50 },
+    { action: SpecialAction.demonHunterWingAscent, form: 2, grounded: false, first: 4, last: 7, duration: 20, x: 60, z: 45 },
+    { action: SpecialAction.demonHunterImmolate, form: 0, grounded: true, first: 4, last: 7, duration: 27, x: 70, z: 10 },
+    { action: SpecialAction.demonHunterImmolate, form: 0, grounded: false, first: 4, last: 7, duration: 27, x: 0, z: -70 },
+    { action: SpecialAction.demonHunterImmolate, form: 1, grounded: false, first: 5, last: 34, duration: 34, x: 0, z: -50 },
+    { action: SpecialAction.demonHunterImmolate, form: 2, grounded: true, first: 1, last: 3, duration: 24, x: 0, z: 50 },
+  ] as const;
+  const fighter = createFighter(Character.demonHunter, 100.0, 1);
+  fighter.motion.z = 200.0;
+  for (const entry of cases) for (const facing of [-1, 1]) {
+    fighter.facing = facing;
+    fighter.motion.grounded = entry.grounded;
+    fighter.special.action = entry.action;
+    fighter.special.form = entry.form;
+    for (let frame = 1; frame <= entry.duration; frame++) {
+      fighter.special.frame = frame;
+      const actual = hitAreaPose(fighter, specialAreaRegion(fighter, 0), pose);
+      assertEquals(actual.visible, frame >= entry.first && frame <= entry.last);
+      if (!actual.visible) continue;
+      assertEquals(actual.x, 100.0 + facing * entry.x);
+      assertEquals(actual.z, 200.0 + entry.z);
+    }
+  }
+});
+
+test("the original fighters' missiles mark their live collision centre every frame", () => {
+  const cases = [
+    { character: Character.archer, kind: ProjectileKind.arrow },
+    { character: Character.archer, kind: ProjectileKind.homingArrow },
+    { character: Character.rifleman, kind: ProjectileKind.blaster },
+    { character: Character.rifleman, kind: ProjectileKind.recoil },
+    { character: Character.demonHunter, kind: ProjectileKind.manaBurn },
+  ] as const;
+  for (const entry of cases) {
+    const fighter = createFighter(entry.character, -400.0, 1);
+    const projectile = fighter.projectiles[0];
+    if (projectile === undefined) throw new Error("missing projectile slot");
+    projectile.kind = entry.kind;
+    for (let life = 80; life > 0; life--) {
+      projectile.life = life;
+      projectile.x = 701.0 + life;
+      projectile.z = 227.0;
+      const actual = projectedProjectile(fighter, 0, true);
+      assertTrue(actual.visible);
+      assertEquals(actual.x, projectile.x);
+      assertEquals(actual.z, projectile.z);
+    }
+  }
+});
