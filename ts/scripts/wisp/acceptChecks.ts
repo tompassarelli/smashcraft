@@ -65,8 +65,8 @@ const NO_IMPORT_FAILURES: Rule = { kind: "log", pattern: "^model creation failed
 const EXPECTATIONS: Readonly<Record<number, string>> = {
   12: "a flash at stage centre, chest height (wall tech)",
   13: "a flash at stage centre, chest height (ceiling tech)",
-  14: "blue sparkles circling at stage centre, chest height (ledge catch)",
-  15: "a green-blue glow at stage centre, chest height (ledge recovery)",
+  14: "a yellow shield-contact spark at stage centre, chest height (ledge catch)",
+  15: "a brown dust cloud at stage centre, chest height (ledge recovery)",
   24: "a flash at stage centre, chest height (double jump)",
   2: "a blue lightning flash at stage centre, chest height (electric hit)",
   7: "a blue lightning flash at stage centre, chest height (electric shield hit)",

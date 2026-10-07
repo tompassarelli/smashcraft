@@ -12,14 +12,17 @@ export function impactModel(kind: number): string {
   switch (kind) {
     case 0: case IMPACT_PUMMEL: return "Abilities\\Spells\\Other\\Stampede\\StampedeMissileDeath.mdx";
     case 1: return IMPACT_TECH_MODEL;
-    case 13: case 14: case 16: return "Abilities\\Spells\\Human\\DispelMagic\\DispelMagicTarget.mdx";
+    case 13: case 16: return "Abilities\\Spells\\Human\\DispelMagic\\DispelMagicTarget.mdx";
     case 2: return "Abilities\\Spells\\Orc\\WarStomp\\WarStompCaster.mdx";
     case 3: return IMPACT_DUST_MODEL;
     case 4: return IMPACT_ROLL_MODEL;
     case 5: case IMPACT_ELECTRIC_SHIELD: return "Abilities\\Spells\\Other\\ForkedLightning\\ForkedLightningTarget.mdx";
-    case 6: case 10: case 12: return "Abilities\\Spells\\Human\\Defend\\DefendCaster.mdx";
+    // Ledge catch is Melee's contact spark at the lip, the same spark shield contact uses.
+    case 6: case 10: case 12: case 14: return "Abilities\\Spells\\Human\\Defend\\DefendCaster.mdx";
     case 7: return IMPACT_JUMP_MODEL;
-    case 11: case 15: return "Abilities\\Spells\\NightElf\\Blink\\BlinkTarget.mdx";
+    case 11: return "Abilities\\Spells\\NightElf\\Blink\\BlinkTarget.mdx";
+    // Ledge recovery is Melee's climb dust.
+    case 15: return "Objects\\Spawnmodels\\Undead\\ImpaleTargetDust\\ImpaleTargetDust.mdx";
     case 8: return "Abilities\\Spells\\Human\\Thunderclap\\ThunderClapCaster.mdx";
     case 9: return "Abilities\\Spells\\Human\\Resurrect\\ResurrectTarget.mdx";
     case IMPACT_FIRE_HIT: return "Abilities\\Spells\\Other\\Incinerate\\FireLordDeathExplode.mdx";
@@ -39,20 +42,27 @@ export function impactAnimation(kind: number): string {
  * frames, but Blink target draws nothing before 0.33 s and peaks at
  * 0.63-0.87 s, and Dispel Magic target's first sparkle ring shows from
  * 0.17 s and peaks at 0.33-0.43 s; Forked Lightning target's flash reaches
- * full size at 0.13 s. Each starts where its model is already drawn.
+ * full size at 0.13 s. Each starts where its model is already drawn. Native
+ * capture at 7d58ef69 showed nothing for Blink started at 0.6 s, so a cue
+ * that must show uses a model that draws from 0 s instead.
  */
 export function impactStartSeconds(kind: number): number {
   switch (kind) {
     case 5: case IMPACT_ELECTRIC_SHIELD: return 0.10000000149011612;
-    case 11: case 15: return 0.6000000238418579;
-    case 13: case 14: case 16: return 0.25;
+    case 11: return 0.6000000238418579;
+    case 13: case 16: return 0.25;
     default: return 0.0;
   }
 }
 
-/** Cleave target's sparks are a few units across at scale 1, too small to read as a hit; slash draws them four times larger. */
+/**
+ * Cleave target's sparks are a few units across at scale 1, too small to read
+ * as a hit; slash draws them six times larger. An electric hit draws Forked
+ * Lightning at least as large as an electric shield hit's (scale 1), which
+ * showed natively where a hit's 0.75 lasted one frame.
+ */
 export function impactModelScale(kind: number): number {
-  return kind === IMPACT_SLASH_HIT ? 4.0 : 1.0;
+  return kind === IMPACT_SLASH_HIT ? 6.0 : kind === 5 ? 1.5 : 1.0;
 }
 
 type ImpactSoundSink = (label: string, x: number, z: number, volume: number, pitch: number) => void;

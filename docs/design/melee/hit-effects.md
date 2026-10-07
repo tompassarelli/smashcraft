@@ -167,14 +167,14 @@ not claims that Warcraft renders Melee's artwork or exact animation programs.
 | Ordinary hit / pummel | Stampede missile impact | StampedeHit; pummel uses higher, quieter Defend |
 | Fire hit | Incinerate / Fire Lord explosion | Fireball |
 | Electric hit / electric shield | Forked Lightning target | LightningBolt |
-| Slash hit | Cleave target, drawn four times larger | RelentlessCleave |
+| Slash hit | Cleave target, drawn six times larger | RelentlessCleave |
 | Ice / freeze begins | Frost Nova target | FrostNova |
 | Shield / powershield | Defend caster | Defend, powershield higher |
 | Missed floor/wall/ceiling tech | War Stomp impact and dust | Warstomp |
 | Successful tech | Dispel Magic target | DispelMagic |
 | Grab | Defend flash | EntanglingRoots |
 | Throw release | Blink target | BlinkTarget |
-| Ledge catch / recovery | Dispel Magic / Blink | quiet BlinkTarget |
+| Ledge catch / recovery | Defend flash (Melee's contact spark at the lip) / Impale target dust (climb dust) | quiet BlinkTarget |
 | Ground jump / aerial jump | dust / Blink | quiet BlinkTarget |
 | Walk / run / dash / ordinary landing | Impale target dust | DeepFootstep / DeepFootstep2; distinct volume and pitch |
 | Blast KO / star close / respawn | Thunder Clap / Dispel Magic / Resurrection | ThunderClap for KO; original fighter death cues remain |
@@ -200,15 +200,21 @@ keys (`impactStartSeconds` in hitPresentation.ts):
   and has no particle emitters, so an electric cue parked before it showed;
   the side camera recorded at most 5 changed pixels. Forked Lightning target
   draws a billboarded flash and lightning particles from 0 s and reaches full
-  size at 0.13 s; cues start it at 0.1 s.
-- Blink target draws nothing before 0.33 s and peaks at 0.63-0.87 s; ledge
-  recovery and throw start it at 0.6 s.
+  size at 0.13 s; cues start it at 0.1 s. At an electric hit's 0.75 scale it
+  showed natively for one frame (516 px) where the shield hit's 1.0 showed for
+  seven (1,318 px), so an electric hit draws it 1.5 times larger.
+- Blink target draws nothing before 0.33 s and peaks at 0.63-0.87 s; throw
+  starts it at 0.6 s. Started there, a ledge-recovery Blink still showed
+  0 px natively (build 7d58ef69), so ledge recovery uses Impale target dust,
+  which emits 40-110-unit dust from 0 s.
 - Dispel Magic target's first sparkle ring shows from 0.17 s and peaks at
-  0.33-0.43 s; its sparks only emit at 0.7-0.8 s. Ledge catch, ready and the
-  star-KO sparkle start it at 0.25 s.
+  0.33-0.43 s; its sparks only emit at 0.7-0.8 s. Ready and the star-KO
+  sparkle start it at 0.25 s. Started there, a ledge-catch Dispel showed at
+  most 45 px natively, so ledge catch uses the Defend flash, which draws from
+  0 s (2,233 px as the shield-hit control).
 - Cleave target emits only for its first 0.17 s, and its sparks are 0-12
-  units across at scale 1 (the side camera recorded 2 pixels); slash draws it
-  four times larger.
+  units across at scale 1 (the side camera recorded 2 pixels); at four times
+  larger it showed 440 px over five frames, so slash draws it six times larger.
 
 The diagnostic's ledge cues spawn at the stage centre (ledge point 0, 50),
 not at a ledge, so a stage-centre capture covers them.
