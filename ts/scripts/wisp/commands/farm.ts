@@ -49,11 +49,25 @@ const resolveRef = (given: string | undefined) => Effect.gen(function*() {
   return { ref: sha, scratch };
 });
 
+const Runs = Schema.Array(Schema.Struct({ databaseId: Schema.Number, displayTitle: Schema.String, url: Schema.String }));
+const RunState = Schema.Struct({
+  status: Schema.String,
+  conclusion: Schema.String,
+  jobs: Schema.Array(Schema.Struct({ name: Schema.String, status: Schema.String, conclusion: Schema.String })),
+});
+type RunState = typeof RunState.Type;
+
+/** gh's JSON output decoded by `schema`. */
+const decoded = <S extends Schema.Top & { readonly DecodingServices: never }>(schema: S, text: string) => Effect.try({
+  try: () => Schema.decodeUnknownSync(schema)(JSON.parse(text)),
+  catch: (cause) => new FarmFailure({ problem: `unexpected gh output: ${describeCause(cause)}` }),
+});
+
 /** The run `gh workflow run` started, found by the tag in its name. */
 const findRun = (repo: string, workflow: string, tag: string) => Effect.gen(function*() {
   for (let tries = 0; tries < 30; tries++) {
     const listed = yield* run(["gh", "run", "list", "-R", repo, "--workflow", workflow, "--event", "workflow_dispatch", "-L", "20", "--json", "databaseId,displayTitle,url"]);
-    const runs = JSON.parse(listed) as { databaseId: number; displayTitle: string; url: string }[];
+    const runs = yield* decoded(Runs, listed);
     const found = runs.find((item) => item.displayTitle.endsWith(` ${tag}`));
     if (found !== undefined) return found;
     yield* Effect.sleep("2 seconds");
@@ -61,17 +75,12 @@ const findRun = (repo: string, workflow: string, tag: string) => Effect.gen(func
   return yield* new FarmFailure({ problem: `no ${workflow} run named ${tag} appeared within a minute` });
 });
 
-interface RunState {
-  readonly status: string;
-  readonly conclusion: string;
-  readonly jobs: readonly { readonly name: string; readonly status: string; readonly conclusion: string }[];
-}
 
 /** Polls the run until it completes, printing a line when its jobs move. */
 const waitFor = (repo: string, id: number) => Effect.gen(function*() {
   let last = "";
   for (;;) {
-    const state = JSON.parse(yield* run(["gh", "run", "view", String(id), "-R", repo, "--json", "status,conclusion,jobs"])) as RunState;
+    const state = yield* decoded(RunState, yield* run(["gh", "run", "view", String(id), "-R", repo, "--json", "status,conclusion,jobs"]));
     const done = state.jobs.filter((job) => job.status === "completed").length;
     const running = state.jobs.filter((job) => job.status === "in_progress").length;
     const line = `${state.status}: ${done} jobs done, ${running} running, ${state.jobs.length - done - running} waiting`;
