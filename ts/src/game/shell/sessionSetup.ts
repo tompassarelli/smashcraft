@@ -8,6 +8,7 @@
 //   -dev training on|off, -dev hit-areas on|off
 //   -dev partner BEHAVIOUR DRIFT TECH DAMAGE   training's partner, by the names below
 //   -dev speed 1|2|4              training's input frames per match frame
+//   -dev items on|off, -dev item speed|jump|heavy on|off   items, and which kinds appear
 // Each applies the menus' own rule for the player who typed it, so a command
 // can do only what that player's clicks could. The developer receipt's SETUP
 // line (journalFiles.ts) reports the resulting state; automation confirms a
@@ -17,10 +18,10 @@ import { parseDecimal } from "../netcode/journal/decimal";
 import { PARTICIPANT_SLOTS, isParticipantMask, isParticipantSlot } from "../input/participants";
 import {
   type MatchState, Phase, computerActive, cycleSlotMode, humanActive, humanFighterActive, selectCharacter, selectCpuCharacter, setAutomaticRematch,
-  setHitAreas, setPartnerDamage, setStocks, setTimeLimit, setTraining, stepTrainingSpeed,
+  setHitAreas, setItemsOn, setPartnerDamage, setStocks, setTimeLimit, setTraining, stepTrainingSpeed, toggleItemKind,
 } from "../match/rules";
 import { selectableStage } from "../menu/stageCatalog";
-import type { Character } from "../sim/codes";
+import { type Character, ItemKind, itemBit } from "../sim/codes";
 import { SELECTABLE_CHARACTERS, fighterName } from "../sim/heroes/registry";
 
 export const SLOTS_COMMAND = "-dev slots ";
@@ -33,6 +34,11 @@ export const TRAINING_COMMAND = "-dev training ";
 export const HIT_AREAS_COMMAND = "-dev hit-areas ";
 export const PARTNER_COMMAND = "-dev partner ";
 export const SPEED_COMMAND = "-dev speed ";
+export const ITEMS_COMMAND = "-dev items ";
+export const ITEM_COMMAND = "-dev item ";
+/** Item kinds by their command names. */
+const itemCommandKind = (name: string | undefined): ItemKind | undefined =>
+  name === "speed" ? ItemKind.speed : name === "jump" ? ItemKind.extraJump : name === "heavy" ? ItemKind.heavy : undefined;
 /** Partner option names, in their code order (match/trainingState.ts). */
 export const PARTNER_BEHAVIOUR_NAMES = ["stand", "shield", "crouch", "jump", "attack", "fight"];
 export const PARTNER_DRIFT_NAMES = ["none", "toward", "away", "random"];
@@ -115,6 +121,15 @@ export function applySetupCommand(game: MatchState, actor: number, message: stri
   };
   if (message.startsWith(TRAINING_COMMAND)) return toggle(TRAINING_COMMAND, on => setTraining(game, actor, on), () => game.training, "training");
   if (message.startsWith(HIT_AREAS_COMMAND)) return toggle(HIT_AREAS_COMMAND, on => setHitAreas(game, actor, on), () => game.trainer.showHitAreas, "hit-areas");
+  if (message.startsWith(ITEMS_COMMAND)) return toggle(ITEMS_COMMAND, on => setItemsOn(game, actor, on), () => game.items.on, "items");
+  if (message.startsWith(ITEM_COMMAND)) {
+    const [name, value, extra] = message.substring(ITEM_COMMAND.length).split(" ");
+    const kind = itemCommandKind(name);
+    if (kind === undefined || (value !== "on" && value !== "off") || extra !== undefined) return refused("item");
+    const enabled = () => (game.items.enabledMask & itemBit(kind)) !== 0;
+    if (enabled() !== (value === "on")) toggleItemKind(game, actor, kind);
+    return enabled() === (value === "on") ? `dev: item ${name} ${value}` : refused("item");
+  }
   if (message.startsWith(SPEED_COMMAND)) {
     const speed = integer(message.substring(SPEED_COMMAND.length));
     for (let step = 0; step < 3 && speed !== undefined && game.trainer.speed !== speed; step++) stepTrainingSpeed(game, actor, 1);
