@@ -1,5 +1,7 @@
 import type { IntentionalNoops } from "wisp/src/headless/client";
 
+declare const SetCameraPosition: (x: number, y: number) => void;
+
 /** Assumptions shared by the Bun journey and emitted-Lua journey. */
 export const SMASHCRAFT_NOOPS: IntentionalNoops = {
   BlzFrameSetFont: "quick-match checks frame text and points; font rasterization is not part of its verdict",
@@ -15,6 +17,8 @@ export const SMASHCRAFT_NOOPS: IntentionalNoops = {
   FogMaskEnable: "visibility is decided by the map's stage and effect state; terrain fog mask is not simulated",
   BlzSetSpecialEffectAnimationBlendTime: "quick-match records selected clips and times without Warcraft animation blending",
   GetSoundFileDuration: "cue presence and start frames are inspected; audio decoding and duration are not simulated",
+  SetSoundDistances: "item cue starts and world positions are inspected; engine audio attenuation is not simulated",
+  SetSoundDistanceCutoff: "item cue starts and world positions are inspected; engine audio attenuation is not simulated",
   SetSoundDuration: "cue presence and start frames are inspected; audio completion is not simulated",
   SetSkyModel: "the sky is scenery outside quick-match's gameplay and scene assertions",
   SetDayNightModels: "quick-match uses map scene state without Warcraft's day-night lighting",
@@ -39,6 +43,8 @@ export const SMASHCRAFT_NOOPS: IntentionalNoops = {
 };
 
 export const smashcraftNativeBehavior = () => ({
+  // Headless frames retain the requested target; only native capture measures the transition.
+  PanCameraToTimed: (x: number, y: number) => SetCameraPosition(x, y),
   // Smashcraft's authored stage origin is (0, 0, 0).
   GetLocationX: () => 0,
   GetLocationY: () => 0,

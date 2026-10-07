@@ -28,8 +28,15 @@ const HERO_BODIES: { readonly [character: number]: HeroBody | undefined } = {
   // His 1.65-wide body would stand outside the reference shield, so it grows with his height.
   [Character.pitLord]: { ...body(f32(1.28), f32(0.80), f32(0.75), f32(1.65), f32(1.35)), shield: f32(1.35) },
   [Character.beastmaster]: body(f32(1.10), f32(0.97), f32(0.88), f32(1.15), f32(1.26)),
+  [Character.chen]: body(f32(1.3733333333333333), f32(0.7272727272727273), f32(1.12), f32(1.18), f32(1.04)),
+  [Character.kaelthas]: body(f32(1.0533333333333332), f32(1.025), f32(1.313), f32(0.96), f32(1.12)),
   [Character.lichKing]: body(f32(1.12), f32(0.84), f32(0.86), f32(1.12), f32(1.26)),
   [Character.thrall]: { ...body(f32(1.6933333333333334), f32(0.68), f32(0.735), 1.25, f32(1.15)), shield: f32(1.15) },
+  [Character.jaina]: body(f32(1.2), 0.5, f32(0.95), f32(0.9), f32(1.05)),
+  [Character.sylvanas]: body(f32(96.0 / 75.0), f32(f32(1.828) / f32(2.2)), f32(0.935), f32(0.90), 1.0),
+  [Character.cairne]: { ...body(f32(133.0 / 75.0), f32(f32(1.485) / f32(2.2)), f32(0.945), f32(1.75), f32(1.45)), shield: f32(1.45) },
+  [Character.peon]: body(f32(92.0 / 75.0), f32(f32(1.397) / f32(2.2)), f32(0.987), f32(0.88), f32(0.80)),
+  [Character.tinker]: body(f32(106.0 / 75.0), f32(f32(1.725) / f32(2.2)), f32(1.134), f32(1.12), f32(0.95)),
 };
 
 /** An expansion hero's body multipliers; undefined for the original three fighters. */

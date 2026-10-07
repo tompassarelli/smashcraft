@@ -3,7 +3,7 @@ import { Advantage, type TrainingState } from "../match/trainingState";
 import { PARTICIPANT_SLOTS, participantActive } from "../input/participants";
 import { floorDiv } from "wisp/src/sim/intMath";
 import { MATCH_TICKS_PER_SECOND, Phase, type MatchState, computerActive, humanFighterActive, humanPresent, keepsStocks, practiceSelected } from "../match/rules";
-import { AttackStyle, DownState, LedgeState } from "../sim/codes";
+import { AttackStyle, DownState, ItemKind, LedgeState } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 import { SPECIAL_INPUTS, fighterKit, normalName, specialName } from "../sim/moveNames";
 import { fighterName } from "../sim/heroes/registry";
@@ -71,6 +71,8 @@ export const stockSetting = (count: number) => (count === 1 ? "1 Stock" : `${cou
 export const timeSetting = (minutes: number) => (minutes === 0 ? "No time limit" : `${minutes}:00`);
 export const endlessSetting = (endless: boolean) => `Endless: ${endless ? "On" : "Off"}`;
 export const automaticRematchSetting = (automatic: boolean) => `Automatic rematch: ${automatic ? "On" : "Off"}`;
+export const itemsSetting = (on: boolean) => `Items: ${on ? "On" : "Off"}`;
+export const itemKindSetting = (kind: ItemKind, on: boolean) => `${kind === ItemKind.speed ? "Speed" : kind === ItemKind.extraJump ? "Extra jump" : "Heavy"}: ${on ? "On" : "Off"}`;
 export const trainingSetting = (training: boolean) => `Training: ${training ? "On" : "Off"}`;
 const BEHAVIOUR_NAMES = ["Stand", "Shield", "Crouch", "Jump", "Attack", "Fight"];
 const ESCAPE_NAMES = ["None", "Toward you", "Away", "Random"];

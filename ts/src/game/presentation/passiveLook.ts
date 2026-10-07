@@ -27,24 +27,31 @@ export const PASSIVE_MODELS = {
   longRifle: "Abilities\\Weapons\\Bolt\\BoltImpact.mdx",
   cleave: "Abilities\\Spells\\Other\\Incinerate\\FireLordDeathExplode.mdx",
   packHunt: "Abilities\\Spells\\Other\\Stampede\\StampedeMissileDeath.mdx",
+  endurance: "Abilities\\Spells\\Orc\\CommandAura\\CommandAura.mdx",
+  pillage: "UI\\Feedback\\GoldCredit\\GoldCredit.mdl",
 } as const;
 
 const NONE: PassiveLook = { onVictim: false };
 
 export function passiveLook(character: Character): PassiveLook {
   switch (character) {
+    case Character.cairne: return { ready: PASSIVE_MODELS.endurance, onVictim: false };
     case Character.thrall: return { proc: PASSIVE_MODELS.longRifle, onVictim: true };
+    case Character.chen:
     case Character.blademaster: return { proc: PASSIVE_MODELS.critical, onVictim: true };
     case Character.mountainKing: return { proc: PASSIVE_MODELS.bash, onVictim: true };
     case Character.warden: return { proc: PASSIVE_MODELS.blink, onVictim: false };
     case Character.rifleman: return { proc: PASSIVE_MODELS.longRifle, onVictim: false };
+    case Character.tinker: return { proc: PASSIVE_MODELS.longRifle, onVictim: true };
     case Character.archer: return { ready: PASSIVE_MODELS.trueshot, onVictim: false };
     case Character.lich: return { ready: PASSIVE_MODELS.frostArmor, onVictim: false };
     case Character.uther: return { ready: PASSIVE_MODELS.devotion, onVictim: false };
     case Character.dreadlord: return { proc: PASSIVE_MODELS.vampiric, onVictim: false };
     case Character.shadowHunter: return { ready: PASSIVE_MODELS.voodoo, onVictim: false };
+    case Character.sylvanas: return { ready: PASSIVE_MODELS.voodoo, onVictim: false };
     case Character.pitLord: return { proc: PASSIVE_MODELS.cleave, onVictim: true };
     case Character.beastmaster: return { proc: PASSIVE_MODELS.packHunt, onVictim: true };
+    case Character.peon: return { proc: PASSIVE_MODELS.pillage, onVictim: false };
     default: return NONE;
   }
 }

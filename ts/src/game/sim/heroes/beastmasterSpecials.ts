@@ -10,7 +10,7 @@ const AIR_SPECIAL_LANDING_LAG = 20;
 const axe = (spawnFrame: number, height: number): SpecialProjectile => ({
   spawnFrame, offsetX: h(f32(0.35)), offsetZ: h(height),
   velocityX: h(f32(0.12)), velocityZ: 0.0, life: 80, radius: h(f32(0.12)),
-  effect: hit(5.0, "POKE", 40), returnEffect: hit(4.0, "LINK", 65),
+  effect: hit(4.5, "POKE", 40), returnEffect: hit(3.5999999046325684, "LINK", 65),
   returns: { age: 24, speed: h(f32(0.15)) }, reflectable: true, limit: 1,
   model: "Abilities\\Weapons\\Axe\\AxeMissile.mdx",
 });
@@ -23,7 +23,7 @@ export const BEAR: SpecialCompanion = {
   followSpeed: h(f32(0.035)), followBehind: h(f32(0.8)), returnSpeed: h(f32(0.06)),
   lungeStartup: 10, lungeActive: 4, lungeRecovery: 30, lungeTravel: h(f32(1.2)),
   bite: capsule(15.0, 30.0, f32(h(f32(0.45)) - 20.0), 40.0, 20.0),
-  biteEffect: hit(12.0, "EDGE", 40, 1.0, HitElement.normal),
+  biteEffect: hit(10.799999237060547, "EDGE", 40, 1.0, HitElement.normal),
   stunFrames: 18, leash: h(6.0), leashFrames: 120,
 };
 export const BEAR_PLACEMENT: SpecialPlacement = {
@@ -33,7 +33,7 @@ export const BEAR_PLACEMENT: SpecialPlacement = {
 const stampede = (spawnFrame: number): SpecialProjectile => ({
   spawnFrame, offsetX: h(f32(0.4)), offsetZ: h(f32(0.15)),
   velocityX: h(f32(0.14)), velocityZ: 0.0, life: 24, radius: h(f32(0.15)),
-  effect: hit(4.0, "POKE", 25, 1.0, HitElement.normal), reflectable: false, limit: 1,
+  effect: hit(3.5999999046325684, "POKE", 25, 1.0, HitElement.normal), reflectable: false, limit: 1,
   model: "Abilities\\Spells\\Other\\Stampede\\StampedeMissile.mdx",
 });
 export const STAMPEDE = [stampede(12), stampede(20)];
@@ -42,7 +42,7 @@ const BEAR_COMMAND: AuthoredSpecial = { name: "Stampede", cost: 12, endFrame: 32
 export const QUILL: SpecialProjectile = {
   spawnFrame: 0, offsetX: h(f32(0.25)), offsetZ: h(f32(0.3)),
   velocityX: h(f32(0.14)), velocityZ: 0.0, life: 24, radius: h(f32(0.09)),
-  effect: hit(3.0, "LINK", 35, 1.0, HitElement.normal), reflectable: true, limit: 3,
+  effect: hit(2.6999998092651367, "LINK", 35, 1.0, HitElement.normal), reflectable: true, limit: 3,
   model: "Abilities\\Weapons\\QuillSprayMissile\\QuillSprayMissile.mdx",
 };
 export const QUILBEAST: SpecialCompanion = {
@@ -59,7 +59,7 @@ const QUILL_VOLLEY: AuthoredSpecial = { name: "Quill Volley", cost: 6, endFrame:
 export const HAWK: SpecialCompanion = {
   ...BEAR, behavior: "flying", followSpeed: h(f32(0.07)), followBehind: -h(f32(0.6)), followHeight: h(f32(1.2)),
   lungeStartup: 8, lungeActive: 8, lungeRecovery: 28, lungeTravel: h(f32(1.5)), lungeDrop: h(f32(1.6)),
-  bite: capsule(-12.0, 10.0, 18.0, 25.0, 20.0), biteEffect: hit(6.0, "LAUNCH", 80, 1.0, HitElement.normal),
+  bite: capsule(-12.0, 10.0, 18.0, 25.0, 20.0), biteEffect: hit(5.399999618530273, "LAUNCH", 80, 1.0, HitElement.normal),
 };
 export const HAWK_PLACEMENT: SpecialPlacement = {
   slot: 2, frame: 12, offsetX: h(f32(0.6)), offsetZ: h(f32(1.2)), radius: 18.0, height: 45.0,
@@ -68,18 +68,21 @@ export const HAWK_PLACEMENT: SpecialPlacement = {
 };
 const SUMMON_HAWK: AuthoredSpecial = { cost: 10, endFrame: 26, groundOnly: true, placement: HAWK_PLACEMENT };
 const HAWK_DIVE: AuthoredSpecial = { name: "Hawk Dive", cost: 6, endFrame: 24, facesStick: true, command: { frame: 3, order: CompanionOrder.lunge, slot: 2 } };
-const lift = (rise: number, drift: number): SpecialMotion[] => {
+const lift = (rise: number, drift: number, steer: number): SpecialMotion[] => {
   const segment = (first: number, last: number, share: number): SpecialMotion =>
-    ({ ...frames(first, last), velocityX: f32(f32(drift * share) / (last - first + 1)), velocityZ: f32(f32(rise * share) / (last - first + 1)) });
+    ({
+      ...frames(first, last), velocityX: f32(f32(drift * share) / (last - first + 1)), velocityZ: f32(f32(rise * share) / (last - first + 1)),
+      driftSpeed: f32(f32(steer * share) / (last - first + 1)),
+    });
   return [segment(10, 15, 0.5), segment(16, 27, f32(0.46)), segment(28, 32, f32(0.04))];
 };
-const hawkLift = (cost: number, rise: number, drift: number): AuthoredSpecial => ({
-  name: "Hawk Lift", cost, endFrame: 32, motion: lift(rise, drift), facesStick: true, oncePerAirtime: true, helpless: true,
+const hawkLift = (cost: number, rise: number, drift: number, steer: number): AuthoredSpecial => ({
+  name: "Hawk Lift", cost, endFrame: 32, motion: lift(rise, drift, steer), facesStick: true, oncePerAirtime: true, helpless: true,
   placement: { ...HAWK_PLACEMENT, frame: 10 },
 });
 export const BEASTMASTER_SPECIALS: FighterSpecials = {
   neutral: { name: "Wild Axes", description: "Throw two axes; move to guide their return through the enemy.", ground: wildAxes(false), air: wildAxes(true) },
   side: { name: "Summon Bear", description: "Call Bear, then press again for its lunge and a Stampede.", ground: SUMMON_BEAR, recall: BEAR_COMMAND },
-  up: { name: "Summon Hawk", description: "Call Hawk, then command a dive. In the air, Hawk carries him up.", ground: SUMMON_HAWK, recall: HAWK_DIVE, recallGroundOnly: true, air: hawkLift(15, h(2.0), h(f32(0.5))), free: hawkLift(0, h(f32(1.4)), h(f32(0.35))) },
+  up: { name: "Summon Hawk", description: "Call Hawk, then command a dive. In the air, Hawk carries him up.", ground: SUMMON_HAWK, recall: HAWK_DIVE, recallGroundOnly: true, air: hawkLift(15, h(f32(3.2)), h(f32(0.3)), h(f32(1.2))), free: hawkLift(0, h(f32(2.3)), h(f32(0.2)), h(f32(0.8))) },
   down: { name: "Summon Quilbeast", description: "Set a Quilbeast firing position; press again for a three-quill volley.", ground: SUMMON_QUILBEAST, recall: QUILL_VOLLEY },
 };

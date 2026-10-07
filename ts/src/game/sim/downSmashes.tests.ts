@@ -10,6 +10,8 @@ import { advanceFighter } from "./step";
 import { controls, testWorld } from "./testWorld";
 
 for (const character of SELECTABLE_CHARACTERS) {
+  // #208 measures the original thirteen-fighter field.
+  if (character > Character.lichKing) continue;
   test(`${fighterName(character)} down smash gives floor defense at 20/40/60 percent`, () => {
     for (const victim of [Character.archer, Character.rifleman, Character.pitLord]) {
       for (const percent of [20.0, 40.0, 60.0]) {

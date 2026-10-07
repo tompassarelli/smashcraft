@@ -40,7 +40,7 @@ export const ORIGINAL_KITS: readonly OriginalKit[] = [
       },
     ],
     passive: { name: "Trueshot Aura", description: "Every third arrow that lands in a short time deals double damage; the ready arrow glows." },
-    jab: { name: "Bow and Boot", description: "A strike of her bow, then a low kick on a second jab." },
+    jab: { name: "Fist and Boot", description: "A quick fist punch, then a low kick on a second jab." },
   },
   {
     specials: [

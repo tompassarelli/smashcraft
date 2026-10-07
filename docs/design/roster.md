@@ -193,12 +193,12 @@ The individual hero sections below specify all attacks. Their counterplay descri
 | Dash attack — Advancing Slash | 10/4/26 | 10 | L, 45, LAUNCH | Moves 0.55H forward during startup; cannot pass through shield |
 | Forward smash — Execution Cut | 17/3/32 | 15 inner, 19 outer | XL, 40, KILL | Large horizontal cut; outer 0.20H is sweetspot |
 | Up smash — Sky Splitter | 15/4/30 | 16 | L, 90, KILL | Narrow vertical blade with no broad ground scoop |
-| Down smash — Low Circle | 14/6/31 | 14 | L, 25, EDGE | Front frames 14–16, back 17–19; one hit total per target |
-| Neutral air — Blade Wheel | 7/9/17; L12 | 3 + 6 | M, 50, POKE | Two turns ([multi-hit](aerials.md)): a wide pull-in link, then a tighter launcher |
+| Down smash — Low Circle | 14/6/31 | 14 | L, 25, EDGE | Low sword sweep in front on frames 14–16, then behind on 17–19; one hit total per target |
+| Neutral air — Blade Wheel | 7/9/17; L12 | 3 + 6 | M, 50, POKE | Two quick arcing cuts ([multi-hit](aerials.md)): a wide pull-in link, then a tighter launcher |
 | Forward air — Long Cut | 10/3/22; L14 | 11 inner, 14 outer | L, 40, EDGE | Primary spacing aerial; outer 0.20H sweetspot |
 | Back air — Reverse Edge | 8/3/23; L13 | 12 | L, 35, KILL | Strong behind, commits facing |
 | Up air — High Thrust | 6/3/19; L11 | 8 | M, 85, LAUNCH | Narrow upward poke |
-| Down air — Bladestorm | 10/25/12; L20 | 6×2 + 4 landing | M, drill | Longest [drill](aerials.md): hangs, plunges, landing hit pops up; punishable on shield |
+| Down air — Sword Plunge | 10/25/12; L20 | 6×2 + 4 landing | M, drill | Downward sword plunge: hangs, plunges, landing hit pops up; punishable on shield |
 
 ### B specials
 
@@ -206,7 +206,7 @@ The individual hero sections below specify all attacks. Their counterplay descri
 | --- | --- | --- |
 | Neutral B | **Wind Cutter:** short traveling blade wave. 6 damage, POKE at 35 degrees; speed 0.14H/frame, life 24 frames, radius 0.16H. Reflectable; only one owned wave at a time. | Spawn f18, action ends f40; 0 mana |
 | Side B | **Wind Walk** (#124, smashcraft:docs/design/kit-review-1.md): a 7-frame fade, then a 2.2H walk that passes bodies and stops at a raised shield. In f10–31 an attack press is **Backstab**, a slash for 12 damage at 40 degrees, EDGE, toward the held stick (back turns him: the cross-up); a special press steps out; nothing recovers. No invisibility or invulnerability. In air once per airtime, then helpless. | Walk f8–31, end f44; Backstab active f6–8 of its press, end f30; step out ends 8 frames after its press; 18 mana |
-| Up B | **Rising Blade:** upward sword leap, 2.0H maximum ascent and 0.5H lateral travel; one hit for 9 damage at 80 degrees, LAUNCH. No intangibility. Mana-free version travels 1.4H with no attack. | Starts f7, hit f7–12, movement through f25, then helpless; 15 mana |
+| Up B | **Rising Whirlwind:** sword extended through a charged spin dash, with 2.8H travel in the chosen direction; one hit for 9 damage at 80 degrees, LAUNCH. No intangibility. Mana-free version travels 1.9H with no attack. | Aim f1–8, hit f9–14, dash f9–22, stop f23, then helpless; 15 mana |
 | Down B | **Mirror Image** (#124): after a visible tell, an image stays where he stood (one hit of any kind shatters it; 150 frames) and he steps 1.0H back (down with a side turns him to that side first). Down special while the image stands **swaps**: he takes the image's place facing its way and slashes for 10 damage at 40 degrees, EDGE. The image never attacks; no intangibility. | Image and step f8, end f24, 15 mana; swap f6, slash f8–10, end f30, free |
 
 ### Grab and throws
@@ -220,7 +220,7 @@ Standing grab 7/2/22, reach 0.55H, one-handed collar catch. Pummel: pommel strik
 | Up | Hilt lifts target overhead | 6 | f13, R10 | 85, JUGGLE |
 | Down | Knee check and low toss | 5 | f16, R20 | 65, CHASE |
 
-**Ultimate — Bladestorm:** f24 startup, 120-frame active spin on f24–143 with ground speed capped at half normal run speed, reach L, six possible 3-damage LINK hits at 70 degrees per target at least 18 frames apart, then a single 10-damage KILL finisher at 45 degrees on f144–146; R40. No invulnerability or armor, no grab, and no ledge travel off solid ground. One activation ID tracks all hit limits. Avoid literal uninterruptible Warcraft Bladestorm.
+**Ultimate — Bladestorm:** the powered-up form of Rising Whirlwind, keeping its sword-out spin. Its design uses f24 startup, 120-frame active spin on f24–143 with ground speed capped at half normal run speed, reach L, six possible 3-damage LINK hits at 70 degrees per target at least 18 frames apart, then a single 10-damage KILL finisher at 45 degrees on f144–146; R40. No invulnerability or armor, no grab, and no ledge travel off solid ground. One activation ID tracks all hit limits. Avoid literal uninterruptible Warcraft Bladestorm.
 
 **Required counterplay test:** forward smash whiff must give a fast fighter at its outer edge a plausible approach punish; Mirror Image cannot reset its own recovery or create a true 50/50 without prior advantage.
 
@@ -230,9 +230,9 @@ Standing grab 7/2/22, reach 0.55H, one-handed collar catch. Pummel: pommel strik
 - Down air's tip spikes airborne targets only; it sends grounded targets at 55 degrees, as the shared notation directs.
 - Dash grab uses the shared rule (startup +3, recovery +8) on the standing grab's volumes.
 - Wind Cutter, Mirror Image and Wind Walk keep their grounded timing in the air; Wind Cutter and Mirror Image end on landing with 20 frames of lag, and the airborne Wind Walk is once per airtime and ends helpless, Backstab and step out included.
-- Rising Blade climbs evenly over f7-24 and stops at its peak on f25 (2.0H up, 0.5H forward), so the helpless fall starts from rest; its free form climbs 1.4H and drifts 0.35H (the row's distance ratio) with no hit.
+- Rising Whirlwind hovers through f8, then dashes 2.8H in the chosen direction over f9–22 and stops on f23, so the helpless fall starts from rest; its free form dashes 1.9H with no hit. The stock whirlwind is reserved for this move family.
 - Wind Walk's walk stops before a raised shield but passes bodies (`stopsAtShield`); Backstab and step out are its attack and special branches (`followUps`). Mirror Image's image is a placed object drawn as his see-through model; the swap is its recall form (`relocate`).
-- Presentation uses the stock Blademaster model. It has fourteen sequences and no hit, jump, roll or ledge animations: thrusts play Attack 2, cuts Attack, rising strikes Stand - 4, and spinning moves, rolls and the double jump the Bladestorm spin; hit reactions play the start of Death. Attack Slam is unused because its leap moves the body about 130 units away from the hurtbox.
+- Presentation extends the stock model with a distinct authored gesture for every jab, tilt angle, smash and aerial. Down smash sweeps front then rear; neutral air cuts two short arcs; back air turns into its slash; down air keeps the downward Sword Plunge. The double jump keeps its authored front flip. These clips preserve the existing combat timing, regions and damage.
 - Bladestorm is not implemented; ultimates stay off in competitive play.
 
 ## Mountain King
@@ -325,7 +325,7 @@ Standing grab 8/2/25, reach 0.50H. Pummel: helmet headbutt.
 | Neutral B | **Shadow Strike:** one slow thrown blade; 5 impact damage, POKE at 35 degrees, plus 3 damage over 180 frames in three 1-damage ticks; the poison is the **mark** for Shadow Pursuit (#126, smashcraft:docs/design/kit-review-1.md). Speed 0.11H/frame, life 30, radius 0.13H. Reflectable; poison never flinches and does not stack. | Spawn f16, end f37; 5 mana |
 | Side B | **Pursuit Lunge:** 1.0H dash slash, 10 damage, EDGE at 35 degrees. Against a marked opponent within 2.5H it is **Shadow Pursuit** (#126): a 14-frame tell, then on f15 she appears just behind the target facing it, spending the mark, and slashes f18–20 for 10, EDGE at 35 degrees; ends f40; no intangibility. Hold up/down on entry for a shallow +20/−20 degree air trajectory; no late steering. Air use once per airtime and ends helpless. No invulnerability. | f11–14 active, R26; 15 mana |
 | Up B | **Blink:** choose one of eight directions from held input at entry, travel up to 1.7H; f1–7 vulnerable, f8–10 intangible, endpoint vulnerable from f11. No hitbox. Sweep against terrain and stop at the last legal position, never cross solid stage. Free version is upward-only 1.1H, no intangibility. | Displacement f9; f11–30 endpoint recovery then helpless; 20 mana |
-| Down B | **Fan of Knives:** a single radial attack reaching 0.85H around Warden for 7 damage, POKE at 45 degrees outward; every body it hits is marked as Shadow Strike marks (#126). Knives are short-lived hit volumes attached to this move, not eight independent full-range projectiles. No invulnerability, reflect, or cancel. | f9–11 active, R27; 18 mana |
+| Down B | **Fan of Knives:** throw a wide outward burst reaching 1.30H around Warden, on ground or in air, for 7 damage, POKE at 45 degrees outward; every body hit is poisoned and marked for Shadow Pursuit. Seven knives spray outward from a coiled cast; immediate release, no stored charge ([design](warden-fan-of-knives.md), #239). | f9–11 active, R27; 18 mana |
 
 ### Grab and throws
 
@@ -350,7 +350,7 @@ Standing grab 6/2/22, reach 0.48H. Pummel: elbow to the ribs.
 - Blink reads its eight directions from the stick held through frame 8, because an up special is always entered holding up. A grounded endpoint keeps the full recovery to frame 30, and a displacement into the stage stops at its body or lands on the deck.
 - Shadow Pursuit is the side kit's `marked` form, chosen while a poisoned opponent is within 2.5H; its move to the target's back is a `relocate` motion that also spends the poison. Fan of Knives applies the poison through `strikeStatus`.
 - Shadow Strike's poison is its own status slot beside sleep-like conditions: it never replaces or blocks one, ignores immunity groups and refreshes rather than stacks.
-- Presentation uses the stock Warden model. It has twelve sequences and no hit, jump, roll or ledge animations: blade swings play Attack - 1 and Attack - 2, overhead strikes Spell Slam, rising strikes and Fan of Knives Spell, Shadow Strike Spell Throw, and Blink, spot dodge and air dodge Dissipate. Knockdowns and tumbles play Death.
+- Presentation uses the stock Warden model with authored motion clips. Fan of Knives has distinct ground and air casts, coiling then spreading both arms at release (#239). Shadow Strike plays Spell Throw, and Blink plays Dissipate.
 - Spirit of Vengeance is not implemented; ultimates stay off in competitive play.
 
 **Gameplan** (smashcraft:ts/src/game/sim/heroes/wardenGameplan.ts, #105): she keeps 0.7-1.4H, just past her blades, and spaces with Crescent Slice and Pursuit Lunge; she runs in with dash attack, lunge and grab or jumps in with aerials led by Pursuer, and never camps at long range. Up tilt, down tilt, up air and the up and down throws start her strings; Heel Blade, Judgment Edge, Moon Arc and the low outward Pursuer and Twin Crescent finish. She spends her jump before Blink, so its punishable endpoint is her last resort, and stays out from under a target.
@@ -505,9 +505,9 @@ the tables:
 
 | Input | Proposed move and behavior | Timing and cost |
 | --- | --- | --- |
-| Neutral B | **Hammer of Justice** (#216): overhead hammer launcher, 13 damage at 80°, growth 70/base 42. One hit, 140-unit reach; air keeps drift with 18 landing frames. | Active f14–16, end f38; 10 mana |
-| Side B | **Holy Radiance** (#216): 0.75H hammer lunge, 14 damage at 40°; on f21 a 6-damage holy wave travels straight beyond the head. Ground armor for one ≤5-damage hit f15–18. Air has no armor, one use and helpless finish. | Hammer/travel f15–20, wave f21, end f69; 50 mana |
-| Up B | **Ascension:** rising hammer leap, 1.9H rise and 0.45H horizontal drift; one 8-damage hit, LAUNCH at 80 degrees. Free version 1.3H without hitbox. | Hit f10–15, travel through f29, then helpless; 15 mana |
+| Neutral B | **Hammer of Justice** (#216): overhead hammer launcher, 11.05 damage at 80°, growth 70/base 42. One hit, 140-unit reach; air keeps drift with 18 landing frames. | Active f14–16, end f38; 10 mana |
+| Side B | **Holy Radiance** (#216): 0.75H hammer lunge, 11.9 damage at 40°; on f21 a 5.1-damage holy wave travels straight beyond the head. Ground armor for one ≤5-damage hit f15–18. Air has no armor, one use and helpless finish. | Hammer/travel f15–20, wave f21, end f69; 50 mana |
+| Up B | **Ascension:** rising hammer leap, 1.9H rise and 0.45H horizontal drift; one 6.8-damage hit, LAUNCH at 80 degrees. Free version 1.3H without hitbox. | Hit f10–15, travel through f29, then helpless; 15 mana |
 | Down B | **Divine Shield** (#131): ground-only timed stance, intangible f6–9, vulnerable otherwise, no automatic counter. A damaging melee or projectile hit overlapping it on those frames raises Divine Shield: 45 frames in which strikes and projectiles pass through Uther; starting an attack, special or grab ends it. Grabs beat both the guard and the shield. No healing. | End f36; 25 mana. Air version fails without spending |
 
 ### Grab and throws
@@ -584,7 +584,7 @@ sequence table and every pose's clip.
 | Input | Proposed move and behavior | Timing and cost |
 | --- | --- | --- |
 | Neutral B | **Carrion Swarm:** a short bat cloud moving at 0.09H/frame for 32 frames, radius 0.25H. One hit for 7 damage, POKE at 40 degrees. Reflectable as one projectile, one cloud active. | Spawn f20, end f45; 5 mana |
-| Side B | **Vampiric Pounce** (#132, [kit review 2](kit-review-2.md#dreadlord-132)): grounded command grab with 0.8H approach; grab reach 0.45H. On catch, automatic bite-and-release at catch+16 frames, 13 damage, EDGE at 40 degrees, then 28 recovery. No heal, no carrying, shared regrab protection applies. Air version is a claw attack for 13 damage, not a grab, and ends helpless. | Catch/strike f17–19; whiff R34; 20 mana | The bite heals Dreadlord 4 percent, at most 12 a stock. **Feint:** side B again on approach frames 3–12 cancels into a free backward bat-hop, 0.7H over its frames 1–10, ending f18. |
+| Side B | **Vampiric Pounce** (#237): fast horizontal corkscrew with bats trailing, ground and air. Travels 2.24H across 16 frames, stopping short of bodies/shields; 0.45H bite catch f17–19. Catch releases after 16 frames for 10.00025 damage, EDGE at 40 degrees, then 28 recovery. | Catch f17–19; whiff R34; 20 mana | Bite heals 4%, at most 12 a stock. Air form is once per airtime and ends helpless. |
 | Up B | **Bat Ascension:** steerable rising curve up to 2.0H high and 0.8H across, no hitbox. Visible bat-body hurtbox throughout; no intangibility. Free version 1.4H height and 0.3H across. | Movement f9–32, then helpless; 15 mana |
 | Down B | **Sleep** (#132): visibly slow projectile, speed 0.06H/frame, life 50, radius 0.18H, one active and reflectable. Body hit deals 2 damage and 100 frames of sleep (24 if the target is airborne); the sleeper keeps velocity/gravity, cannot act, mashes out with the grab and freeze rule (8 frames a press or new stick direction, never before frame 24) and wakes on the next damaging hit. Then 240-frame sleep immunity. Shield blocks it. No bonus damage on waking. | Spawn f26, end f58; 25 mana |
 
@@ -606,7 +606,7 @@ Standing grab 7/3/26, reach 0.65H. Pummel: claw squeeze. No automatic lifesteal.
 **As implemented (smashcraft:ts/src/game/sim/heroes/dreadlordMoves.ts, dreadlordSpecials.ts):** every row above is present; the departures are these.
 
 - Nothing Dreadlord swings is disjointed: each claw, wing, horn and elbow path is also his body, fully out from a frame before its first active frame to two after its last, drawn out and folded back through held 3-frame poses. His standing body adds folded wings behind the shoulders to the roster capsule.
-- Vampiric Pounce's grounded approach stops at a body or shield and holds his height while it runs. The air version has no approach travel; it is the claw strike alone, once per airtime, ending helpless.
+- Vampiric Pounce’s ground and air approaches stop at a body or shield and hold their height through the corkscrew. Both forms bite; the air form is once per airtime and ends helpless.
 - Bat Ascension steers with the live stick (`driftSpeed`): a full side held through the rise gives 0.8H (free form 0.3H), a neutral stick rises straight. His spread wings are part of his body throughout; it has no intangibility.
 - Sleep's 2-damage hit stops his target's momentum like any hit; the sleep that follows leaves velocity and gravity alone and discards the sleeper's inputs.
 - Presentation uses the classic HeroDreadLord model's eleven usable sequences: claws on Attack - 1/2, wings and horns on Spell and Stand - 3, the low sweep and down air on Spell Slam, jumps and Bat Ascension on the Stand - 2 wing spread. Dissipate draws no body and is not used.

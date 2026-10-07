@@ -18,6 +18,7 @@ import { stickZ } from "./stick";
 import { bodyTop } from "./surfaces";
 import { cancelAttack, cancelSpecialState, clearDownState, clearPlatformMove } from "./transitions";
 import { clearDash } from "./groundMovement";
+import { aerialJumps } from "./itemBuffs";
 import { melee } from "./tuning";
 
 /** Melee's stick-up jump threshold, 0.6625 (companion/README.md, ftCo_800DF910): holding up past it sustains an ascent. */
@@ -182,7 +183,7 @@ export function beginPlatformAscent(f: Fighter, stage: number, matchFrame: numbe
 /** Enters a descent from the platform the fighter stands on. */
 export function beginPlatformDescent(f: Fighter, stage: number, matchFrame: number): void {
   const deck = f.motion.surface ?? 0;
-  f.jump.remaining = min(f.jump.remaining, 1);
+  f.jump.remaining = min(f.jump.remaining, aerialJumps(f));
   f.motion.vx = 0.0;
   f.motion.vz = 0.0;
   beginMove(f, PlatformMove.descent, deck, stage, matchFrame, f.motion.x, -bodyHeight(f));
