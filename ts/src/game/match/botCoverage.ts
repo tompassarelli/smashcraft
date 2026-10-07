@@ -23,6 +23,7 @@ export interface BotCoverage {
   movement: number;
   attacks: number;
   kit: number;
+  readonly specials: { neutral: number; side: number; up: number; down: number };
   defense: number;
   recovery: number;
   manaDenied: number;
@@ -34,7 +35,7 @@ export interface BotCoverage {
 /** Eight distinct seeds, 1800 frames each, half starting at launch-prone damage. */
 export function fighterCoverage(index: number, opponent?: Character): BotCoverage {
   const character = at(SELECTABLE_CHARACTERS, index);
-  const result: BotCoverage = { fighter: fighterName(character), matches: 0, movement: 0, attacks: 0, kit: 0, defense: 0, recovery: 0, manaDenied: 0, defenseDecisions: 0, recoveryDecisions: 0, missing: [] };
+  const result: BotCoverage = { fighter: fighterName(character), matches: 0, movement: 0, attacks: 0, kit: 0, specials: { neutral: 0, side: 0, up: 0, down: 0 }, defense: 0, recovery: 0, manaDenied: 0, defenseDecisions: 0, recoveryDecisions: 0, missing: [] };
   const plan = gameplanOf(character);
   if (plan === undefined) result.missing.push("character gameplan");
   else {
@@ -95,7 +96,15 @@ export function fighterCoverage(index: number, opponent?: Character): BotCoverag
       const f = fighterAt(world, 0);
       if (f.motion.deltaX !== 0.0 || f.motion.deltaZ !== 0.0) result.movement++;
       if (f.attack.serial !== attack && f.attack.style !== undefined) result.attacks++;
-      if (f.special.action !== SpecialAction.none && (f.special.action !== special || f.special.frame < specialFrame || f.special.form !== specialForm)) result.kit++;
+      if (f.special.action !== SpecialAction.none && (f.special.action !== special || f.special.frame < specialFrame || f.special.form !== specialForm)) {
+        result.kit++;
+        switch (f.special.action) {
+          case SpecialAction.heroNeutral: result.specials.neutral++; break;
+          case SpecialAction.heroSide: result.specials.side++; break;
+          case SpecialAction.heroUp: result.specials.up++; break;
+          case SpecialAction.heroDown: result.specials.down++; break;
+        }
+      }
       if (f.shield.raised || f.dodge.groundFrame > 0 || f.dodge.airFrame > 0) result.defense++;
       if (!f.motion.grounded && (f.motion.x < -700.0 || f.motion.x > 700.0) && (produced.inputs[0].jumpPressed || produced.inputs[0].specialPressed || produced.inputs[0].direction !== 0)) result.recovery++;
       attack = f.attack.serial;
