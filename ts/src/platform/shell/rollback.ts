@@ -5,7 +5,7 @@
 // when accepted rows differ from what it ran.
 import { clearAttackBuffer } from "../../game/input/attackBuffer";
 import { type InputRow, copyInput, emptyInput } from "../../game/input/inputRow";
-import { commitEdges, resetKeys, sampleKeys } from "../../game/input/keyboardCapture";
+import { commitEdges, resetKeys } from "../../game/input/keyboardCapture";
 import { PARTICIPANT_SLOTS, isParticipantSlot } from "../../game/input/participants";
 import { type InputPacket, encodePacket, packetSizeInRange } from "../../game/input/wire";
 import { startKeyUp } from "../../game/match/controls";
@@ -29,6 +29,8 @@ import { type KeyboardRollback, type Rollback, type ShellState, localSlot, shell
 import { recordBatchWait, recordEcho, recordSend, resetEchoRing, traceSeconds } from "./trace";
 import { LASTING, setStatus } from "./view";
 import { holdPresentedCapture } from "./visualCapture";
+import { samplePad } from "../../game/input/padCapture";
+import { pollPad, recordPadRow } from "./analogPad";
 
 /** Callbacks without a new predicted frame before every client names the players a running match waits for. */
 const STALL_NOTICE_CALLBACKS = 20;
@@ -40,6 +42,12 @@ const failControls = (s: ShellState) => setStatus(s, "Controls stopped respondin
 
 /** Starts a match epoch with the dev settings, seeded from the confirmed match; false when the schedule refuses them. */
 export function beginRollbackEpoch(s: ShellState, rollback: Rollback): boolean {
+  if (s.pad !== undefined) {
+    s.pad.rows.length = 0;
+    s.pad.mouseEvents = 0;
+    s.pad.syncEvents = 0;
+    s.pad.startedAt = s.trace.clockPeriods * 1000.0 + TimerGetElapsed(s.trace.clock);
+  }
   const { schedule, speculative } = rollback;
   rollback.epoch++;
   rollback.delay = s.dev.delay;
@@ -142,7 +150,7 @@ function captureKeyboard(s: ShellState, rollback: Rollback, keyboard: KeyboardRo
   const { schedule, epoch } = rollback;
   if (trace.active) trace.window.localPolls++;
   const held = s.session.paused ? 0 : pollLocalKeys(s);
-  sampleKeys(keyboard.capture, held);
+  samplePad(keyboard.capture, held, pollPad(s));
   if (probeRecording(probe)) probePoll(probe, held, keyboard.capture.row.pressed, keyboard.capture.row.released, schedule.captureTarget());
   const target = schedule.captureTarget();
   if (s.session.paused || rollback.sendFailed || target === undefined) {
@@ -165,6 +173,7 @@ function captureKeyboard(s: ShellState, rollback: Rollback, keyboard: KeyboardRo
     failControls(s);
     return;
   }
+  recordPadRow(s, epoch, target, keyboard.capture.row);
   if (probeRecording(probe)) {
     const row = keyboard.capture.row;
     const slot = localSlot();
@@ -337,6 +346,7 @@ function receivePacket(s: ShellState, rollback: Rollback, sender: number, packet
 
 /** A synchronized input message: helper lifecycle, or a run of one sender's consecutive rows. */
 export function receiveInput(s: ShellState): void {
+  if (s.pad !== undefined) s.pad.syncEvents++;
   const rollback = s.rollback;
   s.trace.rawSyncEvents++;
   if (rollback === undefined) return;

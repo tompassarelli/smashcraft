@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.map.json",
+  "include": [
+    "node_modules/wisp/src/natives/warcraft.d.ts",
+    "src/platform/analogKeysMain.ts"
+  ],
+  "exclude": [],
+  "tstl": {
+    "luaBundle": "analog-keys.lua",
+    "luaBundleEntry": "src/platform/analogKeysMain.ts"
+  }
+}
