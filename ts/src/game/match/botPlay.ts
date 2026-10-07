@@ -9,6 +9,8 @@ import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots } from "../input/pa
 import { DownState, GrabAction, ShieldBreak } from "../sim/codes";
 import { heroStatusBlocksActions, heroStatusMashes } from "../sim/heroStatus";
 import type { Fighter } from "../sim/fighter";
+import { exSpecialCost } from "../sim/exSpecials";
+import { SpecialAction } from "../sim/codes";
 import { isSmashAttack } from "../sim/moves";
 import { type Controls, type Roster, copyControls, fighterAt, neutralControls } from "../sim/roster";
 import { surfacePass } from "../sim/stage";
@@ -148,9 +150,18 @@ export function produceComputerInput(game: Readonly<MatchState>, world: Roster, 
     prepareBotRead(strategy, fighter, target, frame, skill.reactionFrames, skill.decision);
   }
   decide(game, world, runtime, slot, frame, input, commands, perceivedCpuSkill(opponent, tier), target, skill.reactionFrames);
+  upgradeThreatenedSpecial(fighter, target, input);
   // DI and escape mashing are reactions to the fighter's own state, not steering.
   if (fighter.launch.hitlag <= 0 && fighter.grab.owner === undefined) commitBotDirection(runtime.botMemory, slot, frame, input);
   useMatchSeed(0);
+}
+
+/** The delayed opponent observation decides whether a cast needs startup armor. */
+export function upgradeThreatenedSpecial(fighter: Readonly<Fighter>, target: Readonly<Fighter> | undefined, input: Controls): void {
+  if (target === undefined || !input.specialPressed || input.specialZ !== 0 || fighter.special.action !== SpecialAction.none
+    || target.attack.style === undefined || Math.abs(f32(target.motion.x - fighter.motion.x)) > 140.0
+    || Math.abs(f32(target.motion.z - fighter.motion.z)) > 140.0 || fighter.mana.points < exSpecialCost(fighter, input.specialX !== 0)) return;
+  input.shield = true;
 }
 
 /** Half a second: a computer that idles stands still this long. */
