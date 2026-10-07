@@ -2,6 +2,12 @@
 
 ## JSON soak results
 
+`bun wisp repro FILE --view` opens a local frame slider for a saved moment.
+It shows the canonical state tree, changes since the previous frame, both
+clients' values, and the first differing frame. State paths that match
+`ReplayState` link to their TypeScript declaration line. Stop the local server
+with Ctrl-C. The page uses the same inspector as `--frame`.
+
 `bun wisp soak --json` writes JSON Lines results and a final verdict with
 counts and elapsed milliseconds. Print failures with:
 
