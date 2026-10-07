@@ -10,7 +10,7 @@ import type { HitEffect } from "./hitRegions";
 import { DIAGONAL_UNIT } from "./knockback";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type Roster, fighterAt, isActive } from "./roster";
-import { mainDeckLeft, mainDeckRight, mainDeckZ, surfaceZ } from "./stage";
+import { mainDeckLeft, mainDeckRight, mainDeckZAt, surfaceZAt } from "./stage";
 import { cancelAttack, cancelSpecialState, clearDownState, clearGrabLinks, clearLedge, clearOwnedFreezeTrap } from "./transitions";
 
 export const RIFLEMAN_BEAR_LIFETIME = 150;
@@ -63,7 +63,7 @@ export function startFreezeTrap(owner: Fighter, stage: number, matchFrame: numbe
   trap.x = motion.x;
   motion.crouching = false;
   trap.surface = motion.surface;
-  trap.z = surfaceZ(stage, motion.surface, matchFrame);
+  trap.z = surfaceZAt(stage, motion.surface, matchFrame, trap.x);
   trap.life = FREEZE_TRAP_LIFETIME_FRAMES;
   trap.arming = FREEZE_TRAP_ARMING_FRAMES;
   trap.serial++;
@@ -156,12 +156,13 @@ export function advanceBear(world: Roster, ownerSlot: number, stage: number, mat
   bear.x = f32(bear.x + bear.velocityX);
   if (bear.swipeCooldown > 0) bear.swipeCooldown--;
   if (bear.surface !== undefined) {
-    bear.z = surfaceZ(stage, bear.surface, matchFrame);
+    bear.z = surfaceZAt(stage, bear.surface, matchFrame, bear.x);
   } else {
     bear.velocityZ = max(-owner.tuning.physics.terminalSpeed, f32(bear.velocityZ - owner.tuning.physics.gravity));
     bear.z = f32(bear.z + bear.velocityZ);
-    if (bear.z <= mainDeckZ(stage)) {
-      bear.z = mainDeckZ(stage);
+    const floor = mainDeckZAt(stage, bear.x);
+    if (bear.z <= floor) {
+      bear.z = floor;
       bear.velocityZ = 0.0;
       bear.surface = 0;
     }

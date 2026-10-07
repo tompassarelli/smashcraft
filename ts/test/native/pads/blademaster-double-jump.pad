@@ -7,3 +7,7 @@
 65 a capture
 70 a capture
 75 a capture
+#! expect a 55 applied jump 2 double 1
+#! expect b 55 applied jump 2 double 1
+500 a press VIEW
+570 a release VIEW

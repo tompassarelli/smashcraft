@@ -20,7 +20,7 @@ export default defineSoak({
   scene: SMASHCRAFT_SCENE,
   roster: {
     fighters: SELECTABLE_CHARACTERS.map(fighterSlug),
-    stages: ["sky-deck", "three-bridges", "frozen-throne", "drifting-deck", "patterned-decks", "wind", "carried", "cannon", "timed-lift", "hellfire"],
+    stages: ["sky-deck", "three-bridges", "frozen-throne", "drifting-deck", "patterned-decks", "wind", "carried", "cannon", "timed-lift", "hellfire", "stratholme", "tomb-of-sargeras"],
     policies: [["fuzz", "cpu"], ["fuzz", "fuzz"], ["cpu", "cpu"], ["cpu", "fuzz"], ["fuzz", "absent"], ["absent", "fuzz"]],
   },
   controller: SOAK_CONTROLLER,

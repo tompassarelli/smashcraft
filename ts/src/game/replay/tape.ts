@@ -3,7 +3,7 @@
 //
 // One operation per line, words separated by spaces, `#` comments:
 //   participants HUMANS COMPUTERS | character SLOT CHOICE | stage-select SLOT
-//   stage SLOT CHOICE | stocks SLOT COUNT | time SLOT MINUTES | start SLOT | rematch SLOT
+//   stage SLOT CHOICE | hazards SLOT 0-OR-1 | stocks SLOT COUNT | time SLOT MINUTES | start SLOT | rematch SLOT
 //   input SLOT FIELD=VALUE... attack=STYLE,FACING,FRAME,CHARGE...
 //   frame N              capture the inputs given since the last frame and the
 //                        computers' choices from the match, save, execute
@@ -50,7 +50,7 @@ type ControlAssignment =
   | { readonly kind: "flag"; readonly field: FlagField; readonly value: boolean }
   | { readonly kind: "number"; readonly field: NumberField; readonly value: number };
 
-type MenuOperation = "character" | "stage" | "stocks" | "time";
+type MenuOperation = "character" | "stage" | "hazards" | "stocks" | "time";
 type MenuRequest = "stage-select" | "start" | "rematch";
 
 export type TapeOperation =
@@ -162,6 +162,7 @@ function decodeLine(line: number, text: string): Decoded<TapeOperation> | undefi
       return pair ? { ok: true, value: { kind: "participants", line, humans: first, computers: second } } : fail("participants takes HUMANS COMPUTERS");
     case "character":
     case "stage":
+    case "hazards":
     case "stocks":
     case "time":
       return pair ? { ok: true, value: { kind: operation, line, slot: first, value: second } } : fail(`${operation} takes SLOT VALUE`);
