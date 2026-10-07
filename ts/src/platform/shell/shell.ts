@@ -45,7 +45,7 @@ import { endReplaySegment, serviceReplay } from "./replays";
 import { CONTROL_ACK_PREFIX } from "../../game/shell/pauseBarrier";
 import { clearMatchEffects, createUi, recreateUi, views } from "./ui";
 import { resultsView } from "../../game/presentation/matchCues";
-import { LASTING, announce, createStatusFrames, drawStage, lockArenaCamera, pauseMatchPresentation, renderPersistentPresentation, renderUi, setStatus } from "./view";
+import * as view from "./view";
 import { keepMomentEnd } from "../../game/replay/moment";
 import { resultMessage } from "../../game/shell/messages";
 import { beforeNativeDriverTick, afterNativeDriverTick, captureNativeDriverInputs } from "../nativeDriver";
@@ -120,9 +120,9 @@ function gameTick(s: ShellState): void {
   const held = heldVisualFrame(localSlot()) !== undefined;
   beginPresentedFrame(s.game.phase === Phase.match && !s.session.paused && !held);
   if (!held) {
-    renderPersistentPresentation(s);
-    lockArenaCamera(s);
-    renderUi(s);
+    view.renderPersistentPresentation(s);
+    view.lockArenaCamera(s);
+    view.renderUi(s);
     holdPresentedCapture(s);
   }
   writeDrawnFrame(s);
@@ -179,8 +179,8 @@ function playerLeft(s: ShellState): void {
   if (wasMatch) {
     clearMatchEffects(s);
     s.session.paused = false;
-    pauseMatchPresentation(s, false);
-    setStatus(s, resultMessage(s.game), LASTING);
+    view.pauseMatchPresentation(s, false);
+    view.setStatus(s, resultMessage(s.game), view.LASTING);
     views(s).match.beginResults(resultsView(s.game, s.world, views(s).match.tally), 0);
     writeMatchRecord(s);
   } else if (s.game.phase === Phase.characterMenu || s.game.phase === Phase.stageMenu) {
@@ -191,7 +191,7 @@ function playerLeft(s: ShellState): void {
       updateConnectedHumans(s.game, humans);
       makePreview(s);
     }
-    announce(s, "A player left. Choose the next match.");
+    view.announce(s, "A player left. Choose the next match.");
   }
   removeKeyEvents(s);
   syncKeyEvents(s);
@@ -280,20 +280,20 @@ function initialize(): void {
   FogEnable(false);
   FogMaskEnable(false);
   const s = createShellState(build, {
-    origin, frames: createStatusFrames(build), persistence: bindingFiles, playback: pending.playback,
+    origin, frames: view.createStatusFrames(build), persistence: bindingFiles, playback: pending.playback,
     editbox: journalIngress(build) === "editbox" ? new EditboxIngress() : undefined,
   });
   copyMatchState(s.game, startingSelection(build.scenario));
   createUi(s, panelActions());
   preloadStageAssets(s);
-  drawStage(s);
+  view.drawStage(s);
   CameraSetSmoothingFactor(0.0);
   SetTimeOfDay(12.0);
   SetTimeOfDayScale(0.0);
   startPlayerFiles();
   makePreview(s);
-  lockArenaCamera(s);
-  renderUi(s);
+  view.lockArenaCamera(s);
+  view.renderUi(s);
   createTriggers(s);
   readPlaytestRequest(s);
   readMatchIndex();
@@ -342,7 +342,7 @@ export function installShell(): void {
   if (s !== undefined && s.moment === undefined) s.moment = momentSaves();
   if (s !== undefined && s.replay === undefined) s.replay = replayRecording();
   // A shell from a bundle that didn't record its drawn stage draws the chosen one.
-  if (s !== undefined && s.drawnStage === undefined) drawStage(s);
+  if (s !== undefined && s.drawnStage === undefined) view.drawStage(s);
 }
 
 /** Starts the shell once, when the map starts. */

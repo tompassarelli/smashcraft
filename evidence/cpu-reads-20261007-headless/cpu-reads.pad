@@ -1,0 +1,30 @@
+# #182: repeated close shields teach a forecast; a late grab and surprise
+# jump change the pattern. Native/headless compare includes read commitments,
+# bounded habits and delayed observations in the confirmed match state.
+#! chat -dev quick cpu wren expert
+# Headless reference (hosted headless pads at 975133cd): the level-9 computer's
+# first two hits on the approaching human, on their frames:
+#! expect a 64 damage 12.753
+#! expect a 185 damage 25.507
+60 a stick 1 0
+100 a stick 0 0
+120 a press LB
+128 a release LB
+210 a press LB
+218 a release LB
+300 a press LB
+308 a release LB
+390 a press LB
+398 a release LB
+480 a press LB
+488 a release LB
+570 a press LB
+578 a release LB
+660 a press LB
+668 a release LB
+750 a tap RB 1
+840 a tap B 1
+845 a stick -1 0
+900 a stick 0 0
+1000 a press VIEW
+1070 a release VIEW

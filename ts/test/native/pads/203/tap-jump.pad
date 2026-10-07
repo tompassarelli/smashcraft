@@ -1,0 +1,16 @@
+# #203: WC3_TAP_JUMP=on; the real helper turns unmodified stick-up into Jump.
+#! chat -dev quick hero archer
+60 a shield 1
+70 a stick 0 1
+80 a stick 0 0
+84 a shield 0
+160 a shield 1
+161 a press LB
+170 a press Y
+175 a release Y
+180 a shield 0
+184 a release LB
+#! expect a 73 applied jump 1
+#! expect a 173 applied jump 2 double 0
+230 a press VIEW
+300 a release VIEW

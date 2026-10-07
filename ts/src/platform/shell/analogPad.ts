@@ -20,10 +20,6 @@ export interface NativePadCapture {
   readonly mouse: string[];
 }
 
-export function nativePadCapture(): NativePadCapture {
-  return { calibration: { first: undefined, last: undefined }, packet: undefined, mouseEvents: 0, syncEvents: 0, startedAt: 0.0, rows: [], mouse: [] };
-}
-
 const pressed = (key: number) => BlzIsKeyPressed(ConvertOsKeyType(key));
 
 /** Both comparison builds create the same mouse event registrations. */
