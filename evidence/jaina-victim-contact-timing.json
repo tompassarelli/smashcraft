@@ -1,0 +1,56 @@
+{
+  "modelSha256": "36167f57c334164691d2029a1a81ea0193fcbde778ea5d336081f7e42711445d",
+  "totalSequences": 90,
+  "unchangedSequences": 85,
+  "unchangedTrackIntervals": 4250,
+  "retimedVictimContacts": [
+    {
+      "index": 61,
+      "pose": "Jaina victimPummel",
+      "seconds": 1,
+      "contact": 0.5,
+      "vertices": 1674,
+      "maxContactVertexDifference": 0
+    },
+    {
+      "index": 62,
+      "pose": "Jaina victimThrowForward",
+      "seconds": 1,
+      "contact": 0.5,
+      "vertices": 1674,
+      "maxContactVertexDifference": 0
+    },
+    {
+      "index": 63,
+      "pose": "Jaina victimThrowBack",
+      "seconds": 1,
+      "contact": 0.5,
+      "vertices": 1674,
+      "maxContactVertexDifference": 0
+    },
+    {
+      "index": 64,
+      "pose": "Jaina victimThrowUp",
+      "seconds": 1,
+      "contact": 0.5,
+      "vertices": 1674,
+      "maxContactVertexDifference": 0
+    },
+    {
+      "index": 65,
+      "pose": "Jaina victimThrowDown",
+      "seconds": 1,
+      "contact": 0.5,
+      "vertices": 1674,
+      "maxContactVertexDifference": 0
+    }
+  ],
+  "pairingContract": {
+    "test": "paired hero throws reach contact on the actual holder's frame across every roster pairing",
+    "scope": "Jaina victim; 14 holders including hidden Jaina; two facings; five actions",
+    "pairings": 140,
+    "passed": 140,
+    "failures": 0,
+    "assertion": "clip.contact and presented clipTime equal 0.5 seconds; holder hitstop freezes the victim; action end reaches clip duration"
+  }
+}
