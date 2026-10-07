@@ -43,7 +43,7 @@ const SLEEP_ORB: AuthoredSpecial = {
 // The corkscrew stops short of bodies so its bite can catch without passing
 // through them. On a miss the last 34 frames expose the landing/recovery.
 const POUNCE_GRAB: StrikeCapsule = { x1: 14.0, z1: 40.0, x2: f32(h(f32(0.45)) - 12.0), z2: 40.0, radius: 12.0 };
-const POUNCE_BITE = dreadlordHit(11.765000343322754, "EDGE", 40);
+const POUNCE_BITE = dreadlordHit(10.000250816345215, "EDGE", 40);
 const NIGHT_POUNCE: AuthoredSpecial = {
   cost: 20,
   endFrame: 53,
