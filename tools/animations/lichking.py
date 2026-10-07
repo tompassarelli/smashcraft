@@ -525,10 +525,14 @@ author('Wall Jump', {0: {**FALL, **TUCK, 'lean': 20, 'hand_L': (-34, 26, 100)}, 
 author('Wall Tech', {0: {**TUMBLE}, 5: {**TUCK, 'lean': 24, 'hand_L': (-40, 26, 96), 'step': (-6, 0)}, 31: FALL}, plant=False)
 
 # ---------------------------------------------------------------- specials
-# Howling Blast and Defile reuse Spell Throw and Spell Channel; the cast
-# lands on the release frame.
+# Howling Blast reuses Spell Throw; the cast lands on the release frame.
 reuse('Special Neutral', 'Spell Throw', zero(16), 44)
-reuse('Special Down', 'Spell Channel', zero(20), 46, angle=-90)
+# Defile: the free hand gathers above his shoulder, then presses visibly down
+# toward the pool on frame 20. Frostmourne stays upright beside the body.
+DEFILE_WIND = {'step': (-6, 0), 'lean': -10, 'twist': -14, 'hand_L': (-4, 26, 150), 'hand_R': (8, -32, 90), 'aim': 70}
+DEFILE_CAST = {'step': (10, -14), 'lean': 28, 'twist': 14, 'hand_L': (62, 16, 40), 'hand_R': (8, -32, 90), 'aim': 70, 'foot_L': (36, 14, 1)}
+author('Special Down', {0: {}, 9: DEFILE_WIND, zero(20): DEFILE_CAST, 22: DEFILE_CAST,
+                        31: {'step': (6, -8), 'lean': 16, 'hand_L': (40, 20, 62), 'hand_R': (10, -32, 92), 'aim': 60}, 46: {}}, copy_of='Spell Channel')
 # Val'kyr Shadowguard: he raises his free hand and sends the Val'kyr out ahead.
 author('Special Side', swing(zero(14), 4, 40,
     wind={'step': (-6, 0), 'lean': -12, 'twist': -20, 'hand_L': (-6, 26, 140), 'hand_R': (-6, -32, 92), 'aim': 70},

@@ -469,9 +469,9 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\LichKingOriginalClip60-c8e2c87f2b146e4506dd34c6b507f81fba76e13e15dbfd1f6f08cded340dc8a5.mdx", startSeconds: f32(63.883), endSeconds: f32(64.633), looping: false },
     { modelPath: "war3mapImported\\LichKingOriginalClip61-427a1c5b59a32d559e776ab7e8a87a12b9fe5e16e70ec65670202e8a65ca19d2.mdx", startSeconds: f32(64.733), endSeconds: 65.25, looping: false },
     { modelPath: "war3mapImported\\LichKingOriginalClip62-909fe6dd3931e909c5173ab03a959257db548d6d0ffd0871c6c196b3c2c77bde.mdx", startSeconds: f32(65.35), endSeconds: f32(66.083), looping: false },
-    { modelPath: "war3mapImported\\LichKingOriginalClip63-ef49781a9ef2919f3afc7bd9e419b1436d7326c8319234fb668c93b1a9bf4325.mdx", startSeconds: f32(66.183), endSeconds: f32(66.949), looping: false },
-    { modelPath: "war3mapImported\\LichKingOriginalClip64-54635b24f2d279764e295dcceb357f3058c8687fc0716e15c868966674199663.mdx", startSeconds: f32(67.049), endSeconds: f32(67.716), looping: false },
-    { modelPath: "war3mapImported\\LichKingOriginalClip65-71f68e487c34ca12546bd42f37f6c415fbcdd8cb24c7bcf7722b3ced08e90fe7.mdx", startSeconds: f32(67.816), endSeconds: f32(68.583), looping: false },
+    { modelPath: "war3mapImported\\LichKingOriginalClip63-843933575dc16051718796d30e0c8777e3649dc6e9fb27bc306ef5bbcc8f430f.mdx", startSeconds: f32(66.183), endSeconds: f32(66.949), looping: false },
+    { modelPath: "war3mapImported\\LichKingOriginalClip64-e1522a1f738b4abed642c66eead4fb3dd2022d82020b307c4e366c6c1b40f345.mdx", startSeconds: f32(67.049), endSeconds: f32(67.716), looping: false },
+    { modelPath: "war3mapImported\\LichKingOriginalClip65-4518fe70f372759a5783655ca0ec9a9326f8e7ac7ba598e6dab01608c2cb5cec.mdx", startSeconds: f32(67.816), endSeconds: f32(68.583), looping: false },
   ],
 ];
 
