@@ -4,12 +4,12 @@
   "summon": "32e2447caf731aaab000d68ca71bbc39a9e6b04ec5cd194ee6ec5e6ffe467b17",
   "animation-assets": "8931e1cd08312e6ccbd45885d316e0407020ef65c699cd1de72bef43fb124583",
   "illidan-animation": "4d276985d2ac0570bfca1e88623d3038abe0c5b37f0564f2e3ed40dd649671ba",
-  "selection-assets": "97d0f7bc8e3edd281eb57a7736566701da7c9a9633e77191020de41358992eb7",
+  "selection-assets": "819c857475cc88a09f516194406881f2f699d6ae47ae5d92bd754b17dd1e01ec",
   "fighter-renders": "e9ea262cacded0c165916905a42267d3b7ff6ea69864177fce568cf99930fe0a",
   "stage-assets": "dc9876126b61885d5454d289b1ffdc154fe95a40095444821358a76823795cc9",
   "impact-assets": "fe3252e54270b976cc732a87c07524a7b1b7cdaa5d9a66e4832e708d19ca017c",
   "imported-models": "736af14ee37ef912ab263584bfa81197b809bd0f118d914c15bde82aabbc8d5a",
-  "original-clips-static-lights": "73fe604edb084b04c7cc4ccaaeb86c089933306326e3926b2a4b592a79bd3a39",
-  "hero-models": "9971a3db8c75bc950c94b01e73e28507744408b8af85babb530f82c4e2a51dee",
+  "original-clips-static-lights": "511f70a726f86d23bfb177890cf2e852aaf2e6cbe118cb7b1d4b28c94155a8c0",
+  "hero-models": "7f0ecde995eb08a7e84c1065b842f5e76ca9ace239763e76b3ee86c2dca70ce1",
   "model-sounds": "38449de88adca15b3984f6d883b356123296c0780d8a6d6f7590c025a7897a3d"
 }

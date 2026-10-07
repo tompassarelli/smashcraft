@@ -123,6 +123,12 @@ code. From smashcraft:ts/:
   ten expansion heroes, four throws, both facings, with ordinary catch/pummel
   inputs and contact-frame captures in smashcraft:ts/test/native/pads/180/.
   `-dev quick pair FIRST / SECOND` selects different named fighters in the two human slots.
+- Thrall stock-rig animation authoring (from the repository root):
+  `bun tools/animations/thrall-clips.ts STOCK_THRALL.mdx PRIVATE_OUTPUT` appends
+  mounted hammer, casting, recovery, grab and nine contact-reaction clips,
+  writes both-facing side-view sheets, and refreshes Thrall clip and stride
+  metadata. Store the generated model in `hero-models` and refresh the
+  original clip pool before building.
 - Tinker animation authoring (from the repository root):
   `bun tools/animations/tinker-clips.ts PRIVATE_CLASSIC_HEROTINKER.mdx PRIVATE_OUTPUT [--no-pool]`
   preserves the 23 classic sequences and authors the claw-pack, Robo-Goblin,

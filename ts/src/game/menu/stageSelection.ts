@@ -25,20 +25,18 @@ interface StageDrag {
 const CARRY: StageGesture = { kind: "carry" };
 
 export function stageTileLeft(choice: number): number {
-  if (choice === RANDOM_STAGE) return f32(0.045);
-  return f32(0.45399999618530273 + f32(floorMod(stageTileIndex(choice), 3) * 0.10199999809265137));
+  return f32(0.45399999618530273 + f32(floorMod(choice === RANDOM_STAGE ? 0 : stageTileIndex(choice) + 1, 3) * 0.10199999809265137));
 }
 
 export function stageTileTop(choice: number): number {
-  if (choice === RANDOM_STAGE) return f32(0.555);
-  return f32(0.4399999976158142 - f32(floorDiv(stageTileIndex(choice), 3) * 0.10300000011920929));
+  return f32(f32(0.445) - f32(floorDiv(choice === RANDOM_STAGE ? 0 : stageTileIndex(choice) + 1, 3) * f32(0.08)));
 }
 
 export function stageTileAt(x: number, y: number): StageChoice | undefined {
   for (const stage of STAGE_CHOICES) {
     const left = stageTileLeft(stage.id);
     const top = stageTileTop(stage.id);
-    if (x >= left && x <= f32(left + 0.09399999678134918) && y <= top && y >= f32(top - 0.07800000160932541)) return stage.id;
+    if (x >= left && x <= f32(left + 0.09399999678134918) && y <= top && y >= f32(top - f32(0.059))) return stage.id;
   }
   return undefined;
 }
@@ -46,7 +44,7 @@ export function stageTileAt(x: number, y: number): StageChoice | undefined {
 /** The chip is centered on the chosen tile; a press within 0.02 of its center picks it up. */
 function onStageChip(choice: number, x: number, y: number): boolean {
   const dx = x - (stageTileLeft(choice) + 0.04699999839067459);
-  const dy = y - f32(stageTileTop(choice) - 0.039000000804662704);
+  const dy = y - f32(stageTileTop(choice) - f32(0.0295));
   return dx * dx + dy * dy <= 0.00039999998989515007;
 }
 

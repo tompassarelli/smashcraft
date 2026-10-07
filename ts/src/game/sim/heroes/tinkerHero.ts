@@ -1,4 +1,5 @@
 import { TINKER_CLIPS, TINKER_FALLBACK_CLIP } from "../../presentation/heroes/tinkerClips";
+import { TINKER_DAMAGE_CLIPS } from "../../presentation/heroes/tinkerClipInfo";
 import { Character } from "../codes";
 import type { HeroDefinition } from "./hero";
 import { TINKER_MOVES } from "./tinkerMoves";
@@ -16,6 +17,6 @@ export const TINKER_HERO: HeroDefinition = {
     model: "units\\creeps\\HeroTinker\\HeroTinker.mdl", objectId: 0x6d667469,
     portrait: "ReplaceableTextures\\CommandButtons\\BTNHeroTinker.blp",
     placedModel: { path: "Units\\Creeps\\HeroTinkerFactory\\HeroTinkerFactory.mdl", height: 100.0, alpha: 255 },
-    clips: TINKER_CLIPS, fallback: TINKER_FALLBACK_CLIP,
+    clips: TINKER_CLIPS, damageClips: TINKER_DAMAGE_CLIPS, fallback: TINKER_FALLBACK_CLIP,
   },
 };
