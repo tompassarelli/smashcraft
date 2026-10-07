@@ -741,6 +741,18 @@ pose tuning. Correct export/playback is not a claim of finished animation art.
 
 ## Jump and double jump
 
+`bun tools/animations/jump-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends
+movement-only sequences where stock jumps borrowed an attack or special:
+Blademaster and Warden double-jump somersaults, Lich's airborne contraction,
+and Dreadlord/Shadow Hunter spring gestures. The flip coils chest, arms and
+legs before a full stage-plane rotation, then opens into recovery. It uses
+the existing 30 presentation frames; ground jumps retain 24. The tool checks
+every previous sequence at start/middle/end, including Blademaster's
+Bladestorm, and saves a private both-facing Blademaster silhouette sheet.
+Publish the hero-models and original-clips-static-lights families after pool
+export. `jumpClips.tests.ts` checks all selectable fighters' jump/double-jump/
+fall indices against attacks and grounded/aerial specials in Bun and Lua.
+
 Archer Jump lasts 24 source frames at 24fps; Double Jump lasts 30. Both are
 authored by smashcraft:tools/animations/dodges.py in the final fighter scene.
 Jump tucks the legs; Double Jump uses the established stage-plane somersault
