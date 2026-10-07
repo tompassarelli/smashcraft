@@ -327,20 +327,20 @@ const MENU_PHASES: Partial<Readonly<Record<Phase, MenuPhase>>> = {
   [Phase.result]: "RESULT",
 };
 
-/** Tells the helper which menu its controller may drive; refreshed every 15 callbacks, BLOCKED once. */
+/** Tells the controller service which menu is open; refreshed every 15 callbacks, BLOCKED once. */
 export function publishMenu(s: ShellState): void {
   const journal = s.rollback?.journal;
-  if (journal?.editbox === undefined || s.rollback === undefined) return;
+  if (journal?.editbox === undefined && s.build.input.kind !== "keyboard" && s.build.input.kind !== "callback") return;
   const slot = localSlot();
   const menu = isParticipantSlot(slot) && views(s).selections[slot].cpuSettingsOpen() ? "CPU" : MENU_PHASES[s.game.phase];
-  const live = s.rollback.active && journal.lifecycle?.quiescent() !== true;
+  const live = journal !== undefined && s.rollback?.active === true && journal.lifecycle?.quiescent() !== true;
   const phase: MenuPhase = isParticipantSlot(slot) && controlsAvailable(s, slot) && menu !== undefined && !live ? menu : "BLOCKED";
-  journal.menuTicks++;
-  if (phase === journal.menuPhase && (phase === "BLOCKED" || journal.menuTicks < 15)) return;
-  journal.menuPhase = phase;
-  journal.menuTicks = 0;
+  const previous = s.menuPublication;
+  if (previous !== undefined) previous.ticks++;
+  if (phase === previous?.phase && (phase === "BLOCKED" || previous.ticks < 15)) return;
+  s.menuPublication = { phase, ticks: 0 };
   const { game } = s;
-  writeJournalFile(menuFile(journalIdentity(s, s.rollback.epoch), phase, {
+  writeJournalFile(menuFile(journalIdentity(s, s.rollback?.epoch ?? 0), phase, {
     connected: game.humanMask, humanFighters: game.humanFighterMask, computers: game.computerMask, fighters: fighterMask(game),
   }));
 }
