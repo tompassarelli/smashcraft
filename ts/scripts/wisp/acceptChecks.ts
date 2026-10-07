@@ -9,6 +9,7 @@ import { QUICK_HERO_COMMAND, QUICK_TRAINING_COMMAND } from "../../src/game/shell
 import { HIT_PRESENTATION_CASES } from "../../src/game/shell/hitPresentationCases";
 import { HERO_ROSTER } from "../../src/game/sim/heroes/registry";
 import { STAGE_CATALOG } from "../../src/game/menu/stageCatalog";
+import { STAGE_COMPOSITION_CHECKS, STAGE_COMPOSITION_MAPS } from "./stageCompositionChecks";
 
 const inputs = join(homedir(), ".local/share/smashcraft-build-inputs");
 
@@ -32,6 +33,7 @@ const heroProfile = (name: string) => `hero-${name.toLowerCase().replace(/\s+/g,
 
 export const MAP_PROFILES: Readonly<Record<string, SmashcraftMapProfile>> = {
   outfits: { describe: "four-colour portrait candidate, red Archer and blue Rifleman", path: join(inputs, "slot-outfits-161-20261007/Smashcraft diagnostic slot portrait outfits.w3x"), quick: "-dev quick" },
+  ...STAGE_COMPOSITION_MAPS,
   presentation: { describe: "development map rebuilt from this checkout, `-dev quick` (Archer and Rifleman idle on the default stage)", path: PRESENTATION, rebuild: "main", quick: "-dev quick" },
   // smashcraft:docs/player-view.md: CURRENT_BUILD's scenario set to underside, built as a development map.
   underside: { describe: "development map built with scenario underside (smashcraft:docs/player-view.md), `-dev quick`", path: join(inputs, "stage-model-20261006/Smashcraft diagnostic underside.w3x"), quick: "-dev quick" },
@@ -205,6 +207,7 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
     ...effectChecks,
     ...stageChecks,
     ...lightingChecks,
+    ...STAGE_COMPOSITION_CHECKS,
     {
       id: "57-underside",
       closes: "smashcraft#57 box 2",
