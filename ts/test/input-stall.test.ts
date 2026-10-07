@@ -1,11 +1,11 @@
 // Issue #46: a player's controller input stops mid-match. Every client names
 // the player the match waits for, and the match goes on when the input
-// returns. Two simulated clients of the playable build, with Battle.net's
+// returns. Two simulated clients of the journal (integrity) build, with Battle.net's
 // measured sync latency.
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import type { HeadlessClient } from "wisp/src/headless/client";
-import { PLAYABLE_BUILD } from "../src/game/shell/currentBuild";
+import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
 import { PREDICTED_HEADLESS } from "../scripts/wisp/headless";
 import { JournalHelpers } from "./rematch/journalHelper";
 import { WAITING, confirmedFrame, expectSynchronized, shows, startPlayableMatch } from "./rematch/playableMatch";
@@ -14,7 +14,7 @@ const headless = installHeadless(PREDICTED_HEADLESS);
 afterAll(headless.restore);
 
 test("a helper that stops mid-match shows every client who the match waits for within a second, and the match resumes when it types again", () => {
-  const helpers = new JournalHelpers(PLAYABLE_BUILD.id, true);
+  const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);
   helpers.workload = { denseCycles: 2, walkers: [] };
   const { clients, frames, clientA: a, clientB: b } = startPlayableMatch(headless, helpers, false);
   frames(60);

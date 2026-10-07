@@ -103,12 +103,13 @@ export const ensureService = (helper: string) => Effect.gen(function*() {
 /** Seconds the service has to serve a game whose map shows its first screen. */
 export const SERVE_SECONDS = 15;
 
-/** Waits until the service serves this game's session of `build`. */
+/** Waits until the service serves this game's session of `build`; fails at once when it found the game but no controller. */
 export const awaitService = (pid: number, build: string, runs: string, statusFile = CONTROLLER_STATUS) => Effect.gen(function*() {
   const deadline = (yield* Clock.currentTimeMillis) + SERVE_SECONDS * 1000;
   while (true) {
     const status = readStatus(statusFile);
     if (servesGame(status, pid, build)) return `ready for Warcraft III (pid ${pid}) through ${runs}`;
+    if (status.state === "no-controller" && status.game_pid === String(pid)) return yield* fail("no controller is plugged in");
     if ((yield* Clock.currentTimeMillis) >= deadline) {
       const why = status.problem === undefined ? `its state is ${status.state ?? "unknown"}` : status.problem;
       return yield* fail(`the controller service didn't take this game within ${SERVE_SECONDS} s: ${why} (${statusFile})`);
@@ -116,3 +117,14 @@ export const awaitService = (pid: number, build: string, runs: string, statusFil
     yield* Effect.sleep("250 millis");
   }
 });
+
+/**
+ * The controller is optional: the keyboard always plays. Starts or refreshes
+ * the service and says whether a controller serves this game; never fails.
+ */
+export const optionalController = (helper: string, pid: number, build: string, statusFile = CONTROLLER_STATUS) =>
+  ensureService(helper).pipe(
+    Effect.flatMap((runs) => awaitService(pid, build, runs, statusFile)),
+    Effect.map((ready) => `controller ${ready}`),
+    Effect.catchTag("PlayProblem", (problem) => Effect.succeed(`keyboard (no controller: ${problem.problem})`)),
+  );

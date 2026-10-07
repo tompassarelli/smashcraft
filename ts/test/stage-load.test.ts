@@ -6,7 +6,7 @@ import { installHeadless } from "wisp/scripts/wisp/headless";
 import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/src/headless/syncChannel";
 import { Phase } from "../src/game/match/rules";
 import { stageInfo } from "../src/game/menu/stageCatalog";
-import { PLAYABLE_BUILD } from "../src/game/shell/currentBuild";
+import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
 import { STAGE_LOAD_TIMEOUT_FRAMES, STAGE_READY_PREFIX, STAGE_SETTLE_FRAMES } from "../src/game/shell/stageLoad";
 import { install, startBuild } from "../src/platform/main";
 import { Key } from "../src/platform/shell/keyEvents";
@@ -19,13 +19,13 @@ afterAll(headless.restore);
 
 /** Two players at stage selection on Gryphon Aerie; `silent` clients never report their stage. */
 function atStageSelection(silent: readonly number[] = []) {
-  const clients = headless.clients({ start: () => startBuild(PLAYABLE_BUILD), install }, [0, 1], { delivery: syncDelivery(MEASURED_BATTLE_NET, 74), keepCalls: 64 });
+  const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1], { delivery: syncDelivery(MEASURED_BATTLE_NET, 74), keepCalls: 64 });
   for (const slot of silent) {
     const client = clients.client(slot);
     const send = client.natives.BlzSendSyncData as (prefix: string, data: string) => boolean;
     client.natives.BlzSendSyncData = (prefix: string, data: string) => prefix === STAGE_READY_PREFIX ? true : send(prefix, data);
   }
-  const helpers = new JournalHelpers(PLAYABLE_BUILD.id);
+  const helpers = new JournalHelpers(INTEGRITY_BUILD.id);
   helpers.workload = { denseCycles: 0, walkers: [] };
   const frames = (n: number) => { for (let i = 0; i < n; i++) { clients.frames(1); helpers.service(clients); } };
   const phases = () => clients.clients.map(client => value(client, () => shell().game.phase));

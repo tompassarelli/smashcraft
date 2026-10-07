@@ -1,6 +1,6 @@
 // Smashcraft's `bun wisp play` declaration against fake game files: the
-// request left before Warcraft starts, fighter selection from the host's menu
-// file, the go-ahead and the map's receipt, and the controller service
+// request left before Warcraft starts, fighter selection from the map's ready
+// file, the go-ahead and the map's receipt, and the optional controller service
 // (test/controller-service.test.ts). The map's side is test/playtest.test.ts.
 import { expect, test } from "bun:test";
 import { join } from "node:path";
@@ -14,14 +14,14 @@ const PLAYTEST = { ...OWNER_PLAYTEST, map: { folder: "00-Smashcraft", file: "Sma
 
 const DOCUMENTS = "/pfx/drive_c/users/steamuser/Documents/Warcraft III";
 const DATA = dataDirectory(DOCUMENTS);
-const MENU = join(DATA, "smashcraft-journal-menu-playable-0047-s0.txt");
+const READY = join(DATA, "wc3-melee-ready.txt");
 const REQUEST = join(DATA, "smashcraft-play.txt");
 const GO = join(DATA, "smashcraft-play-go.txt");
 const RECEIPT = join(DATA, "smashcraft-play-p0.txt");
 
 const preload = (...lines: string[]) =>
   `function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n${lines.map((line) => `\tcall Preload( "${line}" )\n`).join("")}\tcall PreloadEnd( 0.0 )\n\nendfunction\n`;
-const menuFile = (phase: string) => preload(`SMASHCRAFT JOURNAL MENU v=1 build=playable-0047 epoch=1 slot=0 phase=${phase}`, "connected=1 human-fighters=1 computers=0 fighters=1");
+const readyFile = (build = "playable-0047") => preload(`BUILD ${build}`, "INPUT callback PRESENTATION pool-confirmed", "SCENARIO normal", "BINDINGS 87", "HUMANS 1 FIGHTERS 1");
 
 /** CustomMapData as a map: the map's side answers a go-ahead with its receipt, as src/platform/shell/playtest.ts does. */
 function customMapData(answer: "started" | "refused" | "none" = "started") {
@@ -73,24 +73,27 @@ test("a run that stops removes the request, the go-ahead and the receipt", async
   const declared = playtest(PLAYTEST);
   const data = customMapData();
   for (const path of [REQUEST, GO, RECEIPT]) data.stored.set(path, { text: preload("x"), modified: 1 });
-  data.stored.set(MENU, { text: menuFile("CHARACTER"), modified: 1 });
+  data.stored.set(READY, { text: readyFile(), modified: 1 });
   expect(Exit.isSuccess(await simulate(declared.cleanup(DOCUMENTS), data.files))).toBe(true);
   expect(data.removed.sort()).toEqual([GO, RECEIPT, REQUEST].sort());
-  expect(data.stored.has(MENU)).toBe(true);
+  expect(data.stored.has(READY)).toBe(true);
 });
 
-test("fighter selection is a CHARACTER menu file written after the launch; an older file doesn't count", async () => {
+test("fighter selection is the build's ready file written after the launch; an older file or another build's doesn't count", async () => {
   const declared = playtest(PLAYTEST);
   const fresh = customMapData();
   const started = await simulate(Effect.gen(function*() {
     yield* Effect.sleep("3 seconds");
-    fresh.stored.set(MENU, { text: menuFile("CHARACTER"), modified: yield* Clock.currentTimeMillis });
+    fresh.stored.set(READY, { text: readyFile(), modified: yield* Clock.currentTimeMillis });
   }).pipe(Effect.forkChild, Effect.flatMap(() => declared.started(game, 0))), fresh.files);
   expect(Exit.isSuccess(started)).toBe(true);
   const stale = customMapData();
-  stale.stored.set(MENU, { text: menuFile("CHARACTER"), modified: -1 });
+  stale.stored.set(READY, { text: readyFile(), modified: -1 });
   expect(failureText(await simulate(declared.started(game, 0), stale.files)))
-    .toContain("Smashcraft didn't reach fighter selection within 120 s (no new smashcraft-journal-menu-playable-0047-s0.txt)");
+    .toContain("Smashcraft didn't reach fighter selection within 120 s (no new wc3-melee-ready.txt for playable-0047)");
+  const other = customMapData();
+  other.stored.set(READY, { text: readyFile("typescript-dev"), modified: 1 });
+  expect(Exit.isFailure(await simulate(declared.started(game, 0), other.files))).toBe(true);
 });
 
 test("the go-ahead starts the match, and the request and go-ahead are removed for the next session", async () => {
@@ -107,6 +110,6 @@ test("the go-ahead starts the match, and the request and go-ahead are removed fo
   expect(failureText(await simulate(declared.match(game), deaf.files))).toContain("Smashcraft didn't take the playtest request within 15 s");
 });
 
-test("play starts no helper of its own: the always-on controller service serves the game", () => {
+test("play starts no helper of its own: the always-on controller service serves the game when it has a controller", () => {
   expect("service" in playtest(PLAYTEST).helper).toBe(true);
 });

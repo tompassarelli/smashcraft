@@ -56,21 +56,22 @@ export function startMatch(s: ShellState, scenario: Scenario = s.build.scenario)
     const drawn = stageDrawnFile(journalIdentity(s, rollback?.epoch ?? 0), s.drawnStage, s.stageDecks.length);
     writeLines(drawn.name, drawn.lines);
   }
-  const pooled = usesPool(s.build) && rollback?.active === true;
-  if (pooled && rollback !== undefined) beginModelSoundEpoch(s.sounds, rollback.epoch);
+  // A callback match draws its pool from confirmed frames; a rollback match once its epoch began.
+  const pooled = usesPool(s.build) && rollback?.active !== false;
+  // Model sounds follow epochs: a rollback match's own, or one more for each callback match.
+  if (pooled) beginModelSoundEpoch(s.sounds, rollback?.epoch ?? (s.sounds.epoch ?? 0) + 1);
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(s.world, slot)) continue;
     const participant = s.participants[slot];
     const fighter = fighterAt(s.world, slot);
     participant.pooled = beginFighterRenderers(s, slot, fighter.character, pooled);
-    if (!pooled || rollback === undefined) continue;
     // A fighter without a clip pool is drawn by its unit body instead.
     if (!participant.pooled) continue;
     if (participant.body !== undefined) {
       SetUnitTimeScale(participant.body.unit, 0.0);
       ShowUnit(participant.body.unit, false);
     }
-    confirmModelSounds(s.sounds, rollback.epoch, 0, slot, fighter, s.runtime.poses[slot], ui.sounds);
+    confirmModelSounds(s.sounds, s.sounds.epoch ?? 0, 0, slot, fighter, s.runtime.poses[slot], ui.sounds);
   }
   ui.match.beginMatch(stageMusic(s.game.stageChoice), s.game, s.world);
   renderPersistentPresentation(s);

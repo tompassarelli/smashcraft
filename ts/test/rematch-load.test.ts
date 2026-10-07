@@ -1,6 +1,6 @@
 // A match, slot change and three-fighter rematch in two simulated clients of
-// the playable build, whose journal input and rollback the integrity build
-// shares without its diagnostics, with each helper typing #26's dense taps
+// the integrity build, with its journal input and rollback,
+// with each helper typing #26's dense taps
 // into the edit box and Battle.net's measured sync latency. Native #26 runs
 // held one core per client in the first match and fell behind real time in
 // the rematch, whose slot change adds a computer fighter that every client
@@ -22,7 +22,7 @@ import { Character } from "../src/game/sim/codes";
 import { PROJECTILE_CAPACITY } from "../src/game/sim/fighter";
 import { fighterRenderedCues } from "../src/game/presentation/attackCues";
 import { fighterAt, isActive } from "../src/game/sim/roster";
-import { PLAYABLE_BUILD } from "../src/game/shell/currentBuild";
+import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
 import { matchRecordFile } from "../src/runtime/gameFiles";
 import { install, startBuild } from "../src/platform/main";
 import { Key } from "../src/platform/shell/keyEvents";
@@ -36,7 +36,7 @@ import { JournalHelpers, type Workload } from "./rematch/journalHelper";
 const declarations = readNativeDeclarations();
 // Desyncs are the desync guard's to find; unlogged natives keep these frames fast.
 const unlogged = Object.fromEntries(declarations.functions.map(([name]) => [name, "this test counts the calls it checks"]));
-const helpers = new JournalHelpers(PLAYABLE_BUILD.id);
+const helpers = new JournalHelpers(INTEGRITY_BUILD.id);
 const headless = installHeadless({ ...SMASHCRAFT_HEADLESS, localNatives: unlogged }, declarations);
 afterAll(headless.restore);
 
@@ -167,7 +167,7 @@ function shownClipProblems(client: HeadlessClient, parkedBelow: number, seen: Ma
 
 // About 2.3 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
 test("a match and its three-fighter rematch show each pooled fighter whole where he stands, read only correctable rollback rows, touch no parked effect and keep nothing between them", () => {
-  const clients = headless.clients({ start: () => startBuild(PLAYABLE_BUILD), install }, [0, 1], { delivery: syncDelivery(MEASURED_BATTLE_NET, 7) });
+  const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1], { delivery: syncDelivery(MEASURED_BATTLE_NET, 7) });
   const host = clients.clients[0] as HeadlessClient;
   const lifetimes = countLifetimes(host);
   let parkedBelow = 0;
@@ -257,7 +257,7 @@ test("a match and its three-fighter rematch show each pooled fighter whole where
   clients.clients.forEach((client, index) => {
     for (const [serial, fighters] of [[1, 2], [2, 3]] as const) {
       const record = client.files.get(matchRecordFile(serial)) ?? [];
-      expect(record[0]).toStartWith(`smashcraft-match v=1 build=${PLAYABLE_BUILD.id} serial=${serial} local=P${index + 1} mode=versus`);
+      expect(record[0]).toStartWith(`smashcraft-match v=1 build=${INTEGRITY_BUILD.id} serial=${serial} local=P${index + 1} mode=versus`);
       expect(record.filter(line => line.startsWith("fighter ")).length).toBe(fighters);
       expect(record[record.length - 1]).toBe(`end lines=${record.length - 1}`);
     }

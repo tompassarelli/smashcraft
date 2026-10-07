@@ -1,10 +1,10 @@
-// #74: rule clicks and match/rematch journeys through the playable journal helpers.
+// #74: rule clicks and match/rematch journeys through the journal helpers (integrity build).
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/src/headless/syncChannel";
 import { Phase } from "../src/game/match/rules";
 import { RULE_BUTTONS } from "../src/game/ui/ruleButtons";
-import { PLAYABLE_BUILD } from "../src/game/shell/currentBuild";
+import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
 import { fighterAt } from "../src/game/sim/roster";
 import { install, startBuild } from "../src/platform/main";
 import { Key } from "../src/platform/shell/keyEvents";
@@ -15,8 +15,8 @@ import { expectSynchronized, shows, value } from "./rematch/playableMatch";
 const headless = installHeadless(PREDICTED_HEADLESS);
 afterAll(headless.restore);
 function session(endless = false) {
-  const clients = headless.clients({ start: () => startBuild(PLAYABLE_BUILD), install }, [0, 1], { delivery: syncDelivery(MEASURED_BATTLE_NET, 74), keepCalls: 64 });
-  const helpers = new JournalHelpers(PLAYABLE_BUILD.id);
+  const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1], { delivery: syncDelivery(MEASURED_BATTLE_NET, 74), keepCalls: 64 });
+  const helpers = new JournalHelpers(INTEGRITY_BUILD.id);
   helpers.workload = { denseCycles: 0, walkers: [0] };
   const read = <T>(body: () => T) => value(clients.client(0), body);
   const frames = (n: number) => { for (let i = 0; i < n; i++) { clients.frames(1); helpers.service(clients); } };

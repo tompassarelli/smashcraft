@@ -15,6 +15,14 @@ declare global {
   var __smashcraftMatchSerial: number | undefined;
 }
 
+/**
+ * Reads the index at map start, so no match frame reads a file: a callback
+ * match takes its first serial on its first frame.
+ */
+export function readMatchIndex(): void {
+  globalThis.__smashcraftMatchSerial ??= nextSerial(readChunk(MATCH_RECORD_INDEX_FILE));
+}
+
 /** The next serial, its successor written to the index first so a serial is never reused. */
 export function takeMatchSerial(): number {
   const serial = globalThis.__smashcraftMatchSerial ?? nextSerial(readChunk(MATCH_RECORD_INDEX_FILE));

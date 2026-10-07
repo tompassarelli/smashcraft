@@ -1,5 +1,5 @@
 // Smashcraft's soak matches (scripts/wisp/soak.ts, wisp:docs/soak.md): the
-// playable build with the scene recorder in two headless clients. Each
+// integrity build (journal input) with the scene recorder in two headless clients. Each
 // player's helper is the journal stand-in (test/rematch/journalHelper.ts) on
 // the soak's wall clock: it types rows from the fuzzed controller ("fuzz"),
 // neutral rows while the player's fighter is a computer ("cpu"), or nothing,
@@ -16,7 +16,7 @@ import { Action, bit } from "../../src/game/input/actions";
 import { INPUT_ROW_NUMBERS, type InputRow, emptyInput, inputRow, loadInputNumbers } from "../../src/game/input/inputRow";
 import { PARTICIPANT_SLOTS } from "../../src/game/input/participants";
 import { MATCH_TICKS_PER_SECOND, Phase } from "../../src/game/match/rules";
-import { PLAYABLE_BUILD } from "../../src/game/shell/currentBuild";
+import { INTEGRITY_BUILD } from "../../src/game/shell/currentBuild";
 import { AttackStyle, Character, DownState, GrabAction, HippogryphKind, ProjectileKind, SpecialAction } from "../../src/game/sim/codes";
 import type { Fighter } from "../../src/game/sim/fighter";
 import { isHeroSpecialAction } from "../../src/game/sim/heroSpecialRules";
@@ -114,14 +114,14 @@ class ControllerRows {
   }
 }
 
-/** The playable build with the scene recorder: what players run, reporting what it draws. */
+/** The integrity build with the scene recorder: journal input, reporting what it draws. */
 export const SOAK_ENTRY = {
   start: () => {
-    startBuild(PLAYABLE_BUILD);
+    startBuild(INTEGRITY_BUILD);
     startMatchSceneReport();
   },
   install: () => {
-    installGame(PLAYABLE_BUILD);
+    installGame(INTEGRITY_BUILD);
     installSceneReport();
   },
 };
@@ -480,7 +480,7 @@ export default defineSoakGame({
       beginMatch(clients, match, () => clients.frames(1));
       return { input: () => undefined, ...matchView(() => undefined), ...lockLoops() };
     }
-    const helpers = new JournalHelpers(PLAYABLE_BUILD.id, true);
+    const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);
     const controllers = new Map<number, ControllerRows>();
     match.policies.forEach((policy, slot) => {
       if (policy === "fuzz") controllers.set(slot, new ControllerRows());

@@ -1,8 +1,9 @@
-// #141: every client records the playable build's rollback match as a replay
+// #141, #166: every client records the playable build's match as a replay
 // while it runs (parts during the match, the manifest at its result, under
 // its match record's serial), and the replay plays the whole match back to
 // every checksum it recorded: in Bun always, and in 32-bit Lua when LUA names
-// one (CI's Lua step runs this file with it).
+// one (CI's Lua step runs this file with it). The playable build's match is
+// played on the keyboard alone, through Warcraft's synchronized key events.
 import { afterAll, expect, test } from "bun:test";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -11,9 +12,10 @@ import { Effect } from "effect";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/src/headless/syncChannel";
 import type { HeadlessClient } from "wisp/src/headless/client";
-import { Phase } from "../src/game/match/rules";
+import { Phase, holdingStart } from "../src/game/match/rules";
 import { joinReplay, parseReplayHeader, parseReplayPart, replayMatch } from "../src/game/replay/matchReplay";
 import { PLAYABLE_BUILD } from "../src/game/shell/currentBuild";
+import { fighterAt } from "../src/game/sim/roster";
 import { RULE_BUTTONS } from "../src/game/ui/ruleButtons";
 import { matchRecordFile, replayFile, replayPartFile } from "../src/runtime/gameFiles";
 import { install, startBuild } from "../src/platform/main";
@@ -23,7 +25,6 @@ import { shell } from "../src/platform/shell/state";
 import { PREDICTED_HEADLESS } from "../scripts/wisp/headless";
 import { replayInLua } from "../scripts/wisp/commands/replay";
 import { readReplay } from "../scripts/wisp/replayFiles";
-import { JournalHelpers } from "./rematch/journalHelper";
 import { expectSynchronized, value } from "./rematch/playableMatch";
 
 const headless = installHeadless(PREDICTED_HEADLESS);
@@ -43,21 +44,24 @@ function joinedReplay(client: HeadlessClient, serial: number): string[] {
   return joinReplay(header, parts);
 }
 
-// Three stocks, one minute: the walkers fall off the stage, which ends the match in about ten seconds.
-test("a one-minute rollback match leaves a replay on each client that replays to every recorded checksum", async () => {
+/** The standard key layout's keys (game/input/keyBindings.ts). */
+const KEYS = { left: 0x57, right: 0x52, jump: 0x49, attack: 0x4e, special: 0x55, grab: 0x4f, shield: 0x51 } as const;
+/** Taps both players make, one every 20 frames, before they walk off. */
+const TAPS = [KEYS.jump, KEYS.attack, KEYS.special, KEYS.grab, KEYS.shield, KEYS.attack];
+
+// Three stocks, one minute: after their taps the players walk off their own
+// sides, which ends the match in about ten seconds.
+test("a one-minute keyboard match in the playable build reaches its result and replays to every recorded checksum", async () => {
   const clients = headless.clients({ start: () => startBuild(PLAYABLE_BUILD), install }, [0, 1], { delivery: syncDelivery(MEASURED_BATTLE_NET, 141), keepCalls: 64 });
-  const helpers = new JournalHelpers(PLAYABLE_BUILD.id);
-  helpers.workload = { denseCycles: 1, walkers: [0, 1] };
   const read = <T>(body: () => T) => value(clients.client(0), body);
-  const frames = (n: number) => {
-    for (let i = 0; i < n; i++) {
-      clients.frames(1);
-      helpers.service(clients);
-    }
-  };
+  const frames = (n: number) => clients.frames(n);
   const until = (what: string, done: () => boolean, n: number) => {
     for (let i = 0; i < n && !done(); i++) frames(1);
     expect(done(), what).toBe(true);
+  };
+  // A key held down or let go: Warcraft gives the event to every client on the same turn.
+  const hold = (slot: number, key: number, down: boolean) => {
+    for (const client of clients.clients) client.key(slot, key, 0, down);
   };
   const click = (name: keyof typeof RULE_BUTTONS) => {
     const box = RULE_BUTTONS[name];
@@ -68,13 +72,29 @@ test("a one-minute rollback match leaves a replay on each client that replays to
   frames(30);
   for (let i = 0; i < 7; i++) click("lessTime");
   click("moreTime");
-  for (const actor of [0, 1]) clients.press(actor, Key.n);
+  // Each player picks the next fighter with Move right; Start (Y) goes on to stages, then to the match.
+  for (const actor of [0, 1]) clients.press(actor, KEYS.right);
   frames(5);
   clients.press(0, Key.y);
   until("stage selection", () => read(() => shell().game.phase) === Phase.stageMenu, 30);
   clients.press(0, Key.y);
   until("match", () => read(() => shell().game.phase) === Phase.match, 120);
+  until("GO!", () => read(() => !holdingStart(shell().game)), 240);
+  for (const key of TAPS) {
+    for (const actor of [0, 1]) clients.press(actor, key);
+    frames(20);
+  }
+  frames(30);
+  const [attacks, jumps] = [read(() => [0, 1].map((slot) => fighterAt(shell().world, slot).attack.serial)), read(() => [0, 1].map((slot) => fighterAt(shell().world, slot).jump.serial))];
+  for (const slot of [0, 1]) {
+    expect(attacks[slot] ?? 0, `player ${slot + 1} attacked`).toBeGreaterThan(0);
+    expect(jumps[slot] ?? 0, `player ${slot + 1} jumped`).toBeGreaterThan(0);
+  }
+  hold(0, KEYS.left, true);
+  hold(1, KEYS.right, true);
   until("result", () => read(() => shell().game.phase) === Phase.result, 3900);
+  hold(0, KEYS.left, false);
+  hold(1, KEYS.right, false);
   frames(30);
   expectSynchronized(clients);
   const replays = clients.clients.map((client) => {

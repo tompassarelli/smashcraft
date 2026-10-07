@@ -1,14 +1,14 @@
 // Issue #46: in Tom's 0.0.47 playtest player 1's helper journaled, player 2's
 // client had none, a computer Illidan made three, and the match stopped at
 // 7:00 on its first frames with nothing on screen. Here in two simulated
-// clients of the playable build, with Battle.net's measured sync latency.
+// clients of the journal (integrity) build, with Battle.net's measured sync latency.
 import { holdingStart } from "../src/game/match/rules";
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { Action, bit } from "../src/game/input/actions";
 import type { ParticipantInputs } from "../src/game/input/participants";
 import { ShadowInputSchedule } from "../src/game/netcode/shadowSchedule";
-import { PLAYABLE_BUILD } from "../src/game/shell/currentBuild";
+import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
 import { KEYBOARD_FALLBACK_MESSAGE } from "../src/game/shell/messages";
 import { fighterAt } from "../src/game/sim/roster";
 import { Key } from "../src/platform/shell/keyEvents";
@@ -38,7 +38,7 @@ ShadowInputSchedule.prototype.readConfirmed = function (this: ShadowInputSchedul
 };
 
 test("a human without a controller helper plays on the keyboard: the match runs, their fighter stands still until a key moves it, and Y pauses", () => {
-  const helpers = new JournalHelpers(PLAYABLE_BUILD.id, true);
+  const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);
   helpers.silent.add(1);
   const { clients, frames, clientA: a, clientB: b } = startPlayableMatch(headless, helpers, true);
   const player2X = (client: typeof a) => value(client, () => fighterAt(shell().world, 1).motion.x);

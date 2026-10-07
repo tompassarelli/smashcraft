@@ -36,7 +36,7 @@ import { preloadStageAssets } from "./stageScenery";
 import { PROBE_EXPORT, exportProbePage, probeBegin, probePresent } from "./responseProbe";
 import { receiveInput, rollbackTick } from "./rollback";
 import { SAVE_MOMENT, momentKey, serviceMomentRequest, serviceMomentSave } from "./moment";
-import { writeMatchRecord } from "./matchRecords";
+import { readMatchIndex, writeMatchRecord } from "./matchRecords";
 import { type ShellState, activeRollback, createShellState, momentSaves, replayRecording, shellState } from "./state";
 import { endReplaySegment, serviceReplay } from "./replays";
 import { CONTROL_ACK_PREFIX } from "../../game/shell/pauseBarrier";
@@ -276,6 +276,7 @@ function initialize(): void {
   renderUi(s);
   createTriggers(s);
   readPlaytestRequest(s);
+  readMatchIndex();
   for (const participant of s.participants) {
     if (humanActive(s.game, participant.slot)) initializeBindingSettings(participant.bindings);
     else useDefaultBindings(participant.bindings);

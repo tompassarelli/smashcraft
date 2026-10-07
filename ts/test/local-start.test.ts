@@ -19,7 +19,7 @@ import { observedFrameLegalActions, observedFrameStartedActions } from "../src/g
 import { ShadowInputSchedule } from "../src/game/netcode/shadowSchedule";
 import { Character } from "../src/game/sim/codes";
 import type { Roster } from "../src/game/sim/roster";
-import { PLAYABLE_BUILD } from "../src/game/shell/currentBuild";
+import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
 import { install, startBuild } from "../src/platform/main";
 import { confirmedChecksum } from "../src/platform/shell/diagnostics";
 import { Key } from "../src/platform/shell/keyEvents";
@@ -94,7 +94,7 @@ const STALLS = [360, 840, 1320];
 
 const declarations = readNativeDeclarations();
 const unlogged = Object.fromEntries(declarations.functions.map(([name]) => [name, "this test compares confirmed state"]));
-const helpers = new JournalHelpers(PLAYABLE_BUILD.id, true);
+const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);
 helpers.rows = (_slot, frame) => BEAT_ROWS[frame] ?? BEAT_ROWS[0] as InputRow;
 let now = 0;
 helpers.clock = () => now;
@@ -192,7 +192,7 @@ interface LockstepFrames {
 test("#60: every local press starts in the presser's next prediction unless a remote holds prediction back", () => {
   const network = syncDelivery(BOT_SESSION_LATENCY, 11);
   let slower = 0;
-  const clients = headless.clients({ start: () => startBuild(PLAYABLE_BUILD), install }, [0, 1], { delivery: { arrivalFrame: (sender, frame, message) => network.arrivalFrame(sender, frame, message) + (sender === 1 ? slower : 0) } });
+  const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1], { delivery: { arrivalFrame: (sender, frame, message) => network.arrivalFrame(sender, frame, message) + (sender === 1 ? slower : 0) } });
   const lockstep = clients as unknown as LockstepFrames;
   const host = clients.clients[0] as HeadlessClient;
   const read = <T>(client: HeadlessClient, body: () => T): T => {

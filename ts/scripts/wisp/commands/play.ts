@@ -1,5 +1,6 @@
-// `bun wisp play`: from Tom's desktop to a match against a computer, with
-// his Xbox controller (wisp:docs/play.md). Wisp hosts the map once Warcraft
+// `bun wisp play`: from Tom's desktop to a match against a computer, played
+// on the keyboard, or on his Xbox controller when the controller service has
+// one (wisp:docs/play.md). Wisp hosts the map once Warcraft
 // III has read its ladder maps; the map reads the playtest request at its
 // start and starts the match on the go-ahead
 // (src/platform/shell/playtest.ts). The map, its helper and the computer's
@@ -14,21 +15,22 @@ import { documentsFolder } from "wisp/scripts/warcraft/battleNet";
 import { GameFiles, dataDirectory, readGameFile } from "wisp/scripts/wisp/gameFiles";
 import { type PlayDeclaration, type PlayGame, PlayProblem } from "wisp/scripts/wisp/play";
 import { playtestRequest } from "../../../src/game/shell/playtest";
-import { JournalMenu, PLAYTEST_GO_FILE, PLAYTEST_REQUEST_FILE, journalMenuFile, playtestReceiptFile } from "../boundary";
+import { MeleeReady, PLAYTEST_GO_FILE, PLAYTEST_REQUEST_FILE, playtestReceiptFile } from "../boundary";
+import { MELEE_READY_FILE } from "../../../src/runtime/gameFiles";
 import { clientState, gameFilesLayer } from "../project";
 import { smashcraftWatch } from "../doctor";
 import { currentPlaytest } from "../currentPlaytest";
-import { awaitService, ensureService } from "../controllerService";
+import { optionalController } from "../controllerService";
 import { installLatest } from "../mapLibrary";
 import type { Command } from "wisp/scripts/wisp/command";
 import { PLAYABLE_BUILD } from "../../../src/game/shell/currentBuild";
 import type { PlayTools } from "wisp/scripts/wisp/playHost";
 
 interface Playtest {
-  /** The map build's ID: its journal files and the helper's --build. */
+  /** The map build's ID, which its ready file names. */
   readonly build: string;
   readonly map: PlayDeclaration["map"];
-  /** The Linux helper for the build; the always-on controller service runs it. */
+  /** The Linux helper for the build; the always-on controller service runs it when a controller is plugged in. */
   readonly helper: string;
   /** The computer's slot from 0; Tom's own is 0. */
   readonly computerSlot: number;
@@ -41,7 +43,7 @@ interface Playtest {
 /** Tom's own Warcraft III install. */
 export const PLAYTEST_PREFIX = join(homedir(), ".local/share/Steam/steamapps/compatdata/3516115571/pfx");
 
-/** Journal identity of the current playable profile; map and helper resolve from main at invocation. */
+/** The current playable build; map and helper resolve from main at invocation. */
 export const PLAYTEST: Omit<Playtest, "map" | "helper"> = {
   build: PLAYABLE_BUILD.id,
   computerSlot: 2,
@@ -78,9 +80,8 @@ const until = <A, R>(seconds: number, observe: Effect.Effect<A | undefined, Play
 });
 
 export function playtest({ build, map, helper, computerSlot, computerLevel, menuReportPort }: Playtest): PlayDeclaration<GameFiles> {
-  const name = journalMenuFile(build, 0);
-  /** The host's menu file; one being written reads as absent. */
-  const menu = (game: PlayGame) => readGameFile(join(dataDirectory(game.documents), name), JournalMenu).pipe(
+  /** The ready file the map writes at fighter selection; one being written reads as absent. */
+  const ready = (game: PlayGame) => readGameFile(join(dataDirectory(game.documents), MELEE_READY_FILE), MeleeReady).pipe(
     Effect.catchTag("MalformedGameFile", () => Effect.succeed(undefined)),
     Effect.mapError(problem),
   );
@@ -111,8 +112,8 @@ export function playtest({ build, map, helper, computerSlot, computerLevel, menu
       const gameFiles = yield* GameFiles;
       for (const path of Object.values(files(documents))) if ((yield* gameFiles.read(path)) !== undefined) yield* gameFiles.remove(path);
     }).pipe(Effect.mapError(problem)),
-    started: (game, since) => until(LOAD_SECONDS, menu(game).pipe(Effect.map((file) => (file !== undefined && file.modified > since && file.value.phase === "CHARACTER" ? true : undefined))),
-      `Smashcraft didn't reach fighter selection within ${LOAD_SECONDS} s (no new ${name})`),
+    started: (game, since) => until(LOAD_SECONDS, ready(game).pipe(Effect.map((file) => (file !== undefined && file.modified > since && file.value.build === build ? true : undefined))),
+      `Smashcraft didn't reach fighter selection within ${LOAD_SECONDS} s (no new ${MELEE_READY_FILE} for ${build})`),
     // The go-ahead: the map sends the request to every client and starts the match; its receipt says how it went.
     match: (game) => Effect.gen(function*() {
       const gameFiles = yield* GameFiles;
@@ -126,8 +127,9 @@ export function playtest({ build, map, helper, computerSlot, computerLevel, menu
       if (!answer.includes(`${request} started`)) return yield* new PlayProblem({ problem: `Smashcraft refused the playtest request "${request}": fighter selection had moved on or a human holds Player ${computerSlot + 1}` });
       return `level ${computerLevel} computer as Player ${computerSlot + 1}, match started`;
     }),
-    // The always-on controller service finds this game, its session and the pad by itself.
-    helper: { service: (game) => ensureService(helper).pipe(Effect.flatMap((runs) => awaitService(game.pid, build, runs))) },
+    // The keyboard always plays. The always-on controller service finds this
+    // game and a pad by itself; without one, play goes on.
+    helper: { service: (game) => optionalController(helper, game.pid, build) },
   };
 }
 

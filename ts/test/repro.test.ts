@@ -1,14 +1,14 @@
 // wisp#15: K saves the last ten seconds of a match on the asking player's
 // client only, with no desync, and the saved moment replays to the checksum
 // the game recorded: the development build's callback match and the
-// playable build's rollback match, where a controller helper asks through
+// integrity build's rollback match, where a controller helper asks through
 // the edit box. Wisp's own tests read a repro file as Warcraft writes it.
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import type { HeadlessClient } from "wisp/src/headless/client";
 import { parseRepro } from "wisp/src/runtime/repro";
 import { MOMENT_FRAMES, replayRepro } from "../src/game/replay/moment";
-import { PLAYABLE_BUILD } from "../src/game/shell/currentBuild";
+import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
 import { Phase } from "../src/game/match/rules";
 import { QUICK_MATCH_COMMAND } from "../src/game/shell/devSettings";
 import { MOMENT_SAVED_MESSAGE } from "../src/game/shell/messages";
@@ -70,8 +70,8 @@ test("K in the development build's match saves its last ten seconds on that play
   expectReplays(a.files.get(name), checksum);
 }, 30_000);
 
-test("in the playable build's rollback match, a controller helper's request and K each save the moment on their own client", () => {
-  const helpers = new JournalHelpers(PLAYABLE_BUILD.id, true);
+test("in the integrity build's rollback match, a controller helper's request and K each save the moment on their own client", () => {
+  const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);
   helpers.workload = { denseCycles: 2, walkers: [1] };
   const { clients, frames, clientA: a, clientB: b } = startPlayableMatch(headless, helpers, true);
   // A second of play: a match younger than ten seconds saves from its first frame.

@@ -17,7 +17,7 @@ import {
 } from "wisp/scripts/wisp/soak";
 import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/src/headless/syncChannel";
 import { at } from "wisp/src/runtime/lookup";
-import { PLAYABLE_BUILD } from "../../src/game/shell/currentBuild";
+import { INTEGRITY_BUILD } from "../../src/game/shell/currentBuild";
 import { startHelper } from "../../scripts/integrity/capture";
 import { IntegrityFailure, tryIntegrity } from "../../scripts/integrity/evidence";
 import { type Pad, openPad } from "../../scripts/integrity/linux";
@@ -94,7 +94,7 @@ const playMatch = (runtime: ReturnType<typeof installHeadless>, match: SoakMatch
       const pad = yield* openPad(PAD_BUTTONS);
       pads.push(pad);
       yield* startHelper([
-        options.helper, "--follow-matches", "--build", PLAYABLE_BUILD.id, "--slot", String(slot), "--device", pad.device, "--out", at(data, slot), "--text-out", textPath,
+        options.helper, "--follow-matches", "--build", INTEGRITY_BUILD.id, "--slot", String(slot), "--device", pad.device, "--out", at(data, slot), "--text-out", textPath,
       ], Bun.env, join(out, `helper-${slot}.log`));
     }
     const writes = yield* padThread;

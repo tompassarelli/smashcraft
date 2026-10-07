@@ -1,4 +1,4 @@
-// Two simulated clients of the playable build with Battle.net's measured sync
+// Two simulated clients of the journal (integrity) build with Battle.net's measured sync
 // latency, from start to the match player 1 starts, for the tests of a player
 // whose controller input is missing or stops (#46).
 import { expect } from "bun:test";
@@ -7,7 +7,7 @@ import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/src/headless/syncChannel
 import type { HeadlessClient } from "wisp/src/headless/client";
 import type { Lockstep } from "wisp/src/headless/lockstep";
 import { Phase } from "../../src/game/match/rules";
-import { PLAYABLE_BUILD } from "../../src/game/shell/currentBuild";
+import { INTEGRITY_BUILD } from "../../src/game/shell/currentBuild";
 import { Character } from "../../src/game/sim/codes";
 import { install, startBuild } from "../../src/platform/main";
 import { confirmedChecksum } from "../../src/platform/shell/diagnostics";
@@ -31,7 +31,7 @@ export const confirmedFrame = (client: HeadlessClient) => value(client, () => sh
 
 /** Fighter selection, optionally a computer Illidan in slot C, then the match player 1 starts; helpers type after each frame. */
 export function startPlayableMatch(headless: HeadlessRuntime, helpers: JournalHelpers, withComputer: boolean) {
-  const clients = headless.clients({ start: () => startBuild(PLAYABLE_BUILD), install }, [0, 1], {
+  const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1], {
     delivery: syncDelivery(MEASURED_BATTLE_NET, 46), keepCalls: 64,
   });
   const frames = (count: number) => {

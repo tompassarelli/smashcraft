@@ -30,6 +30,13 @@ test("play waits on the status file until the service serves its game", async ()
   expect(await Effect.runPromise(awaitService(2852, "playable-0047", "the login unit", file))).toBe("ready for Warcraft III (pid 2852) through the login unit");
 });
 
+test("play goes on without a controller: the service found the game and no pad", async () => {
+  const file = join(scratch, "no-pad.txt");
+  writeFileSync(file, "service_pid=10\nprofile=smashcraft\nstate=no-controller\ngame_pid=2852\n");
+  const exit = await Effect.runPromise(Effect.exit(awaitService(2852, "playable-0047", "the login unit", file)));
+  expect(String(exit)).toContain("no controller is plugged in");
+});
+
 test("the launcher link moves to a new helper and reports whether it changed", () => {
   const launcher = join(scratch, "controller/wc3-journal");
   expect(pointLauncher("/helpers/a/wc3-journal", launcher)).toBe(true);

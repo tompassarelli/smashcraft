@@ -120,7 +120,7 @@ export function applyFrame(s: ShellState, recorded = false): void {
     const fighter = fighterAt(world, slot);
     if (rollback !== undefined) copyExecutedInput(s.frameInput, slot, s.produced.inputs[slot]);
     reportChanges(s, slot, participant.before, fighter);
-    if (participant.pooled && !confirmModelSounds(s.sounds, rollback?.epoch ?? 0, runtime.simulationFrame, slot, fighter, runtime.poses[slot], ui.sounds)) {
+    if (participant.pooled && !confirmModelSounds(s.sounds, s.sounds.epoch ?? 0, runtime.simulationFrame, slot, fighter, runtime.poses[slot], ui.sounds)) {
       traceInput(s.trace, `model sound rejected confirmed frame ${runtime.simulationFrame} slot ${slot}`);
     }
     ui.combat.presentConfirmed(runtime.simulationFrame, slot, runtime.frameImpacts[slot]);

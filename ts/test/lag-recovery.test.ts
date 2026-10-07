@@ -1,4 +1,4 @@
-// A 2 s game stall in a playable match of two simulated clients (#48). The
+// A 2 s game stall in a journal match of two simulated clients (#48). The
 // companion helper's frame clock is wall time, so while the game stalls it
 // journals 120 more frames; afterwards the map must run those frames as well
 // as the new ones. Each client confirms and predicts at most CATCH_UP_FRAMES
@@ -25,7 +25,7 @@ import type { ParticipantInputs } from "../src/game/input/participants";
 import { Phase } from "../src/game/match/rules";
 import { ShadowInputSchedule } from "../src/game/netcode/shadowSchedule";
 import { Character } from "../src/game/sim/codes";
-import { PLAYABLE_BUILD } from "../src/game/shell/currentBuild";
+import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
 import { CATCH_UP_FRAMES } from "../src/game/shell/playback";
 import { install, startBuild } from "../src/platform/main";
 import { confirmedChecksum } from "../src/platform/shell/diagnostics";
@@ -39,7 +39,7 @@ const declarations = readNativeDeclarations();
 // Desyncs are the desync guard's to find; unlogged natives keep these frames fast.
 const unlogged = Object.fromEntries(declarations.functions.map(([name]) => [name, "this test compares confirmed state"]));
 // Two rows a record once two are due, as wc3-journal sends them.
-const helpers = new JournalHelpers(PLAYABLE_BUILD.id, true);
+const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);
 helpers.workload = { denseCycles: 40, walkers: [] };
 /** The helpers' clock: one tick a frame of wall time, stalled or not. */
 let now = 0;
@@ -105,7 +105,7 @@ const CATCH_UP_CALLBACKS = 10;
 
 // About 1.5 s alone; at load 23-29 a host took headless match tests past Bun's 5 s default.
 test("after a 2 s stall of one or both games, each client catches up within a second, a bounded number of frames a callback", () => {
-  const clients = headless.clients({ start: () => startBuild(PLAYABLE_BUILD), install }, [0, 1], { delivery: syncDelivery(MEASURED_BATTLE_NET, 7) });
+  const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1], { delivery: syncDelivery(MEASURED_BATTLE_NET, 7) });
   const host = clients.clients[0] as HeadlessClient;
   const read = <T>(client: HeadlessClient, body: () => T): T => {
     let value: T | undefined;

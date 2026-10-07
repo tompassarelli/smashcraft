@@ -9,7 +9,7 @@ import { inputRow } from "../src/game/input/inputRow";
 import { Phase } from "../src/game/match/rules";
 import { matchSpawnX } from "../src/game/match/step";
 import { PartnerBehaviour, PartnerEscape } from "../src/game/match/trainingState";
-import { INTEGRITY_BUILD, PLAYABLE_BUILD } from "../src/game/shell/currentBuild";
+import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
 import { QUICK_TRAINING_COMMAND } from "../src/game/shell/devSettings";
 import { fighterAt } from "../src/game/sim/roster";
 import { RULE_BUTTONS } from "../src/game/ui/ruleButtons";
@@ -28,8 +28,8 @@ const RESET_FRAME = 150;
 const BOTH_SHIELDS = bit(Action.leftTrigger) | bit(Action.rightTrigger);
 
 test("training settings agree on both clients and both shields with attack reset the match on both", () => {
-  const clients = headless.clients({ start: () => startBuild(PLAYABLE_BUILD), install }, [0, 1], { delivery: syncDelivery(MEASURED_BATTLE_NET, 120), keepCalls: 64 });
-  const helpers = new JournalHelpers(PLAYABLE_BUILD.id);
+  const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1], { delivery: syncDelivery(MEASURED_BATTLE_NET, 120), keepCalls: 64 });
+  const helpers = new JournalHelpers(INTEGRITY_BUILD.id);
   helpers.rows = (slot, frame) => slot === 0 && frame === RESET_FRAME
     ? inputRow({ held: BOTH_SHIELDS | bit(Action.attack), pressed: bit(Action.attack), released: 0 })
     : rowFor(slot, frame, { denseCycles: 0, walkers: [0] });

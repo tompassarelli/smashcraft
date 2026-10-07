@@ -1,7 +1,10 @@
 // The build this map runs. The checked-in value is the development loop's:
 // key events, unit animation, and the dev console for
 // `-dev quick`. Native integrity runs (#26) use INTEGRITY_BUILD with the
-// companion helper.
+// companion helper's journal. The playable build reads Warcraft's own
+// synchronized key events, as the development build does, so it plays with
+// nothing but Warcraft and a keyboard; a controller helper, when one runs,
+// presses the same keys (#166).
 import type { MapBuild } from "./build";
 
 export const INTEGRITY_BUILD: MapBuild = {
@@ -17,8 +20,11 @@ export const INTEGRITY_BUILD: MapBuild = {
 };
 
 export const PLAYABLE_BUILD: MapBuild = {
-  ...INTEGRITY_BUILD,
   id: "playable-0047",
+  inputProfile: "callback",
+  input: { kind: "callback" },
+  presentation: "pool-confirmed",
+  scenario: "normal",
   responseProbe: false,
   devConsole: false,
   errorsOnScreen: false,

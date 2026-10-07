@@ -1,7 +1,7 @@
 // The native bot session's match (smashcraft:docs/native-bot-session.md) in
 // headless clients of the integrity build, for `bun wisp perf bot` and
 // `perf bot-four` in 32-bit Lua: two players whose helpers journal the
-// session's pad beats, computer opponents, three stocks and a one-minute
+// session's pad beats (in the playable build, press them as keys), computer opponents, three stocks and a one-minute
 // clock, with Warcraft's measured sync latency. Each frame's typed text is
 // reported to the measurement, so the predicted native cost includes Warcraft's
 // edit-box stall. Plain TypeScript and Warcraft natives, so it compiles to Lua.
@@ -12,6 +12,7 @@ import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { Action, bit } from "../../src/game/input/actions";
 import { type InputRow, inputRow } from "../../src/game/input/inputRow";
 import { Phase } from "../../src/game/match/rules";
+import type { MapBuild } from "../../src/game/shell/build";
 import { INTEGRITY_BUILD } from "../../src/game/shell/currentBuild";
 import { Character } from "../../src/game/sim/codes";
 import { Key } from "../../src/platform/shell/keyEvents";
@@ -62,6 +63,25 @@ function botBeatRow(frame: number): InputRow {
   return row;
 }
 
+/** The standard key layout's keys (src/game/input/keyBindings.ts) for the beat's controls. */
+const KEY_ATTACK = 0x4e;
+const KEY_JUMP = 0x49;
+const KEY_SPECIAL = 0x55;
+const KEY_SHIELD = 0x51;
+const KEY_LEFT = 0x57;
+const KEY_RIGHT = 0x52;
+const TAP_KEYS = [KEY_ATTACK, KEY_JUMP, KEY_SPECIAL];
+
+/** The bot beat on the keyboard: the key tapped on `frame`, or 0, and the key held then, or 0. */
+function botBeatKeys(frame: number): readonly [tap: number, held: number] {
+  let at = floorMod(frame - 1, CYCLE);
+  if (at < 3 * REST) return [floorMod(at, REST) === 0 ? TAP_KEYS[floorDiv(at, REST)] ?? KEY_ATTACK : 0, 0];
+  if ((at -= 3 * REST) < SHIELD + REST) return [0, at < SHIELD ? KEY_SHIELD : 0];
+  if ((at -= SHIELD + REST) < DASH + REST) return [0, at < DASH ? KEY_RIGHT : 0];
+  at -= DASH + REST;
+  return [0, at < DASH ? KEY_LEFT : 0];
+}
+
 interface Game {
   phase: number;
   stockCount: number;
@@ -86,14 +106,32 @@ function gameOf(client: HeadlessClient): Game {
  * `frames` frames or until it ends. Returns the problems: a desync and each
  * error report.
  */
-/** Plays the match in the integrity build, or in the build `buildId` names, such as the playable one. */
-export function playBotMatch(clients: Lockstep, match: BotMatch, frames: number, measure: PerfMeasure, buildId: string = INTEGRITY_BUILD.id): { problems: number; lines: string[] } {
-  const helpers = new JournalHelpers(buildId, true);
+/**
+ * Plays the match in the integrity build, or in `build`, such as the
+ * playable one: a build on key events gets the beat as synchronized key
+ * presses, every client's on the same turn.
+ */
+export function playBotMatch(clients: Lockstep, match: BotMatch, frames: number, measure: PerfMeasure, build: MapBuild = INTEGRITY_BUILD): { problems: number; lines: string[] } {
+  const keyboard = build.input.kind === "callback";
+  const helpers = new JournalHelpers(build.id, true);
   helpers.rows = (_slot, frame) => botBeatRow(frame);
   const host = clients.client(0);
+  let beat = 0;
+  let held = 0;
+  const pressBeat = () => {
+    if (!keyboard || gameOf(host).phase !== Phase.match) return;
+    const [tap, hold] = botBeatKeys(++beat);
+    for (const player of clients.clients) {
+      if (hold !== held && held !== 0) for (const client of clients.clients) client.key(player.slot, held, 0, false);
+      if (hold !== held && hold !== 0) for (const client of clients.clients) client.key(player.slot, hold, 0, true);
+      if (tap !== 0) clients.press(player.slot, tap);
+    }
+    held = hold;
+  };
   const frame = () => {
+    pressBeat();
     clients.frames(1);
-    helpers.service(clients);
+    if (!keyboard) helpers.service(clients);
     helpers.typed.forEach((characters, slot) => {
       if (characters > 0) measure.typed(slot, characters);
     });
@@ -104,7 +142,8 @@ export function playBotMatch(clients: Lockstep, match: BotMatch, frames: number,
   };
   clients.start();
   for (let index = 0; index < 30; index++) frame();
-  for (const client of clients.clients) clients.press(client.slot, Key.n);
+  // Each player selects a fighter: the journal's menus take N, the keyboard's Move right (the next fighter).
+  for (const client of clients.clients) clients.press(client.slot, keyboard ? KEY_RIGHT : Key.n);
   for (let index = 0; index < 5; index++) frame();
   // The same computers, stocks and clock on every client keep them synchronized.
   for (const client of clients.clients) {

@@ -27,6 +27,6 @@ if (run === "quick-match") problems = runLuaPerf(map, QUICK_MATCH, bundle, decla
 else if (bot !== undefined) {
   // The integrity build poses effects and frames its camera from each client's own prediction.
   const predicted = { filePrefix: "smashcraft", localNatives: PREDICTED_LOCAL_NATIVES };
-  problems = runLuaPerfWith(predicted, bundle, declarations, (clients, measure) => playBotMatch(clients, bot, Number(framesText), measure, run === "playable-bot-four" ? PLAYABLE_BUILD.id : undefined), { ...options, delivery: syncDelivery(MEASURED_BATTLE_NET, 7) });
+  problems = runLuaPerfWith(predicted, bundle, declarations, (clients, measure) => playBotMatch(clients, bot, Number(framesText), measure, run === "playable-bot-four" ? PLAYABLE_BUILD : undefined), { ...options, delivery: syncDelivery(MEASURED_BATTLE_NET, 7) });
 } else throw new Error(`no run named ${run}: quick-match, bot, bot-four or bot-FIGHTER`);
 if (problems > 0) os.exit(1);
