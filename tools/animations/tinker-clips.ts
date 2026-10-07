@@ -22,15 +22,15 @@ const roll = (pose: string, frames: number, sign: number, floor = false): Action
   {frame:0,root:floor?90:0}, {frame:4,root:sign*45,legs:35,knees:65}, {frame:Math.round(frames*.4),root:sign*145,legs:55,knees:80},
   {frame:Math.round(frames*.7),root:sign*285,legs:35,knees:65}, {frame:frames,root:sign*360}],});
 const actions: Action[] = [
-  strike("jab",4,2,12,{right:38,left:-12,chest:12,elbow:-25}),
+  strike("jab",4,2,12,{right:44,left:-12,chest:16,elbow:-30}),
   strike("jab2",4,2,12,{right:-12,left:42,chest:16,elbow:-30}),
   strike("jab3",6,3,18,{right:52,left:48,chest:22,elbow:-35}),
-  strike("forwardTilt",8,3,20,{right:64,left:36,chest:18,elbow:-35}),
-  strike("forwardTiltUp",8,3,20,{right:94,left:62,chest:-12,elbow:-20}),
-  strike("forwardTiltDown",8,3,20,{right:28,left:15,chest:32,legs:32,knees:45}),
-  strike("upTilt",7,4,22,{right:-90,left:-85,chest:-8,elbow:0}),
+  strike("forwardTilt",8,3,20,{right:42,left:48,chest:32,elbow:-50},{chest:-25,right:-45,left:-35}),
+  strike("forwardTiltUp",8,3,20,{right:-30,left:-25,chest:20,elbow:-35},{chest:30,right:35,left:25}),
+  strike("forwardTiltDown",8,3,20,{right:15,left:10,chest:45,elbow:-35,legs:32,knees:45},{chest:-25,right:-45,left:-35}),
+  strike("upTilt",7,4,22,{right:-45,left:-45,chest:0,elbow:0},{chest:35,right:30,left:30,legs:35,knees:45}),
   strike("downTilt",6,3,19,{right:32,left:-28,chest:45,legs:45,knees:65,yaw:25}),
-  strike("dashAttack",10,4,26,{right:50,left:46,chest:35,legs:22,knees:30}),
+  strike("dashAttack",10,4,26,{right:35,left:40,chest:40,elbow:-50,legs:22,knees:30},{chest:-25,right:-45,left:-35}),
   strike("forwardSmash",20,4,34,{right:80,left:28,chest:30,elbow:-42},{right:-58,left:-28,chest:-20},16),
   strike("upSmash",17,5,32,{right:-90,left:-90,chest:-8,legs:-12},{right:8,left:8,chest:32,legs:35,knees:55}),
   strike("downSmash",16,6,32,{right:46,left:46,chest:32,yaw:155,legs:32,knees:45},{right:-24,left:20,chest:-15,yaw:-55}),
@@ -238,9 +238,10 @@ for(let index=0;index<walkFirst.length;index+=2){
 const strideSpeed=strideSum/Math.max(1,strideCount);ensure(strideSpeed>0,"Tinker Walk lacks a drawn stride");
 for(const gait of ["walk","run"]as const)strides.push({character:Character.tinker,motion:gait,clip:0,model:"units\\creeps\\HeroTinker\\HeroTinker.mdl",speed:strideSpeed});
 await Bun.write(join(project,"ts/src/game/presentation/drawnStrideInfo.ts"),drawnStrideSource(strides));
-const selected=["jab","upTilt","downTilt","neutralAir","grab","throwBack","upSpecial","downSpecial"];
+const selected=["jab","forwardTilt","forwardTiltUp","forwardTiltDown","upTilt","dashAttack","downTilt","neutralAir","grab","throwBack","upSpecial","downSpecial"];
 for(const pose of selected){const r=records.find(r=>r.pose===pose)!;
-  const times=pose==="downSpecial"?[0,7,8,14,18,23,24,35,46]:[0,Math.round(r.frames*.2),Math.round(r.frames*.4),Math.round(r.frames*.7),r.frames];
+  const action=actions.find(a=>a.pose===pose)!;
+  const times=pose==="downSpecial"?[0,7,8,14,18,23,24,35,46]:action.phases.map(p=>p.frame);
   const frames:PoseFrame[]=[1,-1].flatMap(facing=>times.map(frame=>({frame,phase:0,x:0,z:0,facing,parts:[],strikes:[],clip:r.index,seconds:frame/60})));
   await Bun.write(join(output,`${pose}-both-facings.png`),sheet(pose,drawn,frames,times.length).png);
 }

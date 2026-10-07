@@ -16,6 +16,8 @@ const reaching = (first: number, last: number, x: number, z: number): readonly H
   const parts: readonly HurtPart[] = [BODY, hurtPart(12.0, 48.0, x, z, 10.0)];
   return [heroHurtPose(Math.max(1, first - 2), last + 2, parts)];
 };
+const arm = (first: number, last: number, shoulderX: number, shoulderZ: number, handX: number, handZ: number): HurtPose =>
+  heroHurtPose(first, last, [BODY, hurtPart(shoulderX, shoulderZ, handX, handZ, 10.0)]);
 const tilt = (z: number) => heroMove(8, 3, 19, 0, swing(8, [[92.0, f32(z + 16.0)], [92.0, z], [84.0, f32(z - 16.0)]], 9.0, 40));
 
 export const PEON_MOVES: FighterMoves = {
@@ -34,12 +36,17 @@ export const PEON_MOVES: FighterMoves = {
       [AttackStyle.upTilt]: reaching(7, 10, 12.0, 92.0),
       [AttackStyle.downTilt]: reaching(6, 8, 45.0, 18.0),
       [AttackStyle.dashAttack]: reaching(10, 13, 54.0, 38.0),
-      [AttackStyle.forwardSmash]: reaching(22, 24, 70.0, 60.0),
-      [AttackStyle.upSmash]: reaching(17, 20, 10.0, 110.0),
-      [AttackStyle.downSmash]: [...reaching(18, 20, 55.0, 18.0), ...reaching(21, 22, -55.0, 18.0)],
-      [AttackStyle.neutralAir]: [...reaching(6, 8, 45.0, 48.0), ...reaching(9, 10, -45.0, 48.0)],
-      [AttackStyle.forwardAir]: reaching(11, 13, 62.0, 45.0),
-      [AttackStyle.backAir]: reaching(9, 11, -72.0, 48.0),
+      [AttackStyle.forwardSmash]: [arm(20, 26, 18.0, 60.0, 6.0, 68.0)],
+      [AttackStyle.upSmash]: [heroHurtPose(15, 22, [BODY,
+        hurtPart(12.0, 64.0, 12.0, 84.0, 10.0), hurtPart(-12.0, 66.0, -22.0, 82.0, 10.0)])],
+      [AttackStyle.downSmash]: [heroHurtPose(16, 20, [BODY,
+        hurtPart(18.0, 60.0, 37.0, 43.0, 10.0), hurtPart(18.0, 60.0, 24.0, 70.0, 10.0),
+        hurtPart(-14.0, 65.0, -38.0, 50.0, 10.0)]),
+        arm(21, 25, -18.0, 60.0, -6.0, 64.0)],
+      [AttackStyle.neutralAir]: [heroHurtPose(4, 13, [BODY, hurtPart(-44.0, 54.0, 35.0, 52.0, 10.0)])],
+      [AttackStyle.forwardAir]: [arm(8, 10, 12.0, 65.0, 4.0, 84.0), arm(11, 15, 18.0, 64.0, 4.0, 68.0)],
+      [AttackStyle.backAir]: [heroHurtPose(7, 13, [BODY,
+        hurtPart(-18.0, 63.0, -46.0, 76.0, 10.0), hurtPart(8.0, 63.0, 25.0, 84.0, 10.0)])],
       [AttackStyle.upAir]: reaching(8, 10, 8.0, 92.0),
       [AttackStyle.downAir]: reaching(14, 17, 10.0, -20.0),
       [AttackStyle.grab]: reaching(8, 9, 48.0, 40.0),

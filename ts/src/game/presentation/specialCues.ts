@@ -360,7 +360,10 @@ export function heroCueWindows(move: Readonly<AuthoredSpecial>, minimumActive = 
   // Regions count zero-based attack frames: special frame N strikes with region frame N - 1.
   for (const region of move.regions ?? []) widen(active, region.firstFrame + 1, region.lastFrame + 1);
   for (const projectile of move.projectiles ?? []) widen(active, projectile.spawnFrame, projectile.spawnFrame);
-  for (const segment of move.motion ?? []) widen(active, segment.first, segment.last);
+  for (const segment of move.motion ?? []) {
+    if (segment.velocityX !== 0 || segment.velocityZ !== 0 || (segment.aimedSpeed ?? 0) !== 0
+      || (segment.driftSpeed ?? 0) !== 0 || segment.relocate !== undefined) widen(active, segment.first, segment.last);
+  }
   if (move.placement !== undefined) widen(active, move.placement.frame, move.placement.frame);
   if (move.burst !== undefined) widen(active, move.burst.frame, move.burst.frame);
   if (move.ritual !== undefined) widen(active, move.ritual.frame, move.ritual.frame);

@@ -39,6 +39,8 @@ counts the first active frame, active frames and recovery; aerial landing lag
 is authored, then halved by the shared rule. All regions are original narrow
 staff or spell paths. Jaina's hand remains hittable during a cast; magic
 beyond the hand is disjoint. Damage uses the existing knockback formula.
+Staff strikes and frost spells multiply their authored knockback growth by
+1.125; this gives the slow zoner stronger launches without raising damage.
 
 | Input | Action and decision | Frames | Damage | Warcraft source | Smash reference |
 |---|---|---:|---:|---|---|

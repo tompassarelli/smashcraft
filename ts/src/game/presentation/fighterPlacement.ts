@@ -1,5 +1,6 @@
 // The drawn body stays outside nearby stage faces without changing its ECB.
 // Combat uses the simulation origin and authored hurt volumes (docs/hurtboxes.md).
+import { at } from "wisp/src/runtime/lookup";
 import { Character, LedgeState } from "../sim/codes";
 import { heroBody } from "../sim/heroes/heroBodies";
 import { fighterPoseFacing } from "../sim/conditions";
@@ -24,8 +25,7 @@ const BODY_ENVELOPES: readonly BodyEnvelope[] = [
   { left: -101.0, right: 100.0, bottom: -6.0, top: 185.0 },
 ];
 
-/** Hero envelopes, made on first use. */
-const heroEnvelopes: (BodyEnvelope | undefined)[] = [];
+
 
 /**
  * A hero's envelope is Archer's, the roster's reference body, stretched by
@@ -39,15 +39,18 @@ function heroEnvelope(character: Character): BodyEnvelope {
   return { left: reference.left * width, right: reference.right * width, bottom: reference.bottom * height, top: reference.top * height };
 }
 
+function createBodyEnvelopes(): readonly BodyEnvelope[] {
+  const envelopes: BodyEnvelope[] = [];
+  for (const character of Object.values(Character)) envelopes[character] = BODY_ENVELOPES[character] ?? heroEnvelope(character);
+  return envelopes;
+}
+
+// Every declared fighter has its immutable envelope before rendering starts.
+const heroEnvelopes = createBodyEnvelopes();
+
 /** The drawn body's extent around the fighter's origin, in its model's units. */
 export function fighterBodyEnvelope(character: Character): Readonly<BodyEnvelope> {
-  const original = BODY_ENVELOPES[character];
-  if (original !== undefined) return original;
-  const known = heroEnvelopes[character];
-  if (known !== undefined) return known;
-  const made = heroEnvelope(character);
-  heroEnvelopes[character] = made;
-  return made;
+  return at(heroEnvelopes, character);
 }
 
 interface FighterPlacement {

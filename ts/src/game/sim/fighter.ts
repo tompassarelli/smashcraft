@@ -26,6 +26,7 @@ import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type FighterTuning, authoredTuning } from "./tuning";
 import { ROSTER_MANA } from "./mana";
 import { HitElement } from "./hitRegions";
+import { initializeInfluenceOperands } from "./influenceOperands";
 import type { SpecialPlacement, SpecialProjectile } from "./heroSpecials";
 
 export const PROJECTILE_CAPACITY = 16;
@@ -582,7 +583,7 @@ function emptyProjectile(): Projectile {
 /** A fighter standing at startX with the Wurst constructor's initial state. */
 export function createFighter(character: Character, startX: number, facing: number): Fighter {
   const tuning = authoredTuning(character);
-  return {
+  const fighter: Fighter = {
     character,
     tuning,
     facing,
@@ -764,6 +765,8 @@ export function createFighter(character: Character, startX: number, facing: numb
     pack: character === Character.beastmaster ? [createPlacedObject(), createPlacedObject()] : [],
     passive: { stacks: 0, window: 0, serial: 0, spent: 0.0, used: false, lastKey: -1, lastTarget: -1 },
   };
+  initializeInfluenceOperands(fighter);
+  return fighter;
 }
 
 export function createPlacedObject(): PlacedObject {

@@ -2,9 +2,6 @@
 import { f32 } from "wisp/src/sim/f32";
 import type { HeroClipTable } from "../sim/heroes/hero";
 export const ROSTER_ATTACK_CLIPS = {
-  0: {
-    dashAttack: { index: 76, seconds: 0.4830000102519989 },
-  },
   2: {
     jab3: { index: 122, seconds: 0.46700000762939453 },
   },
@@ -30,6 +27,24 @@ export const ROSTER_ATTACK_CLIPS = {
     forwardAir: { index: 60, seconds: 0.5 },
     upSmash: { index: 61, seconds: 0.7170000076293945 },
     upAir: { index: 62, seconds: 0.46700000762939453 },
+  },
+  6: {
+    forwardTiltDown: { index: 51, seconds: 0.5669999718666077 },
+    downTilt: { index: 52, seconds: 0.5329999923706055 },
+    backAir: { index: 53, seconds: 0.6169999837875366 },
+    downSpecial: { index: 54, seconds: 0.75 },
+    downSpecialAir: { index: 54, seconds: 0.75 },
+    downSpecialFollowUp: { index: 54, seconds: 0.75 },
+    downSpecialFollowUpAir: { index: 54, seconds: 0.75 },
+    forwardTilt: { index: 55, seconds: 0.5669999718666077 },
+    forwardTiltUp: { index: 56, seconds: 0.5669999718666077 },
+    upTilt: { index: 57, seconds: 0.5830000042915344 },
+    forwardSmash: { index: 58, seconds: 0.9330000281333923 },
+    upSmash: { index: 59, seconds: 0.9670000076293945 },
+    downSmash: { index: 60, seconds: 0.9670000076293945 },
+    dashAttack: { index: 61, seconds: 0.6169999837875366 },
+    forwardAir: { index: 62, seconds: 0.6830000281333923 },
+    upAir: { index: 63, seconds: 0.5669999718666077 },
   },
   7: {
     jab2: { index: 53, seconds: 0.43299999833106995 },
@@ -91,23 +106,5 @@ export const ROSTER_ATTACK_CLIPS = {
   },
   12: {
     forwardTiltDown: { index: 96, seconds: 0.6330000162124634 },
-  },
-  6: {
-    forwardTiltDown: { index: 51, seconds: f32(0.567) },
-    downTilt: { index: 52, seconds: f32(0.533) },
-    backAir: { index: 53, seconds: f32(0.617) },
-    downSpecial: { index: 54, seconds: 0.75 },
-    downSpecialAir: { index: 54, seconds: 0.75 },
-    downSpecialFollowUp: { index: 54, seconds: 0.75 },
-    downSpecialFollowUpAir: { index: 54, seconds: 0.75 },
-    forwardTilt: { index: 55, seconds: f32(0.567) },
-    forwardTiltUp: { index: 56, seconds: f32(0.567) },
-    upTilt: { index: 57, seconds: f32(0.583) },
-    forwardSmash: { index: 58, seconds: f32(0.933) },
-    upSmash: { index: 59, seconds: f32(0.967) },
-    downSmash: { index: 60, seconds: f32(0.967) },
-    dashAttack: { index: 61, seconds: f32(0.617) },
-    forwardAir: { index: 62, seconds: f32(0.683) },
-    upAir: { index: 63, seconds: f32(0.567) },
   },
 } as const satisfies Readonly<Record<number, HeroClipTable>>;
