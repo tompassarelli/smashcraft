@@ -43,6 +43,16 @@ export interface Placement {
   readonly tile: RosterTile;
 }
 
+/** A computer drop carries its slot digit followed by its full tile number. */
+export function decodeCpuPlacement(data: string, count: number): Placement | undefined {
+  for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
+    for (let tile = 0; tile < count; tile++) {
+      if (data === `${slot}${tile}`) return { slot, tile };
+    }
+  }
+  return undefined;
+}
+
 /** The left edge of a placed chip; slots share a cell in two columns. */
 export function chipX(grid: RosterGrid, slot: number, choice: number): number {
   return cellRect(grid, choice).left + (f32(0.012) + floorMod(slot, 2) * f32(0.051)) * grid.scale;
