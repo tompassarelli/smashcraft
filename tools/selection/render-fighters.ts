@@ -14,7 +14,7 @@
 import { existsSync, mkdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { parseMDL, generateMDL } from 'war3-model';
-import { originalBodyClip } from '../animations/original-clips';
+import { originalBodyClip, splitStaticLights } from '../animations/original-clips';
 import { PARTICIPANT_SLOTS } from '../../ts/src/game/input/participants';
 import { Character } from '../../ts/src/game/sim/codes';
 import { PORTRAIT_KINDS, RENDERED_FIGHTERS, fighterRenderName, heroDefinition } from '../../ts/src/game/sim/heroes/registry';
@@ -91,25 +91,6 @@ function extractTexture(path: string): void {
   run(['magick', `${dds}[0]`, png]);
 }
 
-/** The model without its lights: the renderer lights every fighter alike, and the importer rejects animated lights. */
-function unlit(text: string): string {
-  let result = "";
-  let index = 0;
-  for (;;) {
-    const light = text.indexOf("\nLight \"", index);
-    if (light < 0) return (result + text.slice(index)).replace(/NumLights \d+,/, "NumLights 0,");
-    result += text.slice(index, light + 1);
-    let depth = 0;
-    let end = text.indexOf("{", light);
-    do {
-      const character = text.charAt(end++);
-      if (character === "{") depth++;
-      else if (character === "}") depth--;
-    } while (depth > 0 && end < text.length);
-    index = end;
-  }
-}
-
 /** The pose render-fighter.py draws: the first of these sequences the model has. */
 const POSES = ['Stand Ready', 'Stand Victory', 'Stand'];
 
@@ -148,7 +129,7 @@ async function modelFor(character: Character, name: string): Promise<string> {
   const mdl = join(models, `${name}.mdl`);
   const original = ORIGINAL_MODELS[character];
   if (original !== undefined) {
-    await Bun.write(mdl, posedLayers(unlit(await Bun.file(join(assets!, original)).text())));
+    await Bun.write(mdl, posedLayers(await Bun.file(join(assets!, original)).text()));
     return mdl;
   }
   const hero = heroDefinition(character);
@@ -157,15 +138,15 @@ async function modelFor(character: Character, name: string): Promise<string> {
   if (importedModelFile(hero.presentation.model) !== undefined) await Bun.write(mdx, Bun.file(join(assets!, heroModelSource(hero.presentation.model))));
   else run([extract, storage, stored(hero.presentation.model).replace(/\.mdl$/, '.mdx'), mdx]);
   run(['bun', join(project, 'tools/animations/convert.ts'), mdx, mdl]);
-  await Bun.write(mdl, lowerTextureExtensions(posedLayers(unlit(await Bun.file(mdl).text()))));
+  await Bun.write(mdl, lowerTextureExtensions(posedLayers(await Bun.file(mdl).text())));
   return mdl;
 }
 
-/** Use the existing clip extractor so Blender imports only the standing pose. */
+/** Extract the standing pose, removing lights and renumbering their node gaps together. */
 async function standingModel(path: string): Promise<void> {
   const model = parseMDL(await Bun.file(path).text());
   const sequence = POSES.map((name) => model.Sequences.findIndex((candidate) => candidate.Name === name || candidate.Name.startsWith(`${name} `))).find((index) => index >= 0) ?? 0;
-  const clip = originalBodyClip(model, sequence);
+  const clip = originalBodyClip(splitStaticLights(model).body, sequence);
   clip.model.Sequences[0]!.Name = clip.name;
   await Bun.write(path, generateMDL(clip.model));
 }
@@ -189,7 +170,7 @@ for (const character of RENDERED_FIGHTERS) {
     await standingModel(model);
     const images = [...(await Bun.file(model).text()).matchAll(/Image "([^"]+)"/g)].map((match) => match[1]!);
     for (const texture of [...images, ...TEAM_TEXTURES]) if (!texture.toLowerCase().startsWith('war3mapimported')) extractTexture(texture);
-    await Bun.write(logFile, run(['blender', '--background', '--threads', '4', '--python-exit-code', '1', '--python', join(project, 'tools/selection/render-fighter.py'), '--', model, resources, join(work, `${name}.png`), addon, String(slots ? 0 : team), ...(slots ? ['--slots'] : []), ...(reuse ? ['--reuse'] : [])]));
+    await Bun.write(logFile, run(['blender', '--background', '--threads', '6', '--python-exit-code', '1', '--python', join(project, 'tools/selection/render-fighter.py'), '--', model, resources, join(work, `${name}.png`), addon, String(slots ? 0 : team), ...(slots ? ['--slots'] : []), ...(reuse ? ['--reuse'] : [])]));
   }
   for (const { suffix, slot } of variants) {
     const raw = join(work, `${name}${suffix}.png`);
