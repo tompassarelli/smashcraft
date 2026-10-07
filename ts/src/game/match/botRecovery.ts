@@ -14,7 +14,7 @@ import { totalVelocityZ } from "../sim/motion";
 import type { Controls } from "../sim/roster";
 import { mainDeckLeft, mainDeckRight, mainDeckZ, surfaceCount, surfaceLeft, surfaceRight, surfaceZ } from "../sim/stage";
 import { botChance, botChoice } from "./botRandom";
-import { type CpuSkill, FULL_SKILL } from "./cpuLevel";
+import { type CpuSkill, FULL_SKILL } from "./cpuSkill";
 import { aimsLedge, gameplanOf, upSpecialFirst } from "./botGameplan";
 
 /** A tech pressed this many frames of fall above a deck lands inside its window. */

@@ -106,7 +106,8 @@ export function estimatedMoveValue(move: MoveEstimate, own: Readonly<Fighter>, t
   const risk = floorDiv(punish * policy.punishWeight, 100);
   const endX = f32(own.motion.x + f32(move.travel * facing));
   const position = Math.min(20, Math.floor(f32(f32(Math.abs(own.motion.x) - Math.abs(endX)) * f32(0.1))));
-  const varianceReward = floorDiv((pressure + policy.variancePercent) * (kill + move.startup), 100);
+  // Higher-variance comeback appetite applies only under a stock or clock deficit; the authored variance scales it.
+  const varianceReward = floorDiv(floorDiv(pressure * (100 + policy.variancePercent), 100) * (kill + move.startup), 100);
   return floorDiv(success * reward, 100) - floorDiv((100 - success) * risk, 100) + position + varianceReward;
 }
 

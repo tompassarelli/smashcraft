@@ -759,8 +759,8 @@ match and writes its fighter's controls and attack commands, as a player's
 input row would, so every client and every rollback replay derives the same
 decisions. The replayed runtime keeps attack pauses, a bounded history of
 visible opponent observations and horizontal direction commitments. Level 9
-uses observations from 12 frames earlier (200 ms); lower levels wait longer
-(smashcraft:docs/design/cpu-levels.md). It holds a horizontal choice for five
+uses observations from 12 frames earlier (200 ms); lower tiers wait longer
+(smashcraft:docs/design/cpu-profiles.md). It holds a horizontal choice for five
 frames before reversing, while its own legality, damage and recovery remain
 immediate. Each choice that looks random is
 `botChoice`, a nonlinear hash of whole numbers from the match (the frame,

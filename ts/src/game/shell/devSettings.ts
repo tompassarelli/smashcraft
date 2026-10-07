@@ -1,5 +1,5 @@
 // Developer chat commands ("-dev rb 12", "-dev delay 2", "-dev batch 6",
-// "-dev rematch 20", "-dev show", "-dev quick", "-dev quick hero NAME", "-dev quick cpu N") arrive as synchronized
+// "-dev rematch 20", "-dev show", "-dev quick", "-dev quick hero NAME", "-dev quick cpu OPPONENT DIFFICULTY") arrive as synchronized
 // player-chat events. A match reads the settings once at its start, so a
 // command typed during a match applies from the next match on every client;
 // "-dev quick" starts one at once. The receipts are read by the integrity
@@ -10,9 +10,9 @@ import { MAX_BATCH } from "../netcode/journal/transport";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import {
   type MatchState, Phase, createMatchState, firstHumanSlot, humanFighterActive, humanPresent, requestStageSelect, requestStart, returnToCharacters,
-  selectCharacter, selectCpuCharacter, selectStage, setStocks, computerActive, cycleSlotMode, setCpuLevel, setHitAreas, setPartnerDamage, setTraining, stepPartnerBehaviour,
+  selectCharacter, selectCpuCharacter, selectStage, setStocks, computerActive, cycleSlotMode, setCpuOpponent, setCpuTier, setHitAreas, setPartnerDamage, setTraining, stepPartnerBehaviour,
 } from "../match/rules";
-import { isCpuLevel } from "../match/cpuLevel";
+import { isCpuOpponentChoice, isCpuTier, type CpuOpponentChoice, type CpuTier } from "../match/cpuProfiles";
 import { PartnerBehaviour } from "../match/trainingState";
 import { selectableStage } from "../menu/stageCatalog";
 import { REPLAY_MAX_CORRECTION_FRAMES } from "../replay/limits";
@@ -160,21 +160,23 @@ export function prepareQuickTraining(game: MatchState): void {
   while (game.trainer.behaviour !== PartnerBehaviour.shield) stepPartnerBehaviour(game, first, 1);
 }
 
-/**
- * `-dev quick cpu N`: the quick match with a computer at level N (1-9) in the
- * first free slot, over QUICK_CPU_STOCKS stocks so a knockout doesn't end
- * it; the CPU levels' native check (#134) plays it.
- */
+/** A named computer in the first free slot, over three stocks for native captures. */
 export const QUICK_CPU_COMMAND = "-dev quick cpu ";
 export const QUICK_CPU_STOCKS = 3;
 
-export function quickMatchCpuLevel(message: string): number | undefined {
+export interface QuickCpuProfile { readonly opponent: CpuOpponentChoice; readonly tier: CpuTier }
+
+export function quickMatchCpuProfile(message: string): QuickCpuProfile | undefined {
   if (!message.startsWith(QUICK_CPU_COMMAND)) return undefined;
   const rest = message.substring(QUICK_CPU_COMMAND.length);
   const marker = rest.indexOf(" hero ");
   if (marker >= 0 && quickMatchCpuHero(message) === undefined) return undefined;
-  const level = commandInteger(marker < 0 ? rest : rest.substring(0, marker));
-  return level !== undefined && isCpuLevel(level) ? level : undefined;
+  const settings = marker < 0 ? rest : rest.substring(0, marker);
+  const split = settings.indexOf(" ");
+  if (split < 0) return undefined;
+  const opponent = settings.substring(0, split);
+  const tier = settings.substring(split + 1);
+  return isCpuOpponentChoice(opponent) && isCpuTier(tier) ? { opponent, tier } : undefined;
 }
 
 /** A named CPU uses the menu's own selection rule, for roster parity batches. */
@@ -183,14 +185,15 @@ export function quickMatchCpuHero(message: string): Character | undefined {
   return message.startsWith(QUICK_CPU_COMMAND) && marker >= 0 ? heroAfter(message, message.substring(0, marker + 6)) : undefined;
 }
 
-/** Fills the first free slot with a computer at `level`, from fighter selection; the quick match follows. */
-export function prepareQuickCpu(game: MatchState, level: number, character?: Character): void {
+/** Fills the first free slot with a computer with `profile`, from fighter selection; the quick match follows. */
+export function prepareQuickCpu(game: MatchState, profile: QuickCpuProfile, character?: Character): void {
   const first = firstHumanSlot(game);
   if (first === undefined || game.phase !== Phase.characterMenu) return;
   const computer = PARTICIPANT_SLOTS.find(slot => !humanFighterActive(game, slot) && !computerActive(game, slot));
   if (computer === undefined) return;
   // An empty slot becomes a human fighter, then a computer.
   for (let step = 0; step < 2; step++) cycleSlotMode(game, first, computer);
-  setCpuLevel(game, first, computer, level);
+  setCpuOpponent(game, first, computer, profile.opponent);
+  setCpuTier(game, first, computer, profile.tier);
   if (character !== undefined) selectCpuCharacter(game, first, computer, character);
 }

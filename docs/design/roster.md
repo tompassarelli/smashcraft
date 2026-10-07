@@ -1496,7 +1496,7 @@ If the current source requires a different safe dependency order, retain the des
 
 Decided by Tom on 7 Oct 2026 (#105). The roster is balanced when **every
 fighter's win rate against the field is between 40% and 60%**, with both
-computers at **level 9** and at least **400 matches a pair**: every pair
+computers at **Wren Expert** and at least **400 matches a pair**: every pair
 of different fighters, both orders, on every soak stage, over seeded
 matches. The numbers live in one constant, `BALANCE_GATE` in
 smashcraft:ts/scripts/cpuField.ts. smashcraft:ts/scripts/cpuField.tests.ts

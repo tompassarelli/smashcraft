@@ -1,13 +1,13 @@
-// Writes the release roster (src/game/sim/heroes/releaseRoster.ts) from a balance
+// Writes the release roster (smashcraft:ts/src/game/sim/heroes/releaseRoster.ts) from a balance
 // gate run: every fighter outside the gate's field band is hidden from selection.
 // Usage (from ts/): bun scripts/releaseRoster.ts FIELD.json
-// FIELD.json is a `cpuField --json` file (a gate run: level 9, at least 400 a pair).
+// FIELD.json is a `cpuField --json` file (Wren Expert, at least 400 a pair).
 import { readFileSync, writeFileSync } from "node:fs";
 import { BALANCE_GATE, type FieldOptions, type FighterSummary, balanceVerdict, matchupReport } from "./cpuField";
 
 export const RELEASE_ROSTER_FILE = new URL("../src/game/sim/heroes/releaseRoster.ts", import.meta.url);
 
-type Field = { readonly options: Pick<FieldOptions, "levels">; readonly summaries: readonly FighterSummary[] };
+type Field = { readonly options: Pick<FieldOptions, "opponents" | "tiers">; readonly summaries: readonly FighterSummary[] };
 
 /** Whether a parsed file looks like a `cpuField --json` field: options and fighter summaries. */
 function isField(value: unknown): value is Field {
@@ -18,9 +18,12 @@ function isField(value: unknown): value is Field {
 
 /** The fighters a gate run hides: those outside the field band. Refuses a run that isn't a gate run. */
 export function hiddenFighters(field: Field): readonly string[] {
-  const levels = field.options.levels ?? [BALANCE_GATE.level, BALANCE_GATE.level];
-  const verdict = balanceVerdict(field.summaries, levels, matchupReport(field.summaries).smallestPlayed);
-  if (!verdict.gateRun) throw new Error(`not a gate run: needs level ${BALANCE_GATE.level} and at least ${BALANCE_GATE.perPair} matches a pair`);
+  const { opponents, tiers } = field.options;
+  const required = `not a gate run: needs ${BALANCE_GATE.opponent} ${BALANCE_GATE.tier} and at least ${BALANCE_GATE.perPair} matches a pair`;
+  if (opponents === undefined || tiers === undefined) throw new Error(required);
+  const profiles = [{ opponent: opponents[0], tier: tiers[0] }, { opponent: opponents[1], tier: tiers[1] }];
+  const verdict = balanceVerdict(field.summaries, profiles, matchupReport(field.summaries).smallestPlayed);
+  if (!verdict.gateRun) throw new Error(required);
   const hidden = verdict.outside.map((entry) => entry.split(" ")[0] ?? entry);
   if (hidden.length === field.summaries.length) throw new Error("every fighter fails the gate; a release needs at least one");
   return hidden;

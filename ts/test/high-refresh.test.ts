@@ -23,7 +23,7 @@ function quickMatch(extraDraws: number): { checksums: string[][]; smoothed: numb
   const clients = headless.clients({ start, install });
   clients.start();
   clients.frames(30);
-  clients.chat(0, "-dev quick cpu 9");
+  clients.chat(0, "-dev quick cpu wren expert");
   clients.everywhere(() => {
     effectMotion().tracking = extraDraws > 0;
   });

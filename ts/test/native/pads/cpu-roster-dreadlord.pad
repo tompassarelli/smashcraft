@@ -1,5 +1,5 @@
-# #179: Dreadlord selected as a level-9 CPU through the normal menu selection rule.
-#! chat -dev quick cpu 9 hero Dreadlord
+# #179: Dreadlord selected as a Wren Expert CPU through the normal menu selection rule.
+#! chat -dev quick cpu wren expert hero Dreadlord
 #! expect c 1-800 ground action
 #! expect c 1-800 applied attack
 #! expect c 1-800 special

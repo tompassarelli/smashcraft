@@ -1,6 +1,6 @@
-# #176: level-9 computer behavior through a ground approach, surprise jump,
+# #176: Wren Expert computer behavior through a ground approach, surprise jump,
 # retreat and projectile. Compare the full computer timeline with headless.
-#! chat -dev quick cpu 9
+#! chat -dev quick cpu wren expert
 # Headless reference (hosted headless pads at 975133cd): the level-9 computer's
 # opening hits on the ground approach and the surprise jump, on their frames:
 #! expect a 64 damage 12.753

@@ -1,5 +1,6 @@
 import { at } from "wisp/src/runtime/lookup";
 import { floorMod } from "wisp/src/sim/intMath";
+import type { CpuDecisionPolicy } from "./cpuDecisionPolicy";
 
 export const CPU_OPPONENT_IDS = ["rook", "ember", "flint", "vale", "kite", "wren"] as const;
 export type CpuOpponentId = (typeof CPU_OPPONENT_IDS)[number];
@@ -11,22 +12,10 @@ export const CPU_OPPONENT_DEFAULT: CpuOpponentId = "wren";
 export const CPU_TIER_DEFAULT: CpuTier = "intermediate";
 
 /** Independent authored settings consumed by the shared decision policy. */
-export interface CpuProfile {
+export interface CpuProfile extends CpuDecisionPolicy {
   readonly opponent: CpuOpponentId;
   readonly tier: CpuTier;
   readonly reactionFrames: number;
-  readonly executionPercent: number;
-  readonly judgmentPercent: number;
-  readonly spacingPercent: number;
-  readonly historyCapacity: number;
-  readonly historyStride: number;
-  readonly readEvidence: number;
-  readonly readConfidence: number;
-  readonly repeatPercent: number;
-  readonly punishWeight: number;
-  readonly pressurePercent: number;
-  readonly variancePercent: number;
-  readonly guessPercent: number;
 }
 
 export const isCpuOpponent = (value: string): value is CpuOpponentId => CPU_OPPONENT_IDS.some(id => id === value);
