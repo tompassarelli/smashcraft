@@ -39,8 +39,9 @@ In `~/.local/state/smashcraft/clients.json`, a client may set
 `"menuReportPort": 47123`. That port must match the port used by
 `bun wisp menus install RETAIL_DIR --port 47123` for its Wine prefix.
 Use a distinct port for each installed page. A client without a configured
-port, or whose page does not report within 3 seconds, uses ordinary menu
-controls. Installing the page and enabling Allow Local Files requires the
+port, or whose page does not report within 3 seconds, can't host: `fresh`
+and `play` stop rather than create a game by clicks, which Battle.net lists
+publicly. Installing the page and enabling Allow Local Files requires the
 account owner's agreement; see Wisp's `docs/driving-warcraft.md` in the pinned
 package for setup and undo.
 

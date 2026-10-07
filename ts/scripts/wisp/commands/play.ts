@@ -36,8 +36,8 @@ interface Playtest {
   readonly computerSlot: number;
   /** The computer's level, 1-9: 9 plays its fighter's gameplan at full strength. */
   readonly computerLevel: number;
-  /** The report port of the Wisp page installed on Tom's prefix; absent uses ordinary menu controls. */
-  readonly menuReportPort?: number;
+  /** The report port of the Wisp page installed on Tom's prefix: play hosts only through it, as a private game. */
+  readonly menuReportPort: number;
 }
 
 /** Tom's own Warcraft III install. */
@@ -97,9 +97,8 @@ export function playtest({ build, map, helper, computerSlot, computerLevel, menu
     shortcut: { appId: 3775098022, name: "Warcraft III (Battle.net)" },
     map,
     gameName: "Smashcraft",
-    ...(menuReportPort === undefined ? {} : { menuReportPort }),
+    menuReportPort,
     displaySettings: TOM_DISPLAY,
-    debugDirectory: join(homedir(), ".local/state/smashcraft/play-debug"),
     // The request, read once at map start; no go-ahead or receipt from an earlier run.
     prepare: (documents) => Effect.gen(function*() {
       const gameFiles = yield* GameFiles;
@@ -134,7 +133,7 @@ export function playtest({ build, map, helper, computerSlot, computerLevel, menu
 }
 
 const ClientSettings = Schema.Struct({
-  tools: Schema.Struct({ grim: Schema.String, xdotool: Schema.String, wlrctl: Schema.String, tesseract: Schema.String, nsenter: Schema.optional(Schema.String) }),
+  tools: Schema.Struct({ grim: Schema.String, xdotool: Schema.String, tesseract: Schema.String, nsenter: Schema.optional(Schema.String) }),
 });
 
 /** The tool paths the clients file records; the commands on PATH without one. */

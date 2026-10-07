@@ -37,9 +37,9 @@ client then adds the computers and starts the match on the default stage
 and writes `smashcraft-play-pN.txt` (`… started` or `… refused`). Maps built
 before this ignore the request. The helper keeps running after the command
 ends, with its output in ~/.local/state/smashcraft/play-helper.log; stop it
-with `kill PID` (the pid the command printed) after leaving the map. Each run
-saves a picture before and after every click, and its click log, in a
-folder under ~/.local/state/smashcraft/play-debug/.
+with `kill PID` (the pid the command printed) after leaving the map. play hosts the map as a private game through the
+Wisp menu page on Tom's install (port 47124) and stops when the page doesn't
+report (smashcraft:docs/wisp.md, "Menu control").
 smashcraft:ts/scripts/wisp/commands/play.ts declares the map, its helper and
 the computer's slot.
 

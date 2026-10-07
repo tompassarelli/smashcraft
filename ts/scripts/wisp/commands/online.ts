@@ -33,7 +33,6 @@ const ClientsFile = Schema.Struct({
 const installOf = (args: readonly string[]) => Effect.gen(function*() {
   const name = flagValues(args, "client")[0];
   if (name === undefined) {
-    if (PLAYTEST.menuReportPort === undefined) return yield* new UsageFailure({ problem: "play declares no menuReportPort for Tom's install" });
     return { prefix: PLAYTEST_PREFIX, documents: documentsFolder(PLAYTEST_PREFIX), menuReportPort: PLAYTEST.menuReportPort } satisfies Install;
   }
   const clients = Schema.decodeUnknownOption(ClientsFile)((() => {
