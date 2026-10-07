@@ -32,6 +32,10 @@ jobs:
         working-directory: ts
         env:
           CI_TIMING: report
+      - name: Report every selectable computer fighter
+        if: ${{ !cancelled() }}
+        run: bun scripts/cpuCoverage.ts
+        working-directory: ts
       # Replay tapes and the numeric corpus in a stock Lua32 and in one whose
       # raw float + - * round toward zero (wisp:docs/headless.md#raw-float-rounding):
       # both must equal Bun, so no raw float operation leaks past the exact helpers.
