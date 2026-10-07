@@ -1,0 +1,670 @@
+{
+  "installedVersion": "3.0.1.24342",
+  "graphicsSource": "Classic SD",
+  "archivePath": "war3.w3mod:units/creeps/pandarenbrewmaster/pandarenbrewmaster.mdx",
+  "previousStockSha256": "85ec82ab0eb6f536a33e53ed99208b31578e343a39155acc748ec4e60bccb68e",
+  "installedStockSha256": "85ec82ab0eb6f536a33e53ed99208b31578e343a39155acc748ec4e60bccb68e",
+  "installedBytes": 232262,
+  "identicalBytes": true,
+  "skeletonUnchanged": true,
+  "geometryUnchanged": true,
+  "sequences": [
+    {
+      "index": 0,
+      "name": "walk",
+      "milliseconds": 666,
+      "framesAt60Hz": 39.96,
+      "events": [
+        {
+          "event": "FPTxFPL2",
+          "milliseconds": 566,
+          "frameAt60Hz": 33.96
+        },
+        {
+          "event": "FPTxFPR2",
+          "milliseconds": 233,
+          "frameAt60Hz": 13.979999999999999
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "name": "Stand - 1",
+      "milliseconds": 3000,
+      "framesAt60Hz": 180,
+      "events": []
+    },
+    {
+      "index": 2,
+      "name": "Stand - 2",
+      "milliseconds": 3000,
+      "framesAt60Hz": 180,
+      "events": []
+    },
+    {
+      "index": 3,
+      "name": "Spell Slam",
+      "milliseconds": 2000,
+      "framesAt60Hz": 120,
+      "events": []
+    },
+    {
+      "index": 4,
+      "name": "Spell",
+      "milliseconds": 967,
+      "framesAt60Hz": 58.019999999999996,
+      "events": []
+    },
+    {
+      "index": 5,
+      "name": "Attack",
+      "milliseconds": 966,
+      "framesAt60Hz": 57.96,
+      "events": [
+        {
+          "event": "SNDXKPB1",
+          "milliseconds": 0,
+          "frameAt60Hz": 0
+        }
+      ]
+    },
+    {
+      "index": 6,
+      "name": "Attack -2",
+      "milliseconds": 967,
+      "framesAt60Hz": 58.019999999999996,
+      "events": [
+        {
+          "event": "SNDXKPB2",
+          "milliseconds": 0,
+          "frameAt60Hz": 0
+        }
+      ]
+    },
+    {
+      "index": 7,
+      "name": "Death",
+      "milliseconds": 2667,
+      "framesAt60Hz": 160.01999999999998,
+      "events": [
+        {
+          "event": "SNDXDPMB",
+          "milliseconds": 0,
+          "frameAt60Hz": 0
+        },
+        {
+          "event": "SPLxEBS0",
+          "milliseconds": 1067,
+          "frameAt60Hz": 64.02
+        },
+        {
+          "event": "SPLyEBL2",
+          "milliseconds": 1600,
+          "frameAt60Hz": 96
+        },
+        {
+          "event": "SPLyEBS2",
+          "milliseconds": 467,
+          "frameAt60Hz": 28.02
+        }
+      ]
+    },
+    {
+      "index": 8,
+      "name": "Dissipate",
+      "milliseconds": 2000,
+      "framesAt60Hz": 120,
+      "events": [
+        {
+          "event": "SNDXDDSH",
+          "milliseconds": 0,
+          "frameAt60Hz": 0
+        }
+      ]
+    },
+    {
+      "index": 9,
+      "name": "Stand Ready",
+      "milliseconds": 1000,
+      "framesAt60Hz": 60,
+      "events": []
+    },
+    {
+      "index": 10,
+      "name": "Spell Throw",
+      "milliseconds": 1667,
+      "framesAt60Hz": 100.02,
+      "events": [
+        {
+          "event": "SPNxPBSX",
+          "milliseconds": 0,
+          "frameAt60Hz": 0
+        }
+      ]
+    }
+  ],
+  "authored": {
+    "sha256": "60bde2af94920f76a749f23f3114a52da9652157b27176f2c345b9c93bc97a6f",
+    "byteIdenticalToRepairedModel": true,
+    "totalSequences": 97,
+    "contacts": [
+      {
+        "name": "Chen jab",
+        "index": 11,
+        "framesAt60Hz": 16,
+        "contactFrameAt60Hz": 3
+      },
+      {
+        "name": "Chen jab2",
+        "index": 12,
+        "framesAt60Hz": 19,
+        "contactFrameAt60Hz": 4
+      },
+      {
+        "name": "Chen jab3",
+        "index": 13,
+        "framesAt60Hz": 27,
+        "contactFrameAt60Hz": 6
+      },
+      {
+        "name": "Chen forwardTilt",
+        "index": 14,
+        "framesAt60Hz": 32,
+        "contactFrameAt60Hz": 8
+      },
+      {
+        "name": "Chen forwardTiltUp",
+        "index": 15,
+        "framesAt60Hz": 32,
+        "contactFrameAt60Hz": 8
+      },
+      {
+        "name": "Chen forwardTiltDown",
+        "index": 16,
+        "framesAt60Hz": 32,
+        "contactFrameAt60Hz": 8
+      },
+      {
+        "name": "Chen upTilt",
+        "index": 17,
+        "framesAt60Hz": 30,
+        "contactFrameAt60Hz": 6
+      },
+      {
+        "name": "Chen downTilt",
+        "index": 18,
+        "framesAt60Hz": 29,
+        "contactFrameAt60Hz": 6
+      },
+      {
+        "name": "Chen dashAttack",
+        "index": 19,
+        "framesAt60Hz": 41,
+        "contactFrameAt60Hz": 9
+      },
+      {
+        "name": "Chen forwardSmash",
+        "index": 20,
+        "framesAt60Hz": 56,
+        "contactFrameAt60Hz": 18
+      },
+      {
+        "name": "Chen upSmash",
+        "index": 21,
+        "framesAt60Hz": 49,
+        "contactFrameAt60Hz": 14
+      },
+      {
+        "name": "Chen downSmash",
+        "index": 22,
+        "framesAt60Hz": 52,
+        "contactFrameAt60Hz": 14
+      },
+      {
+        "name": "Chen neutralAir",
+        "index": 23,
+        "framesAt60Hz": 33,
+        "contactFrameAt60Hz": 6
+      },
+      {
+        "name": "Chen forwardAir",
+        "index": 24,
+        "framesAt60Hz": 41,
+        "contactFrameAt60Hz": 10
+      },
+      {
+        "name": "Chen backAir",
+        "index": 25,
+        "framesAt60Hz": 33,
+        "contactFrameAt60Hz": 7
+      },
+      {
+        "name": "Chen upAir",
+        "index": 26,
+        "framesAt60Hz": 32,
+        "contactFrameAt60Hz": 6
+      },
+      {
+        "name": "Chen downAir",
+        "index": 27,
+        "framesAt60Hz": 47,
+        "contactFrameAt60Hz": 13
+      },
+      {
+        "name": "Chen grab",
+        "index": 28,
+        "framesAt60Hz": 32,
+        "contactFrameAt60Hz": 6
+      },
+      {
+        "name": "Chen crouch",
+        "index": 29,
+        "framesAt60Hz": 30,
+        "contactFrameAt60Hz": 1
+      },
+      {
+        "name": "Chen landing",
+        "index": 30,
+        "framesAt60Hz": 8,
+        "contactFrameAt60Hz": 2
+      },
+      {
+        "name": "Chen shield",
+        "index": 31,
+        "framesAt60Hz": 30,
+        "contactFrameAt60Hz": 1
+      },
+      {
+        "name": "Chen airDodge",
+        "index": 32,
+        "framesAt60Hz": 49,
+        "contactFrameAt60Hz": 4
+      },
+      {
+        "name": "Chen smashCharge",
+        "index": 33,
+        "framesAt60Hz": 30,
+        "contactFrameAt60Hz": 1
+      },
+      {
+        "name": "Chen dizzy",
+        "index": 34,
+        "framesAt60Hz": 60,
+        "contactFrameAt60Hz": 22
+      },
+      {
+        "name": "Chen turn",
+        "index": 35,
+        "framesAt60Hz": 8,
+        "contactFrameAt60Hz": 4
+      },
+      {
+        "name": "Chen stop",
+        "index": 36,
+        "framesAt60Hz": 8,
+        "contactFrameAt60Hz": 3
+      },
+      {
+        "name": "Chen jumpSquat",
+        "index": 37,
+        "framesAt60Hz": 5,
+        "contactFrameAt60Hz": 4
+      },
+      {
+        "name": "Chen jump",
+        "index": 38,
+        "framesAt60Hz": 24,
+        "contactFrameAt60Hz": 7
+      },
+      {
+        "name": "Chen doubleJump",
+        "index": 39,
+        "framesAt60Hz": 24,
+        "contactFrameAt60Hz": 7
+      },
+      {
+        "name": "Chen wallJump",
+        "index": 40,
+        "framesAt60Hz": 24,
+        "contactFrameAt60Hz": 7
+      },
+      {
+        "name": "Chen wallTech",
+        "index": 41,
+        "framesAt60Hz": 26,
+        "contactFrameAt60Hz": 5
+      },
+      {
+        "name": "Chen fall",
+        "index": 42,
+        "framesAt60Hz": 30,
+        "contactFrameAt60Hz": 1
+      },
+      {
+        "name": "Chen fallSpecial",
+        "index": 43,
+        "framesAt60Hz": 30,
+        "contactFrameAt60Hz": 1
+      },
+      {
+        "name": "Chen ledgeHang",
+        "index": 44,
+        "framesAt60Hz": 30,
+        "contactFrameAt60Hz": 1
+      },
+      {
+        "name": "Chen ledgeClimb",
+        "index": 45,
+        "framesAt60Hz": 25,
+        "contactFrameAt60Hz": 10
+      },
+      {
+        "name": "Chen ledgeAttack",
+        "index": 46,
+        "framesAt60Hz": 40,
+        "contactFrameAt60Hz": 20
+      },
+      {
+        "name": "Chen knockdown",
+        "index": 47,
+        "framesAt60Hz": 30,
+        "contactFrameAt60Hz": 25
+      },
+      {
+        "name": "Chen downDamage",
+        "index": 48,
+        "framesAt60Hz": 24,
+        "contactFrameAt60Hz": 5
+      },
+      {
+        "name": "Chen getUp",
+        "index": 49,
+        "framesAt60Hz": 30,
+        "contactFrameAt60Hz": 18
+      },
+      {
+        "name": "Chen getUpAttack",
+        "index": 50,
+        "framesAt60Hz": 49,
+        "contactFrameAt60Hz": 16
+      },
+      {
+        "name": "Chen spotDodge",
+        "index": 51,
+        "framesAt60Hz": 22,
+        "contactFrameAt60Hz": 4
+      },
+      {
+        "name": "Chen tech",
+        "index": 52,
+        "framesAt60Hz": 26,
+        "contactFrameAt60Hz": 8
+      },
+      {
+        "name": "Chen damageGround",
+        "index": 53,
+        "framesAt60Hz": 24,
+        "contactFrameAt60Hz": 3
+      },
+      {
+        "name": "Chen damageAir",
+        "index": 54,
+        "framesAt60Hz": 24,
+        "contactFrameAt60Hz": 3
+      },
+      {
+        "name": "Chen damageTumble",
+        "index": 55,
+        "framesAt60Hz": 30,
+        "contactFrameAt60Hz": 9
+      },
+      {
+        "name": "Chen damageShield",
+        "index": 56,
+        "framesAt60Hz": 24,
+        "contactFrameAt60Hz": 3
+      },
+      {
+        "name": "Chen grabHold",
+        "index": 57,
+        "framesAt60Hz": 30,
+        "contactFrameAt60Hz": 1
+      },
+      {
+        "name": "Chen grabbed",
+        "index": 58,
+        "framesAt60Hz": 30,
+        "contactFrameAt60Hz": 1
+      },
+      {
+        "name": "Chen rollForward",
+        "index": 59,
+        "framesAt60Hz": 31,
+        "contactFrameAt60Hz": 10
+      },
+      {
+        "name": "Chen techForward",
+        "index": 60,
+        "framesAt60Hz": 40,
+        "contactFrameAt60Hz": 10
+      },
+      {
+        "name": "Chen getUpRollForward",
+        "index": 61,
+        "framesAt60Hz": 31,
+        "contactFrameAt60Hz": 10
+      },
+      {
+        "name": "Chen ledgeRoll",
+        "index": 62,
+        "framesAt60Hz": 31,
+        "contactFrameAt60Hz": 10
+      },
+      {
+        "name": "Chen rollBackward",
+        "index": 63,
+        "framesAt60Hz": 31,
+        "contactFrameAt60Hz": 10
+      },
+      {
+        "name": "Chen techBackward",
+        "index": 64,
+        "framesAt60Hz": 40,
+        "contactFrameAt60Hz": 10
+      },
+      {
+        "name": "Chen getUpRollBackward",
+        "index": 65,
+        "framesAt60Hz": 31,
+        "contactFrameAt60Hz": 10
+      },
+      {
+        "name": "Chen pummel",
+        "index": 66,
+        "framesAt60Hz": 12,
+        "contactFrameAt60Hz": 5
+      },
+      {
+        "name": "Chen victimPummel",
+        "index": 67,
+        "framesAt60Hz": 60,
+        "contactFrameAt60Hz": 30
+      },
+      {
+        "name": "Chen throwForward",
+        "index": 68,
+        "framesAt60Hz": 33,
+        "contactFrameAt60Hz": 12
+      },
+      {
+        "name": "Chen victimThrowForward",
+        "index": 69,
+        "framesAt60Hz": 60,
+        "contactFrameAt60Hz": 30
+      },
+      {
+        "name": "Chen throwBack",
+        "index": 70,
+        "framesAt60Hz": 39,
+        "contactFrameAt60Hz": 16
+      },
+      {
+        "name": "Chen victimThrowBack",
+        "index": 71,
+        "framesAt60Hz": 60,
+        "contactFrameAt60Hz": 30
+      },
+      {
+        "name": "Chen throwUp",
+        "index": 72,
+        "framesAt60Hz": 25,
+        "contactFrameAt60Hz": 14
+      },
+      {
+        "name": "Chen victimThrowUp",
+        "index": 73,
+        "framesAt60Hz": 60,
+        "contactFrameAt60Hz": 30
+      },
+      {
+        "name": "Chen throwDown",
+        "index": 74,
+        "framesAt60Hz": 42,
+        "contactFrameAt60Hz": 18
+      },
+      {
+        "name": "Chen victimThrowDown",
+        "index": 75,
+        "framesAt60Hz": 60,
+        "contactFrameAt60Hz": 30
+      },
+      {
+        "name": "Chen neutralSpecial",
+        "index": 76,
+        "framesAt60Hz": 42,
+        "contactFrameAt60Hz": 11
+      },
+      {
+        "name": "Chen neutralSpecialAir",
+        "index": 77,
+        "framesAt60Hz": 42,
+        "contactFrameAt60Hz": 11
+      },
+      {
+        "name": "Chen sideSpecial",
+        "index": 78,
+        "framesAt60Hz": 38,
+        "contactFrameAt60Hz": 14
+      },
+      {
+        "name": "Chen sideSpecialAir",
+        "index": 79,
+        "framesAt60Hz": 38,
+        "contactFrameAt60Hz": 14
+      },
+      {
+        "name": "Chen upSpecial",
+        "index": 80,
+        "framesAt60Hz": 40,
+        "contactFrameAt60Hz": 1
+      },
+      {
+        "name": "Chen upSpecialAir",
+        "index": 81,
+        "framesAt60Hz": 40,
+        "contactFrameAt60Hz": 1
+      },
+      {
+        "name": "Chen downSpecial",
+        "index": 82,
+        "framesAt60Hz": 33,
+        "contactFrameAt60Hz": 16
+      },
+      {
+        "name": "Chen downSpecialAir",
+        "index": 83,
+        "framesAt60Hz": 33,
+        "contactFrameAt60Hz": 16
+      },
+      {
+        "name": "Chen downSpecialFollowUp",
+        "index": 84,
+        "framesAt60Hz": 32,
+        "contactFrameAt60Hz": 8
+      },
+      {
+        "name": "Chen sideSpecialFollowUp",
+        "index": 85,
+        "framesAt60Hz": 28,
+        "contactFrameAt60Hz": 5
+      },
+      {
+        "name": "Chen downSpecialFollowUpAir",
+        "index": 86,
+        "framesAt60Hz": 32,
+        "contactFrameAt60Hz": 8
+      },
+      {
+        "name": "Chen sideSpecialFollowUpAir",
+        "index": 87,
+        "framesAt60Hz": 28,
+        "contactFrameAt60Hz": 5
+      },
+      {
+        "name": "Chen Damage 0 0",
+        "index": 88,
+        "framesAt60Hz": 24,
+        "contactFrameAt60Hz": 1
+      },
+      {
+        "name": "Chen Damage 0 1",
+        "index": 89,
+        "framesAt60Hz": 24,
+        "contactFrameAt60Hz": 1
+      },
+      {
+        "name": "Chen Damage 0 2",
+        "index": 90,
+        "framesAt60Hz": 24,
+        "contactFrameAt60Hz": 1
+      },
+      {
+        "name": "Chen Damage 1 0",
+        "index": 91,
+        "framesAt60Hz": 24,
+        "contactFrameAt60Hz": 1
+      },
+      {
+        "name": "Chen Damage 1 1",
+        "index": 92,
+        "framesAt60Hz": 24,
+        "contactFrameAt60Hz": 1
+      },
+      {
+        "name": "Chen Damage 1 2",
+        "index": 93,
+        "framesAt60Hz": 24,
+        "contactFrameAt60Hz": 1
+      },
+      {
+        "name": "Chen Damage 2 0",
+        "index": 94,
+        "framesAt60Hz": 24,
+        "contactFrameAt60Hz": 1
+      },
+      {
+        "name": "Chen Damage 2 1",
+        "index": 95,
+        "framesAt60Hz": 24,
+        "contactFrameAt60Hz": 1
+      },
+      {
+        "name": "Chen Damage 2 2",
+        "index": 96,
+        "framesAt60Hz": 24,
+        "contactFrameAt60Hz": 1
+      }
+    ],
+    "pairedCheck": "evidence/chen-victim-contact-timing.json"
+  }
+}

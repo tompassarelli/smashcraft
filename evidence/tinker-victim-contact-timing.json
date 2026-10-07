@@ -1,0 +1,60 @@
+{
+  "modelSha256": "e951093873f7a18835c6b5c12a495e3df16918dcb6e70c51336d9989c21529a1",
+  "sourceSha256": "4a87fad414369156f0605c9ce56c66c7a49bb1a53fcd6192d239db49aafa4305",
+  "totalSequences": 98,
+  "unchangedSequences": 93,
+  "unchangedTrackIntervals": 23622,
+  "unchangedPoseSamples": 279,
+  "retimedVictimContacts": [
+    {
+      "index": 92,
+      "pose": "Tinker victimPummel",
+      "seconds": 1,
+      "contact": 0.5,
+      "vertices": 2391,
+      "maxContactVertexDifference": 0
+    },
+    {
+      "index": 93,
+      "pose": "Tinker victimThrowForward",
+      "seconds": 1,
+      "contact": 0.5,
+      "vertices": 2391,
+      "maxContactVertexDifference": 0
+    },
+    {
+      "index": 94,
+      "pose": "Tinker victimThrowBack",
+      "seconds": 1,
+      "contact": 0.5,
+      "vertices": 2391,
+      "maxContactVertexDifference": 0
+    },
+    {
+      "index": 95,
+      "pose": "Tinker victimThrowUp",
+      "seconds": 1,
+      "contact": 0.5,
+      "vertices": 2391,
+      "maxContactVertexDifference": 0
+    },
+    {
+      "index": 96,
+      "pose": "Tinker victimThrowDown",
+      "seconds": 1,
+      "contact": 0.5,
+      "vertices": 2391,
+      "maxContactVertexDifference": 0
+    }
+  ],
+  "pairingContract": {
+    "test": "paired hero throws reach contact on the actual holder's frame across every roster pairing",
+    "scope": "unchanged full local roster fixture; Tinker victim against every selectable holder, both facings, five actions",
+    "holders": 14,
+    "pairings": 140,
+    "passed": 140,
+    "failures": 0,
+    "fullRosterPairings": 1540,
+    "assertion": "clip.contact and presented clipTime equal 0.5 seconds; holder hitstop freezes the victim; action end reaches clip duration"
+  }
+}

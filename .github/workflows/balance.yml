@@ -23,6 +23,9 @@ on:
       seeds:
         description: Seeds a setup may draw on to reach the matches a pair
         default: "100"
+      matchups:
+        description: Optional comma-separated fighter:opponent pairs for a named repair
+        default: ""
       tag:
         description: Names the run so `bun wisp farm` can find the one it dispatched
         default: ""
@@ -53,12 +56,17 @@ jobs:
       # each fighter's pairs spread over the jobs.
       - id: plan
         working-directory: ts
+        env:
+          MATCHUPS: ${{ inputs.matchups }}
         run: |
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           bun -e '
             import { SELECTABLE_CHARACTERS, fighterSlug } from "./src/game/sim/heroes/registry";
             const slugs = SELECTABLE_CHARACTERS.map(fighterSlug);
-            const pairs = slugs.flatMap((a, index) => slugs.slice(index + 1).map((b) => `${a}:${b}`));
+            const allPairs = slugs.flatMap((a, index) => slugs.slice(index + 1).map((b) => `${a}:${b}`));
+            const requested = (process.env.MATCHUPS ?? "").split(",").filter(Boolean);
+            if (requested.some((pair) => !allPairs.includes(pair))) throw new Error("Unknown or reversed fighter matchup");
+            const pairs = requested.length === 0 ? allPairs : allPairs.filter((pair) => requested.includes(pair));
             const jobs = Math.ceil(pairs.length / 4);
             const shards = Array.from({ length: jobs }, (_, job) => pairs.filter((_, index) => index % jobs === job).join(","));
             console.log(`shards=${JSON.stringify(shards)}\njobs=${jobs}`);
@@ -134,12 +142,16 @@ jobs:
           PER_PAIR: ${{ inputs.per-pair }}
           SEEDS: ${{ inputs.seeds }}
           SHA: ${{ needs.plan.outputs.sha }}
+          MATCHUPS: ${{ inputs.matchups }}
         run: |
           mkdir -p balance
           bun scripts/cpuField.ts --merge "$(ls shards/*.json | paste -sd,)" --opponents "$OPPONENT,$OPPONENT" --tiers "$TIER,$TIER" --per-pair "$PER_PAIR" --seeds "$SEEDS" --json balance/field.json > balance/table.md
           started=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" --jq .run_started_at)
           wall=$(( $(date +%s) - $(date -d "$started" +%s) ))
           verdict=$(grep '^Balance gate' balance/table.md)
+          if [ -n "$MATCHUPS" ]; then
+            verdict="Targeted matchup report: $MATCHUPS. Full-roster gate not measured."
+          fi
           {
             echo "# Balance at ${SHA:0:10}"
             echo
@@ -147,7 +159,11 @@ jobs:
             echo
             echo "$OPPONENT $TIER, $PER_PAIR a pair, $(ls shards/*.json | wc -l) pairs in ${{ needs.plan.outputs.jobs }} jobs; $((wall / 60)) min $((wall % 60)) s from the run's start to the verdict."
             echo
-            grep -v '^Merged from' balance/table.md
+            if [ -n "$MATCHUPS" ]; then
+              grep -v -e '^Merged from' -e '^Balance gate' balance/table.md
+            else
+              grep -v '^Merged from' balance/table.md
+            fi
           } > balance/field.md
           cat balance/field.md >> "$GITHUB_STEP_SUMMARY"
           echo "::notice title=Balance gate::$verdict"

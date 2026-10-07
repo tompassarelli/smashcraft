@@ -91,7 +91,7 @@ for (const [pose,frames,contact,shape] of [
   ["victimThrowUp",24,15,{chest:-30,right:-35,left:-35,legs:-15}],
   ["victimThrowDown",44,19,{root:90,chest:35,legs:40,knees:60}],
   ["damageShield",18,4,{chest:-30,right:90,left:85,elbow:45}],
-] as const) actions.push({pose,frames,phases:[{frame:0,chest:25,right:55,left:55},
+] as const) actions.push({pose,frames,...(/^victim(Pummel|Throw)/.test(pose)?{contact}:{}),phases:[{frame:0,chest:25,right:55,left:55},
   {frame:Math.max(1,contact-3),chest:35,right:65,left:65},{frame:contact,...shape},
   {frame:frames,...shape}]});
 const [inputArg,outputArg] = process.argv.slice(2);
@@ -165,8 +165,9 @@ for(const action of actions) {
     }
   });
   for(const Frame of [start,end])motion.Translation!.Keys.push({Frame,Vector:new Float32Array([0,0,0])});
-  bindings.push(`  ${action.pose}: { index: ${index}, seconds: ${seconds((end-start)/1000)}, aligned: true${action.contact===undefined?"":`, contact: ${seconds(action.contact/60)}`} },`);
-  records.push({pose:action.pose,index,frames:action.frames});
+  const victimContact=/^victim(Pummel|Throw)/.test(action.pose);
+  bindings.push(`  ${action.pose}: { index: ${index}, seconds: ${seconds(victimContact?1:(end-start)/1000)}, aligned: true${action.contact===undefined?"":`, contact: ${seconds(victimContact?0.5:action.contact/60)}`} },`);
+  records.push({pose:action.pose,index,frames:victimContact?60:action.frames});
 }
 // Local articulation can lift feet or rotate a shoulder below the stage.
 // A sequence-only parent plants the rendered support without changing physics.
@@ -180,6 +181,16 @@ for(const [offset,action]of actions.entries()){
     for(let i=1;i<triangles.length;i+=2)lowest=Math.min(lowest,triangles[i]!);
     motion.Translation!.Keys.push({Frame:start+Math.round(frame*1000/60),Vector:new Float32Array([0,0,-lowest])});
   }
+}
+// Victims share the holder's half-second contact without changing the contact mesh.
+for(const [offset,action]of actions.entries())if(/^victim(Pummel|Throw)/.test(action.pose)){
+  ensure(action.contact!==undefined,`${action.pose}: missing authored contact`);
+  const sequence=model.Sequences[23+offset]!,[first,last]=sequence.Interval;
+  const contact=first!+Math.round(action.contact*1000/60),start=cursor;cursor=start+1100;
+  tracks(model,track=>{if(onGlobalClock(track))return;for(const key of track.Keys)if(key.Frame>=first!&&key.Frame<=last!)
+    key.Frame=start+(key.Frame<=contact?Math.round((key.Frame-first!)/(contact-first!)*500):500+Math.round((key.Frame-contact)/(last!-contact)*500));
+    track.Keys.sort((a,b)=>a.Frame-b.Frame);});
+  sequence.Interval=new Uint32Array([start,start+1000]);
 }
 const packaged=parseSource(generateMDX(model)),encoded=encodeVerified(packaged),drawn=new DrawnModel(encoded,1),before=new DrawnModel(generateMDX(source),1);
 for(const [index,s]of source.Sequences.entries())for(const progress of [0,.5,1]){

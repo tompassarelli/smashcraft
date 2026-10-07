@@ -4,6 +4,7 @@
 // distance over its frames.
 import { f32 } from "wisp/src/sim/f32";
 import { HitElement } from "../codes";
+import { CHILL } from "../chill";
 import { HERO_REFERENCE_HEIGHT, heroRegion } from "../heroMoves";
 import { type AuthoredSpecial, type FighterSpecials, frames } from "../heroSpecials";
 import { hurtPose } from "../hurtboxes";
@@ -14,9 +15,10 @@ const heights = (multiple: number): number => f32(H * f32(multiple));
 const perFrame = (distance: number, first: number, last: number): number => f32(distance / (last - first + 1));
 
 const JUSTICE = { ...hit(13.0, "LAUNCH", 80, false, HitElement.holy), growth: 70.0, base: 42.0 };
-const hammerOfJustice = (landingLag: number | undefined): AuthoredSpecial => ({
+const cleansingHammer = (landingLag: number | undefined): AuthoredSpecial => ({
   cost: 10,
   endFrame: 38,
+  cleanseFrame: 14,
   regions: [
     heroRegion(14, 14, capsule(28.0, 82.0, 108.0, 90.0, 18.0), JUSTICE),
     heroRegion(15, 15, capsule(28.0, 66.0, 122.0, 68.0, 18.0), JUSTICE),
@@ -26,33 +28,25 @@ const hammerOfJustice = (landingLag: number | undefined): AuthoredSpecial => ({
   hurt: [hurtPose(10, 22, utherReach(46.0, 70.0))],
 });
 
-const RADIANCE_SPEED = perFrame(heights(f32(0.75)), 15, 20);
-const RADIANCE = hit(14.0, "EDGE", 40, false, HitElement.holy);
-const radianceRegions = [heroRegion(15, 20, capsule(20.0, 58.0, 128.0, 48.0, 18.0), RADIANCE)];
-const radianceWave = [{
-  model: "Abilities\\Spells\\Human\\HolyBolt\\HolyBoltMissile.mdx",
-  spawnFrame: 21, offsetX: 150.0, offsetZ: 48.0,
-  velocityX: heights(f32(0.11)), velocityZ: 0.0,
-  life: 24, radius: 18.0,
-  effect: hit(6.0, "POKE", 40, false, HitElement.holy),
-  reflectable: true, limit: 1,
-}];
-const HOLY_RADIANCE: AuthoredSpecial = {
-  cost: 50,
-  endFrame: 69,
-  regions: radianceRegions,
-  projectiles: radianceWave,
+const FURY_SPEED = perFrame(heights(f32(0.75)), 15, 20);
+const FURY = hit(14.0, "EDGE", 40, false, HitElement.holy);
+const furyRegions = [heroRegion(15, 20, capsule(20.0, 58.0, 128.0, 48.0, 18.0), FURY)];
+const RIGHTEOUS_FURY: AuthoredSpecial = {
+  cost: 25,
+  endFrame: 49,
+  regions: furyRegions,
+  strikeStatus: CHILL,
   hurt: [hurtPose(12, 25, utherReach(48.0, 56.0))],
-  motion: [{ ...frames(15, 20), velocityX: RADIANCE_SPEED, velocityZ: 0.0, stopsAtBody: true }, { ...frames(21, 21), velocityX: 0.0, velocityZ: 0.0 }],
+  motion: [{ ...frames(15, 20), velocityX: FURY_SPEED, velocityZ: 0.0, stopsAtBody: true }, { ...frames(21, 21), velocityX: 0.0, velocityZ: 0.0 }],
   armor: { ...frames(15, 18), maxDamage: 5.0 },
 };
-const HOLY_RADIANCE_AIR: AuthoredSpecial = {
-  cost: HOLY_RADIANCE.cost,
-  endFrame: HOLY_RADIANCE.endFrame,
-  regions: radianceRegions,
-  projectiles: radianceWave,
-  hurt: HOLY_RADIANCE.hurt,
-  motion: HOLY_RADIANCE.motion,
+const RIGHTEOUS_FURY_AIR: AuthoredSpecial = {
+  cost: RIGHTEOUS_FURY.cost,
+  endFrame: RIGHTEOUS_FURY.endFrame,
+  regions: furyRegions,
+  strikeStatus: CHILL,
+  hurt: RIGHTEOUS_FURY.hurt,
+  motion: RIGHTEOUS_FURY.motion,
   oncePerAirtime: true,
   helpless: true,
   landingLag: 20,
@@ -77,22 +71,25 @@ const ascension = (cost: number, rise: number, struck: boolean): AuthoredSpecial
   helpless: true,
 });
 
-// Divine Shield (#131): grounded stance, intangible f6-9 and vulnerable
-// otherwise, so grabs and late hits beat it. A damaging strike or projectile
-// overlapping the body on f6-9 raises Divine Shield for 45 frames: strikes and
-// projectiles pass through him until he attacks, uses a special or grabs, and
-// grabs still catch him. The airborne press fails without spending.
-const DIVINE_SHIELD: AuthoredSpecial = {
-  cost: 25,
-  endFrame: 36,
-  intangible: frames(6, 9),
-  guard: { ...frames(6, 9), heal: 0.0, healCapPerStock: 0.0, shieldFrames: 45 },
+const CONSECRATION: AuthoredSpecial = {
+  cost: 20,
+  endFrame: 42,
+  cooldownFrames: 150,
   groundOnly: true,
+  projectiles: [{
+    model: "Abilities\\Spells\\Other\\Consecration\\Consecration.mdx",
+    modelRadius: 1202.0,
+    spawnFrame: 16, offsetX: 70.0, offsetZ: 6.0,
+    velocityX: 0.0, velocityZ: 0.0, life: 120, radius: 60.0,
+    effect: { damage: 2.0, growth: 30.0, base: 30.0, launchX: f32(0.173648178), launchZ: f32(0.984807753), electric: false, element: HitElement.holy },
+    reflectable: false, limit: 1, needsLineOfSight: true,
+    pool: { every: 45, growth: 0.0, maxRadius: 60.0 },
+  }],
 };
 
 export const UTHER_SPECIALS: FighterSpecials = {
-  neutral: { name: "Hammer of Justice", description: "A heavy overhead bonk that lifts the opponent for a follow-up.", ground: hammerOfJustice(undefined), air: hammerOfJustice(18) },
-  side: { name: "Holy Radiance", description: "Drive the hammer forward, then send light beyond it. Strong up close; unsafe if blocked.", ground: HOLY_RADIANCE, air: HOLY_RADIANCE_AIR },
+  neutral: { name: "Cleansing Hammer", description: "Bonk upward with the hammer; its holy impact cleanses your poison and movement slow.", ground: cleansingHammer(undefined), air: cleansingHammer(18) },
+  side: { name: "Righteous Fury", description: "Charge hammer-first. A body hit briefly slows movement; a blocked charge leaves you exposed.", ground: RIGHTEOUS_FURY, air: RIGHTEOUS_FURY_AIR },
   up: { name: "Ascension", description: "A rising hammer strike you steer, then a helpless fall.", ground: ascension(15, f32(2.9), true), free: ascension(0, f32(2.0), false) },
-  down: { name: "Divine Shield", description: "A guard: read an attack and become untouchable until you act. Grabs still catch him.", ground: DIVINE_SHIELD },
+  down: { name: "Consecration", description: "Plant the hammer to bless a small patch of ground. It pulses beneath grounded foes; jumping clears it.", ground: CONSECRATION },
 };

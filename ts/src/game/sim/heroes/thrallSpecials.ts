@@ -7,7 +7,7 @@ import { capsule, thrallHit } from "./thrallMoves";
 const h = (multiple: number) => f32(HERO_REFERENCE_HEIGHT * multiple);
 const bolt: SpecialProjectile = {
   spawnFrame: 14, offsetX: 42.0, offsetZ: 70.0, velocityX: 17.0, velocityZ: 0.0,
-  life: 30, radius: 17.0, effect: { ...thrallHit(8.0, 40, 80.0, 22.0, false, HitElement.electric), electric: true },
+  life: 30, radius: 17.0, effect: { ...thrallHit(12.0, 40, 80.0, 22.0, false, HitElement.electric), electric: true },
   reflectable: true, limit: 1, model: "Abilities\\Weapons\\FarseerMissile\\FarseerMissile.mdx",
 };
 const wolf = (spawnFrame: number, air: boolean): SpecialProjectile => ({

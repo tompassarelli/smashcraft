@@ -1,14 +1,56 @@
-# Uther: the hammer and the Light
+# Uther: the Forsaken hammer and the Light
 
 Uther wins by standing his ground, calling an approach and landing a loud,
 deliberate hammer blow. His new neutral special lifts an opponent into the
-next read; his side special drives the hammer forward and sends holy light
-beyond its head. Protection buys him a chance to take space. It does not win
-the exchange for him.
+next read; his side special drives the hammer forward and slows a retreat.
+Consecration lets him contest a landing while his slow feet and committed
+swings leave room for a jump, shield or whiff punish.
 
 This is the #216 rework after Tom's 0.0.90 playtest. All new numbers below are
 original, provisional Smashcraft tuning. Source games supply identities and
 trade-offs, never copied hitboxes, animation or implementation.
+
+## Forsaken revision, 8 October
+
+This design precedes the revised gameplay implementation. Uther uses the
+actual Forsaken Paladin model from installed Warcraft **3.0.1.24342**,
+Units/Creeps/HeroForsakenPaladin/HeroForsakenPaladin. It has 28 sequences and
+a different 143-node rig; the Human Paladin clipping fix does not establish
+Forsaken clip quality. Rebuild Uther poses on this chosen model and inspect
+both facings at startup, contact and recovery.
+
+[Blizzard’s final 3.0.1 notes](https://us.forums.blizzard.com/en/warcraft3/t/warcraft-iii-reforged-forsaken-kingdom-patch-notes/38400/4)
+set Righteous Fury to 90 mana and 40% attack/movement slow; Consecration to
+10-second duration/cooldown, 15/20/25 damage and 15/25/35 healing, organic
+ground targets only; Sacred Aura to 15/20/25% resistance; Cleansing Fire
+keeps non-dispellable effects and correctly stacks its damage buff. The
+installed AbilityData has Righteous Fury damage 90/135/180, while the notes
+say 90/135/185. Use the matching 40% slow, not the disputed top-rank damage.
+Ability IDs are ANcp, AHcr, AHpa and AHcl respectively.
+
+The source identities become these original, provisional Smashcraft moves:
+
+| Input | Reward and risk | Contract | Sources |
+| --- | --- | --- | --- |
+| Neutral: **Cleansing Hammer** | Raise the hammer and bonk upward; exposed startup and long recovery punish a miss. At contact time cleanse only Uther’s poison or movement slow. | 10 mana; hammer f14–16; end f38; 11.05 damage, 80°, growth 70/base 42. Cleanse at f14 even on a miss. Air drift and 18 landing frames. | HotS Hammer of Justice and Forsaken Cleansing Fire’s dispel; Dedede’s weight and Ike’s single-stroke commitment. |
+| Side: **Righteous Fury** | Lead a short charge with the hammer. A body hit slows a retreat; shield blocks the slow and leaves a punish. | 25 mana; travel 0.75H on f15–20; end f49; 11.9 damage, 40°, growth 100/base 25. Movement slowed 40% for 75 frames, then 120 frames immunity. Ground armor absorbs one hit up to 5 damage on f15–18; stops at bodies. Air has no armor, one use per airtime, 20 landing frames and helpless finish. | Forsaken Righteous Fury and its final 3.0.1 slow; Ike’s armored commitment. Shared attack speeds remain unchanged. |
+| Up: **Ascension** | Raise and follow the hammer, steer toward the ledge, then fall helplessly with exposed sides. | 15 mana; rise 2.9H over f8–28; stop f29; 0.2H forward plus 1.6H steering. Hammer f10–15 deals 6.8 damage at 80°. Free form rises 2.0H without a hit. Jump spent, one use per airtime. | Paladin resurrection and HotS Hammer of Justice; Ike’s weapon-led Aether without its descent. |
+| Down: **Consecration** | Plant the hammer and defend a small holy patch. Jump or retreat to leave it. | Ground only; 20 mana; end f42; pool on f16, 70 units ahead at height 6, radius 60. Life 120 frames; 1.7 damage at most every 45 frames, growth 30/base 30, near-vertical launch. One patch; 150 frames between casts; no growth or healing. | Forsaken Consecration’s ground-only periodic damage, compressed from 10 seconds; Dedede’s placed threat and committed recovery. |
+
+Cleansing Hammer and Righteous Fury make the hammer central; Ascension
+carries it into a third special. Consecration does not follow Uther, grow or
+hit airborne opponents. Cleansing Hammer removes poison/chill only, leaving
+silence, sleep, stun and carries alone. **Sacred Aura** retains the existing
+three-block reward: the next non-throw launch is 20% weaker, adapting the
+source’s middle-rank resistance to the launch system. Shared EX costs 25 extra
+mana for its existing six-frame one-hit armor. There are no ultimates.
+
+The CPU approaches into 50–150 hammer spacing, charges from 170–270, lays
+Consecration near a grounded opponent, shields/dodges threats and recovers
+with Ascension. The original 0.85 damage multiplier, three extra hammer hitlag
+frames, volume 127 heavy bash and readable contact/white-body flash remain.
+The new model needs its own flash and contact review. The old 47.6875% field
+is historical.
 
 ## Sources
 
@@ -25,32 +67,6 @@ trade-offs, never copied hitboxes, animation or implementation.
 - [Nintendo's Lucario](https://www.smashbros.com/wii/en_us/characters/hidden06.html)
   supplies Force Palm's close/ranged distinction and a defensive read that can
   be baited. Uther has no command grab or damage-dependent power.
-
-## Specials
-
-Frames in this table use the kit's one-based convention: f1 is the entry tick;
-end fN allows another action on fN+1. Every strike hits each opponent once.
-
-| Input | Decision, reward and risk | Authored contract | Sources |
-| --- | --- | --- | --- |
-| Neutral: **Hammer of Justice** | Plant, raise the hammer, then bonk the opponent upward. A closer, faster launcher than a smash; shield or step out and punish its recovery. | 10 mana; hammer f14–16; end f38; 11.05 damage, 80° launch, growth 70/base 42; reaches 140 units forward. Air form keeps drift, 18 landing frames. No armor, invulnerability, cooldown or cancel. | HotS Hammer of Justice; Dedede's weight with Ike's single decisive hit. |
-| Side: **Holy Radiance** | Commit forward with the hammer. The close hit is the reward; light continues beyond the hammer to contest someone retreating. Jump over the line or shield the lunge and punish the stop. | 50 mana; travel 0.75H over f15–20; hammer f15–20; end f69. Hammer 11.9 damage at 40°, growth 100/base 25. One light wave on f21 starts 150 units ahead, speed 0.11H/frame, 24-frame life, 18 radius; 5.1 damage at 40°, growth 80/base 16. Ground armor absorbs one ≤5-damage hit on f15–18; stops at bodies. Air has no armor, once per airtime, 20 landing frames and helpless finish. | HotS Holy Radiance, channelled through the Warcraft warhammer; Lucario Force Palm's strong close hit and weaker reach, Ike's short armor. |
-| Up: **Ascension** | Lift the hammer and follow it upward; spend the jump and accept a helpless fall. Challenge its exposed sides or catch the landing. | 15 mana; rises 1.9H and travels 0.45H, f8–29; hammer f10–15, 6.8 damage at 80°. Below 15 mana, free recovery rises 1.3H without a hit. One use per airtime; helpless. | Warcraft resurrection/light and HotS Hammer of Justice; Ike's weapon-led Aether, without its descent. |
-| Down: **Divine Shield** | Read a strike, then reposition for a hammer punish. The shield ends when Uther attacks; an opponent can wait or grab. | Ground only, 25 mana; intangible/guard f6–9; end f36. A strike overlapping the guard grants 45 frames of protection, ended by attack, special or grab. No healing, damage, automatic counter or air cast. | Warcraft/HotS Divine Shield; Lucario's Double Team read, with player-chosen retaliation. |
-
-H is the shared 132-unit design height. The light wave begins beyond the direct
-hammer rather than overlapping its head. It is reflectable and limited to one
-live wave. Ordinary shield damage uses actual damage; the stronger side strike
-pays 49 frames after its final active frame. Neutral pays 22. No special gains
-a shield-damage multiplier.
-
-Hammer of Justice is a launcher, not a fixed stun: ordinary DI, SDI, hitstun,
-air dodge and tech rules apply. Follow with an up air, chase a landing or wait
-for the defensive option. It has no scripted second hit or guaranteed loop.
-Low Judgment and the existing up throw remain other starters.
-
-The CPU favors Divine Shield on three of its four planned defensive reads;
-ordinary shield remains the fallback when the guard window would miss.
 
 ## The rest of his moves
 
@@ -82,14 +98,13 @@ they are not requests to copy Smash hitboxes or change another fighter.
 | Up throw | Warcraft shaft of resurrection light | Weapon-heavyweight lift; short juggle starter |
 | Down throw | Hammer pressed beside the opponent | Heavyweight ground throw; chase the escape |
 | Get-up and ledge attack | Paladin clearing room with his hammer | Dedede's weight; defend recovery to standing |
-| Devotion Aura | Warcraft Devotion Aura, HotS armor | Heavyweight endurance; three blocked hits soften the next launch |
-| Guardian of the Light | HotS Eternal Devotion and Warcraft Divine Shield | Ike's power/protection emphasis; existing finite offensive window |
+| Sacred Aura | Forsaken Sacred Aura, middle-rank 20% resistance | Heavyweight endurance; three blocked hits soften the next launch |
 
 ## Weight, sound and pose
 
 Direct hammer strikes with at least 8 damage before the balance multiplier add **three frames of hitlag**
-to attacker and victim, including shield contacts. Boot, jab, throw and light
-wave keep their existing stop. The additional stop changes no hitstun or
+to attacker and victim, including shield contacts. Boot, jab, throw and
+Consecration keep their existing stop. The additional stop changes no hitstun or
 launch formula. It holds the visible hammer contact pose and the victim's
 reaction, and lets the shared heavy-hit glow read.
 
@@ -100,11 +115,9 @@ shared contact display; Holy Bolt's classic gold-white burst identifies holy
 power without hiding the fighter. Effects and sound use the existing event
 serials and do not replay on rollback.
 
-Hammer of Justice uses Paladin Attack-2: raised hammer, descending head,
-planted follow-through. Holy Radiance uses Attack-1: wind back, forward sweep,
-recover behind the advancing foot. Ascension retains Spell's raised hammer;
-Divine Shield retains the channel stance. Align the first active frame with
-the existing measured strike moment. Classic Paladin art remains the model.
+The actual Forsaken model supplies the hammer and body. Its new rig and all
+28 stock clips are inspected before binding or authoring each action. Both
+facings must keep the weapon attached and the body clear at contact.
 
 ## Place in the roster
 
@@ -119,14 +132,17 @@ His reach is useful but his commitment and weak chase are exploitable.
 | Blademaster | Uther trades stealth and blade strings for blunt launches and a defensive read. |
 | Mountain King | Uther keeps the hammer in his hand; no returning thrown hammer, chargeable ground ring or Hammerfall. |
 | Warden | Uther has no teleport or poison setup; he contests the opponent in front of him. |
-| Lich | Uther carries his threat on the hammer instead of placing frost/decay zones. |
+| Lich | His small brief patch has no delayed burst; the hammer is the main threat. |
 | Dreadlord | Uther must win a direct hit; no command-grab bite, sleep or life-steal approach. |
 | Shadow Hunter | Uther has no ward or polymorph; his defensive read sets up a chosen hammer punish. |
-| Pit Lord | Uther's narrow hammer head and light wave replace a giant body, spit and broad cleaves. |
+| Pit Lord | Uther's narrow hammer head and short holy patch replace a giant body, spit and broad cleaves. |
 | Beastmaster | Uther has no companion or summoned crossfire; the decisive contact is his own weapon. |
-| Lich King | Uther has no soul-spending or persistent ground corruption; short protection supports immediate hammer reads. |
-
-The computer approaches for hammer spacing, uses Radiance outside that range,
-guards predicted strikes and saves Ascension for recovery. Coverage records
-each of the four special inputs separately. Balance uses the original seeded
-Wren Expert field; Tom's playtest decides whether the bonks are fun.
+| Lich King | His patch never grows or spends souls; a direct slow sets up hammer reads. |
+| Thrall | Held hammer and short holy patch instead of lightning and spirit crossfire. |
+| Jaina | Close weapon contact instead of aimed spell rain. |
+| Sylvanas | A hammer slow instead of ranged silence or possession. |
+| Cairne | A narrow hammer head and small patch instead of wide totem/stomp. |
+| Chen | Single committed hits instead of stance branches and haze/flame. |
+| Peon | No burrow, building or resource summon. |
+| Tinker | Direct weapon contact instead of factory or transformation. |
+| Kael’thas | Held hammer instead of aimed Flame Strike or siphon. |
