@@ -92,12 +92,12 @@ jobs:
           SEEDS: ${{ inputs.seeds }}
         run: |
           mkdir -p shards
-          echo "$PAIRS" | tr ',' '\n' | xargs -P "$(nproc)" -I{} sh -c '
-            name=$(echo {} | tr : _)
-            bun scripts/cpuField.ts --pairs {} --opponents "$OPPONENT,$OPPONENT" --tiers "$TIER,$TIER" --per-pair "$PER_PAIR" --seeds "$SEEDS" --json "shards/$name.json" > "shards/$name.log" 2>&1 \
-              || { echo "::error::cpuField {} failed"; cat "shards/$name.log"; exit 1; }
+          printf '%s' "$PAIRS" | tr ',' '\0' | xargs -0 -P "$(nproc)" -I{} sh -c '
+            name=$(printf "%s" "$1" | tr : _)
+            bun scripts/cpuField.ts --pairs "$1" --opponents "$OPPONENT,$OPPONENT" --tiers "$TIER,$TIER" --per-pair "$PER_PAIR" --seeds "$SEEDS" --json "shards/$name.json" > "shards/$name.log" 2>&1 \
+              || { echo "::error::cpuField $1 failed"; cat "shards/$name.log"; exit 1; }
             grep -m1 "computer matches" "shards/$name.log" | cut -c1-90
-          '
+          ' sh '{}'
       - uses: actions/upload-artifact@v4
         with:
           name: balance-shard-${{ strategy.job-index }}
