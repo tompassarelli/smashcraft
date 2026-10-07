@@ -15,7 +15,7 @@ import { createMatchState, Phase } from "./rules";
 import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
 import { captureFrame, createMatchFrameInput, executeMatchFrame } from "./frameInput";
 import { replayChecksum } from "../replay/matchReplay";
-import { botObservationCanonical, canonicalState } from "../replay/canonical";
+import { botObservationCanonical, canonicalState, writeCanonicalNumber } from "../replay/canonical";
 
 const SURPRISE_FRAME = 50;
 
@@ -97,12 +97,22 @@ test("cached observation chunks fold the exact text across kits, fractional valu
       frame++;
       target.motion.x = value;
       target.status.damage = value;
-      const projectile = at(target.projectiles, 0);
-      projectile.life = frame;
+      for (const projectile of target.projectiles) projectile.life = 0;
+      const projectile = at(target.projectiles, floorMod(frame * 3, target.projectiles.length));
+      projectile.life = floorMod(frame, 4) === 0 ? 0 : frame;
       projectile.x = value;
       observeOpponents(game.runtime.botMemory, game.world, frame);
       const sample = at(game.runtime.botMemory.history, frame - 1);
       const text = botObservationCanonical(sample);
+      const projectileBytes: string[] = [];
+      const emit = (code: number) => { projectileBytes.push(String.fromCharCode(code)); };
+      for (const p of assertDefined(sample.opponents[1]).projectiles) {
+        for (const value of [p.life, p.x, p.z, p.direction, p.velocityX, p.velocityZ, p.serial]) {
+          emit(44);
+          writeCanonicalNumber(emit, value);
+        }
+      }
+      assertTrue(text.endsWith(`${projectileBytes.join("")},0,0`));
       let first = 0;
       let second = 0;
       for (let index = 0; index < text.length; index++) {
