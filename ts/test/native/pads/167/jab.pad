@@ -1,0 +1,27 @@
+# #167 Lich King: three jab presses play the Pommel and Rake chain (gauntlet, rake, Frostmourne
+# thrust), each hit captured on its first active frame. Lich King a against Lich King b, which runs
+# in and stands. Syntax and checks: smashcraft:docs/native-bot-session.md.
+#! chat -dev quick hero lich king
+# Input starts after frame 500: on a loaded host the helpers first see a quick match up to ~400 frames in.
+# b dashes in, then walks 24 frames toward a, inside the gauntlet check.
+540 b stick -1 0
+560 b stick 0 0
+590 b press LB
+590 b stick -1 0
+614 b stick 0 0
+614 b release LB
+650 a tap A 2
+655 a capture
+659 a tap A 2
+667 a capture
+668 a tap A 2
+681 a capture
+1000 a press VIEW
+1070 a release VIEW
+# Expected (headless run of this script): the gauntlet check, rake and thrust each hit.
+#! expect a 650 applied attack 1 style 0
+#! expect b 655 damage 3.000
+#! expect a 661 applied attack 2 style 20
+#! expect b 667 damage 6.000
+#! expect a 673 applied attack 3 style 21
+#! expect b 681 damage 11.000

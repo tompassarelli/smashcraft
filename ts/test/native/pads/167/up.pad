@@ -1,0 +1,23 @@
+# #167 Lich King Ascension of the Damned: the ice column lifts him inside a Remorseless Winter vortex
+# that strikes b once, then a helpless fall. Captured on the vortex's first active frame (8).
+# Lich King a against Lich King b. Syntax and checks: smashcraft:docs/native-bot-session.md.
+#! chat -dev quick hero lich king
+# Input starts after frame 500: on a loaded host the helpers first see a quick match up to ~400 frames in.
+# b dashes in, then walks 38 frames toward a, inside the vortex.
+540 b stick -1 0
+560 b stick 0 0
+590 b press LB
+590 b stick -1 0
+628 b stick 0 0
+628 b release LB
+660 a stick 0 1
+660 a tap X 2
+661 a stick 0 0
+667 a capture
+668 a capture
+680 a capture
+1000 a press VIEW
+1070 a release VIEW
+# Expected: the vortex strikes b once, on its first active frame.
+#! expect a 660 special 15 form 0
+#! expect b 667 damage 9.000

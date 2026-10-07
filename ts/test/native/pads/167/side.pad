@@ -1,0 +1,34 @@
+# #167 Lich King Val'kyr Shadowguard: the Val'kyr seizes b and carries it toward the ledge; b mashes
+# attack from frame 20 of the carry to break free. Captured as she flies out (frame 14).
+# Lich King a against Lich King b. Syntax and checks: smashcraft:docs/native-bot-session.md.
+#! chat -dev quick hero lich king
+# Input starts after frame 500: on a loaded host the helpers first see a quick match up to ~400 frames in.
+540 b stick -1 0
+560 b stick 0 0
+600 a stick 1 0
+600 a tap X 2
+601 a stick 0 0
+613 a capture
+614 a capture
+630 a capture
+633 b tap A 2
+637 b tap A 2
+641 b tap A 2
+645 b tap A 2
+649 b tap A 2
+653 b tap A 2
+657 b tap A 2
+661 b tap A 2
+665 b tap A 2
+669 b tap A 2
+673 b tap A 2
+677 b tap A 2
+681 b tap A 2
+1000 a press VIEW
+1070 a release VIEW
+# Expected: the Val'kyr seizes b on frame 13 of the cast; b's mash breaks free, in the air (a neutral air, style 12), then jabs.
+#! expect a 600 special 14 form 0
+#! expect b 613 damage 4.000
+#! expect b 657 applied attack 1 style 12
+#! expect b 675 applied attack 2 style 0
+#! expect b 683 applied attack 3 style 20
