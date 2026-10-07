@@ -29,7 +29,7 @@
 700 b shield 0
 # Expected, frame by frame (headless run of this script):
 #! expect a 60 special 14 form 0
-#! expect a 75 special-form 5 action 14
+#! expect a 75 special-form 6 action 14
 #! expect b 80 damage 12.000
 #! expect a 200 special 16 form 0
 #! expect a 223 special 0 form 0 action-frame 0 x -202.456
