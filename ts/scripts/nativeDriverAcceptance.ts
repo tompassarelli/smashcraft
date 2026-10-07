@@ -9,6 +9,8 @@ import { withAutopsy } from "wisp/scripts/wisp/engine/autopsy";
 import { publishDriverCommand, readDriverStatus, waitDriverCommand, type DriverClient } from "wisp/scripts/wisp/engine/drive";
 import { prefixOfDocuments } from "wisp/scripts/wisp/engine/memory";
 import { dataDirectory } from "wisp/scripts/wisp/gameFiles";
+import { preloadLines } from "wisp/scripts/wisp/boundary";
+import { TRACE_FILE, parseExpectations, parseTrace, unmetExpectations } from "./integrity/padParity";
 import { parsePadScript } from "./integrity/padScript";
 import { replayRepro } from "../src/game/replay/moment";
 
@@ -74,6 +76,7 @@ const program = Effect.gen(function*() {
       const startedMs = Date.now();
       const held = mode === "stepped" && frames > 10 ? yield* send(clients, "step 10", 10) : undefined;
       const ended = yield* send(clients, mode === "free" ? `resume ${frames}` : `step ${held === undefined ? frames : frames - 10}`, frames);
+      yield* send(clients, "capture", frames);
       elapsed.push(ended.milliseconds + (held?.milliseconds ?? 0));
       const checksum = ended.status[0]?.checksum ?? "";
       checksums.push(checksum);
@@ -82,6 +85,11 @@ const program = Effect.gen(function*() {
         const newErrors = existsSync(errors) ? readdirSync(errors).filter(name => !errorsBefore[index]?.has(name)) : [];
         if (newErrors.length > 0) return yield* new EngineFailure({ problem: `invalid native run ${run}: ${client.name} wrote ${newErrors.join(", ")}` });
         const data = dataDirectory(client.documents);
+        const traceFile = join(data, TRACE_FILE);
+        const trace = yield* attempt("read native pad trace", () => preloadLines(readFileSync(traceFile, "utf8")) ?? []);
+        const problems = unmetExpectations(parseTrace(trace), parseExpectations(payload), "native");
+        if (problems.length > 0) return yield* new EngineFailure({ problem: problems.join("; ") });
+        yield* attempt("retain native trace", () => copyFileSync(traceFile, join(out, `run-${run}-${mode}-${client.name}-trace.txt`)));
         const saved = yield* attempt("find saved native moment", () => readdirSync(data)
           .filter(name => name.startsWith("smashcraft-repro-") && name.includes(`-f${frames}-`) && statSync(join(data, name)).mtimeMs >= startedMs)
           .sort((a, b) => statSync(join(data, b)).mtimeMs - statSync(join(data, a)).mtimeMs)[0]);

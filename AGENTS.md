@@ -260,10 +260,14 @@ code. From smashcraft:ts/:
   manifest with its parts, or a joined replay, in Bun and 32-bit Lua to every
   recorded checksum; `--out` writes the joined replay to share
   (smashcraft:docs/design/client.md, "Full-match replays").
-- Headless match: `bun wisp headless [quick-match|desync] [--clients N]` plays
+- Headless match: `bun wisp headless [quick-match|desync] [--clients N] [--journey FILE] [--render DIR --frames N...]` plays
   the dev build's quick match in simulated clients in about a second and prints
   desyncs, error reports and scene problems; `--cost` adds its predicted
-  Warcraft cost per frame.
+  Warcraft cost per frame. `--render` draws requested frames using the map's
+  immutable imports and classic Warcraft assets; `--journey FILE` supplies
+  capture inputs as journey JSON. Stock extraction uses `CASC_EXTRACTOR`
+  and `WC3_STORAGE`; `WC3_TEXTURES` reuses extracted PNGs
+  (smashcraft:docs/player-view.md).
 - Frame cost: `LUA=<32-bit lua> bun wisp perf [quick-match|bot|bot-four|playable-bot-four]`
   plays a run in 32-bit Lua and prints each client's predicted Warcraft cost
   per frame (p50, p95, worst, typing stall); `bun wisp perf compare A B` fails
@@ -399,8 +403,10 @@ code. From smashcraft:ts/:
   while inputs and simulation continue; `held visual` images are not timing evidence;
   a desynced, crashed or early-ended run is INVALID and, with --map, rerun.
   `bun wisp pad SCRIPT --headless --helper BINARY --out DIR [--chat=TEXT]
-  [--compare NATIVE_DIR]` plays the same script through the same helper into
-  headless integrity clients. It passes a native run when checksums, fighter
+  [--compare NATIVE_DIR] [--render DIR --frames N...]` plays the same script through the same helper into
+  headless integrity clients. `--render` draws the script captures after the
+  session stops; `--frames` selects their comma-separated frame numbers.
+  It passes a native run when checksums, fighter
   lines and the script's `#!` expectations match (smashcraft:docs/native-bot-session.md,
   "Native checks by parity"; issue scripts in smashcraft:ts/test/native/pads/).
   Comparisons preflight the existing View replay export before starting helpers
