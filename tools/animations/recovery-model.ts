@@ -3,6 +3,18 @@
 import { model as mdx } from "war3-model";
 import { ensure, onGlobalClock, tracks } from "./original-clips";
 
+export function pitLordSpecialBaseModel(source: mdx.Model): mdx.Model | undefined {
+  const first = source.Sequences.findIndex(s => s.Name === "Special Howl of Terror");
+  if (first < 0) return undefined;
+  ensure(source.Sequences.slice(first).every(s => s.Name.startsWith("Special ")), "Pit Lord specials must be the sequence suffix");
+  const cutoff = source.Sequences[first]?.Interval[0];
+  ensure(cutoff !== undefined, "Pit Lord specials have no start");
+  const model = structuredClone(source);
+  model.Sequences = model.Sequences.slice(0, first);
+  tracks(model, track => { if (!onGlobalClock(track)) track.Keys = track.Keys.filter(k => k.Frame < cutoff); });
+  return model;
+}
+
 export function jumpBaseModel(source: mdx.Model): mdx.Model | undefined {
   const first = source.Sequences.findIndex(s => s.Name.startsWith("Jump Motion "));
   if (first < 0) return undefined;
