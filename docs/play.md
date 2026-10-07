@@ -2,7 +2,8 @@
 
 From ~/code/smashcraft/main/ts, run `bun wisp play`. It builds current main,
 points the always-on controller service at the matching helper, and hosts a match on Tom's main display
-against a computer. It reuses the signed-in Battle.net launcher and never signs
+against a computer. The match plays on the keyboard; a pad the service finds
+presses the same keys, and without one play says "keyboard" and goes on. It reuses the signed-in Battle.net launcher and never signs
 in, logs out or switches accounts.
 
 Maps/00-Smashcraft holds the newest version, `Smashcraft 0.0.N`, the two

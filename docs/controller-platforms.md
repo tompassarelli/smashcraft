@@ -1,5 +1,11 @@
 # Cross-platform companion: reuse decision
 
+The keyboard is the baseline (#166): the published map reads Warcraft's own
+synchronized key events and needs nothing installed. The companion is an
+optional upgrade that turns a controller into the same keys (smashcraft:companion/README.md,
+"Always-on controller service"); its journal path serves the integrity build's
+native tests.
+
 Implementation is tracked in [#18](https://github.com/tompassarelli/smashcraft/issues/18) (Linux) and [#34](https://github.com/tompassarelli/smashcraft/issues/34) (Windows/macOS) under roadmap [#16](https://github.com/tompassarelli/smashcraft/issues/16). The owner accepted this direction.
 
 3 October 2026. This extends the [controller input research](controller-prior-art.md) for **macOS, Windows and Linux**. The recommendation is **Rust + SDL3 acquisition, enigo keyboard delivery, and small native adapters for foreground identity and launch discovery**. Tauri remains an optional settings/launcher UI. This revises the earlier Linux-only output recommendation: start with enigo's existing X11 backend instead of independently assembling XTest calls, while keeping XTest as the same underlying mechanism.
