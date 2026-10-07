@@ -28,7 +28,7 @@ const pressed = (key: number) => BlzIsKeyPressed(ConvertOsKeyType(key));
 
 /** Both comparison builds create the same mouse event registrations. */
 export function createPadTriggers(s: ShellState): void {
-  if (s.pad === undefined) return;
+  if (s.pad === undefined || (s.build.analogPadDiagnostic !== true && s.build.analogPad !== "cursor")) return;
   const trigger = CreateTrigger();
   for (const slot of PARTICIPANT_SLOTS) {
     if (humanActive(s.game, slot)) TriggerRegisterPlayerEvent(trigger, Player(slot), EVENT_PLAYER_MOUSE_MOVE);
@@ -39,8 +39,10 @@ export function createPadTriggers(s: ShellState): void {
 export function padMouse(s: ShellState): void {
   const pad = s.pad;
   if (pad === undefined) return;
-  pad.mouseEvents++;
-  pad.mouse.push(`mouse ${pad.mouseEvents} ${s.trace.clockPeriods * 1000.0 + TimerGetElapsed(s.trace.clock)} ${pad.syncEvents}`);
+  if (s.build.analogPadDiagnostic === true) {
+    pad.mouseEvents++;
+    pad.mouse.push(`mouse ${pad.mouseEvents} ${s.trace.clockPeriods * 1000.0 + TimerGetElapsed(s.trace.clock)} ${pad.syncEvents}`);
+  }
   // Calibration and capture are local; only the resulting input rows are sent.
   if (GetTriggerPlayer() !== GetLocalPlayer() || !pressed(PAD_ACTIVE_KEY)) return;
   const point = { x: f32(BlzGetTriggerPlayerMouseX()), y: f32(BlzGetTriggerPlayerMouseY()) };
@@ -48,11 +50,11 @@ export function padMouse(s: ShellState): void {
     pad.calibration.first = point;
     pad.calibration.last = undefined;
     pad.packet = undefined;
-    writeLines(`smashcraft-pad-calibration-p${localSlot()}.txt`, [`corner start ${point.x} ${point.y} native-seconds ${s.trace.clockPeriods * 1000.0 + TimerGetElapsed(s.trace.clock)} mouse-events ${pad.mouseEvents} sync-events ${pad.syncEvents}`]);
+    if (s.build.analogPadDiagnostic === true) writeLines(`smashcraft-pad-calibration-p${localSlot()}.txt`, [`corner start ${point.x} ${point.y} native-seconds ${s.trace.clockPeriods * 1000.0 + TimerGetElapsed(s.trace.clock)} mouse-events ${pad.mouseEvents} sync-events ${pad.syncEvents}`]);
   } else if (pressed(0x22)) {
     pad.calibration.last = point;
     pad.packet = undefined;
-    writeLines(`smashcraft-pad-calibration-p${localSlot()}.txt`, [`corner end ${point.x} ${point.y} native-seconds ${s.trace.clockPeriods * 1000.0 + TimerGetElapsed(s.trace.clock)} mouse-events ${pad.mouseEvents} sync-events ${pad.syncEvents}`]);
+    if (s.build.analogPadDiagnostic === true) writeLines(`smashcraft-pad-calibration-p${localSlot()}.txt`, [`corner end ${point.x} ${point.y} native-seconds ${s.trace.clockPeriods * 1000.0 + TimerGetElapsed(s.trace.clock)} mouse-events ${pad.mouseEvents} sync-events ${pad.syncEvents}`]);
   } else if (s.build.analogPad === "cursor") {
     pad.packet = cursorWorldPacket(pad.calibration, point.x, point.y);
   }
@@ -75,7 +77,7 @@ export function pollPad(s: Readonly<ShellState>): number | undefined {
 
 export function recordPadRow(s: ShellState, epoch: number, frame: number, row: Readonly<InputRow>): void {
   const pad = s.pad;
-  if (pad === undefined) return;
+  if (pad === undefined || s.build.analogPadDiagnostic !== true) return;
   const packet = pollPad(s);
   const valid = packet === undefined ? undefined : decodePad(packet);
   const wire = inputPacket(epoch, frame, [row]);
@@ -85,7 +87,7 @@ export function recordPadRow(s: ShellState, epoch: number, frame: number, row: R
 /** Exported with the finished match, so the runner need not stop gameplay. */
 export function exportPad(s: ShellState): void {
   const pad = s.pad;
-  if (pad === undefined) return;
+  if (pad === undefined || s.build.analogPadDiagnostic !== true) return;
   const epoch = s.rollback?.epoch ?? 0;
   writeLines(`smashcraft-pad-${s.build.analogPad}-e${epoch}-p${localSlot()}.txt`, [
     `pad ${s.build.id} epoch ${epoch} mouse-events ${pad.mouseEvents} sync-events ${pad.syncEvents} rows ${pad.rows.length} started ${pad.startedAt} finished ${s.trace.clockPeriods * 1000.0 + TimerGetElapsed(s.trace.clock)}`,

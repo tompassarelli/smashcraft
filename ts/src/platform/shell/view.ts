@@ -274,7 +274,7 @@ export function lockArenaCamera(s: ShellState): void {
   SetCameraField(CAMERA_FIELD_FIELD_OF_VIEW, cameraFieldOfView(framing, aspect), 0.0);
   SetCameraField(CAMERA_FIELD_FARZ, ARENA_CAMERA.farZ, 0.0);
   SetCameraPosition(targetX, centerY);
-  if (s.build.analogPad !== undefined) {
+  if (s.build.analogPadDiagnostic === true) {
     // Calibration stays valid throughout both candidate ingress measurements.
     SetCameraBounds(centerX, centerY, centerX, centerY, centerX, centerY, centerX, centerY);
     SetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK, 270.0, 0.0);
