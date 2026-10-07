@@ -35,6 +35,7 @@ export const STOCK_MODEL_SCALES: Readonly<Record<Character, { readonly unit: str
   [Character.jaina]: { unit: "Hjai", scale: 1.0 },
   [Character.sylvanas]: { unit: "Usyl", scale: 1.0 },
   [Character.cairne]: { unit: "Otch", scale: 1.0 },
+  [Character.peon]: { unit: "opeo", scale: 1.0 },
 };
 
 /** The scale each fighter model is drawn at; effects attached to it scale with it. */

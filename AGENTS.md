@@ -119,6 +119,11 @@ code. From smashcraft:ts/:
   `bun tools/animations/blademaster-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
   appends a distinct gesture for each Blademaster normal and his back throw,
   preserving the shipped plunge and double-jump flip.
+  `bun tools/animations/peon-clips.ts STOCK_PEON.mdx PRIVATE_OUTPUT` appends
+  Peon's tool strikes, movement, recovery, paired grabs and nine pain poses,
+  preserves the 22 stock sequences and writes both-facing silhouette sheets.
+  `bun tools/animations/peon-pool.ts AUTHORED_PEON.mdx PRIVATE_OUTPUT` prepares
+  Peon's checked pooled clips and a retained record for the final roster export.
   `bun tools/animations/warden-fan-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` authors
   Warden's ground and air Fan of Knives casts, preserving other clips
   (smashcraft:docs/design/warden-fan-of-knives.md).

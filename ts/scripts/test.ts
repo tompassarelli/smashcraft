@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { availableParallelism } from "node:os";
 import { dirname, join, resolve } from "node:path";
-import { ISOLATED_TEST_GROUPS, TEST_WORKER_ENV } from "./testWorkers";
+import { ISOLATED_TEST_GROUPS, testWorkerEnvironment } from "./testWorkers";
 
 const project = resolve(import.meta.dir, "..");
 const files = [
@@ -46,18 +46,23 @@ function usableCpus(): number {
 // JSC's compiler threads share the quota with test bodies. Leave one CPU
 // for them: six processes under six CPUs took the 10 s bot selection to 18 s.
 const slots = Math.min(groups.length, Math.max(1, usableCpus() - 1));
-const queue = [...groups].reverse();
 const started = performance.now();
 const codes: number[] = [];
+const runGroup = async (group: { readonly files: readonly string[] }): Promise<void> => {
+  const child = Bun.spawn([process.execPath, "test", ...group.files.map((file) => resolve(project, file))], {
+    cwd: project,
+    env: { ...process.env, ...testWorkerEnvironment(group.files) },
+    stdout: "inherit",
+    stderr: "inherit",
+  });
+  codes.push(await child.exited);
+};
+const standalone = groups.find((group) => group.files.includes("test/standalone.test.ts"));
+if (standalone !== undefined) await runGroup(standalone);
+const queue = groups.filter((group) => group !== standalone).reverse();
 await Promise.all(Array.from({ length: slots }, async () => {
   for (let group = queue.shift(); group !== undefined; group = queue.shift()) {
-    const child = Bun.spawn([process.execPath, "test", ...group.files.map((file) => resolve(project, file))], {
-      cwd: project,
-      env: { ...process.env, ...TEST_WORKER_ENV },
-      stdout: "inherit",
-      stderr: "inherit",
-    });
-    codes.push(await child.exited);
+    await runGroup(group);
   }
 }));
 console.log(`full logic suite: ${files.length} files in ${groups.length} processes, ${slots} at a time, ${(performance.now() - started).toFixed(0)} ms`);
