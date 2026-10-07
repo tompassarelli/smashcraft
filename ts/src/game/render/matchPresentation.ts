@@ -45,6 +45,8 @@ export class MatchPresentation {
   private readonly cues: MatchCue[] = [];
   private readonly menu = createMenuObservation();
   private readonly menuCues = createMenuCues();
+  // Hover differs by client; the handle is created by every client at shared startup.
+  private readonly hoverSound = CreateSound(cueSound(MatchCue.hover), false, false, false, 10, 10, "DefaultEAXON");
   private music: string | undefined;
   private readonly voices: (sound | undefined)[] = [];
   private readonly panel: framehandle;
@@ -61,6 +63,8 @@ export class MatchPresentation {
   posing: number | undefined;
 
   constructor(private readonly origin: Readonly<WorldOrigin>) {
+    SetSoundDuration(this.hoverSound, GetSoundFileDuration(cueSound(MatchCue.hover)));
+    SetSoundVolume(this.hoverSound, 70);
     for (const path of presentationSoundPaths(SELECTABLE_CHARACTERS, STAGE_CATALOG.map(stage => stage.id))) Preload(path);
     const parent = gameUi();
     this.panel = createBackdrop("MatchResultsPanel", parent, 0);
@@ -97,7 +101,12 @@ export class MatchPresentation {
   }
 
   cue(cue: MatchCue): void {
-    playFile(cueSound(cue), cue === MatchCue.hover ? 70 : 127);
+    if (cue === MatchCue.hover) {
+      StopSound(this.hoverSound, false, false);
+      StartSound(this.hoverSound);
+      return;
+    }
+    playFile(cueSound(cue));
   }
 
   /** Loops `path` as the music, unless it already plays. */
