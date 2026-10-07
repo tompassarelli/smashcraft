@@ -9,6 +9,11 @@ on:
 permissions:
   contents: read
 
+# Lanes land on main every few minutes: a newer push supersedes an unfinished run.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   development-loop:
     runs-on: ubuntu-latest
