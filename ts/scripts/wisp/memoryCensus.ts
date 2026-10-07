@@ -153,6 +153,7 @@ export function compactEmulator(client: HeadlessClient, released: ReadonlySet<nu
   client.errors.length = 0;
   client.messages.length = 0;
   client.thrown.length = 0;
+  client.soundLog.length = 0;
   client.files.clear();
   client.forget(client.log.length);
   return errors;

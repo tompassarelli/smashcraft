@@ -1,0 +1,18 @@
+{
+  "modelPath": "/home/tom/.local/share/smashcraft-animation-reference/peon227/victim-pummel-retimed/hero-models/peon.mdx",
+  "oldSha256": "3c0807f98798713c1d6e34e8e02626c640d56b78bf4c263f92f8384938d4292f",
+  "modelSha256": "f8c01d75ae34e4ff9d8e0a7ac689ccc18314f6b5cfbb84019304c62d72385caa",
+  "totalSequences": 88,
+  "unchangedSequences": 87,
+  "unchangedTrackIntervals": 3567,
+  "sampledPoses": 870,
+  "maxVertexDifference": 0,
+  "retimedVictimContact": {
+    "index": 70,
+    "name": "Peon victimPummel",
+    "seconds": 1,
+    "contact": 0.5,
+    "contactVertices": 1548,
+    "maxContactVertexDifference": 0
+  }
+}

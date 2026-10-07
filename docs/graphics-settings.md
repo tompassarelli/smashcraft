@@ -103,3 +103,5 @@ legibility, and can go to its lowest:
 (smashcraft:ts/scripts/wisp/commands/play.ts `RECOMMENDED_GRAPHICS`): it writes
 each one only when the player's file has no value for it, so a setting the
 player chose is never replaced (wisp:docs/display-settings.md).
+
+`wisp play` explicitly chooses Reforged (`[Misc] hd=1`) and disables Ambient Occlusion (`[Video] assao=0`) on Warcraft 3.0.1. It omits the removed Bloom, Portrait Bloom, Particles and Spells settings. Sound checks name the selected mode: Definitive Edition uses Classic sounds.
