@@ -2,7 +2,7 @@
 #! chat -dev quick hero rifleman
 # neutral air facing left; B stands idle. Each capture is the move's first
 # active frame (tap frame + startup).
-20 a tap Y 2
+150 a tap Y 2
 +8 a tap A 2
 +3 a capture
 +60 a tap Y 2

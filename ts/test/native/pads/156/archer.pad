@@ -2,7 +2,7 @@
 #! chat -dev quick hero archer
 # then jab and forward tilts facing left; B stands idle. Each capture is the
 # move's first active frame (tap frame + startup).
-20 a tap A 2
+150 a tap A 2
 +4 a capture
 +36 a press LB
 +0 a stick 0.6 0
