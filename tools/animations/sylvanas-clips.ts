@@ -47,7 +47,7 @@ add("neutralAir", 28, [phase(0), phase(3, { bow: 35, grip: -30, twist: -35, knee
 strike("forwardAir", 35, 9, 11, { bow: 40, chest: -20, knee: 25 }, { bow: -80, elbow: -20, chest: 25, twist: 20, knee: 32 }, { chest: 12, bow: -65 }, true);
 strike("backAir", 32, 7, 9, { bow: -35, chest: 22 }, { bow: -85, chest: -15, yaw: 180, knee: 32 }, { yaw: 180 }, true);
 strike("upAir", 31, 7, 10, { bow: -25, chest: 20, knee: 36 }, { bow: -165, elbow: -18, chest: -24, knee: 10 }, {}, true);
-strike("downAir", 43, 11, 14, { bow: -155, chest: -20, knee: 45 }, { bow: 15, elbow: 12, chest: 52, roll: 35, knee: 45 }, { bow: 25, chest: 25, knee: 35 }, true);
+add("downAir", 43, [phase(0), phase(8, { bow: -155, grip: -110, chest: -20, knee: 45 }), phase(11, { bow: -150, grip: -110, chest: -12, roll: 180, knee: 15 }), phase(14, { bow: -150, grip: -110, chest: -12, roll: 180, knee: 15 }), phase(26, { bow: -90, chest: 12, roll: 270, knee: 30 }), phase(43, { roll: 360 })], { air: true });
 strike("neutralSpecial", 40, 15, 17, { grip: -110, bow: -40, chest: -12, twist: -25, knee: 12 }, { grip: 30, bow: -65, chest: 10, twist: 20, knee: 8 });
 strike("sideSpecial", 48, 17, 19, { bow: 30, grip: 25, chest: -18, twist: -20 }, { bow: 25, grip: -105, chest: 25, twist: 22, knee: 20 });
 add("upSpecial", 31, [phase(0), phase(6, { chest: 25, knee: 55, bow: 20, tuck: 0.15 }), phase(7, { chest: -18, bow: -125, grip: -130, knee: 0 }), phase(20, { chest: -24, bow: -155, grip: -155, knee: 28 }), phase(31, { chest: 10, knee: 35, bow: -65 })], { air: true });

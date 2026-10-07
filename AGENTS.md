@@ -144,6 +144,10 @@ code. From smashcraft:ts/:
   then `bun tools/animations/illidan-locomotion.ts PRIVATE_ASSETS PRIVATE_AUTHORED PRIVATE_OUTPUT`.
   Package with `bun tools/animations/package-illidan.ts PRIVATE_OUTPUT --metadata-only`,
   store `illidan-animation`, and refresh the original clip pool.
+- Jaina animation authoring (from the repository root):
+  `bun tools/animations/jaina-clips.ts STOCK_JAINA.mdx PRIVATE_OUTPUT`
+  appends her staff strikes, spell gestures, movement and nine contact reactions;
+  store the generated model in `hero-models` and refresh the original clip pool.
 - Lich King animation authoring (from the repository root):
   `tools/animations/build-lichking.sh [PRIVATE_INPUTS] [IMMUTABLE_EXISTING_MODEL] [--replace NAME]`
   authors clips through Blender; the optional existing model preserves shipped
@@ -486,6 +490,9 @@ code. From smashcraft:ts/:
   `-dev camera-smooth on|off` compares native one-frame camera transitions
   with the normal camera in the same development map; it keeps the simulated
   camera unchanged (smashcraft:docs/high-refresh.md).
+  `bun scripts/cameraDraw.ts --video PRIVATE.mkv --pages DATA_DIR --out PRIVATE_DIR
+  [--slot 0 --run 1 --viewport X,Y,W,H]` joins lossless compositor frames and
+  their original timestamps to the response marker and exported callback rows.
   Script-cost capture: `bun wisp build --profile native-perf ...` uses playable
   key input and pooled presentation with developer setup commands. In a match,
   `-dev capture 18000` writes every client's raw callback samples; read full-run

@@ -1,6 +1,6 @@
 import { Character } from "../codes";
 import type { HeroDefinition } from "./hero";
-import { SYLVANAS_CLIPS, SYLVANAS_FALLBACK_CLIP } from "./sylvanasClips";
+import { SYLVANAS_CLIPS, SYLVANAS_FALLBACK_CLIP, SYLVANAS_PAIN_CLIPS } from "../../presentation/heroes/sylvanasClips";
 import { SYLVANAS_MOVES } from "./sylvanasMoves";
 import { SYLVANAS_SPECIALS } from "./sylvanasSpecials";
 import { SYLVANAS_GAMEPLAN } from "./sylvanasGameplan";
@@ -16,6 +16,6 @@ export const SYLVANAS_HERO: HeroDefinition = {
   presentation: {
     model: "Units\\Undead\\EvilSylvanas\\EvilSylvanas.mdl", objectId: 0x6d667379,
     portrait: "ReplaceableTextures\\CommandButtons\\BTNBansheeRanger.blp",
-    clips: SYLVANAS_CLIPS, fallback: SYLVANAS_FALLBACK_CLIP,
+    clips: SYLVANAS_CLIPS, fallback: SYLVANAS_FALLBACK_CLIP, damageClips: SYLVANAS_PAIN_CLIPS,
   },
 };
