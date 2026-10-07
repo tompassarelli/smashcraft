@@ -1,0 +1,48 @@
+{
+  "fighter": "peon",
+  "baselineSource": "24a49bc66ccbe103cd701a3073d6510741b02f6a",
+  "baselineRow": {
+    "run": 37680938176,
+    "opponents": 20,
+    "matches": 8160,
+    "wins": 2588,
+    "winRate": 0.317156862745098
+  },
+  "cause": "Worksite Launch used facing-relative horizontal velocity instead of live steering and fell below the shared paid/free recovery floors.",
+  "before": {
+    "paid": {
+      "vertical": 236.6400146484375,
+      "horizontal": 256.367919921875
+    },
+    "free": {
+      "vertical": 155.33999633789062,
+      "horizontal": 163.7061767578125
+    }
+  },
+  "after": {
+    "paid": {
+      "vertical": 355.2398681640625,
+      "horizontal": 358.4759521484375
+    },
+    "free": {
+      "vertical": 208.6800537109375,
+      "horizontal": 244.52392578125
+    }
+  },
+  "motion": {
+    "frames": [
+      8,
+      28
+    ],
+    "paidRise": 16,
+    "paidDrift": 6,
+    "freeRise": 11,
+    "freeDrift": 4
+  },
+  "checks": [
+    "Original upSpecialRecovery distance-band case focused on Peon: unchanged bounds pass.",
+    "Original guided-up-special case focused on Peon: unchanged keyboard and stick assertions pass.",
+    "All 28 focused Peon Bun contracts pass, including all four special inputs in eight seeded CPU matches.",
+    "All 27 gameplay contracts plus the two unchanged focused recovery cases pass in emitted32-bit Lua (29/29)."
+  ]
+}

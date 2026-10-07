@@ -2,6 +2,12 @@
 // this census observes; Bun cannot execute its graph walk.
 import { assertEquals, test } from "wisp/src/runtime/testing";
 import { createBotStrategy, copyBotStrategy } from "../../src/game/match/botStrategy";
+import { fighterBodyEnvelope } from "../../src/game/presentation/fighterPlacement";
+import { createFighter } from "../../src/game/sim/fighter";
+import { Character } from "../../src/game/sim/codes";
+import { applyDirectionalInfluence, influenceOperands } from "../../src/game/sim/knockback";
+import { setMeleeKnockback } from "../../src/game/sim/motion";
+import { neutralControls } from "../../src/game/sim/roster";
 import { HabitChoice } from "../../src/game/match/botHabits";
 import { HeadlessClient } from "wisp/src/headless/client";
 import { HandleCensus, compactEmulator, reach } from "../../scripts/wisp/memoryCensus";
@@ -99,4 +105,21 @@ test("copied bot reads add no reachable tables when reads appear after warmup", 
     assertEquals(snapshot.readExpectedFrame, 153);
     assertEquals(snapshot.readActionFrame, 499);
   }
+});
+
+
+test("first hero rendering and nonzero DI use initialized records without adding reachable tables", () => {
+  const fighter = createFighter(Character.pitLord, 0.0, 1);
+  const input = neutralControls();
+  input.direction = -1;
+  fighter.motion.grounded = false;
+  setMeleeKnockback(fighter, 1.0, 1.0);
+  const environment = new LuaTable<AnyNotNil, unknown>();
+  environment.set("envelopes", fighterBodyEnvelope);
+  environment.set("operands", influenceOperands);
+  const baseline = reach(environment, [], true).tables;
+  for (const character of Object.values(Character)) fighterBodyEnvelope(character);
+  fighter.launch.diPending = true;
+  applyDirectionalInfluence(fighter, input);
+  assertEquals(reach(environment, [], true).tables, baseline);
 });
