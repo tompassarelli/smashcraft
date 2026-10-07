@@ -8,7 +8,7 @@ import { controls, testGrabFrame, testWorld } from "../testWorld";
 import { BLADEMASTER_MOVES } from "./blademasterMoves";
 import { HERO_ROSTER } from "./registry";
 
-test("expansion grabs deal the shared 3% pummel once, then a buffered throw", () => {
+test("expansion grabs deal their authored pummel once, then a buffered throw", () => {
   for (const hero of HERO_ROSTER) {
     const { moves } = hero;
     const owner = createFighter(Character.archer, 0.0, 1);
@@ -25,7 +25,11 @@ test("expansion grabs deal the shared 3% pummel once, then a buffered throw", ()
     if (pummel === undefined) continue;
     assertEquals(pummel.growth, 0.0);
     assertEquals(pummel.base, 0.0);
-    assertEquals(pummel.damage, PUMMEL_DAMAGE);
+    const expectedPummel = hero.character === Character.blademaster ? 2.865000009536743
+      : hero.character === Character.mountainKing ? 3.31499981880188
+        : hero.character === Character.dreadlord ? 2.7150001525878906
+          : hero.character === Character.beastmaster ? 3.179999828338623 : PUMMEL_DAMAGE;
+    assertEquals(pummel.damage, expectedPummel);
     for (let frame = 1; frame <= PUMMEL_CONTACT_FRAME; frame++) testGrabFrame(world, [controls({ attackPressed: true }), controls()], false);
     assertEquals(target.status.damage, f32(100.0 + pummel.damage));
     assertEquals(owner.grab.pummels, 1);

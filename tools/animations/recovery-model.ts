@@ -3,6 +3,35 @@
 import { model as mdx } from "war3-model";
 import { ensure, onGlobalClock, tracks } from "./original-clips";
 
+export function jumpBaseModel(source: mdx.Model): mdx.Model | undefined {
+  const first = source.Sequences.findIndex(s => s.Name.startsWith("Jump Motion "));
+  if (first < 0) return undefined;
+  ensure(first > 0 && source.Sequences.slice(first).every(s => s.Name.startsWith("Jump Motion ")), "Jump clips must be the sequence suffix");
+  const helper = source.Helpers.find(n => n.Name === "Jump Motion");
+  ensure(helper && helper.ObjectId === source.Nodes.length - 1 && helper.Parent == null, "Jump helper must be the final root");
+  const cutoff = source.Sequences[first]?.Interval[0]; ensure(cutoff !== undefined, "Jump clip has no start");
+  const model = structuredClone(source);
+  model.Sequences = model.Sequences.slice(0, first);
+  model.Helpers = model.Helpers.filter(n => n.ObjectId !== helper.ObjectId);
+  model.Nodes = model.Nodes.filter(n => n.ObjectId !== helper.ObjectId);
+  model.PivotPoints = model.PivotPoints.slice(0, helper.ObjectId);
+  for (const node of model.Nodes) if (node.Parent === helper.ObjectId) node.Parent = null;
+  tracks(model, track => { if (!onGlobalClock(track)) track.Keys = track.Keys.filter(k => k.Frame < cutoff); });
+  return model;
+}
+
+export function downAirBaseModel(source: mdx.Model): mdx.Model | undefined {
+  const first = source.Sequences.findIndex(s => s.Name.startsWith("Down Air "));
+  if (first < 0) return undefined;
+  ensure(first > 0 && source.Sequences.slice(first).every(s => s.Name.startsWith("Down Air ")), "Down air must be the sequence suffix");
+  const cutoff = source.Sequences[first]?.Interval[0];
+  ensure(cutoff !== undefined, "Down air has no start");
+  const model = structuredClone(source);
+  model.Sequences = model.Sequences.slice(0, first);
+  tracks(model, track => { if (!onGlobalClock(track)) track.Keys = track.Keys.filter(k => k.Frame < cutoff); });
+  return model;
+}
+
 /** Remove the additive drill and its identity parent for exact pool reuse. */
 export function drillBaseModel(source: mdx.Model): mdx.Model | undefined {
   const helper = source.Helpers.find(n => n.Name === "Drill Motion");

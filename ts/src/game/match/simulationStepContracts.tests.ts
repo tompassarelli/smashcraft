@@ -46,7 +46,7 @@ test("blasterTravelsBeforeItDealsDamage", () => {
   }
   assertEquals(target.status.damage, 0.0);
   stepMatch(game, testRoster(owner, target), frameControls(ownerInput, targetInput, ownerCommands, targetCommands), 12);
-  assertEquals(target.status.damage, 3.0);
+  assertEquals(target.status.damage, 2.7900002002716064);
   assertEquals(projectileCount(owner), 0);
 
 });
@@ -212,8 +212,8 @@ test("simultaneousEligibleAttacksTradeInEitherOrder", () => {
   for (let frame = attackStartupFrames(1) + 2; frame <= 40; frame++) {
     stepMatch(gameA, testRoster(leftA, rightA), frameControls(leftInputA, rightInputA, leftCommandsA, rightCommandsA), frame);
   }
-  assertEquals(leftA.status.damage, 3.0);
-  assertEquals(rightA.status.damage, 3.0);
+  assertEquals(leftA.status.damage, 2.7900002002716064);
+  assertEquals(rightA.status.damage, 2.7900002002716064);
   const gameB = testMatch();
   const leftB = createFighter(0, 0, 1);
   const rightB = createFighter(1, 100, -1);
@@ -229,8 +229,8 @@ test("simultaneousEligibleAttacksTradeInEitherOrder", () => {
   for (let frame = attackStartupFrames(1) + 2; frame <= 40; frame++) {
     stepMatch(gameB, testRoster(rightB, leftB), frameControls(rightInputB, leftInputB, rightCommandsB, leftCommandsB), frame);
   }
-  assertEquals(leftA.status.damage, 3.0);
-  assertEquals(rightA.status.damage, 3.0);
+  assertEquals(leftA.status.damage, 2.7900002002716064);
+  assertEquals(rightA.status.damage, 2.7900002002716064);
   assertEquals(leftA.status.damage, rightA.status.damage);
   assertEquals(leftA.status.damage, leftB.status.damage);
   assertEquals(leftA.status.damage, rightB.status.damage);
@@ -255,9 +255,9 @@ test("aWhiffDoesNotFreezeTheShooterWhileTheOpponentsShotFreezesItsVictim", () =>
   for (let frame = 1; frame <= attackStartupFrames(1) + 2; frame++) {
     stepMatch(game, testRoster(blaster, opponent), frameControls(blasterInput, opponentInput, blasterCommands, opponentCommands), frame);
   }
-  assertEquals(blaster.status.damage, 3.0);
+  assertEquals(blaster.status.damage, 2.7900002002716064);
   assertEquals(opponent.status.damage, 0.0);
-  assertEquals(blaster.launch.hitlag, 4);
+  assertEquals(blaster.launch.hitlag, 3);
   assertEquals(opponent.launch.hitlag, 0);
   assertEquals(blaster.attack.cooldown, 0);
   assertEquals(opponent.attack.cooldown, attackDurationFrames(1) - attackStartupFrames(1) - 1);

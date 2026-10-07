@@ -137,7 +137,7 @@ export class ProjectilePresentation {
         BlzSetSpecialEffectPosition(boundary, this.origin.x + pose.x, this.origin.y - 8.0, this.origin.z + pose.z);
         BlzSetSpecialEffectScale(boundary, pose.dangerRadius);
         const frost = fighter?.character === Character.lich;
-        BlzSetSpecialEffectColor(boundary, frost ? 155 : pose.armed ? 170 : 70, frost ? 210 : pose.armed ? 75 : 65, frost ? 255 : pose.armed ? 255 : 100);
+        BlzSetSpecialEffectColor(boundary, frost ? 155 : pose.armed ? 170 + 85 * pose.poolPulse : 70, frost ? 210 : pose.armed ? 75 + 180 * pose.poolPulse : 65, frost ? 255 : pose.armed ? 255 : 100);
         BlzSetSpecialEffectAlpha(boundary, pose.armed ? 255 : 160);
         BlzSetSpecialEffectTimeScale(boundary, 0.0);
       }

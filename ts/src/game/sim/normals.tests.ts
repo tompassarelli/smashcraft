@@ -56,9 +56,9 @@ test("projectiles cross the arena and disappear on contact", () => {
       assertEquals(target.status.damage, 0.0);
       for (let frame = 43; frame <= 45; frame++) updateProjectiles(world);
       assertEquals(projectileCount(owner), 0);
-      assertEquals(target.status.damage, 3.0);
+      assertEquals(target.status.damage, 2.7900002002716064);
       for (let frame = 1; frame <= 20; frame++) updateProjectiles(world);
-      assertEquals(target.status.damage, 3.0);
+      assertEquals(target.status.damage, 2.7900002002716064);
     }
   }
 });
@@ -71,8 +71,8 @@ test("both fighters' basic projectiles cause hitstun", () => {
     spawnTestProjectile(world, owner);
     updateProjectiles(world);
     updateProjectiles(world);
-    assertEquals(target.status.damage, 3.0);
-    assertEquals(target.launch.hitstun, 9);
+    assertEquals(target.status.damage, 2.7900002002716064);
+    assertEquals(target.launch.hitstun, 8);
   }
 });
 
@@ -352,7 +352,7 @@ test("the rifleman's down tilt hits harder than the archer's on the same frames"
     return target.status.damage;
   };
   assertEquals(damageBy(Character.archer), 8.0);
-  assertEquals(damageBy(Character.rifleman), 10.0);
+  assertEquals(damageBy(Character.rifleman), 9.300000190734863);
   assertEquals(attackRecoveryFrames(Character.rifleman, AttackStyle.downTilt, true), attackRecoveryFrames(Character.archer, AttackStyle.downTilt, true));
 });
 

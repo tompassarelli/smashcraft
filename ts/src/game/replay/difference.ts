@@ -1,3 +1,4 @@
+import { placedObject } from "../sim/fighter";
 // The first field that differs between two replay states, by Wurst
 // ReplayState's diagnostic path and checked in its order, which is not the
 // canonical tape's order.
@@ -234,21 +235,27 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("passiveLastKey", e.passive.lastKey, a.passive.lastKey);
   add("passiveLastTarget", e.passive.lastTarget, a.passive.lastTarget);
   for (let i = 0; i < PROJECTILE_CAPACITY; i++) add(`projectileSpec[${i}]`, at(e.projectiles, i).spec === at(a.projectiles, i).spec, true);
-  add("placedLife", e.placed.life, a.placed.life);
-  add("placedAge", e.placed.age, a.placed.age);
-  add("placedX", e.placed.x, a.placed.x);
-  add("placedZ", e.placed.z, a.placed.z);
-  add("placedDirection", e.placed.direction, a.placed.direction);
-  add("placedDurability", e.placed.durability, a.placed.durability);
-  add("placedSerial", e.placed.serial, a.placed.serial);
-  add("placedSpec", e.placed.spec === a.placed.spec, true);
-  for (let i = 0; i < PARTICIPANT_CAPACITY; i++) add(`placedStruck[${i}]`, e.placed.struck[i], a.placed.struck[i]);
-  add("placedSpecialStruck", e.placed.specialStruck, a.placed.specialStruck);
-  add("placedMode", e.placed.mode, a.placed.mode);
-  add("placedModeFrame", e.placed.modeFrame, a.placed.modeFrame);
-  add("placedApart", e.placed.apart, a.placed.apart);
-  add("placedBitten", e.placed.bitten, a.placed.bitten);
-  add("placedSurface", e.placed.surface ?? -1, a.placed.surface ?? -1);
+  add("packLength", e.pack.length, a.pack.length);
+  for (let animal = 0; animal <= Math.min(e.pack.length, a.pack.length); animal++) {
+    const ep = placedObject(e, animal);
+    const ap = placedObject(a, animal);
+    const animalName = animal === 0 ? "placed" : `pack[${animal - 1}]`;
+    add(`${animalName}Life`, ep.life, ap.life);
+    add(`${animalName}Age`, ep.age, ap.age);
+    add(`${animalName}X`, ep.x, ap.x);
+    add(`${animalName}Z`, ep.z, ap.z);
+    add(`${animalName}Direction`, ep.direction, ap.direction);
+    add(`${animalName}Durability`, ep.durability, ap.durability);
+    add(`${animalName}Serial`, ep.serial, ap.serial);
+    add(`${animalName}Spec`, ep.spec === ap.spec, true);
+    for (let i = 0; i < PARTICIPANT_CAPACITY; i++) add(`${animalName}Struck[${i}]`, ep.struck[i], ap.struck[i]);
+    add(`${animalName}SpecialStruck`, ep.specialStruck, ap.specialStruck);
+    add(`${animalName}Mode`, ep.mode, ap.mode);
+    add(`${animalName}ModeFrame`, ep.modeFrame, ap.modeFrame);
+    add(`${animalName}Apart`, ep.apart, ap.apart);
+    add(`${animalName}Bitten`, ep.bitten, ap.bitten);
+    add(`${animalName}Surface`, ep.surface ?? -1, ap.surface ?? -1);
+  }
   add("freezeTrapCooldown", e.freezeTrap.cooldown, a.freezeTrap.cooldown);
   add("out", e.status.out, a.status.out);
   add("respawn", e.status.respawn, a.status.respawn);
