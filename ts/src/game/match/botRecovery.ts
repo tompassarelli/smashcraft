@@ -11,6 +11,7 @@ import { Character, DownState, LedgeState, SpecialAction } from "../sim/codes";
 import { isTumbling } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
 import { totalVelocityZ } from "../sim/motion";
+import { RIFLEMAN_RECOVERY_STARTUP_FRAMES } from "../sim/specials";
 import type { Controls } from "../sim/roster";
 import { mainDeckLeft, mainDeckRight, mainDeckZ, surfaceCount, surfaceLeft, surfaceRight, surfaceZ } from "../sim/stage";
 import { botChance, botChoice } from "./botRandom";
@@ -157,16 +158,23 @@ const AIM_UNDER_DECK = 1000000.0;
 const DIAGONAL = 0.7071067690849304;
 
 /**
- * An up special that aims during its startup (Warden's Blink) holds the one
- * of its eight directions whose travel ends nearest a spot just inside the
- * near edge, avoiding any travel that passes beneath the deck.
+ * A charged-angle up special (#189) holds, through its startup, the one of
+ * its eight directions whose travel ends nearest a spot just inside the near
+ * edge, avoiding any travel that passes beneath the deck. Rifleman's recoil
+ * shot holds up with the side it steers, its diagonal or straight-up route.
  */
 function aimUpSpecial(f: Readonly<Fighter>, stage: number, side: number, input: Controls): void {
+  if (f.special.action === SpecialAction.riflemanRecovery) {
+    if (f.special.frame < RIFLEMAN_RECOVERY_STARTUP_FRAMES) input.verticalDirection = 1;
+    return;
+  }
   if (f.special.action !== SpecialAction.heroUp) return;
   const move = runningHeroSpecial(f);
   if (move?.aimFrames === undefined || f.special.frame >= move.aimFrames) return;
   let reach = 0.0;
-  for (const segment of move.motion ?? []) if (segment.aimedSpeed !== undefined && segment.aimedSpeed > reach) reach = segment.aimedSpeed;
+  for (const segment of move.motion ?? []) {
+    if (segment.aimedSpeed !== undefined) reach = f32(reach + f32(segment.aimedSpeed * (segment.last - segment.first + 1)));
+  }
   if (reach <= 0.0) return;
   const left = mainDeckLeft(stage);
   const right = mainDeckRight(stage);

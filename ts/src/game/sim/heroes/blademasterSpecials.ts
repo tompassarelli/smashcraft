@@ -2,7 +2,7 @@
 // "B specials"), as data for sim/heroSpecials.ts. Brief frame numbering: the
 // entry tick is frame 1 and windows are inclusive.
 import { f32 } from "wisp/src/sim/f32";
-import { type AuthoredSpecial, type FighterSpecials, type SpecialPlacement, FollowUpInput, Relocation, frames } from "../heroSpecials";
+import { type AuthoredSpecial, type FighterSpecials, type SpecialPlacement, CHARGED_AIM_FRAMES, FollowUpInput, Relocation, chargedAngleMotion, frames } from "../heroSpecials";
 import { hurtPose } from "../hurtboxes";
 import { BLADE_RADIUS, L, M, capsule, cut, hit, length, path, reach } from "./blademasterMoves";
 
@@ -63,22 +63,21 @@ const windWalk = (air: boolean): AuthoredSpecial => {
   });
 };
 
-// Rising Blade climbs evenly over f7-24 and stops at the top on f25, so the
-// row's travel is its peak; the helpless fall starts from rest. Its lateral
-// travel follows the held stick, so it can drift back toward the stage.
-const RISE_FRAMES = 18;
-const rise = (ascent: number, drift: number) => [
-  { ...frames(7, 24), velocityX: 0.0, velocityZ: f32(length(ascent) / RISE_FRAMES), driftSpeed: f32(length(drift) / RISE_FRAMES) },
-  { ...frames(25, 25), velocityX: 0.0, velocityZ: 0.0 },
-];
+// Rising Blade, the roster's charged-angle rule (#189): he hovers through f8
+// while the stick picks one of eight directions (straight up when neutral),
+// dashes that way evenly over f9-22 and stops on f23, so the helpless fall
+// starts from rest. The hover is the exposed moment his gameplan accepts.
+const RISE_FRAMES = 14;
+const rise = (distance: number) => chargedAngleMotion(length(distance), RISE_FRAMES);
 const BLADE_TOP = f32(M - BLADE_RADIUS);
 
-/** Rising Blade: 2.0H up and 0.5H forward, one 9-damage hit f7-12, then helpless; 15 mana; no intangibility. */
+/** Rising Blade: a 2.8H charged-angle dash, one 9-damage hit f9-14, then helpless; 15 mana; no intangibility. */
 const risingBlade: AuthoredSpecial = {
   cost: 15,
-  endFrame: 25,
-  motion: rise(f32(2.0), f32(0.5)),
-  regions: path(7, [
+  endFrame: 24,
+  aimFrames: CHARGED_AIM_FRAMES,
+  motion: rise(f32(2.8)),
+  regions: path(9, [
     capsule(40.0, 30.0, 70.0, 70.0),
     capsule(30.0, 40.0, 55.0, 90.0),
     capsule(20.0, 50.0, 35.0, BLADE_TOP),
@@ -86,16 +85,17 @@ const risingBlade: AuthoredSpecial = {
     capsule(5.0, 60.0, 5.0, BLADE_TOP),
     capsule(0.0, 60.0, 0.0, BLADE_TOP),
   ], hit(9.0, "LAUNCH", 80)),
-  hurt: [hurtPose(5, 14, reach(18.0, 128.0))],
+  hurt: [hurtPose(7, 16, reach(18.0, 128.0))],
   oncePerAirtime: true,
   helpless: true,
 };
 
-/** The zero-mana recovery: 1.4H of the same path and no attack. */
+/** The zero-mana recovery: 1.9H of the same aimed dash and no attack. */
 const risingBladeFree: AuthoredSpecial = {
   cost: 0,
-  endFrame: 25,
-  motion: rise(f32(1.4), f32(0.35)),
+  endFrame: 24,
+  aimFrames: CHARGED_AIM_FRAMES,
+  motion: rise(f32(1.9)),
   oncePerAirtime: true,
   helpless: true,
 };
@@ -135,7 +135,7 @@ const inAir = (special: AuthoredSpecial): AuthoredSpecial => ({ ...special, land
 export const BLADEMASTER_SPECIALS: FighterSpecials = {
   neutral: { name: "Wind Cutter", description: "A short blade wave that costs no mana.", ground: windCutter, air: inAir(windCutter) },
   side: { name: "Wind Walk", description: "Fade and walk through bodies; attack to Backstab on either side, special to step out.", ground: windWalk(false), air: windWalk(true) },
-  up: { name: "Rising Blade", description: "A rising slash that drifts with the stick, then a helpless fall.", ground: risingBlade, free: risingBladeFree },
+  up: { name: "Rising Blade", description: "Hold a direction as he gathers, then a slashing dash that way and a helpless fall.", ground: risingBlade, free: risingBladeFree },
   down: { name: "Mirror Image", description: "Step back and leave an image; press again to swap to it with a slash. One hit breaks it.", ground: mirrorImage, air: inAir(mirrorImage), recall: imageSwap },
 };
 

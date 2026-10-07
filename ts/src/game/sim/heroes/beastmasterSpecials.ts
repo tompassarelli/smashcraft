@@ -54,17 +54,21 @@ const SUMMON_BEAR: AuthoredSpecial = { cost: 25, endFrame: 56, groundOnly: true,
 const BEAR_COMMAND: AuthoredSpecial = { name: "Bear Command", cost: 8, endFrame: 24, command: { frame: 4, order: CompanionOrder.lunge } };
 
 /**
- * Hawk Lift: a cosmetic hawk carries him over f10-32, half the rise by f15,
- * then easing so the peak stays at the listed height. Full form 2.0H up and
- * 0.5H across; the free form 1.4H and 0.35H.
+ * Hawk Lift, a guided rise (#189): a cosmetic hawk carries him over f10-32, half the rise by f15,
+ * then easing so the peak stays at the listed height; the held stick steers
+ * it sideways, up to the listed steer over the whole lift. Full form 3.2H up,
+ * 0.3H across and 1.2H steer; the free form 2.3H, 0.2H and 0.8H.
  */
-const lift = (rise: number, drift: number): SpecialMotion[] => {
+const lift = (rise: number, drift: number, steer: number): SpecialMotion[] => {
   const segment = (first: number, last: number, share: number): SpecialMotion =>
-    ({ ...frames(first, last), velocityX: f32(f32(drift * share) / (last - first + 1)), velocityZ: f32(f32(rise * share) / (last - first + 1)) });
+    ({
+      ...frames(first, last), velocityX: f32(f32(drift * share) / (last - first + 1)), velocityZ: f32(f32(rise * share) / (last - first + 1)),
+      driftSpeed: f32(f32(steer * share) / (last - first + 1)),
+    });
   return [segment(10, 15, 0.5), segment(16, 27, f32(0.46)), segment(28, 32, f32(0.04))];
 };
-const hawkLift = (cost: number, rise: number, drift: number): AuthoredSpecial => ({
-  cost, endFrame: 32, motion: lift(rise, drift), facesStick: true, oncePerAirtime: true, helpless: true,
+const hawkLift = (cost: number, rise: number, drift: number, steer: number): AuthoredSpecial => ({
+  cost, endFrame: 32, motion: lift(rise, drift, steer), facesStick: true, oncePerAirtime: true, helpless: true,
 });
 
 /** Quillbeast Dart: without a bear, one short quill, 0.14H a frame for 20 frames. */
@@ -84,6 +88,6 @@ const BEAR_RECALL: AuthoredSpecial = { name: "Bear Recall", cost: 0, endFrame: 2
 export const BEASTMASTER_SPECIALS: FighterSpecials = {
   neutral: { name: "Throwing Axe", description: "A straight thrown axe that costs nothing.", ground: throwingAxe(false), air: throwingAxe(true) },
   side: { name: "Summon Bear", description: "Call a bear to his side; press again to send it lunging ahead.", ground: SUMMON_BEAR, recall: BEAR_COMMAND },
-  up: { name: "Hawk Lift", description: "A hawk lifts him high, then a helpless fall.", ground: hawkLift(15, h(2.0), h(f32(0.5))), free: hawkLift(0, h(f32(1.4)), h(f32(0.35))) },
+  up: { name: "Hawk Lift", description: "A hawk lifts him high and you steer it, then a helpless fall.", ground: hawkLift(15, h(f32(3.2)), h(f32(0.3)), h(f32(1.2))), free: hawkLift(0, h(f32(2.3)), h(f32(0.2)), h(f32(0.8))) },
   down: { name: "Quillbeast Dart", description: "A short quill; with a bear out, call the bear back to him instead.", ground: quillDart(false), air: quillDart(true), recall: BEAR_RECALL },
 };

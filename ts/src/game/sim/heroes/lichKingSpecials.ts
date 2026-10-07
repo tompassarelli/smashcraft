@@ -66,16 +66,16 @@ const shadowguard = (projectile: SpecialProjectile, landingLag: number | undefin
 const ASCENT_FRAMES = 23;
 
 /**
- * Ascension of the Damned: an ice column lifts him over frames 8-30, steered
- * up to 0.35H sideways, inside a Remorseless Winter vortex that strikes each
+ * Ascension of the Damned, a guided rise (#189): an ice column lifts him over frames 8-30, steered
+ * up to `steer` sideways by the held stick, inside a Remorseless Winter vortex that strikes each
  * opponent once; then a helpless fall. The free form rises lower with no vortex.
  */
-function ascension(cost: number, height: number, vortex: boolean): AuthoredSpecial {
+function ascension(cost: number, height: number, steer: number, vortex: boolean): AuthoredSpecial {
   return {
     cost,
     endFrame: 46,
     facesStick: true,
-    motion: [{ ...frames(8, 30), velocityX: 0.0, velocityZ: f32(h(height) / ASCENT_FRAMES), driftSpeed: f32(h(f32(0.35)) / ASCENT_FRAMES) }],
+    motion: [{ ...frames(8, 30), velocityX: 0.0, velocityZ: f32(h(height) / ASCENT_FRAMES), driftSpeed: f32(h(steer) / ASCENT_FRAMES) }],
     regions: vortex ? [heroRegion(8, 30, capsule(0.0, 50.0, 0.0, 110.0, 62.0), hit(9.0, "LAUNCH", 80))] : undefined,
     oncePerAirtime: true,
     helpless: true,
@@ -124,8 +124,8 @@ export const LICH_KING_SPECIALS: FighterSpecials = {
   up: {
     name: "Ascension of the Damned",
     description: "An ice column lifts him in a frost vortex, then a helpless fall.",
-    ground: ascension(15, f32(2.0), true),
-    free: ascension(0, f32(1.3), false),
+    ground: ascension(15, f32(2.7), f32(1.15), true),
+    free: ascension(0, f32(2.0), f32(0.8), false),
   },
   down: {
     name: "Defile",

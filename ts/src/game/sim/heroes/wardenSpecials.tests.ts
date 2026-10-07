@@ -133,7 +133,7 @@ test("Pursuit Lunge in the air tilts 20 degrees only for a direction held throug
   assertNear(rise(0, 1), 0.0, f32(0.01));
 });
 
-test("Blink moves 1.7H in the held direction on f9, intangible only f8-10, then helpless", () => {
+test("Blink hovers through f8, then moves 2.6H in the held direction on f9, intangible only f8-10, then helpless", () => {
   for (const [x, z] of [[1, 1], [-1, 0], [0, 1], [1, -1], [0, 0]] as const) {
     const { world, warden, target } = pair(0.0, 1500.0);
     place(warden, 0.0, 600.0);
@@ -147,7 +147,7 @@ test("Blink moves 1.7H in the held direction on f9, intangible only f8-10, then 
     frame(world, hold(-x, -z), controls(), observe);
     const movedX = f32(warden.motion.x - beforeX);
     const movedZ = f32(warden.motion.z - beforeZ);
-    assertNear(squareRoot(f32(f32(movedX * movedX) + f32(movedZ * movedZ))), f32(H * f32(1.7)), 0.5);
+    assertNear(squareRoot(f32(f32(movedX * movedX) + f32(movedZ * movedZ))), f32(H * f32(2.6)), 0.5);
     const aimZ = x === 0 && z === 0 ? 1 : z;
     assertTrue(movedX * x >= 0.0 && Math.abs(movedX) > 100.0 === (x !== 0));
     assertTrue(Math.abs(movedZ) > 100.0 === (aimZ !== 0) && movedZ * aimZ >= 0.0);
@@ -158,7 +158,7 @@ test("Blink moves 1.7H in the held direction on f9, intangible only f8-10, then 
   }
 });
 
-test("Blink's mana-free form rises 1.1H straight up without intangibility", () => {
+test("Blink's mana-free form blinks 1.7H the held way without intangibility", () => {
   const { world, warden } = pair(0.0, 1500.0);
   place(warden, 0.0, 600.0);
   warden.mana.points = 19;
@@ -171,14 +171,14 @@ test("Blink's mana-free form rises 1.1H straight up without intangibility", () =
   const beforeX = warden.motion.x;
   const beforeZ = warden.motion.z;
   frame(world);
-  assertEquals(warden.motion.x, beforeX);
-  assertNear(f32(warden.motion.z - beforeZ), f32(H * f32(1.1)), f32(0.01));
+  assertNear(f32(warden.motion.x - beforeX), f32(H * f32(1.7)), f32(0.01));
+  assertEquals(warden.motion.z, beforeZ);
 });
 
 test("Blink stops at the stage instead of crossing it, and a grounded endpoint stays punishable", () => {
   // Beside the main deck's body, aimed into it: the wall stops the displacement.
   const { world, warden } = pair(0.0, 1500.0, -1);
-  place(warden, 700.0, 30.0);
+  place(warden, 700.0, -30.0);
   frame(world, upB);
   for (let f = 2; f <= 9; f++) frame(world, hold(-1, 0));
   frame(world);

@@ -181,7 +181,7 @@ test("Bear Recall walks it back at 0.06H a frame; past 6H for 120 frames it leav
   assertEquals(owner.placed.life, 0);
 });
 
-test("without a bear: Throwing Axe is free, Quillbeast Dart costs 3, and Hawk Lift's free form peaks near 1.4H", () => {
+test("without a bear: Throwing Axe is free, Quillbeast Dart costs 3, and Hawk Lift peaks near 3.2H, its free form near 2.3H", () => {
   const axe = pair(f32(H * 2.0));
   frame(axe.world, neutral);
   assertEquals(axe.owner.mana.points, 100);
@@ -194,7 +194,7 @@ test("without a bear: Throwing Axe is free, Quillbeast Dart costs 3, and Hawk Li
   for (let f = 0; f < 40 && dart.target.status.damage === 0.0; f++) frame(dart.world);
   assertEquals(dart.target.status.damage, 4.0);
   assertTrue(dart.owner.projectiles.every(p => p.life <= 0 || p.kind === ProjectileKind.hero));
-  for (const [mana, rise] of [[100, f32(2.0)], [10, f32(1.4)]] as const) {
+  for (const [mana, rise] of [[100, f32(3.2)], [10, f32(2.3)]] as const) {
     const { world, owner } = pair(1000.0);
     owner.mana.points = mana;
     const ground = owner.motion.z;

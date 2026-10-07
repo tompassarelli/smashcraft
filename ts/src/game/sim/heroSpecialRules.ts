@@ -140,13 +140,38 @@ export function refillMana(f: Fighter): void {
   f.status.guardHealed = 0.0;
 }
 
+/** tan(22.5 degrees): an analog stick picks the nearest of eight 45-degree sectors. */
+const SECTOR_TANGENT = 0.41421356797218323;
+
+/**
+ * A charged-angle aim's horizontal part (#189, smashcraft:docs/gameplay-design.md,
+ * "Up specials"): an analog stick's nearest of eight directions, else the
+ * digital direction, so keys and a stick choose among the same eight aims.
+ */
+export function chargedAimX(input: Readonly<Controls>): number {
+  if (input.diStickValid && (input.diStickX !== 0 || input.diStickZ !== 0)) {
+    return Math.abs(input.diStickX) > f32(SECTOR_TANGENT * Math.abs(input.diStickZ)) ? (input.diStickX < 0 ? -1 : 1) : 0;
+  }
+  return input.direction < 0 ? -1 : input.direction > 0 ? 1 : 0;
+}
+
+/** A charged-angle aim's vertical part, by chargedAimX's rule. */
+export function chargedAimZ(input: Readonly<Controls>): number {
+  if (input.diStickValid && (input.diStickX !== 0 || input.diStickZ !== 0)) {
+    return Math.abs(input.diStickZ) > f32(SECTOR_TANGENT * Math.abs(input.diStickX)) ? (input.diStickZ < 0 ? -1 : 1) : 0;
+  }
+  return input.verticalDirection < 0 ? -1 : input.verticalDirection > 0 ? 1 : 0;
+}
+
 /** While the running form's `aimFrames` last, a held stick re-chooses its aim. */
 export function steerHeroSpecial(f: Fighter, input: Readonly<Controls>): void {
   const move = runningHeroSpecial(f);
   if (move?.aimFrames === undefined || f.special.frame >= move.aimFrames) return;
-  if (input.direction === 0 && input.verticalDirection === 0) return;
-  f.special.aimX = input.direction < 0 ? -1 : input.direction > 0 ? 1 : 0;
-  f.special.aimZ = input.verticalDirection < 0 ? -1 : input.verticalDirection > 0 ? 1 : 0;
+  const x = chargedAimX(input);
+  const z = chargedAimZ(input);
+  if (x === 0 && z === 0) return;
+  f.special.aimX = x;
+  f.special.aimZ = z;
 }
 
 /** Spends the chosen form's cost and records the entry; the caller has started the action. */
