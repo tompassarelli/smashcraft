@@ -58,7 +58,7 @@ link names a relationship, not copied frame data or geometry.
 | Back air | 15/4/30/L22; 16 damage; rearward totem strike. | [Totem][wc] | [K. Rool's committed rear attack][krool] |
 | Up air | 12/4/28/L20; 13 damage; narrow horn rise; horns are hittable. | [Tauren body][wc] | [Bowser's overhead head strike][bowser] |
 | Down air | 21/5/38/L28; 18 damage; totem downward, meteor in air and 55-degree launch on ground. | [War Stomp/totem][wc] | [K. Rool's deliberate downward strike][krool] |
-| Grab | 11/3/31; short free-hand reach; shared shield grab and escape. | [Tauren strength][wc] | [Bowser's close grab][bowser] |
+| Grab | 10/3/31; short free-hand reach; shared shield grab and escape. | [Tauren strength][wc] | [Bowser's close grab][bowser] |
 | Pummel | Shared contact f60, end f68; 3 damage; at most one pummel, escapable by mashing. | [Totem haft][wc] | [Heavyweight local pummel][bowser] |
 | Forward throw | Contact f19, end f45; 11 damage at 35 degrees; stage control. | [Tauren strength][wc] | [Bowser's outward toss][bowser] |
 | Back throw | Contact f23, end f54; 13 damage at 40 degrees backward; edge read. | [Tauren strength][wc] | [K. Rool's powerful back throw][krool] |
