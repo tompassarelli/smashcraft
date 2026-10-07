@@ -19,7 +19,8 @@ import { isAerialAttack } from "../../game/sim/moves";
 import { fighterAt, isActive } from "../../game/sim/roster";
 import { traceFrameInput, traceParticipant } from "./diagnostics";
 import { confirmModelSounds } from "../../game/render/modelSounds";
-import { type FrameObservation, type ShellState, activeRollback } from "./state";
+import { type FrameObservation, type ShellState, activeRollback, localSlot } from "./state";
+import { heldVisualFrame } from "../../game/shell/visualCapture";
 import { clearMatchEffects, views } from "./ui";
 import { traceInput } from "./trace";
 import { probeRecording } from "./responseProbe";
@@ -127,10 +128,13 @@ export function applyFrame(s: ShellState, recorded = false): void {
     if (participant.pooled && !confirmModelSounds(s.sounds, s.sounds.epoch ?? 0, runtime.simulationFrame, slot, fighter, runtime.poses[slot], ui.sounds)) {
       traceInput(s.trace, `model sound rejected confirmed frame ${runtime.simulationFrame} slot ${slot}`);
     }
-    ui.combat.presentConfirmed(runtime.simulationFrame, slot, runtime.frameImpacts[slot]);
+    const held = heldVisualFrame(localSlot()) !== undefined;
+    if (!held) ui.combat.presentConfirmed(runtime.simulationFrame, slot, runtime.frameImpacts[slot]);
     ui.combat.confirmContacts(runtime.simulationFrame, runtime.frameImpacts[slot]);
-    renderFighter(s, slot, runtime.poses[slot], participant.before.out);
-    ui.special.presentConfirmedAnimated(runtime.simulationFrame, fighter, slot);
+    if (!held) {
+      renderFighter(s, slot, runtime.poses[slot], participant.before.out);
+      ui.special.presentConfirmedAnimated(runtime.simulationFrame, fighter, slot);
+    }
   }
   const cues = ui.match.presentConfirmed(s.game, world);
   if (s.game.phase !== Phase.result) return;

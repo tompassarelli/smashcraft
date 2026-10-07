@@ -18,7 +18,7 @@ import { UsageFailure, describeCause } from "wisp/scripts/wisp/command";
 import { RESET_COMMAND } from "../../src/game/shell/devSettings";
 import { devCommandReceiptFile } from "../../src/runtime/gameFiles";
 import { IntegrityFailure } from "../integrity/evidence";
-import { compareRuns, scriptChat } from "../integrity/padParity";
+import { compareRuns, comparisonSteps, scriptChat } from "../integrity/padParity";
 import { parsePadScript } from "../integrity/padScript";
 import { onHealthyClients } from "./doctor";
 import { type PadOptions, type NativeSession, headlessScript, headlessSession, nativeChat, nativeScript, nativeSession } from "./commands/pad";
@@ -206,10 +206,11 @@ const prepare = (options: BatchOptions) => Effect.gen(function*() {
       const text = readFileSync(script, "utf8");
       const chat = scriptChat(text);
       if (chat === undefined) throw new Error(`${script} has no \`#! chat\` line: a batch starts each match with its script's command`);
+      const steps = comparisonSteps(text, script);
       const name = label(script, taken);
       const dir = join(options.out, name);
       mkdirSync(dir, { recursive: true });
-      return { script, text, steps: parsePadScript(text), chat, label: name, dir };
+      return { script, text, steps, chat, label: name, dir };
     }),
     catch: (cause) => new UsageFailure({ problem: describeCause(cause) }),
   });
@@ -289,7 +290,7 @@ export const padBatch = (options: NativeBatchOptions) => Effect.gen(function*() 
       const run = runs[index];
       if (run === undefined) break;
       const made = report(run, pair.name);
-      const padOptions: PadOptions = { scriptPath: run.script, steps: run.steps, helper: options.helper, build, out: join(run.dir, "native"), chat: run.chat };
+      const padOptions: PadOptions = { scriptPath: run.script, steps: run.steps, helper: options.helper, build, out: join(run.dir, "native"), chat: run.chat, candidate: options.map };
       let outcome: "valid" | "invalid" | "failed" | "broken" = "invalid";
       for (let attempt = 0; attempt <= retries; attempt++) {
         made.attempts = attempt + 1;

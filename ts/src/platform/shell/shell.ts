@@ -18,6 +18,8 @@ import { DRAW_EVENT, beginPresentedFrame, drawBetweenFrames, startFrameClock } f
 import { EDITBOX_ENTER, EditboxIngress } from "../editboxJournal";
 import { localParticipantSlot, traceTick, writeReadyMarker } from "./diagnostics";
 import { writeDrawnFrame } from "./drawnFrame";
+import { heldVisualFrame } from "../../game/shell/visualCapture";
+import { holdPresentedCapture, serviceVisualCapture } from "./visualCapture";
 import { callbackMatchTick } from "./frame";
 import { clearAllInputs, clearParticipantInputs, currentHumanMask } from "./inputs";
 import { INPUT_PREFIX, journalEpoch, publishMenu, serviceJournalEnd } from "./journal";
@@ -38,7 +40,7 @@ import { PROBE_EXPORT, exportProbePage, probeBegin, probePresent } from "./respo
 import { receiveInput, rollbackTick } from "./rollback";
 import { SAVE_MOMENT, momentKey, serviceMomentRequest, serviceMomentSave } from "./moment";
 import { readMatchIndex, writeMatchRecord } from "./matchRecords";
-import { type ShellState, activeRollback, createShellState, momentSaves, replayRecording, shellState } from "./state";
+import { type ShellState, activeRollback, createShellState, localSlot, momentSaves, replayRecording, shellState } from "./state";
 import { endReplaySegment, serviceReplay } from "./replays";
 import { CONTROL_ACK_PREFIX } from "../../game/shell/pauseBarrier";
 import { clearMatchEffects, createUi, recreateUi, views } from "./ui";
@@ -74,6 +76,7 @@ declare global {
 
 /** One game callback. */
 function gameTick(s: ShellState): void {
+  serviceVisualCapture(s);
   const epoch = journalEpoch(s);
   const editbox = s.rollback?.journal?.editbox;
   editbox?.tick();
@@ -110,10 +113,14 @@ function gameTick(s: ShellState): void {
   if (s.game.phase !== Phase.match) clearAllInputs(s);
   else for (const slot of PARTICIPANT_SLOTS) clearPulse(s.participants[slot].keys.directions);
   syncKeyEvents(s);
-  beginPresentedFrame(s.game.phase === Phase.match && !s.session.paused);
-  renderPersistentPresentation(s);
-  lockArenaCamera(s);
-  renderUi(s);
+  const held = heldVisualFrame(localSlot()) !== undefined;
+  beginPresentedFrame(s.game.phase === Phase.match && !s.session.paused && !held);
+  if (!held) {
+    renderPersistentPresentation(s);
+    lockArenaCamera(s);
+    renderUi(s);
+    holdPresentedCapture(s);
+  }
   writeDrawnFrame(s);
   const journal = s.rollback?.journal;
   if (editbox !== undefined && journal !== undefined) {

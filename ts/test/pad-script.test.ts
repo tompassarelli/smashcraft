@@ -4,7 +4,24 @@ import { deadlineOrder, frameWriteNs, landEdges, matchStart, parsePadScript, pub
 import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { checkHeadlessRun, compareRuns, parseExpectations, parseTrace, scriptChat, unmetExpectations } from "../scripts/integrity/padParity";
+import { checkHeadlessRun, compareRuns, comparisonSteps, parseExpectations, parseTrace, scriptChat, unmetExpectations } from "../scripts/integrity/padParity";
+
+test("comparison preflight requires the consumer's View export without changing action or capture steps", () => {
+  const actions = "150 a tap A 2\n154 a capture\n";
+  for (const missing of [actions, `${actions}160 a tap VIEW 59`, `${actions}160 a press VIEW\n230 b release VIEW`, `${actions}160 a press VIEW\n180 a release VIEW\n190 a press VIEW\n230 a release VIEW`]) {
+    expect(() => comparisonSteps(missing)).toThrow("comparison requires a replay export");
+  }
+  for (const exportHold of ["180 a tap VIEW 70", "180 b press VIEW\n250 b release VIEW", "180 a press VIEW\n200 a press VIEW\n250 a release VIEW"]) {
+    const steps = comparisonSteps(`${actions}${exportHold}`);
+    expect(steps.slice(0, 3)).toEqual(parsePadScript(actions));
+  }
+  for (const name of ["archer", "illidan", "rifleman"]) {
+    const script = readFileSync(join(import.meta.dir, "native", "pads", "156", `${name}.pad`), "utf8");
+    const steps = comparisonSteps(script);
+    expect(steps).toEqual(parsePadScript(script));
+    expect(steps.at(-2)?.frame).toBeGreaterThan(Math.max(...steps.filter((step) => step.kind === "capture").map((step) => step.frame)));
+  }
+});
 
 test("a pad script becomes frame-ordered edges, a tap a press and its release", () => {
   const steps = parsePadScript(`

@@ -253,6 +253,7 @@ function copyObservation(target: Fighter, source: Readonly<Fighter>): void {
 let checksumFirst = 0;
 let checksumSecond = 0;
 function foldObservationByte(byte: number): void {
+  flushObservationZeroes();
   const code = byte + 1;
   checksumFirst = floorMod(checksumFirst * 31 + code, 46337);
   checksumSecond = floorMod(checksumSecond * 37 + code, 46337);
@@ -275,6 +276,25 @@ function scalarDigest(value: number): ObservationDigest {
 }
 const integerDigests: ObservationDigest[] = [];
 for (let value = -1; value <= 255; value++) integerDigests.push(scalarDigest(value));
+
+// Neutral fields are consecutive in the canonical record; fold a whole run's unchanged bytes once.
+const zeroDigests: ObservationDigest[] = [{ first: 0, second: 0, firstPower: 1, secondPower: 1 }];
+let zeroNumbers = 0;
+function flushObservationZeroes(): void {
+  if (zeroNumbers === 0) return;
+  const zero = at(integerDigests, 1);
+  while (zeroDigests.length <= zeroNumbers) {
+    const previous = at(zeroDigests, zeroDigests.length - 1);
+    zeroDigests.push({
+      first: floorMod(previous.first * zero.firstPower + zero.first, 46337),
+      second: floorMod(previous.second * zero.secondPower + zero.second, 46337),
+      firstPower: floorMod(previous.firstPower * zero.firstPower, 46337),
+      secondPower: floorMod(previous.secondPower * zero.secondPower, 46337),
+    });
+  }
+  foldDigest(at(zeroDigests, zeroNumbers));
+  zeroNumbers = 0;
+}
 
 function foldDigest(digest: Readonly<ObservationDigest>): void {
   // 46336*46337 remains below the signed int32 endpoint.
@@ -299,35 +319,79 @@ const positiveRealDigest = textDigest(",+");
 const colonDigest = textDigest(":");
 const minusDigest = textDigest("-");
 
-/** Folds a non-negative integer's decimal bytes, exactly as writeCanonicalNumber writes them. */
-function foldDecimal(value: number): void {
-  if (value < 1000) { foldDigest(at(leadingGroupDigests, value)); return; }
-  foldDecimal(floorDiv(value, 1000));
-  foldDigest(at(paddedGroupDigests, floorMod(value, 1000)));
+function appendDigest(digest: Readonly<ObservationDigest>): void {
+  buildingDigest.first = floorMod(buildingDigest.first * digest.firstPower + digest.first, 46337);
+  buildingDigest.second = floorMod(buildingDigest.second * digest.secondPower + digest.second, 46337);
+  buildingDigest.firstPower = floorMod(buildingDigest.firstPower * digest.firstPower, 46337);
+  buildingDigest.secondPower = floorMod(buildingDigest.secondPower * digest.secondPower, 46337);
 }
-function foldSignedDecimal(value: number): void {
-  if (value < 0) { foldDigest(minusDigest); foldDecimal(-value); } else foldDecimal(value);
+
+/** Appends a non-negative integer's decimal bytes, exactly as writeCanonicalNumber writes them. */
+function digestDecimal(value: number): void {
+  if (value < 1000) { appendDigest(at(leadingGroupDigests, value)); return; }
+  digestDecimal(floorDiv(value, 1000));
+  appendDigest(at(paddedGroupDigests, floorMod(value, 1000)));
+}
+function digestSignedDecimal(value: number): void {
+  if (value < 0) { appendDigest(minusDigest); digestDecimal(-value); } else digestDecimal(value);
+}
+
+interface CachedNumberDigest extends ObservationDigest { value: number | undefined }
+// A repair revisits recent coordinates; reuse exact digests without retaining a match's numbers indefinitely.
+const NUMBER_DIGEST_CAPACITY = 1024;
+const numberDigests: Record<number, CachedNumberDigest | undefined> = {};
+const numberDigestRing: CachedNumberDigest[] = [];
+for (let index = 0; index < NUMBER_DIGEST_CAPACITY; index++) {
+  numberDigestRing.push({ value: undefined, first: 0, second: 0, firstPower: 1, secondPower: 1 });
+}
+let nextNumberDigest = 0;
+
+function numberDigest(value: number, integer: number): Readonly<ObservationDigest> {
+  const cached = numberDigests[value];
+  if (cached !== undefined) return cached;
+  const digest = at(numberDigestRing, nextNumberDigest);
+  if (digest.value !== undefined) delete numberDigests[digest.value];
+  nextNumberDigest = floorMod(nextNumberDigest + 1, NUMBER_DIGEST_CAPACITY);
+  digest.value = value;
+  digest.first = 0;
+  digest.second = 0;
+  digest.firstPower = 1;
+  digest.secondPower = 1;
+  buildingDigest = digest;
+  if (integer === value && value >= -2147483647 && value <= 2147483647) {
+    if (integer < 0) { appendDigest(negativeSeparatorDigest); digestDecimal(-integer); }
+    else { appendDigest(separatorDigest); digestDecimal(integer); }
+  } else if (integer !== value && splitFiniteReal(value < 0 ? -value : value)) {
+    appendDigest(value < 0 ? negativeSeparatorDigest : positiveRealDigest);
+    digestSignedDecimal(realParts.exponent);
+    appendDigest(colonDigest);
+    digestDecimal(realParts.high);
+    appendDigest(colonDigest);
+    digestDecimal(realParts.low);
+  } else {
+    digestByte(44);
+    writeCanonicalNumber(digestByte, value);
+  }
+  numberDigests[value] = digest;
+  return digest;
 }
 
 function foldObservationNumber(value: number): void {
-  if (value >= -1 && value <= 255 && Math.floor(value) === value) {
-    foldDigest(at(integerDigests, value + 1));
-  } else if (Math.floor(value) === value && value >= -2147483647 && value <= 2147483647) {
-    const integer = Math.floor(value);
-    if (integer < 0) { foldDigest(negativeSeparatorDigest); foldDecimal(-integer); } else { foldDigest(separatorDigest); foldDecimal(integer); }
-  } else if (Math.floor(value) !== value && value === value && splitFiniteReal(value < 0 ? -value : value)) {
-    foldDigest(value < 0 ? negativeSeparatorDigest : positiveRealDigest);
-    foldSignedDecimal(realParts.exponent);
-    foldDigest(colonDigest);
-    foldDecimal(realParts.high);
-    foldDigest(colonDigest);
-    foldDecimal(realParts.low);
+  if (value === 0) { zeroNumbers++; return; }
+  flushObservationZeroes();
+  const integer = Math.floor(value);
+  if (value >= -1 && value <= 255 && integer === value) {
+    foldDigest(at(integerDigests, integer + 1));
+  } else if (value === value) {
+    foldDigest(numberDigest(value, integer));
   } else {
+    // NaN cannot key a Lua table.
     foldObservationByte(44);
     writeCanonicalNumber(foldObservationByte, value);
   }
 }
 function foldObservationText(text: string): void {
+  flushObservationZeroes();
   let digest = textDigests.get(text);
   if (digest === undefined) {
     buildingDigest = { first: 0, second: 0, firstPower: 1, secondPower: 1 };
@@ -367,7 +431,9 @@ export function observeOpponents(memory: BotMemory, world: Roster, frame: number
   }
   checksumFirst = 0;
   checksumSecond = 0;
+  zeroNumbers = 0;
   writeObservations(checksumWriter, entry.sample.opponents);
+  flushObservationZeroes();
   entry.sample.checksumFirst = checksumFirst;
   entry.sample.checksumSecond = checksumSecond;
   storage.entries.push(entry);

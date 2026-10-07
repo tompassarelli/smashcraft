@@ -16,11 +16,11 @@
 // Several scripts, or a folder of them, run as one batch: one game per client
 // pair with `-dev reset` between scripts, the headless runs alongside, and
 // `--pairs N` sharding over the LAN pool (smashcraft:ts/scripts/wisp/padBatch.ts).
-import { copyFileSync, existsSync, mkdirSync, openSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync, writeSync, closeSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, openSync, readFileSync, readdirSync, renameSync, rmSync, statSync, writeFileSync, writeSync, closeSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { Effect, Fiber, Option, Schema } from "effect";
-import { preloadLines } from "wisp/scripts/wisp/boundary";
+import { linePreloadFile, preloadLines } from "wisp/scripts/wisp/boundary";
 import { at } from "wisp/src/runtime/lookup";
 import { type Command, UsageFailure, describeCause } from "wisp/scripts/wisp/command";
 import { type DesktopFailure, batch, capture, loadClients } from "wisp/scripts/warcraft/desktop";
@@ -36,11 +36,12 @@ import { IntegrityFailure, producerLine, tryIntegrity } from "../../integrity/ev
 import { loadEntry } from "../../integrity/headless";
 import { type Pad, inject, monotonicNs, openPad } from "../../integrity/linux";
 import { BTN_SELECT, PAD_BUTTONS } from "../../integrity/linuxInput";
-import { REPRO_NAME, TRACE_FILE, checkHeadlessRun, compareRuns, scriptChat } from "../../integrity/padParity";
+import { REPRO_NAME, TRACE_FILE, checkHeadlessRun, compareRuns, comparisonSteps, scriptChat } from "../../integrity/padParity";
 import type { Schedule, ScheduleReply, ScheduledEdge } from "../../integrity/padScheduleWorker";
 import { type PadStep, type SentEdge, deadlineOrder, frameWriteNs, landEdges, matchStart, parsePadScript, ruleFrame } from "../../integrity/padScript";
 import { SLOTS } from "../../integrity/reconcile";
-import { captureWhenDrawn, drawnFrom } from "../../integrity/drawnCapture";
+import { captureWhenDrawn, drawnFrom, visualCaptureCommand } from "../../integrity/drawnCapture";
+import { visualReleaseFile } from "../../../src/game/shell/visualCapture";
 import { drawnFrameFile, nativeChatFile } from "../../../src/runtime/gameFiles";
 import { PREDICTED_HEADLESS, SMASHCRAFT_HEADLESS } from "../headless";
 import { sceneFile } from "wisp/src/runtime/scene";
@@ -134,6 +135,7 @@ export interface PadOptions {
   readonly build: string;
   readonly out: string;
   readonly chat: string | undefined;
+  readonly candidate?: string | undefined;
 }
 
 /** Helpers and virtual pads belong to one game, across all of its scripted matches. */
@@ -186,17 +188,25 @@ const selectionChat = (session: NativeSession, text: string) => Effect.gen(funct
   const receipt = () => existsSync(path) ? nativeChatEntryReceipt(readFileSync(path, "latin1")) : undefined;
   const before = receipt();
   if (before === undefined || before.available !== "1") return yield* new IntegrityFailure({ operation: "open selection chat", path, cause: "no native chat entry receipt; rebuild the integrity map" });
-  if (before.open !== "1") {
-    // The native client missed Return immediately after focus; 250 ms after focus opened it.
+  let opened = false;
+  for (let attempt = 0; attempt < 2 && !opened; attempt++) {
+    // A new game can leave the prior game's open receipt on disk. Observe
+    // this Return's publication before choosing whether to type or reopen.
+    const previousWrite = statSync(path).mtimeMs;
     yield* batch(session.clients[0], [{ kind: "wait", millis: 250 }, { kind: "keys", keys: ["Return"] }]).pipe(Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })), Effect.mapError(fromDesktop));
     const deadline = Date.now() + 8000;
     for (;;) {
       const current = receipt();
-      if (current !== undefined && current.revision > before.revision && current.available === "1" && current.open === "1") break;
-      if (Date.now() > deadline) return yield* new IntegrityFailure({ operation: "open selection chat", path, cause: "no open-chat receipt within 8 s of Return; no command text sent" });
+      if (current !== undefined && statSync(path).mtimeMs > previousWrite && current.available === "1") {
+        opened = current.open === "1";
+        console.log(`selection chat: fresh receipt revision=${current.revision} open=${current.open} after Return ${attempt + 1}`);
+        break;
+      }
+      if (Date.now() > deadline) return yield* new IntegrityFailure({ operation: "open selection chat", path, cause: "no fresh chat receipt within 8 s of Return; no command text sent" });
       yield* Effect.sleep("20 millis");
     }
   }
+  if (!opened) return yield* new IntegrityFailure({ operation: "open selection chat", path, cause: "chat stayed closed after two observed Return transitions; no command text sent" });
   yield* batch(session.clients[0], [{ kind: "text", text, delayMillis: 35 }, { kind: "keys", keys: ["Return"] }]).pipe(Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })), Effect.mapError(fromDesktop));
 });
 
@@ -230,6 +240,7 @@ export const nativeScript = (session: NativeSession, options: PadOptions) => Eff
   });
   const startedMs = Date.now();
   const startedNs = monotonicNs();
+  const captureToken = chat !== undefined && steps.some(step => step.kind === "capture") ? `${Date.now()}-${process.pid}` : undefined;
   const from = session.logs().map((text) => text.length);
   const logs = (): [string, string] => {
     const [a, b] = session.logs();
@@ -237,11 +248,13 @@ export const nativeScript = (session: NativeSession, options: PadOptions) => Eff
   };
   if (chat !== undefined) {
     yield* Effect.sleep("1 second");
-    yield* selectionChat(session, chat);
+    const command = yield* tryIntegrity("prepare visual capture", scriptPath, () => captureToken === undefined ? chat : visualCaptureCommand(chat, captureToken, steps));
+    yield* selectionChat(session, command);
   }
   const epochs = yield* matchEpochs(logs, startedNs, out);
   const matchIds = logs().map((text) => matchStart(text)?.epoch ?? 0);
   const captures: Record<string, unknown>[] = [];
+  const captureFailures: { frame: number; message: string }[] = [];
   const shots: Fiber.Fiber<void>[] = [];
   yield* checkFirstEdge(steps, epochs, scriptPath);
   const producerPath = join(out, "producer.jsonl");
@@ -256,11 +269,19 @@ export const nativeScript = (session: NativeSession, options: PadOptions) => Eff
         Effect.flatMap(({ shot: frame, before, after, waitedMs }) => tryIntegrity("save frame", out, () => {
           const name = `frame-${item.frame}-${client.name}-drawn-${before}.ppm`;
           writeFileSync(join(out, name), encodePpm(frame));
-          captures.push({ line: item.line, client: client.name, planned: item.frame, drawn_before: before, drawn_after: after, waited_ms: Math.round(waitedMs), file: name });
+          captures.push({ status: "PASS", mode: captureToken === undefined ? "live" : "held visual", candidate: options.candidate ?? build, build, epoch: at(matchIds, item.slot), line: item.line, client: client.name, planned: item.frame, drawn_before: before, drawn_after: after, waited_ms: Math.round(waitedMs), file: name });
         })),
         Effect.catch((failure) => Effect.sync(() => {
           console.error(`capture at frame ${item.frame}: ${failure.message}`);
-          captures.push({ line: item.line, client: client.name, planned: item.frame, failed: failure.message });
+          captures.push({ status: "INVALID", candidate: options.candidate ?? build, build, epoch: at(matchIds, item.slot), line: item.line, client: client.name, planned: item.frame, failed: failure.message });
+          captureFailures.push({ frame: item.frame, message: failure.message });
+        })),
+        Effect.ensuring(Effect.sync(() => {
+          if (captureToken !== undefined) {
+            const path = join(at(data, item.slot), visualReleaseFile(captureToken, item.slot, item.frame));
+            writeFileSync(`${path}.next`, linePreloadFile(captureToken));
+            renameSync(`${path}.next`, path);
+          }
         })),
       );
       shots.push(yield* Effect.forkScoped(shot));
@@ -279,14 +300,15 @@ export const nativeScript = (session: NativeSession, options: PadOptions) => Eff
   const finished = yield* Effect.exit(finish(out, scriptPath, build, epochs, sent, logs()));
   yield* tryIntegrity("save script helper logs", out, () => logs().forEach((text, slot) => writeFileSync(join(out, `helper-${slot}.log`), text)));
   yield* collect(data, out, startedMs);
-  const invalid = invalidRun(clients.map((client) => client.name), clients.map((client) => client.documents), data, startedMs);
+  const invalid = [...captureFailures.sort((a, b) => a.frame - b.frame).map(({ message }) => message), ...invalidRun(clients.map((client) => client.name), clients.map((client) => client.documents), data, startedMs)];
+  if (captures.length > 0) console.log(`captures ${invalid.length === 0 ? "PASS" : "INVALID"}: ${captures.length - captureFailures.length}/${captures.length} retained; ${join(out, "captures.json")}`);
   if (invalid.length > 0) {
     yield* tryIntegrity("mark result invalid", out, () => {
       const path = join(out, "result.json");
       const result: unknown = existsSync(path) ? JSON.parse(readFileSync(path, "utf8")) : {};
       writeFileSync(path, json({ ...(typeof result === "object" && result !== null ? result : {}), invalid }));
     });
-    console.log(`INVALID: desynced, rerun: ${invalid.join("; ")}`);
+    console.log(`INVALID: ${invalid[0]}; retained evidence: ${out}`);
     return "invalid" as const;
   }
   yield* finished;
@@ -433,8 +455,8 @@ export const pad: Command = (args) => Effect.gen(function*() {
   if (isHeadless && build !== INTEGRITY_BUILD.id) return yield* new UsageFailure({ problem: `--headless runs the integrity build (${INTEGRITY_BUILD.id}), not ${build}` });
   if (compare !== undefined && !isHeadless) return yield* new UsageFailure({ problem: "--compare NATIVE_DIR goes with --headless" });
   const script = yield* Effect.try({ try: () => readFileSync(scriptPath, "utf8"), catch: (cause) => new UsageFailure({ problem: describeCause(cause) }) });
-  const steps = yield* Effect.try({ try: () => parsePadScript(script), catch: (cause) => new UsageFailure({ problem: describeCause(cause) }) });
-  const options: PadOptions = { scriptPath, steps, helper, build, out, chat: chat ?? scriptChat(script) };
+  const steps = yield* Effect.try({ try: () => compare === undefined ? parsePadScript(script) : comparisonSteps(script, scriptPath), catch: (cause) => new UsageFailure({ problem: describeCause(cause) }) });
+  const options: PadOptions = { scriptPath, steps, helper, build, out, chat: chat ?? scriptChat(script), candidate: parsed.values.map };
   if (!isHeadless) {
     const appIds = new Map<string, string>();
     for (const entry of parsed.values["app-id"] ?? []) {

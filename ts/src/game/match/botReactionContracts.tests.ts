@@ -116,6 +116,28 @@ test("cached observation chunks fold the exact text across kits, fractional valu
   }
 });
 
+test("observation number digests remain exact after recent values are evicted and revisited", () => {
+  const game = setup(9);
+  for (let frame = 1; frame <= 1201; frame++) {
+    const value = frame === 1201 ? 1 : frame;
+    game.target.motion.x = value + 0.5;
+    game.target.motion.z = -value - 0.25;
+    observeOpponents(game.runtime.botMemory, game.world, frame);
+    if (frame !== 1 && frame !== 1200 && frame !== 1201) continue;
+    const sample = at(game.runtime.botMemory.history, game.runtime.botMemory.history.length - 1);
+    const text = botObservationCanonical(sample);
+    let first = 0;
+    let second = 0;
+    for (let index = 0; index < text.length; index++) {
+      const code = text.charCodeAt(index) + 1;
+      first = floorMod(first * 31 + code, 46337);
+      second = floorMod(second * 37 + code, 46337);
+    }
+    assertEquals(sample.checksumFirst, first);
+    assertEquals(sample.checksumSecond, second);
+  }
+});
+
 test("replay state checks detect delayed observations and direction commitment independently of current fighters", () => {
   const expected = setup();
   const changed = setup();
