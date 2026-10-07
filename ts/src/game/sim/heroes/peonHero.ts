@@ -1,6 +1,6 @@
 import { Character } from "../codes";
 import type { HeroDefinition } from "./hero";
-import { PEON_CLIPS, PEON_FALLBACK_CLIP } from "../../presentation/heroes/peonClips";
+import { PEON_CLIPS, PEON_FALLBACK_CLIP, PEON_PAIN_CLIPS } from "../../presentation/heroes/peonClips";
 import { PEON_MOVES } from "./peonMoves";
 import { PEON_SPECIALS } from "./peonSpecials";
 import { PEON_GAMEPLAN } from "./peonGameplan";
@@ -23,6 +23,7 @@ export const PEON_HERO: HeroDefinition = {
     portrait: "ReplaceableTextures\\CommandButtons\\BTNPeon.blp",
     placedModel: { path: "buildings\\orc\\OrcBurrow\\OrcBurrow.mdl", height: 180.0, alpha: 255 },
     clips: PEON_CLIPS,
+    damageClips: PEON_PAIN_CLIPS,
     fallback: PEON_FALLBACK_CLIP,
   },
 };

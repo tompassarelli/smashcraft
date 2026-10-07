@@ -145,15 +145,4 @@ export const DAMAGE_CLIPS: Readonly<Record<number, readonly HeroClip[]>> = {
     { index: 81, seconds: f32(0.4) },
     { index: 82, seconds: f32(0.4) },
   ],
-  18: [
-    { index: 79, seconds: f32(0.4), aligned: true },
-    { index: 80, seconds: f32(0.4), aligned: true },
-    { index: 81, seconds: f32(0.4), aligned: true },
-    { index: 82, seconds: f32(0.4), aligned: true },
-    { index: 83, seconds: f32(0.4), aligned: true },
-    { index: 84, seconds: f32(0.4), aligned: true },
-    { index: 85, seconds: f32(0.4), aligned: true },
-    { index: 86, seconds: f32(0.4), aligned: true },
-    { index: 87, seconds: f32(0.4), aligned: true },
-  ],
 };
