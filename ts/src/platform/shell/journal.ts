@@ -22,6 +22,7 @@ import { readChunk, writeLines } from "wisp/src/platform/fileio";
 import { pollMailbox, releaseMessage } from "../keyboardJournal";
 import { startInputTrace } from "./diagnostics";
 import { controlsAvailable, pollLocalKeys } from "./inputs";
+import { views } from "./ui";
 import { probeClockMs, probeFileRead, probeInput, probeIntegrity, probePoll, probeSendFinished, probeTransportSend } from "./responseProbe";
 import { type Journal, type Rollback, type ShellState, localSlot, playsOnKeyboard } from "./state";
 import { recordSend, traceInput } from "./trace";
@@ -331,7 +332,7 @@ export function publishMenu(s: ShellState): void {
   const journal = s.rollback?.journal;
   if (journal?.editbox === undefined || s.rollback === undefined) return;
   const slot = localSlot();
-  const menu = MENU_PHASES[s.game.phase];
+  const menu = isParticipantSlot(slot) && views(s).selections[slot].cpuSettingsOpen() ? "CPU" : MENU_PHASES[s.game.phase];
   const live = s.rollback.active && journal.lifecycle?.quiescent() !== true;
   const phase: MenuPhase = isParticipantSlot(slot) && controlsAvailable(s, slot) && menu !== undefined && !live ? menu : "BLOCKED";
   journal.menuTicks++;

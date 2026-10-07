@@ -5,7 +5,7 @@
 import { PARTICIPANT_SLOTS, type ParticipantSlot, isParticipantSlot } from "../../game/input/participants";
 import {
   Phase, canChooseComputer, cancelRematchCountdown, firstHumanSlot, characterFor, confirmRematch, cycleSlotMode, humanActive, recallCharacter,
-  requestStageSelect, requestStart, setAutomaticRematch, setCpuLevel, setEndless, setHitAreas, setPartnerDamage, setTraining, stepPartnerBehaviour,
+  requestStageSelect, requestStart, setAutomaticRematch, setCpuOpponent, setCpuTier, setEndless, setHitAreas, setPartnerDamage, setTraining, stepPartnerBehaviour,
   stepPartnerEscape, stepPartnerTech, stepTrainingSpeed, tickRematchCountdown,
   returnToCharacters, selectCharacter, selectCpuCharacter, selectStage, setStocks, setTimeLimit, updateConnectedHumans,
   type MatchState, copyMatchState, createMatchState, setParticipants,
@@ -23,6 +23,7 @@ import type { Character } from "../../game/sim/codes";
 import { type PlaytestRequest, preparePlaytest } from "../../game/shell/playtest";
 import { nextStage } from "../../game/menu/stageCatalog";
 import { nextSelectableCharacter } from "../../game/sim/heroes/registry";
+import { stepCpuOpponent, stepCpuTier } from "../../game/match/cpuProfiles";
 import { traceSelectionState } from "./diagnostics";
 import { clearParticipantInputs, controlsAvailable, currentComputerMask, currentHumanMask } from "./inputs";
 import { startMatch } from "./matchStart";
@@ -156,8 +157,13 @@ export function panelActions(): PanelActions {
       toggleEndless: participant => withSlot(participant, (s, slot) => {
         if (controlsAvailable(s, slot)) setEndless(s.game, slot, !s.game.endless);
       }),
-      changeCpuLevel: (actor, computer, direction) => withSlot(actor, (s, slot) => {
-        if (controlsAvailable(s, slot) && isParticipantSlot(computer)) setCpuLevel(s.game, slot, computer, s.game.cpuLevels[computer] + direction);
+      changeCpuOpponent: (actor, computer, direction) => withSlot(actor, (s, slot) => {
+        if (!controlsAvailable(s, slot) || !isParticipantSlot(computer)) return;
+        setCpuOpponent(s.game, slot, computer, stepCpuOpponent(s.game.cpuOpponents[computer], direction));
+      }),
+      changeCpuTier: (actor, computer, direction) => withSlot(actor, (s, slot) => {
+        if (!controlsAvailable(s, slot) || !isParticipantSlot(computer)) return;
+        setCpuTier(s.game, slot, computer, stepCpuTier(s.game.cpuTiers[computer], direction));
       }),
       toggleAutomaticRematch: participant => withSlot(participant, (s, slot) => {
         if (controlsAvailable(s, slot)) setAutomaticRematch(s.game, slot, !s.game.automaticRematch);

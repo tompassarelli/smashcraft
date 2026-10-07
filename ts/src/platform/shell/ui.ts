@@ -188,7 +188,10 @@ export function recreateUi(s: ShellState, actions: PanelActions): void {
     bindPrototype(ui.bubbles[slot], OffscreenBubble.prototype);
     bindPrototype(ui.escapeMeters[slot], EscapeMeter.prototype);
     bindPrototype(ui.selections[slot], SelectionPanel.prototype);
-    ui.selections[slot].bindActions(actions.selection);
+    if (!ui.selections[slot].hasCpuSettingsFrames()) {
+      ui.selections[slot].destroy();
+      ui.selections[slot] = new SelectionPanel(actions.selection, slot, menuControls(s));
+    } else ui.selections[slot].bindActions(actions.selection);
     bindPrototype(ui.settings[slot], SettingsPanel.prototype);
     ui.settings[slot].bindActions(actions.settings);
   }

@@ -2,11 +2,11 @@
 // screen shows. Both read confirmed state only: replayed and predicted frames
 // never reach them, and nothing here feeds the simulation.
 import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots, isParticipantSlot } from "../input/participants";
-import { MATCH_TICKS_PER_SECOND, type MatchState, Phase, keepsStocks } from "../match/rules";
+import { MATCH_TICKS_PER_SECOND, type MatchState, Phase, humanFighterActive, keepsStocks } from "../match/rules";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
 import { fighterName } from "../sim/heroes/registry";
-import { fighterLabel } from "../shell/messages";
+import { cpuOpponentSummary, fighterLabel } from "../shell/messages";
 import { MatchCue } from "./matchAudio";
 import type { Character } from "../sim/codes";
 import { type CombatObservation, type CombatTally, clearCombatTally, createCombatObservation, createCombatTally, observeCombat, tallyCombat } from "./combatStats";
@@ -102,7 +102,8 @@ export function resultRows(game: Readonly<MatchState>, world: Readonly<Roster>, 
     const fighter = fighterAt(world, slot);
     const winner = game.winner === slot;
     const stocks = game.endless ? "" : `Stocks ${fighter.status.stocks}  ·  `;
-    const text = `${winner ? "WINNER  " : ""}${fighterLabel(game, slot)} · ${fighterName(fighter.character)}\n`
+    const label = humanFighterActive(game, slot) ? fighterLabel(game, slot) : cpuOpponentSummary(game, slot);
+    const text = `${winner ? "WINNER  " : ""}${label} · ${fighterName(fighter.character)}\n`
       + `${stocks}Damage ${percent(fighter.status.damage)}  ·  KOs ${tally.kos[slot]}  ·  Falls ${tally.falls[slot]}`;
     const row = { slot, winner, text };
     if (winner) rows.unshift(row);

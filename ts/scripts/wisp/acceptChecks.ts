@@ -150,6 +150,24 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
       look: "In the same frame, Archer's red clothing and Rifleman's blue hood on stage match their HUD busts and stock icons; frames alone are insufficient.",
     },
     {
+      id: "185-cpu-preview", closes: "smashcraft#185 box 5", map: "presentation", session: "cpu-settings",
+      setup: [
+        { chat: "-dev reset" }, { chat: "-dev slots 3 4" },
+        { keys: ["e", "e", "n", "w", "w", "w", "w", "w", "e", "r"], client: "a" },
+        { waitMs: 300 },
+      ],
+      capture: [{ kind: "frames", name: "rook-advanced-panel", client: "a" }, { kind: "frames", name: "shared-cpu-card", client: "b" }],
+      pass: [NO_IMPORT_FAILURES, NO_ERRORS],
+      look: "CPU 3 shows Rook / Advanced with Reading habits and fighting up close; Watch for Hesitation at risky openings. Opponent precedes Difficulty; all panel text and buttons fit the widescreen client. Repeat using mapped stick/D-pad, A and X; retain actual helper menu_emit evidence. Confirm the settings button is below the chip drag target.",
+    },
+    {
+      id: "185-cpu-focus-release", closes: "smashcraft#185 box 5", map: "presentation", session: "cpu-settings",
+      setup: [{ keys: ["u", "n", "y"], client: "a" }, { waitMs: 300 }],
+      capture: [{ kind: "frames", name: "start-closed-panel", client: "a" }],
+      pass: [NO_IMPORT_FAILURES, NO_ERRORS],
+      look: "Back retains Rook / Advanced and returns focused Opponent settings; Choose reopens it. Start closes into fighter selection without starting a match. After release, focused controls and ordinary chip dragging still work; Enter opens Warcraft chat. Check mouse Close and the settings hit target on both 16:9 and the available wider client.",
+    },
+    {
       id: "161-neutral-grid-picked-outfits", closes: "smashcraft#161 box 4", map: "outfits",
       setup: [{ chat: "-dev reset" }, { keys: ["n"], client: "a" }, { keys: ["n"], client: "b" }, { waitMs: 500 }],
       capture: [{ kind: "frames", name: "grid-and-picked-cards", client: "a" }],

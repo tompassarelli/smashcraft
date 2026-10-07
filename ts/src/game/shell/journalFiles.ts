@@ -79,7 +79,7 @@ export function readyFile(identity: JournalIdentity, { inputProfile, ingress, de
   };
 }
 
-export type MenuPhase = "CHARACTER" | "STAGE" | "RESULT" | "BLOCKED";
+export type MenuPhase = "CHARACTER" | "CPU" | "STAGE" | "RESULT" | "BLOCKED";
 
 interface MenuRoster {
   readonly connected: number;

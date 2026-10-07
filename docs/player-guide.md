@@ -12,10 +12,16 @@ For solo practice, place only your own fighter chip and press Y, then choose
 a stage and press Y again. Leave the CPU chip unplaced. Practice has no timer
 or opponent, and falling off the stage respawns you without ending the session.
 Press Y to pause, then Escape to return to fighter selection. Place the CPU
-chip before starting when you want a bot match instead. A CPU card shows its
-level, 1 to 9, with buttons to lower and raise it: level 1 barely fights back,
-level 9 plays its fighter the way a solid player would. The first player, or
-the player whose slot it is, sets it; it starts at 9.
+chip before starting when you want a bot match instead. Below each CPU card,
+Opponent settings lets you choose Rook, Ember, Flint, Vale, Kite or Wren,
+then Rookie, Beginner, Intermediate, Advanced or Expert difficulty. Each
+opponent has recognizable tendencies and improves several skills as difficulty
+rises. The preview describes that exact opponent and difficulty, including
+an opening to watch for. New CPU slots start with Wren at Intermediate.
+The first player or the slot owner can change the choices; everyone else can
+read the preview. Random chooses an opponent each match and keeps your
+difficulty; countdown and results show who you face. Choices stay through
+fighter or stage changes, New Match and automatic rematches.
 
 At fighter selection, any player can change Stocks, Time, Endless and
 Automatic rematch. No time limit removes the clock. Endless also removes
@@ -29,6 +35,8 @@ partners: no clock and no lost stocks. Choose what the partner does (Stand,
 Shield, Crouch, Jump, Attack or Fight), which way it drifts when hit, how it
 techs, its damage, whether hit areas show (bodies green, attacks red) and the
 speed (Full, Half or Quarter).
+Fight uses the partner's chosen opponent and difficulty; the other partner
+behaviors keep their explicit actions.
 The top-left readout gives your last attack's frames, how many frames ahead
 (+) or behind (-) you were after it hit or was shielded, and the combo. Hold
 both shields and press Attack to put everyone back at the start.
@@ -47,6 +55,14 @@ selections. Y confirms character/stage selection, chooses the next match after
 a result, and pauses or resumes an active match. Pausing freezes combat and
 match time while keeping input handling live. Enter is reserved for Warcraft
 chat.
+
+At fighter selection, Space/E moves focus between fighter cards and CPU
+Opponent settings. W/R changes the focused fighter; N opens focused settings.
+Inside the panel, Space/E visits Opponent, Difficulty and Done; W/R changes
+the value. N advances to the next row or chooses Done, and U or Close returns
+to Opponent settings while retaining choices. Start closes the panel; release
+and press it again to continue. Controller menus use stick or D-pad, A to
+choose and X to go back. The panel shows your current control bindings.
 
 F1 opens Controls before a match. Choose QWERTY or Custom, click either key
 slot to rebind it, then Save. Saved controls load automatically on the next map

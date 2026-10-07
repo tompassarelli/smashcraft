@@ -304,6 +304,7 @@ export function renderUi(s: ShellState): void {
       ui.huds[slot].update(false, 0, 0.0, 0);
       ui.manaBars[slot].hud.update(false, 0, 0, 0);
     }
+    ui.selections[slot].menuBindings(s.participants[slot].bindings.bindings);
     ui.selections[slot].update(game, ui.settings[slot].isOpen());
     ui.settings[slot].update();
   }

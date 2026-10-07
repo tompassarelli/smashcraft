@@ -56,7 +56,8 @@ function startDown(s: ShellState, slot: ParticipantSlot): void {
   if (epoch?.journal.editbox !== undefined && chatBusy(epoch.journal)) return;
   if (epoch !== undefined && playing && epoch.journal.barrier.request !== undefined) return;
   const deferred = epoch !== undefined && playing;
-  const action = startKeyDown(s.session, slot, s.game.phase, views(s).settings[slot].isOpen(), deferred);
+  const consumed = !s.session.startHeld[slot] && views(s).selections[slot].consumeStart();
+  const action = startKeyDown(s.session, slot, s.game.phase, consumed || views(s).settings[slot].isOpen(), deferred);
   if (action === "togglePause") {
     if (epoch !== undefined && deferred) requestPause(s, epoch.rollback, epoch.journal, !s.session.paused);
     else {
@@ -69,6 +70,11 @@ function startDown(s: ShellState, slot: ParticipantSlot): void {
 
 /** Journal menus have fixed controller keys, independent of combat bindings and the mouse. */
 function journalMenuKey(s: ShellState, slot: ParticipantSlot, key: number): boolean {
+  const action = key === Key.w ? Action.moveLeft : key === Key.r ? Action.moveRight : key === 32 ? Action.moveUp : key === 69 ? Action.moveDown : key === Key.n ? Action.attack : key === Key.u ? Action.special : undefined;
+  if (action !== undefined) {
+    pressKey(s.participants[slot].keys, key, s.participants[slot].bindings.bindings);
+    if (views(s).selections[slot].menuAction(action)) return true;
+  }
   if ((key === Key.w || key === Key.r || key === Key.n || key === Key.u) && cancelRematchCountdown(s.game, slot)) return true;
   if (key === Key.w || key === Key.r) choose(s, slot, key === Key.w ? -1 : 1);
   else if (key === Key.n) {
@@ -112,7 +118,9 @@ function participantKeyDown(s: ShellState, slot: ParticipantSlot): void {
     return;
   }
   if (!bindings.ready) return;
+  if (key === 13 && s.game.phase !== Phase.match) return;
   const { game } = s;
+  views(s).selections[slot].menuBindings(bindings.bindings);
   const editbox = s.rollback?.journal?.editbox !== undefined;
   if (editbox && game.phase !== Phase.match && journalMenuKey(s, slot, key)) return;
   if (key === Key.escape && game.phase === Phase.stageMenu) {
@@ -137,6 +145,7 @@ function participantKeyDown(s: ShellState, slot: ParticipantSlot): void {
   if (cancelRematchCountdown(game, slot)) return;
   participant.lastInputAction = action;
   traceParticipant(s, slot, `mapped action ${action}`);
+  if (game.phase === Phase.characterMenu && views(s).selections[slot].menuAction(action)) return;
   if (game.phase === Phase.match) sampleKeys(participant.capture, heldActions(keys));
   else if (action === Action.moveLeft || action === Action.moveRight) choose(s, slot, 1);
   else if (action === Action.attack) {

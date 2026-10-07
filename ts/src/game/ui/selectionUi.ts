@@ -1,10 +1,16 @@
-import { LEVEL_ROW_HEIGHT, RULE_BUTTONS, RULE_HEIGHT, type RuleBox, type TrainingSetting, cpuLevelBox } from "./ruleButtons";
+import { RULE_BUTTONS, RULE_HEIGHT, type RuleBox, type TrainingSetting, cpuSettingsBox } from "./ruleButtons";
 // The character panel of one participant. Every client builds all four panels;
 // only the owner's client shows its own and reads its pointer, and a placed or
 // recalled chip crosses a player sync event before the game sees it. Beside the
 // roster each panel shows the match rules, which any player changes with a
 // synchronized click.
 import { f32 } from "wisp/src/sim/f32";
+import { floorMod } from "wisp/src/sim/intMath";
+import { Action } from "../input/actions";
+import { type KeyBindings, keyFor, keyLabel } from "../input/keyBindings";
+import { CPU_OPPONENT_COPY } from "./cpuOpponentCopy";
+import { CPU_SETTINGS_PANEL, CPU_SETTINGS_ROWS, CPU_SETTINGS_PREVIEW, CPU_SETTINGS_DONE, CPU_SETTINGS_PROMPT } from "./cpuSettingsLayout";
+import { CPU_OPPONENT_DEFAULT, CPU_TIER_DEFAULT } from "../match/cpuProfiles";
 import { bindPrototype } from "../../platform/rebind";
 import { PARTICIPANT_CAPACITY, PARTICIPANT_SLOTS } from "../input/participants";
 import {
@@ -41,7 +47,7 @@ import type { TextBox } from "./hudLayout";
 import { MOVES_BODY_BOX, MOVES_BUTTON_HEIGHT, MOVES_BUTTON_TOP, MOVES_TITLE_BOX, selectionTitleBox } from "./selectionLayout";
 import { SELECTABLE_CHARACTERS, fighterName, fighterPortrait, nextSelectableCharacter } from "../sim/heroes/registry";
 import {
-  MOVES_HEADER, automaticRematchSetting, cpuLevelSetting, movesPage, selectionModeLabel, endlessSetting, hitAreasSetting, partnerBehaviourSetting, partnerDamageSetting, partnerEscapeSetting,
+  MOVES_HEADER, automaticRematchSetting, movesPage, selectionModeLabel, endlessSetting, hitAreasSetting, partnerBehaviourSetting, partnerDamageSetting, partnerEscapeSetting,
   partnerTechSetting, stockSetting, timeSetting, trainingSetting, trainingSpeedSetting,
 } from "../shell/messages";
 import { Character } from "../sim/codes";
@@ -65,13 +71,20 @@ export interface SelectionActions {
   stepTraining(participantId: number, setting: TrainingSetting, direction: -1 | 1): void;
   toggleHitAreas(participantId: number): void;
   stepSpeed(participantId: number): void;
-  changeCpuLevel(actorId: number, cpuSlot: number, direction: -1 | 1): void;
+  changeCpuOpponent(actorId: number, cpuSlot: number, direction: -1 | 1): void;
+  changeCpuTier(actorId: number, cpuSlot: number, direction: -1 | 1): void;
 }
 
 type RuleButton = { kind: "stocks"; direction: -1 | 1 } | { kind: "time"; direction: -1 | 1 } | { kind: "endless" } | { kind: "automaticRematch" }
   | { kind: "training" } | { kind: "partner"; setting: TrainingSetting; direction: -1 | 1 } | { kind: "hitAreas" } | { kind: "speed" };
-type SelectionButton = { kind: "mode"; slot: number } | { kind: "level"; slot: number; direction: -1 | 1 } | { kind: "start" } | { kind: "settings" } | RuleButton
+type SelectionButton = { kind: "mode"; slot: number } | { kind: "cpuSettings"; slot: number } | { kind: "cpuStep"; row: 0 | 1; direction: -1 | 1 } | { kind: "cpuClose" } | { kind: "start" } | { kind: "settings" } | RuleButton
   | { kind: "moves" } | { kind: "movesBack" } | { kind: "movesStep"; direction: -1 | 1 };
+
+type MenuFocus = { readonly kind: "fighter" | "settings"; readonly slot: number };
+const titleCase = (value: string): string => value.charAt(0).toUpperCase() + value.slice(1);
+function cpuCardSummary(game: Readonly<MatchState>, slot: number): string {
+  return `CPU ${slot + 1} · ${titleCase(game.cpuOpponents[slot] ?? CPU_OPPONENT_DEFAULT)} · ${titleCase(game.cpuTiers[slot] ?? CPU_TIER_DEFAULT)}`;
+}
 
 /** One participant slot's card along the bottom of the panel. */
 interface CardFrames {
@@ -82,10 +95,8 @@ interface CardFrames {
   readonly name: framehandle;
   readonly status: framehandle;
   readonly chip: framehandle;
-  /** A computer's level, between the buttons that lower and raise it. */
-  readonly level: framehandle;
-  readonly lower: framehandle;
-  readonly raise: framehandle;
+  readonly summary: framehandle;
+  readonly settings: framehandle;
 }
 
 const portraitTexture = (choice: number | undefined, tile: boolean, slot?: number) => fighterPortrait(choice ?? Character.archer, tile ? "Tile" : "Card", slot);
@@ -172,6 +183,17 @@ export class SelectionPanel {
   private readonly steps: readonly framehandle[];
   /** The rules the panel last showed. */
   private shownRules: string | undefined;
+  private cpuSlot: number | undefined;
+  private cpuFocus: 0 | 1 | 2 = 0;
+  private menuFocus: MenuFocus | undefined;
+  private readonly cpuRoot: framehandle;
+  private readonly cpuTitle: framehandle;
+  private readonly cpuValues: readonly framehandle[];
+  private readonly cpuPreview: framehandle;
+  private readonly cpuPrompt: framehandle;
+  private readonly cpuDone: framehandle;
+  private readonly cpuSteps: framehandle[] = [];
+  private menuPrompt = "";
 
   constructor(
     private actions: SelectionActions,
@@ -211,20 +233,14 @@ export class SelectionPanel {
       const status = label(root, `MeleeStatus${name}`, x + f32(0.014), f32(0.093), f32(0.132), f32(0.014), f32(0.011));
       const chip = art(root, `MeleeChip${name}`, `war3mapImported\\SelectionChipP${I2S(slot + 1)}.tga`, x + f32(0.06), f32(0.2), f32(0.04), f32(0.04));
       BlzFrameSetLevel(chip, 10);
-      const levelButton = (direction: -1 | 1) => {
-        const box = cpuLevelBox(slot, direction);
-        const frame = BlzCreateFrame("ScriptDialogButton", root, 0, 0);
-        placeTopLeft(frame, box.x, box.y);
-        BlzFrameSetSize(frame, box.width, box.height);
-        BlzFrameSetText(frame, direction < 0 ? "−" : "+");
-        return this.clicks.add(frame, { kind: "level", slot, direction });
-      };
-      const lower = levelButton(-1);
-      const raise = levelButton(1);
-      const lowerBox = cpuLevelBox(slot, -1);
-      const levelX = lowerBox.x + lowerBox.width;
-      const level = label(root, `MeleeLevel${name}`, levelX, lowerBox.y, cpuLevelBox(slot, 1).x - levelX, LEVEL_ROW_HEIGHT, f32(0.011));
-      return { card, tag, mode, portrait, name: name_, status, chip, level, lower, raise };
+      const box = cpuSettingsBox(slot);
+      const settings = BlzCreateFrame("ScriptDialogButton", root, 0, 0);
+      placeTopLeft(settings, box.x, box.y);
+      BlzFrameSetSize(settings, box.width, box.height);
+      BlzFrameSetText(settings, "Opponent settings");
+      this.clicks.add(settings, { kind: "cpuSettings", slot });
+      const summary = label(root, `MeleeCpuSummary${name}`, x + f32(0.004), f32(0.092), f32(0.152), f32(0.018), f32(0.009));
+      return { card, tag, mode, portrait, name: name_, status, chip, summary, settings };
     });
     art(root, `MeleeConfirmArt${suffix}`, "war3mapImported\\SelectionAction.tga", f32(0.071), f32(0.043), f32(0.235), f32(0.037));
     this.confirm = label(root, `MeleeConfirmLabel${suffix}`, f32(0.079), f32(0.039), f32(0.219), f32(0.028), f32(0.011));
@@ -266,6 +282,36 @@ export class SelectionPanel {
       pageButton(`MeleeMovesBack${suffix}`, f32(0.33), f32(0.14), "Back", { kind: "movesBack" }),
       pageButton(`MeleeMovesNext${suffix}`, f32(0.5), f32(0.1), ">", { kind: "movesStep", direction: 1 }),
     ];
+    this.cpuRoot = BlzCreateFrameByType("FRAME", `CpuSettingsRoot${suffix}`, gameUi(), "", 0);
+    BlzFrameSetLevel(this.cpuRoot, 100);
+    const panel = CPU_SETTINGS_PANEL;
+    art(this.cpuRoot, `CpuSettingsBackdrop${suffix}`, "UI\\Widgets\\ToolTips\\Human\\human-tooltip-background.blp", panel.left, panel.top, panel.width, panel.height);
+    this.cpuTitle = label(this.cpuRoot, `CpuTitle${suffix}`, f32(0.15), f32(0.431), f32(0.42), f32(0.03), f32(0.014));
+    const cpuButton = (x: number, y: number, width: number, text: string, button: SelectionButton) => {
+      const frame = BlzCreateFrame("ScriptDialogButton", this.cpuRoot, 0, 0);
+      placeTopLeft(frame, x, y);
+      BlzFrameSetSize(frame, width, f32(0.027));
+      BlzFrameSetText(frame, text);
+      if (button.kind === "cpuStep") this.cpuSteps.push(frame);
+      return this.clicks.add(frame, button);
+    };
+    cpuButton(f32(0.575), f32(0.431), f32(0.075), "Close", { kind: "cpuClose" });
+    this.cpuValues = CPU_SETTINGS_ROWS.map((y, row) => {
+      const field = row === 0 ? 0 : 1;
+      const caption = label(this.cpuRoot, `CpuRow${suffix}${row}`, f32(0.15), y, f32(0.16), f32(0.027), f32(0.012));
+      BlzFrameSetText(caption, row === 0 ? "Opponent" : "Difficulty");
+      cpuButton(f32(0.325), y, f32(0.04), "<", { kind: "cpuStep", row: field, direction: -1 });
+      cpuButton(f32(0.605), y, f32(0.04), ">", { kind: "cpuStep", row: field, direction: 1 });
+      return label(this.cpuRoot, `CpuValue${suffix}${row}`, f32(0.37), y, f32(0.23), f32(0.027), f32(0.012));
+    });
+    const preview = CPU_SETTINGS_PREVIEW;
+    this.cpuPreview = label(this.cpuRoot, `CpuPreview${suffix}`, preview.left, preview.top, preview.width, preview.height, f32(0.012));
+    BlzFrameSetTextAlignment(this.cpuPreview, TEXT_JUSTIFY_TOP, TEXT_JUSTIFY_LEFT);
+    const done = CPU_SETTINGS_DONE;
+    this.cpuDone = cpuButton(done.left, done.top, done.width, "Done", { kind: "cpuClose" });
+    const prompt = CPU_SETTINGS_PROMPT;
+    this.cpuPrompt = label(this.cpuRoot, `CpuPrompt${suffix}`, prompt.left, prompt.top, prompt.width, prompt.height, f32(0.01));
+    BlzFrameSetVisible(this.cpuRoot, false);
     const caption = label(root, `MeleeRulesCaption${suffix}`, f32(0.03), f32(0.566), f32(0.22), f32(0.02), f32(0.011));
     BlzFrameSetText(caption, "MATCH RULES");
     const ruleButton = (box: RuleBox, target: RuleButton, text: string) => {
@@ -331,12 +377,14 @@ export class SelectionPanel {
     for (const trigger of this.syncTriggers) DestroyTrigger(trigger);
     for (const frame of this.movesFrames) BlzDestroyFrame(frame);
     BlzDestroyFrame(this.modeLabel);
+    if (this.cpuRoot !== undefined) BlzDestroyFrame(this.cpuRoot);
     BlzDestroyFrame(this.root);
     BlzDestroyFrame(this.backdrop);
   }
 
   private click(button: SelectionButton, clicker: player): void {
     if (clicker !== Player(this.participantId)) return;
+    if (this.cpuSlot !== undefined && button.kind !== "cpuStep" && button.kind !== "cpuClose") return;
     if (button.kind === "mode") this.actions.cycleMode(this.participantId, button.slot);
     else if (button.kind === "start") this.actions.start(this.participantId);
     else if (button.kind === "settings") this.actions.openSettings(this.participantId);
@@ -350,7 +398,9 @@ export class SelectionPanel {
     else if (button.kind === "partner") this.actions.stepTraining(this.participantId, button.setting, button.direction);
     else if (button.kind === "hitAreas") this.actions.toggleHitAreas(this.participantId);
     else if (button.kind === "speed") this.actions.stepSpeed(this.participantId);
-    else if (button.kind === "level") this.actions.changeCpuLevel(this.participantId, button.slot, button.direction);
+    else if (button.kind === "cpuSettings") this.openCpuSettings(button.slot);
+    else if (button.kind === "cpuStep") this.stepCpu(button.row, button.direction);
+    else if (button.kind === "cpuClose") this.closeCpuSettings();
     else this.actions.toggleAutomaticRematch(this.participantId);
   }
 
@@ -358,6 +408,118 @@ export class SelectionPanel {
   private choosing(): Readonly<MatchState> | undefined {
     const { game } = this;
     return game === undefined || game.phase !== Phase.characterMenu || this.settingsOpen || !humanActive(game, this.participantId) ? undefined : game;
+  }
+
+  private openCpuSettings(slot: number): void {
+    const game = this.choosing();
+    if (game === undefined || !fighterActive(game, slot) || humanFighterActive(game, slot)) return;
+    this.cpuSlot = slot;
+    this.cpuFocus = 0;
+    this.menuFocus = { kind: "settings", slot };
+    clearSelectionDrag(this.drag);
+  }
+
+  private closeCpuSettings(): void {
+    this.cpuSlot = undefined;
+    if (this.ownsLocalClient()) BlzFrameSetFocus(this.cpuDone, false);
+  }
+
+  private stepCpu(row: 0 | 1, direction: -1 | 1): void {
+    const { game, cpuSlot } = this;
+    if (game === undefined || cpuSlot === undefined || !canChooseComputer(game, this.participantId, cpuSlot)) return;
+    this.cpuFocus = row;
+    if (row === 0) this.actions.changeCpuOpponent(this.participantId, cpuSlot, direction);
+    else this.actions.changeCpuTier(this.participantId, cpuSlot, direction);
+  }
+
+  /** Start consumes this press. The shell's startHeld latch requires release before another Start. */
+  consumeStart(): boolean {
+    if (this.cpuSlot === undefined) return false;
+    this.closeCpuSettings();
+    return true;
+  }
+
+  cpuSettingsOpen(): boolean {
+    return this.cpuSlot !== undefined;
+  }
+
+  /** A retained panel from before the CPU settings frame existed must be rebuilt. */
+  hasCpuSettingsFrames(): boolean {
+    return this.cpuRoot !== undefined;
+  }
+
+  /** Participant-local focus, updated by the existing synchronized menu events. */
+  menuAction(action: Action): boolean {
+    const game = this.choosing();
+    if (game === undefined) return false;
+    const { cpuSlot } = this;
+    if (cpuSlot !== undefined) {
+      if (action === Action.special) this.closeCpuSettings();
+      else if (action === Action.moveUp || action === Action.moveDown) {
+        const next = floorMod(this.cpuFocus + (action === Action.moveUp ? -1 : 1), 3);
+        this.cpuFocus = next === 0 ? 0 : next === 1 ? 1 : 2;
+      }
+      else if (action === Action.moveLeft || action === Action.moveRight) {
+        if (this.cpuFocus !== 2) this.stepCpu(this.cpuFocus, action === Action.moveLeft ? -1 : 1);
+      } else if (action === Action.attack) {
+        if (this.cpuFocus === 2) this.closeCpuSettings();
+        else this.cpuFocus = this.cpuFocus === 0 ? 1 : 2;
+      }
+      return true;
+    }
+    const focus: MenuFocus[] = [];
+    if (humanFighterActive(game, this.participantId)) focus.push({ kind: "fighter", slot: this.participantId });
+    for (const slot of PARTICIPANT_SLOTS) if (fighterActive(game, slot) && !humanFighterActive(game, slot)) {
+      focus.push({ kind: "fighter", slot }, { kind: "settings", slot });
+    }
+    if (focus.length === 0) return false;
+    let index = focus.findIndex(item => item.kind === this.menuFocus?.kind && item.slot === this.menuFocus.slot);
+    if (index < 0) index = 0;
+    if (action === Action.moveUp || action === Action.moveDown) {
+      this.menuFocus = focus[floorMod(index + (action === Action.moveUp ? -1 : 1), focus.length)];
+      return true;
+    }
+    const target = focus[index];
+    if (target === undefined) return false;
+    if (target.kind === "settings") {
+      if (action === Action.attack) this.openCpuSettings(target.slot);
+      return action === Action.attack || action === Action.moveLeft || action === Action.moveRight;
+    }
+    if (action === Action.moveLeft || action === Action.moveRight) {
+      const choice = nextSelectableCharacter(characterFor(game, target.slot), action === Action.moveLeft ? -1 : 1);
+      if (target.slot === this.participantId) this.actions.selectChoice(this.participantId, choice);
+      else this.actions.selectCpuChoice(this.participantId, target.slot, choice);
+      return true;
+    }
+    if (action === Action.attack && this.menuFocus !== undefined) {
+      const choice = characterFor(game, target.slot) ?? Character.archer;
+      if (target.slot === this.participantId) this.actions.selectChoice(this.participantId, choice);
+      else this.actions.selectCpuChoice(this.participantId, target.slot, choice);
+      return true;
+    }
+    return false;
+  }
+
+  menuBindings(bindings: Readonly<KeyBindings>): void {
+    const name = (action: Action) => keyLabel(keyFor(bindings, action, 0));
+    this.menuPrompt = this.controls === "journal" ? "Move: Stick or D-pad · Choose: A · Back: X"
+      : `Move: ${name(Action.moveLeft)}/${name(Action.moveRight)} + ${name(Action.moveUp)}/${name(Action.moveDown)}   Choose: ${name(Action.attack)}   Back: ${name(Action.special)}`;
+  }
+
+  private showCpuSettings(game: Readonly<MatchState>, slot: number): void {
+    const opponent = game.cpuOpponents[slot] ?? CPU_OPPONENT_DEFAULT;
+    const tier = game.cpuTiers[slot] ?? CPU_TIER_DEFAULT;
+    BlzFrameSetText(this.cpuTitle, `CPU ${slot + 1} — Opponent settings`);
+    for (let row = 0; row < this.cpuValues.length; row++) {
+      const frame = this.cpuValues[row];
+      if (frame !== undefined) BlzFrameSetText(frame, `${this.cpuFocus === row ? "> " : ""}${titleCase(row === 0 ? opponent : tier)}${this.cpuFocus === row ? " <" : ""}`);
+    }
+    const copy = opponent === "random" ? "A different opponent each match." : `${CPU_OPPONENT_COPY[opponent].description}\n${CPU_OPPONENT_COPY[opponent].tags}\n\n${CPU_OPPONENT_COPY[opponent].previews[tier]}`;
+    const permission = canChooseComputer(game, this.participantId, slot) ? "" : "\n\nOnly the slot owner or first player can change this opponent.";
+    for (const button of this.cpuSteps) BlzFrameSetEnable(button, permission === "");
+    BlzFrameSetText(this.cpuPreview, copy + permission);
+    BlzFrameSetText(this.cpuDone, this.cpuFocus === 2 ? "> Done <" : "Done");
+    BlzFrameSetText(this.cpuPrompt, this.menuPrompt);
   }
 
   private acceptDrop(data: string): void {
@@ -412,9 +574,12 @@ export class SelectionPanel {
   update(game: Readonly<MatchState>, settingsOpen: boolean): void {
     this.game = game;
     this.settingsOpen = settingsOpen;
+    if (this.choosing() === undefined) this.cpuSlot = undefined;
     if (!this.ownsLocalClient()) return;
     const { participantId, drag } = this;
     const visible = this.choosing() !== undefined;
+    const cpuOpen = visible && this.cpuSlot !== undefined;
+    BlzFrameSetVisible(this.cpuRoot, cpuOpen);
     BlzFrameSetVisible(this.root, visible);
     BlzFrameSetVisible(this.backdrop, visible);
     for (const frame of this.movesFrames) BlzFrameSetVisible(frame, visible && this.movesOpen);
@@ -426,6 +591,12 @@ export class SelectionPanel {
     }
     if (!visible) {
       clearSelectionDrag(drag);
+      return;
+    }
+    if (cpuOpen && this.cpuSlot !== undefined) {
+      BlzFrameSetVisible(this.root, false);
+      clearSelectionDrag(drag);
+      this.showCpuSettings(game, this.cpuSlot);
       return;
     }
     if (this.movesOpen) {
@@ -463,7 +634,8 @@ export class SelectionPanel {
       const human = humanFighterActive(game, slot);
       const choice = characterFor(game, slot);
       BlzFrameSetTexture(frames.card, `war3mapImported\\SelectionCard${active ? slotColor(slot).name : "Gray"}.tga`, 0, true);
-      BlzFrameSetText(frames.tag, active ? (human ? "HMN" : "CPU") : "EMPTY");
+      const focused = this.menuFocus?.kind === "fighter" && this.menuFocus.slot === slot;
+      BlzFrameSetText(frames.tag, active ? `${focused ? "> " : ""}${human ? "HMN" : "CPU"}${focused ? " <" : ""}` : "EMPTY");
       BlzFrameSetEnable(frames.mode, canCycleSlotMode(game, participantId, slot));
       BlzFrameSetVisible(frames.portrait, active && ready);
       BlzFrameSetVisible(frames.name, active && ready);
@@ -473,15 +645,13 @@ export class SelectionPanel {
         BlzFrameSetText(frames.name, nameText(choice));
       }
       const computer = active && !human;
-      BlzFrameSetVisible(frames.level, computer);
-      BlzFrameSetVisible(frames.lower, computer);
-      BlzFrameSetVisible(frames.raise, computer);
+      BlzFrameSetVisible(frames.summary, computer);
+      BlzFrameSetVisible(frames.settings, computer);
       if (computer) {
-        BlzFrameSetText(frames.level, cpuLevelSetting(game.cpuLevels[slot] ?? 0));
-        const choosing = canChooseComputer(game, participantId, slot);
-        BlzFrameSetEnable(frames.lower, choosing);
-        BlzFrameSetEnable(frames.raise, choosing);
-      }
+        BlzFrameSetVisible(frames.status, false);
+        BlzFrameSetText(frames.summary, cpuCardSummary(game, slot));
+        BlzFrameSetText(frames.settings, this.menuFocus?.kind === "settings" && this.menuFocus.slot === slot ? "> Opponent settings <" : "Opponent settings");
+      } else BlzFrameSetVisible(frames.status, true);
       BlzFrameSetVisible(frames.chip, active);
       BlzFrameSetTexture(frames.chip, `war3mapImported\\SelectionChip${human ? `P${I2S(slot + 1)}` : "CPU"}.tga`, 0, true);
       const carried = drag.dragging === slot || (!ready && drag.held === slot && drag.hover !== undefined);

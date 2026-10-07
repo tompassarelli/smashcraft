@@ -2,17 +2,25 @@
 import { Advantage, type TrainingState } from "../match/trainingState";
 import { PARTICIPANT_SLOTS, participantActive } from "../input/participants";
 import { floorDiv } from "wisp/src/sim/intMath";
-import { MATCH_TICKS_PER_SECOND, type MatchState, humanFighterActive, humanPresent, keepsStocks, practiceSelected } from "../match/rules";
+import { MATCH_TICKS_PER_SECOND, Phase, type MatchState, computerActive, humanFighterActive, humanPresent, keepsStocks, practiceSelected } from "../match/rules";
 import { AttackStyle, DownState, LedgeState } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 import { SPECIAL_INPUTS, fighterKit, normalName, specialName } from "../sim/moveNames";
 import { fighterName } from "../sim/heroes/registry";
+import { CPU_OPPONENT_DEFAULT, CPU_TIER_DEFAULT } from "../match/cpuProfiles";
 
 /** The control that starts, pauses and resumes: a controller's Start, or Y on a keyboard. */
 export type StartControl = "Start" | "Y";
 
 export function fighterLabel(game: Readonly<MatchState>, slot: number): string {
   return humanFighterActive(game, slot) ? `Player ${slot + 1}` : "Computer";
+}
+
+/** The actual opponent this match drew, while the selector may still show Random. */
+export function cpuOpponentSummary(game: Readonly<MatchState>, slot: number): string {
+  const opponent = game.cpuResolvedOpponents[slot] ?? CPU_OPPONENT_DEFAULT;
+  const tier = game.cpuTiers[slot] ?? CPU_TIER_DEFAULT;
+  return `CPU ${slot + 1} · ${opponent.charAt(0).toUpperCase()}${opponent.slice(1)} · ${tier.charAt(0).toUpperCase()}${tier.slice(1)}`;
 }
 
 /** A knockout as the match announces it, calling out a fighter down to its last stock. */
@@ -52,13 +60,15 @@ function rematchStatus(game: Readonly<MatchState>, start: StartControl): string 
 
 /** The result announcement, with the automatic rematch's countdown while it runs. */
 export function resultNotice(game: Readonly<MatchState>, result: string): string {
-  return game.rematchCountdown > 0 ? `${result}\nRematch in ${floorDiv(game.rematchCountdown + MATCH_TICKS_PER_SECOND - 1, MATCH_TICKS_PER_SECOND)}` : result;
+  const notice = game.rematchCountdown > 0 ? `${result}\nRematch in ${floorDiv(game.rematchCountdown + MATCH_TICKS_PER_SECOND - 1, MATCH_TICKS_PER_SECOND)}` : result;
+  if (game.phase !== Phase.match || game.startHold <= 0) return notice;
+  const opponents = PARTICIPANT_SLOTS.filter(slot => computerActive(game, slot)).map(slot => cpuOpponentSummary(game, slot));
+  return opponents.length === 0 ? notice : opponents.join("\n");
 }
 
 export const stockSetting = (count: number) => (count === 1 ? "1 Stock" : `${count} Stocks`);
 export const timeSetting = (minutes: number) => (minutes === 0 ? "No time limit" : `${minutes}:00`);
 export const endlessSetting = (endless: boolean) => `Endless: ${endless ? "On" : "Off"}`;
-export const cpuLevelSetting = (level: number) => `Level ${level}`;
 export const automaticRematchSetting = (automatic: boolean) => `Automatic rematch: ${automatic ? "On" : "Off"}`;
 export const trainingSetting = (training: boolean) => `Training: ${training ? "On" : "Off"}`;
 const BEHAVIOUR_NAMES = ["Stand", "Shield", "Crouch", "Jump", "Attack", "Fight"];
