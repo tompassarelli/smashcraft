@@ -9,7 +9,7 @@ import { QUICK_CPU_COMMAND, QUICK_HERO_COMMAND, QUICK_TRAINING_COMMAND } from ".
 import { HIT_PRESENTATION_CASES } from "../../src/game/shell/hitPresentationCases";
 import { HERO_ROSTER } from "../../src/game/sim/heroes/registry";
 import { STAGE_CATALOG } from "../../src/game/menu/stageCatalog";
-import { FLOATING_STAGE_CHECKS, FLOATING_STAGE_MAPS, STAGE_COMPOSITION_CHECKS, STAGE_COMPOSITION_MAPS, STAGE_ENTRY_CHECKS, STAGE_ENTRY_MAPS } from "./stageCompositionChecks";
+import { FLOATING_STAGE_CHECKS, FLOATING_STAGE_MAPS, STAGE_COMPOSITION_CHECKS, STAGE_COMPOSITION_MAPS, STAGE_ENTRY_CHECKS, STAGE_ENTRY_MAPS, STAGE_FOG_CHECKS } from "./stageCompositionChecks";
 
 const inputs = join(homedir(), ".local/share/smashcraft-build-inputs");
 
@@ -36,6 +36,7 @@ export const MAP_PROFILES: Readonly<Record<string, SmashcraftMapProfile>> = {
   ...STAGE_COMPOSITION_MAPS,
   ...STAGE_ENTRY_MAPS,
   ...FLOATING_STAGE_MAPS,
+  "unlit-contact": { describe: "retained 5a1815b4 map, tech spark without the contact light", path: join(inputs, "stage-presentation-r3-20261008/5a1815b4.w3x"), quick: "-dev quick" },
   presentation: { describe: "development map rebuilt from this checkout, `-dev quick` (Archer and Rifleman idle on the default stage)", path: PRESENTATION, rebuild: "main", quick: "-dev quick" },
   // smashcraft:docs/player-view.md: CURRENT_BUILD's scenario set to underside, built as a development map.
   // smashcraft#166: the playable build's keyboard input and pooled fighters (native-perf adds only developer setup and the frame meter).
@@ -100,19 +101,19 @@ const stageChecks: NativeCheck[] = rankedStages.map(({ name }): NativeCheck => (
 /** One paused scene per stage; the native owner measures the matching masks and frames together. */
 const lightingChecks: NativeCheck[] = STAGE_CATALOG.flatMap(({ id, name }): NativeCheck[] => [
   {
-    id: `170-${id}-stock`, closes: "smashcraft#170 box 4", map: `lighting-${id}`,
-    setup: [{ waitMs: 5000 }, { keys: ["y"] }, { chat: "-dev lighting stock" }],
+    id: `170-${id}-stock`, closes: "smashcraft#170 box 4", map: "floating-stages", session: "floating-stages",
+    setup: [{ chat: "-dev reset" }, { chat: `-dev quick stage ${id}` }, { chat: "-dev view off" }, { waitMs: 5000 }, { keys: ["y"] }, { chat: "-dev lighting stock" }],
     capture: [{ kind: "frames", name: "stock", client: "a" }, { kind: "frames", name: "stock", client: "b" }],
     pass: [NO_IMPORT_FAILURES, NO_ERRORS], look: `${name}: paused fighters, sky, fog, scenery and deck; stock lighting reference`,
   },
   {
-    id: `170-${id}-mask`, closes: "smashcraft#170 box 4", map: `lighting-${id}`,
+    id: `170-${id}-mask`, closes: "smashcraft#170 box 4", map: "floating-stages", session: "floating-stages",
     setup: [{ chat: "-dev backdrop off" }, { waitMs: 13000 }],
     capture: [{ kind: "frames", name: "mask", client: "a" }, { kind: "frames", name: "mask", client: "b" }],
     pass: [NO_ERRORS], look: `${name}: same paused fighters alone; no residual snow or fire in the fighter mask`,
   },
   {
-    id: `170-${id}-stage`, closes: "smashcraft#170 box 4", map: `lighting-${id}`,
+    id: `170-${id}-stage`, closes: "smashcraft#170 box 4", map: "floating-stages", session: "floating-stages",
     setup: [{ chat: "-dev backdrop on" }, { chat: "-dev lighting stage" }, { waitMs: 1000 }],
     capture: [{ kind: "frames", name: "stage", client: "a" }, { kind: "frames", name: "stage", client: "b" }],
     pass: [NO_IMPORT_FAILURES, NO_ERRORS], look: `${name}: same paused pose and camera; neither |ΔL| nor ΔE00 reduced against stock; record any change to shadows; run smashcraft:tools/stage/contrast.ts on this pair`,
@@ -138,6 +139,14 @@ const effectChecks: NativeCheck[] = [12, 13, 14, 15, 24, 2, 7, 5, 6, 4, 9, 11, 2
     look: EXPECTATIONS[index] ?? "the case's effect at stage centre",
   }];
 });
+
+const contactLightChecks: NativeCheck[] = (["before", "after"] as const).map((phase): NativeCheck => ({
+  id: `192-tech-${phase}`, closes: "smashcraft#192 box 3", map: phase === "before" ? "unlit-contact" : "floating-stages", session: phase === "before" ? "contact-light" : "floating-stages",
+  setup: [{ chat: "-dev reset" }, { chat: "-dev quick" }, { chat: "-dev view off" }, { waitMs: 5000 }, { chat: "-dev effects 12" }, { receipt: "^SMASHCRAFT DEV v=1 ", seconds: 4 }],
+  capture: [{ kind: "frames", name: "contact", client: "a", count: 6, everyMs: 50 }],
+  pass: [NO_IMPORT_FAILURES, NO_ERRORS, DEV_RECEIPT],
+  look: `Tech contact ${phase}: compare the same chest-height spark, fighter surface and team colours at 50 ms intervals. The contact light must make the contact easier to read in HD; Classic retains the complete spark. Record graphics mode and native frame cost alongside the original #168 budget.`,
+}));
 
 export const SMASHCRAFT_ACCEPT: AcceptSuite = {
   maps: MAP_PROFILES,
@@ -261,6 +270,8 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
     ...STAGE_COMPOSITION_CHECKS,
     ...STAGE_ENTRY_CHECKS,
     ...FLOATING_STAGE_CHECKS,
+    ...STAGE_FOG_CHECKS,
+    ...contactLightChecks,
     {
       id: "57-underside",
       closes: "smashcraft#57 box 2",

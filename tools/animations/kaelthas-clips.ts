@@ -183,9 +183,26 @@ for (const [ordinal, action] of [...actions, ...damageActions].entries()) {
     const key = root.Translation.Keys.find(k => k.Frame === start + Math.round(frame * 1000 / 60))!;
     if (!action.air) { key.Vector[2] = key.Vector[2]! - lowest; if (key.InTan) { key.InTan = root.Translation.LineType === mdx.LineType.Bezier ? key.Vector.slice() : new Float32Array(3); key.OutTan = key.InTan.slice(); } }
   }
-  const binding = `{ index: ${index}, seconds: ${seconds((end - start) / 1000)}, aligned: true${action.paired ? `, contact: ${seconds(action.contact / 60)}` : ""} }`;
+  const victim = /^victim(Pummel|Throw)/.test(action.pose);
+  const binding = `{ index: ${index}, seconds: ${seconds(victim ? 1 : (end - start) / 1000)}, aligned: true${action.paired ? `, contact: ${seconds(victim ? 0.5 : action.contact / 60)}` : ""} }`;
   if (ordinal < actions.length) bindings.push(`  ${action.pose}: ${binding},`); else damageBindings.push(`  ${binding},`);
   records.push({ pose: name, index, frames: action.frames, contact: action.contact });
+}
+// Fresh intervals let captive gestures share contact time without moving any other sequence's keys.
+for (const [ordinal, action] of actions.entries()) if (/^victim(Pummel|Throw)/.test(action.pose)) {
+  const sequence = model.Sequences[source.Sequences.length + ordinal]!;
+  const [first, last] = sequence.Interval, contact = first! + Math.round(action.contact * 1000 / 60), start = cursor;
+  cursor = start + 1100;
+  tracks(model, track => {
+    if (globalClock(track)) return;
+    for (const key of track.Keys) if (key.Frame >= first! && key.Frame <= last!)
+      key.Frame = start + (key.Frame <= contact ? Math.round((key.Frame - first!) / (contact - first!) * 500)
+        : 500 + Math.round((key.Frame - contact) / (last! - contact) * 500));
+    track.Keys.sort((a, b) => a.Frame - b.Frame);
+  });
+  sequence.Interval = new Uint32Array([start, start + 1000]);
+  action.frames = 60; action.contact = 30;
+  records[ordinal]!.frames = 60; records[ordinal]!.contact = 30;
 }
 const stripped = structuredClone(model); stripped.Sequences = stripped.Sequences.slice(0, source.Sequences.length);
 tracks(stripped, track => { if (!globalClock(track)) track.Keys = track.Keys.filter(k => k.Frame < cutoff); });

@@ -137,7 +137,7 @@ test("a native pad run that desynced, crashed or ended early is invalid, neither
 });
 
 
-test("a headless pad run alone passes when its edges landed and the script's expectations hold in its trace", () => {
+test("headless pad checks require a saved checksum even when edges and event expectations match", () => {
   const root = mkdtempSync(join(tmpdir(), "pad-headless-"));
   writeFileSync(join(root, "result.json"), JSON.stringify({ off_frame: 0, helpers_stopped: [] }));
   // The trace is a Warcraft Preload file, as the integrity build writes it.
@@ -146,9 +146,9 @@ test("a headless pad run alone passes when its edges landed and the script's exp
     "72 1.200 participant 0 frame 60 phase 2 special 13 action-frame 1 x -240.000 z 0.000",
     "165 2.750 confirmed frame 110 state 196331:389408",
   ]));
-  expect(checkHeadlessRun(root, "60 a tap X 2\n#! expect a 60 special 13").passed).toBe(true);
+  expect(checkHeadlessRun(root, "60 a tap X 2\n#! expect a 60 special 13").lines).toContain("FAIL headless: no moment saved (hold View a second in the script)");
   const failed = checkHeadlessRun(root, "60 a tap X 2\n#! expect b 60 special 13");
-  expect([failed.passed, failed.lines.at(-1)]).toEqual([false, "FAIL: 1 problem"]);
+  expect([failed.passed, failed.lines.at(-1)]).toEqual([false, "FAIL: 2 problems"]);
   rmSync(root, { recursive: true });
 });
 test("every native check script parses, names its match, starts after the helpers see it and saves a moment", () => {

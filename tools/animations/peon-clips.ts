@@ -169,6 +169,43 @@ for(const action of actions) {
   }
   bindings.set(action.name,{index,seconds:(end-start)/1000,...(action.contact?{contact:action.contact}:{})});
 }
+const victimPummel = bindings.get("victimPummel");
+ensure(victimPummel?.index === 70, "Peon victim-pummel index changed");
+const victimSequence = model.Sequences[victimPummel.index]!;
+const [victimFirst, victimLast] = victimSequence.Interval;
+const victimContact = victimFirst! + 1000;
+// Victims share a half-second contact; a separate interval retains every other clip's keys.
+tracks(model, track => {
+  if (onGlobalClock(track)) return;
+  for (const key of track.Keys) if (key.Frame >= victimFirst! && key.Frame <= victimLast!) {
+    key.Frame = cursor + (key.Frame <= victimContact
+      ? Math.round((key.Frame - victimFirst!) / (victimContact - victimFirst!) * 500)
+      : 500 + Math.round((key.Frame - victimContact) / (victimLast! - victimContact) * 500));
+  }
+  track.Keys.sort((a, b) => a.Frame - b.Frame);
+});
+victimSequence.Interval = new Uint32Array([cursor, cursor + 1000]);
+bindings.set("victimPummel", { index: victimPummel.index, seconds: 1, contact: 0.5 });
+cursor += 1100;
+const victimAction = actions.findIndex(action => action.name === "victimPummel");
+const originalVictimAction = actions[victimAction]!;
+actions[victimAction] = { ...originalVictimAction, frames: 60, contact: 0.5,
+  phases: originalVictimAction.phases.map(p => ({ ...p, at: p.at <= 60 ? p.at / 2 : 30 + (p.at - 60) * 30 / 8 })) };
+const lumberToss = bindings.get("neutralSpecial");
+ensure(lumberToss?.index === 38, "Peon Lumber Toss index changed");
+const lumberSequence = model.Sequences[lumberToss.index]!;
+const [lumberFirst, lumberLast] = lumberSequence.Interval;
+// Extra recovery holds the restored idle pose without moving the original throw keys.
+tracks(model, track => {
+  if (onGlobalClock(track)) return;
+  const keys = track.Keys.filter(key => key.Frame >= lumberFirst! && key.Frame <= lumberLast!);
+  for (const key of keys) key.Frame = cursor + key.Frame - lumberFirst!;
+  track.Keys.sort((a, b) => a.Frame - b.Frame);
+});
+lumberSequence.Interval = new Uint32Array([cursor, cursor + 800]);
+bindings.set("neutralSpecial", { index: lumberToss.index, seconds: 0.8 });
+const lumberAction = actions.findIndex(action => action.name === "neutralSpecial");
+actions[lumberAction] = { ...actions[lumberAction]!, frames: 48, phases: [...actions[lumberAction]!.phases, phase(48)] };
 const bytes=encodeVerified(parseSource(generateMDX(model))),before=new DrawnModel(generateMDX(source),1),after=new DrawnModel(bytes,1);
 for(const [index,s] of source.Sequences.entries())for(const t of [0,0.5,1]) {
   const a=before.triangles(index,(s.Interval[1]-s.Interval[0])*t/1000,1),b=after.triangles(index,(s.Interval[1]-s.Interval[0])*t/1000,1);

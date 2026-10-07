@@ -1,7 +1,8 @@
 // Lua debug upvalues and native handle representations are the foreign boundary
 // this census observes; Bun cannot execute its graph walk.
 import { assertEquals, test } from "wisp/src/runtime/testing";
-import { reach } from "../../scripts/wisp/memoryCensus";
+import { HeadlessClient } from "wisp/src/headless/client";
+import { HandleCensus, compactEmulator, reach } from "../../scripts/wisp/memoryCensus";
 
 test("the map table census excludes opaque native identities and still counts matching domain records", () => {
   const first = { id: 1, kind: "effect" };
@@ -17,4 +18,24 @@ test("the map table census excludes opaque native identities and still counts ma
   state.retained.push({ value: 4 });
   assertEquals(reach(environment, [first, second], true).tables, baseline.tables + 1);
   assertEquals(reach(environment, [first], true).tables, baseline.tables + 2);
+});
+
+test("emulator compaction drops sound event history while preserving live sounds and call checksums", () => {
+  const functions: readonly (readonly [string, string, number])[] = [["CreateSound", "sound", 7], ["StartSound", "void", 1]];
+  const client = new HeadlessClient({ slot: 0, filePrefix: "sound-memory", humans: [0], declarations: { functions, constants: [], variables: [] }, localNatives: {}, network: [], screenWidth: 1280 });
+  const census = new HandleCensus(client, functions);
+  type Native = (this: void, ...args: unknown[]) => unknown;
+  const isNative = (value: unknown): value is Native => typeof value === "function";
+  const create = client.natives.CreateSound;
+  const start = client.natives.StartSound;
+  if (!isNative(create) || !isNative(start)) throw new Error("missing sound natives");
+  const sound = create("sound.wav", false, false, false, 0, 0, "");
+  for (let index = 0; index < 100; index++) start(sound);
+  const checksum = client.checksum();
+  assertEquals(client.soundLog.length, 101);
+  compactEmulator(client, census.takeReleased());
+  assertEquals(client.soundLog.length, 0);
+  assertEquals(census.counts()[0]?.[0], "sound");
+  assertEquals(census.counts()[0]?.[1], 1);
+  assertEquals(client.checksum(), checksum);
 });
