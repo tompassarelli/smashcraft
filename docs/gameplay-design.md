@@ -107,9 +107,11 @@ in the air, against Melee Fox's 38%.
 - **One momentum rule for everyone.** Every fighter jumps by Melee's
   ground-jump rule and drifts by its air rule. Illidan used to keep his full
   ground speed and then snap to his 0.88 air speed on his first steer, which
-  threw away his dash. He now uses the reference's jump values (× 0.83,
-  + 0.72, cap 1.70) and Melee's common 3.0 air cap. His dash carries and fades
-  by air friction like everyone else's. Aerial jumps are unchanged.
+  threw away his dash. He now uses the shared rule with his retained
+  momentum multiplier of 1.00 and no extra jump impulse, a 1.70 jump cap,
+  and Melee's common 3.0 air cap. This preserves his standing-hop cross-ups
+  while his dash carries and fades by air friction like everyone else's.
+  Aerial jumps are unchanged. Tom delegated, 7 Oct.
 - **Air bands.** Air speed is 0.75–1.25 and maximum air acceleration
   0.04–0.10 Melee units a frame. The floor comes from Ultimate (0.735) rather
   than Melee (0.68), as deviations start from Ultimate. Rivals 2's much
@@ -132,7 +134,7 @@ table (Melee units a frame; takeoffs after 8 dash frames and 24 run frames):
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | Archer | 0.83 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 24 |
 | Rifleman | 0.83 | 0.070 | 0.020 | 1.00 | 0.70 | 1.70 | 1.70 | 1.70 | short hop back air, press 30 |
-| Illidan | 0.88 | 0.075 | 0.020 | 0.83 | 0.72 | 1.70 | 1.68 | 1.68 | short hop back air, press 27 |
+| Illidan | 0.88 | 0.075 | 0.020 | 1.00 | 0.00 | 1.70 | 1.68 | 1.68 | short hop back air, press 27 |
 | Blademaster | 1.00 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 20 |
 | Mountain King | 0.82 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 14 |
 | Warden | 1.10 | 0.080 | 0.020 | 0.83 | 0.72 | 1.70 | 1.70 | 1.70 | short hop back air, press 22 |

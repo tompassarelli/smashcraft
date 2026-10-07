@@ -15,3 +15,6 @@
 742 a stick -1 0
 743 a tap X 2
 746 a stick 0 0
+# Save both turnarounds for native checksum parity.
+1000 a press VIEW
+1070 a release VIEW

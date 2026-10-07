@@ -198,9 +198,9 @@ export const AUTHORED_PHYSICS: { readonly [name in OriginalFighter]: FighterPhys
     fullJumpSpeed: 24.200000762939453,
     shortJumpSpeed: 13.199999809265137,
     aerialJumpSpeed: 25.5,
-    // The shared ground-jump momentum rule with the reference's values (#190).
-    jumpMomentum: 0.8299999833106995,
-    jumpHorizontalSpeed: melee(0.7200000286102295),
+    // Preserve his standing-hop trajectory while the shared rule carries dash speed.
+    jumpMomentum: 1.0,
+    jumpHorizontalSpeed: 0.0,
     jumpHorizontalCap: melee(1.7000000476837158),
     aerialJumpHorizontalSpeed: 0.0,
     shieldBreakSpeed: 24.0,
