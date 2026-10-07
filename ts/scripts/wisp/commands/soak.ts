@@ -1,6 +1,7 @@
 // `wisp soak`: Smashcraft's soak (scripts/wisp/soak.ts) in worker processes,
-// one repro file played again, or with --helper, matches through the real
-// controller helper in real time (test/soak/helper.ts; wisp:docs/soak.md).
+// one repro file played again, the memory soak (soakMemory.ts), or with
+// --helper, matches through the real controller helper in real time
+// (test/soak/helper.ts; wisp:docs/soak.md).
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { Effect, Schema } from "effect";
@@ -8,6 +9,7 @@ import { type Command, UsageFailure, describeCause } from "wisp/scripts/wisp/com
 import { makeSoak } from "wisp/scripts/wisp/commands/soak";
 import { step } from "wisp/scripts/wisp/timings";
 import { SOAK_OUT } from "../soak";
+import { soakMemory } from "./soakMemory";
 
 class HelperSoakFailure extends Schema.TaggedError<HelperSoakFailure>()("HelperSoakFailure", {
   problem: Schema.String,
@@ -55,4 +57,4 @@ const throughHelper: Command = (args) => Effect.gen(function*() {
   if (found !== 0) return yield* new HelperSoakFailure({ problem: `${String(found)} matches found something; their folders are in ${out}` });
 });
 
-export const soak: Command = (args) => (args.includes("--helper") ? throughHelper(args) : headless(args));
+export const soak: Command = (args) => (args[0] === "memory" ? soakMemory(args.slice(1)) : args.includes("--helper") ? throughHelper(args) : headless(args));

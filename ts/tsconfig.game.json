@@ -28,6 +28,8 @@
     "src/game/**/*.ts",
     "src/platform/**/*.ts",
     "scripts/wisp/perfLua.ts",
+    "scripts/wisp/memoryLua.ts",
+    "scripts/wisp/memoryCensus.ts",
     "scripts/wisp/botMatch.ts"
   ],
   "exclude": [

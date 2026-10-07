@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.map.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "sourceMap": false
+  },
+  "include": [
+    "node_modules/wisp/src/natives/warcraft.d.ts",
+    "scripts/wisp/memoryLua.ts",
+    "scripts/wisp/memoryCensus.ts",
+    "scripts/wisp/botMatch.ts"
+  ],
+  "exclude": [],
+  "tstl": {
+    "luaBundle": "memory.lua",
+    "luaBundleEntry": "scripts/wisp/memoryLua.ts"
+  }
+}

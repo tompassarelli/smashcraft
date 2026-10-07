@@ -206,6 +206,10 @@ code. From smashcraft:ts/:
   `bun wisp soak --repro FILE` replays one. `--helper BIN` plays through the
   real controller helper instead (needs /dev/uinput). Its lock-loop detector
   reports a fighter caught in a loop it can't act out of (#68).
+  `bun wisp soak memory [--minutes N]` plays the playable build match after
+  match (every fighter and stage, rematches included) in 32-bit Lua and
+  fails when the Lua heap, live Warcraft handles or what the map's globals
+  reach grow after a 10-minute warm-up (#168); run it with `farm memory`.
 - Agency sweep: `bun wisp agency [--attacker NAME] [--starter NAME]`
   replays every fighter's throws, jab resets, normals and specials (or only
   the named starters) against every fighter with every victim input class and
@@ -223,7 +227,8 @@ code. From smashcraft:ts/:
   `bun wisp perf RUN ARGS` in its own job (default `playable-bot-four`),
   prints each summary and writes each run to DIR. Predictions come from
   counts, so a runner predicts what this machine would; use it instead of a
-  local perf run. Without `--ref` it measures the checkout's HEAD (a commit not on
+  local perf run; `bun wisp farm memory [--minutes N] [--wait]` runs the
+  30-minute memory soak (also nightly). Without `--ref` it measures the checkout's HEAD (a commit not on
   main goes to a scratch `farm/` branch, deleted after the run). Use it
   instead of a local cpuField or pad run: the repository is public, so the
   runners cost nothing, and this machine stays free. Measured 7 Oct on main

@@ -1,4 +1,4 @@
-// `bun wisp farm balance|pads|perf [--ref REF] [--wait]`: runs headless work on
+// `bun wisp farm balance|pads|perf|memory [--ref REF] [--wait]`: runs headless work on
 // GitHub's free hosted runners instead of this machine. `balance` dispatches
 // smashcraft:.github/workflows/balance.yml (the balance gate's computer
 // field, a `cpuField --pairs` process a core over about 17 jobs, merged in
@@ -7,6 +7,8 @@
 // `perf "RUN ARGS" ... [--out DIR]` dispatches smashcraft:.github/workflows/perf.yml,
 // one `bun wisp perf RUN ARGS` a job, and always waits: it prints each run's
 // summary and writes its output to DIR/<run>.txt.
+// `memory` dispatches smashcraft:.github/workflows/memory-soak.yml (#168's
+// memory soak, `soak memory`, for `--minutes` game minutes, 30 by default).
 // --wait waits for the run and prints the verdict and field table, or each
 // failing script. Without --ref, the checkout's HEAD: a commit main doesn't
 // hold yet is pushed with safe-push to a scratch branch farm/<commit>, which
@@ -25,7 +27,7 @@ class FarmFailure extends Schema.TaggedError<FarmFailure>()("FarmFailure", { pro
   }
 }
 
-const WORKFLOWS = { balance: "balance.yml", pads: "headless-pads.yml", perf: "perf.yml" } as const;
+const WORKFLOWS = { balance: "balance.yml", pads: "headless-pads.yml", perf: "perf.yml", memory: "memory-soak.yml" } as const;
 type Job = keyof typeof WORKFLOWS;
 
 /** Runs a program to completion; its trimmed stdout, or a failure naming its stderr. */
@@ -147,15 +149,24 @@ const perfResult = (repo: string, id: number, state: RunState, runs: readonly st
   if (state.conclusion !== "success" || failed.length > 0) return yield* new FarmFailure({ problem: `the perf run ended ${state.conclusion} (${[...jobsFailed, ...failed].join(", ")}); gh run view ${id} -R ${repo} --log-failed` });
 });
 
+const memoryResult = (repo: string, id: number, state: RunState) => Effect.gen(function*() {
+  const folder = mkdtempSync(join(tmpdir(), "farm-memory-"));
+  const downloaded = yield* run(["gh", "run", "download", String(id), "-R", repo, "-n", "memory-soak", "-D", folder]).pipe(Effect.as(true), Effect.orElseSucceed(() => false));
+  if (downloaded) console.log(readFileSync(join(folder, "verdict.txt"), "utf8").trimEnd());
+  rmSync(folder, { recursive: true });
+  console.log(`Samples: gh run download ${id} -R ${repo} -n memory-soak`);
+  if (state.conclusion !== "success") return yield* new FarmFailure({ problem: `the memory soak ended ${state.conclusion}; gh run view ${id} -R ${repo} --log-failed` });
+});
+
 export const farm: Command = (args) => Effect.gen(function*() {
   const parsed = yield* Effect.try({
     try: () => parseArgs({ args: [...args], allowPositionals: true, options: {
-      ref: { type: "string" }, wait: { type: "boolean" }, out: { type: "string" }, level: { type: "string" }, "per-pair": { type: "string" }, seeds: { type: "string" },
+      ref: { type: "string" }, wait: { type: "boolean" }, out: { type: "string" }, level: { type: "string" }, "per-pair": { type: "string" }, seeds: { type: "string" }, minutes: { type: "string" },
     } }),
     catch: (cause) => new UsageFailure({ problem: describeCause(cause) }),
   });
   const [job, ...perfRuns] = parsed.positionals;
-  if (job !== "balance" && job !== "pads" && job !== "perf") return yield* new UsageFailure({ problem: "farm balance, farm pads or farm perf" });
+  if (job !== "balance" && job !== "pads" && job !== "perf" && job !== "memory") return yield* new UsageFailure({ problem: "farm balance, farm pads, farm perf or farm memory" });
   const runs = perfRuns.length > 0 ? perfRuns : ["playable-bot-four"];
   const workflow = WORKFLOWS[job satisfies Job];
   const repo = yield* run(["gh", "repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner"]);
@@ -163,7 +174,7 @@ export const farm: Command = (args) => Effect.gen(function*() {
   const tag = randomBytes(4).toString("hex");
   const inputs = job === "balance"
     ? { ref, level: parsed.values.level ?? "9", "per-pair": parsed.values["per-pair"] ?? "400", seeds: parsed.values.seeds ?? "100", tag }
-    : job === "perf" ? { ref, runs: JSON.stringify(runs), tag } : { ref, tag };
+    : job === "perf" ? { ref, runs: JSON.stringify(runs), tag } : job === "memory" ? { ref, minutes: parsed.values.minutes ?? "30", tag } : { ref, tag };
   const started = performance.now();
   const work = Effect.gen(function*() {
     yield* run(["gh", "workflow", "run", workflow, "-R", repo, "--ref", "main", ...Object.entries(inputs).flatMap(([name, value]) => ["-f", `${name}=${value}`])]);
@@ -174,7 +185,8 @@ export const farm: Command = (args) => Effect.gen(function*() {
     console.error(`${((performance.now() - started) / 60000).toFixed(1)} min from dispatch to the result`);
     if (job === "balance") yield* balanceResult(repo, found.databaseId, state);
     else if (job === "perf") yield* perfResult(repo, found.databaseId, state, runs, parsed.values.out);
-    else yield* padsResult(repo, found.databaseId, state);
+    else if (job === "pads") yield* padsResult(repo, found.databaseId, state);
+    else yield* memoryResult(repo, found.databaseId, state);
   });
   yield* work.pipe(Effect.ensuring(scratch === undefined ? Effect.void
     : run(["gh", "api", "-X", "DELETE", `repos/${repo}/git/refs/heads/${scratch}`]).pipe(Effect.catch((failure) => Effect.sync(() => console.error(`couldn't delete ${scratch}: ${failure.message}`))))));

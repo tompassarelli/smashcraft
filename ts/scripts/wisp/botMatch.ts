@@ -69,11 +69,11 @@ const KEY_JUMP = 0x49;
 const KEY_SPECIAL = 0x55;
 const KEY_SHIELD = 0x51;
 const KEY_LEFT = 0x57;
-const KEY_RIGHT = 0x52;
+export const KEY_RIGHT = 0x52;
 const TAP_KEYS = [KEY_ATTACK, KEY_JUMP, KEY_SPECIAL];
 
 /** The bot beat on the keyboard: the key tapped on `frame`, or 0, and the key held then, or 0. */
-function botBeatKeys(frame: number): readonly [tap: number, held: number] {
+export function botBeatKeys(frame: number): readonly [tap: number, held: number] {
   let at = floorMod(frame - 1, CYCLE);
   if (at < 3 * REST) return [floorMod(at, REST) === 0 ? TAP_KEYS[floorDiv(at, REST)] ?? KEY_ATTACK : 0, 0];
   if ((at -= 3 * REST) < SHIELD + REST) return [0, at < SHIELD ? KEY_SHIELD : 0];
@@ -82,11 +82,13 @@ function botBeatKeys(frame: number): readonly [tap: number, held: number] {
   return [0, at < DASH ? KEY_LEFT : 0];
 }
 
-interface Game {
+export interface Game {
   phase: number;
   stockCount: number;
   timeLimitMinutes: number;
   computerMask: number;
+  stageChoice: number;
+  automaticRematch: boolean;
   readonly characterChoices: number[];
   readonly characterReadiness: boolean[];
 }
@@ -95,7 +97,7 @@ interface Game {
 const hasGame = (shell: unknown): shell is { readonly game: Game } => typeof shell === "object" && shell !== null && "game" in shell;
 
 /** A client's match state, read from its own globals: in Lua each client runs the bundle in its own environment. */
-function gameOf(client: HeadlessClient): Game {
+export function gameOf(client: HeadlessClient): Game {
   const shell = client.natives.__smashcraftShell;
   if (!hasGame(shell)) throw new Error(`p${client.slot} has no shell`);
   return shell.game;

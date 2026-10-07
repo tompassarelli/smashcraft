@@ -45,6 +45,8 @@
     "src/game/render/**",
     "src/parity/lua-entry.ts",
     "scripts/wisp/perfLua.ts",
+    "scripts/wisp/memoryLua.ts",
+    "scripts/wisp/memoryCensus.ts",
     "scripts/wisp/botMatch.ts",
     "scripts/wisp/censusProfile.ts"
   ]
