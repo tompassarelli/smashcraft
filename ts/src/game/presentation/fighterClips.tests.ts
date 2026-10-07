@@ -60,6 +60,12 @@ test("the original fighters' tables play their packaged clips", () => {
   assertEquals(grabActionPoses(GrabAction.escape), undefined);
 });
 
+test("Archer Fist and Boot plays Attack Jab's quick punch then Down Tilt's low kick", () => {
+  assertEquals(clipFor(Character.archer, "jab").index, assets.ARCHER_JAB_INDEX);
+  assertEquals(clipFor(Character.archer, "jab").seconds, assets.ARCHER_JAB_SECONDS);
+  assertEquals(clipFor(Character.archer, "jab2").index, assets.ARCHER_DOWN_TILT_INDEX);
+});
+
 test("a hero plays its registered sequences and its fallback for any pose it leaves out", () => {
   const warden = Character.warden;
   assertEquals(clipFor(warden, "forwardAir").index, WARDEN_SEQUENCES.attack2.index);
