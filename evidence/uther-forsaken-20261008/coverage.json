@@ -1,0 +1,24 @@
+{
+  "fighter": "Uther",
+  "matches": 8,
+  "movement": 7665,
+  "attacks": 108,
+  "kit": 81,
+  "specials": {
+    "neutral": 18,
+    "side": 48,
+    "up": 8,
+    "down": 7
+  },
+  "defense": 210,
+  "recovery": 1114,
+  "manaDenied": 0,
+  "defenseDecisions": 10,
+  "recoveryDecisions": 2,
+  "companions": {
+    "bear": 0,
+    "quilbeast": 0,
+    "hawk": 0
+  },
+  "missing": []
+}

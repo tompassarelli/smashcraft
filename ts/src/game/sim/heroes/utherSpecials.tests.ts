@@ -4,10 +4,11 @@ import { assertEquals, assertNear, assertFalse, assertGreaterThan, assertLessTha
 import { f32 } from "wisp/src/sim/f32";
 import { copyFighterState } from "../../replay/fighterState";
 import { firstFighterDifference } from "../../replay/difference";
+import { fighterSpecialsCanonical } from "../../replay/canonical";
 import { captureImpactEventsBefore, createImpactEvents, finishImpactEventsAfter } from "../../presentation/impactEvents";
 import { presentImpactSounds } from "../../presentation/hitPresentation";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
-import { AttackStyle, Character, SpecialAction } from "../codes";
+import { AttackStyle, Character, HeroStatusKind, HeroStatusGroup, SpecialAction } from "../codes";
 import { beginDamageContacts, finishDamageContacts } from "../contacts";
 import { type Fighter, createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
@@ -55,12 +56,17 @@ const down = controls({ specialPressed: true, specialZ: -1 });
 
 const near = (actual: number, expected: number, tolerance: number) => assertTrue(Math.abs(actual - expected) <= tolerance);
 
+test("Uther's replay kit identity records the frame of Cleansing Hammer's dispel", () => {
+  const changed = { ...UTHER_SPECIALS, neutral: { ...UTHER_SPECIALS.neutral, ground: { ...UTHER_SPECIALS.neutral.ground, cleanseFrame: 15 } } };
+  assertTrue(fighterSpecialsCanonical(changed) !== fighterSpecialsCanonical(UTHER_SPECIALS));
+});
+
 test("Uther's specials spend their listed mana once and end on their listed frames", () => {
   for (const [input, action, cost, end] of [
     [neutral, SpecialAction.heroNeutral, 10, 38],
-    [side, SpecialAction.heroSide, 50, 69],
+    [side, SpecialAction.heroSide, 25, 49],
     [up, SpecialAction.heroUp, 15, 29],
-    [down, SpecialAction.heroDown, 25, 36],
+    [down, SpecialAction.heroDown, 20, 42],
   ] as const) {
     const { world, owner } = pair(900.0);
     frame(world, input);
@@ -76,7 +82,7 @@ test("Uther's specials spend their listed mana once and end on their listed fram
   assertEquals(UTHER_SPECIALS.up.free?.cost, 0);
 });
 
-test("Hammer of Justice bonks once, launches upward and holds both fighters three extra frames", () => {
+test("Cleansing Hammer bonks once, launches upward and holds both fighters three extra frames", () => {
   for (const facing of [-1, 1]) {
     const { world, owner, target } = pair(110.0);
     owner.facing = facing;
@@ -106,7 +112,7 @@ test("Uther's balanced hammer normal keeps its original hitlag while dealing 85 
   assertEquals(target.launch.hitlag, ordinaryHitlagFrames(12.0) + 3);
 });
 
-test("Holy Radiance advances with the hammer, hits once up close and sends weaker light beyond it", () => {
+test("Righteous Fury advances with the hammer, hits once up close, slows movement and cannot hit at range", () => {
   const far = pair(900.0);
   const start = far.owner.motion.x;
   frame(far.world, side);
@@ -119,10 +125,11 @@ test("Holy Radiance advances with the hammer, hits once up close and sends weake
   frame(close.world, side);
   for (let f = 2; f <= 75; f++) frame(close.world);
   assertEquals(close.target.status.damage, f32(14.0 * f32(0.85)));
+  assertEquals(close.target.status.condition, HeroStatusKind.chill);
   const ranged = pair(400.0);
   frame(ranged.world, side);
   for (let f = 2; f <= 65; f++) frame(ranged.world);
-  assertEquals(ranged.target.status.damage, f32(6.0 * f32(0.85)));
+  assertEquals(ranged.target.status.damage, 0.0);
 });
 
 test("Uther's hammer makes one loud heavy bash and holds a shield contact three extra frames", () => {
@@ -150,12 +157,12 @@ test("Uther's hammer makes one loud heavy bash and holds a shield contact three 
   assertEquals(shield.target.launch.hitlag, ordinaryHitlagFrames(13.0) + 3);
 });
 
-test("air Holy Radiance has no armor, spends its one airborne use and ends helpless", () => {
+test("air Righteous Fury has no armor, spends its one airborne use and ends helpless", () => {
   const air = pair(900.0);
   air.owner.motion.grounded = false;
   air.owner.motion.z = 1200.0;
   frame(air.world, side);
-  for (let f = 2; f <= 69; f++) {
+  for (let f = 2; f <= 49; f++) {
     assertEquals(air.owner.status.armorFrames, 0);
     frame(air.world);
   }
@@ -195,100 +202,114 @@ test("Ascension rises 2.9H with one hit, its free form 2.0H without one, both dr
   }
 });
 
-test("Divine Shield fails in the air without spending, and only a strike on f6-9 raises it", () => {
+
+test("Cleansing Hammer removes poison and slow on f14, preserving hard control and immunity", () => {
+  for (const kind of [HeroStatusKind.chill, HeroStatusKind.silence, HeroStatusKind.sleep, HeroStatusKind.stun, HeroStatusKind.carried]) {
+    const { world, owner } = pair(900.0);
+    frame(world, neutral);
+    owner.status.condition = kind;
+    owner.status.conditionFrames = 80;
+    owner.status.conditionGroup = HeroStatusGroup.chill;
+    owner.status.conditionImmunityFrames = 120;
+    owner.status.poisonFrames = 90;
+    owner.status.poisonEvery = 90;
+    owner.status.poisonDamage = 1.0;
+    for (let f = 2; f <= 13; f++) frame(world);
+    assertGreaterThan(owner.status.poisonFrames, 0);
+    frame(world);
+    assertEquals(owner.status.poisonFrames, 0);
+    assertEquals(owner.status.poisonEvery, 0);
+    assertEquals(owner.status.poisonDamage, 0.0);
+    assertEquals(owner.status.condition, kind === HeroStatusKind.chill ? HeroStatusKind.none : kind);
+    if (kind === HeroStatusKind.chill) assertGreaterThan(owner.status.conditionImmunity[HeroStatusGroup.chill] ?? 0, 0);
+  }
+});
+
+test("Righteous Fury's shield contact cannot apply its movement slow", () => {
+  const { world, owner, target } = pair(110.0);
+  target.shield.raised = true;
+  for (let f = 1; f <= 25 && owner.launch.hitlag === 0; f++) frame(world, f === 1 ? side : controls(), undefined, controls({ shield: true, shieldStrength: 1.0 }));
+  assertEquals(target.status.damage, 0.0);
+  assertEquals(target.status.condition, HeroStatusKind.none);
+  assertGreaterThan(owner.launch.hitlag, 0);
+});
+
+test("Consecration refuses in air, pulses only on grounded targets and has one fixed patch", () => {
   const air = pair(900.0);
   air.owner.motion.grounded = false;
   air.owner.motion.z = 400.0;
   frame(air.world, down);
   assertEquals(air.owner.special.action, SpecialAction.none);
   assertEquals(air.owner.mana.points, 100);
-  // A second Uther's jab (active on its frames 5-6) pressed on the guard's frame `press`.
-  for (let press = 2; press <= 8; press++) {
-    const { world, owner } = pair(60.0, Character.uther);
-    owner.status.damage = 20.0;
-    frame(world, down);
-    let raised = false;
-    for (let f = 2; f <= 40; f++) {
-      frame(world, controls(), f === press ? AttackStyle.jab : undefined);
-      raised ||= owner.status.divineFrames > 0;
-    }
-    assertEquals(raised, press <= 5);
-    assertEquals(owner.status.guardHealed, 0.0);
-    // Guarded, the whole jab passes through the shield; pressed later it lands.
-    assertEquals(owner.status.damage, press <= 5 ? 20.0 : f32(20.0 + f32(4.0 * f32(0.85))));
+  const { world, owner, target } = pair(70.0);
+  frame(world, down);
+  for (let f = 2; f <= 15; f++) frame(world);
+  assertEquals(target.status.damage, 0.0);
+  frame(world);
+  assertEquals(target.status.damage, f32(2.0 * f32(0.85)));
+  const pool = owner.projectiles.find(p => p.life > 0);
+  assertTrue(pool !== undefined);
+  if (pool === undefined) return;
+  const x = pool.x;
+  assertEquals(pool.spec?.radius, 60.0);
+  assertEquals(pool.spec?.pool?.growth, 0.0);
+  assertFalse(pool.spec?.reflectable ?? true);
+  for (let f = 0; f < 48; f++) {
+    target.motion.x = x;
+    target.motion.z = 1.0;
+    target.motion.grounded = false;
+    beginDamageContacts();
+    updateProjectiles(world);
+    finishDamageContacts(world);
   }
+  assertEquals(target.status.damage, f32(2.0 * f32(0.85)));
+  target.motion.z = 0.0;
+  target.motion.grounded = true;
+  target.status.invincible = 0;
+  target.launch.hitlag = 0;
+  target.launch.hitstun = 0;
+  beginDamageContacts();
+  updateProjectiles(world);
+  finishDamageContacts(world);
+  assertEquals(target.status.damage, f32(4.0 * f32(0.85)));
+  assertEquals(pool.x, x);
+  assertEquals(pool.spec?.radius, 60.0);
 });
 
-/** Uther 60 from another Uther, his Divine Shield raised by a jab pressed on guard frame 3; returns at guard frame 12. */
-function shielded() {
-  const p = pair(60.0, Character.uther);
-  frame(p.world, down);
-  for (let f = 2; f <= 12; f++) frame(p.world, controls(), f === 3 ? AttackStyle.jab : undefined);
-  assertGreaterThan(p.owner.status.divineFrames, 30);
-  return p;
-}
-
-test("Divine Shield lets a later strike pass for 45 frames, then ends", () => {
-  const { world, owner } = shielded();
-  for (let f = 13; f <= 36; f++) frame(world);
-  frame(world, controls(), AttackStyle.forwardTilt);
-  for (let f = 0; f < 14; f++) frame(world);
-  assertEquals(owner.status.damage, 0.0);
-  for (let f = 0; f < 30; f++) frame(world);
-  assertEquals(owner.status.divineFrames, 0);
-  frame(world, controls(), AttackStyle.jab);
-  for (let f = 0; f < 10; f++) frame(world);
-  assertGreaterThan(owner.status.damage, 0.0);
-});
-
-test("Uther's own attack ends Divine Shield, and a grab still catches him inside it", () => {
-  const attacking = shielded();
-  for (let f = 13; f <= 40; f++) frame(attacking.world);
-  assertGreaterThan(attacking.owner.status.divineFrames, 0);
-  beginFighterAttack(attacking.world, 0, AttackStyle.jab, false);
-  assertEquals(attacking.owner.attack.style, AttackStyle.jab);
-  assertEquals(attacking.owner.status.divineFrames, 0);
-  assertEquals(attacking.owner.status.invincible, 0);
-  const grabbed = shielded();
-  for (let f = 13; f <= 36; f++) frame(grabbed.world);
-  frame(grabbed.world, controls(), AttackStyle.grab);
-  for (let f = 0; f < 12; f++) frame(grabbed.world);
-  assertEquals(grabbed.target.grab.target, 0);
-  assertEquals(grabbed.owner.grab.owner, 1);
-});
-
-test("a grab beats Divine Shield's guard once its intangible frames end", () => {
-  const { world, owner, target } = pair(60.0, Character.uther);
+test("Consecration cannot be recast before its cooldown and gives no shield protection", () => {
+  const { world, owner } = pair(900.0);
   frame(world, down);
-  for (let f = 2; f <= 12; f++) frame(world, controls(), f === 4 ? AttackStyle.grab : undefined);
-  assertEquals(target.grab.target, 0);
-  assertEquals(owner.grab.owner, 1);
+  for (let f = 2; f <= 50; f++) frame(world);
+  const mana = owner.mana.points;
+  frame(world, down);
   assertEquals(owner.special.action, SpecialAction.none);
+  assertEquals(owner.mana.points, mana);
+  assertEquals(owner.projectiles.filter(p => p.life > 0).length, 1);
   assertEquals(owner.status.divineFrames, 0);
+  assertEquals(owner.status.invincible, 0);
+  for (let f = 51; f <= 155; f++) frame(world);
+  assertEquals(owner.projectiles.filter(p => p.life > 0).length, 0);
+  frame(world, down);
+  assertEquals(owner.special.action, SpecialAction.heroDown);
 });
 
-test("replaying Uther's guard and Radiance from a restored snapshot reproduces every fighter field", () => {
-  const { world, owner, target } = pair(60.0, Character.uther);
-  owner.status.damage = 20.0;
-  const savedOwner = createFighter(Character.uther, 0.0, 1);
-  const savedTarget = createFighter(Character.uther, 0.0, 1);
+test("replaying Uther's Consecration and Righteous Fury restores every fighter field", () => {
+  const { world, owner, target } = pair(70.0);
   frame(world, down);
+  const savedOwner = createFighter(Character.uther, 0.0, 1);
+  const savedTarget = createFighter(Character.archer, 0.0, -1);
   copyFighterState(savedOwner, owner, 3);
   copyFighterState(savedTarget, target, 3);
-  const run = () => {
-    for (let f = 2; f <= 40; f++) frame(world, f === 38 ? side : controls(), f === 3 ? AttackStyle.jab : undefined);
-    for (let f = 0; f < 50; f++) frame(world);
-  };
+  const run = () => { for (let f = 2; f <= 130; f++) frame(world, f === 50 ? side : controls()); };
   run();
   const endOwner = createFighter(Character.uther, 0.0, 1);
-  const endTarget = createFighter(Character.uther, 0.0, 1);
+  const endTarget = createFighter(Character.archer, 0.0, -1);
   copyFighterState(endOwner, owner, 3);
   copyFighterState(endTarget, target, 3);
-  assertEquals(owner.status.damage, 20.0);
+  assertGreaterThan(target.status.damage, 0.0);
   assertLessThan(owner.mana.points, 100);
   copyFighterState(owner, savedOwner, 3);
   copyFighterState(target, savedTarget, 3);
-  assertFalse(owner.special.guarded);
   run();
   assertEquals(firstFighterDifference(endOwner, owner, 3, 3), undefined);
   assertEquals(firstFighterDifference(endTarget, target, 3, 3), undefined);

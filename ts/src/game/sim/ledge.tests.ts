@@ -7,7 +7,9 @@ import { AttackPhase, AttackStyle, Character, DownState, LedgeState, ShieldBreak
 import { attackPhase, canAttack, isIntangible } from "./conditions";
 import { type Fighter, createFighter } from "./fighter";
 import { AIR_DODGE_ANIMATION_FRAMES } from "./jumpsAndDodges";
-import { LEDGE_CLIMB_FRAMES, LEDGE_INTANGIBLE_FRAMES, LEDGE_ROLL_FRAMES, ledgeCatchBox, ledgeSnap, resolveLedges } from "./ledge";
+import { advanceLedge, LEDGE_CLIMB_FRAMES, LEDGE_INTANGIBLE_FRAMES, LEDGE_ROLL_FRAMES, ledgeCatchBox, ledgeSnap, resolveLedges } from "./ledge";
+import { SpecialSlot } from "./heroSpecials";
+import { startFighterSpecial } from "./specials";
 import { LEDGE_ATTACK_FRAMES, attackStartupFrames, GRAB_HOLD_FRAMES } from "./moves";
 import type { Controls } from "./roster";
 import { surfaceLeft, surfaceRight, surfaceZ } from "./stage";
@@ -18,6 +20,31 @@ import { LEDGE_REGRAB_FRAMES } from "./transitions";
 import { authoredPhysics } from "./tuning";
 
 const LEDGE_PHASES = [LedgeState.hang, LedgeState.climb, LedgeState.roll, LedgeState.attack] as const;
+
+test("hero recovery refreshes on the ledge mount onto the deck, not the catch", () => {
+  for (const option of [LedgeState.climb, LedgeState.roll, LedgeState.attack]) {
+    const fighter = ledgeTestFighter(Character.thrall, 1);
+    fighter.special.airtimeUses = 1 << SpecialSlot.up;
+    catchTestLedge(fighter, controls());
+    assertEquals(fighter.ledge.state, LedgeState.hang);
+    assertEquals(fighter.special.airtimeUses, 1 << SpecialSlot.up);
+    fighter.ledge.state = option;
+    const world = soloWorld(fighter);
+    for (let frame = 1; frame <= 11; frame++) advanceLedge(world, 0, 0, controls());
+    assertFalse(fighter.motion.grounded);
+    assertEquals(fighter.special.airtimeUses, 1 << SpecialSlot.up);
+    advanceLedge(world, 0, 0, controls());
+    assertTrue(fighter.motion.grounded);
+    assertEquals(fighter.special.airtimeUses, 0);
+    const end = option === LedgeState.climb ? LEDGE_CLIMB_FRAMES : option === LedgeState.roll ? LEDGE_ROLL_FRAMES : LEDGE_ATTACK_FRAMES;
+    for (let frame = 13; frame <= end; frame++) advanceLedge(world, 0, 0, controls());
+    assertEquals(fighter.ledge.state, LedgeState.none);
+    fighter.motion.grounded = false;
+    fighter.motion.surface = undefined;
+    startFighterSpecial(fighter, 0, 0, controls({ specialPressed: true, specialZ: 1 }));
+    assertEquals(fighter.special.action, SpecialAction.heroUp);
+  }
+});
 
 /** A fighter beside a main-deck ledge, facing the stage, whose last movement fell into every fighter's catch box. */
 function ledgeTestFighter(character: Character, side: number): Fighter {
