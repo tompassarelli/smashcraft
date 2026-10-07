@@ -96,8 +96,8 @@ function damageFromOneAttack(style: AttackStyle): number {
   return target.status.damage;
 }
 
-function tiltDamageAt(style: AttackStyle, facing: number, targetX: number, targetZ: number): number {
-  const target = createFighter(Character.rifleman, targetX, -facing);
+function tiltDamageAt(style: AttackStyle, facing: number, targetX: number, targetZ: number, character: Character = Character.rifleman): number {
+  const target = createFighter(character, targetX, -facing);
   target.motion.z = targetZ;
   resolveStartedAttack(testWorld(createFighter(Character.archer, 0.0, facing), target), style);
   return target.status.damage;
@@ -392,9 +392,10 @@ test("angled forward tilts cover their vertical offset and preserve the facing r
   assertEquals(tiltDamageAt(AttackStyle.forwardTiltDown, 1, 100.0, 150.0), 0.0);
   assertEquals(tiltDamageAt(AttackStyle.forwardTilt, 1, 100.0, 150.0), 0.0);
   assertEquals(tiltDamageAt(AttackStyle.forwardTilt, 1, 100.0, -150.0), 0.0);
-  assertEquals(tiltDamageAt(AttackStyle.forwardTiltUp, 1, 135.0, 65.0), 10.0);
-  assertEquals(tiltDamageAt(AttackStyle.forwardTiltDown, 1, 135.0, -65.0), 10.0);
-  assertEquals(tiltDamageAt(AttackStyle.forwardTiltUp, 1, 146.0, 65.0), 0.0);
+  // The angled reach is measured on Archer's 112-tall reference body; the dwarf's 87 sits under the up-angled tip there.
+  assertEquals(tiltDamageAt(AttackStyle.forwardTiltUp, 1, 135.0, 65.0, Character.archer), 10.0);
+  assertEquals(tiltDamageAt(AttackStyle.forwardTiltDown, 1, 135.0, -65.0, Character.archer), 10.0);
+  assertEquals(tiltDamageAt(AttackStyle.forwardTiltUp, 1, 146.0, 65.0, Character.archer), 0.0);
   assertEquals(tiltDamageAt(AttackStyle.forwardTiltDown, -1, 100.0, -65.0), 0.0);
   assertEquals(tiltDamageAt(AttackStyle.forwardTilt, 1, 147.0, 0.0), 10.0);
   assertEquals(tiltDamageAt(AttackStyle.forwardTilt, 1, 148.0, 0.0), 0.0);

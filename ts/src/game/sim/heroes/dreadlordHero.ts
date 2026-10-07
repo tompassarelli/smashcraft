@@ -21,7 +21,6 @@ export const DREADLORD_HERO: HeroDefinition = {
   gameplan: DREADLORD_GAMEPLAN,
   presentation: {
     model: DREADLORD_MODEL_FILE,
-    scale: 1.0,
     objectId: 0x6d66646c,
     portrait: "ReplaceableTextures\\CommandButtons\\BTNHeroDreadLord.blp",
     clips: DREADLORD_CLIP_TABLE,

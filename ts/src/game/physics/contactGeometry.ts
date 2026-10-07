@@ -212,13 +212,14 @@ export function attackCapsule(target: Capsule, style: number | undefined, reach:
   return target;
 }
 
-// Coarse, pose-independent hurt capsules for the current actor presentation
-// scale; they claim no Melee hurtbox or animation parity. Expansion heroes
-// scale Archer's capsule by the roster's width and height multipliers.
+// Coarse, pose-independent hurt capsules fitted to each fighter's drawn body
+// at its model scale (presentation/modelScale.ts); they claim no Melee hurtbox
+// or animation parity. Expansion heroes scale Archer's capsule by the roster's
+// width and height multipliers.
 const ORIGINAL_HURT_CAPSULES: readonly Readonly<Capsule>[] = [
   { x1: 0.0, z1: 4.0, x2: 0.0, z2: 88.0, radius: 24.0 },
-  { x1: 0.0, z1: 4.0, x2: 0.0, z2: 96.0, radius: 26.0 },
-  { x1: 0.0, z1: 4.0, x2: 0.0, z2: 102.0, radius: 25.0 },
+  { x1: 0.0, z1: 4.0, x2: 0.0, z2: 61.0, radius: 26.0 },
+  { x1: 0.0, z1: 4.0, x2: 0.0, z2: 133.75, radius: 25.0 },
 ];
 
 function scaledHurtCapsule(character: number): Readonly<Capsule> | undefined {

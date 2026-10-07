@@ -52,7 +52,7 @@ test("a hero plays its registered sequences and its fallback for any pose it lea
   // One registration gives the body its unit, model and scale.
   assertEquals(FIGHTER_OBJECTS[warden].model, WARDEN_MODEL_FILE);
   assertEquals(FIGHTER_OBJECTS[warden].id, WARDEN_HERO.presentation.objectId);
-  assertEquals(characterModelScale(warden), WARDEN_HERO.presentation.scale);
+  assertEquals(FIGHTER_OBJECTS[warden].scale, characterModelScale(warden));
 });
 
 test("a hero table's state poses take over the states only Illidan has clips for", () => {

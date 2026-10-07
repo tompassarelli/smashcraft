@@ -21,7 +21,6 @@ export const BLADEMASTER_HERO: HeroDefinition = {
   gameplan: BLADEMASTER_GAMEPLAN,
   presentation: {
     model: "units\\orc\\HeroBladeMaster\\HeroBladeMaster.mdl",
-    scale: 1.0,
     objectId: 0x6d66626d,
     portrait: "ReplaceableTextures\\CommandButtons\\BTNHeroBlademaster.blp",
     // Mirror Image: his own model, see-through, standing where he left it.

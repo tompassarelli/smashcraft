@@ -56,8 +56,6 @@ export const SHADOW_HUNTER_HERO: HeroDefinition = {
   gameplan: SHADOW_HUNTER_GAMEPLAN,
   presentation: {
     model: "units\\orc\\HeroShadowHunter\\HeroShadowHunter.mdl",
-    // Stand Ready is 138 units tall at scale 1, against the roster's 1.08H (143).
-    scale: 1.0,
     objectId: 0x6d667368,
     portrait: "ReplaceableTextures\\CommandButtons\\BTNShadowHunter.blp",
     clips: {

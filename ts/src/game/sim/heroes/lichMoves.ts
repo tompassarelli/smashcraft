@@ -1,5 +1,6 @@
 import { f32 } from "wisp/src/sim/f32";
-import { AttackStyle, GrabAction, HitElement } from "../codes";
+import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
+import { hurtCapsule } from "../../physics/contactGeometry";
 import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion, type AuthoredThrow, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
 import { LICH_GROUND, groundPoses } from "./groundNormals";
 import type { HitEffect } from "../hitRegions";
@@ -97,12 +98,11 @@ function throwMove(release: number, recovery: number, damage: number, kind: keyo
   return { contactFrame: release, totalFrames: release + recovery, effect: hit(damage, kind, angle, backwards) };
 }
 
-// Lich's body: the reference capsule scaled by the roster's 0.90 width and
-// 1.05 height. Lich has no weapon, so the conjured frost beyond the hand is the
+// Lich's body: his standing hurt capsule (the roster's width and height). Lich has no weapon, so the conjured frost beyond the hand is the
 // move's disjoint while the casting arm extends the body from late startup
 // through early recovery; a whiffed cast is punishable at the hand.
-const BODY_RADIUS = f32(24.0 * f32(0.90));
-const BODY_TOP = f32(f32(4.0 + f32(HERO_REFERENCE_HEIGHT * f32(1.05))) - f32(2.0 * BODY_RADIUS));
+const BODY_RADIUS = hurtCapsule(Character.lich).radius;
+const BODY_TOP = hurtCapsule(Character.lich).z2;
 const SHOULDER = f32(BODY_TOP - 14.0);
 const TORSO = hurtPart(0.0, 4.0, 0.0, BODY_TOP, BODY_RADIUS);
 const ARM_RADIUS = 9.0;

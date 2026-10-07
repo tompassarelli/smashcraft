@@ -21,7 +21,6 @@ export const MOUNTAIN_KING_HERO: HeroDefinition = {
   gameplan: MOUNTAIN_KING_GAMEPLAN,
   presentation: {
     model: "units\\human\\HeroMountainKing\\HeroMountainKing.mdl",
-    scale: 1.0,
     objectId: 0x6d666d6b,
     portrait: "ReplaceableTextures\\CommandButtons\\BTNHeroMountainKing.blp",
     clips: MOUNTAIN_KING_CLIPS,

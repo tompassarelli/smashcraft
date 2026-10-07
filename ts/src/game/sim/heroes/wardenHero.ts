@@ -22,7 +22,6 @@ export const WARDEN_HERO: HeroDefinition = {
   gameplan: WARDEN_GAMEPLAN,
   presentation: {
     model: WARDEN_MODEL_FILE,
-    scale: 1.0,
     objectId: 0x6d667764,
     portrait: "ReplaceableTextures\\CommandButtons\\BTNHeroWarden.blp",
     clips: WARDEN_CLIP_TABLE,

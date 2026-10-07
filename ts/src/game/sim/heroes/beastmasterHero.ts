@@ -40,8 +40,6 @@ export const BEASTMASTER_HERO: HeroDefinition = {
   gameplan: BEASTMASTER_GAMEPLAN,
   presentation: {
     model: "units\\creeps\\BeastMaster\\BeastMaster.mdl",
-    // The bind pose is 192 tall with the raised axes; the roster's body is 1.10H (146).
-    scale: f32(0.85),
     objectId: 0x6d666273,
     portrait: "ReplaceableTextures\\CommandButtons\\BTNBeastMaster.blp",
     placedModel: { path: "units\\creeps\\GrizzlyBear\\GrizzlyBear.mdl", height: 137.0, alpha: 255 },

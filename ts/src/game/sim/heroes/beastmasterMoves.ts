@@ -1,5 +1,6 @@
 import { f32 } from "wisp/src/sim/f32";
-import { AttackStyle, GrabAction, HitElement } from "../codes";
+import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
+import { hurtCapsule } from "../../physics/contactGeometry";
 import { HERO_REFERENCE_HEIGHT, jabStep, heroHurtPose, heroMove, heroRegion, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
 import type { HitEffect } from "../hitRegions";
 import { type FighterHurtboxes, type HurtPart, hurtPart } from "../hurtboxes";
@@ -57,11 +58,10 @@ function chop(first: number, heights: readonly number[], reach: number, effect: 
   return path(first, heights.map(z => capsule(24.0, 55.0, f32(reach - AXE_RADIUS), z)), effect);
 }
 
-// Body: the reference capsule scaled by the roster's 1.15 width and 1.10
-// height. Arms reach toward each axe swing; Hunter's Boot is an exposed leg
+// Body: his standing hurt capsule (the roster's width and height). Arms reach toward each axe swing; Hunter's Boot is an exposed leg
 // and Hunter's Shoulder strikes with the body. The axe heads are disjoint.
-const BODY_RADIUS = f32(24.0 * f32(1.15));
-const BODY_TOP = f32(f32(4.0 + f32(HERO_REFERENCE_HEIGHT * f32(1.10))) - f32(2.0 * BODY_RADIUS));
+const BODY_RADIUS = hurtCapsule(Character.beastmaster).radius;
+const BODY_TOP = hurtCapsule(Character.beastmaster).z2;
 const BODY = hurtPart(0.0, 4.0, 0.0, BODY_TOP, BODY_RADIUS);
 const LIMB_RADIUS = 10.0;
 const limb = (x1: number, z1: number, x2: number, z2: number, radius = LIMB_RADIUS): readonly HurtPart[] => [BODY, hurtPart(x1, z1, x2, z2, radius)];

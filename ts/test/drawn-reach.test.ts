@@ -22,9 +22,7 @@ const MODELS: { readonly [character: number]: string } = {
   [Character.archer]: ARCHER_MODEL_FILE, [Character.rifleman]: RIFLEMAN_MODEL_FILE, [Character.demonHunter]: DEMON_HUNTER_MODEL_FILE,
 };
 /** Named departures: the least swing a fighter's model can draw, and why. */
-const DEPARTURES: { readonly [character: number]: { readonly swing: number; readonly why: string } } = {
-  [Character.lich]: { swing: 28, why: "his model swings only Attack and Spell; jab, forward tilt up and dash attack draw 28-29" },
-};
+const DEPARTURES: { readonly [character: number]: { readonly swing: number; readonly why: string } } = {};
 
 test("every checked swing draws toward its strike on its active frames", () => {
   const off = DRAWN_REACH.flatMap((row) => {

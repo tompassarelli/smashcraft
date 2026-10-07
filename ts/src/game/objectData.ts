@@ -2,6 +2,7 @@
 import { CHUNKS_PER_FILE, FILE_IO_ABILITY } from "wisp/src/runtime/gameFiles";
 import { ARCHER_MODEL_FILE, RIFLEMAN_MODEL_FILE } from "./presentation/fighterAssetInfo";
 import { DEMON_HUNTER_MODEL_FILE } from "./presentation/demonHunterAssetInfo";
+import { characterModelScale } from "./presentation/modelScale";
 import { Character } from "./sim/codes";
 import { SELECTABLE_CHARACTERS, heroDefinition } from "./sim/heroes/registry";
 
@@ -20,7 +21,6 @@ export interface FighterObject {
 
 const fighterFields = {
   artVersion: 0,
-  scale: 1.0,
   // Blending can hold the previous pose throughout hitlag.
   blendTime: 0.0,
   selectionScale: 0.0,
@@ -38,13 +38,13 @@ function heroObject(character: Character): FighterObject {
   const hero = heroDefinition(character);
   if (hero === undefined) throw new Error(`hero ${character} is not registered`);
   const { presentation } = hero;
-  return { ...fighterFields, base: "earc", id: presentation.objectId, name: hero.name, model: presentation.model, scale: presentation.scale };
+  return { ...fighterFields, base: "earc", id: presentation.objectId, name: hero.name, model: presentation.model, scale: characterModelScale(character) };
 }
 
 export const FIGHTER_OBJECTS: Readonly<Record<Character, FighterObject>> = {
-  [Character.archer]: { ...fighterFields, base: "earc", id: 0x6d666172, name: "Archer", model: ARCHER_MODEL_FILE },
-  [Character.rifleman]: { ...fighterFields, base: "hrif", id: 0x6d667266, name: "Rifleman", model: RIFLEMAN_MODEL_FILE },
-  [Character.demonHunter]: { ...fighterFields, base: "earc", id: 0x6d666468, name: "Illidan", model: DEMON_HUNTER_MODEL_FILE },
+  [Character.archer]: { ...fighterFields, base: "earc", id: 0x6d666172, name: "Archer", model: ARCHER_MODEL_FILE, scale: characterModelScale(Character.archer) },
+  [Character.rifleman]: { ...fighterFields, base: "hrif", id: 0x6d667266, name: "Rifleman", model: RIFLEMAN_MODEL_FILE, scale: characterModelScale(Character.rifleman) },
+  [Character.demonHunter]: { ...fighterFields, base: "earc", id: 0x6d666468, name: "Illidan", model: DEMON_HUNTER_MODEL_FILE, scale: characterModelScale(Character.demonHunter) },
   [Character.blademaster]: heroObject(Character.blademaster),
   [Character.mountainKing]: heroObject(Character.mountainKing),
   [Character.warden]: heroObject(Character.warden),

@@ -49,8 +49,6 @@ export const PIT_LORD_HERO: HeroDefinition = {
   gameplan: PIT_LORD_GAMEPLAN,
   presentation: {
     model: "units\\demon\\HeroPitLord\\HeroPitLord.mdl",
-    // The bind pose is 187 tall at scale 1 with horns and raised cleaver; the roster's body is 1.35H (179).
-    scale: f32(0.95),
     objectId: 0x6d66706c,
     portrait: "ReplaceableTextures\\CommandButtons\\BTNPitLord.blp",
     clips: {

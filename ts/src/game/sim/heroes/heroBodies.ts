@@ -21,13 +21,13 @@ const HERO_BODIES: { readonly [character: number]: HeroBody | undefined } = {
   [Character.blademaster]: body(f32(1.00), f32(1.08), f32(1.00), f32(1.00), f32(1.05)),
   [Character.mountainKing]: body(f32(1.12), f32(0.88), f32(0.82), f32(1.10), f32(0.85)),
   [Character.warden]: body(f32(0.88), f32(1.14), f32(1.10), f32(0.90), f32(1.00)),
-  [Character.lich]: body(f32(0.85), f32(0.90), f32(0.95), f32(0.90), f32(1.05)),
+  [Character.lich]: body(f32(0.85), f32(0.90), f32(0.95), f32(0.90), f32(1.28)),
   [Character.uther]: body(f32(1.10), f32(0.92), f32(0.88), f32(1.08), f32(1.02)),
   [Character.dreadlord]: body(f32(1.24), f32(1.10), f32(1.22), f32(1.10), f32(1.15)),
   [Character.shadowHunter]: body(f32(0.94), f32(1.04), f32(1.00), f32(0.92), f32(1.08)),
   // His 1.65-wide body would stand outside the reference shield, so it grows with his height.
   [Character.pitLord]: { ...body(f32(1.28), f32(0.80), f32(0.70), f32(1.65), f32(1.35)), shield: f32(1.35) },
-  [Character.beastmaster]: body(f32(1.10), f32(0.97), f32(0.88), f32(1.15), f32(1.10)),
+  [Character.beastmaster]: body(f32(1.10), f32(0.97), f32(0.88), f32(1.15), f32(1.26)),
 };
 
 /** An expansion hero's body multipliers; undefined for the original three fighters. */

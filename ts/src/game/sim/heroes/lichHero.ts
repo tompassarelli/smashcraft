@@ -45,8 +45,6 @@ export const LICH_HERO: HeroDefinition = {
   gameplan: LICH_GAMEPLAN,
   presentation: {
     model: "units\\undead\\HeroLich\\HeroLich.mdl",
-    // The stand pose's top (z 177) at the roster's 1.05 height.
-    scale: f32(0.8),
     objectId: 0x6d666c63,
     portrait: "ReplaceableTextures\\CommandButtons\\BTNHeroLich.blp",
     clips: {

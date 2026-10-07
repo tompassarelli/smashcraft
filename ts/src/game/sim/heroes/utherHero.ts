@@ -21,7 +21,6 @@ export const UTHER_HERO: HeroDefinition = {
   gameplan: UTHER_GAMEPLAN,
   presentation: {
     model: "units\\human\\HeroPaladin\\HeroPaladin.mdl",
-    scale: 1.0,
     objectId: 0x6d667574,
     portrait: "ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp",
     clips: UTHER_CLIPS,

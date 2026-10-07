@@ -50,7 +50,7 @@ The simulation runs at 60 ticks per second. Timings are simulation frames, not r
 
 H is a fixed reference height taken from the standing combat hurtbox of the current baseline fighter, not from model bounds. Reach is measured from fighter center to the furthest hit volume: S = 0.55H, M = 0.80H, L = 1.10H, XL = 1.40H. These are initial outer extents, not solid rectangles. Construct capsules or circles along the described swing and inspect the full path. Do not fill the entire arc with a huge active volume. Mirroring uses logical facing.
 
-Weapon-only extensions can be disjointed; hands, feet, wings, tails, and bodies retain attached hurtboxes. A glowing effect does not justify an invisible extra hitbox. Unarmed magic has only the explicit reach in the table. Calibrate model scale to hurtboxes and weapon positions; do not stretch all heroes to identical silhouettes.
+Weapon-only extensions can be disjointed; hands, feet, wings, tails, and bodies retain attached hurtboxes. A glowing effect does not justify an invisible extra hitbox. Unarmed magic has only the explicit reach in the table. Draw each fighter at its stock model scale ("Model scale" below) and fit its hurtboxes to that drawn body; do not stretch all heroes to identical silhouettes.
 
 Angles are degrees relative to the attack direction: 0 horizontal, 45 diagonal outward, 90 upward, 270 downward. A back aerial or back throw points away from facing. For up/down throws, use facing only to break horizontal ties. Downward aerial angles become 55 degrees against grounded targets in the first pass, unless a row explicitly specifies a grounded effect. Use existing meteor-cancel behavior if present; this document does not add or remove it.
 
@@ -108,7 +108,7 @@ Weight is relative to the current reference fighter at 1.00. Run and air speed a
 | Mountain King | 1.12 | 0.88 | 0.82 | 1.10 | 0.85 |
 | Warden | 0.88 | 1.14 | 1.10 | 0.90 | 1.00 |
 | Brewmaster | 1.13 | 0.98 | 0.90 | 1.20 | 1.10 |
-| Lich | 0.85 | 0.90 | 0.95 | 0.90 | 1.05 |
+| Lich | 0.85 | 0.90 | 0.95 | 0.90 | 1.28 |
 | Uther | 1.10 | 0.92 | 0.88 | 1.08 | 1.02 |
 | Dreadlord | 1.24 | 1.10 | 1.22 | 1.10 | 1.15 |
 | Shadow Hunter | 0.94 | 1.04 | 1.00 | 0.92 | 1.08 |
@@ -116,9 +116,48 @@ Weight is relative to the current reference fighter at 1.00. Run and air speed a
 | Tinker | 1.05 | 0.94 | 0.86 | 1.20 | 0.95 |
 | Alchemist | 1.20 | 0.86 | 0.80 | 1.35 | 1.25 |
 | Naga Sea Witch | 1.02 | 0.94 | 0.76 | 1.20 | 1.05 |
-| Beastmaster | 1.10 | 0.97 | 0.88 | 1.15 | 1.10 |
+| Beastmaster | 1.10 | 0.97 | 0.88 | 1.15 | 1.26 |
 | Dark Ranger | 0.90 | 1.08 | 1.04 | 0.90 | 1.00 |
 | Firelord | 0.98 | 0.94 | 0.94 | 1.02 | 1.10 |
+
+### Model scale
+
+Decided 7 Oct 2026 (#162, Tom delegated): fighters keep Warcraft's own model
+proportions. Each fighter is drawn at its stock unit's model scale times one
+shared factor, `FIGHTER_MATCH_SCALE` (1.0), with no per-fighter size boost;
+1.0 leaves the median fighter's size, and so the camera's framing, unchanged.
+The stock scale is the unit's `modelScale:sd` in the game's
+`units/unitskin.txt`, the field Warcraft applies to the classic models the
+clients draw. Unit body, clip pool, effects, star knockout and stage placement
+all read the one value in smashcraft:ts/src/game/presentation/modelScale.ts;
+smashcraft:ts/test/model-scale.test.ts pins draw scale = stock scale × the
+factor for every fighter. Hurt capsules follow the drawn body:
+smashcraft:ts/test/drawn-size.test.ts holds each drawn head within 0.9-1.3 of
+its capsule's top.
+
+| Fighter | Stock unit | Stock model scale | Draw scale | Before #162 |
+| --- | --- | ---: | ---: | ---: |
+| Archer | earc | 1.00 | 1.00 | 1.00 |
+| Rifleman | hrif | 1.00 | 1.00 | 1.40 |
+| Illidan | Edem | 1.00 | 1.00 | 0.80 |
+| Blademaster | Obla | 1.00 | 1.00 | 1.00 |
+| Mountain King | Hmkg | 1.00 | 1.00 | 1.00 |
+| Warden | Ewar | 1.00 | 1.00 | 1.00 |
+| Lich | Ulic | 1.00 | 1.00 | 0.80 |
+| Uther | Hpal | 1.00 | 1.00 | 1.00 |
+| Dreadlord | Udre | 1.00 | 1.00 | 1.00 |
+| Shadow Hunter | Oshd | 1.00 | 1.00 | 1.00 |
+| Pit Lord | Nplh | 1.00 | 1.00 | 0.95 |
+| Beastmaster | Nbst | 1.00 | 1.00 | 0.85 |
+
+Rifleman stands 87 units at scale 1, Shadow Hunter 138: the dwarf is drawn
+smaller because Warcraft draws him smaller. The fighters whose draw scale
+moved had their hurt capsule's height refit to the drawn head, keeping the
+ratio of drawn height to capsule top they had before: Rifleman's top is 87
+(was 122), Illidan's 159 (127), Lich's 151 (121) and Beastmaster's 143 (122),
+the heroes through Height above. Widths stay as authored: each kit's strikes
+and travel stops are spaced against them. Pit Lord's drawn height stays
+within the band, so his capsule is unchanged.
 
 The individual hero sections below specify all attacks. Their counterplay descriptions are acceptance goals to test, not claims established by these numbers.
 
