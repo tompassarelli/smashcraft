@@ -23,6 +23,10 @@ export const CARRIED_TEST_STAGE = 11;
 export const CANNON_TEST_STAGE = 12;
 export const TIMED_TEST_STAGE = 13;
 export const HELLFIRE_STAGE = 14;
+/** Uther's and Dreadlord's home: a high rooftop over two low balconies, after Ultimate's Lylat Cruise without its tilt. */
+export const STRATHOLME_STAGE = 6;
+/** Warden's home: two platforms over the ends, overhanging the ledges, after Ultimate's Northern Cave. */
+export const TOMB_OF_SARGERAS_STAGE = 7;
 
 const MAIN_DECK_LEFT = -600.0;
 const MAIN_DECK_RIGHT = 600.0;
@@ -121,6 +125,13 @@ const GRYPHON_DECKS = [MAIN_DECK,
  */
 const BLACKROCK_DECKS = [MAIN_DECK, fixed(-180.0, 180.0, melee(25.0), true)];
 const HELLFIRE_DECKS = [MAIN_DECK, fixed(-450.0, -270.0, melee(25.0), true), fixed(270.0, 450.0, melee(25.0), true)];
+const STRATHOLME_DECKS = [MAIN_DECK,
+  fixed(-510.0, -360.0, melee(18.0), true),
+  fixed(360.0, 510.0, melee(18.0), true),
+  fixed(-120.0, 120.0, melee(46.0), true),
+];
+/** Northern Cave's end platforms, 0.43 of a half-deck wide, reaching 90 past each ledge. */
+const TOMB_OF_SARGERAS_DECKS = [MAIN_DECK, fixed(-690.0, -435.0, melee(29.0), true), fixed(435.0, 690.0, melee(29.0), true)];
 const SOLID_RAISED_DECKS = [MAIN_DECK, fixed(-420.0, -110.0, 170.0, false), fixed(110.0, 420.0, 170.0, false)];
 
 /**
@@ -183,6 +194,8 @@ function stageDecks(stage: number): readonly Deck[] {
   if (stage === WIND_TEST_STAGE) return NORDRASSIL_DECKS;
   if (stage === CANNON_TEST_STAGE) return BLACKROCK_DECKS;
   if (stage === HELLFIRE_STAGE) return HELLFIRE_DECKS;
+  if (stage === STRATHOLME_STAGE) return STRATHOLME_DECKS;
+  if (stage === TOMB_OF_SARGERAS_STAGE) return TOMB_OF_SARGERAS_DECKS;
   if (stage === CARRIED_TEST_STAGE) return CARRIED_DECKS;
   if (stage === TIMED_TEST_STAGE) return TIMED_DECKS;
   return stage >= 0 && stage < STAGE_DECKS.length ? at(STAGE_DECKS, stage) : NO_DECKS;
@@ -360,6 +373,10 @@ const DECK_PROFILES: Readonly<Record<number, readonly ReferencePoint[]>> = {
   [PATTERNED_DECKS_STAGE]: [{ x: 0.0, z: 0.0 }, { x: 0.0, z: -9.0 }, { x: -7.0, z: -12.0 }, { x: -7.0, z: -22.0 }, { x: -15.0, z: -26.0 }, { x: -15.0, z: -38.0 }, { x: -26.0, z: -42.0 }],
   // A heavy slab: tall straight walls and a broad, blunt base.
   [HELLFIRE_STAGE]: [{ x: 0.0, z: 0.0 }, { x: 0.0, z: -14.0 }, { x: -2.0, z: -16.0 }, { x: -2.0, z: -40.0 }, { x: -6.0, z: -46.0 }, { x: -14.0, z: -50.0 }, { x: -22.0, z: -52.0 }],
+  // A city rampart: a battlement lip, two set-back courses, then a buttressed base.
+  [STRATHOLME_STAGE]: [{ x: 0.0, z: 0.0 }, { x: 0.0, z: -10.0 }, { x: -5.0, z: -12.0 }, { x: -5.0, z: -20.0 }, { x: -10.0, z: -22.0 }, { x: -16.0, z: -44.0 }, { x: -28.0, z: -48.0 }],
+  // A sunken plinth: a waterline lip over a sheer drop, stepping out to a broad base.
+  [TOMB_OF_SARGERAS_STAGE]: [{ x: 0.0, z: 0.0 }, { x: 0.0, z: -6.0 }, { x: -3.0, z: -8.0 }, { x: -3.0, z: -30.0 }, { x: -18.0, z: -34.0 }, { x: -24.0, z: -48.0 }, { x: -34.0, z: -50.0 }],
   // A temple: an even trapezoid taper.
   [TIMED_TEST_STAGE]: [{ x: 0.0, z: 0.0 }, { x: 0.0, z: -6.0 }, { x: -4.0, z: -10.0 }, { x: -12.0, z: -20.0 }, { x: -22.0, z: -32.0 }, { x: -30.0, z: -44.0 }, { x: -36.0, z: -50.0 }],
 };
@@ -413,6 +430,8 @@ const PROFILED_BODIES: Readonly<Record<number, readonly SolidSurface[]>> = {
   [PATTERNED_DECKS_STAGE]: mainDeckBody(deckProfile(PATTERNED_DECKS_STAGE)),
   [HELLFIRE_STAGE]: mainDeckBody(deckProfile(HELLFIRE_STAGE)),
   [TIMED_TEST_STAGE]: mainDeckBody(deckProfile(TIMED_TEST_STAGE)),
+  [STRATHOLME_STAGE]: mainDeckBody(deckProfile(STRATHOLME_STAGE)),
+  [TOMB_OF_SARGERAS_STAGE]: mainDeckBody(deckProfile(TOMB_OF_SARGERAS_STAGE)),
 };
 
 /** The main deck's walls and underside on `stage`. */
