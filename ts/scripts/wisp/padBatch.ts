@@ -290,7 +290,7 @@ export const padBatch = (options: NativeBatchOptions) => Effect.gen(function*() 
       const run = runs[index];
       if (run === undefined) break;
       const made = report(run, pair.name);
-      const padOptions: PadOptions = { scriptPath: run.script, steps: run.steps, helper: options.helper, build, out: join(run.dir, "native"), chat: run.chat };
+      const padOptions: PadOptions = { scriptPath: run.script, steps: run.steps, helper: options.helper, build, out: join(run.dir, "native"), chat: run.chat, candidate: options.map };
       let outcome: "valid" | "invalid" | "failed" | "broken" = "invalid";
       for (let attempt = 0; attempt <= retries; attempt++) {
         made.attempts = attempt + 1;

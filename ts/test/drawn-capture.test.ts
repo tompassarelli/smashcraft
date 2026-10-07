@@ -24,24 +24,38 @@ function laggingClient(epoch: number, lag: number, ahead: number) {
   return { clockFrame, read: (): Drawn => ({ epoch, frame: Math.max(0, clockFrame() - lag) }) };
 }
 
-test("a capture waits until the lagging client has drawn its frame, and records the frame it showed", async () => {
-  // The helper's clock is already at frame 40; the client draws 30 frames behind it.
-  const client = laggingClient(2, 30, 40);
-  let shotAtDrawn = -1;
-  let shotAtClock = -1;
-  const shoot = Effect.sync(() => {
-    shotAtDrawn = client.read().frame;
-    shotAtClock = client.clockFrame();
-    return "frame";
-  });
-  const result = await Effect.runPromise(captureWhenDrawn(client.read, 2, 40, 2000, shoot, "test"));
-  // On the clock alone the capture would show frame 10; it waited for 40.
-  expect(result.before).toBeGreaterThanOrEqual(40);
-  expect(result.before).toBeLessThanOrEqual(42);
-  expect(shotAtDrawn).toBeGreaterThanOrEqual(40);
-  expect(shotAtClock - shotAtDrawn).toBeGreaterThanOrEqual(29);
-  expect(result.after).toBeGreaterThanOrEqual(result.before);
-  expect(result.waitedMs).toBeGreaterThan(400);
+test("a capture waits for the requested held frame and identifies both receipts exactly", async () => {
+  let frame = 10;
+  const advance = setTimeout(() => { frame = 40; }, 20);
+  const result = await Effect.runPromise(captureWhenDrawn(() => ({ epoch: 2, frame }), 2, 40, 2000, Effect.succeed("frame"), "test"));
+  clearTimeout(advance);
+  expect(result.before).toBe(40);
+  expect(result.after).toBe(40);
+  expect(result.shot).toBe("frame");
+});
+
+test("a missed requested frame fails before reading an unrelated framebuffer", async () => {
+  let shots = 0;
+  const exit = await Effect.runPromiseExit(captureWhenDrawn(() => ({ epoch: 2, frame: 164 }), 2, 154, 100, Effect.sync(() => ++shots), "test"));
+  expect(Exit.isFailure(exit)).toBe(true);
+  expect(String(exit)).toContain("request boundary missed match 2 frame 154; observed frame 164");
+  expect(shots).toBe(0);
+});
+
+test("the retained 154 to 164 completion and absent or replaced receipts are INVALID", async () => {
+  for (const completion of [{ epoch: 2, frame: 164 }, undefined, { epoch: 3, frame: 154 }]) {
+    let receipt: Drawn | undefined = { epoch: 2, frame: 154 };
+    const exit = await Effect.runPromiseExit(captureWhenDrawn(() => receipt, 2, 154, 100, Effect.sync(() => { receipt = completion; return "later framebuffer"; }), "test"));
+    expect(Exit.isFailure(exit)).toBe(true);
+    expect(String(exit)).toContain("INVALID: completion boundary expected match 2 frame 154");
+  }
+});
+
+test("a clock stalled at 220 cannot satisfy frame 242", async () => {
+  const exit = await Effect.runPromiseExit(captureWhenDrawn(() => ({ epoch: 2, frame: 220 }), 2, 242, 10, Effect.succeed("frame"), "test"));
+  expect(Exit.isFailure(exit)).toBe(true);
+  expect(String(exit)).toContain("INVALID: drawn-clock boundary");
+  expect(String(exit)).toContain("epoch 2 frame 220");
 });
 
 test("a capture ignores another match's drawn frames and fails after its wait", async () => {

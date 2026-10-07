@@ -342,6 +342,9 @@ code. From smashcraft:ts/:
   through each client's real helper and reports the frame each edge landed on
   (script syntax: smashcraft:ts/scripts/integrity/padScript.ts). It copies
   the clients' input traces, scene reports and moments beside the result;
+  captures require the requested frame in both drawn receipts, otherwise the
+  run is INVALID with retained captures and the first failed boundary in its report
+  (smashcraft:docs/native-bot-session.md, "Native checks by parity");
   a desynced, crashed or early-ended run is INVALID and, with --map, rerun.
   `bun wisp pad SCRIPT --headless --helper BINARY --out DIR [--chat=TEXT]
   [--compare NATIVE_DIR]` plays the same script through the same helper into

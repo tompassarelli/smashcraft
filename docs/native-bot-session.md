@@ -229,9 +229,16 @@ frame: the integrity build writes the predicted frame it drew to
 `smashcraft-drawn-BUILD-pN.txt` in CustomMapData whenever it changes, and
 under load the drawn match runs well behind the helper's clock (#156 on
 7 Oct: 6 to 88 frames, so captures on the clock showed the moment before
-the move). It is saved as `frame-FRAME-CLIENT-drawn-D.ppm`, D the frame drawn
-when the capture began, and `captures.json` gives each capture's frames drawn
-before and after it (the screen grab itself takes about 50 ms, three frames).
+the move). A capture passes only when both the initial and completion receipts
+name the requested match and frame. A later frame, absent completion receipt,
+or clock that cannot reach the request within ten seconds makes the run INVALID.
+The framebuffer read itself is bounded to eight seconds and reaps its child on
+timeout. These are visual checks; a held scene cannot establish live input timing.
+Successful images retain their exact frame as `frame-FRAME-CLIENT-drawn-FRAME.ppm`.
+`captures.json` names each candidate, client, match, requested frame, both observed
+frames and PASS or INVALID result. The terminal report retains successful images
+and names the earliest failed capture boundary; a failed capture invalidates the
+run even when all input edges landed correctly.
 A dash attack is A with the stick back at neutral while the fighter still
 dashes (a jab out of a dash); A with the stick held, even 12 frames into
 the dash, is a forward smash. A menu-started

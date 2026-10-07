@@ -134,6 +134,7 @@ export interface PadOptions {
   readonly build: string;
   readonly out: string;
   readonly chat: string | undefined;
+  readonly candidate?: string | undefined;
 }
 
 /** Helpers and virtual pads belong to one game, across all of its scripted matches. */
@@ -242,6 +243,7 @@ export const nativeScript = (session: NativeSession, options: PadOptions) => Eff
   const epochs = yield* matchEpochs(logs, startedNs, out);
   const matchIds = logs().map((text) => matchStart(text)?.epoch ?? 0);
   const captures: Record<string, unknown>[] = [];
+  const captureFailures: { frame: number; message: string }[] = [];
   const shots: Fiber.Fiber<void>[] = [];
   yield* checkFirstEdge(steps, epochs, scriptPath);
   const producerPath = join(out, "producer.jsonl");
@@ -256,11 +258,12 @@ export const nativeScript = (session: NativeSession, options: PadOptions) => Eff
         Effect.flatMap(({ shot: frame, before, after, waitedMs }) => tryIntegrity("save frame", out, () => {
           const name = `frame-${item.frame}-${client.name}-drawn-${before}.ppm`;
           writeFileSync(join(out, name), encodePpm(frame));
-          captures.push({ line: item.line, client: client.name, planned: item.frame, drawn_before: before, drawn_after: after, waited_ms: Math.round(waitedMs), file: name });
+          captures.push({ status: "PASS", candidate: options.candidate ?? build, build, epoch: at(matchIds, item.slot), line: item.line, client: client.name, planned: item.frame, drawn_before: before, drawn_after: after, waited_ms: Math.round(waitedMs), file: name });
         })),
         Effect.catch((failure) => Effect.sync(() => {
           console.error(`capture at frame ${item.frame}: ${failure.message}`);
-          captures.push({ line: item.line, client: client.name, planned: item.frame, failed: failure.message });
+          captures.push({ status: "INVALID", candidate: options.candidate ?? build, build, epoch: at(matchIds, item.slot), line: item.line, client: client.name, planned: item.frame, failed: failure.message });
+          captureFailures.push({ frame: item.frame, message: failure.message });
         })),
       );
       shots.push(yield* Effect.forkScoped(shot));
@@ -279,14 +282,15 @@ export const nativeScript = (session: NativeSession, options: PadOptions) => Eff
   const finished = yield* Effect.exit(finish(out, scriptPath, build, epochs, sent, logs()));
   yield* tryIntegrity("save script helper logs", out, () => logs().forEach((text, slot) => writeFileSync(join(out, `helper-${slot}.log`), text)));
   yield* collect(data, out, startedMs);
-  const invalid = invalidRun(clients.map((client) => client.name), clients.map((client) => client.documents), data, startedMs);
+  const invalid = [...captureFailures.sort((a, b) => a.frame - b.frame).map(({ message }) => message), ...invalidRun(clients.map((client) => client.name), clients.map((client) => client.documents), data, startedMs)];
+  if (captures.length > 0) console.log(`captures ${invalid.length === 0 ? "PASS" : "INVALID"}: ${captures.length - captureFailures.length}/${captures.length} retained; ${join(out, "captures.json")}`);
   if (invalid.length > 0) {
     yield* tryIntegrity("mark result invalid", out, () => {
       const path = join(out, "result.json");
       const result: unknown = existsSync(path) ? JSON.parse(readFileSync(path, "utf8")) : {};
       writeFileSync(path, json({ ...(typeof result === "object" && result !== null ? result : {}), invalid }));
     });
-    console.log(`INVALID: desynced, rerun: ${invalid.join("; ")}`);
+    console.log(`INVALID: ${invalid[0]}; retained evidence: ${out}`);
     return "invalid" as const;
   }
   yield* finished;
@@ -434,7 +438,7 @@ export const pad: Command = (args) => Effect.gen(function*() {
   if (compare !== undefined && !isHeadless) return yield* new UsageFailure({ problem: "--compare NATIVE_DIR goes with --headless" });
   const script = yield* Effect.try({ try: () => readFileSync(scriptPath, "utf8"), catch: (cause) => new UsageFailure({ problem: describeCause(cause) }) });
   const steps = yield* Effect.try({ try: () => compare === undefined ? parsePadScript(script) : comparisonSteps(script, scriptPath), catch: (cause) => new UsageFailure({ problem: describeCause(cause) }) });
-  const options: PadOptions = { scriptPath, steps, helper, build, out, chat: chat ?? scriptChat(script) };
+  const options: PadOptions = { scriptPath, steps, helper, build, out, chat: chat ?? scriptChat(script), candidate: parsed.values.map };
   if (!isHeadless) {
     const appIds = new Map<string, string>();
     for (const entry of parsed.values["app-id"] ?? []) {
