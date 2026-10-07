@@ -5,7 +5,9 @@ import {typescriptAssetInfo} from './asset-info';
 // For metadata changes, pass the authored asset directory and --metadata-only.
 const out=process.argv[2] ?? join(import.meta.dir,'../../build/illidan-animation');
 const metadataOnly=process.argv[3]==='--metadata-only';
-const model=parseMDL(await Bun.file(join(out,'demonhunter-fighter.mdl')).text());
+const model=metadataOnly
+ ? parseMDX(await Bun.file(join(out,'DemonHunterFighter.mdx')).arrayBuffer())
+ : parseMDL(await Bun.file(join(out,'demonhunter-fighter.mdl')).text());
 interface Clip { name: string; seconds: number }
 interface Binding extends Clip { index: number }
 const clips=await Bun.file(join(out,'clips.json')).json() as Clip[];
