@@ -99,6 +99,16 @@ export function quickMatchHero(message: string): Character | undefined {
   return heroAfter(message, QUICK_HERO_COMMAND);
 }
 
+export function quickMatchPair(message: string): readonly [Character, Character] | undefined {
+  const prefix = "-dev quick pair ";
+  if (!message.startsWith(prefix)) return undefined;
+  const names = message.substring(prefix.length).split(" / ");
+  if (names.length !== 2) return undefined;
+  const first = heroAfter(`${QUICK_HERO_COMMAND}${names[0]}`, QUICK_HERO_COMMAND);
+  const second = heroAfter(`${QUICK_HERO_COMMAND}${names[1]}`, QUICK_HERO_COMMAND);
+  return first === undefined || second === undefined ? undefined : [first, second];
+}
+
 /** Starts a named fighter tumbling above the floor, for recovery captures. */
 export const QUICK_RECOVERY_HERO_COMMAND = "-dev quick recovery hero ";
 
@@ -139,13 +149,13 @@ export const DESYNC_COMMAND = "-dev desync";
  * a one-stock match on the default stage, from either menu. False, with no match
  * started, when the menus could not start one.
  */
-export function prepareQuickMatch(game: MatchState, stage = 0, character?: Character, stocks = 1): boolean {
+export function prepareQuickMatch(game: MatchState, stage = 0, character?: Character | readonly Character[], stocks = 1): boolean {
   const first = firstHumanSlot(game);
   if (first === undefined || (game.phase !== Phase.characterMenu && game.phase !== Phase.stageMenu)) return false;
   returnToCharacters(game, first);
   const defaults = createMatchState().characterChoices;
   for (const slot of PARTICIPANT_SLOTS) {
-    if (humanFighterActive(game, slot) && humanPresent(game, slot)) selectCharacter(game, slot, character ?? defaults[slot]);
+    if (humanFighterActive(game, slot) && humanPresent(game, slot)) selectCharacter(game, slot, typeof character === "number" ? character : character?.[slot] ?? defaults[slot]);
   }
   setStocks(game, first, stocks);
   if (!requestStageSelect(game, first)) return false;

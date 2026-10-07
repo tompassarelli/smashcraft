@@ -10,7 +10,7 @@ import { type ParticipantSlot, isParticipantSlot } from "../../game/input/partic
 import { heldActions, keyDown, pressKey, releaseKey } from "../../game/input/playerKeys";
 import { startKeyDown, startKeyUp } from "../../game/match/controls";
 import { Phase, cancelRematchCountdown, characterFor, firstHumanSlot, humanActive, leaveMatch, recallCharacter, selectCharacter } from "../../game/match/rules";
-import { DESYNC_COMMAND, QUICK_CPU_STOCKS, RESET_COMMAND, QUICK_TRAINING_COMMAND, applyDevCommand, prepareQuickCpu, prepareQuickTraining, quickMatchCpuHero, quickMatchCpuProfile, quickMatchHero, quickMatchStage, quickPainHero, quickRecoveryHero } from "../../game/shell/devSettings";
+import { DESYNC_COMMAND, QUICK_CPU_STOCKS, RESET_COMMAND, QUICK_TRAINING_COMMAND, applyDevCommand, prepareQuickCpu, prepareQuickTraining, quickMatchCpuHero, quickMatchCpuProfile, quickMatchHero, quickMatchPair, quickMatchStage, quickPainHero, quickRecoveryHero } from "../../game/shell/devSettings";
 import { fighterName } from "../../game/sim/heroes/registry";
 import { keepMomentEnd } from "../../game/replay/moment";
 import { endReplaySegment } from "./replays";
@@ -229,6 +229,7 @@ export function onDevCommand(s: ShellState): void {
   let receipt: string | undefined;
   const quickStage = quickMatchStage(message);
   const quickHero = quickMatchHero(message);
+  const quickPair = quickMatchPair(message);
   const recoveryHero = quickRecoveryHero(message);
   const painHero = quickPainHero(message);
   const quickCpu = quickMatchCpuProfile(message);
@@ -258,6 +259,9 @@ export function onDevCommand(s: ShellState): void {
   } else if (painHero !== undefined) {
     receipt = `dev: quick ${painHero.scenario} ${fighterName(painHero.character)}`;
     startQuickMatch(s, 0, painHero.scenario, painHero.character);
+  } else if (quickPair !== undefined) {
+    receipt = `dev: quick match ${fighterName(quickPair[0])} / ${fighterName(quickPair[1])}`;
+    startQuickMatch(s, 0, s.build.scenario, quickPair);
   } else if (quickHero !== undefined) {
     receipt = `dev: quick match ${fighterName(quickHero)}`;
     startQuickMatch(s, 0, s.build.scenario, quickHero);

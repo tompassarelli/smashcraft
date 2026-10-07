@@ -111,9 +111,10 @@ code. From smashcraft:ts/:
   coordinated expansion-hero reach, hold, pummel and four-direction holder/victim
   gestures or reauthors their existing indices. `--character` limits reauthoring
   to one expansion fighter (smashcraft:docs/fighter-animation-work.md).
-  `bun tools/animations/grab-pads.ts` generates the #180 mirror capture batch:
+  `bun tools/animations/grab-pads.ts` generates the #180 mirror and unlike-height capture batch:
   ten expansion heroes, four throws, both facings, with ordinary catch/pummel
   inputs and contact-frame captures in smashcraft:ts/test/native/pads/180/.
+  `-dev quick pair FIRST / SECOND` selects different named fighters in the two human slots.
 - Lich King animation authoring (from the repository root):
   `tools/animations/build-lichking.sh [PRIVATE_INPUTS] [IMMUTABLE_EXISTING_MODEL]`
   authors clips through Blender; the optional existing model preserves shipped

@@ -1319,14 +1319,15 @@ smashcraft:tools/animations/export-original-clips.ts and `--keep-unchanged`.
 Stripping only the appended paired suffix must recover the exact input hash
 before old pool clips may be reused.
 
-`bun tools/animations/grab-pads.ts` generates eighty mirror scripts in
+`bun tools/animations/grab-pads.ts` generates eighty mirror and eighty unlike-height scripts in
 smashcraft:ts/test/native/pads/180/: each expansion hero, four throw directions,
 and both holder facings. Its production-simulation pass selects an ordinary
 approach duration, requires the catch/pummel/requested release, and places
 captures around accepted damage and completion. Run the directory as one
 native pad batch, with headless references alongside it; matching trace
 expectations establishes input/selection and the captures establish readability.
-Unlike-height pairs are an additional native visual sample.
+Unlike-height captures pair each holder with Mountain King, or Mountain King
+with Pit Lord, through `-dev quick pair FIRST / SECOND`.
 
 ## Contact pain poses
 
