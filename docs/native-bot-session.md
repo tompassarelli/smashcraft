@@ -295,15 +295,23 @@ So a batch:
   quick ...`) starts a match equal to a new game's first match.
   smashcraft:ts/test/dev-reset.test.ts holds that: a match after a
   mid-match reset writes the same integrity-trace checksums and fighter
-  lines as the first match. The reset costs about a second (its receipt,
+  lines as the first match, and its saved moments the same starting state,
+  after a computer match and a camera match in between. Matches keep state
+  for slots they don't play (moment snapshots, the step's observed actions,
+  per-slot presentation), so the reset clears those too. It costs about a second (its receipt,
   `SETUP phase=0`, from both clients). A new game is started only for a
   pair's first script and after an invalid or broken run.
 - Starts every script's headless reference run at once, `--headless-jobs N`
   at a time (3 by default; each is two real-time clients and two helpers,
   about 0.8 CPU), and compares each native run as soon as both sides exist.
   The native runs never wait for a compare. A reference run that slipped an
-  edge on a loaded host runs again, twice at most.
-- With `--pairs N`, shards the scripts over the first N pairs of the
+  edge on a loaded host runs again, twice at most, and so does a script
+  whose edges were written late (after a reset, not a new game). Real-time
+  runs slip on a saturated host: on 7 Oct, at a load average near 30 on 24
+  cores, 8 of 17 headless-session scripts slipped and 9 passed; one run
+  alone slipped no edge. Run batches on a quiet host or the farm.
+- With `--pairs N` (the first N pairs) or `--pair K` (repeated: a share
+  other runners also use), shards the scripts over the pairs of the
   offline LAN pool (`$XDG_STATE_HOME/wisp/lan/pool.json`, each pair a
   clients file in the schema of clients.json; a new game there is
   `bun wisp lan fresh MAP --pair K`). Each pair takes the next script when

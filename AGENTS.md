@@ -243,10 +243,10 @@ code. From smashcraft:ts/:
   "Native checks by parity"; issue scripts in smashcraft:ts/test/native/pads/).
   Several scripts are one batch, and the batch is how native parity runs:
   `bun wisp pad SCRIPT|DIR... --helper BINARY --out DIR --map MAP.w3x
-  [--pairs N | --app-id a=ID --app-id b=ID]` starts ONE game per client pair,
+  [--pairs N | --pair K... | --app-id a=ID --app-id b=ID]` starts ONE game per client pair,
   types `-dev reset` between scripts (a new game only after an invalid run),
   runs every headless side alongside (`--headless-jobs N`) and compares as
-  each native run ends; `--pairs N` shards over the offline LAN pool.
+  each native run ends; `--pairs N` (the first N) or `--pair K` (a share) shards over the offline LAN pool.
   Never loop `bun wisp fresh` + `bun wisp pad` per script (about a minute a
   script); `--fresh-each` exists only to measure that. `bun wisp pad
   SCRIPT|DIR... --headless ...` plays the same batch in one headless session
