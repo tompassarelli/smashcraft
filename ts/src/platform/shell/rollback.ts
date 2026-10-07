@@ -28,6 +28,7 @@ import { probeAdvance, probeCapture, probeClockMs, probeInput, probeIntegrity, p
 import { type KeyboardRollback, type Rollback, type ShellState, localSlot, shell } from "./state";
 import { recordBatchWait, recordEcho, recordSend, resetEchoRing, traceSeconds } from "./trace";
 import { LASTING, setStatus } from "./view";
+import { holdPresentedCapture } from "./visualCapture";
 
 /** Callbacks without a new predicted frame before every client names the players a running match waits for. */
 const STALL_NOTICE_CALLBACKS = 20;
@@ -204,6 +205,7 @@ function stepConfirmed(s: ShellState, rollback: Rollback): boolean {
 /** The response probe's view of each speculative frame, before the schedule completes it. */
 function observeSpeculativeFrame(frame: number, local: Readonly<InputRow>): void {
   const s = shell();
+  holdPresentedCapture(s);
   const rollback = s.rollback;
   const slot = localSlot();
   if (rollback === undefined || !isParticipantSlot(slot) || !probeRecording(s.probe)) return;

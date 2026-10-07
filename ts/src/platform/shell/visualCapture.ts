@@ -3,7 +3,7 @@ import { Phase } from "../../game/match/rules";
 import { clearVisualCapture, heldVisualFrame, holdVisualFrame, releaseVisualFrame, visualCapture, visualReleaseFile } from "../../game/shell/visualCapture";
 import { drawnFrame } from "./drawnFrame";
 import { type ShellState, localSlot } from "./state";
-import { pauseMatchPresentation } from "./view";
+import { lockArenaCamera, pauseMatchPresentation, renderPersistentPresentation, renderUi } from "./view";
 
 /** The FileIO result controls existing local visuals only, never the synchronized match. */
 export function serviceVisualCapture(s: ShellState): void {
@@ -19,9 +19,14 @@ export function serviceVisualCapture(s: ShellState): void {
   }
 }
 
-/** Called after presentation placed the original requested pose. */
+/** The per-frame observer can present a requested pose inside a multi-frame catch-up callback. */
 export function holdPresentedCapture(s: ShellState): void {
   if (!s.build.responseProbe || s.game.phase !== Phase.match || heldVisualFrame(localSlot()) !== undefined) return;
   const { epoch, frame } = drawnFrame(s);
-  if (holdVisualFrame(localSlot(), epoch, frame)) pauseMatchPresentation(s, true);
+  if (holdVisualFrame(localSlot(), epoch, frame)) {
+    renderPersistentPresentation(s);
+    lockArenaCamera(s);
+    renderUi(s);
+    pauseMatchPresentation(s, true);
+  }
 }

@@ -354,7 +354,10 @@ export const padBatch = (options: NativeBatchOptions) => Effect.gen(function*() 
         if (outcome !== "invalid") break;
       }
       if (outcome === "invalid" || outcome === "broken") {
-        made.summary ||= outcome === "invalid" ? `desynced, crashed or ended early on all ${made.attempts} attempts` : `the native run broke on ${pair.name}`;
+        if (outcome === "invalid") {
+          const result = JSON.parse(readFileSync(join(padOptions.out, "result.json"), "utf8"));
+          made.summary ||= Schema.decodeUnknownSync(Schema.Struct({ invalid: Schema.Array(Schema.String) }))(result).invalid[0] ?? `invalid on all ${made.attempts} attempts`;
+        } else made.summary ||= `the native run broke on ${pair.name}`;
         continue;
       }
       compareLater(run, made, join(run.dir, "native"), outcome === "valid");

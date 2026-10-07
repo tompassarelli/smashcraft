@@ -8,7 +8,7 @@ import { installHeadless } from "wisp/scripts/wisp/headless";
 import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
 import { QUICK_MATCH_COMMAND, RESET_COMMAND } from "../src/game/shell/devSettings";
 import { install, startBuild } from "../src/platform/main";
-import { activeRollback, shell } from "../src/platform/shell/state";
+import { activeRollback, shell, shellState } from "../src/platform/shell/state";
 import { drawnFrameFile } from "../src/runtime/gameFiles";
 import { type Drawn, captureWhenDrawn, parseDrawn, visualCaptureCommand } from "../scripts/integrity/drawnCapture";
 import { parsePadScript } from "../scripts/integrity/padScript";
@@ -76,23 +76,35 @@ test("the original Illidan capture schedule preserves all eight authored frames"
   clearVisualCapture(0);
 });
 
-test("a visual hold keeps its drawn receipt while the unchanged match keeps advancing", () => {
+test("a visual hold captures inside a catch-up callback while the unchanged match keeps advancing", () => {
   const run = (hold: boolean) => {
     for (const slot of [0, 1]) clearVisualCapture(slot);
     const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1]);
     const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);
-    const frames = (n: number) => { for (let i = 0; i < n; i++) { clients.frames(1); helpers.service(clients); } };
+    helpers.clock = clients => clients.frame * 3;
+    let crossedTarget = false;
+    const predicted = () => value(clients.client(0), () => {
+      const current = shellState();
+      return current === undefined ? 0 : activeRollback(current)?.speculative.runtime.simulationFrame ?? 0;
+    });
+    const frames = (n: number) => { for (let i = 0; i < n; i++) {
+      const before = predicted();
+      clients.frames(1);
+      if (before < 19 && predicted() > 19) crossedTarget = true;
+      helpers.service(clients);
+    } };
     clients.start();
     frames(30);
-    clients.chat(0, hold ? `${QUICK_MATCH_COMMAND} |capture held 20 -` : QUICK_MATCH_COMMAND);
+    clients.chat(0, hold ? `${QUICK_MATCH_COMMAND} |capture held 19 -` : QUICK_MATCH_COMMAND);
     frames(120);
     const checksum = value(clients.client(0), () => confirmedChecksum(shell()));
     const actual = value(clients.client(0), () => activeRollback(shell())?.speculative.runtime.simulationFrame ?? 0);
     if (hold) {
-      expect(heldVisualFrame(0)).toEqual({ epoch: 1, frame: 20 });
+      expect(crossedTarget).toBe(true);
+      expect(heldVisualFrame(0)).toEqual({ epoch: 1, frame: 19 });
       expect(actual).toBeGreaterThan(60);
       const receipt = clients.client(0).files.get(drawnFrameFile(INTEGRITY_BUILD.id, 0)) ?? [];
-      expect(receipt[0]).toContain("epoch=1 frame=20");
+      expect(receipt[0]).toContain("epoch=1 frame=19");
       clients.chat(0, RESET_COMMAND);
       expect(heldVisualFrame(0)).toBeUndefined();
     }
