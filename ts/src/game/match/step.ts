@@ -28,6 +28,7 @@ import { nextJab } from "../sim/moves";
 import { advanceOffscreenDamage } from "../sim/offscreenDamage";
 import type { FrameControls } from "./controls";
 import { type MatchState, Phase, advanceClock, holdingStart, humanFighterActive, keepsStocks, resolveStocks } from "./rules";
+import { advanceItems } from "./centreItem";
 import { advanceTrainingReadout, captureTrainingBefore, resetTrainingPositions } from "./training";
 
 export const observedFrameLegalActions: Slots<number> = [0, 0, 0, 0];
@@ -121,6 +122,7 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
     observedFrameLegalActions[slot] = observedActions.legal;
     observedFrameStartedActions[slot] = observedActions.started;
   }
+  advanceItems(game, world, controls, frame);
   advanceStageCannon(world, stage, matchFrame, controls.inputs);
   captureGrabPauses(world);
   resolveGrabs(world);

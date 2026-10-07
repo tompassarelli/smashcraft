@@ -5,6 +5,7 @@ import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { type MatchCamera, createMatchCamera, copyMatchCamera } from "../sim/matchCamera";
 import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots, isParticipantMask, isParticipantSlot, participantActive } from "../input/participants";
 import { Character, ItemKind, itemBit } from "../sim/codes";
+import { scheduleMatchItems } from "./centreItem";
 import { nextMatchSeed } from "./botRandom";
 import { CPU_OPPONENT_DEFAULT, CPU_TIER_DEFAULT, type CpuOpponentChoice, type CpuOpponentId, type CpuTier, isCpuOpponentChoice, isCpuTier, resolveCpuOpponent } from "./cpuProfiles";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
@@ -354,6 +355,7 @@ function beginMatch(game: MatchState): void {
   game.startHold = game.practice || game.training ? 0 : START_HOLD_FRAMES;
   game.matchFrame = 0;
   game.phase = Phase.match;
+  scheduleMatchItems(game);
 }
 
 /** Whether `slot`'s start press at stage selection may start the match. */
