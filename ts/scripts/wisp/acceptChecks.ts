@@ -188,6 +188,7 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
       look: "His free hand presses down to plant the shadow pool ahead while Frostmourne stays raised; its low rim changes from dim to violet when armed, stays at the pool's horizontal danger edge, and faces the other way for player 2. The drawn-frame captures at 50/60, 65 and 77 in smashcraft:ts/test/native/pads/lich-king-defile.pad show the gathering/push, warning and armed edge; that script also checks repeated casts and an unhurt jump escape.",
     })),
     // Keys: W R E move, I jump, N attack, U special, O grab (presetBindings standard).
+    // The quick CPU match has a seven-minute limit; allow its ordinary result plus catch-up after loading.
     {
       id: "166-keyboard-match",
       closes: "smashcraft#166 box 3 (keyboard half)",
@@ -195,7 +196,7 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
       setup: [
         { waitMs: 4000 },
         ...Array.from({ length: 60 }, (_, round) => [{ keys: round % 2 === 0 ? ["r", "n", "i", "n", "u"] : ["w", "n", "e", "o", "i"], client: "a" }, { waitMs: 500 }]).flat(),
-        { receipt: "^parts [0-9]+$", client: "a", seconds: 300 },
+        { receipt: "^parts [0-9]+$", client: "a", seconds: 600 },
       ],
       pass: [NO_ERRORS, { kind: "receipt", pattern: "^parts [0-9]+$", min: 1 }],
       look: "client A's replay (smashcraft-replay-N.txt with its parts) replays to its checksum with `LUA=<32-bit lua> bun wisp replay` and shows player 1's key presses",
@@ -206,7 +207,7 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
       map: "keyboard",
       session: "166-controller",
       // Client A's pad arrives as keys from `wc3-controller --emit --virtual-pad --gamepad 2` with its private-desktop target (smashcraft:companion/README.md, "Explicit Linux output"), started beside this check.
-      setup: [{ receipt: "^parts [0-9]+$", client: "a", seconds: 400 }],
+      setup: [{ receipt: "^parts [0-9]+$", client: "a", seconds: 600 }],
       pass: [NO_ERRORS, { kind: "receipt", pattern: "^parts [0-9]+$", min: 1 }],
       look: "the controller log shows its key presses and client A's replay reaches its checksums with player 1's input",
     },
