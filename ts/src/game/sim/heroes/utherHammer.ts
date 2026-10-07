@@ -1,5 +1,8 @@
 import { AttackStyle, Character, SpecialAction } from "../codes";
 import type { Fighter } from "../fighter";
+import { f32 } from "wisp/src/sim/f32";
+
+export const UTHER_DAMAGE_MULTIPLIER = f32(0.85);
 
 export function utherHammerAttack(character: Character, style: AttackStyle | undefined): boolean {
   return character === Character.uther && style !== undefined

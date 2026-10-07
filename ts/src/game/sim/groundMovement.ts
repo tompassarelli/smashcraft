@@ -4,6 +4,7 @@
 import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { chillScaled } from "./chill";
+import { enduranceGroundSpeed } from "./passives";
 import { GroundAction } from "./codes";
 import type { Fighter } from "./fighter";
 import { floorTraction } from "./stage";
@@ -158,7 +159,7 @@ export function advanceGroundMovement(f: Fighter, direction: number, walking: bo
     clearDash(f);
     if (direction !== 0) {
       f.facing = direction;
-      const walkTargetVelocity = f32(chillScaled(f, physics.walkSpeed) * direction);
+      const walkTargetVelocity = f32(chillScaled(f, enduranceGroundSpeed(f, physics.walkSpeed)) * direction);
       const walkTargetSpeed = Math.abs(walkTargetVelocity);
       const acceleration = taperedAcceleration(f, physics.walkAccelerationMultiplier, physics.walkAccelerationBase, direction, walkTargetSpeed, WALK_ACCEL_TAPER_GAIN, walkTargetSpeed > 0);
       motion.vx = groundMovementVelocity(motion.vx, acceleration, walkTargetVelocity, traction, physics.groundSpeedCap);
@@ -206,7 +207,7 @@ export function advanceGroundMovement(f: Fighter, direction: number, walking: bo
       // Dash entry explicitly advances its animation once before physics.
       ground.actionFrame = 1;
       f.facing = direction;
-      motion.vx = f32(direction * min(chillScaled(f, physics.dashSpeed), physics.groundSpeedCap));
+      motion.vx = f32(direction * min(chillScaled(f, enduranceGroundSpeed(f, physics.dashSpeed)), physics.groundSpeedCap));
       return true;
     }
   } else {
@@ -219,7 +220,7 @@ export function advanceGroundMovement(f: Fighter, direction: number, walking: bo
       ground.actionFrame = 0;
     }
   }
-  const runTarget = chillScaled(f, physics.runSpeed);
+  const runTarget = chillScaled(f, enduranceGroundSpeed(f, physics.runSpeed));
   const targetVelocity = f32(direction * runTarget);
   const acceleration = taperedAcceleration(
     f, physics.groundAccelerationMultiplier, physics.groundAccelerationBase, direction, runTarget, RUN_ACCEL_TAPER_GAIN,

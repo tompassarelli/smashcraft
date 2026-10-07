@@ -26,7 +26,7 @@ import { advanceCompanion } from "./companions";
 import { HIPPOGRYPH_DIVE_ARRIVAL, HIPPOGRYPH_DIVE_OVERSHOOT, RIFLEMAN_BEAR_LIFETIME, advanceBear, advanceHippogryph, recordSpecialHit, specialAlreadyHit, startFreezeTrap } from "./summons";
 import { at } from "wisp/src/runtime/lookup";
 import { travelBeforeBodies } from "./travelStop";
-import { advanceHeroSpecial, chooseHeroSpecial, enterHeroSpecial, followUpHeroSpecial, heroSpecialContact, heroStrikeMeetsShield, isHeroSpecialAction, relocateHeroSpecial, runningHeroSpecial, resolveHeroGuards, steerHeroSpecial, stopHeroMotionAtBodies } from "./heroSpecialRules";
+import { advanceHeroSpecial, chargedAimX, chargedAimZ, chooseHeroSpecial, enterHeroSpecial, followUpHeroSpecial, heroSpecialContact, heroStrikeMeetsShield, isHeroSpecialAction, relocateHeroSpecial, runningHeroSpecial, resolveHeroGuards, steerHeroSpecial, stopHeroMotionAtBodies } from "./heroSpecialRules";
 
 // Mana Burn (#116): a slow orb Illidan can run behind, one at a time; its stun is in projectiles.ts.
 export const DEMONHUNTER_MANA_BURN_STARTUP = 16;
@@ -118,11 +118,11 @@ const ARCHER_DIVE_FRAMES = 16;
 export const ARCHER_DIVE_LAUNCH_FRAME = 6;
 const ARCHER_CALL_FORM = 0;
 export const ARCHER_DIVE_FORM = 1;
-// Rifleman's recoil shot (up special, #127, smashcraft:docs/design/kit-review-1.md):
-// the stick held through frame 4 picks where he flies: up (neutral, up or
-// down), diagonally up (a side, with or without up) or level (down and a
-// side); the shot fires the opposite way. One second shot on a special press
-// in frames 12-24 picks a new route the same way.
+// Rifleman's recoil shot (up special, #127, smashcraft:docs/design/kit-review-1.md),
+// the roster's charged-angle rule (#189): the stick held through frame 4
+// picks one of eight directions he flies (straight up when neutral); the
+// shot fires the opposite way. One second shot on a special press in frames
+// 12-24 picks a new route the same way.
 export const RIFLEMAN_RECOVERY_STARTUP_FRAMES = 4;
 export const RIFLEMAN_RECOVERY_PROTECTION_END = 10;
 const RIFLEMAN_RECOIL_SPEED = 30.0;
@@ -298,13 +298,12 @@ function startRiflemanSpecial(owner: Fighter, stage: number, matchFrame: number,
 }
 
 /**
- * Flies the Rifleman the way the stick picks at `speed` and fires the recoil
- * shot the opposite way: no side is straight up, a side is diagonally up, and
- * down with a side is level.
+ * Flies the Rifleman at `speed` the way an eight-way aim picks (straight up
+ * when neutral) and fires the recoil shot the opposite way.
  */
-function fireRecoil(owner: Fighter, side: number, vertical: number, speed: number, serial: number): void {
-  const x = side < 0 ? -1 : side > 0 ? 1 : 0;
-  const z = x !== 0 && vertical < 0 ? 0 : 1;
+function fireRecoil(owner: Fighter, aimX: number, aimZ: number, speed: number, serial: number): void {
+  const x = aimX < 0 ? -1 : aimX > 0 ? 1 : 0;
+  const z = aimZ < 0 ? -1 : aimZ > 0 || x === 0 ? 1 : 0;
   const scale = x !== 0 && z !== 0 ? AIM_DIAGONAL : 1.0;
   spawnProjectileMotion(owner, ProjectileKind.recoil, f32(f32(-x * RIFLEMAN_RECOIL_SHOT_SPEED) * scale), f32(f32(-z * RIFLEMAN_RECOIL_SHOT_SPEED) * scale), 8, serial);
   owner.motion.vx = f32(f32(x * speed) * scale);
@@ -319,9 +318,8 @@ function secondRecoilShot(owner: Fighter, input: Readonly<Controls>): boolean {
   const { special } = owner;
   const next = special.frame + 1;
   if (special.form === RIFLEMAN_SECOND_SHOT_FORM || next < RIFLEMAN_SECOND_SHOT_FIRST || next > RIFLEMAN_SECOND_SHOT_LAST || owner.launch.hitlag > 0) return false;
-  const side = input.specialX !== 0 ? input.specialX : input.direction;
-  const vertical = input.specialZ !== 0 ? input.specialZ : input.verticalDirection;
-  fireRecoil(owner, side, vertical, RIFLEMAN_SECOND_SHOT_SPEED, owner.attack.serial + 1);
+  const pressed = input.specialX !== 0 || input.specialZ !== 0;
+  fireRecoil(owner, pressed ? input.specialX : chargedAimX(input), pressed ? input.specialZ : chargedAimZ(input), RIFLEMAN_SECOND_SHOT_SPEED, owner.attack.serial + 1);
   special.form = RIFLEMAN_SECOND_SHOT_FORM;
   return true;
 }
@@ -719,14 +717,15 @@ function advanceSpecialAction(owner: Fighter, stage: number, matchFrame: number,
   }
   if (special.action === SpecialAction.riflemanRecovery) {
     if (special.frame === RIFLEMAN_RECOVERY_STARTUP_FRAMES) {
-      const side = input?.direction ?? 0;
-      if (side === 0) {
+      const aimX = input === undefined ? 0 : chargedAimX(input);
+      const aimZ = input === undefined ? 0 : chargedAimZ(input);
+      if (aimX === 0 && aimZ >= 0) {
         // Straight up on a shot straight down, as the recovery always flew: the side pressed drifts him.
         spawnProjectileMotion(owner, ProjectileKind.recoil, f32(owner.facing * 2.0), -RIFLEMAN_RECOIL_SHOT_SPEED, 8, shotSerial);
         motion.vx = f32(special.direction * 8.0);
         motion.vz = RIFLEMAN_RECOIL_SPEED;
       } else {
-        fireRecoil(owner, side, input?.verticalDirection ?? 0, RIFLEMAN_RECOIL_SPEED, shotSerial);
+        fireRecoil(owner, aimX, aimZ, RIFLEMAN_RECOIL_SPEED, shotSerial);
       }
       launchUpward(owner);
     }

@@ -16,8 +16,8 @@ const named = (character: Character, name: string): HeroClip | undefined => {
 
 const ORIGINAL_WALKS: readonly (HeroClip | undefined)[] = [named(Character.archer, "walk"), named(Character.rifleman, "walk")];
 const ILLIDAN_WALK: HeroClip = { index: dh.DEMON_HUNTER_WALK_FORWARD_INDEX, seconds: 1.0 };
-const ILLIDAN_RUN: HeroClip = { index: dh.DEMON_HUNTER_RUN_FORWARD_INDEX, seconds: 0.75 };
-const ILLIDAN_DASH: HeroClip = { index: dh.DEMON_HUNTER_DASH_START_INDEX, seconds: dh.DEMON_HUNTER_DASH_START_SECONDS };
+const ILLIDAN_RUN: HeroClip = { index: dh.DEMON_HUNTER_RUN_FORWARD_INDEX, seconds: f32(0.6) };
+const ILLIDAN_DASH: HeroClip = { index: dh.DEMON_HUNTER_INITIAL_DASH_BURST_INDEX, seconds: dh.DEMON_HUNTER_INITIAL_DASH_BURST_SECONDS };
 
 /** The exact sequence walked or run by production pose selection, including the originals' named stock walks. */
 export function groundLocomotionClip(character: Character, motion: IllidanLocomotion): HeroClip | undefined {

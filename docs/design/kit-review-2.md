@@ -215,19 +215,7 @@ long and contested:
 - **Counterplay:** jump, shield or powershield it (a reflected orb sleeps
   Dreadlord); mash.
 
-**Side B: Vampiric Pounce (picked).** Night Pounce keeps its approach and
-command grab, and gains:
-
-- **Feint:** side B again on frames 3-12 of the approach cancels it into a
-  backward bat-hop (0.7H back over frames 1-10, action ends frame 18, free).
-  The opponent who reacts to the pounce with an attack or a jump whiffs into
-  his punish.
-- **Vampiric bite:** a caught target's bite heals Dreadlord 4%, at most 12%
-  a stock (Vampiric Aura made a deliberate move, roster "No passive
-  lifesteal").
-- **Counterplay:** the grab still loses to a preemptive attack and a spaced
-  retreat; the feint loses to waiting in shield and to a dash attack timed
-  at the hop's landing.
+**Side B: Vampiric Pounce (#237).** A forward horizontal corkscrew with trailing bats in both ground and air forms. It stops before a body to catch and bite, healing 4% with a 12% per-stock cap. A preemptive strike interrupts the approach; an out-of-reach retreat leaves its full miss recovery exposed.
 
 **Rejected: lifesteal on every hit.** Passive, forbidden by the roster
 contract and invisible. **Rejected: Sleep scaling with percent.** Illidan's
@@ -291,4 +279,4 @@ All are fighter state, restored by rollback and checked by tapes:
 - **Divine Shield:** a guard success grants intangibility that the next
   attack, special or grab ends.
 - **Mashable statuses** (Sleep, Hex) and a hex that blocks attacks and grabs.
-- **Command-grab heal and approach feint** (Vampiric Pounce).
+- **Command-grab heal** (Vampiric Pounce).
