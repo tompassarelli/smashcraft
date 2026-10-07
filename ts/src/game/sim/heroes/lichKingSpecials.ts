@@ -129,7 +129,7 @@ export const LICH_KING_SPECIALS: FighterSpecials = {
   },
   down: {
     name: "Defile",
-    description: "A short-lived shadow pool that grows when it hurts a grounded foe. Jump out; another cast must wait.",
+    description: "Plant Frostmourne to spread a shadow pool; hurting a grounded foe grows it and flashes the edge. Jump out; recasts must wait.",
     ground: DEFILE,
   },
 };

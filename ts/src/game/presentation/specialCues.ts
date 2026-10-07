@@ -97,6 +97,12 @@ const RUNE = cue("Abilities\\Spells\\Undead\\DarkRitual\\DarkRitualCaster.mdx", 
 
 /** Every hero's four specials; every form of a special (air, free, follow-up, recall, marked) shows its special's cues. */
 export const HERO_CUES: { readonly [character: number]: { readonly [slot in SpecialSlot]: MoveCues } } = {
+  [Character.thrall]: {
+    neutral: { spell: "Chain Lightning", startup: STORM, active: cue("Abilities\\Weapons\\FarseerMissile\\FarseerMissile.mdx", "hand", 1.0) },
+    side: { spell: "Feral Spirit", startup: BEAST, active: cue("units\\orc\\SpiritWolf\\SpiritWolf.mdx", "ahead", 0.5) },
+    up: { spell: "Far Sight", startup: STORM, active: cue("Abilities\\Spells\\Orc\\FarSight\\FarSightTarget.mdx", "feet", 0.5) },
+    down: { spell: "Earthquake", startup: STORM, active: cue("Abilities\\Spells\\Orc\\EarthQuake\\EarthQuakeTarget.mdx", "feet", f32(0.3)) },
+  },
   [Character.kaelthas]: {
     neutral: { spell: "Flame Strike", startup: cue("Abilities\\Spells\\Human\\FlameStrike\\FlameStrikeEmbers.mdx", "hand", 0.5), active: cue("Abilities\\Weapons\\PhoenixMissile\\Phoenix_Missile.mdx", "hand", 0.5) },
     side: { spell: "Siphon Mana", startup: FROST, active: cue("Abilities\\Spells\\Human\\ManaFlare\\ManaFlareTarget.mdx", "ahead", 0.75) },

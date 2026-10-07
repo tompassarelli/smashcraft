@@ -1,0 +1,9 @@
+# #230: ordinary jump then double jump, both gameplay facings.
+#! chat -dev quick hero blademaster
+40 a tap B 2
+40 b tap B 2
+55 a tap B 2
+55 b tap B 2
+65 a capture
+70 a capture
+75 a capture

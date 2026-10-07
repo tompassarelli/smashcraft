@@ -3,7 +3,7 @@
 // each segment's starting state as record text, every frame's rows
 // run-length encoded from the moment's ring, and a replay checksum every two
 // seconds and at each segment's end. A segment ends wherever the shell
-// changes the match between frames (a pause, a player leaving); the next
+// changes the match between frames (a player leaving); the next
 // starts from the state the change left. The recorder only reads confirmed
 // state, and spreads its work so no callback writes a whole state's text:
 // each frame extends the rows' current run, and a checkpoint copies the match
