@@ -14,7 +14,7 @@ export const HIT_PRESENTATION_CASES = [
       { cue: { hit: true, strength: 2 }, sound: "StampedeHit", model: "StampedeMissileDeath" },
       { cue: { hit: true, element: HitElement.electric, electric: true }, sound: "LightningBolt", model: "ForkedLightningTarget" },
       { cue: { hit: true, element: HitElement.fire }, sound: "Fireball", model: "FireLordDeathExplode" },
-      { cue: { hit: true, element: HitElement.slash }, sound: "CriticalStrike", model: "CleaveDamageTarget" },
+      { cue: { hit: true, element: HitElement.slash }, sound: "MetalHeavySliceFlesh1", model: "CleaveDamageTarget" },
       { cue: { hit: true, element: HitElement.ice }, sound: "FrostNova", model: "FrostNovaTarget" },
       { cue: { shieldHit: true }, sound: "Defend", model: "DefendCaster" },
       { cue: { shieldHit: true, shieldElectric: true }, sound: "LightningBolt", model: "ForkedLightningTarget" },

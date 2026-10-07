@@ -91,7 +91,13 @@ export class CombatEffects {
     if (previous !== undefined && frame <= previous) return;
     this.soundFrames[slot] = frame;
     presentImpactSounds(events, (label, x, z, volume, pitch) => {
-      const cue = CreateSoundFromLabel(label, false, true, true, 10000, 10000);
+      // A backslash names a script path; the rest are sound-table labels.
+      const path = label.includes("\\");
+      const cue = path ? CreateSound(label, false, true, true, 10, 10, "CombatSoundsEAX") : CreateSoundFromLabel(label, false, true, true, 10000, 10000);
+      if (path) {
+        SetSoundDistances(cue, 600.0, 3500.0);
+        SetSoundDistanceCutoff(cue, 3000.0);
+      }
       SetSoundPosition(cue, this.x + x, this.y, this.z + z);
       SetSoundVolume(cue, volume);
       SetSoundPitch(cue, pitch);

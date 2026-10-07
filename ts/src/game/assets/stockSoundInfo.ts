@@ -48,7 +48,6 @@ export const VERIFIED_STOCK_SOUNDS: Readonly<Record<string, string>> = {
   "Units\\Creeps\\BeastMaster\\OgreBeastMasterReady1.flac": "war3.w3mod:_locales\\enus.w3mod:units\\creeps\\beastmaster\\ogrebeastmasterready1.ogg",
   "Units\\Creeps\\BeastMaster\\OgreBeastMasterWarcry1.flac": "war3.w3mod:_locales\\enus.w3mod:units\\creeps\\beastmaster\\ogrebeastmasterwarcry1.ogg",
   "Abilities\\Spells\\NightElf\\Blink\\BlinkArrival1.flac": "war3.w3mod:abilities\\spells\\nightelf\\blink\\blinkarrival1.ogg",
-  "Units\\Orc\\HeroBladeMaster\\CriticalStrike.flac": "war3.w3mod:units\\orc\\heroblademaster\\criticalstrike.ogg",
   "Abilities\\Spells\\Undead\\DeathCoil\\DeathCoilSpecialArt1.flac": "war3.w3mod:abilities\\spells\\undead\\deathcoil\\deathcoilspecialart1.ogg",
   "Sound\\Units\\Footsteps\\Step1.flac": "war3.w3mod:sound\\units\\footsteps\\step1.ogg",
   "Sound\\Units\\Footsteps\\Step2.flac": "war3.w3mod:sound\\units\\footsteps\\step2.ogg",
@@ -63,6 +62,7 @@ export const VERIFIED_STOCK_SOUNDS: Readonly<Record<string, string>> = {
   "Abilities\\Spells\\Orc\\LightningBolt\\LightningBolt.flac": "war3.w3mod:abilities\\spells\\orc\\lightningbolt\\lightningbolt.ogg",
   "Abilities\\Spells\\NightElf\\ManaBurn\\ManaDrainTarget1.flac": "war3.w3mod:abilities\\spells\\nightelf\\manaburn\\manadraintarget1.ogg",
   "Abilities\\Weapons\\PoisonArrow\\PoisonArrowHit1.flac": "war3.w3mod:abilities\\weapons\\poisonarrow\\poisonarrowhit1.ogg",
+  "Sound\\Units\\Combat\\MetalHeavySliceFlesh1.flac": "war3.w3mod:sound\\units\\combat\\metalheavysliceflesh1.ogg",
   "Abilities\\Spells\\Other\\Stampede\\StampedeHit1.flac": "war3.w3mod:abilities\\spells\\other\\stampede\\stampedehit1.ogg",
   "Abilities\\Spells\\Human\\ThunderClap\\ThunderClapCaster.flac": "war3.w3mod:abilities\\spells\\human\\thunderclap\\thunderclapcaster.ogg",
   "Units\\Orc\\HeroTaurenChieftain\\WarStompBirth1.flac": "war3.w3mod:units\\orc\\herotaurenchieftain\\warstompbirth1.ogg",
@@ -71,7 +71,6 @@ export const VERIFIED_STOCK_SOUNDS: Readonly<Record<string, string>> = {
 /** Sound labels hit presentation plays, with the script paths the game's sound tables give each; every path is in VERIFIED_STOCK_SOUNDS. */
 export const VERIFIED_STOCK_SOUND_LABELS: Readonly<Record<string, readonly string[]>> = {
   "BlinkTarget": ["Abilities\\Spells\\NightElf\\Blink\\BlinkArrival1.flac"],
-  "CriticalStrike": ["Units\\Orc\\HeroBladeMaster\\CriticalStrike.flac"],
   "DeathCoil": ["Abilities\\Spells\\Undead\\DeathCoil\\DeathCoilSpecialArt1.flac"],
   "DeepFootstep": ["Sound\\Units\\Footsteps\\Step1.flac","Sound\\Units\\Footsteps\\Step2.flac","Sound\\Units\\Footsteps\\Step3.flac","Sound\\Units\\Footsteps\\Step4.flac"],
   "DeepFootstep2": ["Sound\\Units\\Footsteps\\Step1.flac","Sound\\Units\\Footsteps\\Step2.flac","Sound\\Units\\Footsteps\\Step3.flac","Sound\\Units\\Footsteps\\Step4.flac"],
@@ -84,6 +83,7 @@ export const VERIFIED_STOCK_SOUND_LABELS: Readonly<Record<string, readonly strin
   "LightningBolt": ["Abilities\\Spells\\Orc\\LightningBolt\\LightningBolt.flac"],
   "ManaBurn": ["Abilities\\Spells\\NightElf\\ManaBurn\\ManaDrainTarget1.flac"],
   "PoisonArrowHit": ["Abilities\\Weapons\\PoisonArrow\\PoisonArrowHit1.flac"],
+  "Sound\\Units\\Combat\\MetalHeavySliceFlesh1.flac": ["Sound\\Units\\Combat\\MetalHeavySliceFlesh1.flac"],
   "StampedeHit": ["Abilities\\Spells\\Other\\Stampede\\StampedeHit1.flac"],
   "ThunderClap": ["Abilities\\Spells\\Human\\ThunderClap\\ThunderClapCaster.flac"],
   "Warstomp": ["Units\\Orc\\HeroTaurenChieftain\\WarStompBirth1.flac"],

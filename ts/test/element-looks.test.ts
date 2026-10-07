@@ -45,7 +45,7 @@ test("every element shows a stock model on its victim and plays a stock sound", 
   expect(new Set(victims).size).toBe(victims.length);
   expect(victims.filter((model) => MODEL_FACTS[model] === undefined)).toEqual([]);
   const sounds = [...ELEMENTS.map((element) => elementLook(element).sound), ...Object.values(IMMOLATE_SOUNDS)];
-  expect(sounds.filter((label) => !LABELS.has(label))).toEqual([]);
+  expect(sounds.filter((label) => !LABELS.has(label) && VERIFIED_STOCK_SOUNDS[label] === undefined)).toEqual([]);
 });
 
 test("every sound hit presentation plays has its files in the installed game", () => {

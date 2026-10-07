@@ -72,6 +72,8 @@ for (const table of ['AnimSounds', 'AbilitySounds']) {
   for (const [label, files] of soundTable(await Bun.file(output).text())) if (!labelFiles.has(label)) labelFiles.set(label, files);
 }
 const labels = hitPresentationSoundLabels();
+// A sound given by script path is its own file.
+for (const label of labels) if (label.includes('\\')) labelFiles.set(label, [label]);
 const unknownLabels = labels.filter(label => !labelFiles.has(label));
 if (unknownLabels.length > 0) throw new Error(`not in the game's sound tables: ${unknownLabels.join(', ')}`);
 

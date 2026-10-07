@@ -54,7 +54,9 @@ test("hit event language: 26 event cases reach stock effects and confirmed sound
       renderer.presentConfirmed(index + 1, 0, events);
       renderer.present(impacts, impacts, true);
       const calls = client.log.slice(before);
-      expect(calls.filter(call => call.name === "CreateSoundFromLabel").map(call => call.args[0])).toEqual([sound]);
+      // A sound by script path is named in the case by its file name.
+      expect(calls.filter(call => call.name === "CreateSoundFromLabel" || call.name === "CreateSound")
+        .map(call => String(call.args[0]).split("\\").pop()?.replace(/\.flac$/, ""))).toEqual([sound]);
       expect(calls.filter(call => call.name === "StartSound")).toHaveLength(1);
       expect(client.effectPoses().some(pose => pose.model.includes(model) && pose.scale > 0)).toBe(true);
       shownScale[index] = Math.max(...client.effectPoses().filter(pose => pose.model.includes(model)).map(pose => pose.scale));
