@@ -238,7 +238,7 @@ const motion = (args: readonly string[]) => Effect.gen(function*() {
       const strides: DrawnStride[] = [];
       const rows: DrawnMotionRow[] = [];
       const models: { character: Character; drawn: DrawnModel; model: string }[] = [];
-      for (const character of SELECTABLE_CHARACTERS) {
+      for (const character of [Character.archer, Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map(hero => hero.character)]) {
         const hero = HERO_ROSTER.find((candidate) => candidate.character === character);
         const relative = hero === undefined ? FIGHTER_MODELS[character] ?? "" : heroModelSource(hero.presentation.model);
         const bytes = await Bun.file(join(assets, relative)).arrayBuffer();
