@@ -41,7 +41,7 @@ export const LICH_KING_CLIPS: HeroClipTable = {
   throwForward: clip("Throw Forward"), throwBack: clip("Throw Back"), throwUp: clip("Throw Up"), throwDown: clip("Throw Down"),
   victimPummel: clip("Grabbed"), victimThrowForward: clip("Damage Tumble"), victimThrowBack: clip("Damage Tumble"),
   victimThrowUp: clip("Damage Tumble"), victimThrowDown: clip("Damage Ground"),
-  // Howling Blast retimes Spell Throw; Defile presses the free hand down toward the pool on frame 20.
+  // Howling Blast retimes Spell Throw; Defile plants Frostmourne at the frame-20 pool placement.
   neutralSpecial: clip("Special Neutral"), sideSpecial: clip("Special Side"), upSpecial: clip("Special Up"), downSpecial: clip("Special Down"),
   neutralSpecialAir: clip("Special Neutral"), sideSpecialAir: clip("Special Side"), upSpecialAir: clip("Special Up"), downSpecialAir: clip("Special Down"),
 };
