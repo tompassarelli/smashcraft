@@ -92,6 +92,14 @@ code. From smashcraft:ts/:
   log, crash reports, match receipts and processes, never its screen. Run it
   before clicking or reading a client; `bun wisp client state CLIENT` and
   `bun wisp client wait CLIENT STATE...` read or wait on one (wisp:docs/watch.md).
+- Engine debugger: a native desync? `bun wisp engine desync A B` names the
+  first differing turn and checksum section of the clients' Desync.log
+  dumps; `bun wisp engine poll --client a,b` during a repro and `bun wisp
+  engine diff A.log B.log` name the agent (handle, code callback) one client
+  made on another turn; `engine watch` (offline clients) gives each birth's
+  game stack, `engine locate` re-finds offsets after a Warcraft update. Dev
+  clients only, read-only; memory reads need the owner's ptrace_scope=0
+  (wisp:docs/engine.md).
 - Client recovery: `bun wisp doctor [CLIENT...]` brings clients A and B to a
   ready state: it recovers a client that dropped from Battle.net, crashed
   with its error dialog up, sits at the empty login shell, a stale lobby or
