@@ -8,7 +8,7 @@ export function calibrationReport(revision: string, trials = 10) {
   const lines = ["# Named opponent calibration", "", `Revision: ${revision}. Seeds: ${CALIBRATION_SEEDS.join(", ")}. ${trials} controlled decisions per seed and measure.`,
     "Authored Smashcraft strength; no human rating, real-player imitation or matchmaking-rank claim.", "",
     "Counts are actual policy calls in controlled eligible situations. A declined action is counted separately. Collection fails below 100 eligible decisions per measure/row.",
-    "Read forecasts face the learned strike or a switched grab; a committed guard is correct in the former and exposed in the latter. Adaptation counts new observed shield events after 20 repeated strikes, including held-read expiry. Spacing checks queued normals against authored reach. Risk reports the actual move-value multiplier under a public lead/stock-clock deficit.", "",
+    "Read forecasts face the learned strike or a switched grab in the real simulation; outcomes count blocked strikes, hits and punished wrong reads. Adaptation counts new observed shield events after 20 repeated strikes, including held-read expiry. Spacing checks queued normals against authored reach. Risk reports the actual move value under a public lead/stock-clock deficit.", "",
     "| Opponent | Tier | Measure | Eligible | Distribution |", "| --- | --- | --- | ---: | --- |"];
   for (const row of rows) for (const [name, measure] of Object.entries(row.samples)) {
     lines.push(`| ${row.opponent} | ${row.tier} | ${name} | ${measure.eligible} | ${Object.entries(measure.outcomes).map(([outcome, count]) => `${outcome}: ${count}`).join("; ")} |`);
