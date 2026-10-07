@@ -16,6 +16,8 @@ import { type FighterPhysics, WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
 const WORLD_VALUE_MEMO_LIMIT = 512;
 const worldValueInput: Record<number, number> = {};
 const worldValueResult: Record<number, number> = {};
+const originalValueInput: Record<number, number> = {};
+const originalValueResult: Record<number, number> = {};
 
 function worldValue(original: number): number {
   // Slot arithmetic only picks a candidate; the original value must match.
@@ -29,6 +31,17 @@ function worldValue(original: number): number {
   return converted;
 }
 
+function originalValue(world: number): number {
+  if (world === 0) return world;
+  const slot = floorMod(Math.floor(world * 4093), WORLD_VALUE_MEMO_LIMIT);
+  if (slot !== slot) return divideFloat32(world, WORLD_UNITS_PER_MELEE_UNIT);
+  if (originalValueInput[slot] === world) return originalValueResult[slot] ?? 0.0;
+  const converted = divideFloat32(world, WORLD_UNITS_PER_MELEE_UNIT);
+  originalValueInput[slot] = world;
+  originalValueResult[slot] = converted;
+  return converted;
+}
+
 function setOriginal(value: MeleeMotionValue, original: number): void {
   value.original = original;
   value.published = worldValue(original);
@@ -36,7 +49,7 @@ function setOriginal(value: MeleeMotionValue, original: number): void {
 
 /** Restarts accumulation from a world value written outside Melee-unit motion. */
 export function setWorldMotionValue(value: MeleeMotionValue, world: number): void {
-  value.original = divideFloat32(world, WORLD_UNITS_PER_MELEE_UNIT);
+  value.original = originalValue(world);
   value.published = world;
 }
 
@@ -46,7 +59,7 @@ export function clearMotionValue(value: MeleeMotionValue): void {
 }
 
 export function retainedOriginal(value: MeleeMotionValue, world: number): number {
-  return value.published === world ? value.original : divideFloat32(world, WORLD_UNITS_PER_MELEE_UNIT);
+  return value.published === world ? value.original : originalValue(world);
 }
 
 export function setMeleePosition(f: Fighter, originalX: number, originalZ: number): void {
@@ -83,7 +96,7 @@ export function moveMeleeX(f: Fighter, worldDisplacement: number): void {
   if (worldDisplacement === 0) return;
   const { motion } = f;
   const position = retainedOriginal(motion.meleeX, motion.x);
-  setOriginal(motion.meleeX, addFloat32(position, divideFloat32(worldDisplacement, WORLD_UNITS_PER_MELEE_UNIT)));
+  setOriginal(motion.meleeX, addFloat32(position, originalValue(worldDisplacement)));
   motion.x = motion.meleeX.published;
 }
 
@@ -136,14 +149,14 @@ export function moveMeleeVerticalVelocity(f: Fighter): void {
 }
 
 export function roundMeleeWorldValue(value: number): number {
-  return multiplyFloat32(divideFloat32(value, WORLD_UNITS_PER_MELEE_UNIT), WORLD_UNITS_PER_MELEE_UNIT);
+  return multiplyFloat32(originalValue(value), WORLD_UNITS_PER_MELEE_UNIT);
 }
 
 export function addMeleeWorldValues(value: number, displacement: number): number {
   // Authored stationary surfaces need exact zero-displacement identity.
   if (displacement === 0) return value;
-  const left = divideFloat32(value, WORLD_UNITS_PER_MELEE_UNIT);
-  const right = divideFloat32(displacement, WORLD_UNITS_PER_MELEE_UNIT);
+  const left = originalValue(value);
+  const right = originalValue(displacement);
   return multiplyFloat32(addFloat32(left, right), WORLD_UNITS_PER_MELEE_UNIT);
 }
 
