@@ -97,6 +97,22 @@ interpreting timer cadence. Raw reports and renderer samples are retained at
 
 ## Presentation interpolation
 
+Native-input builds' existing response export includes `Q` rows beside `A`
+(callback times and frame cursors), `B` (corrections), and `P` (fighter
+positions). A `Q` row records the canonical camera, the local camera after
+aspect and corner limits, and the engine's camera fields immediately before
+that callback applies its next camera request. Each camera records x, z,
+distance and tangent; the engine field uses its native FOV in radians instead
+of tangent. The native x and z are relative to the arena origin and floor.
+Recording overwrites preallocated rows and exports them after the capture.
+
+These are callback samples. Match their response marker to actual rendered
+frames and retain the renderer's timestamps to measure holds, skipped
+simulation positions and the drawn camera. Neither `Q` nor `drawnFrame` files
+alone record every rendered frame. `SetCameraField` currently requests zero
+duration; a timed transition experiment also needs to change the camera bounds
+that currently constrain x to the newly requested target on every callback.
+
 Renderers place moving effects (fighters, their lights, projectiles and pooled
 effects) through `placeEffect` (smashcraft:ts/src/game/render/effects.ts). By
 default it only sets the position. `-dev smooth-draw` starts a zero-period
