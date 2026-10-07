@@ -228,6 +228,11 @@ code. From smashcraft:ts/:
   local keyboard sampling with two-frame delay and rollback (#60/#166);
   play starts no helper and never needs one.
   When the always-on controller service has a pad, the pad presses the same keys.
+- Standalone play: `bun wisp play --standalone` opens the Wisp browser player
+  with a full three-stock Archer against Wren Expert Rifleman. `--script FILE`
+  runs the native driver's exact pad inputs; `--headless --frames N --out DIR`
+  saves frame checksums and captures (`--capture-frames N,N` picks their frames).
+  Private map and Warcraft assets stay in the existing local asset store.
 - Controller: `bun wisp controller` points the always-on controller service
   (`wc3-journal --service`, the login unit smashcraft-controller.service) at
   main's helper and restarts it, or runs the service in the foreground when
