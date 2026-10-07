@@ -6,7 +6,7 @@ import { readFileSync } from "node:fs";
 import { Effect, Exit } from "effect";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
-import { QUICK_MATCH_COMMAND } from "../src/game/shell/devSettings";
+import { QUICK_MATCH_COMMAND, RESET_COMMAND } from "../src/game/shell/devSettings";
 import { install, startBuild } from "../src/platform/main";
 import { activeRollback, shell } from "../src/platform/shell/state";
 import { drawnFrameFile } from "../src/runtime/gameFiles";
@@ -93,6 +93,8 @@ test("a visual hold keeps its drawn receipt while the unchanged match keeps adva
       expect(actual).toBeGreaterThan(60);
       const receipt = clients.client(0).files.get(drawnFrameFile(INTEGRITY_BUILD.id, 0)) ?? [];
       expect(receipt[0]).toContain("epoch=1 frame=20");
+      clients.chat(0, RESET_COMMAND);
+      expect(heldVisualFrame(0)).toBeUndefined();
     }
     for (const slot of [0, 1]) clearVisualCapture(slot);
     return checksum;

@@ -221,7 +221,10 @@ export function onProbeExport(s: ShellState): void {
  */
 export function onDevCommand(s: ShellState): void {
   const original = GetEventPlayerChatString();
-  if (original === RESET_COMMAND) clearVisualCapture(localSlot());
+  if (original === RESET_COMMAND) {
+    clearVisualCapture(localSlot());
+    pauseMatchPresentation(s, s.session.paused);
+  }
   const message = s.build.responseProbe ? configureVisualCapture(original, localSlot()) : original;
   let receipt: string | undefined;
   const quickStage = quickMatchStage(message);
