@@ -1,0 +1,48 @@
+# #171: Lich movement and recovery at drawn frames.
+#! chat -dev quick recovery hero lich
+# Get-up attack: first human misses the tech, then swings from the floor.
+40 a capture
+#! expect a 60 applied attack 1 style 11
+60 a tap A 2
+64 a capture
+76 a capture
+78 a capture
+95 a capture
+# Walk right with the walk modifier.
+120 a press LB
+120 a stick 1 0
+132 a capture
+140 a stick 0 0
+141 a release LB
+# Initial dash, sustained run, then brake.
+155 a stick 1 0
+159 a capture
+169 a capture
+173 a stick 0 0
+176 a capture
+# Backward and forward shield rolls, with neutral between.
+200 a shield 1
+201 a stick -1 0
+206 a capture
+212 a capture
+219 a stick 0 0
+236 a shield 0
+250 a shield 1
+251 a stick 1 0
+256 a capture
+262 a capture
+269 a stick 0 0
+286 a shield 0
+# Walk left, then dash/run left and brake.
+305 a press LB
+305 a stick -1 0
+317 a capture
+325 a stick 0 0
+326 a release LB
+340 a stick -1 0
+344 a capture
+354 a capture
+358 a stick 0 0
+361 a capture
+390 a press VIEW
+460 a release VIEW

@@ -92,7 +92,8 @@ code. From smashcraft:ts/:
 - Fresh match: `bun wisp fresh MAP.w3x [--rebuild]` starts a new game, sends
   `-dev quick`, and waits until every signed-in client writes its receipt.
   `--rebuild` replaces the map script first. Other quick starts for `--chat`
-  and pad scripts: `-dev quick hero NAME`, and `-dev quick cpu N`, a quick
+  and pad scripts: `-dev quick hero NAME`, `-dev quick recovery hero NAME`
+  (starts tumbling above the floor for recovery captures), and `-dev quick cpu N`, a quick
   match against a computer at level N (1-9) over three stocks.
 - Client state: `bun wisp watch [CLIENT...] [--once]` prints what each client
   is doing (signed in, menu screen, lobby, loading, in match, results,
