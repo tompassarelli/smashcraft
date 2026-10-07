@@ -4,7 +4,7 @@
 // fighter and stage selection, an instrumented match, the results screen, a
 // slot change, and the rematch. Everything it does to the clients goes through
 // the Rig service, so a recording Rig can replay the journey without Warcraft.
-import { Context, Effect, Fiber } from "effect";
+import { Context, Effect } from "effect";
 import { RULE_BUTTONS } from "../../src/game/ui/ruleButtons";
 import { STAGE_CATALOG } from "../../src/game/menu/stageCatalog";
 import { Character } from "../../src/game/sim/codes";
@@ -135,9 +135,9 @@ export interface JourneyOptions {
    * complete input workload.
    */
   readonly workload?: "match" | "playable" | "bot";
-  /** A bot session with a second computer, an Archer in slot D: four fighters, the frame-cost overlay shown in an undisturbed rematch. */
+  /** A bot session with a second computer, an Archer in slot D, recording raw frame costs in an undisturbed rematch. */
   readonly botFour?: boolean;
-  /** A bot session whose rematch, three fighters, is undisturbed and shows the frame-cost overlay, as --bot-four's does. */
+  /** A bot session whose three-fighter rematch records raw frame costs, as --bot-four's does. */
   readonly botPerf?: boolean;
   /** A bot session whose first match starts with #49's pad script on slot 0. */
   readonly pad49?: boolean;
@@ -195,21 +195,12 @@ const BOT_BEATS = [
 /** Stick down (+Y) just below and just past Melee's 0.6625 of full scale (#49). */
 const PAD49_BELOW_DOWN = 21299;
 const PAD49_PAST_DOWN = 21954;
-/** The frame meter's overlay toggle (smashcraft:ts/src/platform/frameMeter.ts). */
-const PERF_TOGGLE = "-dev perf";
 /**
  * The raw capture the rematch records on every client: 1800 callbacks, the
  * frames `bun wisp perf bot` and `perf bot-four` predict, written to
  * smashcraft-perf-capture-pSLOT-runRUN.txt (smashcraft:ts/src/platform/frameMeter.ts).
  */
 export const BOT_CAPTURE = "-dev capture 1800";
-/**
- * The overlay's text frame (wisp:src/platform/frameMeter.ts): top left
- * (0.58, 0.56), 0.21 by 0.08, in the 2560x1440 client's centered 4:3 area.
- */
-const PERF_OVERLAY: Region = { x: 1700, y: 90, width: 530, height: 210 };
-/** The overlay summarizes the last 120 frames; one reading every 2 s reads each window once. */
-const PERF_READ_MILLIS = 2000;
 /**
  * Stocks in each match of #26's integrity workload. Its pads dash both ways
  * through the whole workload, and on 0.0.48 Player 2 drifted off the stage on
@@ -758,8 +749,6 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       const started = yield* boundaries(start);
       yield* rig.record({ event: "start", epoch, publications: started, observed_monotonic_ns: yield* rig.monotonicNs });
       if (bot && (options.botFour === true || options.botPerf === true) && !odd) {
-        // The frame meter registers its toggle at the first match start; its overlay shows on A for the rematch.
-        yield* journalChat(epoch, PERF_TOGGLE);
         yield* journalChat(epoch, BOT_CAPTURE);
         yield* resumeAfterChat(epoch);
       }
@@ -773,16 +762,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       const goNs = deadline - 300_000_000 + START_HOLD_FRAMES * 1_000_000_000 / MATCH_TICKS_PER_SECOND;
       yield* rig.sleep(Math.max(0, (goNs - (yield* rig.monotonicNs)) / 1_000_000));
       if (bot) {
-        // The rematch that shows the overlay is read throughout, beside its beats.
-        const overlay = bot && (options.botFour === true || options.botPerf === true) && !odd
-          ? yield* Effect.forkChild(Effect.forever(Effect.gen(function*() {
-            const text = yield* rig.readText(0, PERF_OVERLAY).pipe(Effect.catch((failure) => Effect.succeed(`unread: ${failure.message}`)));
-            yield* rig.record({ event: "perf-overlay", epoch, observed_monotonic_ns: yield* rig.monotonicNs, text });
-            yield* rig.sleep(PERF_READ_MILLIS);
-          })), { startImmediately: true })
-          : undefined;
         yield* botMatch(epoch, goNs);
-        if (overlay !== undefined) yield* Fiber.interrupt(overlay);
       }
       else if (matchOnly || playable) {
         for (let attack = 0; attack < 4; attack++) {

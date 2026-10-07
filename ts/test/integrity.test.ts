@@ -360,21 +360,17 @@ test("xpad pads press X for special, Y for jump, and stick-up only as up", () =>
   expect(bot.trace.some(line => line.includes("menu-match-2-start") || line.includes("menu-match-2-stage"))).toBe(false);
   const firstEnd = bot.trace.indexOf("event end");
   const secondStart = bot.trace.indexOf("event start", bot.trace.indexOf("event start") + 1);
-  expect(bot.trace.indexOf("type a -dev perf")).toBeGreaterThan(secondStart);
-  const perfTyped = bot.trace.indexOf("type a -dev perf");
   const captureTyped = bot.trace.indexOf("type a -dev capture 1800");
   const resumed = bot.trace.findIndex(line => line.includes("match-2-chat-resume"));
-  expect(bot.trace.indexOf("until epoch 2: -dev perf chat entry not open")).toBeLessThan(perfTyped);
-  expect(bot.trace.indexOf("until epoch 2: -dev perf chat has not returned keyboard focus")).toBeLessThan(captureTyped);
+  expect(captureTyped).toBeGreaterThan(secondStart);
+  expect(bot.trace.indexOf("until epoch 2: -dev capture 1800 chat entry not open")).toBeLessThan(captureTyped);
+  expect(bot.trace.indexOf("until epoch 2: -dev capture 1800 chat has not returned keyboard focus")).toBeLessThan(resumed);
   expect(resumed).toBeGreaterThan(captureTyped);
   expect(bot.trace.indexOf("until epoch 2: chat resume not acknowledged by both helpers")).toBeGreaterThan(resumed);
   expect(bot.trace.slice(firstEnd, secondStart).some(line => line.includes("menu-results-confirm") || line.includes("menu-character"))).toBe(false);
   expect(bot.events.filter(event => event.event === "start" || event.event === "end").map(event => [event.event, event.epoch])).toEqual([["start", 1], ["end", 1], ["start", 2], ["end", 2]]);
-  // The overlay is read from A's screen during the rematch that shows it, and only then.
-  const overlay = bot.events.flatMap(event => (event.event === "perf-overlay" ? [event.epoch] : []));
-  expect(overlay.length).toBeGreaterThan(0);
-  expect(new Set(overlay)).toEqual(new Set([2]));
-  expect(bot.trace).toContain("ui a read 1700,90 530x210");
+  expect(bot.trace).not.toContain("type a -dev perf");
+  expect(bot.trace).not.toContain("ui a read 1700,90 530x210");
 });
 
 /** The recording rig over a lobby whose slots C/D the journey's commands change, noting the slot modes at bot setup. */

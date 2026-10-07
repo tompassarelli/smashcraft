@@ -67,15 +67,15 @@ The session has a match and a rematch:
   saves eight moment files (four moments, saved on both clients).
 - On a development or integrity build, each match exports its response
   pages after its trace, so its presses can be reconciled like #26's.
-- `--bot-four` leaves the rematch undisturbed and types `-dev perf` into
-  client A just after its automatic start, so the frame-cost overlay shows a four-fighter match
-  (development and integrity builds only).
+- `--bot-four` leaves the rematch undisturbed and types `-dev capture 1800`
+  just after its automatic start. Both clients write raw frame costs to
+  `smashcraft-perf-capture-pSLOT-runRUN.txt` (development and integrity builds only).
 - `--bot-perf` does the same with the three fighters of `--bot`, so a
   session measures both the matches `bun wisp perf bot` and `perf bot-four`
-  predict. In either, the capture reads A's overlay from its screen every
-  2 s through the rematch (a `perf-overlay` event each, one 120-frame
-  window). `bun wisp perf native RESULT RUN` then holds the headless
-  prediction of the same source to those readings (wisp:docs/frame-cost.md#checking-against-warcraft).
+  predict. `bun wisp perf native CAPTURE.txt RUN --samples HEADLESS.perf`
+  holds the headless prediction of the same source to those raw readings
+  (wisp:docs/frame-cost.md#checking-against-warcraft). No overlay screenshots
+  or OCR run during the measurement.
   Run it on a quiet machine: the meter's clock is likely wall
   time, so other work on the host inflates it.
 - `--pad49` opens the first match with #49's script on slot 0, and that
