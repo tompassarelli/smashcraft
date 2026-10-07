@@ -1,0 +1,21 @@
+# #202: run with WC3_PAD_PRESET=z-jump and the preset-aware journal helper.
+#! chat -dev quick hero archer
+# Releasing RB during the jump squat selects the short-hop takeoff.
+60 a tap RB 2
+# Full stick with Tilt held produces a forward tilt without starting a dash.
+180 a press LB
+180 a stick 1 0
+180 a tap A 2
+186 a stick 0 0
+187 a release LB
+# The second Archer approaches for an ordinary standing grab on B.
+240 b stick -1 0
+260 b stick 0 0
+350 a tap B 2
+#! expect a 63 applied jump 1 double 0 z 12.600
+#! expect a 180 applied attack 1 style 6
+#! absent a 180-187 ground action 1
+#! expect a 350-360 grab-hold start
+# Preserve the completed input timeline for checksum and fighter-line parity.
+700 a press VIEW
+770 a release VIEW
