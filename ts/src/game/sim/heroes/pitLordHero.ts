@@ -7,6 +7,7 @@ import type { HeroClip, HeroDefinition } from "./hero";
 import { PIT_LORD_GAMEPLAN } from "./pitLordGameplan";
 import { PIT_LORD_MOVES } from "./pitLordMoves";
 import { PIT_LORD_SPECIALS } from "./pitLordSpecials";
+import { PIT_LORD_SPECIAL_CLIPS } from "../../presentation/heroes/pitLordClipInfo";
 
 // The classic HeroPitLord model's seventeen sequences by file index, with
 // their lengths. Shapes come from each sequence's extents: Attack reaches
@@ -28,8 +29,6 @@ const SPELL_SLAM = clip(6, 1.5);
 const ATTACK = clip(7, 1.5);
 const DEATH = clip(8, f32(2.667));
 const DISSIPATE = clip(9, 2.0);
-/** Stand Channel: arms up and roaring. */
-const STAND_CHANNEL = clip(12, f32(1.333));
 /** Attack Slam - 2: a sweep across both sides (254 each way). */
 const ATTACK_SLAM_2 = clip(13, f32(1.667));
 /** Spell: arms raised highest (370). */
@@ -40,7 +39,7 @@ const ATTACK_3 = clip(16, 1.5);
 export const PIT_LORD_HERO: HeroDefinition = {
   character: Character.pitLord,
   name: "Pit Lord",
-  purpose: "Extreme heavy with long cleaves",
+  purpose: "Siege heavyweight: falling fire and long cleaves",
   weakness: "Very large target and slow recovery",
   passive: { name: "Cleaving Attack", description: "His cleaver strikes every opponent in its path, and the blade itself can't be hit." },
   jab: { name: "Haft and Chop", description: "A haft check, then a short cleaver chop on a second jab." },
@@ -71,8 +70,7 @@ export const PIT_LORD_HERO: HeroDefinition = {
       pummel: ATTACK, throwForward: ATTACK_3, throwBack: ATTACK_2, throwUp: SPELL_SLAM, throwDown: ATTACK_SLAM_1,
       victimPummel: STAND_2, victimThrowForward: STAND_2, victimThrowBack: STAND_2,
       victimThrowUp: STAND_2, victimThrowDown: STAND_2,
-      neutralSpecial: SPELL, sideSpecial: ATTACK_SLAM_2, upSpecial: SPELL_SLAM, downSpecial: STAND_CHANNEL,
-      neutralSpecialAir: SPELL, sideSpecialAir: ATTACK_SLAM_2, upSpecialAir: SPELL_SLAM, downSpecialAir: STAND_CHANNEL,
+      ...PIT_LORD_SPECIAL_CLIPS,
     },
     fallback: STAND,
   },

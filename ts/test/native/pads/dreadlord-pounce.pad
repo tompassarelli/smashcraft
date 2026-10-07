@@ -1,5 +1,5 @@
 # #132 Dreadlord's hit-wake and Vampiric Pounce, native check by parity: a hit wakes a sleeper; the
-# pounce's feint hops back with no grab; the bite heals him 4. Sleep's lengths are dreadlord.pad.
+# corkscrew closes in with bats trailing; the bite heals him 4. Sleep's lengths are dreadlord.pad.
 # Dreadlord a against Dreadlord b; syntax and checks: smashcraft:docs/native-bot-session.md.
 #! chat -dev quick hero dreadlord
 # a dashes in, inside Sleep's reach.
@@ -13,11 +13,6 @@
 190 b tap A 2
 # b's Carrion Swarm strikes a.
 220 b tap X 2
-# Vampiric Pounce feinted on its approach frame 5: a hop back, no grab.
-280 a stick 1 0
-280 a tap X 2
-284 a tap X 2
-285 a stick 0 0
 # a dashes in twice as b walks toward him; Vampiric Pounce catches b and the bite heals a 4.
 320 a stick 1 0
 320 b press LB
@@ -31,24 +26,20 @@
 360 a tap X 2
 361 a stick 0 0
 #! expect a 60 special 16 form 0
-#! expect b 110 damage 2.000
+#! expect b 110 damage 1.810
 #! expect a 130 special 13 form 0
-#! expect b 165 damage 9.000
+#! expect b 165 damage 8.145
 #! expect b 190 applied attack 1 style 0
-#! expect a 257 damage 7.000
-#! expect a 280 special 14 form 0
-#! expect a 284 special-form 6 action 14
-#! absent a 280-359 grab-hold
-#! expect a 301 special 0 form 6
+#! expect a 257 damage 6.335
 #! expect a 360 special 14 form 0
 #! expect a 376 grab-hold start
 #! expect a 392 grab-hold end
-#! expect a 392 damage 3.000
-#! expect b 392 damage 22.000
+#! expect a 392 damage 2.335
+#! expect b 392 damage 18.145
 #! scene a SleepSpecialArt
 #! scene a CarrionSwarmMissile
-#! scene a DeathPactCaster
 #! scene a BloodImpact
+# Damage uses the current kit: Sleep 1.810, Swarm 6.335, bite 10.00025; bite heals exactly 4.
 # View held a second, twice: the moments the parity check replays.
 500 a press VIEW
 570 a release VIEW

@@ -11,6 +11,7 @@ import { PLAYABLE_BUILD } from "../src/game/shell/currentBuild";
 import { Character } from "../src/game/sim/codes";
 import { PROJECTILE_CAPACITY } from "../src/game/sim/fighter";
 import { fighterRenderedCues } from "../src/game/presentation/attackCues";
+import { HIT_AREA_EFFECT_CAPACITY } from "../src/game/render/hitAreaEffects";
 import { stageModels } from "../src/game/presentation/stagePreload";
 import { install, startBuild } from "../src/platform/main";
 import { Key } from "../src/platform/shell/keyEvents";
@@ -130,9 +131,10 @@ test("playable: selection creates no effect and reads no file; match start creat
   });
   // Stage handles are prepared once under the cover, then retained at match start.
   expect(loadingCreated).toBe(stageModels(stage).length);
-  // Each fighter's clip pool, shield, projectile pool, special cues, agency halo and body flash.
+  // Each fighter's clip pool, shield, projectile pool, special cues, twelve hit-area effects, agency halo and body flash.
+  expect(HIT_AREA_EFFECT_CAPACITY).toBe(12);
   expect(start.poolCreated).toBe(4 * poolEffects(Character.demonHunter));
-  expect(start.created).toBe(start.poolCreated + 4 * (1 + PROJECTILE_CAPACITY + fighterRenderedCues(Character.demonHunter).length + 2));
+  expect(start.created).toBe(start.poolCreated + 4 * (1 + PROJECTILE_CAPACITY + fighterRenderedCues(Character.demonHunter).length + HIT_AREA_EFFECT_CAPACITY + 2));
   expect(start.fileReads).toBe(0);
 
   const match: Work[] = [];

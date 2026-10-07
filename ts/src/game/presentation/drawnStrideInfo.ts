@@ -2,9 +2,9 @@
 import { f32 } from "wisp/src/sim/f32";
 /** Drawn foot travel in world units per second at 1x clip speed (#171). */
 export const DRAWN_STRIDES: { readonly [character: number]: { readonly walk: { readonly clip: number; readonly model: string; readonly speed: number }; readonly run: { readonly clip: number; readonly model: string; readonly speed: number } } | undefined } = {
-  0: { walk: { clip: 57, model: "war3mapImported\\ArcherFighter-b7a6f2098b01637768e368327351860c93a7c62c210c49c39983e04d3c26a9b6.mdx", speed: f32(134.829) }, run: { clip: 57, model: "war3mapImported\\ArcherFighter-b7a6f2098b01637768e368327351860c93a7c62c210c49c39983e04d3c26a9b6.mdx", speed: f32(134.829) } },
-  1: { walk: { clip: 54, model: "war3mapImported\\RiflemanFighter-9f110074e8b9fed718a9b7148dfdf5cf6a3d7a8a0652e6b7103993b7860cc5a5.mdx", speed: f32(149.997) }, run: { clip: 54, model: "war3mapImported\\RiflemanFighter-9f110074e8b9fed718a9b7148dfdf5cf6a3d7a8a0652e6b7103993b7860cc5a5.mdx", speed: f32(149.997) } },
-  2: { walk: { clip: 109, model: "war3mapImported\\DemonHunterFighter-8350a66b38111cc05966dcfada11980632c6c2db855a3f13d931a1ab6340a097.mdx", speed: f32(143.651) }, run: { clip: 64, model: "war3mapImported\\DemonHunterFighter-8350a66b38111cc05966dcfada11980632c6c2db855a3f13d931a1ab6340a097.mdx", speed: f32(278.357) } },
+  0: { walk: { clip: 57, model: "war3mapImported\\ArcherFighter-350ce721514fbb3ad917c2ddacf0515ee416b55efa419d330c3c24caeeb5f4c9.mdx", speed: f32(134.829) }, run: { clip: 57, model: "war3mapImported\\ArcherFighter-350ce721514fbb3ad917c2ddacf0515ee416b55efa419d330c3c24caeeb5f4c9.mdx", speed: f32(134.829) } },
+  1: { walk: { clip: 54, model: "war3mapImported\\RiflemanFighter-5eedc4053cb270e1875eedd9c11e13f8856f50d7c56a795af40a7f7ba7274817.mdx", speed: f32(149.997) }, run: { clip: 54, model: "war3mapImported\\RiflemanFighter-5eedc4053cb270e1875eedd9c11e13f8856f50d7c56a795af40a7f7ba7274817.mdx", speed: f32(149.997) } },
+  2: { walk: { clip: 119, model: "war3mapImported\\DemonHunterFighter-2e11863bc6c30ddfc1f8f38c3d55b62b452b546dfdf8cb4bb46cebe83d7af50a.mdx", speed: f32(131.164) }, run: { clip: 120, model: "war3mapImported\\DemonHunterFighter-2e11863bc6c30ddfc1f8f38c3d55b62b452b546dfdf8cb4bb46cebe83d7af50a.mdx", speed: f32(332.739) } },
   3: { walk: { clip: 6, model: "units\\orc\\HeroBladeMaster\\HeroBladeMaster.mdl", speed: f32(209.537) }, run: { clip: 6, model: "units\\orc\\HeroBladeMaster\\HeroBladeMaster.mdl", speed: f32(209.537) } },
   4: { walk: { clip: 7, model: "units\\human\\HeroMountainKing\\HeroMountainKing.mdl", speed: f32(146.888) }, run: { clip: 7, model: "units\\human\\HeroMountainKing\\HeroMountainKing.mdl", speed: f32(146.888) } },
   5: { walk: { clip: 2, model: "Units\\NightElf\\HeroWarden\\HeroWarden.mdx", speed: f32(91.814) }, run: { clip: 2, model: "Units\\NightElf\\HeroWarden\\HeroWarden.mdx", speed: f32(91.814) } },
@@ -16,5 +16,6 @@ export const DRAWN_STRIDES: { readonly [character: number]: { readonly walk: { r
   11: { walk: { clip: 0, model: "units\\creeps\\BeastMaster\\BeastMaster.mdl", speed: f32(203.181) }, run: { clip: 0, model: "units\\creeps\\BeastMaster\\BeastMaster.mdl", speed: f32(203.181) } },
   12: { walk: { clip: 2, model: "war3mapImported\\LichKing2.mdx", speed: f32(129.361) }, run: { clip: 10, model: "war3mapImported\\LichKing2.mdx", speed: f32(265.067) } },
   13: { walk: { clip: 2, model: "units\\orc\\Thrall\\Thrall.mdl", speed: f32(213.345) }, run: { clip: 2, model: "units\\orc\\Thrall\\Thrall.mdl", speed: f32(213.345) } },
+  14: { walk: { clip: 6, model: "units\\human\\Jaina\\Jaina.mdl", speed: f32(68.945) }, run: { clip: 6, model: "units\\human\\Jaina\\Jaina.mdl", speed: f32(68.945) } },
   16: { walk: { clip: 3, model: "units\\orc\\HeroTaurenChieftain\\HeroTaurenChieftain.mdl", speed: f32(205.421) }, run: { clip: 3, model: "units\\orc\\HeroTaurenChieftain\\HeroTaurenChieftain.mdl", speed: f32(205.421) } },
 };

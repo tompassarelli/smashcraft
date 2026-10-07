@@ -68,18 +68,21 @@ export const HAWK_PLACEMENT: SpecialPlacement = {
 };
 const SUMMON_HAWK: AuthoredSpecial = { cost: 10, endFrame: 26, groundOnly: true, placement: HAWK_PLACEMENT };
 const HAWK_DIVE: AuthoredSpecial = { name: "Hawk Dive", cost: 6, endFrame: 24, facesStick: true, command: { frame: 3, order: CompanionOrder.lunge, slot: 2 } };
-const lift = (rise: number, drift: number): SpecialMotion[] => {
+const lift = (rise: number, drift: number, steer: number): SpecialMotion[] => {
   const segment = (first: number, last: number, share: number): SpecialMotion =>
-    ({ ...frames(first, last), velocityX: f32(f32(drift * share) / (last - first + 1)), velocityZ: f32(f32(rise * share) / (last - first + 1)) });
+    ({
+      ...frames(first, last), velocityX: f32(f32(drift * share) / (last - first + 1)), velocityZ: f32(f32(rise * share) / (last - first + 1)),
+      driftSpeed: f32(f32(steer * share) / (last - first + 1)),
+    });
   return [segment(10, 15, 0.5), segment(16, 27, f32(0.46)), segment(28, 32, f32(0.04))];
 };
-const hawkLift = (cost: number, rise: number, drift: number): AuthoredSpecial => ({
-  name: "Hawk Lift", cost, endFrame: 32, motion: lift(rise, drift), facesStick: true, oncePerAirtime: true, helpless: true,
+const hawkLift = (cost: number, rise: number, drift: number, steer: number): AuthoredSpecial => ({
+  name: "Hawk Lift", cost, endFrame: 32, motion: lift(rise, drift, steer), facesStick: true, oncePerAirtime: true, helpless: true,
   placement: { ...HAWK_PLACEMENT, frame: 10 },
 });
 export const BEASTMASTER_SPECIALS: FighterSpecials = {
   neutral: { name: "Wild Axes", description: "Throw two axes; move to guide their return through the enemy.", ground: wildAxes(false), air: wildAxes(true) },
   side: { name: "Summon Bear", description: "Call Bear, then press again for its lunge and a Stampede.", ground: SUMMON_BEAR, recall: BEAR_COMMAND },
-  up: { name: "Summon Hawk", description: "Call Hawk, then command a dive. In the air, Hawk carries him up.", ground: SUMMON_HAWK, recall: HAWK_DIVE, recallGroundOnly: true, air: hawkLift(15, h(2.0), h(f32(0.5))), free: hawkLift(0, h(f32(1.4)), h(f32(0.35))) },
+  up: { name: "Summon Hawk", description: "Call Hawk, then command a dive. In the air, Hawk carries him up.", ground: SUMMON_HAWK, recall: HAWK_DIVE, recallGroundOnly: true, air: hawkLift(15, h(f32(3.2)), h(f32(0.3)), h(f32(1.2))), free: hawkLift(0, h(f32(2.3)), h(f32(0.2)), h(f32(0.8))) },
   down: { name: "Summon Quilbeast", description: "Set a Quilbeast firing position; press again for a three-quill volley.", ground: SUMMON_QUILBEAST, recall: QUILL_VOLLEY },
 };

@@ -47,8 +47,10 @@ if(!metadataOnly){
 const hash=new Bun.CryptoHasher('sha256').update(new Uint8Array(bytes)).digest('hex');
 const modelPath=`war3mapImported\\DemonHunterFighter-${hash}.mdx`;
 const unclocked=new Set(['COMBAT_IDLE','WALK_FORWARD','RUN_FORWARD','SHIELD_HOLD','SHIELD_BREAK','FALL','FAST_FALL','DOWN_WAIT','KO']);
-const clipKeys=bindings.map((binding)=>{
- const key=binding.name.toUpperCase().replace(/[^A-Z0-9]+/g,'_');
+const locomotionKeys: Record<string,string> = {'Locomotion Walk':'WALK_FORWARD','Locomotion Run':'RUN_FORWARD','Locomotion Initial Dash Burst':'INITIAL_DASH_BURST'};
+const replaced = new Set(bindings.some(b=>b.name==='Locomotion Run') ? ['Walk Forward','Run Forward','Dash Start'] : []);
+const clipKeys=bindings.filter(binding=>!replaced.has(binding.name)).map((binding)=>{
+ const key=locomotionKeys[binding.name] ?? binding.name.toUpperCase().replace(/[^A-Z0-9]+/g,'_');
  return {key,index:binding.index,...(unclocked.has(key)?{}:{seconds:binding.seconds})};
 });
 await Bun.write(join(import.meta.dir,'../../ts/src/game/presentation/demonHunterAssetInfo.ts'),
