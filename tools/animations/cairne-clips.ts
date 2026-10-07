@@ -189,10 +189,17 @@ for (const [ordinal,action] of [...actions,...damageActions].entries()) {
       const previous=rootTrack.Keys.find(k=>k.Frame===Frame);if(previous)Object.assign(previous,key);else rootTrack.Keys.push(key);}
     rootTrack.Keys.sort((a,b)=>a.Frame-b.Frame);}
   const duration=(end-start)/1000;
-  const contact=action.pose.startsWith("throw")||action.pose.startsWith("victim")||action.pose==="pummel"?`, contact: ${seconds(action.contact/60)}`:"";
-  const binding=`{ index: ${index}, seconds: ${seconds(duration)}, aligned: true${contact} }`;
+  const victimContact=action.pose.startsWith("victim");
+  const contact=action.pose.startsWith("throw")||victimContact||action.pose==="pummel"?`, contact: ${seconds(victimContact?0.5:action.contact/60)}`:"";
+  const binding=`{ index: ${index}, seconds: ${seconds(victimContact?1:duration)}, aligned: true${contact} }`;
   if(action.damage)damageBindings.push(`  ${binding},`);else bindings.push(`  ${action.pose}: ${binding},`);
-  records.push({pose:name,index,frames:action.frames,contact:action.contact});
+  records.push({pose:name,index,frames:victimContact?60:action.frames,contact:victimContact?30:action.contact});
+}
+// Separate intervals keep the shared victim contact from changing any holder clip.
+for(const [ordinal,action]of actions.entries())if(action.pose.startsWith("victim")){
+  const sequence=model.Sequences[source.Sequences.length+ordinal]!,[first,last]=sequence.Interval,contact=first+Math.round(action.contact*1000/60),start=cursor;cursor=start+1100;
+  tracks(model,track=>{if(onGlobalClock(track))return;for(const key of track.Keys)if(key.Frame>=first&&key.Frame<=last)key.Frame=start+(key.Frame<=contact?Math.round((key.Frame-first)/(contact-first)*500):500+Math.round((key.Frame-contact)/(last-contact)*500));track.Keys.sort((a,b)=>a.Frame-b.Frame);});
+  sequence.Interval=new Uint32Array([start,start+1000]);
 }
 const bytes=encodeVerified(parseSource(generateMDX(model)));mkdirSync(output,{recursive:true});await Bun.write(join(output,"herotaurenchieftain.mdx"),bytes);
 await Bun.write(join(project,"ts/src/game/presentation/heroes/cairneClips.ts"),[
@@ -209,7 +216,7 @@ await Bun.write(join(project,"ts/src/game/presentation/drawnStrideInfo.ts"),draw
 let preserved=0;
 for(const [index,sequence]of source.Sequences.entries())for(const part of [0,0.5,1]){const time=(sequence.Interval[1]-sequence.Interval[0])*part/1000,a=before.triangles(index,time,1),b=after.triangles(index,time,1);
   ensure(a.length===b.length&&a.every((v,i)=>Math.abs(v-b[i]!)<0.001),`${sequence.Name}: stock pose changed`);preserved++;}
-const motions=actions.map((action,ordinal)=>{const index=source.Sequences.length+ordinal,first=after.triangles(index,0,1),contact=after.triangles(index,action.contact/60,1);let motion=0;
+const motions=actions.map((action,ordinal)=>{const index=source.Sequences.length+ordinal,first=after.triangles(index,0,1),contact=after.triangles(index,action.pose.startsWith("victim")?0.5:action.contact/60,1);let motion=0;
   ensure(first.length>0&&contact.length===first.length,`${action.pose}: body missing`);for(let i=0;i<first.length;i+=2)motion=Math.max(motion,Math.hypot(contact[i]!-first[i]!,contact[i+1]!-first[i+1]!));
   if(!action.hold)ensure(motion>=8,`${action.pose}: no local gesture (${motion})`);return {pose:action.pose,motion};});
 const pain=damageActions.map((_,ordinal)=>after.triangles(source.Sequences.length+actions.length+ordinal,0,1));
