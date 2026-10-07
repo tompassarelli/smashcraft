@@ -4,7 +4,7 @@ import { join } from "node:path";
 import type { NativeCheck } from "wisp/scripts/wisp/accept";
 import { STAGE_CATALOG } from "../../src/game/menu/stageCatalog";
 
-const ARTIFACTS = [{ phase: "before", file: "before.w3x" }, { phase: "after", file: "composition.w3x" }] as const;
+const ARTIFACTS = [{ phase: "before", file: "before.w3x" }, { phase: "after", file: "composition-integrated.w3x" }] as const;
 export const STAGE_COMPOSITION_MAPS = Object.fromEntries(ARTIFACTS.map(({ phase, file }) => [`composition-${phase}`, {
   describe: `stage composition ${phase} artifact; all nine stages in one hosted game`,
   path: join(homedir(), ".local/share/smashcraft-stage-design-178", file),
@@ -17,6 +17,7 @@ export const STAGE_COMPOSITION_CHECKS: readonly NativeCheck[] = ARTIFACTS.flatMa
     setup: [{ chat: "-dev reset" }, { chat: `-dev quick stage ${id}` }, { chat: "-dev backdrop on" }, { waitMs: 5000 }, { keys: ["y"] }],
     capture: [{ kind: "frames", name: "composition", client: "a" }, { kind: "frames", name: "composition", client: "b" }],
     pass: [
+      { kind: "receipt", pattern: `^SMASHCRAFT STAGE v=1 .* stage=${id} `, min: 1 },
       { kind: "log", pattern: "^model creation failed - war3mapImported", since: "session", max: 0 },
       { kind: "receipt", pattern: "^error \\d+ in ", max: 0 },
     ],
