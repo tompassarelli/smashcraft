@@ -101,13 +101,20 @@ export class SpecialEffects {
       slot.previousSpecial = SpecialAction.none;
       slot.previousSpecialFrame = 0;
       slot.previousHippogryphLife = 0;
-      if (slot.immolationLoop !== undefined) StopSound(slot.immolationLoop, false, false);
+      this.releaseImmolationLoop(slot);
       slot.previousHippogryphKind = HippogryphKind.none;
     });
   }
 
   private park(model: effect, slot: number, effect: number): void {
     parkOnce(model, this.origin, (this.parked ??= []), SLOT_EFFECTS * slot + effect);
+  }
+
+  private releaseImmolationLoop(slot: SpecialSlot): void {
+    if (slot.immolationLoop === undefined) return;
+    StopSound(slot.immolationLoop, false, false);
+    KillSoundWhenDone(slot.immolationLoop);
+    slot.immolationLoop = undefined;
   }
 
   private placed(slot: number, effect: number): void {
@@ -243,6 +250,7 @@ export class SpecialEffects {
 
   destroy(): void {
     for (const slot of this.slots) {
+      this.releaseImmolationLoop(slot);
       slot.bear.destroy();
       for (const model of [slot.hippogryph, slot.aura, slot.felFlames, slot.manaHand, slot.wingTrail, slot.drainFlash]) DestroyEffect(model);
     }
