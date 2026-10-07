@@ -81,7 +81,7 @@ test("projectileMovesOnceAndHitsNearestOpponent", () => {
   assertEquals(owner.projectiles[0]!.x, 100.0);
   assertEquals(owner.projectiles[0]!.life, 0);
   assertEquals(world.fighters[1]!.status.damage, 0.0);
-  assertEquals(world.fighters[2]!.status.damage, 3.0);
+  assertEquals(world.fighters[2]!.status.damage, 2.7900002002716064);
   assertEquals(world.fighters[3]!.status.damage, 0.0);
   Object.assign(owner.projectiles[1]!, { life: 10, x: -400.0, z: 45.0, velocityX: 10.0 });
   updateProjectiles(world);

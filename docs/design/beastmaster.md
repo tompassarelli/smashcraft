@@ -46,8 +46,11 @@ grounded return. Offstage, Beastmaster gives up attacking to use Hawk Lift.
 
 The stock Warcraft animations supply each animal's stand, movement and attack;
 the fighter's forward cast signals a command, and his axe swing signals Wild
-Axes. Animal attack animation follows its warning/action/recovery state from
-its actual position. Hawk Lift draws the same Hawk, never an extra cosmetic
+Axes. Bear rears during its warning, lunges with its attack pose, then finishes the
+swipe. Quilbeast braces and recoils separately for each quill. Hawk pitches
+down through its dive and visibly travels from above to below the target.
+These poses play at each animal's actual position, with full windup and
+follow-through instead of cutting the animation to the short contact window. Hawk Lift draws the same Hawk, never an extra cosmetic
 copy. Stock Warcraft models remain private inputs.
 
 ## Sources and borrowing
@@ -73,3 +76,28 @@ copy. Stock Warcraft models remain private inputs.
 
 References checked 8 October 2026. These are gameplay ideas, not copied code,
 models, animation, exact frame data or hitboxes.
+
+## Bear readability: Tom's 8 October playtest
+
+A player should describe Bear as: **“It follows me, then I command a roaring
+lunge that knocks enemies away.”** The combat remains the measured 10-frame
+warning, 4-frame attack and 30-frame recovery, with the same movement and bite.
+
+Every command starts with a large rear-up silhouette and a roar at Bear's own
+position. The windup shows a stock Battle Roar crest over its head. One forward
+swipe follows; the animation holds its contact pose through the four attack
+frames, then visibly settles during recovery. The presentation never changes
+Bear's hurt region, damage, travel or timings.
+
+A compact marker above Bear names its state: **FOLLOWING** in pale blue,
+**CHARGING** in gold, **ATTACKING** in red and **RESTING** in grey. Stun also
+shows RESTING. The marker disappears with Bear. On a confirmed bite, a distinct
+heavy claw impact sound and a short impact burst play at its jaws; a miss
+plays neither. Each command roars once and each connected bite sounds once.
+Quilbeast's three firing recoils and Hawk's descending attack remain separate
+from this Bear signal.
+
+The headless contract checks the four state windows, one roar per command and
+one impact per connected bite; the existing pack script still exercises the
+whole kit. Tom's next match supplies the final observation: he describes
+Bear's job in one sentence, and judges the whole pack fun.
