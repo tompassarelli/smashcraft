@@ -16,7 +16,7 @@ const reaching = (first: number, last: number, x: number, z: number): readonly H
   const parts: readonly HurtPart[] = [BODY, hurtPart(12.0, 48.0, x, z, 10.0)];
   return [heroHurtPose(Math.max(1, first - 2), last + 2, parts)];
 };
-const tilt = (z: number) => heroMove(8, 3, 19, 0, swing(8, [[92.0, f32(z + 16.0)], [92.0, z], [84.0, f32(z - 16.0)]], 8.0, 40));
+const tilt = (z: number) => heroMove(8, 3, 19, 0, swing(8, [[92.0, f32(z + 16.0)], [92.0, z], [84.0, f32(z - 16.0)]], 9.0, 40));
 
 export const PEON_MOVES: FighterMoves = {
   dashAttack: AttackStyle.dashAttack,

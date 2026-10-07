@@ -1,0 +1,13 @@
+{
+  "baseline": "d8fbd06ef5df55965d9cba91691dfb159ea8edb5",
+  "candidate": "0bc574f2cfc64904641d23190987b393a99e2aa9",
+  "run": "https://github.com/tompassarelli/smashcraft/actions/runs/37674369870",
+  "change": "Required projectile repair and finisher growth 118 to 90",
+  "matchedBy": ["stage", "variant", "seed", "fighters", "opponents", "tiers"],
+  "gate": "failed",
+  "pairs": [
+    {"opponent": "archer", "matches": 408, "winsBefore": 382, "winsAfter": 360, "winToLoss": 43, "lossToWin": 21, "meanFramesBefore": 5051, "meanFramesAfter": 5427},
+    {"opponent": "cairne-bloodhoof", "matches": 408, "winsBefore": 340, "winsAfter": 301, "winToLoss": 87, "lossToWin": 48, "meanFramesBefore": 4180, "meanFramesAfter": 4602},
+    {"opponent": "lich", "matches": 408, "winsBefore": 276, "winsAfter": 238, "winToLoss": 108, "lossToWin": 70, "meanFramesBefore": 3930, "meanFramesAfter": 4198}
+  ]
+}
