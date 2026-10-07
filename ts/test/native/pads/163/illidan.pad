@@ -1,0 +1,22 @@
+# #163 Illidan: three jab presses play the jab chain, then a forward tilt
+# plays once. Illidan a against Illidan b, which runs in to about 60 away and
+# stands. Syntax and checks: smashcraft:docs/native-bot-session.md.
+#! chat -dev quick hero illidan
+40 b stick -1 0
+68 b stick 0 0
+150 a tap A 2
++9 a tap A 2
++9 a tap A 2
++60 a press LB
++0 a stick 0.6 0
++2 a tap A 2
++3 a stick 0 0
++2 a release LB
+# Expected, frame by frame (headless run of this script): the 3-jab chain (styles 0, 20, 21), each a hit, then one forward tilt (style 6).
+#! expect a 150 applied attack 1 style 0
+#! expect b 154 damage 5.000
+#! expect a 159 applied attack 2 style 20
+#! expect b 163 damage 9.000
+#! expect a 168 applied attack 3 style 21
+#! expect b 173 damage 15.000
+#! expect a 230 applied attack 4 style 6
