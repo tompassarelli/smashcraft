@@ -90,7 +90,7 @@ Pit Lord owns wider melee arcs but gives Peon more body to poke.
 Beastmaster commands mobile companions; Peon's single fixed Burrow never follows.
 Lich King earns stronger stored finishers; Pillage only replenishes ordinary mana.
 
-The CPU sets a Burrow from range, follows lumber into down-tilt/up-tilt juggle
+The CPU keeps a 160–240-unit gap for lumber and Burrow setup, follows lumber into down-tilt/up-tilt juggle
 attempts, uses Repair against visible incoming hits, and saves its jump before
 Worksite Launch. Base-game Peon model, Burrow, missiles, portraits and sounds
 are the only art sources. Authored motion and private pooled clips preserve

@@ -2,7 +2,7 @@ import { AttackStyle } from "../codes";
 import { type FighterGameplan, GameplanSpecial, GameplanThrow } from "../gameplan";
 
 export const PEON_GAMEPLAN: FighterGameplan = {
-  range: { near: 75.0, far: 125.0 },
+  range: { near: 160.0, far: 240.0 },
   spacing: [
     { move: AttackStyle.forwardTilt, near: 60.0, far: 120.0 },
     { move: AttackStyle.downTilt, near: 40.0, far: 95.0 },
