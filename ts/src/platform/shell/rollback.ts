@@ -241,18 +241,6 @@ export function rollbackTick(s: ShellState, rollback: Rollback): void {
     return;
   }
   const stopAt = journal === undefined ? undefined : agreedFrame(journal.barrier);
-  let steps = 0;
-  const confirmSteps = confirmedBudget(schedule.confirmedFrame() - schedule.nextConfirmedFrame() + 1);
-  while (s.game.phase === Phase.match && schedule.mayAdvanceConfirmed() && steps < confirmSteps && (stopAt === undefined || schedule.nextConfirmedFrame() < stopAt)) {
-    if (!stepConfirmed(s, rollback)) {
-      setStatus(s, "The match could not advance. Restart the match.", LASTING);
-      return;
-    }
-    steps++;
-    if (trace.active) trace.window.confirmedSteps++;
-  }
-  if (s.game.phase !== Phase.match && keyboard !== undefined) sendBatch(s, rollback, keyboard);
-  if (trace.active && steps === 0 && s.game.phase === Phase.match) trace.window.waitTicks++;
   const slot = localSlot();
   const reconciled = rollback.playback.reconcile(schedule, epoch, slot, speculative);
   if (reconciled === "rejected") {
@@ -274,6 +262,19 @@ export function rollbackTick(s: ShellState, rollback: Rollback): void {
     setStatus(s, "The match could not catch up. Restart the match.", LASTING);
     return;
   }
+  // Confirmation can reuse history only after accepted corrections have repaired it.
+  let steps = 0;
+  const confirmSteps = confirmedBudget(schedule.confirmedFrame() - schedule.nextConfirmedFrame() + 1);
+  while (s.game.phase === Phase.match && schedule.mayAdvanceConfirmed() && steps < confirmSteps && (stopAt === undefined || schedule.nextConfirmedFrame() < stopAt)) {
+    if (!stepConfirmed(s, rollback)) {
+      setStatus(s, "The match could not advance. Restart the match.", LASTING);
+      return;
+    }
+    steps++;
+    if (trace.active) trace.window.confirmedSteps++;
+  }
+  if (s.game.phase !== Phase.match && keyboard !== undefined) sendBatch(s, rollback, keyboard);
+  if (trace.active && steps === 0 && s.game.phase === Phase.match) trace.window.waitTicks++;
   // Replay stays numerical: persistent visuals show only the completed state;
   // event effects, audio, results and HUD stay confirmed. A deep correction
   // replays over several callbacks while local rows keep running.
