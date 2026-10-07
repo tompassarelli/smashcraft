@@ -163,7 +163,7 @@ function applyProjectileHit(world: Roster, ownerSlot: number, targetSlot: number
   if (projectile.kind === ProjectileKind.hero && spec !== undefined) {
     copyHitEffect(projectileHit, heroProjectileEffect(projectile, spec));
     projectileHit.damage = projectileDamage(projectile);
-    collectDamageContact(world, ownerSlot, targetSlot, projectileHit, projectile.direction, ContactKind.launch, false, undefined, shieldContact, spec.status, origin);
+    collectDamageContact(world, ownerSlot, targetSlot, projectileHit, projectile.direction, ContactKind.launch, false, undefined, shieldContact, spec.status, origin, projectile.z);
     return;
   }
   const { kind } = projectile;
@@ -176,7 +176,7 @@ function applyProjectileHit(world: Roster, ownerSlot: number, targetSlot: number
     projectileHit.launchX = 0.0;
     projectileHit.launchZ = 0.0;
     collectDamageContact(world, ownerSlot, targetSlot, projectileHit, projectile.direction, ContactKind.flinch, false, undefined, shieldContact,
-      kind === ProjectileKind.manaBurn ? MANA_BURN_STUN : undefined, origin);
+      kind === ProjectileKind.manaBurn ? MANA_BURN_STUN : undefined, origin, projectile.z);
     return;
   }
   const damageOnly = kind === ProjectileKind.arrow || kind === ProjectileKind.homingArrow;
@@ -186,7 +186,7 @@ function applyProjectileHit(world: Roster, ownerSlot: number, targetSlot: number
   projectileHit.launchX = 0.800000011920929;
   projectileHit.launchZ = kind === ProjectileKind.recoil ? -0.6000000238418579 : 0.6000000238418579;
   collectDamageContact(world, ownerSlot, targetSlot, projectileHit, projectile.direction,
-    damageOnly ? ContactKind.damageOnly : ContactKind.launch, false, undefined, shieldContact, undefined, origin);
+    damageOnly ? ContactKind.damageOnly : ContactKind.launch, false, undefined, shieldContact, undefined, origin, projectile.z);
 }
 
 /** Sends the projectile back from a reflecting shield, slower and weaker; false when the reflector has no free slot. */

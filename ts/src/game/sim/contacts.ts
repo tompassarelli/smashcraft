@@ -34,6 +34,7 @@ import { beginSmashDirectionalInfluenceHit } from "./smashDirectionalInfluence";
 import { beginDownDamage, cancelAttack, cancelSpecialState, clearDownState, clearGrabLinks, interruptJumpOrDodge, thawFighter } from "./transitions";
 import { at } from "wisp/src/runtime/lookup";
 import { CHILL } from "./chill";
+import { fighterHurtParts } from "./hurtboxes";
 import { type AppliedStatus, applyHeroStatus, damageEndsHeroStatus, heroStatusDamageDealt } from "./heroStatus";
 import { contactEarnsMana, dealtManaGain, gainMana, takenManaGain } from "./mana";
 import { PassiveProc, devotionBlocked, devotionLaunchScale, frostArmorStruck, sourcePassiveContact, vampiricHeal, BASH_HITSTUN_FRAMES } from "./passives";
@@ -71,6 +72,7 @@ interface DamageContact {
   key: number;
   /** What it did to its source's passive (sim/passives.ts). */
   proc: PassiveProc;
+  height: number;
 }
 
 function emptyContact(): DamageContact {
@@ -78,7 +80,7 @@ function emptyContact(): DamageContact {
     source: 0, target: 0, effect: emptyHitEffect(), facing: 0, kind: ContactKind.launch, direct: false, blocked: false,
     crouching: false, grounded: false, sourceGrounded: false, sourceAerial: false, sourceDeltaX: 0.0, sourceDeltaZ: 0.0, sourceVelocityX: 0.0, sourceVelocityZ: 0.0, targetDeltaX: 0.0,
     targetDeltaZ: 0.0, down: false, smashCharging: false, throwInput: undefined, status: undefined, earnsMana: false,
-    origin: HitOrigin.melee, key: -1, proc: PassiveProc.none,
+    origin: HitOrigin.melee, key: -1, proc: PassiveProc.none, height: 1,
   };
 }
 
@@ -119,7 +121,7 @@ function defaultOrigin(kind: ContactKind, direct: boolean): HitOrigin {
 export function collectDamageContact(
   world: Roster, sourceSlot: number, targetSlot: number, effect: Readonly<HitEffect>, facing: number,
   kind: ContactKind, direct: boolean, throwInput: Readonly<Controls> | undefined, shieldContact: boolean,
-  status?: Readonly<AppliedStatus>, origin?: HitOrigin,
+  status?: Readonly<AppliedStatus>, origin?: HitOrigin, contactZ?: number,
 ): void {
   const source = fighterAt(world, sourceSlot);
   const target = fighterAt(world, targetSlot);
@@ -157,6 +159,21 @@ export function collectDamageContact(
   contact.earnsMana = contactEarnsMana(source, kind, direct);
   contact.origin = origin ?? defaultOrigin(kind, direct);
   contact.key = contact.origin === HitOrigin.melee && source.attack.style !== undefined ? source.attack.serial : -1;
+  // Authored strike/projectile geometry supplies a height; throws and other
+  // contacts without a point use the middle band. This never feeds combat.
+  contact.height = 1;
+  if (contactZ !== undefined) {
+    let bottom = 0.0;
+    let top = 0.0;
+    for (const part of fighterHurtParts(target)) {
+      bottom = min(bottom, subtractFloat32(min(part.z1, part.z2), part.radius));
+      top = max(top, addFloat32(max(part.z1, part.z2), part.radius));
+    }
+    const relative = subtractFloat32(contactZ, target.motion.z);
+    const span = subtractFloat32(top, bottom);
+    contact.height = relative < addFloat32(bottom, multiplyFloat32(span, 0.375)) ? 0
+      : relative >= addFloat32(bottom, multiplyFloat32(span, 0.75)) ? 2 : 1;
+  }
   contact.proc = sourcePassiveContact(source, targetSlot, contact.origin, direct, contact.blocked, contact.key, contact.effect);
 }
 
@@ -269,6 +286,7 @@ function resolveDamageContacts(world: Roster, slot: number): void {
     target.visuals.hitElectric = effectContact.effect.electric;
     target.visuals.hitElement = effectContact.effect.element ?? (effectContact.effect.electric ? HitElement.electric : HitElement.normal);
     target.visuals.hitStrength = strongest >= 180.0 ? 2 : strongest >= 80.0 ? 1 : 0;
+    target.visuals.hitHeight = effectContact.height;
     target.visuals.hitPummel = effectContact.kind === ContactKind.pummel;
     // The strongest launch supplies the effect; the largest damage supplies hitlag power.
     if (hurtContact !== undefined) launch.hitlag = max(launch.hitlag, victimHitlagFrames(hitlagDamage, effectContact.effect.electric, effectContact.crouching));

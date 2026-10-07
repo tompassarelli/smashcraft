@@ -207,6 +207,8 @@ interface VisualSerials {
   hitElectric: boolean;
   hitElement: HitElement;
   hitStrength: number;
+  /** Contact height band: 0 low, 1 middle, 2 high; presentation only. */
+  hitHeight: number;
   hitPummel: boolean;
   shieldElectric: boolean;
   shield: number;
@@ -685,7 +687,7 @@ export function createFighter(character: Character, startX: number, facing: numb
       lastAttackSerial: undefined,
       lastWindow: 0,
     },
-    visuals: { grab: 0, throw: 0, hit: 0, hitElectric: false, hitElement: HitElement.normal, hitStrength: 0, hitPummel: false, shieldElectric: false, shield: 0, shieldReflect: 0, manaDrained: 0, manaDenied: 0 },
+    visuals: { grab: 0, throw: 0, hit: 0, hitElectric: false, hitElement: HitElement.normal, hitStrength: 0, hitHeight: 1, hitPummel: false, shieldElectric: false, shield: 0, shieldReflect: 0, manaDrained: 0, manaDenied: 0 },
     special: {
       action: SpecialAction.none,
       frame: 0,

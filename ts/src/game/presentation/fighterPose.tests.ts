@@ -12,6 +12,7 @@ import type { HeroPose } from "../sim/heroes/hero";
 import { DOWN_ROLL_FRAMES, TECH_IN_PLACE_FRAMES, TECH_ROLL_FRAMES } from "../sim/down";
 import { beginDownState } from "../sim/transitions";
 import { HERO_ROSTER, SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
+import { contactDamageClip } from "./damagePose";
 import { FOLLOW_UP_FORM, SpecialForm } from "../sim/heroSpecials";
 import { type Fighter, createFighter } from "../sim/fighter";
 import { surfaceLeft, surfaceRight, surfaceZ } from "../sim/stage";
@@ -162,6 +163,42 @@ test("hitlag freezes the reaction clip and a repeated hit restarts it", () => {
     advanceFighterPose(pose, f, world, input, false, false, false, false);
     assertEquals(pose.clipTime, 0.0);
     assertEquals(pose.rate, 0.0);
+  }
+});
+
+test("all 117 contact reactions interrupt the current attack on contact and hold throughout hitlag", () => {
+  for (const character of SELECTABLE_CHARACTERS) for (const facing of [-1, 1]) {
+    for (let height = 0; height < 3; height++) for (let strength = 0; strength < 3; strength++) {
+      const f = createFighter(character, 0.0, facing);
+      const world = soloWorld(f), input = neutralControls(), pose = createFighterPose();
+      f.attack.style = AttackStyle.forwardTilt;
+      f.attack.frame = 3;
+      advanceFighterPose(pose, f, world, input, false, false, true, false);
+      const interrupted = pose.clipIndex;
+      f.attack.style = undefined;
+      f.visuals.hitHeight = height;
+      f.visuals.hitStrength = strength;
+      f.launch.hitstun = 40;
+      f.launch.hitlag = 7;
+      f.launch.sdiWasGrounded = true;
+      f.down.state = DownState.tumble;
+      advanceFighterPose(pose, f, world, input, false, false, false, true);
+      assertEquals(pose.clipIndex, contactDamageClip(f).index);
+      assertTrue(pose.clipIndex !== interrupted);
+      assertEquals(pose.clipTime, 0.0);
+      const serial = pose.selectionSerial;
+      for (let held = 0; held < 7; held++) {
+        advanceFighterPose(pose, f, world, input, false, false, false, false);
+        assertEquals(pose.clipTime, 0.0);
+        assertEquals(pose.selectionSerial, serial);
+      }
+      f.launch.hitlag = 0;
+      f.motion.grounded = false;
+      advanceFighterPose(pose, f, world, input, false, false, false, false);
+      assertEquals(pose.animation, "damage3");
+      assertTrue(pose.clipIndex !== contactDamageClip(f).index);
+      assertEquals(f.launch.hitstun, 40);
+    }
   }
 });
 

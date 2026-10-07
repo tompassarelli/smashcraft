@@ -3,6 +3,19 @@
 import { model as mdx } from "war3-model";
 import { ensure, onGlobalClock, tracks } from "./original-clips";
 
+/** Removing the additive damage suffix must reproduce its exact input bytes. */
+export function damageBaseModel(source: mdx.Model): mdx.Model | undefined {
+  const first = source.Sequences.findIndex(s => s.Name.startsWith("Damage Grid "));
+  if (first < 0) return undefined;
+  ensure(first > 0 && source.Sequences.slice(first).every(s => s.Name.startsWith("Damage Grid ")), "Damage grid must be a sequence suffix");
+  const cutoff = source.Sequences[first]?.Interval[0];
+  ensure(cutoff !== undefined, "Damage grid has no start");
+  const model = structuredClone(source);
+  model.Sequences = model.Sequences.slice(0, first);
+  tracks(model, track => { if (!onGlobalClock(track)) track.Keys = track.Keys.filter(k => k.Frame < cutoff); });
+  return model;
+}
+
 export function recoveryBaseModel(source: mdx.Model): mdx.Model | undefined {
   const helper = source.Helpers.find(n => n.Name === "Recovery Motion");
   if (!helper) return undefined;

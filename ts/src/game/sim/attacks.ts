@@ -283,7 +283,9 @@ export function resolveAttacks(world: Roster): void {
       const victim = fighterAt(world, target);
       recordHitRegion(source, f, victim, contact);
       if (at(spent, source * PARTICIPANT_CAPACITY + target)) continue;
-      applyAttackHit(world, source, target, style, at(facings, source), contact.effect, true, meleeHitIntersectsShield(f, victim, contact));
+      attackCapsule(strikeCapsule, style, contact);
+      const contactZ = f32(f.motion.z + f32(f32(strikeCapsule.z1 + strikeCapsule.z2) * 0.5));
+      applyAttackHit(world, source, target, style, at(facings, source), contact.effect, true, meleeHitIntersectsShield(f, victim, contact), undefined, undefined, contactZ);
     }
   }
   if (ownsBatch) finishDamageContacts(world);

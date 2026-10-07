@@ -15,7 +15,7 @@ import { LEDGE_ATTACK_FRAMES, RIFLEMAN_BLASTER_AIR_FRAMES, attackStartupFrames, 
 import { type Controls, type Roster, fighterAt } from "../sim/roster";
 import { SHIELD_RELEASE_LAG_FRAMES } from "../sim/shield";
 import { INITIAL_DASH_FRAMES, SHIELD_BREAK_LAND_FRAMES, SHIELD_BREAK_STAND_FRAMES, authoredPhysics } from "../sim/tuning";
-import { DamagePose, damagePose } from "./damagePose";
+import { DamagePose, contactDamageClip, damagePose } from "./damagePose";
 import * as dh from "./demonHunterAssetInfo";
 import type { HeroClip, HeroClipTable, HeroPose } from "../sim/heroes/hero";
 import * as clips from "./fighterClips";
@@ -261,13 +261,14 @@ function selectClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly<Ros
     return clipRate(dh.DEMON_HUNTER_GRAB_ESCAPE_SECONDS, ESCAPE_FRAMES);
   }
   if (reaction !== DamagePose.none) {
-    const key = `damage${reaction}`;
+    const contact = reaction !== DamagePose.shield && (f.launch.hitlag > 0 || reaction !== DamagePose.tumble);
+    const key = contact ? `damage-contact${f.visuals.hitHeight}:${f.visuals.hitStrength}` : `damage${reaction}`;
     // Every new contact restarts the reaction.
     if (hit || pose.animation !== key) {
-      selectFighterClipIndex(pose, clips.clipFor(character, damageClipPose(reaction)).index);
+      selectFighterClipIndex(pose, (contact ? contactDamageClip(f) : clips.clipFor(character, damageClipPose(reaction))).index);
       pose.animation = key;
     }
-    return rate;
+    return contact ? clipRate(contactDamageClip(f).seconds, REACTION_CLIP_FRAMES) : rate;
   }
   if (f.special.fall) {
     playIndex(pose, "specialfall", clips.clipFor(character, "fallSpecial").index);

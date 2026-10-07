@@ -54,12 +54,12 @@ function catchTarget(world: Roster, attackerSlot: number, targetSlot: number): v
 /** Applies a selected strike: an eligible grab catches. */
 export function applyAttackHit(
   world: Roster, attackerSlot: number, targetSlot: number, style: AttackStyle, facing: number,
-  effect: Readonly<HitEffect>, directContact: boolean, shieldContact: boolean, status?: Readonly<AppliedStatus>, origin?: HitOrigin,
+  effect: Readonly<HitEffect>, directContact: boolean, shieldContact: boolean, status?: Readonly<AppliedStatus>, origin?: HitOrigin, contactZ?: number,
 ): void {
   const target = fighterAt(world, targetSlot);
   if (style === AttackStyle.grab) {
     if (canBeGrabbed(target)) catchTarget(world, attackerSlot, targetSlot);
     return;
   }
-  collectDamageContact(world, attackerSlot, targetSlot, effect, facing, ContactKind.launch, directContact, undefined, shieldContact, status, origin);
+  collectDamageContact(world, attackerSlot, targetSlot, effect, facing, ContactKind.launch, directContact, undefined, shieldContact, status, origin, contactZ);
 }

@@ -1245,3 +1245,34 @@ its drawn reach below the forward tilt. `bun wisp view reach --assets DIR
 attacks while preserving the other fighters' recorded rows. Omit
 `--character` to measure the whole roster. Ledge samples start in the ledge
 attack state so they play the climbing attack rather than the get-up clip.
+
+## Contact pain poses
+
+smashcraft:tools/animations/damage-clips.ts appends nine non-looping clips per
+fighter: low, middle and high contact, each small, medium and large. Existing
+local joints articulate the face/chest for a high hit, fold the body around
+the abdomen for a middle hit, and pull the knees up with a counterbalancing
+chest for a low hit. The floating Lich expresses low hits through its neck
+and body. Weapons inherit their attached arm transforms.
+
+The contact frame immediately selects the clip's already recoiling first
+pose. The pool's clip swap has zero animation blending; this cuts from the
+current pose, including an interrupted move, on the first presented contact
+frame. It holds time zero during hitstop. After hitstop, non-tumbling damage
+continues the recoil; a tumble enters the existing tumble clip. No damage,
+hitstop, hitstun or launch timing is changed for these visuals.
+
+Height uses the authored strike segment's midpoint or a projectile's actual
+height relative to the victim's current hurt-body bounds: below 3/8 is low,
+at least 3/4 is high, and the remainder is middle. Contacts without a geometric
+point (including throws and pummels) use middle. The chosen strongest contact
+supplies both height and intensity. Small/medium/large reuse the existing
+visual severity rule: knockback below 80, 80–179, and at least 180. These are
+Smashcraft presentation choices, not a claim to Melee's reaction thresholds.
+
+The authoring command checks 117 drawn first poses: each differs from idle by
+at least 8 model units, each pair in one fighter differs by at least 2 units,
+and every pre-existing sequence retains its drawn body at start/middle/end.
+Its private output contains smashcraft-build-inputs:damage-grid.json. Refresh
+the pool with smashcraft:tools/animations/export-original-clips.ts using
+`--keep-unchanged`; the exact stripped-source hash preserves cached old clips.

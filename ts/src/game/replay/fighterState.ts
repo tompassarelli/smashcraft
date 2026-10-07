@@ -169,6 +169,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   visuals.hitElectric = sourceVisuals.hitElectric;
   visuals.hitElement = sourceVisuals.hitElement;
   visuals.hitStrength = sourceVisuals.hitStrength;
+  visuals.hitHeight = sourceVisuals.hitHeight;
   visuals.hitPummel = sourceVisuals.hitPummel;
   visuals.shieldElectric = sourceVisuals.shieldElectric;
   visuals.shield = sourceVisuals.shield;
