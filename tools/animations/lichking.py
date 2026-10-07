@@ -532,7 +532,7 @@ reuse('Special Neutral', 'Spell Throw', zero(16), 44)
 DEFILE_WIND = {'step': (-6, 0), 'lean': -10, 'twist': -14, 'hand_L': (-4, 26, 150), 'hand_R': (8, -32, 90), 'aim': 70}
 DEFILE_CAST = {'step': (10, -14), 'lean': 28, 'twist': 14, 'hand_L': (62, 16, 40), 'hand_R': (8, -32, 90), 'aim': 70, 'foot_L': (36, 14, 1)}
 author('Special Down', {0: {}, 9: DEFILE_WIND, zero(20): DEFILE_CAST, 22: DEFILE_CAST,
-                        31: {'step': (6, -8), 'lean': 16, 'hand_L': (40, 20, 62), 'hand_R': (10, -32, 92), 'aim': 60}, 46: {}}, copy_of='Spell Channel')
+                        31: {'step': (6, -8), 'lean': 16, 'hand_L': (40, 20, 62), 'hand_R': (10, -32, 92), 'aim': 60}, 46: {}, 50: {}}, copy_of='Spell Channel')
 # Val'kyr Shadowguard: he raises his free hand and sends the Val'kyr out ahead.
 author('Special Side', swing(zero(14), 4, 40,
     wind={'step': (-6, 0), 'lean': -12, 'twist': -20, 'hand_L': (-6, 26, 140), 'hand_R': (-6, -32, 92), 'aim': 70},

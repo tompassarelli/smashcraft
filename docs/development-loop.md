@@ -3,7 +3,7 @@
 Gameplay and host tools live in smashcraft:ts/. From that directory,
 `bun test` checks logic, `bun run check` checks types, and
 `LUA=<32-bit lua> bun scripts/lua-tests.ts` runs the emitted-Lua tests.
-`bun wisp tapes` compares recorded gameplay across Bun and Lua32.
+`bun wisp parity tapes` compares recorded gameplay across Bun and Lua32.
 See smashcraft:docs/typescript.md for the build and live-reload commands.
 The Wurst commands and source paths in the dated observations below belong to
 their recorded revisions; they are not the current development workflow.

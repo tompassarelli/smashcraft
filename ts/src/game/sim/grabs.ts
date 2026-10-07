@@ -15,6 +15,47 @@ const PUMMEL_HIT = { damage: PUMMEL_DAMAGE, growth: 0.0, base: 0.0, launchX: 0.0
 // Preallocated: a throw's effect depends on its direction; contacts copy it.
 const throwHit = emptyHitEffect();
 
+interface HeldOffset {
+  readonly action: GrabAction;
+  readonly contact: number;
+  readonly facing: number;
+  readonly x: number;
+  readonly z: number;
+}
+
+// Both hold resolution passes, rollback and agency forecasts repeat these
+// exact throw-frame offsets. Positions remain live; only the pure offset is kept.
+let heldOffsets: Record<number, HeldOffset> = {};
+let heldOffsetCount = 0;
+const HELD_OFFSET_LIMIT = 128;
+
+function heldOffset(action: GrabAction, frame: number, contact: number, facing: number): Readonly<HeldOffset> {
+  const cached = heldOffsets[frame];
+  if (cached?.action === action && cached.contact === contact && cached.facing === facing) return cached;
+  let x = f32(facing * GRAB_HOLD_DISTANCE);
+  let z = 0.0;
+  if (action === GrabAction.throwBack || action === GrabAction.throwUp || action === GrabAction.throwDown) {
+    const progress = min(1.0, f32(f32(frame * 1.0) / contact));
+    if (action === GrabAction.throwUp) z = f32(65 * progress);
+    else {
+      const swing = f32(f32(2 * progress) - 1);
+      const arc = f32(1 - f32(swing * swing));
+      if (action === GrabAction.throwBack) {
+        x = f32(x * f32(1 - f32(2 * progress)));
+        z = f32(75 * arc);
+      } else z = f32(25 * arc);
+    }
+  }
+  if (heldOffsetCount === HELD_OFFSET_LIMIT) {
+    heldOffsets = {};
+    heldOffsetCount = 0;
+  }
+  if (heldOffsets[frame] === undefined) heldOffsetCount++;
+  const offset = { action, contact, facing, x, z };
+  heldOffsets[frame] = offset;
+  return offset;
+}
+
 function escapeGrab(world: Roster, ownerSlot: number, targetSlot: number): void {
   clearGrabLinks(world, ownerSlot);
   beginGrabAction(fighterAt(world, ownerSlot), GrabAction.escape);
@@ -73,17 +114,9 @@ function resolveHeldTarget(world: Roster, ownerSlot: number): void {
   held.z = owner.motion.z;
   const { action, frame } = owner.grab;
   if (action >= GrabAction.throwForward && action <= GrabAction.throwDown) {
-    const progress = min(1.0, f32(f32(frame * 1.0) / grabContactFrame(action, owner.tuning.moves)));
-    const swing = f32(f32(2 * progress) - 1);
-    const arc = f32(1 - f32(swing * swing));
-    if (action === GrabAction.throwBack) {
-      held.x = f32(owner.motion.x + f32(f32(owner.facing * GRAB_HOLD_DISTANCE) * f32(1 - f32(2 * progress))));
-      held.z = f32(held.z + f32(75 * arc));
-    } else if (action === GrabAction.throwUp) {
-      held.z = f32(held.z + f32(65 * progress));
-    } else if (action === GrabAction.throwDown) {
-      held.z = f32(held.z + f32(25 * arc));
-    }
+    const offset = heldOffset(action, frame, grabContactFrame(action, owner.tuning.moves), owner.facing);
+    if (action === GrabAction.throwBack) held.x = f32(owner.motion.x + offset.x);
+    if (action !== GrabAction.throwForward) held.z = f32(held.z + offset.z);
   }
   held.surface = owner.motion.surface;
   held.grounded = owner.motion.grounded;

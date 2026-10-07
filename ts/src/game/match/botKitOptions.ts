@@ -347,6 +347,11 @@ export function pressKitOption(f: Readonly<Fighter>, target: Readonly<Fighter>, 
       const rise = f32(motion.z - target.motion.z);
       if (!takes(skill, floorDiv(frame, 40), f.character * 7 + 14) || (!rifles && botChoice(floorDiv(frame, 40), f.character * 7 + 15, 2) !== 0)) return false;
       if (motion.grounded) {
+        // A ready shot is cashed on the ground before a hop can spend it on a normal.
+        if (rifles && Math.abs(rise) <= 30.0) {
+          pressSlot(input, SpecialSlot.neutral, 0);
+          return true;
+        }
         // The short hop: a jump let go at once.
         if (Math.abs(rise) > 30.0 || f.jump.squat > 0) return false;
         input.jumpPressed = true;

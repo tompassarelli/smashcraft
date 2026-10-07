@@ -1,4 +1,4 @@
-// The two 32-bit Luas `wisp tapes` and `wisp parity numeric` run in: LUA, a
+// The two 32-bit Luas `wisp parity tapes` and `wisp parity numeric` run in: LUA, a
 // stock Lua32 whose raw float + - * round to nearest, and one that rounds
 // them toward zero, the nearest model of Warcraft's found
 // (wisp:docs/headless.md#raw-float-rounding): TOWARD_ZERO_LUA, or one built

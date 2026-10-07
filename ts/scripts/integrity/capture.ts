@@ -31,7 +31,7 @@ interface CaptureOptions extends Omit<JourneyOptions, "epochs"> {
 }
 
 const CAPTURE_USAGE = "bun scripts/integrity.ts capture --helper BINARY --build BUILD --out DIR --app-id CLIENT=APP_ID --app-id CLIENT=APP_ID"
-  + " [--sweep RB[:BATCH],...] [--first-epoch N] [--four-fighters] [--bot [--bot-four] [--bot-perf] [--pad49]] [--clients FILE]";
+  + " [--sweep RB[:BATCH],...] [--first-epoch N] [--four-fighters | --playable] [--bot [--bot-four] [--bot-perf] [--pad49]] [--clients-file FILE]";
 
 const SCOPE = "Same-host two-client native start/result/rematch with persistent Linux virtual-pad helpers; "
   + "controller game navigation (keyboard diagnostic trace toggle); issue 26 all-binding integrity run; "
@@ -70,7 +70,8 @@ export function parseCaptureArguments(args: readonly string[]): CaptureOptions {
       "bot-four": { type: "boolean" },
       "bot-perf": { type: "boolean" },
       "pad49": { type: "boolean" },
-      clients: { type: "string" },
+      "clients-file": { type: "string" },
+      playable: { type: "boolean" },
     },
     strict: true,
   });
@@ -83,12 +84,13 @@ export function parseCaptureArguments(args: readonly string[]): CaptureOptions {
   }));
   const sweep = values.sweep === undefined ? [] : parseSweep(values.sweep);
   const fourFighters = values["four-fighters"] ?? false;
+  if (values.playable && (fourFighters || values.bot || sweep.length > 0)) throw new Error("--playable takes one two-player match and rematch");
   const firstEpoch = values["first-epoch"] === undefined ? undefined : wholeNumber(values["first-epoch"], "--first-epoch");
   if (sweep.length > 0 && fourFighters) throw new Error("--sweep requires two fighters, not --four-fighters");
   if (firstEpoch !== undefined && (firstEpoch < 1 || firstEpoch % 2 === 0)) throw new Error("--first-epoch must be positive and odd");
   if (values.bot === true && (sweep.length > 0 || fourFighters)) throw new Error("--bot takes neither --sweep nor --four-fighters");
   if ((values["bot-four"] === true || values["bot-perf"] === true || values.pad49 === true) && values.bot !== true) throw new Error("--bot-four, --bot-perf and --pad49 need --bot");
-  return { helper, build, out, clients: values.clients, appIds, sweep, fourFighters, epochs: firstEpoch === undefined ? undefined : captureEpochs(sweep.length, firstEpoch), ...(values.bot === true ? { workload: "bot" as const, botFour: values["bot-four"] === true, botPerf: values["bot-perf"] === true, pad49: values.pad49 === true } : {}) };
+  return { helper, build, out, clients: values["clients-file"], appIds, sweep, fourFighters, epochs: firstEpoch === undefined ? undefined : captureEpochs(sweep.length, firstEpoch), ...(values.playable ? { workload: "playable" as const } : fourFighters ? { workload: "match" as const } : {}), ...(values.bot === true ? { workload: "bot" as const, botFour: values["bot-four"] === true, botPerf: values["bot-perf"] === true, pad49: values.pad49 === true } : {}) };
 }
 
 declare global {

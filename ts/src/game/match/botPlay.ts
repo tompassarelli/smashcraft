@@ -200,7 +200,7 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: { botAttackD
   // An idle stretch stands where it is: no approach, no attack.
   if (botChance(floorDiv(frame, IDLE_FRAMES), slot * 17 + fighter.character, skill.idle, 100)) return;
   if (pressKitOption(fighter, target, stage, skill, frame, delay <= 0, input, commands)) {
-    if (input.specialPressed || input.jumpPressed || input.attackHeld) runtime.botAttackDelays[slot] = f32(f32(skill.attackPause + botChoice(frame, fighter.attack.serial, skill.attackSpread)) * TICK);
+    if (input.specialPressed || input.attackHeld) runtime.botAttackDelays[slot] = f32(f32(skill.attackPause + botChoice(frame, fighter.attack.serial, skill.attackSpread)) * TICK);
     return;
   }
   if (gameplan === undefined) {

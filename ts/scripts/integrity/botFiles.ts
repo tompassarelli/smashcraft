@@ -1,4 +1,4 @@
-// A bot session capture's files (`parity capture --bot`, journey.ts), decoded
+// A bot session capture's files (`integrity capture --bot`, journey.ts), decoded
 // for its analysis scripts: botResult.ts, botInputs.ts, pad49Result.ts and
 // stallSeries.ts. Fields they don't read are ignored.
 import { readFileSync } from "node:fs";

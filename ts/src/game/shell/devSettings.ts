@@ -10,7 +10,7 @@ import { MAX_BATCH } from "../netcode/journal/transport";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import {
   type MatchState, Phase, createMatchState, firstHumanSlot, humanFighterActive, humanPresent, requestStageSelect, requestStart, returnToCharacters,
-  selectCharacter, selectStage, setStocks, computerActive, cycleSlotMode, setCpuLevel, setHitAreas, setPartnerDamage, setTraining, stepPartnerBehaviour,
+  selectCharacter, selectCpuCharacter, selectStage, setStocks, computerActive, cycleSlotMode, setCpuLevel, setHitAreas, setPartnerDamage, setTraining, stepPartnerBehaviour,
 } from "../match/rules";
 import { isCpuLevel } from "../match/cpuLevel";
 import { PartnerBehaviour } from "../match/trainingState";
@@ -170,12 +170,21 @@ export const QUICK_CPU_STOCKS = 3;
 
 export function quickMatchCpuLevel(message: string): number | undefined {
   if (!message.startsWith(QUICK_CPU_COMMAND)) return undefined;
-  const level = commandInteger(message.substring(QUICK_CPU_COMMAND.length));
+  const rest = message.substring(QUICK_CPU_COMMAND.length);
+  const marker = rest.indexOf(" hero ");
+  if (marker >= 0 && quickMatchCpuHero(message) === undefined) return undefined;
+  const level = commandInteger(marker < 0 ? rest : rest.substring(0, marker));
   return level !== undefined && isCpuLevel(level) ? level : undefined;
 }
 
+/** A named CPU uses the menu's own selection rule, for roster parity batches. */
+export function quickMatchCpuHero(message: string): Character | undefined {
+  const marker = message.indexOf(" hero ", QUICK_CPU_COMMAND.length);
+  return message.startsWith(QUICK_CPU_COMMAND) && marker >= 0 ? heroAfter(message, message.substring(0, marker + 6)) : undefined;
+}
+
 /** Fills the first free slot with a computer at `level`, from fighter selection; the quick match follows. */
-export function prepareQuickCpu(game: MatchState, level: number): void {
+export function prepareQuickCpu(game: MatchState, level: number, character?: Character): void {
   const first = firstHumanSlot(game);
   if (first === undefined || game.phase !== Phase.characterMenu) return;
   const computer = PARTICIPANT_SLOTS.find(slot => !humanFighterActive(game, slot) && !computerActive(game, slot));
@@ -183,4 +192,5 @@ export function prepareQuickCpu(game: MatchState, level: number): void {
   // An empty slot becomes a human fighter, then a computer.
   for (let step = 0; step < 2; step++) cycleSlotMode(game, first, computer);
   setCpuLevel(game, first, computer, level);
+  if (character !== undefined) selectCpuCharacter(game, first, computer, character);
 }

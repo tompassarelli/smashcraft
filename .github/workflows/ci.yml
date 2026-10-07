@@ -32,6 +32,10 @@ jobs:
         working-directory: ts
         env:
           CI_TIMING: report
+      - name: Report every selectable computer fighter
+        if: ${{ !cancelled() }}
+        run: bun scripts/cpuCoverage.ts
+        working-directory: ts
       # Replay tapes and the numeric corpus in a stock Lua32 and in one whose
       # raw float + - * round toward zero (wisp:docs/headless.md#raw-float-rounding):
       # both must equal Bun, so no raw float operation leaks past the exact helpers.
@@ -46,7 +50,7 @@ jobs:
           tar -xzf build/lua-5.3.6.tar.gz -C build/toward-zero-lua
           make -C build/lua-stock/lua-5.3.6 -j2 generic MYCFLAGS=-DLUA_32BITS
           make -C build/toward-zero-lua/lua-5.3.6 -j2 generic "MYCFLAGS=-DLUA_32BITS -include $PWD/node_modules/wisp/native/toward-zero.h"
-      - run: bun wisp tapes && bun wisp parity numeric
+      - run: bun wisp parity tapes && bun wisp parity numeric
         working-directory: ts
         env:
           LUA: ${{ github.workspace }}/ts/build/lua-stock/lua-5.3.6/src/lua

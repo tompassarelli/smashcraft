@@ -1,6 +1,6 @@
 # Four-fighter match and rematch
 
-`bun wisp four-fighters capture` exercises issue #17's automated journey
+`bun wisp integrity capture --four-fighters` exercises issue #17's automated journey
 through the same virtual-pad, persistent-helper and native-file services used
 by the input-integrity capture. Its result command checks the four-fighter
 roster, completed match and rematch, rematch slot change, and both clients'
@@ -10,11 +10,11 @@ Use two signed-in private clients at fighter selection, with connected players
 in slots A/B and slots C/D empty. The desktop driver's client records must name
 the retained windows. Start no other controller helper on those clients during
 capture. The map must use normal combat, journal/editbox input, and the response
-probe. Build with `bun wisp build --profile integrity` and the normal private
+probe. Build with `bun wisp map build --profile integrity` and the normal private
 map inputs, or rebuild an already packaged private candidate with:
 
 ```sh
-bun wisp rebuild /absolute/path/to/candidate.w3x --profile integrity
+bun wisp map rebuild /absolute/path/to/candidate.w3x --profile integrity
 ```
 
 This selects `INTEGRITY_BUILD` in smashcraft:ts/src/game/shell/currentBuild.ts,
@@ -26,16 +26,16 @@ From smashcraft:ts/, with the matching helper binary and private-compositor
 app IDs:
 
 ```sh
-bun wisp four-fighters capture \
+bun wisp integrity capture --four-fighters \
   --helper /absolute/path/to/wc3-journal \
   --build typescript-integrity \
   --out /absolute/path/to/new-four-fighter-capture \
   --app-id a=GAME_APP_ID_A --app-id b=GAME_APP_ID_B \
   --first-epoch 1
-bun wisp four-fighters result /absolute/path/to/new-four-fighter-capture
+bun wisp integrity result /absolute/path/to/new-four-fighter-capture
 ```
 
-Use the clients' actual names for the app-ID arguments. `--clients` can select
+Use the clients' actual names for the app-ID arguments. `--clients-file` can select
 a separate client-state file. A fresh map begins at epoch 1; a chained capture
 must supply its next odd epoch. The output directory must not already exist.
 

@@ -1,11 +1,11 @@
-// `bun wisp perf census [--fighter NAME ...] [--stage ID ...] [--limit MS] [--jobs N] [--profile] [--out FILE]`:
+// `bun wisp perf census [--fighter NAME ...] [--stage ID ...] [--rise-ms MS] [--jobs N] [--functions] [--out FILE]`:
 // the spike census (#168). Every move, special and follow-up of every
 // selectable fighter (scripts/wisp/census.ts), and every stage's hazards,
 // played in the playable build in 32-bit Lua; each entry's worst frame is
 // predicted in Warcraft (wisp's nativeFrameCost: Lua instructions, native
 // calls, allocation) and reported above its baseline, the median of the
 // standing frames just before it (a stage: its own median). It fails when
-// any entry rises more than --limit ms (2 by default). --profile then replays
+// any entry rises more than --rise-ms ms (2 by default). --functions then replays
 // the runs of the entries over it (or the five worst) with a sampling
 // profiler on each one's worst frame and baseline, and prints the map
 // functions that frame spent most in beyond a baseline frame.
@@ -194,10 +194,10 @@ export const runLua = (program: string, bundle: string, run: string, frames: num
 const runOne = (project: CensusProject, run: string, profileFrames?: readonly number[]) => runLua(project.program.bundle, project.map.bundle, run, 0, profileFrames);
 
 export const census = (project: CensusProject): Command => (args) => Effect.gen(function*() {
-  const [limitText = String(CENSUS_LIMIT_MS)] = flagValues(args, "limit");
+  const [limitText = String(CENSUS_LIMIT_MS)] = flagValues(args, "rise-ms");
   const [jobsText = "2"] = flagValues(args, "jobs");
   const [out] = flagValues(args, "out");
-  const profile = args.includes("--profile");
+  const profile = args.includes("--functions");
   const [topText = "12"] = flagValues(args, "top");
   const top = Number(topText);
   const fighters = flagValues(args, "fighter");
@@ -206,7 +206,7 @@ export const census = (project: CensusProject): Command => (args) => Effect.gen(
   const jobs = Number(jobsText);
   const known = SELECTABLE_CHARACTERS.map(fighterSlug);
   const unknown = fighters.filter((name) => !known.includes(name));
-  if (!(limit > 0) || !(jobs >= 1) || unknown.length > 0) return yield* new UsageFailure({ problem: `perf census takes --fighter NAME (${known.join(", ")}), --stage ID, --limit MS, --jobs N, --profile and --out FILE` });
+  if (!(limit > 0) || !(jobs >= 1) || unknown.length > 0) return yield* new UsageFailure({ problem: `perf census takes --fighter NAME (${known.join(", ")}), --stage ID, --rise-ms MS, --jobs N, --functions and --out FILE` });
   const everything = fighters.length === 0 && stages.length === 0;
   const runs = [
     ...(everything ? known : fighters).map((name) => `census-${name}`),
@@ -242,20 +242,20 @@ export const census = (project: CensusProject): Command => (args) => Effect.gen(
 });
 
 /**
- * `perf profile RUN [--worst N] [--frames N]`: plays a perf run measured, then
+ * `perf profile RUN [--worst-frames N] [--frames N]`: plays a perf run measured, then
  * again sampled on its N worst frames of p0 (3 by default) and on the 30
  * frames nearest its median, and prints what each worst frame spent beyond a
  * median frame.
  */
 export const profile = (project: PerfProject): Command => (args) => Effect.gen(function*() {
-  const [worstText = "3"] = flagValues(args, "worst");
+  const [worstText = "3"] = flagValues(args, "worst-frames");
   const [framesText = "1800"] = flagValues(args, "frames");
-  const named = args.filter((arg, index) => !arg.startsWith("--") && !["--worst", "--frames", "--out"].includes(args[index - 1] ?? ""));
+  const named = args.filter((arg, index) => !arg.startsWith("--") && !["--worst-frames", "--frames", "--out"].includes(args[index - 1] ?? ""));
   const [name = project.defaultRun ?? "journey"] = named;
   const map = name === (project.defaultRun ?? "journey") ? project.map : project.runs?.[name];
   const worstCount = Number(worstText);
   const frames = Number(framesText);
-  if (map === undefined || named.length > 1 || !(worstCount >= 1) || !(frames >= 1)) return yield* new UsageFailure({ problem: "perf profile takes one run, --worst N and --frames N" });
+  if (map === undefined || named.length > 1 || !(worstCount >= 1) || !(frames >= 1)) return yield* new UsageFailure({ problem: "perf profile takes one run, --worst-frames N and --frames N" });
   const { output } = yield* measureRun(project, name, frames, true);
   const costs: (readonly [frame: number, ms: number, natives: number])[] = [];
   for (const line of output.split("\n")) {

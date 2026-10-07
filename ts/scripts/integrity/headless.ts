@@ -35,7 +35,7 @@ interface HeadlessCaptureOptions {
   readonly out: string;
 }
 
-const USAGE = "bun wisp parity headless --helper BINARY --out DIR";
+const USAGE = "bun wisp integrity headless --helper BINARY --out DIR";
 
 const SCOPE = "Same-process two-client headless start/result/rematch: Wisp's headless runtime runs the integrity build's TypeScript in real time "
   + "(60 frames a second; sync messages arrive with Battle.net's measured latency, wisp:docs/network-model.md, no client lag); persistent Linux "

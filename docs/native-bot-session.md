@@ -1,13 +1,13 @@
 # Native bot session
 
-`bun wisp parity capture --bot` plays a candidate in the two signed-in
+`bun wisp integrity capture --bot` plays a candidate in the two signed-in
 clients the way a bot playtest does. It uses the same virtual pads,
 persistent `wc3-journal` helpers, native files and rig as #26's integrity
 capture (smashcraft:ts/scripts/integrity/journey.ts). Use it for checks
 that need Warcraft itself: stall recovery, saved moments, controller rows
 and what each player sees with computer opponents.
 
-Before a session, and whenever a client misbehaves, run `bun wisp watch
+Before a session, and whenever a client misbehaves, run `bun wisp client watch
 --once` instead of reading the clients' screens: it prints each client's
 state (signed in, menu screen, lobby, loading, in match, results,
 disconnected, crashed), its map's load errors and the ladder scan, from
@@ -28,7 +28,7 @@ spectating. Tom's install is Tom's.
 
 ## When a run desyncs
 
-`fresh`, `parity capture`, `pad` and `accept` run inside Wisp's desync
+`fresh`, `integrity capture`, `pad` and `accept` run inside Wisp's desync
 autopsy (wisp:docs/autopsy.md). On a new desync report they print
 
 ```text
@@ -84,14 +84,14 @@ The session has a match and a rematch:
 
 ## Healthy clients first
 
-`bun wisp fresh` and `bun wisp parity capture` run `bun wisp doctor` before
+`bun wisp fresh` and `bun wisp integrity capture` run `bun wisp client doctor` before
 they start and once after a failure (wisp:docs/doctor.md). It recovers a
 client that dropped from Battle.net, crashed with its error dialog up, sits
 at the empty Options/Exit Game login shell, a stale lobby, a score screen or
 a stuck loading screen, or shares its prefix with a second runtime: it ends
 the game (or the prefix), starts Battle.net on the client's own desktop when
 needed and presses Play in the signed-in launcher. Don't restart or
-hand-drive a client for these; run `bun wisp doctor` (or `bun wisp doctor b`)
+hand-drive a client for these; run `bun wisp client doctor` (or `bun wisp client doctor b`)
 and read its lines. It stops with one line when Tom must sign in. A capture
 that failed isn't repeated: doctor heals its clients, and the next capture
 starts healthy.
@@ -111,7 +111,7 @@ in Battle.net's password prompt) and starts it 2 s after the lobby exists
 without a page is driven by clicks, and its game stays public.
 
 ```sh
-bun wisp parity capture --bot [--bot-four | --bot-perf] [--pad49] \
+bun wisp integrity capture --bot [--bot-four | --bot-perf] [--pad49] \
   --helper /absolute/path/to/wc3-journal --build BUILD_ID \
   --out /absolute/path/to/new-capture \
   --app-id a=GAME_APP_ID_A --app-id b=GAME_APP_ID_B
@@ -216,7 +216,10 @@ integrity and development builds give confirmed states.
 plays a script of timed pad states on both clients' virtual pads through
 the real helpers, as the captures do. `--chat=TEXT` types a developer command
 into client A once the helpers run (for example `-dev quick hero lich`, or
-`-dev quick cpu 9` for a level-9 computer opponent).
+`-dev quick cpu 9` for a level-9 computer opponent, or
+`-dev quick cpu 9 hero NAME` to select any roster fighter as that computer
+through the menu's selection rule). The `cpu-roster-*.pad` scripts cover the
+complete selectable roster in one batch.
 Each line is `FRAME CLIENT ACTION [ARGS]`: the match frame the edge is
 meant for (or `+N` after the previous line), `a` or `b`, and
 `press|release|tap BUTTON [FRAMES]`, `stick X Y`, `cstick X Y`
@@ -273,7 +276,7 @@ crash during it, or when the match reached its results early. The native
 pad prints `INVALID: desynced, rerun`. Given `--map MAP.w3x`, it starts a
 new game (`bun wisp fresh MAP --no-quick`) and reruns, up to `--retries N`
 times (3 by default). The native map must be
-the integrity build (`bun wisp rebuild MAP.w3x --profile integrity`,
+the integrity build (`bun wisp map rebuild MAP.w3x --profile integrity`,
 `--build typescript-integrity`), since only that build writes the trace.
 Issue scripts live in smashcraft:ts/test/native/pads/, one folder per issue.
 
@@ -372,7 +375,7 @@ CAPTURE=(--helper "$HELPER" --build typescript-integrity --app-id a=GAME_APP_ID_
 
 # Four fighters: three 2 s stops of B in match 1; overlay read through the rematch; four moments a client.
 bun wisp fresh "$MAP" --rebuild --profile integrity --no-quick
-bun wisp parity capture --bot --bot-four "${CAPTURE[@]}" --out "$S/bot-four"
+bun wisp integrity capture --bot --bot-four "${CAPTURE[@]}" --out "$S/bot-four"
 bun scripts/integrity/botResult.ts "$S/bot-four" "$A_DATA" "$B_DATA"
 bun scripts/integrity/botInputs.ts "$S/bot-four" > "$S/bot-four/bot-inputs.json"
 # Predicted against native cost (wisp#19): fails unless median and p95 are within 20%.
@@ -380,15 +383,15 @@ LUA=<32-bit lua> bun wisp perf native "$S/bot-four/bot-result.json" bot-four
 
 # Three fighters, the same.
 bun wisp fresh "$MAP" --no-quick
-bun wisp parity capture --bot --bot-perf "${CAPTURE[@]}" --out "$S/bot-perf"
+bun wisp integrity capture --bot --bot-perf "${CAPTURE[@]}" --out "$S/bot-perf"
 bun scripts/integrity/botResult.ts "$S/bot-perf" "$A_DATA" "$B_DATA"
 bun scripts/integrity/botInputs.ts "$S/bot-perf" > "$S/bot-perf/bot-inputs.json"
 LUA=<32-bit lua> bun wisp perf native "$S/bot-perf/bot-result.json" bot
 
 # #26's all-action workload: grab, walk and stick moves; three fighters in the rematch.
 bun wisp fresh "$MAP" --no-quick
-bun wisp parity capture "${CAPTURE[@]}" --out "$S/integrity"
-bun wisp parity result "$S/integrity"
+bun wisp integrity capture "${CAPTURE[@]}" --out "$S/integrity"
+bun wisp integrity result "$S/integrity"
 
 # Presses over all three captures (exits 1 when the gate fails).
 bun scripts/integrity/pressResult.ts "$S/press-result.json" "$S/integrity" "$S/bot-four" "$S/bot-perf"
@@ -416,7 +419,7 @@ What answers each check:
 | Predicted against native cost | `perf-bot-four.json` and `perf-bot.json` p50 / p95 against `frame_cost_overlay.lua_ms` `median_of_medians` / `median_p95` of the matching capture |
 | Scripted presses against helper rows | `bot-inputs.json` |
 | Every press on its frame, local start | `press-result.json` `gate` and `passed`: at least 1000 presses, every action (the integrity workload brings grab and moves, the bot sessions dashes and C-stick) |
-| #26's table | `parity result`'s output for `$S/integrity` |
+| #26's table | `integrity result`'s output for `$S/integrity` |
 | What players see | `player-view-EPOCH/` frames in each capture; the underside run's frames |
 
 ## Integrity workload stocks

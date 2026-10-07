@@ -136,8 +136,7 @@ function oddPolynomial(square: number): number {
   return fusedMultiplyAddFloat32(coefficient, square, 0.7853981852531433);
 }
 
-/** Binary32 sine for finite angles in [-float32(pi), float32(pi)]. */
-export function meleeSin(angle: number): number {
+function sineAt(angle: number): number {
   const input = roundToFloat32(angle);
   const quadrant = quadrantIndex(input);
   const residual = normalizedResidual(input, quadrant);
@@ -152,8 +151,7 @@ export function meleeSin(angle: number): number {
   return multiplyFloat32(cosine * residual, oddPolynomial(square));
 }
 
-/** Binary32 cosine for finite angles in [-float32(pi), float32(pi)]. */
-export function meleeCos(angle: number): number {
+function cosineAt(angle: number): number {
   const input = roundToFloat32(angle);
   const quadrant = quadrantIndex(input);
   const residual = normalizedResidual(input, quadrant);
@@ -165,4 +163,45 @@ export function meleeCos(angle: number): number {
   const square = multiplyFloat32(residual, residual);
   if (cosine !== 0) return multiplyFloat32(cosine, evenPolynomial(square));
   return multiplyFloat32(-sine * residual, oddPolynomial(square));
+}
+
+// Decay forecasts repeatedly evaluate the same rounded launch angles. Keep
+// exact scalar results; signed zeros and NaN never become table keys.
+const TRIG_MEMO_LIMIT = 512;
+let sineMemo: Record<number, number> = {};
+let cosineMemo: Record<number, number> = {};
+let trigMemoSize = 0;
+
+function rememberAngle(angle: number): void {
+  if (sineMemo[angle] !== undefined || cosineMemo[angle] !== undefined) return;
+  if (trigMemoSize === TRIG_MEMO_LIMIT) {
+    sineMemo = {};
+    cosineMemo = {};
+    trigMemoSize = 0;
+  }
+  trigMemoSize++;
+}
+
+/** Binary32 sine for finite angles in [-float32(pi), float32(pi)]. */
+export function meleeSin(angle: number): number {
+  const input = roundToFloat32(angle);
+  if (input === 0 || input !== input) return sineAt(input);
+  const found = sineMemo[input];
+  if (found !== undefined) return found;
+  const value = sineAt(input);
+  rememberAngle(input);
+  sineMemo[input] = value;
+  return value;
+}
+
+/** Binary32 cosine for finite angles in [-float32(pi), float32(pi)]. */
+export function meleeCos(angle: number): number {
+  const input = roundToFloat32(angle);
+  if (input === 0 || input !== input) return cosineAt(input);
+  const found = cosineMemo[input];
+  if (found !== undefined) return found;
+  const value = cosineAt(input);
+  rememberAngle(input);
+  cosineMemo[input] = value;
+  return value;
 }

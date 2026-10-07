@@ -1,5 +1,5 @@
 // `bun scripts/integrity/botResult.ts CAPTURE_DIR [CUSTOM_MAP_DATA ...]`: a bot
-// session capture (`parity capture --bot`) reduced to numbers. Input delay is
+// session capture (`integrity capture --bot`) reduced to numbers. Input delay is
 // how many frames a helper has journaled by its own clock beyond the last
 // frame its client admitted, read at each of the helper's edit-box receipts;
 // a stall has recovered at the first receipt after the game continued from

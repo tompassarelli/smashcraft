@@ -1,4 +1,4 @@
-// `wisp build` and `wisp rebuild`: the TypeScript-only map build and the
+// `wisp map build` and `wisp map rebuild`: the TypeScript-only map build and the
 // script-only rebuild of a map that build.sh or `build` packaged.
 import { Effect, Layer } from "effect";
 import { type Command, UsageFailure } from "wisp/scripts/wisp/command";
@@ -42,3 +42,6 @@ export const rebuild: Command = (args) => Effect.gen(function*() {
   if (map === undefined || rest.length > 0) return yield* new UsageFailure({ problem: "rebuild takes one map" });
   return yield* rebuildMap(map).pipe(Effect.provide(options.services));
 });
+
+/** Build and rebuild the map through one noun. */
+export const map: Command = ([verb, ...args]) => verb === "build" ? build(args) : verb === "rebuild" ? rebuild(args) : Effect.fail(new UsageFailure({ problem: "map takes build or rebuild" }));

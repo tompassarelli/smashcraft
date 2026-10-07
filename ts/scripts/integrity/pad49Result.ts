@@ -1,5 +1,5 @@
 // `bun scripts/integrity/pad49Result.ts CAPTURE_DIR [EPOCH]`: checks #49's pad
-// script (`parity capture --bot --pad49`) against the rows slot 0's helper
+// script (`integrity capture --bot --pad49`) against the rows slot 0's helper
 // typed into its client, which the client's receipts show it consumed. Each
 // scripted step's frames come from the edges' injection times on the helper's
 // frame rule (frame = 1 + floor((t - match start) * 60 / 1e9)); a step's first
