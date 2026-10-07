@@ -151,7 +151,7 @@ export function steerHeroBranches(f: Readonly<Fighter>, target: Readonly<Fighter
     return true;
   }
   if (stepOut !== undefined && backstab === undefined) {
-    // A lone quiet branch (Vampiric Pounce's hop back): taken when the target answers the approach, or as a planned feint.
+    // A lone quiet branch is taken when the target answers the approach, or as a planned feint.
     if (next < stepOut.window.first || next > stepOut.window.last) return false;
     const answered = target.attack.style !== undefined || !target.motion.grounded || target.shield.raised;
     const planned = botChoice(seed, f.character * 7 + 19, 3) === 0 && next >= stepOut.window.last - 2;
