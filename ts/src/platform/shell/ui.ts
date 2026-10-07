@@ -36,7 +36,6 @@ import { type SettingsActions, SettingsPanel } from "../../game/ui/settingsUi";
 import { type StageActions, StagePanel } from "../../game/ui/stageUi";
 import type { ShellState } from "./state";
 import { bindPrototype } from "../rebind";
-import { WhiteGlowPresentation } from "../../game/render/whiteGlowPresentation";
 
 /** A fighter's renderers for one match; the pool only in pooled presentation. */
 interface FighterRenderers {
@@ -47,7 +46,6 @@ interface FighterRenderers {
   readonly cues?: SpecialCueEffects | undefined;
   readonly pool: FighterPoolPresentation | undefined;
   readonly agency: AgencyMarker;
-  readonly glow: WhiteGlowPresentation;
   /** Training's hit areas, when that match shows them. */
   readonly hitAreas: HitAreaPresentation | undefined;
   /** Its passive's ready and proc effects; a renderer from a bundle before passives has none until rebound. */
@@ -143,7 +141,6 @@ function endFighterRenderers(renderers: FighterRenderers | undefined): void {
   renderers?.cues?.destroy();
   renderers?.pool?.destroy();
   renderers?.agency.destroy();
-  renderers?.glow.destroy();
   renderers?.hitAreas?.destroy();
   renderers?.passive?.destroy();
 }
@@ -156,7 +153,7 @@ export function beginFighterRenderers(s: ShellState, slot: ParticipantSlot, char
   const ui = views(s);
   endFighterRenderers(ui.fighters[slot]);
   const pool = pooled ? new FighterPoolPresentation(character, slot, s.origin) : undefined;
-  ui.fighters[slot] = { character, shield: new ShieldPresentation(slot, s.origin), projectiles: new ProjectilePresentation(character, s.origin), cues: new SpecialCueEffects(character, s.origin), pool, agency: new AgencyMarker(s.origin), glow: new WhiteGlowPresentation(s.origin),
+  ui.fighters[slot] = { character, shield: new ShieldPresentation(slot, s.origin), projectiles: new ProjectilePresentation(character, s.origin), cues: new SpecialCueEffects(character, s.origin), pool, agency: new AgencyMarker(s.origin),
     hitAreas: s.game.training && s.game.trainer.showHitAreas ? new HitAreaPresentation(s.origin) : undefined,
     passive: new PassivePresentation(character, s.origin),
   };
@@ -234,7 +231,6 @@ export function recreateUi(s: ShellState, actions: PanelActions): void {
     if (renderers.cues !== undefined) bindPrototype(renderers.cues, SpecialCueEffects.prototype);
     if (renderers.pool !== undefined) bindPrototype(renderers.pool, FighterPoolPresentation.prototype);
     bindPrototype(renderers.agency, AgencyMarker.prototype);
-    bindPrototype(renderers.glow, WhiteGlowPresentation.prototype);
     bindPrototype(renderers.agency.forecast, FighterAgencyForecast.prototype);
     if (renderers.hitAreas !== undefined) bindPrototype(renderers.hitAreas, HitAreaPresentation.prototype);
     if (renderers.passive === undefined) renderers.passive = new PassivePresentation(renderers.character, s.origin);
