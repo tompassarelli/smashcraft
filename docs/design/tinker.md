@@ -23,7 +23,7 @@ weight **106**, run **1.725**, air speed **1.134**. Smashcraft stores these as
 106/75 weight, 1.725/2.2 run, and 1.134 air multipliers; movement uses the shared
 Melee-to-world scale. Width 1.12 and height 0.95 are original model-fit values.
 Jumps, gravity, dodge windows, shield rules and automatic aerial landing-lag
-reduction retain the shared roster rules.
+behavior retain the shared roster rules.
 
 [Snake's Hand Grenade](https://www.ssbwiki.com/Hand_Grenade) informs delayed
 space control. [R.O.B.'s Gyro](https://www.ssbwiki.com/Gyro) informs a persistent
@@ -36,12 +36,12 @@ moveset as a functional comparison only.
 
 ## Full kit
 
-F/A/R/L means first active frame, active duration, recovery, authored landing
+F/A/R/L means first active frame, active duration, recovery, final landing
 lag, counting entry as frame 1. Contacts use original capsules around the
 claws or exhaust. A target is struck once per action unless a later window is
 explicitly listed. There is no extra shield damage and no invulnerability on
 normals. Ground normals require ground, aerials require air. Jab links only
-on another fresh attack. Aerial landing uses the shared automatic reduction.
+on another fresh attack. The listed L is the final landing lag consumed by the hero move profile.
 
 | Input | Motion and role | F/A/R/L; damage | Warcraft source | Smash reference |
 |---|---|---|---|---|

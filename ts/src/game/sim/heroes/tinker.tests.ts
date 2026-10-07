@@ -5,7 +5,7 @@ import { AttackStyle, Character, GrabAction, SpecialAction } from "../codes";
 import { beginDamageContacts, finishDamageContacts } from "../contacts";
 import { createFighter } from "../fighter";
 import { advanceHeroStatus } from "../heroSpecialRules";
-import { isAerialAttack } from "../moves";
+import { attackStartupFrames, isAerialAttack } from "../moves";
 import { advancePlacedObjects } from "../placedObjects";
 import { updateProjectiles } from "../projectiles";
 import { type Controls, type Roster, createRoster, fighterAt } from "../roster";
@@ -191,6 +191,27 @@ test("Tinker computer coverage records all four specials", () => {
   const result = fighterCoverage(index);
   assertEquals(result.missing.length, 0);
   for (const count of [result.specials.neutral, result.specials.side, result.specials.up, result.specials.down]) assertGreaterThan(count, 0);
+});
+
+test("Tinker Robo-Goblin armor takes one light hit and then a second hit interrupts it", () => {
+  const { owner, target, world } = pair(45.0);
+  frame(world, down);
+  for (let tick = 2; tick <= 9; tick++) frame(world);
+  beginFighterAttack(world, 1, AttackStyle.jab, false);
+  target.attack.frame = attackStartupFrames(AttackStyle.jab, target.tuning.moves);
+  resolveAttacks(world);
+  assertGreaterThan(owner.status.damage, 0.0);
+  assertEquals(owner.launch.hitstun, 0);
+  assertEquals(owner.status.armorFrames, 0);
+  owner.launch.hitlag = 0;
+  target.launch.hitlag = 0;
+  target.attack.style = undefined;
+  target.attack.cooldown = 0;
+  beginFighterAttack(world, 1, AttackStyle.jab, false);
+  target.attack.frame = attackStartupFrames(AttackStyle.jab, target.tuning.moves);
+  resolveAttacks(world);
+  assertGreaterThan(owner.launch.hitstun, 0);
+  assertEquals(owner.special.action, SpecialAction.none);
 });
 
 test("Tinker pummel strikes once and Engineering Upgrade boosts a normal only once", () => {

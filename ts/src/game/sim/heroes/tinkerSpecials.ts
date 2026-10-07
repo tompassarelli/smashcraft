@@ -8,7 +8,7 @@ const rocket = (spawnFrame: number): SpecialProjectile => ({
   model: "Abilities\\Weapons\\RocketMissile\\RocketMissile.mdl",
   spawnFrame, offsetX: 35.0, offsetZ: 65.0, velocityX: 10.0, velocityZ: 2.0,
   gravity: f32(0.12), life: 44, radius: 15.0, effect: tinkerHit(4.0, "poke", 55, 1.0, HitElement.fire),
-  reflectable: true, limit: 3, feedsPassive: true, cancelOnInterrupt: true,
+  reflectable: true, limit: 3, feedsPassive: true,
 });
 const rockets = (air: boolean): AuthoredSpecial => ({ cost: 10, endFrame: 43, projectiles: [rocket(14), rocket(20), rocket(26)], landingLag: air ? 20 : undefined });
 const boots = (cost: number, rise: number, drift: number): AuthoredSpecial => ({
@@ -16,7 +16,7 @@ const boots = (cost: number, rise: number, drift: number): AuthoredSpecial => ({
   oncePerAirtime: true, helpless: true, facesStick: true,
 });
 const robo = (air: boolean): AuthoredSpecial => ({
-  cost: 20, endFrame: 46, armor: { ...frames(8, 23), maxDamage: 10.0 },
+  cost: 20, endFrame: 46, armor: { ...frames(8, 23), maxDamage: 10.0, shell: true },
   motion: [{ ...frames(12, 23), velocityX: 4.0, velocityZ: 0.0, stopsAtBody: true }],
   regions: [heroRegion(14, 18, claw(18.0, 45.0, 113.0, 40.0, 16.0), tinkerHit(13.0, "kill", 35))],
   landingLag: air ? 20 : undefined,
