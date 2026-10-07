@@ -653,6 +653,23 @@ change. The full extraction command passed in about five seconds.
 
 ## Illidan, portraits and selection art
 
+The additive locomotion pass keeps every shipped sequence intact. From the
+repository root, run Blender with `--python tools/animations/illidan-locomotion.py
+-- PRIVATE_FIGHTER.blend PRIVATE_AUTHORED`, then `bun
+tools/animations/illidan-locomotion.ts PRIVATE_ASSETS PRIVATE_AUTHORED PRIVATE_OUTPUT`.
+The source is the existing private `demonhunter-fighter.blend`; output stays
+outside the checkout. `Locomotion Walk` alternates grounded steps with a short
+returning-foot lift. `Locomotion Run` leans forward, drives longer alternating
+steps and keeps the glaives beside the body. `Locomotion Initial Dash Burst`
+compresses into a push-off, then feeds the run. The ten authored burst frames
+are retimed over the simulation's thirteen dash frames; run starts on frame 14.
+The simulation still supplies all movement speeds and frame data.
+
+Run `bun tools/animations/package-illidan.ts PRIVATE_OUTPUT --metadata-only`,
+store `illidan-animation`, refresh the original clip pool, then regenerate
+stride and motion facts with `bun wisp view motion --assets PRIVATE_ASSETS`.
+Its pool exporter strips only this three-clip suffix to reuse exact older clips.
+
 Illidan's package is regenerated in order from the repository root. Run each
 Blender step as `blender --background --python-exit-code 1 --python FILE`:
 

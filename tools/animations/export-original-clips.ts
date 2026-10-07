@@ -11,7 +11,7 @@
 import {join, resolve, relative} from 'node:path';
 import {isDeepStrictEqual} from 'node:util';
 import {generateMDX, model as mdx} from 'war3-model';
-import {damageBaseModel, drillBaseModel, grabBaseModel, recoveryBaseModel} from './recovery-model';
+import {damageBaseModel, drillBaseModel, grabBaseModel, locomotionBaseModel, recoveryBaseModel} from './recovery-model';
 import {seconds} from './asset-info';
 import {mkdirSync} from 'node:fs';
 import {fighters, ensure, hash, parseSource, encodeVerified, tracks, verifyPreservedBody, removeBodyEffects,
@@ -51,7 +51,7 @@ for (const fighter of fighters) {
     // An additive recovery pass leaves old clips unchanged. Admit the cache
     // only when removing its identity helper/suffix reconstructs the exact
     // previously exported input bytes; changed base art takes the full path.
-    const base = !reuse && keepUnchanged && retainedRecord ? grabBaseModel(source) ?? drillBaseModel(source) ?? damageBaseModel(source) ?? recoveryBaseModel(source) : undefined;
+    const base = !reuse && keepUnchanged && retainedRecord ? locomotionBaseModel(source) ?? grabBaseModel(source) ?? drillBaseModel(source) ?? damageBaseModel(source) ?? recoveryBaseModel(source) : undefined;
     const reusePrefix = base && hash(generateMDX(base)) === retainedRecord.sourceSha256 ? base.Sequences.length : 0;
     if (reusePrefix) console.log(`${fighter.name}: exact base SHA retained, exporting ${source.Sequences.length - reusePrefix} added clips`);
     const components = splitStaticLights(source);

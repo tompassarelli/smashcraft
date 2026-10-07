@@ -115,6 +115,11 @@ code. From smashcraft:ts/:
   ten expansion heroes, four throws, both facings, with ordinary catch/pummel
   inputs and contact-frame captures in smashcraft:ts/test/native/pads/180/.
   `-dev quick pair FIRST / SECOND` selects different named fighters in the two human slots.
+- Illidan locomotion authoring (from the repository root): run Blender with
+  `--python tools/animations/illidan-locomotion.py -- PRIVATE_FIGHTER.blend PRIVATE_AUTHORED`,
+  then `bun tools/animations/illidan-locomotion.ts PRIVATE_ASSETS PRIVATE_AUTHORED PRIVATE_OUTPUT`.
+  Package with `bun tools/animations/package-illidan.ts PRIVATE_OUTPUT --metadata-only`,
+  store `illidan-animation`, and refresh the original clip pool.
 - Lich King animation authoring (from the repository root):
   `tools/animations/build-lichking.sh [PRIVATE_INPUTS] [IMMUTABLE_EXISTING_MODEL]`
   authors clips through Blender; the optional existing model preserves shipped

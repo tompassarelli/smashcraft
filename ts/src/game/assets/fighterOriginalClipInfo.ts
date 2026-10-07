@@ -292,6 +292,9 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\IllidanOriginalClip116-0a80d442ef7567902c8e50c9c61fa53b0be5a12ce423f2bd4148d3a0fb70cb6a.mdx", startSeconds: f32(183.196), endSeconds: f32(183.596), looping: false },
     { modelPath: "war3mapImported\\IllidanOriginalClip117-a5a68f9c2cd782e27bf9a05b97768eeb0705789125c8ef28f39934ce3f47fef0.mdx", startSeconds: f32(183.696), endSeconds: f32(184.096), looping: false },
     { modelPath: "war3mapImported\\IllidanOriginalClip118-2c7061e520a12fb1550d6265b520bc71ff7eab4094fa318fc81850ae8fa293ab.mdx", startSeconds: f32(184.196), endSeconds: f32(184.596), looping: false },
+    { modelPath: "war3mapImported\\IllidanOriginalClip119-6385bac6e9f00454bc470bfa130eb05ea1bcd2b3af150ced2506f475dce39521.mdx", startSeconds: f32(184.696), endSeconds: f32(185.696), looping: true },
+    { modelPath: "war3mapImported\\IllidanOriginalClip120-c0fcb39c7c39509cd99bd27a0789bdbefa3c0c5efa759631d1a8b258ed5ca8cc.mdx", startSeconds: f32(185.796), endSeconds: f32(186.396), looping: true },
+    { modelPath: "war3mapImported\\IllidanOriginalClip121-1a96153b66df1d502d3f08f6341d915efe69a475569608f32d16b9ebaf57e664.mdx", startSeconds: f32(186.496), endSeconds: f32(186.663), looping: false },
   ],
   // Blademaster
   [
@@ -1183,6 +1186,9 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["damage grid high small", 116],
     ["damage grid high medium", 117],
     ["damage grid high large", 118],
+    ["locomotion walk", 119],
+    ["locomotion run", 120],
+    ["locomotion initial dash burst", 121],
   ]),
   // Blademaster
   new Map<string, number>([

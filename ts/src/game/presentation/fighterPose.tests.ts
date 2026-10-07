@@ -31,6 +31,24 @@ import { FRAME_SECONDS, advanceFighterPose, createFighterPose } from "./fighterP
 import { DRAWN_STRIDES } from "./drawnStrideInfo";
 import { groundLocomotionClip } from "./fighterLocomotion";
 import { IllidanLocomotion, TRANSITION_FRAMES } from "./illidanMotion";
+import { INITIAL_DASH_FRAMES } from "../sim/tuning";
+import { originalClipNamed } from "../assets/fighterOriginalClipInfo";
+
+test("Illidan plays Locomotion Initial Dash Burst on frames 1–13, then Locomotion Run on frame 14", () => {
+  const f = createFighter(Character.demonHunter, 0.0, 1), world = soloWorld(f);
+  const input = neutralControls(), pose = createFighterPose();
+  input.direction = 1;
+  assertEquals(INITIAL_DASH_FRAMES, 13);
+  assertEquals(originalClipNamed(f.character, "locomotion initial dash burst"), dh.DEMON_HUNTER_INITIAL_DASH_BURST_INDEX);
+  assertEquals(originalClipNamed(f.character, "locomotion run"), dh.DEMON_HUNTER_RUN_FORWARD_INDEX);
+  assertGreaterThan(dh.DEMON_HUNTER_RUN_FORWARD_INDEX, 64);
+  for (let frame = 1; frame <= INITIAL_DASH_FRAMES + 1; frame++) {
+    f.motion.x = 0.0;
+    advanceFighter(world, 0, 0, input, 0.0);
+    advanceFighterPose(pose, f, world, input, false, false, false, false);
+    assertEquals(pose.clipIndex, frame <= INITIAL_DASH_FRAMES ? dh.DEMON_HUNTER_INITIAL_DASH_BURST_INDEX : dh.DEMON_HUNTER_RUN_FORWARD_INDEX, `dash handoff frame ${frame}`);
+  }
+});
 
 test("every fighter walks and runs with foot cadence following ground speed", () => {
   for (const character of SELECTABLE_CHARACTERS) {
