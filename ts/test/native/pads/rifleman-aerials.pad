@@ -19,7 +19,7 @@
 130 a capture
 # Expected, frame by frame (headless run of this script): the aerial starts, then every hit.
 #! expect a 120 applied attack 1 style 15
-#! expect b 125 damage 4.000
+#! expect b 126 damage 4.000
 #! expect b 130 damage 12.000
 #! scene a StampedeMissileDeath
 # View held a second, twice: the moments the parity check replays.

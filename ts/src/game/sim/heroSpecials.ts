@@ -273,6 +273,8 @@ export interface AuthoredSpecial {
   readonly intangible?: FrameWindow | undefined;
   readonly armor?: SpecialArmor | undefined;
   readonly guard?: SpecialGuard | undefined;
+  /** The computer may time its protection defensively even when the special also strikes. */
+  readonly defensiveUse?: boolean | undefined;
   /** Does not start in the air and spends nothing there. */
   readonly groundOnly?: boolean | undefined;
   /** Once per airtime; landing or a new stock restores it, a ledge catch does not. */

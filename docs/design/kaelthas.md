@@ -113,6 +113,10 @@ The computer contests medium range with Flame Strike, uses Siphon inside its
 reach, Banishes close pressure, and uses every directional aerial and throw
 through the shared matchup planner. Down tilt and Flame Strike launch toward
 up air; DI, airdodge and tech choices decide the follow-up.
+The computer may use Banish against a threat that arrives during its f5–12
+protection when it has 15 mana and can act. For a threat farther away it can
+wait to time Banish; for one arriving before f5 it chooses another defense. Banish
+still serves as an offensive burst when the nearby enemy is in reach.
 
 [wc]: https://wowpedia.fandom.com/wiki/Blood_Mage_(Warcraft_III)
 [mw]: https://www.ssbwiki.com/Mewtwo_(SSBU)#Moveset

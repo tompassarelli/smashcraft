@@ -8,7 +8,7 @@ import { Action } from "../src/game/input/actions";
 import { Character } from "../src/game/sim/codes";
 import { SELECTABLE_CHARACTERS, fighterName } from "../src/game/sim/heroes/registry";
 import { surfaceLeft, surfaceRight, surfaceZ } from "../src/game/sim/stage";
-import { fighter, frame, scene } from "./frameScene";
+import { fighter, frameRows, scene } from "./frameScene";
 
 /** Stage 1's left raised deck, the Battlefield-style platform at z 170. */
 const STAGE = 1;
@@ -18,10 +18,12 @@ const LATEST_AERIAL = 40;
 
 type Held = readonly Action[];
 type Plan = (n: number) => Held;
+type RecordedPlan = readonly Held[];
 
 const UP_AIR: Held = [Action.moveUp, Action.attack];
 const DOWN_AIR: Held = [Action.moveDown, Action.attack];
 const NEUTRAL_AIR: Held = [Action.attack];
+const NEUTRAL: Held = [];
 
 /** The below fighter's options: an up smash or up tilt from the ground, or a full or short hop, then an up or neutral air pressed on frame `at`. */
 function belowPlans(): Plan[] {
@@ -49,16 +51,22 @@ function abovePlans(): Plan[] {
   return plans;
 }
 
+const recordPlan = (plan: Plan): RecordedPlan => Array.from({ length: LIMIT }, (_, index) => plan(index + 1));
+const BELOW_PLANS = belowPlans().map(recordPlan);
+const ABOVE_PLANS = abovePlans().map(recordPlan);
+
 /** The frame on which `plan` first damages the idle victim, or undefined. */
-function firstHit(attacker: Character, victim: Character, attackerAbove: boolean, plan: Plan): number | undefined {
+function firstHit(attacker: Character, victim: Character, attackerAbove: boolean, plan: RecordedPlan): number | undefined {
   const x = Math.fround((surfaceLeft(STAGE, DECK, 0) + surfaceRight(STAGE, DECK, 0)) / 2);
   const s = scene(STAGE, [{ character: attacker, x, facing: 1 }, { character: victim, x, facing: -1 }]);
   const above = fighter(s, attackerAbove ? 0 : 1);
   above.motion.surface = DECK;
   above.motion.z = surfaceZ(STAGE, DECK, 0);
   const target = fighter(s, 1);
+  const held: [Held, Held] = [NEUTRAL, NEUTRAL];
   for (let n = 1; n <= LIMIT; n++) {
-    frame(s, plan(n), []);
+    held[0] = plan[n - 1] ?? NEUTRAL;
+    frameRows(s, held);
     if (target.status.damage > 0) return n;
   }
   return undefined;
@@ -66,7 +74,7 @@ function firstHit(attacker: Character, victim: Character, attackerAbove: boolean
 
 function earliest(attacker: Character, victim: Character, attackerAbove: boolean): number | undefined {
   let best: number | undefined;
-  for (const plan of attackerAbove ? abovePlans() : belowPlans()) {
+  for (const plan of attackerAbove ? ABOVE_PLANS : BELOW_PLANS) {
     const hit = firstHit(attacker, victim, attackerAbove, plan);
     if (hit !== undefined && (best === undefined || hit < best)) best = hit;
   }

@@ -1,0 +1,132 @@
+{
+  "source": "a40431f016e2a112a799ce3fa9803b02dafbb83b",
+  "opponents": 20,
+  "matches": 8160,
+  "wins": 4427,
+  "losses": 3733,
+  "ties": 0,
+  "timeOuts": 0,
+  "rate": 0.5425245098039215,
+  "rows": [
+    {
+      "against": "blademaster",
+      "wins": 244,
+      "losses": 164,
+      "matches": 408
+    },
+    {
+      "against": "mountain-king",
+      "wins": 189,
+      "losses": 219,
+      "matches": 408
+    },
+    {
+      "against": "warden",
+      "wins": 257,
+      "losses": 151,
+      "matches": 408
+    },
+    {
+      "against": "archer",
+      "wins": 294,
+      "losses": 114,
+      "matches": 408
+    },
+    {
+      "against": "illidan",
+      "wins": 201,
+      "losses": 207,
+      "matches": 408
+    },
+    {
+      "against": "rifleman",
+      "wins": 145,
+      "losses": 263,
+      "matches": 408
+    },
+    {
+      "against": "lich",
+      "wins": 116,
+      "losses": 292,
+      "matches": 408
+    },
+    {
+      "against": "uther",
+      "wins": 185,
+      "losses": 223,
+      "matches": 408
+    },
+    {
+      "against": "pit-lord",
+      "wins": 230,
+      "losses": 178,
+      "matches": 408
+    },
+    {
+      "against": "dreadlord",
+      "wins": 225,
+      "losses": 183,
+      "matches": 408
+    },
+    {
+      "against": "shadow-hunter",
+      "wins": 167,
+      "losses": 241,
+      "matches": 408
+    },
+    {
+      "against": "beastmaster",
+      "wins": 240,
+      "losses": 168,
+      "matches": 408
+    },
+    {
+      "against": "lich-king",
+      "wins": 139,
+      "losses": 269,
+      "matches": 408
+    },
+    {
+      "against": "thrall",
+      "wins": 310,
+      "losses": 98,
+      "matches": 408
+    },
+    {
+      "against": "jaina-proudmoore",
+      "wins": 237,
+      "losses": 171,
+      "matches": 408
+    },
+    {
+      "against": "cairne-bloodhoof",
+      "wins": 133,
+      "losses": 275,
+      "matches": 408
+    },
+    {
+      "against": "sylvanas-windrunner",
+      "wins": 231,
+      "losses": 177,
+      "matches": 408
+    },
+    {
+      "against": "peon",
+      "wins": 304,
+      "losses": 104,
+      "matches": 408
+    },
+    {
+      "against": "kael'thas-sunstrider",
+      "wins": 362,
+      "losses": 46,
+      "matches": 408
+    },
+    {
+      "against": "goblin-tinker",
+      "wins": 218,
+      "losses": 190,
+      "matches": 408
+    }
+  ]
+}
