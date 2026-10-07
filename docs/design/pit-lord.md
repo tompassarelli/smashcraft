@@ -66,7 +66,9 @@ deception, Beastmaster's partner and Lich King's growing pool each persist
 beyond their immediate action; Pit Lord's threat is a plainly visible rain
 or swing with a definite end.
 
-The CPU uses Rain at range, Howl when crowded, Charge to advance and Leap
+The CPU aims Rain at the opponent's expected position when the fire reaches
+their height, accounting for the cast startup and their current movement.
+It uses Howl when crowded, Charge to advance and Leap
 to recover. Its seeded match coverage records all four separately. Down air
 is the four-hoof downward spike, with its own downward pose from #218.
 The issue carries the delivery and playtest checklist.
