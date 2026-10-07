@@ -234,11 +234,14 @@ code. From smashcraft:ts/:
   clips and rewrites their foot cadence and audit (smashcraft:docs/fighter-motion.md);
   `view reach --assets DIR [--character ID]` rewrites how far fighters' swings
   draw toward their strikes (smashcraft:docs/hurtboxes.md).
-- Repro: `bun wisp repro FILE [--test NAME] [--frame N --out FILE] [--diff-frame N|previous]` replays a moment a player saved
+- Repro: `bun wisp repro FILE [--test NAME] [--shrink [--out FILE]] [--frame N --out FILE] [--diff-frame N|previous]` replays a moment a player saved
   with K (or View held on a controller) in simulated clients, to the checksum
   the game recorded; `--test NAME` writes a test that replays it. `--frame N
   --out FILE` saves its exact canonical state after N; `--diff-frame previous`
   or another saved frame adds a sorted field-path diff (wisp:docs/repro.md).
+  A soak JSON file supports `--shrink`, which removes inputs while keeping
+  the recorded failure kind; `--test NAME` writes a Bun regression to
+  ts/test/repros/ that passes once that failure is fixed.
 - Replays: every client records each match as `smashcraft-replay-N.txt` (a
   manifest written at its end) and `smashcraft-replay-N-K.txt` parts written
   during it. `LUA=<32-bit lua> bun wisp replay FILE [--out JOINED]` replays a
