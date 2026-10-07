@@ -44,6 +44,7 @@ test("hit event language: 26 event cases reach stock effects and confirmed sound
   client.run(() => {
     const renderer = new CombatEffects({ x: 0, y: 0, z: FLOOR_HEIGHT });
 
+    const shownScale: number[] = [];
     for (const [index, { cue, sound, model }] of HIT_PRESENTATION_CASES.entries()) {
       renderer.clear();
       const events = { ...createImpactEvents(), ...cue };
@@ -56,11 +57,17 @@ test("hit event language: 26 event cases reach stock effects and confirmed sound
       expect(calls.filter(call => call.name === "CreateSoundFromLabel").map(call => call.args[0])).toEqual([sound]);
       expect(calls.filter(call => call.name === "StartSound")).toHaveLength(1);
       expect(client.effectPoses().some(pose => pose.model.includes(model) && pose.scale > 0)).toBe(true);
+      shownScale[index] = Math.max(...client.effectPoses().filter(pose => pose.model.includes(model)).map(pose => pose.scale));
+      // Electric and ledge cues start past their stock models' empty opening, or the pool parks them before they draw.
+      const started = calls.filter(call => call.name === "BlzSetSpecialEffectTime").map(call => Number(call.args[1]));
+      if ([2, 7, 14, 15].includes(index)) expect(Math.max(...started)).toBeGreaterThan(0);
       const after = client.log.length;
       renderer.presentConfirmed(index + 1, 0, events);
       renderer.presentConfirmed(index, 0, events);
       expect(client.log.length).toBe(after);
     }
+    // A slash's stock sparks are tiny at scale 1; they draw at least three times an ordinary hit's spark.
+    expect(shownScale[4]).toBeGreaterThanOrEqual(3 * (shownScale[0] ?? 0));
     renderer.destroy();
   });
   expect(client.errors).toEqual([]);

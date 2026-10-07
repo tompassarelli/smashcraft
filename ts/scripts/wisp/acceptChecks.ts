@@ -65,17 +65,18 @@ const NO_IMPORT_FAILURES: Rule = { kind: "log", pattern: "^model creation failed
 const EXPECTATIONS: Readonly<Record<number, string>> = {
   12: "a flash at stage centre, chest height (wall tech)",
   13: "a flash at stage centre, chest height (ceiling tech)",
-  14: "a flash at stage centre, chest height (ledge catch)",
-  15: "a flash at stage centre, chest height (ledge recovery)",
+  14: "blue sparkles circling at stage centre, chest height (ledge catch)",
+  15: "a green-blue glow at stage centre, chest height (ledge recovery)",
   24: "a flash at stage centre, chest height (double jump)",
-  2: "an electric spark at stage centre; if empty, BoltImpact needs a different model",
-  7: "an electric shield spark at stage centre; if empty, BoltImpact needs a different model",
+  2: "a blue lightning flash at stage centre, chest height (electric hit)",
+  7: "a blue lightning flash at stage centre, chest height (electric shield hit)",
   5: "control for 2 and 7: an ice spark at stage centre",
   6: "control for 2 and 7: a shield spark at stage centre",
-  4: "small pale slash particles at stage centre",
+  4: "a spray of slash sparks at stage centre, chest height",
   9: "a large white column above and right of centre (shield break)",
   11: "a small dot at floor level (floor tech)",
-  25: "two floor dust puffs (ordinary landing)",
+  25: "a flash at stage centre, chest height (wall jump)",
+  26: "two floor dust puffs (ordinary landing)",
 };
 
 /** smashcraft#109's native look (and #115's decks, #110's camera): each stage's quick match, one whole frame per client once its scene has had 5 s to draw. */
@@ -90,7 +91,7 @@ const stageChecks: NativeCheck[] = rankedStages.map(({ name }): NativeCheck => (
 }));
 
 /** smashcraft#82's re-capture: each case 3 s after the last, frames from its receipt to +0.5 s, its model and sound named on screen. */
-const effectChecks: NativeCheck[] = [12, 13, 14, 15, 24, 2, 7, 5, 6, 4, 9, 11, 25].flatMap((index): NativeCheck[] => {
+const effectChecks: NativeCheck[] = [12, 13, 14, 15, 24, 2, 7, 5, 6, 4, 9, 11, 25, 26].flatMap((index): NativeCheck[] => {
   const scenario = HIT_PRESENTATION_CASES[index];
   if (scenario === undefined) return [];
   const { model, sound } = scenario;

@@ -16,7 +16,7 @@ export function impactModel(kind: number): string {
     case 2: return "Abilities\\Spells\\Orc\\WarStomp\\WarStompCaster.mdx";
     case 3: return IMPACT_DUST_MODEL;
     case 4: return IMPACT_ROLL_MODEL;
-    case 5: case IMPACT_ELECTRIC_SHIELD: return "Abilities\\Weapons\\Bolt\\BoltImpact.mdx";
+    case 5: case IMPACT_ELECTRIC_SHIELD: return "Abilities\\Spells\\Other\\ForkedLightning\\ForkedLightningTarget.mdx";
     case 6: case 10: case 12: return "Abilities\\Spells\\Human\\Defend\\DefendCaster.mdx";
     case 7: return IMPACT_JUMP_MODEL;
     case 11: case 15: return "Abilities\\Spells\\NightElf\\Blink\\BlinkTarget.mdx";
@@ -31,7 +31,28 @@ export function impactModel(kind: number): string {
 
 /** These stock impacts name their only visible sequence Stand, rather than Birth. */
 export function impactAnimation(kind: number): string {
-  return kind === 1 || kind === 2 || kind === 3 || kind === 4 || kind === 5 || kind === 7 || kind === 8 || kind === 9 || kind === IMPACT_ELECTRIC_SHIELD ? "Stand" : "Birth";
+  return kind === 1 || kind === 2 || kind === 3 || kind === 4 || kind === 7 || kind === 8 || kind === 9 ? "Stand" : "Birth";
+}
+
+/**
+ * Seconds into its sequence an impact starts. A pooled cue shows for 9-15
+ * frames, but Blink target draws nothing before 0.33 s and peaks at
+ * 0.63-0.87 s, and Dispel Magic target's first sparkle ring shows from
+ * 0.17 s and peaks at 0.33-0.43 s; Forked Lightning target's flash reaches
+ * full size at 0.13 s. Each starts where its model is already drawn.
+ */
+export function impactStartSeconds(kind: number): number {
+  switch (kind) {
+    case 5: case IMPACT_ELECTRIC_SHIELD: return 0.1;
+    case 11: case 15: return 0.6;
+    case 13: case 14: case 16: return 0.25;
+    default: return 0.0;
+  }
+}
+
+/** Cleave target's sparks are a few units across at scale 1, too small to read as a hit; slash draws them four times larger. */
+export function impactModelScale(kind: number): number {
+  return kind === IMPACT_SLASH_HIT ? 4.0 : 1.0;
 }
 
 type ImpactSoundSink = (label: string, x: number, z: number, volume: number, pitch: number) => void;

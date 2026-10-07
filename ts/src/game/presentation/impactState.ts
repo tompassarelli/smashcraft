@@ -232,7 +232,7 @@ export function emitImpacts(state: ImpactState, events: Readonly<ImpactEvents>, 
   if (events.throwRelease) spawn(state, IMPACT_THROW, x, f32(z + 50.0), 0, f32(1.1));
   if (events.charge) spawn(state, IMPACT_CHARGE, x, f32(z + 50.0), 0, 0.5);
   if (events.ready) spawn(state, IMPACT_READY, x, f32(z + 65.0), 0, f32(0.9));
-  if (events.ledgeCatch) spawn(state, IMPACT_LEDGE_CATCH, events.ledgeX, events.ledgeZ, 0, f32(0.6));
+  if (events.ledgeCatch) spawn(state, IMPACT_LEDGE_CATCH, events.ledgeX, events.ledgeZ, 0, f32(0.8));
   if (events.ledgeRecovery) spawn(state, IMPACT_LEDGE_RECOVERY, events.ledgeX, events.ledgeZ, 0, f32(0.8));
   if (events.hit) {
     const kind = events.pummel ? IMPACT_PUMMEL : events.element === HitElement.fire ? IMPACT_FIRE_HIT

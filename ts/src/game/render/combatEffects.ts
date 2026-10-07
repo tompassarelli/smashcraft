@@ -20,7 +20,7 @@ import {
 import { f32 } from "wisp/src/sim/f32";
 import { at } from "wisp/src/runtime/lookup";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
-import { impactAnimation, impactModel, presentImpactSounds } from "../presentation/hitPresentation";
+import { impactAnimation, impactModel, impactModelScale, impactStartSeconds, presentImpactSounds } from "../presentation/hitPresentation";
 import type { ImpactEvents } from "../presentation/impactEvents";
 import { Character } from "../sim/codes";
 import { SELECTABLE_CHARACTERS, heroDefinition } from "../sim/heroes/registry";
@@ -122,14 +122,14 @@ export class CombatEffects {
       const last = shownAges[i];
       if (last !== undefined && age !== undefined && age < last) hideEffect(model, this);
       if (last === undefined || age !== undefined && age < last) {
-        BlzSetSpecialEffectAnimation(model, impactAnimation(floorDiv(i, IMPACTS_PER_KIND)));
-        BlzSetSpecialEffectTime(model, 0.0);
+        BlzSetSpecialEffectAnimation(model, impactAnimation(kind));
+        BlzSetSpecialEffectTime(model, impactStartSeconds(kind));
       }
       shownAges[i] = age;
       parked[i] = false;
-      const depth = floorDiv(i, IMPACTS_PER_KIND) === IMPACT_STAR_KO ? STAR_KO_DEPTH : 0.0;
+      const depth = kind === IMPACT_STAR_KO ? STAR_KO_DEPTH : 0.0;
       BlzSetSpecialEffectAlpha(model, pose.alpha);
-      BlzSetSpecialEffectScale(model, pose.scale);
+      BlzSetSpecialEffectScale(model, pose.scale * impactModelScale(kind));
       BlzSetSpecialEffectPitch(model, pose.pitch);
       BlzSetSpecialEffectPosition(model, this.x + pose.x, this.y + depth, this.z + pose.z);
     }

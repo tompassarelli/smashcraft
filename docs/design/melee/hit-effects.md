@@ -166,8 +166,8 @@ not claims that Warcraft renders Melee's artwork or exact animation programs.
 | --- | --- | --- |
 | Ordinary hit / pummel | Stampede missile impact | StampedeHit; pummel uses higher, quieter Defend |
 | Fire hit | Incinerate / Fire Lord explosion | Fireball |
-| Electric hit / electric shield | Bolt impact | LightningBolt |
-| Slash hit | Cleave target | RelentlessCleave |
+| Electric hit / electric shield | Forked Lightning target | LightningBolt |
+| Slash hit | Cleave target, drawn four times larger | RelentlessCleave |
 | Ice / freeze begins | Frost Nova target | FrostNova |
 | Shield / powershield | Defend caster | Defend, powershield higher |
 | Missed floor/wall/ceiling tech | War Stomp impact and dust | Warstomp |
@@ -188,6 +188,27 @@ or older confirmed frames. A fresh map start is required after changing the
 pool's model families; hot reload keeps existing handles and their models.
 
 Stock sound names were resolved from Warcraft's AnimSounds.slk. The stock model
-sequences were inspected too: War Stomp, Bolt, Thunder Clap and Resurrection
-use Stand; the remaining mapped models use Birth. These names are Warcraft
+sequences were inspected too: War Stomp, Thunder Clap and Resurrection use
+Stand; the remaining mapped models use Birth. These names are Warcraft
 metadata, not inferred spell-display names.
+
+A pooled cue shows for 9-15 frames (0.15-0.25 s), so a stock model must draw
+in that window from where the cue starts it. Read from each model's sequence
+keys (`impactStartSeconds` in hitPresentation.ts):
+
+- Bolt impact draws nothing for its first 0.17 s (every material at alpha 0)
+  and has no particle emitters, so an electric cue parked before it showed;
+  the side camera recorded at most 5 changed pixels. Forked Lightning target
+  draws a billboarded flash and lightning particles from 0 s and reaches full
+  size at 0.13 s; cues start it at 0.1 s.
+- Blink target draws nothing before 0.33 s and peaks at 0.63-0.87 s; ledge
+  recovery and throw start it at 0.6 s.
+- Dispel Magic target's first sparkle ring shows from 0.17 s and peaks at
+  0.33-0.43 s; its sparks only emit at 0.7-0.8 s. Ledge catch, ready and the
+  star-KO sparkle start it at 0.25 s.
+- Cleave target emits only for its first 0.17 s, and its sparks are 0-12
+  units across at scale 1 (the side camera recorded 2 pixels); slash draws it
+  four times larger.
+
+The diagnostic's ledge cues spawn at the stage centre (ledge point 0, 50),
+not at a ledge, so a stage-centre capture covers them.
