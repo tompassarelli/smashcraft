@@ -1082,3 +1082,75 @@ coverage or all original-frame guarantees. Playable 0.0.40 remains separate.
 The source pins, exact artifact identities, corpus, failed attempt, final
 reconciliation and raw logs are in
 smashcraft:evidence/editbox-ingress-native-20261005/README.md.
+
+## Tempest-checksum desyncs: handles made at a per-client moment (#158)
+
+Learned on Warcraft III build 24268 (x86_64 `Warcraft III.exe`), 7 October 2026.
+
+**Rule.** Code that runs at a moment only this client chooses must not create
+a synchronized handle. That covers this client's own helper rows, its file
+reads, its focus and its frame or render callbacks. Synchronized handles
+include `CreateTimer`, triggers, groups, effects and units. Passing a Lua
+function where a native takes `code` counts too: `TimerStart`,
+`TriggerAddAction`, `Condition`, `Filter`, `ForGroup`. So does starting,
+pausing or restarting a shared timer. Create these at setup or from a
+synchronized event, and on the local path only read them (`TimerGetElapsed`).
+The desync guard (smashcraft:ts/test/desync-guard.test.ts) pins the input
+trace's start this way. Its lockstep compare flags any synchronized native a
+one-client call makes.
+
+**Mechanism.** Desync.txt's `next presence tag` and `next birth tag` come
+from Tempest's presence table. Every agent registers there:
+`CAgentBaseAbs`, plus Ipse objects such as `CPoFlag`, `CPmRegion`, `CPoPos`
+and `CRlAgentDef`, named from MSVC RTTI. A Jass/Lua handle object such as a
+timer, a sound or a `CScriptFunc` code handle owns a `CAgentBaseAbs` that
+points back to it.
+- The table is a pointer at image RVA `0x2f80770`. Its entries (16 bytes:
+  next-free index or -2, then the object pointer) are at `+0x18`, with the
+  count at `+0x30`.
+- The free-list head at `+0x70` is the "next presence tag". The birth counter
+  at `+0x80` is the "next birth tag".
+- RVA `0x24d7d0` gives an agent its tag (`obj+0x20`) and birth (`obj+0x24`,
+  from `+0x80`, which it then increments). RVA `0x24d8d0` frees the tag. The
+  table header has a second, smaller table at `+0x38..+0x74`.
+- The tempest checksum is each live entry's checksum method summed. The
+  Desync.txt assertion is built at RVA `0x1524220`.
+
+If one client creates a handle a turn earlier than the other, the two
+clients' birth counters and free-list heads differ at that turn's checksum.
+That is a desync, even though both clients end with the same objects a turn
+later. The signature is births ±1 with presence ±1, or births ±2 with
+presence ±4. Every other Desync.log section matches.
+
+**#158's instance.** In integrity builds (`responseProbe`), the input trace
+started when this client's helper delivered its first journal row
+(smashcraft:ts/src/platform/shell/journal.ts). Its start called `CreateTimer`
+(moved to setup in 88cd7824) and `TimerStart(clock, 1000, false, () => {})`.
+That closure became a `CScriptFunc` born on different turns on A and B. Idle
+matches never deliver a row, which is why they stayed clean. The desync came
+in about half the runs: only when the two first rows straddled a checksum
+turn. Native evidence for turn 921:
+- Desync.log `ipse` record #1/#2 was 5879/6280 on A and 5880/6279 on B.
+- The poller named birth 6279 as a `CAgentBaseAbs` owned by a `CScriptFunc`.
+- Each client's birth time matched its `wc3-melee-input-start.txt` write
+  within 3 ms.
+
+**Debugging one.**
+- Each Errors folder's `*_Desync.log` holds the last three turns of every
+  checksum section, appended across games. Section names are FourCC decimals:
+  `ipse` is Tempest/Ipse, records #1 and #2 are the presence head and births.
+  Diff A against B by section and turn. One section differing names the
+  subsystem.
+- `.text` is encrypted on disk and decrypted page by page at run time, after
+  a Battle.net launch. A copy launched without Battle.net never decrypts.
+  Static analysis needs the decrypted pages from a running client's image
+  (its shared image mapping, read through `/proc/PID/mem`). Pages a client
+  never ran stay encrypted, so the code that matters is always readable.
+- Reading `/proc/PID/mem` needs either an ancestor process or
+  `kernel.yama.ptrace_scope=0`, which is the owner's call. A read-only poller
+  every 2 ms that logs header changes and each new object's RTTI class is
+  enough to diff A against B.
+- Do not attach gdb (ptrace) to a signed-in client: client A exited with code 1
+  about 4 s after the attach. Kernel perf hardware breakpoints
+  (`perf record -e mem:ADDR/4:w -p PID --call-graph dwarf,4096`) record a
+  user stack per write without ptrace, and the client kept running.
