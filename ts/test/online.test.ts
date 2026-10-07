@@ -139,7 +139,7 @@ function battleNet(options: { readonly refuse?: readonly string[] } = {}) {
 }
 
 /** Host and guest at once; the guest reads the code from the host's lines, as a friend would. */
-const playBoth = (net: ReturnType<typeof battleNet>, options: { readonly startNow?: (lines: string[]) => Effect.Effect<void>; readonly makeCodes?: (() => ReturnType<typeof newJoinCode>) } = {}) =>
+const playBoth = (net: ReturnType<typeof battleNet>, options: { readonly startNow?: (lines: string[]) => Effect.Effect<void>; readonly password?: string; readonly makeCodes?: (() => ReturnType<typeof newJoinCode>) } = {}) =>
   Effect.scoped(Effect.gen(function*() {
     const hostLines: string[] = [];
     const guestLines: string[] = [];
@@ -156,10 +156,12 @@ const playBoth = (net: ReturnType<typeof battleNet>, options: { readonly startNo
       startNow: options.startNow?.(guestLines) ?? Effect.gen(function*() {
         while (!guestLines.includes("In the lobby; waiting for the host to start")) yield* Effect.sleep("20 millis");
       }),
+      ...(options.password === undefined ? {} : { password: options.password }),
       ...(options.makeCodes === undefined ? {} : { makeCode: options.makeCodes }),
     });
     const guest = Effect.gen(function*() {
-      const code = readJoinCode((yield* Deferred.await(shown)).toLowerCase())!;
+      const parsed = readJoinCode((yield* Deferred.await(shown)).toLowerCase())!;
+      const code = options.password === undefined ? parsed : { ...parsed, password: options.password };
       yield* joinMatch({ menus: guestMenus, code, documents: "/guest", say: (line) => Effect.sync(() => void guestLines.push(line)) });
     });
     const [code] = yield* Effect.all([host, guest], { concurrency: 2 });
@@ -240,3 +242,15 @@ test("a guest whose host closes the lobby stops with that reason", async () => {
     net.stop();
   }
 });
+
+test("an explicit online password keeps the game private and lets the guest join", async () => {
+  const net = battleNet();
+  try {
+    const { guestLines } = await Effect.runPromise(playBoth(net, { password: "EFGH" }));
+    expect(net.payloads.find(({ message }) => message === "host:CreateLobby")!.payload).toMatchObject({ privateGame: true, password: "EFGH" });
+    expect(net.payloads.filter(({ message }) => message === "guest:JoinGameByGameName").every(({ payload }) => payload["gamePass"] === "EFGH")).toBe(true);
+    expect(guestLines.at(-1)).toBe("In the match");
+  } finally {
+    net.stop();
+  }
+}, 20_000);
