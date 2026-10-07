@@ -564,23 +564,23 @@ export interface ObservationWriter {
   readonly text: (this: void, text: string) => void;
 }
 const PROJECTILE_OBSERVATION_FIELDS = ["life", "x", "z", "direction", "velocityX", "velocityZ", "serial"] as const;
-interface RepeatedProjectile { readonly values: readonly number[]; readonly text: string }
+interface RepeatedProjectile { readonly values: readonly [number, number, number, number, number, number, number]; readonly text: string }
 let repeatedProjectile: RepeatedProjectile | undefined;
 
 function repeatedProjectileText(p: Readonly<Fighter["projectiles"][number]>): string | undefined {
   if (p.life !== 0) return undefined;
   if (repeatedProjectile === undefined) {
-    const values: number[] = [];
+    const values: RepeatedProjectile["values"] = [p.life, p.x, p.z, p.direction, p.velocityX, p.velocityZ, p.serial];
     const parts: string[] = [];
     const emit = (code: number) => { parts.push(String.fromCharCode(code)); };
     for (const key of PROJECTILE_OBSERVATION_FIELDS) {
-      values.push(p[key]); emit(44); writeCanonicalNumber(emit, p[key]);
+      emit(44); writeCanonicalNumber(emit, p[key]);
     }
     repeatedProjectile = { values, text: parts.join("") };
   }
-  for (let index = 0; index < PROJECTILE_OBSERVATION_FIELDS.length; index++) {
-    if (p[at(PROJECTILE_OBSERVATION_FIELDS, index)] !== at(repeatedProjectile.values, index)) return undefined;
-  }
+  const values = repeatedProjectile.values;
+  if (p.life !== values[0] || p.x !== values[1] || p.z !== values[2] || p.direction !== values[3]
+    || p.velocityX !== values[4] || p.velocityZ !== values[5] || p.serial !== values[6]) return undefined;
   return repeatedProjectile.text;
 }
 
