@@ -4,7 +4,7 @@
 // callback services one frame of menus, input, simulation and presentation.
 import { PARTICIPANT_SLOTS, isParticipantMask, isParticipantSlot } from "../../game/input/participants";
 import { clearPulse } from "../../game/input/directionalInput";
-import { consumeResumeFrame, startKeyUp } from "../../game/match/controls";
+import { startKeyUp } from "../../game/match/controls";
 import { Phase, copyMatchState, humanActive, humanPresent, participantLeft, updateConnectedHumans } from "../../game/match/rules";
 import { FRAME_SECONDS } from "../../game/presentation/fighterPose";
 import { FLOOR_HEIGHT } from "../../game/presentation/arenaCamera";
@@ -36,7 +36,7 @@ import { STAGE_READY, cancelStageLoad, serviceStageLoad, stageReadyEvent } from 
 import { STAGE_READY_PREFIX } from "../../game/shell/stageLoad";
 import { makePreview } from "./preview";
 import { preloadStageAssets } from "./stageScenery";
-import { PROBE_EXPORT, exportProbePage, probeBegin, probePresent } from "./responseProbe";
+import { PROBE_EXPORT, exportProbePage, probeBegin, probeFighterPosition, probePresent, probeRecording } from "./responseProbe";
 import { receiveInput, rollbackTick } from "./rollback";
 import { SAVE_MOMENT, momentKey, serviceMomentRequest, serviceMomentSave } from "./moment";
 import { readMatchIndex, writeMatchRecord } from "./matchRecords";
@@ -105,8 +105,7 @@ function gameTick(s: ShellState): void {
   serviceMomentSave(s);
   serviceReplay(s);
   captureNativeDriverInputs(s);
-  const resumeFrame = consumeResumeFrame(s.session);
-  if (!resumeFrame && rollback !== undefined && s.game.phase === Phase.match) {
+  if (rollback !== undefined && s.game.phase === Phase.match) {
     const { journal } = rollback;
     if (journal !== undefined) serviceControlAck(s, rollback, journal);
     rollbackTick(s, rollback);
@@ -114,7 +113,7 @@ function gameTick(s: ShellState): void {
       sendPauseCommit(s, rollback, journal);
       commitPauseAtFrame(s, rollback, journal);
     }
-  } else if (!resumeFrame && s.game.phase === Phase.match && !s.session.paused) callbackMatchTick(s);
+  } else if (s.game.phase === Phase.match && !s.session.paused) callbackMatchTick(s);
   if (s.game.phase !== Phase.match) clearAllInputs(s);
   else for (const slot of PARTICIPANT_SLOTS) clearPulse(s.participants[slot].keys.directions);
   syncKeyEvents(s);
@@ -144,6 +143,16 @@ function gameTick(s: ShellState): void {
     const predictedWorld = rollback?.speculative.world;
     const predicted = predictedWorld !== undefined && isActive(predictedWorld, local);
     probePresent(s.probe, confirmed, predicted && fighterAt(predictedWorld, local).shield.raised, predicted ? rollback?.speculative.runtime.poses[local].selectionSerial ?? -1 : -1);
+    if (probeRecording(s.probe)) {
+      const presented = s.build.presentation === "pool-predicted" && rollback !== undefined ? rollback.speculative : undefined;
+      const world = presented?.world ?? s.world;
+      const frame = presented?.runtime.simulationFrame ?? s.runtime.simulationFrame;
+      for (const slot of PARTICIPANT_SLOTS) {
+        if (!isActive(world, slot)) continue;
+        const { x, z } = fighterAt(world, slot).motion;
+        probeFighterPosition(s.probe, slot, frame, x, z);
+      }
+    }
   }
   writeReadyMarker(s);
   afterNativeDriverTick(s);
