@@ -37,6 +37,20 @@ test("an action bound to two keys stays held until both are up", () => {
   assertFalse(actionHeld(keys, Action.attack));
 });
 
+test("light shield's last two slots release independently without clearing an attack", () => {
+  const keys = playerKeys();
+  const bindings = presetBindings("standard");
+  assertTrue(rebind(bindings, Action.lightShield, 1, Key.T));
+  pressKey(keys, 57, bindings);
+  pressKey(keys, Key.T, bindings);
+  pressKey(keys, Key.N, bindings);
+  releaseKey(keys, 57, bindings);
+  assertTrue(actionHeld(keys, Action.lightShield));
+  releaseKey(keys, Key.T, bindings);
+  assertFalse(actionHeld(keys, Action.lightShield));
+  assertEquals(heldActions(keys), bit(Action.attack));
+});
+
 test("clearing drops held keys and the pending pulse without touching another player", () => {
   const first = playerKeys();
   const second = playerKeys();
