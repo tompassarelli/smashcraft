@@ -9,7 +9,7 @@ import { floorDiv } from "wisp/src/sim/intMath";
 import { botChance, botChoice } from "./botRandom";
 import { type AttackBuffer, queueAttack } from "../input/attackBuffer";
 import { attackCapsule, emptyCapsule, hurtCapsule } from "../physics/contactGeometry";
-import { AttackStyle, Character, PassiveKind, SpecialAction } from "../sim/codes";
+import { AttackStyle, Character, LAST_ATTACK_STYLE, PassiveKind, SpecialAction } from "../sim/codes";
 import { canAttack } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../sim/hitRegions";
@@ -48,7 +48,7 @@ const DISENGAGE_ROOM = 420.0;
 /** A spacing tool is thrown as a wall at most this far past its reach: a step the target takes into it. */
 const SPACING_STEP = 30.0;
 
-const STYLE_SLOTS = 20;
+const STYLE_SLOTS = LAST_ATTACK_STYLE + 1;
 // Preallocated: strike bounds filled the first time a move is asked about, four per character and style.
 const strikeBounds: number[] = [];
 const strikeFilled: boolean[] = [];
