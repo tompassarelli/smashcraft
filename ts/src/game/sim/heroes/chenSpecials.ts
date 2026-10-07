@@ -1,5 +1,6 @@
 import { f32 } from "wisp/src/sim/f32";
-import { HeroStatusGroup, HeroStatusKind, HitElement } from "../codes";
+import { HitElement } from "../codes";
+import { CHILL } from "../chill";
 import { HERO_REFERENCE_HEIGHT, heroRegion } from "../heroMoves";
 import { type AuthoredSpecial, type FighterSpecials, FollowUpInput, frames } from "../heroSpecials";
 import { chenCapsule, chenHit } from "./chenMoves";
@@ -14,7 +15,7 @@ const haze = (air: boolean): AuthoredSpecial => ({
   projectiles: [{ spawnFrame: 14, offsetX: 40.0, offsetZ: 60.0, velocityX: 8.0, velocityZ: 0.5, gravity: f32(0.08),
     life: 38, radius: 22.0, effect: chenHit(3.0, 35.0, 16.0, f32(0.819152), f32(0.573576)), reflectable: true, limit: 1,
     model: "Abilities\\Spells\\Other\\StrongDrink\\BrewmasterMissile.mdx",
-    status: { kind: HeroStatusKind.terror, frames: 90, group: HeroStatusGroup.terror, immunityFrames: 120 },
+    status: CHILL,
   }],
 });
 const stormRise = (cost: number, height: number, drift: number): AuthoredSpecial => ({
@@ -37,7 +38,7 @@ const earth = (air: boolean): AuthoredSpecial => ({
 });
 export const CHEN_SPECIALS: FighterSpecials = {
   neutral: { name: "Breath of Fire", description: "Breathe a short cone of flame; a jump clears it.", ground: breath(false), air: breath(true) },
-  side: { name: "Drunken Haze", description: "Lob a flask that briefly weakens an enemy's attacks.", ground: haze(false), air: haze(true) },
+  side: { name: "Drunken Haze", description: "Lob a flask that briefly slows an enemy's movement.", ground: haze(false), air: haze(true) },
   up: { name: "Storm Rise", description: "Rise with a spinning staff, steer toward safety, then fall helplessly.", ground: stormRise(15, f32(2.1), f32(0.45)), free: stormRise(0, f32(1.45), f32(0.3)) },
   down: { name: "Storm, Earth and Fire", description: "Brace as Earth; press Attack for Fire Palm or Special for Storm Step.", ground: earth(false), air: earth(true) },
 };

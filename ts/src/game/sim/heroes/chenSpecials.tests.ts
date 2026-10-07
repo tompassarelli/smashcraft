@@ -3,6 +3,7 @@ import { copyFighterState } from "../../replay/fighterState";
 import { firstFighterDifference } from "../../replay/difference";
 import { resolveAttacks } from "../attacks";
 import { Character, HeroStatusKind, HitOrigin, SpecialAction } from "../codes";
+import { chillScaled } from "../chill";
 import { beginDamageContacts, finishDamageContacts } from "../contacts";
 import { createFighter } from "../fighter";
 import { advanceHeroStatus } from "../heroSpecialRules";
@@ -55,12 +56,13 @@ test("Breath of Fire hits once facing either way and a shield stops body damage"
   }
 });
 
-test("Drunken Haze reaches a distant body, applies its weakening status and respects shield", () => {
+test("Drunken Haze reaches a distant body, slows its movement and respects shield", () => {
   for (const shielding of [false, true]) {
     const { world, target } = pair(240.0);
     for (let tick = 1; tick <= 42; tick++) frame(world, tick === 1 ? side : controls(), controls({ shield: shielding, shieldStrength: 1.0 }));
     assertEquals(target.status.damage, shielding ? 0.0 : 3.0);
-    assertEquals(target.status.condition, shielding ? HeroStatusKind.none : HeroStatusKind.terror);
+    assertEquals(target.status.condition, shielding ? HeroStatusKind.none : HeroStatusKind.chill);
+    assertEquals(chillScaled(target, 10.0), shielding ? 10.0 : 6.0);
   }
 });
 

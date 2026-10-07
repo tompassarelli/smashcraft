@@ -12,9 +12,10 @@ Jump, gravity, dodge and ledge rules remain the roster's common rules.
 
 [Wowpedia's Warcraft III Pandaren Brewmaster](https://wowpedia.fandom.com/wiki/Pandaren_Brewmaster_%28Warcraft_III%29)
 provides Breath of Fire, Drunken Haze, Drunken Brawler and Storm, Earth and
-Fire. Haze weakens the approach into the fire cone. Its Warcraft random
-miss chance becomes a deterministic damage reduction: an opponent always
-keeps movement and attack control. No outside code or animation is reused.
+Fire. Haze slows the approach into the fire cone. It keeps Warcraft's
+movement slow through the shared chill rules: 75 frames at 60% walk, run and
+air-drift speed, followed by 120 frames of immunity. The opponent keeps attack,
+jump, shield and dodge control. No outside code or animation is reused.
 
 The Smash references establish decisions rather than copied hitboxes:
 [Bowser's Fire Breath](https://www.ssbwiki.com/Fire_Breath) establishes a
@@ -58,7 +59,7 @@ Drunken Brawler is the source for original staff, hand and foot gestures.
 | Forward / back throw | Shoulder toss / turn-and-toss | Contact 12/16, total 33/39; 8/9% | [Drunken Brawler](https://wowpedia.fandom.com/wiki/Pandaren_Brewmaster_%28Warcraft_III%29) | [Ryu throws](https://www.ssbwiki.com/Ryu_%28SSBU%29#Moveset) |
 | Up / down throw | Staff lift / barrel slam into tech chase | Contact 14/18, total 25/42; 7/6% | [Drunken Brawler](https://wowpedia.fandom.com/wiki/Pandaren_Brewmaster_%28Warcraft_III%29) | [Ken throws](https://www.ssbwiki.com/Ken_%28SSBU%29#Moveset) |
 | Neutral special | Breath of Fire: finite short cone, one hit, jump over or whiff-punish | Active 12–22, end 42; 10%, cost 10 | [Breath of Fire](https://wowpedia.fandom.com/wiki/Pandaren_Brewmaster_%28Warcraft_III%29) | [Fire Breath](https://www.ssbwiki.com/Fire_Breath) |
-| Side special | Drunken Haze: arcing flask, 3% and 90 frames of 0.9 outgoing damage; shield stops it | Spawn 14, end 38; cost 12 | [Drunken Haze](https://wowpedia.fandom.com/wiki/Pandaren_Brewmaster_%28Warcraft_III%29) | [Ryu Hadoken spacing](https://www.ssbwiki.com/Hadoken) |
+| Side special | Drunken Haze: arcing flask, 3% and 75 frames at 60% movement speed; shield stops it | Spawn 14, end 38; cost 12 | [Drunken Haze](https://wowpedia.fandom.com/wiki/Pandaren_Brewmaster_%28Warcraft_III%29) | [Ryu Hadoken spacing](https://www.ssbwiki.com/Hadoken) |
 | Up special | Storm Rise: rising staff spin with steering, then helpless fall | Rise 8–29, end 40; 8%, cost 15 | [Storm, Earth and Fire](https://wowpedia.fandom.com/wiki/Pandaren_Brewmaster_%28Warcraft_III%29) | [Ken Shoryuken](https://www.ssbwiki.com/Shoryuken) |
 | Down special | Earth stance absorbs one light hit; fresh Attack becomes Fire palm, fresh Special becomes Storm step | Armor 5–16, end 33; cost 10. Fire active 8–11, end 32, 11%. Storm travels 5–12, end 28, 7% | [Storm, Earth and Fire](https://wowpedia.fandom.com/wiki/Pandaren_Brewmaster_%28Warcraft_III%29) | [Swap](https://www.ssbwiki.com/Swap) |
 | Passive | Drunken Brawler: after three connected melee attacks in 180 frames, the next gains 50% damage, capped at +6; shield spends it | Deterministic counter; stock resets | [Drunken Brawler](https://wowpedia.fandom.com/wiki/Pandaren_Brewmaster_%28Warcraft_III%29) | [Ryu close pressure](https://www.ssbwiki.com/Ryu_%28SSBU%29) |
