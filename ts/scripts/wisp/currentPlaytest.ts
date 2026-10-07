@@ -43,8 +43,8 @@ export function playVersion(directory: string, library: string, revision: string
   const numbered = (folder: string): (readonly [number, number, number])[] => {
     if (statSync(folder, { throwIfNoEntry: false })?.isDirectory() !== true) return [];
     return readdirSync(folder).flatMap((entry) => {
-      const match = /^Smashcraft (\d+\.\d+\.\d+)\.w3x$/.exec(entry);
-      return match === null ? [] : parse(match[1]!);
+      const version = /^Smashcraft (\d+\.\d+\.\d+)\.w3x$/.exec(entry)?.[1];
+      return version === undefined ? [] : parse(version);
     });
   };
   const reserved = (path: string) => existsSync(path) ? parse(readFileSync(path, "utf8")) : [];

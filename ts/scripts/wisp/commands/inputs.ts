@@ -31,7 +31,8 @@ const add = (family: string, source: string) => Effect.gen(function*() {
 
 export const inputs: Command = (args) => Effect.gen(function*() {
   const [verb, ...rest] = args;
-  if (verb === "add" && rest.length === 2) return yield* add(rest[0]!, rest[1]!);
+  const [family, source, ...extra] = rest;
+  if (verb === "add" && family !== undefined && source !== undefined && extra.length === 0) return yield* add(family, source);
   if (verb === "check" && rest.length === 0) {
     const paths = yield* checkoutInputs();
     console.log(`every family in ${MANIFEST} is stored and unchanged\n--assets ${paths.assets}`);

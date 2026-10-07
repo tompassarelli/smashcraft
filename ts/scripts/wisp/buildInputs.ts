@@ -18,6 +18,9 @@ export const MANIFEST = join(projectRoot, "build-inputs.json");
  * single file (base, container) is a folder holding that file under `file`.
  * The others are the folders of `--assets` and the `--summon` folder.
  */
+export const FAMILY_NAMES = ["base", "container", "summon", "animation-assets", "illidan-animation", "selection-assets", "fighter-renders",
+  "stage-assets", "impact-assets", "imported-models", "original-clips-static-lights", "hero-models", "model-sounds"] as const;
+export type Family = (typeof FAMILY_NAMES)[number];
 export const FAMILIES = {
   base: { file: "base.w3m", produce: "the private base map Melee_Prototype_Base.w3m (smashcraft:docs/development-loop.md)" },
   container: { file: "container.w3x", produce: "the private asset container map (a built Smashcraft map carrying the stock imports)" },
@@ -32,16 +35,15 @@ export const FAMILIES = {
   "original-clips-static-lights": { produce: "cp -rL \"$(bun wisp inputs path assets)/original-clips-static-lights\" NEW && chmod -R u+w NEW && bun tools/animations/export-original-clips.ts --assets \"$(bun wisp inputs path assets)\" --out NEW --keep-unchanged (after adding the new fighter models' animation-assets or illidan-animation)" },
   "hero-models": { produce: "the stock hero models extracted from the game's archives (smashcraft:ts/scripts/heroModelSource.ts)" },
   "model-sounds": { produce: "bun tools/animations/export-model-sounds.ts --assets \"$(bun wisp inputs path assets)\" --sounds AnimSounds.slk --out NEW" },
-} as const satisfies Record<string, { readonly file?: string; readonly produce: string }>;
-export type Family = keyof typeof FAMILIES;
+} as const satisfies Record<Family, { readonly file?: string; readonly produce: string }>;
 /** The file a single-file family's folder holds. */
 const singleFile = (family: Family): string | undefined => family === "base" ? FAMILIES.base.file : family === "container" ? FAMILIES.container.file : undefined;
-export const FAMILY_NAMES = Object.keys(FAMILIES) as Family[];
 /** The families `--assets` holds as its folders. */
 export const ASSET_FAMILIES = FAMILY_NAMES.filter((family) => family !== "base" && family !== "container" && family !== "summon");
 
 const Hash = Schema.String.check(Schema.isPattern(/^[0-9a-f]{64}$/));
-export const Manifest = Schema.Struct(Object.fromEntries(FAMILY_NAMES.map((family) => [family, Hash])) as Record<Family, typeof Hash>);
+/** Every family's hash; a manifest missing one doesn't decode. */
+export const Manifest = Schema.Record(Schema.Literals(FAMILY_NAMES), Hash);
 export type Manifest = typeof Manifest.Type;
 
 /** The build's `--base`, `--container`, `--assets` and `--summon`. */
@@ -107,7 +109,7 @@ export function publish(staging: string, final: string): "published" | "reused" 
     renameSync(staging, final);
     return "published";
   } catch (cause) {
-    const code = (cause as NodeJS.ErrnoException).code;
+    const code = cause instanceof Error && "code" in cause ? cause.code : undefined;
     if ((code === "ENOTEMPTY" || code === "EEXIST") && existsSync(final)) {
       removeTree(staging);
       return "reused";
@@ -206,10 +208,10 @@ export function assetsView(manifest: Manifest, store = INPUTS_STORE): string {
 
 /** The checked inputs `manifest` names. */
 export const resolveInputs = (manifest: Manifest, store = INPUTS_STORE) => Effect.gen(function*() {
-  const directories = yield* Effect.forEach(FAMILY_NAMES, (family) => verifiedFamily(family, manifest[family], store).pipe(Effect.map((path) => [family, path] as const)), { concurrency: 4 });
-  const path = Object.fromEntries(directories) as Record<Family, string>;
+  yield* Effect.forEach(FAMILY_NAMES, (family) => verifiedFamily(family, manifest[family], store), { concurrency: 4, discard: true });
+  const path = (family: Family) => join(store, family, manifest[family]);
   const assets = yield* Effect.try({ try: () => assetsView(manifest, store), catch: (cause) => failure("link assets", store, String(cause)) });
-  return { base: join(path.base, FAMILIES.base.file), container: join(path.container, FAMILIES.container.file), assets, summon: path.summon } satisfies BuildInputPaths;
+  return { base: join(path("base"), FAMILIES.base.file), container: join(path("container"), FAMILIES.container.file), assets, summon: path("summon") } satisfies BuildInputPaths;
 });
 
 /** The checked inputs of the checkout's manifest. */
