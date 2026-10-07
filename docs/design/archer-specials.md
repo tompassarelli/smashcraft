@@ -107,9 +107,20 @@ the hippogryph acting on its own.
 
 ## Presentation
 
-Existing assets only: the stock hippogryph model (`walk` while swooping or
-carrying, `stand` while perched, `attack` while diving or flying on after a
-leap-off), and Archer's special-up and special-down clips.
+The ride draws Warcraft's stock mounted rider,
+`Units\NightElf\RiddenHippoGryph\RiddenHippoGryph.mdx` (the `ehpr` model in
+Warcraft's UnitUI.slk): `Stand` during the hover, then `Walk` during the
+steered rise. Its yaw, pitch and bank follow the ride; the separate Archer
+body and unmounted bird hide on that same presented frame. Jumping off
+restores Archer and the unmounted bird at the mounted bird's position.
+Interrupting the ride shows the unmounted bird departing for 12 presentation
+frames; it creates no simulation summon or contact.
+
+Call and Dive use the stock unmounted hippogryph (`Walk` while swooping,
+`Stand` while perched, `Attack` while diving or flying on after a leap-off).
+Both models sample clips from the presented frame and remain frozen on pause.
+Five headless rendered frames and all three presentation profiles are recorded
+in `evidence/hippogryph-rider232-20261008/`.
 
 ## Neutral special: Swift Arrow
 

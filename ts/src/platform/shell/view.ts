@@ -2,6 +2,7 @@
 // and the camera. Everything here is presentation; with predicted
 // presentation, persistent visuals follow the speculative match and event
 // effects, audio, results and HUD follow the confirmed one.
+import { archerMounted } from "../../game/presentation/hippogryphPose";
 import { MATCH_HELP_BOX, MATCH_NOTICE_BOX } from "../../game/ui/hudLayout";
 import { CryDecision, createCryGate, cryStandIn, gateCry } from "../../game/presentation/hurtVoice";
 import { deckModel } from "../../game/presentation/stagePreload";
@@ -120,7 +121,7 @@ export function renderFighter(s: ShellState, slot: ParticipantSlot, pose: Readon
     if (fighter.status.stocks > 0) announce(s, stockLossMessage(s.game, slot, fighter.status.stocks));
   }
   const { pooled } = participant;
-  if (pooled) ShowUnit(body.unit, false);
+  ShowUnit(body.unit, !pooled && !fighter.status.out && !archerMounted(fighter));
   if (body.renderedSelection !== pose.selectionSerial) {
     if (!pooled) {
       // Starting a hero's Death sequence plays its death cry: only strong hits and knockouts may.
@@ -217,6 +218,7 @@ export function renderPersistentPresentation(s: ShellState): void {
       const agency = live === undefined ? "act" : renderers.agency.forecast.classify(world, slot, stage, matchFrame, s.controls.commands[slot].graceFrames);
       renderers.agency.present(live, agency);
     }
+    ui.special.presentHippogryph(live, slot, runtime.simulationFrame);
     ui.special.presentStatic(runtime.specials, live, slot);
     ui.special.presentSummons(runtime.summons, live, slot);
     if (live !== undefined) ui.frost.present(live, slot);

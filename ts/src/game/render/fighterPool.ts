@@ -22,6 +22,7 @@ import { damageTint } from "../presentation/hitPresentation";
 import { characterModelScale } from "../presentation/modelScale";
 import { fitFighterPlacement } from "../presentation/fighterPlacement";
 import { outgoingPoseAlpha, poseBlendFrames } from "../presentation/damageBlend";
+import { archerMounted } from "../presentation/hippogryphPose";
 
 export class FighterPoolPresentation {
   private readonly clips: effect[] = [];
@@ -106,6 +107,10 @@ export class FighterPoolPresentation {
   /** `frame` is the presented simulation frame, which times pose blends. */
   present(fighter: Readonly<Fighter>, pose: Readonly<FighterPose>, stage: number, frame: number): void {
     if (this.clips.length === 0) return;
+    if (archerMounted(fighter)) {
+      this.hide();
+      return;
+    }
     const index = pose.clipIndex ?? originalClipNamed(this.character, pose.clipName);
     const model = index === undefined ? undefined : this.clips[index];
     const clip = index === undefined ? undefined : originalClip(this.character, index);
