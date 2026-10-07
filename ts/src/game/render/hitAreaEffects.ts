@@ -1,9 +1,9 @@
 import { f32 } from "wisp/src/sim/f32";
-import { Character } from "../sim/codes";
+import { Character, SpecialAction } from "../sim/codes";
 import { createFighter, type Fighter } from "../sim/fighter";
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../sim/hitRegions";
 import { runningHeroSpecial } from "../sim/heroSpecialRules";
-import { DISJOINT_MODELS, disjointNormals, hitAreaPose, specialAreaRegion, type HitAreaPose } from "../presentation/disjointCues";
+import { DISJOINT_MODELS, disjointNormals, fanKnifePose, hitAreaPose, specialAreaRegion, type FanKnifePose, type HitAreaPose } from "../presentation/disjointCues";
 import { type ParkedFlags, type WorldOrigin, facingYaw, parkOnce } from "./effects";
 
 /** Contact accents are separate from cast cues: simultaneous regions each get one. */
@@ -13,6 +13,7 @@ export class HitAreaEffects {
   private readonly parked: ParkedFlags = [];
   private readonly region = emptyHitRegion();
   private readonly pose: HitAreaPose = { visible: false, x: 0.0, z: 0.0, scale: 1.0 };
+  private readonly knife: FanKnifePose = { visible: false, x: 0.0, z: 0.0, scale: 1.0, yaw: 0.0, pitch: 0.0, alpha: 255 };
 
   constructor(character: Character, private readonly origin: WorldOrigin) {
     this.styles = disjointNormals(createFighter(character, 0.0, 1));
@@ -35,6 +36,21 @@ export class HitAreaEffects {
       const normal = style !== undefined && this.styles.includes(style);
       const count = normal ? authoredHitRegionCount(style, fighter.tuning.moves) : runningHeroSpecial(fighter)?.regions?.length ?? 1;
       for (let index = 0; index < count; index++) {
+        if (fighter.character === Character.warden && fighter.special.action === SpecialAction.heroDown) {
+          const pose = fanKnifePose(fighter, index, this.knife);
+          const model = this.models[shown];
+          if (!pose.visible || model === undefined) continue;
+          this.parked[shown++] = false;
+          BlzSetSpecialEffectPosition(model, this.origin.x + pose.x, this.origin.y - 14.0, this.origin.z + pose.z);
+          BlzSetSpecialEffectYaw(model, pose.yaw);
+          BlzSetSpecialEffectPitch(model, pose.pitch);
+          BlzSetSpecialEffectScale(model, pose.scale);
+          BlzSetSpecialEffectAlpha(model, pose.alpha);
+          BlzSetSpecialEffectAnimation(model, "stand");
+          BlzSetSpecialEffectTime(model, f32(0.3));
+          BlzSetSpecialEffectTimeScale(model, 0.0);
+          continue;
+        }
         const region = normal ? authoredHitRegion(this.region, fighter.character, style, fighter.attack.frame, fighter.attack.smashChargeFrames, index, fighter.tuning.moves) : specialAreaRegion(fighter, index);
         const pose = hitAreaPose(fighter, region, this.pose);
         if (!pose.visible) continue;
@@ -43,6 +59,7 @@ export class HitAreaEffects {
         this.parked[shown++] = false;
         BlzSetSpecialEffectPosition(model, this.origin.x + pose.x, this.origin.y - 14.0, this.origin.z + pose.z);
         BlzSetSpecialEffectYaw(model, facingYaw(fighter.facing));
+        BlzSetSpecialEffectPitch(model, 0.0);
         const size = fighter.character === Character.lich ? f32(0.2) : 0.5;
         BlzSetSpecialEffectScale(model, f32(pose.scale * size));
         BlzSetSpecialEffectAlpha(model, 255);

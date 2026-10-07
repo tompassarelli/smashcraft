@@ -3,6 +3,17 @@
 import { model as mdx } from "war3-model";
 import { ensure, onGlobalClock, tracks } from "./original-clips";
 
+export function wardenFanBaseModel(source: mdx.Model): mdx.Model | undefined {
+  const first = source.Sequences.findIndex(s => s.Name.startsWith("Fan of Knives "));
+  if (first < 0) return undefined;
+  ensure(first > 0 && source.Sequences.slice(first).every(s => s.Name.startsWith("Fan of Knives ")), "Fan casts must be the sequence suffix");
+  const cutoff = source.Sequences[first]?.Interval[0]; ensure(cutoff !== undefined, "Fan cast has no start");
+  const model = structuredClone(source);
+  model.Sequences = model.Sequences.slice(0, first);
+  tracks(model, track => { if (!onGlobalClock(track)) track.Keys = track.Keys.filter(k => k.Frame < cutoff); });
+  return model;
+}
+
 export function jumpBaseModel(source: mdx.Model): mdx.Model | undefined {
   const first = source.Sequences.findIndex(s => s.Name.startsWith("Jump Motion "));
   if (first < 0) return undefined;

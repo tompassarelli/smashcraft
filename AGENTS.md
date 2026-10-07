@@ -112,6 +112,9 @@ code. From smashcraft:ts/:
   `bun tools/animations/jump-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends
   movement-only jump gestures, including Blademaster's front flip
   (smashcraft:docs/fighter-animation-work.md).
+  `bun tools/animations/warden-fan-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` authors
+  Warden's ground and air Fan of Knives casts, preserving other clips
+  (smashcraft:docs/design/warden-fan-of-knives.md).
   `bun tools/animations/down-air-captures.ts PRIVATE_ASSETS PRIVATE_OUTPUT` writes
   both-facing down-air sheets from production pose selection and the roster's
   strike-height inventory (smashcraft:docs/down-airs.md).
