@@ -1,3 +1,4 @@
+import { placedObject } from "../sim/fighter";
 // Keep the whole canonical record together: field order and spelling are
 // shared with the retained replay oracle, including fields from every slot.
 // Replay2, Wurst ReplayState's canonical tape of gameplay state. Labels,
@@ -279,6 +280,9 @@ export function specialPlacementCanonical(spec: Readonly<SpecialPlacement>, pref
   const int = (name: string, value: number) => { result.push(canonicalInt(`${prefix}.${name}`, value)); };
   const real = (name: string, value: number) => { result.push(canonicalRealField(`${prefix}.${name}`, value)); };
   int("frame", spec.frame);
+  if (spec.slot !== undefined) int("slot", spec.slot);
+  if (spec.offsetZ !== undefined) real("offsetZ", spec.offsetZ);
+  if (spec.keepExisting === true) int("keepExisting", 1);
   real("offsetX", spec.offsetX);
   real("radius", spec.radius);
   real("height", spec.height);
@@ -288,6 +292,10 @@ export function specialPlacementCanonical(spec: Readonly<SpecialPlacement>, pref
   if (spec.shot !== undefined) result.push(specialProjectileCanonical(spec.shot, `${prefix}.shot`));
   const partner = spec.companion;
   if (partner !== undefined) {
+    if (partner.behavior !== undefined) int("companion.behavior", partner.behavior === "sentry" ? 1 : 2);
+    if (partner.followHeight !== undefined) real("companion.followHeight", partner.followHeight);
+    if (partner.lungeDrop !== undefined) real("companion.lungeDrop", partner.lungeDrop);
+    for (let i = 0; i < (partner.volleyFrames?.length ?? 0); i++) int(`companion.volley[${i}]`, partner.volleyFrames?.[i] ?? 0);
     real("companion.followSpeed", partner.followSpeed);
     real("companion.followBehind", partner.followBehind);
     real("companion.returnSpeed", partner.returnSpeed);
@@ -322,6 +330,7 @@ export function fighterSpecialsCanonical(specials: Readonly<FighterSpecials> | u
   const kits = [specials.neutral, specials.side, specials.up, specials.down];
   for (let slot = 0; slot < kits.length; slot++) {
     const kit = at(kits, slot);
+    if (kit.recallGroundOnly === true) result.push(canonicalInt(`${prefix}.kit[${slot}].recallGroundOnly`, 1));
     if (kit.recallWhile !== undefined) result.push(canonicalInt(`${prefix}.kit[${slot}].recallWhile`, kit.recallWhile === "armor" ? 2 : 1));
     const forms = [kit.ground, kit.air, kit.free, kit.recall, kit.marked?.special];
     // A fixed count: the list holds undefined forms, which a Lua length would skip.
@@ -367,6 +376,7 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
   if (move.command !== undefined) {
     int("command.frame", move.command.frame);
     int("command.order", move.command.order);
+    if (move.command.slot !== undefined) int("command.slot", move.command.slot);
   }
   if (move.recallsProjectiles === true) int("recallsProjectiles", 1);
   if (move.strikeStatus !== undefined) {
@@ -1022,25 +1032,28 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
     int("armorFrames", st.armorFrames);
     real("armorMaxDamage", st.armorMaxDamage);
     if (st.armorChills) int("armorChills", 1);
-    const { placed } = fighter;
-    int("placedLife", placed.life);
-    int("placedAge", placed.age);
-    real("placedX", placed.x);
-    real("placedZ", placed.z);
-    int("placedDirection", placed.direction);
-    real("placedDurability", placed.durability);
-    int("placedSerial", placed.serial);
-    for (let i = 0; i < PARTICIPANT_CAPACITY; i++) int(`placedStruck[${i}]`, placed.struck[i] ?? -1);
-    int("placedSpecialStruck", placed.specialStruck);
-    // A partner's walk, lunge and leash; written only for one (Beastmaster's bear).
-    if (placed.spec?.companion !== undefined) {
-      int("placedMode", placed.mode);
-      int("placedModeFrame", placed.modeFrame);
-      int("placedApart", placed.apart);
-      int("placedBitten", placed.bitten);
-      int("placedSurface", placed.surface ?? -1);
+    for (let animal = 0; animal <= fighter.pack.length; animal++) {
+      const placed = placedObject(fighter, animal);
+      const animalName = animal === 0 ? "placed" : `pack[${animal - 1}]`;
+      int(`${animalName}Life`, placed.life);
+      int(`${animalName}Age`, placed.age);
+      real(`${animalName}X`, placed.x);
+      real(`${animalName}Z`, placed.z);
+      int(`${animalName}Direction`, placed.direction);
+      real(`${animalName}Durability`, placed.durability);
+      int(`${animalName}Serial`, placed.serial);
+      for (let i = 0; i < PARTICIPANT_CAPACITY; i++) int(`${animalName}Struck[${i}]`, placed.struck[i] ?? -1);
+      int(`${animalName}SpecialStruck`, placed.specialStruck);
+      // Command and movement state exists only for companion objects.
+      if (placed.spec?.companion !== undefined) {
+        int(`${animalName}Mode`, placed.mode);
+        int(`${animalName}ModeFrame`, placed.modeFrame);
+        int(`${animalName}Apart`, placed.apart);
+        int(`${animalName}Bitten`, placed.bitten);
+        int(`${animalName}Surface`, placed.surface ?? -1);
+      }
+      emit(kitDigestField(`${prefix}.${animalName}Spec`, placed.spec, PLACEMENT_DIGESTS, placedSpecCanonical));
     }
-    emit(kitDigestField(`${prefix}.placedSpec`, placed.spec, PLACEMENT_DIGESTS, placedSpecCanonical));
     int("specialGuarded", sp.guarded ? 1 : 0);
     real("guardHealed", st.guardHealed);
     if (st.divineFrames !== 0) int("divineFrames", st.divineFrames);

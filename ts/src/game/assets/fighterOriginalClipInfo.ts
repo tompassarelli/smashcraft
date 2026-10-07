@@ -349,6 +349,7 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\BlademasterOriginalClip51-a227a465e8f823e61f94f7a99dc5cab16f534e36e88896b1824480441071c2e2.mdx", startSeconds: f32(83.735), endSeconds: f32(84.735), looping: false },
     { modelPath: "war3mapImported\\BlademasterOriginalClip52-e4b71ccdd9a6819bdf696dfa358886f3034d03ff2469866cbe2bd9ade9c40ecd.mdx", startSeconds: f32(84.835), endSeconds: f32(85.835), looping: false },
     { modelPath: "war3mapImported\\BlademasterOriginalClip53-170902605ed2ad81e50849990695bbe5e42ab5e4ad1a0351b2598be8c17dc2a8.mdx", startSeconds: f32(85.935), endSeconds: f32(86.935), looping: false },
+    { modelPath: "war3mapImported\\BlademasterOriginalClip54-601712c47591cd15b445bfb031858f669db2fcac62873391043cf2429a08994a.mdx", startSeconds: f32(87.035), endSeconds: f32(87.802), looping: false },
   ],
   // MountainKing
   [
@@ -418,6 +419,7 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\MountainKingOriginalClip63-d55c313fe1df04b3251d68f79caf357e0e6f7c1ac11f23d0e75371465077d1d9.mdx", startSeconds: f32(125.768), endSeconds: f32(126.768), looping: false },
     { modelPath: "war3mapImported\\MountainKingOriginalClip64-a7268c4854967d3d5958f0b9d9164eca2a0b56ccb0e4f7a5ba3e506f2dcdc78c.mdx", startSeconds: f32(126.868), endSeconds: f32(127.868), looping: false },
     { modelPath: "war3mapImported\\MountainKingOriginalClip65-9a08499a746441eff157a7f6b252627aa6885cdb11ec6558de1ef25ad1262142.mdx", startSeconds: f32(127.968), endSeconds: f32(128.968), looping: false },
+    { modelPath: "war3mapImported\\MountainKingOriginalClip66-29a24e23357280a6043e62cb74a4feee09ace16a4ab70773ecddbdd4290b1d6b.mdx", startSeconds: f32(129.068), endSeconds: f32(129.818), looping: false },
   ],
   // Warden
   [
@@ -525,6 +527,7 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\LichOriginalClip46-fadccd02fea6b8c7182b7acbee39eabac32af87fb2862082e558bb65769af06c.mdx", startSeconds: f32(72.935), endSeconds: f32(73.935), looping: false },
     { modelPath: "war3mapImported\\LichOriginalClip47-6920678305f52ebae00c6e18d02a78332086e0c93d2b966c200329b2347759a9.mdx", startSeconds: f32(74.035), endSeconds: f32(75.035), looping: false },
     { modelPath: "war3mapImported\\LichOriginalClip48-9b89e8753b8c8ba5902c29e6ef81796c2e9bd432396b0c21549e513f5544c06a.mdx", startSeconds: f32(75.135), endSeconds: f32(76.135), looping: false },
+    { modelPath: "war3mapImported\\LichOriginalClip49-90c989fee1df41e156b0d578b79819c9b41a461b873a6d62760c6f239f031b96.mdx", startSeconds: f32(76.235), endSeconds: f32(77.068), looping: false },
   ],
   // Uther
   [
@@ -580,6 +583,7 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\UtherOriginalClip49-6865f46b833fc5e52f1d1c5a2a6dd69012e641a30cb9d561850f0ff31fc19799.mdx", startSeconds: f32(153.201), endSeconds: f32(154.201), looping: false },
     { modelPath: "war3mapImported\\UtherOriginalClip50-8e32ecf23af684fbd8276dba600ac2db0d4eecd89175889cbf6275875a6e5b34.mdx", startSeconds: f32(154.301), endSeconds: f32(155.301), looping: false },
     { modelPath: "war3mapImported\\UtherOriginalClip51-113f19f4ae833ccf254775a456cc06c34a5dbd8dbde389580ac5764ee52a2b2d.mdx", startSeconds: f32(155.401), endSeconds: f32(156.401), looping: false },
+    { modelPath: "war3mapImported\\UtherOriginalClip52-a435b285965af4fe53dbd088a64c8162668e25ef68c102839b3c5888a8e6d81b.mdx", startSeconds: f32(156.501), endSeconds: f32(157.318), looping: false },
   ],
   // Dreadlord
   [
@@ -634,6 +638,7 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\DreadlordOriginalClip48-8a3001a89f1d78d71fd3d2e2da1f5f208d202dc3b1f86452c6d0e531b8cb98a0.mdx", startSeconds: f32(82.035), endSeconds: f32(83.035), looping: false },
     { modelPath: "war3mapImported\\DreadlordOriginalClip49-f6ad6d0d6a4802e92504e1e10c68808be6da708234323417a1b98a36a142670d.mdx", startSeconds: f32(83.135), endSeconds: f32(84.135), looping: false },
     { modelPath: "war3mapImported\\DreadlordOriginalClip50-8e715f1736bdad6118966b418968a191859f56d7ff4558a4057e9c2329a183f1.mdx", startSeconds: f32(84.235), endSeconds: f32(85.235), looping: false },
+    { modelPath: "war3mapImported\\DreadlordOriginalClip51-e0ecb2c459058891dec06758cd517deb08b31faf5b8cc2f324bda57da8375650.mdx", startSeconds: f32(85.335), endSeconds: f32(86.102), looping: false },
   ],
   // ShadowHunter
   [
@@ -750,6 +755,7 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\PitLordOriginalClip53-b946ae54c1694e1ab98acacbe0f72c1553aad257797900b9e4b0e84a6bd31a4b.mdx", startSeconds: f32(373.935), endSeconds: f32(374.935), looping: false },
     { modelPath: "war3mapImported\\PitLordOriginalClip54-f2a7d2c319890a8bef70385f87aa2deb6096f0ee5bc0901125cdb0765350986f.mdx", startSeconds: f32(375.035), endSeconds: f32(376.035), looping: false },
     { modelPath: "war3mapImported\\PitLordOriginalClip55-71a53638560e359cf0afc9e12a5d736068369fe106ac768d104e332dcc57a59e.mdx", startSeconds: f32(376.135), endSeconds: f32(377.135), looping: false },
+    { modelPath: "war3mapImported\\PitLordOriginalClip56-39aeb8518c889a81b44b72482d7bfbc2ee37a42ce129ad6880dd62c24afab948.mdx", startSeconds: f32(377.235), endSeconds: f32(378.268), looping: false },
   ],
   // Beastmaster
   [
@@ -802,6 +808,7 @@ const CLIPS: readonly (readonly FighterOriginalClip[])[] = [
     { modelPath: "war3mapImported\\BeastmasterOriginalClip46-f53f9fb7441ae795489a950d692994fb768871d2fcf81998830a68fe7502f6ed.mdx", startSeconds: f32(60.101), endSeconds: f32(61.101), looping: false },
     { modelPath: "war3mapImported\\BeastmasterOriginalClip47-844b10f04512e3076aaa8f0980c39b7ed3f5e0c01b5c2f083b12af78b364df26.mdx", startSeconds: f32(61.201), endSeconds: f32(62.201), looping: false },
     { modelPath: "war3mapImported\\BeastmasterOriginalClip48-73f6f1fefdb55ec904e02fc2a3018e778f13af23fd35e877d93f0971562217f5.mdx", startSeconds: f32(62.301), endSeconds: f32(63.301), looping: false },
+    { modelPath: "war3mapImported\\BeastmasterOriginalClip49-f67af2cc7a71340a4d7ae9e36643b43546bc14d0a4041be8cd1d812703f5bb98.mdx", startSeconds: f32(63.401), endSeconds: f32(64.251), looping: false },
   ],
   // LichKing
   [
@@ -1240,6 +1247,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["paired grab victimthrowup", 51],
     ["paired grab throwdown", 52],
     ["paired grab victimthrowdown", 53],
+    ["down air sword plunge", 54],
     ["portrait", 12],
   ]),
   // MountainKing
@@ -1310,6 +1318,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["paired grab victimthrowup", 63],
     ["paired grab throwdown", 64],
     ["paired grab victimthrowdown", 65],
+    ["down air boot stomp", 66],
     ["stand", 0],
     ["attack", 5],
     ["alternate stand", 13],
@@ -1423,6 +1432,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["paired grab victimthrowup", 46],
     ["paired grab throwdown", 47],
     ["paired grab victimthrowdown", 48],
+    ["down air frost press", 49],
   ]),
   // Uther
   new Map<string, number>([
@@ -1478,6 +1488,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["paired grab victimthrowup", 49],
     ["paired grab throwdown", 50],
     ["paired grab victimthrowdown", 51],
+    ["down air hammer drop", 52],
     ["stand", 0],
     ["attack", 4],
   ]),
@@ -1534,6 +1545,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["paired grab victimthrowup", 48],
     ["paired grab throwdown", 49],
     ["paired grab victimthrowdown", 50],
+    ["down air claw dive", 51],
     ["attack", 9],
   ]),
   // ShadowHunter
@@ -1652,6 +1664,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["paired grab victimthrowup", 53],
     ["paired grab throwdown", 54],
     ["paired grab victimthrowdown", 55],
+    ["down air four hooves", 56],
     ["attack slam", 5],
   ]),
   // Beastmaster
@@ -1705,6 +1718,7 @@ const NAMED: readonly ReadonlyMap<string, number>[] = [
     ["paired grab victimthrowup", 46],
     ["paired grab throwdown", 47],
     ["paired grab victimthrowdown", 48],
+    ["down air twin axe drop", 49],
     ["stand", 1],
   ]),
   // LichKing
