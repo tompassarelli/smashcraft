@@ -1,3 +1,4 @@
+import { downSmashHit } from "../downMoveValues";
 import { f32 } from "wisp/src/sim/f32";
 import { floorDiv } from "wisp/src/sim/intMath";
 import { AttackStyle, GrabAction, HitElement, LAST_ATTACK_STYLE } from "../codes";
@@ -118,11 +119,11 @@ const NORMALS: { readonly [style: number]: AuthoredMove | undefined } = {
         blade(18.0, 16.0, f32(M - BLADE_RADIUS), 16.0),
         blade(18.0, 8.0, f32(M - BLADE_RADIUS), 8.0),
         blade(18.0, 2.0, 84.0, 2.0),
-      ], wardenHit(12.0, "EDGE", 25)),
+      ], downSmashHit(wardenHit(12.0, "EDGE", 25))),
       ...path(15, [
         blade(-18.0, 12.0, -f32(M - BLADE_RADIUS), 12.0),
         blade(-18.0, 4.0, -f32(M - BLADE_RADIUS), 4.0),
-      ], wardenHit(12.0, "EDGE", 25, -1.0)),
+      ], downSmashHit(wardenHit(12.0, "EDGE", 25, -1.0))),
     ]),
     [AttackStyle.neutralAir]: heroMove(5, 5, 18, 10, path(5, [
       blade(18.0, 35.0, f32(M - BLADE_RADIUS), 35.0),
