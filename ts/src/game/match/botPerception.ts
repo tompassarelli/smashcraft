@@ -253,6 +253,7 @@ function copyObservation(target: Fighter, source: Readonly<Fighter>): void {
 let checksumFirst = 0;
 let checksumSecond = 0;
 function foldObservationByte(byte: number): void {
+  flushObservationZeroes();
   const code = byte + 1;
   checksumFirst = floorMod(checksumFirst * 31 + code, 46337);
   checksumSecond = floorMod(checksumSecond * 37 + code, 46337);
@@ -275,6 +276,25 @@ function scalarDigest(value: number): ObservationDigest {
 }
 const integerDigests: ObservationDigest[] = [];
 for (let value = -1; value <= 255; value++) integerDigests.push(scalarDigest(value));
+
+// Neutral fields are consecutive in the canonical record; fold a whole run's unchanged bytes once.
+const zeroDigests: ObservationDigest[] = [{ first: 0, second: 0, firstPower: 1, secondPower: 1 }];
+let zeroNumbers = 0;
+function flushObservationZeroes(): void {
+  if (zeroNumbers === 0) return;
+  const zero = at(integerDigests, 1);
+  while (zeroDigests.length <= zeroNumbers) {
+    const previous = at(zeroDigests, zeroDigests.length - 1);
+    zeroDigests.push({
+      first: floorMod(previous.first * zero.firstPower + zero.first, 46337),
+      second: floorMod(previous.second * zero.secondPower + zero.second, 46337),
+      firstPower: floorMod(previous.firstPower * zero.firstPower, 46337),
+      secondPower: floorMod(previous.secondPower * zero.secondPower, 46337),
+    });
+  }
+  foldDigest(at(zeroDigests, zeroNumbers));
+  zeroNumbers = 0;
+}
 
 function foldDigest(digest: Readonly<ObservationDigest>): void {
   // 46336*46337 remains below the signed int32 endpoint.
@@ -357,6 +377,8 @@ function numberDigest(value: number, integer: number): Readonly<ObservationDiges
 }
 
 function foldObservationNumber(value: number): void {
+  if (value === 0) { zeroNumbers++; return; }
+  flushObservationZeroes();
   const integer = Math.floor(value);
   if (value >= -1 && value <= 255 && integer === value) {
     foldDigest(at(integerDigests, integer + 1));
@@ -369,6 +391,7 @@ function foldObservationNumber(value: number): void {
   }
 }
 function foldObservationText(text: string): void {
+  flushObservationZeroes();
   let digest = textDigests.get(text);
   if (digest === undefined) {
     buildingDigest = { first: 0, second: 0, firstPower: 1, secondPower: 1 };
@@ -408,7 +431,9 @@ export function observeOpponents(memory: BotMemory, world: Roster, frame: number
   }
   checksumFirst = 0;
   checksumSecond = 0;
+  zeroNumbers = 0;
   writeObservations(checksumWriter, entry.sample.opponents);
+  flushObservationZeroes();
   entry.sample.checksumFirst = checksumFirst;
   entry.sample.checksumSecond = checksumSecond;
   storage.entries.push(entry);
