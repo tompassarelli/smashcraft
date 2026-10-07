@@ -82,6 +82,8 @@ const frame = () => {
   }
   held = hold;
   clients.frames(1);
+  // Each frame's logged calls fold into the checksum at once: a log kept for a minute would grow the heap by its own array.
+  for (const client of clients.clients) client.forget(client.log.length);
   if (floorMod(clients.frame, FRAMES_PER_MINUTE) === 0) census(`kind=minute minute=${floorDiv(clients.frame, FRAMES_PER_MINUTE)}`);
 };
 
