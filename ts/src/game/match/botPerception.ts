@@ -1,7 +1,7 @@
 // Histories retain shared observations. Storage is reused only after every
 // live input and replay snapshot has released that sample.
 import { at } from "wisp/src/runtime/lookup";
-import { botObservationCanonical, writeObservations } from "../replay/canonical";
+import { botObservationCanonical, writeCanonicalNumber, writeObservations } from "../replay/canonical";
 import { f32 } from "wisp/src/sim/f32";
 import { floorMod } from "wisp/src/sim/intMath";
 import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots } from "../input/participants";
@@ -10,7 +10,7 @@ import { fighterAt, isActive, type Controls, type Roster } from "../sim/roster";
 
 export const BOT_DIRECTION_FRAMES = 5;
 // The slowest supported computer style sees events 42 frames later.
-const HISTORY_FRAMES = 43;
+export const BOT_HISTORY_FRAMES = 43;
 // Unobserved input buffers, resource plans and hit registries stay neutral.
 const EMPTY = createFighter(0, 0.0, 1);
 
@@ -72,6 +72,17 @@ function storageFor(memory: Readonly<BotMemory>): MemoryStorage {
 function release(entry: ObservationEntry): void {
   entry.references--;
   if (entry.references === 0) entry.arena.free.push(entry);
+}
+
+function createEntry(arena: ObservationArena): ObservationEntry {
+  return { sample: { frame: 0, opponents: [undefined, undefined, undefined, undefined], checksumFirst: 0, checksumSecond: 0 },
+    bodies: [createObservation(), createObservation(), createObservation(), createObservation()], arena, references: 0 };
+}
+
+/** Reserve the live shell's retained-history storage before gameplay callbacks. */
+export function reserveBotObservations(memory: BotMemory, count: number): void {
+  const { arena } = storageFor(memory);
+  while (arena.free.length < count) arena.free.push(createEntry(arena));
 }
 
 export function copyBotMemory(target: BotMemory, source: Readonly<BotMemory>): void {
@@ -247,6 +258,49 @@ function foldObservationByte(byte: number): void {
   checksumSecond = floorMod(checksumSecond * 37 + code, 46337);
 }
 
+interface ObservationDigest { first: number; second: number; firstPower: number; secondPower: number }
+const textDigests = new Map<string, ObservationDigest>();
+let buildingDigest: ObservationDigest = { first: 0, second: 0, firstPower: 1, secondPower: 1 };
+function digestByte(byte: number): void {
+  buildingDigest.first = floorMod(buildingDigest.first * 31 + byte + 1, 46337);
+  buildingDigest.second = floorMod(buildingDigest.second * 37 + byte + 1, 46337);
+  buildingDigest.firstPower = floorMod(buildingDigest.firstPower * 31, 46337);
+  buildingDigest.secondPower = floorMod(buildingDigest.secondPower * 37, 46337);
+}
+function scalarDigest(value: number): ObservationDigest {
+  buildingDigest = { first: 0, second: 0, firstPower: 1, secondPower: 1 };
+  digestByte(44);
+  writeCanonicalNumber(digestByte, value);
+  return buildingDigest;
+}
+const integerDigests: ObservationDigest[] = [];
+for (let value = -1; value <= 255; value++) integerDigests.push(scalarDigest(value));
+
+function foldDigest(digest: Readonly<ObservationDigest>): void {
+  // 46336*46337 remains below the signed int32 endpoint.
+  checksumFirst = floorMod(checksumFirst * digest.firstPower + digest.first, 46337);
+  checksumSecond = floorMod(checksumSecond * digest.secondPower + digest.second, 46337);
+}
+function foldObservationNumber(value: number): void {
+  if (value >= -1 && value <= 255 && Math.floor(value) === value) {
+    foldDigest(at(integerDigests, value + 1));
+  } else {
+    foldObservationByte(44);
+    writeCanonicalNumber(foldObservationByte, value);
+  }
+}
+function foldObservationText(text: string): void {
+  let digest = textDigests.get(text);
+  if (digest === undefined) {
+    buildingDigest = { first: 0, second: 0, firstPower: 1, secondPower: 1 };
+    for (let index = 0; index < text.length; index++) digestByte(text.charCodeAt(index));
+    digest = buildingDigest;
+    textDigests.set(text, digest);
+  }
+  foldDigest(digest);
+}
+const checksumWriter = { byte: foldObservationByte, number: foldObservationNumber, text: foldObservationText };
+
 /** Captures once per input frame even when several computer slots make decisions. */
 export function observeOpponents(memory: BotMemory, world: Roster, frame: number): void {
   const storage = storageFor(memory);
@@ -257,15 +311,14 @@ export function observeOpponents(memory: BotMemory, world: Roster, frame: number
     storage.entries.length = 0;
     storage.history.length = 0;
   }
-  if (storage.entries.length === HISTORY_FRAMES) {
+  if (storage.entries.length === BOT_HISTORY_FRAMES) {
     release(at(storage.entries, 0));
     storage.entries.shift();
     storage.history.shift();
   }
   let entry = storage.arena.free.pop();
   if (entry === undefined) {
-    entry = { sample: { frame, opponents: [undefined, undefined, undefined, undefined], checksumFirst: 0, checksumSecond: 0 },
-      bodies: [createObservation(), createObservation(), createObservation(), createObservation()], arena: storage.arena, references: 0 };
+    entry = createEntry(storage.arena);
   }
   entry.references = 1;
   entry.sample.frame = frame;
@@ -276,7 +329,7 @@ export function observeOpponents(memory: BotMemory, world: Roster, frame: number
   }
   checksumFirst = 0;
   checksumSecond = 0;
-  writeObservations(foldObservationByte, entry.sample.opponents);
+  writeObservations(checksumWriter, entry.sample.opponents);
   entry.sample.checksumFirst = checksumFirst;
   entry.sample.checksumSecond = checksumSecond;
   storage.entries.push(entry);

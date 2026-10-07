@@ -13,6 +13,8 @@ import type { InputPacket } from "../../game/input/wire";
 import { type FrameControls, type MatchControls, createBufferedFrameControls, createFrameControls, createMatchControls } from "../../game/match/controls";
 import { type MatchFrameInput, createMatchFrameInput } from "../../game/match/frameInput";
 import { type PacingAndPresentation, createPacingAndPresentation } from "../../game/match/pacingAndPresentation";
+import { BOT_HISTORY_FRAMES, reserveBotObservations } from "../../game/match/botPerception";
+import { REPLAY_HISTORY_CAPACITY, REPLAY_MAX_CORRECTION_FRAMES } from "../../game/replay/limits";
 import { type MatchState, REMATCH_COUNTDOWN_SECONDS, createMatchState } from "../../game/match/rules";
 import { matchSpawnX } from "../../game/match/step";
 import { createMatchCamera, type MatchCamera } from "../../game/sim/matchCamera";
@@ -348,6 +350,10 @@ export function createShellState(build: MapBuild, setup: ShellSetup): ShellState
     keyEvents: { down: undefined, up: undefined }, readyMarkerWritten: false, restartRequested: false,
     diagnostic: createReplaySnapshot(), moment: momentSaves(), replay: replayRecording(),
   };
+  // Live history, every saved-moment owner, rollback and correction storage.
+  const moments = state.moment.recorder;
+  reserveBotObservations(state.runtime.botMemory,
+    BOT_HISTORY_FRAMES * (moments.snapshots.length + 4) + REPLAY_HISTORY_CAPACITY + 2 * REPLAY_MAX_CORRECTION_FRAMES);
   globalThis.__smashcraftShell = state;
   return state;
 }

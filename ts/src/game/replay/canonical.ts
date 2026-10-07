@@ -546,88 +546,117 @@ function kitText(f: Readonly<Fighter>): string {
   return cached.text;
 }
 
-export function writeObservations(emit: (code: number) => void, opponents: Slots<Readonly<Fighter> | undefined>): void {
+export interface ObservationWriter {
+  readonly byte: (this: void, code: number) => void;
+  /** Writes the separator before the scalar as well as its canonical number. */
+  readonly number: (this: void, value: number) => void;
+  readonly text: (this: void, text: string) => void;
+}
+const PROJECTILE_OBSERVATION_FIELDS = ["life", "x", "z", "direction", "velocityX", "velocityZ", "serial"] as const;
+interface RepeatedProjectile { readonly values: readonly number[]; readonly text: string }
+let repeatedProjectile: RepeatedProjectile | undefined;
+
+function repeatedProjectileText(p: Readonly<Fighter["projectiles"][number]>): string | undefined {
+  if (p.life !== 0) return undefined;
+  if (repeatedProjectile === undefined) {
+    const values: number[] = [];
+    const parts: string[] = [];
+    const emit = (code: number) => { parts.push(String.fromCharCode(code)); };
+    for (const key of PROJECTILE_OBSERVATION_FIELDS) {
+      values.push(p[key]); emit(44); writeCanonicalNumber(emit, p[key]);
+    }
+    repeatedProjectile = { values, text: parts.join("") };
+  }
+  for (let index = 0; index < PROJECTILE_OBSERVATION_FIELDS.length; index++) {
+    if (p[at(PROJECTILE_OBSERVATION_FIELDS, index)] !== at(repeatedProjectile.values, index)) return undefined;
+  }
+  return repeatedProjectile.text;
+}
+
+export function writeObservations(writer: ObservationWriter, opponents: Slots<Readonly<Fighter> | undefined>): void {
   for (const slot of PARTICIPANT_SLOTS) {
-    if (slot !== 0) emit(44);
+    if (slot !== 0) writer.byte(44);
     const f = opponents[slot];
-    writeCanonicalNumber(emit, f === undefined ? 0 : 1);
+    writeCanonicalNumber(writer.byte, f === undefined ? 0 : 1);
     if (f === undefined) continue;
-    emit(44);
+    writer.byte(44);
     const kit = kitText(f);
-    for (let index = 0; index < kit.length; index++) emit(kit.charCodeAt(index));
-    emit(44); writeCanonicalNumber(emit, f.tuning.physics.gravity);
-    emit(44); writeCanonicalNumber(emit, f.tuning.physics.terminalSpeed);
-    emit(44); writeCanonicalNumber(emit, f.tuning.tech.ceilingImpulseFrame);
-    emit(44); writeCanonicalNumber(emit, f.character);
-    emit(44); writeCanonicalNumber(emit, f.facing);
-    emit(44); writeCanonicalNumber(emit, f.motion.x);
-    emit(44); writeCanonicalNumber(emit, f.motion.z);
-    emit(44); writeCanonicalNumber(emit, f.motion.deltaX);
-    emit(44); writeCanonicalNumber(emit, f.motion.deltaZ);
-    emit(44); writeCanonicalNumber(emit, f.motion.vx);
-    emit(44); writeCanonicalNumber(emit, f.motion.vz);
-    emit(44); writeCanonicalNumber(emit, f.motion.grounded ? 1 : 0);
-    emit(44); writeCanonicalNumber(emit, f.motion.surface ?? -1);
-    emit(44); writeCanonicalNumber(emit, f.attack.style ?? -1);
-    emit(44); writeCanonicalNumber(emit, f.attack.frame);
-    emit(44); writeCanonicalNumber(emit, f.attack.duration);
-    emit(44); writeCanonicalNumber(emit, f.attack.serial);
-    emit(44); writeCanonicalNumber(emit, f.attack.cooldown);
-    emit(44); writeCanonicalNumber(emit, f.special.action);
-    emit(44); writeCanonicalNumber(emit, f.special.frame);
-    emit(44); writeCanonicalNumber(emit, f.special.duration);
-    emit(44); writeCanonicalNumber(emit, f.special.lockFrames);
-    emit(44); writeCanonicalNumber(emit, f.special.form);
-    emit(44); writeCanonicalNumber(emit, f.special.grabFrame);
-    emit(44); writeCanonicalNumber(emit, f.shield.raised ? 1 : 0);
-    emit(44); writeCanonicalNumber(emit, f.shield.stun);
-    emit(44); writeCanonicalNumber(emit, f.shield.releaseLag);
-    emit(44); writeCanonicalNumber(emit, f.launch.hitstun);
-    emit(44); writeCanonicalNumber(emit, f.launch.hitlag);
-    emit(44); writeCanonicalNumber(emit, f.hits.lastAttacker ?? -1);
-    emit(44); writeCanonicalNumber(emit, f.status.out ? 1 : 0);
-    emit(44); writeCanonicalNumber(emit, f.status.stocks);
-    emit(44); writeCanonicalNumber(emit, f.status.damage);
-    emit(44); writeCanonicalNumber(emit, f.status.invincible);
-    emit(44); writeCanonicalNumber(emit, f.status.frozenFrames);
-    emit(44); writeCanonicalNumber(emit, f.status.condition);
-    emit(44); writeCanonicalNumber(emit, f.status.conditionFrames);
-    emit(44); writeCanonicalNumber(emit, f.status.poisonFrames);
-    emit(44); writeCanonicalNumber(emit, f.passive.stacks);
-    emit(44); writeCanonicalNumber(emit, f.passive.window);
-    emit(44); writeCanonicalNumber(emit, f.passive.serial);
-    emit(44); writeCanonicalNumber(emit, f.passive.spent);
-    emit(44); writeCanonicalNumber(emit, f.passive.used ? 1 : 0);
-    emit(44); writeCanonicalNumber(emit, f.landing.lag);
-    emit(44); writeCanonicalNumber(emit, f.down.state);
-    emit(44); writeCanonicalNumber(emit, f.down.frame);
-    emit(44); writeCanonicalNumber(emit, f.down.direction);
-    emit(44); writeCanonicalNumber(emit, f.down.faceUp ? 1 : 0);
-    emit(44); writeCanonicalNumber(emit, f.grab.owner ?? -1);
-    emit(44); writeCanonicalNumber(emit, f.grab.target ?? -1);
-    emit(44); writeCanonicalNumber(emit, f.grab.action);
-    emit(44); writeCanonicalNumber(emit, f.ledge.state);
-    emit(44); writeCanonicalNumber(emit, f.ledge.side);
-    emit(44); writeCanonicalNumber(emit, f.ledge.intangible);
-    emit(44); writeCanonicalNumber(emit, f.dodge.groundFrame);
-    emit(44); writeCanonicalNumber(emit, f.dodge.groundDirection);
-    emit(44); writeCanonicalNumber(emit, f.dodge.airDodging ? 1 : 0);
-    emit(44); writeCanonicalNumber(emit, f.dodge.airFrame);
-    emit(44); writeCanonicalNumber(emit, f.surfaceRecovery.state);
-    emit(44); writeCanonicalNumber(emit, f.surfaceRecovery.frame);
-    emit(44); writeCanonicalNumber(emit, f.cannon.held ?? -1);
-    emit(44); writeCanonicalNumber(emit, f.bear.life);
-    emit(44); writeCanonicalNumber(emit, f.bear.x);
-    emit(44); writeCanonicalNumber(emit, f.bear.z);
-    emit(44); writeCanonicalNumber(emit, f.bear.hitSerial);
+    writer.text(kit);
+    writer.number(f.tuning.physics.gravity);
+    writer.number(f.tuning.physics.terminalSpeed);
+    writer.number(f.tuning.tech.ceilingImpulseFrame);
+    writer.number(f.character);
+    writer.number(f.facing);
+    writer.number(f.motion.x);
+    writer.number(f.motion.z);
+    writer.number(f.motion.deltaX);
+    writer.number(f.motion.deltaZ);
+    writer.number(f.motion.vx);
+    writer.number(f.motion.vz);
+    writer.number(f.motion.grounded ? 1 : 0);
+    writer.number(f.motion.surface ?? -1);
+    writer.number(f.attack.style ?? -1);
+    writer.number(f.attack.frame);
+    writer.number(f.attack.duration);
+    writer.number(f.attack.serial);
+    writer.number(f.attack.cooldown);
+    writer.number(f.special.action);
+    writer.number(f.special.frame);
+    writer.number(f.special.duration);
+    writer.number(f.special.lockFrames);
+    writer.number(f.special.form);
+    writer.number(f.special.grabFrame);
+    writer.number(f.shield.raised ? 1 : 0);
+    writer.number(f.shield.stun);
+    writer.number(f.shield.releaseLag);
+    writer.number(f.launch.hitstun);
+    writer.number(f.launch.hitlag);
+    writer.number(f.hits.lastAttacker ?? -1);
+    writer.number(f.status.out ? 1 : 0);
+    writer.number(f.status.stocks);
+    writer.number(f.status.damage);
+    writer.number(f.status.invincible);
+    writer.number(f.status.frozenFrames);
+    writer.number(f.status.condition);
+    writer.number(f.status.conditionFrames);
+    writer.number(f.status.poisonFrames);
+    writer.number(f.passive.stacks);
+    writer.number(f.passive.window);
+    writer.number(f.passive.serial);
+    writer.number(f.passive.spent);
+    writer.number(f.passive.used ? 1 : 0);
+    writer.number(f.landing.lag);
+    writer.number(f.down.state);
+    writer.number(f.down.frame);
+    writer.number(f.down.direction);
+    writer.number(f.down.faceUp ? 1 : 0);
+    writer.number(f.grab.owner ?? -1);
+    writer.number(f.grab.target ?? -1);
+    writer.number(f.grab.action);
+    writer.number(f.ledge.state);
+    writer.number(f.ledge.side);
+    writer.number(f.ledge.intangible);
+    writer.number(f.dodge.groundFrame);
+    writer.number(f.dodge.groundDirection);
+    writer.number(f.dodge.airDodging ? 1 : 0);
+    writer.number(f.dodge.airFrame);
+    writer.number(f.surfaceRecovery.state);
+    writer.number(f.surfaceRecovery.frame);
+    writer.number(f.cannon.held ?? -1);
+    writer.number(f.bear.life);
+    writer.number(f.bear.x);
+    writer.number(f.bear.z);
+    writer.number(f.bear.hitSerial);
     for (const p of f.projectiles) {
-      emit(44); writeCanonicalNumber(emit, p.life);
-      emit(44); writeCanonicalNumber(emit, p.x);
-      emit(44); writeCanonicalNumber(emit, p.z);
-      emit(44); writeCanonicalNumber(emit, p.direction);
-      emit(44); writeCanonicalNumber(emit, p.velocityX);
-      emit(44); writeCanonicalNumber(emit, p.velocityZ);
-      emit(44); writeCanonicalNumber(emit, p.serial);
+      const repeated = repeatedProjectileText(p);
+      if (repeated !== undefined) { writer.text(repeated); continue; }
+      writer.number(p.life);
+      writer.number(p.x);
+      writer.number(p.z);
+      writer.number(p.direction);
+      writer.number(p.velocityX);
+      writer.number(p.velocityZ);
+      writer.number(p.serial);
     }
   }
 }
@@ -635,7 +664,11 @@ export function writeObservations(emit: (code: number) => void, opponents: Slots
 /** Text is materialized only for replay serialization and difference reporting. */
 export function botObservationCanonical(sample: Readonly<BotObservationFrame>): string {
   const parts: string[] = [];
-  writeObservations(code => { parts.push(String.fromCharCode(code)); }, sample.opponents);
+  const byte = (code: number) => { parts.push(String.fromCharCode(code)); };
+  writeObservations({ byte,
+    number: value => { byte(44); writeCanonicalNumber(byte, value); },
+    text: text => { parts.push(text); },
+  }, sample.opponents);
   return parts.join("");
 }
 

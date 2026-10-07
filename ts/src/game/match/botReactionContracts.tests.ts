@@ -84,6 +84,35 @@ test("retained observations survive storage reuse, restored plain history and ro
   assertEquals(sample.checksumSecond, second);
 });
 
+test("cached observation chunks fold the exact text across kits, fractional values and integer boundaries", () => {
+  for (const character of SELECTABLE_CHARACTERS) {
+    const game = setup(9);
+    game.world.fighters[1] = createFighter(character, 100.0, -1);
+    const target = fighterAt(game.world, 1);
+    let frame = 0;
+    for (const value of [-2147483648, -256, -1, 0, 1, 255, 256, 2147483647, 0.5]) {
+      frame++;
+      target.motion.x = value;
+      target.status.damage = value;
+      const projectile = at(target.projectiles, 0);
+      projectile.life = frame;
+      projectile.x = value;
+      observeOpponents(game.runtime.botMemory, game.world, frame);
+      const sample = at(game.runtime.botMemory.history, frame - 1);
+      const text = botObservationCanonical(sample);
+      let first = 0;
+      let second = 0;
+      for (let index = 0; index < text.length; index++) {
+        const code = text.charCodeAt(index) + 1;
+        first = floorMod(first * 31 + code, 46337);
+        second = floorMod(second * 37 + code, 46337);
+      }
+      assertEquals(sample.checksumFirst, first);
+      assertEquals(sample.checksumSecond, second);
+    }
+  }
+});
+
 test("replay state checks detect delayed observations and direction commitment independently of current fighters", () => {
   const expected = setup(9);
   const changed = setup(9);
