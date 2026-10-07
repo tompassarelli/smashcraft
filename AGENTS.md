@@ -109,6 +109,9 @@ code. From smashcraft:ts/:
   clips and writing both-facing silhouette sheets for the native review.
   `bun tools/animations/down-air-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends
   downward contact poses for the seven stock heroes whose casts/swings pointed forward.
+  `bun tools/animations/attack-gesture-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT [--character ID]`
+  appends distinct roster attack gestures without changing combat data or old clips;
+  `--character` regenerates one fighter while retaining other generated bindings.
   `bun tools/animations/dreadlord-pounce-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` authors Dreadlord’s horizontal corkscrew, bite and recovery; `bun tools/animations/dreadlord-pounce-captures.ts PRIVATE_ASSETS PRIVATE_OUTPUT` captures their production phase selection in both facings.
   `bun tools/animations/jump-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends
   movement-only jump gestures, including Blademaster's front flip
