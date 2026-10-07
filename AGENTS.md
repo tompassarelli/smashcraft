@@ -59,7 +59,9 @@ For fighter animation quality and action coverage, use the source-owned
 `smashcraft-animation` skill (`agents path smashcraft-animation`): its
 reference library supplies Sakurai's impact/attack principles and the Fox
 drill example; its procedure routes the existing motion audit, paired throws,
-recovery clips and nine-way pain reactions. Reference pixels remain private.
+recovery clips and nine-way pain reactions. The project index of sources,
+with URLs, verified timestamps and rights, is
+smashcraft:docs/design/animation-reference.md. Reference pixels remain private.
 
 Effect is the preferred foundation for Wisp's TypeScript tooling.
 Read smashcraft:.agents/skills/effect/SKILL.md for Effect work and for the

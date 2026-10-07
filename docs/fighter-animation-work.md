@@ -1,5 +1,8 @@
 # Authored fighter animation work
 
+Public references for this work (sources, timestamps, rights) are indexed in
+[the animation reference library](design/animation-reference.md).
+
 ## Archer ground-attack readability — 2026-10-01
 
 Real inputs select jab (style 0, frame 1026), forward tilt (6, 1086), down
