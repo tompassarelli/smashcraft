@@ -169,8 +169,8 @@ test("an Archer jab that meets Ruin Charge's armor deals its damage without a re
   assertGreaterThan(trades, 0);
 });
 
-test("Abyssal Leap peaks near 1.7H; on less than 15 mana the free leap peaks near 1.2H with no hit", () => {
-  for (const [mana, rise] of [[100, f32(1.7)], [10, f32(1.2)]] as const) {
+test("Abyssal Leap peaks near 3.5H; on less than 15 mana the free leap peaks near 2.6H with no hit", () => {
+  for (const [mana, rise] of [[100, f32(3.5)], [10, f32(2.6)]] as const) {
     const { world, owner } = pair(1000.0);
     owner.mana.points = mana;
     const ground = owner.motion.z;

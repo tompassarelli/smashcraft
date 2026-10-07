@@ -215,8 +215,8 @@ test("computer Uther sends Holy Radiance and attacks out of Divine Shield", () =
   usesEvery(Character.uther, ["special1", "divineAttack"], Character.uther, 2 * MATCHES, [[11 + 37 * 12, 110.0], [11 + 55 * 12, 110.0]]);
 });
 
-test("computer Dreadlord feints Vampiric Pounce, sleeps a target, mashes out of Sleep and hits a sleeper", () => {
-  usesEvery(Character.dreadlord, ["followUp1.0", "special3", "sleepMash", "sleptHit"]);
+test("computer Dreadlord corkscrews with Vampiric Pounce, sleeps a target, mashes out of Sleep and hits a sleeper", () => {
+  usesEvery(Character.dreadlord, ["special1", "special3", "sleepMash", "sleptHit"]);
 });
 
 test("computer Shadow Hunter throws Spirit Glaive, hexes, presses a hexed target and mashes out of a Hex", () => {

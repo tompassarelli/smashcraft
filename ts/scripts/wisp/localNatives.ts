@@ -14,6 +14,7 @@ export const SMASHCRAFT_LOCAL_NATIVES: LocalNatives = {
   SetCameraBounds: "frames this client's camera for its screen aspect",
   SetCameraField: "frames this client's camera for its screen aspect",
   SetCameraPosition: "frames this client's camera for its screen aspect",
+  PanCameraToTimed: "moves this client's camera during the native smoothing experiment",
   GetCameraField: "reads this client's current camera fields for its response probe",
   GetCameraTargetPositionX: "reads this client's current camera target for its response probe",
   BlzGetMouseScreenPosX: "local pointer, sent through sync data when it chooses",
