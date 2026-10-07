@@ -25,20 +25,21 @@ test("Blademaster normal clips are named, separate gestures and only up B plays 
   }
 });
 
-test("Rising Whirlwind keeps the designed ascent, six active hit frames and mana-free recovery", () => {
+test("Rising Whirlwind keeps the charged ascent, six active hit frames and mana-free recovery", () => {
   const up = BLADEMASTER_SPECIALS.up;
   assertEquals(up.name, "Rising Whirlwind");
   assertEquals(up.ground.cost, 15);
-  assertEquals(up.ground.endFrame, 25);
+  assertEquals(up.ground.endFrame, 24);
   assertEquals(up.ground.regions?.length, 6);
-  assertEquals(up.ground.regions?.[0]?.firstFrame, 6);
-  assertEquals(up.ground.regions?.[5]?.lastFrame, 11);
-  const ascent = up.ground.motion?.[0];
-  assertEquals(ascent?.first, 7);
-  assertEquals(ascent?.last, 24);
-  assertTrue(ascent !== undefined && Math.abs(f32(ascent.velocityZ * 18) - HERO_REFERENCE_HEIGHT * 2.0) < f32(0.01));
+  assertEquals(up.ground.regions?.[0]?.firstFrame, 8);
+  assertEquals(up.ground.regions?.[5]?.lastFrame, 13);
+  assertEquals(up.ground.aimFrames, 8);
+  const ascent = up.ground.motion?.[1];
+  assertEquals(ascent?.first, 9);
+  assertEquals(ascent?.last, 22);
+  assertTrue(ascent !== undefined && Math.abs(f32(ascent.velocityZ * 14) - HERO_REFERENCE_HEIGHT * f32(2.8)) < f32(0.01));
   assertEquals(up.ground.helpless, true);
   assertEquals(up.free?.cost, 0);
   assertEquals(up.free?.regions, undefined);
-  assertEquals(up.free?.endFrame, 25);
+  assertEquals(up.free?.endFrame, 24);
 });
