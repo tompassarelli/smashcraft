@@ -16,23 +16,39 @@ with the sampling tolerance of Slippi/UCF. The authored roster has thirteen
 initial-dash frames, then enters Run on frame fourteen. Thirteen is Melee's
 median initial-dash duration ([movement reference](design/melee/movement.md));
 it replaces the provisional ten-frame window. Reference test rigs keep their
-own actor timing. A reversal started on the last dash frame can finish on
-its second input sample even when that sample falls on the Run boundary.
+own actor timing.
 
-A horizontal stick flick reaching 0.8 on either of its first two samples
-starts dashback. A first opposite sample below 0.8 keeps the current dash
-until the next sample decides: reaching 0.8 reverses, remaining below it
-selects walking. Full digital directions count as full-strength flicks.
-Small same-direction stick variation keeps an existing dash; the walk
-modifier explicitly selects walking. Reversals after Run has begun use
-the ordinary turnaround, and an expired dash cannot be held open with
-neutral input.
+Tom decided, 7 Oct (delegated) (#188): the dash-back window is the initial
+dash plus a three-sample stick travel. A reversal whose first stick sample
+past the centre (beyond the controller's 0.28 deadzone, on the opposite
+side) arrives on dash frames 1-13 dashes back when any of its first three
+opposite samples reaches 0.8, including samples past frame 13. Up to two
+opposite samples below 0.8 keep the current dash, clock and facing; a third
+selects walking. Weak travel that begins after frame 13 walks at once, as
+from standing. A dash whose input went neutral is still a dash after frame
+13 (its dash attack, dash grab and Dash-to-Guard timing are unchanged); only
+Run turns with TurnRun, so a full opposite flick out of that neutral tail
+starts a fresh dash, as Melee's Wait-to-Dash does. Holding forward through
+frame 14 enters Run, whose reversal is the ordinary TurnRun. Full digital
+directions, including keyboard keys, count as full-strength flicks; opposite
+keys held together cancel to neutral. Small same-direction stick variation
+keeps an existing dash; the walk modifier explicitly selects walking.
+
+Why three samples: a linear 4-frame flick spends about 1.04 frames between
+0.28 and 0.8, so at some sample phases it shows two weak samples before the
+gate. UCF's two samples misread those as tilt turns; #188's scripted dance
+(13 fighters, both facings, stick at ten sample phases and keyboard with
+overlapping or gapped keys, 1-4 frame flicks: 9,984 dash-backs) measured 208
+misreads under #175's rule and 0 under this one. 936 dash-backs released to
+neutral late in the window also read 0 misreads; #175 ran any reversal from
+that tail past frame 13 as a run turn. The cost is one
+more frame before a deliberately weak opposite stick walks out of a dash.
 
 [UCF's technical description](https://www.20xx.me/ucf.html) allows the first
 tilt-turn frame to cancel into dashback, increasing its one-sample opportunity
 to two. Its [v0.65 changelog](https://www.20xx.me/ucf-changelog.html) names a
 0.95 second-frame requirement; Smashcraft deliberately uses the same 0.8
-threshold on both samples for small stick variation. This is an authored
+threshold on all three samples for small stick variation. This is an authored
 tolerance policy, not exact UCF emulation. It uses independently described
 behavior and numerical facts; no external implementation was copied.
 

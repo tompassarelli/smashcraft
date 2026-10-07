@@ -4,8 +4,11 @@ import { copyFighterState } from "../replay/fighterState";
 import { firstFighterDifference, firstStateDifference } from "../replay/difference";
 import { ReplayHistory } from "../replay/history";
 import { captureTape, createTapeWorld, executeTapeRow } from "../replay/tapeWorld";
+import { Action, bit } from "../input/actions";
 import { adaptInput } from "../input/adapter";
-import { inputRow } from "../input/inputRow";
+import { attackBuffer } from "../input/attackBuffer";
+import { type InputRow, inputRow } from "../input/inputRow";
+import { type KeyboardCapture, commitEdges, keyboardCapture, sampleKeys } from "../input/keyboardCapture";
 import { captureFrame, createMatchFrameInput } from "../match/frameInput";
 import { fighterAt } from "./roster";
 import { Character, GroundAction } from "./codes";
@@ -32,11 +35,14 @@ test("dash dancing: authored window accepts thirteen held frames and rejects fou
   }
 });
 
-test("dash dancing: weak travel gets a second sample at the last dash frame", () => {
+test("dash dancing: weak travel gets a second and third sample at the last dash frame", () => {
   for (const facing of [-1, 1]) {
     const fighter = createFighter(Character.archer, 0.0, facing);
     dashFor(fighter, facing, 13);
     sample(fighter, -facing, f32(0.79));
+    assertEquals(fighter.facing, facing);
+    assertEquals(fighter.ground.action, GroundAction.dash);
+    sample(fighter, -facing, f32(0.5));
     assertEquals(fighter.facing, facing);
     assertEquals(fighter.ground.action, GroundAction.dash);
     sample(fighter, -facing, f32(0.81));
@@ -56,13 +62,18 @@ test("dash dancing: deliberate walking and slow stick turns stay walks", () => {
     dashFor(slow, facing, 5);
     sample(slow, -facing, f32(0.79));
     sample(slow, -facing, f32(0.79));
+    assertEquals(slow.ground.action, GroundAction.dash);
+    assertEquals(slow.facing, facing);
     sample(slow, -facing, f32(0.79));
     assertEquals(slow.ground.action, GroundAction.none);
-    const neutral = createFighter(Character.archer, 0.0, facing);
-    dashFor(neutral, facing, 13);
-    for (let frame = 0; frame < 3; frame++) sample(neutral, 0);
-    sample(neutral, -facing);
-    assertEquals(neutral.ground.action, GroundAction.turnRun);
+    assertEquals(slow.facing, -facing);
+    // Weak travel beginning after the initial frames walks at once, as from standing.
+    const late = createFighter(Character.archer, 0.0, facing);
+    dashFor(late, facing, 13);
+    for (let frame = 0; frame < 3; frame++) sample(late, 0);
+    sample(late, -facing, f32(0.79));
+    assertEquals(late.ground.action, GroundAction.none);
+    assertEquals(late.facing, -facing);
   }
 });
 
@@ -123,4 +134,154 @@ test("dash dancing: recorded analog reversal rows replay through the two-sample 
       if (frame === 15) assertEquals(fighterAt(canonical.live.world, 0).facing, -facing);
     }
   }
+});
+
+// #188 scripted dash dance: alternating flicks through the real input adapter.
+const HELPER_DEADZONE = f32(0.28);
+// The helper holds a digital direction beyond 7000 of 32767 raw.
+const HELPER_DIGITAL = 7000 / 32767;
+const ROSTER: readonly Character[] = [
+  Character.archer, Character.rifleman, Character.demonHunter, Character.blademaster, Character.mountainKing, Character.warden,
+  Character.lich, Character.uther, Character.dreadlord, Character.shadowHunter, Character.pitLord, Character.beastmaster, Character.lichKing,
+];
+const DanceInput = { stick: 0, keyOverlap: 1, keyGap: 2 } as const;
+type DanceInput = (typeof DanceInput)[keyof typeof DanceInput];
+// Holds before each flick, from a one-frame tap to a flick whose travel reaches the last dash frame.
+const DANCE_HOLDS = [1, 3, 6, 9, 2, 5, 10, 4];
+// Stick sample phases within a frame (tenths); keyboard samples have no phase.
+const DANCE_INPUTS: readonly (readonly [DanceInput, number])[] = [
+  [DanceInput.stick, 0], [DanceInput.stick, 1], [DanceInput.stick, 2], [DanceInput.stick, 3], [DanceInput.stick, 4],
+  [DanceInput.stick, 5], [DanceInput.stick, 6], [DanceInput.stick, 7], [DanceInput.stick, 8], [DanceInput.stick, 9],
+  [DanceInput.keyOverlap, 0], [DanceInput.keyGap, 0],
+];
+
+interface DanceDriver {
+  readonly fighter: Fighter;
+  readonly keys: KeyboardCapture;
+  readonly controls: ReturnType<typeof controls>;
+  readonly attacks: ReturnType<typeof attackBuffer>;
+  frame: number;
+}
+
+function danceDriver(character: Character, facing: number): DanceDriver {
+  return { fighter: createFighter(character, 0.0, facing), keys: keyboardCapture(), controls: controls(), attacks: attackBuffer(0), frame: 0 };
+}
+
+function adaptAndAdvance(driver: DanceDriver, row: Readonly<InputRow>): void {
+  driver.frame++;
+  adaptInput(row, driver.fighter, driver.frame, driver.controls, driver.attacks);
+  advanceSolo(driver.fighter, 0, driver.controls, 0.0);
+}
+
+/** One stick sample as the helper quantizes it: Melee's axial deadzone, then the journal's axis byte and digital holds. */
+function stickSample(driver: DanceDriver, x: number): void {
+  const kept = Math.abs(x) <= HELPER_DEADZONE ? 0 : x;
+  const axis = kept < 0 ? -Math.floor(-kept * 127) : Math.floor(kept * 127);
+  const held = kept < -HELPER_DIGITAL ? bit(Action.moveLeft) : kept > HELPER_DIGITAL ? bit(Action.moveRight) : 0;
+  adaptAndAdvance(driver, assertDefined(inputRow({ held, axisX: axis })));
+}
+
+/** One keyboard sample: the held Warcraft keys reach the row through the keyboard sampler. */
+function keySample(driver: DanceDriver, left: boolean, right: boolean): void {
+  sampleKeys(driver.keys, (left ? bit(Action.moveLeft) : 0) | (right ? bit(Action.moveRight) : 0));
+  adaptAndAdvance(driver, driver.keys.row);
+  commitEdges(driver.keys);
+}
+
+/** Full hold toward `to`. */
+function holdToward(driver: DanceDriver, input: DanceInput, to: number): void {
+  if (input === DanceInput.stick) stickSample(driver, to);
+  else keySample(driver, to < 0, to > 0);
+}
+
+/**
+ * The samples a flick from -to to `to` takes over `transition` frames, ending
+ * with the first full sample. A stick travels linearly between gates, sampled
+ * at `phase` within each frame; keys overlap (both held) or gap (none held).
+ */
+function travelSample(driver: DanceDriver, input: DanceInput, to: number, transition: number, phase: number, step: number): boolean {
+  if (input === DanceInput.stick) {
+    const t = step + phase / 10;
+    if (t >= transition) {
+      stickSample(driver, to);
+      return true;
+    }
+    stickSample(driver, f32(-to + (2 * to * t) / transition));
+    return false;
+  }
+  if (step >= transition - 1) {
+    holdToward(driver, input, to);
+    return true;
+  }
+  const both = input === DanceInput.keyOverlap;
+  keySample(driver, both, both);
+  return false;
+}
+
+test("dash dancing: 9,984 scripted dash-backs over the roster, stick and keyboard, 1-4 frame flicks: 0 misreads", () => {
+  let dashbacks = 0;
+  let misreads = 0;
+  const failures: string[] = [];
+  for (const character of ROSTER) {
+    for (const facing of [-1, 1]) {
+      for (const [input, phase] of DANCE_INPUTS) {
+        for (let transition = 1; transition <= 4; transition++) {
+          const driver = danceDriver(character, facing);
+          const { fighter } = driver;
+          let toward = facing;
+          holdToward(driver, input, toward);
+          for (const hold of DANCE_HOLDS) {
+            for (let frame = 1; frame < hold; frame++) holdToward(driver, input, toward);
+            toward = -toward;
+            let misread = false;
+            let reversed = false;
+            for (let step = 0; ; step++) {
+              const done = travelSample(driver, input, toward, transition, phase, step);
+              if (fighter.ground.action !== GroundAction.dash) misread = true;
+              if (fighter.ground.dashFrame === 1 && fighter.ground.dashDirection === toward && fighter.facing === toward) reversed = true;
+              if (done) {
+                if (!reversed || fighter.facing !== toward || fighter.ground.dashDirection !== toward) misread = true;
+                break;
+              }
+            }
+            dashbacks++;
+            if (misread) {
+              misreads++;
+
+              if (failures.length < 8) failures.push(`${character} facing ${facing} input ${input} phase ${phase} transition ${transition} hold ${hold}: action ${fighter.ground.action} facing ${fighter.facing}`);
+            }
+          }
+        }
+      }
+    }
+  }
+  assertEquals(dashbacks, 9984);
+  assertEquals(failures.join("\n"), "");
+  assertEquals(misreads, 0);
+});
+
+test("dash dancing: a dash released to neutral late in its window turns into a dash, never a run turn", () => {
+  let dashbacks = 0;
+  for (const character of ROSTER) {
+    for (const facing of [-1, 1]) {
+      for (const input of [DanceInput.stick, DanceInput.keyOverlap, DanceInput.keyGap]) {
+        for (let hold = 10; hold <= 13; hold++) {
+          for (let neutral = 1; neutral <= 3; neutral++) {
+            const driver = danceDriver(character, facing);
+            for (let frame = 0; frame < hold; frame++) holdToward(driver, input, facing);
+            for (let frame = 0; frame < neutral; frame++) {
+              if (input === DanceInput.stick) stickSample(driver, f32(facing * f32(0.2)));
+              else keySample(driver, input === DanceInput.keyOverlap, input === DanceInput.keyOverlap);
+            }
+            holdToward(driver, input, -facing);
+            assertEquals(driver.fighter.ground.action, GroundAction.dash);
+            assertEquals(driver.fighter.ground.dashFrame, 1);
+            assertEquals(driver.fighter.facing, -facing);
+            dashbacks++;
+          }
+        }
+      }
+    }
+  }
+  assertEquals(dashbacks, 936);
 });

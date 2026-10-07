@@ -827,7 +827,7 @@ ordering and the recorded overspeed-braking branch. The recording does not
 verify under-target acceleration, run transitions, turning, analog-stick
 scaling or the disc revision.
 
-The authored dash window and two-sample stick reversal policy are specified
+The authored dash window and three-sample stick reversal policy are specified
 in [gameplay design](gameplay-design.md#dash-dancing). Run-turn braking remains
 an explicit authored action rule. The authored phase
 no longer holds dash speed. The retail event facts in
