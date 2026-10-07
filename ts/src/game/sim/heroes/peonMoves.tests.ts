@@ -9,8 +9,8 @@ import { PEON_MOVES } from "./peonMoves";
 
 const STRIKES = [
   [AttackStyle.jab, 40.0, 0.0, 3.0], [AttackStyle.jab2, 50.0, 0.0, 5.0],
-  [AttackStyle.forwardTilt, 80.0, 0.0, 8.0], [AttackStyle.forwardTiltUp, 80.0, 35.0, 8.0],
-  [AttackStyle.forwardTiltDown, 80.0, 0.0, 8.0], [AttackStyle.upTilt, 20.0, 80.0, 7.0],
+  [AttackStyle.forwardTilt, 80.0, 0.0, 9.0], [AttackStyle.forwardTiltUp, 80.0, 35.0, 9.0],
+  [AttackStyle.forwardTiltDown, 80.0, 0.0, 9.0], [AttackStyle.upTilt, 20.0, 80.0, 7.0],
   [AttackStyle.downTilt, 65.0, 0.0, 6.0], [AttackStyle.dashAttack, 65.0, 0.0, 10.0],
   [AttackStyle.forwardSmash, 105.0, 35.0, 19.0], [AttackStyle.upSmash, 20.0, 100.0, 16.0],
   [AttackStyle.downSmash, 85.0, 0.0, 14.0], [AttackStyle.neutralAir, 55.0, 0.0, 8.0],
