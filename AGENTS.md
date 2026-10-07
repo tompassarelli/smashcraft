@@ -297,6 +297,11 @@ code. From smashcraft:ts/:
   Render cadence: `-dev render-clock` in a development map records timer
   callback bursts and cost; `bun wisp accept --only 169-render-clock --dry-run`
   prints its native plan (smashcraft:docs/high-refresh.md).
+  Script-cost capture: `bun wisp build --profile native-perf ...` uses playable
+  key input and pooled presentation with developer setup commands. In a match,
+  `-dev capture 18000` writes every client's raw callback samples; read full-run
+  median/p95/p99/worst with Wisp's capture reader. Procedure and limits:
+  smashcraft:docs/native-bot-session.md, "Raw playable cost captures".
 - Stage lighting: `bun wisp accept --only '170-*'` captures stock lighting, a
   fighter mask and stage lighting in one paused scene per stage. From the
   repository root, `bun tools/stage/contrast.ts MASK.png STOCK.png STAGE.png`

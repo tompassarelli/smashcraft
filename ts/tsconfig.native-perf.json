@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.map.json",
+  "include": [
+    "node_modules/wisp/src/natives/warcraft.d.ts",
+    "src/platform/nativePerfMain.ts"
+  ],
+  "exclude": [],
+  "tstl": {
+    "luaBundle": "native-perf.lua",
+    "luaBundleEntry": "src/platform/nativePerfMain.ts"
+  }
+}

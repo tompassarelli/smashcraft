@@ -32,6 +32,7 @@
     "src/platform/frameCostMain.ts",
     "src/platform/integrityMain.ts",
     "src/platform/playableMain.ts",
+    "src/platform/nativePerfMain.ts",
     "src/platform/stackDemo.ts",
     "src/platform/stackTraceMain.ts"
   ],

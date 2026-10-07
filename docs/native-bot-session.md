@@ -429,3 +429,39 @@ pads dash both ways for the whole workload. On 0.0.48, with one stock,
 Player 2 drifted off the stage 19–21 s into the first match. That ended the
 match before the workload's scheduled Start pause, so the capture had no
 pause to check.
+
+## Raw playable cost captures
+
+Build or rebuild with `--profile native-perf` for script-cost trials of the
+playable build. The diagnostic uses the playable build's callback keys and
+confirmed pooled fighters, with developer setup commands and the frame meter;
+it has no hot reload or scene recorder. The ordinary playable entry contains
+no meter. Use the same diagnostic map bytes for each graphics-rate comparison.
+
+Set up the roster and rules through the developer commands, then start through
+the normal menus. `-dev quick` resets stocks to one, so do not use it after
+setting a long match. A four-fighter trial needs four active fighters and must
+stay in the match for the whole capture. Early results, crashes and desyncs
+invalidate it.
+
+In a running match, type `-dev capture 18000`. Its confirmation names the run
+and starting match frame. Each client records the next 18,000 callbacks and
+then writes `smashcraft-perf-capture-pSLOT-runRUN.txt` in CustomMapData. Require a
+fresh file from each client. The receipt records elapsed **clock** milliseconds;
+18,000 callbacks mean five minutes only at 60 callbacks per second. Retain
+actual native start/end times and gameplay phase for the five-minute gate.
+
+From smashcraft:ts/, read a receipt with Wisp's host capture reader:
+
+```sh
+bun -e 'import { parseFrameCostCapture, captureDistribution } from "wisp/scripts/wisp/frameCostCapture"; const c = parseFrameCostCapture(await Bun.file(Bun.argv[1]).text()); console.log(JSON.stringify({ elapsed_clock_ms: c.elapsedMs, microseconds: captureDistribution(c) }));' /absolute/path/to/CAPTURE.txt
+```
+
+The output gives full-run median, p95, p99 and worst callback cost. The parser
+rejects incomplete, reordered, clockless and reloaded samples. The #168 script
+gate is p99 at most 10 ms and worst at most 14 ms, over the accepted five-minute
+four-fighter workload; GPU/render time remains outside this meter.
+`bun wisp perf native CAPTURE.txt RUN --samples HEADLESS.perf` can compare its
+observed 120-frame windows to a prediction from the same candidate and
+workload. Capture output is generated after the last measured callback; wait
+for it to finish before another timing trial.
