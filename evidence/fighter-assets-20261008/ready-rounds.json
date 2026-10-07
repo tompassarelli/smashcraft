@@ -1,0 +1,85 @@
+{
+  "mapSha256": "73f090afd3bf612aff43266e191b5f17fc7c214ab3bbc2b2c337323b14bc2d19",
+  "mapEntries": 2182,
+  "pins": {
+    "base": "e3c9fe6298aa57dd5e4c61db20a6e215ab96bd6a29cf0319f16387ab5f3e94ac",
+    "container": "dab72a3923ad2a34f763c538c65c27752bdfe8b595eae602bdfce50f92157703",
+    "summon": "32e2447caf731aaab000d68ca71bbc39a9e6b04ec5cd194ee6ec5e6ffe467b17",
+    "animation-assets": "389658365a47b7614fc1f3ae74e6cac07d4d356ca94f6136b8b9f74ee4dc3101",
+    "illidan-animation": "995e89f6e3f83e0d68acb573c6800dda5c33bf7de660e96e92f5ad042c893e38",
+    "selection-assets": "0e3f236ed0bbdfcb83d7768c48fbc12cd1bf1634f57eebec6c48c3f90cd80b44",
+    "fighter-renders": "e9ea262cacded0c165916905a42267d3b7ff6ea69864177fce568cf99930fe0a",
+    "stage-assets": "e3e6e06b6833863a2cae774f8c8b9a9a0a545698d5de1edf30734bd371fef6c0",
+    "impact-assets": "a3ab2f0981c3687ef7470b92eb43638ef72be2084dea9286671d826101cd7ffb",
+    "imported-models": "ff17ed7da1df588f6562e11f45c6bb2aaaf6547fa77fb3745c3df59b4e874840",
+    "original-clips-static-lights": "c6b056cf13362badc4f0b36d85545c24c535e152b9878548c1e454eeb0fe1465",
+    "hero-models": "61459eb4be241441f97c5b4174dba67067ddc71696acf7097837ac3eeff6a6f6",
+    "model-sounds": "38449de88adca15b3984f6d883b356123296c0780d8a6d6f7590c025a7897a3d"
+  },
+  "rounds": [
+    {
+      "character": 13,
+      "name": "Thrall",
+      "frames": 767,
+      "phase": 3,
+      "result": true,
+      "problems": []
+    },
+    {
+      "character": 14,
+      "name": "Jaina Proudmoore",
+      "frames": 981,
+      "phase": 3,
+      "result": true,
+      "problems": []
+    },
+    {
+      "character": 15,
+      "name": "Sylvanas Windrunner",
+      "frames": 1141,
+      "phase": 3,
+      "result": true,
+      "problems": []
+    },
+    {
+      "character": 16,
+      "name": "Cairne Bloodhoof",
+      "frames": 1147,
+      "phase": 3,
+      "result": true,
+      "problems": []
+    },
+    {
+      "character": 17,
+      "name": "Chen Stormstout",
+      "frames": 951,
+      "phase": 3,
+      "result": true,
+      "problems": []
+    },
+    {
+      "character": 18,
+      "name": "Peon",
+      "frames": 967,
+      "phase": 3,
+      "result": true,
+      "problems": []
+    },
+    {
+      "character": 19,
+      "name": "Goblin Tinker",
+      "frames": 2280,
+      "phase": 3,
+      "result": true,
+      "problems": []
+    },
+    {
+      "character": 20,
+      "name": "Kael'thas Sunstrider",
+      "frames": 2152,
+      "phase": 3,
+      "result": true,
+      "problems": []
+    }
+  ]
+}

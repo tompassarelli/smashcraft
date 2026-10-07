@@ -1,6 +1,8 @@
 // Lua debug upvalues and native handle representations are the foreign boundary
 // this census observes; Bun cannot execute its graph walk.
 import { assertEquals, test } from "wisp/src/runtime/testing";
+import { createBotStrategy, copyBotStrategy } from "../../src/game/match/botStrategy";
+import { HabitChoice } from "../../src/game/match/botHabits";
 import { HeadlessClient } from "wisp/src/headless/client";
 import { HandleCensus, compactEmulator, reach } from "../../scripts/wisp/memoryCensus";
 
@@ -38,4 +40,32 @@ test("emulator compaction drops sound event history while preserving live sounds
   assertEquals(census.counts()[0]?.[0], "sound");
   assertEquals(census.counts()[0]?.[1], 1);
   assertEquals(client.checksum(), checksum);
+});
+
+
+test("copied bot reads add no reachable tables when reads appear after warmup", () => {
+  const source = createBotStrategy();
+  const snapshots = [createBotStrategy(), createBotStrategy(), createBotStrategy(), createBotStrategy()];
+  const environment = new LuaTable<AnyNotNil, unknown>();
+  environment.set("snapshots", snapshots);
+  for (const snapshot of snapshots) copyBotStrategy(snapshot, source);
+  const before = reach(environment, [], true).tables;
+  source.readChoice = HabitChoice.shield;
+  source.readExpectedFrame = 153;
+  source.readExpires = 171;
+  source.readConfidence = 100;
+  for (let turn = 0; turn < 500; turn++) {
+    source.readActive = !source.readActive;
+    source.readActionFrame = turn;
+    for (const snapshot of snapshots) copyBotStrategy(snapshot, source);
+  }
+  assertEquals(reach(environment, [], true).tables, before);
+  source.readActive = true;
+  for (const snapshot of snapshots) copyBotStrategy(snapshot, source);
+  assertEquals(reach(environment, [], true).tables, before);
+  for (const snapshot of snapshots) {
+    assertEquals(snapshot.readChoice, HabitChoice.shield);
+    assertEquals(snapshot.readExpectedFrame, 153);
+    assertEquals(snapshot.readActionFrame, 499);
+  }
 });
