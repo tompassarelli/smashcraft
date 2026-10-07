@@ -1109,9 +1109,11 @@ three-startup/16-active/37-total timing. Rifleman's Back Air is unchanged.
 ## Hero swing alignment
 
 Hero normals play classic stock sequences whose strike rarely sits where the
-move's hitbox does. `bun wisp view strikes --extractor CASC_EXTRACT --storage
-WARCRAFT_DIR [--assets DIR]` (from smashcraft:ts/) skins each hero's stock model
-(a community model such as the Lich King's from DIR's imported-models) and
+move's hitbox does. `bun wisp view strikes --assets DIR` (from smashcraft:ts/)
+skins every hero's packaged model, including authored clips, from DIR's
+hero-models or imported-models. Without packaged assets,
+`--extractor CASC_EXTRACT --storage WARCRAFT_DIR` reads the stock archives;
+imported heroes require `--assets DIR`. The command
 records, per normal and per special that strikes, shoots or places, the clip second where the silhouette reaches farthest
 toward the move's first hit region, into
 smashcraft:ts/src/game/presentation/heroStrikeMomentInfo.ts. Pose selection
