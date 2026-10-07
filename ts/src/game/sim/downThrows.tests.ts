@@ -30,7 +30,7 @@ for (const character of SELECTABLE_CHARACTERS) {
             const input = controls();
             let techPressed = false;
             let landed = false;
-            let floorState = DownState.none;
+            let floorState: DownState = DownState.none;
             let ownerReady = -1;
             let victimReady = -1;
             for (let frame = 1; frame <= 220; frame++) {
