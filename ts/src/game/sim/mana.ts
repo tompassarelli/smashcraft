@@ -13,9 +13,9 @@ export interface ManaProfile {
   readonly max: number;
   /** Trickle progress that makes one point. */
   readonly progressPerPoint: number;
-  /** Trickle progress per eligible frame on the ground: 8 of 120 is a point every 15 frames, 4 a second. */
+  /** Trickle progress per eligible grounded frame. */
   readonly groundProgress: number;
-  /** In the air: 3 of 120 is a point every 40 frames, 1.5 a second. */
+  /** Trickle progress per eligible airborne frame. */
   readonly airProgress: number;
   /** Points per whole percent a fighter's normal or throw deals to a body. */
   readonly dealtPerPercent: number;
@@ -25,12 +25,14 @@ export interface ManaProfile {
   readonly takenPercentPerPoint: number;
   /** ...and at most this many from one hit, so a long combo never fills the bar. */
   readonly takenCap: number;
+  readonly parryGain: number;
 }
 
 /** The roster resource: 100, full on every stock. */
 export const ROSTER_MANA: ManaProfile = {
-  max: 100, progressPerPoint: 120, groundProgress: 8, airProgress: 3,
+  max: 100, progressPerPoint: 120, groundProgress: 2, airProgress: 2,
   dealtPerPercent: 1, dealtCap: 12, takenPercentPerPoint: 2, takenCap: 6,
+  parryGain: 8,
 };
 
 /**
