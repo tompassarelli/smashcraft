@@ -1,5 +1,6 @@
 import { assertDefined, assertEquals, assertTrue, assertFalse, test } from "wisp/src/runtime/testing";
 import { type InputRow, type RowFields, emptyInput, inputRow, predictInto, sameInput } from "../input/inputRow";
+import { Action, bit } from "../input/actions";
 import { INPUT_LAST_FRAME, encodePacket, inputPacket } from "../input/wire";
 import { FUTURE_LIMIT, InputLedger } from "./ledger";
 
@@ -141,13 +142,21 @@ test("a malformed second record commits nothing", () => {
   const ledger = new InputLedger();
   assertTrue(ledger.beginEpoch(1, 1, 0, 3));
   const wire = encodePacket(packet(1, 1, NEUTRAL, NEUTRAL));
-  // The second record's held group reads 32768, one past every action.
-  assertEquals(ledger.receive(0, `${wire.substring(0, wire.length - 1)}1800`), "malformed");
+  // The second record's held group reads 65536, beyond the 16 action bits.
+  assertEquals(ledger.receive(0, `${wire.substring(0, wire.length - 1)}1G00`), "malformed");
   assertEquals(ledger.accepted(1, 0, 1), undefined);
   assertEquals(ledger.accepted(1, 0, 2), undefined);
   assertEquals(ledger.receive(0, wire), "accepted");
   assertEquals(ledger.receive(1, wire), "accepted");
   assertEquals(ledger.knownThrough(), 2);
+});
+
+test("the second record may hold the light-shield action", () => {
+  const ledger = new InputLedger();
+  assertTrue(ledger.beginEpoch(1, 1, 0, 3));
+  const wire = encodePacket(packet(1, 1, NEUTRAL, NEUTRAL));
+  assertEquals(ledger.receive(0, `${wire.substring(0, wire.length - 1)}1800`), "accepted");
+  assertEquals(assertDefined(ledger.accepted(1, 0, 2)).held, bit(Action.lightShield));
 });
 
 test("epoch and frame limits never wrap signed counters", () => {
