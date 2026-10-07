@@ -1,4 +1,5 @@
-import { mkdirSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { Effect } from "effect";
@@ -17,10 +18,27 @@ export interface RenderAssetOptions {
   readonly extractor?: string;
   readonly storage?: string;
   readonly textures?: string;
+  readonly cache?: string;
+  readonly manifest?: string;
 }
 
 /** The map's imports and classic stock assets. Extraction stays outside the checkout. */
 export function headlessRender(options: RenderAssetOptions = {}) {
+  const storage = options.storage ?? process.env.WC3_STORAGE ?? join(homedir(), ".local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/Program Files (x86)/Warcraft III");
+  const manifestPath = options.manifest ?? process.env.WC3_ASSET_MANIFEST;
+  const used = new Map<string, { readonly sha256: string; readonly bytes: number }>();
+  let stockInfo: { readonly storage: string; readonly buildInfoSha256: string; readonly fields: Readonly<Record<string, string>> } | undefined;
+  let stockDirectory: Promise<string> | undefined;
+  const stockCache = () => stockDirectory ??= (async () => {
+    const info = await Bun.file(join(storage, ".build.info")).text();
+    const lines = info.trim().split(/\r?\n/), headers = (lines[0] ?? "").split("|").map((name) => name.split("!")[0] ?? name);
+    const rows = lines.slice(1).map((line) => Object.fromEntries(line.split("|").map((value, index) => [headers[index] ?? String(index), value])));
+    stockInfo = { storage, buildInfoSha256: createHash("sha256").update(info).digest("hex"), fields: rows.find((row) => row.Active === "1") ?? rows[0] ?? {} };
+    const directory = join(options.cache ?? PRIVATE, "stock", stockInfo.buildInfoSha256);
+    mkdirSync(directory, { recursive: true });
+    writeFileSync(join(directory, "build-info.json"), JSON.stringify(stockInfo, null, 2) + "\n");
+    return directory;
+  })();
   let sources: Promise<Map<string, string>> | undefined;
   let extractedTextures: Map<string, string> | undefined;
   const pending = new Map<string, Promise<Uint8Array | undefined>>();
@@ -50,9 +68,6 @@ export function headlessRender(options: RenderAssetOptions = {}) {
     const source = (await sources).get(normalized);
     if (source !== undefined) return read(source);
     if (normalized.startsWith("war3mapimported/")) return undefined;
-    const cache = join(PRIVATE, normalized);
-    const cached = await read(cache);
-    if (cached !== undefined) return cached;
     const texture = /\.(blp|tga|png|dds)$/.test(normalized);
     const pngName = normalized.replace(/\.[^.]+$/, ".png");
     const textures = options.textures ?? process.env.WC3_TEXTURES;
@@ -62,10 +77,13 @@ export function headlessRender(options: RenderAssetOptions = {}) {
       const existing = existingPath === undefined ? undefined : await read(existingPath);
       if (existing !== undefined) return existing;
     }
+    const directory = await stockCache();
+    const cache = join(directory, normalized);
+    const cached = await read(cache);
+    if (cached !== undefined) return cached;
     const extractor = options.extractor ?? process.env.CASC_EXTRACTOR ?? Bun.which("casc-extract")
       ?? Array.from(new Bun.Glob("*/build/animation-assets/casc-extract").scanSync({ cwd: dirname(INPUTS_STORE), absolute: true }))[0];
     if (extractor === null || extractor === undefined) throw new Error(`stock asset ${path} needs CASC_EXTRACTOR (tools/animations/extract.sh builds it)`);
-    const storage = options.storage ?? process.env.WC3_STORAGE ?? join(homedir(), ".local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/Program Files (x86)/Warcraft III");
     mkdirSync(dirname(cache), { recursive: true });
     const extracted = await run([extractor, storage, `war3.w3mod:${normalized}`, cache]);
     if (extracted.code === 0) return read(cache);
@@ -74,7 +92,7 @@ export function headlessRender(options: RenderAssetOptions = {}) {
       return localized.code === 0 ? read(cache) : undefined;
     }
     if (!texture) return undefined;
-    const png = join(PRIVATE, pngName);
+    const png = join(directory, pngName);
     const oldPng = await read(png);
     if (oldPng !== undefined) return oldPng;
     const dds = cache.replace(/\.[^.]+$/, ".dds");
@@ -89,7 +107,14 @@ export function headlessRender(options: RenderAssetOptions = {}) {
     readAsset(path: string): Promise<Uint8Array | undefined> {
       const normalized = key(path);
       let promise = pending.get(normalized);
-      if (promise === undefined) pending.set(normalized, promise = resolve(path));
+      if (promise === undefined) pending.set(normalized, promise = resolve(path).then((bytes) => {
+        if (bytes !== undefined && manifestPath !== undefined) {
+          used.set(normalized, { sha256: createHash("sha256").update(bytes).digest("hex"), bytes: bytes.length });
+          mkdirSync(dirname(manifestPath), { recursive: true });
+          writeFileSync(manifestPath, JSON.stringify({ stock: stockInfo, assets: Object.fromEntries(used) }, null, 2) + "\n");
+        }
+        return bytes;
+      }));
       return promise;
     },
   };

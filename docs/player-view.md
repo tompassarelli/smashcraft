@@ -8,6 +8,12 @@ with `CASC_EXTRACTOR` and `WC3_STORAGE`. The extractor
 is built by `tools/animations/extract.sh`; DDS textures are converted with
 the existing ImageMagick tool. Extracted assets stay in
 `~/.local/share/smashcraft-render-assets/` outside the repository.
+Stock cache directories use the selected installation's `.build.info` hash;
+updating Warcraft therefore extracts the new stock art. For a native comparison,
+set `WC3_STORAGE` to that client's installation and `WC3_ASSET_MANIFEST=FILE` to
+save its build fields and the SHA256 and size of each returned asset. Keep that
+manifest beside the private captures. `WC3_TEXTURES` remains an explicit override;
+omit it when the comparison must use the selected installation's textures.
 
 `--journey FILE` replaces the default quick match with capture inputs:
 `{"frames":210,"events":[{"frame":30,"player":0,"chat":"-dev quick hero archer"}]}`.
