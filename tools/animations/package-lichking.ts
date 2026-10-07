@@ -5,13 +5,18 @@
 // (whose indices never move): skeleton keys from the authored export, and every
 // other track (emitter and geoset animation, events) from the clip's donor
 // built-in, scaled to the new length. Then it regenerates the clip metadata.
-//   bun tools/animations/package-lichking.ts SOURCE.mdx AUTHORED_DIR OUT.mdx
+//   bun tools/animations/package-lichking.ts SOURCE.mdx AUTHORED_DIR OUT.mdx [--append-to EXISTING.mdx]
 import { generateMDX, parseMDL, parseMDX } from "war3-model";
 import { join } from "node:path";
 
 const [sourcePath, authoredDir, outPath] = process.argv.slice(2);
 if (!sourcePath || !authoredDir || !outPath) throw new Error("usage: package-lichking.ts SOURCE.mdx AUTHORED_DIR OUT.mdx");
-const model = parseMDX(await Bun.file(sourcePath).arrayBuffer());
+// Additive updates retain shipped clips byte-for-byte at the track level;
+// Blender's rounded millisecond intervals otherwise drift as its export grows.
+const appendAt = process.argv.indexOf("--append-to");
+const appendTo = appendAt < 0 ? undefined : process.argv[appendAt + 1];
+if (appendAt >= 0 && appendTo === undefined) throw new Error("--append-to needs an existing model");
+const model = parseMDX(await Bun.file(appendTo ?? sourcePath).arrayBuffer());
 const authored = parseMDL(await Bun.file(join(authoredDir, "LichKingFighter.mdl")).text());
 const clips: { readonly authored: readonly { readonly name: string; readonly source: string }[] } = await Bun.file(join(authoredDir, "clips.json")).json();
 
@@ -30,6 +35,7 @@ const placed: { from: [number, number]; to: [number, number]; donor: [number, nu
 const GAP = 100;
 let cursor = Math.max(...model.Sequences.map((sequence) => sequence.Interval[1])) + GAP;
 for (const clip of clips.authored) {
+  if (appendTo !== undefined && model.Sequences.some((sequence) => sequence.Name === clip.name)) continue;
   const sequence = authored.Sequences.find((candidate) => candidate.Name === clip.name);
   if (sequence === undefined) throw new Error(`authored export has no ${clip.name}`);
   const donor = byName(clip.source);

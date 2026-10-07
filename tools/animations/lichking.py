@@ -544,6 +544,37 @@ author('Special Up', {0: {}, 5: {'step': (0, -24), 'lean': 14, 'hand_R': (20, -3
                       zero(8): RISE, 18: {**RISE, 'twist': -25, 'aim': 96}, 24: {**RISE, 'twist': 25, 'aim': 88}, zero(30): RISE,
                       38: {**FALL, 'lean': 10, 'hand_R': (20, -30, 100), 'aim': 40}, 46: FALL}, plant=False)
 
+# Append transitions and floor recovery after the combat clips: their existing
+# sequence indices are used by the clip pool and must remain stable (#171).
+author('Turn', {0: {'step': (0, -10), 'lean': -14, 'twist': 24, **GUARD},
+                4: {'step': (0, -18), 'lean': 10, 'twist': -24, **GUARD}, 8: {}})
+author('Stop', {0: {'step': (0, -8), 'lean': 24, **GUARD},
+                3: {'step': (-6, -16), 'lean': -16, **GUARD}, 8: {}})
+author('Jump Squat', {0: {}, 3: {'step': (0, -18), 'lean': 14, **GUARD}})
+# Neutral tech braces low on contact, then pushes back into the guard.
+TECH_BRACE = {'step': (0, -42), 'lean': 38, 'hand_R': (14, -30, 64), 'aim': -30,
+              'hand_L': (42, 20, 24), **WIDE}
+author('Tech', {0: TECH_BRACE, 6: {**TECH_BRACE, 'step': (0, -34)},
+                15: {'step': (0, -18), 'lean': 18, **GUARD}, 26: {}})
+# Directional techs tuck on contact; their travel is owned by the simulation.
+for name, sign in [('Tech Forward', 1), ('Tech Backward', -1)]:
+    author(name, {0: TECH_BRACE,
+                  8: {'step': (0, -36), 'lean': sign * 32, 'spin': sign * 24,
+                      'hand_R': (10, -30, 78), 'aim': sign * -50, 'hand_L': (12, 24, 64)},
+                  24: {'step': (0, -28), 'lean': sign * 24, 'spin': sign * 18, **GUARD},
+                  40: {}})
+# Get-up rolls start at the same lying pose as get-up, with the free hand
+# bracing while the body rises into a low directional escape.
+for name, sign in [('Get Up Roll Forward', 1), ('Get Up Roll Backward', -1)]:
+    author(name, {0: {'rise': 0},
+                  7: {'rise': .3, 'step': (0, 6), 'lean': sign * 12},
+                  16: {'rise': .7, 'step': (0, -14), 'lean': sign * 32, 'spin': sign * 20,
+                       'hand_R': (12, -30, 78), 'aim': sign * -40, 'hand_L': (24, 24, 42)},
+                  26: {'rise': 1, 'step': (0, -20), 'lean': sign * 18, **GUARD},
+                  35: {'rise': 1}},
+           base_from='Death', base_frame=int(death.frame_range[0]) + lie,
+           standing_from=('Stand Ready', 0), plant=False)
+
 # Where Frostmourne's point and the sword hand are on the clip's first and strike frames.
 for name, frame in [('Attack Jab', 5), ('Attack Jab 2', 6), ('Attack Jab 3', 8), ('Forward Tilt', 10), ('Up Tilt', 9), ('Down Tilt', 8), ('Dash Attack', 11),
                     ('Forward Smash', 21), ('Up Smash', 17), ('Down Smash', 16), ('Aerial Neutral', 9), ('Aerial Forward', 13), ('Aerial Back', 10),

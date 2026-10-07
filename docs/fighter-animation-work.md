@@ -1197,6 +1197,19 @@ toward the pool on frame 20, holds the downward pose for three more frames,
 and settles back into the guard by frame 46. Frostmourne stays raised beside
 the body. The non-skeleton tracks retain Spell Channel as their donor.
 
+Movement transitions and floor recovery (#171) append at indices 66–73,
+preserving every combat and stock index. Turn and stop each last eight frames,
+jump squat three, neutral tech 26, directional techs 40 and get-up rolls 35.
+The techs brace low on contact before returning to the guard; get-up rolls
+start from Death's lying pose. Travel remains in the simulation, so the clips
+stay centered on the fighter. The original Stand Ready pose and textures are
+retained for the portraits.
+For additive clips, pass the immutable shipped model as the second argument
+to smashcraft:tools/animations/build-lichking.sh; its packager's
+`--append-to EXISTING.mdx` retains the existing sequences and their tracks,
+then appends only new names. This avoids Blender's millisecond interval
+rounding changing previously shipped clips as the export grows.
+
 His third jab plays its full authored thrust, whose shorter hip step leaves
 its drawn reach below the forward tilt. `bun wisp view reach --assets DIR
 --character 12` measures his normals, aerials, smashes, grab, get-up and ledge

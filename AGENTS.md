@@ -89,6 +89,10 @@ code. From smashcraft:ts/:
   so changing art is `bun wisp inputs add FAMILY DIR` plus a commit, landed
   like code. `bun wisp inputs check` verifies them, `bun wisp inputs path
   [assets]` prints them for tools (smashcraft:docs/build-inputs.md).
+- Lich King animation authoring (from the repository root):
+  `tools/animations/build-lichking.sh [PRIVATE_INPUTS] [IMMUTABLE_EXISTING_MODEL]`
+  authors clips through Blender; the optional existing model preserves shipped
+  sequences and appends only new clips (smashcraft:docs/fighter-animation-work.md).
 - Fresh match: `bun wisp fresh MAP.w3x [--rebuild]` starts a new game, sends
   `-dev quick`, and waits until every signed-in client writes its receipt.
   `--rebuild` replaces the map script first. Other quick starts for `--chat`

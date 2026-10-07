@@ -68,4 +68,12 @@ export const LICH_KING_SEQUENCES = {
   "Special Down": { index: 63, frames: 46 },
   "Special Side": { index: 64, frames: 40 },
   "Special Up": { index: 65, frames: 46 },
+  "Turn": { index: 66, frames: 8 },
+  "Stop": { index: 67, frames: 8 },
+  "Jump Squat": { index: 68, frames: 3 },
+  "Tech": { index: 69, frames: 26 },
+  "Tech Forward": { index: 70, frames: 40 },
+  "Tech Backward": { index: 71, frames: 40 },
+  "Get Up Roll Forward": { index: 72, frames: 35 },
+  "Get Up Roll Backward": { index: 73, frames: 35 },
 } as const;
