@@ -30,7 +30,7 @@ ensure(source.Sequences.length === 12 && source.Nodes.some(n => n.Name === "Bone
 const stand = source.Sequences[4]!;
 interface Gesture { chest?: number; head?: number; arm?: number; elbow?: number; free?: number; freeElbow?: number; hip?: number; knee?: number; lean?: number; yaw?: number; leftHip?: number; rightHip?: number }
 interface Phase { frame: number; gesture: Gesture; target?: readonly [number,number] }
-interface Action { pose: HeroPose; frames: number; contact: number; gesture: Gesture; hold?: boolean; air?: boolean; roll?: number; first?: Gesture; phases?: readonly Phase[]; target?: readonly [number, number]; damage?: boolean }
+interface Action { pose: HeroPose; frames: number; contact: number; gesture: Gesture; prepTravel?: number; hold?: boolean; air?: boolean; roll?: number; first?: Gesture; phases?: readonly Phase[]; target?: readonly [number, number]; damage?: boolean }
 const ready: Gesture = {};
 const reach: Gesture = { chest: 22, arm: -75, elbow: 35, free: -48, hip: -12, knee: 18, head: -12 };
 const high: Gesture = { chest: -18, arm: -160, elbow: -10, free: -105, hip: 12, knee: 8, head: -22 };
@@ -57,6 +57,7 @@ for (const [pose, style, gesture] of normals) {
     yaw: (region.hit.strike?.x2??0) < 0 ? 145 : 0,
     chest: (gesture.chest ?? 0) + ((region.hit.strike?.z2??0) < 40 ? 20 : -8) }})) : undefined;
   actions.push({pose,frames:move.totalFrames,contact:first,gesture,phases,air:pose.endsWith("Air"),
+    prepTravel: style===AttackStyle.dashAttack ? 40 : undefined,
     target: style===AttackStyle.upAir || style===AttackStyle.dashAttack ? undefined : [move.regions[0]!.hit.strike!.x2, move.regions[0]!.hit.strike!.z2]});
 }
 const extra: readonly [HeroPose, number, number, Gesture][] = [
@@ -185,6 +186,7 @@ for (const [ordinal,action] of [...actions,...damageActions].entries()) {
   if(!action.air){const mainDonor=source.Nodes[main.ObjectId]!.Translation!.Keys.find(k=>k.Frame>=stand.Interval[0]&&k.Frame<=stand.Interval[1])!;
     for(let frame=0;frame<=action.frames;frame++){const vertices=drawn.triangles(index,frame/60,1);let floor=Infinity;for(let i=1;i<vertices.length;i+=2)floor=Math.min(floor,vertices[i]!);
       const Frame=start+Math.round(frame*1000/60),Vector=mainDonor.Vector.slice();Vector[2]=Vector[2]!-floor;
+      if(action.prepTravel&&frame<action.contact){const wind=Math.max(1,action.contact-3);Vector[0]=Vector[0]!-action.prepTravel*(frame<=wind?frame/wind:(action.contact-frame)/(action.contact-wind));}
       const key={Frame,Vector,...rootTrack.LineType>1?{InTan:new Float32Array(3),OutTan:new Float32Array(3)}:{}};
       const previous=rootTrack.Keys.find(k=>k.Frame===Frame);if(previous)Object.assign(previous,key);else rootTrack.Keys.push(key);}
     rootTrack.Keys.sort((a,b)=>a.Frame-b.Frame);}
