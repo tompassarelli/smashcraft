@@ -1,0 +1,51 @@
+{
+  "base": "234ee593",
+  "change": "Banish defensiveUse; protection frames 5–12",
+  "choices": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+  ],
+  "coverage": {
+    "fighter": "Kael'thas Sunstrider",
+    "matches": 8,
+    "movement": 8658,
+    "attacks": 132,
+    "kit": 78,
+    "specials": {
+      "neutral": 50,
+      "side": 8,
+      "up": 9,
+      "down": 11
+    },
+    "defense": 231,
+    "recovery": 898,
+    "manaDenied": 0,
+    "defenseDecisions": 13,
+    "recoveryDecisions": 2,
+    "companions": {
+      "bear": 0,
+      "quilbeast": 0,
+      "hawk": 0
+    },
+    "missing": []
+  }
+}

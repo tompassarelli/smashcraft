@@ -16,9 +16,11 @@ normals turn his sphere attacks into hand and flame gestures.
 
 The named body counterpart is
 [Mewtwo in Ultimate](https://www.ssbwiki.com/Mewtwo_(SSBU)#Stats): weight **79**,
-run **2.255**, air speed **1.313**. Smashcraft uses six world units per Smash
-unit; this gives run **13.53** and air **7.878** per frame. The hero-body
-multipliers are 79/75 weight, 2.255/2.2 run, and 1.313 air. Width 0.96 and
+run **2.255**, air speed **1.313**. Kael intentionally caps that air reference
+at the roster's **1.25** maximum while retaining Mewtwo's weight and run.
+Smashcraft uses six world units per Smash unit; his actual run is **13.53**
+and air speed **7.5** per frame. The hero-body multipliers are 79/75 weight,
+2.255/2.2 run, and 1.25 air. Width 0.96 and
 height 1.12 are original Blood Mage silhouette choices. Shared gravity,
 jumps and dodge timing stay the roster's. Unlike Mewtwo's tail, his disjoint
 flames are not part of his hurt body; his extended casting arm is.
@@ -113,6 +115,10 @@ The computer contests medium range with Flame Strike, uses Siphon inside its
 reach, Banishes close pressure, and uses every directional aerial and throw
 through the shared matchup planner. Down tilt and Flame Strike launch toward
 up air; DI, airdodge and tech choices decide the follow-up.
+The computer may use Banish against a threat that arrives during its f5–12
+protection when it has 15 mana and can act. For a threat farther away it can
+wait to time Banish; for one arriving before f5 it chooses another defense. Banish
+still serves as an offensive burst when the nearby enemy is in reach.
 
 [wc]: https://wowpedia.fandom.com/wiki/Blood_Mage_(Warcraft_III)
 [mw]: https://www.ssbwiki.com/Mewtwo_(SSBU)#Moveset
