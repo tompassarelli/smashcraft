@@ -198,6 +198,12 @@ const PAD49_PAST_DOWN = 21954;
 /** The frame meter's overlay toggle (smashcraft:ts/src/platform/frameMeter.ts). */
 const PERF_TOGGLE = "-dev perf";
 /**
+ * The raw capture the rematch records on every client: 1800 callbacks, the
+ * frames `bun wisp perf bot` and `perf bot-four` predict, written to
+ * smashcraft-perf-capture-pSLOT-runRUN.txt (smashcraft:ts/src/platform/frameMeter.ts).
+ */
+export const BOT_CAPTURE = "-dev capture 1800";
+/**
  * The overlay's text frame (wisp:src/platform/frameMeter.ts): top left
  * (0.58, 0.56), 0.21 by 0.08, in the 2560x1440 client's centered 4:3 area.
  */
@@ -720,6 +726,9 @@ export function journey(rig: RigShape, options: JourneyOptions) {
         // The frame meter registers its toggle at the first match start; its overlay shows on A for the rematch.
         yield* rig.key(0, "Return");
         yield* rig.type(0, PERF_TOGGLE);
+        yield* rig.key(0, "Return");
+        yield* rig.key(0, "Return");
+        yield* rig.type(0, BOT_CAPTURE);
         yield* rig.key(0, "Return");
       }
       const deadline = Math.max(...started.map((publication) => publication.publication_monotonic_estimate_ns)) + 300_000_000;
