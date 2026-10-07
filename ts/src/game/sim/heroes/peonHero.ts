@@ -21,7 +21,7 @@ export const PEON_HERO: HeroDefinition = {
     model: "units\\orc\\Peon\\Peon.mdl",
     objectId: 0x6d667065,
     portrait: "ReplaceableTextures\\CommandButtons\\BTNPeon.blp",
-    placedModel: { path: "buildings\\orc\\OrcBurrow\\OrcBurrow.mdl", height: 180.0, alpha: 255 },
+    placedModel: { path: "buildings\\orc\\TrollBurrow\\TrollBurrow.mdl", height: 180.0, alpha: 255 },
     clips: PEON_CLIPS,
     damageClips: PEON_PAIN_CLIPS,
     fallback: PEON_FALLBACK_CLIP,

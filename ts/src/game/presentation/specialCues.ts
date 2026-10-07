@@ -99,6 +99,12 @@ const RUNE = cue("Abilities\\Spells\\Undead\\DarkRitual\\DarkRitualCaster.mdx", 
 
 /** Every hero's four specials; every form of a special (air, free, follow-up, recall, marked) shows its special's cues. */
 export const HERO_CUES: { readonly [character: number]: { readonly [slot in SpecialSlot]: MoveCues } } = {
+  [Character.peon]: {
+    neutral: { spell: "Lumber Toss", startup: cue("Objects\\Spawnmodels\\Undead\\ImpaleTargetDust\\ImpaleTargetDust.mdx", "feet", f32(0.3)), active: drawn("Abilities\\Weapons\\AncientProtectorMissile\\AncientProtectorMissile.mdl", "hand") },
+    side: { spell: "Burrow", startup: cue("Objects\\Spawnmodels\\Undead\\ImpaleTargetDust\\ImpaleTargetDust.mdx", "ahead", f32(0.5)), active: drawn("buildings\\orc\\TrollBurrow\\TrollBurrow.mdl", "ahead") },
+    up: { spell: "Worksite Launch", startup: cue("Abilities\\Spells\\Human\\Defend\\DefendCaster.mdx", "feet", f32(0.4)), active: cue("Abilities\\Spells\\Human\\FlakCannons\\FlakTarget.mdx", "feet", f32(0.6)) },
+    down: { spell: "Repair", startup: cue("Abilities\\Spells\\Human\\Defend\\DefendCaster.mdx", "hand", f32(0.4)), active: HOLY },
+  },
   [Character.thrall]: {
     neutral: { spell: "Chain Lightning", startup: STORM, active: cue("Abilities\\Weapons\\FarseerMissile\\FarseerMissile.mdx", "hand", 1.0) },
     side: { spell: "Feral Spirit", startup: BEAST, active: cue("units\\orc\\SpiritWolf\\SpiritWolf.mdx", "ahead", 0.5) },
@@ -215,6 +221,9 @@ const branch = (spell: string, startup: Cue, active: Cue): MoveCues => ({ spell,
 
 /** Every hero branch names its cue; specialCues.tests.ts checks each authored branch has one. */
 export const HERO_BRANCH_CUES: { readonly [character: number]: { readonly [slot in SpecialSlot]?: HeroBranchCues } } = {
+  [Character.peon]: {
+    side: { recall: branch("Pack Up", cue("Objects\\Spawnmodels\\Undead\\ImpaleTargetDust\\ImpaleTargetDust.mdx", "ahead", f32(0.3)), cue("UI\\Feedback\\GoldCredit\\GoldCredit.mdl", "hand", f32(0.7))) },
+  },
   [Character.blademaster]: {
     side: { followUps: [
       branch("Backstab", BLOODLUST, cue("Abilities\\Spells\\Human\\MarkOfChaos\\MarkOfChaosTarget.mdx", "ahead", 0.5)),

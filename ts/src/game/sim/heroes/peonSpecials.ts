@@ -16,7 +16,7 @@ const BURROW: AuthoredSpecial = {
     frame: 26, offsetX: 80.0, radius: 28.0, height: 76.0, durability: 24.0, life: 240,
     fireAges: [45, 85, 125, 165, 205],
     shot: {
-      model: "Abilities\\Weapons\\OrcBurrowMissile\\OrcBurrowMissile.mdl",
+      model: "Abilities\\Weapons\\HunterMissile\\HunterMissile.mdl",
       spawnFrame: 0, offsetX: 28.0, offsetZ: 48.0, velocityX: 12.0, velocityZ: 0.0,
       life: 36, radius: 12.0, effect: peonHit(5.0, 35, 75.0, 18.0), reflectable: true, limit: 3,
     },
