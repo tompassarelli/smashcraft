@@ -53,7 +53,7 @@ jobs:
           TOWARD_ZERO_LUA: ${{ github.workspace }}/ts/build/toward-zero-lua/lua-5.3.6/src/lua
       # A keyboard match in the playable build (#166) reaches its result, and its replay replays to every recorded checksum in 32-bit Lua too (#141).
       - if: ${{ !cancelled() }}
-        run: bun test test/replay.test.ts
+        run: bun test test/replay.test.ts test/map-replay.test.ts
         working-directory: ts
         env:
           LUA: ${{ github.workspace }}/ts/build/lua-stock/lua-5.3.6/src/lua

@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.map.json",
+  "include": [
+    "node_modules/wisp/src/natives/warcraft.d.ts",
+    "src/game/replay/viewerDriver.ts"
+  ],
+  "exclude": [],
+  "tstl": {
+    "luaBundle": "viewer.lua",
+    "luaBundleEntry": "src/game/replay/viewerDriver.ts"
+  },
+  "compilerOptions": {
+    "outDir": "build/viewer-lua",
+    "sourceMap": false
+  }
+}

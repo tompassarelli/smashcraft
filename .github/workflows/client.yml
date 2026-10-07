@@ -9,6 +9,8 @@ on:
       - "companion/model/**"
       - "ts/src/game/replay/**"
       - "ts/scripts/sourceVersion.ts"
+      - "ts/scripts/viewerLua.ts"
+      - "ts/tsconfig.viewer-lua.json"
       - ".github/workflows/client.yml"
 
 permissions:

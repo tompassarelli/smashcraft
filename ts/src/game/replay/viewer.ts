@@ -4,7 +4,9 @@
 // their hurt volumes, active strikes, projectiles and the stage). The client
 // builds this module into each version's simulation bundle and keeps the
 // bundles of versions it has played, so VIEWER_API is the shape every client
-// can call: add to it, never change it.
+// can call: add to it, never change it. The client also runs this module
+// inside an older map's own simulation (viewerDriver.ts), so it calls only
+// simulation functions whose shape has held since replays began.
 import { at } from "wisp/src/runtime/lookup";
 import { floorMod } from "wisp/src/sim/intMath";
 import { PARTICIPANT_SLOTS } from "../input/participants";
@@ -20,7 +22,6 @@ import { stageBounds } from "../sim/stageBounds";
 import { type FrameScratch } from "./moment";
 import { type ParsedReplay, createFrameScratch, parseReplay, runReplayFrame } from "./matchReplay";
 import { type ReplayState, copyReplayState, createReplaySnapshot } from "./snapshot";
-export { sourceVersion } from "../shell/sourceVersion";
 
 export const VIEWER_API = 1;
 
