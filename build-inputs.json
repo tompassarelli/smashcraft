@@ -2,14 +2,14 @@
   "base": "e3c9fe6298aa57dd5e4c61db20a6e215ab96bd6a29cf0319f16387ab5f3e94ac",
   "container": "dab72a3923ad2a34f763c538c65c27752bdfe8b595eae602bdfce50f92157703",
   "summon": "32e2447caf731aaab000d68ca71bbc39a9e6b04ec5cd194ee6ec5e6ffe467b17",
-  "animation-assets": "8931e1cd08312e6ccbd45885d316e0407020ef65c699cd1de72bef43fb124583",
-  "illidan-animation": "4d276985d2ac0570bfca1e88623d3038abe0c5b37f0564f2e3ed40dd649671ba",
+  "animation-assets": "ab7daaa28d5004cb7f8b33a01e8ed26033ffee8d678aafe4d8010092ee650ae1",
+  "illidan-animation": "0c7cf766d2ae2ec81922378bc2384ddb6131376b4f9e725fbd80fb8193f2c094",
   "selection-assets": "819c857475cc88a09f516194406881f2f699d6ae47ae5d92bd754b17dd1e01ec",
   "fighter-renders": "e9ea262cacded0c165916905a42267d3b7ff6ea69864177fce568cf99930fe0a",
   "stage-assets": "dc9876126b61885d5454d289b1ffdc154fe95a40095444821358a76823795cc9",
   "impact-assets": "fe3252e54270b976cc732a87c07524a7b1b7cdaa5d9a66e4832e708d19ca017c",
   "imported-models": "736af14ee37ef912ab263584bfa81197b809bd0f118d914c15bde82aabbc8d5a",
-  "original-clips-static-lights": "b6bb13ebde49f2f086ab689a8a1283896abafb484352e1d0c89c71bec5cf1f81",
-  "hero-models": "d2ad9aa16f882b11504fad0543449d1d59d43eae3dc0552bcc9a8481a022babe",
+  "original-clips-static-lights": "35adcdcc5c155c837f284101d567e8caaa7f70dcb3b637290f313d991c8d0e42",
+  "hero-models": "95e938eb758dc0b877383300fdbdc668f2d302d65b71aace5712f71c7b8369cd",
   "model-sounds": "38449de88adca15b3984f6d883b356123296c0780d8a6d6f7590c025a7897a3d"
 }

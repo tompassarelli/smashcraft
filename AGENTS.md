@@ -119,6 +119,9 @@ code. From smashcraft:ts/:
   `bun tools/animations/blademaster-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
   appends a distinct gesture for each Blademaster normal and his back throw,
   preserving the shipped plunge and double-jump flip.
+  `bun tools/animations/warden-fan-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` authors
+  Warden's ground and air Fan of Knives casts, preserving other clips
+  (smashcraft:docs/design/warden-fan-of-knives.md).
   `bun tools/animations/down-air-captures.ts PRIVATE_ASSETS PRIVATE_OUTPUT` writes
   both-facing down-air sheets from production pose selection and the roster's
   strike-height inventory (smashcraft:docs/down-airs.md).
@@ -132,12 +135,21 @@ code. From smashcraft:ts/:
   ten expansion heroes, four throws, both facings, with ordinary catch/pummel
   inputs and contact-frame captures in smashcraft:ts/test/native/pads/180/.
   `-dev quick pair FIRST / SECOND` selects different named fighters in the two human slots.
+- Original strike authoring (from the repository root):
+  `blender --background --python tools/animations/strikes.py -- archer|rifleman|illidan`.
+  `SMASHCRAFT_ANIMATION_ASSETS=PRIVATE_DIR` selects Archer's editable inputs;
+  `SMASHCRAFT_STRIKE_CLIP='Attack Jab'` reauthors only the fist punch.
 - Thrall stock-rig animation authoring (from the repository root):
   `bun tools/animations/thrall-clips.ts STOCK_THRALL.mdx PRIVATE_OUTPUT` appends
   mounted hammer, casting, recovery, grab and nine contact-reaction clips,
   writes both-facing side-view sheets, and refreshes Thrall clip and stride
   metadata. Store the generated model in `hero-models` and refresh the
   original clip pool before building.
+- Illidan locomotion authoring (from the repository root): run Blender with
+  `--python tools/animations/illidan-locomotion.py -- PRIVATE_FIGHTER.blend PRIVATE_AUTHORED`,
+  then `bun tools/animations/illidan-locomotion.ts PRIVATE_ASSETS PRIVATE_AUTHORED PRIVATE_OUTPUT`.
+  Package with `bun tools/animations/package-illidan.ts PRIVATE_OUTPUT --metadata-only`,
+  store `illidan-animation`, and refresh the original clip pool.
 - Lich King animation authoring (from the repository root):
   `tools/animations/build-lichking.sh [PRIVATE_INPUTS] [IMMUTABLE_EXISTING_MODEL] [--replace NAME]`
   authors clips through Blender; the optional existing model preserves shipped
@@ -471,6 +483,9 @@ code. From smashcraft:ts/:
   Render cadence: `-dev render-clock` in a development map records timer
   callback bursts and cost; `bun wisp accept --only 169-render-clock --dry-run`
   prints its native plan (smashcraft:docs/high-refresh.md).
+  `-dev camera-smooth on|off` compares native one-frame camera transitions
+  with the normal camera in the same development map; it keeps the simulated
+  camera unchanged (smashcraft:docs/high-refresh.md).
   Script-cost capture: `bun wisp build --profile native-perf ...` uses playable
   key input and pooled presentation with developer setup commands. In a match,
   `-dev capture 18000` writes every client's raw callback samples; read full-run

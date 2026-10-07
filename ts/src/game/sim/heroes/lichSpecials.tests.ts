@@ -268,7 +268,7 @@ test("Frost Nova and Death and Decay casts extend Lich's hittable casting arm on
   assertEquals(fighterHurtParts(lich).length, 2);
 });
 
-test("Spectral Ascent rises 2.1H and steers at most 0.4H; the zero-mana form rises 1.4H for free", () => {
+test("Spectral Ascent rises 2.9H and steers at most 1.0H; the zero-mana form rises 2.1H and steers 0.7H for free", () => {
   const ascend = (mana: number, stick: number) => {
     const { world, lich } = lichPair(600.0);
     lich.mana.points = mana;
@@ -282,16 +282,17 @@ test("Spectral Ascent rises 2.1H and steers at most 0.4H; the zero-mana form ris
     return { rise: f32(lich.motion.z - z), drift: f32(lich.motion.x - x), mana: lich.mana.points, helpless: lich.special.fall };
   };
   const full = ascend(100, 0);
-  assertNear(full.rise, f32(H * f32(2.1)), 2.0);
+  assertNear(full.rise, f32(H * f32(2.9)), 2.0);
   assertEquals(full.mana, 85);
   assertTrue(full.helpless);
   assertLessThan(Math.abs(full.drift), 1.0);
   const steered = ascend(100, -1);
-  assertNear(steered.drift, f32(-H * f32(0.4)), 2.0);
+  assertNear(steered.drift, f32(-H * f32(1.0)), 2.0);
   const free = ascend(10, 0);
   assertEquals(free.mana, 10);
-  assertNear(free.rise, f32(H * f32(1.4)), 2.0);
+  assertNear(free.rise, f32(H * f32(2.1)), 2.0);
   assertTrue(free.helpless);
+  assertNear(ascend(10, -1).drift, f32(-H * f32(0.7)), 2.0);
 });
 
 test("replaying Lich's nova, armor and ascent from a restored snapshot reproduces both fighters", () => {

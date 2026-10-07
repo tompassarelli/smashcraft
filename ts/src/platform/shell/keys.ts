@@ -295,6 +295,9 @@ export function applyDeveloperCommand(s: ShellState, actor: number, original: st
     receipt = `dev: lighting ${authored ? "stage" : "stock"}`;
   } else if (message === "-dev smooth-draw") {
     receipt = startDrawingBetweenFrames() ? "dev: smooth draw on" : "dev: smooth draw already on";
+  } else if (message === "-dev camera-smooth on" || message === "-dev camera-smooth off") {
+    s.cameraTween = message === "-dev camera-smooth on";
+    receipt = `dev: camera smooth ${s.cameraTween ? "on" : "off"}`;
   } else if (message === "-dev render-clock") {
     receipt = "dev: render clock probe";
     probeRenderClock();
