@@ -67,7 +67,7 @@ export const CAIRNE_MOVES: FighterMoves = {
       [AttackStyle.backAir]: pose(13, 20, arm(-86.0, 80.0)),
       [AttackStyle.upAir]: pose(10, 18, hurtPart(0.0, 120.0, 0.0, 188.0, 22.0)),
       [AttackStyle.downAir]: pose(19, 28, arm(10.0, 15.0)),
-      [AttackStyle.grab]: pose(9, 16, arm(96.0, 62.0)),
+      [AttackStyle.grab]: pose(8, 15, arm(96.0, 62.0)),
     },
   },
   normals: {
@@ -101,7 +101,7 @@ export const CAIRNE_MOVES: FighterMoves = {
     [AttackStyle.backAir]: heroMove(15, 4, 30, 22, sweep(15, 155.0, [120.0, 90.0, 60.0, 30.0], 16.0, "edge", -1)),
     [AttackStyle.upAir]: heroMove(12, 4, 28, 20, [strike(12, 15, c(0.0, 125.0, 0.0, 194.0, 20.0), 13.0, "launch", 85)]),
     [AttackStyle.downAir]: heroMove(21, 5, 38, 28, [heroRegion(21, 25, c(0.0, 30.0, 0.0, -80.0, 20.0), cairneHit(18.0, "kill", 270), cairneHit(18.0, "kill", 55))]),
-    [AttackStyle.grab]: heroMove(11, 3, 31, 0, [heroRegion(11, 13, c(30.0, 65.0, 98.0, 60.0), { damage: 0.0, ...NO_LAUNCH })]),
+    [AttackStyle.grab]: heroMove(10, 3, 31, 0, [heroRegion(10, 12, c(30.0, 65.0, 98.0, 60.0), { damage: 0.0, ...NO_LAUNCH })]),
   },
   throws: {
     [GrabAction.pummel]: { contactFrame: 60, totalFrames: 68, effect: { damage: 3.0, ...NO_LAUNCH } },

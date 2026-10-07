@@ -24,8 +24,8 @@ close fire wall that can be jumped over;
 [Ken](https://www.ssbwiki.com/Ken_%28SSBU%29#Moveset) establish short checks,
 planted kicks, uppercuts and footwork;
 [Swap](https://www.ssbwiki.com/Swap) establishes giving up one option to take
-another. Chen's Earth stance can become a Fire palm or Storm step with a
-fresh press. These are brief forms within one action, not three extra
+another. Chen's Threefold Stance begins as Earth and can become a Fire palm
+or Storm step with a fresh press. These are brief forms within one action, not three extra
 fighters. His ultimate retains the full three-spirit fantasy, following the
 roster's existing rule that ultimates are named designs and currently off.
 

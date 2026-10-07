@@ -1,0 +1,49 @@
+Frozen before/after comparator
+$ bun scripts/wisp.ts perf compare build/number-digest-before/run.txt build/projectile-batch-after-local.perf
+A: 1800 frames, B: 1800 frames, per frame A -> B
+p0 Lua instructions: mean 350141 -> 347244 (-0.8%), median 283450 -> 281950, p95 911500 -> 898100 (-1.5%), max 1214400 -> 1201100 (-1.1%), start 65571200 -> 65571100
+p0 Lua µs: mean 6959 -> 15764 (+126.5%), median 5893 -> 13302, p95 16146 -> 35995 (+122.9%), max 26527 -> 57037 (+115.0%), start 821193 -> 1481140
+p0 native calls: mean 230 -> 230 (+0.0%), median 203 -> 203, p95 351 -> 351 (+0.0%), max 491 -> 491 (+0.0%), start 66 -> 66
+p0 allocated KB: mean 227 -> 227 (+0.0%), median 182 -> 182, p95 397 -> 397 (+0.0%), max 665 -> 665 (+0.0%), start 44952 -> 44951
+p0 typed characters: mean 0 -> 0 (+0%), median 0 -> 0, p95 0 -> 0 (+0%), max 0 -> 0 (+0%), start 0 -> 0
+p0 predicted native µs: mean 8371 -> 8309 (-0.7%), median 6859 -> 6819, p95 20344 -> 20060 (-1.4%), max 27232 -> 26949 (-1.0%), start 1486310 -> 1486304
+p0 predicted typing stall µs: mean 0 -> 0 (+0%), median 0 -> 0, p95 0 -> 0 (+0%), max 0 -> 0 (+0%), start 0 -> 0
+p1 Lua instructions: mean 342502 -> 339725 (-0.8%), median 281600 -> 279700, p95 905900 -> 892900 (-1.4%), max 1171800 -> 1158500 (-1.1%), start 65571200 -> 65571100
+p1 Lua µs: mean 6882 -> 15906 (+131.1%), median 5813 -> 13562, p95 15896 -> 36446 (+129.3%), max 34073 -> 81303 (+138.6%), start 798917 -> 1539957
+p1 native calls: mean 230 -> 230 (+0.0%), median 203 -> 203, p95 352 -> 352 (+0.0%), max 491 -> 491 (+0.0%), start 66 -> 66
+p1 allocated KB: mean 227 -> 227 (+0.0%), median 181 -> 181, p95 398 -> 398 (+0.0%), max 661 -> 661 (+0.0%), start 44654 -> 44657
+p1 typed characters: mean 0 -> 0 (+0%), median 0 -> 0, p95 0 -> 0 (+0%), max 0 -> 0 (+0%), start 0 -> 0
+p1 predicted native µs: mean 8207 -> 8148 (-0.7%), median 6808 -> 6764, p95 20384 -> 20107 (-1.4%), max 26623 -> 26339 (-1.1%), start 1485714 -> 1485716
+p1 predicted typing stall µs: mean 0 -> 0 (+0%), median 0 -> 0, p95 0 -> 0 (+0%), max 0 -> 0 (+0%), start 0 -> 0
+B is no worse than A beyond 5%
+   0.012 s  perf (0.012 s)
+
+Original 10/14 ms budget
+$ bun scripts/wisp.ts perf budget build/projectile-batch-after-local.perf
+p0 predicted ms per frame over 1800 frames: 6.82 p50, 20.06 p95, 24.31 p99, 26.95 worst (budget 10 p99, 14 worst)
+p1 predicted ms per frame over 1800 frames: 6.76 p50, 20.11 p95, 23.82 p99, 26.34 worst (budget 10 p99, 14 worst)
+   0.050 s  perf failed (0.050 s)
+over the frame budget: p0 p99 24.31 ms > 10; p0 worst 26.95 ms > 14; p1 p99 23.82 ms > 10; p1 worst 26.34 ms > 14
+error: script "wisp" exited with code 1
+
+Unchanged checked-in fixture
+$ bun scripts/wisp.ts perf compare test/fixtures/perf/playable-bot-four.perf build/projectile-batch-after-local.perf
+A: 1800 frames, B: 1800 frames, per frame A -> B
+p0 Lua instructions: mean 201709 -> 347244 (+72.2%), median 183450 -> 281950, p95 312400 -> 898100 (+187.5%), max 660100 -> 1201100 (+82.0%), start 43121000 -> 65571100
+p0 Lua µs: mean 4317 -> 15764 (+265.2%), median 4084 -> 13302, p95 7140 -> 35995 (+404.1%), max 14421 -> 57037 (+295.5%), start 791743 -> 1481140
+p0 native calls: mean 166 -> 230 (+38.6%), median 166 -> 203, p95 195 -> 351 (+80.0%), max 352 -> 491 (+39.5%), start 66 -> 66
+p0 allocated KB: mean 13 -> 227 (+1646.2%), median 10 -> 182, p95 50 -> 397 (+694.0%), max 232 -> 665 (+186.6%), start 27234 -> 44951
+p0 typed characters: mean 0 -> 0 (+0%), median 0 -> 0, p95 0 -> 0 (+0%), max 0 -> 0 (+0%), start 0 -> 0
+p0 predicted native µs: mean 4653 -> 8309 (+78.6%), median 4286 -> 6819, p95 7066 -> 20060 (+183.9%), max 14581 -> 26949 (+84.8%), start 972819 -> 1486304
+p0 predicted typing stall µs: mean 0 -> 0 (+0%), median 0 -> 0, p95 0 -> 0 (+0%), max 0 -> 0 (+0%), start 0 -> 0
+p1 Lua instructions: mean 201964 -> 339725 (+68.2%), median 183550 -> 279700, p95 313400 -> 892900 (+184.9%), max 660100 -> 1158500 (+75.5%), start 43121000 -> 65571100
+p1 Lua µs: mean 4319 -> 15906 (+268.3%), median 4087 -> 13562, p95 7056 -> 36446 (+416.5%), max 13404 -> 81303 (+506.6%), start 682412 -> 1539957
+p1 native calls: mean 166 -> 230 (+38.6%), median 166 -> 203, p95 195 -> 352 (+80.5%), max 352 -> 491 (+39.5%), start 66 -> 66
+p1 allocated KB: mean 13 -> 227 (+1646.2%), median 10 -> 181, p95 50 -> 398 (+696.0%), max 231 -> 661 (+186.1%), start 27074 -> 44657
+p1 typed characters: mean 0 -> 0 (+0%), median 0 -> 0, p95 0 -> 0 (+0%), max 0 -> 0 (+0%), start 0 -> 0
+p1 predicted native µs: mean 4658 -> 8148 (+74.9%), median 4284 -> 6764, p95 7066 -> 20107 (+184.6%), max 14576 -> 26339 (+80.7%), start 972498 -> 1485716
+p1 predicted typing stall µs: mean 0 -> 0 (+0%), median 0 -> 0, p95 0 -> 0 (+0%), max 0 -> 0 (+0%), start 0 -> 0
+   0.043 s  perf failed (0.043 s)
+B is worse than A by more than 5%: p0 Lua instructions mean +72.2%; p0 Lua instructions max +82.0%; p0 native calls mean +38.6%; p0 allocated KB mean +1646.2%; p0 allocated KB p95 +694.0%; p0 predicted native µs median +59.1%; p0 predicted native µs p95 +183.9%; p1 Lua instructions mean +68.2%; p1 Lua instructions max +75.5%; p1 native calls mean +38.6%; p1 allocated KB mean +1646.2%; p1 allocated KB p95 +696.0%; p1 predicted native µs median +57.9%; p1 predicted native µs p95 +184.6%
+error: script "wisp" exited with code 1
+

@@ -47,7 +47,11 @@ mana for its existing six-frame one-hit armor. There are no ultimates.
 
 The CPU approaches into 50–150 hammer spacing, charges from 170–270, lays
 Consecration near a grounded opponent, shields/dodges threats and recovers
-with Ascension. The original 0.85 damage multiplier, three extra hammer hitlag
+with Ascension. Its four primary spacing tools remain forward tilt (6),
+neutral special (30), side special (31) and down tilt (8), the original
+gameplan's four keys. Consecration is a supporting patch with a 150-frame
+cooldown: the computer uses it without making it a fifth primary attack.
+The original 0.85 damage multiplier, three extra hammer hitlag
 frames, volume 127 heavy bash and readable contact/white-body flash remain.
 The new model needs its own flash and contact review. The old 47.6875% field
 is historical.
