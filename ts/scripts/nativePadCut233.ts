@@ -40,7 +40,7 @@ await command(["client", "watch", "--once", "--clients-file", clientsFile]);
 const hostedAt = Date.now();
 await command(["lan", "fresh", map, "--pair", pair]);
 const clients = await Effect.runPromise(loadClients(clientsFile));
-if (clients.length !== 2 || clients.some(client => !/^lan\d+[ab]$/.test(client.name) || client.x11.DISPLAY === ":0")) {
+if (clients.length !== 2 || clients.some((client, slot) => !client.documents.includes(`/wisp/lan/clients/lan${pair}${slot === 0 ? "a" : "b"}/`) || client.x11.DISPLAY === ":0")) {
   throw new Error("Use the assigned offline LAN pair on its private displays");
 }
 const data = clients.map(client => join(client.documents, "CustomMapData"));
