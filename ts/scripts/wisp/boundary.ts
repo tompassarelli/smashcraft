@@ -1,6 +1,6 @@
 // Smashcraft's selection, developer-command and input-trace records.
 import { Effect, Schema } from "effect";
-import { preloadRecord, Count, Seconds, type GameFileKind } from "wisp/scripts/wisp/boundary";
+import { preloadLines, preloadRecord, Count, Seconds, type GameFileKind } from "wisp/scripts/wisp/boundary";
 import { MAX_BATCH } from "../../src/game/netcode/journal/transport";
 import * as files from "../../src/runtime/gameFiles";
 export * from "../../src/runtime/gameFiles";
@@ -126,19 +126,28 @@ const ResponseLine = Schema.String.check(Schema.isPattern(new RegExp(
   `^(?:clock=.+|[ABCDPQ] (?:row|epoch) .+|A(?: ${real}){6}(?: ${integer}){6}|B(?: ${integer}){10}|C(?: ${integer}){3} ${real} ${integer} ${real}|D(?: ${integer}){2}(?: ${real}){3}|P(?: ${integer}){3}(?: ${real}){2}|Q ${integer}(?: ${real}){12}|I ${integer} (?:(?:capture|receive|confirmed|predict)(?: ${integer}){7}|(?:action|legal)(?: ${integer}){6}|rollback(?: ${integer}){2}|(?:stall|held)(?: ${integer}){3}|checksum(?: ${integer}){2} \\d+:\\d+ ${integer}))$`,
 )));
 
-export const ResponsePage = preloadRecord(
-  { head: [
+const responseHead = [
     "RS v=3 build={build} local={slot} run={run} page={page} rows={rows} mode={mode} edge_pairs={edgePairs} edge_limit={edgeLimit} edge_dropped={edgeDropped}",
     "integrity retained={integrityRetained} dropped={integrityDropped}",
     "counts poll={polls} capture_attempt={captures} advance={advances} present={presentations}",
-    "waiting callbacks={waitingCallbacks} own_callbacks={waitingOwnCallbacks}",
-    "transport sent_frames={sentFrames} received_frames={receivedFrames} unmatched_receipts={unmatchedReceipts} dropped_from_export={transportDropped} retained={transportRetained}",
-  ], rest: "lines" },
-  Schema.Struct({ build: Schema.NonEmptyString, slot: Count, run: Count, page: Count, rows: Count, mode: Schema.Literals(["clean", "edge-stamp"]), edgePairs: Count, edgeLimit: Count, edgeDropped: Count,
+];
+const responseTransport = "transport sent_frames={sentFrames} received_frames={receivedFrames} unmatched_receipts={unmatchedReceipts} dropped_from_export={transportDropped} retained={transportRetained}";
+const responseFields = { build: Schema.NonEmptyString, slot: Count, run: Count, page: Count, rows: Count, mode: Schema.Literals(["clean", "edge-stamp"]), edgePairs: Count, edgeLimit: Count, edgeDropped: Count,
     integrityRetained: Count, integrityDropped: Count, polls: Count, captures: Count, advances: Count, presentations: Count,
-    waitingCallbacks: Count, waitingOwnCallbacks: Count,
-    sentFrames: Count, receivedFrames: Count, unmatchedReceipts: Count, transportDropped: Count, transportRetained: Count, lines: Schema.Array(ResponseLine) }),
+    sentFrames: Count, receivedFrames: Count, unmatchedReceipts: Count, transportDropped: Count, transportRetained: Count, lines: Schema.Array(ResponseLine) };
+const recordedResponseSchema = Schema.Struct(responseFields);
+const recordedResponsePage = preloadRecord(
+  { head: [...responseHead, responseTransport], rest: "lines" }, recordedResponseSchema,
 );
+const waitingResponsePage = preloadRecord(
+  { head: [...responseHead, "waiting callbacks={waitingCallbacks} own_callbacks={waitingOwnCallbacks}", responseTransport], rest: "lines" },
+  Schema.Struct({ ...responseFields, waitingCallbacks: Count, waitingOwnCallbacks: Count }),
+);
+
+// Retained recordings from before the waiting probe contain no waiting measurement.
+export const ResponsePage: GameFileKind<typeof recordedResponseSchema.Type & { readonly waitingCallbacks?: number; readonly waitingOwnCallbacks?: number }> = {
+  decode: (file, text) => (preloadLines(text)?.[3]?.startsWith("waiting ") ? waitingResponsePage : recordedResponsePage).decode(file, text),
+};
 
 const EdgeStamp = preloadRecord(
   { head: ["EDGE v=1 build={build} local={slot} run={run} row={row} stage={stage} held={held} pressed={pressed} released={released} active={active} native_ms={nativeMs}"] },
