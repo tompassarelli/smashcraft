@@ -11,9 +11,10 @@ import { type MatchState, Phase, humanActive } from "../match/rules";
 import { pointerX, pointerY } from "../menu/pointer";
 import { type StageChoice, clearStageDrag, stageDrag, stageTileLeft, stageTileTop, updateStageDrag } from "../menu/stageSelection";
 import { STAGE_CATALOG, STAGE_CHOICES, selectableStageChoice, stageInfo } from "../menu/stageCatalog";
-import { rulesSummary } from "../shell/messages";
+import { hazardsSetting, rulesSummary } from "../shell/messages";
 import { ButtonClicks, type MenuControls, bindSyncHandler, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, placeTopLeft } from "./frames";
 import { MENU_FONT } from "./hudLayout";
+
 
 /** What the stage panel asks the game to do; each call comes from a synchronized event. */
 export interface StageActions {
@@ -22,9 +23,13 @@ export interface StageActions {
   togglePoolStage(participantId: number, choice: number): void;
   start(participantId: number): void;
   back(participantId: number): void;
+  toggleHazards(participantId: number): void;
 }
 
-type StageButton = { kind: "start" } | { kind: "back" } | { kind: "poolOpen" } | { kind: "poolClose" } | { kind: "poolMode" } | { kind: "poolStage"; choice: number };
+type StageButton = { kind: "hazards" } | { kind: "start" } | { kind: "back" } | { kind: "poolOpen" } | { kind: "poolClose" } | { kind: "poolMode" } | { kind: "poolStage"; choice: number };
+/** The hazards toggle beside the back button, in Warcraft's UI coordinates; the native check clicks its center. */
+export const HAZARDS_BUTTON = { x: f32(0.225), y: f32(0.082), width: f32(0.19), height: f32(0.037) } as const;
+
 
 function stageText(parent: framehandle, name: string, x: number, y: number, width: number, height: number, fontSize: number, text: string): framehandle {
   const label = createText(name, parent, 0);
@@ -53,6 +58,7 @@ export class StagePanel {
   private readonly previewDescription: framehandle;
   private readonly ruleLabel: framehandle;
   private readonly chip: framehandle;
+  private readonly hazardsToggle: framehandle;
   private readonly clicks: ButtonClicks<StageButton>;
   private readonly sync: trigger;
   private readonly poolRoot: framehandle;
@@ -64,6 +70,7 @@ export class StagePanel {
   private lastPhase: Phase | undefined;
   private lastChoice: number | undefined;
   private lastRules: string | undefined;
+  private lastHazards: boolean | undefined;
 
   constructor(
     private actions: StageActions,
@@ -120,6 +127,8 @@ export class StagePanel {
     stageText(root, "MeleeStageHelp", f32(0.454), f32(0.119), f32(0.3), f32(0.025), f32(0.008), help);
     this.clicks.add(stageButton(root, f32(0.545), f32(0.092), f32(0.21), f32(0.048), journal ? "START MATCH [A]" : "START MATCH"), { kind: "start" });
     this.clicks.add(stageButton(root, f32(0.045), f32(0.082), f32(0.17), f32(0.037), journal ? "BACK [X]" : "BACK TO FIGHTERS"), { kind: "back" });
+    this.hazardsToggle = stageButton(root, HAZARDS_BUTTON.x, HAZARDS_BUTTON.y, HAZARDS_BUTTON.width, HAZARDS_BUTTON.height, "");
+    this.clicks.add(this.hazardsToggle, { kind: "hazards" });
     this.sync = createSyncTrigger("ui.stage.drop", "stage-drop", PARTICIPANT_SLOTS, (sender, data) => {
       const choice = S2I(data);
       if (I2S(choice) === data && selectableStageChoice(choice)) this.actions.selectStage(sender, choice);
@@ -147,11 +156,13 @@ export class StagePanel {
 
   private click(button: StageButton, actor: number): void {
     if (button.kind === "start") this.actions.start(actor);
+    else if (button.kind === "hazards") this.actions.toggleHazards(actor);
     else if (button.kind === "back") this.actions.back(actor);
     else if (button.kind === "poolOpen") this.poolOpen = true;
     else if (button.kind === "poolClose") this.poolOpen = false;
     else if (button.kind === "poolMode") this.actions.togglePoolMode(actor);
     else this.actions.togglePoolStage(actor, button.choice);
+
   }
 
   /** Every rendered frame on every client. */
@@ -174,6 +185,10 @@ export class StagePanel {
       BlzFrameSetText(this.previewName, stage.name);
       BlzFrameSetText(this.previewDescription, stage.description);
       this.lastChoice = game.stageChoice;
+    }
+    if (this.lastHazards !== game.hazards) {
+      BlzFrameSetText(this.hazardsToggle, hazardsSetting(game.hazards));
+      this.lastHazards = game.hazards;
     }
     const rules = rulesSummary(game);
     if (this.lastRules !== rules) {

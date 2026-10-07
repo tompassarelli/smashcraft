@@ -28,6 +28,7 @@ test("the computer's Warden blinks back to the stage from every spot in reach", 
       warden.jump.remaining = jumps;
       const game = createMatchState();
       game.phase = Phase.match;
+      game.stageChoice = 0;
       const roster = createRoster(3, [warden, opponent]);
       const input = neutralControls();
       for (let frame = 1; frame <= 300; frame++) {

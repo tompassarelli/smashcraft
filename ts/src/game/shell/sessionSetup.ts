@@ -5,6 +5,7 @@
 //   -dev fighter P NAME           player P's fighter (a computer's, or the typist's own)
 //   -dev stocks N, -dev time MINUTES, -dev auto-rematch on|off
 //   -dev stage ID                 a stage catalog id, at fighter or stage selection
+//   -dev hazards on|off           stage hazards, at fighter or stage selection
 //   -dev training on|off, -dev hit-areas on|off
 //   -dev partner BEHAVIOUR DRIFT TECH DAMAGE   training's partner, by the names below
 //   -dev speed 1|2|4              training's input frames per match frame
@@ -30,6 +31,7 @@ export const STOCKS_COMMAND = "-dev stocks ";
 export const TIME_COMMAND = "-dev time ";
 export const AUTO_REMATCH_COMMAND = "-dev auto-rematch ";
 export const STAGE_COMMAND = "-dev stage ";
+export const HAZARDS_COMMAND = "-dev hazards ";
 export const TRAINING_COMMAND = "-dev training ";
 export const HIT_AREAS_COMMAND = "-dev hit-areas ";
 export const PARTNER_COMMAND = "-dev partner ";
@@ -155,6 +157,11 @@ export function applySetupCommand(game: MatchState, actor: number, message: stri
     if (stage === undefined || !selectableStage(stage) || !humanActive(game, actor) || (game.phase !== Phase.characterMenu && game.phase !== Phase.stageMenu)) return refused("stage");
     game.stageChoice = stage;
     return `dev: stage ${stage}`;
+  }
+  if (message.startsWith(HAZARDS_COMMAND)) {
+    // The stage menu's toggle, set early like the stage.
+    if (!humanActive(game, actor) || (game.phase !== Phase.characterMenu && game.phase !== Phase.stageMenu)) return refused("hazards");
+    return toggle(HAZARDS_COMMAND, on => { game.hazards = on; }, () => game.hazards, "hazards");
   }
   return undefined;
 }

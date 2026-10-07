@@ -131,10 +131,12 @@ export const ResponsePage = preloadRecord(
     "RS v=3 build={build} local={slot} run={run} page={page} rows={rows} mode={mode} edge_pairs={edgePairs} edge_limit={edgeLimit} edge_dropped={edgeDropped}",
     "integrity retained={integrityRetained} dropped={integrityDropped}",
     "counts poll={polls} capture_attempt={captures} advance={advances} present={presentations}",
+    "waiting callbacks={waitingCallbacks} own_callbacks={waitingOwnCallbacks}",
     "transport sent_frames={sentFrames} received_frames={receivedFrames} unmatched_receipts={unmatchedReceipts} dropped_from_export={transportDropped} retained={transportRetained}",
   ], rest: "lines" },
   Schema.Struct({ build: Schema.NonEmptyString, slot: Count, run: Count, page: Count, rows: Count, mode: Schema.Literals(["clean", "edge-stamp"]), edgePairs: Count, edgeLimit: Count, edgeDropped: Count,
     integrityRetained: Count, integrityDropped: Count, polls: Count, captures: Count, advances: Count, presentations: Count,
+    waitingCallbacks: Count, waitingOwnCallbacks: Count,
     sentFrames: Count, receivedFrames: Count, unmatchedReceipts: Count, transportDropped: Count, transportRetained: Count, lines: Schema.Array(ResponseLine) }),
 );
 

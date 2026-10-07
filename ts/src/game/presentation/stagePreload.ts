@@ -4,7 +4,7 @@ import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { surfaceCount } from "../sim/stage";
 import { hasCannon } from "../sim/stageHazards";
 import { CANNON_MODEL } from "./stageHazards";
-import { stageLightModel, stageScenery } from "./stageScenery";
+import { stageLightModel, stageScenery, terrainPieces } from "./stageScenery";
 
 /** The model drawn for one deck of a stage, in the stage's palette. */
 export function deckModel(stage: number, index: number): string {
@@ -18,7 +18,7 @@ export function stageModels(stage: number): string[] {
   const models: string[] = [];
   for (let index = 0; index < surfaceCount(stage); index++) models.push(deckModel(stage, index));
   if (hasCannon(stage)) models.push(CANNON_MODEL);
-  for (const piece of stageScenery(stage).pieces) models.push(piece.model);
+  for (const piece of [...stageScenery(stage).pieces, ...terrainPieces(stage, true)]) models.push(piece.model);
   return models;
 }
 

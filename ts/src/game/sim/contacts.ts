@@ -38,6 +38,7 @@ import { fighterHurtParts } from "./hurtboxes";
 import { knockbackWeight } from "./itemBuffs";
 import { type AppliedStatus, applyHeroStatus, damageEndsHeroStatus } from "./heroStatus";
 import { contactEarnsMana, dealtManaGain, gainMana, takenManaGain } from "./mana";
+import { EX_ARMOR_DAMAGE, exArmorActive } from "./exSpecials";
 import { PassiveProc, devotionBlocked, devotionLaunchScale, frostArmorStruck, sourcePassiveContact, vampiricHeal, BASH_HITSTUN_FRAMES } from "./passives";
 import { UTHER_DAMAGE_MULTIPLIER, utherHammerContact } from "./heroes/utherHammer";
 
@@ -125,7 +126,7 @@ function defaultOrigin(kind: ContactKind, direct: boolean): HitOrigin {
 export function collectDamageContact(
   world: Roster, sourceSlot: number, targetSlot: number, effect: Readonly<HitEffect>, facing: number,
   kind: ContactKind, direct: boolean, throwInput: Readonly<Controls> | undefined, shieldContact: boolean,
-  status?: Readonly<AppliedStatus>, origin?: HitOrigin, contactZ?: number,
+  status?: Readonly<AppliedStatus>, origin?: HitOrigin, contactZ?: number, terrain = false,
 ): void {
   const source = fighterAt(world, sourceSlot);
   const target = fighterAt(world, targetSlot);
@@ -158,7 +159,7 @@ export function collectDamageContact(
   contact.smashCharging = target.attack.smashCharging;
   contact.throwInput = throwInput;
   contact.status = status;
-  contact.earnsMana = contactEarnsMana(source, kind, direct);
+  contact.earnsMana = !terrain && contactEarnsMana(source, kind, direct);
   contact.origin = origin ?? defaultOrigin(kind, direct);
   contact.key = contact.origin === HitOrigin.melee && source.attack.style !== undefined ? source.attack.serial : -1;
   // Authored strike/projectile geometry supplies a height; throws and other
@@ -176,10 +177,15 @@ export function collectDamageContact(
     contact.height = relative < addFloat32(bottom, multiplyFloat32(span, 0.375)) ? 0
       : relative >= addFloat32(bottom, multiplyFloat32(span, 0.75)) ? 2 : 1;
   }
-  contact.proc = sourcePassiveContact(source, targetSlot, contact.origin, direct, contact.blocked, contact.key, contact.effect);
+  contact.proc = terrain ? PassiveProc.none : sourcePassiveContact(source, targetSlot, contact.origin, direct, contact.blocked, contact.key, contact.effect);
   // Uther's balance multiplier preserves the original contact freeze.
   contact.hitlagDamage = contact.effect.damage;
   if (source.character === Character.uther) contact.effect.damage = multiplyFloat32(contact.effect.damage, UTHER_DAMAGE_MULTIPLIER);
+}
+
+/** Terrain shares ordinary body-hit resolution, without a fighter earning damage or a passive proc. */
+export function collectTerrainContact(world: Roster, targetSlot: number, effect: Readonly<HitEffect>): void {
+  collectDamageContact(world, targetSlot, targetSlot, effect, 1, ContactKind.launch, false, undefined, false, undefined, HitOrigin.foreign, undefined, true);
 }
 
 /** Adds a contact that the target's raised shield blocks. */
@@ -331,6 +337,10 @@ function resolveDamageContacts(world: Roster, slot: number): void {
   }
   const chosenIndex = winner ?? flinch;
   if (chosenIndex === undefined) return;
+  if (exArmorActive(target) && contactAt(chosenIndex).kind !== ContactKind.throw) {
+    target.special.exArmorUsed = true;
+    if (armorDamage <= EX_ARMOR_DAMAGE) return;
+  }
   // Hero armor takes one hit's reaction up to its limit; its damage stays applied. Throws ignore it.
   if (status.armorFrames > 0 && contactAt(chosenIndex).kind !== ContactKind.throw) {
     status.armorFrames = 0;
