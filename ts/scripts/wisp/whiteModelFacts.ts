@@ -127,9 +127,9 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
     },
     "emitters": []
   },
-  "war3mapimported/utherwhite-17fedf67ad50e46572e49111aa4256f42efb407b5be472e3320de61d288f9eca.mdx": {
-    "geosets": 3,
-    "triangles": 454,
+  "war3mapimported/utherwhite-44a99c90fcd6259e71c5edd14c9e58544a7e09e665a4696e3665dbe700c3d5f7.mdx": {
+    "geosets": 5,
+    "triangles": 3217,
     "lights": 0,
     "bounds": {
       "min": [
@@ -140,7 +140,7 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
       "max": [
         167.3679962158203,
         167.92300415039062,
-        531.0700073242188
+        516.6019897460938
       ]
     },
     "emitters": []

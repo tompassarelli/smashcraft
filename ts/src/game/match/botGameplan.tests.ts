@@ -3,7 +3,7 @@ import { AttackStyle, Character } from "../sim/codes";
 import { createFighter } from "../sim/fighter";
 import { type FighterGameplan, GameplanSpecial, GameplanThrow, gameplanKeyMoves } from "../sim/gameplan";
 import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
-import { SPACE_PLAN, aimsLedge, defenseOption, gameplanGoal, gameplanOf, gameplanPlan, gameplanThrow, keptGap, moveWeight, toGameplanMove, upSpecialFirst } from "./botGameplan";
+import { SPACE_PLAN, aimsLedge, defenseOption, gameplanGoal, gameplanOf, gameplanPlan, gameplanThrow, keptGap, moveWeight, onAnotherDeck, toGameplanMove, upSpecialFirst } from "./botGameplan";
 import { botChoice } from "./botRandom";
 
 /** A spacing fighter built around a back air, in the manner #105 describes. */
@@ -78,6 +78,32 @@ test("spacing tools, approach moves, follow-ups and finishers outweigh unnamed m
   assertEquals(moveWeight(SPACER, SPACE_PLAN, f, 0, target, AttackStyle.downTilt), 1);
   target.status.damage = 110.0;
   assertEquals(moveWeight(SPACER, SPACE_PLAN, f, 0, target, AttackStyle.backAir), 24);
+});
+
+test("a jump onto a raised deck keeps approaching until landing instead of turning back to ranged spacing", () => {
+  const f = createFighter(Character.jaina, -8.0, -1);
+  const target = createFighter(Character.archer, -265.0, 1);
+  const plan = gameplanOf(f.character);
+  assertTrue(plan !== undefined);
+  if (plan === undefined) return;
+  f.motion.grounded = false;
+  f.motion.surface = undefined;
+  target.motion.z = 170.0;
+  target.motion.surface = 1;
+  for (const height of [62.0, 167.0, 174.0]) {
+    f.motion.z = height;
+    assertEquals(keptGap(plan, f, target, 1, 0, 82, botChoice), 0.0);
+  }
+  f.motion.grounded = true;
+  f.motion.z = 170.0;
+  f.motion.surface = 1;
+  assertTrue(keptGap(plan, f, target, 1, 0, 101, botChoice) > 0.0);
+  f.motion.grounded = false;
+  f.motion.surface = undefined;
+  f.motion.z = 62.0;
+  target.motion.z = 0.0;
+  target.motion.surface = 0;
+  assertEquals(onAnotherDeck(f, target), false);
 });
 
 test("a held grab throws for the kill in its window, else into a combo", () => {

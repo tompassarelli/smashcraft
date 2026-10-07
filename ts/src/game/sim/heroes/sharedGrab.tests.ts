@@ -28,7 +28,7 @@ test("expansion grabs deal their authored pummel once, then a buffered throw", (
     const expectedPummel = hero.character === Character.blademaster ? 2.865000009536743
       : hero.character === Character.mountainKing ? 3.31499981880188
         : hero.character === Character.dreadlord ? 2.7150001525878906
-          : hero.character === Character.beastmaster ? 3.179999828338623 : PUMMEL_DAMAGE;
+          : hero.character === Character.beastmaster ? 2.861999750137329 : PUMMEL_DAMAGE;
     assertEquals(pummel.damage, expectedPummel);
     for (let frame = 1; frame <= PUMMEL_CONTACT_FRAME; frame++) testGrabFrame(world, [controls({ attackPressed: true }), controls()], false);
     assertEquals(target.status.damage, f32(100.0 + pummel.damage));

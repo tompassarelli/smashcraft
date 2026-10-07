@@ -15,6 +15,7 @@ import { KAELTHAS_MOVES } from "./kaelthasMoves";
 import { copyFighterState } from "../../replay/fighterState";
 import { firstFighterDifference } from "../../replay/difference";
 import { projectedProjectile } from "../../presentation/projectilePose";
+import { cancelSpecialState } from "../transitions";
 
 const normalCases = [
   [AttackStyle.jab, 45.0, 0.0, 3.0], [AttackStyle.jab2, 50.0, 0.0, 4.0],
@@ -72,12 +73,13 @@ function frame(world: Roster, input: Readonly<Controls> = controls(), targetInpu
   resolveAttacks(world); advanceSpecials(world, 0, 0, rows); updateProjectiles(world); finishDamageContacts(world);
 }
 
-test("Kaelthas Flame Strike is delayed, lands one launcher and spends once", () => {
+test("Kaelthas Flame Strike first hits on frame 17, lands one launcher and spends once", () => {
   for (const facing of [-1, 1]) {
     const { owner, target, world } = pair(180.0, facing);
     frame(world, controls({ specialPressed: true })); assertEquals(owner.special.action, SpecialAction.heroNeutral); assertEquals(owner.mana.points, 20);
-    for (let tick = 2; tick <= 23; tick++) frame(world); assertEquals(target.status.damage, 0.0);
-    for (let tick = 24; tick <= 60; tick++) frame(world); assertEquals(target.status.damage, 10.0); assertEquals(owner.mana.points, 20);
+    for (let tick = 2; tick <= 16; tick++) frame(world); assertEquals(target.status.damage, 0.0);
+    frame(world); assertEquals(target.status.damage, 10.0); assertGreaterThan(target.launch.knockbackZ, 0.0);
+    for (let tick = 18; tick <= 60; tick++) frame(world); assertEquals(target.status.damage, 10.0); assertEquals(owner.mana.points, 20);
   }
 });
 
@@ -88,9 +90,45 @@ test("Kaelthas Flame Strike shows its warning before the live fire pose", () => 
   const warning = projectedProjectile(owner, 0, true);
   assertTrue(warning.visible); assertTrue(!warning.armed);
   assertEquals(warning.animationSequence, "birth"); assertEquals(warning.animationSeconds, 0.5);
-  for (let tick = 9; tick <= 24; tick++) frame(world);
+  for (let tick = 9; tick <= 16; tick++) frame(world);
+  assertTrue(!projectedProjectile(owner, 0, true).armed);
+  frame(world);
   const flame = projectedProjectile(owner, 0, true);
   assertTrue(flame.armed); assertEquals(flame.animationSeconds, 1.5);
+});
+
+test("Kaelthas Flame Strike catches late entrants through frame 52 and respects shield and startup interruption", () => {
+  for (const facing of [-1, 1]) {
+    for (const enterFrame of [40, 52, 53]) {
+      const { owner, target, world } = pair(1000.0, facing);
+      frame(world, controls({ specialPressed: true }));
+      for (let tick = 2; tick < enterFrame; tick++) frame(world);
+      assertEquals(target.status.damage, 0.0);
+      if (enterFrame <= 52) assertTrue(projectedProjectile(owner, 0, true).armed);
+      target.motion.x = f32(180.0 * facing);
+      target.motion.z = 0.0; target.motion.vz = 0.0; target.motion.grounded = true; target.motion.surface = 0;
+      frame(world); assertEquals(target.status.damage, enterFrame <= 52 ? 10.0 : 0.0);
+      for (let tick = enterFrame + 1; tick <= 60; tick++) frame(world);
+      assertEquals(target.status.damage, enterFrame <= 52 ? 10.0 : 0.0);
+      assertTrue(!projectedProjectile(owner, 0, true).visible); assertEquals(owner.mana.points, 20);
+    }
+    const blocked = pair(180.0, facing);
+    const defense = controls({ shield: true, shieldStrength: 1.0 });
+    frame(blocked.world, controls({ specialPressed: true }), defense);
+    for (let tick = 2; tick <= 60; tick++) frame(blocked.world, controls(), defense);
+    assertEquals(blocked.target.status.damage, 0.0); assertEquals(blocked.owner.mana.points, 20);
+
+    const interrupted = pair(1000.0, facing);
+    frame(interrupted.world, controls({ specialPressed: true }));
+    for (let tick = 2; tick <= 16; tick++) frame(interrupted.world);
+    assertTrue(projectedProjectile(interrupted.owner, 0, true).visible);
+    cancelSpecialState(interrupted.owner);
+    interrupted.target.motion.x = f32(180.0 * facing);
+    interrupted.target.motion.z = 0.0; interrupted.target.motion.vz = 0.0; interrupted.target.motion.grounded = true; interrupted.target.motion.surface = 0;
+    for (let tick = 17; tick <= 60; tick++) frame(interrupted.world);
+    assertEquals(interrupted.target.status.damage, 0.0); assertEquals(interrupted.owner.mana.points, 20);
+    assertTrue(!projectedProjectile(interrupted.owner, 0, true).visible);
+  }
 });
 
 test("Kaelthas Siphon transfers available mana only on body contact and shields stop it", () => {

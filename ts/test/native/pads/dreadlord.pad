@@ -48,16 +48,16 @@
 777 b tap A 2
 781 b tap A 2
 #! expect a 60 special 16 form 0
-#! expect b 110 damage 2.000
+#! expect b 110 damage 1.810
 #! expect b 136 applied attack 1 style 0
 #! expect a 160 special 16 form 0
 #! absent b 161-379 damage
 #! expect a 330 special 16 form 0
-#! expect b 380 damage 4.000
+#! expect b 380 damage 3.620
 #! absent b 381-483 applied attack
 #! expect b 484 applied attack 2 style 0
 #! expect a 670 special 16 form 0
-#! expect b 720 damage 6.000
+#! expect b 720 damage 5.430
 #! absent b 721-755 applied attack
 #! expect b 757 applied attack 3 style 0
 #! scene a SleepSpecialArt

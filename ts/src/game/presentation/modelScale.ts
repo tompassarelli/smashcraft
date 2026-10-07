@@ -25,7 +25,7 @@ export const STOCK_MODEL_SCALES: Readonly<Record<Character, { readonly unit: str
   [Character.mountainKing]: { unit: "Hmkg", scale: 1.0 },
   [Character.warden]: { unit: "Ewar", scale: 1.0 },
   [Character.lich]: { unit: "Ulic", scale: 1.0 },
-  [Character.uther]: { unit: "Hpal", scale: 1.0 },
+  [Character.uther]: { unit: "Npal", scale: f32(1.2) },
   [Character.dreadlord]: { unit: "Udre", scale: 1.0 },
   [Character.shadowHunter]: { unit: "Oshd", scale: 1.0 },
   [Character.pitLord]: { unit: "Nplh", scale: 1.0 },

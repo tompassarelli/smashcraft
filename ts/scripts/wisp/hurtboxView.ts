@@ -174,19 +174,21 @@ export class DrawnModel {
       const vertices = geoset.Vertices;
       const skinned = new Float32Array((vertices.length / 3) * 2);
       for (let vertex = 0; vertex < vertices.length / 3; vertex++) {
-        const group = geoset.Groups[geoset.VertexGroup[vertex] ?? 0] ?? [];
+        const skin = geoset.SkinWeights;
+        const group = skin === undefined ? geoset.Groups[geoset.VertexGroup[vertex] ?? 0] ?? [] : Array.from(skin.subarray(vertex * 8, vertex * 8 + 4));
         const vx = vertices[vertex * 3] ?? 0;
         const vy = vertices[vertex * 3 + 1] ?? 0;
         const vz = vertices[vertex * 3 + 2] ?? 0;
         let x = 0.0;
         let z = 0.0;
-        for (const node of group) {
+        for (const [influence, node] of group.entries()) {
           const m = data.nodes[node]?.matrix;
           if (m === undefined) continue;
-          x += (m[0] ?? 0) * vx + (m[4] ?? 0) * vy + (m[8] ?? 0) * vz + (m[12] ?? 0);
-          z += (m[2] ?? 0) * vx + (m[6] ?? 0) * vy + (m[10] ?? 0) * vz + (m[14] ?? 0);
+          const weight = skin === undefined ? 1 : (skin[vertex * 8 + 4 + influence] ?? 0) / 255;
+          x += ((m[0] ?? 0) * vx + (m[4] ?? 0) * vy + (m[8] ?? 0) * vz + (m[12] ?? 0)) * weight;
+          z += ((m[2] ?? 0) * vx + (m[6] ?? 0) * vy + (m[10] ?? 0) * vz + (m[14] ?? 0)) * weight;
         }
-        const count = Math.max(1, group.length);
+        const count = skin === undefined ? Math.max(1, group.length) : 1;
         skinned[vertex * 2] = (facing * x * this.scale) / count;
         skinned[vertex * 2 + 1] = (z * this.scale) / count;
       }
