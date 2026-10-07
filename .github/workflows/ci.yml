@@ -63,13 +63,14 @@ jobs:
         working-directory: ts
         env:
           LUA: ${{ github.workspace }}/ts/build/lua-stock/lua-5.3.6/src/lua
-      # Frame-cost landing gate (#48): the playable build's four-fighter bot match,
+      # Frame-cost landing gate (#48, #168): the playable build's four-fighter bot match,
       # each frame's cost predicted from counts (not time), may not rise beyond 5%
       # over the committed baseline. After an intended rise or a cut, rewrite the
       # baseline with `bun wisp perf playable-bot-four --out test/fixtures/perf/playable-bot-four.perf`.
+      # Its absolute budget is p99 <= 10 ms and worst <= 14 ms.
       # It runs even when an earlier check fails, so a red logic suite cannot hide a cost rise.
       - if: ${{ !cancelled() }}
-        run: bun wisp perf playable-bot-four --out build/playable-bot-four.perf && bun wisp perf compare test/fixtures/perf/playable-bot-four.perf build/playable-bot-four.perf
+        run: bun wisp perf playable-bot-four --samples --out build/playable-bot-four.perf && bun wisp perf compare test/fixtures/perf/playable-bot-four.perf build/playable-bot-four.perf && bun wisp perf budget build/playable-bot-four.perf
         working-directory: ts
         env:
           LUA: ${{ github.workspace }}/ts/build/lua-stock/lua-5.3.6/src/lua
