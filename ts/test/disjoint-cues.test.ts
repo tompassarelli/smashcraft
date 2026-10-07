@@ -182,12 +182,14 @@ test("existing bear, hippogryph and freeze trap art follows the remote contact c
       if (frame === 100) fighter.hippogryph.kind = HippogryphKind.released;
       advanceSummons(summons, fighter, 0);
       renderer.presentSummons(summons, fighter, 0);
+      renderer.presentHippogryph(fighter, 0, frame);
       renderer.presentConfirmedAnimated(frame, fighter, 0);
       frost.present(fighter, 0);
       const actual = client.effectPoses().filter(effect => effect.scale > 0 && effect.z > 0);
       expect(actual).toHaveLength(3);
       expect(actual.some(effect => effect.x === fighter.bear.x && effect.z === fighter.bear.z)).toBe(true);
-      expect(actual.some(effect => effect.x === fighter.hippogryph.x && effect.z === fighter.hippogryph.z)).toBe(true);
+      const birdZ = fighter.hippogryph.z - (fighter.hippogryph.kind === HippogryphKind.released ? 60 : 0);
+      expect(actual.some(effect => effect.x === fighter.hippogryph.x && effect.z === birdZ)).toBe(true);
       expect(actual.some(effect => effect.x === fighter.freezeTrap.x && effect.z === fighter.freezeTrap.z)).toBe(true);
     }
     renderer.destroy();
