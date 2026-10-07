@@ -25,7 +25,7 @@ const retimed = (index: number, seconds: number, startup: number, total: number,
 // roll and get-up attack. Only Illidan maps smashes and a dash attack.
 const ARCHER_CLIPS: HeroClipTable = {
   // Jab slices (#163): the first part of each jab swing, short of the forward tilt's drawn reach.
-  jab: jabSlice({ index: assets.ARCHER_JAB_INDEX }, f32(0.105)),
+  jab: jabSlice({ index: assets.ARCHER_JAB_INDEX }, f32(0.109)),
   // The chain's low kick plays her sliding kick's sequence.
   jab2: jabSlice({ index: assets.ARCHER_DOWN_TILT_INDEX }, f32(0.185)),
   grab: clip(assets.ARCHER_GRAB_INDEX, assets.ARCHER_GRAB_SECONDS),

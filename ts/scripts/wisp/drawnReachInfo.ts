@@ -2,7 +2,7 @@
 
 /** Per original-fighter move (#156): the model and clip measured, the drawn swing toward the strike and its peak and active frames. */
 export const DRAWN_REACH: readonly { readonly character: number; readonly style: number; readonly model: string; readonly clip: number; readonly swing: number; readonly peakFrame: number; readonly firstActive: number; readonly lastActive: number; readonly forward: number }[] = [
-  { character: 0, style: 0, model: "war3mapImported\\ArcherFighter-350ce721514fbb3ad917c2ddacf0515ee416b55efa419d330c3c24caeeb5f4c9.mdx", clip: 7, swing: 25.6, peakFrame: 4, firstActive: 4, lastActive: 5, forward: 69.8 },
+  { character: 0, style: 0, model: "war3mapImported\\ArcherFighter-350ce721514fbb3ad917c2ddacf0515ee416b55efa419d330c3c24caeeb5f4c9.mdx", clip: 7, swing: 32.9, peakFrame: 4, firstActive: 4, lastActive: 5, forward: 76.6 },
   { character: 0, style: 20, model: "war3mapImported\\ArcherFighter-350ce721514fbb3ad917c2ddacf0515ee416b55efa419d330c3c24caeeb5f4c9.mdx", clip: 17, swing: 33.4, peakFrame: 3, firstActive: 3, lastActive: 5, forward: 73.2 },
   { character: 0, style: 6, model: "war3mapImported\\ArcherFighter-350ce721514fbb3ad917c2ddacf0515ee416b55efa419d330c3c24caeeb5f4c9.mdx", clip: 19, swing: 39.3, peakFrame: 5, firstActive: 5, lastActive: 6, forward: 77.8 },
   { character: 0, style: 9, model: "war3mapImported\\ArcherFighter-350ce721514fbb3ad917c2ddacf0515ee416b55efa419d330c3c24caeeb5f4c9.mdx", clip: 21, swing: 42.3, peakFrame: 5, firstActive: 5, lastActive: 6, forward: 61.7 },
