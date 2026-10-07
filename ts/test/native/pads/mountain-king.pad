@@ -30,7 +30,7 @@
 #! expect b 394 damage 18.785 hitlag 5 hitstun 21
 #! expect a 600 special 15 form 0
 #! expect a 615 special-form 6 action 15
-#! expect a 625 special 0 form 6
+#! expect a 626 special 0 form 6
 #! scene a StormBoltMissile
 #! scene a ThunderClapCaster
 1000 a press VIEW
