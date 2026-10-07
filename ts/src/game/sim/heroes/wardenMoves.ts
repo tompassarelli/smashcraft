@@ -236,6 +236,6 @@ export const WARDEN_MOVES: FighterMoves = {
     [GrabAction.throwForward]: throwMove(10, 18, 6.0, "EDGE", 35),
     [GrabAction.throwBack]: throwMove(14, 21, 7.0, "EDGE", 40, -1.0),
     [GrabAction.throwUp]: throwMove(11, 9, 5.0, "JUGGLE", 85),
-    [GrabAction.throwDown]: throwMove(14, 20, 4.0, "CHASE", 70),
+    [GrabAction.throwDown]: throwMove(14, 20, 4.0, "CHASE", 25),
   },
 };
