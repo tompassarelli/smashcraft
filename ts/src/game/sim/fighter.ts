@@ -258,6 +258,10 @@ export interface Projectile {
   newlyReflected: boolean;
   /** Rifleman's Long Rifle shot (sim/passives.ts): it launches where the blaster flinches. */
   longRifle: boolean;
+  /** A pool's damaging hits so far, which widen it (SpecialProjectile.pool). */
+  poolHits: number;
+  /** Frames before a pool may strike again. */
+  poolWait: number;
   /** A hero projectile's authored record; immutable and shared like tuning. */
   spec: SpecialProjectile | undefined;
 }
@@ -553,6 +557,8 @@ function emptyProjectile(): Projectile {
     damageMultiplier: 1.0,
     newlyReflected: false,
     longRifle: false,
+    poolHits: 0,
+    poolWait: 0,
     spec: undefined,
   };
 }

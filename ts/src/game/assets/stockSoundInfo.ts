@@ -47,6 +47,8 @@ export const VERIFIED_STOCK_SOUNDS: Readonly<Record<string, string>> = {
   "Units\\Demon\\HeroPitLord\\HPitLordWarcry1.flac": "war3.w3mod:_locales\\enus.w3mod:units\\demon\\heropitlord\\hpitlordwarcry1.ogg",
   "Units\\Creeps\\BeastMaster\\OgreBeastMasterReady1.flac": "war3.w3mod:_locales\\enus.w3mod:units\\creeps\\beastmaster\\ogrebeastmasterready1.ogg",
   "Units\\Creeps\\BeastMaster\\OgreBeastMasterWarcry1.flac": "war3.w3mod:_locales\\enus.w3mod:units\\creeps\\beastmaster\\ogrebeastmasterwarcry1.ogg",
+  "Units\\Undead\\EvilArthas\\EvilArthasWhat1.flac": "war3.w3mod:_locales\\enus.w3mod:units\\undead\\evilarthas\\evilarthaswhat1.ogg",
+  "Units\\Undead\\EvilArthas\\EvilArthasWarcry1.flac": "war3.w3mod:_locales\\enus.w3mod:units\\undead\\evilarthas\\evilarthaswarcry1.ogg",
   "Sound\\Units\\Combat\\MetalLightSliceFlesh1.flac": "war3.w3mod:sound\\units\\combat\\metallightsliceflesh1.ogg",
   "Sound\\Units\\Combat\\MetalLightSliceFlesh2.flac": "war3.w3mod:sound\\units\\combat\\metallightsliceflesh2.ogg",
   "Sound\\Units\\Combat\\MetalLightSliceFlesh3.flac": "war3.w3mod:sound\\units\\combat\\metallightsliceflesh3.ogg",

@@ -209,6 +209,8 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
     to.damageMultiplier = from.damageMultiplier;
     to.newlyReflected = from.newlyReflected;
     to.longRifle = from.longRifle;
+    to.poolHits = from.poolHits;
+    to.poolWait = from.poolWait;
     to.spec = from.spec;
   }
 

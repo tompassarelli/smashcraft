@@ -15,6 +15,7 @@ import { type HitRegion, NO_HIT_REGION, authoredHitRegion, authoredHitRegionCoun
 import { type Controls, type Roster, fighterAt, isActive } from "./roster";
 import { travelBeforeBodies } from "./travelStop";
 import { fillMana, gainMana, spendMana } from "./mana";
+import { heldSouls, spendSoul } from "./passives";
 import { endDivineShield } from "./transitions";
 import { capsuleCircleIntersects, shieldSizeMultiplier } from "./shield";
 import { attackCapsule, emptyCapsule, placeCapsule } from "../physics/contactGeometry";
@@ -110,7 +111,8 @@ export function chooseHeroSpecial(f: Readonly<Fighter>, specials: Readonly<Fight
   const airborne = !f.motion.grounded;
   const recalls = kit.recall !== undefined && recallHolds(f, kit);
   const marks = kit.marked !== undefined && world !== undefined && markedTarget(world, f, kit.marked.range) !== undefined;
-  let form: SpecialForm = recalls ? SpecialForm.recall : marks ? SpecialForm.marked : airborne && kit.air !== undefined ? SpecialForm.air : SpecialForm.ground;
+  const souls = kit.soul !== undefined && heldSouls(f) > 0;
+  let form: SpecialForm = recalls ? SpecialForm.recall : marks ? SpecialForm.marked : souls ? SpecialForm.soul : airborne && kit.air !== undefined ? SpecialForm.air : SpecialForm.ground;
   let move = specialForm(kit, form);
   if (move.groundOnly === true && airborne) return undefined;
   if (move.armor?.shell === true && f.status.armorFrames > 0) return undefined;
@@ -162,6 +164,7 @@ export function enterHeroSpecial(f: Fighter, chosen: Readonly<HeroSpecialChoice>
   for (let entry = 0; entry < PARTICIPANT_CAPACITY; entry++) special.hitTargets[entry] = undefined;
   special.hit = false;
   special.guarded = false;
+  if (chosen.form === SpecialForm.soul) spendSoul(f);
   spendMana(f, move.cost);
   if (move.oncePerAirtime === true) special.airtimeUses |= 1 << chosen.slot;
   if (move.recallsProjectiles === true) recallProjectiles(f);
@@ -246,6 +249,8 @@ export function spawnHeroProjectileAt(owner: Fighter, spec: Readonly<SpecialProj
     projectile.damageMultiplier = 1.0;
     projectile.newlyReflected = false;
     projectile.longRifle = false;
+    projectile.poolHits = 0;
+    projectile.poolWait = 0;
     projectile.life = spec.life;
     return;
   }

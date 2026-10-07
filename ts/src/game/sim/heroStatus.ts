@@ -29,6 +29,12 @@ interface StatusRules {
   readonly mashMinimum?: number | undefined;
   /** Scales the damage of every hit the fighter deals; 1 when absent. */
   readonly damageDealt?: number | undefined;
+  /**
+   * Carried away (Val'kyr Shadowguard): each frame the fighter moves `speed`
+   * toward its back and rises `rise`, with no gravity or drift; it faces the
+   * way it was struck from, so its back is the way the carrier flew.
+   */
+  readonly carry?: { readonly speed: number; readonly rise: number } | undefined;
 }
 
 const RULES: { readonly [kind: number]: StatusRules | undefined } = {
@@ -42,6 +48,9 @@ const RULES: { readonly [kind: number]: StatusRules | undefined } = {
   [HeroStatusKind.stun]: { blocksActions: true, blocksSpecials: true, endsOnDamage: true },
   // Howl of Terror: every hit the fighter deals does 10 percent less damage; nothing else changes.
   [HeroStatusKind.terror]: { blocksActions: false, blocksSpecials: false, endsOnDamage: false, damageDealt: f32(0.9) },
+  // Val'kyr Shadowguard (#167): carried toward the ledge behind the victim; mashed out never before frame 20, and any
+  // damaging hit, the Lich King's included, drops it, so the carry can't be extended into a combo.
+  [HeroStatusKind.carried]: { blocksActions: true, blocksSpecials: true, endsOnDamage: true, mashMinimum: 20, carry: { speed: 3.0, rise: 0.5 } },
 };
 
 
@@ -180,4 +189,23 @@ export function maskHeroStatusControls(f: Fighter, input: Controls, commands: At
     input.getupAttackPressed = false;
   }
   if (active.blocksSpecials && input.specialZ <= 0) input.specialPressed = false;
+}
+
+/**
+ * A carried fighter's velocity for this frame, set before its motion
+ * integrates; true when the carry holds it, so steering, drag and gravity
+ * leave the velocity alone.
+ */
+export function carryHeroStatus(f: Fighter): boolean {
+  const carry = rules(f)?.carry;
+  if (carry === undefined || f.launch.hitstun > 0) return false;
+  const { motion } = f;
+  motion.vx = f32(-f.facing * carry.speed);
+  motion.vz = carry.rise;
+  motion.fastFalling = false;
+  if (motion.grounded) {
+    motion.grounded = false;
+    motion.surface = undefined;
+  }
+  return true;
 }

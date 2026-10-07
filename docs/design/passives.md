@@ -105,6 +105,7 @@ when built). Each fighter's section names only its differences.
 | Shadow Hunter | Voodoo crossfire (Big Bad Voodoo) | Glaive and ward body hits, up to 2, 240-frame window | His next landed melee hit: +2% per pip | Break the ward, shield shots, shield his normals while lit |
 | Pit Lord | Cleaving Attack | 2 cleaver contacts, hit or blocked, 180-frame window | 3rd: double shield damage on a shield; +3% on a body | Don't shield the third swing: dodge, roll or jump it |
 | Beastmaster | Pack Hunt (Summon Bear) | One pair window, 40 frames | Owner and bear hitting the same target within 40 frames: the second hit +3% | Don't stand between them; break the bear |
+| Lich King | Frostmourne Hungers (#167) | Landed Frostmourne normals and Harvest Soul, up to 3, no window | Not a proc: Howling Blast and Val'kyr Shadowguard spend one for their soul form | Shield his normals; read the pips before his specials |
 
 ## Blademaster: Critical Strike
 

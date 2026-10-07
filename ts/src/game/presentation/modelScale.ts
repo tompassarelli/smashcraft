@@ -1,5 +1,6 @@
 import { f32 } from "wisp/src/sim/f32";
 import { Character } from "../sim/codes";
+import { LICH_KING_STOCK_SCALE } from "../assets/importedModelInfo";
 
 /**
  * Fighters keep Warcraft's own model proportions (#162): each is drawn at its
@@ -28,6 +29,7 @@ export const STOCK_MODEL_SCALES: Readonly<Record<Character, { readonly unit: str
   [Character.shadowHunter]: { unit: "Oshd", scale: 1.0 },
   [Character.pitLord]: { unit: "Nplh", scale: 1.0 },
   [Character.beastmaster]: { unit: "Nbst", scale: 1.0 },
+  [Character.lichKing]: LICH_KING_STOCK_SCALE,
 };
 
 /** The scale each fighter model is drawn at; effects attached to it scale with it. */

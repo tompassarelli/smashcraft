@@ -3,7 +3,7 @@
 // strongest launch wins; blocked contacts drain and push the shield instead.
 import { max, min, toInt } from "../../runtime/numbers";
 import { addFloat32, divideFloat32, multiplyFloat32, roundToFloat32, subtractFloat32 } from "wisp/src/sim/binary32";
-import { ContactKind, DownState, HitOrigin } from "./codes";
+import { ContactKind, DownState, HeroStatusKind, HitOrigin } from "./codes";
 import { isDownDamageState } from "./conditions";
 import { DOWN_DAMAGE_RESET_THRESHOLD } from "./down";
 import type { Fighter } from "./fighter";
@@ -365,7 +365,11 @@ function bashes(slot: number): boolean {
 function applyContactStatuses(world: Roster, slot: number): void {
   for (let index = 0; index < batch.count; index++) {
     const contact = contactAt(index);
-    if (contact.target === slot && !contact.blocked && contact.status !== undefined) applyHeroStatus(fighterAt(world, slot), contact.status);
+    if (contact.target !== slot || contact.blocked || contact.status === undefined) continue;
+    const target = fighterAt(world, slot);
+    applyHeroStatus(target, contact.status);
+    // A carried fighter faces back along the hit, so the carry takes it the way the carrier flew.
+    if (target.status.condition === HeroStatusKind.carried && contact.status.kind === HeroStatusKind.carried) target.facing = contact.facing < 0 ? 1 : -1;
   }
 }
 

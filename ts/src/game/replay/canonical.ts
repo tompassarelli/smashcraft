@@ -235,6 +235,11 @@ export function specialProjectileCanonical(spec: Readonly<SpecialProjectile>, pr
     int("returns.age", spec.returns.age);
     real("returns.speed", spec.returns.speed);
   }
+  if (spec.pool !== undefined) {
+    int("pool.every", spec.pool.every);
+    real("pool.growth", spec.pool.growth);
+    real("pool.maxRadius", spec.pool.maxRadius);
+  }
   return result.join("");
 }
 
@@ -635,6 +640,12 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   for (let i = 0; i < PROJECTILE_CAPACITY; i++) int(`projectileSerial[${i}]`, at(fighter.projectiles, i).serial);
   int("manaDrainedSerial", v.manaDrained);
   for (let i = 0; i < PROJECTILE_CAPACITY; i++) if (at(fighter.projectiles, i).longRifle) int(`projectileLongRifle[${i}]`, 1);
+  // A pool's growth and strike wait (the Lich King's Defile); written only while either is live.
+  for (let i = 0; i < PROJECTILE_CAPACITY; i++) {
+    const projectile = at(fighter.projectiles, i);
+    if (projectile.poolHits !== 0) int(`projectilePoolHits[${i}]`, projectile.poolHits);
+    if (projectile.poolWait !== 0) int(`projectilePoolWait[${i}]`, projectile.poolWait);
+  }
   // Passive state (#148) is written only where it differs from a fresh fighter's.
   const ps = fighter.passive;
   if (ps.stacks !== 0) int("passiveStacks", ps.stacks);

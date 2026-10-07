@@ -7,7 +7,7 @@ data record; the simulation, replay, selection and object data read it.
 ## Registering a hero
 
 - `ts/src/game/sim/codes.ts` reserves the Character codes: Blademaster 3,
-  Mountain King 4, Warden 5, Lich 6, Uther 7, Dreadlord 8, Shadow Hunter 9, Pit Lord 10, Beastmaster 11.
+  Mountain King 4, Warden 5, Lich 6, Uther 7, Dreadlord 8, Shadow Hunter 9, Pit Lord 10, Beastmaster 11, Lich King 12.
   Hero specials run under `SpecialAction.heroNeutral`..`heroDown` (13-16) and
   hero projectiles under `ProjectileKind.hero` (5).
 - `ts/src/game/sim/heroes/<hero>Hero.ts` is one hero's `HeroDefinition`
@@ -146,6 +146,19 @@ its own status. A status ending by time or hit grants its group's immunity, so
 no source chains it. Reapplying refreshes the duration. Status, frames, group
 and per-group immunity are rollback state, written to the canonical record
 only while live; a new stock clears them.
+
+Carried (the Lich King's Val'kyr Shadowguard, #167) discards every input
+and replaces motion: each frame the fighter moves its rule's speed toward its
+back and rises, with no gravity or drift, and the hit that applies it turns
+the victim to face back along the hit. It mashes out as Sleep does (never
+before frame 20) and any damaging hit ends it (`carryHeroStatus`).
+
+A kit's optional `soul` form (the Lich King's Frostmourne Hungers) replaces
+its ground and air forms while the fighter banks a soul, and entering it
+spends one (`heldSouls`, `spendSoul` in `sim/passives.ts`). A projectile's
+optional `pool` (Defile) keeps it alive through its hits: it waits `every`
+frames between strikes and widens by `growth` per body hit up to `maxRadius`;
+its hit count and wait are projectile rollback state.
 
 `sim/heroSpecialRules.ts` executes them: `chooseHeroSpecial` selects the
 form, `enterHeroSpecial` spends and records the entry, `advanceHeroSpecial`

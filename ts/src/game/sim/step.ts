@@ -39,6 +39,7 @@ import {
 } from "./fighter";
 import { DASH_GUARD_EARLY_FRAMES, advanceGroundMovement, clearDash } from "./groundMovement";
 import { heroMotionHolds } from "./heroSpecialRules";
+import { carryHeroStatus } from "./heroStatus";
 import { demonHunterGliding, demonHunterJumpOrGlideCancel } from "./specials";
 import { AIR_DODGE_ANIMATION_FRAMES, AIR_DODGE_DECAY, beginAirDodge, beginGroundDodge, beginJump, canBeginGroundDodge } from "./jumpsAndDodges";
 import { ageKnockback, applyDirectionalInfluence, decayKnockback } from "./knockback";
@@ -504,7 +505,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   }
   let dashEntryDisplacementAdjustment = 0.0;
   // Archer's hippogryph ride and Illidan's glide set the velocity each frame (specials.ts).
-  const authoredMotion = heroMotionHolds(f) || f.special.action === SpecialAction.archerRecovery || demonHunterGliding(f);
+  const authoredMotion = carryHeroStatus(f) || heroMotionHolds(f) || f.special.action === SpecialAction.archerRecovery || demonHunterGliding(f);
   const canSteer = !authoredMotion && down.state === DownState.none && launch.hitstun <= 0 && (!dodge.airDodging || !dodgeActive) && !isGroundDodging(f)
     && shield.releaseLag <= 0 && f.landing.lag <= 0 && shield.stun <= 0 && jump.squat <= 0 && !smashChargePaused
     && (!motion.grounded || attack.cooldown <= 0) && f.surfaceRecovery.state !== SurfaceContact.techWall;

@@ -67,6 +67,8 @@ const RACES: readonly Race[] = [
   Race.undead,
   // Beastmaster: the orcish Rexxar.
   Race.orc,
+  // The Lich King: the Scourge.
+  Race.undead,
 ];
 
 export const characterRace = (character: Character): Race => at(RACES, character);
@@ -80,8 +82,11 @@ const VICTORY_MUSIC: readonly string[] = [
 export const victoryMusic = (winner: Character | undefined): string | undefined =>
   winner === undefined ? undefined : at(VICTORY_MUSIC, characterRace(winner));
 
-/** By Character: the unit's sound directory and the prefix of its voice files. */
-const VOICES: readonly (readonly [string, string])[] = [
+/**
+ * By Character: the unit's sound directory, the prefix of its voice files, and
+ * the line it says when chosen where the unit has no Ready line (a campaign hero).
+ */
+const VOICES: readonly (readonly [string, string, string?])[] = [
   ["Units\\NightElf\\Archer\\", "Archer"],
   ["Units\\Human\\Rifleman\\", "Rifleman"],
   ["Units\\NightElf\\HeroDemonHunter\\", "HeroDemonHunter"],
@@ -94,11 +99,13 @@ const VOICES: readonly (readonly [string, string])[] = [
   ["Units\\Orc\\HeroShadowHunter\\", "ShadowHunter"],
   ["Units\\Demon\\HeroPitLord\\", "HPitLord"],
   ["Units\\Creeps\\BeastMaster\\", "OgreBeastMaster"],
+  // Evil Arthas, the Lich King's own voice; a campaign hero with no Ready line.
+  ["Units\\Undead\\EvilArthas\\", "EvilArthas", "What"],
 ];
 
 function voice(character: Character, line: string): string {
-  const [directory, prefix] = at(VOICES, character);
-  return `${directory}${prefix}${line}1.flac`;
+  const [directory, prefix, ready] = at(VOICES, character);
+  return `${directory}${prefix}${line === "Ready" ? ready ?? line : line}1.flac`;
 }
 
 /** The line a hero says when trained: played when a player confirms that fighter. */

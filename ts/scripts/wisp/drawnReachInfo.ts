@@ -106,4 +106,13 @@ export const DRAWN_REACH: readonly { readonly character: number; readonly style:
   { character: 11, style: 7, model: "units\\creeps\\BeastMaster\\BeastMaster.mdl", clip: 6, swing: 115.1, peakFrame: 8, firstActive: 8, lastActive: 11, forward: 195.0 },
   { character: 11, style: 8, model: "units\\creeps\\BeastMaster\\BeastMaster.mdl", clip: 4, swing: 94.1, peakFrame: 7, firstActive: 7, lastActive: 9, forward: 147.1 },
   { character: 11, style: 19, model: "units\\creeps\\BeastMaster\\BeastMaster.mdl", clip: 4, swing: 102.9, peakFrame: 10, firstActive: 10, lastActive: 14, forward: 162.3 },
+  { character: 12, style: 0, model: "war3mapImported\\LichKing2.mdx", clip: 13, swing: 143.2, peakFrame: 5, firstActive: 5, lastActive: 7, forward: 184.3 },
+  { character: 12, style: 20, model: "war3mapImported\\LichKing2.mdx", clip: 14, swing: 135.8, peakFrame: 6, firstActive: 6, lastActive: 8, forward: 179.4 },
+  { character: 12, style: 21, model: "war3mapImported\\LichKing2.mdx", clip: 15, swing: 106.6, peakFrame: 8, firstActive: 8, lastActive: 10, forward: 165.2 },
+  { character: 12, style: 6, model: "war3mapImported\\LichKing2.mdx", clip: 16, swing: 130.5, peakFrame: 9, firstActive: 10, lastActive: 13, forward: 191.9 },
+  { character: 12, style: 9, model: "war3mapImported\\LichKing2.mdx", clip: 16, swing: 130.5, peakFrame: 9, firstActive: 10, lastActive: 13, forward: 191.9 },
+  { character: 12, style: 10, model: "war3mapImported\\LichKing2.mdx", clip: 16, swing: 130.5, peakFrame: 9, firstActive: 10, lastActive: 13, forward: 191.9 },
+  { character: 12, style: 7, model: "war3mapImported\\LichKing2.mdx", clip: 17, swing: 108.2, peakFrame: 8, firstActive: 9, lastActive: 13, forward: 59.1 },
+  { character: 12, style: 8, model: "war3mapImported\\LichKing2.mdx", clip: 18, swing: 89.6, peakFrame: 8, firstActive: 8, lastActive: 11, forward: 153.2 },
+  { character: 12, style: 19, model: "war3mapImported\\LichKing2.mdx", clip: 19, swing: 138.7, peakFrame: 11, firstActive: 11, lastActive: 14, forward: 202.7 },
 ];

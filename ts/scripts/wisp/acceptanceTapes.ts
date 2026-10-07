@@ -326,6 +326,26 @@ const BEASTMASTER: MatchScript = {
 };
 
 /**
+ * The Lich King's Howling Blast, a jab chain that banks souls, a soul-spent
+ * Val'kyr that carries the Archer while she mashes, Defile under her
+ * approach, Ascension, a Harvest Soul down throw and a Quake down smash.
+ */
+const LICH_KING: MatchScript = {
+  characters: [Character.lichKing, Character.archer], stage: 0, stocks: 3, minutes: 0, frames: 640,
+  holds: [[
+    [20, 2, SPECIAL], [90, 2, ATTACK], [98, 2, ATTACK], [106, 2, ATTACK], [150, 4, TOWARD], [151, 2, SPECIAL],
+    [260, 4, DOWN], [261, 2, SPECIAL], [380, 3, JUMP], [390, 4, UP], [391, 2, SPECIAL], [480, 2, GRAB],
+    [486, 4, DOWN], [560, 2, C_DOWN],
+  ], [
+    [60, 2, ATTACK], [170, 2, ATTACK], [174, 2, ATTACK], [178, 2, ATTACK], [182, 2, ATTACK], [186, 2, ATTACK],
+    [200, 2, JUMP], [300, 10, SHIELD_LEFT], [420, 2, ATTACK], [530, 2, ATTACK],
+  ]],
+  approaches: [[[70, 60], [130, 120], [440, 45], [540, 50]], [[40, 200], [280, 40], [400, 60]]],
+  rollbacks: [[24, 60], [92, 120], [152, 200], [262, 320], [392, 440], [482, 530], [562, 610]],
+  predictions: [[150, 162], [480, 492]],
+};
+
+/**
  * Pit Lord's Fel Spit arcs at the Archer, Ruin Charge runs in on its armor,
  * Howl of Terror roars and the terrified Archer jabs back, Abyssal Leap
  * rises, then the cleaver normals, a grab and a back throw, and a down air.
@@ -423,6 +443,7 @@ export function generateTapes(): Map<string, string> {
     ["mountain-king", recordTape("Mountain King's specials, free Thunder Leap, normals and a throw against the Archer, with replays.", [MOUNTAIN_KING])],
     ["shadow-hunter", recordTape("Shadow Hunter's glaive, ward, Hex, recall, vault and normals against the Archer, with replays.", [SHADOW_HUNTER])],
     ["pit-lord", recordTape("Pit Lord's arcing spit, armored charge, Terror, leap, cleaver normals and a throw against the Archer, with replays.", [PIT_LORD])],
+    ["lich-king", recordTape("The Lich King's blast, soul-banking jabs, a Val'kyr carry mashed against, Defile, Ascension, Harvest Soul and Quake against the Archer, with replays.", [LICH_KING])],
     ["beastmaster", recordTape("Beastmaster's bear summoned, commanded, recalled and followed, his axe, Hawk Lift, normals and a throw against the Archer, with replays.", [BEASTMASTER])],
     ["warden", recordTape("Warden's specials with poison and an aimed Blink, normals and a throw against the Archer, with replays.", [WARDEN])],
     ["uther", recordTape("Uther's specials, guard, free recovery and normals against the Archer, with replays.", [UTHER])],

@@ -1,11 +1,11 @@
 // Numeric state codes. Replay snapshots serialize these values into their
 // checksums, so each number is canonical and must equal the Wurst constant.
 
-/** Codes 3-9 are the roster expansion (smashcraft:docs/design/roster.md), defined in sim/heroes/registry.ts. */
+/** Codes 3 and up are the roster expansion (smashcraft:docs/design/roster.md), defined in sim/heroes/registry.ts. */
 export const Character = {
   archer: 0, rifleman: 1, demonHunter: 2,
   blademaster: 3, mountainKing: 4, warden: 5, lich: 6, uther: 7, dreadlord: 8, shadowHunter: 9,
-  pitLord: 10, beastmaster: 11,
+  pitLord: 10, beastmaster: 11, lichKing: 12,
 } as const;
 export type Character = (typeof Character)[keyof typeof Character];
 
@@ -158,7 +158,7 @@ export const HitElement = { normal: 0, fire: 1, electric: 2, slash: 3, ice: 5, d
 export type HitElement = (typeof HitElement)[keyof typeof HitElement];
 
 /** Hero statuses (sim/heroStatus.ts) a body hit applies. Append only: the code is in replay text. */
-export const HeroStatusKind = { none: 0, sleep: 1, poison: 2, hex: 3, stun: 4, chill: 5, terror: 6 } as const;
+export const HeroStatusKind = { none: 0, sleep: 1, poison: 2, hex: 3, stun: 4, chill: 5, terror: 6, carried: 7 } as const;
 export type HeroStatusKind = (typeof HeroStatusKind)[keyof typeof HeroStatusKind];
 
 /**
@@ -172,7 +172,7 @@ export const HERO_STATUS_GROUPS = 4;
 
 /** Each fighter's one passive (sim/passives.ts, #148). */
 export const PassiveKind = {
-  none: 0, criticalStrike: 1, bash: 2, blink: 3, trueshot: 4, longRifles: 5, frostArmor: 6, devotion: 7, vampiric: 8, voodoo: 9, cleave: 10, packHunt: 11,
+  none: 0, criticalStrike: 1, bash: 2, blink: 3, trueshot: 4, longRifles: 5, frostArmor: 6, devotion: 7, vampiric: 8, voodoo: 9, cleave: 10, packHunt: 11, souls: 12,
 } as const;
 export type PassiveKind = (typeof PassiveKind)[keyof typeof PassiveKind];
 

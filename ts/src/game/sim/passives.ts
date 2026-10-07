@@ -6,7 +6,7 @@
 import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { roundToFloat32 } from "wisp/src/sim/binary32";
-import { Character, HitOrigin, LedgeState, PassiveKind, ProjectileKind } from "./codes";
+import { Character, GrabAction, HitOrigin, LedgeState, PassiveKind, ProjectileKind } from "./codes";
 import { isAerialAttack } from "./moves";
 import type { Fighter, Projectile } from "./fighter";
 
@@ -34,6 +34,7 @@ const SPECS: readonly PassiveSpec[] = [
   { kind: PassiveKind.voodoo, stacks: 2, window: 240 }, // shadowHunter
   { kind: PassiveKind.cleave, stacks: 2, window: 180 }, // pitLord
   { kind: PassiveKind.packHunt, stacks: 1, window: 0 }, // beastmaster
+  { kind: PassiveKind.souls, stacks: 3, window: 0 }, // lichKing
 ];
 
 export function passiveSpec(character: Character): PassiveSpec {
@@ -103,6 +104,9 @@ function counts(source: Readonly<Fighter>, kind: PassiveKind, origin: HitOrigin,
     case PassiveKind.blink: return origin === HitOrigin.melee && direct && isAerialAttack(source.attack.style);
     case PassiveKind.cleave: return origin === HitOrigin.melee;
     case PassiveKind.packHunt: return origin === HitOrigin.melee || origin === HitOrigin.summon;
+    // Frostmourne Hungers: a landed normal or aerial, or Harvest Soul (his down throw).
+    case PassiveKind.souls: return (origin === HitOrigin.melee && source.attack.style !== undefined)
+      || (origin === HitOrigin.throw && source.grab.action === GrabAction.throwDown);
     default: return false;
   }
 }
@@ -156,6 +160,11 @@ export function sourcePassiveContact(
       }
       passive.stacks = by;
       passive.window = PACK_HUNT_WINDOW;
+      return PassiveProc.none;
+    }
+    case PassiveKind.souls: {
+      // Souls are banked, never procced: his soul-empowered specials spend them (heroSpecialRules.ts).
+      if (!blocked) addStack(source, spec);
       return PassiveProc.none;
     }
     case PassiveKind.cleave: {
@@ -279,4 +288,16 @@ export function projectileOrigin(owner: Readonly<Fighter>, projectile: Readonly<
     case ProjectileKind.blaster: return HitOrigin.blaster;
     default: return projectile.spec?.feedsPassive === true ? HitOrigin.voodoo : HitOrigin.projectile;
   }
+}
+
+/** The Lich King's banked souls (Frostmourne Hungers); 0 for every other fighter. */
+export function heldSouls(f: Readonly<Fighter>): number {
+  return passiveSpec(f.character).kind === PassiveKind.souls ? f.passive.stacks : 0;
+}
+
+/** Spends one banked soul on a soul-empowered special; the proc serial lets presentation show it. */
+export function spendSoul(f: Fighter): void {
+  if (heldSouls(f) <= 0) return;
+  f.passive.stacks--;
+  f.passive.serial++;
 }

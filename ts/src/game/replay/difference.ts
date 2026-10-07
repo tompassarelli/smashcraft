@@ -39,7 +39,7 @@ const PROJECTILE_FIELDS = [
   ["projectileLife", "life"], ["projectileX", "x"], ["projectileZ", "z"], ["projectileDirection", "direction"],
   ["projectileKind", "kind"], ["projectileDamageMultiplier", "damageMultiplier"], ["projectileVisualFamily", "visualFamily"],
   ["projectileNewlyReflected", "newlyReflected"], ["projectileVelocityX", "velocityX"], ["projectileVelocityZ", "velocityZ"],
-  ["projectileSerial", "serial"], ["projectileLongRifle", "longRifle"],
+  ["projectileSerial", "serial"], ["projectileLongRifle", "longRifle"], ["projectilePoolHits", "poolHits"], ["projectilePoolWait", "poolWait"],
 ] as const satisfies readonly (readonly [string, keyof Projectile])[];
 
 /**

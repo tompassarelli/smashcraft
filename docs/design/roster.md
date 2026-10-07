@@ -119,6 +119,7 @@ Weight is relative to the current reference fighter at 1.00. Run and air speed a
 | Beastmaster | 1.10 | 0.97 | 0.88 | 1.15 | 1.26 |
 | Dark Ranger | 0.90 | 1.08 | 1.04 | 0.90 | 1.00 |
 | Firelord | 0.98 | 0.94 | 0.94 | 1.02 | 1.10 |
+| Lich King | 1.12 | 0.84 | 0.86 | 1.12 | 1.26 |
 
 ### Model scale
 
@@ -1065,6 +1066,86 @@ Standing grab 9/2/26, reach 0.60H. Pummel: ember squeeze, no extra heat mark.
 **Ultimate — Volcano:** ground-only f40 startup creates a volcano 1.3H ahead, 25 durability, life 180. Three eruptions at ages 30, 90, and 150, radius 0.85H, each 9 damage, LAUNCH at 80 degrees. No random rocks or full-map targeting. Destroying the volcano ends later eruptions. Owner’s casting action ends f78. Each eruption has a 20-frame visible warning; cannot hit through solid platforms.
 
 **Required counterplay test:** lava fire plus Molten Patch leaves an aerial route and cannot cause indefinite shieldstun. Heat marks create a readable incentive to avoid the third hit without giving normals hidden passive explosions.
+
+## Lich King
+
+**Identity (#167, Tom delegated 7 Oct):** Arthas in the Helm of Domination, a
+heavy Frostmourne swordsman who commands the dead, from Warcraft III and the
+Icecrown Citadel encounter. Distinct from the Lich (Kel'Thuzad), a light frost
+caster: the Lich King wins with blade reach and kill power and controls space
+with Defile and the Val'kyr. He is slow on foot and in the air, so fast
+pressure inside the blade and juggles are his weakness.
+
+Source: smashcraft:ts/src/game/sim/heroes/lichKingMoves.ts, lichKingSpecials.ts,
+lichKingHero.ts and lichKingGameplan.ts. Frames are F/A/R as in the notation
+above; damage and launch classes are provisional. The move list
+(smashcraft:docs/move-list.md) names every special.
+
+### Normals
+
+| Move | F/A/R | Damage | Reach | Notes |
+| --- | --- | --- | --- | --- |
+| Jab, Pommel and Rake | 6/3/13, 7/3/16, 9/3/23 | 3, 3, 5 | 0.6H, 0.8H, 1.1H | A three-step chain (#163) ending in a Frostmourne thrust |
+| Forward tilt, Frostmourne Sweep | 11/4/24 | 12 | 1.35H | From his shoulder to the floor: not angled |
+| Up tilt, Overhead Reap | 10/5/23 | 11 | arc to 1.45H | Covers behind him |
+| Down tilt, Frozen Ground | 9/4/22 | 6 + 6 | 1.1H front, 0.9H back | Front, then behind: the two-sided sweep |
+| Dash attack | 12/4/30 | 11 | 1.1H | Travels 40 in startup, stops at a body |
+| Forward smash, Frostmourne Cleave | 22/4/38 | 21 tip, 17 inner | 1.35H | The tip sweetspot |
+| Up smash, Remorseless Winter | 18/8/38 | 15, then 10 | 0.72H all round | A burst around him, then a weaker gust |
+| Down smash, Quake | 17/6/40 | 14 + 14 | 1.1H each side | Front f17-19, back f20-22 |
+| Neutral air | 10/8/24, land 16 | 11 + 11 | 1.1H | Front then back |
+| Forward air | 14/4/30, land 20 | 13 | 1.25H | Kills; reaches less than the forward tilt |
+| Back air | 11/4/26, land 18 | 13 | 1.1H | His strongest aerial |
+| Up air | 10/5/25, land 16 | 12 | arc to 1.45H | |
+| Down air, Frostmourne Plunge | 18/5/33, land 26 | 14 | 0.55H below | Spikes in the air, 55 degrees on the ground |
+
+Grab 9/2/30. Throws: forward 10 (EDGE), back 12 (KILL), up 8 (JUGGLE), and
+**Harvest Soul**, the down throw: 6 (CHASE), which also stores a soul.
+
+### Passive: Frostmourne Hungers
+
+Each Frostmourne normal or aerial that reaches a body, and Harvest Soul,
+stores a soul, up to 3, shown as three pips; a shield stops it, and souls
+never time out. Howling Blast and Val'kyr Shadowguard spend one, when he has
+one, for their soul form. Ascension and Defile never spend one. Answer: shield
+his normals, and respect the empowered special the pips announce.
+
+### B specials
+
+- **Howling Blast** (neutral, 15 mana): a wide frost gust leaves on frame 16
+  and travels about 2.9H; reflectable. With a soul it is wider, deals 8
+  instead of 6 and chills.
+- **Val'kyr Shadowguard** (side, 20 mana): a Val'kyr flies out on frame 14
+  and seizes the first body she reaches (a shield stops her; she can't be
+  reflected). The victim is carried 3 units a frame the way she flew, rising,
+  for 80 frames, with no control. Mashing frees them, never before frame 20;
+  any damaging hit, his own included, drops the carry; then 240 frames immune.
+  With a soul she flies 7.5 a frame instead of 5. Deviation from the brief
+  (Tom delegated, 7 Oct): she carries toward the edge he faces rather than the
+  nearest one, so the player aims the drop and the victim can read it.
+- **Ascension of the Damned** (up, 15 mana): an ice column lifts him 2H over
+  frames 8-30, steered 0.35H, inside a frost vortex that strikes once (9),
+  then a helpless fall. The free form rises 1.3H with no vortex.
+- **Defile** (down, 20 mana, ground only): a shadow pool 0.6H ahead on frame
+  20, where he can see, for 300 frames. From age 10 it strikes a grounded body
+  in it every 24 frames (3) and widens 10 per body hit, up to 0.9H. One at a
+  time. Jump over it or stay out.
+
+### Ultimate (designed, not built)
+
+**Fury of Frostmourne**: the raid's ending wipe. Every opponent above a high
+percent who isn't shielding or dodging is launched.
+
+### Lich King as built
+
+Presentation uses Kwaliti's model (see Credits) with its own sequences until
+the authored clips land; his voice is the game's Evil Arthas set, whose
+selection line is "What" (the campaign unit has no Ready line).
+
+**Gameplan** (lichKingGameplan.ts, #105): he holds the sweep's tip spacing,
+makes the target act with Howling Blast and Defile, starts tech chases from
+Frozen Ground and Harvest Soul, and kills with the smashes, his back air and a
+Val'kyr carry near the ledge.
 
 ## Original fighters
 

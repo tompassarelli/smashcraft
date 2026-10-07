@@ -13,13 +13,13 @@ export const SpecialSlot = { neutral: 0, side: 1, up: 2, down: 3 } as const;
 export type SpecialSlot = (typeof SpecialSlot)[keyof typeof SpecialSlot];
 
 /** Which authored form of a special is running; captured on entry. */
-export const SpecialForm = { ground: 0, air: 1, free: 2, recall: 3, marked: 4 } as const;
+export const SpecialForm = { ground: 0, air: 1, free: 2, recall: 3, marked: 4, soul: 5 } as const;
 export type SpecialForm = (typeof SpecialForm)[keyof typeof SpecialForm];
 /**
  * A running follow-up records its base form plus this offset times one more
  * than its index in `followUps`, past every base form.
  */
-export const FOLLOW_UP_FORM = 5;
+export const FOLLOW_UP_FORM = 6;
 
 /** The fresh press that takes a follow-up branch. */
 export const FollowUpInput = { special: 0, attack: 1, shield: 2 } as const;
@@ -144,6 +144,8 @@ export interface SpecialProjectile {
    * launches toward the owner. A recall form calls it back early.
    */
   readonly returns?: { readonly age: number; readonly speed: number } | undefined;
+  /** A ground pool that lasts through its hits and grows on them (ProjectilePool). */
+  readonly pool?: ProjectilePool | undefined;
 }
 
 export interface SpecialArmor extends FrameWindow {
@@ -157,6 +159,18 @@ export interface SpecialArmor extends FrameWindow {
   readonly shell?: boolean | undefined;
   /** The melee striker whose hit the shell absorbs is chilled (Lich's Frost Armor, sim/chill.ts). */
   readonly chillsStriker?: boolean | undefined;
+}
+
+/**
+ * A ground pool (the Lich King's Defile): it stays where it is placed for its
+ * life instead of ending on its first hit, strikes a body inside it at most
+ * once every `every` frames, and widens by `growth` each time it damages a
+ * body, up to `maxRadius`. A shield takes a strike without widening it.
+ */
+interface ProjectilePool {
+  readonly every: number;
+  readonly growth: number;
+  readonly maxRadius: number;
 }
 
 /**
@@ -326,6 +340,12 @@ export interface SpecialKit {
    * `range` is marked: poisoned (Warden's Shadow Pursuit).
    */
   readonly marked?: { readonly special: AuthoredSpecial; readonly range: number } | undefined;
+  /**
+   * Chosen instead of the ground and air forms while the fighter holds a soul
+   * (the Lich King's Frostmourne Hungers, sim/passives.ts); entering it spends
+   * one. It never replaces a recall, a marked form or the free form.
+   */
+  readonly soul?: AuthoredSpecial | undefined;
 }
 
 export interface FighterSpecials {
@@ -348,6 +368,7 @@ export function specialForm(kit: Readonly<SpecialKit>, form: number): AuthoredSp
   if (form === SpecialForm.free) return kit.free ?? kit.ground;
   if (form === SpecialForm.recall) return kit.recall ?? kit.ground;
   if (form === SpecialForm.marked) return kit.marked?.special ?? kit.ground;
+  if (form === SpecialForm.soul) return kit.soul ?? kit.ground;
   return form === SpecialForm.air ? kit.air ?? kit.ground : kit.ground;
 }
 

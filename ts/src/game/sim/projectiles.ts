@@ -130,6 +130,13 @@ export function heroProjectileReturning(projectile: Readonly<Projectile>): boole
   return spec?.returns !== undefined && projectile.damageMultiplier === 1.0 && spec.life - projectile.life >= spec.returns.age;
 }
 
+/** A hero projectile's reach: its authored radius, widened by a pool's hits up to the pool's cap. */
+export function heroProjectileRadius(projectile: Readonly<Projectile>, spec: Readonly<SpecialProjectile>): number {
+  const pool = spec.pool;
+  if (pool === undefined || projectile.poolHits === 0) return spec.radius;
+  return min(pool.maxRadius, f32(spec.radius + f32(projectile.poolHits * pool.growth)));
+}
+
 /** The hit a hero projectile deals now: its return hit once it has turned back. */
 function heroProjectileEffect(projectile: Readonly<Projectile>, spec: Readonly<SpecialProjectile>): Readonly<HitEffect> {
   return heroProjectileReturning(projectile) ? spec.returnEffect ?? spec.effect : spec.effect;
@@ -194,6 +201,8 @@ function reflectProjectile(target: Fighter, source: Projectile): boolean {
     reflected.life = source.life;
     reflected.newlyReflected = true;
     reflected.longRifle = false;
+    reflected.poolHits = 0;
+    reflected.poolWait = 0;
     source.life = 0;
     target.visuals.shieldReflect++;
     target.visuals.shieldElectric = source.kind === ProjectileKind.manaBurn;
@@ -340,7 +349,12 @@ function flyHeroProjectile(world: Roster, ownerSlot: number, projectile: Project
   projectile.x = f32(oldX + projectile.velocityX);
   projectile.z = f32(oldZ + projectile.velocityZ);
   projectile.life--;
+  if (projectile.poolWait > 0) {
+    projectile.poolWait--;
+    return undefined;
+  }
   if (spec === undefined || spec.life - projectile.life <= (spec.activeFrom ?? 0) - 1) return undefined;
+  const radius = heroProjectileRadius(projectile, spec);
   const direction = projectile.velocityX < 0 ? -1 : projectile.velocityX > 0 ? 1 : projectile.direction;
   let nearest: number | undefined;
   let distance = 0.0;
@@ -350,12 +364,12 @@ function flyHeroProjectile(world: Roster, ownerSlot: number, projectile: Project
     const body = hurtCapsule(target.character);
     const targetX = at(targets.x, targetSlot);
     const targetZ = at(targets.z, targetSlot);
-    const reach = f32(spec.radius + body.radius);
+    const reach = f32(radius + body.radius);
     const crossed = f32(f32(targetX - oldX) * direction) >= 0 && f32(f32(targetX - projectile.x) * direction) <= 0;
     const near = Math.abs(f32(targetX - projectile.x)) <= reach;
     const height = f32(max(oldZ, projectile.z) + reach) >= f32(targetZ + body.z1) && f32(min(oldZ, projectile.z) - reach) <= f32(targetZ + body.z2);
     // The shield takes the projectile at the same widened reach as the body, so a broad one never passes a raised shield.
-    const shieldContact = target.shield.raised && shieldCircleIntersects(target, oldX, oldZ, projectile.x, projectile.z, 1.0, spec.radius);
+    const shieldContact = target.shield.raised && shieldCircleIntersects(target, oldX, oldZ, projectile.x, projectile.z, 1.0, radius);
     const reflector = spec.reflectable && shieldContact && at(targets.reflecting, targetSlot);
     const candidate = Math.abs(f32(targetX - oldX));
     if ((shieldContact || ((crossed || near) && height)) && (nearest === undefined || candidate < distance)) {
@@ -473,13 +487,22 @@ export function updateProjectiles(world: Roster, stage?: number, matchFrame = 0)
         projectile.life = 0;
         continue;
       }
-      if (nearest !== undefined) {
+      const pool = projectile.kind === ProjectileKind.hero ? projectile.spec?.pool : undefined;
+      if (nearest !== undefined && pool !== undefined) {
+        // A pool stays: it waits before striking again and widens on a body.
+        applyProjectileHit(world, ownerSlot, nearest, projectile, selected.shield);
+        projectile.poolWait = pool.every;
+        if (!selected.shield) projectile.poolHits++;
+      } else if (nearest !== undefined) {
         if (!(selected.reflector && reflectProjectile(fighterAt(world, nearest), projectile))) {
           applyProjectileHit(world, ownerSlot, nearest, projectile, selected.shield);
         }
         projectile.life = 0;
-      } else if (projectile.life <= 0) {
+      }
+      if (projectile.life <= 0) {
         projectile.life = 0;
+        projectile.poolHits = 0;
+        projectile.poolWait = 0;
       }
     }
   }

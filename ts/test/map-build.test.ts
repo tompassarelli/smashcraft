@@ -6,6 +6,7 @@ import { composeScript, typescriptBase } from "wisp/scripts/mapScript";
 import { fileIoAbility } from "../scripts/objectData";
 import { GENERATED_MODELS, MODEL_SOUND_TABLE, ORIGINAL_CLIP_MODELS, SCRIPT_MODELS, missingModels, soundTableProblem } from "../scripts/wisp/mapInputs";
 import { STAGE_DECK_MODEL } from "../src/game/assets/stageAssetInfo";
+import { importedModelFile } from "../scripts/heroModelSource";
 
 const project = join(import.meta.dir, "../..");
 const baseMapScript = "function main()\nInitBlizzard()\nRunInitializationTriggers()\nend\n\nfunction config()\nSetPlayers(1)\nend\n";
@@ -29,7 +30,8 @@ test("a TypeScript-only map starts the TypeScript entry with its own config, bef
 test("every imported model the map script names is a distinct content-addressed path", () => {
   expect(SCRIPT_MODELS).toContain(STAGE_DECK_MODEL);
   for (const { models } of GENERATED_MODELS) expect(models.length).toBeGreaterThan(0);
-  for (const model of SCRIPT_MODELS) expect(model).toMatch(/^war3mapImported\\[A-Za-z0-9]+-[0-9a-f]{64}\.mdx$/);
+  // A community model keeps the archive path its author's readme names (importedModelInfo.ts); every generated one is content-addressed.
+  for (const model of SCRIPT_MODELS) if (importedModelFile(model) === undefined) expect(model).toMatch(/^war3mapImported\\[A-Za-z0-9]+-[0-9a-f]{64}\.mdx$/);
   expect(new Set(SCRIPT_MODELS).size).toBe(SCRIPT_MODELS.length);
 });
 

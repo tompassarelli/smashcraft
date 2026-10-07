@@ -154,3 +154,27 @@ Normals, inspired by:
 | Down special | Quillbeast Dart (Bear Recall) | A short quill; with a bear out, call the bear back to him instead. |
 | Jab, repeated | Twin Axes | Both axe hilts, then a shoulder that shoves, on repeated jabs. |
 | Passive | Pack Bond | His bear walks at his heel and bites only on his command; it never blocks for him. |
+
+## Lich King
+
+| Input | Name | What it does |
+| --- | --- | --- |
+| Neutral special | Howling Blast | A wide frost gust that travels; spending a soul makes it wider and chills. |
+| Side special | Val'kyr Shadowguard | A Val'kyr seizes the first foe she reaches and carries them toward the edge; mash to break free. |
+| Up special | Ascension of the Damned | An ice column lifts him in a frost vortex, then a helpless fall. |
+| Down special | Defile | A shadow pool on the ground that grows each time it hurts someone. One at a time. |
+| Jab, repeated | Pommel and Rake | A gauntlet check, a rake of the blade, then a Frostmourne thrust on repeated jabs. |
+| Passive | Frostmourne Hungers | Each Frostmourne hit that lands, and Harvest Soul, stores a soul (up to 3); Howling Blast and Val'kyr Shadowguard spend one to grow stronger. |
+| Ultimate | Fury of Frostmourne | Every foe at high damage who isn't shielding or dodging is launched. |
+
+Normals, inspired by:
+
+- Jab: Ike's jab (a heavy sword's quick check)
+- Up smash: Remorseless Winter (Icecrown Citadel)
+- Down smash: Quake (Icecrown Citadel's transition)
+- Forward smash: Frostmourne's overhead strike (Warcraft III cinematic)
+- Forward tilt: Byleth's forward tilt (a non-angled weapon arc)
+- Up tilt: Marth's up tilt (an arc that covers behind)
+- Down tilt: Two-sided sweeps (Ganondorf's and Ike's down smashes, at tilt speed)
+- Dash attack: Arthas's charge at Stratholme
+- Down throw: Harvest Soul (Icecrown Citadel)
