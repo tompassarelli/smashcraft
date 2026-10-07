@@ -5,7 +5,7 @@ import { join, relative, resolve } from "node:path";
 import { generateMDX, model as mdx } from "war3-model";
 import { AttackStyle } from "../../ts/src/game/sim/codes";
 import { heroDefinition } from "../../ts/src/game/sim/heroes/registry";
-import { attackDurationFramesForGrounding, attackStartupFrames, characterAttackActiveFrames } from "../../ts/src/game/sim/moves";
+import { attackDurationFramesForGrounding, attackStartupFrames, characterAttackActiveFrames, PUMMEL_CONTACT_FRAME } from "../../ts/src/game/sim/moves";
 import { seconds } from "./asset-info";
 import { encodeVerified, ensure, fighters, onGlobalClock, parseSource, tracks } from "./original-clips";
 
@@ -55,7 +55,8 @@ function phasesFor(action: Action, character: number): readonly { readonly at: n
   const duration = attackDurationFramesForGrounding(AttackStyle.grab, true, moves);
   const contact = action.pose === "grab" ? attackStartupFrames(AttackStyle.grab, moves) / duration : 0.5;
   const activeEnd = action.pose === "grab" ? contact + characterAttackActiveFrames(character, AttackStyle.grab, moves) / duration : 0.6;
-  const coil = action.pose === "grab" ? Math.max(0, contact - 2 / duration) : 0.3;
+  const coil = action.pose === "grab" ? Math.max(0, contact - 2 / duration)
+    : action.pose === "victimPummel" ? contact - contact / PUMMEL_CONTACT_FRAME : 0.3;
   return [{ at: 0, pose: action.first }, { at: coil, pose: action.coil }, { at: contact, pose: action.contact }, { at: activeEnd, pose: action.contact }, { at: 1, pose: action.last }];
 }
 function at(action: Action, character: number, t: number): Gesture {
@@ -126,8 +127,19 @@ for (const [character, fighter] of fighters.entries()) {
       for (const { at: t } of phasesFor(action, character)) {
         const [pitch, yaw] = node ? articulation(node.Name, at(action, character, t), fighter.name) : [0, 0];
         const transform = (q: Float32Array | Int32Array) => pitch || yaw ? rotate(q, pitch, yaw) : q.slice();
-        track.Keys.push({ ...first, Frame: start + Math.round(t * 1000), Vector: transform(first.Vector),
-          ...(first.InTan ? { InTan: transform(first.InTan) } : {}), ...(first.OutTan ? { OutTan: transform(first.OutTan) } : {}) });
+        const Vector = transform(first.Vector);
+        if (match) {
+          // Imported rotation keys can be quantized below unit length;
+          // spherical interpolation then moves even between equal keys.
+          const norm = Math.hypot(...Vector);
+          ensure(norm > 0, `${fighter.name}/${node?.Name}: zero rotation quaternion`);
+          for (let i = 0; i < Vector.length; i++) Vector[i] = Vector[i]! / norm;
+        }
+        // Donor handles describe its old motion. Flat handles keep held
+        // gestures still and ease between the newly authored local poses.
+        const tangent = () => match || track.LineType === mdx.LineType.Bezier ? Vector.slice() : new Float32Array(Vector.length);
+        track.Keys.push({ ...first, Frame: start + Math.round(t * 1000), Vector,
+          ...(first.InTan ? { InTan: tangent() } : {}), ...(first.OutTan ? { OutTan: tangent() } : {}) });
       }
     });
     const alignment = action.pose === "grab" ? " aligned: true," : action.hold ? "" : ` contact: ${seconds(0.5)},`;
@@ -149,7 +161,8 @@ for (const [character, fighter] of fighters.entries()) {
       ensure(pose.length === first.length, `${fighter.name}/${action.pose}: body disappears`);
       for (let i = 0; i < first.length; i += 2) motion = Math.max(motion, Math.hypot(pose[i]! - first[i]!, pose[i + 1]! - first[i + 1]!));
     }
-    if (!action.hold) ensure(motion >= 8, `${fighter.name}/${action.pose}: no readable local action (${motion})`);
+    if (action.hold) ensure(motion < 0.001, `${fighter.name}/${action.pose}: the held pose drifts (${motion})`);
+    else ensure(motion >= 8, `${fighter.name}/${action.pose}: no readable local action (${motion})`);
     motions.push(motion);
     if (/^(victim)?[Tt]hrow/.test(action.pose)) contactPoses.push(contact);
   }

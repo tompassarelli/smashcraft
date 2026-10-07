@@ -1285,6 +1285,12 @@ shoulders, agile fighters add chest twist, and heavy fighters commit more of
 their torso. The floating Lich articulates its existing neck/body rig.
 The simulation continues to own the pair's root positions, carry arcs, damage
 and release frames.
+The captive pummel pose remains held until one frame before contact, then
+folds into the localized strike instead of reacting during the windup.
+New rotation keys are normalized, and interpolation handles are flattened
+for their authored poses. Reusing donor handles or non-unit imported rotation
+keys can move a repeated hold pose between keys; the generator checks both
+held clips over sixty samples and requires drawn drift below 0.001 model units.
 
 An authored contact time in each action clip lets holder and victim independently
 reach their gesture on the actual holder's contact frame. This retains alignment
@@ -1301,6 +1307,15 @@ a mirror pair, and both facings. Store `hero-models` and `imported-models` throu
 smashcraft:tools/animations/export-original-clips.ts and `--keep-unchanged`.
 Stripping only the appended paired suffix must recover the exact input hash
 before old pool clips may be reused.
+
+`bun tools/animations/grab-pads.ts` generates eighty mirror scripts in
+smashcraft:ts/test/native/pads/180/: each expansion hero, four throw directions,
+and both holder facings. Its production-simulation pass selects an ordinary
+approach duration, requires the catch/pummel/requested release, and places
+captures around accepted damage and completion. Run the directory as one
+native pad batch, with headless references alongside it; matching trace
+expectations establishes input/selection and the captures establish readability.
+Unlike-height pairs are an additional native visual sample.
 
 ## Contact pain poses
 

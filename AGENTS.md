@@ -104,6 +104,9 @@ code. From smashcraft:ts/:
   `bun tools/animations/grab-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends
   coordinated expansion-hero reach, hold, pummel and four-direction holder/victim
   gestures, preserving existing indices (smashcraft:docs/fighter-animation-work.md).
+  `bun tools/animations/grab-pads.ts` generates the #180 mirror capture batch:
+  ten expansion heroes, four throws, both facings, with ordinary catch/pummel
+  inputs and contact-frame captures in smashcraft:ts/test/native/pads/180/.
 - Lich King animation authoring (from the repository root):
   `tools/animations/build-lichking.sh [PRIVATE_INPUTS] [IMMUTABLE_EXISTING_MODEL]`
   authors clips through Blender; the optional existing model preserves shipped
