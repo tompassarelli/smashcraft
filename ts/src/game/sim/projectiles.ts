@@ -169,6 +169,7 @@ function applyProjectileHit(world: Roster, ownerSlot: number, targetSlot: number
   const { kind } = projectile;
   projectileHit.element = kind === ProjectileKind.manaBurn ? HitElement.electric : HitElement.normal;
   projectileHit.carry = undefined;
+  projectileHit.manaSteal = undefined;
   if ((kind === ProjectileKind.blaster && !projectile.longRifle) || kind === ProjectileKind.manaBurn) {
     projectileHit.damage = projectileDamage(projectile);
     projectileHit.growth = 0.0;
