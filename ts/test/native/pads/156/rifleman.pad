@@ -22,3 +22,6 @@
 +10 a tap Y 2
 +8 a tap A 2
 +3 a capture
+# Save the action sequence for the batch's native/headless replay comparison.
++30 a press VIEW
++70 a release VIEW

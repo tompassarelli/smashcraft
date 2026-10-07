@@ -36,3 +36,6 @@
 +5 a capture
 +3 a stick 0 0
 +2 a release LB
+# Save the action sequence for the batch's native/headless replay comparison.
++30 a press VIEW
++70 a release VIEW
