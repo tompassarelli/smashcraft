@@ -7,7 +7,7 @@ import { PROJECTILE_CAPACITY, type Fighter } from "../sim/fighter";
 import { heroDefinition } from "../sim/heroes/registry";
 import { HERO_PROJECTILE_CAP } from "../sim/heroSpecialRules";
 import { f32 } from "wisp/src/sim/f32";
-import { type ParkedFlags, type WorldOrigin, parkOnce, placeEffect } from "./effects";
+import { type ParkedFlags, type WorldOrigin, parkOnce } from "./effects";
 import { fighterProjectileModels, projectileModelOf } from "../presentation/projectileArt";
 import { projectedProjectile } from "../presentation/projectilePose";
 import { IMPACT_DEFILE_MODEL } from "../assets/impactAssetInfo";
@@ -29,6 +29,8 @@ export class ProjectilePresentation {
   private readonly assigned: number[] = [];
   /** Effects drawn this presentation, by effect index; reused every frame. */
   private readonly taken: boolean[] = [];
+  private readonly serials: number[] = [];
+  private readonly specs: (Fighter["projectiles"][number]["spec"])[] = [];
   private parked: ParkedFlags | undefined;
   private readonly scale: number;
 
@@ -44,7 +46,7 @@ export class ProjectilePresentation {
       const effects: number[] = [];
       const boundaries: number[] = [];
       const specials = heroDefinition(character)?.specials;
-      const groundPool = specials !== undefined && heroProjectileArt(specials).some(({ spec }) => spec.model === path && spec.pool !== undefined);
+      const groundPool = specials !== undefined && heroProjectileArt(specials).some(({ spec }) => spec.model === path && (spec.pool !== undefined || (spec.velocityX === 0.0 && spec.velocityZ === 0.0)));
       for (let slot = 0; slot < size; slot++) {
         effects.push(this.models.length);
         this.models.push(AddSpecialEffect(path, origin.x, origin.y));
@@ -109,20 +111,33 @@ export class ProjectilePresentation {
       if (model === undefined) continue;
       taken[slot] = true;
       parked[slot] = false;
+      const projectile = fighter?.projectiles[index];
+      if (projectile !== undefined && (this.serials[slot] !== projectile.serial || this.specs[slot] !== projectile.spec || !this.visible[slot])) {
+        BlzSetSpecialEffectTime(model, 0.0);
+        this.serials[slot] = projectile.serial;
+        this.specs[slot] = projectile.spec;
+      }
       BlzSetSpecialEffectYaw(model, pose.yaw);
       BlzSetSpecialEffectPitch(model, pose.pitch);
-      placeEffect(model, this.origin.x + pose.x, this.origin.y, this.origin.z + pose.z);
-      BlzSetSpecialEffectScale(model, this.scale * pose.modelScale);
+      BlzSetSpecialEffectPosition(model, this.origin.x + pose.x, this.origin.y, this.origin.z + pose.z);
+      const frostOrb = fighter?.character === Character.lich && pool?.path === "Abilities\\Spells\\Other\\FrostBolt\\FrostBoltMissile.mdx";
+      BlzSetSpecialEffectScale(model, this.scale * pose.modelScale * (frostOrb ? 0.25 : 1.0));
       BlzSetSpecialEffectAlpha(model, 255);
       BlzSetSpecialEffectTimeScale(model, paused ? 0.0 : 1.0);
+      // Stationary spell areas hold their visible contact pose while armed.
+      if (projectile?.spec !== undefined && projectile.velocityX === 0.0 && projectile.velocityZ === 0.0) {
+        BlzSetSpecialEffectTime(model, f32(0.3));
+        BlzSetSpecialEffectTimeScale(model, 0.0);
+      }
       const boundarySlot = pool?.boundaries[pool.effects.indexOf(slot)];
       const boundary = boundarySlot === undefined ? undefined : this.models[boundarySlot];
-      if (boundary !== undefined && boundarySlot !== undefined && pose.poolRadius > 0.0) {
+      if (boundary !== undefined && boundarySlot !== undefined && pose.dangerRadius > 0.0) {
         taken[boundarySlot] = true;
         parked[boundarySlot] = false;
         BlzSetSpecialEffectPosition(boundary, this.origin.x + pose.x, this.origin.y - 8.0, this.origin.z + pose.z);
-        BlzSetSpecialEffectScale(boundary, pose.poolRadius);
-        BlzSetSpecialEffectColor(boundary, pose.armed ? 170 : 70, pose.armed ? 75 : 65, pose.armed ? 255 : 100);
+        BlzSetSpecialEffectScale(boundary, pose.dangerRadius);
+        const frost = fighter?.character === Character.lich;
+        BlzSetSpecialEffectColor(boundary, frost ? 155 : pose.armed ? 170 : 70, frost ? 210 : pose.armed ? 75 : 65, frost ? 255 : pose.armed ? 255 : 100);
         BlzSetSpecialEffectAlpha(boundary, pose.armed ? 255 : 160);
         BlzSetSpecialEffectTimeScale(boundary, 0.0);
       }
