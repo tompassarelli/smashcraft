@@ -1,0 +1,102 @@
+{
+  "date": "2026-10-07",
+  "mapRevision": "bac1ac613cbbbda5fa333864e9a301cb271b16ff",
+  "workload": {
+    "profile": "main",
+    "setup": "-dev quick",
+    "stage": 0,
+    "humanFighters": 3,
+    "computers": 0,
+    "inputs": "idle",
+    "poolProfile": "parity",
+    "resolution": [
+      800,
+      600
+    ],
+    "nativeMemoryMiB": 1536
+  },
+  "observations": [
+    {
+      "frameCap": 60,
+      "elapsedSeconds": 22.497,
+      "clients": [
+        {
+          "side": "a",
+          "wholeScopeCores": 1.6818919411477085,
+          "warcraftCores": 1.0792550117793482,
+          "warcraftGraphicsPercent": 1.7032454993999202,
+          "scopeMemoryMiB": 1512.23828125,
+          "newMemoryHighEvents": 0
+        },
+        {
+          "side": "b",
+          "wholeScopeCores": 1.6543023958750056,
+          "warcraftCores": 1.0636973818731388,
+          "warcraftGraphicsPercent": 1.6713641952260303,
+          "scopeMemoryMiB": 1497.4296875,
+          "newMemoryHighEvents": 0
+        }
+      ],
+      "games": [
+        {
+          "pair": 5,
+          "phase": "playing",
+          "desyncs": 0,
+          "gameSecondsPerWallSecond": 1.0008001066808903,
+          "turnsPerSecond": 26.44797084055652
+        }
+      ],
+      "host": {
+        "gpuBusyPercent": 71.66666666666667,
+        "nativeCores": 14.967044850424502,
+        "batchCores": 4.862449171000578,
+        "nativePressure": "some avg10=52.11 avg60=52.71 avg300=48.91 total=4240165513\nfull avg10=9.47 avg60=9.29 avg300=9.05 total=1242171045",
+        "desktopPressure": "some avg10=1.67 avg60=1.62 avg300=1.29 total=398568308\nfull avg10=1.09 avg60=1.17 avg300=1.06 total=340464063"
+      }
+    },
+    {
+      "frameCap": 40,
+      "elapsedSeconds": 24.763,
+      "clients": [
+        {
+          "side": "a",
+          "wholeScopeCores": 1.552993457981666,
+          "warcraftCores": 0.8100795541735654,
+          "warcraftGraphicsPercent": 1.1685537212777126,
+          "scopeMemoryMiB": 1437.62109375,
+          "newMemoryHighEvents": 0
+        },
+        {
+          "side": "b",
+          "wholeScopeCores": 1.55949921253483,
+          "warcraftCores": 0.8076565844203044,
+          "warcraftGraphicsPercent": 1.154926640552437,
+          "scopeMemoryMiB": 1442.5859375,
+          "newMemoryHighEvents": 0
+        }
+      ],
+      "games": [
+        {
+          "pair": 5,
+          "phase": "playing",
+          "desyncs": 0,
+          "gameSecondsPerWallSecond": 0.9685821588660506,
+          "turnsPerSecond": 19.302992367645277
+        }
+      ],
+      "host": {
+        "gpuBusyPercent": 76.33333333333333,
+        "nativeCores": 15.422165206154343,
+        "batchCores": 4.549074546702742,
+        "nativePressure": "some avg10=69.49 avg60=65.97 avg300=61.75 total=5134512599\nfull avg10=12.33 avg60=13.23 avg300=12.16 total=1409537463",
+        "desktopPressure": "some avg10=2.00 avg60=1.66 avg300=1.49 total=424902939\nfull avg10=1.66 avg60=1.38 avg300=1.18 total=362852403"
+      }
+    }
+  ],
+  "limitations": [
+    "Peer workloads changed between intervals.",
+    "Game clock ratio uses sampled host status timestamps and is approximate.",
+    "No completed pad parity or visual pixel check at 40 fps.",
+    "Initial 60 fps per-thread CPU counters were incorrect; only process/scope CPU is used here."
+  ]
+}
