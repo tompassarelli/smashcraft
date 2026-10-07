@@ -58,7 +58,7 @@ const near = (actual: number, expected: number, tolerance: number) => assertTrue
 test("Uther's specials spend their listed mana once and end on their listed frames", () => {
   for (const [input, action, cost, end] of [
     [neutral, SpecialAction.heroNeutral, 10, 38],
-    [side, SpecialAction.heroSide, 20, 49],
+    [side, SpecialAction.heroSide, 20, 69],
     [up, SpecialAction.heroUp, 15, 29],
     [down, SpecialAction.heroDown, 25, 36],
   ] as const) {
@@ -145,7 +145,7 @@ test("air Holy Radiance has no armor, spends its one airborne use and ends helpl
   air.owner.motion.grounded = false;
   air.owner.motion.z = 1200.0;
   frame(air.world, side);
-  for (let f = 2; f <= 49; f++) {
+  for (let f = 2; f <= 69; f++) {
     assertEquals(air.owner.status.armorFrames, 0);
     frame(air.world);
   }
