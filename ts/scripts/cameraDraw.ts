@@ -22,6 +22,7 @@ interface Callback {
   predictedAfter?: number;
   correction?: number;
   frame?: number;
+  positions?: Record<number, { readonly x: number; readonly z: number }>;
   camera?: readonly number[];
 }
 
@@ -70,7 +71,10 @@ async function callbacks(directory: string, slot: number, run: number): Promise<
         row.entryMs = numberAt(0); row.confirmedBefore = numberAt(5); row.confirmedAfter = numberAt(6);
         row.predictedBefore = numberAt(7); row.predictedAfter = numberAt(8);
       } else if (kind === "B") row.correction = numberAt(8);
-      else if (kind === "P") row.frame = numberAt(1);
+      else if (kind === "P") {
+        row.frame = numberAt(1);
+        (row.positions ??= {})[numberAt(0)] = { x: numberAt(2), z: numberAt(3) };
+      }
       else row.camera = values;
     }
   }
