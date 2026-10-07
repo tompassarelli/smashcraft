@@ -5,6 +5,7 @@ import { characterFor, fighterMask } from "../../game/match/rules";
 import { matchSpawnX } from "../../game/match/step";
 import { Character } from "../../game/sim/codes";
 import { createFighter } from "../../game/sim/fighter";
+import { clearDamageContacts } from "../../game/sim/contacts";
 import { copyControls, isActive, neutralControls } from "../../game/sim/roster";
 import { createFighterBody, removeFighterBody } from "./fighterBody";
 import { clearAllInputs } from "./inputs";
@@ -15,6 +16,7 @@ const NEUTRAL = neutralControls();
 
 /** Removes every fighter's unit and renderers and ends their effects. */
 function removeFighters(s: ShellState): void {
+  clearDamageContacts();
   for (const slot of PARTICIPANT_SLOTS) {
     const participant = s.participants[slot];
     endFighter(s, slot);
