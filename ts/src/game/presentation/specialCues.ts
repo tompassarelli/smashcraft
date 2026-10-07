@@ -39,9 +39,10 @@ import {
   VENGEFUL_RETREAT_MOVE_LAST,
 } from "../sim/specials";
 import { SPECIAL_SLOTS, type SpecialSlot } from "./projectileArt";
+import { RIFLEMAN_MODEL_FILE } from "./fighterAssetInfo";
 
 /** Where a cue stands, facing-relative, in the fighter's model scale. */
-export type CueAnchor = "hand" | "body" | "feet" | "ahead" | "overhead";
+export type CueAnchor = "hand" | "body" | "feet" | "ahead" | "overhead" | "barrel";
 
 export const CUE_ANCHORS: { readonly [anchor in CueAnchor]: { readonly x: number; readonly z: number } } = {
   hand: { x: 40.0, z: 70.0 },
@@ -49,6 +50,7 @@ export const CUE_ANCHORS: { readonly [anchor in CueAnchor]: { readonly x: number
   feet: { x: 0.0, z: 2.0 },
   ahead: { x: 70.0, z: 45.0 },
   overhead: { x: 0.0, z: 125.0 },
+  barrel: { x: 105.0, z: 75.0 },
 };
 
 export interface Cue {
@@ -175,7 +177,7 @@ export const ORIGINAL_CUES: { readonly [action: number]: MoveCues } = {
   [SpecialAction.archerHomingArrow]: { spell: "Searing homing arrow", startup: cue("Abilities\\Spells\\NightElf\\MoonWell\\MoonWellCasterArt.mdx", "feet", 0.5), active: cue("Abilities\\Spells\\NightElf\\Starfall\\StarfallTarget.mdx", "hand", f32(0.7)) },
   [SpecialAction.archerDisengage]: { spell: "Hippogryph call", startup: cue("Abilities\\Spells\\NightElf\\Taunt\\TauntCaster.mdx", "body", 0.5), active: cue("Abilities\\Spells\\NightElf\\Starfall\\StarfallCaster.mdx", "feet", f32(0.4)) },
   [SpecialAction.archerRecovery]: { spell: "Hippogryph ride", startup: cue("Abilities\\Spells\\NightElf\\Taunt\\TauntCaster.mdx", "body", 0.5), active: cue("Abilities\\Spells\\NightElf\\Tranquility\\TranquilityTarget.mdx", "feet", 0.5) },
-  [SpecialAction.riflemanBlaster]: { spell: "Blaster", startup: cue("Abilities\\Spells\\Human\\Flare\\FlareCaster.mdx", "hand", 0.5), active: cue("Abilities\\Weapons\\GyroCopter\\GyroCopterImpact.mdx", "hand", 1.0) },
+  [SpecialAction.riflemanBlaster]: { spell: "Blaster", startup: drawn(RIFLEMAN_MODEL_FILE, "barrel"), active: cue("Abilities\\Weapons\\GyroCopter\\GyroCopterImpact.mdx", "barrel", 0.5) },
   [SpecialAction.riflemanBear]: { spell: "Summon Bear", startup: cue("Abilities\\Spells\\NightElf\\BattleRoar\\RoarTarget.mdx", "body", f32(0.7)), active: cue("Abilities\\Spells\\Orc\\FeralSpirit\\FeralSpiritTarget.mdx", "ahead", f32(0.8)) },
   [SpecialAction.riflemanRecovery]: { spell: "Recoil Shot", startup: cue("Abilities\\Spells\\Human\\FlakCannons\\FlakTarget.mdx", "feet", f32(0.8)), active: cue("Abilities\\Spells\\Other\\Incinerate\\FireLordDeathExplode.mdx", "feet", f32(0.4)) },
   [SpecialAction.riflemanTrap]: { spell: "Frost Trap", startup: cue("Abilities\\Spells\\Human\\Slow\\SlowCaster.mdx", "body", f32(0.6)), active: cue("Abilities\\Spells\\Human\\Blizzard\\BlizzardTarget.mdx", "feet", f32(0.4)) },
