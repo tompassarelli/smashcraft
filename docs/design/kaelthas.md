@@ -82,6 +82,10 @@ aerial jump and ends helpless. Walking off a ledge retains the aerial jump.
 The computer jumps first and aims Phoenix Flight at the ledge when needed.
 The stock Blood Mage and Phoenix/effect models and existing Warcraft sounds
 supply all presentation; no downloaded art or recordings are needed.
+The Flame Strike model's birth sequence draws its warning before its fire:
+presentation samples 0.5 seconds at placement and 1.5 seconds at the first
+active frame, then advances from each sample with the projectile clock.
+Playing the stock sequence from zero would leave this short attack invisible.
 
 ## Position in the roster
 
