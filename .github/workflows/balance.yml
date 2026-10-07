@@ -36,6 +36,7 @@ jobs:
     outputs:
       sha: ${{ steps.plan.outputs.sha }}
       shards: ${{ steps.plan.outputs.shards }}
+      jobs: ${{ steps.plan.outputs.jobs }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -57,7 +58,7 @@ jobs:
             const pairs = slugs.flatMap((a, index) => slugs.slice(index + 1).map((b) => `${a}:${b}`));
             const jobs = Math.ceil(pairs.length / 4);
             const shards = Array.from({ length: jobs }, (_, job) => pairs.filter((_, index) => index % jobs === job).join(","));
-            console.log(`shards=${JSON.stringify(shards)}`);
+            console.log(`shards=${JSON.stringify(shards)}\njobs=${jobs}`);
             console.error(`${pairs.length} pairs of ${slugs.length} fighters in ${jobs} jobs`);
           ' >> "$GITHUB_OUTPUT"
 
@@ -139,7 +140,7 @@ jobs:
             echo
             echo "**${verdict}**"
             echo
-            echo "Level $LEVEL, $PER_PAIR a pair, $(ls shards/*.json | wc -l) shards; $((wall / 60)) min $((wall % 60)) s from the run's start to the verdict."
+            echo "Level $LEVEL, $PER_PAIR a pair, $(ls shards/*.json | wc -l) pairs in ${{ needs.plan.outputs.jobs }} jobs; $((wall / 60)) min $((wall % 60)) s from the run's start to the verdict."
             echo
             grep -v '^Merged from' balance/table.md
           } > balance/field.md

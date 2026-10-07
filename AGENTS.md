@@ -199,7 +199,10 @@ code. From smashcraft:ts/:
   timing. Without `--ref` it measures the checkout's HEAD (a commit not on
   main goes to a scratch `farm/` branch, deleted after the run). Use it
   instead of a local cpuField or pad run: the repository is public, so the
-  runners cost nothing, and this machine stays free.
+  runners cost nothing, and this machine stays free. Measured 7 Oct on main
+  43021d8c: the level-9, 400-a-pair field (26,400 matches) took 4.1 min from
+  dispatch to the printed table, against about 25 min locally; all 17 pad
+  scripts took 4.2 min.
 - Tapes: set `LUA` to the 32-bit Lua executable, then run `bun wisp tapes` to
   compare replay results across Bun, that Lua32 and a Lua32 whose raw float
   `+ - *` round toward zero (`TOWARD_ZERO_LUA`, or built with nix on first use).
