@@ -55,11 +55,11 @@ Normals, inspired by:
 | --- | --- | --- |
 | Neutral special | Wind Cutter | A short blade wave that costs no mana. |
 | Side special | Wind Walk (Backstab, Step Out) | Fade and walk through bodies; attack to Backstab on either side, special to step out. |
-| Up special | Rising Blade | A rising slash that drifts with the stick, then a helpless fall. |
+| Up special | Rising Whirlwind | Spin upward with the sword extended, drift with the stick, then fall helplessly. |
 | Down special | Mirror Image (Image Swap) | Step back and leave an image; press again to swap to it with a slash. One hit breaks it. |
 | Jab, repeated | Swift Cuts | Two quick cuts close to his body on repeated jabs. |
 | Passive | Critical Strike | Every fourth sword hit in a row strikes harder; his blade glows when it is ready. |
-| Ultimate | Bladestorm | A long spinning flurry of cuts that ends in one strong finishing hit. |
+| Ultimate | Bladestorm | A powered-up whirlwind: a long flurry of cuts with one strong finishing hit. |
 
 ## Mountain King
 

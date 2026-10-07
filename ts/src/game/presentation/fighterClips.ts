@@ -13,6 +13,7 @@ import { RECOVERY_CLIPS } from "./recoveryClipInfo";
 import { DRILL_CLIPS } from "./drillClipInfo";
 import { DOWN_AIR_CLIPS } from "./downAirClipInfo";
 import { JUMP_CLIPS } from "./jumpClipInfo";
+import { BLADEMASTER_AUTHORED_CLIPS } from "./blademasterClipInfo";
 import { GRAB_CLIPS } from "./grabClipInfo";
 
 const clip = (index: number, seconds: number): HeroClip => ({ index, seconds });
@@ -210,6 +211,7 @@ function recoveryTables(): Readonly<Record<number, HeroClipTable>> {
     const id = Number(character);
     tables[id] = { ...(tables[id] ?? ORIGINAL_CLIPS[id] ?? heroDefinition(id)?.presentation.clips ?? NO_CLIPS), ...jumps };
   }
+  tables[Character.blademaster] = { ...tables[Character.blademaster], ...BLADEMASTER_AUTHORED_CLIPS };
   return tables;
 }
 const COMBINED_CLIPS = recoveryTables();

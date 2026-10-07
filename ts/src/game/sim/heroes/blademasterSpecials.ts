@@ -63,7 +63,7 @@ const windWalk = (air: boolean): AuthoredSpecial => {
   });
 };
 
-// Rising Blade climbs evenly over f7-24 and stops at the top on f25, so the
+// The rising whirlwind climbs over f7-24 and stops at the top on f25, so the
 // row's travel is its peak; the helpless fall starts from rest. Its lateral
 // travel follows the held stick, so it can drift back toward the stage.
 const RISE_FRAMES = 18;
@@ -73,7 +73,7 @@ const rise = (ascent: number, drift: number) => [
 ];
 const BLADE_TOP = f32(M - BLADE_RADIUS);
 
-/** Rising Blade: 2.0H up and 0.5H forward, one 9-damage hit f7-12, then helpless; 15 mana; no intangibility. */
+/** Rising Whirlwind: 2.0H up and 0.5H forward, one 9-damage hit f7-12, then helpless; 15 mana; no intangibility. */
 const risingBlade: AuthoredSpecial = {
   cost: 15,
   endFrame: 25,
@@ -135,7 +135,6 @@ const inAir = (special: AuthoredSpecial): AuthoredSpecial => ({ ...special, land
 export const BLADEMASTER_SPECIALS: FighterSpecials = {
   neutral: { name: "Wind Cutter", description: "A short blade wave that costs no mana.", ground: windCutter, air: inAir(windCutter) },
   side: { name: "Wind Walk", description: "Fade and walk through bodies; attack to Backstab on either side, special to step out.", ground: windWalk(false), air: windWalk(true) },
-  up: { name: "Rising Blade", description: "A rising slash that drifts with the stick, then a helpless fall.", ground: risingBlade, free: risingBladeFree },
+  up: { name: "Rising Whirlwind", description: "Spin upward with the sword extended, drift with the stick, then fall helplessly.", ground: risingBlade, free: risingBladeFree },
   down: { name: "Mirror Image", description: "Step back and leave an image; press again to swap to it with a slash. One hit breaks it.", ground: mirrorImage, air: inAir(mirrorImage), recall: imageSwap },
 };
-

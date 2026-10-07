@@ -37,7 +37,7 @@ function fighter(facing = 1): Fighter {
   return owner;
 }
 
-test("Bladestorm stops approach drift while startup keeps ordinary gravity", () => {
+test("Sword Plunge stops approach drift while startup keeps ordinary gravity", () => {
   for (const facing of [-1, 1]) {
     const owner = fighter(facing);
     owner.motion.grounded = false;
