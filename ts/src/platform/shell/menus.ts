@@ -2,7 +2,7 @@
 // rematch, chosen or automatic. Every entry point runs from a synchronized
 // event (a key event, frame click, sync message, chat or the game timer), so
 // all clients take the same path.
-import { type ParticipantSlot, isParticipantSlot } from "../../game/input/participants";
+import { PARTICIPANT_SLOTS, type ParticipantSlot, isParticipantSlot } from "../../game/input/participants";
 import {
   Phase, canChooseComputer, cancelRematchCountdown, firstHumanSlot, characterFor, confirmRematch, cycleSlotMode, humanActive, recallCharacter,
   requestStageSelect, requestStart, setAutomaticRematch, setCpuLevel, setEndless, setHitAreas, setPartnerDamage, setTraining, stepPartnerBehaviour,
@@ -11,6 +11,10 @@ import {
   type MatchState, copyMatchState, createMatchState, setParticipants,
 } from "../../game/match/rules";
 import { keepMomentEnd, resetMomentRecorder } from "../../game/replay/moment";
+import { resetPacingAndPresentation } from "../../game/match/pacingAndPresentation";
+import { clearObservedActions } from "../../game/match/step";
+import { clearAttackBuffer } from "../../game/input/attackBuffer";
+import { copyControls, neutralControls } from "../../game/sim/roster";
 import { chooseScenarioCharacters } from "../../game/shell/scenarios";
 import { PARTNER_DAMAGE_STEP } from "../../game/match/trainingState";
 import { prepareQuickMatch } from "../../game/shell/devSettings";
@@ -213,6 +217,12 @@ export function resetToStartingSelection(s: ShellState): void {
   for (const panel of views(s).settings) panel.close();
   copyMatchState(s.game, startingSelection(s.build.scenario));
   resetMomentRecorder(s.moment.recorder);
+  resetPacingAndPresentation(s.runtime);
+  clearObservedActions();
+  for (const slot of PARTICIPANT_SLOTS) {
+    clearAttackBuffer(s.controls.commands[slot]);
+    copyControls(s.controls.inputs[slot], neutralControls());
+  }
   setStatus(s, "", 0.0);
   makePreview(s);
 }

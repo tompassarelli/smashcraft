@@ -61,3 +61,16 @@ export function copyPacingAndPresentation(target: PacingAndPresentation, source:
     if (isActive(sourceWorld, slot)) copyFighterPoseInto(target.poses[slot], source.poses[slot], sourceWorld);
   }
 }
+
+/**
+ * As createPacingAndPresentation leaves it, for every slot: copies keep the
+ * per-slot observations of slots a match doesn't play, so a slot an earlier
+ * match used would otherwise stay in later matches' state (`-dev reset`).
+ */
+export function resetPacingAndPresentation(runtime: PacingAndPresentation): void {
+  runtime.simulationFrame = 0;
+  clearPresentationHistory(runtime);
+  runtime.botAttackDelays.fill(0.0);
+  runtime.observedLegal.fill(0);
+  runtime.observedStarted.fill(0);
+}

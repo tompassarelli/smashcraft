@@ -15,7 +15,8 @@ import { basename, join } from "node:path";
 import { Cause, Effect, Schema } from "effect";
 import { preloadLines } from "wisp/scripts/wisp/boundary";
 import { UsageFailure, describeCause } from "wisp/scripts/wisp/command";
-import { type DesktopFailure, keys, loadClients, typeText } from "wisp/scripts/warcraft/desktop";
+import { type DesktopFailure, batch, loadClients } from "wisp/scripts/warcraft/desktop";
+import { ClientWatch } from "wisp/scripts/wisp/watch";
 import { RESET_COMMAND } from "../../src/game/shell/devSettings";
 import { devCommandReceiptFile } from "../../src/runtime/gameFiles";
 import { IntegrityFailure } from "../integrity/evidence";
@@ -39,11 +40,36 @@ export const LAN_POOL_FILE = join(process.env.XDG_STATE_HOME ?? join(homedir(), 
 
 const LanPool = Schema.Struct({ pairs: Schema.Array(Schema.Struct({ id: Schema.Finite, clients: Schema.String, appIds: Schema.optional(Schema.Record(Schema.String, Schema.String)) })) });
 
-export function lanPairs(poolFile: string, count: number): PadPair[] {
+/**
+ * The pool's pairs a batch plays on: the first `count`, or the pairs `ids` names
+ * (`--pair K`, for a share of the pool other runners also use).
+ */
+export function lanPairs(poolFile: string, select: { readonly count: number } | { readonly ids: readonly number[] }): PadPair[] {
   const pool = Schema.decodeUnknownSync(LanPool)(JSON.parse(readFileSync(poolFile, "utf8")));
   const parsed = pool.pairs.map((pair): PadPair => ({ name: `lan-${pair.id}`, clients: pair.clients, appIds: new Map(Object.entries(pair.appIds ?? {})), lan: pair.id }));
-  if (parsed.length < count) throw new Error(`${poolFile} lists ${parsed.length} pairs, --pairs asks for ${count}; start them with \`bun wisp lan pool --pairs ${count}\``);
-  return parsed.slice(0, count);
+  if ("ids" in select) {
+    const missing = select.ids.filter((id) => !parsed.some((pair) => pair.lan === id));
+    if (missing.length > 0) throw new Error(`${poolFile} has no pair ${missing.join(", ")}; \`bun wisp lan status\` lists the pairs that are up`);
+    return parsed.filter((pair) => pair.lan !== undefined && select.ids.includes(pair.lan));
+  }
+  if (parsed.length < select.count) throw new Error(`${poolFile} lists ${parsed.length} pairs, --pairs asks for ${select.count}; start them with \`bun wisp lan pool --pairs ${select.count}\``);
+  return parsed.slice(0, select.count);
+}
+
+const ToolsOnly = Schema.Struct({ tools: Schema.Record(Schema.String, Schema.String) });
+
+/**
+ * A pool pair's clients file with the desktop tools Wisp's client driver needs,
+ * taken from `toolsFrom` (Smashcraft's clients.json) when the pair's file has none.
+ */
+export function withTools(pair: PadPair, toolsFrom: string, dir: string): PadPair {
+  const clients: unknown = JSON.parse(readFileSync(pair.clients, "utf8"));
+  if (typeof clients === "object" && clients !== null && "tools" in clients) return pair;
+  const { tools } = Schema.decodeUnknownSync(ToolsOnly)(JSON.parse(readFileSync(toolsFrom, "utf8")));
+  mkdirSync(dir, { recursive: true });
+  const path = join(dir, `${pair.name}-clients.json`);
+  writeFileSync(path, `${JSON.stringify({ ...(typeof clients === "object" ? clients : {}), tools }, null, 2)}\n`);
+  return { ...pair, clients: path };
 }
 
 /** The .pad files the arguments name: files as given, directories' own .pad files in name order. */
@@ -118,7 +144,11 @@ const reset = (pair: PadPair, build: string) => Effect.gen(function*() {
   const host = clients[0];
   if (host === undefined) return yield* new IntegrityFailure({ operation: "reset", path: pair.clients, cause: "no client" });
   const typedMs = Date.now();
-  yield* keys(host, "Return").pipe(Effect.andThen(typeText(host, RESET_COMMAND, 35)), Effect.andThen(keys(host, "Return")), Effect.mapError(fromDesktop));
+  // Typed only into the match (wisp:docs/watch.md, "Typing only into a match"), as pad types its chat.
+  yield* batch(host, [{ kind: "keys", keys: ["Return"] }, { kind: "text", text: RESET_COMMAND, delayMillis: 35 }, { kind: "keys", keys: ["Return"] }]).pipe(
+    Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })),
+    Effect.mapError(fromDesktop),
+  );
   yield* atSelection(clients.map((client, slot) => join(client.documents, "CustomMapData", devCommandReceiptFile(build, slot))), typedMs);
 });
 

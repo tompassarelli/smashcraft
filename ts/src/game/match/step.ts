@@ -32,6 +32,12 @@ import { advanceTrainingReadout, captureTrainingBefore, resetTrainingPositions }
 export const observedFrameLegalActions: Slots<number> = [0, 0, 0, 0];
 export const observedFrameStartedActions: Slots<number> = [0, 0, 0, 0];
 
+/** As the map starts them: a step writes only the slots it plays, so a slot an earlier match used keeps its last observation (`-dev reset`). */
+export function clearObservedActions(): void {
+  observedFrameLegalActions.fill(0);
+  observedFrameStartedActions.fill(0);
+}
+
 // Preallocated: every match frame, including rollback, overwrites this scratch.
 const hadDashGrabWindow: Slots<boolean> = [false, false, false, false];
 const wasGrabbed: Slots<boolean> = [false, false, false, false];
