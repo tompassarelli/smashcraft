@@ -1,11 +1,14 @@
 import { at } from "wisp/src/runtime/lookup";
 import { floorMod } from "wisp/src/sim/intMath";
+import { f32 } from "wisp/src/sim/f32";
 import { attackBuffer, clearAttackBuffer, queueAttack, sameAttackBuffer } from "../input/attackBuffer";
 import { firstStateDifference } from "../replay/difference";
 import { copyReplayState, createReplaySnapshot } from "../replay/snapshot";
-import { AttackStyle, Character, DownState } from "../sim/codes";
+import { AttackStyle, Character, DownState, LedgeState } from "../sim/codes";
 import { createFighter } from "../sim/fighter";
-import { attackStartupFrames, isSmashAttack } from "../sim/moves";
+import { canShieldGrab } from "../sim/conditions";
+import { attackStartupFrames } from "../sim/moves";
+import { mainDeckRight, mainDeckZ } from "../sim/stage";
 import { copyControls, createRoster, neutralControls, sameControls } from "../sim/roster";
 import { chooseDefense } from "./botDefense";
 import { HabitChoice } from "./botHabits";
@@ -203,12 +206,6 @@ function choices(profile: CpuProfile, seed: number, trial: number, into: Calibra
     record(into.samples.spacing, correct ? "in reach" : "outside reach");
   }
   target.motion.x = 60.0;
-  target.attack.style = AttackStyle.forwardSmash;
-  target.attack.frame = 40;
-  target.attack.cooldown = 35;
-  copyControls(input, neutral); clearAttackBuffer(commands);
-  record(into.samples.conversion, choosePunish(own, target, 0, frame, frame, seenSkill, input, commands, 0) && commands.pending !== undefined ? "queued close punish" : "passed close punish");
-  target.attack.style = undefined; target.attack.cooldown = 0;
   own.status.damage = 150.0; target.status.damage = 150.0;
   own.status.stocks = 3; target.status.stocks = 1;
   const gamble: MoveEstimate = { damage: 18.0, startup: 24, recovery: 40, effect: { damage: 18.0, growth: 120.0, base: 35.0, launchX: 1.0, launchZ: 0.0, electric: false }, travel: 80.0 };
@@ -216,9 +213,6 @@ function choices(profile: CpuProfile, seed: number, trial: number, into: Calibra
   own.status.stocks = 1; target.status.stocks = 3;
   state.match.timeLimitMinutes = 4; state.match.remainingFrames = 600;
   record(into.samples.riskBehind, `${estimatedMoveValue(gamble, own, target, 0, 60, profile, comebackPressure(own, target, state.match))} gamble value`);
-  const risky = pick();
-  const riskyStyle = Object.values(AttackStyle).find(style => style === risky);
-  record(into.samples.exploit, isSmashAttack(riskyStyle) ? "slow commitment at high own damage" : risky === AttackStyle.forwardTilt ? "conditioned forward tilt" : "other legal choice");
   own.status.damage = 0.0; target.status.damage = 0.0;
   own.status.stocks = 3; target.status.stocks = 3;
   own.motion.grounded = false; own.motion.z = 10.0; own.motion.deltaZ = -4.0;
@@ -247,6 +241,112 @@ function choices(profile: CpuProfile, seed: number, trial: number, into: Calibra
   useMatchSeed(seed);
   record(into.samples.kit, pressKitOption(rifle, target, 0, skill, frame, true, input, commands) ? "short-hop blaster option" : "declined kit option");
   useMatchSeed(0);
+  clearBotMemory(state.runtime.botMemory);
+}
+
+function conversion(profile: CpuProfile, seed: number, trial: number, into: CalibrationRow): void {
+  const game = setup(profile, seed);
+  const row = createMatchFrameInput();
+  const frame = 1800 + trial * 31;
+  game.target.attack.style = AttackStyle.forwardSmash;
+  game.target.attack.frame = 40;
+  game.target.attack.cooldown = 35;
+  game.target.attack.serial = trial;
+  game.state.runtime.simulationFrame = frame - 1;
+  useMatchSeed(seed);
+  const chosen = choosePunish(game.own, game.target, 0, frame, frame, perceivedCpuSkill(profile.opponent, profile.tier), game.produced.inputs[0], game.produced.commands[0], 0);
+  useMatchSeed(0);
+  if (!chosen || game.produced.commands[0].pending === undefined) record(into.samples.conversion, "passed close punish");
+  else {
+    for (let elapsed = 0; elapsed < 60; elapsed++) {
+      const next = frame + elapsed;
+      if (!captureFrame(row, next, game.state.world.mask, game.produced, game.state.runtime)
+        || !executeMatchFrame(row, game.state.match, game.state.world, game.state.controls, game.state.runtime, next)) throw new Error("calibration conversion frame rejected");
+      clearAttackBuffer(game.produced.commands[0]);
+      copyControls(game.produced.inputs[0], neutralControls());
+    }
+    record(into.samples.conversion, game.target.status.damage > 0.0 ? "close punish connected" : "close punish missed");
+  }
+  clearBotMemory(game.state.runtime.botMemory);
+}
+
+function enduringFlaw(profile: CpuProfile, seed: number, trial: number, into: CalibrationRow): void {
+  const game = setup(profile, seed, profile.opponent === "wren" ? Character.rifleman : Character.demonHunter);
+  const frame = 1800 + trial * 31;
+  const row = createMatchFrameInput();
+  const { own, target, state, produced } = game;
+  const input = produced.inputs[0];
+  const commands = produced.commands[0];
+  own.attack.serial = trial;
+  own.visuals.hit = trial;
+  let exposed = false;
+  let flaw = "";
+  if (profile.opponent === "kite") {
+    own.motion.x = mainDeckRight(0);
+    own.motion.z = f32(mainDeckZ(0) - 40.0);
+    own.motion.grounded = false;
+    own.facing = -1;
+    own.ledge.state = LedgeState.hang;
+    own.ledge.side = 1;
+    own.ledge.frame = 1;
+    own.ledge.serial = trial;
+    target.motion.x = f32(mainDeckRight(0) - 100.0);
+    target.shield.raised = true;
+    useMatchSeed(seed);
+    chooseRecoveryInput(own, 0, 0, input, target, cpuSkill(profile.opponent, profile.tier));
+    exposed = input.getupAttackPressed;
+    flaw = "bold ledge attack caught by guard counter";
+  } else if (profile.opponent === "flint") {
+    const strategy = createBotStrategy();
+    strategy.lastOption = AttackStyle.forwardTilt;
+    useMatchSeed(seed);
+    chooseAttack(own, target, 0, frame, frame, true, input, commands, 0, -1, cpuSkill(profile.opponent, profile.tier), 0, { strategy, policy: profile, game: state.match });
+    exposed = commands.pending?.style === AttackStyle.forwardTilt;
+    flaw = "conditioned forward tilt caught by guard counter";
+  } else {
+    if (profile.opponent === "rook" || profile.opponent === "ember") own.status.damage = 150.0;
+    produceComputerInput(state.match, state.world, state.runtime, 0, frame - profile.reactionFrames, input, commands);
+    state.runtime.botAttackDelays[0] = profile.opponent === "wren" ? f32(12.0 / 60.0) : 0.0;
+    produceComputerInput(state.match, state.world, state.runtime, 0, frame, input, commands);
+    const acted = commands.pending !== undefined || input.specialPressed || input.jumpPressed || input.direction !== 0;
+    if (profile.opponent === "rook" || profile.opponent === "vale") {
+      exposed = !acted;
+      flaw = profile.opponent === "rook" ? "passed speculative opening caught by jab" : "wait after feint caught by jab";
+    } else if (profile.opponent === "ember") {
+      exposed = commands.pending !== undefined && commands.pending.style !== AttackStyle.grab;
+      flaw = "extra pressure attack caught by guard counter";
+    } else {
+      exposed = input.direction < 0 && commands.pending === undefined && !input.specialPressed;
+      flaw = "comfortable neutral retreat caught by chase";
+    }
+  }
+  useMatchSeed(0);
+  state.runtime.simulationFrame = frame - 1;
+  const guarded = profile.opponent === "ember" || profile.opponent === "flint" || profile.opponent === "kite";
+  let countered = false;
+  let counterFrame = -1;
+  for (let elapsed = 0; elapsed < 60; elapsed++) {
+    const next = frame + elapsed;
+    if (elapsed > 0) produceComputerInput(state.match, state.world, state.runtime, 0, next, input, commands);
+    const response = produced.inputs[1];
+    copyControls(response, neutralControls());
+    clearAttackBuffer(produced.commands[1]);
+    if (guarded && counterFrame < 0) {
+      response.shield = true;
+      if (target.visuals.shield > 0 && canShieldGrab(target)) counterFrame = next;
+    }
+    if (guarded ? next === counterFrame : elapsed === 0) {
+      response.shield = guarded;
+      if (!guarded && profile.opponent === "wren") response.direction = -1;
+      queueAttack(produced.commands[1], { style: guarded ? AttackStyle.grab : AttackStyle.jab, facing: profile.opponent === "kite" ? 1 : -1, frame: next, mayCharge: false });
+    }
+    if (!captureFrame(row, next, state.world.mask, produced, state.runtime)
+      || !executeMatchFrame(row, state.match, state.world, state.controls, state.runtime, next)) throw new Error("calibration enduring-flaw frame rejected");
+    if (own.status.damage > (profile.opponent === "rook" || profile.opponent === "ember" ? 150.0 : 0.0) || own.grab.owner !== undefined) countered = true;
+    clearAttackBuffer(commands);
+    copyControls(input, neutralControls());
+  }
+  record(into.samples.exploit, exposed && countered ? flaw : exposed ? "baited choice escaped counter" : "changed or declined baited choice");
   clearBotMemory(state.runtime.botMemory);
 }
 
@@ -287,6 +387,8 @@ export function collectCalibrationRow(profile: CpuProfile, trialsPerSeed = 10): 
     reaction(profile, seed, trial, row);
     reads(profile, seed, trial, row);
     choices(profile, seed, trial, row);
+    conversion(profile, seed, trial, row);
+    enduringFlaw(profile, seed, trial, row);
     replayAndDirection(profile, seed, trial, row);
   }
   return row;
