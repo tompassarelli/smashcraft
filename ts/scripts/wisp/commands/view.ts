@@ -25,7 +25,7 @@ import { characterModelScale } from "../../../src/game/presentation/modelScale";
 import { type DrawnReachRow, REACH_CHECKED, drawnReachSource, measureDrawnReach } from "../drawnReach";
 import { DRAWN_REACH } from "../drawnReachInfo";
 import { measureStrikeMoments, strikeMomentSource } from "../strikeMoments";
-import { HERO_ROSTER, SELECTABLE_CHARACTERS, fighterName, fighterSlug } from "../../../src/game/sim/heroes/registry";
+import { HERO_ROSTER, fighterName, fighterSlug } from "../../../src/game/sim/heroes/registry";
 import { MOTION_STATES, drawnStrideSource, measureDrawnMotion, measureDrawnStride, type DrawnStride, type DrawnMotionRow } from "../drawnMotion";
 import { AttackPhase, AttackStyle, Character } from "../../../src/game/sim/codes";
 import { AUTHORED_SAMPLE_STYLES } from "../../../src/game/sim/hurtboxes";
@@ -238,7 +238,8 @@ const motion = (args: readonly string[]) => Effect.gen(function*() {
       const strides: DrawnStride[] = [];
       const rows: DrawnMotionRow[] = [];
       const models: { character: Character; drawn: DrawnModel; model: string }[] = [];
-      for (const character of [Character.archer, Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map(hero => hero.character)]) {
+      const characters = [Character.archer, Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map((hero) => hero.character)];
+      for (const character of characters) {
         const hero = HERO_ROSTER.find((candidate) => candidate.character === character);
         const relative = hero === undefined ? FIGHTER_MODELS[character] ?? "" : heroModelSource(hero.presentation.model);
         const bytes = await Bun.file(join(assets, relative)).arrayBuffer();
