@@ -179,6 +179,8 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("specialFall", e.special.fall, a.special.fall);
   for (let i = 0; i < SPECIAL_ACTION_CAPACITY; i++) add(`specialCooldowns[${i}]`, at(e.special.cooldowns, i), at(a.special.cooldowns, i));
   add("specialDirection", e.special.direction, a.special.direction);
+  add("specialEx", e.special.ex, a.special.ex);
+  add("specialExArmorUsed", e.special.exArmorUsed, a.special.exArmorUsed);
   add("specialHit", e.special.hit, a.special.hit);
   add("bearLife", e.bear.life, a.bear.life);
   add("bearX", e.bear.x, a.bear.x);
@@ -413,6 +415,8 @@ export function firstStateDifference(expected: Readonly<ReplayState>, actual: Re
   if (e.stageChoice !== a.stageChoice) return "match.stageChoice";
   if (e.stageResolved !== a.stageResolved) return "match.stageResolved";
   for (const key of ["only", "selectedMask", "remainingMask"] as const) if (e.stagePool[key] !== a.stagePool[key]) return `match.stagePool.${key}`;
+  if (e.hazards !== a.hazards) return "match.hazards";
+
   if (e.winner !== a.winner) return "match.winner";
   if (e.departedMask !== a.departedMask) return "match.departedMask";
   if (e.interrupted !== a.interrupted) return "match.interrupted";

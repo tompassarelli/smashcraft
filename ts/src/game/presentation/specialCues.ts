@@ -107,10 +107,16 @@ export const HERO_CUES: { readonly [character: number]: { readonly [slot in Spec
     down: { spell: "Summon Water Elemental", startup: ARCANE, active: cue("Abilities\\Weapons\\WaterElementalMissile\\WaterElementalMissile.mdx", "hand", f32(0.7)) },
   },
   [Character.cairne]: {
-    neutral: { spell: "Shockwave", startup: BEAST, active: drawn("Abilities\\Spells\\Orc\\Shockwave\\ShockwaveMissile.mdx", "ahead") },
+    neutral: { spell: "Shockwave", startup: BEAST, active: drawn("Abilities\\Spells\\Other\\CrushingWave\\CrushingWaveMissile.mdx", "ahead") },
     side: { spell: "War Stomp", startup: BEAST, active: cue("Objects\\Spawnmodels\\Other\\NeutralBuildingExplosion\\NeutralBuildingExplosion.mdx", "feet", f32(0.4)) },
     up: { spell: "Spirit Lift", startup: BEAST, active: cue("Abilities\\Spells\\Orc\\CommandAura\\CommandAura.mdx", "feet", f32(0.7)) },
     down: { spell: "Reincarnation", startup: BEAST, active: cue("Abilities\\Spells\\Orc\\Reincarnation\\ReincarnationTarget.mdx", "body", f32(0.6)) },
+  },
+  [Character.peon]: {
+    neutral: { spell: "Lumber Toss", startup: cue("Objects\\Spawnmodels\\Undead\\ImpaleTargetDust\\ImpaleTargetDust.mdx", "feet", f32(0.3)), active: drawn("Abilities\\Weapons\\AncientProtectorMissile\\AncientProtectorMissile.mdl", "hand") },
+    side: { spell: "Burrow", startup: cue("Objects\\Spawnmodels\\Undead\\ImpaleTargetDust\\ImpaleTargetDust.mdx", "ahead", f32(0.5)), active: drawn("buildings\\orc\\TrollBurrow\\TrollBurrow.mdl", "ahead") },
+    up: { spell: "Worksite Launch", startup: cue("Abilities\\Spells\\Human\\Defend\\DefendCaster.mdx", "feet", f32(0.4)), active: cue("Abilities\\Spells\\Human\\FlakCannons\\FlakTarget.mdx", "feet", f32(0.6)) },
+    down: { spell: "Repair", startup: cue("Abilities\\Spells\\Human\\Defend\\DefendCaster.mdx", "hand", f32(0.4)), active: HOLY },
   },
   [Character.thrall]: {
     neutral: { spell: "Chain Lightning", startup: STORM, active: cue("Abilities\\Weapons\\FarseerMissile\\FarseerMissile.mdx", "hand", 1.0) },
@@ -129,6 +135,18 @@ export const HERO_CUES: { readonly [character: number]: { readonly [slot in Spec
     side: { spell: "Drunken Haze", startup: BEAST, active: cue("Abilities\\Spells\\Other\\StrongDrink\\BrewmasterTarget.mdx", "hand", f32(0.7)) },
     up: { spell: "Storm Rise", startup: STORM, active: cue("Abilities\\Spells\\Other\\Tornado\\TornadoElementalSmall.mdx", "body", f32(0.6)) },
     down: { spell: "Storm, Earth and Fire", startup: BEAST, active: cue("Abilities\\Spells\\Orc\\SpiritLink\\SpiritLinkTarget.mdx", "feet", f32(0.5)) },
+  },
+  [Character.tinker]: {
+    neutral: { spell: "Cluster Rockets", startup: drawn("units\\creeps\\HeroTinker\\HeroTinker.mdl", "body"), active: drawn("Abilities\\Weapons\\RocketMissile\\RocketMissile.mdl", "hand") },
+    side: { spell: "Pocket Factory", startup: drawn("units\\creeps\\HeroTinker\\HeroTinker.mdl", "body"), active: drawn("Units\\Creeps\\HeroTinkerFactory\\HeroTinkerFactory.mdl", "ahead") },
+    up: { spell: "Rocket Boots", startup: drawn("units\\creeps\\HeroTinker\\HeroTinker.mdl", "body"), active: cue("Doodads\\Cinematic\\FirePillarMedium\\FirePillarMedium.mdx", "feet", 0.25) },
+    down: { spell: "Robo-Goblin", startup: drawn("units\\creeps\\HeroTinker\\HeroTinker.mdl", "body"), active: drawn("units\\creeps\\HeroTinker\\HeroTinker.mdl", "body") },
+  },
+  [Character.kaelthas]: {
+    neutral: { spell: "Flame Strike", startup: cue("Abilities\\Spells\\Human\\FlameStrike\\FlameStrikeEmbers.mdx", "hand", 0.5), active: cue("Abilities\\Weapons\\PhoenixMissile\\Phoenix_Missile.mdx", "hand", 0.5) },
+    side: { spell: "Siphon Mana", startup: FROST, active: cue("Abilities\\Spells\\Human\\ManaFlare\\ManaFlareTarget.mdx", "ahead", 0.75) },
+    up: { spell: "Phoenix Flight", startup: cue("Abilities\\Spells\\Human\\FlameStrike\\FlameStrikeEmbers.mdx", "body", 0.5), active: timed(cue("units\\human\\Phoenix\\Phoenix.mdx", "body", 0.5), "stand", 0.0) },
+    down: { spell: "Banish", startup: cue("Abilities\\Spells\\Human\\Banish\\BanishTarget.mdx", "body", 0.75), active: cue("Abilities\\Spells\\Human\\Banish\\BanishTarget.mdx", "body", 0.75) },
   },
   [Character.blademaster]: {
     neutral: { spell: "Wind Cutter", startup: BLOODLUST, active: cue("Abilities\\Spells\\Other\\Tornado\\Tornado_Target.mdx", "hand", f32(0.6)) },
@@ -249,6 +267,10 @@ export const HERO_BRANCH_CUES: { readonly [character: number]: { readonly [slot 
       branch("Storm Step", STORM, cue("Abilities\\Spells\\Other\\Monsoon\\MonsoonBoltTarget.mdx", "body", f32(0.5))),
     ] },
   },
+  [Character.peon]: {
+    side: { recall: branch("Pack Up", cue("Objects\\Spawnmodels\\Undead\\ImpaleTargetDust\\ImpaleTargetDust.mdx", "ahead", f32(0.3)), cue("UI\\Feedback\\GoldCredit\\GoldCredit.mdl", "hand", f32(0.7))) },
+  },
+  [Character.tinker]: { side: { recall: "slot" } },
   [Character.blademaster]: {
     side: { followUps: [
       branch("Backstab", BLOODLUST, cue("Abilities\\Spells\\Human\\MarkOfChaos\\MarkOfChaosTarget.mdx", "ahead", 0.5)),

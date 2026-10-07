@@ -28,14 +28,13 @@ import { clearCapturedInputs } from "./inputs";
 import { journalEpoch, journalIdentity } from "./journal";
 import { chatBusy, requestPause } from "./journalPause";
 import { Key } from "./keyEvents";
-import { cancelPendingPlaytest } from "./playtest";
 import { startBodyFit } from "./bodyFit";
 import { startAgencyFixture } from "./agencyFixture";
 import { clearVisualCapture, configureVisualCapture } from "../../game/shell/visualCapture";
 import { back, choose, confirm, openSettingsScreen, resetToStartingSelection, startQuickMatch } from "./menus";
 import { makePreview } from "./preview";
 import { exportProbe, probeIntegrity, probeRecording, startProbe } from "./responseProbe";
-import { type ShellState, activeRollback, localSlot, playsOnKeyboard } from "./state";
+import { type ShellState, activeRollback, cancelPendingPlaytest, localSlot, playsOnKeyboard } from "./state";
 import { views } from "./ui";
 import { LASTING, pauseMatchPresentation, setStatus } from "./view";
 
@@ -297,6 +296,16 @@ export function applyDeveloperCommand(s: ShellState, actor: number, original: st
     const authored = message === "-dev lighting stage";
     showStageLighting(s, authored);
     receipt = `dev: lighting ${authored ? "stage" : "stock"}`;
+  } else if (message === "-dev view near" || message === "-dev view far" || message === "-dev view off") {
+    s.viewExtreme = message === "-dev view near" ? "near" : message === "-dev view far" ? "far" : undefined;
+    receipt = `dev: view ${s.viewExtreme ?? "off"}`;
+  } else if (message.startsWith("-dev fogv ")) {
+    // Atmosphere tuning on a running client: SetTerrainFogExV's eleven arguments, then optionally 1 to draw fog over the sky.
+    const v = message.slice(10).split(" ").map((word) => S2R(word));
+    if (v.length < 11) return;
+    SetTerrainFogExV(R2I(v[0] ?? 0), v[1] ?? 0, v[2] ?? 0, v[3] ?? 0, v[4] ?? 0, v[5] ?? 0, v[6] ?? 0, v[7] ?? 0, v[8] ?? 0, v[9] ?? 0, v[10] ?? 0);
+    BlzSetTerrainFogDrawOverSky((v[11] ?? 0) > 0.5);
+    receipt = `dev: fogv ${message.slice(10)}`;
   } else if (message === "-dev smooth-draw") {
     receipt = startDrawingBetweenFrames() ? "dev: smooth draw on" : "dev: smooth draw already on";
   } else if (message === "-dev camera-smooth on" || message === "-dev camera-smooth off") {

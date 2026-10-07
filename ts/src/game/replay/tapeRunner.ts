@@ -8,7 +8,7 @@ import { produceComputerInput } from "../match/botPlay";
 import { clearBotMemory } from "../match/botPerception";
 import { clearBotStrategy } from "../match/botStrategy";
 import {
-  computerActive, confirmRematch, createMatchState, fighterMask, requestStageSelect, requestStart, selectCharacter, selectStage,
+  computerActive, confirmRematch, createMatchState, fighterMask, requestStageSelect, requestStart, selectCharacter, selectStage, setHazards,
   setParticipants, setStocks, setTimeLimit, updateConnectedHumans,
 } from "../match/rules";
 import { clearPresentationHistory, createPacingAndPresentation } from "../match/pacingAndPresentation";
@@ -168,6 +168,9 @@ function perform(session: TapeSession, operation: TapeOperation): { result: stri
     case "stage":
       selectStage(game, operation.slot, operation.value);
       return { result: "-" };
+    case "hazards":
+      setHazards(game, operation.slot, operation.value !== 0);
+      return { result: flag(game.hazards) };
     case "stocks":
       setStocks(game, operation.slot, operation.value);
       return { result: "-" };

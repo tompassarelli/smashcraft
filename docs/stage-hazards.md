@@ -35,3 +35,20 @@ it turns red with a countdown during the shot, and a held player sees the
 fire controls and timeout warning. It can assist recovery but changes the
 route and timing; predictable hazards alone do not establish competitive
 legality (smashcraft:docs/design/stages.md).
+
+The stage menu's **Hazards: On/Off** button is synchronized match state.
+Off holds all moving platforms at their frame-zero rest poses and removes
+wind, the cannon, and Blackrock's lava. The setting is copied and hashed with
+replays. Gryphon Aerie (11) and Ahn'Qiraj (13) expose the carried loop and
+lift above; neither deals damage. One complete neutral ride (920 and 420
+frames) retains all three stocks at 0% and replays to its full checksum.
+
+Blackrock's two molten ends cover x −600…−410 and 410…600 on its main
+floor. Contact deals 12% fire damage and base knockback 100 with zero growth,
+straight up, through ordinary body-hit resolution: 40 frames of hitstun,
+ordinary hitlag, action interruption, damage reactions and DI. Percent and
+weight do not increase the launch; ordinary defensive context still applies.
+Shields do not protect feet in lava; invincibility and dodge intangibility do.
+Its two animated surface strips are exactly the contact width. The stage's
+centre and raised platform are safe. No extra cooldown state is needed:
+hitlag prevents a second hit while frozen and the upward launch leaves it.

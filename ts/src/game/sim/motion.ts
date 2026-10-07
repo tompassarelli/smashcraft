@@ -6,9 +6,10 @@ import { addFloat32, divideFloat32, fusedMultiplyAddFloat32, multiplyFloat32, ro
 import { f32 } from "wisp/src/sim/f32";
 import { floorMod } from "wisp/src/sim/intMath";
 import { meleeAtan2, meleeCos, meleeSin } from "../../sim/meleeScalarMath";
+import { heavyFall, speedBuffed } from "./itemBuffs";
 import { chillScaled } from "./chill";
 import type { Fighter, MeleeMotionValue } from "./fighter";
-import { surfaceCount, surfaceLeft, surfaceMoves, surfaceRight, surfaceShiftX, surfaceShiftZ, surfaceZ } from "./stage";
+import { type GroundLine, groundLineZ, surfaceCount, surfaceLeft, surfaceLine, surfaceMoves, surfaceRight, surfaceShiftX, surfaceShiftZ, surfaceZ } from "./stage";
 import { type FighterPhysics, WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
 
 // Rollback and consecutive agency forecasts publish the same Melee-unit
@@ -139,7 +140,7 @@ const GROUND_KNOCKBACK_FRICTION_MULTIPLIER = 1.0;
 export function applyMeleeGravity(f: Fighter): void {
   const velocity = retainedOriginal(f.motion.meleeVelocityZ, f.motion.vz);
   const { gravity, terminalSpeed: terminal } = termsOfPhysics(f.tuning.physics);
-  setMeleeVerticalVelocity(f, max(-terminal, subtractFloat32(velocity, gravity)));
+  setMeleeVerticalVelocity(f, max(-heavyFall(f, terminal), subtractFloat32(velocity, heavyFall(f, gravity))));
 }
 
 export function moveMeleeVerticalVelocity(f: Fighter): void {
@@ -183,7 +184,7 @@ function retailAirDriftVelocity(f: Fighter, velocity: number, stick: number, cap
   // full-stick acceleration stores that base plus +0x064's multiplier.
   const base = f32(0.019999999552965164 * WORLD_UNITS_PER_MELEE_UNIT);
   const acceleration = magnitude === 1 ? airAcceleration : f32(base + f32(f32(airAcceleration - base) * magnitude));
-  const target = f32(chillScaled(f, f.tuning.physics.airSpeed) * magnitude);
+  const target = f32(speedBuffed(f, chillScaled(f, f.tuning.physics.airSpeed)) * magnitude);
   const alongInput = f32(velocity * direction);
   const next = alongInput > target ? max(target, f32(alongInput - airFriction)) : min(target, f32(alongInput + acceleration));
   return f32(max(-cap, min(cap, next)) * direction);
@@ -191,7 +192,7 @@ function retailAirDriftVelocity(f: Fighter, velocity: number, stick: number, cap
 
 /** Every fighter's air drift, a ceiling tech's impulse frame included (ftCo_PassiveCeil_Phys runs the same drift). */
 export function airDriftVelocity(f: Fighter, velocity: number, stick: number): number {
-  return retailAirDriftVelocity(f, velocity, stick, f.tuning.physics.airCap);
+  return retailAirDriftVelocity(f, velocity, stick, speedBuffed(f, f.tuning.physics.airCap));
 }
 
 function retailAirDecaySquaredCutoff(decay: number): number {
@@ -274,6 +275,40 @@ export function decayedAirMotion(horizontal: number, vertical: number, decay: nu
 }
 
 /**
+ * Where a step from (fromX, fromZ) to (newX, newZ) meets a sloped deck's
+ * walking line from above, as its height at newX, or undefined. A fighter
+ * already standing on the deck keeps to it anywhere over its span, as Melee's
+ * grounded collision follows its floor line down a slope; one arriving must
+ * have been on or above the line, and cross it within its span.
+ */
+export function slopedLandingZ(line: GroundLine, standing: boolean, fromX: number, fromZ: number, newX: number, newZ: number): number | undefined {
+  const left = line.xs[0] ?? 0.0;
+  const right = line.xs[line.xs.length - 1] ?? 0.0;
+  if (newX < left || newX > right) return undefined;
+  const groundZ = groundLineZ(line, newX);
+  if (standing) return groundZ;
+  const below = f32(newZ - groundZ);
+  if (below > 0) return undefined;
+  const above = f32(fromZ - groundLineZ(line, fromX));
+  if (above < 0) return undefined;
+  const fraction = above === below ? 1.0 : f32(above / f32(above - below));
+  const crossingX = f32(fromX + f32(f32(newX - fromX) * fraction));
+  return crossingX >= left && crossingX <= right ? groundZ : undefined;
+}
+
+/** Keeps a fighter standing on a sloped deck on its line after a shift along the ground. */
+export function keepToSlope(f: Fighter, stage: number): void {
+  const { motion } = f;
+  if (!motion.grounded || motion.surface === undefined) return;
+  const line = surfaceLine(stage, motion.surface);
+  if (line === undefined) return;
+  const z = slopedLandingZ(line, true, motion.x, motion.z, motion.x, motion.z);
+  if (z === undefined) return;
+  motion.z = z;
+  setWorldMotionValue(motion.meleeZ, z);
+}
+
+/**
  * The highest deck whose top the step from old to new crosses downward,
  * within its span at both crossing and end, on match frame `matchFrame`. A
  * shift within the frame meets every deck where it is; a step `overFrame`
@@ -288,6 +323,15 @@ export function landingAlongShift(f: Fighter, stage: number, matchFrame: number,
     const fromX = follows ? f32(oldX + surfaceShiftX(stage, i, matchFrame)) : oldX;
     const fromZ = follows ? f32(oldZ + surfaceShiftZ(stage, i, matchFrame)) : oldZ;
     if (newZ >= fromZ) continue;
+    const line = surfaceLine(stage, i);
+    if (line !== undefined) {
+      const lineZ = slopedLandingZ(line, f.motion.grounded && f.motion.surface === i, fromX, fromZ, newX, newZ);
+      if (lineZ !== undefined && (landing === undefined || lineZ > landingZ)) {
+        landing = i;
+        landingZ = lineZ;
+      }
+      continue;
+    }
     const platformZ = surfaceZ(stage, i, matchFrame);
     if (fromZ >= platformZ && newZ <= platformZ) {
       const fraction = f32(f32(fromZ - platformZ) / f32(fromZ - newZ));

@@ -12,9 +12,10 @@ import type { Fighter } from "./fighter";
 import { contactKnockback, installDamageLaunch, ordinaryHitstunFrames } from "./knockback";
 import { setWorldMotionValue } from "./motion";
 import { type Controls, type Roster, fighterAt, isActive } from "./roster";
-import { CANNON_TEST_STAGE, WIND_TEST_STAGE, mainDeckLeft, mainDeckRight, mainDeckZ } from "./stage";
+import { CANNON_TEST_STAGE, WIND_TEST_STAGE, mainDeckLeft, mainDeckRight, mainDeckZ, stageAtRest } from "./stage";
 import { cancelAttack, cancelSpecialState, clearDownState, clearGrabLinks, interruptJumpOrDodge } from "./transitions";
 import { melee } from "./tuning";
+import { knockbackWeight } from "./itemBuffs";
 
 // ---------------------------------------------------------------- wind
 
@@ -79,9 +80,12 @@ const windTop = (stage: number): number => f32(mainDeckZ(stage) + WIND_TOP);
 
 export const hasWind = (stage: number): boolean => stage === WIND_TEST_STAGE;
 
+/** Whether the wind runs on stage clock `frame`: never with hazards off. */
+export const windOn = (stage: number, frame: number): boolean => hasWind(stage) && !stageAtRest(frame);
+
 /** The world distance the wind moves a fighter at (x, z) along x on match frame `frame`. */
 export function windPush(stage: number, frame: number, x: number, z: number): number {
-  if (!hasWind(stage) || windPhase(frame) !== WindPhase.blowing) return 0.0;
+  if (!windOn(stage, frame) || windPhase(frame) !== WindPhase.blowing) return 0.0;
   const direction = windDirection(frame);
   if (!(x > windLeft(stage, direction) && x < windRight(stage, direction) && z > windBottom(stage) && z < windTop(stage))) return 0.0;
   return direction > 0 ? WIND_SPEED : -WIND_SPEED;
@@ -122,6 +126,9 @@ export function cannonAim(frame: number): number {
 }
 
 export const hasCannon = (stage: number): boolean => stage === CANNON_TEST_STAGE;
+
+/** Whether the cannon is there on stage clock `frame`: hazards off remove it. */
+export const cannonOn = (stage: number, frame: number): boolean => hasCannon(stage) && !stageAtRest(frame);
 
 export const inStageCannon = (f: Readonly<Fighter>): boolean => f.cannon.held !== undefined;
 
@@ -171,7 +178,7 @@ function fire(f: Fighter, frame: number): void {
   f.cannon.firing = undefined;
   f.cannon.cooldown = CANNON_RECATCH_FRAMES;
   const aim = cannonAim(frame);
-  const knockback = contactKnockback(f.status.damage, 0.0, f.tuning.physics.weight, 0.0, CANNON_BASE_KNOCKBACK, 1.0);
+  const knockback = contactKnockback(f.status.damage, 0.0, knockbackWeight(f), 0.0, CANNON_BASE_KNOCKBACK, 1.0);
   const { launch } = f;
   launch.hitstun = ordinaryHitstunFrames(knockback);
   launch.throwHitstun = false;
@@ -198,7 +205,7 @@ function canBeCaught(f: Readonly<Fighter>, frame: number): boolean {
  * cannon catches the first fighter in slot order within its reach.
  */
 export function advanceStageCannon(world: Roster, stage: number, frame: number, inputs: readonly Readonly<Controls>[]): void {
-  if (!hasCannon(stage)) return;
+  if (!cannonOn(stage, frame)) return;
   let occupied = false;
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) continue;

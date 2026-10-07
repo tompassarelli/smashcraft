@@ -7,8 +7,9 @@ import type { Fighter } from "./fighter";
 import { applyMeleeGravity, clearMotionValue, landingAlongShift, moveMeleeVerticalVelocity, setWorldMotionValue } from "./motion";
 import { type Controls, type Roster, fighterAt } from "./roster";
 import { SHIELD_BREAK_RESTORED_ENERGY, clearShieldBreak, shieldBreakDizzyFrames } from "./shield";
-import { surfaceZ } from "./stage";
+import { surfaceZAt } from "./stage";
 import { checkBlastZone } from "./stocks";
+import { groundedJumps } from "./itemBuffs";
 import { cancelAttack, clearDownState, clearGrabLinks, clearTech, interruptJumpOrDodge } from "./transitions";
 
 const SHIELD_BREAK_FRAME_DECAY = 1.0;
@@ -63,13 +64,13 @@ export function advanceShieldBreak(world: Roster, slot: number, stage: number, m
     moveMeleeVerticalVelocity(f);
     const landing = landingAlongShift(f, stage, matchFrame, motion.x, oldZ, motion.x, motion.z, true);
     if (landing !== undefined) {
-      motion.z = surfaceZ(stage, landing, matchFrame);
+      motion.z = surfaceZAt(stage, landing, matchFrame, motion.x);
       setWorldMotionValue(motion.meleeZ, motion.z);
       motion.surface = landing;
       motion.grounded = true;
       motion.vz = 0.0;
       clearMotionValue(motion.meleeVelocityZ);
-      f.jump.remaining = 2;
+      f.jump.remaining = groundedJumps(f);
       shield.breakState = ShieldBreak.land;
       shield.breakFrame = 0;
     }

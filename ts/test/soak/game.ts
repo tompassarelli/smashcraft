@@ -35,7 +35,7 @@ import { JournalHelpers } from "../rematch/journalHelper";
 import { SOAK_BUTTONS, STICK_DEAD_ZONE } from "./controller";
 import { CameraFindings } from "../cameraFindings";
 
-const STAGES: Readonly<Record<string, number>> = { "sky-deck": 0, "three-bridges": 1, "frozen-throne": 2, "drifting-deck": 3, "patterned-decks": 4, "wind": 10, "carried": 11, "cannon": 12, "timed-lift": 13, "hellfire": 14 };
+const STAGES: Readonly<Record<string, number>> = { "sky-deck": 0, "three-bridges": 1, "frozen-throne": 2, "drifting-deck": 3, "patterned-decks": 4, "wind": 10, "carried": 11, "cannon": 12, "timed-lift": 13, "hellfire": 14, "stratholme": 6, "tomb-of-sargeras": 7 };
 const FRAME_MS = 1000 / 60;
 /** A one-stock match with a one-minute clock: each ends by a KO or by time. */
 const STOCKS = 1;

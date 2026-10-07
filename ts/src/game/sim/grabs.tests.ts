@@ -214,14 +214,15 @@ test("a victim mashing 8 or more times a second escapes the pummel; 6 a second o
         const expectedPummel = character === Character.blademaster ? 2.865000009536743
           : character === Character.mountainKing ? 3.31499981880188
             : character === Character.dreadlord ? 2.7150001525878906
-              : character === Character.beastmaster ? 3.179999828338623 : PUMMEL_DAMAGE;
+              : character === Character.beastmaster ? 2.861999750137329 : PUMMEL_DAMAGE;
         assertEquals(pummel, expectedPummel, `${character} pummels for its authored damage`);
         // The grabber pummels on the first held frame and keeps pressing attack.
         const frame = holdUntilFree(world, target, mash, () => controls({ attackPressed: true }));
         const label = `${character} at ${percent}% with ${mash} mashing`;
         assertEquals(owner.grab.pummels, 1, label);
         if (mash === "none" || mash === "slow") {
-          assertEquals(target.status.damage, f32(percent + pummel), label);
+          const damage = character === Character.uther ? f32(pummel * f32(0.85)) : pummel;
+          assertEquals(target.status.damage, f32(percent + damage), label);
           // No throw input: the pummel's end lets the victim go.
           assertEquals(frame, mash === "none" ? PUMMEL_TOTAL_FRAMES + 1 : MASH_ESCAPE.slow, label);
         } else {

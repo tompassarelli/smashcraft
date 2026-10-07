@@ -11,6 +11,7 @@ import {
   GROUND_ROLL_FRAMES,
   WALL_TECH_STARTUP_FRAMES,
   canAttack,
+  canStartAttack,
   inGrabContext,
   isFloorTeching,
   isForwardGroundRoll,
@@ -41,6 +42,7 @@ import {
 import { DASH_GUARD_EARLY_FRAMES, advanceGroundMovement, clearDash } from "./groundMovement";
 import { heroMotionHolds } from "./heroSpecialRules";
 import { carryHeroStatus } from "./heroStatus";
+import { exSpecialPressed } from "./exSpecials";
 import { demonHunterGliding, demonHunterJumpOrGlideCancel } from "./specials";
 import { AIR_DODGE_ANIMATION_FRAMES, AIR_DODGE_DECAY, beginAirDodge, beginGroundDodge, beginJump, canBeginGroundDodge } from "./jumpsAndDodges";
 import { ageKnockback, applyDirectionalInfluence, decayKnockback } from "./knockback";
@@ -53,6 +55,7 @@ import {
   moveMeleeVerticalVelocity,
   moveMeleeX,
   moveMeleeZ,
+  slopedLandingZ,
   totalVelocityX,
   totalVelocityZ,
 } from "./motion";
@@ -76,7 +79,8 @@ import {
 import { advanceShieldBreak, beginShieldBreak } from "./shieldBreak";
 import { advanceShieldTilt } from "./shieldTilt";
 import { applyAutomaticSmashDirectionalInfluence, applySmashDirectionalInfluence, discardPendingSmashDirectionalInfluence, renewSmashDirectionalInfluenceString } from "./smashDirectionalInfluence";
-import { surfaceCount, surfaceLeft, surfaceMoves, surfacePass, surfaceRight, surfaceShiftX, surfaceShiftZ, surfaceZ } from "./stage";
+import { floorFriction, floorTraction, groundLineCosine, surfaceCount, surfaceLeft, surfaceLine, surfaceMoves, surfacePass, surfaceRight, surfaceShiftX, surfaceShiftZ, surfaceZ, surfaceZAt } from "./stage";
+
 import { inStageCannon, windPush } from "./stageHazards";
 import { stickX } from "./stick";
 import { checkBlastZone, respawnFighter } from "./stocks";
@@ -88,6 +92,7 @@ import { advanceMash } from "./mash";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
 import { at } from "wisp/src/runtime/lookup";
 import { advancePassive } from "./passives";
+import { aerialJumps, heavyFall, jumpBuffed, speedBuffed } from "./itemBuffs";
 
 const FAST_FALL_DOWN_THRESHOLD = 0.6625000238418579;
 /** Melee common +0x008: the stick crosses this sideways to count as a fresh flick. */
@@ -208,7 +213,7 @@ function advanceJumpSquat(f: Fighter, input: Readonly<Controls>, squatBeforeInpu
   motion.grounded = false;
   const jumpX = f32(f32(motion.vx * physics.jumpMomentum) + f32(input.direction * physics.jumpHorizontalSpeed));
   motion.vx = max(-physics.jumpHorizontalCap, min(physics.jumpHorizontalCap, jumpX));
-  motion.vz = jump.held ? physics.fullJumpSpeed : physics.shortJumpSpeed;
+  motion.vz = jumpBuffed(f, jump.held ? physics.fullJumpSpeed : physics.shortJumpSpeed);
   jump.ascent = 1;
   jump.serial++;
   jump.isDouble = false;
@@ -240,6 +245,13 @@ function advanceGroundDodge(f: Fighter, groundDodgeStarted: boolean): void {
 /** Guard entry, hold and release; returns whether the fighter wants its shield this frame. */
 function advanceGuard(f: Fighter, input: Readonly<Controls>, forcedShield: boolean): boolean {
   const { shield, motion, ground } = f;
+  if (!forcedShield && exSpecialPressed(input) && canStartAttack(f)) {
+    shield.raised = false;
+    shield.heldFrames = 0;
+    shield.perfectFrames = 0;
+    shield.reflectFrames = 0;
+    return false;
+  }
   const shieldCanStart = (input.shield || input.shieldPressed) && (shield.raised || shield.energy > 0) && f.down.state === DownState.none
     && f.launch.hitstun <= 0 && motion.grounded && !isGroundDodging(f) && shield.stun <= 0 && f.landing.lag <= 0
     && shield.releaseLag <= 0 && f.attack.cooldown <= 0 && f.jump.squat <= 0;
@@ -301,7 +313,10 @@ function moveHorizontally(f: Fighter, stage: number, matchFrame: number, dashEnt
     return;
   }
   if (motion.grounded) {
-    moveMeleeX(f, addMeleeWorldValues(f32(motion.vx + dashEntryDisplacementAdjustment), shield.pushbackX));
+    const ground = addMeleeWorldValues(f32(motion.vx + dashEntryDisplacementAdjustment), shield.pushbackX);
+    // Melee moves ground speed along the floor line, so a slope takes its horizontal share.
+    const line = motion.surface === undefined ? undefined : surfaceLine(stage, motion.surface);
+    moveMeleeX(f, line === undefined ? ground : f32(ground * groundLineCosine(line, motion.x)));
   } else {
     moveMeleeX(f, motion.vx);
   }
@@ -324,6 +339,16 @@ function landingDeck(f: Fighter, stage: number, matchFrame: number, oldX: number
   let landing: number | undefined;
   let landingZ = 0.0;
   for (let i = 0; i < surfaceCount(stage); i++) {
+    const line = surfaceLine(stage, i);
+    if (line !== undefined) {
+      const lineZ = slopedLandingZ(line, i === carried, oldX, oldZ, motion.x, motion.z);
+      if (lineZ === undefined || (landing !== undefined && lineZ <= landingZ)) continue;
+      if (rise === undefined) rise = totalVelocityZ(f);
+      if (rise > 0) continue;
+      landing = i;
+      landingZ = lineZ;
+      continue;
+    }
     const platformZ = surfaceZ(stage, i, matchFrame);
     const follows = i !== carried && surfaceMoves(stage, i);
     const fromZ = follows ? f32(oldZ + surfaceShiftZ(stage, i, matchFrame)) : oldZ;
@@ -453,7 +478,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   if (input.jumpPressed || input.attackPressed) demonHunterJumpOrGlideCancel(f, input);
   if ((input.jumpPressed || parryOption === ParryBuffer.jump) && !wallJumped) beginJump(f, input.direction);
   if (jump.squat > 0 && launch.hitlag === 0 && (f.character === Character.demonHunter || squatBeforeInput !== 1)) jump.held = jump.held && input.jumpHeld;
-  if (input.airDodgePressed) {
+  if (input.airDodgePressed && !exSpecialPressed(input)) {
     if (motion.grounded && jump.squat > 0) {
       jump.dodgeQueued = true;
       jump.dodgeX = input.dodgeX;
@@ -466,7 +491,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
     jump.dodgeX = input.direction;
     jump.dodgeZ = input.verticalDirection;
   }
-  const dodgePressed = input.groundDodgePressed && input.shield;
+  const dodgePressed = input.groundDodgePressed && input.shield && !exSpecialPressed(input);
   if ((dodgePressed || parryOption === ParryBuffer.groundDodge) && !input.jumpPressed && canBeginGroundDodge(f)) {
     beginGroundDodge(f, dodgePressed ? input.groundDodgeDirection : parryDirection);
     groundDodgeStarted = true;
@@ -511,7 +536,8 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   let direction = input.direction;
   if (isTumbling(f) && !motion.grounded && launch.hitstun <= 0 && launch.hitlag <= 0 && tumbleExitFlick) {
     clearDownState(f);
-    motion.vx = max(-physics.airSpeed, min(physics.airSpeed, motion.vx));
+    const airSpeed = speedBuffed(f, physics.airSpeed);
+    motion.vx = max(-airSpeed, min(airSpeed, motion.vx));
   }
   let dashEntryDisplacementAdjustment = 0.0;
   // Archer's hippogryph ride and Illidan's glide set the velocity each frame (specials.ts).
@@ -531,7 +557,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
     if (motion.grounded) {
       const previousGroundVelocity = motion.vx;
       // Dash entry stores new ground velocity after this frame's displacement.
-      if (advanceGroundMovement(f, direction, input.walking, horizontalStick)) dashEntryDisplacementAdjustment = f32(previousGroundVelocity - motion.vx);
+      if (advanceGroundMovement(f, direction, input.walking, horizontalStick, floorFriction(stage, motion))) dashEntryDisplacementAdjustment = f32(previousGroundVelocity - motion.vx);
     } else if (direction !== 0 && !groundTakeoff) {
       // Air steering changes velocity, not facing; back aerials rely on a stable orientation.
       const driftStick = input.driftStickX ?? direction;
@@ -548,7 +574,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   } else if (isGroundDodging(f)) {
     motion.vx = 0.0;
   } else if (!groundTakeoff && !authoredMotion && (!canSteer || direction === 0) && launch.hitstun <= 0 && (!dodgeActive || motion.grounded)) {
-    const drag = motion.grounded ? physics.traction : physics.airFriction;
+    const drag = motion.grounded ? floorTraction(physics.traction, floorFriction(stage, motion)) : physics.airFriction;
     motion.vx = motion.vx > 0 ? max(0.0, f32(motion.vx - drag)) : min(0.0, f32(motion.vx + drag));
   }
   // A fresh down, as Melee's drop needs (ftCo_Pass.c), descends; landing on a deck with down held stays on it, and the
@@ -562,8 +588,8 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   const oldX = motion.x;
   const oldZ = motion.z;
   dashEntryDisplacementAdjustment = f32(dashEntryDisplacementAdjustment + attackStartupTravel(world, slot));
-  decayKnockback(f);
-  decayShieldMotion(f);
+  decayKnockback(f, floorFriction(stage, motion));
+  decayShieldMotion(f, floorFriction(stage, motion));
   if (dodgeActive && !motion.grounded) {
     motion.vx = f32(motion.vx * AIR_DODGE_DECAY);
     motion.vz = f32(motion.vz * AIR_DODGE_DECAY);
@@ -573,7 +599,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   moveHorizontally(f, stage, matchFrame, dashEntryDisplacementAdjustment);
   if (isGroundDodging(f) || (motion.grounded && jump.squat > 0)) {
     motion.vz = 0.0;
-    motion.z = surfaceZ(stage, motion.surface ?? 0, matchFrame);
+    motion.z = surfaceZAt(stage, motion.surface ?? 0, matchFrame, motion.x);
   } else if ((!dodgeActive || motion.grounded) && !groundTakeoff && !authoredMotion) {
     if (!motion.grounded && !motion.fastFalling && downHeld && motion.fastFallInputAge < FAST_FALL_INPUT_WINDOW && input.direction === 0
       && down.state === DownState.none && launch.hitstun <= 0 && motion.vz < 0) {
@@ -581,7 +607,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
       motion.fastFallInputAge = PLATFORM_DROP_INPUT_WINDOW;
     }
     if (drill?.speedZ !== undefined) motion.vz = drill.speedZ;
-    else if (motion.fastFalling) motion.vz = -physics.fastFallSpeed;
+    else if (motion.fastFalling) motion.vz = -heavyFall(f, physics.fastFallSpeed);
     else applyMeleeGravity(f);
   }
   moveMeleeVerticalVelocity(f);
@@ -603,7 +629,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
     // Melee's collision reports it. One leaving a ledge's corner is not.
     const bodySide = leaveMainDeckBody(f, stage);
     if (wallSide === 0 && f32(bodySide * frameDeltaX) > 0) wallSide = bodySide;
-    if (motion.grounded) jump.remaining = min(jump.remaining, 1);
+    if (motion.grounded) jump.remaining = min(jump.remaining, aerialJumps(f));
     motion.grounded = false;
     motion.surface = undefined;
     clearDash(f);

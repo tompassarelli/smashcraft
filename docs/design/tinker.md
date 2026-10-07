@@ -23,7 +23,7 @@ weight **106**, run **1.725**, air speed **1.134**. Smashcraft stores these as
 106/75 weight, 1.725/2.2 run, and 1.134 air multipliers; movement uses the shared
 Melee-to-world scale. Width 1.12 and height 0.95 are original model-fit values.
 Jumps, gravity, dodge windows, shield rules and automatic aerial landing-lag
-reduction retain the shared roster rules.
+behavior retain the shared roster rules.
 
 [Snake's Hand Grenade](https://www.ssbwiki.com/Hand_Grenade) informs delayed
 space control. [R.O.B.'s Gyro](https://www.ssbwiki.com/Gyro) informs a persistent
@@ -36,12 +36,12 @@ moveset as a functional comparison only.
 
 ## Full kit
 
-F/A/R/L means first active frame, active duration, recovery, authored landing
+F/A/R/L means first active frame, active duration, recovery, final landing
 lag, counting entry as frame 1. Contacts use original capsules around the
 claws or exhaust. A target is struck once per action unless a later window is
 explicitly listed. There is no extra shield damage and no invulnerability on
 normals. Ground normals require ground, aerials require air. Jab links only
-on another fresh attack. Aerial landing uses the shared automatic reduction.
+on another fresh attack. The listed L is the final landing lag consumed by the hero move profile.
 
 | Input | Motion and role | F/A/R/L; damage | Warcraft source | Smash reference |
 |---|---|---|---|---|
@@ -74,8 +74,8 @@ the defender's responses. Grabs use the common mash escape and one-pummel rule.
 
 | Input | Original Smashcraft rule | Warcraft source | Smash comparison |
 |---|---|---|---|
-| Neutral: Cluster Rockets | 10 mana; rockets on 14/20/26, 4 damage each, short rising arc, reflectable, ends 43; air landing 20. Each rocket is one contact. Interrupting ends unlaunched rockets. | [Cluster Rockets](https://wowpedia.fandom.com/wiki/Tinker_(Warcraft_III)#Cluster_Rockets) | [Snake grenade](https://www.ssbwiki.com/Hand_Grenade), staggered space control |
-| Side: Pocket Factory | Ground only, 20 mana, placement 24, end 48; 24 durability, life 240, goblins at ages 35/80/125/170/215, each 6 damage and travels forward along its starting floor. Recast recalls for free in 36 frames. One factory; destroy it or hit Tinker to stop its fire. | [Pocket Factory](https://liquipedia.net/warcraft/Tinker) | [Gyro](https://www.ssbwiki.com/Gyro) and [Wario Bike](https://www.ssbwiki.com/Wario_Bike) |
+| Neutral: Cluster Rockets | 10 mana; rockets on 14/20/26, 4 damage each, short rising arc from 45 units above the feet, reflectable, ends 43; air landing 20. Each rocket is one contact. Interrupting ends unlaunched rockets. | [Cluster Rockets](https://wowpedia.fandom.com/wiki/Tinker_(Warcraft_III)#Cluster_Rockets) | [Snake grenade](https://www.ssbwiki.com/Hand_Grenade), staggered space control |
+| Side: Pocket Factory | Ground placement; airborne side press fires Cluster Rockets under the shared input rule. 20 mana, placement 24, end 48; 24 durability, life 240, goblins at ages 35/80/125/170/215, each 6 damage and travels forward at its release height for at most 44 frames, ending before the next launch. Recast recalls for free in 36 frames. One factory; destroy it or hit Tinker to stop its fire. | [Pocket Factory](https://liquipedia.net/warcraft/Tinker) | [Gyro](https://www.ssbwiki.com/Gyro) and [Wario Bike](https://www.ssbwiki.com/Wario_Bike) |
 | Up: Rocket Boots | 15 mana, burn 7–29 at 11 vertical units/frame, live horizontal steering 3 units/frame; free burn 8 vertical/2 drift; ends 32 in helpless fall and spends aerial jump. Can start on ground or in air once per airtime. No hit or armor. | Engineering Upgrade applied to rocket pack | [Robo Burner](https://www.ssbwiki.com/Robo_Burner) |
 | Down: Robo-Goblin | 20 mana; visible robot form with armor against one hit up to 10 damage on 8–23; rush 12–23 at 4 units/frame, claw contact 14–18 for 13 damage, end 46; air landing 20. Throws beat armor, stronger hits interrupt, shields punish recovery. | [Robo-Goblin / Demolish](https://liquipedia.net/warcraft/Tinker) | [R.O.B. Arm Rotor](https://www.ssbwiki.com/Arm_Rotor), committal moving attack |
 | Passive: Engineering Upgrade | Rocket and factory body hits bank up to two upgrades for 240 frames; next normal spends them for +2 damage each. A shield spends the upgrades without bonus. Shared counted passive state, cleared on stock loss. | [Engineering Upgrade](https://wowpedia.fandom.com/wiki/Tinker_(Warcraft_III)#Engineering_Upgrade_(Passive)) | [Gyro](https://www.ssbwiki.com/Gyro), gadget into direct pressure |
@@ -84,7 +84,7 @@ the defender's responses. Grabs use the common mash escape and one-pummel rule.
 Recovery is a steerable rising burn with a visible pause before it starts;
 its approach is vulnerable throughout. The computer uses its jump first and
 aims the burn at a deck or ledge. Factory shots vanish on walls, decks or their
-life limit, and never chase beyond the platform. No gadget survives a stock.
+life limit, and never home toward a fighter. No gadget survives a stock.
 
 Compared with Archer/Rifleman, Tinker gives up fast repeated shooting for
 setup; Illidan/Warden/Blademaster beat his short claws in motion; Mountain

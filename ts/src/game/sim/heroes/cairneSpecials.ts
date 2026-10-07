@@ -5,9 +5,9 @@ import { cairneCapsule as c, cairneHit as hit } from "./cairneMoves";
 
 const shockwave = (air: boolean): AuthoredSpecial => ({
   cost: 15, endFrame: 58, landingLag: air ? 24 : undefined,
-  projectiles: [{ spawnFrame: 24, offsetX: 72.0, offsetZ: 24.0, velocityX: 13.0, velocityZ: 0.0,
+  projectiles: [{ spawnFrame: 24, offsetX: 72.0, offsetZ: 36.0, velocityX: 13.0, velocityZ: 0.0,
     life: 38, radius: 20.0, effect: hit(10.0, "edge", 35), reflectable: true, limit: 1,
-    model: "Abilities\\Spells\\Orc\\Shockwave\\ShockwaveMissile.mdx" }],
+    model: "Abilities\\Spells\\Other\\CrushingWave\\CrushingWaveMissile.mdx" }],
 });
 const stomp = (air: boolean): AuthoredSpecial => ({
   cost: 20, endFrame: 57, landingLag: air ? 26 : undefined,

@@ -47,6 +47,8 @@ const STAGE_MUSIC: Readonly<Record<StageTile, string>> = {
   2: `${MUSIC}LichKingTheme.flac`,
   3: `${MUSIC}Orc1.flac`,
   4: `${MUSIC}Undead3.flac`,
+  6: `${MUSIC}Human2.flac`,
+  7: `${MUSIC}NagaTheme.flac`,
   10: `${MUSIC}NightElf1.flac`,
   11: `${MUSIC}HumanX1.flac`,
   12: `${MUSIC}OrcX1.flac`,

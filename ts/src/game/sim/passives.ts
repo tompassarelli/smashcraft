@@ -9,6 +9,7 @@ import { roundToFloat32 } from "wisp/src/sim/binary32";
 import { Character, GrabAction, HitOrigin, LedgeState, PassiveKind, ProjectileKind } from "./codes";
 import { isAerialAttack } from "./moves";
 import type { Fighter, Projectile } from "./fighter";
+import { gainMana } from "./mana";
 
 interface PassiveSpec {
   readonly kind: PassiveKind;
@@ -21,6 +22,8 @@ interface PassiveSpec {
 const NONE: PassiveSpec = { kind: PassiveKind.none, stacks: 0, window: 0 };
 const WINDFURY: PassiveSpec = { kind: PassiveKind.criticalStrike, stacks: 2, window: 180 };
 const ENDURANCE: PassiveSpec = { kind: PassiveKind.endurance, stacks: 2, window: 180 };
+const PILLAGE: PassiveSpec = { kind: PassiveKind.pillage, stacks: 2, window: 0 };
+const ENGINEERING_UPGRADE: PassiveSpec = { kind: PassiveKind.voodoo, stacks: 2, window: 240 };
 
 /** By Character code. Illidan has none: his attacks drain mana on hit (his kit data). */
 const SPECS: readonly PassiveSpec[] = [
@@ -46,6 +49,8 @@ export function passiveSpec(character: Character): PassiveSpec {
   if (character === Character.thrall) return WINDFURY;
   if (character === Character.cairne) return ENDURANCE;
   if (character === Character.chen) return DRUNKEN_BRAWLER;
+  if (character === Character.peon) return PILLAGE;
+  if (character === Character.tinker) return ENGINEERING_UPGRADE;
   return SPECS[character] ?? NONE;
 }
 
@@ -108,6 +113,7 @@ function proc(f: Fighter): void {
 function counts(source: Readonly<Fighter>, kind: PassiveKind, origin: HitOrigin, direct: boolean): boolean {
   switch (kind) {
     case PassiveKind.criticalStrike: return origin === HitOrigin.melee;
+    case PassiveKind.pillage: return origin === HitOrigin.melee;
     case PassiveKind.bash: return origin !== HitOrigin.pummel && origin !== HitOrigin.foreign && origin !== HitOrigin.summon;
     case PassiveKind.trueshot: return origin === HitOrigin.arrow;
     case PassiveKind.vampiric: return origin === HitOrigin.melee || origin === HitOrigin.throw;
@@ -220,6 +226,9 @@ export function sourcePassiveContact(
       return PassiveProc.damage;
     case PassiveKind.bash: return PassiveProc.bash;
     case PassiveKind.vampiric: return PassiveProc.heal;
+    case PassiveKind.pillage:
+      gainMana(source, 8);
+      return PassiveProc.none;
     default: return PassiveProc.none;
   }
 }

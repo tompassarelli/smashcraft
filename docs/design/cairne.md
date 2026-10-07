@@ -70,7 +70,7 @@ link names a relationship, not copied frame data or geometry.
 
 | Input | Original contract, reward and counterplay | Warcraft source | Smash reference |
 | --- | --- | --- | --- |
-| Neutral: **Shockwave** | 15 mana; wave f24, end f58. One reflectable wave, 10 damage, radius 20, speed 13/frame and life 38. It starts 72 units ahead at height 24. Jump above it or shield and close during recovery. Air form has 24 landing frames and no stall. | [Shockwave][wc] | [Eruption's planted ground attack][eruption] |
+| Neutral: **Shockwave** | 15 mana; wave f24, end f58. One reflectable wave, 10 damage, radius 20, speed 13/frame and life 38. It starts 72 units ahead at height 36. Jump above it or shield and close during recovery. Air form has 24 landing frames and no stall. | [Shockwave][wc] | [Eruption's planted ground attack][eruption] |
 | Side: **War Stomp** | 20 mana; advance 66 units over f12–17, stomp f20–23, end f57. Front/rear low strike, 13 damage at 80 degrees, growth 70/base 42. No stun, armor or shield bonus. Air form has 26 landing frames and no ground shockwave beyond its authored low region. | [War Stomp][wc] | [Hand Slap's low surrounding launcher][slap] |
 | Up: **Spirit Lift** | 15 mana; rise 1.75H and move 0.55H over f11–32; totem f11–16 for 9 damage at 80 degrees. Free form rises 1.2H/moves 0.35H with no hit. One use per airtime, spends aerial jump, ends helpless. Sides and landing remain exposed. | [Ancestral spirit of Reincarnation][wc] | [Bowser's finite recovery commitment][bowser] |
 | Down: **Reincarnation** | Ground only, 25 mana; guard and intangibility f6–9, end f46. Correctly reading a damaging contact heals 12 damage, capped at 24 per stock. Whiff, wait or grab beats it. It restores no stock, does not move Cairne and cannot rescue a KO. | [Reincarnation][wc] | [K. Rool's baitable defensive read][krool] |
@@ -97,7 +97,9 @@ projectile and armored charge. Compared with Beastmaster, he fights with one
 body. Compared with the Lich King, he has no soul resource or persistent pool.
 
 Use the base-game Tauren Chieftain model and command portrait, stock Warcraft
-impact sounds and Shockwave/War Stomp effects. His totem remains attached;
+impact sounds, a spirit-blue Crushing Wave missile and a small stock ground
+burst for War Stomp. The wave stays distinct from Mountain King's ground
+waves. His totem remains attached;
 the gesture plants his feet, moves the whole shoulder and follows through.
 Map or author the complete hero pose table, including both sides of throws,
 recovery, and nine pain poses. The computer seeks totem spacing, sends a wave

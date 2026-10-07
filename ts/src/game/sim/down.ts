@@ -10,7 +10,8 @@ import { MAX_GROUNDED_KNOCKBACK_ON_LANDING, airborneDamageLandingReaction, decay
 import { RIFLEMAN_BLASTER_AIR_FRAMES, RIFLEMAN_BLASTER_LANDING_LAG, attackLandingLag, isAerialAttack, landsIntoAttack } from "./moves";
 import { clearMotionValue, setWorldMotionValue, totalVelocityX } from "./motion";
 import type { Controls } from "./roster";
-import { surfaceCount, surfaceLeft, surfaceRight, surfaceZ } from "./stage";
+import { floorFriction, surfaceCount, surfaceLeft, surfaceLine, surfaceRight, surfaceZAt } from "./stage";
+
 import { rollTravel } from "../physics/rollTravel";
 import { beginDownState, cancelAttack, clearDownState } from "./transitions";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
@@ -18,6 +19,7 @@ import { squareRoot } from "./warcraftMath";
 import { meleeAtan2 } from "../../sim/meleeScalarMath";
 import { stickX, stickZ } from "./stick";
 import { isHeroSpecialAction, landHeroSpecial } from "./heroSpecialRules";
+import { aerialJumps, groundedJumps } from "./itemBuffs";
 
 export const AIR_DODGE_LANDING_LAG = 10;
 const EMPTY_LANDING_LAG = 4;
@@ -106,7 +108,7 @@ export function finishLanding(f: Fighter, stage: number, matchFrame: number, inp
   }
   motion.grounded = true;
   motion.surface = landing;
-  motion.z = surfaceZ(stage, landing, matchFrame);
+  motion.z = surfaceZAt(stage, landing, matchFrame, motion.x);
   motion.vz = 0.0;
   setWorldMotionValue(motion.meleeZ, motion.z);
   clearMotionValue(motion.meleeVelocityZ);
@@ -119,7 +121,7 @@ export function finishLanding(f: Fighter, stage: number, matchFrame: number, inp
   if (!wasGrounded) landRiflemanBlaster(f);
   f.special.fall = false;
   if (!isHeroSpecialAction(f.special.action)) f.special.airtimeUses = 0;
-  if (f.jump.squat <= 0) f.jump.remaining = 2;
+  if (f.jump.squat <= 0) f.jump.remaining = groundedJumps(f);
   if (isTumbling(f)) {
     const launchDirection = totalVelocityX(f) < 0 ? -1 : 1;
     launch.hitstun = 0;
@@ -130,6 +132,11 @@ export function finishLanding(f: Fighter, stage: number, matchFrame: number, inp
       f.tech.window = 0;
       beginDownState(f, techDirection === 0 ? DownState.tech : DownState.techRoll, techDirection);
       applyDownRollTravel(f, stage, matchFrame);
+      // A roll's first step along a sloped deck follows its line.
+      if (surfaceLine(stage, landing) !== undefined) {
+        motion.z = surfaceZAt(stage, landing, matchFrame, motion.x);
+        setWorldMotionValue(motion.meleeZ, motion.z);
+      }
     } else {
       beginDownState(f, DownState.bound, launchDirection);
     }
@@ -191,7 +198,7 @@ export function resolveDownGroundContact(f: Fighter, stage: number, matchFrame: 
   let deck = motion.surface;
   if (deck === undefined || deck >= surfaceCount(stage)) {
     for (let i = 0; i < surfaceCount(stage); i++) {
-      if (motion.z === surfaceZ(stage, i, matchFrame) && motion.x >= surfaceLeft(stage, i, matchFrame) && motion.x <= surfaceRight(stage, i, matchFrame)) deck = i;
+      if (motion.z === surfaceZAt(stage, i, matchFrame, motion.x) && motion.x >= surfaceLeft(stage, i, matchFrame) && motion.x <= surfaceRight(stage, i, matchFrame)) deck = i;
     }
   }
   if (deck !== undefined && deck < surfaceCount(stage)) {
@@ -200,7 +207,7 @@ export function resolveDownGroundContact(f: Fighter, stage: number, matchFrame: 
     }
     if (motion.x >= surfaceLeft(stage, deck, matchFrame) && motion.x <= surfaceRight(stage, deck, matchFrame)) {
       motion.surface = deck;
-      motion.z = surfaceZ(stage, deck, matchFrame);
+      motion.z = surfaceZAt(stage, deck, matchFrame, motion.x);
       return;
     }
   }
@@ -208,7 +215,7 @@ export function resolveDownGroundContact(f: Fighter, stage: number, matchFrame: 
   clearDownState(f);
   motion.grounded = false;
   motion.surface = undefined;
-  f.jump.remaining = min(f.jump.remaining, 1);
+  f.jump.remaining = min(f.jump.remaining, aerialJumps(f));
   const { airSpeed } = f.tuning.physics;
   motion.vx = max(-airSpeed, min(airSpeed, motion.vx));
   f.launch.groundKnockbackX = 0.0;
@@ -217,7 +224,7 @@ export function resolveDownGroundContact(f: Fighter, stage: number, matchFrame: 
 
 function standOnDeck(f: Fighter, stage: number, matchFrame: number): void {
   f.motion.grounded = true;
-  f.motion.z = surfaceZ(stage, f.motion.surface ?? 0, matchFrame);
+  f.motion.z = surfaceZAt(stage, f.motion.surface ?? 0, matchFrame, f.motion.x);
 }
 
 /** One frame of a down state; true when it consumed the fighter's movement for the frame. */
@@ -231,7 +238,7 @@ export function advanceDownState(f: Fighter, stage: number, matchFrame: number, 
     return false;
   }
   if (isFloorTeching(f) || down.state === DownState.bound) {
-    decayKnockback(f);
+    decayKnockback(f, floorFriction(stage, motion));
     motion.x = f32(motion.x + launch.knockbackX);
   }
   if (isFloorTeching(f)) {

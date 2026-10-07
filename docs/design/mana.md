@@ -15,10 +15,11 @@ smashcraft:ts/test/mana-bar.test.ts. The numbers are authoring values; the
 | Rule | Value |
 |---|---|
 | Bar | 100 mana, full at the start of every stock. |
-| Ground trickle | +1 every 15 frames (4 a second). No wait after spending. |
-| Air trickle | +1 every 40 frames (1.5 a second). |
+| Ground trickle | +1 every 60 frames (1 a second). No wait after spending. |
+| Air trickle | +1 every 60 frames (1 a second). |
 | No trickle | While shielding (and in shieldstun), held or holding a grab, in hitstun, frozen, asleep or stunned, or during a special. Normals do not stop it. |
 | Landing a normal or throw | +1 per whole percent dealt to a body, at most 12 a hit. |
+| Perfect shield/parry | +8 once per timed window, including projectile reflection. |
 | Taking a hit | +1 per 2 whole percent taken, at most 6 a hit (the comeback share). Any source counts, specials and projectiles included. |
 | No gain | From hits on a shield, from pummels, and for the striker of a special's strike or projectile. |
 | Spending | The cost is paid once when the special starts. An interrupted special is not refunded. |
@@ -26,7 +27,7 @@ smashcraft:ts/test/mana-bar.test.ts. The numbers are authoring values; the
 | Up specials | Below the full cost, the free weaker form comes out instead, so recovery is never lost. The original three fighters' up specials are free. |
 
 Integers only: points, and a trickle remainder counted in 120ths of a point
-(ground +8 a frame, air +3), so the host and Lua32 agree. Both are in the
+(ground +2 a frame, air +2), so the host and Lua32 agree. Both are in the
 replay state for every fighter.
 
 ### Costs: the tiers
@@ -51,7 +52,7 @@ cooldowns still apply:
 | Illidan | Mana Burn 10 | Fel Rush 12 (branches free) | Immolation 15 | Wing Ascent, free |
 
 The cheap shots cost 3 so that spamming them (a blaster every 20 frames is
-9 mana a second) outruns the 4-a-second trickle. Hits keep a pressuring
+9 mana a second) outruns the 1-a-second trickle. Hits keep a pressuring
 shooter topped up. Missing drains it.
 
 ### Mana Burn
@@ -78,7 +79,7 @@ who has saved, it is a tax. The read is on the opponent's bar.
 - **Refusal:** both bars blink red for about three quarters of a second.
 - **Gain:** a rise of 3 or more in one update glows the bar briefly. The
   trickle's single points never glow.
-- Player-facing copy names only mana. There is no text readout.
+- **EX affordability:** EX N, EX S or EX N + S beside the bar names the neutral/side casts its current mana can pay. Shield + Special requests EX; its normal cost plus 25 buys one 8% hit of armor on frames 1–6.
 
 The bar's parts hang from its back frame, so following a fighter is one
 native call a frame (playable-bot-four: native calls +1.7%, predicted cost
@@ -102,7 +103,7 @@ best resources in fighting and action games come back from fighting:
   ([SSBWiki: Ink Tank](https://www.ssbwiki.com/Ink_Tank))
 - **Steve** mines materials on the ground and spends them on crafting and
   blocks. A resource earned by staying on stage is a good fit for a stage
-  fighter. Here it becomes the ground trickle being faster than the air one.
+  fighter. Here, staying active earns mana while the passive floor remains equal on ground and in the air.
 - **Robin's tomes** have durability (Thunder: 20 uses, Thoron 8 at once) and
   recharge only after they run out. The cost should scale with the spell's
   size, as our tiers do. We rejected the lockout: an empty bar here still
