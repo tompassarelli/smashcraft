@@ -14,12 +14,13 @@ test("native contrast reader measures white/black correctly and rejects an empty
     const mask = join(dir, "mask.ppm"), frame = join(dir, "frame.ppm"), empty = join(dir, "empty.ppm");
     await Promise.all([Bun.write(mask, image(true)), Bun.write(frame, image(true)), Bun.write(empty, image(false))]);
     const command = join(import.meta.dir, "../../tools/stage/contrast.ts");
-    const run = Bun.spawn([process.execPath, command, mask, frame], { stdout: "pipe", stderr: "pipe" });
+    const options = { env: { ...process.env, PATH: "" }, stdout: "pipe", stderr: "pipe" } as const;
+    const run = Bun.spawn([process.execPath, command, mask, frame], options);
     const output = await new Response(run.stdout).text();
     expect(await run.exited).toBe(0);
     expect(output).toContain("fighters 400 px in 1 blobs");
     expect(output).toContain("frame.ppm\t100.0\t0.0\t100.0\t100.0\t");
-    const invalid = Bun.spawn([process.execPath, command, empty, frame], { stdout: "pipe", stderr: "pipe" });
+    const invalid = Bun.spawn([process.execPath, command, empty, frame], options);
     expect(await invalid.exited).not.toBe(0);
     expect(await new Response(invalid.stderr).text()).toContain("no fighter silhouette found");
   } finally {

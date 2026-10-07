@@ -2,23 +2,13 @@
 // "How the numbers are taken"). The mask is a capture after `-dev backdrop off`.
 // usage: bun tools/stage/contrast.ts MASK.png FRAME.png...
 import { $ } from "bun";
+import { decodePpm, type Frame } from "../../ts/node_modules/wisp/scripts/wisp/frameProbe";
 
-type Image = { width: number; height: number; rgb: Uint8Array };
-async function load(path: string): Promise<Image> {
-  const ppm = new Uint8Array(await $`magick ${path} -alpha off -depth 8 ppm:-`.arrayBuffer());
-  let offset = 0; const fields: string[] = [];
-  while (fields.length < 4) {
-    let token = "";
-    while (ppm[offset] === 0x20 || ppm[offset] === 0x0a || ppm[offset] === 0x0d || ppm[offset] === 0x09) offset++;
-    while (offset < ppm.length && ppm[offset] !== 0x20 && ppm[offset] !== 0x0a && ppm[offset] !== 0x0d && ppm[offset] !== 0x09) token += String.fromCharCode(ppm[offset++]!);
-    fields.push(token);
-  }
-  if (fields[0] !== "P6" || fields[3] !== "255") throw new Error(`${path}: expected an 8-bit binary RGB image`);
-  offset++;
-  const width = Number(fields[1]), height = Number(fields[2]);
-  const rgb = ppm.subarray(offset);
-  if (!Number.isInteger(width) || !Number.isInteger(height) || width <= 0 || height <= 0 || rgb.length !== width * height * 3) throw new Error(`${path}: malformed RGB image`);
-  return { width, height, rgb };
+async function load(path: string): Promise<Frame> {
+  const native = decodePpm(await Bun.file(path).bytes());
+  const frame = native ?? decodePpm(new Uint8Array(await $`magick ${path} -alpha off -depth 8 ppm:-`.arrayBuffer()));
+  if (frame === undefined || frame.width <= 0 || frame.height <= 0 || frame.rgb.length !== frame.width * frame.height * 3) throw new Error(`${path}: malformed RGB image`);
+  return frame;
 }
 
 const linear = (c: number) => { const v = c / 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };

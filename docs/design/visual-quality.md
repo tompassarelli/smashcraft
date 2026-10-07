@@ -150,7 +150,8 @@ fighters' mean CIELAB colour is compared with the mean of a ring 4 to 18
 pixels around them: the absolute lightness step |ΔL| and the CIEDE2000
 difference ΔE00. A change passes when neither falls. Keep the individual
 fighter sample and a whole-scene capture, so a mean cannot conceal a missing
-fighter. The image reader forces 8-bit RGB and rejects missing silhouettes or
+fighter. The image reader uses Wisp's decoder for native 8-bit PPM captures;
+other formats use ImageMagick conversion to 8-bit RGB. It rejects missing silhouettes or
 mismatched dimensions. Run
 `bun tools/stage/contrast.ts MASK.png STOCK.png STAGE.png` from smashcraft's
 root. The report also gives mean absolute per-pixel lightness distance to the
