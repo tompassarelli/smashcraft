@@ -1,0 +1,67 @@
+{
+  "script": "test/native/pads/cpu-roster-lich.pad",
+  "build": "typescript-integrity",
+  "frame_one_ns": [
+    52461102504,
+    52462091597
+  ],
+  "match_starts": [
+    {
+      "epoch": 1,
+      "epochNs": 52494435837,
+      "firstFrame": 3,
+      "frameOneNs": 52461102504
+    },
+    {
+      "epoch": 1,
+      "epochNs": 52495424930,
+      "firstFrame": 3,
+      "frameOneNs": 52462091597
+    }
+  ],
+  "edges": [
+    {
+      "line": 6,
+      "text": "900 a press VIEW",
+      "slot": 0,
+      "planned": 900,
+      "injectedNs": 67447925000,
+      "frame": 900,
+      "confirmedBy": "frame rule",
+      "written": 900
+    },
+    {
+      "line": 7,
+      "text": "970 a release VIEW",
+      "slot": 0,
+      "planned": 970,
+      "injectedNs": 68616046000,
+      "frame": 970,
+      "confirmedBy": "frame rule",
+      "written": 970
+    },
+    {
+      "line": 8,
+      "text": "1000 b stick 0 0",
+      "slot": 1,
+      "planned": 1000,
+      "injectedNs": 69115441000,
+      "frame": 1000,
+      "confirmedBy": "frame rule",
+      "written": 1000
+    },
+    {
+      "line": 8,
+      "text": "1000 b stick 0 0",
+      "slot": 1,
+      "planned": 1000,
+      "injectedNs": 69115528000,
+      "frame": 1000,
+      "confirmedBy": "frame rule",
+      "written": 1000
+    }
+  ],
+  "off_frame": 0,
+  "written_late": 0,
+  "helpers_stopped": []
+}

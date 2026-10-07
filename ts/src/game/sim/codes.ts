@@ -5,7 +5,7 @@
 export const Character = {
   archer: 0, rifleman: 1, demonHunter: 2,
   blademaster: 3, mountainKing: 4, warden: 5, lich: 6, uther: 7, dreadlord: 8, shadowHunter: 9,
-  pitLord: 10, beastmaster: 11, lichKing: 12, thrall: 13, jaina: 14, peon: 18,
+  pitLord: 10, beastmaster: 11, lichKing: 12, thrall: 13, jaina: 14, sylvanas: 15, peon: 18,
 } as const;
 export type Character = (typeof Character)[keyof typeof Character];
 
@@ -158,7 +158,7 @@ export const HitElement = { normal: 0, fire: 1, electric: 2, slash: 3, ice: 5, d
 export type HitElement = (typeof HitElement)[keyof typeof HitElement];
 
 /** Hero statuses (sim/heroStatus.ts) a body hit applies. Append only: the code is in replay text. */
-export const HeroStatusKind = { none: 0, sleep: 1, poison: 2, hex: 3, stun: 4, chill: 5, carried: 7 } as const;
+export const HeroStatusKind = { none: 0, sleep: 1, poison: 2, hex: 3, stun: 4, chill: 5, carried: 7, silence: 8 } as const;
 export type HeroStatusKind = (typeof HeroStatusKind)[keyof typeof HeroStatusKind];
 
 /**
