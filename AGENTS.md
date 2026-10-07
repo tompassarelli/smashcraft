@@ -151,6 +151,10 @@ code. From smashcraft:ts/:
 - White body flashes (from the repository root):
   `bun tools/animations/white-flash-models.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
   authors white body-only copies with the original meshes and animation keys for charge and heavy-hit flashes; store PRIVATE_OUTPUT as `impact-assets`.
+- Sylvanas animation authoring (from the repository root):
+  `bun tools/animations/sylvanas-clips.ts STOCK_SYLVANAS.mdx PRIVATE_OUTPUT`
+  appends bow attacks, casts, recovery, paired grabs and nine damage reactions
+  to the classic undead Sylvanas rig, preserving its stock sequences.
 - Damage reactions (from the repository root):
   `bun tools/animations/damage-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
   appends all 13 fighters' nine articulated contact reactions, checks their
@@ -461,6 +465,7 @@ code. From smashcraft:ts/:
   script); `--fresh-each` exists only to measure that. `bun wisp pad
   SCRIPT|DIR... --headless ...` plays the same batch in one headless session
   (smashcraft:docs/native-bot-session.md, "Many scripts in one game").
+- Pad cut (#233): `bun scripts/nativePadCut233.ts --pair N --clients-file FILE --helper WC3_CONTROLLER --map MAP --out DIR --app-id NAME=ID --app-id NAME=ID` uses one existing offline LAN pair, stops its own controller producer for 1 s, and checks the HUD waiting count and normal match results.
 - Native acceptance: `bun wisp accept [--only ID...] [--pair K... | --pairs N] [--map MAP.w3x] [--dry-run]` runs every
   open native check declared in smashcraft:ts/scripts/wisp/acceptChecks.ts in
   as few fresh matches as their maps allow and prints pass, fail or
