@@ -69,6 +69,10 @@ export function headlessRender(options: RenderAssetOptions = {}) {
     mkdirSync(dirname(cache), { recursive: true });
     const extracted = await run([extractor, storage, `war3.w3mod:${normalized}`, cache]);
     if (extracted.code === 0) return read(cache);
+    if (/\.(flac|wav|ogg|mp3)$/.test(normalized)) {
+      const localized = await run([extractor, storage, `war3.w3mod:_locales/enus.w3mod:${normalized}`, cache]);
+      return localized.code === 0 ? read(cache) : undefined;
+    }
     if (!texture) return undefined;
     const png = join(PRIVATE, pngName);
     const oldPng = await read(png);

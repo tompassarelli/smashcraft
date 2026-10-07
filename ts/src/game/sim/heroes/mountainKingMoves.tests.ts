@@ -23,7 +23,7 @@ const NORMAL_TIMINGS = [
   [AttackStyle.dashAttack, 11, 5, 26, 0],
   [AttackStyle.forwardSmash, 20, 3, 36, 0],
   [AttackStyle.upSmash, 17, 5, 32, 0],
-  [AttackStyle.downSmash, 16, 6, 34, 0],
+  [AttackStyle.downSmash, 16, 6, 22, 0],
   [AttackStyle.neutralAir, 8, 6, 22, 15],
   [AttackStyle.forwardAir, 16, 3, 30, 21],
   [AttackStyle.backAir, 10, 3, 25, 15],

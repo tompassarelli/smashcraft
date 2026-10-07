@@ -1,3 +1,4 @@
+import { downSmashHit } from "../downMoveValues";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction, HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT, jabStep, heroHurtPose, heroMove, heroRegion, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
@@ -168,17 +169,17 @@ export const LICH_KING_MOVES: FighterMoves = {
       heroRegion(22, 25, capsule(0.0, 90.0, 0.0, f32(L + 10.0), f32(M - 20.0)), hit(10.0, "LAUNCH", 80)),
     ]), inspiredBy: "Remorseless Winter (Icecrown Citadel)" },
     // Quake: Frostmourne driven into the floor, front f17-19, behind f20-22.
-    [AttackStyle.downSmash]: { ...heroMove(17, 6, 40, 0, [
+    [AttackStyle.downSmash]: { ...heroMove(17, 6, 28, 0, [
       ...path(17, [
         capsule(30.0, 16.0, f32(L - 10.0), 14.0, 15.0),
         capsule(30.0, 12.0, f32(L - 10.0), 10.0, 15.0),
         capsule(30.0, 10.0, f32(L - 10.0), 6.0, 15.0),
-      ], hit(14.0, "EDGE", 30, 1.0, HitElement.normal)),
+      ], downSmashHit(hit(14.0, "EDGE", 30, 1.0, HitElement.normal))),
       ...path(20, [
         capsule(-30.0, 16.0, -f32(L - 10.0), 14.0, 15.0),
         capsule(-30.0, 12.0, -f32(L - 10.0), 10.0, 15.0),
         capsule(-30.0, 10.0, -f32(L - 10.0), 6.0, 15.0),
-      ], hit(14.0, "EDGE", 30, -1.0, HitElement.normal)),
+      ], downSmashHit(hit(14.0, "EDGE", 30, -1.0, HitElement.normal))),
     ]), inspiredBy: "Quake (Icecrown Citadel's transition)" },
     // Frostmourne Spin: the blade comes round him, front then back.
     [AttackStyle.neutralAir]: heroMove(10, 8, 24, 16, [

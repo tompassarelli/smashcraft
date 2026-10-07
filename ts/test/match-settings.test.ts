@@ -2,7 +2,13 @@
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/src/headless/syncChannel";
-import { Phase } from "../src/game/match/rules";
+import { nextMatchSeed } from "../src/game/match/botRandom";
+import { randomStage } from "../src/game/menu/stageCatalog";
+
+import { Phase, stageClock } from "../src/game/match/rules";
+import { HAZARDS_BUTTON } from "../src/game/ui/stageUi";
+import { stageAtRest } from "../src/game/sim/stage";
+
 import { RULE_BUTTONS } from "../src/game/ui/ruleButtons";
 import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
 import { ALL_ITEMS_MASK, ItemKind, itemBit } from "../src/game/sim/codes";
@@ -15,7 +21,7 @@ import { JournalHelpers } from "./rematch/journalHelper";
 import { expectSynchronized, shows, value } from "./rematch/playableMatch";
 const headless = installHeadless(PREDICTED_HEADLESS);
 afterAll(headless.restore);
-function session(endless = false) {
+function session(endless = false, hazardsOff = false) {
   const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1], { delivery: syncDelivery(MEASURED_BATTLE_NET, 74), keepCalls: 64 });
   const helpers = new JournalHelpers(INTEGRITY_BUILD.id);
   helpers.workload = { denseCycles: 0, walkers: [0] };
@@ -43,14 +49,29 @@ function session(endless = false) {
   for (const actor of [0, 1]) clients.press(actor, Key.n);
   frames(5); clients.press(0, Key.y);
   until("stage selection", () => read(() => shell().game.phase) === Phase.stageMenu, 30);
+  frames(2);
+  for (const client of clients.clients) expect(shows(client, "Hazards: On")).toBe(true);
+  if (hazardsOff) {
+    expect(clients.click(1, HAZARDS_BUTTON.x + HAZARDS_BUTTON.width / 2, HAZARDS_BUTTON.y - HAZARDS_BUTTON.height / 2)).toBe(true);
+    frames(1);
+    for (const client of clients.clients) {
+      expect(value(client, () => shell().game.hazards)).toBe(false);
+      expect(shows(client, "Hazards: Off")).toBe(true);
+    }
+  }
   clients.press(0, Key.y);
   until("match", () => read(() => shell().game.phase) === Phase.match, 120);
   return { clients, frames, read, until };
 }
-test("rules agree on both clients and the visible countdown restarts the same match on its last frame", () => {
+test("rules agree on both clients and the last countdown frame starts the next seeded pool stage", () => {
   const { clients, frames, read, until } = session();
-  const rules = () => [shell().game.characterChoices.join(), shell().game.stageChoice, shell().game.stockCount, shell().game.timeLimitMinutes];
+  const rules = () => [shell().game.characterChoices.join(), shell().game.stockCount, shell().game.timeLimitMinutes, shell().game.automaticRematch, shell().game.endless];
   const before = read(rules);
+  const previousStage = read(() => shell().game.stageChoice);
+  const pool = read(() => ({ ...shell().game.stagePool }));
+  const nextSeed = nextMatchSeed(read(() => shell().game.matchSeed));
+  expect(pool.remainingMask).toBeGreaterThan(0);
+  const nextStage = randomStage(nextSeed, pool.remainingMask);
   until("result", () => read(() => shell().game.phase) === Phase.result);
   until("helpers stopped", () => read(() => shell().rollback?.journal?.lifecycle?.quiescent() === true), 120);
   const remaining = read(() => shell().game.rematchCountdown);
@@ -63,6 +84,10 @@ test("rules agree on both clients and the visible countdown restarts the same ma
   expect(read(() => shell().game.phase)).toBe(Phase.match);
   expect(read(() => shell().rollback?.epoch)).toBe(2);
   expect(read(rules)).toEqual(before);
+  expect(read(() => shell().game.matchSeed)).toBe(nextSeed);
+  expect(read(() => shell().game.stageChoice)).toBe(nextStage);
+  expect(nextStage).not.toBe(previousStage);
+  expect(read(() => shell().game.stagePool)).toEqual({ ...pool, remainingMask: pool.remainingMask & ~(1 << nextStage) });
   expectSynchronized(clients);
 });
 // About 1.5 s alone; a loaded host takes a test several times that, past Bun's 5 s default.
@@ -97,6 +122,13 @@ test("endless survives repeated knockouts past the selected time limit", () => {
   expect(read(() => shell().game.timedOut)).toBe(false);
   expectSynchronized(clients);
 }, 30_000);
+test("the stage menu's hazards toggle turns hazards off for both players and the match keeps the stage at rest", () => {
+  const { clients, frames, read } = session(false, true);
+  frames(120);
+  expect(read(() => shell().game.hazards)).toBe(false);
+  expect(read(() => stageAtRest(stageClock(shell().game)))).toBe(true);
+  expectSynchronized(clients);
+}, 30_000);
 
 
 test("item switches sync between players and keep their choices at match start", () => {
@@ -128,3 +160,4 @@ test("item switches sync between players and keep their choices at match start",
   expectSettings(true, itemBit(ItemKind.extraJump));
   expectSynchronized(clients);
 });
+

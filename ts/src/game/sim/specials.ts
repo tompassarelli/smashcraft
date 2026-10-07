@@ -15,13 +15,14 @@ import { HitElement, type HitEffect, type HitRegion, NO_HIT_REGION } from "./hit
 import { heroSpecialMove } from "./heroSpecials";
 import { advanceHeroCommandGrab } from "./heroCommandGrab";
 import { originalSpecialCost, spendMana } from "./mana";
+import { enterExSpecial } from "./exSpecials";
 import { applyAttackHit } from "./hits";
 import { meleeHitIntersectsShield } from "./attacks";
 import { observeActionDecision } from "./observations";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { spawnArcherArrow, spawnBlasterShot, spawnHomingArrow, spawnProjectileMotion } from "./projectiles";
 import { type Controls, type Roster, copyControls, fighterAt, isActive, neutralControls } from "./roster";
-import { surfaceZ } from "./stage";
+import { surfaceZAt } from "./stage";
 import { advanceCompanion } from "./companions";
 import { HIPPOGRYPH_DIVE_ARRIVAL, HIPPOGRYPH_DIVE_OVERSHOOT, RIFLEMAN_BEAR_LIFETIME, advanceBear, advanceHippogryph, recordSpecialHit, specialAlreadyHit, startFreezeTrap } from "./summons";
 import { at } from "wisp/src/runtime/lookup";
@@ -157,6 +158,8 @@ function startSpecialAction(owner: Fighter, action: SpecialAction, duration: num
   owner.motion.fastFalling = false;
   owner.motion.crouching = false;
   special.action = action;
+  special.ex = false;
+  special.exArmorUsed = false;
   special.frame = 0;
   // Every special starts in its plain form; a glide or Chaos Strike's form must not carry into the next special.
   special.form = 0;
@@ -402,6 +405,7 @@ function felRushBranch(owner: Fighter, input: Readonly<Controls>, attack: boolea
   const { special, motion } = owner;
   const next = special.frame + 1;
   if (special.form !== 0 || next < FEL_RUSH_BRANCH_FIRST || next > FEL_RUSH_BRANCH_LAST || owner.launch.hitlag > 0 || owner.launch.hitstun > 0) return false;
+  special.exArmorUsed = special.ex;
   for (let entry = 0; entry < PARTICIPANT_CAPACITY; entry++) special.hitTargets[entry] = undefined;
   special.hit = false;
   // The branch replaces the rush's lock with its own.
@@ -493,7 +497,7 @@ function summonBear(owner: Fighter, stage: number, matchFrame: number): void {
   const moveX = special.direction;
   bear.life = RIFLEMAN_BEAR_LIFETIME;
   bear.x = f32(motion.x + f32(moveX * 45));
-  bear.z = motion.grounded && motion.surface !== undefined ? surfaceZ(stage, motion.surface, matchFrame) : motion.z;
+  bear.z = motion.grounded && motion.surface !== undefined ? surfaceZAt(stage, motion.surface, matchFrame, bear.x) : motion.z;
   bear.velocityX = f32(moveX * 14.0);
   bear.velocityZ = motion.grounded ? 0.0 : motion.vz;
   bear.surface = motion.grounded ? motion.surface : undefined;
@@ -589,6 +593,7 @@ function startHeroFighterSpecial(owner: Fighter, input: Readonly<Controls>, worl
   if (input.specialX !== 0 && input.specialZ !== 0 && move.facesStick === true) owner.facing = input.specialX < 0 ? -1 : 1;
   const action = SpecialAction.heroNeutral + chosen.slot;
   startSpecialAction(owner, heroAction(action), move.endFrame, specialDirection(input, owner.facing));
+  enterExSpecial(owner, input, move.cost);
   enterHeroSpecial(owner, chosen, input);
   return true;
 }
@@ -613,7 +618,10 @@ export function startFighterSpecial(owner: Fighter, stage: number, matchFrame: n
   turnForSpecial(owner, input);
   const moveX = specialDirection(input, owner.facing);
   const started = startOriginalSpecial(owner, stage, matchFrame, requested, moveX);
-  if (started) spendMana(owner, cost);
+  if (started) {
+    enterExSpecial(owner, input, cost);
+    spendMana(owner, cost);
+  }
   else owner.facing = facing;
   return started;
 }

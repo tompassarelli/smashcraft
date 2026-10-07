@@ -1,11 +1,39 @@
 import { mkdirSync, readFileSync, readdirSync, statSync, copyFileSync } from "node:fs";
 import { join } from "node:path";
+import { homedir } from "node:os";
 import { parseArgs } from "node:util";
-import { Effect, Schema } from "effect";
-import { loadClients, windowPid, keys, typeText } from "wisp/scripts/warcraft/desktop";
+import { Effect, Layer, Schema } from "effect";
+import { loadClients, readClientsFile, desktopSession, windowPid, keys, typeText, type Client, type ClientEntry } from "wisp/scripts/warcraft/desktop";
 import { preloadLines } from "wisp/scripts/wisp/boundary";
+import { Clients } from "wisp/scripts/wisp/clients";
+import { ClientWatch } from "wisp/scripts/wisp/watch";
+import { freshMatch } from "./wisp/commands/fresh";
+import { gameFilesLayer } from "./wisp/project";
 import { Phase } from "../src/game/match/rules";
 
+export function validatePadCutClients(clients: readonly Pick<Client, "name" | "documents" | "x11" | "wayland">[], entries: readonly ClientEntry[], appIds: ReadonlyMap<string, string>, pair: string) {
+  if (clients.length !== 2 || entries.length !== 2 || appIds.size !== 2 || new Set(clients.map(client => client.name)).size !== 2) {
+    throw new Error("Assign exactly two private test clients and their app IDs");
+  }
+  for (const [slot, client] of clients.entries()) {
+    const entry = entries[slot];
+    if (entry === undefined || entry.name !== client.name || entry.documents !== client.documents
+      || !/^:[1-9]\d*(?:\.0)?$/.test(client.x11.DISPLAY ?? "")
+      || !/^\/run\/user\/\d+\/private-desktop\.[^/]+$/.test(entry.run)
+      || client.wayland.XDG_RUNTIME_DIR !== join(entry.run, "runtime") || !appIds.get(client.name)) {
+      throw new Error("Use only the explicitly assigned clients on their private displays");
+    }
+    if (pair === "online") {
+      if ((entry.name !== "a" && entry.name !== "b") || entry.documents !== join(homedir(), ".local/share/wc3-melee", `client-${entry.name}`, "pfx/drive_c/users/steamuser/Documents/Warcraft III")) {
+        throw new Error("Online clients must be registered owned test clients");
+      }
+    } else if (!entry.documents.includes(`/wisp/lan/clients/lan${pair}${slot === 0 ? "a" : "b"}/`)) {
+      throw new Error("Use the assigned offline LAN pair");
+    }
+  }
+}
+
+async function main() {
 const { values } = parseArgs({ options: {
   pair: { type: "string" }, "clients-file": { type: "string" }, helper: { type: "string" }, map: { type: "string" },
   out: { type: "string" }, "app-id": { type: "string", multiple: true }, plan: { type: "boolean" },
@@ -36,13 +64,16 @@ async function command(args: readonly string[]) {
   const child = Bun.spawn([process.execPath, "scripts/wisp.ts", ...args], { cwd: join(import.meta.dir, ".."), stdout: "inherit", stderr: "inherit" });
   if (await child.exited !== 0) throw new Error(`Failed: bun wisp ${args.join(" ")}`);
 }
+const selected = await Effect.runPromise(readClientsFile(clientsFile));
+const sessions = await Promise.all(selected.clients.map(async entry => ({ ...entry, ...await Effect.runPromise(desktopSession(entry)) })));
+validatePadCutClients(sessions, selected.clients, appIds, pair);
 await command(["client", "watch", "--once", "--clients-file", clientsFile]);
-const hostedAt = Date.now();
-await command(["lan", "fresh", map, "--pair", pair]);
 const clients = await Effect.runPromise(loadClients(clientsFile));
-if (clients.length !== 2 || clients.some((client, slot) => !client.documents.includes(`/wisp/lan/clients/lan${pair}${slot === 0 ? "a" : "b"}/`) || client.x11.DISPLAY === ":0")) {
-  throw new Error("Use the assigned offline LAN pair on its private displays");
-}
+const hostedAt = Date.now();
+if (pair === "online") await Effect.runPromise(freshMatch(map).pipe(
+  Effect.provide(Layer.mergeAll(Clients.layer(clientsFile), gameFilesLayer, ClientWatch.layer({ filePrefix: "smashcraft" }))),
+));
+else await command(["lan", "fresh", map, "--pair", pair]);
 const data = clients.map(client => join(client.documents, "CustomMapData"));
 const readyDeadline = Date.now() + 8000;
 while (!data.every(directory => {
@@ -174,3 +205,6 @@ try {
   await Bun.write(join(out, "timeline.json"), JSON.stringify(timeline, null, 2));
 }
 await command(["client", "watch", "--once", "--clients-file", clientsFile]);
+}
+
+if (import.meta.main) await main();
