@@ -1,0 +1,18 @@
+{
+  "tier": "expert",
+  "events": 20,
+  "hits": [
+    18,
+    1,
+    0,
+    0
+  ],
+  "damage": [
+    97.26,
+    11.53,
+    0,
+    0
+  ],
+  "totalHits": 19,
+  "cpuHits": 0
+}
