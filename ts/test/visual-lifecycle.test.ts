@@ -26,6 +26,12 @@ import { createImpactState, emitImpacts } from "../src/game/presentation/impactS
 import { HIT_PRESENTATION_CASES } from "../src/game/shell/hitPresentationCases";
 import { SpecialEffects } from "../src/game/render/specialEffects";
 import { IMMOLATE_SOUNDS } from "../src/game/presentation/elementLooks";
+import { originalClip } from "../src/game/assets/fighterOriginalClipInfo";
+import { createFighterPose } from "../src/game/presentation/fighterPose";
+import { contactDamageClip } from "../src/game/presentation/damagePose";
+import { characterModelScale } from "../src/game/presentation/modelScale";
+import { FighterPoolPresentation } from "../src/game/render/fighterPool";
+import { createFighter } from "../src/game/sim/fighter";
 
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
@@ -403,6 +409,68 @@ test("pooled fighters: every clip but the presented one waits collapsed beneath 
       pool.hide();
       expect(hiddenInView(client)).toEqual([]);
     }
+  });
+  expect(client.errors).toEqual([]);
+});
+
+test("pooled fighters: unchanged poses keep their appearance and a returning fading clip draws fully", () => {
+  const clients = headless.clients({ start, install });
+  clients.start();
+  const client = clients.clients[0];
+  if (client === undefined) throw new Error("missing host client");
+  client.run(() => {
+    const fighter = createFighter(Character.archer, 0, 1);
+    const pool = new FighterPoolPresentation(fighter.character, 0, { x: 0, y: 0, z: FLOOR_HEIGHT });
+    const pose = createFighterPose();
+    pose.clipIndex = 0;
+    const clip = originalClip(fighter.character, 0);
+    if (clip === undefined) throw new Error("missing standing clip");
+    const shown = () => client.effectPoses().find(effect => effect.model === clip.modelPath);
+    const draw = (frame: number) => {
+      const before = client.log.length;
+      pool.present(fighter, pose, 0, frame);
+      return client.log.slice(before);
+    };
+    const allocations = client.log.filter(call => call.name === "AddSpecialEffect").length;
+    draw(1);
+    expect(shown()?.alpha).toBe(255);
+    expect(shown()?.scale).toBe(characterModelScale(fighter.character));
+    const repeated = draw(2);
+    expect(repeated.some(call => call.name === "BlzSetSpecialEffectPosition")).toBe(true);
+    expect(repeated.filter(call => ["BlzSetSpecialEffectYaw", "BlzSetSpecialEffectScale", "BlzSetSpecialEffectTime", "BlzSetSpecialEffectColor", "BlzSetSpecialEffectAlpha"].includes(call.name))).toEqual([]);
+
+    fighter.facing = -1;
+    fighter.status.frozenFrames = 3;
+    pose.clipTime = 0.25;
+    const changed = draw(3);
+    expect(changed.some(call => call.name === "BlzSetSpecialEffectYaw" && Number(call.args[1]) > 3)).toBe(true);
+    expect(changed.some(call => call.name === "BlzSetSpecialEffectTime" && call.args[1] === 0.25)).toBe(true);
+    expect(changed.some(call => call.name === "BlzSetSpecialEffectColor" && call.args.slice(1).join(",") === "155,210,255")).toBe(true);
+    fighter.status.frozenFrames = 0;
+    fighter.status.invincible = 5;
+    const recovered = draw(4);
+    expect(recovered.some(call => call.name === "BlzSetSpecialEffectColor" && call.args.slice(1).join(",") === "255,255,255")).toBe(true);
+    expect(shown()?.alpha).toBe(140);
+    fighter.status.invincible = 0;
+    draw(5);
+    expect(shown()?.alpha).toBe(255);
+
+    fighter.launch.hitlag = 5;
+    pose.clipIndex = contactDamageClip(fighter).index;
+    draw(6);
+    expect(shown()?.alpha).toBeGreaterThan(0);
+    expect(shown()?.alpha).toBeLessThan(255);
+    pose.clipIndex = 0;
+    draw(7);
+    expect(shown()?.alpha).toBe(255);
+    expect(shown()?.scale).toBe(characterModelScale(fighter.character));
+    pool.hide();
+    expect(shown()?.scale).toBe(0);
+    draw(8);
+    expect(shown()?.alpha).toBe(255);
+    expect(shown()?.scale).toBe(characterModelScale(fighter.character));
+    expect(client.log.filter(call => call.name === "AddSpecialEffect")).toHaveLength(allocations);
+    pool.destroy();
   });
   expect(client.errors).toEqual([]);
 });

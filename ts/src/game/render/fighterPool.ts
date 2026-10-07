@@ -29,6 +29,13 @@ export class FighterPoolPresentation {
   private readonly scale: number;
   private lightVisible = false;
   private visible: number | undefined;
+  private yaw: number | undefined;
+  private seconds: number | undefined;
+  private red: number | undefined;
+  private green: number | undefined;
+  private blue: number | undefined;
+  private alpha: number | undefined;
+  private lightYaw: number | undefined;
   /** The dissolving previous clip, the simulation frame it started and its length. */
   private blendFrom: number | undefined;
   private blendStart = 0;
@@ -107,7 +114,8 @@ export class FighterPoolPresentation {
       this.hide();
       return;
     }
-    if (this.visible !== index) {
+    const changed = this.visible !== index;
+    if (changed) {
       const previous = this.visible;
       const frames = previous === undefined ? 0 : poseBlendFrames(fighter, previous, index);
       // A clip returning while it dissolves is simply drawn again.
@@ -133,13 +141,21 @@ export class FighterPoolPresentation {
     const z = this.origin.z + this.placement.z;
     const yaw = facingYaw(fighterPoseFacing(fighter));
     placeEffect(model, x, y, z);
-    BlzSetSpecialEffectYaw(model, yaw);
-    BlzSetSpecialEffectScale(model, this.scale);
-    BlzSetSpecialEffectTime(model, seconds);
+    if (changed || this.yaw !== yaw) {
+      BlzSetSpecialEffectYaw(model, yaw);
+      this.yaw = yaw;
+    }
+    if (changed) BlzSetSpecialEffectScale(model, this.scale);
+    if (changed || this.seconds !== seconds) {
+      BlzSetSpecialEffectTime(model, seconds);
+      this.seconds = seconds;
+    }
     if (this.light !== undefined) {
       placeEffect(this.light, x, y, z);
-      BlzSetSpecialEffectYaw(this.light, yaw);
-      BlzSetSpecialEffectScale(this.light, this.scale);
+      if (this.lightYaw !== yaw) {
+        BlzSetSpecialEffectYaw(this.light, yaw);
+        this.lightYaw = yaw;
+      }
       if (!this.lightVisible) {
         BlzSetSpecialEffectAnimation(this.light, ORIGINAL_LIGHT_ACTIVE_ANIMATION);
         BlzSetSpecialEffectTime(this.light, ORIGINAL_LIGHT_GATE_SECONDS);
@@ -166,8 +182,16 @@ export class FighterPoolPresentation {
       }
       if (isIntangible(fighter)) alpha = 140;
     }
-    BlzSetSpecialEffectColor(model, red, green, blue);
-    BlzSetSpecialEffectAlpha(model, alpha);
+    if (changed || this.red !== red || this.green !== green || this.blue !== blue) {
+      BlzSetSpecialEffectColor(model, red, green, blue);
+      this.red = red;
+      this.green = green;
+      this.blue = blue;
+    }
+    if (changed || this.alpha !== alpha) {
+      BlzSetSpecialEffectAlpha(model, alpha);
+      this.alpha = alpha;
+    }
     const from = this.blendFrom === undefined ? undefined : this.clips[this.blendFrom];
     if (from === undefined) return;
     const fade = outgoingPoseAlpha(frame - this.blendStart, this.blendFrames);
