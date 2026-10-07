@@ -48,6 +48,7 @@ import { resultsView } from "../../game/presentation/matchCues";
 import { LASTING, announce, createStatusFrames, drawStage, lockArenaCamera, pauseMatchPresentation, renderPersistentPresentation, renderUi, setStatus } from "./view";
 import { keepMomentEnd } from "../../game/replay/moment";
 import { resultMessage } from "../../game/shell/messages";
+import { beforeNativeDriverTick, afterNativeDriverTick, captureNativeDriverInputs } from "../nativeDriver";
 import { fighterAt, isActive } from "../../game/sim/roster";
 import { PAD_MOUSE, createPadTriggers, padMouse } from "./analogPad";
 
@@ -77,6 +78,7 @@ declare global {
 
 /** One game callback. */
 function gameTick(s: ShellState): void {
+  if (!beforeNativeDriverTick(s)) return;
   serviceVisualCapture(s);
   const epoch = journalEpoch(s);
   const editbox = s.rollback?.journal?.editbox;
@@ -102,6 +104,7 @@ function gameTick(s: ShellState): void {
   s.moment.notice = Math.max(0.0, f32(s.moment.notice - FRAME_SECONDS));
   serviceMomentSave(s);
   serviceReplay(s);
+  captureNativeDriverInputs(s);
   if (rollback !== undefined && s.game.phase === Phase.match) {
     const { journal } = rollback;
     if (journal !== undefined) serviceControlAck(s, rollback, journal);
@@ -142,6 +145,7 @@ function gameTick(s: ShellState): void {
     probePresent(s.probe, confirmed, predicted && fighterAt(predictedWorld, local).shield.raised, predicted ? rollback?.speculative.runtime.poses[local].selectionSerial ?? -1 : -1);
   }
   writeReadyMarker(s);
+  afterNativeDriverTick(s);
 }
 
 /** Menu sounds and music, and the results screen once "GAME!" has had its moment. */

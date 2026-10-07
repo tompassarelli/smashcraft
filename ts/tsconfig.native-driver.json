@@ -1,0 +1,6 @@
+{
+  "extends": "./tsconfig.map.json",
+  "include": ["node_modules/wisp/src/natives/warcraft.d.ts", "src/platform/nativeDriverMain.ts"],
+  "exclude": [],
+  "tstl": { "luaBundle": "native-driver.lua", "luaBundleEntry": "src/platform/nativeDriverMain.ts" }
+}

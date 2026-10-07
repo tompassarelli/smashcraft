@@ -18,6 +18,7 @@ import { fillMana, gainMana, spendMana } from "./mana";
 import { heldSouls, spendSoul } from "./passives";
 import { endDivineShield } from "./transitions";
 import { capsuleCircleIntersects, shieldSizeMultiplier } from "./shield";
+import { shieldCenterX, shieldCenterZ } from "./shieldTilt";
 import { attackCapsule, emptyCapsule, placeCapsule, segmentBoxesOverlap } from "../physics/contactGeometry";
 import { HurtContact, strikeHurtContact } from "./hurtboxes";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
@@ -417,7 +418,7 @@ export function heroStrikeMeetsShield(owner: Readonly<Fighter>, target: Readonly
   placeCapsule(strike, path, owner.motion.x, owner.motion.z, owner.facing);
   const geometry = target.tuning.shield;
   return capsuleCircleIntersects(strike.x1, strike.z1, strike.x2, strike.z2, strike.radius,
-    f32(target.motion.x + f32(target.facing * geometry.centerX)), f32(target.motion.z + geometry.centerZ), geometry.radius,
+    shieldCenterX(target), shieldCenterZ(target), geometry.radius,
     shieldSizeMultiplier(target.shield.energy, target.shield.strength));
 }
 
