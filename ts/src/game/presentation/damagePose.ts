@@ -4,14 +4,20 @@ import type { Fighter } from "../sim/fighter";
 import { at } from "wisp/src/runtime/lookup";
 import type { HeroClip } from "../sim/heroes/hero";
 import { DAMAGE_CLIPS } from "./damageClipInfo";
+import { heroDefinition } from "../sim/heroes/registry";
 
 /** A fighter's hit reaction clip; the numbers are the Wurst codes pose keys record. */
 export const DamagePose = { none: 0, ground: 1, air: 2, tumble: 3, shield: 4 } as const;
 export type DamagePose = (typeof DamagePose)[keyof typeof DamagePose];
 
 /** Low/middle/high rows, small/medium/large columns; presentation only. */
+export function contactDamageClips(character: number): readonly HeroClip[] | undefined {
+  return heroDefinition(character)?.presentation.damageClips ?? DAMAGE_CLIPS[character];
+}
+
+/** The authored reaction matching the accepted contact. */
 export function contactDamageClip(fighter: Readonly<Fighter>): HeroClip {
-  const row = DAMAGE_CLIPS[fighter.character];
+  const row = contactDamageClips(fighter.character);
   if (row === undefined) throw new Error("Missing fighter damage grid");
   return at(row, fighter.visuals.hitHeight * 3 + fighter.visuals.hitStrength);
 }
