@@ -46,8 +46,11 @@ grounded return. Offstage, Beastmaster gives up attacking to use Hawk Lift.
 
 The stock Warcraft animations supply each animal's stand, movement and attack;
 the fighter's forward cast signals a command, and his axe swing signals Wild
-Axes. Animal attack animation follows its warning/action/recovery state from
-its actual position. Hawk Lift draws the same Hawk, never an extra cosmetic
+Axes. Bear rears during its warning, lunges with its attack pose, then finishes the
+swipe. Quilbeast braces and recoils separately for each quill. Hawk pitches
+down through its dive and visibly travels from above to below the target.
+These poses play at each animal's actual position, with full windup and
+follow-through instead of cutting the animation to the short contact window. Hawk Lift draws the same Hawk, never an extra cosmetic
 copy. Stock Warcraft models remain private inputs.
 
 ## Sources and borrowing
