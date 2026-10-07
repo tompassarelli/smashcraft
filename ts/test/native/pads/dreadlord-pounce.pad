@@ -26,19 +26,20 @@
 360 a tap X 2
 361 a stick 0 0
 #! expect a 60 special 16 form 0
-#! expect b 110 damage 2.000
+#! expect b 110 damage 1.810
 #! expect a 130 special 13 form 0
-#! expect b 165 damage 9.000
+#! expect b 165 damage 8.145
 #! expect b 190 applied attack 1 style 0
-#! expect a 257 damage 7.000
+#! expect a 257 damage 6.335
 #! expect a 360 special 14 form 0
 #! expect a 376 grab-hold start
 #! expect a 392 grab-hold end
-#! expect a 392 damage 3.000
-#! expect b 392 damage 22.000
+#! expect a 392 damage 2.335
+#! expect b 392 damage 19.910
 #! scene a SleepSpecialArt
 #! scene a CarrionSwarmMissile
 #! scene a BloodImpact
+# Damage uses the current kit: Sleep 1.810, Swarm 6.335, bite 11.765; bite heals exactly 4.
 # View held a second, twice: the moments the parity check replays.
 500 a press VIEW
 570 a release VIEW
