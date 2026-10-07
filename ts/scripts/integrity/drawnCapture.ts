@@ -11,11 +11,16 @@ import { preloadLines } from "wisp/scripts/wisp/boundary";
 import { IntegrityFailure } from "./evidence";
 import type { PadStep } from "./padScript";
 
+export const visualCaptureToken = (time = Date.now(), pid = process.pid): string => `${time.toString(36)}-${pid.toString(36)}`;
+
 /** One finite visual schedule; authored pad frames and helper input deadlines stay intact. */
 export function visualCaptureCommand(command: string, token: string, steps: readonly PadStep[]): string {
-  const frames = [0, 1].map(slot => [...new Set(steps.filter(step => step.kind === "capture" && step.slot === slot).map(step => step.frame))].sort((a, b) => a - b).join(",") || "-");
+  const frames = [0, 1].map(slot => {
+    const sorted = [...new Set(steps.filter(step => step.kind === "capture" && step.slot === slot).map(step => step.frame))].sort((a, b) => a - b);
+    return sorted.map((frame, index) => frame - (sorted[index - 1] ?? 0)).join(",") || "-";
+  });
   const text = `${command} |capture ${token} ${frames.join(" ")}`;
-  if (text.length > 254) throw new Error("visual capture schedule exceeds Warcraft's 254-character chat command; split this visual fixture");
+  if (text.length > 127) throw new Error("visual capture schedule exceeds Warcraft's 127-character chat command; split this visual fixture");
   return text;
 }
 

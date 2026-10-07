@@ -25,9 +25,11 @@ export function configureVisualCapture(message: string, slot: number): string {
   if (token === undefined || token.length === 0 || token.length > 32 || rows === undefined) return message;
   for (let i = 0; i < token.length; i++) if (!"0123456789abcdefghijklmnopqrstuvwxyz-".includes(token.charAt(i))) return message;
   const frames: number[] = [];
+  let frame = 0;
   if (rows !== "-") for (const text of rows.split(",")) {
-    const frame = parseDecimal(text);
-    if (frame === undefined || frame < 1 || frame > 18000 || frame <= (frames[frames.length - 1] ?? 0)) return message;
+    const delta = parseDecimal(text);
+    if (delta === undefined || delta < 1 || delta > 18000 - frame) return message;
+    frame += delta;
     frames.push(frame);
   }
   if (frames.length > 0) captures.set(slot, { token, frames, next: 0, held: undefined, ticks: 0 });

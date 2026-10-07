@@ -2,17 +2,19 @@
 // drawn match runs behind the helper's clock (#156: 6 to 88 frames under
 // load). The integrity build writes the frame it drew; the capture waits for it.
 import { afterAll, expect, test } from "bun:test";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { Effect, Exit } from "effect";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
-import { QUICK_MATCH_COMMAND, RESET_COMMAND } from "../src/game/shell/devSettings";
+import { QUICK_MATCH_COMMAND, RESET_COMMAND, quickMatchHero } from "../src/game/shell/devSettings";
+import { Phase } from "../src/game/match/rules";
 import { install, startBuild } from "../src/platform/main";
 import { activeRollback, shell, shellState } from "../src/platform/shell/state";
 import { drawnFrameFile } from "../src/runtime/gameFiles";
-import { type Drawn, captureWhenDrawn, parseDrawn, visualCaptureCommand } from "../scripts/integrity/drawnCapture";
+import { type Drawn, captureWhenDrawn, parseDrawn, visualCaptureCommand, visualCaptureToken } from "../scripts/integrity/drawnCapture";
 import { parsePadScript } from "../scripts/integrity/padScript";
-import { clearVisualCapture, configureVisualCapture, heldVisualFrame, holdVisualFrame, releaseVisualFrame } from "../src/game/shell/visualCapture";
+import { scriptChat } from "../scripts/integrity/padParity";
+import { clearVisualCapture, configureVisualCapture, heldVisualFrame, holdVisualFrame, releaseVisualFrame, visualCapture } from "../src/game/shell/visualCapture";
 import { confirmedChecksum } from "../src/platform/shell/diagnostics";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
 import { JournalHelpers } from "./rematch/journalHelper";
@@ -74,6 +76,43 @@ test("the original Illidan capture schedule preserves all eight authored frames"
     releaseVisualFrame(0);
   }
   clearVisualCapture(0);
+});
+
+test("Warcraft's 127-character chat limit preserves all 13 original cue schedules and starts both clients", () => {
+  const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1]);
+  const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);
+  const frames = (n: number) => { for (let i = 0; i < n; i++) { clients.frames(1); helpers.service(clients); } };
+  clients.start();
+  frames(30);
+  const original = "-dev quick hero archer |capture 1791371747161-3316068 62,76,91,102,116,131,142,150,156,171,222,232,312,326,402,405,642,646,702,706 -";
+  expect(original.slice(0, 127)).toEndWith("702,");
+  clients.chat(0, original.slice(0, 127));
+  for (const client of clients.clients) expect(value(client, () => shell().game.phase)).toBe(Phase.characterMenu);
+
+  const directory = new URL("native/pads/", import.meta.url);
+  const scripts = readdirSync(directory).filter(name => name.endsWith("-cues.pad")).sort();
+  expect(scripts).toHaveLength(13);
+  const token = visualCaptureToken(1791371747161, 3316068);
+  for (const name of scripts) {
+    clients.chat(0, RESET_COMMAND);
+    const script = readFileSync(new URL(name, directory), "utf8");
+    const steps = parsePadScript(script);
+    const chat = scriptChat(script);
+    if (chat === undefined) throw new Error(`${name} has no setup command`);
+    const command = visualCaptureCommand(chat, token, steps);
+    expect(command.length, name).toBeLessThanOrEqual(127);
+    clients.chat(0, command.slice(0, 127));
+    for (const client of clients.clients) {
+      expect(value(client, () => shell().game.phase), name).toBe(Phase.match);
+      expect(value(client, () => shell().game.characterChoices[client.slot]), name).toBe(quickMatchHero(chat));
+      const wanted = [...new Set(steps.filter(step => step.kind === "capture" && step.slot === client.slot).map(step => step.frame))].sort((a, b) => a - b);
+      expect(visualCapture(client.slot)?.frames ?? [], `${name} client ${client.slot}`).toEqual(wanted);
+      if (wanted.length > 0) expect(visualCapture(client.slot)?.token).toBe(token);
+      expect(client.errors, name).toEqual([]);
+    }
+  }
+  clients.chat(0, RESET_COMMAND);
+  expect(() => visualCaptureCommand("x".repeat(127), token, [])).toThrow("127-character");
 });
 
 test("a visual hold captures inside a catch-up callback while the unchanged match keeps advancing", () => {

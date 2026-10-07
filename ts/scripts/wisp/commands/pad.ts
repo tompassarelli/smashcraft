@@ -41,7 +41,7 @@ import { REPRO_NAME, TRACE_FILE, checkHeadlessRun, compareRuns, comparisonSteps,
 import type { Schedule, ScheduleReply, ScheduledEdge } from "../../integrity/padScheduleWorker";
 import { type PadStep, type SentEdge, deadlineOrder, frameWriteNs, landEdges, matchStart, parsePadScript, ruleFrame } from "../../integrity/padScript";
 import { SLOTS } from "../../integrity/reconcile";
-import { captureWhenDrawn, drawnFrom, visualCaptureCommand } from "../../integrity/drawnCapture";
+import { captureWhenDrawn, drawnFrom, visualCaptureCommand, visualCaptureToken } from "../../integrity/drawnCapture";
 import { visualReleaseFile } from "../../../src/game/shell/visualCapture";
 import { drawnFrameFile, nativeChatFile } from "../../../src/runtime/gameFiles";
 import { PREDICTED_HEADLESS, SMASHCRAFT_HEADLESS } from "../headless";
@@ -253,7 +253,7 @@ export const nativeScript = (session: NativeSession, options: PadOptions) => Eff
   });
   const startedMs = Date.now();
   const startedNs = monotonicNs();
-  const captureToken = chat !== undefined && steps.some(step => step.kind === "capture") ? `${Date.now()}-${process.pid}` : undefined;
+  const captureToken = chat !== undefined && steps.some(step => step.kind === "capture") ? visualCaptureToken(startedMs) : undefined;
   const from = session.logs().map((text) => text.length);
   const logs = (): [string, string] => {
     const [a, b] = session.logs();
