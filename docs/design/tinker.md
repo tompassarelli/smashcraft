@@ -70,6 +70,10 @@ start juggles; down throw starts a tech chase. There is no bury or forced
 follow-up. DI, SDI, jump, air dodge and the shared floor-tech options remain
 the defender's responses. Grabs use the common mash escape and one-pummel rule.
 
+Forward smash, up smash and Robo-Goblin share launch growth 90 and base 28.
+The lower growth makes these finishers require more accumulated damage after
+Tinker establishes his machinery.
+
 ## Specials, passive and ultimate
 
 | Input | Original Smashcraft rule | Warcraft source | Smash comparison |

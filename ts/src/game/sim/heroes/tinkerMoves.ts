@@ -8,7 +8,7 @@ import { hurtPart } from "../hurtboxes";
 const STRENGTH = {
   link: { growth: 50.0, base: 12.0 }, poke: { growth: 75.0, base: 20.0 },
   launch: { growth: 90.0, base: 32.0 }, edge: { growth: 105.0, base: 25.0 },
-  kill: { growth: 118.0, base: 28.0 }, spike: { growth: 95.0, base: 22.0 },
+  kill: { growth: 90.0, base: 28.0 }, spike: { growth: 95.0, base: 22.0 },
   juggle: { growth: 55.0, base: 50.0 }, chase: { growth: 40.0, base: 75.0 },
 } as const;
 const ANGLES = {
