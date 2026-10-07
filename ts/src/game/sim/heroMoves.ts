@@ -45,7 +45,7 @@ export interface AuthoredMove {
    * Melee's Attack11 continues to Attack12 (melee:src/melee/ft/kinds/ftCommon/ftCo_Attack1.c).
    */
   readonly chainsFrom?: number | undefined;
-  /** A drill's descent in phases: over each phase's attack frames its speeds are held, replacing gravity and fast fall. */
+  /** A drill's motion in phases: each specified speed replaces its ordinary drift or gravity. */
   readonly fall?: readonly AuthoredFall[] | undefined;
   /** Landing during the active frames continues into this grounded hit instead of landing lag. */
   readonly landingHit?: AuthoredLandingHit | undefined;
@@ -53,13 +53,13 @@ export interface AuthoredMove {
 
 /**
  * Zero-based attack frames, inclusive, and the speeds held on them in world
- * units per frame: vertical (negative falls) and, if set, facing-relative
- * horizontal, replacing air drift.
+ * units per frame: optional vertical (negative falls) and facing-relative
+ * horizontal. An omitted speed keeps ordinary motion on that axis.
  */
 export interface AuthoredFall {
   readonly firstFrame: number;
   readonly lastFrame: number;
-  readonly speedZ: number;
+  readonly speedZ?: number | undefined;
   readonly speedX?: number | undefined;
 }
 

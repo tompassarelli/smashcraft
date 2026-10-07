@@ -577,7 +577,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
       motion.fastFalling = true;
       motion.fastFallInputAge = PLATFORM_DROP_INPUT_WINDOW;
     }
-    if (drill !== undefined) motion.vz = drill.speedZ;
+    if (drill?.speedZ !== undefined) motion.vz = drill.speedZ;
     else if (motion.fastFalling) motion.vz = -physics.fastFallSpeed;
     else applyMeleeGravity(f);
   }

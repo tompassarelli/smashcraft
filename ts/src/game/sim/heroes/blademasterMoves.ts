@@ -113,7 +113,11 @@ const bladestorm: AuthoredMove = {
       linkAt(4.0, 90.0, 80), undefined, BLADESTORM_SPINS.length + 2),
   ]),
   // Hangs while the spins land, then plunges.
-  fall: [{ firstFrame: 9, lastFrame: BLADESTORM_PLUNGE - 2, speedZ: -1.5 }, { firstFrame: BLADESTORM_PLUNGE - 1, lastFrame: BLADESTORM_LAST - 1, speedZ: -14.0 }],
+  fall: [
+    { firstFrame: 0, lastFrame: 8, speedX: 0.0 },
+    { firstFrame: 9, lastFrame: BLADESTORM_PLUNGE - 2, speedZ: -1.5, speedX: 0.0 },
+    { firstFrame: BLADESTORM_PLUNGE - 1, lastFrame: BLADESTORM_LAST - 1, speedZ: -14.0, speedX: 0.0 },
+  ],
   landingHit: { firstFrame: BLADESTORM_TOTAL, totalFrames: BLADESTORM_TOTAL + 12 },
 };
 

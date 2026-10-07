@@ -150,7 +150,7 @@ export function fighterMovesCanonical(moves: FighterMoves | undefined, prefix = 
       const part = `${name}.fall[${index}]`;
       int(`${part}.first`, phase.firstFrame);
       int(`${part}.last`, phase.lastFrame);
-      real(`${part}.speedZ`, phase.speedZ);
+      if (phase.speedZ !== undefined) real(`${part}.speedZ`, phase.speedZ);
       if (phase.speedX !== undefined) real(`${part}.speedX`, phase.speedX);
     }
     if (move.landingHit !== undefined) {
