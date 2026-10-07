@@ -203,6 +203,7 @@ export function recreateUi(s: ShellState, actions: PanelActions): void {
   bindPrototype(ui.combat, CombatEffects.prototype);
   bindPrototype(ui.frost, FrostEffects.prototype);
   bindPrototype(ui.placed, PlacedObjectEffects.prototype);
+  ui.placed.bindNestedCode();
   bindPrototype(ui.special, SpecialEffects.prototype);
   ui.special.bindNestedCode();
   ui.sounds = modelSoundPresentation(s.origin);
