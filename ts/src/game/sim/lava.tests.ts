@@ -1,10 +1,11 @@
 import { assertEquals, assertFalse, assertGreaterThan, test } from "wisp/src/runtime/testing";
-import { AttackStyle, Character, HitOrigin } from "./codes";
+import { AttackStyle, Character, HitOrigin, ItemKind } from "./codes";
 import { beginDamageContacts, finishDamageContacts } from "./contacts";
 import { createFighter } from "./fighter";
 import { applyAttackHit } from "./hits";
 import { collectLavaContacts, LAVA_HIT, LAVA_INNER_X } from "./lava";
-import { CANNON_TEST_STAGE } from "./stage";
+import { queueAttack } from "../input/attackBuffer";
+import { CANNON_TEST_STAGE, STRATHOLME_STAGE, mainDeckZAt } from "./stage";
 import { testWorld } from "./testWorld";
 import { firstFighterDifference, firstStateDifference } from "../replay/difference";
 import { copyReplayState, createReplaySnapshot } from "../replay/snapshot";
@@ -56,4 +57,19 @@ test("a lava launch survives rollback and 180 replayed match frames exactly", ()
   assertEquals(firstStateDifference(live, replay), undefined);
   assertEquals(stateChecksum(live), stateChecksum(replay));
   assertGreaterThan(fighterAt(live.world, 0).visuals.hit, 0);
+});
+
+test("an ordinary attack picks up the centre item on Stratholme's raised floor", () => {
+  const state = createReplaySnapshot();
+  state.match.phase = Phase.match; state.match.stageChoice = STRATHOLME_STAGE;
+  state.match.items.kind = ItemKind.speed;
+  const fighter = fighterAt(state.world, 0);
+  fighter.motion.x = 0.0; fighter.motion.z = mainDeckZAt(STRATHOLME_STAGE, 0.0); fighter.motion.surface = 0;
+  fighterAt(state.world, 1).motion.x = 300.0;
+  queueAttack(state.controls.commands[0], { style: AttackStyle.jab, facing: 1, frame: 1, mayCharge: false });
+  stepMatch(state.match, state.world, state.controls, 1);
+  assertEquals(state.match.items.kind, ItemKind.none);
+  assertEquals(state.match.items.lastTaker, 0);
+  assertEquals(fighter.status.buff, ItemKind.speed);
+  assertGreaterThan(fighter.status.buffFrames, 0);
 });

@@ -13,7 +13,7 @@ import {
   type ResultsView, clearMatchTally, confirmedFrameCues, createCueObservation, createMatchTally, createMenuCues, createMenuObservation,
   menuFrameCues, observeForCues,
 } from "../presentation/matchCues";
-import { mainDeckZ } from "../sim/stage";
+import { mainDeckZAt } from "../sim/stage";
 import { confirmedItemCues, createItemCueObservation, observeItemCues } from "../presentation/itemLook";
 import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
 import { STAGE_CATALOG } from "../menu/stageCatalog";
@@ -174,7 +174,7 @@ export class MatchPresentation {
       if ((itemCues & (1 << index)) === 0) continue;
       const sound = at(this.itemSounds, index);
       StopSound(sound, false, false);
-      SetSoundPosition(sound, this.origin.x, this.origin.y, this.origin.z + mainDeckZ(game.stageChoice));
+      SetSoundPosition(sound, this.origin.x, this.origin.y, this.origin.z + mainDeckZAt(game.stageChoice, 0.0));
       StartSound(sound);
     }
     for (const cue of this.cues) {
