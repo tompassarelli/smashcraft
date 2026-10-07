@@ -6,7 +6,7 @@ import { at } from "wisp/src/runtime/lookup";
 import { floorDiv } from "wisp/src/sim/intMath";
 import { max, min } from "../../runtime/numbers";
 import type { Fighter } from "../sim/fighter";
-import { DAMAGE_CLIPS } from "./damageClipInfo";
+import { contactDamageClips } from "./damagePose";
 
 /**
  * Frames the previous pose takes to dissolve into a contact's pain pose, by
@@ -18,7 +18,7 @@ export const PAIN_EXIT_BLEND_FRAMES = 4;
 
 /** Whether this clip index is one of the character's nine contact pain poses. */
 export function isContactPainClip(character: number, index: number): boolean {
-  const row = DAMAGE_CLIPS[character];
+  const row = contactDamageClips(character);
   if (row === undefined) return false;
   for (const clip of row) if (clip.index === index) return true;
   return false;
