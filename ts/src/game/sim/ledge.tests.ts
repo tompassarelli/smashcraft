@@ -36,7 +36,9 @@ test("hero recovery refreshes on the ledge mount onto the deck, not the catch", 
     advanceLedge(world, 0, 0, controls());
     assertTrue(fighter.motion.grounded);
     assertEquals(fighter.special.airtimeUses, 0);
-    while (fighter.ledge.state !== LedgeState.none) advanceLedge(world, 0, 0, controls());
+    const end = option === LedgeState.climb ? LEDGE_CLIMB_FRAMES : option === LedgeState.roll ? LEDGE_ROLL_FRAMES : LEDGE_ATTACK_FRAMES;
+    for (let frame = 13; frame <= end; frame++) advanceLedge(world, 0, 0, controls());
+    assertEquals(fighter.ledge.state, LedgeState.none);
     fighter.motion.grounded = false;
     fighter.motion.surface = undefined;
     startFighterSpecial(fighter, 0, 0, controls({ specialPressed: true, specialZ: 1 }));
