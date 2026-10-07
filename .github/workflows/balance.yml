@@ -11,9 +11,12 @@ on:
       ref:
         description: Commit, branch or tag to measure
         default: main
-      level:
-        description: Both computers' level
-        default: "9"
+      opponent:
+        description: Both computers' named opponent
+        default: "wren"
+      tier:
+        description: Both computers' difficulty
+        default: "expert"
       per-pair:
         description: Matches a pair
         default: "400"
@@ -24,7 +27,7 @@ on:
         description: Names the run so `bun wisp farm` can find the one it dispatched
         default: ""
 
-run-name: Balance ${{ inputs.ref }} level ${{ inputs.level }} ${{ inputs.per-pair }} a pair ${{ inputs.tag }}
+run-name: Balance ${{ inputs.ref }} ${{ inputs.opponent }} ${{ inputs.tier }} ${{ inputs.per-pair }} a pair ${{ inputs.tag }}
 
 permissions:
   contents: read
@@ -83,14 +86,15 @@ jobs:
         working-directory: ts
         env:
           PAIRS: ${{ matrix.pairs }}
-          LEVEL: ${{ inputs.level }}
+          OPPONENT: ${{ inputs.opponent }}
+          TIER: ${{ inputs.tier }}
           PER_PAIR: ${{ inputs.per-pair }}
           SEEDS: ${{ inputs.seeds }}
         run: |
           mkdir -p shards
           echo "$PAIRS" | tr ',' '\n' | xargs -P "$(nproc)" -I{} sh -c '
             name=$(echo {} | tr : _)
-            bun scripts/cpuField.ts --pairs {} --levels "$LEVEL,$LEVEL" --per-pair "$PER_PAIR" --seeds "$SEEDS" --json "shards/$name.json" > "shards/$name.log" 2>&1 \
+            bun scripts/cpuField.ts --pairs {} --opponents "$OPPONENT,$OPPONENT" --tiers "$TIER,$TIER" --per-pair "$PER_PAIR" --seeds "$SEEDS" --json "shards/$name.json" > "shards/$name.log" 2>&1 \
               || { echo "::error::cpuField {} failed"; cat "shards/$name.log"; exit 1; }
             grep -m1 "computer matches" "shards/$name.log" | cut -c1-90
           '
@@ -125,13 +129,14 @@ jobs:
         working-directory: ts
         env:
           GH_TOKEN: ${{ github.token }}
-          LEVEL: ${{ inputs.level }}
+          OPPONENT: ${{ inputs.opponent }}
+          TIER: ${{ inputs.tier }}
           PER_PAIR: ${{ inputs.per-pair }}
           SEEDS: ${{ inputs.seeds }}
           SHA: ${{ needs.plan.outputs.sha }}
         run: |
           mkdir -p balance
-          bun scripts/cpuField.ts --merge "$(ls shards/*.json | paste -sd,)" --levels "$LEVEL,$LEVEL" --per-pair "$PER_PAIR" --seeds "$SEEDS" --json balance/field.json > balance/table.md
+          bun scripts/cpuField.ts --merge "$(ls shards/*.json | paste -sd,)" --opponents "$OPPONENT,$OPPONENT" --tiers "$TIER,$TIER" --per-pair "$PER_PAIR" --seeds "$SEEDS" --json balance/field.json > balance/table.md
           started=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" --jq .run_started_at)
           wall=$(( $(date +%s) - $(date -d "$started" +%s) ))
           verdict=$(grep '^Balance gate' balance/table.md)
@@ -140,7 +145,7 @@ jobs:
             echo
             echo "**${verdict}**"
             echo
-            echo "Level $LEVEL, $PER_PAIR a pair, $(ls shards/*.json | wc -l) pairs in ${{ needs.plan.outputs.jobs }} jobs; $((wall / 60)) min $((wall % 60)) s from the run's start to the verdict."
+            echo "$OPPONENT $TIER, $PER_PAIR a pair, $(ls shards/*.json | wc -l) pairs in ${{ needs.plan.outputs.jobs }} jobs; $((wall / 60)) min $((wall % 60)) s from the run's start to the verdict."
             echo
             grep -v '^Merged from' balance/table.md
           } > balance/field.md
@@ -154,6 +159,6 @@ jobs:
             ts/balance/field.json
           retention-days: 30
       - name: Check the required balance gate
-        if: ${{ inputs.level == '9' && fromJSON(inputs.per-pair) >= 400 }}
+        if: ${{ inputs.opponent == 'wren' && inputs.tier == 'expert' && fromJSON(inputs.per-pair) >= 400 }}
         run: |
           grep -q '^Balance gate .*: passes\.' ts/balance/table.md

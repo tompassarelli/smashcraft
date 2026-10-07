@@ -4,7 +4,7 @@ import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { type MatchCamera, createMatchCamera, copyMatchCamera } from "../sim/matchCamera";
 import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots, isParticipantMask, isParticipantSlot, participantActive } from "../input/participants";
 import { Character } from "../sim/codes";
-import { CPU_LEVEL_DEFAULT, isCpuLevel, nextMatchSeed } from "./cpuLevel";
+import { nextMatchSeed } from "./botRandom";
 import { CPU_OPPONENT_DEFAULT, CPU_TIER_DEFAULT, type CpuOpponentChoice, type CpuOpponentId, type CpuTier, isCpuOpponentChoice, isCpuTier, resolveCpuOpponent } from "./cpuProfiles";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
 import { PARTNER_BEHAVIOURS, PARTNER_DAMAGE_MAX, PARTNER_DAMAGE_STEP, PARTNER_ESCAPES, PARTNER_TECHS, TRAINING_SPEEDS, type TrainingState, clearTrainingReadout, copyTrainingState, createTrainingState } from "./trainingState";
@@ -18,8 +18,6 @@ export interface MatchState {
   readonly camera: MatchCamera;
   phase: Phase;
   readonly characterChoices: Slots<Character>;
-  /** Each computer slot's difficulty, 1-9 (cpuLevel.ts). */
-  readonly cpuLevels: Slots<number>;
   readonly cpuOpponents: Slots<CpuOpponentChoice>;
   readonly cpuTiers: Slots<CpuTier>;
   /** The match-start draw, retained while Random remains selected for rematches. */
@@ -60,7 +58,7 @@ export interface MatchState {
 export function createMatchState(): MatchState {
   return {
     camera: createMatchCamera(),
-    phase: Phase.characterMenu, characterChoices: [0, 1, 2, 0], cpuLevels: [CPU_LEVEL_DEFAULT, CPU_LEVEL_DEFAULT, CPU_LEVEL_DEFAULT, CPU_LEVEL_DEFAULT], matchSeed: 0,
+    phase: Phase.characterMenu, characterChoices: [0, 1, 2, 0], matchSeed: 0,
     cpuOpponents: [CPU_OPPONENT_DEFAULT, CPU_OPPONENT_DEFAULT, CPU_OPPONENT_DEFAULT, CPU_OPPONENT_DEFAULT],
     cpuTiers: [CPU_TIER_DEFAULT, CPU_TIER_DEFAULT, CPU_TIER_DEFAULT, CPU_TIER_DEFAULT],
     cpuResolvedOpponents: [CPU_OPPONENT_DEFAULT, CPU_OPPONENT_DEFAULT, CPU_OPPONENT_DEFAULT, CPU_OPPONENT_DEFAULT],
@@ -171,7 +169,6 @@ export function copyMatchState(target: MatchState, source: Readonly<MatchState>)
   copyTrainingState(target.trainer, source.trainer);
   for (const slot of PARTICIPANT_SLOTS) {
     target.characterChoices[slot] = source.characterChoices[slot];
-    target.cpuLevels[slot] = source.cpuLevels[slot];
     target.cpuOpponents[slot] = source.cpuOpponents[slot];
     target.cpuTiers[slot] = source.cpuTiers[slot];
     target.cpuResolvedOpponents[slot] = source.cpuResolvedOpponents[slot];
@@ -280,11 +277,6 @@ export function stepTrainingSpeed(game: MatchState, slot: number, direction: num
 
 export function setHitAreas(game: MatchState, slot: number, shown: boolean): void {
   if (settingRules(game, slot)) game.trainer.showHitAreas = shown;
-}
-
-/** At fighter selection, whoever may choose a computer's fighter sets its level. */
-export function setCpuLevel(game: MatchState, actor: number, computer: number, level: number): void {
-  if (game.phase === Phase.characterMenu && isParticipantSlot(computer) && canChooseComputer(game, actor, computer) && isCpuLevel(level)) game.cpuLevels[computer] = level;
 }
 
 export function setCpuOpponent(game: MatchState, actor: number, computer: number, opponent: CpuOpponentChoice): void {

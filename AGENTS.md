@@ -124,8 +124,8 @@ code. From smashcraft:ts/:
   `-dev quick`, and waits until every signed-in client writes its receipt.
   `--rebuild` replaces the map script first. Other quick starts for `--chat`
   and pad scripts: `-dev quick hero NAME`, `-dev quick recovery hero NAME`
-  (starts tumbling above the floor for recovery captures), and `-dev quick cpu N [hero NAME]`,
-  a quick match against a selectable computer at level N (1-9) over three stocks.
+  (starts tumbling above the floor for recovery captures), and `-dev quick cpu OPPONENT DIFFICULTY [hero NAME]`,
+  a quick match against a named computer at the selected difficulty over three stocks.
   The named variant uses the normal CPU selection rule.
 - Client state: `bun wisp client watch [CLIENT...] [--once]` prints what each client
   is doing (signed in, menu screen, lobby, loading, in match, results,
@@ -261,18 +261,18 @@ code. From smashcraft:ts/:
   capacity scope.
 - Roster AI coverage: `bun scripts/cpuCoverage.ts` prints movement, attacks,
   kit use, defense and recovery for all 13 selectable fighters over eight
-  seeded level-9 matches each; `GAME_TESTS=botCoverage bun test test/game.test.ts`
+  seeded Wren Expert matches each; `GAME_TESTS=botCoverage bun test test/game.test.ts`
   checks the same report, also included in the emitted-Lua32 suite.
-- CPU reads and move value: smashcraft:docs/design/cpu-levels.md describes
+- CPU reads and move value: smashcraft:docs/design/cpu-profiles.md describes
   bounded contextual habits, anticipatory commitments and risk-aware move
   choice; smashcraft:ts/src/game/match/botStrategyContracts.tests.ts checks
   adaptation, punishable reads, buffering and seeded decision variety.
-- Difficulty report: `gh workflow run cpu-levels.yml -f ref=COMMIT` measures every level pair with the existing `cpuLevels` report on a hosted runner (20 matches per pair, 100 level-9-vs-1 matches). The run summary and `cpu-levels` artifact hold its table.
+- Difficulty report: `gh workflow run cpu-tiers.yml -f ref=COMMIT` measures Wren at every tier pair with `cpuTiers` (20 matches per pair, 100 Expert-vs-Rookie matches). The run summary and `cpu-tiers` artifact hold its table.
 - Compute farm: `bun wisp farm balance [--ref REF] [--wait]` plays the
-  balance gate's computer field (level 9, 400 a pair; `--level`,
+  balance gate's computer field (Wren Expert, 400 a pair; `--opponent`, `--tier`,
   `--per-pair`, `--seeds`) on GitHub's free hosted runners, a `cpuField
   --pairs` process a core over about 17 jobs, and with `--wait` prints the
-  verdict and field table. A level-9 run with at least 400 matches per pair
+  verdict and field table. A Wren Expert run with at least 400 matches per pair
   fails when the balance gate fails, after publishing the report artifact;
   lower-level or smaller exploratory fields remain reports.
   `bun wisp farm pads [--ref REF] [--wait]` plays

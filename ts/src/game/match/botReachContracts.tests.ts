@@ -104,7 +104,7 @@ function playIdleOpponent(character: Character, cx: number, cz: number, surface:
   match.phase = Phase.match;
   match.stageChoice = RAISED_STAGE;
   match.timeLimitMinutes = 0;
-  match.cpuLevels[1] = 9;
+  match.cpuTiers[1] = "expert";
   const produced = createFrameControls();
   const controls = createFrameControls();
   const runtime = createPacingAndPresentation();

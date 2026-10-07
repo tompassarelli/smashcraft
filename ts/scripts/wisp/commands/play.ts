@@ -14,6 +14,7 @@ import { makePlay } from "wisp/scripts/wisp/commands/play";
 import { documentsFolder } from "wisp/scripts/warcraft/battleNet";
 import { GameFiles, dataDirectory, readGameFile } from "wisp/scripts/wisp/gameFiles";
 import { type PlayDeclaration, type PlayGame, PlayProblem } from "wisp/scripts/wisp/play";
+import { CPU_OPPONENT_DEFAULT, CPU_TIER_DEFAULT, type CpuOpponentChoice, type CpuTier } from "../../../src/game/match/cpuProfiles";
 import { playtestRequest } from "../../../src/game/shell/playtest";
 import { MeleeReady, PLAYTEST_GO_FILE, PLAYTEST_REQUEST_FILE, playtestReceiptFile } from "../boundary";
 import { MELEE_READY_FILE } from "../../../src/runtime/gameFiles";
@@ -34,8 +35,8 @@ interface Playtest {
   readonly helper: string | undefined;
   /** The computer's slot from 0; Tom's own is 0. */
   readonly computerSlot: number;
-  /** The computer's level, 1-9: 9 plays its fighter's gameplan at full strength. */
-  readonly computerLevel: number;
+  readonly computerOpponent: CpuOpponentChoice;
+  readonly computerTier: CpuTier;
   /** The report port of the Wisp page installed on Tom's prefix: play hosts only through it, as a private game. */
   readonly menuReportPort: number;
 }
@@ -47,7 +48,8 @@ export const PLAYTEST_PREFIX = join(homedir(), ".local/share/Steam/steamapps/com
 export const PLAYTEST: Omit<Playtest, "map" | "helper"> = {
   build: PLAYABLE_BUILD.id,
   computerSlot: 2,
-  computerLevel: 9,
+  computerOpponent: CPU_OPPONENT_DEFAULT,
+  computerTier: CPU_TIER_DEFAULT,
   // Tom's install is not a test client, so the clients file doesn't list it.
   menuReportPort: 47124,
 };
@@ -79,13 +81,13 @@ const until = <A, R>(seconds: number, observe: Effect.Effect<A | undefined, Play
   }
 });
 
-export function playtest({ build, map, helper, computerSlot, computerLevel, menuReportPort }: Playtest): PlayDeclaration<GameFiles> {
+export function playtest({ build, map, helper, computerSlot, computerOpponent, computerTier, menuReportPort }: Playtest): PlayDeclaration<GameFiles> {
   /** The ready file the map writes at fighter selection; one being written reads as absent. */
   const ready = (game: PlayGame) => readGameFile(join(dataDirectory(game.documents), MELEE_READY_FILE), MeleeReady).pipe(
     Effect.catchTag("MalformedGameFile", () => Effect.succeed(undefined)),
     Effect.mapError(problem),
   );
-  const request = playtestRequest(1 << computerSlot, computerLevel);
+  const request = playtestRequest(1 << computerSlot, computerOpponent, computerTier);
   const files = (documents: string) => ({
     request: join(dataDirectory(documents), PLAYTEST_REQUEST_FILE),
     go: join(dataDirectory(documents), PLAYTEST_GO_FILE),
@@ -124,7 +126,7 @@ export function playtest({ build, map, helper, computerSlot, computerLevel, menu
       // Later sessions of the map start at fighter selection as usual.
       for (const path of [requestFile, go]) if ((yield* gameFiles.read(path).pipe(Effect.mapError(problem))) !== undefined) yield* gameFiles.remove(path).pipe(Effect.mapError(problem));
       if (!answer.includes(`${request} started`)) return yield* new PlayProblem({ problem: `Smashcraft refused the playtest request "${request}": fighter selection had moved on or a human holds Player ${computerSlot + 1}` });
-      return `level ${computerLevel} computer as Player ${computerSlot + 1}, match started`;
+      return `${computerOpponent} ${computerTier} computer as Player ${computerSlot + 1}, match started`;
     }),
     // The keyboard always plays. The always-on controller service finds this
     // game and a pad by itself; without one, play goes on.

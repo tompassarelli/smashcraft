@@ -14,15 +14,16 @@ import { captureFrame, createMatchFrameInput, executeMatchFrame } from "./frameI
 import { createPacingAndPresentation } from "./pacingAndPresentation";
 import { createMatchState, Phase } from "./rules";
 import { createBotStrategy, learnBotHabit, prepareBotRead, pressBotRead, botStrategyValues } from "./botStrategy";
-import { GENERAL_DECISION_POLICIES, type CpuDecisionPolicy } from "./cpuDecisionPolicy";
+import type { CpuDecisionPolicy } from "./cpuDecisionPolicy";
+import { cpuProfile } from "./cpuProfiles";
 import { chooseAttack } from "./botMoves";
 import { useMatchSeed } from "./botRandom";
-import { cpuSkill } from "./cpuLevel";
+import { cpuSkill } from "./cpuSkill";
 import { produceComputerInput } from "./botPlay";
 import { estimatedMoveValue, comebackPressure, type MoveEstimate } from "./botMoveValue";
 import { observeOpponents, perceivedOpponent } from "./botPerception";
 
-const EXPERT = at(GENERAL_DECISION_POLICIES, 4);
+const EXPERT = cpuProfile("wren", "expert");
 
 function trained(choice: number, policy: CpuDecisionPolicy = EXPERT, cycles = 8) {
   const own = createFighter(Character.rifleman, 0.0, 1);
@@ -91,7 +92,7 @@ test("an anticipatory grab remains buffered through four frames of own recovery"
   const world = createRoster(3, [game.own, game.target]);
   const match = createMatchState();
   match.phase = Phase.match;
-  match.cpuLevels[0] = 9;
+  match.cpuTiers[0] = "expert";
   const runtime = createPacingAndPresentation();
   runtime.simulationFrame = 533;
   runtime.botStrategies[0] = game.strategy;
@@ -213,7 +214,7 @@ test("independent decision profiles change observed smash repetition and variety
     let previous = -1;
     for (let frame = 1; frame <= 500; frame++) {
       clearAttackBuffer(commands);
-      assertTrue(chooseAttack(own, target, 0, frame, frame, true, input, commands, 0, -1, { ...cpuProfile(), decision: policy }, 12, { strategy, policy, game }));
+      assertTrue(chooseAttack(own, target, 0, frame, frame, true, input, commands, 0, -1, { ...cpuSkill("wren", "expert"), decision: policy }, 12, { strategy, policy, game }));
       const option = strategy.lastOption;
       if (option === previous) repeats++;
       previous = option;
@@ -221,11 +222,9 @@ test("independent decision profiles change observed smash repetition and variety
     }
     return { repeats, smashes: at(counts, AttackStyle.forwardSmash) + at(counts, AttackStyle.upSmash) + at(counts, AttackStyle.downSmash), variety: counts.filter(count => count > 0).length };
   };
-  const simple = report(at(GENERAL_DECISION_POLICIES, 0));
+  const simple = report(cpuProfile("wren", "rookie"));
   const thoughtful = report(EXPERT);
   assertGreaterThan(simple.repeats, thoughtful.repeats);
   assertGreaterThan(simple.smashes, thoughtful.smashes);
   assertGreaterThan(thoughtful.variety, 5);
 });
-
-const cpuProfile = () => cpuSkill(9);

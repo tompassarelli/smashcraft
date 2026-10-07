@@ -18,7 +18,7 @@ import { botChance, botChoice } from "./botRandom";
 import { passivePips, passiveSpec } from "../sim/passives";
 import { defenseOption, gameplanOf } from "./botGameplan";
 import type { DefenseOption } from "../sim/gameplan";
-import { type CpuSkill, FULL_SKILL } from "./cpuLevel";
+import { type CpuSkill, FULL_SKILL } from "./cpuSkill";
 
 /** A shield this weak is let go rather than broken. */
 const SHIELD_RESERVE = 20.0;

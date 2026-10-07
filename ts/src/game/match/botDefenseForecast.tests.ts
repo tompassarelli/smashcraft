@@ -4,7 +4,7 @@ import { Character } from "../sim/codes";
 import { createFighter } from "../sim/fighter";
 import { neutralControls } from "../sim/roster";
 import { chooseDefense } from "./botDefense";
-import { cpuSkill } from "./cpuLevel";
+import { cpuSkill } from "./cpuSkill";
 
 test("a delayed visible shot is defended at its predicted position without seeing a newer sample", () => {
   const own = createFighter(Character.archer, 0.0, 1);
@@ -19,7 +19,7 @@ test("a delayed visible shot is defended at its predicted position without seein
   projectile.velocityZ = 0.0;
   projectile.x = 500.0;
   projectile.z = 75.0;
-  const skill = { ...cpuSkill(9), reactionFrames: 0 };
+  const skill = { ...cpuSkill("wren", "expert"), reactionFrames: 0 };
   assertFalse(chooseDefense(own, target, 0, neutralControls(), skill));
   const predicted = neutralControls();
   assertTrue(chooseDefense(own, target, 0, predicted, skill, 12));
@@ -46,7 +46,7 @@ test("a visible shot expected to have expired or passed does not keep the comput
   projectile.velocityX = -36.0;
   projectile.velocityZ = 0.0;
   projectile.z = 75.0;
-  const skill = { ...cpuSkill(9), reactionFrames: 0 };
+  const skill = { ...cpuSkill("wren", "expert"), reactionFrames: 0 };
   projectile.x = 500.0;
   projectile.life = 12;
   assertFalse(chooseDefense(own, target, 0, neutralControls(), skill, 12));

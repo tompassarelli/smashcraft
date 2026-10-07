@@ -5,9 +5,9 @@
 // and special starts), hits and damage landed, stocks lost and the frames
 // since the loser last took a hit. The computer draws every choice under the
 // match seed, so each seed of a setup is another sample; a variant also
-// shifts both spawn points sideways. Both computers play at --levels (9,9 by
+// shifts both spawn points sideways. Both computers play at --opponents and --tiers (wren,wren and expert,expert by
 // default). Mirrors are left out of the field.
-// Usage (from ts/): bun scripts/cpuField.ts [--variants N | --per-pair N] [--seeds N] [--levels A,B] [--stocks N] [--minutes N] [--json FILE] [--fighters a,b,...] [--pairs a:b,c:d] [--merge a.json,b.json]
+// Usage (from ts/): bun scripts/cpuField.ts [--variants N | --per-pair N] [--seeds N] [--tiers A,B] [--stocks N] [--minutes N] [--json FILE] [--fighters a,b,...] [--pairs a:b,c:d] [--merge a.json,b.json]
 import { readFileSync, writeFileSync } from "node:fs";
 import { f32 } from "wisp/src/sim/f32";
 import { parseArgs } from "node:util";
@@ -19,7 +19,7 @@ import { createPacingAndPresentation } from "../src/game/match/pacingAndPresenta
 import { MATCH_TICKS_PER_SECOND, Phase, createMatchState, setParticipants } from "../src/game/match/rules";
 import { initializeMatchFighters, matchSpawnX } from "../src/game/match/step";
 import { produceComputerInput } from "../src/game/match/botPlay";
-import { CPU_LEVEL_MAX, isCpuLevel } from "../src/game/match/cpuLevel";
+import { isCpuOpponent, isCpuTier, type CpuOpponentId, type CpuTier } from "../src/game/match/cpuProfiles";
 import { gameplanOf } from "../src/game/match/botGameplan";
 import { type GameplanMove, GameplanSpecial, GameplanThrow } from "../src/game/sim/gameplan";
 import { AttackStyle, type Character, LedgeState, SpecialAction } from "../src/game/sim/codes";
@@ -41,10 +41,10 @@ const NO_HIT_FRAMES = 3 * MATCH_TICKS_PER_SECOND;
 /**
  * The balance gate (Tom, 7 Oct; smashcraft:docs/design/roster.md, "Balance
  * gate"): every fighter's win rate against the field lies in [fieldLow,
- * fieldHigh], with both computers at `level` and at least `perPair` matches
+ * fieldHigh], with both computers playing Wren Expert and at least `perPair` matches
  * a pair. The doc states these numbers; cpuField.tests.ts pins both together.
  */
-export const BALANCE_GATE = { fieldLow: 0.40, fieldHigh: 0.60, level: 9, perPair: 400 } as const;
+export const BALANCE_GATE = { fieldLow: 0.40, fieldHigh: 0.60, opponent: "wren", tier: "expert", perPair: 400 } as const;
 /** The matchup band, reported but not gated (Balance gate). */
 const MATCHUP_LOW = 0.45;
 const MATCHUP_HIGH = 0.55;
@@ -100,8 +100,9 @@ export interface MatchRecord {
   readonly stage: string;
   readonly variant: number;
   readonly seed: number;
-  /** Each slot's computer level. */
-  readonly levels: readonly [number, number];
+  /** Each slot's named opponent and difficulty. */
+  readonly opponents: readonly [CpuOpponentId, CpuOpponentId];
+  readonly tiers: readonly [CpuTier, CpuTier];
   readonly fighters: readonly [string, string];
   /** The winning slot, or null for a tie. */
   readonly winner: number | null;
@@ -122,8 +123,9 @@ export interface FieldOptions {
   readonly perPair?: number;
   /** Match seeds each variant plays, from 0 (1 by default). */
   readonly seeds?: number;
-  /** The computer levels slots 0 and 1 play (9 and 9 by default). */
-  readonly levels?: readonly [number, number];
+  /** The computer tiers slots 0 and 1 play (9 and 9 by default). */
+  readonly opponents?: readonly [CpuOpponentId, CpuOpponentId];
+  readonly tiers?: readonly [CpuTier, CpuTier];
 }
 
 interface Watch {
@@ -160,9 +162,13 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
   match.characterChoices[0] = a;
   match.characterChoices[1] = b;
   match.stageChoice = stage;
-  const levels = options.levels ?? [CPU_LEVEL_MAX, CPU_LEVEL_MAX];
-  match.cpuLevels[0] = levels[0];
-  match.cpuLevels[1] = levels[1];
+  const opponents = options.opponents ?? ["wren", "wren"];
+  const tiers = options.tiers ?? ["expert", "expert"];
+  for (const slot of [0, 1] as const) {
+    match.cpuOpponents[slot] = opponents[slot];
+    match.cpuResolvedOpponents[slot] = opponents[slot];
+    match.cpuTiers[slot] = tiers[slot];
+  }
   match.matchSeed = seed;
   match.stockCount = options.stocks ?? 3;
   match.timeLimitMinutes = options.minutes ?? 4;
@@ -228,7 +234,7 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
   }
   for (const slot of [0, 1] as const) sides[slot].stocksPlayed = sides[slot].stockLosses.length + (fighterAt(world, slot).status.stocks > 0 ? 1 : 0);
   return {
-    stage: stageName, variant, seed, levels, fighters: [sides[0].fighter, sides[1].fighter],
+    stage: stageName, variant, seed, opponents, tiers, fighters: [sides[0].fighter, sides[1].fighter],
     winner: match.winner === 0 || match.winner === 1 ? match.winner : null, timedOut: match.timedOut, frames: frame, sides,
   };
 }
@@ -421,9 +427,9 @@ export interface BalanceVerdict {
 }
 
 /** The balance gate's verdict on a field: every fighter inside the band, on a run at the gate's level and matches a pair. */
-export function balanceVerdict(summaries: readonly Pick<FighterSummary, "fighter" | "winRate">[], levels: readonly number[], smallestPlayed: number): BalanceVerdict {
+export function balanceVerdict(summaries: readonly Pick<FighterSummary, "fighter" | "winRate">[], profiles: readonly { readonly opponent: CpuOpponentId; readonly tier: CpuTier }[], smallestPlayed: number): BalanceVerdict {
   const outside = summaries.filter((s) => !(s.winRate >= BALANCE_GATE.fieldLow && s.winRate <= BALANCE_GATE.fieldHigh)).map((s) => `${s.fighter} ${percent(s.winRate)}`);
-  const gateRun = levels.length > 0 && levels.every((level) => level === BALANCE_GATE.level) && smallestPlayed >= BALANCE_GATE.perPair;
+  const gateRun = profiles.length > 0 && profiles.every((profile) => profile.opponent === BALANCE_GATE.opponent && profile.tier === BALANCE_GATE.tier) && smallestPlayed >= BALANCE_GATE.perPair;
   return { outside, gateRun, passes: gateRun && summaries.length > 0 && outside.length === 0 };
 }
 
@@ -500,11 +506,11 @@ function fieldTable(summaries: readonly FighterSummary[], records: readonly Matc
   const cell = (s: FighterSummary, name: string) => (name === s.fighter ? "-" : `${percent(s.against[name] ?? Number.NaN)} (${s.played[name] ?? 0})`);
   for (const s of summaries) lines.push(`| ${s.fighter} | ${names.map((name) => cell(s, name)).join(" | ")} |`);
   const report = matchupReport(summaries);
-  const verdict = balanceVerdict(summaries, [...new Set(records.flatMap((record) => record.levels))], report.smallestPlayed);
-  const { fieldLow, fieldHigh, level, perPair } = BALANCE_GATE;
+  const verdict = balanceVerdict(summaries, records.flatMap((record) => record.opponents.map((opponent, index) => ({ opponent, tier: record.tiers[index] ?? "expert" }))), report.smallestPlayed);
+  const { fieldLow, fieldHigh, opponent, tier, perPair } = BALANCE_GATE;
   lines.push(
     "",
-    `Balance gate (every fighter ${percent(fieldLow)}-${percent(fieldHigh)} against the field, level ${level}, at least ${perPair} a pair): ${verdict.passes ? "passes" : verdict.gateRun ? "fails" : "not a gate run"}.${verdict.outside.length === 0 ? "" : ` Outside: ${verdict.outside.join(", ")}.`}`,
+    `Balance gate (every fighter ${percent(fieldLow)}-${percent(fieldHigh)} against the field, ${opponent} ${tier}, at least ${perPair} a pair): ${verdict.passes ? "passes" : verdict.gateRun ? "fails" : "not a gate run"}.${verdict.outside.length === 0 ? "" : ` Outside: ${verdict.outside.join(", ")}.`}`,
     "",
     `Matchups (reported, not gated): inside ${percent(MATCHUP_LOW)}-${percent(MATCHUP_HIGH)} ${report.inside} of ${report.matchups}, at least ${report.smallestPlayed} matches each; 95% interval overlapping that band ${report.overlapping} of ${report.matchups}; median distance from 50% ${(100 * report.medianDeviation).toFixed(1)} points.`,
   );
@@ -527,7 +533,7 @@ function shardRecords(file: string): MatchRecord[] {
 if (import.meta.main) {
   const { values } = parseArgs({
     args: process.argv.slice(2),
-    options: { variants: { type: "string" }, "per-pair": { type: "string" }, seeds: { type: "string" }, levels: { type: "string" }, stocks: { type: "string" }, minutes: { type: "string" }, json: { type: "string" }, merge: { type: "string" }, fighters: { type: "string" }, pairs: { type: "string" } },
+    options: { variants: { type: "string" }, "per-pair": { type: "string" }, seeds: { type: "string" }, opponents: { type: "string" }, tiers: { type: "string" }, stocks: { type: "string" }, minutes: { type: "string" }, json: { type: "string" }, merge: { type: "string" }, fighters: { type: "string" }, pairs: { type: "string" } },
     strict: true,
   });
   const fighterNamed = (slug: string) => {
@@ -541,11 +547,22 @@ if (import.meta.main) {
     if (a === undefined || b === undefined || extra !== undefined || a === b) throw new Error(`--pairs takes pairs of different fighters, like archer:rifleman; not ${pair}`);
     return [fighterNamed(a), fighterNamed(b)] as const;
   });
-  const levels = values.levels?.split(",").map(Number);
-  if (levels !== undefined && (levels.length !== 2 || !levels.every(isCpuLevel))) throw new Error("--levels takes two levels from 1 to 9, like 9,5");
+  const tierNamed = (value: string): CpuTier => {
+    if (!isCpuTier(value)) throw new Error(`no difficulty named ${value}`);
+    return value;
+  };
+  const opponentNamed = (value: string): CpuOpponentId => {
+    if (!isCpuOpponent(value)) throw new Error(`no opponent named ${value}`);
+    return value;
+  };
+  const tiers = values.tiers?.split(",").map(tierNamed);
+  const opponents = values.opponents?.split(",").map(opponentNamed);
+  if (tiers !== undefined && tiers.length !== 2) throw new Error("--tiers takes two difficulties");
+  if (opponents !== undefined && opponents.length !== 2) throw new Error("--opponents takes two names");
   const options: FieldOptions = {
     variants: Number(values.variants ?? 1), seeds: Number(values.seeds ?? 1), stocks: Number(values.stocks ?? 3), minutes: Number(values.minutes ?? 4),
-    ...(levels === undefined ? {} : { levels: [levels[0] ?? CPU_LEVEL_MAX, levels[1] ?? CPU_LEVEL_MAX] as const }),
+    ...(tiers === undefined ? {} : { tiers: [tiers[0] ?? "expert", tiers[1] ?? "expert"] as const }),
+    ...(opponents === undefined ? {} : { opponents: [opponents[0] ?? "wren", opponents[1] ?? "wren"] as const }),
     ...(fighters === undefined ? {} : { fighters }),
     ...(pairs === undefined ? {} : { pairs }),
     ...(values["per-pair"] === undefined ? {} : { perPair: Number(values["per-pair"]) }),
@@ -563,7 +580,7 @@ if (import.meta.main) {
   });
   const summaries = summarizeField(records);
   if (merged !== undefined) console.log(`Merged from ${values.merge}; the line below describes this command's options, not the shards'.`);
-  console.log(`${records.length} computer matches (${options.stocks} stocks, ${options.minutes}-minute clock, ${options.perPair === undefined ? `${options.variants} spawn variant(s) of ${options.seeds} seed(s) per ordered pair and stage` : `spawn variants and ${options.seeds} seed(s) each until each pair has ${options.perPair} matches`}, computer levels ${(options.levels ?? [CPU_LEVEL_MAX, CPU_LEVEL_MAX]).join(" and ")}), ${((performance.now() - started) / 1000).toFixed(0)} s; win rate over decisive matches; a self-destruct is a stock lost with no hit taken since the fighter last stood on a deck or held the ledge; the fall-time column counts stocks lost over ${NO_HIT_FRAMES / MATCH_TICKS_PER_SECOND} s after the last hit.`);
+  console.log(`${records.length} computer matches (${options.stocks} stocks, ${options.minutes}-minute clock, ${options.perPair === undefined ? `${options.variants} spawn variant(s) of ${options.seeds} seed(s) per ordered pair and stage` : `spawn variants and ${options.seeds} seed(s) each until each pair has ${options.perPair} matches`}, computer tiers ${(options.tiers ?? ["expert", "expert"]).join(" and ")}), ${((performance.now() - started) / 1000).toFixed(0)} s; win rate over decisive matches; a self-destruct is a stock lost with no hit taken since the fighter last stood on a deck or held the ledge; the fall-time column counts stocks lost over ${NO_HIT_FRAMES / MATCH_TICKS_PER_SECOND} s after the last hit.`);
   console.log("");
   console.log(fieldTable(summaries, records));
   if (values.json !== undefined) writeFileSync(values.json, `${JSON.stringify({ options, summaries, records }, null, 1)}\n`);

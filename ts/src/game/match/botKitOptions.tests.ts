@@ -15,7 +15,8 @@ import { RIFLEMAN_BLASTER_AIR_FRAMES, RIFLEMAN_BLASTER_GROUND_FRAMES } from "../
 import { copyControls, createRoster, fighterAt, isActive, neutralControls } from "../sim/roster";
 import { CHAOS_STRIKE_AIR_FORM, CHAOS_STRIKE_FORM, VENGEFUL_RETREAT_FORM, DEMONHUNTER_GLIDE_FORM, DEMONHUNTER_IMMOLATE_DURATION, RIFLEMAN_RECOVERY_STARTUP_FRAMES, RIFLEMAN_SECOND_SHOT_FORM } from "../sim/specials";
 import { produceComputerInput } from "./botPlay";
-import { cpuSkill } from "./cpuLevel";
+import { cpuSkill } from "./cpuSkill";
+import { CPU_PROFILES } from "./cpuProfiles";
 import { createFrameControls } from "./controls";
 import { captureFrame, createMatchFrameInput, executeMatchFrame } from "./frameInput";
 import { createPacingAndPresentation } from "./pacingAndPresentation";
@@ -136,6 +137,8 @@ function computerMatch(character: Character, opponent: Character, seed: number, 
   const world = createRoster(3, [createFighter(character, -240.0, 1), createFighter(opponent, 240.0, -1)]);
   const match = createMatchState();
   match.phase = Phase.match;
+  match.cpuTiers[0] = "expert";
+  match.cpuTiers[1] = "expert";
   match.stageChoice = 0;
   match.timeLimitMinutes = 0;
   match.matchSeed = seed;
@@ -181,9 +184,9 @@ function usesEvery(character: Character, options: readonly string[], opponent: C
   for (const option of Object.keys(again)) assertEquals(again[option], first[option], option);
 }
 
-test("kit options are a level's share: none below level 4, all at level 9", () => {
-  for (let level = 1; level <= 3; level++) assertEquals(cpuSkill(level).kitTenths, 0);
-  assertEquals(cpuSkill(9).kitTenths, 10);
+test("every named profile can take legal kit options, with greater reliability as execution grows", () => {
+  for (const profile of CPU_PROFILES) assertTrue(cpuSkill(profile.opponent, profile.tier).kitTenths > 0);
+  assertTrue(cpuSkill("wren", "expert").kitTenths > cpuSkill("wren", "rookie").kitTenths);
 });
 
 test("computer Blademaster backstabs from Wind Walk in front and crossed up, feints, and swaps onto Mirror Image", () => {

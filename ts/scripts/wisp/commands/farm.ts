@@ -161,7 +161,7 @@ const memoryResult = (repo: string, id: number, state: RunState) => Effect.gen(f
 export const farm: Command = (args) => Effect.gen(function*() {
   const parsed = yield* Effect.try({
     try: () => parseArgs({ args: [...args], allowPositionals: true, options: {
-      ref: { type: "string" }, wait: { type: "boolean" }, out: { type: "string" }, level: { type: "string" }, "per-pair": { type: "string" }, seeds: { type: "string" }, minutes: { type: "string" },
+      ref: { type: "string" }, wait: { type: "boolean" }, out: { type: "string" }, opponent: { type: "string" }, tier: { type: "string" }, "per-pair": { type: "string" }, seeds: { type: "string" }, minutes: { type: "string" },
     } }),
     catch: (cause) => new UsageFailure({ problem: describeCause(cause) }),
   });
@@ -173,7 +173,7 @@ export const farm: Command = (args) => Effect.gen(function*() {
   const { ref, scratch } = yield* resolveRef(parsed.values.ref, repo);
   const tag = randomBytes(4).toString("hex");
   const inputs = job === "balance"
-    ? { ref, level: parsed.values.level ?? "9", "per-pair": parsed.values["per-pair"] ?? "400", seeds: parsed.values.seeds ?? "100", tag }
+    ? { ref, opponent: parsed.values.opponent ?? "wren", tier: parsed.values.tier ?? "expert", "per-pair": parsed.values["per-pair"] ?? "400", seeds: parsed.values.seeds ?? "100", tag }
     : job === "perf" ? { ref, runs: JSON.stringify(runs), tag } : job === "memory" ? { ref, minutes: parsed.values.minutes ?? "30", tag } : { ref, tag };
   const started = performance.now();
   const work = Effect.gen(function*() {

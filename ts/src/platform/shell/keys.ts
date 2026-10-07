@@ -10,7 +10,7 @@ import { type ParticipantSlot, isParticipantSlot } from "../../game/input/partic
 import { heldActions, keyDown, pressKey, releaseKey } from "../../game/input/playerKeys";
 import { startKeyDown, startKeyUp } from "../../game/match/controls";
 import { Phase, cancelRematchCountdown, characterFor, firstHumanSlot, humanActive, leaveMatch, recallCharacter, selectCharacter } from "../../game/match/rules";
-import { DESYNC_COMMAND, QUICK_CPU_STOCKS, RESET_COMMAND, QUICK_TRAINING_COMMAND, applyDevCommand, prepareQuickCpu, prepareQuickTraining, quickMatchCpuHero, quickMatchCpuLevel, quickMatchHero, quickMatchStage, quickRecoveryHero } from "../../game/shell/devSettings";
+import { DESYNC_COMMAND, QUICK_CPU_STOCKS, RESET_COMMAND, QUICK_TRAINING_COMMAND, applyDevCommand, prepareQuickCpu, prepareQuickTraining, quickMatchCpuHero, quickMatchCpuProfile, quickMatchHero, quickMatchStage, quickRecoveryHero } from "../../game/shell/devSettings";
 import { fighterName } from "../../game/sim/heroes/registry";
 import { keepMomentEnd } from "../../game/replay/moment";
 import { endReplaySegment } from "./replays";
@@ -223,7 +223,7 @@ export function onDevCommand(s: ShellState): void {
   const quickStage = quickMatchStage(message);
   const quickHero = quickMatchHero(message);
   const recoveryHero = quickRecoveryHero(message);
-  const quickCpu = quickMatchCpuLevel(message);
+  const quickCpu = quickMatchCpuProfile(message);
   // Session setup (sessionSetup.ts) changes the menus only for its own spellings.
   const setup = applySetupCommand(s.game, GetPlayerId(GetTriggerPlayer()), message);
   if (setup === `dev: stage ${s.game.stageChoice}` && s.game.phase === Phase.characterMenu) s.dev.stageChoice = s.game.stageChoice;

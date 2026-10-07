@@ -1,7 +1,7 @@
 # #134 CPU levels by parity: a level-9 computer (slot c, Illidan) against two humans, Archer a and
 # Rifleman b, over three stocks. a shields for two seconds, then both stand, jump and walk off,
 # so the computer must break a shield, chase and punish; syntax: smashcraft:docs/native-bot-session.md.
-#! chat -dev quick cpu 9
+#! chat -dev quick cpu wren expert
 200 a shield 1
 320 a shield 0
 400 b tap B 8

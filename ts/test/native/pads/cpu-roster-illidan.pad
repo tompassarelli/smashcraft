@@ -1,5 +1,5 @@
 # #179: Illidan selected as a level-9 CPU through the normal menu selection rule.
-#! chat -dev quick cpu 9 hero Illidan
+#! chat -dev quick cpu wren expert hero Illidan
 #! expect c 1-800 ground action
 #! expect c 1-800 applied attack
 #! expect c 1-800 special

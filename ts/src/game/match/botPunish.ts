@@ -25,7 +25,7 @@ import { gameplanOf, passiveLandingMove } from "./botGameplan";
 import { passivePips, passiveSpec } from "../sim/passives";
 import { aheadX, aheadZ, moveReachAhead, moveReaches } from "./botMoves";
 import { botChance } from "./botRandom";
-import type { CpuSkill } from "./cpuLevel";
+import type { CpuSkill } from "./cpuSkill";
 
 /** What holds the opponent: the committal states a punish answers. */
 export const PunishKind = { none: 0, endLag: 1, grab: 2, special: 3, landing: 4, shieldDrop: 5, dodge: 6, status: 7 } as const;

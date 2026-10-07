@@ -1,6 +1,6 @@
 # #176: level-9 computer behavior through a ground approach, surprise jump,
 # retreat and projectile. Compare the full computer timeline with headless.
-#! chat -dev quick cpu 9
+#! chat -dev quick cpu wren expert
 60 a stick 1 0
 90 a stick 0 0
 120 a tap B 1

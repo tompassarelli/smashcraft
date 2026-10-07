@@ -216,3 +216,91 @@ tie every matchup. Keep existing difficulty, whole-roster kit coverage and
 fighter-balance gates; never lower their thresholds. Hosted sweeps use explicit
 revision/seed sets. Fairness, five-frame commitment and replay determinism
 remain hard checks.
+
+## Reads and move value
+
+smashcraft:ts/src/game/match/botStrategy.ts records transitions in delayed
+opponent observations, partitioned by close, middle and far spacing and by
+ground, air, knockdown and ledge situations. Each context retains the policy's
+bounded number of events, with a total ceiling of 128. Update stride, evidence
+count and confidence are independent policy fields. An opponent change clears
+the history. Match start and rematch clear history and outstanding reads.
+
+A read forecasts the next recurrence of the common observed choice. The
+computer may walk toward a grab position, hold a guard before a predicted
+strike, or queue a strike before the expected jump, landing or movement.
+The normal six-frame attack buffer can carry that commitment through the
+fighter's own recovery. A committed guard can lose to an unexpected grab;
+the forecast does not inspect new opponent inputs. Seeded choices sometimes
+decline reliable patterns and sometimes guess from weak evidence.
+
+smashcraft:ts/src/game/match/botMoveValue.ts weights eligible moves by observed
+shield/jump frequency, authored damage and startup, an approximate kill reward,
+recovery exposure at the computer's own percent, and resulting distance from
+stage centre. A stock deficit or a short clock while trailing increases the
+reward for risky comeback choices. The prediction is approximate: recovery,
+directional influence and changed opponent behavior can invalidate it.
+Every eligible move keeps a positive weight alongside its fighter's gameplan.
+Lower judgment favors familiar answers and smashes; higher judgment uses the
+value comparison more often.
+
+smashcraft:ts/src/game/match/cpuDecisionPolicy.ts defines the independent policy
+dimensions consumed by reads and move choice. The named opponent/tier design
+is in smashcraft:docs/design/cpu-profiles.md. Mechanical reaction, execution
+and spacing remain separate from judgment, memory and risk preference.
+History and mutable read commitments are copied in detached snapshots,
+restored with input rows and included in exact and periodic replay checksums.
+smashcraft:ts/src/game/match/botStrategyContracts.tests.ts exercises adaptation,
+successful and punishable reads, buffering, seeded variety and move value;
+smashcraft:ts/test/native/pads/cpu-reads.pad is the native comparison script.
+
+## Whiff punish
+
+Without it, the computer answered threats but never attacked into an
+opponent's end lag, so slow, committal fighters (Pit Lord) got away with
+whiffs and overperformed in #105's matrix. smashcraft:ts/src/game/match/botPunish.ts
+reads the window from the delayed opponent observation, the frames until it
+can act: a ground move past its active frames (`attack.cooldown`), a missed
+grab, a hero special past its last strike with nothing still to come (no
+shot, partner, guard, armor or branch), landing lag, a dropped shield's
+release lag, a dodge after its intangibility, and a grounded opponent
+asleep or stunned (a status that blocks every action; its frames left,
+shortened by any mashing; #105 found Dreadlord converted only a quarter of
+his Sleeps before it). A hit, a grab, a knockdown,
+the ledge or the air is not a window. The computer then takes a ground move whose
+first active frame lands inside the window and whose strike reaches where
+the opponent will be (the bot's cached first-active-frame reach): its
+gameplan's spacing tool when one fits, so punishes keep each fighter's identity, else its fastest. A grab
+is thrown only when the opponent's position, not just its body's edge, is in
+reach, since grabs catch a narrower body and a missed grab is punished in
+turn. With nothing in reach it runs in when a move would arrive in time
+(a jab out of a run is the dash attack), and a shield lets go only for a
+grab. It runs after defense and before the attack pause and idle
+stretches, so a profile's pause doesn't eat the window; the profile gates it
+with its delayed perception, the punish share and the misjudgment, each drawn
+on the window's key under the match seed. Scripted checks:
+smashcraft:ts/src/game/match/botPunishContracts.tests.ts.
+
+## Determinism and the match seed
+
+Every computer decision is a function of the match state, its bounded
+opponent-observation history, its direction commitment and the frame,
+drawn with `botChoice` (a scramble of 32-bit-safe integers), so each client
+and every rollback re-simulation derives the same input. Selected identities, resolved identities and tiers live in
+`MatchState.cpuOpponents`, `MatchState.cpuResolvedOpponents` and `MatchState.cpuTiers` and the seed in `MatchState.matchSeed`, both in the
+snapshot, canonical state and first-difference, so restoring a snapshot
+restores them. Observation records are immutable and shared by detached
+snapshots; canonical state includes every observed scalar, and replay
+restores the last horizontal choice and its first frame. Match start and
+rematch clear both. The seed salts every `botChoice` for the length of one
+computer's decision (`useMatchSeed`); the salt is `seed mod 46337 × 7919 mod
+46337`, products below 2^31, so Warcraft's 32-bit Lua agrees with Bun. Seed 0
+salts nothing. The first match after the map loads plays seed 0; each later
+match (rematch or back to fighter selection) plays the next seed, so
+rematches differ without any clock or client-local randomness.
+
+The seed is what makes win rates measurable: before it, a computer-against-
+computer setup was one fixed match, so a matchup's rate was 0% or 100% per
+setup. `bun scripts/cpuField.ts --seeds N` plays N seeds of each setup and
+`bun scripts/cpuTiers.ts` measures Wren at the five tiers against each other
+(smashcraft:docs/typescript.md).

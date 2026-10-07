@@ -67,7 +67,7 @@ test("a match after -dev reset equals the first match of the game: same trace ch
     }
   };
   reset();
-  play("computer match", "-dev quick cpu 9");
+  play("computer match", "-dev quick cpu wren expert");
   reset();
   play("camera match", "-dev camera");
   reset();

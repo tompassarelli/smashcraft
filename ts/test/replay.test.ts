@@ -147,7 +147,7 @@ test("a callback match against a computer replays to every recorded checksum", (
   const client = clients.client(0);
   clients.start();
   clients.frames(30);
-  clients.chat(0, "-dev quick cpu 9");
+  clients.chat(0, "-dev quick cpu wren expert");
   expect(value(client, () => shell().game.computerMask)).not.toBe(0);
   // The player walks into the computer every two-thirds of a second until the match ends.
   for (let frame = 0; frame < 6000 && value(client, () => shell().game.phase) === Phase.match; frame++) {
