@@ -171,9 +171,9 @@ export interface Rollback {
   /** Humans every client names while the match waits for their input; 0 while it runs. */
   waitingFor: number;
   /**
-   * Since prediction last stopped at a remote row R frames behind it, it hasn't
-   * yet run every local row: the response probe reports presses captured then
-   * apart (#60).
+   * Prediction stopped at a remote row R frames behind it, and a keyboard
+   * press still awaits capture or journal rows have not drained. The response
+   * probe reports presses captured then apart (#60).
    */
   predictionHeld: boolean;
 }

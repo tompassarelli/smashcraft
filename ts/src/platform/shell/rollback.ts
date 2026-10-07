@@ -293,7 +293,9 @@ export function rollbackTick(s: ShellState, rollback: Rollback): void {
     const halted = schedule.windowHalted(slot);
     const blocked = halted && after === before;
     if (halted) rollback.predictionHeld = true;
-    else if (!schedule.hasLocalRow(slot)) rollback.predictionHeld = false;
+    // The keyboard always queues D future rows. Only uncommitted presses can
+    // still belong to its stall; journal rows must drain their own backlog.
+    else if (keyboard !== undefined ? keyboard.capture.row.pressed === 0 : !schedule.hasLocalRow(slot)) rollback.predictionHeld = false;
     if (trace.active) {
       trace.window.speculativeSteps += after - before;
       if (!advanced) trace.window.speculativeFailures++;

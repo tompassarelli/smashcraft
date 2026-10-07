@@ -80,7 +80,47 @@ test("native keyboard diagnostics retain the original captured row separately fr
   const captures = recorded.filter(line => line.includes(" capture "));
   expect(captures).toHaveLength(1);
   expect(captures[0]).toMatch(new RegExp(`^1 capture \\d+ 0 ${target} 256 256 0 \\d+$`));
+  expect(recorded.filter(line => line.includes(" held "))).toEqual([]);
   expect(recorded.some(line => new RegExp(`^3 action \\d+ 0 ${target} 256 256 256$`).test(line))).toBe(true);
+  for (const client of clients.clients) expect(client.errors).toEqual([]);
+  expect(clients.firstDivergence()).toBeUndefined();
+});
+
+test("keyboard stall attribution clears after latched presses are admitted despite the two-frame queue", () => {
+  let delayed = false;
+  let lastArrival = 0;
+  const clients = headless.clients({ start: () => startBuild({ ...PLAYABLE_BUILD, devConsole: true, responseProbe: true }), install }, [0, 1], {
+    delivery: { arrivalFrame: (_sender, frame) => {
+      lastArrival = Math.max(lastArrival, frame + (delayed ? 60 : 1));
+      return lastArrival;
+    } },
+  });
+  clients.start();
+  clients.frames(30);
+  clients.chat(0, "-dev quick");
+  clients.frames(30);
+  const first = clients.client(0);
+  const recording = () => value(first, () => shell().probe?.integrity ?? []);
+  for (const client of clients.clients) client.run(() => {
+    const probe = shell().probe;
+    if (probe === undefined) throw new Error("diagnostic has no response probe");
+    startProbe(probe, false);
+  });
+  delayed = true;
+  clients.frames(35);
+  expect(value(first, () => shell().rollback?.schedule.windowHalted(0))).toBe(true);
+  for (const client of clients.clients) client.key(0, 0x51, 0, true);
+  clients.frames(1);
+  for (const client of clients.clients) client.key(0, 0x51, 0, false);
+  clients.frames(1);
+  delayed = false;
+  clients.frames(100);
+  expect(recording().filter(line => line.includes(" held "))).toHaveLength(1);
+  expect(value(first, () => shell().rollback?.schedule.hasLocalRow(0))).toBe(true);
+  expect(value(first, () => shell().rollback?.predictionHeld)).toBe(false);
+  for (const client of clients.clients) client.key(0, 0x51, 0, true);
+  clients.frames(3);
+  expect(recording().filter(line => line.includes(" held "))).toHaveLength(1);
   for (const client of clients.clients) expect(client.errors).toEqual([]);
   expect(clients.firstDivergence()).toBeUndefined();
 });
