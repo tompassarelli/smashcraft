@@ -1,0 +1,43 @@
+# #152 drills and multi-hit aerials: Warden's up air (3 kicks) and Falling Knives. Warden a against Warden b; syntax and checks: smashcraft:docs/native-bot-session.md.
+#! chat -dev quick hero warden
+# Both dash in, close.
+40 b stick -1 0
+42 b stick 0 0
+50 a stick 1 0
+52 a stick 0 0
+# Up air under b, which jumped first.
+94 b tap B 8
+100 a tap B 8
+101 a stick 0.6 0
+113 a cstick 0 1
+113 a stick 0 0
+117 a cstick 0 0
+# Frames saved on hits (native only; illustration for the look box).
+117 a capture
+127 a capture
+# Falling Knives on a standing b, just ahead of a.
+200 a tap B 8
+201 a stick -0.3 0
+213 a cstick 0 -1
+213 a stick 0 0
+217 a cstick 0 0
+# Frames saved on hits (native only; illustration for the look box).
+219 a capture
+231 a capture
+# Expected, frame by frame (headless run of this script): the aerial starts, then every hit.
+#! expect a 113 applied attack 1 style 15
+#! expect a 213 applied attack 2 style 16
+#! expect b 117 damage 2.000
+#! expect b 122 damage 4.000
+#! expect b 127 damage 9.000
+#! expect b 219 damage 11.000
+#! expect b 223 damage 13.000
+#! expect b 227 damage 15.000
+#! expect b 231 damage 18.000
+#! scene a FanOfKnivesMissile
+#! scene a CleaveDamageTarget
+# View held a second, twice: the moments the parity check replays.
+500 a press VIEW
+570 a release VIEW
+1000 a press VIEW
+1070 a release VIEW

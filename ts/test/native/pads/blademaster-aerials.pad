@@ -1,0 +1,42 @@
+# #152 drills and multi-hit aerials: Blademaster's neutral air (2 hits) and Bladestorm. Blademaster a against Blademaster b; syntax and checks: smashcraft:docs/native-bot-session.md.
+#! chat -dev quick hero blademaster
+# Both dash in, close.
+40 b stick -1 0
+42 b stick 0 0
+50 a stick 1 0
+52 a stick 0 0
+# Neutral air as both jump.
+100 b tap B 8
+100 a tap B 8
+101 a stick 0.6 0
+118 a tap A 2
+118 a stick 0 0
+# Frames saved on hits (native only; illustration for the look box).
+124 a capture
+133 a capture
+# Bladestorm on a standing b, from just behind it.
+200 a tap B 8
+201 a stick 0.3 0
+216 a cstick 0 -1
+216 a stick 0 0
+220 a cstick 0 0
+# Frames saved on hits (native only; illustration for the look box).
+225 a capture
+245 a capture
+# Expected, frame by frame (headless run of this script): the aerial starts, then every hit.
+#! expect a 118 applied attack 1 style 12
+#! expect a 216 applied attack 2 style 16
+#! expect b 124 damage 3.000
+#! expect b 133 damage 9.000
+#! expect b 225 damage 11.000
+#! expect b 230 damage 13.000
+#! expect b 235 damage 15.000
+#! expect b 240 damage 17.000
+#! expect b 245 damage 19.000
+#! scene a Tornado_Target
+#! scene a CleaveDamageTarget
+# View held a second, twice: the moments the parity check replays.
+500 a press VIEW
+570 a release VIEW
+1000 a press VIEW
+1070 a release VIEW

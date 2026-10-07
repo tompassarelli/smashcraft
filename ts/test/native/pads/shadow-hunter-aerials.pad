@@ -1,0 +1,30 @@
+# #152 drills and multi-hit aerials: Shadow Hunter's glaive drill. Shadow Hunter a against Shadow Hunter b; syntax and checks: smashcraft:docs/native-bot-session.md.
+#! chat -dev quick hero shadow hunter
+# Both dash in, close.
+40 b stick -1 0
+42 b stick 0 0
+50 a stick 1 0
+52 a stick 0 0
+# The glaive drill on a standing b.
+100 a tap B 8
+101 a stick 0.6 0
+123 a cstick 0 -1
+124 a stick 0 0
+127 a cstick 0 0
+# Frames saved on hits (native only; illustration for the look box).
+131 a capture
+151 a capture
+# Expected, frame by frame (headless run of this script): the aerial starts, then every hit.
+#! expect a 123 applied attack 1 style 16
+#! expect b 131 damage 2.000
+#! expect b 136 damage 4.000
+#! expect b 141 damage 6.000
+#! expect b 146 damage 8.000
+#! expect b 151 damage 12.000
+#! scene a ShadowHunterMissile
+#! scene a CleaveDamageTarget
+# View held a second, twice: the moments the parity check replays.
+500 a press VIEW
+570 a release VIEW
+1000 a press VIEW
+1070 a release VIEW
