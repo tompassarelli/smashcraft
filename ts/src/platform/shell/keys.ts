@@ -10,7 +10,7 @@ import { type ParticipantSlot, isParticipantSlot } from "../../game/input/partic
 import { heldActions, keyDown, pressKey, releaseKey } from "../../game/input/playerKeys";
 import { startKeyDown, startKeyUp } from "../../game/match/controls";
 import { Phase, cancelRematchCountdown, characterFor, firstHumanSlot, humanActive, leaveMatch, recallCharacter, selectCharacter } from "../../game/match/rules";
-import { DESYNC_COMMAND, QUICK_CPU_STOCKS, QUICK_TRAINING_COMMAND, applyDevCommand, prepareQuickCpu, prepareQuickTraining, quickMatchCpuLevel, quickMatchHero, quickMatchStage } from "../../game/shell/devSettings";
+import { DESYNC_COMMAND, QUICK_CPU_STOCKS, RESET_COMMAND, QUICK_TRAINING_COMMAND, applyDevCommand, prepareQuickCpu, prepareQuickTraining, quickMatchCpuLevel, quickMatchHero, quickMatchStage } from "../../game/shell/devSettings";
 import { fighterName } from "../../game/sim/heroes/registry";
 import { keepMomentEnd } from "../../game/replay/moment";
 import { endReplaySegment } from "./replays";
@@ -27,7 +27,7 @@ import { chatBusy, requestPause } from "./journalPause";
 import { Key } from "./keyEvents";
 import { startBodyFit } from "./bodyFit";
 import { startAgencyFixture } from "./agencyFixture";
-import { back, choose, confirm, openSettingsScreen, startQuickMatch } from "./menus";
+import { back, choose, confirm, openSettingsScreen, resetToStartingSelection, startQuickMatch } from "./menus";
 import { makePreview } from "./preview";
 import { exportProbe, probeIntegrity, probeRecording, startProbe } from "./responseProbe";
 import { type ShellState, activeRollback, playsOnKeyboard } from "./state";
@@ -218,6 +218,9 @@ export function onDevCommand(s: ShellState): void {
     receipt = "dev: quick training";
     prepareQuickTraining(s.game);
     startQuickMatch(s, 0);
+  } else if (message === RESET_COMMAND) {
+    receipt = "dev: reset";
+    resetToStartingSelection(s);
   } else if (message === "-dev camera") {
     receipt = "dev: camera match";
     startQuickMatch(s, 0, "camera");

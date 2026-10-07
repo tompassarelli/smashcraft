@@ -1,0 +1,343 @@
+// `bun wisp pad SCRIPT|DIR... --helper BINARY --out DIR --map MAP.w3x [--pairs N]`:
+// many pad scripts in ONE game per client pair (smashcraft:docs/native-bot-session.md,
+// "Many scripts in one game"). A pair starts the map once; between scripts
+// it types `-dev reset`, which puts every client back at fighter selection
+// exactly as the map started it (test/dev-reset.test.ts), so each script's
+// `-dev quick` match equals a new game's first match. A new game is started
+// only after an invalid run (desync, crash, early results) or a run that
+// broke. Every script's headless run starts at once in the background, a few
+// at a time, so the native runs never wait for them; each compare runs as
+// soon as both sides of its script exist. `--pairs N` shards the scripts
+// over the first N pairs of Wisp's offline LAN pool (`wisp lan pool`).
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { basename, join } from "node:path";
+import { Cause, Effect, Schema } from "effect";
+import { preloadLines } from "wisp/scripts/wisp/boundary";
+import { UsageFailure, describeCause } from "wisp/scripts/wisp/command";
+import { type DesktopFailure, keys, loadClients, typeText } from "wisp/scripts/warcraft/desktop";
+import { RESET_COMMAND } from "../../src/game/shell/devSettings";
+import { devCommandReceiptFile } from "../../src/runtime/gameFiles";
+import { IntegrityFailure } from "../integrity/evidence";
+import { compareRuns, scriptChat } from "../integrity/padParity";
+import { parsePadScript } from "../integrity/padScript";
+import { onHealthyClients } from "./doctor";
+import { type PadOptions, headlessScript, headlessSession, native } from "./commands/pad";
+
+/** A pair of clients one share of the batch plays on. */
+export interface PadPair {
+  readonly name: string;
+  /** A clients file in the schema of ~/.local/state/smashcraft/clients.json. */
+  readonly clients: string;
+  readonly appIds: ReadonlyMap<string, string>;
+  /** The pair's index in the LAN pool; undefined for the signed-in clients A and B. */
+  readonly lan?: number;
+}
+
+/** Where `wisp lan pool` writes pool.json: {pairs:[{id, clients, appIds:{a,b}}]}. */
+export const LAN_POOL_FILE = join(process.env.XDG_STATE_HOME ?? join(homedir(), ".local/state"), "wisp/lan/pool.json");
+
+const LanPool = Schema.Struct({ pairs: Schema.Array(Schema.Struct({ id: Schema.Finite, clients: Schema.String, appIds: Schema.optional(Schema.Record(Schema.String, Schema.String)) })) });
+
+export function lanPairs(poolFile: string, count: number): PadPair[] {
+  const pool = Schema.decodeUnknownSync(LanPool)(JSON.parse(readFileSync(poolFile, "utf8")));
+  const parsed = pool.pairs.map((pair): PadPair => ({ name: `lan-${pair.id}`, clients: pair.clients, appIds: new Map(Object.entries(pair.appIds ?? {})), lan: pair.id }));
+  if (parsed.length < count) throw new Error(`${poolFile} lists ${parsed.length} pairs, --pairs asks for ${count}; start them with \`bun wisp lan pool --pairs ${count}\``);
+  return parsed.slice(0, count);
+}
+
+/** The .pad files the arguments name: files as given, directories' own .pad files in name order. */
+export function batchScripts(paths: readonly string[]): string[] {
+  return paths.flatMap((path) => statSync(path).isDirectory()
+    ? readdirSync(path).filter((name) => name.endsWith(".pad")).sort().map((name) => join(path, name))
+    : [path]);
+}
+
+/**
+ * Whether a pair starts a new game before its next script. Only the first
+ * script of a session, the rerun after an invalid run and the script after a
+ * run that broke get one: a valid run's match ends with `-dev reset`.
+ * `freshEach` is the old one-game-per-script loop, kept for measuring it.
+ */
+export function needsNewGame(previous: "none" | "valid" | "failed" | "invalid" | "broken", freshEach: boolean): boolean {
+  return freshEach || previous === "none" || previous === "invalid" || previous === "broken";
+}
+
+const seconds = (since: number) => (performance.now() - since) / 1000;
+
+/** At most `limit` of the tasks run at once, in the order they were asked for. */
+function limiter(limit: number) {
+  let running = 0;
+  const waiting: (() => void)[] = [];
+  return async <T>(task: () => Promise<T>): Promise<T> => {
+    if (running >= limit) await new Promise<void>((resolve) => waiting.push(resolve));
+    running++;
+    try {
+      return await task();
+    } finally {
+      running--;
+      waiting.shift()?.();
+    }
+  };
+}
+
+const wispProgram = join(import.meta.dir, "../wisp.ts");
+
+/** Runs `bun wisp ARGS`, its output into `log`; resolves with the exit code. */
+async function wisp(args: readonly string[], log: string): Promise<number> {
+  const file = Bun.file(log);
+  const child = Bun.spawn([process.execPath, wispProgram, ...args], { stdout: file, stderr: file, cwd: join(import.meta.dir, "../..") });
+  return child.exited;
+}
+
+/** A new game on the pair, stopped at fighter selection: `bun wisp fresh MAP --no-quick`, or `bun wisp lan fresh MAP --pair K`. */
+const newGame = (pair: PadPair, map: string, log: string) => Effect.gen(function*() {
+  const args = pair.lan === undefined ? ["fresh", map, "--no-quick"] : ["lan", "fresh", map, "--pair", String(pair.lan)];
+  for (let attempt = 0; attempt < 2; attempt++) {
+    if ((yield* Effect.promise(() => wisp(args, `${log}.${attempt}`))) === 0) return;
+  }
+  return yield* new IntegrityFailure({ operation: "start a new game", path: map, cause: `bun wisp ${args.join(" ")} failed twice on ${pair.name} (${log}.1)` });
+});
+
+
+/** Waits until every receipt file was written since `sinceMs` and shows fighter selection, the `-dev reset` receipt. */
+const atSelection = (receipts: readonly string[], sinceMs: number) => Effect.gen(function*() {
+  const reset = (path: string) => existsSync(path) && statSync(path).mtimeMs >= sinceMs
+    && (preloadLines(readFileSync(path, "latin1")) ?? []).some((line) => line.startsWith("SETUP phase=0 "));
+  const deadline = Date.now() + 8000;
+  while (!receipts.every(reset)) {
+    if (Date.now() > deadline) return yield* new IntegrityFailure({ operation: "reset", path: receipts.join(", "), cause: `no fighter-selection receipt from every client within 8 s of ${RESET_COMMAND}` });
+    yield* Effect.sleep("50 millis");
+  }
+});
+
+/** Types `-dev reset` into the pair's client A and waits for both clients' receipts. */
+const reset = (pair: PadPair, build: string) => Effect.gen(function*() {
+  const fromDesktop = (failure: DesktopFailure) => new IntegrityFailure({ operation: failure.operation, path: failure.client, cause: failure.cause });
+  const clients = yield* loadClients(pair.clients).pipe(Effect.mapError(fromDesktop));
+  const host = clients[0];
+  if (host === undefined) return yield* new IntegrityFailure({ operation: "reset", path: pair.clients, cause: "no client" });
+  const typedMs = Date.now();
+  yield* keys(host, "Return").pipe(Effect.andThen(typeText(host, RESET_COMMAND, 35)), Effect.andThen(keys(host, "Return")), Effect.mapError(fromDesktop));
+  yield* atSelection(clients.map((client, slot) => join(client.documents, "CustomMapData", devCommandReceiptFile(build, slot))), typedMs);
+});
+
+export interface BatchOptions {
+  readonly scripts: readonly string[];
+  readonly helper: string;
+  readonly build: string;
+  readonly out: string;
+  /** Headless runs at once; each is two real-time clients and two helpers. */
+  readonly headlessJobs: number;
+}
+
+export interface NativeBatchOptions extends BatchOptions {
+  readonly pairs: readonly PadPair[];
+  readonly map: string;
+  readonly retries: number;
+  readonly freshEach: boolean;
+}
+
+/** Seconds of each phase of one script, and its verdict. */
+interface ScriptReport {
+  readonly label: string;
+  readonly script: string;
+  readonly pair: string;
+  game: number;
+  reset: number;
+  /** The script's own run: native, or the headless session's. */
+  run: number;
+  attempts: number;
+  headless: number;
+  /** Seconds the compare waited for the headless run after the script's run ended. */
+  waited: number;
+  compare: number;
+  verdict: "PASS" | "FAIL" | "INVALID";
+  summary: string;
+}
+
+interface ScriptRun {
+  readonly script: string;
+  readonly text: string;
+  readonly steps: ReturnType<typeof parsePadScript>;
+  readonly chat: string;
+  readonly label: string;
+  readonly dir: string;
+}
+
+const label = (script: string, taken: Set<string>) => {
+  const base = basename(script, ".pad");
+  let name = base;
+  for (let index = 2; taken.has(name); index++) name = `${base}-${index}`;
+  taken.add(name);
+  return name;
+};
+
+/**
+ * The batch's scripts, each with its folder, and the reference headless run
+ * of each (`pad SCRIPT --headless`, new clients), all started now a few at a
+ * time: they need nothing from the side they are compared with.
+ */
+const prepare = (options: BatchOptions) => Effect.gen(function*() {
+  const taken = new Set<string>();
+  const runs = yield* Effect.try({
+    try: () => options.scripts.map((script): ScriptRun => {
+      const text = readFileSync(script, "utf8");
+      const chat = scriptChat(text);
+      if (chat === undefined) throw new Error(`${script} has no \`#! chat\` line: a batch starts each match with its script's command`);
+      const name = label(script, taken);
+      const dir = join(options.out, name);
+      mkdirSync(dir, { recursive: true });
+      return { script, text, steps: parsePadScript(text), chat, label: name, dir };
+    }),
+    catch: (cause) => new UsageFailure({ problem: describeCause(cause) }),
+  });
+  const limit = limiter(options.headlessJobs);
+  // A reference that slipped (an edge written late on a loaded host, a helper that
+  // saw the match late) proves nothing about the other side: it runs again, twice at most.
+  const references = new Map(runs.map((run) => [run.label, limit(async () => {
+    const at = performance.now();
+    let code = 1;
+    for (let attempt = 0; attempt < 3 && code !== 0; attempt++) {
+      code = await wisp(["pad", run.script, "--headless", "--helper", options.helper, "--out", join(run.dir, "headless"), `--chat=${run.chat}`], join(run.dir, attempt === 0 ? "headless.log" : `headless-${attempt}.log`));
+    }
+    return { code, seconds: seconds(at), ended: performance.now() };
+  })] as const));
+  const reports: ScriptReport[] = [];
+  const compares: Promise<void>[] = [];
+  const report = (run: ScriptRun, pair: string): ScriptReport => {
+    const made: ScriptReport = { label: run.label, script: run.script, pair, game: 0, reset: 0, run: 0, attempts: 0, headless: 0, waited: 0, compare: 0, verdict: "INVALID", summary: "" };
+    reports.push(made);
+    return made;
+  };
+  /** Compares `side` with the script's reference run once that has ended, in the background. */
+  const compareLater = (run: ScriptRun, made: ScriptReport, side: string, valid: boolean) => {
+    const ended = performance.now();
+    compares.push((async () => {
+      const reference = await (references.get(run.label) ?? Promise.resolve({ code: 1, seconds: 0, ended: ended }));
+      made.headless = reference.seconds;
+      made.waited = Math.max(0, (reference.ended - ended) / 1000);
+      const at = performance.now();
+      try {
+        const parity = compareRuns(side, join(run.dir, "headless"), run.text);
+        writeFileSync(join(run.dir, "compare.log"), `${parity.lines.join("\n")}\n`);
+        made.verdict = parity.passed && valid ? "PASS" : parity.invalid === true ? "INVALID" : "FAIL";
+        made.summary = parity.lines.slice(-2).join(" ");
+      } catch (cause) {
+        made.verdict = "FAIL";
+        made.summary = `compare failed: ${describeCause(cause)} (reference exit ${reference.code}, ${join(run.dir, "headless.log")})`;
+      }
+      made.compare = seconds(at);
+    })());
+  };
+  return { runs, report, compareLater, reports, compares };
+});
+
+/** Writes batch.tsv and batch.json, prints a line a script and the totals; fails unless every script passed. */
+const summarize = (out: string, runs: readonly ScriptRun[], reports: ScriptReport[], pairs: readonly string[], started: number, extra: Record<string, unknown>) => Effect.gen(function*() {
+  const total = seconds(started);
+  const order = new Map(runs.map((run, index) => [run.label, index]));
+  reports.sort((a, b) => (order.get(a.label) ?? 0) - (order.get(b.label) ?? 0));
+  const f = (value: number) => value.toFixed(1);
+  const header = ["script", "pair", "new_game_s", "reset_s", "run_s", "attempts", "headless_s", "waited_for_headless_s", "compare_s", "verdict", "summary"];
+  const rows = reports.map((r) => [r.label, r.pair, f(r.game), f(r.reset), f(r.run), String(r.attempts), f(r.headless), f(r.waited), f(r.compare), r.verdict, r.summary].join("\t"));
+  writeFileSync(join(out, "batch.tsv"), `${header.join("\t")}\n${rows.join("\n")}\n`);
+  writeFileSync(join(out, "batch.json"), `${JSON.stringify({ total_s: total, pairs, ...extra, scripts: reports }, null, 2)}\n`);
+  for (const r of reports) {
+    console.log(`${r.verdict.padEnd(7)} ${r.label.padEnd(22)} ${r.pair.padEnd(7)} game ${f(r.game).padStart(5)} s  reset ${f(r.reset).padStart(4)} s  run ${f(r.run).padStart(5)} s  headless ${f(r.headless).padStart(5)} s (waited ${f(r.waited)} s)  ${r.summary}`);
+  }
+  const sum = (key: "game" | "reset" | "run") => f(reports.reduce((all, r) => all + r[key], 0));
+  const count = (verdict: ScriptReport["verdict"]) => reports.filter((r) => r.verdict === verdict).length;
+  console.log(`${reports.length} scripts on ${pairs.length} pair(s) in ${f(total)} s: new games ${sum("game")} s, resets ${sum("reset")} s, runs ${sum("run")} s; ${count("PASS")} PASS, ${count("FAIL")} FAIL, ${count("INVALID")} INVALID; ${join(out, "batch.tsv")}`);
+  if (count("PASS") !== reports.length) return yield* new IntegrityFailure({ operation: "pad batch", path: out, cause: "not every script passed" });
+});
+
+/** Native scripts on every pair at once, each pair taking the next script when it is free. */
+export const padBatch = (options: NativeBatchOptions) => Effect.gen(function*() {
+  const { pairs, build, map, retries, freshEach } = options;
+  const started = performance.now();
+  mkdirSync(options.out, { recursive: true });
+  const { runs, report, compareLater, reports, compares } = yield* prepare(options);
+  let next = 0;
+  const worker = (pair: PadPair) => Effect.gen(function*() {
+    let previous: Parameters<typeof needsNewGame>[0] = "none";
+    for (let index = next++; index < runs.length; index = next++) {
+      const run = runs[index];
+      if (run === undefined) break;
+      const made = report(run, pair.name);
+      const padOptions: PadOptions = { scriptPath: run.script, steps: run.steps, helper: options.helper, build, out: join(run.dir, "native"), chat: run.chat };
+      let outcome: "valid" | "invalid" | "failed" | "broken" = "invalid";
+      for (let attempt = 0; attempt <= retries; attempt++) {
+        made.attempts = attempt + 1;
+        if (!needsNewGame(previous, freshEach)) {
+          const at = performance.now();
+          const done = yield* Effect.exit(reset(pair, build));
+          made.reset += seconds(at);
+          // A pair that didn't reset gets a new game for the same attempt.
+          if (done._tag === "Failure") previous = "broken";
+        }
+        if (needsNewGame(previous, freshEach)) {
+          const at = performance.now();
+          const log = join(run.dir, `game-${attempt}.log`);
+          const made_ = yield* Effect.exit(newGame(pair, map, log));
+          made.game += seconds(at);
+          if (made_._tag === "Failure") {
+            outcome = "broken";
+            made.summary = `no new game on ${pair.name}: ${log}.1`;
+            break;
+          }
+        }
+        const at = performance.now();
+        const play = native(padOptions, pair.appIds, pair.clients);
+        const ran = yield* Effect.exit(pair.lan === undefined ? onHealthyClients(play, { retry: false }) : play);
+        made.run += seconds(at);
+        // An edge off its frame or a stopped helper still leaves a match the next script can reset; anything else may not.
+        outcome = ran._tag === "Success" ? ran.value : Cause.pretty(ran.cause).includes("edges off their frame") ? "failed" : "broken";
+        previous = outcome;
+        if (outcome !== "invalid") break;
+      }
+      if (outcome === "invalid" || outcome === "broken") {
+        made.summary ||= outcome === "invalid" ? `desynced, crashed or ended early on all ${made.attempts} attempts` : `the native run broke on ${pair.name}`;
+        continue;
+      }
+      compareLater(run, made, join(run.dir, "native"), outcome === "valid");
+    }
+  });
+  yield* Effect.forEach(pairs, worker, { concurrency: "unbounded", discard: true });
+  yield* Effect.promise(() => Promise.all(compares));
+  yield* summarize(options.out, runs, reports, pairs.map((pair) => pair.name), started, { fresh_each: freshEach });
+});
+
+/**
+ * `pad --batch --headless`: the native batch's flow in headless clients. One
+ * session of two integrity-build clients and their real helpers plays every
+ * script, with `-dev reset` between them, and each script is compared with
+ * its reference run in new clients, as a native run would be.
+ */
+export const headlessBatch = (options: BatchOptions) => Effect.scoped(Effect.gen(function*() {
+  const started = performance.now();
+  mkdirSync(options.out, { recursive: true });
+  const { runs, report, compareLater, reports, compares } = yield* prepare(options);
+  const session = yield* headlessSession(join(options.out, "session"), options.helper, options.build);
+  for (const [index, run] of runs.entries()) {
+    const made = report(run, "session");
+    made.attempts = 1;
+    if (index > 0) {
+      const at = performance.now();
+      const typedMs = Date.now();
+      session.clients.chat(0, RESET_COMMAND);
+      yield* atSelection(session.data.map((dir, slot) => join(dir, devCommandReceiptFile(options.build, slot))), typedMs);
+      made.reset = seconds(at);
+    }
+    const at = performance.now();
+    const ran = yield* Effect.exit(headlessScript(session, { scriptPath: run.script, steps: run.steps, helper: options.helper, build: options.build, out: join(run.dir, "session"), chat: run.chat }));
+    made.run = seconds(at);
+    if (ran._tag === "Failure" && !Cause.pretty(ran.cause).includes("edges off their frame")) {
+      made.summary = `the session run broke: ${Cause.pretty(ran.cause).split("\n")[0]}`;
+      break;
+    }
+    compareLater(run, made, join(run.dir, "session"), ran._tag === "Success");
+  }
+  yield* Effect.promise(() => Promise.all(compares));
+  yield* summarize(options.out, runs, reports, ["session"], started, { headless_session: true });
+}));

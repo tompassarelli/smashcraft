@@ -267,6 +267,56 @@ the integrity build (`bun wisp rebuild MAP.w3x --profile integrity`,
 `--build typescript-integrity`), since only that build writes the trace.
 Issue scripts live in smashcraft:ts/test/native/pads/, one folder per issue.
 
+### Many scripts in one game
+
+Native parity runs as a batch: name several scripts, or a folder of them.
+
+```sh
+bun wisp pad ts/test/native/pads --helper HELPER --out DIR \
+  --map MAP.w3x --pairs 4                       # the offline LAN pool
+bun wisp pad SCRIPT... --helper HELPER --out DIR --map MAP.w3x \
+  --app-id a=ID --app-id b=ID                   # signed-in A and B
+```
+
+Where the time went (A+B, 7 Oct 2026, integrity build, 17 scripts run one
+`fresh` + native pad + headless compare at a time): a new game took 42 to
+64 s a script (5 s to the menus, 7 s hosting, 4 to 5 s joining, 21 to 26 s
+loading to fighter selection), the native run 23.5 to 26 s for about 1050
+frames, and the headless compare 22 s, because the headless clients play in
+real time through the real helper. That was about 1 min 50 s a script and
+over 35 min a batch, more than half of it starting games.
+
+So a batch:
+
+- Starts ONE game per client pair, and between scripts types `-dev reset`.
+  The reset ends any match and puts the match rules back exactly as the map
+  started them (`startingSelection`: the players in the game, the boot's
+  match seed and settings), so the script's own `#! chat` command (`-dev
+  quick ...`) starts a match equal to a new game's first match.
+  smashcraft:ts/test/dev-reset.test.ts holds that: a match after a
+  mid-match reset writes the same integrity-trace checksums and fighter
+  lines as the first match. The reset costs about a second (its receipt,
+  `SETUP phase=0`, from both clients). A new game is started only for a
+  pair's first script and after an invalid or broken run.
+- Starts every script's headless reference run at once, `--headless-jobs N`
+  at a time (3 by default; each is two real-time clients and two helpers,
+  about 0.8 CPU), and compares each native run as soon as both sides exist.
+  The native runs never wait for a compare. A reference run that slipped an
+  edge on a loaded host runs again, twice at most.
+- With `--pairs N`, shards the scripts over the first N pairs of the
+  offline LAN pool (`$XDG_STATE_HOME/wisp/lan/pool.json`, each pair a
+  clients file in the schema of clients.json; a new game there is
+  `bun wisp lan fresh MAP --pair K`). Each pair takes the next script when
+  it is free.
+
+It writes `DIR/batch.tsv` and `batch.json`: each script's new-game, reset,
+native, headless and compare seconds, attempts and verdict, then the
+totals. `--fresh-each` starts a new game per script, only to measure the
+old loop. `bun wisp pad SCRIPT|DIR... --headless --helper HELPER --out DIR`
+runs the same batch in one headless session (resets included) against new
+headless clients per script, which proves the reset through the real
+helper without any Warcraft client.
+
 ## Declared checks: `bun wisp accept`
 
 Native boxes that a chat command, a capture and a rule can answer (#82's

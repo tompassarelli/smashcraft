@@ -99,6 +99,14 @@ export function quickMatchHero(message: string): Character | undefined {
   return undefined;
 }
 
+/**
+ * `-dev reset`: ends any match and puts every client back at fighter
+ * selection exactly as the map started it, so the next `-dev quick` match
+ * equals the first match of a new game (seed, rules and confirmed state).
+ * A native pad batch types it between scripts instead of starting a new game.
+ */
+export const RESET_COMMAND = "-dev reset";
+
 /** Desynchronizes the game on purpose, to check that the host names what diverged. */
 export const DESYNC_COMMAND = "-dev desync";
 

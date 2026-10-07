@@ -8,7 +8,10 @@ import {
   requestStageSelect, requestStart, setAutomaticRematch, setCpuLevel, setEndless, setHitAreas, setPartnerDamage, setTraining, stepPartnerBehaviour,
   stepPartnerEscape, stepPartnerTech, stepTrainingSpeed, tickRematchCountdown,
   returnToCharacters, selectCharacter, selectCpuCharacter, selectStage, setStocks, setTimeLimit, updateConnectedHumans,
+  type MatchState, copyMatchState, createMatchState, setParticipants,
 } from "../../game/match/rules";
+import { keepMomentEnd } from "../../game/replay/moment";
+import { chooseScenarioCharacters } from "../../game/shell/scenarios";
 import { PARTNER_DAMAGE_STEP } from "../../game/match/trainingState";
 import { prepareQuickMatch } from "../../game/shell/devSettings";
 import type { Scenario } from "../../game/shell/build";
@@ -17,14 +20,15 @@ import { type PlaytestRequest, preparePlaytest } from "../../game/shell/playtest
 import { nextStage } from "../../game/menu/stageCatalog";
 import { nextSelectableCharacter } from "../../game/sim/heroes/registry";
 import { traceSelectionState } from "./diagnostics";
-import { clearParticipantInputs, controlsAvailable, currentHumanMask } from "./inputs";
+import { clearParticipantInputs, controlsAvailable, currentComputerMask, currentHumanMask } from "./inputs";
 import { startMatch } from "./matchStart";
-import { requestStageLoad, stageLoading } from "./stageLoad";
+import { cancelStageLoad, requestStageLoad, stageLoading } from "./stageLoad";
+import { endReplaySegment } from "./replays";
 import { makePreview } from "./preview";
 import { type ShellState, shell } from "./state";
 import type { PanelActions } from "./ui";
-import { views } from "./ui";
-import { announce, setStatus } from "./view";
+import { clearMatchEffects, views } from "./ui";
+import { announce, pauseMatchPresentation, setStatus } from "./view";
 
 /** Left and right on a menu: the next fighter, or the other stage. */
 export function choose(s: ShellState, slot: ParticipantSlot, direction: -1 | 1): void {
@@ -180,4 +184,34 @@ export function panelActions(): PanelActions {
       closeSettings: participant => withSlot(participant, clearParticipantInputs),
     },
   };
+}
+
+/** Fighter selection as the map starts it: the players in the game, and the scenario's fighters. */
+export function startingSelection(scenario: Scenario): MatchState {
+  const game = createMatchState();
+  setParticipants(game, currentHumanMask(0), currentComputerMask());
+  chooseScenarioCharacters(scenario, game);
+  return game;
+}
+
+/**
+ * `-dev reset`: ends any match between frames and puts the rules back at
+ * startingSelection, so the next match plays the boot's seed and settings.
+ * Leaving the match phase ends its journal epoch as a result does.
+ */
+export function resetToStartingSelection(s: ShellState): void {
+  if (s.game.phase === Phase.match) {
+    keepMomentEnd(s.moment.recorder, s.world, s.game, s.controls, s.runtime);
+    endReplaySegment(s);
+    clearMatchEffects(s);
+  }
+  cancelStageLoad(s);
+  if (s.session.paused) {
+    s.session.paused = false;
+    pauseMatchPresentation(s, false);
+  }
+  for (const panel of views(s).settings) panel.close();
+  copyMatchState(s.game, startingSelection(s.build.scenario));
+  setStatus(s, "", 0.0);
+  makePreview(s);
 }

@@ -12,6 +12,10 @@
 // of the integrity build, and with --compare checks a native run's folder
 // against it (smashcraft:ts/scripts/integrity/padParity.ts); without --compare
 // it checks the script's own `#!` expectations against the headless run.
+//
+// Several scripts, or a folder of them, run as one batch: one game per client
+// pair with `-dev reset` between scripts, the headless runs alongside, and
+// `--pairs N` sharding over the LAN pool (smashcraft:ts/scripts/wisp/padBatch.ts).
 import { copyFileSync, existsSync, mkdirSync, openSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync, writeSync, closeSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
@@ -41,7 +45,9 @@ import { clientState } from "../project";
 import { onHealthyClients } from "../doctor";
 
 const USAGE = "pad SCRIPT --helper BINARY --build BUILD --out DIR --app-id a=ID --app-id b=ID [--chat=TEXT] [--map MAP.w3x [--retries N]]\n"
-  + "       bun wisp pad SCRIPT --headless --helper BINARY --out DIR [--chat=TEXT] [--compare NATIVE_DIR]";
+  + "       bun wisp pad SCRIPT --headless --helper BINARY --out DIR [--chat=TEXT] [--compare NATIVE_DIR]\n"
+  + "       bun wisp pad SCRIPT|DIR... --helper BINARY --out DIR --map MAP.w3x [--pairs N | --app-id a=ID --app-id b=ID] [--headless-jobs N] [--fresh-each]\n"
+  + "       bun wisp pad SCRIPT|DIR... --headless --helper BINARY --out DIR [--headless-jobs N]";
 
 /** The integrity build writes its input trace 1200 callbacks after the first journal row: about 20 s after the match starts. */
 const TRACE_WAIT_MS = 45_000;
@@ -115,7 +121,7 @@ const collect = (data: readonly [string, string], out: string, sinceMs: number) 
   });
 });
 
-interface PadOptions {
+export interface PadOptions {
   readonly scriptPath: string;
   readonly steps: readonly PadStep[];
   readonly helper: string;
@@ -124,10 +130,11 @@ interface PadOptions {
   readonly chat: string | undefined;
 }
 
-const native = (options: PadOptions, appIds: ReadonlyMap<string, string>) => Effect.scoped(Effect.gen(function*() {
+/** One native run of a script in the match the clients in `clientsFile` are at (fighter selection, or a match a reset ended). */
+export const native = (options: PadOptions, appIds: ReadonlyMap<string, string>, clientsFile: string = clientState) => Effect.scoped(Effect.gen(function*() {
   const { scriptPath, steps, helper, build, out, chat } = options;
-  const loaded = yield* loadClients(clientState).pipe(Effect.mapError(fromDesktop));
-  if (loaded.length !== 2) return yield* new IntegrityFailure({ operation: "load clients", path: clientState, cause: `${loaded.length} clients, need 2` });
+  const loaded = yield* loadClients(clientsFile).pipe(Effect.mapError(fromDesktop));
+  if (loaded.length !== 2) return yield* new IntegrityFailure({ operation: "load clients", path: clientsFile, cause: `${loaded.length} clients, need 2` });
   const clients = [at(loaded, 0), at(loaded, 1)] as const;
   yield* tryIntegrity("create pad directory", out, () => {
     mkdirSync(out, { recursive: true });
@@ -240,37 +247,57 @@ const scheduled = (worker: Worker, schedule: Schedule) => Effect.callback<readon
   worker.postMessage(schedule);
 });
 
-const headless = (options: PadOptions) => Effect.scoped(Effect.gen(function*() {
-  const { scriptPath, steps, helper, build, out, chat } = options;
-  yield* tryIntegrity("create pad directory", out, () => mkdirSync(out, { recursive: true }));
+/**
+ * Two headless clients of the integrity build with their real helpers, run
+ * in real time until the scope closes. The helpers follow every match, so a
+ * session can play one script after another (`pad SCRIPT SCRIPT... --headless`).
+ */
+export const headlessSession = (dir: string, helper: string, build: string) => Effect.gen(function*() {
+  yield* tryIntegrity("create pad directory", dir, () => mkdirSync(dir, { recursive: true }));
   const entry = yield* loadEntry;
   const runtime = yield* Effect.acquireRelease(Effect.sync(() => installHeadless(PREDICTED_HEADLESS)), (installed) => Effect.sync(installed.restore));
-  const data = [join(out, "client-0", "CustomMapData"), join(out, "client-1", "CustomMapData")] as const;
-  const startedMs = Date.now();
-  const startedNs = monotonicNs();
+  const data = [join(dir, "client-0", "CustomMapData"), join(dir, "client-1", "CustomMapData")] as const;
   const typed = new Map<number, TypedInput>();
   const pads: Pad[] = [];
   for (const slot of SLOTS) {
-    const textPath = join(out, `typed-${slot}.txt`);
+    const textPath = join(dir, `typed-${slot}.txt`);
     typed.set(slot, yield* Effect.acquireRelease(tryIntegrity("open typed text", textPath, () => typedFile(textPath)), (input) => Effect.sync(input.close)));
     const device = yield* openPad([...PAD_BUTTONS, BTN_SELECT]);
     pads.push(device);
     yield* startHelper([
       helper, "--follow-matches", "--build", build, "--slot", String(slot), "--device", device.device, "--out", at(data, slot), "--text-out", textPath, "--trace",
-    ], Bun.env, join(out, `helper-${slot}.log`));
+    ], Bun.env, join(dir, `helper-${slot}.log`));
   }
   const worker = yield* scheduleThread;
   const clients = runtime.clients(entry, SLOTS, { files: (slot) => customMapData(at(data, slot)), delivery: syncDelivery(MEASURED_BATTLE_NET, 1), keepCalls: 64 });
   const realtime = new RealtimeClients(clients, typed);
-  let crashed: unknown;
-  yield* tryIntegrity("start headless clients", out, () => realtime.start());
+  const state: { crashed: unknown } = { crashed: undefined };
+  yield* tryIntegrity("start headless clients", dir, () => realtime.start());
   yield* Effect.forkScoped(Effect.forever(Effect.suspend(() => Effect.sleep(Math.max(0, realtime.advance())))).pipe(
     Effect.catchDefect((cause) => Effect.sync(() => {
-      crashed = cause;
+      state.crashed = cause;
     })),
   ));
-  const log = (slot: number) => readFileSync(join(out, `helper-${slot}.log`), "utf8");
-  const logs = (): [string, string] => [log(SLOTS[0]), log(SLOTS[1])];
+  const log = (slot: number) => readFileSync(join(dir, `helper-${slot}.log`), "utf8");
+  return { dir, build, data, pads, worker, clients, state, logs: (): [string, string] => [log(SLOTS[0]), log(SLOTS[1])] };
+});
+
+export type HeadlessSession = Effect.Success<ReturnType<typeof headlessSession>>;
+
+/** One script in a session's next match: its chat starts the match, the result and traces go to options.out. */
+export const headlessScript = (session: HeadlessSession, options: PadOptions) => Effect.gen(function*() {
+  const { scriptPath, steps, build, out, chat } = options;
+  yield* tryIntegrity("create pad directory", out, () => mkdirSync(out, { recursive: true }));
+  const { clients, pads, worker, data } = session;
+  const startedMs = Date.now();
+  const startedNs = monotonicNs();
+  // This script's part of each helper log: the session's helpers log every match.
+  const from = session.logs().map((text) => text.length);
+  const logs = (): [string, string] => {
+    const [a, b] = session.logs();
+    return [a.slice(from[0]), b.slice(from[1])];
+  };
+  const errorsBefore = clients.clients.map((client) => client.errors.length);
   if (chat !== undefined) {
     yield* Effect.sleep("1 second");
     clients.chat(0, chat);
@@ -283,10 +310,15 @@ const headless = (options: PadOptions) => Effect.scoped(Effect.gen(function*() {
   yield* until(frameWriteNs(Math.max(...epochs), last + 30));
   const finished = yield* Effect.exit(finish(out, scriptPath, build, epochs, sent, logs()));
   yield* collect(data, out, startedMs);
-  const errors = clients.clients.flatMap((client) => client.errors.map((error) => `p${client.slot}: ${error}`));
-  if (crashed !== undefined) errors.push(`headless clients stopped: ${describeCause(crashed)}`);
+  const errors = clients.clients.flatMap((client, index) => client.errors.slice(errorsBefore[index]).map((error) => `p${client.slot}: ${error}`));
+  if (session.state.crashed !== undefined) errors.push(`headless clients stopped: ${describeCause(session.state.crashed)}`);
   if (errors.length > 0) return yield* new IntegrityFailure({ operation: "run headless clients", path: out, cause: errors.join("; ") });
   return yield* finished;
+});
+
+const headless = (options: PadOptions) => Effect.scoped(Effect.gen(function*() {
+  const session = yield* headlessSession(options.out, options.helper, options.build);
+  return yield* headlessScript(session, options);
 }));
 
 export const pad: Command = (args) => Effect.gen(function*() {
@@ -294,10 +326,13 @@ export const pad: Command = (args) => Effect.gen(function*() {
     try: () => parseArgs({ args: [...args], allowPositionals: true, options: {
       helper: { type: "string" }, build: { type: "string" }, out: { type: "string" }, chat: { type: "string" }, "app-id": { type: "string", multiple: true },
       headless: { type: "boolean" }, compare: { type: "string" }, retries: { type: "string" }, map: { type: "string" },
+      pairs: { type: "string" }, pool: { type: "string" }, "fresh-each": { type: "boolean" }, "headless-jobs": { type: "string" },
     } }),
     catch: (cause) => new UsageFailure({ problem: describeCause(cause) }),
   });
   const { helper, out, chat, compare } = parsed.values;
+  // Several scripts, or a folder of them, are one batch: one game per pair (scripts/wisp/padBatch.ts).
+  if (parsed.positionals.length > 1 || (parsed.positionals[0] !== undefined && existsSync(parsed.positionals[0]) && statSync(parsed.positionals[0]).isDirectory())) return yield* batch(parsed.values, parsed.positionals);
   const isHeadless = parsed.values.headless === true;
   const build = parsed.values.build ?? (isHeadless ? INTEGRITY_BUILD.id : undefined);
   const [scriptPath] = parsed.positionals;
@@ -337,4 +372,37 @@ export const pad: Command = (args) => Effect.gen(function*() {
   const report = yield* tryIntegrity("check the script's expectations", out, () => checkHeadlessRun(out, script));
   for (const line of report.lines) console.log(line);
   if (!report.passed) return yield* new IntegrityFailure({ operation: "pad expectations", path: out, cause: "the script's expectations don't hold headless" });
+});
+
+/** `pad SCRIPT|DIR...`: many scripts in one game per pair (scripts/wisp/padBatch.ts). */
+const batch = (values: { readonly [name: string]: string | boolean | readonly string[] | undefined }, positionals: readonly string[]) => Effect.gen(function*() {
+  const text = (name: string) => (typeof values[name] === "string" ? values[name] : undefined);
+  const { padBatch, headlessBatch, batchScripts, lanPairs, LAN_POOL_FILE } = yield* Effect.promise(() => import("../padBatch"));
+  const helper = text("helper");
+  const out = text("out");
+  const map = text("map");
+  const build = text("build") ?? INTEGRITY_BUILD.id;
+  const headlessJobs = Number(text("headless-jobs") ?? "3");
+  if (values.headless === true && helper !== undefined && out !== undefined && positionals.length > 0) {
+    const scripts = yield* Effect.try({ try: () => batchScripts(positionals), catch: (cause) => new UsageFailure({ problem: describeCause(cause) }) });
+    return yield* headlessBatch({ scripts, helper, build, out, headlessJobs });
+  }
+  if (helper === undefined || out === undefined || map === undefined || positionals.length === 0) {
+    return yield* new UsageFailure({ problem: "usage: bun wisp pad SCRIPT|DIR... --helper BINARY --out DIR (--map MAP.w3x | --headless) [--build BUILD] [--pairs N [--pool POOL.json] | --app-id a=ID --app-id b=ID] [--retries N] [--headless-jobs N] [--fresh-each]" });
+  }
+  const pairCount = text("pairs");
+  const appIds = new Map<string, string>();
+  for (const entry of Array.isArray(values["app-id"]) ? values["app-id"] : []) {
+    const separator = entry.indexOf("=");
+    if (separator > 0) appIds.set(entry.slice(0, separator), entry.slice(separator + 1));
+  }
+  const pairs = yield* Effect.try({
+    try: () => pairCount === undefined ? [{ name: "a+b", clients: clientState, appIds }] : lanPairs(text("pool") ?? LAN_POOL_FILE, Number(pairCount)),
+    catch: (cause) => new UsageFailure({ problem: describeCause(cause) }),
+  });
+  const scripts = yield* Effect.try({ try: () => batchScripts(positionals), catch: (cause) => new UsageFailure({ problem: describeCause(cause) }) });
+  return yield* padBatch({
+    scripts, pairs, helper, build, out, map,
+    retries: Number(text("retries") ?? "2"), freshEach: values["fresh-each"] === true, headlessJobs,
+  });
 });

@@ -5,20 +5,19 @@
 import { PARTICIPANT_SLOTS, isParticipantMask, isParticipantSlot } from "../../game/input/participants";
 import { clearPulse } from "../../game/input/directionalInput";
 import { startKeyUp } from "../../game/match/controls";
-import { Phase, humanActive, humanPresent, participantLeft, setParticipants, updateConnectedHumans } from "../../game/match/rules";
+import { Phase, copyMatchState, humanActive, humanPresent, participantLeft, updateConnectedHumans } from "../../game/match/rules";
 import { FRAME_SECONDS } from "../../game/presentation/fighterPose";
 import { FLOOR_HEIGHT } from "../../game/presentation/arenaCamera";
 import { type MapBuild, journalIngress } from "../../game/shell/build";
 import { pausing } from "../../game/shell/pauseBarrier";
 import type { RollbackPlayback } from "../../game/shell/playback";
-import { chooseScenarioCharacters } from "../../game/shell/scenarios";
 import { cancelBindingCapture, initializeBindingSettings, useDefaultBindings } from "../../game/ui/bindingSettings";
 import { f32 } from "wisp/src/sim/f32";
 import { on, trampoline } from "wisp/src/platform/dispatch";
 import { EDITBOX_ENTER, EditboxIngress } from "../editboxJournal";
 import { localParticipantSlot, traceTick, writeReadyMarker } from "./diagnostics";
 import { callbackMatchTick } from "./frame";
-import { clearAllInputs, clearParticipantInputs, currentComputerMask, currentHumanMask } from "./inputs";
+import { clearAllInputs, clearParticipantInputs, currentHumanMask } from "./inputs";
 import { INPUT_PREFIX, journalEpoch, publishMenu, serviceJournalEnd } from "./journal";
 import {
   CHAT_CLOSED_PREFIX, PAUSE_REQUEST_PREFIX, chatClosedEvent, chatEntered, commitPauseAtFrame, pauseRequestEvent,
@@ -26,7 +25,7 @@ import {
 } from "./journalPause";
 import { KEY_DOWN, KEY_UP, Key, registerKey, removeKeyEvents, syncKeyEvents } from "./keyEvents";
 import { onDevCommand, onDeveloperRestart, onDeveloperTrace, onKeyDown, onKeyUp, onProbeExport, onProbeStart } from "./keys";
-import { panelActions, serviceAutomaticRematch } from "./menus";
+import { panelActions, serviceAutomaticRematch, startingSelection } from "./menus";
 import { PLAYER_FILE_RECEIVED, bindingFiles, playerFileReceived, playerFilesOwnerLeft, startPlayerFiles } from "./playerFiles";
 import { PLAYTEST, PLAYTEST_PREFIX, playtestRequested, readPlaytestRequest, servicePlaytestRequest } from "./playtest";
 import { STAGE_READY, cancelStageLoad, serviceStageLoad, stageReadyEvent } from "./stageLoad";
@@ -262,8 +261,7 @@ function initialize(): void {
     origin, frames: createStatusFrames(build), persistence: bindingFiles, playback: pending.playback,
     editbox: journalIngress(build) === "editbox" ? new EditboxIngress() : undefined,
   });
-  setParticipants(s.game, currentHumanMask(0), currentComputerMask());
-  chooseScenarioCharacters(build.scenario, s.game);
+  copyMatchState(s.game, startingSelection(build.scenario));
   createUi(s, panelActions());
   preloadStageAssets(s);
   drawStage(s);

@@ -241,6 +241,16 @@ code. From smashcraft:ts/:
   headless integrity clients. It passes a native run when checksums, fighter
   lines and the script's `#!` expectations match (smashcraft:docs/native-bot-session.md,
   "Native checks by parity"; issue scripts in smashcraft:ts/test/native/pads/).
+  Several scripts are one batch, and the batch is how native parity runs:
+  `bun wisp pad SCRIPT|DIR... --helper BINARY --out DIR --map MAP.w3x
+  [--pairs N | --app-id a=ID --app-id b=ID]` starts ONE game per client pair,
+  types `-dev reset` between scripts (a new game only after an invalid run),
+  runs every headless side alongside (`--headless-jobs N`) and compares as
+  each native run ends; `--pairs N` shards over the offline LAN pool.
+  Never loop `bun wisp fresh` + `bun wisp pad` per script (about a minute a
+  script); `--fresh-each` exists only to measure that. `bun wisp pad
+  SCRIPT|DIR... --headless ...` plays the same batch in one headless session
+  (smashcraft:docs/native-bot-session.md, "Many scripts in one game").
 - Native acceptance: `bun wisp accept [--only ID...] [--dry-run]` runs every
   open native check declared in smashcraft:ts/scripts/wisp/acceptChecks.ts in
   as few fresh matches as their maps allow and prints pass, fail or
