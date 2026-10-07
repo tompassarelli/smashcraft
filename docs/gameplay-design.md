@@ -632,7 +632,8 @@ attack as `dashAttack`), `GameplanSpecial` or `GameplanThrow`.
   frame: a fall or jump slowed by gravity and held by the deck it lands on,
   the attacker's run cut to a short slide, an aerial that would land first
   left out (#160). Specials with a purpose at range (projectiles, traps,
-  summons) are the exception.
+  summons) are the exception, and a ground spacing tool at its spacing may
+  wall off a target level with it and at most 30 units past its reach.
 - **Defense, grabs, recovery.** A threat it answers (7 in 10, as before) gets
   one of its listed answers: shield, spot dodge, roll, its stance special,
   jump or retreat; at the edge a roll, shield or retreat becomes a spot

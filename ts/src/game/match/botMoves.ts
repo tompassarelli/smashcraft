@@ -20,7 +20,7 @@ import { surfaceCount, surfaceLeft, surfaceRight, surfaceZ } from "../sim/stage"
 import { safeAt, slideStaysOnDeck } from "./botFooting";
 import { HeroSpecialUse, heroSpecialUse } from "./botHeroKit";
 import { SpecialSlot } from "../sim/heroSpecials";
-import { SPACE_PLAN, gameplanOf, moveWeight, passiveLandingMove, toGameplanMove } from "./botGameplan";
+import { SPACE_PLAN, gameplanOf, moveWeight, passiveLandingMove, spacedAt, toGameplanMove } from "./botGameplan";
 import { passivePips, passiveSpec } from "../sim/passives";
 import type { FighterGameplan, GameplanMove } from "../sim/gameplan";
 import { type CpuSkill, FULL_SKILL } from "./cpuLevel";
@@ -76,6 +76,8 @@ const SHOT_HIGH = 60.0;
 const MISPLAY_GAP = 350.0;
 /** Archer's Disengage hops him about this far back. */
 const DISENGAGE_ROOM = 420.0;
+/** A spacing tool is thrown as a wall at most this far past its reach: a step the target takes into it. */
+const SPACING_STEP = 30.0;
 
 const STYLE_SLOTS = 20;
 // Preallocated: strike bounds filled the first time a move is asked about, four per character and style.
@@ -202,6 +204,16 @@ function deckUnder(stage: number, matchFrame: number, x: number, z: number): num
     if (top === undefined || deck > top) top = deck;
   }
   return top;
+}
+
+/**
+ * Whether a spacing tool thrown now walls off the target localX ahead and
+ * localZ above: level with it, ahead, and at most a step past its reach, so
+ * the target walks into it. Never at a target on another deck (#160).
+ */
+function wallsOff(f: Readonly<Fighter>, style: AttackStyle, target: Readonly<Fighter>, localX: number, localZ: number): boolean {
+  const reach = moveReachAhead(f.character, style, target, f.tuning.moves);
+  return localX > 0.0 && localX <= f32(reach + SPACING_STEP) && moveReaches(f.character, style, target, Math.min(localX, reach), localZ, f.tuning.moves);
 }
 
 /** Whether an airborne fighter lands on a deck within `frames` frames, cancelling an aerial started now before it strikes. */
@@ -397,8 +409,10 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
         const style = dashing && move === AttackStyle.jab ? f.tuning.moves?.dashAttack ?? AttackStyle.demonHunterDashAttack : move;
         const frames = attackStartupFrames(style, f.tuning.moves);
         const x = aheadX(f, target, frames);
-        // Every attack waits for its reach (#160); a spacing tool weighs more once it reaches (moveWeight).
-        if (!moveReaches(f.character, style, target, Math.abs(x), aheadZ(f, target, frames, stage, matchFrame), f.tuning.moves)) continue;
+        const z = aheadZ(f, target, frames, stage, matchFrame);
+        // Every attack waits for its reach (#160), or for a ground spacing tool, its spacing level with the target.
+        const spaced = gameplan !== undefined && spacedAt(gameplan, dashing && move === AttackStyle.jab ? AttackStyle.dashAttack : move, gap) && wallsOff(f, style, target, Math.abs(x), z);
+        if (!spaced && !moveReaches(f.character, style, target, Math.abs(x), z, f.tuning.moves)) continue;
         if (dashing && move === AttackStyle.jab) dashReaches = true;
         options[count++] = move;
         // A grab counts twice: one of ten moves in reach would rarely be it.
