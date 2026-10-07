@@ -636,6 +636,7 @@ export function followUpHeroSpecial(f: Fighter, input: Readonly<Controls>): bool
   }
   if (followUp.facesStick === true && input.direction !== 0) f.facing = input.direction < 0 ? -1 : 1;
   special.form += FOLLOW_UP_FORM * (index + 1);
+  special.exArmorUsed = special.ex;
   special.frame = 0;
   special.duration = next.endFrame;
   special.lockFrames = next.endFrame;

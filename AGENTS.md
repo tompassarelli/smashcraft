@@ -537,6 +537,11 @@ code. From smashcraft:ts/:
   measures fighter/background lightness and colour distance. The native
   owner records the graphics profile and checks #168's budget; procedure:
   smashcraft:docs/design/visual-quality.md.
+  `bun wisp accept --only '191-*'` captures every stage at its closest and
+  widest gameplay camera for the floating-stage art checklist. Development
+  maps expose `-dev view near|far|off` for those framings and
+  `-dev fogv STYLE ZSTART ZEND DENSITY HEIGHTSTART HEIGHTEND LINEARSTART LINEAREND R G B OVER_SKY`
+  for the existing 3.0 fog comparison; these affect only local presentation.
 - Melee oracle: `bun wisp oracle` plays Melee situations for every fighter
   and prints each outcome beside the value cited from the decompilation; the
   test suite fails on any mismatch it doesn't list as known

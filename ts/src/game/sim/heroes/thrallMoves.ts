@@ -11,7 +11,7 @@ const normal = (first: number, active: number, recovery: number, landing: number
 const body = hurtCapsule(Character.thrall);
 const wolf = hurtPart(-48.0, 36.0, 70.0, 36.0, 28.0);
 const paw = hurtPart(48.0, 34.0, 96.0, 34.0, 20.0);
-const down = { damage: 13.0, growth: 105.0, base: 24.0, launchX: 0.0, launchZ: -1.0, electric: false };
+const down = { damage: 13.0, growth: 105.0, base: 24.0, launchX: 0.0, launchZ: -1.0, electric: false, element: HitElement.normal };
 
 export const THRALL_MOVES: FighterMoves = {
   dashAttack: AttackStyle.dashAttack, smashMaxChargeFrames: 45, smashMaxDamageMultiplier: 1.25, maxPummels: 1,
