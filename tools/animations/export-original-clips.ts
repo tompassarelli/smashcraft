@@ -11,7 +11,13 @@
 import {join, resolve, relative} from 'node:path';
 import {isDeepStrictEqual} from 'node:util';
 import {generateMDX, model as mdx} from 'war3-model';
+<<<<<<< HEAD
 import {damageBaseModel, downAirBaseModel, drillBaseModel, grabBaseModel, jumpBaseModel, locomotionBaseModel, recoveryBaseModel} from './recovery-model';
+||||||| ed5ffcc3
+import {damageBaseModel, downAirBaseModel, drillBaseModel, grabBaseModel, jumpBaseModel, recoveryBaseModel} from './recovery-model';
+=======
+import {damageBaseModel, downAirBaseModel, drillBaseModel, grabBaseModel, jumpBaseModel, pitLordSpecialBaseModel, recoveryBaseModel} from './recovery-model';
+>>>>>>> origin/main
 import {seconds} from './asset-info';
 import {mkdirSync} from 'node:fs';
 import {fighters, ensure, hash, parseSource, encodeVerified, tracks, verifyPreservedBody, removeBodyEffects,
@@ -51,7 +57,13 @@ for (const fighter of fighters) {
     // An additive recovery pass leaves old clips unchanged. Admit the cache
     // only when removing its identity helper/suffix reconstructs the exact
     // previously exported input bytes; changed base art takes the full path.
+<<<<<<< HEAD
     const base = !reuse && keepUnchanged && retainedRecord ? locomotionBaseModel(source) ?? jumpBaseModel(source) ?? downAirBaseModel(source) ?? grabBaseModel(source) ?? drillBaseModel(source) ?? damageBaseModel(source) ?? recoveryBaseModel(source) : undefined;
+||||||| ed5ffcc3
+    const base = !reuse && keepUnchanged && retainedRecord ? jumpBaseModel(source) ?? downAirBaseModel(source) ?? grabBaseModel(source) ?? drillBaseModel(source) ?? damageBaseModel(source) ?? recoveryBaseModel(source) : undefined;
+=======
+    const base = !reuse && keepUnchanged && retainedRecord ? pitLordSpecialBaseModel(source) ?? jumpBaseModel(source) ?? downAirBaseModel(source) ?? grabBaseModel(source) ?? drillBaseModel(source) ?? damageBaseModel(source) ?? recoveryBaseModel(source) : undefined;
+>>>>>>> origin/main
     const reusePrefix = base && hash(generateMDX(base)) === retainedRecord.sourceSha256 ? base.Sequences.length : 0;
     if (reusePrefix) console.log(`${fighter.name}: exact base SHA retained, exporting ${source.Sequences.length - reusePrefix} added clips`);
     const components = splitStaticLights(source);

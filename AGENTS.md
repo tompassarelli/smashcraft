@@ -119,6 +119,8 @@ code. From smashcraft:ts/:
   coordinated expansion-hero reach, hold, pummel and four-direction holder/victim
   gestures or reauthors their existing indices. `--character` limits reauthoring
   to one expansion fighter (smashcraft:docs/fighter-animation-work.md).
+  `bun tools/animations/pit-lord-specials.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
+  authors Pit Lord's four special gestures while preserving all earlier clips.
   `bun tools/animations/grab-pads.ts` generates the #180 mirror and unlike-height capture batch:
   ten expansion heroes, four throws, both facings, with ordinary catch/pummel
   inputs and contact-frame captures in smashcraft:ts/test/native/pads/180/.
