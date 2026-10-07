@@ -144,6 +144,10 @@ code. From smashcraft:ts/:
   then `bun tools/animations/illidan-locomotion.ts PRIVATE_ASSETS PRIVATE_AUTHORED PRIVATE_OUTPUT`.
   Package with `bun tools/animations/package-illidan.ts PRIVATE_OUTPUT --metadata-only`,
   store `illidan-animation`, and refresh the original clip pool.
+- Jaina animation authoring (from the repository root):
+  `bun tools/animations/jaina-clips.ts STOCK_JAINA.mdx PRIVATE_OUTPUT`
+  appends her staff strikes, spell gestures, movement and nine contact reactions;
+  store the generated model in `hero-models` and refresh the original clip pool.
 - Lich King animation authoring (from the repository root):
   `tools/animations/build-lichking.sh [PRIVATE_INPUTS] [IMMUTABLE_EXISTING_MODEL] [--replace NAME]`
   authors clips through Blender; the optional existing model preserves shipped
