@@ -18,8 +18,9 @@ facts are reused; no outside implementation, prose or animation is copied.
 
 The body counterpart is [Ultimate King Dedede](https://www.ssbwiki.com/King_Dedede_(SSBU)):
 weight 127, run speed 1.496, air speed 0.735. Smashcraft applies weight
-127/75, run 1.496/2.2 and air 0.735 to its reference table, with the same
-world-unit conversion as other fighters. His authored mounted silhouette is
+127/75 and run 1.496/2.2 to its reference table, and raises air speed to the
+shared 0.75 floor, with the same world-unit conversion as other fighters.
+His authored mounted silhouette is
 1.25 times the reference width and 1.15 times its height. He retains the
 shared one aerial jump, gravity and dodge windows. Unlike Dedede, he has no
 extra jumps or armored recovery.
@@ -86,9 +87,9 @@ shorter than the initial design and the low paw his longer grounded poke.
 
 | Input | Warcraft source / Smash reference | Authored rule and counterplay |
 | --- | --- | --- |
-| Neutral: Chain Lightning | [Far Seer](https://liquipedia.net/warcraft/Far_Seer) / [Pikachu's Thunder Jolt](https://www.ssbwiki.com/Thunder_Jolt) | A forward electrical cast travels from the hammer at frame14, 12 damage, 40° launch, end38, cost10. Reflect or jump the chest-height bolt; it is a spacing tool rather than a stun lock. Air landing lag18. |
+| Neutral: Chain Lightning | [Far Seer](https://liquipedia.net/warcraft/Far_Seer) / [Pikachu's Thunder Jolt](https://www.ssbwiki.com/Thunder_Jolt) | A forward electrical cast travels from the hammer at frame14, 12 damage, 40° launch, end44, cost10. The longer recovery keeps a close blocked cast punishable after the damage increase. Reflect or jump the chest-height bolt; it is a spacing tool rather than a stun lock. Air landing lag18. |
 | Side: Feral Spirit | [Far Seer](https://liquipedia.net/warcraft/Far_Seer) / [Duck Hunt's dog](https://www.ssbwiki.com/Duck_Hunt_(SSBU)) | Two spectral wolves leave at frames16 and24, run low for 28 frames, each 4 damage/55°, cost18, end44, cooldown90. The second wolf makes a delayed jump or shield decision; each can hit only once. Summons can be blocked or parried but do not reflect. Air wolves descend and air landing lag20 applies. |
-| Up: Far Sight | [Far Seer](https://liquipedia.net/warcraft/Far_Seer) / [Duck Jump](https://www.ssbwiki.com/Duck_Jump) | Spirit sight points a safe way upward: after8 frames, rise2H with up to0.45H steering over24 frames, end40, cost12, no hitbox or armor. At low mana rise1.4H free. Uses the aerial jump and ends helpless; the broad body can be intercepted. This movement is an original adaptation of a vision spell. |
+| Up: Far Sight | [Far Seer](https://liquipedia.net/warcraft/Far_Seer) / [Duck Jump](https://www.ssbwiki.com/Duck_Jump) | Spirit sight points a safe way upward: after8 frames, rise2.25H with up to1.5H steering over24 frames, end40, cost12, no hitbox or armor. At low mana rise1.4H free. Both forms meet the shared recovery-distance band. Uses the aerial jump and ends helpless; the broad body can be intercepted. This movement is an original adaptation of a vision spell. |
 | Down: Earthquake | [Far Seer](https://liquipedia.net/warcraft/Far_Seer) / [Donkey Kong's Hand Slap](https://www.ssbwiki.com/Hand_Slap) | A low spell pulse hits both sides at frames18–21, 11 damage/75°, end50, cost20, cooldown90. Ground only, 135-unit reach; jump clears it. No extra shield damage, armor or repeating hold. |
 | Passive: Windfury | [Doomhammer](https://wowpedia.fandom.com/wiki/Doomhammer) / [Dedede's hammer](https://www.ssbwiki.com/King_Dedede_(SSBU)) | Two direct hammer contacts within180 frames prepare the third: +50% damage, capped at6. A shield spends the prepared bonus. The shared deterministic critical-hit counter supplies this mechanic; no random roll or action lock. |
 | Ultimate: Elemental Fury | [Far Seer's Earthquake](https://liquipedia.net/warcraft/Far_Seer) / [Pikachu's Volt Tackle](https://www.ssbwiki.com/Volt_Tackle) | Designed ultimate, matching today's hero template: a storm-assisted Earthquake that sends a broad final lightning wave. The current roster stores ultimate names/descriptions; its activation system is not yet implemented. |
