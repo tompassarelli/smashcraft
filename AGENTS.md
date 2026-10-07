@@ -348,7 +348,9 @@ code. From smashcraft:ts/:
   Warcraft cost per frame. `--render` draws requested frames using the map's
   immutable imports and classic Warcraft assets; `--journey FILE` supplies
   capture inputs as journey JSON. Stock extraction uses `CASC_EXTRACTOR`
-  and `WC3_STORAGE`; `WC3_TEXTURES` reuses extracted PNGs
+  and `WC3_STORAGE`; stock caches follow that installation's `.build.info`, so
+  updated game art is extracted again. `WC3_ASSET_MANIFEST=FILE` records the build
+  and SHA256 of every returned asset for a comparison. `WC3_TEXTURES` reuses extracted PNGs
   (smashcraft:docs/player-view.md).
 - Frame cost: `LUA=<32-bit lua> bun wisp perf [quick-match|bot|bot-four|playable-bot-four]`
   plays a run in 32-bit Lua and prints each client's predicted Warcraft cost
