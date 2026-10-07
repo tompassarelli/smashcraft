@@ -19,6 +19,7 @@ export const LICH_KING_FALLBACK = clip("Stand Ready");
 
 export const LICH_KING_CLIPS: HeroClipTable = {
   idle: clip("Stand Ready"), walk: clip("Walk"), dash: clip("Walk Fast"), run: clip("Walk Fast"),
+  turn: clip("Turn"), stop: clip("Stop"), jumpSquat: clip("Jump Squat"),
   crouch: clip("Crouch"), fall: clip("Fall"), landing: clip("Landing"), shield: clip("Shield"),
   airDodge: clip("Air Dodge"), smashCharge: clip("Smash Charge"), ko: clip("Dissipate"), dizzy: clip("Stand - 2"),
   jab: clip("Attack Jab"), jab2: clip("Attack Jab 2"), jab3: clip("Attack Jab 3"),
@@ -30,6 +31,8 @@ export const LICH_KING_CLIPS: HeroClipTable = {
   upAir: clip("Aerial Up"), downAir: clip("Aerial Down"), getUpAttack: clip("Get Up Attack"),
   ledgeHang: clip("Ledge Hang"), ledgeClimb: clip("Ledge Climb"), ledgeRoll: clip("Ledge Roll"), ledgeAttack: clip("Ledge Attack"),
   knockdown: clip("Knockdown"), getUp: clip("Get Up"), downDamage: clip("Down Damage"),
+  tech: clip("Tech"), techForward: clip("Tech Forward"), techBackward: clip("Tech Backward"),
+  getUpRollForward: clip("Get Up Roll Forward"), getUpRollBackward: clip("Get Up Roll Backward"),
   rollForward: clip("Roll Forward"), rollBackward: clip("Roll Backward"), spotDodge: clip("Spot Dodge"),
   jump: clip("Jump"), doubleJump: clip("Double Jump"), fallSpecial: clip("Fall Special"),
   wallJump: clip("Wall Jump"), wallTech: clip("Wall Tech"),

@@ -7,7 +7,10 @@ import { stateChecksum } from "../replay/canonical";
 import { firstPoseDifference, firstStateDifference } from "../replay/difference";
 import { ReplayHistory } from "../replay/history";
 import { type ReplayState, captureReplaySnapshot, copyReplayState, createReplaySnapshot } from "../replay/snapshot";
-import { AttackStyle, Character, GrabAction, PlatformMove, SpecialAction, SurfaceContact } from "../sim/codes";
+import { AttackStyle, Character, DownState, GrabAction, PlatformMove, SpecialAction, SurfaceContact } from "../sim/codes";
+import type { HeroPose } from "../sim/heroes/hero";
+import { DOWN_ROLL_FRAMES, TECH_IN_PLACE_FRAMES, TECH_ROLL_FRAMES } from "../sim/down";
+import { beginDownState } from "../sim/transitions";
 import { HERO_ROSTER, SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
 import { FOLLOW_UP_FORM, SpecialForm } from "../sim/heroSpecials";
 import { type Fighter, createFighter } from "../sim/fighter";
@@ -25,7 +28,7 @@ import * as dh from "./demonHunterAssetInfo";
 import { FRAME_SECONDS, advanceFighterPose, createFighterPose } from "./fighterPose";
 import { DRAWN_STRIDES } from "./drawnStrideInfo";
 import { groundLocomotionClip } from "./fighterLocomotion";
-import { IllidanLocomotion } from "./illidanMotion";
+import { IllidanLocomotion, TRANSITION_FRAMES } from "./illidanMotion";
 
 test("every fighter walks and runs with foot cadence following ground speed", () => {
   for (const character of SELECTABLE_CHARACTERS) {
@@ -49,6 +52,46 @@ test("every fighter walks and runs with foot cadence following ground speed", ()
         advanceFighterPose(pose, f, soloWorld(f), input, false, false, false, false);
         assertGreaterThan(pose.clipTime, firstTime);
       }
+    }
+  }
+});
+
+test("table fighters play authored transitions and distinct floor recovery clips for the complete action", () => {
+  const recoveries: readonly [DownState, number, HeroPose, number][] = [
+    [DownState.tech, 0, "tech", TECH_IN_PLACE_FRAMES],
+    [DownState.techRoll, 1, "techForward", TECH_ROLL_FRAMES],
+    [DownState.techRoll, -1, "techBackward", TECH_ROLL_FRAMES],
+    [DownState.roll, 1, "getUpRollForward", DOWN_ROLL_FRAMES],
+    [DownState.roll, -1, "getUpRollBackward", DOWN_ROLL_FRAMES],
+  ];
+  for (const character of SELECTABLE_CHARACTERS) {
+    if (character === Character.demonHunter) continue;
+    const table = characterClips(character);
+    for (const [state, direction, key, frames] of recoveries) {
+      const clip = table[key];
+      assertEquals(clip !== undefined, true, `${character}/${key}: missing recovery clip`);
+      if (clip === undefined) continue;
+      const f = createFighter(character, 0.0, 1);
+      beginDownState(f, state, direction);
+      const pose = createFighterPose();
+      advanceFighterPose(pose, f, soloWorld(f), neutralControls(), false, false, false, false);
+      assertEquals(pose.clipIndex, clip.index);
+      assertEquals(pose.rate, f32(clip.seconds / f32(frames * FRAME_SECONDS)));
+    }
+    const f = createFighter(character, 0.0, 1);
+    f.jump.squat = f.tuning.physics.jumpSquatFrames;
+    const pose = createFighterPose();
+    advanceFighterPose(pose, f, soloWorld(f), neutralControls(), false, false, false, false);
+    assertEquals(pose.clipIndex, table.jumpSquat?.index);
+    assertEquals(table.jumpSquat !== undefined, true, `${character}: missing jump squat`);
+    f.jump.squat = 0;
+    for (const [motion, key] of [[IllidanLocomotion.turn, "turn"], [IllidanLocomotion.stop, "stop"]] as const) {
+      pose.motion.motion = motion;
+      pose.motion.transitionRemaining = TRANSITION_FRAMES;
+      pose.motion.previousFacing = 1;
+      advanceFighterPose(pose, f, soloWorld(f), neutralControls(), false, false, false, false);
+      assertEquals(pose.clipIndex, table[key]?.index);
+      assertEquals(table[key] !== undefined, true, `${character}: missing ${key}`);
     }
   }
 });

@@ -4,6 +4,7 @@ import { Character, DownState, LedgeState } from "../../src/game/sim/codes";
 import { createFighter } from "../../src/game/sim/fighter";
 import { createRoster, neutralControls } from "../../src/game/sim/roster";
 import { advanceFighter } from "../../src/game/sim/step";
+import { TECH_IN_PLACE_FRAMES, TECH_ROLL_FRAMES } from "../../src/game/sim/down";
 import { beginDownState } from "../../src/game/sim/transitions";
 import { advanceFighterPose, createFighterPose } from "../../src/game/presentation/fighterPose";
 import { groundLocomotionClip } from "../../src/game/presentation/fighterLocomotion";
@@ -56,7 +57,7 @@ export function sampleMotion(character: Character, state: MotionState): PoseFram
   const ticks = state === "dash" ? 10 : state === "turn" || state === "brake" ? 8
     : state === "jump-squat" ? f.tuning.physics.jumpSquatFrames : state === "get-up-attack" ? 49
     : state === "air-dodge" ? 49 : state === "ledge-get-up" ? 25 : state === "ledge-roll" ? 36 : state === "ledge-attack" ? 40
-    : state === "spot-dodge" ? 22 : state.startsWith("tech") ? 26 : state === "get-up" ? 30
+    : state === "spot-dodge" ? 22 : state === "tech" ? TECH_IN_PLACE_FRAMES : state.startsWith("tech-") ? TECH_ROLL_FRAMES : state === "get-up" ? 30
     : state.startsWith("get-up-") ? 35 : moving ? 60 : 31;
   const frames: PoseFrame[] = [];
   for (let tick = 0; tick < ticks; tick++) {

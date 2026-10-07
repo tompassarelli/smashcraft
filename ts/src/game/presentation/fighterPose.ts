@@ -346,15 +346,18 @@ function selectGrabClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly
 }
 
 /**
- * The states only Illidan has code of his own for, played from any table that
- * maps them: air dodges, landings, shielding and smash charges. The original
- * tables map none of these.
+ * Tables supply the fighter's action clips; Illidan selects his authored
+ * variants separately.
  */
 function selectTableAction(pose: FighterPose, f: Readonly<Fighter>, table: Readonly<HeroClipTable>): number | undefined {
-  const { dodge, motion, landing, shield, attack } = f;
+  const { dodge, jump, motion, landing, shield, attack } = f;
   if (dodge.airDodging && table.airDodge !== undefined) {
     playIndex(pose, "air-dodge", table.airDodge.index);
     return clipRate(table.airDodge.seconds, AIR_DODGE_ANIMATION_FRAMES);
+  }
+  if (jump.squat > 0 && table.jumpSquat !== undefined) {
+    playIndex(pose, "jump-squat", table.jumpSquat.index);
+    return clipRate(table.jumpSquat.seconds, authoredPhysics(f.character).jumpSquatFrames);
   }
   if (motion.grounded && landing.lag > 0 && table.landing !== undefined) {
     if (pose.animation !== "landing") {
@@ -390,6 +393,8 @@ function tableLocomotion(table: Readonly<HeroClipTable>, motion: IllidanLocomoti
   switch (motion) {
     case IllidanLocomotion.dash: return table.dash;
     case IllidanLocomotion.run: return table.run;
+    case IllidanLocomotion.turn: return table.turn;
+    case IllidanLocomotion.stop: return table.stop;
     case IllidanLocomotion.crouch: return table.crouch;
     case IllidanLocomotion.fall:
     case IllidanLocomotion.fastFall: return table.fall;
@@ -561,9 +566,10 @@ function downClipIndex(f: Readonly<Fighter>): number {
     case DownState.damage: return clips.clipFor(f.character, "downDamage").index;
     case DownState.bound:
     case DownState.wait: return clips.clipFor(f.character, "knockdown").index;
-    case DownState.stand:
-    case DownState.tech: return clips.clipFor(f.character, "getUp").index;
-    default: return clips.clipFor(f.character, forward ? "rollForward" : "rollBackward").index;
+    case DownState.stand: return clips.clipFor(f.character, "getUp").index;
+    case DownState.tech: return clips.clipFor(f.character, "tech").index;
+    case DownState.techRoll: return clips.clipFor(f.character, forward ? "techForward" : "techBackward").index;
+    default: return clips.clipFor(f.character, forward ? "getUpRollForward" : "getUpRollBackward").index;
   }
 }
 
@@ -580,9 +586,11 @@ function downRate(f: Readonly<Fighter>): number {
     case DownState.wait: return 0.0;
     case DownState.bound: return clipRate(clips.clipFor(f.character, "knockdown").seconds, DOWN_BOUND_FRAMES);
     case DownState.stand: return clipRate(clips.clipFor(f.character, "getUp").seconds, DOWN_STAND_FRAMES);
-    case DownState.tech: return clipRate(clips.clipFor(f.character, "getUp").seconds, TECH_IN_PLACE_FRAMES);
+    case DownState.tech: return clipRate(clips.clipFor(f.character, "tech").seconds, TECH_IN_PLACE_FRAMES);
     default: {
-      const roll = clips.clipFor(f.character, forward ? "rollForward" : "rollBackward");
+      const roll = clips.clipFor(f.character, state === DownState.techRoll
+        ? forward ? "techForward" : "techBackward"
+        : forward ? "getUpRollForward" : "getUpRollBackward");
       return clipRate(roll.seconds, state === DownState.techRoll ? TECH_ROLL_FRAMES : DOWN_ROLL_FRAMES);
     }
   }
@@ -627,9 +635,10 @@ function locomotionClipIndex(motion: IllidanLocomotion): number {
   }
 }
 
-/** A table's dash and crouch play over Illidan's frames for them; its fall holds. */
+/** Transient movement clips span their action; crouch spans its entry, and fall holds. */
 function tableLocomotionRate(clip: HeroClip, motion: IllidanLocomotion): number {
   if (motion === IllidanLocomotion.dash) return clipRate(clip.seconds, INITIAL_DASH_FRAMES);
+  if (motion === IllidanLocomotion.turn || motion === IllidanLocomotion.stop) return clipRate(clip.seconds, TRANSITION_FRAMES);
   if (motion === IllidanLocomotion.crouch) return clipRate(clip.seconds, CROUCH_CLIP_FRAMES);
   return 0.0;
 }

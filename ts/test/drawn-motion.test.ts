@@ -26,3 +26,28 @@ test("walking, running and initial dashes visibly move the body and keep their m
   });
   expect(off).toEqual([]);
 });
+
+const RECOVERY_STATES = ["roll-forward", "roll-back", "spot-dodge", "air-dodge", "tech", "tech-forward", "tech-back", "get-up", "get-up-forward", "get-up-back", "get-up-attack"] as const;
+
+test("every fighter plays distinct, visibly moving recovery actions and swings its get-up attack both ways", () => {
+  const off: string[] = [];
+  for (const character of SELECTABLE_CHARACTERS) {
+    const selected: number[] = [];
+    for (const state of RECOVERY_STATES) {
+      const row = DRAWN_MOTION.find((entry) => entry.character === character && entry.state === state);
+      if (row === undefined) { off.push(`${character}/${state}: no measurement`); continue; }
+      const model = ORIGINALS[character] ?? heroDefinition(character)?.presentation.model;
+      const clips = [...new Set(sampleMotion(character, state).map((frame) => frame.clip ?? -1))];
+      const label = `${character}/${state}`;
+      if (row.model !== model || JSON.stringify(row.clips) !== JSON.stringify(clips)) off.push(`${label}: model or dispatch changed; measure again`);
+      if (clips.length !== 1 || clips[0] === undefined || clips[0] < 0) off.push(`${label}: must play one dedicated clip`);
+      else selected.push(clips[0]);
+      // Even a compact spot dodge must displace the body, beyond idle breathing.
+      if (row.body < 5 || row.motion < 20) off.push(`${label}: body ${row.body.toFixed(1)}, extremity ${row.motion.toFixed(1)}`);
+      if ((state.includes("forward") || state.endsWith("back")) && row.toward < 20) off.push(`${label}: insufficient travel in its direction`);
+      if (state === "get-up-attack" && (row.toward < 30 || row.against < 30)) off.push(`${label}: must swing both sides`);
+    }
+    if (new Set(selected).size !== RECOVERY_STATES.length) off.push(`${character}: recovery actions share a clip`);
+  }
+  expect(off).toEqual([]);
+});
