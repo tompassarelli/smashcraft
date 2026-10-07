@@ -169,6 +169,11 @@ code. From smashcraft:ts/:
   `bun tools/animations/cairne-clips.ts STOCK_TAUREN.mdx PRIVATE_OUTPUT`
   appends the complete totem kit, recovery, paired grabs and nine pain clips
   to the private classic Tauren Chieftain model, preserving its stock clips.
+- Chen animation authoring (from the repository root):
+  `bun tools/animations/chen-clips.ts STOCK_CHEN.mdx PRIVATE_OUTPUT` authors
+  Chen's staff, footwork, special, recovery, paired throw and nine pain clips
+  from his private stock model and regenerates his clip table
+  (smashcraft:docs/design/chen.md).
 - Damage reactions (from the repository root):
   `bun tools/animations/damage-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
   appends all 13 fighters' nine articulated contact reactions, checks their

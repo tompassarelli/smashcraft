@@ -124,6 +124,12 @@ export const HERO_CUES: { readonly [character: number]: { readonly [slot in Spec
     up: { spell: "Banshee Flight", startup: SHADOW, active: cue("Abilities\\Spells\\Undead\\Possession\\PossessionCaster.mdx", "body", f32(0.7)) },
     down: { spell: "Life Drain", startup: SHADOW, active: cue("Abilities\\Spells\\Other\\Drain\\DrainCaster.mdx", "hand", f32(0.6)) },
   },
+  [Character.chen]: {
+    neutral: { spell: "Breath of Fire", startup: BEAST, active: cue("Abilities\\Weapons\\RedDragonBreath\\RedDragonMissile.mdx", "ahead", f32(0.6)) },
+    side: { spell: "Drunken Haze", startup: BEAST, active: cue("Abilities\\Spells\\Other\\StrongDrink\\BrewmasterTarget.mdx", "hand", f32(0.7)) },
+    up: { spell: "Storm Rise", startup: STORM, active: cue("Abilities\\Spells\\Other\\Tornado\\TornadoElementalSmall.mdx", "body", f32(0.6)) },
+    down: { spell: "Storm, Earth and Fire", startup: BEAST, active: cue("Abilities\\Spells\\Orc\\SpiritLink\\SpiritLinkTarget.mdx", "feet", f32(0.5)) },
+  },
   [Character.blademaster]: {
     neutral: { spell: "Wind Cutter", startup: BLOODLUST, active: cue("Abilities\\Spells\\Other\\Tornado\\Tornado_Target.mdx", "hand", f32(0.6)) },
     side: { spell: "Wind Walk", startup: cue("Abilities\\Spells\\Human\\Invisibility\\InvisibilityTarget.mdx", "body", f32(0.8)), active: cue("Abilities\\Spells\\Human\\SunderingBlades\\SunderingBlades.mdx", "ahead", f32(0.8)) },
@@ -236,6 +242,12 @@ const branch = (spell: string, startup: Cue, active: Cue): MoveCues => ({ spell,
 export const HERO_BRANCH_CUES: { readonly [character: number]: { readonly [slot in SpecialSlot]?: HeroBranchCues } } = {
   [Character.jaina]: {
     down: { recall: branch("Recall Water Elemental", ARCANE, cue("Abilities\\Spells\\Human\\MassTeleport\\MassTeleportCaster.mdx", "body", 0.5)) },
+  },
+  [Character.chen]: {
+    down: { followUps: [
+      branch("Fire Palm", BEAST, cue("Abilities\\Weapons\\FireBallMissile\\FireBallMissile.mdx", "ahead", f32(0.8))),
+      branch("Storm Step", STORM, cue("Abilities\\Spells\\Other\\Monsoon\\MonsoonBoltTarget.mdx", "body", f32(0.5))),
+    ] },
   },
   [Character.blademaster]: {
     side: { followUps: [

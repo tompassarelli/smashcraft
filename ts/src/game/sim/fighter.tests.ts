@@ -2,20 +2,26 @@ import { assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/te
 import { Character } from "./codes";
 import { createFighter } from "./fighter";
 import { createRoster, fighterAt, isActive } from "./roster";
-import { AUTHORED_DASH_GRAB_RULES, AUTHORED_PHYSICS, authoredPhysics } from "./tuning";
+import { termsOfPhysics } from "./motion";
+import { AUTHORED_DASH_GRAB_RULES, authoredPhysics } from "./tuning";
 
 test("fighters own their state and share only immutable tuning", () => {
-  const first = createFighter(Character.archer, 0.0, 1);
-  const second = createFighter(Character.archer, 0.0, 1);
-  first.motion.meleeX.original = 1.0;
-  first.special.cooldowns[3] = 9;
-  first.projectiles[0]!.life = 4;
-  assertEquals(second.motion.meleeX.original, 0.0);
-  assertEquals(second.special.cooldowns[3], 0);
-  assertEquals(second.projectiles[0]?.life, 0);
-  assertEquals(first.tuning.dashGrab, AUTHORED_DASH_GRAB_RULES);
-  first.tuning.physics = authoredPhysics(Character.demonHunter);
-  assertEquals(second.tuning.physics, AUTHORED_PHYSICS.archer);
+  for (const character of Object.values(Character)) {
+    const first = createFighter(character, 0.0, 1);
+    const second = createFighter(character, 0.0, 1);
+    first.motion.meleeX.original = 1.0;
+    first.special.cooldowns[3] = 9;
+    first.projectiles[0]!.life = 4;
+    assertEquals(second.motion.meleeX.original, 0.0);
+    assertEquals(second.special.cooldowns[3], 0);
+    assertEquals(second.projectiles[0]?.life, 0);
+    assertEquals(first.tuning.dashGrab, AUTHORED_DASH_GRAB_RULES);
+    assertEquals(first.tuning.physics, second.tuning.physics);
+    assertEquals(termsOfPhysics(first.tuning.physics), termsOfPhysics(second.tuning.physics));
+    first.tuning.physics = { ...first.tuning.physics, gravity: 0.0 };
+    assertEquals(second.tuning.physics, authoredPhysics(character));
+    assertTrue(second.tuning.physics.gravity > 0.0);
+  }
 });
 
 test("rosters resolve fighters by participant slot", () => {
