@@ -58,6 +58,7 @@ Dated trial records live in [evidence](../evidence/README.md).
 
 - [Development setup and loop](development-loop.md): build, reload and test workflow.
 - [TypeScript workflow](typescript.md): source rules, build and test commands.
+- [Graphics settings](graphics-settings.md): which Warcraft III graphics settings Smashcraft reads, the LAN pool profiles and recommended player settings.
 - [What a player sees](player-view.md): scene report and frame probe checks, their expectations and thresholds.
 - [Fighter animation work](fighter-animation-work.md): asset authoring and native pose checks.
 - [Warcraft procedures](wc3-procedures.md), [screen states](wc3-screen-state.md) and [authentication](warcraft-authentication.md).

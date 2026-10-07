@@ -62,6 +62,15 @@ const TOM_DISPLAY = {
   reswidth: "1920", resheight: "1280", refreshrate: "120",
 } as const;
 
+/**
+ * Recommended player graphics (smashcraft:docs/graphics-settings.md): written
+ * only for keys Tom's file has no value for, never over his own choices.
+ */
+const RECOMMENDED_GRAPHICS = {
+  lightingquality: "2", texquality: "1", shadowquality: "0", pointlightshadowquality: "0",
+  foliagequality: "0", waterquality: "0", vsync: "0",
+} as const;
+
 /** Seconds the map has to reach fighter selection, and to take the go-ahead. */
 const LOAD_SECONDS = 120;
 const MATCH_SECONDS = 15;
@@ -99,6 +108,7 @@ export function playtest({ build, map, helper, computerSlot, computerLevel, menu
     gameName: "Smashcraft",
     menuReportPort,
     displaySettings: TOM_DISPLAY,
+    recommendedSettings: RECOMMENDED_GRAPHICS,
     // The request, read once at map start; no go-ahead or receipt from an earlier run.
     prepare: (documents) => Effect.gen(function*() {
       const gameFiles = yield* GameFiles;
