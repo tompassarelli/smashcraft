@@ -35,6 +35,7 @@ import { STAGE_CATALOG } from "../../src/game/menu/stageCatalog";
 import { stageBounds } from "../../src/game/sim/stageBounds";
 import { stageScenery } from "../../src/game/presentation/stageScenery";
 import { MODEL_FACTS } from "./modelFacts";
+import { STAGE_SKIES, stageSkyTexture } from "../stageSky";
 
 const FRAMES_PER_SECOND = 60;
 const seconds = (value: number) => value * FRAMES_PER_SECOND;
@@ -139,12 +140,31 @@ const DECK_RUN = 0.2;
 /** One hundredth of the frame's height, 14 rows at 1440: the deck's front shows several times that. */
 const DECK_ROWS = 0.01;
 
+// Texture filtering can interpolate neighbouring texels. Quantised palette
+// neighbours recognise those colours while a missing sky remains black.
+const skyColorKey = (red: number, green: number, blue: number) => ((red >> 3) << 10) | ((green >> 3) << 5) | (blue >> 3);
+const SKY_COLORS = new Set<number>();
+for (const sky of STAGE_SKIES) {
+  const bytes = stageSkyTexture(sky).bytes;
+  for (let index = 18; index < bytes.length; index += 4) {
+    const red = (bytes[index + 2] ?? 0) >> 3, green = (bytes[index + 1] ?? 0) >> 3, blue = (bytes[index] ?? 0) >> 3;
+    for (const dr of [-1, 0, 1]) for (const dg of [-1, 0, 1]) for (const db of [-1, 0, 1]) {
+      const r = red + dr, g = green + dg, b = blue + db;
+      if (r >= 0 && r < 32 && g >= 0 && g < 32 && b >= 0 && b < 32) SKY_COLORS.add((r << 10) | (g << 5) | b);
+    }
+  }
+}
+
+/** Current atmospheric textures and Nordrassil's preserved green aurora. */
+export const isArenaSkyColor = (red: number, green: number, blue: number): boolean =>
+  SKY_COLORS.has(skyColorKey(red, green, blue)) || (red <= 16 && green >= 20 && blue >= 8 && green >= blue);
+
 export const SMASHCRAFT_FRAME: readonly FrameFeature[] = [
   {
     name: "arena sky",
     absent: "no match on screen: the frame shows no sky",
     measure: (frame) => {
-      const share = pixelShare(frame, SKY, (red, _green, blue) => blue >= 170 && blue - red >= 25);
+      const share = pixelShare(frame, SKY, isArenaSkyColor);
       return { present: share >= 0.5, measured: `${(share * 100).toFixed(1)}% of the top band is sky, needs 50%` };
     },
   },
