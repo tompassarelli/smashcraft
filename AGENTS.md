@@ -111,9 +111,10 @@ code. From smashcraft:ts/:
   coordinated expansion-hero reach, hold, pummel and four-direction holder/victim
   gestures or reauthors their existing indices. `--character` limits reauthoring
   to one expansion fighter (smashcraft:docs/fighter-animation-work.md).
-  `bun tools/animations/grab-pads.ts` generates the #180 mirror capture batch:
+  `bun tools/animations/grab-pads.ts` generates the #180 mirror and unlike-height capture batch:
   ten expansion heroes, four throws, both facings, with ordinary catch/pummel
   inputs and contact-frame captures in smashcraft:ts/test/native/pads/180/.
+  `-dev quick pair FIRST / SECOND` selects different named fighters in the two human slots.
 - Lich King animation authoring (from the repository root):
   `tools/animations/build-lichking.sh [PRIVATE_INPUTS] [IMMUTABLE_EXISTING_MODEL]`
   authors clips through Blender; the optional existing model preserves shipped
@@ -134,6 +135,10 @@ code. From smashcraft:ts/:
   (starts tumbling above the floor for recovery captures), and `-dev quick cpu OPPONENT DIFFICULTY [hero NAME]`,
   a quick match against a named computer at the selected difficulty over three stocks.
   The named variant uses the normal CPU selection rule.
+  `-dev pain HEIGHT STRENGTH FIGHTER` starts the #181 mirror capture fixture:
+  low/middle/high and small/medium/large, with ordinary projectile contacts at
+  frame 150 after both players' scripted jab. `bun tools/animations/pain-pads.ts`
+  from the repository root generates its 117 native parity scripts.
 - Generated menus: smashcraft:ts/scripts/wisp/uiFrames.ts defines menu panels as Wisp
   frame definitions (wisp:docs/ui.md); after changing one or its layout, `bun
   scripts/wisp/uiFrames.ts` rewrites its FDF/TOC in smashcraft:tools/selection/art/
@@ -229,7 +234,7 @@ code. From smashcraft:ts/:
   clips and rewrites their foot cadence and audit (smashcraft:docs/fighter-motion.md);
   `view reach --assets DIR [--character ID]` rewrites how far fighters' swings
   draw toward their strikes (smashcraft:docs/hurtboxes.md).
-- Repro: `bun wisp repro FILE [--test NAME] [--frame N --out FILE] [--diff-frame N|previous]` replays a moment a player saved
+- Repro: `bun wisp repro FILE [--view] [--test NAME] [--shrink [--out FILE]] [--frame N --out FILE] [--diff-frame N|previous]` replays a moment a player saved
   with K (or View held on a controller) in simulated clients, to the checksum
   the game recorded; `--test NAME` writes a test that replays it. `--frame N
   --out FILE` saves its exact canonical state after N; `--diff-frame previous`
@@ -290,6 +295,12 @@ code. From smashcraft:ts/:
   bounded contextual habits, anticipatory commitments and risk-aware move
   choice; smashcraft:ts/src/game/match/botStrategyContracts.tests.ts checks
   adaptation, punishable reads, buffering and seeded decision variety.
+- Named-opponent calibration: `bun scripts/cpuCalibration.ts [--revision SHA]
+  [--out FILE] [--json FILE]` from ts/ measures all 30 identity/tier rows over
+  seeds 0–9, with 100 eligible decisions per measure, distributions and hard
+  collection/fairness/replay failures. `gh workflow run cpu-calibration.yml
+  -f ref=COMMIT` runs the same report hosted. Procedure and remaining behavior
+  gates: smashcraft:docs/design/cpu-profiles.md, "Calibration report".
 - Difficulty report: `gh workflow run cpu-tiers.yml -f ref=COMMIT` measures Wren at every tier pair with `cpuTiers` (20 matches per pair, 100 Expert-vs-Rookie matches). The run summary and `cpu-tiers` artifact hold its table.
 - Release roster: `bun scripts/releaseRoster.ts FIELD.json` (from ts/) writes
   smashcraft:ts/src/game/sim/heroes/releaseRoster.ts from a gate run's

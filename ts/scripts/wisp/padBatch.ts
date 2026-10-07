@@ -9,7 +9,7 @@
 // at a time, so the native runs never wait for them; each compare runs as
 // soon as both sides of its script exist. `--pairs N` shards the scripts
 // over the first N pairs of Wisp's offline LAN pool (`wisp lan pool`).
-import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, join } from "node:path";
 import { Cause, Effect, Exit, Option, Schema, Scope } from "effect";
@@ -231,6 +231,7 @@ const prepare = (options: BatchOptions) => Effect.gen(function*() {
     const at = performance.now();
     let code = 1;
     for (let attempt = 0; attempt < 3 && code !== 0; attempt++) {
+      if (attempt > 0 && existsSync(join(run.dir, "headless"))) renameSync(join(run.dir, "headless"), join(run.dir, `headless-invalid-${attempt - 1}`));
       code = await wisp(["pad", run.script, "--headless", "--helper", options.helper, "--out", join(run.dir, "headless"), `--chat=${run.chat}`], join(run.dir, attempt === 0 ? "headless.log" : `headless-${attempt}.log`));
     }
     return { code, seconds: seconds(at), ended: performance.now() };

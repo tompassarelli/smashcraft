@@ -9,6 +9,7 @@ import { controls, testGrabFrame, testWorld } from "../testWorld";
 import { HurtContact, strikeHurtContact } from "../hurtboxes";
 import { BLADEMASTER_MOVES } from "./blademasterMoves";
 import { isMultiHit } from "./multiHit";
+import { advanceFighterMotion } from "../step";
 
 // The adopted roster's F/A/R/L rows, rather than shared legacy frame data.
 const NORMALS = [
@@ -35,6 +36,28 @@ function fighter(facing = 1): Fighter {
   owner.tuning.moves = BLADEMASTER_MOVES;
   return owner;
 }
+
+test("Bladestorm stops approach drift while startup keeps ordinary gravity", () => {
+  for (const facing of [-1, 1]) {
+    const owner = fighter(facing);
+    owner.motion.grounded = false;
+    owner.motion.surface = undefined;
+    owner.motion.z = 183.0;
+    owner.motion.vx = f32(6.0 * facing);
+    owner.motion.vz = -1.0;
+    const world = testWorld(owner, createFighter(Character.archer, 400.0, -facing));
+    beginFighterAttack(world, 0, AttackStyle.downAir, false);
+    const x = owner.motion.x;
+    advanceFighterMotion(world, 0, 0, 1, controls(), 0.0);
+    assertEquals(owner.motion.x, x);
+    assertEquals(owner.motion.vx, 0.0);
+    assertLessThan(owner.motion.vz, -1.0);
+    owner.attack.frame = 9;
+    advanceFighterMotion(world, 0, 0, 2, controls(), 0.0);
+    assertEquals(owner.motion.x, x);
+    assertEquals(owner.motion.vz, -1.5);
+  }
+});
 
 function contact(style: AttackStyle, facing: number, x: number, z = 0.0, airborneOwner = false, airborneTarget = false, ownerZ = 0.0): Fighter {
   const owner = fighter(facing);

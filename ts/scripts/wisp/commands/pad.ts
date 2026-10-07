@@ -51,7 +51,7 @@ import { onHealthyClients } from "../doctor";
 import { DevCommandReceipt } from "../boundary";
 import { devCommandReceiptFile } from "../../../src/runtime/gameFiles";
 import { Phase } from "../../../src/game/match/rules";
-import { quickMatchHero, quickMatchStage, quickRecoveryHero } from "../../../src/game/shell/devSettings";
+import { quickMatchHero, quickMatchStage, quickPainHero, quickRecoveryHero } from "../../../src/game/shell/devSettings";
 
 type DevReceipt = Effect.Success<ReturnType<typeof DevCommandReceipt.decode>>;
 
@@ -59,7 +59,7 @@ type DevReceipt = Effect.Success<ReturnType<typeof DevCommandReceipt.decode>>;
 export function requestedSetup(command: string, receipt: DevReceipt): boolean {
   const original = command.split(" |capture ")[0] ?? command;
   if (original === "-dev reset") return receipt.phase === Phase.characterMenu;
-  const hero = quickMatchHero(original) ?? quickRecoveryHero(original);
+  const hero = quickMatchHero(original) ?? quickRecoveryHero(original) ?? quickPainHero(original)?.character;
   if (hero !== undefined) return receipt.phase === Phase.match && receipt.characters.split(",").every((value, slot) => (receipt.humanFighters & (1 << slot)) === 0 || Number(value) === hero);
   const stage = quickMatchStage(original);
   return stage === undefined || receipt.phase === Phase.match && receipt.stage === stage;
@@ -220,7 +220,7 @@ const selectionChat = (session: NativeSession, text: string) => setupCommand(ses
     return current === undefined ? undefined : { available: current.available === "1", open: current.open === "1", modified: statSync(path).mtimeMs };
   });
   yield* openObservedChat(session.clients[0], entry, batch(session.clients[0], [{ kind: "wait", millis: 250 }, { kind: "keys", keys: ["Return"] }]).pipe(Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })), Effect.mapError(fromDesktop))).pipe(Effect.mapError((cause) => cause instanceof IntegrityFailure ? cause : fromDesktop(cause)));
-  yield* batch(session.clients[0], [{ kind: "text", text, delayMillis: 35 }, { kind: "keys", keys: ["Return"] }]).pipe(Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })), Effect.mapError(fromDesktop));
+  yield* batch(session.clients[0], [{ kind: "text", text, delayMillis: 35 }, { kind: "keys", keys: ["Return"], settleMillis: 0 }]).pipe(Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })), Effect.mapError(fromDesktop));
 }));
 
 /** Return requests chat in the journal box; the helper opens chat after its quiescence handshake. */
@@ -240,7 +240,7 @@ export const nativeChat = (session: NativeSession, text: string) => setupCommand
     if (Date.now() > deadline) return yield* new IntegrityFailure({ operation: "open chat", path, cause: "no chatting receipt within 8 s of Return" });
     yield* Effect.sleep("20 millis");
   }
-  yield* batch(host, [{ kind: "text", text, delayMillis: 35 }, { kind: "keys", keys: ["Return"] }]).pipe(Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })), Effect.mapError(fromDesktop));
+  yield* batch(host, [{ kind: "text", text, delayMillis: 35 }, { kind: "keys", keys: ["Return"], settleMillis: 0 }]).pipe(Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })), Effect.mapError(fromDesktop));
 }));
 
 /** One script in the persistent native session's next match. */
@@ -467,7 +467,7 @@ export const pad: Command = (args) => Effect.gen(function*() {
   });
   const { helper, out, chat, compare } = parsed.values;
   // Several scripts, or a folder of them, are one batch: one game per pair (scripts/wisp/padBatch.ts).
-  if (parsed.positionals.length > 1 || (parsed.positionals[0] !== undefined && existsSync(parsed.positionals[0]) && statSync(parsed.positionals[0]).isDirectory())) return yield* scriptBatch(parsed.values, parsed.positionals);
+  if (parsed.values.pairs !== undefined || (parsed.values.pair?.length ?? 0) > 0 || parsed.positionals.length > 1 || (parsed.positionals[0] !== undefined && existsSync(parsed.positionals[0]) && statSync(parsed.positionals[0]).isDirectory())) return yield* scriptBatch(parsed.values, parsed.positionals);
   const isHeadless = parsed.values.headless === true;
   const build = parsed.values.build ?? (isHeadless ? INTEGRITY_BUILD.id : undefined);
   const [scriptPath] = parsed.positionals;

@@ -4,18 +4,19 @@
 // fighter and stage selection, an instrumented match, the results screen, a
 // slot change, and the rematch. Everything it does to the clients goes through
 // the Rig service, so a recording Rig can replay the journey without Warcraft.
-import { Context, Effect, Fiber } from "effect";
+import { Context, Effect } from "effect";
 import { RULE_BUTTONS } from "../../src/game/ui/ruleButtons";
 import { STAGE_CATALOG } from "../../src/game/menu/stageCatalog";
 import { Character } from "../../src/game/sim/codes";
 import { fighterName } from "../../src/game/sim/heroes/registry";
 import { MATCH_TICKS_PER_SECOND, START_HOLD_FRAMES } from "../../src/game/match/rules";
 import type { Region } from "wisp/scripts/warcraft/desktop";
+import { openObservedChat } from "wisp/scripts/wisp/chatSetup";
 import { IntegrityFailure } from "./evidence";
 import { ABS_RX, ABS_RY, ABS_X, ABS_Y, ABS_Z, BTN_A, BTN_SELECT, BTN_START, BTN_X, BTN_Y, EV_ABS, EV_KEY, type SourceEdge } from "./linuxInput";
 import { SLOTS, type Slot } from "./reconcile";
 import { type PadLayout, PULSE_HOLD_MILLIS, STALL_MILLIS, type Pulse, type Send, type StallTarget, integritySchedule, pulseSends } from "./schedule";
-import { INPUT_TRACE_FILE, devCommandReceiptFile, journalControlFile, journalLifecycleFile, journalMenuFile, responsePageFile, stageReceiptFile } from "../../src/runtime/gameFiles";
+import { INPUT_TRACE_FILE, devCommandReceiptFile, journalControlFile, journalLifecycleFile, journalMenuFile, nativeChatFile, responsePageFile, stageReceiptFile } from "../../src/runtime/gameFiles";
 
 /** A game file's text and modification time. */
 export interface GameFile {
@@ -135,9 +136,9 @@ export interface JourneyOptions {
    * complete input workload.
    */
   readonly workload?: "match" | "playable" | "bot";
-  /** A bot session with a second computer, an Archer in slot D: four fighters, the frame-cost overlay shown in an undisturbed rematch. */
+  /** A bot session with a second computer, an Archer in slot D, recording raw frame costs in an undisturbed rematch. */
   readonly botFour?: boolean;
-  /** A bot session whose rematch, three fighters, is undisturbed and shows the frame-cost overlay, as --bot-four's does. */
+  /** A bot session whose three-fighter rematch records raw frame costs, as --bot-four's does. */
   readonly botPerf?: boolean;
   /** A bot session whose first match starts with #49's pad script on slot 0. */
   readonly pad49?: boolean;
@@ -195,21 +196,12 @@ const BOT_BEATS = [
 /** Stick down (+Y) just below and just past Melee's 0.6625 of full scale (#49). */
 const PAD49_BELOW_DOWN = 21299;
 const PAD49_PAST_DOWN = 21954;
-/** The frame meter's overlay toggle (smashcraft:ts/src/platform/frameMeter.ts). */
-const PERF_TOGGLE = "-dev perf";
 /**
  * The raw capture the rematch records on every client: 1800 callbacks, the
  * frames `bun wisp perf bot` and `perf bot-four` predict, written to
  * smashcraft-perf-capture-pSLOT-runRUN.txt (smashcraft:ts/src/platform/frameMeter.ts).
  */
 export const BOT_CAPTURE = "-dev capture 1800";
-/**
- * The overlay's text frame (wisp:src/platform/frameMeter.ts): top left
- * (0.58, 0.56), 0.21 by 0.08, in the 2560x1440 client's centered 4:3 area.
- */
-const PERF_OVERLAY: Region = { x: 1700, y: 90, width: 530, height: 210 };
-/** The overlay summarizes the last 120 frames; one reading every 2 s reads each window once. */
-const PERF_READ_MILLIS = 2000;
 /**
  * Stocks in each match of #26's integrity workload. Its pads dash both ways
  * through the whole workload, and on 0.0.48 Player 2 drifted off the stage on
@@ -305,8 +297,14 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       const before = (yield* receipts).map((file) => ({ mtimeNs: file?.mtimeNs ?? -1n, count: complete(file) ? count(file) : -1 }));
       // Counts this capture saw bound the new one; a file from before it (perhaps an earlier game) only by its time.
       const floor = Math.max(...before.map((receipt) => receipt.count));
-      // The map hides Warcraft's chat box; both clients' receipts confirm the command.
-      yield* rig.key(0, "Return");
+      const entry = rig.file(0, nativeChatFile(build, 0)).pipe(Effect.map((file) => {
+        if (file === undefined || !file.text.trimEnd().endsWith("endfunction")) return undefined;
+        const fields = receiptFields(file.text);
+        return { available: fields.get("available") === "1", open: fields.get("open") === "1", modified: Number(file.mtimeNs) };
+      }));
+      yield* openObservedChat({ name: "client 0" }, entry, rig.key(0, "Return")).pipe(
+        Effect.mapError((failure) => failure instanceof IntegrityFailure ? failure : failed("open setup chat", failure.message)),
+      );
       yield* rig.type(0, text);
       yield* rig.key(0, "Return");
       yield* rig.until(`dev command not confirmed: ${text}`, receipts.pipe(Effect.map((files) => {
@@ -758,8 +756,6 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       const started = yield* boundaries(start);
       yield* rig.record({ event: "start", epoch, publications: started, observed_monotonic_ns: yield* rig.monotonicNs });
       if (bot && (options.botFour === true || options.botPerf === true) && !odd) {
-        // The frame meter registers its toggle at the first match start; its overlay shows on A for the rematch.
-        yield* journalChat(epoch, PERF_TOGGLE);
         yield* journalChat(epoch, BOT_CAPTURE);
         yield* resumeAfterChat(epoch);
       }
@@ -773,16 +769,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       const goNs = deadline - 300_000_000 + START_HOLD_FRAMES * 1_000_000_000 / MATCH_TICKS_PER_SECOND;
       yield* rig.sleep(Math.max(0, (goNs - (yield* rig.monotonicNs)) / 1_000_000));
       if (bot) {
-        // The rematch that shows the overlay is read throughout, beside its beats.
-        const overlay = bot && (options.botFour === true || options.botPerf === true) && !odd
-          ? yield* Effect.forkChild(Effect.forever(Effect.gen(function*() {
-            const text = yield* rig.readText(0, PERF_OVERLAY).pipe(Effect.catch((failure) => Effect.succeed(`unread: ${failure.message}`)));
-            yield* rig.record({ event: "perf-overlay", epoch, observed_monotonic_ns: yield* rig.monotonicNs, text });
-            yield* rig.sleep(PERF_READ_MILLIS);
-          })), { startImmediately: true })
-          : undefined;
         yield* botMatch(epoch, goNs);
-        if (overlay !== undefined) yield* Fiber.interrupt(overlay);
       }
       else if (matchOnly || playable) {
         for (let attack = 0; attack < 4; attack++) {

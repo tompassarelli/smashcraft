@@ -150,7 +150,7 @@ export function fighterMovesCanonical(moves: FighterMoves | undefined, prefix = 
       const part = `${name}.fall[${index}]`;
       int(`${part}.first`, phase.firstFrame);
       int(`${part}.last`, phase.lastFrame);
-      real(`${part}.speedZ`, phase.speedZ);
+      if (phase.speedZ !== undefined) real(`${part}.speedZ`, phase.speedZ);
       if (phase.speedX !== undefined) real(`${part}.speedX`, phase.speedX);
     }
     if (move.landingHit !== undefined) {
@@ -542,20 +542,23 @@ export function observedOpponentKitCanonical(fighter: Readonly<Fighter>): string
     + kitDigestField("specials", fighter.tuning.specials, SPECIALS_DIGESTS, fighterSpecialsCanonical);
 }
 
-interface KitText { moves: Fighter["tuning"]["moves"]; specials: Fighter["tuning"]["specials"]; text: string }
-const kitTexts = new WeakMap<Readonly<Fighter>, KitText>();
+const absentKit = {};
+const kitTexts = new WeakMap<object, WeakMap<object, string>>();
 
 function kitText(f: Readonly<Fighter>): string {
-  let cached = kitTexts.get(f);
-  if (cached === undefined) {
-    cached = { moves: f.tuning.moves, specials: f.tuning.specials, text: observedOpponentKitCanonical(f).replaceAll("|", ";") };
-    kitTexts.set(f, cached);
-  } else if (cached.moves !== f.tuning.moves || cached.specials !== f.tuning.specials) {
-    cached.moves = f.tuning.moves;
-    cached.specials = f.tuning.specials;
-    cached.text = observedOpponentKitCanonical(f).replaceAll("|", ";");
+  const moves = f.tuning.moves ?? absentKit;
+  const specials = f.tuning.specials ?? absentKit;
+  let texts = kitTexts.get(moves);
+  if (texts === undefined) {
+    texts = new WeakMap<object, string>();
+    kitTexts.set(moves, texts);
   }
-  return cached.text;
+  let text = texts.get(specials);
+  if (text === undefined) {
+    text = observedOpponentKitCanonical(f).replaceAll("|", ";");
+    texts.set(specials, text);
+  }
+  return text;
 }
 
 export interface ObservationWriter {

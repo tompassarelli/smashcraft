@@ -104,8 +104,14 @@ need.
   and playback re-runs the map. They include `BlzSendSyncData` payloads
   (action 0x78 in [w3gjs](https://github.com/PBug90/w3gjs)). Smashcraft's
   input rows travel as `SC_GP` sync messages, so a Warcraft replay of a
-  Smashcraft match should carry every input. This is inferred from the
-  parser and not yet tried. Replays are saved under
+  Smashcraft match should carry every input. On 7 Oct 2026 Warcraft 3.0
+  was asked to play the saved match 76 `LastReplay.w3g` (67,353 bytes,
+  header length 244,275 ms). It stopped with “The map file associated with
+  the replay could not be found”, naming
+  `Maps/00-Smashcraft/tests/Smashcraft 0.0.77 test 5.w3x`. The private
+  playback client did not hold that original map, so Warcraft could not
+  reach the recorded result. A native replay needs the original map at
+  its recorded path; opening a current map cannot replace it. Replays are saved under
   `Documents\Warcraft III\BattleNet\<account>\Replays`, and `LastReplay.w3g`
   is rewritten after every game. Its header (subheader version 1, magic
   `PX3W` at 0x30) holds the game's length in milliseconds at 0x3C; a

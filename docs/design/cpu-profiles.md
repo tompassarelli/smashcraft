@@ -83,10 +83,10 @@ exceed 100. Initiative and variance weight preferences, not capability ceilings.
 | Ember | Intermediate | 21 | 84 | 65/72 | 12/2 | 3/60 | 45 | 60 | 90/60 | 20 |
 | Ember | Advanced | 15 | 93 | 82/86 | 20/1 | 4/65 | 32 | 75 | 90/55 | 12 |
 | Ember | Expert | 12 | 97 | 94/95 | 28/1 | 5/75 | 22 | 90 | 88/50 | 8 |
-| Flint | Rookie | 30 | 65 | 25/35 | 4/4 | 2/45 | 80 | 50 | 60/20 | 20 |
-| Flint | Beginner | 27 | 78 | 40/58 | 8/3 | 3/55 | 68 | 65 | 62/22 | 15 |
-| Flint | Intermediate | 21 | 88 | 65/78 | 12/2 | 3/65 | 52 | 80 | 65/25 | 10 |
-| Flint | Advanced | 15 | 95 | 84/90 | 20/1 | 4/70 | 38 | 90 | 70/30 | 7 |
+| Flint | Rookie | 30 | 65 | 25/35 | 4/16 | 2/45 | 80 | 50 | 60/20 | 20 |
+| Flint | Beginner | 27 | 78 | 40/58 | 8/12 | 3/55 | 68 | 65 | 62/22 | 15 |
+| Flint | Intermediate | 21 | 88 | 65/78 | 12/4 | 3/65 | 52 | 80 | 65/25 | 10 |
+| Flint | Advanced | 15 | 95 | 84/90 | 20/2 | 4/70 | 38 | 90 | 70/30 | 7 |
 | Flint | Expert | 12 | 98 | 95/96 | 28/1 | 5/75 | 28 | 100 | 75/35 | 4 |
 | Vale | Rookie | 36 | 50 | 30/45 | 6/4 | 2/65 | 75 | 90 | 15/10 | 10 |
 | Vale | Beginner | 30 | 65 | 50/62 | 10/3 | 3/70 | 60 | 100 | 25/12 | 8 |
@@ -130,6 +130,11 @@ expired are discarded. A guard with a later authored protection window waits
 until that window can meet the strike. Protected approaches hand over to attack
 selection at the fighter's projected authored reach. These forecasts use no
 newer opponent sample.
+
+Normal attacks, hero-special reach and punishes advance the delayed target's horizontal position
+through the observation delay using its last observed velocity. The attacker's
+own slide starts at the decision frame, so the delay is counted only for the
+target. The forecast remains fallible when that target changes direction.
 
 An active Divine Shield can also fund a ranged attack when the opponent remains
 outside melee reach. Its mana is available for that attack instead of being held
@@ -228,6 +233,48 @@ tie every matchup. Keep existing difficulty, whole-roster kit coverage and
 fighter-balance gates; never lower their thresholds. Hosted sweeps use explicit
 revision/seed sets. Fairness, five-frame commitment and replay determinism
 remain hard checks.
+
+## Calibration report
+
+From ts/, `bun scripts/cpuCalibration.ts --out build/cpu-calibration/report.md
+--json build/cpu-calibration/report.json` collects all 30 authored rows using
+the same ten seeds (0–9). The default supplies ten eligible decisions per seed
+for each measure. `--trials-per-seed N` changes the sample count; fewer than
+100 decisions per measure fails collection. `--revision SHA` records the
+revision explicitly; otherwise the command records Git HEAD. The hosted route
+is `gh workflow run cpu-calibration.yml -f ref=COMMIT`; its summary and
+cpu-calibration artifact contain the numerical report.
+
+Controlled situations call the real shared policy: an unexpected side change,
+shield, jump, smash or shot; a legal tumbling tech; neutral move selection at
+two distances; a close whiff-punish opportunity; learned strikes followed by
+shield events; the same move's value ahead and behind; a visible incoming
+strike; and Rifleman's ready short-hop blaster. Reaction distributions include
+the cases with no changed input within the observation delay plus 30 frames.
+The same seeded decision sequence is restored and replayed in each sample.
+Direction requests include neutral braking and measure actual reversals.
+
+The command fails insufficient collection, an early reaction, a direction
+reversal inside five frames or any restored-state difference. Close conversions
+play the chosen punish for 60 simulation frames and count actual connections.
+Developmental checks require each named primary/secondary outcome to improve
+from Rookie to Expert without falling between adjacent tiers; Flint's pattern
+switch must improve at every tier. Each identity also faces its named bait:
+Rook's brief speculative opening, Ember's extra pressure attack, Flint's
+conditioned forward tilt, Vale's feinted reset, Kite's guarded ledge escape
+and Wren's chased uncertain retreat. Each counter plays for 60 frames and must
+catch at least one eligible commitment at every tier, counting damage or a
+grab. Counts and distributions remain visible when a check fails. Difficulty,
+whole-roster kit use, balance and native parity retain their separate gates.
+
+Use the existing hosted difficulty and field commands for their original
+thresholds (Expert wins at least 95/100 against Rookie; every fighter lies
+within 40–60% against the Wren Expert field at 400 matches per pair), and the
+existing kit/recovery/gameplan contracts for whole-roster coverage. Reuse a
+passing result only while its covered policy is unchanged. Calibration rows
+change one measured behavior at a time; never retune fighter stats or relax a
+coverage/rank assertion to make an AI report pass. These are authored
+Smashcraft measurements, with no human rating or imitation claim.
 
 ## Reads and move value
 
