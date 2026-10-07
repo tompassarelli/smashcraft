@@ -1,11 +1,14 @@
 import { assertEquals, assertNear, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { floorMod } from "wisp/src/sim/intMath";
+import { at as lookup } from "wisp/src/runtime/lookup";
+import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
+import { createMatchState, selectCpuCharacter, setParticipants } from "../match/rules";
 import { pointerX, pointerY } from "./pointer";
 import { cellRect, rosterGrid, tileAt } from "./selectionGrid";
 import {
   type Placement, type Roster, type RosterChip, type SelectionDrag, cardSlot, cardX, chipX, chipY, clearSelectionDrag, placeHovered,
-  selectionDrag, updateSelectionDrag,
+  decodeCpuPlacement, selectionDrag, updateSelectionDrag,
 } from "./selectionDrag";
 
 /** UI frame units from thousandths, the same binary32 value in both runtimes. */
@@ -27,6 +30,27 @@ function press(drag: SelectionDrag, roster: Roster, x: number, y: number): void 
 }
 
 const release = (drag: SelectionDrag, roster: Roster, x: number, y: number) => updateSelectionDrag(drag, roster, false, x, y);
+
+test("a dragged computer token selects every fighter through the synchronized drop", () => {
+  const grid = rosterGrid(SELECTABLE_CHARACTERS.length);
+  for (let slot = 1; slot < 4; slot++) {
+    for (let tile = 0; tile < SELECTABLE_CHARACTERS.length; tile++) {
+      const game = createMatchState();
+      setParticipants(game, 1, 14);
+      const drag = selectionDrag();
+      const roster: Roster = { grid, selectable: 15, chips: [UNPLACED, UNPLACED, UNPLACED, UNPLACED] };
+      press(drag, roster, cardX(slot) + at(80), at(180));
+      const rect = cellRect(grid, tile);
+      const placement = release(drag, roster, (rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2);
+      assertPlacement(placement, slot, tile);
+      const received = decodeCpuPlacement(`${slot}${tile}`, grid.count);
+      assertPlacement(received, slot, tile);
+      if (received !== undefined) selectCpuCharacter(game, 0, received.slot, lookup(SELECTABLE_CHARACTERS, received.tile));
+      assertEquals(game.characterChoices[slot], lookup(SELECTABLE_CHARACTERS, tile));
+      assertEquals(game.characterReadiness[slot], true);
+    }
+  }
+});
 
 function assertPlacement(placement: Placement | undefined, slot: number, tile: number): void {
   assertEquals(placement?.slot, slot, "placed slot");

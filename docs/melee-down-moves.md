@@ -54,11 +54,17 @@ copying its values: Smashcraft's longer authored recoveries need enough
 base knockback to tumble at low percent and enough hang time to keep the
 attacker's recovery from consuming the whole chase.
 
-Down throws use a 25° outward launch. Down smashes keep their front/back
-contacts, damage, growth, active windows and recovery, with a shallow launch
-and higher base knockback to force floor defense. The tests run production
-contacts and movement at 20%, 40% and 60%, checking the actual floor state
-and first attacker action against tech and getup completion.
+Down throws use a 25° outward launch, with their existing base 75 and growth
+40. Their authored damage, contact and recovery remain per fighter. The
+down-throw tests run production contacts and movement at 20%, 40% and 60%,
+checking tech in place, both tech rolls and missed-tech stand, roll and
+attack getups, both facings, against Archer, Rifleman and Pit Lord.
+
+Down smashes still use the pre-change values above. They need a separate
+growth curve: raising base knockback on their existing kill-move growth
+either leaves too little floor time before a slow attack recovers or keeps
+the victim airborne beyond hitstun, allowing a tumble-exit flick before
+landing. The intended down-smash outcome remains a tech chase.
 
 There are no down throws classified as DI mix-up: all thirteen take the
 tech-chase branch. DI still changes the landing point and tech timing.

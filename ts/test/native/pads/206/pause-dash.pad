@@ -1,0 +1,9 @@
+#! chat -dev quick hero archer
+160 a stick 1 0
+168 a press START
+169 a release START
+348 a press START
+349 a release START
+350 a stick 0 0
+390 a press VIEW
+460 a release VIEW

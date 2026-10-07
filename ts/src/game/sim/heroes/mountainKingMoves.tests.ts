@@ -208,7 +208,7 @@ const THROW_ROWS = [
   [GrabAction.throwForward, 14, 22, 9.0, 35],
   [GrabAction.throwBack, 18, 27, 10.0, 40],
   [GrabAction.throwUp, 16, 13, 8.0, 90],
-  [GrabAction.throwDown, 20, 26, 7.0, 75],
+  [GrabAction.throwDown, 20, 26, 7.0, 25],
 ] as const;
 
 test("Mountain King throws release once on their roster frame with facing-relative launch", () => {
