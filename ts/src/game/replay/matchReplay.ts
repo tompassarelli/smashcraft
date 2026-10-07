@@ -5,7 +5,9 @@
 // seconds and at each segment's end. A segment ends wherever the shell
 // changes the match between frames (a pause, a player leaving); the next
 // starts from the state the change left. The recorder only reads confirmed
-// state, and spreads its work so no callback writes a whole state's text.
+// state, and spreads its work so no callback writes a whole state's text:
+// each frame extends the rows' current run, and a checkpoint copies the match
+// on its frame and folds one fighter a callback after it (#168).
 //
 // The shell (smashcraft:ts/src/platform/shell/replays.ts) writes the lines in
 // part files while the match runs and a manifest at its end; joinReplay
@@ -26,7 +28,7 @@ import { authoredTuning } from "../sim/tuning";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
 import {
   type FrameRows, type FrameScratch, KEYED_BY_ACTION, type MomentInput, type MomentRecorder, ROW_FRAMES, SNAPSHOT_FRAMES,
-  readRun, rowTokens, runCallbackFrame, runNetworkFrame, savedState, section, wholeNumber,
+  readRun, runCallbackFrame, runToken, sameFrameRows, runNetworkFrame, savedState, section, wholeNumber,
 } from "./moment";
 import { parseReplayHeader } from "./replayFormat";
 import { type ReplayState, captureReplaySnapshot, copyReplayState, createReplaySnapshot } from "./snapshot";
@@ -156,14 +158,19 @@ function foldFighter(lanes: Lanes, slot: number, fighter: Readonly<Fighter>): vo
   }
 }
 
+/** The checksum's terms after the fighters': the match's fields and the frame. */
+function foldMatchAndFrame(lanes: Lanes, match: Readonly<MatchState>, runtime: Readonly<PacingAndPresentation>): string {
+  foldFields(lanes, 3, match, 1);
+  foldInteger(lanes, 5, runtime.simulationFrame);
+  return `${lanes.first}:${lanes.second}`;
+}
+
 /** The replay checksum of a confirmed match: "first:second". */
 export function replayChecksum(world: Readonly<Roster>, match: Readonly<MatchState>, runtime: Readonly<PacingAndPresentation>): string {
   const lanes: Lanes = { first: 0, second: 0 };
   foldInteger(lanes, 1, world.mask);
   for (const slot of PARTICIPANT_SLOTS) if (isActive(world, slot)) foldFighter(lanes, slot, fighterAt(world, slot));
-  foldFields(lanes, 3, match, 1);
-  foldInteger(lanes, 5, runtime.simulationFrame);
-  return `${lanes.first}:${lanes.second}`;
+  return foldMatchAndFrame(lanes, match, runtime);
 }
 
 /**
@@ -270,6 +277,16 @@ export interface MatchReplayRecorder {
   readonly start: ReplayState;
   /** Preallocated: checksums copy the match here. */
   readonly scratch: ReplayState;
+  /** Preallocated: a checkpoint's match, folded a fighter a callback while `checkpoint` is set. */
+  readonly checkpointState: ReplayState;
+  checkpoint: PendingCheckpoint | undefined;
+  /** The last frame whose rows are in `runs` or the current run. */
+  scanned: number;
+  /** Tokens of the rows' finished runs since the last encoded frame. */
+  runs: string[];
+  /** The current run: the ring position of its first frame, and its frames; 0 for none. */
+  runIndex: number;
+  runCount: number;
   text: StateText | undefined;
   /** Lines not yet written to a part. */
   lines: string[];
@@ -279,10 +296,18 @@ export interface MatchReplayRecorder {
   failed: boolean;
 }
 
+/** A checkpoint whose checksum is being folded: its frame, the lanes so far, and the next fighter slot to fold. */
+interface PendingCheckpoint {
+  readonly frame: number;
+  readonly lanes: Lanes;
+  slot: number;
+}
+
 export function createMatchReplayRecorder(): MatchReplayRecorder {
   return {
     open: false, segmentStart: 0, encoded: 0, last: 0, ended: false, checksum: "",
-    start: createReplaySnapshot(), scratch: createReplaySnapshot(), text: undefined, lines: [], parts: 0, failed: false,
+    start: createReplaySnapshot(), scratch: createReplaySnapshot(), checkpointState: createReplaySnapshot(), checkpoint: undefined,
+    scanned: 0, runs: [], runIndex: 0, runCount: 0, text: undefined, lines: [], parts: 0, failed: false,
   };
 }
 
@@ -317,15 +342,20 @@ function continueStateText(recorder: MatchReplayRecorder, budget: number): void 
   }
   if (text.next < pieces.length) return;
   recorder.text = undefined;
+  finishCheckpoint(recorder);
   for (const line of section("state", text.tokens)) recorder.lines.push(line);
 }
 
 /** Starts a segment from the live match: its first line, its starting state captured for writing as text. */
 function beginSegment(recorder: MatchReplayRecorder, start: number, world: Readonly<Roster>, match: Readonly<MatchState>, controls: Readonly<FrameControls>, runtime: Readonly<PacingAndPresentation>): void {
   finishStateText(recorder);
+  finishCheckpoint(recorder);
   captureReplaySnapshot(recorder.start, world, match, controls, runtime);
   recorder.segmentStart = start;
   recorder.encoded = start;
+  recorder.scanned = start;
+  recorder.runs = [];
+  recorder.runCount = 0;
   recorder.last = start;
   recorder.ended = false;
   recorder.text = { segmentLine: recorder.lines.length, pieces: undefined, next: 0, tokens: [] };
@@ -364,25 +394,73 @@ export function beginMatchReplayFrame(recorder: MatchReplayRecorder, moment: Rea
   return ReplayBegin.opened;
 }
 
-/** The rows of frames encoded + 1 through `last` from the moment's ring; false when the ring no longer holds them all. */
+/** Extends the rows' runs through `last` from the moment's ring; false when the ring no longer holds a frame's rows. */
+function scanRows(recorder: MatchReplayRecorder, moment: Readonly<MomentRecorder>, last: number): boolean {
+  for (let frame = recorder.scanned + 1; frame <= last; frame++) {
+    const index = floorMod(frame, ROW_FRAMES);
+    if (moment.rowFrames[index] !== frame) return false;
+    if (recorder.runCount > 0 && sameFrameRows(moment, recorder.runIndex, index)) recorder.runCount++;
+    else {
+      if (recorder.runCount > 0) recorder.runs.push(runToken(moment, recorder.runIndex, recorder.runCount));
+      recorder.runIndex = index;
+      recorder.runCount = 1;
+    }
+    recorder.scanned = frame;
+  }
+  return true;
+}
+
+/** The rows of frames encoded + 1 through `last`, a token per run of equal frames; false when the ring no longer holds them all. */
 function encodeRows(recorder: MatchReplayRecorder, moment: Readonly<MomentRecorder>, last: number): boolean {
   if (last <= recorder.encoded) return true;
-  for (let frame = recorder.encoded + 1; frame <= last; frame++) if (moment.rowFrames[floorMod(frame, ROW_FRAMES)] !== frame) return false;
-  for (const line of section("rows", rowTokens(moment, recorder.encoded, last))) recorder.lines.push(line);
+  if (!scanRows(recorder, moment, last)) return false;
+  finishCheckpoint(recorder);
+  if (recorder.runCount > 0) recorder.runs.push(runToken(moment, recorder.runIndex, recorder.runCount));
+  recorder.runCount = 0;
+  for (const line of section("rows", recorder.runs)) recorder.lines.push(line);
+  recorder.runs = [];
   recorder.encoded = last;
   return true;
+}
+
+/** Folds the pending checkpoint's next fighter, or its match and frame and writes its line; true while more remains. */
+function stepCheckpoint(recorder: MatchReplayRecorder): boolean {
+  const checkpoint = recorder.checkpoint;
+  if (checkpoint === undefined) return false;
+  const { world, match, runtime } = recorder.checkpointState;
+  while (checkpoint.slot < PARTICIPANT_SLOTS.length && !isActive(world, checkpoint.slot)) checkpoint.slot++;
+  if (checkpoint.slot < PARTICIPANT_SLOTS.length) {
+    foldFighter(checkpoint.lanes, checkpoint.slot, fighterAt(world, checkpoint.slot));
+    checkpoint.slot++;
+    return true;
+  }
+  recorder.checkpoint = undefined;
+  recorder.lines.push(`checkpoint ${checkpoint.frame} ${foldMatchAndFrame(checkpoint.lanes, match, runtime)}`);
+  return false;
+}
+
+/** Writes the pending checkpoint's line now: before any other line, so lines keep their order. */
+function finishCheckpoint(recorder: MatchReplayRecorder): void {
+  while (stepCheckpoint(recorder));
 }
 
 /** After the match ran `frame` and the moment recorded its rows: every two seconds of the segment, its rows and a checkpoint. */
 export function matchReplayFrameRan(recorder: MatchReplayRecorder, moment: Readonly<MomentRecorder>, frame: number, world: Readonly<Roster>, match: Readonly<MatchState>, controls: Readonly<FrameControls>, runtime: Readonly<PacingAndPresentation>): void {
   if (!recorder.open || recorder.ended) return;
   recorder.last = frame;
-  if (floorMod(frame - recorder.segmentStart, CHECKPOINT_FRAMES) !== 0) return;
+  if (floorMod(frame - recorder.segmentStart, CHECKPOINT_FRAMES) !== 0) {
+    if (!scanRows(recorder, moment, frame)) recorder.failed = true;
+    return;
+  }
   if (!encodeRows(recorder, moment, frame)) {
     recorder.failed = true;
     return;
   }
-  recorder.lines.push(`checkpoint ${frame} ${checksumVia(recorder.scratch, { world, match, controls, runtime })}`);
+  // The same checksum checksumVia gives, its fighters folded on the callbacks after this frame.
+  copyReplayState(recorder.checkpointState, { world, match, controls, runtime });
+  const lanes: Lanes = { first: 0, second: 0 };
+  foldInteger(lanes, 1, recorder.checkpointState.world.mask);
+  recorder.checkpoint = { frame, lanes, slot: 0 };
 }
 
 /**
@@ -393,14 +471,16 @@ export function matchReplayFrameRan(recorder: MatchReplayRecorder, moment: Reado
 export function endMatchReplaySegment(recorder: MatchReplayRecorder, moment: Readonly<MomentRecorder>, world: Readonly<Roster>, match: Readonly<MatchState>, controls: Readonly<FrameControls>, runtime: Readonly<PacingAndPresentation>): void {
   if (!recorder.open || recorder.ended) return;
   recorder.ended = true;
+  finishCheckpoint(recorder);
   if (!encodeRows(recorder, moment, recorder.last)) recorder.failed = true;
   recorder.checksum = checksumVia(recorder.scratch, { world, match, controls, runtime });
   if (recorder.last > recorder.segmentStart && floorMod(recorder.last - recorder.segmentStart, CHECKPOINT_FRAMES) === 0) return;
   recorder.lines.push(`checkpoint ${recorder.last} ${recorder.checksum}`);
 }
 
-/** Every callback: the next tokens of a starting state's text. */
+/** Every callback: the pending checkpoint's next fighter and the next tokens of a starting state's text. */
 export function continueMatchReplay(recorder: MatchReplayRecorder): void {
+  stepCheckpoint(recorder);
   continueStateText(recorder, STATE_TOKENS_PER_CALLBACK);
 }
 

@@ -187,6 +187,13 @@ code. From smashcraft:ts/:
   on a rise in predicted cost, allocation or typing stall. Landing gate (#48):
   CI holds `playable-bot-four` to smashcraft:ts/test/fixtures/perf/playable-bot-four.perf;
   after an intended rise or a cut, rewrite that file with `--out` and commit it.
+  `bun wisp perf budget RUN_FILE` holds a `--samples` run to #168's frame
+  budget (p99 10 ms, worst 14 ms predicted). Spike census (#168): `bun wisp
+  perf census [--fighter NAME] [--stage ID] [--profile]` plays every
+  fighter's moves, specials and follow-ups in a playable-build training match
+  and every stage's hazards, and fails any entry over 2 ms above its standing
+  baseline; `--profile` names the map functions of each worst frame. Run it
+  on the farm (`bun wisp farm perf "census --fighter archer --profile"`).
 - Soak: `bun wisp soak` plays 200 headless matches, every fighter pair on
   every stage with fuzzed and computer players, in at most four workers
   (run it inside the capacity scope), and writes a repro file per finding;

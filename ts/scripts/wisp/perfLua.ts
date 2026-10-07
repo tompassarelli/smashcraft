@@ -4,15 +4,19 @@
 // quick match; bot and bot-four are the native bot session's match with the
 // integrity build (botMatch.ts), counted from its first match frame; bot-NAME
 // plays that match against one computer of the named selectable fighter;
-// playable-bot-four plays bot-four with the playable build.
+// playable-bot-four plays bot-four with the playable build; census-FIGHTER and
+// census-stage-ID play the spike census (census.ts).
 // Usage: lua build/perf.lua MAP_LUA WARCRAFT_D_TS [RUN [FRAMES [samples]]]
-import { runLuaPerf, runLuaPerfWith } from "wisp/src/headless/luaPerf";
+import { type PerfMeasure, runLuaPerf, runLuaPerfWith } from "wisp/src/headless/luaPerf";
+import type { Lockstep } from "wisp/src/headless/lockstep";
 import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/src/headless/syncChannel";
 import { SELECTABLE_CHARACTERS, fighterSlug } from "../../src/game/sim/heroes/registry";
 import { BOT_FOUR, BOT_THREE, botMatchAgainst, playBotMatch } from "./botMatch";
 import { PREDICTED_LOCAL_NATIVES, SMASHCRAFT_LOCAL_NATIVES } from "./localNatives";
 import { PLAYABLE_BUILD } from "../../src/game/shell/currentBuild";
 import { QUICK_MATCH } from "./quickMatch";
+import { playFighterCensus, playStageCensus } from "./census";
+import { profileCensus } from "./censusProfile";
 
 declare const arg: Readonly<Record<number, string | undefined>>;
 
@@ -22,8 +26,22 @@ const map = { filePrefix: "smashcraft", localNatives: SMASHCRAFT_LOCAL_NATIVES }
 const options = { samples: samples === "samples" };
 const computer = SELECTABLE_CHARACTERS.find((character) => run === `bot-${fighterSlug(character)}`);
 const bot = run === "bot" ? BOT_THREE : run === "bot-four" || run === "playable-bot-four" ? BOT_FOUR : computer !== undefined ? botMatchAgainst(computer) : undefined;
+// census-profile-X replays census-X with a sampling profiler on the frames CENSUS_PROFILE_FRAMES lists (censusProfile.ts).
+const profiling = run.startsWith("census-profile-");
+const censusRun = profiling ? `census-${run.substring("census-profile-".length)}` : run;
+const censusFighter = SELECTABLE_CHARACTERS.find((character) => censusRun === `census-${fighterSlug(character)}`);
+const censusStage = censusRun.startsWith("census-stage-") ? Number(censusRun.substring("census-stage-".length)) : undefined;
 let problems: number;
-if (run === "quick-match") problems = runLuaPerf(map, QUICK_MATCH, bundle, declarations, options);
+if (censusFighter !== undefined || censusStage !== undefined) {
+  // One client, no sync latency: each frame is one simulated frame and its presentation.
+  const census = { filePrefix: "smashcraft", localNatives: SMASHCRAFT_LOCAL_NATIVES, players: [0] };
+  const play = (clients: Lockstep, measure: PerfMeasure) => censusFighter !== undefined ? playFighterCensus(clients, measure, censusFighter, fighterSlug(censusFighter)) : playStageCensus(clients, measure, censusStage ?? 0, `${censusStage}`);
+  if (profiling) {
+    const frames = new Set<number>();
+    for (const text of (os.getenv("CENSUS_PROFILE_FRAMES") ?? "").split(",")) if (text !== "") frames.add(Number(text));
+    problems = profileCensus(census, bundle, declarations, frames, play);
+  } else problems = runLuaPerfWith(census, bundle, declarations, play, options);
+} else if (run === "quick-match") problems = runLuaPerf(map, QUICK_MATCH, bundle, declarations, options);
 else if (bot !== undefined) {
   // The integrity build poses effects and frames its camera from each client's own prediction.
   const predicted = { filePrefix: "smashcraft", localNatives: PREDICTED_LOCAL_NATIVES };

@@ -213,7 +213,7 @@ function frameRowText(recorder: MomentRecorder, index: number): string {
 }
 
 /** Whether two ring positions hold the same slots' rows with the same numbers. */
-function sameFrameRows(recorder: MomentRecorder, first: number, second: number): boolean {
+export function sameFrameRows(recorder: MomentRecorder, first: number, second: number): boolean {
   const mask = at(recorder.rowMasks, first);
   if (mask !== at(recorder.rowMasks, second)) return false;
   for (const slot of PARTICIPANT_SLOTS) {
@@ -226,6 +226,9 @@ function sameFrameRows(recorder: MomentRecorder, first: number, second: number):
   return true;
 }
 
+/** A run of `count` frames whose rows equal ring position `index`'s, as a rows token. */
+export const runToken = (recorder: MomentRecorder, index: number, count: number): string => `${count}:${frameRowText(recorder, index)}`;
+
 /** Rows of frames start + 1 through last, a token per run of equal frames; text only at each run's end. */
 export function rowTokens(recorder: MomentRecorder, start: number, last: number): string[] {
   const tokens: string[] = [];
@@ -237,11 +240,11 @@ export function rowTokens(recorder: MomentRecorder, start: number, last: number)
       count++;
       continue;
     }
-    tokens.push(`${count}:${frameRowText(recorder, run)}`);
+    tokens.push(runToken(recorder, run, count));
     run = index;
     count = 1;
   }
-  if (last > start) tokens.push(`${count}:${frameRowText(recorder, run)}`);
+  if (last > start) tokens.push(runToken(recorder, run, count));
   return tokens;
 }
 
