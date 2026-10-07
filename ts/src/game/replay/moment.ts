@@ -6,7 +6,7 @@
 // through the frame executor the match ran, to the checksum the game recorded.
 import { at } from "wisp/src/runtime/lookup";
 import { lineTokens, parseRecord, recordTokens, tokenLines } from "wisp/src/runtime/recordText";
-import { REPRO_LINE_WIDTH, type Repro, type ReproResult } from "wisp/src/runtime/repro";
+import { REPRO_LINE_WIDTH, type Repro, type ReproInspection, type ReproResult } from "wisp/src/runtime/repro";
 import { floorMod } from "wisp/src/sim/intMath";
 import { adaptInput } from "../input/adapter";
 import { type AttackBuffer, clearAttackBuffer } from "../input/attackBuffer";
@@ -23,7 +23,7 @@ import { type Fighter, PROJECTILE_CAPACITY } from "../sim/fighter";
 import type { AuthoredSpecial, FighterSpecials, SpecialPlacement, SpecialProjectile } from "../sim/heroSpecials";
 import { type Roster, createRoster, fighterAt, isActive } from "../sim/roster";
 import { authoredTuning } from "../sim/tuning";
-import { fighterSpecialsCanonical, specialPlacementCanonical, specialProjectileCanonical, stateChecksum } from "./canonical";
+import { canonicalState, fighterSpecialsCanonical, specialPlacementCanonical, specialProjectileCanonical, stateChecksum } from "./canonical";
 import { type ReplayState, captureReplaySnapshot, copyReplayState, createReplaySnapshot } from "./snapshot";
 
 /** Frames between snapshots: two seconds. */
@@ -516,15 +516,29 @@ export function runNetworkFrame(state: ReplayState, scratch: FrameScratch, saved
 }
 
 /** `wisp repro`'s replay of a saved moment: the snapshot restored, then each saved frame run, to the last frame's checksum. */
-export function replayRepro(repro: Repro): ReproResult {
+function replayMoment(repro: Repro, requested?: number): { readonly result: ReproResult; readonly inspection?: ReproInspection } {
   const moment = parseMoment(repro.lines, repro.frame);
-  if (typeof moment === "string") return { checksum: "", frames: 0, problems: [moment] };
+  if (typeof moment === "string") return { result: { checksum: "", frames: 0, problems: [moment] } };
+  if (requested !== undefined && (requested !== Math.floor(requested) || requested < moment.start || requested > repro.frame)) return { result: { checksum: "", frames: 0, problems: [`frame ${requested} is outside the saved interval ${moment.start}..${repro.frame}`] } };
   const problems: string[] = [];
   const state = createReplaySnapshot();
   const checksums = createReplaySnapshot();
   copyReplayState(state, moment.state);
   const restored = checksumOf(checksums, state);
   if (restored !== moment.startChecksum) problems.push(`the snapshot of frame ${moment.start} restores to checksum ${restored}; the game recorded ${moment.startChecksum}`);
+  let inspection: ReproInspection | undefined;
+  const capture = (frame: number): void => {
+    if (frame !== requested) return;
+    const checksum = checksumOf(checksums, state);
+    const canonical = canonicalState(checksums);
+    const fields: { path: string; value: string }[] = [];
+    for (const token of canonical.split("|")) {
+      const equals = token.indexOf("=");
+      if (equals >= 0) fields.push({ path: token.substring(0, equals), value: token.substring(equals + 1) });
+    }
+    inspection = { frame, checksum, state: canonical, fields };
+  };
+  capture(moment.start);
   const scratch: FrameScratch = { frameInput: createMatchFrameInput(), produced: createFrameControls() };
   let frames = 0;
   let diverged = false;
@@ -536,6 +550,7 @@ export function replayRepro(repro: Repro): ReproResult {
       break;
     }
     frames++;
+    capture(frame);
     const recorded = moment.checkpoints.get(frame);
     if (recorded === undefined || diverged) continue;
     const replayed = checksumOf(checksums, state);
@@ -543,6 +558,19 @@ export function replayRepro(repro: Repro): ReproResult {
     diverged = true;
     problems.push(`frame ${frame} replays to checksum ${replayed}; the game recorded ${recorded}`);
   }
-  return { checksum: checksumOf(checksums, state), frames, problems };
+  const result = { checksum: checksumOf(checksums, state), frames, problems };
+  return inspection === undefined ? { result } : { result, inspection };
 }
 
+/** Ordinary replay and inspection use the same restore and frame executor. */
+export function replayRepro(repro: Repro): ReproResult {
+  return replayMoment(repro).result;
+}
+
+/** Exact snapshot-canonical state after `frame`; backward requests restore the saved start and replay. */
+export function inspectRepro(repro: Repro, frame: number): ReproInspection | string {
+  const { result, inspection } = replayMoment(repro, frame);
+  if (result.problems.length > 0) return result.problems.join("; ");
+  if (result.checksum !== repro.checksum) return `the replay reached checksum ${result.checksum}; the game recorded ${repro.checksum}`;
+  return inspection ?? `frame ${frame} could not be inspected`;
+}

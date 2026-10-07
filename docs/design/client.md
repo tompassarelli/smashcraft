@@ -215,6 +215,11 @@ lobbies (Phase 4).
     input rows, run-length encoded; and checkpoint checksums.
   - `bun wisp repro FILE` replays it in simulated clients to the recorded
     checksum.
+  - `bun wisp repro FILE --frame N --out STATE.json` inspects the exact
+    canonical state after N, including its checksum. `--diff-frame previous`
+    compares N-1 to N; a frame number compares that saved frame to N. Backward
+    inspection restores the moment's snapshot and runs its existing frame
+    executor, preserving live gameplay and the saved file (wisp:docs/repro.md).
   - The recorder keeps six snapshots, one every 120 frames, and a ring of
     rows. It is a full-match replay limited to a window.
 - **Confirmed-frame funnel.** Every confirmed frame, in both callback and

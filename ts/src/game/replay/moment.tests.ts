@@ -1,7 +1,7 @@
 // wisp#15's round trip in Bun and in 32-bit Lua: a moment the recorder saved
 // from a match replays from its snapshot to the checksum of the match itself.
 import { assertDefined, assertEquals, test } from "wisp/src/runtime/testing";
-import { parseRepro, reproLines } from "wisp/src/runtime/repro";
+import { type Repro, parseRepro, reproLines } from "wisp/src/runtime/repro";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { adaptInput } from "../input/adapter";
 import { Action, bit } from "../input/actions";
@@ -15,8 +15,8 @@ import { produceScenarioComputerInput } from "../shell/scenarios";
 import { Character } from "../sim/codes";
 import { type Fighter, createFighter } from "../sim/fighter";
 import { fighterAt, isActive } from "../sim/roster";
-import { stateChecksum } from "./canonical";
-import { MOMENT_FRAMES, beginMomentFrame, beginMomentSave, continueMomentSave, createMomentRecorder, momentFrameRan, recordMomentRow, replayRepro } from "./moment";
+import { canonicalState, stateChecksum } from "./canonical";
+import { MOMENT_FRAMES, beginMomentFrame, beginMomentSave, continueMomentSave, createMomentRecorder, inspectRepro, momentFrameRan, recordMomentRow, replayRepro } from "./moment";
 import { copyReplayState, createReplaySnapshot } from "./snapshot";
 import { createTapeWorld } from "./tapeWorld";
 
@@ -33,7 +33,7 @@ function scriptedRow(slot: number, frame: number): InputRow {
  * a save step a frame, and replays it: it must reach the match's checksum at
  * its end. A callback match pits a human Illidan against a computer archer.
  */
-function roundTrip(callback: boolean, frames: number, row = scriptedRow, fighters?: { first: Fighter; second: Fighter }): void {
+function roundTrip(callback: boolean, frames: number, row = scriptedRow, fighters?: { first: Fighter; second: Fighter }, inspect = false): Repro {
   const tape = callback
     ? createTapeWorld({ stocks: 3, humans: 1, first: createFighter(Character.demonHunter, 0.0, 1), second: createFighter(Character.archer, 100.0, -1) })
     : createTapeWorld({ stocks: 3, humans: 2, ...fighters });
@@ -43,6 +43,15 @@ function roundTrip(callback: boolean, frames: number, row = scriptedRow, fighter
   const frameInput = createMatchFrameInput();
   const produced = createFrameControls();
   const rows: Slots<InputRow> = [emptyInput(), emptyInput(), emptyInput(), emptyInput()];
+  const selected = [0, floorDiv(frames, 2), frames, frames - 1];
+  const expected = new Map<number, { state: string; checksum: string }>();
+  const capture = (frame: number) => {
+    if (!inspect || !selected.includes(frame)) return;
+    const snapshot = createReplaySnapshot();
+    copyReplayState(snapshot, tape.live);
+    expected.set(frame, { state: canonicalState(snapshot), checksum: stateChecksum(snapshot) });
+  };
+  capture(0);
   const run = (frame: number) => {
     for (const slot of PARTICIPANT_SLOTS) rows[slot] = row(slot, frame);
     if (callback) {
@@ -60,6 +69,7 @@ function roundTrip(callback: boolean, frames: number, row = scriptedRow, fighter
     assertEquals(executeMatchFrame(frameInput, match, world, controls, runtime, frame), true);
     if (!callback) for (const slot of PARTICIPANT_SLOTS) if (participantActive(match.humanMask, slot)) recordMomentRow(recorder, frame, slot, rows[slot]);
     momentFrameRan(recorder, frame);
+    capture(frame);
   };
   for (let frame = 1; frame <= frames; frame++) run(frame);
   const scratch = createReplaySnapshot();
@@ -81,7 +91,32 @@ function roundTrip(callback: boolean, frames: number, row = scriptedRow, fighter
   assertEquals(result.checksum, repro.checksum);
   // The latest snapshot ten seconds back starts the moment; a younger match's starts at frame 0.
   assertEquals(result.frames, frames >= MOMENT_FRAMES ? frames - 120 * floorDiv(frames - MOMENT_FRAMES, 120) : frames);
+  if (inspect) {
+    const savedText = moment.lines.join("\n");
+    const live = createReplaySnapshot();
+    copyReplayState(live, tape.live);
+    const liveText = canonicalState(live);
+    for (const frame of selected) {
+      const inspected = inspectRepro(repro, frame);
+      if (typeof inspected === "string") throw new Error(inspected);
+      const ordinary = assertDefined(expected.get(frame), "ordinary frame");
+      assertEquals(inspected.frame, frame);
+      assertEquals(inspected.state, ordinary.state);
+      assertEquals(inspected.checksum, ordinary.checksum);
+      assertEquals(inspected.fields.map(field => `|${field.path}=${field.value}`).join(""), inspected.state.substring(inspected.state.indexOf("|")));
+    }
+    assertEquals(moment.lines.join("\n"), savedText);
+    copyReplayState(live, tape.live);
+    assertEquals(canonicalState(live), liveText);
+    for (const frame of [-1, frames + 1]) assertEquals(typeof inspectRepro(repro, frame), "string");
+  }
+  return repro;
 }
+
+/** The same saved gameplay fixture for the Bun command path and Bun/Lua32 state comparison. */
+export const savedInspectionFixture = (): Repro => roundTrip(false, 120, scriptedRow, undefined, true);
+
+test("moment inspection: saved gameplay start, middle, end and one frame back equal ordinary canonical states", savedInspectionFixture);
 
 // Saved a frame before the record replaces the moment's first snapshot and rows.
 test("moment: a rollback match's last ten seconds replay from their snapshot to the match's checksum", () => roundTrip(false, 839));
