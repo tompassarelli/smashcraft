@@ -875,6 +875,8 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   bool("out", st.out);
   int("respawn", st.respawn);
   bool("shield", s.raised);
+  real("shieldTiltX", s.tiltX);
+  real("shieldTiltZ", s.tiltZ);
   real("shieldEnergy", s.energy);
   int("shieldStun", s.stun);
   int("shieldHeldFrames", s.heldFrames);

@@ -153,6 +153,21 @@ code. From smashcraft:ts/:
   log, crash reports, match receipts and processes, never its screen. Run it
   before clicking or reading a client; `bun wisp client watch CLIENT --once` and
   `bun wisp client wait CLIENT STATE...` read or wait on one (wisp:docs/watch.md).
+- Native script driver: `bun wisp map build --profile native-driver --name NAME --out MAP.w3x`
+  packages a callback match driven by `bun wisp engine drive SCRIPT --client lan0a,lan0b`.
+  `engine drive reset`, `capture`, `pause`, `step N`, and `resume` control the whole map callback;
+  `engine drive FILE` accepts a pad script with its `#! chat` setup, starts at
+  frame 0 paused, and uses the normal input-row adapter. A command file containing
+  `capture` holds and saves the current frame, and pad `capture` lines save the
+  named client's moment at their frame. VIEW held 60 frames saves its normal moment;
+  START uses the normal pause action, and a driver resume continues that pause. `resume N` runs until frame N, while `step N` advances N frames from the current
+  frame. Holds write the canonical checksum and saved moments for `bun wisp repro`.
+  `bun scripts/nativeDriverAcceptance.ts --clients-file FILE --client lan0a,lan0b
+  --script test/native/pads/archer-neutral.pad --frames 460 --runs 50 --out DIR`
+  measures 50 full pad runs plus one stepped control, compares both clients and
+  replays each hold. `--game-start-ms N` records launch-to-first-check time from the
+  timestamp before hosting the map.
+  This diagnostic path measures native script delivery, not hardware pad timing.
 - Engine debugger: a native desync? `bun wisp engine desync A B` names the
   first differing turn and checksum section of the clients' Desync.log
   dumps; `bun wisp engine poll --client a,b` during a repro and `bun wisp
@@ -298,6 +313,12 @@ code. From smashcraft:ts/:
   Home marks an armed pad; End commits a complete payload. While Home stays
   held and End is released for an update, capture retains the last complete
   pad row's axes and pressures. Focus loss or Home release clears that packet.
+  `bun scripts/analogNative.ts --pair N --clients-file FILE --helper WC3_CONTROLLER
+  --map MAP --route keys|cursor --out DIR --app-id NAME=ID --app-id NAME=ID`
+  runs 20 normal one-stock matches on an already admitted LAN pair; `--plan`
+  prints the setup without touching clients. It saves calibration clock anchors,
+  helper submissions, injected command times and each match's complete input
+  rows and event counts for the physical route comparison.
 - Roster AI coverage: `bun scripts/cpuCoverage.ts` prints movement, attacks,
   kit use, defense and recovery for all 13 selectable fighters over eight
   seeded Wren Expert matches each; `GAME_TESTS=botCoverage bun test test/game.test.ts`

@@ -1,0 +1,25 @@
+# #203: hold RT shield and LB Tilt; full pushes angle the bubble without escapes.
+#! chat -dev quick hero archer
+60 a shield 1
+61 a press LB
+70 a stick 0 1
+76 a capture
+77 a stick 0 0
+85 a stick 1 0
+91 a capture
+92 a stick 0 0
+100 a stick 0 -1
+106 a capture
+107 a stick 0 0
+115 a stick -1 0
+121 a capture
+122 a stick 0 0
+130 a shield 0
+134 a release LB
+#! expect a 70 shield tilt x 0.000 z 0.650 raised 1 grounded 1 roll 0 jump 0
+#! expect a 85 shield tilt x 0.650 z 0.000 raised 1 grounded 1 roll 0 jump 0
+#! expect a 100 shield tilt x 0.000 z -0.650 raised 1 grounded 1 roll 0 jump 0
+#! expect a 115 shield tilt x -0.650 z 0.000 raised 1 grounded 1 roll 0 jump 0
+#! absent a 60-134 applied jump
+160 a press VIEW
+230 a release VIEW

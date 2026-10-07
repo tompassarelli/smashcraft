@@ -117,6 +117,13 @@ test("a pad parity check reads the input trace's checksums and fighter lines and
   expect(() => parseExpectations("#! expects a 1 x")).toThrow("line 1");
 });
 
+test("shield tilt is a compared fighter event and can satisfy cardinal pad expectations", () => {
+  const trace = parseTrace(["80 1.333 participant 0 frame 70 phase 2 shield tilt x 0.000 z 0.650 raised 1 grounded 1 roll 0 jump 0"]);
+  const expectations = parseExpectations("#! expect a 70 shield tilt x 0.000 z 0.650 raised 1 grounded 1 roll 0 jump 0");
+  expect(unmetExpectations(trace, expectations, "headless")).toEqual([]);
+  expect(trace.events).toHaveLength(1);
+});
+
 test("a native pad run that desynced, crashed or ended early is invalid, neither pass nor fail", () => {
   const root = mkdtempSync(join(tmpdir(), "pad-parity-"));
   const [native, headless] = [join(root, "native"), join(root, "headless")];
