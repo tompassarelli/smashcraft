@@ -1,0 +1,20 @@
+# #239: Warden Fan of Knives cast and full reach, ground and air.
+#! chat -dev quick hero warden
+60 a stick 0 -1
+60 a tap X 2
+61 a stick 0 0
+64 a capture
+68 a capture
+70 a capture
+120 a tap B 8
+133 a stick 0 -1
+133 a tap X 2
+134 a stick 0 0
+137 a capture
+141 a capture
+143 a capture
+200 a press VIEW
+270 a release VIEW
+#! expect a 60 special 16 form 0
+#! expect a 133 special 16 form 1
+#! scene a FanOfKnivesMissile

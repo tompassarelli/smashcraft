@@ -11,7 +11,7 @@ import { collectDamageContact, finishDamageContacts, openDamageContacts } from "
 import { type Fighter, PROJECTILE_CAPACITY, type Projectile } from "./fighter";
 import { type HitEffect, HitElement, copyHitEffect, emptyHitEffect } from "./hitRegions";
 import type { SpecialProjectile } from "./heroSpecials";
-import { hurtCapsule, segmentBoxesOverlap } from "../physics/contactGeometry";
+import { capsulesIntersect, emptyCapsule, hurtCapsule, placeCapsule, segmentBoxesOverlap } from "../physics/contactGeometry";
 import { RIFLEMAN_BLASTER_GROUND_DAMAGE_MULTIPLIER, attackDamage } from "./moves";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type Roster, fighterAt, isActive } from "./roster";
@@ -344,6 +344,8 @@ function returnToOwner(owner: Fighter, projectile: Projectile, speed: number): b
  * standing body widened by its radius. It reaches nothing before its age
  * reaches `activeFrom`; a non-reflectable one meets a reflector as a shield.
  */
+const heroFlight = emptyCapsule();
+const heroTarget = emptyCapsule();
 function flyHeroProjectile(world: Roster, ownerSlot: number, projectile: Projectile, hit: { reflector: boolean; shield: boolean }): number | undefined {
   const spec = projectile.spec;
   // A reflected one (its damage multiplied down) belongs to the reflector and flies straight on.
@@ -360,6 +362,11 @@ function flyHeroProjectile(world: Roster, ownerSlot: number, projectile: Project
   }
   if (spec === undefined || spec.life - projectile.life <= (spec.activeFrom ?? 0) - 1) return undefined;
   const radius = heroProjectileRadius(projectile, spec);
+  heroFlight.x1 = oldX;
+  heroFlight.z1 = oldZ;
+  heroFlight.x2 = projectile.x;
+  heroFlight.z2 = projectile.z;
+  heroFlight.radius = radius;
   const direction = projectile.velocityX < 0 ? -1 : projectile.velocityX > 0 ? 1 : projectile.direction;
   let nearest: number | undefined;
   let distance = 0.0;
@@ -379,7 +386,9 @@ function flyHeroProjectile(world: Roster, ownerSlot: number, projectile: Project
     const shieldContact = target.shield.raised && shieldCircleIntersects(target, oldX, oldZ, projectile.x, projectile.z, 1.0, radius);
     const reflector = spec.reflectable && shieldContact && at(targets.reflecting, targetSlot);
     const candidate = Math.abs(f32(targetX - oldX));
-    if ((shieldContact || ((crossed || near) && height)) && (nearest === undefined || candidate < distance)) {
+    const bodyContact = (crossed || near) && height
+      && capsulesIntersect(heroFlight, placeCapsule(heroTarget, body, targetX, targetZ, target.facing));
+    if ((shieldContact || bodyContact) && (nearest === undefined || candidate < distance)) {
       nearest = targetSlot;
       distance = candidate;
       hit.reflector = reflector;

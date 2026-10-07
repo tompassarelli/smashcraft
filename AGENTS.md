@@ -109,9 +109,13 @@ code. From smashcraft:ts/:
   clips and writing both-facing silhouette sheets for the native review.
   `bun tools/animations/down-air-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends
   downward contact poses for the seven stock heroes whose casts/swings pointed forward.
+  `bun tools/animations/dreadlord-pounce-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` authors Dreadlord’s horizontal corkscrew, bite and recovery; `bun tools/animations/dreadlord-pounce-captures.ts PRIVATE_ASSETS PRIVATE_OUTPUT` captures their production phase selection in both facings.
   `bun tools/animations/jump-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends
   movement-only jump gestures, including Blademaster's front flip
   (smashcraft:docs/fighter-animation-work.md).
+  `bun tools/animations/warden-fan-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` authors
+  Warden's ground and air Fan of Knives casts, preserving other clips
+  (smashcraft:docs/design/warden-fan-of-knives.md).
   `bun tools/animations/down-air-captures.ts PRIVATE_ASSETS PRIVATE_OUTPUT` writes
   both-facing down-air sheets from production pose selection and the roster's
   strike-height inventory (smashcraft:docs/down-airs.md).
@@ -119,10 +123,16 @@ code. From smashcraft:ts/:
   coordinated expansion-hero reach, hold, pummel and four-direction holder/victim
   gestures or reauthors their existing indices. `--character` limits reauthoring
   to one expansion fighter (smashcraft:docs/fighter-animation-work.md).
+  `bun tools/animations/pit-lord-specials.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
+  authors Pit Lord's four special gestures while preserving all earlier clips.
   `bun tools/animations/grab-pads.ts` generates the #180 mirror and unlike-height capture batch:
   ten expansion heroes, four throws, both facings, with ordinary catch/pummel
   inputs and contact-frame captures in smashcraft:ts/test/native/pads/180/.
   `-dev quick pair FIRST / SECOND` selects different named fighters in the two human slots.
+- Original strike authoring (from the repository root):
+  `blender --background --python tools/animations/strikes.py -- archer|rifleman|illidan`.
+  `SMASHCRAFT_ANIMATION_ASSETS=PRIVATE_DIR` selects Archer's editable inputs;
+  `SMASHCRAFT_STRIKE_CLIP='Attack Jab'` reauthors only the fist punch.
 - Thrall stock-rig animation authoring (from the repository root):
   `bun tools/animations/thrall-clips.ts STOCK_THRALL.mdx PRIVATE_OUTPUT` appends
   mounted hammer, casting, recovery, grab and nine contact-reaction clips,
@@ -265,7 +275,7 @@ code. From smashcraft:ts/:
   match and writes kept ones back (smashcraft:docs/typescript.md).
 - Player view: `bun wisp view scene DATA_DIR...` and `bun wisp view frame
   FRAME.ppm...` report what a player would see wrong; `view models` rewrites
-  the model facts they read (smashcraft:docs/player-view.md); `view strikes`
+  the model facts they read (smashcraft:docs/player-view.md); `view strikes --assets DIR`
   rewrites the hero strike moments swings and specials align to
   (smashcraft:docs/fighter-animation-work.md, "Hero swing alignment");
   `view motion --assets DIR` measures every fighter's movement and recovery
@@ -462,6 +472,9 @@ code. From smashcraft:ts/:
   Render cadence: `-dev render-clock` in a development map records timer
   callback bursts and cost; `bun wisp accept --only 169-render-clock --dry-run`
   prints its native plan (smashcraft:docs/high-refresh.md).
+  `-dev camera-smooth on|off` compares native one-frame camera transitions
+  with the normal camera in the same development map; it keeps the simulated
+  camera unchanged (smashcraft:docs/high-refresh.md).
   Script-cost capture: `bun wisp build --profile native-perf ...` uses playable
   key input and pooled presentation with developer setup commands. In a match,
   `-dev capture 18000` writes every client's raw callback samples; read full-run
