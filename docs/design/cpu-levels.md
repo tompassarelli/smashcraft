@@ -43,10 +43,13 @@ one with frame-1 reactions feels like input reading
   moving monotonically toward full strength (the table below); no level
   changes how the computer moves its fighter or which plans its gameplan
   offers, only how quickly, how often and how well it uses them.
-- **Level 9 is the computer at full strength**: the gameplan computer that
-  #105 tuned, plus the whiff punish below. It answers a strike as soon as the strike is coming,
-  which is Ultimate's level-9 feel at Smashcraft's 12-frame lookahead; its
-  fighter's gameplan is what makes it a solid player rather than a reader.
+- **Level 9 reacts after 200 ms.** Its decisions use the opponent observation
+  from 12 input frames earlier. Lower levels use older observations (the
+  curve below); attacks, shields, jumps, movement, statuses and projectiles
+  all cross the same delay. The computer reads no opponent input or pending
+  command. Own movement legality, damage response, escape and recovery use
+  its current state. A chosen sequence follows its own move clock without
+  paying the observation delay again.
 - **Level 1 is a punching bag**: it stands still more than half the time,
   answers no attack, throws moves that can't reach, never influences a
   launch, never techs, climbs straight up from the ledge and stands up from
@@ -63,18 +66,23 @@ one with frame-1 reactions feels like input reading
 
 | Level | Reaction (frames) | Threats answered | Attack pause (frames) | Misplays | Idle | Gameplan weights | DI | Tech | Mash every (grab / freeze) | Ledge and get-up mixups | Shield grabs | Kit options | Punishes | Window misjudged (frames) |
 | ---: | ---: | ---: | --- | ---: | ---: | --- | ---: | ---: | --- | --- | --- | ---: | ---: | ---: |
-| 1 | 30 | 0% | 60 + 0-59 | 45% | 55% | no | 0% | 0% | 14 / 16 | no | no | 0% | 10% | 12 |
-| 2 | 25 | 10% | 46 + 0-49 | 35% | 40% | no | 10% | 10% | 12 / 14 | no | no | 0% | 20% | 10 |
-| 3 | 20 | 20% | 36 + 0-41 | 26% | 28% | no | 30% | 20% | 10 / 12 | no | no | 0% | 30% | 8 |
-| 4 | 16 | 30% | 28 + 0-33 | 18% | 18% | yes | 40% | 30% | 8 / 10 | yes | no | 30% | 40% | 6 |
-| 5 | 13 | 40% | 21 + 0-27 | 12% | 10% | yes | 50% | 40% | 6 / 9 | yes | yes | 40% | 50% | 5 |
-| 6 | 10 | 50% | 15 + 0-23 | 7% | 5% | yes | 60% | 50% | 5 / 8 | yes | yes | 50% | 60% | 4 |
-| 7 | 7 | 50% | 11 + 0-20 | 4% | 2% | yes | 80% | 60% | 4 / 7 | yes | yes | 70% | 70% | 3 |
-| 8 | 4 | 60% | 8 + 0-18 | 2% | 0% | yes | 90% | 62.5% | 3 / 6 | yes | yes | 80% | 90% | 1 |
-| 9 | 0 | 70% | 6 + 0-17 | 0% | 0% | yes | 100% | 66.7% | 2 / 6 | yes | yes | 100% | 100% | 0 |
+| 1 | 36 | 0% | 60 + 0-59 | 45% | 55% | no | 0% | 0% | 14 / 16 | no | no | 0% | 10% | 12 |
+| 2 | 33 | 10% | 46 + 0-49 | 35% | 40% | no | 10% | 10% | 12 / 14 | no | no | 0% | 20% | 10 |
+| 3 | 30 | 20% | 36 + 0-41 | 26% | 28% | no | 30% | 20% | 10 / 12 | no | no | 0% | 30% | 8 |
+| 4 | 27 | 30% | 28 + 0-33 | 18% | 18% | yes | 40% | 30% | 8 / 10 | yes | no | 30% | 40% | 6 |
+| 5 | 24 | 40% | 21 + 0-27 | 12% | 10% | yes | 50% | 40% | 6 / 9 | yes | yes | 40% | 50% | 5 |
+| 6 | 21 | 50% | 15 + 0-23 | 7% | 5% | yes | 60% | 50% | 5 / 8 | yes | yes | 50% | 60% | 4 |
+| 7 | 18 | 50% | 11 + 0-20 | 4% | 2% | yes | 80% | 60% | 4 / 7 | yes | yes | 70% | 70% | 3 |
+| 8 | 15 | 60% | 8 + 0-18 | 2% | 0% | yes | 90% | 62.5% | 3 / 6 | yes | yes | 80% | 90% | 1 |
+| 9 | 12 | 70% | 6 + 0-17 | 0% | 0% | yes | 100% | 66.7% | 2 / 6 | yes | yes | 100% | 100% | 0 |
 
-- *Reaction*: frames an attacker's move must have run (a shot must have
-  flown, Immolation burned) before the computer answers it at all.
+- *Reaction*: age of the visible opponent observation used for decisions,
+  from 600 ms at level 1 to 200 ms at level 9, decreasing by 50 ms per level.
+  Defense and punish do not wait a second time after that observation arrives.
+- *Direction commitment*: every level keeps a horizontal choice for at least
+  five input frames before reversing, on the ground and in the air. Neutral
+  braking may happen immediately, but does not reset that hold. Directional
+  influence during hitlag and grab escape use their separate own-state rules.
 - *Threats answered*: of the threats it sees in time, the share it shields,
   dodges, parries or meets with a stance; the rest it takes.
 - *Attack pause*: frames after an attack before it may start another.
@@ -100,7 +108,7 @@ one with frame-1 reactions feels like input reading
 Without it, the computer answered threats but never attacked into an
 opponent's end lag, so slow, committal fighters (Pit Lord) got away with
 whiffs and overperformed in #105's matrix. smashcraft:ts/src/game/match/botPunish.ts
-reads the window straight from the opponent's counters, the frames until it
+reads the window from the delayed opponent observation, the frames until it
 can act: a ground move past its active frames (`attack.cooldown`), a missed
 grab, a hero special past its last strike with nothing still to come (no
 shot, partner, guard, armor or branch), landing lag, a dropped shield's
@@ -119,19 +127,22 @@ turn. With nothing in reach it runs in when a move would arrive in time
 (a jab out of a run is the dash attack), and a shield lets go only for a
 grab. It runs after defense and before the attack pause and idle
 stretches, so a level's pause doesn't eat the window; the level gates it
-with its reaction (frames of the window that must pass first, where the
-window's start is known), the punish share and the misjudgment, each drawn
+with its delayed perception, the punish share and the misjudgment, each drawn
 on the window's key under the match seed. Scripted checks:
 smashcraft:ts/src/game/match/botPunishContracts.tests.ts.
 
 ## Determinism and the match seed
 
-Every computer decision is a function of the match state and the frame,
+Every computer decision is a function of the match state, its bounded
+opponent-observation history, its direction commitment and the frame,
 drawn with `botChoice` (a scramble of 32-bit-safe integers), so each client
 and every rollback re-simulation derives the same input. Levels live in
 `MatchState.cpuLevels` and the seed in `MatchState.matchSeed`, both in the
 snapshot, canonical state and first-difference, so restoring a snapshot
-restores them. The seed salts every `botChoice` for the length of one
+restores them. Observation records are immutable and shared by detached
+snapshots; canonical state includes every observed scalar, and replay
+restores the last horizontal choice and its first frame. Match start and
+rematch clear both. The seed salts every `botChoice` for the length of one
 computer's decision (`useMatchSeed`); the salt is `seed mod 46337 × 7919 mod
 46337`, products below 2^31, so Warcraft's 32-bit Lua agrees with Bun. Seed 0
 salts nothing. The first match after the map loads plays seed 0; each later

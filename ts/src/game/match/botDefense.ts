@@ -27,6 +27,8 @@ const STRIKE_LOOKAHEAD = 12;
 const SHOT_SIGHT = 260.0;
 /** A shield's pushback can carry the defender about this far. */
 const PUSHBACK_ROOM = 60.0;
+/** The target supplied to this decision has already passed its perception delay. */
+const PERCEIVED_FULL_SKILL: CpuSkill = { ...FULL_SKILL, reactionFrames: 0 };
 
 const Response = { none: 0, shield: 1, spotDodge: 2, roll: 3, stance: 5, jump: 6, retreat: 7, wait: 8 } as const;
 type Response = (typeof Response)[keyof typeof Response];
@@ -144,7 +146,7 @@ function respond(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number,
  * true when that took this frame's input. A shield is held while the threat
  * lasts, then dropped for the caller's next move.
  */
-export function chooseDefense(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, input: Controls, skill: CpuSkill = FULL_SKILL): boolean {
+export function chooseDefense(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, input: Controls, skill: CpuSkill = PERCEIVED_FULL_SKILL): boolean {
   if (!f.motion.grounded || target.status.out) return false;
   if (!findThreat(f, target, skill.reactionFrames)) return false;
   if (f.shield.raised) {

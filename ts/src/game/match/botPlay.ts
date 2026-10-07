@@ -3,20 +3,22 @@
 // rollback replays and every client derive the same decisions from the same
 // state. Every choice is a function of that state and the frame number.
 import { f32 } from "wisp/src/sim/f32";
+import { at } from "wisp/src/runtime/lookup";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { type AttackBuffer, clearAttackBuffer } from "../input/attackBuffer";
-import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots } from "../input/participants";
+import { type ParticipantSlot, type Slots } from "../input/participants";
 import { DownState, GrabAction, ShieldBreak } from "../sim/codes";
 import { heroStatusBlocksActions, heroStatusMashes } from "../sim/heroStatus";
 import type { Fighter } from "../sim/fighter";
 import { isSmashAttack } from "../sim/moves";
-import { type Controls, type Roster, copyControls, fighterAt, isActive, neutralControls } from "../sim/roster";
+import { type Controls, type Roster, copyControls, fighterAt, neutralControls } from "../sim/roster";
 import { surfacePass } from "../sim/stage";
 import { type FighterGameplan, GameplanThrow } from "../sim/gameplan";
 import { SPACE_PLAN, avoids, gameplanGoal, gameplanOf, gameplanPlan, gameplanThrow, jumpsIn, keptGap, onAnotherDeck, plansRanged, spacingAerialAt } from "./botGameplan";
 import { steerInAir, steerOnGround } from "./botFooting";
 import { botChance, botChoice, chooseAttack, smashChargeGoal, useMatchSeed } from "./botMoves";
-import { type CpuSkill, cpuSkill } from "./cpuLevel";
+import { CPU_SKILLS, type CpuSkill, cpuSkill } from "./cpuLevel";
+import { type BotMemory, observeOpponents, perceivedOpponent, perceivedHeldFighter, commitBotDirection } from "./botPerception";
 import { chooseDefense } from "./botDefense";
 import { choosePunish } from "./botPunish";
 import { chooseRecoveryInput } from "./botRecovery";
@@ -36,22 +38,10 @@ type Plan = (typeof Plan)[keyof typeof Plan];
 const RANGE_SPACING = 320.0;
 /** A target this much higher is worth a full jump. */
 const ABOVE = 110.0;
+// Perception already waited: defense and punish must not impose the delay again.
+const PERCEIVED_SKILLS = CPU_SKILLS.map(skill => ({ ...skill, reactionFrames: 0 }));
 
-function nearestOpponent(world: Roster, slot: ParticipantSlot, fighter: Readonly<Fighter>): Fighter | undefined {
-  let nearest: Fighter | undefined;
-  let distance = 0.0;
-  for (const candidate of PARTICIPANT_SLOTS) {
-    if (!isActive(world, candidate) || candidate === slot) continue;
-    const target = fighterAt(world, candidate);
-    if (target.status.out || target.status.stocks <= 0) continue;
-    const gap = Math.abs(f32(target.motion.x - fighter.motion.x));
-    if (nearest === undefined || gap < distance) {
-      nearest = target;
-      distance = gap;
-    }
-  }
-  return nearest;
-}
+interface BotRuntime { botAttackDelays: Slots<number>; readonly botMemory: BotMemory }
 
 function planFor(f: Readonly<Fighter>, slot: number, frame: number): Plan {
   const choice = botChoice(floorDiv(frame, PLAN_FRAMES), slot * 13 + f.character, 6);
@@ -142,16 +132,23 @@ function approachByGameplan(f: Readonly<Fighter>, target: Readonly<Fighter>, sta
  * The computer in `slot` plays at its level under the match seed. Correcting
  * human movement also corrects every computer decision derived from it.
  */
-export function produceComputerInput(game: Readonly<MatchState>, world: Roster, runtime: { botAttackDelays: Slots<number> }, slot: ParticipantSlot, frame: number, input: Controls, commands: AttackBuffer): void {
+export function produceComputerInput(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, slot: ParticipantSlot, frame: number, input: Controls, commands: AttackBuffer): void {
   useMatchSeed(game.matchSeed);
-  decide(game, world, runtime, slot, frame, input, commands, cpuSkill(game.cpuLevels[slot]));
+  const skill = cpuSkill(game.cpuLevels[slot]);
+  observeOpponents(runtime.botMemory, world, frame);
+  const fighter = fighterAt(world, slot);
+  const target = fighter.grab.target === undefined ? perceivedOpponent(runtime.botMemory, fighter, slot, frame, skill.reactionFrames)
+    : perceivedHeldFighter(runtime.botMemory, fighter.grab.target, frame, skill.reactionFrames);
+  decide(game, world, runtime, slot, frame, input, commands, at(PERCEIVED_SKILLS, skill.level - 1), target);
+  // DI and escape mashing are reactions to the fighter's own state, not steering.
+  if (fighter.launch.hitlag <= 0 && fighter.grab.owner === undefined) commitBotDirection(runtime.botMemory, slot, frame, input);
   useMatchSeed(0);
 }
 
 /** Half a second: a computer that idles stands still this long. */
 const IDLE_FRAMES = 30;
 
-function decide(game: Readonly<MatchState>, world: Roster, runtime: { botAttackDelays: Slots<number> }, slot: ParticipantSlot, frame: number, input: Controls, commands: AttackBuffer, skill: CpuSkill): void {
+function decide(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, slot: ParticipantSlot, frame: number, input: Controls, commands: AttackBuffer, skill: CpuSkill, target: Readonly<Fighter> | undefined): void {
   const fighter = fighterAt(world, slot);
   copyControls(input, COMPUTER_NEUTRAL);
   clearAttackBuffer(commands);
@@ -160,7 +157,6 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: { botAttackD
   const delay = f32(runtime.botAttackDelays[slot] - TICK);
   runtime.botAttackDelays[slot] = delay;
   const stage = game.stageChoice;
-  const target = nearestOpponent(world, slot, fighter);
   const gameplan = gameplanOf(fighter.character);
   if (fighter.launch.hitlag > 0) {
     // Hitlag's last frame reads the stick for directional influence: in toward the middle.
@@ -179,7 +175,7 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: { botAttackD
     return;
   }
   if (fighter.grab.target !== undefined) {
-    followUpGrab(fighter, fighterAt(world, fighter.grab.target), gameplan, frame, input);
+    if (target !== undefined) followUpGrab(fighter, target, gameplan, frame, input);
     return;
   }
   if (fighter.shield.breakState !== ShieldBreak.none) {

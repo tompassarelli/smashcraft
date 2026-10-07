@@ -15,6 +15,7 @@ import { produceComputerInput } from "./botPlay";
 import { observedFrameLegalActions, observedFrameStartedActions, stepMatch } from "./step";
 import { latchPresses, releasePresses } from "./training";
 import { type ReplayState, copyReplayState } from "../replay/snapshot";
+import { type BotMemory, copyBotMemory, createBotMemory, firstBotMemoryDifference } from "./botPerception";
 
 /** Detached source rows. Every execution adapts again from the world being replayed. */
 export interface MatchFrameInput {
@@ -25,6 +26,7 @@ export interface MatchFrameInput {
   readonly values: FrameControls;
   readonly network: ParticipantInputs;
   readonly botDelaysAfterInput: Slots<number>;
+  readonly botMemoryAfterInput: BotMemory;
   readonly scratch: FrameControls;
 }
 
@@ -32,6 +34,7 @@ export function createMatchFrameInput(): MatchFrameInput {
   return {
     frame: undefined, mask: 0, networkMask: 0, source: "adapted",
     values: createFrameControls(), network: participantInputs(), botDelaysAfterInput: [0.0, 0.0, 0.0, 0.0], scratch: createFrameControls(),
+    botMemoryAfterInput: createBotMemory(),
   };
 }
 
@@ -45,6 +48,7 @@ export function captureFrame(row: MatchFrameInput, frame: number, mask: number, 
   if (frame < 0 || row.frame === frame || !isParticipantMask(mask)) return false;
   row.frame = frame;
   row.mask = mask;
+  copyBotMemory(row.botMemoryAfterInput, runtime.botMemory);
   for (const slot of PARTICIPANT_SLOTS) {
     if (participantActive(mask, slot)) {
       copyControls(row.values.inputs[slot], controls.inputs[slot]);
@@ -92,6 +96,7 @@ export function copyMatchFrameInput(target: MatchFrameInput, source: Readonly<Ma
   target.mask = source.mask;
   target.networkMask = source.networkMask;
   target.source = source.source;
+  copyBotMemory(target.botMemoryAfterInput, source.botMemoryAfterInput);
   const adapted = source.source !== "network";
   for (const slot of PARTICIPANT_SLOTS) {
     if (adapted && participantActive(source.mask, slot)) {
@@ -111,6 +116,7 @@ export function copyExecutedInput(row: Readonly<MatchFrameInput>, slot: number, 
 
 export function sameMatchFrameInput(a: Readonly<MatchFrameInput>, b: Readonly<MatchFrameInput>): boolean {
   if (a.frame !== b.frame || a.mask !== b.mask || a.networkMask !== b.networkMask || a.source !== b.source) return false;
+  if (a.source !== "network" && firstBotMemoryDifference(a.botMemoryAfterInput, b.botMemoryAfterInput) !== undefined) return false;
   for (const slot of PARTICIPANT_SLOTS) {
     if (a.source === "network") {
       if (participantActive(a.networkMask, slot) && !sameInput(a.network[slot], b.network[slot])) return false;
@@ -131,6 +137,7 @@ const beforeShield: Slots<number> = [0.0, 0.0, 0.0, 0.0];
 /** The frame's controls from its row and the world before it, and each fighter's state before it for impact events and poses. */
 function prepareMatchFrame(row: MatchFrameInput, game: MatchState, world: Roster, controls: FrameControls, runtime: PacingAndPresentation, frame: number): boolean {
   if (row.frame !== frame || frame !== runtime.simulationFrame + 1 || row.mask !== world.mask) return false;
+  if (row.source !== "network") copyBotMemory(runtime.botMemory, row.botMemoryAfterInput);
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) continue;
     if (row.source === "network") {

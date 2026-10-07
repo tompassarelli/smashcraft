@@ -17,7 +17,7 @@ export const CPU_LEVEL_DEFAULT = 9;
 
 export interface CpuSkill {
   readonly level: number;
-  /** Frames an attacker's move must have run before the computer answers it. */
+  /** Age of the opponent observation used for decisions, in input frames. */
   readonly reactionFrames: number;
   /** Threats answered, in tenths; the rest are taken. */
   readonly defendTenths: number;
@@ -61,15 +61,15 @@ const skill = (level: number, reactionFrames: number, defendTenths: number, atta
 /** By level, 1 first. */
 export const CPU_SKILLS: readonly CpuSkill[] = [
   //    level react defend pause spread misplay idle  DI  tech miss/of  mash freeze kit punish misjudge
-  skill(1, 30, 0, 60, 60, 45, 55, 0, 1, 1, 14, 16, 0, 1, 12),
-  skill(2, 25, 1, 46, 50, 35, 40, 1, 9, 10, 12, 14, 0, 2, 10),
-  skill(3, 20, 2, 36, 42, 26, 28, 3, 4, 5, 10, 12, 0, 3, 8),
-  skill(4, 16, 3, 28, 34, 18, 18, 4, 7, 10, 8, 10, 3, 4, 6),
-  skill(5, 13, 4, 21, 28, 12, 10, 5, 3, 5, 6, 9, 4, 5, 5),
-  skill(6, 10, 5, 15, 24, 7, 5, 6, 1, 2, 5, 8, 5, 6, 4),
-  skill(7, 7, 5, 11, 21, 4, 2, 8, 2, 5, 4, 7, 7, 7, 3),
-  skill(8, 4, 6, 8, 19, 2, 0, 9, 3, 8, 3, 6, 8, 9, 1),
-  skill(9, 0, 7, 6, 18, 0, 0, 10, 1, 3, 2, 6, 10, 10, 0),
+  skill(1, 36, 0, 60, 60, 45, 55, 0, 1, 1, 14, 16, 0, 1, 12),
+  skill(2, 33, 1, 46, 50, 35, 40, 1, 9, 10, 12, 14, 0, 2, 10),
+  skill(3, 30, 2, 36, 42, 26, 28, 3, 4, 5, 10, 12, 0, 3, 8),
+  skill(4, 27, 3, 28, 34, 18, 18, 4, 7, 10, 8, 10, 3, 4, 6),
+  skill(5, 24, 4, 21, 28, 12, 10, 5, 3, 5, 6, 9, 4, 5, 5),
+  skill(6, 21, 5, 15, 24, 7, 5, 6, 1, 2, 5, 8, 5, 6, 4),
+  skill(7, 18, 5, 11, 21, 4, 2, 8, 2, 5, 4, 7, 7, 7, 3),
+  skill(8, 15, 6, 8, 19, 2, 0, 9, 3, 8, 3, 6, 8, 9, 1),
+  skill(9, 12, 7, 6, 18, 0, 0, 10, 1, 3, 2, 6, 10, 10, 0),
 ];
 
 export const isCpuLevel = (level: number): boolean => level === Math.floor(level) && level >= CPU_LEVEL_MIN && level <= CPU_LEVEL_MAX;
