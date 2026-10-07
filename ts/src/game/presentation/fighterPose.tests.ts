@@ -23,6 +23,35 @@ import { type Controls, fighterAt, neutralControls } from "../sim/roster";
 import { soloWorld, testWorld } from "../sim/testWorld";
 import * as dh from "./demonHunterAssetInfo";
 import { FRAME_SECONDS, advanceFighterPose, createFighterPose } from "./fighterPose";
+import { DRAWN_STRIDES } from "./drawnStrideInfo";
+import { groundLocomotionClip } from "./fighterLocomotion";
+import { IllidanLocomotion } from "./illidanMotion";
+
+test("every fighter walks and runs with foot cadence following ground speed", () => {
+  for (const character of SELECTABLE_CHARACTERS) {
+    for (const walking of [true, false]) {
+      for (const facing of [-1, 1]) {
+        const f = createFighter(character, 0.0, facing);
+        const input = neutralControls();
+        input.direction = facing;
+        input.walking = walking;
+        f.motion.vx = f32(facing * (walking ? f.tuning.physics.walkSpeed : f.tuning.physics.runSpeed));
+        const pose = createFighterPose();
+        advanceFighterPose(pose, f, soloWorld(f), input, false, false, false, false);
+        const motion = walking ? IllidanLocomotion.walk : IllidanLocomotion.run;
+        const stride = DRAWN_STRIDES[character]?.[walking ? "walk" : "run"];
+        assertEquals(stride !== undefined, true, `${character}: stride was not measured`);
+        if (stride === undefined) continue;
+        assertEquals(pose.clipIndex, groundLocomotionClip(character, motion)?.index);
+        assertEquals(pose.clipIndex, stride.clip);
+        assertEquals(Math.abs(f32(stride.speed * pose.rate) - f32(Math.abs(f.motion.vx) * 60.0)) < 0.01, true, `${character}: foot cadence does not follow travel`);
+        const firstTime = pose.clipTime;
+        advanceFighterPose(pose, f, soloWorld(f), input, false, false, false, false);
+        assertGreaterThan(pose.clipTime, firstTime);
+      }
+    }
+  }
+});
 
 test("replaying rows from a restored frame reproduces each pose's selection and clock", () => {
   for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {

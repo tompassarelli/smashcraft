@@ -19,6 +19,7 @@ import { DamagePose, damagePose } from "./damagePose";
 import * as dh from "./demonHunterAssetInfo";
 import type { HeroClip, HeroClipTable, HeroPose } from "../sim/heroes/hero";
 import * as clips from "./fighterClips";
+import { groundLocomotionClip, groundLocomotionRate } from "./fighterLocomotion";
 import { HERO_STRIKE_MOMENTS } from "./heroStrikeMomentInfo";
 import { SPECIAL_KEY } from "./heroStrikeMomentKeys";
 import { heroCueWindows } from "./specialCues";
@@ -301,6 +302,11 @@ function selectClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly<Ros
     const { motion } = pose.motion;
     playIndex(pose, `motion${motion}`, locomotionClipIndex(motion));
     return locomotionRate(f, motion);
+  }
+  const groundClip = groundLocomotionClip(character, pose.motion.motion);
+  if (groundClip !== undefined) {
+    playIndex(pose, `motion${pose.motion.motion}`, groundClip.index);
+    return groundLocomotionRate(f, pose.motion.motion);
   }
   const moving = tableLocomotion(table, pose.motion.motion);
   if (moving !== undefined) {
@@ -637,8 +643,8 @@ function locomotionRate(f: Readonly<Fighter>, motion: IllidanLocomotion): number
     case IllidanLocomotion.crouch: return clipRate(dh.DEMON_HUNTER_CROUCH_SECONDS, CROUCH_CLIP_FRAMES);
     case IllidanLocomotion.fall:
     case IllidanLocomotion.fastFall: return 0.0;
-    case IllidanLocomotion.walk: return max(f32(0.2), f32(Math.abs(f.motion.vx) / f.tuning.physics.walkSpeed));
-    case IllidanLocomotion.run: return max(f32(0.2), f32(Math.abs(f.motion.vx) / f.tuning.physics.runSpeed));
+    case IllidanLocomotion.walk:
+    case IllidanLocomotion.run: return groundLocomotionRate(f, motion);
     default: return 1.0;
   }
 }

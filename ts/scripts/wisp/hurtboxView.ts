@@ -48,7 +48,7 @@ export interface PoseFrame {
   readonly seconds: number;
 }
 
-function capture(f: Fighter, pose: ReturnType<typeof createFighterPose>): PoseFrame {
+export function capture(f: Fighter, pose: ReturnType<typeof createFighterPose>): PoseFrame {
   const facing = fighterPoseFacing(f);
   const parts = fighterHurtParts(f).map((part) => ({
     ...placeCapsule(emptyCapsule(), part, f.motion.x, f.motion.z, facing), state: part.state ?? HurtState.normal,
@@ -153,6 +153,10 @@ export class DrawnModel {
 
   sequenceStart(index: number): number | undefined {
     return this.model.Sequences[index]?.Interval[0];
+  }
+
+  sequenceName(index: number): string | undefined {
+    return this.model.Sequences[index]?.Name;
   }
 
   /** Flat [x1, z1, x2, z2, x3, z3, ...] triangles of the pose at the clip's time. */
