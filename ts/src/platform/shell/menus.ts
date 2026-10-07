@@ -7,7 +7,7 @@ import {
   Phase, changeStagePoolMode, changeStagePoolStage, canChooseComputer, cancelRematchCountdown, firstHumanSlot, characterFor, confirmRematch, cycleSlotMode, humanActive, recallCharacter,
   requestStageSelect, requestStart, setAutomaticRematch, setCpuOpponent, setCpuTier, setEndless, setHitAreas, setPartnerDamage, setTraining, stepPartnerBehaviour,
   stepPartnerEscape, stepPartnerTech, stepTrainingSpeed, tickRematchCountdown,
-  returnToCharacters, selectCharacter, selectCpuCharacter, selectStage, setStocks, setTimeLimit, updateConnectedHumans,
+  returnToCharacters, selectCharacter, selectCpuCharacter, selectStage, setHazards, setStocks, setTimeLimit, updateConnectedHumans,
   type MatchState, copyMatchState, createMatchState, setParticipants,
 } from "../../game/match/rules";
 import { keepMomentEnd, resetMomentRecorder } from "../../game/replay/moment";
@@ -206,6 +206,9 @@ export function panelActions(): PanelActions {
       start: participant => withSlot(participant, confirm),
       back: participant => withSlot(participant, (s, slot) => {
         if (!stageLoading(s)) returnToCharacters(s.game, slot);
+      }),
+      toggleHazards: participant => withSlot(participant, (s, slot) => {
+        if (!stageLoading(s)) setHazards(s.game, slot, !s.game.hazards);
       }),
     },
     settings: {

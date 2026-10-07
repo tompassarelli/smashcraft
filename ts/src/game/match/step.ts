@@ -28,7 +28,7 @@ import { advanceMatchCamera } from "../sim/matchCamera";
 import { nextJab } from "../sim/moves";
 import { advanceOffscreenDamage } from "../sim/offscreenDamage";
 import type { FrameControls } from "./controls";
-import { type MatchState, Phase, advanceClock, holdingStart, humanFighterActive, keepsStocks, resolveStocks } from "./rules";
+import { type MatchState, Phase, advanceClock, holdingStart, humanFighterActive, keepsStocks, resolveStocks, stageClock } from "./rules";
 import { advanceTrainingReadout, captureTrainingBefore, resetTrainingPositions } from "./training";
 
 export const observedFrameLegalActions: Slots<number> = [0, 0, 0, 0];
@@ -92,7 +92,8 @@ function requestedStyle(style: number | undefined): AttackStyle | undefined {
 export function stepMatch(game: MatchState, world: Roster, controls: FrameControls, frame: number): void {
   if (game.phase !== Phase.match) return;
   game.matchFrame++;
-  const { stageChoice: stage, matchFrame } = game;
+  const stage = game.stageChoice;
+  const stageFrame = stageClock(game);
   // Through the countdown every fighter stands still; a press made during it is dropped, so GO! needs a fresh one.
   if (holdingStart(game)) {
     for (const slot of PARTICIPANT_SLOTS) {
@@ -108,7 +109,7 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
     }
     captureTrainingBefore(world);
   }
-  carryOnMovingDecks(world, stage, matchFrame);
+  carryOnMovingDecks(world, stage, stageFrame);
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) continue;
     const f = fighterAt(world, slot);
@@ -125,11 +126,11 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) continue;
     resetObservedActions();
-    advanceFighterMotion(world, slot, stage, matchFrame, controls.inputs[slot], matchSpawnX(slot));
+    advanceFighterMotion(world, slot, stage, stageFrame, controls.inputs[slot], matchSpawnX(slot));
     observedFrameLegalActions[slot] = observedActions.legal;
     observedFrameStartedActions[slot] = observedActions.started;
   }
-  advanceStageCannon(world, stage, matchFrame, controls.inputs);
+  advanceStageCannon(world, stage, stageFrame, controls.inputs);
   captureGrabPauses(world);
   resolveGrabs(world);
   beginDamageContacts();
@@ -138,7 +139,7 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
     if (!isActive(world, slot) || wasGrabbed[slot]) continue;
     resetObservedActions();
     const special = fighterAt(world, slot);
-    const started = startFighterSpecial(special, stage, matchFrame, platformSpecialInput(special, controls.inputs[slot]), world);
+    const started = startFighterSpecial(special, stage, stageFrame, platformSpecialInput(special, controls.inputs[slot]), world);
     observedFrameLegalActions[slot] |= observedActions.legal;
     if (started) observedFrameStartedActions[slot] |= 64;
   }
@@ -166,8 +167,8 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
     if (hadDashGrabWindow[slot] && f.ground.dashGrabWindow > 0 && !f.attack.dashGrab) f.ground.dashGrabWindow = Math.max(0, f.ground.dashGrabWindow - 1);
   }
   resolveAttacks(world);
-  advanceSpecials(world, stage, matchFrame, controls.inputs);
-  updateProjectiles(world, stage, matchFrame);
+  advanceSpecials(world, stage, stageFrame, controls.inputs);
+  updateProjectiles(world, stage, stageFrame);
   advancePlacedObjects(world);
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) continue;

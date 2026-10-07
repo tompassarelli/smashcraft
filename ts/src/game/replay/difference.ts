@@ -413,6 +413,8 @@ export function firstStateDifference(expected: Readonly<ReplayState>, actual: Re
   if (e.stageChoice !== a.stageChoice) return "match.stageChoice";
   if (e.stageResolved !== a.stageResolved) return "match.stageResolved";
   for (const key of ["only", "selectedMask", "remainingMask"] as const) if (e.stagePool[key] !== a.stagePool[key]) return `match.stagePool.${key}`;
+  if (e.hazards !== a.hazards) return "match.hazards";
+
   if (e.winner !== a.winner) return "match.winner";
   if (e.departedMask !== a.departedMask) return "match.departedMask";
   if (e.interrupted !== a.interrupted) return "match.interrupted";

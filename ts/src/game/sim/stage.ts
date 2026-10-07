@@ -31,6 +31,16 @@ export const TOMB_OF_SARGERAS_STAGE = 7;
 export const SLOPE_TEST_STAGE = 16;
 
 
+/**
+ * The stage clock with hazards off: the match passes it in place of its frame,
+ * and every moving deck holds its rest pose while the wind and the cannon stay
+ * away. Forecasts that add a few frames to it remain stopped.
+ */
+export const STAGE_AT_REST = -1000000;
+
+/** Whether a stage clock reading is the stopped clock of a match with hazards off. */
+export const stageAtRest = (frame: number): boolean => frame <= STAGE_AT_REST / 2;
+
 const MAIN_DECK_LEFT = -600.0;
 const MAIN_DECK_RIGHT = 600.0;
 const MAIN_DECK_Z = 0.0;
@@ -83,7 +93,27 @@ interface DeckPose {
  */
 type Deck =
   | { readonly kind: "fixed"; readonly left: number; readonly right: number; readonly z: number; readonly pass: boolean; readonly line: GroundLine | undefined }
-  | { readonly kind: "moving"; readonly halfWidth: number; readonly phase: number; readonly period: number; readonly legs: readonly RunLeg[]; readonly pose: DeckPose };
+  | {
+    readonly kind: "moving"; readonly halfWidth: number; readonly phase: number; readonly period: number; readonly legs: readonly RunLeg[]; readonly pose: DeckPose;
+    /** Where its center holds with hazards off. */
+    readonly restX: number; readonly restZ: number;
+  };
+
+// Preallocated: every frame asks for each moving deck's center.
+const center = { x: 0.0, z: 0.0 };
+
+/** Places `center` `t` frames into a path's lap. */
+function pathCenter(legs: readonly RunLeg[], t: number): void {
+  for (const leg of legs) {
+    if (t < leg.frames) {
+      center.x = leg.stepX === 0 ? leg.fromX : f32(leg.fromX + f32(leg.stepX * t));
+      center.z = leg.stepZ === 0 ? leg.fromZ : f32(leg.fromZ + f32(leg.stepZ * t));
+      return;
+    }
+    t -= leg.frames;
+  }
+}
+
 
 function fixed(left: number, right: number, z: number, pass: boolean): Deck {
   return { kind: "fixed", left, right, z, pass, line: undefined };
@@ -146,8 +176,12 @@ export function groundLineCosine(line: GroundLine, x: number): number {
   return at(line.cosines, segmentAt(line, x));
 }
 
-/** A pass-through deck `halfWidth` to each side of a center that starts at (x, z) and follows `legs`. */
-function moving(halfWidth: number, x: number, z: number, phase: number, legs: readonly PathLeg[]): Deck {
+/**
+ * A pass-through deck `halfWidth` to each side of a center that starts at
+ * (x, z) and follows `legs`. With hazards off it rests at `rest`, by default
+ * where it is on match frame 0.
+ */
+function moving(halfWidth: number, x: number, z: number, phase: number, legs: readonly PathLeg[], rest?: { readonly x: number; readonly z: number }): Deck {
   const run: RunLeg[] = [];
   let fromX = x;
   let fromZ = z;
@@ -159,7 +193,9 @@ function moving(halfWidth: number, x: number, z: number, phase: number, legs: re
     period += leg.frames;
   }
   const pose: DeckPose = { frame: undefined, left: 0.0, right: 0.0, z: 0.0, shiftX: 0.0, shiftZ: 0.0 };
-  return { kind: "moving", halfWidth, phase, period, legs: run, pose };
+  if (rest !== undefined) return { kind: "moving", halfWidth, phase, period, legs: run, pose, restX: rest.x, restZ: rest.z };
+  pathCenter(run, floorMod(phase, period));
+  return { kind: "moving", halfWidth, phase, period, legs: run, pose, restX: center.x, restZ: center.z };
 }
 
 const MAIN_DECK = fixed(MAIN_DECK_LEFT, MAIN_DECK_RIGHT, MAIN_DECK_Z, false);
@@ -257,7 +293,7 @@ const CARRIED_DECK = moving(110.0, -420.0, 120.0, 0, [
   { frames: 280, x: -420.0, z: 300.0 },
   { frames: 60, x: -420.0, z: 300.0 },
   { frames: 60, x: -420.0, z: 120.0 },
-]);
+], { x: 0.0, z: 120.0 });
 const STAGE_DECKS: readonly (readonly Deck[])[] = [
   [MAIN_DECK],
   RAISED_DECKS,
@@ -318,19 +354,13 @@ export function surfaceCount(stage: number): number {
   return decks(stage).length;
 }
 
-// Preallocated: every frame asks for each moving deck's center.
-const center = { x: 0.0, z: 0.0 };
-
 function placeCenter(deck: Extract<Deck, { kind: "moving" }>, frame: number): void {
-  let t = floorMod(frame + deck.phase, deck.period);
-  for (const leg of deck.legs) {
-    if (t < leg.frames) {
-      center.x = leg.stepX === 0 ? leg.fromX : f32(leg.fromX + f32(leg.stepX * t));
-      center.z = leg.stepZ === 0 ? leg.fromZ : f32(leg.fromZ + f32(leg.stepZ * t));
-      return;
-    }
-    t -= leg.frames;
+  if (stageAtRest(frame)) {
+    center.x = deck.restX;
+    center.z = deck.restZ;
+    return;
   }
+  pathCenter(deck.legs, floorMod(frame + deck.phase, deck.period));
 }
 
 /**
@@ -409,7 +439,7 @@ export function surfaceMoves(stage: number, index: number): boolean {
 /** Frames left in a moving deck's authored wait; absent while it moves. */
 export function surfaceWaitFrames(stage: number, index: number, frame: number): number | undefined {
   const deck = at(decks(stage), index);
-  if (deck.kind === "fixed") return undefined;
+  if (deck.kind === "fixed" || stageAtRest(frame)) return undefined;
   let t = floorMod(frame + deck.phase, deck.period);
   for (const leg of deck.legs) {
     if (t < leg.frames) return leg.stepX === 0 && leg.stepZ === 0 ? leg.frames - t : undefined;

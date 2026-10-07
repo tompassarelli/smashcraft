@@ -1,5 +1,5 @@
 import { PARTICIPANT_SLOTS } from "../../game/input/participants";
-import { Phase } from "../../game/match/rules";
+import { Phase, stageClock } from "../../game/match/rules";
 import { Character } from "../../game/sim/codes";
 import { fighterAt, isActive } from "../../game/sim/roster";
 import { startMatch } from "./matchStart";
@@ -29,7 +29,7 @@ export function startAgencyFixture(s: ShellState, message: string): string | und
     if (!isActive(s.world, slot)) continue;
     const renderer = views(s).fighters[slot];
     const fighter = fighterAt(s.world, slot);
-    const agency = renderer?.agency.forecast.classify(s.world, slot, s.game.stageChoice, s.game.matchFrame, s.controls.commands[slot].graceFrames);
+    const agency = renderer?.agency.forecast.classify(s.world, slot, s.game.stageChoice, stageClock(s.game), s.controls.commands[slot].graceFrames);
     markers.push(`p${slot}=${agency},ice=${fighter.status.frozenFrames},hitlag=${fighter.launch.hitlag}`);
   }
   const receipt = `dev: agency ${words[2]} ${words[3]} ${s.session.paused ? "paused" : "running"} ${markers.join(" ")}`;

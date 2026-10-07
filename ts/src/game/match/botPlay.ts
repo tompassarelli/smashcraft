@@ -24,7 +24,7 @@ import { choosePunish } from "./botPunish";
 import { chooseRecoveryInput } from "./botRecovery";
 import { pressHeroFollowUp } from "./botHeroKit";
 import { dashIn, kitChargeGoal, pressKitOption, steerHeroBranches, steerRunningSpecial } from "./botKitOptions";
-import { MATCH_TICKS_PER_SECOND, type MatchState } from "./rules";
+import { MATCH_TICKS_PER_SECOND, type MatchState, stageClock } from "./rules";
 import { trainingPartnerInput } from "./training";
 import { type BotStrategy, learnBotHabit, prepareBotRead, pressBotRead } from "./botStrategy";
 
@@ -161,10 +161,11 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, 
   copyControls(input, COMPUTER_NEUTRAL);
   clearAttackBuffer(commands);
   if (fighter.status.out) return;
-  if (game.training && trainingPartnerInput(game.trainer, world, slot, game.stageChoice, game.matchFrame, frame, input, commands)) return;
+  if (game.training && trainingPartnerInput(game.trainer, world, slot, game.stageChoice, stageClock(game), frame, input, commands)) return;
   const delay = f32(runtime.botAttackDelays[slot] - TICK);
   runtime.botAttackDelays[slot] = delay;
   const stage = game.stageChoice;
+  const stageFrame = stageClock(game);
   const gameplan = gameplanOf(fighter.character);
   if (fighter.launch.hitlag > 0) {
     // Hitlag's last frame reads the stick for directional influence: in toward the middle.
@@ -191,17 +192,18 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, 
     return;
   }
   if (target !== undefined && (steerHeroBranches(fighter, target, skill, input) || pressHeroFollowUp(fighter, target, stage, input))) return;
-  const recovering = chooseRecoveryInput(fighter, stage, game.matchFrame, input, target, skill);
+  const recovering = chooseRecoveryInput(fighter, stage, stageFrame, input, target, skill);
   if (steerRunningSpecial(fighter, target, stage, skill, input) || recovering) return;
   if (isSmashAttack(fighter.attack.style) && fighter.attack.smashChargeAllowed) input.attackHeld = fighter.attack.smashChargeFrames < kitChargeGoal(fighter, target, skill, smashChargeGoal(fighter));
   if (target === undefined) return;
   if (chooseDefense(fighter, target, stage, input, skill, observationAge)) return;
   // An opponent that can't act yet is punished before any pause or idle stretch.
-  if (choosePunish(fighter, target, stage, game.matchFrame, frame, skill, input, commands, observationAge)) {
+  if (choosePunish(fighter, target, stage, stageFrame, frame, skill, input, commands, observationAge)) {
+
     runtime.botAttackDelays[slot] = f32(f32(skill.attackPause + botChoice(frame, fighter.attack.serial, skill.attackSpread)) * TICK);
     return;
   }
-  if (pressBotRead(runtime.botStrategies[slot], fighter, target, stage, game.matchFrame, frame, input, commands)) return;
+  if (pressBotRead(runtime.botStrategies[slot], fighter, target, stage, stageFrame, frame, input, commands)) return;
   // An idle stretch stands where it is: no approach, no attack.
   if (botChance(floorDiv(frame, IDLE_FRAMES), slot * 17 + fighter.character, skill.idle, 100)) return;
   if (pressKitOption(fighter, target, stage, skill, frame, delay <= 0, input, commands)) {
@@ -210,7 +212,7 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, 
   }
   if (gameplan === undefined) {
     const plan = planFor(fighter, slot, frame);
-    if (delay <= 0 && chooseAttack(fighter, target, stage, game.matchFrame, frame, plan === Plan.range, input, commands, slot, SPACE_PLAN, skill, observationAge, { strategy: runtime.botStrategies[slot], policy: skill.decision, game })) {
+    if (delay <= 0 && chooseAttack(fighter, target, stage, stageFrame, frame, plan === Plan.range, input, commands, slot, SPACE_PLAN, skill, observationAge, { strategy: runtime.botStrategies[slot], policy: skill.decision, game })) {
       runtime.botAttackDelays[slot] = f32(f32(skill.attackPause + botChoice(frame, fighter.attack.serial, skill.attackSpread)) * TICK);
       if (!fighter.motion.grounded) steerInAir(fighter, stage, target.motion.x, input);
       return;
@@ -219,7 +221,7 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, 
     return;
   }
   const planIndex = gameplanPlan(gameplan, fighter, slot, frame, botChoice);
-  if (delay <= 0 && chooseAttack(fighter, target, stage, game.matchFrame, frame, plansRanged(gameplan, planIndex), input, commands, slot, planIndex, skill, observationAge, { strategy: runtime.botStrategies[slot], policy: skill.decision, game })) {
+  if (delay <= 0 && chooseAttack(fighter, target, stage, stageFrame, frame, plansRanged(gameplan, planIndex), input, commands, slot, planIndex, skill, observationAge, { strategy: runtime.botStrategies[slot], policy: skill.decision, game })) {
     runtime.botAttackDelays[slot] = f32(f32(skill.attackPause + botChoice(frame, fighter.attack.serial, skill.attackSpread)) * TICK);
     if (!fighter.motion.grounded) steerInAir(fighter, stage, gameplanGoal(gameplan, fighter, target, stage, 0.0), input);
     return;

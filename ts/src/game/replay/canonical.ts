@@ -1109,6 +1109,8 @@ function writeState(emit: Emit, state: Readonly<ReplayState>): void {
   bool("match.stagePool.only", match.stagePool.only);
   int("match.stagePool.selectedMask", match.stagePool.selectedMask);
   int("match.stagePool.remainingMask", match.stagePool.remainingMask);
+  bool("match.hazards", match.hazards);
+
   int("match.winner", match.winner ?? -1);
   int("match.humanCount", match.humanCount);
   int("match.humanMask", match.humanMask);
