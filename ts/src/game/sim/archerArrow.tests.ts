@@ -1,7 +1,8 @@
 // Swift Arrow's repeat and defense contracts (#172), through recorded-match frames.
 import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { executeNext, testMatch } from "../match/testMatch";
-import { Character, SpecialAction } from "./codes";
+import { queueAttack } from "../input/attackBuffer";
+import { AttackStyle, Character, SpecialAction } from "./codes";
 import { canAttack } from "./conditions";
 import { copyControls, fighterAt } from "./roster";
 import { controls } from "./testWorld";
@@ -72,4 +73,22 @@ test("Swift Arrow deals 5 percent without interrupting the defender; a jump duri
     }
     assertEquals(defender.status.damage, jump ? 0.0 : 5.0);
   }
+});
+
+test("at 60 units a shield grab after blocking Swift Arrow catches Archer during her recovery", () => {
+  const match = testMatch(3, Character.archer);
+  const archer = fighterAt(match.world, 0);
+  const defender = fighterAt(match.world, 1);
+  archer.motion.x = -30.0;
+  defender.motion.x = 30.0;
+  defender.facing = -1;
+  for (let frame = 1; frame <= 23; frame++) {
+    copyControls(match.inputs.inputs[0], controls({ specialPressed: frame === 2 }));
+    copyControls(match.inputs.inputs[1], shield);
+    if (frame === 18) queueAttack(match.inputs.commands[1], { style: AttackStyle.grab, facing: -1, frame, mayCharge: false });
+    executeNext(match);
+    assertEquals(defender.status.damage, 0.0);
+  }
+  assertEquals(archer.grab.owner, 1);
+  assertEquals(defender.grab.target, 0);
 });

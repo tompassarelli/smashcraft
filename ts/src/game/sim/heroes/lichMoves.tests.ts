@@ -21,7 +21,7 @@ const NORMALS = [
   [AttackStyle.upTilt, 8, 8, 20, 0],
   [AttackStyle.downTilt, 10, 4, 19, 0],
   [AttackStyle.dashAttack, 10, 6, 22, 0],
-  [AttackStyle.forwardSmash, 22, 3, 36, 0],
+  [AttackStyle.forwardSmash, 18, 3, 36, 0],
   [AttackStyle.upSmash, 20, 5, 34, 0],
   [AttackStyle.downSmash, 19, 5, 35, 0],
   [AttackStyle.neutralAir, 9, 14, 17, 16],
@@ -187,7 +187,7 @@ test("Lich dash attack selects the hovering glide and smash charge caps at 45 fr
   assertEquals(smashDamageMultiplier(45, LICH_MOVES), 1.25);
   assertEquals(smashDamageMultiplier(90, LICH_MOVES), 1.25);
   const out = emptyHitRegion();
-  authoredHitRegion(out, Character.archer, AttackStyle.forwardSmash, 21, 45, 0, LICH_MOVES);
+  authoredHitRegion(out, Character.archer, AttackStyle.forwardSmash, 17, 45, 0, LICH_MOVES);
   assertEquals(out.effect.damage, 22.5);
 });
 

@@ -203,3 +203,16 @@ unchanged. In the 540-match computer soak only Rifleman's matches changed;
 computer Rifleman beat the fuzzed player in 120 of 120 matches instead of
 118 (smashcraft:evidence/rifleman-down-tilt-20261006/). That is below what
 the soak resolves as a balance effect.
+
+## Archer Swift Arrow, 7 October 2026 (#172)
+
+Swift Arrow trades its immediate 7% shot every 8 frames for a visible draw,
+5% release on action frame 16, recovery through frame 24 and a 30-frame
+repeat interval. Its lower level flight stays inside a held shield. In the
+180-frame Archer mirror at 240 units, repeated presses started 6 shots
+instead of 23: idle damage fell from 203% to 40%, and shielded body damage
+from 182% to zero. At 60 units, shield grab 1–3 frames after contact catches
+Archer in recovery; a full jump during the draw clears the flight. The
+projectile interaction rows and exact match-frame trial are in
+smashcraft:evidence/archer-neutral-172-20261007/. This measures the defensive
+trade-off; the computer field and native timeline are separate issue gates.

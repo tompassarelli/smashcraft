@@ -126,7 +126,6 @@ export function attackDamage(style: AttackStyle): number {
       return 9.0;
     case AttackStyle.ledgeAttack:
     case AttackStyle.neutralAir:
-    // The original fighters' forward air, 8 before #105 pass 5.
     case AttackStyle.forwardAir:
       return 7.0;
     case AttackStyle.getupAttack:

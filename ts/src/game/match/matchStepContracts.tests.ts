@@ -205,7 +205,7 @@ test("shieldBreakBoundaryDamageAtZeroStillGuardsThenRestoresThirty", () => {
   first.projectiles[0]!.direction = 1;
   first.projectiles[0]!.kind = ProjectileKind.arrow;
   second.shield.raised = true;
-  second.shield.energy = digitalShieldDamage(7.0);
+  second.shield.energy = digitalShieldDamage(5.0);
   second.launch.hitlag = 4;
   secondInput.shield = true;
   stepMatch(game, testRoster(first, second), testFrameControls(firstInput, secondInput, firstCommands, secondCommands), 1);

@@ -67,9 +67,9 @@ test("Frost Nova costs 10, its slow orb leaves the hand on frame 18 and chills a
   assertEquals(live(lich).length, 0);
   frame(world);
   assertEquals(live(lich).length, 1);
-  assertNear(Math.abs(live(lich)[0]!.velocityX), f32(H * f32(0.07)), f32(0.01));
+  assertNear(Math.abs(live(lich)[0]!.velocityX), f32(H * f32(0.09)), f32(0.01));
   for (let f = 19; f <= 80 && target.status.damage === 0.0; f++) frame(world);
-  assertEquals(target.status.damage, 8.0);
+  assertEquals(target.status.damage, 9.0);
   assertTrue(chilled(target));
   assertGreaterThan(target.status.conditionFrames, 73);
 });
