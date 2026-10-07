@@ -11,9 +11,29 @@ import type { Fighter, MeleeMotionValue } from "./fighter";
 import { surfaceCount, surfaceLeft, surfaceMoves, surfaceRight, surfaceShiftX, surfaceShiftZ, surfaceZ } from "./stage";
 import { type FighterPhysics, WORLD_UNITS_PER_MELEE_UNIT, melee } from "./tuning";
 
+// Rollback and consecutive agency forecasts publish the same Melee-unit
+// values. Cache only the pure conversion; zero bypasses the key to retain its sign.
+const WORLD_VALUE_MEMO_LIMIT = 512;
+let worldValueMemo: Record<number, number> = {};
+let worldValueMemoSize = 0;
+
+function worldValue(original: number): number {
+  if (original === 0 || original !== original) return multiplyFloat32(original, WORLD_UNITS_PER_MELEE_UNIT);
+  const cached = worldValueMemo[original];
+  if (cached !== undefined) return cached;
+  const converted = multiplyFloat32(original, WORLD_UNITS_PER_MELEE_UNIT);
+  if (worldValueMemoSize === WORLD_VALUE_MEMO_LIMIT) {
+    worldValueMemo = {};
+    worldValueMemoSize = 0;
+  }
+  worldValueMemo[original] = converted;
+  worldValueMemoSize++;
+  return converted;
+}
+
 function setOriginal(value: MeleeMotionValue, original: number): void {
   value.original = original;
-  value.published = multiplyFloat32(original, WORLD_UNITS_PER_MELEE_UNIT);
+  value.published = worldValue(original);
 }
 
 /** Restarts accumulation from a world value written outside Melee-unit motion. */
