@@ -1158,3 +1158,120 @@ One move-specific projectile clash exists (#116). Illidan's Mana Burn orb
 and any opposing traveling projectile it meets cancel each other. Other
 projectiles pass through each other
 ([Mana Burn](design/roster.md#mana-burn-neutral-special)).
+
+## Items (#196)
+
+Owner direction, 7 Oct 2026: items are welcome when they are temporary,
+balanced and predictable, so players fight over them instead of being swung by
+luck. They are meant to be a defining competitive part of Smashcraft, the way
+timed pickups are in Quake and the economy is in Counter-Strike.
+
+### Precedent
+
+**Arena-shooter item timing.** In Quake duels the strong pickups respawn on a
+fixed timer after they are taken, so a player who knows when an item was taken
+knows when it returns. In Quake Live armour returns 25 s and Mega Health 35 s
+after pickup, and players practise counting them on the match clock
+([lutro.me beginner guide](https://www.lutro.me/quake-live-beginner-guide));
+in Quake Champions, Quad Damage first spawns 90 s into the match, returns
+every 120 s and lasts 30 s
+([Church of Quake](https://churchofquake.com/wiki/items/)).
+Coaching material treats this as the core skill: "Controlling key items is the
+fundamental skill of any arena shooter", denying the opponent "a fair fight"
+([Dignitas](https://dignitas.gg/articles/blogs/Quake/11424/how-to-master-quake-spawn-timers-controlling-mega-and-armor)).
+Because the timer is deterministic, an item is contestable: both players can
+be there when it spawns, and arriving first, holding the approach or trading
+the item for position are decisions, not luck. QuakeCon banned external
+timers in 1v1 because timing by memory "is a highly valued skill in 1v1"
+([The great timer debate](https://dondeq2.com/2017/05/26/the-great-timer-debate/)).
+Quake Champions moved the other way and announces each powerup 15 s before
+it spawns (Church of Quake, above), so the fight gathers at the spawn instead
+of rewarding camping
+([Steam discussion](https://steamcommunity.com/app/611500/discussions/0/1495615865209189281)).
+
+**Counter-Strike economy.** Winning a round gives money and losing gives a
+loss bonus that grows with consecutive losses ($1,400 up to $3,400 in CS2), a
+catch-up rule that stops one side snowballing
+([Refrag](https://refrag.gg/blog/cs2-economy-crash-course-what-are-kill-rewards-and-loss-bonus),
+[csdb.gg](https://csdb.gg/economy-guide)). Players accept it as skill because
+every consequence follows a published rule from visible events: a team can
+deduce what its opponent can afford and choose to save, force or counter-buy.
+Smashcraft borrows the shape: a buff is earned by controlling the centre at a
+known time, ends on a knockout, and when and what arrives is public.
+
+**Why competitive Smash bans items.** Items were contested in early Melee
+tournaments; the community settled on items off "due to the element of
+randomness", especially unpredictable spawns of explosives such as Bob-ombs
+and Capsules ([SmashWiki: SSBM rulesets](https://ssbwiki.com/Tournament_rulesets_(SSBM))).
+Containers have a one-in-eight chance to explode instead of releasing an item
+([SmashWiki: Items](https://www.ssbwiki.com/Items),
+[Capsule](https://ssbwiki.com/Capsule)). The Ultimate standard ruleset keeps
+items off because random items like Smash Balls and Poké Balls can make the
+better player lose to luck
+([esports.net](https://www.esports.net/news/super-smash-bros/ultimate-tournament-rules/),
+[SmashWiki: rulesets](https://ssbwiki.com/Ruleset)); Project M events ran
+items off too. Rivals of Aether has no item pool; its small team folded
+item-like effects into fighters' moves instead
+([Game Developer](https://gamedeveloper.com/design/a-i-super-smash-bros-i--inspired-design-designed-backwards)).
+No source found shows a mainstream ruleset that legalised individual items;
+the community objection is to random spawns, random places and swingy power,
+which are exactly what Smashcraft removes. Pro-item players argued items
+"required skill and did not reduce the depth of the game" (SmashWiki, above).
+
+**Bunny Hood and Metal Box in Melee.** They change how a fighter moves rather
+than dealing damage, which is why they are the model. Melee's Bunny Hood makes
+a fighter quicker, jump much higher (midair jumps included) and fall faster,
+for about 12 s, and a strong hit can knock it off; SmashWiki gives no Melee
+multipliers, while Ultimate's are 2x walk, run and jump and 1.5x fall speed and
+gravity ([SmashWiki: Bunny Hood](https://www.ssbwiki.com/Bunny_Hood)).
+Melee's Metal Box lasts 12 s, shortened by damage taken, and sets weight 3.0x,
+fall speed and gravity 2.0x, jump force 1.55x and walk speed 0.7x, and
+subtracts 30 units from all knockback, so weak hits cause no flinch
+([SmashWiki: Metal Box](https://www.ssbwiki.com/Metal_Box)). Those values
+were tuned for casual random play; Smashcraft guarantees an item every 30–60 s
+in its standard ruleset, so its buffs keep the same shapes at a fraction of
+the size, with no flinch immunity, and last at most 10 s.
+
+### Rules
+
+Tom decided, 7 Oct:
+
+- Items always appear at centre stage.
+- Each item arrives a seeded, deterministic 30–60 s after the previous one,
+  never less than 30 s apart, identical in replays and on every client.
+- A visible and audible 10 s warning plays at the spawn point before each
+  item.
+- Items are on in the standard ruleset; a match setting turns them off and
+  picks which items are enabled.
+- Every effect lasts at most 10 s. The items are Speed, Extra Jump and Heavy.
+
+Tom decided, 7 Oct (delegated):
+
+- The first item arrives 30–60 s after GO. Intervals are whole seconds drawn
+  from the match seed and the draw count.
+- The warning names the coming item and counts down 10 to 1 at the centre,
+  with a sound when it starts and when the item appears, so both players can
+  decide whether to contest it: public information, as in Counter-Strike.
+- When an item appears, the match HUD shows when the next one arrives ("Next
+  item 0:42"). A seeded interval cannot be counted from memory like Quake's
+  fixed timers, so the skill is positioning and centre control around a known
+  time rather than bookkeeping.
+- An untaken item stays at the centre until taken and is replaced when the
+  next one arrives.
+- Pickup is touching the item and pressing attack or grab, grounded or
+  airborne, on a frame where that attack could start. The press is spent on
+  the pickup.
+- A fighter holds one buff at a time; a new pickup replaces the old one. A
+  knockout ends it. Every buff lasts 10 s (600 frames).
+- Items appear in matches and practice when enabled, never in training.
+  Computer players do not chase items yet.
+
+Effects, Tom decided, 7 Oct (delegated), scaled down from the Melee shapes
+above:
+
+- **Speed** (Bunny Hood): walk, dash, run and air-drift top speeds x1.3; jump
+  launch speeds x1.1, about x1.2 jump height.
+- **Extra Jump:** one additional midair jump while it runs; one midair jump is
+  granted immediately on pickup.
+- **Heavy** (Metal Box): weight x1.5 against knockback; gravity and fall speed
+  x1.3; nothing else changes.
