@@ -4,7 +4,7 @@ import { ARCHER_MODEL_FILE, RIFLEMAN_MODEL_FILE } from "./presentation/fighterAs
 import { DEMON_HUNTER_MODEL_FILE } from "./presentation/demonHunterAssetInfo";
 import { characterModelScale } from "./presentation/modelScale";
 import { Character } from "./sim/codes";
-import { SELECTABLE_CHARACTERS, heroDefinition } from "./sim/heroes/registry";
+import { HERO_ROSTER, heroDefinition } from "./sim/heroes/registry";
 
 export interface FighterObject {
   readonly base: string;
@@ -60,10 +60,12 @@ export const FIGHTER_OBJECTS: Readonly<Record<Character, FighterObject>> = {
   [Character.jaina]: heroObject(Character.jaina),
   [Character.sylvanas]: heroObject(Character.sylvanas),
   [Character.cairne]: heroObject(Character.cairne),
+  [Character.peon]: heroObject(Character.peon),
+  [Character.tinker]: heroObject(Character.tinker),
+  [Character.kaelthas]: heroObject(Character.kaelthas),
 };
 
-/** Explicit order for archive emission and synchronized native application: the selectable fighters. */
-export const FIGHTER_OBJECT_ORDER: readonly Character[] = SELECTABLE_CHARACTERS;
+export const FIGHTER_OBJECT_ORDER: readonly Character[] = [Character.archer, Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map((hero) => hero.character)];
 
 /** FileIO's channel ability uses one tooltip per file chunk. */
 export const FILE_IO_OBJECT = {

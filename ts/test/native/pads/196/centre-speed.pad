@@ -1,0 +1,25 @@
+# #196: seed 0's first Speed item: ten-second warning, spawn, normal attack pickup, expiry.
+#! chat -dev quick hero archer
+# A harmless early input anchors both helpers before the warning.
+50 b tap B 2
+1741 a capture
+1741 b capture
+2341 a capture
+2341 b capture
+# Move into the item with the normal stick and spend a normal attack on it.
+2345 a stick 1 0
+2363 a stick 0 0
+2364 a tap A 2
+2370 a capture
+2370 b capture
+2500 a press VIEW
+2570 a release VIEW
+2964 a capture
+2964 b capture
+# Preserve the final timeline for both clients' replay comparison.
+3000 a press VIEW
+3070 a release VIEW
+# Let the existing integrity trace finish its item capture window.
+4500 a press VIEW
+4570 a release VIEW
+#! absent a 2364-2380 applied attack

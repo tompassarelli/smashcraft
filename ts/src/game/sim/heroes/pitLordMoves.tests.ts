@@ -22,7 +22,7 @@ const NORMALS = [
   [AttackStyle.dashAttack, 15, 6, 34, 0],
   [AttackStyle.forwardSmash, 27, 4, 43, 0],
   [AttackStyle.upSmash, 24, 5, 39, 0],
-  [AttackStyle.downSmash, 22, 7, 41, 0],
+  [AttackStyle.downSmash, 22, 7, 28, 0],
   [AttackStyle.neutralAir, 12, 7, 29, 20],
   [AttackStyle.forwardAir, 19, 4, 36, 25],
   [AttackStyle.backAir, 14, 4, 31, 20],

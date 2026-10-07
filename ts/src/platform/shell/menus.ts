@@ -5,7 +5,7 @@
 import { PARTICIPANT_SLOTS, type ParticipantSlot, isParticipantSlot } from "../../game/input/participants";
 import {
   Phase, changeStagePoolMode, changeStagePoolStage, canChooseComputer, cancelRematchCountdown, firstHumanSlot, characterFor, confirmRematch, cycleSlotMode, humanActive, recallCharacter,
-  requestStageSelect, requestStart, setAutomaticRematch, setCpuOpponent, setCpuTier, setEndless, setHitAreas, setPartnerDamage, setTraining, stepPartnerBehaviour,
+  requestStageSelect, requestStart, setAutomaticRematch, setCpuOpponent, setCpuTier, setEndless, setHitAreas, setPartnerDamage, setTraining, setItemsOn, toggleItemKind, stepPartnerBehaviour,
   stepPartnerEscape, stepPartnerTech, stepTrainingSpeed, tickRematchCountdown,
   returnToCharacters, selectCharacter, selectCpuCharacter, selectStage, setStocks, setTimeLimit, updateConnectedHumans,
   type MatchState, copyMatchState, createMatchState, setParticipants,
@@ -27,11 +27,10 @@ import { stepCpuOpponent, stepCpuTier } from "../../game/match/cpuProfiles";
 import { traceSelectionState } from "./diagnostics";
 import { clearParticipantInputs, controlsAvailable, currentComputerMask, currentHumanMask } from "./inputs";
 import { startMatch } from "./matchStart";
-import { cancelPendingPlaytest } from "./playtest";
 import { cancelStageLoad, requestStageLoad, stageLoading } from "./stageLoad";
 import { endReplaySegment } from "./replays";
 import { makePreview } from "./preview";
-import { type ShellState, shell } from "./state";
+import { type ShellState, cancelPendingPlaytest, shell } from "./state";
 import type { PanelActions } from "./ui";
 import { clearMatchEffects, views } from "./ui";
 import { announce, pauseMatchPresentation, setStatus } from "./view";
@@ -175,6 +174,12 @@ export function panelActions(): PanelActions {
       }),
       toggleAutomaticRematch: participant => withSlot(participant, (s, slot) => {
         if (controlsAvailable(s, slot)) setAutomaticRematch(s.game, slot, !s.game.automaticRematch);
+      }),
+      toggleItems: participant => withSlot(participant, (s, slot) => {
+        if (controlsAvailable(s, slot)) setItemsOn(s.game, slot, !s.game.items.on);
+      }),
+      toggleItemKind: (participant, kind) => withSlot(participant, (s, slot) => {
+        if (controlsAvailable(s, slot)) toggleItemKind(s.game, slot, kind);
       }),
       toggleTraining: participant => withSlot(participant, (s, slot) => {
         if (controlsAvailable(s, slot)) setTraining(s.game, slot, !s.game.training);

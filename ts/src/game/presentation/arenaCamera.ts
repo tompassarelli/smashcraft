@@ -22,6 +22,19 @@ export function cameraFieldOfView(camera: Readonly<MatchCamera>, aspect: number)
   return (Math.atan(camera.tangent * aspect) * 360.0) / Math.PI;
 }
 
+/** The two framings a match can reach on a stage: closest (fighters together on the deck) and widest and lowest (fighters spread to the camera limits, one far below). */
+export type CameraExtreme = "near" | "far";
+
+/** Sets `target` to one of the stage's camera extremes, after the same limits every match framing passes. */
+export function extremeCamera(target: MatchCamera, stage: number, aspect: number, extreme: CameraExtreme): void {
+  const bounds = stageBounds(stage);
+  target.x = 0.0;
+  target.z = extreme === "near" ? 100.0 : -100000.0;
+  target.distance = extreme === "near" ? 1450.0 : 100000.0;
+  target.tangent = extreme === "near" ? 0.2679491937160492 : 0.3443276286125183;
+  limitCamera(target, bounds.camera, aspect, bounds.blast.bottom);
+}
+
 /** Projection against the actual local view, as fractions from the top-left. */
 export function cameraPoint(camera: Readonly<MatchCamera>, aspect: number, x: number, z: number): { readonly column: number; readonly row: number } {
   const dz = z - camera.z;

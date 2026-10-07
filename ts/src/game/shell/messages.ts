@@ -3,7 +3,7 @@ import { Advantage, type TrainingState } from "../match/trainingState";
 import { PARTICIPANT_SLOTS, participantActive } from "../input/participants";
 import { floorDiv } from "wisp/src/sim/intMath";
 import { MATCH_TICKS_PER_SECOND, Phase, type MatchState, computerActive, humanFighterActive, humanPresent, keepsStocks, practiceSelected } from "../match/rules";
-import { AttackStyle, DownState, LedgeState } from "../sim/codes";
+import { AttackStyle, DownState, ItemKind, LedgeState } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 import { SPECIAL_INPUTS, fighterKit, normalName, specialName } from "../sim/moveNames";
 import { fighterName } from "../sim/heroes/registry";
@@ -71,6 +71,8 @@ export const stockSetting = (count: number) => (count === 1 ? "1 Stock" : `${cou
 export const timeSetting = (minutes: number) => (minutes === 0 ? "No time limit" : `${minutes}:00`);
 export const endlessSetting = (endless: boolean) => `Endless: ${endless ? "On" : "Off"}`;
 export const automaticRematchSetting = (automatic: boolean) => `Automatic rematch: ${automatic ? "On" : "Off"}`;
+export const itemsSetting = (on: boolean) => `Items: ${on ? "On" : "Off"}`;
+export const itemKindSetting = (kind: ItemKind, on: boolean) => `${kind === ItemKind.speed ? "Speed" : kind === ItemKind.extraJump ? "Extra jump" : "Heavy"}: ${on ? "On" : "Off"}`;
 export const trainingSetting = (training: boolean) => `Training: ${training ? "On" : "Off"}`;
 const BEHAVIOUR_NAMES = ["Stand", "Shield", "Crouch", "Jump", "Attack", "Fight"];
 const ESCAPE_NAMES = ["None", "Toward you", "Away", "Random"];
@@ -110,7 +112,7 @@ export function matchHelp(game: Readonly<MatchState>, paused: boolean, start: St
   }
   if (!playing) return rematchStatus(game, start);
   if (paused) return `PAUSED — Press ${start} to resume. Combat is frozen.${game.practice || game.endless || game.training ? "\nEscape: back to fighter selection." : ""}`;
-  return `${start}: pause. Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\nHold Shield on the ground, then tap Left/Right to roll or Down to dodge.`;
+  return `${start}: pause. Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\nShield + neutral/side Special: EX, 25 extra mana. Shield then Left/Right: roll; Down: dodge.`;
 }
 
 /** Shown to the player who saved the last seconds of play for a bug report. */

@@ -42,7 +42,7 @@ Build order is a recommendation, not permission to delete or overwrite ongoing w
 
 Use logical actions rather than hardcoded physical keys. A is normal attack; direction and the existing tilt modifier choose tilts versus smashes. In the air, A plus direction selects neutral, forward, back, up, or down aerial. B is special: neutral B, side B, up B, and down B. Grab is the existing grab binding. Throws are forward, back, up, or down after grabbing. Ultimate is the existing dedicated logical action, not a new overloaded B combination.
 
-Every fighter has jab, three tilts, dash attack, three smashes, five aerials, standing and dash grab, pummel, four throws, four specials, and an optional ultimate. Preserve the existing jump, shield, roll, dodge, ledge, tech, DI, and fastfall rules. No attack L-cancel requirement. Do not invent one-frame links as a requirement for a basic kit to function.
+Every fighter has jab, three tilts, dash attack, three smashes, five aerials, standing and dash grab, pummel, four throws, four specials, and EX neutral/side specials. Preserve the existing jump, shield, roll, dodge, ledge, tech, DI, and fastfall rules. No attack L-cancel requirement. Do not invent one-frame links as a requirement for a basic kit to function.
 
 ### Timing and geometry notation
 
@@ -66,7 +66,7 @@ No critical-hit RNG, random evasion, chance-on-hit stuns, or automatic spell cou
 
 ### Proposed resource profile
 
-Mana is every fighter's one resource for specials; its rules, numbers and bar are in [mana.md](mana.md): 100, full each stock, earned by landing normals and throws and (capped) by taking hits, plus a steady trickle, faster on the ground. Each B row lists its total cost, deducted once on move entry with no refund on interruption. An unaffordable move does not start or consume input as an attack, and the bar flashes once per press.
+Mana is every fighter's one resource for specials; its rules, numbers and bar are in [mana.md](mana.md): 100, full each stock, earned by landing normals and throws, perfect shields/parries and (capped) by taking hits, plus a one-point-per-second trickle. Each B row lists its total cost, deducted once on move entry with no refund on interruption. An unaffordable move does not start or consume input as an attack, and the bar flashes once per press.
 
 Every up B has a weaker zero-mana version described in its kit; being depleted must not remove basic recovery. If current mana is below the full up B cost, automatically select the free version and spend zero mana; this is the explicit exception to the unaffordable-move rule. If sufficient mana exists, use the full version. Full-strength up B uses its listed cost. One up B use per airtime; it resets only on grounded actionable state or stock respawn, not on ledge regrab. Up B and mobility specials marked helpless prohibit attacks, specials, and double jump until landing or the existing hitstun escape rules. They do not confer ledge invulnerability. Non-mobility specials never refresh jumps or recovery availability.
 
@@ -94,9 +94,9 @@ Armor, when explicitly listed, absorbs hit reaction from one hit up to its liste
 
 At most one copy of each status per target; reapplication refreshes duration but does not stack strength. Hex and sleep count down in simulation frames, not wall time. Their timers, active source IDs, immunity windows, and any damage counters belong in snapshots. No status disables ordinary jumping, shielding, DI, or recovery unless its exact short effect states otherwise.
 
-### Ultimates
+### EX specials
 
-Ultimates are optional and disabled in the default competitive preset until the base kits work. Proposed casual profile: each player’s ultimate becomes ready after 3600 active match frames, then has a 3600-frame cooldown after use. Death does not reset or refresh the timer. Pause and countdown do not advance it. No resource from kills and no refill from damage. Activation is a separate action, normally ground-only, and cannot cancel hitstun. Each kit defines its effect below. Do not let cinematic effects hide opponents or shift their camera.
+There are no ultimates. Shield + neutral/side Special requests EX: pay the chosen normal form's cost plus 25 for one 8% hit of armor on frames 1–6. If EX is unaffordable, use the normal form. Ordinary timing and recovery remain. The rates, input and per-fighter table are in [gameplay-design.md](../gameplay-design.md#build-and-spend-mana-and-ex-specials). Earlier ultimate proposals below are historical design references, with no gameplay action.
 
 ## Baseline fighter properties
 
