@@ -13,7 +13,7 @@ const haze = (air: boolean): AuthoredSpecial => ({
   cost: 12, endFrame: 38, landingLag: air ? 20 : undefined,
   projectiles: [{ spawnFrame: 14, offsetX: 40.0, offsetZ: 60.0, velocityX: 8.0, velocityZ: 0.5, gravity: f32(0.08),
     life: 38, radius: 22.0, effect: chenHit(3.0, 35.0, 16.0, f32(0.819152), f32(0.573576)), reflectable: true, limit: 1,
-    model: "Abilities\\Spells\\Other\\DrunkenHaze\\DrunkenHazeMissile.mdx",
+    model: "Abilities\\Spells\\Other\\StrongDrink\\BrewmasterMissile.mdx",
     status: { kind: HeroStatusKind.terror, frames: 90, group: HeroStatusGroup.terror, immunityFrames: 120 },
   }],
 });

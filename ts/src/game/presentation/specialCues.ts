@@ -105,7 +105,7 @@ export const HERO_CUES: { readonly [character: number]: { readonly [slot in Spec
   },
   [Character.chen]: {
     neutral: { spell: "Breath of Fire", startup: BEAST, active: cue("Abilities\\Spells\\Other\\BreathOfFire\\BreathOfFireMissile.mdx", "ahead", f32(0.6)) },
-    side: { spell: "Drunken Haze", startup: BEAST, active: cue("Abilities\\Spells\\Other\\DrunkenHaze\\DrunkenHazeTarget.mdx", "hand", f32(0.7)) },
+    side: { spell: "Drunken Haze", startup: BEAST, active: cue("Abilities\\Spells\\Other\\StrongDrink\\BrewmasterTarget.mdx", "hand", f32(0.7)) },
     up: { spell: "Storm Rise", startup: STORM, active: cue("Abilities\\Spells\\NightElf\\Cyclone\\CycloneTarget.mdx", "body", f32(0.6)) },
     down: { spell: "Storm, Earth and Fire", startup: BEAST, active: cue("Abilities\\Spells\\Orc\\WarStomp\\WarStompCaster.mdx", "feet", f32(0.5)) },
   },
