@@ -7,6 +7,7 @@ import { roundToFloat32 } from "wisp/src/sim/binary32";
 import { f32 } from "wisp/src/sim/f32";
 import { resolveAttacks } from "./attacks";
 import { AttackStyle, Character, DownState } from "./codes";
+import { ownedInfluenceOperands } from "./influenceOperands";
 import { createFighter } from "./fighter";
 import { applyDirectionalInfluence, directionalInfluenceVector, influenceOperands, ordinaryHitKnockback, ordinaryHitlagFrames, ordinaryHitstunFrames } from "./knockback";
 import { attackStartupFrames, GRAB_HOLD_FRAMES } from "./moves";
@@ -285,6 +286,28 @@ test("DI reads only the last hitlag frame and preserves launch speed", () => {
   assertNear(length(fighter.launch.knockbackX, fighter.launch.knockbackZ), 9.694000244140625, 0.0010000000474974513);
   advanceSolo(fighter, 0, input, -240.0);
   assertEquals(fighter.launch.diSerial, 1);
+});
+
+test("DI trace storage is owned at fighter creation and remains absent until nonzero rotation", () => {
+  const fighter = createFighter(Character.archer, 0.0, 1);
+  const storage = ownedInfluenceOperands(fighter);
+  assertEquals(influenceOperands(fighter), undefined);
+  fighter.motion.grounded = false;
+  setMeleeKnockback(fighter, 1.0, 1.0);
+  fighter.launch.diPending = true;
+  applyDirectionalInfluence(fighter, controls({ direction: 0 }));
+  assertEquals(influenceOperands(fighter), undefined);
+  fighter.launch.diPending = true;
+  applyDirectionalInfluence(fighter, controls({ direction: -1 }));
+  assertTrue(influenceOperands(fighter) === storage);
+  const degrees = storage.degrees;
+  const angle = storage.angleRadians;
+  fighter.launch.diPending = true;
+  applyDirectionalInfluence(fighter, controls({ direction: 0 }));
+  assertTrue(influenceOperands(fighter) === storage);
+  assertEquals(storage.degrees, degrees);
+  assertEquals(storage.angleRadians, angle);
+  assertTrue(Object.keys(fighter).every(key => key !== "lastInfluence" && key !== "influenceOperands"));
 });
 
 test("a DI's traced operands repeat its angle exactly", () => {

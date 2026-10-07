@@ -21,6 +21,7 @@ import { type MatchState, computerActive } from "../match/rules";
 import { type MapBuild, type Scenario, isScenario, isShadow } from "../shell/build";
 import { produceScenarioComputerInput } from "../shell/scenarios";
 import { type Fighter, placedObject, PROJECTILE_CAPACITY } from "../sim/fighter";
+import { initializeInfluenceOperands } from "../sim/influenceOperands";
 import type { AuthoredSpecial, FighterSpecials, SpecialPlacement, SpecialProjectile } from "../sim/heroSpecials";
 import { type Roster, createRoster, fighterAt, isActive } from "../sim/roster";
 import { authoredTuning } from "../sim/tuning";
@@ -425,6 +426,7 @@ export function savedState(record: Readonly<Record<string, unknown>>): ReplaySta
     const fighter = fighters[slot];
     if (!isFighter(fighter)) return undefined;
     rebindAuthoredKit(fighter);
+    initializeInfluenceOperands(fighter);
     world.fighters[slot] = fighter;
   }
   const strategies = runtime.botStrategies;

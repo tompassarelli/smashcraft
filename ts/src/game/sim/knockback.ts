@@ -7,6 +7,8 @@ import { f32 } from "wisp/src/sim/f32";
 import { meleeAtan2, meleeCos, meleeSin } from "../../sim/meleeScalarMath";
 import { DamageLanding } from "./codes";
 import type { Fighter } from "./fighter";
+import { ownedInfluenceOperands } from "./influenceOperands";
+export { influenceOperands } from "./influenceOperands";
 import { AIR_KNOCKBACK_DECAY, AIR_KNOCKBACK_SQUARED_CUTOFF, decayedAirMotion, retainedOriginal, roundMeleeWorldValue, setMeleeKnockback, termsOfPhysics } from "./motion";
 import type { Controls } from "./roster";
 import { melee } from "./tuning";
@@ -177,19 +179,6 @@ interface DirectionalInfluence {
 // Preallocated: rollback replays apply DI when replayed hitlag ends.
 const influence: DirectionalInfluence = { velocityX: 0.0, velocityZ: 0.0, degrees: 0.0, angleRadians: 0.0 };
 
-/** The operands of a fighter's last DI, for the integrity trace to compare native DI with its replay operation by operation (#59). */
-interface InfluenceOperands {
-  x: number;
-  z: number;
-  stickX: number;
-  stickZ: number;
-  degrees: number;
-  angleRadians: number;
-}
-
-const lastInfluence = new WeakMap<Fighter, InfluenceOperands>();
-
-export const influenceOperands = (fighter: Fighter): Readonly<InfluenceOperands> | undefined => lastInfluence.get(fighter);
 
 /**
  * A launch rotated by DI. Launch components are in Melee units; stick
@@ -244,11 +233,8 @@ export function applyDirectionalInfluence(target: Fighter, input: Readonly<Contr
   if (result.angleRadians !== 0) {
     launch.diAngleDegrees = f32(result.angleRadians * RADIANS_TO_DEGREES);
     launch.diSerial++;
-    let operands = lastInfluence.get(target);
-    if (operands === undefined) {
-      operands = { x: 0.0, z: 0.0, stickX: 0.0, stickZ: 0.0, degrees: 0.0, angleRadians: 0.0 };
-      lastInfluence.set(target, operands);
-    }
+    const operands = ownedInfluenceOperands(target);
+    operands.recorded = true;
     operands.x = x;
     operands.z = z;
     operands.stickX = inputX;
