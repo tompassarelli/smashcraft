@@ -450,6 +450,17 @@ pause to check.
 
 ## Raw playable cost captures
 
+For keyboard response measurements, build or rebuild with
+`--profile native-input`. It keeps the playable keyboard input, fixed
+two-frame delay, rollback and predicted pooled fighters, and adds only the
+developer setup commands and response probe. Ctrl+G begins recording;
+Ctrl+H exports the callback and input rows into CustomMapData. The magenta
+marker's position identifies the callback shown in a captured framebuffer.
+Record the original host input timestamps and the framebuffer timestamps;
+the exported game clock alone cannot establish press-to-screen latency.
+The probe adds diagnostic work, so report its overhead separately from the
+ordinary release's cost. Use the integrity profile for journal diagnostics.
+
 Build or rebuild with `--profile native-perf` for script-cost trials of the
 playable build. The diagnostic uses the playable build's local keyboard rows
 and predicted pooled fighters, with developer setup commands and the frame meter;

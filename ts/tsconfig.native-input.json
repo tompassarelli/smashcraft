@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.map.json",
+  "include": [
+    "node_modules/wisp/src/natives/warcraft.d.ts",
+    "src/platform/nativeInputMain.ts"
+  ],
+  "exclude": [],
+  "tstl": {
+    "luaBundle": "native-input.lua",
+    "luaBundleEntry": "src/platform/nativeInputMain.ts"
+  }
+}

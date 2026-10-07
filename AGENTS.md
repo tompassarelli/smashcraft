@@ -92,6 +92,10 @@ code. From smashcraft:ts/:
   builds the TypeScript map from the private inputs smashcraft:build-inputs.json
   names (`--base`, `--container`, `--assets`, `--summon` override one);
   `bun wisp map rebuild MAP.w3x` replaces only its script.
+  `--profile native-input` measures the playable keyboard path with developer
+  setup and the response probe (Ctrl+G records, Ctrl+H exports); its rendered
+  marker identifies the callback actually captured in pixels. Report that
+  diagnostic overhead; journal integrity is a separate input path.
 - Build inputs: each private asset family is stored once under the hash of
   its contents and never edited; build-inputs.json names each family's hash,
   so changing art is `bun wisp inputs add FAMILY DIR` plus a commit, landed
