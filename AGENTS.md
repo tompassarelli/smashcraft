@@ -129,6 +129,10 @@ code. From smashcraft:ts/:
   (starts tumbling above the floor for recovery captures), and `-dev quick cpu N [hero NAME]`,
   a quick match against a selectable computer at level N (1-9) over three stocks.
   The named variant uses the normal CPU selection rule.
+- Generated menus: smashcraft:ts/scripts/wisp/uiFrames.ts defines menu panels as Wisp
+  frame definitions (wisp:docs/ui.md); after changing one or its layout, `bun
+  scripts/wisp/uiFrames.ts` rewrites its FDF/TOC in smashcraft:tools/selection/art/
+  and its bindings in smashcraft:ts/src/game/ui/ (test/ui-frames.test.ts holds them current).
 - Client state: `bun wisp client watch [CLIENT...] [--once]` prints what each client
   is doing (signed in, menu screen, lobby, loading, in match, results,
   disconnected, crashed, its map's load errors, the ladder scan) from its menus,
