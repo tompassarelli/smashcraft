@@ -132,10 +132,10 @@ export const readyAfter = (client: Client, time: number) => Effect.gen(function*
 });
 
 /** Sends a developer chat command, such as `-dev quick`, from the host client and waits until every player's new receipt arrives. */
-export const sendDevCommand = (command: string) => Effect.gen(function*() {
+export const sendDevCommand = (command: string, clientName?: string) => Effect.gen(function*() {
   const clients = yield* Clients;
   const files = yield* GameFiles;
-  const [host] = clients.all;
+  const host = clientName === undefined ? clients.all[0] : clients.all.find((client) => client.name === clientName);
   const mapReady = yield* Effect.forEach(clients.all, (client) => {
     const path = join(dataDirectory(client.documents), MELEE_READY_FILE);
     return readGameFile(path, MeleeReady);
@@ -148,8 +148,8 @@ export const sendDevCommand = (command: string) => Effect.gen(function*() {
     Effect.flatMap((old) => old === undefined ? Effect.void : files.remove(path)),
   ), { concurrency: "unbounded", discard: true }).pipe(step("clear old quick-match receipts"));
 
+  yield* clients.keys(host, "Escape", "Return").pipe(step("open developer chat"));
   yield* clients.batch(host, [
-    { kind: "keys", keys: ["Return"] },
     { kind: "text", text: command },
     { kind: "keys", keys: ["Return"] },
   ]).pipe(step(`send ${command}`));

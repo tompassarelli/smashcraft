@@ -207,7 +207,8 @@ export class MatchPresentation {
     this.cue(MatchCue.cheer);
     playFile(warcryVoice(winner));
     this.posing = view.rows[0]?.slot;
-    this.victory = this.pose(winner, view.x, view.z);
+    // The last hit can leave the winner behind the panel; pose beside the current camera centre.
+    this.victory = this.pose(winner, GetCameraTargetPositionX() - this.origin.x - 240.0, 0.0);
   }
 
   private pose(winner: Character, x: number, z: number): effect {
