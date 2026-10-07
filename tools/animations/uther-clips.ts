@@ -12,6 +12,7 @@ import type { HeroPose } from "../../ts/src/game/sim/heroes/hero";
 import { UTHER_MOVES } from "../../ts/src/game/sim/heroes/utherMoves";
 import { UTHER_SPECIALS } from "../../ts/src/game/sim/heroes/utherSpecials";
 import { seconds } from "./asset-info";
+import { renumberNodes } from "../../ts/scripts/clipNodes";
 function ensure(ok: unknown, why: string): asserts ok { if (!ok) throw new Error(why); }
 function tracks(value: unknown, visit: (track: mdx.AnimVector, path: string) => void, path = "") {
   if (!value || typeof value !== "object" || ArrayBuffer.isView(value)) return;
@@ -42,6 +43,9 @@ const [input, output] = process.argv.slice(2).map(p => resolve(p));
 const project = resolve(import.meta.dir, "../..");
 ensure(input && output && relative(project, output).startsWith(".."), "usage: bun tools/animations/uther-clips.ts STOCK_FORSAKEN_PALADIN.mdx PRIVATE_OUTPUT");
 const source = forsakenSource(await Bun.file(input).arrayBuffer());
+const glowIds=new Set((source.ParticleEmitterPopcorns??[]).map(node=>node.ObjectId));
+ensure(source.Nodes.every(node=>node===undefined||!glowIds.has(node.Parent)),"Forsaken body depends on its hero glow");
+source.ParticleEmitterPopcorns=[];for(const id of glowIds)delete source.Nodes[id];renumberNodes(source);
 const hammerInput=process.argv[4];ensure(hammerInput,"Pass the private classic Paladin hammer source as the third argument");
 const paladin=parseMDX(await Bun.file(hammerInput).arrayBuffer());
 const classicRenderer=new ModelRenderer(paladin),classicData=Reflect.get(classicRenderer,"rendererData");
@@ -56,10 +60,10 @@ const oldGrip=worldPoint(paladin,classicData,oldHand),newGrip=worldPoint(source,
 const classicHammerPoints:Array<vec3>=[];
 for(let vertex=0;vertex<paladin.Geosets[0]!.Vertices.length/3;vertex++)if(paladin.Geosets[0]!.Groups[paladin.Geosets[0]!.VertexGroup[vertex]!]!.every(id=>id===oldHammer.ObjectId)){
   const point=vec3.fromValues(...Array.from(paladin.Geosets[0]!.Vertices.subarray(vertex*3,vertex*3+3)) as [number,number,number]);vec3.transformMat4(point,point,classicData.nodes[oldHammer.ObjectId].matrix);classicHammerPoints.push(point);}
-const crown=Math.max(...classicHammerPoints.map(point=>point[2]!)),classicHead=classicHammerPoints.filter(point=>point[2]!>=crown-12),oldTip=vec3.create();
-for(const point of classicHead)vec3.add(oldTip,oldTip,point);vec3.scale(oldTip,oldTip,1/classicHead.length);
+const oldMarker=worldPoint(paladin,classicData,paladin.Nodes.find(n=>n.Name==="Weapon Ref ")!),classicHead=classicHammerPoints.filter(point=>vec3.distance(point,oldMarker)<32),oldTip=vec3.create();
+ensure(classicHead.length>0,"Classic hammer head vertices missing");for(const point of classicHead)vec3.add(oldTip,oldTip,point);vec3.scale(oldTip,oldTip,1/classicHead.length);
 const newTip=worldPoint(source,forsakenData,source.Nodes.find(n=>n.Name==="Weapon Ref")!);
-const oldDirection=vec3.sub(vec3.create(),oldTip,oldGrip),newDirection=vec3.sub(vec3.create(),newTip,newGrip),ratio=Math.min(0.7,vec3.length(newDirection)/vec3.length(oldDirection));
+const oldDirection=vec3.sub(vec3.create(),oldTip,oldGrip),newDirection=vec3.sub(vec3.create(),newTip,newGrip),ratio=vec3.length(newDirection)/vec3.length(oldDirection);
 vec3.normalize(oldDirection,oldDirection);vec3.normalize(newDirection,newDirection);const align=quat.rotationTo(quat.create(),oldDirection,newDirection);
 mat4.fromRotationTranslationScale(handLocal,align,newGrip,vec3.fromValues(ratio,ratio,ratio));
 mat4.translate(handLocal,handLocal,vec3.negate(vec3.create(),oldGrip));
@@ -263,6 +267,13 @@ for(const [ordinal,action]of actions.entries())if(action.pose.startsWith("victim
   sequence.Interval=new Uint32Array([start,start+1000]);
 }
 const bytes=encodeVerified(parseSource(generateMDX(model)));mkdirSync(output,{recursive:true});await Bun.write(join(output,"heroforsakenpaladin.mdx"),bytes);
+const headIndices=Array.from(indices.entries()).filter(([vertex])=>{const point=vec3.fromValues(...Array.from(oldGeometry.Vertices.subarray(vertex*3,vertex*3+3)) as [number,number,number]);vec3.transformMat4(point,point,classicData.nodes[oldHammer.ObjectId].matrix);return vec3.distance(point,oldMarker)<32;}).map(([,index])=>index);
+const hammerContacts=actions.filter(action=>["neutralSpecial","sideSpecial","upSpecial","downSpecial"].includes(action.pose)).map(action=>{
+  const ordinal=actions.indexOf(action),frames=action.phases?.filter(phase=>phase.frame>=action.contact).map(phase=>phase.frame)??[action.contact];
+  return {pose:action.pose,headVertices:headIndices.length,contacts:frames.map(frame=>{evaluate(source.Sequences.length+ordinal,frame);const point=vec3.create();
+    for(const vertex of headIndices){const position=vec3.fromValues(model.Geosets[1]!.Vertices[vertex*3]!,model.Geosets[1]!.Vertices[vertex*3+1]!,model.Geosets[1]!.Vertices[vertex*3+2]!);vec3.transformMat4(position,position,data.nodes[weapon.ObjectId].matrix);vec3.add(point,point,position);}vec3.scale(point,point,1.2/headIndices.length);
+    return {frame,head:Array.from(point)};})};
+});
 await Bun.write(join(project,"ts/src/game/sim/heroes/utherClips.ts"),[
   "// Generated by tools/animations/uther-clips.ts; regenerate instead of editing.", 'import { f32 } from "wisp/src/sim/f32";', 'import type { HeroClip, HeroClipTable } from "./hero";',
   'export const UTHER_FALLBACK_CLIP: HeroClip = { index: 1, seconds: 3.0 };',
@@ -287,5 +298,5 @@ for(const pose of ["forwardTilt","upTilt","downTilt","downSmash","neutralAir","b
   const panels:PoseFrame[]=[1,-1].flatMap(facing=>[0,Math.max(1,action.contact-3),action.contact,Math.min(action.frames,action.contact+4),action.frames].map(frame=>({frame,phase:frame<action.contact?AttackPhase.startup:frame<=action.contact+4?AttackPhase.active:AttackPhase.recovery,x:0,z:0,facing,parts:[],strikes:[],clip:source.Sequences.length+ordinal,seconds:frame/60})));
   await Bun.write(join(output,`${pose}.png`),sheet(`Uther ${pose}`,after,panels,5).png);
 }
-await Bun.write(join(output,"uther-clips.json"),JSON.stringify({stockSequences:source.Sequences.length,preservedSamples:preserved,appended:records.length,records,motions},null,2)+"\n");
+await Bun.write(join(output,"uther-clips.json"),JSON.stringify({stockSequences:source.Sequences.length,preservedSamples:preserved,appended:records.length,hammerContacts,records,motions},null,2)+"\n");
 console.log(`UTHER_CLIPS_PASS ${records.length} clips; ${preserved} stock pose samples retained; nine distinct first pain poses; ${output}`);
