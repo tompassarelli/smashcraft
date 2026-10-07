@@ -1,3 +1,4 @@
+import { recordTokens } from "wisp/src/runtime/recordText";
 import { HabitChoice } from "./botHabits";
 import { at } from "wisp/src/runtime/lookup";
 import { floorMod } from "wisp/src/sim/intMath";
@@ -46,10 +47,11 @@ function readyRead(choice: number) {
   for (let seed = 0; seed < 100; seed++) {
     useMatchSeed(seed);
     prepareBotRead(game.strategy, game.own, game.target, 491, 12, EXPERT);
-    if (game.strategy.read !== undefined) break;
+    if (game.strategy.readActive) break;
   }
   useMatchSeed(0);
-  const read = assertDefined(game.strategy.read);
+  assertTrue(game.strategy.readActive);
+  const read = assertDefined(savedBotStrategy(game.strategy).read);
   assertEquals(read.choice, choice);
   assertEquals(read.expectedFrame, 540);
   return game;
@@ -93,6 +95,49 @@ test("bot habit snapshots retain owned scalar storage and exact replay values th
   assertEquals(botStrategyValues(snapshot).join(","), values);
 });
 
+test("bot read scalar copies preserve saved fields and detach commitments across inactive copies", () => {
+  const game = readyRead(HabitChoice.shield);
+  const source = game.strategy;
+  source.readActed = true;
+  source.readActionFrame = 534;
+  source.readActionSerial = 9;
+  source.readActionStyle = AttackStyle.grab;
+  source.readActionFacing = -1;
+  const snapshot = createBotStrategy();
+  copyBotStrategy(snapshot, source);
+  const saved = savedBotStrategy(snapshot);
+  const read = assertDefined(saved.read);
+  assertEquals(assertDefined(recordTokens(saved)).join(","), assertDefined(recordTokens({
+    history: saved.history, observedFrame: saved.observedFrame, opponent: saved.opponent,
+    lastChoice: saved.lastChoice, lastContext: saved.lastContext, lastSerial: saved.lastSerial, events: saved.events,
+    read: { choice: HabitChoice.shield, context: source.readContext, expectedFrame: 540, expires: 558, confidence: 100,
+      acted: true, actionFrame: 534, actionSerial: 9, actionStyle: AttackStyle.grab, actionFacing: -1 },
+    lastOption: saved.lastOption,
+  })).join(","));
+  assertEquals(read.choice, HabitChoice.shield);
+  assertEquals(read.expectedFrame, 540);
+  assertEquals(read.expires, 558);
+  assertEquals(read.confidence, 100);
+  assertTrue(read.acted);
+  assertEquals(read.actionFrame, 534);
+  assertEquals(read.actionSerial, 9);
+  assertEquals(read.actionStyle, AttackStyle.grab);
+  assertEquals(read.actionFacing, -1);
+  const values = botStrategyValues(snapshot).join(",");
+  const restored = restoredBotStrategy(saved);
+  assertEquals(botStrategyValues(restored).join(","), values);
+  source.readActive = false;
+  copyBotStrategy(snapshot, source);
+  assertEquals(savedBotStrategy(snapshot).read, undefined);
+  assertEquals(botStrategyValues(snapshot).slice(7, 18).join(","), "0,0,0,0,0,0,0,-1,-1,-1,0");
+  copyBotStrategy(snapshot, restored);
+  assertEquals(botStrategyValues(snapshot).join(","), values);
+  restored.readActionFrame = 535;
+  assertEquals(snapshot.readActionFrame, 534);
+  snapshot.readActionFrame = 536;
+  assertEquals(read.actionFrame, 534);
+});
+
 test("a learned shield read positions and buffers a grab before the next shield is observable", () => {
   const game = readyRead(HabitChoice.shield);
   const input = neutralControls();
@@ -105,7 +150,7 @@ test("a learned shield read positions and buffers a grab before the next shield 
   input.direction = 0;
   assertTrue(pressBotRead(game.strategy, game.own, game.target, 0, 534, 534, input, commands));
   assertTrue(input.attackHeld);
-  assertTrue(assertDefined(game.strategy.read).acted);
+  assertTrue(game.strategy.readActed);
 });
 
 test("an anticipatory grab remains buffered through four frames of own recovery", () => {
@@ -180,7 +225,7 @@ test("seeded read mix-ups sometimes decline a reliable pattern, and detached rep
     const game = trained(HabitChoice.shield);
     useMatchSeed(seed);
     prepareBotRead(game.strategy, game.own, game.target, 491, 12, EXPERT);
-    if (game.strategy.read !== undefined) reads++;
+    if (game.strategy.readActive) reads++;
   }
   useMatchSeed(0);
   assertGreaterThan(reads, 50);
@@ -191,7 +236,7 @@ test("seeded read mix-ups sometimes decline a reliable pattern, and detached rep
   const saved = createReplaySnapshot();
   copyReplayState(saved, state);
   const original = stateChecksum(saved);
-  assertDefined(game.strategy.read).acted = true;
+  game.strategy.readActed = true;
   assertTrue(stateChecksum(state) !== original);
   assertEquals(stateChecksum(saved), original);
   copyReplayState(state, saved);

@@ -12,7 +12,7 @@ on:
         description: Commit, branch or tag to check
         default: main
       dirs:
-        description: Script folders under ts/test/native/pads, space-separated (. is the top level)
+        description: Script files or folders under ts/test/native/pads, space-separated (. is the top level)
         default: "."
       tag:
         description: Names the run so `bun wisp farm` can find the one it dispatched
@@ -40,7 +40,7 @@ jobs:
       - id: plan
         run: |
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-          echo "pads=$(cd ts/test/native/pads && for dir in $DIRS; do ls "$dir"/*.pad; done | sed "s#^\./##" | jq -R . | jq -sc .)" >> "$GITHUB_OUTPUT"
+          echo "pads=$(cd ts/test/native/pads && for dir in $DIRS; do if [ -f "$dir" ]; then printf '%s\n' "$dir"; else ls "$dir"/*.pad; fi; done | sed "s#^\./##" | jq -R . | jq -sc .)" >> "$GITHUB_OUTPUT"
         env:
           DIRS: ${{ inputs.dirs }}
 
