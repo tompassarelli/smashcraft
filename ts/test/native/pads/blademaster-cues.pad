@@ -111,7 +111,6 @@
 #! expect a 680 special 15 form 2
 #! expect a 772 special 13 form 1
 #! scene a BloodlustSpecial
-#! scene a Tornado_Target
 #! scene a WingedSerpentMissile
 #! scene a InvisibilityTarget
 #! scene a SunderingBlades

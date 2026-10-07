@@ -411,6 +411,8 @@ export function firstStateDifference(expected: Readonly<ReplayState>, actual: Re
   for (const key of ["initialized", "x", "z", "distance", "tangent", "left", "right", "bottom", "top"] as const) if (e.camera[key] !== a.camera[key]) return `match.camera.${key}`;
   for (const slot of PARTICIPANT_SLOTS) for (const key of ["left", "right", "bottom", "top"] as const) if (e.camera.boxes[slot][key] !== a.camera.boxes[slot][key]) return `match.camera.box${slot}.${key}`;
   if (e.stageChoice !== a.stageChoice) return "match.stageChoice";
+  if (e.stageResolved !== a.stageResolved) return "match.stageResolved";
+  for (const key of ["only", "selectedMask", "remainingMask"] as const) if (e.stagePool[key] !== a.stagePool[key]) return `match.stagePool.${key}`;
   if (e.winner !== a.winner) return "match.winner";
   if (e.departedMask !== a.departedMask) return "match.departedMask";
   if (e.interrupted !== a.interrupted) return "match.interrupted";

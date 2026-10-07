@@ -109,10 +109,16 @@ code. From smashcraft:ts/:
   clips and writing both-facing silhouette sheets for the native review.
   `bun tools/animations/down-air-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends
   downward contact poses for the seven stock heroes whose casts/swings pointed forward.
+  `bun tools/animations/attack-gesture-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT [--character ID]`
+  appends distinct roster attack gestures without changing combat data or old clips;
+  `--character` regenerates one fighter while retaining other generated bindings.
   `bun tools/animations/dreadlord-pounce-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` authors Dreadlord’s horizontal corkscrew, bite and recovery; `bun tools/animations/dreadlord-pounce-captures.ts PRIVATE_ASSETS PRIVATE_OUTPUT` captures their production phase selection in both facings.
   `bun tools/animations/jump-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends
   movement-only jump gestures, including Blademaster's front flip
   (smashcraft:docs/fighter-animation-work.md).
+  `bun tools/animations/blademaster-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
+  appends a distinct gesture for each Blademaster normal and his back throw,
+  preserving the shipped plunge and double-jump flip.
   `bun tools/animations/warden-fan-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` authors
   Warden's ground and air Fan of Knives casts, preserving other clips
   (smashcraft:docs/design/warden-fan-of-knives.md).
@@ -144,6 +150,10 @@ code. From smashcraft:ts/:
   then `bun tools/animations/illidan-locomotion.ts PRIVATE_ASSETS PRIVATE_AUTHORED PRIVATE_OUTPUT`.
   Package with `bun tools/animations/package-illidan.ts PRIVATE_OUTPUT --metadata-only`,
   store `illidan-animation`, and refresh the original clip pool.
+- Jaina animation authoring (from the repository root):
+  `bun tools/animations/jaina-clips.ts STOCK_JAINA.mdx PRIVATE_OUTPUT`
+  appends her staff strikes, spell gestures, movement and nine contact reactions;
+  store the generated model in `hero-models` and refresh the original clip pool.
 - Lich King animation authoring (from the repository root):
   `tools/animations/build-lichking.sh [PRIVATE_INPUTS] [IMMUTABLE_EXISTING_MODEL] [--replace NAME]`
   authors clips through Blender; the optional existing model preserves shipped
@@ -155,6 +165,15 @@ code. From smashcraft:ts/:
   `bun tools/animations/sylvanas-clips.ts STOCK_SYLVANAS.mdx PRIVATE_OUTPUT`
   appends bow attacks, casts, recovery, paired grabs and nine damage reactions
   to the classic undead Sylvanas rig, preserving its stock sequences.
+- Cairne animation authoring (from the repository root):
+  `bun tools/animations/cairne-clips.ts STOCK_TAUREN.mdx PRIVATE_OUTPUT`
+  appends the complete totem kit, recovery, paired grabs and nine pain clips
+  to the private classic Tauren Chieftain model, preserving its stock clips.
+- Chen animation authoring (from the repository root):
+  `bun tools/animations/chen-clips.ts STOCK_CHEN.mdx PRIVATE_OUTPUT` authors
+  Chen's staff, footwork, special, recovery, paired throw and nine pain clips
+  from his private stock model and regenerates his clip table
+  (smashcraft:docs/design/chen.md).
 - Damage reactions (from the repository root):
   `bun tools/animations/damage-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
   appends all 13 fighters' nine articulated contact reactions, checks their
@@ -170,6 +189,7 @@ code. From smashcraft:ts/:
   and pad scripts: `-dev quick hero NAME`, `-dev quick recovery hero NAME`
   (starts tumbling above the floor for recovery captures), and `-dev quick cpu OPPONENT DIFFICULTY [hero NAME]`,
   a quick match against a named computer at the selected difficulty over three stocks.
+  `-dev quick offstage hero NAME` starts the #189 recovery check at x=700, z=300 on Frozen Throne with jumps spent.
   The named variant uses the normal CPU selection rule.
   `-dev pain HEIGHT STRENGTH FIGHTER` starts the #181 mirror capture fixture:
   low/middle/high and small/medium/large, with ordinary projectile contacts at
@@ -485,6 +505,9 @@ code. From smashcraft:ts/:
   `-dev camera-smooth on|off` compares native one-frame camera transitions
   with the normal camera in the same development map; it keeps the simulated
   camera unchanged (smashcraft:docs/high-refresh.md).
+  `bun scripts/cameraDraw.ts --video PRIVATE.mkv --pages DATA_DIR --out PRIVATE_DIR
+  [--slot 0 --run 1 --viewport X,Y,W,H]` joins lossless compositor frames and
+  their original timestamps to the response marker and exported callback rows.
   Script-cost capture: `bun wisp build --profile native-perf ...` uses playable
   key input and pooled presentation with developer setup commands. In a match,
   `-dev capture 18000` writes every client's raw callback samples; read full-run

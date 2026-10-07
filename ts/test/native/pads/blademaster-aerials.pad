@@ -1,4 +1,4 @@
-# #152 drills and multi-hit aerials: Blademaster's neutral air (2 hits) and Bladestorm. Blademaster a against Blademaster b; syntax and checks: smashcraft:docs/native-bot-session.md.
+# #152 multi-hit aerials: Blademaster's neutral air (2 hits) and Sword Plunge. Blademaster a against Blademaster b; syntax and checks: smashcraft:docs/native-bot-session.md.
 #! chat -dev quick hero blademaster
 # Both dash in, close.
 40 b stick -1 0
@@ -14,7 +14,7 @@
 # Frames saved on hits (native only; illustration for the look box).
 124 a capture
 133 a capture
-# Bladestorm on a standing b, from just behind it.
+# Sword Plunge on a standing b, from just behind it.
 200 a tap B 8
 201 a stick 0.3 0
 216 a cstick 0 -1
@@ -33,7 +33,7 @@
 #! expect b 235 damage 15.000
 #! expect b 240 damage 17.000
 #! expect b 245 damage 19.000
-#! scene a Tornado_Target
+#! scene a SunderingBlades
 #! scene a CleaveDamageTarget
 # View held a second, twice: the moments the parity check replays.
 500 a press VIEW

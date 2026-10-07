@@ -45,7 +45,7 @@ test("Blademaster flip retains thirty presentation frames and leaves Bladestorm 
   const world = createRoster(1, [fighter]), pose = createFighterPose(), controls = neutralControls();
   const flip = clipFor(Character.blademaster, "doubleJump");
   assertEquals(clipFor(Character.blademaster, "upSpecial").index, 13);
-  assertEquals(clipFor(Character.blademaster, "neutralAir").index, 13);
+  assertEquals(clipFor(Character.blademaster, "neutralAir").index === 13, false);
   for (let frame = 0; frame < 30; frame++) {
     advanceFighterPose(pose, fighter, world, controls, false, frame === 0, false, false);
     assertEquals(pose.clipIndex, flip.index);
