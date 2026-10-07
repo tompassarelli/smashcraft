@@ -256,6 +256,7 @@ export function advanceLedge(world: Roster, slot: number, stage: number, input: 
   motion.z = f32(mainDeckZAt(stage, motion.x) - f32(LEDGE_HANG_DEPTH * remaining));
   motion.grounded = ledge.frame >= LEDGE_MOUNT_FRAMES;
   motion.surface = motion.grounded ? 0 : undefined;
+  if (ledge.frame === LEDGE_MOUNT_FRAMES) f.special.airtimeUses = 0;
   if (ledge.state === LedgeState.attack) {
     f.attack.frame = ledge.frame;
     f.attack.cooldown = max(0, LEDGE_ATTACK_FRAMES - ledge.frame);

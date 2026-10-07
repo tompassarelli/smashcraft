@@ -14,7 +14,7 @@ import { surfaceLeft, surfaceRight } from "../sim/stage";
 import { FREEZE_TRAP_FREEZE_FRAMES } from "../sim/summons";
 import { produceComputerInput } from "./botPlay";
 import { chooseDefense } from "./botDefense";
-import { upSpecialStartable } from "./botHeroKit";
+import { upSpecialStartable, heroSpecialUse, HeroSpecialUse } from "./botHeroKit";
 import { SpecialSlot } from "../sim/heroSpecials";
 import { beginFighterAttack } from "../sim/attacks";
 import { attackStartupFrames } from "../sim/moves";
@@ -128,7 +128,7 @@ function heroUsage(game: ReturnType<typeof computerMatch>, slot: number, frames:
   return { specials, grabs, computer };
 }
 
-test("computer Uther sends Holy Radiance at a level target in range and never presses what its mana can't pay", () => {
+test("computer Uther uses Righteous Fury at a level target in range and never presses what its mana can't pay", () => {
   const game = computerMatch([Character.archer, Character.uther], [-200.0, 200.0], 0, 2);
   const { specials } = heroUsage(game, 1, 900);
   assertGreaterThan(specials[1] ?? 0, 0);
@@ -144,8 +144,8 @@ test("computer Uther sends Holy Radiance at a level target in range and never pr
   assertEquals(uther.visuals.manaDenied, 0);
 });
 
-test("computer Uther raises Divine Shield against a strike timed into its guard window, and grabs a shield", () => {
-  // An Archer forward smash about to land on Uther in 6 frames, its 7th: inside Divine Shield's f6-9.
+test("computer Uther shields or dodges an incoming strike and grabs a shield", () => {
+  // The hammer kit defends with ordinary shield or dodge.
   let guards = 0;
   for (let serial = 0; serial < 30; serial++) {
     const world = createRoster(3, [createFighter(Character.archer, -60.0, 1), createFighter(Character.uther, 30.0, -1)]);
@@ -154,8 +154,9 @@ test("computer Uther raises Divine Shield against a strike timed into its guard 
     archer.attack.serial = serial;
     archer.attack.frame = attackStartupFrames(AttackStyle.forwardSmash) - 6;
     const input = neutralControls();
-    if (chooseDefense(fighterAt(world, 1), archer, 0, input) && input.specialPressed) {
-      assertEquals(input.specialZ, -1);
+    if (chooseDefense(fighterAt(world, 1), archer, 0, input)) {
+      assertFalse(input.specialPressed);
+      assertTrue(input.shield || input.groundDodgePressed);
       guards++;
     }
   }
@@ -169,20 +170,16 @@ test("computer Uther raises Divine Shield against a strike timed into its guard 
   assertGreaterThan(grabbed.grabs, 0);
 });
 
-test("protected Uther uses an affordable Holy Radiance at range without reserving a second guard", () => {
-  for (const protectedNow of [false, true]) {
-    const game = computerMatch([Character.archer, Character.uther], [440.0, 0.0], 0, 2);
-    for (let frame = 0; frame < 12; frame++) game.step();
-    const uther = fighterAt(game.world, 1);
-    uther.mana.points = 60;
-    uther.status.divineFrames = protectedNow ? 14 : 0;
-    game.step();
-    assertEquals(uther.special.action, protectedNow ? SpecialAction.heroSide : SpecialAction.none);
-    if (protectedNow) {
-      assertEquals(uther.mana.points, 10);
-      assertEquals(uther.status.divineFrames, 0);
-    }
-  }
+test("Uther uses affordable Righteous Fury in hammer range and refuses its former wave range", () => {
+  const own = createFighter(Character.uther, 0.0, 1);
+  const target = createFighter(Character.archer, 210.0, -1);
+  own.mana.points = 25;
+  assertEquals(heroSpecialUse(own, target, 0, SpecialSlot.side), HeroSpecialUse.close);
+  own.mana.points = 24;
+  assertEquals(heroSpecialUse(own, target, 0, SpecialSlot.side), HeroSpecialUse.none);
+  own.mana.points = 100;
+  target.motion.x = 440.0;
+  assertEquals(heroSpecialUse(own, target, 0, SpecialSlot.side), HeroSpecialUse.none);
 });
 
 // One test a hero: the roster grows, and each hero's two 3600-frame matches take 0.3-0.5 s alone.
