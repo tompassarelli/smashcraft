@@ -282,6 +282,24 @@ const CARRIED_DECKS = [MAIN_DECK, CARRIED_DECK, at(GRYPHON_DECKS, 1), at(GRYPHON
 const TIMED_DECKS = [MAIN_DECK, LIFT_DECK];
 const SLOPED_DECKS = [SLOPED_MAIN_DECK];
 
+/**
+ * Shallow water's floor friction: every traction a fighter slides against on
+ * it is scaled by this (smashcraft:docs/physics.md, "Slippery floors").
+ */
+export const WATER_FRICTION = 0.5;
+/** Main decks whose floor is not ordinary ground, with their friction. */
+const MAIN_DECK_FRICTION: Readonly<Record<number, number | undefined>> = { [TOMB_OF_SARGERAS_STAGE]: WATER_FRICTION };
+
+/** The friction of the floor a fighter stands on: 1 for ordinary ground and in the air. */
+export function floorFriction(stage: number, motion: { readonly grounded: boolean; readonly surface: number | undefined }): number {
+  return motion.grounded && motion.surface === 0 ? MAIN_DECK_FRICTION[stage] ?? 1.0 : 1.0;
+}
+
+/** A traction slid against on a floor of `friction`; ordinary ground keeps it exactly. */
+export function floorTraction(traction: number, friction: number): number {
+  return friction === 1.0 ? traction : f32(traction * friction);
+}
+
 // Each stage's tables, found on first ask: every fighter's motion, the
 // confirmed match, prediction and replays ask many times a frame. A pure
 // function's cache, which never changes a result.

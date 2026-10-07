@@ -6,6 +6,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { chillScaled } from "./chill";
 import { GroundAction } from "./codes";
 import type { Fighter } from "./fighter";
+import { floorTraction } from "./stage";
 import { INITIAL_DASH_FRAMES, WORLD_UNITS_PER_MELEE_UNIT, melee } from "./tuning";
 
 const WALK_ACCEL_TAPER_GAIN = 0.5;
@@ -128,10 +129,15 @@ function taperedAcceleration(f: Fighter, multiplier: number, base: number, direc
   return f32(acceleration * f32(f32(1.0 - f32(alongTarget / targetSpeed)) * gain));
 }
 
-/** One grounded steering frame; true when it starts a dash, whose entry velocity applies after this frame's displacement. */
-export function advanceGroundMovement(f: Fighter, direction: number, walking: boolean, horizontalStick = direction): boolean {
+/**
+ * One grounded steering frame; true when it starts a dash, whose entry velocity
+ * applies after this frame's displacement. `friction` is the floor's
+ * (stage.ts floorFriction): it scales every traction the frame slides against.
+ */
+export function advanceGroundMovement(f: Fighter, direction: number, walking: boolean, horizontalStick = direction, friction = 1.0): boolean {
   const { ground, motion } = f;
   const physics = f.tuning.physics;
+  const traction = floorTraction(physics.traction, friction);
   const changingDirection = direction !== 0 && direction !== ground.dashDirection;
   // Flick freshness qualifies an active dash's reversal. A full direction
   // held through landing/recovery starts a normal dash when steering resumes.
@@ -155,7 +161,7 @@ export function advanceGroundMovement(f: Fighter, direction: number, walking: bo
       const walkTargetVelocity = f32(chillScaled(f, physics.walkSpeed) * direction);
       const walkTargetSpeed = Math.abs(walkTargetVelocity);
       const acceleration = taperedAcceleration(f, physics.walkAccelerationMultiplier, physics.walkAccelerationBase, direction, walkTargetSpeed, WALK_ACCEL_TAPER_GAIN, walkTargetSpeed > 0);
-      motion.vx = groundMovementVelocity(motion.vx, acceleration, walkTargetVelocity, physics.traction, physics.groundSpeedCap);
+      motion.vx = groundMovementVelocity(motion.vx, acceleration, walkTargetVelocity, traction, physics.groundSpeedCap);
     }
     return false;
   }
@@ -169,14 +175,14 @@ export function advanceGroundMovement(f: Fighter, direction: number, walking: bo
     } else {
       // RunBrake's actor-owned command window has closed. Neutral braking
       // continues until the action ends or the fighter reaches rest.
-      motion.vx = motion.vx > 0 ? max(0.0, f32(motion.vx - physics.traction)) : min(0.0, f32(motion.vx + physics.traction));
-      if (Math.abs(motion.vx) <= physics.traction && !runBrakeHasRecordedEndRules(f)) clearDash(f);
+      motion.vx = motion.vx > 0 ? max(0.0, f32(motion.vx - traction)) : min(0.0, f32(motion.vx + traction));
+      if (Math.abs(motion.vx) <= traction && !runBrakeHasRecordedEndRules(f)) clearDash(f);
       return false;
     }
   }
   if (direction === 0) {
     if (ground.action === GroundAction.run) startRunBrake(f);
-    if (Math.abs(motion.vx) <= f32(physics.traction * RUN_DASH_TURN_FRICTION_MULTIPLIER)
+    if (Math.abs(motion.vx) <= f32(traction * RUN_DASH_TURN_FRICTION_MULTIPLIER)
       && (ground.action !== GroundAction.runBrake || !runBrakeHasRecordedEndRules(f))) {
       clearDash(f);
     } else if (ground.dashFrame > 0) {
@@ -219,7 +225,7 @@ export function advanceGroundMovement(f: Fighter, direction: number, walking: bo
     f, physics.groundAccelerationMultiplier, physics.groundAccelerationBase, direction, runTarget, RUN_ACCEL_TAPER_GAIN,
     ground.action === GroundAction.run && targetVelocity !== 0,
   );
-  motion.vx = groundMovementVelocity(motion.vx, acceleration, targetVelocity, f32(physics.traction * RUN_DASH_TURN_FRICTION_MULTIPLIER), physics.groundSpeedCap);
+  motion.vx = groundMovementVelocity(motion.vx, acceleration, targetVelocity, f32(traction * RUN_DASH_TURN_FRICTION_MULTIPLIER), physics.groundSpeedCap);
   if (ground.action !== GroundAction.turnRun && f32(motion.vx * direction) > 0) {
     f.facing = direction;
     ground.dashDirection = direction;

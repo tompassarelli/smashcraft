@@ -10,7 +10,8 @@ import { MAX_GROUNDED_KNOCKBACK_ON_LANDING, airborneDamageLandingReaction, decay
 import { RIFLEMAN_BLASTER_AIR_FRAMES, RIFLEMAN_BLASTER_LANDING_LAG, attackLandingLag, isAerialAttack, landsIntoAttack } from "./moves";
 import { clearMotionValue, setWorldMotionValue, totalVelocityX } from "./motion";
 import type { Controls } from "./roster";
-import { surfaceCount, surfaceLeft, surfaceLine, surfaceRight, surfaceZAt } from "./stage";
+import { floorFriction, surfaceCount, surfaceLeft, surfaceLine, surfaceRight, surfaceZAt } from "./stage";
+
 import { rollTravel } from "../physics/rollTravel";
 import { beginDownState, cancelAttack, clearDownState } from "./transitions";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
@@ -236,7 +237,7 @@ export function advanceDownState(f: Fighter, stage: number, matchFrame: number, 
     return false;
   }
   if (isFloorTeching(f) || down.state === DownState.bound) {
-    decayKnockback(f);
+    decayKnockback(f, floorFriction(stage, motion));
     motion.x = f32(motion.x + launch.knockbackX);
   }
   if (isFloorTeching(f)) {

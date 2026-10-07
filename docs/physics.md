@@ -1884,6 +1884,34 @@ smashcraft:ts/src/game/sim/platformMoves.ts). The walking modifier keeps a
 digital Down on a platform for crouching and down tilts. Landing from above and
 the platforms' lack of walls and underside are unchanged.
 
+## Slippery floors
+
+A deck can have a floor friction below one; shallow water's, on Tomb of
+Sargeras's main deck (its overhanging platforms are dry), is 0.5
+(`WATER_FRICTION`, smashcraft:ts/src/game/sim/stage.ts). While a fighter
+stands on such a floor, every traction it slides against is multiplied by it:
+the run brake and dash/run stop, the neutral ground drag that carries a
+wavedash or waveland, the ground knockback slide, and shield pushback and
+recoil. Each of those slides is about twice as long on water. Acceleration,
+the dash's entry speed and authored travel (rolls, attack movement) are
+unchanged, so a fighter starts moving as on ground but stops late. In the air
+and on ordinary decks the friction is exactly one and the arithmetic is
+unchanged.
+
+Melee multiplies traction by the floor material's friction the same way, in
+`ft_GetGroundFrictionMultiplier` (melee:src/melee/ft/ft_081B.c) and the
+material table `mpLib_803BF248` (melee:src/melee/mp/mplib.c): 1.0 for most
+materials (including Melee's water, which only splashes), 0.9 for Great Bay's
+turtle, 0.2 for ice and 0.1 for the UFO. Melee also scales the ground
+acceleration itself (`ftCommon_SetSelfMovementFromGroundedMovement`,
+melee:src/melee/ft/ftcommon.c), which makes starting on ice sluggish.
+Tom decided, 7 Oct (delegated): shallow water uses 0.5, between the turtle and
+ice, so slides are clearly longer without Icicle Mountain's ice, and only the
+slowing is scaled, so water is slippery, not sticky. The computer players'
+slide prediction (smashcraft:ts/src/game/match/botFooting.ts) uses the same
+friction. smashcraft:ts/src/game/sim/floorFriction.tests.ts compares each
+slide on ordinary ground and water with the same fighter and input.
+
 ## Main deck walls and underside
 
 Every stage's main deck has Final Destination's side walls and underside.
