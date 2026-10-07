@@ -1,6 +1,7 @@
 // Beastmaster's registration: identity, kit and presentation (#122). Set
 // `complete` only when the whole base kit works (hero.ts).
 import { f32 } from "wisp/src/sim/f32";
+import { jabSlice } from "./groundNormals";
 import { Character } from "../codes";
 import type { HeroClip, HeroDefinition } from "./hero";
 import { BEASTMASTER_GAMEPLAN } from "./beastmasterGameplan";
@@ -46,7 +47,7 @@ export const BEASTMASTER_HERO: HeroDefinition = {
     clips: {
       idle: STAND_READY, walk: WALK, dash: WALK, run: WALK, crouch: STAND_READY, fall: STAND_READY, landing: STAND_READY,
       shield: STAND_READY, airDodge: STAND_READY, smashCharge: STAND_READY, ko: DISSIPATE, dizzy: STAND_2,
-      jab: ATTACK, grab: ATTACK, forwardTilt: ATTACK, forwardTiltUp: ATTACK_2, forwardTiltDown: ATTACK,
+      jab: jabSlice(ATTACK, f32(0.31)), jab2: jabSlice(ATTACK, f32(0.31)), jab3: jabSlice(ATTACK, f32(0.31)), grab: ATTACK, forwardTilt: ATTACK, forwardTiltUp: ATTACK_2, forwardTiltDown: ATTACK,
       upTilt: ATTACK_2, downTilt: ATTACK, dashAttack: ATTACK,
       forwardSmash: SPELL_SLAM, upSmash: ATTACK_2, downSmash: SPELL_SLAM,
       neutralAir: ATTACK_2, forwardAir: SPELL_SLAM, backAir: ATTACK, upAir: ATTACK_2, downAir: SPELL_SLAM,

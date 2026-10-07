@@ -450,3 +450,18 @@ smashcraft:ts/test/drawn-size.test.ts). Each sequence is chosen by drawn reach:
 the skinned model must reach toward the hit on its active frames, and
 smashcraft:ts/test/drawn-reach.test.ts pins every hero's jab, tilts and dash
 attack (#156). Check a clip change with `bun wisp view reach --assets DIR`.
+
+**Jab slices (#163).** A jab plays a slice of its sequence rather than the
+whole swing (`HeroClip.until`, `jabSlice` in
+smashcraft:ts/src/game/sim/heroes/groundNormals.ts):
+- The startup plays the sequence from its start to the slice's end, so the
+  partial reach lands on the first active frame.
+- The active frames hold that pose, and recovery returns to the fighter's
+  stance.
+- Each slice ends where the drawn silhouette is still short of the forward
+  tilt's farthest drawn point. drawn-reach.test.ts checks every chain step
+  against the forward tilt's `forward` reach.
+- A chain's finisher may take a longer slice than its opener.
+- Archer's low kick slices her sliding kick's sequence.
+- Lich's model barely moves before his forward tilt's reach, so his slap is
+  the one jab allowed to swing less than 30 units (25-26).

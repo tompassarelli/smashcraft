@@ -287,6 +287,12 @@ function selectClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly<Ros
     playIndex(pose, "jump", clips.clipFor(character, pose.doubleJumpAnimation ? "doubleJump" : "jump").index);
     return rate;
   }
+  // A jab slice's recovery returns to the stance (HeroClip.until).
+  if (phase === AttackPhase.recovery && f.launch.hitlag === 0 && attackClip(f)?.until !== undefined) {
+    if (table.idle === undefined) playName(pose, "jab-return", "stand ready");
+    else playIndex(pose, "jab-return", table.idle.index);
+    return 1.0;
+  }
   if (phase !== AttackPhase.none || f.launch.hitstun !== 0 || f.launch.hitlag !== 0) {
     pose.animation = "";
     return rate;
@@ -439,13 +445,19 @@ function selectIllidanAction(pose: FighterPose, f: Readonly<Fighter>): number | 
   return undefined;
 }
 
+/** The clip the fighter's current attack plays: its own, or its pose's; none for an attack without one. */
+function attackClip(f: Readonly<Fighter>): HeroClip | undefined {
+  const { style } = f.attack;
+  const own = clips.ownAttackClip(f.character, style);
+  const shared = clips.attackPose(style);
+  return own ?? (shared === undefined ? undefined : clips.clipFor(f.character, shared));
+}
+
 /** An attack's start selects its clip; Illidan's smash charge may later replace it. */
 function selectAttackClip(pose: FighterPose, f: Readonly<Fighter>): void {
   const { style } = f.attack;
   if (f.character === Character.demonHunter) pose.animation = "";
-  const own = clips.ownAttackClip(f.character, style);
-  const shared = clips.attackPose(style);
-  const clip = own ?? (shared === undefined ? undefined : clips.clipFor(f.character, shared));
+  const clip = attackClip(f);
   if (clip === undefined) {
     selectFighterClipName(pose, "attack");
     return;
@@ -519,8 +531,9 @@ export function strikeAlignedRate(character: number, style: number, clip: Readon
 function attackRate(f: Readonly<Fighter>, phase: AttackPhase): number {
   if (phase === AttackPhase.none) return 1.0;
   const { style, duration } = f.attack;
-  const aligned = (clip: Readonly<HeroClip>): number =>
-    (style === undefined ? undefined : strikeAlignedRate(f.character, style, clip, attackStartupFrames(style, f.tuning.moves), characterAttackActiveFrames(f.character, style, f.tuning.moves), duration, phase))
+  const aligned = (clip: Readonly<HeroClip>): number => clip.until !== undefined && style !== undefined
+    ? phase === AttackPhase.startup ? clipRate(clip.until, max(1, attackStartupFrames(style, f.tuning.moves))) : phase === AttackPhase.active ? 0.0 : 1.0
+    : (style === undefined ? undefined : strikeAlignedRate(f.character, style, clip, attackStartupFrames(style, f.tuning.moves), characterAttackActiveFrames(f.character, style, f.tuning.moves), duration, phase))
     ?? clipRate(clip.seconds, duration);
   const own = clips.ownAttackClip(f.character, style);
   if (own !== undefined) return aligned(own);

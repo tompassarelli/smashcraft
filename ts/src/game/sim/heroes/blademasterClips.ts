@@ -11,7 +11,7 @@
 // body the simulation keeps still, so the drawn body stays over its hurtbox.
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle } from "../codes";
-import { BLADEMASTER_GROUND, strikeClip } from "./groundNormals";
+import { BLADEMASTER_GROUND, jabSlice, strikeClip } from "./groundNormals";
 import type { HeroClip, HeroFollowUpPose, HeroPose } from "./hero";
 
 /** The model's sequences in index order, with their authored lengths in milliseconds. */
@@ -76,8 +76,8 @@ export const BLADEMASTER_CLIPS: { readonly [pose in Exclude<HeroPose, Exclude<He
   smashCharge: COMBAT_STANCE,
   ko: sequence("Death"),
   dizzy: sequence("Stand - 2"),
-  jab: ground("Attack 2", THRUST, AttackStyle.jab),
-  jab2: ground("Attack 2", THRUST, AttackStyle.jab2),
+  jab: jabSlice(sequence("Attack 2"), f32(0.44)),
+  jab2: jabSlice(sequence("Attack 2"), f32(0.46)),
   grab: sequence("Attack 2", aligned(THRUST, 7, 2, 22)),
   // One descending cut for every angle (smashcraft:docs/design/tilts.md): its low cut lands on the last active frame.
   forwardTilt: ground("Attack", CUT, AttackStyle.forwardTilt, 9),

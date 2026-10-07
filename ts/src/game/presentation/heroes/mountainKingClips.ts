@@ -12,7 +12,7 @@
 // readable sequence, often only its opening.
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle } from "../../sim/codes";
-import { MOUNTAIN_KING_GROUND, strikeClip } from "../../sim/heroes/groundNormals";
+import { MOUNTAIN_KING_GROUND, jabSlice, strikeClip } from "../../sim/heroes/groundNormals";
 import type { HeroClip, HeroClipTable } from "../../sim/heroes/hero";
 
 export interface StockSequence {
@@ -68,7 +68,8 @@ export const MOUNTAIN_KING_CLIPS = {
   smashCharge: play("Attack Slam", f32(0.3)),
   ko: play("Dissipate"),
   dizzy: play("Stand - 4"),
-  jab: ground("Attack -1", f32(0.38), AttackStyle.jab),
+  jab: jabSlice(MOUNTAIN_KING_SEQUENCES["Attack -1"], f32(0.36)),
+  jab2: jabSlice(MOUNTAIN_KING_SEQUENCES["Attack -1"], f32(0.36)),
   grab: play("Attack -2"),
   // The level axe hook, whose swing already ends low; the up angle is the overhead throw.
   forwardTilt: ground("Attack -2", f32(0.48), AttackStyle.forwardTilt),

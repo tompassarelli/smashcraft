@@ -6,7 +6,7 @@
 // no body at all, so no pose plays it: his hurt volumes stay visible.
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle } from "../../sim/codes";
-import { DREADLORD_GROUND, strikeClip } from "../../sim/heroes/groundNormals";
+import { DREADLORD_GROUND, jabSlice, strikeClip } from "../../sim/heroes/groundNormals";
 import type { HeroClip, HeroClipTable } from "../../sim/heroes/hero";
 
 export const DREADLORD_MODEL_FILE = "units\\undead\\HeroDreadLord\\HeroDreadLord.mdl";
@@ -55,7 +55,7 @@ export const DREADLORD_CLIP_TABLE: HeroClipTable = {
   // Ground normals strike on their first active frame (smashcraft:docs/design/tilts.md): the claw
   // rake angles up through the rear-up and down through the low slam. The up tilt is the raised spell,
   // its wings reaching farthest toward the overhead arc at 0.93 s; the rear-up rises too late (#156).
-  jab: ground(s.attack2, f32(0.76), AttackStyle.jab), forwardTilt: ground(s.attack1, f32(0.70), AttackStyle.forwardTilt),
+  jab: jabSlice(s.attack2, f32(0.53)), jab2: jabSlice(s.attack2, f32(0.53)), jab3: jabSlice(s.attack2, f32(0.72)), forwardTilt: ground(s.attack1, f32(0.70), AttackStyle.forwardTilt),
   forwardTiltUp: ground(s.rearUp, f32(0.82), AttackStyle.forwardTiltUp), forwardTiltDown: ground(s.spellSlam, f32(0.38), AttackStyle.forwardTiltDown),
   upTilt: ground(s.spell, f32(0.93), AttackStyle.upTilt, 9), downTilt: ground(s.attack2, f32(0.76), AttackStyle.downTilt),
   dashAttack: ground(s.attack1, f32(0.70), AttackStyle.dashAttack),

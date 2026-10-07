@@ -2,7 +2,7 @@
 // lane; set `complete` only when the whole base kit works (hero.ts).
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character } from "../codes";
-import { LICH_GROUND, strikeClip } from "./groundNormals";
+import { LICH_GROUND, jabSlice, strikeClip } from "./groundNormals";
 import type { HeroClip, HeroDefinition } from "./hero";
 import { LICH_GAMEPLAN } from "./lichGameplan";
 import { LICH_MOVES } from "./lichMoves";
@@ -50,7 +50,7 @@ export const LICH_HERO: HeroDefinition = {
     clips: {
       idle: STAND_READY, walk: WALK, dash: WALK, run: WALK, crouch: CHANNEL, fall: STAND_READY, landing: STAND_READY,
       shield: CHANNEL, airDodge: CHANNEL, smashCharge: CHANNEL, ko: DISSIPATE, dizzy: STAND_3,
-      jab: ground(ATTACK, f32(0.72), AttackStyle.jab), grab: ATTACK, getUpAttack: ATTACK, ledgeAttack: ATTACK, backAir: ATTACK,
+      jab: jabSlice(ATTACK, f32(0.44)), jab2: jabSlice(ATTACK, f32(0.44)), grab: ATTACK, getUpAttack: ATTACK, ledgeAttack: ATTACK, backAir: ATTACK,
       // Ground normals strike on their first active frame (smashcraft:docs/design/tilts.md); the low frost is the hand strike's low reach.
       forwardTilt: ground(SPELL, f32(0.48), AttackStyle.forwardTilt), forwardTiltUp: ground(SPELL, f32(0.48), AttackStyle.forwardTiltUp),
       forwardTiltDown: ground(ATTACK, f32(0.64), AttackStyle.forwardTiltDown), upTilt: ground(SPELL, f32(0.72), AttackStyle.upTilt, 10),

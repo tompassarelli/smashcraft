@@ -9,7 +9,7 @@ import type { Fighter } from "./fighter";
 import { type HitRegion, NO_HIT_REGION, authoredHitRegion, authoredHitRegionCount, copyHitEffect, copyHitRegion, emptyHitRegion } from "./hitRegions";
 import { applyAttackHit } from "./hits";
 import { hangsOnLedge } from "./ledge";
-import { attackReach, isAerialAttack } from "./moves";
+import { attackReach, isAerialAttack, isJab } from "./moves";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { spawnProjectile } from "./projectiles";
 import { type Roster, fighterAt, isActive } from "./roster";
@@ -173,7 +173,7 @@ export function beginFighterAttack(world: Roster, slot: number, style: AttackSty
     : fighter.character === Character.demonHunter && style === AttackStyle.jab && grounded && fighter.ground.dashFrame > 0
     ? AttackStyle.demonHunterDashAttack
     : style;
-  const groundAttack = (action <= DASH_GRAB_REQUEST && action !== AttackStyle.shot) || action === AttackStyle.demonHunterDashAttack || action === AttackStyle.dashAttack;
+  const groundAttack = (action <= DASH_GRAB_REQUEST && action !== AttackStyle.shot) || action === AttackStyle.demonHunterDashAttack || action === AttackStyle.dashAttack || isJab(action);
   const aerial = isAerialAttack(action);
   if (((groundAttack && grounded) || action === AttackStyle.shot || (aerial && !grounded)) && canStartAttackStyle(fighter, action)) {
     beginAttack(fighter, action, mayCharge);

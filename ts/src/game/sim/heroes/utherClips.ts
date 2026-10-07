@@ -11,7 +11,7 @@
 // roll, ledge or grab sequence, so those poses reuse the nearest readable one.
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle } from "../codes";
-import { UTHER_GROUND, strikeClip } from "./groundNormals";
+import { UTHER_GROUND, jabSlice, strikeClip } from "./groundNormals";
 import type { HeroClip, HeroClipTable } from "./hero";
 
 const clip = (index: number, seconds: number): HeroClip => ({ index, seconds });
@@ -34,7 +34,8 @@ export const UTHER_FALLBACK_CLIP = STAND_READY;
 export const UTHER_CLIPS: HeroClipTable = {
   idle: STAND_1,
   walk: WALK,
-  jab: ground(ATTACK_SWEEP, f32(0.56), AttackStyle.jab),
+  jab: jabSlice(ATTACK_SWEEP, f32(0.33)),
+  jab2: jabSlice(ATTACK_SWEEP, f32(0.35)),
   grab: ATTACK_SWEEP,
   // Ground normals strike on their first active frame (smashcraft:docs/design/tilts.md). The forward
   // tilt is one overhead slam for every angle, high on its first active frame; the down tilt is the low sweep.

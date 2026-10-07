@@ -316,6 +316,11 @@ export const RIFLEMAN_GROUND: GroundKit = {
   reaches: {},
 };
 
+/** A jab's slice of a stock sequence: its first `until` seconds, reached on the first active frame (HeroClip.until). */
+export function jabSlice(clip: { readonly index: number }, until: number): HeroClip {
+  return { index: clip.index, seconds: until, aligned: true, until };
+}
+
 /**
  * A stock sequence retimed so its strike moment (seconds into the sequence,
  * measured where the drawn weapon or limb reaches farthest) plays on `frame`

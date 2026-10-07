@@ -6,7 +6,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GrabAction, LedgeState, PlatformMove, SpecialAction } from "../sim/codes";
 import { type HeroClip, type HeroClipTable, type HeroFollowUpPose, type HeroPose, STOCK_FALLBACK_CLIP } from "../sim/heroes/hero";
 import { heroDefinition } from "../sim/heroes/registry";
-import { ARCHER_GROUND, RIFLEMAN_GROUND, type GroundKit, strikeClip } from "../sim/heroes/groundNormals";
+import { ARCHER_GROUND, RIFLEMAN_GROUND, type GroundKit, jabSlice, strikeClip } from "../sim/heroes/groundNormals";
 import * as dh from "./demonHunterAssetInfo";
 import * as assets from "./fighterAssetInfo";
 
@@ -23,7 +23,10 @@ const retimed = (index: number, seconds: number, startup: number, total: number,
 // Ledge options: Illidan has his own roll and attack; the others reuse their
 // roll and get-up attack. Only Illidan maps smashes and a dash attack.
 const ARCHER_CLIPS: HeroClipTable = {
-  jab: clip(assets.ARCHER_JAB_INDEX, assets.ARCHER_JAB_SECONDS),
+  // Jab slices (#163): the first part of each jab swing, short of the forward tilt's drawn reach.
+  jab: jabSlice({ index: assets.ARCHER_JAB_INDEX }, f32(0.105)),
+  // The chain's low kick plays her sliding kick's sequence.
+  jab2: jabSlice({ index: assets.ARCHER_DOWN_TILT_INDEX }, f32(0.185)),
   grab: clip(assets.ARCHER_GRAB_INDEX, assets.ARCHER_GRAB_SECONDS),
   forwardTilt: clip(assets.ARCHER_FORWARD_TILT_INDEX, assets.ARCHER_FORWARD_TILT_SECONDS),
   upTilt: clip(assets.ARCHER_UP_TILT_INDEX, assets.ARCHER_UP_TILT_SECONDS),
@@ -73,7 +76,8 @@ const ARCHER_CLIPS: HeroClipTable = {
 };
 
 const RIFLEMAN_CLIPS: HeroClipTable = {
-  jab: clip(assets.RIFLEMAN_JAB_INDEX, assets.RIFLEMAN_JAB_SECONDS),
+  jab: jabSlice({ index: assets.RIFLEMAN_JAB_INDEX }, f32(0.1)),
+  jab2: jabSlice({ index: assets.RIFLEMAN_JAB_INDEX }, f32(0.11)),
   grab: clip(assets.RIFLEMAN_GRAB_INDEX, assets.RIFLEMAN_GRAB_SECONDS),
   forwardTilt: clip(assets.RIFLEMAN_FORWARD_TILT_INDEX, assets.RIFLEMAN_FORWARD_TILT_SECONDS),
   upTilt: clip(assets.RIFLEMAN_UP_TILT_INDEX, assets.RIFLEMAN_UP_TILT_SECONDS),
@@ -124,7 +128,9 @@ const RIFLEMAN_CLIPS: HeroClipTable = {
 };
 
 const DEMON_HUNTER_CLIPS: HeroClipTable = {
-  jab: clip(dh.DEMON_HUNTER_ATTACK_JAB_INDEX, dh.DEMON_HUNTER_ATTACK_JAB_SECONDS),
+  jab: jabSlice({ index: dh.DEMON_HUNTER_ATTACK_JAB_INDEX }, f32(0.13)),
+  jab2: jabSlice({ index: dh.DEMON_HUNTER_ATTACK_JAB_INDEX }, f32(0.13)),
+  jab3: jabSlice({ index: dh.DEMON_HUNTER_ATTACK_JAB_INDEX }, f32(0.14)),
   grab: clip(dh.DEMON_HUNTER_GRAB_INDEX, dh.DEMON_HUNTER_GRAB_SECONDS),
   forwardTilt: clip(dh.DEMON_HUNTER_FORWARD_TILT_INDEX, dh.DEMON_HUNTER_FORWARD_TILT_SECONDS),
   upTilt: clip(dh.DEMON_HUNTER_UP_TILT_INDEX, dh.DEMON_HUNTER_UP_TILT_SECONDS),

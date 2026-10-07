@@ -22,6 +22,13 @@ export interface HeroClip {
    * evenly instead of aligning the measured strike (presentation/heroStrikeMomentInfo.ts).
    */
   readonly aligned?: boolean | undefined;
+  /**
+   * A jab slice (#163): the startup plays the sequence from its start to this
+   * many seconds, the active frames hold that partial reach, and recovery
+   * returns to the stance. A jab strikes short and close where its tilt
+   * plays the whole swing.
+   */
+  readonly until?: number | undefined;
 }
 
 /**

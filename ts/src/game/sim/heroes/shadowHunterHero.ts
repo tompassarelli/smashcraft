@@ -2,7 +2,7 @@
 // lane; set `complete` only when the whole base kit works (hero.ts).
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character } from "../codes";
-import { SHADOW_HUNTER_GROUND, strikeClip } from "./groundNormals";
+import { SHADOW_HUNTER_GROUND, jabSlice, strikeClip } from "./groundNormals";
 import type { HeroClip, HeroDefinition } from "./hero";
 import { SHADOW_HUNTER_GAMEPLAN } from "./shadowHunterGameplan";
 import { SHADOW_HUNTER_MOVES } from "./shadowHunterMoves";
@@ -64,7 +64,7 @@ export const SHADOW_HUNTER_HERO: HeroDefinition = {
       // Ground normals strike on their first active frame (smashcraft:docs/design/tilts.md): the thrust angles up
       // and the up tilt swing Attack's staff overhead, the low thrust is Spell's downward cast (Spell Throw strikes
       // too late and Stand Channel too early to reach on time, #156); the dash spin plays both of Attack's sweeps.
-      jab: ground(ATTACK, f32(0.52), AttackStyle.jab), grab: ATTACK, forwardTilt: ground(ATTACK, f32(0.52), AttackStyle.forwardTilt),
+      jab: jabSlice(ATTACK, f32(0.5)), jab2: jabSlice(ATTACK, f32(0.5)), jab3: jabSlice(ATTACK, f32(0.51)), grab: ATTACK, forwardTilt: ground(ATTACK, f32(0.52), AttackStyle.forwardTilt),
       forwardTiltUp: ground(ATTACK, f32(0.50), AttackStyle.forwardTiltUp), forwardTiltDown: ground(SPELL, f32(1.30), AttackStyle.forwardTiltDown),
       upTilt: ground(ATTACK, f32(0.50), AttackStyle.upTilt, 9), downTilt: ground(SPELL_THROW, f32(1.06), AttackStyle.downTilt),
       dashAttack: ground(ATTACK, f32(0.52), AttackStyle.dashAttack),
