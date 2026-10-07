@@ -130,9 +130,9 @@ test("playable: selection creates no effect and reads no file; match start creat
   });
   // Stage handles are prepared once under the cover, then retained at match start.
   expect(loadingCreated).toBe(stageModels(stage).length);
-  // Each fighter's clip pool, shield, projectile pool, special cues and agency halo; nothing more.
+  // Each fighter's clip pool, shield, projectile pool, special cues, agency halo and white glow.
   expect(start.poolCreated).toBe(4 * poolEffects(Character.demonHunter));
-  expect(start.created).toBe(start.poolCreated + 4 * (1 + PROJECTILE_CAPACITY + fighterRenderedCues(Character.demonHunter).length + 1));
+  expect(start.created).toBe(start.poolCreated + 4 * (1 + PROJECTILE_CAPACITY + fighterRenderedCues(Character.demonHunter).length + 2));
   expect(start.fileReads).toBe(0);
 
   const match: Work[] = [];
