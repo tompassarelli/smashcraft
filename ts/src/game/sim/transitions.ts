@@ -118,6 +118,7 @@ export function clearSpecialOnStock(f: Fighter): void {
   special.hit = false;
   bear.life = 0;
   f.placed.life = 0;
+  for (const animal of f.pack) animal.life = 0;
   bear.swipeCooldown = 0;
   hippogryph.life = 0;
   hippogryph.kind = HippogryphKind.none;

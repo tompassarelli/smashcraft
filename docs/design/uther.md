@@ -38,7 +38,7 @@ end fN allows another action on fN+1. Every strike hits each opponent once.
 | Up: **Ascension** | Lift the hammer and follow it upward; spend the jump and accept a helpless fall. Challenge its exposed sides or catch the landing. | 15 mana; rises 1.9H and travels 0.45H, f8–29; hammer f10–15, 8 damage at 80°. Below 15 mana, free recovery rises 1.3H without a hit. One use per airtime; helpless. | Warcraft resurrection/light and HotS Hammer of Justice; Ike's weapon-led Aether, without its descent. |
 | Down: **Divine Shield** | Read a strike, then reposition for a hammer punish. The shield ends when Uther attacks; an opponent can wait or grab. | Ground only, 25 mana; intangible/guard f6–9; end f36. A strike overlapping the guard grants 45 frames of protection, ended by attack, special or grab. No healing, damage, automatic counter or air cast. | Warcraft/HotS Divine Shield; Lucario's Double Team read, with player-chosen retaliation. |
 
-H is the shared 140-unit design height. The light wave begins beyond the direct
+H is the shared 132-unit design height. The light wave begins beyond the direct
 hammer rather than overlapping its head. It is reflectable and limited to one
 live wave. Ordinary shield damage uses actual damage; the stronger side strike
 pays 29 frames after its final active frame. Neutral pays 22. No special gains

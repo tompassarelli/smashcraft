@@ -107,6 +107,11 @@ code. From smashcraft:ts/:
   `bun tools/animations/drill-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends
   Blademaster, Warden and Shadow Hunter down-air drills, preserving earlier
   clips and writing both-facing silhouette sheets for the native review.
+  `bun tools/animations/down-air-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends
+  downward contact poses for the seven stock heroes whose casts/swings pointed forward.
+  `bun tools/animations/down-air-captures.ts PRIVATE_ASSETS PRIVATE_OUTPUT` writes
+  both-facing down-air sheets from production pose selection and the roster's
+  strike-height inventory (smashcraft:docs/down-airs.md).
   `bun tools/animations/grab-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT [--character ID]` appends
   coordinated expansion-hero reach, hold, pummel and four-direction holder/victim
   gestures or reauthors their existing indices. `--character` limits reauthoring
@@ -236,6 +241,7 @@ code. From smashcraft:ts/:
   runs the native driver's exact pad inputs; `--headless --frames N --out DIR`
   saves frame checksums and captures (`--capture-frames N,N` picks their frames).
   Private map and Warcraft assets stay in the existing local asset store.
+- Controller layout: `bun wisp controller layout standard|zjump` changes the running service live, or saves the choice for its next start. Layout, tap jump and left/right full or light shield are kept in `~/.config/smashcraft/controller.json` (or `$XDG_CONFIG_HOME/smashcraft/controller.json`) and editable on the client Controller page.
 - Controller: `bun wisp controller` points the always-on controller service
   (`wc3-journal --service`, the login unit smashcraft-controller.service) at
   main's helper and restarts it, or runs the service in the foreground when

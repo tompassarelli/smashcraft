@@ -31,9 +31,9 @@ const STAND_READY = clip(9, 1.0);
 export const BEASTMASTER_HERO: HeroDefinition = {
   character: Character.beastmaster,
   name: "Beastmaster",
-  purpose: "Fighter and bear coordination",
+  purpose: "Three-animal pack coordination",
   weakness: "Shared resources and punishable pet commands",
-  passive: { name: "Pack Bond", description: "His bear walks at his heel and bites only on his command; it never blocks for him." },
+  passive: { name: "Pack Bond", description: "Bear follows, Quilbeast holds a firing position, and Hawk patrols above; commands turn their positions into attacks." },
   jab: { name: "Twin Axes", description: "Both axe hilts, then a shoulder that shoves, on repeated jabs." },
   complete: true,
   moves: BEASTMASTER_MOVES,

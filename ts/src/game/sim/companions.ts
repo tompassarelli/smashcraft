@@ -1,14 +1,11 @@
-// A hero's partner (SpecialPlacement.companion, Beastmaster's bear): a placed
-// object that walks after its owner on the deck it was placed on and attacks
-// only when its owner orders a lunge. It never jumps, never leaves its deck,
-// never blocks a body and never shields its owner. Its lunge is cancelled
-// while its owner is in hitstun or in a grab, and an opponent's hit during
-// a lunge stuns it. Every value is fighter state, so rollback restores it.
+// Independently positioned companions follow, hold a firing position or fly.
+// Commands stop while the owner is punished; their bodies never shield it.
 import { f32 } from "wisp/src/sim/f32";
 import { max, min } from "../../runtime/numbers";
 import { AttackStyle, HitOrigin } from "./codes";
 import { inGrabContext, isIntangible } from "./conditions";
-import type { Fighter } from "./fighter";
+import { type Fighter, type PlacedObject, placedObject } from "./fighter";
+import { runningHeroSpecial, spawnHeroProjectileAt } from "./heroSpecialRules";
 import { CompanionMode, type SpecialCompanion } from "./heroSpecials";
 import { applyAttackHit } from "./hits";
 import { HurtContact, strikeHurtContact } from "./hurtboxes";
@@ -22,8 +19,7 @@ import { PARTICIPANT_CAPACITY } from "../input/participants";
 const bite = emptyCapsule();
 
 /** Steps `x` toward `target` by at most `speed`; the facing it walked, or 0 when it arrived. */
-function stepToward(f: Fighter, target: number, speed: number): number {
-  const { placed } = f;
+function stepToward(placed: PlacedObject, target: number, speed: number): number {
   const dx = f32(target - placed.x);
   if (Math.abs(dx) <= speed) {
     placed.x = target;
@@ -40,9 +36,7 @@ function ownerBusy(owner: Readonly<Fighter>): boolean {
 }
 
 /** The lunge's bite against every opponent it hasn't bitten yet this lunge. */
-function biteOpponents(world: Roster, ownerSlot: number, partner: Readonly<SpecialCompanion>): void {
-  const owner = fighterAt(world, ownerSlot);
-  const { placed } = owner;
+function biteOpponents(world: Roster, ownerSlot: number, placed: PlacedObject, partner: Readonly<SpecialCompanion>): void {
   placeCapsule(bite, partner.bite, placed.x, placed.z, placed.direction);
   for (let targetSlot = 0; targetSlot < PARTICIPANT_CAPACITY; targetSlot++) {
     if (targetSlot === ownerSlot || !isActive(world, targetSlot)) continue;
@@ -60,9 +54,21 @@ function biteOpponents(world: Roster, ownerSlot: number, partner: Readonly<Speci
 /** One frame of the owner's partner, inside the specials' contact batch. */
 export function advanceCompanion(world: Roster, ownerSlot: number, stage: number, matchFrame: number): void {
   const owner = fighterAt(world, ownerSlot);
-  const { placed } = owner;
+  for (let animal = 0; animal <= owner.pack.length; animal++) advanceAnimal(world, ownerSlot, stage, matchFrame, placedObject(owner, animal));
+}
+
+function advanceAnimal(world: Roster, ownerSlot: number, stage: number, matchFrame: number, placed: PlacedObject): void {
+  const owner = fighterAt(world, ownerSlot);
   const partner = placed.spec?.companion;
   if (placed.life <= 0 || partner === undefined) return;
+  if (partner.behavior === "flying" && runningHeroSpecial(owner)?.helpless === true) {
+    placed.x = owner.motion.x;
+    placed.z = f32(owner.motion.z + 95.0);
+    placed.direction = owner.facing;
+    placed.mode = CompanionMode.follow;
+    placed.modeFrame = 0;
+    return;
+  }
   placed.modeFrame++;
   if (placed.mode === CompanionMode.lunge) {
     const biteStart = partner.lungeStartup + 1;
@@ -70,9 +76,19 @@ export function advanceCompanion(world: Roster, ownerSlot: number, stage: number
     if (ownerBusy(owner)) {
       placed.mode = CompanionMode.follow;
       placed.modeFrame = 0;
+    } else if (partner.volleyFrames !== undefined) {
+      for (const shotFrame of partner.volleyFrames) if (placed.modeFrame === shotFrame && placed.spec?.shot !== undefined) {
+        const shot = placed.spec.shot;
+        spawnHeroProjectileAt(owner, shot, f32(placed.x + f32(placed.direction * shot.offsetX)), f32(placed.z + shot.offsetZ), placed.direction, false, owner.attack.serial + 1);
+      }
+      if (placed.modeFrame >= biteEnd + partner.lungeRecovery) {
+        placed.mode = CompanionMode.follow;
+        placed.modeFrame = 0;
+      }
     } else if (placed.modeFrame >= biteStart && placed.modeFrame <= biteEnd) {
       placed.x = f32(placed.x + f32(placed.direction * f32(partner.lungeTravel / partner.lungeActive)));
-      biteOpponents(world, ownerSlot, partner);
+      placed.z = f32(placed.z - f32((partner.lungeDrop ?? 0.0) / partner.lungeActive));
+      biteOpponents(world, ownerSlot, placed, partner);
     } else if (placed.modeFrame >= biteEnd + partner.lungeRecovery) {
       placed.mode = CompanionMode.follow;
       placed.modeFrame = 0;
@@ -83,19 +99,23 @@ export function advanceCompanion(world: Roster, ownerSlot: number, stage: number
       placed.modeFrame = 0;
     }
   } else if (placed.mode === CompanionMode.returning) {
-    const walked = stepToward(owner, owner.motion.x, partner.returnSpeed);
+    const walked = stepToward(placed, owner.motion.x, partner.returnSpeed);
     if (walked !== 0) placed.direction = walked;
     if (Math.abs(f32(owner.motion.x - placed.x)) <= partner.followBehind) {
       placed.mode = CompanionMode.follow;
       placed.modeFrame = 0;
     }
-  } else {
+  } else if (partner.behavior !== "sentry") {
     const heel = f32(owner.motion.x - f32(owner.facing * partner.followBehind));
-    const walked = stepToward(owner, heel, partner.followSpeed);
+    const walked = stepToward(placed, heel, partner.followSpeed);
     placed.direction = walked !== 0 ? walked : owner.facing < 0 ? -1 : 1;
   }
   // It keeps to its deck: its ends stop it, and a moving deck carries its height.
-  const surface = placed.surface;
+  if (partner.behavior === "flying" && placed.mode !== CompanionMode.lunge && placed.mode !== CompanionMode.stunned) {
+    const height = f32(owner.motion.z + (partner.followHeight ?? 0.0));
+    placed.z = f32(placed.z + min(partner.followSpeed, max(-partner.followSpeed, f32(height - placed.z))));
+  }
+  const surface = partner.behavior === "flying" ? undefined : placed.surface;
   if (surface !== undefined) {
     const left = f32(surfaceLeft(stage, surface, matchFrame) + partner.bite.radius);
     const right = f32(surfaceRight(stage, surface, matchFrame) - partner.bite.radius);
@@ -107,8 +127,7 @@ export function advanceCompanion(world: Roster, ownerSlot: number, stage: number
 }
 
 /** A hit that reaches the partner during a lunge cancels it and stuns it. */
-export function staggerCompanion(f: Fighter): void {
-  const { placed } = f;
+export function staggerCompanion(placed: PlacedObject): void {
   const partner = placed.spec?.companion;
   if (partner === undefined || placed.mode !== CompanionMode.lunge) return;
   placed.mode = CompanionMode.stunned;
