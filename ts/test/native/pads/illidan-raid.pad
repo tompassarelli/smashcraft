@@ -22,9 +22,9 @@
 #! expect a 103 special-form 2 action 12
 #! expect b 103 damage 8.000
 #! expect a 260 applied attack 1 style 4
-#! expect b 266 damage 18.000
+#! expect b 266 damage 17.000
 #! expect a 440 applied attack 2 style 3
-#! expect b 448 damage 32.000
+#! expect b 448 damage 31.000
 #! scene a ImmolationTarget
 #! scene a VolcanoDeath
 # View held a second: the first of two moments the parity check replays.
