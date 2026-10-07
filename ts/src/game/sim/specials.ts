@@ -22,7 +22,7 @@ import { observeActionDecision } from "./observations";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { spawnArcherArrow, spawnBlasterShot, spawnHomingArrow, spawnProjectileMotion } from "./projectiles";
 import { type Controls, type Roster, copyControls, fighterAt, isActive, neutralControls } from "./roster";
-import { surfaceZ } from "./stage";
+import { surfaceZAt } from "./stage";
 import { advanceCompanion } from "./companions";
 import { HIPPOGRYPH_DIVE_ARRIVAL, HIPPOGRYPH_DIVE_OVERSHOOT, RIFLEMAN_BEAR_LIFETIME, advanceBear, advanceHippogryph, recordSpecialHit, specialAlreadyHit, startFreezeTrap } from "./summons";
 import { at } from "wisp/src/runtime/lookup";
@@ -497,7 +497,7 @@ function summonBear(owner: Fighter, stage: number, matchFrame: number): void {
   const moveX = special.direction;
   bear.life = RIFLEMAN_BEAR_LIFETIME;
   bear.x = f32(motion.x + f32(moveX * 45));
-  bear.z = motion.grounded && motion.surface !== undefined ? surfaceZ(stage, motion.surface, matchFrame) : motion.z;
+  bear.z = motion.grounded && motion.surface !== undefined ? surfaceZAt(stage, motion.surface, matchFrame, bear.x) : motion.z;
   bear.velocityX = f32(moveX * 14.0);
   bear.velocityZ = motion.grounded ? 0.0 : motion.vz;
   bear.surface = motion.grounded ? motion.surface : undefined;

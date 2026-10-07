@@ -55,6 +55,7 @@ import {
   moveMeleeVerticalVelocity,
   moveMeleeX,
   moveMeleeZ,
+  slopedLandingZ,
   totalVelocityX,
   totalVelocityZ,
 } from "./motion";
@@ -78,7 +79,8 @@ import {
 import { advanceShieldBreak, beginShieldBreak } from "./shieldBreak";
 import { advanceShieldTilt } from "./shieldTilt";
 import { applyAutomaticSmashDirectionalInfluence, applySmashDirectionalInfluence, discardPendingSmashDirectionalInfluence, renewSmashDirectionalInfluenceString } from "./smashDirectionalInfluence";
-import { surfaceCount, surfaceLeft, surfaceMoves, surfacePass, surfaceRight, surfaceShiftX, surfaceShiftZ, surfaceZ } from "./stage";
+import { floorFriction, floorTraction, groundLineCosine, surfaceCount, surfaceLeft, surfaceLine, surfaceMoves, surfacePass, surfaceRight, surfaceShiftX, surfaceShiftZ, surfaceZ, surfaceZAt } from "./stage";
+
 import { inStageCannon, windPush } from "./stageHazards";
 import { stickX } from "./stick";
 import { checkBlastZone, respawnFighter } from "./stocks";
@@ -311,7 +313,10 @@ function moveHorizontally(f: Fighter, stage: number, matchFrame: number, dashEnt
     return;
   }
   if (motion.grounded) {
-    moveMeleeX(f, addMeleeWorldValues(f32(motion.vx + dashEntryDisplacementAdjustment), shield.pushbackX));
+    const ground = addMeleeWorldValues(f32(motion.vx + dashEntryDisplacementAdjustment), shield.pushbackX);
+    // Melee moves ground speed along the floor line, so a slope takes its horizontal share.
+    const line = motion.surface === undefined ? undefined : surfaceLine(stage, motion.surface);
+    moveMeleeX(f, line === undefined ? ground : f32(ground * groundLineCosine(line, motion.x)));
   } else {
     moveMeleeX(f, motion.vx);
   }
@@ -334,6 +339,16 @@ function landingDeck(f: Fighter, stage: number, matchFrame: number, oldX: number
   let landing: number | undefined;
   let landingZ = 0.0;
   for (let i = 0; i < surfaceCount(stage); i++) {
+    const line = surfaceLine(stage, i);
+    if (line !== undefined) {
+      const lineZ = slopedLandingZ(line, i === carried, oldX, oldZ, motion.x, motion.z);
+      if (lineZ === undefined || (landing !== undefined && lineZ <= landingZ)) continue;
+      if (rise === undefined) rise = totalVelocityZ(f);
+      if (rise > 0) continue;
+      landing = i;
+      landingZ = lineZ;
+      continue;
+    }
     const platformZ = surfaceZ(stage, i, matchFrame);
     const follows = i !== carried && surfaceMoves(stage, i);
     const fromZ = follows ? f32(oldZ + surfaceShiftZ(stage, i, matchFrame)) : oldZ;
@@ -542,7 +557,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
     if (motion.grounded) {
       const previousGroundVelocity = motion.vx;
       // Dash entry stores new ground velocity after this frame's displacement.
-      if (advanceGroundMovement(f, direction, input.walking, horizontalStick)) dashEntryDisplacementAdjustment = f32(previousGroundVelocity - motion.vx);
+      if (advanceGroundMovement(f, direction, input.walking, horizontalStick, floorFriction(stage, motion))) dashEntryDisplacementAdjustment = f32(previousGroundVelocity - motion.vx);
     } else if (direction !== 0 && !groundTakeoff) {
       // Air steering changes velocity, not facing; back aerials rely on a stable orientation.
       const driftStick = input.driftStickX ?? direction;
@@ -559,7 +574,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   } else if (isGroundDodging(f)) {
     motion.vx = 0.0;
   } else if (!groundTakeoff && !authoredMotion && (!canSteer || direction === 0) && launch.hitstun <= 0 && (!dodgeActive || motion.grounded)) {
-    const drag = motion.grounded ? physics.traction : physics.airFriction;
+    const drag = motion.grounded ? floorTraction(physics.traction, floorFriction(stage, motion)) : physics.airFriction;
     motion.vx = motion.vx > 0 ? max(0.0, f32(motion.vx - drag)) : min(0.0, f32(motion.vx + drag));
   }
   // A fresh down, as Melee's drop needs (ftCo_Pass.c), descends; landing on a deck with down held stays on it, and the
@@ -573,8 +588,8 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   const oldX = motion.x;
   const oldZ = motion.z;
   dashEntryDisplacementAdjustment = f32(dashEntryDisplacementAdjustment + attackStartupTravel(world, slot));
-  decayKnockback(f);
-  decayShieldMotion(f);
+  decayKnockback(f, floorFriction(stage, motion));
+  decayShieldMotion(f, floorFriction(stage, motion));
   if (dodgeActive && !motion.grounded) {
     motion.vx = f32(motion.vx * AIR_DODGE_DECAY);
     motion.vz = f32(motion.vz * AIR_DODGE_DECAY);
@@ -584,7 +599,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   moveHorizontally(f, stage, matchFrame, dashEntryDisplacementAdjustment);
   if (isGroundDodging(f) || (motion.grounded && jump.squat > 0)) {
     motion.vz = 0.0;
-    motion.z = surfaceZ(stage, motion.surface ?? 0, matchFrame);
+    motion.z = surfaceZAt(stage, motion.surface ?? 0, matchFrame, motion.x);
   } else if ((!dodgeActive || motion.grounded) && !groundTakeoff && !authoredMotion) {
     if (!motion.grounded && !motion.fastFalling && downHeld && motion.fastFallInputAge < FAST_FALL_INPUT_WINDOW && input.direction === 0
       && down.state === DownState.none && launch.hitstun <= 0 && motion.vz < 0) {

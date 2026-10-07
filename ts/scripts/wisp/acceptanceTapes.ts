@@ -11,7 +11,10 @@ import { actionFor, keyLabel, presetBindings } from "../../src/game/input/keyBin
 import { TAPE_HEADER, decodeTape } from "../../src/game/replay/tape";
 import { type TapeSession, createTapeSession, performTapeOperation } from "../../src/game/replay/tapeRunner";
 import { Character } from "../../src/game/sim/codes";
-import { type Controls, fighterAt, neutralControls } from "../../src/game/sim/roster";
+import { type Controls, fighterAt, isActive, neutralControls } from "../../src/game/sim/roster";
+import { surfaceShiftX, surfaceShiftZ } from "../../src/game/sim/stage";
+import { windPush } from "../../src/game/sim/stageHazards";
+import { stageClock } from "../../src/game/match/rules";
 
 const bindings = presetBindings("standard");
 /** Every bound key of the standard layout, by label, plus the controller stick's jump. */
@@ -58,6 +61,25 @@ interface MatchScript {
   readonly predictions?: readonly (readonly [number, number])[];
   /** Slot 1 is the game's computer, which plays from the match in each runtime: the tape gives it no input. */
   readonly computer?: boolean;
+  /** Plays with stage hazards off, set at stage selection. */
+  readonly hazardsOff?: boolean;
+  /** The stage element the tape must exercise on some frame, or recording fails. */
+  readonly exercise?: "pushed" | "carried";
+}
+
+/** Whether a stage element moved a fighter on the frame just run: the wind pushed one, or a moving deck carried one. */
+function exercised(session: TapeSession, exercise: "pushed" | "carried"): boolean {
+  const { world, match } = session.live;
+  const frame = stageClock(match);
+  for (const slot of [0, 1]) {
+    if (!isActive(world, slot)) continue;
+    const { motion } = fighterAt(world, slot);
+    if (!motion.grounded) continue;
+    if (exercise === "pushed" && windPush(match.stageChoice, frame, motion.x, motion.z) !== 0) return true;
+    const deck = motion.surface;
+    if (exercise === "carried" && deck !== undefined && deck > 0 && (surfaceShiftX(match.stageChoice, deck, frame) !== 0 || surfaceShiftZ(match.stageChoice, deck, frame) !== 0)) return true;
+  }
+  return false;
 }
 
 const NEUTRAL = Object.entries(neutralControls());
@@ -76,7 +98,7 @@ function formatControls(controls: Controls, attacks: AttackBuffer): string {
 function menuLines(script: MatchScript): string[] {
   return [
     `character 0 ${script.characters[0]}`, `character 1 ${script.characters[1]}`, `stocks 0 ${script.stocks}`, `time 0 ${script.minutes}`, "stage-select 0",
-    ...(script.stage > 1 ? [`test-stage ${script.stage}`] : [`stage 0 ${script.stage}`]), "start 0", ...(script.placement === undefined ? [] : [script.placement]),
+    ...(script.stage > 1 ? [`test-stage ${script.stage}`] : [`stage 0 ${script.stage}`]), ...(script.hazardsOff === true ? ["hazards 0 0"] : []), "start 0", ...(script.placement === undefined ? [] : [script.placement]),
   ];
 }
 
@@ -96,6 +118,7 @@ function playMatch(script: MatchScript, session: TapeSession, play: (...lines: s
   const actual: string[][] = [];
   // A competitive match holds its fighters for the countdown: the script's frame 1 is GO!.
   const hold = session.live.match.startHold;
+  let moved = false;
   for (let at = 1; at <= hold; at++) play(`frame ${at}`);
   for (let frame = 1; frame <= script.frames; frame++) {
     const at = frame + hold;
@@ -138,7 +161,9 @@ function playMatch(script: MatchScript, session: TapeSession, play: (...lines: s
       if (frame === prediction[1]) actual.splice(0).forEach((recorded, index) => play(...recorded, `correct ${prediction[0] + hold + index}`));
     }
     if (first !== undefined) play(`rollback ${first + hold} ${at}`);
+    if (script.exercise !== undefined && !moved) moved = exercised(session, script.exercise);
   }
+  if (script.exercise !== undefined && !moved) throw new Error(`no fighter was ${script.exercise} by the stage on stage ${script.stage}`);
 }
 
 /** Records a tape by playing its matches, a rematch between consecutive ones. */
@@ -457,16 +482,40 @@ export function generateTapes(): Map<string, string> {
       holds: [[[1, 10, JUMP], [140, 3, DOWN], [220, 10, JUMP]], [[1, 10, JUMP], [100, 3, DOWN], [180, 10, JUMP]]],
       approaches: [[], []], rollbacks: [[147, 210], [437, 500]], predictions: [[240, 250]],
     }])],
-    ...[
-      ["wind", 10, 1900, undefined],
-      ["carried", 11, 940, "test-air 0 -420 125"],
-      ["cannon", 12, 650, "test-air 0 -760 -350"],
-      ["timed-lift", 13, 440, "test-air 0 -330 125"],
-    ].map(([name, stage, frames, placement]) => [String(name), recordTape(`Deterministic ${name} hazard, controller presses, corrected predictions and rollback.`, [{
-      characters: [Character.archer, Character.rifleman], stage: Number(stage), stocks: 3, minutes: 0, frames: Number(frames),
-      ...(typeof placement === "string" ? { placement } : {}),
+    ["slopes", recordTape("Running, walking, jumping and landing on Yoshi's Story's sloped main deck, a tech and a fight on the slope, with predictions and rollback.", [{
+      characters: [Character.archer, Character.rifleman], stage: 6, stocks: 3, minutes: 0, frames: 760,
+      holds: [[
+        [185, 40, LEFT, WALK], [228, 3, JUMP], [260, 36, RIGHT, WALK], [300, 3, JUMP], [330, 20, LEFT, WALK], [360, 2, ATTACK],
+        [400, 18, RIGHT], [430, 2, ATTACK], [470, 2, GRAB], [520, 3, JUMP], [526, 2, C_DOWN], [600, 2, DOWN, ATTACK],
+      ], [
+        [185, 60, RIGHT, WALK], [250, 3, JUMP], [256, 6, LEFT], [290, 24, LEFT], [330, 2, ATTACK], [380, 14, SHIELD_LEFT],
+        [440, 2, ATTACK], [500, 2, SPECIAL],
+      ]],
+      approaches: [[[560, 45], [640, 45]], [[420, 45], [540, 45], [660, 45]]],
+      rollbacks: [[195, 240], [300, 360], [420, 480], [560, 620], [700, 750]], predictions: [[205, 217], [330, 342]],
+    }])],
+    ...([
+      ["wind", 10, 1900, undefined, "pushed"],
+      ["carried", 11, 940, "test-air 0 -420 125", "carried"],
+      ["cannon", 12, 650, "test-air 0 -760 -350", undefined],
+      ["timed-lift", 13, 440, "test-air 0 -330 125", "carried"],
+    ] as const).map(([name, stage, frames, placement, exercise]) => [name, recordTape(`Deterministic ${name} hazard, controller presses, corrected predictions and rollback.`, [{
+      characters: [Character.archer, Character.rifleman], stage, stocks: 3, minutes: 0, frames,
+      ...(placement === undefined ? {} : { placement }), ...(exercise === undefined ? {} : { exercise }),
+
       holds: [[[30, 1, ATTACK], [300, 1, SPECIAL]], []], approaches: [[], []],
       rollbacks: [[37, 100], [337, 400]], predictions: [[120, 130]],
+    }])] as const),
+    // Hazards off: the carried platform rests at the centre, the first gust's time passes calm, and the cannon's spot is empty.
+    ...([
+      ["hazards-off-carried", 11, 500, "test-air 0 0 125"],
+      ["hazards-off-wind", 10, 700, undefined],
+      ["hazards-off-cannon", 12, 300, "test-air 0 -760 -350"],
+    ] as const).map(([name, stage, frames, placement]) => [name, recordTape(`Stage ${stage} with hazards off, controller presses, corrected predictions and rollback.`, [{
+      characters: [Character.archer, Character.rifleman], stage, stocks: 3, minutes: 0, frames, hazardsOff: true,
+      ...(placement === undefined ? {} : { placement }),
+      holds: [[[30, 1, ATTACK], [200, 1, SPECIAL]], []], approaches: [[], []],
+      rollbacks: [[37, 100], [237, 280]], predictions: [[120, 130]],
     }])] as const),
   ]);
   pressed.forEach((sources, slot) => {

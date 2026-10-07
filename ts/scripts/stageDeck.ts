@@ -6,7 +6,7 @@
 // against the collision lines without the model compiler.
 import { type DeckPalette, NEUTRAL_DECK_PALETTE } from "../src/game/assets/stagePalette";
 import { SurfaceContact } from "../src/game/sim/codes";
-import { MAIN_DECK_BODY_SURFACES, mainDeckLeft, mainDeckRight, mainDeckZ, solidSurfaceAt, solidSurfaceCount } from "../src/game/sim/stage";
+import { MAIN_DECK_BODY_SURFACES, mainDeckLeft, mainDeckRight, mainDeckZ, surfaceLine, solidSurfaceAt, solidSurfaceCount } from "../src/game/sim/stage";
 
 type Vector3 = readonly [x: number, y: number, z: number];
 export type OutlinePoint = readonly [x: number, z: number];
@@ -57,7 +57,16 @@ function mainDeckOutline(stage: number): OutlineLine[] {
   const center = (left + right) / 2;
   const floor = mainDeckZ(stage);
   const point = (x: number, z: number): OutlinePoint => [x - center, z - floor];
-  const lines: OutlineLine[] = [{ kind: "floor", start: point(left, floor), end: point(right, floor), normal: [0, 1] }];
+  const line = surfaceLine(stage, 0);
+  const lines: OutlineLine[] = [];
+  if (line === undefined) lines.push({ kind: "floor", start: point(left, floor), end: point(right, floor), normal: [0, 1] });
+  else for (let index = 0; index < line.grades.length; index++) {
+    const x1 = line.xs[index]; const z1 = line.zs[index];
+    const x2 = line.xs[index + 1]; const z2 = line.zs[index + 1];
+    const grade = line.grades[index]; const cosine = line.cosines[index];
+    if (x1 === undefined || z1 === undefined || x2 === undefined || z2 === undefined || grade === undefined || cosine === undefined) throw new Error("incomplete ground line");
+    lines.push({ kind: "floor", start: point(x1, z1), end: point(x2, z2), normal: [-grade * cosine, cosine] });
+  }
   for (let index = 0; index < MAIN_DECK_BODY_SURFACES; index++) {
     const line = solidSurfaceAt(stage, index);
     lines.push({
