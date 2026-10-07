@@ -290,6 +290,12 @@ code. From smashcraft:ts/:
   bounded contextual habits, anticipatory commitments and risk-aware move
   choice; smashcraft:ts/src/game/match/botStrategyContracts.tests.ts checks
   adaptation, punishable reads, buffering and seeded decision variety.
+- Named-opponent calibration: `bun scripts/cpuCalibration.ts [--revision SHA]
+  [--out FILE] [--json FILE]` from ts/ measures all 30 identity/tier rows over
+  seeds 0–9, with 100 eligible decisions per measure, distributions and hard
+  collection/fairness/replay failures. `gh workflow run cpu-calibration.yml
+  -f ref=COMMIT` runs the same report hosted. Procedure and remaining behavior
+  gates: smashcraft:docs/design/cpu-profiles.md, "Calibration report".
 - Difficulty report: `gh workflow run cpu-tiers.yml -f ref=COMMIT` measures Wren at every tier pair with `cpuTiers` (20 matches per pair, 100 Expert-vs-Rookie matches). The run summary and `cpu-tiers` artifact hold its table.
 - Release roster: `bun scripts/releaseRoster.ts FIELD.json` (from ts/) writes
   smashcraft:ts/src/game/sim/heroes/releaseRoster.ts from a gate run's

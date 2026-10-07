@@ -1,0 +1,39 @@
+name: Named opponent calibration
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Commit, branch or tag to measure
+        default: main
+
+run-name: Named opponent calibration ${{ inputs.ref }}
+
+permissions:
+  contents: read
+
+jobs:
+  calibration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+      - run: bun install --frozen-lockfile
+        working-directory: ts
+      - name: Measure the 30 rows
+        working-directory: ts
+        run: |
+          mkdir -p build/cpu-calibration
+          bun scripts/cpuCalibration.ts --revision "$(git rev-parse HEAD)" --out build/cpu-calibration/report.md --json build/cpu-calibration/report.json
+          cat build/cpu-calibration/report.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cpu-calibration
+          path: ts/build/cpu-calibration/
+          retention-days: 30

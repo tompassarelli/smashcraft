@@ -229,6 +229,43 @@ fighter-balance gates; never lower their thresholds. Hosted sweeps use explicit
 revision/seed sets. Fairness, five-frame commitment and replay determinism
 remain hard checks.
 
+## Calibration report
+
+From ts/, `bun scripts/cpuCalibration.ts --out build/cpu-calibration/report.md
+--json build/cpu-calibration/report.json` collects all 30 authored rows using
+the same ten seeds (0–9). The default supplies ten eligible decisions per seed
+for each measure. `--trials-per-seed N` changes the sample count; fewer than
+100 decisions per measure fails collection. `--revision SHA` records the
+revision explicitly; otherwise the command records Git HEAD. The hosted route
+is `gh workflow run cpu-calibration.yml -f ref=COMMIT`; its summary and
+cpu-calibration artifact contain the numerical report.
+
+Controlled situations call the real shared policy: an unexpected side change,
+shield, jump, smash or shot; a legal tumbling tech; neutral move selection at
+two distances; a close whiff-punish opportunity; learned strikes followed by
+shield events; the same move's value ahead and behind; a visible incoming
+strike; and Rifleman's ready short-hop blaster. Reaction distributions include
+the cases with no changed input within the observation delay plus 30 frames.
+The same seeded decision sequence is restored and replayed in each sample.
+Direction requests include neutral braking and measure actual reversals.
+
+The command fails insufficient collection, an early reaction, a direction
+reversal inside five frames or any restored-state difference. Counts and
+distributions remain visible when collection fails. It also prints close
+conversions and exposed commitments at high own damage. These fixtures are
+measurements; the complete six developmental paths and identity-specific
+enduring-flaw fixtures remain #186's separate acceptance gate. Do not label a
+collection pass as completion of calibration.
+
+Use the existing hosted difficulty and field commands for their original
+thresholds (Expert wins at least 95/100 against Rookie; every fighter lies
+within 40–60% against the Wren Expert field at 400 matches per pair), and the
+existing kit/recovery/gameplan contracts for whole-roster coverage. Reuse a
+passing result only while its covered policy is unchanged. Calibration rows
+change one measured behavior at a time; never retune fighter stats or relax a
+coverage/rank assertion to make an AI report pass. These are authored
+Smashcraft measurements, with no human rating or imitation claim.
+
 ## Reads and move value
 
 smashcraft:ts/src/game/match/botStrategy.ts records transitions in delayed
