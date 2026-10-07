@@ -119,10 +119,18 @@ code. From smashcraft:ts/:
   coordinated expansion-hero reach, hold, pummel and four-direction holder/victim
   gestures or reauthors their existing indices. `--character` limits reauthoring
   to one expansion fighter (smashcraft:docs/fighter-animation-work.md).
+  `bun tools/animations/pit-lord-specials.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
+  authors Pit Lord's four special gestures while preserving all earlier clips.
   `bun tools/animations/grab-pads.ts` generates the #180 mirror and unlike-height capture batch:
   ten expansion heroes, four throws, both facings, with ordinary catch/pummel
   inputs and contact-frame captures in smashcraft:ts/test/native/pads/180/.
   `-dev quick pair FIRST / SECOND` selects different named fighters in the two human slots.
+- Thrall stock-rig animation authoring (from the repository root):
+  `bun tools/animations/thrall-clips.ts STOCK_THRALL.mdx PRIVATE_OUTPUT` appends
+  mounted hammer, casting, recovery, grab and nine contact-reaction clips,
+  writes both-facing side-view sheets, and refreshes Thrall clip and stride
+  metadata. Store the generated model in `hero-models` and refresh the
+  original clip pool before building.
 - Lich King animation authoring (from the repository root):
   `tools/animations/build-lichking.sh [PRIVATE_INPUTS] [IMMUTABLE_EXISTING_MODEL] [--replace NAME]`
   authors clips through Blender; the optional existing model preserves shipped
