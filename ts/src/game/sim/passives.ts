@@ -23,6 +23,7 @@ const NONE: PassiveSpec = { kind: PassiveKind.none, stacks: 0, window: 0 };
 const WINDFURY: PassiveSpec = { kind: PassiveKind.criticalStrike, stacks: 2, window: 180 };
 const ENDURANCE: PassiveSpec = { kind: PassiveKind.endurance, stacks: 2, window: 180 };
 const PILLAGE: PassiveSpec = { kind: PassiveKind.pillage, stacks: 2, window: 0 };
+const ENGINEERING_UPGRADE: PassiveSpec = { kind: PassiveKind.voodoo, stacks: 2, window: 240 };
 
 /** By Character code. Illidan has none: his attacks drain mana on hit (his kit data). */
 const SPECS: readonly PassiveSpec[] = [
@@ -49,6 +50,7 @@ export function passiveSpec(character: Character): PassiveSpec {
   if (character === Character.cairne) return ENDURANCE;
   if (character === Character.chen) return DRUNKEN_BRAWLER;
   if (character === Character.peon) return PILLAGE;
+  if (character === Character.tinker) return ENGINEERING_UPGRADE;
   return SPECS[character] ?? NONE;
 }
 

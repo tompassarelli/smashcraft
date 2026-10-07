@@ -61,6 +61,7 @@ export const FIGHTER_OBJECTS: Readonly<Record<Character, FighterObject>> = {
   [Character.sylvanas]: heroObject(Character.sylvanas),
   [Character.cairne]: heroObject(Character.cairne),
   [Character.peon]: heroObject(Character.peon),
+  [Character.tinker]: heroObject(Character.tinker),
 };
 
 export const FIGHTER_OBJECT_ORDER: readonly Character[] = [Character.archer, Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map((hero) => hero.character)];
