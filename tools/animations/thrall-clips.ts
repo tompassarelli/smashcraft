@@ -58,13 +58,21 @@ function joint(name:string,g:Gesture):[number,number]{
  if(name==="Bone_Chest")return [g.chest??0,0];if(name==="Bone Rider Waist")return [g.waist??0,g.yaw??0];if(name==="Bone Rider R Arm")return [g.arm??0,0];if(name==="Bone Rider R Wrist")return [g.wrist??0,0];if(name==="Bone Rider L Arm")return [g.leftArm??0,0];if(name==="Bone_Head")return [g.head??0,0];if(name==="Bone Wolf Waist")return [g.wolf??0,0];if(name==="Bone Wolf Neck")return [g.neck??0,0];if(/^Bone Front [LR] Leg$/.test(name))return [g.front??0,0];if(/^Bone Back [LR] Leg$/.test(name))return [g.back??0,0];if(name==="Bone Center")return [g.lean??0,0];return [0,0];
 }
 const originals=new Map<string,mdx.AnimVector>();tracks(source,(t,p)=>originals.set(p,t));
-let cursor=Math.max(...source.Sequences.map(s=>s.Interval[1]))+100;
+const retainedFile=Bun.file(join(output,"thrall.mdx"));
+const retained=await retainedFile.exists()?parseSource(await retainedFile.arrayBuffer()):undefined;
+let cursor=Math.max(...(retained?.Sequences??source.Sequences).map(s=>s.Interval[1]))+100;
 const bindings:string[]=[],damageBindings:string[]=[], records:unknown[]=[];
 const damageActions:Action[]=[];
 for(let height=0;height<3;height++)for(let strength=0;strength<3;strength++){const gain=[0.45,0.8,1.2][strength]!;damageActions.push({pose:"damageGround",frames:24,contact:3,hold:true,gesture:height===0?{front:65*gain,back:55*gain,wolf:18*gain,waist:25*gain,chest:25*gain,head:-15*gain}:height===1?{chest:55*gain,waist:-25*gain,arm:30*gain,leftArm:35*gain,wolf:8*gain}:{head:-45*gain,chest:-35*gain,arm:45*gain,leftArm:55*gain,neck:-15*gain}});}
 for(const [ordinal,action]of [...actions,...damageActions].entries()){
- const index=model.Sequences.length,start=cursor,end=start+Math.round(action.frames*1000/60);cursor=end+100;
+ const index=model.Sequences.length;
  const name=ordinal<actions.length?`Thrall ${action.pose}`:`Thrall Damage ${Math.floor((ordinal-actions.length)/3)} ${((ordinal-actions.length)%3)}`;
+ const previous=retained?.Sequences[index];
+ if(previous)ensure(previous.Name===name,`${name}: existing clip index changed`);
+ const duration=Math.round(action.frames*1000/60);
+ const reuse=previous!==undefined&&previous.Interval[1]-previous.Interval[0]===duration;
+ const start=reuse?previous.Interval[0]:cursor,end=start+duration;
+ if(!reuse)cursor=end+100;
  model.Sequences.push({...stand,Name:name,Interval:new Uint32Array([start,end]),NonLooping:true,MoveSpeed:0,Rarity:0,MinimumExtent:new Float32Array([-300,-300,-200]),MaximumExtent:new Float32Array([300,300,350]),BoundsRadius:400});
  const phaseFrames=[0,Math.max(1,action.contact-3),action.contact,Math.min(action.frames-1,action.contact+4),action.frames];
  const phases=phaseFrames.map((frame,i)=>({frame,amount:i===0?0:i===1?-0.3:i===4?(action.hold?1:0):1}));
@@ -78,6 +86,7 @@ for(const [ordinal,action]of [...actions,...damageActions].entries()){
    track.Keys.push({...first,Frame:start+Math.round(frame*1000/60),Vector,...first.InTan?{InTan:tangent(),OutTan:tangent()}: {}});
   }
  });
+ tracks(model,track=>{if(!onGlobalClock(track))track.Keys.sort((a,b)=>a.Frame-b.Frame);});
  // Root translation grounds the articulated mount; airborne actions retain their authored pose.
  const center=model.Nodes.find(b=>b.Name==="Bone Center");ensure(center,"No mount root");
  if(!center.Translation)center.Translation={LineType:1,GlobalSeqId:null,Keys:source.Sequences.flatMap(s=>Array.from(s.Interval).map(Frame=>({Frame,Vector:new Float32Array([0,0,0])})))};
@@ -95,7 +104,7 @@ for(const [ordinal,action]of [...actions,...damageActions].entries()){
   loss();
 
  }
- const beforeKeys=center.Translation.Keys.filter(k=>k.Frame<start);
+ const beforeKeys=center.Translation.Keys.filter(k=>k.Frame<start||k.Frame>end);
  const drawn=new DrawnModel(generateMDX(model),1);
  const translations:mdx.AnimKeyframe[]=[];
  for(const {frame}of phases){const triangle=drawn.triangles(index,frame/60,1);let lowest=Infinity;for(let i=1;i<triangle.length;i+=2)lowest=Math.min(lowest,triangle[i]!);const old=center.Translation.Keys.find(k=>k.Frame===start+Math.round(frame*1000/60));translations.push({Frame:start+Math.round(frame*1000/60),Vector:new Float32Array([old?.Vector[0]??0,old?.Vector[1]??0,(old?.Vector[2]??0)-(action.air?0:lowest)]),...(center.Translation.LineType>1?{InTan:new Float32Array([0,0,0]),OutTan:new Float32Array([0,0,0])}:{})});}
@@ -104,6 +113,7 @@ for(const [ordinal,action]of [...actions,...damageActions].entries()){
  if(ordinal<actions.length)bindings.push(`  ${action.pose}: ${binding},`);else damageBindings.push(`  ${binding},`);
  records.push({pose:name,index,frames:action.frames,contact:action.contact});
 }
+tracks(model,track=>{if(!onGlobalClock(track))track.Keys.sort((a,b)=>a.Frame-b.Frame);});
 const bytes=encodeVerified(parseSource(generateMDX(model)));mkdirSync(output,{recursive:true});await Bun.write(join(output,"thrall.mdx"),bytes);
 await Bun.write(join(project,"ts/src/game/presentation/heroes/thrallClips.ts"),[
  "// Generated by tools/animations/thrall-clips.ts from the stock classic Thrall rig.",'import { f32 } from "wisp/src/sim/f32";', 'import type { HeroClip, HeroClipTable } from "../../sim/heroes/hero";',
