@@ -129,11 +129,16 @@ export class FighterAgencyForecast {
         const before = this.thrown.down.state;
         const recoverySerial = this.thrown.surfaceRecovery.contactSerial;
         advanceTechInput(this.pressedTech, offset === 0, this.thrown.launch.hitlag > 1);
-        advanceFighterMotion(this.throwWorld, 0, stage, frame + offset + 1, this.throwInputs[0] ?? neutralControls(), 0.0);
+        // Neutral input cannot catch the victim again after release; only its
+        // motion can change the landing the tech press is being tested against.
+        const linked = !this.bounded || this.thrown.grab.owner !== undefined || this.holder.grab.target !== undefined;
+        if (linked) advanceFighterMotion(this.throwWorld, 0, stage, frame + offset + 1, this.throwInputs[0] ?? neutralControls(), 0.0);
         advanceFighterMotion(this.throwWorld, 1, stage, frame + offset + 1, this.throwInputs[1] ?? neutralControls(), 0.0);
-        resolveGrabs(this.throwWorld);
-        advanceGrabs(this.throwWorld, this.throwInputs);
-        resolveGrabs(this.throwWorld);
+        if (linked) {
+          resolveGrabs(this.throwWorld);
+          advanceGrabs(this.throwWorld, this.throwInputs);
+          resolveGrabs(this.throwWorld);
+        }
         const floorContact = before === DownState.tumble && this.thrown.down.state !== DownState.tumble;
         const solidContact = before === DownState.tumble && this.thrown.surfaceRecovery.contactSerial !== recoverySerial;
         if (floorContact || solidContact) return techInputEligible(this.pressedTech) !== techInputEligible(this.thrown.tech);
