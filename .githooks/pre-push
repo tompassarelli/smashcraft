@@ -1,0 +1,5 @@
+#!/usr/bin/env bun
+// Git's pre-push hook; the gate is smashcraft:ts/scripts/prePush.ts.
+import { prePush } from "../ts/scripts/prePush.ts";
+
+prePush(await Bun.stdin.text());

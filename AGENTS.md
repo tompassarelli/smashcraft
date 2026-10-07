@@ -293,6 +293,13 @@ code. From smashcraft:ts/:
 
 ## Verify the changed behavior
 
+Every push runs the pre-push gate (smashcraft:.githooks/pre-push, enabled for
+the repository with `git config core.hooksPath .githooks`; safe-push runs it):
+`bun run check` and the type-escape audit (smashcraft:ts/test/source-shapes.test.ts)
+when the pushed commits change ts/, and client/ui's type-check when they change
+it, in a few seconds (smashcraft:ts/scripts/prePush.ts). It checks the working
+tree, so push from a clean checkout of the commit.
+
 From smashcraft:ts/, use `bun test test/game.test.ts` for focused game tests,
 `bun run check` for host and map type-checking, and
 `LUA=<32-bit lua> bun scripts/lua-tests.ts` for emitted-Lua tests. Use
